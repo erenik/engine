@@ -1,0 +1,217 @@
+/// Emil Hedemalm
+/// 2013-03-01
+
+#include <iostream>
+#include <cassert>
+
+/// Default constructor
+template <class T>
+List<T>::List()
+{
+	arr = NULL;
+	arrLength = 0;
+	currentItems = 0;
+	inUse = false;
+}
+/// Destructor
+template <class T>
+List<T>::~List(){
+	if (arr)
+		delete[] arr;
+	arr = NULL;
+	arrLength = 0;
+}
+/// Copy constructor
+template <class T>
+List<T>::List(const List & otherList){
+	arrLength = otherList.arrLength;
+	arr = new T[arrLength];
+	currentItems = otherList.currentItems;
+	/// Transfer items
+	for (int i = 0; i < currentItems; ++i){
+		arr[i] = otherList.arr[i];
+	}
+}
+template <class T>
+List<T>::List(const T & initialItem){
+	arr = NULL;
+	arrLength = 0;
+	currentItems = 0;
+	inUse = false;
+	Add(initialItem);
+}
+
+/// Operator overloading
+template <class T>
+const List<T> * List<T>::operator = (const List &otherList){
+	if (arr)
+		delete[] arr;
+	arr = NULL;
+	arrLength = 0;
+	currentItems = 0;
+	assert(otherList.arrLength >= otherList.currentItems);
+	if (otherList.arrLength > 0){
+		arrLength = otherList.arrLength;
+		arr = new T[arrLength];
+		for (int i = 0; i < otherList.currentItems; ++i){
+			arr[i] = otherList.arr[i];
+		}
+		currentItems = otherList.currentItems;
+	}
+	return this;
+}
+template <class T>
+const List<T> * List<T>::operator += (const List<T> &otherList) {
+	/// Check if resizing is needed
+	if (currentItems + otherList.currentItems > arrLength)
+		Resize(currentItems + otherList.currentItems);
+	// Ship over stuff
+	for (int i = 0; i < otherList.currentItems; ++i){
+		Add(otherList.arr[i]);
+	}
+	return this;
+}
+template <class T>
+const List<T> List<T>::operator += (const T &newItem){
+	assert(false && "Not implemented");
+}
+template <class T>
+const List<T> List<T>::operator -= (const T &itemToRemove){
+assert(false && "Not implemented");
+}
+template <class T>
+const List<T> List<T>::operator + (const List<T> &otherList) const {
+	List<T> newList;
+	newList += *this;
+	newList += otherList;
+	return newList;
+}
+template <class T>
+const List<T> List<T>::operator - (const List<T> &otherList) const {
+	assert(false && "Not implemented");
+}
+
+template <class T>
+T& List<T>::operator[](int index) {
+	return arr[index];
+}
+
+template <class T>
+const T& List<T>::operator[](int index) const {
+	return arr[index];
+}
+
+/// Get last one.
+template <class T>
+const T List<T>::Last() const {
+	return arr[currentItems-1];
+}
+
+/// Adds an item to the list
+template <class T>
+bool List<T>::Add(T item) {
+	if (currentItems == arrLength){
+		try {
+			Resize(currentItems * 2);
+		} catch (...){
+			std::cout << "\nUnable to allocate larger size array!";
+			return false;
+		}
+	}
+	arr[currentItems] = item;
+	++currentItems;
+	return true;
+}
+/// Remove target item or index
+template <class T>
+bool List<T>::Remove(T item){
+	for (int i = 0; i < currentItems; ++i){
+		/// found it!
+		if (arr[i] == item){
+			currentItems--;
+			arr[i] = arr[currentItems];
+			return true;
+		}
+	}
+	return false;
+}
+template <class T>
+bool List<T>::Remove(int index){
+	assert(index < currentItems && "Index out of bounds! You're probably doing something wrong.");
+	if (index >= currentItems)
+		return false;
+	for (int i = 0; i < currentItems; ++i){
+		arr[i] = arr[i+1];
+	}
+	--currentItems;
+	return true;
+}
+
+/// Clears the list of all entries. Returns amount of removed items.
+template <class T>
+int List<T>::Clear(){
+	currentItems = 0;
+	int itemsRemoved = currentItems;
+	currentItems = 0;
+	return itemsRemoved;
+}
+
+/// Clears the list of entries and deletes every single one of them. USE WITH CAUTION!
+/// Doesn't work in GCC apparently, maybe bad move.
+
+template <class T>
+int List<T>::ClearAndDelete(){
+	for (int i = 0; i < currentItems; ++i)
+		delete arr[i];
+	int itemsRemoved = currentItems;
+	currentItems = 0;
+	return itemsRemoved;
+}
+
+
+/// Returns size of the list
+template <class T>
+const int & List<T>::Size() const {
+	return currentItems;
+}
+
+/// Polls the existance/copy of target item in the queue.
+template <class T>
+bool List<T>::Exists(T item) const {
+	for (int i = 0; i < currentItems; ++i){
+		if (arr[i] == item)
+		return true;
+	}
+	return false;
+}
+
+/// Polls the existance/copy of target item in the queue. Returns it's index if so and -1 if not.
+template <class T>
+int List<T>::GetIndex(T item) const {
+	for (int i = 0; i < currentItems; ++i){
+		if (arr[i] == item)
+		return i;
+	}
+	return -1;
+}
+
+/// Resizes the array. Recommended to use before filling it to avoid re-sizings later which might slow down the system if used repetitively.
+template <class T>
+void List<T>::Allocate(int newSize){
+	Resize(newSize);
+}
+
+/// Resizing function
+template <class T>
+void List<T>::Resize(int newSize){
+	if (newSize == 0)
+		newSize = 8;
+	assert(newSize >= currentItems);
+	T * newArr = new T[newSize];
+	for (int i = 0; i < currentItems; ++i)
+		newArr[i] = arr[i];
+	if (arr)
+		delete[] arr;
+	arr = newArr;
+	arrLength = newSize;
+}

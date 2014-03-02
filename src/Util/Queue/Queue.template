@@ -1,0 +1,146 @@
+/// Emil Hedemalm
+/// 2013-03-01
+
+#include <cassert>
+
+template <class Item>
+Queue<Item>::Queue()
+{
+	tail_ptr = head_ptr = NULL;
+	length = 0;
+	inUse = false;
+}
+
+template <class Item>
+Queue<Item>::~Queue()
+{
+	while(!isOff())
+		Pop();
+	if (head_ptr){
+		delete head_ptr;
+		head_ptr = NULL;
+	}
+}
+
+template <class Item>
+void Queue<Item>::Push(Item i_item)
+{
+	inUse = true;
+	QueueNode<value_type>* newQueueNode = new QueueNode<value_type>(i_item);
+	if (tail_ptr == NULL){
+		tail_ptr = head_ptr = newQueueNode;
+	}
+	else {
+		tail_ptr->setNext(newQueueNode);
+		tail_ptr = newQueueNode;
+	}
+	++length;
+}
+
+template <class Item>
+void Queue<Item>::PushFront(value_type i_item)	// Push to the front of the queue
+{
+	QueueNode<value_type>* newQueueNode = new QueueNode<value_type>(i_item);
+	if (tail_ptr == NULL){
+		tail_ptr = head_ptr = newQueueNode;
+	}
+	else {
+		newQueueNode->setNext(*head_ptr);
+		head_ptr = newQueueNode;
+	}
+	++length;
+}
+
+template <class Item>
+Item Queue<Item>::Pop()
+{
+
+	if(head_ptr == NULL){
+		inUse = false;
+		return NULL;
+	}
+
+	value_type data = head_ptr->getData();
+
+	QueueNode<value_type> * old = head_ptr;
+
+	if (tail_ptr == head_ptr){
+		tail_ptr = head_ptr = NULL;
+	}
+	else {
+		head_ptr = head_ptr->getNext();
+	}
+
+	delete old;
+	old = NULL;
+	if(length)
+		--length;
+	return data;
+}
+
+template <class Item>
+Item Queue<Item>::PopLast()				// Pops last element
+{
+	if(tail_ptr == NULL){
+		inUse = false;
+		return NULL;
+	}
+	value_type data = tail_ptr->getData();
+	QueueNode<value_type> * old = tail_ptr;
+	if (tail_ptr == head_ptr){
+		tail_ptr = head_ptr = NULL;
+	}
+	else if (head_ptr->getNext() == NULL){		// If just two elements before deletion
+		tail_ptr = head_ptr;
+	}
+	else {
+		QueueNode<value_type> * nextLast = head_ptr;
+		while(nextLast->getNext()->getNext())
+			nextLast = nextLast->getNext();
+		tail_ptr = nextLast;		// Next last will be the last element after deletion
+	}
+	if (tail_ptr)
+		tail_ptr->setNext(NULL);
+	delete old;
+	old = NULL;
+	if(length)
+		--length;
+
+	return data;
+}
+
+/// Peeks at the front of the queue.
+template <class Item>
+Item Queue<Item>::Peek() const {
+	if(head_ptr == NULL){
+		inUse = false;
+		return NULL;
+	}
+	value_type data = head_ptr->getData();
+	return data;
+}
+
+template <class Item>
+int Queue<Item>::Length()
+{
+	return length;
+}
+
+template <class Item>
+bool Queue<Item>::isOff()
+{
+	return (head_ptr == NULL);
+}
+
+template <class Item>
+bool Queue<Item>::Exists(value_type item){
+	QueueNode<value_type> * ptr = head_ptr;
+	if (ptr == NULL)
+		return false;
+	while (ptr){
+		if (ptr->getData() == item)
+			return true;
+		ptr = ptr->getNext();
+	}
+	return false;
+}

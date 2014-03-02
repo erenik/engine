@@ -1,0 +1,3 @@
+
+// Only define the ROOT_DIR if in debug, assume release mode will only be tested in the deployed folder.
+#define ROOT_DIR "@DATA_ROOT@"

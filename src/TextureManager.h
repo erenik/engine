@@ -1,0 +1,79 @@
+
+
+#ifndef TEXTURE_MANAGER_H
+#define TEXTURE_MANAGER_H
+
+#include <Util.h>
+#include "Texture.h"
+class Entity;
+
+#define TexMan		(*TextureManager::Instance())
+
+class TextureManager{
+private:
+	/// Default constructor that nullifies all initial texture IDs
+	TextureManager();
+	static TextureManager * texMan;
+public:
+	static void Allocate();
+	static TextureManager * Instance() { return texMan; };
+	static void Deallocate();
+	/// Destructor
+	~TextureManager();
+	/// Clears all GL memory.
+	void DeallocateTextures();
+
+	/// Creates a new texture that the texture manager will make sure to deallocate once the program shuts down, so you don't have to worry about it.
+	Texture * New();
+	/// Creates a new texture, made for updating more than once.
+	Texture * NewDynamic();
+	/// Prints a list of all textures to console, starting with their ID
+	void ListTextures();
+
+	/** Loads all textures from the provided source/name list.
+		Returns amount of failed loadings.
+	*/
+	int LoadTextures(List<String> & texturesToLoad);
+	/** Loads target texture into memory, queueing it's bufferization to the graphicsManager. Returns the Texture's address.
+		If already loaded, returns a pointer to the pre-existing texture.
+	*/
+	Texture * LoadTexture(String source);
+	/// Loads all required textures for the specified state into memory.   WHAT.. I don't even
+	bool LoadTextures(int state);
+	/// Loads all textures required by target Entity.
+	bool LoadTextures(Entity * Entity);
+
+	/// Generates a texture with given name and color. The texture will be exactly 1 or 2x2 pixels, simply for the color!
+	Texture * GenerateTexture(String withName, Vector4f andColor);
+
+	/// Buffers all textures required by a certain StateMan.
+	bool BufferizeTextures(int state);
+	/// Buffers all textures required by target Entity.
+	bool BufferizeTextures(Entity * Entity);
+	/** Bufferizes texture at target index in the texture array.
+		Assertion will be thrown if outside the array.
+	*/
+	void BufferizeTexture(int index);
+	/// Bufferizes target texture
+	void BufferizeTexture(Texture * texture);
+	/// Unbufferizes target texture
+	void UnbufferizeTexture(Texture * texture);
+
+    /// Getter function that first tries to fetch texture by name, and if that failes tries to get it by it's source.
+    Texture * GetTexture(String nameOrSource);
+	/// Gets texture with specified name. This assumes each texture has gotten a unique name.
+	Texture * GetTextureByName(String name);
+	/// Returns texture in the list by specified index.
+	Texture * GetTextureByIndex(int index);
+	/// Gets texture with specified source. Returns 0 if it could not be found.
+	Texture * GetTextureBySource(String source);
+	/// For buffering
+	Texture * GetTextureByID(int glid);
+
+private:
+
+	/// Textures used by the manager
+	List<Texture*> textures;
+};
+
+#endif
