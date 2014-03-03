@@ -19,9 +19,19 @@ public:
 /// Vector message that can hold various types of vectors.
 class VectorMessage : public Message {
 public:
-	VectorMessage(String message);
+	VectorMessage(String message, Vector2i vectorValue);
+	VectorMessage(String message, Vector3f vectorValue);
+	VectorMessage(String message, Vector4f vectorValue);
 	virtual ~VectorMessage();
-	Vector2i vec2i;	
+	enum vectorTypes {
+		VECTOR_2I,
+		VECTOR_3F,
+		VECTOR_4F,
+	};
+	/// Specifies which kind of vector data is sent along in this message. See enum above.
+	int vectorType;
+	Vector2i vec2i;
+	Vector3f vec3f;
 	Vector4f vec4f;
 };
 

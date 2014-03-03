@@ -148,7 +148,7 @@ void Mesh::Nullify(){
 }
 
 Mesh::~Mesh(){
-	std::cout<<"\nMesh destructor.";
+//	std::cout<<"\nMesh destructor.";
 	if (vertex != NULL){
 		delete[] vertex;
 		vertex = NULL;

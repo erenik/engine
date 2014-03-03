@@ -174,6 +174,9 @@ void SRSession::EvaluateConnections(){
 	for (int i = 0; i < peers.Size(); ++i){
 		Peer * peer = peers[i];
 		SRSessionData * srsd = GetSessionData(peers[i]);
+		/// Don't process the peer if their connection is down.
+		if (isHost && srsd->connectionState != CONNECTED)
+			continue;
 		/// If we doesn't have a UdpSocket, don't handle it further.
 		if (!udpSocket)
 		{

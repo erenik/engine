@@ -760,7 +760,9 @@ void Racing::ProcessPacket(Packet * packet){
 					SRPlayerMovePacket * pmp = (SRPlayerMovePacket*) srp;
 					int playerID;
 					String message;
-					pmp->Parse(playerID, message);
+					bool parse = pmp->Parse(playerID, message);
+					if (!parse)
+						break;
 					/// Fetch player with ID.
 					SRPlayer * player = GetPlayer(playerID);
 					Entity * playerEntity = player->entity;

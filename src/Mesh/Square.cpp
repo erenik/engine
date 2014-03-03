@@ -48,7 +48,7 @@ Square::Square()
 Square::~Square()
 {
 	/// Woo.
-	std::cout<<"\nSquare destructor.";
+//	std::cout<<"\nSquare destructor.";
 	for (int i = 0; i < faces; ++i){
 		int numV = 3;
 		face[i].numVertices = numV;

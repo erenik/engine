@@ -524,6 +524,15 @@ Vector2i UIVectorInput::GetValue2i()
 	}
 	return Vector2i(arr);
 }
+Vector4f UIVectorInput::GetValue3f()
+{
+	float arr[3];
+	for (int i = 0; i < inputs.Size() && i < 3; ++i){
+		arr[i] = inputs[i]->text.ParseFloat();
+	}
+	return Vector3f(arr);
+	
+}
 Vector4f UIVectorInput::GetValue4f()
 {
 	float arr[4];

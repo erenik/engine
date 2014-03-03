@@ -122,8 +122,9 @@ public:
 	void CreateChildren();
 
 	/// Getters
-	Vector4f GetValue4f();
 	Vector2i GetValue2i();
+	Vector4f GetValue3f();
+	Vector4f GetValue4f();
 	
 	/// Setters
 	void SetValue4f(Vector4f vec);

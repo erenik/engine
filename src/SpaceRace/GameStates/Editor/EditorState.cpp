@@ -241,18 +241,17 @@ void EditorState::ProcessMessage(Message * message){
 			String string = message->msg;
 			VectorMessage * vm = (VectorMessage*) message;
 			if (string == "SetPosition"){
-				Physics.QueueMessage(new PMSetEntity(POSITION, this->editorSelection, vm->vec));
+				Physics.QueueMessage(new PMSetEntity(POSITION, this->editorSelection, vm->vec3f));
 			}
 			else if (string == "SetRotation"){
-				Physics.QueueMessage(new PMSetEntity(SET_ROTATION, this->editorSelection, vm->vec));
+				Physics.QueueMessage(new PMSetEntity(SET_ROTATION, this->editorSelection, vm->vec3f));
 			}
 			else if (string == "SetScale"){
-				Physics.QueueMessage(new PMSetEntity(SET_SCALE, this->editorSelection, vm->vec));
+				Physics.QueueMessage(new PMSetEntity(SET_SCALE, this->editorSelection, vm->vec3f));
 			}
 			else if (string == "SetThrusterPosition"){
 				Graphics.PauseRendering();
-
-				activeShip->thrusterPosition = vm->vec;
+				activeShip->thrusterPosition = vm->vec3f;
 				RacingShipGlobal * rsg = (RacingShipGlobal*)activeShipEntity->state->GlobalState();
 				rsg->ReloadFromShip();
 

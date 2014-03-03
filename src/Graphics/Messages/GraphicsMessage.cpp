@@ -62,8 +62,9 @@ void GraphicsMessage::Process(){
 			}
 			state->CreateUserInterface();
 
-
+			
 			ui = state->GetUI();
+			std::cout<<"\nRecreating ui: "<<ui->Source();
 			/// Always re-adjust to window and re-create geometry/re-bufferize
 			ui->AdjustToWindow(Graphics.width, Graphics.height);
 			ui->CreateGeometry();

@@ -445,10 +445,14 @@ void SRPlayerMovePacket::SetMessage(String msg){
 }
 
 /// Extracts data from this packet
-void SRPlayerMovePacket::Parse(int & playerID, String & msg)
+bool SRPlayerMovePacket::Parse(int & playerID, String & msg)
 {
+	/// Bad data!
+	if (body.Size() < 2)
+		return false;
 	playerID = body[0].ParseInt();
 	msg = body[1];
+	return true;
 }
 
 String VectorString(Vector3f v)

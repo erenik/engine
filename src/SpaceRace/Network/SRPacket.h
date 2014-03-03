@@ -136,7 +136,7 @@ public:
 	SRPlayerMovePacket(int playerIndex);
 	void SetMessage(String msg);
 	/// Extracts data from this packet
-	void Parse(int & playerID, String & msg);
+	bool Parse(int & playerID, String & msg);
 };
 
 /// Update packet for a single player.

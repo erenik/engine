@@ -248,10 +248,25 @@ void MessageManager::ProcessMessage(Message * message){
 		if (e->type != UIType::VECTOR_INPUT)
 			return;
 		UIVectorInput * vi = (UIVectorInput*)e;
-		VectorMessage * m = new VectorMessage(vi->action);
-		m->vec2i = vi->GetValue2i();
-		m->vec4f = vi->GetValue4f();
-		MesMan.QueueMessage(m);
+		/// Fetch vector data from the input first.
+		VectorMessage * m = NULL;
+		switch(vi->numInputs)
+		{
+			case 2:
+				m = new VectorMessage(vi->action, vi->GetValue2i());
+				break;
+			case 3:
+				m = new VectorMessage(vi->action, vi->GetValue3f());
+				break;
+			case 4:
+				m = new VectorMessage(vi->action, vi->GetValue4f());
+				break;
+			default:
+				assert(false && "implement");
+				break;
+		}
+		if (m)
+			MesMan.QueueMessage(m);
 		return;
 	}
 	else if (msg.Contains("setVisibility")){

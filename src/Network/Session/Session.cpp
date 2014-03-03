@@ -56,8 +56,8 @@ bool Session::ConnectTo(String ipAddress, int port)
 /// Attempts to start hosting a session of this kind. Default hosts 1 TcpServer on target port. 
 bool Session::Host(int port){
 	/// if already hosting, clean stuff maybe
-	if (isHost){
-		std::cout<<"Already hosting ,clean maybe.";
+	std::cout<<"Already hosting ,clean maybe.";
+	if (tcpServer){
 		tcpServer->Stop();
 		delete tcpServer;
 		tcpServer = NULL;
