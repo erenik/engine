@@ -30,6 +30,10 @@
 RacingShipGlobal::RacingShipGlobal(Entity * entity, Ship * ship)
 : EntityState(EntityStateType::RACING_SHIP, entity)
 {
+	/// Hope that the position vector is the starting position..
+	startingPosition = entity->positionVector;
+	startingRotation = entity->rotationVector;
+
 	assert(ship && entity);
 	std::cout<<"\nRacingShipGlobal constructor.";
 	name = entity->name +"'s RacingShipGlobal state";
@@ -465,9 +469,14 @@ void RacingShipGlobal::ResetPosition(){
 	if (checkpoint){
 		position = checkpoint->positionVector;
 		rotation = checkpoint->rotationVector;
+		rotation.y += PI;
+	}
+	/// If the map lacks checkpoints, use starting position!
+	else {
+		position = startingPosition;
+		rotation = startingRotation;
 	}
 	Physics.QueueMessage(new PMSetEntity(VELOCITY, entity, entity->physics->velocity * 0.1f));
-	rotation.y += PI;
 	Physics.QueueMessage(new PMSetEntity(SET_ROTATION, entity, rotation));
 	Physics.QueueMessage(new PMSetEntity(POSITION, entity, position));
 	if (ai)
@@ -548,5 +557,11 @@ void RacingShipGlobal::ReloadFromShip(){
 	exhaust->relativePosition = shipType->thrusterPosition;
 }
 
+/// Set starting position, to be used in-case checkpoints fail.
+void RacingShipGlobal::SetStartingPosition(Vector3f position, Vector3f andRotation)
+{
+	startingPosition = position;
+	startingRotation = andRotation;
+}
 
 // #endif // SPACE_RACE

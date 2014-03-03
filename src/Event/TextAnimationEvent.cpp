@@ -37,7 +37,7 @@ void TextAnimationEvent::Process(float time){
 			if (timePassed < fadeInDuration){
 				/// Fade-in the text.
 				float relativeAlpha = timePassed / fadeInDuration;
-				std::cout<<"\nRelative Alpha: "<<relativeAlpha;
+			//	std::cout<<"\nRelative Alpha: "<<relativeAlpha;
 				Graphics.QueueMessage(new GMSetUIv4f(elementName, GMUI::TEXT_COLOR, Vector4f(1,1,1, relativeAlpha), viewport));
 			}
 			/// Stay
@@ -48,7 +48,7 @@ void TextAnimationEvent::Process(float time){
 			else if (timePassed < totalDuration){
 				/// Fade-out the text.
 				float relativeAlpha = 1.0f - (timePassed - duration - fadeInDuration) / fadeOutDuration;
-				std::cout<<"\nRelative Alpha: "<<relativeAlpha;
+			//	std::cout<<"\nRelative Alpha: "<<relativeAlpha;
 				Graphics.QueueMessage(new GMSetUIv4f(elementName, GMUI::TEXT_COLOR, Vector4f(1,1,1, relativeAlpha), viewport));
 			}
 			else

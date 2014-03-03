@@ -64,8 +64,14 @@ public:
 
 	/// If true, this means this state belongs to a client-side synchronized entity, meaning requests are sent to the server for processing before for example Resets are invoked.
 	bool synchronized;
+	
+	/// Set starting position, to be used in-case checkpoints fail.
+	void SetStartingPosition(Vector3f position, Vector3f andRotation);
 
 private:
+	/// Position set at the start of a race. Usually somewhere close to the goal.
+	Vector3f startingPosition;
+	Vector3f startingRotation;
 
 	/// o-o;
 	void OnAccelerationUpdated();

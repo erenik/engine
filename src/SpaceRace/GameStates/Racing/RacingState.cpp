@@ -816,8 +816,12 @@ Entity * Racing::CreateShipForPlayer(SRPlayer * player, Vector3f startPosition){
 	if (entity == NULL)
         return NULL;
 
+	/// Move it to the starting position.
+	entity->translate(startPosition);
+
     if (entity->state == NULL){
         entity->state = new StateProperty(entity);
+		/// Create ship state machine primary state. Starting position should then be saved as well!
         rsg = new RacingShipGlobal(entity, ship);
 		/// Set synchronization type for the ship state. If we're not host, it should be synchronized.
 		rsg->synchronized = !srs->IsHost();
@@ -825,7 +829,6 @@ Entity * Racing::CreateShipForPlayer(SRPlayer * player, Vector3f startPosition){
 		// Re-register the entity for rendering.
 		Graphics.QueueMessage(new GMRegisterEntity(entity));
     }
-	entity->translate(startPosition);
 
 	/// Player ready to rrrrrolll!
 	playerEntities.Add(entity);
@@ -884,9 +887,12 @@ bool Racing::CreatePlayers(List<SRPlayer*> players)
 	Vector3f startingPosition;
 	Map * map = MapMan.ActiveMap();
 	Entity * entity = map->GetEntity("StartingPosition");
-	if (entity)
+	if (entity){
 		startingPosition = entity->positionVector;
-
+		/// Disable entity from physics and rendering, in-case it was registered in any of them!
+		Physics.QueueMessage(new PMUnregisterEntity(entity));
+		Graphics.QueueMessage(new GMUnregisterEntity(entity));
+	}
 	Vector3f * startPositions = new Vector3f[numPlayers];
 	for (int i = 0; i < numPlayers; ++i){
 		startPositions[i] = startingPosition + Vector3f(i%2? 20.f : -20.f, 0, i * 20.f);

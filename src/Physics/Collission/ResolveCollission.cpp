@@ -636,7 +636,7 @@ bool ResolveCollission(Collission &data){
 			/// Apply overall collission damping.
 			Vector3f velDir = dynamicEntity->physics->velocity.NormalizedCopy();
 			if (dynamicEntity->physics->velocity.Length() > 1500.0f){
-				std::cout<<"Lall";
+				// std::cout<<"Lall";
 			}
 	
 			/*
