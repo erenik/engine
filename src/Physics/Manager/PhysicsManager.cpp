@@ -190,7 +190,7 @@ void PhysicsManager::SetPhysicsShape(List<Entity*> & targetEntities, int type){
 			PhysicsMesh * mesh = entity->physics->physicsMesh;
 			// Use an octree when the face number exceeds a predefined limit.
 			if (mesh->triangles.Size() > 12 || mesh->quads.Size() > 6) // 12 for cube o-o
-				entity->physics->usesCollissionShapeOctree = true;
+				entity->physics->usesCollisionShapeOctree = true;
 			break;
 		}
 		case ShapeType::TRIANGLE:
@@ -244,7 +244,7 @@ void PhysicsManager::EnsurePhysicsMesh(Entity * targetEntity){
         PhysicsMesh * mesh = Physics.GetPhysicsMesh(targetEntity->model->triangulizedMesh);
         if (!mesh){
             mesh = Physics.LoadPhysicsMesh(targetEntity->model->triangulizedMesh);
-            mesh->GenerateCollissionShapeOctree();
+            mesh->GenerateCollisionShapeOctree();
         }
         targetEntity->physics->physicsMesh = mesh;
     }

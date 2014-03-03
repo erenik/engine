@@ -16,18 +16,21 @@ class Entity;
 	This is an octree node class made to work with the entity from the Entity handler.
 	It assumes the entity have spherical bounding volumes.
 */
-class CollissionShapeOctree {
+class CollisionShapeOctree {
 	friend class PhysicsManager;
 	friend class GraphicsManager; // For debug-rendering
 public:
 	/// Constructor that does.. nothing.
-	CollissionShapeOctree();
+	CollisionShapeOctree();
 private:
 	/// Internal constructor for expanding the vfcOctree.
-	CollissionShapeOctree(float leftBound, float rightBound, float topBound, float bottomBound, float nearBound, float farBound, int subdivision);
+	CollisionShapeOctree(float leftBound, float rightBound, float topBound, float bottomBound, float nearBound, float farBound, int subdivision);
 public:
 	/// Default destructor that deallocates all children
-	~CollissionShapeOctree();
+	~CollisionShapeOctree();
+
+	/// Removes unused children. After optimizing now new triangles may be added.
+	void Optimize();
 
 	/// Sets boundaries of the top-level node.
 	void SetBoundaries(float leftBound, float rightBound, float topBound, float bottomBound, float nearBound, float farBound);
@@ -51,7 +54,7 @@ public:
 	/// Removes an entity node from this vfcOctree. Searches recursively until.
 	bool RemoveTriangle(Triangle * tri);
 
-	/// Returns a count of all registered entities within the vfcOctree
+	/// Returns a count of all items within this element, including any children it possesses.
 	int RegisteredShapes();
 
 	/// Number of nodes before a subdivision should occur.
@@ -93,7 +96,13 @@ private:
 	float left, right, top, bottom, nearBound, farBound;
 	/// Radial bounding for ze box. I like spherical tests. :3
 	float radius;
-
+	/// For eased usage
+	float width, height, depth;
+	/// Extremes, composed of the left, right, top, bottom, nearBound and farBound above.
+	Vector3f min, max;
+	
+	/// Set after calling Optimize(). If true will allow no triangles to be added.
+	bool optimized;
 	/// Subdivision level of this node. Used to prevent extreme depths if possible.
 	int subdivision;
 
@@ -127,9 +136,10 @@ private:
 	};
 
 	/// Parent node pointer. NULL only if root-node!
-	CollissionShapeOctree * parent;
-	/// Chidren nodes
-	CollissionShapeOctree * child[MAX_CHILD_NODES];
+	CollisionShapeOctree * parent;
+	/// Child node list. This will be dynamic as sometimes the subdivision might choose to use a quad-tree hierarchy instead of the current 25-tree subdivision.
+	List<CollisionShapeOctree*> childList; 
+	//child[MAX_CHILD_NODES];
 };
 
 #endif

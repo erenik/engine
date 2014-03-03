@@ -52,7 +52,7 @@ class PhysicsManager{
 	friend class PMSetPhysicsShape;
 	friend class PMSetEntity;
 	friend class PMSetSpeed;
-	friend class CollissionShapeOctree;
+	friend class CollisionShapeOctree;
 private:
 	PhysicsManager();
 	static PhysicsManager * physicsManager;

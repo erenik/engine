@@ -228,8 +228,7 @@ void PhysicsManager::ProcessPhysics(){
                             continue;
                         }
                         int collissionChecksDone = entityCollissionOctree->FindCollissions(entity, collissions);
-
-                        /// Resolve collission if it was detected earlier!
+						/// Resolve collission if it was detected earlier!
                         /// Resolve all collissions?
                         for (int c = 0; c < collissions.Size(); ++c){
                     //	if (collissions.Size() > 0){

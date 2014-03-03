@@ -10,7 +10,7 @@ struct Triangle;
 struct Quad;
 struct Ngon;
 class Mesh;
-class CollissionShapeOctree;
+class CollisionShapeOctree;
 
 // Specialization structure for handling physics quickly
 struct PhysicsMesh {
@@ -18,7 +18,7 @@ struct PhysicsMesh {
 	PhysicsMesh();
 	~PhysicsMesh();
 	/// Generates a collission shape octree that can be used in the local-coordinate system or multiplied by matrices to be used globally.
-	void GenerateCollissionShapeOctree();
+	void GenerateCollisionShapeOctree();
 	/// Vars
 	List<Triangle*> triangles;
 	List<Quad*> quads;
@@ -27,7 +27,7 @@ struct PhysicsMesh {
 	String source;
 	const Mesh * meshCounterpart;
 	/// Structure used for optimizing collission detection
-	CollissionShapeOctree * collissionShapeOctree;
+	CollisionShapeOctree * collisionShapeOctree;
 };
 
 #endif

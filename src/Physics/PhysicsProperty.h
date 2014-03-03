@@ -85,8 +85,8 @@ public:
 
 	/// Pointer to the physicsOctree node where this entity is currently positioned.
 	PhysicsOctree * octreeNode;
-	/// Flag for if a CollissionShapeOctree should be used when doing collission tests with the mesh.
-	bool usesCollissionShapeOctree;
+	/// Flag for if a CollisionShapeOctree should be used when doing collission tests with the mesh.
+	bool usesCollisionShapeOctree;
 
 	/// Flaggetiflag o-o;
 	bool collissionsEnabled;

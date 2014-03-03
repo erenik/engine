@@ -6,7 +6,7 @@
 #include "Physics/PhysicsProperty.h"
 #include "ModelManager.h"
 #include "PhysicsLib/PhysicsMesh.h"
-#include "Physics/Collission/CollissionShapeOctree.h"
+#include "Physics/Collission/CollisionShapeOctree.h"
 #include "GraphicsState.h"
 #include "Physics/Springs/Spring.h"
 
@@ -246,8 +246,8 @@ rerer
 				// Disable Depth-writing
 				glDepthMask(GL_FALSE);
 #define RENDER_MESH_OCTREES 1
-				if (RENDER_MESH_OCTREES && pm->collissionShapeOctree){
-					pm->collissionShapeOctree->Render((void*)graphicsState);
+				if (RENDER_MESH_OCTREES && pm->collisionShapeOctree){
+					pm->collisionShapeOctree->Render((void*)graphicsState);
 					// Set default shading program
 					SetShaderProgram("Wireframe");
 					// Disable Depth-writing

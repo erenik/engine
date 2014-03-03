@@ -20,7 +20,7 @@ PhysicsProperty::PhysicsProperty(const PhysicsProperty& other) {
 	Nullify();
 	type = other.type;
 	physicsShape = other.physicsShape;
-	usesCollissionShapeOctree = other.usesCollissionShapeOctree;
+	usesCollisionShapeOctree = other.usesCollisionShapeOctree;
 	shape = other.shape;
 #ifdef USE_MASS
 	mass = other.mass;
@@ -42,7 +42,7 @@ PhysicsProperty::PhysicsProperty(const CompactPhysics * compactPhysics){
 	Nullify();
 	type = compactPhysics->type;
 	physicsShape = compactPhysics->physicsShape;
-//	usesCollissionShapeOctree = false;
+//	usesCollisionShapeOctree = false;
 	/// Shape will be generated right after this is created!
 /*	shape = NULL;
 	physicsMesh = NULL;
@@ -71,7 +71,7 @@ void PhysicsProperty::Nullify(){
     inertiaTensorCalculated = false;
 	type = PhysicsType::NULL_TYPE;
 	physicsShape = ShapeType::NULL_TYPE;
-	usesCollissionShapeOctree = false;
+	usesCollisionShapeOctree = false;
 	shape = NULL;
 #ifdef USE_MASS
 	mass = volume = density = 1.0f;

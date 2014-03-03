@@ -376,8 +376,8 @@ void PhysicsManager::Integrate(float timeSinceLastUpdate){
 				/// And apply some damping or it will increase.
 				float dampingDueToRotation = pow(0.99854f, angularVelocity);
 				dynamicEntity->physics->velocity *= dampingDueToRotation;
-				if (dampingDueToRotation < 0.9985f)
-					std::cout<<"\nDamping due to rotation: "<<dampingDueToRotation;
+			//	if (dampingDueToRotation < 0.9985f)
+				//	std::cout<<"\nDamping due to rotation: "<<dampingDueToRotation;
 
 				float velPostRotate = dynamicEntity->physics->velocity.Length();
 			//	assert(velPostRotate <= velPreRotate);

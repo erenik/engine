@@ -6,7 +6,7 @@
 #include "../PhysicsManager.h"
 #include "Collissions.h"
 #include "PhysicsLib/PhysicsMesh.h"
-#include "Physics/Collission/CollissionShapeOctree.h"
+#include "Physics/Collission/CollisionShapeOctree.h"
 #include <cstring>
 
 /** Tests if a collission should occur between the two objects and
@@ -88,11 +88,11 @@ bool PhysicsManager::TestCollission(Entity * one, Entity * two, List<Collission>
 #define USE_COLLISSION_SHAPE_OCTREE true
 
 		// If it's got an optimized octree, use it instead, yo.
-		if (meshEntity->physics->usesCollissionShapeOctree && USE_COLLISSION_SHAPE_OCTREE){
+		if (meshEntity->physics->usesCollisionShapeOctree && USE_COLLISSION_SHAPE_OCTREE){
 		//	std::cout<<"\nUsing collission shape octree to optimized collission detection.";
 			PhysicsMesh * physicsMesh = meshEntity->physics->physicsMesh;
 			List<Collission> physicsMeshCollissions;
-			int tests = physicsMesh->collissionShapeOctree->FindCollissions(sphereEntity, physicsMeshCollissions, meshEntity->transformationMatrix);
+			int tests = physicsMesh->collisionShapeOctree->FindCollissions(sphereEntity, physicsMeshCollissions, meshEntity->transformationMatrix);
 		//	std::cout<<"\nPhysicsMeshCollissions: "<<physicsMeshCollissions.Size();
 		//	std::cout<<"\nPhysicsMeshChecks: "<<tests<<" out of "<<physicsMesh->triangles.Size()<<" triangles tested";
 			Physics.physicsMeshCollissionChecks += tests;
