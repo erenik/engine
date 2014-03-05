@@ -21,7 +21,7 @@ public:
 	Selection(const List<Entity*> & entityList);
 
 	/// Removes all entities that are outside the frustum.
-	Selection CullByCamera(Camera &camera) const;
+	Selection CullByCamera(Camera * camera) const;
 	/// Sorts by distance to selected position.
 	void SortByDistance(Vector3f position);
 

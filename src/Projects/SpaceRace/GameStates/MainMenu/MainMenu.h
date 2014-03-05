@@ -1,7 +1,7 @@
 // Emil Hedemalm
 // 2013-06-17
 
-#include "SpaceRace/GameStates/SpaceRaceGameState.h"
+#include "../SpaceRaceGameState.h"
 
 class MainMenu : public SpaceRaceGameState {
 public:

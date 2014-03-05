@@ -15,19 +15,19 @@ FloatMessage::~FloatMessage()
 }
 
 VectorMessage::VectorMessage(String message, Vector2i vectorValue)
-: Message(MessageType::VECTOR_MESSAGE), vectorType(VECTOR_2I)
+: Message(MessageType::VECTOR_MESSAGE), vectorType(VECTOR_2I), vec2i(vectorValue)
 {
 	this->msg = message;
 }
 
 VectorMessage::VectorMessage(String message, Vector3f vectorValue)
-: Message(MessageType::VECTOR_MESSAGE), vectorType(VECTOR_3F)
+: Message(MessageType::VECTOR_MESSAGE), vectorType(VECTOR_3F), vec3f(vectorValue)
 {
 	this->msg = message;
 }
 
 VectorMessage::VectorMessage(String message, Vector4f vectorValue)
-: Message(MessageType::VECTOR_MESSAGE), vectorType(VECTOR_4F)
+: Message(MessageType::VECTOR_MESSAGE), vectorType(VECTOR_4F), vec4f(vectorValue)
 {
 	this->msg = message;
 }

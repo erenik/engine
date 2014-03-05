@@ -1,3 +1,7 @@
+/// Emil Hedemalm
+/// 2014-03-05
+/// Camera class, required for rendering.
+
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/GraphicsManager.h"
 #include "Entity/Entity.h"
@@ -10,15 +14,15 @@ float Camera::defaultVelocity = 1.0f;
 
 Camera::Camera(){
 	entityToTrack = NULL;
-	trackingMode = TRACKING_MODE::FROM_BEHIND;
+	trackingMode = TrackingMode::FROM_BEHIND;
 	nearPlane = -0.1f;
 	farPlane = -100000.0f;
-	zoom = 0.10f;
+	zoom = 0.1f;
 	distanceFromCentreOfMovement = 0.0f;
 	position = Vector3f(10, -10, -20);
 	rotation = Vector3f(PI*0.25f, PI*0.125f, 0);
-	flySpeedMultiplier = 0.2f;
-	rotationSpeedMultiplier = 0.1f;
+	flySpeed = 1.0f;
+	rotationSpeed = 0.1f;
 	memset(navigation, 0, sizeof(bool)*6);
 	memset(orientation, 0, sizeof(bool)*6);
 	/// Ratio of the display device/context. Both should be at least 1.0, with the other scaling up as needed.
@@ -72,14 +76,6 @@ void Camera::Update(){
 
 	/// Begin by updating projection matrix as that is unlikely to vary with foci
 	switch(projectionType){
-		/* Stretches entirely depending on the screen...
-		case PROJECTION_3D:
-			projectionMatrix.InitProjectionMatrix(-zoom * 1, zoom * 1, -zoom * 1, zoom * 1, nearPlane, farPlane);
-			break;
-		case ORTHOGONAL:
-			projectionMatrix.InitOrthoProjectionMatrix(-zoom * 1, zoom * 1, -zoom * 1, zoom * 1, nearPlane, farPlane);
-			break;
-			*/
 		// OLD: Perspective-distortions when adjusting width and height!
 		case PROJECTION_3D:
 			projectionMatrix.InitProjectionMatrix(-zoom * widthRatio, zoom * widthRatio, -zoom * heightRatio, zoom * heightRatio, nearPlane, farPlane);
@@ -95,7 +91,7 @@ void Camera::Update(){
 	if (entityToTrack){
 		// Move camera before before main scenegraph rendering begins
 		// Rotate it
-		if (trackingMode == TRACKING_MODE::FROM_BEHIND){
+		if (trackingMode == TrackingMode::FROM_BEHIND){
 			if (entityToTrack->physics)
 				// First translate the camera relative to the viewing rotation-"origo"
 				viewMatrix.translate(0, 0, -this->entityToTrack->physics->physicalRadius*2);
@@ -112,7 +108,7 @@ void Camera::Update(){
 			viewMatrix.multiply(Matrix4d().InitRotationMatrix(-this->entityToTrack->rotationVector.y, 0, 1, 0));
 			*/
 		}
-		else if (trackingMode == TRACKING_MODE::THIRD_PERSON){
+		else if (trackingMode == TrackingMode::THIRD_PERSON){
 			// First translate the camera relative to the viewing rotation-"origo"
 			viewMatrix.translate(0, 0, this->distanceFromCentreOfMovement);
 
@@ -130,7 +126,7 @@ void Camera::Update(){
 		Matrix4d translationMatrix = Matrix4d().translate(-this->entityToTrack->positionVector);
 		viewMatrix.multiply(translationMatrix);
 		/// If from behind, adjust it slightly afterward too!
-		if (trackingMode == TRACKING_MODE::FROM_BEHIND){
+		if (trackingMode == TrackingMode::FROM_BEHIND){
 			viewMatrix.multiply(Matrix4d::InitTranslationMatrix(Vector3f(0, elevation, 0)));
 		}
 	}
@@ -210,39 +206,62 @@ void Camera::SetRatio(int width, int height){
 	this->heightRatio = (float) height / smallest;
 }
 
+/// To be called from render/physics-thread. Moves the camera using it's given enabled directions and velocities.
+void Camera::ProcessMovement()
+{
+	if (lastMovement == 0){
+		lastMovement = Timer::GetCurrentTimeMs();
+		return;
+	}
+	long long now = Timer::GetCurrentTimeMs();
+	long long timeSinceLastMovement = now - lastMovement;
+	float timeDiff = timeSinceLastMovement;
+	timeDiff *= 0.001f;
+	Vector3f deltaP = velocity * timeDiff;
+	if (scaleSpeedWithZoom)
+	{
+		deltaP *= zoom;
+	}
+	position += deltaP;
+	
+	/// Update matrices n stuff
+	Update();
+	lastMovement = now;
+}
+
 /// Updates base velocities depending on navigation booleans
 void Camera::UpdateNavigation(){
 	/// Navigation
-	if (navigation[DIRECTION::UP] && !navigation[DIRECTION::DOWN])
-		this->velocity.y = -this->defaultVelocity * this->flySpeedMultiplier;
-	else if (navigation[DIRECTION::DOWN] && !navigation[DIRECTION::UP])
-		this->velocity.y = this->defaultVelocity * this->flySpeedMultiplier;
+	if (navigation[Direction::UP] && !navigation[Direction::DOWN])
+		this->velocity.y = -this->defaultVelocity * this->flySpeed;
+	else if (navigation[Direction::DOWN] && !navigation[Direction::UP])
+		this->velocity.y = this->defaultVelocity * this->flySpeed;
 	else
 		this->velocity.y = 0;
-	if (navigation[DIRECTION::FORWARD] && !navigation[DIRECTION::BACKWARD])
-		this->velocity.z = this->defaultVelocity * this->flySpeedMultiplier;
-	else if (navigation[DIRECTION::BACKWARD] && !navigation[DIRECTION::FORWARD])
-		this->velocity.z = -this->defaultVelocity * this->flySpeedMultiplier;
+	if (navigation[Direction::FORWARD] && !navigation[Direction::BACKWARD])
+		this->velocity.z = this->defaultVelocity * this->flySpeed;
+	else if (navigation[Direction::BACKWARD] && !navigation[Direction::FORWARD])
+		this->velocity.z = -this->defaultVelocity * this->flySpeed;
 	else
 		this->velocity.z = 0;
-	if (navigation[DIRECTION::LEFT] && !navigation[DIRECTION::RIGHT])
-		this->velocity.x = this->defaultVelocity * this->flySpeedMultiplier;
-	else if (navigation[DIRECTION::RIGHT] && !navigation[DIRECTION::LEFT])
-		this->velocity.x = -this->defaultVelocity * this->flySpeedMultiplier;
+	if (navigation[Direction::LEFT] && !navigation[Direction::RIGHT])
+		this->velocity.x = this->defaultVelocity * this->flySpeed;
+	else if (navigation[Direction::RIGHT] && !navigation[Direction::LEFT])
+		this->velocity.x = -this->defaultVelocity * this->flySpeed;
 	else
 		this->velocity.x = 0;
 
 	/// Rotation
-	if (orientation[DIRECTION::UP] && !orientation[DIRECTION::DOWN])
-		this->rotationVelocity.x = this->defaultRotationSpeed * this->rotationSpeedMultiplier;
-	else if (orientation[DIRECTION::DOWN] && !orientation[DIRECTION::UP])
-		this->rotationVelocity.x = -this->defaultRotationSpeed * this->rotationSpeedMultiplier;
+	if (orientation[Direction::UP] && !orientation[Direction::DOWN])
+		this->rotationVelocity.x = this->defaultRotationSpeed * this->rotationSpeed;
+	else if (orientation[Direction::DOWN] && !orientation[Direction::UP])
+		this->rotationVelocity.x = -this->defaultRotationSpeed * this->rotationSpeed;
 	else
 		this->rotationVelocity.x = 0;
-	if (orientation[DIRECTION::LEFT] && !orientation[DIRECTION::RIGHT])
-		this->rotationVelocity.y = this->defaultRotationSpeed * this->rotationSpeedMultiplier;
-	else if (orientation[DIRECTION::RIGHT] && !orientation[DIRECTION::LEFT])
-		this->rotationVelocity.y = -this->defaultRotationSpeed * this->rotationSpeedMultiplier;
+	if (orientation[Direction::LEFT] && !orientation[Direction::RIGHT])
+		this->rotationVelocity.y = this->defaultRotationSpeed * this->rotationSpeed;
+	else if (orientation[Direction::RIGHT] && !orientation[Direction::LEFT])
+		this->rotationVelocity.y = -this->defaultRotationSpeed * this->rotationSpeed;
 	else
 		this->rotationVelocity.y = 0;
 };

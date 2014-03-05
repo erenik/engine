@@ -479,6 +479,7 @@ UIVectorInput::UIVectorInput(int numInputs, String name, String onTrigger)
 	this->numInputs = numInputs;
 	this->name = name;
 	this->action = onTrigger;
+	maxDecimals = 3;
 }
 UIVectorInput::~UIVectorInput()
 {
@@ -524,7 +525,7 @@ Vector2i UIVectorInput::GetValue2i()
 	}
 	return Vector2i(arr);
 }
-Vector4f UIVectorInput::GetValue3f()
+Vector3f UIVectorInput::GetValue3f()
 {
 	float arr[3];
 	for (int i = 0; i < inputs.Size() && i < 3; ++i){
@@ -552,7 +553,7 @@ void UIVectorInput::SetValue2i(Vector2i vec)
 void UIVectorInput::SetValue4f(Vector4f vec)
 {
 	for (int i = 0; i < inputs.Size() && i < 4; ++i){
-		String s = String::ToString(vec[i]);
+		String s = String::ToString(vec[i], maxDecimals);
 		inputs[i]->SetText(s);
 	}
 }

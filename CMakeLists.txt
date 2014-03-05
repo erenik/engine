@@ -44,7 +44,7 @@ macro(printList listToPrint)
 endmacro(printList)
 
 # Removes all files belonging to target directory, using given list and list name. Inrements variable ${filesRemoved} for each file removed.
-macro(remove_dir dir fromList listName filesR)
+macro(remove_dir dir fromList listName filesR dirsToIgnore)
 #	message("")
 #	printList("${fromList}")
 #	message ("List: ${listName}")
@@ -53,12 +53,22 @@ macro(remove_dir dir fromList listName filesR)
 	FOREACH(f ${fromList})
 		# ${dir}
 		if (${f} MATCHES ${dir})
+			SET(ignore "No")
+			# check if specifically requested to keep this
+			FOREACH(dirToIgnore ${dirsToIgnore})
+				if (${f} MATCHES ${dirToIgnore})
+					SET(ignore "Yes")
+				endif()
+			ENDFOREACH()
+			
 		#	message("F: ${f} MATCHES ${dir}")
 		#	message("found stuff ${f}")
 		#	message("found stuff ${filesRemoved}")
-			math(EXPR sum "${filesRemoved}+1")
-			SET(filesRemoved ${sum})
-			list(REMOVE_ITEM ${listName} ${f})			
+			if (${ignore} MATCHES "No")
+				math(EXPR sum "${filesRemoved}+1")
+				SET(filesRemoved ${sum})
+				list(REMOVE_ITEM ${listName} ${f})		
+			endif()
 		endif()
 	ENDFOREACH()
 #	message("remove_dir macro called with dir: ${dir}")
@@ -67,20 +77,21 @@ macro(remove_dir dir fromList listName filesR)
 endmacro(remove_dir)
 
 # Removes target directory from both source and header files. Saves amount of removed files in ${filesRemoved}
-macro(RemoveDir dir)
+macro(RemoveDir dir dirsToIgnore)
 	SET(filesRemoved 0)
-	remove_dir(${dir} "${source_files}" source_files ${filesRemoved}) 
-	remove_dir(${dir} "${header_files}" header_files ${filesRemoved})
+	remove_dir(${dir} "${source_files}" source_files ${filesRemoved} ${dirsToIgnore}) 
+	remove_dir(${dir} "${header_files}" header_files ${filesRemoved} ${dirsToIgnore})
 	message("RemoveDir with dir: ${dir}. Files removed: ${filesRemoved}")
 endmacro(RemoveDir)
 	
 # Defines the list of project sub-folders that a basic project should NOT include.
 # All new projects should add their own folder to this list so that they are excluded correctly from other builds.
 set(projectFolders 
-	"/RuneRPG/" 
-	"/DemoProject/"
-	"/SpaceRace/"
-	"/Projects/MusicPlayer/"
+#	"/RuneRPG/" 
+#	"/DemoProject/"
+#	"/SpaceRace/"
+#	"/Projects/MusicPlayer/"
+	"Projects"
 )
 	
 # Macro to add a project for this game-engine!
@@ -120,19 +131,19 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 		
 	# Remove all project subfolders with the exception of those specified in the second argument!		
 	FOREACH(projectSubFolder ${projectFolders})
-		set(exclude "Yes")
-		FOREACH (projectFolder ${projectFoldersToNotExclude})
-		#	message("~~~~~~~Project folder: ${projectFolder} MATCHES ${projectSubFolder}")
-			if (${projectSubFolder} MATCHES ${projectFolder})
-				message("-Folder name ${projectSubFolder} matches, skipping.")
-				# Skip it if it is one of the ones we want to include.
-				set(exclude "No")
-			endif()
-		ENDFOREACH()
+#		set(exclude "Yes")
+#		FOREACH (projectFolder ${projectFoldersToNotExclude})
+#			message("~~~~~~~Project folder: ${projectFolder} MATCHES ${projectSubFolder}")
+#			if (${projectSubFolder} MATCHES ${projectFolder})
+#				message("-Folder name ${projectSubFolder} matches, skipping.")
+#				# Skip it if it is one of the ones we want to include.
+#				set(exclude "No")
+#			endif()
+#		ENDFOREACH()
 		# Exclude it if specified
-		if (${exclude} MATCHES "Yes")
-			RemoveDir(${projectSubFolder})
-		endif()
+#		if (${exclude} MATCHES "Yes")
+			RemoveDir(${projectSubFolder} ${projectFoldersToNotExclude})
+#		endif()
 	ENDFOREACH()
 
 #	message("print list?")
@@ -272,9 +283,13 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 endmacro(addProject)
 
 # Create our projects
-set(runeRPGFolders "RuneRPG")
+set(runeRPGFolders "Projects/RuneRPG")
 addProject("RuneRPG" ${runeRPGFolders})
 set(musicPlayerFolders "Projects/MusicPlayer")
 addProject("MusicPlayer" ${musicPlayerFolders})
-set(spaceRaceFolders "SpaceRace")
+set (sideScrollerFolders "Projects/SideScroller")
+addProject("SideScroller" ${sideScrollerFolders})
+set(spaceRaceFolders "Projects/SpaceRace")
 addProject("SpaceRace" ${spaceRaceFolders})
+
+

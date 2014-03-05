@@ -17,9 +17,9 @@
 #include "StateManager.h"
 #include "Physics/PhysicsManager.h"
 #include "Network/NetworkManager.h"
-#include "SpaceRace/Network/SRPacketTypes.h"
+#include "../../Network/SRPacketTypes.h"
 #include "Network/Packet/Packet.h"
-#include "SpaceRace/Network/SRPacket.h"
+#include "../../Network/SRPacket.h"
 
 void Racing::InputProcessor(int action, int inputDevice){
 	/// Don't do some stuff if entering text man..

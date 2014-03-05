@@ -18,7 +18,7 @@ UIFileBrowser::UIFileBrowser(String title, String action, String fileFilter)
 	type = UIType::FILE_BROWSER;
 	this->textureSource = "black.png";
 	// Set the title to be the name of this whole thingy!
-	this->name = title;
+	this->name = title+"FileBrowser";
 	this->exitable = true;
 	// Specify that this dialogue should be deallocated after popping it.
 	removeOnPop = true;

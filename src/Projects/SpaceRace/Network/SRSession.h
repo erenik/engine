@@ -6,7 +6,7 @@
 #define SPACE_RACE_SESSION_H
 
 #include "Network/Session/GameSession.h"
-#include "SpaceRace/SRPlayer.h"
+#include "../SRPlayer.h"
 
 class SRPacket;
 class SRSessionData;

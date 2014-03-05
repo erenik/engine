@@ -1,15 +1,20 @@
 // Awesome Author
 
-#include "SpaceRace/GameStates/SpaceRaceGameState.h"
+#include "Game/GameType.h"
+
+#ifdef RUNE_RPG
+
+#include "GameStates/GameState.h"
 #include "Selection.h"
 
-class SRSession;
+#define TEST_BATTLE_PATH "data/RuneRPG/testBattle.txt"
+#define BATTLERS_DIRECTORY "data/RuneRPG/Battlers/"
+#define BATTLES_DIRECTORY	"data/RuneRPG/Battles/"
+#define ACTIONS_DIRECTORY   "data/RuneRPG/BattleActions/"
 
-class GlobalState : public SpaceRaceGameState {
+class ScrollerGlobalState : public GameState{
 public:
-	GlobalState();
-	/// Virtual destructor to discard everything appropriately.
-	virtual ~GlobalState();
+	ScrollerGlobalState();
 	void OnEnter(GameState * previousState);
 	void Process(float time);
 	void OnExit(GameState * nextState);
@@ -17,20 +22,13 @@ public:
 	void ProcessPacket(Packet * packet);
 	void ProcessMessage(Message * message);
 
-
-	/// Hosts game, using provided variables in the state
-    bool HostGame();
-    /// Joins game, using provided variables in the state
-	void JoinGame();
-
-
-    /// Wosh.
-//	void OnChatMessageReceived(ChatMessage * cm);
-
+	/// For key-bindings.
 	void CreateDefaultBindings();
-	virtual void CreateUserInterface();
+	/// For key-bindings.
 	void InputProcessor(int action, int inputDevice = 0);
 
+	void CreateUserInterface();
+	
 	/// Input functions for the various states
 	void MouseClick(bool down, int x = -1, int y = -1, UIElement * elementClicked = NULL);
 	void MouseRightClick(bool down, int x = -1, int y = -1, UIElement * elementClicked = NULL);
@@ -44,18 +42,6 @@ public:
 	/// Decreases playback speed and notifies relevant systems of the change
 	void DecreaseSpeed();
 private:
-
-	void LoadPreferences();
-	void SavePreferences();
-
-	/// Updates relevant gui.
-	void OnMasterVolumeUpdated();
-	void OnAudioEnabledUpdated();
-
-	/// Update the list
-	void UpdatePeerUdpStatusUI();
-
-	/// Updated as it goes.
-	String networkStatus;
 };
 
+#endif

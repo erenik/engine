@@ -158,6 +158,7 @@ void PMSetEntity::Process(){
 			case VELOCITY:
 				entity->physics->velocity = vec3fValue;
 				break;
+			case SET_POSITION:
 			case POSITION:
 				if (entity->physics->estimationEnabled)
 					entity->physics->estimator->AddPosition(vec3fValue, timeStamp);

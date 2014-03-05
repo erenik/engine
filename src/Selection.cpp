@@ -40,13 +40,13 @@ Selection::Selection(const List<Entity*> &entityList) : List<Entity*> ((List<Ent
 }
 
 /// Removes all entities that are outside the frustum.
-Selection Selection::CullByCamera(Camera &camera) const{
+Selection Selection::CullByCamera(Camera * camera) const{
 	Selection culled;
 	int found = 0;
 	for (int i = 0; i < this->currentItems; ++i){
 		if (arr[i] == NULL)
 			continue;
-		if (camera.GetFrustum().SphereInFrustum(arr[i]->positionVector, arr[i]->radius))
+		if (camera->GetFrustum().SphereInFrustum(arr[i]->positionVector, arr[i]->radius))
 			culled.Add(arr[i]);
 		++found;
 		if (found >= currentItems)

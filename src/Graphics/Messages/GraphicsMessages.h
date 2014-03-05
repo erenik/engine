@@ -92,6 +92,7 @@ enum graphicsTargets{
 	PARTICLE_SYSTEMS,
 
     // General stuff
+	MAIN_CAMERA,	// To use when rendering scenes.
     CLEAR_COLOR,    // Color to clear screen/window with.
 	FOG_BEGIN,		// Foggy fog-some. Fog color is defined be the CLEAR_COLOR by default.
 	FOG_END,

@@ -485,13 +485,15 @@ bool InputManager::LoadMappings(){
 
 /// Lists all available input combinations for the current game StateMan.
 void InputManager::ListMappings(){
+	assert(false);
+	/*
 	InputMapping * map = &inputMapping[StateMan.ActiveStateID()];
 	std::cout<<"\n\nListing input mappings for current state: ";
 	std::cout<<"\n-----------------------------------------";
 	for (int i = 0; i < map->mappings; ++i){
 		Binding * bind = map->bindings[i];
 		std::cout<<"\n"<<bind->name;
-	}
+	}*/
 }
 
 /// Loads default key-mappings.
@@ -619,7 +621,8 @@ void InputManager::MouseRightClick(bool down, int x, int y, UIElement * elementC
 }
 
 /// Interprets a mouse-move message to target position.
-void InputManager::MouseMove(int x, int y){
+void InputManager::MouseMove(int x, int y)
+{	
 	/// If no active gamestate, return...
 	if (!StateMan.ActiveState())
 		return;
@@ -759,7 +762,7 @@ void InputManager::EvaluateKeyPressed(int activeKeyCode, bool downBefore){
 	// Then general one! o-o
 
 	// The global one!
-	binding = inputMapping[StateMan.GlobalID()].EvaluateInput(activeKeyCode, this->keyPressed, downBefore);
+	binding = StateMan.GlobalState()->inputMapping.EvaluateInput(activeKeyCode, this->keyPressed, downBefore);
 	if (binding){
 		if (binding->action != -1)
 			StateMan.GlobalState()->InputProcessor(binding->action, binding->inputDevice);
@@ -769,7 +772,7 @@ void InputManager::EvaluateKeyPressed(int activeKeyCode, bool downBefore){
 	}
 
 	// First the specific one!
-	binding = inputMapping[StateMan.ActiveStateID()].EvaluateInput(activeKeyCode, this->keyPressed, downBefore);
+	binding = StateMan.ActiveState()->inputMapping.EvaluateInput(activeKeyCode, this->keyPressed, downBefore);
 	if (binding){
 	//	std::cout<<"\nFound binding in activeState: "<<binding->name;
 		if (binding->action != -1)
@@ -809,23 +812,29 @@ void InputManager::EvaluateKeyReleased(int activeKeyCode){
 	}
 
 	// The global one!
-	binding = inputMapping[StateMan.GlobalID()].EvaluateKeyRelease(activeKeyCode, this->keyPressed);
-	if (binding){
-		if (binding->stopAction != -1)
-			StateMan.GlobalState()->InputProcessor(binding->stopAction, binding->inputDevice);
-		else if (binding->stringStopAction.Length())
-			MesMan.QueueMessages(binding->stringStopAction);
-		//	return;
+	GameState * global = StateMan.GlobalState();
+	if (global){
+		binding = StateMan.GlobalState()->inputMapping.EvaluateKeyRelease(activeKeyCode, this->keyPressed);
+		if (binding){
+			if (binding->stopAction != -1)
+				StateMan.GlobalState()->InputProcessor(binding->stopAction, binding->inputDevice);
+			else if (binding->stringStopAction.Length())
+				MesMan.QueueMessages(binding->stringStopAction);
+			//	return;
+		}
 	}
 
 	// First the specific one!
-	binding = inputMapping[StateMan.ActiveStateID()].EvaluateKeyRelease(activeKeyCode, this->keyPressed);
-	if (binding){
-		if (binding->stopAction != -1)
-			StateMan.ActiveState()->InputProcessor(binding->stopAction, binding->inputDevice);
-		else if (binding->stringStopAction.Length())
-			MesMan.QueueMessages(binding->stringStopAction);
-		return;
+	GameState * activeGameState = StateMan.ActiveState();
+	if (activeGameState){
+		binding = activeGameState->inputMapping.EvaluateKeyRelease(activeKeyCode, this->keyPressed);
+		if (binding){
+			if (binding->stopAction != -1)
+				StateMan.ActiveState()->InputProcessor(binding->stopAction, binding->inputDevice);
+			else if (binding->stringStopAction.Length())
+				MesMan.QueueMessages(binding->stringStopAction);
+			return;
+		}
 	}
 }
 

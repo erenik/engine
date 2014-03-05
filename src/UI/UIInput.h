@@ -123,7 +123,7 @@ public:
 
 	/// Getters
 	Vector2i GetValue2i();
-	Vector4f GetValue3f();
+	Vector3f GetValue3f();
 	Vector4f GetValue4f();
 	
 	/// Setters
@@ -133,6 +133,7 @@ public:
 	/// Action to be taken when any of the fields are triggered.
 	String action;
 	int numInputs;
+	int maxDecimals;
 private:
 	/// For eased access.
 	List<UIInput*> inputs;

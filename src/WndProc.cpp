@@ -318,6 +318,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 		int xPos = GET_X_LPARAM(lParam);
 		int yPos = GET_Y_LPARAM(lParam);
+//		std::cout<<"Mouve move:"<<xPos;
 		Input.MouseMove(XtoWindow(xPos), YtoWindow(yPos));
 		return 0; // If an application processes this message, it should return zero.
 		break;

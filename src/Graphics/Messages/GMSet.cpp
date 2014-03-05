@@ -15,16 +15,6 @@ GMSets::GMSets(int t, String s): GraphicsMessage(GM_SET_STRING) {
 	this->target = t;
 };
 
-GMSet::GMSet(int t, void * data): GraphicsMessage(GM_SET) {
-	this->pData = data;
-	this->target = t;
-};
-
-GMSetf::GMSetf(int target, float value): GraphicsMessage(GM_SET_FLOAT) {
-	this->target = target;
-	this->floatValue = value;
-}
-
 
 GMSet::GMSet(int target, float floatValue)
 : GraphicsMessage(GM_SET), target(target), floatValue(floatValue)
@@ -37,7 +27,6 @@ GMSet::GMSet(int target, float floatValue)
 			assert(false && "Bad target in GMSet");
 			break;
 	}
-
 }
 
 GMSet::GMSet(int target, Vector3f value)
@@ -52,8 +41,23 @@ GMSet::GMSet(int target, Vector3f value)
     }
 }
 
+GMSet::GMSet(int t, void * data)
+: GraphicsMessage(GM_SET), target(t), pData(data)
+{
+	switch(t) {
+		case MAIN_CAMERA:
+		case OVERLAY_TEXTURE:
+			break;
+		default:
+			assert(false);
+	}
+};
+
 void GMSet::Process(){
 	switch(target){
+		case MAIN_CAMERA:
+			Graphics.cameraToTrack = (Camera*)pData;
+			break;
 		case FOG_BEGIN:
 			Graphics.renderSettings->fogBegin = floatValue;
 			break;
@@ -107,6 +111,12 @@ void GMSet::Process(){
 			assert(false && "Bad target in GMSet(GM_SET)");
 			break;
 	}
+}
+
+
+GMSetf::GMSetf(int target, float value): GraphicsMessage(GM_SET_FLOAT) {
+	this->target = target;
+	this->floatValue = value;
 }
 
 void GMSetf::Process(){

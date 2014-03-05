@@ -1236,7 +1236,7 @@ void UIElement::RenderSelf(GraphicsState & graphics){
 
 	}
 	/// Bind correct font if applicable.
-	if (this->text){
+	if (this->text.Length()){
 		if (this->font){
 			graphics.currentFont = this->font;
 		}
@@ -1247,7 +1247,7 @@ void UIElement::RenderSelf(GraphicsState & graphics){
 		}
 	}
 	// Render text if applicable!
-	if (this->text && graphics.currentFont){
+	if (this->text.Length() && graphics.currentFont){
 		TextFont * currentFont = graphics.currentFont;
 		Matrix4d tmp = graphics.modelMatrixD;
 		graphics.modelMatrixD.translate(this->left, this->top,(this->zDepth+0.05));

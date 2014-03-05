@@ -27,7 +27,7 @@ String FilePath::MakeRelative(String path){
 	//	std::cout<<"\nTokens: "<<tokens.Size();
 		for (int i = 0; i < tokens.Size(); ++i){
 	//		std::cout<<"\nToken "<<i<<": "<<tokens[i];
-			if (tokens[i] == "bin"){
+			if (tokens[i] == workingDirectory){
 				// Rebuild
 	//			std::cout<<"\nBeginning rebuild..";
 				path = "";

@@ -8,6 +8,7 @@
 #include "../UI/UIElement.h"
 #include "../UI/UserInterface.h"
 #include "Selection.h"
+#include "Input/InputMapping.h"
 
 #include <ctime>
 
@@ -85,6 +86,7 @@ public:
 
 	/// Boolean, set to true if you want the KeyPressed function to be called.
 	bool keyPressedCallback;
+
 protected:
 
 	/// For further identification
@@ -93,6 +95,7 @@ protected:
 	int id;
 	// UI fluff
 	UserInterface * ui;
+	InputMapping inputMapping;
 	/// Last update time in ms
 	clock_t lastTime;
 private:

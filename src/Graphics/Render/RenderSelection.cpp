@@ -51,6 +51,7 @@ void GraphicsManager::RenderSelection(){
 	PrintGLError("Unable to set primary color");
 	// Set to wireframe
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glLineWidth(3.f);
 	Entity ** activeEntity = selectionToRender->GetArray();
 	int amount = selectionToRender->Size();
 	graphicsState->settings &= ~ENABLE_SPECIFIC_ENTITY_OPTIONS;

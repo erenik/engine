@@ -102,13 +102,13 @@
 //	/// Rotate first, yo o.O
 //	/// Rotation multiplier.
 //	float rotMultiplier = 0.05f;
-//	aiTestCamera.rotation += aiTestCamera.rotationVelocity * aiTestCamera.rotationSpeedMultiplier * timeDiff;
+//	aiTestCamera.rotation += aiTestCamera.rotationVelocity * aiTestCamera.rotationSpeed * timeDiff;
 //	// Check input for moving camera
 //	if (aiTestCamera.velocity.Length() > 0){
 //		Vector4d moveVec;
 //		moveVec = Vector4d(aiTestCamera.velocity);
 //		/// Flight-speed multiplier.
-//		float multiplier = 0.5 * aiTestCamera.flySpeedMultiplier;
+//		float multiplier = 0.5 * aiTestCamera.flySpeed;
 //		moveVec = moveVec * multiplier * (float)timeDiff;
 //		Matrix4d rotationMatrix;
 //		rotationMatrix.InitRotationMatrixY(-aiTestCamera.rotation.y);

@@ -42,7 +42,7 @@ public:
 	// A general mapping for world-wide commands (bringing up menus and UI navigation, etc)
 	InputMapping general;
 	// Input-mappings for all specific game states.
-	InputMapping inputMapping[MAX_GAME_STATES];
+//	InputMapping inputMapping[MAX_GAME_STATES];
 
 	/// Initializes the manager by loading mappings, generating to defaults if needed.
 	void Initialize();

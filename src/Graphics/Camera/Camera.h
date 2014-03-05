@@ -1,9 +1,11 @@
 // Emil Hedemalm
 // 2013-07-19
+/// Camera class, required for rendering.
 
 #ifndef CAMERA_H
 #define CAMERA_H
 
+#include "Direction.h"
 #include "MathLib.h"
 #include "PhysicsLib.h"
 #include <String/AEString.h>
@@ -11,12 +13,7 @@
 /// Definitions for eased access in navigation for all states.
 #define PAN_SPEED_MULTIPLIER (abs(camera->distanceFromCentreOfMovement)/2.0f + 1)
 
-namespace DIRECTION{
-enum direction {
-	FORWARD, BACKWARD, LEFT, RIGHT, UP, DOWN
-};};
-
-namespace TRACKING_MODE {
+namespace TrackingMode {
 enum trackingMode {
 	FROM_BEHIND, THIRD_PERSON,
 };};
@@ -39,15 +36,16 @@ public:
 	Vector3f position;
 	/// Defines where we are looking relative to z = -1
 	Vector3f rotation;
-	/// Fly-speed multiplier ^^
-	float flySpeedMultiplier;
-	float rotationSpeedMultiplier;
+	/// Fly-speed in units (meters) per second.
+	float flySpeed;
+	float rotationSpeed;
 	/// For when doing adjustments after all regular matrix operations?
 	float elevation;
 	/// Current travel speed
 	Vector3f velocity;
 	/// Current rotational speed
 	Vector3f rotationVelocity;
+	bool scaleSpeedWithZoom;
 
 	enum cameraTypes {
 		NULL_TYPE, PROJECTION_3D, ORTHOGONAL,
@@ -55,7 +53,10 @@ public:
 	int projectionType;
 
 	// Active camera variables
-	float zoom;		// Multiplied to all edges in the projectionMatrix
+	/** Multiplied to all edges in the projectionMatrix, the zoom regulates how much content will be visible. 
+		A value of 1 is default, while a lower value will zoom in on smaller details, and higher values will allow more content to be visible.
+	*/
+	float zoom;		
 	float farPlane;		// Defines distance of the farplane.
 	float nearPlane;	// Defines distance to the nearplane. Should probably be quite low?
 	/// Begin moving in the specified direction
@@ -80,6 +81,11 @@ public:
 	const Matrix4d View() { return viewMatrix; };
 	/// Returns a copy of the frustum
 	Frustum GetFrustum() const {return frustum; };
+
+	/// To be called from render/physics-thread. Moves the camera using it's given enabled directions and velocities.
+	void ProcessMovement();
+	/// Last time processMovement was called.
+	long long lastMovement;
 
 	///////////////////////////////////////////////////////////////////
 	// Global value functions!

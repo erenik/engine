@@ -12,6 +12,7 @@
 #include "GraphicsState.h"
 #include "../FrameStatistics.h"
 #include "../RenderSettings.h"
+#include "Graphics/Camera/Camera.h"
 
 /// Win32 includes!
 #ifdef WINDOWS
@@ -88,6 +89,8 @@ void GraphicsManager::Render(){
 
 	PrintTime("\nPre-render stuff: ");
 
+	// Process global camera
+	this->cameraToTrack->ProcessMovement();
 
 	/// Render all viewports..
 	if (true){

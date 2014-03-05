@@ -5,6 +5,7 @@
 #define GM_SET_H
 
 #include "GraphicsMessage.h"
+#include "GraphicsMessages.h"
 
 /** General utility Setter "function" message for the rendering pipeline,
 	like overlay images, default values and debug renders.

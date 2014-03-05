@@ -30,7 +30,7 @@ void GraphicsManager::RenderPhysics(){
 		if (physicalEntities.Size() <= 0)
 			return;
 		// Cull the shiat
-		physicalEntities.CullByCamera(*graphicsState->camera);
+		physicalEntities.CullByCamera(graphicsState->camera);
 		lastFetch = clock();
 	}
 

@@ -91,13 +91,13 @@
 //	/// Rotate first, yo o.O
 //	/// Rotation multiplier.
 //	float rotMultiplier = 0.05f;
-//	pathfindingCamera.rotation += pathfindingCamera.rotationVelocity * pathfindingCamera.rotationSpeedMultiplier * timeDiff;
+//	pathfindingCamera.rotation += pathfindingCamera.rotationVelocity * pathfindingCamera.rotationSpeed * timeDiff;
 //	// Check input for moving camera
 //	if (pathfindingCamera.velocity.Length() > 0){
 //		Vector4d moveVec;
 //		moveVec = Vector4d(pathfindingCamera.velocity);
 //		/// Flight-speed multiplier.
-//		float multiplier = 0.5 * pathfindingCamera.flySpeedMultiplier;
+//		float multiplier = 0.5 * pathfindingCamera.flySpeed;
 //		moveVec = moveVec * multiplier * (float)timeDiff;
 //		Matrix4d rotationMatrix;
 //		rotationMatrix.InitRotationMatrixY(-pathfindingCamera.rotation.y);

@@ -8,7 +8,7 @@
 #ifndef RACING_H
 #define RACING_H
 
-#include "SpaceRace/GameStates/SpaceRaceGameState.h"
+#include "../SpaceRaceGameState.h"
 #include "Selection.h"
 #include "Graphics/Camera/Camera.h"
 

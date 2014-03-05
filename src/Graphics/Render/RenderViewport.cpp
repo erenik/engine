@@ -87,9 +87,7 @@ void RenderViewport::Render(GraphicsState &graphicsState){
 	// Updates the projection matrices using the manager's width/height
 	Graphics.UpdateProjection(width, height);
 	// Copy over data from the cameras now!
-//	*camera = Camera(*cameraToTrack);
 	camera->Update();
-//	*cameraToTrack = Camera(*camera);
 	// Set active camera to current one
 	graphicsState.camera = camera;
 

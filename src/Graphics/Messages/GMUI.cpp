@@ -446,7 +446,7 @@ void GMPushUI::Process(){
 	else
 		e = ui->GetElementByName(uiName);
 	/// Check if it's a full resource string, if so try and create it now.
-	if (uiName.Contains(".gui"))
+	if (!e && uiName.Contains(".gui"))
 	{
 		/// Try see if we can get it by source name.
 		e = ui->GetElementBySource(uiName);

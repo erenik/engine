@@ -1,10 +1,10 @@
 // Emil Hedemalm
 // 2013-06-28
 
-#include "SpaceRace/GameStates/SpaceRaceGameState.h"
+#include "../SpaceRaceGameState.h"
 #include "Selection.h"
 #include "Graphics/Camera/Camera.h"
-#include "SpaceRace/SRConstants.h"
+#include "../../SRConstants.h"
 
 class Waypoint;
 class Path;

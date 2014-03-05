@@ -8,8 +8,8 @@
 #include "GameStates/GameState.h"
 #include "GameStates/GameStates.h"
 #include "Game/GameConstants.h"
-#include "SpaceRace/Network/SRSession.h"
-#include "SpaceRace/SRPlayer.h"
+#include "../Network/SRSession.h"
+#include "../SRPlayer.h"
 
 class SpaceRaceGameState : public GameState
 {
