@@ -1,10 +1,6 @@
 // Emil Hedemalm
 // 2013-06-28
 
-#include "Game/GameType.h"
-
-#ifdef SPACE_RACE
-
 #include "MainMenu.h"
 #include "Actions.h"
 #include "Input/InputManager.h"
@@ -14,7 +10,7 @@
 void MainMenu::CreateDefaultBindings(){
 	std::cout<<"\nMainMenu::CreateDefaultBindings() called";
 	/// (int action, int * inputCombinationArray, int inputs, const char * name = NULL);
-	InputMapping * mapping = &Input.inputMapping[GAME_STATE_MAIN_MENU];
+	InputMapping * mapping = &inputMapping;
 	mapping->CreateBinding(GO_TO_AI_TEST, KEY::CTRL, KEY::G, KEY::A);
 	mapping->CreateBinding(GO_TO_RACING_STATE, KEY::CTRL, KEY::G, KEY::R);
 	mapping->CreateBinding(GO_TO_NETWORK_TEST, KEY::CTRL, KEY::G, KEY::N);
@@ -35,5 +31,3 @@ void MainMenu::CreateUserInterface(){
 	ui = new UserInterface();
 	ui->Load("gui/MainMenu.gui");
 }
-
-#endif

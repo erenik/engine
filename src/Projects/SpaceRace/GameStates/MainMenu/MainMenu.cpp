@@ -1,10 +1,6 @@
 // Emil Hedemalm
 // 2013-06-28
 
-#include "Game/GameType.h"
-
-#ifdef SPACE_RACE
-
 #include "MainMenu.h"
 // Don't include all managers. Ever.
 #include "Message/Message.h"
@@ -69,7 +65,7 @@ void MainMenu::OnEnter(GameState * previousState){
 	Physics.QueueMessage(new PMSet(GRAVITY, 0.f));
 
 	// Begin loading textures here for the UI
-	Graphics.QueueMessage(new GMSet(ACTIVE_USER_INTERFACE, ui));
+	Graphics.QueueMessage(new GMSetUI(ui));
 
 	/// Load correct default values for network
 	Graphics.QueueMessage(new GMSetUIs("IPInput", GMUI::TEXT, NetworkMan.targetIP));
@@ -217,6 +213,3 @@ void MainMenu::OnChatMessageReceived(ChatMessage * chatMessage){
     /// Scroll dauown (100 pages) to it!
     Graphics.QueueMessage(new GMScrollUI("NetworkLog", -100.0f));
 }
-
-
-#endif

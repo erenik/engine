@@ -1,10 +1,6 @@
 // Emil Hedemalm
 // 2013-06-28
 
-#include "Game/GameType.h"
-
-#ifdef SPACE_RACE
-
 #include "EditorState.h"
 #include "Actions.h"
 #include "Input/InputManager.h"
@@ -20,10 +16,12 @@ void EditorState::CreateDefaultBindings(){
 
 /// (int action, int * inputCombinationArray, int inputs, const char * name = NULL);
 	/// Get pointer to this mapping
-	InputMapping * mapping = &Input.inputMapping[GAME_STATE_EDITOR];
-	/// Create default bindings
+	InputMapping * mapping = &inputMapping;
+	/// Create camera bindings!
+	CreateCameraBindings();
 
 	/// C = Create, L = List
+	/// Create default bindings
 	
 	mapping->CreateBinding(PRINT_FRAME_TIME, KEY::CTRL, KEY::T);
 	mapping->SetBlockingKeys(mapping->CreateBinding(OPEN_CONSOLE, KEY::ENTER, "ENTER : Open Console"), KEY::ALT);
@@ -103,5 +101,3 @@ void EditorState::CreateDefaultBindings(){
 	mapping->SetBlockingKeys(mapping->CreateBinding(RESET_CAMERA, KEY::HOME, "HOME : Reset camera"), KEY::ALT, KEY::CTRL);
 
 };
-
-#endif

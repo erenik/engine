@@ -1,11 +1,7 @@
 // Emil Hedemalm
 // 2013-06-28
 
-#include "Game/GameType.h"
 #include <cstring>
-
-#ifdef SPACE_RACE
-
 #include "EditorState.h"
 #include "Actions.h"
 // Don't include all managers. Ever.
@@ -88,8 +84,8 @@ void EditorState::InputProcessor(int action, int inputDevice/* = 0*/){
 			Selection inView = MapMan.GetEntities();
 			if (!inView.Size())
 				return;
-			inView = inView.CullByCamera(editorCamera);
-			inView.SortByDistance(Vector3f(editorCamera.Position()));
+			inView = inView.CullByCamera(mainCamera);
+			inView.SortByDistance(Vector3f(mainCamera->Position()));
 			if (editorSelection.Size())
 				editorSelection = inView.SelectNext(editorSelection[0]);
 			else
@@ -104,8 +100,8 @@ void EditorState::InputProcessor(int action, int inputDevice/* = 0*/){
 				return;
 			// Fetch map's all entities, cull with frustum, then sort from left to right (from camera).
 			Selection inView = MapMan.GetEntities();
-			inView = inView.CullByCamera(editorCamera);
-			inView.SortByDistance(Vector3f(editorCamera.Position()));
+			inView = inView.CullByCamera(mainCamera);
+			inView.SortByDistance(Vector3f(mainCamera->Position()));
 			if (editorSelection.Size())
 				editorSelection = inView.SelectPrevious(editorSelection[0]);
 			else
@@ -349,61 +345,59 @@ void EditorState::InputProcessor(int action, int inputDevice/* = 0*/){
 	/// Camera
 	// ************************************************** //
 	case STOP:
-		editorCamera.velocity = Vector3f(0, 0, 0);
-		editorCamera.rotationVelocity = Vector3f(0, 0, 0);
+		mainCamera->velocity = Vector3f(0, 0, 0);
+		mainCamera->rotationVelocity = Vector3f(0, 0, 0);
 		break;
 	/// Navigation
-	case FORWARD: 	editorCamera.Begin(DIRECTION::FORWARD);		break;
-	case FORWARD_S:	editorCamera.End(DIRECTION::FORWARD);		break;
-	case BACKWARD: 	editorCamera.Begin(DIRECTION::BACKWARD);	break;
-	case BACKWARD_S:editorCamera.End(DIRECTION::BACKWARD);		break;
-	case LEFT:		editorCamera.Begin(DIRECTION::LEFT);		break;
-	case LEFT_S:	editorCamera.End(DIRECTION::LEFT);			break;
-	case RIGHT:		editorCamera.Begin(DIRECTION::RIGHT);		break;
-	case RIGHT_S:	editorCamera.End(DIRECTION::RIGHT);			break;
-	case UP:		editorCamera.Begin(DIRECTION::UP);			break;
-	case UP_S:		editorCamera.End(DIRECTION::UP);			break;
-	case DOWN:		editorCamera.Begin(DIRECTION::DOWN);		break;
-	case DOWN_S:	editorCamera.End(DIRECTION::DOWN);			break;
+	case FORWARD: 	mainCamera->Begin(Direction::FORWARD);		break;
+	case FORWARD_S:	mainCamera->End(Direction::FORWARD);		break;
+	case BACKWARD: 	mainCamera->Begin(Direction::BACKWARD);	break;
+	case BACKWARD_S:mainCamera->End(Direction::BACKWARD);		break;
+	case LEFT:		mainCamera->Begin(Direction::LEFT);		break;
+	case LEFT_S:	mainCamera->End(Direction::LEFT);			break;
+	case RIGHT:		mainCamera->Begin(Direction::RIGHT);		break;
+	case RIGHT_S:	mainCamera->End(Direction::RIGHT);			break;
+	case UP:		mainCamera->Begin(Direction::UP);			break;
+	case UP_S:		mainCamera->End(Direction::UP);			break;
+	case DOWN:		mainCamera->Begin(Direction::DOWN);		break;
+	case DOWN_S:	mainCamera->End(Direction::DOWN);			break;
 	/// Rotation
-	case TURN_LEFT:		editorCamera.BeginRotate(DIRECTION::LEFT); break;
-	case TURN_LEFT_S:	editorCamera.EndRotate(DIRECTION::LEFT); break;
-	case TURN_RIGHT:	editorCamera.BeginRotate(DIRECTION::RIGHT); break;
-	case TURN_RIGHT_S:	editorCamera.EndRotate(DIRECTION::RIGHT); break;
-	case TURN_UP:		editorCamera.BeginRotate(DIRECTION::UP); break;
-	case TURN_UP_S:		editorCamera.EndRotate(DIRECTION::UP); break;
-	case TURN_DOWN:		editorCamera.BeginRotate(DIRECTION::DOWN); break;
-	case TURN_DOWN_S:	editorCamera.EndRotate(DIRECTION::DOWN); break;
+	case TURN_LEFT:		mainCamera->BeginRotate(Direction::LEFT); break;
+	case TURN_LEFT_S:	mainCamera->EndRotate(Direction::LEFT); break;
+	case TURN_RIGHT:	mainCamera->BeginRotate(Direction::RIGHT); break;
+	case TURN_RIGHT_S:	mainCamera->EndRotate(Direction::RIGHT); break;
+	case TURN_UP:		mainCamera->BeginRotate(Direction::UP); break;
+	case TURN_UP_S:		mainCamera->EndRotate(Direction::UP); break;
+	case TURN_DOWN:		mainCamera->BeginRotate(Direction::DOWN); break;
+	case TURN_DOWN_S:	mainCamera->EndRotate(Direction::DOWN); break;
 	/// Camera Distance
 	case COME_CLOSER:
-		editorCamera.distanceFromCentreOfMovement *= 0.8f;
+		mainCamera->distanceFromCentreOfMovement *= 0.8f;
 		break;
 	case BACK_AWAY:
-		editorCamera.distanceFromCentreOfMovement *= 1.25f;
+		mainCamera->distanceFromCentreOfMovement *= 1.25f;
 		break;
 	case ZOOM_IN: 		/// Zoom
-		editorCamera.zoom *= 1.25f;
+		mainCamera->zoom *= 1.25f;
 		Graphics.UpdateProjection();
 		break;
 	case ZOOM_OUT:
-		editorCamera.zoom *= 0.8f;
+		mainCamera->zoom *= 0.8f;
 		Graphics.UpdateProjection();
 		break;
 	case INCREASE_SPEED:
-		editorCamera.flySpeedMultiplier *= 1.25f;
+		mainCamera->flySpeed *= 1.25f;
 		break;
 	case DECREASE_SPEED:
-		editorCamera.flySpeedMultiplier *= 0.8f;
+		mainCamera->flySpeed *= 0.8f;
 		break;
 	case RESET_CAMERA:
-		editorCamera = Camera();
-		editorCamera.SetRatio(Graphics.width, Graphics.height);
-		editorCamera.Update();
+		*mainCamera = Camera();
+		mainCamera->SetRatio(Graphics.width, Graphics.height);
+		mainCamera->Update();
 		break;
 	default:
 		std::cout<<"\nINFO: Default case for action: "<<action<<"!";
 		break;
 	}
 }
-
-#endif

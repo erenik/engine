@@ -1,10 +1,6 @@
 // Emil Hedemalm
 // 2013-07-28
 
-#include "Game/GameType.h"
-
-// #ifdef SPACE_RACE
-
 #ifndef AI_RACER_H
 #define AI_RACER_H
 
@@ -51,5 +47,3 @@ private:
 };
 
 #endif
-
-//#endif /// SPACE_RACE

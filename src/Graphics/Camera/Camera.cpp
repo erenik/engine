@@ -34,6 +34,9 @@ Camera::Camera(){
 	projectionType = PROJECTION_3D;
 	/// wat.
 	elevation = 0.0f;
+
+	scaleDistanceWithVelocity = false;
+	scaleSpeedWithZoom = false;
 };
 
 // Prints data, including position, matrices, etc.
@@ -92,12 +95,27 @@ void Camera::Update(){
 		// Move camera before before main scenegraph rendering begins
 		// Rotate it
 		if (trackingMode == TrackingMode::FROM_BEHIND){
+			float distance;
+			// First translate the camera relative to the viewing rotation-"origo"
 			if (entityToTrack->physics)
-				// First translate the camera relative to the viewing rotation-"origo"
-				viewMatrix.translate(0, 0, -this->entityToTrack->physics->physicalRadius*2);
+				distance = -this->entityToTrack->physics->physicalRadius*2;
 			else
-				viewMatrix.translate(0, 0, -this->entityToTrack->radius*2);
-
+				distance = -this->entityToTrack->radius*2;
+			
+			/// Check if we got zis speed option set.
+			if (scaleDistanceWithVelocity){
+				// Scale it a bit more depending on current speed!
+				/// Fetch dot product of entity velocity and our look-direction, since that is what we care about.
+				float dotProduct = this->entityToTrack->Velocity().DotProduct(this->LookingAt());
+				Clamp(dotProduct, 0.0f, 10000000.0f);
+				dotProduct *= 0.08f;
+				/// Should now have speed in our vector of interest, so use that as velocity.
+				float distanceMultiplier = pow(dotProduct, 0.08f);
+				Clamp(distanceMultiplier, 1.0f, 10.0f);
+				distance *= distanceMultiplier;
+			}
+			viewMatrix.translate(0, 0, distance);
+			
 
 			rotationMatrix.multiply(Matrix4d().InitRotationMatrix(-this->entityToTrack->rotationVector.x, 1, 0, 0));
 			rotationMatrix.multiply(Matrix4d().InitRotationMatrix(-this->entityToTrack->rotationVector.y, 0, 1, 0));

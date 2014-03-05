@@ -31,14 +31,14 @@
 #include "Input/InputDevices.h"
 #include "Chat/ChatManager.h"
 #include "Network/NetworkClient.h"
-#include "SpaceRace/Network/SRSession.h"
+#include "../../Network/SRSession.h"
 #include "String/StringUtil.h"
 #include "UI/UIInput.h"
 
 #include "Network/Packet/Packet.h"
 
-#include "SpaceRace/Network/SRPacketTypes.h"
-#include "SpaceRace/Network/SRPacket.h"
+#include "../../Network/SRPacketTypes.h"
+#include "../../Network/SRPacket.h"
 
 enum actions {
 	NULL_ACTION,
@@ -68,6 +68,9 @@ LobbyState::~LobbyState()
 void LobbyState::OnEnter(GameState * previousState){
 	// Load initial texture and set it to render over everything else
 	std::cout<<"\nLobbyState::OnEnter.";
+
+	/// Set camera!
+	SetCameraProjection3D();
 
 	Graphics.sleepTime = 3;
 	Graphics.outOfFocusSleepTime = 10;
@@ -136,7 +139,7 @@ void LobbyState::OnExit(GameState * nextState){
 void LobbyState::CreateDefaultBindings(){
 	std::cout<<"\n"<<this->stateName<<"::CreateDefaultBindings() called";
 	/// Get pointer to this mapping
-	InputMapping * mapping = &Input.inputMapping[this->id];
+	InputMapping * mapping = &inputMapping;
 
 	mapping->CreateBinding("IncreaseAIPlayers", KEY::CTRL, KEY::PLUS);
 	mapping->CreateBinding("DecreaseAIPlayers", KEY::CTRL, KEY::MINUS);

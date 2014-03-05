@@ -72,8 +72,8 @@ String::String(const char * string){
     int lengthStr = 0;
     if (string)
         lengthStr = strlen(string);
-    Reallocate(lengthStr+2);
- //   std::cout<<"\nStr: "<<string;
+    Reallocate(lengthStr+1);
+//    std::cout<<"\nStr: "<<string;
  //   std::cout<<"\nString lengths: "<<lengthArr<<" "<<lengthStr<<" Arr:"<<arr<<" Str: "<<string;
 //	std::cout<<"\nStrlen: "<<lengthStr<<" ArraySize: "<<arraySize;
 	strncpy(arr, string, arraySize-1);
@@ -122,10 +122,23 @@ const String& String::operator = (const char * otherString){
 		return *this;
 	}
     int length = Size(otherString);
+	assert(length < 50000 && length >= 0);
 	type = String::CHAR;
 	Reallocate(length+1);
     memset(arr, 0, arraySize);
-	strncpy(arr, otherString, length);
+/*	std::cout<<"lall";
+	std::cout<<"Length of \""<<otherString<<"\": "<<length<<" arraySize: "<<arraySize;
+	for (int i = 0; i < arraySize; ++i)
+	{
+		char c = arr[i];
+		if (c == 0)
+			std::cout<<"0";
+		else
+			std::cout<<c;
+	}
+	*/
+	// Safer: http://www.cplusplus.com/reference/cstring/memmove/
+	memmove(arr, otherString, length);
 	return *this;
 }
 const String& String::operator = (const wchar_t * otherString){
@@ -1178,6 +1191,7 @@ void String::Delete(){
 
 ///
 void String::Reallocate(int size){
+//	std::cout<<"\nReallocating with size: "<<size;
 	bool debug = false;
 	switch(type){
 		case CHAR: {

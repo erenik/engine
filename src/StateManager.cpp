@@ -5,7 +5,6 @@
 #include "Message/MessageManager.h"
 //// Don't include all managers. Ever.
 #include "Input/InputManager.h"
-#include "Game/GameType.h"
 #include "Maps/MapManager.h"
 #include "OS/Sleep.h"
 #include "Event/EventManager.h"

@@ -1,17 +1,13 @@
 // Emil Hedemalm
 // 2013-07-28
 
-#include "Game/GameType.h"
-
-// #ifdef SPACE_RACE
-
 #include <cstring>
 #include <cmath>
 
 #include "AIRacer.h"
-#include "SpaceRace/EntityStates/RacingShipGlobal.h"
+#include "../EntityStates/RacingShipGlobal.h"
 #include "../GameStates/Racing/RacingState.h"
-#include "SpaceRace/SRConstants.h"
+#include "../SRConstants.h"
 #include "Pathfinding/NavMesh.h"
 #include "Pathfinding/Path.h"
 #include "Maps/MapManager.h"
@@ -191,4 +187,3 @@ void AIRacer::ProcessMessage(Message * message){
 	}
 }
 
-// #endif /// SPACE_RACE

@@ -1,10 +1,6 @@
 // Emil Hedemalm
 // 2013-06-28
 
-#include "Game/GameType.h"
-
-#ifdef SPACE_RACE
-
 #include "EditorState.h"
 
 #include "Graphics/GraphicsManager.h"
@@ -75,7 +71,7 @@ void EditorState::CreateUserInterface(){
 void EditorState::OnEnter(GameState * previousState){
 	// Load initial texture and set it to render over everything else
 	// Begin loading textures here for the UI
-	Graphics.QueueMessage(new GMSet(ACTIVE_USER_INTERFACE, ui));
+	Graphics.QueueMessage(new GMSetUI(ui));
 
 	if (!MapMan.Exists(EDITOR_MAP))
 		MapMan.CreateMap(EDITOR_MAP);
@@ -103,9 +99,10 @@ void EditorState::OnEnter(GameState * previousState){
 	/// Set editor selection as the renderable one!
 	Graphics.selectionToRender = &editorSelection;
 
-	// And set it as active
-	Graphics.cameraToTrack = &editorCamera;
-	editorCamera.SetRatio(Graphics.width, Graphics.height);
+	// Set camera
+	SetCameraProjection3D();
+	
+	mainCamera->SetRatio(Graphics.width, Graphics.height);
 
 	// Load the AI scene
 	// Don't load anytheing o-o;
@@ -178,24 +175,26 @@ void EditorState::Process(float time){
 	}*/
 
 
+	/* Deprecated, should be handled within the camera and graphics thread now!
 	/// Fly! :D
 	/// Rotate first, yo o.O
 	/// Rotation multiplier.
 	float rotMultiplier = 0.05f;
-	editorCamera.rotation += editorCamera.rotationVelocity * editorCamera.rotationSpeedMultiplier * (float)timeDiff;
+	mainCamera->rotation += mainCamera->rotationVelocity * mainCamera->rotationSpeed * (float)timeDiff;
 	// Check input for moving camera
-	if (editorCamera.velocity.Length() > 0){
+	if (mainCamera->velocity.Length() > 0){
 		Vector4d moveVec;
-		moveVec = Vector4d(editorCamera.velocity);
+		moveVec = Vector4d(mainCamera->velocity);
 		/// Flight-speed multiplier.
-		float multiplier = 0.5f * editorCamera.flySpeedMultiplier;
+		float multiplier = 0.5f * mainCamera->flySpeedMultiplier;
 		moveVec = moveVec * multiplier * (float)timeDiff;
 		Matrix4d rotationMatrix;
-		rotationMatrix.InitRotationMatrixY(-editorCamera.rotation.y);
-		rotationMatrix.multiply(Matrix4d::GetRotationMatrixX(-editorCamera.rotation.x));
+		rotationMatrix.InitRotationMatrixY(-mainCamera->rotation.y);
+		rotationMatrix.multiply(Matrix4d::GetRotationMatrixX(-mainCamera->rotation.x));
 		moveVec = rotationMatrix.product(moveVec);
-		editorCamera.position += Vector3f(moveVec);
+		mainCamera->position += Vector3f(moveVec);
 	}
+	*/
 };
 
 /// Callback function that will be triggered via the MessageManager when messages are processed.
@@ -701,6 +700,8 @@ void EditorState::ProcessMessage(Message * message){
 		case MessageType::STRING:
 		{
 			String string = message->msg;
+			if (HandleCameraMessages(string))
+				return;
 			string.SetComparisonMode(String::NOT_CASE_SENSITIVE);
 			if (string == "begin_commandline"){
 				Input.EnterTextInputMode("INTERPRET_CONSOLE_COMMAND");
@@ -967,7 +968,7 @@ void EditorState::MouseClick(bool down, int x, int y, UIElement * elementClicked
 				if (!Input.KeyPressed(KEY::CTRL))
 					editorSelection.Clear();
 
-				Ray clickRay = GetRayFromScreenCoordinates(mouseX, mouseY, editorCamera);
+				Ray clickRay = GetRayFromScreenCoordinates(mouseX, mouseY, *mainCamera);
 				std::cout<<"\nStartPoint: "<<clickRay.start<<" \nDirection: "<<clickRay.direction;
 
 				switch(editMode){
@@ -989,7 +990,7 @@ void EditorState::MouseClick(bool down, int x, int y, UIElement * elementClicked
 
 						// Sort, then select closest entity that is within the ray.
 						Selection entities = MapMan.GetEntities();
-						Vector3f camPos = editorCamera.Position();
+						Vector3f camPos = mainCamera->Position();
 						entities.SortByDistance(camPos);
 						for (int i = 0; i < entities.Size(); ++i){
 							Entity * entity = entities[i];
@@ -1056,10 +1057,10 @@ void EditorState::MouseClick(bool down, int x, int y, UIElement * elementClicked
 
 				/// Find entities in a frustum in target location.
 				// Begin by extracting the end point in the editorCamera frustum for where we clicked
-				Vector4f startPoint = editorCamera.Position();
-				Vector4f endPoint = Vector4f(0, 0, -editorCamera.farPlane, 1);
-				endPoint = Matrix4f(editorCamera.Projection()) * endPoint;
-				endPoint = Matrix4f(editorCamera.View()) * endPoint;
+				Vector4f startPoint = mainCamera->Position();
+				Vector4f endPoint = Vector4f(0, 0, -mainCamera->farPlane, 1);
+				endPoint = Matrix4f(mainCamera->Projection()) * endPoint;
+				endPoint = Matrix4f(mainCamera->View()) * endPoint;
 
 
 
@@ -1518,5 +1519,3 @@ void EditorState::CreateCheckpoints(){
 		}
 	}
 }
-
-#endif

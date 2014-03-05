@@ -2,8 +2,6 @@
 // 2013-07-11
 // A Space Race player!
 
-#include "Game/GameType.h"
-
 #include "SRPlayer.h"
 #include "Ship.h"
 

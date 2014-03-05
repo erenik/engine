@@ -1,9 +1,6 @@
-// Awesome Author
-
-#include "Game/GameType.h"
-
-#ifdef SPACE_RACE
-
+// Emil Hedemalm
+// 2014-03-05
+// 
 #include "GlobalState.h"
 #include "Actions.h"
 #include "Input/InputManager.h"
@@ -15,7 +12,7 @@ void GlobalState::CreateDefaultBindings(){
 
 	/// (int action, int * inputCombinationArray, int inputs, const char * name = NULL);
 	/// Get pointer to this mapping
-	InputMapping * mapping = &Input.inputMapping[GAME_STATE_GLOBAL];
+	InputMapping * mapping = &inputMapping;
 	/// Create default bindings
 
 	/// C = Create, L = List
@@ -43,4 +40,3 @@ void GlobalState::CreateDefaultBindings(){
 
 };
 
-#endif

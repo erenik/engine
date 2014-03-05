@@ -1,10 +1,6 @@
 // Emil Hedemalm
 // 2013-06-17
 
-#include "Game/GameType.h"
-
-// #ifdef SPACE_RACE
-
 #ifndef RACING_H
 #define RACING_H
 

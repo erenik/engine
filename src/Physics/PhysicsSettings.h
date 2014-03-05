@@ -5,8 +5,6 @@
 #ifndef PHYSICS_SETTINGS_H
 #define PHYSICS_SETTINGS_H
 
-#include "Game/GameType.h"
-
 // Wosh. Can reduce some overhead but will fuck up most physics?
 #define USE_MASS
 

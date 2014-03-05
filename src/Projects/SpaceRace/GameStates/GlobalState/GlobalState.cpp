@@ -1,8 +1,6 @@
-// Awesome Author
-
-#include "Game/GameType.h"
-
-#ifdef SPACE_RACE
+// Emil Hedemalm
+// 2014-03-05
+// 
 
 #define print(arg) std::cout << arg << "\n";
 
@@ -24,7 +22,7 @@
 #include "Graphics/Messages/GMSet.h"
 #include "Audio/AudioManager.h"
 #include "Audio/TrackManager.h"
-#include "SpaceRace/SRPlayer.h"
+#include "../../SRPlayer.h"
 #include "UI/UIList.h"
 #include "UI/UITypes.h"
 #include "Audio/Tracks/Track.h"
@@ -36,11 +34,11 @@
 #include "Network/Peer.h"
 #include "Network/NetworkManager.h"
 #include "Chat/ChatManager.h"
-#include "SpaceRace/Network/SRSession.h"
-#include "SpaceRace/Network/SRSessionData.h"
-#include "SpaceRace/Network/SRPacket.h"
-#include "SpaceRace/Network/SRPacketTypes.h"
-#include "SpaceRace/SRConstants.h"
+#include "../../Network/SRSession.h"
+#include "../../Network/SRSessionData.h"
+#include "../../Network/SRPacket.h"
+#include "../../Network/SRPacketTypes.h"
+#include "../../SRConstants.h"
 
 #include "Game/Game.h"
 
@@ -594,6 +592,3 @@ void GlobalState::UpdatePeerUdpStatusUI()
 		AddLabel(String::ToString(srsd->udpWorkingPacketsReceived), "UdpPeerUdpWorkingPacketsReceived");
 	}
 }
-
-
-#endif

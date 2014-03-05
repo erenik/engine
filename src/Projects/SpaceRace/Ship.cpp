@@ -1,8 +1,6 @@
 // Emil Hedemalm
 // 2013-07-11
 
-#include "Game/GameType.h"
-
 #include "Ship.h"
 #include "Entity/Entity.h"
 #include "Graphics/GraphicsManager.h"

@@ -2,9 +2,9 @@
 // 2013-07-28
 
 #include "ThrusterTester.h"
-#include "SpaceRace/EntityStates/RacingShipGlobal.h"
+#include "../EntityStates/RacingShipGlobal.h"
 #include "../GameStates/Racing/RacingState.h"
-#include "SpaceRace/SRConstants.h"
+#include "../SRConstants.h"
 #include "Maps/MapManager.h"
 #include <cstring>
 #include <cmath>

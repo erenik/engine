@@ -1,7 +1,7 @@
 // Emil Hedemalm
 // 2013-07-10
 
-#include "SpaceRace/GameStates/SpaceRaceGameState.h"
+#include "../SpaceRaceGameState.h"
 
 class SRPlayer;
 

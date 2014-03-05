@@ -88,7 +88,7 @@ void MapState::OnEnter(GameState * previousState){
 
 	Sleep(100);
 	// Begin loading textures here for the UI
-	Graphics.QueueMessage(new GMSet(ACTIVE_USER_INTERFACE, ui));
+	Graphics.QueueMessage(new GMSetUI(ui));
 	/// Depending on previous state, modify menu.
 	if (previousState->GetID() == RUNE_GAME_STATE_MAIN_MENU){
 		/// Hide the menu.

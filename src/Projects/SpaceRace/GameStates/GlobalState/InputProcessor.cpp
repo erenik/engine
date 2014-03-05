@@ -1,8 +1,6 @@
-// Awesome Author
-
-#include "Game/GameType.h"
-
-#ifdef SPACE_RACE
+// Emil Hedemalm
+// 2014-03-05
+// 
 
 #include "GlobalState.h"
 #include "Actions.h"
@@ -82,5 +80,3 @@ void GlobalState::InputProcessor(int action, int inputDevice/* = 0*/){
 			*/
 	}
 }
-
-#endif

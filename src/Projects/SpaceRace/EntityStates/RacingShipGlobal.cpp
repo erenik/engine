@@ -1,10 +1,6 @@
 // Emil Hedemalm
 // 2013-06-15
 
-#include "Game/GameType.h"
-
-//#ifdef SPACE_RACE
-
 #include "Message/Message.h"
 #include "Physics/Messages/CollissionCallback.h"
 #include "RacingShipGlobal.h"
@@ -563,5 +559,3 @@ void RacingShipGlobal::SetStartingPosition(Vector3f position, Vector3f andRotati
 	startingPosition = position;
 	startingRotation = andRotation;
 }
-
-// #endif // SPACE_RACE

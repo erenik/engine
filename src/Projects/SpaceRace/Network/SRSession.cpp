@@ -10,7 +10,7 @@
 #include "Network/NetworkManager.h"
 #include "Network/Peer.h"
 #include "Network/Socket/Socket.h"
-#include "SpaceRace/SRConstants.h"
+#include "../SRConstants.h"
 #include "Message/MessageManager.h"
 #include "Message/Message.h"
 #include "Message/MessageTypes.h"
@@ -21,7 +21,7 @@
 #include "Input/InputDevices.h"
 #include "Input/InputManager.h"
 #include "Network/Socket/UdpSocket.h"
-#include "SpaceRace/ShipManager.h"
+#include "../ShipManager.h"
 #include "String/StringUtil.h"
 
 SRSession::SRSession(String sessionName)

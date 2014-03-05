@@ -1,9 +1,6 @@
 // Emil Hedemalm
 // 2013-06-28
 
-#include "Game/GameType.h"
-
-// #ifdef SPACE_RACE
 #include "Game/GameVariables.h"
 #include "Graphics/GraphicsManager.h"
 #include "Maps/MapManager.h"
@@ -26,7 +23,7 @@
 #include "Physics/Messages/CollissionCallback.h"
 #include "Physics/Messages/PhysicsMessage.h"
 #include "EntityStates/StateProperty.h"
-#include "SpaceRace/EntityStates/RacingShipGlobal.h"
+#include "../../EntityStates/RacingShipGlobal.h"
 #include "Graphics/Messages/GMParticleMessages.h"
 #include "OS/Sleep.h"
 #include <Util.h>
@@ -44,16 +41,16 @@ extern UserInterface * ui[MAX_GAME_STATES];
 #include "../../SRConstants.h"
 #include "UI/UIList.h"
 
-#include "SpaceRace/SRPlayer.h"
+#include "../../SRPlayer.h"
 
 #include "Network/Packet/Packet.h"
 #include "Network/Session/GameSession.h"
 #include "Network/Packet/SyncPacket.h"
 
-#include "SpaceRace/Network/SRPacketTypes.h"
-#include "SpaceRace/Network/SRPacket.h"
+#include "../../Network/SRPacketTypes.h"
+#include "../../Network/SRPacket.h"
 
-#include "SpaceRace/ShipManager.h"
+#include "../../ShipManager.h"
 #include "Chat/ChatManager.h"
 
 
@@ -268,6 +265,8 @@ void Racing::OnEnter(GameState * previousState){
     for (int i = 0; i < viewports.Size(); ++i){
         Camera * c = new Camera();
     	c->name = "RacingCamera " + String::ToString(i+1);
+		/// For dat racing feeling.
+		c->scaleDistanceWithVelocity = true;
         cameras.Add(c);
         /// Set camera to track for the selected viewport.
         viewports[i]->SetCameraToTrack(c);
@@ -523,19 +522,19 @@ void Racing::Process(float time){
 	/// Rotate first, yo o.O
 	/// Rotation multiplier.
 	float rotMultiplier = 0.05f;
-	editorCamera.rotation += editorCamera.rotationVelocity * (float) (editorCamera.rotationSpeedMultiplier * timeDiff);
+	mainCamera->rotation += mainCamera->rotationVelocity * (float) (mainCamera->rotationSpeedMultiplier * timeDiff);
 	// Check input for moving camera
-	if (editorCamera.velocity.Length() > 0){
+	if (mainCamera->velocity.Length() > 0){
 		Vector4d moveVec;
-		moveVec = Vector4d(editorCamera.velocity);
+		moveVec = Vector4d(mainCamera->velocity);
 		/// Flight-speed multiplier.
-		float multiplier = 0.5f * editorCamera.flySpeedMultiplier;
+		float multiplier = 0.5f * mainCamera->flySpeedMultiplier;
 		moveVec = moveVec * multiplier * (float)timeDiff;
 		Matrix4d rotationMatrix;
-		rotationMatrix.InitRotationMatrixY(-editorCamera.rotation.y);
-		rotationMatrix.multiply(Matrix4d::GetRotationMatrixX(-editorCamera.rotation.x));
+		rotationMatrix.InitRotationMatrixY(-mainCamera->rotation.y);
+		rotationMatrix.multiply(Matrix4d::GetRotationMatrixX(-mainCamera->rotation.x));
 		moveVec = rotationMatrix.product(moveVec);
-		editorCamera.position += Vector3f(moveVec);
+		mainCamera->position += Vector3f(moveVec);
 	}
 	*/
 };
@@ -1219,5 +1218,3 @@ void Racing::FormatResults(){
 		Graphics.QueueMessage(new GMAddUI(playerStats, "ResultsList"));
 	}
 }
-
-// #endif

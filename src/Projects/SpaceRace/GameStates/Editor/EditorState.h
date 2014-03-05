@@ -101,7 +101,7 @@ private:
 	void OnActiveShipUpdated();
 
 	/// The editor camera! :D
-	Camera editorCamera;
+	// Camera editorCamera;
 	/// Actively manipulated entities
 	Selection editorSelection;
 	List<Waypoint*> waypointSelection;

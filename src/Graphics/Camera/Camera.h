@@ -45,6 +45,9 @@ public:
 	Vector3f velocity;
 	/// Current rotational speed
 	Vector3f rotationVelocity;
+	/// To get a "speedy" effect when following entities.
+	bool scaleDistanceWithVelocity;
+	/// For faster scrolling when zoomed out e.g. in editors.
 	bool scaleSpeedWithZoom;
 
 	enum cameraTypes {

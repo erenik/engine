@@ -1,10 +1,6 @@
 // Emil Hedemalm
 // 2013-06-28
 
-#include "Game/GameType.h"
-
-// #ifdef SPACE_RACE
-
 #include "RacingState.h"
 #include "Actions.h"
 // Don't include all managers. Ever.
@@ -19,7 +15,7 @@ void Racing::CreateDefaultBindings(){
 
 /// (int action, int * inputCombinationArray, int inputs, const char * name = NULL);
 	/// Get pointer to this mapping
-	InputMapping * mapping = &Input.inputMapping[this->id];
+	InputMapping * mapping = &inputMapping;
 	/// Create default bindings
 
 	/// C = Create, L = List

@@ -1,10 +1,6 @@
 // Emil Hedemalm
 // 2013-07-11
 
-#include "Game/GameType.h"
-
-//#ifdef SPACE_RACE
-
 #include "ShipManager.h"
 #include <cmath>
 #include <fstream>
@@ -268,5 +264,3 @@ RuneBattler ShipManager::GetBattlerType(String byName){
 	return RuneBattler();
 }
 */
-
-//#endif

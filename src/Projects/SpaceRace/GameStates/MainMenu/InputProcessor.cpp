@@ -1,10 +1,6 @@
 // Emil Hedemalm
 // 2013-06-28
 
-#include "Game/GameType.h"
-
-#ifdef SPACE_RACE
-
 #include "MainMenu.h"
 #include "Actions.h"
 // Don't include all managers. Ever.
@@ -43,5 +39,3 @@ void MainMenu::InputProcessor(int action, int inputDevice/* = 0*/){
 			break;
 	}
 }
-
-#endif

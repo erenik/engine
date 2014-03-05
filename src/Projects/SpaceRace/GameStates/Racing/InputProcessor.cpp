@@ -1,10 +1,6 @@
 // Emil Hedemalm
 // 2013-06-28
 
-#include "Game/GameType.h"
-
-// #ifdef SPACE_RACE
-
 #include "RacingState.h"
 #include "Actions.h"
 // Don't include all managers. Ever.
@@ -128,11 +124,11 @@ void Racing::InputProcessor(int action, int inputDevice){
 			break;
 		case CHANGE_CAMERA:
 			switch(PLAYER_CAMERA.trackingMode){
-				case TRACKING_MODE::FROM_BEHIND:
-					PLAYER_CAMERA.trackingMode = TRACKING_MODE::THIRD_PERSON;
+				case TrackingMode::FROM_BEHIND:
+					PLAYER_CAMERA.trackingMode = TrackingMode::THIRD_PERSON;
 					break;
-				case TRACKING_MODE::THIRD_PERSON:
-					PLAYER_CAMERA.trackingMode = TRACKING_MODE::FROM_BEHIND;
+				case TrackingMode::THIRD_PERSON:
+					PLAYER_CAMERA.trackingMode = TrackingMode::FROM_BEHIND;
 					break;
 			};
 			break;
@@ -218,27 +214,27 @@ void Racing::InputProcessor(int action, int inputDevice){
 		PLAYER_CAMERA.rotationVelocity = Vector3f(0, 0, 0);
 		break;
 	/// Navigation
-	case FORWARD: 	PLAYER_CAMERA.Begin(DIRECTION::FORWARD);		break;
-	case FORWARD_S:	PLAYER_CAMERA.End(DIRECTION::FORWARD);		break;
-	case BACKWARD: 	PLAYER_CAMERA.Begin(DIRECTION::BACKWARD);	break;
-	case BACKWARD_S:PLAYER_CAMERA.End(DIRECTION::BACKWARD);		break;
-	case LEFT:		PLAYER_CAMERA.Begin(DIRECTION::LEFT);		break;
-	case LEFT_S:	PLAYER_CAMERA.End(DIRECTION::LEFT);			break;
-	case RIGHT:		PLAYER_CAMERA.Begin(DIRECTION::RIGHT);		break;
-	case RIGHT_S:	PLAYER_CAMERA.End(DIRECTION::RIGHT);			break;
-	case UP:		PLAYER_CAMERA.Begin(DIRECTION::UP);			break;
-	case UP_S:		PLAYER_CAMERA.End(DIRECTION::UP);			break;
-	case DOWN:		PLAYER_CAMERA.Begin(DIRECTION::DOWN);		break;
-	case DOWN_S:	PLAYER_CAMERA.End(DIRECTION::DOWN);			break;
+	case FORWARD: 	PLAYER_CAMERA.Begin(Direction::FORWARD);		break;
+	case FORWARD_S:	PLAYER_CAMERA.End(Direction::FORWARD);		break;
+	case BACKWARD: 	PLAYER_CAMERA.Begin(Direction::BACKWARD);	break;
+	case BACKWARD_S:PLAYER_CAMERA.End(Direction::BACKWARD);		break;
+	case LEFT:		PLAYER_CAMERA.Begin(Direction::LEFT);		break;
+	case LEFT_S:	PLAYER_CAMERA.End(Direction::LEFT);			break;
+	case RIGHT:		PLAYER_CAMERA.Begin(Direction::RIGHT);		break;
+	case RIGHT_S:	PLAYER_CAMERA.End(Direction::RIGHT);			break;
+	case UP:		PLAYER_CAMERA.Begin(Direction::UP);			break;
+	case UP_S:		PLAYER_CAMERA.End(Direction::UP);			break;
+	case DOWN:		PLAYER_CAMERA.Begin(Direction::DOWN);		break;
+	case DOWN_S:	PLAYER_CAMERA.End(Direction::DOWN);			break;
 	/// Rotation
-	case TURN_LEFT:		PLAYER_CAMERA.BeginRotate(DIRECTION::LEFT); break;
-	case TURN_LEFT_S:	PLAYER_CAMERA.EndRotate(DIRECTION::LEFT); break;
-	case TURN_RIGHT:	PLAYER_CAMERA.BeginRotate(DIRECTION::RIGHT); break;
-	case TURN_RIGHT_S:	PLAYER_CAMERA.EndRotate(DIRECTION::RIGHT); break;
-	case TURN_UP:		PLAYER_CAMERA.BeginRotate(DIRECTION::UP); break;
-	case TURN_UP_S:		PLAYER_CAMERA.EndRotate(DIRECTION::UP); break;
-	case TURN_DOWN:		PLAYER_CAMERA.BeginRotate(DIRECTION::DOWN); break;
-	case TURN_DOWN_S:	PLAYER_CAMERA.EndRotate(DIRECTION::DOWN); break;
+	case TURN_LEFT:		PLAYER_CAMERA.BeginRotate(Direction::LEFT); break;
+	case TURN_LEFT_S:	PLAYER_CAMERA.EndRotate(Direction::LEFT); break;
+	case TURN_RIGHT:	PLAYER_CAMERA.BeginRotate(Direction::RIGHT); break;
+	case TURN_RIGHT_S:	PLAYER_CAMERA.EndRotate(Direction::RIGHT); break;
+	case TURN_UP:		PLAYER_CAMERA.BeginRotate(Direction::UP); break;
+	case TURN_UP_S:		PLAYER_CAMERA.EndRotate(Direction::UP); break;
+	case TURN_DOWN:		PLAYER_CAMERA.BeginRotate(Direction::DOWN); break;
+	case TURN_DOWN_S:	PLAYER_CAMERA.EndRotate(Direction::DOWN); break;
 	/// Camera Distance
 	case COME_CLOSER:
 		PLAYER_CAMERA.distanceFromCentreOfMovement *= 0.8f;
@@ -255,10 +251,10 @@ void Racing::InputProcessor(int action, int inputDevice){
 		Graphics.UpdateProjection();
 		break;
 	case INCREASE_SPEED:
-		PLAYER_CAMERA.flySpeedMultiplier *= 1.25f;
+		PLAYER_CAMERA.flySpeed *= 1.25f;
 		break;
 	case DECREASE_SPEED:
-		PLAYER_CAMERA.flySpeedMultiplier *= 0.8f;
+		PLAYER_CAMERA.flySpeed *= 0.8f;
 		break;
 	case RESET_CAMERA:
 		PLAYER_CAMERA = Camera();
