@@ -48,6 +48,8 @@ public:
 	/// Calculates values as estimated for given time.
 	Vector3f Calculate(long long forGivenTime);
 	void AddState(Vector3f vec, long long timeStamp);
+	/// Required to use any extrapolation, since it requires another estimator inside for smoothing.
+	void EnableExtrapolation();
 	/// See modes above.
 	int mode;
 	/// Delay to be applied for interpolation and smoothing duration when using extrapolation. 
@@ -57,17 +59,23 @@ public:
 	/// Current velocity using estimation.
 	Vector3f CurrentVelocity() {return currentVelocity;};
 protected:
+	/// Sets bool flag to false if the given time is old, i.e. within a range of already known values. If so, GetInterpolatedValue should be used instead/afterward.
+	Vector3f GetExtrapolatedValue(long long forGivenTime, bool & good);
+	Vector3f GetInterpolatedValue(long long forGivenTime);
+
 	/// Fetches estimation state by index relative to currentIndex. 0 refers to next state, with negative values being past. 
 	EstimationStateVec3f * GetState(int index);
 	EstimationStateVec3f * states;
 	/// Size of states-array from which we sample.
 	int arraySize;
-	/// current index to which new data will be placed. meaning all indexes behind it are populated.
+	/// current index in which new data has been. meaning all indexes behind it, including itself, are populated.
 	int currentIndex;
 	/// Flagged once after all elements have been populated.
 	bool hasLooped;
-	/// Value used by extrapolator in order to properly or at least somehow decently move from a previous predition to the newer one. Updated each time AddState is called.
-	EstimationStateVec3f lastEstimationBeforeNewEstimation;
+
+	/// Two latest values that the extrapolator yielded. Used to transition between them.
+	EstimatorVec3f * extrapolatorValueSmoother;
+
 	Vector3f lastEstimation;
 	long long lastEstimationTime;
 	/// Used to get a feeling of how fast things are going as far as the estimations are cornerned.

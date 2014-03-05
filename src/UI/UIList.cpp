@@ -169,7 +169,7 @@ void UIList::AddChild(UIElement* child)
     /// Inherit neighbours.
 	child->InheritNeighbours(this);
 
-    std::cout<<"\nAdding child "<<child->name<<" text: "<<child->text;
+ //   std::cout<<"\nAdding child "<<child->name<<" text: "<<child->text;
 	/// If first child, place it at the top.
 	if (childList.Size() == 0){
 		UIElement::AddChild(child);

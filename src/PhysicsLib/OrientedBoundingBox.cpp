@@ -244,7 +244,7 @@ void OrientedBoundingBox::Recalculate(Entity * entity){
 			/// There should be at least two faces for each edge..
 			assert(e->faceList.Size() >= 2);
 			Vector3f edgeNormal = (e->faceList[0]->normal + e->faceList[1]->normal).NormalizedCopy();
-			std::cout<<"\nEdge normal: "<<edgeNormal;
+	//		std::cout<<"\nEdge normal: "<<edgeNormal;
 		}
 	}
 

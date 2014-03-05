@@ -469,24 +469,27 @@ Vector3f ParseVector3f(String s)
 	return Vector3f(sl[0].ParseFloat(), sl[1].ParseFloat(), sl[2].ParseFloat());
 }
 
-SRPlayerPositionPacket::SRPlayerPositionPacket(int playerID, Vector3f position, Vector3f rotation, String state, long long gameTime)
+SRPlayerPositionPacket::SRPlayerPositionPacket(int playerID, Vector3f position, Vector3f velocity, Vector3f rotation, String state, long long gameTime)
 : SRPacket(SRPacketType::PLAYER_POSITION)
 {
 	timeCreated = gameTime;
 	body.Add(String::ToString(playerID));
 	body.Add(VectorString(position));
+	body.Add(VectorString(velocity));
 	body.Add(VectorString(rotation));
 	body.Add(state);
 	CreateHeader();
 	CreateData();
 }
 
-void SRPlayerPositionPacket::Parse(int & playerID, Vector3f & position, Vector3f & rotation, String & state)
+void SRPlayerPositionPacket::Parse(int & playerID, Vector3f & position, Vector3f & velocity, Vector3f & rotation, String & state)
 {
-	playerID = body[0].ParseInt();
-	position = ParseVector3f(body[1]);
-	rotation = ParseVector3f(body[2]);
-	state = body[3];
+	int i = 0;
+	playerID = body[i++].ParseInt();
+	position = ParseVector3f(body[i++]);
+	velocity = ParseVector3f(body[i++]);
+	rotation = ParseVector3f(body[i++]);
+	state = body[i++];
 	parsed = true;
 }
 

@@ -46,6 +46,6 @@ void PhysicsMesh::GenerateCollisionShapeOctree(){
 	/// Optimize it!
 	collisionShapeOctree->Optimize();
 	std::cout<<"\nOptimizing collission shape octree by removing unused child cells.";
-	collisionShapeOctree->PrintContents();
+//	collisionShapeOctree->PrintContents();
 	std::cout<<"\nCollission shape octree generated for mesh: "<<this->meshCounterpart->name;
 }

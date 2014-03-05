@@ -143,9 +143,9 @@ public:
 class SRPlayerPositionPacket : public SRPacket {
 public:
 	/// Player index, position, rotation and state for synchronizing visual effects correctly.
-	SRPlayerPositionPacket(int playerID, Vector3f position, Vector3f rotation, String state, long long gameTime);
+	SRPlayerPositionPacket(int playerID, Vector3f position, Vector3f velocity,  Vector3f rotation, String state, long long gameTime);
 	/// Call once after receiving the packet in order to extract the below data. Flags the parsed variable to true upon completion.
-	void Parse(int & playerID, Vector3f & position, Vector3f & rotation, String & state);
+	void Parse(int & playerID, Vector3f & position, Vector3f & velocity, Vector3f & rotation, String & state);
 	/*
 	int playerID;
 	Vector3f position;

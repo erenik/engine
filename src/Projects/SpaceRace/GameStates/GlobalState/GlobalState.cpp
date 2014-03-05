@@ -256,6 +256,10 @@ void GlobalState::ProcessMessage( Message * message ){
 				float value = fm->value;
 				AudioMan.SetMasterVolume(value);
 			}
+			else if (msg == "SetLaps")
+			{
+				GetSession()->SetLaps(fm->value);
+			}
 			break;
 		}
 		case MessageType::STRING: {
@@ -264,6 +268,12 @@ void GlobalState::ProcessMessage( Message * message ){
 			if (s == "editor"){
 				StateMan.QueueState(GAME_STATE_EDITOR);
 				return;
+			}
+			else if (s == "OnRaceOptionsUpdated")
+			{
+				/// Update the gui with current options.
+				Graphics.QueueMessage(new GMSetUIf("Laps", GMUI::FLOAT_INPUT, GetSession()->Laps()));
+
 			}
 			else if (s == "ShowPeerUdpStatus")
 			{
@@ -475,6 +485,7 @@ void GlobalState::ProcessMessage( Message * message ){
 				/// Better use same host as used in the when connecting earlier. There is no guarantee whatsoever that the server knows its own public IP...
 				String host = NetworkMan.targetIP;
 				/// 33000 SIP, 33001 SR TCP, 33002 SR Host UDP, 33003 SR Client UDP
+				GetSession()->Stop();
 				bool result = GetSession()->ConnectTo(host, spaceRaceGame->port, 33003);
 				if (result){
 					ChatMan.AddMessage(new ChatMessage(NULL, String("Connected to ")+SPACE_RACE_GAME_NAME+" session."));

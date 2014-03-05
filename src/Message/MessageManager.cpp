@@ -170,11 +170,14 @@ bool MessageManager::QueuePackets(List<Packet*> packets){
 	return true;
 }
 
-void MessageManager::ProcessPacket(Packet * packet){
+void MessageManager::ProcessPacket(Packet * packet)
+{
 	// First send it to global state
-	StateMan.GlobalState()->ProcessPacket(packet);
+	if (StateMan.GlobalState())
+		StateMan.GlobalState()->ProcessPacket(packet);
 	// Send it firstly to the state
-	StateMan.ActiveState()->ProcessPacket(packet);
+	if (StateMan.ActiveState())
+		StateMan.ActiveState()->ProcessPacket(packet);
 }
 void MessageManager::ProcessMessage(Message * message){
 	// Check for UI-messages first.

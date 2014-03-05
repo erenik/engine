@@ -234,7 +234,7 @@ bool Path::ReadFrom(std::fstream & file){
 			waypoint[i] = wp;
 		}
 		else {
-			std::cout<<"\nINFO: Unable to find waypoint in navmesh within given range, creating and adding a new waypoint.";
+	//		std::cout<<"\nINFO: Unable to find waypoint in navmesh within given range, creating and adding a new waypoint.";
 			waypoint[i] = new Waypoint();
 			waypoint[i]->position = position;
 			nm->AddWaypoint(waypoint[i]);

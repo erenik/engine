@@ -209,7 +209,7 @@ bool CollisionShapeOctree::AddTriangle(Triangle * tri){
 		}
 		// If we arrived here, it's either intersecting or something, so add it to our current children since it can't go further down the tree.
 		triangles.Add(tri);
-		std::cout<<"\nTriangles in element: "<<triangles.Size();
+	//	std::cout<<"\nTriangles in element: "<<triangles.Size();
 		return true;
 	} /// End of trying to enter it into any of our children
 

@@ -90,7 +90,7 @@ void GraphicsManager::Render(){
 	PrintTime("\nPre-render stuff: ");
 
 	// Process global camera
-	this->cameraToTrack->ProcessMovement();
+	this->cameraToTrack->ProcessMovement(graphicsState->frameTime);
 
 	/// Render all viewports..
 	if (true){

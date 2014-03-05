@@ -156,7 +156,10 @@ void PMSetEntity::Process(){
 					entity->physics->estimator->smoothingDuration = iValue;
 			/// Vec3 types
 			case VELOCITY:
-				entity->physics->velocity = vec3fValue;
+				if (entity->physics->estimationEnabled)
+					entity->physics->estimator->AddVelocity(vec3fValue, timeStamp);
+				else
+					entity->physics->velocity = vec3fValue;
 				break;
 			case SET_POSITION:
 			case POSITION:

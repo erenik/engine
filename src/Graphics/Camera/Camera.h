@@ -49,6 +49,8 @@ public:
 	bool scaleDistanceWithVelocity;
 	/// For faster scrolling when zoomed out e.g. in editors.
 	bool scaleSpeedWithZoom;
+	/// Reverts various attributes depending on camera type.
+	bool revert;
 
 	enum cameraTypes {
 		NULL_TYPE, PROJECTION_3D, ORTHOGONAL,
@@ -86,7 +88,7 @@ public:
 	Frustum GetFrustum() const {return frustum; };
 
 	/// To be called from render/physics-thread. Moves the camera using it's given enabled directions and velocities.
-	void ProcessMovement();
+	void ProcessMovement(float timeSinceLastUpdate);
 	/// Last time processMovement was called.
 	long long lastMovement;
 

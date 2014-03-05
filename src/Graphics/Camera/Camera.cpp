@@ -34,7 +34,7 @@ Camera::Camera(){
 	projectionType = PROJECTION_3D;
 	/// wat.
 	elevation = 0.0f;
-
+	revert = false;
 	scaleDistanceWithVelocity = false;
 	scaleSpeedWithZoom = false;
 };
@@ -116,9 +116,15 @@ void Camera::Update(){
 			}
 			viewMatrix.translate(0, 0, distance);
 			
+			Vector3f rotation = -entityToTrack->rotationVector;
+			/// Rotate more, so that we view the entity from the front instead, if camera is in reverse-mode.
+			if (revert)
+			{
+				rotation.y += PI;
+			}
 
-			rotationMatrix.multiply(Matrix4d().InitRotationMatrix(-this->entityToTrack->rotationVector.x, 1, 0, 0));
-			rotationMatrix.multiply(Matrix4d().InitRotationMatrix(-this->entityToTrack->rotationVector.y, 0, 1, 0));
+			rotationMatrix.multiply(Matrix4d().InitRotationMatrix(rotation.x, 1, 0, 0));
+			rotationMatrix.multiply(Matrix4d().InitRotationMatrix(rotation.y, 0, 1, 0));
 
 			viewMatrix.multiply(rotationMatrix);
 				/*
@@ -225,16 +231,13 @@ void Camera::SetRatio(int width, int height){
 }
 
 /// To be called from render/physics-thread. Moves the camera using it's given enabled directions and velocities.
-void Camera::ProcessMovement()
+void Camera::ProcessMovement(float timeSinceLastUpdate)
 {
 	if (lastMovement == 0){
 		lastMovement = Timer::GetCurrentTimeMs();
 		return;
 	}
-	long long now = Timer::GetCurrentTimeMs();
-	long long timeSinceLastMovement = now - lastMovement;
-	float timeDiff = timeSinceLastMovement;
-	timeDiff *= 0.001f;
+	float timeDiff = timeSinceLastUpdate;
 	Vector3f deltaP = velocity * timeDiff;
 	if (scaleSpeedWithZoom)
 	{
@@ -244,7 +247,6 @@ void Camera::ProcessMovement()
 	
 	/// Update matrices n stuff
 	Update();
-	lastMovement = now;
 }
 
 /// Updates base velocities depending on navigation booleans

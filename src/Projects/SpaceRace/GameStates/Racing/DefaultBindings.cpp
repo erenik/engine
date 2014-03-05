@@ -10,6 +10,11 @@ void Racing::CreateDefaultBindings(){
 
 	std::cout<<"\nRacing::CreateDefaultBindings() called";
 
+	inputMapping.CreateBinding("SetCameraDefault", KEY::F1);
+	inputMapping.CreateBinding("SetCameraRace", KEY::F2);
+	inputMapping.CreateBinding("SetCameraRear", KEY::F3);
+	inputMapping.CreateBinding("SetCameraRandom", KEY::F4);
+	
 	/// Nullify the editorSelection.Size()
 	editorSelection.Clear();
 

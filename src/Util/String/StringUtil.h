@@ -17,8 +17,8 @@
 
 /// Utility function that splits all lines, removing any CR LF or the combination CRLF
 List<String> GetLines(String string);
-/// Utility function for merging lines.
-String MergeLines(List<String> lines, String newLine = "\r\n");
+/// Utility function for merging lines, using the glue between each line.
+String MergeLines(List<String> lines, String glue = "\r\n");
 /// Fetches target section in string using given start and end-tokens. Returns the first occurance, if any, or an empty string if none such exist.
 String GetSection(String inString, char withStartToken, char andEndToken);
 

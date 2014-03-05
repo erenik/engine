@@ -18,12 +18,14 @@ public:
 	void AddPosition(Vector3f pos, long long timeStamp);
 	/// Adds a rotation using current time to that estimator.
 	void AddRotation(Vector3f rot, long long timeStamp);
+	/// Adds a velocity using current time to the estimator.
+	void AddVelocity(Vector3f vel, long long timeStamp);
 	/// See EstimationMode enum
 	int estimationMode;
 	int estimationDelay;
 	int smoothingDuration;
 private:
-	EstimatorVec3f positionEstimator, rotationEstimator;
+	EstimatorVec3f positionEstimator, rotationEstimator, velocityEstimator;
 	Entity * owner;
 
 	Vector3f lastPosition;

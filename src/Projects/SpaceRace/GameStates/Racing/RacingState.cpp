@@ -29,7 +29,7 @@
 #include <Util.h>
 #include "Event/TextAnimationEvent.h"
 #include "Event/EventManager.h"
-extern UserInterface * ui[MAX_GAME_STATES];
+#include "String/StringUtil.h"
 
 #include <iomanip>
 #include "Player/Player.h"
@@ -272,14 +272,6 @@ void Racing::OnEnter(GameState * previousState){
         viewports[i]->SetCameraToTrack(c);
     }
 
-
-	// Load the map
-#define FIRST_MAP "map/racing/default.map"
-#define TEST_MAP "map/racing/test.map"
-#define ANDREAS	"map/racing/Andreas.map"
-#define CPTest2	"map/racing/CPTest2.map"
-
-#define DEFAULT_MAP CPTest2
     std::cout<<"\nLoading map..";
 	/// Fetch map to load from session.
 	String mapToLoad = srs->GetMap();
@@ -320,6 +312,8 @@ void Racing::OnEnter(GameState * previousState){
             assert(i < viewports.Size());
             SRPlayer * player = (SRPlayer*)localPlayers[i];
             player->viewport = viewports[i];
+			/// Update UI too while at it.
+			OnPlayerCheckpointsPassedUpdated(player);
         }
     }
 
@@ -329,7 +323,7 @@ void Racing::OnEnter(GameState * previousState){
         SRPlayer * player = (SRPlayer*)localPlayers[i];
         Entity * entity = player->entity;
         cameras[i]->entityToTrack = entity;
-		cameras[i]->elevation = -entity->radius;
+		cameras[i]->elevation = -entity->radius;	
     }
 	/// If no local player, attach a camera to the first entity there is.
 	if (localPlayers.Size() == 0 && players.Size())
@@ -424,7 +418,7 @@ void Racing::Process(float time){
 			RacingShipGlobal * rsg = (RacingShipGlobal *)e->state->GlobalState();
 			assert(rsg);
 		//	std::cout<<"\nRotation: "<<rotation;
-			SRPlayerPositionPacket ppPacket(i, e->positionVector, rotation, rsg->GetStateAsString(true), Timer::GetCurrentTimeMs() + hostUpdateDelay);
+			SRPlayerPositionPacket ppPacket(i, e->positionVector, e->Velocity(), rotation, rsg->GetStateAsString(true), Timer::GetCurrentTimeMs() + hostUpdateDelay);
 			srs->Send(&ppPacket);
 			/*SyncPacket syncPacket;
 			syncPacket.AddEntity(e);
@@ -604,7 +598,7 @@ void Racing::ProcessMessage(Message * message){
 				bool validCheckpoint = false;
 				/// Check if it's the next checkpoint they're supposed to pass.
 				if (player->checkpointsPassed == checkpointNumber - 1)
-					OnPlayerPassCheckpoint(player);
+					PlayerPassCheckpoint(player);
 			}
 
 		//	std::cout<<"\nCollissionCallback received for entity "<<c->one->name<<" and "<<c->two->name;
@@ -624,6 +618,26 @@ void Racing::ProcessMessage(Message * message){
 			string.SetComparisonMode(String::NOT_CASE_SENSITIVE);
 			if (string == "begin_commandline"){
 				Input.EnterTextInputMode("INTERPRET_CONSOLE_COMMAND");
+			}
+			else if (string == "SetCameraDefault")
+			{
+				/// Fetch 1st player camera.
+				Camera * camera = cameras[0];
+				camera->scaleDistanceWithVelocity = false;
+				camera->revert = false;
+			}
+			else if (string == "SetCameraRace")
+			{
+				/// Fetch 1st player camera.
+				Camera * camera = cameras[0];
+				camera->scaleDistanceWithVelocity = true;
+				camera->revert = false;
+			}
+			else if (string == "SetCameraRear")
+			{
+				/// Fetch 1st player camera.
+				Camera * camera = cameras[0];
+				camera->revert = true;
 			}
 			else if (string == "OnHostDisconnected"){
 				/// Display a message and maybe pull up a button return to the lobby or out to the network-join menu?
@@ -722,14 +736,51 @@ void Racing::ProcessPacket(Packet * packet){
 					SRRacePacket * rp = (SRRacePacket*)srp;
 					String msg, additionalData;
 					rp->Parse(msg, additionalData);
+					/// checkpoint passed!
 					if (msg == "CheckpointsPassed")
 					{
+						if (GetSession()->IsHost())
+							return;
 						List<String> toks = additionalData.Tokenize(";");
 						int playerID = toks[0].ParseInt();
 						int checkpoints = toks[1].ParseInt();
 						SRPlayer * p = GetPlayer(playerID);
-						OnPlayerPassCheckpoint(p, checkpoints);
+						/// Set it.
+						p->checkpointsPassed = checkpoints;
+						/// Update gui.
+						OnPlayerCheckpointsPassedUpdated(p);
 						std::cout<<"\nPlayer "<<playerID<<" passed checkpoint: "<<checkpoints;
+					}
+					/// Lap passed!
+					else if (msg == "LapsPassed")
+					{
+						if (GetSession()->IsHost())
+							return;
+						List<String> toks = additionalData.Tokenize(";");
+						int playerID = toks[0].ParseInt();
+						int laps = toks[1].ParseInt();
+						int lapTime = toks[2].ParseInt();
+						SRPlayer * p = GetPlayer(playerID);
+						/// Set laps finished and add the time the host sent us to the array of completed lap-times!
+						p->lapsFinished = laps;
+						p->lapTimes.Add(lapTime);
+						p->totalTime += lapTime;
+						/// Update gui.
+						OnPlayerLapsUpdated(p);
+						std::cout<<"\nPlayer "<<playerID<<" passed checkpoint: "<<checkpoints;			
+					}
+					/// All player positions
+					else if (msg == "PlayerPositions")
+					{
+						List<String> posStrings = additionalData.Tokenize(";");
+						List<SRPlayer*> players = GetSession()->GetPlayers();
+						for (int i = 0; i < players.Size(); ++i)
+						{
+							SRPlayer * player = players[i];
+							int position = posStrings[i].ParseInt();
+							player->position = position;
+							OnPlayerPositionUpdated(player);
+						}
 					}
 					break;
 				}
@@ -738,16 +789,17 @@ void Racing::ProcessPacket(Packet * packet){
 		//			std::cout<<"\nPlayerPosition packet received.";
 					SRPlayerPositionPacket * ppp = (SRPlayerPositionPacket*) srp;
 					int playerID;
-					Vector3f playerPosition, rotation;
+					Vector3f playerPosition, playerVelocity, rotation;
 					String state;
 					long long timeCreated = ppp->timeCreated;
-					ppp->Parse(playerID, playerPosition, rotation, state);
+					ppp->Parse(playerID, playerPosition, playerVelocity, rotation, state);
 					SRPlayer * player = GetPlayer(playerID);
 					assert(player);
 					assert(player->entity);
 					/// Set new position of the player entity!
 				//	Physics.QueueMessage(new PMSet(
 					Physics.QueueMessage(new PMSetEntity(POSITION, player->entity, playerPosition, timeCreated));
+					Physics.QueueMessage(new PMSetEntity(VELOCITY, player->entity, playerVelocity, timeCreated));
 					Physics.QueueMessage(new PMSetEntity(SET_ROTATION, player->entity, rotation, timeCreated));
 					/// Synchronize visual effects such as thrusting and stuff.
 					RacingShipGlobal * rsg = (RacingShipGlobal*)player->entity->state->GlobalState();
@@ -942,9 +994,8 @@ void Racing::OnCloseMenu(){
 	menuOpen = false;
 }
 
-
-/// Update positions?
-void Racing::OnPlayerPassCheckpoint(SRPlayer * player, int checkpointsPassed /* = -1*/){
+/// Increments checkpoints passed and posts updates to the session manager. Also calls OnPlayerCheckpointsPassedUpdated() to update UI.
+void Racing::PlayerPassCheckpoint(SRPlayer * player, int checkpointsPassed /*= -1*/){
 	if (!GetSession()->IsHost())
 		return;
 	/// Send a notification of this.
@@ -955,25 +1006,20 @@ void Racing::OnPlayerPassCheckpoint(SRPlayer * player, int checkpointsPassed /* 
 	SRSession * srs = GetSession();
 
 	/// Send a packet to the peers informing of this player's progress.
-	if (srs->IsHost())
-	{
-		SRRacePacket checkPack("CheckpointsPassed", String::ToString(playerIndex)+";"+String::ToString(player->checkpointsPassed));
-		srs->Send(&checkPack);
-	}
+	SRRacePacket checkPack("CheckpointsPassed", String::ToString(playerIndex)+";"+String::ToString(player->checkpointsPassed));
+	srs->Send(&checkPack);
 
 	RacingShipGlobal * rsg = (RacingShipGlobal*) player->entity->state->GlobalState();
 	rsg->RefillBoost(1.0f);
-	if (player->isLocal && !player->isAI){
-		String text = String::ToString(player->checkpointsPassed) + "/" + String::ToString(checkpoints.Size());
-		Graphics.QueueMessage(new GMSetUIs("LastCheckpoint", GMUI::TEXT, text, player->viewport->ID()));
-	}
-
+	// Update gui as needed
+	OnPlayerCheckpointsPassedUpdated(player);
+	
 	// Inform the AI that it passed a checkpoint (if any)
 	if (rsg->ai){
 		Message msg("PassedCheckpoint");
 		rsg->ai->ProcessMessage(&msg);
 	}
-
+	/// Check if the player completed a lap
 	if (player->checkpointsPassed == srs->Checkpoints()){
 		player->lapsFinished++;
 		player->checkpointsPassed = 0;
@@ -983,14 +1029,19 @@ void Racing::OnPlayerPassCheckpoint(SRPlayer * player, int checkpointsPassed /* 
 		int lapTime = (int) time - player->lastLapStart;
 		player->lastLapStart = time;
 		player->lapTime = lapTime;
-		if (player->lapsFinished <= GameVars.GetInt("Laps")){
+		if (player->lapsFinished <= GetSession()->Laps()){
 			player->totalTime += lapTime;
 			player->lapTimes.Add(lapTime);
 		}
+		// Inform of the lap update, including laptime!
+		SRRacePacket lapPacket("LapsPassed", String::ToString(playerIndex)+";"+String::ToString(player->lapsFinished)+";"+String::ToString(lapTime));
+		srs->Send(&lapPacket);
 
+		/// Check which position all players have and update gui for this player?
 		OnPlayerLapsUpdated(player);
 
-		if (player->lapsFinished >= GameVars.GetInt("Laps")){
+		/// If the player finished the race.
+		if (player->lapsFinished >= GetSession()->Laps()){
 			player->finished = true;
 			bool allPlayersFinished = true;
 
@@ -1001,6 +1052,7 @@ void Racing::OnPlayerPassCheckpoint(SRPlayer * player, int checkpointsPassed /* 
 					break;;
 				}
 			}
+			/// Check if all players have finished the race
 			if (allPlayersFinished == true){
 				Physics.QueueMessage(new PMSetSpeed(0.1f));
 				FormatResults();
@@ -1045,7 +1097,28 @@ void Racing::OnPlayerPassCheckpoint(SRPlayer * player, int checkpointsPassed /* 
 			OnPlayerPositionUpdated(player);
 		}
 	}
+	/// Send a packet with updated player positions!
+	List<String> positions;
+	for (int i = 0; i < players.Size(); ++i)
+	{
+		SRPlayer * player = players[i];
+		positions.Add(String::ToString(player->position));
+	}
+	String positionStringsMerged = MergeLines(positions, ";");
+	SRRacePacket pack("PlayerPositions", positionStringsMerged);
+	srs->Send(&pack);
 }
+
+/// Updates GUI
+void Racing::OnPlayerCheckpointsPassedUpdated(SRPlayer * player)
+{
+	if (player->isLocal == false ||
+		player->isAI == true)
+		return;
+	String text = String::ToString(player->checkpointsPassed) + "/" + String::ToString(checkpoints.Size());
+	Graphics.QueueMessage(new GMSetUIs("CheckpointsPassed", GMUI::TEXT, text, player->viewport->ID()));
+}
+
 
 
 void Racing::OnPlayerPositionUpdated(SRPlayer * player){
@@ -1086,7 +1159,7 @@ void Racing::OnPlayerLapsUpdated(SRPlayer * player){
 //    std::cout<<"\nOnPlayerLapsUpdated";
 	// Update gui
 	if (player->isLocal && !player->isAI){
-		String text = String::ToString(player->lapsFinished) + "/" + String::ToString(GameVars.GetInt("Laps"));
+		String text = String::ToString(player->lapsFinished) + "/" + String::ToString(GetSession()->Laps());
 		Graphics.QueueMessage(new GMSetUIs("Lap", GMUI::TEXT, text, player->viewport->ID()));
 
 		text = String::ToString(player->lapTime*0.001f,2);
@@ -1104,7 +1177,7 @@ void Racing::OnPlayerLapsUpdated(SRPlayer * player){
 			EventMan.PlayEvent(tae);
 
 			// If final lap, post final position too.
-			if (player->lapsFinished == GameVars.GetInt("Laps"))
+			if (player->lapsFinished == GetSession()->Laps())
 			{
 				/// Set position text
 				Graphics.QueueMessage(new GMSetUIs("FinalPositionLabel", GMUI::TEXT, OrdinalNumber(player->position)+" position!", player->viewport->ID()));

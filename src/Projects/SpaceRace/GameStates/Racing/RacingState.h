@@ -73,8 +73,10 @@ private:
 	/// ?
 	void OnCloseMenu();
 
-	/// Called once the player passes his next checkpoint, incrementing variables, refilling boost and also checking if he has completed a lap?
-	void OnPlayerPassCheckpoint(SRPlayer * player, int checkpointsPassed = -1);
+	/// Increments checkpoints passed and posts updates to the session manager. Also calls OnPlayerCheckpointsPassedUpdated() to update UI.
+	void PlayerPassCheckpoint(SRPlayer * player, int checkpointsPassed = -1);
+	/// Updates GUI if local player
+	void OnPlayerCheckpointsPassedUpdated(SRPlayer * player);
 	void OnPlayerPositionUpdated(SRPlayer * player);
 	void OnPlayerLapsUpdated(SRPlayer * player);
 
