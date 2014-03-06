@@ -19,6 +19,9 @@
 #include "Debugging.h"
 #include "Command/CommandLine.h"
 
+/// Unit test includes
+#include "PhysicsLib/Estimator.h"
+
 /// Win32-specifics
 #ifdef WINDOWS
     #define _CRTDBG_MAP_ALLOC
@@ -241,18 +244,12 @@ int main(int argc, char **argv){
 #endif // CONSOLE_ENABLED
 #endif // WINDOWS
 
-
-	/*
-	// New parser, using the fact that each line in SIP have to be ended with \r\n
-	String line = "t\r\nu\n\rv\r\n\r\n\n\r\n";
-	List<String> lines2;
-	lines2 = line.GetLines();
-	//	lines2 = line.Tokenize("\r\n");
-	for (int i = 0; i < lines2.Size(); ++i){
-		std::cout<<"\nSize: "<<lines2[i].Length()<<" data: "<<lines2[i];
-	}
+	// Unit tests here if wanted.
+#ifdef test
+	EstimatorVec3f::Test(9, 4);
+	Sleep(20000);
 	return 0;
-*/
+#endif
 
     // Register window pre-stuffs.
 #ifdef WINDOWS
