@@ -11,6 +11,7 @@ class Viewport {
 public:
 	/// Default constructor, sets some variables
 	Viewport(float x, float y, float width, float height);
+	virtual ~Viewport();
 
 	/// Returns the most recently updated projection matrix for this camera
 	const Vector4f Metrics() { return Vector4f(x0,y0,width,height); };

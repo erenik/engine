@@ -56,7 +56,7 @@ bool Map::AddEvent(Event * event){
 
 /** Removes target entity from the map. */
 bool Map::RemoveEntity(Entity * i_entity){
-	assert(entities.Remove(i_entity));
+	entities.Remove(i_entity);
 	return true;
 }
 

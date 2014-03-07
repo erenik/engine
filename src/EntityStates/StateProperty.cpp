@@ -15,7 +15,8 @@ StateProperty::StateProperty(Entity * entity)
 	globalState = NULL;
 };
 
-StateProperty::~StateProperty(){
+StateProperty::~StateProperty()
+{
 	if (currentState) delete currentState;
 	if (previousState) delete previousState;
 	if (queuedState) delete queuedState;

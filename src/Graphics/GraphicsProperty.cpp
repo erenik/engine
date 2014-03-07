@@ -35,7 +35,8 @@ bool GraphicsProperty::LoadDataFrom(const CompactGraphics * cGraphics)
 	return true;
 }
 
-GraphicsProperty::~GraphicsProperty(){
+GraphicsProperty::~GraphicsProperty()
+{
 	if (effects){
 	    for (int i = 0; i < effects->Size(); ++i){
             GraphicEffect * e =(*effects)[i];

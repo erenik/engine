@@ -193,9 +193,6 @@ void Racing::OnEnter(GameState * previousState){
 	Graphics.EnableAllDebugRenders(false);
 #endif
 
-	/// Set editor selection as the renderable one!
-	Graphics.selectionToRender = &editorSelection;
-
 	// And set it as active
 //	Graphics.cameraToTrack = &cameras[0];
 //	Graphics.cameraToTrack->SetRatio(Graphics.width, Graphics.height);
@@ -204,8 +201,8 @@ void Racing::OnEnter(GameState * previousState){
 	Graphics.renderFPS = true;
 
 	/// Set up viewports for our players
+	/// Since the graphics-manager handles viewports, we should not try and deallocate them here?
 	viewports.Clear();
-	viewports;
 	RenderViewport * vp;
 
 	/// Fetch session
@@ -362,7 +359,7 @@ void Racing::OnEnter(GameState * previousState){
 	Graphics.QueueMessage(new GraphicsMessage(GM_CLEAR_OVERLAY_TEXTURE));
 
 	// And start tha music..
-//	TrackMan.PlayTrackFromCategory("Race", true);
+	TrackMan.PlayTrackFromCategory("Race", true);
 }
 
 void Racing::OnExit(GameState *nextState){
@@ -846,6 +843,12 @@ Entity * Racing::CreateShipForPlayer(SRPlayer * player, Vector3f startPosition){
 		tex = TexMan.GetTextureBySource(ship->diffuseSource);
 	}
     std::cout<<"\nModel: "<<(model? model->Name() : "NULL" )<<" from source: "<<ship->modelSource;
+	/// Delete old entity if we still had one.
+	if (player->entity)
+	{
+		MapMan.DeleteEntity(player->entity);
+		player->entity = NULL;
+	}
 	entity = MapMan.CreateEntity(model, tex);
     ship->AssignTexturesToEntity(entity);
 
@@ -929,8 +932,6 @@ bool Racing::CreatePlayers(List<SRPlayer*> players)
 {
 	/// TODO: Delete any existing ships first?
 	/// Gather necessary assets
-	Model * model = ModelMan.LoadObj("racing/ship_UVd.obj");
-	Texture * tex = TexMan.LoadTexture("racing/ship_textured.png");
 
 	// Start-positions, should be placed in the editor or somewhere?
 	std::cout<<"\nGathering starting positions..";

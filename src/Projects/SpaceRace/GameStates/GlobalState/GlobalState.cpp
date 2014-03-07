@@ -40,7 +40,8 @@
 #include "../../Network/SRPacketTypes.h"
 #include "../../SRConstants.h"
 #include "Graphics/Fonts/Font.h"
-
+#include "Event/Event.h"
+#include "Maps/MapManager.h"
 #include "Game/Game.h"
 
 /// MAin space race stuff
@@ -54,9 +55,12 @@ extern UserInterface * ui[MAX_GAME_STATES];
 void SetApplicationDefaults()
 {
 	applicationName = "Space Race";
+	FilePath::workingDirectory = "/SpaceRace";
 	TextFont::defaultFontSource = "font3";
 	UIElement::defaultTextureSource = "80Gray50Alpha.png";
 	UserInterface::rootUIDir = "gui/";
+	Event::rootEventDir = "data/SpaceRace/Events/";
+	MapManager::rootMapDir = "map/";
 }
 
 

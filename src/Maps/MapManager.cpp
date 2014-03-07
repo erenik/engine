@@ -552,6 +552,8 @@ bool MapManager::DeleteEntity(Entity * entity){
 		Physics.QueueMessage(new PMUnregisterEntity(entity));
 	// Remove entity from the map too...!
 	activeMap->RemoveEntity(entity);
+	// Delete any other extra bits and pieces needed.
+	entity->Delete();
 	return true;
 }
 

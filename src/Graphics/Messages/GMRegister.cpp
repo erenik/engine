@@ -46,7 +46,8 @@ target(PARTICLE_SYSTEMS)
 {
 }
 
-void GMRegister::Process(){	
+void GMRegister::Process()
+{	
 	switch(target){
 		case PARTICLE_SYSTEMS:
 			Graphics.particleSystems += particleSystems;

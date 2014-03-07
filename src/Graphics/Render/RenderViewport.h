@@ -19,7 +19,7 @@ public:
 	/// Default constructor, pass optional gui source to attach a gui to it on creation.
 	RenderViewport(String uiSource);
 	RenderViewport(float leftX, float bottomY, float width, float height);
-	~RenderViewport();
+	virtual ~RenderViewport();
 
 	/// Sets the viewport to use relative coordinates or absolute.
 	void SetRelative(float leftX, float bottomY, float width, float height);

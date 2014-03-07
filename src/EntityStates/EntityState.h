@@ -18,7 +18,7 @@ class EntityState {
 public:
 	String name;
 	EntityState(int stateType, Entity * owner);
-	virtual ~EntityState(){};
+	virtual ~EntityState();
 
 	/// Function when entering this state.
 	virtual void OnEnter() = 0;

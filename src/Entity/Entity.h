@@ -45,6 +45,8 @@ class Entity {
 public:
 	/// Default destructor
 	~Entity();
+	/// Deallocates additional points as needed.
+	void Delete();
 
 	/// Optional name
 	String name;

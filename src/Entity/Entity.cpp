@@ -108,16 +108,24 @@ Entity::Entity(int i_id){
 
 /// Default constructor...
 Entity::~Entity(){
+	/// Delete safe stuff.
+	Delete();
+	/// Delete those things that should have been deleted elsewhere too.
 #define SAFE_DELETE(p) {if(p) delete p; p = NULL; }
 	SAFE_DELETE(graphics);
 	SAFE_DELETE(physics);
-	SAFE_DELETE(state);
 	SAFE_DELETE(events);
 	SAFE_DELETE(pathfindingProperty);
 	if (material)
 		delete material;
 	material = NULL;
 	// Models and textures will be deallocated by their respectice managers!
+}
+
+/// Deallocates additional points as needed.
+void Entity::Delete()
+{
+	SAFE_DELETE(state);
 }
 
 /** Buffers this entities' models into graphics memory.

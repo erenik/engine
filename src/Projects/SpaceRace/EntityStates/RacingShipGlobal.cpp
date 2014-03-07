@@ -68,7 +68,8 @@ RacingShipGlobal::RacingShipGlobal(Entity * entity, Ship * ship)
 	boostRequested = false;
 };
 
-RacingShipGlobal::~RacingShipGlobal(){
+RacingShipGlobal::~RacingShipGlobal()
+{
 	if (ai)
 		delete ai;
 	ai = NULL;

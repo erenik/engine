@@ -30,8 +30,10 @@ void RenderViewport::Initialize(){
 	viewPortUI = NULL;
 }
 
-RenderViewport::~RenderViewport(){
+RenderViewport::~RenderViewport()
+{
 	camera = NULL;
+	// Delete UI! o/o
 	delete viewPortUI;
 	viewPortUI = NULL;
 }

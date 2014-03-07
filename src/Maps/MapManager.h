@@ -155,10 +155,11 @@ public:
 
 	/// Fetches last error string, resetting it upon use.
 	String GetLastErrorString();
+	/// Root dir for fetching and saving maps
+	static String rootMapDir;
 private:
 	String lastErrorString;
 
-	static String rootMapDir;
 	/// Bleh.
 	bool defaultAddPhysics;
 

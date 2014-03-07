@@ -32,8 +32,7 @@ void GraphicsManager::RenderEffects(){
     for (int i = 0; i < graphicsState->particleEffectsToBeRendered.Size(); ++i){
 		ParticleSystem * ps = graphicsState->particleEffectsToBeRendered[i];
 		if (!ps->registeredForRendering){
-			ps->registeredForRendering = true;
-			particleSystems.Add(ps);
+			RegisterParticleSystem(ps);
 		}
         ps->Render(*graphicsState);
     }

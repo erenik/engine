@@ -164,6 +164,13 @@ int PhysicsManager::UnregisterEntity(Entity * entityToRemove){
 	std::cout<<"\nPost unregister: AABBSweeper nodes: "<<aabbSweeperNodes<<" colliding entities: "<<collidingEntities;
 	assert(aabbSweeperNodes == collidingEntities*2);
 
+	// Check if marked for deletion. If so delete the PhysicsProperty too.
+	if (entityToRemove->flaggedForDeletion)
+	{
+		delete entityToRemove->physics;
+		entityToRemove->physics = NULL;
+	}
+
 //	assert(entitiesInOctree == physicalEntitiesNum);
 	return 0;
 }

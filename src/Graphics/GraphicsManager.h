@@ -316,6 +316,9 @@ private:
 	/// Unregisters all entities possible from rendering.
 	int UnregisterAll();
 
+	/// Yup.
+	bool RegisterParticleSystem(ParticleSystem * ps);
+
 	/// Active user interface that is rendered on top of the whole screen no matter underlying viewports.
 	UserInterface * globalUI;
 

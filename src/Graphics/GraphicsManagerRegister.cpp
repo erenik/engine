@@ -5,9 +5,14 @@
 #include "Graphics/GraphicsProperty.h"
 #include "Texture.h"
 #include "TextureManager.h"
+#include "Particles/ParticleSystem.h"
 
 /// Adds an Entity to be rendered to the vfcOctree.
-bool GraphicsManager::RegisterEntity(Entity * entity){
+bool GraphicsManager::RegisterEntity(Entity * entity)
+{
+	/// Already registered, returning.
+	if (entity->registeredForRendering)
+		return true;
 	/// Check that the entity isn't already registered
 	if (entity->registeredForRendering){
 		std::cout<<"\nNote: Entity already registered, re-registering";
@@ -28,8 +33,7 @@ bool GraphicsManager::RegisterEntity(Entity * entity){
 		if (graphics->particleSystems){
 			for (int i = 0; i < graphics->particleSystems->Size(); ++i){
 				ParticleSystem * ps = (*graphics->particleSystems)[i];
-				if (!Graphics.particleSystems.Exists(ps))
-					Graphics.particleSystems.Add(ps);
+				RegisterParticleSystem(ps);
 			}
 		}
 	}
@@ -74,8 +78,10 @@ bool GraphicsManager::UnregisterEntity(Entity * entity){
 			}
 		}
 		if (gp->particleSystems){
-			for (int i = 0; i < gp->particleSystems->Size(); ++i){
-				particleSystems.Remove((*gp->particleSystems)[i]);
+			List<ParticleSystem*> entityParticleSystems = *gp->particleSystems;
+			for (int i = 0; i < entityParticleSystems.Size(); ++i){
+				ParticleSystem * ps = entityParticleSystems[i];
+				bool succeeded = particleSystems.Remove(ps);
 			}
 		}
 	}
@@ -84,6 +90,14 @@ bool GraphicsManager::UnregisterEntity(Entity * entity){
 	int octreeEntities = vfcOctree->RegisteredEntities();
 	assert(octreeEntities < octreeEntitiesBeforeRemoval);
 	assert(registeredEntities.Size() == vfcOctree->RegisteredEntities());
+
+	/// If marked for deletion, remove graphicsProperty permanently.
+	if (entity->flaggedForDeletion)
+	{
+		delete entity->graphics;
+		entity->graphics = NULL;
+	}
+
 	return true;
 };
 
@@ -106,4 +120,13 @@ int GraphicsManager::UnregisterAll(){
 	registeredEntities.Clear();
 	assert(registeredEntities.Size() == vfcOctree->RegisteredEntities());
 	return 0;
+}
+
+
+bool GraphicsManager::RegisterParticleSystem(ParticleSystem * ps)
+{
+	if (!particleSystems.Exists(ps))
+		particleSystems.Add(ps);
+	ps->registeredForRendering = true;
+	return true;
 }

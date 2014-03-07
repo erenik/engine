@@ -13,6 +13,8 @@ PhysicsProperty::PhysicsProperty(){
 
 PhysicsProperty::~PhysicsProperty() {
 	/// Contacts will be deleted in the physics manager!
+	if (shape)
+		delete shape;
 };
 
 /// Copy constructor

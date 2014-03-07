@@ -98,6 +98,7 @@ Model * ModelManager::LoadObj(String source){
 	// Check if it pre-exists
 	for (int i = 0; i < modelList.Size(); ++i){
 		Model * model = modelList[i];
+		std::cout<<"\nModel source: "<<model->source;
 		if (model->mesh->source.Contains(source) || source.Contains(model->mesh->source)){
 			std::cout<<"\nObject already loaded, returning a pointer to it!";
 			return modelList[i];
@@ -148,6 +149,7 @@ Model * ModelManager::LoadObj(String source){
 		model->radius = mesh->radius;
 		model->centerOfModel = mesh->centerOfMesh;
 		model->SetName(source);
+		model->source = source;
 		std::cout<<" .obj successfully read!";
 
 		/// Create the triangulated one straight away~
