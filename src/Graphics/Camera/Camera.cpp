@@ -239,11 +239,17 @@ void Camera::ProcessMovement(float timeSinceLastUpdate)
 	}
 	float timeDiff = timeSinceLastUpdate;
 	Vector3f deltaP = velocity * timeDiff;
+	/// We might want to calculate the position Diff using local camera co-ordinates..!
+	Vector3f rightVec = this->lookingAtVector.CrossProduct(upVector);
+	Vector3f totalPosDiff = - deltaP.z * this->lookingAtVector +
+		deltaP.y * this->upVector +
+		deltaP.x * rightVec;
+
 	if (scaleSpeedWithZoom)
 	{
-		deltaP *= zoom;
+		totalPosDiff *= zoom;
 	}
-	position += deltaP;
+	position += totalPosDiff;
 	
 	/// Update matrices n stuff
 	Update();

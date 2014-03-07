@@ -42,7 +42,7 @@ void UIImage::RenderSelf(GraphicsState & graphicsState)
 	/// Rebuffer the texture as needed.
 	if (!texture)
 	{
-		texture = TexMan.GetTextureBySource(textureSource);
+		texture = TexMan.GetTexture(textureSource);
 		if (!texture)
 			return;
 	}

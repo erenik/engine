@@ -38,10 +38,15 @@ void SetColorForWaypoint(Waypoint * wp){
 
 /// Renders target Navigation-meshes used for pathfinding
 void GraphicsManager::RenderNavMesh(){
+	bool success = WaypointMan.GetActiveNavMeshMutex();
+	if (!success)
+		return;
 	/// Assume projection and view has already been set up for us!
 	NavMesh * nm = WaypointMan.ActiveNavMesh();
-	if (!nm)
+	if (!nm){
+		WaypointMan.ReleaseActiveNavMeshMutex();
 		return;
+	}
 	
 	glEnable(GL_DEPTH_TEST);
 	
@@ -114,6 +119,9 @@ void GraphicsManager::RenderNavMesh(){
 
 	glPointSize(1.0f);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	/// Release mutex as needed.
+	WaypointMan.ReleaseActiveNavMeshMutex();
 	return;
 }
 

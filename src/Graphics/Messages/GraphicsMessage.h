@@ -6,7 +6,6 @@
 
 #include "../Mesh.h"
 #include "../Selection.h"
-// #include "Graphics/Messages/GraphicsMessages.h"
 #include "../Lighting.h"
 
 class UserInterface;

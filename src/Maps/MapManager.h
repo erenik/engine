@@ -137,7 +137,7 @@ public:
 	bool DefaultAddPhysics() const { return defaultAddPhysics; };
 
 	/// Navmeseeeesh. Returns false if fail (like if 0 entities or what?)
-	bool CreateNavMesh();
+	bool CreateNavMesh(List<Entity*> entitiesToCreateFrom);
 	/// Assign a navmesh to the current map, invalidating old paths that might have been linked to the old navmesh!
 	bool AssignNavMesh(NavMesh * nm);
 	const NavMesh * GetNavMesh();

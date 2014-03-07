@@ -482,6 +482,20 @@ bool String::ContainsChar(char c) const{
     return false;
 }
 
+/// Counts occurences of target character in the string.
+int String::Count(char c) const
+{
+	int count = 0;
+	if (type != CHAR)
+		return 0;
+	for (int i = 0; i < arraySize; ++i)
+	{
+		if (arr[i] == c)
+			++count;
+	}
+	return count;
+}
+
 bool String::Contains(const String & subString){
 	if (subString.Length() == 0)
 		return false;
@@ -545,6 +559,17 @@ bool String::Contains(const String & subString){
 			if (wcsstr(warr, subString.warr))
 				return true;
 	}
+	return false;
+}
+
+/// Similar to Contains but works only on the beginning of the string.
+bool String::StartsWith(const String & subString)
+{
+	if (subString.Length() == 0)
+		return false;
+	String thisSubString = Part(0, subString.Length());
+	if (thisSubString == subString)
+		return true;
 	return false;
 }
 

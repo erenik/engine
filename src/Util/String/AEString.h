@@ -65,7 +65,11 @@ public:
 	/// Quering functions
 	bool Equals(const String & otherString) const;
 	bool ContainsChar(char c) const;
+	/// Counts occurences of target character in the string.
+	int Count(char c) const;
 	bool Contains(const String & subString);
+	/// Similar to Contains but works only on the beginning of the string.
+	bool StartsWith(const String & subString);
 	/// Removes string subpart, returns true if it found and successfully removed it, false if not. Works recursively if all is true.
 	bool Remove(const String & subString, bool all = false);
 	/// Concatenates strings

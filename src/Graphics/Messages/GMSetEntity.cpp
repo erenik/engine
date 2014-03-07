@@ -23,7 +23,7 @@ GMSetEntityTexture::GMSetEntityTexture(Entity * entity, int target, String textu
 
 void GMSetEntityTexture::Process(){
 	if (t == NULL){
-		t = TexMan.GetTextureBySource(textureSource);
+		t = TexMan.GetTexture(textureSource);
 		if (!t){
             std::cout<<"\nERROR: No such texture \""<<textureSource<<"\"";
             return;

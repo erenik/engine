@@ -116,43 +116,8 @@ NavMesh * WaypointManager::GenerateNavMesh(Map * fromMap){
 
 	List<Entity*> entities = fromMap->GetEntities();
 	for (int i = 0; i < entities.Size(); ++i){
-		Entity * entity = entities[i];
-
-		Model * model = entity->model;
-		if (model == NULL)
-			continue;
-		// For every face, create a waypoint
-		Mesh * mesh = model->mesh;
-		if (mesh == NULL)
-			continue;
-		for (int j = 0; j < mesh->faces; ++j){
-			/// Get average position of all vertices in face.
-			MeshFace * face = &mesh->face[j];
-			Vector3f position;
-			for (int v = 0; v < face->numVertices; ++v){
-				position += mesh->vertex[face->vertex[v]];
-			}
-			position /= face->numVertices;
-			position = entity->transformationMatrix.product(position);
-			Vector3f normal = mesh->normal[face->normal[0]];
-			normal = entity->rotationMatrix.product(normal);
-
-			if (normal.DotProduct(Vector3f(0,1,0)) > minimumInclination){
-				Waypoint * newWp = new Waypoint();
-				newWp->position = position;
-				newWp->pData = (void*)&mesh->face[i];
-				activeNavMesh->AddWaypoint(newWp);
-			}
-		}
-
-// 		for (int j = 0; j < triangles.Size(); ++j){
-// 			Triangle tri = triangles[j];
-//
-// 				Waypoint * wp = new Waypoint();
-// 				wp->position = tri.position;
-// 				activeNavMesh->AddWaypoint(wp);
-// 			}
-// 		}
+		Entity * entity = entities[i];		
+		GenerateWaypointsFromEntity(entity);
 	}
 	/// Merge 'em
 	activeNavMesh->MergeWaypointsByProximity(minimumWaypointProximity);
@@ -163,6 +128,56 @@ NavMesh * WaypointManager::GenerateNavMesh(Map * fromMap){
 	return activeNavMesh;
 }
 
+NavMesh * WaypointManager::GenerateNavMesh(List<Entity*> fromEntities)
+{
+	GetActiveNavMeshMutex();
+	// Do the generation for the active map.
+	assert(activeNavMesh);
+
+	List<Entity*> entities = fromEntities;
+	for (int i = 0; i < entities.Size(); ++i){
+		Entity * entity = entities[i];		
+		GenerateWaypointsFromEntity(entity);
+	}
+	/// Merge 'em
+	activeNavMesh->MergeWaypointsByProximity(minimumWaypointProximity);
+	/// Bind 'em.
+//	activeNavMesh->ConnectWaypointsByProximity(50.0f);
+	activeNavMesh->EnsureNeighbours(minimumNeighbours);
+	ReleaseActiveNavMeshMutex();
+	return activeNavMesh;	
+}
+
+/// generates and stores new waypoints for this entity into the active navmesh.
+void WaypointManager::GenerateWaypointsFromEntity(Entity * entity)
+{
+	Model * model = entity->model;
+	if (model == NULL)
+		return;
+	// For every face, create a waypoint
+	Mesh * mesh = model->mesh;
+	if (mesh == NULL)
+		return;
+	for (int j = 0; j < mesh->faces; ++j){
+		/// Get average position of all vertices in face.
+		MeshFace * face = &mesh->face[j];
+		Vector3f position;
+		for (int v = 0; v < face->numVertices; ++v){
+			position += mesh->vertex[face->vertex[v]];
+		}
+		position /= face->numVertices;
+		position = entity->transformationMatrix.product(position);
+		Vector3f normal = mesh->normal[face->normal[0]];
+		normal = entity->rotationMatrix.product(normal);
+
+		if (normal.DotProduct(Vector3f(0,1,0)) > minimumInclination){
+			Waypoint * newWp = new Waypoint();
+			newWp->position = position;
+			newWp->pData = (void*)&mesh->face[j];
+			activeNavMesh->AddWaypoint(newWp);
+		}
+	}	
+}
 
 /// Attempts to load a spherical world from target entity's model file.
 void WaypointManager::GenerateNavMeshFromWorld(Entity * worldEntity){

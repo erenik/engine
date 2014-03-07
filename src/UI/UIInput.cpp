@@ -356,6 +356,8 @@ UITextureInput::~UITextureInput()
 void UITextureInput::OnInputUpdated(UIInput * inputElement)
 {
 	Graphics.QueueMessage(new GMSetUIs(uiImage->name, GMUI::TEXTURE_SOURCE, inputElement->text));
+	// Generate a message to send to the game-state too.
+	MesMan.QueueMessage(new TextureMessage(action, inputElement->text));
 	return;
 }
 

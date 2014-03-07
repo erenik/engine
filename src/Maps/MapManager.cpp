@@ -723,8 +723,9 @@ Map * MapManager::ReloadFromFile(){
 }
 
 /// Navmeseeeesh. Returns false if fail (like if 0 entities or what?)
-bool MapManager::CreateNavMesh(){
+bool MapManager::CreateNavMesh(List<Entity*> entitiesToCreateFrom){
 	ASSERT_ACTIVE_MAP(false);
+	Graphics.PauseRendering();
 	/// If we got any paths, clear them first.
 	if (activeMap->paths)
 		CLEAR_AND_DELETE(activeMap->paths);
@@ -735,8 +736,9 @@ bool MapManager::CreateNavMesh(){
 		WaypointMan.MakeActive(activeMap->navMesh);
 		WaypointMan.Clear();
 	}
-	NavMesh * nm = WaypointMan.GenerateNavMesh(activeMap);
+	NavMesh * nm = WaypointMan.GenerateNavMesh(entitiesToCreateFrom);
 	activeMap->navMesh = nm;
+	Graphics.ResumeRendering();
 	return true;
 }
 /// Assign a navmesh to the current map, invalidating old paths that might have been linked to the old navmesh!

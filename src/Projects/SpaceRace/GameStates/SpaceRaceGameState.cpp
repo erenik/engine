@@ -64,11 +64,13 @@ Camera * SpaceRaceGameState::mainCamera = NULL;
 /// Creates camera key-bindings! :)
 void SpaceRaceGameState::CreateCameraBindings()
 {
-	inputMapping.CreateBinding("Up", KEY::W)->stringStopAction = "StopUp";
-	inputMapping.CreateBinding("Down", KEY::S)->stringStopAction = "StopDown";
+	inputMapping.CreateBinding("Up", KEY::E)->stringStopAction = "StopUp";
+	inputMapping.CreateBinding("Down", KEY::Q)->stringStopAction = "StopDown";
 	inputMapping.CreateBinding("Left", KEY::A)->stringStopAction = "StopLeft";
 	inputMapping.CreateBinding("Right", KEY::D)->stringStopAction = "StopRight";
-	
+	inputMapping.CreateBinding("Forward", KEY::W)->stringStopAction = "StopForward";
+	inputMapping.CreateBinding("Backward", KEY::S)->stringStopAction = "StopBackward";
+
 	inputMapping.CreateBinding("Zoom in", KEY::PG_DOWN)->activateOnRepeat = true;
 	inputMapping.CreateBinding("Zoom out", KEY::PG_UP)->activateOnRepeat = true;
 
@@ -89,6 +91,10 @@ bool SpaceRaceGameState::HandleCameraMessages(String message)
 		mainCamera->Begin(Direction::LEFT);
 	else if (message == "Right")
 		mainCamera->Begin(Direction::RIGHT);
+	else if (message == "Forward")
+		mainCamera->Begin(Direction::FORWARD);
+	else if (message == "Backward")
+		mainCamera->Begin(Direction::BACKWARD);
 	else if (message == "StopUp")
 		mainCamera->End(Direction::UP);
 	else if (message == "StopDown")
@@ -97,6 +103,10 @@ bool SpaceRaceGameState::HandleCameraMessages(String message)
 		mainCamera->End(Direction::LEFT);
 	else if (message == "StopRight")
 		mainCamera->End(Direction::RIGHT);
+	else if (message == "StopForward")
+		mainCamera->End(Direction::FORWARD);
+	else if (message == "StopBackward")
+		mainCamera->End(Direction::BACKWARD);
 	else if (message == "ResetCamera"){
 		mainCamera->position = Vector3f();
 	}

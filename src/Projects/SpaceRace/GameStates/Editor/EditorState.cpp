@@ -760,7 +760,7 @@ void EditorState::ProcessMessage(Message * message){
 			else if (string == "GenerateNavMesh"){
 				waypointSelection.Clear();
 				OnWaypointSelectionUpdated();
-				bool result = MapMan.CreateNavMesh();
+				bool result = MapMan.CreateNavMesh(editorSelection);
 				assert(result);
 				if (!result)
 					std::cout<<"\nERROR: Unable to create navmesh!";
@@ -1455,6 +1455,8 @@ void EditorState::CreateCheckpoints(){
 		}
 	}
 
+	if (activePath->Waypoints() <= 0)
+		return;
 	int checkpointsGenerated = 0;
 	for (int i = 0; i < activePath->Waypoints()-1; i += checkPointWaypointInterval){
 		Waypoint * wp = activePath->GetWaypoint(i);
