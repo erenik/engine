@@ -362,7 +362,7 @@ void Racing::OnEnter(GameState * previousState){
 	Graphics.QueueMessage(new GraphicsMessage(GM_CLEAR_OVERLAY_TEXTURE));
 
 	// And start tha music..
-	TrackMan.PlayTrackFromCategory("Race", true);
+//	TrackMan.PlayTrackFromCategory("Race", true);
 }
 
 void Racing::OnExit(GameState *nextState){

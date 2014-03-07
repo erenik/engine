@@ -24,7 +24,7 @@
 
 // Singleton initialization.
 MapManager * MapManager::mapMan = NULL;
-String MapManager::rootMapDir = "map/";
+String MapManager::rootMapDir; // = "map/";
 
 /// Definitions/Macros
 

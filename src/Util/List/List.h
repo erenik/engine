@@ -59,6 +59,8 @@ public:
 	bool Insert(value_type item, int atIndex);
 	/// Adds an item to the list
 	bool Add(value_type item);
+	/// Adds an item to the list at the requested index, pushing along the rest. Used for keeping them sorted or stuff.
+	bool Add(value_type item, int requestedIndex);
 	/// Remove target item, searching for it.
 	bool Remove(value_type item);
 	/// Can be called with ListOption::RETAIN_ORDER to guarantee that internal order is preserved.
@@ -264,6 +266,29 @@ bool List<T>::Add(T item) {
 	++currentItems;
 	return true;
 }
+
+/// Adds an item to the list
+template <class T>
+bool List<T>::Add(T item, int requestedIndex) {
+	if (currentItems == arrLength){
+		try {
+			Resize(currentItems * 2);
+		} catch (...){
+			std::cout << "\nUnable to allocate larger size array!";
+			return false;
+		}
+	}
+	assert(requestedIndex >= 0 && requestedIndex <= currentItems);
+	/// Move along stuff.
+	for (int i = currentItems; i > requestedIndex; --i){
+        arr[i] = arr[i-1];
+	}
+	/// Place it at the requested index.
+	arr[requestedIndex] = item;
+	++currentItems;
+	return true;
+}
+
 /// Remove target item or index
 template <class T>
 bool List<T>::Remove(T item){

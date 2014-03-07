@@ -25,7 +25,7 @@ extern InputManager input;
 extern UserInterface ui[MAX_GAME_STATES];
 
 int UIElement::idEnumerator = 0;
-String UIElement::defaultTextureSource = "80Gray50Alpha.png";
+String UIElement::defaultTextureSource; //  = "80Gray50Alpha.png";
 Vector4f UIElement::defaultTextColor = Vector4f(1,1,1,1);
 
 /// Called when this UI is made active (again).

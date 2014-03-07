@@ -717,7 +717,7 @@ void InputManager::EvaluateKeyPressed(int activeKeyCode, bool downBefore){
 	UIElement * activeElement = ActiveUI->GetActiveElement();
 	// UI-navigation if focused.
 	if (navigateUI && ! activeElement){
-		std::cout<<"\nNavigate UI!";
+//		std::cout<<"\nNavigate UI!";
 		bool uiCommand = true;
 		switch(activeKeyCode){
 			case KEY::BACKSPACE:

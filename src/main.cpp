@@ -22,6 +22,9 @@
 /// Unit test includes
 #include "PhysicsLib/Estimator.h"
 
+/// Call to set application name, root directories for various features, etc.
+void SetApplicationDefaults();
+
 /// Win32-specifics
 #ifdef WINDOWS
     #define _CRTDBG_MAP_ALLOC
@@ -111,6 +114,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 #elif defined LINUX | defined OSX
 int main(int argc, char **argv){
 #endif
+
+	/// Allocate allocators.
+	String::InitializeAllocator();
 
 /// Save away command-line arguments for future processing.
 #ifdef WINDOWS
@@ -502,7 +508,9 @@ int main(int argc, char **argv){
     XSetWMProtocols (display, window, &wm_close, 1);
 
 #endif
-
+	
+	/// Call to set application name, root directories for various features, etc.
+	SetApplicationDefaults();
 
 	// Initialize all managers
 	extern String applicationName;

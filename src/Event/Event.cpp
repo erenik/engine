@@ -15,7 +15,7 @@
 /// Compact saveable version of the event
 //struct CompactEvent{};
 
-String Event::rootEventDir = "data/RuneRPG/Events/";
+const char * Event::rootEventDir = "data/RuneRPG/Events/";
 
 Event::Event(const Event & base)
 {

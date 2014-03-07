@@ -39,18 +39,31 @@
 #include "../../Network/SRPacket.h"
 #include "../../Network/SRPacketTypes.h"
 #include "../../SRConstants.h"
+#include "Graphics/Fonts/Font.h"
 
 #include "Game/Game.h"
 
 /// MAin space race stuff
-String applicationName = "SpaceRace";
+String applicationName;
 
 extern UserInterface * ui[MAX_GAME_STATES];
 #define UI ui[StateMan.currentGameState];
 
+
+/// Call to set application name, root directories for various features, etc.
+void SetApplicationDefaults()
+{
+	applicationName = "Space Race";
+	TextFont::defaultFontSource = "font3";
+	UIElement::defaultTextureSource = "80Gray50Alpha.png";
+	UserInterface::rootUIDir = "gui/";
+}
+
+
 GlobalState::GlobalState()
 : SpaceRaceGameState()
 {
+	applicationName = "SpaceRace";
     id = GAME_STATE_GLOBAL;
     stateName = "Space Race Global State";
 }
@@ -97,12 +110,7 @@ void GlobalState::OnEnter(GameState * previousState)
 
 	/// Load tracks
 //	TrackMan.CreateTrack("sound/bgm/SpaceRace/.ogg", "Bitsurf", "Race");
-	TrackMan.CreateTrack("Lall", "sound/bgm/SpaceRace/2013-12-30_Lall.ogg", "Race");
 	TrackMan.CreateTrack("Bitsurf", "sound/bgm/SpaceRace/2013-08-26_Bitsurf.ogg", "Race");
-	TrackMan.CreateTrack("Burning bits", "sound/bgm/SpaceRace/2013-08-16_Burning_bits.ogg", "Race");
-	TrackMan.CreateTrack("Blast through", "sound/bgm/SpaceRace/2013-02-27 Blast through.ogg", "Race");
-	TrackMan.CreateTrack("Summer dance", "sound/bgm/SpaceRace/2013-07-15_Summer_dance.ogg", "Race");
-	TrackMan.CreateTrack("Impacto", "sound/bgm/SpaceRace/2013-02-21 Impacto.ogg", "Race");
 	TrackMan.CreateTrack("Space race", "sound/bgm/SpaceRace/2013-03-25 Space race.ogg", "Race");
 	TrackMan.CreateTrack("Wapp", "sound/bgm/SpaceRace/2014-02-18_Wapp.ogg", "Race");
 }

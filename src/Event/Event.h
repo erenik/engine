@@ -41,7 +41,7 @@ public:
 	bool ContinueToAlternative(String alternative);
 
 	/// To avoid long names in the editor, et al.
-	static String rootEventDir;
+	static const char * rootEventDir;
 
 	enum eventStates {
 		NOT_BEGUN,

@@ -7,8 +7,6 @@
 
 GMUnregisterEntity::GMUnregisterEntity(Entity * i_entity) : GraphicsMessage(GM_UNREGISTER_ENTITY){
 	entity = i_entity;
-	assert(entity->registeredForRendering);
-	assert(Graphics.registeredEntities.Exists(entity));
 }
 
 void GMUnregisterEntity::Process(){

@@ -4,7 +4,7 @@
 #include "../../Globals.h"
 
 // This should be improved later on, yo o-o
-String FilePath::workingDirectory = "/bin";
+String FilePath::workingDirectory; // = "/bin";
 
 FilePath::FilePath()
 {}

@@ -41,7 +41,7 @@ enum SIPPacketTypes{
 	SIP_PACKET_TYPES,
 };
 
-static const String SIPVersion = "2.0";
+static const char * SIPVersion = "2.0";
 
 /// Packet class that conforms to the SIP Protocol that handles header-information and such appropriately in the send-function as well as constructor.
 class SIPPacket : public Packet {

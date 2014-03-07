@@ -347,7 +347,7 @@ UserInterface::~UserInterface(){
 #include <fstream>
 
 /// Directory for the UI relative to root (bin/)
-String UserInterface::rootUIDir = "gui/";
+String UserInterface::rootUIDir; //  = "gui/";
 
 /** Attempts to load the UI from file. Returns false if it failed.
 	If any elements exist before loading they will be deleted first.

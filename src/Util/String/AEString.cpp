@@ -16,6 +16,20 @@
 #define snprintf _snprintf
 #endif
 
+// #define USE_BLOCK_ALLOCATOR
+#ifdef USE_BLOCK_ALLOCATOR
+#include "System/BlockAllocator.h"
+BlockAllocator stringAllocator;
+#endif
+
+/// Initializes block allocator to be used with strings.
+void String::InitializeAllocator()
+{
+#ifdef USE_BLOCK_ALLOCATOR
+	stringAllocator.Initialize(200000);
+#endif
+}
+
 String::String()
 {
 	Nullify();
@@ -30,15 +44,7 @@ String::~String()
         }
         strcpy(testbuff, "Deleted");
     }
-	if (arr){
-	//	std::cout<<"\nDeleting array: "<<arr;
-        delete[] arr;
-    }
-	arr = NULL;
-	if (warr)
-		delete[] warr;
-	warr = NULL;
-    arraySize = 0;
+	Delete();
 }
 String::String(const String * string){
 	Nullify();
@@ -77,6 +83,7 @@ String::String(const char * string){
  //   std::cout<<"\nString lengths: "<<lengthArr<<" "<<lengthStr<<" Arr:"<<arr<<" Str: "<<string;
 //	std::cout<<"\nStrlen: "<<lengthStr<<" ArraySize: "<<arraySize;
 	strncpy(arr, string, arraySize-1);
+	assert(arraySize > 0);
 }
 // User-defined length of any given c_str :)
 String::String(const char * from, const char * to){
@@ -91,6 +98,7 @@ String::String(const char * from, const char * to){
 String::String(const wchar_t * string){
 	Nullify();
 	arraySize = Size(string);
+	assert(arraySize > 0);
 	type = String::WIDE_CHAR;
 	if (arraySize){
 		Reallocate(arraySize+1);
@@ -98,23 +106,23 @@ String::String(const wchar_t * string){
 	}
 }
 // ..assignment operators
-const String& String::operator = (const String & otherString){
+const String& String::operator = (const String & otherString)
+{
 	Delete();
-
+	assert(arraySize == 0);
 	// Yes, allow assigning a NULL(-lengthed) string...
 	if (otherString.arraySize <= 0){
-		Delete();
 		type = NULL_TYPE;
 		return *this;
 	}
-//	if (otherString.arraySize > 0)
-//		return this;
 	type = otherString.type;
 	Reallocate(otherString.arraySize);
 	Copy(otherString, type);
 	return *this;
 }
-const String& String::operator = (const char * otherString){
+
+const String& String::operator = (const char * otherString)
+{
 	Delete();
 	if (otherString == NULL){
 		arraySize = 0;
@@ -139,11 +147,13 @@ const String& String::operator = (const char * otherString){
 	*/
 	// Safer: http://www.cplusplus.com/reference/cstring/memmove/
 	memmove(arr, otherString, length);
+	assert(arraySize > 0);
 	return *this;
 }
 const String& String::operator = (const wchar_t * otherString){
 	Delete();
 	arraySize = Size(otherString);
+	assert(arraySize > 0);
 	type = String::WIDE_CHAR;
 	Reallocate(arraySize+1);
 	wcscpy(warr, otherString);
@@ -171,6 +181,7 @@ String::operator const char * () {
 	if (type != CHAR){
 		if (arr)
 			delete[] arr;
+		assert(arraySize > 0);
 		arr = new char[arraySize];
 		wcstombs(arr, warr, arraySize);
 	}
@@ -541,7 +552,8 @@ bool String::Contains(const String & subString){
 		case String::WIDE_CHAR:
 			// If needed, convert our wide char string to simple string before doing the comparison!
 			if (subString.type == String::CHAR){
-				if (arr) delete[] arr;
+				if (arr) 
+					delete[] arr;
 				arr = new char[arraySize];
 				wcstombs(arr, warr, arraySize);
 				if (comparisonMode == NOT_CASE_SENSITIVE){
@@ -776,14 +788,6 @@ List<String> String::Tokenize(const char * charTokens) const {
 	switch(this->type){
 		case WIDE_CHAR: // Perform quick conversion
 			{
-    //            assert(false && "Tokenize currently only works on c_strings and not wide-char strings!");
-	//			return list;
-                /*
-                if (arr)
-					delete[] arr;
-				arr = new char[arraySize];
-				wcstombs(arr, warr, arraySize);
-                */
 			}
 			break;
 		case CHAR:
@@ -1063,9 +1067,15 @@ void String::ConvertToChar(){
 	if (type == WIDE_CHAR){
 		type = CHAR;
 		if (arr)
+#ifdef USE_BLOCK_ALLOCATOR
+			stringAllocator.Deallocate(arr);
+		arr = stringAllocator.AllocateNewArray<char>(arraySize);
+#else
 			delete[] arr;
 		arr = new char [arraySize];
+#endif
 		assert(warr);
+		assert(arraySize > 0);
 		wcstombs(arr, warr, arraySize);
 	}
 }
@@ -1202,42 +1212,68 @@ void String::Nullify(){
 }
 
 /// Deletes and nullifies all arrays.
-void String::Delete(){
-	if (arraySize == 0)
-		return;
+void String::Delete()
+{
 	if (arr)
+#ifdef USE_BLOCK_ALLOCATOR
+		stringAllocator.Deallocate(arr);
+#else
 		delete[] arr;
+#endif
 	if (warr)
+#ifdef USE_BLOCK_ALLOCATOR
+		
+#else
 		delete[] warr;
+#endif
 	arr = NULL;
 	warr = NULL;
     arraySize = 0;
 }
 
 ///
-void String::Reallocate(int size){
+void String::Reallocate(int size)
+{
+
 //	std::cout<<"\nReallocating with size: "<<size;
 	bool debug = false;
 	switch(type){
 		case CHAR: {
-			if (arr){
+			if (arr && arraySize > 0){
 				/// Allocate temp array for holding stuffs if need be
+#ifdef USE_BLOCK_ALLOCATOR
+				char * tmp = stringAllocator.AllocateNewArray<char>(arraySize);
+#else
 				char * tmp = new char[arraySize];
-                		strcpy(tmp, arr);
+#endif
+				strcpy(tmp, arr);
 				/// And delete the previous array too, yo.
+#ifdef USE_BLOCK_ALLOCATOR
+				stringAllocator.Deallocate(arr);
+				arr = stringAllocator.AllocateNewArray<char>(arraySize);
+#else
 				delete[] arr;
 				arr = new char [size];
+#endif
 				memset(arr, 0, size);
 				strcpy(arr, tmp);
 				/// Delete it too, yo.
+#ifdef USE_BLOCK_ALLOCATOR
+				stringAllocator.Deallocate(tmp);
+#else
 				delete[] tmp;
+#endif
 			}
 			else {
-		        assert(arr == NULL);
+#ifdef USE_BLOCK_ALLOCATOR
+				arr = stringAllocator.AllocateNewArray<char>(size);
+#else
 				arr = new char [size];
-                memset(arr, 0, size);
+#endif
+				memset(arr, 0, size);
 				strcpy(arr, "");
 			}
+
 			break;
 		}
 		case WIDE_CHAR: 
@@ -1269,10 +1305,18 @@ void String::Reallocate(int size){
 		default: {
 			// Allocate both
 			if (arr)
+#ifdef USE_BLOCK_ALLOCATOR
+				stringAllocator.Deallocate(arr);
+#else
 				delete[] arr;
+#endif
 			if (warr)
 				delete[] warr;
+#ifdef USE_BLOCK_ALLOCATOR
+			arr = stringAllocator.AllocateNewArray<char>(size);
+#else
 			arr = new char[size];
+#endif
 			warr = new wchar_t[size];
 			strcpy(arr, "");
 			wcscpy(warr, L"");
@@ -1280,6 +1324,7 @@ void String::Reallocate(int size){
 		}
 	}
 	arraySize = size;
+	assert(arraySize > 0);
 }
 
 /// Copies data from other string, using method determined by ofType.

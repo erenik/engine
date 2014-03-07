@@ -16,6 +16,8 @@
 /// A custom string class that handles dynamic allocation as well as single-/multi-byte conversions as needed.
 class String {
 public:
+	/// Initializes block allocator to be used with strings.
+	static void InitializeAllocator();
 	String();
 	virtual ~String();
 	/// Copy constructor and..

@@ -126,6 +126,9 @@ public:
 	void OnExitScope();
 
 	String defaultTextureSource;
+	/// Directory for the UI relative to root (bin/)
+	static String rootUIDir;
+	
 protected:
 	/// Loads from target file, using given root as root-element in the UI-hierarchy.
 	static bool LoadFromFile(String filePath, UIElement * intoRoot);
@@ -133,8 +136,6 @@ protected:
 	/// Removes references to target element
 	void OnElementDeleted(UIElement * element);
 
-	/// Directory for the UI relative to root (bin/)
-	static String rootUIDir;
 	String source;
 	String uiName;
 	bool isGeometryCreated;

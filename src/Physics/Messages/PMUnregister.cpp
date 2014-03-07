@@ -20,9 +20,10 @@ void PMUnregisterEntities::Process(){
 }
 
 
-PMUnregisterEntity::PMUnregisterEntity(Entity * i_entity): PhysicsMessage(PM_UNREGISTER_ENTITY){
+PMUnregisterEntity::PMUnregisterEntity(Entity * i_entity)
+: PhysicsMessage(PM_UNREGISTER_ENTITY)
+{
 	entity = i_entity;
-	assert(Physics.physicalEntities.Exists(i_entity));
 }
 
 void PMUnregisterEntity::Process(){

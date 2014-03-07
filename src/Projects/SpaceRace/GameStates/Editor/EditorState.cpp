@@ -947,6 +947,7 @@ void EditorState::OnSelectionUpdated(){
 	}
 
 	Graphics.QueueMessage(new GMSetUIs("EntityDiffuseTexture", GMUI::TEXTURE_INPUT_SOURCE, entity->GetTextureSource(DIFFUSE_MAP)));
+	Graphics.QueueMessage(new GMSetUIs("EntityModel", GMUI::STRING_INPUT_TEXT, entity->model->Source()));
 }
 
 /// Input functions for the various states

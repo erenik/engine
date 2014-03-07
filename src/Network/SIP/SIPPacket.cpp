@@ -509,7 +509,7 @@ void SIPPacket::BuildHeader(){
 			break;
 		case SIP_OK:
 		case SIP_BAD_REQUEST:
-			header.Add("SIP/"+SIPVersion+" "+typeName);
+			header.Add("SIP/"+String(SIPVersion)+" "+typeName);
 			break;
 		default:
 			std::cout<<"Unrecognized packet type: "<<type<<" typeName: "<<typeName;

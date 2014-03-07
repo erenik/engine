@@ -7,7 +7,7 @@
 #include "Network/NetworkManager.h"
 #include "Message/MessageManager.h"
 
-String CommandLine::argString = "";
+String CommandLine::argString;
 List<String> CommandLine::args;
 
 /// Evaluates the whole command-line, feeding its arguments as messages to the Message manager.

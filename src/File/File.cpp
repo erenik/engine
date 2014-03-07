@@ -26,9 +26,11 @@ const String File::Path() const {
 }
 
 /// SaveFile
-String SaveFile::saveFolder = "sav";
-std::fstream * SaveFile::Open(String saveName, String gameName, String customHeaderData, bool overwriteIfNeeded){
-	String path = saveFolder + "/" + gameName + "/" + saveName;
+const char * SaveFile::saveFolder = "sav";
+
+std::fstream * SaveFile::Open(String saveName, String gameName, String customHeaderData, bool overwriteIfNeeded)
+{
+	String path = String(saveFolder) + "/" + gameName + "/" + saveName;
 	String pathPreExtension = path;
 	String extension = ".sav";
 	if (!path.Contains(extension))
@@ -50,7 +52,7 @@ std::fstream * SaveFile::Open(String saveName, String gameName, String customHea
 
 /// Returns list of all saves
 List<SaveFileHeader> SaveFile::GetSaves(String gameName){
-	String path = saveFolder + "/" + gameName + "/";
+	String path = String(saveFolder) + "/" + gameName + "/";
 	List<SaveFileHeader> saveHeaders;
 	List<String> files;
 	bool worked = GetFilesInDirectory(path, files);
@@ -80,7 +82,8 @@ List<SaveFileHeader> SaveFile::GetSaves(String gameName){
 }
 
 
-String versionHeader = "Aeonic Game Engine - By: Emil Hedemalm/Erenik\nSave File.";
+String versionHeader; // = "Aeonic Game Engine - By: Emil Hedemalm/Erenik\nSave File.";
+
 bool SaveFileHeader::WriteTo(std::fstream & stream){
 	versionHeader.WriteTo(stream);
 	gameName.WriteTo(stream);

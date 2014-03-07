@@ -116,6 +116,7 @@ Track * TrackManager::PlayTrackFromCategory(String category, bool loop){
 	List<String> songs;
 	Track * t = NULL;
 	int tries = 100;
+	srand(Timer::GetCurrentTimeMs());
 	while (t == NULL){
 		--tries;
 		int randomSong = rand() % tc->tracks.Size();

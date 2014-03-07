@@ -14,7 +14,7 @@
 
 Timer renderTime;
 
-String TextFont::defaultFontSource = "font3.png";
+String TextFont::defaultFontSource; // = "font3.png";
 
 /// Prints the values of the error code in decimal as well as hex and the literal meaning of it.
 extern void PrintGLError(const char * text);

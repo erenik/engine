@@ -5,9 +5,13 @@
 #include "ObjReader.h"
 #include <iostream>
 #include <cstring>
+#include "Timer/Timer.h"
 
 bool ObjReader::ReadObj(const char * filename, Mesh * mesh)
 {
+	std::cout<<"\n\nReadObj called for file: "<<filename;
+	Timer t;
+	t.Start();
 	/// Make sure the mesh doesn't already contain data?
 	char * data;
 	// Size of read data
@@ -46,14 +50,24 @@ bool ObjReader::ReadObj(const char * filename, Mesh * mesh)
 	} catch (...){
 		return false;
 	}
+	int allocationTime = t.GetMs();
+	std::cout<<"\nFile load raw data buffer allocationTime: "<<allocationTime;
 
+
+	t.Start();
 	/// Try with our own string-class too.
 	String stringData = data;
 	List<String> lines = stringData.GetLines();
+	int time = t.GetMs();
+	std::cout<<"\nAllocating stringData and List<String> lines out of the raw data: "<<time;
+	t.Start();
 	/// Now delete the data, too.
 	delete[] data;
 	data = NULL;
+	int deallocationTime = t.GetMs();
+	std::cout<<"\nDeallocation time for raw char[] data: "<<deallocationTime;
 
+	t.Start();
 	/// Perform initial count-parse.
 	bool newSearch = true;
 	bool oldSearch = false;
@@ -71,10 +85,14 @@ bool ObjReader::ReadObj(const char * filename, Mesh * mesh)
 				++faces;
 		}
 	}
+	int parseTime = t.GetMs();
+	std::cout<<"\nInitial count-parse time: "<<parseTime;
 
 	/// If bad, return.
 	if (faces <= 0)
 		return false;
+
+	t.Start();
 
 	// Find out how many vertices are in the file.
 	mesh->vertices = vertices;
@@ -102,6 +120,8 @@ bool ObjReader::ReadObj(const char * filename, Mesh * mesh)
 		// Or as many as there are faces if we ahve to generate them!
 		mesh->normal = new Vector3f[faces];
 	}
+	allocationTime = t.GetMs();
+	std::cout<<"\nSecond allocationTime: "<<allocationTime;
 
  //   std::cout<<"\nMesh after allocation.";
 //	mesh->PrintContents();
@@ -113,6 +133,9 @@ bool ObjReader::ReadObj(const char * filename, Mesh * mesh)
 	std::cout<<"\n- "<<mesh->faces<<" faces";
 	std::cout<<"\n- "<<mesh->uvs<<" uvs";
 	std::cout<<"\n- "<<mesh->normals<<" normals";
+
+	
+	t.Start();
 
 	char row[128];
 	memset(row, 0, 128);
@@ -132,7 +155,9 @@ bool ObjReader::ReadObj(const char * filename, Mesh * mesh)
        	List<String> tokens = line.Tokenize(" ");
 		String type = tokens[0];
         // Read in vertex values and save them
-        if (type == "v"){
+		if (type.Contains("#"))
+			continue;
+        else if (type == "v"){
 			if (tokens.Size() < 4)
 				continue;
 			mesh->vertex[verticesRead] = Vector3f(tokens[1].ParseFloat(),tokens[2].ParseFloat(),tokens[3].ParseFloat());
@@ -235,6 +260,9 @@ bool ObjReader::ReadObj(const char * filename, Mesh * mesh)
 	/// Set source name at least
 	mesh->name = filename;
 	mesh->source = filename;
+
+	parseTime = t.GetMs();
+	std::cout<<"\nSecond major Parse time: "<<parseTime;
 
 	/// Print some debug info
 	std::cout<<"\n"<<mesh->source<<" successfully read! \nParsing data:";

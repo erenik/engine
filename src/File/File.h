@@ -35,7 +35,7 @@ struct SaveFileHeader {
 class SaveFile : public File{
 public:
 	/// Default save folder, usually "sav"
-	static String saveFolder;
+	static const char * saveFolder;
 	std::fstream * Open(String saveName, String gameName, String customHeaderData, bool overwriteIfNeeded);
 	/// Returns list of all saves
 	static List<SaveFileHeader> GetSaves(String gameName);
