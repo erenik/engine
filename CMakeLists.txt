@@ -160,7 +160,7 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 		# For each folder, include their lib/include folders
 		IF(IS_DIRECTORY ${depDir}/${dependency})
 			link_directories("${depDir}/${dependency}/lib")
-			include_directories("${depDir}/${dependency}/include")
+			include_directories("${depDir}/${dependency}")
 		ENDIF()
 	ENDFOREACH()	
 		
