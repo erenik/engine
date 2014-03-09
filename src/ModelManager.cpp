@@ -92,7 +92,8 @@ int ModelManager::LoadModels(List<String> modelSourceList){
 }
 
 /// Loads Model with single Mesh from file. Used primarily for static objects.
-Model * ModelManager::LoadObj(String source){
+Model * ModelManager::LoadObj(String source)
+{
 	assert(source && "Null source sent into ModelManager::LoadObj!");
 	source = FilePath::MakeRelative(source);
 	// Check if it pre-exists

@@ -662,8 +662,8 @@ bool ResolveCollission(Collission &data){
 			float absVelPostCol = velPostCol.Length();
 			assert(absVelPostCol < absVelPreCol);
 			float velDecrease = absVelPostCol - absVelPreCol;
-			if (AbsoluteValue(velDecrease) > 5.0f)
-				std::cout<<"\nVelDecrease: "<<velDecrease;
+//			if (AbsoluteValue(velDecrease) > 5.0f)
+//				std::cout<<"\nVelDecrease: "<<velDecrease;
 
             /// Move back the dynamic entity along the collission normal until it's outside.
             dynamicEntity->positionVector += distanceIntoEachOther * collissionNormal * 1.05f; // * +1% to avoid glitchies

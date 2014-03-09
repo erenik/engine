@@ -141,20 +141,15 @@ void LobbyState::CreateDefaultBindings(){
 	/// Get pointer to this mapping
 	InputMapping * mapping = &inputMapping;
 
-	mapping->CreateBinding("IncreaseAIPlayers", KEY::CTRL, KEY::PLUS);
-	mapping->CreateBinding("DecreaseAIPlayers", KEY::CTRL, KEY::MINUS);
+	mapping->CreateBinding("IncreaseAIPlayers", KEY::CTRL, KEY::PLUS)->activateOnRepeat = true;
+	mapping->CreateBinding("DecreaseAIPlayers", KEY::CTRL, KEY::MINUS)->activateOnRepeat = true;
 
-	mapping->SetBlockingKeys(mapping->CreateBinding("IncreaseLocalPlayers", KEY::PLUS), KEY::CTRL);
-	mapping->SetBlockingKeys(mapping->CreateBinding("DecreaseLocalPlayers", KEY::MINUS), KEY::CTRL);
-
-	/// Menu navigation, yush!
-	mapping->CreateBinding(PREVIOUS_UI_ELEMENT, KEY::SHIFT, KEY::TAB);
-	mapping->CreateBinding(NEXT_UI_ELEMENT, KEY::TAB);
-	mapping->CreateBinding(ACTIVATE_UI_ELEMENT, KEY::ENTER);
+	mapping->SetBlockingKeys(mapping->CreateBinding("IncreaseLocalPlayers", KEY::PLUS), KEY::CTRL)->activateOnRepeat = true;
+	mapping->SetBlockingKeys(mapping->CreateBinding("DecreaseLocalPlayers", KEY::MINUS), KEY::CTRL)->activateOnRepeat = true;
 }
 
-void LobbyState::CreateUserInterface(){
-	std::cout<<"\nDerp.";
+void LobbyState::CreateUserInterface()
+{
 	if (ui)
 		delete ui;
 	this->ui = new UserInterface();
@@ -167,7 +162,6 @@ void LobbyState::InputProcessor(int action, int inputDevice/* = 0*/){
 
 void LobbyState::ProcessMessage(Message * message)
 {
-	std::cout<<"\nDerp.";
 	String s = message->msg;
 	s.SetComparisonMode(String::NOT_CASE_SENSITIVE);
 	if (s == "SetMaxPlayers"){

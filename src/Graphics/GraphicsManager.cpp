@@ -518,11 +518,18 @@ void GraphicsManager::QueueMessage(GraphicsMessage *msg){
 // Processes queued messages
 void GraphicsManager::ProcessMessages(){
 	graphicsMessageQueueMutex.Claim(-1);
+	/// Spend only max 10 ms of time processing messages each frame!
+	long long messageProcessStartTime = Timer::GetCurrentTimeMs();
+	long long now;
 	// Process queued messages
 	while (!messageQueue.isOff()){
 		GraphicsMessage * msg = messageQueue.Pop();
 		msg->Process();
 		delete msg;
+		now = Timer::GetCurrentTimeMs();
+		/// Only process 10 ms of messages each frame!
+		if (now > messageProcessStartTime + 10)
+			break;
 	}
 	graphicsMessageQueueMutex.Release();
 }

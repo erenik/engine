@@ -30,7 +30,7 @@ UIInput::UIInput()
 
 UIInput::~UIInput()
 {
-	std::cout<<"\nUIInput destructor";
+//	std::cout<<"\nUIInput destructor";
 }
 
 // When clicking/Enter pressed on keyboard.

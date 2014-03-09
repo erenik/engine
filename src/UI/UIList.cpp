@@ -22,7 +22,7 @@ UIScrollBarHandle::UIScrollBarHandle()
 
 UIScrollBarHandle::~UIScrollBarHandle()
 {
-	std::cout<<"\nUIScrollBarHandle destructor.";
+//	std::cout<<"\nUIScrollBarHandle destructor.";
 }
 
 void UIScrollBarHandle::Move(float distance){
@@ -50,7 +50,7 @@ UIScrollBar::UIScrollBar()
 
 UIScrollBar::~UIScrollBar()
 {
-	std::cout<<"\nUIScrollBar destructor.";
+//	std::cout<<"\nUIScrollBar destructor.";
 }
 
 void UIScrollBar::CreateHandle(){
@@ -62,8 +62,9 @@ void UIScrollBar::CreateHandle(){
     previousSize = 1.0f;
 }
 
-void UIScrollBar::Update(float newSize){
-    std::cout<<"\nUIScrollBar::Update New size: "<<newSize;
+void UIScrollBar::Update(float newSize)
+{
+//    std::cout<<"\nUIScrollBar::Update New size: "<<newSize;
     float newPreviousSize = newSize;
     /// Adjust the handle's size and position.
     if (newSize <= 1.0f){
@@ -74,9 +75,9 @@ void UIScrollBar::Update(float newSize){
     else {
         float top = handle->alignmentY + handle->sizeRatioY * 0.5f;
         handle->sizeRatioY = 1.0f / newSize;
-        std::cout<<"\nHandle sizeRatioY: "<<handle->sizeRatioY;
+     //   std::cout<<"\nHandle sizeRatioY: "<<handle->sizeRatioY;
         handle->alignmentY = top - handle->sizeRatioY * 0.5f;
-        std::cout<<"\nHandle alignmentY: "<<handle->alignmentY;
+     //   std::cout<<"\nHandle alignmentY: "<<handle->alignmentY;
         visible = true;
     }
     previousSize = newPreviousSize;
@@ -114,7 +115,8 @@ float UIScrollBar::PageSize(){
 	return this->handle->sizeRatioY;
 }
 
-void UIScrollBar::PrintDebug(){
+void UIScrollBar::PrintDebug()
+{
     float pageSize = handle->sizeRatioY;
     float handleStart = handle->alignmentY + handle->sizeRatioY * 0.5f;
     float start = (1.0f - handleStart) * pageSize;
@@ -138,7 +140,7 @@ UIList::UIList()
 
 UIList::~UIList()
 {
-	std::cout<<"\nUIList destructor.";
+//	std::cout<<"\nUIList destructor.";
 }
 
 /// Deletes all children and content inside.
@@ -463,7 +465,7 @@ UIColumnList::UIColumnList(String name)
 
 UIColumnList::~UIColumnList()
 {
-	std::cout<<"\nUIColumnList destructor.";
+//	std::cout<<"\nUIColumnList destructor.";
 }
 
 /// Deletes all children and content inside.

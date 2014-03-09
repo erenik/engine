@@ -19,7 +19,7 @@ UIButton::UIButton(String i_name)
 
 UIButton::~UIButton()
 {
-	std::cout<<"\nUIButton destructor";
+//	std::cout<<"\nUIButton destructor";
 }
 
 UICheckBox::UICheckBox()
@@ -35,7 +35,7 @@ UICheckBox::UICheckBox()
 
 UICheckBox::~UICheckBox()
 {
-	std::cout<<"\nUICheckBox destructor";
+//	std::cout<<"\nUICheckBox destructor";
 }
 
 UIElement* UICheckBox::Activate(){

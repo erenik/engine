@@ -128,7 +128,7 @@ bool ObjReader::ReadObj(const char * filename, Mesh * mesh)
 
 
 	/// Print some debug info
-	std::cout<<"\n"<<mesh->source<<" successfully read! \nParsing data:";
+	std::cout<<"\n"<<filename<<" successfully read! \nParsing data:";
 	std::cout<<"\n- "<<mesh->vertices<<" vertices";
 	std::cout<<"\n- "<<mesh->faces<<" faces";
 	std::cout<<"\n- "<<mesh->uvs<<" uvs";
@@ -148,12 +148,19 @@ bool ObjReader::ReadObj(const char * filename, Mesh * mesh)
 	int normalsRead = 0;
 	int facesRead = 0;
 
+	std::cout<<"\nParsing rows";
+
     /// Parse every row.. bettar!
     for (int i = 0; i < lines.Size(); ++i){
 		String line = lines[i];
+	//	std::cout<<"\nParsing row: "<<line;
         // Split row into tokens
        	List<String> tokens = line.Tokenize(" ");
+	//	std::cout<<"\nTokenized";
+		if (tokens.Size() < 1)
+			continue;
 		String type = tokens[0];
+	//	std::cout<<"\nType fetch o/o"<<line;
         // Read in vertex values and save them
 		if (type.Contains("#"))
 			continue;

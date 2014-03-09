@@ -418,8 +418,6 @@ int CollisionShapeOctree::FindCollissions(Entity * targetEntity, List<Collission
 		// Entity shape-type!
 		switch(targetEntity->physics->physicsShape){
 			case ShapeType::SPHERE: {
-				if (tri.point1.x == 38.05821)
-					i = i;
 				Sphere * sphere = (Sphere*)targetEntity->physics->shape;
 				sphere->position = targetEntity->positionVector;
 				sphere->radius = targetEntity->physics->physicalRadius;

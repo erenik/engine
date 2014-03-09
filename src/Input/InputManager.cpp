@@ -725,6 +725,7 @@ void InputManager::EvaluateKeyPressed(int activeKeyCode, bool downBefore){
 			{
 				bool didSomething = UICancel();
 				uiCommand = didSomething;
+				/// Check navigate UI stuff after actually popping anything?
 				if (!didSomething && !forceNavigateUI)
 					navigateUI = false;
 				break;

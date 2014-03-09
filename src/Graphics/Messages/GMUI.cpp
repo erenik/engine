@@ -494,7 +494,8 @@ void DeleteUI(UIElement * element, UserInterface * inUI){
 GMPopUI::GMPopUI(String uiName, bool force, int viewport)
 : GMUI(GM_POP_UI, viewport), uiName(uiName), element(NULL), force(force){}
 
-void GMPopUI::Process(){
+void GMPopUI::Process()
+{
 	if (!GetUI())
         return;
 	if (!ui){
@@ -517,8 +518,9 @@ void GMPopUI::Process(){
     if (success){
         MesMan.QueueMessages(e->onExit);
 
-		/// When popping, either check the stack or just revert to the previous state.
-		Input.LoadNavigateUIState(e->previousNavigateUIState);
+		/// If the element wants to keep track of the navigate UI state, then reload it. If not, don't as it will set it to false by default if so.
+		if (e->navigateUIOnPush)
+			Input.LoadNavigateUIState(e->previousNavigateUIState);
 
 		/// If specified, remove the element too upon a successful pop-operation.
 		if (e->removeOnPop){

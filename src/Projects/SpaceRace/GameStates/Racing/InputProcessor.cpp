@@ -262,7 +262,7 @@ void Racing::InputProcessor(int action, int inputDevice){
 		PLAYER_CAMERA.Update();
 		break;
 	default:
-		std::cout<<"\nINFO: Default case for action: "<<action<<"!";
+	///	std::cout<<"\nINFO: Default case for action: "<<action<<"!";
 		break;
 	}
 }

@@ -374,7 +374,8 @@ void PhysicsManager::Integrate(float timeSinceLastUpdate){
 					velDotLookatPreRotate * lookAtPreRotate * (1.0f - dynamicEntity->physics->velocityRetainedWhileRotating);
 				
 				/// And apply some damping or it will increase.
-				float dampingDueToRotation = pow(0.99854f, angularVelocity);
+				float dampingDueToRotation = pow(0.99754f, angularVelocity);
+				// Close, 0.99854f
 				dynamicEntity->physics->velocity *= dampingDueToRotation;
 			//	if (dampingDueToRotation < 0.9985f)
 				//	std::cout<<"\nDamping due to rotation: "<<dampingDueToRotation;

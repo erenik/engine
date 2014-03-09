@@ -48,7 +48,8 @@ Exhaust::Exhaust(Entity * reference)
 Exhaust::~Exhaust(){
     std::cout<<"\nExhaust Destructor.....";
 }
-void Exhaust::Process(float timeInSeconds){
+void Exhaust::Process(float timeInSeconds)
+{
     /// Prepare some data
     int spawnedThisFrame = 0;
 	int toSpawnThisFrameTotal = floor(emissionsPerSecond * timeInSeconds * emissionRatio+0.5f);
@@ -106,8 +107,8 @@ void Exhaust::Process(float timeInSeconds){
 	previousDirection = newDirection;
 }
 
-void Exhaust::Render(GraphicsState & graphicsState){
-
+void Exhaust::Render(GraphicsState & graphicsState)
+{
     /// Based on the optimization level, will probably be pow(0.5, optimizationLevel);
     optimizationLevel = pow(0.5f, graphicsState.optimizationLevel);
     if (optimizationLevel == 0)
@@ -158,7 +159,7 @@ void Exhaust::Render(GraphicsState & graphicsState){
 		for (int i = 0; i < particlesToProcess; ++i){
 			if (lifeDuration[i] >= lifeTime[i])
 				continue;
-			glColor4f(colors[i].x, colors[i].y, colors[i].z, 0.75f * optimizedAlpha * colors[i].w * pow((1.0f - lifeDuration[i] / lifeTime[i]), 3));
+			glColor4f(colors[i].x, colors[i].y, colors[i].z, 0.75f * optimizedAlpha * colors[i].w * 0.8f * pow((1.0f - lifeDuration[i] / lifeTime[i]), 4));
 			float sizeRatio = pow(lifeDuration[i]+1.0f, 3.0f);
 		//	if (lifeDuration[i] > 1.0f)
 		//		sizeRatio = pow(5.0f, lifeDuration[i]-1.0f);

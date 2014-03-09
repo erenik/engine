@@ -165,7 +165,7 @@ UIElement::UIElement(const UIElement & ref){
 
 UIElement::~UIElement()
 {
-	std::cout<<"\nUIElement destructor";
+//	std::cout<<"\nUIElement destructor";
 	/// Hierarchy
 	parent = NULL;
 	/// Use for-loop instead of crazy recursion for deallocating the children
@@ -1609,7 +1609,7 @@ UILabel::UILabel()
 
 UILabel::~UILabel()
 {
-	std::cout<<"\nUILabel destructor";
+//	std::cout<<"\nUILabel destructor";
 }
 
 UISliderHandle::UISliderHandle()
@@ -1621,7 +1621,7 @@ UISliderHandle::UISliderHandle()
 
 UISliderHandle::~UISliderHandle()
 {
-	std::cout<<"\nUISliderHandle destructor";
+//	std::cout<<"\nUISliderHandle destructor";
 }
 
 UISlider::UISlider()
@@ -1633,7 +1633,7 @@ UISlider::UISlider()
 
 UISlider::~UISlider()
 {
-	std::cout<<"\nUISlider destructor";
+//	std::cout<<"\nUISlider destructor";
 }
 
 
