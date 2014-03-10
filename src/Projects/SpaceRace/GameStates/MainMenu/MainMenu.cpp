@@ -105,7 +105,7 @@ void MainMenu::OnEnter(GameState * previousState){
 		/// Give it the graphics property.
 		e->graphics = gp;
 		Physics.QueueMessage(new PMSetEntity(ANGULAR_ACCELERATION, e, Vector3f(0.1f,2.f,0)));
-		Physics.QueueMessage(new PMSetEntity(COLLISSIONS_ENABLED, e, false));
+		Physics.QueueMessage(new PMSetEntity(COLLISIONS_ENABLED, e, false));
 	}
 
   //  exhaust = new Exhaust(e);

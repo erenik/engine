@@ -69,3 +69,9 @@ void EntityPhysicsEstimator::AddRotation(Vector3f rot, long long timeStamp){
 void EntityPhysicsEstimator::AddVelocity(Vector3f vel, long long timeStamp){
 	velocityEstimator.AddState(vel, timeStamp);
 }
+
+/// Returns last calculated position. Do Note that this function will not update the position, only Process will do that.
+Vector3f EntityPhysicsEstimator::Position()
+{
+	return positionEstimator.lastCalculation;
+}

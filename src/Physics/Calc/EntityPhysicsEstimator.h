@@ -20,6 +20,8 @@ public:
 	void AddRotation(Vector3f rot, long long timeStamp);
 	/// Adds a velocity using current time to the estimator.
 	void AddVelocity(Vector3f vel, long long timeStamp);
+	/// Returns last calculated position. Do Note that this function will not update the position, only Process will do that.
+	Vector3f Position();
 	/// See EstimationMode enum
 	int estimationMode;
 	int estimationDelay;

@@ -317,10 +317,10 @@ void EditorState::ProcessMessage(Message * message){
 				WaypointMan.GenerateNavMesh(MapMan.ActiveMap());
 			}
 			else if (command.Contains("collissions enabled")){
-				Physics.QueueMessage(new PMSetEntity(COLLISSIONS_ENABLED, editorSelection, true));
+				Physics.QueueMessage(new PMSetEntity(COLLISIONS_ENABLED, editorSelection, true));
 			}
 			else if (command.Contains("collissions disabled")){
-				Physics.QueueMessage(new PMSetEntity(COLLISSIONS_ENABLED, editorSelection, false));
+				Physics.QueueMessage(new PMSetEntity(COLLISIONS_ENABLED, editorSelection, false));
 			}
 			else if(command == "clear lights"){
 				Lighting light = MapMan.GetLighting();

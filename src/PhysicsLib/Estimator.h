@@ -13,6 +13,7 @@ enum modes {
 		NONE, // This we've been using so far.
 		INTERPOLATION,
 		EXTRAPOLATION,
+		EXTRAPOLATION_PLUS_COLLISION_CORRECTION, // Uses collission detection to try and avoid lesser errors in the extrapolation.
 		INTER_PLUS_EXTRA,
 };	};
 	
@@ -60,6 +61,8 @@ public:
 	int synchronizationDelay;
 	/// Extrapolation smoothing duration. Must be positive.
 	long long smoothingDuration;
+	/// Value set when you call Calculate(); Use this if you know that you have already called Calculate once this frame.
+	Vector3f lastCalculation;
 	/// Current velocity using estimation.
 	Vector3f CurrentVelocity() {return currentVelocity;};
 protected:

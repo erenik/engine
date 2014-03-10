@@ -197,8 +197,8 @@ void PhysicsManager::ProcessPhysics(){
                     Vector3f & vel = entity->physics->velocity;
 
 					/// If simulation disabled, skip it.
-					if (!entity->physics->simulationEnabled)
-						continue;
+//					if (!entity->physics->simulationEnabled)
+//						continue;
 
              //       if (vel.MaxPart())
               //      	std::cout<<"\nVelocity pre: "<<vel;

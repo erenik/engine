@@ -652,6 +652,15 @@ void Racing::ProcessMessage(Message * message){
 				for (int i = 0; i < players.Size(); ++i){
 					SRPlayer * p = players[i];
 					Physics.QueueMessage(new PMSetEntity(ESTIMATION_MODE, p->entity, estimationMode));
+					switch(estimationMode)
+					{
+						case 4:
+							Physics.QueueMessage(new PMSetEntity(COLLISIONS_ENABLED, p->entity, true));
+							break;
+						default:
+							Physics.QueueMessage(new PMSetEntity(COLLISIONS_ENABLED, p->entity, false));
+							break;
+					}
 				}
 			}
 			else if (string == "SetEstimationDelay(this)"){
@@ -857,6 +866,7 @@ Entity * Racing::CreateShipForPlayer(SRPlayer * player, Vector3f startPosition){
 		Physics.QueueMessage(new PMSetPhysicsType(entity, PhysicsType::STATIC));
 		Physics.QueueMessage(new PMSetEntity(SIMULATION_ENABLED, entity, false));
 		Physics.QueueMessage(new PMSetEntity(ESTIMATION_ENABLED, entity, true));
+		Physics.QueueMessage(new PMSetEntity(COLLISIONS_ENABLED, entity, false));
 		Physics.QueueMessage(new PMSetEntity(ESTIMATION_DELAY, entity, estimationDelay));
 		Physics.QueueMessage(new PMSetEntity(ESTIMATION_MODE, entity, estimationMode));
 		Physics.QueueMessage(new PMSetEntity(ESTIMATION_SMOOTHING_DURATION, entity, smoothingDuration));

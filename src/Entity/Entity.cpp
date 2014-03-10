@@ -18,6 +18,7 @@
 #include "TextureManager.h"
 #include "ModelManager.h"
 #include "Event/EventProperty.h"
+#include "Physics/Calc/EntityPhysicsEstimator.h"
 #include <cstring>
 
 const Material Entity::defaultMaterial = Material();
@@ -423,6 +424,33 @@ void Entity::render(GraphicsState &graphicsState){
 		// Render the model
 		model->triangulizedMesh->Render(graphicsState);
 		++graphicsState.renderedObjects;		// increment rendered objects for debug info
+
+		/// Debug-rendering to visualize differences between pre and post correction!
+		if (physics && physics->estimator && physics->estimator->estimationMode == EstimationMode::EXTRAPOLATION_PLUS_COLLISION_CORRECTION)
+		{
+			Vector3f pos = positionVector;
+			positionVector = physics->estimator->Position();
+			RecalculateMatrix();
+			// Reload matrix into shader. First grab old matrix.
+			graphicsState.modelMatrixD = tmp;
+			// Apply transformation
+			graphicsState.modelMatrixD.multiply(transformationMatrix);
+			graphicsState.modelMatrixF = graphicsState.modelMatrixD;
+			// Set uniform matrix in shader to point to the GameState modelView matrix.
+			glUniformMatrix4fv(graphicsState.activeShader->uniformModelMatrix, 1, false, graphicsState.modelMatrixF.getPointer());
+			error = glGetError();
+			/// Set other render-mode so we know what we're looking at.
+			glBlendFunc(GL_ONE, GL_ONE);
+			glDisable(GL_DEPTH_TEST);
+			// Re-paint
+			model->triangulizedMesh->Render(graphicsState);
+			++graphicsState.renderedObjects;		// increment rendered objects for debug info
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glEnable(GL_DEPTH_TEST);
+			/// Reset matrix to the old one to not fuck up camera movement later on?
+			positionVector = pos;
+			RecalculateMatrix();
+		}
 	}
 	// Disable any modifiers now, unless we got a modifier that tells us to apply the previous modifiers to the children as well.
 	if (graphics && graphicsState.settings & ENABLE_SPECIFIC_ENTITY_OPTIONS){

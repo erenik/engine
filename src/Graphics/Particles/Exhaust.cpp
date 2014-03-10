@@ -11,7 +11,8 @@
 #include "../FrameStatistics.h"
 
 Exhaust::Exhaust(Entity * reference)
-: ParticleSystem("PointEmitter"){
+: ParticleSystem("PointEmitter")
+{
     pointsOnly = false;
     diffuse = NULL;
     maxParticles = 10000;
@@ -45,7 +46,8 @@ Exhaust::Exhaust(Entity * reference)
     }
     color = Vector4f(0.1f, 0.2f, 0.4f, 1.0f);
 }
-Exhaust::~Exhaust(){
+Exhaust::~Exhaust()
+{
     std::cout<<"\nExhaust Destructor.....";
 }
 void Exhaust::Process(float timeInSeconds)

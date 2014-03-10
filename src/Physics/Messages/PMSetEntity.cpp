@@ -68,7 +68,7 @@ PMSetEntity::PMSetEntity(int target, List<Entity*> targetEntities, bool value)
 	entities = targetEntities;
 	bValue = value;
 	switch(target){
-		case COLLISSIONS_ENABLED:
+		case COLLISIONS_ENABLED:
 		case COLLISSION_CALLBACK:
 		case NO_COLLISSION_RESOLUTION:
 		case LOCK_POSITION:
@@ -223,7 +223,7 @@ void PMSetEntity::Process(){
 			case RESTITUTION:
 				entity->physics->restitution = fValue;
 				break;
-			case COLLISSIONS_ENABLED:
+			case COLLISIONS_ENABLED:
 				/// Best to re-register the entity to make sure that everything works as intended..!
 				Physics.UnregisterEntity(entity);
 				/// If registered for collissions, remove that now.

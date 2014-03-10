@@ -113,11 +113,13 @@ Vector3f EstimatorVec3f::Calculate(long long forGivenTime){
 		// Smooth between one to two values.
 		case EstimationMode::INTERPOLATION: 
 		{	
+			/// Check if the time is more recent than any values within, if so return the latest time straight away?
 			value = GetInterpolatedValue(forGivenTime);	
 			break;
 		}
 		/// Use previous values to estimate current velocity, position, etc. to estimate for current-time!
 		case EstimationMode::EXTRAPOLATION: 
+		case EstimationMode::EXTRAPOLATION_PLUS_COLLISION_CORRECTION:
 		{
 			bool good;
 			value = GetExtrapolatedValue(forGivenTime, good);
@@ -141,7 +143,7 @@ Vector3f EstimatorVec3f::Calculate(long long forGivenTime){
 			
 
 	/// Save away it in case we need it later. (extrapolator...!)
-//	lastEstimation = value;
+	lastCalculation = value;
 //	lastEstimationTime = forGivenTime;
 	return value;
 }
@@ -285,6 +287,7 @@ Vector3f EstimatorVec3f::GetInterpolatedValue(long long forGivenTime)
 		}
 		else if (state->time < forGivenTime){
 			before = state;
+			break;
 		}
 		/// Break if we find both wanted values early.
 		if (before && after)
@@ -302,7 +305,7 @@ Vector3f EstimatorVec3f::GetInterpolatedValue(long long forGivenTime)
 	float relativeTime = (float)forGivenTime - before->time;
 	/// This should give us a value between 0.0 and 1.0
 	float relative = relativeTime / timeBetween;
-	std::cout<<"\nRelative: "<<relative;
+//	std::cout<<"\nRelative: "<<relative;
 	/// Interpolated value
 	Vector3f finalValue = before->data * (1 - relative) + after->data * relative;
 	return finalValue;
