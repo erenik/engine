@@ -670,6 +670,8 @@ bool ResolveCollission(Collission &data){
 			
             /// Update entity collission state
             UpdateCollissionState(dynamicEntity, collissionNormal);
+			// Recalculate matrix for the entity.
+			dynamicEntity->RecalculateMatrix();
         }
         /// Two-sided calculations
         else {

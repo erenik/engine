@@ -376,6 +376,8 @@ void Entity::render(GraphicsState &graphicsState){
 	error = glGetError();
 	// Save old matrix to the stack
 	Matrix4d tmp = graphicsState.modelMatrixD;
+	/// Recalculate matrix right before rendering.
+//	RecalculateMatrix();
 	// Apply transformation
 	graphicsState.modelMatrixD.multiply(transformationMatrix);
 	graphicsState.modelMatrixF = graphicsState.modelMatrixD;
@@ -425,28 +427,34 @@ void Entity::render(GraphicsState &graphicsState){
 		model->triangulizedMesh->Render(graphicsState);
 		++graphicsState.renderedObjects;		// increment rendered objects for debug info
 
+
+		
 		/// Debug-rendering to visualize differences between pre and post correction!
 		if (physics && physics->estimator && physics->estimator->estimationMode == EstimationMode::EXTRAPOLATION_PLUS_COLLISION_CORRECTION)
 		{
 			Vector3f pos = positionVector;
 			positionVector = physics->estimator->Position();
-			RecalculateMatrix();
-			// Reload matrix into shader. First grab old matrix.
-			graphicsState.modelMatrixD = tmp;
-			// Apply transformation
-			graphicsState.modelMatrixD.multiply(transformationMatrix);
-			graphicsState.modelMatrixF = graphicsState.modelMatrixD;
-			// Set uniform matrix in shader to point to the GameState modelView matrix.
-			glUniformMatrix4fv(graphicsState.activeShader->uniformModelMatrix, 1, false, graphicsState.modelMatrixF.getPointer());
-			error = glGetError();
-			/// Set other render-mode so we know what we're looking at.
-			glBlendFunc(GL_ONE, GL_ONE);
-			glDisable(GL_DEPTH_TEST);
-			// Re-paint
-			model->triangulizedMesh->Render(graphicsState);
-			++graphicsState.renderedObjects;		// increment rendered objects for debug info
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			glEnable(GL_DEPTH_TEST);
+			Vector3f diff = pos - positionVector;
+			/// Only render other part if we get a difference.
+			if (true /*diff.MaxPart()*/){
+				RecalculateMatrix();
+				// Reload matrix into shader. First grab old matrix.
+				graphicsState.modelMatrixD = tmp;
+				// Apply transformation
+				graphicsState.modelMatrixD.multiply(transformationMatrix);
+				graphicsState.modelMatrixF = graphicsState.modelMatrixD;
+				// Set uniform matrix in shader to point to the GameState modelView matrix.
+				glUniformMatrix4fv(graphicsState.activeShader->uniformModelMatrix, 1, false, graphicsState.modelMatrixF.getPointer());
+				error = glGetError();
+				/// Set other render-mode so we know what we're looking at.
+				glBlendFunc(GL_ONE, GL_ONE);
+				glDisable(GL_DEPTH_TEST);
+				// Re-paint
+				model->triangulizedMesh->Render(graphicsState);
+				++graphicsState.renderedObjects;		// increment rendered objects for debug info
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				glEnable(GL_DEPTH_TEST);
+			}
 			/// Reset matrix to the old one to not fuck up camera movement later on?
 			positionVector = pos;
 			RecalculateMatrix();

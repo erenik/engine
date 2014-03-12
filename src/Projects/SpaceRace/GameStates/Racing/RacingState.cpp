@@ -67,7 +67,7 @@ Racing::Racing(){
 
 	/// Debugging variables
 	stateUpdatesSent = 0;
-	hostUpdateDelay = 0;
+	minimumHostUpdateDelay = 0;
 
 	/// Client
 	estimationMode = 2;
@@ -402,9 +402,9 @@ void Racing::Process(float time){
 
 	long long cTime = Timer::GetCurrentTimeMs();
 
+
 	// Update game state to clients!
-	/// .. 1 second updates...!
-	if (srs->IsHost() && cTime > lastUpdateToClients /*+ hostUpdateDelay*/){
+	if (srs->IsHost() && cTime > lastUpdateToClients + minimumHostUpdateDelay){
 		lastUpdateToClients = cTime;
 		/// Send update every... X seconds.
 		stateUpdatesSent++;
@@ -414,15 +414,8 @@ void Racing::Process(float time){
 			Vector3f rotation = e->rotationVector;
 			RacingShipGlobal * rsg = (RacingShipGlobal *)e->state->GlobalState();
 			assert(rsg);
-		//	std::cout<<"\nRotation: "<<rotation;
-			SRPlayerPositionPacket ppPacket(i, e->positionVector, e->Velocity(), rotation, rsg->GetStateAsString(true), Timer::GetCurrentTimeMs() + hostUpdateDelay);
+			SRPlayerPositionPacket ppPacket(i, e->positionVector, e->Velocity(), rotation, rsg->GetStateAsString(true), Timer::GetCurrentTimeMs());
 			srs->Send(&ppPacket);
-			/*SyncPacket syncPacket;
-			syncPacket.AddEntity(e);
-			syncPacket.UpdateData();
-			srs->Send(&syncPacket);
-			*/
-		//	NetworkMan.QueuePacket(positionPacket, PACKET_TARGET_OTHERS);
 		}
 	}
 	/// If not host, post input for all our players to the server.
@@ -655,6 +648,7 @@ void Racing::ProcessMessage(Message * message){
 					switch(estimationMode)
 					{
 						case 4:
+						case 3:
 							Physics.QueueMessage(new PMSetEntity(COLLISIONS_ENABLED, p->entity, true));
 							break;
 						default:
@@ -682,8 +676,8 @@ void Racing::ProcessMessage(Message * message){
 				}
 			}
 			else if (string == "SetHostUpdateDelay(this)"){
-				hostUpdateDelay = message->element->text.ParseInt();
-				std::cout<<"\nHost update delay set to: "<<hostUpdateDelay;
+				minimumHostUpdateDelay = message->element->text.ParseInt();
+				std::cout<<"\nHost update delay set to: "<<minimumHostUpdateDelay;
 			}
 			else if (string == "PreviousState"){
 				assert(previousStateID != 0);

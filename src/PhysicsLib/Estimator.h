@@ -12,9 +12,15 @@ namespace EstimationMode {
 enum modes {
 		NONE, // This we've been using so far.
 		INTERPOLATION,
+		/* Raw extrapolation allows for faster response-time but may also produce artifacts like passing through walls and back. */
 		EXTRAPOLATION,
+		/* This variant of extrapolation tries to take into consideration some collision-detection in order to avoid some artifacts. */
 		EXTRAPOLATION_PLUS_COLLISION_CORRECTION, // Uses collission detection to try and avoid lesser errors in the extrapolation.
-		INTER_PLUS_EXTRA,
+		INTER_PLUS_EXTRA, // Interpolation + extrapolation
+		/** This mode uses the Estimator purely to compare previous values of simulated positions versus Server-provided values. 
+			This mode will allow for instantaneous reactions, but server corrections might behave a bit strangely, like turning back after turning too much?
+		*/
+		CLIENT_SIMULATION_WITH_SERVER_CORRECTIONS, 
 };	};
 	
 

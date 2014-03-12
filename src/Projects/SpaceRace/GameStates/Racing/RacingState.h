@@ -52,7 +52,7 @@ private:
 	/// Last time we (as host) sent data to clients. Used to regulate how often it is sent out.
 	long long lastUpdateToClients;
 	/// Used to regulate how often we notify clients of everyones positions. delay in ms
-	int hostUpdateDelay;
+	int minimumHostUpdateDelay;
 	/// Estimation type used by clients
 	int estimationMode;
 	/// Estimation delay used by clients

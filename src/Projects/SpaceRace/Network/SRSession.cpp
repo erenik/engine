@@ -40,7 +40,7 @@ SRSession::SRSession(String sessionName)
 	gameSettingsLocked = false;
 	timeToEnterRacingState = 0;
 	timeToStartGame = 0;
-	mapName = "map/racing/CPTest2.map";
+	mapName = "map/racing/torus.map";
 	autoAddLocalPlayer = true;
 	targetUdpPort = 0;
 }

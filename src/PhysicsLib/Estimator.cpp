@@ -124,7 +124,8 @@ Vector3f EstimatorVec3f::Calculate(long long forGivenTime){
 			bool good;
 			value = GetExtrapolatedValue(forGivenTime, good);
 			if (!good){
-				/// Maybe warn or something, that interpolation is better?
+				/// If not good time, just fetch latest input value.
+				value = GetState(0)->data;
 			}
 			break;
 		}
@@ -165,6 +166,13 @@ void EstimatorVec3f::AddState(Vector3f vec, long long timeStamp)
 	{
 		extrapolatorBase.data = lastExtrapolation.data;
 		extrapolatorBase.time = lastExtrapolation.time;
+		/// If bad, fix.
+		if (extrapolatorBase.data != extrapolatorBase.data){
+			lastExtrapolation.data = Vector3f();
+			estimatedVelocity = Vector3f();
+			extrapolatorBase.data = Vector3f();
+			return;
+		}
 
 		/// Get new velocity by looking at the last two state values, but also the difference between this most recent state value and our own predicted value
 		/// First diff between our estimation and the new value.
@@ -180,7 +188,15 @@ void EstimatorVec3f::AddState(Vector3f vec, long long timeStamp)
 			previousIndex += arraySize;
 		EstimationStateVec3f * previousState = &states[previousIndex];
 		int denom2 = (timeStamp - previousState->time);
+		if (denom2 == 0)
+			return;
 		estimatedVelocity += (vec - previousState->data) / AbsoluteValue(denom2);
+		// Apply damping to estimated velocity?
+	//	estimatedVelocity *= 0.95f;
+		if (estimatedVelocity.x != estimatedVelocity.x)
+		{
+			std::cout<<"\nWooops.";
+		}
 	}
 }
 
@@ -199,15 +215,21 @@ Vector3f EstimatorVec3f::GetExtrapolatedValue(long long forGivenTime, bool & goo
 	EstimationStateVec3f * lastState = GetState(0);
 	int diffToLastState = forGivenTime - lastState->time;
 	/// If timeDiff is negative, mark the request as negative and just return the latest value.
-	if (diffToLastState < 0){
+	if (diffToLastState <= 0){
 		good = false;
 		return lastState->data;
 	}
 	/// Alright. Fresh start using the approach I had on my presentation slides, which is a "bit" easier than the confusion I've managed to come up with here so far.
 	int timeDiff = (forGivenTime - extrapolatorBase.time);
 	Vector3f estimatedValue = extrapolatorBase.data + estimatedVelocity * timeDiff;
+//	estimatedValue *= 0.99f;
 	lastExtrapolation.data = estimatedValue;
 	lastExtrapolation.time = forGivenTime;
+	if (lastExtrapolation.data != lastExtrapolation.data)
+	{
+		good = false;
+		std::cout<<"uh oh";
+	}
 	return estimatedValue;
 
 /*** RETHINKING EVERYTHING
@@ -303,6 +325,10 @@ Vector3f EstimatorVec3f::GetInterpolatedValue(long long forGivenTime)
 	/// Scale between them only if both are valid
 	float timeBetween = (float)after->time - before->time;
 	float relativeTime = (float)forGivenTime - before->time;
+	if (timeBetween == 0)
+	{
+		timeBetween = relativeTime;
+	}
 	/// This should give us a value between 0.0 and 1.0
 	float relative = relativeTime / timeBetween;
 //	std::cout<<"\nRelative: "<<relative;
