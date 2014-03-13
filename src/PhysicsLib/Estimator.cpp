@@ -284,7 +284,8 @@ Vector3f EstimatorVec3f::GetInterpolatedValue(long long forGivenTime)
 {
 	EstimationStateVec3f * after = NULL, * before = NULL;
 	bool loopedTwice = false;
-	/// First find two given points in time that are both behind and before our requested time.
+	int beforeIndex = -1, afterIndex = -1;
+	/// First find two given points in time that are behind and before our requested time.
 	for (int i = currentIndex; true; --i){
 		/// Check if we should move i to the top cyclicly.
 		if (i < 0){
@@ -301,14 +302,17 @@ Vector3f EstimatorVec3f::GetInterpolatedValue(long long forGivenTime)
 		EstimationStateVec3f * state = &states[i];
 		if (state->time > forGivenTime){
 			after = state;
+			afterIndex = i;
 		}
 		else if (after)
 		{
 			before = &states[i];
+			beforeIndex = i;
 			break;
 		}
 		else if (state->time < forGivenTime){
 			before = state;
+			beforeIndex = -1;
 			break;
 		}
 		/// Break if we find both wanted values early.
@@ -316,22 +320,29 @@ Vector3f EstimatorVec3f::GetInterpolatedValue(long long forGivenTime)
 			break;
 	}
 	/// If we couldn't find neither before nor after requested time, just return now.
-	if (!after && !before)
+	if (!after && !before){
+		std::cout<<"No after or before state found in estimator.";	
 		return Vector3f();
-	if (!after)
+	}
+	if (!after){
+		std::cout<<"No after found, using before state.";		
 		return before->data;
-	if (!before)
+	}
+	if (!before){
+		std::cout<<"No before found, using after state.";		
 		return after->data;
+	}
 	/// Scale between them only if both are valid
-	float timeBetween = (float)after->time - before->time;
-	float relativeTime = (float)forGivenTime - before->time;
+	float timeBetween = (float) (after->time - before->time);
+	float relativeTime = (float) (forGivenTime - before->time);
 	if (timeBetween == 0)
 	{
 		timeBetween = relativeTime;
 	}
 	/// This should give us a value between 0.0 and 1.0
 	float relative = relativeTime / timeBetween;
-//	std::cout<<"\nRelative: "<<relative;
+//	std::cout<<"\nRelative: "<<relative<<" = "<<relativeTime<<" / "<<timeBetween<<", after->time:"<<after->time<<" before->time:"<<before->time
+//		<<" Before/after index: "<<beforeIndex<<"/"<<afterIndex;
 	/// Interpolated value
 	Vector3f finalValue = before->data * (1 - relative) + after->data * relative;
 	return finalValue;

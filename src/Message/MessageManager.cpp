@@ -314,6 +314,7 @@ void MessageManager::ProcessMessage(Message * message){
 		/// Create the dialogue
 		UIQueryDialogue * dialog = new UIQueryDialogue(action, action);
 		dialog->navigateUIOnPush = true;
+		dialog->exitable = true;
 		if (params.Size() >= 4){
 			dialog->headerText = params[2];
 			dialog->textToPresent = params[3];
