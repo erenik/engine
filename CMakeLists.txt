@@ -174,7 +174,7 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 		# Ogg Vorbis
 		set(custom_libraries ${custom_libraries} "-logg" "-lvorbis" "-lvorbisfile")
 		# Theora
-		set(custom_libraries ${custom_libraries} "-ltheora")
+		set(custom_libraries ${custom_libraries} "-ltheora" "-ltheoradec")
 	ENDIF(UNIX)
 
 	# Win32 MSVC++

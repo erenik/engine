@@ -792,7 +792,9 @@ List<String> String::Tokenize(const char * charTokens) const {
 			break;
 		case CHAR:
 			break;
-		default:	assert(false);
+		/// Just return an empty list if the type is undefined.
+		default:
+			return list;
 			break;
 	}
 	if (type == CHAR){
