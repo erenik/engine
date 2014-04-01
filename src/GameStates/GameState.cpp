@@ -139,7 +139,7 @@ void GameState::CreateDefaultBindings(){
 
 /// Creates the user interface for this state
 void GameState::CreateUserInterface(){
-	std::cout<<"\nState::CreateUserInterface called for "<<stateName;;
+	std::cout<<"\nState::CreateUserInterface called for "<<stateName;
 	if (ui)
 		delete ui;
 	ui = new UserInterface();

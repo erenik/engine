@@ -763,13 +763,15 @@ void InputManager::EvaluateKeyPressed(int activeKeyCode, bool downBefore){
 	// Then general one! o-o
 
 	// The global one!
-	binding = StateMan.GlobalState()->inputMapping.EvaluateInput(activeKeyCode, this->keyPressed, downBefore);
-	if (binding){
-		if (binding->action != -1)
-			StateMan.GlobalState()->InputProcessor(binding->action, binding->inputDevice);
-		else if (binding->stringAction.Length())
-			MesMan.QueueMessages(binding->stringAction);
-	//	return;
+	if (StateMan.GlobalState()){
+		binding = StateMan.GlobalState()->inputMapping.EvaluateInput(activeKeyCode, this->keyPressed, downBefore);
+		if (binding){
+			if (binding->action != -1)
+				StateMan.GlobalState()->InputProcessor(binding->action, binding->inputDevice);
+			else if (binding->stringAction.Length())
+				MesMan.QueueMessages(binding->stringAction);
+		//	return;
+		}
 	}
 
 	// First the specific one!

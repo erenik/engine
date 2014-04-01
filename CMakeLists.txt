@@ -106,7 +106,7 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 	message("Release flags: ${CMAKE_CXX_FLAGS_RELEASE}")
 
 	message("Debug flags: ${CMAKE_CXX_FLAGS_DEBUG}")
-	set(CMAKE_CXX_FLAGS_DEBUG        "/Od /Gm /EHsc /RTC1 /MDd /W3 /nologo /c /ZI /TP /errorReport:prompt")
+	set(CMAKE_CXX_FLAGS_DEBUG        "/Od /Gm /EHsc /RTC1 /MTd /W3 /nologo /c /ZI /TP /errorReport:prompt")
 	message("Debug flags: ${CMAKE_CXX_FLAGS_DEBUG}")
 
 	# References: /OPT:REF - Eliminate Unreferenced Data
@@ -198,15 +198,20 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 		# Debug library dependencies
 		set(DEBUG_LIBS 
 			xinput.lib
-			glew32s.lib
-			glu32.lib
-			opengl32.lib
+			glew32_MTd.lib
+		#	glu32.lib
+		#	opengl32.lib
 			ws2_32.lib
+			# Audio
 			OpenAL32.lib
-			libogg_static.lib
-			libvorbis_static.lib
-			libvorbisfile_static.lib
-			libtheora_static.lib
+			libogg_static_MTd.lib
+			libvorbis_static_MTd.lib
+			libvorbisfile_static_MTd.lib
+			libtheora_static_MTd.lib
+			# OpenCV
+			opencv_core300_MTd.lib
+			opencv_highgui300_MTd.lib # For reading files
+			opencv_imgproc300_MTd.lib # For processing images (like conversion to BW)
 		)
 		# Release library dependencies
 		set(RELEASE_LIBS 
@@ -215,11 +220,13 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 			glu32.lib
 			opengl32.lib
 			ws2_32.lib
+			# Audio
 			OpenAL32.lib
 			libogg_static_release.lib
 			libvorbis_static_release.lib
 			libvorbisfile_static_release.lib
 			libtheora_static_release.lib
+			# OpenCV
 		)
 		create_file_group(${PROJECT_SOURCE_DIR}/${source_dir} "/")
 	ENDIF(MSVC)
@@ -291,5 +298,6 @@ set (sideScrollerFolders "Projects/SideScroller")
 addProject("SideScroller" ${sideScrollerFolders})
 set(spaceRaceFolders "Projects/SpaceRace")
 addProject("SpaceRace" ${spaceRaceFolders})
-
+set(cviFolders "Projects/CVI")
+addProject("CVI" ${cviFolders})
 

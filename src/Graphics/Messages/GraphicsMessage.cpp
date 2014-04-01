@@ -44,12 +44,13 @@ void GraphicsMessage::Process(){
 		case GM_CLEAR_OVERLAY_TEXTURE:
 			Graphics.SetOverlayTexture(NULL);
 			break;
-		case GM_RELOAD_UI: {
+		case GM_RELOAD_UI: 
+		{
 			Input.acceptInput = false;
 			Sleep(10);
 
 			/// Reset global UI
-			Graphics.SetGlobalUI(NULL);
+		//	Graphics.SetGlobalUI(NULL);
 
 			GameState * state = StateMan.ActiveState();
 			UserInterface * ui = state->GetUI();

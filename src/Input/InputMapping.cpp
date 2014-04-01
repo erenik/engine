@@ -23,7 +23,8 @@ InputMapping::InputMapping(){
 		- keyPressedStates	A boolean array with pressed states of all known and bound keys.
 		- downBefore		Specifies if the key was down before, only relevant on key presses.
 */
-Binding * InputMapping::EvaluateInput(int activeKeyCode, bool * keyPressedState, bool downBefore){
+Binding * InputMapping::EvaluateInput(int activeKeyCode, bool * keyPressedState, bool downBefore)
+{
 	int triggeredBindings = 0;
 	/// Assume the active key is the last one in the chain
 	for (int i = 0; i < bindings.Size(); ++i){
