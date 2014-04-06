@@ -209,9 +209,9 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 			libvorbisfile_static_MTd.lib
 			libtheora_static_MTd.lib
 			# OpenCV
-			opencv_core300_MTd.lib
-			opencv_highgui300_MTd.lib # For reading files
-			opencv_imgproc300_MTd.lib # For processing images (like conversion to BW)
+#			opencv_core300_MTd.lib
+#			opencv_highgui300_MTd.lib # For reading files
+#			opencv_imgproc300_MTd.lib # For processing images (like conversion to BW)
 		)
 		# Release library dependencies
 		set(RELEASE_LIBS 
@@ -239,6 +239,7 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 		${source_dir}
 		${source_dir}/Util
 		${source_dir}/OS
+		${source_dir}/Projects
 	)
 	
 	printList("${source_files}")

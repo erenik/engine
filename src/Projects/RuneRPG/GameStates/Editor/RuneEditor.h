@@ -1,10 +1,6 @@
 // Emil Hedemalm
 // 2013-06-28
 
-#include "Game/GameType.h"
-
-#ifdef RUNE_RPG
-
 #include "GameStates/GameState.h"
 #include "GameStates/GameStates.h"
 #include "Selection.h"
@@ -14,6 +10,7 @@ class GridObjectType;
 class Camera;
 class TileMap2D;
 class Event;
+class Light;
 struct TileType;
 struct GraphicsState;
 
@@ -97,11 +94,14 @@ private:
 	void UpdateUISize();
 	void UpdateUITiles();
 	void UpdateUIObjects();
+	void UpdateUILighting();
 
 	/// Update GUI
 	void OnEditModeUpdated(int previousMode);
 	// Wosh
 	void OnSelectedEventUpdated();
+	/// Update more gui.
+	void OnSelectedLightUpdated();
 	/// Queries the TileTypeManager to reload the available tiles.
 	void ReloadTiles();
 	/// Fetches active/relevant set of tiles that will be painted if wished so now. Uses saves mouse coordinate-data to calculate the set.
@@ -110,6 +110,7 @@ private:
 	/// Active map.
 	TileMap2D * map;
 	Event * selectedEvent;
+	Light * selectedLight;
 	/// New size to apply to map.
 	Vector2i newSize;
 	
@@ -147,6 +148,11 @@ private:
 	void CreateEvent();
 	/// Attempts to delete an event at given location!
 	void DeleteEvent();
+	/// Tries to select light at current cursor position.
+	bool SelectLight();
+	/// Creates a new light
+	void CreateLight();
+	void DeleteLight();
 
 
 	void TranslateActiveEntities(Vector3f distance);
@@ -176,5 +182,3 @@ private:
 	};
 	int mouseCameraState;
 };
-
-#endif

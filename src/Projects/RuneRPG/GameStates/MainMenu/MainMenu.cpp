@@ -1,10 +1,6 @@
 // Emil Hedemalm
 // 2013-06-28
 
-#include "Game/GameType.h"
-
-#ifdef RUNE_RPG
-
 #include "OS/Sleep.h"
 #include "MainMenu.h"
 #include "GameStates/GeneralManagerIncludes.h"
@@ -35,16 +31,11 @@ MainMenu::~MainMenu(){
 
 void MainMenu::OnEnter(GameState * previousState){
 	std::cout<<"\nEntering Main Menu state";
-	//	SetWindowPos(hWnd, HWND_TOP, 0, 0, 800, 600, SWP_NOMOVE/*SWP_HIDEWINDOW*/);
-//	MapMan.SetDefaultAddPhysics(false);
 
-	// Load initial texture and set it to render over everything else
-//	Graphics.SetOverlayTexture("img/loadingData.png");
-//	Sleep(100);
 	Graphics.EnableAllDebugRenders(false);
 
 	// Begin loading textures here for the UI
-	Graphics.QueueMessage(new GMSet(ACTIVE_USER_INTERFACE, ui));
+	Graphics.QueueMessage(new GMSetUI(ui));
 
 	// Set graphics manager to render UI, and remove the overlay-texture.
 	Graphics.QueueMessage(new GraphicsMessage(GM_CLEAR_OVERLAY_TEXTURE));
@@ -72,32 +63,13 @@ void MainMenu::OnExit(GameState *nextState){
 		Graphics.QueueMessage(new GMSet(OVERLAY_TEXTURE, TexMan.GetTexture("img/loadingData.png")));
 	else
 		Graphics.QueueMessage(new GMSet(OVERLAY_TEXTURE, TexMan.GetTexture("img/deallocating.png")));
-
-//	Sleep(5000);
-	// Verify data o-o
-	MapMan.GetLighting().VerifyData();
 }
 
 #include "../UI/UserInterface.h"
 #include "../Graphics/Messages/GMUI.h"
 
-void MainMenu::Process(float time){
-/*
-	bool spam = true;
-	if (spam){
-		for (int i = 0; i < 1000; ++i){
-			float velocity = i * 1.5f;
-			String currentVelocityString = String::ToString(velocity) + " km/h";
-			GMSetUIText * setTextMessage = new GMSetUIText("RacingButton", currentVelocityString);
-		//	delete setTextMessage;
-			Graphics.QueueMessage(setTextMessage);
-		}
-	}
-*/
-
-	// Verify data o-o
-//	MapMan.GetLighting().VerifyData();
-
+void MainMenu::Process(float time)
+{
 	Sleep(50);
 #ifdef USE_AUDIO
 	AudioMan.Update();
@@ -141,13 +113,6 @@ void MainMenu::ProcessMessage(Message * message){
 				else
 					assert(false && "NULL-element :<");
 			}
-
-#ifdef USE_NETWORK
-			else if (s == "start_hosting")
-				Network.StartServer(DEFAULT_PORT, "");
-			else if (s == "start_joining")
-				std::cout << "\nNot implemented";
-#endif
 			else {
 				std::cout<<"\nUndefined message received: "<<message->msg;
 			}
@@ -156,4 +121,26 @@ void MainMenu::ProcessMessage(Message * message){
 	}
 }
 
-#endif
+/// Creates bindings that are used for debugging purposes only
+void MainMenu::CreateDefaultBindings(){
+	std::cout<<"\nMainMenu::CreateDefaultBindings() called";
+	/// (int action, int * inputCombinationArray, int inputs, const char * name = NULL);
+	InputMapping * mapping = &this->inputMapping;
+	mapping->CreateBinding(GO_TO_AI_TEST, KEY::CTRL, KEY::G, KEY::A);
+	mapping->CreateBinding(GO_TO_RACING_STATE, KEY::CTRL, KEY::G, KEY::R);
+	mapping->CreateBinding(GO_TO_NETWORK_TEST, KEY::CTRL, KEY::G, KEY::N);
+	mapping->CreateBinding(GO_TO_BLUEPRINT_EDITOR, KEY::CTRL, KEY::G, KEY::S);
+
+	/// Menu navigation, yush!
+	mapping->CreateBinding(PREVIOUS_UI_ELEMENT, KEY::SHIFT, KEY::TAB);
+	mapping->CreateBinding(NEXT_UI_ELEMENT, KEY::TAB);
+	mapping->CreateBinding(ACTIVATE_UI_ELEMENT, KEY::ENTER);
+};
+
+/// Creates the user interface for this state
+void MainMenu::CreateUserInterface(){
+	if (ui)
+		delete ui;
+	ui = new UserInterface();
+	ui->Load("MainMenu.gui");
+}

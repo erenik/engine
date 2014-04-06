@@ -1,10 +1,6 @@
 // Emil Hedemalm
 // 2013-06-17
 
-#include "Game/GameType.h"
-
-#ifdef RUNE_RPG
-
 #ifndef MAIN_MENU_H
 #define MAIN_MENU_H
 
@@ -35,4 +31,3 @@ private:
 
 #endif // MAIN_MENU_H
 
-#endif // RUNE_RPG

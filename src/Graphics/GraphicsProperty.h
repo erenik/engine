@@ -8,7 +8,7 @@
 #include "String/AEString.h"
 struct GraphicEffect;
 struct CompactGraphics;
-struct Light;
+class Light;
 class Texture;
 struct AnimationSet;
 struct Animation;

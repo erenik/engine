@@ -481,8 +481,10 @@ void UserInterface::OnEnterScope(){
 	root->OnEnterScope();
 }
 /// Called once the UI is not active anymore. No state has to change, but it will not render to the user for now.
-void UserInterface::OnExitScope(){
-	root->OnExitScope();
+void UserInterface::OnExitScope()
+{
+	if (root)
+		root->OnExitScope();
 }
 
 /// Loads from target file, using given root as root-element in the UI-hierarchy.

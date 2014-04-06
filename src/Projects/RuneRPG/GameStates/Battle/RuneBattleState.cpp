@@ -1,10 +1,6 @@
 // Emil Hedemalm
 // 2013-06-28
 
-#include "Game/GameType.h"
-
-#ifdef RUNE_RPG
-
 #include "RuneBattleState.h"
 
 #include "OS/Sleep.h"
@@ -82,9 +78,6 @@ void RuneBattleState::OnEnter(GameState * previousState){
 
     playerBattlers.Clear();
     enemyBattlers.Clear();
-
-	// Verify data o-o
-	MapMan.GetLighting().VerifyData();
 
 	// Check for data (battlers)
 	bool gotData = false;
@@ -701,6 +694,3 @@ void RuneBattleState::UpdatePlayerHPUI(){
 	}
 }
 
-
-
-#endif

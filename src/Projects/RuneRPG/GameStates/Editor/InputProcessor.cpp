@@ -1,10 +1,6 @@
 // Emil Hedemalm
 // 2013-06-28
 
-#include "Game/GameType.h"
-
-#ifdef RUNE_RPG
-
 #include "RuneEditor.h"
 #include "Actions.h"
 // Don't include all managers. Ever.
@@ -21,6 +17,8 @@
 #include "Graphics/Messages/GraphicsMessages.h"
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Messages/GMSet.h"
+#include "Graphics/Messages/GMLight.h"
+
 
 void RuneEditor::InputProcessor(int action, int inputDevice/* = 0*/){
 	/// Don't do some stuff if entering text man..
@@ -150,9 +148,7 @@ void RuneEditor::InputProcessor(int action, int inputDevice/* = 0*/){
 				ambience.x = token[2].ParseFloat();
 				ambience.y = token[3].ParseFloat();
 				ambience.z = token[4].ParseFloat();
-				Lighting lighting = MapMan.GetLighting();
-				lighting.SetAmbient(ambience);
-				Graphics.QueueMessage(new GMSetLighting(lighting));
+				Graphics.QueueMessage(new GMSetAmbience(ambience));
 			}
 			else if (command.Contains("render lights") || command.Contains("toggle lights")){
 				Graphics.renderLights = !Graphics.renderLights;
@@ -163,10 +159,7 @@ void RuneEditor::InputProcessor(int action, int inputDevice/* = 0*/){
 				ambient.x = token[2].ParseFloat();
 				ambient.y = token[3].ParseFloat();
 				ambient.z = token[4].ParseFloat();
-				Lighting lighting = MapMan.GetLighting();
-				lighting.VerifyData();
-				lighting.SetAmbient(ambient);
-				Graphics.QueueMessage(new GMSetLighting(lighting));
+				Graphics.QueueMessage(new GMSetAmbience(ambient));
 			}
 			else if (tokensFound >= 3 && command.Contains("set gridspacing")){
 				float gridSpacing = token[2].ParseFloat();
@@ -479,27 +472,27 @@ void RuneEditor::InputProcessor(int action, int inputDevice/* = 0*/){
 		runeEditorCamera->rotationVelocity = Vector3f(0, 0, 0);
 		break;
 	/// Navigation
-	case FORWARD: 	runeEditorCamera->Begin(DIRECTION::UP);		break;
-	case FORWARD_S:	runeEditorCamera->End(DIRECTION::UP);		break;
-	case BACKWARD: 	runeEditorCamera->Begin(DIRECTION::DOWN);	break;
-	case BACKWARD_S:runeEditorCamera->End(DIRECTION::DOWN);		break;
-	case LEFT:		runeEditorCamera->Begin(DIRECTION::LEFT);		break;
-	case LEFT_S:	runeEditorCamera->End(DIRECTION::LEFT);			break;
-	case RIGHT:		runeEditorCamera->Begin(DIRECTION::RIGHT);		break;
-	case RIGHT_S:	runeEditorCamera->End(DIRECTION::RIGHT);			break;
-	case UP:		runeEditorCamera->Begin(DIRECTION::UP);			break;
-	case UP_S:		runeEditorCamera->End(DIRECTION::UP);			break;
-	case DOWN:		runeEditorCamera->Begin(DIRECTION::DOWN);		break;
-	case DOWN_S:	runeEditorCamera->End(DIRECTION::DOWN);			break;
+	case FORWARD: 	runeEditorCamera->Begin(Direction::UP);		break;
+	case FORWARD_S:	runeEditorCamera->End(Direction::UP);		break;
+	case BACKWARD: 	runeEditorCamera->Begin(Direction::DOWN);	break;
+	case BACKWARD_S:runeEditorCamera->End(Direction::DOWN);		break;
+	case LEFT:		runeEditorCamera->Begin(Direction::LEFT);		break;
+	case LEFT_S:	runeEditorCamera->End(Direction::LEFT);			break;
+	case RIGHT:		runeEditorCamera->Begin(Direction::RIGHT);		break;
+	case RIGHT_S:	runeEditorCamera->End(Direction::RIGHT);			break;
+	case UP:		runeEditorCamera->Begin(Direction::UP);			break;
+	case UP_S:		runeEditorCamera->End(Direction::UP);			break;
+	case DOWN:		runeEditorCamera->Begin(Direction::DOWN);		break;
+	case DOWN_S:	runeEditorCamera->End(Direction::DOWN);			break;
 	/// Rotation
-/*	case TURN_LEFT:		runeEditorCamera->BeginRotate(DIRECTION::LEFT); break;
-	case TURN_LEFT_S:	runeEditorCamera->EndRotate(DIRECTION::LEFT); break;
-	case TURN_RIGHT:	runeEditorCamera->BeginRotate(DIRECTION::RIGHT); break;
-	case TURN_RIGHT_S:	runeEditorCamera->EndRotate(DIRECTION::RIGHT); break;
-	case TURN_UP:		runeEditorCamera->BeginRotate(DIRECTION::UP); break;
-	case TURN_UP_S:		runeEditorCamera->EndRotate(DIRECTION::UP); break;
-	case TURN_DOWN:		runeEditorCamera->BeginRotate(DIRECTION::DOWN); break;
-	case TURN_DOWN_S:	runeEditorCamera->EndRotate(DIRECTION::DOWN); break;
+/*	case TURN_LEFT:		runeEditorCamera->BeginRotate(Direction::LEFT); break;
+	case TURN_LEFT_S:	runeEditorCamera->EndRotate(Direction::LEFT); break;
+	case TURN_RIGHT:	runeEditorCamera->BeginRotate(Direction::RIGHT); break;
+	case TURN_RIGHT_S:	runeEditorCamera->EndRotate(Direction::RIGHT); break;
+	case TURN_UP:		runeEditorCamera->BeginRotate(Direction::UP); break;
+	case TURN_UP_S:		runeEditorCamera->EndRotate(Direction::UP); break;
+	case TURN_DOWN:		runeEditorCamera->BeginRotate(Direction::DOWN); break;
+	case TURN_DOWN_S:	runeEditorCamera->EndRotate(Direction::DOWN); break;
 	*/
 	/// Camera Distance
 	case COME_CLOSER:
@@ -517,10 +510,10 @@ void RuneEditor::InputProcessor(int action, int inputDevice/* = 0*/){
 		Graphics.UpdateProjection();
 		break;
 	case INCREASE_SPEED:
-		runeEditorCamera->flySpeedMultiplier *= 1.25f;
+		runeEditorCamera->flySpeed *= 1.25f;
 		break;
 	case DECREASE_SPEED:
-		runeEditorCamera->flySpeedMultiplier *= 0.8f;
+		runeEditorCamera->flySpeed *= 0.8f;
 		break;
 	case RESET_CAMERA:
 		ResetCamera();
@@ -535,5 +528,3 @@ void RuneEditor::InputProcessor(int action, int inputDevice/* = 0*/){
 		break;
 	}
 }
-
-#endif

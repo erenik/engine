@@ -47,6 +47,7 @@ GMSet::GMSet(int t, void * data)
 	switch(t) {
 		case MAIN_CAMERA:
 		case OVERLAY_TEXTURE:
+		case ACTIVE_2D_MAP_TO_RENDER:
 			break;
 		default:
 			assert(false);

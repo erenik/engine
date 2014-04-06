@@ -21,7 +21,7 @@ enum LightTypes {
 };
 
 /** Struct for handling a single light source. */
-struct Light{
+class Light{
 public:
 	/// Default constructor
 	Light();

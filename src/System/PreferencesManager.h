@@ -7,6 +7,7 @@
 #define PREFERENCES_MANAGER_H
 
 #include <String/AEString.h>
+#include "ApplicationDefaults.h"
 
 /// Possible value types of settings.
 enum settingTypes
@@ -44,7 +45,7 @@ private:
 	PreferencesManager& operator = (const PreferencesManager&);
 public:
 	/// Given name will decide where in ~/.config/ the preferences are kept.
-	static void Allocate(String applicationName);
+	static void Allocate();
 	static void Deallocate();
     /// Get the singelton instance.
 	static PreferencesManager * Instance();
@@ -71,7 +72,6 @@ private:
 	Setting * GetSetting(String name);
 
 	String preferencesPath;
-	String applicationName;
 	List<Setting*> settings;
 };
 

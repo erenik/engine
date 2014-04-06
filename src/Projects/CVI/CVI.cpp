@@ -87,6 +87,13 @@ void CVIState::ProcessMessage(Message * message)
 {
 	if (HandleCameraMessages(message->msg))
 		return;
+	if (message->type == MessageType::STRING)
+	{
+		String msg = message->msg;
+		if (msg == "Lines"){
+			ExtractLines();
+		}
+	}
 }
 
 /** Function to handle custom actions defined per state.
@@ -200,6 +207,7 @@ void CVIState::HandleDADFiles(List<String> & files)
 void CVIState::Render(GraphicsState & graphicsState)
 {
 	// lalll
+	
 }
 
 
@@ -214,7 +222,35 @@ void CVIState::ExtractLines()
 	// Convert to grayscale
 	cv::Mat greyscaleVersion;
 	cv::cvtColor(cvImage, greyscaleVersion, CV_BGR2GRAY);
+
+	// Find lines!
+	double rho = 0.2f, theta = 0.1f, minLineLength = 555.01f, maxLineGap = 0.1f;
+	int threshold = 5;
+	cv::Mat cvLines;
+	//! finds line segments in the black-n-white image using probabilistic Hough transform
+	cv::HoughLinesP(greyscaleVersion, cvLines,
+		rho, theta, threshold,
+		minLineLength, maxLineGap);
+
+	std::cout<<"\nLines: "<<cvLines;
+
+	/// Clear old list of lines.
+	lines.Clear();
+	for (int i = 0; i < cvLines.cols; ++i)
+	{
+		Line newLine;
+//		cv::Point p(i, 0);
+//		newLine.start.x = cvLines.at(p);
+	}
+
+//	namedWindow (texture->source.c_str(), CV_WINDOW_AUTOSIZE);
+
+//	cv::OutputArrayOfArrays contours;
+//	cv::OutputArray hierarchy;
+//	cv::findContours(greyscaleVersion, contours, hierarchy, 0, 0);
 	
+	std::cout<<"\nLines found: "<<cvLines.size().area();
+
 	/// Save copy.
 	cv::imwrite( (texture->source + "gray.png").c_str(), greyscaleVersion);
 }

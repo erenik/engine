@@ -68,7 +68,6 @@ void MapManager::Initialize(){
 	if (result){
 		result->name = "EditorMap";
 		MakeActiveByName("EditorMap");
-		result->lighting.VerifyData();
 	}
 	else {
 		std::cout<<"\nError loading default map in MapManager, creating fresh one.";
@@ -76,7 +75,6 @@ void MapManager::Initialize(){
 		result->name = "EditorMap";
 		maps.Add(result);
 		MakeActiveByName("EditorMap");
-		result->lighting.VerifyData();
 	}
 };
 /// Resets all data concering the map, deleting any entities and events within it.
@@ -193,9 +191,8 @@ bool MapManager::MakeActive(Map * map){
 	std::cout<<"\nMapManager::MakeActive map: "<<(map ? map->name : "NULL");
 
 	/// Make last map inactive first?
-	if (this->activeMap){
-		activeMap->lighting.VerifyData();
-
+	if (this->activeMap)
+	{
 		activeMap->OnExit();
 		/// Unregister all entities
 		Graphics.QueueMessage(new GraphicsMessage(GM_UNREGISTER_ALL_ENTITIES));
@@ -210,7 +207,7 @@ bool MapManager::MakeActive(Map * map){
 	if (map == NULL)
 		return false;
 
-	Graphics.QueueMessage(new GMSetLighting(map->lighting));
+	Graphics.QueueMessage(new GMSetLighting(&map->lighting));
 	/// Initial check again.
 	if (!map->Name()){
 		std::cout<<"\nWARNING: Null map set!";
@@ -236,7 +233,6 @@ bool MapManager::MakeActive(Map * map){
 //	std::cout<<"\nMapManager::MakeActive map loaded, calling map's OnEnter: "<<map->name;
 	if (processOnEnter)
 		activeMap->OnEnter();
-	activeMap->lighting.VerifyData();
 	return true;
 }
 

@@ -113,6 +113,10 @@ public:
 	float Length() const;
 	/// Calculates the squared length of the vector.
 	int LengthSquared() const;
+
+	/// Corresponds to the area (x*y).
+	int GeometricSum();
+
 	/** Normalizes the vector coordinates so that the length becomes 1 */
 	Vector2i Normalize();
 	/** Returns a normalized copy of this vector. */

@@ -130,6 +130,8 @@ public:
 	/// Vertex count for the generated buffer objects.
 	unsigned int vboVertexCount;
 private:
+	/// Set after calling Triangulate only.
+	bool triangulated;
 	// How many floats were buffered, per vertex.
 	int floatsPerVertex;
 };

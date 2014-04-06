@@ -208,6 +208,12 @@ int Vector2i::LengthSquared() const {
 	return x * x + y * y;
 }
 
+/// Corresponds to the area.
+int Vector2i::GeometricSum()
+{
+	return x * y;
+}
+
 Vector2i Vector2i::Normalize(){
 	int vecLength = Length();
 	if (vecLength < ZERO){

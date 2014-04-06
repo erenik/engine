@@ -179,7 +179,7 @@ Battle RuneBattlerManager::GetBattleBySource(String source){
 /// The default directory and file ending will be added automatically as needed. 
 RuneBattler RuneBattlerManager::GetBattlerBySource(String bySource){
 	if (!bySource.Contains("data/")){
-		bySource = "data/RuneRPG/Battlers/" + bySource;
+		bySource = "data/Battlers/" + bySource;
 	}
 	if (!bySource.Contains(".b"))
 		bySource += ".b";

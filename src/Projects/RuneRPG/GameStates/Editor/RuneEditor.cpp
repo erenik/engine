@@ -1,11 +1,6 @@
 // Emil Hedemalm
 // 2013-06-28
 
-#include "Game/GameType.h"
-
-#ifdef RUNE_RPG
-
-
 #include "OS/Sleep.h"
 #include "Maps/2D/TileMapLevel.h"
 #include "Maps/2D/TileMap2D.h"
@@ -34,6 +29,7 @@ extern UserInterface * ui[MAX_GAME_STATES];
 #include "Input/InputManager.h"
 #include "ModelManager.h"
 #include "Message/MessageManager.h"
+#include "Graphics/Messages/GMLight.h"
 
 #include <iomanip>
 /// Flum Microsoft function...
@@ -66,12 +62,12 @@ RuneEditor::RuneEditor()
 	tileBrushType = terrainBrushType = brushType = SQUARE;
 	tileBrushSize = terrainBrushSize = brushSize = 0;
 	terrainTypeSelected = 0;
-	TileTypes.LoadTileTypes("data/RuneRPG/tiles.txt");
+	TileTypes.LoadTileTypes("data/tiles.txt");
 	tileType = TileTypes.GetTileTypeByIndex(0);
 	selectedEvent = NULL;
 	runeEditorCamera = new Camera();
-	runeEditorCamera->flySpeedMultiplier *= 20.0f;
-	rootMapDir = "map/RuneRPG/";
+	runeEditorCamera->flySpeed = 20.0f;
+	rootMapDir = "map/";
 	// We want keypressed.
 	keyPressedCallback = true;
 	map = NULL;
@@ -108,7 +104,7 @@ void RuneEditor::CreateUserInterface(){
 	std::cout<<"\nState name: "<<stateName;
 	assert(stateName == "RuneEditorState");
 	
-	String source = "gui/RuneRPG/" + stateName + ".gui";
+	String source = "gui/" + stateName + ".gui";
 	std::cout<<"RuneEditor::CreateUserInterface: "<<source;
 	ui->Load(source);
 //	ui->Load("gui/RuneEditor.gui");
@@ -128,7 +124,7 @@ void RuneEditor::OnEnter(GameState * previousState){
 	
 	// Load initial texture and set it to render over everything else
 	// Begin loading textures here for the UI
-	Graphics.QueueMessage(new GMSet(ACTIVE_USER_INTERFACE, ui));
+	Graphics.QueueMessage(new GMSetUI(ui));
 	OnEditModeUpdated(-1);
 
 	TileMapLevel * level = map->ActiveLevel();
@@ -211,24 +207,24 @@ void RuneEditor::Process(float time){
 
     time_t currentTime = Timer::GetCurrentTimeMs();
 
-	/// Fly! :D
-	/// Rotate first, yo o.O
-	/// Rotation multiplier.
-	float rotMultiplier = 0.05f;
-	runeEditorCamera->rotation += runeEditorCamera->rotationVelocity * runeEditorCamera->rotationSpeedMultiplier * (float)time;
-	// Check input for moving camera
-	if (runeEditorCamera->velocity.Length() > 0){
-		Vector4d moveVec;
-		moveVec = Vector4d(runeEditorCamera->velocity);
-		/// Flight-speed multiplier.
-		float multiplier = 0.5f * runeEditorCamera->flySpeedMultiplier;
-		moveVec = moveVec * multiplier * (float)time * runeEditorCamera->zoom;
-		Matrix4d rotationMatrix;
-		rotationMatrix.InitRotationMatrixY(-runeEditorCamera->rotation.y);
-		rotationMatrix.multiply(Matrix4d::GetRotationMatrixX(-runeEditorCamera->rotation.x));
-		moveVec = rotationMatrix.product(moveVec);
-		runeEditorCamera->position += Vector3f(moveVec);
-	}
+	///// Fly! :D
+	///// Rotate first, yo o.O
+	///// Rotation multiplier.
+	//float rotMultiplier = 0.05f;
+	//runeEditorCamera->rotation += runeEditorCamera->rotationVelocity * runeEditorCamera->rotationSpeed * (float)time;
+	//// Check input for moving camera
+	//if (runeEditorCamera->velocity.Length() > 0){
+	//	Vector4d moveVec;
+	//	moveVec = Vector4d(runeEditorCamera->velocity);
+	//	/// Flight-speed multiplier.
+	//	float multiplier = 0.5f * runeEditorCamera->flySpeed;
+	//	moveVec = moveVec * multiplier * (float)time * runeEditorCamera->zoom;
+	//	Matrix4d rotationMatrix;
+	//	rotationMatrix.InitRotationMatrixY(-runeEditorCamera->rotation.y);
+	//	rotationMatrix.multiply(Matrix4d::GetRotationMatrixX(-runeEditorCamera->rotation.x));
+	//	moveVec = rotationMatrix.product(moveVec);
+	//	runeEditorCamera->position += Vector3f(moveVec);
+	//}
 };
 
 /// Callback function that will be triggered via the MessageManager when messages are processed.
@@ -268,6 +264,8 @@ void RuneEditor::ProcessMessage(Message * message){
 				objectType->name = sm->value;
 				OnObjectTypesUpdated();
 			}
+			else if (msg == "SetLightName")
+				selectedLight->SetName(sm->value);
 			break;
 		}
 		case MessageType::VECTOR_MESSAGE:
@@ -282,6 +280,18 @@ void RuneEditor::ProcessMessage(Message * message){
 				objectType->UpdatePassabilityMatrix();
 				objectType->UpdatePivotPosition();
 				Graphics.QueueMessage(new GMSetUIv2i("ObjectOccupationMatrix", GMUI::MATRIX_SIZE, size));
+			}
+			else if (msg == "SetGlobalAmbient")
+			{
+				Graphics.QueueMessage(new GMSetAmbience(vm->vec3f));
+			}
+			else if (msg == "SetLightColor")
+			{
+				Graphics.QueueMessage(new GMSetLight(selectedLight, COLOR, vm->vec3f));
+			}
+			else if (msg == "SetLightAttenuation")
+			{
+				Graphics.QueueMessage(new GMSetLight(selectedLight, ATTENUATION, vm->vec3f));
 			}
 			else if (msg == "SetNewMapSize")
 			{
@@ -341,7 +351,7 @@ void RuneEditor::ProcessMessage(Message * message){
 			{
 				objectType = GridObjectTypeMan.New();
 				OnObjectTypesUpdated();
-				Graphics.QueueMessage(new GMPushUI("RuneRPG/Editor/EditObjectMenu.gui"));
+				Graphics.QueueMessage(new GMPushUI("Editor/EditObjectMenu.gui"));
 				OnObjectTypeSelectedForEditing();
 			}
 			else if (string.Contains("EditObjectType("))
@@ -351,7 +361,7 @@ void RuneEditor::ProcessMessage(Message * message){
 				objectType = GridObjectTypeMan.GetTypeByID(id);
 				if (!objectType)
 					return;
-				Graphics.QueueMessage(new GMPushUI("RuneRPG/Editor/EditObjectMenu.gui"));
+				Graphics.QueueMessage(new GMPushUI("Editor/EditObjectMenu.gui"));
 				OnObjectTypeSelectedForEditing();
 			}
 			else if (string == "SetObjectType(this)")
@@ -551,6 +561,12 @@ void RuneEditor::MouseClick(bool down, int x, int y, UIElement * elementClicked)
 				if (!SelectEvent())
 					CreateEvent();
 				break;
+			case EditMode::LIGHTING:
+			{
+				if (!SelectLight())
+					CreateLight();
+				break;
+			}
 		}
 	}
 	/// If released the left mouse button.
@@ -607,10 +623,13 @@ void RuneEditor::MouseRightClick(bool down, int x, int y, UIElement * elementCli
 			DeleteObject();
 			break;
 		}
+		case EditMode::LIGHTING:
+			DeleteLight();
+			break;
 
 	}
-	mouseX = x;
-	mouseY = y;
+	mouseX = (float)x;
+	mouseY = (float)y;
 	rButtonDown = down;
 }
 
@@ -644,7 +663,7 @@ void RuneEditor::MouseMove(float x, float y, bool lDown, bool rDown, UIElement *
 		cursorPosition.Round();
 	}
 	/// Update cursor position!
-	int xi = cursorPosition.x, yi = cursorPosition.y;
+	int xi = (int)cursorPosition.x, yi = (int)cursorPosition.y;
 	String posString = "x: " + String::ToString(xi) +
 		" y:" + String::ToString(yi);
 	Graphics.QueueMessage(new GMSetUIs("CursorPosition", GMUI::TEXT, posString));
@@ -711,6 +730,9 @@ void RuneEditor::MouseMove(float x, float y, bool lDown, bool rDown, UIElement *
 				switch(editMode){
 					case EditMode::OBJECTS:
 						DeleteObject();
+						break;
+					case EditMode::LIGHTING:
+						DeleteLight();
 						break;
 				}
 			}
@@ -800,6 +822,7 @@ void RuneEditor::Render(GraphicsState & graphicsState){
 	int pBrushSize = brushSize;
 	switch(editMode){
 		case EditMode::EVENTS:
+		case EditMode::LIGHTING:
 			pBrushSize = 0;
 		case EditMode::TILES:
 		case EditMode::TERRAIN:
@@ -826,6 +849,10 @@ void RuneEditor::Render(GraphicsState & graphicsState){
 				break;
 			case EditMode::EVENTS:
 				glColor4f(0.4f,0.4f,0.3f,0.5f);
+				break;
+			case EditMode::LIGHTING:
+				glColor4f(0.6f,0.3f,0.1f,0.5f);
+				break;
 		};
 		
 		
@@ -1175,7 +1202,8 @@ GridObject * RuneEditor::CreateObject()
 }
 
 /// SElect evvveettttnt
-bool RuneEditor::SelectEvent(){
+bool RuneEditor::SelectEvent()
+{
 	List<Event*> events = map->GetEvents();
 	for (int i = 0; i < events.Size(); ++i){
 		Event * event = events[i];
@@ -1190,7 +1218,8 @@ bool RuneEditor::SelectEvent(){
 }
 
 /// Create an event on the map! :)
-void RuneEditor::CreateEvent(){
+void RuneEditor::CreateEvent()
+{
 	TileMapLevel * level = map->ActiveLevel();
 	Vector2i size = level->Size();
 	
@@ -1241,6 +1270,71 @@ void RuneEditor::DeleteEvent(){
 		}
 	}
 	Graphics.ResumeRendering();
+}
+
+/// Tries to select light at current cursor position.
+bool RuneEditor::SelectLight()
+{
+	List<Light*> lights = map->GetLighting()->GetLights();
+	for (int i = 0; i < lights.Size(); ++i){
+		Light * light = lights[i];
+		float distance = (light->position - cursorPosition).LengthSquared();
+		if (distance < 0.9f)
+		{
+			selectedLight = light;
+			OnSelectedLightUpdated();
+			return true;
+		}
+	}
+	return false;
+}
+/// Creates a new light
+void RuneEditor::CreateLight()
+{
+	if (SelectLight())
+		return;
+	TileMapLevel * level = map->ActiveLevel();
+	Vector2i size = level->Size();
+	assert(editMode == EditMode::LIGHTING);
+	// Opt outs
+	if (cursorPosition.x < 0 || cursorPosition.x >= size.x)
+		return;
+	if (cursorPosition.y < 0 || cursorPosition.y >= size.y)
+		return;
+	Graphics.PauseRendering();
+	String lightName = "New light";
+	String num;
+	int i = 1;
+	Lighting * lighting = this->map->GetLightingEditable();
+	Light * light = lighting->CreateLight();
+	if (!light)
+		return;
+	light->position = cursorPosition;
+	light->attenuation = Vector3f(1,1,1);
+	selectedLight = light;
+	OnSelectedLightUpdated();
+	assert(light);
+	Graphics.ResumeRendering();	
+}
+void RuneEditor::DeleteLight()
+{
+	Light * lightToDelete = NULL;
+	List<Light*> lights = map->GetLighting()->GetLights();
+	for (int i = 0; i < lights.Size(); ++i){
+		Light * light = lights[i];
+		float distance = (light->position - cursorPosition).LengthSquared();
+		if (distance < 0.9f){
+			lightToDelete = light;
+			break;
+		}
+	}
+	if (lightToDelete)
+	{
+		Graphics.PauseRendering();
+		Lighting * lighting = map->GetLightingEditable();
+		lighting->DeleteLight(lightToDelete);
+		Graphics.ResumeRendering();
+	}
 }
 
 /// Queries the TileTypeManager to reload the available tiles.
@@ -1345,6 +1439,12 @@ void RuneEditor::UpdateUIObjects()
 	OnObjectTypesUpdated();
 }
 
+void RuneEditor::UpdateUILighting()
+{
+	const Lighting * lighting = Graphics.ActiveLighting();
+	Graphics.QueueMessage(new GMSetUIv3f("GlobalAmbient", GMUI::VECTOR_INPUT, lighting->GetAmbient()));
+}
+
 /// Update GUI n stuff!
 void RuneEditor::OnEditModeUpdated(int previousMode)
 {
@@ -1355,7 +1455,7 @@ void RuneEditor::OnEditModeUpdated(int previousMode)
 	/// Make stuff invisible.
 	Graphics.QueueMessage(new GMPopUI(previousModeName+"Menu"));
 	/// Make visible new UI using given modeName :)
-	Graphics.QueueMessage(new GMPushUI("RuneRPG/Editor/"+modeName+"Menu.gui"));
+	Graphics.QueueMessage(new GMPushUI("Editor/"+modeName+"Menu.gui"));
 	Graphics.QueueMessage(new GMSetUIb("Modes", GMUI::CHILD_TOGGLED, false));
 	/// Update some label?
 	Graphics.QueueMessage(new GMSetUIs("CurrentMode", GMUI::TEXT, modeName));
@@ -1372,6 +1472,9 @@ void RuneEditor::OnEditModeUpdated(int previousMode)
 			break;
 		case EditMode::OBJECTS:
 			UpdateUIObjects();
+			break;
+		case EditMode::LIGHTING:
+			UpdateUILighting();
 			break;
 	}
 }
@@ -1417,6 +1520,23 @@ void RuneEditor::OnSelectedEventUpdated(){
 		Graphics.QueueMessage(new GMSetUIb("EventDetails", GMUI::VISIBILITY, false));
 	};
 }
+
+/// Update more gui.
+void RuneEditor::OnSelectedLightUpdated()
+{
+	if (selectedLight)
+	{
+		Graphics.QueueMessage(new GMPushUI("Editor/LightEditor.gui"));
+		Graphics.QueueMessage(new GMSetUIs("LightName", GMUI::STRING_INPUT_TEXT, selectedLight->Name()));
+		Graphics.QueueMessage(new GMSetUIv3f("LightColor", GMUI::VECTOR_INPUT, selectedLight->diffuse));
+		Graphics.QueueMessage(new GMSetUIv3f("LightAttenuation", GMUI::VECTOR_INPUT, selectedLight->attenuation));
+	}
+	else 
+	{
+		Graphics.QueueMessage(new GMPopUI("LightEditor"));
+	}
+}
+
 
 /// Saves the map to set mapFilePath. Assumes any file-checks have been done beforehand. Pauses input and physics while saving.
 bool RuneEditor::SaveMap(){
@@ -1480,5 +1600,3 @@ void RuneEditor::SetMapSize(int xSize, int ySize){
 	map->SetSize(xSize, ySize);
 	Graphics.ResumeRendering();
 }
-
-#endif

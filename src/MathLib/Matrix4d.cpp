@@ -425,21 +425,21 @@ Matrix4d Matrix4d::Translation(Vector3d vec){
 }
 
 
-Matrix4d Matrix4d::scale(double ratio){
+Matrix4d Matrix4d::Scale(double ratio){
 	element[0] *= ratio;
 	element[5] *= ratio;
 	element[10] *= ratio;
 	return Matrix4d(element);
 }
 
-Matrix4d Matrix4d::scale(double x, double y, double z){
+Matrix4d Matrix4d::Scale(double x, double y, double z){
 	element[0] *= x;
 	element[5] *= y;
 	element[10] *= z;
 	return Matrix4d(element);
 }
 
-Matrix4d Matrix4d::scale(Vector3d vec){
+Matrix4d Matrix4d::Scale(Vector3d vec){
 	element[0] *= vec.x;
 	element[5] *= vec.y;
 	element[10] *= vec.z;

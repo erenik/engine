@@ -110,8 +110,9 @@ void PrintGLError(const char * text){
 
 
 /// Constructor which anulls all relevant variables.
-GraphicsManager::GraphicsManager(){
-	this->defaultLighting.CreateDefaultSetup();
+GraphicsManager::GraphicsManager()
+{
+//	this->defaultLighting.CreateDefaultSetup();
 	frustum = new Frustum();
 	// Biggar frustuuum default plz
 	vfcOctree = new VFCOctree(50000, *frustum);
@@ -271,6 +272,7 @@ void GraphicsManager::CreateShaders(){
 	shadeMan.CreateShader("Normal");
 	shadeMan.CreateShader("Lighting");
 	shadeMan.CreateShader("Phong");
+	shadeMan.CreateShader("Sprite");
 	/// Don't even create the defered shader if it can't compile, yo..
 	if (this->GL_VERSION_MAJOR >= 3)
 		shadeMan.CreateShader("Deferred");
@@ -989,7 +991,7 @@ void GraphicsManager::UpdateLighting(){
 	//	std::cout<<"\nLight position updated from: "<<dynLight.position;
 		dynLight.position = owner->transformationMatrix.product(dynLight.position);
 	//	std::cout<<" to "<<dynLight.position<<" entityPos: "<<owner->positionVector;
-		graphicsState->lighting->Add(dynLight);
+		graphicsState->lighting->Add(&dynLight);
 	}
 }
 

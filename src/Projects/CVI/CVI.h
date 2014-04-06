@@ -47,6 +47,9 @@ public:
 	void ExtractLines();
 
 private:
+
+	List<Line> lines;
+
 	/// Dedicated camera
 	Camera cviCamera;
 	/// Entity to display the texture in 3D-space

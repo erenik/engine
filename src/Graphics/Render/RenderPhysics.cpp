@@ -201,7 +201,7 @@ void GraphicsManager::RenderPhysics(){
 			}
 			case ShapeType::SPHERE: {
 				// Multiply by entity
-				transformationMatrix.multiply((Matrix4d().scale(entity->radius)));
+				transformationMatrix.multiply((Matrix4d().Scale(entity->radius)));
 				Sphere * sphere = (Sphere*)entity->physics->shape;
 				model = ModelMan.GetModel("Sphere6.obj");
 				break;
@@ -211,7 +211,7 @@ void GraphicsManager::RenderPhysics(){
 				// Multiply by entity
 				Matrix4f oldTransform = transformationMatrix;
 				transformationMatrix = Matrix4f::Translation(entity->positionVector);
-				transformationMatrix.multiply((Matrix4d().scale(entity->physics->physicalRadius)));
+				transformationMatrix.multiply((Matrix4d().Scale(entity->physics->physicalRadius)));
 				transformationMatrix.multiply(entity->rotationMatrix);
 
 #ifdef RENDER_MESH_BOUNDING_SPHERE

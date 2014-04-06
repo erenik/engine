@@ -1,10 +1,6 @@
 // Emil Hedemalm
 // 2013-06-28
 
-#include "Game/GameType.h"
-
-#ifdef RUNE_RPG
-
 #include "MapState.h"
 #include "Actions.h"
 // Don't include all managers. Ever.
@@ -15,7 +11,7 @@ void MapState::CreateDefaultBindings(){
 
 /// (int action, int * inputCombinationArray, int inputs, const char * name = NULL);
 	/// Get pointer to this mapping
-	InputMapping * mapping = &Input.inputMapping[this->id];
+	InputMapping * mapping = &this->inputMapping;
 	/// Create default bindings
 
 
@@ -117,5 +113,3 @@ void MapState::CreateDefaultBindings(){
 	mapping->SetBlockingKeys(mapping->CreateBinding(RESET_CAMERA, KEY::HOME, "HOME : Reset camera"), KEY::ALT, KEY::CTRL);
 
 };
-
-#endif

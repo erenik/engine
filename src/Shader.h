@@ -9,7 +9,9 @@
 
 /** Defines a single shader program with it's separate shader program parts and IDs to all it's uniforms.
 */
-struct Shader {
+class Shader 
+{
+public:
 	Shader();
 	~Shader();
 	/// Deletes shader program and associated vertex/fragment-shaders

@@ -1,10 +1,6 @@
 // Emil Hedemalm
 // 2013-06-28
 
-#include "Game/GameType.h"
-
-#ifdef RUNE_RPG
-
 #include "MapState.h"
 #include "Actions.h"
 // Don't include all managers. Ever.
@@ -132,11 +128,11 @@ void MapState::InputProcessor(int action, int inputDevice/* = 0*/){
 			break;
 		case CHANGE_CAMERA:
 			switch(camera->trackingMode){
-				case TRACKING_MODE::FROM_BEHIND:
-					camera->trackingMode = TRACKING_MODE::THIRD_PERSON;
+				case TrackingMode::FROM_BEHIND:
+					camera->trackingMode = TrackingMode::THIRD_PERSON;
 					break;
-				case TRACKING_MODE::THIRD_PERSON:
-					camera->trackingMode = TRACKING_MODE::FROM_BEHIND;
+				case TrackingMode::THIRD_PERSON:
+					camera->trackingMode = TrackingMode::FROM_BEHIND;
 					break;
 			};
 			break;
@@ -222,27 +218,27 @@ void MapState::InputProcessor(int action, int inputDevice/* = 0*/){
 		camera->rotationVelocity = Vector3f(0, 0, 0);
 		break;
 	/// Navigation
-	case FORWARD: 	camera->Begin(DIRECTION::FORWARD);		break;
-	case FORWARD_S:	camera->End(DIRECTION::FORWARD);		break;
-	case BACKWARD: 	camera->Begin(DIRECTION::BACKWARD);	break;
-	case BACKWARD_S:camera->End(DIRECTION::BACKWARD);		break;
-	case LEFT:		camera->Begin(DIRECTION::LEFT);		break;
-	case LEFT_S:	camera->End(DIRECTION::LEFT);			break;
-	case RIGHT:		camera->Begin(DIRECTION::RIGHT);		break;
-	case RIGHT_S:	camera->End(DIRECTION::RIGHT);			break;
-	case UP:		camera->Begin(DIRECTION::UP);			break;
-	case UP_S:		camera->End(DIRECTION::UP);			break;
-	case DOWN:		camera->Begin(DIRECTION::DOWN);		break;
-	case DOWN_S:	camera->End(DIRECTION::DOWN);			break;
+	case FORWARD: 	camera->Begin(Direction::FORWARD);		break;
+	case FORWARD_S:	camera->End(Direction::FORWARD);		break;
+	case BACKWARD: 	camera->Begin(Direction::BACKWARD);	break;
+	case BACKWARD_S:camera->End(Direction::BACKWARD);		break;
+	case LEFT:		camera->Begin(Direction::LEFT);		break;
+	case LEFT_S:	camera->End(Direction::LEFT);			break;
+	case RIGHT:		camera->Begin(Direction::RIGHT);		break;
+	case RIGHT_S:	camera->End(Direction::RIGHT);			break;
+	case UP:		camera->Begin(Direction::UP);			break;
+	case UP_S:		camera->End(Direction::UP);			break;
+	case DOWN:		camera->Begin(Direction::DOWN);		break;
+	case DOWN_S:	camera->End(Direction::DOWN);			break;
 	/// Rotation
-	case TURN_LEFT:		camera->BeginRotate(DIRECTION::LEFT); break;
-	case TURN_LEFT_S:	camera->EndRotate(DIRECTION::LEFT); break;
-	case TURN_RIGHT:	camera->BeginRotate(DIRECTION::RIGHT); break;
-	case TURN_RIGHT_S:	camera->EndRotate(DIRECTION::RIGHT); break;
-	case TURN_UP:		camera->BeginRotate(DIRECTION::UP); break;
-	case TURN_UP_S:		camera->EndRotate(DIRECTION::UP); break;
-	case TURN_DOWN:		camera->BeginRotate(DIRECTION::DOWN); break;
-	case TURN_DOWN_S:	camera->EndRotate(DIRECTION::DOWN); break;
+	case TURN_LEFT:		camera->BeginRotate(Direction::LEFT); break;
+	case TURN_LEFT_S:	camera->EndRotate(Direction::LEFT); break;
+	case TURN_RIGHT:	camera->BeginRotate(Direction::RIGHT); break;
+	case TURN_RIGHT_S:	camera->EndRotate(Direction::RIGHT); break;
+	case TURN_UP:		camera->BeginRotate(Direction::UP); break;
+	case TURN_UP_S:		camera->EndRotate(Direction::UP); break;
+	case TURN_DOWN:		camera->BeginRotate(Direction::DOWN); break;
+	case TURN_DOWN_S:	camera->EndRotate(Direction::DOWN); break;
 	/// Camera Distance
 	case COME_CLOSER:
 		camera->distanceFromCentreOfMovement *= 0.8f;
@@ -259,10 +255,10 @@ void MapState::InputProcessor(int action, int inputDevice/* = 0*/){
 		Graphics.UpdateProjection();
 		break;
 	case INCREASE_SPEED:
-		camera->flySpeedMultiplier *= 1.25f;
+		camera->flySpeed *= 1.25f;
 		break;
 	case DECREASE_SPEED:
-		camera->flySpeedMultiplier *= 0.8f;
+		camera->flySpeed *= 0.8f;
 		break;
 	case RESET_CAMERA:
 		ResetCamera();
@@ -273,4 +269,3 @@ void MapState::InputProcessor(int action, int inputDevice/* = 0*/){
 	}
 }
 
-#endif

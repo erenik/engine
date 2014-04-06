@@ -1,8 +1,6 @@
-// Awesome Author
-
-#include "Game/GameType.h"
-
-#ifdef RUNE_RPG
+// Emil Hedemalm
+// 2014-04-06
+// Global app/game-state for the RuneRPG game.
 
 #include "GameStates/GameState.h"
 #include "Selection.h"
@@ -40,5 +38,3 @@ public:
 	void DecreaseSpeed();
 private:
 };
-
-#endif

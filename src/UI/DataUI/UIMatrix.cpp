@@ -84,11 +84,11 @@ void UIMatrix::CreateMatrix()
 					assert(false);
 					continue;
 			}
-			element->name = name+"ElementX"+String::ToString(x)+"Y"+String::ToString(y);
+			element->text = "X"+String::ToString(x)+"Y"+String::ToString(y);
+			element->name = name+"Element" + element->text;
 			matrixElements.Add(element);
 			element->textureSource = textureSource;
 			element->textColor = textColor;
-			element->text = element->name;
 			element->alignmentX = (x+0.5f) * elementWidth;
 			element->alignmentY = 1.0f - (y + 0.5f) * elementHeight - labelHeightY;
 			element->sizeRatioX = elementWidth;

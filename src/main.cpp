@@ -22,8 +22,7 @@
 /// Unit test includes
 #include "PhysicsLib/Estimator.h"
 
-/// Call to set application name, root directories for various features, etc.
-void SetApplicationDefaults();
+#include "ApplicationDefaults.h"
 
 /// Win32-specifics
 #ifdef WINDOWS
@@ -513,8 +512,7 @@ int main(int argc, char **argv){
 	SetApplicationDefaults();
 
 	// Initialize all managers
-	extern String applicationName;
-	PreferencesManager::Allocate(applicationName);
+	PreferencesManager::Allocate();
 	WindowManager::Allocate();
 	PlayerManager::Allocate();
 	MessageManager::Allocate();

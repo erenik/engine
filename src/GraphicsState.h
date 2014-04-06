@@ -12,7 +12,7 @@
 #include "Util/List/List.h"
 #include "Selection.h"
 
-struct Shader;
+class Shader;
 class Texture;
 class Mesh;
 struct GraphicEffect;

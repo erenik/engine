@@ -161,11 +161,11 @@ void TileGrid2D::Render(GraphicsState & graphicsState){
 
 		TileType * tt = tile->type;
 		if (tt == NULL){
-			glColor4f(xPos / size.x, yPos / size.y, 0.5, 1);
+			// glColor4f(xPos / size.x, yPos / size.y, 0.5, 1);
 		}
 		else if (tt->textureSource.Length() < 3){
 			Vector3f c = tt->color;
-			glColor4f(c.x, c.y, c.z, 1.f);
+			// glColor4f(c.x, c.y, c.z, 1.f);
 		}
 		else if (tt->texture == NULL){
 	        Texture * t = TexMan.LoadTexture(tt->textureSource);
@@ -177,7 +177,7 @@ void TileGrid2D::Render(GraphicsState & graphicsState){
 	        }
 		}
 		else {
-		    glColor4f(1,1,1,1);
+		    // glColor4f(1,1,1,1);
 	        // Texture enabled.
 	        glEnable(GL_TEXTURE_2D);
 	        glBindTexture(GL_TEXTURE_2D, tt->texture->glid);

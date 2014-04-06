@@ -140,8 +140,9 @@ bool Texture::Bufferize(){
 			height,		0, 	GL_RGBA, GL_UNSIGNED_BYTE, data);
 
 	/// Generate mip-maps!
-	if (mipmappingEnabled)
+	if (mipmappingEnabled){
 		glGenerateMipmap(GL_TEXTURE_2D);
+	}
 	/// Or not, generate single texture.
 	else {
 		/// wat.	

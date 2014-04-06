@@ -74,7 +74,10 @@ public:
 	/// Resets events so that they can be re-played
 	virtual bool ResetEvents();
 
-
+	/// Returns lighting for this map.
+	const Lighting * GetLighting() const {return &lighting; };
+	/// Make sure you call this from the render-thread or pause rendering before manipulation!
+	Lighting * GetLightingEditable() {return &lighting; };
 	/// Render?
 	virtual void Render(GraphicsState & graphicsState);
 

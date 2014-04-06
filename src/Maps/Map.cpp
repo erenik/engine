@@ -13,11 +13,12 @@ extern GraphicsManager graphics;
 #include "Pathfinding/NavMesh.h"
 #include <cstring>
 
-Map::Map(){
+Map::Map()
+{
 	this->onEnter = NULL;
 	this->onExit = NULL;
 	numEvents = 0;
-	lighting.CreateDefaultSetup();
+//	lighting.CreateDefaultSetup();
 //	lighting.SetAmbient(1,1,1);
 	mapDataOK = true;
 	// Reset the file header data.

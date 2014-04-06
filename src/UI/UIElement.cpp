@@ -1312,7 +1312,7 @@ void UIElement::RenderSelf(GraphicsState & graphics){
 
 		pixels *= currentTextSizeRatio; //this->textSizeRatio;
 //		std::cout<<"\nTextToRender size in pixels: "<<pixels;
-		graphics.modelMatrixD.scale(pixels);	//Graphics.Height()
+		graphics.modelMatrixD.Scale(pixels);	//Graphics.Height()
 		graphics.modelMatrixF = graphics.modelMatrixD;
 		Vector4f color = this->textColor;
 	//	color.w *= 0.5f;

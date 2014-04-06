@@ -1,10 +1,6 @@
 // Emil Hedemalm
 // 2013-06-28
 
-#include "Game/GameType.h"
-
-#ifdef RUNE_RPG
-
 #include "MapState.h"
 
 #include "OS/Sleep.h"
@@ -158,10 +154,6 @@ void MapState::OnEnter(GameState * previousState){
 	player->entity = playerEntity;
 	player->playerState = playerState;
 	
-	// Verify data o-o
-	MapMan.GetLighting().VerifyData();
-
-
 	/// Set editor selection as the renderable one!
 
 	// And set it as active
@@ -723,9 +715,8 @@ void MapState::Zone(String mapName){
 }
 
 /// Bind camera to ze playah.-
-void MapState::TrackPlayer(){
+void MapState::TrackPlayer()
+{
 	camera->entityToTrack = playerEntity;
-	camera->trackingMode = TRACKING_MODE::FROM_BEHIND;
+	camera->trackingMode = TrackingMode::FROM_BEHIND;
 }
-
-#endif

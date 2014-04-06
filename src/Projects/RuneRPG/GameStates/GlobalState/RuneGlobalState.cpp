@@ -1,8 +1,6 @@
-// Awesome Author
-
-#include "Game/GameType.h"
-
-#ifdef RUNE_RPG
+// Emil Hedemalm
+// 2014-04-06
+// Global app/game-state for the RuneRPG game.
 
 #include "OS/Sleep.h"
 #include "RuneGlobalState.h"
@@ -47,7 +45,7 @@ RuneGlobalState::RuneGlobalState(){
 void RuneGlobalState::OnEnter(GameState * previousState){
 
 	// Begin loading textures here for the UI
-	Graphics.QueueMessage(new GMSet(ACTIVE_USER_INTERFACE, ui));
+	Graphics.QueueMessage(new GMSetUI(ui));
 
 	/// Allocate all necessary managers!
 	if (!BattleManager::IsAllocated()){
@@ -61,10 +59,10 @@ void RuneGlobalState::OnEnter(GameState * previousState){
 		/// Spell-manager!
 		RuneSpellManager::Allocate();
 		/// Load from file!
-		RuneSpellMan.LoadFromCSV("data/RuneRPG/spells.csv");
+		RuneSpellMan.LoadFromCSV("data/spells.csv");
 	}
 	// Load grid object types.
-	GridObjectTypeMan.SetSavePath("data/RuneRPG/Map/objects.dat");
+	GridObjectTypeMan.SetSavePath("data/Map/objects.dat");
 	GridObjectTypeMan.Load();
 
 	// Set graphics manager to render UI, and remove the overlay-texture.
@@ -235,5 +233,3 @@ void RuneGlobalState::MouseWheel(float delta){
 void RuneGlobalState::OnSelect(Selection &selection){
 
 }
-
-#endif

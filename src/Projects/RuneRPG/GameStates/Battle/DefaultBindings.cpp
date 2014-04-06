@@ -1,10 +1,6 @@
 // Emil Hedemalm
 // 2013-06-28
 
-#include "Game/GameType.h"
-
-#ifdef RUNE_RPG
-
 #include "RuneBattleState.h"
 #include "Actions.h"
 
@@ -18,7 +14,7 @@ void RuneBattleState::CreateDefaultBindings(){
 
 /// (int action, int * inputCombinationArray, int inputs, const char * name = NULL);
 	/// Get pointer to this mapping
-	InputMapping * mapping = &Input.inputMapping[this->id];
+	InputMapping * mapping = &this->inputMapping;
 	/// Create default bindings
 
 
@@ -104,5 +100,3 @@ void RuneBattleState::CreateDefaultBindings(){
 	mapping->SetBlockingKeys(mapping->CreateBinding(RESET_CAMERA, KEY::HOME, "HOME : Reset camera"), KEY::ALT, KEY::CTRL);
 
 };
-
-#endif

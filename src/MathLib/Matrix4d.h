@@ -118,11 +118,11 @@ public:
 	static Matrix4d Translation(double x, double y, double z);
 	static Matrix4d Translation(Vector3d vec);
 	/** Applies 3D scaling with provided ratio to x, y and z-dimensions. */
-	Matrix4d scale(double ratio);
+	Matrix4d Scale(double ratio);
 	/** Applies 3D scaling using the provided x, y and z-ratios. */
-	Matrix4d scale(double xRatio, double yRatio, double zRatio);
+	Matrix4d Scale(double xRatio, double yRatio, double zRatio);
 	/** Applies 3D sclaing operation using given vector. */
-	Matrix4d scale(Vector3d vec);
+	Matrix4d Scale(Vector3d vec);
 
 
 

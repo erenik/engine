@@ -572,7 +572,7 @@ void Entity::recalculateMatrix(){
 
 	transformationMatrix.Multiply((Matrix4d().translate(Vector3d(positionVector))));
 	transformationMatrix.Multiply(rotationMatrix);
-	transformationMatrix.Multiply((Matrix4d().scale(Vector3d(scaleVector))));
+	transformationMatrix.Multiply((Matrix4d().Scale(Vector3d(scaleVector))));
 
 
 

@@ -25,7 +25,7 @@ public:
 	virtual void OnExit();	// Called once when exiting the map
 
 	/// Render!
-	void Render(GraphicsState & graphicsState);
+	void Render(GraphicsState * graphicsState);
 
 	/// Loads map data from file.
 	virtual bool Load(const char * fromFile);

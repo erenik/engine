@@ -49,8 +49,8 @@ void GraphicsMessage::Process(){
 			Input.acceptInput = false;
 			Sleep(10);
 
-			/// Reset global UI
-		//	Graphics.SetGlobalUI(NULL);
+			/// First remove global UI.
+			Graphics.SetGlobalUI(NULL);
 
 			GameState * state = StateMan.ActiveState();
 			UserInterface * ui = state->GetUI();

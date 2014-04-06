@@ -1,9 +1,5 @@
 // Awesome Author
 
-#include "Game/GameType.h"
-
-#ifdef RUNE_RPG
-
 #include "RuneGlobalState.h"
 #include "Actions.h"
 // Don't include all managers. Ever.
@@ -54,5 +50,3 @@ void RuneGlobalState::InputProcessor(int action, int inputDevice/* = 0*/){
 #endif
 	}
 }
-
-#endif

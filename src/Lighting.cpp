@@ -11,102 +11,72 @@
 #include "GraphicsState.h"
 
 /// Default constructor, sets all light pointers and other variables to 0/NULL
-Lighting::Lighting(){
-	global_ambient = Vector4f(0.1f,0.1f,0.1f,0.1f);
-	for (int i = 0; i < MAX_LIGHTS; ++i){
-		light[i] = new Light();
-		light[i]->currentlyActive = false;
-	}
-	this->activeLights = 0;
+Lighting::Lighting()
+{
+	global_ambient = Vector4f(1.0f, 1.0f, 1.0f, 0.1f);
 	this->lastUpdate = GetTime();
-	this->activeLight = light[0];
+	this->activeLight = NULL;
 	this->activeLightIndex = 0;
 	this->lightCounter = 0;
-	VerifyData();
 }
-Lighting::~Lighting(){
-	for (int i = 0; i < MAX_LIGHTS; ++i){
-		if (light[i])
-			delete light[i];
-		light[i] = NULL;
-	}
-}
-
-// Verifies that some basic looks good.
-void Lighting::VerifyData() const {
-	assert(abs(light[0]->lastUpdate) < 500000);
+Lighting::~Lighting()
+{
+	lights.ClearAndDelete();
 }
 
 /// Copy constructor ^^
-Lighting::Lighting(const Lighting& otherLighting){
-	otherLighting.VerifyData();
-	for (int i = 0; i < MAX_LIGHTS; ++i){
-		Light * otherLight = otherLighting.light[i];
-		assert(abs(otherLight->lastUpdate) < 500000);
-		light[i] = new Light(*otherLight);
-	}
-	int sizeofLight = sizeof(light);
-	global_ambient = otherLighting.global_ambient;
-	this->activeLights = otherLighting.activeLights;
-	this->lastUpdate = otherLighting.lastUpdate;
-	this->activeLight = NULL;	// Pointer, set to NULL!!!
-	this->activeLightIndex = 0;	// Default to null
-	this->lightCounter = otherLighting.lightCounter;
-	VerifyData();
+Lighting::Lighting(const Lighting& otherLighting)
+{
+	Copy(&otherLighting);
 }
 
 /// Assignment operator...
-const Lighting * Lighting::operator = (const Lighting & otherLighting){
-	otherLighting.VerifyData();
-	for (int i = 0; i < MAX_LIGHTS; ++i){
-		Light * otherLight = otherLighting.light[i];
-		assert(abs(otherLight->lastUpdate) < 500000);
-		if (light[i])
-			delete light[i];
-		light[i] = new Light(*otherLight);
-	}
-	int sizeofLight = sizeof(light);
-	global_ambient = otherLighting.global_ambient;
-	this->activeLights = otherLighting.activeLights;
-	this->lastUpdate = otherLighting.lastUpdate;
-	this->activeLight = NULL;	// Pointer, set to NULL!!!
-	this->activeLightIndex = 0;	// Default to null
-	this->lightCounter = otherLighting.lightCounter;
-	VerifyData();
+const Lighting * Lighting::operator = (const Lighting & otherLighting)
+{
+	Copy(&otherLighting);
 	return this;
 }
 
-/// Adds light to the lighting, returns it's index on success, -1 on failure. o-o
-int Lighting::Add(Light & newLight){
-	for (int i = 0; i < MAX_LIGHTS; ++i){
-		if (light[i]->currentlyActive)
-			continue;
-		light[i]->currentlyActive = true;
-		*light[i] = Light(newLight);
-		activeLightIndex = i;
-		activeLight = light[i];
-		/// Set default values
-		this->lastUpdate = GetTime();
-		++activeLights;
-		return i;
+/// Used for all copy-constructors.
+void Lighting::Copy(const Lighting * fromThisLighting)
+{
+	lights.ClearAndDelete();
+	for (int i = 0; i < fromThisLighting->lights.Size(); ++i){
+		Light * otherLight = fromThisLighting->lights[i];
+		Light * newLight = new Light(*otherLight);
+		lights.Add(newLight);
 	}
-	return -1;
+	global_ambient = fromThisLighting->global_ambient;
+	this->lastUpdate = fromThisLighting->lastUpdate;
+	this->activeLight = NULL;	// Pointer, set to NULL!!!
+	this->activeLightIndex = 0;	// Default to null
+	this->lightCounter = fromThisLighting->lightCounter;
 }
 
-/// Adds light to the lighting, returns it's old index on success, -1 on failure. o-o
-int Lighting::Remove(Light & toRemove){
-	for (int i = 0; i < MAX_LIGHTS; ++i){
-		if (!light[i]->Name().Equals(toRemove.Name()))
-			continue;
-		SelectLight(i);
-		DeleteLight();
-		return i;
-	}
-	return -1;
+/// Adds light to the lighting, returns it's index on success, -1 on failure. o-o
+Light * Lighting::Add(Light * newLight)
+{
+	if (lights.Size() >= MAX_LIGHTS)
+		return NULL;
+	Light * light = new Light(*newLight);
+	light->currentlyActive = true;
+	activeLight = light;
+	/// Set default values
+	this->lastUpdate = GetTime();
+	lights.Add(light);
+	return light;
+}
+
+/// Removes target light. Returns false on failure.
+bool Lighting::Remove(Light * toRemove)
+{
+	return lights.Remove(toRemove);
 }
 
 /// Creates a default setup of 3-4 lights for testing purposes.
-void Lighting::CreateDefaultSetup(){
+void Lighting::CreateDefaultSetup()
+{
+/*
 	/// Ambient clear blue sky
 	SetAmbient(64/500.0f, 156/500.0f, 255/500.0f);
 	// First general sunlight
@@ -151,9 +121,23 @@ void Lighting::CreateDefaultSetup(){
 	SetName("Spot light.. o-o");
 
 	std::cout<<"\nDefault lights created.";
+	*/
 }
+/// Returns all lights in their current state.
+List<Light*> Lighting::GetLights() const
+{
+	List<Light*> constLightList;
+	for (int i = 0; i < lights.Size(); ++i)
+	{
+		constLightList.Add(lights[i]);
+	}
+	return constLightList;
+}
+
 /// Fills the whole light-array, attempting to  test the limits of the hardware with as many lights as possible.
-void Lighting::Overload(){
+void Lighting::Overload()
+{
+	/*
 	for (int i = 0; i < MAX_LIGHTS; ++i){
 		int index = CreateLight();
 		if (index == -1){
@@ -170,6 +154,7 @@ void Lighting::Overload(){
 		SetAttenuation(1.0f, 0.1f, 0.001f);
 		SetType(LightType::POSITIONAL);
 	}
+	*/
 }
 
 /// Sets ambient using 0-255 values
@@ -189,148 +174,43 @@ void Lighting::SetAmbient(Vector3f values){
 }
 
 /// Creates a new light source, adding it to the array. Returns the newly created light's index and sets it as the currently editable light.
-int Lighting::CreateLight(){
-	for (int i = 0; i < MAX_LIGHTS; ++i){
-		if (light[i]->currentlyActive)
-			continue;
-		light[i]->currentlyActive = true;
-		activeLightIndex = i;
-		activeLight = light[i];
-		/// Set default values
-		activeLight->diffuse = Vector4f(1,1,1,1);
-		activeLight->specular = Vector4f(1,1,1,1);
-		activeLight->attenuation = Vector3f(1.0f,0.0f,0.0f);
-		// Set name
-		String name = "Light " + String::ToString(lightCounter);
-		++this->lightCounter;
-		activeLight->SetName(name);
-		this->lastUpdate = GetTime();
-		++activeLights;
-		return i;
-	}
-	return -1;
+Light * Lighting::CreateLight()
+{
+	if (lights.Size() >= MAX_LIGHTS)
+		return NULL;
+	activeLight = new Light();
+	/// Set default values
+	activeLight->diffuse = Vector4f(1,1,1,1);
+	activeLight->specular = Vector4f(1,1,1,1);
+	activeLight->attenuation = Vector3f(1.0f,0.0f,0.0f);
+	// Set name
+	String name = "Light " + String::ToString(lightCounter);
+	++this->lightCounter;
+	activeLight->SetName(name);
+	this->lastUpdate = GetTime();
+	lights.Add(activeLight);
+	return activeLight;
 }
 
 /// Returns a pointer to selected light. USE WITH CAUTION.
 Light * Lighting::GetLight(int index){
-	assert(index >= 0 && index < this->activeLights && "Invalid light-index!");
-	return light[index];
+	assert(index >= 0 && "Invalid light-index!");
+	return lights[index];
 }
 
-/// Deletes active light source. Returns false if no light is selected.
-bool Lighting::DeleteLight(){
-	if (activeLight){
-		activeLight->currentlyActive = false;
-		for (int i = 0; i < this->activeLights; ++i){
-			// Move front all the remaining lights
-			if (activeLight == light[i]){
-				Light * tmp = light[i];
-				for (int j = i; j < this->activeLights-1; ++j){
-					light[j] = light[j+1];
-				}
-				light[this->activeLights-1] = tmp;
-				--this->activeLights;
-				lastUpdate = clock();
-				return true;
-			}
-		}
-	}
-	return false;
+/// Deletes active light source or target light if argument is provided. Returns false if no light is selected or hte light did not belong to this lighting.
+bool Lighting::DeleteLight(Light * light)
+{	
+	return lights.Remove(light);
 }
 
 /// Deletes all light sources contained within.
-int Lighting::DeleteAllLights(){
-	for (int i = 0; i < this->activeLights; ++i){
-		light[i]->currentlyActive = false;
-	}
-	int lightsDeleted = this->activeLights;
-	this->activeLights = 0;
+int Lighting::DeleteAllLights()
+{
+	int lightsDeleted = lights.Size();
+	lights.ClearAndDelete();
 	lastUpdate = clock();
 	return lightsDeleted;
-}
-
-
-/// Selects indexed light. Returns 1 upon success, -1 upon failure.
-int Lighting::SelectLight(int index){
-	if (light[index]->currentlyActive){
-		activeLightIndex = index;
-		activeLight = light[index];
-		return index;
-	}
-	return -1;
-}
-
-/// Selects light by name. Returns it's index upon success, -1 upon failure.
-int Lighting::SelectLight(const char * name){
-	for (int i = 0; i < MAX_LIGHTS; ++i){
-		int result = strcmp(name, light[i]->Name());
-		if (result == 0){
-			activeLightIndex = i;
-			activeLight = light[i];
-			return i;
-		}
-	}
-	return -1;
-}
-
-/// Sets diffuse values for selected light
-void Lighting::SetDiffuse(float r, float g, float b, float a){
-	activeLight->diffuse = Vector4f(r,g,b,a);
-	this->lastUpdate = GetTime();
-}
-/// Sets specular values for selected light
-void Lighting::SetSpecular(float r, float g, float b, float a){
-	activeLight->specular = Vector4f(r,g,b,a);
-	this->lastUpdate = GetTime();
-}
-/// Sets diffuse & specular values for active light
-void Lighting::SetColor(float r, float g, float b, float a){
-	activeLight->diffuse = Vector4f(r,g,b,a);
-	activeLight->specular = Vector4f(r,g,b,a);
-	this->lastUpdate = GetTime();
-}
-
-/// Sets attenuation factors for the selected light
-void Lighting::SetAttenuation(float constant, float linear, float quadratic){
-	ACTIVE_LIGHT->attenuation = Vector3f(constant, linear, quadratic);
-	this->lastUpdate = GetTime();
-}
-/// Sets position for the light
-void Lighting::SetPosition(float x, float y, float z){
-	ACTIVE_LIGHT->position = Vector3f(x,y,z);
-	this->lastUpdate = GetTime();
-}
-
-/// Sets spotlight direction in world coordinates
-void Lighting::SetSpotDirection(float x, float y, float z){
-	ACTIVE_LIGHT->spotDirection = Vector3f(x,y,z);
-	this->lastUpdate = GetTime();
-}
-/// Sets spotlight cutoff in degrees and exponent for edge-fading.
-void Lighting::SetSpotCutoffExponent(float cutoff, int exponent){
-	activeLight->spotCutoff = cutoff;
-	activeLight->spotExponent = exponent;
-	this->lastUpdate = GetTime();
-}
-
-/// Sets light-type
-void Lighting::SetType(int type){
-	if (type <= LightType::NULL_TYPE || type >= LightType::LIGHT_TYPES){
-		std::cout<<"\nWARNING: Invalid light-type provided!";
-		return;
-	}
-	activeLight->type = type;
-	this->lastUpdate = GetTime();
-}
-
-/// Sets new name for the active light
-void Lighting::SetName(const char * newName){
-	activeLight->SetName(newName);
-}
-
-/// Gets name of selected light.
-const char * Lighting::GetName(int index){
-	return light[index]->Name();
 }
 
 
@@ -345,13 +225,15 @@ void Lighting::WriteTo(std::fstream & file){
 	// Write ambient
 	global_ambient.WriteTo(file);
 	// Write number of lights
-	file.write((char*)&activeLights, sizeof(int));
-	for (int i = 0; i < activeLights; ++i){
-		light[i]->WriteTo(file);
+	int numLights = lights.Size();
+	file.write((char*)&numLights, sizeof(int));
+	for (int i = 0; i < lights.Size(); ++i){
+		lights[i]->WriteTo(file);
 	}
 }
 /// Reads from file stream.
-void Lighting::ReadFrom(std::fstream & file){
+void Lighting::ReadFrom(std::fstream & file)
+{
 	// Write version
 	int version;
 	file.read((char*)&version, sizeof(int));
@@ -359,30 +241,33 @@ void Lighting::ReadFrom(std::fstream & file){
 	// Write ambient
 	global_ambient.ReadFrom(file);
 	// Write number of lights
-	file.write((char*)&activeLights, sizeof(int));
-	for (int i = 0; i < activeLights; ++i){
-		light[i]->ReadFrom(file);
+	int numLights = 0;
+	file.write((char*)&numLights, sizeof(int));
+	for (int i = 0; i < numLights; ++i){
+		Light * light = new Light();
+		light->ReadFrom(file);
+		lights.Add(light);
 	}
 }
 
 
 /// Loads selected lighting into the active shader program
-bool LoadLighting(Lighting * lighting, GraphicsState &state){
+bool LoadLighting(Lighting * lighting, Shader * shader){
 	GLuint loc, error;
 	if (!lighting)
 		return false;
-	if (!state.activeShader)
+	if (!shader)
 		return false;
 //#define PRINT_DEBUG
 	/// First get and set ambient
-	loc = glGetUniformLocation(state.activeShader->shaderProgram, "global_ambient");
+	loc = glGetUniformLocation(shader->shaderProgram, "global_ambient");
 	if (loc != -1){
-		state.activeShader->uniformLight.ambientVec4 = loc;
+		shader->uniformLight.ambientVec4 = loc;
 		GLfloat ambient[3];
 		ambient[0] = lighting->global_ambient.x;
 		ambient[1] = lighting->global_ambient.y;
 		ambient[2] = lighting->global_ambient.z;
-		glUniform3fv(state.activeShader->uniformLight.ambientVec4, 1, ambient);
+		glUniform3fv(shader->uniformLight.ambientVec4, 1, ambient);
 		error = glGetError();
 		if (error != GL_NO_ERROR){
 			std::cout<<"\nGL_ERROR: Error setting global ambient luminosity";
@@ -394,46 +279,30 @@ bool LoadLighting(Lighting * lighting, GraphicsState &state){
     }
 
 	// Get remaining uniforms
-	loc = glGetUniformLocation(state.activeShader->shaderProgram, "light_diffuse");
+	loc = glGetUniformLocation(shader->shaderProgram, "light_diffuse");
 	if (loc != -1)
-		state.activeShader->uniformLight.diffuseVec4 = loc;
-	else
-		std::cout<<"\nUnable to find uniform for light_diffuse.";
-	loc = glGetUniformLocation(state.activeShader->shaderProgram, "light_specular");
+		shader->uniformLight.diffuseVec4 = loc;
+	loc = glGetUniformLocation(shader->shaderProgram, "light_specular");
 	if (loc != -1)
-		state.activeShader->uniformLight.specularVec4 = loc;
-	else
-		std::cout<<"\nUnable to find uniform for light_specular.";
-	loc = glGetUniformLocation(state.activeShader->shaderProgram, "light_position");
+		shader->uniformLight.specularVec4 = loc;
+	loc = glGetUniformLocation(shader->shaderProgram, "light_position");
 	if (loc != -1)
-		state.activeShader->uniformLight.positionVec3 = loc;
-	else
-		std::cout<<"\nUnable to find uniform for light_position.";
-	loc = glGetUniformLocation(state.activeShader->shaderProgram, "light_attenuation");
+		shader->uniformLight.positionVec3 = loc;
+	loc = glGetUniformLocation(shader->shaderProgram, "light_attenuation");
 	if (loc != -1)
-		state.activeShader->uniformLight.attenuationVec3 = loc;
-	else
-		std::cout<<"\nUnable to find uniform for light_attenuation.";
-	loc = glGetUniformLocation(state.activeShader->shaderProgram, "light_type");
+		shader->uniformLight.attenuationVec3 = loc;
+	loc = glGetUniformLocation(shader->shaderProgram, "light_type");
 	if (loc != -1)
-		state.activeShader->uniformLight.typeInt = loc;
-	else
-		std::cout<<"\nUnable to find uniform for light_type.";
-	loc = glGetUniformLocation(state.activeShader->shaderProgram, "light_spotDirection");
+		shader->uniformLight.typeInt = loc;
+	loc = glGetUniformLocation(shader->shaderProgram, "light_spotDirection");
 	if (loc != -1)
-		state.activeShader->uniformLight.spotDirectionVec3 = loc;
-	else
-		std::cout<<"\nUnable to find uniform for light_spotDirection.";
-	loc = glGetUniformLocation(state.activeShader->shaderProgram, "light_spotCutoff");
+		shader->uniformLight.spotDirectionVec3 = loc;
+	loc = glGetUniformLocation(shader->shaderProgram, "light_spotCutoff");
 	if (loc != -1)
-		state.activeShader->uniformLight.spotCutoffFloat = loc;
-	else
-		std::cout<<"\nUnable to find uniform for light_spotCutoff.";
-	loc = glGetUniformLocation(state.activeShader->shaderProgram, "light_spotExponent");
+		shader->uniformLight.spotCutoffFloat = loc;
+	loc = glGetUniformLocation(shader->shaderProgram, "light_spotExponent");
 	if (loc != -1)
-		state.activeShader->uniformLight.spotExponentInt = loc;
-	else
-		std::cout<<"\nUnable to find uniform for light_spotExponent.";
+		shader->uniformLight.spotExponentInt = loc;
 
 
 	/// Gather all data
@@ -445,8 +314,13 @@ bool LoadLighting(Lighting * lighting, GraphicsState &state){
 	static GLfloat spotDirection[MAX_LIGHTS * 3];
 	static GLfloat spotCutoff[MAX_LIGHTS];
 	static GLint spotExponent[MAX_LIGHTS];
-	for (int i = 0; i < lighting->activeLights; ++i){
-		Light * light = lighting->light[i];
+	int activeLights = 0;
+	for (int i = 0; i < lighting->lights.Size(); ++i)
+	{
+		Light * light = lighting->lights[i];
+		if (!light->currentlyActive)
+			continue;
+		activeLights++;
 		int interval = 4;
 		diffuse[i*interval] = light->diffuse.x;
 		diffuse[i*interval+1] = light->diffuse.y;
@@ -479,63 +353,63 @@ bool LoadLighting(Lighting * lighting, GraphicsState &state){
 
 	/// Set all data
 	/// Set Diffuse
-	if (state.activeShader->uniformLight.diffuseVec4 != -1){
-		glUniform4fv(state.activeShader->uniformLight.diffuseVec4, lighting->activeLights, diffuse);
+	if (shader->uniformLight.diffuseVec4 != -1){
+		glUniform4fv(shader->uniformLight.diffuseVec4, activeLights, diffuse);
 		error = glGetError();
 		if (error != GL_NO_ERROR){
 			std::cout<<"\nGL_ERROR: Error setting light diffuse properties";
 		}
 	}/// Set Specular
-	if (state.activeShader->uniformLight.specularVec4 != -1){
-		glUniform4fv(state.activeShader->uniformLight.specularVec4, lighting->activeLights, specular);
+	if (shader->uniformLight.specularVec4 != -1){
+		glUniform4fv(shader->uniformLight.specularVec4, activeLights, specular);
 		error = glGetError();
 		if (error != GL_NO_ERROR){
 			std::cout<<"\nGL_ERROR: Error setting light specular properties";
 		}
 	}
 	/// Set Position
-	if (state.activeShader->uniformLight.positionVec3 != -1){
-		glUniform3fv(state.activeShader->uniformLight.positionVec3, lighting->activeLights, position);
+	if (shader->uniformLight.positionVec3 != -1){
+		glUniform3fv(shader->uniformLight.positionVec3, activeLights, position);
 		error = glGetError();
 		if (error != GL_NO_ERROR){
-			std::cout<<"\nGL_ERROR: Error setting light position properties";
+			// std::cout<<"\nGL_ERROR: Error setting light position properties";
 		}
 	}
 	/// Set attenuation
-	if (state.activeShader->uniformLight.attenuationVec3 != -1){
-		glUniform3fv(state.activeShader->uniformLight.attenuationVec3, lighting->activeLights, attenuation);
+	if (shader->uniformLight.attenuationVec3 != -1){
+		glUniform3fv(shader->uniformLight.attenuationVec3, activeLights, attenuation);
 		error = glGetError();
 		if (error != GL_NO_ERROR){
-			std::cout<<"\nGL_ERROR: Error setting light attenuation properties";
+			//std::cout<<"\nGL_ERROR: Error setting light attenuation properties";
 		}
 	}
 	/// Set Type
-	if (state.activeShader->uniformLight.typeInt != -1){
-		glUniform1iv(state.activeShader->uniformLight.typeInt, lighting->activeLights, type);
+	if (shader->uniformLight.typeInt != -1){
+		glUniform1iv(shader->uniformLight.typeInt, activeLights, type);
 		error = glGetError();
 		if (error != GL_NO_ERROR){
-			std::cout<<"\nGL_ERROR: Error setting light type";
+			//std::cout<<"\nGL_ERROR: Error setting light type";
 		}
 	}
 	/// Set spotlight attributes
-	if (state.activeShader->uniformLight.spotDirectionVec3 != -1){
-		glUniform3fv(state.activeShader->uniformLight.spotDirectionVec3, lighting->activeLights, spotDirection);
+	if (shader->uniformLight.spotDirectionVec3 != -1){
+		glUniform3fv(shader->uniformLight.spotDirectionVec3, activeLights, spotDirection);
 	}
-	if (state.activeShader->uniformLight.spotCutoffFloat != -1){
-		glUniform1fv(state.activeShader->uniformLight.spotCutoffFloat, lighting->activeLights, spotCutoff);
+	if (shader->uniformLight.spotCutoffFloat != -1){
+		glUniform1fv(shader->uniformLight.spotCutoffFloat, activeLights, spotCutoff);
 	}
-	if (state.activeShader->uniformLight.spotExponentInt != -1){
-		glUniform1iv(state.activeShader->uniformLight.spotExponentInt, lighting->activeLights, spotExponent);
+	if (shader->uniformLight.spotExponentInt != -1){
+		glUniform1iv(shader->uniformLight.spotExponentInt, activeLights, spotExponent);
 	}
 	error = glGetError();
 	if (error != GL_NO_ERROR){
-		std::cout<<"\nGL_ERROR: Error setting spotlight attributes";
+		// std::cout<<"\nGL_ERROR: Error setting spotlight attributes";
 	}
 	/// Set amount of lights
-	loc = glGetUniformLocation(state.activeShader->shaderProgram, "activeLights");
+	loc = glGetUniformLocation(shader->shaderProgram, "activeLights");
 	if (loc != -1) {
 		error = glGetError();
-		glUniform1i(loc, lighting->activeLights);	// 2 lights!
+		glUniform1i(loc, activeLights);
 		error = glGetError();
 		if (error != GL_NO_ERROR){
 			std::cout<<"\nGL_ERROR: Error setting amount of active lights";

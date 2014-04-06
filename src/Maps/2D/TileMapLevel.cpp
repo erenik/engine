@@ -50,8 +50,12 @@ List<Tile*> TileMapLevel::GetTilesWithinBoundary(float left, float right, float 
 /// Which tiles will be occupied when trying to paint target object. The list may contain NULL-pointers, meaning that the object cannot be placed at this location.
 List<Tile*> TileMapLevel::TilesRequired(GridObjectType * byObjectType, Vector2f ifPaintingOnLocation, Vector2f * resultingPivotLocation)
 {
+
 	List<Tile*> list;
 	if (byObjectType == NULL)
+		return list;
+
+	if (byObjectType->size.GeometricSum() < 1)
 		return list;
 
 	Vector3f position = ifPaintingOnLocation;

@@ -36,11 +36,10 @@ PreferencesManager::~PreferencesManager()
 }
 
 /// Given name will decide where in ~/.config/ the preferences are kept.
-void PreferencesManager::Allocate(String applicationName)
+void PreferencesManager::Allocate()
 {
 	assert(preferencesManager == NULL);
 	preferencesManager = new PreferencesManager();
-	preferencesManager->applicationName = applicationName;
 	preferencesManager->EnsurePreferencesFolderExists();
 }
 

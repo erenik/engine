@@ -89,6 +89,10 @@ public:
 
     /// Returns the active camera for the given viewport
 	const Camera * ActiveCamera(int viewport = 0) const;
+	/// Returns the active lighting. 
+	const Lighting * ActiveLighting() {return lighting;};
+	/// Returns the active lighting. Should not be called from outside the render-thread.
+	Lighting * ActiveLightingEditable() {return lighting;};
 
 	/// For updating graphical effects before rendering takes place.
 	void Process();

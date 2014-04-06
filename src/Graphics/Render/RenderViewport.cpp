@@ -105,7 +105,7 @@ void RenderViewport::Render(GraphicsState &graphicsState){
 	sceneTimer.Start();
 	// Render le map as wanted?
 	if (Graphics.mapToRender && Graphics.renderMap){
-		Graphics.mapToRender->Render(graphicsState);
+		Graphics.mapToRender->Render(&graphicsState);
 	}
 	// Render the scene, now
 	else

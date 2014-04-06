@@ -5,12 +5,7 @@
 #define RUNE_PLAYER_STATE_H
 
 #include "Maps/2D/EntityStateTile2D.h"
-
-namespace Direction{
-enum directions {
-	NONE, LEFT, RIGHT, UP, DOWN,
-};
-};
+#include "Direction.h"
 
 class EntityStateTile2D;
 

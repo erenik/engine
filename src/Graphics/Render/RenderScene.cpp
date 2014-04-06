@@ -186,12 +186,12 @@ void GraphicsManager::RenderScene(){
 		SetShaderProgram("Flat");
 	//	SetShaderProgram("Normal");
 	//	SetShaderProgram("Depth");
-		SetShaderProgram("Phong");
+		Shader * shader = SetShaderProgram("Phong");
 
 		/// Load lighting settings to shader ^^
-		if (!LoadLighting(graphicsState->lighting, *graphicsState))
+		if (!LoadLighting(graphicsState->lighting, shader))
 			///  ..or default if none is provided.
-			LoadLighting(&defaultLighting, *graphicsState);
+			LoadLighting(&defaultLighting, shader);
 	}
 	// Set primary color
 	glUniform4f(graphicsState->activeShader->uniformPrimaryColorVec4, 1.f,1.f,1.f,1.f);
@@ -250,9 +250,9 @@ void GraphicsManager::RenderScene(){
 			glUniform4f(graphicsState->activeShader->uniformPrimaryColorVec4, 1,1,1,1);
 
 		/// Load lighting settings to shader ^^
-		if (!LoadLighting(graphicsState->lighting, *graphicsState))
+		if (!LoadLighting(graphicsState->lighting, shader))
 			///  ..or default if none is provided.
-			LoadLighting(&defaultLighting, *graphicsState);
+			LoadLighting(&defaultLighting, shader);
 
 		// Update camera in the world
 		if (graphicsState->activeShader && graphicsState->activeShader->uniformEyePosition != -1)

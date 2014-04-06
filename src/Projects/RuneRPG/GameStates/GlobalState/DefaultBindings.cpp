@@ -1,9 +1,5 @@
 // Awesome Author
 
-#include "Game/GameType.h"
-
-#ifdef RUNE_RPG
-
 #include "RuneGlobalState.h"
 #include "Actions.h"
 #include "Input/InputManager.h"
@@ -15,7 +11,7 @@ void RuneGlobalState::CreateDefaultBindings(){
 
 	/// (int action, int * inputCombinationArray, int inputs, const char * name = NULL);
 	/// Get pointer to this mapping
-	InputMapping * mapping = &Input.inputMapping[GAME_STATE_GLOBAL];
+	InputMapping * mapping = &this->inputMapping;
 	/// Create default bindings
 
 	/// C = Create, L = List
@@ -28,4 +24,3 @@ void RuneGlobalState::CreateDefaultBindings(){
 
 };
 
-#endif

@@ -10,7 +10,9 @@
 #include "OS/Sleep.h"
 #include "Graphics/GraphicsManager.h"
 #include "PhysicsLib/Shapes.h"
+extern GraphicsManager graphics;
 
+#include <iostream>
 #include <Util.h>
 
 MeshFace::MeshFace(){
@@ -145,6 +147,7 @@ void Mesh::Nullify(){
 	textureID = 0;
 	vboBuffer = NULL;
 	floatsPerVertex = 0;
+	triangulated = false;
 }
 
 Mesh::~Mesh(){
@@ -441,7 +444,9 @@ void CreateSphere(Mesh &mesh, int sections){
 
 
 /// Triangulates the mesh.
-void Mesh::Triangulate(){
+void Mesh::Triangulate()
+{
+	triangulated = true;
 	int newMeshFacesNeeded = faces;
     if (faces == 0)
         return;
@@ -663,12 +668,15 @@ void Mesh::CalculateUVTangents(){
 
 }
 
+void Mesh::Bufferize()
+{
+	/// Always triangulate before buffering.
+	if (!triangulated)
+	{
+		Triangulate();
+	}
+	
 
-#include <iostream>
-#include "Graphics/GraphicsManager.h"
-extern GraphicsManager graphics;
-
-void Mesh::Bufferize(){
     if (Graphics.GL_VERSION_MAJOR < 2 && Graphics.GL_VERSION_MINOR < 5){
         std::cout<<"\nUnable to buffer mesh since GL version below is 1.5.";
         return;

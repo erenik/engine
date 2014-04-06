@@ -33,7 +33,8 @@ void GraphicsManager::RenderLights(){
 	glDisable(GL_LIGHTING);
 
 	/// Render all lights provided in the shiberiwa!
-	for (int i = 0; i < lighting->ActiveLights(); ++i){
+	for (int i = 0; i < lighting->GetLights().Size(); ++i)
+	{
 		// Reset view/proj matrices
 		glLoadIdentity();
 		glLoadMatrixf(graphicsState->viewMatrixF.getPointer());

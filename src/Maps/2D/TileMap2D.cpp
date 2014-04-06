@@ -28,6 +28,7 @@
 #include "Model.h"
 #include "OS/Sleep.h"
 #include <cassert>
+#include "ModelManager.h"
 
 
 TileMap2D::TileMap2D(){
@@ -99,9 +100,10 @@ void TileMap2D::OnExit(){
 #define PRINT_ERROR	std::cout<<"\nGLError in Render "<<error;
 
 /// Render!
-void TileMap2D::Render(GraphicsState & graphicsState){
+void TileMap2D::Render(GraphicsState * graphicsState){
 	if (!render)
 		return;
+
 	rendering = true;
 
 //	std::cout<<"\nTileMap2D::Render: "<<name;
@@ -114,185 +116,309 @@ void TileMap2D::Render(GraphicsState & graphicsState){
 	if (error != GL_NO_ERROR){
 		std::cout<<"\nGLError before TileMap2D::Render "<<error;
 	}
-
-	Graphics.SetShaderProgram(0);
-	glMatrixMode(GL_PROJECTION);
-	glLoadMatrixd(graphicsState.projectionMatrixD.getPointer());
-	glMatrixMode(GL_MODELVIEW);
-	Matrix4d modelView = graphicsState.viewMatrixD * graphicsState.modelMatrixD;
-	glLoadMatrixd(modelView.getPointer());
-
-	error = glGetError();
-	if (error != GL_NO_ERROR){
-		std::cout<<"\nGLError in TileMap2D::Render "<<error;
-	}
-	// Enable blending
-	glDisable(GL_LIGHTING);
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_BLEND);
-//	glBlendFunc(GL_ONE, GL_ONE);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	float z = -4;
-	glDisable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	graphicsState.currentTexture = NULL;
-	// Disable lighting
-	glDisable(GL_LIGHTING);
-	error = glGetError();
-	if (error != GL_NO_ERROR){
-		PRINT_ERROR
-	}
-	glDisable(GL_COLOR_MATERIAL);
-
-	error = glGetError();
-	if (error != GL_NO_ERROR){
-		std::cout<<"\nGLError in TileMap2D::Render "<<error;
-	}
-
-	// Specifies how the red, green, blue and alpha source blending factors are computed
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	error = glGetError();
-	if (error != GL_NO_ERROR){
-		PRINT_ERROR
-	}
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-//	glEnable(GL_LINE_STIPPLE);
-	glLineStipple(1, 0x0101);
-	glLineWidth(1.0f);
-
-	Vector3f camPos = graphicsState.camera->Position();
-
-	
-	/// Render whole texture map?
-	{
-	    glColor4f(1,1,1,1);
-		/// Generate preview texture as needed.
-		UpdatePreviewTexture();
-		if (previewTexture)
-		{
-			// Texture enabled.
-			glEnable(GL_TEXTURE_2D);
-			glBindTexture(GL_TEXTURE_2D, previewTexture->glid);
-		}
-	}
-
-	Vector2i mapSize = this->Size();
-
-	bool renderPreviewTexture = true;
-	if (renderPreviewTexture)
-	{
-		z = -0.01f;
-		glBegin(GL_QUADS);
-			glTexCoord2f(0.0f, 0.f);
-			glVertex3f(-0.5f, 0, z);
-			glTexCoord2f(0.0f, 1.f);
-			glVertex3f(-0.5f, mapSize.y-0.5f, z);
-			glTexCoord2f(1.f, 1.f);
-			glVertex3f(mapSize.x-0.5f, mapSize.y-0.5f, z);
-			glTexCoord2f(1.f, 0.f);
-			glVertex3f(mapSize.x-0.5f, 0-0.5f, z);
-		glEnd();
-	}
-
-	/// If stuff, render preview map
-	if (graphicsState.camera->zoom > 20)
-	{
-		return;
-	}
-
-
-	/// Render the file-grid levels
-	int elevationToRender = 0;
-	activeLevel->Render(graphicsState);
-	for (int i = 0; i < levels.Size(); ++i){
-		TileMapLevel * level = levels[i];
-		if (elevationToRender != level->Elevation())
-			continue;
-		level->Render(graphicsState);
-	}
-
 	/// Stuff needed to cull decently.
-	Camera & camera = *graphicsState.camera;
+	Camera & camera = *graphicsState->camera;
 	Frustum frustum = camera.GetFrustum();
 	Vector3f min = frustum.hitherBottomLeft - Vector3f(1,1,1), max = frustum.fartherTopRight + Vector3f(1,1,1);	
-	/// Render objects
-	for (int i = 0; i < activeLevel->objects.Size(); ++i)
-	{
-		// Let's just hope it's sorted.. lol
-		GridObject * go = activeLevel->objects[i];
-		
-		/// Fetch it's position and texture, assume the anchor point is correct and just paint it.
-		Vector3f position = go->position;
-		/// Skip all out of sight.		
-		if (position.x < min.x || position.x > max.x ||
-			position.y < min.y|| position.y > max.y)
-			continue;
 
+	/// Set sprite-shader.	
+	bool old = false;
+	if (!old){
+		Shader * shader = Graphics.SetShaderProgram("Sprite");
+		if (!shader)
+			return;
 
-		GridObjectType * got = go->type;
-		if (!got){
-			// Fetch got if possible
-			got = GridObjectTypeMan.GetType(go->typeName);
-			if (!got)
-				continue;
-			go->type = got;
-		}
-		float left = position.x + got->pivotToLeft,
-			right = position.x + got->pivotToRight,
-			top = position.y + got->pivotToTop,
-			bottom = position.y + got->pivotToBottom;
-		float z = 0;
-		
+		LoadLighting(&lighting, shader);
+
+		glUniformMatrix4fv(graphicsState->activeShader->uniformViewMatrix, 1, false, graphicsState->viewMatrixF.getPointer());
+		glUniformMatrix4fv(graphicsState->activeShader->uniformModelMatrix, 1, false, graphicsState->modelMatrixF.getPointer());
+		glUniformMatrix4fv(graphicsState->activeShader->uniformProjectionMatrix, 1, false, graphicsState->projectionMatrixF.getPointer());
+
+		/// Reset color
 		glColor4f(1,1,1,1);
 		glEnable(GL_TEXTURE_2D);
-		if (!got->texture){
-			got->texture = TexMan.GetTexture(got->textureSource);
+
+		// When rendering an object with this program.
+		glActiveTexture(GL_TEXTURE0 + 0);		// Select server-side active texture unit
+		// Set sampler in client graphicsState
+		if (graphicsState->activeShader->uniformBaseTexture != -1)
+			glUniform1i(graphicsState->activeShader->uniformBaseTexture, 0);		// Sets sampler
+		// Texture scaling parameters
+//		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+//		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		// Set diffuse map to be used in the shader.
+		if (graphicsState->activeShader->uniformUseDiffuseMap != -1)
+			glUniform1i(graphicsState->activeShader->uniformUseDiffuseMap, 1);
+
+		Model * model = ModelMan.GetModel("Sprite");
+		// For correct placement.
+		Vector2f offset(-0.5f, -0.5f);
+
+		glEnable(GL_BLEND);
+
+		/// Render preview texture
+		{
+			/// Generate preview texture as needed.
+			UpdatePreviewTexture();
+			if (previewTexture)
+			{
+				// Save old matrix to the stack
+				Matrix4d tmp = graphicsState->modelMatrixD;
+				Vector2i mapSize = Size();
+
+				glPolygonMode(GL_FILL, GL_BACK);
+
+				Matrix4d transformationMatrix = Matrix4d::InitTranslationMatrix(Vector3f(mapSize.x * 0.5f + offset.x, mapSize.y * 0.5f + offset.y, -0.1f));
+				transformationMatrix.Scale(Vector3f(mapSize.x, mapSize.y, 1));
+				// Apply transformation
+				graphicsState->modelMatrixD.multiply(transformationMatrix);
+				graphicsState->modelMatrixF = graphicsState->modelMatrixD;
+				// Set uniform matrix in shader to point to the GameState modelView matrix.
+				glUniformMatrix4fv(graphicsState->activeShader->uniformModelMatrix, 1, false, graphicsState->modelMatrixF.getPointer());
+
+				// Texture enabled.
+				glEnable(GL_TEXTURE_2D);
+				glBindTexture(GL_TEXTURE_2D, previewTexture->glid);
+				// Render it.			
+				model->mesh->Render(*graphicsState);
+				/// Reset transformation matrix.
+				graphicsState->modelMatrixF = graphicsState->modelMatrixD = Matrix4d();
+
+				/// Render actual map contents.
+			}
 		}
-		if (got->texture){
-			if (got->texture->glid == -1)
-				got->texture->Bufferize();
-			glBindTexture(GL_TEXTURE_2D, got->texture->glid);
-		}
+		/// Render tiles.
+
+		/// Render objects.
+	//	glBlendFunc(GL_ONE, GL_ONE);
 		glDisable(GL_DEPTH_TEST);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		for (int i = 0; i < activeLevel->objects.Size(); ++i)
+		{
+			// Let's just hope it's sorted.. lol
+			GridObject * go = activeLevel->objects[i];
+			/// Fetch it's position and texture, assume the anchor point is correct and just paint it.
+			Vector3f position = go->position;
+			/// Skip all out of sight?
+			if (position.x < min.x || position.x > max.x ||
+				position.y < min.y || position.y > max.y)
+				continue;
+			GridObjectType * got = go->type;
+			if (!got){
+				// Fetch got if possible
+				got = GridObjectTypeMan.GetType(go->typeName);
+				if (!got)
+					continue;
+				go->type = got;
+			}
+			offset = Vector2f(got->size) * 0.5f - got->pivotPosition;
+			Matrix4d transformationMatrix = Matrix4d::InitTranslationMatrix(Vector3f(position.x + offset.x, position.y + offset.y, 0.1f));
+			transformationMatrix.Scale(Vector3f(got->size.x, got->size.y, 1));
+			// Apply transformation
+			graphicsState->modelMatrixD = Matrix4d();
+			graphicsState->modelMatrixD.multiply(transformationMatrix);
+			graphicsState->modelMatrixF = graphicsState->modelMatrixD;
+			// Set uniform matrix in shader to point to the GameState modelView matrix.
+			glUniformMatrix4fv(graphicsState->activeShader->uniformModelMatrix, 1, false, graphicsState->modelMatrixF.getPointer());
+			// Bind texture
+			if (!got->texture){
+				got->texture = TexMan.GetTexture(got->textureSource);
+			}
+			if (got->texture){
+				if (got->texture->glid == -1)
+					got->texture->Bufferize();
+				glBindTexture(GL_TEXTURE_2D, got->texture->glid);
+			}
+			/// Disable depth test.. should not be needed.
+			/// Render
+			model->mesh->Render(*graphicsState);
+		}
+	}
+
+	/// Old below.
+	if (old){
+		Graphics.SetShaderProgram(0);
+		glMatrixMode(GL_PROJECTION);
+		glLoadMatrixd(graphicsState->projectionMatrixD.getPointer());
+		glMatrixMode(GL_MODELVIEW);
+		Matrix4d modelView = graphicsState->viewMatrixD * graphicsState->modelMatrixD;
+		glLoadMatrixd(modelView.getPointer());
+
+		error = glGetError();
+		if (error != GL_NO_ERROR){
+			std::cout<<"\nGLError in TileMap2D::Render "<<error;
+		}
+		// Enable blending
+		glDisable(GL_LIGHTING);
+		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_BLEND);
+	//	glBlendFunc(GL_ONE, GL_ONE);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glDisable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		graphicsState->currentTexture = NULL;
+		// Disable lighting
+		glDisable(GL_LIGHTING);
+		error = glGetError();
+		if (error != GL_NO_ERROR){
+			PRINT_ERROR
+		}
+		glDisable(GL_COLOR_MATERIAL);
+
+		float z = -4;
+		Vector3f ambient = graphicsState->lighting->GetAmbient();
+		glColor4f(ambient.x, ambient.y, ambient.z, 1.0f);
+
+		error = glGetError();
+		if (error != GL_NO_ERROR){
+			std::cout<<"\nGLError in TileMap2D::Render "<<error;
+		}
+
+		// Specifies how the red, green, blue and alpha source blending factors are computed
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		error = glGetError();
+		if (error != GL_NO_ERROR){
+			PRINT_ERROR
+		}
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	//	glEnable(GL_LINE_STIPPLE);
+		glLineStipple(1, 0x0101);
+		glLineWidth(1.0f);
+
+		Vector3f camPos = graphicsState->camera->Position();
+
+		
+		/// Render whole texture map?
+		{
+			/// Generate preview texture as needed.
+			UpdatePreviewTexture();
+			if (previewTexture)
+			{
+				// Texture enabled.
+				glEnable(GL_TEXTURE_2D);
+				glBindTexture(GL_TEXTURE_2D, previewTexture->glid);
+			}
+		}
+
+		Vector2i mapSize = this->Size();
+
+		bool renderPreviewTexture = true;
+		if (renderPreviewTexture)
+		{
+			z = -0.01f;
+			glBegin(GL_QUADS);
+				glTexCoord2f(0.0f, 0.f);
+				glVertex3f(-0.5f, 0, z);
+				glTexCoord2f(0.0f, 1.f);
+				glVertex3f(-0.5f, mapSize.y-0.5f, z);
+				glTexCoord2f(1.f, 1.f);
+				glVertex3f(mapSize.x-0.5f, mapSize.y-0.5f, z);
+				glTexCoord2f(1.f, 0.f);
+				glVertex3f(mapSize.x-0.5f, 0-0.5f, z);
+			glEnd();
+		}
+
+		/// If stuff, render preview map
+		if (graphicsState->camera->zoom > 20)
+		{
+			return;
+		}
+
+
+		/// Render the file-grid levels
+		int elevationToRender = 0;
+		activeLevel->Render(*graphicsState);
+		for (int i = 0; i < levels.Size(); ++i){
+			TileMapLevel * level = levels[i];
+			if (elevationToRender != level->Elevation())
+				continue;
+			level->Render(*graphicsState);
+		}
+
+		/// Render objects
+		for (int i = 0; i < activeLevel->objects.Size(); ++i)
+		{
+			// Let's just hope it's sorted.. lol
+			GridObject * go = activeLevel->objects[i];
+			
+			/// Fetch it's position and texture, assume the anchor point is correct and just paint it.
+			Vector3f position = go->position;
+			/// Skip all out of sight.		
+			if (position.x < min.x || position.x > max.x ||
+				position.y < min.y|| position.y > max.y)
+				continue;
+
+
+			GridObjectType * got = go->type;
+			if (!got){
+				// Fetch got if possible
+				got = GridObjectTypeMan.GetType(go->typeName);
+				if (!got)
+					continue;
+				go->type = got;
+			}
+			float left = position.x + got->pivotToLeft,
+				right = position.x + got->pivotToRight,
+				top = position.y + got->pivotToTop,
+				bottom = position.y + got->pivotToBottom;
+			float z = 0;
+			
+			glColor4f(1,1,1,1);
+			glEnable(GL_TEXTURE_2D);
+			if (!got->texture){
+				got->texture = TexMan.GetTexture(got->textureSource);
+			}
+			if (got->texture){
+				if (got->texture->glid == -1)
+					got->texture->Bufferize();
+				glBindTexture(GL_TEXTURE_2D, got->texture->glid);
+			}
+			glDisable(GL_DEPTH_TEST);
+			glBegin(GL_QUADS);
+				glTexCoord2f(0,0);
+				glVertex3f(left, bottom, z);
+				glTexCoord2f(1,0);
+				glVertex3f(right, bottom, z);
+				glTexCoord2f(1,1);
+				glVertex3f(right, top, z);
+				glTexCoord2f(0,1);
+				glVertex3f(left, top, z);
+			glEnd();
+
+		}
+
+
+		/// Wosh
+		RenderEntities(*graphicsState);
+		// Render le vevents!
+		RenderEvents(*graphicsState);
+
+
+		// Throw into TileMapLevel-> Draw?
+		Vector2i levelSize = activeLevel->Size();
+		float xSize = (float)levelSize.x;
+		float ySize = (float)levelSize.y;
+		// Draw a quad around it all, yo.
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		glBegin(GL_QUADS);
-			glTexCoord2f(0,0);
-			glVertex3f(left, bottom, z);
-			glTexCoord2f(1,0);
-			glVertex3f(right, bottom, z);
-			glTexCoord2f(1,1);
-			glVertex3f(right, top, z);
-			glTexCoord2f(0,1);
-			glVertex3f(left, top, z);
+			glVertex3f(-0.5f, -0.5f,0);
+			glVertex3f(-0.5f, ySize-0.5f,		0);
+			glVertex3f(xSize-0.5f, ySize-0.5f,0);
+			glVertex3f(xSize-0.5f, -0.5f,		0);
 		glEnd();
 
+
+		error = glGetError();
+		if (error != GL_NO_ERROR){
+			std::cout<<"\nGLError in TileMap2D::Render "<<error;
+		}
+		rendering = false;
+
 	}
 
-
-	/// Wosh
-	RenderEntities(graphicsState);
-	// Render le vevents!
-	RenderEvents(graphicsState);
-
-
-	// Throw into TileMapLevel-> Draw?
-	Vector2i levelSize = activeLevel->Size();
-	float xSize = (float)levelSize.x;
-	float ySize = (float)levelSize.y;
-	// Draw a quad around it all, yo.
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	glBegin(GL_QUADS);
-		glVertex3f(-0.5f, -0.5f,0);
-		glVertex3f(-0.5f, ySize-0.5f,		0);
-		glVertex3f(xSize-0.5f, ySize-0.5f,0);
-		glVertex3f(xSize-0.5f, -0.5f,		0);
-	glEnd();
-
-
-	error = glGetError();
-	if (error != GL_NO_ERROR){
-		std::cout<<"\nGLError in TileMap2D::Render "<<error;
-	}
-	rendering = false;
 }
 
 void TileMap2D::RenderEntities(GraphicsState & graphicsState){
@@ -846,9 +972,9 @@ void TileMap2D::UpdatePreviewTexture()
 	int tilesToUpdate = sizeToUpdate.x * sizeToUpdate.y;
 	if (tilesToUpdate)
 		std::cout<<"\nTiles to update: "<<tilesToUpdate;
-	for (int x = updateMin.x; x < updateMax.x; ++x)
+	for (int x = updateMin.x; x <= updateMax.x; ++x)
 	{
-		for (int y = updateMin.y; y < updateMax.y; ++y){
+		for (int y = updateMin.y; y <= updateMax.y; ++y){
 			Tile * tile = GetTile(x,y);
 			assert(tile);
 			
@@ -879,13 +1005,10 @@ void TileMap2D::UpdatePreviewTexture()
 			previewTexture->SetPixel(x,y,color);
 		}
 	}
-	if (!gotOneTexture)
-	{
-		previewTexture->lastUpdate = 0;
-		return;
-	}
 	previewTexture->Bufferize();
 	updateMin = updateMax = Vector2i(-1,-1);
+	// Save it out for debugging..
+	previewTexture->Save("PreviewTexture.png", true);
 }
 
 // Update the vectors that define the area which requires recalculation.	

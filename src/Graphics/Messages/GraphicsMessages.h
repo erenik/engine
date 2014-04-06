@@ -6,6 +6,13 @@ enum graphicsMessages {
 	// Pausing!
 	GM_PAUSE_RENDERING,
 	GM_RESUME_RENDERING,
+
+	// Lighting
+	GM_SET_AMBIENCE,
+	GM_CREATE_LIGHT,
+	GM_DELETE_LIGHT,
+	GM_SET_LIGHT,
+
 	// Setters
 	GM_SET,				// For setting default textures and stuff
 	GM_SET_FLOAT,

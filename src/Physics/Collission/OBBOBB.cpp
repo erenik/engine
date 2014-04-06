@@ -84,18 +84,6 @@ List<Vector3f> FetchExtremePoints(OrientedBoundingBox * obb, Vector3f axis){
 		}
 	}
 	return points;
-}
-
-/// Note that this specification is for a line, but can be used for line-segments if caution is taken!
-struct Line {
-	Line(Vector3f start, Vector3f stop)
-		: start(start), stop(stop)
-	{
-		direction = stop - start;
-	}
-	Vector3f start;
-	Vector3f stop;
-	Vector3f direction;
 };
 
 /// Reference: Real-time collission detection page 146-147

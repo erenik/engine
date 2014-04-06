@@ -143,11 +143,11 @@ private:
 
 class GMSetLighting : public GraphicsMessage {
 public:
-	GMSetLighting(Lighting lighting);
+	GMSetLighting(Lighting * lighting);
 	~GMSetLighting();
 	void Process();
 private:
-	Lighting lighting;
+	Lighting * lighting;
 };
 
 class GMSetViewports : public GraphicsMessage {

@@ -210,7 +210,8 @@ bool ObjReader::ReadObj(const char * filename, Mesh * mesh)
 			List<String> faceVertexTokens = tokens;
 			bool success = faceVertexTokens.RemoveIndex(0, ListOption::RETAIN_ORDER);
 			assert(success);
-            // Go through all vertex tokens that were found and tokenize again...
+            
+			// Go through all vertex tokens that were found and tokenize again...
 			for	(int i = 0; i < faceVertexTokens.Size(); ++i)
 			{
                 // Extra care for files with just vertices and normals..
