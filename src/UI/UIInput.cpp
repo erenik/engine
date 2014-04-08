@@ -75,6 +75,7 @@ int UIInput::OnKeyDown(int keyCode, bool downBefore)
 		}
 		case KEY::ESCAPE:{
 			std::cout<<"\nCanceling input.";
+			editText = previousText;
 			// Make inactive.
 			StopInput();
 			break;
@@ -191,7 +192,10 @@ int UIInput::OnChar(int asciiCode){
 	}
 
 	// Escape, cancel input
-	else if (asciiCode == 0x1B){
+	else if (asciiCode == 0x1B)
+	{
+		// And restore old string!
+		editText = previousText;
 		StopInput();
 		return 0;
 	}
@@ -271,10 +275,12 @@ void UIInput::BeginInput(){
 	editText.caretPosition = caretPosition;
 	// sends message to update the ui with new caret and stuff.
 	OnTextUpdated();
+	previousText = editText;
 }
 
 /// Halts input and removes Active state.
-void UIInput::StopInput(){
+void UIInput::StopInput()
+{
 	inputActive = false;
 	this->RemoveState(UIState::ACTIVE);
 	/// Remove caret

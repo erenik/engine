@@ -40,6 +40,8 @@ protected:
 
 	/// Necessary for text-editing.
 	int caretPosition;
+	/// Text before editing begun, for when canceling an edit.
+	Text previousText;
 	/// Text used during editing, used to update the rendered and used text-string, but not one and the same!
 	Text editText;
 private:
