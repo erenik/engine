@@ -472,3 +472,16 @@ void TextureManager::UnbufferizeTexture(Texture * texture){
 	// Bad IDs must  be -1!!!
 	texture->glid = -1;
 }
+
+
+/// Checks if a texture exists by given name, returning it if so. Does NOT attempt to load any new textures.
+Texture * TextureManager::ExistsTextureByName(String name)
+{
+	for (int i = 0; i < textures.Size(); ++i)
+	{
+		Texture * tex = textures[i];
+		if (tex->name == name)
+			return tex;
+	}
+	return NULL;
+}

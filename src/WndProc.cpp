@@ -41,6 +41,7 @@ int GetKeyCodeFromVK(int wParam){
 	case VK_HOME: return KEY::HOME;
 	case VK_DELETE: return KEY::DELETE_KEY;
 	case VK_PAUSE: return KEY::PAUSE_BREAK;
+	case VK_SNAPSHOT: return KEY::PRINT_SCREEN;
 	};
 	if (wParam >= 0x70 && wParam <= 0x7B)
 		return KEY::F1 + wParam - 0x70;

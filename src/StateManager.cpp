@@ -113,7 +113,8 @@ void StateManager::QueueState(int id){
 }
 
 /// Enteres queued state (if any)
-void StateManager::EnterQueuedState(){
+void StateManager::EnterQueuedState()
+{
 	if (queuedStates.isOff())
 		return;
 	GameState * queuedState = queuedStates.Pop();

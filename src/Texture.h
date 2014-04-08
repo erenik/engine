@@ -42,6 +42,9 @@ public:
 	/// Retrieves a sample color from the texture, using given amount of samples. Works in squares, meaning values 1, 4, 16, 64, etc. should be used.
 	Vector4f GetSampleColor(int samples = 4);
 
+	/// Uses glGetTexImage to procure image data from GL and insert it into the data-array of the texture object.
+	void LoadDataFromGL();
+
 	/// For debugging.
 	bool MakeRed();
 	/// Bufferizes into GL. Should only be called from the render-thread!

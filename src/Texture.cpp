@@ -78,6 +78,16 @@ Vector4f Texture::GetSampleColor(int samples /*= 4*/)
 	return colorAverage;
 }
 
+/// Uses glGetTexImage to procure image data from GL and insert it into the data-array of the texture object.
+void Texture::LoadDataFromGL()
+{
+	std::cout<<"\nTrying to load data from GL...";
+	glBindTexture(GL_TEXTURE_2D, glid);
+	unsigned char * tmpArray = new unsigned char[this->dataBufferSize];
+	memset(tmpArray, 0, dataBufferSize);
+	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, tmpArray); 
+}
+
 /// For debugging.
 bool Texture::MakeRed(){
 	for (int h = 0; h < height; ++h){
@@ -136,8 +146,17 @@ bool Texture::Bufferize(){
 
 	// Generate the texture Entity in GL
 	// Ref: http://www.opengl.org/sdk/docs/man/xhtml/glTexImage2D.xml
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,	width,
-			height,		0, 	GL_RGBA, GL_UNSIGNED_BYTE, data);
+	if (bpp == 4){
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,	width,
+				height,		0, 	GL_RGBA, GL_UNSIGNED_BYTE, data);
+	}
+	else if (bpp == 3)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+	}
+	else {
+		assert(false && "Implement D:");
+	}
 
 	/// Generate mip-maps!
 	if (mipmappingEnabled){
@@ -192,14 +211,16 @@ Vector4f Texture::GetPixel(int x, int y){
 /// Sets color of target pixel. Returns false if it is out of bounds.
 void Texture::SetPixel(int x, int y, Vector4f color)
 {
-	assert(bpp == 4 && format == Texture::RGBA);
+	assert(data);
+	assert(bpp >= 3 && format == Texture::RGBA);
 	unsigned char * buf = data;
 	/// PixelStartIndex
 	int psi = y * width * bpp + x * bpp;
 	buf[psi] = color.x * 255.0f;
 	buf[psi+1] = color.y * 255.0f;
 	buf[psi+2] = color.z * 255.0f;
-	buf[psi+3] = color.w * 255.0f;
+	if (bpp > 3)
+		buf[psi+3] = color.w * 255.0f;
 	lastUpdate = Timer::GetCurrentTimeMs();
 }
 
@@ -272,6 +293,7 @@ void Texture::SetColor(Vector4f color){
 /// Saves the texture in it's entirety to target file. If overwrite is false it will fail if the file already exists.
 bool Texture::Save(String toFile, bool overwrite /* = false */)
 {
+	assert(data);
 	if (!toFile.Contains(".png"))
 		toFile += ".png";
 	if (FileExists(toFile) && !overwrite)

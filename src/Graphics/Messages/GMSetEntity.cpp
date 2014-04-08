@@ -9,6 +9,7 @@
 #include "Graphics/Animation/AnimationManager.h"
 #include "Graphics/Animation/AnimationSet.h"
 #include "Graphics/GraphicsProperty.h"
+#include "Graphics/GraphicsManager.h"
 
 GMSetEntityTexture::GMSetEntityTexture(Entity * entity, int target, Texture * texture)
 : GraphicsMessage(GM_SET_ENTITY_TEXTURE), entity(entity), target(target), textureSource(String()), t(texture)
@@ -21,7 +22,8 @@ GMSetEntityTexture::GMSetEntityTexture(Entity * entity, int target, String textu
 	assert(target >= DIFFUSE_MAP && target <= MAX_TEXTURE_TARGETS);
 }
 
-void GMSetEntityTexture::Process(){
+void GMSetEntityTexture::Process()
+{
 	if (t == NULL){
 		t = TexMan.GetTexture(textureSource);
 		if (!t){
@@ -32,6 +34,7 @@ void GMSetEntityTexture::Process(){
 	entity->SetTexture(target, t);
 	if (t->glid == -1)
         TexMan.BufferizeTexture(t);
+	Graphics.renderQueried = true;
 };
 
 GMSetEntity::GMSetEntity(Entity * entity, int target, String string)

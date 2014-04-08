@@ -158,10 +158,35 @@ GMSetUI::GMSetUI(UserInterface * i_ui, int i_viewport /* = -1 */)
 {
 	
 }
-void GMSetUI::Process(){
-	// Do stuff to UI.
+void GMSetUI::Process()
+{
+	/// First remove the old UI.
+	switch(viewport)
+	{
+		/// Global UI
+		case -1: 
+		{
+			UserInterface * oldUI = Graphics.globalUI;
+			if (oldUI)
+			{
+				oldUI->OnExitScope();
+				/// Unbufferize it too as needed.
+				if (oldUI->IsBuffered())
+					oldUI->Unbufferize();
+				if (oldUI->IsGeometryCreated())
+					oldUI->DeleteGeometry();
+			}
+			break;
+		}
+		default:
+			assert(false && "Implement");
+	}
+	// If an empty UI, just enter it and then return.
 	if (ui == NULL)
+	{
+		Graphics.globalUI = NULL;
 		return;
+	}
 	bool needToResize = ui->AdjustToWindow(Graphics.width, Graphics.height);
 	// If we haven't created the geoms, do it and buffer it straight away
 	if (!ui->IsGeometryCreated()){
@@ -179,9 +204,6 @@ void GMSetUI::Process(){
 	// Assign it if all went well?
 	switch(viewport){
 		case -1:{
-			UserInterface * oldUI = Graphics.globalUI;
-			if (oldUI)
-				oldUI->OnExitScope();
 			Graphics.globalUI = ui;
 			if (Graphics.globalUI)
 				Graphics.globalUI->OnEnterScope();

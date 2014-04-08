@@ -16,7 +16,8 @@ GMBufferTexture::GMBufferTexture(Texture * i_t) : GraphicsMessage(GM_BUFFER_TEXT
 }
 
 
-void GMBufferTexture::Process(){
+void GMBufferTexture::Process()
+{
 	Texture * texturePtr;
 	if (textureID != -1)
 		texturePtr = TexMan.GetTextureByID(textureID);
@@ -27,10 +28,13 @@ void GMBufferTexture::Process(){
 		std::cout<<"Null-Texture was queued to buffering!";
 		return;
 	}
-	if (texturePtr->glid != -1){
+	if (texturePtr->glid != -1 && !texturePtr->dynamic){
 		std::cout<<"\nTexture "<<texturePtr->name<<" is already buffered (has glid)!";
 		return;
 	}
+
+	texturePtr->Bufferize();
+	return;
 
 	std::cout<<"\nBuffering texture "<<texturePtr->name<<"...";
 /*	

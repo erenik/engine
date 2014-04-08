@@ -189,6 +189,7 @@ void InputManager::ActivateElement(){
 
 /// Fetches and updates the device states for all external controllers (if any)
 void InputManager::UpdateDeviceStates(){
+	/*
 	/// Check for xbox controller input on windows and xbox o-o
 #ifdef WINDOWS
 	for (int i = 0; i < 4; ++i){
@@ -259,9 +260,10 @@ void InputManager::UpdateDeviceStates(){
 			StateMan.ActiveState()->InputProcessor(RESET_POSITION, inputDeviceIndex);
 
 			*/
-
+	/*
 	}
 #endif
+	*/
 }
 
 /** DEPRECATING Enters the text-input mode, using a caret and everything to receive user input.

@@ -17,6 +17,7 @@
 #include <pwd.h>
 #endif
 
+extern const String applicationName;
 
 #define FILENAME "/preferences.dat"
 

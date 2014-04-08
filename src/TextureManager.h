@@ -59,6 +59,9 @@ public:
 	/// Unbufferizes target texture
 	void UnbufferizeTexture(Texture * texture);
 
+	/// Checks if a texture exists by given name, returning it if so. Does NOT attempt to load any new textures.
+	Texture * ExistsTextureByName(String name);
+
     /// Getter function that first tries to fetch texture by name, and if that failes tries to get it by it's source.
     Texture * GetTexture(String nameOrSource);
 	/// Gets texture with specified name. This assumes each texture has gotten a unique name.
