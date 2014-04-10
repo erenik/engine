@@ -60,6 +60,19 @@ Vector2i::Vector2i(const Vector3f & base){
 	y = RoundFloat((base.y));
 }
 
+/// Similar to clamp, ensures that this vector's values are within the given range (including the limits)
+void Vector2i::Limit(Vector2i min, Vector2i max)
+{
+	if (x < min.x)
+		x = min.x;
+	else if (x > max.x)
+		x = max.x;
+	if (y < min.y)
+		y = min.y;
+	else if (y > max.y)
+		y = max.y;
+}
+
 /// Printing out data
 std::ostream& operator <<(std::ostream& os, const Vector2i& vec){
 	os << vec.x << " " << vec.y;

@@ -383,7 +383,7 @@ private:
 
 class UILabel : public UIElement{
 public:
-	UILabel();
+	UILabel(String text = "");
 	virtual ~UILabel();
 };
 

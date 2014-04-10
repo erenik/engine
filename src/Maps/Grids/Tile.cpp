@@ -108,7 +108,8 @@ TileType::TileType(int type, String name, Vector3f color, Texture * t)
 
 
 /// Checks where the tile is walkable, but also if there already exists an entity on this tile, etc. Events may be present, however.
-bool Tile::IsVacant(){
+bool Tile::IsVacant()
+{
 //	std::cout<<"\nTile::IsVacant called";
 	if (entities.Size() || !type)
 		return false;

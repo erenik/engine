@@ -1598,9 +1598,10 @@ void UIElement::RemoveFlags(int flags){
 	}
 }
 
-UILabel::UILabel()
+UILabel::UILabel(String text /*= ""*/)
 : UIElement()
 {
+	this->text = text;
 	type = UIType::LABEL;
 	selectable = hoverable = activateable = false;
 	/// Set text-color at least for labels!

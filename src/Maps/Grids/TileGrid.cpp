@@ -55,7 +55,8 @@ void TileGrid2D::ReadFrom(std::fstream & file){
 
 /// Generates waypoints for target navmesh. Returns number of created waypoints or 0 upon failure. 
 /// Do note that the navMesh will be cleared before new waypoints are added.
-int TileGrid2D::GenerateWaypoints(NavMesh * navMesh, float maxNeighbourDistance){
+int TileGrid2D::GenerateWaypoints(NavMesh * navMesh, float maxNeighbourDistance)
+{
 	int waypointsPre = navMesh->waypoints;
 		
 	std::cout<<"\nTileGrid2D::GenerateWaypoints";
@@ -74,7 +75,13 @@ int TileGrid2D::GenerateWaypoints(NavMesh * navMesh, float maxNeighbourDistance)
 		/// Valid types
 		else {
 			wp->passable = tile->type->walkability;
+			/// If any objects exist on this tile, mark it as unwalkable!
+			if (tile->objects.Size())
+			{
+				wp->passable = false;
+			}
 		}
+
 
 		navMesh->AddWaypoint(wp);
 	FOR_TILE_END

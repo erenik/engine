@@ -75,22 +75,27 @@ GraphicsProperty::~GraphicsProperty()
 }
 
 /// Sets current animation. Only called from the GMSetEntity message.
-void GraphicsProperty::SetAnimation(String name){
+void GraphicsProperty::SetAnimation(String name)
+{
 	Animation * anim = animationSet->GetAnimation(name);
+	if (anim == currentAnimation && (!anim || anim->repeatable))
+		return;
 	currentAnimation = anim;
 	animStartTime = Timer::GetCurrentTimeMs();
+	std::cout<<"\nSetAnimation "<<name<<" with start time: "<<animStartTime;
 }
 
 /// Sets queued animation. Only called from the GMSetEntity message.
-void GraphicsProperty::SetQueuedAnimation(String name){
+void GraphicsProperty::SetQueuedAnimation(String name)
+{
 	Animation * anim = animationSet->GetAnimation(name);
 	if (anim)
 		queuedAnimation = anim;
 }
 
 /// Fetches relevant texture for current frame time. This assumes that the element has an active animation playing.
-Texture * GraphicsProperty::GetTextureForCurrentFrame(long long frameTime){
-
+Texture * GraphicsProperty::GetTextureForCurrentFrame(long long frameTime)
+{
 	/// Find current animation.. should be saved herein.
 	if (!currentAnimation)
 		return TexMan.GetTextureBySource(animationSet->baseFrame);

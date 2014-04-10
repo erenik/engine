@@ -5,6 +5,4 @@
 #ifndef RUNE_DIRECTORIES_H
 #define RUNE_DIRECTORIES_H
 
-#define ROOT_MAP_DIR	"map/RuneRPG/"
-
 #endif

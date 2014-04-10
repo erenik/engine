@@ -18,7 +18,7 @@ RuneState::RuneState(){
 /// Function when entering this state, providing a pointer to the previous StateMan.
 void RuneState::OnEnter(GameState * previousState){
 	/// Load Rune UI!
-	Graphics.QueueMessage(new GMSet(ACTIVE_USER_INTERFACE, ui));
+	Graphics.QueueMessage(new GMSetUI(ui));
 	// Check if we have any existing templates, if not grey that option out!
 	bool hasTemplates = false;
 	Graphics.QueueMessage(new GMSetUIb("ExistingTemplates", GMUI::ENABLED, hasTemplates));

@@ -22,6 +22,7 @@ const float RunePlayerState::DEFAULT_MOVEMENT_SPEED = 0.25f;
 RunePlayerState::RunePlayerState(Entity * entity)
 : EntityStateTile2D(entity)
 {
+	entityTile2D = NULL;
 	movementSpeed = DEFAULT_MOVEMENT_SPEED;
 	timePassedSinceLastMovement = 0;
 	left = right = up = down = false;
@@ -156,10 +157,11 @@ void RunePlayerState::UpdateQueuedMovement(){
 	}
 }
 
-void RunePlayerState::HandleMovement(float & timePassed){
+void RunePlayerState::HandleMovement(float & timePassed)
+{
 	float timeRemainingAfterReachingDestination = 0.0f;
-
-	if (isMoving){
+	if (isMoving)
+	{
 		/// Check if we're there yet.
 		assert(movementSpeed > 0);
 		movementProgress += timePassed / movementSpeed;
@@ -239,11 +241,13 @@ void RunePlayerState::HandleMovement(float & timePassed){
 		entity->physics->boundToNavMesh = true;
 		std::cout<<"\nSetting desired velocity to: "<<requestedVelocity;
 		/// Update 2D-position.
-		entityTile2D->position.x = pos.x;
-		entityTile2D->position.y = pos.y;
+		if (entityTile2D)
+		{
+			entityTile2D->position.x = pos.x;
+			entityTile2D->position.y = pos.y;
 
-		std::cout<<"\nUpdating position to: "<<entityTile2D->position.x<<", "<<entityTile2D->position.y;
-
+			std::cout<<"\nUpdating position to: "<<entityTile2D->position.x<<", "<<entityTile2D->position.y;
+		}
 /*
 		/// Check if tile is walkeable and place as there if so.
 		TileMap2D * map = (TileMap2D*)MapMan.ActiveMap();
@@ -261,8 +265,6 @@ void RunePlayerState::HandleMovement(float & timePassed){
 		}
 */
 	//	else {
-		if (entity->physics->velocity.MaxPart() <= 0.1f)
-			Graphics.QueueMessage(new GMSetEntity(entity, ANIMATION, "Idle"));
 	//	}
 	}
 	// No queued movement and no current movement = stand still!

@@ -12,6 +12,7 @@
 class RuneEntity;
 class RunePlayer;
 class RunePlayerState;
+class RuneShop;
 
 namespace EnterMode {
 enum enterModes{
@@ -53,6 +54,10 @@ public:
 	void SetCamera(Camera & reference);
 
 private:
+	/// Hides sub-menus in the main.. menu...
+	void HideMenus();
+	/// Load shop ui for player interaction.
+	void LoadShop(RuneShop * shop);
 	/// Macros to access the active map via the MapManager.
 	TileMap2D * ActiveMap();
 	void OpenMenu();
@@ -79,6 +84,8 @@ private:
 
 	bool menuOpen;
 
+	/// Active shop!
+	RuneShop * activeShop;
 	RunePlayer * player;
 	Entity * playerEntity;
 	RunePlayerState * playerState;

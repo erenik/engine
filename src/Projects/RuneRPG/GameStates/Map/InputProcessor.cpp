@@ -23,7 +23,11 @@ void MapState::InputProcessor(int action, int inputDevice/* = 0*/){
 		return;
 
 
-#define ASSERT_PLAYER {if(!playerEntity || !playerState)return;}
+#define ASSERT_PLAYER {\
+	if(!playerEntity || !playerEntity->state)\
+		return;\
+	}
+	
 	std::cout<<"\nMapState::InputProcessor";
 	// Regular switch
 	switch(action){

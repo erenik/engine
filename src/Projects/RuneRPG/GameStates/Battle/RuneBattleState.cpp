@@ -68,7 +68,7 @@ void RuneBattleState::OnEnter(GameState * previousState){
 	battleType = NORMAL_BATTLE;
 	Sleep(100);
 	// Begin loading textures here for the UI
-	Graphics.QueueMessage(new GMSet(ACTIVE_USER_INTERFACE, ui));
+	Graphics.QueueMessage(new GMSetUI(ui));
 
     /// Hide the commands-menu until a party-member is ready for action, jRPG-style
     commandsMenuOpen = false;

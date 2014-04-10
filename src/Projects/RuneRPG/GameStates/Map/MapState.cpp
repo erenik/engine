@@ -29,6 +29,9 @@
 #include "Graphics/Messages/GMSet.h"
 #include "../RuneGameStatesEnum.h"
 #include "Graphics/Messages/GMSetEntity.h"
+#include "RuneRPG/Item/RuneShop.h"
+#include "RuneRPG/Item/RuneConsumable.h"
+#include "UI/UIButtons.h"
 
 
 #include "Graphics/GraphicsManager.h"
@@ -57,6 +60,7 @@ MapState::MapState()
 	lastModifiedEntity = NULL;
 	menuOpen = false;
 	keyPressedCallback = true;
+	activeShop = NULL;
 }
 
 MapState::~MapState(){
@@ -70,7 +74,7 @@ void MapState::CreateUserInterface(){
 	if (ui)
 		delete ui;
 	ui = new UserInterface();
-	ui->Load("gui/RuneRPG/MapState.gui");
+	ui->Load("gui/MapState.gui");
 }
 
 void MapState::OnEnter(GameState * previousState){
@@ -85,7 +89,7 @@ void MapState::OnEnter(GameState * previousState){
 
 	Sleep(100);
 	// Begin loading textures here for the UI
-	Graphics.QueueMessage(new GMSet(ACTIVE_USER_INTERFACE, ui));
+	Graphics.QueueMessage(new GMSetUI(ui));
 	/// Depending on previous state, modify menu.
 	if (previousState->GetID() == RUNE_GAME_STATE_MAIN_MENU){
 		/// Hide the menu.
@@ -123,7 +127,7 @@ void MapState::OnEnter(GameState * previousState){
 		/// Run the newgame-script!
 		Event * ev = new Event();
 		activeMap = NULL;
-		ev->Load("data/RuneRPG/Events/NewGame.e");
+		ev->Load("data/Events/NewGame.e");
 		ev->flags |= DELETE_WHEN_ENDED;
 		EventMan.PlayEvent(ev);
 	}
@@ -145,7 +149,7 @@ void MapState::OnEnter(GameState * previousState){
 	TrackPlayer();
 
 	/// Establish link to player entity state if existing.
-	if (playerEntity){
+	if (playerEntity && playerEntity->state){
 		playerState = (RunePlayerState*)playerEntity->state->GlobalState();
 		Graphics.QueueMessage(new GMSetEntity(playerEntity, ANIMATION_SET, "Map/Test"));
 	}
@@ -215,7 +219,7 @@ void MapState::Process(float time){
 
 	// Update player position if possiblu
 	if (playerEntity){
-		String s = String::ToString(playerEntity->positionVector.x) + ", " + String::ToString(playerEntity->positionVector.y);
+		String s = String::ToString((int)playerEntity->positionVector.x) + ", " + String::ToString((int)playerEntity->positionVector.y);
 		Graphics.QueueMessage(new GMSetUIs("PositionLabel", GMUI::TEXT, s));
 	}
 
@@ -286,13 +290,15 @@ TileMap2D * MapState::ActiveMap(){
 	
 
 #define PAN_SPEED_MULTIPLIER (abs(camera->distanceFromCentreOfMovement)/2.0f + 1)
-void MapState::MouseMove(float x, float y, bool lDown, bool rDown, UIElement * elementOver){
+void MapState::MouseMove(float x, float y, bool lDown, bool rDown, UIElement * elementOver)
+{
 	if (elementOver)
 		return;
 	Camera * camera = Graphics.cameraToTrack;
 //	float diffX = mouseX - x;
 //	float diffY = mouseY - y;
-
+	if (!ActiveMap())
+		return;
 	TileMapLevel * level = ActiveMap()->ActiveLevel();
 	
 	/// Get position in le welt.
@@ -398,10 +404,14 @@ void MapState::KeyPressed(int keyCode, bool downBefore){
 	}
 }
 
-void MapState::OpenMenu(){
+void MapState::OpenMenu()
+{
 	/// Open the menu if it isn't open already.
 	Input.NavigateUI(true);
-	if (!ui->IsInStack("MainMenu")){
+	if (!ui->IsInStack("MainMenu"))
+	{
+		// Close all sub-menus.
+		HideMenus();
 		menuOpen = true;
 		std::cout<<"\nOpening menu.";
 		/// Push it to the stack!
@@ -422,29 +432,75 @@ void MapState::CloseMenu(){
 		std::cout<<"\nMenu already closed o-o";
 }
 
-void MapState::ProcessMessage(Message * message){
+/// Hides sub-menus in the main.. menu...
+void MapState::HideMenus()
+{
+	String ui = "ItemMenu,StatusScreen";
+	List<String> uis = ui.Tokenize(",");
+	for (int i = 0; i < uis.Size(); ++i)
+	{
+		Graphics.QueueMessage(new GMPopUI(uis[i]));
+	}
+}
 
-//	std::cout<<"\nRacing::ProcessMessage: ";
-	switch(message->type){
-		case MessageType::COLLISSION_CALLBACK: {
-			CollissionCallback * c = (CollissionCallback*)message;
-		//	std::cout<<"\nCollissionCallback received for entity "<<c->one->name<<" and "<<c->two->name;
-			if (c->one->state)
-				c->one->state->ProcessMessage(message);
-//			if (c->one->scaleVector.MaxPart() < 5.0f)
-//				;//Physics.QueueMessage(new PMSetEntity(SET_SCALE, c->one, c->one->scaleVector * 1.01f));
-			// Let all fat collissions generate sparks, alright?
-			if (c->impactVelocity > 5.0f){
-				Graphics.QueueMessage(new GMGenerateParticles("CollissionSparks", c));
-			}
-			return;
-			break;
-		}
-		case MessageType::STRING: {
+/// Load shop ui for player interaction.
+void MapState::LoadShop(RuneShop * shop)
+{
+	// Clear list.
+	Graphics.QueueMessage(new GMClearUI("ShopItemList"));
+	// And re-fill it.
+	List<RuneItem*> items = shop->GetItems();
+	for (int i = 0; i < items.Size(); ++i)
+	{
+		RuneItem * item = items[i];
+		/// Create appropriate button/UI for them.
+		UIButton * button = new UIButton(item->name);
+		button->sizeRatioY = 0.1f;
+		button->activationMessage = "SelectItemToBuy:"+item->name;
+		/// Add a label on the right-hand side with price.
+		UILabel * priceLabel = new UILabel(String::ToString(item->price));
+		priceLabel->alignmentX = 0.9f;
+		priceLabel->sizeRatioX = 0.2f;
+		button->AddChild(priceLabel);
+		Graphics.QueueMessage(new GMAddUI(button, "ShopItemList"));
+	}
+}
+
+void MapState::ProcessMessage(Message * message)
+{
+	switch(message->type)
+	{
+		case MessageType::STRING: 
+		{
 			String string = message->msg;
+			String msg = message->msg;
 			string.SetComparisonMode(String::NOT_CASE_SENSITIVE);
 			string.RemoveInitialWhitespaces();
-			if (string == "main_menu"){
+			if (msg == "Item")
+			{
+				/// Hide all our menus,
+				HideMenus();
+				/// Then open up the item/inventory menu.
+				Graphics.QueueMessage(new GMPushUI("ItemMenu"));
+			}
+			else if (msg.Contains("SelectItemToBuy:"))
+			{
+				String name = msg.Tokenize(":")[1];
+				RuneItem * item = activeShop->GetItem(name);
+				// Update active purchase info in the purchase-window.
+				Graphics.QueueMessage(new GMSetUIs("ItemToBuy", GMUI::TEXT, item->name));
+				Graphics.QueueMessage(new GMPushUI("PurchaseWindow"));
+			}
+			else if (msg == "OpenTestShop")
+			{
+				/// Push UI
+				Graphics.QueueMessage(new GMPushUI("gui/Shop.gui"));
+				RuneShop::SetupTestShop();
+				activeShop = &RuneShop::testShop;
+				// Load shop from... test.
+				LoadShop(&RuneShop::testShop);
+			}
+			else if (string == "main_menu"){
 				StateMan.QueueState(GAME_STATE_MAIN_MENU);
 			}
 			else if (string == "stop_testing"){
@@ -613,15 +669,15 @@ void MapState::SetEnterMode(int mode) {
 	enterMode = mode;
 }
 
-void MapState::SetCamera(Camera & reference){
+void MapState::SetCamera(Camera & reference)
+{
 	/// Just copy the camera data
 	*camera = reference;
 }
 
 /// Place player on ze mappur ^3^
-bool MapState::PlacePlayer(Vector3i position){
-	
-
+bool MapState::PlacePlayer(Vector3i position)
+{
 	std::cout<<"\nPlacePlayer: "<<position;
 	activeMap = (TileMap2D*)MapMan.ActiveMap();
 	assert(activeMap);
@@ -685,8 +741,8 @@ void MapState::Zone(String mapName){
 		if (mn == mapName)
 			return;
 	}
-	if (!filename.Contains(ROOT_MAP_DIR)){
-		filename = ROOT_MAP_DIR + filename;
+	if (!filename.Contains(MapMan.rootMapDir)){
+		filename = MapMan.rootMapDir + filename;
 	}
 	if (!filename.Contains(".tmap")){
 		filename += ".tmap";

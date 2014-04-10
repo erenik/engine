@@ -48,6 +48,8 @@ public:
 	*/
 	Vector2i(const Vector3f& base);
 
+	/// Similar to clamp, ensures that this vector's values are within the given range (including the limits)
+	void Limit(Vector2i min, Vector2i max);
 
 	/// Printing out data
 	friend std::ostream& operator <<(std::ostream& os, const Vector2i& vec);
