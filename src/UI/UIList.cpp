@@ -135,7 +135,10 @@ UIList::UIList()
     formatX = true;
     scrollBarX = scrollBarY = NULL;
 	contentsSize = 0.0f;
-	hoverable = false;
+	/// Should be hoverable so mouse interactions work.
+	hoverable = true;
+	/// But disable highlight on hover!
+	highlightOnHover = false;
 }
 
 UIList::~UIList()

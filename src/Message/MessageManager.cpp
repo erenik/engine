@@ -243,6 +243,18 @@ void MessageManager::ProcessMessage(Message * message){
 		MesMan.QueueMessage(m);
 		return;
 	}
+	else if (msg.Contains("UIIntegerInput("))
+	{
+		String name = msg.Tokenize("()")[1];
+		UserInterface * ui = StateMan.ActiveState()->GetUI();
+		UIElement * e = ui->GetElementByName(name);
+		if (e->type != UIType::INTEGER_INPUT)
+			return;
+		UIIntegerInput * ii = (UIIntegerInput*)e;
+		IntegerMessage * m = new IntegerMessage(ii->action, ii->GetValue());
+		MesMan.QueueMessage(m);
+		return;
+	}
 	else if (msg.Contains("UIVectorInput("))
 	{
 		String name = msg.Tokenize("()")[1];

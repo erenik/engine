@@ -114,6 +114,25 @@ private:
 	UIInput * input;
 };
 
+
+/// Class for 1 Integer inputs.
+class UIIntegerInput : public UIElement {
+public:
+	UIIntegerInput(String name, String onTrigger);
+	virtual ~UIIntegerInput();
+	/// Creates the label and input.
+	void CreateChildren();
+	/// Getter/setter for the input element.
+	int GetValue();
+	void SetValue(int value);
+	/// Same as onTrigger, set to all inputs.
+	String action;
+	/// for eased access.
+	int maxDecimals;
+private:
+	UIInput * input;
+};
+
 /// Class that uses X UIInputs and a label to work.
 class UIVectorInput : public UIElement {
 public:

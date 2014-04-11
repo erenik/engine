@@ -16,6 +16,14 @@ public:
 	float value;
 };
 
+class IntegerMessage : public Message 
+{
+public:
+	IntegerMessage(String message, int value);
+	virtual ~IntegerMessage();
+	int value;
+};
+
 /// Vector message that can hold various types of vectors.
 class VectorMessage : public Message {
 public:

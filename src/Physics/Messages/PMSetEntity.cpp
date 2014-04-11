@@ -174,7 +174,7 @@ void PMSetEntity::Process(){
 			case SCALE:
 				entity->Scale(vec3fValue);
 				entity->physics->UpdateProperties(entity);
-				std::cout<<"\nEntity scale set to "<<vec3fValue;
+			//	std::cout<<"\nEntity scale set to "<<vec3fValue;
 				break;
 			case ROTATE:
 				entity->rotate(vec3fValue);
@@ -183,7 +183,7 @@ void PMSetEntity::Process(){
 			case SET_SCALE:
 				entity->SetScale(vec3fValue);
 				entity->physics->UpdateProperties(entity);
-				std::cout<<"\nEntity scale set to "<<vec3fValue;
+		//		std::cout<<"\nEntity scale set to "<<vec3fValue;
 				break;
 			case SET_ROTATION: {
 				if (entity->physics->estimationEnabled){

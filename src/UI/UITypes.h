@@ -26,6 +26,7 @@ namespace UIType{
 		TEXTURE_INPUT,	// Combined input that displays both source and a small image preview using an UIInput, UILabel and UIImage.
 		STRING_INPUT,	// Single short string input.
 		FLOAT_INPUT,	// Single number input.
+		INTEGER_INPUT,	// Single int input.
 		VECTOR_INPUT,	// Triple input made for numbers.
 		QUERY_DIALOGUE,	// Dialogue that requires input.
 		FILE_BROWSER,	// General file-system navigator.

@@ -74,6 +74,9 @@ public:
 	/// Clears the list of entries and deletes every single one of them. USE WITH CAUTION!
 	int ClearAndDelete();
 
+	/// Swaps items at given indices.
+	bool Swap(int index, int otherIndex);
+
     /// Resizes the array. Recommended to use before filling it to avoid re-sizings later which might slow down the system if used repetitively.
     void Allocate(int newSize);
 
@@ -369,6 +372,18 @@ int List<T>::ClearAndDelete(){
 	return itemsRemoved;
 }
 
+/// Swaps items at given indices.
+template <class T>
+bool List<T>::Swap(int index, int otherIndex)
+{
+	if (index < 0 || otherIndex < 0 ||
+		index > currentItems || otherIndex >= currentItems)
+		return false;
+	T tmp = arr[index];
+	arr[index] = arr[otherIndex];
+	arr[otherIndex] = tmp;
+	return true;
+}
 
 /// Returns size of the list
 template <class T>

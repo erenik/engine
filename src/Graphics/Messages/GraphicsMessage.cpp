@@ -121,8 +121,11 @@ GMDelete::GMDelete(UserInterface * ui) : GraphicsMessage(GM_DELETE_UI){
 	assert(ui->IsBuffered());
 	this->ui = ui;
 }
-void GMDelete::Process(){
-	ui->Unbufferize();
-	ui->DeleteGeometry();
+void GMDelete::Process()
+{
+	if (ui->IsBuffered())
+		ui->Unbufferize();
+	if (ui->IsGeometryCreated())
+		ui->DeleteGeometry();
 	delete ui;
 }

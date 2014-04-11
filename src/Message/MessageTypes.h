@@ -14,9 +14,10 @@ enum messageTypes{
 	/// Message type that is based on a string for what action to perform, but includes a list of 1 or more files or directories to act upon too. See Message/FileEvent.h
 	FILE_EVENT,
 	TEXTURE_MESSAGE,
-	SET_STRING,		// For setting strings, usually via dedicated ui.
-	FLOAT_MESSAGE, // For setting floats, simple as that.
-	VECTOR_MESSAGE, // For setting vectors, simple as that.
+	SET_STRING,			// For setting strings, usually via dedicated ui.
+	FLOAT_MESSAGE,		// For setting floats, simple as that.
+	INTEGER_MESSAGE,	// For setting Integers.
+	VECTOR_MESSAGE,		// For setting vectors, simple as that.
 	DATA_MESSAGE, // For DataMessage
 	DATA, // Probably obsolete.
 	COLLISSION_CALLBACK, // Sent by the physics system if certain stuff are met.

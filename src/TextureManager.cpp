@@ -323,6 +323,10 @@ Texture * TextureManager::LoadTexture(String source){
 #endif
 		return NULL;
 	}
+
+	/// Since we converted the image to RGBA above, fix the BitsPerPixel again!
+	texture->bpp = 4;
+
 /*
 	/// Flip the texture!
 	std::cout<<"\nFlipping texture "<<source<<"!";

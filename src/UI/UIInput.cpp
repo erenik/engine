@@ -479,6 +479,59 @@ void UIFloatInput::SetValue(float value){
 	input->SetText(String::ToString(value, maxDecimals));
 }
 
+
+
+/// Class for 1 Integer inputs.
+UIIntegerInput::UIIntegerInput(String name, String onTrigger)
+: UIElement(), action(onTrigger)
+{
+	this->type = UIType::INTEGER_INPUT;
+	this->name = name;
+	input = NULL;
+	label = NULL;
+}
+UIIntegerInput::~UIIntegerInput()
+{
+	// Nothing special, let base class handle children.
+}
+/// Creates the label and input.
+void UIIntegerInput::CreateChildren()
+{
+/// Use a column-list to automatically get links between the elements, etc.
+	UIColumnList * box = new UIColumnList();
+	box->padding = this->padding;
+	AddChild(box);
+
+	int elements = 1 + 1;
+	float spaceLeft = 1.0f - padding * elements;
+	float spacePerElement = spaceLeft / elements;
+
+	/// Create a label
+	label = new UILabel();
+	label->text = name;
+	label->sizeRatioX = spacePerElement;
+	box->AddChild(label);
+
+	/// Create 3 children
+	input = new UIInput();
+	/// Set them to only accept floats?
+	input->name = name + "Input";
+	input->numbersOnly = true;
+	input->text = "0";
+	input->sizeRatioX = spacePerElement;
+	input->onTrigger = "UIIntegerInput("+name+")";
+	box->AddChild(input);
+}
+
+/// Getter/setter for the input element.
+int UIIntegerInput::GetValue(){
+	return input->text.ParseInt();
+}
+void UIIntegerInput::SetValue(int value){
+	input->SetText(String::ToString(value));
+}
+
+
 ///
 UIVectorInput::UIVectorInput(int numInputs, String name, String onTrigger)
 : UIElement()

@@ -8,6 +8,8 @@
 #include "UIInput.h"
 #include "UIList.h"
 
+#define UIFileDialogue UIFileBrowser
+
 class UIFileBrowser : public UIList {
 public:
 	UIFileBrowser(String title, String action, String fileFilter);
@@ -28,6 +30,8 @@ public:
 	/// Action to be taken on files once OK is pressed. Will be set to the msg parameter of the FileEvent message that is generated.
 	String action;
 	
+	/// Woo.
+	String CurrentPath() {return currentPath;};
 
 private:
 	// Update stuff.

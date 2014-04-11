@@ -14,6 +14,16 @@ FloatMessage::~FloatMessage()
 {
 }
 
+IntegerMessage::IntegerMessage(String message, int value)
+	: Message (MessageType::INTEGER_MESSAGE), value(value)
+{
+	this->msg = message;
+}
+IntegerMessage::~IntegerMessage()
+{
+}
+
+
 VectorMessage::VectorMessage(String message, Vector2i vectorValue)
 : Message(MessageType::VECTOR_MESSAGE), vectorType(VECTOR_2I), vec2i(vectorValue)
 {

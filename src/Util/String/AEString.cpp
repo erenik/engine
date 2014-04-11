@@ -1145,7 +1145,8 @@ void String::PrintData() const{
 }
 
 /// Reads data from file stream
-bool String::ReadFrom(std::fstream& file){
+bool String::ReadFrom(std::fstream& file)
+{
 	file.read((char*)&type, sizeof(int));
 	file.read((char*)&arraySize, sizeof(int));
 	assert(arraySize < 1000000);
@@ -1241,14 +1242,16 @@ void String::Reallocate(int size)
 	bool debug = false;
 	switch(type){
 		case CHAR: {
-			if (arr && arraySize > 0){
+			if (arr && arraySize > 0)
+			{
 				/// Allocate temp array for holding stuffs if need be
 #ifdef USE_BLOCK_ALLOCATOR
 				char * tmp = stringAllocator.AllocateNewArray<char>(arraySize);
 #else
 				char * tmp = new char[arraySize];
 #endif
-				strcpy(tmp, arr);
+				int copySize = size < arraySize? size : arraySize;
+				strncpy(tmp, arr, copySize);
 				/// And delete the previous array too, yo.
 #ifdef USE_BLOCK_ALLOCATOR
 				stringAllocator.Deallocate(arr);
@@ -1258,7 +1261,7 @@ void String::Reallocate(int size)
 				arr = new char [size];
 #endif
 				memset(arr, 0, size);
-				strcpy(arr, tmp);
+				strncpy(arr, tmp, copySize);
 				/// Delete it too, yo.
 #ifdef USE_BLOCK_ALLOCATOR
 				stringAllocator.Deallocate(tmp);
