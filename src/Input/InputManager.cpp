@@ -642,8 +642,13 @@ void InputManager::MouseMove(int x, int y)
 //	std::cout<<"\nInputManager::MouseMove("<<x<<","<<y<<")";
 	UserInterface * ui = ActiveUI;
 
-	/// Get element we're hovering over.
+	// Save old hover-element first.
+	UIElement * hoverElement = ActiveUI->GetHoverElement();
+	/// Get element we're hovering over
 	UIElement * element = ActiveUI->Hover(x,y, true);
+	// This should fix so that the mouse cannot move the cursor if the underlying UI cannot later be activated.. ish.
+	if ((element && !element->highlightOnHover) || !element)
+		element = hoverElement;
 	SetHoverElement(element);
 
 	StateMan.ActiveState()->MouseMove(x, y, lButtonDown, rButtonDown, element);

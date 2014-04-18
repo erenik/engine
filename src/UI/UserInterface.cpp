@@ -168,6 +168,15 @@ UIElement * UserInterface::GetElement(float x, float y){
     return root->GetElement(x,y);
 }
 
+/// Woo!
+UIElement * UserInterface::GetElement(String byName, int andType)
+{
+	if (!root)
+		return NULL;
+	return root->GetElement(byName, andType);
+}
+
+
 /// Creates the content of the UI. Overloaded by subclasses.
 void UserInterface::CreateGeometry(){
 	assert(!isGeometryCreated);

@@ -88,7 +88,8 @@ void UIScrollBar::Move(float distance){
 }
 
 /// Returns the current relative start of the contents
-float UIScrollBar::GetStart(){
+float UIScrollBar::GetStart()
+{
     float pageSize = handle->sizeRatioY;
     float handleStart = handle->alignmentY + handle->sizeRatioY * 0.5f;
     /// Divide by the size ratio to get how many pages down we are!
@@ -528,7 +529,8 @@ void UIColumnList::AddChild(UIElement* child)
 
 
 /// Called to ensure visibility of target element.
-void UIList::EnsureVisibility(UIElement * element){
+void UIList::EnsureVisibility(UIElement * element)
+{
 	if (!element)
 		return;
 	// Check if we need to do anything at all (if small list)

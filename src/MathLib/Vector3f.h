@@ -176,6 +176,17 @@ public:
 			return AbsoluteValue(y);
 		return AbsoluteValue(z);
 	};
+	/// Returns the absolute value of the sub-component (x,y,z) of highest absolute value.
+	const float MinPart() const {
+		if (AbsoluteValue(x) < AbsoluteValue(y)){
+			if (AbsoluteValue(x) < AbsoluteValue(z))
+				return AbsoluteValue(x);
+			return AbsoluteValue(z);
+		}
+		else if (AbsoluteValue(y) < AbsoluteValue(z))
+			return AbsoluteValue(y);
+		return AbsoluteValue(z);
+	};
 	/// Utility functions
 	static Vector3f Minimum(const Vector3f & vec1, const Vector3f & vec2);
 	static Vector3f Maximum(const Vector3f & vec1, const Vector3f & vec2);

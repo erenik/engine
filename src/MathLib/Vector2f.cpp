@@ -194,6 +194,13 @@ Vector2f Vector2f::ElementMultiplication(const Vector2f otherVector) const {
 	return Vector2f(x * otherVector.x, y * otherVector.y);
 }
 
+// Dot product.
+float Vector2f::DotProduct(const Vector2f otherVector) const 
+{
+	return x * otherVector.x + y * otherVector.y;
+}
+
+
 /// Calculates the length of the vector.
 float Vector2f::Length() const {
 	float sum = x * x + y * y;

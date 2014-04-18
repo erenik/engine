@@ -39,6 +39,9 @@ public:
 	/// Get element by position. Will skip invisible elements.
 	UIElement * GetElement(float x, float y);
 
+	/// Woo!
+	UIElement * GetElement(String byName, int andType);
+
 	/** Function called when an element is activated,
 		by mouse-clicking, pressing enter on selction or otherwise. */
 	virtual void Activate(UIElement* activeElement);

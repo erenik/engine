@@ -91,6 +91,9 @@ public:
 	virtual UIElement* Activate();						// When button is released.
 	/// GEtttererrr
 	virtual UIElement * GetElement(float & mouseX, float & mouseY);
+
+	UIElement * GetElement(String byName, int andType);
+
     /// For mouse-scrolling. By default calls it's parent's OnScroll. Returns true if the element did anything because of the scroll.
 	virtual bool OnScroll(float delta);
 
@@ -383,7 +386,7 @@ private:
 
 class UILabel : public UIElement{
 public:
-	UILabel(String text = "");
+	UILabel();
 	virtual ~UILabel();
 };
 

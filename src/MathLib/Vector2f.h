@@ -109,6 +109,9 @@ public:
 	/// Multiplies the elements in the two vectors internally, returning the product.
 	Vector2f ElementMultiplication(const Vector2f otherVector) const;
 
+	// Dot product.
+	float DotProduct(const Vector2f otherVector) const;
+
 	/// Calculates the length of the vector.
 	float Length() const;
 	/// Calculates the squared length of the vector.

@@ -13,7 +13,7 @@ const float ZERO = 0.0000000001f;
 #include <cmath>
 
 #ifndef AbsoluteValue
-#define AbsoluteValue(one)    ((one < 0) ? (-one) : (one))
+#define AbsoluteValue(one)    ((one < 0) ? (-(one)) : (one))
 #endif
 
 #ifndef Clamp

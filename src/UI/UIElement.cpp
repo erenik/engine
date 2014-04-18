@@ -436,6 +436,24 @@ UIElement * UIElement::GetElement(float & mouseX, float & mouseY){
 	return this;
 }
 
+UIElement * UIElement::GetElement(String byName, int andType)
+{
+	if (type == andType)
+	{
+		if (name == byName)
+			return this;
+	}
+	for (int i = 0; i < childList.Size(); ++i)
+	{
+		UIElement * child = childList[i];
+		UIElement * found = child->GetElement(byName, andType);
+		if (found)
+			return found;
+	}
+	return NULL;
+}
+
+
 /// For mouse-scrolling. By default calls it's parent's OnScroll.
 bool UIElement::OnScroll(float delta){
     if (parent)
@@ -1598,10 +1616,9 @@ void UIElement::RemoveFlags(int flags){
 	}
 }
 
-UILabel::UILabel(String text /*= ""*/)
+UILabel::UILabel()
 : UIElement()
 {
-	this->text = text;
 	type = UIType::LABEL;
 	selectable = hoverable = activateable = false;
 	/// Set text-color at least for labels!

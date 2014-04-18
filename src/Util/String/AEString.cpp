@@ -749,7 +749,8 @@ bool String::ParseBool(){
 	comparisonMode = oldComparisonMode;
 	return result;
 }
-int String::ParseInt(){
+int String::ParseInt()
+{
 	//assert(this->type == CHAR && "Implement for wide char or convert first..!");
 	if (this->type == WIDE_CHAR){
 		if (arr)
@@ -761,7 +762,8 @@ int String::ParseInt(){
 		return 0;
 	return atoi(arr);
 }
-float String::ParseFloat(){
+float String::ParseFloat()
+{
 	assert(this->type != NULL_TYPE);
 	if (this->type == WIDE_CHAR){
 		arr = new char[arraySize];
