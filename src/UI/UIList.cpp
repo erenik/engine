@@ -516,7 +516,9 @@ void UIColumnList::AddChild(UIElement* child)
 
     // Bind them for proper navigation.
     if (rightmost){
+		rightmost->rightNeighbour = child;
         rightmost->rightNeighbourName = child->name;
+		child->leftNeighbour = rightmost;
         child->leftNeighbourName = rightmost->name;
     }
 

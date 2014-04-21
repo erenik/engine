@@ -1,5 +1,6 @@
 // Emil Hedemalm
-// 2013-06-15
+// 2014-04-18
+// RuneRPG Entity State, attached to all entities when moving about on the maps or in battles
 
 #ifndef RUNE_PLAYER_STATE_H
 #define RUNE_PLAYER_STATE_H
@@ -9,9 +10,9 @@
 
 class EntityStateTile2D;
 
-class RunePlayerState : public EntityStateTile2D {
+class RREntityState : public EntityStateTile2D {
 public:
-	RunePlayerState(Entity * owner);
+	RREntityState(Entity * owner);
 	/// Function when entering this state.
 	void OnEnter();
 	/// Main processing function

@@ -39,6 +39,9 @@ public:
 	/// Shuts down all active sessions.
 	void Shutdown();
 
+	/// Adds new peer!
+	void AddPeer(Peer * newPeer);
+
 	/// Returns object representing self. This should not be modified after sessions have been started of any kind.
 	Peer * Me();
 
@@ -58,6 +61,8 @@ public:
 	String GetLastErrorString();
 	/// Initialized
 
+	/// Query function for the SIP server.
+	bool IsSIPServerRunning();
 	/// Starts SIP server with previously set port via SetSIPServerPort. Default ports are 33000 through 33010, starting at 33000.
     bool StartSIPServer();
     /// Close the server socket.
@@ -82,8 +87,8 @@ public:
     void SetAvailableMedia(List<String> mediaList);
   */
 
-	/// Attempts to establish a connection to the given server.
-    bool ConnectTo(const String ipAddress, int port);
+	/// Attempts to establish a connection to the given server. Default will try ports DEFAULT_SIP_START_PORT through DEFAULT_SIP_MAX_PORT (33000-33009).
+    bool ConnectTo(const String ipAddress, int port = -1);
     /// Disconnects this instance from the network, including all peers and our own tcpServer.
     void Disconnect();
     

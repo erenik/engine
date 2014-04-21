@@ -2,7 +2,7 @@
 // 2014-04-06
 // Global app/game-state for the RuneRPG game.
 
-#include "GameStates/GameState.h"
+#include "../RRGameState.h"
 #include "Selection.h"
 
 #define TEST_BATTLE_PATH "data/RuneRPG/testBattle.txt"
@@ -10,7 +10,7 @@
 #define BATTLES_DIRECTORY	"data/RuneRPG/Battles/"
 #define ACTIONS_DIRECTORY   "data/RuneRPG/BattleActions/"
 
-class RuneGlobalState : public GameState{
+class RuneGlobalState : public RRGameState {
 public:
 	RuneGlobalState();
 	void OnEnter(GameState * previousState);
@@ -37,4 +37,7 @@ public:
 	/// Decreases playback speed and notifies relevant systems of the change
 	void DecreaseSpeed();
 private:
+	/// For host/join.
+	int targetPort;
+	String targetIP;
 };

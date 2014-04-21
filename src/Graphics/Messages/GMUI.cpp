@@ -311,6 +311,7 @@ GMSetUIs::GMSetUIs(String uiName, int target, Text text, int viewport)
 		case GMUI::TEXTURE_SOURCE:
 		case GMUI::TEXTURE_INPUT_SOURCE:
 		case GMUI::STRING_INPUT_TEXT:
+		case GMUI::INTEGER_INPUT_TEXT:
 			break;
 		default:
 		{
@@ -355,6 +356,14 @@ void GMSetUIs::Process(){
 				break;
 			UIStringInput * si = (UIStringInput*) e;
 			si->input->SetText(text);
+			break;
+		}
+		case GMUI::INTEGER_INPUT_TEXT:
+		{
+			if (e->type != UIType::INTEGER_INPUT)
+				break;
+			UIIntegerInput * ii = (UIIntegerInput*)e;
+			ii->input->SetText(text);
 			break;
 		}
 		case GMUI::TEXT:

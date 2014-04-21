@@ -1152,7 +1152,8 @@ void InputManager::UILeft(){
 		return;
 	SetHoverUI(element);
 }
-void InputManager::UIRight(){
+void InputManager::UIRight()
+{
 	std::cout<<"\nUIRight";
 	UserInterface * ui = ActiveUI;
 	List<UIElement*> relevantElements = UIGetRelevantElements();

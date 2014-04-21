@@ -12,7 +12,7 @@ class UIImage;
 /// Base class for input. Will yield control and process its onTrigger message once ENTER is pressed. Will only yield control if ESC is pressed.
 class UIInput : public UIElement {
 public:
-	UIInput();
+	UIInput(String name = "");
 	virtual ~UIInput();
 	// When clicking/Enter pressed on keyboard.
 	virtual UIElement* Click(float & mouseX, float & mouseY);
@@ -129,8 +129,9 @@ public:
 	String action;
 	/// for eased access.
 	int maxDecimals;
-private:
+	/// Should not be set from outside graphics thread (after it is made visible and rendering).
 	UIInput * input;
+private:
 };
 
 /// Class that uses X UIInputs and a label to work.

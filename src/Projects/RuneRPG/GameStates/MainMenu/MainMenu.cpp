@@ -14,22 +14,29 @@
 #include "Graphics/Messages/GMSet.h"
 extern UserInterface * ui[MAX_GAME_STATES];
 #include "../RuneGameStatesEnum.h"
+#include "UI/UIQueryDialogue.h"
+#include "System/PreferencesManager.h"
+#include "Chat/ChatManager.h"
+#include "UI/UIList.h"
 
-
-MainMenu::MainMenu(){
+MainMenu::MainMenu()
+{
 	id = GAME_STATE_MAIN_MENU;
 	requestedPlayers = 1;
 
 	// Enter some tile types into the manager
 	TileTypeManager::Allocate();
 	TileTypes.CreateDefaultTiles();
+
+	enteredOnce = false;
 }
 
 MainMenu::~MainMenu(){
 	TileTypeManager::Deallocate();
 }
 
-void MainMenu::OnEnter(GameState * previousState){
+void MainMenu::OnEnter(GameState * previousState)
+{
 	std::cout<<"\nEntering Main Menu state";
 
 	Graphics.EnableAllDebugRenders(false);
@@ -49,9 +56,13 @@ void MainMenu::OnEnter(GameState * previousState){
 	Graphics.QueueMessage(new GMSetUIs("ActivePlayerInput", GMUI::TEXT, "Keyboard 1"));
 
 	/// Notify that input-manager to use menu-navigation.
-	Input.NavigateUI(true);
+	Input.ForceNavigateUI(true);
 	// Push the menu to be hovered on straight away, yo.
 	Graphics.QueueMessage(new GMPushUI("MainMenu"));
+
+	/// Do first-time loading of preferences, entering user-/player-name, etc.
+	if (!enteredOnce)
+		OnFirstEnter();
 };
 
 void MainMenu::OnExit(GameState *nextState){
@@ -79,11 +90,43 @@ void MainMenu::Process(float time)
 /// Callback function that will be triggered via the MessageManager when messages are processed.
 void MainMenu::ProcessMessage(Message * message){
 	std::cout<<"\nState::ProcessMessage called:";
+	String s = message->msg;
+	String msg = message->msg;
 	switch(message->type){
+		case MessageType::SET_STRING: 
+		{
+			SetStringMessage * ssm = (SetStringMessage*)message;
+			if (msg == "SetPlayerName")
+			{
+				playerName = ssm->value;
+				std::cout<<"\nName set to: "<<playerName;
+				Preferences.SetString("PlayerName", playerName);
+				// Add name to preferences if not there already.
+				// Save preferences.
+				bool result = Preferences.Save();
+				assert(result && "Unable to save preferences?");
+			}
+		}
 		case MessageType::STRING: {
-			String s = message->msg;
 			s.SetComparisonMode(String::NOT_CASE_SENSITIVE);
-			if (s == "NEW_GAME"){
+			if (msg == "ChatInput")
+			{
+				// Stuff.
+			}
+			else if (msg == "Ready")
+			{
+				// Set ready.
+				session->ToggleReady();
+			}
+			else if (msg == "PeerReadyStatesUpdated")
+			{
+				OnPlayerReadyStateUpdated();
+			}
+			else if (msg == "OnPlayersUpdated")
+			{
+				OnPlayersUpdated();
+			}
+			else if (s == "NEW_GAME"){
 				MapState * state = (MapState*)StateMan.GetState(RUNE_GAME_STATE_MAP);
 				assert(state);
 				if (state){
@@ -143,4 +186,101 @@ void MainMenu::CreateUserInterface(){
 		delete ui;
 	ui = new UserInterface();
 	ui->Load("MainMenu.gui");
+}
+
+/// Called to log network-related messages, like clients joining or failures to host. Display appropriately.
+void MainMenu::NetworkLog(String message)
+{
+//	Graphics.QueueMessage(new GMSetUIs("NetworkLog", 
+	RRGameState::NetworkLog(message);
+}
+
+
+/// Called once, in order to set player name and maybe notify of updates, etc?
+void MainMenu::OnFirstEnter()
+{
+	// Load preferences if not already done so!
+	Preferences.Load();
+	// Try to load name from preferences.
+	Preferences.GetString("PlayerName", &playerName);
+
+	/// Check name, if default query for a good name to save to preferences.
+	if (playerName == DEFAULT_NAME)
+	{
+		UIStringDialogue * nameDialogue = new UIStringDialogue("Enter your name", "SetPlayerName", "Name will be saved in preferences file locally and used as placeholder-name in new games.", playerName);
+		nameDialogue->textureSource = "Black";	
+		nameDialogue->CreateChildren();
+		Graphics.QueueMessage(new GMAddUI(nameDialogue));
+		Graphics.QueueMessage(new GMPushUI(nameDialogue));
+	}
+	this->enteredOnce = true;
+}
+
+
+// Stuff! o.o
+void MainMenu::OnChatMessageReceived(ChatMessage * cm)
+{
+	/// Update log.
+	// Clear it.
+	Graphics.QueueMessage(new GMClearUI("ChatLog"));
+	// Fetch chat and push it to the lobby log.
+	List<ChatMessage*> cms = ChatMan.GetLastMessages(10);
+	for (int i = 0; i < cms.Size(); ++i)
+	{
+		ChatMessage * cm = cms[i];
+		UILabel * label = new UILabel("ChatMessage"+String::ToString(i));
+		if (cm->from)
+		{
+			label->text = cm->playerName + ": "+cm->text;
+		}
+		else 
+		{
+			label->text = cm->text;
+			label->textColor = Vector3f(1,1,0.5);
+		}
+		label->sizeRatioY = 0.1f;
+		Graphics.QueueMessage(new GMAddUI(label, "ChatLog"));
+	}
+}
+
+// For updating lobby-gui.
+void MainMenu::OnPlayersUpdated()
+{
+	Graphics.QueueMessage(new GMClearUI("PlayerList"));
+
+	List<RRPlayer*> players = Players();
+	for (int i = 0; i < players.Size(); ++i)
+	{
+		RRPlayer * player = players[i];
+		UIColumnList * clPlayer = new UIColumnList();
+		clPlayer->sizeRatioY = 0.25f;
+
+		UILabel * label = new UILabel(player->name);
+		label->sizeRatioX = 0.25f;
+		clPlayer->AddChild(label);
+
+		UILabel * readyLabel = new UILabel(player->name+"Ready");
+		readyLabel->sizeRatioX = 0.25f;
+		readyLabel->text = "";
+		readyLabel->textColor = Vector3f(0.5f, 0.6f, 1.0f);
+		if (player->isReady)
+			readyLabel->text = "Ready";
+		clPlayer->AddChild(readyLabel);
+
+		Graphics.QueueMessage(new GMAddUI(clPlayer, "PlayerList"));
+	}
+}
+
+// More gui.
+void MainMenu::OnPlayerReadyStateUpdated()
+{
+	List<RRPlayer*> players = Players();
+	for (int i = 0; i < players.Size(); ++i)
+	{
+		RRPlayer * player = players[i];
+		String readyText;
+		if (player->isReady)
+			readyText = "Ready";
+		Graphics.QueueMessage(new GMSetUIs(player->name+"Ready", GMUI::TEXT, readyText));
+	}
 }

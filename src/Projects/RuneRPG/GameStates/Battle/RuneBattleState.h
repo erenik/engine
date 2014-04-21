@@ -1,18 +1,18 @@
 // Emil Hedemalm
 // 2013-06-17
 
-#ifndef BATTLE_STATE_H
-#define BATTLE_STATE_H
+#ifndef RR_BATTLE_STATE_H
+#define RR_BATTLE_STATE_H
 
 #include "Game/GameConstants.h"
-#include "GameStates/GameState.h"
+#include "../RRGameState.h"
 #include "GameStates/GameStates.h"
 #include "Selection.h"
 
 class Camera;
 class RuneBattler;
 
-class RuneBattleState : public GameState{
+class RuneBattleState : public RRGameState {
 public:
 	RuneBattleState();
 	virtual ~RuneBattleState();

@@ -27,7 +27,7 @@
 #include "UI/UIList.h"
 #include "../RuneGameStatesEnum.h"
 extern UserInterface * ui[MAX_GAME_STATES];
-#include "RuneRPG/RunePlayer.h"
+#include "RuneRPG/RRPlayer.h"
 #include "RuneRPG/Battle/RuneSpell.h"
 #include <ctime>
 
@@ -43,7 +43,8 @@ extern UserInterface * ui[MAX_GAME_STATES];
 /// Stringify Integer
 #define STRINT(i) String::ToString(i)
 
-RuneBattleState::RuneBattleState(){
+RuneBattleState::RuneBattleState()
+{
 	id = RUNE_GAME_STATE_BATTLE_STATE;
 	camera = new Camera();
 }
@@ -420,10 +421,10 @@ bool RuneBattleState::LoadBattle(String fromSource){
 		RuneBattler * newPlayer = new RuneBattler(rb);
 		AddPlayerBattler(newPlayer);
 	}
-	/// Add players based on the playerManager or RunePlayer thingy!
+	/// Add players based on the playerManager or RRPlayer thingy!
 	List<Player*> players = PlayerMan.GetPlayers();
 	for (int i = 0; i < players.Size(); ++i){
-		RunePlayer * rp = (RunePlayer*)players[i];
+		RRPlayer * rp = (RRPlayer*)players[i];
 		RuneBattler * newPlayerBattler = new RuneBattler(*rp->Battler());
 		AddPlayerBattler(newPlayerBattler);
 	}

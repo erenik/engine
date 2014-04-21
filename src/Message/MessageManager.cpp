@@ -59,7 +59,8 @@ void MessageManager::ProcessPackets(){
 #ifdef USE_NETWORK
     packetQueueMutex.Claim(-1);
 	// Process
-	while (packetQueue.Length()){
+	while (packetQueue.Length())
+	{
 		Packet * packet = packetQueue.Pop();
 		ProcessPacket(packet);
 		delete packet;
@@ -68,7 +69,8 @@ void MessageManager::ProcessPackets(){
 #endif
 }
 
-void MessageManager::ProcessMessages(){
+void MessageManager::ProcessMessages()
+{
 	/// Fetch available messages, then process them later, or lese mutexes will deadlock if trying to process the messages while locked with e.g. the graphics thread.
     msgQueueMutex.Claim(-1);
 	Queue<Message*> messageQueueCopy;
@@ -206,6 +208,16 @@ void MessageManager::ProcessMessage(Message * message){
 		UIVideo * video = (UIVideo*) e;
 		video->TogglePause();
 
+	}
+	else if (msg.Contains("UIProceed("))
+	{
+		String name = msg.Tokenize("()")[1];
+		UserInterface * ui = StateMan.ActiveState()->GetUI();
+		UIElement * e = ui->GetElementByName(name);
+		if (!e)
+			return;
+		e->Proceed();
+		return;
 	}
 	else if (msg.Contains("UITextureInput("))
 	{

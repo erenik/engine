@@ -25,6 +25,7 @@ Session::Session(String name, String typeName, int type)
 	me = NetworkMan.Me();
 
 	isHost = false;
+	isConnected = false;
 	host = NULL;
 	tcpServer = NULL;
 	hostSocket = NULL;
@@ -36,6 +37,18 @@ Session::~Session(){
 }
 
 
+/// Query if this session is running/active and successfully has bound it's designated listen ports.
+bool Session::IsHost() const
+{
+	return isHost;
+}
+
+/// If we are currently connected as a client in this session.
+bool Session::IsConnected() const
+{
+	return isConnected;
+}
+
 /// Connects to address/port.
 bool Session::ConnectTo(String ipAddress, int port)
 {
@@ -43,7 +56,9 @@ bool Session::ConnectTo(String ipAddress, int port)
 	assert(hostSocket == NULL);
 	hostSocket = new TcpSocket();
 	bool success = hostSocket->ConnectTo(ipAddress, port);
-	if (success){
+	if (success)
+	{
+		isConnected = true;
 		return true;
 	}
 	lastErrorString = hostSocket->GetLastErrorString();
@@ -109,6 +124,7 @@ void Session::Stop(){
 void Session::OnHostDisconnected(Peer * host)
 {
 	assert(false && "Subclass");
+	isConnected = false;
 }
 
 

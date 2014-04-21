@@ -5,10 +5,10 @@
 #ifndef RUNE_STATE_H
 #define RUNE_STATE_H
 
-#include "GameStates/GameState.h"
+#include "../RRGameState.h"
 
 /// Game state for combination of runes and rune-templates! Menu-intensive with some cool visualizations hopefully ;)
-class RuneState : public GameState {
+class RuneState : public RRGameState {
 public:
 	RuneState();
 

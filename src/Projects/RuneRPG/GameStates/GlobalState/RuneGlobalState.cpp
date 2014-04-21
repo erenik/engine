@@ -36,10 +36,15 @@ extern UserInterface * ui[MAX_GAME_STATES];
 #include "Graphics/Fonts/Font.h"
 
 #include "Maps/Grids/GridObject.h"
+#include "UI/UIInput.h"
+#include "RuneRPG/Network/RRPacket.h"
 
-RuneGlobalState::RuneGlobalState(){
+RuneGlobalState::RuneGlobalState()
+{
 	id = GAME_STATE_GLOBAL;
 	TextFont::defaultFontSource = "font3.png";
+	targetPort = RR_DEFAULT_PORT;
+	targetIP = "127.0.0.1";
 }
 
 void RuneGlobalState::OnEnter(GameState * previousState){
@@ -93,12 +98,49 @@ void RuneGlobalState::ProcessPacket( Packet * packet ){
 
 }
 
-void RuneGlobalState::ProcessMessage( Message * message ){
+void RuneGlobalState::ProcessMessage( Message * message )
+{
 	String msg = message->msg;
 	msg.SetComparisonMode(String::NOT_CASE_SENSITIVE);
 	if (msg.Contains("BattleTest") || msg.Contains("TestBattle")){
 		BattleMan.QueueBattle("Practice");
 		StateMan.QueueState(RUNE_GAME_STATE_BATTLE_STATE);
+	}
+	else if (msg == "LoadMultiplayerDefaults")
+	{
+		// TODO: Actually load something.
+		Graphics.QueueMessage(new GMSetUIs("IP", GMUI::STRING_INPUT_TEXT, "127.0.0.1"));
+		Graphics.QueueMessage(new GMSetUIs("Port", GMUI::INTEGER_INPUT_TEXT, "33000"));
+	}
+	else if (msg == "Host game")
+	{
+		// Host session.
+		bool result = this->Host(targetPort);
+		if (result)
+		{
+			// Go to lobby!
+			NetworkLog("Game hosted.");
+			// Push lobby ui.
+			Graphics.QueueMessage(new GMPushUI("gui/Lobby.gui"));
+		}
+		else 
+		{
+			// Inform user.
+			NetworkLog("Unable to host game.");
+		}
+	}
+	else if (msg == "Join game")
+	{
+		bool result = this->Join(targetIP, targetPort);
+	}
+	else if (msg == "ChatInput")
+	{
+		// Fetch text and clear it.
+		UITextField * input = (UITextField*)message->element;
+		String text = input->text;
+		Graphics.QueueMessage(new GMSetUIs("ChatInput", GMUI::TEXT, ""));
+		// Post it to current game state and over the session to any peers.
+		session->PostChatMessage(text);
 	}
 	else if (msg.Contains("EnterState(")){
 		/// Fetch name.
@@ -201,6 +243,14 @@ void RuneGlobalState::ProcessMessage( Message * message ){
 		// Add them.
 	}
 }
+
+/*
+/// Called to log network-related messages, like clients joining or failures to host. Display appropriately.
+void RuneGlobalState::NetworkLog(String message)
+{
+	Graphics.QueueMessage(new GMSetUIs("NetworkLog", GMUI::TEXT, `
+}
+*/
 
 void RuneGlobalState::Process(float time){
 	Sleep(10);

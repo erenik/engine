@@ -1,11 +1,11 @@
 // Emil Hedemalm
-// 2013-07-11
-// A Space Race player!
+// 2014-04-18
+// A RuneRPG player
 
-#include "RunePlayer.h"
+#include "RRPlayer.h"
 #include "Battle/RuneBattler.h"
 
-RunePlayer::RunePlayer(String name)
+RRPlayer::RRPlayer(String name)
 : Player(name)
 {
 	playerState = NULL;
@@ -13,12 +13,13 @@ RunePlayer::RunePlayer(String name)
 	/// Set default values to the battler as needed
 	battler.isAI = false;
 	battler.name = name;
+	isReady = false;
 }
 
 /// Be sure to deallocate all data, yo...
-RunePlayer::~RunePlayer(){
+RRPlayer::~RRPlayer(){
 }
 
-RuneBattler * RunePlayer::Battler(){
+RuneBattler * RRPlayer::Battler(){
 	return &battler;
 }

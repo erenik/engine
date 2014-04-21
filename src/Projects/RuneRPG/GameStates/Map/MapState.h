@@ -5,13 +5,13 @@
 #define MAP_STATE_H
 
 #include "Game/GameConstants.h"
-#include "GameStates/GameState.h"
+#include "../RRGameState.h"
 #include "GameStates/GameStates.h"
 #include "Selection.h"
 
 class RuneEntity;
-class RunePlayer;
-class RunePlayerState;
+class RRPlayer;
+class RREntityState;
 class RuneShop;
 
 namespace EnterMode {
@@ -27,7 +27,7 @@ enum enterModes{
 class TileMap2D;
 
 /// When walking around on the "maps"
-class MapState : public GameState{
+class MapState : public RRGameState {
 	friend class RuneEditor;
 	friend class EditorState;
 public:
@@ -86,9 +86,9 @@ private:
 
 	/// Active shop!
 	RuneShop * activeShop;
-	RunePlayer * player;
+	RRPlayer * player;
 	Entity * playerEntity;
-	RunePlayerState * playerState;
+	RREntityState * playerState;
 	TileMap2D * activeMap;
 	int enterMode;
 

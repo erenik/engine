@@ -183,6 +183,11 @@ UIElement::~UIElement()
 	// Input.OnElementDeleted(this);
 }
 
+/// Callback-function for sub-classes to implement own behaviour to run within the UI-class' code.
+void UIElement::Proceed()
+{
+}
+
 /// Sets text, queueing recalculation of the rendered variant.
 void UIElement::SetText(Text newText, bool force){
 	/// Check that it's not currently being edited. If so cancel this setting.
@@ -503,21 +508,24 @@ UIElement * UIElement::GetUpNeighbour(UIElement * referenceElement){
 	if (referenceElement == NULL){
 		referenceElement = this;
 	}
-	/// w.
+	/// If we have a pointer, just use it!
 	if (upNeighbour){
 		element = upNeighbour;
 	}
-	/// Check if we got a preferred neighbour.
-	if (upNeighbourName.Length())
-		element = this->GetRoot()->GetElementByName(upNeighbourName);
-	/// If still haven't found a decent one, consult our parent.
-	if (!element && parent){
-		element = parent->GetUpNeighbour(referenceElement);
+	/// If not, fetch it if possible.
+	else {
+		/// Check if we got a preferred neighbour.
+		if (upNeighbourName.Length())
+			element = this->GetRoot()->GetElementByName(upNeighbourName);
+		/// If still haven't found a decent one, consult our parent.
+		if (!element && parent){
+			element = parent->GetUpNeighbour(referenceElement);
+		}
 	}
 	/// All-right, so we found a suitable neighbour hopefully. Make sure that it is hoverable?
 	if (element && !element->hoverable){
 		/// First query if the element has any valid hoverable children, if so select them.
-		UIElement * childElement = element->GetElementByFlag(UIFlag::HOVERABLE);
+		UIElement * childElement = element->GetElementByFlag(UIFlag::ACTIVATABLE);
 		if (childElement)
 			element = childElement;
 		/// If no valid children could be found, continue searching.
@@ -528,22 +536,26 @@ UIElement * UIElement::GetUpNeighbour(UIElement * referenceElement){
 }
 
 /// Suggests a neighbour which could be to the right of this element. Meant to be used for UI-navigation support. The reference element indicates the element to which we are seeking a compatible or optimum neighbour.
-UIElement * UIElement::GetRightNeighbour(UIElement * referenceElement){
+UIElement * UIElement::GetRightNeighbour(UIElement * referenceElement)
+{
 	UIElement * element = NULL;
 	// Ok, we are the one,
 	if (referenceElement == NULL){
 		referenceElement = this;
 	}
-	/// w.
+	/// If we have a pointer, just use it!
 	if (rightNeighbour){
 		element = rightNeighbour;
 	}
-	/// Check if we got a preferred neighbour.
-	if (rightNeighbourName.Length())
-		element = this->GetRoot()->GetElementByName(rightNeighbourName);
-	/// If still haven't found a decent one, consult our parent.
-	if (!element && parent){
-		element = parent->GetRightNeighbour(referenceElement);
+	/// If not, fetch it if possible.
+	else {
+		/// Check if we got a preferred neighbour.
+		if (rightNeighbourName.Length())
+			element = this->GetRoot()->GetElementByName(rightNeighbourName);
+		/// If still haven't found a decent one, consult our parent.
+		if (!element && parent){
+			element = parent->GetRightNeighbour(referenceElement);
+		}
 	}
 	/// All-right, so we found a suitable neighbour hopefully. Make sure that it is hoverable?
 	if (element && !element->hoverable){
@@ -566,16 +578,19 @@ UIElement * UIElement::GetDownNeighbour(UIElement * referenceElement)
 	if (referenceElement == NULL){
 		referenceElement = this;
 	}
-	/// w.
+	/// If we have a pointer, just use it!
 	if (downNeighbour){
 		element = downNeighbour;
 	}
-	/// Check if we got a preferred neighbour.
-	if (downNeighbourName.Length())
-		element = this->GetRoot()->GetElementByName(downNeighbourName);
-	/// If still haven't found a decent one, consult our parent.
-	if (!element && parent){
-		element = parent->GetDownNeighbour(referenceElement);
+	/// If not, fetch it if possible.
+	else {
+		/// Check if we got a preferred neighbour.
+		if (downNeighbourName.Length())
+			element = this->GetRoot()->GetElementByName(downNeighbourName);
+		/// If still haven't found a decent one, consult our parent.
+		if (!element && parent){
+			element = parent->GetDownNeighbour(referenceElement);
+		}
 	}
 	/// All-right, so we found a suitable neighbour hopefully. Make sure that it is hoverable?
 	if (element && !element->hoverable){
@@ -597,16 +612,19 @@ UIElement * UIElement::GetLeftNeighbour(UIElement * referenceElement){
 	if (referenceElement == NULL){
 		referenceElement = this;
 	}
-	/// w.
+	/// If we have a pointer, just use it!
 	if (leftNeighbour){
 		element = leftNeighbour;
 	}
-	/// Check if we got a preferred neighbour.
-	if (leftNeighbourName.Length())
-		element = this->GetRoot()->GetElementByName(leftNeighbourName);
-	/// If still haven't found a decent one, consult our parent.
-	if (!element && parent){
-		element = parent->GetLeftNeighbour(referenceElement);
+	/// If not, fetch it if possible.
+	else {
+		/// Check if we got a preferred neighbour.
+		if (leftNeighbourName.Length())
+			element = this->GetRoot()->GetElementByName(leftNeighbourName);
+		/// If still haven't found a decent one, consult our parent.
+		if (!element && parent){
+			element = parent->GetLeftNeighbour(referenceElement);
+		}
 	}
 	/// All-right, so we found a suitable neighbour hopefully. Make sure that it is hoverable?
 	if (element && !element->hoverable){
@@ -1616,9 +1634,11 @@ void UIElement::RemoveFlags(int flags){
 	}
 }
 
-UILabel::UILabel()
+UILabel::UILabel(String name /*= ""*/)
 : UIElement()
 {
+	this->name = name;
+	text = name;
 	type = UIType::LABEL;
 	selectable = hoverable = activateable = false;
 	/// Set text-color at least for labels!

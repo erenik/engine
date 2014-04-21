@@ -12,9 +12,10 @@
 #include "Graphics/GraphicsManager.h"
 #include "Graphics/Messages/GMUI.h"
 
-UIInput::UIInput()
+UIInput::UIInput(String name /*= ""*/)
 : UIElement()
 {
+	this->name = name;
 	type = UIType::INPUT_FIELD;
 	selectable = hoverable = activateable = true;
 	activationMessage = "BEGIN_INPUT(this)";

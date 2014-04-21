@@ -17,8 +17,8 @@
 #include <Util.h>
 #include <iomanip>
 #include "Maps/2D/TileMap2D.h"
-#include "RuneRPG/EntityStates/Player/RunePlayerState.h"
-#include "../../RunePlayer.h"
+#include "RuneRPG/EntityStates/RREntityState.h"
+#include "../../RRPlayer.h"
 #include "Player/PlayerManager.h"
 #include "RuneRPG/Battle/RuneBattler.h"
 #include "Event/Event.h"
@@ -48,7 +48,8 @@
 extern UserInterface * ui[MAX_GAME_STATES];
 
 MapState::MapState()
-: GameState(){
+: RRGameState()
+{
 	id = RUNE_GAME_STATE_MAP;
 	stateName = "MapState";
 	enterMode = EnterMode::NULL_MODE;
@@ -98,12 +99,12 @@ void MapState::OnEnter(GameState * previousState){
 
 	/// Grab first player, or create new one as needed?
 	if (PlayerMan.NumPlayers() == NULL){
-		player = new RunePlayer("Player");
+		player = new RRPlayer("Player");
 		PlayerMan.AddPlayer(player);
 	}
 	else {
 		Player * p = PlayerMan.Get(0);
-		player = (RunePlayer*)p;
+		player = (RRPlayer*)p;
 	}
 
 	/// Do special stuff depending on enter-mode.
@@ -150,7 +151,7 @@ void MapState::OnEnter(GameState * previousState){
 
 	/// Establish link to player entity state if existing.
 	if (playerEntity && playerEntity->state){
-		playerState = (RunePlayerState*)playerEntity->state->GlobalState();
+		playerState = (RREntityState*)playerEntity->state->GlobalState();
 		Graphics.QueueMessage(new GMSetEntity(playerEntity, ANIMATION_SET, "Map/Test"));
 	}
 
@@ -601,7 +602,7 @@ void MapState::ProcessMessage(Message * message)
 				entity->name = name;
 				entity->state = new StateProperty(entity);
 				/// Create a proper entity state for it based on the EntityStateTile2D
-				entity->state->SetGlobalState(new RunePlayerState(entity));
+				entity->state->SetGlobalState(new RREntityState(entity));
 				lastModifiedEntity = entity;
 			}
 			else if (string.Contains("OnInteract")){
@@ -716,7 +717,7 @@ bool MapState::PlacePlayer(Vector3i position)
 	playerEntity->flags |= PLAYER_OWNED_ENTITY;
 
 	TileMap2D * tMap = (TileMap2D*)MapMan.ActiveMap();
-	playerState = new RunePlayerState(playerEntity);
+	playerState = new RREntityState(playerEntity);
 	playerEntity->state->SetGlobalState(playerState);
 	/// Give it test animation
 	Graphics.QueueMessage(new GMSetEntity(playerEntity, ANIMATION_SET, "Map/Test"));

@@ -39,6 +39,7 @@ public:
 		TEXT,
 		TEXTURE_SOURCE,
 		STRING_INPUT_TEXT, // For UIStringInput
+		INTEGER_INPUT_TEXT, // For UIIntegerInput
 		TEXTURE_INPUT_SOURCE, // For UITextureInput
 	};
 protected:

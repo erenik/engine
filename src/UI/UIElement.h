@@ -54,6 +54,9 @@ public:
 	/// Copy-cosntructor.
 	UIElement(const UIElement & reference);
 
+	/// Callback-function for sub-classes to implement own behaviour to run within the UI-class' code.
+	virtual void Proceed();
+
 	/// Sets text, queueing recalculation of the rendered variant. If not force, will ignore for active ui input elements.
 	void SetText(Text newText, bool force = false);
 
@@ -386,7 +389,7 @@ private:
 
 class UILabel : public UIElement{
 public:
-	UILabel();
+	UILabel(String name = "");
 	virtual ~UILabel();
 };
 

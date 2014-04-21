@@ -18,6 +18,11 @@ public:
 	/// Virtual destructor for proper deallocation.
 	virtual ~Session();
 
+	/// Query if this session is running/active and successfully has bound it's designated listen ports.
+	virtual bool IsHost() const;
+	/// If we are currently connected as a client in this session.
+	virtual bool IsConnected() const;
+
 	/// Connects to address/port.
 	virtual bool ConnectTo(String ipAddress, int port);
 	/// Attempts to start hosting a session of this kind. Default hosts 1 TcpServer on target port. 
@@ -80,6 +85,8 @@ protected:
 	List<Socket*> sockets;
 	/// If true, we are the host to this session.
 	bool isHost;
+	/// If true, we are currently connected to a peer/host.
+	bool isConnected;
 	/// For hosting localHost-only sessions.
 	bool localOnly;
 	

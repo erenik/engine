@@ -38,7 +38,7 @@ extern UserInterface * ui[MAX_GAME_STATES];
 #include "Event/Event.h"
 #include "../Map/MapState.h"
 #include "EntityStates/StateProperty.h"
-#include "../../EntityStates/Player/RunePlayerState.h"
+#include "../../EntityStates/RREntityState.h"
 #include "Graphics/Camera/Camera.h"
 #include "GraphicsState.h"
 #include "../../RuneDirectories.h"
@@ -1143,7 +1143,7 @@ void RuneEditor::Playtest(){
 		player->state = new StateProperty(player);
 		// Lall.
 	//	EntityStateTile2D * entityTile2D = ((TileMap2D*)MapMan.ActiveMap())->GetEntity2DByEntity(player);
-	//	player->state->SetGlobalState(new RunePlayerState(player, entityTile2D));
+	//	player->state->SetGlobalState(new RREntityState(player, entityTile2D));
 		//	Physics.QueueMessage(new PMSetEntity(POSITION, player, Vector3f(tile->X(),tile->Y(),5)));
 	}
 	if (e)

@@ -9,8 +9,9 @@
 #include "Network/Peer.h"
 #include "Network/Server/TcpServer.h"
 
-GameSession::GameSession(String name, String gameName, int maxPlayers)
-: Session(name, gameName, SessionType::GAME), maxPlayers(maxPlayers)
+/// Name of our specific session, the game's name, max amount of peers/clients, and your name for this session.
+GameSession::GameSession(String sessionName, String gameName, int maxPeers, String name)
+: Session(sessionName, gameName, SessionType::GAME), maxPlayers(maxPlayers), name(name)
 {
 	currentPlayers = 0;
 	udpSocket = NULL;
@@ -45,21 +46,25 @@ Game * GameSession::GetGame(){
 }
 
 /// Performs regular tcp connection via Session, but also sets up our client UDP socket.
-bool GameSession::ConnectTo(String ipAddress, int port, int clientUdpPort)
+bool GameSession::ConnectTo(String ipAddress, int port, int clientUdpPort /* = -1 */)
 {
 	bool result = Session::ConnectTo(ipAddress, port);
 	if (!result){
 		/// Error string should have been set by Session::ConnectTo
 		return false;
 	}
-	if (!udpSocket)
-		udpSocket = new UdpSocket();
-	result = udpSocket->Bind(clientUdpPort);
-	udpSocket->peerAddress = ipAddress;
-	if (!result)
+	// Only do UDP stuff if it was requested to use a UDP port.
+	if (clientUdpPort > 0)
 	{
-		this->lastErrorString = udpSocket->GetLastErrorString();
-		return false;
+		if (!udpSocket)
+			udpSocket = new UdpSocket();
+		result = udpSocket->Bind(clientUdpPort);
+		udpSocket->peerAddress = ipAddress;
+		if (!result)
+		{
+			this->lastErrorString = udpSocket->GetLastErrorString();
+			return false;
+		}
 	}
 	isLocal = false;
 	return true;

@@ -10,7 +10,9 @@
 namespace GameSessionType {
 enum gameSessionTypes {
 	NULL_TYPE,
-	SPACE_RACE
+	SPACE_RACE,
+	RUNE_RPG,
+
 };
 };
 

@@ -13,6 +13,10 @@
 #define MEDIA_SEARCH_EVENT      "MediaSearchEvent"
 #define GAME_SEARCH_EVENT		"GameSearchEvent"
 
+// Reserved pots for SIP, 10 ports.
+#define DEFAULT_SIP_START_PORT	33000
+#define DEFAULT_SIP_MAX_PORT	33009
+
 class SIPSessionData;
 class SIPRegisterPacket;
 class SIPEvent;

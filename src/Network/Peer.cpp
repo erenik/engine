@@ -13,6 +13,7 @@ Peer::Peer()
 	port = -1;
 	isValid = false;
 	ipAddress = "";
+	primaryCommunicationSocket = NULL;
 }
 
 /// Removes any references to target socket.

@@ -4,11 +4,11 @@
 #ifndef MAIN_MENU_H
 #define MAIN_MENU_H
 
-#include "GameStates/GameState.h"
+#include "../RRGameState.h"
 #include "GameStates/GameStates.h"
 #include "Game/GameConstants.h"
 
-class MainMenu : public GameState{
+class MainMenu : public RRGameState{
 public:
 	MainMenu();
 	~MainMenu();
@@ -25,6 +25,22 @@ public:
 	// For stuff
 	void IncreaseRequestedPlayers();
 	void DecreaseRequestedPlayers();
+
+	// Stuff! o.o
+	virtual void OnChatMessageReceived(ChatMessage * cm);
+
+protected:
+	// For updating lobby-gui.
+	void OnPlayersUpdated();
+	void OnPlayerReadyStateUpdated();
+
+	/// Called once, in order to set player name and maybe notify of updates, etc?
+	void OnFirstEnter();
+	bool enteredOnce;
+
+	/// Called to log network-related messages, like clients joining or failures to host. Display appropriately.
+	virtual void NetworkLog(String message);
+
 private:
 	int requestedPlayers;
 };

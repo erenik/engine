@@ -8,7 +8,7 @@
 #include "Maps/Grids/TileTypeManager.h"
 #include "RuneRPG/GameStates/Map/MapState.h"
 #include "EntityStates/StateProperty.h"
-#include "RuneRPG/EntityStates/Player/RunePlayerState.h"
+#include "RuneRPG/EntityStates/RREntityState.h"
 #include "Input/InputManager.h"
 #include "StateManager.h"
 #include "Graphics/GraphicsManager.h"

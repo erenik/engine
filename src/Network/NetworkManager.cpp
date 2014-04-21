@@ -235,6 +235,12 @@ void NetworkManager::Shutdown(){
 	}
 }
 
+/// Adds new peer!
+void NetworkManager::AddPeer(Peer * newPeer)
+{
+	peers.Add(newPeer);
+}
+
 /// Returns object representing self. This should not be modified after sessions have been started of any kind.
 Peer * NetworkManager::Me(){
 	return me;
@@ -314,14 +320,43 @@ void NetworkManager::SetSIPServerPort(int port){
     std::cout << "SIP server port set to: "<<sipPort;
 }
 
+
+/// Query function for the SIP server.
+bool NetworkManager::IsSIPServerRunning()
+{
+    if (!initialized)
+        return false;
+	assert(sipSession);
+	if (sipSession->IsHost())
+		return true;
+	return false;
+}
+
 bool NetworkManager::StartSIPServer()
 {
     if (!initialized)
         return false;
     std::cout<<"\nStarting SIP server.";
     assert(sipSession);
-	bool hosted = sipSession->Host();
-	if (!hosted){
+	// Return if already hosted.
+	if (sipSession->IsHost())
+		return true;
+	bool hosted;
+	for (int i = DEFAULT_SIP_START_PORT; i <= DEFAULT_SIP_MAX_PORT; ++i)
+	{
+		hosted = sipSession->Host(i);
+		if (hosted)
+		{
+			std::cout<<"\nSIP server hosted on port: "<<i;
+			break;
+		}
+		else {
+			std::cout<<"\nUnable to host SIP Server on port: "<<i;	
+		}
+	}
+	if (!hosted)
+	{
+		std::cout<<"\nUnable to host SIP Server on any of the 10 default ports!";
 		lastErrorString = sipSession->GetLastErrorString();
 		return false;
 	}
@@ -369,8 +404,21 @@ List<Peer*> NetworkManager::GetPeers()
  * @param port Port for the server
  * @return True on success
  */
-bool NetworkManager::ConnectTo(const String ipAddress, int port)
+bool NetworkManager::ConnectTo(const String ipAddress, int port /* = -1 */)
 {
+	// Default settings, recursive with default ports.
+	if (port == -1)
+	{
+		for (int i = DEFAULT_SIP_START_PORT; i <= DEFAULT_SIP_MAX_PORT; ++i)
+		{
+			bool result = ConnectTo(ipAddress, i);
+			if (result)
+				return result;
+		} 
+		lastErrorString = "Default SIP ports not working.";
+		return false;
+	}
+
     std::cout << "NetworkManager::ConnectTo called with ip: "<< ipAddress <<" and port: "<<port;
 	if (sipSession->IsHost() && port == sipPort && ipAddress == "127.0.0.1"){
         std::cout<<"Trying to connect to self, aborting.";

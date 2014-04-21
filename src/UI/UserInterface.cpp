@@ -889,6 +889,15 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 				SET_DEFAULTS;
 				si->CreateChildren();
 			}
+			else if (token == "IntegerInput" ||
+				token == "IntInput")
+			{
+				ADD_PREVIOUS_TO_UI_IF_NEEDED
+				UIIntegerInput * ii = new UIIntegerInput(firstQuote, "Set"+firstQuote);
+				element = ii;
+				SET_DEFAULTS
+				ii->CreateChildren();
+			}
 			else if (token == "FloatInput"){
 				ADD_PREVIOUS_TO_UI_IF_NEEDED
 				UIFloatInput * fi = new UIFloatInput(firstQuote, "Set"+firstQuote);

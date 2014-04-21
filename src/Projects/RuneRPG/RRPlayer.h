@@ -1,6 +1,6 @@
 // Emil Hedemalm
 // 2013-07-11
-// A Space Race player!
+// A RuneRPG player
 
 #ifndef RUNE_PLAYER_PLAYER_H
 #define RUNE_PLAYER_PLAYER_H
@@ -9,21 +9,25 @@
 #include "Battle/RuneBattler.h"
 
 class RuneBattler;
-class RunePlayerState;
+class RREntityState;
 
-class RunePlayer : public Player {
+class RRPlayer : public Player {
 public:
-	RunePlayer(String name);
+	RRPlayer(String name = "");
 	/// Be sure to deallocate all data, yo...
-	virtual ~RunePlayer();
+	virtual ~RRPlayer();
 	
 	/// Player entity state (primarily on map?)
-	RunePlayerState * playerState;
+	RREntityState * playerState;
 	// They of course want a ship-type!
 	Entity * entity;
 	/// Add more statistics later, hm?
 	
 	RuneBattler * Battler();
+
+	/// If ready?! Used for starting game, but maybe also pauses in-game.
+	bool isReady;
+
 private:
 	/// Player battler data!
 	RuneBattler battler;

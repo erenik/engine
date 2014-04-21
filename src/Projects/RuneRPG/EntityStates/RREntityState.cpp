@@ -1,7 +1,8 @@
 // Emil Hedemalm
-// 2013-06-15
+// 2014-04-18
+// RuneRPG Entity State, attached to all entities when moving about on the maps or in battles
 
-#include "RunePlayerState.h"
+#include "RREntityState.h"
 
 #include "Message/Message.h"
 #include "Physics/Messages/CollissionCallback.h"
@@ -17,9 +18,9 @@
 #include "Physics/PhysicsProperty.h"
 #include "Pathfinding/PathfindingProperty.h"
 
-const float RunePlayerState::DEFAULT_MOVEMENT_SPEED = 0.25f;
+const float RREntityState::DEFAULT_MOVEMENT_SPEED = 0.25f;
 
-RunePlayerState::RunePlayerState(Entity * entity)
+RREntityState::RREntityState(Entity * entity)
 : EntityStateTile2D(entity)
 {
 	entityTile2D = NULL;
@@ -33,11 +34,11 @@ RunePlayerState::RunePlayerState(Entity * entity)
 };
 
 /// Function when entering this state.
-void RunePlayerState::OnEnter(){
+void RREntityState::OnEnter(){
 }
 
 /// Main processing function
-void RunePlayerState::Process(float timePassed){
+void RREntityState::Process(float timePassed){
 	// 
 	timePassedSinceLastMovement += timePassed;
 	
@@ -47,11 +48,11 @@ void RunePlayerState::Process(float timePassed){
 
 }
 	/// Function when leaving this state
-void RunePlayerState::OnExit(){
+void RREntityState::OnExit(){
 }
 
-void RunePlayerState::ProcessMessage(Message * message){
-	std::cout<<"\nRunePlayerState::ProcessMessage: ";
+void RREntityState::ProcessMessage(Message * message){
+	std::cout<<"\nRREntityState::ProcessMessage: ";
 	switch(message->type){
 		case MessageType::STRING: {
 			message->msg;
@@ -77,7 +78,7 @@ void RunePlayerState::ProcessMessage(Message * message){
 				/// Check if there's any stuff on the map at looking location and trigger their OnInteract events if so!
 				TileMap2D * tmap = (TileMap2D*)MapMan.ActiveMap();
 				if (!tmap){
-					std::cout<<"\nERROR: RunePlayerState::ProcessMessage: No Active map to interact on!";
+					std::cout<<"\nERROR: RREntityState::ProcessMessage: No Active map to interact on!";
 					return;
 				}
 				Vector2i intTile = GetInteractionTile();
@@ -95,15 +96,15 @@ void RunePlayerState::ProcessMessage(Message * message){
 }
 
 /// Wosh.
-void RunePlayerState::DisableMovement(){
+void RREntityState::DisableMovement(){
 	movementEnabled = false;
 }
-void RunePlayerState::EnableMovement(){
+void RREntityState::EnableMovement(){
 	movementEnabled = true;
 }
 
 /// One step in the looking-direction.
-Vector2i RunePlayerState::GetInteractionTile(){		
+Vector2i RREntityState::GetInteractionTile(){		
 	// Check if tile is vacant and walkable, if so move to it.
 	Vector3f pos = entity->positionVector;
 	pos.Round();
@@ -132,7 +133,7 @@ Vector2i RunePlayerState::GetInteractionTile(){
 }
 
 /// Based on the requested direction..!
-void RunePlayerState::UpdateQueuedMovement(){
+void RREntityState::UpdateQueuedMovement(){
 	if (up)
 		queuedDirection = Direction::UP;
 	else if (left)
@@ -157,7 +158,7 @@ void RunePlayerState::UpdateQueuedMovement(){
 	}
 }
 
-void RunePlayerState::HandleMovement(float & timePassed)
+void RREntityState::HandleMovement(float & timePassed)
 {
 	float timeRemainingAfterReachingDestination = 0.0f;
 	if (isMoving)
@@ -256,7 +257,7 @@ void RunePlayerState::HandleMovement(float & timePassed)
 			bool success = map->MoveEntity(entity, reqTileX, reqTileY);
 			if (success){
 				newPosition = Vector3f(reqTileX, reqTileY, 0);
-				std::cout<<"\nRunePlayerState::HandleMovement Moved to: "<<newPosition;
+				std::cout<<"\nRREntityState::HandleMovement Moved to: "<<newPosition;
 				direction = queuedDirection;
 				movementProgress = 0.0f;
 				isMoving = true;
