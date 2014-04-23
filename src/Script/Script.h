@@ -9,17 +9,22 @@
 
 /// Compact saveable version of the event
 struct CompactEvent{};
+class GameState;
 
-// Event flags
+// Script flags
 #define DELETE_WHEN_ENDED	0x00000001
 
-/// An arbitrary event
-class Event{
-public:
-	Event(const Event & base);
-	Event(String name = "Event");
+#define Script Script
 
-	/// Wosh o.o, NOTE that the root dir will be appended at the start automatically!
+/// An arbitrary script-sequence.
+class Script {
+public:
+	Script(const Script & base);
+	Script(String name = "Script", Script * parentScript = NULL);
+
+	/// Loads script using given name as reference to source-file.
+	bool Load();
+	/// Wosh o.o, NOTE that the root dir will be appended at the start automatically! <- Wat?
 	bool Load(String fromFile);
 
 	/// Regular state-machine mechanics for the events, since there might be several parralell events?
@@ -29,6 +34,9 @@ public:
 	void EvaluateLine(String & line);
 	/// Resets the event so that it can be re-played again!
 	void Reset();
+
+	/// o.o
+	virtual void OnScriptEnded(Script * childScript);
 
 	/// File I/O. Reading will reset data.
 	bool WriteTo(std::fstream & file);
@@ -51,13 +59,16 @@ public:
 		ENDED,
 	};
 
-	/// Event name, can be renamed upon loading apparently.. :P
+	/// Script name. May also be the contents of the script for custom one-liner basic functions.
 	String name;
 	/// Source-script file to parse and load/use when activathed.
 	String source;
 	Vector3f position;
 	int state;
 	
+	/// To keep track of things.
+	Script * parent;
+
 	/// Wosh?
 	bool loaded;
 	bool executed;
@@ -69,6 +80,11 @@ public:
 		ON_TOUCH,	// OnTouch = When stepping on the tile
 		ON_APPROACH, // OnApproach = When one tile away and approaching the specified tile.
 	};
+
+	/** If this was called from another script. Mark it here. 
+		Callback method OnScriptFinished() will then be called on the parent upon completion.
+	*/
+	Script * parentScript;
 
 	/// Main trigger-condition type, which can be one of the previous enums.
 	int triggerCondition;
@@ -86,6 +102,7 @@ private:
 	/// For handling stuff...
 	bool isInAlternativeDialogue;
 };
+
 
 #endif
 

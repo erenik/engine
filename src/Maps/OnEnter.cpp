@@ -2,8 +2,8 @@
 // What?
 
 #include "Map.h"
-#include "Event/Event.h"
-#include "Event/EventManager.h"
+#include "Script/Script.h"
+#include "Script/ScriptManager.h"
 
 
 struct Map::OnEnterAttributes{
@@ -19,15 +19,15 @@ void Map::OnEnter(){
 		bool result = LoadEvents();
 		std::cout<<"\nLoaded events: "<<result;
 		for (int i = 0; i < events.Size(); ++i){
-			Event * event = events[i];
-			if (event->triggerCondition == Event::ON_ENTER){
+			Script * event = events[i];
+			if (event->triggerCondition == Script::ON_ENTER){
 				// Begin le eveunt!
 	//			events[i]->OnBegin();
-				Event * newEvent;
+				Script * newEvent;
 				std::cout<<"\nOnEnter event found, creating new one.";
-				newEvent = new Event(*event);
+				newEvent = new Script(*event);
 				std::cout<<"\nOnEnter event found, creating new one.";
-				EventMan.BeginEvent(newEvent);
+				ScriptMan.BeginEvent(newEvent);
 			}
 		}
 	}

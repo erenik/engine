@@ -9,7 +9,7 @@ class GridObject;
 class GridObjectType;
 class Camera;
 class TileMap2D;
-class Event;
+class Script;
 class Light;
 struct TileType;
 struct GraphicsState;
@@ -109,7 +109,7 @@ private:
 
 	/// Active map.
 	TileMap2D * map;
-	Event * selectedEvent;
+	Script * selectedEvent;
 	Light * selectedLight;
 	/// New size to apply to map.
 	Vector2i newSize;

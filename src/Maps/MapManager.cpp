@@ -13,7 +13,7 @@
 #include "TextureManager.h"
 #include "2D/TileMap2D.h"
 #include "OS/Sleep.h"
-#include "Event/Event.h"
+#include "Script/Script.h"
 #include "Graphics/Messages/GraphicsMessages.h"
 #include "Pathfinding/WaypointManager.h"
 #include "Pathfinding/Path.h"
@@ -21,6 +21,7 @@
 #include "Entity/EntityFlags.h"
 #include "Graphics/Render/Renderable.h"
 #include <cstring>
+#include "Script/Script.h"
 
 // Singleton initialization.
 MapManager * MapManager::mapMan = NULL;
@@ -484,22 +485,21 @@ Entity * MapManager::CreateEntity(Model * model, Texture * texture, Vector3f pos
 	return entity;
 }
 
-#include "Event/Event.h"
-
 /** Adds an event ~ */
-bool MapManager::AddEvent(Event * event){
+bool MapManager::AddEvent(Script * eventScript)
+{
 	assert(activeMap);
-	return activeMap->AddEvent(event);
+	return activeMap->AddEvent(eventScript);
 }
 
 /** Creates an event, placing it in the list of the maplir. */
-Event * MapManager::CreateEvent(){
+Script * MapManager::CreateEvent(){
 	assert(false);
 	return NULL;
 }
 
 /// Attempts to remove given event from ze map.
-bool MapManager::DeleteEvent(Event * event){
+bool MapManager::DeleteEvent(Script * event){
 	assert(activeMap);
 	bool result = activeMap->events.Remove(event);
 	if (result)
@@ -515,7 +515,7 @@ void MapManager::DeleteEvents(){
 }
 
 /// Oy. Gets active map's events.
-List<Event*> MapManager::GetEvents(){
+List<Script*> MapManager::GetEvents(){
 	assert(activeMap);
 	return activeMap->events;
 }

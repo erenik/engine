@@ -15,7 +15,7 @@
 #include <GL/glx.h>     // connect X server with OpenGL
 
 
-/// XWindow Event Processor, return NULL for basic actions, integer numbers for exit codes.
+/// XWindow Script Processor, return NULL for basic actions, integer numbers for exit codes.
 void * XProc(XEvent & event);
 
 #endif // LINUX

@@ -70,11 +70,6 @@ void RuneEditor::InputProcessor(int action, int inputDevice/* = 0*/){
 			}
 			break;
 		}
-		case GO_TO_MAIN_MENU:
-			std::cout<<"\nInput>>GO_TO_MAIN_MENU";
-			StateMan.QueueState(GAME_STATE_MAIN_MENU);
-			break;
-
 		/// Opening the general console for multi-purpose commands of more difficult nature
 		case OPEN_CONSOLE:
 			std::cout<<"\nOpening multi-purpose console: ";

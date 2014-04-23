@@ -1,6 +1,6 @@
 /// Emil Hedemalm
 /// 2014-01-28
-/// Event structure for handling subscribe/notify mechanism
+/// Script structure for handling subscribe/notify mechanism
 
 #ifndef SIP_EVENT_H
 #define SIP_EVENT_H

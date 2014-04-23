@@ -19,6 +19,8 @@ public:
 
 	/// Hosts a game
 	bool Host(int port = RR_DEFAULT_PORT);
+	// Stop hosting this game. 
+	bool CancelGame();
 	bool Join(String ip, int port = RR_DEFAULT_PORT);
 
 	/// Fetches players from the active session.

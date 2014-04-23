@@ -21,7 +21,7 @@ struct GraphicsProperty;
 struct PhysicsProperty;
 struct StateProperty;
 struct PathfindingProperty;
-class EventProperty;
+class ScriptProperty;
 class CompactEntity;
 struct Triangle;
 /*
@@ -65,7 +65,7 @@ public:
 	/// StateMachine for gameplay
 	StateProperty * state;
 	/// Containing OnTrigger, OnInteract, On-- etc.
-	EventProperty * events;
+	ScriptProperty * events;
 	/// Survival attributes if destroyable/killable  <-- Build into your StateProperties!
 ///	LifeAttribute * life;
 

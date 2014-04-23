@@ -14,6 +14,7 @@
 class Model;
 class Texture;
 class TileMap2D;
+class Script;
 struct Ray;
 
 /** Defines a class that keeps track of and separates different maps,
@@ -57,17 +58,17 @@ public:
 	Entity * CreateEntity(Model * model, Texture * texture, Vector3f position = Vector3f());
 
 	/** Adds an event ~ */
-	bool AddEvent(Event * event);
+	bool AddEvent(Script * eventScript);
 	/** Creates an event, placing it in the list of the maplir. */
-	Event * CreateEvent();
+	Script * CreateEvent();
 	/** Attempts to remove given event from ze map. Also calls it's destructorrrr if it exists within the given map.
 		In the case that the event does not exist in the active map, the function will return false and NO destructor will be called!
 	*/
-	bool DeleteEvent(Event * event);
+	bool DeleteEvent(Script * eventScript);
 	/// Deletes all events.
 	void DeleteEvents();
 	/// Oy. Gets active map's events.
-	List<Event*> GetEvents();
+	List<Script*> GetEvents();
 
 	/** Queries deletion of all entities in the active map. */
 	int DeleteEntities();

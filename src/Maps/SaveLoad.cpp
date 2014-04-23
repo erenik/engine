@@ -6,7 +6,7 @@
 #include "../Entity/Entity.h"
 #include "../Entity/EntityManager.h"
 #include "File/FileUtil.h"
-#include "Event/Event.h"
+#include "Script/Script.h"
 #include "Pathfinding/Path.h"
 
 #include <ctime>
@@ -281,7 +281,7 @@ bool Map::WriteEntities(std::fstream &file){
 bool Map::LoadEvents(){
 	std::cout<<"\nMap::LoadEvents map: "<<name;
 	for(int i = 0; i < events.Size(); ++i){
-		Event * event = events[i];
+		Script * event = events[i];
 		/// Force-load for now, since it helps debugging. <<- wat
 		if (true /*!event->loaded*/){
 			event->Load(event->source);

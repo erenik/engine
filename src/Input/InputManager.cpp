@@ -1211,6 +1211,8 @@ bool InputManager::UICancel(){
 		return false;
 	/// Queue a message to remove it!
 	Graphics.QueueMessage(new GMPopUI(element->name));
+	// Post onExit only when exiting it via UICancel for example!
+	MesMan.QueueMessages(element->onExit);
 	return true;
 }
 

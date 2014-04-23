@@ -10,7 +10,7 @@
 #include "MessageTypes.h"
 #include <Util.h>
 
-class Event;
+class Script;
 class UIElement;
 
 struct Message {
@@ -23,8 +23,8 @@ public:
 	String msg;
 	int type;
 	char * data;
-	/// Event that spawned this message! Can be nice.
-	Event * event;
+	/// Script that spawned this message! Can be nice.
+	Script * event;
 	/// Triggered element. for (this)-applications.
 	UIElement * element;
 	/// Time to process this message. If 0 process straight away (default).

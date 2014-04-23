@@ -280,7 +280,7 @@ void SIPPacket::ParseHeader(){
 			String warning = attributeValue;
 //			std::cout<<"Warning attribute found on packet: "<<attributeValue;
 		}
-		else if (IsAttributeName("Event")){
+		else if (IsAttributeName("Script")){
 			event = attributeValue;
 		}
 		else {
@@ -537,9 +537,9 @@ void SIPPacket::BuildHeader(){
 	// Add CSeq
 	if (cSeq.Length())
 		header.Add("CSeq: "+cSeq);
-	// Event-type, for Subscribe messages
+	// Script-type, for Subscribe messages
 	if (event.Length()){
-		header.Add("Event: "+event);
+		header.Add("Script: "+event);
 	}
 	// TODO: Add Contact
 	if (expirationTime >= 0)

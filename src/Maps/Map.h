@@ -10,14 +10,14 @@
 //#include "..\EntityManager.h"
 //#include "..\Entity.h"
 class Entity;
-class Event;
+class Script;
 
 class CompactEntity;
 struct CompactEvent;
 struct NavMesh;
 class Path;
 
-//#include "..\Event.h"
+//#include "..\Script.h"
 
 /// Map version flags
 #define MV_HEADER
@@ -99,7 +99,7 @@ public:
 	Entity * GetEntity(String byName);
 	/** Returns a list of entities in the map. */
 	List<Entity*> GetEntities();
-	List<Event*> GetEvents();
+	List<Script*> GetEvents();
 	inline int NumEntities() { return entities.Size(); };
 
 	/// Fetches last error string, resetting it upon use.
@@ -134,7 +134,7 @@ protected:
 	/** Adds target entity to the map. */
 	virtual bool AddEntity(Entity * entity);
 	/// Adds target event to the map.
-	virtual bool AddEvent(Event * event);
+	virtual bool AddEvent(Script * eventScript);
 	/** Removes target entity from the map. */
 	virtual bool RemoveEntity(Entity * entity);
 	/** Removes target entities from the map. Returns number of failed removals. */
@@ -187,7 +187,7 @@ protected:
 	List<Entity*> entities;
 //	Entity * entity[MAX_ENTITIES_PER_MAP];
 	/// List of currently loaded events related to this map
-	List<Event *> events;
+	List<Script *> events;
 };
 
 #endif

@@ -631,7 +631,7 @@ bool SIPSession::HandlePacket(SIPPacket* packet, Peer* peer)
             SIPSubscribePacket * pack = (SIPSubscribePacket*) packet;
             // Peer-discovery!
         	String eventType;
-			bool success = packet->GetHeaderData("Event", eventType);
+			bool success = packet->GetHeaderData("Script", eventType);
 		//	peerSIPSessionData->sub
             int requestedExpirationTime = pack->expirationTime;
 

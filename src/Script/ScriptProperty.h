@@ -4,27 +4,27 @@
 #ifndef EVENT_PROPERTY_H
 #define EVENT_PROPERTY_H
 
-#include "Event.h"
+#include "Script.h"
 
-class EventProperty {
+class ScriptProperty {
 public:
-	EventProperty();
-	~EventProperty();
+	ScriptProperty();
+	~ScriptProperty();
 
 	/// Will be the save/load and reference stuffs.
 	List<String> eventSources;
 
 	/// For action/RPG/etc. games, action-reaction..!
-	Event * onInteract;
+	Script * onInteract;
 	/// Upon grazing or attempting to get near the entity. Further defined by each game how it's used!
-	Event * onApproach;
+	Script * onApproach;
 	/// Upon loading the map.
-	Event * onLoadMap; 
+	Script * onLoadMap; 
 
 	/// Physics-based events..! For event-entities.
-	Event * onEnterInside;
-	Event * onFrameInside; /// <-- Should contain a flag for if the event repeats while inside or is jsut triggered once.
-	Event * onLeaveInside;
+	Script * onEnterInside;
+	Script * onFrameInside; /// <-- Should contain a flag for if the event repeats while inside or is jsut triggered once.
+	Script * onLeaveInside;
 
 private:
 };

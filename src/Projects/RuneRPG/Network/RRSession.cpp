@@ -22,6 +22,12 @@
 #include "Network/Socket/UdpSocket.h"
 #include "String/StringUtil.h"
 
+#include "Graphics/GraphicsManager.h"
+#include "Graphics/Messages/GMUI.h"
+#include "Script/Script.h"
+#include "Script/ScriptManager.h"
+
+
 RRSession::RRSession(String playerName, String sessionName)
 : GameSession(sessionName, RR_DEFAULT_SESSION_NAME, 4, playerName)
 {
@@ -37,6 +43,7 @@ RRSession::RRSession(String playerName, String sessionName)
 	timeToStartGame = 0;
 	autoAddLocalPlayer = true;
 	targetUdpPort = 0;
+	newGame = false;
 }
 
 /// Virtual destructor for proper deallocation.
@@ -116,6 +123,45 @@ bool RRSession::HostLocalGame()
 	/// host successful, process initial stuff like adding 1 local player
 	OnGameJoined();
 	return true;
+}
+
+/// Create new character-slots for each player in the session. Allow them to edit them.
+void RRSession::NewGame()
+{
+	// Stuff.
+	newGame = true;
+	// Set string so it is visible in the lobby.
+	Graphics.QueueMessage(new GMSetUIs("GameTypeString", GMUI::TEXT, "New game"));
+	// Inform peers.
+	if (isHost){
+		RRGeneralPacket pack("NewGame");
+		Send(&pack);
+	}
+}
+
+/// Lock settings completely, lock players and peers and load starting-script.
+void RRSession::StartGame()
+{
+	if (isHost)
+	{
+		// Inform peers to do the same.
+		RRGeneralPacket pack("StartGame");
+		Send(&pack);
+		// Lock settings if not done so already.
+		this->LockGameSettings(true);
+	}
+	if (newGame)
+	{
+		// Load new-game script and run it.
+		Script * newGameScript = new Script("data/scripts/newGame.es");
+		ScriptMan.PlayScript(newGameScript);
+	}
+	else 
+	{
+		// Stuff.
+	}
+
+	newGame = false;
 }
 
 /// Returns tcp port used to host this session, or default target port if the session has not hosted yet.
@@ -614,10 +660,24 @@ void RRSession::SetReady(bool readyState)
 }
 
 /// Called once a game is joined successfully (upon reciving an OK to the SRRegister packet).
-void RRSession::OnGameJoined(){
+void RRSession::OnGameJoined()
+{
 	if (this->autoAddLocalPlayer)
 	{
 		this->AddLocalPlayer();
+	}
+}
+
+
+void RRSession::OnPeerConnected(Peer * peer)
+{
+	if (!isHost)
+		return;
+	// Inform peer of the current state of affairs..!
+	if (newGame)
+	{
+		RRGeneralPacket newGame("NewGame");
+		newGame.Send(peer);
 	}
 }
 
@@ -698,10 +758,16 @@ void RRSession::OnPeerReady(Peer * readyPeer, bool readyState)
 
 		/// Inform host as well.
 		MesMan.QueueMessages(msg+"("+peerListString+")");
+		// Notify state.
+		MesMan.QueueMessages("PlayersReady(false)");
 		return;
 	}
 	/// Lock and prepare for game start!
 	this->LockGameSettings(true);
+
+	// Notify state.
+	MesMan.QueueMessages("PlayersReady(true)");
+
 	/// And move to racing state in 3 seconds unless noted otherwise.
 	String msg = "MoveToRacingState";
 	String timeString = "3";
@@ -976,11 +1042,13 @@ void RRSession::ProcessPacket(RRPacket * packet)
 			break;
 		}
 		/// For race-specific stuff
-		case RRPacketType::RACE:
+		case RRPacketType::GENERAL:
 		{
 			String msg, additionalData;
 			RRGeneralPacket * rp = (RRGeneralPacket*) packet;
 			rp->Parse(msg, additionalData);
+			if (msg == "NewGame")
+				NewGame();
 			if (msg == "SetCheckpoints"){
 				checkpoints = additionalData.ParseInt();
 				MesMan.QueueMessages("OnCheckpointsUpdated");
@@ -1012,11 +1080,15 @@ void RRSession::ProcessPacket(RRPacket * packet)
 				this->mapName = additionalData;
 				MesMan.QueueMessages("MapSetTo("+additionalData+")");
 			}
-			// Client requesting a ship!
 			else if (msg == "ToggleReadyState")
 			{
+				RRSessionData * rrsd = GetSessionData(packet->sender);
+				if (!rrsd->players.Size())
+				{
+					return;
+				}
 				// Previous state
-				bool wasReady = GetSessionData(packet->sender)->players[0]->isReady;
+				bool wasReady = rrsd->players[0]->isReady;
 				this->OnPeerReady(packet->sender, !wasReady);
 			}
 			else if (msg == "SetReadyState"){
@@ -1223,8 +1295,9 @@ void RRSession::ProcessPacket(RRPacket * packet)
 				/// Inform the new peer of our current player setup... TODO: create separate function that doesn't fload the network
 				if (isHost)
 					OnPlayersUpdated();
-
 				ChatMan.PostGeneral("Client joined: "+peer->name);
+				// Inform peer of current state of affairs.
+				OnPeerConnected(peer);
 			}
 			else {
 				// Send a register declined packet.

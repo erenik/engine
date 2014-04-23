@@ -304,6 +304,8 @@ public:
 	String fontSource;
 	TextFont * font;
 	
+	/// Sets disabled-flag.
+	void Disable();
 	/// Checks state flag for you!
 	bool IsDisabled();
 

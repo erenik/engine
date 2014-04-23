@@ -5,11 +5,11 @@
 #ifndef TEXT_ANIMATION_EVENT_H
 #define TEXT_ANIMATION_EVENT_H
 
-#include "Event.h"
+#include "Script.h"
 class UIElement;
 class Viewport;
 
-class TextAnimationEvent : public Event {
+class TextAnimationEvent : public Script {
 public:
 	TextAnimationEvent(int type, String elementName, int viewport);
 	enum types {

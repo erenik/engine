@@ -9,7 +9,7 @@ extern GraphicsManager graphics;
 
 #include "../Entity/CompactEntity.h"
 #include "EntityStates/StateProperty.h"
-#include "Event/Event.h"
+#include "Script/Script.h"
 #include "Pathfinding/NavMesh.h"
 #include <cstring>
 
@@ -43,7 +43,7 @@ bool Map::AddEntity(Entity * i_entity){
 }
 
 /// Adds target event to the map.
-bool Map::AddEvent(Event * event){
+bool Map::AddEvent(Script * event){
 	assert(events.Size() < MAX_EVENTS_PER_MAP);
 	for (int i = 0; i < events.Size(); ++i){
 		if (events[i]->name == event->name){
@@ -89,7 +89,7 @@ Entity * Map::GetEntity(String byName){
 List<Entity*> Map::GetEntities(){
 	return entities;
 }
-List<Event*> Map::GetEvents(){
+List<Script*> Map::GetEvents(){
 	return events;
 }
 
@@ -120,9 +120,9 @@ void Map::Process(float timePassed){
 /*
 	// Process events too!
 	for (int i = 0; i < events.Size(); ++i){
-		if (events[i]->state == Event::BEGUN){
+		if (events[i]->state == Script::BEGUN){
 			events[i]->Process(timePassed);
-			if (events[i]->state == Event::ENDING)
+			if (events[i]->state == Script::ENDING)
 				events[i]->OnEnd();
 		}
 	}

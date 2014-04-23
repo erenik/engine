@@ -126,24 +126,25 @@ void MainMenu::ProcessMessage(Message * message){
 			{
 				OnPlayersUpdated();
 			}
-			else if (s == "NEW_GAME"){
-				MapState * state = (MapState*)StateMan.GetState(RUNE_GAME_STATE_MAP);
-				assert(state);
-				if (state){
-					state->SetEnterMode(EnterMode::NEW_GAME);
-					StateMan.QueueState(state->GetID());
+			else if (s == "NEW_GAME")
+			{
+				CreateSessionIfNeeded();
+				// Start the game!
+				if (!session->IsConnected())
+				{
+					session->HostLocalGame();
+					session->NewGame();
+					session->StartGame();
 				}
-			//	InputProcessor(GO_TO_RACING_STATE);
-			//	StateMan.QueueState(GAME_STATE_RACING);
 			}
 			else if (s == "go_to_main_menu")
-				StateMan.QueueState(GAME_STATE_MAIN_MENU);
+				StateMan.QueueState(StateMan.GetStateByID(GAME_STATE_MAIN_MENU));
 			else if (s == "go_to_editor")
-				StateMan.QueueState(GAME_STATE_EDITOR);
+				StateMan.QueueState(StateMan.GetStateByID(GAME_STATE_EDITOR));
 			else if (s == "go_to_options")
 				Graphics.QueueMessage(new GMSet(ACTIVE_USER_INTERFACE, (void*)NULL));
 			else if (s == "exit")
-				StateMan.QueueState(GAME_STATE_EXITING);
+				StateMan.QueueState(StateMan.GetStateByID(GAME_STATE_EXITING));
 			else if (s == "begin_input(this)"){
 				UserInterface * ui = StateMan.ActiveState()->GetUI();
 				UIElement * element = ui->GetActiveElement();

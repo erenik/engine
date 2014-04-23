@@ -4,7 +4,7 @@
 #include "Tile.h"
 #include "TileTypeManager.h"
 #include <fstream>
-#include "Event/Event.h"
+#include "Script/Script.h"
 #include "Maps/Grids/GridObject.h"
 
 List<Tile*> Tile::tiles;
@@ -65,7 +65,7 @@ void Tile::ReadFrom(std::fstream & file){
 	// If got event
 	if (stuff & 0x001){
 		// Load event source
-		event = new Event();
+		event = new Script();
 		event->source.ReadFrom(file);
 		// Load it straight away, or...?
 	}

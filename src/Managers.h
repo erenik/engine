@@ -21,7 +21,7 @@
 #include "Audio/AudioManager.h"
 #include "TextureManager.h"
 #include "Game/GameVariables.h"
-#include "Event/EventManager.h"
+#include "Script/ScriptManager.h"
 #include "Graphics/FrameStatistics.h"
 #include "Chat/ChatManager.h"
 #include "Player/PlayerManager.h"

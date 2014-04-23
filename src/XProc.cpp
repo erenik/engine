@@ -99,7 +99,7 @@ int GetKeyCodeFromXK(int xk){
 }
 
 
-/// XWindow Event Processor, return NULL for basic actions, integer numbers for exit codes.
+/// XWindow Script Processor, return NULL for basic actions, integer numbers for exit codes.
 void * XProc(XEvent & event){
     static float x, y;
     static int button, state;

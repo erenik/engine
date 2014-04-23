@@ -315,7 +315,7 @@ void RuneBattleState::ProcessMessage(Message * message){
                 }
 			}
 			else if (string == "AbortPractice()"){
-				StateMan.QueueState(StateMan.PreviousState()->GetID());
+				StateMan.QueueState(StateMan.PreviousState());
 				return;
 			}
 			else if (string.Contains("OpenSubMenu(")){
@@ -467,7 +467,7 @@ void RuneBattleState::EndBattle(){
 	/// Wait for like.. 2 seconds?
 	Sleep(2000);
 	/// Go to previous state for now?
-	StateMan.QueueState(StateMan.PreviousState()->GetID());
+	StateMan.QueueState(StateMan.PreviousState());
 }
 
 /// Logs by printing both to std::cout and a visible graphical log (that can be toggled in-game).

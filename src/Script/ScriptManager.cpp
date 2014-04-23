@@ -1,31 +1,31 @@
 // Emil Hedemalm
 // 2013-07-17
 
-#include "Event.h"
-#include "EventManager.h"
+#include "Script.h"
+#include "ScriptManager.h"
 #include "Input/InputManager.h"
 
-EventManager::EventManager(){
+ScriptManager::ScriptManager(){
 	// Wosh.
 }
-EventManager::~EventManager(){
+ScriptManager::~ScriptManager(){
 	// Do nothing with the lists by default!
 	for (int i = 0; i < activeEvents.Size(); ++i){
-		Event * e = activeEvents[i];
+		Script * e = activeEvents[i];
 		if (e->flags & DELETE_WHEN_ENDED)
 			delete e;
 	}
 }
-EventManager * EventManager::eventManager = NULL;
-EventManager * EventManager::Instance(){
+ScriptManager * ScriptManager::eventManager = NULL;
+ScriptManager * ScriptManager::Instance(){
 	assert(eventManager);
 	return eventManager;
 }
-void EventManager::Allocate(){
+void ScriptManager::Allocate(){
 	assert(eventManager == NULL);
-	eventManager = new EventManager();
+	eventManager = new ScriptManager();
 }
-void EventManager::Deallocate(){
+void ScriptManager::Deallocate(){
 	assert(eventManager);
 	delete eventManager;
 	eventManager = NULL;
@@ -35,17 +35,21 @@ void EventManager::Deallocate(){
 	via the entities, maps or state machines that use them!
 	- Alternatively a boolean could be set which toggles this behaviour, but plan ahead and make sure that whatever you do doesn't leak memory!
 */
-void EventManager::PlayEvent(Event * event){
-	event->OnBegin();
-	activeEvents.Add(event);
+void ScriptManager::PlayEvent(Script * script)
+{
+	// If needed, load it first.
+	if (!script->loaded)
+		script->Load();
+	script->OnBegin();
+	activeEvents.Add(script);
 }
-void EventManager::Process(float timeInSeconds){
+void ScriptManager::Process(float timeInSeconds){
 //	std::cout<<"\nEventManager::Process";
 	for (int i = 0; i < activeEvents.Size(); ++i){
 	//	std::cout<<"\nActive events: "<<activeEvents.Size();
-		Event * ev = activeEvents[i];
+		Script * ev = activeEvents[i];
 		ev->Process(timeInSeconds);
-		if (ev->state == Event::ENDING){
+		if (ev->state == Script::ENDING){
 			ev->OnEnd();
 			activeEvents.Remove(ev);
 			/// Delete if specified.

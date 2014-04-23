@@ -516,6 +516,9 @@ void GMPopUI::Process()
 		e = element;
 	else
 		e = ui->GetElementByName(uiName);
+	// Fetch by source if possible.
+	if (!e)
+		e = ui->GetElementBySource(uiName);
 	if (!e){
 		std::cout<<"\nGMPopUI: Invalid UIElement: "<<uiName;
 		return;
@@ -525,8 +528,6 @@ void GMPopUI::Process()
 
     /// Post onExit message if it was popped.
     if (success){
-        MesMan.QueueMessages(e->onExit);
-
 		/// If the element wants to keep track of the navigate UI state, then reload it. If not, don't as it will set it to false by default if so.
 		if (e->navigateUIOnPush)
 			Input.LoadNavigateUIState(e->previousNavigateUIState);
@@ -535,7 +536,6 @@ void GMPopUI::Process()
 		if (e->removeOnPop){
 			DeleteUI(e, ui);
 		}
-
     }
 
 

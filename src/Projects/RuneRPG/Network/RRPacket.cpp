@@ -269,7 +269,7 @@ String RRPacket::GetPacketName(int byType){
 		case RRPacketType::DECLINE: return "Decline";
 		case RRPacketType::REQUEST_PLAYERS: return "RequestPlayers";
 		case RRPacketType::PLAYERS: return "Players";
-		case RRPacketType::RACE: return "Race";
+		case RRPacketType::GENERAL: return "General";
 		case RRPacketType::PLAYER_POSITION: return "PlayerPosition";
 		case RRPacketType::PLAYER_MOVE: return "PlayerMove";
 		case RRPacketType::PAUSE: return "Pause";
@@ -492,7 +492,7 @@ void RRPlayerPositionPacket::Parse(int & playerID, Vector3f & position, Vector3f
 }
 
 RRGeneralPacket::RRGeneralPacket(String msg, String additionalData)
-: RRPacket(RRPacketType::RACE)
+: RRPacket(RRPacketType::GENERAL)
 {
 	body.Add(msg);
 	body.Add(additionalData);

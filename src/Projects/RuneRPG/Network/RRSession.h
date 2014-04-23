@@ -30,6 +30,12 @@ public:
 	/// Starts a local game.
 	virtual bool HostLocalGame();
 
+	/// Create new character-slots for each player in the session. Allow them to edit them.
+	void NewGame();
+	
+	/// Lock settings completely, lock players and peers and load starting-script.
+	void StartGame();
+
 	/// Returns tcp port used to host this session, or default target port if the session has not hosted yet.
 	int TcpPort();
 
@@ -102,9 +108,14 @@ public:
 	RRSessionData * GetSessionData(Peer * forPeer);
 	
 protected:
+	// Signify that player creation is currently enabled. 
+	bool newGame;
+
 	/// Called once a game is joined successfully (upon reciving an OK to the SRRegister packet). Also called exactly ONCE upon successfully hosting a session.
 	void OnGameJoined();
 
+	/// To inform the peer of current state of affairs..!
+	void OnPeerConnected(Peer * peer);
 	/// For resetting appropriate variables when he disconnects, like UDP-test-statistics.
 	void OnPeerDisconnected(Peer * peer);
 	/// Adjusts peer ready-state.

@@ -30,12 +30,13 @@ extern UserInterface * ui[MAX_GAME_STATES];
 #include "ModelManager.h"
 #include "Message/MessageManager.h"
 #include "Graphics/Messages/GMLight.h"
+#include "Script/Script.h"
 
 #include <iomanip>
 /// Flum Microsoft function...
 #undef CreateEvent
 #include "RuneEditor.h"
-#include "Event/Event.h"
+#include "Script/Script.h"
 #include "../Map/MapState.h"
 #include "EntityStates/StateProperty.h"
 #include "../../EntityStates/RREntityState.h"
@@ -1112,13 +1113,13 @@ void RuneEditor::OnTileTypesUpdated()
 }
 
 /// Transitions to the level test state!
-void RuneEditor::Playtest(){
-
-	GameState * gs = StateMan.GetState(RUNE_GAME_STATE_MAP);
+void RuneEditor::Playtest()
+{
+	GameState * gs = StateMan.GetStateByID(RUNE_GAME_STATE_MAP);
 	MapState * ms = (MapState*) gs;
 	ms->SetEnterMode(EnterMode::TESTING_MAP);
 	ms->SetCamera(*runeEditorCamera);
-	ms->activeMap = map;
+	ms->mapToLoad = map;
 	/// Check for player character/spawn, if not, place somewhere within camera range.
 	Entity * e = map->GetEntity("Player");
 	if (e == NULL){
@@ -1135,7 +1136,7 @@ void RuneEditor::Playtest(){
 		assert(position.x != -1);
 		if (tile == NULL){
 			assert(false && "No valid walkable tile in range!");
-			StateMan.QueueState(GAME_STATE_EDITOR);
+			StateMan.QueueState(StateMan.GetStateByID(GAME_STATE_EDITOR));
 			return;
 		}
 		Entity * player = MapMan.CreateEntity(m,t,position);
@@ -1148,7 +1149,7 @@ void RuneEditor::Playtest(){
 	}
 	if (e)
 		e->flags |= PLAYER_OWNED_ENTITY;
-	StateMan.QueueState(RUNE_GAME_STATE_MAP);
+	StateMan.QueueState(StateMan.GetStateByID(RUNE_GAME_STATE_MAP));
 }
 
 /// Paint!
@@ -1204,9 +1205,9 @@ GridObject * RuneEditor::CreateObject()
 /// SElect evvveettttnt
 bool RuneEditor::SelectEvent()
 {
-	List<Event*> events = map->GetEvents();
+	List<Script*> events = map->GetEvents();
 	for (int i = 0; i < events.Size(); ++i){
-		Event * event = events[i];
+		Script * event = events[i];
 		float distance = (event->position - cursorPosition).LengthSquared();
 		if (distance < 0.9f){
 			selectedEvent = event;
@@ -1233,7 +1234,7 @@ void RuneEditor::CreateEvent()
 	String eventName = "New event";
 	String num;
 	int i = 1;
-	Event * event = new Event("New event");
+	Script * event = new Script("New event");
 	while (MapMan.AddEvent(event) == false){
 		++i;
 		event->name = eventName +" "+ String::ToString(i);
@@ -1258,15 +1259,15 @@ void RuneEditor::DeleteEvent(){
 		return;
 
 	Graphics.PauseRendering();
-	List<Event*> events = MapMan.GetEvents();
+	List<Script*> events = MapMan.GetEvents();
 	for (int i = 0; i < events.Size(); ++i){
-		Event * e = events[i];
+		Script * e = events[i];
 		if ((e->position - cursorPosition).LengthSquared() < 0.9f){
 			if (e == selectedEvent){
 				selectedEvent = NULL;
 				OnSelectedEventUpdated();
 			}
-			assert(MapMan.DeleteEvent(e) && "Event was not present in the map!!!!!");
+			assert(MapMan.DeleteEvent(e) && "Script was not present in the map!!!!!");
 		}
 	}
 	Graphics.ResumeRendering();

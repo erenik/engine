@@ -7,7 +7,7 @@
 #include "UI/UserInterface.h"
 #include "Maps/MapManager.h"
 #include "Graphics/Fonts/Font.h"
-#include "Event/Event.h"
+#include "Script/Script.h"
 
 // Main application name.
 const String applicationName = "Rune RPG";	
@@ -16,7 +16,7 @@ void SetApplicationDefaults()
 {
 	FilePath::workingDirectory = "/SpaceRace";
 	TextFont::defaultFontSource = "font3";
-	Event::rootEventDir = "data/RuneRPG/Events/";
+	Script::rootEventDir = "data/RuneRPG/Events/";
 
 	UserInterface::rootUIDir = "gui/";
 	/// This should correspond to the directory name of the released application's final install. 

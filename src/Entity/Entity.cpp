@@ -17,7 +17,7 @@
 #include "Shader.h"
 #include "TextureManager.h"
 #include "ModelManager.h"
-#include "Event/EventProperty.h"
+#include "Script/ScriptProperty.h"
 #include "Physics/Calc/EntityPhysicsEstimator.h"
 #include <cstring>
 

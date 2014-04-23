@@ -14,9 +14,9 @@
 #include "TextureManager.h"
 #include "Graphics/GraphicsManager.h"
 #include <fstream>
-#include "Event/Event.h"
-#include "Event/EventProperty.h"
-#include "Event/EventManager.h"
+#include "Script/Script.h"
+#include "Script/ScriptProperty.h"
+#include "Script/ScriptManager.h"
 #include "Graphics/Messages/GraphicsMessages.h"
 #include "Graphics/Camera/Camera.h"
 #include "GraphicsState.h"
@@ -562,7 +562,7 @@ void TileMap2D::RenderEvents(GraphicsState & graphicsState)
 	glColor4f(1,1,1,1);
 	float eventZ = 5.0f;
 	for (int i = 0; i < events.Size(); ++i){
-		Event * event = events[i];
+		Script * event = events[i];
 		event->position;
 		float xPos = event->position.x;
 		float yPos = event->position.y;
@@ -889,7 +889,7 @@ bool TileMap2D::WriteTiles(std::fstream &file){
 	return true;
 }
 
-/// Event block version
+/// Script block version
 #define EVENT_BLOCK_VERSION_1	0x00000001
 #define ACTIVE_EVENT_BLOCK_VERSION	EVENT_BLOCK_VERSION_1
 
@@ -911,7 +911,7 @@ bool TileMap2D::ReadEvents(std::fstream &file){
 
 	// Read tiles..
 	for (int i = 0; i < numEvents; ++i){
-		Event * event = new Event();
+		Script * event = new Script();
 		event->ReadFrom(file);
 		events.Add(event);
 	}
@@ -935,7 +935,7 @@ bool TileMap2D::WriteEvents(std::fstream &file){
 
 	// Write events to file..!
 	for (int i = 0; i < numEvents; ++i){
-		Event * event = events[i];
+		Script * event = events[i];
 		event->WriteTo(file);
 	}
 	return true;
@@ -1157,11 +1157,11 @@ bool TileMap2D::MoveEntity(Entity * entity, Vector3i position){
 /// To check for events when arriving at a specified tile.
 void TileMap2D::OnArrive(Entity * e, int x, int y){
 	for (int i = 0; i < events.Size(); ++i){
-		Event * event = events[i];
-		if (event->triggerCondition != Event::ON_TOUCH)
+		Script * event = events[i];
+		if (event->triggerCondition != Script::ON_TOUCH)
 			continue;
 		if ((event->position - Vector3f(x,y,0)).LengthSquared() < 0.9f){
-			EventMan.PlayEvent(event);
+			ScriptMan.PlayEvent(event);
 		}
 	}
 }*/
@@ -1237,8 +1237,8 @@ void TileMap2D::Interact(Vector3i position, Entity * interacter){
 		return;
 	Entity * entity = interactee->entity;
 	if (entity && entity->events && entity->events->onInteract){
-		Event * onInteract = entity->events->onInteract;
-		EventMan.PlayEvent(onInteract);
+		Script * onInteract = entity->events->onInteract;
+		ScriptMan.PlayEvent(onInteract);
 	}
 
 }

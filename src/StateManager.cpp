@@ -7,7 +7,7 @@
 #include "Input/InputManager.h"
 #include "Maps/MapManager.h"
 #include "OS/Sleep.h"
-#include "Event/EventManager.h"
+#include "Script/ScriptManager.h"
 #include "Network/NetworkManager.h"
 #include "OS/WindowManager.h"
 #include "Audio/AudioManager.h"
@@ -57,7 +57,7 @@ void StateManager::Initialize(){
 	/// Create and queue the init-state right away!
 	GameState * initState = new Initialization();
 	RegisterState(initState);
-	QueueState(initState->GetID());
+	QueueState(initState);
 	RegisterStates();
 	RegisterState(new Exit());
 };
@@ -99,16 +99,17 @@ bool StateManager::RegisterState(GameState * i_state){
 
 /// Tries to queue previous state.
 void StateManager::QueuePreviousState(){
-	QueueState(previousState->id);
+	QueueState(previousState);
 }
 
-void StateManager::QueueState(int id){
-	for (int i = 0; i < stateList.Size(); ++i){
-		if (stateList[i]->id == id){
-			queuedStates.Push(stateList[i]);
-			return;
-		}
+void StateManager::QueueState(GameState * gs)
+{
+	if (!gs)
+	{
+		std::cout<<"Trying to queue null-state.";
+		return;
 	}
+	queuedStates.Push(gs);
 	std::cout<<"\nERROR: Trying to queue an unknown/non-existant game state.";
 }
 
@@ -144,7 +145,7 @@ void StateManager::SetGlobalState(int id){
 	globalState = newGlobalState;
 }
 
-GameState * StateManager::GetState(int id){
+GameState * StateManager::GetStateByID(int id){
 	for (int i = 0; i < stateList.Size(); ++i){
 		if (stateList[i]->id == id)
 			return stateList[i];
@@ -205,7 +206,7 @@ void StateManager::HandleDADFiles(List<String> & files){
 		float timeDiffF = ((float)timeDiff) * 0.001f;
 		/// Enter new state if queued.
 		StateMan.EnterQueuedState();
-		EventMan.Process(timeDiffF);
+		ScriptMan.Process(timeDiffF);
 		/// Wosh.
 		if (!StateMan.IsPaused()){
 			/// Process the active StateMan.

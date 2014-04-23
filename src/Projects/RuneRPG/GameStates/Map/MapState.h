@@ -89,7 +89,8 @@ private:
 	RRPlayer * player;
 	Entity * playerEntity;
 	RREntityState * playerState;
-	TileMap2D * activeMap;
+	// For when testing.
+	TileMap2D * mapToLoad;
 	int enterMode;
 
 	/// The cameras for the 4 primary players and spectators...!

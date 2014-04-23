@@ -6,7 +6,7 @@
 
 class Texture;
 class Entity;
-class Event;
+class Script;
 class GridObject;
 
 #include "String/AEString.h"
@@ -65,7 +65,7 @@ private:
 	/// Any entities currently occupying this tile. Temporary variable that will NOT be saved to file.
 	List<Entity*> entities; 
 	/// Any events that should be triggered/relate to this tile. Source of the event will be saved to file.
-	Event * event;
+	Script * event;
 
 	/// Position. Only available in-game and not in saved format.
 //	int x,y;

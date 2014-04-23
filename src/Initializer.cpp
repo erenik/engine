@@ -87,7 +87,7 @@ void * Initialize(void * vArgs){
 
 	StateMan.SetGlobalState(GAME_STATE_GLOBAL);
 	std::cout<<"\nInitialization done! Entering main menu...";
-	StateMan.QueueState(GAME_STATE_MAIN_MENU);
+	StateMan.QueueState(StateMan.GetStateByID(GAME_STATE_MAIN_MENU));
 
 	/// Everything should be setup, so evaluate any command-line arguments now!
 	CommandLine::Evaluate();

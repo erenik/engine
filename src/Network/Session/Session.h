@@ -83,7 +83,7 @@ protected:
 	Socket * hostSocket;
 	/// List of sockets not currently associated with a single peer.
 	List<Socket*> sockets;
-	/// If true, we are the host to this session.
+	/// If true, we are the host to this session. This will be true also when playing single-player.
 	bool isHost;
 	/// If true, we are currently connected to a peer/host.
 	bool isConnected;

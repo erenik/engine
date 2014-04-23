@@ -12,9 +12,9 @@
 #include "Graphics/GraphicsManager.h"
 #include "Graphics/Messages/GMUI.h"
 #include "Input/InputManager.h"
-#include "Event/Event.h"
+#include "Script/Script.h"
 #include "Maps/MapManager.h"
-#include "Event/EventManager.h"
+#include "Script/ScriptManager.h"
 
 #include "UI/UITypes.h"
 #include "UI/UIFileBrowser.h"
@@ -432,8 +432,9 @@ void MessageManager::ProcessMessage(Message * message){
 		Graphics.QueueMessage(new GMPushUI(fileBrowser));
 		return;
 	}
-	else if (msg.Contains("QuitApplication")){
-        StateMan.QueueState(GAME_STATE_EXIT);
+	else if (msg.Contains("QuitApplication"))
+	{
+		StateMan.QueueState(StateMan.GetStateByID(GAME_STATE_EXIT));
 		return;
 	}
 	else if (msg.Contains("PushToStack(") || msg.Contains("PushUI(")){
@@ -559,23 +560,23 @@ void MessageManager::ProcessMessage(Message * message){
 		return;
 	}
 	else if (msg.Contains("ContinueEvent(")){
-		List<Event*> events, mapEvents;
+		List<Script*> events, mapEvents;
 		Map * map = MapMan.ActiveMap();
 		if (map)
 			mapEvents = map->GetEvents();
-		List<Event*> moreEvents = EventMan.GetActiveEvents();
+		List<Script*> moreEvents = ScriptMan.GetActiveEvents();
 		events += mapEvents + moreEvents;
 		String targetEvent = msg.Tokenize("()")[1];
 		for (int i = 0; i < events.Size(); ++i){
-			Event * event = events[i];
+			Script * event = events[i];
 			if (event->name == targetEvent)
 				event->lineFinished = true;
 		}
 		return;
 	}
 	else if (msg.Contains("ActivateDialogueAlternative(")){
-		List<Event*> events = MapMan.ActiveMap()->GetEvents();
-		List<Event*> moreEvents = EventMan.GetActiveEvents();
+		List<Script*> events = MapMan.ActiveMap()->GetEvents();
+		List<Script*> moreEvents = ScriptMan.GetActiveEvents();
 		events += moreEvents;
 		String argsString = msg.Tokenize("()")[1];
 		List<String> args = argsString.Tokenize(" ,");
@@ -583,7 +584,7 @@ void MessageManager::ProcessMessage(Message * message){
 		String alternative = args[1];
 		assert(alternative);
 		for (int i = 0; i < events.Size(); ++i){
-			Event * e = events[i];
+			Script * e = events[i];
 			if (e->name == targetEvent){
 				e->ContinueToAlternative(alternative);
 			}

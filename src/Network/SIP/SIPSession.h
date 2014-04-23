@@ -8,7 +8,7 @@
 #include "Network/Session/Session.h"
 #include "Network/SIP/SIPPacketParser.h"
 
-/// Definition of Event-parameters for the SUBSCRIBE/NOTIFY mechanism
+/// Definition of Script-parameters for the SUBSCRIBE/NOTIFY mechanism
 #define PEER_CONNECTED_EVENT    "PeerConnectedToNetwork"
 #define MEDIA_SEARCH_EVENT      "MediaSearchEvent"
 #define GAME_SEARCH_EVENT		"GameSearchEvent"

@@ -14,14 +14,16 @@ enum RRPacketTypes {
 	OK,	// Formal accept response
 	DECLINE,	// Formal decline response
 	CHAT, // Chat-packet, for this game's lobby primarily.
-	
+
+	/// Used for communication messages for session.
+	GENERAL,
+
 	/// As defined in RRPackets.txt on dropbox.
 	REQUEST_PLAYERS,
 	PLAYERS,
 	PLAYER_POSITION,
 	PLAYER_MOVE,
 	PAUSE,
-	RACE,
 	READY,
 	
 	/// Add packets for controling race-track and ships here later on prob.

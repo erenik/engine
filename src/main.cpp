@@ -55,7 +55,7 @@
     #include <X11/Xlib.h>
     #include <X11/Xutil.h>  // contains visual information masks and CVisualInfo structure
     #include <GL/glx.h>     // connect X server with OpenGL
-    #include "XProc.h"      // XWindow Event Processor
+    #include "XProc.h"      // XWindow Script Processor
     int ErrorHandler(Display * d, XErrorEvent * e);
     // single buffer attributes
     static int singleBufferAttributes[] = {GLX_RGBA, GLX_DEPTH_SIZE, 24, None};
@@ -530,7 +530,7 @@ int main(int argc, char **argv){
 	EntityManager::Allocate();
 	PathManager::Allocate();
 	WaypointManager::Allocate();
-	EventManager::Allocate();
+	ScriptManager::Allocate();
 #ifdef USE_AUDIO
 	AudioManager::Allocate();
 #endif
@@ -617,7 +617,7 @@ int main(int argc, char **argv){
 	// Start deallocator thread here instead?
 	// Call the deallocator thread!
 	if (StateMan.ActiveStateID() != GAME_STATE_EXITING)
-		StateMan.QueueState(GAME_STATE_EXITING);
+		StateMan.QueueState(StateMan.GetStateByID(GAME_STATE_EXITING));
 
 
 	double timeStart = clock();
@@ -684,7 +684,7 @@ int main(int argc, char **argv){
 #ifdef USE_AUDIO
 	AudioManager::Deallocate();
 #endif
-	EventManager::Deallocate();
+	ScriptManager::Deallocate();
 	MessageManager::Deallocate();
 	GraphicsManager::Deallocate();
 	FrameStatistics::Deallocate();

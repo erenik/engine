@@ -924,6 +924,11 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 			else if (token == "navigateUIOnPush"){
 				element->navigateUIOnPush = true;
 			}
+			else if (token == "disabled")
+			{
+				element->Disable();
+			}
+			/// All expressions requiring arguments below!
 			else if (token.Length() <= 2)
                 break;
 			else if (tokens.Size() < 2){

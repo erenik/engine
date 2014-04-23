@@ -104,7 +104,7 @@ void RuneGlobalState::ProcessMessage( Message * message )
 	msg.SetComparisonMode(String::NOT_CASE_SENSITIVE);
 	if (msg.Contains("BattleTest") || msg.Contains("TestBattle")){
 		BattleMan.QueueBattle("Practice");
-		StateMan.QueueState(RUNE_GAME_STATE_BATTLE_STATE);
+		StateMan.QueueState(StateMan.GetStateByID(RUNE_GAME_STATE_BATTLE_STATE));
 	}
 	else if (msg == "LoadMultiplayerDefaults")
 	{
@@ -133,6 +133,30 @@ void RuneGlobalState::ProcessMessage( Message * message )
 	{
 		bool result = this->Join(targetIP, targetPort);
 	}
+	else if (msg == "CancelGame")
+	{
+		// Abort hosted game
+		this->CancelGame();
+	}
+	else if (msg == "SetGameType(New)")
+	{
+		// Set flags to enable editing of characters and in-game options.
+		session->NewGame();
+	}
+	else if (msg == "PrepareForLoadGame")
+	{
+		// Set label in save/load menu.
+		Graphics.QueueMessage(new GMSetUIs("SavesMenuActionLabel", GMUI::TEXT, "Load game"));
+	}
+	else if (msg == "Load game")
+	{
+	
+	}
+	else if (msg == "StartButton")
+	{
+		/// Lock settings completely, lock players and peers and load starting-script.
+		session->StartGame();
+	}
 	else if (msg == "ChatInput")
 	{
 		// Fetch text and clear it.
@@ -148,7 +172,7 @@ void RuneGlobalState::ProcessMessage( Message * message )
 		/// Fetch state
 		GameState * gs = StateMan.GetStateByName(name);
 		if (gs){
-			StateMan.QueueState(gs->GetID());
+			StateMan.QueueState(gs);
 		}
 		else
 			std::cout<<"\nEnterState: No such state with name: "<<name;
@@ -156,7 +180,14 @@ void RuneGlobalState::ProcessMessage( Message * message )
 	else if (msg.Contains("GoToPreviousGameState()")){
 		GameState * gs = StateMan.PreviousState();
 		if (gs)
-			StateMan.QueueState(gs->GetID());
+			StateMan.QueueState(gs);
+	}
+	else if (msg.Contains("PlayersReady("))
+	{
+		// Sent by session when all players are ready or not.
+		bool allReady = msg.Tokenize("()")[1].ParseBool();
+		// Adjust enabled-property of start-button for host.
+		Graphics.QueueMessage(new GMSetUIb("StartButton", GMUI::ENABLED, allReady));
 	}
 	else if (msg.Contains("SaveGameNew")){
 		/// Set an appropriate name for the save.
@@ -193,11 +224,10 @@ void RuneGlobalState::ProcessMessage( Message * message )
 		/// Update the file with saves, if we use one?
 
 	}
-	else if (msg.Contains("ListSaves(")){
-		List<String> tokens = msg.Tokenize("(),");
-		if (tokens.Size() < 2)
-			return;
-		String uiName = tokens[1];
+	else if (msg.Contains("ListSaves"))
+	{
+
+		String uiName = "SavesList";
 		float sizeRatioY = 0.2f;
 		// First clear it.
 		Graphics.QueueMessage(new GMClearUI(uiName));

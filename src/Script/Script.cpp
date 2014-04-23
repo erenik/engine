@@ -1,7 +1,7 @@
 // Emil Hedemalm
 // 2013-07-16
 
-#include "Event.h"
+#include "Script.h"
 #include <fstream>
 #include "UI/UIButtons.h"
 #include "Graphics/GraphicsManager.h"
@@ -11,13 +11,15 @@
 #include "UI/UIList.h"
 #include "Game/GameVariables.h"
 #include <cstring>
+#include "ScriptManager.h"
+#include "GeneralScripts.h"
 
 /// Compact saveable version of the event
 //struct CompactEvent{};
 
-const char * Event::rootEventDir = "data/RuneRPG/Events/";
+const char * Script::rootEventDir = "data/scripts/";
 
-Event::Event(const Event & base)
+Script::Script(const Script & base)
 {
 	name = base.name;
 	source = base.source;
@@ -31,15 +33,19 @@ Event::Event(const Event & base)
 	flags = base.flags;
 	/// Copy loaded data too.
 	lines = base.lines;
+	parentScript = NULL;
 }
 
-Event::Event(String name)
-: name(name)
+Script::Script(String name, Script * parent /* = NULL */ )
+: name(name), parent(parent)
 {
 	name = "Test";
 	source = "Test.e";
 	triggerCondition = NULL_TRIGGER_TYPE;
 	loaded = false;
+	// Assume child scripts are inherent C++ classes which do not require further loading.
+	if (parent)
+		loaded = true;
 	executed = false;
 	repeatable = false;
 	currentLine = -1;
@@ -48,15 +54,24 @@ Event::Event(String name)
 	flags = 0;
 };
 
-void Event::Reset(){
+void Script::Reset(){
 	currentLine = -1;
 	state = NOT_BEGUN;
 	lineFinished = true;
 	executed = false;
 }
 
+/// Loads script using given name as reference to source-file.
+bool Script::Load()
+{
+	std::cout<<"\nScript::Load called: "<<name;
+	bool result = Load(name);
+	assert(result && "Was unable to load target script.");
+	return result;
+}
+
 /// Wosh o.o, NOTE that the root dir will be appended at the start automatically!
-bool Event::Load(String fromFile){
+bool Script::Load(String fromFile){
 	std::cout<<"\nEvent::Load fromFile: "<<fromFile;
 	/// Already loaded, reset and re-load!
 	if (loaded){
@@ -77,7 +92,7 @@ bool Event::Load(String fromFile){
 	std::fstream file;
 	file.open(source.c_str(), std::ios_base::in);
 	if (!file.is_open()){
-		assert(file.is_open() && "ERROR opening file stream in Event::Load(fromFile)!");
+		assert(file.is_open() && "ERROR opening file stream in Script::Load(fromFile)!");
 		std::cout<<"\nERROR: Unable to open file stream to "<<source;
 		file.close();
 		return NULL;
@@ -138,12 +153,13 @@ bool Event::Load(String fromFile){
 }
 
 /// Regular state-machine mechanics for the events, since there might be several parralell events?
-void Event::OnBegin(){
+void Script::OnBegin(){
 	state = BEGUN;
 }
 
-void Event::Process(float time){
-
+void Script::Process(float time)
+{
+	String line = lines[currentLine];
 	/// Check if the current line is finished? If not, wait until it is finished.
 	if (!lineFinished)
 		return;
@@ -164,21 +180,42 @@ void Event::Process(float time){
 	EvaluateLine(lines[currentLine]);
 }
 
-void Event::OnEnd(){
-	/// Flag the event as finished!
-	state = ENDED;
+void Script::OnEnd()
+{
 	if (repeatable){
 		state = NOT_BEGUN;
 		currentLine = -1;
+		return;
 	}
+	/// Flag the event as finished!
+	state = ENDED;
+	/// Notify parents if needed.
+	if (parent)
+		parent->OnScriptEnded(this);
 }
 
-void Event::EvaluateLine(String & line){
+/// o.o
+void Script::OnScriptEnded(Script * childScript)
+{
+	// Mark line as finished executing.
+	lineFinished = true;
+}
+
+
+void Script::EvaluateLine(String & line)
+{
 	line.SetComparisonMode(String::NOT_CASE_SENSITIVE);
 	// "80Gray50Alpha.png"
 #define DEFAULT_TEXTURE_SOURCE	"black50Alpha.png"
 #define DEFAULT_TEXT_SIZE_RATIO	0.3f
-	if (line.Contains("Dialogue")){
+	
+	if (line.Contains("EnterGameState("))
+	{
+		String stateName = line.Tokenize("()")[1];		
+		StateChanger * changer = new StateChanger(line, this);
+		ScriptMan.PlayScript(changer);
+	}
+	else if (line.Contains("Dialogue")){
 		/// If raw string, output it straight away! (should later be queued to some kind of dialogue-manager?)
 		if (line.Contains("\"")){
 			/// Create dialogue UI and append it to the current UI!
@@ -418,7 +455,7 @@ void Event::EvaluateLine(String & line){
 }
 
 /// Continue to dat alternative (for branching with Alternatives/Questions)
-bool Event::ContinueToAlternative(String alternative){
+bool Script::ContinueToAlternative(String alternative){
 	/// Check that we're currently in an alternativeDialogue?
 	if (!isInAlternativeDialogue){
 		std::cout<<"\nNot in any alternative dialogue anymore. Ignoring command.";
@@ -445,7 +482,7 @@ bool Event::ContinueToAlternative(String alternative){
 #define EVENT_DEFAULT	0x00000001
 
 /// File I/O. Reading will reset data.
-bool Event::WriteTo(std::fstream & file){
+bool Script::WriteTo(std::fstream & file){
 	/// Default
 	int fileIOFlags = EVENT_DEFAULT;
 	file.write((char*)&fileIOFlags, sizeof(int));
@@ -456,7 +493,7 @@ bool Event::WriteTo(std::fstream & file){
 	return true;
 }
 
-bool Event::ReadFrom(std::fstream & file){
+bool Script::ReadFrom(std::fstream & file){
 	/// Default
 	int fileIOFlags;
 	file.read((char*)&fileIOFlags, sizeof(int));
@@ -475,9 +512,10 @@ bool Event::ReadFrom(std::fstream & file){
 
 
 /// Sets the flag to delete the event once it's finished.
-void Event::SetDeleteOnEnd(bool value){
+void Script::SetDeleteOnEnd(bool value){
 	if (value)
 		flags |= DELETE_WHEN_ENDED;
 	else
 		flags &= ~DELETE_WHEN_ENDED;
 }
+

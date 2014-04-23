@@ -1121,6 +1121,12 @@ void UIElement::Render(GraphicsState& graphics){
 	graphics.modelMatrixF = graphics.modelMatrixD = tmp;
 }
 
+/// Sets disabled-flag.
+void UIElement::Disable()
+{
+	state |= UIState::DISABLED;
+}
+
 /// Checks state flag for you!
 bool UIElement::IsDisabled(){
 	return (state & UIState::DISABLED) > 0;
@@ -1210,6 +1216,11 @@ void UIElement::RenderSelf(GraphicsState & graphics){
 		if (this->toggled){
 			float toggledFloat = 0.30f;
 			highlightColor += Vector3f(toggledFloat, toggledFloat, toggledFloat);
+		}
+		// Duller colors for temporarily disabled buttons.
+		if (this->IsDisabled())
+		{
+			highlightColor *= 0.75f;
 		}
 
 		assert(graphics.activeShader->uniformPrimaryColorVec4 != -1);
@@ -1351,6 +1362,9 @@ void UIElement::RenderSelf(GraphicsState & graphics){
 		graphics.modelMatrixD.Scale(pixels);	//Graphics.Height()
 		graphics.modelMatrixF = graphics.modelMatrixD;
 		Vector4f color = this->textColor;
+		// If disabled, dull the color! o.o
+		if (this->IsDisabled())
+			color *= 0.55f;
 	//	color.w *= 0.5f;
 		graphics.currentFont->SetColor(color);
 //		std::cout<<"\nTextToRender: "<<textToRender;

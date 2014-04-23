@@ -4,23 +4,24 @@
 #ifndef EVENT_MANAGER_H
 #define EVENT_MANAGER_H
 
-#define EventMan (*EventManager::Instance())
+#define ScriptMan (*ScriptManager::Instance())
 #define BeginEvent	PlayEvent
+#define PlayScript	PlayEvent
 
 #include <List/List.h>
 
-class Event;
+class Script;
 
 /** A class to handle any events, whether it be for playing music, 
 	initiating a cut-scene at a certain point or a trigger for a trap.
 */
-class EventManager {
+class ScriptManager {
 private:
-	EventManager();
-	~EventManager();
-	static EventManager * eventManager;
+	ScriptManager();
+	~ScriptManager();
+	static ScriptManager * eventManager;
 public:
-	static EventManager * Instance();
+	static ScriptManager * Instance();
 	static void Allocate();
 	static void Deallocate();
 	/** Triggers OnEnter of the event and registers it for processing which is called once per frame via the StateProcessor!
@@ -28,12 +29,12 @@ public:
 		via the entities, maps or state machines that use them!
 		- Alternatively a boolean could be set which toggles this behaviour, but plan ahead and make sure that whatever you do doesn't leak memory!
 	*/
-	void PlayEvent(Event * event);
+	void PlayEvent(Script * event);
 	void Process(float timeInSeconds);
-	List<Event*> GetActiveEvents(){ return activeEvents; };
+	List<Script*> GetActiveEvents(){ return activeEvents; };
 private:
-	List<Event*> activeEvents;
-	List<Event*> finishedEvents;
+	List<Script*> activeEvents;
+	List<Script*> finishedEvents;
 };
 
 #endif

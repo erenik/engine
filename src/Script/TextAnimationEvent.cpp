@@ -8,7 +8,7 @@
 #include "Graphics/Render/RenderViewport.h"
 
 TextAnimationEvent::TextAnimationEvent(int type, String elementName, int viewport)
-: Event(), type(type), elementName(elementName), viewport(viewport)
+: Script(), type(type), elementName(elementName), viewport(viewport)
 {
 	fadeInDuration = fadeOutDuration = 1000;
 	duration = 2000;

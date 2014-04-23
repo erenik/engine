@@ -21,8 +21,8 @@
 #include "../../RRPlayer.h"
 #include "Player/PlayerManager.h"
 #include "RuneRPG/Battle/RuneBattler.h"
-#include "Event/Event.h"
-#include "Event/EventProperty.h"
+#include "Script/Script.h"
+#include "Script/ScriptProperty.h"
 #include "Graphics/Camera/Camera.h"
 #include "Entity/EntityFlags.h"
 #include "../../RuneDirectories.h"
@@ -40,7 +40,7 @@
 #include "StateManager.h"
 #include "Physics/PhysicsManager.h"
 #include "Input/InputManager.h"
-#include "Event/EventManager.h"
+#include "Script/ScriptManager.h"
 #include "ModelManager.h"
 #include "Graphics/Animation/AnimationManager.h"
 #include "Pathfinding/WaypointManager.h"
@@ -54,7 +54,7 @@ MapState::MapState()
 	stateName = "MapState";
 	enterMode = EnterMode::NULL_MODE;
 	camera = new Camera();
-	activeMap = NULL;
+	mapToLoad = NULL;
 	player = NULL;
 	playerEntity = NULL;
 	playerState = NULL;
@@ -106,16 +106,8 @@ void MapState::OnEnter(GameState * previousState){
 		Player * p = PlayerMan.Get(0);
 		player = (RRPlayer*)p;
 	}
-
-	/// Do special stuff depending on enter-mode.
-	assert(enterMode != EnterMode::NULL_MODE && "Forgot to set enter-mode?!");
-	if (enterMode == EnterMode::NULL_MODE) {
-		std::cout<<"\nMapState::OnEnter Null-mode, returning.";
-		StateMan.QueueState(GAME_STATE_MAIN_MENU);
-		return;
-	}
 	/// Continue should probably be default mode, yo.
-	else if (enterMode == EnterMode::CONTINUE){
+	if (enterMode == EnterMode::CONTINUE){
 		std::cout<<"\nMapState::OnEnter Continue";
 		/// Stuff. o.o
 		/// Check if menu is open, if so set NavigateUI to true!
@@ -123,16 +115,10 @@ void MapState::OnEnter(GameState * previousState){
 			Input.NavigateUI(true);
 		}
 	}
-	else if (enterMode == EnterMode::NEW_GAME){
-		std::cout<<"\nMapState::OnEnter New game";
-		/// Run the newgame-script!
-		Event * ev = new Event();
-		activeMap = NULL;
-		ev->Load("data/Events/NewGame.e");
-		ev->flags |= DELETE_WHEN_ENDED;
-		EventMan.PlayEvent(ev);
-	}
-	else if (enterMode == EnterMode::TESTING_MAP){
+	else if (enterMode == EnterMode::TESTING_MAP)
+	{
+		assert(false);
+		/*
 		std::cout<<"\nMapState::OnEnter Testing map.";
 		assert(activeMap != NULL && "Test map should have been set before entering!");
 		// Load all maps that were created/added in the editor...!
@@ -145,6 +131,7 @@ void MapState::OnEnter(GameState * previousState){
 			PlacePlayer(Vector3i(10,10,0));
 		/// Call it explicitly if we came from the editor.
 		activeMap->OnEnter();
+		*/
 	}
 	/// Track camera on ze playah!
 	TrackPlayer();
@@ -502,7 +489,7 @@ void MapState::ProcessMessage(Message * message)
 				LoadShop(&RuneShop::testShop);
 			}
 			else if (string == "main_menu"){
-				StateMan.QueueState(GAME_STATE_MAIN_MENU);
+				StateMan.QueueState(StateMan.GetStateByID(GAME_STATE_MAIN_MENU));
 			}
 			else if (string == "stop_testing"){
 				assert(enterMode == EnterMode::TEST_LEVEL);
@@ -567,6 +554,7 @@ void MapState::ProcessMessage(Message * message)
 				/// Make sure an event triggered this!
 				assert(message->event);
 				Vector3f eventPos = message->event->position;
+				TileMap2D * activeMap = ActiveMap();
 				assert(activeMap);
 				if (!activeMap)
 					return;
@@ -579,7 +567,7 @@ void MapState::ProcessMessage(Message * message)
 				assert(tile->position.x != -1);
 				if (tile == NULL){
 					assert(false && "No valid walkable tile in range!");
-					StateMan.QueueState(GAME_STATE_EDITOR);
+					StateMan.QueueState(StateMan.GetStateByID(GAME_STATE_EDITOR));
 					return;
 				}
 				position = Vector3i(tile->position);
@@ -613,14 +601,14 @@ void MapState::ProcessMessage(Message * message)
 				}
 				assert(lastModifiedEntity);
 				if (lastModifiedEntity->events == NULL)
-					lastModifiedEntity->events = new EventProperty();
+					lastModifiedEntity->events = new ScriptProperty();
 				bool hasInteract = lastModifiedEntity->events->onInteract;
 				assert(hasInteract == false);
 				if (hasInteract == true){
 					std::cout<<"\nERROR: Entity already has OnInteract bound to it!";
 					return;
 				}
-				Event * event = new Event("OnInteract");
+				Script * event = new Script("OnInteract");
 				String source = string.Tokenize(" \t")[1];
 				event->Load(source);
 				lastModifiedEntity->events->onInteract = event;
@@ -650,9 +638,10 @@ void MapState::ResetCamera(){
 }
 
 // For when testing..!
-void MapState::ReturnToEditor(){
+void MapState::ReturnToEditor()
+{
 	MapMan.MakeActive(NULL);
-	StateMan.QueueState(GAME_STATE_EDITOR);
+	StateMan.QueueState(StateMan.GetStateByID(GAME_STATE_EDITOR));
 }
 
 // Disables movement for the player!
@@ -679,9 +668,11 @@ void MapState::SetCamera(Camera & reference)
 /// Place player on ze mappur ^3^
 bool MapState::PlacePlayer(Vector3i position)
 {
+	TileMap2D * activeMap = ActiveMap();
 	std::cout<<"\nPlacePlayer: "<<position;
-	activeMap = (TileMap2D*)MapMan.ActiveMap();
 	assert(activeMap);
+	if (!activeMap)
+		return false;
 	Tile * tile = activeMap->GetClosestVacantTile(position);
 	assert(tile);
 	if (tile == NULL){
@@ -733,10 +724,12 @@ bool MapState::PlacePlayer(Vector3i position)
 }
 
 /// Zone to map!
-void MapState::Zone(String mapName){
+void MapState::Zone(String mapName)
+{
 	std::cout<<"\n====================== ";
 	std::cout<<"\nZone: "<<mapName;
 	String filename = mapName;
+	TileMap2D * activeMap = ActiveMap();
 	if (activeMap){
 		String mn = activeMap->Name();
 		if (mn == mapName)
@@ -754,7 +747,8 @@ void MapState::Zone(String mapName){
 		return;
 	}
 	map->SetName(mapName);
-	MapMan.MakeActive(map);
+	bool result = MapMan.MakeActive(map);
+	activeMap = (TileMap2D*)map;
 
 	/// TODO: Change stuff in the graphics to inform that we are generating a navmesh for the map.
 	// Create navmesh.

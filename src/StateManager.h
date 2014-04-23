@@ -55,12 +55,12 @@ public:
 	/// Tries to queue previous state.
 	void QueuePreviousState();
 	/// Performs switch operations when transitioning states.
-	void QueueState(int id);
+	void QueueState(GameState * state);
 
 	/// Sets a global state, that can process global messages and packets
 	void SetGlobalState(int id);
 	/// Returns state of given ID so that messages may be sent to it before entering it.
-	GameState * GetState(int id);
+	GameState * GetStateByID(int id);
 	GameState * GetStateByName(String name);
 
 	/// Returns ID of the global state
