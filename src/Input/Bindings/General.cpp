@@ -450,7 +450,10 @@ void generalInputProcessor(int action, int inputDevice){
 #endif
 			break;
 		}
-		case TOGGLE_FULL_SCREEN: {
+		case TOGGLE_FULL_SCREEN: 
+		{
+			Graphics.ToggleFullScreen();
+			/*
 			std::cout<<"\nInput>>TOGGLE_FULL_SCREEN";
 			// Check full-screen state
 			if (Graphics.isFullScreen){
@@ -503,7 +506,7 @@ void generalInputProcessor(int action, int inputDevice){
                 XResizeWindow(display, window, Graphics.ScreenWidth(), Graphics.ScreenHeight());
 #endif
 				Graphics.isFullScreen = true;
-			}
+			}*/
 			break;
 		}
 	}

@@ -28,11 +28,12 @@ void TextAnimationEvent::OnBegin(){
 	}
 	startTime = Timer::GetCurrentTimeMs();
 }
-void TextAnimationEvent::Process(float time){
+void TextAnimationEvent::Process(float time)
+{
 	switch(type){
 		case NOTICE:
 			long long currentTime = Timer::GetCurrentTimeMs();
-			float timePassed = currentTime - startTime;
+			float timePassed = (float)(currentTime - startTime);
 			/// Fade-in
 			if (timePassed < fadeInDuration){
 				/// Fade-in the text.
@@ -52,7 +53,7 @@ void TextAnimationEvent::Process(float time){
 				Graphics.QueueMessage(new GMSetUIv4f(elementName, GMUI::TEXT_COLOR, Vector4f(1,1,1, relativeAlpha), viewport));
 			}
 			else
-				this->state = ENDING;
+				this->scriptState = ENDING;
 			break;
 	}
 }

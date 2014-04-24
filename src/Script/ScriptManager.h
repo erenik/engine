@@ -5,8 +5,8 @@
 #define EVENT_MANAGER_H
 
 #define ScriptMan (*ScriptManager::Instance())
-#define BeginEvent	PlayEvent
-#define PlayScript	PlayEvent
+#define BeginEvent	PlayScript
+#define PlayEvent	PlayScript
 
 #include <List/List.h>
 
@@ -29,7 +29,7 @@ public:
 		via the entities, maps or state machines that use them!
 		- Alternatively a boolean could be set which toggles this behaviour, but plan ahead and make sure that whatever you do doesn't leak memory!
 	*/
-	void PlayEvent(Script * event);
+	void PlayScript(Script * script);
 	void Process(float timeInSeconds);
 	List<Script*> GetActiveEvents(){ return activeEvents; };
 private:

@@ -43,13 +43,14 @@ void ScriptManager::PlayEvent(Script * script)
 	script->OnBegin();
 	activeEvents.Add(script);
 }
-void ScriptManager::Process(float timeInSeconds){
+void ScriptManager::Process(float timeInSeconds)
+{
 //	std::cout<<"\nEventManager::Process";
 	for (int i = 0; i < activeEvents.Size(); ++i){
 	//	std::cout<<"\nActive events: "<<activeEvents.Size();
 		Script * ev = activeEvents[i];
 		ev->Process(timeInSeconds);
-		if (ev->state == Script::ENDING){
+		if (ev->scriptState == Script::ENDING){
 			ev->OnEnd();
 			activeEvents.Remove(ev);
 			/// Delete if specified.

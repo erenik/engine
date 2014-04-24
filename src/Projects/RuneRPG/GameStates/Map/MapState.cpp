@@ -234,6 +234,8 @@ enum mouseCameraStates {
 void MapState::MouseClick(bool down, int x, int y, UIElement * elementClicked){
 	if (down){
 		NavMesh * nm = WaypointMan.ActiveNavMesh();
+		if (!nm)
+			return;
 		Waypoint * wp = nm->GetClosestVacantWaypoint(cursorPosition);
 		std::cout<<"\nMouse-click waypoint: "<<wp;
 		if (wp)

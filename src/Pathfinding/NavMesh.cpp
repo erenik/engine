@@ -734,7 +734,8 @@ Waypoint * NavMesh::GetClosestTo(Vector3f position, float maxDistance /* = -1.f 
 	return closest;
 }
 /// Returns vacant waypoint closest to target position
-Waypoint * NavMesh::GetClosestVacantWaypoint(Vector3f position){
+Waypoint * NavMesh::GetClosestVacantWaypoint(Vector3f position)
+{
 	float closestDist = 100000000000000.0f;
 	Waypoint * closest = NULL;
 	for (int i = 0; i < waypoints.Size(); ++i){

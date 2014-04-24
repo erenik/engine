@@ -139,29 +139,42 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			// If wParam is TRUE, it specifies that the application should indicate
 			// which part of the client area contains valid information. The system
 			// copies the valid information to the specified area within the new client area.
-
 			NCCALCSIZE_PARAMS * calcParams = (NCCALCSIZE_PARAMS*)lParam;
-			// Adjust so we don't have a frame with transparent
-			calcParams->rgrc[0].top -= 1;
-			calcParams->rgrc[0].bottom += 1;
-			calcParams->rgrc[0].left -= 1;
-			calcParams->rgrc[0].right += 1;
+			PWINDOWPOS windowPos = calcParams->lppos;
 			/// If full-screen, disable the additional parameters to get truly full-screen ^^
 			if (calcParams->lppos->cx == Graphics.ScreenWidth() && calcParams->lppos->cy == Graphics.ScreenHeight())
-				return WVR_ALIGNTOP | WVR_ALIGNLEFT;
+			{
+				/*
+				calcParams->rgrc[0].top -= 1;
+				calcParams->rgrc[0].bottom += 1;
+				calcParams->rgrc[0].left -= 1;
+				calcParams->rgrc[0].right += 1;	
+				*/
+			}	
+			// Adjust so we don't have a frame with transparency if small.
+			else {
+				int mod = 0;
+				calcParams->rgrc[0].top -= mod;
+				calcParams->rgrc[0].bottom += mod;
+				calcParams->rgrc[0].left -= mod;
+				calcParams->rgrc[0].right += mod;	
+		//		return 0;
+		//		return WVR_VALIDRECTS | WVR_REDRAW;
+			}
 		}
 		if (wParam == false){
 			/// If wParam is FALSE, lParam points to a RECT structure. On entry, the
 			// structure contains the proposed window rectangle for the window. On exit,
 			// the structure should contain the screen coordinates of the corresponding window client area.
 			RECT * proposedWRect = (RECT*)lParam;
-			proposedWRect->left += 2;
-			proposedWRect->bottom += 2;
-			return 0;
+		//	proposedWRect->left += 2;
+		//	proposedWRect->bottom += 2;
+		//	return 0;
 		}
 		break;
 	}
-	case WM_SIZE: {		// Sent to a window after its size has changed.
+	case WM_SIZE: 
+	{		// Sent to a window after its size has changed.
 		switch(wParam){
 		case SIZE_MAXHIDE:	// Message is sent to all pop-up windows when some other window is maximized.
 			break;
@@ -176,8 +189,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		default:
 			break;
 		}
-		DWORD width = (lParam & 0xFFFF) + 2;
-		DWORD height = (lParam >> 16) + 2;
+		DWORD width = (lParam & 0xFFFF);
+		DWORD height = (lParam >> 16);
 
 		if (!Graphics.SetResolution(width, height))
 			break;

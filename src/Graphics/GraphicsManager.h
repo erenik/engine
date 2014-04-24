@@ -253,8 +253,9 @@ private:
 	Mutex graphicsMessageQueueMutex;
 
 	/// Sets overlay texture to be rendered on top of everything else
-	void SetOverlayTexture(Texture * t);
-	void SetOverlayTexture(String source);
+	void SetOverlayTexture(Texture * t, int fadeInTime = 0);
+	void SetOverlayTexture(String source, int fadeInTime = 0);
+
 
 	/// Box to be used for rendering deferred shading onto the window, placed here for eased usage.
 	Square * deferredRenderingBox;
@@ -307,7 +308,8 @@ private:
 	void RenderEntityVectors();
 	/// Renders all generic simple shapes
 	void RenderShapes();
-
+	/// Renders target texture to the screen.
+	void RenderFullScreen(Texture * tex, float alpha = 1.0f);
 
 	/// Adds an Entity to be rendered to the vfcOctree.
 	bool RegisterEntity(Entity * entity);
@@ -331,7 +333,10 @@ private:
 
 
 	/// Overlay texture to be displayed at start-up and eventual splash-screens later on.
-	Texture * overlayTexture;
+	Texture * overlayTexture, * queuedOverlayTexture;
+	int overlayFadeInTime;
+	long long overlayFadeInStart;
+
 	TileMap2D * mapToRender;
 
 	/// Updates the graphicsState's lighting to include dynamic lights' new positions as well.

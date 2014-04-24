@@ -123,6 +123,7 @@ GraphicsManager::GraphicsManager()
 	cameraToTrack = defaultCamera;
 	selectionToRender = NULL;
 	overlayTexture = NULL;
+	queuedOverlayTexture = NULL;
 	lighting = NULL;
 	mapToRender = NULL;
 	/// Current full-screen flag
@@ -199,7 +200,8 @@ void GraphicsManager::ResetSleepTimes(){
 	outOfFocusSleepTime = 5;
 }
 
-GraphicsManager::~GraphicsManager(){
+GraphicsManager::~GraphicsManager()
+{
 	delete graphicsState;
 	graphicsState = NULL;
 	SAFE_DELETE(defaultCamera);
@@ -351,20 +353,31 @@ void GraphicsManager::SetGlobalUI(UserInterface * i_ui){
 
 
 /// Sets overlay texture to be rendered on top of everything else
-void GraphicsManager::SetOverlayTexture(String source){
+void GraphicsManager::SetOverlayTexture(String source, int fadeInTime)
+{
 	/// Check if source is null
 	if (source.Length() == 0){
 		overlayTexture = NULL;
 		return;
 	}
 	/// Check if it's preloaded
-	Texture * texture = TexMan.GetTextureBySource(source);
-	SetOverlayTexture(texture);
-
+	Texture * texture = TexMan.GetTexture(source);
+	SetOverlayTexture(texture, fadeInTime);
 }
+
 /// Sets overlay texture to be rendered on top of everything else
-void GraphicsManager::SetOverlayTexture(Texture * texture){
-	overlayTexture = texture;
+void GraphicsManager::SetOverlayTexture(Texture * texture, int fadeInTime /* = 0*/)
+{
+	if (fadeInTime == 0)
+		overlayTexture = texture;
+	else 
+	{
+		// Log in fade-time after the texture is buffered!
+		overlayFadeInTime = fadeInTime;
+		queuedOverlayTexture = texture;
+		overlayFadeInStart = 0; // But reset it here, or things will not work.
+	}
+	renderQueried = true;
 }
 
 void GraphicsManager::RepositionEntities(){
@@ -564,6 +577,18 @@ void GraphicsManager::ToggleFullScreen(){
 		if (notResizable)
 			windowStyle &= ~WS_SIZEBOX;
 
+		/*
+		// Set device mode for non-full-screen?
+		DEVMODE dmScreenSettings;
+		memset(&dmScreenSettings, 0, sizeof(dmScreenSettings));
+		dmScreenSettings.dmSize=sizeof(dmScreenSettings);       // Size Of The Devmode Structure
+		dmScreenSettings.dmPelsWidth    = width;            // Selected Screen Width
+		dmScreenSettings.dmPelsHeight   = height;           // Selected Screen Height
+		dmScreenSettings.dmBitsPerPel   = 32;             // Selected Bits Per Pixel
+//		dmScreenSettings.dmFields=DM_BITSPERPEL|DM_PELSWIDTH|DM_PELSHEIGHT;
+		// Try To Set Selected Mode And Get Results.  NOTE: CDS_FULLSCREEN Gets Rid Of Start Bar.
+		bool result = ChangeDisplaySettings(&dmScreenSettings, CDS_RESET);
+*/
 		SetWindowLongPtr(hWnd, GWL_STYLE,
 			windowStyle);
 		MoveWindow(hWnd,
@@ -576,15 +601,30 @@ void GraphicsManager::ToggleFullScreen(){
         Graphics.isFullScreen = false;
 	}
 	else {
+
 		/// Save away old sizes
 		Graphics.oldWidth = Graphics.Width();
 		Graphics.oldHeight = Graphics.Height();
 #ifdef WINDOWS
+/*
+		// Set device mode for full-screen?
+		DEVMODE dmScreenSettings;
+		memset(&dmScreenSettings, 0, sizeof(dmScreenSettings));
+		dmScreenSettings.dmSize=sizeof(dmScreenSettings);       // Size Of The Devmode Structure
+		dmScreenSettings.dmPelsWidth    = width;            // Selected Screen Width
+		dmScreenSettings.dmPelsHeight   = height;           // Selected Screen Height
+		dmScreenSettings.dmBitsPerPel   = 32;             // Selected Bits Per Pixel
+		dmScreenSettings.dmFields=DM_BITSPERPEL|DM_PELSWIDTH|DM_PELSHEIGHT;
+		// Try To Set Selected Mode And Get Results.  NOTE: CDS_FULLSCREEN Gets Rid Of Start Bar.
+		bool result = ChangeDisplaySettings(&dmScreenSettings, CDS_FULLSCREEN);
+*/
 		// Sets full-screen style if specified
 		SetWindowLongPtr(hWnd, GWL_STYLE,
 			WS_SYSMENU |
 			WS_POPUP | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_VISIBLE);
-		MoveWindow(hWnd, 0, 0, Graphics.ScreenWidth(), Graphics.ScreenHeight(), true);
+		int screenWidth = Graphics.ScreenWidth();
+		int screenHeight = Graphics.ScreenHeight();
+		MoveWindow(hWnd, -2, -1, Graphics.ScreenWidth()+4, Graphics.ScreenHeight()+2, true);
 #elif defined LINUX
         XResizeWindow(display, window, Graphics.ScreenWidth(), Graphics.ScreenHeight());
 #endif

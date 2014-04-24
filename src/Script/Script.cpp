@@ -28,7 +28,7 @@ Script::Script(const Script & base)
 	executed = base.executed;
 	repeatable = base.repeatable;
 	currentLine = base.currentLine;
-	state = base.state;
+	scriptState = base.scriptState;
 	lineFinished = base.lineFinished;
 	flags = base.flags;
 	/// Copy loaded data too.
@@ -49,14 +49,15 @@ Script::Script(String name, Script * parent /* = NULL */ )
 	executed = false;
 	repeatable = false;
 	currentLine = -1;
-	state = NOT_BEGUN;
+	scriptState = NOT_BEGUN;
 	lineFinished = true;
 	flags = 0;
 };
 
-void Script::Reset(){
+void Script::Reset()
+{
 	currentLine = -1;
-	state = NOT_BEGUN;
+	scriptState = NOT_BEGUN;
 	lineFinished = true;
 	executed = false;
 }
@@ -119,7 +120,7 @@ bool Script::Load(String fromFile){
 	for (int i = 0; i < sourceLines.Size(); ++i){
 		String & line = sourceLines[i];
 		// Try load the battler from the relative directory.
-		if (line.Contains("//"))
+		if (line.StartsWith("//"))
 			continue;
 		List<String > tokens = line.Tokenize(" \t");
 		line.SetComparisonMode(String::NOT_CASE_SENSITIVE);
@@ -153,8 +154,9 @@ bool Script::Load(String fromFile){
 }
 
 /// Regular state-machine mechanics for the events, since there might be several parralell events?
-void Script::OnBegin(){
-	state = BEGUN;
+void Script::OnBegin()
+{
+	scriptState = BEGUN;
 }
 
 void Script::Process(float time)
@@ -169,7 +171,7 @@ void Script::Process(float time)
 		++currentLine;
 		/// If we finished the last line, flag this event as ending...!
 		if (currentLine >= lines.Size()){
-			state = ENDING;
+			scriptState = ENDING;
 			return;
 		}
 		/// New line: specify it as not finished.!
@@ -183,12 +185,12 @@ void Script::Process(float time)
 void Script::OnEnd()
 {
 	if (repeatable){
-		state = NOT_BEGUN;
+		scriptState = NOT_BEGUN;
 		currentLine = -1;
 		return;
 	}
 	/// Flag the event as finished!
-	state = ENDED;
+	scriptState = ENDED;
 	/// Notify parents if needed.
 	if (parent)
 		parent->OnScriptEnded(this);
@@ -214,6 +216,11 @@ void Script::EvaluateLine(String & line)
 		String stateName = line.Tokenize("()")[1];		
 		StateChanger * changer = new StateChanger(line, this);
 		ScriptMan.PlayScript(changer);
+	}
+	else if (line.Contains("FadeTo("))
+	{
+		OverlayFadeEffect * fade = new OverlayFadeEffect(line, this);
+		ScriptMan.PlayScript(fade);
 	}
 	else if (line.Contains("Dialogue")){
 		/// If raw string, output it straight away! (should later be queued to some kind of dialogue-manager?)
@@ -450,6 +457,12 @@ void Script::EvaluateLine(String & line)
 	}
 	else {
 		std::cout<<"\nERROR: Undefined event command: "<<line;
+		std::cout<<"\nPassing it as a custom command to the game states for further processing.";
+		Message * message = new Message(line);
+		/// Set this event as
+		message->event = this;
+		MesMan.QueueMessage(message);
+		lineFinished = true;
 	//	assert(false && "Undefined event command!");
 	};
 }

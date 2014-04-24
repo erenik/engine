@@ -358,6 +358,7 @@ int main(int argc, char **argv){
 
 	wcscpy(szTitle, windowTitle.wc_str());
 
+/*	
 	/// Set window style
 	windowStyle =
 		WS_CAPTION |		// The window has a title bar (includes the WS_BORDER style).
@@ -370,6 +371,21 @@ int main(int argc, char **argv){
 	//	WS_OVERLAPPEDWINDOW |	// The window is an overlapped window. Same as the WS_TILEDWINDOW style.
 		/* (WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX) */
 
+//		0;
+
+	/// Set window style
+	windowStyle =
+		WS_CAPTION |		// The window has a title bar (includes the WS_BORDER style).
+		WS_MAXIMIZEBOX |	// The window has a maximize button. Cannot be combined with the WS_EX_CONTEXTHELP style. The WS_SYSMENU style must also be specified.
+		WS_MINIMIZEBOX |	// The window has a minimize button. Cannot be combined with the WS_EX_CONTEXTHELP style. The WS_SYSMENU style must also be specified.
+		WS_OVERLAPPED |		// The window is an overlapped window. An overlapped window has a title bar and a border. Same as the WS_TILED style.
+		WS_SIZEBOX |		// The window has a sizing border. Same as the WS_THICKFRAME style.
+		WS_SYSMENU |		// The window has a window menu on its title bar. The WS_CAPTION style must also be specified.
+		WS_THICKFRAME |		// The window has a sizing border. Same as the WS_SIZEBOX style.
+//		WS_VISIBLE | // Have no idea..
+//			WS_POPUP | WS_CLIPCHILDREN | WS_CLIPSIBLINGS |
+WS_CLIPSIBLINGS |
+WS_CLIPCHILDREN | 
 		0;
 
 	/// If not resizable, de-flag it

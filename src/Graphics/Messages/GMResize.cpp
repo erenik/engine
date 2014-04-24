@@ -12,7 +12,8 @@ GMResize::GMResize(short width, short height) : GraphicsMessage(GM_RESIZE) {
 	this->height = height;
 };
 
-void GMResize::Process(){
+void GMResize::Process()
+{
 	Graphics.width = width;
 	Graphics.height = height;
 

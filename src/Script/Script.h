@@ -51,7 +51,7 @@ public:
 	/// To avoid long names in the editor, et al.
 	static const char * rootEventDir;
 
-	enum eventStates {
+	enum scriptStates {
 		NOT_BEGUN,
 		BEGUN,
 		PAUSED,
@@ -64,7 +64,8 @@ public:
 	/// Source-script file to parse and load/use when activathed.
 	String source;
 	Vector3f position;
-	int state;
+	// See enum scriptStates.
+	int scriptState;
 	
 	/// To keep track of things.
 	Script * parent;

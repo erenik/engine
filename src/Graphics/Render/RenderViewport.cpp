@@ -65,7 +65,8 @@ void RenderViewport::AdjustToWindow(int w_width, int w_height){
 	}
 }
 
-void RenderViewport::Render(GraphicsState &graphicsState){
+void RenderViewport::Render(GraphicsState &graphicsState)
+{
 	if (width == 0 || height == 0){
 		std::cout<<"\nRenderViewport::Render: NULL viewport width or height! Is this the intent?";
 		return;
@@ -81,9 +82,9 @@ void RenderViewport::Render(GraphicsState &graphicsState){
 		glViewport(x0 * Graphics.width, y0 * Graphics.height, width * Graphics.width, height * Graphics.height);
 	}
 	/// Absolute coordinates
-	else
+	else {
 		glViewport(x0, y0, width, height);
-
+	}
 //    std::cout << "Relative=" << relative << " Width="<< width << " Height= " << height << std::endl;
 
 	// Updates the projection matrices using the manager's width/height

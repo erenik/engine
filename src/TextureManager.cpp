@@ -40,6 +40,10 @@ void TextureManager::DeallocateTextures(){
 Texture * TextureManager::GetTexture(String nameOrSource)
 {
     Texture * tex = NULL;
+	if (nameOrSource.Type() == String::WIDE_CHAR)
+		nameOrSource.ConvertToChar();
+	// Delete whitespace..
+	nameOrSource.RemoveInitialWhitespaces();
     tex = GetTextureByName(nameOrSource);
     if (!tex)
         tex = GetTextureBySource(nameOrSource);
@@ -52,9 +56,10 @@ Texture * TextureManager::GetTextureByName(String name){
 		return NULL;
 	name = FilePath::MakeRelative(name);
 	int queriedLength = name.Length();
-	for (int i = 0; i < textures.Size(); ++i){
+	for (int i = 0; i < textures.Size(); ++i)
+	{
 		String texName = textures[i]->name;
-		if (textures[i]->name == name)
+		if (texName == name)
 			return textures[i];
 	}
 	/// Check if the name has a file-ending. If not, assume it's a general color!
@@ -150,6 +155,7 @@ Texture * TextureManager::GenerateTexture(String withName, Vector4f andColor)
 	newTex->format = Texture::RGBA;
 	newTex->CreateDataBuffer();
 	newTex->SetColor(andColor);
+	newTex->name = withName;
 
 
 	textures.Add(newTex);

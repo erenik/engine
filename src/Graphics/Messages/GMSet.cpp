@@ -217,14 +217,12 @@ void GMSetUI::Process()
 }
 
 
-GMSetOverlay::GMSetOverlay(String textureName)
-: GraphicsMessage(GM_SET_OVERLAY), textureName(textureName)
+GMSetOverlay::GMSetOverlay(String textureName, int fadeInTimeInMs)
+: GraphicsMessage(GM_SET_OVERLAY), textureName(textureName), fadeInTime(fadeInTimeInMs)
 {
 	
 }
 void GMSetOverlay::Process()
 {
-	Texture * t = TexMan.GetTextureByName(textureName);
-	Graphics.SetOverlayTexture(t);
-	Graphics.renderQueried = true;
+	Graphics.SetOverlayTexture(textureName, fadeInTime);
 }
