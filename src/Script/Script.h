@@ -29,7 +29,7 @@ public:
 
 	/// Regular state-machine mechanics for the events, since there might be several parralell events?
 	virtual void OnBegin();
-	virtual void Process(float time);
+	virtual void Process(long long time);
 	virtual void OnEnd();
 	void EvaluateLine(String & line);
 	/// Resets the event so that it can be re-played again!
@@ -75,6 +75,12 @@ public:
 	bool executed;
 	bool repeatable;
 
+	// Set this to false for those scripts that do not require waiting for completion! o.o
+	bool pausesExecution;
+
+	// For keeping track of time that has passed for a current script. Needed in order to avoid debug- and lag-times affecting outcome.
+	int timePassed;
+
 	enum triggerType {
 		NULL_TRIGGER_TYPE,
 		ON_ENTER, // OnEnter = On Entering map
@@ -89,7 +95,7 @@ public:
 
 	/// Main trigger-condition type, which can be one of the previous enums.
 	int triggerCondition;
-	/// When executing.
+	/// When executing, keeps track of which line we were on. Starts at.. 0?
 	int currentLine;
 
 	/// All that should happen when the event triggers..!

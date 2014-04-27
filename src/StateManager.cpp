@@ -203,10 +203,16 @@ void StateManager::HandleDADFiles(List<String> & files){
 		time = newTime;
 		newTime = Timer::GetCurrentTimeMs();
 		long timeDiff = newTime - time;
+		if (timeDiff > 250)
+		{
+			if (timeDiff > 1000)
+				std::cout<<"\nStateManager: Throwing away "<<timeDiff * 0.001f<<" seconds.";
+			timeDiff = timeDiff % 100;
+		}
 		float timeDiffF = ((float)timeDiff) * 0.001f;
 		/// Enter new state if queued.
 		StateMan.EnterQueuedState();
-		ScriptMan.Process(timeDiffF);
+		ScriptMan.Process(timeDiff);
 		/// Wosh.
 		if (!StateMan.IsPaused()){
 			/// Process the active StateMan.

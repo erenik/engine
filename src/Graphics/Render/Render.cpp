@@ -177,10 +177,16 @@ void GraphicsManager::Render(){
 	// And render FPS while we're at it...!
 	if (renderFPS)
 		RenderFPS();
-	
+
 	// Render UI if applicable
-	if (this->renderUI && globalUI)
+	if (this->renderUI && ui)
+		RenderUI(ui);
+
+	// Always render globalUI.
+	if (globalUI)
+	{
 		RenderUI(globalUI);
+	}
 
 	// Render overlay if wanted~
 	RenderOverlay();

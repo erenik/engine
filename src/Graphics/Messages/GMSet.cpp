@@ -68,18 +68,19 @@ void GMSet::Process(){
 	    case CLEAR_COLOR:
             Graphics.renderSettings->clearColor = vec3fValue;
             break;
-		case ACTIVE_USER_INTERFACE:{
+		case ACTIVE_USER_INTERFACE:
+		{
 			/// Notify the previous ui that they are going out of scope.
-			UserInterface * previousUI = Graphics.globalUI;
+			UserInterface * previousUI = Graphics.GetUI();
 			if (previousUI)
 				previousUI->OnExitScope();
 
 			UserInterface * ui = (UserInterface*) pData;
-			Graphics.globalUI = ui;
+			Graphics.ui = ui;
 			if (ui == NULL)
 				return;
 			// Activate things as necessary.
-			Graphics.globalUI->OnEnterScope();
+			ui->OnEnterScope();
 			bool needToResize = ui->AdjustToWindow(Graphics.width, Graphics.height);
 			// If we haven't created the geoms, do it and buffer it straight away
 			if (!ui->IsGeometryCreated()){
@@ -166,7 +167,7 @@ void GMSetUI::Process()
 		/// Global UI
 		case -1: 
 		{
-			UserInterface * oldUI = Graphics.globalUI;
+			UserInterface * oldUI = Graphics.GetUI();
 			if (oldUI)
 			{
 				oldUI->OnExitScope();
@@ -184,7 +185,7 @@ void GMSetUI::Process()
 	// If an empty UI, just enter it and then return.
 	if (ui == NULL)
 	{
-		Graphics.globalUI = NULL;
+		Graphics.ui = NULL;
 		return;
 	}
 	bool needToResize = ui->AdjustToWindow(Graphics.width, Graphics.height);
@@ -204,9 +205,9 @@ void GMSetUI::Process()
 	// Assign it if all went well?
 	switch(viewport){
 		case -1:{
-			Graphics.globalUI = ui;
-			if (Graphics.globalUI)
-				Graphics.globalUI->OnEnterScope();
+			Graphics.ui = ui;
+			if (Graphics.ui)
+				Graphics.ui->OnEnterScope();
 			break;
 		}
 		default:

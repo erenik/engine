@@ -20,24 +20,94 @@ private:
 	GameState * gs;
 };
 
+class UIElement;
 
-class OverlayFadeEffect : public Script 
+namespace FadeState{
+enum fadeState 
+{
+	FADING_IN,
+	RESTING,
+	FADING_OUT,
+	DONE,
+};
+};
+
+
+
+/// Base class for fade-effects using the System-global ui.
+class OverlayScript : public Script 
 {
 public:
-	OverlayFadeEffect(String line, Script * parent);
+	OverlayScript(String line, Script * parent);
 	virtual void OnBegin();
-	virtual void Process(float time);
-private:
-	// 0 = sent first texture, 1 = sent second texture.
+	virtual void Process(long long time);
+protected:
+	// For accessing the ui-elements.
+	void SetLayerAlpha(int layer, float alpha);
+	float GetLayerAlpha(int layer);
+	// Set main text.
+	void SetText(String text);
+
+	// Some variables to use.
 	int fadeState;
-	long long startTime;
-	String fadeInTextureSource;
-	String fadeOutTextureSource;
-	Texture * fadeInTexture, * fadeOutTexture;
-	int fadeInDuration;
+	long long startTime, totalTime;
 	int duration;
+	
+	// For handling overlay-layer effects.
+	enum overlayLayerNames{
+		BACKGROUND,
+		LAYER_1,
+		LAYER_2,
+		TEXT, // Separate layer to contain text.
+		MAX_OVERLAY_LAYERS,
+	};
+private:
+	static int overlayLayers;
+	// Elements used for the overlay-fade effect. Placed in the global UI.
+	static UIElement * overlayUI[MAX_OVERLAY_LAYERS];
+	/** 0 = sent first texture, fading it, 
+		1 = resting at full alpha, 
+		2 = sent second texture, fading out, 
+		3 = done.
+	*/
+};
+
+class FadeInEffect : public OverlayScript
+{
+public:
+	FadeInEffect(String line, Script * parent);
+	virtual void OnBegin();
+	virtual void Process(long long time);
+private:
+	String fadeInTextureSource;
+	int fadeInDuration;
+	
+};
+
+class FadeOutEffect : public OverlayScript
+{
+public:
+	FadeOutEffect(String line, Script * parent);
+	virtual void OnBegin();
+	virtual void Process(long long time);
+private:
+	// Take note of alpha when starting fade-out.
+	float startAlpha;
 	int fadeOutDuration;
 };
+
+class FadeTextEffect : public OverlayScript
+{
+public:
+	FadeTextEffect(String line, Script * parent);
+	virtual void OnBegin();
+	virtual void Process(long long time);
+private:
+	int fadeInDuration;
+	int fadeOutDuration;
+	String text;
+};
+
 
 #endif
 

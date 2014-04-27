@@ -5,8 +5,11 @@
 #include "Tracks/Track.h"
 #include "TrackManager.h"
 #include "Message/MessageManager.h"
+#include "File/FileUtil.h"
 
 TrackManager * TrackManager::trackManager = NULL;
+
+String defaultTrackPath = "sound";
 
 TrackManager::TrackManager(){}
 TrackManager::~TrackManager(){
@@ -51,7 +54,20 @@ void TrackManager::Resume()
 }
 
 /// Creates a new track-object, checking that the file exists and returns true upon success. No check is done to verify that it is a valid Audio file.
-Track * TrackManager::CreateTrack(String name, String source, String category){
+Track * TrackManager::CreateTrack(String name, String source, String category)
+{
+	// Check that the source exists first..?
+	if (!FileExists(source))
+	{
+		// Try to add default track path.
+		if (!source.Contains(defaultTrackPath))
+		{
+			source = defaultTrackPath + "/" + source;
+			return CreateTrack(name, source, category);
+		}
+		std::cout<<"\nNo such file with source: "<<source;
+		return NULL;
+	}
 	Track * track = new Track();
 	track->name = name;
 	track->source = source;
@@ -90,6 +106,32 @@ bool TrackManager::IsPlaying()
 			return true;
 	}
 	return false;
+}
+
+/// Plays target track.
+Track * TrackManager::PlayTrack(String trackNameOrSource)
+{
+	Track * targetTrack = NULL;
+	for (int i = 0; i < tracks.Size(); ++i){
+		Track * track = tracks[i];
+		if (track->source == trackNameOrSource ||
+			track->name == trackNameOrSource
+			)
+		{
+			targetTrack = track;
+			break;
+		}
+	}
+	// Not found? Try to load it from source.
+	if (!targetTrack)
+		targetTrack = CreateTrack(trackNameOrSource, trackNameOrSource, "track");
+	if (targetTrack)
+	{
+		Play(targetTrack);
+//		track->Play();
+//		OnTrackPlayed(track);
+	}
+	return targetTrack;
 }
 
 /// Attempts to play a track by name. Returns NULL if it was not found.

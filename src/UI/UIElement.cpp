@@ -57,6 +57,7 @@ void UIElement::Nullify(){
 	id = idEnumerator++;
 	/// Hierarchy
 	parent = NULL;
+	ui = NULL;
 
 	// Graphical properties
 	mesh = NULL;
@@ -133,6 +134,8 @@ void UIElement::Nullify(){
 
 	/// GL related.
 	vertexArray = -1;
+
+	color = Vector4f(1,1,1,1);
 }
 
 UIElement::UIElement(){
@@ -1133,7 +1136,8 @@ bool UIElement::IsDisabled(){
 }
 
 /// Splitting up the rendering.
-void UIElement::RenderSelf(GraphicsState & graphics){
+void UIElement::RenderSelf(GraphicsState & graphics)
+{
     PrintGLError("GLError before UIElement::Render?!");
 	/// If not buffered, do it nau!
 	if (vboBuffer == -1){
@@ -1141,7 +1145,11 @@ void UIElement::RenderSelf(GraphicsState & graphics){
 		if (!this->mesh)
 			CreateGeometry();
 		// Adjust values.
-		AdjustToWindow((int)parent->left, (int)parent->right, (int)parent->bottom, (int)parent->top);
+		if (parent)
+			AdjustToWindow((int)parent->left, (int)parent->right, (int)parent->bottom, (int)parent->top);
+		/// If parent is null, this means this is the root-element, so use current screen size?
+		else 
+			AdjustToWindow(0, ui->Width(), 0, ui->Height());
 		/// Resize the square-object.
 		ResizeGeometry();
 		/// Buffer it.
@@ -1160,7 +1168,7 @@ void UIElement::RenderSelf(GraphicsState & graphics){
 		TexMan.BufferizeTexture(texture);
 	}
 	else if (textureSource){
-		texture = TexMan.GetTextureBySource(textureSource);
+		texture = TexMan.GetTexture(textureSource);
 		if (!texture)
             texture = TexMan.GetTextureByName(textureSource);
 		/// Unable to fetch target-texture, so skip it.
@@ -1176,8 +1184,9 @@ void UIElement::RenderSelf(GraphicsState & graphics){
 	}
 	// No texture at all? Flag it and avoid rendering this element.
 	else  {
-		// Bind texture NULL!
-		glBindTexture(GL_TEXTURE_2D, NULL);
+		// Use standard black texture if so, won't matter much anyway.
+		texture = TexMan.GetTexture("NULL");
+		glBindTexture(GL_TEXTURE_2D, texture->glid);
 		validTexture = false;
 	}
 	if (texture != NULL && texture->glid == -1){
@@ -1196,7 +1205,7 @@ void UIElement::RenderSelf(GraphicsState & graphics){
 	// Also check for valid texture...!
 	if (vboBuffer && validTexture){
 
-		Vector3f baseColor(1.0f,1.0f,1.0f);
+		Vector3f baseColor = color;
 		// If greyed out: activatable but not currently selectable/toggleable, grey it out.
 		if (this->IsDisabled()){
 			baseColor *= 0.5f;
@@ -1225,7 +1234,7 @@ void UIElement::RenderSelf(GraphicsState & graphics){
 
 		assert(graphics.activeShader->uniformPrimaryColorVec4 != -1);
 		glUniform4f(graphics.activeShader->uniformPrimaryColorVec4,
-			baseColor.x, baseColor.y, baseColor.z, 1.0f);
+			baseColor.x, baseColor.y, baseColor.z, color.w);
 		assert(graphics.activeShader->uniformHighlightColorVec4 != -1);
 		glUniform4f(graphics.activeShader->uniformHighlightColorVec4,
 			highlightColor.x, highlightColor.y, highlightColor.z, 0.0f);
@@ -1301,7 +1310,8 @@ void UIElement::RenderSelf(GraphicsState & graphics){
 		float pixels = sizeY * textSizeRatio; // Graphics.Height();
 	//	pixels *= this->sizeRatioY;
 
-        if (currentTextSizeRatio <= 0){
+        if (currentTextSizeRatio <= 0)
+		{
 			textToRender = text;
 			/// Rows available
 			int rowsAvailable = (int)(1 / textSizeRatio);
@@ -1361,12 +1371,12 @@ void UIElement::RenderSelf(GraphicsState & graphics){
 //		std::cout<<"\nTextToRender size in pixels: "<<pixels;
 		graphics.modelMatrixD.Scale(pixels);	//Graphics.Height()
 		graphics.modelMatrixF = graphics.modelMatrixD;
-		Vector4f color = this->textColor;
+		Vector4f textColorToRender = this->textColor;
 		// If disabled, dull the color! o.o
 		if (this->IsDisabled())
-			color *= 0.55f;
+			textColorToRender *= 0.55f;
 	//	color.w *= 0.5f;
-		graphics.currentFont->SetColor(color);
+		graphics.currentFont->SetColor(textColorToRender);
 //		std::cout<<"\nTextToRender: "<<textToRender;
 		graphics.currentFont->RenderText(this->textToRender, graphics);
 		graphics.modelMatrixF = graphics.modelMatrixD = tmp;

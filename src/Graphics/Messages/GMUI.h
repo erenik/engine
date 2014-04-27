@@ -27,6 +27,8 @@ public:
 		// Floats
 		FLOAT_INPUT, // Single nested input for UIFloatInput class.
 		TEXT_SIZE_RATIO, // Yup.
+		ALPHA, // Assuming color only varies by alpha...
+		TEXT_ALPHA,
 		// Bools
 		VISIBILITY,
 		CHILD_VISIBILITY, // Used to specify the visibility of all children via GMSetUIb instead of having an own message-class.
@@ -45,7 +47,11 @@ public:
 protected:
 	/// By looking at viewport. Returns false if none was found.
 	bool GetUI();
+	/// Fetches global UI. 
+	bool GetGlobalUI();
 	int viewportID;
+	// Helps flag if the messages are directed to global or active-state ui.
+	bool global;
 	UserInterface * ui;
 };
 
@@ -110,6 +116,17 @@ private:
 	float value;
 };
 
+/** For setting floating point values, like relative sizes/positions, scales etc. 
+	of elements in the system-global UI. Makes used of the regular GMSetUIf class for processing.
+*/
+class GMSetGlobalUIf : public GMSetUIf 
+{
+public:
+	GMSetGlobalUIf(String uiName, int target, float value);
+};
+
+
+
 class GMSetUIb : public GMUI {
 public:
 	GMSetUIb(String UIname, int target, bool v, int viewport = NULL);
@@ -120,7 +137,6 @@ private:
 	UIElement * element;
 	bool value;
 };
-
 
 class GMSetUIs: public GMUI {
 public:
@@ -137,6 +153,14 @@ private:
 	Text text;
 	bool force;
 };
+
+// System-global version for setting strings of ui.
+class GMSetGlobalUIs : public GMSetUIs
+{
+public:
+	GMSetGlobalUIs(String uiName, int target, Text text, bool force = false);
+};
+
 
 // Deletes contents (children) of specified UI element. Primarily used on UILists.
 class GMClearUI : public GMUI{
@@ -156,6 +180,20 @@ private:
     float scrollDistance;
 };
 
+
+/// Message to add a newly created UI to the global state's UI, mostly used for overlay-effects and handling error-messages.
+class GMAddGlobalUI : public GMUI 
+{
+public:
+	GMAddGlobalUI(UIElement * element, String toParent = "root");
+	void Process();
+private:
+	UIElement * element;
+	String parentName;
+
+};
+
+/// Message to add a newly created UI to the active game state's UI.
 class GMAddUI : public GMUI{
 public:
 	GMAddUI(UIElement * element, String toParent = "root", int viewport = NULL);

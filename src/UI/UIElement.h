@@ -11,6 +11,7 @@
 #include "../Texture.h"
 #include "../Square.h"
 */
+class UserInterface;
 class Square;
 class Texture;
 struct GraphicsState;
@@ -49,6 +50,9 @@ class UIElement{
 	friend class GMDeleteUI;
 	friend class GMSetUIs;
 public:
+	// UI it belongs to. Usually only need to set this for the root-element for automatic resizing etc.
+	UserInterface * ui;
+
 	UIElement();	// Default empty constructor
 	virtual ~UIElement();
 	/// Copy-cosntructor.

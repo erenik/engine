@@ -13,6 +13,7 @@
 #include <cstring>
 #include "ScriptManager.h"
 #include "GeneralScripts.h"
+#include "Audio/TrackManager.h"
 
 /// Compact saveable version of the event
 //struct CompactEvent{};
@@ -34,6 +35,8 @@ Script::Script(const Script & base)
 	/// Copy loaded data too.
 	lines = base.lines;
 	parentScript = NULL;
+	timePassed = 0; // Should be added each process-frame.
+	pausesExecution = base.pausesExecution;
 }
 
 Script::Script(String name, Script * parent /* = NULL */ )
@@ -48,10 +51,13 @@ Script::Script(String name, Script * parent /* = NULL */ )
 		loaded = true;
 	executed = false;
 	repeatable = false;
-	currentLine = -1;
+	currentLine = 0;
 	scriptState = NOT_BEGUN;
 	lineFinished = true;
 	flags = 0;
+	timePassed = 0;
+	// Set this to false for those scripts that do not require waiting for completion! o.o
+	pausesExecution = true;
 };
 
 void Script::Reset()
@@ -116,11 +122,18 @@ bool Script::Load(String fromFile){
 	String fileContents(data);
 	delete[] data; data = NULL;
 	int loadingType = 0;
+	bool midComment = false;
 	List<String> sourceLines = fileContents.GetLines();
 	for (int i = 0; i < sourceLines.Size(); ++i){
 		String & line = sourceLines[i];
 		// Try load the battler from the relative directory.
 		if (line.StartsWith("//"))
+			continue;
+		if (line.Contains("/*"))
+			midComment = true;
+		else if (line.Contains("*/"))
+			midComment = false;
+		if (midComment)
 			continue;
 		List<String > tokens = line.Tokenize(" \t");
 		line.SetComparisonMode(String::NOT_CASE_SENSITIVE);
@@ -159,9 +172,16 @@ void Script::OnBegin()
 	scriptState = BEGUN;
 }
 
-void Script::Process(float time)
+void Script::Process(long long timeInMs)
 {
+	if (currentLine < 0 || currentLine >= lines.Size())
+	{
+		std::cout<<"\nScript::Process line out of scope. Aborting";
+		scriptState = ENDING;
+		return;
+	}
 	String line = lines[currentLine];
+	timePassed += timeInMs;
 	/// Check if the current line is finished? If not, wait until it is finished.
 	if (!lineFinished)
 		return;
@@ -200,7 +220,8 @@ void Script::OnEnd()
 void Script::OnScriptEnded(Script * childScript)
 {
 	// Mark line as finished executing.
-	lineFinished = true;
+	if (childScript->pausesExecution)
+		lineFinished = true;
 }
 
 
@@ -211,6 +232,11 @@ void Script::EvaluateLine(String & line)
 #define DEFAULT_TEXTURE_SOURCE	"black50Alpha.png"
 #define DEFAULT_TEXT_SIZE_RATIO	0.3f
 	
+	if (line.Contains("EndScript"))
+	{
+		// End it.
+		scriptState = ENDING;
+	}
 	if (line.Contains("EnterGameState("))
 	{
 		String stateName = line.Tokenize("()")[1];		
@@ -219,8 +245,27 @@ void Script::EvaluateLine(String & line)
 	}
 	else if (line.Contains("FadeTo("))
 	{
-		OverlayFadeEffect * fade = new OverlayFadeEffect(line, this);
+		FadeInEffect * fade = new FadeInEffect(line, this);
 		ScriptMan.PlayScript(fade);
+	}
+	else if (line.Contains("FadeOut"))
+	{
+		FadeOutEffect * fade = new FadeOutEffect(line, this);
+		ScriptMan.PlayScript(fade);
+	}
+	else if (line.Contains("FadeText("))
+	{
+		FadeTextEffect * text = new FadeTextEffect(line, this);
+		ScriptMan.PlayScript(text);
+		lineFinished = true;
+	}
+	else if (line.Contains("PlaySong("))
+	{
+		// Just play it.
+		String song = line.Tokenize("()")[1];
+		TrackMan.PlayTrack(song);
+		// Line finished straight away.
+		lineFinished = true;
 	}
 	else if (line.Contains("Dialogue")){
 		/// If raw string, output it straight away! (should later be queued to some kind of dialogue-manager?)

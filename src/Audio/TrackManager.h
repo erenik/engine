@@ -41,6 +41,9 @@ public:
 
 	/// Called to play a track
 	void Play(Track * track);
+
+	/// Plays target track.
+	Track * PlayTrack(String trackNameOrSource);
 	/// Attempts to play a track by name. Returns NULL if it was not found.
 	Track * PlayTrackByName(String trackName);
 	/// Plays a random track of specified category, returns the given track.

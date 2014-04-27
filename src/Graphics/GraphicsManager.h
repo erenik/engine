@@ -76,11 +76,14 @@ public:
 	void EnableAllDebugRenders(bool enabled = true);
 
 	/// Returns a pointer to active GUI
-	UserInterface * GetGlobalUI() { return globalUI; };
+	UserInterface * GetUI() { return ui; };
+	/// Retursn a pointer to the active system-global UI.
+	UserInterface * GetGlobalUI () { return globalUI; };
 	List<RenderViewport*> GetViewports() { return renderViewports; };
 	/// Sets active UserInterface to be rendered
+	void SetUI(UserInterface * ui);
+	/// Sets system-global ui.
 	void SetGlobalUI(UserInterface * ui);
-	UserInterface * GlobalUI() { return globalUI; };
 
 	void RepositionEntities();
 
@@ -326,6 +329,8 @@ private:
 	bool RegisterParticleSystem(ParticleSystem * ps);
 
 	/// Active user interface that is rendered on top of the whole screen no matter underlying viewports.
+	UserInterface * ui;
+	/// System-global user interface used for presenting and quering error messages as well as overlay-effects.
 	UserInterface * globalUI;
 
 	/// Screen size

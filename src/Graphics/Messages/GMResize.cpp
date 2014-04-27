@@ -33,7 +33,7 @@ void GMResize::Process()
 		throw 3;
 
 	// Resize all UI
-	UserInterface * ui = Graphics.GetGlobalUI();
+	UserInterface * ui = Graphics.GetUI();
 
 	if (ui){
 		if (ui->AdjustToWindow(Graphics.width, Graphics.height)){

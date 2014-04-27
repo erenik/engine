@@ -6,6 +6,8 @@
 #include "StateManager.h"
 #include "Graphics/GraphicsManager.h"
 #include "Graphics/Messages/GMSet.h"
+#include "Graphics/Messages/GMUI.h"
+#include "UI/UIImage.h"
 
 StateChanger::StateChanger(String line, Script * parent)
 : Script(line, parent)
@@ -34,66 +36,330 @@ void StateChanger::Process(float time)
 		scriptState = Script::ENDING;
 }
 
-OverlayFadeEffect::OverlayFadeEffect(String line, Script * parent)
+
+/// Base class for fade-effects using the System-global ui.
+UIElement * OverlayScript::overlayUI[OverlayScript::MAX_OVERLAY_LAYERS];
+
+OverlayScript::OverlayScript(String line, Script * parent)
 : Script(line, parent)
 {
+	// In-case multiple scripts of this type are active. Check it.
+	
 	// Nullify stuff for security reasons.
-	fadeInDuration = fadeOutDuration = duration = 0;
-	List<String> args = line.Tokenize("(,)");
+	duration = 0;
+	// 0 = sent first texture, 1 = sent second texture.
+	scriptState = -1;
+}
+
+#define OVERLAY_FADE_UI_0 "overlayFadeBackground"
+#define OVERLAY_FADE_UI_1 "overlayFadeUI1"
+#define OVERLAY_FADE_UI_2 "overlayFadeUI2"
+#define OVERLAY_UI_TEXT "overlayTextUI"
+
+void OverlayScript::OnBegin()
+{
+	// Set start-time to current time.
+	startTime = Timer::GetCurrentTimeMs();
+	// Check if the overlay UI are already present.
+	UserInterface * ui = Graphics.GetGlobalUI();
+	// Create ui as needed.
+	if (!ui || !ui->GetElementByName(OVERLAY_FADE_UI_1))
+	{
+		UIImage * image = new UIImage("NULL");
+		image->color.w = 0.0f;
+		String imageUIName = OVERLAY_FADE_UI_1;
+		image->name = imageUIName;
+		Graphics.QueueMessage(new GMAddGlobalUI(image));
+		overlayUI[LAYER_1] = image;
+
+		// Create second image to blend between.
+		image = new UIImage("NULL");
+		image->color.w = 0.0f;
+		image->color = Vector4f(1,1,1,0);
+		image->name = OVERLAY_FADE_UI_2;
+		overlayUI[LAYER_2] = image;
+		Graphics.QueueMessage(new GMAddGlobalUI(image));
+
+		// Create text-ui. Default it center and a bit down?
+		UILabel * label = new UILabel();
+		label->name = OVERLAY_UI_TEXT;
+		label->sizeRatioX = 0.8f;
+		label->sizeRatioY = 0.2f;
+		label->alignmentY = 0.2f;
+		label->textureSource = "80Gray50Alpha.png";
+		overlayUI[TEXT] = label;
+		Graphics.QueueMessage(new GMAddGlobalUI(label));
+	}
+}
+
+void OverlayScript::Process(long long time)
+{
+}
+
+// For accessing the ui-elements.
+void OverlayScript::SetLayerAlpha(int layer, float alpha)
+{
+	switch(layer)
+	{
+		case BACKGROUND:
+		case LAYER_1:
+		case LAYER_2:
+			Graphics.QueueMessage(new GMSetGlobalUIf(overlayUI[layer]->name, GMUI::ALPHA, alpha));
+			break;
+	}
+}
+
+float OverlayScript::GetLayerAlpha(int layer)
+{
+	switch(layer)
+	{
+		case BACKGROUND:
+		case LAYER_1:
+		case LAYER_2:
+			return overlayUI[layer]->color.w;
+			break;
+	}
+}
+
+// Set main text.
+void OverlayScript::SetText(String text)
+{
+	Graphics.QueueMessage(new GMSetGlobalUIs(OVERLAY_UI_TEXT, GMUI::TEXT, text));
+}
+
+
+FadeInEffect::FadeInEffect(String line, Script * parent)
+: OverlayScript(line, parent)
+{
+	fadeInDuration = 0;
+	// First fetch stuff within parenthesis.
+	String parenthesisContents = line.Tokenize("()")[1]; 
+	List<String> args = parenthesisContents.Tokenize("(,)");
 	switch(args.Size())
 	{
 	default:
 		if (args.Size() < 0)
 			return;
-	case 6:
-		fadeOutDuration = (int)args[5].ParseFloat();
-	case 5:
-		fadeOutTextureSource = args[4];
-	case 4:
-		duration = (int)args[3].ParseFloat();
 	case 3:
-		fadeInDuration = (int)args[2].ParseFloat();
+		duration = (int)args[2].ParseFloat();
 	case 2:
-		fadeInTextureSource = args[1];
+		fadeInDuration = (int)args[1].ParseFloat();
 	case 1:
+		fadeInTextureSource = args[0];
+	case 0:
 		// Function-name here.
 		break;
 	}
-	fadeInTexture = fadeOutTexture = NULL;
-	// 0 = sent first texture, 1 = sent second texture.
-	scriptState = -1;
 }
-void OverlayFadeEffect::OnBegin()
+void FadeInEffect::OnBegin()
 {
-	// Set start-time to current time.
-	startTime = Timer::GetCurrentTimeMs();
+	OverlayScript::OnBegin();
+
+	// Set alpha of primary texture to 1 and secondary to 0 to start fading properly.
+	Graphics.QueueMessage(new GMSetGlobalUIf(OVERLAY_FADE_UI_2, GMUI::ALPHA, 0.0f));
+	// Set texture of second one to fade to.
+	Graphics.QueueMessage(new GMSetGlobalUIs(OVERLAY_FADE_UI_2, GMUI::TEXTURE_SOURCE, fadeInTextureSource));
+
 	// Send a graphics-message to start blending the 
-	Graphics.QueueMessage(new GMSetOverlay(fadeInTextureSource, fadeInDuration));
+//	Graphics.QueueMessage(new GMSetOverlay(fadeInTextureSource, fadeInDuration));
 	scriptState = 0;
+	fadeState = 0;
+	totalTime = fadeInDuration + duration;
 }
 
-void OverlayFadeEffect::Process(float time)
+void FadeInEffect::Process(long long timeInMs)
 {
 	// If we have a texture to fade-out to, check that.
-	long long currentTime = Timer::GetCurrentTimeMs();
-	// Check time.
-	int timePassed = (int) (currentTime - startTime);
-	if (fadeOutDuration > 0 && 
-		fadeState < 1 &&
-		fadeInTextureSource.Length()
-		)
+	timePassed += (int)timeInMs;
+
+	/** 0 = sent first texture, fading it, 
+		1 = resting at full alpha, 
+		2 = sent second texture, fading out, 
+		3 = ended, swapping textures, 
+		4 = done.
+	*/
+	float alpha;
+	switch(fadeState)
 	{
+	case FadeState::FADING_IN: 
+		alpha = float(timePassed) / fadeInDuration;
+		std::cout<<"\nAlpha: "<<alpha;
+		// Fade-in new one as we fade-out the other?
+		Graphics.QueueMessage(new GMSetGlobalUIf(OVERLAY_FADE_UI_2, GMUI::ALPHA, alpha));
+		// Swap them once alpha is full.
+		if (alpha > 1.0f || timePassed > fadeInDuration)
+		{
+			Graphics.QueueMessage(new GMSetGlobalUIs(OVERLAY_FADE_UI_1, GMUI::TEXTURE_SOURCE, fadeInTextureSource));
+			Graphics.QueueMessage(new GMSetGlobalUIf(OVERLAY_FADE_UI_1, GMUI::ALPHA, 1.0f));
+			Graphics.QueueMessage(new GMSetGlobalUIf(OVERLAY_FADE_UI_2, GMUI::ALPHA, 0.0f));
+			fadeState++;
+		}
+		break;
+	case FadeState::RESTING:
+		// Resting.
+		// Check time.
 		if (timePassed > fadeInDuration + duration)
 		{
-			// Send the fade-out message.
-			Graphics.QueueMessage(new GMSetOverlay(fadeOutTextureSource, fadeInDuration));
-			fadeState = 1;
+			// If not, go to fadeState 4 and end this! p.o
+			fadeState = FadeState::DONE;
+			scriptState = Script::ENDING;
 		}
+		break;
+	default:
+	case FadeState::DONE:	
+		if (timePassed > totalTime)
+		{
+			scriptState = Script::ENDING;	
+		}
+		break;
 	}
-	long long totalTime = fadeInDuration + duration + fadeOutDuration;
-	if (timePassed > totalTime)
+}
+
+
+FadeOutEffect::FadeOutEffect(String line, Script * parent)
+: OverlayScript(line, parent)
+{
+	fadeOutDuration = 0;
+	// First fetch stuff within parenthesis.
+	String parenthesisContents = line.Tokenize("()")[1]; 
+	List<String> args = parenthesisContents.Tokenize("(,)");
+	switch(args.Size())
 	{
-		scriptState = Script::ENDING;	
+	default:
+		if (args.Size() < 0)
+			return;
+	case 1:
+		fadeOutDuration = (int)args[0].ParseFloat();
+		break;
+	}
+}
+void FadeOutEffect::OnBegin()
+{
+	OverlayScript::OnBegin();
+	// Take note of alpha when starting fade-out.
+	startAlpha = GetLayerAlpha(LAYER_1);
+	scriptState = 0;
+	fadeState = FadeState::FADING_OUT;
+	totalTime = fadeOutDuration;
+}
+
+
+void FadeOutEffect::Process(long long timeInMs)
+{
+	timePassed += timeInMs;
+	/** 0 = sent first texture, fading it, 
+		1 = resting at full alpha, 
+		2 = sent second texture, fading out, 
+		3 = ended, swapping textures, 
+		4 = done.
+	*/
+	float alpha;
+	switch(fadeState)
+	{
+	case FadeState::FADING_OUT: 
+#define Maximum(a,b) ((a) > (b)? (a) : (b))
+		alpha = float(fadeOutDuration - timePassed) / fadeOutDuration * startAlpha;
+		alpha = Maximum(alpha, 0.0f);
+		// Fade-in new one as we fade-out the other?
+		Graphics.QueueMessage(new GMSetGlobalUIf(OVERLAY_FADE_UI_1, GMUI::ALPHA, alpha));
+		if (alpha <= 0.0f)
+		{
+			// Set alpha to both channels.
+			Graphics.QueueMessage(new GMSetGlobalUIs(OVERLAY_FADE_UI_1, GMUI::TEXTURE_SOURCE, "NULL"));
+			Graphics.QueueMessage(new GMSetGlobalUIs(OVERLAY_FADE_UI_2, GMUI::TEXTURE_SOURCE, "NULL"));
+			fadeState++;
+		}
+		break;
+	default:
+	case FadeState::DONE:	
+	case FadeState::RESTING:
+		// Resting.
+		// Check time.
+		if (timePassed > fadeOutDuration + duration)
+		{
+			fadeState = FadeState::DONE;
+			scriptState = Script::ENDING;	
+		}
+		break;
+	}
+}
+
+
+FadeTextEffect::FadeTextEffect(String line, Script * parent)
+: OverlayScript(line, parent)
+{
+	pausesExecution = false;
+	fadeOutDuration = 0;
+	// First fetch stuff within parenthesis.
+	String parenthesisContents = line.Tokenize("()")[1]; 
+	List<String> args = parenthesisContents.Tokenize("(,)");
+	if(args.Size() < 4)
+		return;
+	fadeOutDuration = (int)args[3].ParseFloat();	
+	duration = (int)args[2].ParseFloat();		
+	fadeInDuration = (int)args[1].ParseFloat();	
+	text = args[0];
+	// Remove quote-marks.
+	text.Remove('\"', true);
+}
+void FadeTextEffect::OnBegin()
+{
+	OverlayScript::OnBegin();
+	// Take note of alpha when starting fade-out.
+	scriptState = 0;
+	fadeState = FadeState::FADING_IN;
+	totalTime = fadeOutDuration;
+	// Send initial text
+	SetText(text);
+	Graphics.QueueMessage(new GMSetGlobalUIf(OVERLAY_UI_TEXT, GMUI::TEXT_ALPHA, 0.0f));
+}
+void FadeTextEffect::Process(long long timeInMs)
+{
+	// If we have a texture to fade-out to, check that.
+	timePassed += timeInMs;
+	/** 0 = sent first texture, fading it, 
+		1 = resting at full alpha, 
+		2 = sent second texture, fading out, 
+		3 = ended, swapping textures, 
+		4 = done.
+	*/
+	float alpha;
+	switch(fadeState)
+	{
+	case FadeState::FADING_IN:
+		alpha = float(timePassed) / fadeInDuration;
+		Graphics.QueueMessage(new GMSetGlobalUIf(OVERLAY_UI_TEXT, GMUI::TEXT_ALPHA, alpha));
+		if (alpha > 1.0f)
+			fadeState = FadeState::RESTING;
+		break;
+	case FadeState::RESTING:
+		if (timePassed > fadeInDuration + duration)
+			fadeState = FadeState::FADING_OUT;
+		break;
+	case FadeState::FADING_OUT: 
+#define Maximum(a,b) ((a) > (b)? (a) : (b))
+		alpha = float((fadeOutDuration + duration + fadeInDuration) - timePassed) / fadeOutDuration;
+		alpha = Maximum(alpha, 0.0f);
+		// Fade-in new one as we fade-out the other?
+		Graphics.QueueMessage(new GMSetGlobalUIf(OVERLAY_UI_TEXT, GMUI::TEXT_ALPHA, alpha));
+		if (alpha <= 0.0f)
+		{
+			// Set alpha to both channels.
+			Graphics.QueueMessage(new GMSetGlobalUIf(OVERLAY_UI_TEXT, GMUI::TEXT_ALPHA, 0.0f));
+			Graphics.QueueMessage(new GMSetGlobalUIf(OVERLAY_UI_TEXT, GMUI::ALPHA, 0.0f));
+			fadeState++;
+		}
+		break;
+	default:
+	case FadeState::DONE:	
+		// Resting.
+		// Check time.
+		if (timePassed > fadeOutDuration + duration)
+		{
+			fadeState = FadeState::DONE;
+			scriptState = Script::ENDING;	
+		}
+		break;
 	}
 }
 

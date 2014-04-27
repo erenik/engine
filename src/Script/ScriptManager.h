@@ -30,7 +30,7 @@ public:
 		- Alternatively a boolean could be set which toggles this behaviour, but plan ahead and make sure that whatever you do doesn't leak memory!
 	*/
 	void PlayScript(Script * script);
-	void Process(float timeInSeconds);
+	void Process(long long timeInSeconds);
 	List<Script*> GetActiveEvents(){ return activeEvents; };
 private:
 	List<Script*> activeEvents;

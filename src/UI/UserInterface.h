@@ -13,6 +13,8 @@ public:
 	UserInterface();
 	~UserInterface();
 
+	// Creates the root element. Will not create another if it already exists.
+	UIElement * CreateRoot();
 	/// Returns the UI root element that should be handled with care...!
 	UIElement * GetRoot(){return root;};
 
@@ -131,7 +133,7 @@ public:
 	String defaultTextureSource;
 	/// Directory for the UI relative to root (bin/)
 	static String rootUIDir;
-	
+
 protected:
 	/// Loads from target file, using given root as root-element in the UI-hierarchy.
 	static bool LoadFromFile(String filePath, UIElement * intoRoot);

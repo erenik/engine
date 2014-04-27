@@ -73,9 +73,9 @@ void MapState::InputProcessor(int action, int inputDevice/* = 0*/){
 		}
 		case INTERACT: {
 			/// Interact with ze environmeneeent.
-			if (playerEntity && playerState){
-				playerState->ProcessMessage(new Message("Interact"));
-			}
+		//	if (playerEntity && playerState){
+		//		playerState->ProcessMessage(new Message("Interact"));
+		//	}
 			return;
 		}
 	/*	case STOP_WALK_LEFT: {

@@ -81,7 +81,7 @@ void MainMenu::OnExit(GameState *nextState){
 
 void MainMenu::Process(float time)
 {
-	Sleep(50);
+	Sleep(25);
 #ifdef USE_AUDIO
 	AudioMan.Update();
 #endif

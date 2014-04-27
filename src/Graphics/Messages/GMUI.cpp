@@ -19,12 +19,17 @@ GMUI::GMUI(int messageType, int viewportID /* = NULL*/)
 : GraphicsMessage(messageType), viewportID(viewportID)
 {
 	ui = NULL;
+	// Helps flag if the messages are directed to global or active-state ui.
+	global = false;	
 }
 
 bool  GMUI::GetUI()
 {
+	// If global is set, use that function to get ui instead. Should work?
+	if (global)
+		return GetGlobalUI();
 	if (viewportID == NULL)
-		ui = Graphics.GetGlobalUI();
+		ui = Graphics.GetUI();
 	else {
 		RenderViewport * viewport = NULL;
 		viewport = (RenderViewport*)Graphics.GetViewport(viewportID);
@@ -38,6 +43,24 @@ bool  GMUI::GetUI()
     }
     return true;
 }
+/// Fetches global UI. 
+bool GMUI::GetGlobalUI()
+{
+	if (viewportID == NULL)
+		ui = Graphics.GetGlobalUI();
+	// If it does not exist. Create it, since it is the system-global UI.
+	if (!ui)
+	{
+		Graphics.SetGlobalUI(new UserInterface());
+		ui = Graphics.GetGlobalUI();
+		// Root not created automatically..? Create it now then.
+		ui->CreateRoot();
+		// Adjust to window straight away! o.o
+		ui->AdjustToWindow(Graphics.Width(), Graphics.Height());
+		return true;
+	}
+}
+
 
 /// Used to set arbitrary amounts of booleans. Mainly used for binary matrices (UIMatrix).
 GMSetUIvb::GMSetUIvb(String uiName, int target, List<bool*> boolData, int viewport /*= NULL*/)
@@ -193,12 +216,15 @@ void GMSetUIv4f::Process()
     };
 };
 
+/// For setting floating point values, like relative sizes/positions, scales etc.
 GMSetUIf::GMSetUIf(String UIname, int target, float value, int viewport /* = NULL*/)
 : GMUI(GM_SET_UI_FLOAT, viewport), name(UIname), target(target), value(value)
 {
 	switch(target){
 		case GMUI::FLOAT_INPUT:
 		case GMUI::TEXT_SIZE_RATIO:
+		case GMUI::ALPHA:
+		case GMUI::TEXT_ALPHA:
 			break;
 		default:
 			assert(false && "Invalid target in GMSetUIf");
@@ -216,6 +242,12 @@ void GMSetUIf::Process()
 		return;
 	}
 	switch(target){
+		case GMUI::ALPHA:
+			element->color.w = value;
+			break;
+		case GMUI::TEXT_ALPHA:
+			element->textColor.w = value;
+			break;
 		case GMUI::TEXT_SIZE_RATIO:
 			element->textSizeRatio = value;
 			break;
@@ -227,8 +259,7 @@ void GMSetUIf::Process()
 			break;
 
 	};
-}
-
+};
 
 GMSetUIb::GMSetUIb(String name, int target, bool v, int viewport)
 : GMUI(GM_SET_UI_BOOLEAN, viewport), name(name), target(target), value(v)
@@ -249,6 +280,15 @@ GMSetUIb::GMSetUIb(String name, int target, bool v, int viewport)
     };
 
 };
+
+/// For setting floating point values, like relative sizes/positions, scales etc. of elements in the system-global UI.
+GMSetGlobalUIf::GMSetGlobalUIf(String uiName, int target, float value)
+: GMSetUIf(uiName, target, value, 0)
+{
+	// Fetch global UI now so it uses global instead of regular ui.
+	global = true;
+};
+
 
 void GMSetUIb::Process(){
 	if (!GetUI())
@@ -376,6 +416,14 @@ void GMSetUIs::Process(){
 	Graphics.renderQueried = true;
 }
 
+GMSetGlobalUIs::GMSetGlobalUIs(String uiName, int target, Text text, bool force)
+: GMSetUIs(uiName, target, text)
+{
+	// Set flag so it uses global ui.
+	global = true;
+}
+
+
 GMClearUI::GMClearUI(String uiName, int viewport)
 : GMUI(GM_CLEAR_UI, viewport), uiName(uiName){}
 
@@ -416,11 +464,38 @@ void GMScrollUI::Process(){
 	Graphics.renderQueried = true;
 }
 
-GMAddUI::GMAddUI(UIElement * element, String toParent, int viewport)
-: GMUI(GM_ADD_UI, viewport), element(element), parentName(toParent){
+
+/// Message to add a newly created UI to the global state's UI, mostly used for overlay-effects and handling error-messages.
+GMAddGlobalUI::GMAddGlobalUI(UIElement *element, String toParent /* = "root" */)
+: GMUI(GM_ADD_UI, 0), element(element), parentName(toParent)
+{
 	assert(element);
 }
-void GMAddUI::Process(){
+void GMAddGlobalUI::Process()
+{
+	if (!GetGlobalUI())
+        return;
+	UIElement * e = NULL;
+	if (parentName == "root")
+		e = ui->GetRoot();
+	else
+		e = ui->GetElementByName(parentName);
+	if (!e){
+		std::cout<<"\nNo UIElement with given name could be found: "<<parentName;
+		return;
+	}
+	e->AddChild(element);
+	Graphics.renderQueried = true;
+}
+
+/// Message to add a newly created UI to the active game state's UI.
+GMAddUI::GMAddUI(UIElement * element, String toParent, int viewport)
+: GMUI(GM_ADD_UI, viewport), element(element), parentName(toParent)
+{
+	assert(element);
+}
+void GMAddUI::Process()
+{
 	if (!GetUI())
         return;
 	UIElement * e = NULL;

@@ -50,11 +50,11 @@ void GraphicsMessage::Process(){
 			Sleep(10);
 
 			/// First remove global UI.
-			Graphics.SetGlobalUI(NULL);
+			Graphics.SetUI(NULL);
 
 			GameState * state = StateMan.ActiveState();
 			UserInterface * ui = state->GetUI();
-			bool wasActive = (ui == Graphics.GetGlobalUI());
+			bool wasActive = (ui == Graphics.GetUI());
 			if (ui){
 				if (ui->IsBuffered())
 					ui->Unbufferize();
@@ -73,7 +73,7 @@ void GraphicsMessage::Process(){
 			ui->Bufferize();
 
 			/// Set the ui again, since the state probably de-allocated and re-allocated it.
-			Graphics.SetGlobalUI(ui);
+			Graphics.SetUI(ui);
 
 			// Update for all render-viewports UIs too!
 			for (int i = 0; i < Graphics.renderViewports.Size(); ++i){
@@ -98,7 +98,7 @@ void GraphicsMessage::Process(){
 			Graphics.UnregisterAll();
 			break;
 		case GM_CLEAR_UI:
-			Graphics.SetGlobalUI(NULL);
+			Graphics.SetUI(NULL);
 			break;
 		default:
 			std::cout<<"\nERROR: Unhandled message in GraphicsMessage::Process with ID/type: "<<type;

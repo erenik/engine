@@ -143,6 +143,8 @@ GraphicsManager::GraphicsManager()
 	renderQueried = true;
 
 	// Default active UI to none
+	ui = NULL;
+	// Global UI to none.
 	globalUI = NULL;
 
 	// Nullify GL items
@@ -343,12 +345,18 @@ void GraphicsManager::EnableAllDebugRenders(bool enabled/* = true*/){
 }
 
 /// Sets active UserInterface to be rendered
-void GraphicsManager::SetGlobalUI(UserInterface * i_ui){
-	if (globalUI)
-		globalUI->OnExitScope();
-	globalUI = i_ui;
-	if (globalUI)
-		globalUI->OnEnterScope();
+void GraphicsManager::SetUI(UserInterface * i_ui){
+	if (ui)
+		ui->OnExitScope();
+	ui = i_ui;
+	if (ui)
+		ui->OnEnterScope();
+}
+
+/// Sets system-global ui.
+void GraphicsManager::SetGlobalUI(UserInterface * newGlobalUI)
+{
+	globalUI = newGlobalUI;
 }
 
 

@@ -237,8 +237,8 @@ bool UserInterface::Unbufferize(){
 void UserInterface::Render(GraphicsState& graphics){
 	/// Disable depth-test.
 	glDisable(GL_DEPTH_TEST);
-	List<UIElement*> list;
-	root->GetElementsByState(UIState::HOVER, list);
+//	List<UIElement*> list;
+//	root->GetElementsByState(UIState::HOVER, list);
 	//std::cout<<"\nHoverElements: "<<list.Size();
 	/// Render the tree.
 	root->Render(graphics);
@@ -353,6 +353,20 @@ UserInterface::~UserInterface(){
 	root = NULL;
 }
 
+// Creates the root element. Will not create another if it already exists.
+UIElement * UserInterface::CreateRoot()
+{
+	root = new UIElement();
+	root->name = "root";
+	root->exitable = false;
+	root->selectable = false;
+	root->activateable = false;
+	// Link it.
+	root->ui = this;
+	return root;
+}
+
+
 #include <fstream>
 
 /// Directory for the UI relative to root (bin/)
@@ -365,11 +379,7 @@ bool UserInterface::Load(String fromFile){
     if (root)
 		delete root;
 	/// Create the root node.
-	this->root = new UIElement();
-	root->exitable = false;
-	root->name = "root";
-	root->selectable = false;
-	root->activateable = false;
+	CreateRoot();
 
 	uiName = fromFile;
 	/// Load into root.

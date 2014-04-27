@@ -447,7 +447,7 @@ void MessageManager::ProcessMessage(Message * message){
 		String uiName = params[1];
 		String uiSrc = uiName;
 		/// Check if the element exists...!
-		UserInterface * ui = Graphics.GlobalUI();
+		UserInterface * ui = Graphics.GetUI();
 		if (!ui)
 			return;
 		UIElement * element = NULL;

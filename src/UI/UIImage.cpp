@@ -14,6 +14,7 @@ UIImage::UIImage(String textureSource)
 	type = UIType::IMAGE;
 	this->textureSource = textureSource;
 	name = FilePath::GetFileName(textureSource);
+	color = Vector4f(1,1,1,1);
 }
 
 UIImage::~UIImage()
@@ -23,6 +24,10 @@ UIImage::~UIImage()
 /// Subclassing in order to control rendering.
 void UIImage::RenderSelf(GraphicsState & graphicsState)
 {
+	/// First render ourself using only black?
+	UIElement::RenderSelf(graphicsState);
+
+	return;
 	/// Render our pictuuure.
 
 	/// Set mip-map filtering to closest
@@ -57,7 +62,7 @@ void UIImage::RenderSelf(GraphicsState & graphicsState)
 	Matrix4f modelView = graphicsState.viewMatrixF * graphicsState.modelMatrixF;
 	glMatrixMode(GL_MODELVIEW);
 	glLoadMatrixf(modelView.getPointer());
-	glColor4f(1,1,1,1);
+	glColor4f(color.x, color.y, color.z, color.w);
 	glEnable(GL_BLEND);
 	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
