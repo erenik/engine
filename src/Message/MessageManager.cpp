@@ -344,10 +344,10 @@ void MessageManager::ProcessMessage(Message * message){
 			dialog->textToPresent = params[3];
 		}
 		dialog->CreateChildren();
-		/// Add the dialogue to the UI
-		Graphics.QueueMessage(new GMAddUI(dialog, "root"));
-		/// Push it to the top.
-		Graphics.QueueMessage(new GMPushUI(dialog));
+		/// Add the dialogue to the global UI
+		Graphics.QueueMessage(new GMAddGlobalUI(dialog, "root"));
+		/// Push it to the top... should not be needed with the global ui.
+		Graphics.QueueMessage(new GMPushUI(dialog, Graphics.GetGlobalUI()));
 		return;
 	}
 	else if (msg.Contains("SetFileBrowserDirectory(")){
@@ -429,12 +429,12 @@ void MessageManager::ProcessMessage(Message * message){
 		fileBrowser->LoadDirectory(false);
 		/// Push it to the UI.
 		Graphics.QueueMessage(new GMAddUI(fileBrowser, "root"));
-		Graphics.QueueMessage(new GMPushUI(fileBrowser));
+		Graphics.QueueMessage(new GMPushUI(fileBrowser, Input.GetRelevantUI()));
 		return;
 	}
 	else if (msg.Contains("QuitApplication"))
 	{
-		StateMan.QueueState(StateMan.GetStateByID(GAME_STATE_EXIT));
+		StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_EXIT));
 		return;
 	}
 	else if (msg.Contains("PushToStack(") || msg.Contains("PushUI(")){
@@ -476,7 +476,7 @@ void MessageManager::ProcessMessage(Message * message){
 		}
 		/// Push it to stack if not.
 		if (element)
-			Graphics.QueueMessage(new GMPushUI(element->name));
+			Graphics.QueueMessage(new GMPushUI(element->name, ui));
 		return;
 	}
 	else if (msg.Contains("PopFromStack(") || msg.Contains("PopUI("))
@@ -491,12 +491,14 @@ void MessageManager::ProcessMessage(Message * message){
 		}
 		String uiName = params[1];
 		/// Force pop it?
-		Graphics.QueueMessage(new GMPopUI(uiName, true));
+		Graphics.QueueMessage(new GMPopUI(uiName, Input.GetRelevantUI(), true));
 		return;
 	}
-	else if (msg == "Back"){
-		UIElement * stackTop = StateMan.ActiveState()->GetUI()->GetStackTop();
-		Graphics.QueueMessage(new GMPopUI(stackTop->name));
+	else if (msg == "Back")
+	{
+		UserInterface * ui = Input.GetRelevantUI();
+		UIElement * stackTop = ui->GetStackTop();
+		Graphics.QueueMessage(new GMPopUI(stackTop->name, ui));
 		return;
 	}
 	else if (msg.Contains("begin_input(") ||

@@ -20,8 +20,12 @@ const float ZERO = 0.0000000001f;
 #define Clamp(a,c,b) if(a<c)a=c;else if(a>b)a=b;
 #endif
 
-#ifndef Round
+#ifndef RoundFloat
 #define RoundFloat(value) (floor((value)+0.5f))
+#endif
+
+#ifndef RoundInt
+#define RoundInt(x) ((int)floor((x)+0.5f))
 #endif
 
 /*

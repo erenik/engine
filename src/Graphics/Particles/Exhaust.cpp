@@ -54,7 +54,7 @@ void Exhaust::Process(float timeInSeconds)
 {
     /// Prepare some data
     int spawnedThisFrame = 0;
-	int toSpawnThisFrameTotal = floor(emissionsPerSecond * timeInSeconds * emissionRatio+0.5f);
+	int toSpawnThisFrameTotal = (int)floor(emissionsPerSecond * timeInSeconds * emissionRatio+0.5f);
     int toSpawn = toSpawnThisFrameTotal;
     Matrix4f & modelMatrix = relativeTo->transformationMatrix;
     Matrix4d & rotationMatrix = relativeTo->rotationMatrix;
@@ -117,7 +117,7 @@ void Exhaust::Render(GraphicsState & graphicsState)
         return;
     assert(optimizationLevel > 0);
     /// Calculate particles to process based on the graphicsState's optimization level.
-    particlesToProcess = optimizationLevel * maxParticles;
+    particlesToProcess = (int) (optimizationLevel * maxParticles);
 
     glUseProgram(0);
     glMatrixMode(GL_PROJECTION);

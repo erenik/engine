@@ -10,8 +10,8 @@ ScriptManager::ScriptManager(){
 }
 ScriptManager::~ScriptManager(){
 	// Do nothing with the lists by default!
-	for (int i = 0; i < activeEvents.Size(); ++i){
-		Script * e = activeEvents[i];
+	for (int i = 0; i < activeScripts.Size(); ++i){
+		Script * e = activeScripts[i];
 		if (e->flags & DELETE_WHEN_ENDED)
 			delete e;
 	}
@@ -41,29 +41,65 @@ void ScriptManager::PlayEvent(Script * script)
 	if (!script->loaded)
 		script->Load();
 	script->OnBegin();
-	activeEvents.Add(script);
+	activeScripts.Add(script);
 }
 void ScriptManager::Process(long long timeInMs)
 {
 //	std::cout<<"\nEventManager::Process";
-	for (int i = 0; i < activeEvents.Size(); ++i){
+	for (int i = 0; i < activeScripts.Size(); ++i){
 	//	std::cout<<"\nActive events: "<<activeEvents.Size();
-		Script * ev = activeEvents[i];
-		ev->Process(timeInMs);
-		if (ev->scriptState == Script::ENDING){
-			ev->OnEnd();
-			activeEvents.Remove(ev);
+		Script * script = activeScripts[i];
+		if (script->IsPaused())
+			continue;
+		script->Process(timeInMs);
+		if (script->scriptState == Script::ENDING){
+			script->OnEnd();
+			activeScripts.Remove(script);
 			/// Delete if specified.
-			if (ev->flags & DELETE_WHEN_ENDED)
-				delete ev;
+			if (script->flags & DELETE_WHEN_ENDED)
+				delete script;
 			/// Step down i since we will remove this element, or one event will be skipped!
 			--i;
 		}
-		if (activeEvents.Size() == 0){
+		if (activeScripts.Size() == 0){
 			Input.NavigateUI(false);
 		}
 		else
 			/// Most events assume UI-interaction, yes?
 			Input.NavigateUI(true);
+	}
+}
+
+/// Notifies all cutscene-flagged scripts to end the cinematics.
+void ScriptManager::SkipCutscene()
+{
+	for (int i = 0; i < activeScripts.Size(); ++i)
+	{
+		Script * script = activeScripts[i];
+		script->EndCutscene(true);
+	}
+}
+
+/// Pauses all scripts, returning a list of all that now became paused.
+List<Script*> ScriptManager::PauseAll()
+{
+	List<Script*> scriptsPaused;
+	for (int i = 0; i < activeScripts.Size(); ++i)
+	{
+		Script * script = activeScripts[i];
+		if (script->Pause())
+		{
+			scriptsPaused.Add(script);
+		}
+	}
+	return scriptsPaused;
+}
+
+void ScriptManager::ResumeScripts(List<Script *> scripts)
+{
+	for (int i = 0; i < scripts.Size(); ++i)
+	{
+		Script * script = scripts[i];
+		script->Resume();
 	}
 }

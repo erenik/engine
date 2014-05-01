@@ -93,8 +93,8 @@ public:
 	virtual void Clear();
 
 	/// Activation functions
-	virtual UIElement* Hover(float & mouseX, float & mouseY);	// Skickar hover-meddelande till UI-objektet.
-	virtual UIElement* Click(float & mouseX, float & mouseY);						// Skicker Genererar meddelande ifall man tryckt på elementet
+	virtual UIElement* Hover(int mouseX, int mouseY);	// Skickar hover-meddelande till UI-objektet.
+	virtual UIElement* Click(int mouseX, int mouseY);						// Skicker Genererar meddelande ifall man tryckt på elementet
 	virtual UIElement* Activate();						// When button is released.
 	/// GEtttererrr
 	virtual UIElement * GetElement(float & mouseX, float & mouseY);
@@ -146,6 +146,7 @@ public:
 	bool GetElementsByState(int stateFlags, List<UIElement*> & listToFill);
 	/// Checks for visibility, activateability, etc. Also works bit-wise! See UIFlag namespace for flag details.
 	UIElement * GetElementByFlag(int uiFlag);
+	/// Browses for elements conforming to UIFlag flags.
 	bool GetElementsByFlags(int uiFlags, List<UIElement*> & listToFill);
 	/// Checks if all flags are true. See UIFlag namespace. Flags can be binary &-ed.
 	bool ConformsToFlags(int uiFlags);
@@ -234,9 +235,9 @@ public:
 
 	// Position, usage depends on the alightment type, scalability, etc.
 	Vector3f position; // Vector, try and migrate to them instead, ya?
-	float posX, posY;					// Position of the element, relative to parent and origin.
+	int posX, posY;					// Position of the element, relative to parent and origin.
 	int sizeX, sizeY;					// Dimensions of the element.
-	float left, right, top, bottom;		// Dimensions in screen-space, from 0 to width and 0 to height, 0,0 being in the bottom-left.
+	int left, right, top, bottom;		// Dimensions in screen-space, from 0 to width and 0 to height, 0,0 being in the bottom-left.
 
 	// Position-adjustment variables for advanced UI elements like UIList
 	float padding;

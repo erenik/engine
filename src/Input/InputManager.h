@@ -116,6 +116,10 @@ public:
 	/// Loads default key-mappings.
 	void LoadDefaults();
 
+	/// To enable/disable ui from e.g. cutscene-scripts. This does not disable the system-global UI!.
+	void DisableActiveUI();
+	void EnableActiveUI();
+
 	//=======================================================//
 	/// Mouse handling ~
 	//=======================================================//
@@ -164,11 +168,11 @@ public:
 	bool lButtonDown;
 	bool rButtonDown;
 	/// Starting positions for when dragging mouse for selection, etc.
-	float startMouseX, startMouseY;
+	int startMouseX, startMouseY;
 	/// Previous mouse position
-	float prevMouseX, prevMouseY;
+	int prevMouseX, prevMouseY;
 	/// Current mouse position
-	float mouseX, mouseY;
+	int mouseX, mouseY;
 	enum mouseCameraStates {
 		NULL_STATE,
 		ROTATING,
@@ -244,14 +248,15 @@ public:
 	void GoToPreviousElement();
 	void ActivateElement();
 */
+	/// If the system-global UI has any activatable elements, it will be returned. If not, the current ui will be returned.
+	UserInterface * GetRelevantUI();
+
 private:
+	// To disable the current ui from e.g. cutscene-scripts.
+	bool activeUIEnabled;
 
 	/// Input device user-set availability. TODO: Add another array of booleans that check if the device is supported or connected currently?
 	bool inputDeviceAvailability[InputDevice::MAX_INPUT_DEVICES];
-
-	/// Sets it as hoverable one, yo.
-#define SetHoverElement SetHoverUI
-	void SetHoverUI(UIElement * element);
 
 	/// While toggled, will force all input to primarily navigate the UI.
 	bool navigateUI;

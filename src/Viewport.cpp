@@ -3,7 +3,7 @@
 #include "Entity/Entity.h"
 #include "Physics/PhysicsProperty.h"
 
-Viewport::Viewport(float x, float y, float i_width, float i_height)
+Viewport::Viewport(int x, int y, int i_width, int i_height)
 {
 	x0 = x;
 	y0 = y;
@@ -16,6 +16,12 @@ Viewport::~Viewport()
 {
 
 }
+
+/// Returns the most recently updated projection matrix for this camera
+const Vector4f Viewport::Metrics()
+{ 
+	return Vector4f((float)x0, (float)y0, (float)width, (float)height); 
+};
 
 /// Unique ID for this viewport.
 int Viewport::ID(){

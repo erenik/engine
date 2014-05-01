@@ -22,7 +22,7 @@
 #include "MathLib/Rect.h"
 
 extern InputManager input;
-extern UserInterface ui[MAX_GAME_STATES];
+extern UserInterface ui[GameStateID::MAX_GAME_STATES];
 
 int UIElement::idEnumerator = 0;
 String UIElement::defaultTextureSource; //  = "80Gray50Alpha.png";
@@ -245,7 +245,7 @@ void UIElement::Clear() {
 // Returns true once the highest-level appropriate element has been selected,
 // or it has been determined that the selected child was not the active one.
 // A value of true will thus make the algorithm return true and ending it's calculations.
-UIElement* UIElement::Hover(float & mouseX, float & mouseY)
+UIElement* UIElement::Hover(int mouseX, int mouseY)
 {
 
 	UIElement* result = NULL;
@@ -318,7 +318,7 @@ UIElement* UIElement::Hover(float & mouseX, float & mouseY)
 // Returns true once the highest-level appropriate element has been found.
 // No co-ordinates are required since we will instead require the element to already
 // be highlighted/hovered above.
-UIElement* UIElement::Click(float & mouseX, float & mouseY)
+UIElement* UIElement::Click(int mouseX, int mouseY)
 {
 	UIElement* result = 0;
 	// Don't process invisible UIElements, please.
@@ -858,7 +858,7 @@ void UIElement::MoveX(int distance){
 		case UIType::SLIDER_HANDLE:
 			posX += distance;
 			if (posX > parent->sizeX - sizeX)
-				posX = (float)parent->sizeX - sizeX;
+				posX = parent->sizeX - sizeX;
 			if (posX < 0)
 				posX = 0;
 			break;
@@ -876,7 +876,7 @@ void UIElement::MoveY(int distance){
 		case UIType::SCROLL_HANDLE:
 			posY += distance;
 			if (posY > parent->sizeY - sizeY)
-				posY = (float)parent->sizeY - sizeY;
+				posY = parent->sizeY - sizeY;
 			if (posY < 0)
 				posY = 0;
 			break;
@@ -899,7 +899,7 @@ void UIElement::MoveTo(int * x, int * y){
 		case UIType::SLIDER_HANDLE:{
 			posX -= sizeX/2;
 			if (posX > parent->sizeX - sizeX)
-				posX = (float)parent->sizeX - sizeX;
+				posX = parent->sizeX - sizeX;
 			if (posX < 0)
 				posX = 0;
 			break;
@@ -907,7 +907,7 @@ void UIElement::MoveTo(int * x, int * y){
 		case UIType::SCROLL_HANDLE: {
 			posY -= sizeY/2;
 			if (posY > parent->sizeY - sizeY)
-				posY = (float)parent->sizeY - sizeY;
+				posY = parent->sizeY - sizeY;
 			if (posY < 0)
 				posY = 0;
 			break;
@@ -982,6 +982,7 @@ void UIElement::AddChild(UIElement *in_child){
 	childList.Add(in_child);
 	// Set it's parent to this.
 	in_child->parent = this;
+	in_child->ui = ui;
 }
 
 
@@ -1440,12 +1441,13 @@ void UIElement::RenderChildren(GraphicsState & graphics){
 
 
 /// Adjusts the UI element size and position relative to new window size
-void UIElement::AdjustToWindow(int w_left, int w_right, int w_bottom, int w_top){
+void UIElement::AdjustToWindow(int w_left, int w_right, int w_bottom, int w_top)
+{
     /// Reset text-variables so that they are re-calculated before rendering again.
     currentTextSizeRatio = -1.0f;
 
 	// Extract some attributes before we begin
-    left = -1.0f, right = 1.0f, bottom = -1.0f, top = 1.0f;
+    left = -1, right = 1, bottom = -1, top = 1;
 	sizeX = 1, sizeY = 1;
 	float z = 0;
 	if (parent){
@@ -1455,10 +1457,10 @@ void UIElement::AdjustToWindow(int w_left, int w_right, int w_bottom, int w_top)
 		top = parent->posY + parent->sizeY/2;
 	}
 	else {
-		left = (float)w_left;
-		right = (float)w_right;
-		bottom = (float)w_bottom;
-		top = (float)w_top;
+		left = w_left;
+		right = w_right;
+		bottom = w_bottom;
+		top = w_top;
 	}
 
 //	std::cout<<"\nUIElement::AdjustToWindow called for element "<<name<<": L"<<left<<" R"<<right<<" B"<<bottom<<" T"<<top;
@@ -1473,8 +1475,8 @@ void UIElement::AdjustToWindow(int w_left, int w_right, int w_bottom, int w_top)
 	}
 	// Default for movable objects: place them at 0 and render them dynamically relative to their parents!
 	else {
-		centerX = left;
-		centerY = bottom;
+		centerX = (float)left;
+		centerY = (float)bottom;
 	}
 	sizeX = (int) (right - left);
 	sizeY = (int) (top - bottom);
@@ -1487,31 +1489,32 @@ void UIElement::AdjustToWindow(int w_left, int w_right, int w_bottom, int w_top)
 	switch(alignment){
 		case NULL_ALIGNMENT: {
 			/// Default behavior, just scale out from our determined center.
-			left = centerX - sizeX * sizeRatioX / 2;
-			right = centerX + sizeX * sizeRatioX / 2;
-			bottom = centerY - sizeY * sizeRatioY / 2;
-			top = centerY + sizeY * sizeRatioY / 2;
+			left = RoundInt(centerX - sizeX * sizeRatioX / 2);
+			right = RoundInt(centerX + sizeX * sizeRatioX / 2);
+			bottom = RoundInt(centerY - sizeY * sizeRatioY / 2);
+			top = RoundInt(centerY + sizeY * sizeRatioY / 2);
 			break;
 		}
 		case MAXIMIZE:
 			if (this->keepRatio){
 				//float screenRatio = (w_right - w_left) / (float)(w_top - w_bottom);
 				float newRatio = 1;//screenRatio / ratio;
-				left = centerX - sizeX * newRatio / 2;
-				right = centerX + sizeX * newRatio / 2;
-				bottom = centerY - sizeY * newRatio / 2;
-				top = centerY + sizeY * newRatio / 2;
+				left = RoundInt(centerX - sizeX * newRatio / 2);
+				right = RoundInt(centerX + sizeX * newRatio / 2);
+				bottom = RoundInt(centerY - sizeY * newRatio / 2);
+				top = RoundInt(centerY + sizeY * newRatio / 2);
 			}
 			else
 				mesh->SetDimensions((float)w_left, (float)w_right, (float)w_bottom, (float)w_top, (float)zDepth);
 			break;
 		case CENTER:
 			/// Do nothing, we start off using regular centering
-			left = centerX - sizeX * sizeRatioX / 2;
-			right = centerX + sizeX * sizeRatioX / 2;
-			bottom = centerY - sizeY * sizeRatioY / 2;
-			top = centerY + sizeY * sizeRatioY / 2;
+			left = RoundInt(centerX - sizeX * sizeRatioX / 2);
+			right = RoundInt(centerX + sizeX * sizeRatioX / 2);
+			bottom = RoundInt(centerY - sizeY * sizeRatioY / 2);
+			top = RoundInt(centerY + sizeY * sizeRatioY / 2);
 			break;
+			/*
 		case TOP:
 			/// Do nothing, we start off using regular centering
 			left = centerX - sizeX * sizeRatioX / 2;
@@ -1519,31 +1522,33 @@ void UIElement::AdjustToWindow(int w_left, int w_right, int w_bottom, int w_top)
 			bottom = centerY - sizeY * sizeRatioY;
 			top = centerY;
 			break;
+			*/
 		default:
 			// Make half-size
 			std::cout<<"UIElement "<<this->name<<" gets default half-size.";
-			mesh->SetDimensions((left*3 + right)/4, (left + right*3/4), (bottom * 3 + top)/4, (bottom + top*3)/4, zDepth+1);
+			mesh->SetDimensions((left*3.f + right)/4.f, (left + right*3.f/4.f), (bottom * 3.f+ top)/4.f, (bottom + top*3.f)/4.f, zDepth+1.f);
 			break;
 	}
 
 	/// Set the new dimensions
 	if (mesh)
-		mesh->SetDimensions(left, right, bottom, top, z);
+		mesh->SetDimensions((float)left, (float)right, (float)bottom, (float)top, z);
 
 	// Save away the new sizes
 	sizeX = (int) (right - left);
 	sizeY = (int) (top - bottom);
 	posX = sizeX/2 + left;
 	posY = sizeY/2 + bottom;
-	position = Vector3f(posX, posY, zDepth);
+	position = Vector3f((float)posX, (float)posY, zDepth);
 	// Correct the position for the movable objects! ^^
-	if (moveable){
-		posX += parent->sizeX * alignmentX;
-		posY += parent->sizeY * alignmentY;
-		left = posX - sizeX / 2.0f;
-		right = posX + sizeX / 2.0f;
-		top = posY + sizeY / 2.0f;
-		bottom = posY - sizeY / 2.0f;
+	if (moveable)
+	{
+		posX += RoundInt(parent->sizeX * alignmentX);
+		posY += RoundInt(parent->sizeY * alignmentY);
+		left = RoundInt(posX - sizeX / 2.0f);
+		right = RoundInt(posX + sizeX / 2.0f);
+		top = RoundInt(posY + sizeY / 2.0f);
+		bottom = RoundInt(posY - sizeY / 2.0f);
 	}
 
 	/// Adjust all children too
@@ -1593,7 +1598,7 @@ float UISlider::GetLevel(){
 void UIElement::CreateGeometry(){
 	Square * sq = new Square();
 //	std::cout<<"\nResizing geometry "<<name<<": L"<<left<<" R"<<right<<" B"<<bottom<<" T"<<top<<" Z"<<this->zDepth;
-	sq->SetDimensions(left, right, bottom, top, this->zDepth);
+	sq->SetDimensions((float)left, (float)right, (float)bottom, (float)top, this->zDepth);
 	this->mesh = sq;
 	for (int i = 0; i < childList.Size(); ++i){
 		childList[i]->CreateGeometry();
@@ -1602,7 +1607,7 @@ void UIElement::CreateGeometry(){
 }
 void UIElement::ResizeGeometry(){
 //    std::cout<<"\nResizing geometry: L"<<left<<" R"<<right<<" B"<<bottom<<" T"<<top<<" Z"<<this->zDepth;
-	this->mesh->SetDimensions(left, right, bottom, top, this->zDepth);
+	this->mesh->SetDimensions((float)left, (float)right, (float)bottom, (float)top, this->zDepth);
 	for (int i = 0; i < childList.Size(); ++i){
 		childList[i]->ResizeGeometry();
 	}
@@ -1619,7 +1624,8 @@ void UIElement::DeleteGeometry(){
 }
 
 /// For example UIState::HOVER, not to be confused with flags! State = current, Flags = possibilities
-void UIElement::AddState(int i_state){
+void UIElement::AddState(int i_state)
+{
 	// Return if trying to add invalid state.
 	if (!hoverable && i_state & UIState::HOVER)
 		return;

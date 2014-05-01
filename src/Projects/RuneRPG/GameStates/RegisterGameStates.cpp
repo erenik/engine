@@ -12,4 +12,5 @@ void RegisterStates(){
 	StateMan.RegisterState(new MapState());
 	StateMan.RegisterState(new RuneEditor());
 	StateMan.RegisterState(new RuneState());
+	StateMan.RegisterState(new CutsceneState());
 };

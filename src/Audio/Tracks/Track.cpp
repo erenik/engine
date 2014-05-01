@@ -43,7 +43,7 @@ void Track::Pause()
 void Track::Resume()
 {
 	if (audio){
-		audio->Play();
+		audio->Resume();
 	}
 	else 
 		this->Play();

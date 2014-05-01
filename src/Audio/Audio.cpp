@@ -233,7 +233,7 @@ void Audio::Play()
 
 
 	/// Set volume..?
-	UpdateVolume();
+	UpdateVolume(AudioMan.MasterVolume());
 	/// Play it!
 	alSourcePlay(alSource);
 	int error = alGetError();
@@ -254,21 +254,22 @@ bool Audio::IsPlaying()
 }
 
 // Resumes ONLY if the audio was currently paused.
-void Audio::Resume(){
-	/*
-	if (!audioEnabled)
-		return;
-	if (status != AUDIO_PAUSED)
-		return;
-	assert(false && "fix");
-	// Resume playback
-	/// Check for al error.
-//	audioStream->Check("Error playing source");
-	status = AL_PLAYING;
-	if(!audioStream->Playback()){
-		assert(false && "Audio stream refused to play!");
+void Audio::Resume()
+{
+	/// Set volume..?
+	UpdateVolume(AudioMan.MasterVolume());
+	/// Play it!
+	alSourcePlay(alSource);
+	int error = alGetError();
+	switch(error){
+		case AL_NO_ERROR:
+			state = AudioState::PLAYING;
+			break;
+		default:
+			std::cout<<"Error playing audio.";
+
 	}
-	*/
+	playbackEnded = false;
 }
 
 void Audio::Pause()

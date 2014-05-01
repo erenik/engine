@@ -7,10 +7,11 @@
 #include "UI/UserInterface.h"
 #include "Battle/BattleManager.h"
 #include "RuneRPG/Battle/RuneSpell.h"
+#include "Maps/Grids/TileTypeManager.h"
 
 String applicationName = "RuneRPG";
 
-extern UserInterface * ui[MAX_GAME_STATES];
+extern UserInterface * ui[GameStateID::MAX_GAME_STATES];
 #define UI ui[StateMan.currentGameState];
 
 #include "Graphics/Messages/GMUI.h"
@@ -41,16 +42,16 @@ extern UserInterface * ui[MAX_GAME_STATES];
 
 RuneGlobalState::RuneGlobalState()
 {
-	id = GAME_STATE_GLOBAL;
+	id = GameStateID::GAME_STATE_GLOBAL;
 	TextFont::defaultFontSource = "font3.png";
 	targetPort = RR_DEFAULT_PORT;
 	targetIP = "127.0.0.1";
 }
 
-void RuneGlobalState::OnEnter(GameState * previousState){
-
+void RuneGlobalState::OnEnter(GameState * previousState)
+{
 	// Begin loading textures here for the UI
-	Graphics.QueueMessage(new GMSetUI(ui));
+	Graphics.QueueMessage(new GMSetGlobalUI(ui));
 
 	/// Allocate all necessary managers!
 	if (!BattleManager::IsAllocated()){
@@ -60,9 +61,13 @@ void RuneGlobalState::OnEnter(GameState * previousState){
 		BALib.LoadFromDirectory(ACTIONS_DIRECTORY);
 		RuneBattlers.LoadFromDirectory(BATTLERS_DIRECTORY);
 		RuneBattlers.LoadBattles(BATTLES_DIRECTORY);
+		TileTypeManager::Allocate();
 
 		/// Spell-manager!
 		RuneSpellManager::Allocate();
+		// Enter some tile types into the manager
+		TileTypes.CreateDefaultTiles();
+
 		/// Load from file!
 		RuneSpellMan.LoadFromCSV("data/spells.csv");
 	}
@@ -75,8 +80,8 @@ void RuneGlobalState::OnEnter(GameState * previousState){
 
 	/// Create some default variables needed!
 	GameVars.CreateInt("PlayTime");
-	int sessionStartTime = Timer::GetCurrentTimeMs();
-	GameVars.CreateInt("SessionStartTime", sessionStartTime);
+	long long sessionStartTime = Timer::GetCurrentTimeMs();
+	GameVars.CreateInt64("SessionStartTime", sessionStartTime);
 
 }
 
@@ -121,7 +126,7 @@ void RuneGlobalState::ProcessMessage( Message * message )
 			// Go to lobby!
 			NetworkLog("Game hosted.");
 			// Push lobby ui.
-			Graphics.QueueMessage(new GMPushUI("gui/Lobby.gui"));
+			Graphics.QueueMessage(new GMPushUI("gui/Lobby.gui", ui));
 		}
 		else 
 		{
@@ -291,8 +296,12 @@ void RuneGlobalState::Process(float time){
 	lastTime = newTime;
 }
 
-void RuneGlobalState::CreateUserInterface(){
-
+void RuneGlobalState::CreateUserInterface()
+{
+	if (ui)
+		delete ui;
+	ui = new UserInterface();
+	ui->Load("GlobalUI.gui");
 }
 
 void RuneGlobalState::MouseClick(bool down, int x, int y, UIElement * elementClicked){
@@ -303,7 +312,7 @@ void RuneGlobalState::MouseRightClick(bool down, int x, int y, UIElement * eleme
 
 }
 
-void RuneGlobalState::MouseMove(float x, float y, bool lDown, bool rDown, UIElement * elementOver){
+void RuneGlobalState::MouseMove(int x, int y, bool lDown, bool rDown, UIElement * elementOver){
 
 }
 void RuneGlobalState::MouseWheel(float delta){

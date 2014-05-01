@@ -31,11 +31,11 @@ void debuggingInputProcessor(int action, int inputDevice){
 			break;
 		case GO_TO_EDITOR:
 			std::cout<<"\nInput>>GO_TO_EDITOR";
-			StateMan.QueueState(StateMan.GetStateByID(GAME_STATE_EDITOR));
+			StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_EDITOR));
 			break;
 		case GO_TO_AI_TEST:
 			std::cout<<"\nInput>>GO_TO_AI_TEST";
-			StateMan.QueueState(StateMan.GetStateByID(GAME_STATE_AI_TEST));
+			StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_AI_TEST));
 			break;
 	}
 }

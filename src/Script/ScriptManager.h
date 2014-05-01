@@ -9,8 +9,7 @@
 #define PlayEvent	PlayScript
 
 #include <List/List.h>
-
-class Script;
+#include "Script.h"
 
 /** A class to handle any events, whether it be for playing music, 
 	initiating a cut-scene at a certain point or a trigger for a trap.
@@ -31,9 +30,17 @@ public:
 	*/
 	void PlayScript(Script * script);
 	void Process(long long timeInSeconds);
-	List<Script*> GetActiveEvents(){ return activeEvents; };
+	List<Script*> GetActiveEvents(){ return activeScripts; };
+
+	
+	/// Notifies all cutscene-flagged scripts to end the cinematics.
+	void SkipCutscene();
+
+	/// Pauses all scripts, returning a list of all that now became paused.
+	List<Script*> PauseAll();
+	void ResumeScripts(List<Script*> scripts);
 private:
-	List<Script*> activeEvents;
+	List<Script*> activeScripts;
 	List<Script*> finishedEvents;
 };
 

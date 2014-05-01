@@ -45,13 +45,13 @@
 #include "Graphics/Animation/AnimationManager.h"
 #include "Pathfinding/WaypointManager.h"
 
-extern UserInterface * ui[MAX_GAME_STATES];
+extern UserInterface * ui[GameStateID::MAX_GAME_STATES];
 
 MapState::MapState()
 : RRGameState()
 {
 	id = RUNE_GAME_STATE_MAP;
-	stateName = "MapState";
+	name = "MapState";
 	enterMode = EnterMode::NULL_MODE;
 	camera = new Camera();
 	mapToLoad = NULL;
@@ -280,7 +280,7 @@ TileMap2D * MapState::ActiveMap(){
 	
 
 #define PAN_SPEED_MULTIPLIER (abs(camera->distanceFromCentreOfMovement)/2.0f + 1)
-void MapState::MouseMove(float x, float y, bool lDown, bool rDown, UIElement * elementOver)
+void MapState::MouseMove(int x, int y, bool lDown, bool rDown, UIElement * elementOver)
 {
 	if (elementOver)
 		return;
@@ -295,7 +295,8 @@ void MapState::MouseMove(float x, float y, bool lDown, bool rDown, UIElement * e
 	Plane plane;
 	plane.Set3Points(Vector3f(0,-1,0), Vector3f(1,0,0), Vector3f(0,0,0));
 	Vector3f collissionPoint;
-	Ray clickRay = GetRayFromScreenCoordinates(x, y, *Graphics.cameraToTrack);
+	// , *Graphics.cameraToTrack
+	Ray clickRay = Graphics.ActiveCamera()->GetRayFromScreenCoordinates(x, y);
 	if (RayPlaneIntersection(clickRay, plane, &collissionPoint)){
 		cursorPosition = collissionPoint;
 	}
@@ -406,7 +407,7 @@ void MapState::OpenMenu()
 		std::cout<<"\nOpening menu.";
 		/// Push it to the stack!
 		Graphics.QueueMessage(new GMSetUIb("MainMenu", GMUI::VISIBILITY, true));
-		Graphics.QueueMessage(new GMPushUI("MainMenu"));
+		Graphics.QueueMessage(new GMPushUI("MainMenu", ui));
 		DisableMovement();
 	}
 	else {
@@ -416,7 +417,7 @@ void MapState::OpenMenu()
 void MapState::CloseMenu(){
 	if (menuOpen){
 		menuOpen = false;
-		Graphics.QueueMessage(new GMPopUI("MainMenu"));
+		Graphics.QueueMessage(new GMPopUI("MainMenu", ui));
 	}
 	else
 		std::cout<<"\nMenu already closed o-o";
@@ -425,11 +426,11 @@ void MapState::CloseMenu(){
 /// Hides sub-menus in the main.. menu...
 void MapState::HideMenus()
 {
-	String ui = "ItemMenu,StatusScreen";
-	List<String> uis = ui.Tokenize(",");
+	String uiString = "ItemMenu,StatusScreen";
+	List<String> uis = uiString.Tokenize(",");
 	for (int i = 0; i < uis.Size(); ++i)
 	{
-		Graphics.QueueMessage(new GMPopUI(uis[i]));
+		Graphics.QueueMessage(new GMPopUI(uis[i], ui));
 	}
 }
 
@@ -471,7 +472,7 @@ void MapState::ProcessMessage(Message * message)
 				/// Hide all our menus,
 				HideMenus();
 				/// Then open up the item/inventory menu.
-				Graphics.QueueMessage(new GMPushUI("ItemMenu"));
+				Graphics.QueueMessage(new GMPushUI("ItemMenu", ui));
 			}
 			else if (msg.Contains("SelectItemToBuy:"))
 			{
@@ -479,19 +480,19 @@ void MapState::ProcessMessage(Message * message)
 				RuneItem * item = activeShop->GetItem(name);
 				// Update active purchase info in the purchase-window.
 				Graphics.QueueMessage(new GMSetUIs("ItemToBuy", GMUI::TEXT, item->name));
-				Graphics.QueueMessage(new GMPushUI("PurchaseWindow"));
+				Graphics.QueueMessage(new GMPushUI("PurchaseWindow", ui));
 			}
 			else if (msg == "OpenTestShop")
 			{
 				/// Push UI
-				Graphics.QueueMessage(new GMPushUI("gui/Shop.gui"));
+				Graphics.QueueMessage(new GMPushUI("gui/Shop.gui", ui));
 				RuneShop::SetupTestShop();
 				activeShop = &RuneShop::testShop;
 				// Load shop from... test.
 				LoadShop(&RuneShop::testShop);
 			}
 			else if (string == "main_menu"){
-				StateMan.QueueState(StateMan.GetStateByID(GAME_STATE_MAIN_MENU));
+				StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_MAIN_MENU));
 			}
 			else if (string == "stop_testing"){
 				assert(enterMode == EnterMode::TEST_LEVEL);
@@ -569,7 +570,7 @@ void MapState::ProcessMessage(Message * message)
 				assert(tile->position.x != -1);
 				if (tile == NULL){
 					assert(false && "No valid walkable tile in range!");
-					StateMan.QueueState(StateMan.GetStateByID(GAME_STATE_EDITOR));
+					StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_EDITOR));
 					return;
 				}
 				position = Vector3i(tile->position);
@@ -643,7 +644,7 @@ void MapState::ResetCamera(){
 void MapState::ReturnToEditor()
 {
 	MapMan.MakeActive(NULL);
-	StateMan.QueueState(StateMan.GetStateByID(GAME_STATE_EDITOR));
+	StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_EDITOR));
 }
 
 // Disables movement for the player!

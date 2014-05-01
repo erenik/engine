@@ -11,5 +11,6 @@
 #include "RuneRPG/GameStates/MainMenu/MainMenu.h"
 #include "RuneRPG/GameStates/Map/MapState.h"
 #include "RuneRPG/GameStates/RuneState/RuneState.h"
+#include "RuneRPG/GameStates/Cutscene/Cutscene.h"
 
 #endif

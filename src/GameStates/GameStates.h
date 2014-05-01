@@ -1,7 +1,12 @@
+/// Emil Hedemalm
+/// 2014-05-01
+/// IDs of game states.. not sure if I should use this much anymore..?
+
 #ifndef GAME_STATES_H
 #define GAME_STATES_H
 
 // Game states
+namespace GameStateID {
 enum game_states {
 	/// Default states
 	GAME_STATE_NULL, // For setting none
@@ -10,12 +15,13 @@ enum game_states {
 	GAME_STATE_LOADING,
 	GAME_STATE_GLOBAL,
 	GAME_STATE_MAIN_MENU,
-	GAME_STATE_NEW_GAME,  // Why is this a fucking state? Remove.
-	GAME_STATE_LOAD_GAME,	// Why is this a fucking state? Remove?
 	GAME_STATE_EDITOR,
 	GAME_STATE_CREDITS,
 	GAME_STATE_OPTIONS,
 	GAME_STATE_QUIT, GAME_STATE_EXITING = GAME_STATE_QUIT, GAME_STATE_EXIT = GAME_STATE_QUIT,
+	
+	// Added wit hte RuneRPG project.
+	GAME_STATE_CUTSCENE,
 
 	/// States added with SpaceRace
 	GAME_STATE_BLUEPRINT_EDITOR,
@@ -43,6 +49,7 @@ enum game_states {
 
 	GAME_STATES,
 	MAX_GAME_STATES,
+};
 };
 
 #endif

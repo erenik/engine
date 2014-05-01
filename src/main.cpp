@@ -597,7 +597,7 @@ WS_CLIPCHILDREN |
 #ifdef WINDOWS
 	// Get messages and dispatch them to WndProc
 	MSG msg;
-	while (GetMessage(&msg, NULL, 0, 0) && StateMan.ActiveStateID() != GAME_STATE_EXITING)
+	while (GetMessage(&msg, NULL, 0, 0) && StateMan.ActiveStateID() != GameStateID::GAME_STATE_EXITING)
     {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
@@ -632,8 +632,8 @@ WS_CLIPCHILDREN |
 
 	// Start deallocator thread here instead?
 	// Call the deallocator thread!
-	if (StateMan.ActiveStateID() != GAME_STATE_EXITING)
-		StateMan.QueueState(StateMan.GetStateByID(GAME_STATE_EXITING));
+	if (StateMan.ActiveStateID() != GameStateID::GAME_STATE_EXITING)
+		StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_EXITING));
 
 
 	double timeStart = clock();

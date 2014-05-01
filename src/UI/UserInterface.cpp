@@ -12,6 +12,7 @@
 #include "UIInput.h"
 #include "UIButtons.h"
 #include "UIVideo.h"
+#include "UIImage.h"
 #include "Graphics/Fonts/Font.h"
 #include "UI/UITypes.h"
 #include "UI/DataUI/UIMatrix.h"
@@ -32,7 +33,7 @@ UserInterface::UserInterface(){
 	If allUi is specified the current stack order will be ignored to a certain extent, meaning that ui below the current stack top will be made available too.
 	Search is conducted starting at the highest stack element and going down until an element is found that we can hover over.
 */
-UIElement * UserInterface::Hover(float x, float y, bool allUi){
+UIElement * UserInterface::Hover(int x, int y, bool allUi){
 	UIElement * stackTop = GetStackTop();
 	if (!stackTop)
 		return NULL;
@@ -73,7 +74,7 @@ UIElement * UserInterface::Hover(float x, float y, bool allUi){
 	return result;
 }
 /// If allUi is specified, the action will try, similar to hover, and go through the entire stack from the top down until it processes an element.
-UIElement * UserInterface::Click(float x, float y, bool allUi){
+UIElement * UserInterface::Click(int x, int y, bool allUi){
 	UIElement * elementClicked = NULL;
 	if (allUi){
 		for (int i = stack.Size()-1; i >= 0; --i)
@@ -134,6 +135,28 @@ UIElement * UserInterface::Activate(){
 	return result;
 }
 
+/// Primarily used by the system-global UI. This queries if there is any currently visible UI which may respond to user input available.
+bool UserInterface::HasActivatableElement()
+{
+	List<UIElement * > list;
+	root->GetElementsByFlags(UIFlag::ACTIVATABLE | UIFlag::VISIBLE, list);
+	return list.Size() > 0;
+}
+
+/// Sets target element as hovered one, removing the flag from all other elements.
+void UserInterface::SetHoverElement(UIElement * targetElement)
+{
+	/// Remove the hover flag from all other UIs in the same stack.
+	RemoveState(UIState::HOVER);
+	if (!targetElement)
+		return;
+	/// Then add it to our specified one.
+	targetElement->AddState(UIState::HOVER);
+	targetElement->EnsureVisibility();
+}
+
+
+
 /** Function called when an element is activated,
 	by mouse-clicking, pressing enter on selction or otherwise. */
 void UserInterface::Activate(UIElement* activeElement){
@@ -162,7 +185,7 @@ void UserInterface::Activate(UIElement* activeElement){
 }
 
 /// Get element by position. Will skip invisible elements.
-UIElement * UserInterface::GetElement(float x, float y){
+UIElement * UserInterface::GetElementByPosition(int x, int y){
     if (!root)
 		return NULL;
     return root->GetElement(x,y);
@@ -211,9 +234,10 @@ bool UserInterface::AdjustToWindow(int i_width, int i_height){
 }
 
 /// Creates/updates VBOs for all UI elements.
-void UserInterface::Bufferize(){
-
-	assert(!isBuffered);
+void UserInterface::Bufferize()
+{
+	// Allow multiple bufferizations, since they do not necessarily generate new memory usage, like textures?
+//	assert(!isBuffered);
 	assert(this->isGeometryCreated);
 	root->Bufferize();
 	isBuffered = true;
@@ -276,14 +300,16 @@ UIElement * UserInterface::GetElementBySource(String source)
 }
 
 /// Gets the currently active element (for input, probably!)
-UIElement * UserInterface::GetActiveElement(){
+UIElement * UserInterface::GetActiveElement()
+{
 	if (root)
 		return root->GetActiveElement();
 	return NULL;
 }
 
 /// Returns active input focus element, if any. Based on the GetActiveElement but performs additional checks.
-UIElement * UserInterface::ActiveInputFocusElement(){
+UIElement * UserInterface::ActiveInputFocusElement()
+{
 	UIElement * e = GetActiveElement();
 	if (!e)
 		return NULL;
@@ -324,7 +350,8 @@ bool UserInterface::GetElementsByFlags(int uiFlags, List<UIElement*> & listToFil
 	return NULL;
 }
 
-UIElement * UserInterface::GetHoverElement(){
+UIElement * UserInterface::GetHoverElement()
+{
 	UIElement * stackTop = GetStackTop();
 	if (stackTop)
 		return stackTop->GetElementByState(UIState::HOVER);
@@ -422,7 +449,13 @@ bool UserInterface::InStack(UIElement * element){
 int UserInterface::PushToStack(String elementName){
 	return PushToStack(GetElementByName(elementName));
 }
-int UserInterface::PushToStack(UIElement * element){
+int UserInterface::PushToStack(UIElement * element)
+{
+	if (element->GetRoot() != root)
+	{
+		assert(false && "Trying to push element which doesn't belong to this ui.");
+		return NULL_ELEMENT;
+	}
 	if (!element)
 			return NULL_ELEMENT;
 	if (InStack(element))
@@ -435,7 +468,13 @@ int UserInterface::PushToStack(UIElement * element){
 void UserInterface::PopFromStack(String elementName){
 	PopFromStack(GetElementByName(elementName));
 }
-bool UserInterface::PopFromStack(UIElement * element, bool force){
+bool UserInterface::PopFromStack(UIElement * element, bool force)
+{
+	if (element->GetRoot() != root)
+	{
+		assert(false && "Trying to pop element which doesn't belong to this ui.");
+		return NULL_ELEMENT;
+	}
 	if (!element){
 		std::cout<<"\nUserInterface::PopFromStack: NULL element";
 		return false;
@@ -480,7 +519,8 @@ bool UserInterface::IsInStack(String elementName) const{
 }
 
 /// Returns the stack top or root if empty.
-UIElement * UserInterface::GetStackTop(){
+UIElement * UserInterface::GetStackTop()
+{
 	if (stack.Size())
 		return stack.Last();
 	return root;
@@ -923,6 +963,13 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 				SET_DEFAULTS
 				vi->CreateChildren();
 			}
+			else if (token == "Image")
+			{
+				ADD_PREVIOUS_TO_UI_IF_NEEDED
+				UIImage * image = new UIImage(firstQuote, secondQuote);
+				element = image;
+				SET_DEFAULTS
+			}
 			else if (token == "Video"){
 				ADD_PREVIOUS_TO_UI_IF_NEEDED
 				UIVideo * video = new UIVideo(firstQuote, secondQuote);
@@ -986,7 +1033,7 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 					case UIType::FLOAT_INPUT:
 					{
 						UIFloatInput * fi = (UIFloatInput *)element;
-						fi->maxDecimals = NEXT_TOKEN.ParseFloat();
+						fi->maxDecimals = NEXT_TOKEN.ParseInt();
 						break;
 					}
 				}

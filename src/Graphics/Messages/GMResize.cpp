@@ -47,7 +47,7 @@ void GMResize::Process()
 	for (int i = 0; i < rvl.Size(); ++i){
 		RenderViewport * rv = rvl[i];
 		/// Update aboslute-values of the viewport first.
-		rv->AdjustToWindow((float)Graphics.width, (float)Graphics.height);
+		rv->AdjustToWindow(Graphics.width, Graphics.height);
 		/// Then update it's internal UI
 	//	ui = rv[i]->viewPortUI;
 

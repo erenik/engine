@@ -6,7 +6,8 @@
 
 class UIImage : public UIElement {
 public:
-	UIImage(String textureSource);
+	UIImage(String nameAndTextureSource);
+	UIImage(String name, String textureSource);
 	virtual ~UIImage();
 	/// Subclassing in order to control rendering.
 	virtual void RenderSelf(GraphicsState & graphics);

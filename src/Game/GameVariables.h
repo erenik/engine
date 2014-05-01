@@ -6,6 +6,7 @@
 
 #include "MathLib.h"
 #include <Util/Util.h>
+#include "System/DataTypes.h"
 
 #define GameVars (*GameVariableManager::Instance())
 
@@ -17,6 +18,7 @@ public:
 	enum types {
 		NULL_TYPE,
 		INTEGER,
+		INT64,
 		FLOAT,
 		STRING,
 		VECTOR,
@@ -46,6 +48,16 @@ public:
 	void Set(int v) { value = v; };
 private:
 	int value;
+};
+
+class GameVariablei64 : public GameVariable{
+	friend class GameVariableManager;
+	GameVariablei64(String name, int64 value = 0) : GameVariable(name, INT64), value(value){};
+public:
+	int64 Get() const { return value; };
+	void Set(int64 v) { value = v; };
+private:
+	int64 value;
 };
 
 class GameVariablef : public GameVariable{
@@ -110,10 +122,12 @@ public:
 
 	/// Creators, returns the varible. If it exists, the existing variable will be returned.
 	GameVariablei * CreateInt(String name, int initialValue = 0);
+	GameVariablei64 * CreateInt64(String name, long long initialValue = 0);
 
 private:
 	List<GameVariable*> gameVariables;
 	List<GameVariablei*> integers;
+	List<GameVariablei64*> int64s;
 	List<GameVariablef*> floats;
 	List<GameVariables*> strings;
 	List<GameVariablefv*> vectors;

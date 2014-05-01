@@ -26,7 +26,8 @@ StateManager * StateManager::Instance(){
 	assert(stateMan && "StateManager not initialized");
 	return stateMan;
 }
-void StateManager::Deallocate(){
+void StateManager::Deallocate()
+{
 	assert(stateMan);
 	delete(stateMan);
 	stateMan = NULL;
@@ -47,7 +48,7 @@ StateManager::~StateManager(){
 		activeState->OnExit(NULL);
 	while (stateList.Size()){
         GameState * gs = stateList[0];
-        std::cout<<"\nDeleting game state: "<<gs->stateName;
+        std::cout<<"\nDeleting game state: "<<gs->name;
         stateList.Remove(gs);
 		delete gs;
 	}
@@ -77,7 +78,7 @@ void StateManager::CreateUserInterfaces(){
 		if (gs->ui)
 			delete gs->ui;
 		gs->ui = NULL;
-		std::cout<<"\nCreating user interface for "<<gs->stateName;
+		std::cout<<"\nCreating user interface for "<<gs->name;
         stateList[i]->CreateUserInterface();
 	}
 }
@@ -86,14 +87,14 @@ void StateManager::DeallocateUserInterfaces(){
 	for (int i = 0; i < stateList.Size(); ++i){
         GameState * gs = stateList[i];
         assert(stateList[i]);
-	//	std::cout<<"\nDeallocating user interface for "<<gs->stateName;
+	//	std::cout<<"\nDeallocating user interface for "<<gs->name;
         stateList[i]->DeallocateUserInterface();
 	}
 }
 
 bool StateManager::RegisterState(GameState * i_state){
 	stateList.Add(i_state);
-	assert(stateList.Size() < MAX_GAME_STATES);
+	assert(stateList.Size() < GameStateID::MAX_GAME_STATES);
 	return false;
 };
 
@@ -155,7 +156,7 @@ GameState * StateManager::GetStateByID(int id){
 
 GameState * StateManager::GetStateByName(String name){
 	for (int i = 0; i < stateList.Size(); ++i)
-		if (stateList[i]->stateName == name)
+		if (stateList[i]->name == name)
 			return stateList[i];
 	return NULL;
 }

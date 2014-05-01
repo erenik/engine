@@ -44,6 +44,17 @@ private:
 	int target;
 };
 
+/// For setting system-global UI. 
+class GMSetGlobalUI : public GraphicsMessage 
+{
+public:
+	GMSetGlobalUI(UserInterface * ui);
+	void Process();
+private:
+	UserInterface * ui;
+};
+
+/// For setting UI to be rendered.
 class GMSetUI : public GraphicsMessage {
 public:
 	// If viewport is unspecified (-1) the global UI will be swapped.

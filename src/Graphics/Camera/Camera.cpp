@@ -310,10 +310,12 @@ float Camera::Height() const {
 /** Returns a ray in 3D space using the given mouse and camera data.
 	Mouse coordinates are assumed to be in screen-pixel space (i.e. 0.0 to 800.0 or similar)
 */
-Ray GetRayFromScreenCoordinates(float& mouseX, float& mouseY, Camera& camera){
+Ray Camera::GetRayFromScreenCoordinates(int mouseX, int mouseY) const
+{
 //	std::cout<<"\nGetRayFromScreenCoordinates\n===============================";
 //	std::cout<<"\nMouseX: "<<mouseX<<" MouseY: "<<mouseY;
 //    std::cout<<"\nCamera: "<<camera.name;
+	const Camera & camera = (*this);
 	/// Calculate near plane coordinates
 	Vector3f camPosition = camera.Position();
 	Vector3f camLookingAt = camera.LookingAt();

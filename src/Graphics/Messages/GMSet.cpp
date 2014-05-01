@@ -153,6 +153,22 @@ void GMSets::Process(){
 }
 
 
+GMSetGlobalUI::GMSetGlobalUI(UserInterface *ui)
+: GraphicsMessage(GM_SET_GLOBAL_UI), ui(ui)
+{
+}
+
+void GMSetGlobalUI::Process()
+{
+	UserInterface * oldGlobalUI = Graphics.GetGlobalUI();
+	if (oldGlobalUI)
+	{
+		// Unbufferize it
+		oldGlobalUI->Unbufferize();
+	}
+	Graphics.SetGlobalUI(ui);
+}
+
 // If viewport is unspecified (-1) the global UI will be swapped.
 GMSetUI::GMSetUI(UserInterface * i_ui, int i_viewport /* = -1 */)
 : GraphicsMessage(GM_SET_UI), ui(i_ui), viewport(i_viewport)

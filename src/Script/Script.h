@@ -22,6 +22,12 @@ public:
 	Script(const Script & base);
 	Script(String name = "Script", Script * parentScript = NULL);
 
+	// Playback functions.
+	// Returns true if it was paused. Some scripts may not be pausable, as defined when loading them or when a flag is set during processing.
+	bool Pause();
+	void Resume();
+	bool IsPaused() {return paused;};
+
 	/// Loads script using given name as reference to source-file.
 	bool Load();
 	/// Wosh o.o, NOTE that the root dir will be appended at the start automatically! <- Wat?
@@ -93,6 +99,13 @@ public:
 	*/
 	Script * parentScript;
 
+
+	void BeginCutscene();
+	void EndCutscene(bool endingPrematurely = false);
+
+	/// good flag
+	bool inCutscene;
+
 	/// Main trigger-condition type, which can be one of the previous enums.
 	int triggerCondition;
 	/// When executing, keeps track of which line we were on. Starts at.. 0?
@@ -102,10 +115,16 @@ public:
 	List<String> lines;
 	/// For checking that whatever the line wanted to do got finished.
 	bool lineFinished;
+	/// If the line has been processed.
+	bool lineProcessed;
+
+	/// Whetehr this script disabled any ui...
+	bool uiDisabled;
 
 	/// Like DELETE_WHEN_ENDED,
 	int flags;
 private:
+	bool paused;
 	/// For handling stuff...
 	bool isInAlternativeDialogue;
 };

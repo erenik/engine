@@ -13,12 +13,13 @@ TileTypeManager * TileTypeManager::tileTypeManager = NULL;
 /// Construct/destruct
 TileTypeManager::TileTypeManager(){
 }
-TileTypeManager::~TileTypeManager(){
-    CLEAR_AND_DELETE(tileTypes);
-//	tileTypes.ClearAndDelete();
+TileTypeManager::~TileTypeManager()
+{
+	tileTypes.ClearAndDelete();
 }
 
-void TileTypeManager::Allocate(){
+void TileTypeManager::Allocate()
+{
 	assert(tileTypeManager == NULL);
 	tileTypeManager = new TileTypeManager();
 }

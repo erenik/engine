@@ -511,16 +511,26 @@ void GMAddUI::Process()
 	Graphics.renderQueried = true;
 }
 
-GMPushUI::GMPushUI(String uiName, int viewport)
-: GMUI(GM_PUSH_UI, viewport), uiName(uiName), element(NULL){};
+GMPushUI::GMPushUI(String uiName, UserInterface * ontoUI, int viewport)
+: GMUI(GM_PUSH_UI, viewport), uiName(uiName), element(NULL)
+{
+	ui = ontoUI;
+};
 
-GMPushUI::GMPushUI(UIElement * ui, int viewport)
-: GMUI(GM_PUSH_UI, viewport), element(ui){};
+GMPushUI::GMPushUI(UIElement * element, UserInterface * ontoUI, int viewport)
+: GMUI(GM_PUSH_UI, viewport), element(element)
+{
+	ui = ontoUI;
+};
 
-void GMPushUI::Process(){
-	if (!GetUI())
-        return;
+void GMPushUI::Process()
+{
 	if (!ui){
+		if (!GetUI())
+			return;
+	}
+	if (!ui)
+	{
 		std::cout<<"\nGMPushUI: Invalid UI.";
 		return;
 	}
@@ -575,13 +585,20 @@ void DeleteUI(UIElement * element, UserInterface * inUI){
 	Input.acceptInput = true;
 }
 
-GMPopUI::GMPopUI(String uiName, bool force, int viewport)
-: GMUI(GM_POP_UI, viewport), uiName(uiName), element(NULL), force(force){}
+GMPopUI::GMPopUI(String uiName, UserInterface * targetUI, bool force, int viewport)
+: GMUI(GM_POP_UI, viewport), uiName(uiName), element(NULL), force(force)
+{
+	ui = targetUI;
+}
 
 void GMPopUI::Process()
 {
-	if (!GetUI())
-        return;
+	if (!ui)
+	{
+//	if (!GetUI())
+ //       return;
+		assert(false);
+	}
 	if (!ui){
 		std::cout<<"\nGMPopUI: Invalid UI.";
 		return;

@@ -19,6 +19,7 @@ enum graphicsMessages {
 	GM_SET_TEXTURE,
 	GM_SET_STRING,
 	GM_SET_UI,
+	GM_SET_GLOBAL_UI,
 	GM_SET_VIEWPORTS,
 	GM_SET_OVERLAY,		// For setting overlay texture.. or Video!
 	// Entity setters

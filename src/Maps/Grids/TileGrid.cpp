@@ -151,7 +151,7 @@ void TileGrid2D::Render(GraphicsState & graphicsState){
 	Camera & camera = *graphicsState.camera;
 	Frustum frustum = camera.GetFrustum();
 	Vector3f min = frustum.hitherBottomLeft - Vector3f(1,1,1), max = frustum.fartherTopRight + Vector3f(1,1,1);
-	int tilesToRender = (max.x - min.x) * (max.y - max.y);
+	int tilesToRender = (int) ((max.x - min.x) * (max.y - max.y));
 	if (tilesToRender > 1000)
 		return;
 

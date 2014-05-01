@@ -104,10 +104,10 @@ void GraphicsManager::Render(){
 			assert(vp->camera);
 			vp->Render(*graphicsState);
 			if (i < 4)
-                renderViewportFrameTime[i] = viewportTimer.GetMs();
+                renderViewportFrameTime[i] = (float)viewportTimer.GetMs();
 		}
 	}
-	renderViewportsFrameTime = viewportsTimer.GetMs();
+	renderViewportsFrameTime = (float)viewportsTimer.GetMs();
 
 	PrintTime("\nRendering viewports: ");
 

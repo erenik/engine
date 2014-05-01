@@ -6,6 +6,7 @@
 #include "Command/CommandLine.h"
 #include "Managers.h" // Don't include all managers. Ever. Except here and in Initializer/Deallocator.
 #include "OS/Sleep.h"
+#include "Graphics/Messages/GMSet.h"
 
 #ifdef WINDOWS
 #include <process.h>
@@ -85,9 +86,9 @@ void * Initialize(void * vArgs){
 	// Now begin accepting input!
 	Input.acceptInput = true;
 
-	StateMan.SetGlobalState(GAME_STATE_GLOBAL);
+	StateMan.SetGlobalState(GameStateID::GAME_STATE_GLOBAL);
 	std::cout<<"\nInitialization done! Entering main menu...";
-	StateMan.QueueState(StateMan.GetStateByID(GAME_STATE_MAIN_MENU));
+	StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_MAIN_MENU));
 
 	/// Everything should be setup, so evaluate any command-line arguments now!
 	CommandLine::Evaluate();
@@ -133,8 +134,15 @@ void * Deallocate(void *vArgs){
 	// Start with stopping the network before deallocating anything to avoid errors
 	NetworkMan.Shutdown();
 
-	/// Deallocate UIs
+	/// Remove UIs from rendering.
+	Graphics.QueueMessage(new GMSetUI(NULL));
+	Graphics.QueueMessage(new GMSetGlobalUI(NULL));
+
+
 	timeStart = clock();
+	/// When they are removed, deallocate them.
+	while(Graphics.GetUI() || Graphics.GetGlobalUI())
+		Sleep(5);
 	StateMan.DeallocateUserInterfaces();
 	timeTaken = clock() - timeStart;
 	std::cout<<"\nDeallocating UIs: "<<timeTaken / CLOCKS_PER_SEC<<" seconds";

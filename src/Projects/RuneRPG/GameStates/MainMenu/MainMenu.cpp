@@ -12,7 +12,7 @@
 #include "Maps/Grids/Tile.h"
 #include "../Map/MapState.h"
 #include "Graphics/Messages/GMSet.h"
-extern UserInterface * ui[MAX_GAME_STATES];
+extern UserInterface * ui[GameStateID::MAX_GAME_STATES];
 #include "../RuneGameStatesEnum.h"
 #include "UI/UIQueryDialogue.h"
 #include "System/PreferencesManager.h"
@@ -21,18 +21,15 @@ extern UserInterface * ui[MAX_GAME_STATES];
 
 MainMenu::MainMenu()
 {
-	id = GAME_STATE_MAIN_MENU;
+	id = GameStateID::GAME_STATE_MAIN_MENU;
 	requestedPlayers = 1;
 
-	// Enter some tile types into the manager
-	TileTypeManager::Allocate();
-	TileTypes.CreateDefaultTiles();
 
 	enteredOnce = false;
 }
 
-MainMenu::~MainMenu(){
-	TileTypeManager::Deallocate();
+MainMenu::~MainMenu()
+{
 }
 
 void MainMenu::OnEnter(GameState * previousState)
@@ -58,20 +55,20 @@ void MainMenu::OnEnter(GameState * previousState)
 	/// Notify that input-manager to use menu-navigation.
 	Input.ForceNavigateUI(true);
 	// Push the menu to be hovered on straight away, yo.
-	Graphics.QueueMessage(new GMPushUI("MainMenu"));
+	Graphics.QueueMessage(new GMPushUI("MainMenu", ui));
 
 	/// Do first-time loading of preferences, entering user-/player-name, etc.
 	if (!enteredOnce)
 		OnFirstEnter();
 };
 
-void MainMenu::OnExit(GameState *nextState){
-	// Begin loading textures here for the UI
+void MainMenu::OnExit(GameState *nextState)
+{
 	Graphics.QueueMessage(new GraphicsMessage(GM_CLEAR_UI));
 	std::cout<<"\nLeaving MainMenu state.";
 	// Load initial texture and set it to render over everything else
-	if (nextState->GetID() != GAME_STATE_EXITING)
-		Graphics.QueueMessage(new GMSet(OVERLAY_TEXTURE, TexMan.GetTexture("img/loadingData.png")));
+	if (nextState->GetID() != GameStateID::GAME_STATE_EXITING)
+		;// Graphics.QueueMessage(new GMSet(OVERLAY_TEXTURE, TexMan.GetTexture("img/loadingData.png")));
 	else
 		Graphics.QueueMessage(new GMSet(OVERLAY_TEXTURE, TexMan.GetTexture("img/deallocating.png")));
 }
@@ -138,13 +135,13 @@ void MainMenu::ProcessMessage(Message * message){
 				}
 			}
 			else if (s == "go_to_main_menu")
-				StateMan.QueueState(StateMan.GetStateByID(GAME_STATE_MAIN_MENU));
+				StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_MAIN_MENU));
 			else if (s == "go_to_editor")
-				StateMan.QueueState(StateMan.GetStateByID(GAME_STATE_EDITOR));
+				StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_EDITOR));
 			else if (s == "go_to_options")
 				Graphics.QueueMessage(new GMSet(ACTIVE_USER_INTERFACE, (void*)NULL));
 			else if (s == "exit")
-				StateMan.QueueState(StateMan.GetStateByID(GAME_STATE_EXITING));
+				StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_EXITING));
 			else if (s == "begin_input(this)"){
 				UserInterface * ui = StateMan.ActiveState()->GetUI();
 				UIElement * element = ui->GetActiveElement();
@@ -212,7 +209,7 @@ void MainMenu::OnFirstEnter()
 		nameDialogue->textureSource = "Black";	
 		nameDialogue->CreateChildren();
 		Graphics.QueueMessage(new GMAddUI(nameDialogue));
-		Graphics.QueueMessage(new GMPushUI(nameDialogue));
+		Graphics.QueueMessage(new GMPushUI(nameDialogue, ui));
 	}
 	this->enteredOnce = true;
 }

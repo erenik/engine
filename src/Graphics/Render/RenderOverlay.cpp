@@ -114,7 +114,7 @@ void GraphicsManager::RenderOverlay()
 			overlayFadeInStart = Timer::GetCurrentTimeMs();
 
 		// Render the overlay-texture using target alpha.
-		long long currentTime = Timer::GetCurrentTimeMs();
+		int64 currentTime = Timer::GetCurrentTimeMs();
 		int timeFadedSoFar = currentTime - overlayFadeInStart;
 		float alpha = float(timeFadedSoFar) / overlayFadeInTime;
 		str += " queued overlay: " + queuedOverlayTexture->name + "with alpha: " + String::ToString(alpha);

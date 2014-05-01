@@ -3,7 +3,7 @@
 
 #include "GameState.h"
 #include "../Managers.h"
-extern UserInterface * ui[MAX_GAME_STATES];
+extern UserInterface * ui[GameStateID::MAX_GAME_STATES];
 
 #include "OS/OS.h"
 #include "OS/Sleep.h"
@@ -17,8 +17,8 @@ extern HWND hWnd;			// Window handle
 #endif
 
 Initialization::Initialization(){
-    id = GAME_STATE_INITIALIZATION;
-    stateName = "Initialization state";
+    id = GameStateID::GAME_STATE_INITIALIZATION;
+    name = "Initialization state";
 }
 
 void Initialization::OnEnter(GameState * previousState){

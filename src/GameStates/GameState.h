@@ -53,7 +53,7 @@ public:
 	*/
 	virtual void MouseRightClick(bool down, int x = -1, int y = -1, UIElement * elementClicked = NULL);
 	/// Interprets a mouse-move message to target position.
-	virtual void MouseMove(float x, float y, bool lDown = false, bool rDown = false, UIElement * elementOver = NULL);
+	virtual void MouseMove(int x, int y, bool lDown = false, bool rDown = false, UIElement * elementOver = NULL);
 	/** Handles mouse wheel input.
 		Positive delta signifies scrolling upward or away from the user, negative being toward the user.
 	*/
@@ -90,7 +90,7 @@ public:
 protected:
 
 	/// For further identification
-	String stateName;
+	String name;
 	/// Unique ID
 	int id;
 	// UI fluff

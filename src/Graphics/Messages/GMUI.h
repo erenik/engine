@@ -7,7 +7,9 @@
 #include "GraphicsMessage.h"
 #include "GraphicsMessages.h"
 #include <String/Text.h>
+
 class Viewport;
+class UserInterface;
 
 class GMUI : public GraphicsMessage{
 public:
@@ -205,8 +207,8 @@ private:
 
 class GMPushUI : public GMUI{
 public:
-	GMPushUI(String uiName, int viewport = NULL);
-	GMPushUI(UIElement * ui, int viewport = NULL);
+	GMPushUI(String elementName, UserInterface * ontoUI, int viewport = NULL);
+	GMPushUI(UIElement * element, UserInterface * ontoUI, int viewport = NULL);
 	void Process();
 private:
 	UIElement * element;
@@ -216,7 +218,7 @@ private:
 class GMPopUI : public GMUI{
 public:
 	/// If force is specified, it will pop the UI no matter what it's exitable property says.
-	GMPopUI(String uiName, bool force = false, int viewport = NULL);
+	GMPopUI(String uiName, UserInterface * ui, bool force = false, int viewport = NULL);
 	void Process();
 private:
 	UIElement * element;

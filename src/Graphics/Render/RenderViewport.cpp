@@ -16,7 +16,7 @@ RenderViewport::RenderViewport(String uiSource)
 {
 	Initialize();
 };
-RenderViewport::RenderViewport(float x, float y, float width, float height)
+RenderViewport::RenderViewport(int x, int y, int width, int height)
 : Viewport(x,y,width,height)
 {
 	Initialize();

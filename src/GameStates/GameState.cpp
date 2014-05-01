@@ -13,14 +13,14 @@
 
 //#include <windows.h>
 
-extern UserInterface * ui[MAX_GAME_STATES];
+extern UserInterface * ui[GameStateID::MAX_GAME_STATES];
 
 #ifdef WINDOWS
 extern HWND hWnd;			// Window handle
 #endif
 
 // User interfaces for all states
-UserInterface * ui[MAX_GAME_STATES];
+UserInterface * ui[GameStateID::MAX_GAME_STATES];
 
 
 void EmptyFunction(){
@@ -28,11 +28,12 @@ void EmptyFunction(){
 };
 
 
-GameState::GameState(){
+GameState::GameState()
+{
 	/// Initialize default values, even if inherited.
 	lastTime = 0;
 	ui = NULL;
-    stateName = "DefaultStateName";
+    name = "DefaultStateName";
 	keyPressedCallback = false;
 };
 GameState::~GameState(){
@@ -52,11 +53,11 @@ void GameState::ProcessMessage(Message * message){
 			String s = message->msg;
 			s.SetComparisonMode(String::NOT_CASE_SENSITIVE);
 			if (s == "go_to_main_menu")
-				StateMan.QueueState(StateMan.GetStateByID(GAME_STATE_MAIN_MENU));
+				StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_MAIN_MENU));
 			else if (s == "go_to_editor")
-				StateMan.QueueState(StateMan.GetStateByID(GAME_STATE_EDITOR));
+				StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_EDITOR));
 			else if (s == "exit")
-				StateMan.QueueState(StateMan.GetStateByID(GAME_STATE_EXITING));
+				StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_EXITING));
 			else if (s == "begin_input(this)"){
 				UserInterface * ui = StateMan.ActiveState()->GetUI();
 				UIElement * element = ui->GetActiveElement();
@@ -99,7 +100,7 @@ void GameState::MouseRightClick(bool down, int x, int y, UIElement * elementClic
 #endif
 }
 /// Interprets a mouse-move message to target position.
-void GameState::MouseMove(float x, float y, bool lDown, bool rDown, UIElement * elementOver){
+void GameState::MouseMove(int x, int y, bool lDown, bool rDown, UIElement * elementOver){
 #ifdef _DEFAULT_STATE_DEBUG
 	std::cout<<"\nDefault GameState::MouseMove activated.";
 #endif
@@ -136,8 +137,9 @@ void GameState::CreateDefaultBindings(){
 }
 
 /// Creates the user interface for this state
-void GameState::CreateUserInterface(){
-	std::cout<<"\nState::CreateUserInterface called for "<<stateName;
+void GameState::CreateUserInterface()
+{
+	std::cout<<"\nState::CreateUserInterface called for "<<name;
 	if (ui)
 		delete ui;
 	ui = new UserInterface();
@@ -146,8 +148,9 @@ void GameState::CreateUserInterface(){
 /** Attempts to free the resources used by the user interface before deleting it.
 	Aborts and returns false if any errors occur along the way.
 */
-bool GameState::DeallocateUserInterface(){
-    std::cout<<"\nCalling DeallocateUserInterface for state: "<<stateName;
+bool GameState::DeallocateUserInterface()
+{
+    std::cout<<"\nCalling DeallocateUserInterface for state: "<<name;
 	if (ui){
 		if (ui->IsBuffered()){
             Graphics.QueueMessage(new GMDelete(ui));
@@ -183,9 +186,10 @@ extern uintptr_t deallocatorThread;
 extern pthread_t deallocatorThread;
 #endif
 
-Exit::Exit(){
-    id = GAME_STATE_EXITING;
-    stateName = "Exiting state";
+Exit::Exit()
+{
+    id = GameStateID::GAME_STATE_EXITING;
+    name = "Exiting state";
 }
 
 void Exit::OnEnter(GameState * previousState){

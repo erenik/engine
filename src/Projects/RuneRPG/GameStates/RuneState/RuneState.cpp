@@ -11,7 +11,7 @@
 
 RuneState::RuneState(){
 	id = RUNE_GAME_STATE_RUNE_STATE;
-	stateName = "RuneState";
+	name = "RuneState";
 	primary = secondary = 0;
 }
 
@@ -23,7 +23,7 @@ void RuneState::OnEnter(GameState * previousState){
 	bool hasTemplates = false;
 	Graphics.QueueMessage(new GMSetUIb("ExistingTemplates", GMUI::ENABLED, hasTemplates));
 	// Push the RuneScreen to the UI, so that exiting it will return us to the previous state appropriately?
-	Graphics.QueueMessage(new GMPushUI("RuneScreen"));
+	Graphics.QueueMessage(new GMPushUI("RuneScreen", ui));
 	// Set graphics manager to render UI, and remove the overlay-texture.
 	Graphics.QueueMessage(new GMSet(OVERLAY_TEXTURE, (Texture*)NULL));
 }
@@ -41,7 +41,7 @@ void RuneState::ProcessMessage(Message * message){
 			String & msg = message->msg;
 			if (msg == "OnReloadUI"){
 				// Push the RuneScreen to the UI, so that exiting it will return us to the previous state appropriately?
-				Graphics.QueueMessage(new GMPushUI("RuneScreen"));
+				Graphics.QueueMessage(new GMPushUI("RuneScreen", ui));
 			}
 			else if (msg == "AddMajor"){
 				++primary;

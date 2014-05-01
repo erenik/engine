@@ -14,6 +14,9 @@
 #include "ScriptManager.h"
 #include "GeneralScripts.h"
 #include "Audio/TrackManager.h"
+#include "Input/InputManager.h"
+#include "File/FileUtil.h"
+#include "TextureManager.h"
 
 /// Compact saveable version of the event
 //struct CompactEvent{};
@@ -53,18 +56,33 @@ Script::Script(String name, Script * parent /* = NULL */ )
 	repeatable = false;
 	currentLine = 0;
 	scriptState = NOT_BEGUN;
-	lineFinished = true;
 	flags = 0;
 	timePassed = 0;
 	// Set this to false for those scripts that do not require waiting for completion! o.o
 	pausesExecution = true;
+	inCutscene = false;
+	lineFinished = false;
+	lineProcessed = false;
+	uiDisabled = false;
+	paused = false;
 };
+
+// Playback functions.
+bool Script::Pause()
+{
+	paused = true;
+	return true;
+}
+void Script::Resume()
+{
+	paused = false;
+}
 
 void Script::Reset()
 {
 	currentLine = -1;
 	scriptState = NOT_BEGUN;
-	lineFinished = true;
+	lineFinished = lineProcessed = false;
 	executed = false;
 }
 
@@ -174,6 +192,8 @@ void Script::OnBegin()
 
 void Script::Process(long long timeInMs)
 {
+	if (paused)
+		return;
 	if (currentLine < 0 || currentLine >= lines.Size())
 	{
 		std::cout<<"\nScript::Process line out of scope. Aborting";
@@ -181,29 +201,40 @@ void Script::Process(long long timeInMs)
 		return;
 	}
 	String line = lines[currentLine];
-	timePassed += timeInMs;
+	timePassed += (int)timeInMs;
+
+	if (!lineProcessed)
+	{
+		/// Evaluate the current line, look if we have to check for line-finishing conditions or not.
+		lineFinished = false;
+		EvaluateLine(lines[currentLine]);
+		lineProcessed = true;
+	}
+
 	/// Check if the current line is finished? If not, wait until it is finished.
 	if (!lineFinished)
 		return;
 
 	/// If it is finished, check for next line
-	if (lineFinished){
-		++currentLine;
-		/// If we finished the last line, flag this event as ending...!
-		if (currentLine >= lines.Size()){
-			scriptState = ENDING;
-			return;
-		}
-		/// New line: specify it as not finished.!
-		lineFinished = false;
+	++currentLine;
+	/// If we finished the last line, flag this event as ending...!
+	if (currentLine >= lines.Size()){
+		scriptState = ENDING;
+		return;
 	}
-
-	/// Evaluate the current line, look if we have to check for line-finishing conditions or not.
-	EvaluateLine(lines[currentLine]);
+	/// New line: specify it as not finished.!
+	lineFinished = false;
+	lineProcessed = false;
 }
 
 void Script::OnEnd()
 {
+	// In-case somebody forgot to, like.. re-enable stuff again, do it now.
+	if (inCutscene)
+		EndCutscene();
+	if (uiDisabled)
+		Input.EnableActiveUI();
+
 	if (repeatable){
 		scriptState = NOT_BEGUN;
 		currentLine = -1;
@@ -224,6 +255,33 @@ void Script::OnScriptEnded(Script * childScript)
 		lineFinished = true;
 }
 
+void Script::BeginCutscene()
+{
+	inCutscene = true;
+}
+void Script::EndCutscene(bool endingPrematurely /*= false*/)
+{
+	// Make sure we're in a cutscene first..
+	if (!inCutscene)
+		return;
+	if (endingPrematurely)
+	{
+		// Jump to the end of the cutscene.
+		for (int i = currentLine; i < lines.Size(); ++i)
+		{
+			// Look for the end.
+			String line = lines[i];
+			if (line.Contains("End(Cutscene)"))
+			{
+				// Jump to it.
+				currentLine = i;
+				break;
+			}
+		} 
+	}
+	inCutscene = false;
+}
+
 
 void Script::EvaluateLine(String & line)
 {
@@ -232,20 +290,74 @@ void Script::EvaluateLine(String & line)
 #define DEFAULT_TEXTURE_SOURCE	"black50Alpha.png"
 #define DEFAULT_TEXT_SIZE_RATIO	0.3f
 	
-	if (line.Contains("EndScript"))
+	/// Some state began, take not of it?
+	if (line == "DisableActiveUI")
+	{
+		Input.DisableActiveUI();
+		lineFinished = true;
+		uiDisabled = true;
+	}
+	else if (line == "EnableActiveUI")
+	{
+		Input.EnableActiveUI();
+		lineFinished = true;
+	}
+	else if (line.Contains("PreloadTexturesInDirectory("))
+	{
+		// Fetch the stuff, do the buff
+		String dir = line.Tokenize("()")[1];
+		List<String> files;
+		int num = GetFilesInDirectory(dir, files);
+		for (int i = 0; i < files.Size(); ++i)
+		{
+			String path = dir + "/" + files[i];
+			Texture * tex = TexMan.LoadTexture(path);
+			Graphics.QueueMessage(new GMBufferTexture(tex));
+		}
+		lineFinished = true;
+	}
+	else if (line.Contains("Begin("))
+	{
+		String stateBeginning = line.Tokenize("()")[1];
+		if (stateBeginning == "Cutscene")
+		{
+			BeginCutscene();
+		}
+		lineFinished = true;
+	}
+	else if (line.Contains("End("))
+	{
+		String stateEnding = line.Tokenize("()")[1];
+		if (stateEnding == "Cutscene")
+		{
+			EndCutscene();
+		}
+		lineFinished = true;
+	}
+	else if (line.Contains("EndScript"))
 	{
 		// End it.
 		scriptState = ENDING;
 	}
-	if (line.Contains("EnterGameState("))
+	else if (line.Contains("EnterGameState("))
 	{
-		String stateName = line.Tokenize("()")[1];		
+		String name = line.Tokenize("()")[1];		
 		StateChanger * changer = new StateChanger(line, this);
 		ScriptMan.PlayScript(changer);
 	}
-	else if (line.Contains("FadeTo("))
+	else if (line.Contains("FadeTo(") || line.Contains("FadeIn("))
 	{
 		FadeInEffect * fade = new FadeInEffect(line, this);
+		ScriptMan.PlayScript(fade);
+	}
+	else if (line.Contains("FadeInBackground("))
+	{
+		FadeInBackground * fade = new FadeInBackground(line, this);
+		ScriptMan.PlayScript(fade);
+	}
+	else if (line.Contains("FadeOutBackground("))
+	{
+		FadeOutBackground * fade = new FadeOutBackground(line, this);
 		ScriptMan.PlayScript(fade);
 	}
 	else if (line.Contains("FadeOut"))
@@ -283,7 +395,7 @@ void Script::EvaluateLine(String & line)
 			dialogue->alignmentY = 0.15f;
 			dialogue->state |= UIState::DIALOGUE;  // Flag the dialogue-state flag to signify importance!
 			Graphics.QueueMessage(new GMAddUI(dialogue, "root"));
-			Graphics.QueueMessage(new GMPushUI("Dialogue"));
+			Graphics.QueueMessage(new GMPushUI("Dialogue", Graphics.GetUI()));
 		}
 		/// If no quotes, load the specified dialogue-file and begin processing that instead, waiting until it is finished.!
 		else {
@@ -384,7 +496,7 @@ void Script::EvaluateLine(String & line)
 		}
 		isInAlternativeDialogue = true;
 		Graphics.QueueMessage(new GMAddUI(dialogue, "root"));
-		Graphics.QueueMessage(new GMPushUI(dialogue));
+		Graphics.QueueMessage(new GMPushUI(dialogue, Graphics.GetUI()));
 	}
 	else if (line.Contains("if(") || line.Contains("if (")){
 		/// Evaluate if-clauses!

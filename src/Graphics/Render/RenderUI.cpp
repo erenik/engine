@@ -16,6 +16,15 @@ void GraphicsManager::RenderUI(UserInterface * ui){
 		return;
     }
 
+	// Bufferize etc. as needed.
+	if (ui->AdjustToWindow(width, height))
+	{
+		if (!ui->IsGeometryCreated())
+			ui->CreateGeometry();
+		ui->ResizeGeometry();
+		ui->Bufferize();		
+	}
+
 	/// Disable stuff.
 	glDisable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, 0);

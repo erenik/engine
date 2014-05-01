@@ -83,7 +83,7 @@ private:
 	bool playbackEnded;
 	int state;			// Playing, paused, stopped, error, etc.
 	/// Updates playback volume. 
-	void UpdateVolume(float masterVolume = 1.0f);
+	void UpdateVolume(float masterVolume);
 	/// For disabling playback functions. Usually set by the AudioManager ONLY.
 	static bool audioEnabled;
 

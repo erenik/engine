@@ -245,10 +245,11 @@ void UIList::AddChild(UIElement* child)
                                mouseX > right || mouseX < left) return NULL;};
 
 /// Activation functions
-UIElement * UIList::Hover(float & mouseX, float & mouseY){
+UIElement * UIList::Hover(int mouseX, int mouseY)
+{
     RETURN_IF_OUTSIDE
-    float listX = mouseX;
-    float listY = mouseY;
+    float listX = (float)mouseX;
+    float listY = (float)mouseY;
     if (scrollBarY){
         listY -= scrollBarY->GetStart() * sizeY;
     }
@@ -259,7 +260,7 @@ UIElement * UIList::Hover(float & mouseX, float & mouseY){
         if (child->isSysElement)
             e = child->Click(mouseX, mouseY);
         else
-            e = child->Hover(listX, listY);
+            e = child->Hover(RoundInt(listX), RoundInt(listY));
         if (e)
             break;
     }
@@ -270,10 +271,11 @@ UIElement * UIList::Hover(float & mouseX, float & mouseY){
     }
     return e;
 }
-UIElement * UIList::Click(float & mouseX, float & mouseY){
+UIElement * UIList::Click(int mouseX, int mouseY)
+{
     RETURN_IF_OUTSIDE
-    float listX = mouseX;
-    float listY = mouseY;
+    float listX = (float)mouseX;
+    float listY = (float)mouseY;
     if (scrollBarY)
         listY -= scrollBarY->GetStart() * sizeY;
 
@@ -284,7 +286,7 @@ UIElement * UIList::Click(float & mouseX, float & mouseY){
         if (child->isSysElement)
             e = child->Click(mouseX, mouseY);
         else
-            e = child->Click(listX, listY);
+            e = child->Click(RoundInt(listX), RoundInt(listY));
         if (e)
             break;
     }
@@ -296,10 +298,10 @@ UIElement * UIList::Click(float & mouseX, float & mouseY){
     return e;
 }
 /// GEtttererrr
-UIElement * UIList::GetElement(float & mouseX, float & mouseY){
+UIElement * UIList::GetElement(int mouseX, int mouseY){
     RETURN_IF_OUTSIDE
-    float listX = mouseX;
-    float listY = mouseY;
+    float listX = (float)mouseX;
+    float listY = (float)mouseY;
     if (scrollBarY)
         listY -= scrollBarY->GetStart() * sizeY;
     UIElement * e = this;
@@ -309,7 +311,7 @@ UIElement * UIList::GetElement(float & mouseX, float & mouseY){
         if (child->isSysElement)
             e = child->Click(mouseX, mouseY);
         else
-            e = child->GetElement(listX, listY);
+            e = child->GetElement(RoundInt(listX), RoundInt(listY));
         if (e)
             break;
     }

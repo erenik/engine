@@ -72,6 +72,29 @@ private:
 	*/
 };
 
+/// Fade-operation on the background behind the overlay image and texts.
+class FadeInBackground : public OverlayScript 
+{
+public:
+	FadeInBackground(String line, Script * parent);
+	virtual void OnBegin();
+	virtual void Process(long long time);
+private:
+	String fadeInTextureSource;
+	int fadeInDuration;
+};
+
+class FadeOutBackground : public OverlayScript 
+{
+public:
+	FadeOutBackground(String line, Script * parent);
+	virtual void OnBegin();
+	virtual void Process(long long time);
+private:
+	int fadeOutDuration;
+	float startAlpha;
+};
+
 class FadeInEffect : public OverlayScript
 {
 public:

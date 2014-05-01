@@ -48,10 +48,10 @@ public:
 	virtual void AddChild(UIElement* child); // Sets child pointer to child UI element, NULL if non
 
 	/// Activation functions
-	virtual UIElement* Hover(float & mouseX, float & mouseY);
-	virtual UIElement* Click(float & mouseX, float & mouseY);
+	virtual UIElement* Hover(int mouseX, int mouseY);
+	virtual UIElement* Click(int mouseX, int mouseY);
 	/// GEtttererrr
-	virtual UIElement * GetElement(float & mouseX, float & mouseY);
+	virtual UIElement * GetElement(int mouseX, int mouseY);
 	/// Scroll ze listur! Returns true if it does anything.
 	virtual bool OnScroll(float delta);
 

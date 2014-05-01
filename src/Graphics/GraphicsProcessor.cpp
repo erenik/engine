@@ -212,7 +212,7 @@ void * GraphicsManager::Processor(void * vArgs){
 	GraphicsState * graphicsState = Graphics.graphicsState;
 
     // Some times.
-    int lastOptimization = Timer::GetCurrentTimeMs();
+    long long lastOptimization = Timer::GetCurrentTimeMs();
     long long now;
 	// To use when not rendering, since I'm failing with it at the moment.
 	long long timeNotRendered = lastOptimization;

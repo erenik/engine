@@ -49,7 +49,23 @@ void GraphicsMessage::Process(){
 			Input.acceptInput = false;
 			Sleep(10);
 
-			/// First remove global UI.
+			/// Delete and re-create the globalUI
+			UserInterface * globalUI = Graphics.GetGlobalUI();
+			if (globalUI)
+			{
+				if (globalUI->IsBuffered())
+					globalUI->Unbufferize();
+				if (globalUI->IsGeometryCreated())
+					globalUI->DeleteGeometry();
+			}
+			GameState * globalState = StateMan.GlobalState();
+			if (globalState)
+			{
+				globalState->CreateUserInterface();
+				Graphics.SetGlobalUI(globalState->GetUI());
+			}
+
+			/// Refresh current UI too.
 			Graphics.SetUI(NULL);
 
 			GameState * state = StateMan.ActiveState();
@@ -65,28 +81,31 @@ void GraphicsMessage::Process(){
 
 			
 			ui = state->GetUI();
-			std::cout<<"\nRecreating ui: "<<ui->Source();
-			/// Always re-adjust to window and re-create geometry/re-bufferize
-			ui->AdjustToWindow(Graphics.width, Graphics.height);
-			ui->CreateGeometry();
-			ui->ResizeGeometry();
-			ui->Bufferize();
-
-			/// Set the ui again, since the state probably de-allocated and re-allocated it.
-			Graphics.SetUI(ui);
-
-			// Update for all render-viewports UIs too!
-			for (int i = 0; i < Graphics.renderViewports.Size(); ++i){
-				if (!Graphics.renderViewports[i]->GetUI())
-					continue;
-				ui = Graphics.renderViewports[i]->GetUI();
-				ui->Unbufferize();
-				ui->DeleteGeometry();
-				ui->Load(ui->Source());
+			if (ui)
+			{
+				std::cout<<"\nRecreating ui: "<<ui->Source();
+				/// Always re-adjust to window and re-create geometry/re-bufferize
 				ui->AdjustToWindow(Graphics.width, Graphics.height);
 				ui->CreateGeometry();
 				ui->ResizeGeometry();
 				ui->Bufferize();
+
+				/// Set the ui again, since the state probably de-allocated and re-allocated it.
+				Graphics.SetUI(ui);
+
+				// Update for all render-viewports UIs too!
+				for (int i = 0; i < Graphics.renderViewports.Size(); ++i){
+					if (!Graphics.renderViewports[i]->GetUI())
+						continue;
+					ui = Graphics.renderViewports[i]->GetUI();
+					ui->Unbufferize();
+					ui->DeleteGeometry();
+					ui->Load(ui->Source());
+					ui->AdjustToWindow(Graphics.width, Graphics.height);
+					ui->CreateGeometry();
+					ui->ResizeGeometry();
+					ui->Bufferize();
+				}	
 			}
 			Input.acceptInput = true;
 			Graphics.renderQueried = true;

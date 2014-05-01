@@ -7,7 +7,7 @@
 
 /// Creates bindings that are used for debugging purposes only
 void MapState::CreateDefaultBindings(){
-	std::cout<<"\n"<<stateName<<"::CreateDefaultBindings() called";
+	std::cout<<"\n"<<name<<"::CreateDefaultBindings() called";
 
 /// (int action, int * inputCombinationArray, int inputs, const char * name = NULL);
 	/// Get pointer to this mapping

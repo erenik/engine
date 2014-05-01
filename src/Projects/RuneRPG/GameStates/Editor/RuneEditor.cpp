@@ -19,8 +19,6 @@
 #include "Actions.h"
 #include "GameStates/GameStates.h"
 #include "Maps/Grids/GridObject.h"
-extern UserInterface * ui[MAX_GAME_STATES];
-
 #include "Graphics/GraphicsManager.h"
 #include "TextureManager.h"
 #include "Maps/MapManager.h"
@@ -50,21 +48,21 @@ extern UserInterface * ui[MAX_GAME_STATES];
 /// For sprintf in Linux
 #include <cstdio>
 
+extern UserInterface * ui[GameStateID::MAX_GAME_STATES];
 
 RuneEditor::RuneEditor()
-: GameState() {
+: GameState() 
+{
 	std::cout<<"\nRuneEditor constructor";
-	id = GAME_STATE_EDITOR;
-	stateName = "RuneEditorState";
-	std::cout<<"\nState name: "<<stateName;
-	assert(stateName == "RuneEditorState");
+	id = GameStateID::GAME_STATE_EDITOR;
+	name = "RuneEditorState";
+	std::cout<<"\nState name: "<<name;
+	assert(name == "RuneEditorState");
 	mouseCameraState = 0;
 	editMode = EditMode::TILES;
 	tileBrushType = terrainBrushType = brushType = SQUARE;
 	tileBrushSize = terrainBrushSize = brushSize = 0;
 	terrainTypeSelected = 0;
-	TileTypes.LoadTileTypes("data/tiles.txt");
-	tileType = TileTypes.GetTileTypeByIndex(0);
 	selectedEvent = NULL;
 	runeEditorCamera = new Camera();
 	runeEditorCamera->flySpeed = 20.0f;
@@ -72,8 +70,8 @@ RuneEditor::RuneEditor()
 	// We want keypressed.
 	keyPressedCallback = true;
 	map = NULL;
-	std::cout<<"\nState name: "<<stateName;
-	assert(stateName == "RuneEditorState");
+	std::cout<<"\nState name: "<<name;
+	assert(name == "RuneEditorState");
 	objectType = NULL;
 }
 RuneEditor::~RuneEditor(){
@@ -96,22 +94,25 @@ void RuneEditor::ResetCamera(){
 }
 
 void RuneEditor::CreateUserInterface(){
-	std::cout<<"\nRuneEditor::CreateUserInterface: "<<stateName;
-	assert(stateName == "RuneEditorState");
+	std::cout<<"\nRuneEditor::CreateUserInterface: "<<name;
+	assert(name == "RuneEditorState");
 	
 	if (ui)
 		delete ui;
 	this->ui = new UserInterface();
-	std::cout<<"\nState name: "<<stateName;
-	assert(stateName == "RuneEditorState");
+	std::cout<<"\nState name: "<<name;
+	assert(name == "RuneEditorState");
 	
-	String source = "gui/" + stateName + ".gui";
+	String source = "gui/" + name + ".gui";
 	std::cout<<"RuneEditor::CreateUserInterface: "<<source;
 	ui->Load(source);
 //	ui->Load("gui/RuneEditor.gui");
 }
 
-void RuneEditor::OnEnter(GameState * previousState){
+void RuneEditor::OnEnter(GameState * previousState)
+{
+	TileTypes.LoadTileTypes("data/tiles.txt");
+	tileType = TileTypes.GetTileTypeByIndex(0);
 
 	std::cout<<"\nRuneEditor::OnEnter";
 	/// Create a map upon entering instead?
@@ -135,7 +136,7 @@ void RuneEditor::OnEnter(GameState * previousState){
 	/// Turn off any requirement to have an active UI element as it interferes with the mouse-hover-detection mechanism currently in place?
 	
 	// Close the menu if it's up.
-	Graphics.QueueMessage(new GMPopUI("MainMenu"));
+	Graphics.QueueMessage(new GMPopUI("MainMenu", ui));
 
 	/// Check amount of tiles.
 	MapMan.processOnEnter = false;
@@ -193,7 +194,7 @@ void RuneEditor::OnEnter(GameState * previousState){
 void RuneEditor::OnExit(GameState *nextState){
 	// Begin loading textures here for the UI
 	Graphics.QueueMessage(new GraphicsMessage(GM_CLEAR_UI));
-	if (nextState->GetID() == GAME_STATE_MAIN_MENU)
+	if (nextState->GetID() == GameStateID::GAME_STATE_MAIN_MENU)
 		MapMan.MakeActive(NULL);
 	std::cout<<"\nLeaving RuneEditor state.";
 }
@@ -352,7 +353,7 @@ void RuneEditor::ProcessMessage(Message * message){
 			{
 				objectType = GridObjectTypeMan.New();
 				OnObjectTypesUpdated();
-				Graphics.QueueMessage(new GMPushUI("Editor/EditObjectMenu.gui"));
+				Graphics.QueueMessage(new GMPushUI("Editor/EditObjectMenu.gui", ui));
 				OnObjectTypeSelectedForEditing();
 			}
 			else if (string.Contains("EditObjectType("))
@@ -362,7 +363,7 @@ void RuneEditor::ProcessMessage(Message * message){
 				objectType = GridObjectTypeMan.GetTypeByID(id);
 				if (!objectType)
 					return;
-				Graphics.QueueMessage(new GMPushUI("Editor/EditObjectMenu.gui"));
+				Graphics.QueueMessage(new GMPushUI("Editor/EditObjectMenu.gui", ui));
 				OnObjectTypeSelectedForEditing();
 			}
 			else if (string == "SetObjectType(this)")
@@ -592,8 +593,8 @@ void RuneEditor::MouseClick(bool down, int x, int y, UIElement * elementClicked)
 	if (down != lButtonDown){
 		/// Mouse press
 		if (down){
-			startMouseX = (float)x;
-			startMouseY = (float)y;
+			startMouseX = x;
+			startMouseY = y;
 		}
 		/// Mouse release
 		else {
@@ -601,8 +602,8 @@ void RuneEditor::MouseClick(bool down, int x, int y, UIElement * elementClicked)
 		}
 
 	}
-	mouseX = (float)x;
-	mouseY = (float)y;
+	mouseX = x;
+	mouseY = y;
 	lButtonDown = down;
 }
 void RuneEditor::MouseRightClick(bool down, int x, int y, UIElement * elementClicked){
@@ -629,21 +630,21 @@ void RuneEditor::MouseRightClick(bool down, int x, int y, UIElement * elementCli
 			break;
 
 	}
-	mouseX = (float)x;
-	mouseY = (float)y;
+	mouseX = x;
+	mouseY = y;
 	rButtonDown = down;
 }
 
 #define PAN_SPEED_MULTIPLIER (abs(camera->distanceFromCentreOfMovement)/2.0f + 1)
-void RuneEditor::MouseMove(float x, float y, bool lDown, bool rDown, UIElement * elementOver){
+void RuneEditor::MouseMove(int x, int y, bool lDown, bool rDown, UIElement * elementOver){
 
 	/// Don't do anything if we're over a UI-element, yo.
 	if (elementOver)
 		return;
 
 	Camera * camera = Graphics.cameraToTrack;
-	float diffX = mouseX - x;
-	float diffY = mouseY - y;
+	int diffX = mouseX - x;
+	int diffY = mouseY - y;
 
 	if (!map)
 		return;
@@ -657,7 +658,7 @@ void RuneEditor::MouseMove(float x, float y, bool lDown, bool rDown, UIElement *
 	Plane plane;
 	plane.Set3Points(Vector3f(0,-1,0), Vector3f(1,0,0), Vector3f(0,0,0));
 	Vector3f collissionPoint;
-	Ray clickRay = GetRayFromScreenCoordinates(x, y, *runeEditorCamera);
+	Ray clickRay = runeEditorCamera->GetRayFromScreenCoordinates(x, y);
 	if (RayPlaneIntersection(clickRay, plane, &collissionPoint))
 	{
 		cursorPosition = cursorPositionPreRounding = collissionPoint;
@@ -784,7 +785,7 @@ void RuneEditor::KeyPressed(int keyCode, bool downBefore){
 	switch(keyCode){
 		case KEY::ESCAPE: 
 //			std::cout<<"\nOpHening Mhenu.";
-			Graphics.QueueMessage(new GMPushUI("MainMenu"));
+			Graphics.QueueMessage(new GMPushUI("MainMenu", ui));
 			break;
 	}
 }
@@ -1060,15 +1061,16 @@ void RuneEditor::OnObjectTypesUpdated()
 		cBox->sizeRatioY = 0.1f;
 		cBox->activationMessage = "SetObjectType(this)";
 		
+		String objectIDString = String::ToString(goType->ID());
 		UIButton * editButton = new UIButton();
-		editButton->activationMessage = "EditObjectType("+String::ToString(goType->ID())+")";
+		editButton->activationMessage = "EditObjectType("+objectIDString+")";
 		editButton->text = "Edit";
 		editButton->sizeRatioX = 0.2f;
 		editButton->alignmentX = 0.7f;
 		editButton->textureSource = ui->defaultTextureSource;
 		cBox->AddChild(editButton);
 
-		UIImage * image = new UIImage(goType->textureSource);
+		UIImage * image = new UIImage("ObjectPreview:"+objectIDString, goType->textureSource);
 		image->alignmentX = 0.9f;
 		image->sizeRatioX = 0.2f;
 		cBox->AddChild(image);
@@ -1104,7 +1106,7 @@ void RuneEditor::OnTileTypesUpdated()
 		cBox->textColor = ui->defaultTextColor;
 		cBox->activationMessage = "SetTileType(this)";
 		// 
-		UIImage * textureElement = new UIImage(tt->textureSource);
+		UIImage * textureElement = new UIImage("TilePreview", tt->textureSource);
 		textureElement->alignmentX	= 0.9f;
 		cBox->AddChild(textureElement);
 
@@ -1136,7 +1138,7 @@ void RuneEditor::Playtest()
 		assert(position.x != -1);
 		if (tile == NULL){
 			assert(false && "No valid walkable tile in range!");
-			StateMan.QueueState(StateMan.GetStateByID(GAME_STATE_EDITOR));
+			StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_EDITOR));
 			return;
 		}
 		Entity * player = MapMan.CreateEntity(m,t,position);
@@ -1454,9 +1456,9 @@ void RuneEditor::OnEditModeUpdated(int previousMode)
 	String modeName = GetModeName(editMode);
 
 	/// Make stuff invisible.
-	Graphics.QueueMessage(new GMPopUI(previousModeName+"Menu"));
+	Graphics.QueueMessage(new GMPopUI(previousModeName+"Menu", ui));
 	/// Make visible new UI using given modeName :)
-	Graphics.QueueMessage(new GMPushUI("Editor/"+modeName+"Menu.gui"));
+	Graphics.QueueMessage(new GMPushUI("Editor/"+modeName+"Menu.gui", ui));
 	Graphics.QueueMessage(new GMSetUIb("Modes", GMUI::CHILD_TOGGLED, false));
 	/// Update some label?
 	Graphics.QueueMessage(new GMSetUIs("CurrentMode", GMUI::TEXT, modeName));
@@ -1527,14 +1529,14 @@ void RuneEditor::OnSelectedLightUpdated()
 {
 	if (selectedLight)
 	{
-		Graphics.QueueMessage(new GMPushUI("Editor/LightEditor.gui"));
+		Graphics.QueueMessage(new GMPushUI("Editor/LightEditor.gui", ui));
 		Graphics.QueueMessage(new GMSetUIs("LightName", GMUI::STRING_INPUT_TEXT, selectedLight->Name()));
 		Graphics.QueueMessage(new GMSetUIv3f("LightColor", GMUI::VECTOR_INPUT, selectedLight->diffuse));
 		Graphics.QueueMessage(new GMSetUIv3f("LightAttenuation", GMUI::VECTOR_INPUT, selectedLight->attenuation));
 	}
 	else 
 	{
-		Graphics.QueueMessage(new GMPopUI("LightEditor"));
+		Graphics.QueueMessage(new GMPopUI("LightEditor", ui));
 	}
 }
 
@@ -1555,7 +1557,7 @@ bool RuneEditor::SaveMap(){
 
 	
 	// Close the menu if it's open
-	Graphics.QueueMessage(new GMPopUI("MainMenu"));
+	Graphics.QueueMessage(new GMPopUI("MainMenu", ui));
 	// Resume control
 	Graphics.QueueMessage(new GMSet(OVERLAY_TEXTURE, (Texture*)NULL));
 	if (!physicsWasPaused)
@@ -1584,7 +1586,7 @@ bool RuneEditor::LoadMap(String fromFile)
 	}
 	newSize = map->Size();
 	// Close the menu if it's open
-	Graphics.QueueMessage(new GMPopUI("MainMenu"));
+	Graphics.QueueMessage(new GMPopUI("MainMenu", ui));
 	// Resume control
 	Graphics.QueueMessage(new GMSet(OVERLAY_TEXTURE, (Texture*)NULL));
 	if (!physicsWasPaused)

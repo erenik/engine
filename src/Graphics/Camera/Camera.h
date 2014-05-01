@@ -131,6 +131,13 @@ public:
 	/// Tracking mode o-o;
 	int trackingMode;
 
+	/// Screen-to-world space functions, defined by input variables.
+	/** Returns a ray in 3D space using the given mouse and camera data.
+		Mouse coordinates are assumed to be in screen-pixel space (i.e. 0 to 799 or similar)
+	*/
+	Ray GetRayFromScreenCoordinates(int mouseX, int mouseY) const;
+
+
 private:
 
 	/// Ratio of the display device/context. Both should be at least 1.0, with the other scaling up as needed.
@@ -157,13 +164,17 @@ private:
 	/// Default values
 	static float defaultVelocity;
 	static float defaultRotationSpeed;
+
+
 };
+
+
 
 /// Screen-to-world space functions, defined by input variables.
 /** Returns a ray in 3D space using the given mouse and camera data.
-	Mouse coordinates are assumed to be in screen-pixel space (i.e. 0.0 to 800.0 or similar)
+	Mouse coordinates are assumed to be in screen-pixel space (i.e. 0 to 799 or similar)
 */
-Ray GetRayFromScreenCoordinates(float& mouseX, float& mouseY, Camera& camera);
+// Ray GetRayFromScreenCoordinates(int mouseX, int mouseY, Camera& camera);
 
 
 #endif

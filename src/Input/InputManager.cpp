@@ -29,8 +29,6 @@
 /// Global inputmanager
 InputManager * InputManager::input = NULL;
 
-#define ActiveUI	StateMan.ActiveState()->GetUI()
-
 /// Allocate
 void InputManager::Allocate(){
 	assert(input == NULL);
@@ -52,8 +50,7 @@ void InputManager::Deallocate(){
 
 InputManager::InputManager(){
 	/// Default mouse data
-	mouseX = mouseY = startMouseX = startMouseY = 0.0f;
-	prevMouseX = prevMouseY = 0.0f;
+	prevMouseX = prevMouseY = mouseX = mouseY = startMouseX = startMouseY = 0;
 	lButtonDown = rButtonDown = false;
 	mouseCameraState = NULL_STATE;
 	acceptInput = false;
@@ -139,7 +136,7 @@ void InputManager::SetMouseLock(bool enable){
 
 /// Query if we've got any dialogue up that the player must/should respond to before continuing.
 bool InputManager::DialogueActive(){
-	UserInterface * ui = ActiveUI;
+	UserInterface * ui = GetRelevantUI();
 	/// Assume we only have to care about the UI of the state, not any specific viewports...
 	UIElement * element = ui->GetElementByState(UIState::DIALOGUE);
 	return element? true : false;
@@ -175,7 +172,7 @@ int InputManager::GetNextAvailableInputDevice()
 
 /*
 void InputManager::ActivateElement(){
-	UserInterface * ui = ActiveUI;
+	UserInterface * ui = GetRelevantUI();
 	assert(ui);
 	if (hoverElement == NULL){
 		std::cout<<"\nINFO: Not hovering over any valid element! Aborting InputManager::ActivateElement()";
@@ -296,7 +293,7 @@ void InputManager::OnElementDeleted(UIElement * element){
 	// assert(false && "Find other solution");
 	//this->PopFromStack(element, true);
 	std::cout<<"lol?";
-	// ActiveUI->OnElementDeleted(element);
+	// GetRelevantUI()->OnElementDeleted(element);
 }
 
 /// Called from the GMSetUI message upon processing, at which point a new or old UI is displayed.
@@ -314,27 +311,6 @@ void InputManager::OnSetUI(UserInterface * ui){
 	//	hoverElement = uiHoverElement;
 	}
 	*/
-}
-
-/// Sets it as hoverable one, yo.
-void InputManager::SetHoverUI(UIElement * element)
-{
-	UserInterface * ui = ActiveUI;
-	/// Remove the hover flag from all other UIs in the same stack.
-	ui->RemoveState(UIState::HOVER);
-	if (!element)
-		return;
-	/// Then add it to our specified one.
-//	hoverElement = ;
-	element->AddState(UIState::HOVER);
-	element->EnsureVisibility();
-	// Ensure visibility of the element (required for use of lists and stuff).
-//	hoverElement->EnsureVisibility();
-//	std::cout<<"\nInput::SetHoverUI: "<<hoverElement->name;
-
-	/// List of all hover-elements
-	List<UIElement*> list;
-	ui->GetElementsByState(UIState::HOVER, list);
 }
 
 /** Returns the specified input buffer.
@@ -510,6 +486,15 @@ void InputManager::LoadDefaults(){
 
 };
 
+/// To enable/disable ui from e.g. cutscene-scripts. This does not disable the system-global UI!.
+void InputManager::DisableActiveUI()
+{
+	activeUIEnabled = false;
+}
+void InputManager::EnableActiveUI()
+{
+	activeUIEnabled = true;
+}
 
 
 //=======================================================//
@@ -538,44 +523,44 @@ void InputManager::MouseClick(bool down, int x, int y, UIElement * elementClicke
 
 
 	UIElement * element = NULL;
-	if (!StateMan.ActiveState())
-		return;
-	// Do a hover first, yo.
-	element = ActiveUI->Hover((float)x,(float)y, true);
-	SetHoverElement(element);
-	UserInterface * userInterface = StateMan.ActiveState()->GetUI();
-//	std::cout<<"InputMAnager:: OnMouse down: "<<down;
-	if (userInterface && element){
-		if (down){
-			element = userInterface->Click((float)x, (float)y, true);
-	//		clickElement = element;
-		}
-		else if (!down){
-			/// Why click again?
-			element = userInterface->Click((float)x, (float)y, true);
-			if (element){
-				element->Activate();	
-				if (element->activationMessage.Length() != 0){
-					if (element->activationMessage.Type() == String::WIDE_CHAR)
-						element->activationMessage.ConvertToChar();
-					MesMan.QueueMessages(element->activationMessage, element);
-				}
+	UserInterface * userInterface = GetRelevantUI();	
+	if (userInterface)
+	{
+		element = userInterface->Hover(x, y, true);
+		userInterface->SetHoverElement(element);
+	//	std::cout<<"InputMAnager:: OnMouse down: "<<down;
+		if (userInterface && element){
+			if (down){
+				element = userInterface->Click(x, y, true);
+		//		clickElement = element;
 			}
-			element = userInterface->Hover((float)x,(float)y, true);
-			SetHoverUI(element);
+			else if (!down)
+			{
+				/// Why click again?
+				element = userInterface->Click(x, y, true);
+				if (element){
+					element->Activate();	
+					if (element->activationMessage.Length() != 0){
+						if (element->activationMessage.Type() == String::WIDE_CHAR)
+							element->activationMessage.ConvertToChar();
+						MesMan.QueueMessages(element->activationMessage, element);
+					}
+				}
+				element = userInterface->Hover(x,y, true);
+				userInterface->SetHoverElement(element);
+			}
+			if (element){
+	//			std::cout<<"\nElement: "<<element->name<<" o-o";
+				if (element->text)
+					std::cout<<" "<<element->text;
+			}
 		}
-		if (element){
-//			std::cout<<"\nElement: "<<element->name<<" o-o";
-			if (element->text)
-				std::cout<<" "<<element->text;
-		}
+		/// Don't process state stuff if we're inside an interactable element.
+		if (element)
+			return;
 	}
-	/// Don't process state stuff if we're inside an interactable element.
-	if (element)
-		return;
 	/// Inform the active state of the interaction
 	StateMan.ActiveState()->MouseClick(down, x, y, element);
-
 }
 /** Handles a mouse click.
 	Argument true indicate that the button was pressed, while false indicates that it was just released.
@@ -612,9 +597,9 @@ void InputManager::MouseRightClick(bool down, int x, int y, UIElement * elementC
 	/*
 	if (userInterface){
 		if (down)
-			element = ActiveUI->Click((float)x,(float)y);
+			element = GetRelevantUI()->Click((float)x,(float)y);
 		else if (!down)
-			element = ActiveUI->Activate();
+			element = GetRelevantUI()->Activate();
 		if (element){
 			std::cout<<"\nElement: "<<element->name<<" o-o";
 		}
@@ -625,12 +610,7 @@ void InputManager::MouseRightClick(bool down, int x, int y, UIElement * elementC
 /// Interprets a mouse-move message to target position.
 void InputManager::MouseMove(int x, int y)
 {	
-	/// If no active gamestate, return...
-	if (!StateMan.ActiveState())
-		return;
 	if (!acceptInput)
-		return;
-	if (!ActiveUI)
 		return;
 	/// If mouse is le locked, return
 	if (mouseLocked)
@@ -639,31 +619,28 @@ void InputManager::MouseMove(int x, int y)
 	/// Save coordinates
 	this->mouseX = x;
 	this->mouseY = y;
-//	std::cout<<"\nInputManager::MouseMove("<<x<<","<<y<<")";
-	UserInterface * ui = ActiveUI;
 
-	// Save old hover-element first.
-	UIElement * hoverElement = ActiveUI->GetHoverElement();
-	/// Get element we're hovering over
-	UIElement * element = ActiveUI->Hover(x,y, true);
-	// This should fix so that the mouse cannot move the cursor if the underlying UI cannot later be activated.. ish.
-	if ((element && !element->highlightOnHover) || !element)
-		element = hoverElement;
-	SetHoverElement(element);
+	/// If we have a global UI (system ui), process it first.
+	UserInterface * userInterface = GetRelevantUI();
+	UIElement * element = NULL;
+	if (userInterface)
+	{
+		// Save old hover element...? wat
+		UIElement * hoverElement = userInterface->GetHoverElement();
+		element = userInterface->Hover(x, y, true);
+		userInterface->SetHoverElement(element);		
+		// This should fix so that the mouse cannot move the cursor if the underlying UI cannot later be activated.. ish.
+//		if ((element && !element->highlightOnHover) || !element)
+//			element = hoverElement;
+	}
 
-	StateMan.ActiveState()->MouseMove(x, y, lButtonDown, rButtonDown, element);
-
-	// If UI is null, discard UI calculations, but still check other stuff, yo, : thus moved it down here.
-	if (StateMan.ActiveState()->GetUI() == NULL)
-		return;
-
-//	std::cout<<"\nMouseMove: "<<x<<" "<<y<<" element: "<<element;
-	//if (lButtonDown)
-	//	std::cout<<" lDown!";
-	//else if (rButtonDown)
-	//	std::cout<<" rDown!";
+	/// If no active gamestate, return...
+	GameState * currentState = StateMan.ActiveState();
+	if (currentState)
+	{
+		currentState->MouseMove(x, y, lButtonDown, rButtonDown, element);
+	}
 	Graphics.QueryRender();
-
 }
 /** Handles mouse wheel input.
 	Positive delta signifies scrolling upward or away from the user, negative being toward the user.
@@ -672,19 +649,39 @@ void InputManager::MouseWheel(float delta){
 	if (!acceptInput)
 		return;
 //	std::cout<<"\nMouseU WHEEEL OOOO: "<<delta;
-	if (!ActiveUI)
-		return;
-	UIElement * element = ActiveUI->GetElement(mouseX, mouseY);
-	if (element){
-//		std::cout<<"\nWheeled over element: "<<element->name;
-        bool scrolled = element->OnScroll(delta);
-        if (scrolled)
-            return;
-    }
+	UserInterface * ui = GetRelevantUI();
+	if (ui)
+	{
+		UIElement * element = ui->GetElement(mouseX, mouseY);
+		if (element){
+	//		std::cout<<"\nWheeled over element: "<<element->name;
+			bool scrolled = element->OnScroll(delta);
+			if (scrolled)
+				return;
+		}
+	}
 	/// If no UI has been selected/animated, pass the message on to the stateManager
 	StateMan.ActiveState()->MouseWheel(delta);
 	/// Call to render if needed.
 	Graphics.QueryRender();
+}
+
+
+/// If the system-global UI has any activatable elements, it will be returned. If not, the current ui will be returned.
+UserInterface * InputManager::GetRelevantUI()
+{
+	UserInterface * globalUI = Graphics.GetGlobalUI(),
+		* currentUI = Graphics.GetUI(),
+		* userInterface = NULL;
+	if (globalUI && globalUI->HasActivatableElement())
+	{
+		userInterface = globalUI;
+	}
+	else if (currentUI && activeUIEnabled)
+	{
+		userInterface = currentUI;
+	}
+	return userInterface;
 }
 
 //=======================================================//
@@ -721,47 +718,52 @@ void InputManager::EvaluateKeyPressed(int activeKeyCode, bool downBefore){
 	}
 
 	/// Check if we have an active ui element. If so don't fucking do anything.
-	UIElement * activeElement = ActiveUI->GetActiveElement();
-	// UI-navigation if focused.
-	if (navigateUI && ! activeElement){
-//		std::cout<<"\nNavigate UI!";
-		bool uiCommand = true;
-		switch(activeKeyCode){
-			case KEY::BACKSPACE:
-			case KEY::ESCAPE:
-			{
-				bool didSomething = UICancel();
-				uiCommand = didSomething;
-				/// Check navigate UI stuff after actually popping anything?
-				if (!didSomething && !forceNavigateUI)
-					navigateUI = false;
-				break;
+	UIElement * activeElement = NULL;
+	UserInterface * userInterface = GetRelevantUI();
+	if (userInterface)
+	{
+		activeElement = userInterface->GetActiveElement();
+		// UI-navigation if focused.
+		if (navigateUI && ! activeElement)
+		{
+			bool uiCommand = true;
+			switch(activeKeyCode){
+				case KEY::BACKSPACE:
+				case KEY::ESCAPE:
+				{
+					bool didSomething = UICancel();
+					uiCommand = didSomething;
+					/// Check navigate UI stuff after actually popping anything?
+					if (!didSomething && !forceNavigateUI)
+						navigateUI = false;
+					break;
+				}
+				case KEY::UP:		UIUp();		break;
+				case KEY::DOWN:		UIDown();	break;
+				case KEY::LEFT:		UILeft();	break;
+				case KEY::RIGHT:	UIRight();	break;
+				case KEY::TAB:
+					if (keyPressed[KEY::SHIFT])
+						UIPrevious();
+					else
+						UINext();
+					break;
+				case KEY::ENTER:
+				{
+					bool didSomething = UIProceed();
+					uiCommand = didSomething;
+					break;
+				}
+				default:
+					uiCommand = false;
 			}
-			case KEY::UP:		UIUp();		break;
-			case KEY::DOWN:		UIDown();	break;
-			case KEY::LEFT:		UILeft();	break;
-			case KEY::RIGHT:	UIRight();	break;
-			case KEY::TAB:
-				if (keyPressed[KEY::SHIFT])
-					UIPrevious();
-				else
-					UINext();
-				break;
-			case KEY::ENTER:
-			{
-				bool didSomething = UIProceed();
-				uiCommand = didSomething;
-				break;
+			if (uiCommand){
+				Graphics.QueryRender();
+				return;
 			}
-			default:
-				uiCommand = false;
-		}
-		if (uiCommand){
-			Graphics.QueryRender();
-			return;
-		}
-	} // END: UI-navigation if focused.
-
+		} // END: UI-navigation if focused.
+	}
+	
 	// Callback state for handling if applicable?
 	GameState * state = StateMan.ActiveState();
 	if (state && state->keyPressedCallback)
@@ -853,12 +855,16 @@ void InputManager::Char(unsigned char asciiCode){
 	if (!acceptInput)
 		return;
 
-	UIElement * inputFocusElement = ActiveUI->ActiveInputFocusElement();
-	// Catch the codes there that don't get caught in WM_CHAR?
-	if (inputFocusElement){
-		/// Use the result somehow to determine if other actions can be triggered, too.
-		int result = inputFocusElement->OnChar(asciiCode);
-		return;
+	UserInterface * ui = GetRelevantUI();
+	if (ui)
+	{
+		UIElement * inputFocusElement = ui->ActiveInputFocusElement();
+		// Catch the codes there that don't get caught in WM_CHAR?
+		if (inputFocusElement){
+			/// Use the result somehow to determine if other actions can be triggered, too.
+			int result = inputFocusElement->OnChar(asciiCode);
+			return;
+		}
 	}
 };
 
@@ -870,15 +876,19 @@ void InputManager::KeyDown(int keyCode, bool downBefore){
 		return;
 
 	keyPressed[keyCode] = true;
-
-	UIElement * inputFocusElement = ActiveUI->ActiveInputFocusElement();
-	// Catch the codes there that don't get caught in WM_CHAR?
-	if (inputFocusElement){
-		/// Use the result somehow to determine if other actions can be triggered, too.
-		int result = inputFocusElement->OnKeyDown(keyCode, downBefore);
-		Graphics.QueryRender();
-		return;
+	UserInterface * ui = GetRelevantUI();
+	if (ui)
+	{
+		UIElement * inputFocusElement = GetRelevantUI()->ActiveInputFocusElement();
+		// Catch the codes there that don't get caught in WM_CHAR?
+		if (inputFocusElement){
+			/// Use the result somehow to determine if other actions can be triggered, too.
+			int result = inputFocusElement->OnKeyDown(keyCode, downBefore);
+			Graphics.QueryRender();
+			return;
+		}
 	}
+
 	keyPressed[keyCode] = true;
 //	std::cout<<"\nKeyDown ^^";
 	EvaluateKeyPressed(keyCode, downBefore);
@@ -993,9 +1003,10 @@ void InputManager::OnTextInputUpdated(){
 //====================================================================================
 /// For interacting with UI, be it simulated or not.
 //====================================================================================
-List<UIElement*> InputManager::UIGetRelevantElements(){
+List<UIElement*> InputManager::UIGetRelevantElements()
+{
 	List<UIElement*> elements;
-	UserInterface * ui = ActiveUI;
+	UserInterface * ui = GetRelevantUI();
 //	UIElement * element;
 	List<UIElement*> uiList;
 	assert(ui);
@@ -1008,7 +1019,7 @@ List<UIElement*> InputManager::UIGetRelevantElements(){
 
 void InputManager::UIUp(){
 	std::cout<<"\nUIUp";
-	UserInterface * ui = ActiveUI;
+	UserInterface * ui = GetRelevantUI();
 	List<UIElement*> relevantElements = UIGetRelevantElements();
 	std::cout<<" Relevant elements: "<<relevantElements.Size();
 	if (!relevantElements.Size())
@@ -1085,13 +1096,14 @@ void InputManager::UIUp(){
             return;
         }
 	}
-	SetHoverUI(element);
+	ui->SetHoverElement(element);
 //	hoverElement = ui->Hover(element->posX, element->posY);
 }
 
-void InputManager::UIDown(){
+void InputManager::UIDown()
+{
 	std::cout<<"\nUIDown";
-	UserInterface * ui = ActiveUI;
+	UserInterface * ui = GetRelevantUI();
 	List<UIElement*> relevantElements = UIGetRelevantElements();
 	if (!relevantElements.Size())
 		return;
@@ -1118,11 +1130,11 @@ void InputManager::UIDown(){
 	/// Skip if no valid elements were returned, keep the old one.
 	if (!element)
 		return;
-	SetHoverUI(element);
+	ui->SetHoverElement(element);
 }
 void InputManager::UILeft(){
 	std::cout<<"\nUIUp";
-	UserInterface * ui = ActiveUI;
+	UserInterface * ui = GetRelevantUI();
 	List<UIElement*> relevantElements = UIGetRelevantElements();
 	std::cout<<" Relevant elements: "<<relevantElements.Size();
 	if (!relevantElements.Size())
@@ -1150,12 +1162,12 @@ void InputManager::UILeft(){
 	/// Skip if no valid elements were returned, keep the old one.
 	if (!element)
 		return;
-	SetHoverUI(element);
+	ui->SetHoverElement(element);
 }
 void InputManager::UIRight()
 {
 	std::cout<<"\nUIRight";
-	UserInterface * ui = ActiveUI;
+	UserInterface * ui = GetRelevantUI();
 	List<UIElement*> relevantElements = UIGetRelevantElements();
 	std::cout<<" Relevant elements: "<<relevantElements.Size();
 	if (!relevantElements.Size())
@@ -1183,7 +1195,7 @@ void InputManager::UIRight()
 	/// Skip if no valid elements were returned, keep the old one.
 	if (!element)
 		return;
-	SetHoverUI(element);
+	ui->SetHoverElement(element);
 }
 
 
@@ -1191,7 +1203,7 @@ void InputManager::UIRight()
 	Returns true if it actually did something. False if e.g. no UI item was active or in hover state.
 */
 bool InputManager::UIProceed(){
-	UserInterface * ui = ActiveUI;
+	UserInterface * ui = GetRelevantUI();
 	UIElement * hoverElement = ui->GetHoverElement();
 	if (!hoverElement)
 		return false;
@@ -1202,15 +1214,16 @@ bool InputManager::UIProceed(){
 
 
 /// Returns true if it actually did something. False if all menus etc. already have been closed.
-bool InputManager::UICancel(){
+bool InputManager::UICancel()
+{
 	std::cout<<"\nUICancel";
-	UserInterface * ui = ActiveUI;
+	UserInterface * ui = GetRelevantUI();
 	/// Fetch active ui in stack.
 	UIElement * element = ui->GetStackTop();
 	if (element->exitable == false)
 		return false;
 	/// Queue a message to remove it!
-	Graphics.QueueMessage(new GMPopUI(element->name));
+	Graphics.QueueMessage(new GMPopUI(element->name, ui));
 	// Post onExit only when exiting it via UICancel for example!
 	MesMan.QueueMessages(element->onExit);
 	return true;
@@ -1218,7 +1231,7 @@ bool InputManager::UICancel(){
 
 /// Similar to GoToNextElement above^
 void InputManager::UINext(){
-	UserInterface * ui = ActiveUI;
+	UserInterface * ui = GetRelevantUI();
 	UIElement * element;
 	UIElement * hoverElement = ui->GetHoverElement();
 	List<UIElement*> uiList;
@@ -1240,7 +1253,7 @@ void InputManager::UINext(){
 	}
 }
 void InputManager::UIPrevious(){
-	UserInterface * ui = ActiveUI;
+	UserInterface * ui = GetRelevantUI();
 	UIElement * element;
 	UIElement * hoverElement = ui->GetHoverElement();
 	List<UIElement*> uiList;
@@ -1265,7 +1278,7 @@ void InputManager::UIPrevious(){
 /// Returns the element that the cursor is currently hovering over.
 UIElement * InputManager::HoverElement()
 {
-	UserInterface * ui = ActiveUI;
+	UserInterface * ui = GetRelevantUI();
 	UIElement * element = ui->GetHoverElement();
 	return element;
 }
@@ -1299,7 +1312,8 @@ void InputManager::LoadNavigateUIState(int state){
 }
 
 /// Will push to stack target element in the active UI and also automatically try and hover on the primary/first element hoverable element within.
-void InputManager::PushToStack(UIElement * element, UserInterface * ui){
+void InputManager::PushToStack(UIElement * element, UserInterface * ui)
+{
 	if (!ui || !element)
 		return;
 	/// Push it.
@@ -1312,7 +1326,7 @@ void InputManager::PushToStack(UIElement * element, UserInterface * ui){
 		return;
 	}
 	std::cout<<"\nHovering to element \""<<firstActivatable->name<<"\" with text \""<<firstActivatable->text<<"\"";
-	SetHoverUI(firstActivatable);
+	ui->SetHoverElement(firstActivatable);
 
 	// Set navigation cyclicity.
 	cyclicY = element->cyclicY;
@@ -1351,7 +1365,7 @@ UIElement * InputManager::PopFromStack(UIElement * element, UserInterface * ui, 
 
 	UIElement * currentHover = ui->GetStackTop()->GetElementByState(UIState::HOVER);
 	if (currentHover){
-		SetHoverUI(currentHover);
+		ui->SetHoverElement(currentHover);
 		return element;
 	}
 	UIElement * firstActivatable = element->GetElementByFlag(UIFlag::HOVERABLE | UIFlag::ACTIVATABLE);
@@ -1360,7 +1374,7 @@ UIElement * InputManager::PopFromStack(UIElement * element, UserInterface * ui, 
 		return element;
 	}
 	std::cout<<"\nHovering to element \""<<firstActivatable->name<<"\" with text \""<<firstActivatable->text<<"\"";
-	SetHoverUI(firstActivatable);
+	ui->SetHoverElement(firstActivatable);
 
 	/// If no activatable menu item is out, set navigate UI to false?
 	/// No. Better embed this into the appropriate UI's onExit message!

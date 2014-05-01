@@ -123,7 +123,8 @@ List<T>::List()
 }
 /// Destructor
 template <class T>
-List<T>::~List(){
+List<T>::~List()
+{
 	if (arr)
 		delete[] arr;
 	arr = NULL;

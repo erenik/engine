@@ -15,6 +15,7 @@
 #include "Graphics/Messages/GraphicsMessage.h"
 #include "ShaderManager.h"
 #include "VFCOctree.h"
+#include "System/DataTypes.h"
 
 struct RenderSettings;
 class Texture;
@@ -208,7 +209,7 @@ public:
 	const float PhysicsFrameTime() const { return physicsFrameTime; };
     float renderViewportsFrameTime;
     float renderViewportFrameTime[4];
-    float graphicsMessageProcessingFrameTime,
+    int64 graphicsMessageProcessingFrameTime,
         graphicsUpdatingFrameTime,
         preRenderFrameTime,
         swapBufferFrameTime,

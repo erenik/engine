@@ -34,15 +34,22 @@ public:
 		If allUi is specified the current stack order will be ignored to a certain extent, meaning that ui below the current stack top will be made available too.
 		Search is conducted starting at the highest stack element and going down until an element is found that we can hover over.
 	*/
-	UIElement * Hover(float x, float y, bool allUi = false);
+	UIElement * Hover(int x, int y, bool allUi = false);
 	/// If allUi is specified, the action will try, similar to hover, and go through the entire stack from the top down until it processes an element.
-	UIElement * Click(float x, float y, bool allUi = false);
+	UIElement * Click(int x, int y, bool allUi = false);
 	UIElement * Activate();
 	/// Get element by position. Will skip invisible elements.
-	UIElement * GetElement(float x, float y);
+	UIElement * GetElementByPosition(int x, int y);
 
 	/// Woo!
 	UIElement * GetElement(String byName, int andType);
+
+
+	/// Primarily used by the system-global UI. This queries if there is any currently visible UI which may respond to user input available.
+	bool HasActivatableElement();
+
+	/// Sets target element as hovered one, removing the flag from all other elements.
+	void SetHoverElement(UIElement * targetElement);
 
 	/** Function called when an element is activated,
 		by mouse-clicking, pressing enter on selction or otherwise. */

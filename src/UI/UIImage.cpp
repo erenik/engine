@@ -8,7 +8,8 @@
 #include "GraphicsState.h"
 #include "UITypes.h"
 
-UIImage::UIImage(String textureSource)
+
+UIImage::UIImage(String nameAndTextureSource)
 : UIElement()
 {
 	type = UIType::IMAGE;
@@ -16,6 +17,16 @@ UIImage::UIImage(String textureSource)
 	name = FilePath::GetFileName(textureSource);
 	color = Vector4f(1,1,1,1);
 }
+
+UIImage::UIImage(String uiName, String textureSource)
+: UIElement()
+{
+	type = UIType::IMAGE;
+	name = uiName;
+	this->textureSource = textureSource;
+	color = Vector4f(1,1,1,1);
+}
+
 
 UIImage::~UIImage()
 {

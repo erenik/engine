@@ -83,10 +83,10 @@ void generalInputProcessor(int action, int inputDevice){
 			break;
 		case GO_TO_EDITOR:
 			std::cout<<"\nInput>>GO_TO_EDITOR";
-			StateMan.QueueState(StateMan.GetStateByID(GAME_STATE_EDITOR));
+			StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_EDITOR));
 			break;
 		case GO_TO_MAIN_MENU: {
-			StateMan.QueueState(StateMan.GetStateByID(GAME_STATE_MAIN_MENU));
+			StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_MAIN_MENU));
 			break;
 		}
 		case PRINT_FRAME_TIME:{
@@ -441,7 +441,7 @@ void generalInputProcessor(int action, int inputDevice){
 			Graphics.isFullScreen = false;
 #endif
 			// Call the deallocator thread!
-			StateMan.QueueState(StateMan.GetStateByID(GAME_STATE_EXITING));
+			StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_EXITING));
 #ifdef WINDOWS
 			extern uintptr_t deallocatorThread;
 			while (deallocatorThread)

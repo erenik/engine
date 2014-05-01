@@ -47,7 +47,7 @@ public:
 	/// Input functions for the various states
 	void MouseClick(bool down, int x = -1, int y = -1, UIElement * elementClicked = NULL);
 	void MouseRightClick(bool down, int x = -1, int y = -1, UIElement * elementClicked = NULL);
-	void MouseMove(float x, float y, bool lDown = false, bool rDown = false, UIElement * elementOver = NULL);
+	void MouseMove(int x, int y, bool lDown = false, bool rDown = false, UIElement * elementOver = NULL);
 	void MouseWheel(float delta);
 	/// Callback from the Input-manager, query it for additional information as needed.
 	void KeyPressed(int keyCode, bool downBefore);
@@ -172,8 +172,8 @@ private:
 	bool lButtonDown;
 	bool rButtonDown;
 	/// Starting positions for when dragging mouse for selection, etc.
-	float startMouseX, startMouseY;
-	float mouseX, mouseY;
+	int startMouseX, startMouseY;
+	int mouseX, mouseY;
 
 	enum mouseCameraStates {
 	NULL_STATE,

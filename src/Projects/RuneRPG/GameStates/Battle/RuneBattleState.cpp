@@ -26,7 +26,6 @@
 #include "RuneRPG/Battle/RuneBattleAction.h"
 #include "UI/UIList.h"
 #include "../RuneGameStatesEnum.h"
-extern UserInterface * ui[MAX_GAME_STATES];
 #include "RuneRPG/RRPlayer.h"
 #include "RuneRPG/Battle/RuneSpell.h"
 #include <ctime>
@@ -37,6 +36,8 @@ extern UserInterface * ui[MAX_GAME_STATES];
 #include "Maps/MapManager.h"
 #include "StateManager.h"
 #include "Player/PlayerManager.h"
+
+extern UserInterface * ui[GameStateID::MAX_GAME_STATES];
 
 #define DEFAULT_UI_TEXTURE  "img/80gray50Alpha.png"
 
@@ -267,7 +268,7 @@ void RuneBattleState::MouseRightClick(bool down, int x, int y, UIElement * eleme
 }
 
 #define PAN_SPEED_MULTIPLIER (abs(camera->distanceFromCentreOfMovement)/2.0f + 1)
-void RuneBattleState::MouseMove(float x, float y, bool lDown, bool rDown, UIElement * elementOver){
+void RuneBattleState::MouseMove(int x, int y, bool lDown, bool rDown, UIElement * elementOver){
 }
 
 void RuneBattleState::MouseWheel(float delta){
@@ -548,7 +549,7 @@ void RuneBattleState::OpenCommandsMenu(){
 	}
 
     /// Reveal the commands-menu when a party-member is ready for action, jRPG-style
-    Graphics.QueueMessage(new GMPushUI("CommandsMenu"));
+    Graphics.QueueMessage(new GMPushUI("CommandsMenu", ui));
 }
 
 
@@ -600,7 +601,7 @@ void RuneBattleState::OpenSubMenu(String whichMenu){
 	std::cout<<"\nAdding cancel-button.";
 
     /// Reveal the commands-menu when a party-member is ready for action, jRPG-style
-    Graphics.QueueMessage(new GMPushUI(MENU));
+    Graphics.QueueMessage(new GMPushUI(MENU, ui));
 }
 
 /// Opens menu for selecting target for action.
@@ -678,13 +679,14 @@ namespace BattleTargets {
 	Graphics.QueueMessage(new GMAddUI(cancelButton, "TargetsMenu"));
 	std::cout<<"\nAdding cancel-button.";
 
-    Graphics.QueueMessage(new GMPushUI("TargetsMenu"));
+    Graphics.QueueMessage(new GMPushUI("TargetsMenu", ui));
 }
 
-void RuneBattleState::HideMenus(){
-	Graphics.QueueMessage(new GMPopUI("TargetsMenu"));
-	Graphics.QueueMessage(new GMPopUI("SubCommandMenu"));
-	Graphics.QueueMessage(new GMPopUI("CommandsMenu", true));
+void RuneBattleState::HideMenus()
+{
+	Graphics.QueueMessage(new GMPopUI("TargetsMenu", ui));
+	Graphics.QueueMessage(new GMPopUI("SubCommandMenu", ui));
+	Graphics.QueueMessage(new GMPopUI("CommandsMenu", ui, true));
 }
 
 /// Update the HP gui.

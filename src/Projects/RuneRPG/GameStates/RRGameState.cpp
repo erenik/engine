@@ -40,10 +40,10 @@ bool RRGameState::Host(int port /*= 33010*/)
 	if (success)
 	{
 		// Show lobby gui!
-		Graphics.QueueMessage(new GMPushUI("gui/Lobby.gui"));
+		Graphics.QueueMessage(new GMPushUI("gui/Lobby.gui", GetUI()));
 		MesMan.QueueMessages("OnPlayersUpdated");
 		// Since host, push ui to select if game type: new or load a saved game.
-		Graphics.QueueMessage(new GMPushUI("gui/GameType.gui"));
+		Graphics.QueueMessage(new GMPushUI("gui/GameType.gui", GetUI()));
 	}
 	return success;
 }
@@ -57,7 +57,7 @@ bool RRGameState::CancelGame()
 	session->Stop();
 	NetworkLog("Game canceled");
 	// Remove lobby if it is up.
-	Graphics.QueueMessage(new GMPopUI("gui/Lobby.gui", true));
+	Graphics.QueueMessage(new GMPopUI("gui/Lobby.gui", GetUI(), true));
 	return true;
 }
 
@@ -74,7 +74,7 @@ bool RRGameState::Join(String ip, int port /*= 33010*/)
 	{
 		NetworkLog("Already connected.");
 		// Show lobby?
-		Graphics.QueueMessage(new GMPushUI("gui/Lobby.gui"));
+		Graphics.QueueMessage(new GMPushUI("gui/Lobby.gui", GetUI()));
 		MesMan.QueueMessages("OnPlayersUpdated");
 		return false;
 	}
@@ -84,7 +84,7 @@ bool RRGameState::Join(String ip, int port /*= 33010*/)
 	{
 		NetworkLog("Connected successfully.");
 		// Show lobby?
-		Graphics.QueueMessage(new GMPushUI("gui/Lobby.gui"));
+		Graphics.QueueMessage(new GMPushUI("gui/Lobby.gui", GetUI()));
 		MesMan.QueueMessages("OnPlayersUpdated");
 	}
 	return success;

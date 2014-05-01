@@ -50,13 +50,34 @@ void GameVariableManager::SetInt(String name, int intValue){
 
 
 /// Creators
-GameVariablei * GameVariableManager::CreateInt(String name, int initialValue){
+GameVariablei * GameVariableManager::CreateInt(String name, int initialValue)
+{
 	GameVariable * exists = Get(name);
-	if (exists){
-		return (GameVariablei*)exists;
+	if (exists)
+	{
+		if (exists->Type() == GameVariable::INTEGER)
+			return (GameVariablei*)exists;
+		assert(false);
+		return NULL;
 	}
 	GameVariablei * integer = new GameVariablei(name, initialValue);
 	integers.Add(integer);
+	gameVariables.Add(integer);
+	return integer;
+}
+
+GameVariablei64 * GameVariableManager::CreateInt64(String name, int64 initialValue /*= 0*/)
+{
+	GameVariable * exists = Get(name);
+	if (exists)
+	{
+		if (exists->Type() == GameVariable::INT64)
+			return (GameVariablei64*)exists;
+		assert(false);
+		return NULL;
+	}
+	GameVariablei64 * integer = new GameVariablei64(name, initialValue);
+	int64s.Add(integer);
 	gameVariables.Add(integer);
 	return integer;
 }
