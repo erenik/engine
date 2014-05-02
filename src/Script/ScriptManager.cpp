@@ -51,15 +51,22 @@ void ScriptManager::Process(long long timeInMs)
 		Script * script = activeScripts[i];
 		if (script->IsPaused())
 			continue;
-		script->Process(timeInMs);
-		if (script->scriptState == Script::ENDING){
-			script->OnEnd();
+		// Delete if ended! o.o
+		if (script->scriptState == Script::ENDED)
+		{
 			activeScripts.Remove(script);
 			/// Delete if specified.
 			if (script->flags & DELETE_WHEN_ENDED)
 				delete script;
 			/// Step down i since we will remove this element, or one event will be skipped!
 			--i;
+			continue;
+		}
+		// Process if alive
+		script->Process(timeInMs);
+		if (script->scriptState == Script::ENDING)
+		{
+			script->OnEnd();
 		}
 		if (activeScripts.Size() == 0){
 			Input.NavigateUI(false);

@@ -25,7 +25,8 @@ Tile::~Tile(){
 int tileVersion = TILE_VERSION_0;
 
 /// Writes to file stream.
-void Tile::WriteTo(std::fstream & file){
+void Tile::WriteTo(std::fstream & file)
+{
 	// Write version
 	file.write((char*)&tileVersion, sizeof(int));
 	// Fetch type index.

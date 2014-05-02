@@ -28,6 +28,9 @@ public:
 	void Resume();
 	bool IsPaused() {return paused;};
 
+	/// Queries this script to end if it hasn't already.
+	void QueueEnd();
+
 	/// Loads script using given name as reference to source-file.
 	bool Load();
 	/// Wosh o.o, NOTE that the root dir will be appended at the start automatically! <- Wat?
@@ -75,6 +78,7 @@ public:
 	
 	/// To keep track of things.
 	Script * parent;
+	List<Script*> childScripts;
 
 	/// Wosh?
 	bool loaded;

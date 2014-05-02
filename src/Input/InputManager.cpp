@@ -1017,7 +1017,8 @@ List<UIElement*> InputManager::UIGetRelevantElements()
 	return elements;
 }
 
-void InputManager::UIUp(){
+void InputManager::UIUp()
+{
 	std::cout<<"\nUIUp";
 	UserInterface * ui = GetRelevantUI();
 	List<UIElement*> relevantElements = UIGetRelevantElements();

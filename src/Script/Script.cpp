@@ -50,8 +50,9 @@ Script::Script(String name, Script * parent /* = NULL */ )
 	triggerCondition = NULL_TRIGGER_TYPE;
 	loaded = false;
 	// Assume child scripts are inherent C++ classes which do not require further loading.
-	if (parent)
+	if (parent){
 		loaded = true;
+	}
 	executed = false;
 	repeatable = false;
 	currentLine = 0;
@@ -65,6 +66,11 @@ Script::Script(String name, Script * parent /* = NULL */ )
 	lineProcessed = false;
 	uiDisabled = false;
 	paused = false;
+
+	if (parent)
+	{
+		parent->childScripts.Add(this);
+	}
 };
 
 // Playback functions.
@@ -77,6 +83,15 @@ void Script::Resume()
 {
 	paused = false;
 }
+
+/// Queries this script to end if it hasn't already.
+void Script::QueueEnd()
+{
+	if (scriptState == ENDED)
+		return;
+	scriptState = ENDING;
+}
+
 
 void Script::Reset()
 {
@@ -275,10 +290,19 @@ void Script::EndCutscene(bool endingPrematurely /*= false*/)
 			{
 				// Jump to it.
 				currentLine = i;
+				// Stop doing whatever we were doing too.
+				lineFinished = true;
 				break;
 			}
 		} 
 	}
+	// End all sub-scripts too!
+	for (int i = 0; i < childScripts.Size(); ++i)
+	{
+		Script * script = childScripts[i];
+		script->QueueEnd();
+	}
+
 	inCutscene = false;
 }
 

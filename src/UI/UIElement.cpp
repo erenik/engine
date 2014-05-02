@@ -504,8 +504,9 @@ void UIElement::InheritNeighbours(UIElement * fromElement){
 }
 
 
-/// Suggests a neighbour which could be to the right of this element. Meant to be used for UI-navigation support. The reference element indicates the element to which we are seeking a compatible or optimum neighbour.
-UIElement * UIElement::GetUpNeighbour(UIElement * referenceElement){
+/// Suggests a neighbour which could be to the top of this element. Meant to be used for UI-navigation support. The reference element indicates the element from which we are seeking a compatible or optimum neighbour.
+UIElement * UIElement::GetUpNeighbour(UIElement * referenceElement)
+{
 	UIElement * element = NULL;
 	// Ok, we are the one,
 	if (referenceElement == NULL){

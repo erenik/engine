@@ -58,12 +58,13 @@ public:
 	/// Objects currently in contact with this tile.
 	List<GridObject*> objects;
 
+	/// Any entities currently occupying this tile. Temporary variable that will NOT be saved to file.
+	List<Entity*> entities; 
+
 private:
 	/// String containing any extra statistics about this tile. Any custom terrain, object or entity creation should be stored and handled here. This will be saved to file. 
 	String description;
 	
-	/// Any entities currently occupying this tile. Temporary variable that will NOT be saved to file.
-	List<Entity*> entities; 
 	/// Any events that should be triggered/relate to this tile. Source of the event will be saved to file.
 	Script * event;
 

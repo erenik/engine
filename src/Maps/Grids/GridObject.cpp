@@ -4,6 +4,7 @@
 
 #include "GridObject.h"
 #include <fstream>
+#include "FilePath/FilePath.h"
 
 GridObjectType::GridObjectType()
 {
@@ -76,6 +77,8 @@ bool GridObjectType::WriteTo(std::fstream & file)
 	file.write((char*) &id, sizeof(int));
 	name.WriteTo(file);
 	size.WriteTo(file);
+	// Make sure ALL paths are relative.
+	textureSource = FilePath::MakeRelative(textureSource);
 	textureSource.WriteTo(file);
 	int passabilityValues = passability.Size();
 	file.write((char*) &passabilityValues, sizeof(int));

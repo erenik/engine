@@ -14,13 +14,12 @@ const String applicationName = "Rune RPG";
 
 void SetApplicationDefaults()
 {
-	FilePath::workingDirectory = "/SpaceRace";
 	TextFont::defaultFontSource = "font3";
 	Script::rootEventDir = "data/RuneRPG/Events/";
 
 	UserInterface::rootUIDir = "gui/";
-	/// This should correspond to the directory name of the released application's final install. 
-	FilePath::workingDirectory = "/RuneRPG";
+	/// This should correspond to the directory name of the released application's final install.
+	FilePath::workingDirectory = "RuneRPG";
 	MapManager::rootMapDir = "map/";
 	UIElement::defaultTextureSource = "80Gray50Alpha.png";
 	/*

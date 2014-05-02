@@ -84,7 +84,8 @@ void MapState::OnEnter(GameState * previousState){
 	Graphics.QueueMessage(new GMSet(OVERLAY_TEXTURE, TexMan.GetTexture("img/loadingData.png")));
 	
 	// Load animation sets for map!
-	AnimationMan.LoadFromDirectory("anim/RuneRPG/Map");
+	AnimationMan.LoadFromDirectory("anim/Map");
+	AnimationMan.LoadFromDirectory("anim/Battle");
 	// Set physics integrator to simple!
 	Physics.QueueMessage(new PMSet(INTEGRATOR, Integrator::SIMPLE_PHYSICS));
 
@@ -169,7 +170,10 @@ void MapState::OnEnter(GameState * previousState){
 	Graphics.QueueMessage(new GMSet(OVERLAY_TEXTURE, (Texture*)NULL));
 }
 
-void MapState::OnExit(GameState *nextState){
+void MapState::OnExit(GameState *nextState)
+{
+	// Remove pointers on any tiles to any entities, as they will be re-created all the time.
+	TileMap2D * map = this->ActiveMap();
 	std::cout<<"\nMapState::OnExit";
 	// Load initial texture and set it to render over everything else
 	Graphics.QueueMessage(new GMSet(OVERLAY_TEXTURE, TexMan.GetTexture("img/loadingData.png")));
@@ -514,7 +518,8 @@ void MapState::ProcessMessage(Message * message)
 					assert(tokens.Size() >= 2);
 					return;
 				}
-				Zone(tokens[1]);
+				String mapName = tokens[1];
+				Zone(mapName);
 				return;
 			}
 			else if (string.Contains("PlacePlayer(")){
@@ -700,6 +705,17 @@ bool MapState::PlacePlayer(Vector3i position)
 	std::cout<<"\nTile position: "<<tile->position;
 	assert(tile->position.x != -1);
 
+	// If the player already exists, remove it's connections to any tiles?
+	if (playerEntity)
+	{
+		RREntityState * state = (RREntityState*)playerEntity->state;
+		if (state && state->tile)
+		{
+			state->tile->entities.Remove(playerEntity);
+		}
+	}
+	
+
 	playerEntity = MapMan.CreateEntity(m,t,position);
 	if (playerEntity == NULL){
 		assert(playerEntity);
@@ -753,6 +769,9 @@ void MapState::Zone(String mapName)
 	bool result = MapMan.MakeActive(map);
 	activeMap = (TileMap2D*)map;
 
+	// Clear pointers to shit on the map.
+	activeMap->ResetTiles();
+
 	/// TODO: Change stuff in the graphics to inform that we are generating a navmesh for the map.
 	// Create navmesh.
 	NavMesh * navMesh = WaypointMan.GetNavMeshByName(map->Name());
@@ -764,7 +783,16 @@ void MapState::Zone(String mapName)
 		tileMap2D->GenerateWaypoints(navMesh);
 		WaypointMan.MakeActive(navMesh);
 	}
-	/// Query the physics-manager to generate a nav-mesh to be used for our map!
+	// Remove entities from the navmesh..
+	for (int i = 0; i < navMesh->waypoints.Size(); ++i)
+	{	
+		Waypoint * wp = navMesh->waypoints[i];
+		wp->entity = NULL;
+	}
+	
+	// Load OnEnter script for the zone.
+
+		/// Query the physics-manager to generate a nav-mesh to be used for our map!
 //	Physics.QueueMessage(new PMSet(NAV_MESH, navMesh));
 }
 

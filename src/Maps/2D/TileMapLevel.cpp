@@ -256,7 +256,8 @@ void TileMapLevel::DeleteObjects(List<Tile*> fromTiles)
 int tileMapLevelVersion = 1;
 
 /// Writes to file stream.
-void TileMapLevel::WriteTo(std::fstream & file){
+void TileMapLevel::WriteTo(std::fstream & file)
+{
 	// Write version
 	file.write((char*)&tileMapLevelVersion, sizeof(int));
 	// Write elevation

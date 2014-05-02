@@ -36,6 +36,9 @@ void MainMenu::OnEnter(GameState * previousState)
 {
 	std::cout<<"\nEntering Main Menu state";
 
+	// Load tile-types! Maybe do this only once?
+	TileTypes.LoadTileTypes("data/tiles.txt");
+
 	Graphics.EnableAllDebugRenders(false);
 
 	// Begin loading textures here for the UI

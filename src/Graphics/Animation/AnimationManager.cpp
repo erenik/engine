@@ -28,7 +28,8 @@ AnimationManager * AnimationManager::Instance(){
 	return animationManager;
 }
 
-AnimationSet * AnimationManager::GetAnimationSet(String name){
+AnimationSet * AnimationManager::GetAnimationSet(String name)
+{
 	for (int i = 0; i < animationSets.Size(); ++i){
 		if (animationSets[i]->name == name)
 			return animationSets[i];
@@ -37,7 +38,8 @@ AnimationSet * AnimationManager::GetAnimationSet(String name){
 }
 
 /// Attempts to oetketretjet
-bool AnimationManager::LoadFromDirectory(String dir){
+bool AnimationManager::LoadFromDirectory(String dir)
+{
 	List<String> dirs;
 	bool result = GetDirectoriesInDirectory(dir, dirs);
 	if (!result){

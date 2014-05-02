@@ -19,6 +19,8 @@ class TileMap2D : public Map{
 	TileMap2D();
 	virtual ~TileMap2D();
 public:
+	/// Resets all tiles, such as pointers to entities, etc.
+	void ResetTiles();
 
 	/// Evaluates
 	virtual void OnEnter();	// Called once when entering the map

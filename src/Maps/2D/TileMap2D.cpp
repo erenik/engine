@@ -81,6 +81,22 @@ Tile * TileMap2D::GetTile(Vector3i position) const{
 	return level->GetTile(position);
 }
 
+/// Resets all tiles, such as pointers to entities, etc.
+void TileMap2D::ResetTiles()
+{
+	for (int i = 0; i < this->levels.Size(); ++i)
+	{
+		TileMapLevel * level = levels[i];
+		List<Tile*> tiles = level->GetTiles();
+		for (int i = 0; i < tiles.Size(); ++i)
+		{
+			Tile * tile = tiles[i];
+			tile->entities.Clear();
+		}
+	}
+
+}
+
 /// Evaluates
 void TileMap2D::OnEnter()
 {
@@ -711,7 +727,8 @@ bool TileMap2D::Load(const char * fromFile)
 }
 
 /// Saves map data to file.
-bool TileMap2D::Save(const char * toFile){
+bool TileMap2D::Save(const char * toFile)
+{
 	std::cout<<"\nSaving map to file: "<<toFile;
 	std::fstream file;
 	file.open(toFile, std::ios_base::out | std::ios_base::binary);

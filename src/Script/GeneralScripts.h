@@ -16,6 +16,7 @@ public:
 	/// Regular state-machine mechanics for the events, since there might be several parralell events?
 	virtual void OnBegin();
 	virtual void Process(float time);
+	virtual void OnEnd();
 private:
 	GameState * gs;
 };
@@ -41,6 +42,8 @@ public:
 	OverlayScript(String line, Script * parent);
 	virtual void OnBegin();
 	virtual void Process(long long time);
+	virtual void OnEnd();
+	
 protected:
 	// For accessing the ui-elements.
 	void SetLayerAlpha(int layer, float alpha);
@@ -79,6 +82,8 @@ public:
 	FadeInBackground(String line, Script * parent);
 	virtual void OnBegin();
 	virtual void Process(long long time);
+	virtual void OnEnd();
+	
 private:
 	String fadeInTextureSource;
 	int fadeInDuration;
@@ -90,6 +95,8 @@ public:
 	FadeOutBackground(String line, Script * parent);
 	virtual void OnBegin();
 	virtual void Process(long long time);
+	virtual void OnEnd();
+	
 private:
 	int fadeOutDuration;
 	float startAlpha;
@@ -101,6 +108,8 @@ public:
 	FadeInEffect(String line, Script * parent);
 	virtual void OnBegin();
 	virtual void Process(long long time);
+	virtual void OnEnd();
+	
 private:
 	String fadeInTextureSource;
 	int fadeInDuration;
@@ -113,6 +122,8 @@ public:
 	FadeOutEffect(String line, Script * parent);
 	virtual void OnBegin();
 	virtual void Process(long long time);
+	virtual void OnEnd();
+	
 private:
 	// Take note of alpha when starting fade-out.
 	float startAlpha;
@@ -125,6 +136,8 @@ public:
 	FadeTextEffect(String line, Script * parent);
 	virtual void OnBegin();
 	virtual void Process(long long time);
+	virtual void OnEnd();
+	
 private:
 	int fadeInDuration;
 	int fadeOutDuration;
