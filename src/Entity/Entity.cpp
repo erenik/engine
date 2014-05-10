@@ -225,7 +225,10 @@ void Entity::RenderOld(GraphicsState &graphicsState){
 }
 
 /// Rendering method
-void Entity::render(GraphicsState &graphicsState){
+void Entity::render(GraphicsState &graphicsState)
+{
+	if (graphics && graphics->visible == false)
+		return;
 	if (graphicsState.settings & USE_LEGACY_GL){
 		RenderOld(graphicsState);
 		return;
@@ -260,6 +263,12 @@ void Entity::render(GraphicsState &graphicsState){
 		// Bind texture
 		glBindTexture(GL_TEXTURE_2D, diffuseMap->glid);
 		error = glGetError();
+		
+		// Bufferize it if queued? Should maybe move bufferization mechanism for textures to the TextureManager to be processed before a frame is rendered?
+		if (diffuseMap->queueRebufferization)
+		{
+			diffuseMap->Bufferize();
+		}
 
 		// Set sampler in client graphicsState
 		if (graphicsState.activeShader->uniformBaseTexture != -1)

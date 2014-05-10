@@ -87,10 +87,8 @@ endmacro(RemoveDir)
 # Defines the list of project sub-folders that a basic project should NOT include.
 # All new projects should add their own folder to this list so that they are excluded correctly from other builds.
 set(projectFolders 
-#	"/RuneRPG/" 
-#	"/DemoProject/"
-#	"/SpaceRace/"
-#	"/Projects/MusicPlayer/"
+	# Folders of classes based on frameworks which could be a hassle to set up could also be listed here, if you are lazy about getting appropriate libs or just do not want to include certain parts.
+	"CV"
 	"Projects"
 )
 	

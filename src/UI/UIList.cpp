@@ -25,12 +25,16 @@ UIScrollBarHandle::~UIScrollBarHandle()
 //	std::cout<<"\nUIScrollBarHandle destructor.";
 }
 
-void UIScrollBarHandle::Move(float distance){
+void UIScrollBarHandle::Move(float distance)
+{
     alignmentY += distance;
     if (alignmentY > 1.0f - sizeRatioY * 0.5f)
         alignmentY = 1.0f - sizeRatioY * 0.5f;
     else if (alignmentY < 0.0f + sizeRatioY * 0.5f)
         alignmentY = 0.0f + sizeRatioY * 0.5f;
+	
+	// Recalculate position of the element to render correctly.
+	this->QueueBuffering();
 }
 
 UIScrollBar::UIScrollBar()
@@ -83,7 +87,8 @@ void UIScrollBar::Update(float newSize)
     previousSize = newPreviousSize;
 }
 
-void UIScrollBar::Move(float distance){
+void UIScrollBar::Move(float distance)
+{
     handle->Move(distance);
 }
 
@@ -140,6 +145,8 @@ UIList::UIList()
 	hoverable = true;
 	/// But disable highlight on hover!
 	highlightOnHover = false;
+	// Clear initial stuff! As no elements should be present this should work.
+	Clear();
 }
 
 UIList::~UIList()
@@ -148,13 +155,17 @@ UIList::~UIList()
 }
 
 /// Deletes all children and content inside.
-void UIList::Clear(){
+void UIList::Clear()
+{
+	// Delete everything. Including side-bars!
     for (int i = 0; i < childList.Size(); /* Empty */){
     	UIElement * c = childList[i];
+		/*
 		if (c->isSysElement){
     	    ++i;
             continue;
         }
+		*/
 		childList.Remove(c);
 		if (c->vboBuffer)
             c->FreeBuffers();
@@ -163,6 +174,10 @@ void UIList::Clear(){
 		delete c;
 		c = NULL;
     }
+	// Reset contents size and stuff too!
+	contentsSize = 0.0f;
+	// Reset pointers o.o
+    scrollBarX = scrollBarY = NULL;
 }
 
 // Adjusts hierarchy besides the regular addition
@@ -212,8 +227,9 @@ void UIList::AddChild(UIElement* child)
 				scrollBarY->FreeBuffers();
 	        if (scrollBarY->mesh)
                 scrollBarY->DeleteGeometry();
-	        delete scrollBarY;
-	        scrollBarY = NULL;
+			UIElement * scrollBar = scrollBarY;
+			scrollBarY = NULL;
+			delete scrollBar;
 	      //  scrollBarY->Update(bottom + child->sizeRatioY);
           //  scrollBarY->visible = true;
           //  FormatElements();
@@ -325,9 +341,11 @@ UIElement * UIList::GetElement(int mouseX, int mouseY){
 
 
 /// Scroll ze listur!
-bool UIList::OnScroll(float delta){
+bool UIList::OnScroll(float delta)
+{
     /// Move the slider and adjust content.
-    if (scrollBarY){
+    if (scrollBarY)
+	{
         float pageSize = scrollBarY->handle->sizeRatioY;
         bool negative = delta < 0;
         float distance = AbsoluteValue(delta);
@@ -350,9 +368,11 @@ bool UIList::OnScroll(float delta){
 }
 
 /// Scroll, not capped.
-bool UIList::Scroll(float absoluteDistanceInPages){
+bool UIList::Scroll(float absoluteDistanceInPages)
+{
     /// Move the slider and adjust content.
-    if (scrollBarY){
+    if (scrollBarY)
+	{
         float pageSize = scrollBarY->handle->sizeRatioY;
         float distance = absoluteDistanceInPages * pageSize;
         scrollBarY->Move(distance);
@@ -376,6 +396,8 @@ void UIList::FormatElements(){
                 e->sizeRatioX = newSizeRatioX;
             }
         }
+		/// Re-queue bufferization of all elements that are formated!
+		e->QueueBuffering();
     }
 }
 

@@ -36,6 +36,11 @@ public:
 	/// Resets width, height and creates a new data buffer after deleting the old one.
 	void Resize(Vector2i newSize);
 
+	// Flips along Y axis?
+	void FlipY();
+	// Flips along both X and Y axis.
+	void FlipXY();
+
 	/// Creates the data buffer. Width, height and bpp must be set before hand.
 	bool CreateDataBuffer();
 

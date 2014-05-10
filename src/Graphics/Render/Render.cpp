@@ -13,6 +13,7 @@
 #include "../FrameStatistics.h"
 #include "../RenderSettings.h"
 #include "Graphics/Camera/Camera.h"
+#include "Texture.h"
 
 /// Win32 includes!
 #ifdef WINDOWS
@@ -193,10 +194,14 @@ void GraphicsManager::Render(){
 
 	PrintTime("\nRendering FPS, UI and Overlay: ");
 
-
     glFlush();
     PrintTime("\nglFlush: ");
     postViewportFrameTime = postViewportTimer.GetMs();
+
+
+	
+	// If recording?
+	RenderCapture();
 
     Timer swapBufferTimer;
     swapBufferTimer.Start();

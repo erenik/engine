@@ -41,6 +41,7 @@ int GetKeyCodeFromVK(int wParam){
 	case VK_HOME: return KEY::HOME;
 	case VK_DELETE: return KEY::DELETE_KEY;
 	case VK_PAUSE: return KEY::PAUSE_BREAK;
+	case VK_PRINT:
 	case VK_SNAPSHOT: return KEY::PRINT_SCREEN;
 	};
 	if (wParam >= 0x70 && wParam <= 0x7B)
@@ -270,6 +271,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 #endif
 		int keyCode = 0;
 		keyCode = GetKeyCodeFromVK(wParam);
+		// Special cases?
+		switch(keyCode)
+		{
+		case KEY::PRINT_SCREEN:
+			Input.KeyDown(keyCode, false);
+			break;
+		}
 		// Pass keycode to input manager if applicable
 		if (keyCode)
 			Input.KeyUp(keyCode);

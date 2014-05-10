@@ -42,6 +42,9 @@ public:
 	/// Closes target file and stream.
 	virtual void Close();
 
+	/// Updates media time by checking how far the audio has played (easier to synchronize graphics to audio than reversed?)
+	virtual void UpdateMediaTime();
+
 	/// Current frame time of the media in milliseconds.
 	int CurrentFrameTime();
 
@@ -90,6 +93,9 @@ public:
 	/// Name of the stream. Usually set to the file-name.
 	String name;
 
+	/// Since audio is buffered separately, time can be obtained here in seconds.
+	virtual double AudioTime() {return audioTime;};
+
 protected:	
 	// Audio track handle.
 	Audio * audio;
@@ -100,12 +106,15 @@ protected:
 	float fps;
 	/// Frames per second for video in nominator and denominator parts.
 	int fpsNom, fpsDenom;
-	/// Media time. Also known as seek-time.
-	int mediaTime;
+	/// Media time in milliseconds.
+	long long mediaTime;
 	/// Time we last called Update();
 	long long lastUpdate;
 	/// Time in milliseconds when the media started.
 	long long startTime;
+
+	/// Since audio is buffered separately, store its time here.
+	double audioTime;
 	/// Relative volume.
 	float volume;
 	/// flagged if the stream has audio data.

@@ -48,6 +48,60 @@ void Texture::Resize(Vector2i newSize)
 	lastUpdate = Timer::GetCurrentTimeMs();
 }
 
+// Flips along Y axis?
+void Texture::FlipY()
+{
+	// RGBA ftw
+	if (bpp != 4)
+		return;
+	unsigned char r,g,b,a;
+	// Row Buffer! o-o
+	static unsigned char buf[2048 * 4];
+	int lineBufSize = width * bpp;
+	for (int y = 0; y < height * 0.5f; y++)
+	{
+		memcpy(buf, &data[y * lineBufSize], lineBufSize);
+		memcpy(&data[y * lineBufSize], &data[(height - y - 1) * lineBufSize], lineBufSize);
+		memcpy(&data[(height - y - 1) * lineBufSize], buf, lineBufSize);
+	}
+}
+
+// Flips along both X and Y axis.
+void Texture::FlipXY()
+{
+	// RGBA ftw
+	if (bpp != 4)
+		return;
+	unsigned char r,g,b,a;
+	for (int i = 0; i < dataBufferSize * 0.5f; i+=4)
+	{
+		r = data[i];
+		g = data[i+1];
+		b = data[i+2];
+		a = data[i+3];
+		data[i] = data[dataBufferSize - i - 4];
+		data[i+1] = data[dataBufferSize - i - 3];
+		data[i+2] = data[dataBufferSize - i - 2];
+		data[i+3] = data[dataBufferSize - i - 1];
+		data[dataBufferSize - i - 4] = r;
+		data[dataBufferSize - i - 3] = g;
+		data[dataBufferSize - i - 2] = b;
+		data[dataBufferSize - i - 1] = a;
+	}
+/*	for (int y = 0; y < height; ++y)
+	{
+		int yStep = y * width * bpp;
+		for (int x = 0; x < width; ++x)
+		{
+			int xStep = x * bpp;
+			int index =  yStep + xStep;
+			data[] 
+		}		
+	}
+	*/
+
+}
+
 /// Creates the data buffer. Width, height and bpp must be set before hand.
 bool Texture::CreateDataBuffer()
 {
@@ -105,7 +159,9 @@ bool Texture::MakeRed(){
 
 
 /// Bufferizes into GL. Should only be called from the render-thread!
-bool Texture::Bufferize(){
+bool Texture::Bufferize()
+{	
+	queueRebufferization = false;
 	/// Don't bufferize multiple times if not special texture, pew!
 	if (glid != -1 && !dynamic){
 		std::cout<<"\nTexture \""<<source<<"\" already bufferized! Skipping.";

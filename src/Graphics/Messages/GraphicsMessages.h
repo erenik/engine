@@ -24,6 +24,7 @@ enum graphicsMessages {
 	GM_SET_OVERLAY,		// For setting overlay texture.. or Video!
 	// Entity setters
 	GM_SET_ENTITY,
+	GM_SET_ENTITY_BOOLEAN,
 	GM_SET_ENTITY_TEXTURE,
 	// Stuff
 	GM_CLEAR_OVERLAY_TEXTURE,
@@ -53,6 +54,7 @@ enum graphicsMessages {
 
     GM_RENDER, // For queueing simple objects for temporary rendering, like rays.
     GM_RENDER_FRUSTUM,
+	GM_PRINT_SCREENSHOT,
 
     /// Camera control
     GM_RESET_CAMERA,
@@ -106,7 +108,8 @@ enum graphicsTargets{
 	FOG_END,
 
 	// Added with SetEntity
-
+	VISIBILITY,
+	
 	// Added with GraphicsEffects.
 	ALPHA,
 	RELATIVE_SCALE,

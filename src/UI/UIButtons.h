@@ -15,7 +15,7 @@ public:
 
 class UICheckBox : public UIElement {
 public:
-	UICheckBox();
+	UICheckBox(String name = "");
 	virtual ~UICheckBox();
 	virtual UIElement* Activate();
 private:

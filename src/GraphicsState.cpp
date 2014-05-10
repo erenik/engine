@@ -17,5 +17,7 @@ GraphicsState::GraphicsState(){
 	settings = 0;
 	optimizationLevel = 0;
 	viewportX0 = viewportY0 = 0;
+	promptScreenshot = recording = false;
+	screenshotsTaken = 0;
 };
 

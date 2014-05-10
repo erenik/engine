@@ -67,7 +67,12 @@ public:
 	int type;				// BGM, BGS, etc.
 	bool repeat;			// If it should repeat or not
 	float volume;			// Awesomeness-rating
-	float currentTime;		// Current time when playing/pausing.
+	
+	// Actually quite bothersome, but AL will count the time that the buffers have been active.
+	float currentBufferTime;
+	float bufferDuration;
+	double totalDurationBuffered;
+	int buffersPassed;
 
 	String name;	// Name of the audio, short
 	String path;	// Path for the target audio in question
@@ -75,7 +80,14 @@ public:
 	/// Why is this stream-object here?
     MultimediaStream * audioStream;
 
+	/// Playback time in milliseconds.
+	long long PlaybackTimeMs();
+
 private:
+	// Playback time in seconds.
+	float playbackTime;
+
+
 	/// Unqueues all AL buffers. This is wanted when stopping or changing locations,... probably.
 	void UnqueueBuffers();
 

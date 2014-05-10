@@ -55,7 +55,7 @@
     #include <X11/Xlib.h>
     #include <X11/Xutil.h>  // contains visual information masks and CVisualInfo structure
     #include <GL/glx.h>     // connect X server with OpenGL
-    #include "XProc.h"      // XWindow Script Processor
+    #include "XProc.h"      // XWindow Event Processor
     int ErrorHandler(Display * d, XErrorEvent * e);
     // single buffer attributes
     static int singleBufferAttributes[] = {GLX_RGBA, GLX_DEPTH_SIZE, 24, None};

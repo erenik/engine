@@ -67,6 +67,11 @@ void Audio::Nullify()
 	audioBuffers.Add(new AudioBuffer());
 
 	playbackEnded = false;
+
+	playbackTime = 0;
+	bufferDuration = 0;
+	buffersPassed = 0;
+	totalDurationBuffered = 0;
 }
 
 /// Generate audio source if not existing.
@@ -302,6 +307,18 @@ void Audio::Update()
 	if (state != AudioState::PLAYING)
 		return;
 
+	// Update time.
+	playbackTime;
+	float currentBufferTime;
+	alGetSourcef(alSource, AL_SEC_OFFSET, &currentBufferTime);
+	static float maxBufferTime = 0;
+	if (maxBufferTime < currentBufferTime)
+		maxBufferTime = currentBufferTime;
+	playbackTime = buffersPassed * bufferDuration + currentBufferTime;
+	
+//	playbackTime = audioStream->AudioTime() + currentBufferTime;
+//	playbackTime = totalDurationBuffered;
+
 	ALint processed = 0, queued = 0;
     bool success = true;
 
@@ -366,6 +383,8 @@ void Audio::Update()
 			}
 		}
 		--processed;
+		/// Increment known buffers passed so we know how far we have played the track.
+		buffersPassed++;
 	}
 	/// For each unqueued buffer, stream more data and queue it.
 	List<AudioBuffer*> unqueuedBuffers = audioBuffers - queuedBuffers;
@@ -381,12 +400,26 @@ void Audio::Update()
 			char buf[BUFFER_SIZE];
 			int channels = audioStream->AudioChannels();
 			int format = 0;
-			switch(channels){
-				case 1: format = AL_FORMAT_MONO16; break;
-				case 2: format = AL_FORMAT_STEREO16; break;
-			}
 			int frequency = audioStream->AudioFrequency();
 			int bytesBuffered = audioStream->BufferAudio(buf, BUFFER_SIZE, repeat);
+			
+			float durationBuffered;
+			int numberOfSampleFrames;
+			int sampleRate = frequency;
+			switch(channels)
+			{
+				case 1: 
+					format = AL_FORMAT_MONO16; 
+					numberOfSampleFrames = bytesBuffered * 0.5;
+					break;
+				case 2: 
+					format = AL_FORMAT_STEREO16; 
+					numberOfSampleFrames = bytesBuffered * 0.25;
+					break;
+			}
+			durationBuffered = numberOfSampleFrames / (float)sampleRate;
+			bufferDuration = durationBuffered;
+			totalDurationBuffered += durationBuffered;
 
 /*			// If unable to buffer data, assume we are at the end of the file. If so, check if we can re-start the file (assuming looping is enabled)
 			if (bytesBuffered <= 0 && repeat){
@@ -436,6 +469,12 @@ void Audio::Update()
 	}
 
     return;
+}
+
+/// Playback time in milliseconds.
+long long Audio::PlaybackTimeMs()
+{
+	return playbackTime * 1000;
 }
 
 /// Unqueues all AL buffers. This is wanted when stopping or changing locations,... probably.

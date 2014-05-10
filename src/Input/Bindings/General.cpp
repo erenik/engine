@@ -18,6 +18,8 @@
 enum generalActions{
 	NULL_ACTION,
 
+	PRINT_SCREENSHOT,
+
 	RELOAD_MODELS, // Reloads all models.
 	RELOAD_UI,
 	RECOMPILE_SHADERS,
@@ -65,6 +67,9 @@ extern Display * display;
 
 void generalInputProcessor(int action, int inputDevice){
 	switch(action){
+		case PRINT_SCREENSHOT:
+			Graphics.QueueMessage(new GraphicsMessage(GM_PRINT_SCREENSHOT));
+			break;
 		case PRINT_TO_FILE:
 			std::cout<<"\nPrint to file command issued.";
 			MultimediaMan.SaveCurrentFramesToFile();
@@ -515,6 +520,7 @@ void generalInputProcessor(int action, int inputDevice){
 /// Creates bindings that are used for debugging purposes only
 void CreateDefaultGeneralBindings()
 {
+	Input.general.CreateBinding(PRINT_SCREENSHOT, KEY::PRINT_SCREEN);
     Input.general.CreateBinding(PRINT_FRAME_TIME, KEY::CTRL, KEY::T);
 
 	Input.general.CreateBinding("Query(QuitApplication)", KEY::ALT, KEY::F4);

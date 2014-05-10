@@ -223,28 +223,30 @@ void * XProc(XEvent & event){
 
     }
 
-    case KeyPress: {
-        bool upperCase = Input.KeyPressed(KEY::SHIFT);
-        xKey = (int) XLookupKeysym(&event.xkey, 0);
-        std::cout << "\nXLookupKeysym "<<(int)xKey<<" "<<(char)xKey;
-        keyCode = GetKeyCodeFromXK(xKey);
-        if (keyCode)
-            Input.KeyDown(keyCode, false);
-        /// Send down the Keysym straight away for chars..!
-        int modifier = 0;
-        if (Input.KeyPressed(KEY::SHIFT))
-            ++modifier;
-        int xKey = (int) XLookupKeysym(&event.xkey, modifier);
-   //     std::cout << "\nXLookupKeysym "<<(int)xKey<<" "<<(char)xKey;
-        int c = GetCharFromXK(xKey);
-   //     std::cout<<"\nGetCharFromXK: "<<c<<" "<<(char)c;
-        if (c)
-            Input.Char(c);
-        return NULL;
-        break;
-    }
+	case KeyPress: 
+	{
+		bool upperCase = Input.KeyPressed(KEY::SHIFT);
+		xKey = (int) XLookupKeysym(&event.xkey, 0);
+		//        std::cout << "\nXLookupKeysym "<<(int)xKey<<" "<<(char)xKey;
+		keyCode = GetKeyCodeFromXK(xKey);
+		if (keyCode)
+		    Input.KeyDown(keyCode, false);
+		/// Send down the Keysym straight away for chars..!
+		int modifier = 0;
+		if (Input.KeyPressed(KEY::SHIFT))
+		    ++modifier;
+		int xKey = (int) XLookupKeysym(&event.xkey, modifier);
+		//     std::cout << "\nXLookupKeysym "<<(int)xKey<<" "<<(char)xKey;
+		int c = GetCharFromXK(xKey);
+		//     std::cout<<"\nGetCharFromXK: "<<c<<" "<<(char)c;
+		if (c)
+		    Input.Char(c);
+		return NULL;
+		break;
+	}
     case KeyRelease: {
         unsigned short is_retriggered = 0;
+/*
         if (!Input.IsInTextEnteringMode()){
             if (XEventsQueued(display, QueuedAfterReading)){
                 XEvent nextevnt;
@@ -256,6 +258,7 @@ void * XProc(XEvent & event){
                 }
             }
         }
+*/
         if (!is_retriggered){
        //     std::cout << "\nKey Release: ";
             xKey = (int) XLookupKeysym(&event.xkey, 0);

@@ -22,10 +22,15 @@ UIButton::~UIButton()
 //	std::cout<<"\nUIButton destructor";
 }
 
-UICheckBox::UICheckBox()
+UICheckBox::UICheckBox(String name /*= ""*/)
 : UIElement()
 {
 	Nullify();
+	// Set default texture to get proper animation for when hovering/activating it.
+	textureSource = defaultTextureSource;
+	this->name = name;
+	text = name;
+	activationMessage = "SetBool:"+name;
 	type = UIType::CHECKBOX;
 	selectable = true;
 	hoverable = true;

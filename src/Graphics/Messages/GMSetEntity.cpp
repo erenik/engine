@@ -77,3 +77,17 @@ void GMSetEntity::Process(){
 			assert(false && "Bad target in GMSetEntity");
 	};
 }
+
+GMSetEntityb::GMSetEntityb(Entity * entity, int target, bool value)
+	: GraphicsMessage(GM_SET_ENTITY_BOOLEAN), entity(entity), target(target), bValue(value)
+{
+
+}
+void GMSetEntityb::Process()
+{
+	if (!entity->graphics)
+		entity->graphics = new GraphicsProperty();
+	entity->graphics->visible = bValue;
+}
+
+

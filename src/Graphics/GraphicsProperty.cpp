@@ -21,6 +21,7 @@ GraphicsProperty::GraphicsProperty(){
 	animStartTime = 0;
 	queuedAnimation = NULL;
 	currentAnimation = NULL;
+	visible = true;
 }
 
 

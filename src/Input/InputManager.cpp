@@ -652,7 +652,7 @@ void InputManager::MouseWheel(float delta){
 	UserInterface * ui = GetRelevantUI();
 	if (ui)
 	{
-		UIElement * element = ui->GetElement(mouseX, mouseY);
+		UIElement * element = ui->GetElementByPosition(mouseX, mouseY);
 		if (element){
 	//		std::cout<<"\nWheeled over element: "<<element->name;
 			bool scrolled = element->OnScroll(delta);

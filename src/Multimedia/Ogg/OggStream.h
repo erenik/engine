@@ -65,6 +65,8 @@ public:
 	/// Gets frequency of the audio. This is typically 48000 or similar?
 	virtual int AudioFrequency();
 
+	
+
 private:
 	/** Current frame data in a format liked by the Texture class!
 		Pixel index psi below. and the pixel index with offsets of 0 to 3 give the RGBA components respectively.
@@ -111,6 +113,7 @@ private:
 	OggVorbis_File  oggVorbisFile;     // Stream handle
 	vorbis_info*    vorbisInfo;    // Some formatting data
 	vorbis_comment* vorbisComment; // User comments
+	double oggVorbisTime;
 
 };
 

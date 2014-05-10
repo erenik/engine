@@ -312,6 +312,8 @@ private:
 	void RenderEntityVectors();
 	/// Renders all generic simple shapes
 	void RenderShapes();
+	/// Capaturing rendered contents into file or buffers. (e.g. print-screen)
+	void RenderCapture();
 	/// Renders target texture to the screen.
 	void RenderFullScreen(Texture * tex, float alpha = 1.0f);
 

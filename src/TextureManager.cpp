@@ -6,6 +6,8 @@
 #include "Graphics/Messages/GraphicsMessage.h"
 #include "Graphics/GraphicsManager.h"
 
+#include "OS/Sleep.h"
+
 /// Texture manager for the application.
 TextureManager * TextureManager::texMan = NULL;
 
@@ -218,16 +220,32 @@ Texture * TextureManager::LoadTexture(String source){
 	std::vector<unsigned char> buffer, image;
 
 	/// Check that the file exists
-	std::ifstream file(source.c_str());
-	if (!file.good()){
-		file.close();
-		std::cout<<"\nERROR: File "<<source.c_str()<<" does not exist!";
-		assert("TextureManager::LoadTexture: ERROR: File <<source<< does not exist!");
+	try {
+		std::ifstream file;
+		std::cout<<"\nOpening input-file stream.";
+		file.open(source.c_str());
+		if (!file.good()){
+			// Clear any error flags set!
+			file.clear();
+			std::cout<<"\nUnable to open file.";
+			file.close();
+Sleep(100);
+	//		std::cout<<"\nERROR: File "<<source.c_str()<<" does not exist!";
+Sleep(100);
+	//		assert("TextureManager::LoadTexture: ERROR: File <<source<< does not exist!");
+Sleep(100);
+			return NULL;
+		}
+		std::cout<<"\nFile exists";
+	}
+	catch(...)
+	{
+		std::cout<<"\nErrrrorrrrr"<<std::flush;
 		return NULL;
 	}
-
 	try {
 		LodePNG::loadFile(buffer, source.c_str()); //load the image file with given filename
+		std::cout<<"\nFile loaded.";
 	} catch(...)
 	{
 		std::cout<<"\nError loading file "<<source.c_str()<<"!";
@@ -269,7 +287,35 @@ Texture * TextureManager::LoadTexture(String source){
 #define SOURCE_INDEX	INDEX_REGULAR_S
 #define TARGET_INDEX	INDEX_SWAP_Y_S
 
-	if (bytesPerPixel == 4){
+	/// Onry 1 byte per pixchsel?!
+	if (bytesPerPixel == 1)
+	{
+		// Allocate texture data array.
+		texture->dataBufferSize = width*height*4;
+		texture->data = new unsigned char [texture->dataBufferSize];
+		// And save the width and height.
+		texture->width = width;
+		texture->height = height;
+		// Go through the whole image.
+		for(int j = 0; j < height; j++){
+		//	int y = height - j - 1;
+			int y = j;
+			for(int x = 0; x < width; x++){
+
+				//get RGBA components
+				unsigned char r,g,b,a;
+				r = g = b = image[SOURCE_INDEX + 0]; //red
+				a = 255;
+				// Set them into the texture data array.
+				texture->data[TARGET_INDEX + 0] = r;
+				texture->data[TARGET_INDEX + 1] = g;
+				texture->data[TARGET_INDEX + 2] = b;
+				texture->data[TARGET_INDEX + 3] = a;
+			}
+		}
+
+	}
+	else if (bytesPerPixel == 4){
 		// Allocate texture data array.
 		texture->dataBufferSize = width*height*bytesPerPixel;
 		texture->data = new unsigned char [texture->dataBufferSize];

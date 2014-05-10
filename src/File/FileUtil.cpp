@@ -251,8 +251,8 @@ bool CreateDirectoriesForPath(String dirPath)
 /// Builds a path of folders so that the given path can be used. Returns false if it fails to meet the path-required.
 bool EnsureFoldersExistForPath(String path){
 	List<String> folders = path.Tokenize("/");
-	/// Remove the last one, assume it's a file at the end.
-	folders.RemoveIndex(folders.Size()-1);
+	/// Remove the last one, assume it's a file at the end.... No.
+	// folders.RemoveIndex(folders.Size()-1);
 #ifdef WINDOWS
 	wchar_t buf[5000];
 	GetCurrentDirectory(5000, buf);
@@ -270,6 +270,7 @@ bool EnsureFoldersExistForPath(String path){
 			int error = GetLastError();
 			switch(error){
 				case ERROR_ALREADY_EXISTS:
+					// Good. Go to the next folder?
 					break;
 				case ERROR_PATH_NOT_FOUND:
 					failed = true;

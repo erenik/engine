@@ -17,6 +17,7 @@ MultimediaStream::MultimediaStream(int type)
 	currentFrame = 0;
 	mediaTime = 0;
 	audio = NULL;
+	audioTime = 0;
 }
 
 /// Attempts to open target file. Returns false upon failure.
@@ -31,6 +32,12 @@ void MultimediaStream::Close()
 	assert(false && "Subclass");
 }
 
+/// Updates media time by checking how far the audio has played (easier to synchronize graphics to audio than reversed?)
+void MultimediaStream::UpdateMediaTime()
+{
+	mediaTime = audio->PlaybackTimeMs();
+}
+
 /// Current frame time of the media in milliseconds.
 int MultimediaStream::CurrentFrameTime()
 {
@@ -42,7 +49,7 @@ int MultimediaStream::CurrentFrameTime()
 		numbersInDenom++;
 		divisor *= 10;
 	}
-	return currentFrame * fpsNom + (currentFrame * fpsDenom) / divisor;
+	return currentFrame / fps * 1000;
 }
 
 /// Starts buffering of the stream. Nothing is done until this command has been executed successfully, following a call to Open.

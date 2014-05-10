@@ -38,8 +38,8 @@ public:
 	/// If allUi is specified, the action will try, similar to hover, and go through the entire stack from the top down until it processes an element.
 	UIElement * Click(int x, int y, bool allUi = false);
 	UIElement * Activate();
-	/// Get element by position. Will skip invisible elements.
-	UIElement * GetElementByPosition(int x, int y);
+	// Goes through the active stack until an element is found which corresponds to the given (visible) co-ordinates.
+	UIElement * GetElementByPosition(float x, float y);
 
 	/// Woo!
 	UIElement * GetElement(String byName, int andType);
@@ -86,7 +86,8 @@ public:
 	UIElement * GetElementBySource(String source);
 	/// Gets the currently active element (for input, probably!)
 	UIElement * GetActiveElement();
-	UIElement * GetHoverElement();
+	/// If false, will use current stack top to get hover element. If using mouse you should pass true as argument.
+	UIElement * GetHoverElement(bool fromRoot = false);
 	/// Returns active input focus element, if any. Based on the GetActiveElement but performs additional checks.
 	UIElement * ActiveInputFocusElement();
 	/// Getter for element by state, where the stateFlag will be bitwise anded (&) to fetch the correct element. GetActiveElement & GetHoverElement work similarly.
@@ -140,7 +141,7 @@ public:
 	String defaultTextureSource;
 	/// Directory for the UI relative to root (bin/)
 	static String rootUIDir;
-
+	
 protected:
 	/// Loads from target file, using given root as root-element in the UI-hierarchy.
 	static bool LoadFromFile(String filePath, UIElement * intoRoot);

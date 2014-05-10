@@ -111,6 +111,12 @@ public:
 
 	/// Start of the viewport. Default is 0 but should be adjusted for when rendering to multiple viewports for proper scissoring.
 	float viewportX0, viewportY0;
+
+	// If true, will take screenshot at the end of this frame.
+	bool promptScreenshot;
+	int screenshotsTaken;
+	// If currently recording screenshots in succession
+	bool recording;
 };
 
 #endif

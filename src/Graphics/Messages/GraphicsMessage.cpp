@@ -13,6 +13,7 @@
 #include "Input/InputManager.h"
 #include "OS/Sleep.h"
 #include "Message/MessageManager.h"
+#include "GraphicsState.h"
 
 GraphicsMessage::GraphicsMessage(int i_type){
 	type = i_type;
@@ -22,6 +23,11 @@ GraphicsMessage::~GraphicsMessage(){
 
 void GraphicsMessage::Process(){
 	switch(type){
+		case GM_PRINT_SCREENSHOT:
+		{
+			Graphics.graphicsState->promptScreenshot = true;
+			break;
+		}
 	    case GM_RENDER_FRUSTUM: {
 	        Graphics.renderShapes.ClearAndDelete();
             Frustum frustum = Graphics.cameraToTrack->GetFrustum();

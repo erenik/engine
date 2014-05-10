@@ -122,6 +122,7 @@ void UIElement::Nullify(){
 
 	fontSource = TextFont::defaultFontSource;
 	font = NULL;
+	textColor = defaultTextColor;
 
 	/** Will enable/disable cyclicity of input navigation when this element is pushed. When popped, the next element in the stack will determine cyclicity. */
 	cyclicY = true;
@@ -135,6 +136,7 @@ void UIElement::Nullify(){
 	/// GL related.
 	vertexArray = -1;
 
+	isBuffered = isGeometryCreated = false;
 	color = Vector4f(1,1,1,1);
 }
 
@@ -859,7 +861,7 @@ void UIElement::MoveX(int distance){
 		case UIType::SLIDER_HANDLE:
 			posX += distance;
 			if (posX > parent->sizeX - sizeX)
-				posX = parent->sizeX - sizeX;
+				posX = (float)parent->sizeX - sizeX;
 			if (posX < 0)
 				posX = 0;
 			break;
@@ -877,7 +879,7 @@ void UIElement::MoveY(int distance){
 		case UIType::SCROLL_HANDLE:
 			posY += distance;
 			if (posY > parent->sizeY - sizeY)
-				posY = parent->sizeY - sizeY;
+				posY = (float)parent->sizeY - sizeY;
 			if (posY < 0)
 				posY = 0;
 			break;
@@ -900,7 +902,7 @@ void UIElement::MoveTo(int * x, int * y){
 		case UIType::SLIDER_HANDLE:{
 			posX -= sizeX/2;
 			if (posX > parent->sizeX - sizeX)
-				posX = parent->sizeX - sizeX;
+				posX = (float)parent->sizeX - sizeX;
 			if (posX < 0)
 				posX = 0;
 			break;
@@ -908,7 +910,7 @@ void UIElement::MoveTo(int * x, int * y){
 		case UIType::SCROLL_HANDLE: {
 			posY -= sizeY/2;
 			if (posY > parent->sizeY - sizeY)
-				posY = parent->sizeY - sizeY;
+				posY = (float)parent->sizeY - sizeY;
 			if (posY < 0)
 				posY = 0;
 			break;
@@ -987,7 +989,8 @@ void UIElement::AddChild(UIElement *in_child){
 }
 
 
-bool UIElement::AddToParent(String parentName, UIElement * child){
+bool UIElement::AddToParent(String parentName, UIElement * child)
+{
     UIElement * padre = GetElementWithName(parentName);
     if (padre){
         padre->AddChild(child);
@@ -1001,12 +1004,14 @@ void UIElement::SetParent(UIElement *in_parent){
 }
 
 /// Queues the UIElement to be buffered via the GraphicsManager
-void UIElement::QueueBuffering(){
+void UIElement::QueueBuffering()
+{
 	Graphics.QueueMessage(new GMBufferUI(this));
 }
 
 /// Bufferizes the UIElement mesh into the vbo buffer
-void UIElement::Bufferize(){
+void UIElement::Bufferize()
+{
 	/// Check for mesh-Entity
 	if (mesh){
 		if (!name)
@@ -1095,9 +1100,12 @@ void UIElement::Bufferize(){
 	if (this->texture && texture->glid == -1)
 		TexMan.BufferizeTexture(texture);
 
+	// Mark it as buffered.
+	isBuffered = true;
 }
 /// Releases resources used by the UIElement. Should only be called by a thread with valid GL context!
-void UIElement::FreeBuffers(){
+void UIElement::FreeBuffers()
+{
 	if (vboBuffer){
 		glDeleteBuffers(1, &vboBuffer);
 		vboBuffer = -1;
@@ -1109,6 +1117,7 @@ void UIElement::FreeBuffers(){
 	for (int i = 0; i < childList.Size(); ++i){
 		childList[i]->FreeBuffers();
 	}
+	isBuffered = false;
 }
 
 
@@ -1559,6 +1568,15 @@ void UIElement::AdjustToWindow(int w_left, int w_right, int w_bottom, int w_top)
 	}
 }
 
+/// Calls AdjustToWindow for parent's bounds. Will assert if no parent is available.
+void UIElement::AdjustToParent()
+{
+	assert(parent);
+	if (!parent)
+		return;
+	AdjustToWindow(parent->left, parent->right, parent->bottom, parent->top);
+}
+
 int UIElement::GetAlignment(String byName){
 	if (byName == "NULL_ALIGNMENT")
 		return UIElement::NULL_ALIGNMENT;
@@ -1719,7 +1737,11 @@ int UIElement::OnChar(int asciiCode){
 
 
 /// Called to ensure visibility of target element. First call should be made to the target element with a NULL-argument!
-void UIElement::EnsureVisibility(UIElement * element){
+void UIElement::EnsureVisibility(UIElement * element)
+{
+	// If this is a "system" element, i.e. scroll-bars that are automatically added, skip this step, as they should always be visible.
+	if (isSysElement)
+		return;
 	if (!element)
 		element = this;
 	if (parent)

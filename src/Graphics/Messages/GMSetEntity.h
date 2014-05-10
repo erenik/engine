@@ -33,3 +33,14 @@ private:
 	void * data;
 	Model * model;
 };
+
+class GMSetEntityb : public GraphicsMessage 
+{
+public:
+	GMSetEntityb(Entity * entity, int target, bool value);
+	virtual void Process();
+private:
+	Entity * entity;
+	bool bValue;
+	int target;
+};

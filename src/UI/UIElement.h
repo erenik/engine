@@ -1,3 +1,7 @@
+/// Emil Hedemalm
+/// 2014-04-22
+/// Main UI element class. Created first time sometime in 2012 probably.
+
 #ifndef UIELEMENT_H
 #define UIELEMENT_H
 
@@ -49,6 +53,7 @@ class UIElement{
 	friend class UIColumnList;
 	friend class GMDeleteUI;
 	friend class GMSetUIs;
+	friend class GMBufferUI;
 public:
 	// UI it belongs to. Usually only need to set this for the root-element for automatic resizing etc.
 	UserInterface * ui;
@@ -196,6 +201,8 @@ public:
 
 	/// Adjusts the UI element size and position relative to new window size
 	void AdjustToWindow(int left, int right, int bottom, int top);
+	/// Calls AdjustToWindow for parent's bounds. Will assert if no parent is available.
+	void AdjustToParent();
 
 	// Positional variables (pre-resizing)
 	enum generalAlignments{
@@ -349,8 +356,16 @@ public:
 	/// Called to ensure visibility of target element. First call should be made to the target element with a NULL-argument!
 	virtual void EnsureVisibility(UIElement * element = 0);
 
+	/// Similar to UI, this checks if this particular element is buffered or not.
+	bool IsBuffered() const { return isBuffered;};
+	bool IsGeometryCreated() const { return isGeometryCreated; };
+
 // Some inherited for UI subclasses
 protected:
+	/// Similar to UI, this checks if this particular element is buffered or not.
+	bool isBuffered;
+	bool isGeometryCreated;
+
 	/// Called whenever an element is deleted externally. Sub-class in order to properly deal with references.
 //	virtual void OnElementDeleted();
 

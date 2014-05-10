@@ -538,6 +538,8 @@ bool OggStream::StreamNextFrame(int framesToPass /*= 1*/)
 		//	break;
 		}
 		frameTexture->queueRebufferization = true;
+		frameTexture->lastUpdate = Timer::GetCurrentTimeMs();
+		frameTexture->FlipY();
 	}
 	/// If we did not manage to generate any frames, it means that we're at the end of the file, so queue stopping!
 	else {
@@ -585,6 +587,9 @@ int OggStream::BufferAudio(char * buf, int maxBytes, bool loop)
 			/// ov_time_seek(&oggVorbisFile, 0);
 		}
 	}
+	// Read time.
+	audioTime = oggVorbisTime = ov_time_tell(&oggVorbisFile);
+
 	return bytesRead;
 }
 

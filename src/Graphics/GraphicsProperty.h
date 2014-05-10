@@ -35,6 +35,8 @@ public:
 	bool hasAnimation;
 	/// For flags, see above: example DISABLE_DEPTH_WRITING (for this model only)
 	int flags;
+	/// Render at all?
+	bool visible;
 	/// Effects are graphics that are rendered after the regular render-passes,
 	/// usually with other (unique) blending modes.
 	List<GraphicEffect*> * effects;

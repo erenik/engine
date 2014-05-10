@@ -75,6 +75,7 @@ struct Triangle : public Plane {
 	void Set3Points(Vector3f p1, Vector3f p2, Vector3f p3);
 };
 
+/// Assumes following point-order: lower-left (min), lower-right, upper-right (max), upper-left.
 struct Quad : public Plane {
 private:
 	/// Make Set3Points inaccessible!
@@ -90,6 +91,9 @@ public:
 	/// Copy constructor
 	Quad(const Quad &quad);
 
+	/// Returns width x height. Assumes point1 is min and point 3 is max.
+	int ManhattanSize(); 
+
 	/** Product with Matrix
 		Postcondition: Returns the plane multiplied by the given matrix.
 	*/
@@ -97,7 +101,9 @@ public:
 	/// Applies the given transform
 	Quad Transform(const Matrix4f matrix);
 
-	/** Sets three of the points that define the plane in counter clockwise order.
+	/// Create a rectangular quad using min and max values.
+	void Set2Points(Vector3f min, Vector3f max);
+	/** Sets all of the points that define the plane in counter clockwise order.
 		the fourth point will be placed to mirror p2 along the line between p1 and p3.
 	*/
 	void Set4Points(Vector3f p1, Vector3f p2, Vector3f p3, Vector3f p4);
@@ -147,17 +153,33 @@ struct Ray{
 	Vector3f direction;
 };
 
-/// Note that this specification is for a line, but can be used for line-segments if caution is taken!
+/// Used for line-segments.
 struct Line {
-	Line(){};
-	Line(Vector3f start, Vector3f stop)
-		: start(start), stop(stop)
-	{
-		direction = stop - start;
-	}
+	Line();
+	Line(Vector3f start, Vector3f stop);
+	float Length();
+	// Calculates distance to point.
+	float Distance(Vector3f point);
+	/// Merges with other lines, taking weights into consideration for Y, but expanding X as necessary.
+	void MergeYExpandX(Line & line);
+	/// Merges with other line, taking weights into consideration.
+	void Merge(Line & line);
+	// Calculates the minimum distance to the other line, assuming they are
+//	float Distance(Line & otherLine);
+
+	// General parameters
 	Vector3f start;
 	Vector3f stop;
 	Vector3f direction;
+
+	// Merge operations require more thought, and abstraction into 2D or 3D.
+//	Vector3f startMin, startMax, stopMin, stopMax;
+
+	// Half-width or "radius" of the line.
+//	float radius;
+
+	// Weight used in merging operations.
+	int weight;
 };
 
 

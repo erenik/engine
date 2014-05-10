@@ -97,6 +97,8 @@ MultimediaStream * MultimediaManager::Play(String fromPath)
 		newStream->Open(fromPath);
 		newStream->startTime = Timer::GetCurrentTimeMs();
 		streams.Add(newStream);
+		// Play it straight away..?
+		newStream->Play();
 	}
 	else {
 		std::cout<<"\nMultimediaManager::Play: Unknown video type. Unable to play.";
@@ -108,7 +110,8 @@ MultimediaStream * MultimediaManager::Play(String fromPath)
 
 
 /// Update all streams we've got by looking at how much time has passed since last update.
-void MultimediaManager::Update(){
+void MultimediaManager::Update()
+{
 	long long currentTime = Timer::GetCurrentTimeMs();
 	long long timeDiff = currentTime - lastUpdate;
 	/// For lagg, don't process the timeDiff so much.
@@ -124,7 +127,9 @@ void MultimediaManager::Update(){
 		if (!ms->IsPlaying())
 			continue;
 		// Check if they need to fetch a new frame.
-		ms->mediaTime += timeDiff;
+		ms->UpdateMediaTime();
+		
+	//	ms->mediaTime += timeDiff;
 		int currentFrameTime = ms->CurrentFrameTime();
 		if (ms->mediaTime > currentFrameTime)
 		{
@@ -134,6 +139,7 @@ void MultimediaManager::Update(){
 			int framesToPass = timeToPass / timePerFrame;
 			if (framesToPass > 1){
 			//	std::cout<<"\nFrames to pass: "<<framesToPass;
+
 			}
 			ms->StreamNextFrame(framesToPass);
 		}

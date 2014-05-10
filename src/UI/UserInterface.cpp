@@ -184,8 +184,17 @@ void UserInterface::Activate(UIElement* activeElement){
 	}
 }
 
-/// Get element by position. Will skip invisible elements.
-UIElement * UserInterface::GetElementByPosition(int x, int y){
+// Goes through the active stack until an element is found which corresponds to the given (visible) co-ordinates.
+UIElement * UserInterface::GetElementByPosition(float x, float y)
+{
+	// Goes through the active stack until an element is found which corresponds to the given (visible) co-ordinates.
+	for (int i = stack.Size() - 1; i >= 0; --i)
+	{
+		UIElement * element = stack[i];
+		UIElement * result = element->GetElement(x, y);
+		if (result)
+			return result;
+	}
     if (!root)
 		return NULL;
     return root->GetElement(x,y);
@@ -261,9 +270,6 @@ bool UserInterface::Unbufferize(){
 void UserInterface::Render(GraphicsState& graphics){
 	/// Disable depth-test.
 	glDisable(GL_DEPTH_TEST);
-//	List<UIElement*> list;
-//	root->GetElementsByState(UIState::HOVER, list);
-	//std::cout<<"\nHoverElements: "<<list.Size();
 	/// Render the tree.
 	root->Render(graphics);
 }
@@ -350,8 +356,11 @@ bool UserInterface::GetElementsByFlags(int uiFlags, List<UIElement*> & listToFil
 	return NULL;
 }
 
-UIElement * UserInterface::GetHoverElement()
+/// If false, will use current stack top to get hover element. If using mouse you should pass true as argument.
+UIElement * UserInterface::GetHoverElement(bool fromRoot /* = false */)
 {
+	if (fromRoot)
+		return root->GetElementByState(UIState::HOVER);
 	UIElement * stackTop = GetStackTop();
 	if (stackTop)
 		return stackTop->GetElementByState(UIState::HOVER);
