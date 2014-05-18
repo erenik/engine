@@ -44,6 +44,7 @@ namespace CVReturnType {
 		HANDS, // See CVHandDetector
 		VIDEO,
 		RENDER, // Any arbitrary render-output/visualizations
+		FINGER_STATES,
 	};
 };
 
@@ -96,6 +97,8 @@ public:
 	CVFilter(int id);
 	// Virtual destructor for proper deallocatoin when sub-classing.
 	virtual ~CVFilter();
+	// Should be called when deleting a filter while the application is running. Removes things as necessary.
+	virtual void OnDelete();
 	/// For reacting to when enabling/disabling a filter. Needed for e.g. Render-filters. Not required to subclass.
 	virtual void SetEnabled(bool state);
 	// Name of the filter.

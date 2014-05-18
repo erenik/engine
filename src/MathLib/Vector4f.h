@@ -100,6 +100,8 @@ public:
 
 	/// Conversion equal-conversion operator
 	Vector4f& operator = (const Vector4d &other);
+	/// Conversion equal-conversion operator
+	Vector4f& operator = (const Vector4f &other);
 
 	/// Operator overloading for the array-access operator []
 	float& operator[] (const unsigned int index);

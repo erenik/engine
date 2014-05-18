@@ -55,11 +55,13 @@ namespace CVFilterID {
 		FILTER_LINES_BY_ANGLE,
 		MERGE_LINES,
 		APPROXIMATE_POLYGONS,
+		FINGER_ACTION,
 
 		// Render-filters
 		VIDEO_WRITER = 201,
 		IMAGE_GALLERY_HAND,
 		MOVIE_PROJECTOR,
+		MUSIC_PLAYER,
 
 
 		// Own filters <- Old stuff. Place in either Data or image above.

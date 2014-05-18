@@ -33,10 +33,10 @@ void AlphaModelEffect::Render(GraphicsState & graphicsState){
 	static Matrix4f modelMatrix;
 	if (entity){
 		modelMatrix.LoadIdentity();
-		modelMatrix.translate(entity->positionVector);
-		modelMatrix.scale(entity->radius * (entity->scaleVector.ElementMultiplication(relativeScale)).MaxPart());
-		modelMatrix.Multiply(Matrix4f::GetRotationMatrixX(entity->rotationVector.x));
-		modelMatrix.Multiply(Matrix4f::GetRotationMatrixY(relativeRotation.y + entity->rotationVector.y));
+		modelMatrix.Translate(entity->position);
+		modelMatrix.Scale(entity->radius * (entity->scale.ElementMultiplication(relativeScale)).MaxPart());
+		modelMatrix.Multiply(Matrix4f::GetRotationMatrixX(entity->rotation.x));
+		modelMatrix.Multiply(Matrix4f::GetRotationMatrixY(relativeRotation.y + entity->rotation.y));
 		graphicsState.modelMatrixF = modelMatrix;
 	};
 

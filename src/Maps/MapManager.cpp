@@ -315,7 +315,7 @@ void MapManager::ListEntities(){
 	for (int i = 0; i < activeMap->entities.Size(); ++i){
 		std::cout<<"\n"<<i<<". "
 			<<activeMap->entities[i]->name
-			<<" Pos: "<<activeMap->entities[i]->positionVector;
+			<<" Pos: "<<activeMap->entities[i]->position;
 	}
 }
 /** Fills the provided selection with all available entities in the active map. */
@@ -327,6 +327,12 @@ int MapManager::GetEntities(List<Entity*> & targetEntities){
 	targetEntities = activeMap->entities;
 	return activeMap->NumEntities();
 }
+
+Entity * MapManager::GetEntityByName(String name)
+{
+	return activeMap->GetEntity(name);
+}
+
 
 /** Returns a selection object containing all entities in the current map. */
 List<Entity*> MapManager::GetEntities(){
@@ -351,8 +357,8 @@ Entity * MapManager::GetFirstEntity(Ray & selectionRay, Vector3f & intersectionP
         Entity * entity = entities[i];
 
         /// First discard those entities which are behind the ray's origin.
-        float entityRadius = entity->scaleVector.MaxPart() * entity->radius;
-        float distanceEntityToRayStart = (entity->positionVector - selectionRay.start).Length() - entityRadius;
+        float entityRadius = entity->scale.MaxPart() * entity->radius;
+        float distanceEntityToRayStart = (entity->position - selectionRay.start).Length() - entityRadius;
 
         /// Check if it's anywhere near as close as the closest-distance, if not discard it now.
         if (closest && distanceEntityToRayStart - entityRadius > closestDistance + closestRadius){
@@ -360,8 +366,8 @@ Entity * MapManager::GetFirstEntity(Ray & selectionRay, Vector3f & intersectionP
             continue;
         }
 
-        Vector3f rayStartToEntity = entity->positionVector - selectionRay.start;
-        if (rayStartToEntity.DotProduct(selectionRay.direction) < 0 && distanceEntityToRayStart > entity->radius * entity->scaleVector.MaxPart()){
+        Vector3f rayStartToEntity = entity->position - selectionRay.start;
+        if (rayStartToEntity.DotProduct(selectionRay.direction) < 0 && distanceEntityToRayStart > entity->radius * entity->scale.MaxPart()){
             entitiesBehind.Add(entity);
             continue;
         }
@@ -369,9 +375,9 @@ Entity * MapManager::GetFirstEntity(Ray & selectionRay, Vector3f & intersectionP
         /// Then do a radial check to dismiss unrelated ones.
         float distanceProjectedOntoClickRay = selectionRay.direction.DotProduct(rayStartToEntity);
         Vector3f projectedPointOnVector = selectionRay.start + distanceProjectedOntoClickRay * selectionRay.direction;
-        float distanceEntityToRay = (entity->positionVector - projectedPointOnVector).Length();
+        float distanceEntityToRay = (entity->position - projectedPointOnVector).Length();
         /// Skip entities that aren't even close to the ray. (sphere not touching the ray).
-        if (distanceEntityToRay > entity->radius * entity->scaleVector.MaxPart()){
+        if (distanceEntityToRay > entity->radius * entity->scale.MaxPart()){
             continue;
         }
 
@@ -432,10 +438,10 @@ Entity * MapManager::CreateEntity(Entity * referenceEntity){
 	assert(referenceEntity);
 	Entity * entity = EntityMan.CreateEntity(referenceEntity->model, referenceEntity->GetTexture(DIFFUSE_MAP));
 	entity->physics = new PhysicsProperty(*referenceEntity->physics);
-	entity->scaleVector = referenceEntity->scaleVector;
-	entity->rotationVector = referenceEntity->rotationVector;
-	entity->positionVector = referenceEntity->positionVector;
-	entity->recalculateMatrix();
+	entity->scale = referenceEntity->scale;
+	entity->rotation = referenceEntity->rotation;
+	entity->position = referenceEntity->position;
+	entity->RecalculateMatrix();
 	// Register it with the graphics manager straight away since it's the active map!
 	Graphics.QueueMessage(new GMRegisterEntity(entity));
 	// Go ahead and add physics too, most entities will have physics, so.
@@ -465,9 +471,18 @@ Entity * MapManager::CreateEntity(Model * model, Texture * texture, Vector3f pos
 
 
 
-	entity->positionVector = position;
-	entity->recalculateMatrix();
+	entity->position = position;
+	entity->RecalculateMatrix();
 
+	AddEntity(entity);
+
+
+	return entity;
+}
+
+/// Adds target entity to the map, registering it for physics and graphics.
+bool MapManager::AddEntity(Entity * entity)
+{
 	assert(activeMap && "Active Map not set in MapManager::CreateEntity!");
 	bool addResult = activeMap->AddEntity(entity);
 	if (addResult == false){
@@ -481,9 +496,10 @@ Entity * MapManager::CreateEntity(Model * model, Texture * texture, Vector3f pos
 	// Go ahead and add physics too, most entities will have physics, so.
 	if (defaultAddPhysics)
 		Physics.QueueMessage(new PMRegisterEntity(entity));
-
-	return entity;
+	return true;
 }
+
+
 
 /** Adds an event ~ */
 bool MapManager::AddEvent(Script * eventScript)

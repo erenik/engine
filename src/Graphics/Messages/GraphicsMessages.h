@@ -25,7 +25,12 @@ enum graphicsMessages {
 	// Entity setters
 	GM_SET_ENTITY,
 	GM_SET_ENTITY_BOOLEAN,
+	GM_SET_ENTITY_STRING,
 	GM_SET_ENTITY_TEXTURE,
+	GM_SET_ENTITY_FLOAT,
+	GM_SET_ENTITY_VEC4F,
+	// Lighting on entities
+	GM_ADD_LIGHT,
 	// Stuff
 	GM_CLEAR_OVERLAY_TEXTURE,
 	GM_DELETE_UI,
@@ -55,9 +60,12 @@ enum graphicsMessages {
     GM_RENDER, // For queueing simple objects for temporary rendering, like rays.
     GM_RENDER_FRUSTUM,
 	GM_PRINT_SCREENSHOT,
+	GM_RECORD_VIDEO, // Toggles the query to start/stop recording current screen contents.
 
     /// Camera control
     GM_RESET_CAMERA,
+	GM_TRACK,
+	GM_SET_CAMERA,
 
 	// Particle effects,
 	GM_GENERATE_PARTICLES,
@@ -107,8 +115,18 @@ enum graphicsTargets{
 	FOG_BEGIN,		// Foggy fog-some. Fog color is defined be the CLEAR_COLOR by default.
 	FOG_END,
 
+	// Camera targets
+	RELATIVE_POSITION,
+	DISTANCE_FROM_CENTER_OF_MOVEMENT,
+	OFFSET_ROTATION,
+
 	// Added with SetEntity
 	VISIBILITY,
+	TEXT,
+	TEXT_COLOR,
+	TEXT_POSITION,
+	TEXT_SIZE_RATIO,
+
 	
 	// Added with GraphicsEffects.
 	ALPHA,

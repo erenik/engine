@@ -97,10 +97,13 @@ void Camera::Update(){
 		if (trackingMode == TrackingMode::FROM_BEHIND){
 			float distance;
 			// First translate the camera relative to the viewing rotation-"origo"
+			/*
 			if (entityToTrack->physics)
 				distance = -this->entityToTrack->physics->physicalRadius*2;
 			else
 				distance = -this->entityToTrack->radius*2;
+*/
+			distance = -distanceFromCentreOfMovement;
 			
 			/// Check if we got zis speed option set.
 			if (scaleDistanceWithVelocity){
@@ -116,20 +119,21 @@ void Camera::Update(){
 			}
 			viewMatrix.translate(0, 0, distance);
 			
-			Vector3f rotation = -entityToTrack->rotationVector;
+			Vector3f rotation = -entityToTrack->rotation;
 			/// Rotate more, so that we view the entity from the front instead, if camera is in reverse-mode.
 			if (revert)
 			{
 				rotation.y += PI;
 			}
+			rotation += offsetRotation;
 
 			rotationMatrix.multiply(Matrix4d().InitRotationMatrix(rotation.x, 1, 0, 0));
 			rotationMatrix.multiply(Matrix4d().InitRotationMatrix(rotation.y, 0, 1, 0));
 
 			viewMatrix.multiply(rotationMatrix);
 				/*
-			viewMatrix.multiply(Matrix4d().InitRotationMatrix(-this->entityToTrack->rotationVector.x, 1, 0, 0));
-			viewMatrix.multiply(Matrix4d().InitRotationMatrix(-this->entityToTrack->rotationVector.y, 0, 1, 0));
+			viewMatrix.multiply(Matrix4d().InitRotationMatrix(-this->entityToTrack->rotation.x, 1, 0, 0));
+			viewMatrix.multiply(Matrix4d().InitRotationMatrix(-this->entityToTrack->rotation.y, 0, 1, 0));
 			*/
 		}
 		else if (trackingMode == TrackingMode::THIRD_PERSON){
@@ -147,7 +151,7 @@ void Camera::Update(){
 		}
 
 		// Then translate the camera to it's position. (i.e. translate the world until camera is at a good position).
-		Matrix4d translationMatrix = Matrix4d().translate(-this->entityToTrack->positionVector);
+		Matrix4d translationMatrix = Matrix4d().translate(-this->entityToTrack->position - relativePosition);
 		viewMatrix.multiply(translationMatrix);
 		/// If from behind, adjust it slightly afterward too!
 		if (trackingMode == TrackingMode::FROM_BEHIND){
@@ -171,7 +175,7 @@ void Camera::Update(){
 
 
 		// Then translate the camera to it's position. (i.e. translate the world until camera is at a good position).
-		Matrix4d translationMatrix = Matrix4d().translate(this->position);
+		Matrix4d translationMatrix = Matrix4d().translate(this->position + relativePosition);
 		viewMatrix.multiply(translationMatrix);
 	}
 

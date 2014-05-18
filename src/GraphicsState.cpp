@@ -19,5 +19,6 @@ GraphicsState::GraphicsState(){
 	viewportX0 = viewportY0 = 0;
 	promptScreenshot = recording = false;
 	screenshotsTaken = 0;
+	framesRecorded = 0;
 };
 

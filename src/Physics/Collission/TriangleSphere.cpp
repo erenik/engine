@@ -119,13 +119,14 @@ bool TriangleSphereCollission(Triangle * triangle, Sphere * sphere, Collission &
 
 bool TriangleSphereCollission(Triangle * triangle, Entity * sphereEntity, Collission &data){
 	Sphere * sphere = (Sphere*)sphereEntity->physics->shape;
-	sphere->position = sphereEntity->positionVector;
+	sphere->position = sphereEntity->position;
+	sphere->radius = sphereEntity->physics->physicalRadius;
 	return TriangleSphereCollission(triangle, sphere, data);
 /*
 	/// Remember to multiply it by it's normal-matrix....
 	Vector3f planeNormal = triangle->normal;
 	/// First early-out: distance to the triangle.
-	float distance = abs(triangle->Distance(sphereEntity->positionVector));
+	float distance = abs(triangle->Distance(sphereEntity->position));
 	if (distance > sphereEntity->physics->physicalRadius)
 		return false;
 
@@ -147,7 +148,7 @@ bool TriangleSphereCollission(Triangle * triangle, Entity * sphereEntity, Collis
 	for (int i = 0; i < PLANE_PLANES; ++i){
 		// If any of the plane's distance is negative it means we're outside the planeski.
 																// 0 will make it only the triangle and not a perimeter around it.
-		if (planeFrustum[i].Distance(sphereEntity->positionVector) > 0){ // sphereEntity->physics->physicalRadius)
+		if (planeFrustum[i].Distance(sphereEntity->position) > 0){ // sphereEntity->physics->physicalRadius)
 			colliding = false;
 			break;
 		}
@@ -172,7 +173,7 @@ bool TriangleSphereCollission(Triangle * triangle, Entity * sphereEntity, Collis
 
 	/// For each vertex (easier to check, yo)
 	for (int i = 0; i < 3; ++i){
-		vertexToSphere[i] = sphereEntity->positionVector - edgeStart[i];
+		vertexToSphere[i] = sphereEntity->position - edgeStart[i];
 		float distanceVertToSphere = vertexToSphere[i].Length();
 		if (distanceVertToSphere < sphereEntity->physics->physicalRadius){
 			data.collissionNormal = vertexToSphere[i].NormalizedCopy();
@@ -201,7 +202,7 @@ bool TriangleSphereCollission(Triangle * triangle, Entity * sphereEntity, Collis
 
 		/// Projected point is somewhere along the edge, find it!
 		Vector3f projectedPoint = edgeStart[i] + relativeDistanceAlongEdge * edgeVector;
-		Vector3f projectedPointToSphere = sphereEntity->positionVector - projectedPoint;
+		Vector3f projectedPointToSphere = sphereEntity->position - projectedPoint;
 		float distanceToSphere = projectedPointToSphere.Length();
 
 		if (distanceToSphere > sphereEntity->physics->physicalRadius)

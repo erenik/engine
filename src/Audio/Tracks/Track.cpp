@@ -62,3 +62,11 @@ void Track::Loop(bool value)
 	if (audio)
 		audio->repeat = true;
 }
+
+void Track::SetVolume(float relative)
+{
+	if (relative < 0)
+		relative = 0;
+	if (audio)
+		audio->volume = relative;
+}

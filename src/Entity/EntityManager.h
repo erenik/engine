@@ -25,7 +25,6 @@ public:
 	static void Deallocate();
 	~EntityManager();
 	
-private:
 	/** Creates an entity using specified model and base texture.
 		Should only be callable by other managers.
 	*/
@@ -35,6 +34,7 @@ private:
 	*/
 	bool DeleteEntity(Entity * entity);
 
+private:
 	/** Deletes (resets IDs) of all entities that have been flagged for deletion and are not registered anywhere still. */
 	int DeleteUnusedEntities();
 

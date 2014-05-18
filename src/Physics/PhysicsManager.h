@@ -182,7 +182,7 @@ private:
 	/// Sets physics type of target entities.
 	void SetPhysicsType(List<Entity*> &targetEntities, int type);
 	/// Sets physics shape (Plane, Sphere, Mesh, etc.)
-	void SetPhysicsShape(List<Entity*> &targetEntities, int type);
+	void SetPhysicsShape(List<Entity*> targetEntities, int type);
 
 	/** Registers an Entity to take part in physics calculations. This requires that the Entity has the physics attribute attached.
 		Returns 0 upon success, 1 if it's lacking a physics attribute, 2 if the Entity array has been filled and 3 if the dynamic entity array has been filled.

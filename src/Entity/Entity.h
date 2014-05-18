@@ -94,11 +94,11 @@ public:
 	Vector3f Velocity();
 
 	/** Sets position */
-	void position(Vector3f position);
+	void SetPosition(Vector3f position);
 	/** Sets position */
-	void position(float x, float y, float z);
+	void SetPosition(float x, float y, float z);
 	/** Rotates the Entity */
-	void rotate(Vector3f rotation);
+	void Rotate(Vector3f rotation);
 	/** Sets scale of the entity */
 	void SetScale(Vector3f scale);
 	/** Scales the Entity */
@@ -106,24 +106,24 @@ public:
 	/** Scales the Entity */
 	void Scale(float scale);
 	/** Translates the Entity */
-	void translate(float x, float y, float z);
+	void Translate(float x, float y, float z);
 	/** Translates the Entity */
-	void translate(Vector3f translation);
+	void Translate(Vector3f translation);
 
 	/// Recalculates the transformation matrix
-#define recalculateMatrix RecalculateMatrix
+#define RecalculateMatrix RecalculateMatrix
 	void RecalculateMatrix();
 
 	/// World coordinate position
-	Vector3f positionVector;
+	Vector3f position;
 	/// Scale in x,y,z
-	Vector3f scaleVector;
+	Vector3f scale;
 	/// Rotation in pitch, yaw, roll (x,y,z)
-	Vector3f rotationVector;
+	Vector3f rotation;
 
 	/// Rotation matrix that is calculated while transforming.
 	Matrix4d rotationMatrix;
-	/// The transformation matrix that is applied when rendering. Do note that recalculateMatrix has to be called to update this.
+	/// The transformation matrix that is applied when rendering. Do note that RecalculateMatrix has to be called to update this.
 	Matrix4f transformationMatrix;
 
 	/// Material to be used for this Entity.

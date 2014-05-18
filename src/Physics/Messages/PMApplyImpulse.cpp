@@ -29,7 +29,7 @@ void PMApplyImpulse::Process(){
         /// Grab point locationur?
         Force * torque = new Force();
 
-        Vector3f torqueVector = -((position) - e->positionVector).CrossProduct(force) * 0.3f;
+        Vector3f torqueVector = -((position) - e->position).CrossProduct(force) * 0.3f;
         torque->amount = torqueVector;
         torque->lifeTime = duration;
         physics->torques.Add(torque);

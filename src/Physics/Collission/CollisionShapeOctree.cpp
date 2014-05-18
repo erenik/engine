@@ -419,7 +419,7 @@ int CollisionShapeOctree::FindCollissions(Entity * targetEntity, List<Collission
 		switch(targetEntity->physics->physicsShape){
 			case ShapeType::SPHERE: {
 				Sphere * sphere = (Sphere*)targetEntity->physics->shape;
-				sphere->position = targetEntity->positionVector;
+				sphere->position = targetEntity->position;
 				sphere->radius = targetEntity->physics->physicalRadius;
 				if (TriangleSphereCollission(&tri, sphere, col)){
 				//	col.distanceIntoEachOther
@@ -486,12 +486,12 @@ int CollisionShapeOctree::IsEntityInside(Entity * entity, Matrix4f & localTransf
 	Vector4f maxVec(right, top, nearBound, 1.0f);
 	minVec = localTransform * minVec;
 	maxVec = localTransform * maxVec;
-	float entityLeft = entity->positionVector.x - entity->radius,
-		entityRight = entity->positionVector.x + entity->radius,
-		entityTop = entity->positionVector.y + entity->radius,
-		entityBottom = entity->positionVector.y - entity->radius,
-		entityNear = entity->positionVector.z + entity->radius,
-		entityFar = entity->positionVector.z - entity->radius;
+	float entityLeft = entity->position.x - entity->radius,
+		entityRight = entity->position.x + entity->radius,
+		entityTop = entity->position.y + entity->radius,
+		entityBottom = entity->position.y - entity->radius,
+		entityNear = entity->position.z + entity->radius,
+		entityFar = entity->position.z - entity->radius;
 	// Check if it's inside.
 	if (entityRight < maxVec.x &&
 		entityLeft > minVec.x &&

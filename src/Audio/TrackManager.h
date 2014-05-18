@@ -6,10 +6,10 @@
 #define TRACK_MANAGER_H
 
 #include <List/List.h>
+#include "Tracks/Track.h"
 
 #define TrackMan (*TrackManager::Instance())
 
-class Track;
 class Audio;
 
 class TrackCategory {

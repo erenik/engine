@@ -145,7 +145,7 @@ public:
 	CVSaturationFilter();
 	virtual int Process(CVPipeline * pipe);
 private:
-	//CVFilterSetting * targetSaturation, * scope, * replacementColor;
+	CVFilterSetting * targetSaturation, * scope, * replacementColor;
 };
 
 /// Operates on a given band of values, painting those with target color.

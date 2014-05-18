@@ -298,7 +298,7 @@ RenderViewport * GraphicsManager::GetViewport(int byID)
 }
 
 /// Returns the active camera for the given viewport
-const Camera * GraphicsManager::ActiveCamera(int viewport /* = 0*/) const {
+Camera * GraphicsManager::ActiveCamera(int viewport /* = 0*/) const {
     if (viewport == 0){
         return cameraToTrack;
     }
@@ -343,6 +343,22 @@ void GraphicsManager::EnableAllDebugRenders(bool enabled/* = true*/){
 	renderAI = renderFPS = renderGrid =
 		renderPhysics = renderNavMesh = renderLights = enabled;
 }
+
+/** Returns a pointer to the active system-global UI. If it has not been created earlier it will be created upon calling it.
+	If argument is true and no global has been constructed, it will be constructed.
+*/
+UserInterface * GraphicsManager::GetGlobalUI(bool createIfNeeded /*= false*/)
+{
+	// Move this creatoin elsewhere.. wtf man?
+	if (createIfNeeded && !globalUI)
+	{
+		globalUI = new UserInterface();
+		globalUI->CreateRoot();
+		globalUI->name = "System-global UI";
+	}
+	return globalUI; 
+}
+
 
 /// Sets active UserInterface to be rendered
 void GraphicsManager::SetUI(UserInterface * i_ui){
@@ -551,7 +567,7 @@ void GraphicsManager::ProcessMessages(){
 		delete msg;
 		now = Timer::GetCurrentTimeMs();
 		/// Only process 10 ms of messages each frame!
-		if (now > messageProcessStartTime + 10)
+		if (now > messageProcessStartTime + 100)
 			break;
 	}
 	graphicsMessageQueueMutex.Release();
@@ -1038,7 +1054,7 @@ void GraphicsManager::UpdateLighting(){
 
 	//	std::cout<<"\nLight position updated from: "<<dynLight.position;
 		dynLight.position = owner->transformationMatrix.product(dynLight.position);
-	//	std::cout<<" to "<<dynLight.position<<" entityPos: "<<owner->positionVector;
+	//	std::cout<<" to "<<dynLight.position<<" entityPos: "<<owner->position;
 		graphicsState->lighting->Add(&dynLight);
 	}
 }

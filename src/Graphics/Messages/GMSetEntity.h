@@ -44,3 +44,41 @@ private:
 	bool bValue;
 	int target;
 };
+
+// For setting strings
+class GMSetEntitys : public GraphicsMessage 
+{
+public:
+	GMSetEntitys(Entity * entity, int target, String value);
+	virtual void Process();
+private:
+	Entity * entity;
+	String sValue;
+	int target;
+};
+
+class GMSetEntityf : public GraphicsMessage 
+{
+public:
+	GMSetEntityf(Entity * entity, int target, float value);
+	virtual void Process();
+private:
+	Entity * entity;
+	float fValue;
+	int target;
+};
+
+class GMSetEntityVec4f : public GraphicsMessage 
+{
+public:
+	GMSetEntityVec4f(Entity * entity, int target, Vector4f value);
+	virtual void Process();
+private:
+	Entity * entity;
+	Vector4f vec4fValue;
+	int target;
+};
+
+
+
+

@@ -45,6 +45,8 @@ public:
 	Map * GetMapBySource(String source);
 	/// Prints list of enities in active map to console
 	void ListEntities();
+
+	Entity * GetEntityByName(String name);
 	/** Fills the provided selection with all available entities in the active map. */
 	int GetEntities(List<Entity*> & entityList);
 	/** Returns a selection object containing all entities in the current map. */
@@ -56,6 +58,8 @@ public:
 	Entity * CreateEntity(Entity * entity);
 	/** Creates an entity with target model and texture and places it into the active map. */
 	Entity * CreateEntity(Model * model, Texture * texture, Vector3f position = Vector3f());
+	/// Adds target entity to the map, registering it for physics and graphics.
+	bool AddEntity(Entity * entity);
 
 	/** Adds an event ~ */
 	bool AddEvent(Script * eventScript);

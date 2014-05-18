@@ -172,7 +172,7 @@
 //	ls =  new LocationState();
 //		/// Define workplace attributes
 //		Shop * shop = new Shop();
-//			shop->location = location->positionVector + Vector3f(0,1,0);
+//			shop->location = location->position + Vector3f(0,1,0);
 //			strcpy(shop->name, "Ye Olde Shop");
 //			shop->locationEntity = location;
 //			shop->radius = DEFAULT_RADIUS;
@@ -194,7 +194,7 @@
 //		/// Define workplace attributes
 //		wp = new Workplace();
 //			wp->coinsPerHour = 4;
-//			wp->location = location->positionVector + Vector3f(0,1,0);
+//			wp->location = location->position + Vector3f(0,1,0);
 //			strcpy(wp->name, "Ironworks");
 //			wp->locationEntity = location;
 //			wp->radius = DEFAULT_RADIUS;
@@ -216,7 +216,7 @@
 //			/// Define residence attributes
 //			Residence * r = new Residence();
 //				r->price = 50 + rand()%50;
-//				r->location = location->positionVector + Vector3f(0,1,0);
+//				r->location = location->position + Vector3f(0,1,0);
 //				strcpy(r->name, "Residence ");
 //				char buf[4]; memset(buf, 0, 4);
 //				_itoa(i+1, buf, 10);
@@ -239,7 +239,7 @@
 //		/// Define workplace attributes
 //		GenericLocation * g = new GenericLocation();
 //			g->socialFactor = 2.0f;
-//			g->location = location->positionVector + Vector3f(0,1,0);
+//			g->location = location->position + Vector3f(0,1,0);
 //			strcpy(g->name, "Park");
 //			g->locationEntity = location;
 //			g->radius = DEFAULT_RADIUS;
@@ -308,14 +308,14 @@
 //			continue;
 //		}
 //		CharacterState * cs = ((CharacterState*)character[i]->state->globalState);
-//		Waypoint * wp = WaypointMan.GetClosestValidWaypoint(character[i]->positionVector);
+//		Waypoint * wp = WaypointMan.GetClosestValidWaypoint(character[i]->position);
 //		cs->currentLocWp = wp;
 //	}
 //	for (int i = 0; i < this->MAX_LOCATIONS; ++i){
 //		if (locList[i] == NULL)
 //			continue;
 //		Waypoint * wp = NULL;
-//		wp = WaypointMan.GetClosestValidFreeWaypoint(locList[i]->positionVector);
+//		wp = WaypointMan.GetClosestValidFreeWaypoint(locList[i]->position);
 //		assert(wp->passable && "WaypointMan.GetClosestValidFreeWaypoint returned an unpassable tile! D:");
 //		LocationState * ls = ((LocationState*)locList[i]->state->globalState);
 //		if (!wp){
@@ -330,8 +330,8 @@
 //		wp->pData = locList[i];
 //		ls->location->wp = wp;
 //		ls->location->location = wp->position;
-//		locList[i]->positionVector = wp->position;
-//		locList[i]->recalculateMatrix();
+//		locList[i]->position = wp->position;
+//		locList[i]->RecalculateMatrix();
 //
 //	}
 //}

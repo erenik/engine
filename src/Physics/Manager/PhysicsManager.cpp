@@ -50,7 +50,7 @@ PhysicsManager::PhysicsManager(){
 	physicsMessageQueueMutex.Create("physicsMessageQueueMutex");
 	aabbSweeper = new AABBSweeper();
 
-	pauseOnCollission = true;
+	pauseOnCollission = false;
 
 	collissionResolver = LAB_PHYSICS_IMPULSES;
 	integrator = Integrator::LAB_PHYSICS;
@@ -159,7 +159,8 @@ void PhysicsManager::SetPhysicsType(List<Entity*> & targetEntities, int type){
 
 
 /// Sets physics shape (Plane, Sphere, Mesh, etc.)
-void PhysicsManager::SetPhysicsShape(List<Entity*> & targetEntities, int type){
+void PhysicsManager::SetPhysicsShape(List<Entity*> targetEntities, int type)
+{
 	if (type <= ShapeType::NULL_TYPE|| type >= ShapeType::NUM_TYPES){
 		std::cout<<"\nERROR: Invalid physics type provided!";
 		return;
@@ -337,10 +338,10 @@ void PhysicsManager::RecalculatePhysicsProperties(){
 		Entity * entity = physicalEntities[i];
 		PhysicsProperty * physics = entity->physics;
 		/// The physical position is defined as the centre of the object, physically.
-	//	physics->physicalPosition = entity->positionVector;
-	//	physics->physicalPosition += entity->model->centerOfModel.ElementMultiplication(entity->scaleVector);
+	//	physics->physicalPosition = entity->position;
+	//	physics->physicalPosition += entity->model->centerOfModel.ElementMultiplication(entity->scale);
 		// Recalculate radius
-		physics->physicalRadius = entity->model->radius * entity->scaleVector.MaxPart();
+		physics->physicalRadius = entity->model->radius * entity->scale.MaxPart();
 		physics->aabb.Recalculate(entity);
 	}
 }

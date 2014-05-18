@@ -15,7 +15,7 @@ bool PlaneSphereCollission(Entity * planeEntity, Entity * sphereEntity, Collissi
 	plane.Set3Points(m * plane.point1, m * plane.point2, m * plane.point3);
 	/// Remember to multiply it by it's normal-matrix....
 	Vector3f planeNormal = plane.normal;
-	float distance = abs(plane.Distance(sphereEntity->positionVector)) - sphereEntity->physics->physicalRadius;
+	float distance = abs(plane.Distance(sphereEntity->position)) - sphereEntity->physics->physicalRadius;
 	/// Collission?!
 	if (distance > ZERO)
 		return false;

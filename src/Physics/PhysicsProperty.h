@@ -51,6 +51,9 @@ public:
 	/// Set default values.
 	void Nullify();
 
+	/// Calculates inertia tensor matrix and its inversion.
+	void CalculateInertiaTensor();
+
 	/// Calculated using velocity, mass and angular velocity..?
 	float KineticEnergy();
 	/// Applies target impulse at specified position to this entity. Impulse in Ns (kg*m/s)

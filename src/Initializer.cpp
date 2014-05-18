@@ -134,15 +134,17 @@ void * Deallocate(void *vArgs){
 	// Start with stopping the network before deallocating anything to avoid errors
 	NetworkMan.Shutdown();
 
-	/// Remove UIs from rendering.
-	Graphics.QueueMessage(new GMSetUI(NULL));
-	Graphics.QueueMessage(new GMSetGlobalUI(NULL));
-
+	
 
 	timeStart = clock();
 	/// When they are removed, deallocate them.
 	while(Graphics.GetUI() || Graphics.GetGlobalUI())
+	{
+		/// Remove UIs from rendering.
+		Graphics.QueueMessage(new GMSetUI(NULL));
+		Graphics.QueueMessage(new GMSetGlobalUI(NULL));
 		Sleep(5);
+	}
 	StateMan.DeallocateUserInterfaces();
 	timeTaken = clock() - timeStart;
 	std::cout<<"\nDeallocating UIs: "<<timeTaken / CLOCKS_PER_SEC<<" seconds";

@@ -5,14 +5,17 @@
 #include "Physics.h"
 #include "List/List.h"
 
-namespace ShapeType {
-	enum ShapeTypes {
+// Re-naming from ShapeType to PhysicsShape.
+#define ShapeType PhysicsShape 
+
+namespace PhysicsShape  {
+	enum PhysicsShapes {
 		NULL_TYPE,
 		PLANE,	// An unlimited plane!
 		TRIANGLE,	// A trilangle o-o
 		QUAD,		// A quad o-o;
 		CYLINDER,
-		SPHERE,		// Uses the Entity's internal [radius] and [positionVector]
+		SPHERE,		// Uses the Entity's internal [radius] and [position]
 		MESH,
 		/// Don't mess with the order here, only insert new ones below as the save/load relies on this list for the physics. :)
 		CUBE,

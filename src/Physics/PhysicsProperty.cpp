@@ -101,6 +101,58 @@ void PhysicsProperty::Nullify(){
 	
 }
 
+/// Calculates inertia tensor matrix and its inversion.
+void PhysicsProperty::CalculateInertiaTensor()
+{
+	/// Calculate it's mass too while we're at it.
+	Vector3f scale = aabb.scale;
+	/// TODO: Move mass settings elsewhere! And have it depend on a density parameter so it can scale well?
+	/// Density in kg/m³ or g/dm³
+	float defaultDensity = 500;
+	mass = scale.x * scale.y * scale.z * defaultDensity;
+	assert(mass > 0);
+	if (mass <= 0)
+		return;
+	inverseMass = 1 / mass;
+	std::cout<<"\nMass: "<<mass<<" and inverseMass: "<<inverseMass;
+	/// Calculate intertia tensor!
+	/// Ref: http://en.wikipedia.org/wiki/List_of_moment_of_inertia_tensors
+	float m = 1.0f / 12.0f * mass;
+	float h2 = pow(aabb.scale.y, 2);
+	float w2 = pow(aabb.scale.x, 2);
+	float d2 = pow(aabb.scale.z, 2);
+
+	#define PRINT(m) std::cout<<"\n m: "<<m;
+	std::cout<<"\nm: "<<m;
+	std::cout<<"\nh2: "<<h2;
+	std::cout<<"\nw2: "<<w2;
+	std::cout<<"\nd2: "<<d2;
+	float v = m*(h2 + d2);
+	std::cout<<"\nv: "<<v;
+
+	// Dude... http://en.wikipedia.org/wiki/List_of_moment_of_inertia_tensors
+	// uses 1/12 applied to the angles. Why not done it here? Stupid emil! o.o
+	inertiaTensorBody = Matrix3f(m*(h2 + d2),0,0,0,m*(w2+d2),0,0,0,m*(w2+h2));
+	/// Approximation: http://en.wikipedia.org/wiki/List_of_moments_of_inertia
+	// Use the largest value..?
+	float longestSide = h2 + d2 + w2;
+	momentOfInertia = longestSide * longestSide * mass * 0.165f;
+
+	//   physics->inertiaTensorBody = Matrix3f();
+	const float * elements = inertiaTensorBody.getPointer();
+	std::cout<<"\nInertia tensor for "<<owner->name<<": ";
+	for (int i = 0; i < 9; ++i)
+		std::cout<<" "<<elements[i];
+	inertiaTensorBodyInverted = inertiaTensorBody.InvertedCopy();
+	elements = inertiaTensorBodyInverted.getPointer();
+	std::cout<<"\nInverted inertia tensor for "<<owner->name<<": ";
+	for (int i = 0; i < 9; ++i)
+		std::cout<<" "<<elements[i];
+
+	/// Woo!
+	inertiaTensorCalculated = true;
+}
+
 /// Calculated using velocity, mass and angular velocity..?
 float PhysicsProperty::KineticEnergy(){
 	/// Ref: http://en.wikipedia.org/wiki/Kinetic_energy
@@ -145,7 +197,7 @@ void PhysicsProperty::ApplyImpulse(Vector3f impulse, Vector3f position){
 
 /// Updates physical radius, Bounding box size, etc. Should be called from the physics thread only!
 void PhysicsProperty::UpdateProperties(Entity * entity){
-    physicalRadius = entity->model->radius * entity->scaleVector.MaxPart();
+    physicalRadius = entity->model->radius * entity->scale.MaxPart();
     aabb.Recalculate(entity);
 	obb.Recalculate(entity);
 }
@@ -197,7 +249,10 @@ void PhysicsProperty::CalculateVelocity(){
     velocity = linearMomentum * inverseMass;
 
 	// Angular - assumes the proper matrices have already been set up.
+	if (!inertiaTensorCalculated)
+		CalculateInertiaTensor();
 	assert(inertiaTensorCalculated);
+	
 	Matrix3f rotationMatrix = owner->rotationMatrix.GetMatrix3f();
 	Matrix3f rotationMatrixTransposed = rotationMatrix.TransposedCopy();
 	/// I(body), Technically a 3x3 matrix, specifies how mass is ditributed in the body.

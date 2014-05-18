@@ -616,44 +616,38 @@ int CVHueFilter::Process(CVPipeline * pipe)
 	return CVReturnType::CV_IMAGE;
 }
 
-
-/// Filters away depending on saturation. Requires colored input.
 CVSaturationFilter::CVSaturationFilter()
 	: CVImageFilter(CVFilterID::SATURATION_FILTER)
 {
-	/*
-	targetSaturation = new CVFilterSetting("Target saturation", 0.0f);
-	scope = new CVFilterSetting("Filter scope", 0.2f);
-	replacementColor = new CVFilterSetting("Replacement color", Vector3f(0,0,0));
+	targetSaturation = new CVFilterSetting("Target saturation", 0);
+	scope = new CVFilterSetting("Scope/range", 30);
 	settings.Add(targetSaturation);
 	settings.Add(scope);
-	settings.Add(replacementColor);
-	*/
+
+	about = "Paints black the pixels whose saturatoin are within target range.";
 }
-
-
 int CVSaturationFilter::Process(CVPipeline * pipe)
 {
-	// Expect a color unsigned byte image.
-	if (pipe->input.type() != CV_8UC3)
+	// Ensure the image is greyscale.
+	if (pipe->input.channels() != 1)
 	{
-		errorString = "Requires 3-channels single-byte-per-channel image!";
+		errorString = "Must be single-channel.";
 		return -1;
 	}
-
-	
-	// Allocate output to be same size as input
-//	pipe->output =  channels[0];
-//	int numChannels = pipe->output.channels();
-	return CVReturnType::CV_IMAGE;
-	
-	/*
-	/// Then load over the data!
-	unsigned char * cData = (unsigned char*) (pipe->input.data);
+	// Ensure more stuff as needed.
+	// ...
+	// Go through every pixel
+	unsigned char * cData = (unsigned char*) (pipe->saturation.data);
+	if (!cData)
+	{
+		errorString = "No available saturation data.";
+		return -1;
+	}
 	unsigned char * outputData = (unsigned char*) (pipe->output.data);
 	int yStep, xStep, cStep;
 	int channels = pipe->input.channels();
-	// Manual invert of the entire image.
+	// Copy input to output
+	pipe->input.copyTo(pipe->output);
 	// For UCHAR
 	for (int y = 0; y < pipe->input.rows; ++y)
 	{
@@ -662,37 +656,22 @@ int CVSaturationFilter::Process(CVPipeline * pipe)
 		{
 			xStep = x * channels;
 			/// Fetch colors.
-			float r,g,b;
 			int index = yStep + xStep;
-			int total = 0;
-			total += r = cData[index];
-			total += g = cData[index+1];
-			total += b = cData[index+2];
-			
-			// Reference for saturation calculation: 
-			// http://www.rapidtables.com/convert/color/rgb-to-hsl.htm
-			Vector3f color(r,g,b);
-			color /= 255.f;
-			
-			float maxPart = color.MaxPart();
-			float minPart = color.MinPart();
+			int value = cData[index];
 
-			float L = (maxPart + minPart) * 0.5f;
-			float diff = maxPart - minPart;
-			float saturation = 0;
-			if (diff == 0)
-				saturation = 0;
-			else 
-				saturation = diff / (1 - AbsoluteValue(2 * L - 1));
-
-			// Replace with saturation
-			outputData[index] = outputData[index+1] = outputData[index+2] = saturation * 255.f;
-
+			// Within. Remove?
+			if (value >= targetSaturation->iValue - scope->iValue &&
+				value <= targetSaturation->iValue + scope->iValue)
+			{
+				// Replace with saturation
+				outputData[index] = 0;	
+			}
 		}
 	}
-	*/
+
 	return CVReturnType::CV_IMAGE;
-}
+
+};
 
 
 CVValueFilter::CVValueFilter()

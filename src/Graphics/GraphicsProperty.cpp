@@ -11,7 +11,8 @@
 #include "TextureManager.h"
 
 
-GraphicsProperty::GraphicsProperty(){
+GraphicsProperty::GraphicsProperty()
+{
 	effects = NULL;
 	dynamicLights = NULL;
 	staticLights = NULL;
@@ -22,6 +23,8 @@ GraphicsProperty::GraphicsProperty(){
 	queuedAnimation = NULL;
 	currentAnimation = NULL;
 	visible = true;
+	textColor = Vector4f(1,1,1,1);
+	textSizeRatio = 1.0f;
 }
 
 

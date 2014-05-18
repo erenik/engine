@@ -46,7 +46,7 @@ void CVPipeline::WriteTo(std::fstream & file)
 bool CVPipeline::ReadFrom(std::fstream & file)
 {
 	/// Clear current pipeline before reading in this!
-	filters.ClearAndDelete();
+	this->Clear();
 
 	int version = CV_PIPELINE_VERSION_1;
 	file.read((char*) &version, sizeof(int));
@@ -76,6 +76,13 @@ bool CVPipeline::ReadFrom(std::fstream & file)
 	return true;
 }
 
+// Clears all filters, calling OnDelete on them so that they may do proper clean-up.
+void CVPipeline::Clear()
+{
+	while(filters.Size())
+		DeleteFilterByIndex(0);
+}
+
 
 /// Current amount of filters.
 int CVPipeline::Filters()
@@ -89,6 +96,7 @@ CVFilter * CVPipeline::DeleteFilterByIndex(int index)
 	if (index < 0 || index >= filters.Size())
 		return NULL;
 	CVFilter * filter = filters[index];
+	filter->OnDelete();
 	// Remove it from the list.
 	filters.RemoveIndex(index, ListOption::RETAIN_ORDER);
 	// And delete it.
@@ -111,6 +119,8 @@ int CVPipeline::Process(cv::Mat * i_initialInput)
 	Timer filterTimer;
 
 	CVFilter * lastProcessedFilter = NULL;
+	// To avoid unnecessary painting time.
+	CVFilter * filterToPaint = NULL;
 
 	returnType = CVReturnType::CV_IMAGE;
 	for (int i = 0; i < filters.Size(); ++i)
@@ -121,9 +131,25 @@ int CVPipeline::Process(cv::Mat * i_initialInput)
 			continue;
 		filterTimer.Start();
 		returnType = filter->Process(this);
-		filter->processingTime = filterTimer.GetMs();
+		filter->processingTime = filterTimer.GetMicro();
 
 		lastProcessedFilter = filter;
+		// Update the filter to paint as necessary.
+		if (!filterToPaint)
+			filterToPaint = lastProcessedFilter;
+		else 
+		{
+			switch(lastProcessedFilter->ID())
+			{
+				// Filters to skip.
+			case CVFilterID::VIDEO_WRITER:
+				break;
+				// Most filters are renderable.
+			default:
+				filterToPaint = lastProcessedFilter;
+			}
+		}
+
 		/// Copy output/Render if even if it failed (might want to render some debug-failure information)
 		if (returnType == CVReturnType::CV_IMAGE)
 		{
@@ -136,24 +162,26 @@ int CVPipeline::Process(cv::Mat * i_initialInput)
 		}
 		// Always call Paint on them for now... TODO: FIX THIS AS A SETTING could impact significantly
 		else {
+			/*
 			filterTimer.Start();
 			filter->Paint(this);
-			filter->renderTime = filterTimer.GetMs();
+			filter->renderTime = filterTimer.GetMicro();
+			*/
 		}
 		// If ok, send status info.
 		if (filter->status.Length())
 			Graphics.QueueMessage(new GMSetUIs(filter->name+"Status", GMUI::TEXT, filter->status));
 	}
+	// Stop timer before painting!	
+	pipelineTimer.Stop();
+	pipelineTimeConsumption = pipelineTimer.GetMicro();
+
 	// If the output was not an image and this is the last in sequence, make sure to paint something renderable onto the output texture.
-	if (lastProcessedFilter)
+	if (filterToPaint)
 	{
-		lastProcessedFilter->Paint(this);
+		filterToPaint->Paint(this);
 	}
 		
-
-	pipelineTimer.Stop();
-	pipelineTimeConsumption = pipelineTimer.GetMs();
-
 	return returnType;
 }
 

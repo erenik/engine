@@ -53,6 +53,7 @@ class GraphicsManager {
 	friend class GMRegister;
 	friend class GMClear;
 	friend class GMRender;
+	friend class GMAddLight;
 //	friend class ;
 private:
 	/// Constructor which anulls all relevant variables.
@@ -78,8 +79,10 @@ public:
 
 	/// Returns a pointer to active GUI
 	UserInterface * GetUI() { return ui; };
-	/// Retursn a pointer to the active system-global UI.
-	UserInterface * GetGlobalUI () { return globalUI; };
+	/** Returns a pointer to the active system-global UI. If it has not been created earlier it will be created upon calling it.
+		If argument is true and no global has been constructed, it will be constructed.
+	*/
+	UserInterface * GetGlobalUI(bool createIfNeeded = false);
 	List<RenderViewport*> GetViewports() { return renderViewports; };
 	/// Sets active UserInterface to be rendered
 	void SetUI(UserInterface * ui);
@@ -92,9 +95,9 @@ public:
 	RenderViewport * GetViewport(int byID);
 
     /// Returns the active camera for the given viewport
-	const Camera * ActiveCamera(int viewport = 0) const;
+	Camera * ActiveCamera(int viewport = 0) const;
 	/// Returns the active lighting. 
-	const Lighting * ActiveLighting() {return lighting;};
+	Lighting * ActiveLighting() {return lighting;};
 	/// Returns the active lighting. Should not be called from outside the render-thread.
 	Lighting * ActiveLightingEditable() {return lighting;};
 

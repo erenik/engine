@@ -10,6 +10,14 @@
 #include "CVData.h"
 #include "PhysicsLib.h"
 
+// Render functions, since they are shared by multiple filter sub-classes
+void RenderPolygons(CVPipeline * pipe);
+void RenderContours(CVPipeline * pipe);
+void RenderConvexHulls(CVPipeline * pipe);
+void RenderConvexityDefects(CVPipeline * pipe);
+void RenderHands(CVPipeline * pipe);
+
+
 class CVDataFilter : public CVFilter
 {
 public:
@@ -18,15 +26,7 @@ public:
 	/** Main painting function. This will be called on the last processed filter in order to get a renderable result.
 		Separated from main processing since painting can take an unnecessary long amount of time to complete.
 	*/
-	virtual void Paint(CVPipeline * pipe);
-
-	// Render functions, since they are shared by multiple filter sub-classes
-	void RenderPolygons(CVPipeline * pipe);
-	void RenderContours(CVPipeline * pipe);
-	void RenderConvexHulls(CVPipeline * pipe);
-	void RenderConvexityDefects(CVPipeline * pipe);
-	void RenderHands(CVPipeline * pipe);
-	
+	virtual void Paint(CVPipeline * pipe);	
 };
 
 
@@ -128,6 +128,7 @@ class CVApproxPolygons : public CVDataFilter
 public:
 	CVApproxPolygons();
 	virtual int Process(CVPipeline * pipe);
+	virtual void Paint(CVPipeline * pipe);
 private:
 	CVFilterSetting * epsilon, * minimumArea;
 	std::vector<cv::Point> approximatedPoly;
@@ -215,7 +216,10 @@ public:
 //	std::vector<cv::Point> fingers;
 //	cv::Point center;
 	Vector3f center;
+	// Contourrrr o-o
 	std::vector<cv::Point> contour;
+	// Bounding rectangle p-p
+	cv::Rect boundingRect;
 	// Area in pixels squared?
 	float contourAreaSize;
 };
@@ -294,6 +298,36 @@ class CVAccumulate : public CVDataFilter
 
 };
 
+
+struct FingerState 
+{
+	FingerState()
+	{
+		processed = 0;
+	};
+	int fingers;
+	// Positions of the fingers, if needed.
+	List<Vector3f> positions;
+	int64 duration;
+	int64 start;
+	int64 stop;
+	// Flag to be used by interactive applications. 0 upon creation. Suggest setting to 1 or using binary flags or something.
+	int processed;
+};
+
+/// Class which records finger movements, storing them in a list of X recent finger movements in the pipeline.
+class CVFingerActionFilter : public CVDataFilter
+{
+public:
+	CVFingerActionFilter();
+	virtual int Process(CVPipeline * pipe);
+private:
+	CVFilterSetting * minimumDuration, * maxStatesStored;
+	int lastFinger;
+	int64 lastFingerStart;
+	int64 lastFingerDuration;
+	List<FingerState> fingerStates;
+};
 
 // 
 

@@ -411,13 +411,14 @@ String UserInterface::rootUIDir; //  = "gui/";
 /** Attempts to load the UI from file. Returns false if it failed.
 	If any elements exist before loading they will be deleted first.
 */
-bool UserInterface::Load(String fromFile){
+bool UserInterface::Load(String fromFile)
+{
     if (root)
 		delete root;
 	/// Create the root node.
 	CreateRoot();
 
-	uiName = fromFile;
+	name = fromFile;
 	/// Load into root.
 	bool success = LoadFromFile(fromFile, root);
 	if (success){

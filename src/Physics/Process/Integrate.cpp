@@ -35,7 +35,7 @@ void PhysicsManager::Integrate(float timeSinceLastUpdate){
             if (physics->velocity.MaxPart()){
             //    std::cout<<"\nVelocity: "<<physics->velocity;
             }
-            dynamicEntity->positionVector += physics->velocity * timeSinceLastUpdate;
+            dynamicEntity->position += physics->velocity * timeSinceLastUpdate;
             dynamicEntity->RecalculateMatrix();
         }
         /// Physics as calculated with strict Rigid body physics
@@ -140,50 +140,7 @@ void PhysicsManager::Integrate(float timeSinceLastUpdate){
 
             if (!physics->inertiaTensorCalculated){
 
-                /// Calculate it's mass too while we're at it.
-                Vector3f scale = physics->aabb.scale;
-                /// TODO: Move mass settings elsewhere! And have it depend on a density parameter so it can scale well?
-                /// Density in kg/m³ or g/dm³
-                physics->mass = scale.x * scale.y * scale.z * defaultDensity;
-                assert(physics->mass > 0);
-                physics->inverseMass = 1 / physics->mass;
-                std::cout<<"\nMass: "<<physics->mass<<" and inverseMass: "<<physics->inverseMass;
-                /// Calculate intertia tensor!
-                /// Ref: http://en.wikipedia.org/wiki/List_of_moment_of_inertia_tensors
-                float m = 1.0f / 12.0f * physics->mass;
-                float h2 = pow(physics->aabb.scale.y, 2);
-                float w2 = pow(physics->aabb.scale.x, 2);
-                float d2 = pow(physics->aabb.scale.z, 2);
-
-            #define PRINT(m) std::cout<<"\n m: "<<m;
-                std::cout<<"\nm: "<<m;
-                std::cout<<"\nh2: "<<h2;
-                std::cout<<"\nw2: "<<w2;
-                std::cout<<"\nd2: "<<d2;
-                float v = m*(h2 + d2);
-                std::cout<<"\nv: "<<v;
-
-				// Dude... http://en.wikipedia.org/wiki/List_of_moment_of_inertia_tensors
-				// uses 1/12 applied to the angles. Why not done it here? Stupid emil! o.o
-                physics->inertiaTensorBody = Matrix3f(m*(h2 + d2),0,0,0,m*(w2+d2),0,0,0,m*(w2+h2));
-				/// Approximation: http://en.wikipedia.org/wiki/List_of_moments_of_inertia
-				// Use the largest value..?
-				float longestSide = h2 + d2 + w2;
-				physics->momentOfInertia = longestSide * longestSide * physics->mass * 0.165f;
-
-             //   physics->inertiaTensorBody = Matrix3f();
-                const float * elements = physics->inertiaTensorBody.getPointer();
-                std::cout<<"\nInertia tensor for "<<dynamicEntity->name<<": ";
-                for (int i = 0; i < 9; ++i)
-                    std::cout<<" "<<elements[i];
-                physics->inertiaTensorBodyInverted = physics->inertiaTensorBody.InvertedCopy();
-                elements = physics->inertiaTensorBodyInverted.getPointer();
-                std::cout<<"\nInverted inertia tensor for "<<dynamicEntity->name<<": ";
-                for (int i = 0; i < 9; ++i)
-                    std::cout<<" "<<elements[i];
-
-                /// Woo!
-                physics->inertiaTensorCalculated = true;
+				physics->CalculateInertiaTensor();
             }
 
             const float * matData;
@@ -218,8 +175,8 @@ void PhysicsManager::Integrate(float timeSinceLastUpdate){
 
 				}
 				else
-					dynamicEntity->positionVector += physics->velocity * timeSinceLastUpdate;
-			  //  entity->rotationVector += physics->angularVelocity * timeSinceLastUpdate;
+					dynamicEntity->position += physics->velocity * timeSinceLastUpdate;
+			  //  entity->rotation += physics->angularVelocity * timeSinceLastUpdate;
 
 				Quaternion & orientation = physics->orientation;
 				Quaternion rotate(physics->angularVelocity.x, physics->angularVelocity.y, physics->angularVelocity.z);
@@ -264,9 +221,9 @@ void PhysicsManager::Integrate(float timeSinceLastUpdate){
             if (currentVelocity > 0.0001f){
                // assert(false);
       //          std::cout<<"vel: "<<currentVelocity;
-        //        std::cout<<"\nMoving from : "<<dynamicEntity->positionVector;
-                dynamicEntity->translate(dynamicEntity->physics->velocity * (float)timeSinceLastUpdate);
-          //      std::cout<<" to: "<<dynamicEntity->positionVector;
+        //        std::cout<<"\nMoving from : "<<dynamicEntity->position;
+                dynamicEntity->Translate(dynamicEntity->physics->velocity * (float)timeSinceLastUpdate);
+          //      std::cout<<" to: "<<dynamicEntity->position;
                 
                 dynamicEntity->physics->state |= PhysicsState::COLLIDING;
                 dynamicEntity->physics->state &= ~PhysicsState::IN_REST;
@@ -313,8 +270,8 @@ void PhysicsManager::Integrate(float timeSinceLastUpdate){
             }
     #ifdef _DEBUG
             // Make object bounce up again if at -100.0f made for testing physics only
-    /*		if (dynamicEntity[i]->positionVector.y < -100.0f && dynamicEntity[i]->physics->velocity.y < 0){
-                dynamicEntity[i]->positionVector.y = -100.0f;
+    /*		if (dynamicEntity[i]->position.y < -100.0f && dynamicEntity[i]->physics->velocity.y < 0){
+                dynamicEntity[i]->position.y = -100.0f;
                 dynamicEntity[i]->physics->velocity.y = dynamicEntity[i]->physics->velocity.y * -0.4;
             }
             */
@@ -357,10 +314,10 @@ void PhysicsManager::Integrate(float timeSinceLastUpdate){
           //          std::cout<<" post: "<<physics->orientation;
            //         std::cout<<"\nAngular Velocity: "<<physics->angularVelocity;
                 }
-                dynamicEntity->recalculateMatrix();
+                dynamicEntity->RecalculateMatrix();
 #else
                 /// Default gimbal-locking rotations
-                dynamicEntity->rotate(dynamicEntity->physics->angularVelocity * timeSinceLastUpdate);
+                dynamicEntity->Rotate(dynamicEntity->physics->angularVelocity * timeSinceLastUpdate);
 #endif
 				/// Adjust velocity in the movement direction depending on our new rotation!
 				Vector3f lookAtPostRotate = dynamicEntity->rotationMatrix * Vector4d(0,0,-1,1);

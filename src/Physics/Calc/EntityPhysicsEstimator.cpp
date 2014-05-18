@@ -32,27 +32,27 @@ void EntityPhysicsEstimator::Process(){
 	SetDefaults(rotationEstimator);
 	SetDefaults(velocityEstimator);
 
-	owner->positionVector = positionEstimator.Calculate(cTime);
-	owner->rotationVector = rotationEstimator.Calculate(cTime);
+	owner->position = positionEstimator.Calculate(cTime);
+	owner->rotation = rotationEstimator.Calculate(cTime);
 	owner->physics->velocity = velocityEstimator.Calculate(cTime);
 	owner->RecalculateMatrix();
 
 	
 	
-//	std::cout<<"\nRotationVector: "<<owner->rotationVector;
+//	std::cout<<"\nRotationVector: "<<owner->rotation;
 
 	/// Calculate an average velocity.
 	float divisor = (cTime - lastTime) / 1000.0f;
 	if (divisor == 0)
 		return;
-	Vector3f velocity = (owner->positionVector - lastPosition) / (divisor);
+	Vector3f velocity = (owner->position - lastPosition) / (divisor);
 //	owner->physics->velocity = velocity;
 
 	/// Save variables for calculatiang average velocity next loop.
-	lastPosition = owner->positionVector;
+	lastPosition = owner->position;
 	lastTime = cTime;
 	
-//	std::cout<<"\nPosition: "<<(int)owner->positionVector.x<<" "<<(int)owner->positionVector.y<<" "<<(int)owner->positionVector.z;
+//	std::cout<<"\nPosition: "<<(int)owner->position.x<<" "<<(int)owner->position.y<<" "<<(int)owner->position.z;
 }
 //	EstimatorVec3f positionEstimator, rotationEstimator;
 

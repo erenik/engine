@@ -20,6 +20,8 @@
 #include "Script/ScriptProperty.h"
 #include "Physics/Calc/EntityPhysicsEstimator.h"
 #include <cstring>
+#include "Graphics/GraphicsManager.h"
+#include "Graphics/Fonts/Font.h"
 
 const Material Entity::defaultMaterial = Material();
 
@@ -34,9 +36,9 @@ void Entity::CreateCompactEntity(CompactEntity * cEntity){
 		strcpy(cEntity->specularMap, specularMap->RelativePath().c_str());
 	if (normalMap)
 		strcpy(cEntity->normalMap, normalMap->RelativePath().c_str());
-	cEntity->position = positionVector;
-	cEntity->scale = scaleVector;
-	cEntity->rotation = rotationVector;
+	cEntity->position = position;
+	cEntity->scale = scale;
+	cEntity->rotation = rotation;
 	if (physics){
 		if (cEntity->cPhysics)
 			delete cEntity->cPhysics;
@@ -50,12 +52,13 @@ void Entity::CreateCompactEntity(CompactEntity * cEntity){
 }
 
 /// Loads data from the file compact entity format
-void Entity::LoadCompactEntityData(CompactEntity * cEntity){
+void Entity::LoadCompactEntityData(CompactEntity * cEntity)
+{
 	/// Model and texture is extracted elsewhere, but we can copy name, and other details here..
 	name = cEntity->name;
-	positionVector = cEntity->position;
-	scaleVector = cEntity->scale;
-	rotationVector = cEntity->rotation;
+	position = cEntity->position;
+	scale = cEntity->scale;
+	rotation = cEntity->rotation;
 	if (cEntity->cPhysics){
 		assert(!physics);
 		physics = new PhysicsProperty(cEntity->cPhysics);
@@ -72,13 +75,14 @@ void Entity::LoadCompactEntityData(CompactEntity * cEntity){
 	normalMap = TexMan.GetTextureBySource(cEntity->normalMap);
 	model = ModelMan.GetModel(cEntity->model);
 	/// Recalculate model matrix after position update :P
-	recalculateMatrix();
+	RecalculateMatrix();
 }
 
-Entity::Entity(int i_id){
-	positionVector = Vector3f(0,0,0);
-	scaleVector = Vector3f(1,1,1);
-	rotationVector = Vector3f(0,0,0);
+Entity::Entity(int i_id)
+{
+	position = Vector3f(0,0,0);
+	scale = Vector3f(1,1,1);
+	rotation = Vector3f(0,0,0);
 	flags = 0;
 	radius = 1;
 	diffuseMap = NULL;
@@ -441,9 +445,9 @@ void Entity::render(GraphicsState &graphicsState)
 		/// Debug-rendering to visualize differences between pre and post correction!
 		if (physics && physics->estimator && physics->estimator->estimationMode == EstimationMode::EXTRAPOLATION_PLUS_COLLISION_CORRECTION)
 		{
-			Vector3f pos = positionVector;
-			positionVector = physics->estimator->Position();
-			Vector3f diff = pos - positionVector;
+			Vector3f pos = position;
+			position = physics->estimator->Position();
+			Vector3f diff = pos - position;
 			/// Only render other part if we get a difference.
 			if (true /*diff.MaxPart()*/){
 				RecalculateMatrix();
@@ -465,7 +469,7 @@ void Entity::render(GraphicsState &graphicsState)
 				glEnable(GL_DEPTH_TEST);
 			}
 			/// Reset matrix to the old one to not fuck up camera movement later on?
-			positionVector = pos;
+			position = pos;
 			RecalculateMatrix();
 		}
 	}
@@ -491,6 +495,57 @@ void Entity::render(GraphicsState &graphicsState)
 			graphicsState.graphicEffectsToBeRendered += *graphics->effects;
         if (graphics->particleSystems != NULL)
             graphicsState.particleEffectsToBeRendered += *graphics->particleSystems;
+
+		
+		/// If we have any text, render it last!
+		if (graphics->text)
+		{
+			// Scale it.. to some scale?
+			Matrix4f model = Matrix4f();
+
+
+			model.Multiply((Matrix4d().translate(Vector3d(position + graphics->textPositionOffset))));
+			model.Multiply(rotationMatrix);
+			model.Multiply((Matrix4d().Scale(Vector3d(scale * graphics->textSizeRatio))));
+
+			// Scale it down?
+	//		model.Scale(15.f);
+			graphicsState.modelMatrixF = model;
+			Vector4f textColor = graphics->textColor;
+			glColor4f(textColor.x, textColor.y, textColor.z, textColor.w);
+			graphicsState.currentFont->SetColor(textColor);
+			graphicsState.currentFont->RenderText(graphics->text, graphicsState);
+
+			
+#ifdef DEBUG_TRIANGLE
+			glUseProgram(0);
+
+			glMatrixMode(GL_PROJECTION);
+			glLoadIdentity();
+			glLoadMatrixf(graphicsState.projectionMatrixF.getPointer());
+			Matrix4f modelView = graphicsState.viewMatrixF * graphicsState.modelMatrixF;
+			glMatrixMode(GL_MODELVIEW);
+			glLoadMatrixf(modelView.getPointer());
+			glEnable(GL_BLEND);
+			glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	
+			glColor4f(0,1,1,1);
+	
+			glDisable(GL_TEXTURE_2D);
+		//	glDisable(GL_COLOR_MATERIAL);
+			glDisable(GL_LIGHTING);
+
+			glDisable(GL_DEPTH_TEST);
+			// Draw some more random shit?
+			glBegin(GL_TRIANGLES);
+				glVertex3f(0,0,0);
+				glVertex3f(5,0,0);
+				glVertex3f(0,5,0);
+			glEnd();
+			glUseProgram(graphicsState.activeShader->shaderProgram);
+#endif
+		
+		}
 	}
 }
 
@@ -504,57 +559,60 @@ Vector3f Entity::Velocity()
 
 
 /// Sets position
-void Entity::position(Vector3f position){
-	this->positionVector = position;
-	recalculateMatrix();
+void Entity::SetPosition(Vector3f position)
+{
+	this->position = position;
+	RecalculateMatrix();
 }
 /// Sets position
-void Entity::position(float x, float y, float z){
-	this->positionVector = Vector3f(x,y,z);
-	recalculateMatrix();
+void Entity::SetPosition(float x, float y, float z)
+{
+	this->position = Vector3f(x,y,z);
+	RecalculateMatrix();
 }
 /// Rotates the Entity
-void Entity::rotate(Vector3f rotation){
+void Entity::Rotate(Vector3f rotation)
+{
 	/// Deprecateeeed.
 //	assert(false);
-	this->rotationVector += rotation;
+	this->rotation += rotation;
 #ifdef USE_QUATERNIONS
 	assert(this->physics);
 	this->physics->orientation *= Quaternion(rotation, 1.0f);
 #endif
-	recalculateMatrix();
+	RecalculateMatrix();
 }
 
 /// Sets scale of the entity
 void Entity::SetScale(Vector3f scale){
-	this->scaleVector = scale;
-	recalculateMatrix();
+	this->scale = scale;
+	RecalculateMatrix();
 }
 /// Scales the Entity
 void Entity::Scale(Vector3f scale){
-	this->scaleVector = Vector3f(this->scaleVector.x * scale.x, this->scaleVector.y * scale.y, this->scaleVector.z * scale.z);
-	recalculateMatrix();
+	this->scale = Vector3f(this->scale.x * scale.x, this->scale.y * scale.y, this->scale.z * scale.z);
+	RecalculateMatrix();
 }
 /// Scales the Entity
 void Entity::Scale(float scale){
-	this->scaleVector = Vector3f(this->scaleVector.x * scale, this->scaleVector.y * scale, this->scaleVector.z * scale);
-	recalculateMatrix();
+	this->scale = Vector3f(this->scale.x * scale, this->scale.y * scale, this->scale.z * scale);
+	RecalculateMatrix();
 }
 /// Translates the Entity
-void Entity::translate(float x, float y, float z){
-	this->positionVector.x += x;
-	this->positionVector.y += y;
-	this->positionVector.z += z;
-	recalculateMatrix();
+void Entity::Translate(float x, float y, float z){
+	this->position.x += x;
+	this->position.y += y;
+	this->position.z += z;
+	RecalculateMatrix();
 }
 /// Translates the Entity
-void Entity::translate(Vector3f translation){
-	this->positionVector =  this->positionVector + translation;
-	recalculateMatrix();
+void Entity::Translate(Vector3f translation){
+	this->position =  this->position + translation;
+	RecalculateMatrix();
 }
 
 /// Recalculates the transformation matrix
-void Entity::recalculateMatrix(){
+void Entity::RecalculateMatrix(){
 
     rotationMatrix = Matrix4d();
 
@@ -572,16 +630,16 @@ void Entity::recalculateMatrix(){
     else
         rotationMatrix = Matrix4d();
 #else
-	rotationMatrix.multiply(Matrix4d::GetRotationMatrixX(rotationVector.x));
-	rotationMatrix.multiply(Matrix4d::GetRotationMatrixY(rotationVector.y));
-	rotationMatrix.multiply(Matrix4d::GetRotationMatrixZ(rotationVector.z));
+	rotationMatrix.multiply(Matrix4d::GetRotationMatrixX(rotation.x));
+	rotationMatrix.multiply(Matrix4d::GetRotationMatrixY(rotation.y));
+	rotationMatrix.multiply(Matrix4d::GetRotationMatrixZ(rotation.z));
 #endif
 
 	transformationMatrix = Matrix4d();
 
-	transformationMatrix.Multiply((Matrix4d().translate(Vector3d(positionVector))));
+	transformationMatrix.Multiply((Matrix4d().translate(Vector3d(position))));
 	transformationMatrix.Multiply(rotationMatrix);
-	transformationMatrix.Multiply((Matrix4d().Scale(Vector3d(scaleVector))));
+	transformationMatrix.Multiply((Matrix4d().Scale(Vector3d(scale))));
 
 
 
@@ -665,7 +723,7 @@ List<Triangle> Entity::GetTris(){
 		tri.Transform(transformationMatrix);
 		Vector3f newPos = triangles[i].position;
 		/// Seems to be working! :)
-		if (positionVector.LengthSquared() > 1.0f || scaleVector.LengthSquared() > 1.0f)
+		if (position.LengthSquared() > 1.0f || scale.LengthSquared() > 1.0f)
 			;//assert(prevPos.x != newPos.x);
 	}
 	return triangles;

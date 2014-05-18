@@ -67,16 +67,20 @@ void CVDataFilter::Paint(CVPipeline * pipe)
 	}
 	else if (pipe->returnType == CVReturnType::CV_CONTOURS)
 	{
-		/// For now, drawContours onto the ouput, but this should preferably be moved into another filter later! TODO: Fix it.
-		pipe->output = cv::Mat::zeros(pipe->input.size(), CV_8UC3);
+		pipe->initialInput->copyTo(pipe->output);
 		RenderContours(pipe);
 	}
 	else if (pipe->returnType == CVReturnType::CV_CONVEX_HULLS)
 	{
+		pipe->initialInput->copyTo(pipe->output);
+		RenderContours(pipe);
 		RenderConvexHulls(pipe);
 	}
 	else if (pipe->returnType == CVReturnType::CV_CONVEXITY_DEFECTS)
 	{
+		pipe->initialInput->copyTo(pipe->output);
+		RenderContours(pipe);
+		RenderConvexHulls(pipe);
 		RenderConvexityDefects(pipe);
 	}
 	else if (pipe->returnType == CVReturnType::HANDS)
@@ -89,12 +93,30 @@ void CVDataFilter::Paint(CVPipeline * pipe)
 		RenderContours(pipe);
 		RenderHands(pipe);
 	}
+	else if (pipe->returnType == CVReturnType::FINGER_STATES)
+	{
+		// Render the last known one.
+		pipe->initialInput->copyTo(pipe->output);
+		FingerState & state = pipe->fingerStates.Last();
+		cv::Scalar color(255,0,0,255);
+		for (int i = 0; i < state.positions.Size(); ++i)
+		{
+			Vector3f pos = state.positions[i];
+			cv::circle(pipe->output, cv::Point(pos.x, pos.y), 5, color, 3);
+		}
+	}
+	else if (pipe->returnType == -1)
+		// Nothing to render if error.
+		;
+	else if (pipe->returnType == CVReturnType::RENDER)
+		// Nothing to render if render.
+		;
 	else
 		std::cout<<"\nCVDataFilter::Paint called. Forgot to subclass the paint-method?";
 }
 
 
-void CVDataFilter::RenderPolygons(CVPipeline * pipe)
+void RenderPolygons(CVPipeline * pipe)
 {
 	/// Use same random seed every time to avoid rainbow hell..
 	rng = cv::RNG(12345);
@@ -105,7 +127,7 @@ void CVDataFilter::RenderPolygons(CVPipeline * pipe)
 	}
 }
 
-void CVDataFilter::RenderContours(CVPipeline * pipe)
+void RenderContours(CVPipeline * pipe)
 {
 	/// Use same random seed every time to avoid rainbow hell..
 	rng = cv::RNG(12345);
@@ -115,8 +137,10 @@ void CVDataFilter::RenderContours(CVPipeline * pipe)
 		cv::drawContours(pipe->output, pipe->contours, i, color, 2, 8, pipe->contourHierarchy, 0, cv::Point());
 	}
 }
-void CVDataFilter::RenderConvexHulls(CVPipeline * pipe)
+void RenderConvexHulls(CVPipeline * pipe)
 {
+	if (pipe->contours.size() == 0)
+		return;
 	cv::Scalar color = cv::Scalar(rng.uniform(125,255), rng.uniform(125,255), rng.uniform(125,255));
 //	cv::drawContours(pipe->output, pipe->convexHull, 0, color, 1, 8, std::vector<cv::Vec4i>(), 0, cv::Point() );
 	std::vector<int> & convexHull = pipe->convexHull;
@@ -132,7 +156,7 @@ void CVDataFilter::RenderConvexHulls(CVPipeline * pipe)
 		cv::line(pipe->output, point, point2, color, 3);
 	}
 }
-void CVDataFilter::RenderConvexityDefects(CVPipeline * pipe)
+void RenderConvexityDefects(CVPipeline * pipe)
 {
 	cv::Scalar color = cv::Scalar(rng.uniform(155,255), rng.uniform(125,255), rng.uniform(0,200));
 	List<cv::Vec4i> defects = pipe->convexityDefects;
@@ -145,7 +169,7 @@ void CVDataFilter::RenderConvexityDefects(CVPipeline * pipe)
 		cv::circle(pipe->output, farthestPoint, 3, color, 5);
 	}
 }
-void CVDataFilter::RenderHands(CVPipeline * pipe)
+void RenderHands(CVPipeline * pipe)
 {
 	List<Hand> & hands = pipe->hands;
 	std::vector<std::vector<cv::Point> > c;
@@ -163,7 +187,7 @@ void CVDataFilter::RenderHands(CVPipeline * pipe)
 			cv::circle(pipe->output, cv::Point(fingerPoint.x, fingerPoint.y), 10, cv::Scalar(0, 0, 255), 2);
 			cv::line(pipe->output, VEC3FTOCVPOINT(hand.center), VEC3FTOCVPOINT(fingerPoint), cv::Scalar(0, 0, 255), 4);
 		}
-		std::cout<<"\nfingers drawn: "<<hand.fingers.Size();
+//		std::cout<<"\nfingers drawn: "<<hand.fingers.Size();
 	}
 }
 
@@ -802,6 +826,13 @@ int CVApproxPolygons::Process(CVPipeline * pipe)
 	return CVReturnType::APPROXIMATED_POLYGONS;
 }
 
+void CVApproxPolygons::Paint(CVPipeline * pipe)
+{
+	// Copy original input..
+	pipe->initialInput->copyTo(pipe->output);
+	RenderPolygons(pipe);
+}
+
 CVFindQuads::CVFindQuads()
 	: CVDataFilter(CVFilterID::FIND_QUADS)
 {
@@ -1250,7 +1281,7 @@ int CVConvexHull::Process(CVPipeline * pipe)
 	// Calculate convex hull of the contour.
 	if (!pipe->contours.size()){
 		errorString = "No contours to process";
-		return -1;
+		return CVReturnType::CV_CONVEX_HULLS;
 	}
 	cv::convexHull(pipe->contours[0], pipe->convexHull);
 	return CVReturnType::CV_CONVEX_HULLS;
@@ -1266,9 +1297,13 @@ CVConvexityDefects::CVConvexityDefects()
 int CVConvexityDefects::Process(CVPipeline * pipe)
 {
 	// Calculate defects (convex hull vs. contour diff)
-	std::cout<<"\ndefects "<<&convexityDefects<<" "<<&relevantDefects;
+//	std::cout<<"\ndefects "<<&convexityDefects<<" "<<&relevantDefects;
 	relevantDefects.Clear();
 	pipe->convexityDefects.Clear();
+	if (pipe->contours.size() == 0)
+	{
+		return CVReturnType::CV_CONVEXITY_DEFECTS;
+	}
 	cv::convexityDefects(pipe->contours[0], pipe->convexHull, convexityDefects);
 	for (int j = 0; j < convexityDefects.size(); ++j)
 	{
@@ -1310,6 +1345,8 @@ int CVHandDetector2::Process(CVPipeline * pipe)
 		newHand.center.x = m.m10 / m.m00;
 		newHand.center.y = m.m01 / m.m00;
 		newHand.contourAreaSize = contourArea;
+		newHand.boundingRect = cv::boundingRect(contour);
+		// Calculate rect too.
 
 		// Creat fingerrrrs ovo
 		if (pipe->convexityDefects.Size())
@@ -1420,7 +1457,7 @@ int CVHandPersistance::Process(CVPipeline * pipe)
 		*/
 	}
 	
-	List<Hand> newHands = pipe->hands;
+//	List<Hand> newHands = pipe->hands;
 	
 	/// Only do time comparison after we have at least a frame.
 	/*
@@ -1461,4 +1498,137 @@ int CVHandPersistance::Process(CVPipeline * pipe)
 	// Return all the hands o-o
 	return CVReturnType::HANDS;
 }
+
+CVFingerActionFilter::CVFingerActionFilter()
+	: CVDataFilter(CVFilterID::FINGER_ACTION)
+{
+	minimumDuration = new CVFilterSetting("Minimum state duration", 500);
+	settings.Add(minimumDuration);
+	maxStatesStored = new CVFilterSetting("Max states stored", 20);
+	settings.Add(maxStatesStored);
+}
+int CVFingerActionFilter::Process(CVPipeline * pipe)
+{
+	Hand hand;
+	if (pipe->hands.Size())
+		hand = pipe->hands[0];
+
+	// Check finger now, but update it to the last finger after all processing is done.
+	int fingersNow = hand.fingers.Size();
+	
+	int64 now = Timer::GetCurrentTimeMs();
+
+	// When finger state has changed.
+	if (fingersNow != lastFinger)
+	{
+		lastFinger = fingersNow;
+		lastFingerStart = Timer::GetCurrentTimeMs();
+		// Adjust the current/last state as it exits scope.
+		if (fingerStates.Size())
+		{
+			FingerState & lastFingerState = fingerStates.Last();
+			lastFingerState.stop = now;
+			lastFingerState.duration = lastFingerState.stop - lastFingerState.start;
+		}
+		// Create new state for the new finger amount.
+		FingerState newState;
+		newState.start = now;
+		newState.fingers = fingersNow;
+		for (int i = 0; i < hand.fingers.Size(); ++i)
+		{
+			newState.positions.Add(hand.fingers[i]);
+		}
+		fingerStates.Add(newState);
+		// If we pass 20 or something, start deleting old states.
+		if (fingerStates.Size() >= maxStatesStored->iValue)
+			fingerStates.RemoveIndex(0, ListOption::RETAIN_ORDER);
+	}
+	else {
+		lastFingerDuration = Timer::GetCurrentTimeMs() - lastFingerStart;
+		if (fingerStates.Size())
+		{
+			FingerState & lastFingerState = fingerStates.Last();
+			lastFingerState.duration = lastFingerDuration;
+		}
+	}	
+	
+	// Synchronize the pipeline list of finger states with our own.
+	int lastAddedStateIndex = 0;
+	for (int i = 0; i < fingerStates.Size(); ++i)
+	{
+		FingerState & state = fingerStates[i];
+		for (int j = 0; j < pipe->fingerStates.Size(); ++j)
+		{
+			FingerState & pipeState = pipe->fingerStates[j];
+			if (pipeState.start == state.start)
+			{
+				// Values that could have been updated from outside.
+				state.processed = pipeState.processed;
+				lastAddedStateIndex = i;
+			}
+		}
+	}
+
+	// Remove any finger-states (except for the MOST RECENT one) whose duration is below the threshold. Merge the states beside if they have the same amount of fingers too!
+	FingerState * lastState = NULL;
+	for (int i = Maximum(0, fingerStates.Size() - 3); i < fingerStates.Size() - 1; )
+	{
+		FingerState * state = &fingerStates[i];
+		if (state->duration > minimumDuration->iValue)
+		{
+			// Set last finger state for upcoming merges.
+			lastState = &fingerStates[i];
+			++i;
+			continue;
+		}
+		std::cout<<"\nRemoving start with start time: "<<fingerStates[i].start<<" and fingers: "<<fingerStates[i].fingers;
+
+		// Ok, we are to remove this one. So, do it!
+		fingerStates.RemoveIndex(i, ListOption::RETAIN_ORDER);
+		
+		// Now check if we have a last state.
+		if (!lastState)
+		{
+			// If not, no worries. 
+			continue;
+		}
+		// But if we do, check the next state too.
+		state = &fingerStates[i];
+		
+		// Because if they are the same number of fingers we'll want to merge them, 
+		// considering them the same "state" with the one in-between being considered as noise,
+		// or unwanted stuff anyway.
+		if (state->fingers == lastState->fingers)
+		{
+			// They are the same! Mergy bergy!
+			lastState->stop = state->stop;
+			lastState->duration = now - lastState->start;
+			// Remove this state, since the older one takes precedence
+			fingerStates.RemoveIndex(i, ListOption::RETAIN_ORDER);
+			continue;
+		}	
+		// Set pointers
+		lastState = &fingerStates[i];
+	}
+
+
+	// Clear their list.
+	pipe->fingerStates.Clear();
+	// Plus 1 of the last added state or we will accidentally add it again!
+	for (int i = 0; i < fingerStates.Size(); ++i)
+	{
+		FingerState & state = fingerStates[i];
+		if (state.duration < minimumDuration->iValue)
+			continue;
+		// Copy-bopy!
+		pipe->fingerStates.Add(state);
+	}
+	while(pipe->fingerStates.Size() > maxStatesStored->iValue)
+		pipe->fingerStates.RemoveIndex(0, ListOption::RETAIN_ORDER);
+
+	// Should replace with "fingers" type and render them somewhere...
+	return CVReturnType::HANDS;
+}
+
+
 

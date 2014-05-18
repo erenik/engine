@@ -6,6 +6,9 @@
 
 #include "Util/List/List.h"
 #include "String/AEString.h"
+#include "MathLib.h"
+#include "String/Text.h"
+
 struct GraphicEffect;
 struct CompactGraphics;
 class Light;
@@ -46,6 +49,14 @@ public:
 	/// Dynamic lights are updated each frame whilst the static lights are added
 	/// to the primary lighting-setup on attachment.
 	List<Light*> * dynamicLights, * staticLights;
+
+	// For rendering a text string next to an entity
+	Text text;
+	// Relative to the 1.0 unit length used by entities? so 1 = 1 meter. 0.01 = 1 cm?
+	float textSizeRatio;
+	Vector4f textColor;
+	// Offset?
+	Vector4f textPositionOffset; 
 private:
 	/// Sets current animation. Only called from the GMSetEntity message. If faulty, animation will be nullified.
 	void SetAnimation(String name);

@@ -161,9 +161,9 @@ void GraphicsManager::RenderPath(){
 		/// Translate to waypoint position.
 		Matrix4f transform;
 		transform.LoadIdentity();
-		transform.scale(4);
-		transform.translate(wp->position);
-		transform.translate(0, 1.0f, 0);
+		transform.Scale(4);
+		transform.Translate(wp->position);
+		transform.Translate(0, 1.0f, 0);
 		/// Set uniform matrix in shader to point to the GameState modelView matrix.
  		glUniformMatrix4fv(graphicsState->activeShader->uniformModelMatrix, 1, false, transform.getPointer());
 		// Render if we got a model ^^

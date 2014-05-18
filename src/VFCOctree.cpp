@@ -239,7 +239,7 @@ void VFCOctree::RenderWithCulling(GraphicsState &state){
 	for (int i = 0; i < entities.Size(); ++i){
 		// Do individual check of all nodes here so we don't render in vain.
 		if (entities[i]){
-		//	if (cullingFrustum.SphereInFrustum(entities[i]->positionVector, entities[i]->radius))
+		//	if (cullingFrustum.SphereInFrustum(entities[i]->position, entities[i]->radius))
 				entities[i]->render(state);
 		//	else
 		//		;
@@ -274,7 +274,7 @@ void VFCOctree::updateCulling(){
 	for (int i = 0; i < entities.Size(); ++i){
 		// Do individual check of all nodes here so we don't render in vain.
 		if (entities[i]){
-			if (cullingFrustum.SphereInFrustum(entities[i]->positionVector, entities[i]->radius))
+			if (cullingFrustum.SphereInFrustum(entities[i]->position, entities[i]->radius))
 				;
 	//			objects[i]->inFrustum = true;
 			else
@@ -328,23 +328,23 @@ void VFCOctree::setInFrustum(bool inTrueOrOutFalse){
 /// Checks if the target Entity is inside this VFCOctree Entity, intersecting it or outside.
 int VFCOctree::IsEntityInside(Entity * entity){
 	// Make box test insteeeead
-	float radius = entity->radius * entity->scaleVector.MaxPart();
+	float radius = entity->radius * entity->scale.MaxPart();
 	// Check if it's inside.
-	if (entity->positionVector.x + radius < right &&
-		entity->positionVector.x - radius > left &&
-		entity->positionVector.y + radius < top &&
-		entity->positionVector.y - radius > bottom &&
-		entity->positionVector.z + radius < nearBound &&
-		entity->positionVector.z - radius > farBound
+	if (entity->position.x + radius < right &&
+		entity->position.x - radius > left &&
+		entity->position.y + radius < top &&
+		entity->position.y - radius > bottom &&
+		entity->position.z + radius < nearBound &&
+		entity->position.z - radius > farBound
 	)
 		return INSIDE;
 	// Or intersecting, just compare with inverted radius
-	else if (entity->positionVector.x - radius < right &&
-		entity->positionVector.x + radius > left &&
-		entity->positionVector.y - radius < top &&
-		entity->positionVector.y + radius > bottom &&
-		entity->positionVector.z - radius < nearBound &&
-		entity->positionVector.z + radius > farBound
+	else if (entity->position.x - radius < right &&
+		entity->position.x + radius > left &&
+		entity->position.y - radius < top &&
+		entity->position.y + radius > bottom &&
+		entity->position.z - radius < nearBound &&
+		entity->position.z + radius > farBound
 	)
 		return INTERSECT;
 	// It's outside if the previous were false, logical :P

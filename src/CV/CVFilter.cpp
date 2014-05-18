@@ -61,11 +61,13 @@ void CVFilter::CreateFilterNames()
 	filterNames[CVFilterID::FILTER_LINES_BY_ANGLE] = "Filter lines by angle";
 	filterNames[CVFilterID::MERGE_LINES] = "Merge lines";
 	filterNames[CVFilterID::APPROXIMATE_POLYGONS] = "Approximate polygons";
+	filterNames[CVFilterID::FINGER_ACTION] = "Finger action-state filter";
 
 	// Render filters
 	filterNames[CVFilterID::VIDEO_WRITER] = "Video writer";
 	filterNames[CVFilterID::IMAGE_GALLERY_HAND] = "Image gallery, hand";
 	filterNames[CVFilterID::MOVIE_PROJECTOR] = "Movie projector, polygon";
+	filterNames[CVFilterID::MUSIC_PLAYER] = "Music player, hand-controlled";
 
 	// Own data filters <- Old stuff. Place in either Data or image above.
 	filterNames[CVFilterID::LINE_GATHER] = "Line gather";
@@ -112,11 +114,13 @@ CVFilter * CreateFilterByID(int id)
 		case CVFilterID::FILTER_LINES_BY_ANGLE: return new CVFilterLinesByAngle();
 		case CVFilterID::MERGE_LINES: return new CVMergeLines();
 		case CVFilterID::APPROXIMATE_POLYGONS: return new CVApproxPolygons();
+		case CVFilterID::FINGER_ACTION: return new CVFingerActionFilter();
 
 		// Render-filters
 		case CVFilterID::VIDEO_WRITER: return new CVVideoWriter();
 		case CVFilterID::IMAGE_GALLERY_HAND: return new CVImageGalleryHand();
 		case CVFilterID::MOVIE_PROJECTOR: return new CVMovieProjector();
+		case CVFilterID::MUSIC_PLAYER: return new CVMusicPlayer();
 
 		// Own <- Old stuff. Place in either Data or image above.
 		case CVFilterID::LINE_GATHER: return new CVLineGatherFilter();
@@ -245,6 +249,7 @@ CVFilter::CVFilter(int id)
 	name = filterNames[id];
 	enabled	= true;
 	type = -1;
+	processingTime = renderTime = 0;
 }
 
 // Virtual destructor for proper deallocatoin when sub-classing.
@@ -252,6 +257,13 @@ CVFilter::~CVFilter()
 {
 	settings.ClearAndDelete();
 }
+
+// Should be called when deleting a filter while the application is running. Removes things as necessary.
+void CVFilter::OnDelete()
+{
+	// Do nothing by default?
+}
+
 
 /// For reacting to when enabling/disabling a filter. Needed for e.g. Render-filters. Not required to subclass.
 void CVFilter::SetEnabled(bool newEnabledState)
@@ -296,6 +308,8 @@ bool CVFilter::ReadFrom(std::fstream & file)
 		if (currSetting){
 			currSetting->fValue = setting.fValue;
 			currSetting->iValue = setting.iValue;
+			currSetting->sValue = setting.sValue;
+			currSetting->bValue = setting.bValue;
 		}
 	}
 	return true;

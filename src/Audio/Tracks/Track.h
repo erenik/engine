@@ -21,6 +21,7 @@ public:
 	void Stop();
 	/// Sets the track to start/stop looping.
 	void Loop(bool value);
+	void SetVolume(float relative);
 	String name;
 	String source;
 	bool enabled;

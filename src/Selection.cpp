@@ -46,7 +46,7 @@ Selection Selection::CullByCamera(Camera * camera) const{
 	for (int i = 0; i < this->currentItems; ++i){
 		if (arr[i] == NULL)
 			continue;
-		if (camera->GetFrustum().SphereInFrustum(arr[i]->positionVector, arr[i]->radius))
+		if (camera->GetFrustum().SphereInFrustum(arr[i]->position, arr[i]->radius))
 			culled.Add(arr[i]);
 		++found;
 		if (found >= currentItems)
@@ -61,7 +61,7 @@ void Selection::SortByDistance(Vector3f position) {
 	memset(distance, 0, sizeof(float) * MAX_SELECTED);
 	for (int i = 0; i < currentItems; ++i){
 		/// Calculate distance
-		distance[i] = (position - arr[i]->positionVector).Length();
+		distance[i] = (position - arr[i]->position).Length();
 		/// Insertion sort for now, all previous entities have already gotten
 		/// a distance and can thus be compared.
 		for (int j = 0; j < i; ++j){
@@ -90,7 +90,7 @@ void Selection::ListEntities(){
 		std::cout<<"\n"<<i<<". ";
 		if (arr[i]->name)
 			std::cout<<arr[i]->name;
-		std::cout<<" Pos: "<<arr[i]->positionVector;
+		std::cout<<" Pos: "<<arr[i]->position;
 	}
 }
 

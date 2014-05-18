@@ -66,6 +66,9 @@ public:
 	CVMovieProjector();
 	virtual ~CVMovieProjector();
 	virtual int Process(CVPipeline * pipe);
+	// Should be called when deleting a filter while the application is running. Removes things as necessary.
+	virtual void OnDelete();
+	virtual void Paint(CVPipeline * pipe);
 	
 	/// For reacting to when enabling/disabling a filter. Needed for e.g. Render-filters. Not required to subclass.
 	virtual void SetEnabled(bool state);
@@ -77,6 +80,34 @@ private:
 };
 
 
+class Track;
+
+class CVMusicPlayer : public CVRenderFilter 
+{
+public:
+	CVMusicPlayer();
+	virtual ~CVMusicPlayer();
+	virtual int Process(CVPipeline * pipe);
+	// Should be called when deleting a filter while the application is running. Removes things as necessary.
+	virtual void OnDelete();
+	virtual void Paint(CVPipeline * pipe);
+	/// For reacting to when enabling/disabling a filter. Needed for e.g. Render-filters. Not required to subclass.
+	virtual void SetEnabled(bool state);
+private:
+	CVFilterSetting * directory;
+	String audioFile;
+	String currentDirectory;
+	Entity * audioEntity;
+	List<String> files;
+	// Index of current track among the files.
+	int currentTrack;
+	int lastFinger;
+	int64 lastFingerStart;
+	int64 lastFingerDuration;
+	// o-o
+	Track * audioTrack;
+
+};
 
 
 

@@ -5,6 +5,7 @@
 #ifndef SYSTEM_DATA_TYPES_H
 #define SYSTEM_DATA_TYPES_H
 
-#define int64 __int64
+// Defines new types for the compiler. Mostly just referring to existing types.
+typedef __int64 int64;
 
 #endif

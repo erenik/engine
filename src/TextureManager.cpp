@@ -71,8 +71,10 @@ Texture * TextureManager::GetTextureByName(String name){
         return GenerateTexture("Grey", Vector4f(0.5f,0.5f,0.5f,1.0f));
 	else if (name == "White")
         return GenerateTexture("White", Vector4f(1.f,1.f,1.f,1.f));
-	else if (name == "NULL")
+	else if (name == "NULL" || name == "Alpha")
 		return GenerateTexture("NULL", Vector4f(1,1,1,0));
+	else if (name == "Red")
+		return GenerateTexture("Red", Vector4f(1,0,0,1));
 
 	std::cout<<"\nTexture not loaded, attempting to load it.";
 	return LoadTexture(name);

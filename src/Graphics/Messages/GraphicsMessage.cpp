@@ -23,6 +23,11 @@ GraphicsMessage::~GraphicsMessage(){
 
 void GraphicsMessage::Process(){
 	switch(type){
+		case GM_RECORD_VIDEO: 
+		{
+			Graphics.graphicsState->recording = !Graphics.graphicsState->recording; 
+			break;
+		}
 		case GM_PRINT_SCREENSHOT:
 		{
 			Graphics.graphicsState->promptScreenshot = true;

@@ -60,6 +60,7 @@ enum physicsTargets{
 	ACCELERATION, ACCELERATION_MULTIPLIER, // <- Lazy me, but might be good, hm?
 	ANGULAR_ACCELERATION,
 	VELOCITY,
+	ANGULAR_VELOCITY,
 	FRICTION,
 	RESTITUTION,
 	ESTIMATION_MODE, /// For network-synchronization

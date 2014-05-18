@@ -99,6 +99,7 @@ void GraphicsManager::RenderScene(){
 
 	// Set parameters for regular rendering her!
 	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	// Set other matrix
 	//...
 	glEnable(GL_TEXTURE_2D);

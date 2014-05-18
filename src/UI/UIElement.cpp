@@ -1006,7 +1006,8 @@ void UIElement::SetParent(UIElement *in_parent){
 /// Queues the UIElement to be buffered via the GraphicsManager
 void UIElement::QueueBuffering()
 {
-	Graphics.QueueMessage(new GMBufferUI(this));
+	std::cout<<"Deprecated";
+	; Graphics.QueueMessage(new GMBufferUI(this));
 }
 
 /// Bufferizes the UIElement mesh into the vbo buffer
@@ -1149,6 +1150,19 @@ bool UIElement::IsDisabled(){
 /// Splitting up the rendering.
 void UIElement::RenderSelf(GraphicsState & graphics)
 {
+	if (!isGeometryCreated)
+	{
+		AdjustToParent();
+		CreateGeometry();
+	}
+	if (!isBuffered)
+	{
+		// Re-adjust to parent.
+		AdjustToParent();
+		ResizeGeometry();
+		Bufferize();
+	}
+
     PrintGLError("GLError before UIElement::Render?!");
 	/// If not buffered, do it nau!
 	if (vboBuffer == -1){
@@ -1571,7 +1585,6 @@ void UIElement::AdjustToWindow(int w_left, int w_right, int w_bottom, int w_top)
 /// Calls AdjustToWindow for parent's bounds. Will assert if no parent is available.
 void UIElement::AdjustToParent()
 {
-	assert(parent);
 	if (!parent)
 		return;
 	AdjustToWindow(parent->left, parent->right, parent->bottom, parent->top);
@@ -1622,6 +1635,7 @@ void UIElement::CreateGeometry(){
 	for (int i = 0; i < childList.Size(); ++i){
 		childList[i]->CreateGeometry();
 	}
+	isGeometryCreated = true;
 
 }
 void UIElement::ResizeGeometry(){

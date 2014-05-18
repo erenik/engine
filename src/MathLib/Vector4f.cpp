@@ -195,6 +195,18 @@ Vector4f& Vector4f::operator = (const Vector4d &other){
 	return *this;
 }
 
+/// Conversion equal-conversion operator
+Vector4f& Vector4f::operator = (const Vector4f &other)
+{
+	x = other.x;
+	y = other.y;
+	z = other.z;
+	w = other.w;
+	return *this;
+}
+
+
+
 float& Vector4f::operator[](const unsigned int index){
 	switch(index){
 		case 0:

@@ -28,6 +28,9 @@ public:
 	/// If needed, for saving/loading, name.
 	String name;	
 
+	// Clears all filters, calling OnDelete on them so that they may do proper clean-up.
+	void Clear();
+
 	/// Current amount of filters.
 	int Filters();
 	/// Deletes filter. Returns the now dead pointer (still pointing to the same address-space, for address-comparison) or NULL if it fails/invalid index.
@@ -65,6 +68,9 @@ public:
 	// Convexity defects calculated by contour's convex hull vs. the contour itself.
 	List<cv::Vec4i> convexityDefects;
 	
+	/// List of previous finger states. The most recent one will be stored at the end, using .Last()
+	List<FingerState> fingerStates;
+
 	std::vector<std::vector<cv::Point> > approximatedPolygons;
 
 	/// Quads found with e.g. custom FindQuads filter.

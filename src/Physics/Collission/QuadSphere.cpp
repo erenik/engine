@@ -14,7 +14,7 @@ bool QuadSphereCollission(Entity * quadEntity, Entity * sphere, Collission &data
 }
 
 bool QuadSphereCollission(Quad * quad, Entity * sphereEntity, Collission &data){
-	float distance = abs(quad->Distance(sphereEntity->positionVector)) - sphereEntity->physics->physicalRadius;
+	float distance = abs(quad->Distance(sphereEntity->position)) - sphereEntity->physics->physicalRadius;
 	/// Collission?!
 	if (distance > ZERO)
 		return false;
@@ -28,7 +28,7 @@ bool QuadSphereCollission(Quad * quad, Entity * sphereEntity, Collission &data){
 	planeFrustum[3].Set3Points(quad->point4, quad->point1, quad->point4 + quad->normal);
 	for (int i = 0; i < PLANE_PLANES; ++i){
 		// If any of the plane's distance is negative it means we're outside the planeski.
-		if (planeFrustum[i].Distance(sphereEntity->positionVector) > sphereEntity->physics->physicalRadius)
+		if (planeFrustum[i].Distance(sphereEntity->position) > sphereEntity->physics->physicalRadius)
 			return false;
 	}
 	data.collissionNormal = quad->normal;

@@ -358,8 +358,11 @@ bool OggStream::Pause()
 bool OggStream::Seek(int toTime)
 {
 	/// Seek for audio!
+	if (toTime == 0)
+		toTime = 1;
+	double toTimeDouble = toTime / 1000.f;
 	if (hasVorbis){
-		int result = ov_time_seek(&oggVorbisFile, (double)toTime);
+		int result = ov_time_seek(&oggVorbisFile, toTimeDouble);
 		if (result != 0){
 			std::cout<<"some error";
 		}

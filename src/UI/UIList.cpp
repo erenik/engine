@@ -34,7 +34,8 @@ void UIScrollBarHandle::Move(float distance)
         alignmentY = 0.0f + sizeRatioY * 0.5f;
 	
 	// Recalculate position of the element to render correctly.
-	this->QueueBuffering();
+//	this->QueueBuffering();
+	this->isBuffered = false;
 }
 
 UIScrollBar::UIScrollBar()
@@ -397,7 +398,7 @@ void UIList::FormatElements(){
             }
         }
 		/// Re-queue bufferization of all elements that are formated!
-		e->QueueBuffering();
+		e->isBuffered = false;
     }
 }
 

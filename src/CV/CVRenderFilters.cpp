@@ -6,7 +6,7 @@
 #include "CVPipeline.h"
 #include "String/StringUtil.h"
 #include "File/FileUtil.h"
-
+#include "Direction.h"
 
 // See CVFilterTypes.h for IDs
 CVRenderFilter::CVRenderFilter(int filterID) 
@@ -22,7 +22,8 @@ int CVRenderFilter::Process(CVPipeline * pipe)
 // Should be overloaded? If you paint to the output-texture?
 void CVRenderFilter::Paint(CVPipeline * pipe)
 {
-	
+	// Default, just copy the input to output, assume the Process is playing with entities
+	pipe->initialInput->copyTo(pipe->output);
 }
 
 
@@ -199,30 +200,68 @@ int CVImageGalleryHand::Process(CVPipeline * pipe)
 			long long  timeSinceLastSwap = now - lastSwap;
 			Hand & hand = pipe->hands[0];
 			bool swap = false;
+			int direction = Direction::FORWARD;
 			// If 5 again, reset stuff, so we can "click" again.
 			if (hand.fingers.Size() == 5)
 			{
-				
+				// std::cout<<"\nClick reset";	
 			}
 			// Click only if went from 5 to 4?
-			else if (hand.fingers.Size() == 4 && fingersLastFrame == 5)
+			else if (hand.fingers.Size() == 4)
 			{
-				swap = true;
-				lastSwap = 0;
-				timeSinceLastSwap = minimumTimeBetweenSwitches->iValue + 1;
+				std::cout<<"\nFingers 4, last frame: "<<fingersLastFrame;
+				if (fingersLastFrame == 5)
+				{
+					swap = true;
+				//	timeSinceLastSwap = minimumTimeBetweenSwitches->iValue + 10000;
+					std::cout<<"\n\"Click\"!";
+				}
+				
+			}
+			// Click from 4 to 3 too?!
+			else if (hand.fingers.Size() == 3)
+			{
+				if (fingersLastFrame == 4)
+				{
+					swap = true;
+					direction = Direction::BACKWARD;
+					std::cout<<"\nBackwards! o-o";
+				}
 			}
 			else if (hand.fingers.Size() == 0)
 			{
 				swap = true;
+		//		std::cout<<"\nAutoplayin";
 			}
-			if (swap && timeSinceLastSwap > minimumTimeBetweenSwitches->iValue)
+			if (swap)
 			{
-				currentImage++;
-				if (currentImage >= files.Size())
-					currentImage = 0;
-				String source = currentDirectory + "/" + files[currentImage];
-				Graphics.QueueMessage(new GMSetEntityTexture(galleryEntity, DIFFUSE_MAP, source));
-				lastSwap = now;
+				if (timeSinceLastSwap > minimumTimeBetweenSwitches->iValue)
+				{
+					if (direction == Direction::FORWARD)
+					{
+						++currentImage;
+						if (currentImage >= files.Size())
+							currentImage = 0;
+					}
+					else if (direction == Direction::BACKWARD)
+					{
+						--currentImage;
+						if (currentImage < 0)
+							currentImage = files.Size() - 1;
+					}
+					String source = currentDirectory + "/" + files[currentImage];
+					Texture * tex = TexMan.GetTexture(source);
+					Graphics.QueueMessage(new GMSetEntityTexture(galleryEntity, DIFFUSE_MAP, tex));
+					float max = tex->width > tex->height? tex->width : tex->height;
+					Vector3f scale(tex->width / max, tex->height / max, 1);
+					// Scale it further depending on the size of the contour of the hand?
+					Physics.QueueMessage(new PMSetEntity(SET_SCALE, galleryEntity, scale));
+				//	Physics.QueueMessage(new GMSetEntity(galleryEntity, 
+					lastSwap = now;
+				}
+				else {
+		//			std::cout<<"\nSwap not deemed ready yet. Minimum time hasn't passed.";
+				}
 			}
 			fingersLastFrame = hand.fingers.Size();
 		}
@@ -318,6 +357,13 @@ int CVMovieProjector::Process(CVPipeline * pipe)
 		// Works!
 //		position = Vector3f(0,0,3);
 		Physics.QueueMessage(new PMSetEntity(POSITION, movieEntity, position));  
+
+		// Set width/height ratio.
+		Texture * tex = movieStream->GetFrameTexture();
+		float max = tex->width > tex->height? tex->width : tex->height;
+		Vector3f scale(tex->width / max, tex->height / max, 1);
+		// Scale it further depending on the size of the contour of the hand?
+		Physics.QueueMessage(new PMSetEntity(SET_SCALE, movieEntity, scale));
 	}
 	/*
 	if (files.Size())
@@ -367,6 +413,21 @@ int CVMovieProjector::Process(CVPipeline * pipe)
 	*/
 	return CVReturnType::RENDER;
 }
+
+// Should be called when deleting a filter while the application is running. Removes things as necessary.
+void CVMovieProjector::OnDelete()
+{
+	movieStream->Pause();
+	MapMan.DeleteEntity(movieEntity);
+	movieEntity = NULL;
+}
+
+void CVMovieProjector::Paint(CVPipeline * pipe)
+{
+	pipe->initialInput->copyTo(pipe->output);
+}
+	
+
 	
 /// For reacting to when enabling/disabling a filter. Needed for e.g. Render-filters. Not required to subclass.
 void CVMovieProjector::SetEnabled(bool state)
@@ -375,3 +436,180 @@ void CVMovieProjector::SetEnabled(bool state)
 	Graphics.QueueMessage(new GMSetEntityb(movieEntity, VISIBILITY, state));
 }
 
+
+#include "Audio/TrackManager.h"
+
+CVMusicPlayer::CVMusicPlayer()
+	: CVRenderFilter(CVFilterID::MUSIC_PLAYER)
+{
+	directory = new CVFilterSetting("Directory");
+	directory->type = CVSettingType::STRING;
+	directory->sValue = "sound/bgm/SpaceRace";
+	settings.Add(directory);
+	audioTrack = NULL;
+	currentTrack = 0;
+	lastFinger = 0;
+	lastFingerStart = lastFingerDuration = 0;	
+	audioEntity = NULL;
+}
+CVMusicPlayer::~CVMusicPlayer()
+{
+}
+
+// Should be called when deleting a filter while the application is running. Removes things as necessary.
+void CVMusicPlayer::OnDelete()
+{
+	if (audioTrack)
+		audioTrack->Stop();
+	if (audioEntity)
+		MapMan.DeleteEntity(audioEntity);
+}
+
+int CVMusicPlayer::Process(CVPipeline * pipe)
+{
+	if (!audioEntity)
+	{
+		audioEntity = MapMan.CreateEntity(ModelMan.GetModel("Sprite"), TexMan.GetTexture("Alpha"));
+		Graphics.QueueMessage(new GMSetEntityVec4f(audioEntity, TEXT_COLOR, Vector4f(0,0,1,1)));
+		Graphics.QueueMessage(new GMSetEntityf(audioEntity, TEXT_SIZE_RATIO, 0.1f));
+	//	Graphics.QueueMessage(new GMSetEntityb(audioEntity, VISIBILITY, false));
+	}
+
+	// New directory? Load it.
+	if (currentDirectory != directory->sValue)
+	{
+		files.Clear();
+		currentDirectory = directory->sValue;
+		GetFilesInDirectory(currentDirectory, files);
+		currentTrack = 0;
+		// Skip those not .png?
+		for (int i = 0; i < files.Size(); ++i)
+		{
+			String fileName = files[i];
+			if (!fileName.Contains(".ogg"))
+			{
+				files.RemoveIndex(i);
+				--i;
+			}
+		}
+		this->status = String::ToString(files.Size())+" files found.";
+	}
+	if (files.Size() <= 0){
+		errorString = "No files in directory";
+		return -1;
+	}
+
+	// Have an entity? If not create it.
+	if (!audioTrack)
+	{
+		if (files.Size() == 0)
+			return -1;
+		audioTrack = TrackMan.PlayTrack(currentDirectory + "/" + files[currentTrack]);
+		if (!audioTrack)
+			return -1;
+		audioTrack->Loop(true);
+	}
+	// Check hand position
+	if (pipe->hands.Size())
+	{
+		// 
+		if (pipe->fingerStates.Size())
+		{
+			FingerState & lastState = pipe->fingerStates.Last();
+			if (lastState.fingers == 5 && !lastState.processed && lastState.duration > 2000)
+			{
+				if (audioTrack->IsPlaying())
+					audioTrack->Pause();
+				else
+					audioTrack->Resume();
+				lastState.processed = true;
+			}
+			// Check number of fingers! If.. 4? switch song
+			if (lastState.fingers == 4 && !lastState.processed && lastState.duration > 2000)
+			{
+				++currentTrack;
+				if (currentTrack >= files.Size())
+					currentTrack = 0;
+				audioTrack = TrackMan.PlayTrack(currentDirectory + "/" + files[currentTrack]);
+				lastState.processed = true;
+			}
+			else if (lastState.fingers == 3 && !lastState.processed && lastState.duration > 2000)
+			{
+				--currentTrack;
+				if (currentTrack < 0)
+					currentTrack = files.Size() - 1;
+				audioTrack = TrackMan.PlayTrack(currentDirectory + "/" + files[currentTrack]);
+				lastState.processed = true;				
+			}
+			if (audioTrack)
+				audioTrack->Loop(true);
+		}
+		Hand & hand = pipe->hands[0];
+		Vector3f handPos = hand.center;
+		// Use hand position to set volume o-o
+		// Compare with input height.
+		float relative = handPos.y / pipe->initialInput->rows;
+		relative = 1 - relative - 0.15f;
+		relative *= 1.5f;
+		std::cout<<"\nVolume set to: "<<relative;
+		if (audioTrack)
+			audioTrack->SetVolume(relative);
+
+		// The relative scale that is rendered should probably be saved somewhere.. like in the pipeline?
+		Vector3f position = Vector3f(handPos.x, handPos.y, 3);
+		// Offset the position with half of the width and height, since the rendered entity sprite is centered to 0,0,0
+		position.x -= pipe->initialInput->cols * 0.5f;
+		position.y = pipe->initialInput->rows * 0.5f - position.y;
+
+		position *= 0.01f;
+
+		Physics.QueueMessage(new PMSetEntity(POSITION, audioEntity, position));  
+		
+		// Update the text on le hand-music-audio-entity-thingy
+		Graphics.QueueMessage(new GMSetEntitys(audioEntity, TEXT, files[currentTrack]+"\nVolume: "+String::ToString(relative, 3)));
+
+		cv::Rect rect = hand.boundingRect;
+		float scale = rect.height / 1000.f * 2.0f;
+		scale *= 1.f;
+		Graphics.QueueMessage(new GMSetEntityf(audioEntity, TEXT_SIZE_RATIO, scale));
+
+		Vector4f textPosition = Vector4f(- rect.width * 0.5f * 0.01f, rect.height * 0.001f, 0, 0);
+
+		Graphics.QueueMessage(new GMSetEntityVec4f(audioEntity, TEXT_POSITION, textPosition));
+
+		Graphics.QueueMessage(new GMSetEntityVec4f(audioEntity, TEXT_COLOR, Vector4f(1,1,0,1)));
+	
+
+	}
+	return CVReturnType::RENDER;
+}
+/// For reacting to when enabling/disabling a filter. Needed for e.g. Render-filters. Not required to subclass.
+void CVMusicPlayer::SetEnabled(bool state)
+{
+	// Pause the music?
+	enabled = state;
+	if (!enabled)
+	{
+		audioTrack->Pause();
+	}
+	else
+		audioTrack->Resume();
+	// o-o
+	Graphics.QueueMessage(new GMSetEntityb(audioEntity, VISIBILITY, enabled));
+}
+
+void CVMusicPlayer::Paint(CVPipeline * pipe)
+{
+	pipe->initialInput->copyTo(pipe->output);
+	RenderHands(pipe);
+}
+
+
+/*
+CVFilterSetting * directory;
+String audioFile;
+//	Entity * audioEntity;
+// o-o
+Track * audioTrack;
+
+*/

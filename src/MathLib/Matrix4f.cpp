@@ -342,13 +342,13 @@ Matrix4f Matrix4f::InvertedCopy() const {
 // ************************************************************************//
 // 3D-operations
 // ************************************************************************//
-void Matrix4f::translate(float x, float y, float z){
+void Matrix4f::Translate(float x, float y, float z){
 	element[12] += x;
 	element[13] += y;
 	element[14] += z;
 }
 
-void Matrix4f::translate(Vector3f vec){
+void Matrix4f::Translate(Vector3f vec){
 	element[12] += vec.GetX();
 	element[13] += vec.GetY();
 	element[14] += vec.GetZ();
@@ -357,17 +357,18 @@ void Matrix4f::translate(Vector3f vec){
 /** Returns an initialized translation-matrix using given vector. */
 Matrix4f Matrix4f::Translation(Vector3f trans){
 	Matrix4f mat;
-	mat.translate(trans);
+	mat.Translate(trans);
 	return mat;
 }
 
-void Matrix4f::scale(float ratio){
+void Matrix4f::Scale(float ratio)
+{
 	element[0] *= ratio;
 	element[5] *= ratio;
 	element[10] *= ratio;
 }
 
-void Matrix4f::scale(float x, float y, float z){
+void Matrix4f::Scale(float x, float y, float z){
 	element[0] *= x;
 	element[5] *= y;
 	element[10] *= z;

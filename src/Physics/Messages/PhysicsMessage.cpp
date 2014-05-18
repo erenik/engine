@@ -57,7 +57,7 @@ void PMCreateSpring::Process() {
 		spring->springConstant = springConstant;
 		spring->equilibriumLength = springLength;
 		if (spring->equilibriumLength < 0)
-			spring->equilibriumLength = (one->positionVector - two->positionVector).Length();
+			spring->equilibriumLength = (one->position - two->position).Length();
 		one->physics->springs.Add(spring);
 		two->physics->springs.Add(spring);
 		Physics.springs.Add(spring);

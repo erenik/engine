@@ -17,7 +17,7 @@ Spring::Spring(Entity * one, Entity * two)
 Vector3f Spring::GetForce(Entity * subject){
 	assert(subject == one || subject == two);
 	Entity * other = one == subject? two : one;
-	Vector3f toOther = other->positionVector - subject->positionVector;
+	Vector3f toOther = other->position - subject->position;
 	float distance = toOther.Length();
 	float distDiff = distance - equilibriumLength;
 	Vector3f forceVector = distDiff * toOther.NormalizedCopy() * springConstant;

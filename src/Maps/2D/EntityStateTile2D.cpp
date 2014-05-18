@@ -67,8 +67,8 @@ void EntityStateTile2D::Render(GraphicsState & graphicsState){
 	// Save old matrix to the stack
 	Matrix4d tmp = graphicsState.modelMatrixD;
 	// Apply transformation
-	Matrix4f modelMatrix = Matrix4f::Translation(Vector3f(entity->positionVector.x, entity->positionVector.y, 0));
-//	std::cout<<" at position: "<<entity->positionVector;
+	Matrix4f modelMatrix = Matrix4f::Translation(Vector3f(entity->position.x, entity->position.y, 0));
+//	std::cout<<" at position: "<<entity->position;
 	// Set uniform matrix in shader to point to the GameState modelView matrix.
 	glUniformMatrix4fv(graphicsState.activeShader->uniformModelMatrix, 1, false, modelMatrix.getPointer());
 	error = glGetError();

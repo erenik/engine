@@ -51,11 +51,12 @@ macro(remove_dir dir fromList listName filesR dirsToIgnore)
 #	SET(filesRemoved 0)		
 #	message("Files removed: ${filesR}")
 	FOREACH(f ${fromList})
-		# ${dir}
 		if (${f} MATCHES ${dir})
+		#	message(${dir})
 			SET(ignore "No")
 			# check if specifically requested to keep this
-			FOREACH(dirToIgnore ${dirsToIgnore})
+			FOREACH(dirToIgnore ${${dirsToIgnore}})
+#				message(DirToIgnore: ${dirToIgnore})
 				if (${f} MATCHES ${dirToIgnore})
 					SET(ignore "Yes")
 				endif()
@@ -97,6 +98,18 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 	project(${ProjectName})
 	set(project_name ${ProjectName})
 
+	# Win32 MSVC++
+	IF(MSVC)
+		# In order to retain edit-and-continue build mode, must specify SAFESEH:NO in newer VS version.
+		#IF(${_MACHINE_ARCH_FLAG} MATCHES X86)
+		message("MSVC detected, trying to set /SAFESEH:NO to enable Edit and Continue builds.")
+			message("Setting linker flags for /SAFESEH:NO")
+			SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SAFESEH:NO")
+			SET (CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /SAFESEH:NO")
+			SET (CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} /SAFESEH:NO")
+		#ENDIF()
+	ENDIF()
+	
 	# For enabling/disabling Debug-assertions (among other things)
 	# http://msdn.microsoft.com/en-us/library/abx4dbyh%28v=vs.80%29.aspx
 	message("Release flags: ${CMAKE_CXX_FLAGS_RELEASE}")
@@ -168,11 +181,13 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 		message("Configuring for UNIX OS")
 		set(custom_libraries libGL.so  libGLU.so "-lGLEW")
 		# AL
-		set(custom_libraries ${custom_libraries} "-lalut")
+		set(custom_libraries ${custom_libraries} "-lalut -lopenal")
 		# Ogg Vorbis
 		set(custom_libraries ${custom_libraries} "-logg" "-lvorbis" "-lvorbisfile")
 		# Theora
 		set(custom_libraries ${custom_libraries} "-ltheora" "-ltheoradec")
+		# Open CV
+		set(custom_libraries ${custom_libraries} "-lopencv_core -lopencv_highgui -lopencv_imgproc")
 	ENDIF(UNIX)
 
 	# Win32 MSVC++
@@ -195,7 +210,8 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 		# Depending on what we're compiling, add stuff
 		# Debug library dependencies
 		set(DEBUG_LIBS 
-			xinput.lib
+			# For Microsoft game pads via DX SDK.
+		#	xinput.lib
 			glew32_MTd.lib
 		#	glu32.lib
 		#	opengl32.lib
@@ -207,12 +223,13 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 			libvorbisfile_static_MTd.lib
 			libtheora_static_MTd.lib
 			# OpenCV
-#			opencv_core300_MTd.lib
-#			opencv_highgui300_MTd.lib # For reading files
-#			opencv_imgproc300_MTd.lib # For processing images (like conversion to BW)
+			opencv_core248d.lib
+			opencv_highgui248d.lib # For reading files
+			opencv_imgproc248d.lib # For processing images (like conversion to BW)
 		)
 		# Release library dependencies
 		set(RELEASE_LIBS 
+			# For Microsoft game pads via DX SDK.
 			xinput.lib
 			glew32s.lib
 			glu32.lib
@@ -225,6 +242,9 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 			libvorbisfile_static_release.lib
 			libtheora_static_release.lib
 			# OpenCV
+			opencv_core248.lib
+			opencv_highgui248.lib
+			opencv_imgproc248.lib
 		)
 		create_file_group(${PROJECT_SOURCE_DIR}/${source_dir} "/")
 	ENDIF(MSVC)
@@ -240,7 +260,7 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 		${source_dir}/Projects
 	)
 	
-	printList("${source_files}")
+	#printList("${source_files}")
 
 			
 	# Set binaries to build.
@@ -290,13 +310,19 @@ endmacro(addProject)
 
 # Create our projects
 set(runeRPGFolders "Projects/RuneRPG")
-addProject("RuneRPG" ${runeRPGFolders})
+addProject("RuneRPG" runeRPGFolders)
 set(musicPlayerFolders "Projects/MusicPlayer")
-addProject("MusicPlayer" ${musicPlayerFolders})
+addProject("MusicPlayer" musicPlayerFolders)
 set (sideScrollerFolders "Projects/SideScroller")
-addProject("SideScroller" ${sideScrollerFolders})
+addProject("SideScroller" sideScrollerFolders)
 set(spaceRaceFolders "Projects/SpaceRace")
-addProject("SpaceRace" ${spaceRaceFolders})
-set(cviFolders "Projects/CVI")
-addProject("CVI" ${cviFolders})
+addProject("SpaceRace" spaceRaceFolders)
+
+set(horrorFolders "Projects/Horror")
+addProject("Horror" horrorFolders)
+
+
+# Create our projects
+set(ipmFolders "Projects/IPM")
+addProject("IPM" ipmFolders)
 

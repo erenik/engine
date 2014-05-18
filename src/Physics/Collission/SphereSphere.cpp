@@ -13,7 +13,7 @@
 bool SphereSphereCollission(Entity * one, Entity * two, Collission &data){
 	assert(one->physics->physicsShape == ShapeType::SPHERE &&
 		two->physics->physicsShape == ShapeType::SPHERE);
-	Vector3f distanceVector = one->positionVector - two->positionVector;
+	Vector3f distanceVector = one->position - two->position;
 	/// Real distance between them, please....
 	float distance = distanceVector.Length();
 	distance -= one->physics->physicalRadius + two->physics->physicalRadius;

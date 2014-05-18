@@ -170,9 +170,7 @@ enum
     CV_EVENT_MBUTTONUP      =6,
     CV_EVENT_LBUTTONDBLCLK  =7,
     CV_EVENT_RBUTTONDBLCLK  =8,
-    CV_EVENT_MBUTTONDBLCLK  =9,
-    CV_EVENT_MOUSEWHEEL     =10,
-    CV_EVENT_MOUSEHWHEEL    =11
+    CV_EVENT_MBUTTONDBLCLK  =9
 };
 
 enum
@@ -184,9 +182,6 @@ enum
     CV_EVENT_FLAG_SHIFTKEY  =16,
     CV_EVENT_FLAG_ALTKEY    =32
 };
-
-
-#define CV_GET_WHEEL_DELTA(flags) ((short)((flags >> 16) & 0xffff)) // upper 16 bits
 
 typedef void (CV_CDECL *CvMouseCallback )(int event, int x, int y, int flags, void* param);
 
@@ -220,8 +215,6 @@ CVAPI(CvMat*) cvLoadImageM( const char* filename, int iscolor CV_DEFAULT(CV_LOAD
 enum
 {
     CV_IMWRITE_JPEG_QUALITY =1,
-    CV_IMWRITE_JPEG_PROGRESSIVE =2,
-    CV_IMWRITE_JPEG_OPTIMIZE =3,
     CV_IMWRITE_PNG_COMPRESSION =16,
     CV_IMWRITE_PNG_STRATEGY =17,
     CV_IMWRITE_PNG_BILEVEL =18,
@@ -230,8 +223,7 @@ enum
     CV_IMWRITE_PNG_STRATEGY_HUFFMAN_ONLY =2,
     CV_IMWRITE_PNG_STRATEGY_RLE =3,
     CV_IMWRITE_PNG_STRATEGY_FIXED =4,
-    CV_IMWRITE_PXM_BINARY =32,
-    CV_IMWRITE_WEBP_QUALITY =64
+    CV_IMWRITE_PXM_BINARY =32
 };
 
 /* save image to file */
@@ -427,11 +419,8 @@ enum
     CV_CAP_OPENNI_DEPTH_GENERATOR_REGISTRATION_ON = CV_CAP_OPENNI_DEPTH_GENERATOR_REGISTRATION,
 
     // Properties of cameras available through GStreamer interface
-    CV_CAP_GSTREAMER_QUEUE_LENGTH           = 200, // default is 1
-
-    // PVAPI
-    CV_CAP_PROP_PVAPI_MULTICASTIP           = 300, // ip for anable multicast master mode. 0 for disable multicast
-    CV_CAP_PROP_PVAPI_FRAMESTARTTRIGGERMODE = 301, // FrameStartTriggerMode: Determines how a frame is initiated
+    CV_CAP_GSTREAMER_QUEUE_LENGTH   = 200, // default is 1
+    CV_CAP_PROP_PVAPI_MULTICASTIP   = 300, // ip for anable multicast master mode. 0 for disable multicast
 
     // Properties of cameras available through XIMEA SDK interface
     CV_CAP_PROP_XI_DOWNSAMPLING  = 400,      // Change image resolution by binning or skipping.
@@ -465,8 +454,6 @@ enum
     CV_CAP_PROP_ANDROID_FOCUS_DISTANCE_NEAR = 8006,
     CV_CAP_PROP_ANDROID_FOCUS_DISTANCE_OPTIMAL = 8007,
     CV_CAP_PROP_ANDROID_FOCUS_DISTANCE_FAR = 8008,
-    CV_CAP_PROP_ANDROID_EXPOSE_LOCK = 8009,
-    CV_CAP_PROP_ANDROID_WHITEBALANCE_LOCK = 8010,
 
     // Properties of cameras available through AVFOUNDATION interface
     CV_CAP_PROP_IOS_DEVICE_FOCUS = 9001,
@@ -547,7 +534,6 @@ enum
 enum
 {
     CV_CAP_ANDROID_FOCUS_MODE_AUTO = 0,
-    CV_CAP_ANDROID_FOCUS_MODE_CONTINUOUS_PICTURE,
     CV_CAP_ANDROID_FOCUS_MODE_CONTINUOUS_VIDEO,
     CV_CAP_ANDROID_FOCUS_MODE_EDOF,
     CV_CAP_ANDROID_FOCUS_MODE_FIXED,
@@ -609,6 +595,9 @@ CV_INLINE int CV_FOURCC(char c1, char c2, char c3, char c4)
 CVAPI(CvVideoWriter*) cvCreateVideoWriter( const char* filename, int fourcc,
                                            double fps, CvSize frame_size,
                                            int is_color CV_DEFAULT(1));
+
+//CVAPI(CvVideoWriter*) cvCreateImageSequenceWriter( const char* filename,
+//                                                   int is_color CV_DEFAULT(1));
 
 /* write frame to video file */
 CVAPI(int) cvWriteFrame( CvVideoWriter* writer, const IplImage* image );

@@ -16,7 +16,6 @@ namespace CVInput
 	enum 
 	{
 		WEBCAM,
-		FTDI_PROJECTION_CAMERA,
 		IMAGE_SERIES,
 		TEXTURE,
 	};
@@ -39,6 +38,7 @@ public:
 	/// Callback function that will be triggered via the MessageManager when messages are processed.
 	virtual void ProcessMessage(Message * message);
 
+	void PrintProcessingTimes();
 	/// Tests the pipeline, reloading base/original image.
 	void TestPipeline();
 

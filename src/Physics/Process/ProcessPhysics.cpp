@@ -119,11 +119,11 @@ void PhysicsManager::ProcessPhysics(){
                         collissionData.one = ep.one;
                         collissionData.two = ep.two;
 						
-				//		std::cout<<"\n\nCollission imminent between "<<one->name<<" "<<one->positionVector<<" and "<<two->name<<" "<<two->positionVector<<".";
+				//		std::cout<<"\n\nCollission imminent between "<<one->name<<" "<<one->position<<" and "<<two->name<<" "<<two->position<<".";
 
 						/*
-						if (ep.one->positionVector.DotProduct(collissionData.collissionNormal) > 
-							ep.two->positionVector.DotProduct(collissionData.collissionNormal))
+						if (ep.one->position.DotProduct(collissionData.collissionNormal) > 
+							ep.two->position.DotProduct(collissionData.collissionNormal))
 						{
 							collissionData.collissionNormal *= -1.0f;
 						}
@@ -135,7 +135,7 @@ void PhysicsManager::ProcessPhysics(){
 						}
 /*
                         std::cout<<"\n=?-----------------------------------------------------------------";
-                        std::cout<<"\nCollission imminent between "<<one<<" at "<<one->positionVector<<" and "<<two<<" at "<<two->positionVector;
+                        std::cout<<"\nCollission imminent between "<<one<<" at "<<one->position<<" and "<<two<<" at "<<two->position;
                         std::cout<<"\nCollissionData: one: "<<collissionData.one<<" two: "<<collissionData.two;
                         std::cout<<"\nPreliminary collission normal: "<<collissionData.preliminaryCollissionNormal;
 */
@@ -158,7 +158,7 @@ void PhysicsManager::ProcessPhysics(){
 									std::cout<<"\n UGUUUUUUUUUUUUUUUUUUUUUU";
 									std::cout<<"\n UGUUUUUUUUUUUUUUUUUUUUUU";
 									*/
-									std::cout<<"\nWARNING: Entities at "<<ep.one->positionVector<<" and "<<ep.two->positionVector<<" are still colliding after collission resolution! Distance: "<<tempData.distanceIntoEachOther;
+									std::cout<<"\nWARNING: Entities at "<<ep.one->position<<" and "<<ep.two->position<<" are still colliding after collission resolution! Distance: "<<tempData.distanceIntoEachOther;
 									// Move them apart as needed.
 								/*	Entity * staticEntity = NULL;
 									if (one->physics->type == PhysicsType::STATIC)
@@ -243,7 +243,7 @@ void PhysicsManager::ProcessPhysics(){
                             for (int c = 1; c < collissions.Size(); ++c){
                                 activeCollission = collissions[c];
                                 float dist = activeCollission.distanceIntoEachOther;
-                            //	float dist = (collissions[c].one->positionVector - collissions[c].two->positionVector).Length();
+                            //	float dist = (collissions[c].one->position - collissions[c].two->position).Length();
                                 if (collissions[c].distanceIntoEachOther < deepestDistance)
                                 {
                                     deepest = c;

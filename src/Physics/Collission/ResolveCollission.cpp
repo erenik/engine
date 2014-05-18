@@ -132,8 +132,8 @@ bool ResolveCollission(Collission &data){
 
 
 		/// New fresh start... lol.
-		Vector3f relativeContactPosition = data.collissionPoint - one->positionVector;
-		Vector3f relativeContactPosition2 = data.collissionPoint - two->positionVector;
+		Vector3f relativeContactPosition = data.collissionPoint - one->position;
+		Vector3f relativeContactPosition2 = data.collissionPoint - two->position;
 		
 		/// Add Calculate relative velocities for the contact point.
 		Vector3f relVel1 = -one->physics->angularVelocity.CrossProduct(relativeContactPosition) + one->physics->velocity;
@@ -148,11 +148,11 @@ bool ResolveCollission(Collission &data){
 		data.distanceIntoEachOther = AbsoluteValue(data.distanceIntoEachOther);
 		if (dynamicEntity){
 			float sign = dynamicEntity == one? -1.0f : 1.0f;
-			dynamicEntity->positionVector += data.collissionNormal * data.distanceIntoEachOther * 1.1f * sign;
+			dynamicEntity->position += data.collissionNormal * data.distanceIntoEachOther * 1.1f * sign;
 		}
 		else {
-			one->positionVector -= data.collissionNormal * data.distanceIntoEachOther * 0.55f;
-			two->positionVector += data.collissionNormal * data.distanceIntoEachOther * 0.55f;
+			one->position -= data.collissionNormal * data.distanceIntoEachOther * 0.55f;
+			two->position += data.collissionNormal * data.distanceIntoEachOther * 0.55f;
 		}
 		
 		/// Calculate requested change in contact velocity.
@@ -293,7 +293,7 @@ bool ResolveCollission(Collission &data){
 
 			/// Impulsive torque generated from a unit of impulse u = Q(relative) x d
 			/// where d is the direction of the impulse (in our case the contact normal).
-			Vector3f relativeContactPosition = data.collissionPoint - one->positionVector;
+			Vector3f relativeContactPosition = data.collissionPoint - one->position;
 
 			Vector3f impulsiveTorquePerUnitImpulse = relativeContactPosition.CrossProduct(contactNormal);
 			Vector3f rotationPerUnitImpulse = one->physics->inertiaTensorInverted.product(impulsiveTorquePerUnitImpulse);
@@ -305,7 +305,7 @@ bool ResolveCollission(Collission &data){
 			float angularComponent2 = velocityPerUnitImpulse.DotProduct(contactNormal);
 
 			/// Add angular velocity
-			Vector3f relativeContactPosition2 = data.collissionPoint - two->positionVector;
+			Vector3f relativeContactPosition2 = data.collissionPoint - two->position;
 			Vector3f relVel1 = -one->physics->angularVelocity.CrossProduct(relativeContactPosition) + one->physics->velocity;
 			Vector3f relVel2 = -two->physics->angularVelocity.CrossProduct(relativeContactPosition2) + two->physics->velocity;
 			Vector3f relativeVelocity = relVel1 - relVel2;
@@ -322,8 +322,8 @@ bool ResolveCollission(Collission &data){
 			/// Normal should go from one to two.
 			assert(data.results & DISTANCE_INTO);
 			data.distanceIntoEachOther = AbsoluteValue(data.distanceIntoEachOther);
-			one->positionVector -= data.collissionNormal * data.distanceIntoEachOther * 0.55f;
-			two->positionVector += data.collissionNormal * data.distanceIntoEachOther * 0.55f;
+			one->position -= data.collissionNormal * data.distanceIntoEachOther * 0.55f;
+			two->position += data.collissionNormal * data.distanceIntoEachOther * 0.55f;
 
 			/// If zis contact velocity is below 0 (or above?) then they're already separating, so don't annoy them anymore, kay?
 			if (contactVelocityF < 0){
@@ -372,8 +372,8 @@ bool ResolveCollission(Collission &data){
 
 			/// Separate them using old velocities before updating them.
 			float time = 0.01f;
-		//	one->positionVector -= time * one->physics->velocity;
-		//	two->positionVector -= time * two->physics->velocity;
+		//	one->position -= time * one->physics->velocity;
+		//	two->position -= time * two->physics->velocity;
 			
 			/// Turn back rotations too, yes yes. No.
 		//	one->physics->orientation = one->physics->orientation * Quaternion(-time * one->physics->angularVelocity, 1);
@@ -454,7 +454,7 @@ bool ResolveCollission(Collission &data){
 
 			/// Impulsive torque generated from a unit of impulse u = Q(relative) x d
 			/// where d is the direction of the impulse (in our case the contact normal).
-			Vector3f relativeContactPosition = data.collissionPoint - dynamicEntity->positionVector;
+			Vector3f relativeContactPosition = data.collissionPoint - dynamicEntity->position;
 		//	std::cout<<"\nRelative contact position: "<<relativeContactPosition;
 
 			Vector3f impulsiveTorquePerUnitImpulse = relativeContactPosition.CrossProduct(contactNormal);
@@ -538,13 +538,13 @@ bool ResolveCollission(Collission &data){
 			
 			/// Separate them using old velocities before updating them.
 			float time = 0.011f;
-		//	dynamicEntity->positionVector -= time * dynamicEntity->physics->velocity;
+		//	dynamicEntity->position -= time * dynamicEntity->physics->velocity;
 			// Separate them along the contact normal too?
 			/// Normal should go from one to two.
 			assert(data.results & DISTANCE_INTO);
 			data.distanceIntoEachOther = AbsoluteValue(data.distanceIntoEachOther);
 			float sign = dynamicEntity == one? -1.0f : 1.0f;
-			dynamicEntity->positionVector += sign * data.collissionNormal * data.distanceIntoEachOther * 1.5f;
+			dynamicEntity->position += sign * data.collissionNormal * data.distanceIntoEachOther * 1.5f;
 			
 			/// Turn back rotations too, yes yes. No.
 		//	dynamicEntity->physics->orientation = dynamicEntity->physics->orientation * Quaternion(-time * dynamicEntity->physics->angularVelocity, 1);
@@ -666,7 +666,7 @@ bool ResolveCollission(Collission &data){
 //				std::cout<<"\nVelDecrease: "<<velDecrease;
 
             /// Move back the dynamic entity along the collission normal until it's outside.
-            dynamicEntity->positionVector += distanceIntoEachOther * collissionNormal * 1.05f; // * +1% to avoid glitchies
+            dynamicEntity->position += distanceIntoEachOther * collissionNormal * 1.05f; // * +1% to avoid glitchies
 			
             /// Update entity collission state
             UpdateCollissionState(dynamicEntity, collissionNormal);
@@ -715,10 +715,10 @@ bool ResolveCollission(Collission &data){
             two->physics->angularVelocity *= 1 - friction;
 
             /// Move back both entities along their normals half the distance
-            Vector3f awayFromTwo = (one->positionVector - two->positionVector).Normalize();
-            Vector3f awayFromOne = (two->positionVector - one->positionVector).Normalize();
-            one->positionVector += distanceIntoEachOther * awayFromTwo * 0.55f; // * +2% to avoid glitchies
-            two->positionVector += distanceIntoEachOther * awayFromOne * 0.55f;	// * +2% to avoid glitchies
+            Vector3f awayFromTwo = (one->position - two->position).Normalize();
+            Vector3f awayFromOne = (two->position - one->position).Normalize();
+            one->position += distanceIntoEachOther * awayFromTwo * 0.55f; // * +2% to avoid glitchies
+            two->position += distanceIntoEachOther * awayFromOne * 0.55f;	// * +2% to avoid glitchies
 
             /// Update collission states for both entities!
             UpdateCollissionState(two, collissionNormal);

@@ -18,6 +18,7 @@
 enum generalActions{
 	NULL_ACTION,
 
+	RECORD_VIDEO,
 	PRINT_SCREENSHOT,
 
 	RELOAD_MODELS, // Reloads all models.
@@ -67,6 +68,9 @@ extern Display * display;
 
 void generalInputProcessor(int action, int inputDevice){
 	switch(action){
+		case RECORD_VIDEO:
+			Graphics.QueueMessage(new GraphicsMessage(GM_RECORD_VIDEO));
+			break;
 		case PRINT_SCREENSHOT:
 			Graphics.QueueMessage(new GraphicsMessage(GM_PRINT_SCREENSHOT));
 			break;
@@ -520,6 +524,7 @@ void generalInputProcessor(int action, int inputDevice){
 /// Creates bindings that are used for debugging purposes only
 void CreateDefaultGeneralBindings()
 {
+	Input.general.CreateBinding(RECORD_VIDEO, KEY::CTRL, KEY::R, KEY::V);
 	Input.general.CreateBinding(PRINT_SCREENSHOT, KEY::PRINT_SCREEN);
     Input.general.CreateBinding(PRINT_FRAME_TIME, KEY::CTRL, KEY::T);
 

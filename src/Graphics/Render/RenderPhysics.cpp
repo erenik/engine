@@ -89,9 +89,11 @@ void GraphicsManager::RenderPhysics(){
     //    std::cout<<"\n";
     //    std::cout<<"Shader: "<<shader->name;
     //    std::cout<<" UPC4: "<<uniformPrimaryColorVec4;
-        PhysicsProperty & physics = *entity->physics;
+        PhysicsProperty * physics = entity->physics;
+		if (!physics)
+			continue;
         const Shader & shader = *graphicsState->activeShader;
-        switch(physics.collissionState){
+        switch(physics->collissionState){
             case AABB_IDLE:
                 glUniform4f(graphicsState->activeShader->uniformPrimaryColorVec4, 0.3f, 0.3f, 0.3f, 1.0f);
                 break;
@@ -112,7 +114,7 @@ void GraphicsManager::RenderPhysics(){
             Matrix4f aabbMatrix;
             AxisAlignedBoundingBox & aabb = entity->physics->aabb;
         //    std::cout<<"\nAABB: Position: "<<aabb.position<<" scale: "<<aabb.scale<<" min: "<<aabb.min<<" max: "<<aabb.max;
-            aabbMatrix.translate(entity->physics->aabb.position);
+            aabbMatrix.Translate(entity->physics->aabb.position);
             aabbMatrix.Scale(entity->physics->aabb.scale);
 
             glUniformMatrix4fv(graphicsState->activeShader->uniformModelMatrix, 1, false, aabbMatrix.getPointer());
@@ -129,7 +131,7 @@ void GraphicsManager::RenderPhysics(){
 		switch(entity->physics->physicsShape){
 	//		PLANE,
 	//CYLINDER,
-	//SPHERE,		// Uses the Entity's internal [radius] and [positionVector]
+	//SPHERE,		// Uses the Entity's internal [radius] and [position]
 	//MESH,
 			case ShapeType::TRIANGLE: {
 				Plane * plane = (Plane*)entity->physics->shape;
@@ -210,7 +212,7 @@ void GraphicsManager::RenderPhysics(){
 				// First render sphere!, then normal mesh.
 				// Multiply by entity
 				Matrix4f oldTransform = transformationMatrix;
-				transformationMatrix = Matrix4f::Translation(entity->positionVector);
+				transformationMatrix = Matrix4f::Translation(entity->position);
 				transformationMatrix.multiply((Matrix4d().Scale(entity->physics->physicalRadius)));
 				transformationMatrix.multiply(entity->rotationMatrix);
 
@@ -285,11 +287,11 @@ rerer
 			}
 		}
 		// Always multiply by entity scale, since this is adjustable everywhere in the editor pretty much..!
-	//	transformationMatrix.multiply((Matrix4d().scale(entity->scaleVector)));
+	//	transformationMatrix.multiply((Matrix4d().scale(entity->scale)));
 
-	//	transformationMatrix.multiply(Matrix4d::GetRotationMatrixX(entity->rotationVector.x));
-	//	transformationMatrix.multiply(Matrix4d::GetRotationMatrixY(entity->rotationVector.y));
-	//	transformationMatrix.multiply(Matrix4d::GetRotationMatrixZ(entity->rotationVector.z));
+	//	transformationMatrix.multiply(Matrix4d::GetRotationMatrixX(entity->rotation.x));
+	//	transformationMatrix.multiply(Matrix4d::GetRotationMatrixY(entity->rotation.y));
+	//	transformationMatrix.multiply(Matrix4d::GetRotationMatrixZ(entity->rotation.z));
 		Matrix4f transform = Matrix4f(transformationMatrix);
 		/// Set uniform matrix in shader to point to the GameState modelView matrix.
 		glUniformMatrix4fv(graphicsState->activeShader->uniformModelMatrix, 1, false, transform.getPointer());
@@ -339,13 +341,14 @@ rerer
 	if (Graphics.renderCollissions
 		&& Physics.IsPaused()
 		&& c.one && c.two
+		&& c.one->physics && c.two->physics
 		){
 
 		glBlendFunc(GL_ALPHA, GL_ALPHA); // GL_ONE_MINUS_SRC_ALPHA
 			
 
 		SetShaderProgram(0);
-		Vector3f pos1 = c.one->positionVector, pos2 = c.two->positionVector;
+		Vector3f pos1 = c.one->position, pos2 = c.two->position;
 
 		// Render collission point.
 		Vector3f origin = c.collissionPoint;
@@ -395,11 +398,11 @@ rerer
 #define PREV_VEL_HIGHLIGHT	Vector4f(0.3f, 0.0f, 0.3f, 0.5f)
 #define PREV_ANG_VEL_HIGHLIGHT	Vector4f(0.2f, 0.2f, 0.2f, 0.5f)
 		/// Linear
-			RenderFadingLine(c.one->positionVector, c.one->positionVector + c.one->physics->previousVelocity, PREVIOUS_VEL, PREV_VEL_HIGHLIGHT);
-			RenderFadingLine(c.two->positionVector, c.two->positionVector + c.two->physics->previousVelocity, PREVIOUS_VEL, PREV_VEL_HIGHLIGHT);
+			RenderFadingLine(c.one->position, c.one->position + c.one->physics->previousVelocity, PREVIOUS_VEL, PREV_VEL_HIGHLIGHT);
+			RenderFadingLine(c.two->position, c.two->position + c.two->physics->previousVelocity, PREVIOUS_VEL, PREV_VEL_HIGHLIGHT);
 		/// Angular
-			RenderFadingLine(c.one->positionVector, c.one->positionVector + c.one->physics->previousAngularVelocity, PREVIOUS_ANG_VEL, PREV_ANG_VEL_HIGHLIGHT);
-			RenderFadingLine(c.two->positionVector, c.two->positionVector + c.two->physics->previousAngularVelocity, PREVIOUS_ANG_VEL, PREV_ANG_VEL_HIGHLIGHT);
+			RenderFadingLine(c.one->position, c.one->position + c.one->physics->previousAngularVelocity, PREVIOUS_ANG_VEL, PREV_ANG_VEL_HIGHLIGHT);
+			RenderFadingLine(c.two->position, c.two->position + c.two->physics->previousAngularVelocity, PREVIOUS_ANG_VEL, PREV_ANG_VEL_HIGHLIGHT);
 			
 		glLineWidth(1.0f);
 
@@ -442,8 +445,10 @@ rerer
 	for (int i = 0; i < physicalEntities.Size(); ++i){
 		Entity * e = physicalEntities[i];
 		PhysicsProperty * p = e->physics;
-		RenderFadingLine(e->positionVector, e->positionVector + p->velocity, Vector3f(0.2f,0.6f,0.2f), Vector3f(0,0.8f,0));
-		RenderFadingLine(e->positionVector, e->positionVector + p->angularVelocity, Vector3f(0.2f,0.2f,0.6f), Vector3f(0,0,0.8f));
+		if (!p)
+			continue;
+		RenderFadingLine(e->position, e->position + p->velocity, Vector3f(0.2f,0.6f,0.2f), Vector3f(0,0.8f,0));
+		RenderFadingLine(e->position, e->position + p->angularVelocity, Vector3f(0.2f,0.2f,0.6f), Vector3f(0,0,0.8f));
 	}
 	glLineWidth(1.0f);
 
@@ -451,7 +456,7 @@ rerer
 	glLineWidth(2.0f);
 	for (int i = 0; i < Physics.springs.Size(); ++i){
 		Spring * spring = Physics.springs[i];
-		RenderLine(spring->one->positionVector, spring->two->positionVector, Vector4f(1,1,1,0.2f));
+		RenderLine(spring->one->position, spring->two->position, Vector4f(1,1,1,0.2f));
 	}
 	glLineWidth(1.0f);
 

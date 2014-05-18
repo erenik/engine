@@ -8,7 +8,7 @@
 #include <iomanip>
 
 void EntityPair::PrintDetailed(){
-    std::cout<<"\nComparing pair: "<<one<<" "<<one->positionVector<<" & "<<two<<" "<<two->positionVector;
+    std::cout<<"\nComparing pair: "<<one<<" "<<one->position<<" & "<<two<<" "<<two->position;
     AxisAlignedBoundingBox * oneab = &one->physics->aabb, * twoab = &two->physics->aabb;
     std::cout<<"\nOne min/max: "<<oneab->min<<" "<<oneab->max;
     std::cout<<"\nTwo min/max: "<<twoab->min<<" "<<twoab->max;
@@ -144,7 +144,7 @@ List<EntityPair> AABBSweeper::Sweep(){
                         ep.one = node->entity;
                         ep.two = e;
                     }
-          //          std::cout<<"\nAdding pair: "<<ep.one<<" "<<ep.one->positionVector<<" & "<<ep.two<<" "<<ep.two->positionVector;
+          //          std::cout<<"\nAdding pair: "<<ep.one<<" "<<ep.one->position<<" & "<<ep.two<<" "<<ep.two->position;
                     entityPairs.Add(ep);
                 }
                 activeEntities.Add(node->entity);
@@ -183,7 +183,7 @@ List<EntityPair> AABBSweeper::Sweep(){
   //  std::cout<<"\nSecondary axises checked, pairs are now as follows:";
     for (int i = 0; i < entityPairs.Size(); ++i){
         EntityPair ep = entityPairs[i];
-  //      std::cout<<"\nPair "<<i<<": "<<ep.one<<" "<<ep.one->positionVector<<" & "<<ep.two<<" "<<ep.two->positionVector;
+  //      std::cout<<"\nPair "<<i<<": "<<ep.one<<" "<<ep.one->position<<" & "<<ep.two<<" "<<ep.two->position;
     }
 
  //   std::cout<<"\nAA-AABB pairs after examining the remaining two axes: "<<entityPairs.Size();

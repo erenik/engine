@@ -50,7 +50,7 @@ public:
 	/// Array-indexing operator, const version
 	const T& operator[](int index) const;
 	/// Get last one.
-	const T Last() const;
+	T& Last();
 
 	/** Inserts an item into the list at target index. All items beyond this index will be pushed back by 1 unit. 
 		E.g. placing it at index 0 will add it at the beginning of the list.
@@ -225,7 +225,7 @@ const T& List<T>::operator[](int index) const {
 
 /// Get last one.
 template <class T>
-const T List<T>::Last() const {
+T& List<T>::Last() {
 	return arr[currentItems-1];
 }
 

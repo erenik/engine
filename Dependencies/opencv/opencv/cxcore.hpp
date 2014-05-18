@@ -47,7 +47,6 @@
 //#warning "This is a deprecated opencv header provided for compatibility. Please include a header from a corresponding opencv module"
 //#endif
 
-#include "cxcore.h"
-#include "opencv2/core.hpp"
+#include <cxcore.h>
 
 #endif

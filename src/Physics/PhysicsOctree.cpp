@@ -326,21 +326,21 @@ int PhysicsOctree::IsEntityInside(Entity * entity){
 	// Make box test insteeeead
 
 	// Check if it's inside.
-	if (entity->positionVector.x + entity->physics->physicalRadius < right &&
-		entity->positionVector.x - entity->physics->physicalRadius > left &&
-		entity->positionVector.y + entity->physics->physicalRadius < top &&
-		entity->positionVector.y - entity->physics->physicalRadius > bottom &&
-		entity->positionVector.z + entity->physics->physicalRadius < nearBound &&
-		entity->positionVector.z - entity->physics->physicalRadius > farBound
+	if (entity->position.x + entity->physics->physicalRadius < right &&
+		entity->position.x - entity->physics->physicalRadius > left &&
+		entity->position.y + entity->physics->physicalRadius < top &&
+		entity->position.y - entity->physics->physicalRadius > bottom &&
+		entity->position.z + entity->physics->physicalRadius < nearBound &&
+		entity->position.z - entity->physics->physicalRadius > farBound
 	)
 		return INSIDE;
 	// Or intersecting, just compare with inverted radius
-	else if (entity->positionVector.x - entity->physics->physicalRadius < right &&
-		entity->positionVector.x + entity->physics->physicalRadius > left &&
-		entity->positionVector.y - entity->physics->physicalRadius < top &&
-		entity->positionVector.y + entity->physics->physicalRadius > bottom &&
-		entity->positionVector.z - entity->physics->physicalRadius < nearBound &&
-		entity->positionVector.z + entity->physics->physicalRadius > farBound
+	else if (entity->position.x - entity->physics->physicalRadius < right &&
+		entity->position.x + entity->physics->physicalRadius > left &&
+		entity->position.y - entity->physics->physicalRadius < top &&
+		entity->position.y + entity->physics->physicalRadius > bottom &&
+		entity->position.z - entity->physics->physicalRadius < nearBound &&
+		entity->position.z + entity->physics->physicalRadius > farBound
 	)
 		return INTERSECT;
 	// It's outside if the previous were false, logical :P

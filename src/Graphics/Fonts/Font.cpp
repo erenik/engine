@@ -337,6 +337,13 @@ void TextFont::RenderText(Text & text, GraphicsState &graphicsState){
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	glUseProgram(0);
+
+	glEnable(GL_TEXTURE_2D);
+//	glEnable(GL_LIGHTING);
+	glDisable(GL_COLOR_MATERIAL);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	
+
 	graphicsState.activeShader = NULL;
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -347,6 +354,9 @@ void TextFont::RenderText(Text & text, GraphicsState &graphicsState){
 	glColor4f(color.x, color.y, color.z, color.w);
 	glEnable(GL_BLEND);
 	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	glDisable(GL_LIGHTING);
+
 
 	// Disable depth test..
 	glDisable(GL_DEPTH_TEST);

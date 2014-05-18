@@ -98,15 +98,15 @@ public:
 
 	// 3D-operations
 	/** Applies 3D translation using given parameters. */
-	void translate(float x, float y, float z);
+	void Translate(float x, float y, float z);
 	/** Applies 3D translation using given vector. */
-	void translate(Vector3f vec);
+	void Translate(Vector3f vec);
 	/** Returns an initialized translation-matrix using given vector. */
 	static Matrix4f Translation(Vector3f trans);
 	/** Applies 3D scaling with provided ratio to x, y and z-dimensions. */
-	void scale(float ratio);
+	void Scale(float ratio);
 	/** Applies 3D scaling using the provided x, y and z-ratios. */
-	void scale(float xRatio, float yRatio, float zRatio);
+	void Scale(float xRatio, float yRatio, float zRatio);
 	/// Scale using a given vector
 	void Scale(const Vector3f & scalingVector);
 

@@ -78,6 +78,8 @@ void GMSetEntity::Process(){
 	};
 }
 
+#define ENSURE_GRAPHICS_PROPERTY(e) {if(!e->graphics) e->graphics = new GraphicsProperty();}
+
 GMSetEntityb::GMSetEntityb(Entity * entity, int target, bool value)
 	: GraphicsMessage(GM_SET_ENTITY_BOOLEAN), entity(entity), target(target), bValue(value)
 {
@@ -85,9 +87,81 @@ GMSetEntityb::GMSetEntityb(Entity * entity, int target, bool value)
 }
 void GMSetEntityb::Process()
 {
-	if (!entity->graphics)
-		entity->graphics = new GraphicsProperty();
+	ENSURE_GRAPHICS_PROPERTY(entity);
 	entity->graphics->visible = bValue;
 }
 
+
+GMSetEntitys::GMSetEntitys(Entity * entity, int target, String value)
+	: GraphicsMessage(GM_SET_ENTITY_STRING), entity(entity), target(target), sValue(value)
+{
+	switch(target)
+	{
+		case TEXT:
+			break;
+		default:
+			assert(false && "Bad target in GMSetEntitys");
+	}
+}
+void GMSetEntitys::Process()
+{
+	ENSURE_GRAPHICS_PROPERTY(entity);
+	switch(target)
+	{
+		case TEXT:
+			entity->graphics->text = sValue;
+			break;
+	}
+}
+
+
+GMSetEntityf::GMSetEntityf(Entity * entity, int target, float value)
+	: GraphicsMessage(GM_SET_ENTITY_FLOAT), entity(entity), target(target), fValue(value)
+{
+	switch(target)
+	{
+		case TEXT_SIZE_RATIO:
+			break;
+		default:
+			assert(false && "Bad value");
+	}
+}
+void GMSetEntityf::Process()
+{
+	ENSURE_GRAPHICS_PROPERTY(entity);
+	switch(target)
+	{
+		case TEXT_SIZE_RATIO:
+			entity->graphics->textSizeRatio = fValue;
+			break;
+	}
+}
+
+
+GMSetEntityVec4f::GMSetEntityVec4f(Entity * entity, int target, Vector4f value)
+	: GraphicsMessage(GM_SET_ENTITY_VEC4F), entity(entity), target(target), vec4fValue(value)
+{
+	switch(target)
+	{
+		case TEXT_COLOR:
+		case TEXT_POSITION:
+			break;
+		default:
+			assert(false && "Bad value");
+	}
+}
+void GMSetEntityVec4f::Process()
+{
+	ENSURE_GRAPHICS_PROPERTY(entity);
+	switch(target)
+	{
+		case TEXT_COLOR:
+			entity->graphics->textColor = vec4fValue;
+			std::cout<<"lall";
+			break;
+		case TEXT_POSITION:
+			entity->graphics->textPositionOffset = vec4fValue;
+			break;
+	}
+}
 

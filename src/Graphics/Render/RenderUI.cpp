@@ -44,7 +44,7 @@ void GraphicsManager::RenderUI(UserInterface * ui){
     gs.topScissor = Graphics.Height();
 
     PrintGLError("GLError in RenderUI setting shader");
-
+	
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	PrintGLError("GLError glBlendFunc");
 
@@ -56,7 +56,7 @@ void GraphicsManager::RenderUI(UserInterface * ui){
 	projection.LoadIdentity();
 	projection.InitOrthoProjectionMatrix(0, width, 0, height, -1.0f, -100.0f);
 //	projection.InitProjectionMatrix(-1000, 1000, -500, 500, -1, -100);
-	projection.translate(0, 0, 1.0f);
+	projection.Translate(0, 0, 1.0f);
 
 	/// Just testing that the matrix is set correctly..
 	Vector4f point = Vector4f((float)width, (float)height, 0, 1.0f);

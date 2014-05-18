@@ -128,7 +128,7 @@ bool OrientedBoundingBox::Collide(Sphere & sphere, Collission & collissionData){
 /// Recalculate it using the entity's base model's AABB and current matrix.
 void OrientedBoundingBox::Recalculate(Entity * entity){
     assert(entity->physics);
-//    std::cout<<"\nRecalculating OBB for entity "<<entity<<" "<<entity->positionVector;
+//    std::cout<<"\nRecalculating OBB for entity "<<entity<<" "<<entity->position;
     AxisAlignedBoundingBox & aabb = entity->model->aabb;
     Vector3f & min = aabb.min, & max = aabb.max;
 	localSize = max - min;

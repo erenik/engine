@@ -138,6 +138,9 @@ public:
 	Ray GetRayFromScreenCoordinates(int mouseX, int mouseY) const;
 
 
+	Vector3f offsetRotation;
+	Vector3f relativePosition;
+
 private:
 
 	/// Ratio of the display device/context. Both should be at least 1.0, with the other scaling up as needed.

@@ -38,7 +38,7 @@ void Timer::Stop()
         QueryPerformanceCounter(&t2);
         stop = t2.QuadPart;
         // compute and print the elapsed time in millisec
-        elapsedTime = (t2.QuadPart - t1.QuadPart) * 1000.0 / frequency.QuadPart;
+        elapsedTime = (t2.QuadPart - t1.QuadPart) * 1000.0 * 1000.0 / frequency.QuadPart;
     //	std::cout<<"\nA* Time taken: "<<elapsedTime<<" milliseconds.";
     #elif defined LINUX | defined OSX
         gettimeofday(&t2, NULL);
@@ -64,7 +64,33 @@ long Timer::GetMs()
             elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;   // us to ms
         #endif
     }
+	return elapsedTime / 1000.0;
+}
+
+
+// Returns elapsed time in microseconds.
+int64 Timer::GetMicro()
+{
+    if (running)
+    {
+        #ifdef WINDOWS
+            QueryPerformanceCounter(&t2);
+            stop = t2.QuadPart;
+            // compute and print the elapsed time in millisec
+            elapsedTime = (t2.QuadPart - t1.QuadPart) * 1000.0 * 1000.0 / frequency.QuadPart;
+        #elif defined LINUX | defined OSX
+            gettimeofday(&t2, NULL);
+            elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0 * 1000.0;      // sec to ms
+            elapsedTime += (t2.tv_usec - t1.tv_usec);   // us to ms
+        #endif
+    }
 	return elapsedTime;
+}
+
+// Returns time in seconds.
+int64 Timer::GetCurrentTime()
+{
+	return GetCurrentTimeMs() * 0.001;
 }
 
 
@@ -92,6 +118,32 @@ time_t Timer::GetCurrentTimeMs(bool machineTime /* = true */)
     return currTime;
 #endif
 }
+
+// Returns current time in microseconds.
+time_t Timer::GetCurrentTimeMicro()
+{
+#ifdef WINDOWS
+	FILETIME ft_now;
+	// Get current time in intervals of 100-nanoseconds from Jan 1, 1601
+	GetSystemTimeAsFileTime(&ft_now);
+	// Convert it to a 64 integer
+//	__int64 currentTime = ft_now.dwLowDateTime + ((time_t)(ft_now.dwHighDateTime) << 32);
+	time_t currTime = (time_t)ft_now.dwLowDateTime + ((time_t)(ft_now.dwHighDateTime) << 32);
+	// Convert to UNIX epoch, Jan 1, 1970
+	currTime -= (time_t)116444736000000000;
+	// Convert the interval of 100-nanoseconds to milliseconds
+	currTime /= 1000;
+	currTime += adjustment;
+	return currTime;
+#elif defined LINUX | defined OSX
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	long long currTime = (time_t)tv.tv_sec * 1000 * 1000 + tv.tv_usec;
+	currTime += adjustment;
+    return currTime;
+#endif
+}
+
 
 /// Sets time adjustment that will be added to every call of GetCurrentTimeMs() unless specifically told otherwise.
 void Timer::SetAdjustment(long long newAdjustment){

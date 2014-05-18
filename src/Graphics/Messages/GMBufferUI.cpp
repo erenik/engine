@@ -5,7 +5,8 @@
 #include "../GraphicsManager.h"
 #include "GraphicsMessages.h"
 
-GMBufferUI::GMBufferUI(UIElement * i_element): GraphicsMessage(GM_BUFFER_UI) {
+GMBufferUI::GMBufferUI(UIElement * i_element): GraphicsMessage(GM_BUFFER_UI) 
+{
 	this->element = i_element;
 }
 

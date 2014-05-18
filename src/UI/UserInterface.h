@@ -142,6 +142,8 @@ public:
 	/// Directory for the UI relative to root (bin/)
 	static String rootUIDir;
 	
+
+	String name;
 protected:
 	/// Loads from target file, using given root as root-element in the UI-hierarchy.
 	static bool LoadFromFile(String filePath, UIElement * intoRoot);
@@ -150,7 +152,7 @@ protected:
 	void OnElementDeleted(UIElement * element);
 
 	String source;
-	String uiName;
+//	String uiName;
 	bool isGeometryCreated;
 	bool isBuffered;
 	/** If true, there must always (if possible) be one element that is hovered over. 

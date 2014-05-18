@@ -176,8 +176,19 @@ public:
 			return AbsoluteValue(y);
 		return AbsoluteValue(z);
 	};
-	/// Returns the absolute value of the sub-component (x,y,z) of highest absolute value.
+	/// Returns the value of the sub-component (x,y,z) of lowest value.
 	const float MinPart() const {
+		if ((x) < (y)){
+			if ((x) < (z))
+				return (x);
+			return (z);
+		}
+		else if ((y) < (z))
+			return (y);
+		return (z);
+	};
+	/// Returns the absolute value of the sub-component (x,y,z) of lowest absolute value.
+	const float MinPartAbs() const {
 		if (AbsoluteValue(x) < AbsoluteValue(y)){
 			if (AbsoluteValue(x) < AbsoluteValue(z))
 				return AbsoluteValue(x);

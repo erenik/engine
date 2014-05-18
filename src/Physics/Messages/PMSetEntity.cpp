@@ -46,6 +46,7 @@ PMSetEntity::PMSetEntity(int target, List<Entity*> targetEntities, Vector3f valu
 	vec3fValue = value;
 	switch(target){
 		case VELOCITY:
+		case ANGULAR_VELOCITY:
 		case POSITION:
 		case TRANSLATE:
 		case SCALE:
@@ -53,7 +54,8 @@ PMSetEntity::PMSetEntity(int target, List<Entity*> targetEntities, Vector3f valu
 		case SET_POSITION:
 		case SET_SCALE:
 		case SET_ROTATION:
-		case ACCELERATION:  case ACCELERATION_MULTIPLIER:
+		case ACCELERATION:  
+		case ACCELERATION_MULTIPLIER:
 		case ANGULAR_ACCELERATION:
 		case DESTINATION:
 			break;
@@ -87,6 +89,7 @@ PMSetEntity::PMSetEntity(int target, List<Entity*> targetEntities, int value)
 	iValue = value;
 	switch(target){
 		case PHYSICS_TYPE:
+		case PHYSICS_SHAPE:
 		case ESTIMATION_MODE:
 		case ESTIMATION_DELAY:
 		case ESTIMATION_SMOOTHING_DURATION:
@@ -143,6 +146,9 @@ void PMSetEntity::Process(){
 			case PHYSICS_TYPE:
 				Physics.SetPhysicsType(entity, iValue);
 				break;
+			case PHYSICS_SHAPE:
+				Physics.SetPhysicsShape(entity, iValue);
+				break;
 			case ESTIMATION_MODE:
 				if (entity->physics->estimator)
 					entity->physics->estimator->estimationMode = iValue;
@@ -161,15 +167,18 @@ void PMSetEntity::Process(){
 				else
 					entity->physics->velocity = vec3fValue;
 				break;
+			case ANGULAR_VELOCITY:
+				entity->physics->angularVelocity = vec3fValue;
+				break;
 			case SET_POSITION:
 			case POSITION:
 				if (entity->physics->estimationEnabled)
 					entity->physics->estimator->AddPosition(vec3fValue, timeStamp);
 				else
-					entity->position(vec3fValue);
+					entity->SetPosition(vec3fValue);
 				break;
 			case TRANSLATE:
-				entity->translate(vec3fValue);
+				entity->Translate(vec3fValue);
 				break;
 			case SCALE:
 				entity->Scale(vec3fValue);
@@ -177,7 +186,7 @@ void PMSetEntity::Process(){
 			//	std::cout<<"\nEntity scale set to "<<vec3fValue;
 				break;
 			case ROTATE:
-				entity->rotate(vec3fValue);
+				entity->Rotate(vec3fValue);
 				entity->physics->UpdateProperties(entity);
 				break;
 			case SET_SCALE:
@@ -191,7 +200,7 @@ void PMSetEntity::Process(){
 					break;
 				}
 				else
-					entity->rotationVector = vec3fValue;
+					entity->rotation = vec3fValue;
 				#ifdef USE_QUATERNIONS
 				// http://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation
 				/// Convert from carteesian to quaternions.
@@ -205,7 +214,7 @@ void PMSetEntity::Process(){
 
 					entity->physics->orientation = q;
 				#endif
-				entity->recalculateMatrix();
+				entity->RecalculateMatrix();
 				entity->physics->UpdateProperties(entity);
 				break;
 			}

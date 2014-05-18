@@ -117,6 +117,7 @@ public:
 	int screenshotsTaken;
 	// If currently recording screenshots in succession
 	bool recording;
+	int framesRecorded;
 };
 
 #endif

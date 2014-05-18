@@ -32,6 +32,7 @@
 #define OPENCV_FLANN_KMEANS_INDEX_H_
 
 #include <algorithm>
+#include <string>
 #include <map>
 #include <cassert>
 #include <limits>
@@ -758,13 +759,10 @@ private:
 
                     for (int k=0; k<indices_length; ++k) {
                         if (belongs_to[k]==j) {
-                            // for cluster j, we move the furthest element from the center to the empty cluster i
-                            if ( distance_(dataset_[indices[k]], dcenters[j], veclen_) == radiuses[j] ) {
-                                belongs_to[k] = i;
-                                count[j]--;
-                                count[i]++;
-                                break;
-                            }
+                            belongs_to[k] = i;
+                            count[j]--;
+                            count[i]++;
+                            break;
                         }
                     }
                     converged = false;
