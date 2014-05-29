@@ -108,8 +108,11 @@ void GameState::MouseMove(int x, int y, bool lDown, bool rDown, UIElement * elem
 /** Handles mouse wheel input.
 	Positive delta signifies scrolling upward or away from the user, negative being toward the user.
 */
-void GameState::MouseWheel(float delta){
+void GameState::MouseWheel(float delta)
+{
+#ifdef _DEFAULT_STATE_DEBUG
 	std::cout<<"\nDefault GameState::MouseWheel activated.";
+#endif
 }
 
 

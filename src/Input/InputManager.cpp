@@ -648,16 +648,18 @@ void InputManager::MouseMove(int x, int y)
 void InputManager::MouseWheel(float delta){
 	if (!acceptInput)
 		return;
-//	std::cout<<"\nMouseU WHEEEL OOOO: "<<delta;
+	std::cout<<"\nMouseWheel: "<<delta;
 	UserInterface * ui = GetRelevantUI();
 	if (ui)
 	{
 		UIElement * element = ui->GetElementByPosition(mouseX, mouseY);
 		if (element){
+			delta *= 0.5f;
 	//		std::cout<<"\nWheeled over element: "<<element->name;
 			bool scrolled = element->OnScroll(delta);
 			if (scrolled)
-				return;
+				// Mark some variable... to pass to the MouseWheel of the state.
+				;
 		}
 	}
 	/// If no UI has been selected/animated, pass the message on to the stateManager
@@ -742,6 +744,8 @@ void InputManager::EvaluateKeyPressed(int activeKeyCode, bool downBefore){
 				case KEY::DOWN:		UIDown();	break;
 				case KEY::LEFT:		UILeft();	break;
 				case KEY::RIGHT:	UIRight();	break;
+				case KEY::PG_UP: UIPage(1.f); break;
+				case KEY::PG_DOWN: UIPage(-1.f); break;
 				case KEY::TAB:
 					if (keyPressed[KEY::SHIFT])
 						UIPrevious();
@@ -1197,6 +1201,15 @@ void InputManager::UIRight()
 	if (!element)
 		return;
 	ui->SetHoverElement(element);
+}
+
+void InputManager::UIPage(float amount)
+{
+	UserInterface * ui = GetRelevantUI();
+	UIElement * hoverElement = ui->GetHoverElement();
+	if (!hoverElement)
+		return;
+	hoverElement->OnScroll(amount);
 }
 
 

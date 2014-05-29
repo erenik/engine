@@ -684,7 +684,7 @@ void Mesh::Bufferize()
 
 	// Check if already buffered, stupid..
 	if (this->vboBuffer){
-		std::cout<<"\nINFO: Mesh "<<name<<" already buffered, skipping!";
+//		std::cout<<"\nINFO: Mesh "<<name<<" already buffered, skipping!";
 		return;
 	}
 	/// Check for mesh-Entity

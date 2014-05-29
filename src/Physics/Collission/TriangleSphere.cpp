@@ -118,10 +118,10 @@ bool TriangleSphereCollission(Triangle * triangle, Sphere * sphere, Collission &
 }
 
 bool TriangleSphereCollission(Triangle * triangle, Entity * sphereEntity, Collission &data){
-	Sphere * sphere = (Sphere*)sphereEntity->physics->shape;
-	sphere->position = sphereEntity->position;
-	sphere->radius = sphereEntity->physics->physicalRadius;
-	return TriangleSphereCollission(triangle, sphere, data);
+	static Sphere sphere; // = (Sphere*)sphereEntity->physics->shape;
+	sphere.position = sphereEntity->position;
+	sphere.radius = sphereEntity->physics->physicalRadius;
+	return TriangleSphereCollission(triangle, &sphere, data);
 /*
 	/// Remember to multiply it by it's normal-matrix....
 	Vector3f planeNormal = triangle->normal;

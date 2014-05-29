@@ -23,6 +23,7 @@ PMSetEntity::PMSetEntity(int target, List<Entity*> targetEntities, float value)
 	}
 	fValue = value;
 	switch(target){
+		case MASS:
 		case SCALE:
 		case SET_SCALE:
 		case FRICTION:
@@ -111,6 +112,11 @@ void PMSetEntity::Process(){
 	for (int i = 0; i < entities.Size(); ++i){
 		Entity * entity = entities[i];
 		switch(target){
+			// Float types?
+			case MASS:
+				entity->physics->mass = fValue;
+				break;
+			// Waypoint?
 			case DESTINATION:{
 				NavMesh * nm = WaypointMan.ActiveNavMesh();
 				assert(nm);

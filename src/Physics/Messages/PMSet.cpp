@@ -12,6 +12,8 @@ PMSet::PMSet(int target, float fValue)
 		case AIR_DENSITY:
 		case GRAVITY:
 		case DEFAULT_DENSITY:
+		case LINEAR_DAMPING:
+		case ANGULAR_DAMPING:
 			break;
 		default:
 			assert(false && "Invalid target in PMSet");
@@ -41,7 +43,14 @@ PMSet::PMSet(int target, int iValue)
 }
 
 void PMSet::Process(){
-	switch(target){
+	switch(target)
+	{
+		case LINEAR_DAMPING:
+			Physics.linearDamping = floatValue;
+			break;
+		case ANGULAR_DAMPING:
+			Physics.angularDamping = floatValue;
+			break;
 		case AIR_DENSITY:
 			Physics.airDensity = floatValue;
 			break;

@@ -51,6 +51,8 @@ public:
 	/// Set default values.
 	void Nullify();
 
+	/// Sets mass, re-calculates inverse mass.
+	void SetMass(float mass);
 	/// Calculates inertia tensor matrix and its inversion.
 	void CalculateInertiaTensor();
 
@@ -93,6 +95,8 @@ public:
 
 	/// Flaggetiflag o-o;
 	bool collissionsEnabled;
+	// Default.. false?
+	bool useQuaternions;
 
 	// Current physical properties, affected by a number of properties elsewhere in Entity.
 	float physicalRadius;

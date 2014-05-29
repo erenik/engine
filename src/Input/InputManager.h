@@ -225,6 +225,8 @@ public:
 	void UIDown();
 	void UILeft();
 	void UIRight();
+	// For Page up/down
+	void UIPage(float amount);
 	/** Emulates Pressing a mouse-button or Enter-key in order to continue with whatever dialogue was up, using the selected or default option (if any)
 		Returns true if it actually did something. False if e.g. no UI item was active or in hover state.
 	*/

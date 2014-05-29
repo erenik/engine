@@ -57,7 +57,7 @@ void AABBSweeper::RegisterEntity(Entity * entity){
         nodes[i]->entity = entity;
         nodes[i]->aabb = aabb;
         nodes[i]->type = (i%2 ? AABBSweepNode::START : AABBSweepNode::STOP);
-        std::cout<<"\nNode type created: "<<nodes[i]->type<<" "<< (nodes[i]->type == AABBSweepNode::START ? "Start" : "Stop") ;
+//        std::cout<<"\nNode type created: "<<nodes[i]->type<<" "<< (nodes[i]->type == AABBSweepNode::START ? "Start" : "Stop") ;
     }
 
     for (int i = 0; i < axesToWorkWith; ++i){

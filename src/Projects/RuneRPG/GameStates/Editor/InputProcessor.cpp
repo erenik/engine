@@ -378,7 +378,7 @@ void RuneEditor::InputProcessor(int action, int inputDevice/* = 0*/){
 			if (runeEditorSelection.Size() == 0)
 				return;
 			Entity * entity = runeEditorSelection[0];
-			std::cout<<"\nTranslate Entity prompt: Current translation: "<<entity->positionVector;
+			std::cout<<"\nTranslate Entity prompt: Current translation: "<<entity->position;
 			Input.EnterTextInputMode("TRANSLATE_ENTITY");
 			break;
 		}
@@ -396,7 +396,7 @@ void RuneEditor::InputProcessor(int action, int inputDevice/* = 0*/){
 			if (runeEditorSelection.Size() == 0)
 				return;
 			Entity * entity = runeEditorSelection[0];
-			std::cout<<"\nScale Entity prompt: Current scale: "<<entity->scaleVector;
+			std::cout<<"\nScale Entity prompt: Current scale: "<<entity->scale;
 			Input.EnterTextInputMode("SCALE_ENTITY");
 			break;
 		}
@@ -413,7 +413,7 @@ void RuneEditor::InputProcessor(int action, int inputDevice/* = 0*/){
 			if (runeEditorSelection.Size() == 0)
 				return;
 			Entity * entity = runeEditorSelection[0];
-			std::cout<<"\nRotate Entity prompt: Current Rotation: "<<entity->rotationVector;
+			std::cout<<"\nRotate Entity prompt: Current Rotation: "<<entity->rotation;
 			Input.EnterTextInputMode("ROTATE_ENTITY");
 			break;
 		}

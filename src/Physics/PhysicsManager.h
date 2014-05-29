@@ -23,9 +23,6 @@ class Spring;
 #define OCTREE      1
 #define AABB_SWEEP  2
 
-/// Collission Resolvers
-#define CUSTOM_SPACE_RACE_PUSHBACK      1
-#define LAB_PHYSICS_IMPULSES            2
 
 /// Integrators
 namespace Integrator {
@@ -35,7 +32,15 @@ enum Integrators {
     /// Physics as calculated with strict Rigid body physics
 	LAB_PHYSICS,
 	/// Physics as I designed it earlier. Probably only viable for the Space Race project or other similar games with semi-wonky physics, lol.
-	SPACE_RACE_CUSTOM_INTEGRATOR,
+	APPROXIMATE,
+	SPACE_RACE_CUSTOM_INTEGRATOR = APPROXIMATE,
+};};
+
+/// Collission Resolvers
+namespace CollissionResolver{
+enum collissionResolvers {
+	CUSTOM_SPACE_RACE_PUSHBACK,
+	LAB_PHYSICS_IMPULSES,
 };};
 
 class PhysicsManager{
@@ -57,6 +62,9 @@ private:
 	PhysicsManager();
 	static PhysicsManager * physicsManager;
 public:
+	// Integrators
+	void ApproximateIntegrate(Entity * entity, float timeSinceLastUpdate);
+
     /// See above.
     /// Defines if AABBs or sphere-octrees should be used to broad-phase collission detection.
     int checkType;
@@ -217,6 +225,10 @@ private:
 	bool paused;
 	/// Time in milliseconds that last physics update was performed.
 	time_t lastUpdate;
+
+	/// Damping applied each frame. 1.0 = retain all speed. Suggested values around 0.5 for starters. Ratio velocities are multiplied per second.
+	float linearDamping;
+	float angularDamping;
 
 
 	/// Number of registered entities

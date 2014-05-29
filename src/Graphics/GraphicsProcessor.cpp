@@ -283,7 +283,7 @@ void * GraphicsManager::Processor(void * vArgs){
 		else {
 			if (now > timeNotRendered + 1000)
 			{
-				std::cout<<"\nPrint if rendering is disabled?";
+//				std::cout<<"\nPrint if rendering is disabled?";
 				timeNotRendered = now;
 			}
 		}

@@ -12,7 +12,7 @@ PMRegisterEntity::PMRegisterEntity(Entity * i_entity): PhysicsMessage(PM_REGISTE
 }
 
 void PMRegisterEntity::Process(){
-	std::cout<<"\nRegistering selection for Physics.";
+//	std::cout<<"\nRegistering selection for Physics.";
 	int failed = Physics.RegisterEntity(entity);
 	if (failed)
 		std::cout<<"\nUnable to register entity "<<entity<<".";

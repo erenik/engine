@@ -19,7 +19,9 @@
 #include "Audio.h"
 
 #include <iostream>
-
+#include <fmod_studio.hpp>
+#include <fmod_studio_common.h>
+//#include <fmod.hpp>
 
 AudioManager * AudioManager::audioManager = NULL;
 
@@ -91,6 +93,33 @@ void AudioManager::Initialize(){
 #else
 	std::cout<<"\nINTO: Open AL is currently disabled. Enable it in AudioSettings.h and recompile!";
 #endif // USE_OPEN_AL
+
+#ifdef USE_FMOD
+	// Initialize FMOD
+	result = 0;
+	FMOD::Studio::System * system;
+	result = FMOD::Studio::System::create(&system); // Create the Studio System object.
+	if (result == FMOD_OK)
+	{
+		// Initialize FMOD Studio, which will also initialize FMOD Low Level
+		result = system->initialize(512, FMOD_STUDIO_INIT_NORMAL, FMOD_INIT_NORMAL, 0);
+		assert(result == FMOD_OK);
+	}
+
+	while(true)
+	{
+		system->loadBankFile("filename", 0, &bank);
+		system->update();
+		system->playSound(sound, channelGroup, false, &channel);
+	}
+	
+/*	if (result != FMOD_OK)
+	{
+		printf("FMOD error! (%d) %s\n", result, FMOD_ErrorString(result));
+		exit(-1);
+	}
+	*/
+#endif
 }
 
 /// Called once in the deallocator thread when stop procedures have begun but before deallocation occurs.

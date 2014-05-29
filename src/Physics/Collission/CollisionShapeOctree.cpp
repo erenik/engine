@@ -418,10 +418,10 @@ int CollisionShapeOctree::FindCollissions(Entity * targetEntity, List<Collission
 		// Entity shape-type!
 		switch(targetEntity->physics->physicsShape){
 			case ShapeType::SPHERE: {
-				Sphere * sphere = (Sphere*)targetEntity->physics->shape;
-				sphere->position = targetEntity->position;
-				sphere->radius = targetEntity->physics->physicalRadius;
-				if (TriangleSphereCollission(&tri, sphere, col)){
+				Sphere sphere; // = (Sphere*)targetEntity->physics->shape;
+				sphere.position = targetEntity->position;
+				sphere.radius = targetEntity->physics->physicalRadius;
+				if (TriangleSphereCollission(&tri, &sphere, col)){
 				//	col.distanceIntoEachOther
 				//	col.one = targetEntity;
 				//	col.two =

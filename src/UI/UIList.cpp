@@ -359,9 +359,10 @@ bool UIList::OnScroll(float delta)
         if (distance > quarterPage){
             distance = quarterPage;
         }
-        /// Fix sign.
+		/// Fix sign.
         if (negative)
             distance *= -1.0f;
+        distance = pageSize * delta;
         scrollBarY->Move(distance);
     //    scrollBarY->PrintDebug();
     }

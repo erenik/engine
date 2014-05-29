@@ -174,6 +174,7 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 			include_directories("${depDir}/${dependency}")
 		ENDIF()
 	ENDFOREACH()	
+	
 		
 	
 	# LINUX library linking
@@ -200,6 +201,11 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 			-DUNICODE
 			-D_UNICODE
 		)
+		
+		# FMOD Dirs
+#		include_directories("C:/Program Files (x86)/FMOD SoundSystem/FMOD Studio API Windows/api")
+
+		
 		# -D Definition 
 		# -l Linker path (additional include directories)
 		# -L lib files
@@ -222,11 +228,16 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 			libvorbis_static_MTd.lib
 			libvorbisfile_static_MTd.lib
 			libtheora_static_MTd.lib
-			# OpenCV
-			opencv_core248d.lib
-			opencv_highgui248d.lib # For reading files
-			opencv_imgproc248d.lib # For processing images (like conversion to BW)
 		)
+		# FMOD Studio, Audio
+		set(DEBUG_LIBS ${DEBUG_LIBS} fmod_vc.lib)
+
+		# Windows media library for setting system volume
+		set(DEBUG_LIBS ${DEBUG_LIBS} Winmm.lib)
+		
+		# Open CV
+		set(DEBUG_LIBS ${DEBUG_LIBS} opencv_core248d.lib opencv_highgui248d.lib opencv_imgproc248d.lib)
+	
 		# Release library dependencies
 		set(RELEASE_LIBS 
 			# For Microsoft game pads via DX SDK.
@@ -241,11 +252,10 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 			libvorbis_static_release.lib
 			libvorbisfile_static_release.lib
 			libtheora_static_release.lib
-			# OpenCV
-			opencv_core248.lib
-			opencv_highgui248.lib
-			opencv_imgproc248.lib
 		)
+		# OpenCV
+		set(RELEASE_LIBS ${RELEASE_LIBS} opencv_core248.lib opencv_highgui248.lib opencv_imgproc248.lib)
+
 		create_file_group(${PROJECT_SOURCE_DIR}/${source_dir} "/")
 	ENDIF(MSVC)
 

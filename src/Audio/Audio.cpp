@@ -162,7 +162,8 @@ Audio::Audio(char i_type, String i_name, bool i_repeat, float audioVolume)
 	volume = audioVolume;
 }
 
-bool Audio::Load(){
+bool Audio::Load()
+{
     assert(!loaded);
     assert(audioStream == NULL);
     std::cout<<"\nAudio::Load for "<<name<<" assumed to be located at "<<path;

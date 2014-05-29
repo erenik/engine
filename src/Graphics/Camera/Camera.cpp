@@ -119,13 +119,18 @@ void Camera::Update(){
 			}
 			viewMatrix.translate(0, 0, distance);
 			
-			Vector3f rotation = -entityToTrack->rotation;
+			Vector3f rotation = Vector3f(); //
+			rotation = -entityToTrack->rotation;
+			/// Need to.. 
 			/// Rotate more, so that we view the entity from the front instead, if camera is in reverse-mode.
 			if (revert)
 			{
 				rotation.y += PI;
 			}
 			rotation += offsetRotation;
+
+			/// Hmm..
+//			rotationMatrix = entityToTrack->rotationMatrix;
 
 			rotationMatrix.multiply(Matrix4d().InitRotationMatrix(rotation.x, 1, 0, 0));
 			rotationMatrix.multiply(Matrix4d().InitRotationMatrix(rotation.y, 0, 1, 0));

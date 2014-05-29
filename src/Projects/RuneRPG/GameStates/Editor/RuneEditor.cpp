@@ -521,7 +521,7 @@ void RuneEditor::OnSelectionUpdated(){
 
 	// Reveal the UI
 	Graphics.QueueMessage(new GMSetUIb("EntityManipWindow", GMUI::VISIBILITY, true));
-	Vector3f position = entity->positionVector;
+	Vector3f position = entity->position;
 	String floatString;
 	char buf[50];
 	sprintf(buf, "%.3f", position.x);
@@ -1418,7 +1418,7 @@ void RuneEditor::RotateActiveEntities(Vector3f rotation){
 	for (int i = 0; i < runeEditorSelection.Size(); ++i){
 		if (!runeEditorSelection[i])
 			continue;
-		runeEditorSelection[i]->rotate(rotation);
+		runeEditorSelection[i]->Rotate(rotation);
 	}
 }
 

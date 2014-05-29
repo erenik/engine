@@ -52,7 +52,9 @@ public:
 	virtual UIElement* Click(int mouseX, int mouseY);
 	/// GEtttererrr
 	virtual UIElement * GetElement(int mouseX, int mouseY);
-	/// Scroll ze listur! Returns true if it does anything.
+	/** For mouse-scrolling. By default calls it's parent's OnScroll. Returns true if the element did anything because of the scroll.
+		The delta corresponds to amount of "pages" it should scroll.
+	*/
 	virtual bool OnScroll(float delta);
 
     /// Scroll, not capped.

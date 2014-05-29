@@ -48,6 +48,11 @@ enum physicsTargets{
     /// For disabling stuff.
     LOCK_POSITION,
 
+	// Floats
+	MASS,
+	LINEAR_DAMPING,
+	ANGULAR_DAMPING,
+
 	// Separate float and Vector targets?
 	POSITION,
 	TRANSLATE,

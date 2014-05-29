@@ -6,6 +6,7 @@
 #define APPLICATION_DEFAULTS_H
 
 #include <String/AEString.h>
+#include "Graphics/Fonts/Font.h"
 
 // Main application name is stored in the equivalent .cpp-file of your project.
 extern const String applicationName;

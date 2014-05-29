@@ -35,7 +35,8 @@ void PhysicsManager::Deallocate(){
 
 
 
-PhysicsManager::PhysicsManager(){
+PhysicsManager::PhysicsManager()
+{
 	assert(physicalEntities.Size() == 0);
 	assert(dynamicEntities.Size() == 0);
 
@@ -51,8 +52,10 @@ PhysicsManager::PhysicsManager(){
 	aabbSweeper = new AABBSweeper();
 
 	pauseOnCollission = false;
+	linearDamping = 0.5f;
+	angularDamping = 0.5f;
 
-	collissionResolver = LAB_PHYSICS_IMPULSES;
+	collissionResolver = CollissionResolver::LAB_PHYSICS_IMPULSES;
 	integrator = Integrator::LAB_PHYSICS;
 	/// kg per m^3
 	defaultDensity = 100.0f;

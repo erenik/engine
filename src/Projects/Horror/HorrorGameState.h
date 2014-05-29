@@ -38,5 +38,8 @@ private:
 	// Based on the model?
 	float roomSize;
 	float scale;
+
+	/// Amount of rooms that have been added.
+	int numRooms;
 };
 

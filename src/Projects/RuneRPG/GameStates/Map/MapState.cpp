@@ -89,6 +89,8 @@ void MapState::OnEnter(GameState * previousState){
 	// Set physics integrator to simple!
 	Physics.QueueMessage(new PMSet(INTEGRATOR, Integrator::SIMPLE_PHYSICS));
 
+//	Graphics.render
+
 	Sleep(100);
 	// Begin loading textures here for the UI
 	Graphics.QueueMessage(new GMSetUI(ui));
@@ -211,7 +213,7 @@ void MapState::Process(float time){
 
 	// Update player position if possiblu
 	if (playerEntity){
-		String s = String::ToString((int)playerEntity->positionVector.x) + ", " + String::ToString((int)playerEntity->positionVector.y);
+		String s = String::ToString((int)playerEntity->position.x) + ", " + String::ToString((int)playerEntity->position.y);
 		Graphics.QueueMessage(new GMSetUIs("PositionLabel", GMUI::TEXT, s));
 	}
 
@@ -636,7 +638,7 @@ void MapState::ResetCamera(){
 	camera->farPlane = -50.0f;
 
 	if (player->entity)
-		camera->position = player->entity->positionVector;
+		camera->position = player->entity->position;
 	camera->SetRatio(Graphics.width, Graphics.height);
 	camera->Update();
 	/// Reset what parts of the map are rendered too..!
@@ -694,7 +696,7 @@ bool MapState::PlacePlayer(Vector3i position)
 	if (e){
 		std::cout<<"\nEntity already exists, moving it.";
 		activeMap->MoveEntity(e, position);
-		Physics.QueueMessage(new PMSetEntity(POSITION, e, e->positionVector));
+		Physics.QueueMessage(new PMSetEntity(POSITION, e, e->position));
 		return true;
 	}
 

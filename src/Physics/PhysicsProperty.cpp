@@ -68,7 +68,8 @@ PhysicsProperty::PhysicsProperty(const CompactPhysics * compactPhysics){
 }
 
 /// Set default values.
-void PhysicsProperty::Nullify(){
+void PhysicsProperty::Nullify()
+{
     locks = 0;
     inertiaTensorCalculated = false;
 	type = PhysicsType::NULL_TYPE;
@@ -98,7 +99,14 @@ void PhysicsProperty::Nullify(){
 	/// For enabling custom (probably network-)based estimation. The Estimator* will then be checked and should be non-NULL.
 	estimationEnabled = false;
 	estimator = NULL; 
-	
+	useQuaternions = false;	
+}
+
+/// Sets mass, re-calculates inverse mass.
+void PhysicsProperty::SetMass(float mass)
+{
+	this->mass = mass;
+	this->inverseMass = 1.f / mass;
 }
 
 /// Calculates inertia tensor matrix and its inversion.
@@ -240,7 +248,8 @@ void PhysicsProperty::ApplyDamping(float ratio){
 }
 
 /// Calculates Linear and Angular velocity based on said momentum and other necessary variables.
-void PhysicsProperty::CalculateVelocity(){
+void PhysicsProperty::CalculateVelocity()
+{
 //	assert(false);
 	if (type == PhysicsType::STATIC)
 		return;
@@ -248,19 +257,21 @@ void PhysicsProperty::CalculateVelocity(){
 	// Linear
     velocity = linearMomentum * inverseMass;
 
-	// Angular - assumes the proper matrices have already been set up.
-	if (!inertiaTensorCalculated)
-		CalculateInertiaTensor();
-	assert(inertiaTensorCalculated);
-	
-	Matrix3f rotationMatrix = owner->rotationMatrix.GetMatrix3f();
-	Matrix3f rotationMatrixTransposed = rotationMatrix.TransposedCopy();
-	/// I(body), Technically a 3x3 matrix, specifies how mass is ditributed in the body.
-    /// In runtime, I(t) is calculated by R(t)I(body)R(t)^t   (last R(t) is transposed)
-    /// The initial version is I(t), whislt the other two are I(body) and I(body)^-1
-	inertiaTensor = rotationMatrix * inertiaTensorBody * rotationMatrixTransposed;
-	inertiaTensorInverted = rotationMatrix * inertiaTensorBodyInverted * rotationMatrixTransposed;
-    angularVelocity = inertiaTensorInverted * angularMomentum;
+	if (useQuaternions){
+		// Angular - assumes the proper matrices have already been set up.
+		if (!inertiaTensorCalculated)
+			CalculateInertiaTensor();
+		assert(inertiaTensorCalculated);
+		
+		Matrix3f rotationMatrix = owner->rotationMatrix.GetMatrix3f();
+		Matrix3f rotationMatrixTransposed = rotationMatrix.TransposedCopy();
+		/// I(body), Technically a 3x3 matrix, specifies how mass is ditributed in the body.
+		/// In runtime, I(t) is calculated by R(t)I(body)R(t)^t   (last R(t) is transposed)
+		/// The initial version is I(t), whislt the other two are I(body) and I(body)^-1
+		inertiaTensor = rotationMatrix * inertiaTensorBody * rotationMatrixTransposed;
+		inertiaTensorInverted = rotationMatrix * inertiaTensorBodyInverted * rotationMatrixTransposed;
+		angularVelocity = inertiaTensorInverted * angularMomentum;
+	}
 }
 
 /// Saves away current linear/angular velocity to the their 'previous' variable counterparts.

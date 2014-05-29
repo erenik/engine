@@ -17,13 +17,13 @@ int PhysicsManager::RegisterEntity(Entity * newEntity){
             ++collidingEntities;
         }
     }
-	std::cout<<"\nPre register: AABBSweeper nodes: "<<aabbSweeperNodes<<" colliding entities: "<<collidingEntities;
+//	std::cout<<"\nPre register: AABBSweeper nodes: "<<aabbSweeperNodes<<" colliding entities: "<<collidingEntities;
 	assert(aabbSweeperNodes == collidingEntities*2);
 
 	/// Assertion not valid anymore as some entities are not interested in collissions..!
 //	assert(entitiesInOctree == physicalEntitiesNum);
 	if (newEntity->physics == NULL){
-		std::cout<<"\nINFO: Entity lacking physics property. Adding it for you!";
+//		std::cout<<"\nINFO: Entity lacking physics property. Adding it for you!";
 		AttachPhysicsTo(newEntity);
 	}
 	if (newEntity->registeredForPhysics){
@@ -43,7 +43,7 @@ int PhysicsManager::RegisterEntity(Entity * newEntity){
 	if (newEntity->physics->collissionsEnabled){
 		entityCollissionOctree->AddEntity(newEntity);
 		assert(newEntity->physics->octreeNode);
-		std::cout<<"\nRegistering entity for AABBSweeper..";
+//		std::cout<<"\nRegistering entity for AABBSweeper..";
 		aabbSweeper->RegisterEntity(newEntity);
 	}
 	else {
@@ -72,7 +72,7 @@ int PhysicsManager::RegisterEntity(Entity * newEntity){
             ++collidingEntities;
         }
     }
-	std::cout<<"\nPost register: AABBSweeper nodes: "<<aabbSweeperNodes<<" colliding entities: "<<collidingEntities;
+//	std::cout<<"\nPost register: AABBSweeper nodes: "<<aabbSweeperNodes<<" colliding entities: "<<collidingEntities;
 	assert(aabbSweeperNodes == collidingEntities*2);
 
 

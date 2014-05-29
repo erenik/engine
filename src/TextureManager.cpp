@@ -67,7 +67,7 @@ Texture * TextureManager::GetTextureByName(String name){
 	/// Check if the name has a file-ending. If not, assume it's a general color!
 	if (name == "Black")
 		return GenerateTexture("Black", Vector4f(0,0,0,1));
-	else if (name == "Grey")
+	else if (name == "Grey" || name == "Gray")
         return GenerateTexture("Grey", Vector4f(0.5f,0.5f,0.5f,1.0f));
 	else if (name == "White")
         return GenerateTexture("White", Vector4f(1.f,1.f,1.f,1.f));
@@ -440,7 +440,7 @@ void TextureManager::BufferizeTexture(Texture * texture){
 		return;
 	}
 	if (texture->glid != -1){
-		std::cout<<"\nTexture \""<<texture->source<<"\" already bufferized! Skipping.";
+//		std::cout<<"\nTexture \""<<texture->source<<"\" already bufferized! Skipping.";
 		return;
 	}
 	GLuint error;

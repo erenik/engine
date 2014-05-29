@@ -612,13 +612,13 @@ void Entity::Translate(Vector3f translation){
 }
 
 /// Recalculates the transformation matrix
-void Entity::RecalculateMatrix(){
+void Entity::RecalculateMatrix()
+{
 
     rotationMatrix = Matrix4d();
-
-#ifdef USE_QUATERNIONS
-
-    if (physics){
+		
+	// Quaternions for those entities wanting to use it.
+    if (physics && physics->useQuaternions){
         Quaternion q = physics->orientation;
      //   std::cout<<"\nQ preN: "<<q;
         q.Normalize();
@@ -627,13 +627,13 @@ void Entity::RecalculateMatrix(){
         double * parr = rotationMatrix.getPointer();
      //   std::cout<<"\nMatrix: "<<parr[0]<<" "<<parr[1];
     }
-    else
-        rotationMatrix = Matrix4d();
-#else
-	rotationMatrix.multiply(Matrix4d::GetRotationMatrixX(rotation.x));
-	rotationMatrix.multiply(Matrix4d::GetRotationMatrixY(rotation.y));
-	rotationMatrix.multiply(Matrix4d::GetRotationMatrixZ(rotation.z));
-#endif
+	// Euclidean co-ordinates.
+	else 
+	{
+		rotationMatrix.multiply(Matrix4d::GetRotationMatrixX(rotation.x));
+		rotationMatrix.multiply(Matrix4d::GetRotationMatrixY(rotation.y));
+		rotationMatrix.multiply(Matrix4d::GetRotationMatrixZ(rotation.z));
+	}
 
 	transformationMatrix = Matrix4d();
 

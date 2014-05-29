@@ -8,6 +8,8 @@
 /// #define ENABLE_AUDIO /// Consider only use the USE_AUDIO. Having two definitions is confusing.
 #define USE_OPEN_AL
 
+/// For using FMOD?
+//#define USE_FMOD
 
 #define USE_OGG_STREAM
 #define USE_VORBIS

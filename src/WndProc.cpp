@@ -19,6 +19,8 @@
 /// Returns KeyCode depending on the Virtual Key provided by Win32
 int GetKeyCodeFromVK(int wParam){
 	switch(wParam){
+	case VK_VOLUME_DOWN: return 0;
+	case VK_VOLUME_UP: return 0;
 	case VK_TAB: return KEY::TAB;
 	case VK_OEM_COMMA: return KEY::COMMA;
 	case VK_OEM_PERIOD: return KEY::PUNCTUATION;
@@ -74,6 +76,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 */
     switch (message)
     {
+	case WM_DEADCHAR:
+		return 0;
+	case WM_SYSDEADCHAR:
+		return 0;
 	case WM_INPUT:
 		return 0;
 	case WM_INPUT_DEVICE_CHANGE:
@@ -350,6 +356,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		float zDelta = GET_WHEEL_DELTA_WPARAM(wParam);
 		int xPos = GET_X_LPARAM(lParam);
 		int yPos = GET_Y_LPARAM(lParam);
+		std::cout<<" zDelta pre: "<<zDelta;
+		zDelta /= WHEEL_DELTA;
+		zDelta /= 10.f;
+		std::cout<<" post: "<<zDelta;
 		Input.MouseWheel(zDelta);
 		return 0; // If an application processes this message, it should return zero.
 		break;

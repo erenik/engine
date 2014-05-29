@@ -104,9 +104,10 @@ void RREntityState::EnableMovement(){
 }
 
 /// One step in the looking-direction.
-Vector2i RREntityState::GetInteractionTile(){		
+Vector2i RREntityState::GetInteractionTile()
+{		
 	// Check if tile is vacant and walkable, if so move to it.
-	Vector3f pos = entity->positionVector;
+	Vector3f pos = entity->position;
 	pos.Round();
 	int tileX = pos.x;
 	int tileY = pos.y;
@@ -173,7 +174,7 @@ void RREntityState::HandleMovement(float & timePassed)
 			previousDirection = direction;
 			direction = Direction::NONE;
 			TileMap2D * map = (TileMap2D*)MapMan.ActiveMap();
-			Vector3f pos = entity->positionVector;
+			Vector3f pos = entity->position;
 			pos.Round();
 			assert(false);
 		//	map->OnArrive(entity, pos.x, pos.y);
@@ -194,7 +195,7 @@ void RREntityState::HandleMovement(float & timePassed)
 	/// If we reached next tile, see if we got a queued direction and occupy that next tile if possible and if so! :)
 	if (direction == Direction::NONE && queuedDirection != Direction::NONE){
 		// Check if tile is vacant and walkable, if so move to it.
-		Vector3f pos = entity->positionVector;
+		Vector3f pos = entity->position;
 //		std::cout<<"\nPosition: "<<pos;
 		
 		previousPosition = pos;

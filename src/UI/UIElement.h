@@ -106,7 +106,9 @@ public:
 
 	UIElement * GetElement(String byName, int andType);
 
-    /// For mouse-scrolling. By default calls it's parent's OnScroll. Returns true if the element did anything because of the scroll.
+    /** For mouse-scrolling. By default calls it's parent's OnScroll. Returns true if the element did anything because of the scroll.
+		The delta corresponds to amount of "pages" it should scroll.
+	*/
 	virtual bool OnScroll(float delta);
 
 	/// Returns the root, via parent-chain.

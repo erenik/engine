@@ -19,20 +19,31 @@
 #include "Message/VectorMessage.h"
 #include "OS/Sleep.h"
 
-String applicationName = "MusicPlayer";
+#include "Windows.h"
+#include "MMSystem.h"
+#include "Mmdeviceapi.h"
+
+const String applicationName = "MusicPlayer";
+
+void SetApplicationDefaults()
+{
+	// Stuff.
+	TextFont::defaultFontSource = "font3";
+	UIElement::defaultTextureSource = "black";
+}
 
 void RegisterStates(){
 	// Register our states. 
 	// We'll only be using one state in the music-player
 	StateMan.RegisterState(new MusicPlayer());
-	StateMan.QueueState(GAME_STATE_MUSIC_PLAYER);
+	StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_MUSIC_PLAYER));
 
 }
 
 MusicPlayer::MusicPlayer()
 {
-	stateName = "MusicPlayerState";
-	id = GAME_STATE_MUSIC_PLAYER;
+	name = "MusicPlayerState";
+	id = GameStateID::GAME_STATE_MUSIC_PLAYER;
 	
 	/// Time fade-out began
 	fadeOutBeganTime = 0;
@@ -123,6 +134,15 @@ void MusicPlayer::Process(float time)
 			float newMVol = fadeOutBeginVolume * ratio;
 			AudioMan.SetMasterVolume(newMVol);
 			OnVolumeUpdated();
+			
+			
+			static float lastDecrease = 100;
+			if (lastDecrease > newMVol + 0.02f)
+			{
+				keybd_event(VK_VOLUME_DOWN, 0x5B, 0, 0);
+				keybd_event(VK_VOLUME_DOWN, 0x5B, KEYEVENTF_KEYUP, 0);
+				lastDecrease = newMVol;
+			}
 		}	
 		// end and cleanup.
 		else if (fadeOutEndTime < cTime){
@@ -151,6 +171,14 @@ void MusicPlayer::Process(float time)
 			Clamp(newMVol, 0, 1.0f);
 			AudioMan.SetMasterVolume(newMVol);
 			OnVolumeUpdated();
+			static float lastDecrease = 0;
+			if (lastDecrease < newMVol - 0.02f)
+			{
+				keybd_event(VK_VOLUME_UP, 0x5B, 0, 0);
+				keybd_event(VK_VOLUME_UP, 0x5B, KEYEVENTF_KEYUP, 0);
+				lastDecrease = newMVol;
+			}
+
 		}
 		else if (fadeInEndTime && fadeInEndTime < cTime){
 			fadeInStartTime = fadeInEndTime = 0;
@@ -307,6 +335,7 @@ void MusicPlayer::OnTracksUpdated()
 		UIButton * trackButton = new UIButton(trackName);
 		trackButton->sizeRatioY = 0.1f;
 		trackButton->activationMessage = "PlayTrack(this)";
+		trackButton->textureSource = UIElement::defaultTextureSource;
 		Graphics.QueueMessage(new GMAddUI(trackButton, "KnownMedia"));
 	}
 }

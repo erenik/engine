@@ -12,6 +12,7 @@
 #include "Graphics/Messages/GMEntity.h"
 #include "Graphics/Messages/GMCamera.h"
 #include "Graphics/Messages/GMLight.h"
+#include "Graphics/Messages/GMSet.h"
 #include "Message/Message.h"
 #include "Input/Keys.h"
 #include "Graphics/Camera/Camera.h"
@@ -19,6 +20,7 @@
 #include "Physics/PhysicsProperty.h"
 #include "Physics/Messages/PhysicsMessage.h"
 #include "Entity/EntityManager.h"
+#include "Audio/TrackManager.h"
 
 const String applicationName = "Horror";
 
@@ -41,7 +43,7 @@ void SetApplicationDefaults()
 
 HorrorGameState::HorrorGameState()
 {
-	cameraType = 0;
+	cameraType = TRACK_PLAYER;
 	roomSize = 6.0f;
 	scale = 2.0f;
 }
@@ -51,12 +53,14 @@ void HorrorGameState::OnEnter(GameState *)
 	// We require nice physics... maybe.
 	Physics.checkType = OCTREE; // AABB_SWEEP or OCTREE
 	Physics.integrator =  Integrator::SPACE_RACE_CUSTOM_INTEGRATOR; // Integrator namespace.
-	Physics.collissionResolver = CUSTOM_SPACE_RACE_PUSHBACK; // CUSTOM_SPACE_RACE_PUSHBACK or LAB_PHYSICS_IMPULSES
+	Physics.collissionResolver = CollissionResolver::CUSTOM_SPACE_RACE_PUSHBACK; // CUSTOM_SPACE_RACE_PUSHBACK or LAB_PHYSICS_IMPULSES
 
 	Model * roomModel = ModelMan.GetModel(ROOM_NAME);
 	roomSize = roomModel->aabb.max.x - roomModel->aabb.min.x;
 	roomSize *= scale;
 
+
+	Graphics.renderGrid = false;
 
 	NewGame();
 }
@@ -74,10 +78,12 @@ void HorrorGameState::Process(float)
 	position.x = roomX;
 	position.z = roomZ;
 
+	int roomMatrixSize = 5;
+
 	// Generate list of tiles we should plant.
-	for (int x = position.x - 3; x <= position.x + 3; ++x)
+	for (int x = position.x - roomMatrixSize; x <= position.x + roomMatrixSize; ++x)
 	{
-		for (int z = position.z - 3; z <= position.z + 3; ++z)
+		for (int z = position.z - roomMatrixSize; z <= position.z + roomMatrixSize; ++z)
 		{
 			// Check for grid here.
 			String entityName = "Room x="+String::ToString(x)+" z="+String::ToString(z);
@@ -127,14 +133,14 @@ void HorrorGameState::ProcessMessage(Message * message)
 				Graphics.renderPhysics = !Graphics.renderPhysics;
 		}
 		// Update movement as needed
-#define TURN 12.5f
+#define TURN 8.5f
 		if (right && !left)
 			Physics.QueueMessage(new PMSetEntity(ANGULAR_ACCELERATION, player, Vector3f(0, -TURN, 0)));
 		else if (left)
 			Physics.QueueMessage(new PMSetEntity(ANGULAR_ACCELERATION, player, Vector3f(0, TURN, 0)));
 		else
 			Physics.QueueMessage(new PMSetEntity(ANGULAR_ACCELERATION, player, Vector3f()));
-#define MOVE_ACC 15.f
+#define MOVE_ACC 35.f
 		if (forward && !backward)
 			Physics.QueueMessage(new PMSetEntity(ACCELERATION, player, Vector3f(0,0,-MOVE_ACC)));
 		else if (backward)
@@ -163,23 +169,49 @@ void HorrorGameState::CreateDefaultBindings()
 // Clear world. Spawn character. 
 void HorrorGameState::NewGame()
 {
+	// Set loading texture.
+	Graphics.QueueMessage(new GMSetOverlay("loading_map", 0));
+	// Clear everything first.
+	MapMan.DeleteEntities();
+	numRooms = 0;
+
+	// Reset le random!
+	int64 currentTime = Timer::GetCurrentTimeMicro();
+	srand(time(&currentTime));
+
+	// Create initial rooms
+	for (int x = -5; x <= 5; ++x)
+	{
+		for (int z = -5; z <= 5; ++z)
+		{
+			SpawnRoom(Vector2i(x, z), Vector3f(x * roomSize, 0, z * roomSize));
+		}
+	}
 
 	// reset input
 	forward = backward = left = right = false;
 	// Set ambient lighting.
-	Graphics.QueueMessage(new GMSetAmbience(Vector4f(0.5f,0.5f,0.5f,1.0f))); 
+	float intensity = 0.001f;
+	Graphics.QueueMessage(new GMSetAmbience(Vector4f(intensity, intensity, intensity,1.0f))); 
+	// Set gravity
+	Physics.QueueMessage(new PMSetGravity(Vector3f(0, -9.82f, 0)));
+	Physics.QueueMessage(new PMSet(LINEAR_DAMPING, 0.1f));
+	Physics.QueueMessage(new PMSet(ANGULAR_DAMPING, 0.1f));
 
-	MapMan.DeleteEntities();
 	player = EntityMan.CreateEntity(ModelMan.GetModel("sphere.obj"), TexMan.GetTexture("Blue"));
-	player->position = Vector3f(0,10,0);
+	player->position = Vector3f(0,3,0);
 	player->scale = Vector3f(1,1,1) * 0.5f;
+	player->physics = new PhysicsProperty();
+	player->physics->physicsShape = PhysicsShape::SPHERE;
+	player->physics->SetMass(70.f);
+//	player->physics->useQuaternions = true;
 	MapMan.AddEntity(player);
 	assert(player);
 	// Add a light-source to the player.
 	Light * playerLight = new Light();
 	playerLight->type = LightType::POINT;
 	float lightIntensity = 1.f;
-	playerLight->attenuation = Vector3f(1.0f, 0.001f, 0.00001f);
+	playerLight->attenuation = Vector3f(1.0f, 0.101f, 0.01f);
 	playerLight->specular = 0.1f * (playerLight->diffuse = Vector3f(lightIntensity,lightIntensity,lightIntensity));
 	playerLight->spotCutoff = 45.0f;
 	playerLight->spotExponent = 20;
@@ -188,32 +220,87 @@ void HorrorGameState::NewGame()
 	Physics.QueueMessage(new PMSetEntity(PHYSICS_TYPE, player, PhysicsType::DYNAMIC));
 	Physics.QueueMessage(new PMApplyImpulse(player, Vector3f(0, -1.f, 0), player->position));
 
-	// Create initial room
-	for (int x = -3; x <= 3; ++x)
-	{
-		for (int z = -3; z <= 3; ++z)
-		{
-			SpawnRoom(Vector2i(x, z), Vector3f(x * roomSize, 0, z * roomSize));
-		}
-	}
-
 	// Bind camera to the entity.
 	OnCameraUpdated();
+	// Play music..
+	Track * track = TrackMan.PlayTrack("music/2014-05-03_Despair.ogg");
+	if (track)
+		track->Loop(true);
+	// Set loading texture.
+	Graphics.QueueMessage(new GMSetOverlay("NULL", 1000));
 }
 
 // New room! o-o
 void HorrorGameState::SpawnRoom(Vector2i index, Vector3f atLocation)
 {
 	std::cout<<"\nCreating room at location: "<<atLocation;
+
+
+
 	Entity * room = EntityMan.CreateEntity(ModelMan.GetModel(ROOM_NAME), TexMan.GetTexture("Grey"));
 	if (!room->physics)
 		room->physics = new PhysicsProperty();
 	room->scale *= scale;
 	room->SetPosition(atLocation);
 	room->physics->physicsShape = PhysicsShape::MESH;
+	room->physics->type = PhysicsType::STATIC;
+	// Set infinite mass.
+	room->physics->inverseMass = 0;
 	room->name = "Room x="+String::ToString(index.x)+" z="+String::ToString(index.y);
 	// Finally register it for active physics n shit.
 	MapMan.AddEntity(room);
+
+	// Add chance for adding random objects in the corners?
+	if (numRooms > 5)
+	{
+		switch(rand() % 10)
+		{
+			// Room with flare--.!
+			case 0:
+			{
+				Texture * tex = TexMan.GetTexture("Grey");
+				switch(rand()%5)
+				{
+					case 0: tex = TexMan.GetTexture("Red"); break;
+				}
+				Entity * object = EntityMan.CreateEntity(ModelMan.GetModel("horror/Pedastal"), tex);
+				Vector3f position = atLocation;
+				switch(rand()%3)
+				{
+					case 0:	position.x += 3.f; break;
+					case 1: position.x -= 3.f; break;
+					
+				}
+				switch(rand()%3)
+				{
+					case 0:	position.z += 3.f; break;
+					case 1:	position.z -= 3.f; break;
+				}
+				object->SetPosition(position);
+				MapMan.AddEntity(object);
+				Physics.QueueMessage(new PMSetEntity(PHYSICS_SHAPE, object, PhysicsShape::MESH));
+				// Add a light-source to the player.
+				Light * pedastalLight = new Light();
+				pedastalLight->type = LightType::POINT;
+				float lightIntensity = 1.f;
+				pedastalLight->attenuation = Vector3f(1.0f, 0.101f, 0.01f);
+				Vector3f color =  Vector3f( (rand()%255) / 255.f, (rand()%255) / 255.f, (rand()%255) / 255.f);
+				pedastalLight->specular = pedastalLight->diffuse = color;
+				pedastalLight->spotCutoff = 45.0f;
+				pedastalLight->spotExponent = 20;
+				pedastalLight->data = object;
+				// Relative a bit up, so it's where it's supposed to be.
+				pedastalLight->position = Vector3f(0,2,0);
+				Graphics.QueueMessage(new GMAddLight(object, pedastalLight));
+
+				break;
+			}
+
+		}
+	}
+	
+
+	numRooms++;
 }
 
 
