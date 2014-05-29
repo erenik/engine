@@ -110,11 +110,11 @@ void Camera::Update(){
 				// Scale it a bit more depending on current speed!
 				/// Fetch dot product of entity velocity and our look-direction, since that is what we care about.
 				float dotProduct = this->entityToTrack->Velocity().DotProduct(this->LookingAt());
-				Clamp(dotProduct, 0.0f, 10000000.0f);
+				ClampFloat(dotProduct, 0.0f, 10000000.0f);
 				dotProduct *= 0.08f;
 				/// Should now have speed in our vector of interest, so use that as velocity.
 				float distanceMultiplier = pow(dotProduct, 0.08f);
-				Clamp(distanceMultiplier, 1.0f, 10.0f);
+				ClampFloat(distanceMultiplier, 1.0f, 10.0f);
 				distance *= distanceMultiplier;
 			}
 			viewMatrix.translate(0, 0, distance);

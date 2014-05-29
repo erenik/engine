@@ -53,6 +53,9 @@ public:
 	/// Reads from file stream.
 	void ReadFrom(std::fstream & file);
 
+	/// Clamp to an interval.
+	void Clamp(float min, float max);
+
 	// Simple arithmetics
 	/** Simple addition
 		Postcondition: Adds the addend's coordinates to the calling vector's.

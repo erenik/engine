@@ -444,6 +444,8 @@ void CVIState::ProcessMessage(Message * message)
 				int index = indexString.ParseInt();
 				CVFilter * filter = pipeline->filters[index];
 				filter->SetEnabled(!filter->enabled);
+				// Clear times in pipeline too.
+				pipeline->totalProcessingTimes.ClearAndDelete();
 
 				/// Update the enabled-text of the filter.
 				Graphics.QueueMessage(new GMSetUIs("ToggleFilterButton"+indexString, GMUI::TEXT, filter->enabled? "Disable" : "Enable"));
@@ -625,6 +627,9 @@ void CVIState::ProcessMessage(Message * message)
 
 void CVIState::PrintProcessingTimes()
 {
+	pipeline->PrintProcessingTime();
+
+	/*
 	int totalProcess = 0;
 	int totalRender = 0;
 	for (int i = 0; i < pipeline->filters.Size(); ++i)
@@ -636,6 +641,7 @@ void CVIState::PrintProcessingTimes()
 	}
 	std::cout<<"\nTotal process: "<<totalProcess<<" Total Render: "<<totalRender;
 	std::cout<<"\nTotal pipeline time consumption: "<<pipeline->pipelineTimeConsumption;
+	*/
 }
 
 /// Tests the pipeline, reloading base/original image.
@@ -750,7 +756,7 @@ bool CVIState::HandleCameraMessages(String message)
 	else if (message == "Zoom in")
 	{
 		mainCamera->zoom = mainCamera->zoom * 0.95f - 0.01f;
-#define CLAMP_DISTANCE Clamp(mainCamera->zoom, 0.01f, 10000.0f);
+#define CLAMP_DISTANCE ClampFloat(mainCamera->zoom, 0.01f, 10000.0f);
 		CLAMP_DISTANCE;
 	}
 	else if (message == "Zoom out"){

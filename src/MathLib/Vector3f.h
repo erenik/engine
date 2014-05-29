@@ -176,7 +176,7 @@ public:
 			return AbsoluteValue(y);
 		return AbsoluteValue(z);
 	};
-	/// Returns the value of the sub-component (x,y,z) of lowest value.
+	/// Returns the absolute value of the sub-component (x,y,z) of highest absolute value.
 	const float MinPart() const {
 		if ((x) < (y)){
 			if ((x) < (z))

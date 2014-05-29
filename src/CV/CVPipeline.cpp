@@ -7,6 +7,7 @@
 #include "Graphics/GraphicsManager.h"
 #include "Graphics/Messages/GMUI.h"
 #include <fstream>
+#include <iomanip>
 
 CVPipeline::CVPipeline()
 {
@@ -73,6 +74,7 @@ bool CVPipeline::ReadFrom(std::fstream & file)
 		filters.Add(filter);
 	}
 	// Done!
+	totalProcessingTimes.ClearAndDelete();
 	return true;
 }
 
@@ -176,6 +178,31 @@ int CVPipeline::Process(cv::Mat * i_initialInput)
 	pipelineTimer.Stop();
 	pipelineTimeConsumption = pipelineTimer.GetMicro();
 
+	// Re-create array of test values if not the required amount.
+	if (totalProcessingTimes.Size() != filters.Size() + 2)
+	{
+		totalProcessingTimes.ClearAndDelete();
+		for (int i = 0; i < filters.Size() + 2; ++i)
+		{
+			int64 * newInt = new int64();
+			(*newInt) = 0;
+			totalProcessingTimes.Add(newInt);
+		}
+		// Reset iterations each time we have to re-create this array.
+		iterations = 0;
+	}
+	// Record test-values.
+	totalFilterProcessingTimeThisFrame = 0;
+	for (int i = 0; i < filters.Size(); ++i)
+	{
+		int filterTime = filters[i]->processingTime;
+		(*totalProcessingTimes[i]) += filterTime;
+		totalFilterProcessingTimeThisFrame += filterTime;
+	}
+	(*totalProcessingTimes[filters.Size()]) += totalFilterProcessingTimeThisFrame;
+	(*totalProcessingTimes[filters.Size()+1]) += pipelineTimeConsumption;
+	++iterations;
+
 	// If the output was not an image and this is the last in sequence, make sure to paint something renderable onto the output texture.
 	if (filterToPaint)
 	{
@@ -183,5 +210,28 @@ int CVPipeline::Process(cv::Mat * i_initialInput)
 	}
 		
 	return returnType;
+}
+
+
+// o-o
+void CVPipeline::PrintProcessingTime()
+{
+	if (totalProcessingTimes.Size() != filters.Size() + 2)
+		return;
+	std::cout<<"\n\nCVPipeline filter processing times. Average presented over "<<iterations<<" iterations.";
+#define FILL_NAME std::left<<std::setw(35)
+#define FILL_CURR std::right<<std::setw(15)
+#define FILL_AVER std::setprecision(3)<<std::fixed<<std::right<<std::setw(15)
+	std::cout<<"\n\n"<<FILL_NAME<<"Filter name"<<FILL_CURR<<"Last iteration"<<FILL_AVER<<"Average";
+	for (int i = 0; i < filters.Size(); ++i)
+	{
+		CVFilter * filter = filters[i];
+		double average = double(*totalProcessingTimes[i]) / iterations;
+		std::cout<<"\n"<<FILL_NAME<<filter->name<<FILL_CURR<<filter->processingTime<<FILL_AVER<<average;		
+	}
+	std::cout<<"\n"<<FILL_NAME<<"Total "<<FILL_CURR<<totalFilterProcessingTimeThisFrame<<FILL_AVER<<(*totalProcessingTimes[filters.Size()]) / (double)iterations;
+	std::cout<<"\n"<<FILL_NAME<<"Total+Copy "<<FILL_CURR<<pipelineTimeConsumption<<FILL_AVER<<(*totalProcessingTimes[filters.Size()+1]) / (double)iterations;
+
+
 }
 

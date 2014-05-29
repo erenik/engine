@@ -168,7 +168,7 @@ void MusicPlayer::Process(float time)
 			float ratio = (fadeInEndTime - cTime);
 			ratio /= fadeInDuration;
 			float newMVol = 1 - 1.0f * ratio;
-			Clamp(newMVol, 0, 1.0f);
+			ClampFloat(newMVol, 0, 1.0f);
 			AudioMan.SetMasterVolume(newMVol);
 			OnVolumeUpdated();
 			static float lastDecrease = 0;

@@ -41,6 +41,8 @@ public:
 	*/
 	int Process(cv::Mat * initialInput);
 
+	// o-o
+	void PrintProcessingTime();
 	
 	// Below variables should only be accessed after the processing is complete, not in a separate thread!
 
@@ -98,6 +100,12 @@ public:
 
 	/// Last return type. Used to render appropriately.
 	int returnType;
+
+
+	/// Performance testing variables.
+	int totalFilterProcessingTimeThisFrame;
+	List<int64*> totalProcessingTimes;
+	int iterations;
 private:
 	String errorString;
 };

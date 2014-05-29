@@ -17,8 +17,9 @@ Texture::Texture(){
 	height = 0;
 	width = 0;
 	users = 0;
-	bpp = 0;
-	format = NULL_FORMAT;
+	// Default to 4 bytes per pixel RGBA. one byte per channel.
+	bpp = 4;
+	format = RGBA;
 	id = IDenumerator++;
 	dynamic = false;
 	mipmappingEnabled = true;
@@ -270,6 +271,7 @@ void Texture::SetPixel(int x, int y, Vector4f color)
 	assert(data);
 	assert(bpp >= 3 && format == Texture::RGBA);
 	unsigned char * buf = data;
+	color.Clamp(0, 1);
 	/// PixelStartIndex
 	int psi = y * width * bpp + x * bpp;
 	buf[psi] = color.x * 255.0f;

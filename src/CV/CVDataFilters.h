@@ -27,6 +27,9 @@ public:
 		Separated from main processing since painting can take an unnecessary long amount of time to complete.
 	*/
 	virtual void Paint(CVPipeline * pipe);	
+
+	/// Return-type of this filter. Used for when rendering later, so it needs to be stored! May not be the same every frame!
+	int returnType;
 };
 
 
@@ -222,6 +225,9 @@ public:
 	cv::Rect boundingRect;
 	// Area in pixels squared?
 	float contourAreaSize;
+
+	/// Smoothed bounding rectangle limits/size.
+	Vector3f min, max, size;
 };
 
 // Copy-pasted stuff from random website and russian's github. Works using angle-comparisons at certain steps along a contour.
@@ -281,6 +287,10 @@ public:
 private:
 	List<List<Hand> > pastFramesHands;
 	CVFilterSetting * distanceThreshold;
+	// Some smoothing of the center-position of the hand.
+	Vector3f averagedHandPosition;
+	Vector3f averagedHandSize;
+	CVFilterSetting * framesToSmooth;
 };
 
 // Detects "gestures" by comparing the latest detected hands to some extent. Only looks at the biggest/most relevant hand for now.
@@ -315,6 +325,8 @@ struct FingerState
 	int processed;
 };
 
+#include "Texture.h"
+
 /// Class which records finger movements, storing them in a list of X recent finger movements in the pipeline.
 class CVFingerActionFilter : public CVDataFilter
 {
@@ -323,10 +335,19 @@ public:
 	virtual int Process(CVPipeline * pipe);
 private:
 	CVFilterSetting * minimumDuration, * maxStatesStored;
-	int lastFinger;
-	int64 lastFingerStart;
-	int64 lastFingerDuration;
+	int fingersLastFrame;
 	List<FingerState> fingerStates;
+
+	// For generatic statistics
+	// Save the data to a file?
+	Texture preFilter, postFilter;
+	/// Frames to track.. p-p
+	int framesToTrack;
+	int filesSaved;
+	int framesPassed;
+
+	int64 lastFingerStartTime;
+	bool fingerAdded;
 };
 
 // 

@@ -7,6 +7,7 @@
 #include "String/StringUtil.h"
 #include "File/FileUtil.h"
 #include "Direction.h"
+//#include "Texture.h"
 
 // See CVFilterTypes.h for IDs
 CVRenderFilter::CVRenderFilter(int filterID) 
@@ -137,7 +138,22 @@ CVImageGalleryHand::CVImageGalleryHand()
 	galleryEntity = NULL;
 	lastSwap = 0;
 	fingersLastFrame = 0;
+	tex = NULL;
 }
+
+void CVImageGalleryHand::Paint(CVPipeline * pipe)
+{
+	pipe->initialInput->copyTo(pipe->output);
+	RenderHands(pipe);
+}
+
+// Should be called when deleting a filter while the application is running. Removes things as necessary.
+void CVImageGalleryHand::OnDelete()
+{
+	MapMan.DeleteEntity(galleryEntity);
+	galleryEntity = NULL;
+}
+
 int CVImageGalleryHand::Process(CVPipeline * pipe)
 {
 	// New directory? Load it.
@@ -184,6 +200,7 @@ int CVImageGalleryHand::Process(CVPipeline * pipe)
 		// Works!
 //		position = Vector3f(0,0,3);
 		Physics.QueueMessage(new PMSetEntity(POSITION, galleryEntity, position));  
+		UpdateScale(hand);
 	}
 	if (files.Size())
 	{
@@ -201,39 +218,81 @@ int CVImageGalleryHand::Process(CVPipeline * pipe)
 			Hand & hand = pipe->hands[0];
 			bool swap = false;
 			int direction = Direction::FORWARD;
-			// If 5 again, reset stuff, so we can "click" again.
-			if (hand.fingers.Size() == 5)
+	
+			
+			// New finger-state filter data! :D
+			if (pipe->fingerStates.Size() >= 1)
 			{
-				// std::cout<<"\nClick reset";	
-			}
-			// Click only if went from 5 to 4?
-			else if (hand.fingers.Size() == 4)
-			{
-				std::cout<<"\nFingers 4, last frame: "<<fingersLastFrame;
-				if (fingersLastFrame == 5)
+				FingerState & currentState = pipe->fingerStates.Last();
+				FingerState & previousState = pipe->fingerStates[pipe->fingerStates.Size() - 2];
+//				std::cout<<"\nTime in state: "<<currentState.duration<<" processed: "<<currentState.processed;
+#define MIN_DURATION 10
+				if (currentState.fingers == 5 && !currentState.processed && currentState.duration > MIN_DURATION)
+				{
+					currentState.processed = true;
+				}
+				// Check number of fingers! If.. 4? switch song
+				if (currentState.fingers == 4 && !currentState.processed && currentState.duration > MIN_DURATION)
+				{
+					// Check the preceding state, was it 5?
+					if (previousState.fingers == 5)
+						swap = true;
+					currentState.processed = true;
+				}
+				else if (currentState.fingers == 3 && !currentState.processed && currentState.duration > MIN_DURATION)
+				{
+					// Check the preceding state, was it 5?
+					if (previousState.fingers == 4)
+					{
+						swap = true;
+						direction = Direction::BACKWARD;
+					}
+					currentState.processed = true;				
+				}
+				else if (currentState.fingers == 0)
 				{
 					swap = true;
-				//	timeSinceLastSwap = minimumTimeBetweenSwitches->iValue + 10000;
-					std::cout<<"\n\"Click\"!";
 				}
+			}
+			// Old method checking just number of fingers before the smoother
+			else 
+			{
+				// If 5 again, reset stuff, so we can "click" again.
+				if (hand.fingers.Size() == 5)
+				{
+					// std::cout<<"\nClick reset";	
+				}
+				// Click only if went from 5 to 4?
+				else if (hand.fingers.Size() == 4)
+				{
+					std::cout<<"\nFingers 4, last frame: "<<fingersLastFrame;
+					if (fingersLastFrame == 5)
+					{
+						swap = true;
+					//	timeSinceLastSwap = minimumTimeBetweenSwitches->iValue + 10000;
+						std::cout<<"\n\"Click\"!";
+					}
 				
-			}
-			// Click from 4 to 3 too?!
-			else if (hand.fingers.Size() == 3)
-			{
-				if (fingersLastFrame == 4)
+				}
+				// Click from 4 to 3 too?!
+				else if (hand.fingers.Size() == 3)
+				{
+					if (fingersLastFrame == 4)
+					{
+						swap = true;
+						direction = Direction::BACKWARD;
+						std::cout<<"\nBackwards! o-o";
+					}
+				}
+				else if (hand.fingers.Size() == 0)
 				{
 					swap = true;
-					direction = Direction::BACKWARD;
-					std::cout<<"\nBackwards! o-o";
+			//		std::cout<<"\nAutoplayin";
 				}
-			}
-			else if (hand.fingers.Size() == 0)
-			{
-				swap = true;
-		//		std::cout<<"\nAutoplayin";
-			}
-			if (swap)
+			}	
+			
+			// If a swap was queried, do it?
+			if (swap || tex == NULL)
 			{
 				if (timeSinceLastSwap > minimumTimeBetweenSwitches->iValue)
 				{
@@ -250,14 +309,9 @@ int CVImageGalleryHand::Process(CVPipeline * pipe)
 							currentImage = files.Size() - 1;
 					}
 					String source = currentDirectory + "/" + files[currentImage];
-					Texture * tex = TexMan.GetTexture(source);
-					Graphics.QueueMessage(new GMSetEntityTexture(galleryEntity, DIFFUSE_MAP, tex));
-					float max = tex->width > tex->height? tex->width : tex->height;
-					Vector3f scale(tex->width / max, tex->height / max, 1);
-					// Scale it further depending on the size of the contour of the hand?
-					Physics.QueueMessage(new PMSetEntity(SET_SCALE, galleryEntity, scale));
-				//	Physics.QueueMessage(new GMSetEntity(galleryEntity, 
-					lastSwap = now;
+
+					SetTexture(source);
+					UpdateScale(hand);
 				}
 				else {
 		//			std::cout<<"\nSwap not deemed ready yet. Minimum time hasn't passed.";
@@ -270,6 +324,25 @@ int CVImageGalleryHand::Process(CVPipeline * pipe)
 
 	return CVReturnType::RENDER;
 }
+
+void CVImageGalleryHand::SetTexture(String source)
+{
+	tex = TexMan.GetTexture(source);
+	Graphics.QueueMessage(new GMSetEntityTexture(galleryEntity, DIFFUSE_MAP, tex));
+	lastSwap = Timer::GetCurrentTimeMs();
+}
+
+void CVImageGalleryHand::UpdateScale(Hand & hand)
+{
+	// Scale?
+	if (tex){
+		float s = hand.size.x * 0.005f * hand.size.y * 0.0025f;
+		float max = tex->width > tex->height? tex->width : tex->height;
+		Vector3f scale = Vector3f(s * tex->width / max, s * tex->height / max, s);
+		Physics.QueueMessage(new PMSetEntity(SET_SCALE, galleryEntity, scale));
+	}
+}
+
 
 #include "Graphics/Messages/GraphicsMessages.h"
 
@@ -288,16 +361,11 @@ CVMovieProjector::CVMovieProjector()
 {
 	movieEntity = NULL;
 	movieStream = NULL;
+	framesToSmooth = new CVFilterSetting("Frames to smooth", 10);
+	settings.Add(framesToSmooth);
 }
 CVMovieProjector::~CVMovieProjector()
 {
-/*	if (movieEntity)
-		MapMan.DeleteEntity(movieEntity);
-	if (movieStream)
-	{
-		movieStream->Pause();
-	}
-	*/
 }
 
 int CVMovieProjector::Process(CVPipeline * pipe)
@@ -356,61 +424,21 @@ int CVMovieProjector::Process(CVPipeline * pipe)
 
 		// Works!
 //		position = Vector3f(0,0,3);
-		Physics.QueueMessage(new PMSetEntity(POSITION, movieEntity, position));  
+		float frames = framesToSmooth->iValue;
+		averagePosition = averagePosition * (frames - 1) / frames + position / frames;
+		Physics.QueueMessage(new PMSetEntity(POSITION, movieEntity, averagePosition));  
 
 		// Set width/height ratio.
 		Texture * tex = movieStream->GetFrameTexture();
 		float max = tex->width > tex->height? tex->width : tex->height;
 		Vector3f scale(tex->width / max, tex->height / max, 1);
+		// Multiply scale with width or height or the polygon?
+		cv::Rect boundingRect = cv::boundingRect(*bestPoly);
+		scale *= max(boundingRect.width, boundingRect.height) * 0.01f;
+		averageScale = averageScale * (frames - 1) / frames + scale / frames;
 		// Scale it further depending on the size of the contour of the hand?
-		Physics.QueueMessage(new PMSetEntity(SET_SCALE, movieEntity, scale));
+		Physics.QueueMessage(new PMSetEntity(SET_SCALE, movieEntity, averageScale));
 	}
-	/*
-	if (files.Size())
-	{
-		// Load image if not already done so.
-		if (currentImage == -1)
-		{
-			currentImage = 0;
-			Graphics.QueueMessage(new GMSetEntityTexture(galleryEntity, DIFFUSE_MAP, files[currentImage]));
-		}
-		// Check for fingersss, if only 4, get next?
-		if (pipe->hands.Size())
-		{
-			long long now = Timer::GetCurrentTimeMs();
-			long long  timeSinceLastSwap = now - lastSwap;
-			Hand & hand = pipe->hands[0];
-			bool swap = false;
-			// If 5 again, reset stuff, so we can "click" again.
-			if (hand.fingers.Size() == 5)
-			{
-				
-			}
-			// Click only if went from 5 to 4?
-			else if (hand.fingers.Size() == 4 && fingersLastFrame == 5)
-			{
-				swap = true;
-				lastSwap = 0;
-				timeSinceLastSwap = minimumTimeBetweenSwitches->iValue + 1;
-			}
-			else if (hand.fingers.Size() == 0)
-			{
-				swap = true;
-			}
-			if (swap && timeSinceLastSwap > minimumTimeBetweenSwitches->iValue)
-			{
-				currentImage++;
-				if (currentImage >= files.Size())
-					currentImage = 0;
-				String source = currentDirectory + "/" + files[currentImage];
-				Graphics.QueueMessage(new GMSetEntityTexture(galleryEntity, DIFFUSE_MAP, source));
-				lastSwap = now;
-			}
-			fingersLastFrame = hand.fingers.Size();
-		}
-		
-	}
-	*/
 	return CVReturnType::RENDER;
 }
 
@@ -425,6 +453,7 @@ void CVMovieProjector::OnDelete()
 void CVMovieProjector::Paint(CVPipeline * pipe)
 {
 	pipe->initialInput->copyTo(pipe->output);
+	RenderPolygons(pipe);
 }
 	
 
@@ -516,17 +545,25 @@ int CVMusicPlayer::Process(CVPipeline * pipe)
 		if (pipe->fingerStates.Size())
 		{
 			FingerState & lastState = pipe->fingerStates.Last();
+			std::cout<<"\nTime in state: "<<lastState.duration<<" processed: "<<lastState.processed;
 			if (lastState.fingers == 5 && !lastState.processed && lastState.duration > 2000)
 			{
 				if (audioTrack->IsPlaying())
+				{
 					audioTrack->Pause();
-				else
+					std::cout<<"\n Pausing";
+				}
+				else 
+				{
 					audioTrack->Resume();
+					std::cout<<"\n Resuming";
+				}
 				lastState.processed = true;
 			}
 			// Check number of fingers! If.. 4? switch song
 			if (lastState.fingers == 4 && !lastState.processed && lastState.duration > 2000)
 			{
+				std::cout<<"\n Next";
 				++currentTrack;
 				if (currentTrack >= files.Size())
 					currentTrack = 0;
@@ -535,6 +572,7 @@ int CVMusicPlayer::Process(CVPipeline * pipe)
 			}
 			else if (lastState.fingers == 3 && !lastState.processed && lastState.duration > 2000)
 			{
+				std::cout<<"\n Previous";
 				--currentTrack;
 				if (currentTrack < 0)
 					currentTrack = files.Size() - 1;
@@ -551,7 +589,7 @@ int CVMusicPlayer::Process(CVPipeline * pipe)
 		float relative = handPos.y / pipe->initialInput->rows;
 		relative = 1 - relative - 0.15f;
 		relative *= 1.5f;
-		std::cout<<"\nVolume set to: "<<relative;
+	//	std::cout<<"\nVolume set to: "<<relative;
 		if (audioTrack)
 			audioTrack->SetVolume(relative);
 
@@ -568,18 +606,12 @@ int CVMusicPlayer::Process(CVPipeline * pipe)
 		// Update the text on le hand-music-audio-entity-thingy
 		Graphics.QueueMessage(new GMSetEntitys(audioEntity, TEXT, files[currentTrack]+"\nVolume: "+String::ToString(relative, 3)));
 
-		cv::Rect rect = hand.boundingRect;
-		float scale = rect.height / 1000.f * 2.0f;
+		float scale = hand.size.y / 1000.f * 2.0f;
 		scale *= 1.f;
 		Graphics.QueueMessage(new GMSetEntityf(audioEntity, TEXT_SIZE_RATIO, scale));
-
-		Vector4f textPosition = Vector4f(- rect.width * 0.5f * 0.01f, rect.height * 0.001f, 0, 0);
-
+		Vector4f textPosition = Vector4f(- hand.size.x * 0.5f * 0.01f, hand.size.y * 0.001f, 0, 0);
 		Graphics.QueueMessage(new GMSetEntityVec4f(audioEntity, TEXT_POSITION, textPosition));
-
 		Graphics.QueueMessage(new GMSetEntityVec4f(audioEntity, TEXT_COLOR, Vector4f(1,1,0,1)));
-	
-
 	}
 	return CVReturnType::RENDER;
 }

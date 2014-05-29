@@ -35,7 +35,8 @@ void MultimediaStream::Close()
 /// Updates media time by checking how far the audio has played (easier to synchronize graphics to audio than reversed?)
 void MultimediaStream::UpdateMediaTime()
 {
-	mediaTime = audio->PlaybackTimeMs();
+	if (audio)
+		mediaTime = audio->PlaybackTimeMs();
 }
 
 /// Current frame time of the media in milliseconds.

@@ -37,6 +37,8 @@ private:
 
 
 class Entity;
+class Texture;
+class Hand;
 
 /// Filter that renders an image gallery on top of a hand, reacting to gesture input if there is any such in the pipeline
 class CVImageGalleryHand : public CVRenderFilter 
@@ -44,15 +46,22 @@ class CVImageGalleryHand : public CVRenderFilter
 public:
 	CVImageGalleryHand();
 	virtual int Process(CVPipeline * pipe);
+	virtual void Paint(CVPipeline * pipe);
+	// Should be called when deleting a filter while the application is running. Removes things as necessary.
+	virtual void OnDelete();
 	
 	/// For reacting to when enabling/disabling a filter. Needed for e.g. Render-filters. Not required to subclass.
 	virtual void SetEnabled(bool state);
 private:
+	void SetTexture(String source);
+	void UpdateScale(Hand & hand);
+
 	CVFilterSetting * directory, * minimumTimeBetweenSwitches;
 	String currentDirectory;
 	List<String> files;
 	int currentImage;
 	Entity * galleryEntity;
+	Texture * tex;
 	long long lastSwap;
 	int fingersLastFrame;
 };
@@ -77,6 +86,11 @@ private:
 	String movieFile;
 	Entity * movieEntity;
 	MultimediaStream * movieStream;
+
+	// Yo.
+	CVFilterSetting * framesToSmooth;
+	Vector3f averagePosition;
+	Vector3f averageScale;
 };
 
 

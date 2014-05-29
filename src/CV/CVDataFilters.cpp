@@ -6,6 +6,7 @@
 #include "CVDataFilters.h"
 #include "CVPipeline.h"
 #include "String/StringUtil.h"
+#include "Texture.h"
 cv::RNG rng(12345);
 
 
@@ -13,29 +14,33 @@ CVDataFilter::CVDataFilter(int id)
 	: CVFilter(id)
 {
 	type = CVFilterType::DATA_FILTER;
+	returnType = CVReturnType::NOTHING;
 };
 
 void CVDataFilter::Paint(CVPipeline * pipe)
 {
-	if (pipe->returnType == CVReturnType::QUADS)
+	if (returnType == CVReturnType::QUADS)
 	{
 		// Draw quads.
 		if (!pipe->quads.Size())
 			return;
+		// Copy original input
+		pipe->initialInput->copyTo(pipe->output);
 		// Convert to color if needed.
 		int channelsBefore = pipe->output.channels();
 		if (channelsBefore == 1)
 		{
-			pipe->output.convertTo(pipe->output, CV_8UC3);
+		//	pipe->output.convertTo(pipe->output, CV_8UC3);
 			cv::cvtColor(pipe->output, pipe->output, CV_GRAY2RGB);
 		}
+		int channelsAfter = pipe->output.channels();
 		// o.o Paste!
 		for (int i = 0; i < pipe->quads.Size(); ++i)
 		{
 			Quad quad = pipe->quads[i];
 	#define RGB(r,g,b) cv::Scalar(b,g,r)
 			rng = cv::RNG(1344);
-			cv::Scalar color = RGB(rng.next(),rng.next(),rng.next());
+			cv::Scalar color = RGB(rng.uniform(0, 255),rng.uniform(0, 255),rng.uniform(0, 255));
 		//	cv::Mat rectImage = cv::Mat::zeros(pipe->output.size(), CV_8UC3);
 			cv::rectangle(pipe->output, cv::Point(quad.point1.x, quad.point1.y), cv::Point(quad.point3.x, quad.point3.y), color, CV_FILLED);
 			float alpha = 0.2f;
@@ -44,18 +49,18 @@ void CVDataFilter::Paint(CVPipeline * pipe)
 		//	rectImage.copyTo(pipe->output);		
 		}
 	}
-	else if (pipe->returnType == CVReturnType::APPROXIMATED_POLYGONS)
+	else if (returnType == CVReturnType::APPROXIMATED_POLYGONS)
 	{
 		// Copy original input..
 		pipe->initialInput->copyTo(pipe->output);
 		RenderPolygons(pipe);
 	}
-	else if (pipe->returnType == CVReturnType::CV_IMAGE)
+	else if (returnType == CVReturnType::CV_IMAGE)
 	{
 		// Do nothing as the image should already be in the ouput matrix of the pipeline.
 	}
-	else if (pipe->returnType == CVReturnType::LINES ||
-		pipe->returnType == CVReturnType::CV_LINES)
+	else if (returnType == CVReturnType::LINES ||
+		returnType == CVReturnType::CV_LINES)
 	{
 		// Convert the color to colors again for visualization...
 		pipe->initialInput->copyTo(pipe->output);
@@ -65,25 +70,25 @@ void CVDataFilter::Paint(CVPipeline * pipe)
 				cv::Point(pipe->lines[i].stop.x, pipe->lines[i].stop.y), cv::Scalar(0,0,255), 3, 8 );
 		}
 	}
-	else if (pipe->returnType == CVReturnType::CV_CONTOURS)
+	else if (returnType == CVReturnType::CV_CONTOURS)
 	{
 		pipe->initialInput->copyTo(pipe->output);
 		RenderContours(pipe);
 	}
-	else if (pipe->returnType == CVReturnType::CV_CONVEX_HULLS)
+	else if (returnType == CVReturnType::CV_CONVEX_HULLS)
 	{
 		pipe->initialInput->copyTo(pipe->output);
 		RenderContours(pipe);
 		RenderConvexHulls(pipe);
 	}
-	else if (pipe->returnType == CVReturnType::CV_CONVEXITY_DEFECTS)
+	else if (returnType == CVReturnType::CV_CONVEXITY_DEFECTS)
 	{
 		pipe->initialInput->copyTo(pipe->output);
 		RenderContours(pipe);
 		RenderConvexHulls(pipe);
 		RenderConvexityDefects(pipe);
 	}
-	else if (pipe->returnType == CVReturnType::HANDS)
+	else if (returnType == CVReturnType::HANDS)
 	{
 		// Convert image to RGB for easier display
 		int channelsBefore = pipe->initialInput->channels();
@@ -93,7 +98,7 @@ void CVDataFilter::Paint(CVPipeline * pipe)
 		RenderContours(pipe);
 		RenderHands(pipe);
 	}
-	else if (pipe->returnType == CVReturnType::FINGER_STATES)
+	else if (returnType == CVReturnType::FINGER_STATES)
 	{
 		// Render the last known one.
 		pipe->initialInput->copyTo(pipe->output);
@@ -105,10 +110,10 @@ void CVDataFilter::Paint(CVPipeline * pipe)
 			cv::circle(pipe->output, cv::Point(pos.x, pos.y), 5, color, 3);
 		}
 	}
-	else if (pipe->returnType == -1)
+	else if (returnType == -1)
 		// Nothing to render if error.
 		;
-	else if (pipe->returnType == CVReturnType::RENDER)
+	else if (returnType == CVReturnType::RENDER)
 		// Nothing to render if render.
 		;
 	else
@@ -246,7 +251,8 @@ int CVShiTomasiCorners::Process(CVPipeline * pipe)
 		errorString = ";_;";
 		return CVReturnType::NOTHING;
 	}
-	return CVReturnType::CV_CORNERS;
+	returnType = CVReturnType::CV_CORNERS;
+	return returnType;
 }
 
 /** Main painting function. This will be called on the last processed filter in order to get a renderable result.
@@ -349,8 +355,8 @@ int CVFindContours::Process(CVPipeline * pipe)
 
 	// Clear the array..?
 	// newContours.clear();
-
-	return CVReturnType::CV_CONTOURS;
+	returnType = CVReturnType::CV_CONTOURS;
+	return returnType;
 }
 
 
@@ -491,7 +497,8 @@ int CVLineGatherFilter::Process(CVPipeline * pipe)
 		errorString = "Point-gather failed.";
 		return CVReturnType::NOTHING;
 	}
-	return CVReturnType::LINES;
+	returnType = CVReturnType::LINES;
+	return returnType;
 }
 
 
@@ -546,7 +553,8 @@ int CVMaxBoundingBox::Process(CVPipeline * pipe)
 	cv::Scalar color(255,255,255);
 	cv::rectangle(pipe->output, cv::Rect(cv::Point(box.min.x, box.min.y), cv::Point(box.max.x, box.max.y)), color);
 
-	return CVReturnType::BOUNDING_BOX;
+	returnType = CVReturnType::BOUNDING_BOX;
+	return returnType;
 }
 
 
@@ -589,7 +597,8 @@ int CVHoughCircles::Process(CVPipeline * pipe)
 	catch(...){
 		return -1;
 	}
-	return CVReturnType::CV_CIRCLES;
+	returnType = CVReturnType::CV_CIRCLES;
+	return returnType;
 }
 void CVHoughCircles::Paint(CVPipeline * pipe)
 {
@@ -677,7 +686,8 @@ int CVHoughLines::Process(CVPipeline * pipe)
 	catch(...){
 		return -1;
 	}
-	return CVReturnType::LINES;
+	returnType = CVReturnType::LINES;
+	return returnType;
 }
 
 void CVHoughLines::Paint(CVPipeline * pipe)
@@ -739,7 +749,8 @@ int CVFilterLinesByAngle::Process(CVPipeline * pipe)
 		}
 		// Inside, keep it.
 	}
-	return CVReturnType::LINES;
+	returnType = CVReturnType::LINES;
+	return returnType;
 }
 
 CVMergeLines::CVMergeLines()
@@ -786,7 +797,8 @@ int CVMergeLines::Process(CVPipeline * pipe)
 			}
 		}
 	}
-	return CVReturnType::LINES;
+	returnType = CVReturnType::LINES;
+	return returnType;
 }
 
 // Approximates polygons out of contours
@@ -823,7 +835,8 @@ int CVApproxPolygons::Process(CVPipeline * pipe)
 			return -1;
 		}
 	}
-	return CVReturnType::APPROXIMATED_POLYGONS;
+	returnType = CVReturnType::APPROXIMATED_POLYGONS;
+	return returnType;
 }
 
 void CVApproxPolygons::Paint(CVPipeline * pipe)
@@ -1014,7 +1027,8 @@ int CVFindQuads::Process(CVPipeline * pipe)
 	
 		good = true;
 	}
-	return CVReturnType::QUADS;
+	returnType = CVReturnType::QUADS;
+	return returnType;
 }
 
 CVQuadAspectRatioConstraint::CVQuadAspectRatioConstraint()
@@ -1049,7 +1063,8 @@ int CVQuadAspectRatioConstraint::Process(CVPipeline * pipe)
 		pipe->quads.RemoveIndex(i);
 		--i;
 	}
-	return CVReturnType::QUADS;
+	returnType = CVReturnType::QUADS;
+	return returnType;
 }
 
 CVMaxBoxPersistance::CVMaxBoxPersistance()
@@ -1121,7 +1136,8 @@ int CVMaxBoxPersistance::Process(CVPipeline * pipe)
 	pipe->quads.Clear();
 	pipe->quads.Add(average);
 
-	return CVReturnType::QUADS;
+	returnType = CVReturnType::QUADS;
+	return returnType;
 }
 
 /*
@@ -1269,7 +1285,8 @@ int CVHandDetector::Process(CVPipeline * pipe)
 		errorString = "Error D:";
 		return -1;
 	}
-	return CVReturnType::HANDS;
+	returnType = CVReturnType::HANDS;
+	return returnType;
 }
 
 CVConvexHull::CVConvexHull()
@@ -1284,7 +1301,8 @@ int CVConvexHull::Process(CVPipeline * pipe)
 		return CVReturnType::CV_CONVEX_HULLS;
 	}
 	cv::convexHull(pipe->contours[0], pipe->convexHull);
-	return CVReturnType::CV_CONVEX_HULLS;
+	returnType = CVReturnType::CV_CONVEX_HULLS;
+	return returnType;
 }
 
 CVConvexityDefects::CVConvexityDefects()
@@ -1311,7 +1329,8 @@ int CVConvexityDefects::Process(CVPipeline * pipe)
 		if (defect[3] > minimumDefectDepth->fValue)
 			pipe->convexityDefects.Add(defect);
 	}
-	return CVReturnType::CV_CONVEXITY_DEFECTS;
+	returnType = CVReturnType::CV_CONVEXITY_DEFECTS;
+	return returnType;
 }
 
 
@@ -1386,8 +1405,8 @@ int CVHandDetector2::Process(CVPipeline * pipe)
 	
 		pipe->hands.Add(newHand);
 	}
-
-	return CVReturnType::HANDS;
+	returnType = CVReturnType::HANDS;
+	return returnType;
 }
 
 
@@ -1398,6 +1417,8 @@ CVHandPersistance::CVHandPersistance()
 {
 	// Stuff.
 	distanceThreshold = new CVFilterSetting("Distance threshold", 20.f);
+	framesToSmooth = new CVFilterSetting("Frames to smooth", 20);
+	settings.Add(framesToSmooth);
 }
 
 int CVHandPersistance::Process(CVPipeline * pipe)
@@ -1448,55 +1469,18 @@ int CVHandPersistance::Process(CVPipeline * pipe)
 			}
 		}
 		hand.fingers = culledFingers;
-		/*
-		if (hand.contour.size() < contourThreshold->iValue)
-		{
-			pipe->hands.RemoveIndex(i);
-			--i;
-		}
-		*/
+
+		// Some smoothing of the center-position of the hand.
+		float frames = framesToSmooth->iValue;
+		averagedHandPosition = averagedHandPosition * (frames - 1.f) / frames + hand.center / frames;
+		hand.center = averagedHandPosition;
+		// Smooth width and height too, size y'know?
+		averagedHandSize = averagedHandSize * (frames - 1.f) / frames + Vector2f(hand.boundingRect.width, hand.boundingRect.height) / frames;
+		hand.size = averagedHandSize;
 	}
-	
-//	List<Hand> newHands = pipe->hands;
-	
-	/// Only do time comparison after we have at least a frame.
-	/*
-	if (pastFramesHands.Size())
-	{
-		// Fetch Past frame
-		List<Hand> lastFramesHands = pastFramesHands.Last();
-
-		// Compare with previous' frames hands. Are they the same?
-		for (int i = 0; i < lastFramesHands.Size(); ++ i)
-		{
-			for (int i = 0; i < pipe->hands.Size(); ++i)
-			{
-				// Just check distance of the centers
-				Hand & pastFrame = lastFramesHands[i];
-				Hand & newHand = pipe->hands[i];
-				Vector3f pointDistance = pastFrame.center - newHand.center;
-				float distance = hypot(pointDistance.x, pointDistance.y);
-				if (distance < distanceThreshold->fValue)
-				{
-					// Keep it.
-
-				}
-				else 
-				{
-					// Discard it.
-					pipe->hands.RemoveIndex(i);
-					--i;
-				}
-			
-			}
-		}
-	}
-
-	// Add the current frame's hands to the history
-	pastFramesHands.Add(pipe->hands);
-	*/
 	// Return all the hands o-o
-	return CVReturnType::HANDS;
+	returnType = CVReturnType::HANDS;
+	return returnType;
 }
 
 CVFingerActionFilter::CVFingerActionFilter()
@@ -1506,6 +1490,23 @@ CVFingerActionFilter::CVFingerActionFilter()
 	settings.Add(minimumDuration);
 	maxStatesStored = new CVFilterSetting("Max states stored", 20);
 	settings.Add(maxStatesStored);
+
+	// Check over 250 frames?
+	framesToTrack = 250;
+	filesSaved = 0;
+
+	postFilter.width = preFilter.width = framesToTrack + 50;
+	postFilter.height = preFilter.height = 25; // 3 pixels per .. finger?
+	preFilter.CreateDataBuffer();
+	postFilter.CreateDataBuffer();		
+	preFilter.SetColor(Vector4f(0,0,0,0));
+	postFilter.SetColor(Vector4f(0,0,0,0));
+
+	framesPassed = 0;
+
+	fingerAdded = false;
+
+#define PROFILE_FINGER_ACTION_FILTER
 }
 int CVFingerActionFilter::Process(CVPipeline * pipe)
 {
@@ -1515,14 +1516,52 @@ int CVFingerActionFilter::Process(CVPipeline * pipe)
 
 	// Check finger now, but update it to the last finger after all processing is done.
 	int fingersNow = hand.fingers.Size();
+#ifdef PROFILE_FINGER_ACTION_FILTER
+	// Store le value for statistical analysis
+	preFilter.SetPixel(framesPassed, fingersNow * 3, Vector3f(1, 0, 0));
+#endif
+
 	
 	int64 now = Timer::GetCurrentTimeMs();
 
-	// When finger state has changed.
-	if (fingersNow != lastFinger)
+	// Check if we should add a finger due to the time it has been visible (long enough).
+	if (fingersNow == fingersLastFrame && !fingerAdded)
 	{
-		lastFinger = fingersNow;
-		lastFingerStart = Timer::GetCurrentTimeMs();
+		int64 duration = now - lastFingerStartTime;
+		/// Add it!
+		if (duration > minimumDuration->iValue)
+		{
+			// Is it the same as the previous one, in terms of visible fingers? 
+			FingerState * lastState = NULL;
+			if (fingerStates.Size())
+				lastState = &fingerStates.Last();
+			// If so just update the past one's duration again?
+			if (lastState && lastState->fingers == fingersNow)
+			{
+				lastState->stop = now;
+				lastState->duration = duration;
+			}
+			// Create new state for the new finger amount.
+			else {
+				FingerState newState;
+				newState.fingers = fingersNow;
+				newState.start = lastFingerStartTime;
+				newState.duration = duration;
+				for (int i = 0; i < hand.fingers.Size(); ++i)
+				{
+					newState.positions.Add(hand.fingers[i]);
+				}
+				fingerStates.Add(newState);
+				// If we pass 20 or something, start deleting old states.
+				if (fingerStates.Size() >= maxStatesStored->iValue)
+					fingerStates.RemoveIndex(0, ListOption::RETAIN_ORDER);	
+			}
+			fingerAdded = true;
+		}
+	}
+	// When finger count changes
+	else if (fingersNow != fingersLastFrame)
+	{
 		// Adjust the current/last state as it exits scope.
 		if (fingerStates.Size())
 		{
@@ -1530,30 +1569,17 @@ int CVFingerActionFilter::Process(CVPipeline * pipe)
 			lastFingerState.stop = now;
 			lastFingerState.duration = lastFingerState.stop - lastFingerState.start;
 		}
-		// Create new state for the new finger amount.
-		FingerState newState;
-		newState.start = now;
-		newState.fingers = fingersNow;
-		for (int i = 0; i < hand.fingers.Size(); ++i)
-		{
-			newState.positions.Add(hand.fingers[i]);
-		}
-		fingerStates.Add(newState);
-		// If we pass 20 or something, start deleting old states.
-		if (fingerStates.Size() >= maxStatesStored->iValue)
-			fingerStates.RemoveIndex(0, ListOption::RETAIN_ORDER);
+		// Set finger start time!
+		lastFingerStartTime = now;
+		fingerAdded = false;
 	}
-	else {
-		lastFingerDuration = Timer::GetCurrentTimeMs() - lastFingerStart;
-		if (fingerStates.Size())
-		{
-			FingerState & lastFingerState = fingerStates.Last();
-			lastFingerState.duration = lastFingerDuration;
-		}
+	// If the finger state has not changed, update the last added state's duration, if any.
+	else if (fingerStates.Size()) {
+		FingerState & lastFingerState = fingerStates.Last();
+		lastFingerState.duration = now - lastFingerState.start;
 	}	
 	
 	// Synchronize the pipeline list of finger states with our own.
-	int lastAddedStateIndex = 0;
 	for (int i = 0; i < fingerStates.Size(); ++i)
 	{
 		FingerState & state = fingerStates[i];
@@ -1564,70 +1590,52 @@ int CVFingerActionFilter::Process(CVPipeline * pipe)
 			{
 				// Values that could have been updated from outside.
 				state.processed = pipeState.processed;
-				lastAddedStateIndex = i;
 			}
 		}
 	}
 
-	// Remove any finger-states (except for the MOST RECENT one) whose duration is below the threshold. Merge the states beside if they have the same amount of fingers too!
-	FingerState * lastState = NULL;
-	for (int i = Maximum(0, fingerStates.Size() - 3); i < fingerStates.Size() - 1; )
-	{
-		FingerState * state = &fingerStates[i];
-		if (state->duration > minimumDuration->iValue)
-		{
-			// Set last finger state for upcoming merges.
-			lastState = &fingerStates[i];
-			++i;
-			continue;
-		}
-		std::cout<<"\nRemoving start with start time: "<<fingerStates[i].start<<" and fingers: "<<fingerStates[i].fingers;
-
-		// Ok, we are to remove this one. So, do it!
-		fingerStates.RemoveIndex(i, ListOption::RETAIN_ORDER);
-		
-		// Now check if we have a last state.
-		if (!lastState)
-		{
-			// If not, no worries. 
-			continue;
-		}
-		// But if we do, check the next state too.
-		state = &fingerStates[i];
-		
-		// Because if they are the same number of fingers we'll want to merge them, 
-		// considering them the same "state" with the one in-between being considered as noise,
-		// or unwanted stuff anyway.
-		if (state->fingers == lastState->fingers)
-		{
-			// They are the same! Mergy bergy!
-			lastState->stop = state->stop;
-			lastState->duration = now - lastState->start;
-			// Remove this state, since the older one takes precedence
-			fingerStates.RemoveIndex(i, ListOption::RETAIN_ORDER);
-			continue;
-		}	
-		// Set pointers
-		lastState = &fingerStates[i];
-	}
-
-
 	// Clear their list.
 	pipe->fingerStates.Clear();
-	// Plus 1 of the last added state or we will accidentally add it again!
+	// And copy over our list
 	for (int i = 0; i < fingerStates.Size(); ++i)
 	{
 		FingerState & state = fingerStates[i];
+		// Taking the minimum duration filter into consideration
 		if (state.duration < minimumDuration->iValue)
 			continue;
 		// Copy-bopy!
 		pipe->fingerStates.Add(state);
 	}
-	while(pipe->fingerStates.Size() > maxStatesStored->iValue)
-		pipe->fingerStates.RemoveIndex(0, ListOption::RETAIN_ORDER);
 
+#ifdef PROFILE_FINGER_ACTION_FILTER
+	// Store le value for statistical analysis
+	if (pipe->fingerStates.Size())
+	{
+		FingerState & lastState = pipe->fingerStates.Last();
+		std::cout<<"\nLastState duration: "<<lastState.duration;
+		postFilter.SetPixel(framesPassed, lastState.fingers * 3, Vector3f(1 - (lastState.duration - minimumDuration->iValue)/ (float)minimumDuration->iValue * 0.25, (lastState.duration - minimumDuration->iValue) / (float)minimumDuration->iValue,0));
+		++framesPassed;
+		if (framesPassed > framesToTrack)
+		{
+			std::cout<<"\nSaving FingerStateFilter statistics to output/";
+			
+			preFilter.Save("output/"+String::ToString(filesSaved)+"FingerStatesPreFilter", true);
+			postFilter.Save("output/"+String::ToString(filesSaved)+"FingerStatesPostFilter", true);
+
+			// Clear the lists
+			preFilter.SetColor(Vector4f(0,0,0,0));
+			postFilter.SetColor(Vector4f(0,0,0,0));
+			++filesSaved;
+			framesPassed = 0;
+		}
+	}
+#endif
+
+	fingersLastFrame = fingersNow;
+		
 	// Should replace with "fingers" type and render them somewhere...
-	return CVReturnType::HANDS;
+	returnType = CVReturnType::HANDS;
+	return returnType;
 }
 
 

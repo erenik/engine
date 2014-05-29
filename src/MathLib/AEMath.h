@@ -16,8 +16,8 @@ const float ZERO = 0.0000000001f;
 #define AbsoluteValue(one)    ((one < 0) ? (-(one)) : (one))
 #endif
 
-#ifndef Clamp
-#define Clamp(a,c,b) if(a<c)a=c;else if(a>b)a=b;
+#ifndef ClampFloat
+#define ClampFloat(a,c,b) if(a<c)a=c;else if(a>b)a=b;
 #endif
 
 #ifndef RoundFloat

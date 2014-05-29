@@ -523,9 +523,9 @@ bool OggStream::StreamNextFrame(int framesToPass /*= 1*/)
 					}
 				}
 
-				Clamp(r, 0, 255);
-				Clamp(g, 0, 255);
-				Clamp(b, 0, 255);
+				ClampFloat(r, 0, 255);
+				ClampFloat(g, 0, 255);
+				ClampFloat(b, 0, 255);
 				rowBufferData[rbi] = (unsigned char)r;
 				rowBufferData[rbi+1] = (unsigned char)g;
 				rowBufferData[rbi+2] = (unsigned char)b;

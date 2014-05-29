@@ -74,6 +74,16 @@ void Vector4f::ReadFrom(std::fstream & file){
 }
 
 
+/// Clamp to an interval.
+void Vector4f::Clamp(float min, float max)
+{
+	ClampFloat(x, min, max);
+	ClampFloat(y, min, max);
+	ClampFloat(z, min, max);
+	ClampFloat(w, min, max);
+}
+
+
 // ************************************************************************//
 // Arithmetics
 // ************************************************************************//

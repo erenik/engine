@@ -440,7 +440,7 @@ void TextureManager::BufferizeTexture(Texture * texture){
 		return;
 	}
 	if (texture->glid != -1){
-//		std::cout<<"\nTexture \""<<texture->source<<"\" already bufferized! Skipping.";
+		std::cout<<"\nTexture \""<<texture->source<<"\" already bufferized! Skipping.";
 		return;
 	}
 	GLuint error;
