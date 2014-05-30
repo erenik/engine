@@ -101,6 +101,9 @@ public:
 	// Current physical properties, affected by a number of properties elsewhere in Entity.
 	float physicalRadius;
 
+	/// Damping applied on a per-second basis for this entity only.
+	float linearDamping;
+
 	/** Obsolete! All positional updates should use the entity's own position vector.
 		If a "center of mass" is wanted later on, name it "centerOfMass" or something then...!
 		By default all centers of mass should be at 0,0,0.

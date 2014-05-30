@@ -15,7 +15,7 @@ RenderFrustum::RenderFrustum(Frustum frustum)
 RenderFrustum::~RenderFrustum(){
 }
 
-void RenderFrustum::Render(GraphicsState & graphicsState){
+void RenderFrustum::Render(){
     glColor4f(color.x, color.y, color.z, 1.0f);
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 

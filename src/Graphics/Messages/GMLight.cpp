@@ -6,6 +6,7 @@
 #include "GraphicsMessages.h"
 #include "Graphics/GraphicsManager.h"
 #include "Light.h"
+#include "GraphicsState.h"
 
 
 GMClearLighting::GMClearLighting()
@@ -16,6 +17,7 @@ void GMClearLighting::Process()
 {
 	Lighting * lighting = Graphics.ActiveLighting();
 	lighting->DeleteAllLights();
+	graphicsState.dynamicLights.ClearAndDelete();
 }
 
 

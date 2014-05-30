@@ -200,6 +200,7 @@ bool MapManager::MakeActive(Map * map){
 		Graphics.QueueMessage(new GMClear(PARTICLE_SYSTEMS));
 		Physics.QueueMessage(new PhysicsMessage(PM_CLEAR_ALL_ENTITIES));
 		activeMap = NULL;
+		// Clear entities?
 	}
 
 	/// Set this as the active map! :3
@@ -480,7 +481,7 @@ Entity * MapManager::CreateEntity(Model * model, Texture * texture, Vector3f pos
 	return entity;
 }
 
-/// Adds target entity to the map, registering it for physics and graphics.
+/// Adds target entity to the map, registering it for physics and graphicsState.
 bool MapManager::AddEntity(Entity * entity)
 {
 	assert(activeMap && "Active Map not set in MapManager::CreateEntity!");
@@ -665,7 +666,9 @@ Map * MapManager::LoadMap(String fromFile, Map * targetMap){
 		String mapSource = map->source;
 		assert(mapSource.Length() > 0);
 		if (mapSource == fromFile || mapSource.Contains(fromFile)){
-			return maps[i];
+			// Reload it, if possible?
+			map->Load(fromFile);
+			return map;
 		}
 	}
 	bool result = false;
@@ -797,14 +800,14 @@ Path * MapManager::GetPath(String byName){
 //////////////////////////////////////////////////////////////////////////////////
 
 /// Loads data from compact versions, registering them in the various managers.
-void MapManager::LoadFromCompactData(Map * map){
+void MapManager::LoadFromCompactData(Map * map)
+{
 	std::cout<<"\nMapManager::LoadFromCompactData for map: "<<map->name;
+
 	if (map->NumEntities() > 0){
-		std::cout<<"\nEntities already exist in map. Skipping loading procedure from compact data.";
-		return;
 		std::cout<<"ERROR: Map has "<<map->NumEntities()<<" remaining entities. Delete these before reloading from compact map data!";
-		assert(map->NumEntities() == 0);
 		map->RemoveAllEntities();
+		assert(map->NumEntities() == 0);
 	//	return;
 	}
 	/// TODO: Make function of creating stuff from compact format

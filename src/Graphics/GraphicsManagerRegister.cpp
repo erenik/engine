@@ -6,6 +6,7 @@
 #include "Texture.h"
 #include "TextureManager.h"
 #include "Particles/ParticleSystem.h"
+#include "GraphicsState.h"
 
 /// Adds an Entity to be rendered to the vfcOctree.
 bool GraphicsManager::RegisterEntity(Entity * entity)
@@ -25,11 +26,6 @@ bool GraphicsManager::RegisterEntity(Entity * entity)
 	GraphicsProperty * graphics = entity->graphics;
 	if (graphics){
 		// Check for attached dynamic lights
-		if (graphics->dynamicLights){
-			for (int i = 0; i < graphics->dynamicLights->Size(); ++i){
-				Graphics.dynamicLights.Add((Light*)(*graphics->dynamicLights)[i]);
-			}
-		}
 		if (graphics->particleSystems){
 			for (int i = 0; i < graphics->particleSystems->Size(); ++i){
 				ParticleSystem * ps = (*graphics->particleSystems)[i];
@@ -74,7 +70,10 @@ bool GraphicsManager::UnregisterEntity(Entity * entity){
 		// Check for attached dynamic lights
 		if (entity->graphics->dynamicLights){
 			for (int i = 0; i < entity->graphics->dynamicLights->Size(); ++i){
-				Graphics.dynamicLights.Remove((Light*)((*entity->graphics->dynamicLights)[i]));
+				Light * light = (*gp->dynamicLights)[i];
+				List<Light*> * dynamicLights = &graphicsState.dynamicLights;
+				bool removed = dynamicLights->Remove(light);
+				assert(removed);
 			}
 		}
 		if (gp->particleSystems){
@@ -94,8 +93,8 @@ bool GraphicsManager::UnregisterEntity(Entity * entity){
 	/// If marked for deletion, remove graphicsProperty permanently.
 	if (entity->flaggedForDeletion)
 	{
-		delete entity->graphics;
-		entity->graphics = NULL;
+//		delete entity->graphics;
+//		entity->graphics = NULL;
 	}
 
 	return true;

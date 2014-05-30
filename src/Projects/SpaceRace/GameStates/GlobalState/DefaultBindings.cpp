@@ -35,7 +35,7 @@ void GlobalState::CreateDefaultBindings(){
 	mapping->SetBlockingKeys(mapping->CreateBinding(OPEN_CONSOLE, KEY::CTRL, KEY::ENTER, "CTRL + ENTER : Open Console"), KEY::ALT);
 
 	/// Input-options
-	mapping->CreateBinding(TOGGLE_MOUSE_LOCK, KEY::CTRL, KEY::L, KEY::M);
+//	mapping->CreateBinding(TOGGLE_MOUSE_LOCK, KEY::CTRL, KEY::L, KEY::M);
 
 
 };

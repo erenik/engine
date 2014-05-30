@@ -32,6 +32,7 @@ class RenderRay;
 
 #define Graphics	(*GraphicsManager::Instance())
 
+
 // Defines a class that handles textures, rendering and it's contexts and settings
 class GraphicsManager {
 	friend class GraphicsMessage;
@@ -270,6 +271,8 @@ private:
 
 	/// Default lighting if the current map lacks one
 	Lighting defaultLighting;
+	/// Current lighting, which is editable. Will be copied to the graphicsState for rendering together with all dynamic lights.
+	Lighting lighting;
 
 	/// Handle them here in the graphics manager.
 	List<TextFont*> fonts;
@@ -350,11 +353,9 @@ private:
 
 	/// Updates the graphicsState's lighting to include dynamic lights' new positions as well.
 	void UpdateLighting();
-	/// Additional lights that are attached to entities or other dynamic properties.
-	List<Light*> dynamicLights, staticLights;
 
 	// Main state for rendering
-	GraphicsState * graphicsState;
+//	GraphicsState * graphicsState;
 	// Octree vfcOctree
 	VFCOctree * vfcOctree;
 	// Main frustum pointer for VFC. This should be updated to correspond to the active camera at all times.

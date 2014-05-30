@@ -109,7 +109,7 @@ void Exhaust::Process(float timeInSeconds)
 	previousDirection = newDirection;
 }
 
-void Exhaust::Render(GraphicsState & graphicsState)
+void Exhaust::Render()
 {
     /// Based on the optimization level, will probably be pow(0.5, optimizationLevel);
     optimizationLevel = pow(0.5f, graphicsState.optimizationLevel);

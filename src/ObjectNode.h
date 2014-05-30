@@ -18,7 +18,7 @@ public:
 	/// Deallocates the vertices if they are non-null. 
 	~ObjectNode();
 	/// Renders the vertices of the Entity. 
-	void Render(GraphicsState &state);
+	void Render();
 
 	/// Have these public for quicker usage.
 	Vertex3f * vertex;

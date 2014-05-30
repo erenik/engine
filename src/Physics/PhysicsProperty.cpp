@@ -87,6 +87,7 @@ void PhysicsProperty::Nullify()
 	friction = 0.01f;
 	collissionCallback = IMPACT_VELOCITY;
 	collissionCallbackRequirementValue = 1.0f;
+	linearDamping = 0.99f;
 	collissionsEnabled = true;
 	noCollissionResolutions = false;
 	physicsMesh = NULL;

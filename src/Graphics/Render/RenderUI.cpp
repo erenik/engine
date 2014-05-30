@@ -28,7 +28,7 @@ void GraphicsManager::RenderUI(UserInterface * ui){
 	/// Disable stuff.
 	glDisable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, 0);
-	graphicsState->currentTexture = NULL;
+	graphicsState.currentTexture = NULL;
 	// Disable lighting
 	glDisable(GL_LIGHTING);
 	glDisable(GL_COLOR_MATERIAL);
@@ -36,12 +36,11 @@ void GraphicsManager::RenderUI(UserInterface * ui){
 
     /// Setup scissor test variables
     glEnable(GL_SCISSOR_TEST);
-    GraphicsState & gs = *Graphics.graphicsState;
 //	std::cout<<"\nWidth: "<<Graphics.Width()<<" Height: "<<Graphics.Height();
-    gs.leftScissor = 0;
-	gs.rightScissor = Graphics.Width();
-	gs.bottomScissor = 0;
-    gs.topScissor = Graphics.Height();
+    graphicsState.leftScissor = 0;
+	graphicsState.rightScissor = Graphics.Width();
+	graphicsState.bottomScissor = 0;
+    graphicsState.topScissor = Graphics.Height();
 
     PrintGLError("GLError in RenderUI setting shader");
 	
@@ -104,15 +103,15 @@ void GraphicsManager::RenderUI(UserInterface * ui){
 	glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, projection.getPointer());
     PrintGLError("GLError in RenderUI uploading projectionMatrix");
 
-	Graphics.graphicsState->projectionMatrixF = Graphics.graphicsState->projectionMatrixD = projection;
-	Graphics.graphicsState->viewMatrixF = Graphics.graphicsState->viewMatrixD.LoadIdentity();
-	Graphics.graphicsState->modelMatrixF = Graphics.graphicsState->modelMatrixD.LoadIdentity();
+	graphicsState.projectionMatrixF = graphicsState.projectionMatrixD = projection;
+	graphicsState.viewMatrixF = graphicsState.viewMatrixD.LoadIdentity();
+	graphicsState.modelMatrixF = graphicsState.modelMatrixD.LoadIdentity();
 
 	/// Render
 	if (ui == NULL)
 		return;
 	try {
-		ui->Render(*Graphics.graphicsState);
+		ui->Render();
 	} catch(...){
 		std::cout<<"\nERROR: Exception trying to render ui: "<<ui->Source();
 	}

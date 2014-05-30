@@ -23,7 +23,7 @@ AlphaModelEffect::AlphaModelEffect(String name, String modelName, Entity * refer
 }
 
 /// Renders, but also updates it's various values using the given timestep since last frame.
-void AlphaModelEffect::Render(GraphicsState & graphicsState){
+void AlphaModelEffect::Render(){
 	assert(model);
 	/// Override alpha-changes from outside if they decreased it!
 	if (primaryColor.w < lastAlpha)
@@ -57,6 +57,6 @@ void AlphaModelEffect::Render(GraphicsState & graphicsState){
 //	std::cout<<"\nAlpha: "<<primaryColor.w;
 
 	// Render stuffs.
-	model->mesh->Render(graphicsState);
+	model->mesh->Render();
 
 }

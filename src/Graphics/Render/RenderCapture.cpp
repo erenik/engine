@@ -11,7 +11,7 @@
 
 void GraphicsManager::RenderCapture()
 {
-	if (graphicsState->promptScreenshot)
+	if (graphicsState.promptScreenshot)
 	{
 		// Grab frame! o.o
 		Texture frame;
@@ -32,8 +32,8 @@ void GraphicsManager::RenderCapture()
 				return;
 			}
 		}
-		frame.Save(dirPath+"/"+String::ToString(++graphicsState->screenshotsTaken)+".png", true);
-		graphicsState->promptScreenshot = false;
+		frame.Save(dirPath+"/"+String::ToString(++graphicsState.screenshotsTaken)+".png", true);
+		graphicsState.promptScreenshot = false;
 	}
 
 	// If we are currently recording.
@@ -45,16 +45,16 @@ void GraphicsManager::RenderCapture()
 	static String videoDirPath = "output/video";
 	int64 now = Timer::GetCurrentTimeMs();
 	// When starting.
-	if (!isRecording && graphicsState->recording)
+	if (!isRecording && graphicsState.recording)
 	{
 		frames.ClearAndDelete();
 		isRecording = true;
 		lastFrame = now;
 		framesSaved = 0;
-		graphicsState->framesRecorded = 0;
+		graphicsState.framesRecorded = 0;
 	}
 	// If recording o-o
-	if (graphicsState->recording && lastFrame + timeBetweenFrames < now)
+	if (graphicsState.recording && lastFrame + timeBetweenFrames < now)
 	{
 		// Grab frame! o.o
 		Texture * frame = new Texture();
@@ -67,13 +67,13 @@ void GraphicsManager::RenderCapture()
 		frames.Add(frame);
 		// If we exceed a pre-defined limit, which should be relative to the amount of free memory, stop recording.
 		if (frames.Size() > 800)
-			graphicsState->recording = false;
-		++graphicsState->framesRecorded;
+			graphicsState.recording = false;
+		++graphicsState.framesRecorded;
 		lastFrame = now;
-		std::cout<<"\n"<<graphicsState->framesRecorded<<" frames recorded";
+		std::cout<<"\n"<<graphicsState.framesRecorded<<" frames recorded";
 	}
 	/// If stopping.
-	if (isRecording && !graphicsState->recording)
+	if (isRecording && !graphicsState.recording)
 	{
 		// Save all textures to file-system!
 		isRecording = false;
@@ -124,7 +124,7 @@ void GraphicsManager::RenderCapture()
 		glLoadIdentity();
 		float z = -1.01f;		
 		glTranslatef(0,0,z);
-		Matrix4d modelView = graphicsState->viewMatrixD * graphicsState->modelMatrixD;
+		Matrix4d modelView = graphicsState.viewMatrixD * graphicsState.modelMatrixD;
 	//	glLoadMatrixd(modelView.getPointer());
 
 		// Disable depth-testing in-case deferred rendering is enabled D:
@@ -139,7 +139,7 @@ void GraphicsManager::RenderCapture()
 		if (texture->glid == -1)
 			texture->Bufferize();
 		glBindTexture(GL_TEXTURE_2D, texture->glid);
-		graphicsState->currentTexture = texture;
+		graphicsState.currentTexture = texture;
 		// Buffer it again..
 		int error = glGetError();
 		if (error != GL_NO_ERROR){
@@ -181,7 +181,7 @@ void GraphicsManager::RenderCapture()
 		}
 		glDisable(GL_TEXTURE_2D);
 		// Load projection matrix again
-		glLoadMatrixd(graphicsState->projectionMatrixD.getPointer());
+		glLoadMatrixd(graphicsState.projectionMatrixD.getPointer());
 
 		// Enable disabled stuffs.
 		glEnable(GL_DEPTH_TEST);	

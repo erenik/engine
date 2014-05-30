@@ -19,12 +19,12 @@ void GraphicsManager::RenderLights(){
 	SetShaderProgram(0);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glLoadMatrixf(graphicsState->projectionMatrixF.getPointer());
+	glLoadMatrixf(graphicsState.projectionMatrixF.getPointer());
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	glLoadMatrixf(graphicsState->viewMatrixF.getPointer());
+	glLoadMatrixf(graphicsState.viewMatrixF.getPointer());
 
-	Lighting * lighting = graphicsState->lighting;
+	Lighting * lighting = graphicsState.lighting;
 
 	glDisable(GL_TEXTURE_2D);
 	glEnable(GL_DEPTH_TEST);
@@ -37,7 +37,7 @@ void GraphicsManager::RenderLights(){
 	{
 		// Reset view/proj matrices
 		glLoadIdentity();
-		glLoadMatrixf(graphicsState->viewMatrixF.getPointer());
+		glLoadMatrixf(graphicsState.viewMatrixF.getPointer());
 
 		Light * light = lighting->GetLight(i);
 		Vector3f position = light->position;
@@ -50,10 +50,10 @@ void GraphicsManager::RenderLights(){
 					glVertex3f(position.x, position.y, position.z);
 				glEnd();
 				glTranslatef(position.x, position.y, position.z);
-			//	graphicsState->modelMatrixF = Matrix4f::Translation(position);
+			//	graphicsState.modelMatrixF = Matrix4f::Translation(position);
 				Model * model = ModelMan.GetModel("Sphere6");
 				if (model)
-					model->mesh->Render(*graphicsState);
+					model->mesh->Render();
 				else
 					std::cout<<"\nUnable to render PointLight!";
 				break;

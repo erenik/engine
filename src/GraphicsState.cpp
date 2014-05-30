@@ -3,6 +3,8 @@
 
 #include "GraphicsState.h"
 
+GraphicsState graphicsState;
+
 GraphicsState::GraphicsState(){
 	lighting = NULL;
 	activeShader = NULL;

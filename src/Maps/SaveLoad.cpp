@@ -225,6 +225,10 @@ bool Map::Load(const char * fromFile){
 bool Map::ReadEntities(std::fstream &file){
 	// Read number of entities.
 	int entitiesInBlock = 0;
+	
+	// Delete old cEntities.
+	cEntities.ClearAndDelete();
+
 	file.read((char*) &entitiesInBlock, sizeof(int));
 	assert(entitiesInBlock < 10000);
 	if (entitiesInBlock < 0 || entitiesInBlock > MAX_ENTITIES){

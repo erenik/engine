@@ -58,7 +58,7 @@ public:
 	Entity * CreateEntity(Entity * entity);
 	/** Creates an entity with target model and texture and places it into the active map. */
 	Entity * CreateEntity(Model * model, Texture * texture, Vector3f position = Vector3f());
-	/// Adds target entity to the map, registering it for physics and graphics.
+	/// Adds target entity to the map, registering it for physics and graphicsState.
 	bool AddEntity(Entity * entity);
 
 	/** Adds an event ~ */

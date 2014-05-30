@@ -267,11 +267,11 @@ bool UserInterface::Unbufferize(){
 /** Renders the whole UIElement structure.
 	Overloaded by subclasses in order to enable custom perspective or other stuff for the UI.
 */
-void UserInterface::Render(GraphicsState& graphics){
+void UserInterface::Render(){
 	/// Disable depth-test.
 	glDisable(GL_DEPTH_TEST);
 	/// Render the tree.
-	root->Render(graphics);
+	root->Render();
 }
 
 /// Prints the UI's tree recursively. The level parameter is in order to display the tree properly.

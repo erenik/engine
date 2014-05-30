@@ -18,6 +18,10 @@
 enum generalActions{
 	NULL_ACTION,
 
+	// Debug-renders.
+	TOGGLE_RENDER_LIGHTS,
+	TOGGLE_RENDER_PHYSICS,
+
 	RECORD_VIDEO,
 	PRINT_SCREENSHOT,
 
@@ -68,6 +72,12 @@ extern Display * display;
 
 void generalInputProcessor(int action, int inputDevice){
 	switch(action){
+		case TOGGLE_RENDER_LIGHTS:
+			Graphics.renderLights = !Graphics.renderLights;
+			break;
+		case TOGGLE_RENDER_PHYSICS:
+			Graphics.renderPhysics = !Graphics.renderPhysics;
+			break;
 		case RECORD_VIDEO:
 			Graphics.QueueMessage(new GraphicsMessage(GM_RECORD_VIDEO));
 			break;
@@ -524,6 +534,15 @@ void generalInputProcessor(int action, int inputDevice){
 /// Creates bindings that are used for debugging purposes only
 void CreateDefaultGeneralBindings()
 {
+
+	InputMapping * mapping = &Input.general;
+
+	
+	int ctrl = KEY::CTRL;
+	
+	mapping->CreateBinding(TOGGLE_RENDER_PHYSICS, ctrl, KEY::R, KEY::P);
+	mapping->CreateBinding(TOGGLE_RENDER_LIGHTS, ctrl, KEY::R, KEY::L);
+
 	Input.general.CreateBinding(RECORD_VIDEO, KEY::CTRL, KEY::R, KEY::V);
 	Input.general.CreateBinding(PRINT_SCREENSHOT, KEY::PRINT_SCREEN);
     Input.general.CreateBinding(PRINT_FRAME_TIME, KEY::CTRL, KEY::T);

@@ -203,8 +203,6 @@ void GraphicsManager::ResetSleepTimes(){
 
 GraphicsManager::~GraphicsManager()
 {
-	delete graphicsState;
-	graphicsState = NULL;
 	SAFE_DELETE(defaultCamera);
 	delete renderSettings;
 	renderSettings = NULL;
@@ -258,8 +256,7 @@ void GraphicsManager::Initialize(){
     xWindow::GetScreenSize(scrWidth, scrHeight);
 #endif
 	/// Update camera projection for the first time!
-	graphicsState = new GraphicsState();
-	graphicsState->camera = this->defaultCamera;
+	graphicsState.camera = this->defaultCamera;
 	UpdateProjection();
 	Texture * tex = TexMan.GetTextureBySource("img/initializing.png");
 	SetOverlayTexture(tex);
@@ -312,7 +309,7 @@ Camera * GraphicsManager::ActiveCamera(int viewport /* = 0*/) const {
 /// Returns the active lighting. 
 Lighting * GraphicsManager::ActiveLighting()
 {	
-	return graphicsState->lighting;
+	return &lighting;
 }
 
 
@@ -517,12 +514,12 @@ void GraphicsManager::UpdateProjection(float relativeWidth /* = 1.0f */, float r
 		heightRatio *= (float) requestedHeight / requestedWidth;
 
 
-	Camera * cameraToTrack = graphicsState->camera;
+	Camera * cameraToTrack = graphicsState.camera;
 	/// Update cameras with these ratios too!
-	graphicsState->camera->SetRatio(requestedWidth, requestedHeight);
+	graphicsState.camera->SetRatio(requestedWidth, requestedHeight);
 
 	// Set up projection matrix before sending it in
-	graphicsState->projectionMatrixD.InitProjectionMatrix(
+	graphicsState.projectionMatrixD.InitProjectionMatrix(
 		-cameraToTrack->zoom * widthRatio,
 		cameraToTrack->zoom * widthRatio,
 		-cameraToTrack->zoom * heightRatio,
@@ -530,20 +527,20 @@ void GraphicsManager::UpdateProjection(float relativeWidth /* = 1.0f */, float r
 		cameraToTrack->nearPlane,
 		cameraToTrack->farPlane
 	);
-	graphicsState->projectionMatrixF = graphicsState->projectionMatrixD;
+	graphicsState.projectionMatrixF = graphicsState.projectionMatrixD;
 
 	// Load the matrix into GLs built-in projection matrix for testing purposes too.
 //	glMatrixMode(GL_PROJECTION);
-//	glLoadMatrixd(graphicsState->projectionMatrixD.getPointer());
+//	glLoadMatrixd(graphicsState.projectionMatrixD.getPointer());
 //	if (glGetError() != GL_NO_ERROR)
 //		std::cout<<"\nERROR: Unable to load projection matrix to GL";
 	// And do the same for the projection matrix! o-o
-//	glUniformMatrix4fv(graphicsState->activeShader->uniformProjectionMatrix, 1, false, graphicsState->projectionMatrixF.getPointer());
+//	glUniformMatrix4fv(graphicsState.activeShader->uniformProjectionMatrix, 1, false, graphicsState.projectionMatrixF.getPointer());
 //	if (glGetError() != GL_NO_ERROR)
 //		int b = 14;
 //	glGetError();
 	// Update graphicsState viewFrustum internal variables
-	graphicsState->viewFrustum.SetCamInternals(-cameraToTrack->zoom * widthRatio,
+	graphicsState.viewFrustum.SetCamInternals(-cameraToTrack->zoom * widthRatio,
 		cameraToTrack->zoom * widthRatio,
 		-cameraToTrack->zoom * heightRatio,
 		cameraToTrack->zoom * heightRatio,
@@ -673,7 +670,7 @@ Shader * GraphicsManager::SetShaderProgram(const char * shaderName){
 	/// Can request default shader too, so ^^
 	if (shaderName == NULL){
 		glUseProgram(0);
-		graphicsState->activeShader = 0;
+		graphicsState.activeShader = 0;
 		return NULL;
 	}
 	Shader * shader = Graphics.shadeMan.GetShaderProgram(shaderName);
@@ -699,12 +696,12 @@ Shader * GraphicsManager::SetShaderProgram(const char * shaderName){
     }
 	else if (shader && shader->built){
 		glUseProgram(shader->shaderProgram);
-		graphicsState->activeShader = shader;
+		graphicsState.activeShader = shader;
 		return shader;
 	}
 	else {
 		glUseProgram(0);
-		graphicsState->activeShader = 0;
+		graphicsState.activeShader = 0;
 		return NULL;
 	}
 }
@@ -1048,17 +1045,22 @@ void GraphicsManager::DeallocFrameBuffer(){
 /// Updates the graphicsState's lighting to include dynamic lights' new positions as well.
 void GraphicsManager::UpdateLighting()
 {
-	Lighting * lighting = graphicsState->lighting;
-	List<Light*> lights = lighting->GetLights();
-	for (int i = 0; i < lights.Size(); ++i){
-		Light * light = lights[i];
+	Lighting * lightingToRender = graphicsState.lighting;
+	// Reset the lights in the lighting to be first only the static ones.
+	*lightingToRender = lighting;
+	for (int i = 0; i < graphicsState.dynamicLights.Size(); ++i){
+		Light * light = graphicsState.dynamicLights[i];
 		// Update it's position relative to the entity.. important!
 		Entity * owner = light->owner;
 		if (!owner)
 			continue;
+
 		assert(owner);
-		light->spotDirection = owner->rotationMatrix.product(light->spotDirection);
-		light->position = owner->transformationMatrix.product(light->position);
+		light->spotDirection = owner->rotationMatrix.product(light->relativeSpotDirection);
+		light->position = owner->transformationMatrix.product(light->relativePosition);
+		
+		// Add the dynamic light to be rendered.
+		lightingToRender->Add(light);
 	}
 }
 
@@ -1068,7 +1070,7 @@ void GraphicsManager::UpdateLighting()
 void GraphicsManager::Process(){
 	/// Process particle effects.
 	for (int i = 0; i < particleSystems.Size(); ++i){
-		particleSystems[i]->Process(graphicsState->frameTime);
+		particleSystems[i]->Process(graphicsState.frameTime);
 	}
 }
 

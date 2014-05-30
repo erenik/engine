@@ -124,11 +124,11 @@ GMSetf::GMSetf(int target, float value): GraphicsMessage(GM_SET_FLOAT) {
 void GMSetf::Process(){
 	switch (target){
 		case GRID_SPACING: {
-			Graphics.graphicsState->gridSpacing = floatValue;
+			graphicsState.gridSpacing = floatValue;
 			break;
 		}
 		case GRID_SIZE: {
-			Graphics.graphicsState->gridSize = (int)floatValue;
+			graphicsState.gridSize = (int)floatValue;
 			break;
 		}
 		default: {

@@ -11,7 +11,7 @@ struct AlphaModelEffect : public GraphicEffect {
 	AlphaModelEffect(String name, String model, Entity * reference);
 	void SetModel();
 	/// Renders, but also updates it's various values using the given timestep since last frame.
-	void Render(GraphicsState & graphicsState);
+	void Render();
 private:
 	/// Last frame's alpha, stored to avoid manual lowering of it.
 	float lastAlpha;

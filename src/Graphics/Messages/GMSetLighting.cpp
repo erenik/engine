@@ -16,9 +16,5 @@ GMSetLighting::~GMSetLighting(){
 
 void GMSetLighting::Process()
 {
-	Graphics.graphicsState->lighting = lighting;	
-	/// Add static lights <- wat?
-	for (int i = 0; i < Graphics.staticLights.Size(); ++i){
-		Graphics.graphicsState->lighting->Add(Graphics.staticLights[i]);
-	}
+	graphicsState.lighting = lighting;	
 }

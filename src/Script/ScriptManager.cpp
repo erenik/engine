@@ -67,6 +67,9 @@ void ScriptManager::Process(long long timeInMs)
 		if (script->scriptState == Script::ENDING)
 		{
 			script->OnEnd();
+			this->finishedEvents.Add(script);
+			activeScripts.RemoveIndex(i);
+			--i;
 		}
 		if (activeScripts.Size() == 0){
 			Input.NavigateUI(false);

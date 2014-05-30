@@ -17,7 +17,7 @@ public:
 
 	/** Calls render on children and siblings accordingly.
 	*/
-	virtual void render(GraphicsState &state);
+	virtual void Render();
 	/** Calls render on all children. */
 	virtual void renderChildren(GraphicsState &state);
 	/** Calls render on all siblings. */

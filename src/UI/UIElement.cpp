@@ -861,7 +861,7 @@ void UIElement::MoveX(int distance){
 		case UIType::SLIDER_HANDLE:
 			posX += distance;
 			if (posX > parent->sizeX - sizeX)
-				posX = (float)parent->sizeX - sizeX;
+				posX = (int)parent->sizeX - sizeX;
 			if (posX < 0)
 				posX = 0;
 			break;
@@ -879,7 +879,7 @@ void UIElement::MoveY(int distance){
 		case UIType::SCROLL_HANDLE:
 			posY += distance;
 			if (posY > parent->sizeY - sizeY)
-				posY = (float)parent->sizeY - sizeY;
+				posY = (int)parent->sizeY - sizeY;
 			if (posY < 0)
 				posY = 0;
 			break;
@@ -902,7 +902,7 @@ void UIElement::MoveTo(int * x, int * y){
 		case UIType::SLIDER_HANDLE:{
 			posX -= sizeX/2;
 			if (posX > parent->sizeX - sizeX)
-				posX = (float)parent->sizeX - sizeX;
+				posX = (int)parent->sizeX - sizeX;
 			if (posX < 0)
 				posX = 0;
 			break;
@@ -910,7 +910,7 @@ void UIElement::MoveTo(int * x, int * y){
 		case UIType::SCROLL_HANDLE: {
 			posY -= sizeY/2;
 			if (posY > parent->sizeY - sizeY)
-				posY = (float)parent->sizeY - sizeY;
+				posY = (int)parent->sizeY - sizeY;
 			if (posY < 0)
 				posY = 0;
 			break;
@@ -1123,17 +1123,17 @@ void UIElement::FreeBuffers()
 
 
 /// Render, public function that calls internal render functions.
-void UIElement::Render(GraphicsState& graphics){
+void UIElement::Render(){
     // Push matrices
-	Matrix4d tmp = graphics.modelMatrixD;
+	Matrix4d tmp = graphicsState.modelMatrixD;
 
     // Render ourself and maybe children.
-    RenderSelf(graphics);
+    RenderSelf();
     if (childList.Size())
-        RenderChildren(graphics);
+        RenderChildren();
 
 	// Pop matrices
-	graphics.modelMatrixF = graphics.modelMatrixD = tmp;
+	graphicsState.modelMatrixF = graphicsState.modelMatrixD = tmp;
 }
 
 /// Sets disabled-flag.
@@ -1148,7 +1148,7 @@ bool UIElement::IsDisabled(){
 }
 
 /// Splitting up the rendering.
-void UIElement::RenderSelf(GraphicsState & graphics)
+void UIElement::RenderSelf()
 {
 	if (!isGeometryCreated)
 	{
@@ -1256,12 +1256,13 @@ void UIElement::RenderSelf(GraphicsState & graphics)
 		{
 			highlightColor *= 0.75f;
 		}
+		Shader * activeShader = graphicsState.activeShader;
 
-		assert(graphics.activeShader->uniformPrimaryColorVec4 != -1);
-		glUniform4f(graphics.activeShader->uniformPrimaryColorVec4,
+		assert(activeShader->uniformPrimaryColorVec4 != -1);
+		glUniform4f(activeShader->uniformPrimaryColorVec4,
 			baseColor.x, baseColor.y, baseColor.z, color.w);
-		assert(graphics.activeShader->uniformHighlightColorVec4 != -1);
-		glUniform4f(graphics.activeShader->uniformHighlightColorVec4,
+		assert(activeShader->uniformHighlightColorVec4 != -1);
+		glUniform4f(activeShader->uniformHighlightColorVec4,
 			highlightColor.x, highlightColor.y, highlightColor.z, 0.0f);
 
 		// Set material?	-	Not needed for UI!?
@@ -1292,18 +1293,18 @@ void UIElement::RenderSelf(GraphicsState & graphics)
 		// If moveable, translate it to it's proper position!
 		if (moveable){
 			///
-			if (graphics.activeShader->uniformModelMatrix != -1){
+			if (activeShader->uniformModelMatrix != -1){
 				/// TRanslatem power !
-				Matrix4d * model = &graphics.modelMatrixD;
+				Matrix4d * model = &graphicsState.modelMatrixD;
 				float transX = alignmentX * parent->sizeX;
 				float transY = alignmentY * parent->sizeY;
 				model->translate(transX,transY,0);
-				graphics.modelMatrixF = graphics.modelMatrixD;
+				graphicsState.modelMatrixF = graphicsState.modelMatrixD;
 			}
 		}
 
 		/// Load in ze model matrix
-		glUniformMatrix4fv(graphics.activeShader->uniformModelMatrix, 1, false, graphics.modelMatrixF.getPointer());
+		glUniformMatrix4fv(graphicsState.activeShader->uniformModelMatrix, 1, false, graphicsState.modelMatrixF.getPointer());
 
         PrintGLError("GLError glUniformMatrix in UIElement");
 		// Render normally
@@ -1319,19 +1320,19 @@ void UIElement::RenderSelf(GraphicsState & graphics)
 	/// Bind correct font if applicable.
 	if (this->text.Length()){
 		if (this->font){
-			graphics.currentFont = this->font;
+			graphicsState.currentFont = this->font;
 		}
 		else if (this->fontSource && !this->font){
 			this->font = Graphics.GetFont(this->fontSource);
 			if (this->font)
-				graphics.currentFont = this->font;
+				graphicsState.currentFont = this->font;
 		}
 	}
 	// Render text if applicable!
-	if (this->text.Length() && graphics.currentFont){
-		TextFont * currentFont = graphics.currentFont;
-		Matrix4d tmp = graphics.modelMatrixD;
-		graphics.modelMatrixD.translate(this->left, this->top,(this->zDepth+0.05));
+	if (this->text.Length() && graphicsState.currentFont){
+		TextFont * currentFont = graphicsState.currentFont;
+		Matrix4d tmp = graphicsState.modelMatrixD;
+		graphicsState.modelMatrixD.translate(this->left, this->top,(this->zDepth+0.05));
 		float pixels = sizeY * textSizeRatio; // Graphics.Height();
 	//	pixels *= this->sizeRatioY;
 
@@ -1342,7 +1343,7 @@ void UIElement::RenderSelf(GraphicsState & graphics)
 			int rowsAvailable = (int)(1 / textSizeRatio);
 			currentTextSizeRatio = 1.0f;
 			/// Returns the size required by a call to RenderText if it were to be done now. In... pixels? or units
-            float lengthRequired = currentFont->CalculateRenderSizeX(text, graphics) * pixels;
+            float lengthRequired = currentFont->CalculateRenderSizeX(text) * pixels;
 			if (lengthRequired > rowsAvailable * sizeX){
 				// assert(false && "Too much text!");
 //				std::cout<<"\nNOTE: Too much text for given space and size, scaling down text to fit!";
@@ -1362,7 +1363,7 @@ void UIElement::RenderSelf(GraphicsState & graphics)
 					/// Assume word fits?
 					String word = words[i];
 				//	std::cout<<"\nBlubb ";
-					float lengthRequiredWord = currentFont->CalculateRenderSizeX(word, graphics) * pixels;
+					float lengthRequiredWord = currentFont->CalculateRenderSizeX(word) * pixels;
 				//	std::cout<<"\nBlubb ";
 				//	std::cout<<"\nLengthRequiredWord: "<<lengthRequiredWord<<" sizeX: "<<sizeX;
 					if (lengthRequiredWord >= sizeX && i == 0){
@@ -1371,11 +1372,11 @@ void UIElement::RenderSelf(GraphicsState & graphics)
 						pixels *= divider;
 					}
 				//	std::cout<<"\nBlubb ";
-					float lengthRequiredLine = currentFont->CalculateRenderSizeX(line, graphics) * pixels;
+					float lengthRequiredLine = currentFont->CalculateRenderSizeX(line) * pixels;
 				//	std::cout<<"\nBlubb ";
 					/// Check if catenated line will exceed bounds.
 					line2 = line + " " + word;
-					float lengthRequiredLine2 = currentFont->CalculateRenderSizeX(line2, graphics) * pixels;
+					float lengthRequiredLine2 = currentFont->CalculateRenderSizeX(line2) * pixels;
 				//	std::cout<<"\nBlubb ";
 					if (lengthRequiredLine2 > sizeX){
 						/// Add first line to textToRender + new line
@@ -1394,22 +1395,22 @@ void UIElement::RenderSelf(GraphicsState & graphics)
 
 		pixels *= currentTextSizeRatio; //this->textSizeRatio;
 //		std::cout<<"\nTextToRender size in pixels: "<<pixels;
-		graphics.modelMatrixD.Scale(pixels);	//Graphics.Height()
-		graphics.modelMatrixF = graphics.modelMatrixD;
+		graphicsState.modelMatrixD.Scale(pixels);	//Graphics.Height()
+		graphicsState.modelMatrixF = graphicsState.modelMatrixD;
 		Vector4f textColorToRender = this->textColor;
 		// If disabled, dull the color! o.o
 		if (this->IsDisabled())
 			textColorToRender *= 0.55f;
 	//	color.w *= 0.5f;
-		graphics.currentFont->SetColor(textColorToRender);
+		graphicsState.currentFont->SetColor(textColorToRender);
 //		std::cout<<"\nTextToRender: "<<textToRender;
-		graphics.currentFont->RenderText(this->textToRender, graphics);
-		graphics.modelMatrixF = graphics.modelMatrixD = tmp;
+		graphicsState.currentFont->RenderText(this->textToRender);
+		graphicsState.modelMatrixF = graphicsState.modelMatrixD = tmp;
 	}
 }
 
-void UIElement::RenderChildren(GraphicsState & graphics){
-	bool scissorDisabled = (graphics.settings & SCISSOR_DISABLED) > 0;
+void UIElement::RenderChildren(){
+	bool scissorDisabled = (graphicsState.settings & SCISSOR_DISABLED) > 0;
     // Render all children
 	for (int i = 0; i < childList.Size(); ++i){
         UIElement * child = childList[i];
@@ -1417,9 +1418,9 @@ void UIElement::RenderChildren(GraphicsState & graphics){
         if (!child->visible)
             continue;
 
-        Rect previousScissor((int)graphics.leftScissor, (int)graphics.bottomScissor, (int)graphics.rightScissor, (int)graphics.topScissor);
+        Rect previousScissor((int)graphicsState.leftScissor, (int)graphicsState.bottomScissor, (int)graphicsState.rightScissor, (int)graphicsState.topScissor);
 
-        Vector3f relativePosition = graphics.modelMatrixF * Vector3f();
+        Vector3f relativePosition = graphicsState.modelMatrixF * Vector3f();
  //       std::cout<<"\nRelative position: "<<relativePosition;
 
 		/// Do scissor calculations if not disabled and we're not root since it's stats are not necessarily updated.
@@ -1429,14 +1430,14 @@ void UIElement::RenderChildren(GraphicsState & graphics){
 				currentTop = top + relativePosition.y,
 				currentBottom = bottom + relativePosition.y;
 
-			graphics.leftScissor = graphics.leftScissor > currentLeft ? graphics.leftScissor : currentLeft;
-			graphics.rightScissor = graphics.rightScissor < currentRight ? graphics.rightScissor : currentRight;
-			graphics.bottomScissor = graphics.bottomScissor > currentBottom ? graphics.bottomScissor : currentBottom;
-			graphics.topScissor = graphics.topScissor < currentTop ? graphics.topScissor : currentTop;
+			graphicsState.leftScissor = graphicsState.leftScissor > currentLeft ? graphicsState.leftScissor : currentLeft;
+			graphicsState.rightScissor = graphicsState.rightScissor < currentRight ? graphicsState.rightScissor : currentRight;
+			graphicsState.bottomScissor = graphicsState.bottomScissor > currentBottom ? graphicsState.bottomScissor : currentBottom;
+			graphicsState.topScissor = graphicsState.topScissor < currentTop ? graphicsState.topScissor : currentTop;
 		}
 
-	    int scissorWidth = (int) (graphics.rightScissor - graphics.leftScissor);
-	    int scissorHeight = (int) (graphics.topScissor - graphics.bottomScissor);
+	    int scissorWidth = (int) (graphicsState.rightScissor - graphicsState.leftScissor);
+	    int scissorHeight = (int) (graphicsState.topScissor - graphicsState.bottomScissor);
 
 	  //  assert(scissorWidth >= 0);
 	  //  assert(scissorHeight >= 0);
@@ -1448,18 +1449,18 @@ void UIElement::RenderChildren(GraphicsState & graphics){
         else {
             if (!scissorDisabled){
             //    std::cout<<"\nGLScissor: e "<<name<<" posX "<<posX<<" sizeX "<<sizeX<<" posY "<<posY<<" sizeY "<<sizeY;
-                glScissor((GLint) (graphics.leftScissor + graphics.viewportX0),
-                          (GLint) (graphics.bottomScissor + graphics.viewportY0),
+                glScissor((GLint) (graphicsState.leftScissor + graphicsState.viewportX0),
+                          (GLint) (graphicsState.bottomScissor + graphicsState.viewportY0),
                           scissorWidth,
                           scissorHeight);
             }
-            child->Render(graphics);
+            child->Render();
         }
         /// And pop the scissor statistics back as they were.
-		graphics.leftScissor = (float)previousScissor.x0;
-	    graphics.rightScissor = (float)previousScissor.x1;
-	    graphics.bottomScissor = (float)previousScissor.y0;
-	    graphics.topScissor = (float)previousScissor.y1;
+		graphicsState.leftScissor = (float)previousScissor.x0;
+	    graphicsState.rightScissor = (float)previousScissor.x1;
+	    graphicsState.bottomScissor = (float)previousScissor.y0;
+	    graphicsState.topScissor = (float)previousScissor.y1;
 	}
 }
 

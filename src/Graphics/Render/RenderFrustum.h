@@ -11,7 +11,7 @@ class RenderFrustum : public Renderable {
 public:
     RenderFrustum(Frustum frustum);
     virtual ~RenderFrustum();
-    virtual void Render(GraphicsState & graphicsState);
+    virtual void Render();
 private:
     Frustum frustum;
 };

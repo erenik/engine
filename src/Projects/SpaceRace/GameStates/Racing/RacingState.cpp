@@ -95,7 +95,7 @@ void Racing::CreateUserInterface(){
 void Racing::OnEnter(GameState * previousState){
     std::cout<<"\nRacing::OnEnter";
   //  assert(previousState != this);
-
+	
 
 	// Clear old lighting
 	Graphics.QueueMessage(new GMClearLighting());
@@ -993,7 +993,9 @@ bool Racing::CreatePlayers(List<SRPlayer*> players)
 		{
 			Physics.QueueMessage(new PMSetEntity(SIMULATION_ENABLED, entity, false));
 		}
+		Physics.QueueMessage(new PMSetEntity(FRICTION, entity, 0.0001f));
 	}
+	// Set friction
 	delete[] startPositions;
 	startPositions = NULL;
 	return true;

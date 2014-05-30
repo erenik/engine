@@ -13,7 +13,7 @@ class EntityStateTile2D : public EntityState {
 public:
 	EntityStateTile2D(Entity * entity);
 	/// Render
-	void Render(GraphicsState & graphicsState);
+	void Render();
 
 	virtual void OnEnter();
 	virtual void Process(float time);

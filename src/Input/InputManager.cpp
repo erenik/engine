@@ -679,7 +679,7 @@ UserInterface * InputManager::GetRelevantUI()
 	{
 		userInterface = globalUI;
 	}
-	else if (currentUI && activeUIEnabled)
+	else if (currentUI /*&& activeUIEnabled*/)
 	{
 		userInterface = currentUI;
 	}

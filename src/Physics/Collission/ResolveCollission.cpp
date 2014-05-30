@@ -306,7 +306,7 @@ bool ResolveCollission(Collission &data){
             distanceIntoEachOther = 0.0001f;
 
         /// Calculate attributes common to all collissions
-        float friction = min(one->physics->friction, two->physics->friction);
+        float friction = (one->physics->friction + two->physics->friction) * 0.5f;
 		/// Calculate requested change in contact velocity.
 		float restitution = min(one->physics->restitution, two->physics->restitution);
 //        float restitution = one->physics->restitution * two->physics->restitution;

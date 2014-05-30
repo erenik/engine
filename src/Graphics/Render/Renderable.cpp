@@ -18,7 +18,7 @@ Renderable::Renderable(){
 Renderable::~Renderable(){
 
 }
-void Renderable::Render(GraphicsState & graphicsState){
+void Renderable::Render(){
     assert(false);
 }
 
@@ -29,7 +29,7 @@ RenderTriangle::RenderTriangle(Triangle tri)
 {
 }
 
-void RenderTriangle::Render(GraphicsState & graphicsState){
+void RenderTriangle::Render(){
     if (ro.disableDepthTest){
         glDisable(GL_DEPTH_TEST);
     }

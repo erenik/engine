@@ -177,7 +177,7 @@ void GameState::HandleDADFiles(List<String> & files){
 
 
 /// What happens.. when we rendar?!
-void GameState::Render(GraphicsState & graphicsState){
+void GameState::Render(){
 
 }
 

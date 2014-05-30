@@ -151,6 +151,6 @@ bool Map::ParseDependencies(){
 }
 
 /// Render?
-void Map::Render(GraphicsState & graphicsState){
+void Map::Render(){
 	std::cout<<"\nWARNING: Map::Render() called! This should only be called in appropriately defined subclasses!";
 }

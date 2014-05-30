@@ -16,25 +16,25 @@ Node::~Node(){
 	}
 }
 
-void Node::render(GraphicsState &state){
+void Node::Render(){
 	if (child != NULL)
-		child->render(state);
+		child->Render();
 	if (sibling != NULL)
-		sibling->render(state);
+		sibling->Render();
 }
 
 /** Calls render on all children. */
 void Node::renderChildren(GraphicsState &state){
 	Node * ptr = child;
 	while (ptr != NULL){
-		ptr->render(state);
+		ptr->Render();
 		ptr = ptr->sibling;
 	}
 }
 
 void Node::renderSibling(GraphicsState &state){
 	if (sibling != NULL)
-		sibling->render(state);
+		sibling->Render();
 }
 
 void Node::addChild(Node * node){

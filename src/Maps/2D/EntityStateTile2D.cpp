@@ -18,7 +18,7 @@ EntityStateTile2D::EntityStateTile2D(Entity * owner)
 	this->entity = owner;
 }
 /// Render
-void EntityStateTile2D::Render(GraphicsState & graphicsState){
+void EntityStateTile2D::Render(){
 	/// Assign textures
 	int texturesToApply = 0;
 	int error;
@@ -81,7 +81,7 @@ void EntityStateTile2D::Render(GraphicsState & graphicsState){
 		Model * model = entity->model;
 //		std::cout<<"\nRendering with model: "<<model;
 
-		model->triangulizedMesh->Render(graphicsState);
+		model->triangulizedMesh->Render();
 		++graphicsState.renderedObjects;		// increment rendered objects for debug info
 	}
 	// Revert the model matrix to the old one in the stack

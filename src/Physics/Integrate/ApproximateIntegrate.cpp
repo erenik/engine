@@ -156,6 +156,9 @@ void PhysicsManager::ApproximateIntegrate(Entity * entity, float timeSinceLastUp
         physics->state &= ~PhysicsState::IN_REST;
     }
 
+	// Apply linear damping
+	physics->linearMomentum *= pow(physics->linearDamping, timeSinceLastUpdate);
+
 	// Update velocity.
 	if (physics->inverseMass == 0)
 		physics->inverseMass = 1 / physics->mass;

@@ -37,7 +37,7 @@ void GraphicsManager::RenderFPS(){
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glDisable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, 0);
-		graphicsState->currentTexture = NULL;
+		graphicsState.currentTexture = NULL;
 		// Disable lighting
 		glDisable(GL_LIGHTING);
 		error = glGetError();

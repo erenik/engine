@@ -25,12 +25,12 @@ void GraphicsMessage::Process(){
 	switch(type){
 		case GM_RECORD_VIDEO: 
 		{
-			Graphics.graphicsState->recording = !Graphics.graphicsState->recording; 
+			graphicsState.recording = !graphicsState.recording; 
 			break;
 		}
 		case GM_PRINT_SCREENSHOT:
 		{
-			Graphics.graphicsState->promptScreenshot = true;
+			graphicsState.promptScreenshot = true;
 			break;
 		}
 	    case GM_RENDER_FRUSTUM: {

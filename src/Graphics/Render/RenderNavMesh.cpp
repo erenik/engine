@@ -55,10 +55,10 @@ void GraphicsManager::RenderNavMesh(){
 	SetShaderProgram(0);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glLoadMatrixf(graphicsState->projectionMatrixF.getPointer());
+	glLoadMatrixf(graphicsState.projectionMatrixF.getPointer());
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	glLoadMatrixf(graphicsState->viewMatrixF.getPointer());
+	glLoadMatrixf(graphicsState.viewMatrixF.getPointer());
 
 	// Enable blending
 	glEnable(GL_BLEND);	
@@ -66,7 +66,7 @@ void GraphicsManager::RenderNavMesh(){
 	float z = -4;
 	glDisable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, 0);
-	graphicsState->currentTexture = NULL;
+	graphicsState.currentTexture = NULL;
 	glLineWidth(2.0f);
 	glPointSize(3.0f);
 
@@ -152,7 +152,7 @@ void GraphicsManager::RenderPath(){
 			std::cout<<"\nWARNING: Waypoint is NULL for some reason o.O";
 		}
 		/// Passable
-		glUniform4f(graphicsState->activeShader->uniformPrimaryColorVec4, 
+		glUniform4f(graphicsState.activeShader->uniformPrimaryColorVec4, 
 			0.4f + waypointRendered / waypoints, 
 			1.0f + waypointRendered / waypoints, 
 			0.4f + waypointRendered / waypoints, 
@@ -165,19 +165,19 @@ void GraphicsManager::RenderPath(){
 		transform.Translate(wp->position);
 		transform.Translate(0, 1.0f, 0);
 		/// Set uniform matrix in shader to point to the GameState modelView matrix.
- 		glUniformMatrix4fv(graphicsState->activeShader->uniformModelMatrix, 1, false, transform.getPointer());
+ 		glUniformMatrix4fv(graphicsState.activeShader->uniformModelMatrix, 1, false, transform.getPointer());
 		// Render if we got a model ^^
-		model->triangulizedMesh->Render(*graphicsState);
+		model->triangulizedMesh->Render();
 	}
 	/// Draw a line-strip too, using default renderer!
 	waypointRendered = 0;
 	SetShaderProgram(0);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glLoadMatrixf(graphicsState->projectionMatrixF.getPointer());
+	glLoadMatrixf(graphicsState.projectionMatrixF.getPointer());
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	glLoadMatrixf(graphicsState->viewMatrixF.getPointer());
+	glLoadMatrixf(graphicsState.viewMatrixF.getPointer());
 
 	// Enable blending
 	glEnable(GL_BLEND);	
@@ -185,7 +185,7 @@ void GraphicsManager::RenderPath(){
 	float z = -4;
 	glDisable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, 0);
-	graphicsState->currentTexture = NULL;
+	graphicsState.currentTexture = NULL;
 	glLineWidth(2.0f);
 
 	glBegin(GL_LINE_STRIP);

@@ -28,7 +28,7 @@ public:
 	/// Default constructor
 	Light();
 	Light(const Light & otherLight);
-	
+	void Nullify();
 	/// Writes to file stream.
 	void WriteTo(std::fstream & file);
 	/// Reads from file stream.
@@ -42,6 +42,8 @@ public:
 	Vector4f specular;
 	/// Position in the world. Fourth parameter <1 or 0> defines ´directional/positional´ model.
 	Vector3f position;
+	/// When attached to an entity.
+	Vector3f relativePosition;
 	/// Light type
 	int type;
 	/// Distance attenuations for the light. Constant, linear and quadratic.
@@ -60,6 +62,8 @@ public:
 	// Spotlight specific attributes:
 	/// Defines the direction for spotlights, in global coordinates.
 	Vector3f spotDirection;
+	/// When attached to an entity.
+	Vector3f relativeSpotDirection;
 	/** Defines the exponent applied after calculating the light intensity (cosine of angel from main light direction). 
 		Defines intensity as the light goes away from centre to the cutoff. 
 	*/
@@ -71,6 +75,9 @@ public:
 	Entity * owner;
 	/// Extra data pointer. For dynamic lights this pointer will refer to the entity owning it.
 	void * data;
+
+	// For dynamic lights. Default false.
+	bool registeredForRendering;
 private:
 	/// Name of the light
 	String name;

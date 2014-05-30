@@ -69,15 +69,15 @@ void GraphicsManager::Render(){
 	// Reset matrices (needed?)
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	graphicsState->modelMatrixD.LoadIdentity();
-	graphicsState->modelMatrixF.LoadIdentity();
+	graphicsState.modelMatrixD.LoadIdentity();
+	graphicsState.modelMatrixF.LoadIdentity();
 
 	// Reset settings to default
-	graphicsState->renderedObjects = 0;
-	graphicsState->settings |= RENDER_LIGHT_POSITION;	// Enable light-rendering.
+	graphicsState.renderedObjects = 0;
+	graphicsState.settings |= RENDER_LIGHT_POSITION;	// Enable light-rendering.
 	
 	// Reset scissor-variables
-	graphicsState->viewportX0 = graphicsState->viewportY0 = 0;
+	graphicsState.viewportX0 = graphicsState.viewportY0 = 0;
 
 	// Set default shader program
 	Shader * shader = SetShaderProgram("Flat");
@@ -91,7 +91,7 @@ void GraphicsManager::Render(){
 	PrintTime("\nPre-render stuff: ");
 
 	// Process global camera
-	this->cameraToTrack->ProcessMovement(graphicsState->frameTime);
+	this->cameraToTrack->ProcessMovement(graphicsState.frameTime);
 
 	/// Render all viewports..
 	if (true){
@@ -103,7 +103,7 @@ void GraphicsManager::Render(){
 				continue;
 			}
 			assert(vp->camera);
-			vp->Render(*graphicsState);
+			vp->Render();
 			if (i < 4)
                 renderViewportFrameTime[i] = (float)viewportTimer.GetMs();
 		}
@@ -113,7 +113,7 @@ void GraphicsManager::Render(){
 	PrintTime("\nRendering viewports: ");
 
 	// Reset scissor-variables
-	graphicsState->viewportX0 = graphicsState->viewportY0 = 0;
+	graphicsState.viewportX0 = graphicsState.viewportY0 = 0;
 
 	// Deferred, bit more complex
 	/*
@@ -158,7 +158,7 @@ void GraphicsManager::Render(){
 			defaultViewPort->width = Graphics.width;
 			defaultViewPort->height = Graphics.height;
 			defaultViewPort->camera = cameraToTrack;
-			defaultViewPort->Render(*graphicsState);
+			defaultViewPort->Render();
 		}
 	}
 
@@ -173,7 +173,7 @@ void GraphicsManager::Render(){
 	UpdateProjection();
 
 	if (StateMan.ActiveState())
-		StateMan.ActiveState()->Render(*graphicsState);
+		StateMan.ActiveState()->Render();
 
 	// And render FPS while we're at it...!
 	if (renderFPS)

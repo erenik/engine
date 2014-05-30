@@ -14,9 +14,9 @@ public:
 	TextFont ();
 	~TextFont ();
 	/// Returns the size required by a call to RenderText if it were to be done now. In... pixels? or units
-	float CalculateRenderSizeX(Text text, GraphicsState & graphics);
+	float CalculateRenderSizeX(Text text);
 	/// Renders text using matrices in the graphicsState, but with the default GL shader.
-	void RenderText(Text & text, GraphicsState &graphics);
+	void RenderText(Text & text);
 	void SetTextureSource(const String s) { textureSource = s; };
 	const String GetTextureSource() { return textureSource; };
 	void SetColor(Vector4f color);

@@ -208,9 +208,6 @@ void * GraphicsManager::Processor(void * vArgs){
 	/// Bufferize the rendering box
 	Graphics.OnBeginRendering();
 
-	/// Save a pointer to the graphics state for eased debugging
-	GraphicsState * graphicsState = Graphics.graphicsState;
-
     // Some times.
     long long lastOptimization = Timer::GetCurrentTimeMs();
     long long now;
@@ -226,7 +223,7 @@ void * GraphicsManager::Processor(void * vArgs){
 
 		total.Start();
         now = Timer::GetCurrentTimeMs();
-		graphicsState->currentFrameTime = now;
+		graphicsState.currentFrameTime = now;
 
 		Timer sleepTimer;
 		sleepTimer.Start();
@@ -265,8 +262,6 @@ void * GraphicsManager::Processor(void * vArgs){
 		    guTimer.Start();
 			// Update the lights' positions as needed.
 			Graphics.UpdateLighting();
-			// Update lighting as needed in the shaders
-			Graphics.shadeMan.ReloadLights(Graphics.graphicsState->lighting);
 			// Reposition all entities that are physically active (dynamic entities) in the octrees and other optimization structures!
 			Graphics.RepositionEntities();
 			Graphics.Process();
@@ -295,27 +290,27 @@ void * GraphicsManager::Processor(void * vArgs){
 		long renderFrameTime = graphicsTimer.GetMs();
 		Graphics.renderFrameTime = renderFrameTime;
 		Graphics.physicsFrameTime = physicsTimer.GetMs();
-		graphicsState->frameTime = Graphics.frameTime * 0.001;
+		graphicsState.frameTime = Graphics.frameTime * 0.001;
 	//	std::cout<<"\nTotalFrameTime: "<<renderFrameTime;
 
         /// Push frame time and increase optimization once a second if needed.
 		FrameStats.PushFrameTime(total.GetMs());
 		int fps = FrameStats.FPS();
 		/// Enable the below via some option maybe, it just distracts atm.
-	//	graphicsState->optimizationLevel = 3;
+	//	graphicsState.optimizationLevel = 3;
 
-        if (graphicsState->optimizationLevel < 5 && fps < 20 && now > lastOptimization + 100){
-            graphicsState->optimizationLevel++;
+        if (graphicsState.optimizationLevel < 5 && fps < 20 && now > lastOptimization + 100){
+            graphicsState.optimizationLevel++;
             lastOptimization = now;
-            std::cout<<"\nFPS low, increasing graphics optimization level to: "<<graphicsState->optimizationLevel;
+            std::cout<<"\nFPS low, increasing graphics optimization level to: "<<graphicsState.optimizationLevel;
         }
 		/*
-		else if (graphicsState->optimizationLevel > 0 && fps > 55 && now > lastOptimization + 500){
+		else if (graphicsState.optimizationLevel > 0 && fps > 55 && now > lastOptimization + 500){
 #define DECREASE_ENABLED
         #ifdef DECREASE_ENABLED
-			graphicsState->optimizationLevel--;
+			graphicsState.optimizationLevel--;
 			lastOptimization = now;
-			std::cout<<"\nFPS high again, decreasing graphics optimization level to: "<<graphicsState->optimizationLevel;
+			std::cout<<"\nFPS high again, decreasing graphics optimization level to: "<<graphicsState.optimizationLevel;
         #endif
 		}
 		*/

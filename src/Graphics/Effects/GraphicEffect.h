@@ -24,7 +24,7 @@ struct GraphicEffect{
 public:
 	GraphicEffect(String name, int type);
 	// Renders the shiat!
-	virtual void Render(GraphicsState & graphicsState) = 0;
+	virtual void Render() = 0;
 protected:
 	// Variables
 	String name;

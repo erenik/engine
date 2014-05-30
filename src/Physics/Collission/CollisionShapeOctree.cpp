@@ -292,10 +292,9 @@ void CollisionShapeOctree::PrintContents(){
 }
 
 /// To be used via the GraphicsManager's RenderPhysics function ONLY.
-bool CollisionShapeOctree::Render(void * graphicsState){
+bool CollisionShapeOctree::Render(){
 	// If the camera is inside here, render with hard mode-desu for clarity's sake.
-	GraphicsState * graphics = (GraphicsState*) graphicsState;
-	Vector3f cam = graphics->camera->Position();
+	Vector3f cam = graphicsState.camera->Position();
 	bool isInside = false, wasInside = false;
 
 	/// Check if inside any children, render only that child if so
@@ -314,7 +313,7 @@ bool CollisionShapeOctree::Render(void * graphicsState){
 	}
 /*
 	if (childIndex != -1){
-		child[childIndex]->Render(graphicsState);
+		child[childIndex]->Render();
 		return true;
 	}
 */
@@ -325,7 +324,7 @@ bool CollisionShapeOctree::Render(void * graphicsState){
 	// Render children first
 	for (int i = 0; i < childList.Size(); ++i){
 		/// Render, and if true (meaning it was inside), don't render ourselves or any more stuff
-		if (childList[i]->Render(graphicsState))
+		if (childList[i]->Render())
 			wasInside = true;
 	}
 	/// Skip parents if we're inside a sub-element

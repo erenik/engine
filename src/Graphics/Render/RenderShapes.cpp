@@ -18,7 +18,7 @@ void GraphicsManager::RenderShapes(){
             --i;
             continue;
         }
-        rr->duration += graphicsState->frameTime;
+        rr->duration += graphicsState.frameTime;
         glColor4f(1.0f, 1.0f, 1.0f, 1 - rr->duration / rr->lifeTime);
         Vector3f start = rr->start, end = rr->start + rr->direction * 100000000.0f;
         glVertex3f(start.x, start.y, start.z);
@@ -29,11 +29,11 @@ void GraphicsManager::RenderShapes(){
     // Render all queued shapes!
     for (int i = 0; i < renderShapes; ++i){
         Renderable * r = renderShapes[i];
-        r->Render(*graphicsState);
+        r->Render();
     }
 
 
-    Camera * cam = graphicsState->camera;
+    Camera * cam = graphicsState.camera;
     assert(cam);
     if (!cam)
         return;

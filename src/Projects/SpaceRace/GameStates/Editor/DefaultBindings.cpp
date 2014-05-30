@@ -23,6 +23,8 @@ void EditorState::CreateDefaultBindings(){
 	/// C = Create, L = List
 	/// Create default bindings
 	
+	mapping->CreateBinding("LoadMap", KEY::CTRL, KEY::L, KEY::M);
+
 	mapping->CreateBinding(PRINT_FRAME_TIME, KEY::CTRL, KEY::T);
 	mapping->SetBlockingKeys(mapping->CreateBinding(OPEN_CONSOLE, KEY::ENTER, "ENTER : Open Console"), KEY::ALT);
 

@@ -21,7 +21,7 @@ class Renderable {
 public:
     Renderable();
     virtual ~Renderable();
-    virtual void Render(GraphicsState & graphicsState);
+    virtual void Render();
 
     float lifeTime;
     Vector4f color;
@@ -31,7 +31,7 @@ protected:
 private:
 };
 
-#define IMPLEMENTS_RENDERABLE  public: void Render(GraphicsState & graphicsState);
+#define IMPLEMENTS_RENDERABLE  public: void Render();
 
 class RenderTriangle : public Renderable {
     IMPLEMENTS_RENDERABLE

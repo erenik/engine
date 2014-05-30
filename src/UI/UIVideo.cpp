@@ -73,10 +73,10 @@ void UIVideo::TogglePause()
 }
 
 /// Subclassing in order to render the video!
-void UIVideo::RenderSelf(GraphicsState & graphicsState)
+void UIVideo::RenderSelf()
 {
 	/// Old code
-	UIElement::RenderSelf(graphicsState);
+	UIElement::RenderSelf();
 
 	// Don't go further if we don't have any stream to render.
 	if (!stream)

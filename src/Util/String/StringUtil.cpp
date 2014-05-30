@@ -44,3 +44,10 @@ String GetSection(String inString, char withStartToken, char andEndToken){
 	std::cout<<"newString: "<<newString<<" length: "<<newString.Length();
 	return newString;
 }
+
+
+String VectorString(Vector3f v)
+{
+	return String::ToString(v.x) + " " + String::ToString(v.y) + " " + String::ToString(v.z);
+};
+

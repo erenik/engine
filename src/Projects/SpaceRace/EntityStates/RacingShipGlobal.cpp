@@ -90,13 +90,14 @@ void RacingShipGlobal::OnEnter(){
 		graphics->dynamicLights = new List<Light*>();
 		Light * headlights = new Light();
 		headlights->type = LightType::SPOTLIGHT;
-		headlights->spotDirection = Vector3f(0,0,-1.0f);
-		float lightIntensity = 10.0f;
-		headlights->attenuation = Vector3f(1.0f, 0.001f, 0.00001f);
-		headlights->diffuse = headlights->specular = Vector3f(lightIntensity,lightIntensity,lightIntensity);
-		headlights->spotCutoff = 45.0f;
-		headlights->spotExponent = 20;
-		headlights->data = entity;
+		headlights->relativeSpotDirection = Vector3f(0,0,-1.0f);
+		float lightIntensity = 7.0f;
+		headlights->attenuation = Vector3f(1.0f / lightIntensity, 0.001f, 0.00000001f);
+		headlights->diffuse = Vector3f(0.8f,0.9f,1.f);
+		headlights->specular = headlights->diffuse * 0.5f;
+		headlights->spotCutoff = 65.0f;
+		headlights->spotExponent = 12;
+		headlights->owner = entity;
 		graphics->dynamicLights->Add(headlights);
 
         /// Engine exhaust!

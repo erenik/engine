@@ -233,7 +233,7 @@ void TextFont::SetColor(Vector4f textColor){
 }
 
 /// Returns the size required by a call to RenderText if it were to be done now.
-float TextFont::CalculateRenderSizeX(Text text, GraphicsState & graphics){
+float TextFont::CalculateRenderSizeX(Text text){
 //	std::cout<<"\nTextFont::CalculateRenderSizeX";
     if (text.Length() < 1){
 		// std::cout<<"\nERROR: NULL-string passed to Font::RenderText";
@@ -313,7 +313,7 @@ float TextFont::CalculateRenderSizeX(Text text, GraphicsState & graphics){
 }
 
 /// Renders text ^^
-void TextFont::RenderText(Text & text, GraphicsState &graphicsState){
+void TextFont::RenderText(Text & text){
 //	std::cout<<"\nTextFont::CalculateRenderSizeX";
 	if (text.Length() < 1){
 		// std::cout<<"\nERROR: NULL-string passed to Font::RenderText";

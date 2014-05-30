@@ -346,10 +346,10 @@ void TileMapLevel::Resize(Vector2i newSize){
 	FOR_TILE_END
 }
 
-void TileMapLevel::Render(GraphicsState & graphicsState){
+void TileMapLevel::Render(){
 //	std::cout<<"\nTileMapLevel:: Render";
 	
-	TileGrid2D::Render(graphicsState);
+	TileGrid2D::Render();
 	/*
 	FOR_TILE_START
 		// Render da tile!

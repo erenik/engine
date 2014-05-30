@@ -265,7 +265,7 @@ void Mesh::SetName(String str){
 #include <iostream>
 
 /// Renders the meshi-mesh :3
-void Mesh::Render(GraphicsState &state){
+void Mesh::Render(){
 
 	int error = glGetError();
 

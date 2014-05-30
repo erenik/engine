@@ -33,10 +33,10 @@ UIImage::~UIImage()
 }
 
 /// Subclassing in order to control rendering.
-void UIImage::RenderSelf(GraphicsState & graphicsState)
+void UIImage::RenderSelf()
 {
 	/// First render ourself using only black?
-	UIElement::RenderSelf(graphicsState);
+	UIElement::RenderSelf();
 
 	return;
 	/// Render our pictuuure.

@@ -10,7 +10,7 @@ public:
 	UIImage(String name, String textureSource);
 	virtual ~UIImage();
 	/// Subclassing in order to control rendering.
-	virtual void RenderSelf(GraphicsState & graphics);
+	virtual void RenderSelf();
 
 	Texture * GetTexture();
 	String GetTextureSource();

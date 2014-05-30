@@ -6,7 +6,13 @@
 #include <fstream>
 
 
-Light::Light(){
+Light::Light()
+{
+	Nullify();
+}
+
+void Light::Nullify()
+{
 	name = "DefaultLight"; 
 	attenuation.x = 1.0f; 
 	type = 1;
@@ -15,9 +21,11 @@ Light::Light(){
 	spotCutoff = 30;
 	data = NULL;
 	owner = NULL;
+	registeredForRendering = false;
 }
-
-Light::Light(const Light & otherLight){
+Light::Light(const Light & otherLight)
+{
+	Nullify();
 	type = otherLight.type;
 	ambient = otherLight.ambient;
 	diffuse = otherLight.diffuse;

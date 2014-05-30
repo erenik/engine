@@ -70,7 +70,7 @@ public:
 	/** Renders the whole UIElement structure.
 		Overloaded by subclasses in order to enable custom perspective for the UI.
 	*/
-	virtual void Render(GraphicsState& graphics);
+	virtual void Render();
 
 
     /// Prints the UI's tree recursively. The level parameter is in order to display the tree properly.

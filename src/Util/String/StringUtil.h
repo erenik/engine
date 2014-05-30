@@ -22,4 +22,9 @@ String MergeLines(List<String> lines, String glue = "\r\n");
 /// Fetches target section in string using given start and end-tokens. Returns the first occurance, if any, or an empty string if none such exist.
 String GetSection(String inString, char withStartToken, char andEndToken);
 
+
+#include "MathLib.h"
+String VectorString(Vector3f v);
+
+
 #endif

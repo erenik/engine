@@ -199,7 +199,7 @@ public:
 	/// Releases resources used by the UIElement. Should only be called by a thread with valid GL context!
 	void FreeBuffers();
 	/// Rendering
-	virtual void Render(GraphicsState& graphics);
+	virtual void Render();
 
 	/// Adjusts the UI element size and position relative to new window size
 	void AdjustToWindow(int left, int right, int bottom, int top);
@@ -377,8 +377,8 @@ protected:
     float currentTextSizeRatio;
 
     /// Splitting up the rendering.
-    virtual void RenderSelf(GraphicsState & graphics);
-    virtual void RenderChildren(GraphicsState & graphics);
+    virtual void RenderSelf();
+    virtual void RenderChildren();
 
 	// Creates the Square mesh used for rendering the UIElement and calls SetDimensions with it's given values.
 	void CreateGeometry();

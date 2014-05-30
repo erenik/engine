@@ -321,6 +321,10 @@ bool LoadLighting(Lighting * lighting, Shader * shader)
 		Light * light = lighting->lights[i];
 		if (!light->currentlyActive)
 			continue;
+		// Only take those lights which are visible in the frustum, or will reach it with their light?
+		// ... 
+
+
 		activeLights++;
 		int interval = 4;
 		diffuse[i*interval] = light->diffuse.x;

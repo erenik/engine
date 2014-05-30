@@ -66,7 +66,7 @@ void RenderViewport::AdjustToWindow(int w_width, int w_height){
 	}
 }
 
-void RenderViewport::Render(GraphicsState &graphicsState)
+void RenderViewport::Render()
 {
 	// If relative, update width and height.
 	if ((width == 0 || height == 0) && !relative){
@@ -113,7 +113,7 @@ void RenderViewport::Render(GraphicsState &graphicsState)
 	sceneTimer.Start();
 	// Render le map as wanted?
 	if (Graphics.mapToRender && Graphics.renderMap){
-		Graphics.mapToRender->Render(&graphicsState);
+		Graphics.mapToRender->Render();
 	}
 	// Render the scene, now
 	else

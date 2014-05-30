@@ -241,6 +241,8 @@ void LobbyState::ProcessMessage(Message * message)
 
 		Map * map = MapMan.LoadMap(mapName);
 		if (map){
+			// Make last map inactive first.
+			MapMan.MakeActive(NULL);
 			MapMan.MakeActive(map);
 			previewLevel = mapName;
 			String mapState = "Name: "+map->Name()+"\nCreator: "+map->Creator()+"\nLevel entities: "+String::ToString(map->NumEntities());

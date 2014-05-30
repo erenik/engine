@@ -26,7 +26,7 @@ public:
 	void SetCameraToTrack(Camera * camera);
 	void AdjustToWindow(int width, int height);
 	/// Per-viewport render
-	void Render(GraphicsState & graphicsState);
+	void Render();
 	UserInterface * GetUI() { return viewPortUI; };
 	/// For distinguation and later alteration
 	String viewportName;

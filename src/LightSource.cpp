@@ -26,7 +26,7 @@ LightSource::LightSource() : Node() {
 	quadraticAttenuation = 0.0;
 }
 
-void LightSource::render(GraphicsState &state){
+void LightSource::Render(){
 	checkGLError();
 	// Disabled for now
 	throw 3;

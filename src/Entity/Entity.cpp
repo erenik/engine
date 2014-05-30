@@ -229,7 +229,7 @@ void Entity::RenderOld(GraphicsState &graphicsState){
 }
 
 /// Rendering method
-void Entity::render(GraphicsState &graphicsState)
+void Entity::Render()
 {
 	if (graphics && graphics->visible == false)
 		return;
@@ -437,7 +437,7 @@ void Entity::render(GraphicsState &graphicsState)
 	// Only render if previous states say so.
 	if (render){
 		// Render the model
-		model->triangulizedMesh->Render(graphicsState);
+		model->triangulizedMesh->Render();
 		++graphicsState.renderedObjects;		// increment rendered objects for debug info
 
 
@@ -463,7 +463,7 @@ void Entity::render(GraphicsState &graphicsState)
 				glBlendFunc(GL_ONE, GL_ONE);
 				glDisable(GL_DEPTH_TEST);
 				// Re-paint
-				model->triangulizedMesh->Render(graphicsState);
+				model->triangulizedMesh->Render();
 				++graphicsState.renderedObjects;		// increment rendered objects for debug info
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 				glEnable(GL_DEPTH_TEST);
@@ -484,7 +484,7 @@ void Entity::render(GraphicsState &graphicsState)
 	// Render children if needed
 	if (child)
 		for (int i = 0; i < children; ++i)
-			child[i]->render(graphicsState);
+			child[i]->Render();
 
 	// Revert the model matrix to the old one in the stack
 	graphicsState.modelMatrixD = tmp;
@@ -495,7 +495,19 @@ void Entity::render(GraphicsState &graphicsState)
 			graphicsState.graphicEffectsToBeRendered += *graphics->effects;
         if (graphics->particleSystems != NULL)
             graphicsState.particleEffectsToBeRendered += *graphics->particleSystems;
-
+		// Register dynamic lights if needed
+		if (graphics->dynamicLights)
+		{
+			for (int i = 0; i < graphics->dynamicLights->Size(); ++i)
+			{
+				Light * light = (*graphics->dynamicLights)[i];
+				if (!light->registeredForRendering)
+				{
+					graphicsState.dynamicLights.Add(light);
+					light->registeredForRendering = true;
+				}
+			}
+		}
 		
 		/// If we have any text, render it last!
 		if (graphics->text)
@@ -514,7 +526,7 @@ void Entity::render(GraphicsState &graphicsState)
 			Vector4f textColor = graphics->textColor;
 			glColor4f(textColor.x, textColor.y, textColor.z, textColor.w);
 			graphicsState.currentFont->SetColor(textColor);
-			graphicsState.currentFont->RenderText(graphics->text, graphicsState);
+			graphicsState.currentFont->RenderText(graphics->text);
 
 			
 #ifdef DEBUG_TRIANGLE

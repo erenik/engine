@@ -72,7 +72,7 @@ public:
 private:
 	/// To be used via the GraphicsManager's RenderPhysics function ONLY.
 	/// Matrices are assumed to be set up already upon entry
-	bool Render(void * graphicsState);
+	bool Render();
 
 	/** Searches for collissions with specified entity.
 		If entry subdivision level is not specified the initial call will set it automatically (used for recursion limits)

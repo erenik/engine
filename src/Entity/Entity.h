@@ -88,7 +88,7 @@ public:
 	/** Rendering method
 		Should only be used by the graphics manager. USE WITH CAUTION.
 	*/
-	void render(GraphicsState &state);
+	void Render();
 
 	/// Gets velocity, probably from the PhysicsState
 	Vector3f Velocity();

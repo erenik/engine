@@ -406,22 +406,22 @@ void UIList::FormatElements(){
 /// Rendering
 void UIList::Render(GraphicsState& graphics){
     // Push matrices
-    Matrix4d tmp = graphics.modelMatrixD;
+    Matrix4d tmp = graphicsState.modelMatrixD;
 
     // Render ourself and maybe children.
-    RenderSelf(graphics);
+    RenderSelf();
     if (childList.Size())
-        RenderChildren(graphics);
+        RenderChildren();
 
     // Pop matrices
-    graphics.modelMatrixF = graphics.modelMatrixD = tmp;
+    graphicsState.modelMatrixF = graphicsState.modelMatrixD = tmp;
 
 }
 
-void UIList::RenderChildren(GraphicsState & graphics){
+void UIList::RenderChildren(){
 
-    Matrix4d modelMatrix = graphics.modelMatrixD;
-    Matrix4d translatedModelMatrix = graphics.modelMatrixD;
+    Matrix4d modelMatrix = graphicsState.modelMatrixD;
+    Matrix4d translatedModelMatrix = graphicsState.modelMatrixD;
 
     /// If we got a scrollbar, apply a model matrix to make us render at the proper location.
     if (scrollBarY && scrollBarY->visible){
@@ -441,24 +441,24 @@ void UIList::RenderChildren(GraphicsState & graphics){
         /// Set model matrix depending on child-type.
         if (child->isSysElement){
         //    std::cout<<"\nChild: "<<child->name<<" is sys element.";
-            graphics.modelMatrixF = graphics.modelMatrixD = modelMatrix;
+            graphicsState.modelMatrixF = graphicsState.modelMatrixD = modelMatrix;
         }
         else
-            graphics.modelMatrixF = graphics.modelMatrixD = translatedModelMatrix;
+            graphicsState.modelMatrixF = graphicsState.modelMatrixD = translatedModelMatrix;
 
 // 		if (name == "DebugList"){
-// 			std::cout<<"\nScissor: l:"<<graphics.leftScissor<<" r:"<<graphics.rightScissor<<" t:"<<graphics.topScissor<<" b:"<<graphics.bottomScissor;
+// 			std::cout<<"\nScissor: l:"<<graphicsState.leftScissor<<" r:"<<graphicsState.rightScissor<<" t:"<<graphicsState.topScissor<<" b:"<<graphicsState.bottomScissor;
 // 			std::cout<<"This l:"<<left<<" r:"<<right<<" t:"<<top<<" b:"<<bottom;
 // 		}
 
-        Rect previousScissor((int)graphics.leftScissor, (int)graphics.bottomScissor, (int)graphics.rightScissor, (int)graphics.topScissor);
-	    graphics.leftScissor = graphics.leftScissor > left ? graphics.leftScissor : left;
-	    graphics.rightScissor = graphics.rightScissor < right ? graphics.rightScissor : right;
-	    graphics.bottomScissor = graphics.bottomScissor > bottom ? graphics.bottomScissor : bottom;
-	    graphics.topScissor = graphics.topScissor < top ? graphics.topScissor : top;
+        Rect previousScissor((int)graphicsState.leftScissor, (int)graphicsState.bottomScissor, (int)graphicsState.rightScissor, (int)graphicsState.topScissor);
+	    graphicsState.leftScissor = graphicsState.leftScissor > left ? graphicsState.leftScissor : left;
+	    graphicsState.rightScissor = graphicsState.rightScissor < right ? graphicsState.rightScissor : right;
+	    graphicsState.bottomScissor = graphicsState.bottomScissor > bottom ? graphicsState.bottomScissor : bottom;
+	    graphicsState.topScissor = graphicsState.topScissor < top ? graphicsState.topScissor : top;
 
-	    int scissorWidth = (int) (graphics.rightScissor - graphics.leftScissor);
-	    int scissorHeight = (int) (graphics.topScissor - graphics.bottomScissor);
+	    int scissorWidth = (int) (graphicsState.rightScissor - graphicsState.leftScissor);
+	    int scissorHeight = (int) (graphicsState.topScissor - graphicsState.bottomScissor);
 	  //  std::cout<<"\nScissor e "<<name<<" left: "<<left<<" right: "<<right<<" top: "<<top<<" bottom: "<<bottom<<" width: "<<scissorWidth<<" height: "<<scissorHeight;
 	  //  assert(scissorWidth >= 0);
 	  //  assert(scissorHeight >= 0);
@@ -468,21 +468,21 @@ void UIList::RenderChildren(GraphicsState & graphics){
         }
         /// If not, render.
         else {
-            bool scissorDisabled = (graphics.settings & SCISSOR_DISABLED) > 0;
+            bool scissorDisabled = (graphicsState.settings & SCISSOR_DISABLED) > 0;
             if (!scissorDisabled){
              //   std::cout<<"\nGLScissor: e "<<name<<" posX "<<posX<<" sizeX "<<sizeX<<" posY "<<posY<<" sizeY "<<sizeY;
-				glScissor((GLint) (graphics.leftScissor + graphics.viewportX0),
-					(GLint) (graphics.bottomScissor + graphics.viewportY0),
+				glScissor((GLint) (graphicsState.leftScissor + graphicsState.viewportX0),
+					(GLint) (graphicsState.bottomScissor + graphicsState.viewportY0),
 					scissorWidth,
 					scissorHeight);
             }
-            child->Render(graphics);
+            child->Render();
         }
         /// And pop the scissor statistics back as they were.
-		graphics.leftScissor = (float)previousScissor.x0;
-	    graphics.rightScissor = (float)previousScissor.x1;
-	    graphics.bottomScissor = (float)previousScissor.y0;
-	    graphics.topScissor = (float)previousScissor.y1;
+		graphicsState.leftScissor = (float)previousScissor.x0;
+	    graphicsState.rightScissor = (float)previousScissor.x1;
+	    graphicsState.bottomScissor = (float)previousScissor.y0;
+	    graphicsState.topScissor = (float)previousScissor.y1;
 	}
 }
 

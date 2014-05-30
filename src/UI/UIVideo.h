@@ -27,7 +27,7 @@ public:
 	void TogglePause();
 
 	/// Subclassing in order to render the video!
-	virtual void RenderSelf(GraphicsState & graphics);
+	virtual void RenderSelf();
 
 	/// Flag to play when the element has begun being rendered.
 	bool playWhenReady;

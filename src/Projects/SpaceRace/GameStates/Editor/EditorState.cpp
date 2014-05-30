@@ -33,6 +33,9 @@
 #include "../../AI/ThrusterTester.h"
 #include "Graphics/Messages/GMSet.h"
 #include "Graphics/Messages/GMSetEntity.h"
+#include "UI/UIFileBrowser.h"
+#include "Message/FileEvent.h"
+#include "String/StringUtil.h"
 
 #define EDITOR_MAP "EditorMap"
 #define SHIP_EDITOR_MAP	"ShipEditor"
@@ -200,12 +203,21 @@ void EditorState::Process(float time){
 /// Callback function that will be triggered via the MessageManager when messages are processed.
 void EditorState::ProcessMessage(Message * message){
 //	std::cout<<"\nEditorState::ProcessMessage: ";
+	String msg = message->msg;
 	switch(message->type){
+		case MessageType::FILE_EVENT: 
+		{
+			FileEvent * fileEvent = (FileEvent *) message;
+			List<String> files = fileEvent->files;
+			if (msg == "LoadMap(this)")
+			{
+				LoadMap(files[0]);
+			}
+		}
 		case MessageType::SET_STRING: 
 		{
 			if (!editorSelection.Size())
 				return;
-			String msg = message->msg;
 			SetStringMessage * ssm = (SetStringMessage*)message;
 			if (msg == "SetEntityName"){
 				editorSelection[0]->name = ssm->value;
@@ -216,7 +228,6 @@ void EditorState::ProcessMessage(Message * message){
 		{
 			if (!editorSelection.Size())
 				return;
-			String msg = message->msg;
 			TextureMessage * tm = (TextureMessage*) message;
 			if (msg == "SetEntityDiffuseTexture"){
 				Graphics.QueueMessage(new GMSetEntityTexture(editorSelection[0], DIFFUSE_MAP, tm->texSource));
@@ -710,6 +721,15 @@ void EditorState::ProcessMessage(Message * message){
 				StateMan.ActiveState()->InputProcessor(INTERPRET_CONSOLE_COMMAND);
 				return;
 			}
+			else if (msg == "LoadMap")
+			{
+				UIFileBrowser * mapBrowser = new UIFileBrowser("Load map", "LoadMap(this)", ".map");
+				mapBrowser->CreateChildren();
+				mapBrowser->SetPath("./map/racing/");
+				mapBrowser->LoadDirectory(false);
+				Graphics.QueueMessage(new GMAddUI(mapBrowser));
+				Graphics.QueueMessage(new GMPushUI(mapBrowser, ui));
+			}
 			else if (string == "SaveNavMesh"){
 				String toPath = ui->GetElementByName("SaveNavMesh")->text;
 				const NavMesh * nm = MapMan.GetNavMesh();
@@ -1200,6 +1220,10 @@ void EditorState::SetScaleActiveEntities(Vector3f scale){
 }
 void EditorState::ScaleActiveEntities(Vector3f scale){
 	Physics.QueueMessage(new PMSetEntity(SCALE, editorSelection, scale));
+	ConsoleLog("Scaling "+String::ToString(editorSelection.Size())+" entities by scale: "+VectorString(scale));
+	Sleep(100);
+	// Update UI accordingly.
+	OnSelectionUpdated();
 }
 void EditorState::RotateActiveEntities(Vector3f rotation)
 {
@@ -1254,7 +1278,7 @@ bool EditorState::SaveMap(String fileName, bool force)
 
 	bool result = MapMan.SaveMap(path);
 	if (result){
-		ConsoleLog("Map saved successfully.");
+		ConsoleLog("Map saved successfully to "+path);
 	}
 	else {
 		ConsoleLog("Unable to save. Reason: \n"+MapMan.GetLastErrorString());

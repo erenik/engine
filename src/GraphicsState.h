@@ -20,6 +20,7 @@ class ParticleSystem;
 class Lighting;
 class TextFont;
 class Camera;
+class Light;
 
 #define checkGLError() {int error = glGetError();if (error != GL_NO_ERROR)throw 1;}
 
@@ -49,6 +50,8 @@ public:
 
 	/// Current lighting setup
 	Lighting * lighting;
+	/// Lights which move o-o
+	List<Light*> dynamicLights;
 	/// Active shaderProgram
 	Shader * activeShader;
 	/// List of all graphical effects that are to be rendered. Can be stocked up during initial culling!
@@ -119,5 +122,8 @@ public:
 	bool recording;
 	int framesRecorded;
 };
+
+/// Global struct for current render-pipe. Should only be modified and touched from render-threads.
+extern GraphicsState graphicsState;
 
 #endif

@@ -76,7 +76,7 @@ protected:
 
 private:
 
-    virtual void RenderChildren(GraphicsState & graphics);
+    virtual void RenderChildren();
 
 	/// Total contents size
 	float contentsSize;

@@ -78,7 +78,7 @@ public:
 	virtual void HandleDADFiles(List<String> & files);
 
 	/// What happens.. when we rendar?!
-	virtual void Render(GraphicsState & graphicsState);
+	virtual void Render();
 
 	/// Getter functions
 	UserInterface * GetUI(){ return ui; };

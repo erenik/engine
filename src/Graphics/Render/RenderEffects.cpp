@@ -22,19 +22,19 @@ void GraphicsManager::RenderEffects(){
         return;
     glDisable(GL_TEXTURE_2D);
 	// Set projection and view matrices
-	glUniformMatrix4fv(effect->uniformProjectionMatrix, 1, false, graphicsState->projectionMatrixF.getPointer());
-	glUniformMatrix4fv(effect->uniformViewMatrix, 1, false, graphicsState->viewMatrixF.getPointer());
+	glUniformMatrix4fv(effect->uniformProjectionMatrix, 1, false, graphicsState.projectionMatrixF.getPointer());
+	glUniformMatrix4fv(effect->uniformViewMatrix, 1, false, graphicsState.viewMatrixF.getPointer());
 	assert(effect);
-	for (int i = 0; i < graphicsState->graphicEffectsToBeRendered.Size(); ++i){
-		graphicsState->graphicEffectsToBeRendered[i]->Render(*graphicsState);
+	for (int i = 0; i < graphicsState.graphicEffectsToBeRendered.Size(); ++i){
+		graphicsState.graphicEffectsToBeRendered[i]->Render();
 	}
 
-    for (int i = 0; i < graphicsState->particleEffectsToBeRendered.Size(); ++i){
-		ParticleSystem * ps = graphicsState->particleEffectsToBeRendered[i];
+    for (int i = 0; i < graphicsState.particleEffectsToBeRendered.Size(); ++i){
+		ParticleSystem * ps = graphicsState.particleEffectsToBeRendered[i];
 		if (!ps->registeredForRendering){
 			RegisterParticleSystem(ps);
 		}
-        ps->Render(*graphicsState);
+        ps->Render();
     }
 
 	glDisable(GL_CULL_FACE);

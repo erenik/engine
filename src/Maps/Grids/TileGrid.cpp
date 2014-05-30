@@ -142,7 +142,7 @@ Tile * TileGrid2D::GetTile(Vector2i position)
 
 
 /// Rendering! Called from render-thread onry
-void TileGrid2D::Render(GraphicsState & graphicsState){
+void TileGrid2D::Render(){
 	
 		
 		

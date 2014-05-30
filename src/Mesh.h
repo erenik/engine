@@ -72,7 +72,7 @@ public:
 	/// Buffers the mesh into graphics memory.
 	void Bufferize();
 	/// Renders the meshi-mesh :3
-	void Render(GraphicsState &state);
+	void Render();
 
 	/// For NormalMapping~
 	void CalculateUVTangents();

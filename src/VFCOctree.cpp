@@ -214,13 +214,13 @@ int VFCOctree::RegisteredEntities(){
 
 #include <cassert>
 /// Just render daonw!
-void VFCOctree::render(GraphicsState &state){
+void VFCOctree::Render(){
 	assert(this);
 	// Render all objects in this node,
 	int i;
 	for (i = 0; i < entities.Size(); ++i){
 		if (entities[i])
-			entities[i]->render(state);
+			entities[i]->Render();
 		else
 			break;
 	}
@@ -229,7 +229,7 @@ void VFCOctree::render(GraphicsState &state){
 		return;
 	// ..and set everything there if we got any.
 	for (i = 0; i < MAX_CHILDREN; ++i){
-		child[i]->render(state);
+		child[i]->Render();
 	}
 }
 
@@ -240,7 +240,7 @@ void VFCOctree::RenderWithCulling(GraphicsState &state){
 		// Do individual check of all nodes here so we don't render in vain.
 		if (entities[i]){
 		//	if (cullingFrustum.SphereInFrustum(entities[i]->position, entities[i]->radius))
-				entities[i]->render(state);
+				entities[i]->Render();
 		//	else
 		//		;
 		}
@@ -257,7 +257,7 @@ void VFCOctree::RenderWithCulling(GraphicsState &state){
 			int childCullState = child[i]->cullingFrustum.SphereInFrustum(child[i]->center, child[i]->radius);
 			// If inside, set all children to be inside the frustum
 			if (childCullState == INSIDE)
-				child[i]->render(state);
+				child[i]->Render();
 			// And if outside, set all children to be outside the frustum
 			else if (childCullState == OUTSIDE)
 				continue; //	child[i]->setInFrustum(false);
