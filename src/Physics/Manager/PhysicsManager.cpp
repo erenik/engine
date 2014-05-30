@@ -55,7 +55,7 @@ PhysicsManager::PhysicsManager()
 	linearDamping = 0.5f;
 	angularDamping = 0.5f;
 
-	collissionResolver = CollissionResolver::LAB_PHYSICS_IMPULSES;
+	collisionResolver = CollisionResolver::LAB_PHYSICS_IMPULSES;
 	integrator = Integrator::LAB_PHYSICS;
 	/// kg per m^3
 	defaultDensity = 100.0f;
@@ -119,6 +119,10 @@ void PhysicsManager::SetPhysicsType(Entity * entity, int type){
 		return;
 	}
 	UnregisterEntity(entity);
+	if (!entity->physics)
+	{
+		entity->physics = new PhysicsProperty();
+	}
 	entity->physics->type = type;
 	RegisterEntity(entity);
 };
@@ -353,7 +357,7 @@ void PhysicsManager::RecalculatePhysicsProperties(){
 void PhysicsManager::ProcessMessages(){
     static Timer messageTimer;
     messageTimer.Start();
-	physicsMessageQueueMutex.Claim(-1);
+	while(!physicsMessageQueueMutex.Claim(-1));
     // Process queued messages
 	while (!messageQueue.isOff()){
 		PhysicsMessage * msg = messageQueue.Pop();

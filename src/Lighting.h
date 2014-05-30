@@ -18,6 +18,7 @@ class Lighting {
 	friend bool LoadLighting(Lighting * lighting, Shader * shader);
 #define GetTime clock
 public:
+	String name;
 
 	/// Default constructor, sets all light pointers and other variables to 0/NULL
 	Lighting();

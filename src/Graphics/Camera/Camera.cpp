@@ -71,7 +71,8 @@ void Camera::EndRotate(int direction){
 }
 
 /// Updates the frustum
-void Camera::Update(){
+void Camera::Update()
+{
 	/// Load identity matrices before we re-calculate them
 	projectionMatrix.LoadIdentity();
 	viewMatrix.LoadIdentity();
@@ -258,10 +259,7 @@ void Camera::ProcessMovement(float timeSinceLastUpdate)
 	{
 		totalPosDiff *= zoom;
 	}
-	position += totalPosDiff;
-	
-	/// Update matrices n stuff
-	Update();
+	position += totalPosDiff;	
 }
 
 /// Updates base velocities depending on navigation booleans

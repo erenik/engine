@@ -8,6 +8,7 @@ enum graphicsMessages {
 	GM_RESUME_RENDERING,
 
 	// Lighting
+	GM_ADD_LIGHT,
 	GM_SET_AMBIENCE,
 	GM_CREATE_LIGHT,
 	GM_DELETE_LIGHT,
@@ -29,8 +30,6 @@ enum graphicsMessages {
 	GM_SET_ENTITY_TEXTURE,
 	GM_SET_ENTITY_FLOAT,
 	GM_SET_ENTITY_VEC4F,
-	// Lighting on entities
-	GM_ADD_LIGHT,
 	// Stuff
 	GM_CLEAR_OVERLAY_TEXTURE,
 	GM_DELETE_UI,

@@ -167,8 +167,8 @@ int PhysicsManager::UnregisterEntity(Entity * entityToRemove){
 	// Check if marked for deletion. If so delete the PhysicsProperty too.
 	if (entityToRemove->flaggedForDeletion)
 	{
-		delete entityToRemove->physics;
-		entityToRemove->physics = NULL;
+//		delete entityToRemove->physics;
+//		entityToRemove->physics = NULL;
 	}
 
 //	assert(entitiesInOctree == physicalEntitiesNum);

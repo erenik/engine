@@ -10,10 +10,12 @@
 #include "Graphics/GraphicsProperty.h"
 #include "Entity/Entity.h"
 
-class GMAddLight : public GraphicsMessage 
+/*
+
+class GMAttachLight : public GraphicsMessage 
 {
 public:
-	GMAddLight(Entity * toEntity, Light * light)
+	GMAttachLight(Entity * toEntity, Light * light)
 	:  GraphicsMessage(GM_ADD_LIGHT), toEntity(toEntity), light(light)
 	{
 	};
@@ -31,5 +33,6 @@ private:
 	Entity * toEntity;
 	Light * light;
 };
+*/
 
 #endif

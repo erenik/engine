@@ -5,6 +5,7 @@
 #include "Light.h"
 #include <fstream>
 
+
 Light::Light(){
 	name = "DefaultLight"; 
 	attenuation.x = 1.0f; 
@@ -13,6 +14,7 @@ Light::Light(){
 	spotExponent = 5;
 	spotCutoff = 30;
 	data = NULL;
+	owner = NULL;
 }
 
 Light::Light(const Light & otherLight){
@@ -29,6 +31,7 @@ Light::Light(const Light & otherLight){
 	spotCutoff = otherLight.spotCutoff;
 	name = otherLight.name;
 	data = otherLight.data;
+	owner = NULL;
 }
 
 

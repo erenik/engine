@@ -112,7 +112,7 @@ bool ResolveCollission(Collission &data){
 	Vector3f collissionNormal = data.collissionNormal;
 
 	/// Differentiate between implementation.
-	if (Physics.collissionResolver == CollissionResolver::LAB_PHYSICS_IMPULSES){
+	if (Physics.collisionResolver == CollisionResolver::LAB_PHYSICS_IMPULSES){
 
 		float kineticEnergyPreResolution = one->physics->KineticEnergy() + two->physics->KineticEnergy();
 
@@ -296,7 +296,7 @@ bool ResolveCollission(Collission &data){
 		return true;
     }
     /// Differentiate between implementation.
-	else if (Physics.collissionResolver == CollissionResolver::CUSTOM_SPACE_RACE_PUSHBACK){
+	else if (Physics.collisionResolver == CollisionResolver::CUSTOM_SPACE_RACE_PUSHBACK){
 
         assert(data.results & DISTANCE_INTO);
         /// The one and only.
@@ -327,8 +327,14 @@ bool ResolveCollission(Collission &data){
             Vector3f tVelocity = dynamicEntity->physics->velocity - nVelocity;
             // Mirror the dynamic entity's velocity along the collission normal
 			float frictionModifier = 1 - friction;
-			assert(frictionModifier < 1.f);
+		//	assert(frictionModifier < 1.f);
 			assert(restitution < 1.f);
+
+			// Calculate friction work to apply!
+			// Ref: http://www.engineeringtoolbox.com/friction-coefficients-d_778.html
+		//	float normalForce = 4;
+		//	float frictionForce = dynamicEntity->physics->mass * 
+
             dynamicEntity->physics->velocity = tVelocity * frictionModifier - nVelocity * restitution;
 			dynamicEntity->physics->linearMomentum = dynamicEntity->physics->velocity * dynamicEntity->physics->mass;
             dynamicEntity->physics->angularVelocity *= 1 - friction;
@@ -360,7 +366,7 @@ bool ResolveCollission(Collission &data){
 			Vector3f velPostCol = dynamicEntity->physics->velocity;
 			float absVelPreCol = velPreCol.Length();
 			float absVelPostCol = velPostCol.Length();
-			assert(absVelPostCol < absVelPreCol);
+//			assert(absVelPostCol < absVelPreCol);
 			float velDecrease = absVelPostCol - absVelPreCol;
 //			if (AbsoluteValue(velDecrease) > 5.0f)
 //				std::cout<<"\nVelDecrease: "<<velDecrease;

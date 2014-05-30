@@ -27,8 +27,8 @@ RacingShipGlobal::RacingShipGlobal(Entity * entity, Ship * ship)
 : EntityState(EntityStateType::RACING_SHIP, entity)
 {
 	/// Hope that the position vector is the starting position..
-	startingPosition = entity->positionVector;
-	startingRotation = entity->rotationVector;
+	startingPosition = entity->position;
+	startingRotation = entity->rotation;
 
 	assert(ship && entity);
 	std::cout<<"\nRacingShipGlobal constructor.";
@@ -464,8 +464,8 @@ void RacingShipGlobal::ResetPosition(){
 	Entity * checkpoint = Racing::GetCheckpoint(player->checkpointsPassed-1);
 	Vector3f position, rotation;
 	if (checkpoint){
-		position = checkpoint->positionVector;
-		rotation = checkpoint->rotationVector;
+		position = checkpoint->position;
+		rotation = checkpoint->rotation;
 		rotation.y += PI;
 	}
 	/// If the map lacks checkpoints, use starting position!

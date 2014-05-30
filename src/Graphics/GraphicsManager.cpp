@@ -124,7 +124,6 @@ GraphicsManager::GraphicsManager()
 	selectionToRender = NULL;
 	overlayTexture = NULL;
 	queuedOverlayTexture = NULL;
-	lighting = NULL;
 	mapToRender = NULL;
 	/// Current full-screen flag
 	isFullScreen = false;
@@ -309,6 +308,13 @@ Camera * GraphicsManager::ActiveCamera(int viewport /* = 0*/) const {
     }
     return NULL;
 }
+
+/// Returns the active lighting. 
+Lighting * GraphicsManager::ActiveLighting()
+{	
+	return graphicsState->lighting;
+}
+
 
 void GraphicsManager::PauseRendering(){
 	Graphics.QueueMessage(new GraphicsMessage(GM_PAUSE_RENDERING));
@@ -548,15 +554,17 @@ void GraphicsManager::UpdateProjection(float relativeWidth /* = 1.0f */, float r
 // Enters a message into the message queue
 void GraphicsManager::QueueMessage(GraphicsMessage *msg){
 //	graphicsMessageQueueMutex;
-    graphicsMessageQueueMutex.Claim(-1);
+	while(!graphicsMessageQueueMutex.Claim(-1));
 	messageQueue.Push(msg);
 	graphicsMessageQueueMutex.Release();
 	return;
 }
 
 // Processes queued messages
-void GraphicsManager::ProcessMessages(){
-	graphicsMessageQueueMutex.Claim(-1);
+void GraphicsManager::ProcessMessages()
+{
+	// Wait until claimable.
+	while(!graphicsMessageQueueMutex.Claim(-1));
 	/// Spend only max 10 ms of time processing messages each frame!
 	long long messageProcessStartTime = Timer::GetCurrentTimeMs();
 	long long now;
@@ -1038,24 +1046,19 @@ void GraphicsManager::DeallocFrameBuffer(){
 }
 
 /// Updates the graphicsState's lighting to include dynamic lights' new positions as well.
-void GraphicsManager::UpdateLighting(){
-	if (dynamicLights.Size() == 0)
-		return;
-	*graphicsState->lighting = *lighting;
-	for (int i = 0; i < dynamicLights.Size(); ++i){
-		Light dynLight = Light(*dynamicLights[i]);
+void GraphicsManager::UpdateLighting()
+{
+	Lighting * lighting = graphicsState->lighting;
+	List<Light*> lights = lighting->GetLights();
+	for (int i = 0; i < lights.Size(); ++i){
+		Light * light = lights[i];
 		// Update it's position relative to the entity.. important!
-		Entity * owner = (Entity*) dynLight.data;
+		Entity * owner = light->owner;
+		if (!owner)
+			continue;
 		assert(owner);
-
-	//	std::cout<<"\nSpot direction updated from: "<<dynLight.spotDirection;
-		dynLight.spotDirection = owner->rotationMatrix.product(dynLight.spotDirection);
-	//	std::cout<<" to "<<dynLight.spotDirection;
-
-	//	std::cout<<"\nLight position updated from: "<<dynLight.position;
-		dynLight.position = owner->transformationMatrix.product(dynLight.position);
-	//	std::cout<<" to "<<dynLight.position<<" entityPos: "<<owner->position;
-		graphicsState->lighting->Add(&dynLight);
+		light->spotDirection = owner->rotationMatrix.product(light->spotDirection);
+		light->position = owner->transformationMatrix.product(light->position);
 	}
 }
 

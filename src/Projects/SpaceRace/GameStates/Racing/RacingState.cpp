@@ -27,8 +27,8 @@
 #include "Graphics/Messages/GMParticleMessages.h"
 #include "OS/Sleep.h"
 #include <Util.h>
-#include "Event/TextAnimationEvent.h"
-#include "Event/EventManager.h"
+#include "Script/TextAnimationEvent.h"
+#include "Script/ScriptManager.h"
 #include "String/StringUtil.h"
 
 #include <iomanip>
@@ -52,13 +52,15 @@
 
 #include "../../ShipManager.h"
 #include "Chat/ChatManager.h"
-
+#include "Graphics/Messages/GMLight.h"
+#include "Graphics/RenderSettings.h"
 
 Racing * Racing::racing = NULL;
 
-Racing::Racing(){
-    stateName = "Racing state";
-	id = GAME_STATE_RACING;
+Racing::Racing()
+{
+    name = "Racing state";
+	id = GameStateID::GAME_STATE_RACING;
 	requestedPlayers = 1;
 	assert(racing == NULL);
 	racing = this;
@@ -94,6 +96,9 @@ void Racing::OnEnter(GameState * previousState){
     std::cout<<"\nRacing::OnEnter";
   //  assert(previousState != this);
 
+
+	// Clear old lighting
+	Graphics.QueueMessage(new GMClearLighting());
 	Graphics.ResetSleepTimes();
 
 	/// Debug stuffs
@@ -113,7 +118,7 @@ void Racing::OnEnter(GameState * previousState){
 	// Begin loading textures here for the UI
 	Graphics.QueueMessage(new GMSetUI(ui));
 	// Set menu to not visible, as it may remain after state-change!
-	Graphics.QueueMessage(new GMPopUI("MainMenu"));
+	Graphics.QueueMessage(new GMPopUI("MainMenu", ui));
 	Graphics.QueueMessage(new GMSetUIb("Results", GMUI::VISIBILITY, false));
 
 	// Enable/disable some ui depending on host-type.
@@ -178,7 +183,7 @@ void Racing::OnEnter(GameState * previousState){
 
 
 	// Verify data o-o
-	MapMan.GetLighting().VerifyData();
+//	MapMan.GetLighting().VerifyData();
 	// Resume le game!
 	menuOpen = false;
 	timerStarted = false;
@@ -204,6 +209,9 @@ void Racing::OnEnter(GameState * previousState){
 	/// Since the graphics-manager handles viewports, we should not try and deallocate them here?
 	viewports.Clear();
 	RenderViewport * vp;
+
+	// Add a sun.
+	Graphics.QueueMessage(new GMSetAmbience(Vector4f(0.5f, 0.5f, 0.5f, 1.f)));
 
 	/// Fetch session
 	SRSession * srs = GetSession();
@@ -319,8 +327,10 @@ void Racing::OnEnter(GameState * previousState){
         assert(i < cameras.Size());
         SRPlayer * player = (SRPlayer*)localPlayers[i];
         Entity * entity = player->entity;
-        cameras[i]->entityToTrack = entity;
-		cameras[i]->elevation = -entity->radius;	
+        Camera * camera = cameras[i];
+		camera->entityToTrack = entity;
+		camera->elevation = -entity->radius;
+		camera->distanceFromCentreOfMovement = entity->radius + 15.f;
     }
 	/// If no local player, attach a camera to the first entity there is.
 	if (localPlayers.Size() == 0 && players.Size())
@@ -347,7 +357,7 @@ void Racing::OnEnter(GameState * previousState){
     std::cout<<"\nSetting up physics environment..";
 	Physics.QueueMessage(new PMSetPhysicsType(playerEntities, PhysicsType::DYNAMIC));
 	Physics.QueueMessage(new PMSetEntity(RESTITUTION, playerEntities, 0.15f));
-	Physics.QueueMessage(new PMSetEntity(FRICTION, playerEntities, 0.01f));
+	Physics.QueueMessage(new PMSetEntity(FRICTION, playerEntities, 0.010f));
 
 	/// Reset physics settings
 //	Physics.QueueMessage(new PhysicsMessage(PM_RESET_SETTINGS));
@@ -357,6 +367,23 @@ void Racing::OnEnter(GameState * previousState){
 
 	// Set graphics manager to render UI, and remove the overlay-texture.
 	Graphics.QueueMessage(new GraphicsMessage(GM_CLEAR_OVERLAY_TEXTURE));
+	
+	// Set lighting..
+	Graphics.QueueMessage(new GMSetAmbience(Vector3f(0.1f,0.1f,0.1f)));
+	// Create the sun..
+	Light sunlight;
+	sunlight.specular = sunlight.diffuse = Vector4f(1.f,0.5f,0.1f,1);
+	sunlight.attenuation = Vector3f(1,0.0001f,0);
+	sunlight.position = Vector3f(0,5000,0);
+	sunlight.type = LightType::POSITIONAL;
+	Graphics.QueueMessage(new GMAddLight(sunlight));
+
+	Graphics.renderSettings->fogBegin = 500.f;
+	Graphics.renderSettings->fogEnd = 50000.f;
+	Graphics.renderSettings->clearColor = Vector3f(0.2f, 0.2f, 0.2f);
+
+	// If coming from editor, deselect shit from rendering?
+	Graphics.selectionToRender = NULL;
 
 	// And start tha music..
 	TrackMan.PlayTrackFromCategory("Race", true);
@@ -411,10 +438,10 @@ void Racing::Process(float time){
 		for (int i = 0; i < playerEntities.Size(); ++i){
 			Entity * e = playerEntities[i];
 			/// IDs are the same as their indices, so go!
-			Vector3f rotation = e->rotationVector;
+			Vector3f rotation = e->rotation;
 			RacingShipGlobal * rsg = (RacingShipGlobal *)e->state->GlobalState();
 			assert(rsg);
-			SRPlayerPositionPacket ppPacket(i, e->positionVector, e->Velocity(), rotation, rsg->GetStateAsString(true), Timer::GetCurrentTimeMs());
+			SRPlayerPositionPacket ppPacket(i, e->position, e->Velocity(), rotation, rsg->GetStateAsString(true), Timer::GetCurrentTimeMs());
 			srs->Send(&ppPacket);
 		}
 	}
@@ -681,7 +708,7 @@ void Racing::ProcessMessage(Message * message){
 			}
 			else if (string == "PreviousState"){
 				assert(previousStateID != 0);
-				StateMan.QueueState(previousStateID);
+				StateMan.QueuePreviousState();
 			//	NetworkMan.QueuePacket(new Packet(SRP_GO_TO_LOBBY, PACKET_TARGET_OTHERS));
 			}
 			else if (string == "interpret_console_Command"){
@@ -875,7 +902,7 @@ Entity * Racing::CreateShipForPlayer(SRPlayer * player, Vector3f startPosition){
         return NULL;
 
 	/// Move it to the starting position.
-	entity->translate(startPosition);
+	entity->Translate(startPosition);
 
     if (entity->state == NULL){
         entity->state = new StateProperty(entity);
@@ -907,11 +934,11 @@ Entity * Racing::CreateShipForPlayer(SRPlayer * player, Vector3f startPosition){
 void Racing::ToggleMenu(){
 	UIElement * e = ui->GetElementByName("MainMenu");
 	if (e->visible){
-        Graphics.QueueMessage(new GMPopUI("MainMenu"));
+        Graphics.QueueMessage(new GMPopUI("MainMenu", ui));
 		OnCloseMenu();
     }
 	else {
-	    Graphics.QueueMessage(new GMPushUI("MainMenu"));
+	    Graphics.QueueMessage(new GMPushUI("MainMenu", ui));
 		OnOpenMenu();
 	}
 }
@@ -944,7 +971,7 @@ bool Racing::CreatePlayers(List<SRPlayer*> players)
 	Map * map = MapMan.ActiveMap();
 	Entity * entity = map->GetEntity("StartingPosition");
 	if (entity){
-		startingPosition = entity->positionVector;
+		startingPosition = entity->position;
 		/// Disable entity from physics and rendering, in-case it was registered in any of them!
 		Physics.QueueMessage(new PMUnregisterEntity(entity));
 		Graphics.QueueMessage(new GMUnregisterEntity(entity));
@@ -1179,7 +1206,7 @@ void Racing::OnPlayerLapsUpdated(SRPlayer * player){
 			TextAnimationEvent * tae = new TextAnimationEvent(TextAnimationEvent::NOTICE, "LapInfoLabel", player->viewport->ID());
 			tae->fadeInDuration = 500 - player->lapsFinished * 50;
 			tae->fadeOutDuration = 500 + player->lapsFinished * 100;
-			EventMan.PlayEvent(tae);
+			ScriptMan.PlayScript(tae);
 
 			// If final lap, post final position too.
 			if (player->lapsFinished == GetSession()->Laps())
@@ -1189,7 +1216,7 @@ void Racing::OnPlayerLapsUpdated(SRPlayer * player){
 				TextAnimationEvent * tae2 = new TextAnimationEvent(TextAnimationEvent::NOTICE, "FinalPositionLabel", player->viewport->ID());
 				tae2->fadeInDuration = 50;
 				tae2->fadeOutDuration = 10000;
-				EventMan.PlayEvent(tae2);
+				ScriptMan.PlayScript(tae2);
 
 			}
 		}

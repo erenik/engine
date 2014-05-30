@@ -13,6 +13,7 @@ TextAnimationEvent::TextAnimationEvent(int type, String elementName, int viewpor
 	fadeInDuration = fadeOutDuration = 1000;
 	duration = 2000;
 	SetDeleteOnEnd(true);
+	loaded = true;
 }
 
 void TextAnimationEvent::OnBegin(){

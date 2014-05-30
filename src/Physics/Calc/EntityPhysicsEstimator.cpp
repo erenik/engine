@@ -39,7 +39,7 @@ void EntityPhysicsEstimator::Process(){
 
 	
 	
-//	std::cout<<"\nRotationVector: "<<owner->rotation;
+//	std::cout<<"\nrotation: "<<owner->rotation;
 
 	/// Calculate an average velocity.
 	float divisor = (cTime - lastTime) / 1000.0f;

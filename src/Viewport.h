@@ -22,8 +22,10 @@ protected:
 	static int idEnumerator;
 	int id;
 	// Size details
+	bool relative; // If using relative or absolute values!
 	int x0, y0, width, height;
-
+	float relativeXOffset, relativeYOffset;
+	float relativeWidth, relativeHeight;
 };
 
 /// Screen-to-world space functions, defined by input variables.

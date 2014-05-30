@@ -20,6 +20,8 @@ enum LightTypes {
 };
 };
 
+class Entity;
+
 /** Struct for handling a single light source. */
 class Light{
 public:
@@ -65,6 +67,8 @@ public:
 	/// Defines the spot lights area of influence by determining the radius (in degrees) out from the spotDirection.
 	float spotCutoff;
 	
+	/// Entity owner.
+	Entity * owner;
 	/// Extra data pointer. For dynamic lights this pointer will refer to the entity owning it.
 	void * data;
 private:

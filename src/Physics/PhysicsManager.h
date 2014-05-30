@@ -37,8 +37,8 @@ enum Integrators {
 };};
 
 /// Collission Resolvers
-namespace CollissionResolver{
-enum collissionResolvers {
+namespace CollisionResolver{
+enum collisionResolvers {
 	CUSTOM_SPACE_RACE_PUSHBACK,
 	LAB_PHYSICS_IMPULSES,
 };};
@@ -69,7 +69,7 @@ public:
     /// Defines if AABBs or sphere-octrees should be used to broad-phase collission detection.
     int checkType;
     /// Defines how collissions will be resolved.
-    int collissionResolver;
+    int collisionResolver;
 	/// How stuff is updated.
 	int integrator;
 

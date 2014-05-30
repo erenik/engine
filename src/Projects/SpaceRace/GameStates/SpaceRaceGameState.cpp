@@ -117,7 +117,7 @@ bool SpaceRaceGameState::HandleCameraMessages(String message)
 	else if (message == "Zoom in")
 	{
 		mainCamera->zoom = mainCamera->zoom * 0.95f - 0.01f;
-#define CLAMP_DISTANCE Clamp(mainCamera->zoom, 0.01f, 10000.0f);
+#define CLAMP_DISTANCE ClampFloat(mainCamera->zoom, 0.01f, 10000.0f);
 		CLAMP_DISTANCE;
 	}
 	else if (message == "Zoom out"){

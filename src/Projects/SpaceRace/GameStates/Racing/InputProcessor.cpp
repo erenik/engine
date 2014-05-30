@@ -120,7 +120,7 @@ void Racing::InputProcessor(int action, int inputDevice){
 		}
 		case GO_TO_MAIN_MENU:
 			std::cout<<"\nInput>>GO_TO_MAIN_MENU";
-			StateMan.QueueState(GAME_STATE_MAIN_MENU);
+			StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_MAIN_MENU));
 			break;
 		case CHANGE_CAMERA:
 			switch(PLAYER_CAMERA.trackingMode){

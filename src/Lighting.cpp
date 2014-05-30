@@ -252,7 +252,8 @@ void Lighting::ReadFrom(std::fstream & file)
 
 
 /// Loads selected lighting into the active shader program
-bool LoadLighting(Lighting * lighting, Shader * shader){
+bool LoadLighting(Lighting * lighting, Shader * shader)
+{
 	GLuint loc, error;
 	if (!lighting)
 		return false;

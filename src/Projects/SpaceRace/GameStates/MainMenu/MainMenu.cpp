@@ -7,7 +7,6 @@
 #include "Actions.h"
 #include "Graphics/Messages/GMUI.h"
 #include "OS/Sleep.h"
-extern UserInterface * ui[MAX_GAME_STATES];
 
 /// For testng particles
 #include "Graphics/GraphicsProperty.h"
@@ -27,9 +26,9 @@ extern UserInterface * ui[MAX_GAME_STATES];
 #include "Audio/Tracks/Track.h"
 
 MainMenu::MainMenu(){
-	id = GAME_STATE_MAIN_MENU;
+	id = GameStateID::GAME_STATE_MAIN_MENU;
 	requestedPlayers = 1;
-    stateName = "Space Race Main Menu";
+    name = "Space Race Main Menu";
 }
 
 MainMenu::~MainMenu()
@@ -82,7 +81,7 @@ void MainMenu::OnEnter(GameState * previousState){
 	for (int i = 0; i < particleSystems; ++i){
 		rotations[i].y = 2 * PI / particleSystems * i;
 		Entity * e = MapMan.CreateEntity(NULL, NULL);
-		e->rotate(rotations[i]);
+		e->Rotate(rotations[i]);
 		GraphicsProperty * gp = new GraphicsProperty();
 		gp->particleSystems = new List<ParticleSystem*>();
 		Exhaust * exhaust = new Exhaust(e);
@@ -130,7 +129,7 @@ void MainMenu::OnExit(GameState *nextState){
 	Graphics.QueueMessage(new GraphicsMessage(GM_CLEAR_UI));
 	std::cout<<"\nLeaving MainMenu state.";
 	// Load initial texture and set it to render over everything else
-	if (nextState->GetID() != GAME_STATE_EXITING)
+	if (nextState->GetID() != GameStateID::GAME_STATE_EXITING)
 		Graphics.QueueMessage(new GMSet(OVERLAY_TEXTURE, TexMan.GetTextureBySource("img/loadingData.png")));
 	else
 		Graphics.QueueMessage(new GMSet(OVERLAY_TEXTURE, TexMan.GetTextureBySource("img/deallocating.png")));
@@ -138,7 +137,7 @@ void MainMenu::OnExit(GameState *nextState){
 
 	Physics.QueueMessage(new PMSet(GRAVITY, -250.f));
 	// Verify data o-o
-	MapMan.GetLighting().VerifyData();
+//	MapMan.GetLighting().VerifyData();
 }
 
 #include "../UI/UserInterface.h"
@@ -160,20 +159,20 @@ void MainMenu::ProcessMessage(Message * message){
 			if (s == "go_to_racing_state")
 				InputProcessor(GO_TO_RACING_STATE);
 			else if (s == "GO_TO_LOBBY_STATE"){
-				StateMan.QueueState(GAME_STATE_LOBBY);
+				StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_LOBBY));
 			}
 			//	StateMan.QueueState(GAME_STATE_RACING);
 			else if (s == "go_to_main_menu")
-				StateMan.QueueState(GAME_STATE_MAIN_MENU);
+				StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_MAIN_MENU));
 			else if (s == "go_to_editor")
-				StateMan.QueueState(GAME_STATE_EDITOR);
+				StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_EDITOR));
 			else if (s == "go_to_options")
 				Graphics.QueueMessage(new GraphicsMessage(GM_CLEAR_UI));
 			else if (s == "go_to_blueprint_editor"){
-				StateMan.QueueState(GAME_STATE_BLUEPRINT_EDITOR);
+//				StateMan.QueueState(GAME_STATE_BLUEPRINT_EDITOR);
 			}
 			else if (s == "exit")
-				StateMan.QueueState(GAME_STATE_EXITING);
+				StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_EXITING));
 			else {
 				std::cout<<"\nUndefined message received: "<<message->msg;
 			}

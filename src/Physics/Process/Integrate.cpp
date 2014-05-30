@@ -8,7 +8,8 @@
 #include "Physics/Springs/Spring.h"
 #include "Physics/Calc/EntityPhysicsEstimator.h"
 
-void PhysicsManager::Integrate(float timeSinceLastUpdate){
+void PhysicsManager::Integrate(float timeSinceLastUpdate)
+{
     assert(timeSinceLastUpdate > 0);
 	// Process dynamic entities
 	for (int i = 0; i < dynamicEntities.Size(); ++i){
@@ -232,6 +233,10 @@ void PhysicsManager::Integrate(float timeSinceLastUpdate){
 		{
 			ApproximateIntegrate(dynamicEntity, timeSinceLastUpdate);
         } /// End of custom physics step calculation
+
+		// Recalculate the matrix!
+		dynamicEntity->RecalculateMatrix();
+
 
         Vector3f vel = dynamicEntity->physics->velocity;
         /// Update octree or AABB position as needed.

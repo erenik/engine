@@ -40,26 +40,21 @@
 #include "../../Network/SRPacketTypes.h"
 #include "../../SRConstants.h"
 #include "Graphics/Fonts/Font.h"
-#include "Event/Event.h"
+#include "Script/Script.h"
 #include "Maps/MapManager.h"
 #include "Game/Game.h"
 
-/// MAin space race stuff
-String applicationName;
-
-extern UserInterface * ui[MAX_GAME_STATES];
-#define UI ui[StateMan.currentGameState];
+const String applicationName = "Space Race";
 
 
 /// Call to set application name, root directories for various features, etc.
 void SetApplicationDefaults()
 {
-	applicationName = "Space Race";
 	FilePath::workingDirectory = "/SpaceRace";
 	TextFont::defaultFontSource = "font3";
 	UIElement::defaultTextureSource = "80Gray50Alpha.png";
 	UserInterface::rootUIDir = "gui/";
-	Event::rootEventDir = "data/SpaceRace/Events/";
+	Script::rootEventDir = "data/SpaceRace/Events/";
 	MapManager::rootMapDir = "map/";
 }
 
@@ -67,9 +62,8 @@ void SetApplicationDefaults()
 GlobalState::GlobalState()
 : SpaceRaceGameState()
 {
-	applicationName = "SpaceRace";
-    id = GAME_STATE_GLOBAL;
-    stateName = "Space Race Global State";
+	id = GameStateID::GAME_STATE_GLOBAL;
+    name = "Space Race Global State";
 }
 
 
@@ -103,7 +97,7 @@ void GlobalState::OnEnter(GameState * previousState)
 	GameVars.CreateInt("Laps", 3);
 
     Physics.checkType = OCTREE;
-	Physics.collissionResolver = CUSTOM_SPACE_RACE_PUSHBACK;
+	Physics.collisionResolver = CollisionResolver::CUSTOM_SPACE_RACE_PUSHBACK;
 	Physics.integrator = Integrator::SPACE_RACE_CUSTOM_INTEGRATOR;
 
 	// Set graphics manager to render UI, and remove the overlay-texture.
@@ -129,7 +123,7 @@ void GlobalState::OnExit(GameState * nextState){
 	}
 
 	// Load initial texture and set it to render over everything else
-	if (nextState && nextState->GetID() != GAME_STATE_EXITING)
+	if (nextState && nextState->GetID() != GameStateID::GAME_STATE_EXITING)
 		Graphics.QueueMessage(new GMSets(OVERLAY_TEXTURE, "img/loadingData.png"));
 	else
 		Graphics.QueueMessage(new GMSets(OVERLAY_TEXTURE, "img/deallocating.png"));
@@ -162,12 +156,12 @@ void GlobalState::ProcessPacket( Packet * packet ){
 					// Start the race
 					if (msg == "Start")
 					{
-						StateMan.QueueState(GAME_STATE_RACING);
+						StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_RACING));
 					}
 					// Start countdown
 					else if (msg == "Countdown")
 					{
-						StateMan.QueueState(GAME_STATE_RACING);
+						StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_RACING));
 					}
 					// Finished, fetch result table?
 					else if (msg == "Finished")
@@ -177,15 +171,15 @@ void GlobalState::ProcessPacket( Packet * packet ){
 					/// Simulation ended, go to lobby?
 					else if (msg == "Ended")
 					{
-						StateMan.QueueState(GAME_STATE_LOBBY);
+						StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_LOBBY));
 					}
 					break;
 				}
 				case SRPacketType::START_GAME:
-					StateMan.QueueState(GAME_STATE_RACING);
+					StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_RACING));
 					break;
 				case SRPacketType::GO_TO_LOBBY:
-					StateMan.QueueState(GAME_STATE_LOBBY);
+					StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_LOBBY));
 					break;
 			}
 		}
@@ -213,7 +207,7 @@ bool GlobalState::HostGame(){
 	result = srs->Host(33001, 33002);
 	assert(result);
     if (result){
-        StateMan.QueueState(GAME_STATE_LOBBY);
+		StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_LOBBY));
         ChatMan.AddMessage(new ChatMessage(NULL, "Game hosted."));
     }
     else {
@@ -278,7 +272,7 @@ void GlobalState::ProcessMessage( Message * message ){
 			String s = message->msg;
 			s.SetComparisonMode(String::NOT_CASE_SENSITIVE);
 			if (s == "editor"){
-				StateMan.QueueState(GAME_STATE_EDITOR);
+				StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_EDITOR));
 				return;
 			}
 			else if (s == "OnRaceOptionsUpdated")
@@ -290,7 +284,7 @@ void GlobalState::ProcessMessage( Message * message ){
 			else if (s == "ShowPeerUdpStatus")
 			{
 				/// Check for ui in current userinterface.
-				UserInterface * ui = Graphics.GlobalUI();
+				UserInterface * ui = Graphics.GetUI();
 				if (!ui)
 					return;
 				String elementName = "PeerUdpStatus";
@@ -306,14 +300,14 @@ void GlobalState::ProcessMessage( Message * message ){
 				UpdatePeerUdpStatusUI();
 
 				/// Push it to stack if not.
-				Graphics.QueueMessage(new GMPushUI(elementName));
+				Graphics.QueueMessage(new GMPushUI(elementName, ui));
 				/// Make sure it is exitable.
 				element->exitable = true;
 			}
 			else if (s == "HidePeerUdpStatus"){
 				String elementName = "PeerUdpStatus";
 				/// Send a pop ui message. No harm will come if it isn't available!
-				Graphics.QueueMessage(new GMPopUI(elementName));
+				Graphics.QueueMessage(new GMPopUI(elementName, ui));
 			}
 			else if (s.Contains("PostChatMessage(")){
 				String uiName = s.Tokenize("()")[1];
@@ -330,11 +324,11 @@ void GlobalState::ProcessMessage( Message * message ){
 			else if (s == "NewLocalGame" || s == "New game")
 			{
 				GetSession()->HostLocalGame();
-				StateMan.QueueState(GAME_STATE_LOBBY);
+				StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_LOBBY));
 				return;
 			}
 			else if (s == "go_to_main_menu")
-				StateMan.QueueState(GAME_STATE_MAIN_MENU);
+				StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_MAIN_MENU));
 			else if (s == "ToggleRenderEntityLookAtVectors"){
 				Graphics.renderLookAtVectors = !Graphics.renderLookAtVectors;
 			}
@@ -346,7 +340,7 @@ void GlobalState::ProcessMessage( Message * message ){
 				return;
 			}
 			else if (s == "ConnectionFailed"){
-				StateMan.QueueState(GAME_STATE_MAIN_MENU);
+				StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_MAIN_MENU));
 			}
 			else if (s == "ToggleAudioEnabled"){
 				bool enabled = AudioMan.AudioEnabled();
@@ -469,7 +463,7 @@ void GlobalState::ProcessMessage( Message * message ){
 				/// Now we can head on to the lobby or wherever they are.
 				ChatMan.AddMessage(new ChatMessage(NULL, "Join request accepted."));
 				/// Connect to the space race session straight away too!
-				StateMan.QueueState(GAME_STATE_LOBBY);
+				StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_LOBBY));
 			}
 			else if (s.Contains("JoinRequestRefused(")){
 				String reason = s.Tokenize(";")[1];

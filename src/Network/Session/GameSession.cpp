@@ -10,8 +10,8 @@
 #include "Network/Server/TcpServer.h"
 
 /// Name of our specific session, the game's name, max amount of peers/clients, and your name for this session.
-GameSession::GameSession(String sessionName, String gameName, int maxPeers, String name)
-: Session(sessionName, gameName, SessionType::GAME), maxPlayers(maxPlayers), name(name)
+GameSession::GameSession(String sessionName, String gameName, int maxPeers)
+: Session(sessionName, gameName, SessionType::GAME), maxPlayers(maxPlayers)
 {
 	currentPlayers = 0;
 	udpSocket = NULL;

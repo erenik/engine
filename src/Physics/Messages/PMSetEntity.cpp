@@ -36,7 +36,8 @@ PMSetEntity::PMSetEntity(int target, List<Entity*> targetEntities, float value)
 }
 
 PMSetEntity::PMSetEntity(int target, List<Entity*> targetEntities, Vector3f value, long long timeStamp)
-: target(target), timeStamp(timeStamp){
+: target(target), timeStamp(timeStamp)
+{
 	type = PM_SET_ENTITY;
 	entities = targetEntities;
 	/// Assertions earlier should guarantee correct target now
@@ -108,9 +109,13 @@ void PMSetEntity::Process(){
 		Physics.SetPhysicsType(entity, PhysicsType::DYNAMIC); \
 	} \
 }
+
 	/// Assertions earlier should guarantee correct target now
 	for (int i = 0; i < entities.Size(); ++i){
 		Entity * entity = entities[i];
+		// Create if not there.
+		if (!entity->physics)
+			entity->physics = new PhysicsProperty();
 		switch(target){
 			// Float types?
 			case MASS:
@@ -170,8 +175,10 @@ void PMSetEntity::Process(){
 			case VELOCITY:
 				if (entity->physics->estimationEnabled)
 					entity->physics->estimator->AddVelocity(vec3fValue, timeStamp);
-				else
+				else {
 					entity->physics->velocity = vec3fValue;
+					entity->physics->linearMomentum = entity->physics->velocity * entity->physics->mass;
+				}
 				break;
 			case ANGULAR_VELOCITY:
 				entity->physics->angularVelocity = vec3fValue;
@@ -241,8 +248,7 @@ void PMSetEntity::Process(){
 			case COLLISIONS_ENABLED:
 				/// Best to re-register the entity to make sure that everything works as intended..!
 				Physics.UnregisterEntity(entity);
-				/// If registered for collissions, remove that now.
-				entity->physics->collissionsEnabled = bValue;
+				// 
 				Physics.RegisterEntity(entity);
 			/*	if (bValue == false){
 					if (Physics.entityCollissionOctree->Exists(entity))

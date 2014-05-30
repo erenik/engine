@@ -7,6 +7,26 @@
 
 #include "GraphicsMessage.h"
 
+
+class GMClearLighting : public GraphicsMessage 
+{
+public:
+	GMClearLighting();
+	virtual void Process();
+};
+
+// Add a light to the lighting setup.
+class GMAddLight : public GraphicsMessage 
+{
+public:
+	GMAddLight(Light newLight);
+	virtual ~GMAddLight();
+	virtual void Process();
+private:
+	Light light;
+};
+
+
 class GMSetAmbience : public GraphicsMessage
 {
 public:

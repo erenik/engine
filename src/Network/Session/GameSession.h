@@ -13,7 +13,7 @@ class Game;
 class GameSession : public Session {
 public:
 	/// Name of our specific session, the game's name, max amount of peers/clients, and your name for this session.
-	GameSession(String sessionName, String gameName, int maxPeers, String name);
+	GameSession(String sessionName, String gameName, int maxPeers);
 
 	/// Virtual destructor for proper deallocation.
 	virtual ~GameSession();
@@ -46,8 +46,6 @@ public:
 	/// Name! o-o
 	String Name(){return name;};
 protected:
-	/// Our alias or name within this gaming session. Does not have to be the same as the device ID/name in the networkManager.
-	String name;
 
 };
 

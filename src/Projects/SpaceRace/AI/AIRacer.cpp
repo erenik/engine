@@ -58,7 +58,7 @@ void AIRacer::Process(float timeInSeconds){
 			; //std::cout<<"\nERROR: No navmesh nor path available. AI will not function.";
 			return;
 		}
-		closestWaypoint = path->GetClosest(shipEntity->positionVector);
+		closestWaypoint = path->GetClosest(shipEntity->position);
 		if (closestWaypoint == NULL){
 			std::cout<<"\nERROR: Unable to find closest waypoint. This ship is probably fucked.";
 			return;
@@ -73,8 +73,8 @@ void AIRacer::Process(float timeInSeconds){
 		std::cout<<"\nNo valid pathhhh? >:";
 		return;
 	}
-	float distToCurr = (closestWaypoint->position - shipEntity->positionVector).LengthSquared();
-	float distToNext = (nextWaypointAverage - shipEntity->positionVector).LengthSquared();
+	float distToCurr = (closestWaypoint->position - shipEntity->position).LengthSquared();
+	float distToNext = (nextWaypointAverage - shipEntity->position).LengthSquared();
 	if (distToNext < distToCurr){
 		closestWaypoint = nextWaypoints[0];
 		CalculateNextAverage();
@@ -86,7 +86,7 @@ void AIRacer::Process(float timeInSeconds){
 	}
 	/// Go towards current waypoint.
 	Vector3f currDirr = (shipEntity->rotationMatrix * Vector4d(0,0,-1,1)).NormalizedCopy();
-	Vector3f dirToNext = (nextWaypointAverage - shipEntity->positionVector).NormalizedCopy();
+	Vector3f dirToNext = (nextWaypointAverage - shipEntity->position).NormalizedCopy();
 
 	float currDirrDotNextDirr = currDirr.DotProduct(dirToNext);
 
@@ -150,7 +150,7 @@ void AIRacer::Process(float timeInSeconds){
 
 	// Check once in a while maybe ?
 	Entity * e = gameState->GetCheckpoint(player->checkpointsPassed);
-	float distanceToCheckpoint = (e->positionVector - shipEntity->positionVector).Length();
+	float distanceToCheckpoint = (e->position - shipEntity->position).Length();
 	if (distanceToCheckpoint < closestDistance){
 		closestDistance = distanceToCheckpoint;
 	}

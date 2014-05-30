@@ -97,7 +97,7 @@ protected:
 	UserInterface * ui;
 	InputMapping inputMapping;
 	/// Last update time in ms
-	clock_t lastTime;
+	int64 lastTime;
 private:
 
 };

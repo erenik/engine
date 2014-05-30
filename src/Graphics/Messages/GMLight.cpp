@@ -7,6 +7,35 @@
 #include "Graphics/GraphicsManager.h"
 #include "Light.h"
 
+
+GMClearLighting::GMClearLighting()
+: GraphicsMessage(0)
+{
+}
+void GMClearLighting::Process()
+{
+	Lighting * lighting = Graphics.ActiveLighting();
+	lighting->DeleteAllLights();
+}
+
+
+GMAddLight::GMAddLight(Light newLight)
+: GraphicsMessage(GM_ADD_LIGHT), light(newLight)
+{
+
+}
+GMAddLight::~GMAddLight()
+{
+
+}
+void GMAddLight::Process()
+{
+	Lighting * lighting = Graphics.ActiveLighting();
+	lighting->Add(&light);
+}
+
+
+
 GMSetAmbience::GMSetAmbience(Vector3f value) 
 : GraphicsMessage(GM_SET_AMBIENCE), value(value)
 {
@@ -19,7 +48,7 @@ GMSetAmbience::~GMSetAmbience()
 }
 void GMSetAmbience::Process()
 {
-	Lighting * lighting = Graphics.ActiveLightingEditable();
+	Lighting * lighting = Graphics.ActiveLighting();
 	lighting->SetAmbient(value);
 }
 

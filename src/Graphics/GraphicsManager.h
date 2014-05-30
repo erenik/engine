@@ -53,7 +53,7 @@ class GraphicsManager {
 	friend class GMRegister;
 	friend class GMClear;
 	friend class GMRender;
-	friend class GMAddLight;
+	friend class GMAttachLight;
 //	friend class ;
 private:
 	/// Constructor which anulls all relevant variables.
@@ -97,9 +97,7 @@ public:
     /// Returns the active camera for the given viewport
 	Camera * ActiveCamera(int viewport = 0) const;
 	/// Returns the active lighting. 
-	Lighting * ActiveLighting() {return lighting;};
-	/// Returns the active lighting. Should not be called from outside the render-thread.
-	Lighting * ActiveLightingEditable() {return lighting;};
+	Lighting * ActiveLighting();
 
 	/// For updating graphical effects before rendering takes place.
 	void Process();
@@ -352,8 +350,6 @@ private:
 
 	/// Updates the graphicsState's lighting to include dynamic lights' new positions as well.
 	void UpdateLighting();
-	/// Lighting as set via messages.
-	Lighting * lighting;
 	/// Additional lights that are attached to entities or other dynamic properties.
 	List<Light*> dynamicLights, staticLights;
 

@@ -13,6 +13,7 @@ public:
 	void OnExit(GameState *);
 	void ProcessMessage(Message * message);
 	void CreateDefaultBindings();
+	void CreateUserInterface();
 private:
 	// Clear world. Spawn character. 
 	void NewGame();

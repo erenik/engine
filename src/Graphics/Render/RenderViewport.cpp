@@ -38,12 +38,13 @@ RenderViewport::~RenderViewport()
 	viewPortUI = NULL;
 }
 
-void RenderViewport::SetRelative(float ix, float iy, float iwidth, float iheight){
+void RenderViewport::SetRelative(float ix, float iy, float iwidth, float iheight)
+{
 	relative = true;
-	x0 = ix;
-	y0 = iy;
-	width = iwidth;
-	height = iheight;
+	relativeXOffset = ix;
+	relativeYOffset = iy;
+	relativeWidth = iwidth;
+	relativeHeight = iheight;
 }
 void RenderViewport::SetCameraToTrack(Camera * icamera){
 	camera = icamera;
@@ -67,7 +68,8 @@ void RenderViewport::AdjustToWindow(int w_width, int w_height){
 
 void RenderViewport::Render(GraphicsState &graphicsState)
 {
-	if (width == 0 || height == 0){
+	// If relative, update width and height.
+	if ((width == 0 || height == 0) && !relative){
 		std::cout<<"\nRenderViewport::Render: NULL viewport width or height! Is this the intent?";
 		return;
 	}
@@ -77,9 +79,13 @@ void RenderViewport::Render(GraphicsState &graphicsState)
 	/// Relative coordinates
 	if (relative){
 		// Reset scissor-variables
-		graphicsState.viewportX0 = x0 * Graphics.width;
-		graphicsState.viewportY0 = y0 * Graphics.height;
-		glViewport(x0 * Graphics.width, y0 * Graphics.height, width * Graphics.width, height * Graphics.height);
+		graphicsState.viewportX0 = relativeXOffset * Graphics.width;
+		graphicsState.viewportY0 = relativeYOffset * Graphics.height;
+		width = relativeWidth * Graphics.width;
+		height = relativeHeight * Graphics.height;
+		x0 = relativeXOffset * Graphics.width;
+		y0 = relativeYOffset * Graphics.height;
+		glViewport(x0, y0, width, height);
 	}
 	/// Absolute coordinates
 	else {
@@ -91,6 +97,7 @@ void RenderViewport::Render(GraphicsState &graphicsState)
 	Graphics.UpdateProjection(width, height);
 	// Update camera
 	camera->ProcessMovement(graphicsState.frameTime);
+	camera->Update();
 	// Set active camera to current one
 	graphicsState.camera = camera;
 

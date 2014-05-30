@@ -52,8 +52,8 @@ enum actions {
 };
 
 LobbyState::LobbyState(){
-    stateName = "Lobby state";
-	id = GAME_STATE_LOBBY;
+    name = "Lobby state";
+	id = GameStateID::GAME_STATE_LOBBY;
 	requestedPlayers = 1;
 	activePlayer = NULL;
 	shipSelector = -1;
@@ -129,7 +129,7 @@ void LobbyState::Process(float time){
 void LobbyState::OnExit(GameState * nextState){
 	std::cout<<"\nLobbyState::OnExit.";
 
-	if (nextState->GetID() == GAME_STATE_RACING && selectedLevel.Length() > 1)
+	if (nextState->GetID() == GameStateID::GAME_STATE_RACING && selectedLevel.Length() > 1)
 		nextState->ProcessMessage(new Message("SetLevel("+selectedLevel+")"));
 
 	// Load initial texture and set it to render over everything else
@@ -137,7 +137,7 @@ void LobbyState::OnExit(GameState * nextState){
 	Graphics.QueueMessage(new GraphicsMessage(GM_CLEAR_UI));
 }
 void LobbyState::CreateDefaultBindings(){
-	std::cout<<"\n"<<this->stateName<<"::CreateDefaultBindings() called";
+	std::cout<<"\n"<<this->name<<"::CreateDefaultBindings() called";
 	/// Get pointer to this mapping
 	InputMapping * mapping = &inputMapping;
 
@@ -189,7 +189,7 @@ void LobbyState::ProcessMessage(Message * message)
 	}
 	// Woo!
 	else if (s == "ENTER_RACING_STATE"){
-		StateMan.QueueState(GAME_STATE_RACING);
+		StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_RACING));
 	}
 	/// Sent after a map has been selected.
 	else if (s.Contains("MapSetTo(")){
@@ -381,7 +381,7 @@ void LobbyState::ProcessMessage(Message * message)
 		Session * session = GetSession();
 		/// If not in network (no peers), just start!
 		if (!session->peers.Size()){
-			StateMan.QueueState(GAME_STATE_RACING);
+			StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_RACING));
 			return;
 		}
 		// Networked session, check if we are host.
@@ -394,7 +394,7 @@ void LobbyState::ProcessMessage(Message * message)
 
 //		Network.QueuePacket(playersPacket);
 //	    Network.QueuePacket(new Packet(SRP_START_GAME, PACKET_TARGET_OTHERS));
-		StateMan.QueueState(GAME_STATE_RACING);
+		StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_RACING));
 	}
 }
 

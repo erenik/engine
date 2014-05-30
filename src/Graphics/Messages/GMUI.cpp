@@ -290,7 +290,8 @@ GMSetGlobalUIf::GMSetGlobalUIf(String uiName, int target, float value)
 };
 
 
-void GMSetUIb::Process(){
+void GMSetUIb::Process()
+{
 	if (!GetUI())
         return;
 	if (!name.Length())

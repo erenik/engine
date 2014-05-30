@@ -28,7 +28,7 @@ void EditorState::InputProcessor(int action, int inputDevice/* = 0*/){
 	switch(action){
 		case GO_TO_MAIN_MENU:
 			std::cout<<"\nInput>>GO_TO_MAIN_MENU";
-			StateMan.QueueState(GAME_STATE_MAIN_MENU);
+			StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_MAIN_MENU));
 			break;
 		/// Opening the general console for multi-purpose commands of more difficult nature
 		/// Different modes
@@ -205,7 +205,7 @@ void EditorState::InputProcessor(int action, int inputDevice/* = 0*/){
 			if (editorSelection.Size() == 0)
 				return;
 			Entity * entity = editorSelection[0];
-			std::cout<<"\nTranslate Entity prompt: Current translation: "<<entity->positionVector;
+			std::cout<<"\nTranslate Entity prompt: Current translation: "<<entity->position;
 			Input.EnterTextInputMode("TRANSLATE_ENTITY");
 			break;
 		}
@@ -223,7 +223,7 @@ void EditorState::InputProcessor(int action, int inputDevice/* = 0*/){
 			if (editorSelection.Size() == 0)
 				return;
 			Entity * entity = editorSelection[0];
-			std::cout<<"\nScale Entity prompt: Current scale: "<<entity->scaleVector;
+			std::cout<<"\nScale Entity prompt: Current scale: "<<entity->scale;
 		//	Input.EnterTextInputMode("SCALE_ENTITY");
 			break;
 		}
@@ -240,7 +240,7 @@ void EditorState::InputProcessor(int action, int inputDevice/* = 0*/){
 			if (editorSelection.Size() == 0)
 				return;
 			Entity * entity = editorSelection[0];
-			std::cout<<"\nRotate Entity prompt: Current Rotation: "<<entity->rotationVector;
+			std::cout<<"\nRotate Entity prompt: Current Rotation: "<<entity->rotation;
 			Input.EnterTextInputMode("ROTATE_ENTITY");
 			break;
 		}

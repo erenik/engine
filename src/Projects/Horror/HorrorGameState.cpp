@@ -21,6 +21,8 @@
 #include "Physics/Messages/PhysicsMessage.h"
 #include "Entity/EntityManager.h"
 #include "Audio/TrackManager.h"
+#include "UI/UserInterface.h"
+#include "Graphics/Messages/GMUI.h"
 
 const String applicationName = "Horror";
 
@@ -59,6 +61,7 @@ void HorrorGameState::OnEnter(GameState *)
 	roomSize = roomModel->aabb.max.x - roomModel->aabb.min.x;
 	roomSize *= scale;
 
+	Graphics.SetUI(ui);
 
 	Graphics.renderGrid = false;
 
@@ -73,17 +76,20 @@ void HorrorGameState::Process(float)
 
 	// Check player position.
 	Vector3f position = player->position;
-	int roomX = (position.x + roomSize * 0.5f) / roomSize;
-	int roomZ = (position.z + roomSize * 0.5f) / roomSize;
-	position.x = roomX;
-	position.z = roomZ;
+	int roomX = (int)((position.x + roomSize * 0.5f) / roomSize);
+	int roomZ = (int)((position.z + roomSize * 0.5f) / roomSize);
+	position.x = (float)roomX;
+	position.z = (float)roomZ;
 
 	int roomMatrixSize = 5;
 
+	// Update room in gui
+	Graphics.QueueMessage(new GMSetUIs("Room", GMUI::TEXT, "Room X: "+String::ToString(roomX)+" Z: "+String::ToString(roomZ)));
+
 	// Generate list of tiles we should plant.
-	for (int x = position.x - roomMatrixSize; x <= position.x + roomMatrixSize; ++x)
+	for (int x = (int)position.x - roomMatrixSize; x <= position.x + roomMatrixSize; ++x)
 	{
-		for (int z = position.z - roomMatrixSize; z <= position.z + roomMatrixSize; ++z)
+		for (int z = (int)position.z - roomMatrixSize; z <= position.z + roomMatrixSize; ++z)
 		{
 			// Check for grid here.
 			String entityName = "Room x="+String::ToString(x)+" z="+String::ToString(z);
@@ -147,7 +153,14 @@ void HorrorGameState::ProcessMessage(Message * message)
 			Physics.QueueMessage(new PMSetEntity(ACCELERATION, player, Vector3f(0,0,MOVE_ACC)));
 		else
 			Physics.QueueMessage(new PMSetEntity(ACCELERATION, player, Vector3f()));
-
+		
+		// For controlling speed.
+		if (right || left || forward || backward)
+			Physics.QueueMessage(new PMSetEntity(FRICTION, player, 0.09f));
+		else {
+			// Add friction to reduce the velocity!
+			Physics.QueueMessage(new PMSetEntity(FRICTION, player, 0.5f));
+		}
 	}
 }
 
@@ -164,6 +177,15 @@ void HorrorGameState::CreateDefaultBindings()
 	mapping->CreateBinding("SwitchCamera", KEY::C); 
 
 }
+
+void HorrorGameState::CreateUserInterface()
+{
+	if (this->ui)
+		delete ui;
+	this->ui = new UserInterface();
+	ui->Load("gui/HUD.gui");
+}
+
 
 
 // Clear world. Spawn character. 

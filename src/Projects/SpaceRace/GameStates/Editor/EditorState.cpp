@@ -23,7 +23,6 @@
 #include "Actions.h"
 #include "OS/Sleep.h"
 #include "File/FileUtil.h"
-extern UserInterface * ui[MAX_GAME_STATES];
 
 #include <iomanip>
 #include "Graphics/Messages/GMNavMesh.h"
@@ -39,14 +38,15 @@ extern UserInterface * ui[MAX_GAME_STATES];
 #define SHIP_EDITOR_MAP	"ShipEditor"
 
 EditorState::EditorState()
-: SpaceRaceGameState(){
-	id = GAME_STATE_EDITOR;
+: SpaceRaceGameState()
+{
+	id = GameStateID::GAME_STATE_EDITOR;
 	mouseCameraState = 0;
 	editMode = ENTITIES;
 	activePath = NULL;
 	checkPointWaypointInterval = 5;
 	checkpointSize = 10.0f;
-    stateName = "Editor state";
+    name = "Editor state";
 
 	activeShipEntity = NULL;
 	activeShip = NULL;
@@ -141,8 +141,8 @@ void EditorState::Process(float time){
 	/// Process key input for navigating the 3D - Space
 
 	// Calculate time since last update
-	clock_t newTime = Timer::GetCurrentTimeMs();
-	int timeDiff = newTime - lastTime;
+	int64 newTime = Timer::GetCurrentTimeMs();
+	int64 timeDiff = newTime - lastTime;
 	lastTime = newTime;
 
 	/*
@@ -326,13 +326,13 @@ void EditorState::ProcessMessage(Message * message){
 				Lighting light = MapMan.GetLighting();
 				light.DeleteAllLights();
 				MapMan.SetLighting(light);
-				Graphics.QueueMessage(new GMSetLighting(light));
+//				Graphics.QueueMessage(new GMSetLighting(light));
 			}
 			else if (command == "create light" || command == "add light"){
 				Lighting light = MapMan.GetLighting();
 				light.CreateLight();
 				MapMan.SetLighting(light);
-				Graphics.QueueMessage(new GMSetLighting(light));
+//				Graphics.QueueMessage(new GMSetLighting(light));
 			}
 			else if (command.Contains("set light pos") && tokensFound >= 6){
 				Vector3f position;
@@ -340,9 +340,9 @@ void EditorState::ProcessMessage(Message * message){
 				position.y = token[4].ParseFloat();
 				position.z = token[5].ParseFloat();
 				Lighting light = MapMan.GetLighting();
-				light.SetPosition(position.x,position.y,position.z);
+			//	light.SetPosition(position.x,position.y,position.z);
 				MapMan.SetLighting(light);
-				Graphics.QueueMessage(new GMSetLighting(light));
+	//			Graphics.QueueMessage(new GMSetLighting(light));
 			}
 			else if (tokensFound >= 3 && editorSelection.Size() > 0
 				&& (command.Contains("set diffuse") || command.Contains("set texture") ||
@@ -385,7 +385,7 @@ void EditorState::ProcessMessage(Message * message){
 					std::cout<<"\nBad arguments! Give 1 or 3 floats for setting ambience!";
 				Lighting lighting = MapMan.GetLighting();
 				lighting.SetAmbient(ambience);
-				Graphics.QueueMessage(new GMSetLighting(lighting));
+//				Graphics.QueueMessage(new GMSetLighting(lighting));
 			}
 			else if (command.Contains("render lights") || command.Contains("toggle lights")){
 				Graphics.renderLights = !Graphics.renderLights;
@@ -397,9 +397,9 @@ void EditorState::ProcessMessage(Message * message){
 				ambient.y = token[3].ParseFloat();
 				ambient.z = token[4].ParseFloat();
 				Lighting lighting = MapMan.GetLighting();
-				lighting.VerifyData();
+//				lighting.VerifyData();
 				lighting.SetAmbient(ambient);
-				Graphics.QueueMessage(new GMSetLighting(lighting));
+//				Graphics.QueueMessage(new GMSetLighting(lighting));
 			}
 			else if (tokensFound >= 3 && command.Contains("set gridspacing")){
 				float gridSpacing = token[2].ParseFloat();
@@ -578,23 +578,23 @@ void EditorState::ProcessMessage(Message * message){
 					Entity * entity = MapMan.CreateEntity(model, texture);
 					// Dynamic bouncer
 					entity = MapMan.CreateEntity(model, texture);
-					entity->position(5, 100, 0);
+					entity->SetPosition(5, 100, 0);
 					Physics.QueueMessage(new PMSetPhysicsType(Selection(entity), PhysicsType::DYNAMIC));
 					// Right-side house
 					entity = MapMan.CreateEntity(model, texture);
-					entity->position(100, 0, 0);
+					entity->SetPosition(100, 0, 0);
 					// Left-side house
 					entity = MapMan.CreateEntity(model, texture);
-					entity->position(-60, -20, 0);
+					entity->SetPosition(-60, -20, 0);
 					// Dynamic bouncer 2
 					entity = MapMan.CreateEntity(model, texture);
-					entity->position(2, 250, 0);
+					entity->SetPosition(2, 250, 0);
 					Physics.QueueMessage(new PMSetPhysicsType(Selection(entity), PhysicsType::DYNAMIC));
 
 					Selection selection = MapMan.GetEntities();
 					int amount = selection.Size();
 					for (int i = 0; i < amount; ++i){
-						selection[i]->translate(0, 50, 0);
+						selection[i]->Translate(0, 50, 0);
 					}
 					// Floor
 					entity = MapMan.CreateEntity(ModelMan.GetModel("plane.obj"), texture);
@@ -609,7 +609,7 @@ void EditorState::ProcessMessage(Message * message){
 				if (model){
 					// Create 1 corner bouncer
 					Entity * entity = MapMan.CreateEntity(model, texture);
-					entity->position(101, 50, 101);
+				//	entity->position(101, 50, 101);
 					Physics.QueueMessage(new PMSetPhysicsType(Selection(entity), PhysicsType::DYNAMIC));
 
 					// Floor
@@ -624,16 +624,16 @@ void EditorState::ProcessMessage(Message * message){
 				if (model){
 					// Create 1 corner bouncer
 					Entity * entity = MapMan.CreateEntity(model, texture);
-					entity->position(101, 50, 101);
+//					entity->position(101, 50, 101);
 					Physics.QueueMessage(new PMSetPhysicsType(Selection(entity), PhysicsType::DYNAMIC));
 					entity = MapMan.CreateEntity(model, texture);
-					entity->position(-101, 100, 101);
+//					entity->position(-101, 100, 101);
 					Physics.QueueMessage(new PMSetPhysicsType(Selection(entity), PhysicsType::DYNAMIC));
 					entity = MapMan.CreateEntity(model, texture);
-					entity->position(-101, 175, -101);
+//					entity->position(-101, 175, -101);
 					Physics.QueueMessage(new PMSetPhysicsType(Selection(entity), PhysicsType::DYNAMIC));
 					entity = MapMan.CreateEntity(model, texture);
-					entity->position(101, 250, -101);
+//					entity->position(101, 250, -101);
 					Physics.QueueMessage(new PMSetPhysicsType(Selection(entity), PhysicsType::DYNAMIC));
 				}
 			}
@@ -643,16 +643,16 @@ void EditorState::ProcessMessage(Message * message){
 				if (model){
 					// Create 1 corner bouncer
 					Entity * entity = MapMan.CreateEntity(model, texture);
-					entity->position(51, 50, 101);
+//					entity->position(51, 50, 101);
 					Physics.QueueMessage(new PMSetPhysicsType(Selection(entity), PhysicsType::DYNAMIC));
 					entity = MapMan.CreateEntity(model, texture);
-					entity->position(-51, 100, 101);
+//					entity->position(-51, 100, 101);
 					Physics.QueueMessage(new PMSetPhysicsType(Selection(entity), PhysicsType::DYNAMIC));
 					entity = MapMan.CreateEntity(model, texture);
-					entity->position(-101, 175, -51);
+//					entity->position(-101, 175, -51);
 					Physics.QueueMessage(new PMSetPhysicsType(Selection(entity), PhysicsType::DYNAMIC));
 					entity = MapMan.CreateEntity(model, texture);
-					entity->position(101, 250, -51);
+//					entity->position(101, 250, -51);
 					Physics.QueueMessage(new PMSetPhysicsType(Selection(entity), PhysicsType::DYNAMIC));
 				}
 			}
@@ -672,7 +672,7 @@ void EditorState::ProcessMessage(Message * message){
 						int posZ = rand()%(11 * BALLS) - 5 * BALLS;
 						// Dynamic bouncer
 						entity = MapMan.CreateEntity(model, texture);
-						entity->position((float)posX, (float)posY, (float)posZ);
+//						entity->position((float)posX, (float)posY, (float)posZ);
 						balls.Add(entity);
 					}
 					/// SEt all balls' physics type to dynamic
@@ -911,9 +911,9 @@ void EditorState::ProcessMessage(Message * message){
 				for (int i = 0; i < selection.Size(); ++i){
 					Entity * e = selection[i];
 					Vector3f newPosition = Vector3f(
-						mode == 1? f : e->positionVector.x,
-						mode == 2? f : e->positionVector.y,
-						mode == 3? f : e->positionVector.z);
+						mode == 1? f : e->position.x,
+						mode == 2? f : e->position.y,
+						mode == 3? f : e->position.z);
 					Physics.QueueMessage(new PMSetEntity(POSITION, e, newPosition));
 				}
 				OnSelectionUpdated();
@@ -926,28 +926,31 @@ void EditorState::ProcessMessage(Message * message){
 /// Called every time the current selection is updated.
 void EditorState::OnSelectionUpdated(){
 	std::cout<<"\nEditorState::OnSelectionUpdated()";
+#define ENTITY_MANIP_UI "EntityManipList"
 	if (editorSelection.Size() == 0){
-		Graphics.QueueMessage(new GMSetUIb("EntityManipWindow", GMUI::VISIBILITY, false));
+		Graphics.QueueMessage(new GMSetUIb(ENTITY_MANIP_UI, GMUI::VISIBILITY, false));
 		return;
 	}
 	Entity * entity = editorSelection[0];
+	if (entity)
+	{
+		// Reveal the UI
+		Graphics.QueueMessage(new GMSetUIb(ENTITY_MANIP_UI, GMUI::VISIBILITY, true));
 
-	// Reveal the UI
-	Graphics.QueueMessage(new GMSetUIb("EntityManipWindow", GMUI::VISIBILITY, true));
+		Graphics.QueueMessage(new GMSetUIs("EntityName", GMUI::STRING_INPUT_TEXT, entity->name));
 
-	Graphics.QueueMessage(new GMSetUIs("EntityName", GMUI::STRING_INPUT_TEXT, entity->name));
+		Graphics.QueueMessage(new GMSetUIv3f("Position", GMUI::VECTOR_INPUT, entity->position));
+		Graphics.QueueMessage(new GMSetUIv3f("Rotation", GMUI::VECTOR_INPUT, entity->rotation));
+		Graphics.QueueMessage(new GMSetUIv3f("Scale", GMUI::VECTOR_INPUT, entity->scale));
 
-	Graphics.QueueMessage(new GMSetUIv3f("Position", GMUI::VECTOR_INPUT, entity->positionVector));
-	Graphics.QueueMessage(new GMSetUIv3f("Rotation", GMUI::VECTOR_INPUT, entity->rotationVector));
-	Graphics.QueueMessage(new GMSetUIv3f("Scale", GMUI::VECTOR_INPUT, entity->scaleVector));
+		if (entity->physics){
+			Graphics.QueueMessage(new GMSetUIf("Friction", GMUI::FLOAT_INPUT, entity->physics->friction));
+			Graphics.QueueMessage(new GMSetUIf("Restitution", GMUI::FLOAT_INPUT, entity->physics->restitution));
+		}
 
-	if (entity->physics){
-		Graphics.QueueMessage(new GMSetUIf("Friction", GMUI::FLOAT_INPUT, entity->physics->friction));
-		Graphics.QueueMessage(new GMSetUIf("Restitution", GMUI::FLOAT_INPUT, entity->physics->restitution));
+		Graphics.QueueMessage(new GMSetUIs("EntityDiffuseTexture", GMUI::TEXTURE_INPUT_SOURCE, entity->GetTextureSource(DIFFUSE_MAP)));
+		Graphics.QueueMessage(new GMSetUIs("EntityModel", GMUI::STRING_INPUT_TEXT, entity->model->Source()));
 	}
-
-	Graphics.QueueMessage(new GMSetUIs("EntityDiffuseTexture", GMUI::TEXTURE_INPUT_SOURCE, entity->GetTextureSource(DIFFUSE_MAP)));
-	Graphics.QueueMessage(new GMSetUIs("EntityModel", GMUI::STRING_INPUT_TEXT, entity->model->Source()));
 }
 
 /// Input functions for the various states
@@ -969,7 +972,7 @@ void EditorState::MouseClick(bool down, int x, int y, UIElement * elementClicked
 				if (!Input.KeyPressed(KEY::CTRL))
 					editorSelection.Clear();
 
-				Ray clickRay = GetRayFromScreenCoordinates(mouseX, mouseY, *mainCamera);
+				Ray clickRay = mainCamera->GetRayFromScreenCoordinates(mouseX, mouseY);
 				std::cout<<"\nStartPoint: "<<clickRay.start<<" \nDirection: "<<clickRay.direction;
 
 				switch(editMode){
@@ -995,7 +998,7 @@ void EditorState::MouseClick(bool down, int x, int y, UIElement * elementClicked
 						entities.SortByDistance(camPos);
 						for (int i = 0; i < entities.Size(); ++i){
 							Entity * entity = entities[i];
-							Vector3f camToEntity = entity->positionVector - camPos;
+							Vector3f camToEntity = entity->position - camPos;
 							Vector3f camToEntityNormalized = camToEntity.NormalizedCopy();
 							float dotProductEntityToVector = clickRay.direction.DotProduct(camToEntityNormalized);
 							if (dotProductEntityToVector < 0){
@@ -1004,7 +1007,7 @@ void EditorState::MouseClick(bool down, int x, int y, UIElement * elementClicked
 							}
 							float distanceProjectedOntoClickRay = clickRay.direction.DotProduct(camToEntity);
 							Vector3f projectedPointOnVector = camPos + distanceProjectedOntoClickRay * clickRay.direction;
-							float distanceToVector = (entity->positionVector - projectedPointOnVector).Length();
+							float distanceToVector = (entity->position - projectedPointOnVector).Length();
 							float radius = entity->radius;
 							if (entity->physics){
 								radius = entity->physics->physicalRadius;
@@ -1198,11 +1201,12 @@ void EditorState::SetScaleActiveEntities(Vector3f scale){
 void EditorState::ScaleActiveEntities(Vector3f scale){
 	Physics.QueueMessage(new PMSetEntity(SCALE, editorSelection, scale));
 }
-void EditorState::RotateActiveEntities(Vector3f rotation){
+void EditorState::RotateActiveEntities(Vector3f rotation)
+{
 	for (int i = 0; i < editorSelection.Size(); ++i){
 		if (!editorSelection[i])
 			continue;
-		editorSelection[i]->rotate(rotation);
+		editorSelection[i]->Rotate(rotation);
 	}
 }
 

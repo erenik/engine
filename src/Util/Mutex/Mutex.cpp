@@ -118,7 +118,8 @@ bool Mutex::Close(){
 /** Attempts to claim the mutex. If milliseconds is -1 it will wait indefinitely
 	until it manages to retrieve it.
 */
-bool Mutex::Claim(int milliseconds){
+bool Mutex::Claim(int milliseconds)
+{
 	assert(this->isOpened);
 	int result;
 	int i = INFINITE;
@@ -132,12 +133,14 @@ bool Mutex::Claim(int milliseconds){
 		}
 	}
 	isClaimed = true;
-	return false;
+	return true;
 }
 /** Releases the claimed mutex.
 */
-bool Mutex::Release(){
+bool Mutex::Release()
+{
 	assert(this->isOpened);
+//	assert(isClaimed == true);
 //	assert(this->isClaimed && "Trying to release unclaimed mutex!");
 	int result;
 	result = ReleaseMutex(win32MutexHandle);

@@ -155,6 +155,16 @@ void PhysicsManager::ApproximateIntegrate(Entity * entity, float timeSinceLastUp
         physics->state |= PhysicsState::COLLIDING;
         physics->state &= ~PhysicsState::IN_REST;
     }
+
+	// Update velocity.
+	if (physics->inverseMass == 0)
+		physics->inverseMass = 1 / physics->mass;
+	physics->velocity = physics->linearMomentum * physics->inverseMass;
+	entity->position += physics->velocity * timeSinceLastUpdate;
+
+	// Move position
+
+
     // Reposition them in the entityCollissionOctree as needed...!
     // This could maybe be done less times per loop, but that would apply to the whole loop below if so...!
 
