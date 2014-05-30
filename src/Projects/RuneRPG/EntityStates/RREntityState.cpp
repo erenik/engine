@@ -58,6 +58,10 @@ void RREntityState::ProcessMessage(Message * message){
 			message->msg;
 			String & s = message->msg;
 			s.SetComparisonMode(String::NOT_CASE_SENSITIVE);
+			
+			/// Disable any input for movement when specified.
+			if (!movementEnabled)
+				return;
 			if (s == "walkLeft")
 				left = true;
 			else if (s == "walkRight")
@@ -74,7 +78,8 @@ void RREntityState::ProcessMessage(Message * message){
 				up = false;
 			else if (s == "stopWalkDown")
 				down = false;
-			else if (s == "Interact"){
+			else if (s == "Interact")
+			{
 				/// Check if there's any stuff on the map at looking location and trigger their OnInteract events if so!
 				TileMap2D * tmap = (TileMap2D*)MapMan.ActiveMap();
 				if (!tmap){

@@ -203,6 +203,8 @@ bool Script::Load(String fromFile){
 void Script::OnBegin()
 {
 	scriptState = BEGUN;
+	currentLine = 0;
+	lineProcessed = false;
 }
 
 void Script::Process(long long timeInMs)
@@ -522,77 +524,25 @@ void Script::EvaluateLine(String & line)
 		Graphics.QueueMessage(new GMAddUI(dialogue, "root"));
 		Graphics.QueueMessage(new GMPushUI(dialogue, Graphics.GetUI()));
 	}
-	else if (line.Contains("if(") || line.Contains("if (")){
-		/// Evaluate if-clauses!
-		List<String> tokens = line.Tokenize(" ()");
-		String varName = tokens[1];
-		String comparisonOperator = tokens[2];
-		String comparisonValue = tokens[3];
-		GameVariable * gv = GameVars.Get(varName);
-		assert(gv && "No game variable with given name?");
-		int intValue, intComparisonValue;
-		bool statementTrue = false;;
-		switch(gv->Type()){
-			case GameVariable::INTEGER:
-				intValue = ((GameVariablei*)gv)->Get();
-				intComparisonValue = comparisonValue.ParseInt();
-				if (comparisonOperator == ">"){
-					if (intValue > intComparisonValue)
-						statementTrue = true;
-				}
-				else if (comparisonOperator == "<"){
-					if (intValue < intComparisonValue)
-						statementTrue = true;
-				}
-				else if (comparisonOperator == "=="){
-					if (intValue == intComparisonValue)
-						statementTrue = true;
-				}
-				else {
-					assert(false && "Invalid comparison operator! D:");
-					lineFinished = true;
-					return;
-				}
-				break;
-			default:
-				assert(false && "Implement other GameVariable checks, prugrumur!");
-				break;
-		}
-		/// If statement is true, sign this row as finished.
-		if (statementTrue){
-			lineFinished = true;
-		}
-		else {
-			// If the statement is not true, find an else or endif block..!
-			for (int i = currentLine; i < lines.Size(); ++i){
-				String l = lines[i];
-				if (l.Contains("else")){
-					/// Jump to this row ^^
-					currentLine = i;
-					lineFinished = true;
-					return;
-				}
-				else if (l.Contains("endif")){
-					currentLine = i;
-					lineFinished = true;
-					return;
-				}
-			}
-		}
-		if (lineFinished == false)
-			assert(false && "Line not finished? Something is missing in the if/else/endif block!");
+	else if (line.Contains("elsif") || line.Contains("elseif") || line.Contains("else if"))
+	{
+		HandleConditional(line);
 	}
-	else if (line.Contains("else") || line.Contains("endif")){
-		for (int i = currentLine; i < lines.Size(); ++i){
-			String l = lines[i];
-			List<String> tokens = l.Tokenize(" \t");
-			String token1 = tokens[0];
-			if (l.Contains("endif")){
-				currentLine = i;
-				lineFinished = true;
-				return;
-			}
-		}
+	else if (line.Contains("if(") || line.Contains("if ("))
+	{
+		ifProcessed = false;
+		HandleConditional(line);
+	}
+	else if (line.Contains("else"))
+	{
+		if (ifProcessed)
+			JumpToEndif();
+		lineFinished = true;
+		return;
+	}
+	else if (line.Contains("endif")){
+		lineFinished = true;
+		ifProcessed = false;
 	}
 	else if (line.Contains("CreateInt")){
 		List<String> tokens = line.Tokenize(" \t");
@@ -637,7 +587,7 @@ void Script::EvaluateLine(String & line)
 		lineFinished = true;
 	}
 	else {
-		std::cout<<"\nERROR: Undefined event command: "<<line;
+		std::cout<<"\nUndefined event command: "<<line;
 		std::cout<<"\nPassing it as a custom command to the game states for further processing.";
 		Message * message = new Message(line);
 		/// Set this event as
@@ -712,4 +662,136 @@ void Script::SetDeleteOnEnd(bool value){
 	else
 		flags &= ~DELETE_WHEN_ENDED;
 }
+
+
+/// For if- and elsif- statements.
+void Script::HandleConditional(String line)
+{
+	if (ifProcessed)
+	{
+		// Continue to the Endif
+		JumpToEndif();
+		return;
+	}
+
+	/// Evaluate if-clauses!
+	List<String> tokens = line.Tokenize(" ()");
+	String varName = tokens[1];
+	String comparisonOperator = tokens[2];
+	String comparisonValue = tokens[3];
+	GameVariable * gv = GameVars.Get(varName);
+	/// If not defined, assume it auto-fails the check
+	if (!gv)
+	{
+		JumpToNextConditional();
+		return;
+	}
+	assert(gv && "No game variable with given name?");
+	int intValue, intComparisonValue;
+	bool statementTrue = false;;
+	switch(gv->Type()){
+		case GameVariable::INTEGER:
+			intValue = ((GameVariablei*)gv)->Get();
+			intComparisonValue = comparisonValue.ParseInt();
+			if (comparisonOperator == ">"){
+				if (intValue > intComparisonValue)
+					statementTrue = true;
+			}
+			else if (comparisonOperator == "<"){
+				if (intValue < intComparisonValue)
+					statementTrue = true;
+			}
+			else if (comparisonOperator == "=="){
+				if (intValue == intComparisonValue)
+					statementTrue = true;
+			}
+			else {
+				assert(false && "Invalid comparison operator! D:");
+				lineFinished = true;
+				return;
+			}
+			break;
+		default:
+			assert(false && "Implement other GameVariable checks, prugrumur!");
+			break;
+	}
+	/// If statement is true, sign this row as finished.
+	if (statementTrue){
+		// Set line finished to true so the actual content will be processed.
+		lineFinished = true;
+		// Set if-Processed to true so that no elsif- or else- clause will be handled.
+		ifProcessed = true;
+	}
+	else {
+		// If the statement is not true, find an else or endif block..!
+		for (int i = currentLine+1; i < lines.Size(); ++i){
+			String l = lines[i];
+			if (l.Contains("elsif"))
+			{
+				currentLine = i;
+				// Call this function again?
+				EvaluateLine(lines[i]);
+				return;
+			}
+			else if (l.Contains("else"))
+			{
+				/// Jump to this row ^^
+				currentLine = i;
+				lineFinished = true;
+				return;
+			}
+			else if (l.Contains("endif")){
+				currentLine = i;
+				lineFinished = true;
+				return;
+			}
+		}
+	}
+	if (lineFinished == false)
+		assert(false && "Line not finished? Something is missing in the if/else/endif block!");	
+}
+
+void Script::JumpToNextConditional()
+{
+	// If the statement is not true, find an else or endif block..!
+	for (int i = currentLine; i < lines.Size(); ++i){
+		String l = lines[i];
+		if (l.Contains("elsif"))
+		{
+			currentLine = i;
+			// Call this function again?
+			EvaluateLine(lines[i]);
+			return;
+		}
+		else if (l.Contains("else"))
+		{
+			/// Jump to this row ^^
+			currentLine = i;
+			lineFinished = true;
+			return;
+		}
+		else if (l.Contains("endif")){
+			currentLine = i;
+			lineFinished = true;
+			return;
+		}
+	}
+}
+
+
+void Script::JumpToEndif()
+{
+	// If the statement is not true, find an else or endif block..!
+	for (int i = currentLine; i < lines.Size(); ++i){
+		String l = lines[i];
+		if (l.Contains("endif")){
+			currentLine = i;
+			lineFinished = true;
+			return;
+		}
+	}
+	std::cout<<"\nERROR: No Endif found D:";
+}
+
+
 

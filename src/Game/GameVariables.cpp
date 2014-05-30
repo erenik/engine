@@ -3,6 +3,17 @@
 
 GameVariableManager * GameVariableManager::gameVarMan = NULL;
 
+/// Deletes all current game variables. Make sure you save your file before calling this! Should be called upon New game, as all scripts use (or should use) these game vars.
+void GameVariableManager::Clear()
+{
+	gameVariables.ClearAndDelete();
+	integers.Clear();
+	int64s.Clear();
+	floats.Clear();
+	strings.Clear();
+	vectors.Clear();
+}
+
 /// General getter for any variable.
 GameVariable * GameVariableManager::Get(String name){
 	for (int i = 0; i < gameVariables.Size(); ++i){

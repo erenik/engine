@@ -180,8 +180,13 @@ void TileMap2D::Render(){
 		Vector2f offset(-0.5f, -0.5f);
 
 		glEnable(GL_BLEND);
-
+		glPolygonMode(GL_FILL, GL_FRONT_AND_BACK);
+		glEnable(GL_TEXTURE_2D);
+//		glDisable(GL_DEPTH_TEST);
+	
 		/// Render preview texture
+		bool renderTiles = true;
+		if (renderTiles)
 		{
 			/// Generate preview texture as needed.
 			UpdatePreviewTexture();
@@ -190,9 +195,7 @@ void TileMap2D::Render(){
 				// Save old matrix to the stack
 				Matrix4d tmp = graphicsState.modelMatrixD;
 				Vector2i mapSize = Size();
-
-				glPolygonMode(GL_FILL, GL_BACK);
-
+			
 				Matrix4d transformationMatrix = Matrix4d::InitTranslationMatrix(Vector3f(mapSize.x * 0.5f + offset.x, mapSize.y * 0.5f + offset.y, -0.1f));
 				transformationMatrix.Scale(Vector3f(mapSize.x, mapSize.y, 1));
 				// Apply transformation
@@ -202,18 +205,55 @@ void TileMap2D::Render(){
 				glUniformMatrix4fv(graphicsState.activeShader->uniformModelMatrix, 1, false, graphicsState.modelMatrixF.getPointer());
 
 				// Texture enabled.
-				glEnable(GL_TEXTURE_2D);
 				glBindTexture(GL_TEXTURE_2D, previewTexture->glid);
 				// Render it.			
 				model->mesh->Render();
 				/// Reset transformation matrix.
 				graphicsState.modelMatrixF = graphicsState.modelMatrixD = Matrix4d();
 
-				/// Render actual map contents.
+			}
+			/// Render tiles.
+			List<Tile*> tiles = GetTiles();
+			for (int i = 0; i < tiles.Size(); ++i)
+			{
+				Tile * tile = tiles[i];
+				if (tile->position.x < min.x || 
+					tile->position.x > max.x ||
+					tile->position.y > max.y ||
+					tile->position.y < min.y)
+					; // continue;
+
+				graphicsState.modelMatrixD = Matrix4d();
+				Matrix4d transformationMatrix = Matrix4d::InitTranslationMatrix(Vector3f(tile->position.x, tile->position.y, 0.f));
+				float scale = 1.f;
+				transformationMatrix.Scale(Vector3f(scale, scale, 1));
+				// Apply transformation
+				graphicsState.modelMatrixD.multiply(transformationMatrix);
+				graphicsState.modelMatrixF = graphicsState.modelMatrixD;
+				// Set uniform matrix in shader to point to the GameState modelView matrix.
+				glUniformMatrix4fv(graphicsState.activeShader->uniformModelMatrix, 1, false, graphicsState.modelMatrixF.getPointer());
+
+				/// Set texture.
+				Texture * tex;
+				if (!tile->type)
+					tex = TexMan.GetTexture("Black");
+				else if (tile->type->texture)
+					tex = tile->type->texture;
+				else
+					tex = tile->type->texture = TexMan.GetTexture(tile->type->textureSource);
+				if (tex)
+				{
+					if (tex->glid == -1)
+						tex->Bufferize();
+					glBindTexture(GL_TEXTURE_2D, tex->glid);
+				}
+				/// Set position.
+				model->mesh->Render();
 			}
 		}
-		/// Render tiles.
 
+			/// Render actual map contents.
+			
 		/// Render objects.
 	//	glBlendFunc(GL_ONE, GL_ONE);
 		glDisable(GL_DEPTH_TEST);
@@ -1218,7 +1258,7 @@ bool TileMap2D::AddEntity(Entity * e){
 	Vector3i position = e->position;
 	/// Make sure it's a valid tile, if not abort the addition (and creation).
 	while (GetEntityByPosition(position)){
-		assert(false && "Bad location to place entity! Already occupied! Fetch a position first with GetWalkableTile()");
+//		assert(false && "Bad location to place entity! Already occupied! Fetch a position first with GetWalkableTile()");
 		Tile * tile = GetClosestVacantTile(position);
 		assert(tile);
 		position = tile->position;
@@ -1244,7 +1284,8 @@ bool TileMap2D::RemoveEntity(Entity * entity){
 }
 
 
-void TileMap2D::Interact(Vector3i position, Entity * interacter){
+void TileMap2D::Interact(Vector3i position, Entity * interacter)
+{
 	/// Interactor might be omitted if wished?
 	assert(interacter);
 	EntityStateTile2D * entityTile2D = GetEntity2DByEntity(interacter);
@@ -1253,8 +1294,8 @@ void TileMap2D::Interact(Vector3i position, Entity * interacter){
 	if (!interactee)
 		return;
 	Entity * entity = interactee->entity;
-	if (entity && entity->events && entity->events->onInteract){
-		Script * onInteract = entity->events->onInteract;
+	if (entity && entity->scripts && entity->scripts->onInteract){
+		Script * onInteract = entity->scripts->onInteract;
 		ScriptMan.PlayEvent(onInteract);
 	}
 
@@ -1320,5 +1361,14 @@ TileMapLevel * TileMap2D::ActiveLevel()
 
 /// Returns size of the active level of the map
 Vector2i TileMap2D::Size(){
+	if (!activeLevel)
+	{
+		assert(this->levels.Size());
+		if (!this->levels.Size())
+		{
+			return Vector2i();
+		}
+		activeLevel = this->levels[0];
+	}
 	return activeLevel->Size();
 }

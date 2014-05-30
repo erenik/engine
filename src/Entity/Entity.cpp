@@ -106,7 +106,7 @@ Entity::Entity(int i_id)
 	this->graphics = NULL;
 	this->physics = NULL;
 	this->state = NULL;
-	this->events = NULL;
+	this->scripts = NULL;
 	/// Create it automatiaclly so we don't have to, cheers..
 	this->pathfindingProperty = new PathfindingProperty(this);
 }
@@ -119,7 +119,7 @@ Entity::~Entity(){
 #define SAFE_DELETE(p) {if(p) delete p; p = NULL; }
 	SAFE_DELETE(graphics);
 	SAFE_DELETE(physics);
-	SAFE_DELETE(events);
+	SAFE_DELETE(scripts);
 	SAFE_DELETE(pathfindingProperty);
 	if (material)
 		delete material;

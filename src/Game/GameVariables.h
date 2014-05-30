@@ -110,6 +110,9 @@ public:
 		gameVarMan = NULL;
 	}
 
+	/// Deletes all current game variables. Make sure you save your file before calling this! Should be called upon New game, as all scripts use (or should use) these game vars.
+	void Clear();
+
 	/// General getter for any variable.
 	GameVariable * Get(String name);
 	/// Gette for strings

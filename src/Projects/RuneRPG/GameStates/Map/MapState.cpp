@@ -44,6 +44,7 @@
 #include "ModelManager.h"
 #include "Graphics/Animation/AnimationManager.h"
 #include "Pathfinding/WaypointManager.h"
+#include "File/File.h"
 
 extern UserInterface * ui[GameStateID::MAX_GAME_STATES];
 
@@ -429,6 +430,84 @@ void MapState::CloseMenu(){
 		std::cout<<"\nMenu already closed o-o";
 }
 
+/// o-o
+void MapState::SpawnNPC(String fromRef, int x, int y)
+{
+	// Load file from ref.
+	String source = fromRef;
+	if (!source.Contains("data/NPCs"))
+		fromRef = "data/NPCs/" + fromRef;
+	List<String> lines = File::GetLines(fromRef);
+	
+	// Gather info
+	String name;
+	String onInteract;
+	for (int i = 0; i < lines.Size(); ++i)
+	{
+		String line = lines[i];
+		if (line.Contains("OnInteract"))
+			onInteract = line.Tokenize(" \t")[1];
+		else if (line.Contains("Name"))
+			name = line.Tokenize(" \t")[1];
+
+	}	
+
+	// Prepare creation
+	Model * m = ModelMan.GetModel("Sprite");
+	Texture * t = TexMan.GetTexture("RuneRPG/Units/200");
+	Vector3f position;
+	/// Make sure an event triggered this!
+	Vector3f spawnPos(x, y, 0);
+	TileMap2D * activeMap = ActiveMap();
+	if (!activeMap)
+		return;
+	const Tile * tile = activeMap->GetClosestVacantTile(spawnPos);
+	if (!tile){
+		std::cout<<"\nERROR: Unable to spawn entity.";
+		return;
+	}
+	position = Vector3i(tile->position);
+	TileMap2D * tmap = (TileMap2D*)MapMan.ActiveMap();
+	if (!tmap->IsTileVacant(position)){
+		std::cout<<"\nERROR: Something already on that tile, or it not walkable, skipping SpawnEntity!";
+	}
+	// Create the entity
+	Entity * entity = MapMan.CreateEntity(m,t,position);
+	TileMap2D * tMap = (TileMap2D*)MapMan.ActiveMap();
+	if (entity == NULL){
+		std::cout<<"\nERROR: Unable to create entity in MapState!";
+		return;
+	}
+	/// Give it test animation
+	Graphics.QueueMessage(new GMSetEntity(entity, ANIMATION_SET, "Map/Test"));
+	
+	// Set target waypoint to be occupied by this new entity.
+	Physics.QueueMessage(new PMSetWaypoint(position, ENTITY, entity));
+	
+	// Set flags for the entity so it behaves and is removed correctly.
+	entity->flags |= SPAWNED_BY_EVENT;
+	entity->name = name;
+	entity->state = new StateProperty(entity);
+
+	/// Create a proper entity state for it based on the EntityStateTile2D
+	entity->state->SetGlobalState(new RREntityState(entity));
+	lastModifiedEntity = entity;
+		
+
+	// Add scripting property if lacking it.
+	if (lastModifiedEntity->scripts == NULL)
+		lastModifiedEntity->scripts = new ScriptProperty();
+	// Add OnInteract if specified in the NPC specification when parsed earlier.
+	if (onInteract.Length())
+	{
+		Script * event = new Script("OnInteract");
+		event->Load(onInteract);
+		lastModifiedEntity->scripts->onInteract = event;
+	}	
+	// Place it.
+
+}
+
 /// Hides sub-menus in the main.. menu...
 void MapState::HideMenus()
 {
@@ -479,6 +558,22 @@ void MapState::ProcessMessage(Message * message)
 				HideMenus();
 				/// Then open up the item/inventory menu.
 				Graphics.QueueMessage(new GMPushUI("ItemMenu", ui));
+			}
+			else if (msg == "CloseMenu")
+			{
+				CloseMenu();
+			}
+			else if (msg.Contains("SpawnNPC"))
+			{
+				List<String> args = msg.Tokenize("(),");
+				if (args.Size() < 4){
+					std::cout<<"\nHas to be 3 arguments when spawning npc!";				
+					return;
+				}
+				String npcRef = args[1];
+				int x = args[2].ParseInt();
+				int y = args[3].ParseInt();
+				this->SpawnNPC(npcRef, x,y);
 			}
 			else if (msg.Contains("SelectItemToBuy:"))
 			{
@@ -640,6 +735,7 @@ void MapState::ResetCamera(){
 	if (player->entity)
 		camera->position = player->entity->position;
 	camera->SetRatio(Graphics.width, Graphics.height);
+	camera->distanceFromCentreOfMovement = 10.f;
 	camera->Update();
 	/// Reset what parts of the map are rendered too..!
 	TileMap2D * map = (TileMap2D *)MapMan.ActiveMap();
@@ -793,6 +889,10 @@ void MapState::Zone(String mapName)
 	}
 	
 	// Load OnEnter script for the zone.
+	Script * script = new Script();
+	script->Load("data/scripts/"+mapName+"/OnEnter.es");
+	script->SetDeleteOnEnd(true);
+	ScriptMan.PlayScript(script);
 
 		/// Query the physics-manager to generate a nav-mesh to be used for our map!
 //	Physics.QueueMessage(new PMSet(NAV_MESH, navMesh));

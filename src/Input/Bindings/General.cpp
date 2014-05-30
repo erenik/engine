@@ -21,6 +21,7 @@ enum generalActions{
 	// Debug-renders.
 	TOGGLE_RENDER_LIGHTS,
 	TOGGLE_RENDER_PHYSICS,
+	TOGGLE_RENDER_WAYPOINTS,
 
 	RECORD_VIDEO,
 	PRINT_SCREENSHOT,
@@ -77,6 +78,9 @@ void generalInputProcessor(int action, int inputDevice){
 			break;
 		case TOGGLE_RENDER_PHYSICS:
 			Graphics.renderPhysics = !Graphics.renderPhysics;
+			break;
+		case TOGGLE_RENDER_WAYPOINTS:
+			Graphics.renderNavMesh = !Graphics.renderNavMesh;
 			break;
 		case RECORD_VIDEO:
 			Graphics.QueueMessage(new GraphicsMessage(GM_RECORD_VIDEO));
@@ -542,6 +546,7 @@ void CreateDefaultGeneralBindings()
 	
 	mapping->CreateBinding(TOGGLE_RENDER_PHYSICS, ctrl, KEY::R, KEY::P);
 	mapping->CreateBinding(TOGGLE_RENDER_LIGHTS, ctrl, KEY::R, KEY::L);
+	mapping->CreateBinding(TOGGLE_RENDER_WAYPOINTS, ctrl, KEY::R, KEY::W);
 
 	Input.general.CreateBinding(RECORD_VIDEO, KEY::CTRL, KEY::R, KEY::V);
 	Input.general.CreateBinding(PRINT_SCREENSHOT, KEY::PRINT_SCREEN);

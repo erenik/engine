@@ -490,6 +490,8 @@ void MessageManager::ProcessMessage(Message * message){
 			return;
 		}
 		String uiName = params[1];
+		if (uiName == "this")
+			uiName = message->element->name;
 		/// Force pop it?
 		Graphics.QueueMessage(new GMPopUI(uiName, Input.GetRelevantUI(), true));
 		return;

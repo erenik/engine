@@ -17,6 +17,33 @@ std::fstream * File::Open(String path){
 	return &fileStream;
 }
 
+/// Static function to fetch all lines of text from a given file. 
+List<String> File::GetLines(String fromFile)
+{
+	List<String> lines;
+	std::fstream file;
+	file.open(fromFile.c_str(), std::ios_base::in | std::ios_base::binary);
+	if (file.is_open())
+	{	
+		int start  = (int) file.tellg();
+		file.seekg( 0, std::ios::end );
+		int fileSize = (int) file.tellg();
+		char * data = new char [fileSize];
+		memset(data, 0, fileSize);
+		file.seekg( 0, std::ios::beg);
+		file.read((char*) data, fileSize);
+		file.close();
+		String fileContents(data);
+		lines = fileContents.GetLines();
+	}
+	else 
+	{
+		file.close();
+		std::cout<<"\nFile::GetLines: Unable to open file: "<<fromFile;
+	}
+	return lines;
+}
+
 void File::Close(){
 	fileStream.close();
 }

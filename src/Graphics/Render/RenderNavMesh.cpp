@@ -47,9 +47,9 @@ void GraphicsManager::RenderNavMesh(){
 		WaypointMan.ReleaseActiveNavMeshMutex();
 		return;
 	}
-	
-	glEnable(GL_DEPTH_TEST);
-	
+	/// Rendering connections?
+	glDisable(GL_DEPTH_TEST);
+		
 	/// Draw a line-strip too, using default renderer!
 	int waypointRendered = 0;
 	SetShaderProgram(0);
@@ -83,8 +83,6 @@ void GraphicsManager::RenderNavMesh(){
 	}
 	glEnd();
 
-	/// Rendering connections?
-	glDisable(GL_DEPTH_TEST);
 	if (true /*renderNavMeshNeighbours*/){
 		for (int i = 0; i < nm->waypoints.Size(); ++i){
 			Waypoint * wp = nm->waypoints[i];

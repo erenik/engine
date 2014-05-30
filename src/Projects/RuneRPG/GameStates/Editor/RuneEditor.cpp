@@ -87,7 +87,8 @@ void RuneEditor::ResetCamera(){
 	/// Don't call resetCamera if there's nothing to look at...
 	assert(level);
 	Vector2i size = level->Size();
-	runeEditorCamera->position = Vector3f(-size.x*0.5f, -size.y*0.5f, -10);
+	runeEditorCamera->position = Vector3f(-size.x*0.5f, -size.y*0.5f, -5.f);
+	runeEditorCamera->distanceFromCentreOfMovement = -10.f;
 	runeEditorCamera->zoom = 10.f;
 	runeEditorCamera->farPlane = -50.0f;
 	runeEditorCamera->Update();

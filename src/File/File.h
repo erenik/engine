@@ -8,8 +8,11 @@
 #include <fstream>
 #include "String/AEString.h"
 
+/// General file-class?
 class File {
 public:
+	/// Static function to fetch all lines of text from a given file. 
+	static List<String> GetLines(String fromFile);
 	void Close();
 protected:
 	std::fstream * Open(String path);

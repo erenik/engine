@@ -453,11 +453,6 @@ bool RRPlayerMovePacket::Parse(int & playerID, String & msg)
 	return true;
 }
 
-String VectorString(Vector3f v)
-{
-	return String::ToString(v.x) + " " + String::ToString(v.y) + " " + String::ToString(v.z);
-}
-
 Vector3f ParseVector3f(String s)
 {
 	List<String> sl = s.Tokenize(" ");

@@ -128,6 +128,15 @@ public:
 	/// Like DELETE_WHEN_ENDED,
 	int flags;
 private:
+
+	/// For if- and elsif- statements.
+	void HandleConditional(String line);
+	void JumpToNextConditional();
+	void JumpToEndif();
+
+	/// Flag to true once it processes any if-case-thingy?
+	bool ifProcessed;
+
 	bool paused;
 	/// For handling stuff...
 	bool isInAlternativeDialogue;

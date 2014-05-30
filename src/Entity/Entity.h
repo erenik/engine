@@ -65,7 +65,7 @@ public:
 	/// StateMachine for gameplay
 	StateProperty * state;
 	/// Containing OnTrigger, OnInteract, On-- etc.
-	ScriptProperty * events;
+	ScriptProperty * scripts;
 	/// Survival attributes if destroyable/killable  <-- Build into your StateProperties!
 ///	LifeAttribute * life;
 

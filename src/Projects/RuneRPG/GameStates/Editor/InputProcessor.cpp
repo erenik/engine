@@ -18,7 +18,7 @@
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Messages/GMSet.h"
 #include "Graphics/Messages/GMLight.h"
-
+#include "Message/MessageManager.h"
 
 void RuneEditor::InputProcessor(int action, int inputDevice/* = 0*/){
 	/// Don't do some stuff if entering text man..
@@ -284,7 +284,7 @@ void RuneEditor::InputProcessor(int action, int inputDevice/* = 0*/){
 			break; }
 		case LOAD_MAP_PROMPT:
 			std::cout<<"\nLoad Map prompt: ";
-			Input.EnterTextInputMode("LOAD_MAP");
+			MesMan.QueueMessages("OpenFileBrowser(\"Load map\",LoadMap,\".tmap\")");
 			break;
 		case LOAD_MAP: {
 			/// Clear selection first!

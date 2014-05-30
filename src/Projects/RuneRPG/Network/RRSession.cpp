@@ -26,12 +26,13 @@
 #include "Graphics/Messages/GMUI.h"
 #include "Script/Script.h"
 #include "Script/ScriptManager.h"
-
+#include "Game/GameVariables.h"
 
 RRSession::RRSession(String playerName, String sessionName)
-: GameSession(sessionName, RR_DEFAULT_SESSION_NAME, 4, playerName)
+: GameSession(sessionName, RR_DEFAULT_SESSION_NAME, 4)
 {
 	RRPacket::defaultSender = me;
+	me->name = playerName;
 	this->subType = GameSessionType::RUNE_RPG;
 	maxPlayersPerPeer = 1;
 	maxPlayers = 4;
@@ -130,6 +131,8 @@ void RRSession::NewGame()
 {
 	// Stuff.
 	newGame = true;
+	// Clear all old game variables!
+	GameVars.Clear();
 	// Set string so it is visible in the lobby.
 	Graphics.QueueMessage(new GMSetUIs("GameTypeString", GMUI::TEXT, "New game"));
 	// Inform peers.

@@ -54,6 +54,8 @@ public:
 	void SetCamera(Camera & reference);
 
 private:
+	/// o-o
+	void SpawnNPC(String fromRef, int x, int y);
 	/// Hides sub-menus in the main.. menu...
 	void HideMenus();
 	/// Load shop ui for player interaction.
