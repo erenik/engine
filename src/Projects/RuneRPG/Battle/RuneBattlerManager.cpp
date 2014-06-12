@@ -109,13 +109,14 @@ bool RuneBattlerManager::LoadBattles(String fromDirectory){
 	return true;
 }
 
-bool RuneBattlerManager::LoadBattle(String source){
+Battle * RuneBattlerManager::LoadBattle(String source)
+{
 	std::fstream file;
 	file.open(source.c_str(), std::ios_base::in);
 	if (!file.is_open()){
 		std::cout<<"\nERROR: Unable to open file stream to "<<source;
 		file.close();
-		return false;
+		return 0;
 	}
 	int start  = (int) file.tellg();
 	file.seekg( 0, std::ios::end );
@@ -166,13 +167,17 @@ bool RuneBattlerManager::LoadBattle(String source){
 		}
 	}
 	battles.Add(b);
-	return true;
+	return b;
 }
 
-Battle RuneBattlerManager::GetBattleBySource(String source){
+Battle RuneBattlerManager::GetBattleBySource(String source)
+{
 	for (int i = 0; i < battles.Size(); ++i)
 		if (battles[i]->source == source)
 			return *battles[i];
+	Battle * loaded = this->LoadBattle(source);
+	if (loaded)
+		return Battle(*loaded);
 	return Battle();
 }
 

@@ -60,12 +60,13 @@ void RuneBattleState::CreateUserInterface(){
 	if (ui)
 		delete ui;
 	ui = new UserInterface();
-	ui->Load("gui/RuneRPG/Battle.gui");
+	ui->Load("gui/Battle.gui");
 }
 
-void RuneBattleState::OnEnter(GameState * previousState){
+void RuneBattleState::OnEnter(GameState * previousState)
+{
 	// Load initial texture and set it to render over everything else
-	Graphics.QueueMessage(new GMSet(OVERLAY_TEXTURE, TexMan.GetTexture("img/loadingData.png")));
+	Graphics.QueueMessage(new GMSetOverlay("img/loadingData.png", 100));
 
 	battleType = NORMAL_BATTLE;
 	Sleep(100);
@@ -78,16 +79,14 @@ void RuneBattleState::OnEnter(GameState * previousState){
     Graphics.QueueMessage(new GMSetUIb("TargetsMenu", GMUI::VISIBILITY, false));
 	Graphics.QueueMessage(new GMSetUIs("Narrator", GMUI::TEXT, "An enemy appears!"));
 
-    playerBattlers.Clear();
-    enemyBattlers.Clear();
-
 	// Check for data (battlers)
 	bool gotData = false;
 	String requestedBattle = BattleMan.QueuedBattle();
+	battleSource = requestedBattle;
 	BattleMan.StartBattle();
 	gotData = requestedBattle.Length() != 0;
 	if (!gotData){
-		requestedBattle = "data/RuneRPG/Battles/testBattle.txt";
+		requestedBattle = "data/Battles/testBattle.txt";
 	}
 	/// Load it!
 	bool result = LoadBattle(requestedBattle);
@@ -100,31 +99,78 @@ void RuneBattleState::OnEnter(GameState * previousState){
 		battleType = PRACTICE_DUMMY_BATTLE;
 	}
 
-	/// If testing, add all spells, lololol
-	if (requestedBattle == "Practice")
-	{
-		for (int i = 0; i < playerBattlers.Size(); ++i)
-		{
-			RuneBattler * battler = playerBattlers[i];
-			List<BattleAction*> spells = RuneSpellMan.GetSpellsAsBattleActions();
-			battler->AddActions(spells);		
-		}
-	}
+	// Randomize starting initiative.
+	ResetInitiative();
 
+	/// Update UI accordingly.
+	OnBeginBattle();
 
+	/// Toggle debug renders
+#ifdef _DEBUG
+	Graphics.EnableAllDebugRenders();
+	Graphics.renderAI = false;
+#else
+	Graphics.EnableAllDebugRenders(false);
+#endif
+
+	/// Set editor selection as the renderable one!
+	Graphics.selectionToRender = NULL;
+
+	// And set it as active
+	Graphics.cameraToTrack = camera;
+	Graphics.cameraToTrack->SetRatio(Graphics.width, Graphics.height);
+	Graphics.UpdateProjection();
+	Graphics.EnableAllDebugRenders(false);
+	Graphics.renderFPS = true;
+
+	// Set graphics manager to render UI, and remove the overlay-texture.
+	Graphics.QueueMessage(new GraphicsMessage(GM_CLEAR_OVERLAY_TEXTURE));
+
+	// And start tha music..
+#ifdef USE_AUDIO
+	AudioMan.Play(BGM, "2013-02-21 Impacto.ogg", true);
+#endif
+    /// Start the battle-timer
+    timer.Start();
+    lastTime = timer.GetMs();
+	/// Notify the input-manager to use menu-navigation.
+	Input.ForceNavigateUI(true);
+}
+
+void RuneBattleState::ResetInitiative()
+{
     /// Set all battlers inititive
     List<Battler*> battlers = BattleMan.GetBattlers();
     for (int i = 0; i < battlers.Size(); ++i){
         RuneBattler * b = (RuneBattler*)battlers[i];
         b->initiative = 1500 + rand()%10000;
     }
+}
 
+/// !
+List<RuneBattler*> GetPlayerBattlers()
+{
+	List<Battler*> battlers = BattleMan.GetPlayers();
+	List<RuneBattler*> runeBattlers;
+	for (int i = 0; i < battlers.Size(); ++i){
+		Battler * b = battlers[i];
+		runeBattlers.Add((RuneBattler*)b);
+	}
+	return runeBattlers;
+}
+
+/// Update UI accordingly.
+void RuneBattleState::OnBeginBattle()
+{
 	/// Fill the player's UI!
 	/// But first clear it.
 	Graphics.QueueMessage(new GMClearUI("PartyStatus"));
 
+	List<RuneBattler*> playerBattlers = GetPlayerBattlers();
+
 	/// Fill it with new UI's per player.
-	for (int i = 0; i < playerBattlers.Size(); ++i){
+	for (int i = 0; i < playerBattlers.Size(); ++i)
+	{
 		RuneBattler * rb = playerBattlers[i];
 		UIElement * ui = new UIColumnList();
 		ui->name = "Player"+String::ToString(i);
@@ -156,38 +202,8 @@ void RuneBattleState::OnEnter(GameState * previousState){
 
 		Graphics.QueueMessage(new GMAddUI(ui, "PartyStatus"));
 	}
-
-	/// Toggle debug renders
-#ifdef _DEBUG
-	Graphics.EnableAllDebugRenders();
-	Graphics.renderAI = false;
-#else
-	Graphics.EnableAllDebugRenders(false);
-#endif
-
-	/// Set editor selection as the renderable one!
-	Graphics.selectionToRender = &editorSelection;
-
-	// And set it as active
-	Graphics.cameraToTrack = camera;
-	Graphics.cameraToTrack->SetRatio(Graphics.width, Graphics.height);
-	Graphics.UpdateProjection();
-	Graphics.EnableAllDebugRenders(false);
-	Graphics.renderFPS = true;
-
-	// Set graphics manager to render UI, and remove the overlay-texture.
-	Graphics.QueueMessage(new GraphicsMessage(GM_CLEAR_OVERLAY_TEXTURE));
-
-	// And start tha music..
-#ifdef USE_AUDIO
-	AudioMan.Play(BGM, "2013-02-21 Impacto.ogg", true);
-#endif
-    /// Start the battle-timer
-    timer.Start();
-    lastTime = timer.GetMs();
-	/// Notify the input-manager to use menu-navigation.
-	Input.ForceNavigateUI(true);
 }
+
 
 void RuneBattleState::OnExit(GameState *nextState){
 	/// Notify the input-manager to stop force-using menu-navigation.
@@ -212,7 +228,9 @@ void RuneBattleState::OnExit(GameState *nextState){
 
 
 /// Returns idle player-controlled battler if available. NULL if not.
-RuneBattler * RuneBattleState::GetIdlePlayer(){
+RuneBattler * RuneBattleState::GetIdlePlayer()
+{
+	List<RuneBattler*> playerBattlers = GetPlayerBattlers();
 	for (int i = 0; i < playerBattlers.Size(); ++i){
 		RuneBattler * playerBattler = playerBattlers[i];
 		if (playerBattler->isAI)
@@ -285,12 +303,14 @@ void RuneBattleState::MouseWheel(float delta){
 }
 
 
-void RuneBattleState::ProcessMessage(Message * message){
+void RuneBattleState::ProcessMessage(Message * message)
+{
 
 //	std::cout<<"\nRacing::ProcessMessage: ";
 	switch(message->type){
 		case MessageType::STRING: {
 			String string = message->msg;
+			String msg = message->msg;
 			string.SetComparisonMode(String::NOT_CASE_SENSITIVE);
 			if (string == "begin_commandline"){
 				Input.EnterTextInputMode("INTERPRET_CONSOLE_COMMAND");
@@ -298,6 +318,15 @@ void RuneBattleState::ProcessMessage(Message * message){
 			else if (string == "interpret_console_Command"){
 				StateMan.ActiveState()->InputProcessor(INTERPRET_CONSOLE_COMMAND);
 				return;
+			}
+			else if (msg == "ReloadBattle()")
+			{
+				// Hide all UI
+				HideMenus();
+				// Clear battlers.
+				BattleMan.EndBattle();
+				// Reload it.
+				this->LoadBattle(this->battleSource);
 			}
 			else if (string == "ReloadBattle()" ||
 				string == "PauseBattle()" ||
@@ -341,19 +370,23 @@ void RuneBattleState::ProcessMessage(Message * message){
 			    targetMode = string.Tokenize("()")[1].ParseInt();
 			    OpenTargetMenu();
 			}
-			else if (string.Contains("SetTarget")){
-
+			else if (string.Contains("SetTarget"))
+			{
+				/*
                 activeTargets.Clear();
                 String reqTargets = string.Tokenize("()")[1];
                 List<Battler*> b = BattleMan.Get(reqTargets);
                 for (int i = 0; i < b.Size(); ++i){
 					activeTargets.Add((RuneBattler*)b[i]);
-                }
+                }*/
 			}
-			else if (string.Contains("OnBattlerIncapacitated")){
+			else if (string.Contains("OnBattlerIncapacitated"))
+			{
+				/*
 				/// Check if we won or died.
 				bool playersDead = true, enemiesDead = true;
-				for (int i = 0; i < playerBattlers.Size(); ++i){
+				for (int i = 0; i < playerBattlers.Size(); ++i)
+				{
 					if (playerBattlers[i]->state != INCAPACITATED)
 						playersDead = false;
 				}
@@ -364,7 +397,7 @@ void RuneBattleState::ProcessMessage(Message * message){
 				/// Fight is over. Run OnEnd stuff from the battle-template?
 				if (playersDead || enemiesDead){
 					EndBattle();
-				}
+				}*/
 				return;
 			}
 			else if (string == "ExecuteAction()"){
@@ -375,7 +408,7 @@ void RuneBattleState::ProcessMessage(Message * message){
                 }
 				if (selectedBattleAction){
 					selectedBattleAction->subjects.Add(activePlayer);
-					selectedBattleAction->targets = activeTargets;
+//					selectedBattleAction->targets = activeTargets;
 				}
 
                 if (activeTargets.Size())
@@ -400,9 +433,10 @@ void RuneBattleState::ProcessMessage(Message * message){
 }
 
 /// Loads battle from source~! Returns false upon failure.
-bool RuneBattleState::LoadBattle(String fromSource){
+bool RuneBattleState::LoadBattle(String fromSource)
+{
 	if (!fromSource.Contains("data/")){
-		fromSource = "data/RuneRPG/Battles/" + fromSource;
+		fromSource = "data/Battles/" + fromSource;
 	}
 	if (!fromSource.Contains(".battle"))
 		fromSource += ".battle";
@@ -429,27 +463,21 @@ bool RuneBattleState::LoadBattle(String fromSource){
 		RuneBattler * newPlayerBattler = new RuneBattler(*rp->Battler());
 		AddPlayerBattler(newPlayerBattler);
 	}
+	
 	// If still no players, create a test one?
-	if (!playerBattlers.Size()){
+	if (!BattleMan.GetPlayers().Size()){
 		RuneBattler * battler = new RuneBattler(RuneBattlers.GetBattlerBySource("Player"));
 		battler->isAI = false;
 		AddPlayerBattler(battler);
 	}
-	if (!playerBattlers.Size()){
-		std::cout<<"\nERROR: Unable to create players for some reason >:";
-		return false;
-	}
+	// Add enemies accordingly.
 	for (int i = 0; i < b.enemyNames.Size(); ++i){
 		String source = b.enemyNames[i];
 		RuneBattler rb = RuneBattlers.GetBattlerBySource(source);
 		RuneBattler * newEnemy =  new RuneBattler(rb);
-		enemyBattlers.Add(newEnemy);
 		std::cout<<"\nAdding RuneBattler enemy: "<<rb.name;
 		BattleMan.AddBattler(newEnemy);
 	}
-	battlers += enemyBattlers;
-	battlers += playerBattlers;
-	assert(enemyBattlers.Size() && playerBattlers.Size());
 	for (int i = 0; i < battlers.Size(); ++i){
 		battlers[i]->ResetStats();
 	}
@@ -482,10 +510,10 @@ void RuneBattleState::Log(String string){
 }
 
 /// Adds target battler as a player! o-o
-bool RuneBattleState::AddPlayerBattler(RuneBattler * playerBattler){
+bool RuneBattleState::AddPlayerBattler(RuneBattler * playerBattler)
+{
 	if (playerBattler->actionCategories.Size() == 0)
 		std::cout<<"\nWARNING: Player lacks any action categories. Will not be able to do anything.";
-	playerBattlers.Add(playerBattler);
 	BattleMan.AddBattler(playerBattler, !playerBattler->isAI);
 	return true;
 }
@@ -690,7 +718,9 @@ void RuneBattleState::HideMenus()
 }
 
 /// Update the HP gui.
-void RuneBattleState::UpdatePlayerHPUI(){
+void RuneBattleState::UpdatePlayerHPUI()
+{
+	List<RuneBattler*> playerBattlers = GetPlayerBattlers();
 	for (int i = 0; i < playerBattlers.Size(); ++i){
 		RuneBattler * playerBattler = playerBattlers[i];
 		Graphics.QueueMessage(new GMSetUIs("Player"+STRINT(i)+"HP", GMUI::TEXT, "HP: "+STRINT(playerBattler->hp)+"/"+STRINT(playerBattler->maxHP)));

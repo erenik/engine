@@ -43,6 +43,10 @@ private:
 	/// Time per tile, in seconds.
 	static const float DEFAULT_MOVEMENT_SPEED;
 	
+
+	/// To avoid checking every single frame.
+	Tile * lastTile;
+
 	/// In seconds
 	float timePassedSinceLastMovement;
 	int tileX, tileY;

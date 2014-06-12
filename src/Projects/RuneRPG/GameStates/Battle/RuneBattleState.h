@@ -30,6 +30,13 @@ public:
 	void ProcessMessage(Message * message);
 
 private:
+
+	// Randomize starting initiative.
+	void ResetInitiative();
+	/// Update UI accordingly.
+	void OnBeginBattle();
+
+
 	/// For special battles
 	enum {
 		NORMAL_BATTLE,
@@ -44,6 +51,9 @@ private:
     /// Timing...!
     Timer timer;
     int lastTime;
+
+	/// Source file of the battle we are currently fighting.
+	String battleSource;
 
     /// Stuff.
     class RuneBattleAction * selectedBattleAction;
@@ -72,8 +82,7 @@ private:
 	bool commandsMenuOpen;
 
     /// For ze targetting!
-    List<RuneBattler*> activeTargets;
-	List<RuneBattler*> playerBattlers, enemyBattlers;
+    List<Entity*> activeTargets;
 	RuneBattler * activePlayer;
 
 	/** List of all active players! (human-controlled, either locally or via network).

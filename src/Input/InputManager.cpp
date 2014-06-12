@@ -17,9 +17,11 @@
 
 #ifdef WINDOWS // For XBOX controller input
 #include <Windows.h>
+#ifdef _MSC_VER // MSVC++ specific header
 #include <xinput.h>
 #include <XInput.h>
-#endif
+#endif // _MSC_VER
+#endif // WINDOWS
 
 #include "Gamepad.h"
 
@@ -560,7 +562,9 @@ void InputManager::MouseClick(bool down, int x, int y, UIElement * elementClicke
 			return;
 	}
 	/// Inform the active state of the interaction
-	StateMan.ActiveState()->MouseClick(down, x, y, element);
+	GameState * gameState = StateMan.ActiveState();
+	if (gameState)
+		gameState->MouseClick(down, x, y, element);
 }
 /** Handles a mouse click.
 	Argument true indicate that the button was pressed, while false indicates that it was just released.
@@ -655,6 +659,8 @@ void InputManager::MouseWheel(float delta){
 		UIElement * element = ui->GetElementByPosition(mouseX, mouseY);
 		if (element){
 			delta *= 0.5f;
+			if (KeyPressed(KEY::CTRL))
+				delta *= 5;
 	//		std::cout<<"\nWheeled over element: "<<element->name;
 			bool scrolled = element->OnScroll(delta);
 			if (scrolled)

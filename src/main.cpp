@@ -29,19 +29,23 @@
     #define _CRTDBG_MAP_ALLOC
     #include <malloc.h>
     #include <stdlib.h>
+#ifdef _MSC_VER // MSVC++ specific header
+#define MSVC
     #include <crtdbg.h>
+#endif 
     #include "config.h"
     #include <io.h>
+#define UNICODE
     #include <windows.h>
     #include <tchar.h>
     #include <process.h>
-    #include <crtdbg.h>
+    
     // Global variables
     extern uintptr_t initializerThread;
     // The main window class name.
     static TCHAR szWindowClass[] = _T("win32app");
     // The string that appears in the application's title bar.
-    static TCHAR szTitle[] = _T("Win32 Guided Tour Application");
+    static WCHAR szTitle[] = L"Win32 Guided Tour Application";
     HWND			hWnd = NULL;
     HINSTANCE		hInst = NULL;
     HDC				hdc = NULL;
@@ -184,9 +188,11 @@ int main(int argc, char **argv){
 
 /// Set C-runtime flags and threading options
 #ifdef WINDOWS
+#ifdef MSVC
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 	_CrtSetReportMode(_CRT_WARN , _CRTDBG_MODE_FILE);
 	_CrtSetReportFile(_CRT_WARN, _CRTDBG_FILE_STDOUT);
+#endif
 #elif defined USE_X11
     /// Initialize support for multi-threaded usage of Xlib
     int status = XInitThreads();
@@ -263,7 +269,7 @@ int main(int argc, char **argv){
 	// Check registry for Resizability
 	HINSTANCE iconHInst = NULL;
 	// Use default icon, Consider looking up design for a real icon
-	HICON icon = LoadIcon(iconHInst, MAKEINTRESOURCE(IDI_APPLICATION));
+//	HICON icon = LoadIconW(iconHInst, (WORD)MAKEINTRESOURCEW(IDI_APPLICATION));
 //	icon = (HICON) LoadImage(hInstance, L"Game.ico", IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);
 	/// Class styles
 	UINT windowClassStyle =
@@ -276,22 +282,23 @@ int main(int argc, char **argv){
 		0;
 
 	// Define window class structure
-	WNDCLASSEX wcex;
-	static TCHAR szWindowClass[] = _T("win32app");
-    wcex.cbSize = sizeof(WNDCLASSEX);
+	WNDCLASSEXW wcex;
+	static WCHAR szWindowClass[] = L"win32app";
+    wcex.cbSize = sizeof(WNDCLASSEXW);
     wcex.style          = windowClassStyle;
     wcex.lpfnWndProc    = WndProc;
     wcex.cbClsExtra     = 0;
     wcex.cbWndExtra     = 0;
     wcex.hInstance      = hInstance;
-    wcex.hIcon          = icon;
+    wcex.hIcon          = 0;
     wcex.hCursor        = LoadCursor(NULL, IDC_ARROW);
     wcex.hbrBackground  = (HBRUSH)(COLOR_WINDOW+1);
     wcex.lpszMenuName   = NULL;
-    wcex.lpszClassName  = szWindowClass;
-    wcex.hIconSm        = icon;
+	wcex.lpszClassName = szWindowClass;
+//    wcex.lpszClassName  = szWindowClass;
+    wcex.hIconSm        = 0;
 	// Register the window class structure
-	if (!RegisterClassEx(&wcex))
+	if (!RegisterClassExW(&wcex))
     {
         MessageBox(NULL,
             _T("Call to RegisterClassEx failed!"),
@@ -353,9 +360,6 @@ int main(int argc, char **argv){
 	windowTitle.Remove("\"", true);
 	windowTitle = FilePath::GetFileName(windowTitle);
 	windowTitle.ConvertToWideChar();
-	/// Window title
-	static TCHAR szTitle[] = _T("Game Engine Window");
-
 	wcscpy(szTitle, windowTitle.wc_str());
 
 /*	
@@ -426,7 +430,7 @@ WS_CLIPCHILDREN |
 
 	/// Create window
 #ifdef WINDOWS
-	hWnd = CreateWindowEx(
+	hWnd = CreateWindowExW(
 		dwExStyle,
 		szWindowClass, szTitle,
 		windowStyle,

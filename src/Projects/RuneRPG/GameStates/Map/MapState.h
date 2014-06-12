@@ -54,6 +54,7 @@ public:
 	void SetCamera(Camera & reference);
 
 private:
+	void PlaceZone(String zoneScriptRef, int x, int y);
 	/// o-o
 	void SpawnNPC(String fromRef, int x, int y);
 	/// Hides sub-menus in the main.. menu...

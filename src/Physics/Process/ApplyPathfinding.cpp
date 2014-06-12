@@ -97,9 +97,9 @@ void PhysicsManager::ApplyPathfinding(){
 		    }
 		    // Do we have a general sense of desired velocity?
 		    else if (desiredVelocity.MaxPart()){
-		    	std::cout<<"\nTrying to find a new waypuintlur.";
+//		    	std::cout<<"\nTrying to find a new waypuintlur.";
 				if (!currentWaypoint){
-					std::cout<<"\nCurrent waypoint NULL, trying to fetch one from the active navMesh at position: "<<position;				
+//					std::cout<<"\nCurrent waypoint NULL, trying to fetch one from the active navMesh at position: "<<position;				
 					/// Find our closest current waypoint in the active navMesh (there should hopefully be one).
 					currentWaypoint = WaypointMan.GetClosestValidWaypoint(position);
 					if (!currentWaypoint){
@@ -108,7 +108,7 @@ void PhysicsManager::ApplyPathfinding(){
 						return;
 					}
 					assert(currentWaypoint);
-					std::cout<<"\nFetched waypoint at: "<<currentWaypoint->position;
+//					std::cout<<"\nFetched waypoint at: "<<currentWaypoint->position;
 				}
 				/// Skip any negative dot-products, but also any not coinciding at least a bit (45-degree max deviation).
 				float bestDotProduct = 0.5f;
@@ -135,7 +135,7 @@ void PhysicsManager::ApplyPathfinding(){
 		    }
 		    /// If we found a new valid target waypoint, make our way there!
 		    if (newTargetWaypoint){
-		    	std::cout<<"\nNew target waypoint found";
+		    //	std::cout<<"\nNew target waypoint found";
 				targetWaypoint = newTargetWaypoint;
 				targetWaypoint->entity = entity;
 				currentWaypoint->entity = NULL;
@@ -144,7 +144,7 @@ void PhysicsManager::ApplyPathfinding(){
 				/// Update velocity depending on stuff. This row update allows smooth diagnoal movement.. I think.
 				/// TODO: Change the 5 to a value settable somewhere, for example the pathfindingProperty..
 				physics->velocity = 5 * toNextNormalized;
-				std::cout<<"\nNew target waypoint found: "<<newTargetWaypoint->position;
+			//	std::cout<<"\nNew target waypoint found: "<<newTargetWaypoint->position;
 			}
 	    }
 	    /// If 0 desired velocity and NULL target, stop us.

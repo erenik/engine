@@ -66,7 +66,7 @@ int TileGrid2D::GenerateWaypoints(NavMesh * navMesh, float maxNeighbourDistance)
 		wp->position = tile->position;
 		/// Save the tile as the data-node, so we can access all this data later!
 		wp->pData = tile;
-		std::cout<<"\nTile types: "<<TileTypes.Types();
+//		std::cout<<"\nTile types: "<<TileTypes.Types();
 		assert(TileTypes.Types() && "Load and set tile types first?");
 		/// Null-types
 		if (tile->type == NULL){

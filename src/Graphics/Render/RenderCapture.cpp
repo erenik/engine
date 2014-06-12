@@ -183,6 +183,8 @@ void GraphicsManager::RenderCapture()
 		// Load projection matrix again
 		glLoadMatrixd(graphicsState.projectionMatrixD.getPointer());
 
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		
 		// Enable disabled stuffs.
 		glEnable(GL_DEPTH_TEST);	
 	}

@@ -52,6 +52,7 @@ enum generalActions{
 
 /// Windows
 #ifdef WINDOWS
+#define UNICODE
 #include <Windows.h>
 #include <shellapi.h>
 extern HWND hWnd;
@@ -346,10 +347,10 @@ void generalInputProcessor(int action, int inputDevice){
 					wchar_t filename[MAX_FILES][MAX_PATH];
 					wchar_t fileSuffix[10];
 					/// First extract amount of files available
-					int result = DragQueryFile(hDrop, 0xFFFFFFFF, filename[0], MAX_PATH);
+					int result = DragQueryFileW(hDrop, 0xFFFFFFFF, filename[0], MAX_PATH);
 					std::cout<<"\nINFO: Pasting from clipboard: 1 file(s):";
 					for (int i = 0; i < result && i < MAX_FILES; ++i){
-						int pathLength = DragQueryFile(hDrop, i, filename[i], MAX_PATH);
+						int pathLength = DragQueryFileW(hDrop, i, filename[i], MAX_PATH);
 #ifdef _UNICODE
 						std::wcout<<"\n- "<<filename[i];
 #else
@@ -391,7 +392,7 @@ void generalInputProcessor(int action, int inputDevice){
 							Texture * tex = TexMan.LoadTexture(filename[i]);
 							if (tex){
 								Graphics.QueueMessage(new GMBufferTexture(tex));
-								std::wcout<<"\nTexture loaded as name: "<<tex->name;
+								std::wcout<<"\nTexture loaded as name: "<<tex->name.wc_str();
 							}
 						}
 					}
@@ -410,6 +411,7 @@ void generalInputProcessor(int action, int inputDevice){
 
 				hglb = GetClipboardData(CF_TEXT);
 				if (hglb != NULL){
+					/*
                     lptstr = (LPTSTR) GlobalLock(hglb);
                     if (lptstr != NULL)	{
 						// Call the application-defined ReplaceSelection
@@ -423,6 +425,7 @@ void generalInputProcessor(int action, int inputDevice){
 						//	ReplaceSelection(hwndSelected, pbox, lptstr);
 						GlobalUnlock(hglb);
 					}
+					*/
 				}
 				CloseClipboard();
 				return;

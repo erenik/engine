@@ -19,8 +19,10 @@
 #include "Audio.h"
 
 #include <iostream>
+#ifdef USE_FMOD
 #include <fmod_studio.hpp>
 #include <fmod_studio_common.h>
+#endif
 //#include <fmod.hpp>
 
 AudioManager * AudioManager::audioManager = NULL;

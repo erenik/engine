@@ -11,6 +11,16 @@ public:
     UIScrollBarHandle();
 	virtual ~UIScrollBarHandle();
     void Move(float distance);
+
+	/// Activation functions
+	virtual UIElement * Hover(int mouseX, int mouseY);
+	// Returns true once the highest-level appropriate element has been found.
+	// No co-ordinates are required since we will instead require the element to already
+	// be highlighted/hovered above.
+	virtual UIElement * Click(int mouseX, int mouseY);
+
+	// Sets alignment, queueing rebuffering.
+	void SetAlignmentY(float y);
 };
 
 class UIScrollBar : public UIElement {
@@ -19,6 +29,17 @@ public:
     UIScrollBar();
 	virtual ~UIScrollBar();
     void CreateHandle();
+
+	/// For updating scroll-position based on Mouse coordinate
+	void OnMouseY(int y);
+
+	/// Activation functions
+	virtual UIElement * Hover(int mouseX, int mouseY);
+	// Returns true once the highest-level appropriate element has been found.
+	// No co-ordinates are required since we will instead require the element to already
+	// be highlighted/hovered above.
+	virtual UIElement * Click(int mouseX, int mouseY);
+	// Does something..
     void Update(float newSize);
     /// Move the scrollbar, capping it depending on it's size (will never exceed the 0.0 - 1.0 limits)
     void Move(float distance);

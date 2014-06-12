@@ -39,6 +39,10 @@ public:
 	Tile();
 	~Tile();
 	
+
+	/// Scripts to run when approaching/landing on this tile?
+	List<Script*> onEnter;
+
 	/// Writes to file stream.
 	virtual void WriteTo(std::fstream & file);
 	/// Reads from file stream.

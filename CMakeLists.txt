@@ -200,6 +200,8 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 			-D_CRT_SECURE_NO_WARNINGS
 			-DUNICODE
 			-D_UNICODE
+			# Target platform
+			-D_WIN32_WINNT=0x0600
 		)
 		
 		# FMOD Dirs
@@ -230,7 +232,7 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 			libtheora_static_MTd.lib
 		)
 		# FMOD Studio, Audio
-		set(DEBUG_LIBS ${DEBUG_LIBS} fmod_vc.lib)
+	#	set(DEBUG_LIBS ${DEBUG_LIBS} fmod_vc.lib)
 
 		# Windows media library for setting system volume
 		set(DEBUG_LIBS ${DEBUG_LIBS} Winmm.lib)
@@ -333,6 +335,6 @@ addProject("Horror" horrorFolders)
 
 
 # Create our projects
-set(ipmFolders "Projects/IPM")
+set(ipmFolders "Projects/IPM" "CV")
 addProject("IPM" ipmFolders)
 

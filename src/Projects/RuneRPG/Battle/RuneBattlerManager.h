@@ -19,7 +19,7 @@ public:
 	/// Looks for a "Battlers.list" which should then specify the battler-files to load.
 	bool LoadFromDirectory(String dir);
 	bool LoadBattles(String fromDirectory);
-	bool LoadBattle(String source);
+	Battle * LoadBattle(String source);
 	Battle GetBattleBySource(String source);
 	/// The default directory and file ending will be added automatically as needed. 
 	RuneBattler GetBattlerBySource(String bySource);

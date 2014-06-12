@@ -9,6 +9,29 @@
 #include "Graphics/Messages/GMUI.h"
 #include "UI/UIImage.h"
 
+WaitScript::WaitScript(String line, Script * parent)
+: Script(line, parent)
+{	
+	duration = line.Tokenize("( ,)")[1].ParseInt();
+}
+
+/// Regular state-machine mechanics for the events, since there might be several parralell events?
+void WaitScript::OnBegin()
+{
+	startTime = Timer::GetCurrentTimeMs();
+}
+void WaitScript::Process(float time)
+{
+	if (Timer::GetCurrentTimeMs() > startTime + duration)
+		scriptState = Script::ENDING;
+}
+void WaitScript::OnEnd()
+{
+	// Notify parent etc. when finishing.
+	Script::OnEnd();
+}
+
+
 StateChanger::StateChanger(String line, Script * parent)
 : Script(line, parent)
 {
@@ -231,7 +254,7 @@ void FadeInBackground::OnEnd()
 {
 	Graphics.QueueMessage(new GMSetGlobalUIs(OVERLAY_BACKGROUND_1, GMUI::TEXTURE_SOURCE, fadeInTextureSource));
 	Graphics.QueueMessage(new GMSetGlobalUIf(OVERLAY_BACKGROUND_1, GMUI::ALPHA, 1.0f));
-	Graphics.QueueMessage(new GMSetGlobalUIf(OVERLAY_BACKGROUND_2, GMUI::ALPHA, 1.0f));
+	Graphics.QueueMessage(new GMSetGlobalUIf(OVERLAY_BACKGROUND_2, GMUI::ALPHA, 0.0f));
 	// Notify parent etc. when finishing.
 	Script::OnEnd();
 }

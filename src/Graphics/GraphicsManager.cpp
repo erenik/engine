@@ -395,8 +395,12 @@ void GraphicsManager::SetOverlayTexture(String source, int fadeInTime)
 /// Sets overlay texture to be rendered on top of everything else
 void GraphicsManager::SetOverlayTexture(Texture * texture, int fadeInTime /* = 0*/)
 {
-	if (fadeInTime == 0)
+	if (fadeInTime == 0){
 		overlayTexture = texture;
+		// Remove queued texture too, then?
+		if (!texture)
+			queuedOverlayTexture = NULL;
+	}
 	else 
 	{
 		// Log in fade-time after the texture is buffered!

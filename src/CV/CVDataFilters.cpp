@@ -1612,7 +1612,7 @@ int CVFingerActionFilter::Process(CVPipeline * pipe)
 	if (pipe->fingerStates.Size())
 	{
 		FingerState & lastState = pipe->fingerStates.Last();
-		std::cout<<"\nLastState duration: "<<lastState.duration;
+	//	std::cout<<"\nLastState duration: "<<lastState.duration;
 		postFilter.SetPixel(framesPassed, lastState.fingers * 3, Vector3f(1 - (lastState.duration - minimumDuration->iValue)/ (float)minimumDuration->iValue * 0.25, (lastState.duration - minimumDuration->iValue) / (float)minimumDuration->iValue,0));
 		++framesPassed;
 		if (framesPassed > framesToTrack)

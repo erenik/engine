@@ -2,19 +2,19 @@
 /// 2014-01-24
 /// A server handling incoming connections.
 
+#include "Network/NetworkIncludes.h"
+
 #include "TcpServer.h"
 #include "Network/NetworkSettings.h"
 #include "Network/Socket/TcpSocket.h"
 #include <cassert>
 #include <iostream>
 #include <cstring>
-#include "Network/NetworkIncludes.h"
 
 TcpServer::TcpServer(){
 	port = 33000;
 	status = ServerStatus::NOT_STARTED;
 }
-
 
 void TcpServer::SetServerPort(int i_port){
 	port = i_port;

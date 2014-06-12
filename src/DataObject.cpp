@@ -2,6 +2,7 @@
 // 2013-07-03
 
 #include "DataObject.h"
+/*
 
 #ifdef WINDOWS
 
@@ -49,3 +50,5 @@ HRESULT STDMETHODCALLTYPE DataObject::EnumDAdvise(IEnumSTATDATA **) {
 
 #endif
 
+
+*/

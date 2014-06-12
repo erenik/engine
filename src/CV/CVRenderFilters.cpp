@@ -434,7 +434,9 @@ int CVMovieProjector::Process(CVPipeline * pipe)
 		Vector3f scale(tex->width / max, tex->height / max, 1);
 		// Multiply scale with width or height or the polygon?
 		cv::Rect boundingRect = cv::boundingRect(*bestPoly);
-		scale *= max(boundingRect.width, boundingRect.height) * 0.01f;
+#define Maximum(a,b) ( (a > b) ? a : b)
+
+		scale *= Maximum(boundingRect.width, boundingRect.height) * 0.01f;
 		averageScale = averageScale * (frames - 1) / frames + scale / frames;
 		// Scale it further depending on the size of the contour of the hand?
 		Physics.QueueMessage(new PMSetEntity(SET_SCALE, movieEntity, averageScale));

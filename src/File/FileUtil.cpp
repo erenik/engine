@@ -85,7 +85,7 @@ int GetDirectoriesInDirectory(String directory, List<String> & dirs){
 			continue;
 		if (!(data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
 			continue;
-		std::cout<<"\nFound file: "<<wName;
+//		std::cout<<"\nFound file: "<<wName;
 		dirs.Add(wName);
 	}
 	// Close ze file..?
@@ -162,7 +162,7 @@ int GetFilesInDirectory(String directory, List<String> & files){
 			continue;
 		if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 			continue;
-		std::cout<<"\nFound file: "<<wName;
+	//	std::cout<<"\nFound file: "<<wName;
 		files.Add(wName);
 	}
 
@@ -202,7 +202,7 @@ bool CreateFolder(String withPath)
 #ifdef WINDOWS
 	String path = withPath;
 	path.ConvertToWideChar();
-	BOOL result = CreateDirectory(path.wc_str(), NULL);
+	BOOL result = CreateDirectoryW(path.wc_str(), NULL);
 	bool failed = false;
 	if (!result){
 		int error = GetLastError();
@@ -255,7 +255,7 @@ bool EnsureFoldersExistForPath(String path){
 	// folders.RemoveIndex(folders.Size()-1);
 #ifdef WINDOWS
 	wchar_t buf[5000];
-	GetCurrentDirectory(5000, buf);
+	GetCurrentDirectoryW(5000, buf);
 	String cDir(buf);
 	std::cout<<"\nCdir: "<<cDir;
 	String previousUrl;
@@ -264,7 +264,7 @@ bool EnsureFoldersExistForPath(String path){
 		previousUrl += f;
 		std::cout<<"\nChecking if "<<previousUrl<<" exists.";
 		const wchar_t * p = previousUrl.wc_str();
-		BOOL result = CreateDirectory(p, NULL);
+		BOOL result = CreateDirectoryW(p, NULL);
 		bool failed = false;
 		if (!result){
 			int error = GetLastError();

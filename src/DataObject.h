@@ -10,7 +10,7 @@
 
 #ifdef WINDOWS
 
-#include <windows.h>
+/*
 #include <objidl.h>
 
 /// A Win32 Class for carrying data related to the application.
@@ -40,6 +40,7 @@ public:
 	DropTarget();
 
 };
+*/
 
 #endif // WINDOWS
 

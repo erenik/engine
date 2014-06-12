@@ -35,7 +35,8 @@ bool BattleManager::IsAllocated(){
 }
 
 /// Clears active battlers and prepares loading in new ones, using previously set default values.
-void BattleManager::NewBattle(){
+void BattleManager::NewBattle()
+{
     battlers.ClearAndDelete();
 	if (battleState)
 		delete battleState;

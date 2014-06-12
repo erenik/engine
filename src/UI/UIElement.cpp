@@ -361,7 +361,7 @@ UIElement* UIElement::Click(int mouseX, int mouseY)
 		}
 	}
 	// Check the element's StateMan. If it is hovered over, we've found it.
-	if (this->activateable && state & UIState::HOVER){
+	if (this->activateable){
 		state |= UIState::ACTIVE;
 		return this;
 	}

@@ -106,7 +106,17 @@ bool Script::Load()
 {
 	std::cout<<"\nScript::Load called: "<<name;
 	bool result = Load(name);
-	assert(result && "Was unable to load target script.");
+	if (!result)
+	{
+		std::cout<<"Was unable to load target script.";
+		loaded = false;
+		/// Quit the script ASAP since it failed to load anyway.
+		scriptState = FINISHING;
+	}
+	else
+	{
+		loaded = true;
+	}
 	return result;
 }
 
@@ -132,7 +142,7 @@ bool Script::Load(String fromFile){
 	std::fstream file;
 	file.open(source.c_str(), std::ios_base::in);
 	if (!file.is_open()){
-		assert(file.is_open() && "ERROR opening file stream in Script::Load(fromFile)!");
+//		assert(file.is_open() && "ERROR opening file stream in Script::Load(fromFile)!");
 		std::cout<<"\nERROR: Unable to open file stream to "<<source;
 		file.close();
 		return NULL;
@@ -364,6 +374,11 @@ void Script::EvaluateLine(String & line)
 	{
 		// End it.
 		scriptState = ENDING;
+	}
+	else if (line.Contains("Wait"))
+	{
+		// Wait..! ..
+		ScriptMan.PlayScript(new WaitScript(line, this));
 	}
 	else if (line.Contains("EnterGameState("))
 	{

@@ -11,10 +11,11 @@
 #include "OS/OS.h"
 #if PLATFORM == PLATFORM_WINDOWS
 	// Only for Windows
-	#include <WS2tcpip.h>
-	#include <WinSock2.h>	// For sockets in Windows
-	#include <Windows.h>	// Windows stuff
+#define _POSIX_C_SOURCE
+	#include <winsock2.h>	// For sockets in Windows
+	#include <ws2tcpip.h>
 	#include <process.h>	// For multi threading
+	#include<ws2tcpip.h>
 	#pragma comment(lib, "Ws2_32.lib")
 	#ifdef _MSC_VER
 		#define sockerrno WSAGetLastError()

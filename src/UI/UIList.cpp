@@ -7,6 +7,7 @@
 #include "Graphics/Messages/GMUI.h"
 #include "GraphicsState.h"
 #include "MathLib/Rect.h"
+#include "Input/InputManager.h"
 
 UIScrollBarHandle::UIScrollBarHandle()
 : UIElement()
@@ -38,6 +39,47 @@ void UIScrollBarHandle::Move(float distance)
 	this->isBuffered = false;
 }
 
+/// Activation functions
+UIElement * UIScrollBarHandle::Hover(int mouseX, int mouseY)
+{
+	UIElement * element = UIElement::Hover(mouseX, mouseY);
+	if (element == this && Input.lButtonDown)
+	{
+		float alignmentY = (mouseY - parent->bottom) / (float)this->parent->sizeY;
+		this->SetAlignmentY(alignmentY);
+	}
+	return element;
+}
+	
+
+// Returns true once the highest-level appropriate element has been found.
+// No co-ordinates are required since we will instead require the element to already
+// be highlighted/hovered above.
+UIElement * UIScrollBarHandle::Click(int mouseX, int mouseY)
+{
+	UIElement * clickElement = UIElement::Click(mouseX, mouseY);
+	if (clickElement == this)
+	{
+		float alignmentY = (mouseY - parent->bottom) / (float)this->parent->sizeY;
+		this->SetAlignmentY(alignmentY);
+	}
+	return clickElement;
+}
+
+
+// Setting
+void UIScrollBarHandle::SetAlignmentY(float y)
+{
+	float halfSizeY = this->sizeRatioY * 0.5f;
+	if (y > 1.f - halfSizeY)
+		y = 1.f - halfSizeY;
+	if (y < 0.f + halfSizeY)
+		y = 0.f + halfSizeY;
+	
+	alignmentY = y;
+	this->isBuffered = false;
+}
+
 UIScrollBar::UIScrollBar()
 : UIElement()
 {
@@ -49,6 +91,8 @@ UIScrollBar::UIScrollBar()
     hoverable = true;
     activateable = true;
     isSysElement = true;
+	highlightOnHover = false;
+	highlightOnActive = false;
 
     activationMessage = "BeginScroll(this)";
 }
@@ -66,6 +110,87 @@ void UIScrollBar::CreateHandle(){
     AddChild(handle);
     previousSize = 1.0f;
 }
+
+void UIScrollBar::OnMouseY(int y)
+{
+	float pageSize = this->PageSize();
+	float halfPageSize = pageSize * 0.5f;
+	float pos = (y + halfPageSize)/ (float)this->sizeY;
+// Ensure.. within bounds?
+	handle->SetAlignmentY(pos);
+}
+
+/// Activation functions
+UIElement * UIScrollBar::Hover(int mouseX, int mouseY)
+{
+	// OnActivate()?
+	// Update scroll position!
+	UIElement * element = UIElement::Hover(mouseX, mouseY);
+	if (element == this && Input.lButtonDown)
+		OnMouseY(mouseY - bottom);
+	return this;
+}
+
+
+// Returns true once the highest-level appropriate element has been found.
+// No co-ordinates are required since we will instead require the element to already
+// be highlighted/hovered above.
+UIElement * UIScrollBar::Click(int mouseX, int mouseY)
+{
+	UIElement * result = 0;
+	// Don't process invisible UIElements, please.
+	if (visible == false)
+		return false;
+
+	// Check if the mouse is outside the element's boundaries.
+	if (mouseX > right || mouseX < left ||
+		mouseY > top || mouseY < bottom){
+			// Return false if we are outside of the boundaries,
+			// since we haven't found the selected element.
+			state = UIState::IDLE;
+			//	if(child != NULL)
+			return NULL;
+	}
+
+	// Check axiomaticness (direct-activation without further processing)
+	if (axiomatic){
+		if (activateable){
+			state |= UIState::ACTIVE;
+			return this;
+		}
+		return NULL;
+	}
+
+	// OnActivate()?
+	// Update scroll position!
+	OnMouseY(mouseY - bottom);
+
+
+	// Alright, the mouse is inside this element!
+	// Do we have children?
+	for (int i = childList.Size()-1; i >= 0; --i){
+		UIElement * child = childList[i];
+	    if (!child->visible)
+            continue;
+		result = child->Click(mouseX, mouseY);
+		if (result != NULL){
+			// The active element has been found further down the tree,
+			// so we can return true.
+			state = UIState::IDLE;
+			return result;
+		}
+	}
+
+	
+	// Check the element's StateMan. If it is hovered over, we've found it.
+	if (this->activateable && state & UIState::HOVER){
+		state |= UIState::ACTIVE;
+		return this;
+	}
+	// If not, return false, since we haven't foun the right element.
+	return NULL;
+}
+
 
 void UIScrollBar::Update(float newSize)
 {
@@ -275,7 +400,7 @@ UIElement * UIList::Hover(int mouseX, int mouseY)
     for (int i = 0; i < childList.Size(); ++i){
         UIElement * child = childList[i];
         if (child->isSysElement)
-            e = child->Click(mouseX, mouseY);
+            e = child->Hover(mouseX, mouseY);
         else
             e = child->Hover(RoundInt(listX), RoundInt(listY));
         if (e)

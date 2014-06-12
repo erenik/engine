@@ -430,6 +430,27 @@ void MapState::CloseMenu(){
 		std::cout<<"\nMenu already closed o-o";
 }
 
+void MapState::PlaceZone(String fromRef, int x, int y)
+{
+	String source = fromRef;
+	if (!source.Contains("data/scripts"))
+		fromRef = "data/scripts/" + fromRef;
+	List<String> lines = File::GetLines(fromRef);
+	
+
+
+	Vector2i spawnPos(x,y);
+	TileMap2D * activeMap = this->ActiveMap();
+	Tile * tile = activeMap->GetClosestVacantTile(spawnPos);	
+	if (!tile){
+		std::cout<<"\nERROR: Unable to place zone-point.";
+		return;
+	}
+	Script * script = new Script("Zone");
+	script->Load(fromRef);
+	tile->onEnter.Add(script);
+}
+
 /// o-o
 void MapState::SpawnNPC(String fromRef, int x, int y)
 {
@@ -562,6 +583,21 @@ void MapState::ProcessMessage(Message * message)
 			else if (msg == "CloseMenu")
 			{
 				CloseMenu();
+			}
+			else if (msg.Contains("PlaceZone"))
+			{
+				List<String> args = msg.Tokenize("(), ");
+				int numArgs = args.Size();
+				int zoneCoords = (numArgs - 2) / 2;
+				if (zoneCoords < 0)
+					return;
+				String zoneScript = args[1];
+				for (int i = 0; i < zoneCoords; ++i)
+				{
+					int x = args[i*2+2].ParseInt();
+					int y = args[i*2+3].ParseInt();
+					this->PlaceZone(zoneScript, x,y);
+				}
 			}
 			else if (msg.Contains("SpawnNPC"))
 			{
@@ -875,12 +911,16 @@ void MapState::Zone(String mapName)
 	NavMesh * navMesh = WaypointMan.GetNavMeshByName(map->Name());
 	if (!navMesh){
 		navMesh = WaypointMan.CreateNavMesh(map->Name());
-		/// TODO: Make sure that it doesn't already have any data, if so clear it?
-		/// Create waypoints using tiles in the map!
-		TileMap2D * tileMap2D = (TileMap2D*)map;
-		tileMap2D->GenerateWaypoints(navMesh);
-		WaypointMan.MakeActive(navMesh);
 	}
+	/// TODO: Make sure that it doesn't already have any data, if so clear it?
+	/// Create waypoints using tiles in the map!
+	TileMap2D * tileMap2D = (TileMap2D*)map;
+	// Just delete all.
+	navMesh->Clear();
+	// Generate waypoints based on the existing tiles and stuff.
+	tileMap2D->GenerateWaypoints(navMesh);
+	WaypointMan.MakeActive(navMesh);
+
 	// Remove entities from the navmesh..
 	for (int i = 0; i < navMesh->waypoints.Size(); ++i)
 	{	

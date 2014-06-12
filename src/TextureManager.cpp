@@ -76,7 +76,7 @@ Texture * TextureManager::GetTextureByName(String name){
 	else if (name == "Red")
 		return GenerateTexture("Red", Vector4f(1,0,0,1));
 
-	std::cout<<"\nTexture not loaded, attempting to load it.";
+//	std::cout<<"\nTexture not loaded, attempting to load it.";
 	return LoadTexture(name);
 }
 
@@ -178,7 +178,7 @@ Texture * TextureManager::LoadTexture(String source){
 	for (int i = 0; i < textures.Size(); ++i){
 		if (textures[i]->source.Contains(source) ||
 			source.Contains(textures[i]->source)){
-			std::cout<<"\nTexture \""<<source<<"\" already loaded, skipping.";
+//			std::cout<<"\nTexture \""<<source<<"\" already loaded, skipping.";
 			return textures[i];
 		}
 	}

@@ -5,8 +5,22 @@
 #ifndef GENERAL_SCRIPTS_H
 #define GENERAL_SCRIPTS_H
 
+#include "System/DataTypes.h"
 #include "Script.h"
 class Texture;
+
+class WaitScript : public Script 
+{
+public:
+	WaitScript(String line, Script * parent);
+	/// Regular state-machine mechanics for the events, since there might be several parralell events?
+	virtual void OnBegin();
+	virtual void Process(float time);
+	virtual void OnEnd();
+private:
+	int64 startTime;
+	int duration;
+};
 
 // Custom scripts here! Or new files for that later?
 class StateChanger : public Script 

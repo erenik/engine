@@ -105,6 +105,8 @@ void RuneBattler::Process(BattleState &battleState){
 
 	state = ACTION_QUEUED;
 	/// Queue up an action, random ones work fine.
+	if (actions.Size() == 0)
+		return;
 	BattleAction * ba = actions[rand()%actions.Size()];
 	RuneBattleAction * rba = new RuneBattleAction(*ba);
 	rba->subjects = this;

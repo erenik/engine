@@ -17,6 +17,7 @@
 #include "Graphics/Messages/GraphicsMessages.h"
 #include "Physics/PhysicsProperty.h"
 #include "Pathfinding/PathfindingProperty.h"
+#include "Script/ScriptManager.h"
 
 const float RREntityState::DEFAULT_MOVEMENT_SPEED = 0.25f;
 
@@ -202,7 +203,23 @@ void RREntityState::HandleMovement(float & timePassed)
 		// Check if tile is vacant and walkable, if so move to it.
 		Vector3f pos = entity->position;
 //		std::cout<<"\nPosition: "<<pos;
-		
+
+		TileMap2D * map = (TileMap2D*)MapMan.ActiveMap();
+		Tile * closestTile = map->GetTile(pos);
+		if (closestTile != lastTile)
+		{
+			// Check for 
+			lastTile = closestTile;
+			if (closestTile)
+			{
+				for (int i = 0; i < closestTile->onEnter.Size(); ++i)
+				{
+					Script * script = closestTile->onEnter[i];
+					ScriptMan.PlayScript(script);
+				}
+			}
+		}
+
 		previousPosition = pos;
 		pos.Round();
 		tileX = pos.x;
@@ -246,14 +263,14 @@ void RREntityState::HandleMovement(float & timePassed)
 		path->desiredVelocity = requestedVelocity;
 		/// Consider setting this somewhere else..
 		entity->physics->boundToNavMesh = true;
-		std::cout<<"\nSetting desired velocity to: "<<requestedVelocity;
+//		std::cout<<"\nSetting desired velocity to: "<<requestedVelocity;
 		/// Update 2D-position.
 		if (entityTile2D)
 		{
 			entityTile2D->position.x = pos.x;
 			entityTile2D->position.y = pos.y;
 
-			std::cout<<"\nUpdating position to: "<<entityTile2D->position.x<<", "<<entityTile2D->position.y;
+//			std::cout<<"\nUpdating position to: "<<entityTile2D->position.x<<", "<<entityTile2D->position.y;
 		}
 /*
 		/// Check if tile is walkeable and place as there if so.
