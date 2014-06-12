@@ -8,6 +8,9 @@
 // Utility function used by e.g. RenderOverlay.
 void GraphicsManager::RenderFullScreen(Texture * texture, float alpha)
 {
+	int width = graphicsState.windowWidth;
+	int height = graphicsState.windowHeight;
+
 	// Buffer if needed.
 	if (texture->glid == -1)
 		texture->Bufferize();

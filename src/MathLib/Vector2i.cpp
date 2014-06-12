@@ -21,18 +21,20 @@ Vector2i::Vector2i(){
 }
 
 
-Vector2i::Vector2i( int ix,  int iy){
+Vector2i::Vector2i( int ix,  int iy)
+{
 	x = ix;
 	y = iy;
 }
 
-Vector2i::Vector2i(int arr[]){
+Vector2i::Vector2i(int arr[])
+{
 	x = arr[0];
 	y = arr[1];
 }
 
-
-Vector2i::Vector2i(const Vector2i & base){
+Vector2i::Vector2i(const Vector2i & base)
+{
 	x = base.x;
 	y = base.y;
 }

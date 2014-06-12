@@ -9,9 +9,9 @@
 #include "FrameStatistics.h"
 
 #include "OS/OS.h"
-#include "OS/WindowSystem.h"
+#include "Window/WindowSystem.h"
 #include "OS/Sleep.h"
-#include "OS/WindowManager.h"
+#include "Window/WindowManager.h"
 #include <cstdio>
 #include <cstring>
 
@@ -20,9 +20,9 @@
 #include <windows.h>
 #include <process.h>
 extern uintptr_t graphicsThread;	// Graphics thread pointer from Initializer.cpp
-extern HWND hWnd;			// Window handle
-extern HDC	hdc;			// Device context
-HGLRC		hRC = NULL;		// GL rendering context
+//extern HWND hWnd;			// Window handle
+//extern HDC	hdc;			// Device context
+//HGLRC		hRC = NULL;		// GL rendering context
 
 /// Linux includes and globals
 #elif defined USE_X11
@@ -58,10 +58,14 @@ void * GraphicsManager::Processor(void * vArgs){
 
     int result;
 #ifdef WINDOWS
-	hdc = GetDC(hWnd);
-	SetupPixelFormat(hdc);
-	hRC = wglCreateContext(hdc);		// Create rendering context
-	result = wglMakeCurrent(hdc, hRC);	// Make it current
+
+	/// Wait until we have a valid window we can render onto.
+	while(WindowMan.NumWindows() == 0)
+		Sleep(5);
+
+	Window * mainWindow = WindowMan.GetWindow(0);
+	mainWindow->CreateGLContext();
+	mainWindow->MakeGLContextCurrent();
 
 #elif defined USE_X11
     /// Create GL context! ^^
@@ -173,27 +177,12 @@ void * GraphicsManager::Processor(void * vArgs){
 */
 	/// Setup context
 #ifdef WINDOWS
-	HGLRC hRC2 = wglGetCurrentContext();
+	// Context should already current, as set up above.
+	/*HGLRC hRC2 = wglGetCurrentContext();
 	wglMakeCurrent(hdc, hRC);
 	if (glGetError() != GL_NO_ERROR)
-		throw 3;
+		throw 3;*/
 #endif
-
-	/*
-	/// Test amount of texture IDs we can have.
-	while(true){
-		GLuint id;
-		glGenTextures(1, &id);
-		std::cout<<"\nglGenTextures: "<<id;
-		if (id > 1000000)
-			break;
-	}*/
-
-	// Reset projection matrix
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	if (glGetError() != GL_NO_ERROR)
-		throw 3;
 
     std::cout<<"\nCreating shaders...";
 	// Load shaders!
@@ -201,8 +190,8 @@ void * GraphicsManager::Processor(void * vArgs){
 
 	// Display the window ^^
 #ifdef WINDOWS
-	ShowWindow(hWnd, 1);
-	UpdateWindow(hWnd);
+	/*ShowWindow(hWnd, 1);
+	UpdateWindow(hWnd);*/
 #endif
 
 	/// Bufferize the rendering box
@@ -250,7 +239,12 @@ void * GraphicsManager::Processor(void * vArgs){
 		graphicsTimer.Start();
 		// Process graphics messages
 		gmTimer.Start();
-		Graphics.ProcessMessages();
+		try {
+			Graphics.ProcessMessages();
+		} catch(...)
+		{
+			std::cout<<"Errors thrown while processing graphics messages.";
+		}
 		Graphics.graphicsMessageProcessingFrameTime = gmTimer.GetMs();
 		/// Check if we should render or not.
 		bool renderOnQuery = Graphics.renderOnQuery;
@@ -270,7 +264,7 @@ void * GraphicsManager::Processor(void * vArgs){
 			Timer timer;
 			timer.Start();
 			// Render
-			Graphics.Render();
+			Graphics.RenderWindows();
 			timer.Stop();
 	//		std::cout<<"\n- Render frame time: "<<timer.GetMs();
 			Graphics.renderQueried = false;
@@ -321,16 +315,16 @@ void * GraphicsManager::Processor(void * vArgs){
 	/// Remove flags and begin deallocating all GL data.
 	Graphics.OnEndRendering();
 
+	List<Window*> windows = WindowMan.GetWindows();
+	for (int i = 0; i < windows.Size(); ++i)
+	{
+		windows[i]->DeleteGLContext();
+	}
 
     /// Delete rendering context
     time_t timeTaken, timeStart = clock();
 #ifdef WINDOWS
-	result = wglMakeCurrent(hdc, NULL);		// Deselect rendering context
-	assert(result == TRUE);
-	result = wglDeleteContext(hRC);			// And delete it
-	assert(result == TRUE);
-	result = DeleteDC(hdc);
-	assert(result);
+	// Moved to Window::DeleteGLContext()
 #elif defined USE_X11
     glXDestroyContext(display, context);
 #elif defined OSX & 0

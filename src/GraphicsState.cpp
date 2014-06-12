@@ -5,7 +5,9 @@
 
 GraphicsState graphicsState;
 
-GraphicsState::GraphicsState(){
+GraphicsState::GraphicsState()
+{
+	activeWindow = NULL;
 	lighting = NULL;
 	activeShader = NULL;
 	currentMesh = NULL;

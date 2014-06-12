@@ -64,7 +64,7 @@ public:
 		NOT_BEGUN,
 		BEGUN,
 		PAUSED,
-		ENDING, FINISHING = ENDING,
+		ENDING,
 		ENDED,
 	};
 

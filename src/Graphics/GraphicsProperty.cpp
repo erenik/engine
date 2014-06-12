@@ -86,7 +86,7 @@ void GraphicsProperty::SetAnimation(String name)
 		return;
 	currentAnimation = anim;
 	animStartTime = Timer::GetCurrentTimeMs();
-//	std::cout<<"\nSetAnimation "<<name<<" with start time: "<<animStartTime;
+	std::cout<<"\nSetAnimation "<<name<<" with start time: "<<animStartTime;
 }
 
 /// Sets queued animation. Only called from the GMSetEntity message.

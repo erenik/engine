@@ -5,7 +5,7 @@
 #define XPROC_INCLUDED
 
 #include "OS/OS.h"
-#include "OS/WindowSystem.h"
+#include "Window/WindowSystem.h"
 
 #ifdef USE_X11
 

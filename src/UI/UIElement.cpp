@@ -1258,10 +1258,18 @@ void UIElement::RenderSelf()
 		}
 		Shader * activeShader = graphicsState.activeShader;
 
-		assert(activeShader->uniformPrimaryColorVec4 != -1);
+	//	assert(activeShader->uniformPrimaryColorVec4 != -1);
+		if (activeShader->uniformPrimaryColorVec4 == -1)
+		{
+			std::cout<<"\nUI shader lacking primary color?";
+		}
 		glUniform4f(activeShader->uniformPrimaryColorVec4,
 			baseColor.x, baseColor.y, baseColor.z, color.w);
-		assert(activeShader->uniformHighlightColorVec4 != -1);
+		if (activeShader->uniformHighlightColorVec4 == -1)
+		{
+			std::cout<<"\nUI shader lacking highlight color?";
+		}
+		//assert(activeShader->uniformHighlightColorVec4 != -1);
 		glUniform4f(activeShader->uniformHighlightColorVec4,
 			highlightColor.x, highlightColor.y, highlightColor.z, 0.0f);
 

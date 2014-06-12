@@ -14,7 +14,7 @@ class UserInterface;
 class GMUI : public GraphicsMessage{
 public:
 	/// Default constructor, if viewPortTarget is NULL it will target the active global UI.
-	GMUI(int messageType, int viewportID = NULL);
+	GMUI(int messageType, Viewport * viewport = NULL);
 	virtual void Process() = 0;
 
 	enum gmUITargets {
@@ -51,17 +51,18 @@ protected:
 	bool GetUI();
 	/// Fetches global UI. 
 	bool GetGlobalUI();
-	int viewportID;
-	// Helps flag if the messages are directed to global or active-state ui.
-	bool global;
+	Viewport * viewport;
+	Window * window;
 	UserInterface * ui;
+	/// If targeting the global UI.
+	bool global;
 };
 
 
 /// Used to set arbitrary amounts of booleans. Mainly used for binary matrices (UIMatrix).
 class GMSetUIvb : public GMUI{
 public:
-	GMSetUIvb(String uiName, int target, List<bool*> boolData, int viewport = NULL);
+	GMSetUIvb(String uiName, int target, List<bool*> boolData, Viewport * viewport = NULL);
 	void Process();
 private:
 	String name;
@@ -72,7 +73,7 @@ private:
 /// Used to set UI vector2i data. Primarily used to specify size of matrix or maybe later aboslute-size of an element.
 class GMSetUIv2i : public GMUI {
 public:
-	GMSetUIv2i(String UIname, int target, Vector2i v, int viewport = NULL);
+	GMSetUIv2i(String UIname, int target, Vector2i v, Viewport * viewport = NULL);
 	void Process();
 private:
 	String name;
@@ -84,7 +85,7 @@ private:
 /// Used to set Vector-based data, like input for vector-input UI or RGB colors.
 class GMSetUIv3f : public GMUI {
 public:
-	GMSetUIv3f(String UIname, int target, Vector3f v, int viewport = NULL);
+	GMSetUIv3f(String UIname, int target, Vector3f v, Viewport * viewport = NULL);
 	void Process();
 private:
 	String name;
@@ -97,7 +98,7 @@ private:
 /// Used to set Vector-based data, mainly colors.
 class GMSetUIv4f : public GMUI {
 public:
-	GMSetUIv4f(String UIname, int target, Vector4f v, int viewport = NULL);
+	GMSetUIv4f(String UIname, int target, Vector4f v, Viewport * viewport = NULL);
 	void Process();
 private:
 	String name;
@@ -109,7 +110,7 @@ private:
 /// For setting floating point values, like relative sizes/positions, scales etc.
 class GMSetUIf : public GMUI {
 public:
-	GMSetUIf(String UIname, int target, float value, int viewport = NULL);
+	GMSetUIf(String UIname, int target, float value, Viewport * viewport = NULL);
 	void Process();
 private:
 	String name;
@@ -124,14 +125,14 @@ private:
 class GMSetGlobalUIf : public GMSetUIf 
 {
 public:
-	GMSetGlobalUIf(String uiName, int target, float value);
+	GMSetGlobalUIf(String uiName, int target, float value, Window * window = NULL);
 };
 
 
 
 class GMSetUIb : public GMUI {
 public:
-	GMSetUIb(String UIname, int target, bool v, int viewport = NULL);
+	GMSetUIb(String UIname, int target, bool v, Viewport * viewport = NULL);
 	void Process();
 private:
 	String name;
@@ -142,8 +143,8 @@ private:
 
 class GMSetUIs: public GMUI {
 public:
-	GMSetUIs(String uiName, int target, Text text, int viewport = NULL);
-	GMSetUIs(String uiName, int target, Text text, bool force, int viewport = NULL);
+	GMSetUIs(String uiName, int target, Text text, Viewport * viewport = NULL);
+	GMSetUIs(String uiName, int target, Text text, bool force, Viewport * viewport = NULL);
 	/** Explicitly declared constructor to avoid memory leaks.
 		No explicit constructor may skip subclassed variable deallocation!
 	*/
@@ -160,14 +161,15 @@ private:
 class GMSetGlobalUIs : public GMSetUIs
 {
 public:
-	GMSetGlobalUIs(String uiName, int target, Text text, bool force = false);
+	/// Force default should be false.
+	GMSetGlobalUIs(String uiName, int target, Text text, bool force = false, Window * window = NULL);
 };
 
 
 // Deletes contents (children) of specified UI element. Primarily used on UILists.
 class GMClearUI : public GMUI{
 public:
-	GMClearUI(String uiName, int viewport = NULL);
+	GMClearUI(String uiName, Viewport * viewport = NULL);
 	void Process();
 private:
 	String uiName;
@@ -175,7 +177,7 @@ private:
 
 class GMScrollUI : public GMUI{
 public:
-    GMScrollUI(String uiName, float scrollDistance, int viewport = NULL);
+    GMScrollUI(String uiName, float scrollDistance, Viewport * viewport = NULL);
     void Process();
 private:
     String uiName;
@@ -198,7 +200,7 @@ private:
 /// Message to add a newly created UI to the active game state's UI.
 class GMAddUI : public GMUI{
 public:
-	GMAddUI(UIElement * element, String toParent = "root", int viewport = NULL);
+	GMAddUI(UIElement * element, String toParent = "root", Viewport * viewport = NULL);
 	void Process();
 private:
 	UIElement * element;
@@ -207,8 +209,8 @@ private:
 
 class GMPushUI : public GMUI{
 public:
-	GMPushUI(String elementName, UserInterface * ontoUI, int viewport = NULL);
-	GMPushUI(UIElement * element, UserInterface * ontoUI, int viewport = NULL);
+	GMPushUI(String elementName, UserInterface * ontoUI);
+	GMPushUI(UIElement * element, UserInterface * ontoUI);
 	void Process();
 private:
 	UIElement * element;
@@ -218,7 +220,7 @@ private:
 class GMPopUI : public GMUI{
 public:
 	/// If force is specified, it will pop the UI no matter what it's exitable property says.
-	GMPopUI(String uiName, UserInterface * ui, bool force = false, int viewport = NULL);
+	GMPopUI(String uiName, UserInterface * ui, bool force = false, Viewport * viewport = NULL);
 	void Process();
 private:
 	UIElement * element;

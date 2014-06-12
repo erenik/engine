@@ -13,16 +13,6 @@
 
 //#include <windows.h>
 
-extern UserInterface * ui[GameStateID::MAX_GAME_STATES];
-
-#ifdef WINDOWS
-extern HWND hWnd;			// Window handle
-#endif
-
-// User interfaces for all states
-UserInterface * ui[GameStateID::MAX_GAME_STATES];
-
-
 void EmptyFunction(){
 	std::cout<<"Empty function";
 };

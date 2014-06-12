@@ -9,7 +9,7 @@
 #include "OS/Sleep.h"
 #include "Script/ScriptManager.h"
 #include "Network/NetworkManager.h"
-#include "OS/WindowManager.h"
+#include "Window/WindowManager.h"
 #include "Audio/AudioManager.h"
 
 /// Global statemanager.
@@ -41,7 +41,8 @@ StateManager::StateManager(){
 	paused = false;
 };
 
-StateManager::~StateManager(){
+StateManager::~StateManager()
+{
 	if (globalState)
 		globalState->OnExit(NULL);
 	if (activeState)
@@ -203,7 +204,7 @@ void StateManager::HandleDADFiles(List<String> & files){
 		/// Update time
 		time = newTime;
 		newTime = Timer::GetCurrentTimeMs();
-		long timeDiff = newTime - time;
+		int64 timeDiff = newTime - time;
 		if (timeDiff > 250)
 		{
 			if (timeDiff > 1000)
@@ -245,6 +246,21 @@ void StateManager::HandleDADFiles(List<String> & files){
 
 		/// Get input from XBox devices if possible
 		Input.UpdateDeviceStates();
+
+		
+// Main message loop for all extra created windows, since they are dependent on the thread they were created in...
+#ifdef WINDOWS
+		// Get messages and dispatch them to WndProc
+		MSG msg;
+		// http://msdn.microsoft.com/en-us/library/windows/desktop/ms644943%28v=vs.85%29.aspx
+		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) && StateMan.ActiveStateID() != GameStateID::GAME_STATE_EXITING)
+		{
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+		// TODO: Add linux version in an elif for more created windows?
+#endif
+
 	}
 	std::cout<<"\n>>> StateProcessingThread ending...";
 #ifdef WINDOWS

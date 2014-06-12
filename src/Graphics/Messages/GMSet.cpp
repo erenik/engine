@@ -9,6 +9,8 @@
 #include "../RenderSettings.h"
 #include "Input/InputManager.h"
 #include "TextureManager.h"
+#include "Window/WindowManager.h"
+#include "Viewport.h"
 
 GMSets::GMSets(int t, String s): GraphicsMessage(GM_SET_STRING) {
 	this->str = s;
@@ -54,8 +56,10 @@ GMSet::GMSet(int t, void * data)
 	}
 };
 
-void GMSet::Process(){
-	switch(target){
+void GMSet::Process()
+{
+	switch(target)
+	{
 		case MAIN_CAMERA:
 			Graphics.cameraToTrack = (Camera*)pData;
 			break;
@@ -70,6 +74,8 @@ void GMSet::Process(){
             break;
 		case ACTIVE_USER_INTERFACE:
 		{
+			assert(false && "Deprecated?");
+			/*
 			/// Notify the previous ui that they are going out of scope.
 			UserInterface * previousUI = Graphics.GetUI();
 			if (previousUI)
@@ -98,6 +104,7 @@ void GMSet::Process(){
 			Input.OnSetUI(ui);
 			// No bufferization was needed apparantly ^^
 			break;
+			*/
 		}
 		case OVERLAY_TEXTURE: {
 			Texture * t = (Texture*) pData;
@@ -153,83 +160,98 @@ void GMSets::Process(){
 }
 
 
-GMSetGlobalUI::GMSetGlobalUI(UserInterface *ui)
-: GraphicsMessage(GM_SET_GLOBAL_UI), ui(ui)
+GMSetGlobalUI::GMSetGlobalUI(UserInterface *ui, Window * window)
+: GraphicsMessage(GM_SET_GLOBAL_UI), ui(ui), window(window)
 {
 }
 
 void GMSetGlobalUI::Process()
 {
-	UserInterface * oldGlobalUI = Graphics.GetGlobalUI();
+	/// Allow single windows for all projects with them no more.
+	if (!window)
+	{
+		window = WindowMan.MainWindow();
+	}
+	UserInterface * oldGlobalUI = window->GetGlobalUI();
+	// Re-setting same?
+	if (oldGlobalUI == ui)
+		return;
 	if (oldGlobalUI)
 	{
+		oldGlobalUI->OnExitScope();
 		// Unbufferize it
-		oldGlobalUI->Unbufferize();
+		if (oldGlobalUI->IsBuffered())
+			oldGlobalUI->Unbufferize();
+		if (oldGlobalUI->IsGeometryCreated())
+			oldGlobalUI->DeleteGeometry();
 	}
-	Graphics.SetGlobalUI(ui);
+	window->globalUI = ui;
+	ui->OnEnterScope();
 }
 
-// If viewport is unspecified (-1) the global UI will be swapped.
-GMSetUI::GMSetUI(UserInterface * i_ui, int i_viewport /* = -1 */)
-: GraphicsMessage(GM_SET_UI), ui(i_ui), viewport(i_viewport)
+/// Regular UI setter for the main window (Assumes 1 main window)
+GMSetUI::GMSetUI(UserInterface * ui)
+: GraphicsMessage(GM_SET_UI), ui(ui), window(WindowMan.MainWindow())
 {
-	
+}
+// Regular UI setter per window.
+GMSetUI::GMSetUI(UserInterface * ui, Window * forWindow /*= NULL*/)
+: GraphicsMessage(GM_SET_UI), ui(ui), window(forWindow)
+{
+}
+// If viewport is unspecified (NULL) the global UI will be swapped.
+GMSetUI::GMSetUI(UserInterface * ui, Viewport * i_viewport /* = NULL */)
+: GraphicsMessage(GM_SET_UI), ui(ui), viewport(i_viewport)
+{
 }
 void GMSetUI::Process()
 {
 	/// First remove the old UI.
-	switch(viewport)
+	UserInterface * oldUI = NULL;
+	if (window)
 	{
-		/// Global UI
-		case -1: 
-		{
-			UserInterface * oldUI = Graphics.GetUI();
-			if (oldUI)
-			{
-				oldUI->OnExitScope();
-				/// Unbufferize it too as needed.
-				if (oldUI->IsBuffered())
-					oldUI->Unbufferize();
-				if (oldUI->IsGeometryCreated())
-					oldUI->DeleteGeometry();
-			}
-			break;
-		}
-		default:
-			assert(false && "Implement");
+		oldUI = window->GetUI();		
 	}
-	// If an empty UI, just enter it and then return.
-	if (ui == NULL)
+	else if (viewport)
 	{
-		Graphics.ui = NULL;
+		oldUI = viewport->ui;
+	}
+	// Default. Assume ui of main window?
+	else {
+		window = WindowMan.MainWindow();
+		oldUI = window->GetUI();
+	}
+	// Make sure its not re-setting. Skip it if so.
+	if (oldUI == ui)
+	{
+		std::cout<<"\nSetting same UI. Doing nothing then!";
 		return;
 	}
-	bool needToResize = ui->AdjustToWindow(Graphics.width, Graphics.height);
-	// If we haven't created the geoms, do it and buffer it straight away
-	if (!ui->IsGeometryCreated()){
-		ui->CreateGeometry();
-		ui->Bufferize();
+	/// Remove references to old ui and enter the new one.
+	if (window)
+	{
+		window->ui = ui;
 	}
-	// If not, check if we need to resize and re-buffer the geoms
-	else if (needToResize){
-		if (ui->IsBuffered())
-			ui->Unbufferize();
-		ui->ResizeGeometry();
-		ui->Bufferize();
+	else if (viewport)
+	{
+		viewport->ui = ui;
+	}
+	/// And finally remove the old one.
+	if (oldUI)
+	{
+		oldUI->OnExitScope();
+		/// Unbufferize it too as needed.
+		if (oldUI->IsBuffered())
+			oldUI->Unbufferize();
+		if (oldUI->IsGeometryCreated())
+			oldUI->DeleteGeometry();
+//		delete oldUI;
 	}
 
-	// Assign it if all went well?
-	switch(viewport){
-		case -1:{
-			Graphics.ui = ui;
-			if (Graphics.ui)
-				Graphics.ui->OnEnterScope();
-			break;
-		}
-		default:
-			assert(false && "Implement");
-			break;
-	}
+	/// If ui..
+	if (ui)
+		ui->OnEnterScope();
+
 	Graphics.renderQueried = true;
 }
 

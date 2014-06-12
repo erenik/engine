@@ -3,6 +3,7 @@
 // Singleton for handling save/load of a series of values on startup/shutdown etc.
 
 #include "PreferencesManager.h"
+#include "Application/Application.h"
 #include <cassert>
 #include <fstream>
 #include "File/FileUtil.h"
@@ -16,8 +17,6 @@
 #include <sys/types.h>
 #include <pwd.h>
 #endif
-
-extern const String applicationName;
 
 #define FILENAME "/preferences.dat"
 
@@ -59,8 +58,8 @@ PreferencesManager * PreferencesManager::Instance() {
 /// Creates folder as needed.
 void PreferencesManager::EnsurePreferencesFolderExists()
 {
-	std::cout << "Application name: "<<applicationName;
-	assert(applicationName.Length());
+	std::cout << "Application name: "<<Application::name;
+	assert(Application::name.Length());
 	/// TODO: Add home path somehow.
 #ifdef WINDOWS
 	// Get foldeeeer
@@ -78,7 +77,7 @@ void PreferencesManager::EnsurePreferencesFolderExists()
 	homePath.Replace('\\', '/');
 	String dirPath = homePath;
 	dirPath.Add("/.config/");
-	dirPath.Add(applicationName);
+	dirPath.Add(Application::name);
 	std::cout << "Dir: "<<dirPath;
 	if (!PathExists(dirPath))
 	{

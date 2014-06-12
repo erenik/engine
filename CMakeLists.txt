@@ -201,7 +201,7 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 			-DUNICODE
 			-D_UNICODE
 			# Target platform
-			-D_WIN32_WINNT=0x0600
+#			-D_WIN32_WINNT=0x0600
 		)
 		
 		# FMOD Dirs

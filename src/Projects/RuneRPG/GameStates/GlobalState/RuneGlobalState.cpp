@@ -95,8 +95,8 @@ void RuneGlobalState::OnExit(GameState * nextState){
 	}
 
 	// Load initial texture and set it to render over everything else
-	if (nextState == NULL)
-		Graphics.QueueMessage(new GMSets(OVERLAY_TEXTURE, "img/deallocating.png"));
+//	if (nextState == NULL)
+	//	Graphics.QueueMessage(new GMSets(OVERLAY_TEXTURE, "img/deallocating.png"));
 }
 
 void RuneGlobalState::ProcessPacket( Packet * packet ){

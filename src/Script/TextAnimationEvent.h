@@ -11,7 +11,7 @@ class Viewport;
 
 class TextAnimationEvent : public Script {
 public:
-	TextAnimationEvent(int type, String elementName, int viewport);
+	TextAnimationEvent(int type, String elementName, Viewport * viewport);
 	enum types {
 		NULL_TYPE,
 		NOTICE,	/// A brief notice that appears, lingers for a few seconds before disappearing. Only minor fading should be used if at all.
@@ -35,7 +35,7 @@ private:
 	/// Reference name to the element.
 	String elementName;
 	/// Viewport where the element belongs, might be required for the messages to be sent.
-	int viewport;
+	Viewport * viewport;
 	/// Pointer if needed... shouldn't be needed.
 	UIElement * element;
 };

@@ -1,102 +1,32 @@
-// Emil Hedemalm
-// 2013-06-09
+/// Emil Hedemalm
+/// 2014-06-12
+/// Separated into own file.
 
-#include "RenderViewport.h"
 #include "Graphics/GraphicsManager.h"
+#include "Viewport.h"
 #include "Graphics/Camera/Camera.h"
-#include "Pathfinding/WaypointManager.h"
-#include "Pathfinding/PathManager.h"
-#include "Maps/2D/TileMap2D.h"
 #include "GraphicsState.h"
-#include "../FrameStatistics.h"
-#include "UI/UserInterface.h"
+#include "Maps/2D/TileMap2D.h"
+#include "Graphics/FrameStatistics.h"
 
-RenderViewport::RenderViewport(String uiSource)
-: Viewport(0,0,0,0), uiSource(uiSource)
+void GraphicsManager::RenderViewport(Viewport * vp)
 {
-	Initialize();
-};
-RenderViewport::RenderViewport(int x, int y, int width, int height)
-: Viewport(x,y,width,height)
-{
-	Initialize();
-}
+	vp->UpdateSize();
+	/// Viewport.. so width and height are based on the viewport.
+	int width = vp->size.x, height = vp->size.y;
+	
+	/// Absolute coordinates
+	glViewport(vp->bottomLeftCorner.x, vp->bottomLeftCorner.y, vp->size.x, vp->size.y);
 
-// Set initial default/NULL-values.
-void RenderViewport::Initialize(){
-//	camera = new Camera()
-	camera = NULL;
-	relative = false;
-	viewPortUI = NULL;
-}
-
-RenderViewport::~RenderViewport()
-{
-	camera = NULL;
-	// Delete UI! o/o
-	delete viewPortUI;
-	viewPortUI = NULL;
-}
-
-void RenderViewport::SetRelative(float ix, float iy, float iwidth, float iheight)
-{
-	relative = true;
-	relativeXOffset = ix;
-	relativeYOffset = iy;
-	relativeWidth = iwidth;
-	relativeHeight = iheight;
-}
-void RenderViewport::SetCameraToTrack(Camera * icamera){
-	camera = icamera;
-}
-
-void RenderViewport::AdjustToWindow(int w_width, int w_height){
-	// Update absolute-values.
-  //  assert(false);
-	assert(relative);
-
-	// Assume this function is only called from the render-thread.
-	// Adjust UI as needed.
-	if (viewPortUI){
-		if (viewPortUI->AdjustToWindow(width * w_width, height * w_height)){
-			if (viewPortUI->IsBuffered())
-				viewPortUI->Unbufferize();
-			viewPortUI->Bufferize();
-		}
-	}
-}
-
-void RenderViewport::Render()
-{
-	// If relative, update width and height.
-	if ((width == 0 || height == 0) && !relative){
-		std::cout<<"\nRenderViewport::Render: NULL viewport width or height! Is this the intent?";
+	// Update camera
+	Camera * camera = vp->camera;
+	if (!camera)
+	{
 		return;
 	}
-
-
-
-	/// Relative coordinates
-	if (relative){
-		// Reset scissor-variables
-		graphicsState.viewportX0 = relativeXOffset * Graphics.width;
-		graphicsState.viewportY0 = relativeYOffset * Graphics.height;
-		width = relativeWidth * Graphics.width;
-		height = relativeHeight * Graphics.height;
-		x0 = relativeXOffset * Graphics.width;
-		y0 = relativeYOffset * Graphics.height;
-		glViewport(x0, y0, width, height);
-	}
-	/// Absolute coordinates
-	else {
-		glViewport(x0, y0, width, height);
-	}
-//    std::cout << "Relative=" << relative << " Width="<< width << " Height= " << height << std::endl;
-
-	// Updates the projection matrices using the manager's width/height
-	Graphics.UpdateProjection(width, height);
-	// Update camera
-	camera->ProcessMovement(graphicsState.frameTime);
+	// Movement should be processed.. in physics or earlier.
+//	camera->ProcessMovement(graphicsState.frameTime);
+	camera->SetRatio(width, height);
 	camera->Update();
 	// Set active camera to current one
 	graphicsState.camera = camera;
@@ -118,6 +48,7 @@ void RenderViewport::Render()
 	// Render the scene, now
 	else
 		Graphics.RenderScene();
+
 	FrameStats.sceneTime += sceneTimer.GetMs();
 
 	// Render alpha entities!
@@ -155,15 +86,8 @@ void RenderViewport::Render()
 	// Renders names of all AI-characters, settings set in the AIManager or GraphicsManager...?!
 	Graphics.RenderAI();	
 	if (Graphics.renderNavMesh){
-		/// Get mutex for the activeNavMesh
-		if (WaypointMan.GetActiveNavMeshMutex(10)){
-			Graphics.RenderNavMesh();
-			if (PathMan.GetLatsPathMutex(10)){
-				Graphics.RenderPath();
-				PathMan.ReleaseLastPathMutex();
-			}
-			WaypointMan.ReleaseActiveNavMeshMutex();
-		}
+		Graphics.RenderNavMesh();
+		Graphics.RenderPath();
 	}
 
     /// Render simple-shapesuuu
@@ -171,8 +95,8 @@ void RenderViewport::Render()
 
 	// Render ui if we got one?
 	uiTimer.Start();
-	if (viewPortUI){
-		Graphics.RenderUI(viewPortUI);
+	if (vp->ui){
+		Graphics.RenderUI(vp->ui);
 	}
 	FrameStats.uiTime += uiTimer.GetMs();
 }

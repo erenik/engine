@@ -87,7 +87,7 @@ void Audio::CreateALObjects()
 	}
 	alGenSources(1, &alSource);
 	if (alSource == 0)		// Throw an error if we can't generate a source.
-		; //throw 5;
+		throw 5;
 	std::cout<<"\nALSource generated: "<<alSource;
 	assert(alSource > 0);
 	/// Set some basic properties for the audio.

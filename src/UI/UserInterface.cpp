@@ -1,3 +1,7 @@
+/// Emil Hedemalm
+/// 2014-06-12
+/// User interface class.
+
 #include "UserInterface.h"
 #include "../Globals.h"
 
@@ -16,10 +20,47 @@
 #include "Graphics/Fonts/Font.h"
 #include "UI/UITypes.h"
 #include "UI/DataUI/UIMatrix.h"
+#include "Window/WindowManager.h"
+#include "Viewport.h"
+
+/// Fetches the global UI, taking into consideration active window.
+UserInterface * GlobalUI()
+{
+	Window * activeWindow = WindowMan.GetCurrentlyActiveWindow();
+	if (!activeWindow)
+		return NULL;
+	return activeWindow->GetGlobalUI();
+}
+
+/// Fetches active/current UI, taking into consideration active window.
+UserInterface * ActiveUI()
+{
+	Window * activeWindow = WindowMan.GetCurrentlyActiveWindow();
+	if (!activeWindow)
+		return NULL;
+	return activeWindow->GetUI();
+}
+
+/// Fetches either the Global or Active UI, taking into consideration both active window and if there exist any valid content in the Global UI.
+UserInterface * RelevantUI()
+{
+	Window * window = WindowMan.GetCurrentlyActiveWindow();
+	if (!window)
+		return NULL;
+	UserInterface * globalUI = window->GetGlobalUI();
+	if (globalUI && globalUI->HasActivatableElement())
+		return globalUI;
+	
+	return window->GetUI();
+}
+
 
 bool UserInterface::printDebug = true;
 
-UserInterface::UserInterface(){
+List<UserInterface*> UserInterface::userInterfaces;
+
+UserInterface::UserInterface()
+{
 	this->root = NULL;
 	isGeometryCreated = false;
 	isBuffered = false;
@@ -27,6 +68,17 @@ UserInterface::UserInterface(){
 	demandHovered = true;
 	defaultTextColor = Vector4f(1.f,1.f,1.f,1.f);
 	defaultTextureSource = "80Gray50Alpha.png";
+	userInterfaces.Add(this);
+}
+
+UserInterface::~UserInterface()
+{
+	assert(!isBuffered);
+	assert(!isGeometryCreated);
+	if (root != NULL)
+		delete root;
+	root = NULL;
+	userInterfaces.Remove(this);
 }
 
 /** Mouse interactions with the UI, in x and y from 0.0 to 1.0, with 0.0 being in the Upper Left corner. Returns the element currently hovered over.
@@ -220,7 +272,10 @@ void UserInterface::ResizeGeometry(){
 	assert(isGeometryCreated);
 	root->ResizeGeometry();
 }
-void UserInterface::DeleteGeometry(){
+void UserInterface::DeleteGeometry()
+{
+	if (!isGeometryCreated)
+		return;
 	assert(isGeometryCreated);
 	assert(!isBuffered);
 	root->DeleteGeometry();
@@ -233,11 +288,12 @@ void UserInterface::DeleteGeometry(){
 	If the values of width and height are the same as they were prior to the call
 	no change will occur and a false will be returned, otherwise it will return true.
 */
-bool UserInterface::AdjustToWindow(int i_width, int i_height){
+bool UserInterface::AdjustToWindow(Vector2i size)
+{
 	// Check if we need to do anything at all first!
-	if (width == i_width && height == i_height)
+	if (width == size.x && height == size.y)
 		return false;
-	width = i_width; height = i_height;
+	width = size.x; height = size.y;
 	root->AdjustToWindow(0, width, 0, height);
 	return true;
 }
@@ -255,7 +311,8 @@ void UserInterface::Bufferize()
 
 /// Releases GL resources
 bool UserInterface::Unbufferize(){
-	assert(isBuffered && "Unbuffering something that isn't buffered, are we?");
+	if (!isBuffered)
+		return false;
 	if (root)
 		root->FreeBuffers();
 	else
@@ -381,12 +438,11 @@ bool UserInterface::Delete(UIElement * element){
 	return false;
 }
 
-UserInterface::~UserInterface(){
-	assert(!isBuffered);
-	assert(!isGeometryCreated);
-	if (root != NULL)
-		delete root;
-	root = NULL;
+
+/// Reloads all existing UserInterfaces based on their respective source-files.
+void UserInterface::ReloadAll()
+{
+		
 }
 
 // Creates the root element. Will not create another if it already exists.

@@ -1,12 +1,14 @@
 // Emil Hedemalm
 // 2013-07-19
 
+#include "GraphicsState.h"
 #include "Graphics/GraphicsManager.h"
 #include "UI/UserInterface.h"
-#include "GraphicsState.h"
 #include "Texture.h"
+#include "Window/Window.h"
 
-void GraphicsManager::RenderUI(UserInterface * ui){
+void GraphicsManager::RenderUI(UserInterface * ui)
+{
 	if (ui == NULL)
 		return;
 	/// Set UI Shader program
@@ -17,7 +19,7 @@ void GraphicsManager::RenderUI(UserInterface * ui){
     }
 
 	// Bufferize etc. as needed.
-	if (ui->AdjustToWindow(width, height))
+	if (ui->AdjustToWindow(graphicsState.activeWindow->Size()))
 	{
 		if (!ui->IsGeometryCreated())
 			ui->CreateGeometry();
@@ -38,9 +40,9 @@ void GraphicsManager::RenderUI(UserInterface * ui){
     glEnable(GL_SCISSOR_TEST);
 //	std::cout<<"\nWidth: "<<Graphics.Width()<<" Height: "<<Graphics.Height();
     graphicsState.leftScissor = 0;
-	graphicsState.rightScissor = Graphics.Width();
+	graphicsState.rightScissor = graphicsState.windowWidth;
 	graphicsState.bottomScissor = 0;
-    graphicsState.topScissor = Graphics.Height();
+	graphicsState.topScissor = graphicsState.windowHeight;
 
     PrintGLError("GLError in RenderUI setting shader");
 	
@@ -75,9 +77,22 @@ void GraphicsManager::RenderUI(UserInterface * ui){
 	PrintGLError("GLError in RenderUI getting uniform locations");
 
 //	std::cout<<"\nShader matrix locations: "<<shader->uniformProjectionMatrix<<" "<<shader->uniformViewMatrix<<" "<<shader->uniformModelMatrix;
-	assert(shader->uniformProjectionMatrix != -1);
+	/*assert(shader->uniformProjectionMatrix != -1);
 	assert(shader->uniformViewMatrix != -1);
 	assert(shader->uniformModelMatrix != -1);
+	*/
+	if (shader->uniformProjectionMatrix == -1)
+	{
+		std::cout<<"\nShader: "<<shader->name<<" lacking projection matrix?";
+	}
+	if (shader->uniformViewMatrix == -1)
+	{
+		std::cout<<"\nShader: "<<shader->name<<" lacking view matrix?";
+	}
+	if (shader->uniformModelMatrix == -1)
+	{
+		std::cout<<"\nShader: "<<shader->name<<" lacking model matrix?";
+	}
 
 
     Matrix4f view = Matrix4f();

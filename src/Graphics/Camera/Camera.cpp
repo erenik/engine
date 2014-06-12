@@ -7,6 +7,7 @@
 #include "Entity/Entity.h"
 #include "Physics/PhysicsProperty.h"
 #include "Graphics/Messages/GraphicsMessage.h"
+#include "Window/Window.h"
 #include <cstring>
 
 float Camera::defaultRotationSpeed = 0.09f;
@@ -223,7 +224,8 @@ void Camera::Update()
 /** Sets width/height ratio (commonly known as Aspect ratio).
 	Ratios should be 1.0 and above, and will be scaled down as needed.
 */
-void Camera::SetRatio(float width, float height){
+void Camera::SetRatio(float width, float height)
+{
 	float smallest = (float)height;
 	if (height > width)
 		smallest = (float)width;
@@ -232,7 +234,8 @@ void Camera::SetRatio(float width, float height){
 }
 /** Sets width/height ratio (commonly known as Aspect ratio) using screen size.
 */
-void Camera::SetRatio(int width, int height){
+void Camera::SetRatio(int width, int height)
+{
 	float smallest = (float)height;
 	if (height > width)
 		smallest = (float)width;
@@ -317,7 +320,7 @@ float Camera::Height() const {
 /** Returns a ray in 3D space using the given mouse and camera data.
 	Mouse coordinates are assumed to be in screen-pixel space (i.e. 0.0 to 800.0 or similar)
 */
-Ray Camera::GetRayFromScreenCoordinates(int mouseX, int mouseY) const
+Ray Camera::GetRayFromScreenCoordinates(Window * window, int mouseX, int mouseY) const
 {
 //	std::cout<<"\nGetRayFromScreenCoordinates\n===============================";
 //	std::cout<<"\nMouseX: "<<mouseX<<" MouseY: "<<mouseY;
@@ -340,9 +343,10 @@ Ray Camera::GetRayFromScreenCoordinates(int mouseX, int mouseY) const
 
  //   std::cout<<"\nNearPlaneCenter: "<<nearPlaneCenter<<" NearPlaneLowerLeftcorner: "<<nearPlaneLLCorner;
 
+	Vector2i windowSize = window->Size();
 	// Get relative positions of where we clicketiclicked, from 0.0 to 1.0 (0,0 in lower left corner)
-	float clientAreaWidth = (float)Graphics.width;
-	float clientAreaHeight = (float)Graphics.height;
+	float clientAreaWidth = (float)windowSize.x;
+	float clientAreaHeight = (float)windowSize.y;
 	float relativeX = mouseX / clientAreaWidth,
 		  relativeY = mouseY / clientAreaHeight;
 

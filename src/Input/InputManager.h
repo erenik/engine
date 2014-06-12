@@ -250,8 +250,6 @@ public:
 	void GoToPreviousElement();
 	void ActivateElement();
 */
-	/// If the system-global UI has any activatable elements, it will be returned. If not, the current ui will be returned.
-	UserInterface * GetRelevantUI();
 
 private:
 	// To disable the current ui from e.g. cutscene-scripts.

@@ -5,20 +5,20 @@
 #include "Graphics/GraphicsManager.h"
 #include "../../Pathfinding/WaypointManager.h"
 #include "../../Pathfinding/PathManager.h"
-#include "RenderViewport.h"
+#include "Viewport.h"
 #include "StateManager.h"
 #include "OS/Sleep.h"
-#include "OS/WindowSystem.h"
+#include "Window/WindowSystem.h"
 #include "GraphicsState.h"
 #include "../FrameStatistics.h"
 #include "../RenderSettings.h"
 #include "Graphics/Camera/Camera.h"
 #include "Texture.h"
+#include "Window/Window.h"
 
 /// Win32 includes!
 #ifdef WINDOWS
 #include <windows.h>
-extern HDC	hdc;			// Device context
 /// Linux includes!
 #elif defined USE_X11
 #include <GL/glx.h>     // connect X server with OpenGL
@@ -28,8 +28,11 @@ extern Display*                display; // connection to X server
 #endif
 
 /// Renders the active scene, including UI, etc.
-void GraphicsManager::Render(){
+void GraphicsManager::RenderWindow()
+{
 
+	Window * window = graphicsState.activeWindow;
+	Vector2i windowSize = graphicsState.activeWindow->Size();
 	Timer timer;
 	timer.Start();
 
@@ -94,21 +97,23 @@ void GraphicsManager::Render(){
 	this->cameraToTrack->ProcessMovement(graphicsState.frameTime);
 
 	/// Render all viewports..
-	if (true){
-		for (int i = 0; i < renderViewports.Size(); ++i){
-		    viewportTimer.Start();
-			RenderViewport * vp = renderViewports[i];
-			if (vp == NULL){
-				renderViewports.RemoveIndex(i);
-				continue;
-			}
-			assert(vp->camera);
-			vp->Render();
-			if (i < 4)
-                renderViewportFrameTime[i] = (float)viewportTimer.GetMs();
+	List<Viewport*> viewports = graphicsState.activeWindow->viewports;
+	assert(viewports.Size() && "Really? No viewport to render anything?");
+	for (int i = 0; i < viewports.Size(); ++i){
+	    viewportTimer.Start();
+		Viewport * vp = viewports[i];
+		if (vp == NULL){
+			viewports.RemoveIndex(i);
+			continue;
 		}
+		if (vp->camera)
+			graphicsState.camera = vp->camera;
+
+		RenderViewport(vp);
+		if (i < 4)
+            renderViewportFrameTime[i] = (float)viewportTimer.GetMs();
 	}
-	renderViewportsFrameTime = (float)viewportsTimer.GetMs();
+	renderViewportsFrameTime = (float)viewportTimer.GetMs();
 
 	PrintTime("\nRendering viewports: ");
 
@@ -121,7 +126,7 @@ void GraphicsManager::Render(){
 		/// Set up FBO shit
 
 		for (int i = 0; i < renderViewports.Size(); ++i){
-			RenderViewport * vp = renderViewports[i];
+			Viewport * vp = renderViewports[i];
 			if (vp == NULL){
 				renderViewports.Remove(i);
 				continue;
@@ -132,7 +137,7 @@ void GraphicsManager::Render(){
 		/// Apply deferred lighting pass.
 		/// Do the remaining scene-stuff now.
 		for (int i = 0; i < renderViewports.Size(); ++i){
-			RenderViewport * vp = renderViewports[i];
+			Viewport * vp = renderViewports[i];
 			if (vp == NULL){
 				renderViewports.Remove(i);
 				continue;
@@ -146,11 +151,13 @@ void GraphicsManager::Render(){
 
 
 //	std::cout<<"\nRenderViewports: "<<renderViewports.Size();
+
+	/*
 	/// Default rendering if no assigned viewport
 	if (renderViewports.Size() == 0){
 		if (defaultViewPort == NULL){
 		//	std::cout<<"\nDefault viewport is NULL! Creating it for you.";
-			defaultViewPort = new RenderViewport(0,0,width,height);
+			defaultViewPort = new Viewport(0, 0, width, height);
 			defaultViewPort->camera = cameraToTrack;
 		}
 		else {
@@ -161,6 +168,7 @@ void GraphicsManager::Render(){
 			defaultViewPort->Render();
 		}
 	}
+	*/
 
     Timer postViewportTimer;
     postViewportTimer.Start();
@@ -168,9 +176,9 @@ void GraphicsManager::Render(){
 	PrintTime("\nView port rendered");
 
 	// Reset viewport and the projection matrices as needed after viewports have been drawn!
-	glViewport(0,0,width,height);
+	glViewport(0, 0, windowSize.x, windowSize.y);
 //	std::cout<<"\nViewport size: "<<width<<" x" <<height;
-	UpdateProjection();
+//	UpdateProjection();
 
 	if (StateMan.ActiveState())
 		StateMan.ActiveState()->Render();
@@ -179,6 +187,8 @@ void GraphicsManager::Render(){
 	if (renderFPS)
 		RenderFPS();
 
+	UserInterface * ui = window->ui, 
+		* globalUI = window->globalUI;
 	// Render UI if applicable
 	if (this->renderUI && ui)
 		RenderUI(ui);
@@ -202,16 +212,4 @@ void GraphicsManager::Render(){
 	
 	// If recording?
 	RenderCapture();
-
-    Timer swapBufferTimer;
-    swapBufferTimer.Start();
-	// Swap buffers to screen once we're finished.
-#ifdef WINDOWS
-    SwapBuffers(hdc);
-#elif defined USE_X11
-    glXSwapBuffers(display, window);
-#endif
-    swapBufferFrameTime = swapBufferTimer.GetMs();
-    PrintTime("\nSwapping buffers: ");
-//    std::cout<<"\nSwapBufferTime: "<<swapBufferFrameTime;
 }

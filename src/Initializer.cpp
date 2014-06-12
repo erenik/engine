@@ -137,17 +137,17 @@ void * Deallocate(void *vArgs){
 	
 
 	timeStart = clock();
-	/// When they are removed, deallocate them.
-	while(Graphics.GetUI() || Graphics.GetGlobalUI())
-	{
-		/// Remove UIs from rendering.
-		Graphics.QueueMessage(new GMSetUI(NULL));
-		Graphics.QueueMessage(new GMSetGlobalUI(NULL));
-		Sleep(5);
-	}
-	StateMan.DeallocateUserInterfaces();
-	timeTaken = clock() - timeStart;
-	std::cout<<"\nDeallocating UIs: "<<timeTaken / CLOCKS_PER_SEC<<" seconds";
+
+	// TODO: Send all UIs to be de-allocated properly via the graphics manager?
+
+	///// When they are removed, deallocate them.
+	//while(Graphics.GetUI() || Graphics.GetGlobalUI())
+	//{
+	//	/// Remove UIs from rendering.
+	//	Graphics.QueueMessage(new GMSetUI(NULL));
+	//	Graphics.QueueMessage(new GMSetGlobalUI(NULL));
+	//	Sleep(5);
+	//}
 
 	/// Post quit message with return value 0! Successful deallocation.
 	std::cout<<"\nPosting quit message.";
@@ -166,6 +166,15 @@ void * Deallocate(void *vArgs){
 #elif defined LINUX | defined OSX
     pthread_join(stateProcessingThread, NULL);
 #endif
+
+	// Wait until the graphics thread has ended before deallocating more.
+	while(!Graphics.finished)
+		Sleep(10);
+
+	StateMan.DeallocateUserInterfaces();
+	timeTaken = clock() - timeStart;
+	std::cout<<"\nDeallocating UIs: "<<timeTaken / CLOCKS_PER_SEC<<" seconds";
+
 
 	/// Remove bindings between active elements, such as multimedia and audio that cannot be destroyed without planning.
 	MultimediaMan.Shutdown();

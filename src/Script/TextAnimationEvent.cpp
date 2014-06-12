@@ -5,9 +5,9 @@
 #include "TextAnimationEvent.h"
 #include "Graphics/GraphicsManager.h"
 #include "Graphics/Messages/GMUI.h"
-#include "Graphics/Render/RenderViewport.h"
+#include "Viewport.h"
 
-TextAnimationEvent::TextAnimationEvent(int type, String elementName, int viewport)
+TextAnimationEvent::TextAnimationEvent(int type, String elementName, Viewport * viewport)
 : Script(), type(type), elementName(elementName), viewport(viewport)
 {
 	fadeInDuration = fadeOutDuration = 1000;
@@ -18,7 +18,8 @@ TextAnimationEvent::TextAnimationEvent(int type, String elementName, int viewpor
 
 void TextAnimationEvent::OnBegin(){
 	totalDuration = duration + fadeInDuration + fadeOutDuration;
-	switch(type){
+	switch(type)
+	{
 		case NOTICE:
 			// Default alpha to 0 first on the text.
 			Graphics.QueueMessage(new GMSetUIv4f(elementName, GMUI::TEXT_COLOR, Vector4f(0,0,0,0), viewport));

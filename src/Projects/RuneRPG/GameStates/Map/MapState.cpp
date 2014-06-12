@@ -9,7 +9,7 @@
 #include "../UI/UserInterface.h"
 #include "../Graphics/Messages/GMUI.h"
 #include "../Physics/PhysicsProperty.h"
-#include "Graphics/Render/RenderViewport.h"
+#include "Viewport.h"
 #include "Physics/Messages/CollissionCallback.h"
 #include "Physics/Messages/PhysicsMessage.h"
 #include "EntityStates/StateProperty.h"
@@ -32,6 +32,7 @@
 #include "RuneRPG/Item/RuneShop.h"
 #include "RuneRPG/Item/RuneConsumable.h"
 #include "UI/UIButtons.h"
+#include "Window/WindowManager.h"
 
 
 #include "Graphics/GraphicsManager.h"
@@ -154,8 +155,7 @@ void MapState::OnEnter(GameState * previousState){
 
 	// And set it as active
 	Graphics.cameraToTrack = camera;
-	Graphics.cameraToTrack->SetRatio(Graphics.width, Graphics.height);
-	Graphics.UpdateProjection();
+//	Graphics.UpdateProjection();
 	/// Toggle debug renders
 	Graphics.EnableAllDebugRenders(false);
 	Graphics.renderFPS = true;
@@ -180,9 +180,9 @@ void MapState::OnExit(GameState *nextState)
 	std::cout<<"\nMapState::OnExit";
 	// Load initial texture and set it to render over everything else
 	Graphics.QueueMessage(new GMSet(OVERLAY_TEXTURE, TexMan.GetTexture("img/loadingData.png")));
-	Graphics.QueueMessage(new GMSetViewports(NULL));
-
+	
 	Sleep(100);
+	
 	// Begin loading textures here for the UI
 	Graphics.QueueMessage(new GraphicsMessage(GM_CLEAR_UI));
 	Graphics.cameraToTrack->entityToTrack = NULL;
@@ -303,7 +303,7 @@ void MapState::MouseMove(int x, int y, bool lDown, bool rDown, UIElement * eleme
 	plane.Set3Points(Vector3f(0,-1,0), Vector3f(1,0,0), Vector3f(0,0,0));
 	Vector3f collissionPoint;
 	// , *Graphics.cameraToTrack
-	Ray clickRay = Graphics.ActiveCamera()->GetRayFromScreenCoordinates(x, y);
+	Ray clickRay = Graphics.ActiveCamera()->GetRayFromScreenCoordinates(WindowMan.MainWindow(), x, y);
 	if (RayPlaneIntersection(clickRay, plane, &collissionPoint)){
 		cursorPosition = collissionPoint;
 	}
@@ -770,9 +770,10 @@ void MapState::ResetCamera(){
 
 	if (player->entity)
 		camera->position = player->entity->position;
-	camera->SetRatio(Graphics.width, Graphics.height);
+//	camera->SetRatio(Graphics.width, Graphics.height);
 	camera->distanceFromCentreOfMovement = 10.f;
-	camera->Update();
+	// Only update before rendering.
+//	camera->Update();
 	/// Reset what parts of the map are rendered too..!
 	TileMap2D * map = (TileMap2D *)MapMan.ActiveMap();
 	if (map)

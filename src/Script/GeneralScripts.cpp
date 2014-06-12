@@ -8,29 +8,7 @@
 #include "Graphics/Messages/GMSet.h"
 #include "Graphics/Messages/GMUI.h"
 #include "UI/UIImage.h"
-
-WaitScript::WaitScript(String line, Script * parent)
-: Script(line, parent)
-{	
-	duration = line.Tokenize("( ,)")[1].ParseInt();
-}
-
-/// Regular state-machine mechanics for the events, since there might be several parralell events?
-void WaitScript::OnBegin()
-{
-	startTime = Timer::GetCurrentTimeMs();
-}
-void WaitScript::Process(float time)
-{
-	if (Timer::GetCurrentTimeMs() > startTime + duration)
-		scriptState = Script::ENDING;
-}
-void WaitScript::OnEnd()
-{
-	// Notify parent etc. when finishing.
-	Script::OnEnd();
-}
-
+#include "Window/WindowManager.h"
 
 StateChanger::StateChanger(String line, Script * parent)
 : Script(line, parent)
@@ -93,7 +71,7 @@ void OverlayScript::OnBegin()
 	// Set start-time to current time.
 	startTime = Timer::GetCurrentTimeMs();
 	// Check if the overlay UI are already present.
-	UserInterface * ui = Graphics.GetGlobalUI();
+	UserInterface * ui = GlobalUI();
 	// Create ui as needed.
 	if (!ui || !ui->GetElementByName(OVERLAY_FADE_UI_1))
 	{
@@ -140,7 +118,7 @@ void OverlayScript::SetLayerAlpha(int layer, float alpha)
 		case BACKGROUND:
 		case LAYER_1:
 		case LAYER_2:
-			Graphics.QueueMessage(new GMSetGlobalUIf(overlayUI[layer]->name, GMUI::ALPHA, alpha));
+			Graphics.QueueMessage(new GMSetGlobalUIf(overlayUI[layer]->name, GMUI::ALPHA, alpha, WindowMan.MainWindow()));
 			break;
 	}
 }
@@ -254,7 +232,7 @@ void FadeInBackground::OnEnd()
 {
 	Graphics.QueueMessage(new GMSetGlobalUIs(OVERLAY_BACKGROUND_1, GMUI::TEXTURE_SOURCE, fadeInTextureSource));
 	Graphics.QueueMessage(new GMSetGlobalUIf(OVERLAY_BACKGROUND_1, GMUI::ALPHA, 1.0f));
-	Graphics.QueueMessage(new GMSetGlobalUIf(OVERLAY_BACKGROUND_2, GMUI::ALPHA, 0.0f));
+	Graphics.QueueMessage(new GMSetGlobalUIf(OVERLAY_BACKGROUND_2, GMUI::ALPHA, 1.0f));
 	// Notify parent etc. when finishing.
 	Script::OnEnd();
 }

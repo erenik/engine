@@ -10,7 +10,7 @@
 #include "UI/UIButtons.h"
 #include "../Graphics/Messages/GMUI.h"
 #include "../Physics/PhysicsProperty.h"
-#include "Graphics/Render/RenderViewport.h"
+#include "Viewport.h"
 #include "Physics/Messages/CollissionCallback.h"
 #include "Physics/Messages/PhysicsMessage.h"
 #include "EntityStates/StateProperty.h"
@@ -36,6 +36,7 @@
 #include "Maps/MapManager.h"
 #include "StateManager.h"
 #include "Player/PlayerManager.h"
+#include "Window/WindowManager.h"
 
 extern UserInterface * ui[GameStateID::MAX_GAME_STATES];
 
@@ -70,6 +71,7 @@ void RuneBattleState::OnEnter(GameState * previousState)
 
 	battleType = NORMAL_BATTLE;
 	Sleep(100);
+
 	// Begin loading textures here for the UI
 	Graphics.QueueMessage(new GMSetUI(ui));
 
@@ -118,8 +120,8 @@ void RuneBattleState::OnEnter(GameState * previousState)
 
 	// And set it as active
 	Graphics.cameraToTrack = camera;
-	Graphics.cameraToTrack->SetRatio(Graphics.width, Graphics.height);
-	Graphics.UpdateProjection();
+//	Graphics.cameraToTrack->SetRatio(Graphics.width, Graphics.height);
+//	Graphics.UpdateProjection();
 	Graphics.EnableAllDebugRenders(false);
 	Graphics.renderFPS = true;
 
@@ -211,7 +213,6 @@ void RuneBattleState::OnExit(GameState *nextState){
 
 	// Load initial texture and set it to render over everything else
 	Graphics.QueueMessage(new GMSet(OVERLAY_TEXTURE, TexMan.GetTexture("img/loadingData.png")));
-	Graphics.QueueMessage(new GMSetViewports(NULL));
 
 	Sleep(100);
 	// Begin loading textures here for the UI

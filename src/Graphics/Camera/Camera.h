@@ -10,6 +10,8 @@
 #include "PhysicsLib.h"
 #include <String/AEString.h>
 
+class Window;
+
 /// Definitions for eased access in navigation for all states.
 #define PAN_SPEED_MULTIPLIER (abs(camera->distanceFromCentreOfMovement)/2.0f + 1)
 
@@ -135,7 +137,7 @@ public:
 	/** Returns a ray in 3D space using the given mouse and camera data.
 		Mouse coordinates are assumed to be in screen-pixel space (i.e. 0 to 799 or similar)
 	*/
-	Ray GetRayFromScreenCoordinates(int mouseX, int mouseY) const;
+	Ray GetRayFromScreenCoordinates(Window * window, int mouseX, int mouseY) const;
 
 
 	Vector3f offsetRotation;

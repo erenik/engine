@@ -106,17 +106,7 @@ bool Script::Load()
 {
 	std::cout<<"\nScript::Load called: "<<name;
 	bool result = Load(name);
-	if (!result)
-	{
-		std::cout<<"Was unable to load target script.";
-		loaded = false;
-		/// Quit the script ASAP since it failed to load anyway.
-		scriptState = FINISHING;
-	}
-	else
-	{
-		loaded = true;
-	}
+	assert(result && "Was unable to load target script.");
 	return result;
 }
 
@@ -142,7 +132,7 @@ bool Script::Load(String fromFile){
 	std::fstream file;
 	file.open(source.c_str(), std::ios_base::in);
 	if (!file.is_open()){
-//		assert(file.is_open() && "ERROR opening file stream in Script::Load(fromFile)!");
+		assert(file.is_open() && "ERROR opening file stream in Script::Load(fromFile)!");
 		std::cout<<"\nERROR: Unable to open file stream to "<<source;
 		file.close();
 		return NULL;
@@ -375,11 +365,6 @@ void Script::EvaluateLine(String & line)
 		// End it.
 		scriptState = ENDING;
 	}
-	else if (line.Contains("Wait"))
-	{
-		// Wait..! ..
-		ScriptMan.PlayScript(new WaitScript(line, this));
-	}
 	else if (line.Contains("EnterGameState("))
 	{
 		String name = line.Tokenize("()")[1];		
@@ -436,7 +421,7 @@ void Script::EvaluateLine(String & line)
 			dialogue->alignmentY = 0.15f;
 			dialogue->state |= UIState::DIALOGUE;  // Flag the dialogue-state flag to signify importance!
 			Graphics.QueueMessage(new GMAddUI(dialogue, "root"));
-			Graphics.QueueMessage(new GMPushUI("Dialogue", Graphics.GetUI()));
+			Graphics.QueueMessage(new GMPushUI("Dialogue", ActiveUI()));
 		}
 		/// If no quotes, load the specified dialogue-file and begin processing that instead, waiting until it is finished.!
 		else {
@@ -537,7 +522,7 @@ void Script::EvaluateLine(String & line)
 		}
 		isInAlternativeDialogue = true;
 		Graphics.QueueMessage(new GMAddUI(dialogue, "root"));
-		Graphics.QueueMessage(new GMPushUI(dialogue, Graphics.GetUI()));
+		Graphics.QueueMessage(new GMPushUI(dialogue, ActiveUI()));
 	}
 	else if (line.Contains("elsif") || line.Contains("elseif") || line.Contains("else if"))
 	{

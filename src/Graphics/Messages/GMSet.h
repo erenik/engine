@@ -7,6 +7,8 @@
 #include "GraphicsMessage.h"
 #include "GraphicsMessages.h"
 
+class Viewport;
+
 /** General utility Setter "function" message for the rendering pipeline,
 	like overlay images, default values and debug renders.
 */
@@ -48,20 +50,26 @@ private:
 class GMSetGlobalUI : public GraphicsMessage 
 {
 public:
-	GMSetGlobalUI(UserInterface * ui);
+	GMSetGlobalUI(UserInterface * ui, Window * forWindow = NULL);
 	void Process();
 private:
 	UserInterface * ui;
+	Window * window;
 };
 
 /// For setting UI to be rendered.
 class GMSetUI : public GraphicsMessage {
 public:
-	// If viewport is unspecified (-1) the global UI will be swapped.
-	GMSetUI(UserInterface * ui, int viewport = -1);
+	/// Regular UI setter for the main window (Assumes 1 main window)
+	GMSetUI(UserInterface * ui);
+	// Regular UI setter per window.
+	GMSetUI(UserInterface * ui, Window * forWindow);
+	// For setting viewport-specific windows (e.g. old localhost multiplayer games).
+	GMSetUI(UserInterface * ui, Viewport * viewport);
 	void Process();
 private:
-	int viewport;
+	Window * window;
+	Viewport * viewport;
 	UserInterface * ui;
 };
 

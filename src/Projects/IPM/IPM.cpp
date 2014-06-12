@@ -26,6 +26,7 @@
 #include "UI/UIFileBrowser.h"
 #include "Message/FileEvent.h"
 #include <fstream>
+#include "Window/WindowManager.h"
 
 /// CV Includes
 #include "opencv2/opencv.hpp"
@@ -75,6 +76,7 @@ CVIState::CVIState()
 	// Create filter names in order to use the filter constructors.
 	CVFilter::CreateFilterNames();
 
+	projectionWindow = NULL;
 	
 }
 
@@ -382,6 +384,18 @@ void CVIState::ProcessMessage(Message * message)
 		}
 		case MessageType::STRING: 
 		{
+			// !
+			if (msg.Contains("CreateDedicatedOutputWindow"))
+			{
+				if (!projectionWindow){
+					projectionWindow = WindowMan.NewWindow("ProjectionWindow");
+					projectionWindow->Create();
+					projectionWindow->Show();
+				}
+				else {
+					// Bring to front?
+				}
+			}
 			/// Edit-mode selection
 			if (msg.Contains("ActivateButtonSetting:"))
 			{

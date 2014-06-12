@@ -8,16 +8,18 @@
 #include "String/AEString.h"
 #include "File/FileUtil.h"
 #include "TextureManager.h"
+#include "Window/Window.h"
 
 void GraphicsManager::RenderCapture()
 {
+	Vector2i windowSize = graphicsState.activeWindow->Size();
 	if (graphicsState.promptScreenshot)
 	{
 		// Grab frame! o.o
 		Texture frame;
 		frame.bpp = 4; // 4 bytes per pixel, RGBA
-		frame.Resize(Vector2i(width, height));
-		glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, frame.data);
+		frame.Resize(windowSize);
+		glReadPixels(0, 0, windowSize.x, windowSize.y, GL_RGBA, GL_UNSIGNED_BYTE, frame.data);
 		// Flip it.
 	//	frame.FlipXY();
 		frame.FlipY();
@@ -59,8 +61,8 @@ void GraphicsManager::RenderCapture()
 		// Grab frame! o.o
 		Texture * frame = new Texture();
 		frame->bpp = 4; // 4 bytes per pixel, RGBA
-		frame->Resize(Vector2i(width, height));
-		glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, frame->data);
+		frame->Resize(windowSize);
+		glReadPixels(0, 0, windowSize.x, windowSize.y, GL_RGBA, GL_UNSIGNED_BYTE, frame->data);
 		// Flip it.
 		frame->FlipY();
 		// Add it to list of frames to save.
@@ -118,7 +120,7 @@ void GraphicsManager::RenderCapture()
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
 	
-		glOrtho(0, width, 0, height, 1, 10);
+		glOrtho(0, windowSize.x, 0, windowSize.y, 1, 10);
 		// Reset modelmatrix too
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
@@ -161,7 +163,7 @@ void GraphicsManager::RenderCapture()
 
 	
 
-		int size = width * 0.05f;
+		int size = windowSize.x * 0.05f;
 		int offset = size * 0.5f;
 		// Specifies how the red, green, blue and alpha source blending factors are computed
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -170,10 +172,10 @@ void GraphicsManager::RenderCapture()
 		glEnable(GL_BLEND);
 		glBegin(GL_QUADS);
 			glColor4f(1.0f, 1.0f, 1.0f, 0.5f);
-			glTexCoord2f(0.0f, 0.0f);			glVertex3f(offset,	height-offset,	z);
-			glTexCoord2f(1.0f, 0.0f);			glVertex3f(GLfloat(offset+size),	height - offset,	z);
-			glTexCoord2f(1.0f, 1.0f);			glVertex3f(GLfloat(offset+size),	GLfloat(height - offset - size),		z);
-			glTexCoord2f(0.0f, 1.0f);			glVertex3f(offset,	GLfloat(height - offset - size),		z);
+			glTexCoord2f(0.0f, 0.0f);			glVertex3f(offset,	windowSize.y - offset,	z);
+			glTexCoord2f(1.0f, 0.0f);			glVertex3f(GLfloat(offset+size),	windowSize.y - offset,	z);
+			glTexCoord2f(1.0f, 1.0f);			glVertex3f(GLfloat(offset+size),	GLfloat(windowSize.y - offset - size),		z);
+			glTexCoord2f(0.0f, 1.0f);			glVertex3f(offset,	GLfloat(windowSize.y - offset - size),		z);
 		glEnd();
 		error = glGetError();
 		if (error != GL_NO_ERROR){
@@ -183,8 +185,6 @@ void GraphicsManager::RenderCapture()
 		// Load projection matrix again
 		glLoadMatrixd(graphicsState.projectionMatrixD.getPointer());
 
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		
 		// Enable disabled stuffs.
 		glEnable(GL_DEPTH_TEST);	
 	}

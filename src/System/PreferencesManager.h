@@ -7,7 +7,6 @@
 #define PREFERENCES_MANAGER_H
 
 #include <String/AEString.h>
-#include "ApplicationDefaults.h"
 
 /// Possible value types of settings.
 enum settingTypes

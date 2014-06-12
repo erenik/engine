@@ -3,22 +3,21 @@
 
 #include "GraphicsMessage.h"
 #include "../GraphicsManager.h"
-#include "../Render/RenderViewport.h"
+#include "Viewport.h"
 #include "GraphicsMessages.h"
 #include "UI/UserInterface.h"
+#include "Window/Window.h"
 
-GMResize::GMResize(short width, short height) : GraphicsMessage(GM_RESIZE) {
-	this->width = width;
-	this->height = height;
+GMResize::GMResize(Window * window, short width, short height) 
+: GraphicsMessage(GM_RESIZE), height(height), width(width), window(window) 
+{
 };
 
 void GMResize::Process()
 {
-	Graphics.width = width;
-	Graphics.height = height;
-
+	// TODO: Move this to the render-code.
+	/*
 //    std::cout << "Width="<< width << " Height= " << height << " -> " << std::endl;
-
 	// Make UI invisible <- Not needed since messages are processed in the graphics thread..!
 //	UserInterface * currentUI = Graphics.GetUI();
 //	Graphics.SetUI(NULL);
@@ -34,7 +33,6 @@ void GMResize::Process()
 
 	// Resize all UI
 	UserInterface * ui = Graphics.GetUI();
-
 	if (ui){
 		if (ui->AdjustToWindow(Graphics.width, Graphics.height)){
 			if (ui->IsBuffered())
@@ -43,9 +41,9 @@ void GMResize::Process()
 				ui->Bufferize();
 		}
 	}
-	List<RenderViewport *> rvl = Graphics.GetViewports();
+	List<Viewport *> rvl = Graphics.GetViewports();
 	for (int i = 0; i < rvl.Size(); ++i){
-		RenderViewport * rv = rvl[i];
+		Viewport * rv = rvl[i];
 		/// Update aboslute-values of the viewport first.
 		rv->AdjustToWindow(Graphics.width, Graphics.height);
 		/// Then update it's internal UI
@@ -57,4 +55,5 @@ void GMResize::Process()
 	// Make UI visible again
 //	Graphics.SetUI(currentUI);
 	Graphics.renderQueried = true;
+	*/
 }

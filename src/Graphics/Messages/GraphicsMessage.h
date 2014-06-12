@@ -9,12 +9,12 @@
 #include "../Lighting.h"
 
 class UserInterface;
-class RenderViewport;
+class Viewport;
 class Texture;
 class Model;
 struct Ray;
 class Renderable;
-
+class Window;
 
 
 /// Default message class
@@ -51,9 +51,10 @@ private:
 /// Resizes screen, updating relevant matrices
 class GMResize : public GraphicsMessage {
 public:
-	GMResize(short width, short height);
+	GMResize(Window * window, short width, short height);
 	void Process();
 private:
+	Window * window;
 	short width;
 	short height;
 };
@@ -150,13 +151,16 @@ private:
 	Lighting * lighting;
 };
 
+/// ALWAYS send at least 1 Viewport.
 class GMSetViewports : public GraphicsMessage {
 public:
-	GMSetViewports(List<RenderViewport *> viewports);
+	/// ALWAYS send at least 1 Viewport.
+	GMSetViewports(List<Viewport *> viewports, Window * inWindow);
 	~GMSetViewports();
 	void Process();
 private:
-	List<RenderViewport*> viewports;
+	List<Viewport*> viewports;
+	Window * window;
 };
 
 class GMDeleteVBOs : public GraphicsMessage {

@@ -125,6 +125,11 @@ void GraphicsManager::RenderNavMesh(){
 
 /// Renders target paths
 void GraphicsManager::RenderPath(){
+	if (!PathMan.GetLatsPathMutex(10))
+		return;
+	
+	PathMan.ReleaseLastPathMutex();
+		
 	//  Old shit.
 	return;
 	/// Get last calculated path

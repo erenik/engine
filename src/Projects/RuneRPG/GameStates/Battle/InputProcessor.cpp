@@ -150,8 +150,6 @@ void RuneBattleState::InputProcessor(int action, int inputDevice/* = 0*/){
 		break;
 	case RESET_CAMERA:
 		PLAYER_CAMERA = Camera();
-		PLAYER_CAMERA.SetRatio(Graphics.width, Graphics.height);
-		PLAYER_CAMERA.Update();
 		break;
 	default:
 		std::cout<<"\nINFO: Default case for action: "<<action<<"!";

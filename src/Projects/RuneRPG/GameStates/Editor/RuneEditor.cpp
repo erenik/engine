@@ -29,6 +29,7 @@
 #include "Message/MessageManager.h"
 #include "Graphics/Messages/GMLight.h"
 #include "Script/Script.h"
+#include "Window/WindowManager.h"
 
 #include <iomanip>
 /// Flum Microsoft function...
@@ -163,7 +164,8 @@ void RuneEditor::OnEnter(GameState * previousState)
 
 	// And set it as active
 	Graphics.cameraToTrack = runeEditorCamera;
-	runeEditorCamera->SetRatio(Graphics.width, Graphics.height);
+	// TODO: Make sure ratio is set right before rendering.
+//	runeEditorCamera->SetRatio(Graphics.width, Graphics.height);
 
 	/// Make RuneEditor map active!
 	assert(MapMan.MakeActive(map));
@@ -637,8 +639,8 @@ void RuneEditor::MouseRightClick(bool down, int x, int y, UIElement * elementCli
 }
 
 #define PAN_SPEED_MULTIPLIER (abs(camera->distanceFromCentreOfMovement)/2.0f + 1)
-void RuneEditor::MouseMove(int x, int y, bool lDown, bool rDown, UIElement * elementOver){
-
+void RuneEditor::MouseMove(int x, int y, bool lDown, bool rDown, UIElement * elementOver)
+{
 	/// Don't do anything if we're over a UI-element, yo.
 	if (elementOver)
 		return;
@@ -659,7 +661,7 @@ void RuneEditor::MouseMove(int x, int y, bool lDown, bool rDown, UIElement * ele
 	Plane plane;
 	plane.Set3Points(Vector3f(0,-1,0), Vector3f(1,0,0), Vector3f(0,0,0));
 	Vector3f collissionPoint;
-	Ray clickRay = runeEditorCamera->GetRayFromScreenCoordinates(x, y);
+	Ray clickRay = runeEditorCamera->GetRayFromScreenCoordinates(WindowMan.MainWindow(), x, y);
 	if (RayPlaneIntersection(clickRay, plane, &collissionPoint))
 	{
 		cursorPosition = cursorPositionPreRounding = collissionPoint;
@@ -792,7 +794,8 @@ void RuneEditor::KeyPressed(int keyCode, bool downBefore){
 }
 
 // For rendering extra editor-specific content like the current cursor position and stuff... doesn't feel fitting to add that to TileMap2D nor in the GraphicsManager.
-void RuneEditor::Render(GraphicsState & graphicsState){
+void RuneEditor::Render(GraphicsState & graphicsState)
+{
 
     glUseProgram(0);
 	// Set projection
@@ -807,7 +810,7 @@ void RuneEditor::Render(GraphicsState & graphicsState){
 
 
 	glMatrixMode(GL_PROJECTION);
-	graphicsState.camera->SetRatio(Graphics.Width(), Graphics.Height());
+	graphicsState.camera->SetRatio(graphicsState.windowWidth, graphicsState.windowHeight);
 	graphicsState.camera->Update();
 	Matrix4f projectionMatrix = graphicsState.camera->ProjectionMatrix4d();
 	glLoadMatrixd(graphicsState.camera->ProjectionMatrix4d().getPointer());

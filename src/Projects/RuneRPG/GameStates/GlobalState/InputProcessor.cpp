@@ -12,10 +12,8 @@ void RuneGlobalState::InputProcessor(int action, int inputDevice/* = 0*/){
 	/// Don't do some stuff if entering text man..
 	if (Input.IsInTextEnteringMode())
 		return;
-	switch(action){
-		case TOGGLE_FULL_SCREEN:
-			Graphics.ToggleFullScreen();
-			break;
+	switch(action)
+	{
 		case TOGGLE_MOUSE_LOCK:
 			Input.SetMouseLock(!Input.MouseLocked());
 			break;

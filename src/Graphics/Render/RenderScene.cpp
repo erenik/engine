@@ -88,14 +88,14 @@ void GraphicsManager::RenderScene()
 
 	Matrix4f mvp = graphicsState.projectionMatrixF * graphicsState.viewMatrixF * graphicsState.modelMatrixF;
 	/// Just testing that the matrix is set correctly..
-	Vector4f point = Vector4f(1.0, 1.0, 1.0, 1.0f);
-	point = mvp * point;
+	//Vector4f point = Vector4f(1.0, 1.0, 1.0, 1.0f);
+	//point = mvp * point;
 
-	point = Vector4f(width/2.0f, height/2.0f, 0, 1.0f);
-	point = mvp * point;
+	//point = Vector4f(width/2.0f, height/2.0f, 0, 1.0f);
+	//point = mvp * point;
 
-	point = Vector4f(0, 0, 0, 1.0f);
-	point = mvp * point;
+	//point = Vector4f(0, 0, 0, 1.0f);
+	//point = mvp * point;
 
 	// Set parameters for regular rendering her!
 	glEnable(GL_BLEND);

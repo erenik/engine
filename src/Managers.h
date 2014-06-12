@@ -27,7 +27,7 @@
 #include "Player/PlayerManager.h"
 #include "Graphics/Animation/AnimationManager.h"
 #include "Audio/TrackManager.h"
-#include "OS/WindowManager.h"
+#include "Window/WindowManager.h"
 #include "Multimedia/MultimediaManager.h"
 #include "System/PreferencesManager.h"
 #include "Maps/Grids/GridObject.h"

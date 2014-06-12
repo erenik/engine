@@ -4,7 +4,7 @@
 #include "GMUI.h"
 #include "../../UI/UserInterface.h"
 #include "Graphics/GraphicsManager.h"
-#include "../Render/RenderViewport.h"
+#include "Viewport.h"
 #include "OS/Sleep.h"
 #include "UI/UITypes.h"
 #include "UI/UIList.h"
@@ -13,29 +13,31 @@
 #include "Input/InputManager.h"
 #include "StateManager.h"
 #include "Message/MessageManager.h"
+#include "Window/WindowManager.h"
 
 /// Default constructor, specifies the viewport to be the default global one.
-GMUI::GMUI(int messageType, int viewportID /* = NULL*/)
-: GraphicsMessage(messageType), viewportID(viewportID)
+GMUI::GMUI(int messageType, Viewport * viewport /* = NULL*/)
+: GraphicsMessage(messageType), viewport(viewport)
 {
 	ui = NULL;
-	// Helps flag if the messages are directed to global or active-state ui.
-	global = false;	
+	window = NULL;
+	global = false;
 }
 
-bool  GMUI::GetUI()
+bool GMUI::GetUI()
 {
-	// If global is set, use that function to get ui instead. Should work?
-	if (global)
-		return GetGlobalUI();
-	if (viewportID == NULL)
-		ui = Graphics.GetUI();
-	else {
-		RenderViewport * viewport = NULL;
-		viewport = (RenderViewport*)Graphics.GetViewport(viewportID);
-		if (!viewport)
-			return false;
-		ui = viewport->GetUI();
+	if (ui)
+		return true;
+	if (!window)
+	{
+		window = WindowMan.MainWindow();
+	}
+	if (window)
+	{
+		if (global)
+			ui = window->GetGlobalUI();
+		else
+			ui = window->GetUI();
 	}
     if (ui == NULL){
         std::cout<<"\nWARNING: No valid UI available for use.";
@@ -43,9 +45,16 @@ bool  GMUI::GetUI()
     }
     return true;
 }
+
 /// Fetches global UI. 
 bool GMUI::GetGlobalUI()
 {
+	if (!window)
+		window = ActiveWindow();
+	ui = window->GetGlobalUI();
+	return ui != NULL;
+	assert(false);
+	/*
 	if (viewportID == NULL)
 		ui = Graphics.GetGlobalUI();
 	// If it does not exist. Create it, since it is the system-global UI.
@@ -59,12 +68,13 @@ bool GMUI::GetGlobalUI()
 		ui->AdjustToWindow(Graphics.Width(), Graphics.Height());
 		return true;
 	}
+	*/
 }
 
 
 /// Used to set arbitrary amounts of booleans. Mainly used for binary matrices (UIMatrix).
-GMSetUIvb::GMSetUIvb(String uiName, int target, List<bool*> boolData, int viewport /*= NULL*/)
-: GMUI(GM_SET_UI_VECB), name(uiName), target(target), data(boolData)
+GMSetUIvb::GMSetUIvb(String uiName, int target, List<bool*> boolData, Viewport * viewport /*= NULL*/)
+: GMUI(GM_SET_UI_VECB, viewport), name(uiName), target(target), data(boolData)
 {
 	switch(target){
 		case GMUI::MATRIX_DATA:
@@ -98,7 +108,7 @@ void GMSetUIvb::Process()
 
 
 /// Used to set UI vector2i data. Primarily used to specify size of matrix or maybe later aboslute-size of an element.
-GMSetUIv2i::GMSetUIv2i(String UIname, int target, Vector2i v, int viewport /* = NULL */)
+GMSetUIv2i::GMSetUIv2i(String UIname, int target, Vector2i v, Viewport * viewport /* = NULL */)
 : GMUI(GM_SET_UI_VEC2I, viewport), name(UIname), target(target), value(v)
 {
 	switch(target){
@@ -143,7 +153,7 @@ void GMSetUIv2i::Process()
 };
 
 
-GMSetUIv3f::GMSetUIv3f(String UIname, int target, Vector3f v, int viewport/* = NULL*/)
+GMSetUIv3f::GMSetUIv3f(String UIname, int target, Vector3f v, Viewport * viewport/* = NULL*/)
 : GMUI(GM_SET_UI_VEC3F, viewport), name(UIname), target(target), value(v)
 {
 	switch(target){
@@ -181,7 +191,7 @@ void GMSetUIv3f::Process()
 };
 
 
-GMSetUIv4f::GMSetUIv4f(String UIname, int target, Vector4f v, int viewport /*= NULL*/)
+GMSetUIv4f::GMSetUIv4f(String UIname, int target, Vector4f v, Viewport * viewport /*= NULL*/)
 : GMUI(GM_SET_UI_VEC4F, viewport), name(UIname), target(target), value(v)
 {
 	switch(target){
@@ -217,7 +227,7 @@ void GMSetUIv4f::Process()
 };
 
 /// For setting floating point values, like relative sizes/positions, scales etc.
-GMSetUIf::GMSetUIf(String UIname, int target, float value, int viewport /* = NULL*/)
+GMSetUIf::GMSetUIf(String UIname, int target, float value, Viewport * viewport /* = NULL*/)
 : GMUI(GM_SET_UI_FLOAT, viewport), name(UIname), target(target), value(value)
 {
 	switch(target){
@@ -261,7 +271,7 @@ void GMSetUIf::Process()
 	};
 };
 
-GMSetUIb::GMSetUIb(String name, int target, bool v, int viewport)
+GMSetUIb::GMSetUIb(String name, int target, bool v, Viewport * viewport)
 : GMUI(GM_SET_UI_BOOLEAN, viewport), name(name), target(target), value(v)
 {
 	if (!name.Length())
@@ -282,10 +292,13 @@ GMSetUIb::GMSetUIb(String name, int target, bool v, int viewport)
 };
 
 /// For setting floating point values, like relative sizes/positions, scales etc. of elements in the system-global UI.
-GMSetGlobalUIf::GMSetGlobalUIf(String uiName, int target, float value)
+GMSetGlobalUIf::GMSetGlobalUIf(String uiName, int target, float value, Window * window)
 : GMSetUIf(uiName, target, value, 0)
 {
-	// Fetch global UI now so it uses global instead of regular ui.
+	if (!window)
+		this->window = WindowMan.MainWindow();
+	else
+		this->window = window;
 	global = true;
 };
 
@@ -344,7 +357,7 @@ void GMSetUIb::Process()
 	Graphics.renderQueried = true;
 };
 
-GMSetUIs::GMSetUIs(String uiName, int target, Text text, int viewport)
+GMSetUIs::GMSetUIs(String uiName, int target, Text text, Viewport * viewport)
 : GMUI (GM_SET_UI_TEXT, viewport), uiName(uiName), target(target), text(text), force(false)
 {
 	switch(target){
@@ -362,7 +375,7 @@ GMSetUIs::GMSetUIs(String uiName, int target, Text text, int viewport)
 	}
 };
 
-GMSetUIs::GMSetUIs(String uiName, int target, Text text, bool force, int viewport)
+GMSetUIs::GMSetUIs(String uiName, int target, Text text, bool force, Viewport * viewport)
 : GMUI (GM_SET_UI_TEXT, viewport), uiName(uiName), target(target), text(text), force(force)
 {
 };
@@ -417,15 +430,18 @@ void GMSetUIs::Process(){
 	Graphics.renderQueried = true;
 }
 
-GMSetGlobalUIs::GMSetGlobalUIs(String uiName, int target, Text text, bool force)
+GMSetGlobalUIs::GMSetGlobalUIs(String uiName, int target, Text text, bool force, Window * window)
 : GMSetUIs(uiName, target, text)
 {
-	// Set flag so it uses global ui.
+	if (!window)
+		this->window = WindowMan.MainWindow();
+	else
+		this->window = window;
 	global = true;
 }
 
 
-GMClearUI::GMClearUI(String uiName, int viewport)
+GMClearUI::GMClearUI(String uiName, Viewport * viewport)
 : GMUI(GM_CLEAR_UI, viewport), uiName(uiName){}
 
 void GMClearUI::Process(){
@@ -440,7 +456,7 @@ void GMClearUI::Process(){
 	Graphics.renderQueried = true;
 }
 
-GMScrollUI::GMScrollUI(String uiName, float scrollDiff, int viewport)
+GMScrollUI::GMScrollUI(String uiName, float scrollDiff, Viewport * viewport)
 : GMUI(GM_SCROLL_UI, viewport), uiName(uiName), scrollDistance(scrollDiff)
 {
 }
@@ -471,6 +487,7 @@ GMAddGlobalUI::GMAddGlobalUI(UIElement *element, String toParent /* = "root" */)
 : GMUI(GM_ADD_UI, 0), element(element), parentName(toParent)
 {
 	assert(element);
+	global = true;
 }
 void GMAddGlobalUI::Process()
 {
@@ -490,7 +507,7 @@ void GMAddGlobalUI::Process()
 }
 
 /// Message to add a newly created UI to the active game state's UI.
-GMAddUI::GMAddUI(UIElement * element, String toParent, int viewport)
+GMAddUI::GMAddUI(UIElement * element, String toParent, Viewport * viewport)
 : GMUI(GM_ADD_UI, viewport), element(element), parentName(toParent)
 {
 	assert(element);
@@ -512,16 +529,19 @@ void GMAddUI::Process()
 	Graphics.renderQueried = true;
 }
 
-GMPushUI::GMPushUI(String uiName, UserInterface * ontoUI, int viewport)
+GMPushUI::GMPushUI(String uiName, UserInterface * ontoUI)
 : GMUI(GM_PUSH_UI, viewport), uiName(uiName), element(NULL)
 {
 	ui = ontoUI;
+	assert(ui);
 };
 
-GMPushUI::GMPushUI(UIElement * element, UserInterface * ontoUI, int viewport)
+GMPushUI::GMPushUI(UIElement * element, UserInterface * ontoUI)
 : GMUI(GM_PUSH_UI, viewport), element(element)
 {
+	assert(element);
 	ui = ontoUI;
+	assert(ui);
 };
 
 void GMPushUI::Process()
@@ -586,7 +606,7 @@ void DeleteUI(UIElement * element, UserInterface * inUI){
 	Input.acceptInput = true;
 }
 
-GMPopUI::GMPopUI(String uiName, UserInterface * targetUI, bool force, int viewport)
+GMPopUI::GMPopUI(String uiName, UserInterface * targetUI, bool force, Viewport * viewport)
 : GMUI(GM_POP_UI, viewport), uiName(uiName), element(NULL), force(force)
 {
 	ui = targetUI;
@@ -594,12 +614,7 @@ GMPopUI::GMPopUI(String uiName, UserInterface * targetUI, bool force, int viewpo
 
 void GMPopUI::Process()
 {
-	if (!ui)
-	{
-//	if (!GetUI())
- //       return;
-		assert(false);
-	}
+	GetUI();
 	if (!ui){
 		std::cout<<"\nGMPopUI: Invalid UI.";
 		return;

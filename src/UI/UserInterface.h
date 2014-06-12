@@ -1,3 +1,7 @@
+/// Emil Hedemalm
+/// 2014-06-12
+/// User interface class.
+
 #ifndef USER_INTERFACE_H
 #define USER_INTERFACE_H
 
@@ -8,10 +12,23 @@ class Square;
 struct GraphicsState;
 class UIElement;
 
-class UserInterface {
+/// Fetches the global UI, taking into consideration active window.
+UserInterface * GlobalUI();
+/// Fetches active/current UI, taking into consideration active window.
+UserInterface * ActiveUI();
+/// Fetches either the Global or Active UI, taking into consideration both active window and if there exist any valid content in the Global UI.
+UserInterface * RelevantUI();
+
+class UserInterface 
+{
+	// List of all existing UIs
+	static List<UserInterface*> userInterfaces;
 public:
 	UserInterface();
 	~UserInterface();
+
+	/// Reloads all existing UserInterfaces based on their respective source-files.
+	static void ReloadAll();
 
 	// Creates the root element. Will not create another if it already exists.
 	UIElement * CreateRoot();
@@ -58,7 +75,7 @@ public:
 		If the values of width and height are the same as they were prior to the call
 		no change will occur and a false will be returned, otherwise it will return true.
 	*/
-	bool AdjustToWindow(int width, int height);
+	bool AdjustToWindow(Vector2i size);
 	/// Creates the geometry needed before bufferization and rendering can be done.
 	void CreateGeometry();
 	void ResizeGeometry();

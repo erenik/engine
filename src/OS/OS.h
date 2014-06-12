@@ -26,7 +26,6 @@
 // #include "WindowsIncludes.h"
 	// Set target windows platform to Windows Vista and later (0x0600)
 //	#undef _WIN32_WINNT
-#define bABABA _WIN32_WINNT
 //	#define _WIN32_WINNT 	_WIN32_WINNT_WIN7
 //	#define _WIN32_WINNT _WIN32_WINNT_VISTA 
 #endif

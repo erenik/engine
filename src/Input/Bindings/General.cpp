@@ -15,6 +15,8 @@
 #include "TextureManager.h"
 #include "Multimedia/MultimediaManager.h"
 
+#include "Window/WindowManager.h"
+
 enum generalActions{
 	NULL_ACTION,
 
@@ -55,7 +57,6 @@ enum generalActions{
 #define UNICODE
 #include <Windows.h>
 #include <shellapi.h>
-extern HWND hWnd;
 //PLABELBOX pbox;
 LPTSTR	lptstr;
 LPTSTR  lptstrCopy;
@@ -72,7 +73,8 @@ extern Window window;
 extern Display * display;
 #endif
 
-void generalInputProcessor(int action, int inputDevice){
+void generalInputProcessor(int action, int inputDevice)
+{
 	switch(action){
 		case TOGGLE_RENDER_LIGHTS:
 			Graphics.renderLights = !Graphics.renderLights;
@@ -113,7 +115,8 @@ void generalInputProcessor(int action, int inputDevice){
 			StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_MAIN_MENU));
 			break;
 		}
-		case PRINT_FRAME_TIME:{
+		case PRINT_FRAME_TIME:
+		{
 			std::cout<<"\nFrame time, total: "<<Graphics.FrameTime()<<" Average FPS: "<< 1000.0f / Graphics.FrameTime()
                 <<" \n- MessageProcessing: "<<Graphics.graphicsMessageProcessingFrameTime
                 <<" \n- Updates: "<<Graphics.graphicsUpdatingFrameTime
@@ -123,6 +126,7 @@ void generalInputProcessor(int action, int inputDevice){
 				<<" \n  - Swapbuffers: "<<Graphics.swapBufferFrameTime
                 <<" \n  - Viewports: "<<Graphics.renderViewportsFrameTime;
 			
+			/*
             for (int i = 0; i < Graphics.GetViewports().Size() && i < 4; ++i)
                 std::cout<<" \n    - v"<<i<<" : "<<Graphics.renderViewportFrameTime[i];
 
@@ -132,7 +136,7 @@ void generalInputProcessor(int action, int inputDevice){
 				<<" \n  - Collission: "<<Physics.GetCollissionProcessingFrameTime()
 				<<" \n    - PhysicsMeshCollissionChecks: "<<Physics.GetPhysicsMeshCollissionChecks()
 				<<" \n  - Processing messages: "<<Physics.GetMessageProcessingFrameTime();
-
+*/
 			FrameStats.Print();
 
             break;
@@ -160,8 +164,9 @@ void generalInputProcessor(int action, int inputDevice){
         }
 		case COPY: {
 #ifdef WINDOWS
+			Window * window = WindowMan.GetCurrentlyActiveWindow();
 			// Open the clipboard, and empty it.
-			if (!OpenClipboard(hWnd)) {
+			if (!OpenClipboard(window->hWnd)) {
 				std::cout<<"Unable to open clipboard!";
 				return;
 			}
@@ -308,6 +313,7 @@ void generalInputProcessor(int action, int inputDevice){
 
 #ifdef WINDOWS
 
+			Window * window = WindowMan.GetCurrentlyActiveWindow();
 		//	pbox = hwndSelected == NULL ? NULL :
 		//		(PLABELBOX) GetWindowLong(hwndSelected, 0);
 
@@ -332,7 +338,7 @@ void generalInputProcessor(int action, int inputDevice){
 					the handle to the DragQueryFile function.
 				*/
 
-					if (!OpenClipboard(hWnd))
+					if (!OpenClipboard(window->hWnd))
 						return;
 
 					HDROP hDrop = (HDROP) GetClipboardData(CF_HDROP);
@@ -406,7 +412,7 @@ void generalInputProcessor(int action, int inputDevice){
 					std::cout<<"\nClipboardFormat CF_TIFF available";
 				if (!IsClipboardFormatAvailable(CF_TEXT))
 					return;
-				if (!OpenClipboard(hWnd))
+				if (!OpenClipboard(window->hWnd))
 					return;
 
 				hglb = GetClipboardData(CF_TEXT);
@@ -434,7 +440,8 @@ void generalInputProcessor(int action, int inputDevice){
 			return;
 		}
 		case QUIT_APPLICATION: {
-
+			WindowMan.DeleteWindows();
+			/*
 #ifdef WINDOWS
 			// Resize screen first please
 				// Sets full-screen style if specified
@@ -465,7 +472,8 @@ void generalInputProcessor(int action, int inputDevice){
 				Graphics.ScreenHeight()/2 - Graphics.oldHeight/2,
 				0, 0, true);
 			Graphics.isFullScreen = false;
-#endif
+#endif*/
+
 			// Call the deallocator thread!
 			StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_EXITING));
 #ifdef WINDOWS
@@ -478,7 +486,7 @@ void generalInputProcessor(int action, int inputDevice){
 		}
 		case TOGGLE_FULL_SCREEN: 
 		{
-			Graphics.ToggleFullScreen();
+			Graphics.ToggleFullScreen(WindowMan.GetCurrentlyActiveWindow());
 			/*
 			std::cout<<"\nInput>>TOGGLE_FULL_SCREEN";
 			// Check full-screen state

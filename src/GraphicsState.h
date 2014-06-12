@@ -12,6 +12,7 @@
 #include "Util/List/List.h"
 #include "Selection.h"
 
+class Window;
 class Shader;
 class Texture;
 class Mesh;
@@ -43,6 +44,11 @@ struct GraphicsState {
 public:
 	GraphicsState();
 public:
+	/// Window we are currently rendering to.
+	Window * activeWindow; 
+	/// Current width and height of the active window.
+	int windowWidth, windowHeight;
+
 	/// Active frustum to be compared with.
 	Frustum viewFrustum;
 	/// Rendered amount of objects for this frame.

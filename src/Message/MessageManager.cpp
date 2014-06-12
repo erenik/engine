@@ -184,6 +184,7 @@ void MessageManager::ProcessPacket(Packet * packet)
 void MessageManager::ProcessMessage(Message * message){
 	// Check for UI-messages first.
 	String msg = message->msg;
+	UserInterface * globalUI = GlobalUI();
 	// Do note that not all messages uses the string-argument...
 //	if (!msg.Length())
 //		return;
@@ -347,7 +348,7 @@ void MessageManager::ProcessMessage(Message * message){
 		/// Add the dialogue to the global UI
 		Graphics.QueueMessage(new GMAddGlobalUI(dialog, "root"));
 		/// Push it to the top... should not be needed with the global ui.
-		Graphics.QueueMessage(new GMPushUI(dialog, Graphics.GetGlobalUI(true)));
+		Graphics.QueueMessage(new GMPushUI(dialog, GlobalUI()));
 		return;
 	}
 	else if (msg.Contains("SetFileBrowserDirectory(")){
@@ -429,7 +430,7 @@ void MessageManager::ProcessMessage(Message * message){
 		fileBrowser->LoadDirectory(false);
 		/// Push it to the UI.
 		Graphics.QueueMessage(new GMAddUI(fileBrowser, "root"));
-		Graphics.QueueMessage(new GMPushUI(fileBrowser, Input.GetRelevantUI()));
+		Graphics.QueueMessage(new GMPushUI(fileBrowser, RelevantUI()));
 		return;
 	}
 	else if (msg.Contains("QuitApplication"))
@@ -447,7 +448,7 @@ void MessageManager::ProcessMessage(Message * message){
 		String uiName = params[1];
 		String uiSrc = uiName;
 		/// Check if the element exists...!
-		UserInterface * ui = Graphics.GetUI();
+		UserInterface * ui = ActiveUI();
 		if (!ui)
 			return;
 		UIElement * element = NULL;
@@ -493,12 +494,12 @@ void MessageManager::ProcessMessage(Message * message){
 		if (uiName == "this")
 			uiName = message->element->name;
 		/// Force pop it?
-		Graphics.QueueMessage(new GMPopUI(uiName, Input.GetRelevantUI(), true));
+		Graphics.QueueMessage(new GMPopUI(uiName, RelevantUI(), true));
 		return;
 	}
 	else if (msg == "Back")
 	{
-		UserInterface * ui = Input.GetRelevantUI();
+		UserInterface * ui = RelevantUI();
 		UIElement * stackTop = ui->GetStackTop();
 		Graphics.QueueMessage(new GMPopUI(stackTop->name, ui));
 		return;

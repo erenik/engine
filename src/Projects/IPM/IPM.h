@@ -6,6 +6,7 @@
 #include "Graphics/Camera/Camera.h"
 #include "Mutex/Mutex.h"
 #include "CV/CVPipeline.h"
+#include "Window/Window.h"
 
 #include "opencv2/opencv.hpp"
 
@@ -156,5 +157,8 @@ private:
 	Entity * textureEntity;
 	/// Active texture we're manipulating.
 	Texture * texture;
+
+	/// Dedicated output window to be used with a projector
+	Window * projectionWindow;
 };
 

@@ -8,7 +8,8 @@
 #include <fcntl.h>
 #include <ctime>
 
-#include "OS/WindowSystem.h"
+#include "Application/Application.h"
+#include "Window/WindowSystem.h"
 #include "Managers.h" // Don't include all managers. Ever. Except here and in Initializer/Deallocator.
 #include "OS/Sleep.h"
 
@@ -22,8 +23,6 @@
 /// Unit test includes
 #include "PhysicsLib/Estimator.h"
 
-#include "ApplicationDefaults.h"
-
 /// Win32-specifics
 #ifdef WINDOWS
     #define _CRTDBG_MAP_ALLOC
@@ -35,24 +34,15 @@
 #endif 
     #include "config.h"
     #include <io.h>
+#ifndef UNICODE
 #define UNICODE
+#endif
     #include <windows.h>
     #include <tchar.h>
     #include <process.h>
     
     // Global variables
     extern uintptr_t initializerThread;
-    // The main window class name.
-    static TCHAR szWindowClass[] = _T("win32app");
-    // The string that appears in the application's title bar.
-    static WCHAR szTitle[] = L"Win32 Guided Tour Application";
-    HWND			hWnd = NULL;
-    HINSTANCE		hInst = NULL;
-    HDC				hdc = NULL;
-    // Forward declarations of functions included in this code module:
-    LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
-    // Style to be used for the game window.
-    DWORD windowStyle;
 /// Linux-specifics!
 #elif defined USE_X11
     #include <GL/glew.h>
@@ -106,17 +96,22 @@
 #endif // POSIX threads
 
 
-#define WINDOW_WIDTH    800
-#define WINDOW_HEIGHT   600
-bool notResizable = false;
-
 /// Le main! (^o-o^);
 #ifdef WINDOWS
 // WinMain - Start the application and it's threads
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) 
+{
+	// Save away entry-point args straight away.
+	Application::hInstance = hInstance;
+	Application::nCmdShow = nCmdShow;
 #elif defined LINUX | defined OSX
-int main(int argc, char **argv){
+int main(int argc, char **argv)
+{
 #endif
+
+	// Set application-defaults here already?
+	/// Call to set application name, root directories for various features, etc.
+	SetApplicationDefaults();
 
 	/// Allocate allocators.
 	String::InitializeAllocator();
@@ -181,9 +176,6 @@ int main(int argc, char **argv){
 
     return 0;
 #endif // Debug malloc
-
-
-
 
 
 /// Set C-runtime flags and threading options
@@ -264,49 +256,12 @@ int main(int argc, char **argv){
 
     // Register window pre-stuffs.
 #ifdef WINDOWS
-    std::cout<<"Starting up Win32 application...";
-	hInst = hInstance;
-	// Check registry for Resizability
-	HINSTANCE iconHInst = NULL;
-	// Use default icon, Consider looking up design for a real icon
-//	HICON icon = LoadIconW(iconHInst, (WORD)MAKEINTRESOURCEW(IDI_APPLICATION));
-//	icon = (HICON) LoadImage(hInstance, L"Game.ico", IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);
-	/// Class styles
-	UINT windowClassStyle =
-		CS_HREDRAW |			// Redraws the entire window if a movement or size adjustment changes the width of the client area.
-		CS_VREDRAW |			// Redraws the entire window if a movement or size adjustment changes the height of the client area.
-		CS_DBLCLKS |			// Sends a double-click message to the window procedure when the user double-clicks the mouse while the cursor is within a window belonging to the class.
-	//	CS_NOCLOSE |			// Disables Close on the window menu.
-	//	CS_BYTEALIGNCLIENT |	// Aligns the window's client area on a byte boundary (in the x direction).
-	//	CS_BYTEALIGNWINDOW |	// Aligns the window on a byte boundary (in the x direction).
-		0;
-
-	// Define window class structure
-	WNDCLASSEXW wcex;
-	static WCHAR szWindowClass[] = L"win32app";
-    wcex.cbSize = sizeof(WNDCLASSEXW);
-    wcex.style          = windowClassStyle;
-    wcex.lpfnWndProc    = WndProc;
-    wcex.cbClsExtra     = 0;
-    wcex.cbWndExtra     = 0;
-    wcex.hInstance      = hInstance;
-    wcex.hIcon          = 0;
-    wcex.hCursor        = LoadCursor(NULL, IDC_ARROW);
-    wcex.hbrBackground  = (HBRUSH)(COLOR_WINDOW+1);
-    wcex.lpszMenuName   = NULL;
-	wcex.lpszClassName = szWindowClass;
-//    wcex.lpszClassName  = szWindowClass;
-    wcex.hIconSm        = 0;
-	// Register the window class structure
-	if (!RegisterClassExW(&wcex))
-    {
-        MessageBox(NULL,
-            _T("Call to RegisterClassEx failed!"),
-            _T("Win32 Guided Tour"),
-            NULL);
-
-        return 1;
-    }
+	// Create the window manager.
+	WindowManager::Allocate();
+	// Save to global application instance variables.
+    hInstance = hInstance;
+	std::cout<<"Starting up Win32 application...";
+	WindowMan.CreateDefaultWindowClass();
 /// Open XServer?
 #elif defined USE_X11
     std::cout<<"Starting up XWindowSystem application...";
@@ -351,55 +306,9 @@ int main(int argc, char **argv){
 
 
 
-    // Set window options
+// Set window options
 #ifdef WINDOWS
-
-	/// Set title depending on command-line args.
-	String windowTitle = CommandLine::args[0];
-	windowTitle.ConvertToChar();
-	windowTitle.Remove("\"", true);
-	windowTitle = FilePath::GetFileName(windowTitle);
-	windowTitle.ConvertToWideChar();
-	wcscpy(szTitle, windowTitle.wc_str());
-
-/*	
-	/// Set window style
-	windowStyle =
-		WS_CAPTION |		// The window has a title bar (includes the WS_BORDER style).
-		WS_MAXIMIZEBOX |	// The window has a maximize button. Cannot be combined with the WS_EX_CONTEXTHELP style. The WS_SYSMENU style must also be specified.
-		WS_MINIMIZEBOX |	// The window has a minimize button. Cannot be combined with the WS_EX_CONTEXTHELP style. The WS_SYSMENU style must also be specified.
-		WS_OVERLAPPED |		// The window is an overlapped window. An overlapped window has a title bar and a border. Same as the WS_TILED style.
-		WS_SIZEBOX |		// The window has a sizing border. Same as the WS_THICKFRAME style.
-		WS_SYSMENU |		// The window has a window menu on its title bar. The WS_CAPTION style must also be specified.
-		WS_THICKFRAME |		// The window has a sizing border. Same as the WS_SIZEBOX style.
-	//	WS_OVERLAPPEDWINDOW |	// The window is an overlapped window. Same as the WS_TILEDWINDOW style.
-		/* (WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX) */
-
-//		0;
-
-	/// Set window style
-	windowStyle =
-		WS_CAPTION |		// The window has a title bar (includes the WS_BORDER style).
-		WS_MAXIMIZEBOX |	// The window has a maximize button. Cannot be combined with the WS_EX_CONTEXTHELP style. The WS_SYSMENU style must also be specified.
-		WS_MINIMIZEBOX |	// The window has a minimize button. Cannot be combined with the WS_EX_CONTEXTHELP style. The WS_SYSMENU style must also be specified.
-		WS_OVERLAPPED |		// The window is an overlapped window. An overlapped window has a title bar and a border. Same as the WS_TILED style.
-		WS_SIZEBOX |		// The window has a sizing border. Same as the WS_THICKFRAME style.
-		WS_SYSMENU |		// The window has a window menu on its title bar. The WS_CAPTION style must also be specified.
-		WS_THICKFRAME |		// The window has a sizing border. Same as the WS_SIZEBOX style.
-//		WS_VISIBLE | // Have no idea..
-//			WS_POPUP | WS_CLIPCHILDREN | WS_CLIPSIBLINGS |
-WS_CLIPSIBLINGS |
-WS_CLIPCHILDREN | 
-		0;
-
-	/// If not resizable, de-flag it
-	if (notResizable)
-		windowStyle &= ~WS_SIZEBOX;
-
-	/// Set extended window styles
-	DWORD dwExStyle = WS_EX_ACCEPTFILES /// Accept drag-and-drop files
-		| WS_EX_APPWINDOW		// Forces a top-level window onto the taskbar when the window is visible.
-		| WS_EX_STATICEDGE;
+	// Do that later, actually..
 /// Set linux Window options!
 #elif defined USE_X11
     // Each X window always has an associated colormap that provides a level of indirection between pixel values
@@ -430,34 +339,16 @@ WS_CLIPCHILDREN |
 
 	/// Create window
 #ifdef WINDOWS
-	hWnd = CreateWindowExW(
-		dwExStyle,
-		szWindowClass, szTitle,
-		windowStyle,
-		CW_USEDEFAULT, CW_USEDEFAULT,
-		500, 100,
-		NULL, NULL,
-		hInstance, NULL);
-/*	hWnd = CreateWindow(				// The parameters to CreateWindow explained:
-		szWindowClass,					// szWindowClass: the name of the application
-		szTitle,						// szTitle: the text that appears in the title bar
-		windowStyle,					// windowStyle: the type of window to create
-		CW_USEDEFAULT, CW_USEDEFAULT,	// CW_USEDEFAULT, CW_USEDEFAULT: initial position (x, y)
-		500, 100,						// 500, 100: initial size (width, length)
-		NULL,							// NULL: the parent of this window
-		NULL,							// NULL: this application does not have a menu bar
-		hInstance,						// hInstance: the first parameter from WinMain
-		NULL							// NULL: not used in this application
-	);
-	*/
-	if (!hWnd)
-	{
-		MessageBox(NULL,
-			_T("Call to CreateWindow failed!"),
-			_T("Game Engine Win32 Error"),
-			NULL);
-		return 1;
-	}
+	
+	Window * mainWindow = WindowMan.CreateMainWindow();
+	// Optionally set more user-related stuff to the options before creating it.
+	
+	// Then create it!
+	mainWindow->Create();
+	/// Create default UI and globalUI that may later on be replaced as needed.
+	mainWindow->CreateUI();
+	mainWindow->CreateGlobalUI();
+
 /// Create the window, linux-style!
 #elif defined USE_X11
     window = XCreateWindow(display,
@@ -528,12 +419,8 @@ WS_CLIPCHILDREN |
 
 #endif
 	
-	/// Call to set application name, root directories for various features, etc.
-	SetApplicationDefaults();
-
 	// Initialize all managers
 	PreferencesManager::Allocate();
-	WindowManager::Allocate();
 	PlayerManager::Allocate();
 	MessageManager::Allocate();
 	GraphicsManager::Allocate();
@@ -567,12 +454,10 @@ WS_CLIPCHILDREN |
 	// Start the initializer thread
 #ifdef WINDOWS
 	initializerThread = _beginthread(Initialize, NULL, NULL);
-	// Then start accepting messages from WndProc
-	// The parameters to ShowWindow explained:
-	// hWnd: the value returned from CreateWindow
-	// nCmdShow: the fourth parameter from WinMain
-	ShowWindow(hWnd, nCmdShow);
-	UpdateWindow(hWnd);
+
+	// Reveal the main window to the user now that all managers are allocated.
+	mainWindow->Show();
+
 #elif defined LINUX | defined OSX
 #ifndef TEST_RENDER
     int iret1 = pthread_create(&initializerThread, NULL, Initialize, NULL);
@@ -601,11 +486,22 @@ WS_CLIPCHILDREN |
 #ifdef WINDOWS
 	// Get messages and dispatch them to WndProc
 	MSG msg;
-	while (GetMessage(&msg, NULL, 0, 0) && StateMan.ActiveStateID() != GameStateID::GAME_STATE_EXITING)
-    {
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
-    }
+	while(true)
+	{
+		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+		{
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+		// Sleep a bit? No?
+		Sleep(5);
+		if (StateMan.ActiveStateID() == GameStateID::GAME_STATE_EXITING)
+		{
+			std::cout<<"\nExiting main window message loop.";
+			break;
+		}
+	}
+
 /// X11 message loop!
 #elif defined USE_X11
     std::cout<<"\nBeginning listening to events...";
@@ -682,13 +578,9 @@ WS_CLIPCHILDREN |
 	std::cout<<"\nState processor thread ended.";
 	
 	std::cout<<"\nDestroy window.";
-/// Destroy WINDOW o/o
-#ifdef WINDOWS
-	BOOL result = DestroyWindow(hWnd);
-#elif defined USE_X11
-    XDestroyWindow(display, window);
-    XCloseDisplay(display);
-#endif
+	
+	// Delete ALL windows o-o
+	WindowMan.DeleteWindows();
 
 
 	std::cout<<"\nDeallocating all managers.";
@@ -722,8 +614,8 @@ WS_CLIPCHILDREN |
 	WaypointManager::Deallocate();
 	InputManager::Deallocate();
 	PlayerManager::Deallocate();
-	WindowManager::Deallocate();
 	PreferencesManager::Deallocate();
+	WindowManager::Deallocate();
 
 	std::cout<<"\nManagers deallocated.";
 	timeTaken = clock() - timeStart;

@@ -21,12 +21,13 @@ struct RenderSettings;
 class Texture;
 class UserInterface;
 class TextFont;
-class RenderViewport;
+class Viewport;
 class TileMap2D;
 class Camera;
 class UserInterface;
 class ParticleSystem;
 class RenderRay;
+class Window;
 
 #define MAX_TEXTURES	250
 
@@ -49,7 +50,7 @@ class GraphicsManager {
 	friend class GMSetUIs;
 	friend class GMSetOverlay;
 	friend class GMSetViewports;
-	friend class RenderViewport;
+	friend class Viewport;
 	friend class TileMap2D;
 	friend class GMRegister;
 	friend class GMClear;
@@ -79,21 +80,18 @@ public:
 	void EnableAllDebugRenders(bool enabled = true);
 
 	/// Returns a pointer to active GUI
-	UserInterface * GetUI() { return ui; };
+//	UserInterface * GetUI() { return ui; };
 	/** Returns a pointer to the active system-global UI. If it has not been created earlier it will be created upon calling it.
 		If argument is true and no global has been constructed, it will be constructed.
 	*/
-	UserInterface * GetGlobalUI(bool createIfNeeded = false);
-	List<RenderViewport*> GetViewports() { return renderViewports; };
+//	UserInterface * GetGlobalUI(bool createIfNeeded = false);
+//	List<Viewport*> GetViewports() { return renderViewports; };
 	/// Sets active UserInterface to be rendered
 	void SetUI(UserInterface * ui);
 	/// Sets system-global ui.
 	void SetGlobalUI(UserInterface * ui);
 
 	void RepositionEntities();
-
-	/// Fetches viewport by ID. All viewports get a unique ID.
-	RenderViewport * GetViewport(int byID);
 
     /// Returns the active camera for the given viewport
 	Camera * ActiveCamera(int viewport = 0) const;
@@ -102,9 +100,6 @@ public:
 
 	/// For updating graphical effects before rendering takes place.
 	void Process();
-	/// Renders the active scene, including UI, depending on game StateMan.
-	void Render();
-
 
 	/// Pauses rendering and returns only after it has paused fully.
 	void PauseRendering();
@@ -130,12 +125,9 @@ public:
 	void ProcessMessages();
 
 
-	void ToggleFullScreen();
-	/// Statistics
-	int Width() const { return width; };
-	int Height() const { return height; };
-	int ScreenWidth() const { return scrWidth; };
-	int ScreenHeight() const { return scrHeight; };
+	void ToggleFullScreen(Window * forWindow);
+	
+
 //	int DeviceWidth() const { return scrWidth; };
 //	int DeviceHeight() const { return scrHeight; };
 
@@ -193,9 +185,6 @@ public:
 	/// Manager for all shader programs
 	ShaderManager shadeMan;
 
-	/// Window size
-	int width, height;
-
 	/// Keeps track of GL version for the client
 	int GL_VERSION_MAJOR;
 	int GL_VERSION_MINOR;
@@ -206,9 +195,9 @@ public:
 	/// Selection to track for changes/updates and rendering.
 	Selection * selectionToRender;
 
-	const float FrameTime() const { return frameTime; };
-	const float RenderFrameTime() const { return renderFrameTime; };
-	const float PhysicsFrameTime() const { return physicsFrameTime; };
+	const long FrameTime() const { return frameTime; };
+	const long RenderFrameTime() const { return renderFrameTime; };
+	const long PhysicsFrameTime() const { return physicsFrameTime; };
     float renderViewportsFrameTime;
     float renderViewportFrameTime[4];
     int64 graphicsMessageProcessingFrameTime,
@@ -248,12 +237,7 @@ private:
 	bool renderingEnabled;
 
 	/// Time statistics
-	float renderFrameTime, physicsFrameTime, frameTime;
-
-#ifdef WINDOWS
-	// Sets up pixel format, Win32 style.
-	static void SetupPixelFormat(HDC hDC);
-#endif
+	long renderFrameTime, physicsFrameTime, frameTime;
 
 	/// Mutex to be used for accessing the message queue.
 	Mutex graphicsMessageQueueMutex;
@@ -278,12 +262,18 @@ private:
 	List<TextFont*> fonts;
 
 	/// List of viewports to render to.
-	List<RenderViewport *> renderViewports;
-	RenderViewport * defaultViewPort;
+//	List<Viewport *> renderViewports;
+//	Viewport * defaultViewPort;
 
     /// Clickrays to render
 	List<RenderRay*> rays;
 
+
+	/// To properly render to each window.
+	void RenderWindows();
+	void RenderWindow();
+	/// Renders contents in target viewport.
+	void RenderViewport(Viewport * vp);
 	/** Renders additional data pertaining to the AI.
 		Settings for these should be placed somewhere well thought out!
 	*/
@@ -334,11 +324,6 @@ private:
 
 	/// Yup.
 	bool RegisterParticleSystem(ParticleSystem * ps);
-
-	/// Active user interface that is rendered on top of the whole screen no matter underlying viewports.
-	UserInterface * ui;
-	/// System-global user interface used for presenting and quering error messages as well as overlay-effects.
-	UserInterface * globalUI;
 
 	/// Screen size
 	int scrWidth, scrHeight;

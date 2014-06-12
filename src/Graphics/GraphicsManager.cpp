@@ -16,7 +16,7 @@
 // All the includes!
 #include "Mesh/Square.h"
 #include "Fonts/Font.h"
-#include "OS/Window.h"
+#include "Window/Window.h"
 
 #include "UI/UserInterface.h"
 #include "Graphics/Messages/GMUI.h"
@@ -27,7 +27,7 @@
 #include "Physics/PhysicsManager.h"
 #include "StateManager.h"
 #include "Graphics/Camera/Camera.h"
-#include "Render/RenderViewport.h"
+#include "Viewport.h"
 #include "Render/RenderRay.h"
 #include "Render/Renderable.h"
 
@@ -37,9 +37,9 @@
 /// OS-dependent Window management + threads externed variables, probably from main.cpp
 #ifdef WINDOWS
 	extern uintptr_t graphicsThread;	// Graphics thread pointer from Initializer.cpp
-	extern HWND		hWnd;			// Window handle
-	extern HDC		hdc;			// Device context
-	extern HGLRC	hRC;		// GL rendering context
+//	extern HWND		hWnd;			// Window handle
+//	extern HDC		hdc;			// Device context
+//	extern HGLRC	hRC;		// GL rendering context
 
 #elif defined LINUX
     // Render-thread pointer.
@@ -116,8 +116,6 @@ GraphicsManager::GraphicsManager()
 	frustum = new Frustum();
 	// Biggar frustuuum default plz
 	vfcOctree = new VFCOctree(50000, *frustum);
-	// Viewports
-	defaultViewPort = NULL;
 	// Default camera values
 	defaultCamera = new Camera();
 	cameraToTrack = defaultCamera;
@@ -128,10 +126,6 @@ GraphicsManager::GraphicsManager()
 	/// Current full-screen flag
 	isFullScreen = false;
 	/// Sizes pre-fullscreen
-	width = 800;
-	height = 600;
-	oldWidth = 0;
-	oldHeight = 0;
 	shouldLive = true;
 	finished = false;
 	enteringMainLoop = false;
@@ -140,11 +134,6 @@ GraphicsManager::GraphicsManager()
 
 	renderOnQuery  = false;
 	renderQueried = true;
-
-	// Default active UI to none
-	ui = NULL;
-	// Global UI to none.
-	globalUI = NULL;
 
 	// Nullify GL items
 	frameBufferObject = 0;
@@ -257,10 +246,8 @@ void GraphicsManager::Initialize(){
 #endif
 	/// Update camera projection for the first time!
 	graphicsState.camera = this->defaultCamera;
-	UpdateProjection();
 	Texture * tex = TexMan.GetTextureBySource("img/initializing.png");
 	SetOverlayTexture(tex);
-
 }
 
 /// Loads and compiles all relevant shaders
@@ -281,28 +268,19 @@ void GraphicsManager::CreateShaders(){
 	shadeMan.RecompileAllShaders();
 }
 
-
-/// Fetches viewport by ID. All viewports get a unique ID.
-RenderViewport * GraphicsManager::GetViewport(int byID)
-{
-	for (int i = 0; i < renderViewports.Size(); ++i){
-		RenderViewport * rv = renderViewports[i];
-		if (rv->ID() == byID)
-			return rv;
-	}
-	return NULL;
-}
-
 /// Returns the active camera for the given viewport
-Camera * GraphicsManager::ActiveCamera(int viewport /* = 0*/) const {
+Camera * GraphicsManager::ActiveCamera(int viewport /* = 0*/) const 
+{
     if (viewport == 0){
         return cameraToTrack;
     }
-    else {
-        assert(viewport < renderViewports.Size());
-        RenderViewport * rv = renderViewports[viewport];
-        return rv->camera;
-    }
+
+  //  else {
+		//WindowMan.
+  //      assert(viewport < renderViewports.Size());
+  //      Viewport * rv = renderViewports[viewport];
+  //      return rv->camera;
+  //  }
     return NULL;
 }
 
@@ -323,8 +301,11 @@ void GraphicsManager::ResumeRendering(){
 	Graphics.QueueMessage(new GraphicsMessage(GM_RESUME_RENDERING));
 }
 
+
 /// Sets screen resolution in pixels
-bool GraphicsManager::SetResolution(int i_width, int i_height){
+bool GraphicsManager::SetResolution(int i_width, int i_height)
+{
+	assert(false && "Deprecated");
 	/// If we've flagged for no adjusting after start, return here!
 	//bool screenSizeAdjustableAfterStart = false;
 	//
@@ -336,9 +317,10 @@ bool GraphicsManager::SetResolution(int i_width, int i_height){
 	//		if (i_width != width || i_height != height)
 	//			return false;
 	//}
-	GraphicsMessage * resize = new GMResize(i_width, i_height);
+
+	/*GraphicsMessage * resize = new GMResize(i_width, i_height);
 	messageQueue.Push(resize);
-	return true;
+	*/return true;
 }
 
 // For toggling all debug renders.
@@ -347,35 +329,39 @@ void GraphicsManager::EnableAllDebugRenders(bool enabled/* = true*/){
 		renderPhysics = renderNavMesh = renderLights = enabled;
 }
 
-/** Returns a pointer to the active system-global UI. If it has not been created earlier it will be created upon calling it.
-	If argument is true and no global has been constructed, it will be constructed.
-*/
-UserInterface * GraphicsManager::GetGlobalUI(bool createIfNeeded /*= false*/)
-{
-	// Move this creatoin elsewhere.. wtf man?
-	if (createIfNeeded && !globalUI)
-	{
-		globalUI = new UserInterface();
-		globalUI->CreateRoot();
-		globalUI->name = "System-global UI";
-	}
-	return globalUI; 
-}
+///** Returns a pointer to the active system-global UI. If it has not been created earlier it will be created upon calling it.
+//	If argument is true and no global has been constructed, it will be constructed.
+//*/
+//UserInterface * GraphicsManager::GetGlobalUI(bool createIfNeeded /*= false*/)
+//{
+//	// Move this creatoin elsewhere.. wtf man?
+//	if (createIfNeeded && !globalUI)
+//	{
+//		globalUI = new UserInterface();
+//		globalUI->CreateRoot();
+//		globalUI->name = "System-global UI";
+//	}
+//	return globalUI; 
+//}
 
 
 /// Sets active UserInterface to be rendered
 void GraphicsManager::SetUI(UserInterface * i_ui){
+	assert(false);
+/*
 	if (ui)
 		ui->OnExitScope();
 	ui = i_ui;
 	if (ui)
-		ui->OnEnterScope();
+		ui->OnEnterScope();*/
 }
 
 /// Sets system-global ui.
 void GraphicsManager::SetGlobalUI(UserInterface * newGlobalUI)
 {
-	globalUI = newGlobalUI;
+	assert(false);
+
+	//globalUI = newGlobalUI;
 }
 
 
@@ -395,12 +381,8 @@ void GraphicsManager::SetOverlayTexture(String source, int fadeInTime)
 /// Sets overlay texture to be rendered on top of everything else
 void GraphicsManager::SetOverlayTexture(Texture * texture, int fadeInTime /* = 0*/)
 {
-	if (fadeInTime == 0){
+	if (fadeInTime == 0)
 		overlayTexture = texture;
-		// Remove queued texture too, then?
-		if (!texture)
-			queuedOverlayTexture = NULL;
-	}
 	else 
 	{
 		// Log in fade-time after the texture is buffered!
@@ -419,47 +401,6 @@ void GraphicsManager::RepositionEntities(){
 		vfcOctree->RepositionEntity(dynamicEntities[i]);
 	}
 }
-
-#ifdef WINDOWS
-//function to set the pixel format for the device context
-/*      Function:       SetupPixelFormat
-        Purpose:        This function will be responsible
-                                for setting the pixel format for the
-                                device context.
-*/
-void GraphicsManager::SetupPixelFormat(HDC hDC)
-{
-    /*      Pixel format index
-    */
-    int nPixelFormat;
-
-	static PIXELFORMATDESCRIPTOR pfd = {
-		sizeof(PIXELFORMATDESCRIPTOR),          //size of structure
-        1,                                      //default version
-        PFD_DRAW_TO_WINDOW |                    //window drawing support
-        PFD_SUPPORT_OPENGL |                    //opengl support
-        PFD_DOUBLEBUFFER,                       //double buffering support
-        PFD_TYPE_RGBA,                          //RGBA color mode
-        32,                                     //32 bit color mode
-        0, 0, 0, 0, 0, 0,                       //ignore color bits
-        0,                                      //no alpha buffer
-        0,                                      //ignore shift bit
-        0,                                      //no accumulation buffer
-        0, 0, 0, 0,                             //ignore accumulation bits
-        24,                                     //16 bit z-buffer size
-        0,                                      //no stencil buffer
-        0,                                      //no aux buffer
-        PFD_MAIN_PLANE,                         //main drawing plane
-        0,                                      //reserved
-        0, 0, 0 };                              //layer masks ignored
-
-        /*      Choose best matching format*/
-        nPixelFormat = ChoosePixelFormat(hDC, &pfd);
-
-        /*      Set the pixel format to the device context*/
-        SetPixelFormat(hDC, nPixelFormat, &pfd);
-}
-#endif
 
 /// Called before the main rendering loop is begun, after initial GL allocations
 void GraphicsManager::OnBeginRendering(){
@@ -499,7 +440,10 @@ void GraphicsManager::OnEndRendering(){
 };
 
 /// Updates the Projection matrices of the GraphicsState relative to the active camera and ratio to device resolution.
-void GraphicsManager::UpdateProjection(float relativeWidth /* = 1.0f */, float relativeHeight /* = 1.0f */){
+void GraphicsManager::UpdateProjection(float relativeWidth /* = 1.0f */, float relativeHeight /* = 1.0f */)
+{
+	assert(false && "Do this when you know the viewport to render in");
+	/*
 	float widthRatio = 1.0f, heightRatio = 1.0f;
 	float requestedWidth = relativeWidth;
 	float requestedHeight = relativeHeight;
@@ -550,6 +494,7 @@ void GraphicsManager::UpdateProjection(float relativeWidth /* = 1.0f */, float r
 		cameraToTrack->zoom * heightRatio,
 		cameraToTrack->nearPlane,
 		cameraToTrack->farPlane);
+		*/
 }
 
 // Enters a message into the message queue
@@ -582,87 +527,9 @@ void GraphicsManager::ProcessMessages()
 	graphicsMessageQueueMutex.Release();
 }
 
-void GraphicsManager::ToggleFullScreen(){
-	std::cout<<"\nGraphicsManager::ToggleFullScreen";
-	// Check full-screen state
-	if (Graphics.isFullScreen){
-	    /// If was full-screen, go back to previous-size!
-		if (Graphics.oldWidth < 200)
-			Graphics.oldWidth = 200;
-		if (Graphics.oldHeight < 200)
-			Graphics.oldHeight = 200;
-#ifdef WINDOWS
-		extern DWORD windowStyle;
-			/// Set window style
-		windowStyle =
-			WS_CAPTION |		// The window has a title bar (includes the WS_BORDER style).
-			WS_MAXIMIZEBOX |	// The window has a maximize button. Cannot be combined with the WS_EX_CONTEXTHELP style. The WS_SYSMENU style must also be specified.
-			WS_MINIMIZEBOX |	// The window has a minimize button. Cannot be combined with the WS_EX_CONTEXTHELP style. The WS_SYSMENU style must also be specified.
-			WS_OVERLAPPED |		// The window is an overlapped window. An overlapped window has a title bar and a border. Same as the WS_TILED style.
-			WS_SIZEBOX |		// The window has a sizing border. Same as the WS_THICKFRAME style.
-			WS_SYSMENU |		// The window has a window menu on its title bar. The WS_CAPTION style must also be specified.
-			WS_THICKFRAME |		// The window has a sizing border. Same as the WS_SIZEBOX style.
-			WS_SYSMENU | WS_POPUP | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_VISIBLE | // Have no idea..
-			0;
-
-		/// If not resizable, de-flag it
-		extern bool notResizable;
-		if (notResizable)
-			windowStyle &= ~WS_SIZEBOX;
-
-		/*
-		// Set device mode for non-full-screen?
-		DEVMODE dmScreenSettings;
-		memset(&dmScreenSettings, 0, sizeof(dmScreenSettings));
-		dmScreenSettings.dmSize=sizeof(dmScreenSettings);       // Size Of The Devmode Structure
-		dmScreenSettings.dmPelsWidth    = width;            // Selected Screen Width
-		dmScreenSettings.dmPelsHeight   = height;           // Selected Screen Height
-		dmScreenSettings.dmBitsPerPel   = 32;             // Selected Bits Per Pixel
-//		dmScreenSettings.dmFields=DM_BITSPERPEL|DM_PELSWIDTH|DM_PELSHEIGHT;
-		// Try To Set Selected Mode And Get Results.  NOTE: CDS_FULLSCREEN Gets Rid Of Start Bar.
-		bool result = ChangeDisplaySettings(&dmScreenSettings, CDS_RESET);
-*/
-		SetWindowLongPtr(hWnd, GWL_STYLE,
-			windowStyle);
-		MoveWindow(hWnd,
-			Graphics.ScreenWidth()/2 - Graphics.oldWidth/2,
-			Graphics.ScreenHeight()/2 - Graphics.oldHeight/2,
-			Graphics.oldWidth + 12, Graphics.oldHeight + 32, true);
-#elif defined LINUX
-        XResizeWindow(display, window, Graphics.oldWidth, Graphics.oldHeight);
-#endif
-        Graphics.isFullScreen = false;
-	}
-	else {
-
-		/// Save away old sizes
-		Graphics.oldWidth = Graphics.Width();
-		Graphics.oldHeight = Graphics.Height();
-#ifdef WINDOWS
-/*
-		// Set device mode for full-screen?
-		DEVMODE dmScreenSettings;
-		memset(&dmScreenSettings, 0, sizeof(dmScreenSettings));
-		dmScreenSettings.dmSize=sizeof(dmScreenSettings);       // Size Of The Devmode Structure
-		dmScreenSettings.dmPelsWidth    = width;            // Selected Screen Width
-		dmScreenSettings.dmPelsHeight   = height;           // Selected Screen Height
-		dmScreenSettings.dmBitsPerPel   = 32;             // Selected Bits Per Pixel
-		dmScreenSettings.dmFields=DM_BITSPERPEL|DM_PELSWIDTH|DM_PELSHEIGHT;
-		// Try To Set Selected Mode And Get Results.  NOTE: CDS_FULLSCREEN Gets Rid Of Start Bar.
-		bool result = ChangeDisplaySettings(&dmScreenSettings, CDS_FULLSCREEN);
-*/
-		// Sets full-screen style if specified
-		SetWindowLongPtr(hWnd, GWL_STYLE,
-			WS_SYSMENU |
-			WS_POPUP | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_VISIBLE);
-		int screenWidth = Graphics.ScreenWidth();
-		int screenHeight = Graphics.ScreenHeight();
-		MoveWindow(hWnd, -2, -1, Graphics.ScreenWidth()+4, Graphics.ScreenHeight()+2, true);
-#elif defined LINUX
-        XResizeWindow(display, window, Graphics.ScreenWidth(), Graphics.ScreenHeight());
-#endif
-		Graphics.isFullScreen = true;
-	}
+void GraphicsManager::ToggleFullScreen(Window * window)
+{
+	window->ToggleFullScreen();
 }
 
 /// Sets selected shader to be active. Prints out error information and does not set to new shader if it fails.
@@ -735,7 +602,11 @@ TextFont * GraphicsManager::GetFont(String byName){
 }
 
 /// Allocates the frame buffer objects
-void GraphicsManager::InitFrameBuffer(){
+void GraphicsManager::InitFrameBuffer()
+{
+	assert(false && "This would also have to take into consideration the multiple windows which are being added now. Disabling until further notice. // 2014-06-12, Emil.");
+	/*
+
 	/// OpenGL specific data
 	/// Frame buffer object for deferred shading
 	//GLuint frameBufferObject;	// Main frame buffer object to use
@@ -1010,6 +881,7 @@ void GraphicsManager::InitFrameBuffer(){
 
 	// Unbind our frame buffer
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	*/
 }
 
 /// Cleans up the frame buffer objects

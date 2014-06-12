@@ -14,37 +14,39 @@
 #include "Graphics/GraphicsManager.h"
 #include "StateManager.h"
 #include "Message/MessageManager.h"
-#include "OS/WindowManager.h"
+#include "Window/WindowManager.h"
 
 /// Returns KeyCode depending on the Virtual Key provided by Win32
-int GetKeyCodeFromVK(int wParam){
-	switch(wParam){
-	case VK_VOLUME_DOWN: return 0;
-	case VK_VOLUME_UP: return 0;
-	case VK_TAB: return KEY::TAB;
-	case VK_OEM_COMMA: return KEY::COMMA;
-	case VK_OEM_PERIOD: return KEY::PUNCTUATION;
-	case VK_OEM_PLUS: return KEY::PLUS;		/// Standard plus/minus, not NUMPAD! o-o
-	case VK_OEM_MINUS: return KEY::MINUS;
-	case VK_MENU: return KEY::ALT;
-	case VK_RETURN: return KEY::ENTER;
-	case VK_CONTROL: return KEY::CTRL;
-	case VK_SHIFT: return KEY::SHIFT;
-	case VK_DOWN: return KEY::DOWN;
-	case VK_UP: return KEY::UP;
-	case VK_RIGHT: return KEY::RIGHT;
-	case VK_LEFT: return KEY::LEFT;
-	case VK_BACK: return KEY::BACKSPACE;
-	case VK_ESCAPE: return KEY::ESCAPE;
-	case VK_SPACE: return KEY::SPACE;
-	case VK_PRIOR: return KEY::PG_UP;
-	case VK_NEXT: return KEY::PG_DOWN;
-	case VK_END: return KEY::END;
-	case VK_HOME: return KEY::HOME;
-	case VK_DELETE: return KEY::DELETE_KEY;
-	case VK_PAUSE: return KEY::PAUSE_BREAK;
-	case VK_PRINT:
-	case VK_SNAPSHOT: return KEY::PRINT_SCREEN;
+int GetKeyCodeFromVK(int wParam)
+{
+	switch(wParam)
+	{
+		case VK_VOLUME_DOWN: return 0;
+		case VK_VOLUME_UP: return 0;
+		case VK_TAB: return KEY::TAB;
+		case VK_OEM_COMMA: return KEY::COMMA;
+		case VK_OEM_PERIOD: return KEY::PUNCTUATION;
+		case VK_OEM_PLUS: return KEY::PLUS;		/// Standard plus/minus, not NUMPAD! o-o
+		case VK_OEM_MINUS: return KEY::MINUS;
+		case VK_MENU: return KEY::ALT;
+		case VK_RETURN: return KEY::ENTER;
+		case VK_CONTROL: return KEY::CTRL;
+		case VK_SHIFT: return KEY::SHIFT;
+		case VK_DOWN: return KEY::DOWN;
+		case VK_UP: return KEY::UP;
+		case VK_RIGHT: return KEY::RIGHT;
+		case VK_LEFT: return KEY::LEFT;
+		case VK_BACK: return KEY::BACKSPACE;
+		case VK_ESCAPE: return KEY::ESCAPE;
+		case VK_SPACE: return KEY::SPACE;
+		case VK_PRIOR: return KEY::PG_UP;
+		case VK_NEXT: return KEY::PG_DOWN;
+		case VK_END: return KEY::END;
+		case VK_HOME: return KEY::HOME;
+		case VK_DELETE: return KEY::DELETE_KEY;
+		case VK_PAUSE: return KEY::PAUSE_BREAK;
+		case VK_PRINT:
+		case VK_SNAPSHOT: return KEY::PRINT_SCREEN;
 	};
 	if (wParam >= 0x70 && wParam <= 0x7B)
 		return KEY::F1 + wParam - 0x70;
@@ -74,6 +76,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	p = new int[5000];
 	delete[] p;
 */
+
+	Window * window = WindowMan.GetWindowByHWND(hWnd);
+
     switch (message)
     {
 	case WM_DEADCHAR:
@@ -148,15 +153,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			// copies the valid information to the specified area within the new client area.
 			NCCALCSIZE_PARAMS * calcParams = (NCCALCSIZE_PARAMS*)lParam;
 			PWINDOWPOS windowPos = calcParams->lppos;
+			/*
 			/// If full-screen, disable the additional parameters to get truly full-screen ^^
 			if (calcParams->lppos->cx == Graphics.ScreenWidth() && calcParams->lppos->cy == Graphics.ScreenHeight())
 			{
-				/*
-				calcParams->rgrc[0].top -= 1;
-				calcParams->rgrc[0].bottom += 1;
-				calcParams->rgrc[0].left -= 1;
-				calcParams->rgrc[0].right += 1;	
-				*/
 			}	
 			// Adjust so we don't have a frame with transparency if small.
 			else {
@@ -168,6 +168,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		//		return 0;
 		//		return WVR_VALIDRECTS | WVR_REDRAW;
 			}
+			*/
 		}
 		if (wParam == false){
 			/// If wParam is FALSE, lParam points to a RECT structure. On entry, the
@@ -199,8 +200,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		DWORD width = (lParam & 0xFFFF);
 		DWORD height = (lParam >> 16);
 
-		if (!Graphics.SetResolution(width, height))
-			break;
+		window->size = Vector2i(width, height);
 
 		// If an application processes this message, it should return zero.
 		return 0;
@@ -291,17 +291,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 	}
 
-#define XtoWindow(x) (int)x
-#define YtoWindow(x) (int)(Graphics.height - x)
+#define XtoWindow(coord) (int)coord
+#define YtoWindow(coord) (int)(window->size.y - coord)
 
-	case WM_LBUTTONDOWN: {
+	case WM_LBUTTONDOWN: 
+	{
 		int xPos = GET_X_LPARAM(lParam);
 		int yPos = GET_Y_LPARAM(lParam);
 		Input.MouseClick(true, XtoWindow(xPos), YtoWindow(yPos));
 		return 0; // If an application processes this message, it should return zero.
 		break;
 	}
-	case WM_RBUTTONDOWN: {
+	case WM_RBUTTONDOWN: 
+	{
 		int xPos = GET_X_LPARAM(lParam);
 		int yPos = GET_Y_LPARAM(lParam);
 		Input.MouseRightClick(true, XtoWindow(xPos), YtoWindow(yPos));
@@ -328,20 +330,24 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		std::cout<<"\nWM_NCLBUTTONUP message received.";
 		return 0;					 
 	}
-	case WM_MOUSEMOVE: {
+	case WM_MOUSEMOVE: 
+	{
 		// Disable movements for it?
 		if (Input.MouseLocked()){
-		//	BlockInput(true);
-			INPUT mouseInput;
-			mouseInput.type = INPUT_MOUSE;
-			MOUSEINPUT * mi = &mouseInput.mi;
-			mi->dx = (LONG) (Graphics.ScreenWidth() * 0.5f * 20);
-			mi->dy = (LONG) (Graphics.ScreenHeight() * 0.5f * 40);
-			mi->mouseData = NULL;
-			mi->dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_VIRTUALDESK | MOUSEEVENTF_MOVE_NOCOALESCE;
-			mi->time = 0;
-			mi->dwExtraInfo = NULL;
-			SendInput(1, &mouseInput, sizeof(INPUT));
+			assert(false && "Fix");
+
+		////	BlockInput(true);
+		//	INPUT mouseInput;
+		//	mouseInput.type = INPUT_MOUSE;
+		//	MOUSEINPUT * mi = &mouseInput.mi;
+		//	mi->dx = (LONG) (Graphics.ScreenWidth() * 0.5f * 20);
+		//	mi->dy = (LONG) (Graphics.ScreenHeight() * 0.5f * 40);
+		//	mi->mouseData = NULL;
+		//	mi->dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_VIRTUALDESK | MOUSEEVENTF_MOVE_NOCOALESCE;
+		//	mi->time = 0;
+		//	mi->dwExtraInfo = NULL;
+		//	SendInput(1, &mouseInput, sizeof(INPUT));
+		//	
 			return 0;
 		}
 		int xPos = GET_X_LPARAM(lParam);

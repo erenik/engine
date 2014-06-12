@@ -124,7 +124,7 @@ void CutsceneState::ProcessMessage(Message * message){
 void CutsceneState::Pause()
 {
 	// Push the cut-scene menu.
-	Graphics.QueueMessage(new GMPushUI("CutsceneMenu", Graphics.GetGlobalUI()));
+	Graphics.QueueMessage(new GMPushUI("CutsceneMenu", GlobalUI()));
 	scriptsPaused = ScriptMan.PauseAll();
 	TrackMan.Pause();
 	paused = true;
@@ -133,7 +133,7 @@ void CutsceneState::Pause()
 void CutsceneState::Resume()
 {
 	// Pop the cut-scene menu.
-	Graphics.QueueMessage(new GMPopUI("CutsceneMenu", Graphics.GetGlobalUI()));
+	Graphics.QueueMessage(new GMPopUI("CutsceneMenu", GlobalUI()));
 	ScriptMan.ResumeScripts(scriptsPaused);
 	TrackMan.Resume();
 	paused = false;

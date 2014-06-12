@@ -12,7 +12,6 @@ extern UserInterface * ui[GameStateID::MAX_GAME_STATES];
 #include "Graphics/Messages/GraphicsMessages.h"
 
 #ifdef WINDOWS
-extern HWND hWnd;			// Window handle
 #include <Windows.h>
 #endif
 
@@ -27,7 +26,7 @@ void Initialization::OnEnter(GameState * previousState){
 	// Get last window position
 	// Update window size
 	//	SetWindowPos(hWnd, HWND_TOP, 0, 0, 800, 600, SWP_NOMOVE/*SWP_HIDEWINDOW*/);
-	MoveWindow(hWnd, 0, 0, 800, 600, true);
+//	MoveWindow(hWnd, 0, 0, 800, 600, true);
 #endif
 
 #ifdef USE_AUDIO
@@ -47,16 +46,17 @@ void Initialization::OnExit(GameState * nextState){
 	// Sets full-screen style if specified
 	if (Graphics.shouldFullScreen){
 #ifdef WINDOWS
-		SetWindowLongPtr(hWnd, GWL_STYLE,
-			/*WS_SYSMENU |*/ WS_POPUP | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_VISIBLE);
-		MoveWindow(hWnd, 0, 0, Graphics.ScreenWidth(), Graphics.ScreenHeight(), true);
+		
+		//SetWindowLongPtr(hWnd, GWL_STYLE,
+		//	/*WS_SYSMENU |*/ WS_POPUP | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_VISIBLE);
+		//MoveWindow(hWnd, 0, 0, Graphics.ScreenWidth(), Graphics.ScreenHeight(), true);
 #endif
 	}
 	/// Use loaded user settings here...
 	int width = 800;
 	int height = 600;
 #ifdef WINDOWS
-	MoveWindow(hWnd, 0, 0, width, height, true);
+//	MoveWindow(hWnd, 0, 0, width, height, true);
 #endif
 
 }

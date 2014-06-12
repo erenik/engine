@@ -6,7 +6,7 @@
 #include "StateManager.h"
 #include "UI/UserInterface.h"
 #include "Texture.h"
-#include "Graphics/Render/RenderViewport.h"
+#include "Viewport.h"
 #include "GraphicsMessages.h"
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Render/RenderFrustum.h"
@@ -14,6 +14,7 @@
 #include "OS/Sleep.h"
 #include "Message/MessageManager.h"
 #include "GraphicsState.h"
+#include "Window/Window.h"
 
 GraphicsMessage::GraphicsMessage(int i_type){
 	type = i_type;
@@ -59,7 +60,10 @@ void GraphicsMessage::Process(){
 		{
 			Input.acceptInput = false;
 			Sleep(10);
-
+			
+			/// Reloads 'em all.
+			UserInterface::ReloadAll();
+/*
 			/// Delete and re-create the globalUI
 			UserInterface * globalUI = Graphics.GetGlobalUI();
 			if (globalUI)
@@ -118,8 +122,10 @@ void GraphicsMessage::Process(){
 					ui->Bufferize();
 				}	
 			}
+			*/
 			Input.acceptInput = true;
 			Graphics.renderQueried = true;
+
 			/// Inform game-states etc. that a reload has completed.
 			MesMan.QueueMessages("OnReloadUI");
 			break;
@@ -128,8 +134,13 @@ void GraphicsMessage::Process(){
 			Graphics.UnregisterAll();
 			break;
 		case GM_CLEAR_UI:
-			Graphics.SetUI(NULL);
+		{
+			Window * window = MainWindow();
+			window->ui->Unbufferize();
+			window->ui->DeleteGeometry();
+			window->ui = NULL;
 			break;
+		}
 		default:
 			std::cout<<"\nERROR: Unhandled message in GraphicsMessage::Process with ID/type: "<<type;
 //			assert(false && "Unhandled message in GraphicsMessage::Process");

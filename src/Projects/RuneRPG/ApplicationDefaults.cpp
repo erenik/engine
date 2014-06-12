@@ -2,18 +2,16 @@
 /// 2014-04-06
 /// Sets default values for this project, like directories.
 
-#include "ApplicationDefaults.h"
+#include "Application/Application.h"
 
 #include "UI/UserInterface.h"
 #include "Maps/MapManager.h"
 #include "Graphics/Fonts/Font.h"
 #include "Script/Script.h"
 
-// Main application name.
-const String applicationName = "Rune RPG";	
-
 void SetApplicationDefaults()
 {
+	Application::name = "Rune RPG";
 	TextFont::defaultFontSource = "font3";
 	Script::rootEventDir = "data/RuneRPG/Events/";
 
