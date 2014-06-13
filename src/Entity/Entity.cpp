@@ -231,12 +231,19 @@ void Entity::RenderOld(GraphicsState &graphicsState){
 /// Rendering method
 void Entity::Render()
 {
-	if (graphics && graphics->visible == false)
-		return;
-	if (graphicsState.settings & USE_LEGACY_GL){
+	if (graphics)
+	{
+		if (graphics->visible == false)
+			return;
+		// Skip if it is to be filtered with the current camera too.
+		else if (graphics->cameraFilter.Exists(graphicsState.camera))
+			return;
+	}
+	else if (graphicsState.settings & USE_LEGACY_GL){
 		RenderOld(graphicsState);
 		return;
 	}
+	
 	int error = 0;
 
 	// To send to the shadar

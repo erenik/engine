@@ -37,6 +37,30 @@ void GMSetEntityTexture::Process()
 	Graphics.renderQueried = true;
 };
 
+/// For general procedures that do stuff..
+GMSetEntity::GMSetEntity(Entity * entity, int target)
+	: GraphicsMessage(GM_SET_ENTITY), entity(entity), target(target)
+{
+	switch(target)
+	{
+		case CLEAR_CAMERA_FILTER:
+			break;
+		default: assert(false && "Bad target");
+	}
+}
+
+
+GMSetEntity::GMSetEntity(Entity * entity, int target, Camera * camera)
+	: GraphicsMessage(GM_SET_ENTITY), entity(entity), target(target), camera(camera)
+{
+	switch(target)
+	{
+		case CAMERA_FILTER:
+			break;
+		default: assert(false && "Bad target");
+	}
+}
+
 GMSetEntity::GMSetEntity(Entity * entity, int target, String string)
 : GraphicsMessage(GM_SET_ENTITY), entity(entity), target(target), string(string)
 {
@@ -53,8 +77,21 @@ GMSetEntity::GMSetEntity(Entity * entity, int target, Model * model)
 			assert(false && "Bad target in GMSetEntity");
 	}
 }
-void GMSetEntity::Process(){
-	switch(target){
+void GMSetEntity::Process()
+{
+	switch(target)
+	{
+		// Filter to enable per-viewport disabled rendering.
+		case CAMERA_FILTER:
+			if (!entity->graphics)
+				entity->graphics = new GraphicsProperty();
+			if (!entity->graphics->cameraFilter.Exists(camera))
+				entity->graphics->cameraFilter.Add(camera);
+			break;
+		case CLEAR_CAMERA_FILTER:
+			if (entity->graphics)
+				entity->graphics->cameraFilter.Clear();
+			break;
 		case ANIMATION_SET:
 			if (!entity->graphics)
 				entity->graphics = new GraphicsProperty();

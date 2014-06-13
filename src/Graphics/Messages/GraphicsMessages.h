@@ -115,6 +115,7 @@ enum graphicsTargets{
 	FOG_END,
 
 	// Camera targets
+	CAMERA_TO_TRACK, // Setting global camera
 	RELATIVE_POSITION,
 	DISTANCE_FROM_CENTER_OF_MOVEMENT,
 	OFFSET_ROTATION,
@@ -125,7 +126,8 @@ enum graphicsTargets{
 	TEXT_COLOR,
 	TEXT_POSITION,
 	TEXT_SIZE_RATIO,
-
+	CAMERA_FILTER, // Filter to enable per-viewport disabled rendering of an entity for example.
+	CLEAR_CAMERA_FILTER, // For clearing said filter.
 	
 	// Added with GraphicsEffects.
 	ALPHA,

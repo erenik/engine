@@ -2,6 +2,7 @@
 /// 2014-01-27
 /// Manager for creation and deletion of OS-based windows. 
 /// For now will serve its purpose by storing focus-related data to determine how much processor consumption the processes should use.
+/// See Window.h for a proper guide of what is required to do when setting up a new window.
 
 #ifndef WINDOW_MANAGER_H
 #define WINDOW_MANAGER_H
@@ -52,8 +53,7 @@ public:
 	/// Removes and deletes all windows.
 	void DeleteWindows();
 
-	/// Sets if any of our windows has focus or not.
-	void SetFocus(int focus);
+	/// Returns true if any of our windows is in focus.
 	bool InFocus();
 private:
 	// Main window. Stores initial GL context that is to be shared and also binds its destroy message to closing the application.

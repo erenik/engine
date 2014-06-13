@@ -93,8 +93,9 @@ void GraphicsManager::RenderWindow()
 
 	PrintTime("\nPre-render stuff: ");
 
-	// Process global camera
-	this->cameraToTrack->ProcessMovement(graphicsState.frameTime);
+
+	
+//	this->cameraToTrack->ProcessMovement(graphicsState.frameTime);
 
 	/// Render all viewports..
 	List<Viewport*> viewports = graphicsState.activeWindow->viewports;
@@ -107,7 +108,10 @@ void GraphicsManager::RenderWindow()
 			continue;
 		}
 		if (vp->camera)
+		{
 			graphicsState.camera = vp->camera;
+			vp->camera->ProcessMovement(graphicsState.frameTime);
+		}
 
 		RenderViewport(vp);
 		if (i < 4)
@@ -208,7 +212,14 @@ void GraphicsManager::RenderWindow()
     PrintTime("\nglFlush: ");
     postViewportFrameTime = postViewportTimer.GetMs();
 
-
+	if (window->getNextFrame)
+	{
+		Texture * tex = window->frameTexture;
+		tex->bpp = 4; // 4 bytes per pixel, RGBA
+		tex->Resize(windowSize);
+		glReadPixels(0, 0, windowSize.x, windowSize.y, GL_RGBA, GL_UNSIGNED_BYTE, tex->data);
+		window->getNextFrame = false;
+	}
 	
 	// If recording?
 	RenderCapture();

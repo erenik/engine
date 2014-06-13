@@ -159,11 +159,23 @@ const int WindowManager::NumWindows() const
 	return windows.Size();
 } 
 
-/// Sets if any of our windows has focus or not.
-void WindowManager::SetFocus(int focus){
-	inFocus = focus;
-}
-
-bool WindowManager::InFocus(){
-	return inFocus;
+bool WindowManager::InFocus()
+{
+	
+#ifdef WINDOWS
+	// http://msdn.microsoft.com/en-us/library/windows/desktop/ms633505%28v=vs.85%29.aspx
+	HWND activeWindow = GetForegroundWindow();
+#endif WINDOWS
+	for (int i = 0; i < windows.Size(); ++i)
+	{
+		Window * window = windows[i];
+#ifdef WINDOWS
+		if (window->hWnd == activeWindow)
+		{
+#endif
+			lastActiveWindow = window;
+			return window;
+		}
+	}
+	return false;
 }

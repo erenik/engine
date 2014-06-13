@@ -23,6 +23,9 @@ private:
 
 class GMSetEntity : public GraphicsMessage {
 public:
+	/// For general procedures that do stuff..
+	GMSetEntity(Entity * entity, int target);
+	GMSetEntity(Entity * entity, int target, Camera * camera);
 	GMSetEntity(Entity * entity, int target, Model * model);
 	GMSetEntity(Entity * entity, int target, String string);
 	void Process();
@@ -32,6 +35,7 @@ private:
 	int target;
 	void * data;
 	Model * model;
+	Camera * camera;
 };
 
 class GMSetEntityb : public GraphicsMessage 

@@ -439,7 +439,9 @@ void generalInputProcessor(int action, int inputDevice)
 #endif
 			return;
 		}
-		case QUIT_APPLICATION: {
+		case QUIT_APPLICATION: 
+		{
+			/// wat?
 			WindowMan.DeleteWindows();
 			/*
 #ifdef WINDOWS

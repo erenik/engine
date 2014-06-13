@@ -16,6 +16,7 @@ class Texture;
 struct AnimationSet;
 struct Animation;
 class ParticleSystem;
+class Camera;
 
 /// Flags for toggling stuff
 namespace RenderFlags {
@@ -27,6 +28,7 @@ namespace RenderFlags {
 /// Class for holding any relevant data beyond static single models/textures
 struct GraphicsProperty {
 	friend class GMSetEntity;
+	friend class Entity;
 public:
 	GraphicsProperty();
 	~GraphicsProperty();
@@ -71,6 +73,9 @@ private:
 	Animation * queuedAnimation;
 	/// Time that the current animation started.
 	long long animStartTime;
+	
+	// Filter to enable per-viewport disabled rendering.
+	List<Camera*> cameraFilter;
 };
 
 #endif

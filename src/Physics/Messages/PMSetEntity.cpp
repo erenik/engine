@@ -14,7 +14,9 @@
 #include "Physics/Calc/EntityPhysicsEstimator.h"
 
 PMSetEntity::PMSetEntity(int target, List<Entity*> targetEntities, float value)
-: target(target){
+: target(target)
+{
+	dataType = FLOAT;
 	type = PM_SET_ENTITY;
 	entities = targetEntities;
 	/// Assertions earlier should guarantee correct target now
@@ -38,6 +40,7 @@ PMSetEntity::PMSetEntity(int target, List<Entity*> targetEntities, float value)
 PMSetEntity::PMSetEntity(int target, List<Entity*> targetEntities, Vector3f value, long long timeStamp)
 : target(target), timeStamp(timeStamp)
 {
+	dataType = VECTOR3F;
 	type = PM_SET_ENTITY;
 	entities = targetEntities;
 	/// Assertions earlier should guarantee correct target now
@@ -67,7 +70,9 @@ PMSetEntity::PMSetEntity(int target, List<Entity*> targetEntities, Vector3f valu
 }
 
 PMSetEntity::PMSetEntity(int target, List<Entity*> targetEntities, bool value)
-: target(target){
+: target(target)
+{
+	dataType = BOOLEAN;
 	type = PM_SET_ENTITY;
 	entities = targetEntities;
 	bValue = value;
@@ -85,8 +90,11 @@ PMSetEntity::PMSetEntity(int target, List<Entity*> targetEntities, bool value)
 }
 
 PMSetEntity::PMSetEntity(int target, List<Entity*> targetEntities, int value)
-: target(target){
+: target(target)
+{
+	dataType = INTEGER;
 	type = PM_SET_ENTITY;
+	dataType = INTEGER;
 	entities = targetEntities;
 	iValue = value;
 	switch(target){
@@ -102,7 +110,8 @@ PMSetEntity::PMSetEntity(int target, List<Entity*> targetEntities, int value)
 }
 
 
-void PMSetEntity::Process(){
+void PMSetEntity::Process()
+{
 #define ASSERT_ENTITY_NOT_STATIC { \
 	if (entity->physics->type == PhysicsType::STATIC){ \
 		std::cout<<"\nEntity "<<entity->name<<" physics is static, converting to dynamic."; \
@@ -203,7 +212,10 @@ void PMSetEntity::Process(){
 				entity->physics->UpdateProperties(entity);
 				break;
 			case SET_SCALE:
-				entity->SetScale(vec3fValue);
+				if (dataType == FLOAT)
+					entity->SetScale(Vector3f(fValue, fValue, fValue));
+				else
+					entity->SetScale(vec3fValue);
 				entity->physics->UpdateProperties(entity);
 		//		std::cout<<"\nEntity scale set to "<<vec3fValue;
 				break;

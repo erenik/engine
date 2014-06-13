@@ -18,8 +18,10 @@ void GraphicsManager::RenderViewport(Viewport * vp)
 	/// Absolute coordinates
 	glViewport(vp->bottomLeftCorner.x, vp->bottomLeftCorner.y, vp->size.x, vp->size.y);
 
-	// Update camera
+	// Fetch camera to use. 
 	Camera * camera = vp->camera;
+	if (!camera)
+		camera = this->cameraToTrack;
 	if (!camera)
 	{
 		return;

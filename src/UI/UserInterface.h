@@ -27,7 +27,9 @@ public:
 	UserInterface();
 	~UserInterface();
 
-	/// Reloads all existing UserInterfaces based on their respective source-files.
+	/** Reloads all existing UserInterfaces based on their respective source-files. Should only be called from RENER THREAD! As it will want to deallocate stuff.
+		Use Graphics.QueueMessage(new GraphicsMessage(GM_RELOAD_UI));
+	*/
 	static void ReloadAll();
 
 	// Creates the root element. Will not create another if it already exists.
@@ -162,6 +164,9 @@ public:
 
 	String name;
 protected:
+
+	/// Deallocates UI, and reloads from base-file.
+	void Reload();
 	/// Loads from target file, using given root as root-element in the UI-hierarchy.
 	static bool LoadFromFile(String filePath, UIElement * intoRoot);
 

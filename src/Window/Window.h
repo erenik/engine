@@ -1,3 +1,20 @@
+/// Emil Hedemalm
+/// 2014-06-13
+/// Window class for handling arbitrary windows in both Win32 and Linux.
+/** The general procedure of creating a new window looks like the following:
+	
+	Window * window = WindowMan.NewWindow();
+	window->CreateUI();
+	window->CreateGlobalUI();
+	window->Create();
+	window->Show();
+
+	The first line allocates the base window class. The next two rows makes sure that there is some UI available.
+	Custom UIs may be created but at least the GlobalUI must be created somehow.
+	After that the OS is requested to actually create it.
+	Lastly the OS is requested to show the window to the user/screen.
+*/
+
 // Fredrik Larsson && Emil Hedemalm
 // 2013-07-03 Linuxifixation!
 
@@ -20,6 +37,7 @@
 class Viewport;
 class UserInterface;
 class Window;
+class Texture;
 
 /// Fetches window that is currently active. Returns NULL if it is not one owned by the application.
 Window * ActiveWindow();
@@ -29,6 +47,7 @@ Window * MainWindow();
 
 class Window 
 {
+	friend class GraphicsManager;
 #ifdef WINDOWS
 	friend LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 #endif
@@ -47,7 +66,14 @@ public:
 	void SetDefaults();
 	/// Creates the actual window. Returns true upon success.
 	bool Create();
+	bool IsVisible();
 	void Show();
+	// Hides the window from user interaction! Called by default for non-main windows when closing them.
+	void Hide();
+	void BringToTop();
+
+	/// Fills contents of current frame into target texture. Exactly which frame which will be sampled depends on the render-thread.
+	void GetFrameContents(Texture * intoTexture);
 
 	/// Fetches the UI which is displayed on top of everything else, used for fade-effects etc. Is created dynamically if not set earlier.
 	UserInterface * GetUI();
@@ -98,6 +124,11 @@ public:
 
 private:
 
+	bool getNextFrame;
+	Texture * frameTexture;
+
+	/// If this window is currently the top one being viewed by the user.
+	bool inFocus;
 	/// Don't render to non-created windows..
 	bool created;
 	// Internal state

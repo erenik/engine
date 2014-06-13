@@ -28,6 +28,22 @@ int GetKeyCodeFromVK(int wParam)
 		case VK_OEM_PERIOD: return KEY::PUNCTUATION;
 		case VK_OEM_PLUS: return KEY::PLUS;		/// Standard plus/minus, not NUMPAD! o-o
 		case VK_OEM_MINUS: return KEY::MINUS;
+		// From numpad!
+		case VK_ADD: return KEY::PLUS;
+		case VK_SUBTRACT: return KEY::MINUS;
+		case VK_MULTIPLY: return KEY::MULTIPLY;
+		case VK_DECIMAL: return KEY::PERIOD;
+		case VK_NUMPAD0: return KEY::ZERO;
+		case VK_NUMPAD1: return KEY::ONE;
+		case VK_NUMPAD2: return KEY::TWO;
+		case VK_NUMPAD3: return KEY::THREE;
+		case VK_NUMPAD4: return KEY::FOUR;
+		case VK_NUMPAD5: return KEY::FIVE;
+		case VK_NUMPAD6: return KEY::SIX;
+		case VK_NUMPAD7: return KEY::SEVEN;
+		case VK_NUMPAD8: return KEY::EIGHT;
+		case VK_NUMPAD9: return KEY::NINE;		
+		// CTRL, Shift, ALT
 		case VK_MENU: return KEY::ALT;
 		case VK_RETURN: return KEY::ENTER;
 		case VK_CONTROL: return KEY::CTRL;
@@ -124,12 +140,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_ACTIVATE: {
 		/// Just got active
 		if (wParam != WA_INACTIVE){
-			WindowMan.SetFocus(true);
+			window->inFocus = true;
 			std::cout<<"\nWindow received focus";
 		}
 		/// Got inactivated
 		else {
-			WindowMan.SetFocus(false);
+			window->inFocus = false;
 			std::cout<<"\nWindow lost focus";
 		}
 		return 0;				  
@@ -390,7 +406,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
 	// Sent to a window to query it's destruction. Ref: http://msdn.microsoft.com/en-us/library/windows/desktop/ms632617%28v=vs.85%29.aspx
 	case WM_CLOSE:
-		MesMan.QueueMessages("Query(QuitApplication)");
+		if (window->main)
+			MesMan.QueueMessages("Query(QuitApplication)");
+		else {
+			window->Hide();
+		}
 		return 0;
 	// Sent when the window is already being destroyed: Ref: http://msdn.microsoft.com/en-us/library/windows/desktop/ms632620%28v=vs.85%29.aspx
     case WM_DESTROY:

@@ -26,6 +26,9 @@ Window::Window(String name)
 	isFullScreen = false;
 	main = false;
 	globalUI = ui = NULL;
+	inFocus = false;
+	getNextFrame = false;
+	frameTexture = NULL;
 
 #ifdef WINDOWS
 	hWnd = NULL;
@@ -255,6 +258,14 @@ bool Window::Create()
 	return true;
 }
 
+bool Window::IsVisible()
+{
+#ifdef WINDOWS
+	return IsWindowVisible(hWnd);
+#endif
+}
+
+
 void Window::Show()
 {
 #ifdef WINDOWS
@@ -266,6 +277,35 @@ void Window::Show()
 	UpdateWindow(hWnd);
 #endif
 }
+
+// Hides the window from user interaction! Called by default for non-main windows when closing them.
+void Window::Hide()
+{
+#ifdef WINDOWS
+	ShowWindow(hWnd, SW_HIDE);
+#endif
+}
+
+void Window::BringToTop()
+{
+#ifdef WINDOWS
+	BringWindowToTop(hWnd);
+#endif
+}
+
+/// Fills contents of current frame into target texture. Exactly which frame which will be sampled depends on the render-thread.
+void Window::GetFrameContents(Texture * intoTexture)
+{
+	// Set bool to capture contents.
+	getNextFrame = true;
+	frameTexture = intoTexture;
+	// Wait until captured.
+	while(getNextFrame)
+		;
+	// 
+	frameTexture = NULL;
+}
+
 
 /// Fetches the (global) UI which is displayed on top of everything else, used for fade-effects etc. Is created dynamically if not set earlier.
 UserInterface * Window::GetUI()
@@ -336,14 +376,40 @@ bool Window::MakeGLContextCurrent()
 
 bool Window::DeleteGLContext()
 {
+#ifdef WINDOWS
 	// Deselect rendering context
 	bool result = wglMakeCurrent(hdc, NULL);		
-	assert(result == TRUE);
+	if (!result)
+	{
+		int error = GetLastError();
+		if (error == ERROR_INVALID_HANDLE)
+		{
+			hdc = NULL;
+		}
+		else
+			assert(result == TRUE);
+	}
 	// And delete it
-	result = wglDeleteContext(hglrc);
-	assert(result == TRUE);
-	result = DeleteDC(hdc);
-	assert(result);
+	if (hglrc)
+	{
+		result = wglDeleteContext(hglrc);
+		hglrc = NULL;
+		assert(result == TRUE);
+	}
+	// Delete hdc last?
+	if (hdc)
+		result = DeleteDC(hdc);
+	if (!result)
+	{
+		int error = GetLastError();
+		if (error == ERROR_INVALID_HANDLE)
+		{
+			hdc = NULL;
+		}
+		else
+			assert(result == TRUE);
+	}
+#endif
 	return result;
 }
 

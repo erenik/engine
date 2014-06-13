@@ -51,17 +51,20 @@ void Camera::PrintData() const {
 }
 
 /// Begin moving in the specified direction
-void Camera::Begin(int direction){
+void Camera::Begin(int direction)
+{
 	navigation[direction] = true;
 	UpdateNavigation();
 }
 /// Stop moving in the specified direction
-void Camera::End(int direction){
+void Camera::End(int direction)
+{
 	navigation[direction] = false;
 	UpdateNavigation();
 }
 /// Begin rotating in the specified direction
-void Camera::BeginRotate(int direction){
+void Camera::BeginRotate(int direction)
+{
 	orientation[direction] = true;
 	UpdateNavigation();
 }

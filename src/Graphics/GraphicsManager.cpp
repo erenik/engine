@@ -407,8 +407,10 @@ void GraphicsManager::OnBeginRendering(){
     Graphics.enteringMainLoop = true;
 	Graphics.deferredRenderingBox->Bufferize();
 };
+
 /// Called after the main rendering loop has ended, before general deallcoations of resources is done.
-void GraphicsManager::OnEndRendering(){
+void GraphicsManager::OnEndRendering()
+{
 	std::cout<<"\nGraphicsManager::OnEndRendering";
 	glDeleteBuffers(1, &deferredRenderingBox->vboBuffer);
 	deferredRenderingBox->vboBuffer = NULL;

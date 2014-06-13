@@ -26,13 +26,17 @@ Viewport::Viewport(Vector2i bottomLeftCorner, Vector2i size)
 	Initialize();
 	this->bottomLeftCorner = bottomLeftCorner;
 	this->size = size;
+	relative = false;
 }
 
 // Set initial default/NULL-values.
-void Viewport::Initialize(){
+void Viewport::Initialize()
+{
 //	camera = new Camera()
 	camera = NULL;
-	relative = false;
+	// Default to relative size of window.
+	relative = true;
+	relativeSize = Vector2f(1,1);
 	ui = NULL;
 	window = NULL;
 	id = idEnumerator++;
@@ -75,6 +79,10 @@ void Viewport::UpdateSize()
 	{
 		size = relativeSize.ElementMultiplication(window->Size());
 		bottomLeftCorner = relativeOffset.ElementMultiplication(window->Size());
+	}
+	else 
+	{
+		assert(size.MaxPart());
 	}
 }
 

@@ -148,6 +148,12 @@ public:
 	PMSetEntity(int target, List<Entity*> targetEntities, int value);
 	void Process();
 protected:
+	enum dataTypes{
+		NULL_TYPE,
+		INTEGER, FLOAT,
+		BOOLEAN, VECTOR3F,
+	};
+	int dataType;
 	int target;
 	int iValue;
 	bool bValue;

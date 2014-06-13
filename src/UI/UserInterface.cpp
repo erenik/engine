@@ -85,7 +85,8 @@ UserInterface::~UserInterface()
 	If allUi is specified the current stack order will be ignored to a certain extent, meaning that ui below the current stack top will be made available too.
 	Search is conducted starting at the highest stack element and going down until an element is found that we can hover over.
 */
-UIElement * UserInterface::Hover(int x, int y, bool allUi){
+UIElement * UserInterface::Hover(int x, int y, bool allUi)
+{
 	UIElement * stackTop = GetStackTop();
 	if (!stackTop)
 		return NULL;
@@ -439,10 +440,17 @@ bool UserInterface::Delete(UIElement * element){
 }
 
 
-/// Reloads all existing UserInterfaces based on their respective source-files.
+/** Reloads all existing UserInterfaces based on their respective source-files. Should only be called from RENER THREAD! As it will want to deallocate stuff.
+	Use Graphics.QueueMessage(new GraphicsMessage(GM_RELOAD_UI));
+*/
 void UserInterface::ReloadAll()
 {
-		
+	for (int i = 0; i < userInterfaces.Size(); ++i)
+	{
+		UserInterface * ui = userInterfaces[i];
+		// Reload!
+		ui->Reload();
+	}		
 }
 
 // Creates the root element. Will not create another if it already exists.
@@ -610,6 +618,18 @@ void UserInterface::OnExitScope()
 {
 	if (root)
 		root->OnExitScope();
+}
+
+/// Deallocates UI, and reloads from base-file.
+void UserInterface::Reload()
+{
+	std::cout<<"\nReloading UI "<<name;
+	stack.Clear();
+	this->Unbufferize();
+	this->DeleteGeometry();
+	delete root;
+	this->CreateRoot();
+	LoadFromFile(source, root);
 }
 
 /// Loads from target file, using given root as root-element in the UI-hierarchy.

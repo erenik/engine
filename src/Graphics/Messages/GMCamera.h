@@ -13,10 +13,7 @@ public:
 		: GraphicsMessage(GM_TRACK), entity(entity)
 	{		
 	}
-	virtual void Process()
-	{
-		Graphics.ActiveCamera()->entityToTrack = entity;
-	};
+	virtual void Process();
 private:
 	Entity * entity;
 };
@@ -24,30 +21,16 @@ private:
 class GMSetCamera : public GraphicsMessage 
 {
 public:
-	GMSetCamera(int target, Vector3f vec3fValue) 
-		: GraphicsMessage(GM_SET_CAMERA), target(target), vec3fValue(vec3fValue)
-	{};
-	GMSetCamera(int target, float fValue)
-		: GraphicsMessage(GM_SET_CAMERA), target(target), fValue(fValue){}
-	virtual void Process()
-	{
-		Camera * camera = Graphics.ActiveCamera();
-		switch(target)
-		{
-			case OFFSET_ROTATION:
-				camera->offsetRotation = vec3fValue;
-				break;
-			case RELATIVE_POSITION:
-				camera->relativePosition = vec3fValue;
-				break;
-			case DISTANCE_FROM_CENTER_OF_MOVEMENT:
-				camera->distanceFromCentreOfMovement = fValue;
-				break;
-		}
-	}
+	/// For setting global/main camera to track. If window is NULL the main window will be selected.
+	GMSetCamera(Camera * cameraToTrack, Window * inWindow = NULL);
+	GMSetCamera(int target, Vector3f vec3fValue);
+	GMSetCamera(int target, float fValue);
+	virtual void Process();
 
 private:
 	int target;
 	float fValue;
 	Vector3f vec3fValue;
+	Camera * camera;
+	Window * window;
 };
