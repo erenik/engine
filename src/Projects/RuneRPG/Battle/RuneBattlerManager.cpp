@@ -7,6 +7,7 @@
 #include <cstring>
 #include "Battle/BattleAction.h"
 #include "File/FileUtil.h"
+#include "File/File.h"
 ;
 
 void AddActionToBattler(RuneBattler * battler, String actionName){
@@ -24,6 +25,7 @@ void AddActionToBattler(RuneBattler * battler, String actionName){
 }
 
 RuneBattlerManager * RuneBattlerManager::runeBattlerManager = NULL;
+String RuneBattlerManager::rootBattlerDir = "data/Battlers/";
 
 RuneBattlerManager::RuneBattlerManager(){}
 RuneBattlerManager::~RuneBattlerManager(){
@@ -109,28 +111,31 @@ bool RuneBattlerManager::LoadBattles(String fromDirectory){
 	return true;
 }
 
+const RuneBattler * RuneBattlerManager::LoadBattler(String fromSource)
+{
+	RuneBattler * battler = new RuneBattler();
+	if (!fromSource.Contains(rootBattlerDir))
+		fromSource = rootBattlerDir + fromSource;
+	if (battler->LoadFromFile(fromSource))
+	{
+		this->battlerTypes.Add(battler);
+		return battler;
+	}
+	return NULL;
+}
+
 Battle * RuneBattlerManager::LoadBattle(String source)
 {
-	std::fstream file;
-	file.open(source.c_str(), std::ios_base::in);
-	if (!file.is_open()){
-		std::cout<<"\nERROR: Unable to open file stream to "<<source;
-		file.close();
-		return 0;
-	}
-	int start  = (int) file.tellg();
-	file.seekg( 0, std::ios::end );
-	int fileSize = (int) file.tellg();
-	char * data = new char [fileSize];
-	memset(data, 0, fileSize);
-	file.seekg( 0, std::ios::beg);
-	file.read((char*) data, fileSize);
-	file.close();
-	String fileContents(data);
-	delete[] data; data = NULL;
-	int loadingType = 0;
-	List<String> lines = fileContents.GetLines();
+	List<String> lines = File::GetLines(source);
 	Battle * b = new Battle();
+	// Default to loading all active players too.
+	b->addCurrentPlayers = true;
+	enum {
+		NONE,
+		LOAD_PLAYERS,
+		LOAD_ENEMIES,
+	};
+	int loadingState = LOAD_ENEMIES;
 	for (int i = 0; i < lines.Size(); ++i){
 		String & line = lines[i];
 		// Try load the battler from the relative directory.
@@ -149,13 +154,9 @@ Battle * RuneBattlerManager::LoadBattle(String source)
 		}
 		else if (line.Length() < 3)
 			continue;
-		else if (line.Contains("players"))
-			loadingType = 0;
-		else if (line.Contains("enemies"))
-			loadingType = 1;
-		else if (loadingType == 0)
+		else if (loadingState == LOAD_PLAYERS)
 			b->playerNames.Add(line);
-		else if (loadingType == 1)
+		else if (loadingState == LOAD_ENEMIES)
 			b->enemyNames.Add(line);
 	}
 	b->source = source;
@@ -182,9 +183,10 @@ Battle RuneBattlerManager::GetBattleBySource(String source)
 }
 
 /// The default directory and file ending will be added automatically as needed. 
-RuneBattler RuneBattlerManager::GetBattlerBySource(String bySource){
-	if (!bySource.Contains("data/")){
-		bySource = "data/Battlers/" + bySource;
+const RuneBattler * RuneBattlerManager::GetBattlerBySource(String bySource)
+{
+	if (!bySource.Contains(rootBattlerDir)){
+		bySource = rootBattlerDir + bySource;
 	}
 	if (!bySource.Contains(".b"))
 		bySource += ".b";
@@ -192,9 +194,10 @@ RuneBattler RuneBattlerManager::GetBattlerBySource(String bySource){
 	for (int i = 0; i < battlerTypes.Size(); ++i){
 		String source = battlerTypes[i]->Source();
 		if (source == bySource)
-			return *battlerTypes[i];
+			return battlerTypes[i];
 	}
-	return RuneBattler();
+	// Could not find it? try loading it?
+	return this->LoadBattler(bySource);
 }
 
 RuneBattler RuneBattlerManager::GetBattlerType(String byName){

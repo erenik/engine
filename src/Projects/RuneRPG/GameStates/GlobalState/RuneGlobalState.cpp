@@ -39,6 +39,7 @@ extern UserInterface * ui[GameStateID::MAX_GAME_STATES];
 #include "Maps/Grids/GridObject.h"
 #include "UI/UIInput.h"
 #include "RuneRPG/Network/RRPacket.h"
+#include "RuneRPG/PopulationManager.h"
 
 RuneGlobalState::RuneGlobalState()
 {
@@ -67,6 +68,7 @@ void RuneGlobalState::OnEnter(GameState * previousState)
 		RuneSpellManager::Allocate();
 		// Enter some tile types into the manager
 		TileTypes.CreateDefaultTiles();
+		PopulationManager::Allocate();
 
 		/// Load from file!
 		RuneSpellMan.LoadFromCSV("data/spells.csv");
@@ -92,6 +94,7 @@ void RuneGlobalState::OnExit(GameState * nextState){
 	    BattleActionLibrary::Deallocate();
 		BattleManager::Deallocate();
 		RuneBattlerManager::Deallocate();
+		PopulationManager::Deallocate();
 	}
 
 	// Load initial texture and set it to render over everything else
@@ -287,13 +290,9 @@ void RuneGlobalState::NetworkLog(String message)
 }
 */
 
-void RuneGlobalState::Process(float time){
+void RuneGlobalState::Process(int timeInMs)
+{
 	Sleep(10);
-
-	// Calculate time since last update
-	clock_t newTime = clock();
-	int timeDiff = newTime - lastTime;
-	lastTime = newTime;
 }
 
 void RuneGlobalState::CreateUserInterface()

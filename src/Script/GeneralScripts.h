@@ -15,7 +15,7 @@ public:
 	StateChanger(String line, Script * parent);
 	/// Regular state-machine mechanics for the events, since there might be several parralell events?
 	virtual void OnBegin();
-	virtual void Process(float time);
+	virtual void Process(int timeInMs);
 	virtual void OnEnd();
 private:
 	GameState * gs;

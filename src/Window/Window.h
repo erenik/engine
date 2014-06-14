@@ -84,6 +84,11 @@ public:
 	/// Should be called after creation.
 	UserInterface * CreateGlobalUI();
 
+	/// Requested size.
+	void SetRequestedSize(Vector2i size);
+	/// Relative to parent window.
+	void SetRequestedRelativePosition(Vector2i pos);
+
 	bool CreateGLContext();
 	bool MakeGLContextCurrent();
 	bool DeleteGLContext();
@@ -92,7 +97,10 @@ public:
 	String name;
 	// Title that should be rendered by the OS.
 	String title;
-	
+
+	/// Window-specific render-flags.
+	bool renderViewports;
+
 #ifdef WINDOWS
 	// Sets up pixel format, Win32 style.
 	bool SetupPixelFormat(HDC hDC);
@@ -114,6 +122,8 @@ public:
 	// Returns size in pixels.
 	Vector2i Size() {return size;};
 
+	Vector4f backgroundColor;
+
 	/// p-=p
 	Viewport * MainViewport();
 	/// Do NOT touch this outside of the render-thread. Add only using GMSetViewports.
@@ -122,7 +132,11 @@ public:
 	/// UI and GlobalUI for this window. DO NOT TOUCH OUTSIDE OF RENDER THREAD! Looking may be fine...
 	UserInterface * ui, * globalUI;
 
+	Vector2i requestedSize;
+	Vector2i requestedRelativePosition;
+
 private:
+
 
 	bool getNextFrame;
 	Texture * frameTexture;

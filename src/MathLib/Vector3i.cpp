@@ -179,6 +179,17 @@ bool Vector3i::operator == (const Vector3i other){
 	return true;
 }
 
+/// Comparison operators
+bool Vector3i::operator != (const Vector3i other)
+{
+	if (x != other.x ||
+		y != other.y ||
+		z != other.z)
+		return true;
+	return false;
+}
+
+
 // ************************************************************************//
 // Vector operations
 // ************************************************************************//

@@ -147,7 +147,8 @@ void BattleManager::SetBattleTimeType(int type){
 
 }
 /// Milliseconds or turns, depending on type
-void BattleManager::Process(int time){
+void BattleManager::Process(int timeInMs)
+{
 	if (battleState->state == BATTLE_ENDED)
 		return;
 
@@ -172,7 +173,7 @@ void BattleManager::Process(int time){
     }
 
     /// Process battlers in order to queue up more actions!
-	battleState->timeDiff = time;
+	battleState->timeDiff = timeInMs;
 	for (int i = 0; i < battlers.Size(); ++i){
 		Battler * b = battlers[i];
 		b->Process(*battleState);

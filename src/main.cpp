@@ -340,14 +340,6 @@ int main(int argc, char **argv)
 	/// Create window
 #ifdef WINDOWS
 	
-	Window * mainWindow = WindowMan.CreateMainWindow();
-	// Optionally set more user-related stuff to the options before creating it.
-	
-	// Then create it!
-	mainWindow->Create();
-	/// Create default UI and globalUI that may later on be replaced as needed.
-	mainWindow->CreateUI();
-	mainWindow->CreateGlobalUI();
 
 /// Create the window, linux-style!
 #elif defined USE_X11
@@ -456,7 +448,7 @@ int main(int argc, char **argv)
 	initializerThread = _beginthread(Initialize, NULL, NULL);
 
 	// Reveal the main window to the user now that all managers are allocated.
-	mainWindow->Show();
+//	mainWindow->Show();
 
 #elif defined LINUX | defined OSX
 #ifndef TEST_RENDER

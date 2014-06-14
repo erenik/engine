@@ -163,6 +163,9 @@ public:
 	
 
 	String name;
+	// In milliseconds, used to determien which UIs to reload.
+	int64 lastRenderTime;
+
 protected:
 
 	/// Deallocates UI, and reloads from base-file.

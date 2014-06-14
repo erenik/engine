@@ -11,13 +11,14 @@
 
 class Camera;
 class RuneBattler;
+class Window;
 
 class RuneBattleState : public RRGameState {
 public:
 	RuneBattleState();
 	virtual ~RuneBattleState();
 	void OnEnter(GameState * previousState);
-	void Process(float time);
+	void Process(int timeInMs);
 	void OnExit(GameState * nextState);
 	/// Input functions for the various states
 	void MouseClick(bool down, int x = -1, int y = -1, UIElement * elementClicked = NULL);
@@ -30,6 +31,9 @@ public:
 	void ProcessMessage(Message * message);
 
 private:
+
+
+	Window * battleTestWindow;
 
 	// Randomize starting initiative.
 	void ResetInitiative();

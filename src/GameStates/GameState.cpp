@@ -199,7 +199,7 @@ void Exit::OnEnter(GameState * previousState){
     int iret1 = pthread_create(&deallocatorThread , NULL, Deallocate, NULL);
 #endif
 }
-void Exit::Process(float time){
+void Exit::Process(int timeInMs){
 
 #ifdef WINDOWS
 	if (deallocatorThread){

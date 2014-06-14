@@ -10,6 +10,8 @@
 #include "Graphics/Messages/GMUI.h"
 #include "Graphics/GraphicsManager.h"
 #include "Message/MessageManager.h"
+#include "StateManager.h"
+#include "Battle/BattleManager.h"
 
 // Static variables.
 RRSession * RRGameState::session;
@@ -30,6 +32,16 @@ void RRGameState::CreateSessionIfNeeded()
 		NetworkMan.AddSession(session);
 	}
 }
+
+/// For starting it from anywhere.
+void RRGameState::StartBattle(String battleRef)
+{
+	BattleMan.QueueBattle(battleRef);
+//	RuneBattleState * battleState = ;
+	// Enter battle state.
+	StateMan.QueueState(StateMan.GetStateByID(RUNE_GAME_STATE_BATTLE_STATE));
+}
+
 
 /// Hosts a game
 bool RRGameState::Host(int port /*= 33010*/)

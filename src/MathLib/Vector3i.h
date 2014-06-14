@@ -91,6 +91,8 @@ public:
 
 	/// Comparison operators
 	bool operator == (const Vector3i other);
+	/// Comparison operators
+	bool operator != (const Vector3i other);
 
 	/// Internal element multiplication
 	Vector3i operator * (const int &f) const;

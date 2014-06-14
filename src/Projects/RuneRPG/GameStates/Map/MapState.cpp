@@ -46,6 +46,8 @@
 #include "Graphics/Animation/AnimationManager.h"
 #include "Pathfinding/WaypointManager.h"
 #include "File/File.h"
+#include "File/FileUtil.h"
+#include "RuneRPG/PopulationManager.h"
 
 extern UserInterface * ui[GameStateID::MAX_GAME_STATES];
 
@@ -208,26 +210,42 @@ void MapState::OnExit(GameState *nextState)
 
 #include <ctime>
 
-void MapState::Process(float time){
-	/// Process key input for navigating the 3D - Space
+void MapState::Process(int timeInMs)
+{
 	Sleep(10);
 
 	// Update player position if possiblu
 	if (playerEntity){
 		String s = String::ToString((int)playerEntity->position.x) + ", " + String::ToString((int)playerEntity->position.y);
 		Graphics.QueueMessage(new GMSetUIs("PositionLabel", GMUI::TEXT, s));
+		
+		static Vector3i lastPlayerPosition;
+		Vector3i playerPosition = playerEntity->position.Rounded();
+		if (playerPosition != lastPlayerPosition)
+		{
+			// New tile.
+			// Evaluate if we should trigger a new battle
+			lastPlayerPosition = playerPosition;
+
+			List<Population*> activePops = PopMan.ActivePopulations();
+			for (int i = 0; i < activePops.Size(); ++i)
+			{
+				Population * pop = activePops[i];
+				String battleRef = pop->ShouldFight(playerPosition);
+				if (battleRef.Length())
+				{
+					// Start the battle..!
+					StartBattle(battleRef);
+				}
+			}
+		}
+
 	}
 
 #ifdef USE_AUDIO
 	AudioMan.Update();
 #endif
 
-	/// Last update time in ms
-	static clock_t lastTime = 0;
-	// Calculate time since last update
-	clock_t newTime = clock();
-	int timeDiff = newTime - lastTime;
-	lastTime = newTime;
 };
 
 enum mouseCameraStates {
@@ -652,7 +670,7 @@ void MapState::ProcessMessage(Message * message)
 					return;
 				}
 				String mapName = tokens[1];
-				Zone(mapName);
+				ZoneTo(mapName);
 				return;
 			}
 			else if (string.Contains("PlacePlayer(")){
@@ -878,7 +896,7 @@ bool MapState::PlacePlayer(Vector3i position)
 }
 
 /// Zone to map!
-void MapState::Zone(String mapName)
+void MapState::ZoneTo(String mapName)
 {
 	std::cout<<"\n====================== ";
 	std::cout<<"\nZone: "<<mapName;
@@ -928,6 +946,9 @@ void MapState::Zone(String mapName)
 		Waypoint * wp = navMesh->waypoints[i];
 		wp->entity = NULL;
 	}
+
+	// Load populations for this zone.
+	LoadPopulations(mapName);
 	
 	// Load OnEnter script for the zone.
 	Script * script = new Script();
@@ -937,6 +958,14 @@ void MapState::Zone(String mapName)
 
 		/// Query the physics-manager to generate a nav-mesh to be used for our map!
 //	Physics.QueueMessage(new PMSet(NAV_MESH, navMesh));
+}
+
+// Load populations for this zone.
+void MapState::LoadPopulations(String forZone)
+{
+	String dir = "data/Populations/"+forZone+"/";
+	List<Population*> populations = PopMan.LoadPopulations(dir);
+	PopMan.MakeActive(populations);
 }
 
 /// Bind camera to ze playah.-

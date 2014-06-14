@@ -206,7 +206,7 @@ void RuneEditor::OnExit(GameState *nextState){
 /// Last update time in ms
 #include <ctime>
 clock_t lastTime = 0;
-void RuneEditor::Process(float time){
+void RuneEditor::Process(int timeInMs){
 	/// Process key input for navigating the 3D - Space
 	Sleep(20);
 

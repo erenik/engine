@@ -15,6 +15,9 @@ int FourSwap (int i);
 bool PathExists(String path);
 /// Returns true if given path exists, false if not.
 bool FileExists(String path);
+
+/// Eased usage function of GetDirectoriesInDirectory
+List<String> GetFolders(String inDirectory);
 /** Fetching directories~
 	Returns 1 upon success, 0 if there is no such directory.
 	Results will be added to the result-list provided.

@@ -62,10 +62,15 @@ void GraphicsManager::RenderWindow()
 
     // Clears the color and depth buffers
    // glClearColor(0.1f, 0.1f, 0.15f, 0.5f);
-    glClearColor(renderSettings->clearColor.x, renderSettings->clearColor.y, renderSettings->clearColor.z, 1.0f);
+//    glClearColor(renderSettings->clearColor.x, renderSettings->clearColor.y, renderSettings->clearColor.z, 1.0f);
     PrintTime("\nglClearColor: ");
 
+	Vector4f color = window->backgroundColor; 
+	glClearColor(color.x, color.y, color.z, color.w);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	/// Testing...
+//	return;
 
 	PrintTime("\nglClear: ");
 
@@ -98,27 +103,29 @@ void GraphicsManager::RenderWindow()
 //	this->cameraToTrack->ProcessMovement(graphicsState.frameTime);
 
 	/// Render all viewports..
-	List<Viewport*> viewports = graphicsState.activeWindow->viewports;
-	assert(viewports.Size() && "Really? No viewport to render anything?");
-	for (int i = 0; i < viewports.Size(); ++i){
-	    viewportTimer.Start();
-		Viewport * vp = viewports[i];
-		if (vp == NULL){
-			viewports.RemoveIndex(i);
-			continue;
-		}
-		if (vp->camera)
-		{
-			graphicsState.camera = vp->camera;
-			vp->camera->ProcessMovement(graphicsState.frameTime);
-		}
+	if (window->renderViewports)
+	{
 
-		RenderViewport(vp);
-		if (i < 4)
-            renderViewportFrameTime[i] = (float)viewportTimer.GetMs();
+		List<Viewport*> viewports = graphicsState.activeWindow->viewports;
+		// assert(viewports.Size() && "Really? No viewport to render anything?");
+		for (int i = 0; i < viewports.Size(); ++i){
+			viewportTimer.Start();
+			Viewport * vp = viewports[i];
+			if (vp == NULL){
+				viewports.RemoveIndex(i);
+				continue;
+			}
+			if (vp->camera)
+			{
+				graphicsState.camera = vp->camera;
+				vp->camera->ProcessMovement(graphicsState.frameTime);
+			}
+			RenderViewport(vp);
+			if (i < 4)
+				renderViewportFrameTime[i] = (float)viewportTimer.GetMs();
+		}
+		renderViewportsFrameTime = (float)viewportTimer.GetMs();
 	}
-	renderViewportsFrameTime = (float)viewportTimer.GetMs();
-
 	PrintTime("\nRendering viewports: ");
 
 	// Reset scissor-variables
@@ -156,23 +163,6 @@ void GraphicsManager::RenderWindow()
 
 //	std::cout<<"\nRenderViewports: "<<renderViewports.Size();
 
-	/*
-	/// Default rendering if no assigned viewport
-	if (renderViewports.Size() == 0){
-		if (defaultViewPort == NULL){
-		//	std::cout<<"\nDefault viewport is NULL! Creating it for you.";
-			defaultViewPort = new Viewport(0, 0, width, height);
-			defaultViewPort->camera = cameraToTrack;
-		}
-		else {
-			// Update default view port's camera every frame if we change it.
-			defaultViewPort->width = Graphics.width;
-			defaultViewPort->height = Graphics.height;
-			defaultViewPort->camera = cameraToTrack;
-			defaultViewPort->Render();
-		}
-	}
-	*/
 
     Timer postViewportTimer;
     postViewportTimer.Start();

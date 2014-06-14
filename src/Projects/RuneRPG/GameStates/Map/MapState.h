@@ -35,7 +35,7 @@ public:
 	/// Virtual destructor so parent-class desctructor callback re-direction will work correctly.
 	virtual ~MapState();
 	void OnEnter(GameState * previousState);
-	void Process(float time);
+	void Process(int timeInMs);
 	void OnExit(GameState * nextState);
 	/// Input functions for the various states
 	void MouseClick(bool down, int x = -1, int y = -1, UIElement * elementClicked = NULL);
@@ -66,7 +66,9 @@ private:
 	void OpenMenu();
 	void CloseMenu();
 	/// Zone to map!
-	void Zone(String mapName);
+	void ZoneTo(String mapName);
+	// Load populations for this zone.
+	void LoadPopulations(String forZone);
 	/// Bind camera to ze playah.-
 	void TrackPlayer();
 	/// Place player on ze mappur ^3^

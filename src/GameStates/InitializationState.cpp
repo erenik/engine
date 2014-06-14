@@ -35,7 +35,7 @@ void Initialization::OnEnter(GameState * previousState){
 
 };
 
-void Initialization::Process(float time)
+void Initialization::Process(int timeInMs)
 { // DO stuff?
 	Sleep(20);
 	Graphics.renderQueried = true;

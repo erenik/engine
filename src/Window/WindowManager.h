@@ -33,7 +33,6 @@ public:
 	WNDCLASSEXW defaultWcx;
 #endif
 
-#undef CreateWindow
 	/// For creating the first window, sets certain properties as needed.
 	Window * CreateMainWindow();
 	/// Creates a new window, returning a reference to it.

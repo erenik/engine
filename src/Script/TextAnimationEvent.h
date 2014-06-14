@@ -18,7 +18,7 @@ public:
 	};
 
 	virtual void OnBegin();
-	virtual void Process(float time);
+	virtual void Process(int timeInMs);
 	virtual void OnEnd();
 
 	/// Yup.

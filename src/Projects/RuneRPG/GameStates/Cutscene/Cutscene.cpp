@@ -74,7 +74,7 @@ void CutsceneState::OnExit(GameState *nextState)
 #include "../UI/UserInterface.h"
 #include "../Graphics/Messages/GMUI.h"
 
-void CutsceneState::Process(float time)
+void CutsceneState::Process(int timeInMs)
 {
 	Sleep(25);
 #ifdef USE_AUDIO

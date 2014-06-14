@@ -13,7 +13,7 @@ void GraphicsManager::RenderWindows()
 	for (int i = 0; i < windows.Size(); ++i)
 	{
 		Window * window = windows[i];
-		window->MakeGLContextCurrent();
+		bool ok = window->MakeGLContextCurrent();
 		graphicsState.activeWindow = window;
 		graphicsState.windowWidth = window->Size().x;
 		graphicsState.windowHeight = window->Size().y;
@@ -26,7 +26,11 @@ void GraphicsManager::RenderWindows()
 		// Swap buffers to screen once we're finished.
 #ifdef WINDOWS
 		// SwapBuffers should preferably be called on a per-window basis?
-		SwapBuffers(window->hdc);
+		bool result = SwapBuffers(window->hdc);
+		if (!result)
+		{
+			std::cout<<"\nError in SwapBuffers(window->hdc)";
+		}
 #elif defined USE_X11
 		glXSwapBuffers(display, window);
 #endif

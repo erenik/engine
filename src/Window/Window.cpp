@@ -30,6 +30,10 @@ Window::Window(String name)
 	getNextFrame = false;
 	frameTexture = NULL;
 
+	renderViewports = true;
+
+	backgroundColor = Vector4f(0,1,0,1);
+
 #ifdef WINDOWS
 	hWnd = NULL;
 	hdc = NULL;
@@ -219,14 +223,37 @@ bool Window::Create()
 	static TCHAR szTitle[50];
 	wcscpy(szTitle, title.wc_str());
 	wcscpy(szWindowClass, WindowMan.defaultWcx.lpszClassName);
+	
+	HWND parent = NULL;
+	if (
+		// false && 
+		!this->main && WindowMan.MainWindow())
+	{
+		std::cout<<"\nAdding as child to main window.";
+			parent = WindowMan.MainWindow()->hWnd;
+	}
+	
+
+	Vector2i size(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT);
+	if (requestedSize.x && requestedSize.y )
+		size = requestedSize;
+	Vector2i position(CW_USEDEFAULT,CW_USEDEFAULT);
+	if (requestedRelativePosition.x || requestedRelativePosition.y )
+	{	
+		RECT parentRect;
+		bool success = GetWindowRect(parent, &parentRect);
+		position = Vector2i(requestedRelativePosition);
+		position.x += parentRect.left;
+		position.y += parentRect.top;
+	}
 
 	hWnd = CreateWindowExW(
 		dwExStyle,
 		szWindowClass, szTitle,
 		windowStyle,
 		CW_USEDEFAULT, CW_USEDEFAULT,
-		DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT,
-		NULL, NULL,
+		size.x, size.y,
+		parent, NULL,
 		Application::hInstance, NULL);
 /*	hWnd = CreateWindow(				// The parameters to CreateWindow explained:
 		szWindowClass,					// szWindowClass: the name of the application
@@ -339,15 +366,33 @@ UserInterface * Window::CreateUI()
 	return ui;
 }
 
+/// Requested size.
+void Window::SetRequestedSize(Vector2i size)
+{
+	requestedSize = size;
+}
+
+/// Relative to parent window.
+void Window::SetRequestedRelativePosition(Vector2i pos)
+{
+	requestedRelativePosition = pos;
+}
 
 bool Window::CreateGLContext()
 {
 	if (!created)
 		return false;
 #ifdef WINDOWS
+	assert(hdc == 0);
+	/// Wait until we have a valid window to draw in.
+	while(hWnd == NULL)
+		Sleep(5);
 	hdc = GetDC(hWnd);
+	assert(hdc);
 	bool result = SetupPixelFormat(hdc);
+	assert(result);
 	hglrc = wglCreateContext(hdc);		// Create rendering context
+	assert(hglrc);
 #endif
 	return result;
 }
@@ -363,9 +408,13 @@ bool Window::MakeGLContextCurrent()
 		assert(mainWindow && "Should have created context manually..?");
 		// Create a new context for it..
 		CreateGLContext();
-		// .. but link it to the primary window's gl-context too! o+o
-		bool result = wglShareLists(mainWindow->hglrc, hglrc);
-		assert(result);
+		// .. but link it to the primary window's gl-context too! o+
+		bool share = true;
+		if (share)
+		{
+			bool result = wglShareLists(mainWindow->hglrc, hglrc);
+			assert(result);
+		}
 		std::cout<<"\nCreated new GL context and linked it to the main window.";
 	}
 #ifdef WINDOWS
@@ -378,7 +427,7 @@ bool Window::DeleteGLContext()
 {
 #ifdef WINDOWS
 	// Deselect rendering context
-	bool result = wglMakeCurrent(hdc, NULL);		
+	int result = wglMakeCurrent(hdc, NULL);		
 	if (!result)
 	{
 		int error = GetLastError();
@@ -398,16 +447,22 @@ bool Window::DeleteGLContext()
 	}
 	// Delete hdc last?
 	if (hdc)
-		result = DeleteDC(hdc);
-	if (!result)
 	{
-		int error = GetLastError();
-		if (error == ERROR_INVALID_HANDLE)
+		result = ReleaseDC(hWnd, hdc);
+		if (!result)
 		{
-			hdc = NULL;
+			int error = GetLastError();
+			if (error == ERROR_INVALID_HANDLE)
+			{
+				hdc = NULL;
+			}
+			else if (error == ERROR_SUCCESS)
+			{
+				 /// lol, succeeded?
+			}
+			else
+				assert(result == TRUE);
 		}
-		else
-			assert(result == TRUE);
 	}
 #endif
 	return result;

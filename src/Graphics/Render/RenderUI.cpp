@@ -18,6 +18,9 @@ void GraphicsManager::RenderUI(UserInterface * ui)
 		return;
     }
 
+	Window * window = graphicsState.activeWindow;
+	Vector2i size = window->Size();
+	glViewport(0, 0, size.x, size.y);
 	// Bufferize etc. as needed.
 	if (ui->AdjustToWindow(graphicsState.activeWindow->Size()))
 	{

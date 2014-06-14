@@ -15,7 +15,7 @@ public:
 	/// Function when entering this state, providing a pointer to the previous StateMan.
 	void OnEnter(GameState * previousState);
 	/// Main processing function, using provided time since last frame.
-	void Process(float time);
+	void Process(int timeInMs);
 	/// Function when leaving this state, providing a pointer to the next StateMan.
 	void OnExit(GameState * nextState);
 	/// Creates the user interface for this state

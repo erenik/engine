@@ -79,7 +79,7 @@ void MainMenu::OnExit(GameState *nextState)
 #include "../UI/UserInterface.h"
 #include "../Graphics/Messages/GMUI.h"
 
-void MainMenu::Process(float time)
+void MainMenu::Process(int timeInMs)
 {
 	Sleep(25);
 #ifdef USE_AUDIO
@@ -112,6 +112,10 @@ void MainMenu::ProcessMessage(Message * message){
 			if (msg == "ChatInput")
 			{
 				// Stuff.
+			}
+			else if (msg == "GoToBattleState")
+			{
+				this->StartBattle("testBattle.battle");
 			}
 			else if (msg == "Ready")
 			{
@@ -166,7 +170,8 @@ void MainMenu::ProcessMessage(Message * message){
 }
 
 /// Creates bindings that are used for debugging purposes only
-void MainMenu::CreateDefaultBindings(){
+void MainMenu::CreateDefaultBindings()
+{
 	std::cout<<"\nMainMenu::CreateDefaultBindings() called";
 	/// (int action, int * inputCombinationArray, int inputs, const char * name = NULL);
 	InputMapping * mapping = &this->inputMapping;
@@ -174,6 +179,8 @@ void MainMenu::CreateDefaultBindings(){
 	mapping->CreateBinding(GO_TO_RACING_STATE, KEY::CTRL, KEY::G, KEY::R);
 	mapping->CreateBinding(GO_TO_NETWORK_TEST, KEY::CTRL, KEY::G, KEY::N);
 	mapping->CreateBinding(GO_TO_BLUEPRINT_EDITOR, KEY::CTRL, KEY::G, KEY::S);
+
+	mapping->CreateBinding("GoToBattleState", KEY::CTRL, KEY::G, KEY::B);
 
 	/// Menu navigation, yush!
 	mapping->CreateBinding(PREVIOUS_UI_ELEMENT, KEY::SHIFT, KEY::TAB);

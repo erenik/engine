@@ -23,7 +23,7 @@ public:
 	/// Function when entering this state.
 	virtual void OnEnter() = 0;
 	/// Main processing function. Time passed in seconds.
-	virtual void Process(float timePassed) = 0;
+	virtual void Process(int timeInMs) = 0;
 	/// Function when leaving this state
 	virtual void OnExit() = 0;
 

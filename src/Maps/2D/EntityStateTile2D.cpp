@@ -99,7 +99,7 @@ void EntityStateTile2D::OnEnter(){
 
 }
 
-void EntityStateTile2D::Process(float time){
+void EntityStateTile2D::Process(int timeInMs){
 
 }
 

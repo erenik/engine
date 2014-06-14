@@ -219,11 +219,11 @@ void StateManager::HandleDADFiles(List<String> & files){
 		if (!StateMan.IsPaused()){
 			/// Process the active StateMan.
 			if (StateMan.GlobalState())
-                StateMan.GlobalState()->Process(timeDiffF);
+                StateMan.GlobalState()->Process(timeDiff);
 			if (StateMan.ActiveState())
-				StateMan.ActiveState()->Process(timeDiffF);
+				StateMan.ActiveState()->Process(timeDiff);
 			if (MapMan.ActiveMap())
-				MapMan.ActiveMap()->Process(timeDiffF);
+				MapMan.ActiveMap()->Process(timeDiff);
 		}
 		/// If not in any state, sleep a bit, yo.
 		else

@@ -10,6 +10,9 @@
 
 #include "GameStates/GameState.h"
 #include "RuneRPG/Network/RRSession.h"
+#include "RuneRPG/GameStates/RuneGameStatesEnum.h"
+
+
 
 #define DEFAULT_NAME "No-name"
 
@@ -32,6 +35,9 @@ protected:
 	// If not created, create and add the session to be handled by the network-manager.
 	void CreateSessionIfNeeded();
 	
+	/// For starting it from anywhere.
+	void StartBattle(String battleRef);
+
 
 	// Name our player on this device.
 	static String playerName;

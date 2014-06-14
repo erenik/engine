@@ -28,8 +28,8 @@ List<String> File::GetLines(String fromFile)
 		int start  = (int) file.tellg();
 		file.seekg( 0, std::ios::end );
 		int fileSize = (int) file.tellg();
-		char * data = new char [fileSize];
-		memset(data, 0, fileSize);
+		char * data = new char [fileSize+2];
+		memset(data, 0, fileSize+1);
 		file.seekg( 0, std::ios::beg);
 		file.read((char*) data, fileSize);
 		file.close();

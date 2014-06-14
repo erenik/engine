@@ -29,7 +29,7 @@ public:
 	/// Function when entering this state, providing a pointer to the previous StateMan.
 	virtual void OnEnter(GameState * previousState) = 0;
 	/// Main processing function, using provided time since last frame.
-	virtual void Process(float time) = 0;
+	virtual void Process(int timeInMs) = 0;
 	/// Function when leaving this state, providing a pointer to the next StateMan.
 	virtual void OnExit(GameState * nextState) = 0;
 
@@ -106,7 +106,7 @@ class Initialization : public GameState{
 public:
 	Initialization();
 	void OnEnter(GameState * previousState);
-	void Process(float time);
+	void Process(int timeInMs);
 	void OnExit(GameState * nextState);
 };
 
@@ -114,7 +114,7 @@ class Exit : public GameState{
 public:
 	Exit();
 	void OnEnter(GameState * previousState);
-	void Process(float time);
+	void Process(int timeInMs);
 	void OnExit(GameState * nextState){
 		// shouldn't be entered ever
 	};

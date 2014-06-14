@@ -39,6 +39,8 @@ void * Initialize(void * vArgs){
 
 	std::cout<<"\nInitializer thread begun...";
 
+	MesMan.QueueMessages("CreateMainWindow");
+
 	// Call Initialize for all managers to properly initialize them
 	StateMan.Initialize();	// Registers all states to be used
 

@@ -9,6 +9,7 @@
 #include "Message/Message.h"
 #include "RuneBattleAction.h"
 #include "Battle/BattleManager.h"
+#include "File/File.h"
 
 RuneBattler::RuneBattler() : Battler(){
 	Nullify();
@@ -86,8 +87,9 @@ void RuneBattler::Process(BattleState &battleState){
 		return;
 
     /// Check state, has it queued an action yet?
-    if (state == WAITING_FOR_INITIATIVE){
-        initiative -= battleState.timeDiff * speed;
+    if (state == WAITING_FOR_INITIATIVE)
+	{
+		initiative -= battleState.timeDiff * speed;
         if (initiative <= 0){
 			if (!isAI){
 				MesMan.QueueMessage(new Message("BattlerReady"));
@@ -249,35 +251,39 @@ bool RuneBattler::MagicDamage(int dmg){
 
 
 /// Bleh o-o
-bool RuneBattler::LoadFromFile(String source){
-	std::fstream file;
-	file.open(source.c_str(), std::ios_base::in);
-	if (!file.is_open()){
-		std::cout<<"\nERROR: Unable to open file stream to "<<source;
-		file.close();
-		return false;
-	}
-	this->source = source;
-	int start  = (int) file.tellg();
-	file.seekg( 0, std::ios::end );
-	int fileSize = (int) file.tellg();
-	char * data = new char [fileSize];
-	memset(data, 0, fileSize);
-	file.seekg( 0, std::ios::beg);
-	file.read((char*) data, fileSize);
-	file.close();
-	String fileContents(data);
-	delete[] data; data = NULL;
-	List<String> lines = fileContents.GetLines();
-	for (int i = 0; i < lines.Size(); ++i){
+bool RuneBattler::LoadFromFile(String source)
+{
+	enum {
+		NULL_MODE,
+		ACTIONS, SKILLS = ACTIONS,
+	};
+	int inputMode = NULL_MODE;
+	List<String> lines = File::GetLines(source);
+	for (int i = 0; i < lines.Size(); ++i)
+	{
 		String & line = lines[i];
 		// Try load the battler from the relative directory.
 		if (line.Contains("//"))
 			continue;
 		List<String> tokens = line.Tokenize(" \t");
+		/// One or more word below
 		if (tokens.Size() == 0)
 			continue;
 		String token = tokens[0];
+		String key = tokens[0];
+		key.SetComparisonMode(String::NOT_CASE_SENSITIVE);
+		if (key == "Actions" || key == "Skills")
+		{
+			inputMode = ACTIONS;
+			continue;
+		}
+		else if (inputMode == ACTIONS)
+		{
+			this->actionNames.Add(key);
+		}
+
+	
+
 		String token2;
 		if (tokens.Size() >= 2)
 			token2 = tokens[1];

@@ -330,6 +330,7 @@ void UserInterface::Render(){
 	glDisable(GL_DEPTH_TEST);
 	/// Render the tree.
 	root->Render();
+	lastRenderTime = Timer::GetCurrentTimeMs();
 }
 
 /// Prints the UI's tree recursively. The level parameter is in order to display the tree properly.
@@ -448,6 +449,9 @@ void UserInterface::ReloadAll()
 	for (int i = 0; i < userInterfaces.Size(); ++i)
 	{
 		UserInterface * ui = userInterfaces[i];
+		// Reload only currently visible ones?
+		if ( ui->lastRenderTime < Timer::GetCurrentTimeMs() - 1000)
+			continue;
 		// Reload!
 		ui->Reload();
 	}		

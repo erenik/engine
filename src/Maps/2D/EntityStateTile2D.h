@@ -16,7 +16,7 @@ public:
 	void Render();
 
 	virtual void OnEnter();
-	virtual void Process(float time);
+	virtual void Process(int timeInMs);
 	virtual void OnExit();
 	virtual void ProcessMessage(Message * message);
 

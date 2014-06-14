@@ -17,11 +17,13 @@ enum states {
 };
 
 // To read in pre-defined battles from .txt or otherwise!
-struct Battle {
+struct Battle 
+{
 	List<String> playerNames;
 	List<String> enemyNames;
 	String name;
 	String source;
+	bool addCurrentPlayers;
 };
 
 class RuneBattler : public Battler {

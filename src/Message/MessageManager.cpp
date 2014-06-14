@@ -21,6 +21,7 @@
 #include "UI/UIQueryDialogue.h"
 #include "UI/UIVideo.h"
 #include "Network/NetworkManager.h"
+#include "Window/WindowManager.h"
 
 MessageManager * MessageManager::messageManager = NULL;
 
@@ -193,6 +194,24 @@ void MessageManager::ProcessMessage(Message * message){
 		bool toggle = msg.Tokenize("()")[1].ParseBool();
 		Input.NavigateUI(toggle);
 		return;
+	}
+	else if (msg == "CreateMainWindow")
+	{	
+		// Creates the main application window. A message is sent upon startup from the initializer thread for this.
+		if (!WindowMan.MainWindow())
+		{
+			Window * mainWindow = WindowMan.CreateMainWindow();
+			// Optionally set more user-related stuff to the options before creating it.
+			
+			// Then create it!
+			mainWindow->Create();
+			/// Create default UI and globalUI that may later on be replaced as needed.
+			mainWindow->CreateUI();
+			mainWindow->CreateGlobalUI();
+			mainWindow->backgroundColor = Vector4f(1,0,0,1);
+		}
+		// Reveal the main window to the user now that all managers are allocated.
+		WindowMan.MainWindow()->Show();
 	}
 	else if (msg.Contains("INTERPRET_CONSOLE_COMMAND(this)"))
 	{

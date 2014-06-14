@@ -24,7 +24,7 @@ void StateChanger::OnBegin()
 		std::cout<<"\nERROR: There is no such game state: "<<stateName;
 	StateMan.QueueState(gs);
 }
-void StateChanger::Process(float time)
+void StateChanger::Process(int timeInMs)
 {
 	if (gs == NULL)
 	{

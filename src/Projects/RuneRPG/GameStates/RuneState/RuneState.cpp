@@ -28,7 +28,7 @@ void RuneState::OnEnter(GameState * previousState){
 	Graphics.QueueMessage(new GMSet(OVERLAY_TEXTURE, (Texture*)NULL));
 }
 /// Main processing function, using provided time since last frame.
-void RuneState::Process(float time){
+void RuneState::Process(int timeInMs){
 }
 /// Function when leaving this state, providing a pointer to the next StateMan.
 void RuneState::OnExit(GameState * nextState){

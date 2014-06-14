@@ -29,6 +29,7 @@
 #include "RuneRPG/RRPlayer.h"
 #include "RuneRPG/Battle/RuneSpell.h"
 #include <ctime>
+#include "Window/WindowManager.h"
 
 
 #include "Graphics/GraphicsManager.h"
@@ -49,6 +50,7 @@ RuneBattleState::RuneBattleState()
 {
 	id = RUNE_GAME_STATE_BATTLE_STATE;
 	camera = new Camera();
+	battleTestWindow = NULL;
 }
 
 RuneBattleState::~RuneBattleState(){
@@ -137,7 +139,43 @@ void RuneBattleState::OnEnter(GameState * previousState)
     lastTime = timer.GetMs();
 	/// Notify the input-manager to use menu-navigation.
 	Input.ForceNavigateUI(true);
+
+	// Open window with extra UI for tweaking stuff in real-time on the battle?
+	if (!battleTestWindow)
+	{
+		battleTestWindow = WindowMan.NewWindow("BattleTest");
+		battleTestWindow->ui = new UserInterface();
+		battleTestWindow->ui->Load("gui/BattleTest.gui");
+//		battleTestWindow->renderViewports = false;
+		battleTestWindow->CreateGlobalUI();
+		battleTestWindow->requestedSize = Vector2i(400, 600);
+		battleTestWindow->requestedRelativePosition = Vector2i(-400,0);
+		battleTestWindow->Create();
+	}
+	battleTestWindow->Show();
 }
+
+
+void RuneBattleState::OnExit(GameState *nextState)
+{
+	if (battleTestWindow)
+		battleTestWindow->Hide();
+	/// Notify the input-manager to stop force-using menu-navigation.
+	Input.ForceNavigateUI(false);
+
+	// Load initial texture and set it to render over everything else
+	Graphics.QueueMessage(new GMSet(OVERLAY_TEXTURE, TexMan.GetTexture("img/loadingData.png")));
+
+	Sleep(100);
+	// Begin loading textures here for the UI
+	Graphics.QueueMessage(new GraphicsMessage(GM_CLEAR_UI));
+	Graphics.cameraToTrack->entityToTrack = NULL;
+
+	std::cout<<"\nLeaving RuneBattleState.";
+	// Set graphics manager to render UI, and remove the overlay-texture.
+//	Graphics.SetOverlayTexture(NULL);
+}
+
 
 void RuneBattleState::ResetInitiative()
 {
@@ -207,23 +245,6 @@ void RuneBattleState::OnBeginBattle()
 }
 
 
-void RuneBattleState::OnExit(GameState *nextState){
-	/// Notify the input-manager to stop force-using menu-navigation.
-	Input.ForceNavigateUI(false);
-
-	// Load initial texture and set it to render over everything else
-	Graphics.QueueMessage(new GMSet(OVERLAY_TEXTURE, TexMan.GetTexture("img/loadingData.png")));
-
-	Sleep(100);
-	// Begin loading textures here for the UI
-	Graphics.QueueMessage(new GraphicsMessage(GM_CLEAR_UI));
-	Graphics.cameraToTrack->entityToTrack = NULL;
-
-	std::cout<<"\nLeaving RuneBattleState.";
-	// Set graphics manager to render UI, and remove the overlay-texture.
-//	Graphics.SetOverlayTexture(NULL);
-}
-
 
 
 
@@ -242,7 +263,8 @@ RuneBattler * RuneBattleState::GetIdlePlayer()
 	return NULL;
 }
 
-void RuneBattleState::Process(float time){
+void RuneBattleState::Process(int timeInMs)
+{
 	/// Process key input for navigating the 3D - Space
 	Sleep(10);
     /// Clear is for killing children, yo.
@@ -264,10 +286,7 @@ void RuneBattleState::Process(float time){
 		/// Open menu..?
 	}
 
-    int newTime = timer.GetMs();
-    int timeDiff = newTime - lastTime;
-    lastTime = newTime;
-	BattleMan.Process(timeDiff);
+	BattleMan.Process(timeInMs);
 #ifdef USE_AUDIO
 	AudioMan.Update();
 #endif
@@ -451,15 +470,19 @@ bool RuneBattleState::LoadBattle(String fromSource)
 	assert(b.enemyNames.Size() && "unable to laod test Battle");
 	if (b.enemyNames.Size() == NULL)
 		return false;
-	for (int i = 0; i < b.playerNames.Size(); ++i){
-		RuneBattler rb = RuneBattlers.GetBattlerBySource(b.playerNames[1]);
+
+	/// Load custom player-battlers for specific/unique battles
+	for (int i = 0; i < b.playerNames.Size(); ++i)
+	{
+		RuneBattler rb = RuneBattler(*RuneBattlers.GetBattlerBySource(b.playerNames[1]));
 		std::cout<<"\nAdding RuneBattler player: "<<rb.name;
 		RuneBattler * newPlayer = new RuneBattler(rb);
 		AddPlayerBattler(newPlayer);
 	}
 	/// Add players based on the playerManager or RRPlayer thingy!
 	List<Player*> players = PlayerMan.GetPlayers();
-	for (int i = 0; i < players.Size(); ++i){
+	for (int i = 0; i < players.Size(); ++i)
+	{
 		RRPlayer * rp = (RRPlayer*)players[i];
 		RuneBattler * newPlayerBattler = new RuneBattler(*rp->Battler());
 		AddPlayerBattler(newPlayerBattler);
@@ -467,14 +490,14 @@ bool RuneBattleState::LoadBattle(String fromSource)
 	
 	// If still no players, create a test one?
 	if (!BattleMan.GetPlayers().Size()){
-		RuneBattler * battler = new RuneBattler(RuneBattlers.GetBattlerBySource("Player"));
+		RuneBattler * battler = new RuneBattler(*RuneBattlers.GetBattlerBySource("Player"));
 		battler->isAI = false;
 		AddPlayerBattler(battler);
 	}
 	// Add enemies accordingly.
 	for (int i = 0; i < b.enemyNames.Size(); ++i){
 		String source = b.enemyNames[i];
-		RuneBattler rb = RuneBattlers.GetBattlerBySource(source);
+		RuneBattler rb = *RuneBattlers.GetBattlerBySource(source);
 		RuneBattler * newEnemy =  new RuneBattler(rb);
 		std::cout<<"\nAdding RuneBattler enemy: "<<rb.name;
 		BattleMan.AddBattler(newEnemy);

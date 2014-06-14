@@ -33,7 +33,7 @@ public:
 	/// Virtual destructor to discard everything appropriately.
 	virtual ~RuneEditor();
 	void OnEnter(GameState * previousState);
-	void Process(float time);
+	void Process(int timeInMs);
 	void OnExit(GameState * nextState);
 	/// Callback function that will be triggered via the MessageManager when messages are processed.
 	virtual void ProcessMessage(Message * message);

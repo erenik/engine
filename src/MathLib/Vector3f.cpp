@@ -328,3 +328,9 @@ void Vector3f::Round(){
 	y = floor(y+0.5f);
 	z = floor(z+0.5f);
 }
+
+
+Vector3i Vector3f::Rounded()
+{
+	return Vector3i(floor(x+0.5f), floor(y+0.5f), floor(z+0.5f));
+}

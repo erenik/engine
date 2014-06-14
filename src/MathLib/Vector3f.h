@@ -204,6 +204,8 @@ public:
 
 	// Rounds to nearest digit!
 	void Round();
+	/// Returns a copy with rounded values for each axis.
+	Vector3i Rounded();
 public:
 	/// x-coordinate
 	float x;

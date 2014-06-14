@@ -30,7 +30,7 @@ void TextAnimationEvent::OnBegin(){
 	}
 	startTime = Timer::GetCurrentTimeMs();
 }
-void TextAnimationEvent::Process(float time)
+void TextAnimationEvent::Process(int timeInMs)
 {
 	switch(type){
 		case NOTICE:

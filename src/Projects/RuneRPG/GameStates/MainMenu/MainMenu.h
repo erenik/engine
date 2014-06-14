@@ -13,7 +13,7 @@ public:
 	MainMenu();
 	~MainMenu();
 	void OnEnter(GameState * previousState);
-	void Process(float time);
+	void Process(int timeInMs);
 	void OnExit(GameState * nextState);
 	void CreateDefaultBindings();
 	void CreateUserInterface();

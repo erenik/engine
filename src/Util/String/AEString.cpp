@@ -911,8 +911,8 @@ List<String> String::Tokenize(const char * charTokens) const {
 }
 
 /// Returns a number of strings by dividing them by '\n' and '\r', which are removed in the process(!).
-List<String> String::GetLines() const {
-
+List<String> String::GetLines() const 
+{
     List<String> list;
     switch(this->type){
 		case WIDE_CHAR: // Perform quick conversion

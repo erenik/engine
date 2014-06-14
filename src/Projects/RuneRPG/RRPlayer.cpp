@@ -13,6 +13,8 @@ RRPlayer::RRPlayer(String name)
 	/// Set default values to the battler as needed
 	battler.isAI = false;
 	battler.name = name;
+	/// Always have attack available..
+	battler.actionNames.Add("Attack");
 	isReady = false;
 }
 

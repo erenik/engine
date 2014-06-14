@@ -43,6 +43,16 @@ bool FileExists(String path){
 	return fileExists;
 }
 
+/// Eased usage function of GetDirectoriesInDirectory
+List<String> GetFolders(String inDirectory)
+{
+	List<String> folders;
+	bool result = GetDirectoriesInDirectory(inDirectory, folders);
+	assert(result);
+	return folders;
+}
+
+
 /** Fetching directories~
 	Returns 1 upon success, 0 if there is no such directory.
 	Results will be added to the result-list provided.
