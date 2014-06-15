@@ -304,7 +304,10 @@ void Window::Show()
 	// The parameters to ShowWindow explained:
 	// hWnd: the value returned from CreateWindow
 	// nCmdShow: the fourth parameter from WinMain
-	ShowWindow(hWnd, Application::nCmdShow);
+	if (this->main)
+		ShowWindow(hWnd, Application::nCmdShow);
+	else
+		ShowWindow(hWnd, SW_SHOWNOACTIVATE);
 	UpdateWindow(hWnd);
 #endif
 }
