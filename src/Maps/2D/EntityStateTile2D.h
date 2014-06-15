@@ -1,18 +1,20 @@
 /// Emil Hedemalm
 /// 2014-01-20
-/// EntityState used for TileMap2D interaction.
+/// EntityPropertyState used for TileMap2D interaction.
 
 #ifndef ENTITY_STATE_TILE_2D_H
 #define ENTITY_STATE_TILE_2D_H
 
-#include "Maps/Grids/Tile.h"
-#include "EntityStates/EntityState.h"
+//#include "Maps/Grids/Tile.h"
+#include "Entity/EntityProperty.h"
 
-/// Base Entity-state for enabling 2D map interaction.
-class EntityStateTile2D : public EntityState {
+/// Base Entity-state for enabling 2D map interaction. Is this class even needed..?
+class EntityStateTile2D : public EntityProperty
+{
 public:
 	EntityStateTile2D(Entity * entity);
-	/// Render
+	~EntityStateTile2D();
+	/// Render, why does the entity state have a render function..?
 	void Render();
 
 	virtual void OnEnter();
@@ -29,12 +31,10 @@ public:
 		MAX_TYPES = USER_DEFINED + 100,
 	};
 
-	/// Entity owner of this state.
-	Entity * entity;
 	/// 2D position.
 	Vector3i position;
 	/// Tile it's currently.. standing on?
-	Tile * tile;
+//	Tile * tile;
 };
 
 #endif

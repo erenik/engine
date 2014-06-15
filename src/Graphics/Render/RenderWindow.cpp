@@ -174,17 +174,17 @@ void GraphicsManager::RenderWindow()
 //	std::cout<<"\nViewport size: "<<width<<" x" <<height;
 //	UpdateProjection();
 
-	if (StateMan.ActiveState())
+	if (window->renderState && StateMan.ActiveState())
 		StateMan.ActiveState()->Render();
 
 	// And render FPS while we're at it...!
-	if (renderFPS)
+	if (window->renderFPS)
 		RenderFPS();
 
 	UserInterface * ui = window->ui, 
 		* globalUI = window->globalUI;
 	// Render UI if applicable
-	if (this->renderUI && ui)
+	if (window->renderUI && ui)
 		RenderUI(ui);
 
 	// Always render globalUI.

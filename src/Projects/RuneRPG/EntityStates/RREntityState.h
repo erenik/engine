@@ -5,23 +5,29 @@
 #ifndef RUNE_PLAYER_STATE_H
 #define RUNE_PLAYER_STATE_H
 
-#include "Maps/2D/EntityStateTile2D.h"
+#include "MathLib.h"
+#include "Entity/EntityProperty.h"
 #include "Direction.h"
+#include "Maps/Grids/Tile.h"
 
 class EntityStateTile2D;
 
-class RREntityState : public EntityStateTile2D {
+class RREntityState : public EntityProperty
+{
 public:
 	RREntityState(Entity * owner);
+	virtual ~RREntityState();
 	/// Function when entering this state.
 	void OnEnter();
 	/// Main processing function
-	virtual void Process(float timePassed);
+	virtual void Process(int timePassedInMs);
 	/// Function when leaving this state
 	void OnExit();
 	/// Function for handling messages sent to the entity.
 	void ProcessMessage(Message * message);
 
+	/// Sets queued movement/direction to 0.
+	void StopMoving();
 	/// Wosh.
 	void DisableMovement();
 	void EnableMovement();
@@ -38,7 +44,7 @@ private:
 	void UpdateQueuedMovement();
 
 	/// Handle movement based on queued movement..!
-	void HandleMovement(float & timePassed);
+	void HandleMovement(int timePassedInMs);
 
 	/// Time per tile, in seconds.
 	static const float DEFAULT_MOVEMENT_SPEED;

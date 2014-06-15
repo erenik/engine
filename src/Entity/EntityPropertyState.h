@@ -1,24 +1,23 @@
 /// Emil Hedemalm
 /// 2013-02-08
 
-#ifndef AI_STATE_H
-#define AI_STATE_H
+#ifndef ENTITY_PROPERTY_STATE_H
+#define ENTITY_PROPERTY_STATE_H
 
 #include "../Entity/Entity.h"
-#include "StateProperty.h"
-#include "EntityStates.h"
+#include "EntityProperty.h"
 
-class AI;
 class Entity;
 struct Message;
 
-// Base class for States within the AI state machine. Subclass and override methods! Do not change much here!
-class EntityState {
+// Base class for states within an EntityProperty
+class EntityPropertyState 
+{
 	friend class AIManager;
 public:
 	String name;
-	EntityState(int stateType, Entity * owner);
-	virtual ~EntityState();
+	EntityPropertyState (int stateType, Entity * owner);
+	virtual ~EntityPropertyState();
 
 	/// Function when entering this state.
 	virtual void OnEnter() = 0;
@@ -34,10 +33,10 @@ public:
 	virtual void PathsInvalidated();
 
 	/// Assigns this entity an own AI which will be deleted when this state is destructed.
-	void AssignAI(AI * ai);
+//	void AssignAI(AI * ai);
 
 	/// If it should have an AI o-o;
-	AI * ai;
+//	AI * ai;
 
 	/// For checking what state we're currently in.
 	int stateID;

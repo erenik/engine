@@ -12,7 +12,7 @@
 #include "Viewport.h"
 #include "Physics/Messages/CollissionCallback.h"
 #include "Physics/Messages/PhysicsMessage.h"
-#include "EntityStates/StateProperty.h"
+#include "Entity/EntityProperty.h"
 #include "Graphics/Messages/GMParticleMessages.h"
 #include <Util.h>
 #include <iomanip>
@@ -48,6 +48,7 @@
 #include "File/File.h"
 #include "File/FileUtil.h"
 #include "RuneRPG/PopulationManager.h"
+#include "Window/WindowManager.h"
 
 extern UserInterface * ui[GameStateID::MAX_GAME_STATES];
 
@@ -59,16 +60,20 @@ MapState::MapState()
 	enterMode = EnterMode::NULL_MODE;
 	camera = new Camera();
 	mapToLoad = NULL;
-	player = NULL;
-	playerEntity = NULL;
-	playerState = NULL;
+//	player = NULL;
+//	playerEntity = NULL;
+//	playerState = NULL;
 	lastModifiedEntity = NULL;
 	menuOpen = false;
 	keyPressedCallback = true;
-	activeShop = NULL;
+//	activeShop = NULL;
+	mapTestWindow = NULL;
+	stepsTakenAfterZoning = 0;
+	stepsSinceLastBattle = 0;
 }
 
-MapState::~MapState(){
+MapState::~MapState()
+{
 	delete camera;
 	camera = NULL;
 }
@@ -82,7 +87,8 @@ void MapState::CreateUserInterface(){
 	ui->Load("gui/MapState.gui");
 }
 
-void MapState::OnEnter(GameState * previousState){
+void MapState::OnEnter(GameState * previousState)
+{
 	std::cout<<"\nMapState::OnEnter";
 	// Load initial texture and set it to render over everything else
 	Graphics.QueueMessage(new GMSet(OVERLAY_TEXTURE, TexMan.GetTexture("img/loadingData.png")));
@@ -95,6 +101,24 @@ void MapState::OnEnter(GameState * previousState){
 
 //	Graphics.render
 
+
+	/// For reloading maps, looking at coordinates, etc.
+	if (!mapTestWindow)
+	{
+		mapTestWindow = WindowMan.NewWindow("Map test");
+		mapTestWindow->requestedSize = Vector2i(400, 600);
+		mapTestWindow->requestedRelativePosition = Vector2i(-400,0);
+		mapTestWindow->Create();
+		mapTestWindow->ui = new UserInterface();
+		mapTestWindow->ui->Load("gui/MapTest.gui");
+		mapTestWindow->CreateGlobalUI();
+		mapTestWindow->DisableAllRenders();
+		mapTestWindow->renderUI = true;
+	}		
+	if (mapTestWindow)
+		mapTestWindow->Show();
+
+
 	Sleep(100);
 	// Begin loading textures here for the UI
 	Graphics.QueueMessage(new GMSetUI(ui));
@@ -106,20 +130,32 @@ void MapState::OnEnter(GameState * previousState){
 
 	/// Grab first player, or create new one as needed?
 	if (PlayerMan.NumPlayers() == NULL){
-		player = new RRPlayer("Player");
+		RRPlayer * player = new RRPlayer("Player");
 		PlayerMan.AddPlayer(player);
 	}
-	else {
-		Player * p = PlayerMan.Get(0);
-		player = (RRPlayer*)p;
-	}
+
+	/// Create entities for the players as needed? or later?
+
 	/// Continue should probably be default mode, yo.
-	if (enterMode == EnterMode::CONTINUE){
+	if (enterMode == EnterMode::CONTINUE)
+	{
 		std::cout<<"\nMapState::OnEnter Continue";
+		// Reload map we were on!
+		Map * map = MapMan.GetMap(currentMap);
+		assert(map);
+		MapMan.MakeActive(map);
+
 		/// Stuff. o.o
 		/// Check if menu is open, if so set NavigateUI to true!
 		if (menuOpen){
 			Input.NavigateUI(true);
+		}
+
+		/// Stop all players movement, e.g. after returning from a battle? Could check previous state for this?
+		RREntityState * entityState = this->GetMainPlayerState();
+		if (entityState)
+		{
+			entityState->StopMoving();
 		}
 	}
 	else if (enterMode == EnterMode::TESTING_MAP)
@@ -143,18 +179,6 @@ void MapState::OnEnter(GameState * previousState){
 	/// Track camera on ze playah!
 	TrackPlayer();
 
-	/// Establish link to player entity state if existing.
-	if (playerEntity && playerEntity->state){
-		playerState = (RREntityState*)playerEntity->state->GlobalState();
-		Graphics.QueueMessage(new GMSetEntity(playerEntity, ANIMATION_SET, "Map/Test"));
-	}
-
-	/// Bind the player's stuffs.
-	player->entity = playerEntity;
-	player->playerState = playerState;
-	
-	/// Set editor selection as the renderable one!
-
 	// And set it as active
 	Graphics.cameraToTrack = camera;
 //	Graphics.UpdateProjection();
@@ -177,13 +201,14 @@ void MapState::OnEnter(GameState * previousState){
 
 void MapState::OnExit(GameState *nextState)
 {
+	if (mapTestWindow)
+		mapTestWindow->Hide();
+
 	// Remove pointers on any tiles to any entities, as they will be re-created all the time.
 	TileMap2D * map = this->ActiveMap();
 	std::cout<<"\nMapState::OnExit";
 	// Load initial texture and set it to render over everything else
 	Graphics.QueueMessage(new GMSet(OVERLAY_TEXTURE, TexMan.GetTexture("img/loadingData.png")));
-	
-	Sleep(100);
 	
 	// Begin loading textures here for the UI
 	Graphics.QueueMessage(new GraphicsMessage(GM_CLEAR_UI));
@@ -199,6 +224,7 @@ void MapState::OnExit(GameState *nextState)
 		case RUNE_GAME_STATE_BATTLE_STATE:
 		case RUNE_GAME_STATE_RUNE_STATE:
 			enterMode = EnterMode::CONTINUE;
+			this->currentMap = map->Name();
 			break;
 		default: 
 			enterMode = EnterMode::NULL_MODE;
@@ -214,39 +240,57 @@ void MapState::Process(int timeInMs)
 {
 	Sleep(10);
 
-	// Update player position if possiblu
-	if (playerEntity){
-		String s = String::ToString((int)playerEntity->position.x) + ", " + String::ToString((int)playerEntity->position.y);
-		Graphics.QueueMessage(new GMSetUIs("PositionLabel", GMUI::TEXT, s));
-		
-		static Vector3i lastPlayerPosition;
-		Vector3i playerPosition = playerEntity->position.Rounded();
-		if (playerPosition != lastPlayerPosition)
-		{
-			// New tile.
-			// Evaluate if we should trigger a new battle
-			lastPlayerPosition = playerPosition;
+	/// Fetch playersss
+	List<RRPlayer*> players = GetPlayers();
 
-			List<Population*> activePops = PopMan.ActivePopulations();
-			for (int i = 0; i < activePops.Size(); ++i)
+	for (int i = 0; i < players.Size(); ++i)
+	{
+		Entity * playerEntity = players[i]->mapEntity;
+	
+		// Update player position if possiblu
+		if (playerEntity)
+		{
+			Graphics.QueueMessage(new GMSetUIv2i("Position", GMUI::VECTOR_INPUT, playerEntity->position.Rounded(), mapTestWindow->ui));
+			static Vector3i lastPlayerPosition;
+			Vector3i playerPosition = playerEntity->position.Rounded();
+			if (playerPosition != lastPlayerPosition)
 			{
-				Population * pop = activePops[i];
-				String battleRef = pop->ShouldFight(playerPosition);
-				if (battleRef.Length())
-				{
-					// Start the battle..!
-					StartBattle(battleRef);
-				}
+				// Evaluate if we should trigger a new battle
+				lastPlayerPosition = playerPosition;
+				/// Evaluate if we should trigger some kinda battle.
+				PlayerPositionUpdated(playerPosition);
 			}
 		}
-
 	}
-
-#ifdef USE_AUDIO
-	AudioMan.Update();
-#endif
-
 };
+
+/// Evaluate if we should trigger some kinda battle.
+void MapState::PlayerPositionUpdated(Vector3i position)
+{
+	stepsTakenAfterZoning++;
+	stepsSinceLastBattle++;
+	// Minimum X steps after zoning..?
+	if (stepsTakenAfterZoning < 5)
+		return;
+	if (stepsSinceLastBattle < 3)
+		return;
+	float totalEncounterChance = 0;
+	List<Population*> activePops = PopMan.ActivePopulations();
+	for (int i = 0; i < activePops.Size(); ++i)
+	{
+		Population * pop = activePops[i];
+		float encounterChance = pop->GetEncounterRatio(position);
+		totalEncounterChance += encounterChance;
+		String battleRef = pop->ShouldFight(position);
+		if (battleRef.Length())
+		{
+			// Start the battle..!
+			StartBattle(battleRef);
+			stepsSinceLastBattle = 0;
+		}
+	}
+	Graphics.QueueMessage(new GMSetUIf("TotalEncounterRatio", GMUI::FLOAT_INPUT, totalEncounterChance, mapTestWindow->ui));
+}
 
 enum mouseCameraStates {
 	NULL_STATE,
@@ -256,7 +300,8 @@ enum mouseCameraStates {
 
 
 /// Input functions for the various states
-void MapState::MouseClick(bool down, int x, int y, UIElement * elementClicked){
+void MapState::MouseClick(bool down, int x, int y, UIElement * elementClicked)
+{
 	if (down){
 		NavMesh * nm = WaypointMan.ActiveNavMesh();
 		if (!nm)
@@ -266,31 +311,10 @@ void MapState::MouseClick(bool down, int x, int y, UIElement * elementClicked){
 		if (wp)
 			std::cout<<" pos: "<<wp->position;
 		std::cout<<"\n";
+		/// Get main (our) player entity?
+		Entity * playerEntity = GetMainPlayerEntity();
 		if (playerEntity)
 			Physics.QueueMessage(new PMSetEntity(DESTINATION, playerEntity, wp->position));
-		/*
-		/// Extract position on the plane.
-		TileMapLevel * level = map->ActiveLevel();
-		Vector2i size = level->Size();
-		
-
-		TileType * t = tileType;
-		assert(t);
-		switch(brushType){
-			case SQUARE: {
-				for (int i = cursorPosition.x - brushSize; i <= cursorPosition.x + brushSize; ++i){
-					if (i < 0 || i >= size.x)
-						continue;
-					for (int j = cursorPosition.y - brushSize; j <= cursorPosition.y + brushSize; ++j){
-						if (j < 0 || j >= size.y)
-							continue;
-						map->SetTileType(Vector2i(i, j), t);
-					}
-				}
-			}
-		}
-		Graphics.ResumeRendering();
-		*/
 	}
 }
 void MapState::MouseRightClick(bool down, int x, int y, UIElement * elementClicked){
@@ -392,8 +416,8 @@ void MapState::MouseMove(int x, int y, bool lDown, bool rDown, UIElement * eleme
 	*/
 }
 
-void MapState::MouseWheel(float delta){
-	Camera * camera = Graphics.cameraToTrack;
+void MapState::MouseWheel(float delta)
+{
 	camera->distanceFromCentreOfMovement += delta / 100.0f;
 	if (delta > 0){
 		camera->distanceFromCentreOfMovement *= 0.8f;
@@ -406,7 +430,8 @@ void MapState::MouseWheel(float delta){
 }
 
 /// Callback from the Input-manager, query it for additional information as needed.
-void MapState::KeyPressed(int keyCode, bool downBefore){
+void MapState::KeyPressed(int keyCode, bool downBefore)
+{
 	if (downBefore)
 		return;
 //	std::cout<<"\nKey pressed: "<<keyCode;
@@ -439,13 +464,28 @@ void MapState::OpenMenu()
 		std::cout<<"\nMenu already open o-o";
 	}
 }
-void MapState::CloseMenu(){
+void MapState::CloseMenu()
+{
 	if (menuOpen){
 		menuOpen = false;
 		Graphics.QueueMessage(new GMPopUI("MainMenu", ui));
 	}
 	else
 		std::cout<<"\nMenu already closed o-o";
+}
+
+/// Returns the entities the players are walking around with on the map.
+List<Entity*> MapState::GetPlayerEntities()
+{
+	List<Entity*> mapEntities;
+	List<RRPlayer*> players = GetPlayers();
+	for (int i = 0; i < players.Size(); ++i)
+	{
+		RRPlayer * player = players[i];
+		if (player->mapEntity)
+			mapEntities.Add(player->mapEntity);
+	}
+	return mapEntities;
 }
 
 void MapState::PlaceZone(String fromRef, int x, int y)
@@ -455,8 +495,6 @@ void MapState::PlaceZone(String fromRef, int x, int y)
 		fromRef = "data/scripts/" + fromRef;
 	List<String> lines = File::GetLines(fromRef);
 	
-
-
 	Vector2i spawnPos(x,y);
 	TileMap2D * activeMap = this->ActiveMap();
 	Tile * tile = activeMap->GetClosestVacantTile(spawnPos);	
@@ -526,12 +564,8 @@ void MapState::SpawnNPC(String fromRef, int x, int y)
 	// Set flags for the entity so it behaves and is removed correctly.
 	entity->flags |= SPAWNED_BY_EVENT;
 	entity->name = name;
-	entity->state = new StateProperty(entity);
-
-	/// Create a proper entity state for it based on the EntityStateTile2D
-	entity->state->SetGlobalState(new RREntityState(entity));
+	entity->properties.Add(new RREntityState(entity));
 	lastModifiedEntity = entity;
-		
 
 	// Add scripting property if lacking it.
 	if (lastModifiedEntity->scripts == NULL)
@@ -602,6 +636,10 @@ void MapState::ProcessMessage(Message * message)
 			{
 				CloseMenu();
 			}
+			else if (msg == "ReloadPopulations")
+			{
+				PopMan.ReloadPopulations();
+			}
 			else if (msg.Contains("PlaceZone"))
 			{
 				List<String> args = msg.Tokenize("(), ");
@@ -631,20 +669,24 @@ void MapState::ProcessMessage(Message * message)
 			}
 			else if (msg.Contains("SelectItemToBuy:"))
 			{
+			/*
 				String name = msg.Tokenize(":")[1];
 				RuneItem * item = activeShop->GetItem(name);
 				// Update active purchase info in the purchase-window.
 				Graphics.QueueMessage(new GMSetUIs("ItemToBuy", GMUI::TEXT, item->name));
 				Graphics.QueueMessage(new GMPushUI("PurchaseWindow", ui));
+				*/
 			}
 			else if (msg == "OpenTestShop")
 			{
+				/*
 				/// Push UI
 				Graphics.QueueMessage(new GMPushUI("gui/Shop.gui", ui));
 				RuneShop::SetupTestShop();
 				activeShop = &RuneShop::testShop;
 				// Load shop from... test.
 				LoadShop(&RuneShop::testShop);
+				*/
 			}
 			else if (string == "main_menu"){
 				StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_MAIN_MENU));
@@ -663,7 +705,8 @@ void MapState::ProcessMessage(Message * message)
 				StateMan.ActiveState()->InputProcessor(INTERPRET_CONSOLE_COMMAND);
 				return;
 			}
-			else if (string.Contains("Zone(")){
+			else if (string.Contains("Zone("))
+			{
 				List<String> tokens = string.Tokenize("() ,");
 				if (tokens.Size() < 2){
 					assert(tokens.Size() >= 2);
@@ -673,7 +716,9 @@ void MapState::ProcessMessage(Message * message)
 				ZoneTo(mapName);
 				return;
 			}
-			else if (string.Contains("PlacePlayer(")){
+			else if (string.Contains("PlacePlayer(") ||
+				string.Contains("PlacePlayers("))
+			{
 				std::cout<<"\nPlacing player--";
 				List<String> tokens = string.Tokenize("() ,");
 				if (tokens.Size() < 3){
@@ -682,7 +727,7 @@ void MapState::ProcessMessage(Message * message)
 				}
 				int tileX = tokens[1].ParseInt();
 				int tileY = tokens[2].ParseInt();
-				PlacePlayer(Vector2i(tileX, tileY));
+				PlacePlayers(Vector2i(tileX, tileY));
 			}
 			else if (string == "TrackPlayer"){
 				TrackPlayer();
@@ -697,15 +742,18 @@ void MapState::ProcessMessage(Message * message)
 					this->OpenMenu();
 				}
 			}
-			else if (string == "DisableMovement"){
-				playerState->DisableMovement();
+			else if (string == "DisableMovement")
+			{	
+				DisableMovement();
 				return;
 			}
-			else if (string == "EnableMovement"){
-				playerState->EnableMovement();
+			else if (string == "EnableMovement")
+			{
+				EnableMovement();
 				return;
 			}
-			else if (string.Contains("SpawnEntity")){
+			else if (string.Contains("SpawnEntity"))
+			{
 				std::cout<<"\nSpawning entity--";
 				Model * m = ModelMan.GetModel("Sprite");
 				Texture * t = TexMan.GetTexture("RuneRPG/Units/200");
@@ -747,9 +795,8 @@ void MapState::ProcessMessage(Message * message)
 				entity->flags |= SPAWNED_BY_EVENT;
 				String name = string.Tokenize("\"")[1];
 				entity->name = name;
-				entity->state = new StateProperty(entity);
 				/// Create a proper entity state for it based on the EntityStateTile2D
-				entity->state->SetGlobalState(new RREntityState(entity));
+				entity->properties.Add(new RREntityState(entity));
 				lastModifiedEntity = entity;
 			}
 			else if (string.Contains("OnInteract")){
@@ -779,15 +826,16 @@ void MapState::ProcessMessage(Message * message)
 }
 
 // To look at ze player?
-void MapState::ResetCamera(){
-
+void MapState::ResetCamera()
+{
 	camera->projectionType = Camera::ORTHOGONAL;
 	camera->rotation = Vector3f();
 	camera->zoom = 10.f;
 	camera->farPlane = -50.0f;
-
-	if (player->entity)
-		camera->position = player->entity->position;
+	
+	Entity * mainPlayerEntity = GetMainPlayerEntity();
+	if (mainPlayerEntity)
+		camera->position = mainPlayerEntity->position;
 //	camera->SetRatio(Graphics.width, Graphics.height);
 	camera->distanceFromCentreOfMovement = 10.f;
 	// Only update before rendering.
@@ -806,11 +854,15 @@ void MapState::ReturnToEditor()
 }
 
 // Disables movement for the player!
-void MapState::DisableMovement(){
+void MapState::DisableMovement()
+{
+	RREntityState * playerState = GetMainPlayerState();
 	if (playerState)
 		playerState->DisableMovement();
 }
-void MapState::EnableMovement(){
+void MapState::EnableMovement()
+{
+	RREntityState * playerState = GetMainPlayerState();
 	if (playerState)
 		playerState->EnableMovement();
 }
@@ -827,7 +879,7 @@ void MapState::SetCamera(Camera & reference)
 }
 
 /// Place player on ze mappur ^3^
-bool MapState::PlacePlayer(Vector3i position)
+bool MapState::PlacePlayers(Vector3i position)
 {
 	TileMap2D * activeMap = ActiveMap();
 	std::cout<<"\nPlacePlayer: "<<position;
@@ -842,7 +894,10 @@ bool MapState::PlacePlayer(Vector3i position)
 	}
 	position = tile->position;
 
-	/// check if the player already exists...
+	// Playerrrsss
+	List<RRPlayer*> players = GetPlayers();
+
+	/// Check if they already exist...
 	Entity * e = MapMan.ActiveMap()->GetEntity("Player");
 	if (e){
 		std::cout<<"\nEntity already exists, moving it.";
@@ -857,41 +912,36 @@ bool MapState::PlacePlayer(Vector3i position)
 
 	std::cout<<"\nTile position: "<<tile->position;
 	assert(tile->position.x != -1);
-
-	// If the player already exists, remove it's connections to any tiles?
-	if (playerEntity)
-	{
-		RREntityState * state = (RREntityState*)playerEntity->state;
-		if (state && state->tile)
-		{
-			state->tile->entities.Remove(playerEntity);
-		}
-	}
 	
+	/// Creating them from scratch!
+	for (int i = 0; i < players.Size(); ++i)
+	{
+		RRPlayer * player = players[i];
+		Entity * playerEntity = NULL;
+		playerEntity = MapMan.CreateEntity(m,t,position);
+		if (playerEntity == NULL)
+		{
+			assert(playerEntity);
+			std::cout<<"\nError placing entity, aborting.";
+			return false;
+		}
+		playerEntity->name = "Player";
+		playerEntity->flags |= PLAYER_OWNED_ENTITY;
 
-	playerEntity = MapMan.CreateEntity(m,t,position);
-	if (playerEntity == NULL){
-		assert(playerEntity);
-		std::cout<<"\nError placing entity, aborting.";
-		return false;
+		TileMap2D * tMap = (TileMap2D*)MapMan.ActiveMap();
+		RREntityState * playerState = new RREntityState(playerEntity);
+		playerEntity->properties.Add(playerState);
+		/// Give it test animation
+		Graphics.QueueMessage(new GMSetEntity(playerEntity, ANIMATION_SET, "Map/Test"));
+		Physics.QueueMessage(new PMSetEntity(PHYSICS_TYPE, playerEntity, PhysicsType::DYNAMIC));
+		Waypoint * wp = WaypointMan.GetClosestVacantWaypoint(position);
+		assert(wp);
+		Physics.QueueMessage(new PMSetWaypoint(wp->position, ENTITY, playerEntity));
+
+		// Re-bind the player
+		player->mapEntity = playerEntity;
+		player->playerState = playerState;
 	}
-	playerEntity->name = "Player";
-	playerEntity->state = new StateProperty(playerEntity);
-	playerEntity->flags |= PLAYER_OWNED_ENTITY;
-
-	TileMap2D * tMap = (TileMap2D*)MapMan.ActiveMap();
-	playerState = new RREntityState(playerEntity);
-	playerEntity->state->SetGlobalState(playerState);
-	/// Give it test animation
-	Graphics.QueueMessage(new GMSetEntity(playerEntity, ANIMATION_SET, "Map/Test"));
-	Physics.QueueMessage(new PMSetEntity(PHYSICS_TYPE, playerEntity, PhysicsType::DYNAMIC));
-	Waypoint * wp = WaypointMan.GetClosestVacantWaypoint(position);
-	assert(wp);
-	Physics.QueueMessage(new PMSetWaypoint(wp->position, ENTITY, playerEntity));
-
-	// Re-bind the player
-	player->entity = playerEntity;
-	player->playerState = playerState;
 	return true;
 }
 
@@ -913,27 +963,47 @@ void MapState::ZoneTo(String mapName)
 	if (!filename.Contains(".tmap")){
 		filename += ".tmap";
 	}
-	Map * map = MapMan.GetMapBySource(filename);
-	if (map == NULL){
+	Map * newMap = MapMan.GetMapBySource(filename);
+	if (newMap == NULL){
 		std::cout<<"\nUnable to get map \""<<filename<<"\" to zone to.";
 		return;
 	}
-	map->SetName(mapName);
-	bool result = MapMan.MakeActive(map);
-	activeMap = (TileMap2D*)map;
+
+	// If zoning between maps, remove connections to current map before zoning to next one.	
+	if (activeMap)
+	{	
+		// If the player already exists, remove it's connections to any tiles?
+		List<Entity*> playerEntities = GetPlayerEntities();
+		for (int i = 0; i < playerEntities.Size(); ++i)
+		{
+			Entity * playerEntity = playerEntities[i];
+			if (playerEntity)
+			{
+				/// Just remove the player from the map too, without de-allocating stuff?
+				activeMap->RemoveEntity(playerEntity);
+			}
+		}
+	}
+	// Reset variables..
+	stepsTakenAfterZoning = 0;
+
+	newMap->SetName(mapName);
+	bool result = MapMan.MakeActive(newMap);
+	assert(result);
+	activeMap = (TileMap2D*)newMap;
 
 	// Clear pointers to shit on the map.
 	activeMap->ResetTiles();
 
 	/// TODO: Change stuff in the graphics to inform that we are generating a navmesh for the map.
 	// Create navmesh.
-	NavMesh * navMesh = WaypointMan.GetNavMeshByName(map->Name());
+	NavMesh * navMesh = WaypointMan.GetNavMeshByName(newMap->Name());
 	if (!navMesh){
-		navMesh = WaypointMan.CreateNavMesh(map->Name());
+		navMesh = WaypointMan.CreateNavMesh(newMap->Name());
 	}
 	/// TODO: Make sure that it doesn't already have any data, if so clear it?
 	/// Create waypoints using tiles in the map!
-	TileMap2D * tileMap2D = (TileMap2D*)map;
+	TileMap2D * tileMap2D = (TileMap2D*)newMap;
 	// Just delete all.
 	navMesh->Clear();
 	// Generate waypoints based on the existing tiles and stuff.
@@ -971,6 +1041,6 @@ void MapState::LoadPopulations(String forZone)
 /// Bind camera to ze playah.-
 void MapState::TrackPlayer()
 {
-	camera->entityToTrack = playerEntity;
+	camera->entityToTrack = GetMainPlayerEntity();
 	camera->trackingMode = TrackingMode::FROM_BEHIND;
 }

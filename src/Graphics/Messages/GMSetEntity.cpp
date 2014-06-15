@@ -64,6 +64,16 @@ GMSetEntity::GMSetEntity(Entity * entity, int target, Camera * camera)
 GMSetEntity::GMSetEntity(Entity * entity, int target, String string)
 : GraphicsMessage(GM_SET_ENTITY), entity(entity), target(target), string(string)
 {
+	assert(entity);
+	switch(target)
+	{
+		case ANIMATION:
+		case QUEUED_ANIMATION:
+		case ANIMATION_SET:
+			break;
+		default:
+			assert(false && "Bad target in GMSetEntity");
+	}
 }
 
 GMSetEntity::GMSetEntity(Entity * entity, int target, Model * model)

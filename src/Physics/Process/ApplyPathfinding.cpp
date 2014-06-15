@@ -114,7 +114,8 @@ void PhysicsManager::ApplyPathfinding(){
 				float bestDotProduct = 0.5f;
 				Waypoint * bestNextNeighbour = NULL;
 			//	std::cout<<"\nCurrentWaypoint Neighbours: "<<currentWaypoint->Neighbours();
-				for (int i = 0; i < currentWaypoint->Neighbours(); ++i){
+				for (int i = 0; i < currentWaypoint->Neighbours(); ++i)
+				{
 					Waypoint * neighbour = currentWaypoint->Neighbour(i);
 					if (!neighbour->passable)
 						continue;

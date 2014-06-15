@@ -12,7 +12,7 @@
 #include "RuneRPG/Network/RRSession.h"
 #include "RuneRPG/GameStates/RuneGameStatesEnum.h"
 
-
+class RREntityState;
 
 #define DEFAULT_NAME "No-name"
 
@@ -27,8 +27,10 @@ public:
 	bool Join(String ip, int port = RR_DEFAULT_PORT);
 
 	/// Fetches players from the active session.
-	static List<RRPlayer*> Players();
-
+	static List<RRPlayer*> GetPlayers();
+	/// Fetches our main player entity!
+	Entity * GetMainPlayerEntity();
+	RREntityState * GetMainPlayerState();
 	/// The main-session.
 	static RRSession * session;
 protected:

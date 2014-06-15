@@ -98,8 +98,16 @@ public:
 	// Title that should be rendered by the OS.
 	String title;
 
+	
+	/// Disables all render-flags below
+	void DisableAllRenders();
+
 	/// Window-specific render-flags.
 	bool renderViewports;
+	bool renderFPS;
+	bool renderState;
+	bool renderScene;
+	bool renderUI;
 
 #ifdef WINDOWS
 	// Sets up pixel format, Win32 style.

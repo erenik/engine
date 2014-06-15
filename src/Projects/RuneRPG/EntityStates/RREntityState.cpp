@@ -6,7 +6,6 @@
 
 #include "Message/Message.h"
 #include "Physics/Messages/CollissionCallback.h"
-#include "EntityStates/EntityStates.h"
 #include "Graphics/GraphicsManager.h"
 #include "Graphics/GraphicsProperty.h"
 #include "Maps/MapManager.h"
@@ -18,12 +17,14 @@
 #include "Physics/PhysicsProperty.h"
 #include "Pathfinding/PathfindingProperty.h"
 #include "Script/ScriptManager.h"
+#include "Maps/2D/EntityStateTile2D.h"
 
 const float RREntityState::DEFAULT_MOVEMENT_SPEED = 0.25f;
 
 RREntityState::RREntityState(Entity * entity)
-: EntityStateTile2D(entity)
+: EntityProperty(entity)
 {
+	name = "RREntityState";
 	entityTile2D = NULL;
 	movementSpeed = DEFAULT_MOVEMENT_SPEED;
 	timePassedSinceLastMovement = 0;
@@ -34,26 +35,32 @@ RREntityState::RREntityState(Entity * entity)
 	movementEnabled = true;
 };
 
+RREntityState::~RREntityState()
+{
+
+}
+
 /// Function when entering this state.
 void RREntityState::OnEnter(){
 }
 
 /// Main processing function
-void RREntityState::Process(float timePassed){
+void RREntityState::Process(int timePassedInMs){
 	// 
-	timePassedSinceLastMovement += timePassed;
+	timePassedSinceLastMovement += timePassedInMs;
 	
 	/// Only process movement if enabled!
 	if (movementEnabled)
-		HandleMovement(timePassed);
+		HandleMovement(timePassedInMs);
 
 }
 	/// Function when leaving this state
 void RREntityState::OnExit(){
 }
 
-void RREntityState::ProcessMessage(Message * message){
-	std::cout<<"\nRREntityState::ProcessMessage: ";
+void RREntityState::ProcessMessage(Message * message)
+{
+	std::cout<<"\nRREntityPropertyState::ProcessMessage: ";
 	switch(message->type){
 		case MessageType::STRING: {
 			message->msg;
@@ -61,6 +68,7 @@ void RREntityState::ProcessMessage(Message * message){
 			s.SetComparisonMode(String::NOT_CASE_SENSITIVE);
 			
 			/// Disable any input for movement when specified.
+
 			if (!movementEnabled)
 				return;
 			if (s == "walkLeft")
@@ -101,11 +109,21 @@ void RREntityState::ProcessMessage(Message * message){
 	UpdateQueuedMovement();
 }
 
+/// Sets queued movement/direction to 0.
+void RREntityState::StopMoving()
+{
+	left = right = up = down = false;
+	UpdateQueuedMovement();
+}
+
+
 /// Wosh.
-void RREntityState::DisableMovement(){
+void RREntityState::DisableMovement()
+{
 	movementEnabled = false;
 }
-void RREntityState::EnableMovement(){
+void RREntityState::EnableMovement()
+{
 	movementEnabled = true;
 }
 
@@ -165,14 +183,14 @@ void RREntityState::UpdateQueuedMovement(){
 	}
 }
 
-void RREntityState::HandleMovement(float & timePassed)
+void RREntityState::HandleMovement(int timePassedInMs)
 {
 	float timeRemainingAfterReachingDestination = 0.0f;
 	if (isMoving)
 	{
 		/// Check if we're there yet.
 		assert(movementSpeed > 0);
-		movementProgress += timePassed / movementSpeed;
+		movementProgress += timePassedInMs / movementSpeed;
 		if (movementProgress > 1.0f){
 			timeRemainingAfterReachingDestination = (movementProgress - 1.0f) * movementSpeed;
 			movementProgress = 1.0f;
@@ -280,7 +298,7 @@ void RREntityState::HandleMovement(float & timePassed)
 			bool success = map->MoveEntity(entity, reqTileX, reqTileY);
 			if (success){
 				newPosition = Vector3f(reqTileX, reqTileY, 0);
-				std::cout<<"\nRREntityState::HandleMovement Moved to: "<<newPosition;
+				std::cout<<"\nRREntityPropertyState::HandleMovement Moved to: "<<newPosition;
 				direction = queuedDirection;
 				movementProgress = 0.0f;
 				isMoving = true;

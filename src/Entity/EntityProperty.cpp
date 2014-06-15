@@ -2,12 +2,12 @@
 /// 2013-02-08
 
 
-#include "StateProperty.h"
-#include "EntityState.h"
+#include "EntityProperty.h"
+#include "EntityPropertyState.h"
 #include "../Entity/Entity.h"
 #include <cassert>
 
-StateProperty::StateProperty(Entity * entity)
+EntityProperty::EntityProperty(Entity * entity)
 : entity(entity){
 	currentState = NULL;
 	previousState = NULL;
@@ -15,7 +15,7 @@ StateProperty::StateProperty(Entity * entity)
 	globalState = NULL;
 };
 
-StateProperty::~StateProperty()
+EntityProperty::~EntityProperty()
 {
 	if (currentState) delete currentState;
 	if (previousState) delete previousState;
@@ -24,8 +24,8 @@ StateProperty::~StateProperty()
 };
 
 /// Sets global entity state!
-void StateProperty::SetGlobalState(EntityState * newState){
-	assert(newState && "newState not allocated in StateProperty::EnterState");
+void EntityProperty::SetGlobalState(EntityPropertyState * newState){
+	assert(newState && "newState not allocated in EntityProperty::EnterState");
 	// Save old state
 	if (globalState){
 		globalState->OnExit();
@@ -37,8 +37,8 @@ void StateProperty::SetGlobalState(EntityState * newState){
 
 
 /// Swaps state straight away, keeping the queued state.
-void StateProperty::EnterState(EntityState * newState){
-	assert(newState && "newState not allocated in StateProperty::EnterState");
+void EntityProperty::EnterState(EntityPropertyState * newState){
+	assert(newState && "newState not allocated in EntityProperty::EnterState");
 	// Save old state
 	if (previousState)
 		delete previousState;
@@ -51,7 +51,7 @@ void StateProperty::EnterState(EntityState * newState){
 }
 
 /// Enters queued state. Returns false if no state was queued.
-bool StateProperty::EnterQueuedState(){
+bool EntityProperty::EnterQueuedState(){
 	if (queuedState == NULL)
 		return false;
 	// Re-point stuff
@@ -67,32 +67,33 @@ bool StateProperty::EnterQueuedState(){
 }
 
 /// Enters the previous state again.
-void StateProperty::RevertToPreviousState(){
+void EntityProperty::RevertToPreviousState(){
 	currentState->OnExit();
-	EntityState * tmp = currentState;
+	EntityPropertyState * tmp = currentState;
 	currentState = previousState;
 	previousState = tmp;
 	currentState->OnEnter();
 };
 
 /// Callback for when one or more paths have been invalidated to due changes in the map.
-void StateProperty::PathsInvalidated(){
+void EntityProperty::PathsInvalidated(){
 	if (globalState){
 		globalState->PathsInvalidated();
 	}
 }
 
 /// Bleh o-o
-void StateProperty::Process(float timePassed){
+void EntityProperty::Process(int timeInMs)
+{
 	if (globalState)
-		globalState->Process(timePassed);
+		globalState->Process(timeInMs);
 	if (currentState)
-		currentState->Process(timePassed);
+		currentState->Process(timeInMs);
 }
 
 
 /// Sent to both global and current state
-void StateProperty::ProcessMessage(Message * message){
+void EntityProperty::ProcessMessage(Message * message){
 	if (globalState)
 		globalState->ProcessMessage(message);
 	if (currentState)

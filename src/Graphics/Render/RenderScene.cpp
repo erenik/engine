@@ -49,7 +49,7 @@ void GraphicsManager::RenderScene()
 	// Reset matrices: This may as well be done before rendering is done, since the matrices
 	// will need to be reset all the time depending on the content to be rendered and where ^^
 	/// Camera is already updated, so just use it's matrices straight away ^^
-	Camera camera = *graphicsState.camera;
+	Camera & camera = *graphicsState.camera;
 
 	// Camera calculations are now done inside the camera, so the camPos/camLookingAtVector/camUpVector can now be removed!
 	// If view frustum culling is enabled, set it in the settings and update the frustum with the camera's current position.

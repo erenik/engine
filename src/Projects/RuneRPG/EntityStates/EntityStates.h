@@ -2,7 +2,7 @@
 // 2013-06-30
 
 /// States for the RuneRPG!
-namespace RuneEntityState {
+namespace RuneEntityPropertyState {
 enum entityStates{
 	NULL,
 	PLAYER,

@@ -715,7 +715,7 @@ void InputManager::EvaluateKeyPressed(int activeKeyCode, bool downBefore){
 		activeElement = userInterface->GetActiveElement();
 		UIElement * hoverElement = userInterface->GetHoverElement();
 		// UI-navigation if focused.
-		if (navigateUI && ! activeElement && hoverElement)
+		if (navigateUI)
 		{
 			bool uiCommand = true;
 			switch(activeKeyCode){

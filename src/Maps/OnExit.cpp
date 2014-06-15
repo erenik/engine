@@ -8,7 +8,8 @@ struct Map::OnExitAttributes{
 	const char * musicAtZone;
 };
 
-void Map::OnExit(){
-	MapMan.ClearEventSpawnedEntities();
-	MapMan.ClearPlayerEntities();
+void Map::OnExit()
+{
+//	MapMan.ClearEventSpawnedEntities();
+//	MapMan.ClearPlayerEntities();
 };

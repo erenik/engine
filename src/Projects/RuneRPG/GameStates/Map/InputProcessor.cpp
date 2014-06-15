@@ -5,7 +5,7 @@
 #include "Actions.h"
 // Don't include all managers. Ever.
 #include "Maps/2D/TileMap2D.h"
-#include "EntityStates/StateProperty.h"
+#include "Entity/EntityProperty.h"
 #include "Message/Message.h"
 #include "RuneRPG/EntityStates/RREntityState.h"
 #include "Graphics/GraphicsManager.h"
@@ -22,60 +22,51 @@ void MapState::InputProcessor(int action, int inputDevice/* = 0*/){
 	if (Input.IsInTextEnteringMode())
 		return;
 
+	RREntityState * playerState = GetMainPlayerState();
+	if (!playerState)
+		return;
 
-#define ASSERT_PLAYER {\
-	if(!playerEntity || !playerEntity->state)\
-		return;\
-	}
-	
+#define ASSERT_PLAYER //
+
 	std::cout<<"\nMapState::InputProcessor";
 	// Regular switch
 	switch(action){
 		case BEGIN_WALK_LEFT: {
-			ASSERT_PLAYER
 			playerState->ProcessMessage(new Message("WalkLeft"));
 			return;
 		}
 		case BEGIN_WALK_RIGHT: {
-			ASSERT_PLAYER
 			playerState->ProcessMessage(new Message("WalkRight"));
 			return;
 		}
 		case BEGIN_WALK_UP: {
-			ASSERT_PLAYER
 			playerState->ProcessMessage(new Message("WalkUp"));
 			return;
 		}
 		case BEGIN_WALK_DOWN: {
-			ASSERT_PLAYER
 			playerState->ProcessMessage(new Message("WalkDown"));
 			return;
 		}
 		case STOP_WALK_LEFT: {
-			ASSERT_PLAYER;
 			playerState->ProcessMessage(new Message("stopWalkLeft"));
 			return;
 		}
 		case STOP_WALK_RIGHT: {
-			ASSERT_PLAYER;
 			playerState->ProcessMessage(new Message("stopWalkRight"));
 			return;
 		}
 		case STOP_WALK_UP: {
-			ASSERT_PLAYER;
 			playerState->ProcessMessage(new Message("stopWalkUp"));
 			return;
 		}
-		case STOP_WALK_DOWN: {
-			ASSERT_PLAYER;
+		case STOP_WALK_DOWN: 
+		{
 			playerState->ProcessMessage(new Message("stopWalkDown"));
 			return;
 		}
-		case INTERACT: {
-			/// Interact with ze environmeneeent.
-			if (playerEntity && playerState){
-				playerState->ProcessMessage(new Message("Interact"));
-			}
+		case INTERACT: 
+		{
+			playerState->ProcessMessage(new Message("Interact"));
 			return;
 		}
 	/*	case STOP_WALK_LEFT: {

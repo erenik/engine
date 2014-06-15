@@ -4,27 +4,30 @@
 #ifndef AI_PROPERTY_H
 #define AI_PROPERTY_H
 
-#include "AI.h"
-class AIState;
+#include "String/AEString.h"
 class Entity;
-class EntityState;
+class EntityPropertyState;
 struct Message;
 
-/// The StateProperty is pretty much a StateMachine that can be attached to the entities.
-struct StateProperty {
-	friend class AIManager;
-	friend class World;
-	friend class EntityState;
+/// The EntityProperty is pretty much a StateMachine that can be attached to the entities.... wat?
+class EntityProperty 
+{
+//	friend class AIManager;
+//	friend class World;
+	friend class EntityPropertyState;
 public:
 	/// Default annulizing constructor.
-	StateProperty(Entity * entity);
-	~StateProperty();
+	EntityProperty(Entity * entity);
+	virtual ~EntityProperty();
+
+	/// Should correspond to class-name.
+	String name;
 
 	/// Sets global entity state!
-	void SetGlobalState(EntityState * globalState);
+	void SetGlobalState(EntityPropertyState * globalState);
 
 	/// Swaps state straight away, keeping the queued state.
-	void EnterState(EntityState * newState);
+	void EnterState(EntityPropertyState * newState);
 	/// Enters queued state. Returns false if no state was queued.
 	bool EnterQueuedState();
 	/// Enters the previous state again.
@@ -34,23 +37,24 @@ public:
 	void PathsInvalidated();
 
 	/// Time passed in seconds..!
-	void Process(float timePassed);
-	EntityState * GlobalState() { return globalState; };
+	virtual void Process(int timeInMs);
+	EntityPropertyState * GlobalState() { return globalState; };
 
 	/// Sent to both global and current state
 	void ProcessMessage(Message * message);
 
+	/// Reference, should not be altered.
+	Entity * entity;
+
 private:
 	/// GameState-control variables
-	EntityState * currentState;
-	EntityState * previousState;
-	EntityState * queuedState;
+	EntityPropertyState * currentState;
+	EntityPropertyState * previousState;
+	EntityPropertyState * queuedState;
 
 	/// Global state that is run
-	EntityState * globalState;
+	EntityPropertyState * globalState;
 
-	/// Reference
-	Entity * entity;
 
 	/// General/multi-purpose variables common to all states.
 	/// Should be declared in the GlobalState!

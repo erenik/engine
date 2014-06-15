@@ -9,6 +9,7 @@
 #include "GameStates/GameStates.h"
 #include "Selection.h"
 
+class Window;
 class RuneEntity;
 class RRPlayer;
 class RREntityState;
@@ -54,6 +55,17 @@ public:
 	void SetCamera(Camera & reference);
 
 private:
+
+	int stepsTakenAfterZoning;
+	int stepsSinceLastBattle;
+	/// Evaluate if we should trigger some kinda battle.
+	void PlayerPositionUpdated(Vector3i position);
+
+	/// For reloading maps, looking at coordinates, etc.
+	Window * mapTestWindow;
+
+	/// Returns the entities the players are walking around with on the map.
+	List<Entity*> GetPlayerEntities();
 	void PlaceZone(String zoneScriptRef, int x, int y);
 	/// o-o
 	void SpawnNPC(String fromRef, int x, int y);
@@ -72,7 +84,7 @@ private:
 	/// Bind camera to ze playah.-
 	void TrackPlayer();
 	/// Place player on ze mappur ^3^
-	bool PlacePlayer(Vector3i position);
+	bool PlacePlayers(Vector3i position);
 	// To look at ze player?
 	void ResetCamera();
 	// For when testing..!
@@ -89,11 +101,14 @@ private:
 
 	bool menuOpen;
 
+	/// Current map when walking around. When switching game states (e.g. to and from battle) this is used to reload the map you were on previously.
+	String currentMap;
+
 	/// Active shop!
-	RuneShop * activeShop;
-	RRPlayer * player;
-	Entity * playerEntity;
-	RREntityState * playerState;
+//	RuneShop * activeShop;
+//	RRPlayer * player;
+//	Entity * playerEntity;
+//	RREntityState * playerState;
 	// For when testing.
 	TileMap2D * mapToLoad;
 	int enterMode;

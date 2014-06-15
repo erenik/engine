@@ -31,6 +31,10 @@ Window::Window(String name)
 	frameTexture = NULL;
 
 	renderViewports = true;
+	renderFPS = false;
+	renderState = true;
+	renderScene = true;
+	renderUI = true;
 
 	backgroundColor = Vector4f(0,1,0,1);
 
@@ -456,6 +460,10 @@ bool Window::DeleteGLContext()
 			{
 				hdc = NULL;
 			}
+			else if (error == ERROR_DC_NOT_FOUND)
+			{
+				hdc = NULL;
+			}
 			else if (error == ERROR_SUCCESS)
 			{
 				 /// lol, succeeded?
@@ -466,6 +474,16 @@ bool Window::DeleteGLContext()
 	}
 #endif
 	return result;
+}
+
+/// Disables all render-flags below
+void Window::DisableAllRenders()
+{
+	renderViewports = 
+		renderFPS = 
+		renderState =
+		renderScene =
+		renderUI = false;
 }
 
 /// p-=p

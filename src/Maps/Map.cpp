@@ -1,3 +1,6 @@
+/// Emil Hedemalm
+/// 2014-06-15
+/// Map class for grouping entities, lighting, events and scripts together.
 
 #include "Map.h"
 
@@ -8,10 +11,11 @@ extern EntityManager entityManager;
 extern GraphicsManager graphics;
 
 #include "../Entity/CompactEntity.h"
-#include "EntityStates/StateProperty.h"
+#include "Entity/EntityProperty.h"
 #include "Script/Script.h"
 #include "Pathfinding/NavMesh.h"
 #include <cstring>
+#include "Physics/PhysicsManager.h"
 
 Map::Map()
 {
@@ -29,6 +33,7 @@ Map::Map()
 	navMesh = NULL;
 	source = "GameEngine created";
 	mapType = MAP_TYPE_3D;
+	active = false;
 }
 
 Map::~Map(){
@@ -55,9 +60,15 @@ bool Map::AddEvent(Script * event){
 	return true;
 }
 
-/** Removes target entity from the map. */
-bool Map::RemoveEntity(Entity * i_entity){
-	entities.Remove(i_entity);
+/** Removes target entity from the map. If the map is active the entity will also be de-registered from graphics/physics/etc.? */
+bool Map::RemoveEntity(Entity * entity)
+{
+	entities.Remove(entity);
+	if (this->active)
+	{
+		Graphics.QueueMessage(new GMUnregisterEntity(entity));
+		Physics.QueueMessage(new PMUnregisterEntity(entity));
+	}
 	return true;
 }
 
@@ -110,30 +121,25 @@ void Map::RemoveAllEvents(){
 */
 
 // Process called each game loop by the stateManager
-void Map::Process(float timePassed){
+void Map::Process(float timePassed)
+{
 	for (int i = 0; i < entities.Size(); ++i){
 		Entity * entity = entities[i];
 		entity->name;
-		if (entity->state)
-			entity->state->Process(timePassed);
-	}
-/*
-	// Process events too!
-	for (int i = 0; i < events.Size(); ++i){
-		if (events[i]->state == Script::BEGUN){
-			events[i]->Process(timePassed);
-			if (events[i]->state == Script::ENDING)
-				events[i]->OnEnd();
+		for (int i = 0; i < entity->properties.Size(); ++i)
+		{
+			entity->properties[i]->Process(timePassed);
 		}
 	}
-*/
 }
 
 /// Parse model and texture dependencies if they were not included in the file upon loading!
-bool Map::ParseDependencies(){
+bool Map::ParseDependencies()
+{
 	modelsRequired.Clear();
 	texturesRequired.Clear();
-	for (int i = 0; i < cEntities.Size(); ++i){
+	for (int i = 0; i < cEntities.Size(); ++i)
+	{
 		/// Models
 		List<String> modelDependencies = cEntities[i]->GetModelDependencies();
 		for (int j = 0; j < modelDependencies.Size(); ++j){

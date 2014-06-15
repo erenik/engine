@@ -40,6 +40,11 @@ Camera::Camera(){
 	scaleSpeedWithZoom = false;
 };
 
+Camera::~Camera()
+{
+
+}
+
 // Prints data, including position, matrices, etc.
 void Camera::PrintData() const {
 	std::cout<<"\nCamera::PrintData for camera: "<<name;

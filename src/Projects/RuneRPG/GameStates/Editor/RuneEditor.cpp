@@ -37,8 +37,8 @@
 #include "RuneEditor.h"
 #include "Script/Script.h"
 #include "../Map/MapState.h"
-#include "EntityStates/StateProperty.h"
-#include "../../EntityStates/RREntityState.h"
+#include "Entity/EntityProperty.h"
+#include "RuneRPG/EntityStates/RREntityState.h"
 #include "Graphics/Camera/Camera.h"
 #include "GraphicsState.h"
 #include "../../RuneDirectories.h"
@@ -1145,9 +1145,9 @@ void RuneEditor::Playtest()
 			StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_EDITOR));
 			return;
 		}
-		Entity * player = MapMan.CreateEntity(m,t,position);
-		player->name = "Player";
-		player->state = new StateProperty(player);
+		Entity * playerEntity = MapMan.CreateEntity(m,t,position);
+		playerEntity->name = "Player";
+//		playerEntity->state = new EntityProperty(player);
 		// Lall.
 	//	EntityStateTile2D * entityTile2D = ((TileMap2D*)MapMan.ActiveMap())->GetEntity2DByEntity(player);
 	//	player->state->SetGlobalState(new RREntityState(player, entityTile2D));

@@ -7,7 +7,7 @@
 #include "Maps/2D/TileMap2D.h"
 #include "Maps/Grids/TileTypeManager.h"
 #include "RuneRPG/GameStates/Map/MapState.h"
-#include "EntityStates/StateProperty.h"
+#include "Entity/EntityProperty.h"
 #include "RuneRPG/EntityStates/RREntityState.h"
 #include "Input/InputManager.h"
 #include "StateManager.h"

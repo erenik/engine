@@ -103,10 +103,30 @@ bool RRGameState::Join(String ip, int port /*= 33010*/)
 }
 
 /// Fetches players from the active session.
-List<RRPlayer*> RRGameState::Players()
+List<RRPlayer*> RRGameState::GetPlayers()
 {
 	return session->GetPlayers();
 }
+
+/// Fetches our main player entity!
+Entity * RRGameState::GetMainPlayerEntity()
+{
+	List<RRPlayer*> players = session->GetPlayers();
+	for (int i = 0; i < players.Size(); ++i)
+	{
+		RRPlayer * player = players[i];
+		return player->mapEntity;
+	}
+	return NULL;
+}
+
+RREntityState * RRGameState::GetMainPlayerState()
+{
+	Entity * mainPlayerEntity = GetMainPlayerEntity();
+	RREntityState * rrState = (RREntityState *)mainPlayerEntity->GetProperty("RREntityState");
+	return rrState;
+}	
+
 
 /// Called to log network-related messages, like clients joining or failures to host. Display appropriately.
 void RRGameState::NetworkLog(String message)

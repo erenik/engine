@@ -8,6 +8,7 @@
 #include "Pathfinding/NavMesh.h"
 #include "GraphicsState.h"
 #include "Graphics/Camera/Camera.h"
+#include "Pathfinding/WaypointManager.h"
 
 /// Macros for going through all tiles.
 #define FOR_TILE_START for (int y = 0; y < size.y; ++y){\
@@ -57,6 +58,9 @@ void TileGrid2D::ReadFrom(std::fstream & file){
 /// Do note that the navMesh will be cleared before new waypoints are added.
 int TileGrid2D::GenerateWaypoints(NavMesh * navMesh, float maxNeighbourDistance)
 {
+	/// Wait until its claimable
+	while(!WaypointMan.GetActiveNavMeshMutex())
+		;
 	int waypointsPre = navMesh->waypoints;
 		
 	std::cout<<"\nTileGrid2D::GenerateWaypoints";
@@ -94,6 +98,8 @@ int TileGrid2D::GenerateWaypoints(NavMesh * navMesh, float maxNeighbourDistance)
 	std::cout<<"\nWaypoints: "<<waypointsPre<<" post:"<<waypointsPost;
 	assert(waypointsPost > waypointsPre);	
 	std::cout<<"\nWps created: "<<waypointsCreated;
+	/// Release it upon finishing
+	WaypointMan.ReleaseActiveNavMeshMutex();
 	return waypointsCreated;
 }
 /// For re-sizing.

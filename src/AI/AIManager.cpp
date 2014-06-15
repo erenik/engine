@@ -2,7 +2,7 @@
 ///// 2013-02-08
 //
 //#include "AIManager.h"
-//#include "StateProperty.h"
+//#include "EntityProperty.h"
 //#include "AIState.h"
 //#include "../Globals.h"
 //#include "../Entity/Entity.h"

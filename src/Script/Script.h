@@ -21,6 +21,8 @@ class Script {
 public:
 	Script(const Script & base);
 	Script(String name = "Script", Script * parentScript = NULL);
+	/// Sets default values.
+	void Nullify();
 
 	// Playback functions.
 	// Returns true if it was paused. Some scripts may not be pausable, as defined when loading them or when a flag is set during processing.
@@ -127,6 +129,9 @@ public:
 
 	/// Like DELETE_WHEN_ENDED,
 	int flags;
+
+	/// Defaults to... false? If true, any script that is called to play with the same source or name will be ignored and discarded then? 
+	bool allowMultipleInstances;
 private:
 
 	/// For if- and elsif- statements.

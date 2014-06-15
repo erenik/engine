@@ -19,8 +19,10 @@ public:
 	
 	/// Player entity state (primarily on map?)
 	RREntityState * playerState;
-	// They of course want a ship-type!
-	Entity * entity;
+	/// Entity when walking around the map.
+	Entity * mapEntity;
+	/// Entity created and linked to the battler.
+	Entity * battlerEntity;
 	/// Add more statistics later, hm?
 	
 	RuneBattler * Battler();

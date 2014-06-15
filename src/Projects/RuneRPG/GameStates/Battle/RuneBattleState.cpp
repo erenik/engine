@@ -13,7 +13,7 @@
 #include "Viewport.h"
 #include "Physics/Messages/CollissionCallback.h"
 #include "Physics/Messages/PhysicsMessage.h"
-#include "EntityStates/StateProperty.h"
+#include "Entity/EntityProperty.h"
 #include "Graphics/Messages/GMParticleMessages.h"
 #include <Util.h>
 #include <iomanip>
@@ -53,7 +53,8 @@ RuneBattleState::RuneBattleState()
 	battleTestWindow = NULL;
 }
 
-RuneBattleState::~RuneBattleState(){
+RuneBattleState::~RuneBattleState()
+{
 	delete camera;
 	camera = NULL;
 }
@@ -339,6 +340,11 @@ void RuneBattleState::ProcessMessage(Message * message)
 				StateMan.ActiveState()->InputProcessor(INTERPRET_CONSOLE_COMMAND);
 				return;
 			}
+			else if (msg == "EndBattle")
+			{
+				// End the battle prematurely.
+				this->EndBattle();
+			}
 			else if (msg == "ReloadBattle()")
 			{
 				// Hide all UI
@@ -510,15 +516,14 @@ bool RuneBattleState::LoadBattle(String fromSource)
 }
 
 /// Pokes the BattleManager to end the battle and then queues state-change to whereever we came from
-void RuneBattleState::EndBattle(){
+void RuneBattleState::EndBattle()
+{
 	std::cout<<"\n==========================================================";
 	std::cout<<"\nBATTLE IS OVER!";
 	std::cout<<"\n==========================================================";
 	/// Hide all UI
 	HideMenus();
 	BattleMan.EndBattle();
-	/// Wait for like.. 2 seconds?
-	Sleep(2000);
 	/// Go to previous state for now?
 	StateMan.QueueState(StateMan.PreviousState());
 }

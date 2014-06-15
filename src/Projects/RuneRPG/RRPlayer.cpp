@@ -9,7 +9,7 @@ RRPlayer::RRPlayer(String name)
 : Player(name)
 {
 	playerState = NULL;
-	entity = NULL;
+	mapEntity = battlerEntity = NULL;
 	/// Set default values to the battler as needed
 	battler.isAI = false;
 	battler.name = name;

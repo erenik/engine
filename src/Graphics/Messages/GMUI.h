@@ -13,8 +13,13 @@ class UserInterface;
 
 class GMUI : public GraphicsMessage{
 public:
-	/// Default constructor, if viewPortTarget is NULL it will target the active global UI.
-	GMUI(int messageType, Viewport * viewport = NULL);
+	/// Default constructor, will target active global UI.
+	GMUI(int messageType);
+	/// Default constructor.
+	GMUI(int messageType, UserInterface * targetUI);
+	/// Default constructor.
+	GMUI(int messageType, Viewport * viewport);
+	void Nullify();
 	virtual void Process() = 0;
 
 	enum gmUITargets {
@@ -74,6 +79,7 @@ private:
 class GMSetUIv2i : public GMUI {
 public:
 	GMSetUIv2i(String UIname, int target, Vector2i v, Viewport * viewport = NULL);
+	GMSetUIv2i(String UIname, int target, Vector2i v, UserInterface * targetUI);
 	void Process();
 private:
 	String name;
@@ -110,9 +116,13 @@ private:
 /// For setting floating point values, like relative sizes/positions, scales etc.
 class GMSetUIf : public GMUI {
 public:
-	GMSetUIf(String UIname, int target, float value, Viewport * viewport = NULL);
+	/// Targets global UI
+	GMSetUIf(String UIname, int target, float value);
+	GMSetUIf(String UIname, int target, float value, UserInterface * inUI);
+	GMSetUIf(String UIname, int target, float value, Viewport * viewport);
 	void Process();
 private:
+	void AssertTarget();
 	String name;
 	int target;
 	UIElement * element;

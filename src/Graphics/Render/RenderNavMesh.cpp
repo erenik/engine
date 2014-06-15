@@ -16,7 +16,8 @@
 #define HAS_ENTITY_COLOR {glColor4f(2.0f,0,0,0.7f);}
 
 /// Sets a color fitting for the waypoint.
-void SetColorForWaypoint(Waypoint * wp){
+void SetColorForWaypoint(Waypoint * wp)
+{
 	Vector4f color;
 	if (wp->passable){
 		color = Vector4f(0.5f, 0.7f, 0.9f, 0.4f);
@@ -75,7 +76,8 @@ void GraphicsManager::RenderNavMesh(){
 
 	float passablesRendered = 0;
 	/// Draw points at each waypoint first?
-	for (int i = 0; i < nm->waypoints.Size(); ++i){
+	for (int i = 0; i < nm->waypoints.Size(); ++i)
+	{
 		Waypoint * wp = nm->waypoints[i];
 		SetColorForWaypoint(wp);
 		// Render if we got a model ^^

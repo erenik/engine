@@ -279,7 +279,7 @@ void TileMap2D::Render(){
 			offset = Vector2f(got->size) * 0.5f - got->pivotPosition;
 			/// Add an offset in depth based on Y, so that we can easily render moving entities afterwards.
 			Matrix4d transformationMatrix = Matrix4d::InitTranslationMatrix(Vector3f(position.x + offset.x, position.y + offset.y, 0.1f - position.y * 0.0001f));
-			transformationMatrix.Scale(Vector3f(got->size.x, got->size.y, 1));
+			transformationMatrix.Scale(Vector3f(got->size.x, got->size.y, 1.f));
 			// Apply transformation
 			graphicsState.modelMatrixD = Matrix4d();
 			graphicsState.modelMatrixD.multiply(transformationMatrix);
@@ -312,7 +312,7 @@ void TileMap2D::Render(){
 				continue;
 			
 			/// Use some offset based on the sprite.
-			EntityStateTile2D * state = (EntityStateTile2D*)entity->state;
+			EntityStateTile2D * state = (EntityStateTile2D*)entity->GetProperty("EntityStateTile2D");
 			offset = Vector2f();
 			Vector2f spriteSize(1,2);
 			offset = spriteSize * 0.5f - Vector2f(0.5f,0.5f);
@@ -562,7 +562,7 @@ void TileMap2D::RenderEntities(){
 		float xPos = (float)pos.x;
 		float yPos = (float)pos.y;
 		// Draw entities too, yo.
-		Entity * e = entityTile2D->entity;
+		const Entity * e = entityTile2D->entity;
 	//	std::cout<<"\nRendering entity "<<i<<": "<<e->name;
 
 		float z = 0.1f;
@@ -1249,13 +1249,16 @@ void TileMap2D::RandomizeTiles(){
 }
 
 /// For le adding!
-bool TileMap2D::AddEntity(Entity * e){
-	/// See if it's already been added.
-	EntityStateTile2D * e2 = GetEntity2DByEntity(e);
-	assert(!e2 && "Entity already added to map! Stahp! Use move or remove it first!");
-
+bool TileMap2D::AddEntity(Entity * entity)
+{
+	EntityStateTile2D * tile2DState = (EntityStateTile2D*) entity->GetProperty("EntityStateTile2D");
+	if (entitiesTile2D.Exists(tile2DState))
+	{
+		assert(false && "Entity already added to map! Stahp! Use move or remove it first!");
+		return true;
+	}	
 	// Place it on ze grid too!
-	Vector3i position = e->position;
+	Vector3i position = entity->position;
 	/// Make sure it's a valid tile, if not abort the addition (and creation).
 	while (GetEntityByPosition(position)){
 //		assert(false && "Bad location to place entity! Already occupied! Fetch a position first with GetWalkableTile()");
@@ -1264,27 +1267,37 @@ bool TileMap2D::AddEntity(Entity * e){
 		position = tile->position;
 		return false;
 	}
-	// Create it
-	e2 = new EntityStateTile2D(e);
-	e2->position = position;
-	entitiesTile2D.Add(e2);
-	Map::AddEntity(e);
+	// Create the state if needed.
+	if (!tile2DState){
+		tile2DState = new EntityStateTile2D(entity);
+		tile2DState->position = position;
+		entity->properties.Add(tile2DState);
+	}
+	entitiesTile2D.Add(tile2DState);
+	Map::AddEntity(entity);
 	return true;
 }
 
 /** Removes target entity from the map. */
-bool TileMap2D::RemoveEntity(Entity * entity){
+bool TileMap2D::RemoveEntity(Entity * entity)
+{
 	EntityStateTile2D * entityTile2D = GetEntity2DByEntity(entity);
-	assert(entityTile2D && "Trying to remove entity that has already been removed.");
+	if (!entityTile2D)
+	{
+		std::cout<<"\nTrying to remove entity that is not present, skipping";
+		return false;
+	}
+	assert(entityTile2D && "Trying to remove entity that has already been removed?");
 	bool result = entitiesTile2D.Remove(entityTile2D);
 	assert(result);
-	delete entityTile2D;
+	/// Why delete the tile2D state? Store it if moving to a different map
+//	delete entityTile2D;
 	Map::RemoveEntity(entity);
 	return true;
 }
 
 
-void TileMap2D::Interact(Vector3i position, Entity * interacter)
+void TileMap2D::Interact(Vector3i position, const Entity * interacter)
 {
 	/// Interactor might be omitted if wished?
 	assert(interacter);
@@ -1293,7 +1306,7 @@ void TileMap2D::Interact(Vector3i position, Entity * interacter)
 	EntityStateTile2D * interactee = GetEntityByPosition(position);
 	if (!interactee)
 		return;
-	Entity * entity = interactee->entity;
+	const Entity * entity = interactee->entity;
 	if (entity && entity->scripts && entity->scripts->onInteract){
 		Script * onInteract = entity->scripts->onInteract;
 		ScriptMan.PlayEvent(onInteract);
@@ -1302,10 +1315,13 @@ void TileMap2D::Interact(Vector3i position, Entity * interacter)
 }
 
 /// Attempts to fetch target entity's Tile2D equivalent/meta-structure.
-EntityStateTile2D * TileMap2D::GetEntity2DByEntity(Entity * entity){
-	for (int i = 0; i < entitiesTile2D.Size(); ++i){
-		if (entitiesTile2D[i]->entity == entity)
-			return entitiesTile2D[i];
+EntityStateTile2D * TileMap2D::GetEntity2DByEntity(const Entity * entity)
+{
+	for (int i = 0; i < entitiesTile2D.Size(); ++i)
+	{
+		EntityStateTile2D * state = entitiesTile2D[i];
+		if (state->entity == entity)
+			return state;
 	}
 	return NULL;
 }
@@ -1321,7 +1337,8 @@ EntityStateTile2D * TileMap2D::GetEntityByPosition(Vector3i position){
 }
 
 /// Generates (allocates) waypoints for target navmesh. It also performs any connections within as appropriate.
-int TileMap2D::GenerateWaypoints(NavMesh * navMesh){
+int TileMap2D::GenerateWaypoints(NavMesh * navMesh)
+{
 	std::cout<<"\nTileMap2D::GenerateWaypoints";
 	assert(tileTypesAssignedToTiles);
 	for (int i = 0; i < levels.Size(); ++i){

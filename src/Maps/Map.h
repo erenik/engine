@@ -1,3 +1,6 @@
+/// Emil Hedemalm
+/// 2014-06-15
+/// Map class for grouping entities, lighting, events and scripts together.
 
 #ifndef MAP_H
 #define MAP_H
@@ -62,7 +65,8 @@ public:
 
 	/// Evaluates
 	virtual void OnEnter();	// Called once when entering the map
-	virtual void OnExit();	// Called once when exiting the map
+	// Called once when exiting the map
+	virtual void OnExit();	
 	// Process called each game loop by the stateManager. Time passed in seconds!
 	void Process(float timePassed);
 
@@ -102,9 +106,16 @@ public:
 	List<Script*> GetEvents();
 	inline int NumEntities() { return entities.Size(); };
 
+	/** Removes target entity from the map. If the map is active the entity will also be de-registered from graphics/physics/etc.? */
+	virtual bool RemoveEntity(Entity * entity);	
+
 	/// Fetches last error string, resetting it upon use.
 	String GetLastErrorString();
 protected:
+
+	/// If this map is currently active and being rendered/interacted with?
+	bool active;
+
 	/// For querying reasons of failure.
 	String lastErrorString;
 
@@ -135,8 +146,6 @@ protected:
 	virtual bool AddEntity(Entity * entity);
 	/// Adds target event to the map.
 	virtual bool AddEvent(Script * eventScript);
-	/** Removes target entity from the map. */
-	virtual bool RemoveEntity(Entity * entity);
 	/** Removes target entities from the map. Returns number of failed removals. */
 	int RemoveEntities(Selection entities);
 	/// Deletes all entities from the map.

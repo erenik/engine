@@ -14,6 +14,8 @@ class Population
 	Population();
 	friend class PopulationManager;
 	bool LoadFrom(String file);
+	// File used when loading last time.
+	String source;
 public:
 	~Population();	
 	// Unique name (hopefully?)
@@ -22,6 +24,9 @@ public:
 //	int id;
 	/// Original map this population started in.
 	String originZone;
+
+	
+	float GetEncounterRatio(Vector3i atPosition);
 
 	/// If active in current map.
 	bool active;
@@ -56,6 +61,10 @@ public:
 	/// Relative growth based on amount per.. month?
 	float growth;
 
+	/// 0 = equal distribution, 1.0 = Max at center, 0 at edge. 0.5 = 0.75 at center, 0.25 at edge
+	float distanceDecay;
+	float decayExponent;
+
 	/// Battlers that live in this population. Can be used for generating hybrid encounters maybe?
 	List<String> battlers;
 	/// Common battles that might occur when in the vicinity of this population.
@@ -74,6 +83,7 @@ public:
 	static void Deallocate();
 	static PopulationManager * Instance();
 
+	void ReloadPopulations();
 
 	List<Population*> ActivePopulations();
 	List<Population*> LoadPopulations(String fromDir);

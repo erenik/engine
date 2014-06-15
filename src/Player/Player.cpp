@@ -12,7 +12,6 @@ Player::Player(String name)
 : name(name), type("DefaultPlayerType")
 {
 	id = idEnumerator++;
-	entity = NULL;
 	isLocal = true;
 	isAI = false;
 	color = Vector4f(1,1,1,1);

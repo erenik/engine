@@ -170,9 +170,12 @@ bool MapManager::MakeActiveByIndex(int mapIndex){
 	return MakeActive(maps[mapIndex]);
 }
 
-bool MapManager::MakeActive(String mapName){
-    for (int i = 0; i < maps.Size(); ++i){
-        if (maps[i]->name == mapName){
+bool MapManager::MakeActive(String mapName)
+{
+    for (int i = 0; i < maps.Size(); ++i)
+	{
+        if (maps[i]->name == mapName)
+		{
             MakeActive(maps[i]);
             return true;
         }
@@ -184,7 +187,8 @@ bool MapManager::MakeActive(String mapName){
 	all depending on the provided entities belonging to it.
 	Returns false upon failure.
 */
-bool MapManager::MakeActive(Map * map){
+bool MapManager::MakeActive(Map * map)
+{
 	/// Target map is already active one!
 	if (activeMap == map)
 		return true;
@@ -194,6 +198,7 @@ bool MapManager::MakeActive(Map * map){
 	/// Make last map inactive first?
 	if (this->activeMap)
 	{
+		activeMap->active = false;
 		activeMap->OnExit();
 		/// Unregister all entities
 		Graphics.QueueMessage(new GraphicsMessage(GM_UNREGISTER_ALL_ENTITIES));
@@ -208,6 +213,8 @@ bool MapManager::MakeActive(Map * map){
 	// Now, if a null-map was queued, make it so!
 	if (map == NULL)
 		return false;
+	// Set new map as active.
+	map->active = true;
 
 	Graphics.QueueMessage(new GMSetLighting(&map->lighting));
 	/// Initial check again.
@@ -220,7 +227,7 @@ bool MapManager::MakeActive(Map * map){
 	/** Creates entities from the cEntity data, as these structures are the only ones guaranteed to remain upon
 		switching active map!
 	*/
-	LoadFromCompactData(map);
+//	LoadFromCompactData(map);
 
 	/// Register the entities with relevant managers!
 	Entity * currentEntity;
@@ -850,7 +857,8 @@ void MapManager::ClearEventSpawnedEntities(){
 }
 
 /// Removes all entities with the PLAYER_OWNED_FLAG
-void MapManager::ClearPlayerEntities(){
+void MapManager::ClearPlayerEntities()
+{
 	assert(activeMap);
 	List<Entity*> entities = activeMap->GetEntities();
 	for (int i = 0; i < entities.Size(); ++i){

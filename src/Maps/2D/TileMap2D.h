@@ -14,7 +14,8 @@ class GridObject;
 class GridObjectType;
 
 /// A standard 2D-map based on tiles, including ground, terrain, and objects.
-class TileMap2D : public Map{
+class TileMap2D : public Map
+{
 	friend class MapManager;
 	TileMap2D();
 	virtual ~TileMap2D();
@@ -66,10 +67,10 @@ public:
 	void RandomizeTiles();
 
 	/// Wosh. Tries OnInteract events at target tile, with the interacter as reference.
-	void Interact(Vector3i position, Entity * interacter);
+	void Interact(Vector3i position, const Entity * interacter);
 
 	/// Attempts to fetch target entity's Tile2D equivalent/meta-structure.
-	EntityStateTile2D * GetEntity2DByEntity(Entity * entity);
+	EntityStateTile2D * GetEntity2DByEntity(const Entity * entity);
 	/// Attempts to fetch target EntityStateTile2D using given position.
 	EntityStateTile2D * GetEntityByPosition(Vector3i position);
 	/// Generates (allocates) waypoints for target navmesh. It also performs any connections within as appropriate.
@@ -83,6 +84,9 @@ public:
 
 	/// Returns size of the active level of the map
 	Vector2i Size();
+
+	/** Removes target entity from the map. */
+	virtual bool RemoveEntity(Entity * entity);
 
 private:
 	// Update the vectors that define the area which requires recalculation.	
@@ -119,8 +123,6 @@ private:
 	/// For le adding! Has to be called at least once before using the 2D moving functions. 
 	/// If positions are provided these will be attempted to be used.
 	virtual bool AddEntity(Entity * e);
-	/** Removes target entity from the map. */
-	virtual bool RemoveEntity(Entity * entity);
 
 	/// Reads map stats (width/height/version)
 	bool ReadStats(std::fstream &file);

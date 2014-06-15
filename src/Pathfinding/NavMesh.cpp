@@ -134,7 +134,8 @@ void NavMesh::CalculateDefaults(){
 
 
 /// Adds a waypoint to the NavMesh.
-int NavMesh::AddWaypoint(Waypoint * wp){
+int NavMesh::AddWaypoint(Waypoint * wp)
+{
 	assert(wp);
 	/// Assign it a new ID if it hasn't already been given one (id == -1)
 	if (wp->id == -1){

@@ -15,14 +15,37 @@
 #include "Message/MessageManager.h"
 #include "Window/WindowManager.h"
 
+/// Default constructor, will target active global UI.
+GMUI::GMUI(int messageType)
+: GraphicsMessage(messageType)
+{
+	Nullify();
+}
+
 /// Default constructor, specifies the viewport to be the default global one.
 GMUI::GMUI(int messageType, Viewport * viewport /* = NULL*/)
-: GraphicsMessage(messageType), viewport(viewport)
+: GraphicsMessage(messageType)
+{
+	Nullify();
+	this->viewport = viewport;
+}
+
+/// Default constructor, if viewPortTarget is NULL it will target the active global UI.
+GMUI::GMUI(int messageType, UserInterface * targetUI)
+: GraphicsMessage(messageType)
+{
+	Nullify();
+	this->ui = targetUI;
+}
+
+void GMUI::Nullify()
 {
 	ui = NULL;
+	viewport = NULL;
 	window = NULL;
 	global = false;
 }
+
 
 bool GMUI::GetUI()
 {
@@ -119,6 +142,19 @@ GMSetUIv2i::GMSetUIv2i(String UIname, int target, Vector2i v, Viewport * viewpor
 			assert(false && "Invalid target in GMSetUIv");
 	}
 }
+
+GMSetUIv2i::GMSetUIv2i(String UIname, int target, Vector2i v, UserInterface * targetUI)
+: GMUI(GM_SET_UI_VEC2I, targetUI), name(UIname), target(target), value(v)
+{
+	switch(target){
+		case GMUI::MATRIX_SIZE:
+		case GMUI::VECTOR_INPUT:
+			break;
+		default:
+			assert(false && "Invalid target in GMSetUIv");
+	}
+}
+
 
 void GMSetUIv2i::Process()
 {
@@ -226,9 +262,29 @@ void GMSetUIv4f::Process()
     };
 };
 
+
+/// Targets global UI
+GMSetUIf::GMSetUIf(String UIname, int target, float value)
+: GMUI(GM_SET_UI_FLOAT), name(UIname), target(target), value(value)
+{
+	AssertTarget();
+}
+
+
+GMSetUIf::GMSetUIf(String UIname, int target, float value, UserInterface * inUI)
+: GMUI(GM_SET_UI_FLOAT, inUI), name(UIname), target(target), value(value)
+{
+	AssertTarget();
+}
+
 /// For setting floating point values, like relative sizes/positions, scales etc.
 GMSetUIf::GMSetUIf(String UIname, int target, float value, Viewport * viewport /* = NULL*/)
 : GMUI(GM_SET_UI_FLOAT, viewport), name(UIname), target(target), value(value)
+{
+	AssertTarget();
+}
+
+void GMSetUIf::AssertTarget()
 {
 	switch(target){
 		case GMUI::FLOAT_INPUT:
@@ -240,6 +296,8 @@ GMSetUIf::GMSetUIf(String UIname, int target, float value, Viewport * viewport /
 			assert(false && "Invalid target in GMSetUIf");
 	}
 }
+
+
 void GMSetUIf::Process()
 {
 	if (!GetUI())
@@ -293,7 +351,7 @@ GMSetUIb::GMSetUIb(String name, int target, bool v, Viewport * viewport)
 
 /// For setting floating point values, like relative sizes/positions, scales etc. of elements in the system-global UI.
 GMSetGlobalUIf::GMSetGlobalUIf(String uiName, int target, float value, Window * window)
-: GMSetUIf(uiName, target, value, 0)
+: GMSetUIf(uiName, target, value)
 {
 	if (!window)
 		this->window = WindowMan.MainWindow();
@@ -484,7 +542,7 @@ void GMScrollUI::Process(){
 
 /// Message to add a newly created UI to the global state's UI, mostly used for overlay-effects and handling error-messages.
 GMAddGlobalUI::GMAddGlobalUI(UIElement *element, String toParent /* = "root" */)
-: GMUI(GM_ADD_UI, 0), element(element), parentName(toParent)
+: GMUI(GM_ADD_UI), element(element), parentName(toParent)
 {
 	assert(element);
 	global = true;

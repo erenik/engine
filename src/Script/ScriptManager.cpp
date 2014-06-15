@@ -35,13 +35,29 @@ void ScriptManager::Deallocate(){
 	via the entities, maps or state machines that use them!
 	- Alternatively a boolean could be set which toggles this behaviour, but plan ahead and make sure that whatever you do doesn't leak memory!
 */
-void ScriptManager::PlayEvent(Script * script)
+void ScriptManager::PlayScript(Script * newScriptToPlay)
 {
+	/// Check for multiple instances first!
+	if (!newScriptToPlay->allowMultipleInstances)
+	{
+		for (int i = 0; i < activeScripts.Size(); ++i)
+		{
+			Script * script = activeScripts[i];
+			if (newScriptToPlay->name == script->name)
+			{
+				std::cout<<"\nScript "<<script->name<<" already running! Skipping new instance.";
+				/// Delete if specified.
+				if (newScriptToPlay->flags & DELETE_WHEN_ENDED)
+					delete newScriptToPlay;
+				return;
+			}	
+		} 
+	}
 	// If needed, load it first.
-	if (!script->loaded)
-		script->Load();
-	script->OnBegin();
-	activeScripts.Add(script);
+	if (!newScriptToPlay->loaded)
+		newScriptToPlay->Load();
+	newScriptToPlay->OnBegin();
+	activeScripts.Add(newScriptToPlay);
 }
 void ScriptManager::Process(long long timeInMs)
 {

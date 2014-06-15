@@ -10,7 +10,7 @@
 #include "Physics/CompactPhysics.h"
 #include "Physics/PhysicsProperty.h"
 #include "Pathfinding/PathfindingProperty.h"
-#include "EntityStates/StateProperty.h"
+#include "Entity/EntityProperty.h"
 #include "CompactEntity.h"
 #include "../GraphicsState.h"
 #include "Texture.h"
@@ -22,6 +22,7 @@
 #include <cstring>
 #include "Graphics/GraphicsManager.h"
 #include "Graphics/Fonts/Font.h"
+#include "EntityProperty.h"
 
 const Material Entity::defaultMaterial = Material();
 
@@ -105,7 +106,6 @@ Entity::Entity(int i_id)
 	/// Nullify all pointers to add-ons. IMPORTANT!
 	this->graphics = NULL;
 	this->physics = NULL;
-	this->state = NULL;
 	this->scripts = NULL;
 	/// Create it automatiaclly so we don't have to, cheers..
 	this->pathfindingProperty = new PathfindingProperty(this);
@@ -121,6 +121,7 @@ Entity::~Entity(){
 	SAFE_DELETE(physics);
 	SAFE_DELETE(scripts);
 	SAFE_DELETE(pathfindingProperty);
+	properties.ClearAndDelete();
 	if (material)
 		delete material;
 	material = NULL;
@@ -130,8 +131,20 @@ Entity::~Entity(){
 /// Deallocates additional points as needed.
 void Entity::Delete()
 {
-	SAFE_DELETE(state);
 }
+
+/// Getter.
+EntityProperty * Entity::GetProperty(String byName)
+{
+	for (int i = 0; i < properties.Size(); ++i)
+	{
+		EntityProperty * prop = properties[i];
+		if (prop->name == byName)
+			return prop;
+	}
+	return NULL;
+}
+
 
 /** Buffers this entities' models into graphics memory.
 	Should only be used by the graphics manager. USE WITH CAUTION.

@@ -19,11 +19,11 @@ struct GraphicsState;
 class Texture;
 struct GraphicsProperty;
 struct PhysicsProperty;
-struct StateProperty;
 struct PathfindingProperty;
 class ScriptProperty;
 class CompactEntity;
 struct Triangle;
+class EntityProperty;
 /*
 #include "GL/glew.h"
 #include "Mesh.h"
@@ -55,6 +55,9 @@ public:
 	/// Wosh.
 	int flags;
 
+	/// Getter.
+	EntityProperty * GetProperty(String byName);
+
 
 	/// Contains additional render information for effects or attached entities.
 	GraphicsProperty * graphics;
@@ -62,8 +65,10 @@ public:
 	PhysicsProperty * physics;
 	/// Property closely related to both physics and pathfinding/AI/movement/input overall.
 	PathfindingProperty * pathfindingProperty;
-	/// StateMachine for gameplay
-	StateProperty * state;
+
+	/// StateMachines for gameplay?
+	List<EntityProperty*> properties;
+	
 	/// Containing OnTrigger, OnInteract, On-- etc.
 	ScriptProperty * scripts;
 	/// Survival attributes if destroyable/killable  <-- Build into your StateProperties!

@@ -12,12 +12,65 @@
 #include "File/FileUtil.h"
 #include "Random/Random.h"
 
-Population::Population(){}
+Population::Population()
+{
+	distanceDecay = 0.f;
+	decayExponent = 1.f;
+}
 
 Population::~Population(){}
 
+float Population::GetEncounterRatio(Vector3i atPosition)
+{
+	// First check if the position is wihin the population boundary.
+	bool inside = false;
+	float distance;
+	if (entireZone)
+		inside = true;
+	else 
+	{
+		Vector3f toPlayer = origin - atPosition;
+		distance = toPlayer.Length();
+		if (distance < radius)
+			inside = true;
+	}
+	if (!inside)
+		return 0;
+
+	// Inside, check probability.
+	float area = radius * radius * PI;
+	// Density per tile.
+	density = amount / area;
+	// Multiply by aggresiveness
+	float encounterRatio = density * aggresiveness;
+
+	// Calculate distance decay multiplier.
+	ClampFloat(distanceDecay, -1.f, 1.f);
+
+	/// Value between 0 and 1.
+	float relativeDistance = distance / radius;
+	float distanceToCenter = relativeDistance;
+	float distanceToEdge = 1.f - distanceToCenter;
+	float closenessToCenter = 1.f - relativeDistance;
+	float closenessToEdge = relativeDistance;
+
+	float centerFactor = 1.f + distanceDecay;
+	float edgeFactor = 1.f - distanceDecay;
+
+	float centerPart = closenessToCenter * centerFactor;
+	float edgePart = closenessToEdge * edgeFactor;
+
+	float distanceDecayMultiplier = centerPart + edgePart;
+	distanceDecayMultiplier = pow(distanceDecayMultiplier, decayExponent);
+	encounterRatio *= distanceDecayMultiplier;
+
+	return encounterRatio;
+}
+
+
 bool Population::LoadFrom(String file)
 {
+	source = file;
 	List<String> lines = File::GetLines(file);
 	bool specifyingBattles = false;
 	if (!lines.Size())
@@ -25,7 +78,7 @@ bool Population::LoadFrom(String file)
 	for (int i = 0; i < lines.Size(); ++i)
 	{
 		String line = lines[i];
-		List<String> tokens = line.Tokenize(" ");
+		List<String> tokens = line.Tokenize(" \t");
 		/// At least one word on the line.
 		if (!tokens.Size())
 			continue;
@@ -48,7 +101,7 @@ bool Population::LoadFrom(String file)
 
 
 		/// Lines with at least 1 argument below
-		if (tokens <= 2)
+		if (tokens.Size() < 2)
 			continue;
 		String value = tokens[1];
 		if (key == "entireZone")
@@ -59,6 +112,10 @@ bool Population::LoadFrom(String file)
 		{
 			this->radius = value.ParseFloat();
 		}
+		else if (key == "distanceDecay")
+			this->distanceDecay = value.ParseFloat();
+		else if (key == "decayExponent")
+			this->decayExponent = value.ParseFloat();
 		else if (key == "aggresiveness")
 			this->aggresiveness = value.ParseFloat();
 		else if (key == "initialAmount")
@@ -82,27 +139,10 @@ bool Population::LoadFrom(String file)
 
 String Population::ShouldFight(Vector3f playerPosition)
 {
-	// First check if the position is wihin the population boundary.
-	bool inside = false;
-	if (entireZone)
-		inside = true;
-	else 
-	{
-		Vector3f toPlayer = origin - playerPosition;
-		float distance = toPlayer.Length();
-		if (distance < radius)
-			inside = true;
-	}
-	if (!inside)
+	float encounterRatio = GetEncounterRatio(playerPosition);
+	if (encounterRatio <= 0)
 		return String();
 
-	// Inside, check probability.
-	float area = radius * radius * PI;
-	// Density per tile.
-	density = amount / area;
-	// Multiply by aggresiveness
-	float encounterRatio = density * aggresiveness;
-	
 	/// Randomizer!
 	static Random encounterRand;
 
@@ -110,7 +150,7 @@ String Population::ShouldFight(Vector3f playerPosition)
 	float random = encounterRand.Randf();
 
 	/// Optionally scale the random to match the max/min encounter ratio, depending on some options?
-	if (random < encounterRatio)
+	if (random > encounterRatio)
 		return String();
 
 	// Ookay, encounter is warranted. Randomize battle from available ones.	
@@ -152,6 +192,17 @@ PopulationManager::~PopulationManager()
 	populations.ClearAndDelete();
 }
 
+void PopulationManager::ReloadPopulations()
+{
+	for (int i = 0; i < populations.Size(); ++i)
+	{
+		Population * pop = populations[i];
+		if (pop->active)
+		{
+			pop->LoadFrom(pop->source);
+		}
+	}
+}
 
 List<Population*> PopulationManager::ActivePopulations()
 {

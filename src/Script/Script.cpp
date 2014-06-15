@@ -25,6 +25,7 @@ const char * Script::rootEventDir = "data/scripts/";
 
 Script::Script(const Script & base)
 {
+	Nullify();
 	name = base.name;
 	source = base.source;
 	triggerCondition = base.triggerCondition;
@@ -37,28 +38,30 @@ Script::Script(const Script & base)
 	flags = base.flags;
 	/// Copy loaded data too.
 	lines = base.lines;
-	parentScript = NULL;
-	timePassed = 0; // Should be added each process-frame.
 	pausesExecution = base.pausesExecution;
 }
 
 Script::Script(String name, Script * parent /* = NULL */ )
-: name(name), parent(parent)
 {
-	name = "Test";
-	source = "Test.e";
-	triggerCondition = NULL_TRIGGER_TYPE;
-	loaded = false;
+	Nullify();
+	this->name = name;
+	this->parent = parent;
+//	source = "Test.e";
 	// Assume child scripts are inherent C++ classes which do not require further loading.
 	if (parent){
 		loaded = true;
 	}
-	executed = false;
-	repeatable = false;
-	currentLine = 0;
-	scriptState = NOT_BEGUN;
-	flags = 0;
-	timePassed = 0;
+	if (parent)
+	{
+		parent->childScripts.Add(this);
+	}
+};
+
+void Script::Nullify()
+{
+	allowMultipleInstances = false;
+	parentScript = NULL;
+	timePassed = 0; // Should be added each process-frame.
 	// Set this to false for those scripts that do not require waiting for completion! o.o
 	pausesExecution = true;
 	inCutscene = false;
@@ -66,12 +69,15 @@ Script::Script(String name, Script * parent /* = NULL */ )
 	lineProcessed = false;
 	uiDisabled = false;
 	paused = false;
-
-	if (parent)
-	{
-		parent->childScripts.Add(this);
-	}
-};
+	executed = false;
+	repeatable = false;
+	currentLine = 0;
+	scriptState = NOT_BEGUN;
+	flags = 0;
+	timePassed = 0;
+	loaded = false;
+	triggerCondition = NULL_TRIGGER_TYPE;
+}
 
 // Playback functions.
 bool Script::Pause()

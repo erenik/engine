@@ -26,6 +26,7 @@ class Camera {
 public:
 	/// Default constructor, sets some variables
 	Camera();
+	~Camera();
 	// Prints data, including position, matrices, etc.
 	void PrintData() const;
 

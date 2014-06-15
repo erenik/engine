@@ -256,7 +256,7 @@ void MainMenu::OnPlayersUpdated()
 {
 	Graphics.QueueMessage(new GMClearUI("PlayerList"));
 
-	List<RRPlayer*> players = Players();
+	List<RRPlayer*> players = GetPlayers();
 	for (int i = 0; i < players.Size(); ++i)
 	{
 		RRPlayer * player = players[i];
@@ -282,7 +282,7 @@ void MainMenu::OnPlayersUpdated()
 // More gui.
 void MainMenu::OnPlayerReadyStateUpdated()
 {
-	List<RRPlayer*> players = Players();
+	List<RRPlayer*> players = GetPlayers();
 	for (int i = 0; i < players.Size(); ++i)
 	{
 		RRPlayer * player = players[i];

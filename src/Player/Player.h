@@ -23,8 +23,8 @@ public:
 	virtual ~Player();
 	/// Name of ze playah, of course!
 	String name, type;
-	/// Primary entity
-	Entity * entity;
+	/// Primary entity Games may feature any kinds of entity configurations, and should thus be added only in sub-classes of the Player.
+//	Entity * entity;
 	/// True for non-networkers
 	bool isLocal;
 	/// For AI-players.

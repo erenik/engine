@@ -7,6 +7,7 @@
 #include "Managers.h" // Don't include all managers. Ever. Except here and in Initializer/Deallocator.
 #include "OS/Sleep.h"
 #include "Graphics/Messages/GMSet.h"
+#include "File/File.h"
 
 #ifdef WINDOWS
 #include <process.h>
@@ -72,6 +73,14 @@ void * Initialize(void * vArgs){
 	StateMan.CreateUserInterfaces();
 
 	// Check that all managers have been initialized before we continue...
+
+	// Run startup.ini if it is available, running all its arguments through the message manager, one line at a time.
+	List<String> lines = File::GetLines("startup.ini");
+	for (int i = 0; i < lines.Size(); ++i)
+	{
+		String line = lines[i];
+		MesMan.QueueMessages(line);
+	}
 
 
 	// TexMan.loadTextures(GAME_STATE_INITIALIZATION);

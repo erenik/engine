@@ -51,7 +51,8 @@ int GraphicsManager::RegisterEntities(List<Entity*> & toRegister){
 }
 
 /// Removes an Entity from the rendering vfcOctree.
-bool GraphicsManager::UnregisterEntity(Entity * entity){
+bool GraphicsManager::UnregisterEntity(Entity * entity)
+{
 	int entitiesBefore = registeredEntities.Size();
 	int octreeEntitiesBeforeRemoval = vfcOctree->RegisteredEntities();
 	if (!entity->registeredForRendering)

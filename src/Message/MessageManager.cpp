@@ -22,6 +22,7 @@
 #include "UI/UIVideo.h"
 #include "Network/NetworkManager.h"
 #include "Window/WindowManager.h"
+#include "Audio/AudioManager.h"
 
 MessageManager * MessageManager::messageManager = NULL;
 
@@ -194,6 +195,10 @@ void MessageManager::ProcessMessage(Message * message){
 		bool toggle = msg.Tokenize("()")[1].ParseBool();
 		Input.NavigateUI(toggle);
 		return;
+	}
+	else if (msg == "mute")
+	{
+		AudioMan.DisableAudio();
 	}
 	else if (msg == "CreateMainWindow")
 	{	
