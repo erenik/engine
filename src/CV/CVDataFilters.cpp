@@ -7,6 +7,7 @@
 #include "CVPipeline.h"
 #include "String/StringUtil.h"
 #include "Texture.h"
+#include "TextureManager.h"
 cv::RNG rng(12345);
 
 
@@ -1495,12 +1496,14 @@ CVFingerActionFilter::CVFingerActionFilter()
 	framesToTrack = 250;
 	filesSaved = 0;
 
-	postFilter.width = preFilter.width = framesToTrack + 50;
-	postFilter.height = preFilter.height = 25; // 3 pixels per .. finger?
-	preFilter.CreateDataBuffer();
-	postFilter.CreateDataBuffer();		
-	preFilter.SetColor(Vector4f(0,0,0,0));
-	postFilter.SetColor(Vector4f(0,0,0,0));
+	postFilter = TexMan.New();
+	preFilter = TexMan.New();
+	postFilter->width = preFilter->width = framesToTrack + 50;
+	postFilter->height = preFilter->height = 25; // 3 pixels per .. finger?
+	preFilter->CreateDataBuffer();
+	postFilter->CreateDataBuffer();		
+	preFilter->SetColor(Vector4f(0,0,0,0));
+	postFilter->SetColor(Vector4f(0,0,0,0));
 
 	framesPassed = 0;
 
@@ -1518,7 +1521,7 @@ int CVFingerActionFilter::Process(CVPipeline * pipe)
 	int fingersNow = hand.fingers.Size();
 #ifdef PROFILE_FINGER_ACTION_FILTER
 	// Store le value for statistical analysis
-	preFilter.SetPixel(framesPassed, fingersNow * 3, Vector3f(1, 0, 0));
+	preFilter->SetPixel(framesPassed, fingersNow * 3, Vector3f(1, 0, 0));
 #endif
 
 	
@@ -1613,18 +1616,18 @@ int CVFingerActionFilter::Process(CVPipeline * pipe)
 	{
 		FingerState & lastState = pipe->fingerStates.Last();
 	//	std::cout<<"\nLastState duration: "<<lastState.duration;
-		postFilter.SetPixel(framesPassed, lastState.fingers * 3, Vector3f(1 - (lastState.duration - minimumDuration->iValue)/ (float)minimumDuration->iValue * 0.25, (lastState.duration - minimumDuration->iValue) / (float)minimumDuration->iValue,0));
+		postFilter->SetPixel(framesPassed, lastState.fingers * 3, Vector3f(1 - (lastState.duration - minimumDuration->iValue)/ (float)minimumDuration->iValue * 0.25, (lastState.duration - minimumDuration->iValue) / (float)minimumDuration->iValue,0));
 		++framesPassed;
 		if (framesPassed > framesToTrack)
 		{
 			std::cout<<"\nSaving FingerStateFilter statistics to output/";
 			
-			preFilter.Save("output/"+String::ToString(filesSaved)+"FingerStatesPreFilter", true);
-			postFilter.Save("output/"+String::ToString(filesSaved)+"FingerStatesPostFilter", true);
+			preFilter->Save("output/"+String::ToString(filesSaved)+"FingerStatesPreFilter", true);
+			postFilter->Save("output/"+String::ToString(filesSaved)+"FingerStatesPostFilter", true);
 
 			// Clear the lists
-			preFilter.SetColor(Vector4f(0,0,0,0));
-			postFilter.SetColor(Vector4f(0,0,0,0));
+			preFilter->SetColor(Vector4f(0,0,0,0));
+			postFilter->SetColor(Vector4f(0,0,0,0));
 			++filesSaved;
 			framesPassed = 0;
 		}

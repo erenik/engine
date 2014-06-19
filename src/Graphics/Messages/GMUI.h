@@ -104,9 +104,11 @@ private:
 /// Used to set Vector-based data, mainly colors.
 class GMSetUIv4f : public GMUI {
 public:
+	GMSetUIv4f(String UIname, int target, Vector4f v, UserInterface * ui);
 	GMSetUIv4f(String UIname, int target, Vector4f v, Viewport * viewport = NULL);
 	void Process();
 private:
+	void AssertTarget();
 	String name;
 	int target;
 	UIElement * element;
@@ -142,18 +144,25 @@ public:
 
 class GMSetUIb : public GMUI {
 public:
+	GMSetUIb(String UIname, int target, bool v, UserInterface * inUI);
 	GMSetUIb(String UIname, int target, bool v, Viewport * viewport = NULL);
 	void Process();
 private:
+	void AssertTarget();
 	String name;
 	int target;
 	UIElement * element;
 	bool value;
 };
 
-class GMSetUIs: public GMUI {
+class GMSetUIs: public GMUI 
+{
 public:
-	GMSetUIs(String uiName, int target, Text text, Viewport * viewport = NULL);
+	// Targets the main windows ui.
+	GMSetUIs(String uiName, int target, Text text);
+	GMSetUIs(String uiName, int target, Text text, UserInterface * inUI);
+	GMSetUIs(String uiName, int target, Text text, bool force, UserInterface * inUI);
+	GMSetUIs(String uiName, int target, Text text, Viewport * viewport);
 	GMSetUIs(String uiName, int target, Text text, bool force, Viewport * viewport = NULL);
 	/** Explicitly declared constructor to avoid memory leaks.
 		No explicit constructor may skip subclassed variable deallocation!
@@ -161,6 +170,7 @@ public:
 	~GMSetUIs();
 	void Process();
 private:
+	void AssertTarget();
 	int target;
 	String uiName;
 	Text text;
@@ -179,6 +189,7 @@ public:
 // Deletes contents (children) of specified UI element. Primarily used on UILists.
 class GMClearUI : public GMUI{
 public:
+	GMClearUI(String uiName, UserInterface * inUI);
 	GMClearUI(String uiName, Viewport * viewport = NULL);
 	void Process();
 private:
@@ -210,6 +221,7 @@ private:
 /// Message to add a newly created UI to the active game state's UI.
 class GMAddUI : public GMUI{
 public:
+	GMAddUI(UIElement * element, String toParent, UserInterface * inUI);
 	GMAddUI(UIElement * element, String toParent = "root", Viewport * viewport = NULL);
 	void Process();
 private:

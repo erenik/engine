@@ -101,6 +101,8 @@ public:
 	void operator *= (const int &f);
 
 	/// Internal element multiplication
+	Vector2i operator * (const float &f) const;
+	/// Internal element multiplication
 	Vector2i operator * (const int &f) const;
 	/// Internal element division.
 	Vector2i operator / (const int &f) const;
@@ -128,6 +130,9 @@ public:
 	const int GetX() const {return x;};
 	/// Returns the vector's y-coordinate.
 	const int GetY() const {return y;};
+
+	/// Absolute values version.
+	Vector2i AbsoluteValues();
 
 	/// Returns the absolute value of the sub-component (x,y,z) of highest absolute value.
 	const int MaxPart() const {

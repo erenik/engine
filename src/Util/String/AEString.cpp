@@ -381,6 +381,35 @@ String String::Part(int fromIndex /*= 0*/, int toIndex /*= -1*/){
 	return newString;
 }
 
+/// Removes any non-numeral, non-decimal characters
+String String::Numberized() const
+{
+	assert(type == CHAR);
+	String newString;
+	for (int i = 0; i < arraySize; ++i)
+	{
+		char c = arr[i];
+		switch(c)
+		{
+			case '0':
+			case '1':
+			case '2':
+			case '3':
+			case '4':
+			case '5':
+			case '6':
+			case '7':
+			case '8':
+			case '9':
+			case '.':
+				newString.Add(c);
+				break;
+		}
+	}
+	return newString;
+}
+
+
 /// Quering functions
 bool String::Equals(const String & otherString) const {
 	int type = Type(), type2 = otherString.Type();

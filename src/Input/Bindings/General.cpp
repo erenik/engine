@@ -14,8 +14,9 @@
 #include "ModelManager.h"
 #include "TextureManager.h"
 #include "Multimedia/MultimediaManager.h"
-
+#include "Application/Application.h"
 #include "Window/WindowManager.h"
+#include "Message/MessageManager.h"
 
 enum generalActions{
 	NULL_ACTION,
@@ -76,6 +77,12 @@ extern Display * display;
 void generalInputProcessor(int action, int inputDevice)
 {
 	switch(action){
+		case QUIT_APPLICATION:
+			if (Application::queryOnQuit)
+				MesMan.QueueMessages("Query(QuitApplication)");
+			else
+				MesMan.QueueMessages("QuitApplication");
+			break;
 		case TOGGLE_RENDER_LIGHTS:
 			Graphics.renderLights = !Graphics.renderLights;
 			break;
@@ -439,53 +446,6 @@ void generalInputProcessor(int action, int inputDevice)
 #endif
 			return;
 		}
-		case QUIT_APPLICATION: 
-		{
-			/// wat?
-			WindowMan.DeleteWindows();
-			/*
-#ifdef WINDOWS
-			// Resize screen first please
-				// Sets full-screen style if specified
-				extern DWORD windowStyle;
-				/// Set window style
-				windowStyle =
-					WS_CAPTION |		// The window has a title bar (includes the WS_BORDER style).
-					WS_MAXIMIZEBOX |	// The window has a maximize button. Cannot be combined with the WS_EX_CONTEXTHELP style. The WS_SYSMENU style must also be specified.
-					WS_MINIMIZEBOX |	// The window has a minimize button. Cannot be combined with the WS_EX_CONTEXTHELP style. The WS_SYSMENU style must also be specified.
-					WS_OVERLAPPED |		// The window is an overlapped window. An overlapped window has a title bar and a border. Same as the WS_TILED style.
-					WS_SIZEBOX |		// The window has a sizing border. Same as the WS_THICKFRAME style.
-					WS_SYSMENU |		// The window has a window menu on its title bar. The WS_CAPTION style must also be specified.
-					WS_THICKFRAME |		// The window has a sizing border. Same as the WS_SIZEBOX style.
-					WS_SYSMENU | WS_POPUP | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_VISIBLE | // Have no idea..
-					0;
-
-				/// If not resizable, de-flag it
-				extern bool notResizable;
-				if (notResizable)
-					windowStyle &= ~WS_SIZEBOX;
-
-				SetWindowLongPtr(hWnd, GWL_STYLE,
-					windowStyle);
-
-
-			MoveWindow(hWnd,
-				Graphics.ScreenWidth()/2 - Graphics.oldWidth/2,
-				Graphics.ScreenHeight()/2 - Graphics.oldHeight/2,
-				0, 0, true);
-			Graphics.isFullScreen = false;
-#endif*/
-
-			// Call the deallocator thread!
-			StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_EXITING));
-#ifdef WINDOWS
-			extern uintptr_t deallocatorThread;
-			while (deallocatorThread)
-				Sleep(10);
-			PostQuitMessage(0);
-#endif
-			break;
-		}
 		case TOGGLE_FULL_SCREEN: 
 		{
 			Graphics.ToggleFullScreen(WindowMan.GetCurrentlyActiveWindow());
@@ -565,7 +525,7 @@ void CreateDefaultGeneralBindings()
 	Input.general.CreateBinding(PRINT_SCREENSHOT, KEY::PRINT_SCREEN);
     Input.general.CreateBinding(PRINT_FRAME_TIME, KEY::CTRL, KEY::T);
 
-	Input.general.CreateBinding("Query(QuitApplication)", KEY::ALT, KEY::F4);
+	Input.general.CreateBinding(QUIT_APPLICATION, KEY::ALT, KEY::F4);
 	//Input.general.CreateBinding(QUIT_APPLICATION, KEY::ALT, KEY::F4);
 	Input.general.CreateBinding(TOGGLE_FULL_SCREEN, KEY::ALT, KEY::ENTER);
 	Input.general.CreateBinding(PASTE, KEY::CTRL, KEY::V);

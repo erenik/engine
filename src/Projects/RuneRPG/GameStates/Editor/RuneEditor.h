@@ -13,6 +13,7 @@ class Script;
 class Light;
 struct TileType;
 struct GraphicsState;
+class Window;
 
 namespace EditMode {
 enum editModes{
@@ -45,10 +46,10 @@ public:
 	void OnSelectionUpdated();
 
 	/// Input functions for the various states
-	void MouseClick(bool down, int x = -1, int y = -1, UIElement * elementClicked = NULL);
-	void MouseRightClick(bool down, int x = -1, int y = -1, UIElement * elementClicked = NULL);
-	void MouseMove(int x, int y, bool lDown = false, bool rDown = false, UIElement * elementOver = NULL);
-	void MouseWheel(float delta);
+	void MouseClick(Window * window, bool down, int x = -1, int y = -1, UIElement * elementClicked = NULL);
+	void MouseRightClick(Window * window, bool down, int x = -1, int y = -1, UIElement * elementClicked = NULL);
+	void MouseMove(Window * window, int x, int y, bool lDown = false, bool rDown = false, UIElement * elementOver = NULL);
+	void MouseWheel(Window * window, float delta);
 	/// Callback from the Input-manager, query it for additional information as needed.
 	void KeyPressed(int keyCode, bool downBefore);
 
@@ -64,6 +65,15 @@ public:
 	void SetBrushSize(int size);
 
 private:
+	/// Opens the brush editor window.
+	void OpenSizeEditor();
+	void OpenBrushEditor();
+	void OpenTileSelector();
+	void OpenTerrainSelector();
+	void OpenObjectSelector();
+	void OpenLightingEditor();
+	void HideEditorWindows();
+
 	/// Attempts to delete object at current cursor position.
 	void DeleteObject();
 
@@ -175,10 +185,21 @@ private:
 	int startMouseX, startMouseY;
 	int mouseX, mouseY;
 
+
+	/// For setting brush type and size. Used for painting tiles and terrain, but later on maybe objects as well?
+	Window * sizeEditor;
+	Window * brushEditor;
+	Window * tileSelector;
+	Window * terrainSelector;
+	Window * objectSelector;
+	Window * lightingEditor;
+	/// List of all windows, for eased manipulation.
+	List<Window*> editorWindows;
+
 	enum mouseCameraStates {
-	NULL_STATE,
-	ROTATING,
-	PANNING
+		NULL_STATE,
+		ROTATING,
+		PANNING
 	};
 	int mouseCameraState;
 };

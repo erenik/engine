@@ -40,7 +40,7 @@ public:
 
 	/// Regular state-machine mechanics for the events, since there might be several parralell events?
 	virtual void OnBegin();
-	virtual void Process(long long time);
+	virtual void Process(int timeInMs);
 	virtual void OnEnd();
 	void EvaluateLine(String & line);
 	/// Resets the event so that it can be re-played again!

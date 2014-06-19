@@ -58,7 +58,7 @@ MapState::MapState()
 	id = RUNE_GAME_STATE_MAP;
 	name = "MapState";
 	enterMode = EnterMode::NULL_MODE;
-	camera = new Camera();
+	camera = CameraMan.NewCamera();
 	mapToLoad = NULL;
 //	player = NULL;
 //	playerEntity = NULL;

@@ -28,9 +28,12 @@ struct TextureData{
 	The object need not necessarily be buffered to the graphics card (glid) in order to maintain
 	a position in the TextureManager's array!
 */
-class Texture{
-public:
+class Texture
+{
+	// Require usage of the texture manager to allocate textures.
+	friend class TextureManager;
 	Texture();
+public:
 	~Texture();
 
 	/// Resets width, height and creates a new data buffer after deleting the old one.
@@ -74,6 +77,8 @@ public:
 	void Colorize(Vector3f color);
 	/// Setts color of all pixels.
 	void SetColor(Vector4f color);
+	void SetColorOfColumn(int column, Vector4f color);
+	void SetColorOfRow(int row, Vector4f color);
 
 	/// Saves the texture in it's entirety to target file. If overwrite is false it will fail if the file already exists.
 	bool Save(String toFile, bool overwrite = false);

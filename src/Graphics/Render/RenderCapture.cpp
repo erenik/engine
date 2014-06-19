@@ -12,17 +12,19 @@
 
 void GraphicsManager::RenderCapture()
 {
-	Vector2i windowSize = graphicsState.activeWindow->Size();
+	Vector2i windowSize = graphicsState.activeWindow->WorkingArea();
 	if (graphicsState.promptScreenshot)
 	{
 		// Grab frame! o.o
-		Texture frame;
-		frame.bpp = 4; // 4 bytes per pixel, RGBA
-		frame.Resize(windowSize);
-		glReadPixels(0, 0, windowSize.x, windowSize.y, GL_RGBA, GL_UNSIGNED_BYTE, frame.data);
+		static Texture * frame = NULL;
+		if (!frame)
+			frame = TexMan.New();
+		frame->bpp = 4; // 4 bytes per pixel, RGBA
+		frame->Resize(windowSize);
+		glReadPixels(0, 0, windowSize.x, windowSize.y, GL_RGBA, GL_UNSIGNED_BYTE, frame->data);
 		// Flip it.
 	//	frame.FlipXY();
-		frame.FlipY();
+		frame->FlipY();
 		
 		String dirPath = "output/screenshots";
 		if (!PathExists(dirPath))
@@ -34,7 +36,7 @@ void GraphicsManager::RenderCapture()
 				return;
 			}
 		}
-		frame.Save(dirPath+"/"+String::ToString(++graphicsState.screenshotsTaken)+".png", true);
+		frame->Save(dirPath+"/"+String::ToString(++graphicsState.screenshotsTaken)+".png", true);
 		graphicsState.promptScreenshot = false;
 	}
 
@@ -59,7 +61,9 @@ void GraphicsManager::RenderCapture()
 	if (graphicsState.recording && lastFrame + timeBetweenFrames < now)
 	{
 		// Grab frame! o.o
-		Texture * frame = new Texture();
+		static Texture * frame = NULL;
+		if (!frame)
+			frame = TexMan.New();
 		frame->bpp = 4; // 4 bytes per pixel, RGBA
 		frame->Resize(windowSize);
 		glReadPixels(0, 0, windowSize.x, windowSize.y, GL_RGBA, GL_UNSIGNED_BYTE, frame->data);

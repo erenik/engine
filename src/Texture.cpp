@@ -334,11 +334,14 @@ void Texture::Colorize(Vector3f color){
 }
 
 /// Setts color of all pixels.
-void Texture::SetColor(Vector4f color){
+void Texture::SetColor(Vector4f color)
+{
 	assert(bpp == 4 && format == Texture::RGBA);
 	unsigned char * buf = data;
-	for (int y = 0; y < height; ++y){
-		for (int x = 0; x < width; ++x){
+	for (int y = 0; y < height; ++y)
+	{
+		for (int x = 0; x < width; ++x)
+		{
 			int psi = y * width * bpp + x * bpp;
 			buf[psi] = (unsigned char) (color.x * 255.f);
 			buf[psi+1] = (unsigned char) (color.y * 255.f);
@@ -347,6 +350,44 @@ void Texture::SetColor(Vector4f color){
 		}
 	}
 }
+
+void Texture::SetColorOfColumn(int column, Vector4f color)
+{
+	assert(bpp == 4 && format == Texture::RGBA);
+	unsigned char * buf = data;
+	for (int y = 0; y < height; ++y)
+	{
+		for (int x = 0; x < width; ++x)
+		{
+			if (x != column)
+				continue;
+			int psi = y * width * bpp + x * bpp;
+			buf[psi] = (unsigned char) (color.x * 255.f);
+			buf[psi+1] = (unsigned char) (color.y * 255.f);
+			buf[psi+2] = (unsigned char) (color.z * 255.f);
+			buf[psi+3] = (unsigned char) (color.w * 255.f);
+		}
+	}
+}
+void Texture::SetColorOfRow(int row, Vector4f color)
+{
+	assert(bpp == 4 && format == Texture::RGBA);
+	unsigned char * buf = data;
+	for (int y = 0; y < height; ++y)
+	{
+		if (y != row)
+			continue;
+		for (int x = 0; x < width; ++x)
+		{
+			int psi = y * width * bpp + x * bpp;
+			buf[psi] = (unsigned char) (color.x * 255.f);
+			buf[psi+1] = (unsigned char) (color.y * 255.f);
+			buf[psi+2] = (unsigned char) (color.z * 255.f);
+			buf[psi+3] = (unsigned char) (color.w * 255.f);
+		}
+	}
+}
+
 
 /// Saves the texture in it's entirety to target file. If overwrite is false it will fail if the file already exists.
 bool Texture::Save(String toFile, bool overwrite /* = false */)

@@ -127,18 +127,18 @@ public:
 		Argument true indicate that the button was pressed, while false indicates that it was just released.
 		Default arguments for x and y indicate that they should not be refreshed.
 	*/
-	void MouseClick(bool down, int x = -1, int y = -1, UIElement * elementClicked = NULL);
+	void MouseClick(Window * window, bool down, int x = -1, int y = -1, UIElement * elementClicked = NULL);
 	/** Handles a mouse click.
 		Argument true indicate that the button was pressed, while false indicates that it was just released.
 		Default arguments for x and y indicate that they should not be refreshed.
 	*/
-	void MouseRightClick(bool down, int x = -1, int y = -1, UIElement * elementClicked = NULL);
+	void MouseRightClick(Window * window, bool down, int x = -1, int y = -1, UIElement * elementClicked = NULL);
 	/// Interprets a mouse-move message to target position.
-	void MouseMove(int x, int y);
+	void MouseMove(Window * window, int x, int y);
 	/** Handles mouse wheel input.
 		Positive delta signifies scrolling upward or away from the user, negative being toward the user.
 	*/
-	void MouseWheel(float delta);
+	void MouseWheel(Window * window, float delta);
 
 	//=======================================================//
 	/// Keyboard input
@@ -225,8 +225,8 @@ public:
 	void UIDown();
 	void UILeft();
 	void UIRight();
-	// For Page up/down
-	void UIPage(float amount);
+	// For Page up/down, returns true if anything was done.
+	bool UIPage(float amount);
 	/** Emulates Pressing a mouse-button or Enter-key in order to continue with whatever dialogue was up, using the selected or default option (if any)
 		Returns true if it actually did something. False if e.g. no UI item was active or in hover state.
 	*/

@@ -72,13 +72,15 @@ void * Initialize(void * vArgs){
 	// Begin loading heavier things after we've set up the rendering thread.
 	StateMan.CreateUserInterfaces();
 
-	// Check that all managers have been initialized before we continue...
+	// Check that all managers have been initialized before we continue..
 
 	// Run startup.ini if it is available, running all its arguments through the message manager, one line at a time.
 	List<String> lines = File::GetLines("startup.ini");
 	for (int i = 0; i < lines.Size(); ++i)
 	{
 		String line = lines[i];
+		if (line.StartsWith("//"))
+			continue;
 		MesMan.QueueMessages(line);
 	}
 
@@ -117,14 +119,17 @@ void * Initialize(void * vArgs){
 
 int deallocatorThreadStartCount = 0;
 
-
+/// Signifies that the application is currently exiting.
+bool quittingApplication = false;
 
 #ifdef WINDOWS
-void Deallocate(void *vArgs){
+void Deallocate(void *vArgs)
 #elif defined LINUX | defined OSX
-void * Deallocate(void *vArgs){
+void * Deallocate(void *vArgs)
 #endif
+{
 
+	quittingApplication = true;
     std::cout<<"\nDeallocatorThread started.";
 	assert(deallocatorThreadStartCount < 1);
 	++deallocatorThreadStartCount;
@@ -137,28 +142,35 @@ void * Deallocate(void *vArgs){
 	// Stop audio
 //	audio.shouldLive = false;
 	// Stop the state loop
-	StateMan.shouldLive = false;
-
+	
 	double timeStart = clock();
 	double timeTaken;
 
 	// Start with stopping the network before deallocating anything to avoid errors
 	NetworkMan.Shutdown();
 
+	/// Stop rendering. The function will wait until it is confirmed that rendering has halted.
+	Graphics.StopRendering();
+	Graphics.shouldLive = false;
 	
+	// Notify the message manager and game states to hide their windows.
+	while(WindowMan.MainWindow() && WindowMan.MainWindow()->IsVisible())
+	{
+		MesMan.QueueMessages("HideWindows");
+		Sleep(10);
+	}
 
+#ifdef WINDOWS
+	while(graphicsThread)
+		Sleep(10);
+#endif
+
+	// Notify the message manager and game states to deallocate their windows.
+	MesMan.QueueMessages("DeleteWindows");
+	
 	timeStart = clock();
 
 	// TODO: Send all UIs to be de-allocated properly via the graphics manager?
-
-	///// When they are removed, deallocate them.
-	//while(Graphics.GetUI() || Graphics.GetGlobalUI())
-	//{
-	//	/// Remove UIs from rendering.
-	//	Graphics.QueueMessage(new GMSetUI(NULL));
-	//	Graphics.QueueMessage(new GMSetGlobalUI(NULL));
-	//	Sleep(5);
-	//}
 
 	/// Post quit message with return value 0! Successful deallocation.
 	std::cout<<"\nPosting quit message.";
@@ -167,13 +179,13 @@ void * Deallocate(void *vArgs){
 #endif
 
 	// Stop graphics processing, now that we hopefully have deallocated all resources that are relevant!
-	Graphics.shouldLive = false;
+	StateMan.shouldLive = false;
 
     std::cout<<"\nWaiting for state processing thread to end..";
+
 #ifdef WINDOWS
-	while(stateProcessingThread){
+	while(stateProcessingThread)
 		Sleep(10);
-	}
 #elif defined LINUX | defined OSX
     pthread_join(stateProcessingThread, NULL);
 #endif
@@ -185,7 +197,6 @@ void * Deallocate(void *vArgs){
 	StateMan.DeallocateUserInterfaces();
 	timeTaken = clock() - timeStart;
 	std::cout<<"\nDeallocating UIs: "<<timeTaken / CLOCKS_PER_SEC<<" seconds";
-
 
 	/// Remove bindings between active elements, such as multimedia and audio that cannot be destroyed without planning.
 	MultimediaMan.Shutdown();

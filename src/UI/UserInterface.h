@@ -11,6 +11,7 @@
 class Square;
 struct GraphicsState;
 class UIElement;
+class Window;
 
 /// Fetches the global UI, taking into consideration active window.
 UserInterface * GlobalUI();
@@ -18,6 +19,7 @@ UserInterface * GlobalUI();
 UserInterface * ActiveUI();
 /// Fetches either the Global or Active UI, taking into consideration both active window and if there exist any valid content in the Global UI.
 UserInterface * RelevantUI();
+UserInterface * GetRelevantUIForWindow(Window * window);
 
 class UserInterface 
 {

@@ -60,6 +60,9 @@ public:
 	/// Returns a substring, from index to index, -1 signifies end of the string.
 	String Part(int fromIndex = 0, int toIndex = -1);
 
+	/// Removes any non-numeral, non-decimal characters
+	String Numberized() const;
+
 	/// For printing it o-o;
 	/// Printing out data
 	friend std::ostream& operator <<(std::ostream& os, const String& str);

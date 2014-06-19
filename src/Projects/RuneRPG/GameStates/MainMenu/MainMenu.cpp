@@ -18,6 +18,7 @@ extern UserInterface * ui[GameStateID::MAX_GAME_STATES];
 #include "System/PreferencesManager.h"
 #include "Chat/ChatManager.h"
 #include "UI/UIList.h"
+#include "Window/WindowManager.h"
 
 MainMenu::MainMenu()
 {
@@ -63,6 +64,12 @@ void MainMenu::OnEnter(GameState * previousState)
 	/// Do first-time loading of preferences, entering user-/player-name, etc.
 	if (!enteredOnce)
 		OnFirstEnter();
+
+	Window * mainWindow = MainWindow();
+	float intensity = 0.1f;
+	mainWindow->backgroundColor = Vector4f(intensity,intensity,intensity,1);
+	mainWindow->renderState = false;
+
 };
 
 void MainMenu::OnExit(GameState *nextState)

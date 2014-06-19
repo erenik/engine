@@ -6,6 +6,51 @@
 #include "WindowManager.h"
 #include "Viewport.h"
 #include "UI/UserInterface.h"
+#include "Graphics/GLBuffers.h"
+
+/// List of active monitors.
+List<Monitor> monitors;
+
+
+/// Constructorrr
+Monitor::Monitor()
+{
+#ifdef WINDOWS
+	this->monitorInfo.cbSize = sizeof(MONITORINFOEX);
+#endif
+}
+
+#ifdef WINDOWS
+int CALLBACK MonitorEnumProc(HMONITOR hMonitor, HDC hdc, LPRECT lpRect, LPARAM lParam)
+{
+	Monitor monitor;
+	monitor.hMonitor = hMonitor;
+
+	bool result = GetMonitorInfoW(hMonitor, &monitor.monitorInfo);
+	assert(result);
+	MONITORINFOEX & info = monitor.monitorInfo;
+	monitor.topLeftCorner = Vector2i(info.rcMonitor.left, info.rcMonitor.top);
+	monitor.size = Vector2i(info.rcMonitor.right - info.rcMonitor.left, info.rcMonitor.bottom - info.rcMonitor.top).AbsoluteValues();
+	monitor.center = monitor.size * 0.5f + monitor.topLeftCorner;
+	monitors.Add(monitor);
+	std::cout<<"Blubb";
+	// Continue enumeration.
+	return true;
+}
+#endif
+
+List<Monitor> GetMonitors()
+{
+#ifdef WINDOWS
+
+	monitors.Clear();
+
+	// http://msdn.microsoft.com/en-us/library/dd162610%28v=vs.85%29.aspx	
+	EnumDisplayMonitors(NULL, NULL, MonitorEnumProc, NULL);
+
+	return monitors;
+#endif
+}
 
 /// Fetches window that is currently active. Returns NULL if it is not one owned by the application.
 Window * ActiveWindow()
@@ -36,7 +81,7 @@ Window::Window(String name)
 	renderScene = true;
 	renderUI = true;
 
-	backgroundColor = Vector4f(0,1,0,1);
+	backgroundColor = Vector4f(0.5f,.5f,.5f,1);
 
 #ifdef WINDOWS
 	hWnd = NULL;
@@ -52,7 +97,7 @@ Window::~Window()
 {
 /// Destroy WINDOW o/o
 #ifdef WINDOWS
-	BOOL result = DestroyWindow(hWnd);
+	
 #elif defined USE_X11
     XDestroyWindow(display, window);
     XCloseDisplay(display);
@@ -60,6 +105,31 @@ Window::~Window()
 
 	/// Probably dynamically allocated, yeah.
 	viewports.ClearAndDelete();
+}
+
+/// Updates positions, using parent as relative (if specified)
+void Window::UpdatePosition()
+{
+	if (requestedRelativePosition.x || requestedRelativePosition.y )
+	{	
+		RECT parentRect;
+		bool success = GetWindowRect(MainWindow()->hWnd, &parentRect);
+		position = Vector2i(requestedRelativePosition);
+		position.x += parentRect.left;
+		position.y += parentRect.top;
+	}
+	MoveWindow(hWnd, position.x, position.y, osWindowSize.x, osWindowSize.y, true);
+}
+
+void Window::Move(Vector2i byThisAmount)
+{
+	// get current pos?
+	Vector2i currentPos = this->position;
+	Vector2i newPos = currentPos + byThisAmount;
+	Vector2i size = this->OSWindowSize();
+#ifdef WINDOWS
+	MoveWindow(hWnd, newPos.x, newPos.y, size.x, size.y, true); 
+#endif
 }
 
 /// Ensures both UI and GlobalUI has been set.
@@ -255,7 +325,7 @@ bool Window::Create()
 		dwExStyle,
 		szWindowClass, szTitle,
 		windowStyle,
-		CW_USEDEFAULT, CW_USEDEFAULT,
+		position.x, position.y,
 		size.x, size.y,
 		parent, NULL,
 		Application::hInstance, NULL);
@@ -289,10 +359,91 @@ bool Window::Create()
 	return true;
 }
 
+/// Must be called from the same thread that created it (on Windows).
+bool Window::Destroy()
+{
+	bool result;
+#ifdef WINDOWS
+	// http://msdn.microsoft.com/en-us/library/windows/desktop/ms632682%28v=vs.85%29.aspx
+	// If the specified window is a parent or owner window, DestroyWindow automatically destroys the associated 
+	// child or owned windows when it destroys the parent or owner window. The function first destroys child or 
+	// owned windows, and then it destroys the parent or owner window.
+	// A thread cannot use DestroyWindow to destroy a window created by a different thread. 
+	if (main)
+	{
+		result = DestroyWindow(hWnd);
+		assert(result);
+	}
+#endif
+	return result;
+}
+
 bool Window::IsVisible()
 {
 #ifdef WINDOWS
 	return IsWindowVisible(hWnd);
+#endif
+}
+
+
+void Window::MoveToMonitor(int monitorIndex)
+{
+	List<Monitor> monitors = GetMonitors();
+	if (monitors.Size() <= monitorIndex)
+		return;
+	Monitor monitor = monitors[monitorIndex];
+	// Move so we are somewhere in the middle of the monitor?
+	MoveCenterTo(monitor.center);
+}
+
+Vector2i Window::OSWindowSize()
+{
+#ifdef WINDOWS
+	RECT rect;
+	GetWindowRect(hWnd, &rect);
+	return Vector2i(rect.right - rect.left, rect.bottom - rect.top);
+#endif
+}
+
+/// Since some parts of the window may be used by the OS, this has to be taken into consideration when rendering.
+Vector2i Window::WorkingArea()
+{
+#ifdef WINDOWS
+	RECT rect;
+	GetClientRect(hWnd, &rect);
+	return Vector2i(rect.right - rect.left, rect.bottom - rect.top);
+#endif
+}
+
+Vector2i Window::GetTopLeftCorner()
+{
+#ifdef WINDOWS
+	RECT rect;
+	GetWindowRect(hWnd, &rect);
+	return Vector2i(rect.left, rect.top);
+#endif
+}
+
+/// Fetches right-edge X-position of the window.
+int Window::GetRight()
+{
+#ifdef WINDOWS
+	RECT rect;
+	GetWindowRect(hWnd, &rect);
+	return rect.right;
+#endif
+}
+
+
+// Moving the window using the center of the window as guide.
+void Window::MoveCenterTo(Vector2i position)
+{
+#ifdef WINDOWS
+	Vector2i topLeftCorner = GetTopLeftCorner();
+	Vector2i size = OSWindowSize();
+	Vector2i halfSize = size * 0.5f;
+	Vector2i newTopLeft = position - halfSize;
+	MoveWindow(hWnd, newTopLeft.x, newTopLeft.y, size.x, size.y, true);
 #endif
 }
 
@@ -349,8 +500,10 @@ UserInterface * Window::GetUI()
 }
 
 /// Fetches the global (system) UI.
-UserInterface * Window::GetGlobalUI()
+UserInterface * Window::GetGlobalUI(bool fromRenderThread)
 {
+	if (!globalUI && fromRenderThread)
+		CreateGlobalUI();
 	assert(globalUI && "Should have been created at start.");
 	return globalUI;	
 }
@@ -383,6 +536,48 @@ void Window::SetRequestedSize(Vector2i size)
 void Window::SetRequestedRelativePosition(Vector2i pos)
 {
 	requestedRelativePosition = pos;
+}
+
+int Window::MemLeakTest()
+{
+#define MEMLEAKTEST
+#ifdef MEMLEAKTEST
+	while(true)
+	{
+		HDC hDC = GetDC(hWnd);
+		assert(hDC);
+		bool result = SetupPixelFormat(hDC);
+		assert(result);
+	
+		HGLRC hGLContext = wglCreateContext(hDC);
+		if (hGLContext == NULL)
+		{
+			int error = GetLastError();
+			std::cout<<"\nError in wglCreateContext: "<<error;
+			if (error == ERROR_INVALID_PIXEL_FORMAT)
+			{
+				std::cout<<" invalid pixel format o-o";
+			}
+			ReleaseDC(hWnd,hDC);
+			continue;
+		}
+		std::cout<<"\nhglrc, window gl context: "<<hGLContext;
+		wglMakeCurrent(hDC, hGLContext);
+	//	Sleep(50);
+		// Test generating buffers
+		for (int i = 0; i < 10; ++i)
+		{
+			GLBuffers::New();
+		}
+
+		GLBuffers::FreeAll();
+
+		wglMakeCurrent(NULL,NULL);
+		wglDeleteContext(hGLContext);
+		ReleaseDC(hWnd,hDC);
+	}
+#endif
+	return 0;
 }
 
 bool Window::CreateGLContext()
@@ -444,11 +639,25 @@ bool Window::DeleteGLContext()
 		}
 		else
 			assert(result == TRUE);
+		// Unable to make current? Means we probably cannot delete it either.
+		return false;
 	}
 	// And delete it
 	if (hglrc)
 	{
-		result = wglDeleteContext(hglrc);
+		// Need to de-allocate other stuff first?
+		// http://stackoverflow.com/questions/10879796/wgldeletecontext-access-violation
+		try {
+			result = wglDeleteContext(hglrc);
+		} catch (...)
+		{
+			std::cout<<"\nError calling wglDeleteContext";
+			hglrc = 0;
+			return false;
+		}
+		int error = GetLastError();
+		if (error)
+			std::cout<<"\nError: "<<error;
 		hglrc = NULL;
 		assert(result == TRUE);
 	}

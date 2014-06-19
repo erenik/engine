@@ -38,6 +38,7 @@ public:
 	/// Creates a new window, returning a reference to it.
 	Window * NewWindow(String name);
 	Window * GetWindow(int index);
+	Window * GetWindowByName(String name);
 #ifdef WINDOWS
 	Window * GetWindowByHWND(HWND hWnd);
 #endif
@@ -48,6 +49,11 @@ public:
 	const int NumWindows() const;
 	/// Used to create the window class to be used when creating windows?
 	bool CreateDefaultWindowClass();
+
+	/// Using relative positions
+	void UpdateChildWindows();
+	/// Not really working..
+	void MoveAllChildWindows(Vector2i byThisAmount);
 
 	/// Removes and deletes all windows.
 	void DeleteWindows();

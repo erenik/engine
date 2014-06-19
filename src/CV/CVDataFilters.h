@@ -340,7 +340,7 @@ private:
 
 	// For generatic statistics
 	// Save the data to a file?
-	Texture preFilter, postFilter;
+	Texture * preFilter, * postFilter;
 	/// Frames to track.. p-p
 	int framesToTrack;
 	int filesSaved;

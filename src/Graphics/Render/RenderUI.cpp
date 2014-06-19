@@ -19,17 +19,18 @@ void GraphicsManager::RenderUI(UserInterface * ui)
     }
 
 	Window * window = graphicsState.activeWindow;
-	Vector2i size = window->Size();
-	glViewport(0, 0, size.x, size.y);
+	Vector2i windowWorkingArea = window->WorkingArea();
+	glViewport(0, 0, windowWorkingArea.x, windowWorkingArea.y);
+
 	// Bufferize etc. as needed.
-	if (ui->AdjustToWindow(graphicsState.activeWindow->Size()))
+	if (ui->AdjustToWindow(windowWorkingArea))
 	{
 		if (!ui->IsGeometryCreated())
 			ui->CreateGeometry();
 		ui->ResizeGeometry();
 		ui->Bufferize();		
 	}
-
+	
 	/// Disable stuff.
 	glDisable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, 0);

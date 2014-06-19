@@ -412,6 +412,7 @@ int main(int argc, char **argv)
 #endif
 	
 	// Initialize all managers
+	CameraManager::Allocate();
 	PreferencesManager::Allocate();
 	PlayerManager::Allocate();
 	MessageManager::Allocate();
@@ -480,16 +481,17 @@ int main(int argc, char **argv)
 	MSG msg;
 	while(true)
 	{
+		/*
 		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 		{
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
+		*/
 		// Sleep a bit? No?
-		Sleep(5);
+		Sleep(500);
 		if (StateMan.ActiveStateID() == GameStateID::GAME_STATE_EXITING)
 		{
-			std::cout<<"\nExiting main window message loop.";
 			break;
 		}
 	}
@@ -601,13 +603,14 @@ int main(int argc, char **argv)
 	MapManager::Deallocate();
 	PhysicsManager::Deallocate();
 	ModelManager::Deallocate();
-	EntityManager::Deallocate();
+//	EntityManager::Deallocate();
 	PathManager::Deallocate();
 	WaypointManager::Deallocate();
 	InputManager::Deallocate();
 	PlayerManager::Deallocate();
 	PreferencesManager::Deallocate();
 	WindowManager::Deallocate();
+	CameraManager::Deallocate();
 
 	std::cout<<"\nManagers deallocated.";
 	timeTaken = clock() - timeStart;

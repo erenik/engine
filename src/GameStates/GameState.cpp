@@ -77,20 +77,20 @@ void GameState::OnChatMessageReceived(ChatMessage * cm){
 	Argument true indicate that the button was pressed, while false indicates that it was just released.
 	Default arguments for x and y indicate that they should not be refreshed.
 */
-void GameState::MouseClick(bool down, int x, int y, UIElement * elementClicked){
+void GameState::MouseClick(Window * window, bool down, int x, int y, UIElement * elementClicked){
 	std::cout<<"\nDefault GameState::MouseClick activated.";
 }
 /** Handles a mouse click.
 	Argument true indicate that the button was pressed, while false indicates that it was just released.
 	Default arguments for x and y indicate that they should not be refreshed.
 */
-void GameState::MouseRightClick(bool down, int x, int y, UIElement * elementClicked){
+void GameState::MouseRightClick(Window * window, bool down, int x, int y, UIElement * elementClicked){
 #ifdef _DEFAULT_STATE_DEBUG
 	std::cout<<"\nDefault GameState::MouseRightClick activated.";
 #endif
 }
 /// Interprets a mouse-move message to target position.
-void GameState::MouseMove(int x, int y, bool lDown, bool rDown, UIElement * elementOver){
+void GameState::MouseMove(Window * window, int x, int y, bool lDown, bool rDown, UIElement * elementOver){
 #ifdef _DEFAULT_STATE_DEBUG
 	std::cout<<"\nDefault GameState::MouseMove activated.";
 #endif
@@ -98,7 +98,7 @@ void GameState::MouseMove(int x, int y, bool lDown, bool rDown, UIElement * elem
 /** Handles mouse wheel input.
 	Positive delta signifies scrolling upward or away from the user, negative being toward the user.
 */
-void GameState::MouseWheel(float delta)
+void GameState::MouseWheel(Window * window, float delta)
 {
 #ifdef _DEFAULT_STATE_DEBUG
 	std::cout<<"\nDefault GameState::MouseWheel activated.";
@@ -167,8 +167,9 @@ void GameState::HandleDADFiles(List<String> & files){
 
 
 /// What happens.. when we rendar?!
-void GameState::Render(){
-
+void GameState::Render(GraphicsState & graphgics)
+{
+	std::cout<<"\nDefault GameState::Render called. Overloading failed or window got state rendering enabled in vain.";
 }
 
 #include "../Initializer.h"
@@ -194,19 +195,13 @@ void Exit::OnEnter(GameState * previousState){
 	std::cout<<"\nEntering Exit state. Calling Deallocate with thread.";
 #ifdef WINDOWS
 	// Call the deallocator thread!
+	assert(deallocatorThread == NULL);
 	deallocatorThread = _beginthread(Deallocate, NULL, NULL);
 #elif defined LINUX | defined OSX
     int iret1 = pthread_create(&deallocatorThread , NULL, Deallocate, NULL);
 #endif
 }
-void Exit::Process(int timeInMs){
-
-#ifdef WINDOWS
-	if (deallocatorThread){
-		Sleep(10);
-	}
-	std::cout<<"Deallocation finished. Exiting program!";
-	/// Post quit message if the deallocator thread has finished! :)
-	PostQuitMessage(0);
-#endif
+void Exit::Process(int timeInMs)
+{
+	// Exiting is actually done elsewhere.
 };

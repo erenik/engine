@@ -32,7 +32,7 @@ void GraphicsManager::RenderWindow()
 {
 
 	Window * window = graphicsState.activeWindow;
-	Vector2i windowSize = graphicsState.activeWindow->Size();
+	Vector2i windowSize = graphicsState.activeWindow->WorkingArea();
 	Timer timer;
 	timer.Start();
 
@@ -87,6 +87,8 @@ void GraphicsManager::RenderWindow()
 	// Reset scissor-variables
 	graphicsState.viewportX0 = graphicsState.viewportY0 = 0;
 
+	// OK til here.
+
 	// Set default shader program
 	Shader * shader = SetShaderProgram("Flat");
 	assert(shader && "Unable to set \"Flat\" shader");
@@ -102,6 +104,7 @@ void GraphicsManager::RenderWindow()
 	
 //	this->cameraToTrack->ProcessMovement(graphicsState.frameTime);
 
+	
 	/// Render all viewports..
 	if (window->renderViewports)
 	{
@@ -126,6 +129,7 @@ void GraphicsManager::RenderWindow()
 		}
 		renderViewportsFrameTime = (float)viewportTimer.GetMs();
 	}
+	
 	PrintTime("\nRendering viewports: ");
 
 	// Reset scissor-variables
@@ -175,12 +179,12 @@ void GraphicsManager::RenderWindow()
 //	UpdateProjection();
 
 	if (window->renderState && StateMan.ActiveState())
-		StateMan.ActiveState()->Render();
+		StateMan.ActiveState()->Render(graphicsState);
 
 	// And render FPS while we're at it...!
 	if (window->renderFPS)
 		RenderFPS();
-
+	
 	UserInterface * ui = window->ui, 
 		* globalUI = window->globalUI;
 	// Render UI if applicable

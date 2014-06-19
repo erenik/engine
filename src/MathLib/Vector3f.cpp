@@ -47,18 +47,18 @@ Vector3f::Vector3f(float arr[]){
 /**	Copy Constructor
 	Postcondition: Initializes a 3D vector to have same values as the referenced vector.
 */
-Vector3f::Vector3f(const Vector2i& base)
+Vector3f::Vector3f(const Vector2i& base, float z /* = 0*/)
 {
 	x = base.x;
 	y = base.y;
-	z = 0;
+	this->z = z;
 }
 
-Vector3f::Vector3f(const Vector2f & base)
+Vector3f::Vector3f(const Vector2f & base, float z /* = 0*/)
 {
 	x = base.x;
 	y = base.y;
-	z = 0;
+	this->z = z;
 }
 
 Vector3f::Vector3f(const Vector3f & base){
@@ -271,7 +271,8 @@ Vector3f Vector3f::ElementMultiplication(const Vector3f otherVector) const {
 }
 
 /// Calculates the length of the vector.
-float Vector3f::Length() const {
+float Vector3f::Length() const 
+{
 	float sum = x * x + y * y + z * z;
 	if (sum == 0)
 		return 0;

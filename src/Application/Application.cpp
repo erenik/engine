@@ -6,6 +6,7 @@
 
 namespace Application {
 
+	bool queryOnQuit;
 	String name;
 	
 	// OS-specifics below

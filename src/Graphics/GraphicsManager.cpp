@@ -49,9 +49,6 @@
     extern Window                  window;
 #endif
 
-/// Default graphicsManager camera for when no graphicsState takes upon itself to link an own camera!
-Camera defaultCamera;
-
 /// Singleton initialization to null. Require manual allocation of it!
 GraphicsManager * GraphicsManager::graphicsManager = NULL;
 
@@ -117,8 +114,8 @@ GraphicsManager::GraphicsManager()
 	// Biggar frustuuum default plz
 	vfcOctree = new VFCOctree(50000, *frustum);
 	// Default camera values
-	defaultCamera = new Camera();
-	cameraToTrack = defaultCamera;
+	defaultCamera = NULL;
+	cameraToTrack = NULL;
 	selectionToRender = NULL;
 	overlayTexture = NULL;
 	queuedOverlayTexture = NULL;
@@ -128,6 +125,7 @@ GraphicsManager::GraphicsManager()
 	/// Sizes pre-fullscreen
 	shouldLive = true;
 	finished = false;
+	renderingStopped = false;
 	enteringMainLoop = false;
 	shouldFullScreen = false;
 	useDeferred = true;
@@ -237,7 +235,13 @@ GraphicsManager::~GraphicsManager()
 	std::cout<<"\n>>> GraphicsManager deallocated successfully.";
 }
 
-void GraphicsManager::Initialize(){
+void GraphicsManager::Initialize()
+{
+	/// Create cameras post-allocation.
+	defaultCamera = CameraMan.DefaultCamera();
+	cameraToTrack = defaultCamera;
+	
+
 #ifdef WINDOWS
 	scrWidth = GetSystemMetrics(SM_CXSCREEN);
 	scrHeight = GetSystemMetrics(SM_CYSCREEN);
@@ -251,7 +255,8 @@ void GraphicsManager::Initialize(){
 }
 
 /// Loads and compiles all relevant shaders
-void GraphicsManager::CreateShaders(){
+void GraphicsManager::CreateShaders()
+{
 	/// Load Shaders! Either from file or built in the executable (?)
 	shadeMan.CreateShader("UI", SHADER_REQUIRED);
 	shadeMan.CreateShader("Flat", SHADER_REQUIRED);
@@ -291,13 +296,27 @@ Lighting * GraphicsManager::ActiveLighting()
 }
 
 
-void GraphicsManager::PauseRendering(){
+void GraphicsManager::PauseRendering()
+{
 	Graphics.QueueMessage(new GraphicsMessage(GM_PAUSE_RENDERING));
 	while (Graphics.renderingEnabled)
 		;
 	/// Catch the mutex?
 }
-void GraphicsManager::ResumeRendering(){
+
+/// Stops rendering permanentlty. Should only be called upon application shutdown.
+void GraphicsManager::StopRendering()
+{
+	Graphics.QueueMessage(new GraphicsMessage(GM_PAUSE_RENDERING));
+	while (Graphics.renderingEnabled)
+		;
+	renderingStopped = true;
+}
+
+void GraphicsManager::ResumeRendering()
+{
+	if (renderingStopped)
+		return;
 	Graphics.QueueMessage(new GraphicsMessage(GM_RESUME_RENDERING));
 }
 
@@ -427,12 +446,7 @@ void GraphicsManager::OnEndRendering()
 	timeTaken = clock() - timeStart;
 	std::cout<<"\nDeleting shaders... "<<timeTaken / CLOCKS_PER_SEC<<" seconds";
 
-	/// Deallocate textures before we remove any context!
-	timeStart = clock();
-	TexMan.DeallocateTextures();
-	timeTaken = clock() - timeStart;
-	std::cout<<"\nDeallocating textures... "<<timeTaken / CLOCKS_PER_SEC<<" seconds";
-
+	
     /// Deallocate textures before we remove any context!
 	timeStart = clock();
 	StateMan.DeallocateUserInterfaces();

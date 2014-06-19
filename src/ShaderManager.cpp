@@ -10,7 +10,8 @@
 
 
 /// Creates a shader using specified path/name .vert and .frag and returns a pointer to it
-Shader * ShaderManager::CreateShader(const char * name, int i_flags){
+Shader * ShaderManager::CreateShader(const char * name, int i_flags)
+{
 	for (int i = 0; i < shaders.Size(); ++i){
 		if (shaders[i]->name == name){
             std::cout<<"\nShader already exists! Returning it ^^";
@@ -50,6 +51,8 @@ void ShaderManager::DeleteShaders(){
 		shaders.RemoveIndex(0);
 		delete shader;
     }
+	/// Unbind currently bound shader program so that it may be deallocated.
+	glUseProgram(0);
 }
 
 

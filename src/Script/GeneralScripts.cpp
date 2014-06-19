@@ -10,6 +10,29 @@
 #include "UI/UIImage.h"
 #include "Window/WindowManager.h"
 
+WaitScript::WaitScript(String line, Script * parent)
+: Script(line, parent)
+{
+	duration = line.Tokenize("()")[1].ParseInt();
+}
+void WaitScript::OnBegin()
+{
+	timeWaitedSoFar = 0;
+}
+void WaitScript::Process(int timeInMs)
+{
+	timeWaitedSoFar += timeInMs;
+	if (timeWaitedSoFar > duration)
+	{
+		scriptState = Script::ENDING;
+	}
+}
+void WaitScript::OnEnd()
+{
+	Script::OnEnd();
+}
+
+
 StateChanger::StateChanger(String line, Script * parent)
 : Script(line, parent)
 {
@@ -102,7 +125,7 @@ void OverlayScript::OnBegin()
 	}
 }
 
-void OverlayScript::Process(long long time)
+void OverlayScript::Process(int timeInMs)
 {
 }
 
@@ -182,7 +205,7 @@ void FadeInBackground::OnBegin()
 	totalTime = fadeInDuration + duration;
 }
 
-void FadeInBackground::Process(long long timeInMs)
+void FadeInBackground::Process(int timeInMs)
 {
 	// If we have a texture to fade-out to, check that.
 	timePassed += (int)timeInMs;
@@ -266,7 +289,7 @@ void FadeOutBackground::OnBegin()
 }
 
 
-void FadeOutBackground::Process(long long timeInMs)
+void FadeOutBackground::Process(int timeInMs)
 {
 	timePassed += timeInMs;
 	/** 0 = sent first texture, fading it, 
@@ -353,7 +376,7 @@ void FadeInEffect::OnBegin()
 	totalTime = fadeInDuration + duration;
 }
 
-void FadeInEffect::Process(long long timeInMs)
+void FadeInEffect::Process(int timeInMs)
 {
 	// If we have a texture to fade-out to, check that.
 	timePassed += (int)timeInMs;
@@ -438,7 +461,7 @@ void FadeOutEffect::OnBegin()
 }
 
 
-void FadeOutEffect::Process(long long timeInMs)
+void FadeOutEffect::Process(int timeInMs)
 {
 	timePassed += timeInMs;
 	/** 0 = sent first texture, fading it, 
@@ -513,7 +536,7 @@ void FadeTextEffect::OnBegin()
 	SetText(text);
 	Graphics.QueueMessage(new GMSetGlobalUIf(OVERLAY_UI_TEXT, GMUI::TEXT_ALPHA, 0.0f));
 }
-void FadeTextEffect::Process(long long timeInMs)
+void FadeTextEffect::Process(int timeInMs)
 {
 	// If we have a texture to fade-out to, check that.
 	timePassed += timeInMs;

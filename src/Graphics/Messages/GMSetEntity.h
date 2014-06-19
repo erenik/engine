@@ -25,13 +25,13 @@ class GMSetEntity : public GraphicsMessage {
 public:
 	/// For general procedures that do stuff..
 	GMSetEntity(Entity * entity, int target);
-	GMSetEntity(Entity * entity, int target, Camera * camera);
+	GMSetEntity(List<Entity*> entities, int target, Camera * camera);
 	GMSetEntity(Entity * entity, int target, Model * model);
-	GMSetEntity(Entity * entity, int target, String string);
+	GMSetEntity(List<Entity*> entities, int target, String string);
 	void Process();
 private:
 	String string;
-	Entity * entity;
+	List<Entity*> entities;
 	int target;
 	void * data;
 	Model * model;

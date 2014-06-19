@@ -45,7 +45,8 @@ Shader::~Shader(){
 	}
 }
 
-void Shader::DeleteShader(){
+void Shader::DeleteShader()
+{
 	if (shaderProgram){
 		int deleteStatus = -1;
 		glGetProgramiv(shaderProgram, GL_DELETE_STATUS, &deleteStatus);

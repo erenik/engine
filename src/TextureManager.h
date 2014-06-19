@@ -20,8 +20,6 @@ public:
 	static void Deallocate();
 	/// Destructor
 	~TextureManager();
-	/// Clears all GL memory.
-	void DeallocateTextures();
 
 	/// Creates a new texture that the texture manager will make sure to deallocate once the program shuts down, so you don't have to worry about it.
 	Texture * New();
@@ -72,6 +70,9 @@ public:
 	Texture * GetTextureBySource(String source);
 	/// For buffering
 	Texture * GetTextureByID(int glid);
+
+	/// Frees the GL allocated IDs/memory of all textures.
+	void FreeTextures();
 
 private:
 

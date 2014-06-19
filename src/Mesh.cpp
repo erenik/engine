@@ -10,6 +10,7 @@
 #include "OS/Sleep.h"
 #include "Graphics/GraphicsManager.h"
 #include "PhysicsLib/Shapes.h"
+#include "Graphics/GLBuffers.h"
 extern GraphicsManager graphics;
 
 #include <iostream>
@@ -723,7 +724,9 @@ void Mesh::Bufferize()
 	// Generate And bind The Vertex Buffer
 	/// Check that the buffer isn't already generated
 	if (vboBuffer == 0)
-		glGenBuffers(1, &vboBuffer);
+	{
+		vboBuffer = GLBuffers::New();
+	}
 	glBindBuffer(GL_ARRAY_BUFFER, vboBuffer);
 
 	// Load all data in one big fat array, yo Data

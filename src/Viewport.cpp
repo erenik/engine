@@ -77,8 +77,10 @@ void Viewport::UpdateSize()
 	assert(window);
 	if (relative)
 	{
-		size = relativeSize.ElementMultiplication(window->Size());
-		bottomLeftCorner = relativeOffset.ElementMultiplication(window->Size());
+	//	Vector2i windowSize = window->Size();
+		Vector2i windowWorkingArea = window->WorkingArea();
+		size = relativeSize.ElementMultiplication(windowWorkingArea);
+		bottomLeftCorner = relativeOffset.ElementMultiplication(windowWorkingArea);
 	}
 	else 
 	{

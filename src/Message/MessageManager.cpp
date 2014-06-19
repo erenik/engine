@@ -218,6 +218,32 @@ void MessageManager::ProcessMessage(Message * message){
 		// Reveal the main window to the user now that all managers are allocated.
 		WindowMan.MainWindow()->Show();
 	}
+	else if (msg == "HideWindows")
+	{
+		if (MainWindow())
+		{
+			MainWindow()->Hide();
+		}
+	}
+	else if (msg == "DestroyMainWindow" || 
+		msg == "DeleteWindows" || 
+		msg == "DeleteMainWindow")
+	{
+		if (WindowMan.MainWindow())
+		{
+			Window * mainWindow = WindowMan.MainWindow();
+			mainWindow->Hide();
+			mainWindow->Destroy();
+		}
+	}
+	else if (msg.Contains("MaximizeWindow("))
+	{
+		String windowName = msg.Tokenize("()")[1];
+		Window * window = WindowMan.GetWindowByName(windowName);
+		if (!window->IsFullScreen())
+			window->ToggleFullScreen();
+	}
+
 	else if (msg.Contains("INTERPRET_CONSOLE_COMMAND(this)"))
 	{
 		String command = message->element->text;
@@ -295,7 +321,7 @@ void MessageManager::ProcessMessage(Message * message){
 	else if (msg.Contains("UIVectorInput("))
 	{
 		String name = msg.Tokenize("()")[1];
-		UserInterface * ui = StateMan.ActiveState()->GetUI();
+		UserInterface * ui = RelevantUI();
 		UIElement * e = ui->GetElementByName(name);
 		if (e->type != UIType::VECTOR_INPUT)
 			return;

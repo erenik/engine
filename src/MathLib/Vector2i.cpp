@@ -181,6 +181,11 @@ void Vector2i::operator *= (const int &f){
 	x *= f;
 	y *= f;
 }
+
+/// Internal element multiplication
+Vector2i Vector2i::operator * (const float &f) const {
+	return Vector2i(x * f, y * f);
+}
 /// Internal element multiplication
 Vector2i Vector2i::operator * (const int &f) const {
 	return Vector2i(x * f, y * f);
@@ -250,7 +255,11 @@ Vector2i Vector2i::NormalizedCopy() const {
 	return Vector2i(x / vecLength, y / vecLength);
 };
 
-
+/// Absolute values version.
+Vector2i Vector2i::AbsoluteValues()
+{
+	return Vector2i(x < 0? -x : x, y < 0? -y : y);
+}
 
 /// Utility functions
 Vector2i Vector2i::Minimum(const Vector2i & vec1, const Vector2i & vec2){

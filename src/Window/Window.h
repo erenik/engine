@@ -39,11 +39,25 @@ class UserInterface;
 class Window;
 class Texture;
 
+struct Monitor 
+{
+	Monitor();
+	/// Center position of this monitor.
+	Vector2i center;
+	Vector2i size;
+	Vector2i topLeftCorner;
+#ifdef WINDOWS
+	MONITORINFOEX monitorInfo;
+	HMONITOR hMonitor;
+#endif
+};
+
+List<Monitor> GetMonitors();
+
 /// Fetches window that is currently active. Returns NULL if it is not one owned by the application.
 Window * ActiveWindow();
 /// Fetches the main application window.
 Window * MainWindow();
-
 
 class Window 
 {
@@ -56,6 +70,14 @@ class Window
 public:
 	~Window();	
 
+	bool IsMain() {return main;};
+
+	
+	/// Updates positions, using parent as relative (if specified)
+	void UpdatePosition();
+
+	// Not sure how it works really..
+	void Move(Vector2i byThisAmount);
 	/// Ensures both UI and GlobalUI has been set.
 	void EnsureUIIsCreated();
 
@@ -66,7 +88,19 @@ public:
 	void SetDefaults();
 	/// Creates the actual window. Returns true upon success.
 	bool Create();
+	/// Must be called from the same thread that created it (on Windows).
+	bool Destroy();
 	bool IsVisible();
+	bool IsFullScreen() { return isFullScreen; };
+	void MoveToMonitor(int monitorIndex);
+
+	/// Returns the area available for application-specific rendering. 
+	Vector2i WorkingArea();
+	Vector2i GetTopLeftCorner();
+	/// Fetches right-edge X-position of the window.
+	int GetRight();
+	// Moving the window using the center of the window as guide.
+	void MoveCenterTo(Vector2i position);
 	void Show();
 	// Hides the window from user interaction! Called by default for non-main windows when closing them.
 	void Hide();
@@ -78,7 +112,7 @@ public:
 	/// Fetches the UI which is displayed on top of everything else, used for fade-effects etc. Is created dynamically if not set earlier.
 	UserInterface * GetUI();
 	/// Fetches the global (system) UI.
-	UserInterface * GetGlobalUI();
+	UserInterface * GetGlobalUI(bool fromRenderThread = false);
 	/// Should be called after creation.
 	UserInterface * CreateUI();
 	/// Should be called after creation.
@@ -89,6 +123,7 @@ public:
 	/// Relative to parent window.
 	void SetRequestedRelativePosition(Vector2i pos);
 
+	int MemLeakTest();
 	bool CreateGLContext();
 	bool MakeGLContextCurrent();
 	bool DeleteGLContext();
@@ -127,9 +162,6 @@ public:
 	HGLRC	hglrc;		
 #endif
 	
-	// Returns size in pixels.
-	Vector2i Size() {return size;};
-
 	Vector4f backgroundColor;
 
 	/// p-=p
@@ -143,8 +175,11 @@ public:
 	Vector2i requestedSize;
 	Vector2i requestedRelativePosition;
 
-private:
 
+	/** Should NOT be confused with the working/client area of the window! 
+	*/
+	Vector2i OSWindowSize();
+private:
 
 	bool getNextFrame;
 	Texture * frameTexture;
@@ -158,9 +193,13 @@ private:
 	bool resizable;
 	// Only one window should be set as "main". If removing this window should also close the entire application!
 	bool main;
-	Vector2i size;
+	/// Size of OS area
+	Vector2i osWindowSize;
 	Vector2i previousSize;
+	/// Size of the client window area
+	Vector2i clientAreaSize;
 	// Top-left corner in windows... 
+	Vector2i position;
 	Vector2i previousPosition;
 
 

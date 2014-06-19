@@ -65,7 +65,7 @@ RuneEditor::RuneEditor()
 	tileBrushSize = terrainBrushSize = brushSize = 0;
 	terrainTypeSelected = 0;
 	selectedEvent = NULL;
-	runeEditorCamera = new Camera();
+	runeEditorCamera = CameraMan.NewCamera();
 	runeEditorCamera->flySpeed = 20.0f;
 	rootMapDir = "map/";
 	// We want keypressed.
@@ -74,6 +74,14 @@ RuneEditor::RuneEditor()
 	std::cout<<"\nState name: "<<name;
 	assert(name == "RuneEditorState");
 	objectType = NULL;
+
+
+	sizeEditor = NULL;
+	brushEditor = NULL;
+	tileSelector = NULL;
+	terrainSelector = NULL;
+	objectSelector = NULL;
+	lightingEditor = NULL;
 }
 RuneEditor::~RuneEditor(){
 	SAFE_DELETE(runeEditorCamera);
@@ -115,6 +123,8 @@ void RuneEditor::OnEnter(GameState * previousState)
 {
 	TileTypes.LoadTileTypes("data/tiles.txt");
 	tileType = TileTypes.GetTileTypeByIndex(0);
+
+	MainWindow()->renderState = true;
 
 	std::cout<<"\nRuneEditor::OnEnter";
 	/// Create a map upon entering instead?
@@ -194,12 +204,15 @@ void RuneEditor::OnEnter(GameState * previousState)
 	OnTileTypeSelected();
 }
 
-void RuneEditor::OnExit(GameState *nextState){
+void RuneEditor::OnExit(GameState *nextState)
+{
 	// Begin loading textures here for the UI
 	Graphics.QueueMessage(new GraphicsMessage(GM_CLEAR_UI));
 	if (nextState->GetID() == GameStateID::GAME_STATE_MAIN_MENU)
 		MapMan.MakeActive(NULL);
 	std::cout<<"\nLeaving RuneEditor state.";
+	/// Hide all editor windows when leaving.
+	HideEditorWindows();
 }
 
 
@@ -536,9 +549,12 @@ void RuneEditor::OnSelectionUpdated(){
 }
 
 /// Input functions for the various states
-void RuneEditor::MouseClick(bool down, int x, int y, UIElement * elementClicked){
+void RuneEditor::MouseClick(Window * window, bool down, int x, int y, UIElement * elementClicked)
+{
 	/// Don't do anything if we're over a UI-element, yo.
 	if (elementClicked)
+		return;
+	if (window != MainWindow())
 		return;
 
 	// If left mouse button was just clicked down...
@@ -609,9 +625,11 @@ void RuneEditor::MouseClick(bool down, int x, int y, UIElement * elementClicked)
 	mouseY = y;
 	lButtonDown = down;
 }
-void RuneEditor::MouseRightClick(bool down, int x, int y, UIElement * elementClicked){
+void RuneEditor::MouseRightClick(Window * window, bool down, int x, int y, UIElement * elementClicked){
 	/// Don't do anything if we're over a UI-element, yo.
 	if (elementClicked)
+		return;
+	if (window != MainWindow())
 		return;
 
 	switch(editMode){
@@ -639,10 +657,12 @@ void RuneEditor::MouseRightClick(bool down, int x, int y, UIElement * elementCli
 }
 
 #define PAN_SPEED_MULTIPLIER (abs(camera->distanceFromCentreOfMovement)/2.0f + 1)
-void RuneEditor::MouseMove(int x, int y, bool lDown, bool rDown, UIElement * elementOver)
+void RuneEditor::MouseMove(Window * window, int x, int y, bool lDown, bool rDown, UIElement * elementOver)
 {
 	/// Don't do anything if we're over a UI-element, yo.
 	if (elementOver)
+		return;
+	if (window != MainWindow())
 		return;
 
 	Camera * camera = Graphics.cameraToTrack;
@@ -752,7 +772,10 @@ void RuneEditor::MouseMove(int x, int y, bool lDown, bool rDown, UIElement * ele
 	mouseY = y;
 }
 
-void RuneEditor::MouseWheel(float delta){
+void RuneEditor::MouseWheel(Window * window, float delta)
+{
+	if (MainWindow() != window)
+		return;
 
 	/// Camera if CTRL is held
 	if (!Input.KeyPressed(KEY::CTRL)){
@@ -783,7 +806,12 @@ void RuneEditor::MouseWheel(float delta){
 }
 
 /// Callback from the Input-manager, query it for additional information as needed.
-void RuneEditor::KeyPressed(int keyCode, bool downBefore){
+void RuneEditor::KeyPressed(int keyCode, bool downBefore)
+{
+	if (MainWindow() != WindowMan.GetCurrentlyActiveWindow())
+		return;
+
+
 //	std::cout<<"\nOpHening Mhenu.";
 	switch(keyCode){
 		case KEY::ESCAPE: 
@@ -1015,8 +1043,8 @@ void RuneEditor::SetBrushType(int type)
 		case DRAG_CIRCLE: brushName = "DragCircle"; break;
 		default: assert(false && "Bad brushtype");
 	}
-	Graphics.QueueMessage(new GMSetUIb("TileBrushes", GMUI::CHILD_TOGGLED, false));
-	Graphics.QueueMessage(new GMSetUIb(brushName, GMUI::TOGGLED, true));
+	Graphics.QueueMessage(new GMSetUIb("TileBrushes", GMUI::CHILD_TOGGLED, false, brushEditor->ui));
+	Graphics.QueueMessage(new GMSetUIb(brushName, GMUI::TOGGLED, true, brushEditor->ui));
 }
 void RuneEditor::SetBrushSize(int size)
 {
@@ -1024,8 +1052,153 @@ void RuneEditor::SetBrushSize(int size)
 		size = 0;
 	brushSize = size;
 	String sizeString = String::ToString(size);
-	Graphics.QueueMessage(new GMSetUIs("SetBrushSize", GMUI::TEXT, sizeString));
+	Graphics.QueueMessage(new GMSetUIs("SetBrushSize", GMUI::TEXT, sizeString, brushEditor->ui));
 }
+
+void RuneEditor::OpenSizeEditor()
+{
+	if (!sizeEditor)
+	{
+		Window * newWindow = WindowMan.NewWindow("Size editor");
+		newWindow->CreateUI();
+		newWindow->CreateGlobalUI();
+		newWindow->ui->Load("gui/Editor/SizeMenu.gui");
+		Vector2i brushWindowSize(300, 300);
+		newWindow->SetRequestedSize(brushWindowSize);
+		newWindow->SetRequestedRelativePosition(Vector2i(-brushWindowSize.x,0));
+		newWindow->Create();
+		newWindow->DisableAllRenders();
+		newWindow->renderUI = true;
+		editorWindows.Add(newWindow);
+		sizeEditor = newWindow;
+	}
+	sizeEditor->Show();
+}
+
+/// Opens the brush editor window.
+void RuneEditor::OpenBrushEditor()
+{
+	if (!brushEditor)
+	{
+		Window * newWindow = WindowMan.NewWindow("Brush editor");
+		newWindow->CreateUI();
+		newWindow->CreateGlobalUI();
+		newWindow->ui->Load("gui/Editor/BrushEditor.gui");
+		Vector2i brushWindowSize(300, 300);
+		newWindow->SetRequestedSize(brushWindowSize);
+		newWindow->SetRequestedRelativePosition(Vector2i(-brushWindowSize.x,0));
+		newWindow->Create();
+		newWindow->DisableAllRenders();
+		newWindow->renderUI = true;
+		editorWindows.Add(newWindow);
+		brushEditor = newWindow;
+	}
+	brushEditor->Show();
+}
+
+void RuneEditor::OpenTileSelector()
+{
+	if (!tileSelector)
+	{
+		Window * newWindow = WindowMan.NewWindow("Tile selector");
+		newWindow->CreateUI();
+		newWindow->CreateGlobalUI();
+		newWindow->ui->Load("gui/Editor/TilesMenu.gui");
+		Vector2i windowSize(300, 600);
+		// Set it to the right side of the main window?
+		Window * mainWindow = MainWindow();
+		int mainWindowWidth = mainWindow->OSWindowSize().x;
+		newWindow->SetRequestedSize(windowSize);
+		newWindow->SetRequestedRelativePosition(Vector2i(mainWindowWidth, 0));
+		newWindow->Create();
+		newWindow->DisableAllRenders();
+		newWindow->renderUI = true;
+		editorWindows.Add(newWindow);
+		tileSelector = newWindow;
+	}
+	tileSelector->Show();	
+}
+
+void RuneEditor::OpenTerrainSelector()
+{
+	if (!terrainSelector)
+	{
+		Window * newWindow = WindowMan.NewWindow("Terrain selector");
+		newWindow->CreateUI();
+		newWindow->CreateGlobalUI();
+		newWindow->ui->Load("gui/Editor/TerrainSelector.gui");
+		Vector2i windowSize(300, 600);
+		// Set it to the right side of the main window?
+		Window * mainWindow = MainWindow();
+		int mainWindowWidth = mainWindow->OSWindowSize().x;
+		newWindow->SetRequestedSize(windowSize);
+		newWindow->SetRequestedRelativePosition(Vector2i(mainWindowWidth, 0));
+		newWindow->Create();
+		newWindow->DisableAllRenders();
+		newWindow->renderUI = true;
+		editorWindows.Add(newWindow);
+		terrainSelector = newWindow;
+	}
+	terrainSelector->Show();	
+}
+
+void RuneEditor::OpenObjectSelector()
+{
+	if (!objectSelector)
+	{
+		Window * newWindow = WindowMan.NewWindow("Object selector");
+		newWindow->CreateUI();
+		newWindow->CreateGlobalUI();
+		newWindow->ui->Load("gui/Editor/ObjectsMenu.gui");
+		Vector2i windowSize(300, 600);
+		// Set it to the right side of the main window?
+		Window * mainWindow = MainWindow();
+		int mainWindowWidth = mainWindow->OSWindowSize().x;
+		newWindow->SetRequestedSize(windowSize);
+		newWindow->SetRequestedRelativePosition(Vector2i(mainWindowWidth, 0));
+		newWindow->Create();
+		newWindow->DisableAllRenders();
+		newWindow->renderUI = true;
+		editorWindows.Add(newWindow);
+		objectSelector = newWindow;
+	}
+	objectSelector->Show();	
+}
+
+void RuneEditor::OpenLightingEditor()
+{
+	if (!lightingEditor)
+	{
+		Window * newWindow = WindowMan.NewWindow("Lighting selector");
+		newWindow->CreateUI();
+		newWindow->CreateGlobalUI();
+		newWindow->ui->Load("gui/Editor/LightingMenu.gui");
+		Vector2i windowSize(300, 600);
+		// Set it to the right side of the main window?
+		Window * mainWindow = MainWindow();
+		int mainWindowWidth = mainWindow->OSWindowSize().x;
+		newWindow->SetRequestedSize(windowSize);
+		newWindow->SetRequestedRelativePosition(Vector2i(mainWindowWidth, 0));
+		newWindow->Create();
+		newWindow->DisableAllRenders();
+		newWindow->renderUI = true;
+		editorWindows.Add(newWindow);
+		lightingEditor = newWindow;
+	}
+	lightingEditor->Show();	
+}
+
+
+void RuneEditor::HideEditorWindows()
+{
+	for (int i = 0; i < editorWindows.Size(); ++i)
+	{
+		Window * window = editorWindows[i];
+		window->Hide();
+	}
+}
+
+
 
 /// Attempts to delete object at current cursor position.
 void RuneEditor::DeleteObject()
@@ -1097,7 +1270,7 @@ void RuneEditor::OnObjectTypeSelectedForEditing()
 /// Called to update ui.
 void RuneEditor::OnTileTypesUpdated()
 {
-	Graphics.QueueMessage(new GMClearUI("TileTypes"));
+	Graphics.QueueMessage(new GMClearUI("TileTypes", tileSelector->ui));
 	List<TileType*> tileTypes = TileTypes.GetTypes();
 	for (int i = 0; i < tileTypes.Size(); ++i)
 	{
@@ -1114,7 +1287,7 @@ void RuneEditor::OnTileTypesUpdated()
 		textureElement->alignmentX	= 0.9f;
 		cBox->AddChild(textureElement);
 
-		Graphics.QueueMessage(new GMAddUI(cBox, "TileTypes"));
+		Graphics.QueueMessage(new GMAddUI(cBox, "TileTypes", tileSelector->ui));
 	}
 }
 
@@ -1429,10 +1602,10 @@ void RuneEditor::RotateActiveEntities(Vector3f rotation){
 void RuneEditor::UpdateUISize()
 {
 	Vector2i mapSize = map->Size();
-	Graphics.QueueMessage(new GMSetUIs("CurrentSize", GMUI::TEXT, "Current size: "+String::ToString(mapSize.x)+", "+String::ToString(mapSize.y)));
-	Graphics.QueueMessage(new GMSetUIv2i("NewMapSize", GMUI::VECTOR_INPUT, mapSize));
-	Graphics.QueueMessage(new GMSetUIs("EffectsY", GMUI::TEXT, ""));
-	Graphics.QueueMessage(new GMSetUIs("EffectsX", GMUI::TEXT, ""));
+	Graphics.QueueMessage(new GMSetUIs("CurrentSize", GMUI::TEXT, "Current size: "+String::ToString(mapSize.x)+", "+String::ToString(mapSize.y), sizeEditor->ui));
+	Graphics.QueueMessage(new GMSetUIv2i("NewMapSize", GMUI::VECTOR_INPUT, mapSize, sizeEditor->ui));
+	Graphics.QueueMessage(new GMSetUIs("EffectsY", GMUI::TEXT, "", sizeEditor->ui));
+	Graphics.QueueMessage(new GMSetUIs("EffectsX", GMUI::TEXT, "", sizeEditor->ui));
 }
 
 void RuneEditor::UpdateUITiles()
@@ -1455,32 +1628,51 @@ void RuneEditor::UpdateUILighting()
 /// Update GUI n stuff!
 void RuneEditor::OnEditModeUpdated(int previousMode)
 {
+	// Don't do anything if same mode, yeah?
+	if (this->editMode == previousMode)
+		return;
+
+	HideEditorWindows();
+
 	String previousModeName = GetModeName(previousMode);
 	/// Get new mode name
 	String modeName = GetModeName(editMode);
+
+/*
 
 	/// Make stuff invisible.
 	Graphics.QueueMessage(new GMPopUI(previousModeName+"Menu", ui));
 	/// Make visible new UI using given modeName :)
 	Graphics.QueueMessage(new GMPushUI("Editor/"+modeName+"Menu.gui", ui));
+	*/
 	Graphics.QueueMessage(new GMSetUIb("Modes", GMUI::CHILD_TOGGLED, false));
 	/// Update some label?
 	Graphics.QueueMessage(new GMSetUIs("CurrentMode", GMUI::TEXT, modeName));
 	// Highlight selected mode.
 	Graphics.QueueMessage(new GMSetUIb(modeName, GMUI::TOGGLED, true));
 
+
 	/// Load data specific to that UI.
 	switch(editMode){
 		case EditMode::SIZE:
+			OpenSizeEditor();
 			UpdateUISize();
 			break;
 		case EditMode::TILES:
+			OpenBrushEditor();
+			OpenTileSelector();
 			UpdateUITiles();
 			break;
+		case EditMode::TERRAIN:
+			OpenBrushEditor();
+			OpenTerrainSelector();
+			break;
 		case EditMode::OBJECTS:
+			OpenObjectSelector();
 			UpdateUIObjects();
 			break;
 		case EditMode::LIGHTING:
+			OpenLightingEditor();
 			UpdateUILighting();
 			break;
 	}
@@ -1490,10 +1682,9 @@ void RuneEditor::OnEditModeUpdated(int previousMode)
 void RuneEditor::OnTileTypeSelected()
 {
 	/// Remove toggle flag from all other tile-types.
-	Graphics.QueueMessage(new GMSetUIb("TileTypes", GMUI::CHILD_TOGGLED, false));
-
+	Graphics.QueueMessage(new GMSetUIb("TileTypes", GMUI::CHILD_TOGGLED, false, tileSelector->ui));
 	// Highlight selected mode.
-	Graphics.QueueMessage(new GMSetUIb("TileType:"+tileType->name, GMUI::TOGGLED, true));
+	Graphics.QueueMessage(new GMSetUIb("TileType:"+tileType->name, GMUI::TOGGLED, true, tileSelector->ui));
 }
 
 /// For the edit modes.

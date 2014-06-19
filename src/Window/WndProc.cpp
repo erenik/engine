@@ -15,6 +15,7 @@
 #include "StateManager.h"
 #include "Message/MessageManager.h"
 #include "Window/WindowManager.h"
+#include "Application/Application.h"
 
 /// Returns KeyCode depending on the Virtual Key provided by Win32
 int GetKeyCodeFromVK(int wParam)
@@ -97,6 +98,22 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     switch (message)
     {
+	case WM_MOVE: 
+	{
+		int xPos = (int)(short) LOWORD(lParam);   // horizontal position 
+		int yPos = (int)(short) HIWORD(lParam);   // vertical position 
+		Vector2i currPos(xPos, yPos);	
+		if (window->IsMain())
+		{
+			/// Update all other windows which have relative positions?
+			Vector2i prevPos = window->previousPosition;
+			Vector2i diff = currPos - prevPos;
+			WindowMan.UpdateChildWindows();
+		}
+		window->previousPosition = window->position;
+		window->position = currPos;
+		return 0;
+	}
 	case WM_DEADCHAR:
 		return 0;
 	case WM_SYSDEADCHAR:
@@ -216,7 +233,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		DWORD width = (lParam & 0xFFFF);
 		DWORD height = (lParam >> 16);
 
-		window->size = Vector2i(width, height);
+		window->clientAreaSize = Vector2i(width, height);
+		// Recalculate OS window size.
+		window->osWindowSize = window->OSWindowSize();
 
 		// If an application processes this message, it should return zero.
 		return 0;
@@ -308,13 +327,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	}
 
 #define XtoWindow(coord) (int)coord
-#define YtoWindow(coord) (int)(window->size.y - coord)
+#define YtoWindow(coord) (int)(window->clientAreaSize.y - coord)
 
 	case WM_LBUTTONDOWN: 
 	{
 		int xPos = GET_X_LPARAM(lParam);
 		int yPos = GET_Y_LPARAM(lParam);
-		Input.MouseClick(true, XtoWindow(xPos), YtoWindow(yPos));
+		Input.MouseClick(window, true, XtoWindow(xPos), YtoWindow(yPos));
 		return 0; // If an application processes this message, it should return zero.
 		break;
 	}
@@ -322,21 +341,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 		int xPos = GET_X_LPARAM(lParam);
 		int yPos = GET_Y_LPARAM(lParam);
-		Input.MouseRightClick(true, XtoWindow(xPos), YtoWindow(yPos));
+		Input.MouseRightClick(window, true, XtoWindow(xPos), YtoWindow(yPos));
 		return 0; // If an application processes this message, it should return zero.
 		break;
 	}
 	case WM_LBUTTONUP: {
 		int xPos = GET_X_LPARAM(lParam);
 		int yPos = GET_Y_LPARAM(lParam);
-		Input.MouseClick(false, XtoWindow(xPos), YtoWindow(yPos));
+		Input.MouseClick(window, false, XtoWindow(xPos), YtoWindow(yPos));
 		return 0; // If an application processes this message, it should return zero.
 		break;
 	}
 	case WM_RBUTTONUP: {
 		int xPos = GET_X_LPARAM(lParam);
 		int yPos = GET_Y_LPARAM(lParam);
-		Input.MouseRightClick(false, XtoWindow(xPos), YtoWindow(yPos));
+		Input.MouseRightClick(window, false, XtoWindow(xPos), YtoWindow(yPos));
 		return 0; // If an application processes this message, it should return zero.
 		break;
 	}
@@ -368,8 +387,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 		int xPos = GET_X_LPARAM(lParam);
 		int yPos = GET_Y_LPARAM(lParam);
-//		std::cout<<"Mouve move:"<<xPos;
-		Input.MouseMove(XtoWindow(xPos), YtoWindow(yPos));
+		std::cout<<"\nMouse move: "<<xPos<<" "<<yPos;
+		Input.MouseMove(window, XtoWindow(xPos), YtoWindow(yPos));
 		return 0; // If an application processes this message, it should return zero.
 		break;
 	}
@@ -382,7 +401,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		zDelta /= WHEEL_DELTA;
 		zDelta /= 10.f;
 		std::cout<<" post: "<<zDelta;
-		Input.MouseWheel(zDelta);
+		Input.MouseWheel(window, zDelta);
 		return 0; // If an application processes this message, it should return zero.
 		break;
 	}
@@ -407,7 +426,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	// Sent to a window to query it's destruction. Ref: http://msdn.microsoft.com/en-us/library/windows/desktop/ms632617%28v=vs.85%29.aspx
 	case WM_CLOSE:
 		if (window->main)
-			MesMan.QueueMessages("Query(QuitApplication)");
+		{
+			if (Application::queryOnQuit)
+				MesMan.QueueMessages("Query(QuitApplication)");
+			else 
+				MesMan.QueueMessages("QuitApplication");
+		}
 		else {
 			window->Hide();
 		}

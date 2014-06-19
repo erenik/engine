@@ -149,7 +149,7 @@ void RuneBattleState::InputProcessor(int action, int inputDevice/* = 0*/){
 		PLAYER_CAMERA.flySpeed *= 0.8f;
 		break;
 	case RESET_CAMERA:
-		PLAYER_CAMERA = Camera();
+		PLAYER_CAMERA.Nullify();
 		break;
 	default:
 		std::cout<<"\nINFO: Default case for action: "<<action<<"!";

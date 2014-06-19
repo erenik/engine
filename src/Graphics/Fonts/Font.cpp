@@ -12,8 +12,6 @@
 #include "GraphicsState.h"
 #include <cstring>
 
-Timer renderTime;
-
 String TextFont::defaultFontSource; // = "font3.png";
 
 /// Prints the values of the error code in decimal as well as hex and the literal meaning of it.
@@ -27,7 +25,6 @@ TextFont::TextFont(){
 		charHeight[i] = 0.0f;
 	}
 
-	renderTime.Start();
 	// Default space and tab to distances.
 	charWidth[32] = 0.3f;	// Space
 	charWidth[9] = 1.0f;	// Tab
@@ -395,11 +392,18 @@ void TextFont::RenderText(Text & text){
 	/// Begin the QUADS!
 	glBegin(GL_QUADS);
 //	std::cout<<"\nRendering text: "<<c_str;
+	bool renderedCaret = false;
+	int64 renderTime = 	Timer::GetCurrentTimeMs();
+	bool shouldRenderCaret = renderTime % 1000 >= 500 && text.caretPosition >= 0;
+	if (text.caretPosition >= 0 && shouldRenderCaret)
+	{
+		std::cout<<"found carrot";
+	}
 	for (int i = 0; i <= (int)strlen(c_str); ++i){
 		c = c_str[i];
     //    std::cout<<"\nc "<<i<<": (int)"<<(int)c<<" (char)"<<c;
 		// Check for caret!
-		if (text.caretPosition == i && renderTime.GetMs()% 1000 >= 500){
+		if (text.caretPosition == i && shouldRenderCaret){
 			char caret = '|';
 			characterX = caret % 16;
 			characterY = caret / 16;
@@ -419,6 +423,7 @@ void TextFont::RenderText(Text & text){
 			glTexCoord2f(x1, y1);
 			glVertex3f(-halfScale + xStart, yStart, 0);
 			xStart -= offsetXStart;
+			renderedCaret = true;
 		}
 
 		// Handle special characters differently!
@@ -483,6 +488,32 @@ void TextFont::RenderText(Text & text){
 	//	if (i == 0)
 	//		break;
 	}
+
+	if (!renderedCaret && shouldRenderCaret)
+	{
+		// Check for caret!
+		char caret = '|';
+		characterX = caret % 16;
+		characterY = caret / 16;
+		float offsetXStart = 0.0f;
+		offsetXStart -= charWidth[caret]* halfScale;
+		xStart += offsetXStart;
+		x1 = characterX / 16.0f + bleedEdgeWidth;
+		x2 = (characterX+1) / 16.0f - bleedEdgeWidth;
+		y1 = (16 - characterY) / 16.0f - bleedEdgeWidth;
+		y2 = (16 - characterY - 1) / 16.0f + bleedEdgeWidth;
+		glTexCoord2f(x1, y2);
+		glVertex3f(-halfScale + xStart, -scale + yStart, 0);
+		glTexCoord2f(x2, y2);
+		glVertex3f(halfScale + xStart, -scale + yStart, 0);
+		glTexCoord2f(x2, y1);
+		glVertex3f(halfScale + xStart, yStart, 0);
+		glTexCoord2f(x1, y1);
+		glVertex3f(-halfScale + xStart, yStart, 0);
+		xStart -= offsetXStart;
+		renderedCaret = true;
+	}
+
 	/// End the .. quads :D
 	glEnd();
 

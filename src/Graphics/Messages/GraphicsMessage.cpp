@@ -42,7 +42,7 @@ void GraphicsMessage::Process(){
             break;
         }
         case GM_RESET_CAMERA:
-            *Graphics.cameraToTrack = Camera();
+            Graphics.cameraToTrack->Nullify();
             break;
 		case GM_PAUSE_RENDERING:
 			Graphics.renderingEnabled = false;

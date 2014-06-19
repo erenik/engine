@@ -103,6 +103,10 @@ public:
 
 	/// Pauses rendering and returns only after it has paused fully.
 	void PauseRendering();
+	/** Stops rendering permanentlty. Should only be called upon application shutdown. 
+		Waits until it has been confirmed by the Graphics-thread before returning.
+	*/
+	void StopRendering();
 	/// Reumes the rendering immediately.
 	void ResumeRendering();
 
@@ -235,6 +239,7 @@ private:
 
 	/// Should definitely be private..
 	bool renderingEnabled;
+	bool renderingStopped;
 
 	/// Time statistics
 	long renderFrameTime, physicsFrameTime, frameTime;

@@ -110,14 +110,16 @@ void Script::Reset()
 /// Loads script using given name as reference to source-file.
 bool Script::Load()
 {
-	std::cout<<"\nScript::Load called: "<<name;
-	bool result = Load(name);
+	std::cout<<"\nScript::Load called: "<<source;
+	bool result = Load(source);
 	assert(result && "Was unable to load target script.");
+	loaded = result;
 	return result;
 }
 
 /// Wosh o.o, NOTE that the root dir will be appended at the start automatically!
-bool Script::Load(String fromFile){
+bool Script::Load(String fromFile)
+{
 	std::cout<<"\nEvent::Load fromFile: "<<fromFile;
 	/// Already loaded, reset and re-load!
 	if (loaded){
@@ -127,7 +129,7 @@ bool Script::Load(String fromFile){
 		lines.Clear();
 	}
 	std::cout<<"\nSaving source path...";
-	String source = fromFile;
+	source = fromFile;
 	/// Parsley parse, yes?
 	/// Add root event dir if not already included (could be)
 	/// Assure that at least the data/ dir is included. Any path with it can be assumed to be completely relative!
@@ -213,7 +215,7 @@ void Script::OnBegin()
 	lineProcessed = false;
 }
 
-void Script::Process(long long timeInMs)
+void Script::Process(int timeInMs)
 {
 	if (paused)
 		return;
@@ -323,7 +325,22 @@ void Script::EvaluateLine(String & line)
 #define DEFAULT_TEXT_SIZE_RATIO	0.3f
 	
 	/// Some state began, take not of it?
-	if (line == "DisableActiveUI")
+	if (line.Contains("Wait("))
+	{
+		WaitScript * wait = new WaitScript(line, this);
+		ScriptMan.PlayScript(wait);
+	}
+	else if (line.Contains("PlayScript("))
+	{
+		// Source of script within the parenthesis.
+		String source = line.Tokenize("()")[1];
+		Script * script = new Script(source, this);
+		script->source = source;
+		bool loaded = script->Load();
+		assert(loaded);
+		ScriptMan.PlayScript(script);
+	}
+	else if (line == "DisableActiveUI")
 	{
 		Input.DisableActiveUI();
 		lineFinished = true;

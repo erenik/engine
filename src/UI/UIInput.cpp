@@ -175,7 +175,8 @@ int UIInput::OnKeyDown(int keyCode, bool downBefore)
 }
 
 /// Used for getting text. This will be local translated language key codes?
-int UIInput::OnChar(int asciiCode){
+int UIInput::OnChar(int asciiCode)
+{
 	if (!this->inputActive)
 		return 0;
 	/// Make sure the buffer period has passed ^^
@@ -290,8 +291,12 @@ void UIInput::StopInput()
 }
 
 // sends message to update the ui with new caret and stuff.
-void UIInput::OnTextUpdated(){
-	Graphics.QueueMessage(new GMSetUIs(name, GMUI::TEXT, editText, true));
+void UIInput::OnTextUpdated()
+{
+	if (!ui)
+		ui = this->GetRoot()->ui;
+	assert(ui);
+	Graphics.QueueMessage(new GMSetUIs(name, GMUI::TEXT, editText, true, this->ui));
 }
 
 

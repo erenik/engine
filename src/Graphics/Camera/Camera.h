@@ -21,14 +21,49 @@ enum trackingMode {
 };};
 
 class Entity;
+class Camera;
 
-class Camera {
+#define CameraMan (*CameraManager::Instance())
+
+class CameraManager 
+{
+	CameraManager();
+	~CameraManager();
+	static CameraManager * cameraManager;
 public:
+	static void Allocate();
+	static void Deallocate();
+	static CameraManager * Instance();
+	Camera * NewCamera();
+	// Called from render/physics thread. updates movement/position of all cameras.
+	void Process();
+	
+	Camera * DefaultCamera();
+	
+private:
+	Camera * defaultCamera;
+	List<Camera*> cameras;
+};
+
+
+class Camera 
+{
+	friend class CameraManager;
 	/// Default constructor, sets some variables
 	Camera();
+public:
 	~Camera();
+	/// Resets everything.
+	void Nullify();
 	// Prints data, including position, matrices, etc.
 	void PrintData() const;
+
+
+	/** When called, will set the adjustProjectionMatrixToWindow variable to true and adjust the projection matrix
+		To map each pixel in the screen to one unit in-game.
+		Regular projection matrices use width and height ratios based on > 1.0f, e.g. 1.666 and 1.0
+	*/
+	void AdjustProjectionMatrixToWindow(Window * window);
 
 	/// Name of the camera, can be nice to know.
 	String name;
@@ -91,7 +126,7 @@ public:
 	Frustum GetFrustum() const {return frustum; };
 
 	/// To be called from render/physics-thread. Moves the camera using it's given enabled directions and velocities.
-	void ProcessMovement(float timeSinceLastUpdate);
+	void ProcessMovement(int timeInMs);
 	/// Last time processMovement was called.
 	long long lastMovement;
 
@@ -145,6 +180,10 @@ public:
 	Vector3f relativePosition;
 
 private:
+
+	/// See the function with same name.
+	bool adjustProjectionMatrixToWindow;
+	Window * windowToTrack;
 
 	/// Ratio of the display device/context. Both should be at least 1.0, with the other scaling up as needed.
 	float widthRatio, heightRatio;

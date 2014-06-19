@@ -127,6 +127,8 @@ enum graphicsTargets{
 	TEXT_POSITION,
 	TEXT_SIZE_RATIO,
 	CAMERA_FILTER, // Filter to enable per-viewport disabled rendering of an entity for example.
+	ADD_CAMERA_FILTER, // Adds a camera filter.
+	REMOVE_CAMERA_FILTER,
 	CLEAR_CAMERA_FILTER, // For clearing said filter.
 	
 	// Added with GraphicsEffects.

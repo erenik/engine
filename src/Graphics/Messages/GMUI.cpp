@@ -226,17 +226,29 @@ void GMSetUIv3f::Process()
     };
 };
 
+GMSetUIv4f::GMSetUIv4f(String UIname, int target, Vector4f v, UserInterface * ui)
+: GMUI(GM_SET_UI_VEC4F, ui), name(UIname), target(target), value(v)
+{
+	AssertTarget();
+}
 
 GMSetUIv4f::GMSetUIv4f(String UIname, int target, Vector4f v, Viewport * viewport /*= NULL*/)
 : GMUI(GM_SET_UI_VEC4F, viewport), name(UIname), target(target), value(v)
 {
+	AssertTarget();
+}
+
+void GMSetUIv4f::AssertTarget()
+{
 	switch(target){
+		case GMUI::VECTOR_INPUT:
 	    case GMUI::TEXT_COLOR:
 			break;
 		default:
-			assert(false && "Invalid target in GMSetUIv");
+			assert(false && "Invalid target in GMSetUIv4f");
 	}
 }
+
 
 void GMSetUIv4f::Process()
 {
@@ -329,8 +341,19 @@ void GMSetUIf::Process()
 	};
 };
 
+GMSetUIb::GMSetUIb(String name, int target, bool v, UserInterface * inUI)
+: GMUI(GM_SET_UI_BOOLEAN, inUI), name(name), target(target), value(v)
+{
+	AssertTarget();
+}
+
 GMSetUIb::GMSetUIb(String name, int target, bool v, Viewport * viewport)
 : GMUI(GM_SET_UI_BOOLEAN, viewport), name(name), target(target), value(v)
+{
+	AssertTarget();
+};
+
+void GMSetUIb::AssertTarget()
 {
 	if (!name.Length())
 		std::cout<<"ERROR: Invalid name-length of provided element, yo?";
@@ -346,8 +369,8 @@ GMSetUIb::GMSetUIb(String name, int target, bool v, Viewport * viewport)
         default:
             assert(false && "bad target");
     };
+}
 
-};
 
 /// For setting floating point values, like relative sizes/positions, scales etc. of elements in the system-global UI.
 GMSetGlobalUIf::GMSetGlobalUIf(String uiName, int target, float value, Window * window)
@@ -415,8 +438,38 @@ void GMSetUIb::Process()
 	Graphics.renderQueried = true;
 };
 
+// Targets the main windows ui.
+GMSetUIs::GMSetUIs(String uiName, int target, Text text)
+: GMUI (GM_SET_UI_TEXT), uiName(uiName), target(target), text(text), force(false)
+{
+	AssertTarget();
+}
+
+GMSetUIs::GMSetUIs(String uiName, int target, Text text, UserInterface * inUI)
+: GMUI (GM_SET_UI_TEXT, inUI), uiName(uiName), target(target), text(text), force(false)
+{
+	AssertTarget();
+}
+
+GMSetUIs::GMSetUIs(String uiName, int target, Text text, bool force, UserInterface * inUI)
+: GMUI (GM_SET_UI_TEXT, inUI), uiName(uiName), target(target), text(text), force(force)
+{
+	AssertTarget();
+}
+
 GMSetUIs::GMSetUIs(String uiName, int target, Text text, Viewport * viewport)
 : GMUI (GM_SET_UI_TEXT, viewport), uiName(uiName), target(target), text(text), force(false)
+{
+	AssertTarget();
+};
+
+GMSetUIs::GMSetUIs(String uiName, int target, Text text, bool force, Viewport * viewport)
+: GMUI (GM_SET_UI_TEXT, viewport), uiName(uiName), target(target), text(text), force(force)
+{
+	AssertTarget();
+};
+
+void GMSetUIs::AssertTarget()
 {
 	switch(target){
 		case GMUI::TEXT:
@@ -431,12 +484,7 @@ GMSetUIs::GMSetUIs(String uiName, int target, Text text, Viewport * viewport)
 			break;
 		}
 	}
-};
-
-GMSetUIs::GMSetUIs(String uiName, int target, Text text, bool force, Viewport * viewport)
-: GMUI (GM_SET_UI_TEXT, viewport), uiName(uiName), target(target), text(text), force(force)
-{
-};
+}
 
 GMSetUIs::~GMSetUIs(){
 }
@@ -498,6 +546,8 @@ GMSetGlobalUIs::GMSetGlobalUIs(String uiName, int target, Text text, bool force,
 	global = true;
 }
 
+GMClearUI::GMClearUI(String uiName, UserInterface * inUI)
+: GMUI(GM_CLEAR_UI, inUI), uiName(uiName){}
 
 GMClearUI::GMClearUI(String uiName, Viewport * viewport)
 : GMUI(GM_CLEAR_UI, viewport), uiName(uiName){}
@@ -539,7 +589,6 @@ void GMScrollUI::Process(){
 	Graphics.renderQueried = true;
 }
 
-
 /// Message to add a newly created UI to the global state's UI, mostly used for overlay-effects and handling error-messages.
 GMAddGlobalUI::GMAddGlobalUI(UIElement *element, String toParent /* = "root" */)
 : GMUI(GM_ADD_UI), element(element), parentName(toParent)
@@ -565,6 +614,12 @@ void GMAddGlobalUI::Process()
 }
 
 /// Message to add a newly created UI to the active game state's UI.
+GMAddUI::GMAddUI(UIElement * element, String toParent, UserInterface * inUI)
+: GMUI(GM_ADD_UI, inUI), element(element), parentName(toParent)
+{
+	assert(element);
+}
+
 GMAddUI::GMAddUI(UIElement * element, String toParent, Viewport * viewport)
 : GMUI(GM_ADD_UI, viewport), element(element), parentName(toParent)
 {

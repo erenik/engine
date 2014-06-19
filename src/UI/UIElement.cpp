@@ -20,6 +20,7 @@
 #include "UserInterface.h"
 #include "GraphicsState.h"
 #include "MathLib/Rect.h"
+#include "Graphics/GLBuffers.h"
 
 extern InputManager input;
 extern UserInterface ui[GameStateID::MAX_GAME_STATES];
@@ -1030,10 +1031,11 @@ void UIElement::Bufferize()
 		if (Graphics.GL_VERSION_MAJOR >= 3){
 		// Generate VAO and bind it straight away if we're above GLEW 3.0
 			if (vertexArray == -1)
-				glGenVertexArrays(1, &vertexArray);
-			glBindVertexArray(vertexArray);
+				vertexArray = GLVertexArrays::New();
+			// Binding caused error in wglDeleteContext later for some reason? Worth looking into later maybe.
+		//	glBindVertexArray(vertexArray);
 		}
-
+		
 		// Check for errors before we proceed.
 		GLuint err = glGetError();
 		if (err != GL_NO_ERROR)
@@ -1048,7 +1050,9 @@ void UIElement::Bufferize()
 		// Generate And bind The Vertex Buffer
 		/// Check that the buffer isn't already generated
 		if (vboBuffer == -1)
-			glGenBuffers(1, &vboBuffer);
+		{
+			vboBuffer = GLBuffers::New();
+		}
 		glBindBuffer(GL_ARRAY_BUFFER, vboBuffer);
 
 		// Load all data in one big fat array, yo Data
@@ -1647,7 +1651,11 @@ void UIElement::CreateGeometry(){
 	isGeometryCreated = true;
 
 }
-void UIElement::ResizeGeometry(){
+void UIElement::ResizeGeometry()
+{
+	if (!isGeometryCreated)
+		CreateGeometry();
+	assert(mesh);
 //    std::cout<<"\nResizing geometry: L"<<left<<" R"<<right<<" B"<<bottom<<" T"<<top<<" Z"<<this->zDepth;
 	this->mesh->SetDimensions((float)left, (float)right, (float)bottom, (float)top, this->zDepth);
 	for (int i = 0; i < childList.Size(); ++i){

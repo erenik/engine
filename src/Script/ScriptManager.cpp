@@ -59,10 +59,11 @@ void ScriptManager::PlayScript(Script * newScriptToPlay)
 	newScriptToPlay->OnBegin();
 	activeScripts.Add(newScriptToPlay);
 }
-void ScriptManager::Process(long long timeInMs)
+void ScriptManager::Process(int timeInMs)
 {
 //	std::cout<<"\nEventManager::Process";
-	for (int i = 0; i < activeScripts.Size(); ++i){
+	for (int i = 0; i < activeScripts.Size(); ++i)
+	{
 	//	std::cout<<"\nActive events: "<<activeEvents.Size();
 		Script * script = activeScripts[i];
 		if (script->IsPaused())

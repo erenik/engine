@@ -31,6 +31,7 @@
 #include "Multimedia/MultimediaManager.h"
 #include "System/PreferencesManager.h"
 #include "Maps/Grids/GridObject.h"
+#include "Graphics/Camera/Camera.h"
 
 /// Define them so we can use a simple dot for all interactions straight away!
 

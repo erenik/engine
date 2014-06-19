@@ -46,11 +46,11 @@ public:
 	/**	Copy Constructor
 		Postcondition: Initializes a 3D vector to have same values as the referenced vector.
 	*/
-	Vector3f(const Vector2i& base);
+	Vector3f(const Vector2i& base, float z = 0);
 	/**	Copy Constructor
 		Postcondition: Initializes a 3D vector to have same values as the referenced vector.
 	*/
-	Vector3f(const Vector2f& base);
+	Vector3f(const Vector2f& base, float z = 0);
 	/**	Copy Constructor
 		Postcondition: Initializes a 3D vector to have same values as the referenced vector.
 	*/

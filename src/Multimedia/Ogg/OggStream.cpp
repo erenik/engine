@@ -3,6 +3,7 @@
 
 #include "OggStream.h"
 #include "Multimedia/MultimediaTypes.h"
+#include "TextureManager.h"
 
 #ifdef BUILD_OGG
 
@@ -275,7 +276,7 @@ bool OggStream::Open(String path)
 		assert(frameBufferSize);
 		/// Also create the frame texture to buffer data to!
 		if (frameTexture == NULL){
-			frameTexture = new Texture();
+			frameTexture = TexMan.New();
 			frameTexture->bpp = 4;
 			frameTexture->format = Texture::RGBA;
 			frameTexture->width = frameWidth;

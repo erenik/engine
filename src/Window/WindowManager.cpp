@@ -58,6 +58,10 @@ bool WindowManager::CreateDefaultWindowClass()
 	//	CS_NOCLOSE |			// Disables Close on the window menu.
 	//	CS_BYTEALIGNCLIENT |	// Aligns the window's client area on a byte boundary (in the x direction).
 	//	CS_BYTEALIGNWINDOW |	// Aligns the window on a byte boundary (in the x direction).
+		
+		// Allocates a unique device context for each window in the class. CS_OWNDC 0x0020 
+		// http://msdn.microsoft.com/en-us/library/windows/desktop/ff729176%28v=vs.85%29.aspx
+		CS_OWNDC | 
 		0;
 
 	// Define window class structure
@@ -115,6 +119,17 @@ Window * WindowManager::NewWindow(String name)
 Window * WindowManager::GetWindow(int index)
 {
 	return windows[index];
+}
+
+Window * WindowManager::GetWindowByName(String name)
+{
+	for (int i = 0; i < windows.Size(); ++i)
+	{
+		Window * window = windows[i];
+		if (window->name == name)
+			return window;
+	}
+	return NULL;
 }
 
 #ifdef WINDOWS
@@ -179,3 +194,30 @@ bool WindowManager::InFocus()
 	}
 	return false;
 }
+
+
+/// Using relative positions
+void WindowManager::UpdateChildWindows()
+{
+	for (int i = 0; i < windows.Size(); ++i)
+	{
+		Window * window = windows[i];
+		if (window->main)
+			continue;
+		window->UpdatePosition();
+	}
+}
+
+
+void WindowManager::MoveAllChildWindows(Vector2i byThisAmount)
+{
+	for (int i = 0; i < windows.Size(); ++i)
+	{
+		Window * window = windows[i];
+		if (window->main)
+			continue;
+		window->Move(byThisAmount);
+	}
+}
+
+

@@ -14,6 +14,7 @@ CVRenderFilter::CVRenderFilter(int filterID)
 	: CVFilter(filterID)
 {
 	type = CVFilterType::RENDER_FILTER;
+	renderOntoEditor = true;
 }
 int CVRenderFilter::Process(CVPipeline * pipe)
 {
@@ -114,6 +115,10 @@ int CVVideoWriter::Process(CVPipeline * pipe)
 	return 0;
 }
 
+List<Entity*> CVVideoWriter::GetEntities()
+{
+	return List<Entity*>();
+}
 
 #include "Maps/MapManager.h"
 #include "Physics/PhysicsManager.h"
@@ -195,10 +200,10 @@ int CVImageGalleryHand::Process(CVPipeline * pipe)
 		position.x -= pipe->initialInput->cols * 0.5f;
 		position.y = pipe->initialInput->rows * 0.5f - position.y;
 
-		position *= 0.01f;
-
 		// Works!
 //		position = Vector3f(0,0,3);
+
+		// Convert to projection space (-halfwidth, halfwidth), similar to GLs [-1,1]
 		Physics.QueueMessage(new PMSetEntity(POSITION, galleryEntity, position));  
 		UpdateScale(hand);
 	}
@@ -325,6 +330,14 @@ int CVImageGalleryHand::Process(CVPipeline * pipe)
 	return CVReturnType::RENDER;
 }
 
+
+List<Entity*> CVImageGalleryHand::GetEntities()
+{
+	if (galleryEntity)
+		return galleryEntity;
+	return List<Entity*>();
+}
+
 void CVImageGalleryHand::SetTexture(String source)
 {
 	tex = TexMan.GetTexture(source);
@@ -337,6 +350,7 @@ void CVImageGalleryHand::UpdateScale(Hand & hand)
 	// Scale?
 	if (tex){
 		float s = hand.size.x * 0.005f * hand.size.y * 0.0025f;
+		s *= 100.f;
 		float max = tex->width > tex->height? tex->width : tex->height;
 		Vector3f scale = Vector3f(s * tex->width / max, s * tex->height / max, s);
 		Physics.QueueMessage(new PMSetEntity(SET_SCALE, galleryEntity, scale));
@@ -420,8 +434,6 @@ int CVMovieProjector::Process(CVPipeline * pipe)
 		position.x -= pipe->initialInput->cols * 0.5f;
 		position.y = pipe->initialInput->rows * 0.5f - position.y;
 
-		position *= 0.01f;
-
 		// Works!
 //		position = Vector3f(0,0,3);
 		float frames = framesToSmooth->iValue;
@@ -436,7 +448,7 @@ int CVMovieProjector::Process(CVPipeline * pipe)
 		cv::Rect boundingRect = cv::boundingRect(*bestPoly);
 #define Maximum(a,b) ( (a > b) ? a : b)
 
-		scale *= Maximum(boundingRect.width, boundingRect.height) * 0.01f;
+		scale *= Maximum(boundingRect.width, boundingRect.height);
 		averageScale = averageScale * (frames - 1) / frames + scale / frames;
 		// Scale it further depending on the size of the contour of the hand?
 		Physics.QueueMessage(new PMSetEntity(SET_SCALE, movieEntity, averageScale));
@@ -459,6 +471,12 @@ void CVMovieProjector::Paint(CVPipeline * pipe)
 }
 	
 
+List<Entity*> CVMovieProjector::GetEntities()
+{
+	if (this->movieEntity)
+		return movieEntity;
+	return List<Entity*>();
+}
 	
 /// For reacting to when enabling/disabling a filter. Needed for e.g. Render-filters. Not required to subclass.
 void CVMovieProjector::SetEnabled(bool state)
@@ -601,17 +619,17 @@ int CVMusicPlayer::Process(CVPipeline * pipe)
 		position.x -= pipe->initialInput->cols * 0.5f;
 		position.y = pipe->initialInput->rows * 0.5f - position.y;
 
-		position *= 0.01f;
+//		position *= 0.01f;
 
 		Physics.QueueMessage(new PMSetEntity(POSITION, audioEntity, position));  
 		
 		// Update the text on le hand-music-audio-entity-thingy
 		Graphics.QueueMessage(new GMSetEntitys(audioEntity, TEXT, files[currentTrack]+"\nVolume: "+String::ToString(relative, 3)));
 
-		float scale = hand.size.y / 1000.f * 2.0f;
+		float scale = hand.size.y * 2.0f * 0.1f;
 		scale *= 1.f;
 		Graphics.QueueMessage(new GMSetEntityf(audioEntity, TEXT_SIZE_RATIO, scale));
-		Vector4f textPosition = Vector4f(- hand.size.x * 0.5f * 0.01f, hand.size.y * 0.001f, 0, 0);
+		Vector4f textPosition = Vector4f(- hand.size.x * 0.5f, hand.size.y * 0.1f, 0, 0);
 		Graphics.QueueMessage(new GMSetEntityVec4f(audioEntity, TEXT_POSITION, textPosition));
 		Graphics.QueueMessage(new GMSetEntityVec4f(audioEntity, TEXT_COLOR, Vector4f(1,1,0,1)));
 	}
@@ -636,6 +654,14 @@ void CVMusicPlayer::Paint(CVPipeline * pipe)
 {
 	pipe->initialInput->copyTo(pipe->output);
 	RenderHands(pipe);
+}
+
+
+List<Entity*> CVMusicPlayer::GetEntities()
+{
+	if (audioEntity)
+		return audioEntity;
+	return List<Entity*>();
 }
 
 

@@ -15,7 +15,7 @@ void SetApplicationDefaults();
 
 namespace Application 
 {
-
+	extern bool queryOnQuit;
 	extern String name;
 
 #ifdef WINDOWS

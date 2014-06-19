@@ -49,7 +49,7 @@ extern UserInterface * ui[GameStateID::MAX_GAME_STATES];
 RuneBattleState::RuneBattleState()
 {
 	id = RUNE_GAME_STATE_BATTLE_STATE;
-	camera = new Camera();
+	camera = CameraMan.NewCamera();
 	battleTestWindow = NULL;
 }
 

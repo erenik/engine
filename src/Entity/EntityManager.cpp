@@ -17,9 +17,10 @@ EntityManager * EntityManager::Instance(){
 	assert(entityManager);
 	return entityManager;
 }
-void EntityManager::Deallocate(){
+void EntityManager::Deallocate()
+{
 	assert(entityManager);
-	delete(entityManager);
+	delete entityManager;
 	entityManager = NULL;
 }
 

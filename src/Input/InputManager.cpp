@@ -510,7 +510,7 @@ void InputManager::EnableActiveUI()
 	Argument true indicate that the button was pressed, while false indicates that it was just released.
 	Default arguments for x and y indicate that they should not be refreshed.
 */
-void InputManager::MouseClick(bool down, int x, int y, UIElement * elementClicked){
+void InputManager::MouseClick(Window * window, bool down, int x, int y, UIElement * elementClicked){
 	if (!acceptInput)
 		return;
 	/// If mouse is le locked, return
@@ -564,13 +564,13 @@ void InputManager::MouseClick(bool down, int x, int y, UIElement * elementClicke
 			return;
 	}
 	/// Inform the active state of the interaction
-	StateMan.ActiveState()->MouseClick(down, x, y, element);
+	StateMan.ActiveState()->MouseClick(window, down, x, y, element);
 }
 /** Handles a mouse click.
 	Argument true indicate that the button was pressed, while false indicates that it was just released.
 	Default arguments for x and y indicate that they should not be refreshed.
 */
-void InputManager::MouseRightClick(bool down, int x, int y, UIElement * elementClicked){
+void InputManager::MouseRightClick(Window * window, bool down, int x, int y, UIElement * elementClicked){
 	if (!acceptInput)
 		return;
 	/// If mouse is le locked, return
@@ -586,7 +586,7 @@ void InputManager::MouseRightClick(bool down, int x, int y, UIElement * elementC
 #endif
 
 	/// Inform the active state of the interaction
-	StateMan.ActiveState()->MouseRightClick(down, x, y);
+	StateMan.ActiveState()->MouseRightClick(window, down, x, y);
 
 	// If navigating UI, interpret right-click as cancel/exit?
 	if (this->navigateUI && !down){
@@ -612,7 +612,7 @@ void InputManager::MouseRightClick(bool down, int x, int y, UIElement * elementC
 }
 
 /// Interprets a mouse-move message to target position.
-void InputManager::MouseMove(int x, int y)
+void InputManager::MouseMove(Window * window, int x, int y)
 {	
 	if (!acceptInput)
 		return;
@@ -625,7 +625,7 @@ void InputManager::MouseMove(int x, int y)
 	this->mouseY = y;
 
 	/// If we have a global UI (system ui), process it first.
-	UserInterface * userInterface = RelevantUI();
+	UserInterface * userInterface = GetRelevantUIForWindow(window);
 	UIElement * element = NULL;
 	if (userInterface)
 	{
@@ -642,18 +642,18 @@ void InputManager::MouseMove(int x, int y)
 	GameState * currentState = StateMan.ActiveState();
 	if (currentState)
 	{
-		currentState->MouseMove(x, y, lButtonDown, rButtonDown, element);
+		currentState->MouseMove(window, x, y, lButtonDown, rButtonDown, element);
 	}
 	Graphics.QueryRender();
 }
 /** Handles mouse wheel input.
 	Positive delta signifies scrolling upward or away from the user, negative being toward the user.
 */
-void InputManager::MouseWheel(float delta){
+void InputManager::MouseWheel(Window * window, float delta){
 	if (!acceptInput)
 		return;
 	std::cout<<"\nMouseWheel: "<<delta;
-	UserInterface * ui = RelevantUI();
+	UserInterface * ui = GetRelevantUIForWindow(window);
 	if (ui)
 	{
 		UIElement * element = ui->GetElementByPosition(mouseX, mouseY);
@@ -669,7 +669,7 @@ void InputManager::MouseWheel(float delta){
 		}
 	}
 	/// If no UI has been selected/animated, pass the message on to the stateManager
-	StateMan.ActiveState()->MouseWheel(delta);
+	StateMan.ActiveState()->MouseWheel(window, delta);
 	/// Call to render if needed.
 	Graphics.QueryRender();
 }
@@ -733,8 +733,10 @@ void InputManager::EvaluateKeyPressed(int activeKeyCode, bool downBefore){
 				case KEY::DOWN:		UIDown();	break;
 				case KEY::LEFT:		UILeft();	break;
 				case KEY::RIGHT:	UIRight();	break;
-				case KEY::PG_UP: UIPage(1.f); break;
-				case KEY::PG_DOWN: UIPage(-1.f); break;
+				case KEY::PG_UP: 
+					uiCommand = UIPage(1.f); break;
+				case KEY::PG_DOWN: 
+					uiCommand = UIPage(-1.f); break;
 				case KEY::TAB:
 					if (keyPressed[KEY::SHIFT])
 						UIPrevious();
@@ -1192,13 +1194,14 @@ void InputManager::UIRight()
 	ui->SetHoverElement(element);
 }
 
-void InputManager::UIPage(float amount)
+// Returns true if it did anything.
+bool InputManager::UIPage(float amount)
 {
 	UserInterface * ui = RelevantUI();
 	UIElement * hoverElement = ui->GetHoverElement();
 	if (!hoverElement)
-		return;
-	hoverElement->OnScroll(amount);
+		return false;
+	return hoverElement->OnScroll(amount);
 }
 
 

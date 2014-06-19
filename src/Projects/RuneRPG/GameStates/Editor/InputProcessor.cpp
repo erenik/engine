@@ -498,11 +498,11 @@ void RuneEditor::InputProcessor(int action, int inputDevice/* = 0*/){
 		break;
 	case ZOOM_IN: 		/// Zoom
 		runeEditorCamera->zoom *= 1.25f;
-		Graphics.UpdateProjection();
+//		Graphics.UpdateProjection();
 		break;
 	case ZOOM_OUT:
 		runeEditorCamera->zoom *= 0.8f;
-		Graphics.UpdateProjection();
+//		Graphics.UpdateProjection();
 		break;
 	case INCREASE_SPEED:
 		runeEditorCamera->flySpeed *= 1.25f;

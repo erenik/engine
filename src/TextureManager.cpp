@@ -28,16 +28,6 @@ TextureManager::~TextureManager(){
 	textures.ClearAndDelete();
 }
 
-void TextureManager::DeallocateTextures(){
-	for (int i = 0; i < textures.Size(); ++i){
-		if (textures[i]->glid){
-			glDeleteTextures(1, &textures[i]->glid);
-			// Bad IDs must  be -1!!!
-			textures[i]->glid = -1;
-		}
-	}
-}
-
 /// Getter function that first tries to fetch texture by name, and if that failes tries to get it by it's source.
 Texture * TextureManager::GetTexture(String nameOrSource)
 {
@@ -75,6 +65,10 @@ Texture * TextureManager::GetTextureByName(String name){
 		return GenerateTexture("NULL", Vector4f(1,1,1,0));
 	else if (name == "Red")
 		return GenerateTexture("Red", Vector4f(1,0,0,1));
+	else if (name == "Green")
+		return GenerateTexture("Green", Vector4f(0,1,0,1));
+	else if (name == "Blue")
+		return GenerateTexture("Blue", Vector4f(0,0,1,1));
 
 //	std::cout<<"\nTexture not loaded, attempting to load it.";
 	return LoadTexture(name);
@@ -109,6 +103,24 @@ Texture * TextureManager::GetTextureByID(int glid){
 			return textures[i];
 	return NULL;
 }
+
+/// Frees the GL allocated IDs/memory of all textures.
+void TextureManager::FreeTextures()
+{
+	std::cout<<"\nFreeing "<<textures.Size()<<" textures";
+	int freed = 0;
+	for (int i = 0; i < textures.Size(); ++i)
+	{
+		Texture * texture = textures[i];
+		if (texture->glid == -1)
+			continue;
+		glDeleteTextures(1, &texture->glid);
+		texture->glid = -1;
+		++freed;
+	}
+	std::cout<<freed<<" textures freed. ";
+}
+
 
 /// Creates a new texture that the texture manager will make sure to deallocate once the program shuts down, so you don't have to worry about it.
 Texture * TextureManager::New()

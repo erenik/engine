@@ -6,6 +6,7 @@
 #define ENTITY_STATE_TILE_2D_H
 
 //#include "Maps/Grids/Tile.h"
+#include "MathLib.h"
 #include "Entity/EntityProperty.h"
 
 /// Base Entity-state for enabling 2D map interaction. Is this class even needed..?

@@ -7,6 +7,8 @@
 
 #include "CVFilter.h"
 
+class Entity;
+
 // Base class for any filter whose main purpose is rendering output.
 class CVRenderFilter : public CVFilter 
 {
@@ -16,6 +18,12 @@ public:
 	virtual int Process(CVPipeline * pipe);
 	// Should be overloaded? If you paint to the output-texture?
 	virtual void Paint(CVPipeline * pipe);
+
+	/// Fetches all dynamically created entities associated with this filter. Must be overloaded.
+	virtual List<Entity*> GetEntities() = 0;
+
+	// Defaults to true.
+	bool renderOntoEditor;
 };
 
 class CVVideoWriter : public CVRenderFilter 
@@ -23,6 +31,8 @@ class CVVideoWriter : public CVRenderFilter
 public:
 	CVVideoWriter();
 	virtual int Process(CVPipeline * pipe);
+	/// Fetches all dynamically created entities associated with this filter. Must be overloaded.
+	virtual List<Entity*> GetEntities();
 private:
 	CVFilterSetting * outputFile, * duration, * startButton, * encodingFps;
 	// Woo
@@ -47,6 +57,9 @@ public:
 	CVImageGalleryHand();
 	virtual int Process(CVPipeline * pipe);
 	virtual void Paint(CVPipeline * pipe);
+	/// Fetches all dynamically created entities associated with this filter. Must be overloaded.
+	virtual List<Entity*> GetEntities();
+
 	// Should be called when deleting a filter while the application is running. Removes things as necessary.
 	virtual void OnDelete();
 	
@@ -78,6 +91,9 @@ public:
 	// Should be called when deleting a filter while the application is running. Removes things as necessary.
 	virtual void OnDelete();
 	virtual void Paint(CVPipeline * pipe);
+	/// Fetches all dynamically created entities associated with this filter. Must be overloaded.
+	virtual List<Entity*> GetEntities();
+
 	
 	/// For reacting to when enabling/disabling a filter. Needed for e.g. Render-filters. Not required to subclass.
 	virtual void SetEnabled(bool state);
@@ -105,6 +121,8 @@ public:
 	// Should be called when deleting a filter while the application is running. Removes things as necessary.
 	virtual void OnDelete();
 	virtual void Paint(CVPipeline * pipe);
+	/// Fetches all dynamically created entities associated with this filter. Must be overloaded.
+	virtual List<Entity*> GetEntities();
 	/// For reacting to when enabling/disabling a filter. Needed for e.g. Render-filters. Not required to subclass.
 	virtual void SetEnabled(bool state);
 private:

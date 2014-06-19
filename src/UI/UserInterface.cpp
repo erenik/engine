@@ -54,6 +54,18 @@ UserInterface * RelevantUI()
 	return window->GetUI();
 }
 
+UserInterface * GetRelevantUIForWindow(Window * window)
+{
+	if (!window)
+		return NULL;
+	UserInterface * globalUI = window->GetGlobalUI();
+	if (globalUI && globalUI->HasActivatableElement())
+		return globalUI;
+	
+	return window->GetUI();	
+}
+
+
 
 bool UserInterface::printDebug = true;
 
@@ -269,7 +281,10 @@ void UserInterface::CreateGeometry(){
 	root->CreateGeometry();
 	isGeometryCreated = true;
 }
-void UserInterface::ResizeGeometry(){
+void UserInterface::ResizeGeometry()
+{
+	if (!isGeometryCreated)
+		CreateGeometry();
 	assert(isGeometryCreated);
 	root->ResizeGeometry();
 }
@@ -1029,6 +1044,16 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 				SET_DEFAULTS;
 				si->CreateChildren();
 			}
+			else if (token == "StringValue")
+			{
+				if (!element)
+					continue;
+				if (element->type == UIType::STRING_INPUT)
+				{
+					UIStringInput * si = (UIStringInput*) element;
+					si->SetValue(firstQuote);
+				}
+			}
 			else if (token == "IntegerInput" ||
 				token == "IntInput")
 			{
@@ -1044,6 +1069,16 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 				element = fi;
 				SET_DEFAULTS
 				fi->CreateChildren();
+			}	
+			else if (token == "FloatValue")
+			{
+				if (!element)
+					continue;
+				if (element->type == UIType::FLOAT_INPUT)
+				{
+					UIFloatInput * fi = (UIFloatInput*) element;
+					fi->SetValue(firstQuote.ParseFloat());
+				}
 			}
 			else if (token == "VectorInput"){
 				ADD_PREVIOUS_TO_UI_IF_NEEDED

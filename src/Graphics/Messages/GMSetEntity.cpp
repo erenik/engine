@@ -39,7 +39,7 @@ void GMSetEntityTexture::Process()
 
 /// For general procedures that do stuff..
 GMSetEntity::GMSetEntity(Entity * entity, int target)
-	: GraphicsMessage(GM_SET_ENTITY), entity(entity), target(target)
+	: GraphicsMessage(GM_SET_ENTITY), entities(entity), target(target)
 {
 	switch(target)
 	{
@@ -50,21 +50,22 @@ GMSetEntity::GMSetEntity(Entity * entity, int target)
 }
 
 
-GMSetEntity::GMSetEntity(Entity * entity, int target, Camera * camera)
-	: GraphicsMessage(GM_SET_ENTITY), entity(entity), target(target), camera(camera)
+GMSetEntity::GMSetEntity(List<Entity*> entities, int target, Camera * camera)
+	: GraphicsMessage(GM_SET_ENTITY), entities(entities), target(target), camera(camera)
 {
 	switch(target)
 	{
 		case CAMERA_FILTER:
+		case ADD_CAMERA_FILTER:
+		case REMOVE_CAMERA_FILTER:
 			break;
 		default: assert(false && "Bad target");
 	}
 }
 
-GMSetEntity::GMSetEntity(Entity * entity, int target, String string)
-: GraphicsMessage(GM_SET_ENTITY), entity(entity), target(target), string(string)
+GMSetEntity::GMSetEntity(List<Entity*> entities, int target, String string)
+: GraphicsMessage(GM_SET_ENTITY), entities(entities), target(target), string(string)
 {
-	assert(entity);
 	switch(target)
 	{
 		case ANIMATION:
@@ -77,7 +78,7 @@ GMSetEntity::GMSetEntity(Entity * entity, int target, String string)
 }
 
 GMSetEntity::GMSetEntity(Entity * entity, int target, Model * model)
-: GraphicsMessage(GM_SET_ENTITY), entity(entity), target(target), model(model)
+: GraphicsMessage(GM_SET_ENTITY), entities(entity), target(target), model(model)
 {
 	switch(target){
 		case MODEL:
@@ -89,40 +90,50 @@ GMSetEntity::GMSetEntity(Entity * entity, int target, Model * model)
 }
 void GMSetEntity::Process()
 {
-	switch(target)
+	for (int i = 0; i < entities.Size(); ++i)
 	{
-		// Filter to enable per-viewport disabled rendering.
-		case CAMERA_FILTER:
-			if (!entity->graphics)
-				entity->graphics = new GraphicsProperty();
-			if (!entity->graphics->cameraFilter.Exists(camera))
-				entity->graphics->cameraFilter.Add(camera);
-			break;
-		case CLEAR_CAMERA_FILTER:
-			if (entity->graphics)
-				entity->graphics->cameraFilter.Clear();
-			break;
-		case ANIMATION_SET:
-			if (!entity->graphics)
-				entity->graphics = new GraphicsProperty();
-			entity->graphics->animationSet = AnimationMan.GetAnimationSet(string);
-			if (entity->graphics->animationSet->animations.Size())
-				entity->graphics->hasAnimation = true;
-			break;
-		case ANIMATION:
-			assert(entity->graphics);
-			entity->graphics->SetAnimation(string);
-			break;
-		case QUEUED_ANIMATION:
-			assert(entity->graphics);
-			entity->graphics->SetQueuedAnimation(string);
-			break;
-		case MODEL:
-			entity->model = model;
-			break;
-		default:
-			assert(false && "Bad target in GMSetEntity");
-	};
+		Entity * entity = entities[i];
+		switch(target)
+		{
+			// Filter to enable per-viewport disabled rendering.
+			case CAMERA_FILTER:
+			case ADD_CAMERA_FILTER:
+				if (!entity->graphics)
+					entity->graphics = new GraphicsProperty();
+				if (!entity->graphics->cameraFilter.Exists(camera))
+					entity->graphics->cameraFilter.Add(camera);
+				break;
+			case REMOVE_CAMERA_FILTER:
+				if (!entity->graphics)
+					return;
+				entity->graphics->cameraFilter.Remove(camera);
+				break;
+			case CLEAR_CAMERA_FILTER:
+				if (entity->graphics)
+					entity->graphics->cameraFilter.Clear();
+				break;
+			case ANIMATION_SET:
+				if (!entity->graphics)
+					entity->graphics = new GraphicsProperty();
+				entity->graphics->animationSet = AnimationMan.GetAnimationSet(string);
+				if (entity->graphics->animationSet->animations.Size())
+					entity->graphics->hasAnimation = true;
+				break;
+			case ANIMATION:
+				assert(entity->graphics);
+				entity->graphics->SetAnimation(string);
+				break;
+			case QUEUED_ANIMATION:
+				assert(entity->graphics);
+				entity->graphics->SetQueuedAnimation(string);
+				break;
+			case MODEL:
+				entity->model = model;
+				break;
+			default:
+				assert(false && "Bad target in GMSetEntity");
+		};
+	}
 }
 
 #define ENSURE_GRAPHICS_PROPERTY(e) {if(!e->graphics) e->graphics = new GraphicsProperty();}

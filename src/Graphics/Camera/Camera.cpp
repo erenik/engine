@@ -10,10 +10,79 @@
 #include "Window/Window.h"
 #include <cstring>
 
+
+CameraManager::CameraManager()
+{
+	defaultCamera = NULL;
+}
+CameraManager::~CameraManager()
+{
+}
+
+CameraManager * CameraManager::cameraManager = NULL;
+void CameraManager::Allocate()
+{
+	assert(cameraManager == NULL);
+	cameraManager = new CameraManager();
+}
+void CameraManager::Deallocate()
+{
+	assert(cameraManager);
+	delete cameraManager;
+	cameraManager = NULL;
+}
+CameraManager * CameraManager::Instance()
+{
+	assert(cameraManager);
+	return cameraManager;
+}
+Camera * CameraManager::NewCamera()
+{
+	Camera * camera = new Camera();
+	cameras.Add(camera);
+	return camera;
+}
+// Called from render/physics thread. updates movement/position of all cameras.
+void CameraManager::Process()
+{
+	static int64 lastUpdate = 0;
+	int64 cTime = Timer::GetCurrentTimeMs();
+	int timeDiff = cTime - lastUpdate;
+	timeDiff = timeDiff % 1000;
+	lastUpdate = cTime;
+	for (int i = 0; i < cameras.Size(); ++i)
+	{
+		Camera * camera = cameras[i];
+		camera->ProcessMovement(timeDiff);
+	}
+}
+
+Camera * CameraManager::DefaultCamera()
+{
+	if (!defaultCamera)
+		defaultCamera = new Camera();
+	cameras.Add(defaultCamera);
+	return defaultCamera;
+}
+
+
+
 float Camera::defaultRotationSpeed = 0.09f;
 float Camera::defaultVelocity = 1.0f;
 
-Camera::Camera(){
+Camera::Camera()
+{
+	Nullify();
+};
+
+Camera::~Camera()
+{
+
+}
+
+/// Resets everything.
+void Camera::Nullify()
+{
 	entityToTrack = NULL;
 	trackingMode = TrackingMode::FROM_BEHIND;
 	nearPlane = -0.1f;
@@ -38,12 +107,11 @@ Camera::Camera(){
 	revert = false;
 	scaleDistanceWithVelocity = false;
 	scaleSpeedWithZoom = false;
-};
 
-Camera::~Camera()
-{
-
+	adjustProjectionMatrixToWindow = false;
+	windowToTrack = NULL;
 }
+
 
 // Prints data, including position, matrices, etc.
 void Camera::PrintData() const {
@@ -53,6 +121,16 @@ void Camera::PrintData() const {
 	std::cout<<"\n - Position: "<<position;
 	std::cout<<"\n - Nearplane: "<<nearPlane;
 	std::cout<<"\n - Farplane: "<<farPlane;
+}
+
+/** When called, will set the adjustProjectionMatrixToWindow variable to true and adjust the projection matrix
+	To map each pixel in the screen to one unit in-game.
+	Regular projection matrices use width and height ratios based on > 1.0f, e.g. 1.666 and 1.0
+*/
+void Camera::AdjustProjectionMatrixToWindow(Window * window)
+{
+	adjustProjectionMatrixToWindow = true;
+	windowToTrack = window;
 }
 
 /// Begin moving in the specified direction
@@ -87,16 +165,42 @@ void Camera::Update()
 	viewMatrix.LoadIdentity();
 	rotationMatrix.LoadIdentity();
 
+	// Calculate values to use for projection matrix.
+	float left, right, bottom, top;
+	// This should probably only be used with orthogonal projection cameras...
+	if (adjustProjectionMatrixToWindow)
+	{
+		Vector2i windowWorkingArea = windowToTrack->WorkingArea();
+		float halfWidth = windowWorkingArea.x * 0.5f;
+		float halfHeight = windowWorkingArea.y * 0.5f;
+		right = halfWidth;
+		left = -right;
+		top = halfHeight;
+		bottom = -top;
+	}
+	else {
+		left = -widthRatio;
+		right = widthRatio;
+		bottom = -heightRatio;
+		top = heightRatio;
+	};
+
+	left *= zoom;
+	right *= zoom;
+	bottom *= zoom;
+	top *= zoom;
+
+
 	/// Begin by updating projection matrix as that is unlikely to vary with foci
-	switch(projectionType){
+	switch(projectionType)
+	{	
 		// OLD: Perspective-distortions when adjusting width and height!
 		case PROJECTION_3D:
-			projectionMatrix.InitProjectionMatrix(-zoom * widthRatio, zoom * widthRatio, -zoom * heightRatio, zoom * heightRatio, nearPlane, farPlane);
+			projectionMatrix.InitProjectionMatrix(left, right, bottom, top, nearPlane, farPlane);
 			break;
 		case ORTHOGONAL:
-			projectionMatrix.InitOrthoProjectionMatrix(-zoom * widthRatio, zoom * widthRatio, -zoom * heightRatio, zoom * heightRatio, nearPlane, farPlane);
+			projectionMatrix.InitOrthoProjectionMatrix(left, right, bottom, top, nearPlane, farPlane);
 			break;
-
 	}
 
 
@@ -197,6 +301,8 @@ void Camera::Update()
 
 
 	/// Some new temporary variables for updating the frustum
+	float sample = viewMatrix.GetColumn(0).x;
+	assert(AbsoluteValue(sample) < 100000.f);
 	//	Vector4f camPos, lookingAtVector, upVector;
 	camPos = viewMatrix.InvertedCopy() * Vector4d(0,0,0,1);	// THIS
 
@@ -252,13 +358,14 @@ void Camera::SetRatio(int width, int height)
 }
 
 /// To be called from render/physics-thread. Moves the camera using it's given enabled directions and velocities.
-void Camera::ProcessMovement(float timeSinceLastUpdate)
+void Camera::ProcessMovement(int timeInMs)
 {
 	if (lastMovement == 0){
 		lastMovement = Timer::GetCurrentTimeMs();
 		return;
 	}
-	float timeDiff = timeSinceLastUpdate;
+	float timeDiff = timeInMs;
+	timeDiff *= 0.001f;
 	Vector3f deltaP = velocity * timeDiff;
 	/// We might want to calculate the position Diff using local camera co-ordinates..!
 	Vector3f rightVec = this->lookingAtVector.CrossProduct(upVector);
@@ -274,7 +381,8 @@ void Camera::ProcessMovement(float timeSinceLastUpdate)
 }
 
 /// Updates base velocities depending on navigation booleans
-void Camera::UpdateNavigation(){
+void Camera::UpdateNavigation()
+{
 	/// Navigation
 	if (navigation[Direction::UP] && !navigation[Direction::DOWN])
 		this->velocity.y = -this->defaultVelocity * this->flySpeed;
@@ -351,7 +459,7 @@ Ray Camera::GetRayFromScreenCoordinates(Window * window, int mouseX, int mouseY)
 
  //   std::cout<<"\nNearPlaneCenter: "<<nearPlaneCenter<<" NearPlaneLowerLeftcorner: "<<nearPlaneLLCorner;
 
-	Vector2i windowSize = window->Size();
+	Vector2i windowSize = window->WorkingArea();
 	// Get relative positions of where we clicketiclicked, from 0.0 to 1.0 (0,0 in lower left corner)
 	float clientAreaWidth = (float)windowSize.x;
 	float clientAreaHeight = (float)windowSize.y;

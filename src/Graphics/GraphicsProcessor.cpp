@@ -7,11 +7,13 @@
 #include "TextureManager.h"
 #include "Multimedia/MultimediaManager.h"
 #include "FrameStatistics.h"
+#include "GLBuffers.h"
 
 #include "OS/OS.h"
 #include "Window/WindowSystem.h"
 #include "OS/Sleep.h"
 #include "Window/WindowManager.h"
+#include "Graphics/Camera/Camera.h"
 #include <cstdio>
 #include <cstring>
 
@@ -184,6 +186,10 @@ void * GraphicsManager::Processor(void * vArgs){
 		throw 3;*/
 #endif
 
+	/// Test.
+//	mainWindow->MemLeakTest();
+
+
     std::cout<<"\nCreating shaders...";
 	// Load shaders!
 	Graphics.CreateShaders();
@@ -205,6 +211,8 @@ void * GraphicsManager::Processor(void * vArgs){
 
 	// Then begin the main rendering loop
 	while(Graphics.shouldLive){
+
+		
 
 		/// Timing
 		Timer physicsTimer, graphicsTimer, total;
@@ -232,26 +240,30 @@ void * GraphicsManager::Processor(void * vArgs){
 		Physics.ProcessPhysics();
 		physicsTimer.Stop();
 
-
+		
 		// Process Active Multimedia-streams if available.
 		MultimediaMan.Update();
 
 		graphicsTimer.Start();
 		// Process graphics messages
 		gmTimer.Start();
-		try {
+		
+	//	try {
 			Graphics.ProcessMessages();
-		} catch(...)
+	/*	} 
+		catch(...)
 		{
 			std::cout<<"Errors thrown while processing graphics messages.";
 		}
+		*/
+		
 		Graphics.graphicsMessageProcessingFrameTime = gmTimer.GetMs();
 		/// Check if we should render or not.
 		bool renderOnQuery = Graphics.renderOnQuery;
 		bool renderQueried = Graphics.renderQueried;
 		bool shouldRender = (renderOnQuery && renderQueried) || !renderOnQuery;
 	//	std::cout<<"\n- Processing graphics messages time taken: "<<gmTimer.GetMs();
-		if (Graphics.renderingEnabled && shouldRender)
+		if (Graphics.renderingEnabled && shouldRender && !Graphics.renderingStopped)
 		{
 		    guTimer.Start();
 			// Update the lights' positions as needed.
@@ -263,12 +275,16 @@ void * GraphicsManager::Processor(void * vArgs){
 		//	std::cout<<"\n- Updating entities frame time: "<<guTimer.GetMs();
 			Timer timer;
 			timer.Start();
+			/// Process movement for cameras.
+			CameraMan.Process();
 			// Render
 			Graphics.RenderWindows();
 			timer.Stop();
 	//		std::cout<<"\n- Render frame time: "<<timer.GetMs();
 			Graphics.renderQueried = false;
+			
 		}
+		
 		else {
 			if (now > timeNotRendered + 1000)
 			{
@@ -298,22 +314,35 @@ void * GraphicsManager::Processor(void * vArgs){
             lastOptimization = now;
             std::cout<<"\nFPS low, increasing graphics optimization level to: "<<graphicsState.optimizationLevel;
         }
-		/*
-		else if (graphicsState.optimizationLevel > 0 && fps > 55 && now > lastOptimization + 500){
-#define DECREASE_ENABLED
-        #ifdef DECREASE_ENABLED
-			graphicsState.optimizationLevel--;
-			lastOptimization = now;
-			std::cout<<"\nFPS high again, decreasing graphics optimization level to: "<<graphicsState.optimizationLevel;
-        #endif
-		}
-		*/
+		
+//		else if (graphicsState.optimizationLevel > 0 && fps > 55 && now > lastOptimization + 500){
+//#define DECREASE_ENABLED
+//        #ifdef DECREASE_ENABLED
+//			graphicsState.optimizationLevel--;
+//			lastOptimization = now;
+//			std::cout<<"\nFPS high again, decreasing graphics optimization level to: "<<graphicsState.optimizationLevel;
+//        #endif
+//		}
+		
+		
 	}
 
 //	std::cout<<"\nExiting rendering loop. Beginning deallocating graphical resources.";
 
 	/// Remove flags and begin deallocating all GL data.
+	/// Deallocate textures before we remove any context!
 	Graphics.OnEndRendering();
+
+	// Free textures, delete buffers and delete VAOs (if any) before de-allocatin the GL context!
+	// https://www.opengl.org/discussion_boards/showthread.php/125908-wglDeleteContext-causing-problems
+	TexMan.FreeTextures();
+	/// Free buffers
+	GLBuffers::FreeAll();
+
+	/// Unbind vertex array so that all may be freed correctly?
+	glBindVertexArray(0);
+
+	GLVertexArrays::FreeAll();
 
 	List<Window*> windows = WindowMan.GetWindows();
 	for (int i = 0; i < windows.Size(); ++i)

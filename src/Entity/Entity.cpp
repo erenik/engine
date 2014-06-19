@@ -112,7 +112,8 @@ Entity::Entity(int i_id)
 }
 
 /// Default constructor...
-Entity::~Entity(){
+Entity::~Entity()
+{
 	/// Delete safe stuff.
 	Delete();
 	/// Delete those things that should have been deleted elsewhere too.

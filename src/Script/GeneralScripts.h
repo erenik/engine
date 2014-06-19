@@ -8,6 +8,18 @@
 #include "Script.h"
 class Texture;
 
+class WaitScript : public Script 
+{
+public:
+	WaitScript(String line, Script * parent);
+	virtual void OnBegin();
+	virtual void Process(int timeInMs);
+	virtual void OnEnd();
+private:
+	int duration;
+	int timeWaitedSoFar;
+};
+
 // Custom scripts here! Or new files for that later?
 class StateChanger : public Script 
 {
@@ -41,7 +53,7 @@ class OverlayScript : public Script
 public:
 	OverlayScript(String line, Script * parent);
 	virtual void OnBegin();
-	virtual void Process(long long time);
+	virtual void Process(int timeInMs);
 	virtual void OnEnd();
 	
 protected:
@@ -81,7 +93,7 @@ class FadeInBackground : public OverlayScript
 public:
 	FadeInBackground(String line, Script * parent);
 	virtual void OnBegin();
-	virtual void Process(long long time);
+	virtual void Process(int timeInMs);
 	virtual void OnEnd();
 	
 private:
@@ -94,7 +106,7 @@ class FadeOutBackground : public OverlayScript
 public:
 	FadeOutBackground(String line, Script * parent);
 	virtual void OnBegin();
-	virtual void Process(long long time);
+	virtual void Process(int timeInMs);
 	virtual void OnEnd();
 	
 private:
@@ -107,7 +119,7 @@ class FadeInEffect : public OverlayScript
 public:
 	FadeInEffect(String line, Script * parent);
 	virtual void OnBegin();
-	virtual void Process(long long time);
+	virtual void Process(int timeInMs);
 	virtual void OnEnd();
 	
 private:
@@ -121,7 +133,7 @@ class FadeOutEffect : public OverlayScript
 public:
 	FadeOutEffect(String line, Script * parent);
 	virtual void OnBegin();
-	virtual void Process(long long time);
+	virtual void Process(int timeInMs);
 	virtual void OnEnd();
 	
 private:
@@ -135,7 +147,7 @@ class FadeTextEffect : public OverlayScript
 public:
 	FadeTextEffect(String line, Script * parent);
 	virtual void OnBegin();
-	virtual void Process(long long time);
+	virtual void Process(int timeInMs);
 	virtual void OnEnd();
 	
 private:
