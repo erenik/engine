@@ -17,5 +17,6 @@ void SetApplicationDefaults()
 	TextFont::defaultFontSource = "font3";
 	UIElement::defaultTextureSource = "80Gray50Alpha.png";
 	UserInterface::rootUIDir = "gui/";
+	Application::queryOnQuit = false;
 }
 

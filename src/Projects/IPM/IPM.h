@@ -32,7 +32,7 @@ public:
 	/// Function when entering this state, providing a pointer to the previous StateMan.
 	virtual void OnEnter(GameState * previousState);
 	/// Main processing function, using provided time since last frame.
-	virtual void Process(float time);
+	virtual void Process(int timeInMs);
 	/// Function when leaving this state, providing a pointer to the next StateMan.
 	virtual void OnExit(GameState * nextState);
 
@@ -51,7 +51,7 @@ public:
 	virtual void CreateDefaultBindings();
 
 	/// Reset/center camera
-	void ResetCamera();
+	void ResetCamera(Camera * camera);
 
 	/// Creates input-bindings for camera navigation.
 	void CreateCameraBindings();
@@ -86,11 +86,56 @@ public:
 	/// Call to process active image in the current pipeline, displaying error messages if applicable and rendering the results. Returns -1 on error.
 	int ProcessPipeline();
 
+	enum editMode {
+		TESTING,
+		PIPELINE,
+		INPUT,
+		SYNC,
+	};
+
 	/// Sets edit mode, 0 for Testing, 1 for editing the Pipeline and 2 for selecting input?
 	void SetEditMode(int mode);
 	/// See CVInput enum above.
 	void SetInput(int newInputMode);
 private:
+	
+	/// Left, top, right, bottom?
+	Vector4f projectionFrameInInput;
+	Vector2i projectionFrameCenter;
+	Vector2i projectionFrameSize;
+	/// Dynamic texture used for manipulation and streaming input? To distinguish it from when testing on other static textures
+	Texture * dynamicTexture;
+
+	/// To debug-render the detected frame.
+	Entity * frameEntity;
+
+	/// For toggling if the debug pipeline output should be rendered onto the projection viewport.
+	void ToggleRenderPipelineTextureOnProjection();
+	bool pipelineTextureRenderedOnProjection;
+	
+	void CreateProjectionWindow();
+	void ProjectSynchronizationImage(String type);
+	void ExtractProjectionOutputFrame(String usingPipeline);
+	/// Setting up camera stats
+	void ResetProjectionCamera();
+	void AdjustProjectionCameraToFrame();
+
+
+
+	/// Dir.
+	String imageSeriesDir;
+	List<String> filesInImageSeries;
+	List<cv::Mat> imageSeriesImages; 
+	// Playback control
+	bool imageSeriesPaused;
+	// Milliseconds, because we like. Default at .. 50
+	int timePerImage;
+	int imageSeriesIndex; // For cycling through the list.
+	/// Sets dirr
+	void SetImageSeriesDirectory(String dirPath);
+
+	/// Contains sync-texture. Should be rendered to cover whole screen or something.
+	Entity * syncEntity;
 
 	/// Opens menu for selecting new filter to add to the filter-pipeline.
 	void OpenFilterSelectionMenu();
@@ -151,8 +196,11 @@ private:
 	/// Results after calculating e.g. Canny Edge detection on the cvImage
 	cv::Mat cvResultImage;
 
-	/// Dedicated camera
+	/// Dedicated camera for the main editor.
 	Camera cviCamera;
+	/// Dedicated camera for the window where the projection content is going to go!
+	Camera projectionCamera;
+
 	/// Entity to display the texture in 3D-space
 	Entity * textureEntity;
 	/// Active texture we're manipulating.
