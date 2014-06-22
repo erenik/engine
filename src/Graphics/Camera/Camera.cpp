@@ -17,6 +17,12 @@ CameraManager::CameraManager()
 }
 CameraManager::~CameraManager()
 {
+	for (int i = 0; i < cameras.Size(); ++i)
+	{
+		Camera * camera = cameras[i];
+		delete camera;
+	}
+	cameras.Clear();
 }
 
 CameraManager * CameraManager::cameraManager = NULL;
@@ -202,6 +208,7 @@ void Camera::Update()
 			projectionMatrix.InitOrthoProjectionMatrix(left, right, bottom, top, nearPlane, farPlane);
 			break;
 	}
+	frustum.SetProjection(projectionType);
 
 
 	/// 3rd Person "static-world-rotation" camera

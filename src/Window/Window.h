@@ -191,6 +191,8 @@ private:
 	// Internal state
 	bool isFullScreen;
 	bool resizable;
+	// If currently visible.
+	bool visible;
 	// Only one window should be set as "main". If removing this window should also close the entire application!
 	bool main;
 	/// Size of OS area

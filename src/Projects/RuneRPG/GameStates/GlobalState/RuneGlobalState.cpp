@@ -8,6 +8,8 @@
 #include "Battle/BattleManager.h"
 #include "RuneRPG/Battle/RuneSpell.h"
 #include "Maps/Grids/TileTypeManager.h"
+#include "Script/Script.h"
+#include "Script/ScriptManager.h"
 
 String applicationName = "RuneRPG";
 
@@ -40,6 +42,7 @@ extern UserInterface * ui[GameStateID::MAX_GAME_STATES];
 #include "UI/UIInput.h"
 #include "RuneRPG/Network/RRPacket.h"
 #include "RuneRPG/PopulationManager.h"
+#include "RuneRPG/Battle.h"
 
 RuneGlobalState::RuneGlobalState()
 {
@@ -59,10 +62,12 @@ void RuneGlobalState::OnEnter(GameState * previousState)
 		BattleManager::Allocate();
 		RuneBattlerManager::Allocate();
 		BattleActionLibrary::Allocate();
-		BALib.LoadFromDirectory(ACTIONS_DIRECTORY);
-		RuneBattlers.LoadFromDirectory(BATTLERS_DIRECTORY);
-		RuneBattlers.LoadBattles(BATTLES_DIRECTORY);
+//		BALib.LoadFromDirectory(ACTIONS_DIRECTORY);
+//		RuneBattlers.LoadFromDirectory(BATTLERS_DIRECTORY);
+//		RuneBattlers.LoadBattles(BATTLES_DIRECTORY);
 		TileTypeManager::Allocate();
+
+		RuneBattleActionLibrary::Allocate();
 
 		/// Spell-manager!
 		RuneSpellManager::Allocate();
@@ -85,9 +90,18 @@ void RuneGlobalState::OnEnter(GameState * previousState)
 	long long sessionStartTime = Timer::GetCurrentTimeMs();
 	GameVars.CreateInt64("SessionStartTime", sessionStartTime);
 
+
+	/// Run enter script.
+	Script * onEnter = new Script();
+	onEnter->SetDeleteOnEnd(true);
+	onEnter->lines = File::GetLines("OnEnter.ini");
+	onEnter->loaded = true;
+	ScriptMan.PlayScript(onEnter);
+
 }
 
-void RuneGlobalState::OnExit(GameState * nextState){
+void RuneGlobalState::OnExit(GameState * nextState)
+{
 	std::cout<<"\nLeaving RuneGlobalState state.";
 
 	if (BattleManager::IsAllocated()){
@@ -95,6 +109,7 @@ void RuneGlobalState::OnExit(GameState * nextState){
 		BattleManager::Deallocate();
 		RuneBattlerManager::Deallocate();
 		PopulationManager::Deallocate();
+		RuneBattleActionLibrary::Deallocate();
 	}
 
 	// Load initial texture and set it to render over everything else

@@ -48,15 +48,12 @@ void GMSetViewports::Process()
 
 	window->viewports.ClearAndDelete();
 	
-	// Put in new viewports.
-	window->viewports = viewports;
-
 	// Buffer new UIs if applicable
 	for (int i = 0; i < viewports.Size(); ++i){
 		Viewport * rv = viewports[i];
 		/// Update size based on window they reside in.
-		rv->UpdateSize();
 		rv->window = window;
+		rv->UpdateSize();
 		window->viewports.Add(rv);
 		if (!rv)
 			continue;

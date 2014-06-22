@@ -214,27 +214,25 @@ void TileMap2D::Render(){
 			}
 			/// Render tiles.
 			List<Tile*> tiles = GetTiles();
+			Tile * tile;
+			Matrix4f transformationMatrix;
+			Texture * tex;	
 			for (int i = 0; i < tiles.Size(); ++i)
 			{
-				Tile * tile = tiles[i];
+				tile = tiles[i];
 				if (tile->position.x < min.x || 
 					tile->position.x > max.x ||
 					tile->position.y > max.y ||
 					tile->position.y < min.y)
-					; // continue;
+					continue;
 
-				graphicsState.modelMatrixD = Matrix4d();
-				Matrix4d transformationMatrix = Matrix4d::InitTranslationMatrix(Vector3f(tile->position.x, tile->position.y, 0.f));
-				float scale = 1.f;
-				transformationMatrix.Scale(Vector3f(scale, scale, 1));
+				transformationMatrix = Matrix4f::InitTranslationMatrix(Vector3f(tile->position.x, tile->position.y, 0.f));
 				// Apply transformation
-				graphicsState.modelMatrixD.multiply(transformationMatrix);
-				graphicsState.modelMatrixF = graphicsState.modelMatrixD;
+				graphicsState.modelMatrixF = transformationMatrix;
 				// Set uniform matrix in shader to point to the GameState modelView matrix.
 				glUniformMatrix4fv(graphicsState.activeShader->uniformModelMatrix, 1, false, graphicsState.modelMatrixF.getPointer());
-
+				
 				/// Set texture.
-				Texture * tex;
 				if (!tile->type)
 					tex = TexMan.GetTexture("Black");
 				else if (tile->type->texture)

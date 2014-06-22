@@ -36,7 +36,7 @@ void GraphicsManager::RenderWindow()
 	Timer timer;
 	timer.Start();
 
-#define PrintTime(a) { /* timer.Stop(); if (timer.GetMs() > 50) std::cout<<a<<timer.GetMs(); timer.Start(); */ }
+#define PrintTime(a) {  timer.Stop(); if (timer.GetMs() > 50) std::cout<<a<<timer.GetMs(); timer.Start();  }
 	
 	PrintTime("\nFrame start!");
 
@@ -123,6 +123,7 @@ void GraphicsManager::RenderWindow()
 				graphicsState.camera = vp->camera;
 				vp->camera->ProcessMovement(graphicsState.frameTime);
 			}
+			graphicsState.activeViewport = vp;
 			RenderViewport(vp);
 			if (i < 4)
 				renderViewportFrameTime[i] = (float)viewportTimer.GetMs();

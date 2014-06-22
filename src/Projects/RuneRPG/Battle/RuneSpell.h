@@ -2,6 +2,9 @@
 /// 2014-02-28
 /// Spell class that encompasses elements, effects and effect durations. 
 
+#ifndef RUNE_SPELL_H
+#define RUNE_SPELL_H
+
 #include "RuneRPG/Battle/RuneBattleAction.h"
 
 namespace Element {
@@ -52,4 +55,7 @@ public:
 	/// Sup.
 	List<RuneSpell*> spells;
 };
+
+
+#endif
 

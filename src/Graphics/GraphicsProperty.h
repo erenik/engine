@@ -8,6 +8,7 @@
 #include "String/AEString.h"
 #include "MathLib.h"
 #include "String/Text.h"
+#include "System/DataTypes.h"
 
 struct GraphicEffect;
 struct CompactGraphics;
@@ -28,6 +29,7 @@ namespace RenderFlags {
 /// Class for holding any relevant data beyond static single models/textures
 struct GraphicsProperty {
 	friend class GMSetEntity;
+	friend class GMQueueAnimation;
 	friend class Entity;
 public:
 	GraphicsProperty();
@@ -35,7 +37,7 @@ public:
 	/// Loads save data from target CompactGraphics equivalent that can be saved to file.
 	bool LoadDataFrom(const CompactGraphics * cGraphics);
 	/// Fetches relevant texture for current frame time. This assumes that the element has an active animation playing.
-	Texture * GetTextureForCurrentFrame(long long frameTime);
+	Texture * GetTextureForCurrentFrame(int64 & frameTime);
 	/// Meaning: text-based animation. If true then the GetTextureForCurrentFrame should work as intended!
 	bool hasAnimation;
 	/// For flags, see above: example DISABLE_DEPTH_WRITING (for this model only)

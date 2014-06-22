@@ -8,6 +8,7 @@
 #include "GraphicsState.h"
 #include "Graphics/Camera/Camera.h"
 #include "Collission.h"
+#include "Viewport.h"
 extern PhysicsManager physics;
 
 /// Define the static values
@@ -405,7 +406,7 @@ int CollisionShapeOctree::FindCollissions(Entity * targetEntity, List<Collission
 		assert(trianglePointer && "Nullentity in CollisionShapeOctree::FindCollissions");
 		Triangle tri = *trianglePointer;
 		tri.Transform(localTransform);
-		if (Graphics.renderPhysics && Graphics.renderCollissionTriangles)
+		if (ActiveViewport->renderPhysics && ActiveViewport->renderCollissionTriangles)
 			Physics.activeTriangles.Add(tri);
 		Collission col;
 		// Check physics type. If Entity has physics type mesh then we should try and optimize it in some other way.

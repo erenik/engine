@@ -23,6 +23,14 @@ namespace BattlerSide {
     };
 };
 
+namespace BattlerState {
+enum battlerStates {
+	WAITING_FOR_INITIATIVE,
+	IDLE,
+	PREPARING_ACTION,
+	INCAPACITATED,
+};};
+
 // Should be subclassed to get the behaviour your game wants!
 class Battler{
 public:
@@ -30,6 +38,12 @@ public:
 	virtual ~Battler();
 	virtual void Process(BattleState &battleState) = 0;
 	virtual bool IsIdle() = 0;
+
+
+	/// If dead, for example, it is not.
+	virtual bool IsARelevantTarget() = 0;
+	// Sets the state.
+	void SetState(int battlerState);
 
 	/// Make actions available for this battler. Creates and links the necessary categories for managing them as needed.
 	void AddActions(List<BattleAction*> actions);
@@ -49,6 +63,8 @@ public:
 	/// Before they've been bound.
 	List<String> actionNames;
 
+	/// Currently queued actions.
+	List<BattleAction*> actionsQueued;
 private:
 
 };

@@ -11,7 +11,7 @@
 struct Ray;
 
 /// An organization of waypoints that are interconnected somehow, like a map.
-struct NavMesh {
+class NavMesh {
 	/// Let the waypointManager handle all allocation/deallocation!
 	friend class WaypointManager;
 private:

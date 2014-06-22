@@ -38,7 +38,8 @@ void SetColorForWaypoint(Waypoint * wp)
 }
 
 /// Renders target Navigation-meshes used for pathfinding
-void GraphicsManager::RenderNavMesh(){
+void GraphicsManager::RenderNavMesh()
+{
 	bool success = WaypointMan.GetActiveNavMeshMutex();
 	if (!success)
 		return;

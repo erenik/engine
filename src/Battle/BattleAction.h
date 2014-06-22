@@ -58,8 +58,19 @@ public:
 	/// Virtual destructor so subclasses are handled correctly.
 	virtual ~BattleAction();
 
+	/// Cancels it!
+	void Cancel();
+
+	enum {
+		NOT_QUEUED,
+		QUEUED,
+		ACTIVE,
+		CANCELED,
+	};
+	int state;
+
 	/// Wosh.
-    bool LoadFromFile(String source);
+    virtual bool Load(String fromFile);
 	/// Sets affected sides and targetting filter by string.
 	int SetTargetFilterByString(String s);
 
@@ -76,6 +87,8 @@ public:
     /// Variables!
     /// Name is good.
     String name;
+	/// Source file loaded from.
+	String source;
     /// Category it belongs to, for dividing and auto-generating menus.
     String categoryName;
     struct BattleActionCategory * category;
@@ -97,6 +110,9 @@ public:
 
     /// For debugging...
     String className;
+
+	/// If flagged, delete it after processing finishes. True by default, meaning you should create these dynamically before queueing them in the battle manager.
+	bool deleteOnEnd;
 };
 
 struct BattleActionCategory{
@@ -109,6 +125,7 @@ struct BattleActionCategory{
     bool isAction;
 };
 
+/// Pretty much waste of space as this will be game-dependant how things are structured... see the Projects/RuneRPG/Battle/RuneBattleActionLibrary class
 #define BALib (*BattleActionLibrary::Instance())
 
 class BattleActionLibrary {

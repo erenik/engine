@@ -529,18 +529,12 @@ void UIList::FormatElements(){
 }
 
 /// Rendering
-void UIList::Render(GraphicsState& graphics){
-    // Push matrices
-    Matrix4d tmp = graphicsState.modelMatrixD;
-
+void UIList::Render()
+{
     // Render ourself and maybe children.
     RenderSelf();
     if (childList.Size())
         RenderChildren();
-
-    // Pop matrices
-    graphicsState.modelMatrixF = graphicsState.modelMatrixD = tmp;
-
 }
 
 void UIList::RenderChildren(){

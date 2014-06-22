@@ -80,43 +80,6 @@ void MapState::InputProcessor(int action, int inputDevice/* = 0*/){
 			return;
 		}
 	*/
-		case INTERPRET_CONSOLE_COMMAND: {
-#ifdef _DEBUG
-
-			String command = Input.GetInputBuffer();
-
-			// Check if null-string
-			if (command == NULL)
-				break;
-
-			List<String> token = command.Tokenize(" ");
-			int tokensFound = token.Size();
-			command.SetComparisonMode(String::NOT_CASE_SENSITIVE);
-			if(command == "back" && enterMode == EnterMode::TESTING_MAP){
-				ReturnToEditor();
-			}
-			else if (command.Contains("set movementSpeed")){
-				if (tokensFound < 3)
-					return;
-				float newSpeed = token[2].ParseFloat();
-
-				playerState->movementSpeed = newSpeed;
-			}
-			else if (command == "toggle debug renders"){
-				Graphics.EnableAllDebugRenders(!Graphics.renderGrid);
-			}
-			else if (command.Contains("render light") || command.Contains("toggle light")){
-				Graphics.renderLights = !Graphics.renderLights;
-			}
-			else if (command == "toggle physics shapes"){
-				Graphics.renderPhysics = !Graphics.renderPhysics;
-			}
-			else if (command == "toggle bfc"){
-				Graphics.backfaceCullingEnabled = !Graphics.backfaceCullingEnabled;
-			}
-#endif
-			break;
-		}
 		case GO_TO_MAIN_MENU:
 			std::cout<<"\nInput>>GO_TO_MAIN_MENU";
 			StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_MAIN_MENU));
@@ -192,7 +155,6 @@ void MapState::InputProcessor(int action, int inputDevice/* = 0*/){
 	/// Entity Physics
 	// ************************************************** //
 		case TOGGLE_PHYSICS_SHAPES: {
-			Graphics.renderPhysics = !Graphics.renderPhysics;
 			break;
 		}
 		case PAUSE_SIMULATIONS: {

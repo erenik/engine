@@ -60,11 +60,32 @@ public:
 
 
 
+	Vector4f backgroundColor;
 	
 	// Size details
 	Vector2i bottomLeftCorner, size;
 	Vector2f relativeOffset;
 	Vector2f relativeSize;
+
+	// For toggling all debug renders.
+	void EnableAllDebugRenders(bool enabled = true);
+
+	/// Flag for this viewport.
+	bool renderNavMesh;
+
+	/// Dragged from GraphicsManager
+	/// Booleans for extra rendering tools
+	bool renderPhysics;
+	bool renderCollissions;
+	bool renderCollissionTriangles;
+	bool renderSeparatingAxes;
+	bool renderGrid;
+	bool renderFPS;
+	bool renderAI;
+	bool renderUI;
+	bool renderLights; // For 3D-representations of the light-sources!
+	bool renderMap; // For le 2D-map-crap
+	bool renderLookAtVectors;
 
 protected:
 	

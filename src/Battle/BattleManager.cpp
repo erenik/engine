@@ -10,9 +10,9 @@
 // Singleton stuff
 BattleManager * BattleManager::battleManager = NULL;
 
-BattleManager::BattleManager(){
+BattleManager::BattleManager()
+{
 	battleState = NULL;
-	activeAction = NULL;
 }
 BattleManager::~BattleManager(){
 
@@ -45,7 +45,7 @@ void BattleManager::NewBattle()
         BattleAction * ba = actionQueue.Pop();
         delete ba;
     }
-    activeAction = NULL;
+    activeActions.ClearAndDelete();
 	/// Refresh the battle-state.
 	battleState = new BattleState();
 	// By default, add two sides, the players and enemies.
@@ -54,7 +54,8 @@ void BattleManager::NewBattle()
 }
 
 /// Adds a battler to the battle! NULL = random-generated test-battler.
-void BattleManager::AddBattler(Battler * battler /* = NULL*/, bool playerControlled /*= false*/){
+void BattleManager::AddBattler(Battler * battler /* = NULL*/, bool playerControlled /*= false*/)
+{
 	assert(battleState->state != BATTLE_ENDED);
 	if (battler == NULL){
 		std::cout<<"\nERROR: No valid battler supplied!";
@@ -88,21 +89,23 @@ void BattleManager::Setup(){
 
 }
 
-void BattleManager::QueueAction(BattleAction * ba){
+void BattleManager::QueueAction(BattleAction * ba)
+{
     actionQueue.Push(ba);
 }
 
-List<Battler*> BattleManager::Get(String byName) const{
-    List<Battler*> b;
+Battler * BattleManager::GetBattlerByName(String byName) const
+{
     for (int i = 0; i < battlers.Size(); ++i){
         Battler * batt = battlers[i];
         if (batt->name == byName)
-            b.Add(batt);
+			return batt;
     }
-    return b;
+    return NULL;
 }
 
-List<Battler*> BattleManager::GetPlayers() const{
+List<Battler*> BattleManager::GetPlayers() const
+{
     List<Battler*> players;
     for (int i = 0; i < battlers.Size(); ++i){
         Battler * batt = battlers[i];
@@ -113,7 +116,8 @@ List<Battler*> BattleManager::GetPlayers() const{
 }
 
 /// Returns all idle player-battlers! Checked via the Battler::IsIdle()-function!
-List<Battler*> BattleManager::GetIdlePlayerBattlers() const {
+List<Battler*> BattleManager::GetIdlePlayerBattlers() const 
+{
     List<Battler*> idles;
     for (int i = 0; i < battlers.Size(); ++i){
         Battler * batt = battlers[i];
@@ -124,11 +128,16 @@ List<Battler*> BattleManager::GetIdlePlayerBattlers() const {
 }
 
 /// See 
-Battler * BattleManager::RandomTarget(int filter, Battler * subject){
+Battler * BattleManager::RandomTarget(int filter, Battler * subject)
+{
 	List<Battler*> relevantBattlers;
 	for (int i = 0; i < battlers.Size(); ++i){
 		Battler * b = battlers[i];
-		switch(filter){
+		///
+		if (!b->IsARelevantTarget())
+			continue;
+		switch(filter)
+		{
 			case TargetFilter::ENEMY:
 				if (subject->side == b->side)
 					continue;
@@ -136,7 +145,6 @@ Battler * BattleManager::RandomTarget(int filter, Battler * subject){
 				break;
 		}
 	}
-	assert(relevantBattlers.Size());
 	if (!relevantBattlers.Size())
 		return NULL;
 	return relevantBattlers[rand()%relevantBattlers.Size()];
@@ -152,29 +160,47 @@ void BattleManager::Process(int timeInMs)
 	if (battleState->state == BATTLE_ENDED)
 		return;
 
-    /// First process the active battle action, if any.
-    if(activeAction){
-        bool done = activeAction->Process(*battleState);
-        if (done){
+    /// First process active battle actions, if any.
+	for (int i = 0; i < activeActions.Size(); ++i)
+	{
+		BattleAction * activeAction = activeActions[i];
+		bool done = false;
+		// If canceled, don't process it no more.
+		if (activeAction->state == BattleAction::CANCELED)
+		{
+			done = true;
+		}
+		else
+			done = activeAction->Process(*battleState);
+        if (done)
+		{
+			// Remove it from the list.
+			activeActions.Remove(activeAction);
+			--i;
+			// Call onEnd
             activeAction->OnEnd(*battleState);
-            delete activeAction;
+			// and deallocate it as needed
+			if (activeAction->deleteOnEnd)
+				delete activeAction;
             activeAction = NULL;
         }
-        /// Return if the action pauses battle and isn't over yet.
+		/// Return if the action pauses battle (beside itself) and isn't over yet.
         else if (activeAction->PausesBattleProcessing())
             return;
     }
 
     /// Clear the action
-    if(activeAction == NULL && !actionQueue.isOff()){
+    if(!actionQueue.isOff())
+	{
         BattleAction * ba = actionQueue.Pop();
-        activeAction = ba;
-        activeAction->OnBegin(*battleState);
+        activeActions.Add(ba);
+        ba->OnBegin(*battleState);
     }
 
     /// Process battlers in order to queue up more actions!
 	battleState->timeDiff = timeInMs;
-	for (int i = 0; i < battlers.Size(); ++i){
+	for (int i = 0; i < battlers.Size(); ++i)
+	{
 		Battler * b = battlers[i];
 		b->Process(*battleState);
 		if (battleState->state == BATTLE_ENDED){

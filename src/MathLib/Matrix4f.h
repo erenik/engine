@@ -73,6 +73,8 @@ public:
 	void InitRotationMatrix(float angle, float x, float y, float z);
 	/** Initializes a rotation matrix using provided vector. */
 	void InitRotationMatrix(float angle, Vector3f vector);
+	/** Initializes a translation matrix using provided vector. */
+	static Matrix4f InitTranslationMatrix(Vector3f translation);
 
 	/** Initializes a perspective projection matrix.
 	The function can be called as it is, using the default values left -1, right 1, bottom -1, top 1, near -1 and far -10.

@@ -85,7 +85,7 @@ public:
 	void FormatElements();
 
 	/// Rendering
-	virtual void Render(GraphicsState& graphics);
+	virtual void Render();
 
 	/// Called to ensure visibility of target element.
 	virtual void EnsureVisibility(UIElement * element);

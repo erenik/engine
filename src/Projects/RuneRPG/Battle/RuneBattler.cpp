@@ -10,25 +10,40 @@
 #include "RuneBattleAction.h"
 #include "Battle/BattleManager.h"
 #include "File/File.h"
+#include "RuneBattleActionLibrary.h"
 
-RuneBattler::RuneBattler() : Battler(){
+#include "Graphics/GraphicsManager.h"
+#include "Graphics/Messages/GMSetEntity.h"
+
+
+RuneBattler::RuneBattler() : Battler()
+{
 	Nullify();
 }
 
-RuneBattler::~RuneBattler(){
+RuneBattler::~RuneBattler()
+{
+	this->actions.ClearAndDelete();
 }
-void RuneBattler::Nullify(){
+
+void RuneBattler::Nullify()
+{
 	unconscious = false;
 	delay = 5000 + rand()%10000;
 	hp = maxHP = maxMP = mp = 10;
 	weaponDamage = spellDamage = 1;
 	magicArmor = magicPower = magicSkill = spellDamage = 0;
 	initiative = 1000;
-	state = WAITING_FOR_INITIATIVE;
+	state = BattlerState::WAITING_FOR_INITIATIVE;
+
+	entity = NULL;
+	isEnemy = false;
 }
 
 /// from 0 to 4, 0 being player, 1-3 being enemies 1-3
-RuneBattler::RuneBattler(int defaultTypes) : Battler(){
+RuneBattler::RuneBattler(int defaultTypes) 
+: Battler()
+{
 	Nullify();
 	switch(defaultTypes){
 		case 0:
@@ -80,132 +95,82 @@ RuneBattler::RuneBattler(int defaultTypes) : Battler(){
 	}
 }
 
-void RuneBattler::Process(BattleState &battleState){
+/// If dead, for example, it is not.
+bool RuneBattler::IsARelevantTarget()
+{
+	if (this->state == BattlerState::INCAPACITATED ||
+		this->unconscious == true)
+		return false;
+	return true;
+}
 
+
+void RuneBattler::Process(BattleState &battleState)
+{
 	// Woo!
-	if (state == INCAPACITATED)
+	if (state == BattlerState::INCAPACITATED ||
+		unconscious == true)
 		return;
 
     /// Check state, has it queued an action yet?
-    if (state == WAITING_FOR_INITIATIVE)
+	if (state == BattlerState::WAITING_FOR_INITIATIVE)
 	{
 		initiative -= battleState.timeDiff * speed;
         if (initiative <= 0){
 			if (!isAI){
-				MesMan.QueueMessage(new Message("BattlerReady"));
+				Message * msg = new Message(MessageType::STRING);
+				msg->msg = "BattlerReady("+this->name+")";
+				msg->data = (char*)this;
+				MesMan.QueueMessage(msg);
 			}
             initiative = 0;
-            state = IDLE;
+			state = BattlerState::IDLE;
         }
     }
 
     /// Process status-effects.
 
     /// Return if no AI.
-    if (!isAI || state != IDLE)
+	if (!isAI || state != BattlerState::IDLE)
         return;
 
-	state = ACTION_QUEUED;
 	/// Queue up an action, random ones work fine.
 	if (actions.Size() == 0)
-		return;
+	{
+		std::cout<<"\nBattler lacking any valid action to take";
+		// Load 'em.
+		if (!UpdateActions())
+			return;
+	}
 	BattleAction * ba = actions[rand()%actions.Size()];
 	RuneBattleAction * rba = new RuneBattleAction(*ba);
 	rba->subjects = this;
 	RuneBattler * b = (RuneBattler*)BattleMan.RandomTarget(rba->targetFilter, this);
 	if (b)
 		rba->targets.Add(b);
+	/// What if no valid targets?
+	if (!rba->HasValidTargets())
+	{
+		// Then abort it.
+		delete rba;
+		return;
+	}
 	BattleMan.QueueAction(rba);
+	state = BattlerState::PREPARING_ACTION;
 
     /// Since no good AI atm, return.
     return;
-
-	// Decrement delay
-	delay -= battleState.timeDiff * speed;
-	// Wait until delay is over.
-	if (delay > 0)
-		return;
-	delay = 0;
-
-	// Find a target, there is only one opposing side.
-	Side * opposingSide = NULL;
-	for (int i = 0; i < battleState.sides.Size(); ++i){
-		opposingSide = battleState.sides[i];
-		if (i != side)
-			break;
-	}
-	// If not opposing side, flag the battle as finished.
-	if (opposingSide == NULL){
-		std::cout<<"\nNo valid opposing side! Side "<<side<<" won!";
-		battleState.state = BATTLE_ENDED;
-		return;
-	}
-	// Grab target (random)
-	RuneBattler * target = (RuneBattler*)opposingSide->battlers[rand()%opposingSide->battlers.Size()];
-	while (target->unconscious)
-		target = (RuneBattler*)opposingSide->battlers[rand()%opposingSide->battlers.Size()];
-
-	bool hit = false;
-	bool lucky = false;
-	int a = rand() % 1000;
-	if (a < 25){
-		hit = true;
-		lucky = true;
-	}
-	a = rand() % 1000;
-	if (a < 26){
-		hit = false;
-		lucky = true;
-	}
-	if (!hit && !lucky){
-		float accuracy = 95 + agility - target->agility;
-		a = rand()%100;
-		if (a < accuracy)
-			hit = true;
-	}
-	if (!hit){
-		if (lucky)
-			std::cout<<"\n"<<name<<" tries to attack "<<target->name<<" but completely misses!!";
-		else
-			std::cout<<"\n"<<name<<" tries to attack "<<target->name<<" but misses!";
-	}
-	else {
-		// Do attack
-		std::cout<<"\n"<<name<<" tries to attack "<<target->name<<" and hits him ";
-		if (lucky)
-			std::cout<<"gracefully ";
-		float baseDamage = weaponDamage * pow(1.025f, attack);
-		float attackDefRatio = pow(attack / target->defense, 1.5f);
-		float armorRatio = pow(0.99f, target->armor);
-		float physicalDamage = baseDamage *attackDefRatio * armorRatio;
-		int damage = floor(physicalDamage+0.5f);
-		std::cout<<"for "<<damage<<" points of damage!";
-		target->Damage(damage);
-		if (target->unconscious){
-			// Check if all are unconscious
-			bool stillAlive = false;
-			std::cout<<"\n"<<target->name<<" is KO'd!";
-			for (int i = 0 ; i < opposingSide->battlers.Size(); ++i)
-				if (!((RuneBattler*)opposingSide->battlers[i])->unconscious)
-					stillAlive = true;
-			if (!stillAlive)
-				battleState.state = BATTLE_ENDED;
-		}
-		else {
-			std::cout<<"\n"<<target->name<<" hp down to "<<target->hp;
-		}
-	}
-	// Three seconds default delay
-	delay = 20000;
 }
 
-void RuneBattler::OnActionFinished(){
-    state = WAITING_FOR_INITIATIVE;
+void RuneBattler::OnActionFinished()
+{
+	state = BattlerState::WAITING_FOR_INITIATIVE;
 }
 
 /// Checks the initiative-parameter!
-bool RuneBattler::IsIdle(){
-    if (initiative <= 0)
+bool RuneBattler::IsIdle()
+{
+	if (state == BattlerState::IDLE)
         return true;
     return false;
 }
@@ -218,13 +183,12 @@ void RuneBattler::ResetStats(){
 }
 
 /// Take damage o-o, returns true if it killed/incapacitated the battler.
-bool RuneBattler::Damage(int dmg){
+bool RuneBattler::Damage(int dmg)
+{
 	hp -= dmg;
-	if (hp <= 0){
-		hp = 0;
-		unconscious = true;
-		state = INCAPACITATED;
-		MesMan.QueueMessage(new Message("OnBattlerIncapacitated("+name+")"));
+	if (hp <= 0)
+	{
+		OnKO();
 		return true;
 	}
 	return false;
@@ -240,7 +204,8 @@ bool RuneBattler::PhysicalDamage(int dmg){
 }
 
 /// Perform magic-damage-reduction before applying it.
-bool RuneBattler::MagicDamage(int dmg){
+bool RuneBattler::MagicDamage(int dmg)
+{
 	float magicArmorReduction = pow(0.98f, magicArmor);
 	std::cout<<"\nMagical damage reduced by magicArmor from "<<dmg;
 	dmg *= magicArmorReduction;
@@ -249,16 +214,60 @@ bool RuneBattler::MagicDamage(int dmg){
 	return Damage(dmg);
 }
 
+/// Updates which actions it has available using the RuneBattleAction library...?
+bool RuneBattler::UpdateActions()
+{
+	actions.Clear();
+	for (int i = 0; i < actionNames.Size(); ++i)
+	{
+		String name = actionNames[i];
+		const RuneBattleAction * action = RBALib.GetBattleAction(name);
+		if (action)
+			this->AddActions(new RuneBattleAction(*action));
+	}
+	if (actions.Size())
+		return true;
+	return false;
+}
+
+/// When getting knocked out/incapacitated, cancels queued actions, etc.
+void RuneBattler::OnKO()
+{
+	// Reset some variables.
+	hp = 0;
+	unconscious = true;
+	state = BattlerState::INCAPACITATED;
+
+	/// Queue a message of the event to the game state.
+	MesMan.QueueMessage(new Message("OnBattlerIncapacitated("+name+")"));
+	
+	// Notify all queued actions to be halted.
+	for (int i = 0; i < this->actionsQueued.Size(); ++i)
+	{
+		BattleAction * ba = actionsQueued[i];
+		ba->Cancel();
+	}
+	/// If we got a visible entity, animate it for death.
+	if (entity)
+	{
+		// Make it invisible!
+		Graphics.QueueMessage(new GMSetEntityb(entity, VISIBILITY, false));
+	}
+}
+
 
 /// Bleh o-o
-bool RuneBattler::LoadFromFile(String source)
+bool RuneBattler::Load(String source)
 {
+	this->source = source;
 	enum {
 		NULL_MODE,
 		ACTIONS, SKILLS = ACTIONS,
 	};
 	int inputMode = NULL_MODE;
 	List<String> lines = File::GetLines(source);
+	if (!lines.Size())
+		return false;
 	for (int i = 0; i < lines.Size(); ++i)
 	{
 		String & line = lines[i];
@@ -298,38 +307,42 @@ bool RuneBattler::LoadFromFile(String source)
 			else
 				name = token2;
 		}
+		else if (line.Contains("animationSet"))
+		{
+			animationSet = token2;
+		}
 		else if (token == "hp"){
-			maxHP = hp = token2.ParseInt();
+			maxHP = hp = token2.ParseFloat();
 		}
 		else if (token == "mp"){
-			maxMP = mp = token2.ParseInt();
+			maxMP = mp = token2.ParseFloat();
 		}
 		else if (token == "attack"){
-			attack = token2.ParseInt();
+			attack = token2.ParseFloat();
 		}
 		else if (token == "agility"){
-			agility = token2.ParseInt();
+			agility = token2.ParseFloat();
 		}
 		else if (token == "defense"){
-			defense = token2.ParseInt();
+			defense = token2.ParseFloat();
 		}
 		else if (token == "magicPower"){
-			magicPower = token2.ParseInt();
+			magicPower = token2.ParseFloat();
 		}
 		else if (token == "magicSkill"){
-			magicSkill = token2.ParseInt();
+			magicSkill = token2.ParseFloat();
 		}
 		else if (token == "speed"){
-			speed = token2.ParseInt();
+			speed = token2.ParseFloat();
 		}
 		else if (token == "weaponDamage"){
-			weaponDamage = token2.ParseInt();
+			weaponDamage = token2.ParseFloat();
 		}
 		else if (token == "armor"){
-			armor = token2.ParseInt();
+			armor = token2.ParseFloat();
 		}
 		else if (token == "magicArmor"){
-			magicArmor = token2.ParseInt();
+			magicArmor = token2.ParseFloat();
 		}
 		else if (token == "spellDamage"){
 			spellDamage = token2.ParseInt();

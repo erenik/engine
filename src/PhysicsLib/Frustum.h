@@ -40,6 +40,8 @@ public:
 			nearPlaneDistance, farPlaneDistance; // Fuck aspect ratio and "angle"... aspectRatio, angle, tang;
 	float farWidth, farHeight;
 
+	/// 1 = Projection 3D, 2 = Orthogonal
+	void SetProjection(int type);
 	/// Sets camera internal values using default perspective arguments
 	void SetCamInternals(float left = -1, float right = 1, float bottom = -1, float top = 1, float near = -1, float far = -10);
 	/// Set camera orientation
@@ -52,6 +54,8 @@ public:
 private:
 	/// Specifies if the camera internals have been set or not.
 	bool initialized;
+	/// 1 = Projection 3D, 2 = Orthogonal
+	int projection;
 };
 
 #endif

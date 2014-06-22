@@ -5,6 +5,7 @@
 #define RUNE_BATTLER_MANAGER_H
 
 #include "RuneBattler.h"
+#include "RuneBattle.h"
 
 #define RuneBattlers (*RuneBattlerManager::Instance())
 
@@ -16,14 +17,20 @@ public:
 	static void Allocate();
 	static void Deallocate();
 	static RuneBattlerManager * Instance();
+
+	/// Reloads all battlers by their respective source file.
+	void ReloadBattles();
+	/// Reloads all battlers by their respective source file.
+	void ReloadBattlers();
+
 	/// Looks for a "Battlers.list" which should then specify the battler-files to load.
 	bool LoadFromDirectory(String dir);
 	bool LoadBattles(String fromDirectory);
 	/// Loads new battler type from file.
 	const RuneBattler * LoadBattler(String fromSource);
-	Battle * LoadBattle(String source);
+	RuneBattle * LoadBattle(String source);
 
-	Battle GetBattleBySource(String source);
+	RuneBattle GetBattleBySource(String source);
 	/// Gets battler by source. You must then create a copy of the const reference yourself before using it. 
 	const RuneBattler * GetBattlerBySource(String bySource);
 	/// Deprecate or rename this function. God...
@@ -33,8 +40,8 @@ public:
 
 	static String rootBattlerDir;
 private:
-	List<RuneBattler*> battlerTypes;
-	List<Battle*> battles;
+	List<RuneBattler*> runeBattlers;
+	List<RuneBattle*> runeBattles;
 
 
 };

@@ -113,12 +113,17 @@ void GMSetEntity::Process()
 					entity->graphics->cameraFilter.Clear();
 				break;
 			case ANIMATION_SET:
+			{
 				if (!entity->graphics)
 					entity->graphics = new GraphicsProperty();
-				entity->graphics->animationSet = AnimationMan.GetAnimationSet(string);
-				if (entity->graphics->animationSet->animations.Size())
+				AnimationSet * anim = AnimationMan.GetAnimationSet(string);
+				if (!anim)
+					return;
+				entity->graphics->animationSet = anim;
+				if (anim->animations.Size())
 					entity->graphics->hasAnimation = true;
 				break;
+			}
 			case ANIMATION:
 				assert(entity->graphics);
 				entity->graphics->SetAnimation(string);

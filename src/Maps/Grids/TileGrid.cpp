@@ -23,6 +23,7 @@ TileGrid2D::TileGrid2D()
 : Grid(TILE_GRID)
 {
 	std::cout<<"\nTileGrid2D constructor.";
+	gridType = GridType::RECTANGLES;
 }
 TileGrid2D::~TileGrid2D(){
 	Deallocate();
@@ -106,20 +107,44 @@ int TileGrid2D::GenerateWaypoints(NavMesh * navMesh, float maxNeighbourDistance)
 Vector2i TileGrid2D::Size(){
 	return size;
 }
-void TileGrid2D::Resize(Vector2i newSize){
+
+/// See GridTypes above.
+void TileGrid2D::SetType(int gridType)
+{
+	this->gridType = gridType;
+}
+
+void TileGrid2D::Resize(Vector2i newSize)
+{
 	std::cout<<"\nTileGrid2D::Resize";
 	Deallocate();
 	size = newSize;
-	for (int y = 0; y < size.y; ++y){
+	/// Space in X between the columns, use for creating hexagonal grids, since the distance between each tile should always be 1.0 if possible.
+	float spaceX = 0;
+	/// Offset in Y, used for creating hexagonal grids.
+	Vector2f eachOtherRowOffset;
+	Vector2f rowSpacing(1,1);
+	if (gridType == GridType::HEXAGONS)
+	{
+		eachOtherRowOffset = Vector2f(0.5f, 0);
+		rowSpacing = Vector2f(1, 0.86602540378f);
+	}
+
+	for (int y = 0; y < size.y; ++y)
+	{
 		List<Tile*> * list = new List<Tile*>();
-		for (int x = 0; x < size.x; ++x){
+		for (int x = 0; x < size.x; ++x)
+		{
 			Tile * tile = new Tile();
-			tile->position = Vector3i(x,y,0);
+			tile->position = rowSpacing.ElementMultiplication(Vector2f(x,y));
+			if (y % 2 == 0)
+				tile->position += eachOtherRowOffset;
 			list->Add(tile);
 		}
 		tiles.Add(list);
 	}
 }
+
 // Protected functions
 void TileGrid2D::Deallocate(){
 	for (int i = 0; i < tiles.Size(); ++i)

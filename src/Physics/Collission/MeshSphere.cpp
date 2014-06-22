@@ -46,8 +46,9 @@ bool MeshSphereCollission(Entity * meshEntity, Entity * sphereEntity, Collission
 			if (abs(data.distanceIntoEachOther) > deepestCollissionDistance){
 				deepestCollissionDistance = abs(data.distanceIntoEachOther);
 				deepestCollission = data;
-				if (Graphics.renderCollissionTriangles)
-					deepestCollission.activeTriangles.Add(tri);
+				// TODO: Evaluate if this works well.
+		//		if (ActiveViewport->renderCollissionTriangles)
+				deepestCollission.activeTriangles.Add(tri);
 			}
 		}
 	}

@@ -51,8 +51,8 @@ class Camera
 	friend class CameraManager;
 	/// Default constructor, sets some variables
 	Camera();
-public:
 	~Camera();
+public:
 	/// Resets everything.
 	void Nullify();
 	// Prints data, including position, matrices, etc.

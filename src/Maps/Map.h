@@ -17,7 +17,7 @@ class Script;
 
 class CompactEntity;
 struct CompactEvent;
-struct NavMesh;
+class NavMesh;
 class Path;
 
 //#include "..\Script.h"

@@ -135,12 +135,18 @@ public:
 	// Sets the selected flag to false for the element and all beneath it.
 	void DeselectAll();
 
-	/** Function pointer for activation function upon activating the element.
+	/** Old shit. Use messages only! !!!
+		Function pointer for activation function upon activating the element.
 		Function pointer will default to NULL! Argument provided should be the UIElement that was activated ^.^
 	*/
-	int (*onActivate)(UIElement * );
+//	int (*onActivate)(UIElement * );
 	String activationMessage;
+	/// Message sent when hovering over an element.
+	String onHover;
 	String onTrigger; // For "triggering" the element, e.g. pressing Enter for input fields
+
+	/// Called upon hovering on an element. By default queues the string set in onHover to be processed by the message manager and game state.
+	virtual void OnHover();
 
 	// Reference functions
 	List<UIElement*> GetChildren() { return childList; };
@@ -158,7 +164,8 @@ public:
 	/// Checks if all flags are true. See UIFlag namespace. Flags can be binary &-ed.
 	bool ConformsToFlags(int uiFlags);
 
-	bool IsVisible(int elementId);
+	/// Checks if this element is visible, as it will depend on the parent UIs too.
+	bool IsVisible();
 
 	/// Gets absolute position and stores them in the pointers' variables, in pixels, relative to upper left corner
 	void GetAbsolutePos(int * posX, int * posY);
@@ -276,6 +283,7 @@ public:
 	bool exitable;
 	/// Message to be processed when exiting this menu (could be anything, or custom stuff).
 	String onExit;
+
 
     /// To toggle internal formating if that is already being considered in the design-phase.
 	bool formatX, formatY;

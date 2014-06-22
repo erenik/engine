@@ -11,8 +11,12 @@
 class Texture;
 
 /// Animation, a series of textures that make up an animation, with times in between, flags for repeatability etc.
-struct Animation {
+struct Animation 
+{
 public:
+	/// Reloads everyhing..?
+//	void Reload();
+
 	/// Fetches texture for current frame!
 	Texture * GetTexture(int animationTime);
 

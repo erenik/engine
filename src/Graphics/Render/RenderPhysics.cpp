@@ -9,6 +9,7 @@
 #include "Physics/Collission/CollisionShapeOctree.h"
 #include "GraphicsState.h"
 #include "Physics/Springs/Spring.h"
+#include "Viewport.h"
 
 #define PRINT_ERROR std::cout<<"\nGLError in Render "<<error;
 
@@ -338,7 +339,7 @@ rerer
 	/// Render collission data. Only render the latest collission if we're paused?
 	Collission & c = Physics.lastCollission;
 	CollissionResolution & cr = c.cr;
-	if (Graphics.renderCollissions
+	if (graphicsState.activeViewport->renderCollissions
 		&& Physics.IsPaused()
 		&& c.one && c.two
 		&& c.one->physics && c.two->physics
@@ -374,7 +375,7 @@ rerer
 		glPointSize(1.0f);
 
 		/// Render SATs
-		if (renderSeparatingAxes){
+		if (ActiveViewport->renderSeparatingAxes){
 			glBegin(GL_LINES);
 			glColor4f(1,0,1,0.2f);
 			for (int i = 0; i < c.separatingAxes.Size(); ++i){

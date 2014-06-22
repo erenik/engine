@@ -44,7 +44,7 @@ public:
 	void Setup();
 
     /// Returns all battlers
-    List<Battler*> Get(String byName) const;
+    Battler * GetBattlerByName(String byName) const;
     List<Battler*> GetBattlers() const { return battlers; };
     List<Battler*> GetPlayers() const;
     /// Returns all idle player-battlers! Checked via the Battler::IsIdle()-function!
@@ -73,7 +73,7 @@ private:
 	String activeBattle;
     /// Active action
   //  List<Battler*> activeSubjects, activeTargets;
-    BattleAction * activeAction;
+    List<BattleAction *> activeActions;
     /// Queue
     Queue<BattleAction*> actionQueue;
 	List<Battler*> battlers;

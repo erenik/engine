@@ -147,18 +147,6 @@ GraphicsManager::GraphicsManager()
 	pickingTexture = 0;
 
 
-	// Booleans
-	renderGrid = true;
-	renderPhysics = false;
-	renderCollissionTriangles = false;
-	renderSeparatingAxes = false;
-	renderFPS = true;
-	renderAI = false;
-	renderNavMesh = false;
-	renderUI = true;
-	renderLights = false;
-	renderMap = true;
-	renderLookAtVectors = false;
 	renderingEnabled = true;
 	backfaceCullingEnabled = false;
 
@@ -190,7 +178,6 @@ void GraphicsManager::ResetSleepTimes(){
 
 GraphicsManager::~GraphicsManager()
 {
-	SAFE_DELETE(defaultCamera);
 	delete renderSettings;
 	renderSettings = NULL;
 	double timeStart = clock();
@@ -343,9 +330,13 @@ bool GraphicsManager::SetResolution(int i_width, int i_height)
 }
 
 // For toggling all debug renders.
-void GraphicsManager::EnableAllDebugRenders(bool enabled/* = true*/){
+void GraphicsManager::EnableAllDebugRenders(bool enabled/* = true*/)
+{
+	assert(false);
+	/*
 	renderAI = renderFPS = renderGrid =
 		renderPhysics = renderNavMesh = renderLights = enabled;
+		*/
 }
 
 ///** Returns a pointer to the active system-global UI. If it has not been created earlier it will be created upon calling it.
@@ -389,7 +380,7 @@ void GraphicsManager::SetOverlayTexture(String source, int fadeInTime)
 {
 	/// Check if source is null
 	if (source.Length() == 0){
-		overlayTexture = NULL;
+		queuedOverlayTexture = overlayTexture = NULL;
 		return;
 	}
 	/// Check if it's preloaded
@@ -401,7 +392,9 @@ void GraphicsManager::SetOverlayTexture(String source, int fadeInTime)
 void GraphicsManager::SetOverlayTexture(Texture * texture, int fadeInTime /* = 0*/)
 {
 	if (fadeInTime == 0)
-		overlayTexture = texture;
+	{
+		queuedOverlayTexture = overlayTexture = texture;
+	}
 	else 
 	{
 		// Log in fade-time after the texture is buffered!
@@ -530,17 +523,27 @@ void GraphicsManager::ProcessMessages()
 	/// Spend only max 10 ms of time processing messages each frame!
 	long long messageProcessStartTime = Timer::GetCurrentTimeMs();
 	long long now;
+	List<GraphicsMessage*> graphicsMessages;
 	// Process queued messages
 	while (!messageQueue.isOff()){
 		GraphicsMessage * msg = messageQueue.Pop();
-		msg->Process();
-		delete msg;
-		now = Timer::GetCurrentTimeMs();
-		/// Only process 10 ms of messages each frame!
-		if (now > messageProcessStartTime + 100)
-			break;
+		graphicsMessages.Add(msg);
 	}
 	graphicsMessageQueueMutex.Release();
+
+	/// Process each message.
+	while(graphicsMessages.Size())
+	{
+		GraphicsMessage * gm = graphicsMessages[0];
+		gm->Process();
+		delete gm;
+		now = Timer::GetCurrentTimeMs();
+		// Retaining the order they were queued, if possible...
+		graphicsMessages.Remove(gm, ListOption::RETAIN_ORDER);
+		/// Only process 10 ms of messages each frame!
+//		if (now > messageProcessStartTime + 100)
+//			break;
+	}
 }
 
 void GraphicsManager::ToggleFullScreen(Window * window)

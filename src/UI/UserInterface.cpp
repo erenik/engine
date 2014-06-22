@@ -172,11 +172,8 @@ UIElement * UserInterface::Activate(){
 		return NULL;
 	UIElement * result = NULL;
 	result = stackTop->Activate();
-	if (result){
-		if (result->onActivate != NULL){
-			result->onActivate(result);
-			return result;
-		}
+	if (result)
+	{
 		if (result->activationMessage.Length() == 0){
 		//	assert(false && "Activatable UI element has no valid activation message string!");
 			return NULL;
@@ -218,20 +215,16 @@ void UserInterface::SetHoverElement(UIElement * targetElement)
 	/// Then add it to our specified one.
 	targetElement->AddState(UIState::HOVER);
 	targetElement->EnsureVisibility();
+	targetElement->OnHover();
 }
 
 
 
 /** Function called when an element is activated,
 	by mouse-clicking, pressing enter on selction or otherwise. */
-void UserInterface::Activate(UIElement* activeElement){
+void UserInterface::Activate(UIElement* activeElement)
+{
 	std::cout<<"\nUserInterface::Activate called";
-	if (activeElement->onActivate != NULL){
-		std::cout<<"\nActive element: "<<activeElement;
-		std::cout<<" "<<activeElement->name;
-		return;
-		activeElement->onActivate(activeElement);
-	}
 	if (activeElement->activationMessage.Length() == 0){
 		std::cout<<"Activatable UI element has no valid activation message string!";
 		return;
@@ -326,7 +319,8 @@ void UserInterface::Bufferize()
 }
 
 /// Releases GL resources
-bool UserInterface::Unbufferize(){
+bool UserInterface::Unbufferize()
+{
 	if (!isBuffered)
 		return false;
 	if (root)

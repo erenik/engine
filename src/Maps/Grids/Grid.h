@@ -6,7 +6,7 @@
 
 #include <String/AEString.h>
 
-struct NavMesh;
+class NavMesh;
 
 enum {
 	GRID_TYPE_NULL,

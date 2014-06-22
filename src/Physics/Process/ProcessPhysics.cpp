@@ -179,10 +179,11 @@ void PhysicsManager::ProcessPhysics(){
 								}
 							}
 							//	assert(!stillColliding);
+							// TODO: Evaluate, should work out though?
 							/// If prompted, send it for rendering.
-							if (Graphics.renderCollissions){
+				//			if (ActiveViewport->renderCollissions){
 								lastCollission = collissionData;
-							}
+				//			}
 						}
                     }
                 }
@@ -253,7 +254,9 @@ void PhysicsManager::ProcessPhysics(){
                             Collission * deepestCollission = &collissions[deepest];
                     //		assert(collissions[deepest].collissionNormal.MaxPart() > ZERO && "CollissionNormal ZERO, is this really the intent?");
                             bool resolveResult = ResolveCollission(collissions[deepest]);
-                            if (Graphics.renderCollissionTriangles)
+							// TODO: Evaluate if this works. Always adding the triangles might be bad. Add as a boolean for the physics manager?
+							assert(false);
+							//   if (Graphics.renderCollissionTriangles)
                                 activeTriangles += collissions[deepest].activeTriangles;
                             /// It was a false positive earlier (like normal in same direction as velocity)
                             if (resolveResult == false)

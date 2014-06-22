@@ -23,28 +23,5 @@ void RuneGlobalState::InputProcessor(int action, int inputDevice/* = 0*/){
 			RuneBattlers.LoadBattles(BATTLES_DIRECTORY);
 			break;					 
 		}
-		
-		case INTERPRET_CONSOLE_COMMAND: {
-#ifdef _DEBUG
-			String command = Input.GetInputBuffer();
-
-			// Check if null-string
-			if (command == NULL)
-				break;
-
-			List<String> token = command.Tokenize(" ");
-			int tokensFound = token.Size();
-			command.SetComparisonMode(String::NOT_CASE_SENSITIVE);
-			if (command == "toggle debug renders"){
-				Graphics.EnableAllDebugRenders(!Graphics.renderGrid);
-			}
-			else if (command == "toggle physics shapes"){
-				Graphics.renderPhysics = !Graphics.renderPhysics;
-			}
-#endif
-			break;
-		}
-#ifdef USE_NETWORK
-#endif
 	}
 }

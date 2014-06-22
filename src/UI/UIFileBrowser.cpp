@@ -25,6 +25,13 @@ UIFileBrowser::UIFileBrowser(String title, String action, String fileFilter)
 	// Disable cyclicity here, it annoys.
 	cyclicY = false;
 
+	dirInput = NULL;
+	dirList = NULL;
+
+	/// For loading dynamically right before rendering.
+	directoryLoaded = false;
+	childrenCreated = false;
+
 	/// Scan if this browser has appeared before, and use the old path if so.
 	for (int i = 0; i < oldFileBrowsers.Size(); ++i){
 		String oldFileBrowser = oldFileBrowsers[i];
@@ -42,7 +49,8 @@ UIFileBrowser::~UIFileBrowser()
 }
 
 /// Creates ze children!
-void UIFileBrowser::CreateChildren(){
+void UIFileBrowser::CreateChildren()
+{
 	assert(this->childList.Size()==0);
 	
 	// Create a title
@@ -56,7 +64,7 @@ void UIFileBrowser::CreateChildren(){
 	dirInput->name = this->name+"DirInput";
 	dirInput->onTrigger = "SetFileBrowserDirectory("+this->name+",this)";
 	dirInput->sizeRatioY = 0.1f;
-	dirInput->text = ".";
+	dirInput->text = currentPath;
 	AddChild(dirInput);
 	// Create file-list
 	dirList = new UIList();
@@ -94,13 +102,19 @@ void UIFileBrowser::CreateChildren(){
 	okButton->leftNeighbourName = cancelButton->name;
 	fileInput->downNeighbourName = okButton->name;
 	dirList->downNeighbourName = fileInput->name;
+
+	childrenCreated = true;
 }
 
 /// Clears and creates new list of directory-contents. Use false on first usage, rest should be true.
-void UIFileBrowser::LoadDirectory(bool fromRenderThread){
+void UIFileBrowser::LoadDirectory(bool fromRenderThread)
+{
+	assert(dirList);
 	// Clear contents
 	if (fromRenderThread)
-		Graphics.QueueMessage(new GMClearUI(dirList->name));
+	{
+		dirList->Clear();
+	}
 	// Find dir contents.
 	if (currentPath.Length() == 0)
 		currentPath = ".";
@@ -110,7 +124,8 @@ void UIFileBrowser::LoadDirectory(bool fromRenderThread){
 	result = GetFilesInDirectory(currentPath, files);
 	UIElement * firstDir = NULL;
 	// Add dirs!
-	for (int i = 0; i < dirs.Size(); ++i){
+	for (int i = 0; i < dirs.Size(); ++i)
+	{
 		UIButton * dirButton = new UIButton();
 		dirButton->sizeRatioY = 0.1f;
 		dirButton->text = dirs[i]+"/";
@@ -118,10 +133,7 @@ void UIFileBrowser::LoadDirectory(bool fromRenderThread){
 #define MID	0.7f
 		dirButton->textColor = Vector3f(LOW,MID,2.0f);
 		dirButton->activationMessage = "UpdateFileBrowserDirectory("+this->name+","+dirs[i]+")";
-		if (fromRenderThread)
-			Graphics.QueueMessage(new GMAddUI(dirButton, dirList->name));
-		else 
-			dirList->AddChild(dirButton);
+		dirList->AddChild(dirButton);
 		// Save first directory so we may hover to it.
 		if (i == 0)
 			firstDir = dirButton;
@@ -138,18 +150,17 @@ void UIFileBrowser::LoadDirectory(bool fromRenderThread){
 		fileButton->text = files[i];
 		fileButton->textColor = Vector3f(LOW,2.0f,LOW);
 		fileButton->activationMessage = "SetFileBrowserFile("+this->name+","+files[i]+")";
-		if (fromRenderThread)
-			Graphics.QueueMessage(new GMAddUI(fileButton, dirList->name));
-		else 
-			dirList->AddChild(fileButton);
+		dirList->AddChild(fileButton);
 	}
 	// Hover to the element at once!
 	firstDir->AddState(UIState::HOVER);
+	directoryLoaded = true;
 }
 
 
 /// Call to update path, using given argument to add to the path.
-void UIFileBrowser::UpdatePath(String cat){
+void UIFileBrowser::UpdatePath(String cat, bool fromRenderThread)
+{
 	String newPath;
 	if (cat == "..")
 	{
@@ -176,19 +187,29 @@ void UIFileBrowser::UpdatePath(String cat){
 		currentPath = newPath + cat;
 	}
 	// Update stuff
-	OnDirPathUpdated();
+	OnDirPathUpdated(fromRenderThread);
 }
 
 /// Sets full path.
-void UIFileBrowser::SetPath(String path){
+void UIFileBrowser::SetPath(String path, bool fromRenderThread)
+{
 	this->currentPath = path;
-	OnDirPathUpdated();
+	OnDirPathUpdated(fromRenderThread);
 }	
 
 // Update stuff.
-void UIFileBrowser::OnDirPathUpdated(){
+void UIFileBrowser::OnDirPathUpdated(bool fromRenderThread)
+{
 	// Update the gui too.
-	Graphics.QueueMessage(new GMSetUIs(dirInput->name, GMUI::TEXT, currentPath));
+	if (fromRenderThread)
+	{
+		dirInput->name = currentPath;
+	}
+	else
+	{
+		if (dirInput)
+			Graphics.QueueMessage(new GMSetUIs(dirInput->name, GMUI::TEXT, currentPath));
+	}
 	// Save path into the list of old file browsers.
 	for (int i = 0; i < oldFileBrowsers.Size(); ++i){
 		String oldFileBrowser = oldFileBrowsers[i];
@@ -203,13 +224,28 @@ void UIFileBrowser::OnDirPathUpdated(){
 	// Add new entry.
 	String newEntry = name+";"+currentPath;
 	oldFileBrowsers.Add(newEntry);
+	// Queue reload of the directory!
+	directoryLoaded = false;
 }
 
 /// Sets file in the input-field for later evaluation.
 void UIFileBrowser::SetActiveFile(String file){
-	Graphics.QueueMessage(new GMSetUIs(fileInput->name, GMUI::TEXT, file));
+	Graphics.QueueMessage(new GMSetUIs(fileInput->name, GMUI::TEXT, file, ui));
 	fileSelection.Clear();
 	fileSelection.Add(file);
+}
+
+
+/// Rendering
+void UIFileBrowser::Render()
+{
+	// Create children first if not done so already!!
+	if (!childrenCreated)
+		CreateChildren();
+	// Load directory if not done so already.
+	if (!directoryLoaded)
+		LoadDirectory(true);
+	UIList::Render();
 }
 
 

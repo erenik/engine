@@ -6,32 +6,20 @@
 
 #include "Battle/Battler.h"
 
-/// States for our battler.
-enum states {
-    BLEH,
-    /// Default, most prominent state .. ish.
-    WAITING_FOR_INITIATIVE,
-    IDLE,
-    ACTION_QUEUED,
-	INCAPACITATED,
-};
+class Entity;
 
-// To read in pre-defined battles from .txt or otherwise!
-struct Battle 
+class RuneBattler : public Battler 
 {
-	List<String> playerNames;
-	List<String> enemyNames;
-	String name;
-	String source;
-	bool addCurrentPlayers;
-};
-
-class RuneBattler : public Battler {
+	friend class RuneBattlerManager;
 public:
 	RuneBattler();
 	/// from 0 to 4, 0 being player, 1-3 being enemies 1-3
 	RuneBattler(int defaultTypes);
 	virtual ~RuneBattler();
+
+	/// If dead, for example, it is not.
+	virtual bool IsARelevantTarget();
+
 	virtual void Process(BattleState &battleState);
 	virtual void OnActionFinished();
     /// Checks the initiative-parameter!
@@ -46,8 +34,14 @@ public:
 	/// Perform magic-damage-reduction before applying it.
 	bool MagicDamage(int dmg);
 
+	/// Updates which actions it has available using the RuneBattleAction library...?
+	bool UpdateActions();
+
+	/// When getting knocked out/incapacitated, cancels queued actions, etc.
+	void OnKO();
+
 	/// Bleh o-o
-	bool LoadFromFile(String source);
+	bool Load(String fromFile);
 	String Source() const { return source; };
 
 	/// Name is inherited from Battler
@@ -55,7 +49,8 @@ public:
 
 	// Some basic stats, maybe move them elsewhere? (Stat class/struct?)
 	int hp, mp;
-	float attack, agility, defense, magicPower, magicSkill, speed;
+
+	int attack, agility, defense, magicPower, magicSkill, speed;
 	int weaponDamage, spellDamage;
 	int armor, magicArmor;
 	int maxHP, maxMP;
@@ -69,6 +64,14 @@ public:
 
 	// Statuses
 	bool unconscious;
+
+	// Used in the game engine.
+	Entity * entity;
+
+	bool isEnemy;
+
+	/// Animation set to use.
+	String animationSet;
 
 private:
 	String source;

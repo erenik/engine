@@ -13,6 +13,7 @@
 #include "Selection.h"
 
 class Window;
+class Viewport;
 class Shader;
 class Texture;
 class Mesh;
@@ -33,6 +34,9 @@ class Light;
 #define ENABLE_SPECIFIC_ENTITY_OPTIONS	0x00000020  // Enables specific render options on a per-entity basis. Disable this for rendering in custom manner.
 #define SCISSOR_DISABLED                0x00000040  // For toggling scissor-functionality which is used by UILists et al.
 
+// Macro while rendering
+#define ActiveViewport (graphicsState.activeViewport)
+
 
 /** A structure containing information about the current rendering settings and temporary variables, including:
 	- the current model matrix.
@@ -46,6 +50,7 @@ public:
 public:
 	/// Window we are currently rendering to.
 	Window * activeWindow; 
+	Viewport * activeViewport;
 	/// Current width and height of the active window.
 	int windowWidth, windowHeight;
 

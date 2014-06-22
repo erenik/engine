@@ -52,7 +52,8 @@ public:
 	int typeIndex;
 	TileType * type;
 	/// Standard tile position: integral using only X and Y
-	Vector3i position;
+	Vector3f position;
+
 //	const int X() const { return x; };
 //	const int Y() const { return y; };
 

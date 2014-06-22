@@ -14,6 +14,9 @@ enum graphicsMessages {
 	GM_DELETE_LIGHT,
 	GM_SET_LIGHT,
 
+	// Animation
+	GM_QUEUE_ANIMATION,
+
 	// Setters
 	GM_SET,				// For setting default textures and stuff
 	GM_SET_FLOAT,

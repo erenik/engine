@@ -12,6 +12,9 @@
 class Camera;
 class RuneBattler;
 class Window;
+class NavMesh;
+class TileGrid2D;
+class Waypoint;
 
 class RuneBattleState : public RRGameState {
 public:
@@ -20,6 +23,10 @@ public:
 	void OnEnter(GameState * previousState);
 	void Process(int timeInMs);
 	void OnExit(GameState * nextState);
+
+	/// For rendering cursors or something?
+	virtual void Render(GraphicsState & graphicsState);
+
 	/// Input functions for the various states
 	void MouseClick(bool down, int x = -1, int y = -1, UIElement * elementClicked = NULL);
 	void MouseRightClick(bool down, int x = -1, int y = -1, UIElement * elementClicked = NULL);
@@ -31,14 +38,23 @@ public:
 	void ProcessMessage(Message * message);
 
 private:
+	/// Gets target battlers
+	RuneBattler * GetBattler(String byName);
+	/// Gets all active battlers
+	List<RuneBattler*> GetBattlers();
+	/// Gets all active battlers by filtering string. This can be comma-separated names of other kinds of specifiers.
+	List<RuneBattler*> GetBattlers(String byFilter);
 
+	/// Toggle visibility of the battle log (of previous executed actions)
+	void ToggleLogVisibility(bool * newState = NULL);
+	bool logVisibility;
 
 	Window * battleTestWindow;
 
 	// Randomize starting initiative.
 	void ResetInitiative();
 	/// Update UI accordingly.
-	void OnBeginBattle();
+	void CreatePartyUI();
 
 
 	/// For special battles
@@ -62,14 +78,42 @@ private:
     /// Stuff.
     class RuneBattleAction * selectedBattleAction;
     int targetMode;
-    void OpenCommandsMenu();
+    void OpenCommandsMenu(RuneBattler * forBattler);
 	void OpenSubMenu(String whichMenu);
 	/// Opens menu for selecting target for action.
     void OpenTargetMenu();
 	void HideMenus();
+	
+	/// Chosen action. Name of it.
+	String action;
+	List<String> targets;
 
 	/// Loads battle from source~! Returns false upon failure.
 	bool LoadBattle(String fromSource);
+	/// Loads the "map" to be used, creates the grid etc.
+	void SetupBattleMap();
+	/// Using known battle map, setup navmesh to use.
+	void CreateNavMesh();
+	/// Setup lighting to fit the location/time
+	void SetupLighting();
+	/// Create entities! 
+	void CreateBattlerEntities();
+	/// Place them on the grid.
+	void PlaceBattlers();
+	/// Setup camera
+	void SetupCamera();
+
+	/// Overall map and grid size. Used for camera placement. Note that the grid is not necessarily the same siz
+	Vector2i mapSize;
+	// Navigation and spawning.	Returns random free positions.
+	Waypoint * GetFreeEnemyPosition();
+	Waypoint * GetFreeAllyPosition();
+
+
+	/// Grid.
+	TileGrid2D * battleGrid;
+	NavMesh * navMesh;
+
 	/// Pokes the BattleManager to end the battle and then queues state-change to whereever we came from
 	void EndBattle();
 
@@ -86,19 +130,19 @@ private:
 	bool commandsMenuOpen;
 
     /// For ze targetting!
-    List<Entity*> activeTargets;
-	RuneBattler * activePlayer;
+    List<RuneBattler *> targetBattlers;
+	RuneBattler * activePlayerBattler;
 
 	/** List of all active players! (human-controlled, either locally or via network).
 		Index 0 will always be the primary local player.
 		Refer to the MultiplayerProperty for organizing entities with different players (name/IP/etc).
 	*/
 	List<Entity*> playerEntities;
+	/// p-p Re-created each new battle?
+	List<Entity*> pointerEntities;
 
-	/// The cameras for the 4 primary players and spectators...!
+	/// The main camera
 	Camera * camera;
-	/// Actively manipulated entities
-	Selection editorSelection;
 };
 
 #endif

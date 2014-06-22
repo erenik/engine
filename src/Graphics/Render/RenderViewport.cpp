@@ -18,6 +18,13 @@ void GraphicsManager::RenderViewport(Viewport * vp)
 	/// Absolute coordinates
 	glViewport(vp->bottomLeftCorner.x, vp->bottomLeftCorner.y, vp->size.x, vp->size.y);
 
+	glEnable(GL_SCISSOR_TEST);
+	glScissor(vp->bottomLeftCorner.x, vp->bottomLeftCorner.y, vp->size.x, vp->size.y);
+
+	// draw bg
+	glClearColor(vp->backgroundColor.x, vp->backgroundColor.y, vp->backgroundColor.z,1);
+	glClear(GL_COLOR_BUFFER_BIT);
+
 	// Fetch camera to use. 
 	Camera * camera = vp->camera;
 	if (!camera)
@@ -44,7 +51,7 @@ void GraphicsManager::RenderViewport(Viewport * vp)
 	Timer sceneTimer, alphaEntitiesTimer, effectsTimer, uiTimer;
 	sceneTimer.Start();
 	// Render le map as wanted?
-	if (Graphics.mapToRender && Graphics.renderMap){
+	if (Graphics.mapToRender && ActiveViewport->renderMap){
 		Graphics.mapToRender->Render();
 	}
 	// Render the scene, now
@@ -70,7 +77,7 @@ void GraphicsManager::RenderViewport(Viewport * vp)
 	// Render the grid, yo, for orientation in world space.
 //#define ALWAYS_GRID
 #ifndef ALWAYS_GRID
-	if (Graphics.renderGrid)
+	if (ActiveViewport->renderGrid)
 #endif
 		Graphics.RenderGrid();
 	// Render vfcOctree with regular objects
@@ -78,18 +85,17 @@ void GraphicsManager::RenderViewport(Viewport * vp)
 //#define ALWAYS_PHYSICS
 #ifndef ALWAYS_PHYSICS
 	// Render physics if wanted.
-	if (Graphics.renderPhysics)
+	if (ActiveViewport->renderPhysics)
 #endif
 		Graphics.RenderPhysics();
 	// Render lights if wanted.
-	if (Graphics.renderLights)
+	if (ActiveViewport->renderLights)
 		Graphics.RenderLights();
 
-	// Renders names of all AI-characters, settings set in the AIManager or GraphicsManager...?!
-	Graphics.RenderAI();	
-	if (Graphics.renderNavMesh){
-		Graphics.RenderNavMesh();
-		Graphics.RenderPath();
+	if (ActiveViewport->renderNavMesh)
+	{
+		RenderNavMesh();
+		RenderPath();
 	}
 
     /// Render simple-shapesuuu

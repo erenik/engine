@@ -10,17 +10,26 @@
 
 struct Animation;
 
-struct AnimationSet {
+struct AnimationSet 
+{
 	AnimationSet();
 	~AnimationSet();
+
+	/// Expects a valid path to a folder including a base.png, subfolders for each animation and an AnimSet.txt file for specifying animation details
+	bool Load(String fromFolder);
+
 	/// Getter!
 	Animation * GetAnimation(String byName);
 
 	List<Animation*> animations;
 	String name;
-	String source;
+	String sourceFolder;
 	/// Path to base-frame to use when no animation has been queued yet.
 	String baseFrame;
+
+private:
+	/// Returns NULL upon failure and a new Animation upon success.
+	Animation * LoadAnimationFromFolder(String folderPath);
 };
 
 #endif

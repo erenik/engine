@@ -98,24 +98,47 @@ void GraphicsProperty::SetQueuedAnimation(String name)
 }
 
 /// Fetches relevant texture for current frame time. This assumes that the element has an active animation playing.
-Texture * GraphicsProperty::GetTextureForCurrentFrame(long long frameTime)
+Texture * GraphicsProperty::GetTextureForCurrentFrame(int64 & frameTime)
 {
-	/// Find current animation.. should be saved herein.
+	/// No current animation?If we got a queued animation..
+	if (currentAnimation == NULL)
+	{
+		// Check for a queued animation
+		// No current animation? just set it then
+		if (queuedAnimation)
+		{
+			currentAnimation = queuedAnimation;
+			queuedAnimation = NULL;	
+			animStartTime = frameTime;
+		}
+		else 
+		{
+			// Judge if the past animation is finishing..?
+		}
+	}
+	/// If still no current animation after checking queued animations? use base frame!
 	if (!currentAnimation)
+	{
 		return TexMan.GetTextureBySource(animationSet->baseFrame);
-	Animation * anim = currentAnimation;
+	}
 
 	/// Calculate animation-time.
-	long long animTime = frameTime - animStartTime;
-	if (animTime > anim->totalDuration && anim->repeatable){
-		int c = animTime / anim->totalDuration;
+	int64 animTime = frameTime - animStartTime;
+	if (animTime > currentAnimation->totalDuration && currentAnimation->repeatable){
+		int c = animTime / currentAnimation->totalDuration;
 		if (c > 1000)
 			animStartTime = frameTime;
-		animStartTime += anim->totalDuration;
+		animStartTime += currentAnimation->totalDuration;
 	}
 
 	/// Get right frame
-	Texture * texture = anim->GetTexture(animTime);
+	Texture * texture = currentAnimation->GetTexture(animTime);
+
+	// If not repeatable, halt it once it exceeds its duration.
+	if (animTime > currentAnimation->totalDuration)
+	{
+		currentAnimation = NULL;	
+	}
 
 	return texture;
 }

@@ -17,6 +17,7 @@
 #include "Application/Application.h"
 #include "Window/WindowManager.h"
 #include "Message/MessageManager.h"
+#include "Viewport.h"
 
 enum generalActions{
 	NULL_ACTION,
@@ -76,6 +77,8 @@ extern Display * display;
 
 void generalInputProcessor(int action, int inputDevice)
 {
+	Window * activeWindow = ActiveWindow();
+	Viewport * mainViewport = activeWindow->MainViewport();
 	switch(action){
 		case QUIT_APPLICATION:
 			if (Application::queryOnQuit)
@@ -84,13 +87,13 @@ void generalInputProcessor(int action, int inputDevice)
 				MesMan.QueueMessages("QuitApplication");
 			break;
 		case TOGGLE_RENDER_LIGHTS:
-			Graphics.renderLights = !Graphics.renderLights;
+			mainViewport->renderLights = !mainViewport->renderLights;
 			break;
 		case TOGGLE_RENDER_PHYSICS:
-			Graphics.renderPhysics = !Graphics.renderPhysics;
+			mainViewport->renderPhysics = !mainViewport->renderPhysics;
 			break;
 		case TOGGLE_RENDER_WAYPOINTS:
-			Graphics.renderNavMesh = !Graphics.renderNavMesh;
+			mainViewport->renderNavMesh = !mainViewport->renderNavMesh;
 			break;
 		case RECORD_VIDEO:
 			Graphics.QueueMessage(new GraphicsMessage(GM_RECORD_VIDEO));

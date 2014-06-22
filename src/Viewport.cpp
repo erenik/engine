@@ -40,6 +40,19 @@ void Viewport::Initialize()
 	ui = NULL;
 	window = NULL;
 	id = idEnumerator++;
+	
+	// Render Booleans
+	renderGrid = true;
+	renderPhysics = false;
+	renderCollissionTriangles = false;
+	renderSeparatingAxes = false;
+	renderFPS = true;
+	renderAI = false;
+	renderNavMesh = false;
+	renderUI = true;
+	renderLights = false;
+	renderMap = true;
+	renderLookAtVectors = false;
 }
 
 Viewport::~Viewport()
@@ -94,3 +107,11 @@ UserInterface * Viewport::GetUI()
 	return ui; 
 };
 
+
+
+	// For toggling all debug renders.
+void Viewport::EnableAllDebugRenders(bool enabled/* = true*/)
+{
+	renderAI = renderFPS = renderGrid =
+		renderPhysics = renderNavMesh = renderLights = enabled;
+}

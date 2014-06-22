@@ -2,31 +2,41 @@
 // 2013-06-28
 
 #include "OS/Sleep.h"
+
 #include "Maps/2D/TileMapLevel.h"
 #include "Maps/2D/TileMap2D.h"
 #include "Maps/Grids/Tile.h"
 #include "Maps/Grids/TileTypeManager.h"
-#include "../Physics/PhysicsProperty.h"
-#include "../Physics/Messages/PhysicsMessage.h"
-#include "../UI/UserInterface.h"
+#include "Maps/Grids/GridObject.h"
+#include "Maps/MapManager.h"
+
+#include "Physics/PhysicsProperty.h"
+#include "Physics/Messages/PhysicsMessage.h"
+#include "Physics/PhysicsManager.h"
+
+#include "UI/UserInterface.h"
 #include "UI/UIButtons.h"
 #include "UI/UIImage.h"
-#include "../Graphics/Messages/GMUI.h"
+
+#include "Graphics/Messages/GMSet.h"
+#include "Graphics/Camera/Camera.h"
+#include "GraphicsState.h"
+#include "Graphics/Messages/GMUI.h"
+#include "Graphics/GraphicsManager.h"
+
 #include "Message/Message.h"
 #include "Message/FileEvent.h"
 #include "Message/VectorMessage.h"
+#include "Message/MessageManager.h"
+
+#include "Viewport.h"
 #include "File/FileUtil.h"
 #include "Actions.h"
 #include "GameStates/GameStates.h"
-#include "Maps/Grids/GridObject.h"
-#include "Graphics/GraphicsManager.h"
 #include "TextureManager.h"
-#include "Maps/MapManager.h"
 #include "StateManager.h"
-#include "Physics/PhysicsManager.h"
 #include "Input/InputManager.h"
 #include "ModelManager.h"
-#include "Message/MessageManager.h"
 #include "Graphics/Messages/GMLight.h"
 #include "Script/Script.h"
 #include "Window/WindowManager.h"
@@ -39,11 +49,8 @@
 #include "../Map/MapState.h"
 #include "Entity/EntityProperty.h"
 #include "RuneRPG/EntityStates/RREntityState.h"
-#include "Graphics/Camera/Camera.h"
-#include "GraphicsState.h"
 #include "../../RuneDirectories.h"
 #include "Entity/EntityFlags.h"
-#include "Graphics/Messages/GMSet.h"
 #include "../RuneGameStatesEnum.h"
 
 /// For sprintf in Linux
@@ -83,8 +90,8 @@ RuneEditor::RuneEditor()
 	objectSelector = NULL;
 	lightingEditor = NULL;
 }
-RuneEditor::~RuneEditor(){
-	SAFE_DELETE(runeEditorCamera);
+RuneEditor::~RuneEditor()
+{
 }
 
 /// Set defaults!
@@ -125,6 +132,7 @@ void RuneEditor::OnEnter(GameState * previousState)
 	tileType = TileTypes.GetTileTypeByIndex(0);
 
 	MainWindow()->renderState = true;
+	MainWindow()->renderFPS = true;
 
 	std::cout<<"\nRuneEditor::OnEnter";
 	/// Create a map upon entering instead?
@@ -160,13 +168,14 @@ void RuneEditor::OnEnter(GameState * previousState)
 	Graphics.QueueMessage(new GMSet(ACTIVE_2D_MAP_TO_RENDER, map));
 
 	/// Disable AI-rendering
-	Graphics.renderAI = false;
-	Graphics.renderNavMesh = false;
-	Graphics.renderGrid = false;
-	Graphics.renderNavMesh = true;
-	Graphics.renderPhysics = true;
-	Graphics.renderFPS = true;
-	Graphics.renderLights = false;
+	Viewport * mainViewport = MainWindow()->MainViewport();
+	mainViewport->renderAI = false;
+	mainViewport->renderNavMesh = false;
+	mainViewport->renderGrid = false;
+	mainViewport->renderNavMesh = true;
+	mainViewport->renderPhysics = true;
+	mainViewport->renderFPS = true;
+	mainViewport->renderLights = false;
 
 	std::cout<<"\nrrrr5";
 	/// Set RuneEditor selection as the renderable one!

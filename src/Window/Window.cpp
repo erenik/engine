@@ -75,6 +75,8 @@ Window::Window(String name)
 	getNextFrame = false;
 	frameTexture = NULL;
 
+	visible = false;
+
 	renderViewports = true;
 	renderFPS = false;
 	renderState = true;
@@ -381,7 +383,8 @@ bool Window::Destroy()
 bool Window::IsVisible()
 {
 #ifdef WINDOWS
-	return IsWindowVisible(hWnd);
+	return visible;
+//	return IsWindowVisible(hWnd);
 #endif
 }
 

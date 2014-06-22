@@ -32,7 +32,7 @@ void GraphicsManager::RenderSelection(){
 	/// Set rainbow factor for XYZ ^w^
 	glUniform1f(glGetUniformLocation(graphicsState.activeShader->shaderProgram, "rainbowXYZFactor"), 0.0f);
 	
-	Camera camera = *graphicsState.camera;
+	Camera * camera = graphicsState.camera;
 
 	// Update view and projection matrix in specified shader
 	if (graphicsState.activeShader && graphicsState.activeShader->uniformProjectionMatrix != -1)
@@ -42,7 +42,7 @@ void GraphicsManager::RenderSelection(){
 		glUniformMatrix4fv(graphicsState.activeShader->uniformViewMatrix, 1, false, graphicsState.viewMatrixF.getPointer());
 	// Update camera in the world
 	if (graphicsState.activeShader && graphicsState.activeShader->uniformEyePosition != -1)
-		glUniform4f(graphicsState.activeShader->uniformEyePosition, camera.Position().x, camera.Position().y, camera.Position().z, 1.0);
+		glUniform4f(graphicsState.activeShader->uniformEyePosition, camera->Position().x, camera->Position().y, camera->Position().z, 1.0);
 
 
 	PrintGLError("Unable to set wireframe shader");

@@ -136,8 +136,12 @@ void GraphicsMessage::Process(){
 		case GM_CLEAR_UI:
 		{
 			Window * window = MainWindow();
-			window->ui->Unbufferize();
-			window->ui->DeleteGeometry();
+			UserInterface * ui = window->ui;
+			if (ui)
+			{
+				ui->Unbufferize();
+				ui->DeleteGeometry();
+			}
 			window->ui = NULL;
 			break;
 		}

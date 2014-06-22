@@ -5,6 +5,8 @@
 
 #include "UIElement.h"
 #include "UITypes.h"
+#include "Message/Message.h"
+#include "Message/MessageManager.h"
 
 #include "OS/Sleep.h"
 
@@ -36,10 +38,13 @@ void UIElement::OnEnterScope(){
 		childList[i]->OnEnterScope();
 }
 /// Called once this element is no longer visible for any reason. E.g. switching game states to display another UI.
-void UIElement::OnExitScope(){
+void UIElement::OnExitScope()
+{
 	// Do nothing in general.
 	for (int i = 0; i < childList.Size(); ++i)
 		childList[i]->OnExitScope();
+	if (onExit.Length())
+		MesMan.QueueMessages(onExit);
 }
 
 /** Called by OS-functions to query if the UI wants to process drag-and-drop files. If so the active element where the mouse is hovering may opt to do magic with it.
@@ -111,15 +116,11 @@ void UIElement::Nullify(){
 
 	/// Exit-properties.
 	exitable = true;
-	onExit = "NullMessage";
 
 	// Text.
 	label = NULL;
 	textSizeRatio = 1.0f;
 	currentTextSizeRatio = -1.0f;
-
-	// Function pointer for activation
-	onActivate = NULL;
 
 	fontSource = TextFont::defaultFontSource;
 	font = NULL;
@@ -165,8 +166,6 @@ UIElement::UIElement(const UIElement & ref){
 	visible = ref.visible;
 	moveable = ref.moveable;
 	textSizeRatio = ref.textSizeRatio;
-	// Function pointer for activation
-	onActivate = ref.onActivate;
 }
 
 UIElement::~UIElement()
@@ -305,10 +304,16 @@ UIElement* UIElement::Hover(int mouseX, int mouseY)
 //	if (selected)
 //		return false;
 
+	// If we weren't hovering over it before.
+	if (! (state & UIState::HOVER))
+	{
+		this->OnHover();
+	}
 	// The mouse is inside this element,
 	// and our children (if any) were not the active Entity.
 	// This means that this element must be the active Entity!
 	state |= UIState::HOVER;
+	
 //	std::cout<<"\nElelelelement "<<name<<" is hover.";
 	/*if(parent){
 		if(type== UI_TYPE_BASIC || type== UI_TYPE_LABEL)
@@ -775,6 +780,20 @@ bool UIElement::ConformsToFlags(int uiFlags){
 	return false;
 }
 
+/// Called upon hovering on an element. By default queues the string set in onHover to be processed by the message manager and game state.
+void UIElement::OnHover()
+{
+	// Send it's onHover message!
+	if (onHover.Length())
+	{
+		Message * message = new Message(MessageType::ON_UI_ELEMENT_HOVER);
+		message->msg = onHover;
+		message->element = this;
+		MesMan.QueueMessage(message);
+	}
+}
+
+
 UIElement* UIElement::GetElementWithID(int elementID){
 	if (id == elementID)
 		return this;
@@ -787,27 +806,16 @@ UIElement* UIElement::GetElementWithID(int elementID){
 	return NULL;
 }
 
-bool UIElement::IsVisible(int elementId){
-	// If this is the sought ID: return visibility StateMan.
-	if (elementId == id){
-		return visible;
-	}
-
-	// Don't process invisible UIElements, please.
-	if (visible == false)
+/// Checks if this element is visible, as it will depend on the parent UIs too.
+bool UIElement::IsVisible()
+{
+	if (!this->visible)
+	{
 		return false;
-
-	// Do we have children?
-	for (int i = 0; i < childList.Size(); ++i){
-		// If so, check if they are the active element.
-		if (childList[i]->IsVisible(elementId) == true){
-			// The active element has been found further down the tree,
-			// so we can return true.
-			return true;
-		}
 	}
-	// Nothing procced, return false.
-	return false;
+	if (parent && !parent->IsVisible())
+		return false;
+	return true;
 }
 
 /// Gets absolute position and stores them in the pointers' variables, in pixels, relative to upper left corner
@@ -1127,7 +1135,8 @@ void UIElement::FreeBuffers()
 
 
 /// Render, public function that calls internal render functions.
-void UIElement::Render(){
+void UIElement::Render()
+{
     // Push matrices
 	Matrix4d tmp = graphicsState.modelMatrixD;
 

@@ -11,6 +11,8 @@ enum messageTypes{
 	NULL_TYPE,
 	STRING,
 	CONSOLE_COMMAND, // Supposed to be entered from any input or maybe console for more complex usage.
+	/// Messages sent from the UI system
+	ON_UI_ELEMENT_HOVER,
 	/// Message type that is based on a string for what action to perform, but includes a list of 1 or more files or directories to act upon too. See Message/FileEvent.h
 	FILE_EVENT,
 	TEXTURE_MESSAGE,

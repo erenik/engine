@@ -219,7 +219,8 @@ Matrix4d Matrix4d::InitRotationMatrix(double angle, Vector3d vector){
 }
 
 /** Initializes a translation matrix using provided vector. */
-Matrix4d Matrix4d::InitTranslationMatrix(Vector3f translation){
+Matrix4d Matrix4d::InitTranslationMatrix(Vector3f translation)
+{
 	Matrix4d mat;
 	mat.translate(translation);
 	return mat;

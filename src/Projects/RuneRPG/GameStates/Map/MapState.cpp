@@ -74,8 +74,6 @@ MapState::MapState()
 
 MapState::~MapState()
 {
-	delete camera;
-	camera = NULL;
 }
 
 
@@ -183,10 +181,11 @@ void MapState::OnEnter(GameState * previousState)
 	Graphics.cameraToTrack = camera;
 //	Graphics.UpdateProjection();
 	/// Toggle debug renders
-	Graphics.EnableAllDebugRenders(false);
-	Graphics.renderFPS = true;
+	Viewport * mainViewport = MainWindow()->MainViewport();
+	mainViewport->EnableAllDebugRenders(false);
+	mainViewport->renderFPS = true;
 	Graphics.selectionToRender = NULL;
-	Graphics.renderNavMesh = true;
+	mainViewport->renderNavMesh = true;
 
 	// And start tha music..
 #ifdef USE_AUDIO

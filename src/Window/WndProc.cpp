@@ -214,6 +214,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 		break;
 	}
+	case WM_SHOWWINDOW:	
+	{
+		window->visible = wParam;
+		return 0;
+		break;
+	}
 	case WM_SIZE: 
 	{		// Sent to a window after its size has changed.
 		switch(wParam){
@@ -387,7 +393,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 		int xPos = GET_X_LPARAM(lParam);
 		int yPos = GET_Y_LPARAM(lParam);
-		std::cout<<"\nMouse move: "<<xPos<<" "<<yPos;
+//		std::cout<<"\nMouse move: "<<xPos<<" "<<yPos;
 		Input.MouseMove(window, XtoWindow(xPos), YtoWindow(yPos));
 		return 0; // If an application processes this message, it should return zero.
 		break;

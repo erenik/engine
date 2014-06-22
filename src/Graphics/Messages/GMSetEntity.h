@@ -2,6 +2,7 @@
 // 2013-07-01
 
 #include "GraphicsMessage.h"
+#include "GraphicsMessages.h"
 struct AnimationSet;
 
 /** For setting textures, for applicable texture-targets, see Shader.h or the following

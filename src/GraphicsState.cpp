@@ -8,6 +8,7 @@ GraphicsState graphicsState;
 GraphicsState::GraphicsState()
 {
 	activeWindow = NULL;
+	activeViewport = NULL;
 	lighting = NULL;
 	activeShader = NULL;
 	currentMesh = NULL;

@@ -404,7 +404,7 @@ void MessageManager::ProcessMessage(Message * message){
 	else if (msg.Contains("SetFileBrowserDirectory(")){
 		List<String> params = msg.Tokenize(",()");
 		String uiName = params[1];
-		UIElement * ui = StateMan.ActiveState()->GetUI()->GetElementByName(uiName);
+		UIElement * ui = RelevantUI()->GetElementByName(uiName);
 		if (!ui)
 			return;
 		assert(ui->type == UIType::FILE_BROWSER);
@@ -412,14 +412,13 @@ void MessageManager::ProcessMessage(Message * message){
 		String path = params[2];
 		if (path == "this")
 			path = message->element->text;
-		fb->SetPath(path);
-		fb->LoadDirectory(true);
+		fb->SetPath(path, false);
 		return;
 	}
 	else if (msg.Contains("UpdateFileBrowserDirectory(")){
 		List<String> params = msg.Tokenize(",()");
 		String uiName = params[1];
-		UIElement * ui = StateMan.ActiveState()->GetUI()->GetElementByName(uiName);
+		UIElement * ui = RelevantUI()->GetElementByName(uiName);
 		if (!ui)
 			return;
 		assert(ui->type == UIType::FILE_BROWSER);
@@ -427,15 +426,14 @@ void MessageManager::ProcessMessage(Message * message){
 		String path = params[2];
 		if (path == "this")
 			path = message->element->text;
-		fb->UpdatePath(path);
-		fb->LoadDirectory(true);
+		fb->UpdatePath(path, false);
 		return;
 	}
 	else if (msg.Contains("EvaluateFileBrowserSelection("))
 	{
 		List<String> params = msg.Tokenize("()");
 		String uiName = params[1];
-		UIElement * ui = StateMan.ActiveState()->GetUI()->GetElementByName(uiName);
+		UIElement * ui = RelevantUI()->GetElementByName(uiName);
 		if (!ui)
 			return;
 		FileEvent * message = new FileEvent();
@@ -450,7 +448,7 @@ void MessageManager::ProcessMessage(Message * message){
 	{
 		List<String> params = msg.Tokenize(",()");
 		String uiName = params[1];
-		UIElement * ui = StateMan.ActiveState()->GetUI()->GetElementByName(uiName);
+		UIElement * ui = RelevantUI()->GetElementByName(uiName);
 		if (!ui)
 			return;
 		assert(ui->type == UIType::FILE_BROWSER);

@@ -20,32 +20,6 @@ void RuneBattleState::InputProcessor(int action, int inputDevice/* = 0*/){
 		case PRINT_BATTLER_ACTIONS:
             BALib.PrintAll();
             break;
-		case INTERPRET_CONSOLE_COMMAND: {
-#ifdef _DEBUG
-			String command = Input.GetInputBuffer();
-
-			// Check if null-string
-			if (command == NULL)
-				break;
-
-			List<String> token = command.Tokenize(" ");
-			int tokensFound = token.Size();
-			command.SetComparisonMode(String::NOT_CASE_SENSITIVE);
-			if (command == "toggle debug renders"){
-				Graphics.EnableAllDebugRenders(!Graphics.renderGrid);
-			}
-			else if (command.Contains("render light") || command.Contains("toggle light")){
-				Graphics.renderLights = !Graphics.renderLights;
-			}
-			else if (command == "toggle physics shapes"){
-				Graphics.renderPhysics = !Graphics.renderPhysics;
-			}
-			else if (command == "toggle bfc"){
-				Graphics.backfaceCullingEnabled = !Graphics.backfaceCullingEnabled;
-			}
-#endif
-			break;
-		}
 		case CHANGE_CAMERA:
 			switch(PLAYER_CAMERA.trackingMode){
 				case TrackingMode::FROM_BEHIND:
@@ -74,30 +48,6 @@ void RuneBattleState::InputProcessor(int action, int inputDevice/* = 0*/){
 			Input.EnterTextInputMode("INTERPRET_CONSOLE_COMMAND");
 			break;
 
-	// ************************************************* //
-	/// Selecting functions
-	// ************************************************* //
-		case SELECT_ENTITY_PROMPT:	/// Begins prompt to select target entity/entities
-			std::cout<<"\nIMPLEMENT";
-			break;
-		case SELECT_ENTITY:			/// Attempts to select specified entities
-			std::cout<<"\nIMPLEMENT";
-			break;
-		case ADD_TO_SELECTION_PROMPT:/// Begins prompt to select more entities without deselecting the previous ones.
-			std::cout<<"\nIMPLEMENT";
-			break;
-		case ADD_TO_SELECTION:
-			std::cout<<"\nIMPLEMENT";
-			break;
-		case REMOVE_FROM_SELECTION_PROMPT:	///
-			std::cout<<"\nIMPLEMENT";
-			break;
-		case REMOVE_FROM_SELECTION:	/// Attempts to remove from selection by parsing input
-			std::cout<<"\nIMPLEMENT";
-			break;
-		case CLEAR_SELECTION:
-			editorSelection.Clear();
-			break;
 	// ************************************************** //
 	/// Camera
 	// ************************************************** //

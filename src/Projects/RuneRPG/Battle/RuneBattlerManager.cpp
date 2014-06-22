@@ -11,6 +11,7 @@
 ;
 
 void AddActionToBattler(RuneBattler * battler, String actionName){
+	assert(false);
     BattleAction * ba = BALib.Get(actionName);
     if (ba){
         battler->actions.Add(ba);
@@ -28,10 +29,11 @@ RuneBattlerManager * RuneBattlerManager::runeBattlerManager = NULL;
 String RuneBattlerManager::rootBattlerDir = "data/Battlers/";
 
 RuneBattlerManager::RuneBattlerManager(){}
-RuneBattlerManager::~RuneBattlerManager(){
-	for (int i = 0; i < battlerTypes.Size(); ++i)
-		delete battlerTypes[i];
-	battlerTypes.Clear();
+RuneBattlerManager::~RuneBattlerManager()
+{
+	for (int i = 0; i < runeBattlers.Size(); ++i)
+		delete runeBattlers[i];
+	runeBattlers.Clear();
 }
 
 RuneBattlerManager * RuneBattlerManager::Instance(){
@@ -49,8 +51,31 @@ void RuneBattlerManager::Deallocate(){
 	runeBattlerManager = NULL;
 }
 
+/// Reloads all battlers by their respective source file.
+void RuneBattlerManager::ReloadBattles()
+{
+	for (int i = 0; i < runeBattles.Size(); ++i)
+	{
+		RuneBattle * battle = runeBattles[i];
+		battle->Load(battle->source);
+	}
+}
+/// Reloads all battlers by their respective source file.
+void RuneBattlerManager::ReloadBattlers()
+{
+	for (int i = 0; i < runeBattlers.Size(); ++i)
+	{
+		RuneBattler * rb = runeBattlers[i];
+		rb->Load(rb->source);
+	}
+}
+
+
 /// Looks for a "Battlers.list" which should then specify the battler-files to load.
-bool RuneBattlerManager::LoadFromDirectory(String dir){
+bool RuneBattlerManager::LoadFromDirectory(String dir)
+{
+	assert(false);
+	/*
     if (BALib.TotalsActions() == 0){
         std::cout<<"\nBattle action library is empty, consider re-loading it first, yo.";
         return false;
@@ -68,15 +93,15 @@ bool RuneBattlerManager::LoadFromDirectory(String dir){
 		String battlerSource = dir + files[i];
 		if (!battlerSource.Contains(".b"))
 			battlerSource += ".b";
-		bool result = battler->LoadFromFile(battlerSource);
+		bool result = battler->Load(battlerSource);
 		if (!result)
 			delete battler;
 		else {
-			for (int b = 0; b < battlerTypes.Size(); ++b){
-				String name = battlerTypes[b]->name;
+			for (int b = 0; b < runeBattlers.Size(); ++b){
+				String name = runeBattlers[b]->name;
 				if (name == battler->name){
 					std::cout<<"\nWARNING: Battler with name "<<name<<" already exists! Deleting previous entry.";
-					battlerTypes.Remove(battlerTypes[b]);
+					runeBattlers.Remove(runeBattlers[b]);
 				}
 			}
 
@@ -89,14 +114,18 @@ bool RuneBattlerManager::LoadFromDirectory(String dir){
             if (battler->actions.Size() == 0)
                 AddActionToBattler(battler, "Attack");
 
-            battlerTypes.Add(battler);
+            runeBattlers.Add(battler);
 		}
 	}
-	std::cout<<"\nBattlerTypes now "<<battlerTypes.Size();
+	std::cout<<"\nBattlerTypes now "<<runeBattlers.Size();
+	*/
 	return true;
 }
 
-bool RuneBattlerManager::LoadBattles(String fromDirectory){
+bool RuneBattlerManager::LoadBattles(String fromDirectory)
+{
+	assert(false);
+	/*
 	List<String> files;
 	bool result = GetFilesInDirectory(fromDirectory, files);
 	if (!result)
@@ -108,6 +137,7 @@ bool RuneBattlerManager::LoadBattles(String fromDirectory){
 		fullPath += files[i];
 		LoadBattle(fullPath);
 	}
+	*/
 	return true;
 }
 
@@ -116,70 +146,43 @@ const RuneBattler * RuneBattlerManager::LoadBattler(String fromSource)
 	RuneBattler * battler = new RuneBattler();
 	if (!fromSource.Contains(rootBattlerDir))
 		fromSource = rootBattlerDir + fromSource;
-	if (battler->LoadFromFile(fromSource))
+	if (battler->Load(fromSource))
 	{
-		this->battlerTypes.Add(battler);
+		this->runeBattlers.Add(battler);
 		return battler;
 	}
 	return NULL;
 }
 
-Battle * RuneBattlerManager::LoadBattle(String source)
+RuneBattle * RuneBattlerManager::LoadBattle(String source)
 {
-	List<String> lines = File::GetLines(source);
-	Battle * b = new Battle();
-	// Default to loading all active players too.
-	b->addCurrentPlayers = true;
-	enum {
-		NONE,
-		LOAD_PLAYERS,
-		LOAD_ENEMIES,
-	};
-	int loadingState = LOAD_ENEMIES;
-	for (int i = 0; i < lines.Size(); ++i){
-		String & line = lines[i];
-		// Try load the battler from the relative directory.
-		if (line.Contains("//"))
-			continue;
-		line.SetComparisonMode(String::NOT_CASE_SENSITIVE);
-		if (line.Contains("name")){
-			line.Remove("name");
-			if (line.Contains("\"")){
-				b->name = line.Tokenize("\"")[1];
-			}
-			else {
-				line.RemoveInitialWhitespaces();
-				b->name = line;
-			}
-		}
-		else if (line.Length() < 3)
-			continue;
-		else if (loadingState == LOAD_PLAYERS)
-			b->playerNames.Add(line);
-		else if (loadingState == LOAD_ENEMIES)
-			b->enemyNames.Add(line);
+	RuneBattle * b = new RuneBattle();
+	bool result = b->Load(source);
+	if (!result)
+	{
+		delete b;
+		return NULL;
 	}
-	b->source = source;
-	// Remove battles with the same name, enabling re-loading!
-	for (int i = 0; i < battles.Size(); ++i){
-		if (battles[i]->name == b->name){
-			std::cout<<"\nWARNING: Battle with name "<<b->name<<" already exists! Deleting previous entry.";
-			battles.Remove(battles[i]);
+	// Remove runeBattles with the same name, enabling re-loading!
+	for (int i = 0; i < runeBattles.Size(); ++i){
+		if (runeBattles[i]->name == b->name){
+			std::cout<<"\nWARNING: RuneBattle with name "<<b->name<<" already exists! Deleting previous entry.";
+			runeBattles.Remove(runeBattles[i]);
 		}
 	}
-	battles.Add(b);
+	runeBattles.Add(b);
 	return b;
 }
 
-Battle RuneBattlerManager::GetBattleBySource(String source)
+RuneBattle RuneBattlerManager::GetBattleBySource(String source)
 {
-	for (int i = 0; i < battles.Size(); ++i)
-		if (battles[i]->source == source)
-			return *battles[i];
-	Battle * loaded = this->LoadBattle(source);
+	for (int i = 0; i < runeBattles.Size(); ++i)
+		if (runeBattles[i]->source == source)
+			return *runeBattles[i];
+	RuneBattle * loaded = this->LoadBattle(source);
 	if (loaded)
-		return Battle(*loaded);
-	return Battle();
+		return RuneBattle(*loaded);
+	return RuneBattle();
 }
 
 /// The default directory and file ending will be added automatically as needed. 
@@ -191,24 +194,24 @@ const RuneBattler * RuneBattlerManager::GetBattlerBySource(String bySource)
 	if (!bySource.Contains(".b"))
 		bySource += ".b";
 
-	for (int i = 0; i < battlerTypes.Size(); ++i){
-		String source = battlerTypes[i]->Source();
+	for (int i = 0; i < runeBattlers.Size(); ++i){
+		String source = runeBattlers[i]->Source();
 		if (source == bySource)
-			return battlerTypes[i];
+			return runeBattlers[i];
 	}
 	// Could not find it? try loading it?
 	return this->LoadBattler(bySource);
 }
 
 RuneBattler RuneBattlerManager::GetBattlerType(String byName){
-	assert(battlerTypes.Size() > 0);
+	assert(runeBattlers.Size() > 0);
 
-	std::cout<<"\nGetBattlerType: by name "<<byName<<" out of "<<battlerTypes.Size()<<" types";
-	for (int i = 0; i < battlerTypes.Size(); ++i){
-		String battlerName = battlerTypes[i]->name;
+	std::cout<<"\nGetBattlerType: by name "<<byName<<" out of "<<runeBattlers.Size()<<" types";
+	for (int i = 0; i < runeBattlers.Size(); ++i){
+		String battlerName = runeBattlers[i]->name;
 		std::cout<<"\nBattler "<<i<<": "<<battlerName;
-		if (battlerTypes[i]->name == byName){
-			return *battlerTypes[i];
+		if (runeBattlers[i]->name == byName){
+			return *runeBattlers[i];
 		}
 	}
 	std::cout<<"\nERROR: There is no RuneBattler with name \""<<byName<<"\"!";

@@ -6,9 +6,12 @@
 #include <fstream>
 #include <cstring>
 
-BattleAction::BattleAction(){
+BattleAction::BattleAction()
+{
     pausesBattle = false;
 	category = NULL;
+	deleteOnEnd = true;
+	state = NOT_QUEUED;
 };
 
 /// Virtual destructor so subclasses are handled correctly.
@@ -17,8 +20,14 @@ BattleAction::~BattleAction()
 
 }
 
+/// Cancels it!
+void BattleAction::Cancel()
+{
+	this->state = CANCELED;	
+}
 
-bool BattleAction::LoadFromFile(String source){
+bool BattleAction::Load(String source)
+{
     /// Do magical stuff.
     std::fstream file;
 	file.open(source.c_str(), std::ios_base::in);
@@ -27,6 +36,7 @@ bool BattleAction::LoadFromFile(String source){
 		file.close();
 		return false;
 	}
+	this->source = source;
 	int start  = (int) file.tellg();
 	file.seekg( 0, std::ios::end );
 	int fileSize = (int) file.tellg();
@@ -39,6 +49,13 @@ bool BattleAction::LoadFromFile(String source){
 	delete[] data; data = NULL;
 	List<String> lines = fileContents.GetLines();
 	int tempLineNumber;
+
+
+	/// Clear old data first.
+	onBegin.Clear();
+	onFrame.Clear();
+	onEnd.Clear();
+
 	for (int i = 0; i < lines.Size(); ++i){
 		String & line = lines[i];
 		// Try load the battler from the relative directory.
@@ -146,7 +163,8 @@ bool BattleAction::Process(BattleState & battleState){
 	assert(false);
 	return true; // Must return something here, or it won't compile D:
 }
-void BattleAction::OnEnd(BattleState & battleState){
+void BattleAction::OnEnd(BattleState & battleState)
+{
     std::cout<<"\nBattleAction::OnEnd called, subclass it yo.";
     assert(false);
 }
@@ -192,6 +210,8 @@ BattleActionLibrary * BattleActionLibrary::Instance(){
 /// Looks for a "Battlers.list" which should then specify the battler-files to load.
 bool BattleActionLibrary::LoadFromDirectory(String dir){
 
+	assert(false);
+	/*
 	std::cout<<"\nBattleActionLibrary::LoadFromDirectory called.";
 	String filePath = dir + "actions.list";
 	std::fstream file;
@@ -268,6 +288,7 @@ bool BattleActionLibrary::LoadFromDirectory(String dir){
             ba->category = bac;
         }
     }
+	*/
 	return true;
 }
 

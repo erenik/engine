@@ -144,19 +144,6 @@ public:
 	/// For main rendering.
 	bool backfaceCullingEnabled;
 
-	/// Booleans for extra rendering tools
-	bool renderPhysics;
-	bool renderCollissions;
-	bool renderCollissionTriangles;
-	bool renderSeparatingAxes;
-	bool renderGrid;
-	bool renderFPS;
-	bool renderAI;
-	bool renderNavMesh;
-	bool renderUI;
-	bool renderLights; // For 3D-representations of the light-sources!
-	bool renderMap; // For le 2D-map-crap
-
 	/// Queries render of 1 frame by posting a GMRender message to the graphics message queue. Should be used instead of setting the boolean below straight away!
 	void QueryRender();
 	/// To disable real-time rendering. If true will only render once the renderQueried variable is set to true, which will reset after each successful render. Default is false.
@@ -279,10 +266,6 @@ private:
 	void RenderWindow();
 	/// Renders contents in target viewport.
 	void RenderViewport(Viewport * vp);
-	/** Renders additional data pertaining to the AI.
-		Settings for these should be placed somewhere well thought out!
-	*/
-	void RenderAI();
 	/// Renders target Navigation-meshes used for pathfinding
 	void RenderNavMesh();
 	/// Renders target paths

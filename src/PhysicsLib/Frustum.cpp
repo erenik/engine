@@ -1,12 +1,19 @@
 #include "Frustum.h"
 
-
 Frustum::Frustum(){
 	left = right = bottom = top = 0;
 	nearPlaneDistance = 0;
 	farPlaneDistance = 0;
 	initialized = false;
+	projection = 1;
 }
+
+/// 1 = Projection 3D, 2 = Orthogonal
+void Frustum::SetProjection(int type)
+{
+	projection = type;
+}
+
 
 /// Sets camera internal values using default perspective arguments
 void Frustum::SetCamInternals(float i_left, float i_right,
@@ -21,8 +28,18 @@ void Frustum::SetCamInternals(float i_left, float i_right,
 	farPlaneDistance = -i_farPlaneDistance;
 
 	// Calculate farPlane width and height. They should be relative to the ratio between the far and near plane distance and the near plane width.
-	farWidth = right * (farPlaneDistance / nearPlaneDistance);
-	farHeight = top * (farPlaneDistance / nearPlaneDistance);
+	// Regular projection
+	if (projection == 1)
+	{
+		farWidth = right * (farPlaneDistance / nearPlaneDistance);
+		farHeight = top * (farPlaneDistance / nearPlaneDistance);
+	}
+	// Orthogonal
+	else if (projection == 2)
+	{
+		farWidth = right;
+		farHeight = top;
+	}
 }
 
 void Frustum::SetCamPos(Vector3f position, Vector3f lookingAtVector, Vector3f upVector){

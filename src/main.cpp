@@ -475,19 +475,10 @@ int main(int argc, char **argv)
 		}
         Sleep(10);
     }
-// Main message loop!
+// Main wait loop. Does nothing but wait for the game to finish.
 #ifdef WINDOWS
-	// Get messages and dispatch them to WndProc
-	MSG msg;
 	while(true)
 	{
-		/*
-		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-		{
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
-		*/
 		// Sleep a bit? No?
 		Sleep(500);
 		if (StateMan.ActiveStateID() == GameStateID::GAME_STATE_EXITING)

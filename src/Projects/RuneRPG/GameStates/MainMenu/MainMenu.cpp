@@ -40,7 +40,7 @@ void MainMenu::OnEnter(GameState * previousState)
 	// Load tile-types! Maybe do this only once?
 	TileTypes.LoadTileTypes("data/tiles.txt");
 
-	Graphics.EnableAllDebugRenders(false);
+//	Graphics.EnableAllDebugRenders(false);
 
 	// Begin loading textures here for the UI
 	Graphics.QueueMessage(new GMSetUI(ui));

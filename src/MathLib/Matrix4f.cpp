@@ -172,6 +172,17 @@ void Matrix4f::InitRotationMatrix(float angle, Vector3f vector){
 	element[10] = z * z * c1 + c;
 }
 
+/** Initializes a translation matrix using provided vector. */
+Matrix4f Matrix4f::InitTranslationMatrix(Vector3f translation)
+{
+	Matrix4f mat;
+	mat.element[12] += translation.x;
+	mat.element[13] += translation.y;
+	mat.element[14] += translation.z;
+	return mat;
+}
+
+
 void Matrix4f::InitProjectionMatrix(float left, float right, float bottom, float top, float nearVal, float farVal){
 	LoadIdentity();
 	element[0] = 2.0f * nearVal / (right - left);

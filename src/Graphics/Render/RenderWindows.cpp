@@ -13,6 +13,9 @@ void GraphicsManager::RenderWindows()
 	for (int i = 0; i < windows.Size(); ++i)
 	{
 		Window * window = windows[i];
+		// Only render visible windows?
+		if (!window->IsVisible())
+			continue;
 		bool ok = window->MakeGLContextCurrent();
 		graphicsState.activeWindow = window;
 		graphicsState.windowWidth = window->WorkingArea().x;
