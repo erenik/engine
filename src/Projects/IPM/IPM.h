@@ -197,9 +197,9 @@ private:
 	cv::Mat cvResultImage;
 
 	/// Dedicated camera for the main editor.
-	Camera cviCamera;
+	Camera * cviCamera;
 	/// Dedicated camera for the window where the projection content is going to go!
-	Camera projectionCamera;
+	Camera * projectionCamera;
 
 	/// Entity to display the texture in 3D-space
 	Entity * textureEntity;

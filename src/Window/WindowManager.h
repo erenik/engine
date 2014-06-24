@@ -60,6 +60,9 @@ public:
 
 	/// Returns true if any of our windows is in focus.
 	bool InFocus();
+
+	/// If set, will make child windows move along the main window when it is moved. Useful for certain editors..?
+	bool lockChildWindowRelativePositions;
 private:
 	// Main window. Stores initial GL context that is to be shared and also binds its destroy message to closing the application.
 	Window * mainWindow;

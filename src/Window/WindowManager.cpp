@@ -17,6 +17,7 @@ WindowManager::WindowManager()
 	inFocus = false;
 	mainWindow = NULL;
 	lastActiveWindow = NULL;
+	lockChildWindowRelativePositions = false;
 }
 WindowManager::~WindowManager()
 {
@@ -199,6 +200,8 @@ bool WindowManager::InFocus()
 /// Using relative positions
 void WindowManager::UpdateChildWindows()
 {
+	if (!lockChildWindowRelativePositions)
+		return;
 	for (int i = 0; i < windows.Size(); ++i)
 	{
 		Window * window = windows[i];

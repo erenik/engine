@@ -98,6 +98,8 @@ CVIState::CVIState()
 	
 	imageSeriesPaused = false;
 	timePerImage = 50;
+
+	cviCamera = projectionCamera = NULL;
 }
 
 CVIState::~CVIState()
@@ -109,6 +111,11 @@ CVIState::~CVIState()
 /// Function when entering this state, providing a pointer to the previous StateMan.
 void CVIState::OnEnter(GameState * previousState)
 {
+	if (!cviCamera)
+		cviCamera = CameraMan.NewCamera();
+	if (!projectionCamera)
+		projectionCamera = CameraMan.NewCamera();
+
 	// Remove initial 
 	Graphics.QueueMessage(new GraphicsMessage(GM_CLEAR_OVERLAY_TEXTURE));
 	Graphics.QueueMessage(new GMSetUI(ui));
@@ -132,19 +139,20 @@ void CVIState::OnEnter(GameState * previousState)
 	/// Set texture in UI so it looks correct.
 	Graphics.QueueMessage(new GMSetUIs("MainTexture", GMUI::TEXTURE_INPUT_SOURCE, initialTexture));
 	// Reset camera propertiiies.
-	ResetCamera(&cviCamera);
-	ResetCamera(&projectionCamera);
-	cviCamera.name = "CVICamera";
-	projectionCamera.name = "ProjectionCamera";
+	ResetCamera(cviCamera);
+	ResetCamera(projectionCamera);
+	cviCamera->name = "CVICamera";
+	projectionCamera->name = "ProjectionCamera";
 	// Set camera
-	Graphics.QueueMessage(new GMSetCamera(&cviCamera));
+	Graphics.QueueMessage(new GMSetCamera(cviCamera));
 	
-	cviCamera.AdjustProjectionMatrixToWindow(MainWindow());
+	cviCamera->AdjustProjectionMatrixToWindow(MainWindow());
 
 	ExtractLines();
 
-	Graphics.renderGrid = false;
-	Graphics.renderFPS = false;
+	Viewport * mainViewport = MainWindow()->MainViewport();
+	mainViewport->renderGrid = false;
+	mainViewport->renderFPS = false;
 
 	/// For reducing performance demand
 	Graphics.outOfFocusSleepTime = 50;
@@ -529,9 +537,9 @@ void CVIState::ProcessMessage(Message * message)
 				rf->renderOntoEditor = !rf->renderOntoEditor;
 				/// Get first state?
 				if (rf->renderOntoEditor)
-					Graphics.QueueMessage(new GMSetEntity(entities, ADD_CAMERA_FILTER, &cviCamera));
+					Graphics.QueueMessage(new GMSetEntity(entities, ADD_CAMERA_FILTER, cviCamera));
 				else 
-					Graphics.QueueMessage(new GMSetEntity(entities, REMOVE_CAMERA_FILTER, &cviCamera));
+					Graphics.QueueMessage(new GMSetEntity(entities, REMOVE_CAMERA_FILTER, cviCamera));
 			}
 			else if (msg == "HideWindows")
 			{
@@ -675,7 +683,7 @@ void CVIState::ProcessMessage(Message * message)
 				// Open file dialogue for saving pipeline configuration.
 				UIFileDialogue * saveDialogue = new UIFileDialogue("Save pipeline configuration", "SavePipelineConfig", PIPELINE_CONFIG_FILE_ENDING);
 				saveDialogue->CreateChildren();
-				saveDialogue->SetPath("data");
+				saveDialogue->SetPath("data", false);
 				saveDialogue->LoadDirectory(false);
 				Graphics.QueueMessage(new GMAddUI(saveDialogue));
 				Graphics.QueueMessage(new GMPushUI(saveDialogue, ui));
@@ -685,7 +693,7 @@ void CVIState::ProcessMessage(Message * message)
 				// Open file dialogue for loading pipeline configuration.
 				UIFileDialogue * saveDialogue = new UIFileDialogue("Load pipeline configuration", "LoadPipelineConfig", PIPELINE_CONFIG_FILE_ENDING);
 				saveDialogue->CreateChildren();
-				saveDialogue->SetPath("data");
+				saveDialogue->SetPath("data", false);
 				saveDialogue->LoadDirectory(false);
 				Graphics.QueueMessage(new GMAddUI(saveDialogue));
 				Graphics.QueueMessage(new GMPushUI(saveDialogue, ui));
@@ -1085,7 +1093,6 @@ bool TextureToCVMat(Texture * texture, cv::Mat * mat)
 		{
 			
 			Vector4f pixel = texture->GetPixel(x,y);
-			unsigned char b,g,r;
 			/// Pixel start index.
 			int psi = (mat->step * y) + (x * channels) * bytesPerChannel;
 			/// Depending on the step count...
@@ -1093,9 +1100,9 @@ bool TextureToCVMat(Texture * texture, cv::Mat * mat)
 			{			
 				/// RGB!
 				case 3:
-					data[psi+0] = pixel.z * 255.f;
-					data[psi+1] = pixel.y * 255.f;
-					data[psi+2] = pixel.x * 255.f;
+					data[psi+0] = (unsigned char) (pixel.z * 255.f);
+					data[psi+1] = (unsigned char) (pixel.y * 255.f);
+					data[psi+2] = (unsigned char) (pixel.x * 255.f);
 					break;
 				// Default gray scale?
 				default:
@@ -1193,7 +1200,7 @@ void LoadCVMatIntoTexture(cv::Mat * mat, Texture * texture)
 							maxFloat = fValue;
 						if (fValue < minFloat)
 							minFloat = fValue;
-						unsigned char cValue = fValue;
+						unsigned char cValue = (unsigned char) fValue;
 						b = g = r = cValue;
 					}
 					break;
@@ -1250,6 +1257,7 @@ void CVIState::ConvertToBW()
 
 void CVIState::ScaleUp()
 {	
+	/*
 	/// Don't scale up if already huge...
 	if (cvImage.cols * cvImage.rows > 2048 * 2048){
 		Log("Skipping. Image size already above 4 million pixels.");
@@ -1267,13 +1275,15 @@ void CVIState::ScaleUp()
 
 	/// Update displayed texture.
 	OnCVImageUpdated();
+	*/
 }
 
 void CVIState::ScaleDown()
 {
+	/*
 	// Convert to grayscale
 	cv::Mat downScaled;
-	Vector2i newScale(cvImage.cols*0.5, cvImage.rows*0.5);
+	Vector2i newScale((int)cvImage.cols*0.5f, (int)cvImage.rows*0.5f);
 	if (newScale.GeometricSum() <= 0)
 		return;
 	Log("Scaling down to: "+String::ToString(newScale.x)+"x"+String::ToString(newScale.y));
@@ -1284,6 +1294,7 @@ void CVIState::ScaleDown()
 
 	/// Update displayed texture.
 	OnCVImageUpdated();
+	*/
 }
 
 
@@ -1314,6 +1325,7 @@ void CVIState::Test()
 /// Applies gaussian blur
 void CVIState::Blur()
 {
+	/*
 	/// Blur size has to be odd, so increase it if needed by 1.
 	int blurSizeOdd = blurSize;
 	if (blurSizeOdd % 2 == 0)
@@ -1322,6 +1334,7 @@ void CVIState::Blur()
 	cv::GaussianBlur(cvImage, blurredImage, cv::Size(blurSizeOdd, blurSizeOdd), 0, 0);
 	cvImage = blurredImage;
 	OnCVImageUpdated();
+	*/
 }
 
 /// Calculates canny edge detection
@@ -1358,6 +1371,7 @@ void CVIState::CannyEdge()
 /// Calculates Harris corner detection
 void CVIState::CornerHarris()
 {
+	/*
 	// Make greyscale if not already.
 	if (cvImage.channels() > 1)
 		ConvertToBW();
@@ -1390,6 +1404,7 @@ void CVIState::CornerHarris()
 
 	// Display it
 	OnCVResultImageUpdated();
+	*/
 }
 
 /// Call to process active image in the current pipeline, displaying error messages if applicable and rendering the results. Returns -1 on error.
@@ -1507,7 +1522,7 @@ void CVIState::ToggleRenderPipelineTextureOnProjection()
 	if (!pipelineTextureRenderedOnProjection)
 	{
 		// Make it so that the texture entity with debug data is NOT rendered onto the projection surface!
-		Graphics.QueueMessage(new GMSetEntity(textureEntity, CAMERA_FILTER, &projectionCamera));
+		Graphics.QueueMessage(new GMSetEntity(textureEntity, CAMERA_FILTER, projectionCamera));
 	}
 	else 
 	{
@@ -1743,8 +1758,11 @@ void CVIState::CreateProjectionWindow()
 		projectionWindow->requestedRelativePosition = Vector2i(-400, 0);
 		projectionWindow->backgroundColor = Vector4f(0,0,0,1);
 		projectionWindow->Create();
-		projectionCamera.AdjustProjectionMatrixToWindow(projectionWindow);
-		Graphics.QueueMessage(new GMSetCamera(&projectionCamera, projectionWindow));
+		projectionWindow->DisableAllRenders();
+		projectionWindow->renderViewports = true;
+		projectionWindow->MainViewport()->EnableAllDebugRenders(false);
+		projectionCamera->AdjustProjectionMatrixToWindow(projectionWindow);
+		Graphics.QueueMessage(new GMSetCamera(projectionCamera, projectionWindow));
 	}
 }
 
@@ -1804,7 +1822,7 @@ void CVIState::ProjectSynchronizationImage(String type)
 
 
 	// Set it to not render in our main viewport.
-	Graphics.QueueMessage(new GMSetEntity(syncEntity, CAMERA_FILTER, &cviCamera));
+	Graphics.QueueMessage(new GMSetEntity(syncEntity, CAMERA_FILTER, cviCamera));
 }
 void CVIState::ExtractProjectionOutputFrame(String usingPipeline)
 {
@@ -1888,8 +1906,8 @@ void CVIState::ExtractProjectionOutputFrame(String usingPipeline)
 
 void CVIState::ResetProjectionCamera()
 {
-	projectionCamera.position = Vector3f(0,0,CAM_Z);
-	projectionCamera.zoom = 1.f;
+	projectionCamera->position = Vector3f(0,0,CAM_Z);
+	projectionCamera->zoom = 1.f;
 }
 void CVIState::AdjustProjectionCameraToFrame()
 {
@@ -1901,7 +1919,7 @@ void CVIState::AdjustProjectionCameraToFrame()
 	Vector2i windowCenter;
 	Vector2i centerToCenter = projectionFrameCenter - windowCenter;
 	projectionFrameCenter = projectionFrameCenter;
-	projectionCamera.position = Vector3f(-centerToCenter, CAM_Z);
+	projectionCamera->position = Vector3f(-centerToCenter, CAM_Z);
 //	projectionCamera.position = Vector3f(0,0,CAM_Z);
 	
 	// Compare sizes.
@@ -1915,7 +1933,7 @@ void CVIState::AdjustProjectionCameraToFrame()
 //	projectionCamera.SetRatio(workingArea.x, workingArea.y);
 	// Is the camera orthogonal? How will the zoom affect?
 	// Should a manual view or projection matrix be constructed maybe?
-	projectionCamera.zoom = shouldZoom;
+	projectionCamera->zoom = shouldZoom;
 }
 
 /// Sets dirr

@@ -347,7 +347,6 @@ private:
 	int framesPassed;
 
 	int64 lastFingerStartTime;
-	bool fingerAdded;
 };
 
 // 

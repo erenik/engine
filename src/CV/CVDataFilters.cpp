@@ -1507,8 +1507,6 @@ CVFingerActionFilter::CVFingerActionFilter()
 
 	framesPassed = 0;
 
-	fingerAdded = false;
-
 #define PROFILE_FINGER_ACTION_FILTER
 }
 int CVFingerActionFilter::Process(CVPipeline * pipe)
@@ -1524,63 +1522,46 @@ int CVFingerActionFilter::Process(CVPipeline * pipe)
 	preFilter->SetPixel(framesPassed, fingersNow * 3, Vector3f(1, 0, 0));
 #endif
 
-	
 	int64 now = Timer::GetCurrentTimeMs();
 
+	FingerState * lastFingerState = NULL;
+	if (fingerStates.Size())
+		lastFingerState = &fingerStates.Last();
+	// If the finger state has not changed, update the last added state's duration, if any.
+	if (lastFingerState && fingersNow == lastFingerState->fingers) 
+	{
+		lastFingerState->duration = now - lastFingerState->start;
+		lastFingerState->stop = now;
+	}	
 	// Check if we should add a finger due to the time it has been visible (long enough).
-	if (fingersNow == fingersLastFrame && !fingerAdded)
+	else if (fingersNow == fingersLastFrame)
 	{
 		int64 duration = now - lastFingerStartTime;
 		/// Add it!
 		if (duration > minimumDuration->iValue)
 		{
-			// Is it the same as the previous one, in terms of visible fingers? 
-			FingerState * lastState = NULL;
-			if (fingerStates.Size())
-				lastState = &fingerStates.Last();
-			// If so just update the past one's duration again?
-			if (lastState && lastState->fingers == fingersNow)
-			{
-				lastState->stop = now;
-				lastState->duration = duration;
-			}
 			// Create new state for the new finger amount.
-			else {
-				FingerState newState;
-				newState.fingers = fingersNow;
-				newState.start = lastFingerStartTime;
-				newState.duration = duration;
-				for (int i = 0; i < hand.fingers.Size(); ++i)
-				{
-					newState.positions.Add(hand.fingers[i]);
-				}
-				fingerStates.Add(newState);
-				// If we pass 20 or something, start deleting old states.
-				if (fingerStates.Size() >= maxStatesStored->iValue)
-					fingerStates.RemoveIndex(0, ListOption::RETAIN_ORDER);	
+			FingerState newState;
+			newState.fingers = fingersNow;
+			newState.start = lastFingerStartTime;
+			newState.duration = duration;
+			for (int i = 0; i < hand.fingers.Size(); ++i)
+			{
+				newState.positions.Add(hand.fingers[i]);
 			}
-			fingerAdded = true;
+			fingerStates.Add(newState);
+			// If we pass 20 or something, start deleting old states.
+			if (fingerStates.Size() >= maxStatesStored->iValue)
+				fingerStates.RemoveIndex(0, ListOption::RETAIN_ORDER);	
 		}
 	}
-	// When finger count changes
-	else if (fingersNow != fingersLastFrame)
+	// When finger count changes. Defined implicitly due to the previous if-clause.
+	else /* if (fingersNow != fingersLastFrame) */
 	{
-		// Adjust the current/last state as it exits scope.
-		if (fingerStates.Size())
-		{
-			FingerState & lastFingerState = fingerStates.Last();
-			lastFingerState.stop = now;
-			lastFingerState.duration = lastFingerState.stop - lastFingerState.start;
-		}
 		// Set finger start time!
 		lastFingerStartTime = now;
-		fingerAdded = false;
 	}
-	// If the finger state has not changed, update the last added state's duration, if any.
-	else if (fingerStates.Size()) {
-		FingerState & lastFingerState = fingerStates.Last();
-		lastFingerState.duration = now - lastFingerState.start;
-	}	
+
 	
 	// Synchronize the pipeline list of finger states with our own.
 	for (int i = 0; i < fingerStates.Size(); ++i)
@@ -1603,10 +1584,6 @@ int CVFingerActionFilter::Process(CVPipeline * pipe)
 	for (int i = 0; i < fingerStates.Size(); ++i)
 	{
 		FingerState & state = fingerStates[i];
-		// Taking the minimum duration filter into consideration
-		if (state.duration < minimumDuration->iValue)
-			continue;
-		// Copy-bopy!
 		pipe->fingerStates.Add(state);
 	}
 
