@@ -11,20 +11,23 @@
 #include "TextureManager.h"
 
 
-GraphicsProperty::GraphicsProperty()
+GraphicsProperty::GraphicsProperty(Entity * owner)
+: owner(owner)
 {
 	effects = NULL;
 	dynamicLights = NULL;
 	staticLights = NULL;
 	particleSystems = NULL;
 	flags = 0;
-	hasAnimation = false;
-	animStartTime = 0;
-	queuedAnimation = NULL;
-	currentAnimation = NULL;
 	visible = true;
 	textColor = Vector4f(1,1,1,1);
 	textSizeRatio = 1.0f;
+
+	hasAnimation = false;
+	animStartTime = 0;
+	animationSet = NULL;
+	queuedAnimation = NULL;
+	currentAnimation = NULL;
 }
 
 
@@ -92,6 +95,11 @@ void GraphicsProperty::SetAnimation(String name)
 /// Sets queued animation. Only called from the GMSetEntity message.
 void GraphicsProperty::SetQueuedAnimation(String name)
 {
+	if (!animationSet)
+	{
+		std::cout<<"\nEntity "<<this->owner<<" lacking animation set!";
+		return;
+	}
 	Animation * anim = animationSet->GetAnimation(name);
 	if (anim)
 		queuedAnimation = anim;

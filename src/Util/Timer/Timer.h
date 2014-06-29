@@ -28,25 +28,25 @@ public:
 	void Start();
 	void Stop();
 	// Returns time in milliseconds
-	long GetMs();
+	int64 GetMs();
 	// Returns elapsed time in microseconds.
 	int64 GetMicro();
 	// Returns time in seconds.
 	static int64 GetCurrentTime();
 	// Returns the current time. If true, returns unmodified machine time, if false will return synchronized time as set with SetAdjustment.
-	static time_t GetCurrentTimeMs(bool machineTime = false);
+	static int64 GetCurrentTimeMs(bool machineTime = false);
 	// Returns current time in microseconds.
-	static time_t GetCurrentTimeMicro();
+	static int64 GetCurrentTimeMicro();
 	/// Sets time adjustment that will be added to every call of GetCurrentTimeMs() unless specifically told otherwise.
-	static void SetAdjustment(long long adjustment);
-	static long long GetAdjustment();
+	static void SetAdjustment(int64 adjustment);
+	static int64 GetAdjustment();
 private:
 	long start;
 	long stop;
 	static long long adjustment;
 
 	// Elapsed time in microseconds.
-	double elapsedTime;
+	double elapsedMicroseconds;
 	bool running;
 
     #ifdef WINDOWS

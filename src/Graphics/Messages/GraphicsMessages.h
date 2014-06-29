@@ -26,6 +26,7 @@ enum graphicsMessages {
 	GM_SET_GLOBAL_UI,
 	GM_SET_VIEWPORTS,
 	GM_SET_OVERLAY,		// For setting overlay texture.. or Video!
+
 	// Entity setters
 	GM_SET_ENTITY,
 	GM_SET_ENTITY_BOOLEAN,
@@ -33,6 +34,7 @@ enum graphicsMessages {
 	GM_SET_ENTITY_TEXTURE,
 	GM_SET_ENTITY_FLOAT,
 	GM_SET_ENTITY_VEC4F,
+
 	// Stuff
 	GM_CLEAR_OVERLAY_TEXTURE,
 	GM_DELETE_UI,
@@ -70,6 +72,10 @@ enum graphicsMessages {
 	GM_SET_CAMERA,
 
 	// Particle effects,
+	GM_ATTACH_PARTICLE_SYSTEM,
+	GM_PAUSE_EMISSION,
+	GM_RESUME_EMISSION,
+	GM_SET_PARTICLE_EMITTER,
 	GM_GENERATE_PARTICLES,
 
 	// UI messages
@@ -124,6 +130,7 @@ enum graphicsTargets{
 	OFFSET_ROTATION,
 
 	// Added with SetEntity
+	REQUIRE_DEPTH_SORTING, // So rendering things work properly, specifically for sprites.
 	VISIBILITY,
 	TEXT,
 	TEXT_COLOR,
@@ -133,6 +140,7 @@ enum graphicsTargets{
 	ADD_CAMERA_FILTER, // Adds a camera filter.
 	REMOVE_CAMERA_FILTER,
 	CLEAR_CAMERA_FILTER, // For clearing said filter.
+	RENDER_OFFSET, // For rendering at a position slightly different than that stated by the physics and navMesh grid.
 	
 	// Added with GraphicsEffects.
 	ALPHA,

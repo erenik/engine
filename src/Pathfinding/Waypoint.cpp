@@ -2,7 +2,8 @@
 #include "../PhysicsLib.h"
 #include <cassert>
 
-Waypoint::Waypoint(){
+Waypoint::Waypoint()
+{
 	merged = false;
 	neighbour = NULL;
 	neighbourIDs = NULL;

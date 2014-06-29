@@ -93,29 +93,26 @@ void GMSetEntity::Process()
 	for (int i = 0; i < entities.Size(); ++i)
 	{
 		Entity * entity = entities[i];
+		
+		/// Should probably just attach this when adding it for rendering...?
+		assert(entity->graphics);
+
 		switch(target)
 		{
 			// Filter to enable per-viewport disabled rendering.
 			case CAMERA_FILTER:
 			case ADD_CAMERA_FILTER:
-				if (!entity->graphics)
-					entity->graphics = new GraphicsProperty();
 				if (!entity->graphics->cameraFilter.Exists(camera))
 					entity->graphics->cameraFilter.Add(camera);
 				break;
 			case REMOVE_CAMERA_FILTER:
-				if (!entity->graphics)
-					return;
 				entity->graphics->cameraFilter.Remove(camera);
 				break;
 			case CLEAR_CAMERA_FILTER:
-				if (entity->graphics)
-					entity->graphics->cameraFilter.Clear();
+				entity->graphics->cameraFilter.Clear();
 				break;
 			case ANIMATION_SET:
 			{
-				if (!entity->graphics)
-					entity->graphics = new GraphicsProperty();
 				AnimationSet * anim = AnimationMan.GetAnimationSet(string);
 				if (!anim)
 					return;
@@ -141,17 +138,33 @@ void GMSetEntity::Process()
 	}
 }
 
-#define ENSURE_GRAPHICS_PROPERTY(e) {if(!e->graphics) e->graphics = new GraphicsProperty();}
-
 GMSetEntityb::GMSetEntityb(Entity * entity, int target, bool value)
 	: GraphicsMessage(GM_SET_ENTITY_BOOLEAN), entity(entity), target(target), bValue(value)
 {
-
+	switch(target)
+	{
+		case VISIBILITY:
+		case REQUIRE_DEPTH_SORTING:
+			break;
+		default:
+			assert(false && "Bad target in GMSetEntityb");
+	}
 }
 void GMSetEntityb::Process()
 {
-	ENSURE_GRAPHICS_PROPERTY(entity);
-	entity->graphics->visible = bValue;
+	assert(entity->graphics);
+	switch(target)
+	{
+		case VISIBILITY:
+			entity->graphics->visible = bValue;
+			break;
+		case REQUIRE_DEPTH_SORTING:
+			if (bValue)
+				entity->graphics->flags |= RenderFlags::REQUIRES_DEPTH_SORTING;
+			else 
+				entity->graphics->flags &= ~RenderFlags::REQUIRES_DEPTH_SORTING;
+			break;
+	}
 }
 
 
@@ -168,7 +181,7 @@ GMSetEntitys::GMSetEntitys(Entity * entity, int target, String value)
 }
 void GMSetEntitys::Process()
 {
-	ENSURE_GRAPHICS_PROPERTY(entity);
+	assert(entity->graphics);
 	switch(target)
 	{
 		case TEXT:
@@ -191,7 +204,7 @@ GMSetEntityf::GMSetEntityf(Entity * entity, int target, float value)
 }
 void GMSetEntityf::Process()
 {
-	ENSURE_GRAPHICS_PROPERTY(entity);
+	assert(entity->graphics);
 	switch(target)
 	{
 		case TEXT_SIZE_RATIO:
@@ -208,6 +221,7 @@ GMSetEntityVec4f::GMSetEntityVec4f(Entity * entity, int target, Vector4f value)
 	{
 		case TEXT_COLOR:
 		case TEXT_POSITION:
+		case RENDER_OFFSET:
 			break;
 		default:
 			assert(false && "Bad value");
@@ -215,7 +229,7 @@ GMSetEntityVec4f::GMSetEntityVec4f(Entity * entity, int target, Vector4f value)
 }
 void GMSetEntityVec4f::Process()
 {
-	ENSURE_GRAPHICS_PROPERTY(entity);
+	assert(entity->graphics);
 	switch(target)
 	{
 		case TEXT_COLOR:
@@ -224,6 +238,9 @@ void GMSetEntityVec4f::Process()
 			break;
 		case TEXT_POSITION:
 			entity->graphics->textPositionOffset = vec4fValue;
+			break;
+		case RENDER_OFFSET:
+			entity->graphics->renderOffset = vec4fValue;
 			break;
 	}
 }

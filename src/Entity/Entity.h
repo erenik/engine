@@ -116,8 +116,9 @@ public:
 	void Translate(Vector3f translation);
 
 	/// Recalculates the transformation matrix
-#define RecalculateMatrix RecalculateMatrix
 	void RecalculateMatrix();
+	/// Recalculates a transformation matrix using argument vectors for position, rotation and translation.
+	static Matrix4f RecalculateMatrix(Vector3f & position, Vector3f & rotation, Vector3f & scale);
 
 	/// World coordinate position
 	Vector3f position;

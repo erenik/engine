@@ -310,19 +310,17 @@ void * GraphicsManager::Processor(void * vArgs){
 	//	graphicsState.optimizationLevel = 3;
 
         if (graphicsState.optimizationLevel < 5 && fps < 20 && now > lastOptimization + 100){
-            graphicsState.optimizationLevel++;
+			graphicsState.optimizationLevel++;
             lastOptimization = now;
             std::cout<<"\nFPS low, increasing graphics optimization level to: "<<graphicsState.optimizationLevel;
         }
 		
-//		else if (graphicsState.optimizationLevel > 0 && fps > 55 && now > lastOptimization + 500){
-//#define DECREASE_ENABLED
-//        #ifdef DECREASE_ENABLED
-//			graphicsState.optimizationLevel--;
-//			lastOptimization = now;
-//			std::cout<<"\nFPS high again, decreasing graphics optimization level to: "<<graphicsState.optimizationLevel;
-//        #endif
-//		}
+		else if (graphicsState.optimizationLevel > 0 && fps > 40 && now > lastOptimization + 500)
+		{
+			graphicsState.optimizationLevel--;
+			lastOptimization = now;
+			std::cout<<"\nFPS high again, decreasing graphics optimization level to: "<<graphicsState.optimizationLevel;
+		}
 		
 		
 	}

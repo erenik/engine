@@ -199,7 +199,7 @@ void TileMap2D::Render(){
 				Matrix4d transformationMatrix = Matrix4d::InitTranslationMatrix(Vector3f(mapSize.x * 0.5f + offset.x, mapSize.y * 0.5f + offset.y, -0.1f));
 				transformationMatrix.Scale(Vector3f(mapSize.x, mapSize.y, 1));
 				// Apply transformation
-				graphicsState.modelMatrixD.multiply(transformationMatrix);
+				graphicsState.modelMatrixD.Multiply(transformationMatrix);
 				graphicsState.modelMatrixF = graphicsState.modelMatrixD;
 				// Set uniform matrix in shader to point to the GameState modelView matrix.
 				glUniformMatrix4fv(graphicsState.activeShader->uniformModelMatrix, 1, false, graphicsState.modelMatrixF.getPointer());
@@ -280,7 +280,7 @@ void TileMap2D::Render(){
 			transformationMatrix.Scale(Vector3f(got->size.x, got->size.y, 1.f));
 			// Apply transformation
 			graphicsState.modelMatrixD = Matrix4d();
-			graphicsState.modelMatrixD.multiply(transformationMatrix);
+			graphicsState.modelMatrixD.Multiply(transformationMatrix);
 			graphicsState.modelMatrixF = graphicsState.modelMatrixD;
 			// Set uniform matrix in shader to point to the GameState modelView matrix.
 			glUniformMatrix4fv(graphicsState.activeShader->uniformModelMatrix, 1, false, graphicsState.modelMatrixF.getPointer());
@@ -330,7 +330,7 @@ void TileMap2D::Render(){
 			transformationMatrix.Scale(Vector3f(spriteSize.x, spriteSize.y, 1));
 			// Apply transformation
 			graphicsState.modelMatrixD = Matrix4d();
-			graphicsState.modelMatrixD.multiply(transformationMatrix);
+			graphicsState.modelMatrixD.Multiply(transformationMatrix);
 			graphicsState.modelMatrixF = graphicsState.modelMatrixD;
 			// Set uniform matrix in shader to point to the GameState modelView matrix.
 			glUniformMatrix4fv(graphicsState.activeShader->uniformModelMatrix, 1, false, graphicsState.modelMatrixF.getPointer());

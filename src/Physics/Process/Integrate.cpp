@@ -70,7 +70,7 @@ void PhysicsManager::Integrate(float timeSinceLastUpdate)
 			// Consider acceleration as a force in the direction of the entity?
 			if (physics->acceleration.MaxPart())
 			{
-				physics->totalForce += dynamicEntity->rotationMatrix.product(physics->acceleration) * physics->mass;
+				physics->totalForce += dynamicEntity->rotationMatrix.Product(physics->acceleration) * physics->mass;
 			}
 			for (int i = 0; i < physics->springs.Size(); ++i){
 				Spring * spring = physics->springs[i];

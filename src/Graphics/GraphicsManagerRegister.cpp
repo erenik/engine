@@ -33,6 +33,11 @@ bool GraphicsManager::RegisterEntity(Entity * entity)
 			}
 		}
 	}
+	/// If no graphics property exists. Add it.
+	else 
+	{
+		entity->graphics = new GraphicsProperty(entity);
+	}
 	// Buffer textures and meshes if needed
 	Texture * t = entity->GetTexture(DIFFUSE_MAP);
 	if (t)

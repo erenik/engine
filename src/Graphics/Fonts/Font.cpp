@@ -397,7 +397,7 @@ void TextFont::RenderText(Text & text){
 	bool shouldRenderCaret = renderTime % 1000 >= 500 && text.caretPosition >= 0;
 	if (text.caretPosition >= 0 && shouldRenderCaret)
 	{
-		std::cout<<"found carrot";
+		; //std::cout<<"found carrot";
 	}
 	for (int i = 0; i <= (int)strlen(c_str); ++i){
 		c = c_str[i];

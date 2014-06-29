@@ -32,7 +32,7 @@ struct GraphicsProperty {
 	friend class GMQueueAnimation;
 	friend class Entity;
 public:
-	GraphicsProperty();
+	GraphicsProperty(Entity * owner);
 	~GraphicsProperty();
 	/// Loads save data from target CompactGraphics equivalent that can be saved to file.
 	bool LoadDataFrom(const CompactGraphics * cGraphics);
@@ -61,6 +61,8 @@ public:
 	Vector4f textColor;
 	// Offset?
 	Vector4f textPositionOffset; 
+	/// For rendering the entity at a slightly different position than is stated by the Physics/NavMesh managers.
+	Vector3f renderOffset;
 private:
 	/// Sets current animation. Only called from the GMSetEntity message. If faulty, animation will be nullified.
 	void SetAnimation(String name);
@@ -78,6 +80,9 @@ private:
 	
 	// Filter to enable per-viewport disabled rendering.
 	List<Camera*> cameraFilter;
+
+	// Must be non-NULL.
+	Entity * owner;
 };
 
 #endif

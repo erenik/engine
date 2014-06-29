@@ -68,7 +68,7 @@ void Entity::LoadCompactEntityData(CompactEntity * cEntity)
 	}
 	if (cEntity->cGraphics){
 		assert(!graphics);
-		graphics = new GraphicsProperty();
+		graphics = new GraphicsProperty(this);
 		graphics->LoadDataFrom(cEntity->cGraphics);
 	}
 	diffuseMap = TexMan.GetTextureBySource(cEntity->diffuseMap);
@@ -195,7 +195,7 @@ void Entity::RenderOld(GraphicsState &graphicsState){
 	Matrix4d tmp = graphicsState.modelMatrixD;
 
 	// Apply transformation
-	graphicsState.modelMatrixD.multiply(transformationMatrix);
+	graphicsState.modelMatrixD.Multiply(transformationMatrix);
 	graphicsState.modelMatrixF = graphicsState.modelMatrixD;
 	Matrix4f modelView = graphicsState.viewMatrixF * graphicsState.modelMatrixF;
 	// Set uniform matrix in shader to point to the GameState modelView matrix.
@@ -412,9 +412,22 @@ void Entity::Render()
 	Matrix4d tmp = graphicsState.modelMatrixD;
 	/// Recalculate matrix right before rendering.
 //	RecalculateMatrix();
-	// Apply transformation
-	graphicsState.modelMatrixD.multiply(transformationMatrix);
-	graphicsState.modelMatrixF = graphicsState.modelMatrixD;
+
+	/// If we have any offsets, apply them and re-calculate the transform matrix if so.
+	if (graphics && graphics->renderOffset.MaxPart())
+	{
+		Vector3f offsetPosition = position + graphics->renderOffset;
+		Matrix4d transMat = RecalculateMatrix(offsetPosition, rotation, scale); 
+		graphicsState.modelMatrixD.Multiply(transMat);
+		graphicsState.modelMatrixF = graphicsState.modelMatrixD;		
+	}
+	// Use standard matrix.
+	else
+	{
+		// Apply transformation
+		graphicsState.modelMatrixD.Multiply(transformationMatrix);
+		graphicsState.modelMatrixF = graphicsState.modelMatrixD;		
+	}
 	// Set uniform matrix in shader to point to the GameState modelView matrix.
 	glUniformMatrix4fv(graphicsState.activeShader->uniformModelMatrix, 1, false, graphicsState.modelMatrixF.getPointer());
 	error = glGetError();
@@ -423,7 +436,7 @@ void Entity::Render()
 	GLuint uniform = glGetUniformLocation(graphicsState.activeShader->shaderProgram, "normalMatrix");
 	Vector3f normal = Vector3f(0,1,0);
 	Matrix4f normalMatrix = graphicsState.modelMatrixF.InvertedCopy().TransposedCopy();
-	normal = normalMatrix.product(normal);
+	normal = normalMatrix.Product(normal);
 	if (uniform != -1)
 		glUniformMatrix4fv(uniform, 1, false, normalMatrix.getPointer());
 	error = glGetError();
@@ -475,7 +488,7 @@ void Entity::Render()
 				// Reload matrix into shader. First grab old matrix.
 				graphicsState.modelMatrixD = tmp;
 				// Apply transformation
-				graphicsState.modelMatrixD.multiply(transformationMatrix);
+				graphicsState.modelMatrixD.Multiply(transformationMatrix);
 				graphicsState.modelMatrixF = graphicsState.modelMatrixD;
 				// Set uniform matrix in shader to point to the GameState modelView matrix.
 				glUniformMatrix4fv(graphicsState.activeShader->uniformModelMatrix, 1, false, graphicsState.modelMatrixF.getPointer());
@@ -537,7 +550,7 @@ void Entity::Render()
 			Matrix4f model = Matrix4f();
 
 
-			model.Multiply((Matrix4d().translate(Vector3d(position + graphics->textPositionOffset))));
+			model.Multiply((Matrix4d().Translate(Vector3d(position + graphics->textPositionOffset))));
 			model.Multiply(rotationMatrix);
 			model.Multiply((Matrix4d().Scale(Vector3d(scale * graphics->textSizeRatio))));
 
@@ -663,20 +676,38 @@ void Entity::RecalculateMatrix()
 	// Euclidean co-ordinates.
 	else 
 	{
-		rotationMatrix.multiply(Matrix4d::GetRotationMatrixX(rotation.x));
-		rotationMatrix.multiply(Matrix4d::GetRotationMatrixY(rotation.y));
-		rotationMatrix.multiply(Matrix4d::GetRotationMatrixZ(rotation.z));
+		rotationMatrix.Multiply(Matrix4d::GetRotationMatrixX(rotation.x));
+		rotationMatrix.Multiply(Matrix4d::GetRotationMatrixY(rotation.y));
+		rotationMatrix.Multiply(Matrix4d::GetRotationMatrixZ(rotation.z));
 	}
 
 	transformationMatrix = Matrix4d();
 
-	transformationMatrix.Multiply((Matrix4d().translate(Vector3d(position))));
+	transformationMatrix.Multiply((Matrix4d().Translate(Vector3d(position))));
 	transformationMatrix.Multiply(rotationMatrix);
 	transformationMatrix.Multiply((Matrix4d().Scale(Vector3d(scale))));
 
 
 
 }
+
+/// Recalculates a transformation matrix using argument vectors for position, rotation and translation.
+Matrix4f Entity::RecalculateMatrix(Vector3f & position, Vector3f & rotation, Vector3f & scale)
+{
+	Matrix4d rotationMatrix;		
+
+	rotationMatrix.Multiply(Matrix4d::GetRotationMatrixX(rotation.x));
+	rotationMatrix.Multiply(Matrix4d::GetRotationMatrixY(rotation.y));
+	rotationMatrix.Multiply(Matrix4d::GetRotationMatrixZ(rotation.z));
+	Matrix4d matrix = Matrix4d();
+
+	matrix.Multiply((Matrix4d().Translate(Vector3d(position))));
+	matrix.Multiply(rotationMatrix);
+	matrix.Multiply((Matrix4d().Scale(Vector3d(scale))));
+	return matrix;
+}
+
+
 
 /// Sets name for this entity.
 bool Entity::SetName(const char * i_name){

@@ -77,7 +77,7 @@ void PhysicsManager::ApproximateIntegrate(Entity * entity, float timeSinceLastUp
     // Always apply acceleration unless otherwise noted.
     if (physics->acceleration.MaxPart() > ZERO)
 	{
-		Vector3f velIncrease = entity->rotationMatrix.product(physics->acceleration);
+		Vector3f velIncrease = entity->rotationMatrix.Product(physics->acceleration);
 		velIncrease *= timeSinceLastUpdate;
         Vector3f momentumIncrease = velIncrease * physics->mass;
 		physics->linearMomentum += momentumIncrease;

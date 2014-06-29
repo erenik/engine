@@ -111,9 +111,9 @@ public:
 
 	// 3D-operations
 	/** Applies 3D translation using given parameters. Returns a copy of the given matrix. */
-	Matrix4d translate(double x, double y, double z);
+	Matrix4d Translate(double x, double y, double z);
 	/** Applies 3D translation using given vector. */
-	Matrix4d translate(Vector3d vec);
+	Matrix4d Translate(Vector3d vec);
 	/// Builds a translation matrix.
 	static Matrix4d Translation(double x, double y, double z);
 	static Matrix4d Translation(Vector3d vec);
@@ -135,19 +135,19 @@ public:
 	/** Direct multiplication
 		Postcondition: Multiplies the provided matrix into the left one and returns a copy of the current one.
 	*/
-	Matrix4d multiply(const Matrix4d matrix);
+	Matrix4d Multiply(const Matrix4d matrix);
 	/** Product with Matrix
 		Postcondition: Returns the product of the matrices without directly modifying them.
 	*/
-	Matrix4d product(const Matrix4d matrix) const;
+	Matrix4d Product(const Matrix4d matrix) const;
 	/** Product with Vector
 		Postcondition: Returns the product of the matrix and vector without directly modifying them.
 	*/
-	Vector4d product(const Vector4d vector) const;
+	Vector4d Product(const Vector4d vector) const;
 	/** Product with Vector
 		Postcondition: Returns the product of the matrix and vector without directly modifying them.
 	*/
-	Vector4f product(const Vector4f vector) const;
+	Vector4f Product(const Vector4f vector) const;
 	/** Product with Matrix
 		Postcondition: Returns the product of the matrices without directly modifying them.
 	*/

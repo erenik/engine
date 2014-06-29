@@ -43,6 +43,9 @@ private:
 	/// Send to battle narrator.
 	void Narrate(String line);
 
+	/// From 1 to 100. Used for all magical effects.
+	int spellPower;
+
 	/// Set during processing.
 	String narr;
 	RuneBattler * primarySubject;

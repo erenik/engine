@@ -1319,7 +1319,7 @@ void UIElement::RenderSelf()
 				Matrix4d * model = &graphicsState.modelMatrixD;
 				float transX = alignmentX * parent->sizeX;
 				float transY = alignmentY * parent->sizeY;
-				model->translate(transX,transY,0);
+				model->Translate(transX,transY,0);
 				graphicsState.modelMatrixF = graphicsState.modelMatrixD;
 			}
 		}
@@ -1353,7 +1353,7 @@ void UIElement::RenderSelf()
 	if (this->text.Length() && graphicsState.currentFont){
 		TextFont * currentFont = graphicsState.currentFont;
 		Matrix4d tmp = graphicsState.modelMatrixD;
-		graphicsState.modelMatrixD.translate(this->left, this->top,(this->zDepth+0.05));
+		graphicsState.modelMatrixD.Translate(this->left, this->top,(this->zDepth+0.05));
 		float pixels = sizeY * textSizeRatio; // Graphics.Height();
 	//	pixels *= this->sizeRatioY;
 

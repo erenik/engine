@@ -44,6 +44,8 @@ extern UserInterface * ui[GameStateID::MAX_GAME_STATES];
 #include "RuneRPG/PopulationManager.h"
 #include "RuneRPG/Battle.h"
 
+#include "Window/WindowManager.h"
+
 RuneGlobalState::RuneGlobalState()
 {
 	id = GameStateID::GAME_STATE_GLOBAL;
@@ -56,6 +58,8 @@ void RuneGlobalState::OnEnter(GameState * previousState)
 {
 	// Begin loading textures here for the UI
 	Graphics.QueueMessage(new GMSetGlobalUI(ui));
+
+	WindowMan.lockChildWindowRelativePositions = true;
 
 	/// Allocate all necessary managers!
 	if (!BattleManager::IsAllocated()){

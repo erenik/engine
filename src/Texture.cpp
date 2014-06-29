@@ -162,6 +162,12 @@ bool Texture::MakeRed(){
 /// Bufferizes into GL. Should only be called from the render-thread!
 bool Texture::Bufferize()
 {	
+	assert(data);
+	if (!data)
+	{
+		std::cout<<"\nNo data to bufferize!";
+		return false;
+	}
 	queueRebufferization = false;
 	/// Don't bufferize multiple times if not special texture, pew!
 	if (glid != -1 && !dynamic){

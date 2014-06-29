@@ -87,7 +87,10 @@ public:
 	/// Polls the existance/copy of target item in the queue.
 	bool Exists(value_type item) const;
 	/// Polls the existance/copy of target item in the queue. Returns it's index if so and -1 if not.
-	int GetIndex(value_type item) const;
+	value_type & GetIndex(int index);
+
+	/// Polls the existance/copy of target item in the queue. Returns it's index if so and -1 if not.
+	int GetIndexOf(value_type item) const;
 
 /// To be inherited by other classes...
 protected:
@@ -402,9 +405,18 @@ bool List<T>::Exists(T item) const {
 	return false;
 }
 
+
 /// Polls the existance/copy of target item in the queue. Returns it's index if so and -1 if not.
 template <class T>
-int List<T>::GetIndex(T item) const {
+T & List<T>::GetIndex(int index) 
+{
+	assert(index >= 0 && index < currentItems);
+	return arr[index];
+}
+
+/// Polls the existance/copy of target item in the queue. Returns it's index if so and -1 if not.
+template <class T>
+int List<T>::GetIndexOf(T item) const {
 	for (int i = 0; i < currentItems; ++i){
 		if (arr[i] == item)
             return i;

@@ -15,6 +15,7 @@
 #include "Graphics/GraphicsManager.h"
 #include "Graphics/Messages/GMSetEntity.h"
 
+#include "Random/Random.h"
 
 RuneBattler::RuneBattler() : Battler()
 {
@@ -33,11 +34,24 @@ void RuneBattler::Nullify()
 	hp = maxHP = maxMP = mp = 10;
 	weaponDamage = spellDamage = 1;
 	magicArmor = magicPower = magicSkill = spellDamage = 0;
-	initiative = 1000;
+//	initiative = 1000;
 	state = BattlerState::WAITING_FOR_INITIATIVE;
+
+	/// Default stats start always at 5.
+	attackPower = 
+		defensePower =
+		speed =
+		magicSkill =
+		magicPower = 5;
 
 	entity = NULL;
 	isEnemy = false;
+	actionPoints = 0;
+	actionPointsFillUpSpeed = 0;
+	
+	/// These require further investigation later on!
+	battleGearWeight = 0;
+	battleWeightLimit = 1;
 }
 
 /// from 0 to 4, 0 being player, 1-3 being enemies 1-3
@@ -50,8 +64,6 @@ RuneBattler::RuneBattler(int defaultTypes)
 			name = "Erenik";
 			hp = 35;
 			mp = 10;
-			attack = 10;
-			defense = 5;
 			agility = 5;
 			armor = 5;
 			speed = 5;
@@ -61,8 +73,6 @@ RuneBattler::RuneBattler(int defaultTypes)
 		case 1:
 			name = "Moffsi";
 			hp = 16;
-			attack = 6;
-			defense = 7;
 			agility = 5;
 			armor = 5;
 			speed = 3;
@@ -71,8 +81,6 @@ RuneBattler::RuneBattler(int defaultTypes)
 		case 2:
 			name = "Gnupp";
 			hp = 35;
-			attack = 6;
-			defense = 7;
 			agility = 5;
 			armor = 5;
 			speed = 4;
@@ -82,8 +90,6 @@ RuneBattler::RuneBattler(int defaultTypes)
 			name = "Raowrg";
 			hp = 35;
 			mp = 10;
-			attack = 8;
-			defense = 7;
 			agility = 5;
 			armor = 5;
 			speed = 6;
@@ -105,6 +111,14 @@ bool RuneBattler::IsARelevantTarget()
 }
 
 
+/// Called if actionPointsFillUpSpeed is set to 0. If speed changes, set it to 0 and it will be automatically re-calculated upon next iteration.
+void RuneBattler::RecalculateActionPointsFillUpSpeed()
+{
+	this->actionPointsFillUpSpeed = (100 + pow(Speed(), 1.2f)) / 12.f / 1000.f;
+	std::cout<<"Action points fill up speed per millisecond recalculated to: "<<this->actionPointsFillUpSpeed;
+}
+
+
 void RuneBattler::Process(BattleState &battleState)
 {
 	// Woo!
@@ -115,15 +129,18 @@ void RuneBattler::Process(BattleState &battleState)
     /// Check state, has it queued an action yet?
 	if (state == BattlerState::WAITING_FOR_INITIATIVE)
 	{
-		initiative -= battleState.timeDiff * speed;
-        if (initiative <= 0){
+		if (this->actionPointsFillUpSpeed == 0)
+			this->RecalculateActionPointsFillUpSpeed();
+
+		this->actionPoints += actionPointsFillUpSpeed * battleState.timeDiff;
+        if (actionPoints >= 100){
 			if (!isAI){
 				Message * msg = new Message(MessageType::STRING);
 				msg->msg = "BattlerReady("+this->name+")";
 				msg->data = (char*)this;
 				MesMan.QueueMessage(msg);
 			}
-            initiative = 0;
+			actionPoints = 100;
 			state = BattlerState::IDLE;
         }
     }
@@ -179,7 +196,7 @@ bool RuneBattler::IsIdle()
 void RuneBattler::ResetStats(){
 	hp = maxHP;
 	mp = maxMP;
-	;
+	this->actionPoints = 0;
 }
 
 /// Take damage o-o, returns true if it killed/incapacitated the battler.
@@ -229,6 +246,131 @@ bool RuneBattler::UpdateActions()
 		return true;
 	return false;
 }
+
+/// Average armor rating of all equipment pieces, including buffs/debuffs. Will mostly vary within the 1.0 to 20.0 interval.
+float RuneBattler::ArmorRating()
+{
+	return 5.f;
+}
+/// Average magic armor rating of all equipment pieces, including buffs/debuffs. Will mostly vary within the 1.0 to 20.0 interval.
+float RuneBattler::MagicArmorRating()
+{
+	return 5.f;
+}
+/// Weapon damage, including buffs/debuffs. Will mostly vary within the 1.0 to 20.0 interval.
+float RuneBattler::WeaponDamage()
+{
+	return this->weaponDamage;
+}
+/// Shield block rating, including buffs/debuffs. Will mostly vary within the 0.0 to 20.0 interval.
+float RuneBattler::ShieldBlockRating()
+{
+	return 0.f;
+}
+/// Shield defense modifier, including buffs/debuffs. Will mostly vary within the 0.0 to 20.0 interval.
+float RuneBattler::ShieldDefenseModifier()
+{
+	return 0.f;
+}
+
+
+/// Returns current HP, including buffs/debuffs.
+int RuneBattler::HP()
+{
+	return hp;
+}
+/// Returns current Attack power, including buffs/debuffs.
+int RuneBattler::AttackPower()
+{
+	return attackPower;
+}
+/// Returns current physical and magical defense power, including buffs/debuffs.
+int RuneBattler::DefensePower()
+{
+	return defensePower;
+}
+/// Returns current offensive magical power, including buffs/debuffs applied to it.
+int RuneBattler::MagicPower()
+{
+	return magicPower;
+}
+/// Returns current agility, including buffs/debuffs.
+int RuneBattler::Agility()
+{
+	return agility;
+}
+/// Returns current speed, including buffs/debuffs.
+int RuneBattler::Speed()
+{
+	return speed;
+}
+
+/// Returns current amount of action points, floored.
+int RuneBattler::ActionPoints()
+{
+	return int(actionPoints);
+}
+
+Random battlerRandom;
+#define Maximum(a,b) ((a) > (b)? (a) : (b))
+
+/// Returns true if a dodge occurred. The resulting damage is stored in the second parameter.
+bool RuneBattler::Dodge(int preDodgeDamage, int & dodgeModifiedDamage)
+{
+
+	float baseDodgeRating = Agility() * 0.25f + 1;
+	float dodgeWeightModifier = Maximum(battleGearWeight / battleWeightLimit - 0.25, 0);
+	float dodgeRating = baseDodgeRating * (1 - dodgeWeightModifier);
+	float dodgeRand = battlerRandom.Randf() * 100.f;
+	if (dodgeRand > dodgeRating)
+		return false;
+	/// In percent.
+	float dodgeAmount = 0.40 + battlerRandom.Randf() * (0.80 + Agility() * 0.005);
+	dodgeModifiedDamage *= 1 - dodgeAmount;
+	return true;
+}
+
+/// Returns true if a parry occurred. The resulting damage is stored in the second parameter.
+bool RuneBattler::Parry(int preParryDamage, int & parryModifiedDamage)
+{
+	float parryRating = Agility() * 0.5f + 1;
+	float parryRand = battlerRandom.Randf() * 100.f;
+	if (parryRand > parryRating)
+		return false;
+	/// In percent.
+	float parryAmount = 0.40 + battlerRandom.Randf() * (0.60 + Agility() * 0.00125);
+	parryModifiedDamage *= 1 - parryAmount;
+	return true;
+}
+/// Returns true if a block occurred. The resulting damage is stored in the second parameter.
+bool RuneBattler::ShieldBlock(int preBlockDamage, int & blockModifiedDamage)
+{
+	float baseBlockRating = 10 + 2 * ShieldBlockRating() * (1 + Agility() * 0.01f);
+	float blockRand = battlerRandom.Randf() * 100.f;
+	if (blockRand > baseBlockRating)
+		return false;
+	/// In percent. Allow blocking even without a shield? Sure!
+	float blockAmount = 0.10 + 0.02 * (1 + ShieldDefenseModifier()) * (1 +  DefensePower() * 0.01f);
+	int diff = blockAmount * preBlockDamage;
+	if (diff <= 0)
+		diff = 1;
+	blockModifiedDamage -= diff;
+	return true;
+}
+/// Returns true if a critical occurred. The resulting damage is stored in the second parameter.
+bool RuneBattler::Critical(int preCriticalDamage, int & postCriticalDamage)
+{
+//	Base critical hit rate (5 to 55%) = 5 + Max(Agility, Attack power) * 0.125 %
+//	Critical damage increase (+100 to +250%) = 100 + Random(0 to Max(Agility, Attack power) * 0.25) %
+	float baseCriticalHitRate = 5 + Maximum(Agility(), AttackPower()) * 0.125f;
+	float critRand = battlerRandom.Randf() * 100.f;
+	if (critRand > baseCriticalHitRate)
+		return false;
+	float criticalIncrease = 1.f + battlerRandom.Randf() * Maximum(Agility(), AttackPower()) * 0.0025f;
+	postCriticalDamage *= 1 + criticalIncrease;
+	return true;
+}
+
 
 /// When getting knocked out/incapacitated, cancels queued actions, etc.
 void RuneBattler::OnKO()
@@ -315,34 +457,34 @@ bool RuneBattler::Load(String source)
 			maxHP = hp = token2.ParseFloat();
 		}
 		else if (token == "mp"){
-			maxMP = mp = token2.ParseFloat();
+			maxMP = mp = token2.ParseInt();
 		}
 		else if (token == "attack"){
-			attack = token2.ParseFloat();
+			attackPower = token2.ParseInt();
 		}
 		else if (token == "agility"){
-			agility = token2.ParseFloat();
+			agility = token2.ParseInt();
 		}
 		else if (token == "defense"){
-			defense = token2.ParseFloat();
+			defensePower = token2.ParseInt();
 		}
 		else if (token == "magicPower"){
-			magicPower = token2.ParseFloat();
+			magicPower = token2.ParseInt();
 		}
 		else if (token == "magicSkill"){
-			magicSkill = token2.ParseFloat();
+			magicSkill = token2.ParseInt();
 		}
 		else if (token == "speed"){
-			speed = token2.ParseFloat();
+			speed = token2.ParseInt();
 		}
 		else if (token == "weaponDamage"){
-			weaponDamage = token2.ParseFloat();
+			weaponDamage = token2.ParseInt();
 		}
 		else if (token == "armor"){
-			armor = token2.ParseFloat();
+			armor = token2.ParseInt();
 		}
 		else if (token == "magicArmor"){
-			magicArmor = token2.ParseFloat();
+			magicArmor = token2.ParseInt();
 		}
 		else if (token == "spellDamage"){
 			spellDamage = token2.ParseInt();

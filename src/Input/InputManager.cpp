@@ -1236,7 +1236,8 @@ bool InputManager::UICancel()
 }
 
 /// Similar to GoToNextElement above^
-void InputManager::UINext(){
+void InputManager::UINext()
+{
 	UserInterface * ui = RelevantUI();
 	UIElement * element;
 	UIElement * hoverElement = ui->GetHoverElement();
@@ -1249,7 +1250,7 @@ void InputManager::UINext(){
 		assert(hoverElement);
 	}
 	else {
-		int index = uiList.GetIndex(hoverElement);
+		int index = uiList.GetIndexOf(hoverElement);
 		++index;
 		if (index >= uiList.Size())
 			element = uiList[0];
@@ -1258,7 +1259,8 @@ void InputManager::UINext(){
 		hoverElement = ui->Hover(element->posX, element->posY);
 	}
 }
-void InputManager::UIPrevious(){
+void InputManager::UIPrevious()
+{
 	UserInterface * ui = RelevantUI();
 	UIElement * element;
 	UIElement * hoverElement = ui->GetHoverElement();
@@ -1271,7 +1273,7 @@ void InputManager::UIPrevious(){
 		assert(hoverElement);
 	}
 	else {
-		int index = uiList.GetIndex(hoverElement);
+		int index = uiList.GetIndexOf(hoverElement);
 		--index;
 		if (index < 0)
 			element = uiList[uiList.Size()-1];
@@ -1290,26 +1292,32 @@ UIElement * InputManager::HoverElement()
 }
 
 /// When set, will make certain keys only navigate the UI, by default arrow-keys, ENTER and Escape for PC.
-void InputManager::NavigateUI(bool mode){
+void InputManager::NavigateUI(bool mode)
+{
 	if (forceNavigateUI)
 		return;
 	navigateUI = mode;
 }
+
 /// When set, nothing will disable the Navigate UI mode until this function is called again, at which point it is cancelled.
-void InputManager::ForceNavigateUI(bool mode){
+void InputManager::ForceNavigateUI(bool mode)
+{
 	navigateUI = forceNavigateUI = mode;
 }
 
 /// Fetches state of the NavigateUI tool. 0 = disabled, 1 = enabled, 2 = force enabled.
-int InputManager::NavigateUIState(){
+int InputManager::NavigateUIState()
+{
 	if (forceNavigateUI && navigateUI)
 		return 2;
 	else if (navigateUI)
 		return 1;
 	return 0;
 }
+
 /// Loads NavigateUI state using integer provided using NavigateUIState() function earlier.
-void InputManager::LoadNavigateUIState(int state){
+void InputManager::LoadNavigateUIState(int state)
+{
 	switch(state){
 		case 2: ForceNavigateUI(true); break;
 		case 1: NavigateUI(true); break;
@@ -1340,7 +1348,8 @@ void InputManager::PushToStack(UIElement * element, UserInterface * ui)
 }
 
 /// Pops the top-most UI from stack, also automatically tries to locate the previous hover-element for further interaction.
-UIElement * InputManager::PopTopmostUIFromStack(UserInterface * ui){
+UIElement * InputManager::PopTopmostUIFromStack(UserInterface * ui)
+{
 	if (!ui)
 		return NULL;
 	UIElement * top = ui->GetStackTop();

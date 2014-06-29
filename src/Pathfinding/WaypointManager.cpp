@@ -166,9 +166,9 @@ void WaypointManager::GenerateWaypointsFromEntity(Entity * entity)
 			position += mesh->vertex[face->vertex[v]];
 		}
 		position /= face->numVertices;
-		position = entity->transformationMatrix.product(position);
+		position = entity->transformationMatrix.Product(position);
 		Vector3f normal = mesh->normal[face->normal[0]];
-		normal = entity->rotationMatrix.product(normal);
+		normal = entity->rotationMatrix.Product(normal);
 
 		if (normal.DotProduct(Vector3f(0,1,0)) > minimumInclination){
 			Waypoint * newWp = new Waypoint();

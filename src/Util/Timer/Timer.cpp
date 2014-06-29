@@ -38,7 +38,7 @@ void Timer::Stop()
         QueryPerformanceCounter(&t2);
         stop = t2.QuadPart;
         // compute and print the elapsed time in millisec
-        elapsedTime = (t2.QuadPart - t1.QuadPart) * 1000.0 * 1000.0 / frequency.QuadPart;
+        elapsedMicroseconds = (t2.QuadPart - t1.QuadPart) * 1000.0 * 1000.0 / frequency.QuadPart;
     //	std::cout<<"\nA* Time taken: "<<elapsedTime<<" milliseconds.";
     #elif defined LINUX | defined OSX
         gettimeofday(&t2, NULL);
@@ -49,42 +49,46 @@ void Timer::Stop()
     #endif
 };
 
-long Timer::GetMs()
+int64 Timer::GetMs()
 {
+	int64 milliseconds = 0;
     if (running)
     {
         #ifdef WINDOWS
             QueryPerformanceCounter(&t2);
             stop = t2.QuadPart;
             // compute and print the elapsed time in millisec
-            elapsedTime = (t2.QuadPart - t1.QuadPart) * 1000.0 / frequency.QuadPart;
+            elapsedMicroseconds = (t2.QuadPart - t1.QuadPart) * 1000.0 * 1000.0 / frequency.QuadPart;
         #elif defined LINUX | defined OSX
             gettimeofday(&t2, NULL);
             elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;      // sec to ms
             elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;   // us to ms
         #endif
     }
-	return elapsedTime / 1000.0;
+	milliseconds = elapsedMicroseconds / 1000.0;
+	return milliseconds;
 }
 
 
 // Returns elapsed time in microseconds.
 int64 Timer::GetMicro()
 {
+	int64 microSeconds;
     if (running)
     {
         #ifdef WINDOWS
             QueryPerformanceCounter(&t2);
             stop = t2.QuadPart;
             // compute and print the elapsed time in millisec
-            elapsedTime = (t2.QuadPart - t1.QuadPart) * 1000.0 * 1000.0 / frequency.QuadPart;
+            elapsedMicroseconds = (t2.QuadPart - t1.QuadPart) * 1000.0 * 1000.0 / frequency.QuadPart;
         #elif defined LINUX | defined OSX
             gettimeofday(&t2, NULL);
             elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0 * 1000.0;      // sec to ms
             elapsedTime += (t2.tv_usec - t1.tv_usec);   // us to ms
         #endif
     }
-	return elapsedTime;
+	microSeconds = elapsedMicroseconds;
+	return microSeconds;
 }
 
 // Returns time in seconds.

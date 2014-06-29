@@ -6,11 +6,13 @@
 #include "TextureManager.h"
 #include "GraphicsMessages.h"
 
-GMBufferTexture::GMBufferTexture(int i_textureID) : GraphicsMessage(GM_BUFFER_TEXTURE) {
+GMBufferTexture::GMBufferTexture(int i_textureID) : GraphicsMessage(GM_BUFFER_TEXTURE) 
+{
 	textureID = i_textureID;
 	t = NULL;
 }
-GMBufferTexture::GMBufferTexture(Texture * i_t) : GraphicsMessage(GM_BUFFER_TEXTURE) {
+GMBufferTexture::GMBufferTexture(Texture * i_t) : GraphicsMessage(GM_BUFFER_TEXTURE) 
+{
 	textureID = -1;
 	t = i_t;
 }

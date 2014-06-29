@@ -62,7 +62,7 @@ void AxisAlignedBoundingBox::Recalculate(Entity * entity){
             bounds[i].z = max.z;
 
         /// Transform according to entity
-        bounds[i] = entity->transformationMatrix.product(bounds[i]);
+        bounds[i] = entity->transformationMatrix.Product(bounds[i]);
 
         if (i == 0)
             newMin = newMax = bounds[i];

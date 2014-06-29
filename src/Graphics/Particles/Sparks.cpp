@@ -1,7 +1,8 @@
-// Emil Hedemalm
-// 2013-07-14
+/// Emil Hedemalm
+/// 2014-06-26
+/// Emits what may look like hot sparks, decaying over time into transparency.
 
-#include "Exhaust.h"
+#include "Sparks.h"
 #include "GL/glew.h"
 #include "GraphicsState.h"
 #include "Entity/Entity.h"
@@ -10,7 +11,7 @@
 #include "../GraphicsManager.h"
 #include "../FrameStatistics.h"
 
-Exhaust::Exhaust(Entity * reference)
+Sparks::Sparks(Entity * reference)
 : ParticleSystem("PointEmitter")
 {
     pointsOnly = false;
@@ -44,13 +45,15 @@ Exhaust::Exhaust(Entity * reference)
 		lifeTime[i] = maxLifeTime;
         colors[i] = color;
     }
-    color = Vector4f(0.1f, 0.2f, 0.4f, 1.0f);
+    color = Vector4f(0.1f, 0.5f, 0.4f, 1.0f);
 }
-Exhaust::~Exhaust()
+
+Sparks::~Sparks()
 {
     std::cout<<"\nExhaust Destructor.....";
 }
-void Exhaust::Process(float timeInSeconds)
+
+void Sparks::Process(float timeInSeconds)
 {
     /// Prepare some data
     int spawnedThisFrame = 0;
@@ -63,12 +66,70 @@ void Exhaust::Process(float timeInSeconds)
 	Vector3f newPosition = modelMatrix.Product(relativePosition);
 	Vector3f newDirection = rotationMatrix.Product(Vector4f(0,0,1,0));
 
+	int currEmitter = 0;
+
     /// Process and spawn new particles as needed
     for(int i = 0; i < particlesToProcess; ++i){
         if (lifeDuration[i] > lifeTime[i]){
             if (emissionPaused)
                 continue;
-            if (toSpawn){
+            if (toSpawn)
+			{
+				float positionRatio = ((float)toSpawn) / toSpawnThisFrameTotal;
+				positionRatio = rand() % 100 * 0.01f;
+
+				if (emitters.Size())
+				{
+					// Get next emitter.
+					currEmitter = (currEmitter + 1) % emitters.Size();
+					ParticleEmitter * emitter = emitters[currEmitter];
+
+					emitter->GetNewParticle(positions[i], velocities[i]);
+					velocities[i] *= primaryVelocity * (rand() % 81 + 20) * 0.002f;
+				}
+				else
+				{
+					positions[i] = positionRatio * newPosition + (1 - positionRatio) * previousPosition;
+
+					// Set velocity relative to the contour?
+					if (true)
+					{
+						velocity.x = rand()%201 - 100;
+						velocity.y = rand()%201 - 100;
+					}
+					// Default Z-direction.
+					else {
+						velocity = Vector3f();
+						velocity.x += sideVelocityRange * (rand()%201-100) * 0.01f;
+						velocity.y += sideVelocityRange * (rand()%201-100) * 0.01f;
+						velocity.Normalize();
+						velocity *= sideVelocityRange * (rand()%101) * 0.01f;
+						velocity.z = primaryVelocity * (rand()%81 + 20) * 0.01f;
+						velocity = rotationMatrix.Product(velocity);
+						velocity *= emissionVelocity;
+					}
+					/// Add vehicle velocity to total velocity.
+				//	velocity = relativeTo->Velocity() * 0.5f;
+				//	velocity = Vector3f();
+					velocities[i] = velocity;
+				}
+
+				// Set it to z=1
+				positions[i].z = 1.f;
+		//		std::cout<<"\npositionRatio: "<<positionRatio;
+
+			    /// Set life-time
+                lifeTime[i] = maxLifeTime * (rand()&1001+1) * 0.001f;
+                if (i%10 >= 7){
+                    lifeTime[i] *= 0.1f;
+                }
+				else if (i%10 >= 5){
+					lifeTime[i] *= 0.5f;
+				}
+				lifeTime[i] *= emissionRatio;
+				
+				
+				/* Old stuff from Exhaust
 				float positionRatio = ((float)toSpawn) / toSpawnThisFrameTotal;
 				positionRatio = rand() % 100 * 0.01f;
                 positions[i] = positionRatio * newPosition + (1 - positionRatio) * previousPosition;
@@ -79,7 +140,7 @@ void Exhaust::Process(float timeInSeconds)
                 velocity.Normalize();
                 velocity *= sideVelocityRange * (rand()%101) * 0.01f;
                 velocity.z = primaryVelocity * (rand()%81 + 20) * 0.01f;
-                velocity = rotationMatrix.Product(velocity);
+                velocity = rotationMatrix.product(velocity);
 				velocity *= emissionVelocity;
 				/// Add vehicle velocity to total velocity.
 			//	velocity = relativeTo->Velocity() * 0.5f;
@@ -94,11 +155,12 @@ void Exhaust::Process(float timeInSeconds)
 					lifeTime[i] *= 0.5f;
 				}
 				lifeTime[i] *= emissionRatio;
-				lifeDuration[i] = 0;
+				*/
+        		lifeDuration[i] = 0;
                 colors[i] = color;
                 --toSpawn;
                 ++spawnedThisFrame;
-            }
+		    }
         }
 		/// Move alive particles
 		positions[i] += velocities[i] * timeInSeconds;
@@ -109,7 +171,7 @@ void Exhaust::Process(float timeInSeconds)
 	previousDirection = newDirection;
 }
 
-void Exhaust::Render()
+void Sparks::Render()
 {
     /// Based on the optimization level, will probably be pow(0.5, optimizationLevel);
     optimizationLevel = pow(0.5f, graphicsState.optimizationLevel);
@@ -157,12 +219,12 @@ void Exhaust::Render()
 		leftBase = graphicsState.camera->LeftVector() * particleSize;
 		upBase = graphicsState.camera->UpVector() * particleSize;
 		glBegin(GL_QUADS);
-		float optimizedAlpha = 1 / optimizationLevel;
+		float optimizedAlpha = 1 / optimizationLevel + 2.f;
 		for (int i = 0; i < particlesToProcess; ++i){
 			if (lifeDuration[i] >= lifeTime[i])
 				continue;
 			glColor4f(colors[i].x, colors[i].y, colors[i].z, 0.75f * optimizedAlpha * colors[i].w * 0.8f * pow((1.0f - lifeDuration[i] / lifeTime[i]), 4));
-			float sizeRatio = pow(lifeDuration[i]+1.0f, 3.0f);
+			float sizeRatio = pow(lifeDuration[i]+1.0f, 2.0f);
 		//	if (lifeDuration[i] > 1.0f)
 		//		sizeRatio = pow(5.0f, lifeDuration[i]-1.0f);
 			left = leftBase * sizeRatio;
@@ -187,10 +249,11 @@ void Exhaust::Render()
 	}
 }
 
-void Exhaust::PrintData(){
+void Sparks::PrintData(){
 }
 
 
-void Exhaust::AttachTo(Entity * entity, Matrix4f relativePosition){
+void Sparks::AttachTo(Entity * entity, Matrix4f relativePosition)
+{
 	assert(false);
 }

@@ -128,11 +128,11 @@ public:
 	/** Product with Matrix
 		Postcondition: Returns the product of the matrices without directly modifying them.
 	*/
-	Matrix4f product(const Matrix4f matrix) const;
+	Matrix4f Product(const Matrix4f matrix) const;
 	/** Product with Vector
 		Postcondition: Returns the product of the matrix and vector without directly modifying them.
 	*/
-	Vector4f product(const Vector4f vector) const;
+	Vector4f Product(const Vector4f vector) const;
 	/** Product with Matrix
 		Postcondition: Returns the product of the matrices without directly modifying them.
 	*/

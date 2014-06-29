@@ -13,6 +13,11 @@
 #include "Message/Message.h"
 #include <sstream>
 
+#include "File/File.h"
+#include "Random/Random.h"
+
+Random random;
+
 RuneBattleAction::RuneBattleAction() 
 : BattleAction()
 {
@@ -52,6 +57,8 @@ void RuneBattleAction::Nullify()
 {
 	primaryTarget = NULL;
 	primarySubject = NULL;
+
+	spellPower = 0;
 }
 
 RuneBattleAction::~RuneBattleAction()
@@ -62,8 +69,24 @@ RuneBattleAction::~RuneBattleAction()
 /// Based on the one in BattleAction?
 bool RuneBattleAction::Load(String fromFile)
 {
-	// Copy paste and edit from base one.. or just use base one for now..
-	return BattleAction::Load(fromFile);
+	/// First load basic stuff.
+	bool ok = BattleAction::Load(fromFile);
+	/// Then load specific stuff for runeRPG in it.
+	List<String> lines = File::GetLines(fromFile);
+	for (int i = 0; i < lines.Size(); ++i)
+	{
+		String line = lines[i];
+		if (line.Contains("//"))
+			continue;
+		List<String> tokens = line.Tokenize(" \t");
+		if (tokens.Size() < 2)
+			continue;
+		String key = tokens[0], value = tokens[1];
+		key.SetComparisonMode(String::NOT_CASE_SENSITIVE);
+		if (key.Contains("SpellPower"))
+			this->spellPower = value.ParseFloat();
+	}
+	return ok;
 }
 
 
@@ -158,13 +181,15 @@ void RuneBattleAction::EvaluateLine(String line)
     else if (s.Contains("Damage("))
 	{
          }
-    else if (s.Contains("Initiative("))
+    else if (s.Contains("Initiative(") ||
+		s.Contains("ActionPoints("))
 	{
         String s2 = s.Tokenize("()")[1];
         int v = s2.ParseInt();
 
         for (int p = 0; p < subjects.Size(); ++p){
-            subjects[p]->initiative += v;
+//            subjects[p]->initiative += v;
+			subjects[p]->actionPoints -= v;
         }
     }
 }
@@ -195,35 +220,52 @@ void RuneBattleAction::PhysicalDamage(String line)
 			relAcc = args[1].ParseFloat();
 	}
 
-	/// See if it hits at all.
-	/// Re-seed the randomizer.
-	srand(Timer::GetCurrentTimeMs());
-	int hitProbability = (0.95f + (primarySubject->agility - primaryTarget->agility) * 0.01f) * 100.0f;
+	/**
+		Base damage = floor ( (Weapon damage * 5 + attack power * 2)^1.7 
+			/ (Armor rating * 2 + defense power)^1.7 
+			* (1.0 + (attack power / defense power)^0.5 ) )
+	*/
+	RuneBattler * subject = primarySubject;
+	RuneBattler * target = primaryTarget;
+	float rawAttack = pow(subject->WeaponDamage() * 5.f + subject->AttackPower() * 2.f, 1.7f);
+	float rawArmor = pow(target->ArmorRating() * 2.f + target->DefensePower(), 1.7f);
+	float attackDefenseMultiplier = 1.0 + pow(subject->AttackPower() / target->DefensePower(), 0.5f);
+	float baseDamagef = rawAttack / rawArmor * attackDefenseMultiplier;
+	int baseDamage = int(baseDamagef);
 
-	/// Check for lucky hit/miss.
-	int lucky = rand()%1000;
-	bool luckyHit = false, luckyMiss = false;
-	bool hit = false;
-	if (lucky < 25){
-		luckyHit = true;
-		hit = true;
-		narr = "Lucky hit! ";
+	int damage = baseDamage;
+	if (target->Dodge(damage, damage))
+		narr += "Dodge! ";
+	if (damage > 0)
+	{
+		if (target->Parry(damage, damage))
+			narr += "Parry! ";
+		if (damage > 0)
+		{
+			if (target->ShieldBlock(damage, damage))
+				narr += "Block! ";
+			if (subject->Critical(damage,damage))
+				narr += "Critical! ";
+		}
 	}
-	else if (lucky < 50){
-		luckyMiss = true;
-		narr = "Lucky miss! ";
+	if (damage < 0)
+		damage = 0;
+	// Stuff.
+	for (int i = 0; i < targets.Size(); ++i)
+	{
+		died = targets[i]->PhysicalDamage(damage);
 	}
-	else {
-		hit = (rand()%100 < hitProbability);
+	// Narrate accordingly.
+	if (name == "Attack")
+		narr += primarySubject->name + " attacks " + primaryTarget->name + " for " + damage + " points of damage!";
+	else 
+	{
+		narr += primarySubject->name + " uses " + name;
+		narr += String(", dealing ") + damage + " points of damage to ";
+		if (targets.Size() == 1)
+			narr += targets[0]->name + ". ";
 	}
-	/// Calculate damage.
-	if (hit){
-		int criticalChance = 6 * relCritHitRatio;
-		bool critical = (rand()%100 < criticalChance);
-		int damage = primarySubject->weaponDamage * relWeaponDamage;
-		if (damage < 1)
-			damage = 1;
-		
+/*
 		if (critical){
 			float criticalMultiplier = 1.75f * relCritMultiplier;
 			damage *= criticalMultiplier;
@@ -251,6 +293,7 @@ void RuneBattleAction::PhysicalDamage(String line)
 		if (subjects.Size())
 			narr += subjects[0]->name + " misses! ";
 	}
+	*/
 }
 
 
@@ -273,15 +316,18 @@ void RuneBattleAction::MagicDamage(String line)
     else if (args.Size() > 1){
         damageIndex = 1;
     }
-    int damage = args[damageIndex].ParseInt();
-    if (damage < 1)
-        damage = 1;
-    for (int i = 0; i < targets.Size(); ++i){
-        died = targets[i]->MagicDamage(damage);
-    }
+
+	RuneBattler * subject = primarySubject;
+	int baseMagicDamage = this->spellPower * 1.f + pow((1 + spellPower * 0.1f) * subject->MagicPower(), 1.2f);
+	RuneBattler * target = primaryTarget;
+	float magicDamageReductionMultiplier = pow(0.99f, pow(target->MagicArmorRating() * 3 + target->DefensePower(), 0.99f));
+	int magicDamage = baseMagicDamage * magicDamageReductionMultiplier;
+	int damageReduced = magicDamage - baseMagicDamage;
+	target->Damage(magicDamage);
+
 	if (subjects.Size())
 		narr += subjects[0]->name + " casts "+name;
-	narr +=  String(", dealing ") + damage + " points of damage to ";
+	narr +=  String(", dealing ") + magicDamage + " points of damage to ";
 	if (targets.Size() == 1)
 		narr += targets[0]->name + ". ";
 	Narrate(narr);

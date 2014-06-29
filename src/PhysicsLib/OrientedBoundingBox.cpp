@@ -143,15 +143,15 @@ void OrientedBoundingBox::Recalculate(Entity * entity){
     corners[6] = Vector3f(max.x, max.y, max.z);
     corners[7] = Vector3f(min.x, max.y, max.z);
 
-	localUp = entity->rotationMatrix.product(Vector3f(0,1,0));
-	localForward = entity->rotationMatrix.product(Vector3f(0,0,-1));
-	localRight = entity->rotationMatrix.product(Vector3f(1,0,0));
+	localUp = entity->rotationMatrix.Product(Vector3f(0,1,0));
+	localForward = entity->rotationMatrix.Product(Vector3f(0,0,-1));
+	localRight = entity->rotationMatrix.Product(Vector3f(1,0,0));
 
 	Vector3f average;
     for (int i = 0; i < CORNERS; ++i){
    //     std::cout<<"\nCorner "<<i<<": "<<corners[i];
         /// Transform it.
-        corners[i] = entity->transformationMatrix.product(corners[i]);
+        corners[i] = entity->transformationMatrix.Product(corners[i]);
    //     std::cout<<" -> "<<corners[i];
 		average += corners[i];
     }

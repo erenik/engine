@@ -238,7 +238,7 @@ void Camera::Update()
 				ClampFloat(distanceMultiplier, 1.0f, 10.0f);
 				distance *= distanceMultiplier;
 			}
-			viewMatrix.translate(0, 0, distance);
+			viewMatrix.Translate(0, 0, distance);
 			
 			Vector3f rotation = Vector3f(); //
 			rotation = -entityToTrack->rotation;
@@ -253,23 +253,24 @@ void Camera::Update()
 			/// Hmm..
 //			rotationMatrix = entityToTrack->rotationMatrix;
 
-			rotationMatrix.multiply(Matrix4d().InitRotationMatrix(rotation.x, 1, 0, 0));
-			rotationMatrix.multiply(Matrix4d().InitRotationMatrix(rotation.y, 0, 1, 0));
+			rotationMatrix.Multiply(Matrix4d().InitRotationMatrix(rotation.x, 1, 0, 0));
+			rotationMatrix.Multiply(Matrix4d().InitRotationMatrix(rotation.y, 0, 1, 0));
 
-			viewMatrix.multiply(rotationMatrix);
+			viewMatrix.Multiply(rotationMatrix);
 				/*
 			viewMatrix.multiply(Matrix4d().InitRotationMatrix(-this->entityToTrack->rotation.x, 1, 0, 0));
 			viewMatrix.multiply(Matrix4d().InitRotationMatrix(-this->entityToTrack->rotation.y, 0, 1, 0));
 			*/
 		}
-		else if (trackingMode == TrackingMode::THIRD_PERSON){
+		else if (trackingMode == TrackingMode::THIRD_PERSON)
+		{
 			// First translate the camera relative to the viewing rotation-"origo"
-			viewMatrix.translate(0, 0, this->distanceFromCentreOfMovement);
+			viewMatrix.Translate(0, 0, this->distanceFromCentreOfMovement);
 
-			rotationMatrix.multiply(Matrix4d().InitRotationMatrix(this->rotation.x, 1, 0, 0));
-			rotationMatrix.multiply(Matrix4d().InitRotationMatrix(this->rotation.y, 0, 1, 0));
+			rotationMatrix.Multiply(Matrix4d().InitRotationMatrix(this->rotation.x, 1, 0, 0));
+			rotationMatrix.Multiply(Matrix4d().InitRotationMatrix(this->rotation.y, 0, 1, 0));
 
-			viewMatrix.multiply(rotationMatrix);
+			viewMatrix.Multiply(rotationMatrix);
 			/*
 			viewMatrix.multiply(Matrix4d().InitRotationMatrix(this->rotation.x, 1, 0, 0));
 			viewMatrix.multiply(Matrix4d().InitRotationMatrix(this->rotation.y, 0, 1, 0));
@@ -277,32 +278,32 @@ void Camera::Update()
 		}
 
 		// Then translate the camera to it's position. (i.e. translate the world until camera is at a good position).
-		Matrix4d translationMatrix = Matrix4d().translate(-this->entityToTrack->position - relativePosition);
-		viewMatrix.multiply(translationMatrix);
+		Matrix4d translationMatrix = Matrix4d().Translate(-this->entityToTrack->position - relativePosition);
+		viewMatrix.Multiply(translationMatrix);
 		/// If from behind, adjust it slightly afterward too!
 		if (trackingMode == TrackingMode::FROM_BEHIND){
-			viewMatrix.multiply(Matrix4d::InitTranslationMatrix(Vector3f(0, elevation, 0)));
+			viewMatrix.Multiply(Matrix4d::InitTranslationMatrix(Vector3f(0, elevation, 0)));
 		}
 	}
 	/// Regular free-fly camera
 	else {
 		// Move camera before before main scenegraph rendering begins
 		// First translate the camera relative to the viewing rotation-"origo"
-		viewMatrix.translate(0, 0, this->distanceFromCentreOfMovement);
+		viewMatrix.Translate(0, 0, this->distanceFromCentreOfMovement);
 		/*
 		// Rotate it
 		viewMatrix.multiply(Matrix4d().InitRotationMatrix(this->rotation.x, 1, 0, 0));
 		viewMatrix.multiply(Matrix4d().InitRotationMatrix(this->rotation.y, 0, 1, 0));
 		*/
-		rotationMatrix.multiply(Matrix4d().InitRotationMatrix(this->rotation.x, 1, 0, 0));
-		rotationMatrix.multiply(Matrix4d().InitRotationMatrix(this->rotation.y, 0, 1, 0));
+		rotationMatrix.Multiply(Matrix4d().InitRotationMatrix(this->rotation.x, 1, 0, 0));
+		rotationMatrix.Multiply(Matrix4d().InitRotationMatrix(this->rotation.y, 0, 1, 0));
 
-		viewMatrix.multiply(rotationMatrix);
+		viewMatrix.Multiply(rotationMatrix);
 
 
 		// Then translate the camera to it's position. (i.e. translate the world until camera is at a good position).
-		Matrix4d translationMatrix = Matrix4d().translate(this->position + relativePosition);
-		viewMatrix.multiply(translationMatrix);
+		Matrix4d translationMatrix = Matrix4d().Translate(this->position + relativePosition);
+		viewMatrix.Multiply(translationMatrix);
 	}
 
 
@@ -332,9 +333,9 @@ void Camera::Update()
 	leftVector.Normalize3();
 */
 	/// Extract global coordinates
-	leftVector = rotationMatrix.InvertedCopy().product(Vector4f(-1,0,0,1)).NormalizedCopy();
-	lookingAtVector = rotationMatrix.InvertedCopy().product(Vector4f(0,0,-1,1)).NormalizedCopy();
-	upVector = rotationMatrix.InvertedCopy().product(Vector4f(0,1,0,1)).NormalizedCopy();
+	leftVector = rotationMatrix.InvertedCopy().Product(Vector4f(-1,0,0,1)).NormalizedCopy();
+	lookingAtVector = rotationMatrix.InvertedCopy().Product(Vector4f(0,0,-1,1)).NormalizedCopy();
+	upVector = rotationMatrix.InvertedCopy().Product(Vector4f(0,1,0,1)).NormalizedCopy();
 
 
 	// Update frustum

@@ -951,8 +951,8 @@ void GraphicsManager::UpdateLighting()
 			continue;
 
 		assert(owner);
-		light->spotDirection = owner->rotationMatrix.product(light->relativeSpotDirection);
-		light->position = owner->transformationMatrix.product(light->relativePosition);
+		light->spotDirection = owner->rotationMatrix.Product(light->relativeSpotDirection);
+		light->position = owner->transformationMatrix.Product(light->relativePosition);
 		
 		// Add the dynamic light to be rendered.
 		lightingToRender->Add(light);

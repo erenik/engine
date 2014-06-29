@@ -4,23 +4,13 @@
 #ifndef PARTICLE_SYSTEM_H
 #define PARTICLE_SYSTEM_H
 
-class Mesh;
 struct GraphicsState;
 class Entity;
 class Texture;
 
-#include "MathLib.h"
+#include "ParticleEmitter.h"
 #include <String/AEString.h>
 
-class Emitter {
-public:
-    Emitter(Mesh * mesh);
-    Emitter(int shape);
-    bool GetNewParticle(Vector3f & position);
-private:
-    int shapeType;
-    Mesh * m;
-};
 
 class ParticleSystem {
 	friend class GraphicsManager;
@@ -36,6 +26,10 @@ public:
     virtual void PauseEmission();
     virtual void ResumeEmission();
     virtual void SetColor(Vector4f color);
+
+	/// Sets the emitter to be a contour. Default before calling this is a point or a plane.
+	virtual void SetEmitter(Contour contour);
+	virtual void SetEmitter(List<ParticleEmitter*> newEmitters);
 
 	/// Name & type
 	String type;
@@ -80,7 +74,7 @@ protected:
     Vector4f * colors;
 
     // For getting new spawn positions
-    Emitter * emitter;
+    List<ParticleEmitter*> emitters;
 
 private:
 	bool registeredForRendering;

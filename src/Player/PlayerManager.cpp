@@ -123,7 +123,7 @@ int PlayerManager::AddPlayer(Player * p){
 		networkPlayers.Add(p);
 	}
 	players.Add(p);
-	return players.GetIndex(p);
+	return players.GetIndexOf(p);
 }
 
 /// True if successful

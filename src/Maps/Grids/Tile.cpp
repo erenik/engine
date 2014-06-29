@@ -112,8 +112,10 @@ TileType::TileType(int type, String name, Vector3f color, Texture * t)
 bool Tile::IsVacant()
 {
 //	std::cout<<"\nTile::IsVacant called";
-	if (entities.Size() || !type)
+	if (entities.Size())
 		return false;
+	if (!type)
+		return true;
 	if (!type->walkability)
 		return false;
 	if (objects.Size())

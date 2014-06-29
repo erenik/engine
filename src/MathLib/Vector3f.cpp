@@ -220,8 +220,9 @@ void Vector3f::operator *= (const float &f){
 	z *= f;
 }
 /// Internal element multiplication
-void Vector3f::operator *= (const Matrix4f &mat){
-	Vector4f newVec = mat.product(Vector4f(*this));
+void Vector3f::operator *= (const Matrix4f &mat)
+{
+	Vector4f newVec = mat.Product(Vector4f(*this));
 	x = newVec.x;
 	y = newVec.y;
 	z = newVec.z;

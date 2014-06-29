@@ -143,6 +143,9 @@ private:
 
 	/// The main camera
 	Camera * camera;
+
+	/// Default true when entering the state.
+	bool paused;
 };
 
 #endif

@@ -76,7 +76,8 @@ bool AnimationSet::Load(String fromFolder)
 }
 
 
-Animation * AnimationSet::GetAnimation(String byName){
+Animation * AnimationSet::GetAnimation(String byName)
+{
 	for (int i = 0; i < animations.Size(); ++i){
 		Animation * anim = animations[i];
 	//	std::cout<<"\nAnimation "<<i<<" name: "<<anim->name;

@@ -222,7 +222,7 @@ Matrix4d Matrix4d::InitRotationMatrix(double angle, Vector3d vector){
 Matrix4d Matrix4d::InitTranslationMatrix(Vector3f translation)
 {
 	Matrix4d mat;
-	mat.translate(translation);
+	mat.Translate(translation);
 	return mat;
 }
 
@@ -394,15 +394,16 @@ Matrix4d Matrix4d::InvertedCopy() const {
 // ************************************************************************//
 // 3D-operations
 // ************************************************************************//
-Matrix4d Matrix4d::translate(double x, double y, double z){
+Matrix4d Matrix4d::Translate(double x, double y, double z)
+{
 	element[12] += x;
 	element[13] += y;
 	element[14] += z;
 	Matrix4d mx = Matrix4d(element);
 	return mx;
 }
-
-Matrix4d Matrix4d::translate(Vector3d vec){
+Matrix4d Matrix4d::Translate(Vector3d vec)
+{
 	element[12] += vec.GetX();
 	element[13] += vec.GetY();
 	element[14] += vec.GetZ();
@@ -464,7 +465,8 @@ void Matrix4d::getContents(double * arr){
 /** Direct multiplication
 	Postcondition: Multiplies the provided matrix into the left one and returns a copy of the current one.
 */
-Matrix4d Matrix4d::multiply(const Matrix4d matrix){
+Matrix4d Matrix4d::Multiply(const Matrix4d matrix)
+{
 	double newArray[16];
 	double tempResult;
 	for (int y = 0; y < 4; y++){	// Rows
@@ -483,7 +485,8 @@ Matrix4d Matrix4d::multiply(const Matrix4d matrix){
 }
 
 /** Product with Matrix */
-Matrix4d Matrix4d::product(const Matrix4d factor) const {
+Matrix4d Matrix4d::Product(const Matrix4d factor) const 
+{
 	double newArray[16];
 	double tempResult;
 	for (int y = 0; y < 4; y++){	// Rows
@@ -500,7 +503,8 @@ Matrix4d Matrix4d::product(const Matrix4d factor) const {
 }
 
 /** Product with Vector */
-Vector4d Matrix4d::product(Vector4d vector) const {
+Vector4d Matrix4d::Product(Vector4d vector) const 
+{
 	double newArray[4];
 	double tempResult;
 	for (int y = 0; y < 4; y++){	// Rows
@@ -513,7 +517,8 @@ Vector4d Matrix4d::product(Vector4d vector) const {
 	return Vector4d(newArray);
 }
 
-Vector4f Matrix4d::product(Vector4f vector) const {
+Vector4f Matrix4d::Product(Vector4f vector) const 
+{
 	float newArray[4];
 	float tempResult;
 	for (int y = 0; y < 4; y++){	// Rows

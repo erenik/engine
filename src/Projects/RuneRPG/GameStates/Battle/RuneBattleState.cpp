@@ -76,6 +76,7 @@ RuneBattleState::RuneBattleState()
 	navMesh = NULL;
 	battleGrid = NULL;
 	selectedBattleAction = NULL;
+	paused = false;
 }
 
 RuneBattleState::~RuneBattleState()
@@ -92,6 +93,7 @@ void RuneBattleState::CreateUserInterface(){
 
 void RuneBattleState::OnEnter(GameState * previousState)
 {
+	paused = false;
 	// Load initial texture and set it to render over everything else
 	Graphics.QueueMessage(new GMSetOverlay("img/loadingData.png", 100));
 
@@ -278,7 +280,8 @@ void RuneBattleState::ResetInitiative()
     List<Battler*> battlers = BattleMan.GetBattlers();
     for (int i = 0; i < battlers.Size(); ++i){
         RuneBattler * b = (RuneBattler*)battlers[i];
-        b->initiative = 1500 + rand()%10000;
+		b->actionPoints = rand() % 25;
+ //       b->initiative = 1500 + rand()%10000;
     }
 }
 
@@ -338,7 +341,7 @@ void RuneBattleState::CreatePartyUI()
 		UIElement * initiative = new UIElement();
 		initiative->name = rb->name+"Ini";
 		initiative->textColor = textColor;
-		initiative->text = "Ini: "+String::ToString(rb->initiative);
+		initiative->text = "Ini: "+String::ToString(rb->actionPoints);
 		initiative->sizeRatioX = 0.2f;
 		ui->AddChild(initiative);
 
@@ -372,8 +375,13 @@ void RuneBattleState::Process(int timeInMs)
 	/// Process key input for navigating the 3D - Space
 	Sleep(10);
  
+	if (paused)
+		return;
 	/// 
 	UIElement * targetWindow = this->ui->GetElementByName("TargetsMenu");
+	// When reloading UI just wait.
+	if (!targetWindow)
+		return;
 	bool targetWindowOpen = targetWindow->IsVisible();
 
 	// Control target-rendering using some entities, yes? Might be good to keep it away from old GL stuff... should improve animation of them as well!
@@ -386,6 +394,7 @@ void RuneBattleState::Process(int timeInMs)
 				// Create entities for handling this target-rendering...
 				Entity * entity = MapMan.CreateEntity(ModelMan.GetModel("obj/3DPointer.obj"), TexMan.GetTexture("Grey"));
 				pointerEntities.Add(entity);
+				Physics.QueueMessage(new PMSetEntity(SET_SCALE, entity, 0.5f));
 			} 
 			RuneBattler * targetBattler = targetBattlers[i];
 			Entity * battlerEntity = targetBattler->entity;
@@ -393,7 +402,7 @@ void RuneBattleState::Process(int timeInMs)
 				continue;
 			Entity * pointerEntity = pointerEntities[i];
 			// Reveal the targetting arrows and move them info place.
-			Physics.QueueMessage(new PMSetEntity(POSITION, pointerEntities[i], battlerEntity->position + Vector3f(0,1,0)));
+			Physics.QueueMessage(new PMSetEntity(POSITION, pointerEntities[i], battlerEntity->position + Vector3f(0,battlerEntity->scale.y,0)));
 			Graphics.QueueMessage(new GMSetEntityb(pointerEntity, VISIBILITY, true));
 		}
 	}
@@ -416,10 +425,12 @@ void RuneBattleState::Process(int timeInMs)
 
     for (int i = 0; i < battlers.Size(); ++i){
         RuneBattler * b = (RuneBattler*)battlers[i];
-        str += "\nBattler"+STRINT(i)+": "+b->name+" Initiative: " + STRINT(b->initiative);
+		int actionPoints = b->ActionPoints();
+		String strAP = STRINT(actionPoints);
+		str += "\nBattler"+STRINT(i)+": "+b->name+" Initiative: " + strAP;
 		if (!b->isEnemy)
 		{
-			Graphics.QueueMessage(new GMSetUIs(b->name+"Ini", GMUI::TEXT, STRINT(b->initiative)));
+			Graphics.QueueMessage(new GMSetUIs(b->name+"Ini", GMUI::TEXT, strAP));
 		}
 	}
 	
@@ -561,6 +572,10 @@ void RuneBattleState::ProcessMessage(Message * message)
 				BattleMan.EndBattle();
 				// Reload it.
 				this->LoadBattle(this->battleSource);
+			}
+			else if (string == "PauseBattle()")
+			{
+				this->paused = !this->paused;
 			}
 			else if (string == "ReloadBattle()" ||
 				string == "PauseBattle()" ||
@@ -837,7 +852,7 @@ void RuneBattleState::SetupBattleMap()
 	MapMan.DeleteEntities();
 
 	/// Set map size..
-	mapSize = Vector2i(10,10);
+	mapSize = Vector2i(10,5);
 
 	// Set a background image or something for the time being..?
 	// Generate tile grid and stuff to render it?
@@ -912,7 +927,12 @@ void RuneBattleState::PlaceBattlers()
 			wp = GetFreeAllyPosition();
 
 		Vector3f position = wp->position;
+		position.z = 1 - position.y * 0.1f; 
 		Physics.QueueMessage(new PMSetEntity(POSITION, entity, position));
+		/// Require depth-sorting so the alpha-blending will work.
+		Graphics.QueueMessage(new GMSetEntityb(entity, REQUIRE_DEPTH_SORTING, true));
+		/// Update render-offset while at it, so that all sprites assume 0.25f of the sprite to be the bottom/center?
+		Graphics.QueueMessage(new GMSetEntityVec4f(entity, RENDER_OFFSET, Vector3f(0, 0.75f, 0)));
 		wp->entity = entity;
 	}
 }
@@ -929,9 +949,9 @@ void RuneBattleState::SetupCamera()
 	camera->Nullify();
 	camera->projectionType = Camera::ORTHOGONAL;
 	camera->rotation = Vector3f();
-	camera->position = Vector3f(-mapSize.x * 0.5, -mapSize.y * 0.5, -20.f);
+	camera->position = Vector3f(-mapSize.x * 0.5, -mapSize.y * 0.5 + 1.f, -20.f);
 	/// Somehow calculate appropriate zoom...
-	camera->zoom = 10.f;
+	camera->zoom = 5.f;
 	camera->distanceFromCentreOfMovement = -10.f;
 }
 
