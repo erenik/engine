@@ -3,37 +3,47 @@
 /// Computer Vision Imaging application main state/settings files.
 
 #include "IPM.h"
+#include "IDSCamera.h"
 #include "StateManager.h"
+
 #include "Graphics/Messages/GraphicsMessages.h"
 #include "Graphics/Messages/GraphicsMessage.h"
 #include "Graphics/Messages/GMCamera.h"
 #include "Graphics/GraphicsManager.h"
 #include "Graphics/Messages/GMSet.h"
-#include "TextureManager.h"
-#include "Maps/MapManager.h"
-#include "ModelManager.h"
-#include "Input/Keys.h"
-#include "Message/Message.h"
 #include "Graphics/Messages/GMSetEntity.h"
+#include "Graphics/Messages/GMUI.h"
+#include "Graphics/GraphicsProperty.h"
+#include "Graphics/FrameStatistics.h"
+
+#include "Audio/AudioManager.h"
+
+#include "Message/Message.h"
+#include "Message/VectorMessage.h"
+#include "Message/FileEvent.h"
+#include "Message/MessageManager.h"
+
 #include "Physics/PhysicsManager.h"
 #include "Physics/Messages/PhysicsMessage.h"
-#include "Graphics/Messages/GMUI.h"
-#include "Message/VectorMessage.h"
-#include "Input/InputManager.h"
-#include "Graphics/FrameStatistics.h"
+
+#include "Maps/MapManager.h"
+
 #include "UI/UIButtons.h"
 #include "UI/UIList.h"
 #include "UI/UIInput.h"
 #include "UI/UIFileBrowser.h"
-#include "Message/FileEvent.h"
+
+
+#include "TextureManager.h"
+#include "ModelManager.h"
+#include "Input/Keys.h"
+#include "Input/InputManager.h"
 #include <fstream>
 #include "Window/WindowManager.h"
 #include "Viewport.h"
 #include "File/File.h"
-#include "Message/MessageManager.h"
-#include "Graphics/GraphicsProperty.h"
 #include "Script/ScriptManager.h"
-#include "CV/CVRenderFilters.h"
+#include "CV/RenderFilters/CVRenderFilters.h"
 #include "File/FileUtil.h"
 
 /// CV Includes
@@ -51,24 +61,25 @@
 // To get Sleep
 #include "OS/Sleep.h"
 
-#define CAM_Z -5
+#define CAM_Z -1000.f
 
 // Initial/default texture.
 String initialTexture = "img/logo.png";
 
 void RegisterStates()
 {
-	StateMan.RegisterState(new CVIState());
+	StateMan.RegisterState(new IPMState());
 	StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_EDITOR));
 }
 
-CVIState::CVIState()
+IPMState::IPMState()
 {
     name = "Main CVI State";
 //	keyPressedCallback = true;
 	id = GameStateID::GAME_STATE_EDITOR;
-	textureEntity = NULL;
-	texture = NULL;
+	cvPipelineOutputEntity = NULL;
+	imageTexture = NULL;
+	cvPipelineOutputTexture = NULL;
 	blurSize = 3;
 	cannyThresholdLow = 10;
 	cornerHarrisBlockSize = 5;
@@ -85,6 +96,8 @@ CVIState::CVIState()
 	syncEntity = NULL;
 	frameEntity = NULL;
 
+	idsCamera = NULL;
+
 	pipelineMutex.Create("CVPipelineMutex");
 
 	// Create filter names in order to use the filter constructors.
@@ -100,17 +113,24 @@ CVIState::CVIState()
 	timePerImage = 50;
 
 	cviCamera = projectionCamera = NULL;
+
+	paused = false;
 }
 
-CVIState::~CVIState()
+IPMState::~IPMState()
 {
-
+	if (idsCamera)
+		delete idsCamera;
 	delete pipeline;
 }
 
 /// Function when entering this state, providing a pointer to the previous StateMan.
-void CVIState::OnEnter(GameState * previousState)
+void IPMState::OnEnter(GameState * previousState)
 {
+	// Set master volume to 1.0
+	AudioMan.QueueMessage(new AMSet(MASTER_VOLUME, 1.f));
+//	AudioMan.SetMasterVolume(1.f);
+
 	if (!cviCamera)
 		cviCamera = CameraMan.NewCamera();
 	if (!projectionCamera)
@@ -127,9 +147,9 @@ void CVIState::OnEnter(GameState * previousState)
 	SetEditMode(0);
 
 	// Create display entity 
-	if (!textureEntity)
+	if (!cvPipelineOutputEntity)
 	{
-		textureEntity = MapMan.CreateEntity(ModelMan.GetModel("Sprite.obj"), TexMan.GetTexture(initialTexture));
+		cvPipelineOutputEntity = MapMan.CreateEntity("CVPipelineOutput", ModelMan.GetModel("Sprite.obj"), TexMan.GetTexture(initialTexture));
 		ToggleRenderPipelineTextureOnProjection();
 	}
 
@@ -147,8 +167,6 @@ void CVIState::OnEnter(GameState * previousState)
 	Graphics.QueueMessage(new GMSetCamera(cviCamera));
 	
 	cviCamera->AdjustProjectionMatrixToWindow(MainWindow());
-
-	ExtractLines();
 
 	Viewport * mainViewport = MainWindow()->MainViewport();
 	mainViewport->renderGrid = false;
@@ -209,7 +227,7 @@ bool Same(cv::Mat & one, cv::Mat & two)
 }
 
 /// Main processing function, using provided time since last frame.
-void CVIState::Process(int timeInMs)
+void IPMState::Process(int timeInMs)
 {
 	/// If projection window is up, print debug stats of it and its rendering onto the sync page
 	if (projectionWindow)
@@ -231,12 +249,20 @@ void CVIState::Process(int timeInMs)
 			return;
 		default:
 			Sleep(10);
+			if (paused)
+				return;
 	}
 
 	bool newFrameGotten = false;
 	/// Fetch new data for all interactive input-modes.
 	switch(inputMode)
 	{
+		case CVInput::IDS_CAMERA: 
+		{
+			idsCamera->GetNextFrame(cvOriginalImage);
+			newFrameGotten = true;
+			break;
+		}
 		case CVInput::WEBCAM:
 		{
 			// Grab camera if not done already
@@ -261,7 +287,7 @@ void CVIState::Process(int timeInMs)
 			static cv::Mat lastFrame;
 			cvImage.copyTo(lastFrame);
 #endif
-			cap >> cvImage;
+			cap >> cvOriginalImage;
 			// Compare them
 #ifdef PROFILE_FPS
 			//... stuff.
@@ -305,32 +331,8 @@ void CVIState::Process(int timeInMs)
 			// No new image, is paused.
 			else
 				break;
-			// ciiiiircularrr
-			if (imageSeriesIndex > filesInImageSeries.Size())
-				imageSeriesIndex = 0;
-			else if (imageSeriesIndex < 0)
-				imageSeriesIndex = 0;
-			if (!filesInImageSeries.Size())
-			{
-				std::cout<<"NO FILSE IN IAMGE AEKOWRKASLERIOES;";
-				return;
-			}
-			/// Check if it's already loaded.
-			if (imageSeriesImages.Size() > imageSeriesIndex)
-			{
-				cv::Mat & frame = imageSeriesImages[imageSeriesIndex];
-				frame.copyTo(cvImage); 
-				// Just use it!
-				newFrameGotten = true;
-				break;
-			}
-			/// Grab the current index
-			String source = imageSeriesDir + "/" + filesInImageSeries[imageSeriesIndex];
-			// Load it
-			cv::Mat image = cv::imread(source.c_str());
-			imageSeriesImages.Add(image);
-			image.copyTo(cvImage);
-			newFrameGotten = true;
+		
+			newFrameGotten = this->UpdateInputImage();
 			break;
 		}
 	}
@@ -338,6 +340,18 @@ void CVIState::Process(int timeInMs)
 	/// Check if we got a new frame before doing more processing.
 	if (newFrameGotten)
 	{
+		// Calculate FPS when we get a new frame.
+		framesPassed++;
+		this->cvOriginalImage.copyTo(cvImage);
+		static int64 pastSecond = 0;
+		int64 currentSecond = Timer::GetCurrentTime();
+		if (currentSecond != pastSecond)
+		{
+			pastSecond = currentSecond;
+			this->inputFPS = framesPassed;
+			this->framesPassed = 0;
+		}
+
 		/// If pipeline is selected/active, process it on the image!
 		if (true){
 			/// Do note that ProcessPipeline will automatically set up rendering and update the texture, which is why we don't call it here.
@@ -350,11 +364,12 @@ void CVIState::Process(int timeInMs)
 		}
 	}
 	/// Display FPS
-	Graphics.QueueMessage(new GMSetUIs("FPS", GMUI::TEXT, "FPS: "+String::ToString((int)FrameStats.FPS())));
+	Graphics.QueueMessage(new GMSetUIf("RenderFPS", GMUI::FLOAT_INPUT, FrameStats.FPS()));
+	Graphics.QueueMessage(new GMSetUIf("InputFPS", GMUI::FLOAT_INPUT, inputFPS));
 }
 
 /// Function when leaving this state, providing a pointer to the next StateMan.
-void CVIState::OnExit(GameState * nextState)
+void IPMState::OnExit(GameState * nextState)
 {
 	// Remove UI.
 	Graphics.QueueMessage(new GMSetUI(NULL));
@@ -362,15 +377,25 @@ void CVIState::OnExit(GameState * nextState)
 
 
 /// Callback function that will be triggered via the MessageManager when messages are processed.
-void CVIState::ProcessMessage(Message * message)
+void IPMState::ProcessMessage(Message * message)
 {
+
+	if (pipeline)
+		pipeline->ProcessMessage(message);
+			
+
 	String msg = message->msg;
 	switch(message->type)
 	{
 		case MessageType::FILE_EVENT:
 		{
 			FileEvent * fe = (FileEvent*) message;
-			if (msg == "SavePipelineConfig")
+			if (msg == "PasteFiles")
+			{
+				// Handle as drag-n-drop.
+				HandleDADFiles(fe->files);
+			}
+			else if (msg == "SavePipelineConfig")
 			{
 				String fileName = fe->files[0];
 				std::fstream file;
@@ -394,26 +419,7 @@ void CVIState::ProcessMessage(Message * message)
 				Graphics.QueueMessage(new GMPopUI("FilterEditor", ui));
 
 				String fileName = fe->files[0];
-				std::fstream file;
-				file.open(fileName.c_str(), std::ios_base::in | std::ios_base::binary);
-				if (file.is_open()){
-					pipelineMutex.Claim(-1);
-					bool success = pipeline->ReadFrom(file);
-					pipelineMutex.Release();
-					if (!success){
-						file.close();
-						OnPipelineUpdated();
-						Log ("Error loading file: "+pipeline->GetLastError());
-						return;
-					}
-					else 
-						Log("Pipeline configuration loaded from file: "+fileName);
-				}
-				else {
-					Log("Unable to open file: "+fileName);
-				}
-				file.close();
-				OnPipelineUpdated();
+				LoadPipelineConfig(fileName);
 			}
 			break;
 		}
@@ -427,12 +433,27 @@ void CVIState::ProcessMessage(Message * message)
 				assert(setting && "Setting not found. You missed something while coding");
 				if (!setting)
 					return;
-				setting->sValue = ssm->value;
+				setting->SetString(ssm->value);
 				TestPipeline();
 			}
 			else if (msg.Contains("SetImageSeriesDirectory"))
 			{
 				SetImageSeriesDirectory(ssm->value);
+			}
+			break;	
+		}
+		case MessageType::VECTOR_MESSAGE:
+		{
+			VectorMessage * vm = (VectorMessage*) message;
+			if (msg.Contains("SetVector:"))
+			{
+				String settingName = msg.Tokenize(":")[1];
+				CVFilterSetting * setting = currentEditFilter->GetSetting(settingName);
+				assert(setting && "Setting not found. You missed something while coding");
+				if (!setting)
+					return;
+				setting->SetVec3f(vm->vec3f);
+				TestPipeline();
 			}
 			break;	
 		}
@@ -457,12 +478,19 @@ void CVIState::ProcessMessage(Message * message)
 				assert(setting && "Setting not found. You missed something while coding");
 				if (!setting)
 					return;
-				setting->iValue = im->value;
+				setting->SetInt(im->value);
 				TestPipeline();
 			}
 			else if (msg.Contains("ImageSeriesFrame"))
 			{
 				imageSeriesIndex = im->value;
+				/// Update input using the new index.
+				UpdateInputImage();
+				cvOriginalImage.copyTo(cvImage);
+				if (this->imageSeriesPaused)
+				{
+					ProcessPipeline();
+				}
 			}
 			else if (msg.Contains("ImageSeriesDurationPerFrame"))
 			{
@@ -480,8 +508,16 @@ void CVIState::ProcessMessage(Message * message)
 				assert(setting && "Setting not found. You missed something while coding");
 				if (!setting)
 					return;
-				setting->fValue = fm->value;
+				setting->SetFloat(fm->value);
 				TestPipeline();
+			}
+			else if (msg == "SetSubsamplingFactor")
+			{
+				SetSubsamplingFactor(fm->value);
+			}
+			else if (msg == "SetExposureTimeMs")
+			{
+				SetExposureTime(fm->value);
 			}
 			// For manual testing
 			else if (msg == "SetBlurSize")
@@ -508,16 +544,69 @@ void CVIState::ProcessMessage(Message * message)
 		case MessageType::STRING: 
 		{
 			if (false){}
-
+			else if (msg.Contains("SetSubsamplingFactor("))
+			{
+				SetSubsamplingFactor(msg.Tokenize("()")[1].ParseFloat());
+			}
+			else if (msg.Contains("SetExposureTime("))
+			{
+				SetExposureTime(msg.Tokenize("()")[1].ParseFloat());
+			}
 			/// Image series!
 			else if (msg.Contains("SetImageSeriesDirectory("))
 			{
 				String dir = msg.Tokenize("()")[1];
 				SetImageSeriesDirectory(dir);
 			}
+			else if (msg == "IDSCamera")
+			{
+				if (!idsCamera)
+				{
+					idsCamera = new IDSCamera();
+					bool ok = idsCamera->Initialize();
+					if (!ok)
+					{
+						delete idsCamera;
+						idsCamera = NULL;
+					}
+				}
+				/// Success! Set it as input mode 0.o
+				if (idsCamera)
+				{
+					this->inputMode = CVInput::IDS_CAMERA;
+				}
+			}
+			else if (msg == "Pause")
+			{
+				this->paused = !this->paused;
+			}
+			else if (msg == "Next")
+			{
+				if (this->inputMode == CVInput::IMAGE_SERIES)
+				{
+					if (paused)
+					{
+						this->imageSeriesIndex++;
+						this->UpdateInputImage();
+						this->TestPipeline();
+					}
+				}
+			}
+			else if (msg == "Previous")
+			{
+				if (this->inputMode == CVInput::IMAGE_SERIES)
+				{
+					if (paused)
+					{
+						this->imageSeriesIndex--;
+						this->UpdateInputImage();
+						this->TestPipeline();
+					}
+				}
+			}
 			else if (msg == "PauseImageSeries")
 			{
-				imageSeriesPaused = !imageSeriesPaused;
+				paused = !paused;
 			}
 			// Window management
 			else if (msg.Contains("CreateDedicatedOutputWindow"))
@@ -526,6 +615,11 @@ void CVIState::ProcessMessage(Message * message)
 				// Bring to front?
 				projectionWindow->Show();
 				projectionWindow->BringToTop();
+				if (this->cvPipelineOutputEntity)
+				{
+					// Add it to be filtered straight away!
+					Graphics.QueueMessage(new GMSetEntity(cvPipelineOutputEntity, CAMERA_FILTER, projectionCamera));
+				}
 			}
 			else if (msg == "ToggleRenderOntoEditor")
 			{
@@ -647,7 +741,7 @@ void CVIState::ProcessMessage(Message * message)
 				assert(setting && "Setting not found. You missed something while coding");
 				if (!setting)
 					return;
-				setting->bValue = true;
+				setting->SetBool(true);
 				TestPipeline();
 			}
 			else if (msg.Contains("SetBool:"))
@@ -658,7 +752,7 @@ void CVIState::ProcessMessage(Message * message)
 				assert(setting && "Setting not found. You missed something while coding");
 				if (!setting)
 					return;
-				setting->bValue = message->element->toggled;
+				setting->SetBool(message->element->toggled);
 				TestPipeline();
 			}
 			else if (msg == "ManualTest")
@@ -702,7 +796,7 @@ void CVIState::ProcessMessage(Message * message)
 			{
 				String indexString = msg.Tokenize(":")[1];
 				int index = indexString.ParseInt();
-				CVFilter * filter = pipeline->filters[index];
+				CVFilter * filter = pipeline->Filters()[index];
 				filter->SetEnabled(!filter->enabled);
 				// Clear times in pipeline too.
 				pipeline->totalProcessingTimes.ClearAndDelete();
@@ -746,9 +840,9 @@ void CVIState::ProcessMessage(Message * message)
 				{
 					pipelineMutex.Claim(-1);
 					if (append)
-						pipeline->filters.Add(newFilter);
+						pipeline->AppendFilter(newFilter);
 					else
-						pipeline->filters.Add(newFilter, 0);
+						pipeline->InsertFilter(newFilter, 0);
 					pipelineMutex.Release();
 					OnPipelineUpdated();
 				}
@@ -761,7 +855,7 @@ void CVIState::ProcessMessage(Message * message)
 				if (index < 1)
 					return;
 				pipelineMutex.Claim(-1);
-				pipeline->filters.Swap(index, index-1);
+				pipeline->Swap(index, index-1);
 				pipelineMutex.Release();
 				OnPipelineUpdated();
 			}
@@ -770,10 +864,10 @@ void CVIState::ProcessMessage(Message * message)
 				/// Get index after the colon.
 				String indexString = msg.Tokenize(":")[1];
 				int index = indexString.ParseInt();
-				if (index >= pipeline->filters.Size() - 1)
+				if (index >= pipeline->NumFilters() - 1)
 					return;
 				pipelineMutex.Claim(-1);
-				pipeline->filters.Swap(index, index+1);
+				pipeline->Swap(index, index+1);
 				pipelineMutex.Release();
 				OnPipelineUpdated();
 			}
@@ -803,7 +897,8 @@ void CVIState::ProcessMessage(Message * message)
 			else if (msg == "ClearFilters")
 			{
 				pipelineMutex.Claim(-1);
-				pipeline->filters.ClearAndDelete();
+				// Clears and calls OnDelete for each individual filter to properly remove their contents.
+				pipeline->Clear();
 				pipelineMutex.Release();
 				OnPipelineUpdated();
 				// Hide the UI for the filter editor.
@@ -824,11 +919,16 @@ void CVIState::ProcessMessage(Message * message)
 				SetInput(CVInput::TEXTURE);
 				// Load initial texture
 				LoadImage(initialTexture);
-				OnCVImageUpdated();
+			}
+			else if (msg.Contains("LoadImage("))
+			{
+				String image = msg.Tokenize("()")[1];
+				LoadImage(image);
 			}
 			/// Test and standard stuff below.
 			else if (msg == "OnReloadUI")
 			{
+				cvImage.copyTo(cvOriginalImage);
 				SetEditMode(currentMode);
 				OnPipelineUpdated();
 			}
@@ -885,7 +985,7 @@ void CVIState::ProcessMessage(Message * message)
 		return;
 }
 
-void CVIState::PrintProcessingTimes()
+void IPMState::PrintProcessingTimes()
 {
 	pipeline->PrintProcessingTime();
 
@@ -904,8 +1004,25 @@ void CVIState::PrintProcessingTimes()
 	*/
 }
 
+/// Set subsampling factor of current camera.
+void IPMState::SetSubsamplingFactor(float value)
+{
+	if (!idsCamera)
+		return;
+	idsCamera->SetSubsamplingLevel(value);
+}
+
+/// Sets exposure time of current camera
+void IPMState::SetExposureTime(float value)
+{
+	if (!idsCamera)
+		return;
+	idsCamera->SetExposure(value);
+}
+
+
 /// Tests the pipeline, reloading base/original image.
-void CVIState::TestPipeline()
+void IPMState::TestPipeline()
 {
 	/// Check what input is active. If we have a dynamic input the pipeline will be tested automatically each frame, making this call unnecessary.
 	if (inputAutoplay == true )
@@ -913,10 +1030,15 @@ void CVIState::TestPipeline()
 		switch(inputMode)
 		{
 			case CVInput::IMAGE_SERIES:
+			{
 				if (imageSeriesPaused)
 					break;
+			}
 			case CVInput::WEBCAM:
-				return;
+			case CVInput::IDS_CAMERA:
+				// Use the last gotten frame just.
+				if (!paused)
+					return;
 		}
 	}
 	Log("Testing pipeline...");
@@ -932,21 +1054,26 @@ void CVIState::TestPipeline()
 /** Function to handle custom actions defined per state.
 	This function is called by the various bindings that the state defines.
 */
-void CVIState::InputProcessor(int action, int inputDevice /*= 0*/)
+void IPMState::InputProcessor(int action, int inputDevice /*= 0*/)
 {
 
 }
 
 /// Creates default key-bindings for the state.
-void CVIState::CreateDefaultBindings()
+void IPMState::CreateDefaultBindings()
 {
 	InputMapping * im = &this->inputMapping;
 	
-	im->CreateBinding("Print Processing time", KEY::P);
+	im->CreateBinding("Print Processing time", KEY::P, KEY::T);
 
 	/// Save!
 	im->CreateBinding("Save", KEY::CTRL, KEY::S);
 	im->CreateBinding("Load", KEY::CTRL, KEY::L);
+
+
+	im->CreateBinding("Next", KEY::N);
+	im->CreateBinding("Previous", KEY::P);
+	im->CreateBinding("Pause", KEY::PAUSE_BREAK);
 
 	CreateCameraBindings();
 
@@ -954,7 +1081,7 @@ void CVIState::CreateDefaultBindings()
 }
 
 /// Reset/center camera
-void CVIState::ResetCamera(Camera * camera)
+void IPMState::ResetCamera(Camera * camera)
 {
 	camera->projectionType = Camera::ORTHOGONAL;
 	camera->rotation = Vector3f();
@@ -964,10 +1091,13 @@ void CVIState::ResetCamera(Camera * camera)
 	camera->position = Vector3f(0, 0, CAM_Z);
 	camera->flySpeed = 100.f;
 
+	if (camera == projectionCamera)
+		ResetProjectionCamera();
+
 }
 
 /// Creates input-bindings for camera navigation.
-void CVIState::CreateCameraBindings()
+void IPMState::CreateCameraBindings()
 {
 	inputMapping.CreateBinding("Up", KEY::W)->stringStopAction = "StopUp";
 	inputMapping.CreateBinding("Down", KEY::S)->stringStopAction = "StopDown";
@@ -988,7 +1118,7 @@ void CVIState::CreateCameraBindings()
 }
 
 /// Call this in the ProcessMessage() if you want the base state to handle camera movement! Returns true if the message was indeed a camera-related message.
-bool CVIState::HandleCameraMessages(String message)
+bool IPMState::HandleCameraMessages(String message)
 {
 	Window * window = WindowMan.GetCurrentlyActiveWindow();
 	if (!window)
@@ -1045,7 +1175,7 @@ bool CVIState::HandleCameraMessages(String message)
 
 
 /// Creates the user interface for this state
-void CVIState::CreateUserInterface()
+void IPMState::CreateUserInterface()
 {
 	std::cout<<"\nState::CreateUserInterface called for "<<name;
 	if (ui)
@@ -1055,29 +1185,40 @@ void CVIState::CreateUserInterface()
 }
 
 /// For handling drag-and-drop files.
-void CVIState::HandleDADFiles(List<String> & files)
+void IPMState::HandleDADFiles(List<String> & files)
 {
-	if (files.Size())
+	for (int i = 0; i < files.Size(); ++i)
 	{
-		// Switch to texture mode
-		SetInput(CVInput::TEXTURE);
-		// Check if image
 		String fileName = files[0];
-		if (!fileName.Contains(".png"))
+		if (fileName.Contains(".png"))
+		{
+			// Switch to texture mode
+			SetInput(CVInput::TEXTURE);
+			// If so, load it into the editor.
+			LoadImage(fileName);
+			OnCVImageUpdated();
+			TestPipeline();
 			return;
-		// If so, load it into the editor.
-		LoadImage(fileName);
-		OnCVImageUpdated();
-		TestPipeline();
+		}
+		else if (fileName.Contains(".pcfg"))
+		{
+			// Load it.
+			this->LoadPipelineConfig(fileName);
+			return;
+		}
+		else if (fileName.Contains(".lighting"))
+		{
+			Graphics.ActiveLighting()->LoadFrom(fileName);
+		}
+		
 	}	
 }
 
 
 /// For rendering what we have identified in the target image.
-void CVIState::Render(GraphicsState & graphicsState)
+void IPMState::Render(GraphicsState * graphicsState)
 {
 	// lalll
-
 }
 
 
@@ -1092,7 +1233,7 @@ bool TextureToCVMat(Texture * texture, cv::Mat * mat)
 		for (int x = 0; x < mat->cols; ++x)
 		{
 			
-			Vector4f pixel = texture->GetPixel(x,y);
+			Vector4f pixel = texture->GetPixel(x, mat->rows - y - 1);
 			/// Pixel start index.
 			int psi = (mat->step * y) + (x * channels) * bytesPerChannel;
 			/// Depending on the step count...
@@ -1114,18 +1255,44 @@ bool TextureToCVMat(Texture * texture, cv::Mat * mat)
 }
 
 
+/// Loads target pipeline config, testing it.
+void IPMState::LoadPipelineConfig(String fromFile)
+{
+	std::fstream file;
+	file.open(fromFile.c_str(), std::ios_base::in | std::ios_base::binary);
+	if (file.is_open()){
+		pipelineMutex.Claim(-1);
+		bool success = pipeline->ReadFrom(file);
+		pipelineMutex.Release();
+		if (!success){
+			file.close();
+			OnPipelineUpdated();
+			Log ("Error loading file: "+pipeline->GetLastError());
+			return;
+		}
+		else 
+			Log("Pipeline configuration loaded from file: "+fromFile);
+	}
+	else {
+		Log("Unable to open file: "+fromFile);
+	}
+	file.close();
+	OnPipelineUpdated();
+}
+
+
 /// Loads target image
-void CVIState::LoadImage(String fromSource)
+void IPMState::LoadImage(String fromSource)
 {
 	Texture * newTexture = TexMan.GetTexture(fromSource);
 	if (!newTexture)
 		return;
-	texture  = newTexture;
-	Graphics.QueueMessage(new GMSetEntityTexture(textureEntity, DIFFUSE_MAP, texture));
+	imageTexture = newTexture;
+	Graphics.QueueMessage(new GMSetEntityTexture(cvPipelineOutputEntity, DIFFUSE_MAP, imageTexture));
 
 	try {
 		// Load cvOriginalImage using the loaded texture
-		TextureToCVMat(texture, &cvOriginalImage);
+		TextureToCVMat(imageTexture, &cvOriginalImage);
 	//	String sourceWithBackslashes = texture->source;
 	//	sourceWithBackslashes.Replace('/', '\\');
 	//	cvOriginalImage = cv::imread(sourceWithBackslashes.c_str());
@@ -1140,6 +1307,8 @@ void CVIState::LoadImage(String fromSource)
 		Log("Image loaded from source: "+fromSource);
 	else 
 		Log("No rows in image. Might be bad file or library error.");
+
+	OnCVImageUpdated();
 }
 
 void LoadCVMatIntoTexture(cv::Mat * mat, Texture * texture)
@@ -1234,7 +1403,7 @@ void LoadCVMatIntoTexture(cv::Mat * mat, Texture * texture)
 }
 
 /// Converts to black and white
-void CVIState::ConvertToBW()
+void IPMState::ConvertToBW()
 {	
 	if (cvImage.rows == 0)
 	{
@@ -1255,7 +1424,7 @@ void CVIState::ConvertToBW()
 	Log("Conversion done");
 }
 
-void CVIState::ScaleUp()
+void IPMState::ScaleUp()
 {	
 	/*
 	/// Don't scale up if already huge...
@@ -1278,7 +1447,7 @@ void CVIState::ScaleUp()
 	*/
 }
 
-void CVIState::ScaleDown()
+void IPMState::ScaleDown()
 {
 	/*
 	// Convert to grayscale
@@ -1299,18 +1468,22 @@ void CVIState::ScaleDown()
 
 
 /// Analyze the current/target texture to find any visible lines.
-void CVIState::ExtractLines()
+void IPMState::ExtractLines()
 {
+	assert(false);
+	/*
 	if (!texture)
 		return;
 	cv::Mat cvImage;
 	cvImage = cv::imread(texture->source.c_str(), CV_LOAD_IMAGE_COLOR);
-
+	*/
 }
 
 /// Initial test of all stuff.
-void CVIState::Test()
+void IPMState::Test()
 {
+	assert(false);
+	/*
 	cv::Mat cvImage;
 	cvImage = cv::imread(texture->source.c_str(), CV_LOAD_IMAGE_COLOR);
 	
@@ -1320,10 +1493,11 @@ void CVIState::Test()
 	
 	/// Save copy.
 	cv::imwrite( (texture->source + "gray.png").c_str(), greyscaleVersion);
+	*/
 }
 
 /// Applies gaussian blur
-void CVIState::Blur()
+void IPMState::Blur()
 {
 	/*
 	/// Blur size has to be odd, so increase it if needed by 1.
@@ -1338,7 +1512,7 @@ void CVIState::Blur()
 }
 
 /// Calculates canny edge detection
-void CVIState::CannyEdge()
+void IPMState::CannyEdge()
 {
 	// Make greyscale if not already.
 	if (cvImage.channels() > 1)
@@ -1365,11 +1539,11 @@ void CVIState::CannyEdge()
 
 //	cv::imwrite("CannyResults.png", cvResultImage);
 
-	OnCVResultImageUpdated();
+	OnCVImageUpdated();
 }
 
 /// Calculates Harris corner detection
-void CVIState::CornerHarris()
+void IPMState::CornerHarris()
 {
 	/*
 	// Make greyscale if not already.
@@ -1408,7 +1582,7 @@ void CVIState::CornerHarris()
 }
 
 /// Call to process active image in the current pipeline, displaying error messages if applicable and rendering the results. Returns -1 on error.
-int CVIState::ProcessPipeline()
+int IPMState::ProcessPipeline()
 {
 	pipelineMutex.Claim(-1);
 	int output = pipeline->Process(&cvImage);
@@ -1439,7 +1613,7 @@ int CVIState::ProcessPipeline()
 			break;
 	}
 
-	pipeline->output.copyTo(cvImage);
+	LoadCVMatIntoTexture(&pipeline->output, cvPipelineOutputTexture);
 	OnCVImageUpdated();	
 	Graphics.QueueMessage(new GMSetUIs("PipelineTimeConsumption", GMUI::TEXT, "PipelineTimeConsumption (us): "+String::ToString(pipeline->pipelineTimeConsumption)));
 		
@@ -1447,7 +1621,7 @@ int CVIState::ProcessPipeline()
 }
 
 /// Sets edit mode, 0 for Testing, 1 for editing the Pipeline and 2 for selecting input?
-void CVIState::SetEditMode(int mode)
+void IPMState::SetEditMode(int mode)
 {
 #define FILTER_SELECTION_MENU String("FilterSelectionMenu")
 
@@ -1486,14 +1660,10 @@ void CVIState::SetEditMode(int mode)
 	List<String> modeUINames = modeUIs[currentMode];
 	Graphics.QueueMessage(new GMPushUI(modeUINames[0], ui));
 	
-	/// Update ui appropriately
-	switch(mode)
-	{
-	}
 }
 
 /// See CVInput enum above.
-void CVIState::SetInput(int newInputMode)
+void IPMState::SetInput(int newInputMode)
 {
 	inputMode = newInputMode;
 	switch(inputMode)
@@ -1513,8 +1683,46 @@ void CVIState::SetInput(int newInputMode)
 	}
 }
 
+/// Updates the input image (cvImage) based on what is currently chosen as input.
+bool IPMState::UpdateInputImage()
+{
+
+	switch(this->inputMode)
+	{
+		case CVInput::IMAGE_SERIES:
+		{
+			// ciiiiircularrr
+			if (imageSeriesIndex > filesInImageSeries.Size())
+				imageSeriesIndex = 0;
+			else if (imageSeriesIndex < 0)
+				imageSeriesIndex = filesInImageSeries.Size() - 1;
+			if (!filesInImageSeries.Size())
+			{
+				std::cout<<"\nNO FILES IN IMAGE SERIES!";
+				return false;
+			}
+			/// Check if it's already loaded.
+			if (imageSeriesImages.Size() > imageSeriesIndex)
+			{
+				cv::Mat & frame = imageSeriesImages[imageSeriesIndex];
+				frame.copyTo(cvOriginalImage); 
+				return true;
+			}
+			/// Grab the current index
+			String source = imageSeriesDir + "/" + filesInImageSeries[imageSeriesIndex];
+			// Load it
+			cv::Mat image = cv::imread(source.c_str());
+			imageSeriesImages.Add(image);
+			image.copyTo(cvOriginalImage);
+			return true;
+		}
+	}
+	cvOriginalImage.copyTo(cvImage);
+}
+
+
 /// For toggling if the debug pipeline output should be rendered onto the projection viewport.
-void CVIState::ToggleRenderPipelineTextureOnProjection()
+void IPMState::ToggleRenderPipelineTextureOnProjection()
 {
 	// LALL
 	pipelineTextureRenderedOnProjection = !pipelineTextureRenderedOnProjection;
@@ -1522,24 +1730,24 @@ void CVIState::ToggleRenderPipelineTextureOnProjection()
 	if (!pipelineTextureRenderedOnProjection)
 	{
 		// Make it so that the texture entity with debug data is NOT rendered onto the projection surface!
-		Graphics.QueueMessage(new GMSetEntity(textureEntity, CAMERA_FILTER, projectionCamera));
+		Graphics.QueueMessage(new GMSetEntity(cvPipelineOutputEntity, CAMERA_FILTER, projectionCamera));
 	}
 	else 
 	{
-		Graphics.QueueMessage(new GMSetEntity(textureEntity, CLEAR_CAMERA_FILTER));
+		Graphics.QueueMessage(new GMSetEntity(cvPipelineOutputEntity, CLEAR_CAMERA_FILTER));
 	}
 }
 
 
 /// Opens menu for selecting new filter to add to the filter-pipeline.
-void CVIState::OpenFilterSelectionMenu()
+void IPMState::OpenFilterSelectionMenu()
 {
 	// Populate filters-list.
 	OnFilterSelectionFilterUpdated();
 	Graphics.QueueMessage(new GMPushUI(FILTER_SELECTION_MENU, ui));
 }
 
-void CVIState::OnFilterSelectionFilterUpdated()
+void IPMState::OnFilterSelectionFilterUpdated()
 {
 	/// Populate the list.
 	Graphics.QueueMessage(new GMClearUI("FilterSelectionList"));
@@ -1564,12 +1772,12 @@ void CVIState::OnFilterSelectionFilterUpdated()
 }
 
 /// Called every time the pipeline is changed. Generates new UI for handling it.
-void CVIState::OnPipelineUpdated()
+void IPMState::OnPipelineUpdated()
 {
 	/// Populate the list.
 	Graphics.QueueMessage(new GMClearUI("Filters"));
 	/// Add filters
-	List<CVFilter*> filterList = pipeline->filters;
+	List<CVFilter*> filterList = pipeline->Filters();
 	for (int i = 0; i < filterList.Size(); ++i)
 	{
 		CVFilter * filter = filterList[i];
@@ -1618,10 +1826,10 @@ void CVIState::OnPipelineUpdated()
 }
 
 /// When selecting a filter for editing. Opens up UI and configures it appropriately.
-void CVIState::OnFilterSelected(int index)
+void IPMState::OnFilterSelected(int index)
 {
-	assert(index >= 0 && index < pipeline->filters.Size());
-	CVFilter * filter = pipeline->filters[index];
+	assert(index >= 0 && index < pipeline->NumFilters());
+	CVFilter * filter = pipeline->Filters()[index];
 	/// Make visible the filter-editor.
 	Graphics.QueueMessage(new GMPushUI("FilterEditor", ui));
 	/// If the edit filter is the same as the current one (meaning UI has already been loaded), don't do any more.
@@ -1642,11 +1850,19 @@ void CVIState::OnFilterSelected(int index)
 		UIElement * settingUI = NULL;
 		switch(setting->type)
 		{
+			case CVSettingType::VECTOR_3F:
+			{
+				UIVectorInput * vecIn = new UIVectorInput(3, setting->name, "SetVector:"+setting->name);
+				vecIn->CreateChildren();
+				vecIn->SetValue3f(setting->GetVec3f());
+				settingUI = vecIn;
+				break;
+			}
 			case CVSettingType::STRING: 
 			{
 				UIStringInput * stringInput = new UIStringInput(setting->name, "SetString:"+setting->name);
 				stringInput->CreateChildren();
-				stringInput->input->text = setting->sValue;
+				stringInput->input->text = setting->GetString();
 				settingUI = stringInput;
 				break;
 			}
@@ -1654,7 +1870,7 @@ void CVIState::OnFilterSelected(int index)
 			{
 				UIFloatInput * floatInput = new UIFloatInput(setting->name, "SetFloat:"+setting->name);
 				floatInput->CreateChildren();
-				floatInput->SetValue(setting->fValue);
+				floatInput->SetValue(setting->GetFloat());
 				settingUI = floatInput;
 				break;
 			}
@@ -1662,7 +1878,7 @@ void CVIState::OnFilterSelected(int index)
 			{
 				UIIntegerInput * intInput = new UIIntegerInput(setting->name, "SetInteger:"+setting->name);
 				intInput->CreateChildren();
-				intInput->SetValue(setting->iValue);
+				intInput->SetValue(setting->GetInt());
 				settingUI = intInput;
 				break;
 			}
@@ -1676,7 +1892,7 @@ void CVIState::OnFilterSelected(int index)
 			case CVSettingType::BOOL:
 			{
 				UICheckBox * boolInput = new UICheckBox(setting->name);
-				boolInput->toggled = setting->bValue;
+				boolInput->toggled = setting->GetBool();
 				settingUI = boolInput;
 				break;
 			}
@@ -1720,42 +1936,44 @@ void CVIState::OnFilterSelected(int index)
 }
 
 /// Replaces log-message in the UI
-void CVIState::Log(String message)
+void IPMState::Log(String message)
 {
 	Graphics.QueueMessage(new GMSetUIs("Log", GMUI::TEXT, message));
 }
 
 
-/// Fills the native Texture-class with new data and then calls OnTextureUpdated to update visuals.
-void CVIState::OnCVImageUpdated()
+/// Called after pipeline processing is finished. Loads the cv::Mat into a native Texture (cvPipelineOutputTexture) and then calls OnTextureUpdated.
+void IPMState::OnCVImageUpdated()
 {
-	LoadCVMatIntoTexture(&cvImage, texture);
-	OnTextureUpdated();
-}
-
-/// Called after a calculation procedure is done, will display the results instead of the base image.
-void CVIState::OnCVResultImageUpdated()
-{
-	LoadCVMatIntoTexture(&cvResultImage, texture);
+//	LoadCVMatIntoTexture(&cvImage, cvPipelineOutputTexture);
 	OnTextureUpdated();
 }
 
 /// Update texture on the entity that is rendered.
-void CVIState::OnTextureUpdated()
+void IPMState::OnTextureUpdated()
 {
-	Graphics.QueueMessage(new GMSetEntityTexture(textureEntity, DIFFUSE_MAP, texture));
+	if (!cvPipelineOutputTexture)
+	{
+		cvPipelineOutputTexture = TexMan.NewDynamic();
+		cvPipelineOutputTexture->Resize(Vector2f(20,20));
+		cvPipelineOutputTexture->CreateDataBuffer();
+		cvPipelineOutputTexture->SetColor(Vector4f(1,1,1,1));
+	}
+	Graphics.QueueMessage(new GMSetEntityTexture(cvPipelineOutputEntity, DIFFUSE_MAP, cvPipelineOutputTexture));
+	if (cvPipelineOutputTexture->height <= 0)
+		return;
 	/// Scale the entity depending on the texture size? .. or just ensure the ratio is good.
-	Physics.QueueMessage(new PMSetEntity(SET_SCALE, textureEntity, Vector3f(texture->width, texture->height, 1)));
+	Physics.QueueMessage(new PMSetEntity(SET_SCALE, cvPipelineOutputEntity, Vector3f(cvPipelineOutputTexture->width, cvPipelineOutputTexture->height, 1)));
 }
 
 
-void CVIState::CreateProjectionWindow()
+void IPMState::CreateProjectionWindow()
 {
 	if (!projectionWindow){
 		projectionWindow = WindowMan.NewWindow("ProjectionWindow");
 		projectionWindow->CreateGlobalUI();
 		projectionWindow->requestedSize = Vector2i(400,300);
-		projectionWindow->requestedRelativePosition = Vector2i(-400, 0);
+//		projectionWindow->requestedRelativePosition = Vector2i(-400, 0);
 		projectionWindow->backgroundColor = Vector4f(0,0,0,1);
 		projectionWindow->Create();
 		projectionWindow->DisableAllRenders();
@@ -1766,7 +1984,7 @@ void CVIState::CreateProjectionWindow()
 	}
 }
 
-void CVIState::ProjectSynchronizationImage(String type)
+void IPMState::ProjectSynchronizationImage(String type)
 {
 	if (!projectionWindow)
 	{
@@ -1814,7 +2032,7 @@ void CVIState::ProjectSynchronizationImage(String type)
 	}
 	if (!syncEntity)
 	{
-		syncEntity = MapMan.CreateEntity(ModelMan.GetModel("Sprite"), tex);
+		syncEntity = MapMan.CreateEntity("SynchronizationImageEntity", ModelMan.GetModel("Sprite"), tex);
 	}
 	else {
 		Graphics.QueueMessage(new GMSetEntityTexture(syncEntity, DIFFUSE_MAP, tex));
@@ -1824,7 +2042,7 @@ void CVIState::ProjectSynchronizationImage(String type)
 	// Set it to not render in our main viewport.
 	Graphics.QueueMessage(new GMSetEntity(syncEntity, CAMERA_FILTER, cviCamera));
 }
-void CVIState::ExtractProjectionOutputFrame(String usingPipeline)
+void IPMState::ExtractProjectionOutputFrame(String usingPipeline)
 {
 	// Get contents out of the projection window.
 //	Texture frame;
@@ -1892,7 +2110,7 @@ void CVIState::ExtractProjectionOutputFrame(String usingPipeline)
 
 		if (!frameEntity)
 		{
-			frameEntity = MapMan.CreateEntity(ModelMan.GetModel("Sprite.obj"), TexMan.GetTexture("Blue"));
+			frameEntity = MapMan.CreateEntity("ProjectionOutputFrame", ModelMan.GetModel("Sprite.obj"), TexMan.GetTexture("Blue"));
 			// Relocate it as needed.
 		}
 		if (frameEntity)
@@ -1904,12 +2122,12 @@ void CVIState::ExtractProjectionOutputFrame(String usingPipeline)
 	// Fetch output?
 }
 
-void CVIState::ResetProjectionCamera()
+void IPMState::ResetProjectionCamera()
 {
 	projectionCamera->position = Vector3f(0,0,CAM_Z);
 	projectionCamera->zoom = 1.f;
 }
-void CVIState::AdjustProjectionCameraToFrame()
+void IPMState::AdjustProjectionCameraToFrame()
 {
 	// Set stuff in the buff.
 
@@ -1937,7 +2155,7 @@ void CVIState::AdjustProjectionCameraToFrame()
 }
 
 /// Sets dirr
-void CVIState::SetImageSeriesDirectory(String dirPath)
+void IPMState::SetImageSeriesDirectory(String dirPath)
 {
 	/// Already loaded? Skip.
 //	if (dirPath == imageSeriesDir)

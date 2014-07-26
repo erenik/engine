@@ -10,6 +10,7 @@ namespace MessageType {
 enum messageTypes{
 	NULL_TYPE,
 	STRING,
+	PASTE, // Copy-paste.
 	CONSOLE_COMMAND, // Supposed to be entered from any input or maybe console for more complex usage.
 	/// Messages sent from the UI system
 	ON_UI_ELEMENT_HOVER,
@@ -28,6 +29,11 @@ enum messageTypes{
 	/// Make room for 100 different network packets (no more than like 10 should be needed, but eh..)
 	FIRST_NETWORK_MESSAGE = 100,
 	LAST_NETWORK_MESSAGE = FIRST_NETWORK_MESSAGE + 100,
+
+	// Game-specific message numbers, enumerate as pleased. Advised to store name in the message as well.
+	CUSTOM,
+	BREAKOUT_POWERUP, // For breakout.
+	LAST_CUSTOM_MESSAGE_TYPE = CUSTOM + 100,
 };
 };
 

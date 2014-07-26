@@ -35,7 +35,8 @@ UIInput::~UIInput()
 }
 
 // When clicking/Enter pressed on keyboard.
-UIElement* UIInput::Click(float & mouseX, float & mouseY){
+UIElement * UIInput::Click(int mouseX, int mouseY)
+{
 	UIElement * e = UIElement::Click(mouseX,mouseY);
 	if (e == this){
 		BeginInput();
@@ -47,6 +48,26 @@ UIElement* UIInput::Activate(){
 	// Skip this.
 	return NULL;
 }
+
+// Used for handling things like drag-n-drop and copy-paste operations, etc. as willed.
+void UIInput::ProcessMessage(Message * message)
+{
+	switch(message->type)
+	{
+		case MessageType::PASTE:
+		{
+			PasteMessage * pm = (PasteMessage*) message;
+			String pasteText = pm->text;
+			// Insert it into wherever the caret is..?
+			editText.Paste(pasteText);
+			// Store caret position from the text, as it should be able to handle this all.
+			this->caretPosition = editText.caretPosition;
+			// Update thingy so text is updated also..
+			this->OnTextUpdated();	
+		}
+	}
+}
+
 
 /// Called once this element is no longer visible for any reason. E.g. switching game states to display another UI, or when this or a parent has been popped from the ui.
 void UIInput::OnExitScope()
@@ -74,7 +95,8 @@ int UIInput::OnKeyDown(int keyCode, bool downBefore)
 	#endif
 			break;
 		}
-		case KEY::ESCAPE:{
+		case KEY::ESCAPE:
+		{
 			std::cout<<"\nCanceling input.";
 			editText = previousText;
 			// Make inactive.
@@ -202,22 +224,23 @@ int UIInput::OnChar(int asciiCode)
 		return 0;
 	}
 	else {
-#define _DEBUG_ASCII
+		#define _DEBUG_ASCII
 		/// Ignore crap letters
 		switch(asciiCode){
-        case 0:
-		case 4:		// End of transmission, not the same as ETB
-		case 13:	// Vertical tab, whatever that is
-		case 19:	// XOFF, with XON is TERM=18 flow control
-#ifdef _DEBUG_ASCII
-	//		std::cout<<"\nSkipping crap letters.. :3";
-#endif
-			return 0;
-		default:
-#ifdef _DEBUG_ASCII
-			std::cout<<"\nAsciiCode: "<<(int)asciiCode<<" "<<asciiCode;
-#endif
-			break;
+			case 0:
+			case 4:		// End of transmission, not the same as ETB
+			case 13:	// Vertical tab, whatever that is
+			case 19:	// XOFF, with XON is TERM=18 flow control
+			case 22:	// Synchrous idle, CTRL+V, dunno..
+				#ifdef _DEBUG_ASCII
+		//		std::cout<<"\nSkipping crap letters.. :3";
+				#endif
+				return 0;
+			default:
+				#ifdef _DEBUG_ASCII
+				std::cout<<"\nAsciiCode: "<<(int)asciiCode<<" "<<asciiCode;
+				#endif
+				break;
 		}
 		/// If only accept numbers, skip all except a few ascii..
 		if (numbersOnly){
@@ -254,7 +277,8 @@ int UIInput::OnChar(int asciiCode)
 
 /// For handling text-input
 void UIInput::OnBackspace(){
-    if (caretPosition > 0){
+    if (caretPosition > 0)
+	{
         --caretPosition;	// Move back caret
         // ...and move back the rest one step
 		String first = editText.Part(0, caretPosition);
@@ -530,10 +554,12 @@ void UIIntegerInput::CreateChildren()
 }
 
 /// Getter/setter for the input element.
-int UIIntegerInput::GetValue(){
+int UIIntegerInput::GetValue()
+{
 	return input->text.ParseInt();
 }
-void UIIntegerInput::SetValue(int value){
+void UIIntegerInput::SetValue(int value)
+{
 	input->SetText(String::ToString(value));
 }
 
@@ -614,6 +640,13 @@ void UIVectorInput::SetValue2i(Vector2i vec)
 {
 	for (int i = 0; i < inputs.Size() && i < 2; ++i){
 		String s = String::ToString(vec[i]);
+		inputs[i]->SetText(s);
+	}
+}
+void UIVectorInput::SetValue3f(Vector3f vec)
+{
+	for (int i = 0; i < inputs.Size() && i < 3; ++i){
+		String s = String::ToString(vec[i], maxDecimals);
 		inputs[i]->SetText(s);
 	}
 }

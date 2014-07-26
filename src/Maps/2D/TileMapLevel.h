@@ -39,7 +39,7 @@ public:
 
 	virtual void Resize(Vector2i newSize);
 
-	virtual void Render();
+	virtual void Render(GraphicsState * graphicsState);
 	/// Returns the closest vacant & walkable tile to given coordinates.
 	Tile * GetClosestVacantTile(Vector3i position);
 	/// Returns a list of all tiles in the level.

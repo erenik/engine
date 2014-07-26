@@ -179,11 +179,26 @@ public:
 	/** Should NOT be confused with the working/client area of the window! 
 	*/
 	Vector2i OSWindowSize();
-private:
 
+	/// All below should only be touched from within the render-thread.
+	/// When true, will save the next rendered frame's contents as a screenshot to standard screenshot output directory (./output/screenshots/)
+	bool saveScreenshot;
+	/// Query to record video.
+	bool recordVideo;
+	/// Will be true when recording.
+	bool isRecording;
+	/// Frames stored while recording.
+	List<Texture*> frames;
+	/// Will dictate general framerate while recording.
+	int msBetweenFrames;
+
+	// For screenshots?
 	bool getNextFrame;
 	Texture * frameTexture;
 
+private:
+
+	
 	/// If this window is currently the top one being viewed by the user.
 	bool inFocus;
 	/// Don't render to non-created windows..

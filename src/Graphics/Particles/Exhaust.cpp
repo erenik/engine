@@ -109,10 +109,10 @@ void Exhaust::Process(float timeInSeconds)
 	previousDirection = newDirection;
 }
 
-void Exhaust::Render()
+void Exhaust::Render(GraphicsState * graphicsState)
 {
     /// Based on the optimization level, will probably be pow(0.5, optimizationLevel);
-    optimizationLevel = pow(0.5f, graphicsState.optimizationLevel);
+    optimizationLevel = pow(0.5f, graphicsState->optimizationLevel);
     if (optimizationLevel == 0)
         return;
     assert(optimizationLevel > 0);
@@ -121,9 +121,9 @@ void Exhaust::Render()
 
     glUseProgram(0);
     glMatrixMode(GL_PROJECTION);
-    glLoadMatrixf(graphicsState.projectionMatrixF.getPointer());
+    glLoadMatrixf(graphicsState->projectionMatrixF.getPointer());
     glMatrixMode(GL_MODELVIEW);
-    Matrix4f viewMatrix = graphicsState.viewMatrixF.getPointer();
+    Matrix4f viewMatrix = graphicsState->viewMatrixF.getPointer();
     Matrix4f modelMatrix;
   //  if (relativeTo)
   //      modelMatrix = relativeTo->transformationMatrix;
@@ -154,8 +154,8 @@ void Exhaust::Render()
 		glEnable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, diffuse->glid);
 		Vector3f leftBase, upBase, left, up;
-		leftBase = graphicsState.camera->LeftVector() * particleSize;
-		upBase = graphicsState.camera->UpVector() * particleSize;
+		leftBase = graphicsState->camera->LeftVector() * particleSize;
+		upBase = graphicsState->camera->UpVector() * particleSize;
 		glBegin(GL_QUADS);
 		float optimizedAlpha = 1 / optimizationLevel;
 		for (int i = 0; i < particlesToProcess; ++i){

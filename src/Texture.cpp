@@ -7,10 +7,12 @@
 #include <fstream>
 #include "File/FileUtil.h"
 #include "LodePNG/lodepng.h"
+#include <cassert>
 
 int Texture::IDenumerator = 0;
 
-Texture::Texture(){
+Texture::Texture()
+{
 	// Strings should initialize correctly as it is...
 	glid = -1;
 	data = 0;
@@ -24,22 +26,74 @@ Texture::Texture(){
 	dynamic = false;
 	mipmappingEnabled = true;
 	dataBufferSize = 0;
-	lastUpdate = Timer::GetCurrentTimeMs();
+	creationDate = lastUpdate = Timer::GetCurrentTimeMs();
+
+	fData = NULL;
+	cData = NULL;
+	data = NULL;
 }
-Texture::~Texture(){
+Texture::~Texture()
+{
 	// Deallocate the glid's here!
 	if (glid != -1){
 		glDeleteTextures(1, &glid);
 		glid = -1;
 	}
-	if (data)
+	Deallocate();
+}
+
+
+void Texture::Deallocate()
+{
+	if (cData)
+		delete[] cData;
+	if (fData)
+		delete[] fData;
+	if (cData && cData != data)
 		delete[] data;
-	data = NULL;
+	cData = data = NULL;
+	fData = NULL;
+}
+
+// Reallocate based on new size and format.
+void Texture::Reallocate()
+{
+	// Allocate.
+	int areaInPixels = size.x * size.y;
+	int channels = GetChannels();
+	int bufferSizeNeeded = areaInPixels * channels;
+	int dataType = DataType();
+
+	width = size.x;
+	height = size.y;
+
+	// Save new size.
+	dataBufferSize = bufferSizeNeeded;
+
+	if (dataType == DataType::FLOAT)
+	{
+		fData = new float[bufferSizeNeeded];
+		memset(fData, 0, sizeof(float));
+	}
+	else if (dataType == DataType::UNSIGNED_CHAR)
+	{
+		cData = new unsigned char[bufferSizeNeeded];
+		memset(cData, 0, sizeof(unsigned char));
+		data = cData;
+	}
+}
+
+// Same thing as Resize.
+void Texture::SetSize(Vector2i newSize)
+{
+	Resize(newSize);
 }
 
 /// Resets width, height and creates a new data buffer after deleting the old one.
 void Texture::Resize(Vector2i newSize)
 {
+	if (width == newSize.x && height == newSize.y)
+		return;
 	width = newSize.x;
 	height = newSize.y;
 	if (data)
@@ -133,14 +187,89 @@ Vector4f Texture::GetSampleColor(int samples /*= 4*/)
 	return colorAverage;
 }
 
+/// 0 - Unsigned char, 1 - Int, 2 - Float
+int Texture::DataType()
+{
+	switch(format)
+	{
+		case SINGLE_16F:
+		case RGB_16F:
+		case RGB_32F:
+			return DataType::FLOAT;
+		case RGB:
+		case RGBA:
+			return DataType::UNSIGNED_CHAR;
+		default:
+			assert(false);
+	}
+	return -1;
+}
+
+int Texture::NumPixels()
+{
+	return size.x * size.y;
+}
+	
+
+/// Returns amount of channels, depending on the format.
+int Texture::GetChannels()
+{
+	switch(format)
+	{
+		case SINGLE_16F:
+			return 1;
+		case RGB:
+		case RGB_16F:
+		case RGB_32F:
+			return 3;
+		case RGBA:
+			return 4;
+		default:
+			assert(false);
+	}
+	return 0;
+}
+
+
 /// Uses glGetTexImage to procure image data from GL and insert it into the data-array of the texture object.
 void Texture::LoadDataFromGL()
 {
 	std::cout<<"\nTrying to load data from GL...";
 	glBindTexture(GL_TEXTURE_2D, glid);
-	unsigned char * tmpArray = new unsigned char[this->dataBufferSize];
-	memset(tmpArray, 0, dataBufferSize);
-	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, tmpArray); 
+	
+
+	// Calculate 
+	Reallocate();
+
+	switch(format)
+	{
+		case RGB:
+		//	glReadPixels(0,0,size.x, size.y, GL_RGB, GL_UNSIGNED_BYTE, cData);
+			glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, cData); 
+			
+			break;
+		case RGBA:
+		{
+			// glReadPixels might be safer..
+		//	glReadPixels(0,0,size.x, size.y, GL_RGBA, GL_UNSIGNED_BYTE, cData);
+			glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, cData); 
+			break;
+		}
+		case SINGLE_16F:
+			//glReadPixels(0,0,size.x, size.y, GL_RED, GL_FLOAT, fData);
+			glGetTexImage(GL_TEXTURE_2D, 0, GL_RED, GL_FLOAT, fData); 
+			break;
+		case RGB_16F:
+		case RGB_32F:
+		{
+			glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, fData); 
+			break;
+		}
+		default:
+			assert(false);
+	}
+	
+	// If successful, copy it?
 }
 
 /// For debugging.
@@ -171,7 +300,7 @@ bool Texture::Bufferize()
 	queueRebufferization = false;
 	/// Don't bufferize multiple times if not special texture, pew!
 	if (glid != -1 && !dynamic){
-		std::cout<<"\nTexture \""<<source<<"\" already bufferized! Skipping.";
+//		std::cout<<"\nTexture \""<<source<<"\" already bufferized! Skipping.";
 		return false;
 	}
 
@@ -270,6 +399,35 @@ Vector4f Texture::GetPixel(int x, int y){
 	color.w = buf[psi+3] / 255.0f;
 	return color;
 }
+
+/// Sets color of target pixel. 
+void Texture::SetPixel(Vector2i location, Vector4f color, int pixelSize)
+{
+	assert(data);
+	assert(bpp >= 3 && format == Texture::RGBA);
+	unsigned char * buf = data;
+	color.Clamp(0, 1);
+	/// PixelStartIndex
+	
+	for (int y = location.y - pixelSize + 1; y < location.y + pixelSize; ++y)
+	{
+		if (y < 0 || y >= height)
+			continue;
+		for (int x = location.x - pixelSize + 1; x < location.x + pixelSize; ++x)
+		{
+			if (x < 0 || x >= width)
+				continue;
+			int psi = y * width * bpp + x * bpp;
+			buf[psi] = color.x * 255.0f;
+			buf[psi+1] = color.y * 255.0f;
+			buf[psi+2] = color.z * 255.0f;
+			if (bpp > 3)
+				buf[psi+3] = color.w * 255.0f;
+		}
+	}
+	lastUpdate = Timer::GetCurrentTimeMs();
+}
+
 
 /// Sets color of target pixel. Returns false if it is out of bounds.
 void Texture::SetPixel(int x, int y, Vector4f color)
@@ -398,7 +556,11 @@ void Texture::SetColorOfRow(int row, Vector4f color)
 /// Saves the texture in it's entirety to target file. If overwrite is false it will fail if the file already exists.
 bool Texture::Save(String toFile, bool overwrite /* = false */)
 {
-	assert(data);
+	if (!data)
+	{
+		std::cout<<"\nTexture lacking data to write!";
+		return false;
+	}
 	if (!toFile.Contains(".png"))
 		toFile += ".png";
 	if (FileExists(toFile) && !overwrite)
@@ -408,6 +570,18 @@ bool Texture::Save(String toFile, bool overwrite /* = false */)
 	std::cout<<"\nSaving texture to file \""<<toFile.c_str()<<"\"...";
 	std::vector<unsigned char> image;
 
+	/*
+	int channels = GetChannels();
+	int pixels = NumPixels();
+	for (int i = 0; i < pixels; i += 100)
+	{
+		int ppi = i * channels;
+		unsigned char alpha = cData[ppi+3];
+		if (alpha == 0)
+			continue;
+		std::cout<<"\nPixel "<<i<<": "<<(int)cData[ppi];
+	}*/
+	
 	LodePNG::Encoder encoder;
 	encoder.encode(image, this->data, width, height); //decode the png
 

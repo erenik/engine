@@ -7,7 +7,7 @@
 #include "../Entity/Entity.h"
 
 class Entity;
-struct Message;
+class Message;
 
 // Base class for States within the AI state machine. Subclass and override methods! Do not change much here!
 class AIState {

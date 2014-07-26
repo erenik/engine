@@ -3,6 +3,11 @@
 
 enum graphicsMessages {
 	GM_NULL,
+
+	// Entire pipeline configuration
+	GM_CYCLE_RENDER_PIPELINE,
+	GM_CYCLE_RENDER_PIPELINE_BACK,
+
 	// Pausing!
 	GM_PAUSE_RENDERING,
 	GM_RESUME_RENDERING,
@@ -14,6 +19,10 @@ enum graphicsMessages {
 	GM_DELETE_LIGHT,
 	GM_SET_LIGHT,
 
+	// Recording
+	GM_RECORD_VIDEO,
+	GM_PRINT_SCREENSHOT,
+	
 	// Animation
 	GM_QUEUE_ANIMATION,
 
@@ -46,7 +55,7 @@ enum graphicsMessages {
 	GM_BUFFER_UI,		// Bufferizes target UI
 	GM_RELOAD_UI,			// Reloads the active state's UI and re-bufferizes it
 	GM_RELOAD_MODELS,		// Needed in order to clear any active model bindings and gl indices before everything is reloaded!
-	GM_RECOMPILE_SHADERS,	// Recompiles all shaders. Made for debugging
+	GM_RECOMPILE_SHADERS,	// Recompiles all shaders and reloads the render configuration. Made for debugging
 
 	GM_REGISTER_ENTITY,		// Registers an entity for rendering
 	GM_REGISTER_ENTITIES,	// Registers entities in the selection for rendering.
@@ -63,9 +72,7 @@ enum graphicsMessages {
 
     GM_RENDER, // For queueing simple objects for temporary rendering, like rays.
     GM_RENDER_FRUSTUM,
-	GM_PRINT_SCREENSHOT,
-	GM_RECORD_VIDEO, // Toggles the query to start/stop recording current screen contents.
-
+	
     /// Camera control
     GM_RESET_CAMERA,
 	GM_TRACK,
@@ -77,10 +84,13 @@ enum graphicsMessages {
 	GM_RESUME_EMISSION,
 	GM_SET_PARTICLE_EMITTER,
 	GM_GENERATE_PARTICLES,
+	GM_SET_PARTICLE_SYSTEM,
 
 	// UI messages
+	GM_SET_UI_INTEGER,
 	GM_SET_UI_FLOAT,
 	GM_SET_UI_VECTOR,
+	GM_SET_UI_POINTER,
 	GM_SET_UI_VECB,
 	GM_SET_UI_VEC2I,
 	GM_SET_UI_VEC3F,
@@ -106,7 +116,8 @@ enum graphicsMessages {
 };
 
 /// Targets for some of the prior messages,
-enum graphicsTargets{
+enum graphicsTargets
+{
 	NULL_GRAPHIC_TARGET,
 
 	OVERLAY_TEXTURE,
@@ -115,7 +126,11 @@ enum graphicsTargets{
 	GRID_SIZE,
 	ACTIVE_2D_MAP_TO_RENDER,
 	MAX_GRAPHICS_TARGETS,
+
+	// Particle systems
 	PARTICLE_SYSTEMS,
+	PARTICLE_INITIAL_COLOR,
+	PARTICLE_EMISSION_VEOCITY,
 
     // General stuff
 	MAIN_CAMERA,	// To use when rendering scenes.
@@ -124,10 +139,8 @@ enum graphicsTargets{
 	FOG_END,
 
 	// Camera targets
-	CAMERA_TO_TRACK, // Setting global camera
-	RELATIVE_POSITION,
-	DISTANCE_FROM_CENTER_OF_MOVEMENT,
-	OFFSET_ROTATION,
+	CAMERA_TARGET_0,
+	CAMERA_TARGET_20 = CAMERA_TARGET_0 + 20,
 
 	// Added with SetEntity
 	REQUIRE_DEPTH_SORTING, // So rendering things work properly, specifically for sprites.

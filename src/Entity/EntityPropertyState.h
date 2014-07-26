@@ -8,7 +8,7 @@
 #include "EntityProperty.h"
 
 class Entity;
-struct Message;
+class Message;
 
 // Base class for states within an EntityProperty
 class EntityPropertyState 

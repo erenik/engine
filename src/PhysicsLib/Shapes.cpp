@@ -192,25 +192,25 @@ bool Ray::Intersect(Triangle & triangle, float * distance)
 */
 int RayPlaneIntersection(const Ray& ray, const Plane& plane, Vector3f * collissionPoint, Vector3f * collissionPointNormal, double * collissionDistance){
 	float dotProduct = ray.direction.DotProduct(plane.normal); // Dot Product Between Plane Normal And Ray Direction
-    float distanceToCollissionPoint;
+    float distanceToCollisionPoint;
 
     // Determine If Ray Parallel To Plane
     if (dotProduct < ZERO && dotProduct > -ZERO)
         return 0;
 
 	// Calculate distance to the collission point
-	distanceToCollissionPoint = (plane.normal.DotProduct(plane.position - ray.start))/dotProduct;
+	distanceToCollisionPoint = (plane.normal.DotProduct(plane.position - ray.start))/dotProduct;
 
 	// Check if the collision occurred in the opposite direction of the ray.
-    if (distanceToCollissionPoint < -ZERO)
+    if (distanceToCollisionPoint < -ZERO)
         return 0;
 
 	if (collissionPointNormal)
 		*collissionPointNormal = plane.normal;
 	if (collissionDistance)
-		*collissionDistance = distanceToCollissionPoint;
+		*collissionDistance = distanceToCollisionPoint;
 	if (collissionPoint)
-		*collissionPoint = Vector3f(ray.direction * distanceToCollissionPoint + ray.start);
+		*collissionPoint = Vector3f(ray.direction * distanceToCollisionPoint + ray.start);
     return 1;
 }
 

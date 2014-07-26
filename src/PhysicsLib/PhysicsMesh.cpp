@@ -1,6 +1,6 @@
 
 #include "PhysicsMesh.h"
-#include "Physics/Collission/CollisionShapeOctree.h"
+#include "Physics/Collision/CollisionShapeOctree.h"
 #include "Mesh.h"
 
 
@@ -19,7 +19,8 @@ PhysicsMesh::~PhysicsMesh(){
 };
 
 /// Generates a collission shape octree that can be used in the local-coordinate system or multiplied by matrices to be used globally.
-void PhysicsMesh::GenerateCollisionShapeOctree(){
+void PhysicsMesh::GenerateCollisionShapeOctree()
+{
 	assert(collisionShapeOctree == NULL && "Attempting to generate collission shape octree where not needed! This should only be done after loading the model.");
 	Mesh * mesh = (Mesh*)meshCounterpart;
 	assert(mesh != NULL);
@@ -38,14 +39,20 @@ void PhysicsMesh::GenerateCollisionShapeOctree(){
 		mesh->min.z - size.z * 0.1f);
 
 	// Adding triangles..
-	for (int i = 0; i < triangles.Size(); ++i){
+	for (int i = 0; i < triangles.Size(); ++i)
+	{
+		Triangle * triangle = triangles[i];
+		assert(triangle->normal.MaxPart());
 		collisionShapeOctree->AddTriangle(triangles[i]);
 	//	collisionShapeOctree->PrintContents();
 	}
+
+	
 //	collisionShapeOctree->PrintContents();
-	/// Optimize it!
+	
+	/// Optimize it! <- Does what?
 	collisionShapeOctree->Optimize();
 	std::cout<<"\nOptimizing collission shape octree by removing unused child cells.";
 //	collisionShapeOctree->PrintContents();
-	std::cout<<"\nCollission shape octree generated for mesh: "<<this->meshCounterpart->name;
+	std::cout<<"\nCollision shape octree generated for mesh: "<<this->meshCounterpart->name;
 }

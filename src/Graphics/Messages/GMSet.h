@@ -76,11 +76,13 @@ private:
 class GMSetOverlay : public GraphicsMessage {
 public:
 	// Fade-time in milliseconds.
-	GMSetOverlay(String textureName, int fadeTime = 0);
+	GMSetOverlay(String textureName, int fadeInTimeInMs = 0);
+	GMSetOverlay(Texture * tex, int fadeInTimeInMs = 0);
 	void Process();
 private:
+	Texture * tex;
 	String textureName;
-	int fadeInTime;
+	int fadeInTimeInMs;
 };
 
 

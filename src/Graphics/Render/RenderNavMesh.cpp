@@ -31,9 +31,9 @@ void SetColorForWaypoint(Waypoint * wp)
 		color += Vector4f(2.0f,0,0,0.7f);
 	}
 	/// If in selection, highlight
-	if (Graphics.renderSettings->selectedWaypoints.Exists(wp)){
-		color += Vector4f(0.2, 0.2f, 0, 0.2f);
-	}
+//	if (Graphics.graphicsState->selectedWaypoints.Exists(wp)){
+	//	color += Vector4f(0.2, 0.2f, 0, 0.2f);
+//	}
 	glColor4f(color.x,color.y,color.z,color.w);
 }
 
@@ -54,13 +54,13 @@ void GraphicsManager::RenderNavMesh()
 		
 	/// Draw a line-strip too, using default renderer!
 	int waypointRendered = 0;
-	SetShaderProgram(0);
+	ShadeMan.SetActiveShader(NULL);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glLoadMatrixf(graphicsState.projectionMatrixF.getPointer());
+	glLoadMatrixf(graphicsState->projectionMatrixF.getPointer());
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	glLoadMatrixf(graphicsState.viewMatrixF.getPointer());
+	glLoadMatrixf(graphicsState->viewMatrixF.getPointer());
 
 	// Enable blending
 	glEnable(GL_BLEND);	
@@ -68,7 +68,7 @@ void GraphicsManager::RenderNavMesh()
 	float z = -4;
 	glDisable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, 0);
-	graphicsState.currentTexture = NULL;
+	graphicsState->currentTexture = NULL;
 	glLineWidth(2.0f);
 	glPointSize(3.0f);
 
@@ -104,9 +104,11 @@ void GraphicsManager::RenderNavMesh()
 	}
 
 	/// Renders paths
-	if (true){
+	if (true)
+	{
+
 		glDisable(GL_DEPTH_TEST);
-		Path & path = renderSettings->pathToRender;
+		Path & path = graphicsState->pathToRender;
 		glBegin(GL_LINE_STRIP);
 		for (int i = 0; i < path.Waypoints(); ++i){
 			Waypoint * wp = path.GetWaypoint(i);
@@ -148,7 +150,7 @@ void GraphicsManager::RenderPath(){
 	glDisable(GL_DEPTH_TEST);
 	
 	/// Set shader prugrum!
-	SetShaderProgram("Wireframe");
+	ShadeMan.SetActiveShader("Wireframe");
 
 	int waypoints = path.Waypoints();
 	float waypointRendered = 0;
@@ -158,7 +160,7 @@ void GraphicsManager::RenderPath(){
 			std::cout<<"\nWARNING: Waypoint is NULL for some reason o.O";
 		}
 		/// Passable
-		glUniform4f(graphicsState.activeShader->uniformPrimaryColorVec4, 
+		glUniform4f(graphicsState->activeShader->uniformPrimaryColorVec4, 
 			0.4f + waypointRendered / waypoints, 
 			1.0f + waypointRendered / waypoints, 
 			0.4f + waypointRendered / waypoints, 
@@ -171,19 +173,19 @@ void GraphicsManager::RenderPath(){
 		transform.Translate(wp->position);
 		transform.Translate(0, 1.0f, 0);
 		/// Set uniform matrix in shader to point to the GameState modelView matrix.
- 		glUniformMatrix4fv(graphicsState.activeShader->uniformModelMatrix, 1, false, transform.getPointer());
+ 		glUniformMatrix4fv(graphicsState->activeShader->uniformModelMatrix, 1, false, transform.getPointer());
 		// Render if we got a model ^^
-		model->triangulizedMesh->Render();
+		model->GetTriangulatedMesh()->Render();
 	}
 	/// Draw a line-strip too, using default renderer!
 	waypointRendered = 0;
-	SetShaderProgram(0);
+	ShadeMan.SetActiveShader(NULL);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glLoadMatrixf(graphicsState.projectionMatrixF.getPointer());
+	glLoadMatrixf(graphicsState->projectionMatrixF.getPointer());
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	glLoadMatrixf(graphicsState.viewMatrixF.getPointer());
+	glLoadMatrixf(graphicsState->viewMatrixF.getPointer());
 
 	// Enable blending
 	glEnable(GL_BLEND);	
@@ -191,7 +193,7 @@ void GraphicsManager::RenderPath(){
 	float z = -4;
 	glDisable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, 0);
-	graphicsState.currentTexture = NULL;
+	graphicsState->currentTexture = NULL;
 	glLineWidth(2.0f);
 
 	glBegin(GL_LINE_STRIP);

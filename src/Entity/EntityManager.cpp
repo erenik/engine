@@ -33,13 +33,16 @@ EntityManager::~EntityManager(){
 };
 
 /// Creates entity using specified model and base texture
-Entity * EntityManager::CreateEntity(Model * model, Texture * texture){
+Entity * EntityManager::CreateEntity(String name, Model * model, Texture * texture)
+{
 	Entity * newEntity = NULL;
 	/// Check for model
-	if (model == NULL || (model && !model->Name())){
+/*	if (model == NULL || (model && !model->Name())){
 		std::cout<<"\nNo valid model was supplied. Aborting creation. ";
 		return NULL;
 	}
+	*/
+
 	// Check for texture
 /*	if (texture->name == NULL){
 		texture = Model::GetDefaultTexture();
@@ -61,21 +64,21 @@ Entity * EntityManager::CreateEntity(Model * model, Texture * texture){
 		int result = DeleteUnusedEntities();
 		if (result){
 			std::cout<<"\n"<<result<<" entities successfully freed/deleted! Attempting to re-add entity again.";
-			return CreateEntity(model, texture);
+			return CreateEntity(name, model, texture);
 		}
 		return NULL;
 	}
 	// Copy over name since none was supplied...
-	newEntity->SetName(model->Name());
+	newEntity->SetName(name);
 	newEntity->SetModel(model);
-	newEntity->radius = model->radius;
 	newEntity->SetTexture(DIFFUSE_MAP | SPECULAR_MAP, texture);
 	newEntity->id = this->idCounter++;
 
 	return newEntity;
 }
 
-bool EntityManager::DeleteEntity(Entity * entity){
+bool EntityManager::DeleteEntity(Entity * entity)
+{
 	if (entity == NULL){
 		std::cout<<"\nERROR: Null entity";
 		return false;
@@ -88,7 +91,8 @@ bool EntityManager::DeleteEntity(Entity * entity){
 
 
 /** Deletes (resets IDs) of all entities that have been flagged for deletion and are not registered anywhere still. */
-int EntityManager::DeleteUnusedEntities(){
+int EntityManager::DeleteUnusedEntities()
+{
 	int deletedEntities = 0;
 	for (int i = 0; i < MAX_ENTITIES; ++i){
 		/// Only process those that have been flagged.

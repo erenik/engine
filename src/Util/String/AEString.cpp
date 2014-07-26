@@ -201,6 +201,8 @@ String::operator const wchar_t * () const {
 	assert(type == WIDE_CHAR && "Convert to wide-char before using it, yo.");
 	return warr;
 }
+
+/*
 String::operator const bool () const {
 	switch(type){
 		case CHAR:
@@ -215,7 +217,7 @@ String::operator const bool () const {
 			assert("Bad type in String::operator const bool()");
 	}
 	return false;
-}
+}*/
 
 // Static Parsing functions
 String String::ToString(const int value){
@@ -225,8 +227,30 @@ String String::ToString(const int value){
     if (!success)
         std::cout << "Util::ToString(const int) failed";
     return String(buf);
-
 }
+
+// Uses the format 0xNNNN where the number of digits (N) beyond x varies with the most significant bits of the given value.
+String String::ToHexString(const int initialValue)
+{
+	int value = initialValue;
+	String str;
+	for (int i = 0; i < 8; ++i)
+	{
+		int fourBitValue = value % 16;
+		String c;
+		if (fourBitValue < 10)
+			c = '0' + fourBitValue;
+		else
+			c = 'A' + fourBitValue - 10;
+		str = c + str;
+		value = value >> 4;
+	}
+	// Prepend 0x
+	str = "0x" + str;
+	return str;
+}
+	
+
 String String::ToString(const float value, int decimalsAfterZero /* = -1*/){
 	char buf[50];
     int success;
@@ -676,8 +700,10 @@ bool String::Remove(const String & subString, bool all /*= false*/){
 }
 
 /// Concatenates strings
-void String::Add(const String & otherString){
-
+void String::Add(const String & otherString)
+{
+	if (this->Length() == 0 && otherString.Length() == 0)
+		return;
 	this->Reallocate(Length() + otherString.Length() + 1);
 	switch(this->type){
 		case CHAR:
@@ -1003,7 +1029,7 @@ List<String> String::GetLines() const
             }
 			memset(buf, 0, BUFFER_SIZE);
 
-
+			/*
             if (list.Size() >= 30000){
                 std::cout<<"\nReturning "<<list.Size()<<" lines.";
                 for (int i = 0; i < list.Size(); ++i){
@@ -1012,6 +1038,7 @@ List<String> String::GetLines() const
                 }
                 return list;
             }
+			*/
 
 
         }
@@ -1037,7 +1064,8 @@ void String::ToUpper(){
 }
 
 /// Returns the string as a char array pointer.
-const char * String::c_str(){
+const char * String::c_str()
+{
 	if (type == WIDE_CHAR){
 		// Convert
 		if (arr)
@@ -1129,6 +1157,13 @@ int String::Length() const {
 	}
 	return 0;
 }
+
+/// Current allocation size of the array. May be used in order to access e.g. the null-character for special parsers.
+int String::ArraySize() const 
+{
+	return arraySize;
+}
+
 
 /// Removes all whitespace characters up until first non-whitespace character.
 int String::RemoveInitialWhitespaces(){

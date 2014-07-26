@@ -39,8 +39,8 @@ bool AxisAlignedBoundingBox::Intersect(const AxisAlignedBoundingBox &aabb2) cons
 }
 
 /// Recalculate the AABBs constraints based on the given entity using it.
-void AxisAlignedBoundingBox::Recalculate(Entity * entity){
-
+void AxisAlignedBoundingBox::Recalculate(Entity * entity)
+{
     Vector3f bounds[8];
     /// Reset min and max depending on the base AABB.
     min = entity->model->aabb.min;

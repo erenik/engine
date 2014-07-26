@@ -1,6 +1,6 @@
-
-
-
+/// Emil Hedemalm
+/// 2014-07-02
+/// Random stuff here.
 
 // Global definitions, constants and enumerations.
 
@@ -34,11 +34,13 @@ using std::stringstream;
 // File I/O
 #define PATH_MAX_LENGTH MAX_PATH
 /// Name handling
-#define MAX_NAME	256
+// #define MAX_NAME	256
 
 // General constant settings
-const int DEFAULT_WINDOW_WIDTH = 1024;
-const int DEFAULT_WINDOW_HEIGHT = 768;
+// const int DEFAULT_WINDOW_WIDTH = 1024;
+;
+
+//const int DEFAULT_WINDOW_HEIGHT = 768;
 const bool DEFAULT_FULL_SCREEN = false;
 
 const int TEXT_LIMIT = 240;

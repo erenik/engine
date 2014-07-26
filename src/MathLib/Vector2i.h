@@ -81,6 +81,8 @@ public:
 
 	/// Binary operator.
 	bool operator == (const Vector2i other) const;
+	/// Binary operator.
+	bool operator != (const Vector2i other) const;
 
 	// Operator overloading for the addition and subtraction operations
 	/// Returns a summed vector based on this vector and the addend.

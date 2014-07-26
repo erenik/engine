@@ -112,6 +112,8 @@ public:
 	/// Scale using a given vector
 	void Scale(const Vector3f & scalingVector);
 
+	/// Returns true if it has non-0 values in the scale diagonal (elements 0, 5 and 10)
+	bool HasValidScale();
 
 
 	// Content access

@@ -1,0 +1,43 @@
+RenderConfig
+
+Name	FixedPipelineNormals
+
+// Fixed or multi-pass.
+// If Fixed is omitted it is assumed it is a multi-pass pipeline.
+Fixed
+
+/// Specify the passes
+
+// Renders opaque entities?
+
+
+// Pass name.
+RenderPass	Entities
+
+// Specify shader to use for this render-pass.
+// Shader	Phong // Ambient, diffuse and specular shading
+// Shader	Flat // Only ambient shading
+//Shader Diffuse // Raw diffuse-map data.
+Shader Normals // World-space normals.
+
+// What to render - whose Render function to call.
+Input	Entities
+// Target output. Default will make the standard output be rendered to.
+Output	Default
+
+
+RenderAlpha
+
+
+
+
+
+
+
+
+
+
+
+
+
+

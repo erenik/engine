@@ -40,7 +40,7 @@ typedef struct CompactPhysics {
 	int collissionCallback;
 	float collissionCallbackRequirementValue;
 	bool collissionsEnabled;
-	bool noCollissionResolutions;
+	bool noCollisionResolutions;
 
 	/// Reads data from file stream
 	bool ReadFrom(std::fstream& file);

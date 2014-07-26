@@ -21,14 +21,26 @@ enum LightTypes {
 };
 
 class Entity;
+class Message;
 
 /** Struct for handling a single light source. */
-class Light{
+class Light
+{
+	friend class Lighting;
 public:
 	/// Default constructor
-	Light();
+	Light(Lighting * lighting);
 	Light(const Light & otherLight);
 	void Nullify();
+
+	/// Opens a dedicated editor window for this light. Assumes a valid LightEditor.gui is available in the UI directory.
+	void OpenEditorWindow();
+	void CloseEditorWindow();
+	// For interaction with UI as well as scripting.
+	void ProcessMessage(Message * message);
+	// Updates UI as necessary
+	void OnPropertiesUpdated();
+
 	/// Writes to file stream.
 	void WriteTo(std::fstream & file);
 	/// Reads from file stream.
@@ -79,6 +91,8 @@ public:
 	// For dynamic lights. Default false.
 	bool registeredForRendering;
 private:
+	// Lighting setup it belongs to.
+	Lighting * lighting;
 	/// Name of the light
 	String name;
 };

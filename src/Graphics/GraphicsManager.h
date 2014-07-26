@@ -17,6 +17,9 @@
 #include "VFCOctree.h"
 #include "System/DataTypes.h"
 
+// Palla inkludera överallt..
+#include "GraphicsState.h"
+
 struct RenderSettings;
 class Texture;
 class UserInterface;
@@ -28,6 +31,7 @@ class UserInterface;
 class ParticleSystem;
 class RenderRay;
 class Window;
+class RenderPipeline;
 
 #define MAX_TEXTURES	250
 
@@ -56,6 +60,7 @@ class GraphicsManager {
 	friend class GMClear;
 	friend class GMRender;
 	friend class GMAttachLight;
+	friend class RenderPass;
 //	friend class ;
 private:
 	/// Constructor which anulls all relevant variables.
@@ -173,13 +178,6 @@ public:
 	bool shouldFullScreen;
 	bool useDeferred;
 
-	/// Manager for all shader programs
-	ShaderManager shadeMan;
-
-	/// Keeps track of GL version for the client
-	int GL_VERSION_MAJOR;
-	int GL_VERSION_MINOR;
-
 	/// Camera to track for changes/updates.
 	Camera * cameraToTrack;
 	Camera * defaultCamera;
@@ -202,17 +200,16 @@ public:
 	/// CBA friending all message-functions...
 	RenderSettings * renderSettings;
 
-
-	/** Sets selected shader to be active. Prints out error information and does not set to new shader if it fails.
-		Returns the active shading program or NULL if it fails.
-		WARNING: Should only be called from a render-thread, yaow.
-	*/
-	Shader * SetShaderProgram(const char * shaderName);
-
 	/// Wooo. Font-handlin'
 	TextFont * GetFont(String byName);
 	/// Returns active map being rendered.
 	TileMap2D * ActiveTileMap2D();
+
+	/** Main state for rendering. Contains settings for pretty much everything which is not embedded in other objects.
+		Read only unless you know what you're doing (and are located within a render-thread function).
+	*/
+	GraphicsState * graphicsState;
+
 private:
     /// Wosh. For like Frustum and other custom stuff.
     List<Renderable*> renderShapes;
@@ -327,8 +324,6 @@ private:
 	/// Updates the graphicsState's lighting to include dynamic lights' new positions as well.
 	void UpdateLighting();
 
-	// Main state for rendering
-//	GraphicsState * graphicsState;
 	// Octree vfcOctree
 	VFCOctree * vfcOctree;
 	// Main frustum pointer for VFC. This should be updated to correspond to the active camera at all times.

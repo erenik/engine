@@ -101,9 +101,8 @@ bool ObjReader::ReadObj(const char * filename, Mesh * mesh)
 
 	// Allocate the necessary uvCoordinates too.
 	mesh->uvs = uvCoords;
-	mesh->u = new float[uvCoords];
-	mesh->v = new float[uvCoords];
-
+	mesh->uv = new Vector2f[uvCoords];
+	
 	// Find out how many faces are in the file.
 	mesh->faces = faces;
 	// ... allocate face array.
@@ -151,7 +150,10 @@ bool ObjReader::ReadObj(const char * filename, Mesh * mesh)
 	std::cout<<"\nParsing rows";
 
     /// Parse every row.. bettar!
-    for (int i = 0; i < lines.Size(); ++i){
+    for (int i = 0; i < lines.Size(); ++i)
+	{
+		if (i % 10000 == 0)
+			std::cout<<"\n"<<i<<" of "<<lines.Size()<<" lines parsed.";
 		String line = lines[i];
 	//	std::cout<<"\nParsing row: "<<line;
         // Split row into tokens
@@ -176,8 +178,8 @@ bool ObjReader::ReadObj(const char * filename, Mesh * mesh)
 		{
 			if (tokens.Size() < 3)
 				continue;
-            mesh->u[uvsRead] = tokens[1].ParseFloat();
-            mesh->v[uvsRead] = tokens[2].ParseFloat();
+            mesh->uv[uvsRead].x = tokens[1].ParseFloat();
+            mesh->uv[uvsRead].y = tokens[2].ParseFloat();
             ++uvsRead;
         }
         // Read in vertex normal mapping coordinates and save them

@@ -42,10 +42,10 @@ private:
 class GMSetEntityb : public GraphicsMessage 
 {
 public:
-	GMSetEntityb(Entity * entity, int target, bool value);
+	GMSetEntityb(List<Entity*> entities, int target, bool value);
 	virtual void Process();
 private:
-	Entity * entity;
+	List<Entity*> entities;
 	bool bValue;
 	int target;
 };
@@ -65,10 +65,10 @@ private:
 class GMSetEntityf : public GraphicsMessage 
 {
 public:
-	GMSetEntityf(Entity * entity, int target, float value);
+	GMSetEntityf(List<Entity*> entities, int target, float value);
 	virtual void Process();
 private:
-	Entity * entity;
+	List<Entity*> entities;
 	float fValue;
 	int target;
 };
@@ -76,10 +76,10 @@ private:
 class GMSetEntityVec4f : public GraphicsMessage 
 {
 public:
-	GMSetEntityVec4f(Entity * entity, int target, Vector4f value);
+	GMSetEntityVec4f(List<Entity*> entities, int target, Vector4f value);
 	virtual void Process();
 private:
-	Entity * entity;
+	List<Entity*> entities;
 	Vector4f vec4fValue;
 	int target;
 };

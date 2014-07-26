@@ -66,10 +66,16 @@ public:
 
 	/// Basic physics type, defined where? STATIC DYNAMIC KINEMATIC anyway.
 	int type;
-	/// Collission detection shape type
+	/// Collision detection shape type
 	int physicsShape;
 	/// Pointer to the mesh of type defined in physicsShape. (e.g. Plane, Sphere, Mesh, etc.)
 	void * shape;
+
+	/// For separating categories and filters.
+	/// 0x0000001 by default.
+	int collisionCategory;
+	/// 0x0000001 by default. is binary AND-ed to the opposing entities' category to see if a collision should occur or not.
+	int collisionFilter;
 
 	/// See state enumerations above. TODO: Consider making the state-variable below private.
 	void SetPhysicsState(int state);
@@ -151,7 +157,7 @@ public:
     Vector3f totalTorque;
     List<Force*> torques;
 
-    /// See enum CollissionStates above
+    /// See enum CollisionStates above
     int collissionState;
 	/// Owner of this property.
 	Entity * owner;
@@ -171,12 +177,22 @@ public:
 	/// LinearVelocity, v(t) = P(t) / M (= linear momentum divided by mass)
 	Vector3f velocity;
 	Vector3f acceleration;
+	/// Relative acceleration in the entity's current right/up/forward vector directions.
+	Vector3f relativeAcceleration;
+	/** Relative rotation compared to entity's current direction vectors. 
+		The speed of these rotations will vary with the entity's rate/radius of turns (ROT) (turning rate), current air speed and time.
+		Mainly used for airplanes and similar vehicles.	*/
+	Vector3f relativeRotation;
 	/// Angular velocity, ω(t), see Physically Based Modelling - David Baraff
 	/// ω(t) = I(t)^-1 * L(t)   (inverse inertia tensor times angular momentum)
     /// Direction gives the axis about which the body is spinning,
     /// quantity (length) specifies spin velocity (in revolutions per time)!
     Vector3f angularVelocity;
 	Vector3f angularAcceleration;
+
+	/// Angular velocity, may only be changed and set with CONSTANT_ANGULAR_VEOCITY
+	Vector3f constantAngularVelocity;
+
 	/// Previous values, stored on a per-need basis (like in collission detection debugging...)
 	Vector3f previousVelocity, previousAngularVelocity;
 
@@ -194,6 +210,8 @@ public:
 	float density;
 #endif
 
+	/// For special cases of floating, etc.
+	float gravityMultiplier;
 	/** Ratio at which momentum along the collission normal is contained (bounce)
 		Default: 0.15f (15% bounce velocity is retained)
 	*/
@@ -205,11 +223,11 @@ public:
 	// Rotational
 	// Quaternion + Matrices
 
-	/// Set to any value as defined in Collission.h's enum "collissionCallbackRequirements"
+	/// Set to any value as defined in Collision.h's enum "collissionCallbackRequirements"
 	int collissionCallback;
 	float collissionCallbackRequirementValue;
 	/// Flagging this will make all collissions resolve as if there had been no collission at all. Should be coupled with the collissionCallback variable.
-	bool noCollissionResolutions;
+	bool noCollisionResolutions;
 	/// For enabling custom (probably network-)based estimation. The Estimator* will then be checked and should be non-NULL.
 	bool estimationEnabled;
 	EntityPhysicsEstimator * estimator; 

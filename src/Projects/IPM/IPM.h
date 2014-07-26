@@ -1,6 +1,7 @@
 /// Emil Hedemalm
 /// 2014-03-27
-/// Computer Vision Imaging application main state/settings files.
+/// Interactive Projection Mapping project.
+/// Computer Vision Imaging application (old name).
 
 #include "GameStates/GameState.h"
 #include "Graphics/Camera/Camera.h"
@@ -12,23 +13,26 @@
 
 #define PIPELINE_CONFIG_FILE_ENDING	".pcfg"
 
+class IDSCamera;
+
 namespace CVInput
 {
 	enum 
 	{
 		WEBCAM,
 		IMAGE_SERIES,
+		IDS_CAMERA,		
 		TEXTURE,
 	};
 };
 
-class CVIState : public GameState 
+class IPMState : public GameState 
 {
 public:
 	/// Constructor
-	CVIState();
+	IPMState();
 	/// Virtual destructor to discard everything appropriately.
-	virtual ~CVIState();
+	virtual ~IPMState();
 	/// Function when entering this state, providing a pointer to the previous StateMan.
 	virtual void OnEnter(GameState * previousState);
 	/// Main processing function, using provided time since last frame.
@@ -40,6 +44,12 @@ public:
 	virtual void ProcessMessage(Message * message);
 
 	void PrintProcessingTimes();
+
+	/// Set subsampling factor of current camera.
+	void SetSubsamplingFactor(float value);
+	/// Sets exposure time of current camera
+	void SetExposureTime(float value);
+
 	/// Tests the pipeline, reloading base/original image.
 	void TestPipeline();
 
@@ -64,8 +74,10 @@ public:
 	virtual void HandleDADFiles(List<String> & files);
 
 	/// For rendering what we have identified in the target image.
-	virtual void Render(GraphicsState & graphicsState);
+	virtual void Render(GraphicsState * graphicsState);
 
+	/// Loads target pipeline config, testing it.
+	void LoadPipelineConfig(String fromFile);
 	/// Loads target image
 	void LoadImage(String fromSource);
 	/// Converts to black and white
@@ -98,6 +110,9 @@ public:
 	/// See CVInput enum above.
 	void SetInput(int newInputMode);
 private:
+
+	/// Updates the input image (cvImage) based on what is currently chosen as input. Returns true if a valid image was set.
+	bool UpdateInputImage();
 	
 	/// Left, top, right, bottom?
 	Vector4f projectionFrameInInput;
@@ -181,11 +196,9 @@ private:
 	/// Replaces log-message in the UI
 	void Log(String message);
 
-	/// Fills the native Texture-class with new data and then calls OnTextureUpdated to update visuals.
+	/// Called after pipeline processing is finished. Loads the cv::Mat into a native Texture (cvPipelineOutputTexture) and then calls OnTextureUpdated.
 	void OnCVImageUpdated();
-	/// Called after a calculation procedure is done, will display the results instead of the base image.
-	void OnCVResultImageUpdated();
-
+	
 	/// Update texture on the entity that is rendered.
 	void OnTextureUpdated();
 
@@ -202,11 +215,24 @@ private:
 	Camera * projectionCamera;
 
 	/// Entity to display the texture in 3D-space
-	Entity * textureEntity;
-	/// Active texture we're manipulating.
-	Texture * texture;
+	Entity * cvPipelineOutputEntity;
+	
+	/// Active texture loaded from file.
+	Texture * imageTexture;
+	Texture * cvPipelineOutputTexture;
 
 	/// Dedicated output window to be used with a projector
 	Window * projectionWindow;
+
+	/// Class for handling the Infra-red camera provided by IDS.
+	IDSCamera * idsCamera;
+
+
+	/// FPS on the input. Note that this will vary with the main processing loop/function's delay as well!
+	float inputFPS;
+	int framesPassed;
+
+	// Default false when entering. Toggle with pause/break button.
+	bool paused;
 };
 

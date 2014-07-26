@@ -85,7 +85,7 @@ public:
 	void FormatElements();
 
 	/// Rendering
-	virtual void Render();
+	virtual void Render(GraphicsState * graphicsState);
 
 	/// Called to ensure visibility of target element.
 	virtual void EnsureVisibility(UIElement * element);
@@ -97,7 +97,7 @@ protected:
 
 private:
 
-    virtual void RenderChildren();
+    virtual void RenderChildren(GraphicsState * graphicsState);
 
 	/// Total contents size
 	float contentsSize;

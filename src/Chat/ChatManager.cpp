@@ -50,7 +50,8 @@ List<ChatMessage*> ChatManager::GetMessages() {
     };
 };
 /// See ChatMessage.h for types.
-List<ChatMessage*> ChatManager::GetMessages(int byType){
+List<ChatMessage*> ChatManager::GetMessages(int byType)
+{
     List<ChatMessage*> m;
     for (int i = 0; i < messages.Size(); ++i){
         ChatMessage * cm = messages[i];

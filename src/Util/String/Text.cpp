@@ -35,3 +35,23 @@ Text::Text(const wchar_t * string)
 {
 	Nullify();
 }
+
+/// Pastes text into this text. How it will behave depends on the caret positions.
+void Text::Paste(String text)
+{
+	// Just add it for now..
+	if (caretPosition == -1 || caretPosition >= this->Length())
+	{
+		this->Add(text);
+		caretPosition = this->Length();
+	}
+	else {
+		// Divide it.
+		int caret = caretPosition;
+		String firstPart = this->Part(0, caretPosition);
+		String secondPart = this->Part(caretPosition, Length());
+		*this = firstPart + text + secondPart;
+		caretPosition = caret + text.Length();
+	}
+}
+

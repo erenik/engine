@@ -269,7 +269,7 @@ static int collissionsTested = 0;
 
 /// Compare each dynamic entity with every other entity in it's current vfcOctree node,
 /// all nodes below it as well the direct parents above it.
-int PhysicsOctree::FindCollissions(Entity * targetEntity, List<Collission> & collissionList, int entrySubdivisionLevel){
+int PhysicsOctree::FindCollisions(Entity * targetEntity, List<Collision> & collissionList, int entrySubdivisionLevel){
 	if (entrySubdivisionLevel == -1)
 		entrySubdivisionLevel = this->subdivision;
 
@@ -277,8 +277,8 @@ int PhysicsOctree::FindCollissions(Entity * targetEntity, List<Collission> & col
 	/// First it's current node:
 	for (int i = 0; i < entities.Size(); ++i){
 		Entity * e = entities[i];
-		assert(e && "Nullentity in PhysicsOctree::FindCollissions");
-		Physics.TestCollission(targetEntity, e, collissionList);
+		assert(e && "Nullentity in PhysicsOctree::FindCollisions");
+		Physics.TestCollision(targetEntity, e, collissionList);
 		++collissionsTested;
 	}
 
@@ -290,11 +290,11 @@ int PhysicsOctree::FindCollissions(Entity * targetEntity, List<Collission> & col
 			/// Do the actual culling with this continue-statement, yo!
 			if (child[i]->IsEntityInside(targetEntity) == OUTSIDE)
 				continue;
-			collissionsTested += child[i]->FindCollissions(targetEntity, collissionList, entrySubdivisionLevel);
+			collissionsTested += child[i]->FindCollisions(targetEntity, collissionList, entrySubdivisionLevel);
 		}
 		/// And at last all parents
 		if (parent && this->subdivision <= entrySubdivisionLevel)
-			collissionsTested += parent->FindCollissions(targetEntity, collissionList, entrySubdivisionLevel);
+			collissionsTested += parent->FindCollisions(targetEntity, collissionList, entrySubdivisionLevel);
 		return collissionsTested;
 	}
 	/// Process children if subdivision level is higher (further down the tree.)
@@ -305,7 +305,7 @@ int PhysicsOctree::FindCollissions(Entity * targetEntity, List<Collission> & col
 				/// Do the actual culling with this continue-statement, yo!
 				if (child[i]->IsEntityInside(targetEntity) == OUTSIDE)
 					continue;
-				collissionsTested += child[i]->FindCollissions(targetEntity, collissionList, entrySubdivisionLevel);
+				collissionsTested += child[i]->FindCollisions(targetEntity, collissionList, entrySubdivisionLevel);
 			}
 		}
 		return collissionsTested;
@@ -314,10 +314,10 @@ int PhysicsOctree::FindCollissions(Entity * targetEntity, List<Collission> & col
 	else if (this->subdivision < entrySubdivisionLevel){
 		/// Then go to next parent.
 		if (parent && this->subdivision <= entrySubdivisionLevel)
-			collissionsTested += parent->FindCollissions(targetEntity, collissionList, entrySubdivisionLevel);
+			collissionsTested += parent->FindCollisions(targetEntity, collissionList, entrySubdivisionLevel);
 		return collissionsTested;
 	}
-	assert(false && "PhysicsOctree::FindCollissions at a point where it shouldn't be!");
+	assert(false && "PhysicsOctree::FindCollisions at a point where it shouldn't be!");
 	return 0;
 }
 

@@ -10,14 +10,21 @@ Random::Random()
 	// Initialize the variables
 	// Just use current time in micro-seconds somehow?
 	int64 currentTime = Timer::GetCurrentTimeMicro();
-	x = currentTime;
-	y = currentTime >> 4;
-	z = currentTime >> 8;
-	w = currentTime >> 12;
+	Init(currentTime);
 }
 
+/// Initialize with random seed.
+void Random::Init(int64 seed)
+{
+	x = seed >> 8;
+	y = seed >> 16;
+	z = seed >> 24;
+	w = seed >> 32;
+}
+
+
 /// Returns a random value between 0.0f and 1.0f
-float Random::Randf()
+float Random::Randf(float max)
 { 
 	unsigned int t;
 	t = x ^ (x << 11);
@@ -25,5 +32,11 @@ float Random::Randf()
 	w = w ^ (w >> 19) ^ t ^ (t >> 8);
 	// Divide by int-max
 	float res = w / 4294967295.f;
-	return res;
+	return res * max;
+}
+
+/// Returns a random value between 0 and max (inclusive)
+int Random::Randi(int max)
+{
+	return Randf() * max;
 }

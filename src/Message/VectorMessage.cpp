@@ -46,3 +46,22 @@ VectorMessage::~VectorMessage()
 {
 
 }	
+
+// Returns the values embedded within in the Vector4f format, converting as necessary.
+Vector4f VectorMessage::GetVector4f()
+{
+	Vector4f vec;
+	switch(vectorType)
+	{
+		case VECTOR_2I:
+			vec = Vector4f(vec2i.x, vec2i.y,0,1);
+			break;
+		case VECTOR_3F:
+			return vec3f;
+		case VECTOR_4F:
+			return vec4f;
+		default:
+			assert(false);
+	}
+	return vec;
+}

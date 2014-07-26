@@ -9,12 +9,13 @@
 
 class Entity;
 
-class Sparks : public ParticleSystem {
+class Sparks : public ParticleSystem 
+{
 public:
     Sparks(Entity * reference);
     virtual ~Sparks();
     void Process(float timeInSeconds);
-    void Render();
+    void Render(GraphicsState * graphicsState);
     void PrintData();
 	void AttachTo(Entity * entity, Matrix4f relativePosition);
 

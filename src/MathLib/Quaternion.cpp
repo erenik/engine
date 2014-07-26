@@ -2,6 +2,7 @@
 // 2013-09-04
 
 #include "Quaternion.h"
+#include <cassert>
 
 /// References: Morgan Kaufmann, Game Physics Engine Development page 188~ish
 
@@ -10,9 +11,17 @@ Quaternion::Quaternion(){
     w = 1;
 }
 
-Quaternion::Quaternion(Vector3f vec, float w)
-: x(vec.x), y(vec.y), z(vec.z), w(w)
+/// Generates a rotation quaternion based on given axis and rotation around it
+Quaternion::Quaternion(Vector3f axis, float angle)
 {
+	float halfAngle = angle * 0.5f;
+	float sinHalfAngle = sin(halfAngle);
+	float cosHalfAngle = cos(halfAngle);
+	x = axis.x * sinHalfAngle;
+	y = axis.y * sinHalfAngle;
+	z = axis.z * sinHalfAngle;
+	w = cosHalfAngle;
+
 }
 
 Quaternion::Quaternion(const Quaternion& other)
@@ -72,8 +81,19 @@ void Quaternion::Normalize(){
     w *= invSize;
 }
 
+// Unary operator overloading
+Quaternion Quaternion::operator - () const
+{
+	Quaternion quat(x,y,z,-w);
+	return quat;
+}
+
+
 /// Addition!
-void Quaternion::operator +=(const Quaternion & addend){
+void Quaternion::operator +=(const Quaternion & addend)
+{
+	// There is no addition in quaternions.
+	assert(false);
     x += addend.x;
     y += addend.y;
     z += addend.z;

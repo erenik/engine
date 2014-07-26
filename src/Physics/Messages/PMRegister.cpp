@@ -1,17 +1,21 @@
 #include "PhysicsMessage.h"
 #include "../PhysicsManager.h"
 
-PMRegisterEntity::PMRegisterEntity(Entity * i_entity): PhysicsMessage(PM_REGISTER_ENTITY) {
+PMRegisterEntity::PMRegisterEntity(Entity * i_entity): PhysicsMessage(PM_REGISTER_ENTITY) 
+{
 	entity = i_entity;
-	assert(i_entity->registeredForPhysics != true);
+//	assert(i_entity->registeredForPhysics != true);
 	if (Physics.physicalEntities.Exists(entity))
 	{
         std::cout<<"Already registered? prewprewr";
 	}
-	assert(!Physics.dynamicEntities.Exists(entity));
 }
 
-void PMRegisterEntity::Process(){
+void PMRegisterEntity::Process()
+{
+	// If already registered, skip it.
+	if (entity->registeredForPhysics)
+		return;
 //	std::cout<<"\nRegistering selection for Physics.";
 	int failed = Physics.RegisterEntity(entity);
 	if (failed)
@@ -23,7 +27,8 @@ PMRegisterEntities::PMRegisterEntities(List<Entity*> targetEntities): PhysicsMes
 	entities = targetEntities;
 }
 
-void PMRegisterEntities::Process(){
+void PMRegisterEntities::Process()
+{
 	std::cout<<"\nRegistering selection for Physics.";
 	int failed = Physics.RegisterEntities(entities);
 	if (!failed){

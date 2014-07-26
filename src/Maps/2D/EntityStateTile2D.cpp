@@ -13,9 +13,8 @@
 #include "Model.h"
 
 EntityStateTile2D::EntityStateTile2D(Entity * owner)
-: EntityProperty(owner)
+: EntityProperty("EntityStateTile2D", owner)
 {
-	name = "EntityStateTile2D";	
 }
 
 EntityStateTile2D::~EntityStateTile2D()

@@ -30,7 +30,8 @@ void Initialization::OnEnter(GameState * previousState){
 #endif
 
 #ifdef USE_AUDIO
-    AudioMan.Play(AudioType::SFX, "AeonicEngine.ogg", false, 0.2f);
+    // AudioMan.Play(AudioType::SFX, "AeonicEngine.ogg", false, 0.2f);
+
 #endif
 
 };

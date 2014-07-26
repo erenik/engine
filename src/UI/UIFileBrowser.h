@@ -35,7 +35,7 @@ public:
 	List<String> GetFileSelection();
 	
 	/// Rendering
-	virtual void Render();
+	virtual void Render(GraphicsState * graphicsState);
 
 	/// Action to be taken on files once OK is pressed. Will be set to the msg parameter of the FileEvent message that is generated.
 	String action;

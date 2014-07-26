@@ -1,0 +1,35 @@
+RenderConfig
+
+Name	FixedPipelineDiffuse
+
+// Fixed or multi-pass.
+// If Fixed is omitted it is assumed it is a multi-pass pipeline.
+Fixed
+
+// Pass name.
+RenderPass	Entities
+
+// Specify shader to use for this render-pass.
+Shader	Diffuse // Diffuse texture data only
+
+// What to render - whose Render function to call.
+Input	Entities
+// Target output. Default will make the standard output be rendered to.
+Output	Default
+
+
+RenderAlpha
+
+
+
+
+
+
+
+
+
+
+
+
+
+

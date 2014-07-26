@@ -77,7 +77,7 @@ bool GraphicsManager::UnregisterEntity(Entity * entity)
 		if (entity->graphics->dynamicLights){
 			for (int i = 0; i < entity->graphics->dynamicLights->Size(); ++i){
 				Light * light = (*gp->dynamicLights)[i];
-				List<Light*> * dynamicLights = &graphicsState.dynamicLights;
+				List<Light*> * dynamicLights = &graphicsState->dynamicLights;
 				bool removed = dynamicLights->Remove(light);
 				assert(removed);
 			}

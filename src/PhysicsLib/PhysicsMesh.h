@@ -13,7 +13,8 @@ class Mesh;
 class CollisionShapeOctree;
 
 // Specialization structure for handling physics quickly
-struct PhysicsMesh {
+struct PhysicsMesh 
+{
 	/// Construct-Destruct
 	PhysicsMesh();
 	~PhysicsMesh();

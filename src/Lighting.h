@@ -7,6 +7,8 @@ struct GraphicsState;
 #include "Light.h"
 class Light;
 class Shader;
+class Message;
+class Window;
 
 #define MAX_LIGHTS 128
 
@@ -15,7 +17,7 @@ class Shader;
 */
 class Lighting {
 	/// Loads selected lighting into the active shader program
-	friend bool LoadLighting(Lighting * lighting, Shader * shader);
+	friend void LoadLighting(Lighting * lighting, Shader * shader);
 #define GetTime clock
 public:
 	String name;
@@ -28,7 +30,16 @@ public:
 	/// Assignment operator...
 	const Lighting * operator = (const Lighting & otherLighting);
 
-	/// Adds light to the lighting, return NULL upon falure. Note that the light is copied in this case! TODO: Remove this function.
+	/// Returns true if the message had any meaning, adjusting values within the lighting.
+	bool ProcessMessage(Message * message);
+	/// Opens up an editor-window for this lighting, assuming the existance of LightingMenu and LightEditor GUI files.
+	Window * OpenEditorWindow();
+	/// Updates UI for all lights in this lighting. If window is not specified, the default window will be requested.
+	void UpdateLightList(Window * inWindow = NULL);
+
+	/// Creates a new light to this setup.
+	Light * NewLight(String name);
+	/// DEPRECATE: bad arguments... Adds light to the lighting, return NULL upon falure. Note that the light is copied in this case! TODO: Remove this function.
 	Light * Add(Light * light);
 	/// Removes target light. Returns false on failure.
 	bool Remove(Light * light);
@@ -50,6 +61,13 @@ public:
 	Vector4f GetAmbient() const { return Vector4f(global_ambient); };
 	/// Creates a new light source, returning it. NULL on falure.
 	Light * CreateLight();
+
+
+	/// Selects and makes active.
+	Light * SelectLightByIndex(int index);
+	/// Selects and makes active target light. May return NULL.
+	Light * SelectLightByName(String byName);
+	
 	/// Returns a pointer to the active light. USE WITH CAUTION.
 	Light * GetLight() { return activeLight; };
 	/// Returns a pointer to selected light. USE WITH CAUTION.
@@ -59,6 +77,8 @@ public:
 	/// Deletes all light sources contained within.
 	int DeleteAllLights();
 
+	/// Loads from target file, calling ReadFrom once a valid stream has been opened. Returns false if it failed to opened the stream.
+	bool LoadFrom(String fileName);
 	/// Writes to file stream.
 	void WriteTo(std::fstream & file);
 	/// Reads from file stream.
@@ -71,7 +91,7 @@ private:
 	Vector4f global_ambient;
 	/// Array of [MAX_LIGHTS] lights.
 	List<Light*> lights;
-	/// Last time we changed any of the internal parameters for this current lighting
+	/// Last time we changed any of the internal parameters for this current lighting, in ms (Timer::GetCurrentTimeMs())
 	long lastUpdate;
 	/// Currently active light for editing purposes ^^
 	int activeLightIndex;
@@ -84,6 +104,6 @@ private:
 };
 
 /// Loads selected lighting into the active shader program
-bool LoadLighting(Lighting * lighting, Shader * shader);
+void LoadLighting(Lighting * lighting, Shader * shader);
 
 #endif

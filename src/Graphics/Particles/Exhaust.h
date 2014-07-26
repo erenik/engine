@@ -13,7 +13,7 @@ public:
     Exhaust(Entity * reference);
     virtual ~Exhaust();
     void Process(float timeInSeconds);
-    void Render();
+    void Render(GraphicsState * graphicsState);
     void PrintData();
 	void AttachTo(Entity * entity, Matrix4f relativePosition);
 

@@ -5,13 +5,17 @@
 #include "../Entity/Entity.h"
 #include "../Model.h"
 #include "../Selection.h"
-#include "../Collission/Collissions.h"
+#include "../Collision/Collisions.h"
 #include "Graphics/GraphicsManager.h"
 #include "PhysicsLib/AABBSweeper.h"
 #include "Message/MessageManager.h"
 #include "Message/Message.h"
 #include "Physics/Contact/Contact.h"
 #include "Physics/Springs/Spring.h"
+
+#include "Physics/Integrator.h"
+#include "Physics/CollisionResolver.h"
+#include "Physics/CollisionDetector.h"
 
 #include <ctime>
 
@@ -44,47 +48,57 @@ PhysicsManager::PhysicsManager()
 	airDensity = 1.225f;
 	lastUpdate = 0;
 	paused = false;
-	ignoreCollissions = false;
+	ignoreCollisions = false;
 	gravitation.y = -DEFAULT_GRAVITY; // Sets default gravitation (corresponds to 9.82 m/s^2 in real life, if 1 unit is 1 meter in-game.
     checkType = OCTREE;
 
 	physicsMessageQueueMutex.Create("physicsMessageQueueMutex");
 	aabbSweeper = new AABBSweeper();
 
-	pauseOnCollission = false;
+	pauseOnCollision = false;
 	linearDamping = 0.5f;
 	angularDamping = 0.5f;
 
-	collisionResolver = CollisionResolver::LAB_PHYSICS_IMPULSES;
-	integrator = Integrator::LAB_PHYSICS;
+	collisionResolverType = CollisionResolverType::LAB_PHYSICS_IMPULSES;
+	integratorType = IntegratorType::LAB_PHYSICS;
 	/// kg per m^3
 	defaultDensity = 100.0f;
+
+	physicsIntegrator = 0;
+	collisionResolver = 0;
+	collisionDetector = 0;
 }
 
-PhysicsManager::~PhysicsManager(){
+PhysicsManager::~PhysicsManager()
+{
     delete aabbSweeper;
     aabbSweeper = NULL;
-	delete entityCollissionOctree;
-	entityCollissionOctree = NULL;
+	delete entityCollisionOctree;
+	entityCollisionOctree = NULL;
 	CLEAR_AND_DELETE(physicsMeshes);
 	physicsMeshes.ClearAndDelete();
 	physicsMessageQueueMutex.Destroy();
 	contacts.ClearAndDelete();
 	springs.ClearAndDelete();
+
+	if (physicsIntegrator)
+		delete physicsIntegrator;
+	if (collisionResolver)
+		delete collisionResolver;
 }
 
 /// Performs various tests in order to optimize performance during runtime later.
 void PhysicsManager::Initialize(){
-	entityCollissionOctree = new PhysicsOctree();
+	entityCollisionOctree = new PhysicsOctree();
 	InitOctree(50000); /// Cubical 10000
 }
-/// Initializes the entityCollissionOctree to the specified size (cube).
+/// Initializes the entityCollisionOctree to the specified size (cube).
 void PhysicsManager::InitOctree(float size){
-	entityCollissionOctree->SetBoundaries(-size, size, size, -size, size, -size);
+	entityCollisionOctree->SetBoundaries(-size, size, size, -size, size, -size);
 }
-/// Initializes the entityCollissionOctree to the specified bounds.
+/// Initializes the entityCollisionOctree to the specified bounds.
 void PhysicsManager::InitOctree(float leftBound, float rightBound, float topBound, float bottomBound, float nearBound, float farBound){
-	entityCollissionOctree->SetBoundaries(leftBound, rightBound, topBound, bottomBound, nearBound, farBound);
+	entityCollisionOctree->SetBoundaries(leftBound, rightBound, topBound, bottomBound, nearBound, farBound);
 }
 
 /// Queues a message to the physics-queue, waiting for the mutex to be released before accessing it.
@@ -137,30 +151,6 @@ void PhysicsManager::SetPhysicsType(List<Entity*> & targetEntities, int type){
 	for (int i = 0; i < targetEntities.Size(); ++i){
 		entity = targetEntities[i];
 		SetPhysicsType(entity, type);
-		/*
-		entity = targetEntities[i];
-		assert(entity->physics);
-		entity->physics->type = type;
-		if (entity->registeredForPhysics){
-			if (entity->physics == NULL){
-				std::cout<<"\nERROR: Entity lacks physics property!";
-				continue;
-			}
-			/// Switch-from-type:
-			switch(entity->physics->type){
-				case PhysicsType::DYNAMIC:
-					dynamicEntities.Remove(entity);
-					break;
-			}
-			entity->physics->type = type;
-			/// Switch-to-type:
-			switch(entity->physics->type){
-				case PhysicsType::DYNAMIC:
-					dynamicEntities.Add(entity);
-					break;
-			}
-		}
-		*/
 	}
 }
 
@@ -192,10 +182,13 @@ void PhysicsManager::SetPhysicsShape(List<Entity*> targetEntities, int type)
 		case ShapeType::PLANE:
 			entity->physics->shape = new Plane();
 			break;
-		case ShapeType::MESH: {
+		case ShapeType::MESH: 
+		{
 			entity->physics->shape = NULL;
 			EnsurePhysicsMeshIfNeeded(entity);
 			PhysicsMesh * mesh = entity->physics->physicsMesh;
+			if (!mesh)
+				break;
 			// Use an octree when the face number exceeds a predefined limit.
 			if (mesh->triangles.Size() > 12 || mesh->quads.Size() > 6) // 12 for cube o-o
 				entity->physics->usesCollisionShapeOctree = true;
@@ -242,16 +235,20 @@ List<Entity*> PhysicsManager::GetDynamicEntities(){
 }
 
 /// Loads physics mesh if not already loaded.
-void PhysicsManager::EnsurePhysicsMesh(Entity * targetEntity){
+void PhysicsManager::EnsurePhysicsMesh(Entity * targetEntity)
+{
+	///
+	if (!targetEntity->model)
+		return;
     /// Check if it already has a shape
     if (targetEntity->physics->physicsMesh){
 
     }
     /// Otherwise, load it
     else {
-        PhysicsMesh * mesh = Physics.GetPhysicsMesh(targetEntity->model->triangulizedMesh);
+        PhysicsMesh * mesh = Physics.GetPhysicsMesh(targetEntity->model->GetTriangulizedMesh());
         if (!mesh){
-            mesh = Physics.LoadPhysicsMesh(targetEntity->model->triangulizedMesh);
+            mesh = Physics.LoadPhysicsMesh(targetEntity->model->GetTriangulizedMesh());
             mesh->GenerateCollisionShapeOctree();
         }
         targetEntity->physics->physicsMesh = mesh;

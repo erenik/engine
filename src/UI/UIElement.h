@@ -15,6 +15,7 @@
 #include "../Texture.h"
 #include "../Square.h"
 */
+class Message;
 class UserInterface;
 class Square;
 class Texture;
@@ -54,6 +55,7 @@ class UIElement{
 	friend class GMDeleteUI;
 	friend class GMSetUIs;
 	friend class GMBufferUI;
+	friend class GMSetUIp;
 public:
 	// UI it belongs to. Usually only need to set this for the root-element for automatic resizing etc.
 	UserInterface * ui;
@@ -65,6 +67,9 @@ public:
 
 	/// Callback-function for sub-classes to implement own behaviour to run within the UI-class' code.
 	virtual void Proceed();
+
+	// Used for handling things like drag-n-drop and copy-paste operations, etc. as willed.
+	virtual void ProcessMessage(Message * message);
 
 	/// Sets text, queueing recalculation of the rendered variant. If not force, will ignore for active ui input elements.
 	void SetText(Text newText, bool force = false);
@@ -98,9 +103,9 @@ public:
 	virtual void Clear();
 
 	/// Activation functions
-	virtual UIElement* Hover(int mouseX, int mouseY);	// Skickar hover-meddelande till UI-objektet.
-	virtual UIElement* Click(int mouseX, int mouseY);						// Skicker Genererar meddelande ifall man tryckt på elementet
-	virtual UIElement* Activate();						// When button is released.
+	virtual UIElement * Hover(int mouseX, int mouseY);	// Skickar hover-meddelande till UI-objektet.
+	virtual UIElement * Click(int mouseX, int mouseY);						// Skicker Genererar meddelande ifall man tryckt på elementet
+	virtual UIElement * Activate();						// When button is released.
 	/// GEtttererrr
 	virtual UIElement * GetElement(float & mouseX, float & mouseY);
 
@@ -206,7 +211,7 @@ public:
 	/// Releases resources used by the UIElement. Should only be called by a thread with valid GL context!
 	void FreeBuffers();
 	/// Rendering
-	virtual void Render();
+	virtual void Render(GraphicsState * graphicsState);
 
 	/// Adjusts the UI element size and position relative to new window size
 	void AdjustToWindow(int left, int right, int bottom, int top);
@@ -385,8 +390,8 @@ protected:
     float currentTextSizeRatio;
 
     /// Splitting up the rendering.
-    virtual void RenderSelf();
-    virtual void RenderChildren();
+    virtual void RenderSelf(GraphicsState * graphicsState);
+    virtual void RenderChildren(GraphicsState * graphicsState);
 
 	// Creates the Square mesh used for rendering the UIElement and calls SetDimensions with it's given values.
 	void CreateGeometry();

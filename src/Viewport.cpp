@@ -3,12 +3,16 @@
 /// Merge of the previously divided Viewport and RenderViewport classes.
 
 #include "Viewport.h"
-#include "Graphics/GraphicsManager.h"
-#include "Entity/Entity.h"
+
 #include "GraphicsState.h"
+#include "Graphics/GraphicsManager.h"
+#include "Graphics/GLBuffers.h"
+
+#include "Entity/Entity.h"
 #include "UI/UserInterface.h"
 #include "Window/Window.h"
 
+#include "Render/RenderBuffer.h"
 
 Viewport::Viewport()
 {
@@ -44,7 +48,7 @@ void Viewport::Initialize()
 	// Render Booleans
 	renderGrid = true;
 	renderPhysics = false;
-	renderCollissionTriangles = false;
+	renderCollisionTriangles = false;
 	renderSeparatingAxes = false;
 	renderFPS = true;
 	renderAI = false;
@@ -53,6 +57,9 @@ void Viewport::Initialize()
 	renderLights = false;
 	renderMap = true;
 	renderLookAtVectors = false;
+
+	// Render stuff
+	frameBuffer = 0;
 }
 
 Viewport::~Viewport()
@@ -108,10 +115,46 @@ UserInterface * Viewport::GetUI()
 };
 
 
+/// Sets up a frame-buffer for this viewport, resizing it as needed. Creates frame buffer if needed. Returns false if something failed along the way.
+bool Viewport::BindFrameBuffer()
+{
+	if (!frameBuffer)
+	{
+		frameBuffer = new FrameBuffer(this, size);
+		frameBuffer->CreateRenderBuffers();
+	}
+	if (!frameBuffer->IsGood())
+	{
+		// Try and rebuild it..?
+		frameBuffer->CreateRenderBuffers();
+		return false;
+	}
+	int error = glGetError();
+	/// Make frame buffer active
+	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer->frameBufferObject);
+	AssertGLError("Viewport::BindFrameBuffer");
+	// Clear depth  and color
+	glClearColor(0.1f, 0.1f, 0.1f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	// For toggling all debug renders.
+	// Set buffers to render into (the textures ^^)
+	GLenum buffers[10];
+	int numBuffers = frameBuffer->GetDrawBuffers(buffers);
+	glDrawBuffers(numBuffers, buffers);
+	AssertGLError("Viewport::BindFrameBuffer");
+	return true;
+};
+
+void Viewport::CreateFrameBuffer()
+{
+		assert(false);
+}
+
+
+// For toggling all debug renders.
 void Viewport::EnableAllDebugRenders(bool enabled/* = true*/)
 {
 	renderAI = renderFPS = renderGrid =
 		renderPhysics = renderNavMesh = renderLights = enabled;
 }
+

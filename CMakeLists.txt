@@ -333,6 +333,8 @@ addProject("SpaceRace" spaceRaceFolders)
 set(horrorFolders "Projects/Horror")
 addProject("Horror" horrorFolders)
 
+set(aircraftFolders "Projects/Aircraft")
+addProject("Aircraft" aircraftFolders)
 
 # Create our projects
 set(ipmFolders "Projects/IPM" "CV")

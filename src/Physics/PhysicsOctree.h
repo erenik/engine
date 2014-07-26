@@ -5,14 +5,14 @@
 #ifndef PHYSICS_OCTREE_H
 #define PHYSICS_OCTREE_H
 
-#include "Collission/Collissions.h"
-#include "Collission/Collission.h"
+#include "Collision/Collisions.h"
+#include "Collision/Collision.h"
 #include "../PhysicsLib.h"
 #include "../Entity/Entity.h"
 #include <Util.h>
 class Entity;
 
-/** Physics Collission Detection Octree
+/** Physics Collision Detection Octree
 	This is an octree node class made to work with the entity from the Entity handler.
 	It assumes the entity have spherical bounding volumes.
 */
@@ -67,7 +67,7 @@ private:
 		If entry subdivision level is not specified the initial call will set it automatically (used for recursion limits)
 		Returns amount of collissions tested.
 	*/
-	int FindCollissions(Entity * entity, List<Collission> & collissions, int entrySubdivisionLevel = -1);
+	int FindCollisions(Entity * entity, List<Collision> & collissions, int entrySubdivisionLevel = -1);
 	/// Checks if the target entity is inside this PhysicsTree node, intersecting it or outside.
 	int IsEntityInside(Entity * Entity);
 

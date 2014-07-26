@@ -19,7 +19,7 @@ void GraphicsManager::RenderFPS(){
 
 	// Draw awesome grid for debugging, yo.
 	if (true){
-	    if (Graphics.GL_VERSION_MAJOR >= 2)
+	    if (GL_VERSION_MAJOR >= 2)
             glUseProgram(0);
 		// Set projection
 		glMatrixMode(GL_PROJECTION);
@@ -37,7 +37,7 @@ void GraphicsManager::RenderFPS(){
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glDisable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, 0);
-		graphicsState.currentTexture = NULL;
+		graphicsState->currentTexture = NULL;
 		// Disable lighting
 		glDisable(GL_LIGHTING);
 		error = glGetError();

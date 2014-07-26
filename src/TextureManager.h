@@ -25,6 +25,8 @@ public:
 	Texture * New();
 	/// Creates a new texture, made for updating more than once.
 	Texture * NewDynamic();
+	/// Deletes target texture and its associated memory. The object should not be touched any more after calling this.
+	void DeleteTexture(Texture * texture);
 	/// Prints a list of all textures to console, starting with their ID
 	void ListTextures();
 
@@ -62,6 +64,10 @@ public:
 
     /// Getter function that first tries to fetch texture by name, and if that failes tries to get it by it's source.
     Texture * GetTexture(String nameOrSource);
+	/// 0xRRGGBB (red green blue)
+	Texture * GetTextureByHex24(int hexColor);
+	/// 0xRRGGBBAA (red green blue alpha)
+	Texture * GetTextureByHex32(int hexColor);
 	/// Gets texture with specified name. This assumes each texture has gotten a unique name.
 	Texture * GetTextureByName(String name);
 	/// Returns texture in the list by specified index.

@@ -49,6 +49,7 @@ private:
 class Camera 
 {
 	friend class CameraManager;
+	friend class GMSetCamera;
 	/// Default constructor, sets some variables
 	Camera();
 	~Camera();
@@ -202,15 +203,24 @@ private:
 	Frustum frustum;
 	/// Updates base velocities depending on navigation booleans
 	void UpdateNavigation();
+
 	/// Boolean array for manual camera control (6 axis)
-	bool navigation[6];		// For movement
-	bool orientation[6];	// For rotation
+	bool navigationControls[6];		// For movement
+	bool orientationControls[6];	// For rotation
 
 	/// Default values
 	static float defaultVelocity;
 	static float defaultRotationSpeed;
 
 
+	// For setting defaults applied to all cameras. Adjust as needed in SetApplicationDefaults or set the property manually for each camera.
+	static bool defaultInheritEntityRotation;
+	/// If true, inherits entity rotation while tracking it.
+	bool inheritEntityRotation;
+	/// o=-o
+	bool useQuaternions;
+	/// o-o 
+	Quaternion orientation;
 };
 
 

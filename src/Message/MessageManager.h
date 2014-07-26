@@ -9,7 +9,7 @@
 
 #define MesMan		(*MessageManager::Instance())
 
-struct Message;
+class Message;
 class Packet;
 class Mutex;
 class UIElement;

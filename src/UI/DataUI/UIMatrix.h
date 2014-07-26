@@ -31,7 +31,7 @@ private:
 	bool dataInverted;
 
     /// Splitting up the rendering.
-    virtual void RenderSelf();
+    virtual void RenderSelf(GraphicsState * graphicsState);
 
 	/// Creates the label and matrix elements.
 	void CreateChildren();

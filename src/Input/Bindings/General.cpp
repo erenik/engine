@@ -16,8 +16,11 @@
 #include "Multimedia/MultimediaManager.h"
 #include "Application/Application.h"
 #include "Window/WindowManager.h"
-#include "Message/MessageManager.h"
 #include "Viewport.h"
+
+#include "Message/FileEvent.h"
+#include "Message/MessageManager.h"
+
 
 enum generalActions{
 	NULL_ACTION,
@@ -26,6 +29,9 @@ enum generalActions{
 	TOGGLE_RENDER_LIGHTS,
 	TOGGLE_RENDER_PHYSICS,
 	TOGGLE_RENDER_WAYPOINTS,
+
+	CYCLE_RENDER_PIPELINE,
+	CYCLE_RENDER_PIPELINE_BACK,
 
 	RECORD_VIDEO,
 	PRINT_SCREENSHOT,
@@ -45,6 +51,8 @@ enum generalActions{
 
 	PRINT_TO_FILE, // Prints active video screen or entire game screen-shot as PNG to file.
 
+	OPEN_LIGHTING_EDITOR, // Common for the rendering pipeline in general.
+	CLOSE_WINDOW,	// When pressing CTRL+W, like when closing tabs. Closes external windows or queries shutdown.
 	QUIT_APPLICATION,
 	TOGGLE_FULL_SCREEN,
 	COPY,
@@ -75,17 +83,89 @@ extern Window window;
 extern Display * display;
 #endif
 
+
+
+/// Creates bindings that are used for debugging purposes only
+void CreateDefaultGeneralBindings()
+{
+
+	InputMapping * mapping = &Input.general;
+
+	
+	int ctrl = KEY::CTRL;
+
+	mapping->CreateBinding(CLOSE_WINDOW, ctrl, KEY::W);
+	mapping->CreateBinding(OPEN_LIGHTING_EDITOR, ctrl, KEY::O, KEY::L);
+	mapping->CreateBinding(TOGGLE_RENDER_PHYSICS, ctrl, KEY::R, KEY::P);
+	mapping->CreateBinding(TOGGLE_RENDER_LIGHTS, ctrl, KEY::R, KEY::L);
+	mapping->CreateBinding(TOGGLE_RENDER_WAYPOINTS, ctrl, KEY::R, KEY::W);
+	mapping->CreateBinding(CYCLE_RENDER_PIPELINE, ctrl, KEY::R, KEY::PLUS);
+	mapping->CreateBinding(CYCLE_RENDER_PIPELINE_BACK, ctrl, KEY::R, KEY::MINUS);
+
+	Input.general.CreateBinding(RECORD_VIDEO, KEY::CTRL, KEY::R, KEY::V);
+	Input.general.CreateBinding(PRINT_SCREENSHOT, KEY::PRINT_SCREEN);
+    Input.general.CreateBinding(PRINT_FRAME_TIME, KEY::CTRL, KEY::T);
+
+	Input.general.CreateBinding(QUIT_APPLICATION, KEY::ALT, KEY::F4);
+	//Input.general.CreateBinding(QUIT_APPLICATION, KEY::ALT, KEY::F4);
+	Input.general.CreateBinding(TOGGLE_FULL_SCREEN, KEY::ALT, KEY::ENTER);
+	Input.general.CreateBinding(PASTE, KEY::CTRL, KEY::V);
+	Input.general.CreateBinding(COPY, KEY::CTRL, KEY::C);
+	Input.general.CreateBinding(GO_TO_MAIN_MENU, KEY::CTRL, KEY::G, KEY::M);
+	
+	Input.general.CreateBinding(PRINT_TO_FILE, KEY::CTRL, KEY::P, KEY::F);
+
+	Input.general.CreateBinding(RELOAD_MODELS, KEY::CTRL, KEY::R, KEY::M, "CTRL+R+M : Reload models");
+	Input.general.CreateBinding(RELOAD_UI, KEY::CTRL, KEY::R, KEY::U);
+	Input.general.CreateBinding(RECOMPILE_SHADERS, KEY::CTRL, KEY::R, KEY::S);
+	Input.general.CreateBinding(GO_TO_EDITOR, KEY::CTRL, KEY::G, KEY::E);
+
+	Input.general.CreateBinding(PRINT_PLAYER_INPUT_DEVICES, KEY::L, KEY::I);
+    Input.general.CreateBinding(LIST_TEXTURES, KEY::L, KEY::T);
+    Input.general.CreateBinding(LIST_CAMERAS, KEY::L, KEY::C);
+    Binding * binding = Input.general.CreateBinding(LIST_MODELS, KEY::L, KEY::M);
+	Input.general.SetBlockingKeys(binding, KEY::CTRL);
+    Input.general.CreateBinding(PRINT_UI_TREE, KEY::L, KEY::U);
+};
+
+
 void generalInputProcessor(int action, int inputDevice)
 {
 	Window * activeWindow = ActiveWindow();
 	Viewport * mainViewport = activeWindow->MainViewport();
-	switch(action){
+	switch(action)
+	{
 		case QUIT_APPLICATION:
 			if (Application::queryOnQuit)
 				MesMan.QueueMessages("Query(QuitApplication)");
 			else
 				MesMan.QueueMessages("QuitApplication");
 			break;
+		case CYCLE_RENDER_PIPELINE:
+		{
+			Graphics.QueueMessage(new GraphicsMessage(GM_CYCLE_RENDER_PIPELINE));	
+			break;
+		}
+		case CYCLE_RENDER_PIPELINE_BACK:
+		{
+			Graphics.QueueMessage(new GraphicsMessage(GM_CYCLE_RENDER_PIPELINE_BACK));	
+			break;
+		}
+		case CLOSE_WINDOW:
+		{
+			if (activeWindow->IsMain())
+				MesMan.QueueMessages("Query(QuitApplication)");
+			else
+				activeWindow->Hide();	
+			break;
+		}
+		case OPEN_LIGHTING_EDITOR:
+		{
+			/// This assumes only one lighting setup is used.
+			Lighting * activeLighting = Graphics.ActiveLighting();
+			activeLighting->OpenEditorWindow();
+			break;
+		}
 		case TOGGLE_RENDER_LIGHTS:
 			mainViewport->renderLights = !mainViewport->renderLights;
 			break;
@@ -96,7 +176,7 @@ void generalInputProcessor(int action, int inputDevice)
 			mainViewport->renderNavMesh = !mainViewport->renderNavMesh;
 			break;
 		case RECORD_VIDEO:
-			Graphics.QueueMessage(new GraphicsMessage(GM_RECORD_VIDEO));
+			Graphics.QueueMessage(new GMRecordVideo(activeWindow));
 			break;
 		case PRINT_SCREENSHOT:
 			Graphics.QueueMessage(new GraphicsMessage(GM_PRINT_SCREENSHOT));
@@ -143,8 +223,8 @@ void generalInputProcessor(int action, int inputDevice)
             std::cout<<" \n- Physics: "<<Graphics.PhysicsFrameTime()
 				<<" \n  - Recalculating properties: "<<Physics.GetRecalculatingPropertiesFrameTime()
 				<<" \n  - Movement: "<<Physics.GetMovementFrameTime()
-				<<" \n  - Collission: "<<Physics.GetCollissionProcessingFrameTime()
-				<<" \n    - PhysicsMeshCollissionChecks: "<<Physics.GetPhysicsMeshCollissionChecks()
+				<<" \n  - Collision: "<<Physics.GetCollisionProcessingFrameTime()
+				<<" \n    - PhysicsMeshCollisionChecks: "<<Physics.GetPhysicsMeshCollisionChecks()
 				<<" \n  - Processing messages: "<<Physics.GetMessageProcessingFrameTime();
 */
 			FrameStats.Print();
@@ -341,13 +421,13 @@ void generalInputProcessor(int action, int inputDevice)
 					std::cout<<"\nClipboardFormat CF_DSPENHMETAFILE available";
 				if (IsClipboardFormatAvailable(CF_DSPTEXT))
 					std::cout<<"\nClipboardFormat CF_DSPTEXT available";
-				if (IsClipboardFormatAvailable(CF_HDROP)){
-					std::cout<<"\nClipboardFormat CF_HDROP available";
 				/** A handle to type HDROP that identifies a list of files.
 					An application can retrieve information about the files by passing
 					the handle to the DragQueryFile function.
 				*/
-
+				if (IsClipboardFormatAvailable(CF_HDROP))
+				{
+					std::cout<<"\nClipboardFormat CF_HDROP available";
 					if (!OpenClipboard(window->hWnd))
 						return;
 
@@ -374,76 +454,65 @@ void generalInputProcessor(int action, int inputDevice)
 #endif
 					}
 					// Close clipboard before we begin any further processing!
-					int closeResult = CloseClipboard();
+					assert(CloseClipboard());
 					/// Go through and see if we should do anything with any of the files!
-					for (int i = 0; i < result && i < MAX_FILES; ++i){
+					List<String> files;
+					for (int i = 0; i < result && i < MAX_FILES; ++i)
+					{
 						/// Check file-ending, deal with appropriately
 						memset(fileSuffix, 0, sizeof(wchar_t) * 10);
 						String file = filename[i];
-						/// Require perfect comparison!
-						if (file.Contains(".obj")){
-							/// Load obj file
-							std::cout<<"\nOBJ file found! Loading it";
-							Model * obj = ModelMan.LoadObj(filename[i]);
-							if (obj){
-								std::cout<<"\nObj loaded as name: "<<obj->Name();
-							}
-							else {
-								std::cout<<"\nERROR: Unable to read load object!";
-							}
-						}
-						else if (file.Contains(".dae")){
-							/// Load Collada .dae file
-							std::cout<<"\nCollada .DAE file found! Loading it.";
-							Model * model = ModelMan.LoadCollada(filename[i]);
-							if (model){
-								std::cout<<"\nCollada .DAE loaded as name: "<<model->Name();
-							}
-							else {
-								std::cout<<"\nERROR: Unable to read/load target .dae-file!";
-							}
-						}
-						else if (file.Contains(".png")){
-							std::cout<<"\nPNG file found! Loading it... ";
-							Texture * tex = TexMan.LoadTexture(filename[i]);
-							if (tex){
-								Graphics.QueueMessage(new GMBufferTexture(tex));
-								std::wcout<<"\nTexture loaded as name: "<<tex->name.wc_str();
-							}
-						}
+						files.Add(file);
 					}
+					/// Send a message about it.
+					FileEvent * fe = new FileEvent();
+					fe->files = files;
+					fe->msg = "PasteFiles";
+					MesMan.QueueMessage(fe);
 					return;
 				}
 				if (IsClipboardFormatAvailable(CF_UNICODETEXT))
+				{
 					std::cout<<"\nClipboardFormat CF_UNICODETEXT available";
+					if (!OpenClipboard(window->hWnd))
+						return;
+					HANDLE h = GetClipboardData(CF_UNICODETEXT);
+					// Close clipboard before we begin any further processing!
+					assert(CloseClipboard());
+
+			//		return;	
+				}
 				if (IsClipboardFormatAvailable(CF_WAVE))
 					std::cout<<"\nClipboardFormat CF_WAVE available";
 				if (IsClipboardFormatAvailable(CF_TIFF))
 					std::cout<<"\nClipboardFormat CF_TIFF available";
-				if (!IsClipboardFormatAvailable(CF_TEXT))
-					return;
-				if (!OpenClipboard(window->hWnd))
-					return;
-
-				hglb = GetClipboardData(CF_TEXT);
-				if (hglb != NULL){
-					/*
-                    lptstr = (LPTSTR) GlobalLock(hglb);
-                    if (lptstr != NULL)	{
-						// Call the application-defined ReplaceSelection
-						// function to insert the text and repaint the
-						// window.
-						const int MAX_SIZE = 1024;
-						wchar_t text[MAX_SIZE];
-						memset(text, 0, MAX_SIZE * sizeof(TCHAR));
-						int length = wcslen(text);
-						wcsncat(text, lptstr, MAX_SIZE);
-						//	ReplaceSelection(hwndSelected, pbox, lptstr);
-						GlobalUnlock(hglb);
+				if (IsClipboardFormatAvailable(CF_TEXT))
+				{
+					if (!OpenClipboard(window->hWnd))
+						return;
+					hglb = GetClipboardData(CF_TEXT);
+					if (hglb != NULL)
+					{
+						LPSTR lpstr = (LPSTR) GlobalLock(hglb);
+						if (lpstr != NULL)	
+						{
+							// Call the application-defined ReplaceSelection
+							// function to insert the text and repaint the
+							// window.
+							String text = lpstr;
+							text.PrintData();
+							PasteMessage * pasteMessage = new PasteMessage();
+							pasteMessage->msg = "Paste:Text";
+							pasteMessage->text = text;
+							MesMan.QueueMessage(pasteMessage);
+							//	ReplaceSelection(hwndSelected, pbox, lptstr);
+							GlobalUnlock(hglb);
+						}
 					}
-					*/
+				
 				}
-				CloseClipboard();
+				// Close clipboard before we begin any further processing!
+				assert(CloseClipboard());
 				return;
 			}
 #endif
@@ -510,48 +579,3 @@ void generalInputProcessor(int action, int inputDevice)
 		}
 	}
 }
-
-/// Creates bindings that are used for debugging purposes only
-void CreateDefaultGeneralBindings()
-{
-
-	InputMapping * mapping = &Input.general;
-
-	
-	int ctrl = KEY::CTRL;
-	
-	mapping->CreateBinding(TOGGLE_RENDER_PHYSICS, ctrl, KEY::R, KEY::P);
-	mapping->CreateBinding(TOGGLE_RENDER_LIGHTS, ctrl, KEY::R, KEY::L);
-	mapping->CreateBinding(TOGGLE_RENDER_WAYPOINTS, ctrl, KEY::R, KEY::W);
-
-	Input.general.CreateBinding(RECORD_VIDEO, KEY::CTRL, KEY::R, KEY::V);
-	Input.general.CreateBinding(PRINT_SCREENSHOT, KEY::PRINT_SCREEN);
-    Input.general.CreateBinding(PRINT_FRAME_TIME, KEY::CTRL, KEY::T);
-
-	Input.general.CreateBinding(QUIT_APPLICATION, KEY::ALT, KEY::F4);
-	//Input.general.CreateBinding(QUIT_APPLICATION, KEY::ALT, KEY::F4);
-	Input.general.CreateBinding(TOGGLE_FULL_SCREEN, KEY::ALT, KEY::ENTER);
-	Input.general.CreateBinding(PASTE, KEY::CTRL, KEY::V);
-	Input.general.CreateBinding(COPY, KEY::CTRL, KEY::C);
-	Input.general.CreateBinding(GO_TO_MAIN_MENU, KEY::CTRL, KEY::G, KEY::M);
-	
-	Input.general.CreateBinding(PRINT_TO_FILE, KEY::CTRL, KEY::P, KEY::F);
-
-	Input.general.CreateBinding(RELOAD_MODELS, KEY::CTRL, KEY::R, KEY::M, "CTRL+R+M : Reload models");
-	Input.general.CreateBinding(RELOAD_UI, KEY::CTRL, KEY::R, KEY::U);
-	Input.general.CreateBinding(RECOMPILE_SHADERS, KEY::CTRL, KEY::R, KEY::S);
-	Input.general.CreateBinding(GO_TO_EDITOR, KEY::CTRL, KEY::G, KEY::E);
-
-	Input.general.CreateBinding(PRINT_PLAYER_INPUT_DEVICES, KEY::L, KEY::I);
-    Input.general.CreateBinding(LIST_TEXTURES, KEY::L, KEY::T);
-    Input.general.CreateBinding(LIST_CAMERAS, KEY::L, KEY::C);
-    Binding * binding = Input.general.CreateBinding(LIST_MODELS, KEY::L, KEY::M);
-	Input.general.SetBlockingKeys(binding, KEY::CTRL);
-    Input.general.CreateBinding(PRINT_UI_TREE, KEY::L, KEY::U);
-};
-
-/*
-		switch(wParam){
-		case VK_RETURN:
-		}
-		*/

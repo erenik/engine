@@ -60,6 +60,9 @@ public:
 	*/
 	void scale(double x, double y, double z, double w);
 
+	// Unary - operator (switch signs of all sub-elements)
+	Vector4d operator - () const;
+
 
 	// Operator overloading for the addition and subtraction operations
 	/// Returns a summed vector based on this vector and the addend.

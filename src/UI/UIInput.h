@@ -15,14 +15,20 @@ public:
 	UIInput(String name = "");
 	virtual ~UIInput();
 	// When clicking/Enter pressed on keyboard.
-	virtual UIElement* Click(float & mouseX, float & mouseY);
+	virtual UIElement * Click(int mouseX, int mouseY);
 	// When button is released.
-	virtual UIElement* Activate();
+	virtual UIElement * Activate();
+
+
+	// Used for handling things like drag-n-drop and copy-paste operations, etc. as willed.
+	virtual void ProcessMessage(Message * message);
 
 	/// Called once this element is no longer visible for any reason. E.g. switching game states to display another UI, or when this or a parent has been popped from the ui.
 	virtual void OnExitScope();
 
-	/// Used by input-captuing elements. Should not be called for any base UI elements(?). Return value of significance, but not defined yet.
+	/** Used by input-captuing elements. Should not be called for any base UI elements(?). 
+		Return value of significance, but not defined yet.
+	*/
 	virtual int OnKeyDown(int keyCode, bool downBefore);
 	/// Used for getting text. This will be local translated language key codes?
 	virtual int OnChar(int asciiCode);
@@ -150,6 +156,7 @@ public:
 	
 	/// Setters
 	void SetValue4f(Vector4f vec);
+	void SetValue3f(Vector3f vec);
 	void SetValue2i(Vector2i vec);
 	
 	/// Action to be taken when any of the fields are triggered.

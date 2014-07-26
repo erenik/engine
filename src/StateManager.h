@@ -13,7 +13,20 @@ class GameState;
 
 #define StateMan		(*StateManager::Instance())
 
-/// External function where the games inquestion register what game states they want available.
+/** External function where the games inquestion register what game states they want available.
+	Describe how to use it as well..?
+	...
+	Typical function calls inside would be:
+
+	MyGameState * myState = new MyGameState();
+	StateMan.RegisterState(myState);
+	StateMan.RegisterState(new MyState2());
+
+	Followed by a call to set which application/game-state to enter first after the game engine is initialized.
+
+	StateMan.QueueState(myState);
+	
+*/
 void RegisterStates();
 
 /// Handles switches between game states, re-linking of key bindings, etc.

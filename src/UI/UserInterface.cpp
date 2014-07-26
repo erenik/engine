@@ -17,7 +17,7 @@
 #include "UIButtons.h"
 #include "UIVideo.h"
 #include "UIImage.h"
-#include "Graphics/Fonts/Font.h"
+#include "Graphics/Fonts/TextFont.h"
 #include "UI/UITypes.h"
 #include "UI/DataUI/UIMatrix.h"
 #include "Window/WindowManager.h"
@@ -334,11 +334,11 @@ bool UserInterface::Unbufferize()
 /** Renders the whole UIElement structure.
 	Overloaded by subclasses in order to enable custom perspective or other stuff for the UI.
 */
-void UserInterface::Render(){
+void UserInterface::Render(GraphicsState * graphicsState){
 	/// Disable depth-test.
 	glDisable(GL_DEPTH_TEST);
 	/// Render the tree.
-	root->Render();
+	root->Render(graphicsState);
 	lastRenderTime = Timer::GetCurrentTimeMs();
 }
 
@@ -560,7 +560,7 @@ bool UserInterface::PopFromStack(UIElement * element, bool force)
 	if (element->GetRoot() != root)
 	{
 		assert(false && "Trying to pop element which doesn't belong to this ui.");
-		return NULL_ELEMENT;
+		return false;
 	}
 	if (!element){
 		std::cout<<"\nUserInterface::PopFromStack: NULL element";

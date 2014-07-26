@@ -12,7 +12,8 @@ class UserInterface;
 /** A struct to properly divide window screen-space.
 	Can include settings/options that act on a per-viewport basis.
 */
-class RenderViewport : public Viewport {
+class RenderViewport : public Viewport 
+{
 	friend class GraphicsManager;
 	friend class GMSetViewports;
 public:

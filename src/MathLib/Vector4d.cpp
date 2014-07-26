@@ -66,6 +66,15 @@ void Vector4d::scale(double ix, double iy, double iz, double iw){
 	w *= iw;
 }
 
+// Unary operators
+
+// Unary - operator (switch signs of all sub-elements)
+Vector4d Vector4d::operator - () const
+{
+	return Vector4d(-x, -y, -z, -w);
+}
+
+
 // ************************************************************************//
 // Operator overloading 
 // ************************************************************************//

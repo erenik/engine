@@ -18,7 +18,7 @@ public:
     ParticleSystem(String type);
     virtual ~ParticleSystem();
     virtual void Process(float timeInSeconds);
-    virtual void Render();
+    virtual void Render(GraphicsState * graphicsState);
     virtual void PrintData();
     virtual void AttachTo(Entity * entity, Matrix4f relativePosition);
     virtual void SetPosition(Matrix4f relativePosition);

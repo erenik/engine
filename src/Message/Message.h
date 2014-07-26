@@ -13,7 +13,7 @@
 class Script;
 class UIElement;
 
-struct Message {
+class Message {
 	friend class MessageManager;
 public:
 	Message(int type);
@@ -29,6 +29,13 @@ public:
 	UIElement * element;
 	/// Time to process this message. If 0 process straight away (default).
 	long long timeToProcess;
+};
+
+class PasteMessage : public Message
+{
+public:
+	PasteMessage();
+	String text;
 };
 
 class SetStringMessage : public Message {

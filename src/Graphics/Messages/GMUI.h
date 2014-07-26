@@ -24,6 +24,8 @@ public:
 
 	enum gmUITargets {
 		UI_NULL_TARGET,
+		/// Pointer-targets
+		TEXTURE,
 		/// Lists of booleans
 		MATRIX_DATA,
 		// Vectors
@@ -31,6 +33,8 @@ public:
 		VECTOR_INPUT, // Whole input for UIVectorInput class.
 		/// Vector2i
 		MATRIX_SIZE,
+		/// Integers,
+		INTEGER_INPUT,
 		// Floats
 		FLOAT_INPUT, // Single nested input for UIFloatInput class.
 		TEXT_SIZE_RATIO, // Yup.
@@ -63,6 +67,17 @@ protected:
 	bool global;
 };
 
+/// Used to set pointers. Mainly textures or some custom data.
+class GMSetUIp : public GMUI{
+public:
+	GMSetUIp(String uiName, int target, Texture * tex, UserInterface * ui);
+	void Process();
+private:
+	String name;
+	int target;
+	Texture * texture;
+};
+
 
 /// Used to set arbitrary amounts of booleans. Mainly used for binary matrices (UIMatrix).
 class GMSetUIvb : public GMUI{
@@ -73,6 +88,17 @@ private:
 	String name;
 	int target;
 	List<bool*> data;
+};
+
+class GMSetUIi : public GMUI 
+{
+public:
+	GMSetUIi(String uiName, int target, int value, UserInterface * ui);
+	void Process();
+private:
+	String uiName;
+	int target;
+	int value;
 };
 
 /// Used to set UI vector2i data. Primarily used to specify size of matrix or maybe later aboslute-size of an element.
@@ -92,8 +118,10 @@ private:
 class GMSetUIv3f : public GMUI {
 public:
 	GMSetUIv3f(String UIname, int target, Vector3f v, Viewport * viewport = NULL);
+	GMSetUIv3f(String uiName, int target, Vector3f v, UserInterface * ui);
 	void Process();
 private:
+	void AssertTarget();
 	String name;
 	int target;
 	UIElement * element;

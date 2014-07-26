@@ -3,16 +3,17 @@
 
 //#include <windows.h>
 
-#include <GL/glew.h>
-#include "Mesh.h"
+#include "Graphics/OpenGL.h"
+#include "Graphics/GLBuffers.h"
+#include "Graphics/GraphicsManager.h"
 #include "GraphicsState.h"
+
+#include "Mesh.h"
 #include "Material.h"
 #include "OS/Sleep.h"
-#include "Graphics/GraphicsManager.h"
 #include "PhysicsLib/Shapes.h"
-#include "Graphics/GLBuffers.h"
-extern GraphicsManager graphics;
 
+#include <fstream>
 #include <iostream>
 #include <Util.h>
 
@@ -77,61 +78,46 @@ void MeshFace::operator = (const MeshFace & otherMeshFace){
 	}
 	uvTangent = otherMeshFace.uvTangent;
  }
-/// Copy CONSTRUCTOR
-/*
-face::face(const face & otherMeshFace){
-	std::cout<<"hai.";
-	numVertices = otherMeshFace.numVertices;
-	assert(otherMeshFace.numVertices);
+
+// Call after setting numVertices
+void MeshFace::Allocate()
+{
 	vertex = new unsigned int[numVertices];
 	uv = new unsigned int[numVertices];
 	normal = new unsigned int[numVertices];
-	for (int i = 0; i < numVertices; ++i){
-		vertex[i] = otherMeshFace.vertex[i];
-		uv[i] = otherMeshFace.uv[i];
-		normal[i] = otherMeshFace.normal[i];
-	}
-	uvTangent = otherMeshFace.uvTangent;
-}*/
-/*
-void face::operator = (const face & otherMeshFace){
-	std::cout<<"hai.";
-	std::cout<<"hai. ho?";
-	return;
-	std::cout<<"Vertices: "<<otherMeshFace.numVertices;
-	numVertices = otherMeshFace.numVertices;
-	if (vertex){
-	  delete[] vertex;
-	  vertex = NULL;
-	}
-	if (uv){
-	  delete[] uv;
-	  uv = NULL;
-	}
-	if (normal){
-	  delete[] normal;
-	  normal = NULL;
-	}
-	if (otherMeshFace.numVertices <= 0){
-	  std::cout<<"0 or less vertices.. f this.";
-	  return;
-	}
-	vertex = new unsigned int[numVertices];
-	uv = new unsigned int[numVertices];
-	normal = new unsigned int[numVertices];
-	for (int i = 0; i < numVertices; ++i){
-		vertex[i] = otherMeshFace.vertex[i];
-		std::cout<<"\nv: "<<vertex[i]<< " " << otherMeshFace.vertex[i];
-		uv[i] = otherMeshFace.uv[i];
-		normal[i] = otherMeshFace.normal[i];
-	}
-	uvTangent = otherMeshFace.uvTangent;
 }
-void face::operator = (const MeshFace * otherMeshFace){
-	assert(false && "Implement");
-	std::cout<<"yo.";
+
+void MeshFace::Deallocate()
+{
+	if (vertex)
+		delete[] vertex;
+	if (uv)
+		delete[] uv;
+	if (normal)
+		delete[] normal;
+	vertex = uv = normal = NULL;
 }
-*/
+
+bool MeshFace::WriteTo(std::fstream & file)
+{
+	file.write((char*)&numVertices, sizeof(int));
+	file.write((char*)vertex, sizeof(int) * numVertices);
+	file.write((char*)uv, sizeof(int) * numVertices);
+	file.write((char*)normal, sizeof(int) * numVertices);
+	return true;
+}
+bool MeshFace::ReadFrom(std::fstream & file)
+{
+	file.read((char*)&numVertices, sizeof(int));
+	assert(numVertices < 20);
+	// Assume deallocation before is not necessary...
+	Allocate();
+	file.read((char*)vertex, sizeof(int) * numVertices);
+	file.read((char*)uv, sizeof(int) * numVertices);
+	file.read((char*)normal, sizeof(int) * numVertices);
+	return true;
+}
+
 
 
 Mesh::Mesh(){
@@ -142,8 +128,7 @@ Mesh::Mesh(){
 void Mesh::Nullify(){
 	vertices = uvs = faces = normals = 0;
 	vertex = NULL;
-	u = NULL;
-	v = NULL;
+	uv = NULL;
 	face = NULL;
 	textureID = 0;
 	vboBuffer = NULL;
@@ -151,23 +136,141 @@ void Mesh::Nullify(){
 	triangulated = false;
 }
 
-Mesh::~Mesh(){
-//	std::cout<<"\nMesh destructor.";
-	if (vertex != NULL){
-		delete[] vertex;
-		vertex = NULL;
-    }
-	if (u != NULL)
-		delete[] u;
-		u = NULL;
-	if (v != NULL)
-		delete[] v;
-		v = NULL;
-	if (face != NULL){
-		delete[] face;
-		face = NULL;
-	}
+Mesh::~Mesh()
+{
+	DeallocateArrays();
+	
 }
+
+// Allocates the vertex, u,v and normal arrays
+void Mesh::AllocateArrays()
+{
+	if (vertices)
+		vertex = new Vector3f[vertices];
+	if (uvs)
+		uv = new Vector2f[uvs];
+	if (normals)
+		normal = new Vector3f[normals];
+	if (faces)
+		face = new MeshFace[faces];
+}
+
+void Mesh::DeallocateArrays()
+{
+//	std::cout<<"\nMesh destructor.";
+	if (vertex != NULL)
+		delete[] vertex;
+	if (uv != NULL)
+		delete[] uv;
+	if (normals)
+		delete[] normal;
+	if (face != NULL)
+		delete[] face;
+
+	vertex = NULL;
+	uv = NULL;
+	normal = NULL;
+	face = NULL;
+}
+
+/// Load from customized compressed data form. Returns true upon success.
+bool Mesh::SaveCompressedTo(String compressedPath)
+{
+	std::fstream file;
+	file.open(compressedPath.c_str(), std::ios_base::out | std::ios_base::binary);
+	if (!file.is_open())
+		return false;
+	String about = "Erenik Engine Compressed mesh. Version:";
+	String version = "1.0";
+
+	about.WriteTo(file);
+	version.WriteTo(file);
+	this->name.WriteTo(file);
+	this->source.WriteTo(file);
+
+	// Write extra data so that they do not have to be re-calculated.?
+	centerOfMesh.WriteTo(file);
+	file.write((char*)&radius, sizeof(float));
+	file.write((char*)&triangulated, sizeof(bool));
+	max.WriteTo(file);
+	min.WriteTo(file);
+
+	// Write number of each specific array.
+	file.write((char*)&vertices, sizeof(int));
+	file.write((char*)&uvs, sizeof(int));
+	file.write((char*)&normals, sizeof(int));
+	file.write((char*)&faces, sizeof(int));
+	
+	// Then start writing the data of the arrays.
+	int sizeOfVertex = sizeof(Vector3f);
+	if (vertices)
+		file.write((char*)vertex, vertices * sizeOfVertex);
+	if (uvs)
+		file.write((char*)uv, uvs * sizeof(Vector2f));
+	if (normals)
+		file.write((char*)normal, normals * sizeOfVertex);
+
+	// Save all faces.
+	for (int i = 0; i < faces; ++i)
+	{
+		MeshFace & mf = face[i];
+		mf.WriteTo(file);
+	}
+	std::cout<<"\nMesh saved in compressed form to file: "<<compressedPath;
+	return true;
+}
+	
+/// Load from customized compressed data form.
+bool Mesh::LoadCompressedFrom(String compressedPath)
+{
+	std::fstream file;
+	file.open(compressedPath.c_str(), std::ios_base::in | std::ios_base::binary);
+	if (!file.is_open())
+		return false;
+	String about = "Erenik Engine Compressed mesh. Version:";
+	String version = "1.0";
+
+	about.ReadFrom(file);
+	version.ReadFrom(file);
+	this->name.ReadFrom(file);
+	this->source.ReadFrom(file);
+
+	// Write extra data so that they do not have to be re-calculated.?
+	centerOfMesh.ReadFrom(file);
+	file.read((char*)&radius, sizeof(float));
+	file.read((char*)&triangulated, sizeof(bool));
+	max.ReadFrom(file);
+	min.ReadFrom(file);
+
+	// Write number of each specific array.
+	file.read((char*)&vertices, sizeof(int));
+	file.read((char*)&uvs, sizeof(int));
+	file.read((char*)&normals, sizeof(int));
+	file.read((char*)&faces, sizeof(int));
+	
+	// Allocate arrays.
+	AllocateArrays();
+
+	// Then start writing the data of the arrays.
+	int sizeOfVertex = sizeof(Vector3f);
+	int sizeOfUV = sizeof(Vector2f);
+	if (vertices)
+		file.read((char*)vertex, vertices * sizeOfVertex);
+	if (uvs)
+		file.read((char*)uv, uvs * sizeof(Vector2f));
+	if (normals)
+		file.read((char*)normal, normals * sizeOfVertex);
+
+	// Save all faces.
+	for (int i = 0; i < faces; ++i)
+	{
+		MeshFace & mf = face[i];
+		mf.ReadFrom(file);
+	}
+	std::cout<<"\nMesh saved in compressed form to file: "<<compressedPath;
+	return true;
+}
+
 
 /// Mostly for debug
 void Mesh::PrintContents(){
@@ -187,7 +290,8 @@ void Mesh::PrintContents(){
 }
 
 /// Replaces copy-constructor.
-bool Mesh::LoadDataFrom(const Mesh * otherMesh){
+bool Mesh::LoadDataFrom(const Mesh * otherMesh)
+{
     std::cout<<"\nLoadDataFrom mesh constructor begun...";
 
     Nullify();
@@ -209,16 +313,13 @@ bool Mesh::LoadDataFrom(const Mesh * otherMesh){
 	}
 //	return true;
 	if (uvs){
-		u = new float[uvs];
-		v = new float[uvs];
+		uv = new Vector2f[uvs];
 		for (int i = 0; i < uvs; ++i){
-			u[i] = otherMesh->u[i];
-			v[i] = otherMesh->v[i];
+			uv[i] = otherMesh->uv[i];
 		}
 	}
 	else {
-		u = NULL;
-		v = NULL;
+		uv = NULL;
 	}
 //	return true;
 	if (normals){
@@ -352,8 +453,7 @@ void CreateSphere(Mesh &mesh, int sections){
 
 	// Allocate arrays
 	mesh.vertex = new Vector3f[vertexCount];
-	mesh.u = new float[vertexCount];
-	mesh.v = new float[vertexCount];
+	mesh.uv = new Vector2f[vertexCount];
 	mesh.normal = new Vector3f[vertexCount];
 
 	// For each row
@@ -368,8 +468,8 @@ void CreateSphere(Mesh &mesh, int sections){
 			mesh.vertex[cIndex].y = 1 * cos((i) / dSections * PI);
 			mesh.vertex[cIndex].z = 1 * cos((j) / dSections * PI * 2) * sin((i) / dSections * PI);
 
-			mesh.u[cIndex] = (j / (float)sections);
-			mesh.v[cIndex] = (1 - i / (float) sections);
+			mesh.uv[cIndex].x = (j / (float)sections);
+			mesh.uv[cIndex].y = (1 - i / (float) sections);
 
 			mesh.normal[cIndex] = Vector3f(mesh.vertex[cIndex].x, mesh.vertex[cIndex].y, mesh.vertex[cIndex].z).Normalize();
 
@@ -601,9 +701,12 @@ void Mesh::Center(){
 }
 
 /// For NormalMapping~
-void Mesh::CalculateUVTangents(){
-
-	if (!u)
+void Mesh::CalculateUVTangents()
+{
+	// Not working anyway.. fit it.
+	assert(false);
+	/*
+	if (!uv)
 		return;
 	for (int i = 0; i < faces; ++i){
 		MeshFace * f = &face[i];
@@ -666,6 +769,7 @@ void Mesh::CalculateUVTangents(){
 			break;
 		}
 	}
+	*/
 
 }
 
@@ -678,7 +782,7 @@ void Mesh::Bufferize()
 	}
 	
 
-    if (Graphics.GL_VERSION_MAJOR < 2 && Graphics.GL_VERSION_MINOR < 5){
+    if (GL_VERSION_MAJOR < 2 && GL_VERSION_MINOR < 5){
         std::cout<<"\nUnable to buffer mesh since GL version below is 1.5.";
         return;
     }
@@ -703,7 +807,7 @@ void Mesh::Bufferize()
 		std::cout<<"\nUnknown error?";
 	}
 
-	if (Graphics.GL_VERSION_MAJOR >= 3){
+	if (GL_VERSION_MAJOR >= 3){
 		// Generate VAO and bind it straight away if we're above GLEW 3.0
 	//	glGenVertexArrays(1, vertexArrayObject);
 	//	glBindVertexArray(vertexArrayObject[0]);
@@ -756,10 +860,10 @@ void Mesh::Bufferize()
 				vboVertexData[vertexDataCounted + 4] =
 				vboVertexData[vertexDataCounted + 5] = 0;
 			// UV
-			if (u && v){
+			if (uv){
 				int currentUV = face[i].uv[j];
-				vboVertexData[vertexDataCounted + 6] = u[currentUV];
-				vboVertexData[vertexDataCounted + 7] = v[currentUV];
+				vboVertexData[vertexDataCounted + 6] = uv[currentUV].x;
+				vboVertexData[vertexDataCounted + 7] = uv[currentUV].y;
 			}
 			else {
 				vboVertexData[vertexDataCounted + 6] =

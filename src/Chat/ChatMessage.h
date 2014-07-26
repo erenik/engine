@@ -8,8 +8,10 @@
 
 class Peer;
 
-struct ChatMessage
+/// Not related to the Message class used for the game engine's general messaging system.
+class ChatMessage
 {
+public:
     enum chatMessageTypes {
         NULL_TYPE,
         PUBLIC = 1, /// Sent to all

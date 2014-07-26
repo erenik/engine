@@ -16,22 +16,42 @@
 #include "GraphicsState.h"
 #include "Window/Window.h"
 
+#include "Render/RenderPipelineManager.h"
+#include "Render/RenderPipeline.h"
+
 GraphicsMessage::GraphicsMessage(int i_type){
 	type = i_type;
 }
 GraphicsMessage::~GraphicsMessage(){
 }
 
-void GraphicsMessage::Process(){
-	switch(type){
+void GraphicsMessage::Process()
+{
+	GraphicsState * graphicsState = Graphics.graphicsState;
+	switch(type)
+	{
+		case GM_CYCLE_RENDER_PIPELINE:
+		{
+			RenderPipeline * pipe = RenderPipeMan.Next();
+			graphicsState->renderPipe = pipe;
+			break;
+		}
+		case GM_CYCLE_RENDER_PIPELINE_BACK:	
+		{
+			RenderPipeline * pipe = RenderPipeMan.Previous();
+			graphicsState->renderPipe = pipe;
+			break;
+		}
 		case GM_RECORD_VIDEO: 
 		{
-			graphicsState.recording = !graphicsState.recording; 
+			graphicsState->recording = !graphicsState->recording; 
 			break;
 		}
 		case GM_PRINT_SCREENSHOT:
 		{
-			graphicsState.promptScreenshot = true;
+			Window * activeWindow = ActiveWindow();
+			activeWindow->saveScreenshot = true;
+	//		graphicsState->promptScreenshot = true;
 			break;
 		}
 	    case GM_RENDER_FRUSTUM: {
@@ -51,7 +71,8 @@ void GraphicsMessage::Process(){
 			Graphics.renderingEnabled = true;
 			break;
 		case GM_RECOMPILE_SHADERS:
-			Graphics.shadeMan.RecompileAllShaders();
+			ShadeMan.RecompileAllShaders();
+			RenderPipeMan.LoadFromPipelineConfig();
 			break;
 		case GM_CLEAR_OVERLAY_TEXTURE:
 			Graphics.SetOverlayTexture(NULL);
@@ -151,6 +172,17 @@ void GraphicsMessage::Process(){
 			break;
 	}
 }
+
+GMRecordVideo::GMRecordVideo(Window * fromWindow)
+: GraphicsMessage(GM_RECORD_VIDEO), window(fromWindow)
+{
+}
+
+void GMRecordVideo::Process()
+{
+	window->recordVideo = !window->recordVideo;
+}
+
 
 GMDeleteVBOs::GMDeleteVBOs(UserInterface * ui) : GraphicsMessage(GM_DELETE_VBOS){
 	assert(ui->IsBuffered());

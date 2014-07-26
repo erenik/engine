@@ -12,7 +12,8 @@ enum emitterTypes
 {
 	DEFAULT,
 	CONTOUR,
-	POINT,
+	POINT_DIRECTIONAL,
+	POINT_CIRCLE,
 }; 
 };
 
@@ -23,7 +24,10 @@ public:
 	ParticleEmitter(Contour contour);
     ParticleEmitter(Mesh * mesh);
     ParticleEmitter(int shape);
+	/// Point-based directional emitter
 	ParticleEmitter(Vector3f point, Vector3f direction);
+	/// Point-based circular emitter
+	ParticleEmitter(Vector3f point);
 	/// Stuff.
     bool GetNewParticle(Vector3f & position, Vector3f & velocity);
 private:

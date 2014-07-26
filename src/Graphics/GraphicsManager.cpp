@@ -15,7 +15,7 @@
 
 // All the includes!
 #include "Mesh/Square.h"
-#include "Fonts/Font.h"
+#include "Fonts/TextFont.h"
 #include "Window/Window.h"
 
 #include "UI/UserInterface.h"
@@ -28,8 +28,11 @@
 #include "StateManager.h"
 #include "Graphics/Camera/Camera.h"
 #include "Viewport.h"
+
+#include "Render/RenderPipeline.h"
 #include "Render/RenderRay.h"
 #include "Render/Renderable.h"
+#include "Render/RenderPipelineManager.h"
 
 //#include "Texture/Texture.h"
 //#include "Texture/TextureManager.h"
@@ -53,15 +56,22 @@
 GraphicsManager * GraphicsManager::graphicsManager = NULL;
 
 /// Allocate
-void GraphicsManager::Allocate(){
+void GraphicsManager::Allocate()
+{
 	assert(graphicsManager == NULL);
 	graphicsManager= new GraphicsManager();
+
+	RenderPipelineManager::Allocate();
+	RenderPipeMan.LoadFromPipelineConfig();
+	Graphics.graphicsState->renderPipe = RenderPipeMan.activePipeline;
 }
 GraphicsManager * GraphicsManager::Instance(){
 	assert(graphicsManager);
 	return graphicsManager;
 }
-void GraphicsManager::Deallocate(){
+
+void GraphicsManager::Deallocate()
+{
     int waitTime = 0;
     while(!graphicsManager->finished){
         if (waitTime > 1000){
@@ -71,6 +81,9 @@ void GraphicsManager::Deallocate(){
         Sleep(10);
         waitTime += 10;
     }
+
+	RenderPipelineManager::Deallocate();
+
 	assert(graphicsManager);
 	delete(graphicsManager);
 	graphicsManager= NULL;
@@ -146,7 +159,6 @@ GraphicsManager::GraphicsManager()
 	normalMapTexture = 0;
 	pickingTexture = 0;
 
-
 	renderingEnabled = true;
 	backfaceCullingEnabled = false;
 
@@ -155,7 +167,11 @@ GraphicsManager::GraphicsManager()
 	float size = 1.0f;
 	deferredRenderingBox->SetDimensions(-size, size, -size, size);
 
+
+	graphicsState = new GraphicsState();
 	renderSettings = new RenderSettings();
+
+
 
 	ResetSleepTimes();
 
@@ -219,6 +235,9 @@ GraphicsManager::~GraphicsManager()
     rays.ClearAndDelete();
     renderShapes.ClearAndDelete();
 
+	delete graphicsState;
+	graphicsState = 0;
+
 	std::cout<<"\n>>> GraphicsManager deallocated successfully.";
 }
 
@@ -236,35 +255,16 @@ void GraphicsManager::Initialize()
     xWindow::GetScreenSize(scrWidth, scrHeight);
 #endif
 	/// Update camera projection for the first time!
-	graphicsState.camera = this->defaultCamera;
+	graphicsState->camera = this->defaultCamera;
 	Texture * tex = TexMan.GetTextureBySource("img/initializing.png");
 	SetOverlayTexture(tex);
-}
-
-/// Loads and compiles all relevant shaders
-void GraphicsManager::CreateShaders()
-{
-	/// Load Shaders! Either from file or built in the executable (?)
-	shadeMan.CreateShader("UI", SHADER_REQUIRED);
-	shadeMan.CreateShader("Flat", SHADER_REQUIRED);
-	shadeMan.CreateShader("Depth");
-	shadeMan.CreateShader("Normal");
-	shadeMan.CreateShader("Lighting");
-	shadeMan.CreateShader("Phong");
-	shadeMan.CreateShader("Sprite");
-	/// Don't even create the defered shader if it can't compile, yo..
-	if (this->GL_VERSION_MAJOR >= 3)
-		shadeMan.CreateShader("Deferred");
-	shadeMan.CreateShader("Wireframe");
-
-	shadeMan.RecompileAllShaders();
 }
 
 /// Returns the active camera for the given viewport
 Camera * GraphicsManager::ActiveCamera(int viewport /* = 0*/) const 
 {
     if (viewport == 0){
-        return cameraToTrack;
+		return graphicsState->camera;
     }
 
   //  else {
@@ -435,7 +435,7 @@ void GraphicsManager::OnEndRendering()
 
 	/// Delete all shaders
 	timeStart = clock();
-	shadeMan.DeleteShaders();
+	ShadeMan.DeleteShaders();
 	timeTaken = clock() - timeStart;
 	std::cout<<"\nDeleting shaders... "<<timeTaken / CLOCKS_PER_SEC<<" seconds";
 
@@ -471,12 +471,12 @@ void GraphicsManager::UpdateProjection(float relativeWidth /* = 1.0f */, float r
 		heightRatio *= (float) requestedHeight / requestedWidth;
 
 
-	Camera * cameraToTrack = graphicsState.camera;
+	Camera * cameraToTrack = graphicsState->camera;
 	/// Update cameras with these ratios too!
-	graphicsState.camera->SetRatio(requestedWidth, requestedHeight);
+	graphicsState->camera->SetRatio(requestedWidth, requestedHeight);
 
 	// Set up projection matrix before sending it in
-	graphicsState.projectionMatrixD.InitProjectionMatrix(
+	graphicsState->projectionMatrixD.InitProjectionMatrix(
 		-cameraToTrack->zoom * widthRatio,
 		cameraToTrack->zoom * widthRatio,
 		-cameraToTrack->zoom * heightRatio,
@@ -484,20 +484,20 @@ void GraphicsManager::UpdateProjection(float relativeWidth /* = 1.0f */, float r
 		cameraToTrack->nearPlane,
 		cameraToTrack->farPlane
 	);
-	graphicsState.projectionMatrixF = graphicsState.projectionMatrixD;
+	graphicsState->projectionMatrixF = graphicsState->projectionMatrixD;
 
 	// Load the matrix into GLs built-in projection matrix for testing purposes too.
 //	glMatrixMode(GL_PROJECTION);
-//	glLoadMatrixd(graphicsState.projectionMatrixD.getPointer());
+//	glLoadMatrixd(graphicsState->projectionMatrixD.getPointer());
 //	if (glGetError() != GL_NO_ERROR)
 //		std::cout<<"\nERROR: Unable to load projection matrix to GL";
 	// And do the same for the projection matrix! o-o
-//	glUniformMatrix4fv(graphicsState.activeShader->uniformProjectionMatrix, 1, false, graphicsState.projectionMatrixF.getPointer());
+//	glUniformMatrix4fv(graphicsState->activeShader->uniformProjectionMatrix, 1, false, graphicsState->projectionMatrixF.getPointer());
 //	if (glGetError() != GL_NO_ERROR)
 //		int b = 14;
 //	glGetError();
 	// Update graphicsState viewFrustum internal variables
-	graphicsState.viewFrustum.SetCamInternals(-cameraToTrack->zoom * widthRatio,
+	graphicsState->viewFrustum.SetCamInternals(-cameraToTrack->zoom * widthRatio,
 		cameraToTrack->zoom * widthRatio,
 		-cameraToTrack->zoom * heightRatio,
 		cameraToTrack->zoom * heightRatio,
@@ -509,7 +509,8 @@ void GraphicsManager::UpdateProjection(float relativeWidth /* = 1.0f */, float r
 // Enters a message into the message queue
 void GraphicsManager::QueueMessage(GraphicsMessage *msg){
 //	graphicsMessageQueueMutex;
-	while(!graphicsMessageQueueMutex.Claim(-1));
+	while(!graphicsMessageQueueMutex.Claim(-1))
+		;
 	messageQueue.Push(msg);
 	graphicsMessageQueueMutex.Release();
 	return;
@@ -549,51 +550,6 @@ void GraphicsManager::ProcessMessages()
 void GraphicsManager::ToggleFullScreen(Window * window)
 {
 	window->ToggleFullScreen();
-}
-
-/// Sets selected shader to be active. Prints out error information and does not set to new shader if it fails.
-Shader * GraphicsManager::SetShaderProgram(const char * shaderName){
-	if(GL_VERSION_MAJOR < 2){
-		std::cout<<"\nERROR: Unable to set shader program as GL major version is below 2.";
-        return NULL;
-	}
-	/// Can request default shader too, so ^^
-	if (shaderName == NULL){
-		glUseProgram(0);
-		graphicsState.activeShader = 0;
-		return NULL;
-	}
-	Shader * shader = Graphics.shadeMan.GetShaderProgram(shaderName);
-	if (shader == NULL){
-		// Try and load it, yo.
-		shader = shadeMan.CreateShader(shaderName);
-		shadeMan.RecompileShader(shader);
-		if (shader == NULL){
-			assert(shader && "No such shader, yo?");
-			std::cout<<"\nTried to find shader, but it was ze unsuccessful D:";
-			return NULL;
-		}
-	}
-	int currentProgram;
-	glGetIntegerv(GL_CURRENT_PROGRAM, &currentProgram);
-	// Just return if we're already using it ~
-	if (currentProgram == shader->shaderProgram){
-	    if (!(String(shaderName) == shader->name)){
-            std::cout<<"\nRequested: "<<shaderName<<" current (assumed correct): "<<shader->name;
-            assert(false && "Active shader program does not have the same name as requested shader?");
-	    }
-		return shader;
-    }
-	else if (shader && shader->built){
-		glUseProgram(shader->shaderProgram);
-		graphicsState.activeShader = shader;
-		return shader;
-	}
-	else {
-		glUseProgram(0);
-		graphicsState.activeShader = 0;
-		return NULL;
-	}
 }
 
 /// Wooo. Font-handlin'
@@ -940,11 +896,11 @@ void GraphicsManager::DeallocFrameBuffer(){
 /// Updates the graphicsState's lighting to include dynamic lights' new positions as well.
 void GraphicsManager::UpdateLighting()
 {
-	Lighting * lightingToRender = graphicsState.lighting;
+	Lighting * lightingToRender = graphicsState->lighting;
 	// Reset the lights in the lighting to be first only the static ones.
 	*lightingToRender = lighting;
-	for (int i = 0; i < graphicsState.dynamicLights.Size(); ++i){
-		Light * light = graphicsState.dynamicLights[i];
+	for (int i = 0; i < graphicsState->dynamicLights.Size(); ++i){
+		Light * light = graphicsState->dynamicLights[i];
 		// Update it's position relative to the entity.. important!
 		Entity * owner = light->owner;
 		if (!owner)
@@ -965,7 +921,7 @@ void GraphicsManager::UpdateLighting()
 void GraphicsManager::Process(){
 	/// Process particle effects.
 	for (int i = 0; i < particleSystems.Size(); ++i){
-		particleSystems[i]->Process(graphicsState.frameTime);
+		particleSystems[i]->Process(graphicsState->frameTime);
 	}
 }
 

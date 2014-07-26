@@ -6,6 +6,8 @@
 
 // PI o.o
 const float PI = 3.1415926535897f;
+#define DEGREES_TO_RADIANS(d) (d * 0.01745329251f)
+#define RADIANS_TO_DEGREES(r) (r * 57.2957795f)
 
 /// Define Zero as a minimal value in order for the floating points to function properly when comparing with "0"
 const float ZERO = 0.0000000001f;
@@ -17,7 +19,7 @@ const float ZERO = 0.0000000001f;
 #endif
 
 #ifndef ClampFloat
-#define ClampFloat(a,c,b) if(a<c)a=c;else if(a>b)a=b;
+#define ClampFloat(a, min, max) if(a < min) a = min; else if(a > max) a = max;
 #endif
 
 #ifndef RoundFloat

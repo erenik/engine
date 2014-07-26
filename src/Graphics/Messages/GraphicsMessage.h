@@ -32,6 +32,16 @@ protected:
 	int type;
 };
 
+/// Query start to record video.
+class GMRecordVideo : public GraphicsMessage
+{
+public:
+	GMRecordVideo(Window * fromWindow);
+	virtual void Process();
+private:
+	Window * window;
+};
+
 struct RenderOptions;
 
 /// Message to queue simple shapes to be rendered more or less temporarily.

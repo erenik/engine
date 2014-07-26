@@ -7,7 +7,8 @@
 #include "Model.h"
 #include "Contact/Contact.h"
 
-PhysicsProperty::PhysicsProperty(){
+PhysicsProperty::PhysicsProperty()
+{
 	Nullify();
 };
 
@@ -39,7 +40,7 @@ PhysicsProperty::PhysicsProperty(const PhysicsProperty& other) {
 	collissionCallback = other.collissionCallback;
 	collissionCallbackRequirementValue = other.collissionCallbackRequirementValue;
 	collissionsEnabled = other.collissionsEnabled;
-	noCollissionResolutions = other.noCollissionResolutions;
+	noCollisionResolutions = other.noCollisionResolutions;
 	physicsMesh = other.physicsMesh;
 }
 
@@ -67,7 +68,7 @@ PhysicsProperty::PhysicsProperty(const CompactPhysics * compactPhysics){
 	collissionCallback = compactPhysics->collissionCallback;
 	collissionCallbackRequirementValue = compactPhysics->collissionCallbackRequirementValue;
 	collissionsEnabled = compactPhysics->collissionsEnabled;
-	noCollissionResolutions = compactPhysics->noCollissionResolutions;
+	noCollisionResolutions = compactPhysics->noCollisionResolutions;
 }
 
 /// Set default values.
@@ -92,7 +93,7 @@ void PhysicsProperty::Nullify()
 	collissionCallbackRequirementValue = 1.0f;
 	linearDamping = 0.99f;
 	collissionsEnabled = true;
-	noCollissionResolutions = false;
+	noCollisionResolutions = false;
 	physicsMesh = NULL;
 	velocityRetainedWhileRotating = 0.0f;
 	aabbSweepNodes[0] = aabbSweepNodes[1] = NULL;
@@ -103,7 +104,15 @@ void PhysicsProperty::Nullify()
 	/// For enabling custom (probably network-)based estimation. The Estimator* will then be checked and should be non-NULL.
 	estimationEnabled = false;
 	estimator = NULL; 
-	useQuaternions = false;	
+	// Try it! o.o
+	useQuaternions = true;	
+	gravityMultiplier = 1.f;
+
+	/// For separating categories and filters.
+	/// 0x0000001 by default.
+	collisionCategory = 0x00000001;
+	/// 0x00000001 by default. is binary AND-ed to the opposing entities' category to see if a collision should occur or not.
+	collisionFilter = 0x00000001;
 }
 
 /// Sets mass, re-calculates inverse mass.
@@ -208,10 +217,16 @@ void PhysicsProperty::ApplyImpulse(Vector3f impulse, Vector3f position){
 
 
 /// Updates physical radius, Bounding box size, etc. Should be called from the physics thread only!
-void PhysicsProperty::UpdateProperties(Entity * entity){
-    physicalRadius = entity->model->radius * entity->scale.MaxPart();
-    aabb.Recalculate(entity);
-	obb.Recalculate(entity);
+void PhysicsProperty::UpdateProperties(Entity * entity)
+{
+	if (entity->model)
+	{
+		physicalRadius = entity->model->radius * entity->scale.MaxPart();
+		aabb.Recalculate(entity);
+		obb.Recalculate(entity);
+	}
+	else 
+		physicalRadius = 0;
 }
 
 /// See state enumerations above. TODO: Consider making the state-variable below private.

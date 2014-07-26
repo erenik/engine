@@ -17,6 +17,7 @@
 #endif
 
 #include "Audio.h"
+#include "Mutex/Mutex.h"
 
 #include <iostream>
 #ifdef USE_FMOD
@@ -26,6 +27,8 @@
 //#include <fmod.hpp>
 
 AudioManager * AudioManager::audioManager = NULL;
+
+Mutex audioMessageQueueMutex;
 
 // Short stringstream for debugging using dlog();
 // extern stringstream debugs;
@@ -51,8 +54,12 @@ AudioManager::~AudioManager(){
 #endif
 }
 
-void AudioManager::Initialize(){
+void AudioManager::Initialize()
+{
 	std::cout<<"\nStarting AudioManager...";
+
+	// Create mutex for handling race-conditions/threading
+	audioMessageQueueMutex.Create("audioMessageQueueMutex");
 
 #ifdef USE_OPEN_AL
 
@@ -122,6 +129,13 @@ void AudioManager::Initialize(){
 	}
 	*/
 #endif
+
+	/// Fill the category thingy with volumes
+	categoryVolumes.Clear();
+	for (int i = 0; i < AudioType::NUM_TYPES; ++i)
+	{
+		categoryVolumes.Add(1.f);
+	}
 }
 
 /// Called once in the deallocator thread when stop procedures have begun but before deallocation occurs.
@@ -138,7 +152,8 @@ void AudioManager::Allocate(){
 	assert(audioManager == NULL);
 	audioManager = new AudioManager();
 }
-void AudioManager::Deallocate(){
+void AudioManager::Deallocate()
+{
 	assert(audioManager);
 	delete audioManager;
 }
@@ -301,15 +316,16 @@ Audio * AudioManager::PlayFromSource(char type, String fromSource, bool repeat /
 
 
 
-void AudioManager::Play(char type, String name, bool repeat, float volume){
+Audio * AudioManager::Play(char type, String name, bool repeat, float volume)
+{
 #ifndef USE_AUDIO
     std::cout<<"\nAudio disabled. Returning.";
 	return;
 #endif
     if (!initialized)
-        return;
+        return 0;
 	if (!audioEnabled)
-		return;
+		return 0;
    // assert(initialized);
 
 	pauseUpdates = true;
@@ -324,9 +340,10 @@ void AudioManager::Play(char type, String name, bool repeat, float volume){
 		if (name == audio->name){
 			/// Update the audio o-o
 			audio->Play();
+			audio->volume = volume;
 			// Update volume
 			audio->UpdateVolume(masterVolume);
-			return;
+			return audio;
 		}
 	}
 
@@ -339,7 +356,7 @@ void AudioManager::Play(char type, String name, bool repeat, float volume){
 	if (loadResult == false){
         delete audio;
         std::cout<<"\nERROR: Unable to load audio \""<<name<<"\". Aborting playback.";
-        return;
+        return 0;
 	}
 	/// Generate audio source if not existing.
 	audio->CreateALObjects();
@@ -348,7 +365,54 @@ void AudioManager::Play(char type, String name, bool repeat, float volume){
 	audioList.Add(audio);
 	audio->Play();
 	pauseUpdates = false;
+	return audio;
 }
+
+/// Name is should correspond to filename or path, expected locatoin in ./sound/sfx/
+void AudioManager::PlaySFX(String name, float volume /*= 1.f*/)
+{
+	static int sfxPlayed = 0;
+	++sfxPlayed;
+#ifndef USE_AUDIO
+    std::cout<<"\nAudio disabled. Returning.";
+	return;
+#endif
+    if (!initialized)
+        return;
+	if (!audioEnabled)
+		return;
+
+	pauseUpdates = true;
+	ALCboolean result = alcMakeContextCurrent(alcContext);
+	assert(result && "Unable to set alcContext in AudioManager::Play");
+
+	// Create audio
+	std::cout<<"\nAudio not found, tryng to create and load it.";
+	Audio * audio = new Audio(AudioType::SFX, name, false, volume);
+	bool loadResult = audio->Load();
+	std::cout<<"\nLoad result: "<<loadResult;
+//	assert(loadResult && "Could not load audio data?");
+	if (loadResult == false){
+        delete audio;
+        std::cout<<"\nERROR: Unable to load audio \""<<name<<"\". Aborting playback.";
+        return;
+	}
+	/// Generate audio source if not existing.
+	audio->CreateALObjects();
+	audio->UpdateVolume(masterVolume);
+	audio->deleteOnEnd = true;
+//	assert(audio->audioStream->source > 0);
+	audioList.Add(audio);
+	audio->Play();
+	pauseUpdates = false;
+}
+	
+/// Plays target BGM, pausing all others. Default sets to repeat.
+Audio * AudioManager::PlayBGM(String name, float volume /* = 1.f */)
+{
+	return Play(AudioType::BGM, name, true, volume);
+}
+
 
 // Pause
 void AudioManager::Pause(String name){
@@ -404,7 +468,8 @@ Audio * AudioManager::CreateAudioStream(MultimediaStream * stream)
 
 
 /// Enables audio and unpauses all paused media.
-void AudioManager::EnableAudio(){
+void AudioManager::EnableAudio()
+{
 	audioEnabled = true;
 	Audio::audioEnabled = true;
 	for (int i = 0; i < audioList.Size(); ++i){
@@ -414,7 +479,8 @@ void AudioManager::EnableAudio(){
 }
 
 /// Disables audio and pauses all current playback indefinitely.
-void AudioManager::DisableAudio(){
+void AudioManager::DisableAudio()
+{
 	audioEnabled = false;
 	Audio::audioEnabled = false;
 	for (int i = 0; i < audioList.Size(); ++i){
@@ -423,22 +489,64 @@ void AudioManager::DisableAudio(){
 	}
 }
 
-void AudioManager::Update(){
+void AudioManager::Update()
+{
 	/// Get context, always
 	ALCboolean result = alcMakeContextCurrent(alcContext);
 	assert(result && "Unable to make alc context current");
-	for (int i = 0; i < audioList.Size(); ++i){
+
+	// Process messages.
+	ProcessAudioMessages();
+
+	// Then update volumes and buffer stuff.
+	for (int i = 0; i < audioList.Size(); ++i)
+	{
 		Audio * audio = audioList[i];
 		audio->UpdateVolume(masterVolume);
 		audio->Update();
+		// See if it ended.
+		if (audio->playbackEnded)
+		{
+			// See if it should be deleted.
+			if (audio->deleteOnEnd)
+			{
+				audioList.Remove(audio);
+				delete audio;
+				--i;
+				continue;
+			}
+		}
 	}
 }
 
 
 /// Sets master volume, from 0.0 to 1.0
-void AudioManager::SetMasterVolume(float level){
+void AudioManager::SetMasterVolume(float level)
+{
 	masterVolume = level;
 	this->UpdateVolume();
+}
+
+/// Returns the current volume for target category (0.0 to 1.0)
+float AudioManager::CategoryVolume(int category)
+{
+	bool good = category < categoryVolumes.Size() && category >= 0;
+	assert(good);
+	if (!good)
+		return 0.f;
+	return categoryVolumes[category];
+
+}
+
+void AudioManager::StopAndRemoveAll()
+{
+	while(audioList.Size())
+	{
+		Audio * audio = audioList[0];
+		audio->Stop();
+		delete audio;
+		audioList.Remove(audio);
+	}
 }
 
 /// Calls update volume for all audio
@@ -447,5 +555,42 @@ void AudioManager::UpdateVolume(){
 		audioList[i]->UpdateVolume(masterVolume);
 	}
 }
+
+void AudioManager::QueueMessage(AudioMessage * am)
+{
+	/// Claim mutex.
+	while(!audioMessageQueueMutex.Claim(-1))
+		;
+	messageQueue.Add(am);
+	// Release mutex
+	audioMessageQueueMutex.Release();
+
+}
+
+// yer.
+void AudioManager::ProcessAudioMessages()
+{
+	if (!messageQueue.Size())
+		return;
+	List<AudioMessage*> messagesToProcess;
+	/// Claim mutex.
+	while(!audioMessageQueueMutex.Claim(-1))
+		;
+	messagesToProcess = messageQueue;
+	messageQueue.Clear();
+	// Release mutex
+	audioMessageQueueMutex.Release();
+
+
+	/// Process them.
+	while(messagesToProcess.Size())
+	{
+		AudioMessage * am = messagesToProcess[0];
+		am->Process();
+		messagesToProcess.Remove(am, ListOption::RETAIN_ORDER);
+		delete am;
+	}
+}
+
 
 #endif // USE_AUDIO

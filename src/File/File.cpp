@@ -6,6 +6,53 @@
 #include "FileUtil.h"
 #include "Timer/Timer.h"
 
+// Constructor
+File::File(String path)
+{
+	fileHandle = 0;
+	open = false;
+}
+
+/// Last time this file was modified. Returns -1 if the file does not exist and -2 if the function fails.
+Time File::LastModified()
+{
+#ifdef WINDOWS
+	if (!OpenFileHandleIfNeeded())
+	{
+		return -1;
+	}
+
+	FILETIME creationTime, lastAccessTime, lastWriteTime;
+	bool result = GetFileTime(fileHandle, &creationTime, &lastAccessTime, &lastWriteTime);
+
+	
+	ULARGE_INTEGER uli;
+	uli.HighPart = lastWriteTime.dwHighDateTime;
+	uli.LowPart = lastWriteTime.dwLowDateTime;
+	Time lastModified(uli.QuadPart, TimeType::WIN32_100NANOSEC_SINCE_JAN1_1601);
+	return lastModified;
+#endif
+}
+
+/// Ensures that the file handle has been opened successfully. Returns false if it fails.
+bool File::OpenFileHandleIfNeeded()
+{
+#ifdef WINDOWS
+	// http://msdn.microsoft.com/en-us/library/windows/desktop/aa363858%28v=vs.85%29.aspx
+	fileHandle = CreateFile(path.wc_str(),  GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (fileHandle ==  INVALID_HANDLE_VALUE)
+	{
+		int error = GetLastError();
+		if (error = ERROR_FILE_NOT_FOUND)
+			std::cout<<"\nError: File not found: "<<path;
+		return false;
+	}
+#endif
+	return true;
+}
+
+
+
 std::fstream * File::Open(String path){
 	/// Add /save/ unless it already exists in the path.
 	fileStream.open(path.c_str(), std::ios_base::out | std::ios_base::binary);

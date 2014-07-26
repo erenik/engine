@@ -10,6 +10,23 @@
 #include "Shader.h"
 #include "GraphicsState.h"
 
+#include "Graphics/GraphicsManager.h"
+#include "Graphics/Messages/GMUI.h"
+#include "Graphics/Messages/GraphicsMessages.h"
+
+#include "Window/WindowManager.h"
+
+#include "UI/UserInterface.h"
+#include "UI/UIButtons.h"
+
+#include "Message/MessageManager.h"
+#include "Message/VectorMessage.h"
+
+
+String lightngEditorWindowName = "LightingEditor";
+String lightList = "LightList";
+
+
 /// Default constructor, sets all light pointers and other variables to 0/NULL
 Lighting::Lighting()
 {
@@ -53,9 +70,196 @@ void Lighting::Copy(const Lighting * fromThisLighting)
 	this->lightCounter = fromThisLighting->lightCounter;
 }
 
-/// Adds light to the lighting, returns it's index on success, -1 on failure. o-o
+/// Returns true if the message had any meaning, adjusting values within the lighting.
+bool Lighting::ProcessMessage(Message * message)
+{
+	String msg = message->msg;
+	// See if it's a message that could apply to our lights.
+	if (msg.StartsWith("SetLight"))
+	{
+		// Fetch active light.
+		Light * light = activeLight;
+		if (light)
+		{
+			light->ProcessMessage(message);
+		}
+		return true;
+	}
+	switch(message->type)
+	{
+		case MessageType::VECTOR_MESSAGE:
+		{
+			VectorMessage * vm = (VectorMessage*) message;
+			if (msg == "SetGlobalAmbient")
+			{
+				global_ambient = vm->GetVector4f();
+			}
+		}
+		// General basic string messages sent by all UI buttons and internal messaging
+		case MessageType::STRING: 
+		{
+			if (msg == "OnReloadUI")
+			{
+				Window * window = WindowMan.GetWindowByName(lightngEditorWindowName);
+				if (window)
+				{	
+					UserInterface * ui = window->ui;
+					Graphics.QueueMessage(new GMSetUIv3f("GlobalAmbient", GMUI::VECTOR_INPUT, GetAmbient(), ui));
+					this->UpdateLightList();
+				}
+				if (activeLight)
+					activeLight->OnPropertiesUpdated();
+			}
+			else if (msg == "SaveLighting")
+			{
+				std::fstream file;
+				file.open("temp.lighting", std::ios_base::out | std::ios_base::binary);
+				if (!file.is_open())
+					return false;
+				this->WriteTo(file);
+				file.close();
+			}
+			else if (msg == "LoadLighting")
+			{
+				if (activeLight)
+					activeLight->CloseEditorWindow();
+				std::fstream file;
+				file.open("temp.lighting", std::ios_base::in | std::ios_base::binary);
+				if (!file.is_open())
+					return false;
+				this->ReadFrom(file);
+				file.close();
+				// Stuff.
+				this->OpenEditorWindow();
+				
+			}
+			else if (msg == "DisableLight")
+			{
+				if (activeLight)
+				{
+					activeLight->currentlyActive = !activeLight->currentlyActive;
+				}
+			}
+			else if (msg.Contains("NewLight"))
+			{
+				String name = "Light";
+				if (msg.Contains(":"))
+					name = msg.Tokenize(":")[1];
+				Light * light = NewLight(name);
+				// Open up the editor for it.
+				light->OpenEditorWindow();
+			}
+			else if (msg.Contains("SelectLightByIndex:"))
+			{
+				String indexStr = msg.Tokenize(":")[1];
+				int index = indexStr.ParseInt();
+				Light * selectedLight = SelectLightByIndex(index);
+			}
+			else if (msg.Contains("OpenLightingEditor"))
+			{
+				this->OpenEditorWindow();
+			}
+			else if (msg.Contains("OpenLightEditor"))
+			{
+				if (!activeLight)
+					return false;
+				activeLight->OpenEditorWindow();
+			}
+			else if (msg == "UpdateLightList")
+				UpdateLightList();
+			else if (msg == "DeleteActiveLight")
+			{
+				lights.Remove(activeLight);
+				activeLight->CloseEditorWindow();
+				activeLight = NULL;
+				UpdateLightList();
+				
+			}
+			
+			
+		}
+	}
+	return false;
+}
+
+
+/// Creates an editor-window for this lighting, assuming the existance of LightingMenu and LightEditor GUI files.
+Window * Lighting::OpenEditorWindow()
+{
+	// Look for an existing lighting-editor window.
+	Window * window = WindowMan.GetWindowByName(lightngEditorWindowName);
+	if (window)
+	{
+	
+	}
+	// Create it if not existing.
+	else {
+		window = WindowMan.NewWindow(lightngEditorWindowName);
+		UserInterface * ui = window->CreateUI();
+		ui->Load("gui/LightingMenu.gui");
+		window->SetRequestedSize(Vector2i(400, 320));
+		window->DisableAllRenders();
+		window->renderUI = true;
+		window->CreateGlobalUI();
+		window->Create();
+	}
+	
+	// Show it.
+	window->Show();
+	// Bring it to the top if needed.
+	window->BringToTop();
+
+	
+	// Set default values as specified in this lighting.
+	UserInterface * ui = window->ui;
+
+	Graphics.QueueMessage(new GMSetUIv3f("GlobalAmbient", GMUI::VECTOR_INPUT, GetAmbient(), ui));
+
+	UpdateLightList(window);
+	return window;
+}
+
+/// Updates UI for all lights in this lighting.
+void Lighting::UpdateLightList(Window * inWindow)
+{
+	Window * window = inWindow;
+	if (!window)
+		window = WindowMan.GetWindowByName(lightngEditorWindowName);
+	if (!window)
+		return;
+	// Set default values as specified in this lighting.
+	UserInterface * ui = window->ui;
+	Graphics.QueueMessage(new GMClearUI(lightList, ui));
+	// Add all lights.
+	for (int i = 0; i < this->lights.Size(); ++i)
+	{
+		Light * light = lights[i];
+		// Add an entry for it in the list.
+		UIButton * button = new UIButton(light->name);
+		button->sizeRatioY = 0.2f;
+		button->activationMessage = "SelectLightByIndex:"+String::ToString(i)+"&&OpenLightEditor";
+		Graphics.QueueMessage(new GMAddUI(button, lightList, ui));
+	}
+}
+
+/// Creates a new light to this setup.
+Light * Lighting::NewLight(String name)
+{
+	Light * light = new Light(this);
+	light->name = name;
+	light->currentlyActive = true;
+	activeLight = light;
+	lastUpdate = Timer::GetCurrentTimeMs();
+	lights.Add(light);
+	// Update UI if needed.
+	UpdateLightList();
+	return light;
+}
+
+/// DEPRECATE: bad arguments... Adds light to the lighting, return NULL upon falure. Note that the light is copied in this case! TODO: Remove this function.
 Light * Lighting::Add(Light * newLight)
 {
+	assert(false);
 	if (lights.Size() >= MAX_LIGHTS)
 		return NULL;
 	Light * light = new Light(*newLight);
@@ -178,7 +382,7 @@ Light * Lighting::CreateLight()
 {
 	if (lights.Size() >= MAX_LIGHTS)
 		return NULL;
-	activeLight = new Light();
+	activeLight = new Light(this);
 	/// Set default values
 	activeLight->diffuse = Vector4f(1,1,1,1);
 	activeLight->specular = Vector4f(1,1,1,1);
@@ -190,6 +394,32 @@ Light * Lighting::CreateLight()
 	this->lastUpdate = GetTime();
 	lights.Add(activeLight);
 	return activeLight;
+}
+
+
+/// Selects and makes active.
+Light * Lighting::SelectLightByIndex(int index)
+{
+	if (index > lights.Size() || index < 0)
+		return NULL;
+	activeLight = lights[index];
+	return activeLight;
+}
+
+/// Selects and makes active target light. May return NULL.
+Light * Lighting::SelectLightByName(String byName)
+{
+	for (int i = 0; i < lights.Size(); ++i)
+	{
+		Light * light = lights[i];
+		if (light->name == byName)
+		{
+			light->currentlyActive = true;
+			activeLight = light;
+			return light;
+		}
+	}
+	return NULL;
 }
 
 /// Returns a pointer to selected light. USE WITH CAUTION.
@@ -214,6 +444,21 @@ int Lighting::DeleteAllLights()
 }
 
 
+/// Loads from target file, calling ReadFrom once a valid stream has been opened.
+bool Lighting::LoadFrom(String fileName)
+{
+	std::fstream file;
+	file.open(fileName.c_str(), std::ios_base::in | std::ios_base::binary);
+	if (!file.is_open())
+		return false;
+	ReadFrom(file);
+	file.close();
+	// Update UI if needed.
+	UpdateLightList();
+	return true;
+}
+
+
 // Versions
 #define LIGHTING_VERSION_0 0// Initial version.
 int lightingVersion = LIGHTING_VERSION_0;
@@ -234,6 +479,9 @@ void Lighting::WriteTo(std::fstream & file){
 /// Reads from file stream.
 void Lighting::ReadFrom(std::fstream & file)
 {
+	// Delete old
+	lights.ClearAndDelete();
+	activeLight = NULL;
 	// Write version
 	int version;
 	file.read((char*)&version, sizeof(int));
@@ -242,9 +490,9 @@ void Lighting::ReadFrom(std::fstream & file)
 	global_ambient.ReadFrom(file);
 	// Write number of lights
 	int numLights = 0;
-	file.write((char*)&numLights, sizeof(int));
+	file.read((char*)&numLights, sizeof(int));
 	for (int i = 0; i < numLights; ++i){
-		Light * light = new Light();
+		Light * light = new Light(this);
 		light->ReadFrom(file);
 		lights.Add(light);
 	}
@@ -252,58 +500,40 @@ void Lighting::ReadFrom(std::fstream & file)
 
 
 /// Loads selected lighting into the active shader program
-bool LoadLighting(Lighting * lighting, Shader * shader)
+void LoadLighting(Lighting * lighting, Shader * shader)
 {
-	GLuint loc, error;
-	if (!lighting)
-		return false;
-	if (!shader)
-		return false;
-//#define PRINT_DEBUG
-	/// First get and set ambient
-	loc = glGetUniformLocation(shader->shaderProgram, "global_ambient");
-	if (loc != -1){
-		shader->uniformLight.ambientVec4 = loc;
-		GLfloat ambient[3];
-		ambient[0] = lighting->global_ambient.x;
-		ambient[1] = lighting->global_ambient.y;
-		ambient[2] = lighting->global_ambient.z;
-		glUniform3fv(shader->uniformLight.ambientVec4, 1, ambient);
-		error = glGetError();
-		if (error != GL_NO_ERROR){
-			std::cout<<"\nGL_ERROR: Error setting global ambient luminosity";
-		}
+	
+	GLuint loc = -1, error;
+	error = glGetError();
+	if (error != GL_NO_ERROR)
+	{
+		std::cout<<"\nError before LoadLighting";
 	}
-	else {
-		std::cout<<"\nUnable to find uniform for global_ambient.";
-		return false;
-    }
+	if (!lighting)
+		return;
+	if (!shader)
+		return;
+//#define PRINT_DEBUG
 
-	// Get remaining uniforms
-	loc = glGetUniformLocation(shader->shaderProgram, "light_diffuse");
-	if (loc != -1)
-		shader->uniformLight.diffuseVec4 = loc;
-	loc = glGetUniformLocation(shader->shaderProgram, "light_specular");
-	if (loc != -1)
-		shader->uniformLight.specularVec4 = loc;
-	loc = glGetUniformLocation(shader->shaderProgram, "light_position");
-	if (loc != -1)
-		shader->uniformLight.positionVec3 = loc;
-	loc = glGetUniformLocation(shader->shaderProgram, "light_attenuation");
-	if (loc != -1)
-		shader->uniformLight.attenuationVec3 = loc;
-	loc = glGetUniformLocation(shader->shaderProgram, "light_type");
-	if (loc != -1)
-		shader->uniformLight.typeInt = loc;
-	loc = glGetUniformLocation(shader->shaderProgram, "light_spotDirection");
-	if (loc != -1)
-		shader->uniformLight.spotDirectionVec3 = loc;
-	loc = glGetUniformLocation(shader->shaderProgram, "light_spotCutoff");
-	if (loc != -1)
-		shader->uniformLight.spotCutoffFloat = loc;
-	loc = glGetUniformLocation(shader->shaderProgram, "light_spotExponent");
-	if (loc != -1)
-		shader->uniformLight.spotExponentInt = loc;
+	// Return. If no ambient is present no other light will be either.
+	if (shader->uniformLight.ambientVec4 == -1)
+		return;
+
+	/// Set ambient
+	GLfloat ambient[4];
+	ambient[0] = lighting->global_ambient.x;
+	ambient[1] = lighting->global_ambient.y;
+	ambient[2] = lighting->global_ambient.z;
+	ambient[3] = lighting->global_ambient.w;
+	glUniform4fv(shader->uniformLight.ambientVec4, 1, ambient);
+	error = glGetError();
+	if (error != GL_NO_ERROR){
+		std::cout<<"\nGL_ERROR: Error setting global ambient luminosity";
+	}
+	
+	// If no diffuse uniform, abort.
+	if (shader->uniformLight.diffuseVec4 == -1)
+		return;
 
 
 	/// Gather all data
@@ -324,36 +554,36 @@ bool LoadLighting(Lighting * lighting, Shader * shader)
 		// Only take those lights which are visible in the frustum, or will reach it with their light?
 		// ... 
 
-
-		activeLights++;
 		int interval = 4;
-		diffuse[i*interval] = light->diffuse.x;
-		diffuse[i*interval+1] = light->diffuse.y;
-		diffuse[i*interval+2] = light->diffuse.z;
-		diffuse[i*interval+3] = light->diffuse.w;
+		diffuse[activeLights*interval] = light->diffuse.x;
+		diffuse[activeLights*interval+1] = light->diffuse.y;
+		diffuse[activeLights*interval+2] = light->diffuse.z;
+		diffuse[activeLights*interval+3] = light->diffuse.w;
 
-		specular[i*interval] = light->specular.x;
-		specular[i*interval+1] = light->specular.y;
-		specular[i*interval+2] = light->specular.z;
-		specular[i*interval+3] = light->specular.w;
+		specular[activeLights*interval] = light->specular.x;
+		specular[activeLights*interval+1] = light->specular.y;
+		specular[activeLights*interval+2] = light->specular.z;
+		specular[activeLights*interval+3] = light->specular.w;
 
 		interval = 3;
-		position[i*interval] = light->position.x;
-		position[i*interval+1] = light->position.y;
-		position[i*interval+2] = light->position.z;
+		position[activeLights*interval] = light->position.x;
+		position[activeLights*interval+1] = light->position.y;
+		position[activeLights*interval+2] = light->position.z;
 
-		attenuation[i*interval] = light->attenuation.x;
-		attenuation[i*interval+1] = light->attenuation.y;
-		attenuation[i*interval+2] = light->attenuation.z;
+		attenuation[activeLights*interval] = light->attenuation.x;
+		attenuation[activeLights*interval+1] = light->attenuation.y;
+		attenuation[activeLights*interval+2] = light->attenuation.z;
 
-		type[i] = light->type;
+		type[activeLights] = light->type;
 
-		spotDirection[i*interval] = light->spotDirection.x;
-		spotDirection[i*interval+1] = light->spotDirection.y;
-		spotDirection[i*interval+2] = light->spotDirection.z;
+		spotDirection[activeLights*interval] = light->spotDirection.x;
+		spotDirection[activeLights*interval+1] = light->spotDirection.y;
+		spotDirection[activeLights*interval+2] = light->spotDirection.z;
 		/// Calcualte cutoff as a cosine value of the degrees converted to radians before we throw it in ^^
-		spotCutoff[i] = cos(light->spotCutoff / 180.0f * PI);
-		spotExponent[i] = light->spotExponent;
+		spotCutoff[activeLights] = cos(light->spotCutoff / 180.0f * PI);
+		spotExponent[activeLights] = light->spotExponent;
+
+		activeLights++;
 	}
 
 	/// Set all data
@@ -422,5 +652,4 @@ bool LoadLighting(Lighting * lighting, Shader * shader)
 	}
 	else
 		std::cout<<"\nUnable to find uniform for activeLights.";
-	return true;
 }

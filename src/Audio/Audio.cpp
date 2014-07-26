@@ -12,6 +12,8 @@
 #include "Multimedia/MultimediaTypes.h"
 #include "Multimedia/Ogg/OggStream.h"
 
+#include "File/FileUtil.h"
+
 #define BUILD_AL
 #ifdef BUILD_AL
 #include <AL/al.h>
@@ -33,13 +35,6 @@
 //	AUDIO_ERROR,
 //};
 
-
-
-AudioBuffer::AudioBuffer()
-{
-	alBuffer = 0;
-	buffered = false;
-}
 
 bool Audio::audioEnabled = true;
 int Audio::defaultBufferSize = 4096 * 4;
@@ -63,8 +58,9 @@ void Audio::Nullify()
 
 	alSource = 0;
 	audioBuffers.ClearAndDelete();
-	audioBuffers.Add(new AudioBuffer());
-	audioBuffers.Add(new AudioBuffer());
+
+//	audioBuffers.Add(new AudioBuffer());
+//	audioBuffers.Add(new AudioBuffer());
 
 	playbackEnded = false;
 
@@ -72,6 +68,10 @@ void Audio::Nullify()
 	bufferDuration = 0;
 	buffersPassed = 0;
 	totalDurationBuffered = 0;
+
+	deleteOnEnd = false;
+
+	firstBufferDone = false;
 }
 
 /// Generate audio source if not existing.
@@ -80,12 +80,14 @@ void Audio::CreateALObjects()
 	/// Skip is source is valid already.
 	if (alSource)
 		return;
-	for (int i = 0; i < audioBuffers.Size(); ++i)
+	// Create audio buffers.
+	assert(audioBuffers.Size() == 0);
+	for (int i = 0; i < 2; ++i)
 	{
-		AudioBuffer * audioBuffer = audioBuffers[i];
-		alGenBuffers(1, &audioBuffer->alBuffer);
+		AudioBuffer * audioBuffer = AudioBuffer::New();
+		audioBuffers.Add(audioBuffer);
 	}
-	alGenSources(1, &alSource);
+	alSource = ALSource::New();
 	if (alSource == 0)		// Throw an error if we can't generate a source.
 		throw 5;
 	std::cout<<"\nALSource generated: "<<alSource;
@@ -101,20 +103,34 @@ void Audio::CreateALObjects()
 /// Destructor that deletes AL resources as well as other thingies!
 Audio::~Audio()
 {
+	int error = 0;
 	/// Deallocate al IDs.
-    if (alSource != 0){
+    if (alSource != 0)
+	{
+		// Stop!
         alSourceStop(alSource);
-        alDeleteSources(1, &alSource);
-
-		/// Delete alBuffers.
+		// set 0 buffer so that they may be deleted. <- wat...
+//		alSourcei(alSource, AL_BUFFER, 0);
+		AssertALError();
+			
+		// Unqueue and delete all audio buffers buffers.
 		while(audioBuffers.Size())
 		{
 			AudioBuffer * audioBuffer = audioBuffers[0];
-			alDeleteBuffers(1, &audioBuffer->alBuffer);
+			// Unqueue it so that it may be freed later.
+			if (audioBuffer->attached)
+				UnqueueBuffer(audioBuffer);
+			// Free the buffers.
+			audioBuffer->Free();
+			AssertALError();
 			audioBuffers.Remove(audioBuffer);
-			delete audioBuffer;
+//			delete audioBuffer;
 		}
+
+		ALSource::Free(alSource);
+		AssertALError();
 	}
+	
     if (audioStream){
         audioStream->Close();
         delete audioStream;
@@ -168,20 +184,19 @@ bool Audio::Load()
     assert(audioStream == NULL);
     std::cout<<"\nAudio::Load for "<<name<<" assumed to be located at "<<path;
 
-    std::fstream file;
-    file.open(path.c_str(), std::ios_base::in);
-    if (!file.is_open()){
-        file.close();
-        std::cout<<"\nERROR: File does not exist. Returning.";
-        return false;
-    }
-    file.close();
+	if (!FileExists(path))
+	{
+		std::cout<<"\nERROR: File does not exist. Returning.";    
+		return false;
+	}
 
     // Stream
-	if (name.Contains(".ogg")){
+	if (name.Contains(".ogg"))
+	{
         std::cout<<"\nFile deemed of type Ogg Vorbis, trying to load.";
 		audioStream = new OggStream();
 		loaded = audioStream->Open(path.c_str());
+		assert(loaded);	
 	}
 	else if (name.Contains(".wav")){
 	    std::cout<<"\nFile deemd of type Waveform Audio File Format, trying to load.";
@@ -298,6 +313,24 @@ void Audio::Stop()
 	state = AudioState::READY;
 }
 
+void Audio::QueueBuffer(AudioBuffer * buf)
+{
+	assert(!buf->attached);
+	bool ok = buf->AttachTo(alSource);
+	assert(ok);
+	queuedBuffers.Add(buf);
+}
+
+void Audio::UnqueueBuffer(AudioBuffer * buf)
+{
+	assert(buf->attached);
+	bool ok = buf->DetachFrom(alSource);
+	assert(ok);
+	queuedBuffers.Remove(buf, ListOption::RETAIN_ORDER);
+	/// Assume the buffer should get new data after unqueuing it.
+	buf->buffered = false;
+}
+
 // Buffers new data from underlying streams and pushes it into AL for playback.
 void Audio::Update()
 {
@@ -307,6 +340,26 @@ void Audio::Update()
 	// Check if playing?
 	if (state != AudioState::PLAYING)
 		return;
+
+	// Check if first buffering is done yet.
+	if (!firstBufferDone)
+	{
+		for (int i = 0; i < audioBuffers.Size(); ++i)
+		{
+			AudioBuffer * audioBuffer = audioBuffers[i];
+			BufferData(audioStream, audioBuffer);
+			if (audioBuffer->buffered)
+			{
+				// Queue it.
+				QueueBuffer(audioBuffer);
+//				alSourceQueueBuffers(alSource, 1, &audioBuffer->alBuffer);
+			}
+		}
+		firstBufferDone = true;
+		// Play it!
+		alSourcePlay(alSource);
+		return;
+	}
 
 	// Update time.
 	playbackTime;
@@ -342,17 +395,9 @@ void Audio::Update()
 			}
 
 			// Check playback time
-			std::cout<<"\nAudio stopped! Maybe it ran out of data to play back? Playing it again unless stream we depend on has ended!";
+		//	std::cout<<"\nAudio stopped! Maybe it ran out of data to play back? Playing it again unless stream we depend on has ended!";
 			alSourcePlay(alSource);
-			int error = alGetError();
-			switch(error){
-				case AL_NO_ERROR:
-					break;
-				default:
-					std::cout<<"\nERRRORROR";
-					break;
-			}
-			break;
+			CheckALError();
 		}
 	}
 
@@ -365,13 +410,20 @@ void Audio::Update()
 	/// Check processed buffers.
 	alGetSourcei(alSource, AL_BUFFERS_PROCESSED, &processed);
 	CheckALError("Error getting source statistics for alSource: " + String::ToString((int)alSource)+ " and processed: "+String::ToString(processed));
-
+//	assert(queuedBuffers.Size() >= processed + queued);
+		
 	/// For each processed buffer, unqueue it
-	while(processed){
-		/// wat.
-        ALuint alBuffer;
+	while(processed)
+	{
+		assert(queuedBuffers.Size());
+		// Fetch the index 0 buffer, should be the one.
+		AudioBuffer * buf = queuedBuffers[0];
+		UnqueueBuffer(buf);
+		/*
+		ALuint alBuffer;
 		/// Check if buffer is still queued?
 //		alGetBufferi(alBuffer, AL_BUFFER_
+
         alSourceUnqueueBuffers(alSource, 1, &alBuffer);
 	//	std::cout<<"\nBuffer unqueued: "<<alBuffer;
 	    CheckALError("Error Unquequeing bufferrs");
@@ -382,90 +434,22 @@ void Audio::Update()
 				queuedBuffers.Remove(queuedBuffer);
 				queuedBuffer->buffered = false;
 			}
-		}
+		}*/
 		--processed;
 		/// Increment known buffers passed so we know how far we have played the track.
 		buffersPassed++;
 	}
 	/// For each unqueued buffer, stream more data and queue it.
 	List<AudioBuffer*> unqueuedBuffers = audioBuffers - queuedBuffers;
-	for (int i = 0; i < unqueuedBuffers.Size(); ++i){
+	for (int i = 0; i < unqueuedBuffers.Size(); ++i)
+	{
 		AudioBuffer * audioBuffer = unqueuedBuffers[i];
-		try {
-			/// Replace with a call to stream audio data from the stream.
-			assert(audioStream);
+		BufferData(audioStream, audioBuffer);
 
-			#define FOURKB		4096
-			#define BUFFER_SIZE (FOURKB * 64)
-
-			char buf[BUFFER_SIZE];
-			int channels = audioStream->AudioChannels();
-			int format = 0;
-			int frequency = audioStream->AudioFrequency();
-			int bytesBuffered = audioStream->BufferAudio(buf, BUFFER_SIZE, repeat);
-			
-			float durationBuffered;
-			int numberOfSampleFrames;
-			int sampleRate = frequency;
-			switch(channels)
-			{
-				case 1: 
-					format = AL_FORMAT_MONO16; 
-					numberOfSampleFrames = bytesBuffered * 0.5;
-					break;
-				case 2: 
-					format = AL_FORMAT_STEREO16; 
-					numberOfSampleFrames = bytesBuffered * 0.25;
-					break;
-			}
-			durationBuffered = numberOfSampleFrames / (float)sampleRate;
-			bufferDuration = durationBuffered;
-			totalDurationBuffered += durationBuffered;
-
-/*			// If unable to buffer data, assume we are at the end of the file. If so, check if we can re-start the file (assuming looping is enabled)
-			if (bytesBuffered <= 0 && repeat){
-				audioStream->Seek(0);
-				bytesBuffered = audioStream->BufferAudio(buf, BUFFER_SIZE);
-			}
-*/
-			if (bytesBuffered <= 0){
-				playbackEnded = true;
-				std::cout<<"\nUnable to buffer audio data! Assuming at end of stream.";
-				state = AudioState::ENDED;
-				continue;
-			}
-	//		std::cout<<"\nBuffer more PCM data: "<<bytesBuffered;
-			/// Samples per second yo....
-			alBufferData(audioBuffer->alBuffer, format, buf, bytesBuffered, frequency);
-			int error = alGetError();
-			switch(error){
-				case AL_NO_ERROR:
-					/// Mark the buffer as buffered.
-					audioBuffer->buffered = true;
-					break;
-				default:
-					std::cout<<"\nError buffering AL Data";
-					break;
-			}
-		}
-		catch (...){
-			std::cout<<"\nStreaming failed, aborting.";
-			return;
-		}
 		// Don't queue the buffer if streaming failed, since it's old data, yo.
 		if (audioBuffer->buffered)
 		{
-			alSourceQueueBuffers(alSource, 1, &audioBuffer->alBuffer);
-			ALuint error = alGetError();
-	//		std::cout<<"\nBuffer queued: "<<audioBuffer->alBuffer;
-			switch(error){
-				case AL_NO_ERROR:
-					queuedBuffers.Add(audioBuffer);
-					break;
-				default:
-					std::cout<<"\nError queueing AL buffer.";
-					break;
-			}
+			QueueBuffer(audioBuffer);
 		}
 	}
 
@@ -481,24 +465,16 @@ long long Audio::PlaybackTimeMs()
 /// Unqueues all AL buffers. This is wanted when stopping or changing locations,... probably.
 void Audio::UnqueueBuffers()
 {
-	while(queuedBuffers.Size()){
-        ALuint alBuffer;
-		alSourceUnqueueBuffers(alSource, 1, &alBuffer);
-		std::cout<<"\nBuffer unqueued: "<<alBuffer;
-	    CheckALError("Error Unquequeing bufferrs");
-		for (int i = 0; i < this->queuedBuffers.Size(); ++i){
-			AudioBuffer * queuedBuffer = queuedBuffers[i];
-			if (alBuffer == queuedBuffer->alBuffer){
-				// Unqueue it
-				queuedBuffers.Remove(queuedBuffer);
-				queuedBuffer->buffered = false;
-			}
-		}
+	while(queuedBuffers.Size())
+	{
+		AudioBuffer * buf = queuedBuffers[0];
+		UnqueueBuffer(buf);
 	}
 }
 
 /// Updates playback volume.
-void Audio::UpdateVolume(float masterVolume){
+void Audio::UpdateVolume(float masterVolume)
+{
 	absoluteVolume = this->volume * masterVolume;
 	/// Set volume in AL.
 	alSourcef(alSource, AL_GAIN, absoluteVolume);
@@ -513,5 +489,72 @@ void Audio::UpdateVolume(float masterVolume){
 }
 
 
+void Audio::BufferData(MultimediaStream * fromStream, AudioBuffer * intoBuffer)
+{
+	try {
+		/// Replace with a call to stream audio data from the stream.
+		assert(audioStream);
+
+		#define FOURKB		4096
+		#define BUFFER_SIZE (FOURKB * 64)
+
+		char buf[BUFFER_SIZE];
+		int channels = audioStream->AudioChannels();
+		int format = 0;
+		int frequency = audioStream->AudioFrequency();
+		int bytesBuffered = audioStream->BufferAudio(buf, BUFFER_SIZE, repeat);
+			
+		float durationBuffered;
+		int numberOfSampleFrames;
+		int sampleRate = frequency;
+		switch(channels)
+		{
+			case 1: 
+				format = AL_FORMAT_MONO16; 
+				numberOfSampleFrames = bytesBuffered * 0.5;
+				break;
+			case 2: 
+				format = AL_FORMAT_STEREO16; 
+				numberOfSampleFrames = bytesBuffered * 0.25;
+				break;
+		}
+		durationBuffered = numberOfSampleFrames / (float)sampleRate;
+		bufferDuration = durationBuffered;
+		totalDurationBuffered += durationBuffered;
+
+	/*			// If unable to buffer data, assume we are at the end of the file. If so, check if we can re-start the file (assuming looping is enabled)
+		if (bytesBuffered <= 0 && repeat){
+			audioStream->Seek(0);
+			bytesBuffered = audioStream->BufferAudio(buf, BUFFER_SIZE);
+		}
+	*/
+		if (bytesBuffered <= 0)
+		{
+			playbackEnded = true;
+			std::cout<<"\nUnable to buffer audio data! Assuming at end of stream.";
+			state = AudioState::ENDED;
+			intoBuffer->buffered = false;
+			return;
+		}
+	//		std::cout<<"\nBuffer more PCM data: "<<bytesBuffered;
+		/// Samples per second yo....
+		alBufferData(intoBuffer->alBuffer, format, buf, bytesBuffered, frequency);
+		int error = alGetError();
+		switch(error){
+			case AL_NO_ERROR:
+				/// Mark the buffer as buffered.
+				intoBuffer->buffered = true;
+				break;
+			default:
+				std::cout<<"\nError buffering AL Data";
+				intoBuffer->buffered = false;
+				break;
+		}
+	}
+	catch (...){
+		std::cout<<"\nStreaming failed, aborting.";
+		return;
+	}
+}
 
 #endif // USE_AUDIO

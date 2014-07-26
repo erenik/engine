@@ -107,7 +107,7 @@ Matrix3f Matrix4d::GetMatrix3f(){
 Vector4d Matrix4d::GetColumn(int columnIndex)
 {
 	int s = columnIndex * 4;
-	return Vector4d(s, s+1, s+2, s+3);	
+	return Vector4d(element[s], element[s+1], element[s+2], element[s+3]);	
 }
 
 Matrix4d Matrix4d::InitRotationMatrixX(double radians){
@@ -447,6 +447,15 @@ Matrix4d Matrix4d::Scale(Vector3d vec){
 	element[10] *= vec.z;
 	return Matrix4d(element);
 }
+
+/// Returns true if it has non-0 values in the scale diagonal (elements 0, 5 and 10)
+bool Matrix4d::HasValidScale()
+{
+	if (element[0] && element[5] && element[10])
+		return true;
+	return false;
+}
+
 
 // ************************************************************************//
 // Content access

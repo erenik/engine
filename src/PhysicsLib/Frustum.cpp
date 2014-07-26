@@ -8,6 +8,12 @@ Frustum::Frustum(){
 	projection = 1;
 }
 
+// Returns the center
+Vector3f Frustum::GetCenter()
+{
+	return (fartherBottomLeft + fartherTopRight + hitherBottomLeft + hitherTopRight) * 0.25f;
+}
+
 /// 1 = Projection 3D, 2 = Orthogonal
 void Frustum::SetProjection(int type)
 {

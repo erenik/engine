@@ -135,7 +135,10 @@ int GetDirectoriesInDirectory(String directory, List<String> & dirs){
 	Returns 1 upon success, 0 if there is no such directory.
 	Results will be added to the result-list provided.
 */
-int GetFilesInDirectory(String directory, List<String> & files){
+int GetFilesInDirectory(String directory, List<String> & files)
+{
+	if (directory.Length() == 0)
+		directory = ".";
 #ifdef WINDOWS
 	// http://msdn.microsoft.com/en-us/library/aa364418%28VS.85%29.aspx
 	// The directory or path, and the file name, which can include wildcard characters, for example, an asterisk (*) or a question mark (?).
@@ -146,6 +149,7 @@ int GetFilesInDirectory(String directory, List<String> & files){
 		directory += '/';
 	if (!directory.ContainsChar('*'))
 		directory += '*';
+
 	HANDLE findHandle =  FindFirstFile(directory, &data);
 	if (findHandle == INVALID_HANDLE_VALUE){
 		std::cout<<"\nInvalid Handle Value? ";
@@ -235,13 +239,15 @@ bool CreateFolder(String withPath)
 }
 
 /// Creates directories until the entire path is valid.
-bool CreateDirectoriesForPath(String dirPath)
+bool CreateDirectoriesForPath(String dirPath, bool skipLast)
 {
 	List<String> directories = dirPath.Tokenize("/");
 	String entirePath;
 	for (int i = 0; i < directories.Size(); ++i)
 	{
-
+		// p=p
+		if (skipLast && i == directories.Size() - 1)
+			return true;
 		String dir = directories[i];
 		entirePath += dir+"/";
 		/// Check if it contains a colon, if so skip it since it isn't really a folder.

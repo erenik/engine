@@ -39,8 +39,10 @@ public:
 		debug-rendering, etc.
 	*/
 	Mesh * mesh;
-	/// Triangulized version of the mesh, for rendering!
-	Mesh * triangulizedMesh;
+
+	/// Returns the triangulized mesh, which may or may not be the original mesh depending on.. stuff.
+#define GetTriangulizedMesh GetTriangulatedMesh
+	Mesh * GetTriangulatedMesh();
 
 	/// Keeps track of active amount of users for this model.
 	int users;
@@ -53,6 +55,10 @@ public:
 	AxisAlignedBoundingBox aabb;
 
 private:
+
+	/// Triangulized version of the mesh, for rendering!
+	Mesh * triangulizedMesh;
+
 	/// Dynamically allocated, this list should be updated when queried only.
 	List<Triangle*> * triangleList;
 

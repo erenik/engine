@@ -118,6 +118,21 @@ void Vector3f::ReadFrom(std::fstream & file){
 }
 
 
+/// Clamp to an interval.
+void Vector3f::Clamp(float min, float max)
+{
+	ClampFloat(x, min, max);
+	ClampFloat(y, min, max);
+	ClampFloat(z, min, max);
+}
+
+void Vector3f::Clamp(Vector3f min, Vector3f max)
+{
+	ClampFloat(x, min.x, max.x);
+	ClampFloat(y, min.y, max.y);
+	ClampFloat(z, min.z, max.z);
+}
+
 // ************************************************************************//
 // Arithmetics
 // ************************************************************************//
@@ -269,6 +284,10 @@ Vector3f Vector3f::CrossProduct(Vector3f otherVector) const {
 /// Multiplies the elements in the two vectors internally, returning the product.
 Vector3f Vector3f::ElementMultiplication(const Vector3f otherVector) const {
 	return Vector3f(x * otherVector.x, y * otherVector.y, z * otherVector.z);
+}
+Vector3f Vector3f::ElementDivision(const Vector3f otherVector) const 
+{
+	return Vector3f(x / otherVector.x, y / otherVector.y, z / otherVector.z);
 }
 
 /// Calculates the length of the vector.

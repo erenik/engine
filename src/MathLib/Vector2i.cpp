@@ -136,6 +136,14 @@ bool Vector2i::operator == (const Vector2i other) const
 	return false;
 }
 
+/// Binary operator.
+bool Vector2i::operator != (const Vector2i other) const 
+{
+	if (x != other.x || y != other.y)
+		return true;
+	return false;
+}
+
 
 Vector2i  Vector2i::operator + (Vector2i addend) const {
 	Vector2i  newVec;

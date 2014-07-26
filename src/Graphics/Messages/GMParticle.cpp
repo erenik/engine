@@ -76,3 +76,41 @@ void GMSetParticleEmitter::Process()
 	}
 }
 
+
+GMSetParticleSystem::GMSetParticleSystem(ParticleSystem * ps, int target, Vector3f vec3Value)
+: GraphicsMessage(GM_SET_PARTICLE_SYSTEM), ps(ps), target(target), vec3Value(vec3Value)
+{
+	switch(target)
+	{
+	case PARTICLE_INITIAL_COLOR:
+		break;
+	default:
+		assert(false);
+	}
+}
+GMSetParticleSystem::GMSetParticleSystem(ParticleSystem * ps, int target, float fValue)
+	: GraphicsMessage(GM_SET_PARTICLE_SYSTEM), ps(ps), target(target), fValue(fValue)
+{
+	switch(target)
+	{
+	case PARTICLE_EMISSION_VEOCITY:
+		break;
+	default:
+		assert(false);
+	}
+}
+
+void GMSetParticleSystem::Process()
+{
+	switch(target)
+	{
+		case PARTICLE_INITIAL_COLOR:
+			ps->color = vec3Value;
+			break;
+		case PARTICLE_EMISSION_VEOCITY:
+			ps->emissionVelocity = fValue;
+			break;
+	}
+}
+
+

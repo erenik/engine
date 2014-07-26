@@ -3,6 +3,7 @@
 
 #include "GraphicsState.h"
 #include "Graphics/GraphicsManager.h"
+
 #include "UI/UserInterface.h"
 #include "Texture.h"
 #include "Window/Window.h"
@@ -12,13 +13,13 @@ void GraphicsManager::RenderUI(UserInterface * ui)
 	if (ui == NULL)
 		return;
 	/// Set UI Shader program
-	Shader * shader = Graphics.SetShaderProgram("UI");
-	if (shader == NULL && Graphics.GL_VERSION_MAJOR > 2){
+	Shader * shader = ShadeMan.SetActiveShader("UI");
+	if (shader == NULL && GL_VERSION_MAJOR > 2){
 	    assert(false);
 		return;
     }
 
-	Window * window = graphicsState.activeWindow;
+	Window * window = graphicsState->activeWindow;
 	Vector2i windowWorkingArea = window->WorkingArea();
 	glViewport(0, 0, windowWorkingArea.x, windowWorkingArea.y);
 
@@ -34,7 +35,7 @@ void GraphicsManager::RenderUI(UserInterface * ui)
 	/// Disable stuff.
 	glDisable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, 0);
-	graphicsState.currentTexture = NULL;
+	graphicsState->currentTexture = NULL;
 	// Disable lighting
 	glDisable(GL_LIGHTING);
 	glDisable(GL_COLOR_MATERIAL);
@@ -43,10 +44,10 @@ void GraphicsManager::RenderUI(UserInterface * ui)
     /// Setup scissor test variables
     glEnable(GL_SCISSOR_TEST);
 //	std::cout<<"\nWidth: "<<Graphics.Width()<<" Height: "<<Graphics.Height();
-    graphicsState.leftScissor = 0;
-	graphicsState.rightScissor = graphicsState.windowWidth;
-	graphicsState.bottomScissor = 0;
-	graphicsState.topScissor = graphicsState.windowHeight;
+    graphicsState->leftScissor = 0;
+	graphicsState->rightScissor = graphicsState->windowWidth;
+	graphicsState->bottomScissor = 0;
+	graphicsState->topScissor = graphicsState->windowHeight;
 
     PrintGLError("GLError in RenderUI setting shader");
 	
@@ -122,15 +123,15 @@ void GraphicsManager::RenderUI(UserInterface * ui)
 	glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, projection.getPointer());
     PrintGLError("GLError in RenderUI uploading projectionMatrix");
 
-	graphicsState.projectionMatrixF = graphicsState.projectionMatrixD = projection;
-	graphicsState.viewMatrixF = graphicsState.viewMatrixD.LoadIdentity();
-	graphicsState.modelMatrixF = graphicsState.modelMatrixD.LoadIdentity();
+	graphicsState->projectionMatrixF = graphicsState->projectionMatrixD = projection;
+	graphicsState->viewMatrixF = graphicsState->viewMatrixD.LoadIdentity();
+	graphicsState->modelMatrixF = graphicsState->modelMatrixD.LoadIdentity();
 
 	/// Render
 	if (ui == NULL)
 		return;
 	try {
-		ui->Render();
+		ui->Render(graphicsState);
 	} catch(...){
 		std::cout<<"\nERROR: Exception trying to render ui: "<<ui->Source();
 	}

@@ -6,7 +6,7 @@
 #include "Physics/PhysicsProperty.h"
 #include "ModelManager.h"
 #include "PhysicsLib/PhysicsMesh.h"
-#include "Physics/Collission/CollisionShapeOctree.h"
+#include "Physics/Collision/CollisionShapeOctree.h"
 #include "GraphicsState.h"
 #include "Physics/Springs/Spring.h"
 #include "Viewport.h"
@@ -31,7 +31,7 @@ void GraphicsManager::RenderPhysics(){
 		if (physicalEntities.Size() <= 0)
 			return;
 		// Cull the shiat
-		physicalEntities.CullByCamera(graphicsState.camera);
+		physicalEntities.CullByCamera(graphicsState->camera);
 		lastFetch = clock();
 	}
 
@@ -40,16 +40,16 @@ void GraphicsManager::RenderPhysics(){
 	glLineWidth(1.0f);
 
 	// Set default shading program
-	Shader * shader = SetShaderProgram("Wireframe");
+	Shader * shader = ShadeMan.SetActiveShader("Wireframe");
 
 	/// Set rainbow factor for XYZ ^w^
 	float rainbowXYZFactor = 0.5f;
 	// Set color of the wireframes of all selected objects
-	glUniform4f(graphicsState.activeShader->uniformPrimaryColorVec4, 0.0f, 0.8f, 1.0f, 0.2f);
+	glUniform4f(graphicsState->activeShader->uniformPrimaryColorVec4, 0.0f, 0.8f, 1.0f, 0.2f);
 	// Set projection and view matrices just in-case too.
-	glUniformMatrix4fv(graphicsState.activeShader->uniformViewMatrix, 1, false, graphicsState.viewMatrixF.getPointer());
+	glUniformMatrix4fv(graphicsState->activeShader->uniformViewMatrix, 1, false, graphicsState->viewMatrixF.getPointer());
 	GLuint error = glGetError();
-	glUniformMatrix4fv(graphicsState.activeShader->uniformProjectionMatrix, 1, false, graphicsState.projectionMatrixF.getPointer());
+	glUniformMatrix4fv(graphicsState->activeShader->uniformProjectionMatrix, 1, false, graphicsState->projectionMatrixF.getPointer());
 	error = glGetError();
 
 	/// Disable crap
@@ -58,7 +58,7 @@ void GraphicsManager::RenderPhysics(){
 	float z = -4;
 	glDisable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, 0);
-	graphicsState.currentTexture = NULL;
+	graphicsState->currentTexture = NULL;
 	// Disable lighting
 	glDisable(GL_LIGHTING);
 	error = glGetError();
@@ -85,45 +85,45 @@ void GraphicsManager::RenderPhysics(){
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         /// Render AABB
-        const GLuint & uniformPrimaryColorVec4 = graphicsState.activeShader->uniformPrimaryColorVec4;
-       // assert(graphicsState.activeShader->uniformPrimaryColorVec4 != -1);
+        const GLuint & uniformPrimaryColorVec4 = graphicsState->activeShader->uniformPrimaryColorVec4;
+       // assert(graphicsState->activeShader->uniformPrimaryColorVec4 != -1);
     //    std::cout<<"\n";
     //    std::cout<<"Shader: "<<shader->name;
     //    std::cout<<" UPC4: "<<uniformPrimaryColorVec4;
         PhysicsProperty * physics = entity->physics;
 		if (!physics)
 			continue;
-        const Shader & shader = *graphicsState.activeShader;
+        const Shader & shader = *graphicsState->activeShader;
         switch(physics->collissionState){
             case AABB_IDLE:
-                glUniform4f(graphicsState.activeShader->uniformPrimaryColorVec4, 0.3f, 0.3f, 0.3f, 1.0f);
+                glUniform4f(graphicsState->activeShader->uniformPrimaryColorVec4, 0.3f, 0.3f, 0.3f, 1.0f);
                 break;
             case AABB_INTERSECTING:
           //      std::cout<<"\nAABB_INTERSECTING!";
-                glUniform4f(graphicsState.activeShader->uniformPrimaryColorVec4, 0.8f, 0.7f, 0.3f, 1.0f);
+                glUniform4f(graphicsState->activeShader->uniformPrimaryColorVec4, 0.8f, 0.7f, 0.3f, 1.0f);
                 break;
             case COLLIDING:
-                glUniform4f(graphicsState.activeShader->uniformPrimaryColorVec4, 1.0f, 0.2f, 0.2f, 1.0f);
+                glUniform4f(graphicsState->activeShader->uniformPrimaryColorVec4, 1.0f, 0.2f, 0.2f, 1.0f);
                 break;
             default:
-                glUniform4f(graphicsState.activeShader->uniformPrimaryColorVec4, 0.5f, 0.5f, 0.5f, 1.0f);
+                glUniform4f(graphicsState->activeShader->uniformPrimaryColorVec4, 0.5f, 0.5f, 0.5f, 1.0f);
         }
 
       //  if (i == 0){
            // glColor4f(0.5f,0.5f,0.5f,1.0f);
-            glUniform1f(glGetUniformLocation(graphicsState.activeShader->shaderProgram, "rainbowXYZFactor"), 0.2f);
+            glUniform1f(glGetUniformLocation(graphicsState->activeShader->shaderProgram, "rainbowXYZFactor"), 0.2f);
             Matrix4f aabbMatrix;
             AxisAlignedBoundingBox & aabb = entity->physics->aabb;
         //    std::cout<<"\nAABB: Position: "<<aabb.position<<" scale: "<<aabb.scale<<" min: "<<aabb.min<<" max: "<<aabb.max;
             aabbMatrix.Translate(entity->physics->aabb.position);
             aabbMatrix.Scale(entity->physics->aabb.scale);
 
-            glUniformMatrix4fv(graphicsState.activeShader->uniformModelMatrix, 1, false, aabbMatrix.getPointer());
+            glUniformMatrix4fv(graphicsState->activeShader->uniformModelMatrix, 1, false, aabbMatrix.getPointer());
             Model * cube = ModelMan.GetModel("cube.obj");
             cube->mesh->Render();
       //  }
 
-        glUniform1f(glGetUniformLocation(graphicsState.activeShader->shaderProgram, "rainbowXYZFactor"), rainbowXYZFactor);
+        glUniform1f(glGetUniformLocation(graphicsState->activeShader->shaderProgram, "rainbowXYZFactor"), rainbowXYZFactor);
 
         // Should only need to translate to physical position straight away since that's what we're rendering...!
 	//	transformationMatrix.multiply((Matrix4d().translate(Vector3d(entity->physics->physicalPosition))));
@@ -156,13 +156,13 @@ void GraphicsManager::RenderPhysics(){
 				// Multiply by entity
 
 				Cube * sphere = (Cube*)entity->physics->shape;
-				SetShaderProgram(NULL);
+				ShadeMan.SetActiveShader(NULL);
 
 				/// Set matrices
 				glMatrixMode(GL_PROJECTION);
-				glLoadMatrixf(graphicsState.projectionMatrixF.getPointer());
+				glLoadMatrixf(graphicsState->projectionMatrixF.getPointer());
 				glMatrixMode(GL_MODELVIEW);
-				Matrix4f modelView = graphicsState.viewMatrixF;
+				Matrix4f modelView = graphicsState->viewMatrixF;
 				glLoadMatrixf(modelView.getPointer());
 				// Disable lighting, enabling pure color-rendering
 				glDisable(GL_LIGHTING);
@@ -192,7 +192,7 @@ void GraphicsManager::RenderPhysics(){
 				glEnable(GL_DEPTH_TEST);
 
 				// Set default shading program
-				SetShaderProgram("Wireframe");
+				ShadeMan.SetActiveShader("Wireframe");
 				continue;
 
 				break;
@@ -224,7 +224,7 @@ rerer
 				model = ModelMan.GetModel("sphere.obj");
 				Matrix4f transform = Matrix4f(transformationMatrix);
 				/// Set uniform matrix in shader to point to the GameState modelView matrix.
-				glUniformMatrix4fv(graphicsState.activeShader->uniformModelMatrix, 1, false, transform.getPointer());
+				glUniformMatrix4fv(graphicsState->activeShader->uniformModelMatrix, 1, false, transform.getPointer());
 				// Render if we got a model ^^
 				if (model)
                     model->triangulizedMesh->Render();
@@ -235,13 +235,13 @@ rerer
 
 				// Regular mesh rendering:
 				PhysicsMesh * pm = entity->physics->physicsMesh;
-				SetShaderProgram(NULL);
+				ShadeMan.SetActiveShader(NULL);
 
 				/// Set matrices
 				glMatrixMode(GL_PROJECTION);
-				glLoadMatrixf(graphicsState.projectionMatrixF.getPointer());
+				glLoadMatrixf(graphicsState->projectionMatrixF.getPointer());
 				glMatrixMode(GL_MODELVIEW);
-				Matrix4f modelView = graphicsState.viewMatrixF * transformationMatrix;
+				Matrix4f modelView = graphicsState->viewMatrixF * transformationMatrix;
 				glLoadMatrixf(modelView.getPointer());
 				// Disable lighting, enabling pure color-rendering
 				glDisable(GL_LIGHTING);
@@ -249,10 +249,11 @@ rerer
 				// Disable Depth-writing
 				glDepthMask(GL_FALSE);
 #define RENDER_MESH_OCTREES 1
-				if (RENDER_MESH_OCTREES && pm->collisionShapeOctree){
-					pm->collisionShapeOctree->Render();
+				if (RENDER_MESH_OCTREES && pm->collisionShapeOctree)
+				{
+					pm->collisionShapeOctree->Render(graphicsState);
 					// Set default shading program
-					SetShaderProgram("Wireframe");
+					ShadeMan.SetActiveShader("Wireframe");
 					// Disable Depth-writing
 					glDepthMask(GL_TRUE);
 					continue;
@@ -282,7 +283,7 @@ rerer
 				glDepthMask(GL_TRUE);
 
 				// Set default shading program
-				SetShaderProgram("Wireframe");
+				ShadeMan.SetActiveShader("Wireframe");
 				continue;
 				break;
 			}
@@ -295,19 +296,19 @@ rerer
 	//	transformationMatrix.multiply(Matrix4d::GetRotationMatrixZ(entity->rotation.z));
 		Matrix4f transform = Matrix4f(transformationMatrix);
 		/// Set uniform matrix in shader to point to the GameState modelView matrix.
-		glUniformMatrix4fv(graphicsState.activeShader->uniformModelMatrix, 1, false, transform.getPointer());
+		glUniformMatrix4fv(graphicsState->activeShader->uniformModelMatrix, 1, false, transform.getPointer());
 		// Render if we got a model ^^
 		if (model)
-			model->triangulizedMesh->Render();
+			model->GetTriangulatedMesh()->Render();
 
 	}
 
 	// Render active triangles if wanted toooo
-	SetShaderProgram(NULL);
+	ShadeMan.SetActiveShader(NULL);
 	glMatrixMode(GL_PROJECTION);
-	glLoadMatrixf(graphicsState.projectionMatrixF.getPointer());
+	glLoadMatrixf(graphicsState->projectionMatrixF.getPointer());
 	glMatrixMode(GL_MODELVIEW);
-	Matrix4f modelView = graphicsState.viewMatrixF;
+	Matrix4f modelView = graphicsState->viewMatrixF;
 	glLoadMatrixf(modelView.getPointer());
 	glDisable(GL_LIGHTING);
 	glDisable(GL_DEPTH_TEST);
@@ -327,9 +328,9 @@ rerer
 
 	/// Render OBBs too.
 	/// Set default shader program
-    SetShaderProgram(0);
+    ShadeMan.SetActiveShader(NULL);
     glMatrixMode(GL_MODELVIEW);
-    glLoadMatrixf(graphicsState.viewMatrixF.getPointer());
+    glLoadMatrixf(graphicsState->viewMatrixF.getPointer());
     for (int i = 0; i < physicalEntities.Size(); ++i){
         Entity * e = physicalEntities[i];
         /// Set optional color first.
@@ -337,9 +338,9 @@ rerer
     }
 
 	/// Render collission data. Only render the latest collission if we're paused?
-	Collission & c = Physics.lastCollission;
-	CollissionResolution & cr = c.cr;
-	if (graphicsState.activeViewport->renderCollissions
+	Collision & c = Physics.lastCollision;
+	CollisionResolution & cr = c.cr;
+	if (graphicsState->activeViewport->renderCollisions
 		&& Physics.IsPaused()
 		&& c.one && c.two
 		&& c.one->physics && c.two->physics
@@ -348,12 +349,12 @@ rerer
 		glBlendFunc(GL_ALPHA, GL_ALPHA); // GL_ONE_MINUS_SRC_ALPHA
 			
 
-		SetShaderProgram(0);
+		ShadeMan.SetActiveShader(NULL);
 		Vector3f pos1 = c.one->position, pos2 = c.two->position;
 
 		// Render collission point.
 		Vector3f origin = c.collissionPoint;
-		Vector3f end = origin + c.collissionNormal;
+		Vector3f end = origin + c.collisionNormal;
 		Vector3f baseColor(0.2f,0.2f,0.2f);
 		Vector3f highlightColor(1,1,1);
 		RenderFadingLine(origin, end, baseColor, highlightColor);
@@ -420,10 +421,10 @@ rerer
 			RenderFadingLine(pos2, pos2 + cr.deltaAngularMomentum[1]*10.f, angularMomentumColorBase, angularMomentumColorHighlight);
 
 			/// Render one and two with pre-collission matrices
-			Shader * shader = SetShaderProgram("Flat");
+			Shader * shader = ShadeMan.SetActiveShader("Flat");
 			glBlendFunc(GL_SRC_ALPHA, GL_DST_ALPHA); // GL_ONE_MINUS_SRC_ALPHA
-			glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, graphicsState.viewMatrixF.getPointer());
-			glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, graphicsState.projectionMatrixF.getPointer());
+			glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, graphicsState->viewMatrixF.getPointer());
+			glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, graphicsState->projectionMatrixF.getPointer());
 			// Hope matrices are still same.
 			Model * model = c.one->model;
 			glUniform4f(shader->uniformPrimaryColorVec4, 15.0f, 0.0f, 0.0f, 0.1f);
@@ -440,7 +441,7 @@ rerer
 	}
 
 	/// Render Entity Velocities/Angular Velocities!
-	SetShaderProgram(0);
+	ShadeMan.SetActiveShader(NULL);
 	glBlendFunc(GL_SRC_ALPHA, GL_DST_ALPHA); // GL_ONE_MINUS_SRC_ALPHA
 	glLineWidth(4.0f);
 	for (int i = 0; i < physicalEntities.Size(); ++i){
@@ -462,7 +463,7 @@ rerer
 	glLineWidth(1.0f);
 
 	// Set default shading program
-	SetShaderProgram("Wireframe");
+	ShadeMan.SetActiveShader("Wireframe");
 
 	// Render the entities now also, muppet
 	// Set back to fill!

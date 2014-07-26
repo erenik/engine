@@ -10,11 +10,15 @@ public:
 	UIImage(String name, String textureSource);
 	virtual ~UIImage();
 	/// Subclassing in order to control rendering.
-	virtual void RenderSelf();
+	virtual void RenderSelf(GraphicsState * graphicsState);
 
 	Texture * GetTexture();
 	String GetTextureSource();
 	void SetTextureSource(String src);
 private:
+	// If true, navigation by zooming via scrolling and maybe other gestures will be enabled.
+	bool navigationEnabled;
+	// For painting over them.. not enabled by default.
+	bool editable;
 
 };

@@ -153,7 +153,7 @@ TileMap2D * MapManager::CreateMap2D(String mapName){
 */
 int MapManager::MakeActiveByName(String mapName){
 	for (int i = 0; i < maps.Size(); ++i){
-		if (!maps[i]->Name())
+		if (!maps[i]->Name().Length())
 			continue;
 		if (mapName == maps[i]->Name()){
 			std::cout<<"\nFound map "<<mapName<<"! Loading now...";
@@ -218,7 +218,7 @@ bool MapManager::MakeActive(Map * map)
 
 	Graphics.QueueMessage(new GMSetLighting(&map->lighting));
 	/// Initial check again.
-	if (!map->Name()){
+	if (!map->Name().Length()){
 		std::cout<<"\nWARNING: Null map set!";
 		assert(false && "WARNING: NULL map set (no-name)");
 		return false;
@@ -358,7 +358,7 @@ Entity * MapManager::GetFirstEntity(Ray & selectionRay, Vector3f & intersectionP
     Entity * closest = NULL;
     float closestRadius = 1000000000000.0f;
     float closestDistance = 10000000000000.0f;
-    float closestTriangleCollissionDistance = 1000000000000.0f;
+    float closestTriangleCollisionDistance = 1000000000000.0f;
 
     List<Entity*> entitiesBehind, entitiesPwned;
     for (int i = 0; i < entities.Size(); ++i){
@@ -415,13 +415,13 @@ Entity * MapManager::GetFirstEntity(Ray & selectionRay, Vector3f & intersectionP
       //      std::cout<<"\nDistance: "<<distance;
 
             /// Early out if the distance is greater than any previous one.
-            if (distance > closestTriangleCollissionDistance)
+            if (distance > closestTriangleCollisionDistance)
                 break;
 
             intersectionPoint = ray.start + ray.direction * distance;
             std::cout<<"\nIntersectionPoint: "<<intersectionPoint;
             collissionFound = true;
-            closestTriangleCollissionDistance = distance;
+            closestTriangleCollisionDistance = distance;
         }
         if (!collissionFound)
             continue;
@@ -442,9 +442,10 @@ Entity * MapManager::GetFirstEntity(Ray & selectionRay, Vector3f & intersectionP
 
 
 /** Creates a duplicate entity, copying all relevant information (as possible). */
-Entity * MapManager::CreateEntity(Entity * referenceEntity){
+Entity * MapManager::CreateEntity(Entity * referenceEntity)
+{
 	assert(referenceEntity);
-	Entity * entity = EntityMan.CreateEntity(referenceEntity->model, referenceEntity->GetTexture(DIFFUSE_MAP));
+	Entity * entity = EntityMan.CreateEntity(entity->name, referenceEntity->model, referenceEntity->GetTexture(DIFFUSE_MAP));
 	entity->physics = new PhysicsProperty(*referenceEntity->physics);
 	entity->scale = referenceEntity->scale;
 	entity->rotation = referenceEntity->rotation;
@@ -460,18 +461,19 @@ Entity * MapManager::CreateEntity(Entity * referenceEntity){
 }
 
 /** Creates an entity with target model and texture and places it into the active map. */
-Entity * MapManager::CreateEntity(Model * model, Texture * texture, Vector3f position){
-
+Entity * MapManager::CreateEntity(String name, Model * model, Texture * texture, Vector3f position)
+{
+	// Allow 0 models, for exmaple for text-rendering entities, etc.
 	if (!model){
-		std::cout<<"\nWARNING: Model invalid. Assigning default type.";
-		model = ModelMan.GetModel(0);
+		std::cout<<"\nWarning: Entity lacking model, is this how it's sposed to be?";
+	//	model = ModelMan.GetModel(0);
 	}
-	else if (!texture){
+	if (!texture){
 		std::cout<<"\nWarning: Entity lacking texture, is this how it's sposed to be?";
 	}
-	std::cout<<"\nCreating entity with model "<<(model? model->Name() : String("None"))<<" and texture: "<<(texture? texture->name : String("None"));
+//	std::cout<<"\nCreating entity with model "<<(model? model->Name() : String("None"))<<" and texture: "<<(texture? texture->name : String("None"));
 
-	Entity * entity = EntityMan.CreateEntity(model, texture);
+	Entity * entity = EntityMan.CreateEntity(name, model, texture);
 	if (entity == NULL){
 	    std::cout<<"\nERROR: MapManager::CreateEntity:Unable to create entity, returning.";
         return NULL;
@@ -488,7 +490,7 @@ Entity * MapManager::CreateEntity(Model * model, Texture * texture, Vector3f pos
 	return entity;
 }
 
-/// Adds target entity to the map, registering it for physics and graphicsState.
+/// Adds target entity to the map, registering it for physics and graphicsState->
 bool MapManager::AddEntity(Entity * entity)
 {
 	assert(activeMap && "Active Map not set in MapManager::CreateEntity!");
@@ -544,8 +546,10 @@ List<Script*> MapManager::GetEvents(){
 	return activeMap->events;
 }
 
-/** Queries deletion of all entities in the active map. */
-int MapManager::DeleteEntities(){
+
+// Deletes all entities in the active map.
+int MapManager::DeleteAllEntities()
+{
 	assert(activeMap);
 	int deleted = 0;
 	List<Entity*> mapEntities = activeMap->GetEntities();
@@ -557,6 +561,17 @@ int MapManager::DeleteEntities(){
 	}
 	return deleted;
 }
+	
+/** Queries deletion of all entities in the active map. */
+int MapManager::DeleteEntities(List<Entity*> entities)
+{
+	int numDeleted = 0;
+	for (int i = 0; i < entities.Size(); ++i)
+	{
+		numDeleted += DeleteEntity(entities[i]);
+	}
+	return numDeleted;
+}
 
 /** Queries deletion of specified entity in active map. */
 bool MapManager::DeleteEntity(Entity * entity){
@@ -565,7 +580,7 @@ bool MapManager::DeleteEntity(Entity * entity){
 		return false;
 	}
 	entity->flaggedForDeletion = true;
-	std::cout<<"\nEntity flagged for deletion. ";
+//	std::cout<<"\nEntity flagged for deletion. ";
 	if (entity->registeredForRendering)
 		Graphics.QueueMessage(new GMUnregisterEntity(entity));
 	if (entity->registeredForPhysics)
@@ -826,7 +841,8 @@ void MapManager::LoadFromCompactData(Map * map)
 	assert(entitiesToCreate > 0);
 	std::cout<<"\nCreating entities from compact file format...";
 	/// Convert cEntities to regular entities, etc.
-	for (int i = 0; i < entitiesToCreate; ++i){
+	for (int i = 0; i < entitiesToCreate; ++i)
+	{
 		/// Get model and texture...
 		Model * model = ModelMan.GetModel(map->cEntities[i]->model);
 		Texture * texture = TexMan.GetTextureBySource(map->cEntities[i]->diffuseMap);
@@ -835,7 +851,7 @@ void MapManager::LoadFromCompactData(Map * map)
 			continue;
 		}
 		/// Ask entity manager to create them :P
-		Entity * newEntity = EntityMan.CreateEntity(model, texture);
+		Entity * newEntity = EntityMan.CreateEntity(map->cEntities[i]->name, model, texture);
 		newEntity->LoadCompactEntityData(map->cEntities[i]);
 		/// Add them to the map ^^
 		map->AddEntity(newEntity);

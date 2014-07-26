@@ -5,10 +5,21 @@
 #include "Light.h"
 #include <fstream>
 
+#include "Window/WindowManager.h"
 
-Light::Light()
+#include "UI/UserInterface.h"
+#include "UI/UIButtons.h"
+
+#include "Message/VectorMessage.h"
+
+#include "Graphics/GraphicsManager.h"
+#include "Graphics/Messages/GMUI.h"
+#include "Graphics/Messages/GraphicsMessages.h"
+
+Light::Light(Lighting * lighting)
 {
 	Nullify();
+	this->lighting = lighting;
 }
 
 void Light::Nullify()
@@ -22,6 +33,7 @@ void Light::Nullify()
 	data = NULL;
 	owner = NULL;
 	registeredForRendering = false;
+	lighting = NULL;
 }
 Light::Light(const Light & otherLight)
 {
@@ -40,6 +52,132 @@ Light::Light(const Light & otherLight)
 	name = otherLight.name;
 	data = otherLight.data;
 	owner = NULL;
+}
+
+String lightEditorName = "LightEditor";
+	
+
+/// Opens a dedicated editor window for this light. Assumes a valid LightEditor.gui is available in the UI directory.
+void Light::OpenEditorWindow()
+{
+	// Look for an existing lighting-editor window.
+	Window * window = WindowMan.GetWindowByName(lightEditorName);
+	if (window)
+	{
+	
+	}
+	// Create it if not existing.
+	else {
+		window = WindowMan.NewWindow(lightEditorName);
+		UserInterface * ui = window->CreateUI();
+		ui->Load("gui/LightEditor.gui");
+		window->DisableAllRenders();
+		window->renderUI = true;
+		window->SetRequestedSize(Vector2i(400, 320));
+		window->CreateGlobalUI();
+		window->Create();
+	}
+	
+	// Show it.
+	window->Show();
+	// Bring it to the top if needed.
+	window->BringToTop();
+	// Update stats within the window.
+	OnPropertiesUpdated();
+}
+
+void Light::CloseEditorWindow()
+{
+	// Look for an existing lighting-editor window.
+	Window * window = WindowMan.GetWindowByName(lightEditorName);
+	if (!window)
+		return;
+	window->Hide();
+}
+
+// For interaction with UI as well as scripting.
+void Light::ProcessMessage(Message * message)
+{
+	String msg = message->msg;
+	switch(message->type)
+	{
+		case MessageType::SET_STRING:
+		{
+			SetStringMessage * ssm = (SetStringMessage*)message;
+			if (msg == "SetLightName")
+			{
+				name = ssm->value;
+				OnPropertiesUpdated();
+				this->lighting->UpdateLightList();
+			}
+			break;
+		}
+		case MessageType::VECTOR_MESSAGE:
+		{
+			VectorMessage * vm = (VectorMessage*) message;
+			if (msg == "SetLightColor")
+			{
+				this->diffuse = this->specular = vm->GetVector4f();
+			}
+			else if (msg == "SetLightDiffuse")
+			{
+				this->diffuse = vm->GetVector4f();
+			}
+			else if (msg == "SetLightSpecular")
+			{
+				this->specular = vm->GetVector4f();
+			}
+			else if (msg == "SetLightAttenuation")
+			{
+				this->attenuation = vm->GetVector4f();
+			}
+			else if (msg == "SetLightPosition")
+			{
+				this->position = vm->GetVector4f();
+			}
+			else if (msg == "SetLightSpotDirection")
+			{
+				this->spotDirection = vm->GetVector4f();
+			}
+			break;
+		}
+		case MessageType::INTEGER_MESSAGE: 
+		{
+			IntegerMessage * im = (IntegerMessage*) message;
+			if (msg == "SetLightType")
+			{
+				this->type = im->value;
+			}
+			else if (msg == "SetLightSpotCutoff")
+			{
+				spotCutoff = im->value;
+			}
+			else if (msg == "SetLightSpotExponent")
+				spotExponent = im->value;
+			break;	
+		}
+	}
+}
+
+// Updates UI as necessary
+void Light::OnPropertiesUpdated()
+{
+	Window * window = WindowMan.GetWindowByName(lightEditorName);
+	if (!window)
+		return;
+	UserInterface * ui = window->ui;
+	if (!ui)
+		return;
+	Graphics.QueueMessage(new GMSetUIs("LightName", GMUI::STRING_INPUT_TEXT, name, ui));
+	Graphics.QueueMessage(new GMSetUIv3f("LightPosition", GMUI::VECTOR_INPUT, position, ui));
+	Graphics.QueueMessage(new GMSetUIv3f("LightDiffuse", GMUI::VECTOR_INPUT, diffuse, ui));
+	Graphics.QueueMessage(new GMSetUIv3f("LightColor", GMUI::VECTOR_INPUT, diffuse, ui));
+	Graphics.QueueMessage(new GMSetUIv3f("LightSpecular", GMUI::VECTOR_INPUT, specular, ui));
+	Graphics.QueueMessage(new GMSetUIv3f("LightAttenuation", GMUI::VECTOR_INPUT, attenuation, ui));
+	Graphics.QueueMessage(new GMSetUIi("LightType", GMUI::INTEGER_INPUT, type, ui));
+	Graphics.QueueMessage(new GMSetUIv3f("LightSpotDirection", GMUI::VECTOR_INPUT, spotDirection, ui));
+	Graphics.QueueMessage(new GMSetUIi("LightSpotCutoff", GMUI::INTEGER_INPUT, spotCutoff, ui));
+	Graphics.QueueMessage(new GMSetUIi("LightSpotExponent", GMUI::INTEGER_INPUT, spotExponent, ui));
 }
 
 

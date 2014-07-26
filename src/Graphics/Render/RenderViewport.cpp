@@ -9,6 +9,8 @@
 #include "Maps/2D/TileMap2D.h"
 #include "Graphics/FrameStatistics.h"
 
+#include "Render/RenderPipeline.h"
+
 void GraphicsManager::RenderViewport(Viewport * vp)
 {
 	vp->UpdateSize();
@@ -34,29 +36,47 @@ void GraphicsManager::RenderViewport(Viewport * vp)
 		return;
 	}
 	// Movement should be processed.. in physics or earlier.
-//	camera->ProcessMovement(graphicsState.frameTime);
+//	camera->ProcessMovement(graphicsState->frameTime);
 	camera->SetRatio(width, height);
 	camera->Update();
 	// Set active camera to current one
-	graphicsState.camera = camera;
+	graphicsState->camera = camera;
 
 	// Copy over the matrices to float
-	graphicsState.viewMatrixF = graphicsState.viewMatrixD = camera->ViewMatrix4d();
-	graphicsState.modelMatrixF = graphicsState.modelMatrixD.LoadIdentity();
-	graphicsState.projectionMatrixF = graphicsState.projectionMatrixD = camera->ProjectionMatrix4d();
+	graphicsState->viewMatrixF = graphicsState->viewMatrixD = camera->ViewMatrix4d();
+	graphicsState->modelMatrixF = graphicsState->modelMatrixD.LoadIdentity();
+	graphicsState->projectionMatrixF = graphicsState->projectionMatrixD = camera->ProjectionMatrix4d();
 
-	graphicsState.graphicEffectsToBeRendered.Clear();
-	graphicsState.particleEffectsToBeRendered.Clear();
+	// Clear lists so that the render-passes are performed as requested.
+	graphicsState->graphicEffectsToBeRendered.Clear();
+	graphicsState->particleEffectsToBeRendered.Clear();
 
 	Timer sceneTimer, alphaEntitiesTimer, effectsTimer, uiTimer;
 	sceneTimer.Start();
-	// Render le map as wanted?
-	if (Graphics.mapToRender && ActiveViewport->renderMap){
-		Graphics.mapToRender->Render();
+
+	// Cull entities depending on the viewport and camera.
+	// TODO: Actually cull it too. 
+	graphicsState->entities = registeredEntities;
+	
+
+	/// Old pipeline configuration! Only testing with the regular entities first. 
+	RenderPipeline * renderPipeline = graphicsState->renderPipe;
+	/// Test with alpha-entities and other passes later on...
+	if (renderPipeline)
+	{
+		renderPipeline->Render(graphicsState);
 	}
-	// Render the scene, now
-	else
-		Graphics.RenderScene();
+	// Default/old fixed pipeline.
+	else {
+		// Render le map as wanted?
+		if (Graphics.mapToRender && ActiveViewport->renderMap){
+			Graphics.mapToRender->Render(graphicsState);
+		}
+		// Render the scene, now
+		else
+			Graphics.RenderScene();
+	}	
+
 
 	FrameStats.sceneTime += sceneTimer.GetMs();
 

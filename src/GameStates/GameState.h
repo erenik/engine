@@ -13,9 +13,9 @@
 #include <ctime>
 
 class Packet;
-struct Message;
+class Message;
 struct GraphicsState;
-struct ChatMessage;
+class ChatMessage;
 class Window;
 
 void EmptyFunction();
@@ -79,7 +79,7 @@ public:
 	virtual void HandleDADFiles(List<String> & files);
 
 	/// What happens.. when we rendar?!
-	virtual void Render(GraphicsState & graphicsState);
+	virtual void Render(GraphicsState * graphicsState);
 
 	/// Getter functions
 	UserInterface * GetUI(){ return ui; };

@@ -37,7 +37,7 @@ ParticleSystem::~ParticleSystem(){
 void ParticleSystem::Process(float timeInSeconds){
     assert(false);
 }
-void ParticleSystem::Render(){
+void ParticleSystem::Render(GraphicsState * graphicsState){
     assert(false);
 }
 void ParticleSystem::PrintData(){

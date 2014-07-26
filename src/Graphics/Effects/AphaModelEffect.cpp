@@ -23,7 +23,8 @@ AlphaModelEffect::AlphaModelEffect(String name, String modelName, Entity * refer
 }
 
 /// Renders, but also updates it's various values using the given timestep since last frame.
-void AlphaModelEffect::Render(){
+void AlphaModelEffect::Render(GraphicsState * graphicsState)
+{
 	assert(model);
 	/// Override alpha-changes from outside if they decreased it!
 	if (primaryColor.w < lastAlpha)
@@ -37,22 +38,22 @@ void AlphaModelEffect::Render(){
 		modelMatrix.Scale(entity->radius * (entity->scale.ElementMultiplication(relativeScale)).MaxPart());
 		modelMatrix.Multiply(Matrix4f::GetRotationMatrixX(entity->rotation.x));
 		modelMatrix.Multiply(Matrix4f::GetRotationMatrixY(relativeRotation.y + entity->rotation.y));
-		graphicsState.modelMatrixF = modelMatrix;
+		graphicsState->modelMatrixF = modelMatrix;
 	};
 
 
 	/// Set model matrix and other stuff.
-	if (graphicsState.activeShader){
+	if (graphicsState->activeShader){
 		// Model matrix
-		glUniformMatrix4fv(graphicsState.activeShader->uniformModelMatrix, 1, false, graphicsState.modelMatrixF.getPointer());
+		glUniformMatrix4fv(graphicsState->activeShader->uniformModelMatrix, 1, false, graphicsState->modelMatrixF.getPointer());
 		// Alpha
-		glUniform4f(graphicsState.activeShader->uniformPrimaryColorVec4, primaryColor.x, primaryColor.y, primaryColor.z, primaryColor.w);
+		glUniform4f(graphicsState->activeShader->uniformPrimaryColorVec4, primaryColor.x, primaryColor.y, primaryColor.z, primaryColor.w);
 	}
-	primaryColor.w -= linearDecay * graphicsState.frameTime;
-	primaryColor.w *= pow(1.0f - relativeDecay, graphicsState.frameTime); 
+	primaryColor.w -= linearDecay * graphicsState->frameTime;
+	primaryColor.w *= pow(1.0f - relativeDecay, graphicsState->frameTime); 
 	primaryColor.w = max(primaryColor.w, 0.0f);
 	lastAlpha = primaryColor.w;
-	relativeRotation.y += 0.2f * graphicsState.frameTime;
+	relativeRotation.y += 0.2f * graphicsState->frameTime;
 
 //	std::cout<<"\nAlpha: "<<primaryColor.w;
 

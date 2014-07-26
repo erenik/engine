@@ -26,6 +26,9 @@ public:
     /// Default constructor
 	Frustum();
 
+	// Returns the center
+	Vector3f GetCenter();
+
 	/// Planes defining the frustum, with normals pointing inward.
 	Plane frustumPlane[6];
 	/// Frustum points

@@ -28,7 +28,7 @@ public:
 	/** Creates an entity using specified model and base texture.
 		Should only be callable by other managers.
 	*/
-	Entity * CreateEntity(Model * model, Texture * texture);
+	Entity * CreateEntity(String withName, Model * model, Texture * andTexture);
 	/** Deletes target entity. 
 		Should only be callable by other managers.
 	*/

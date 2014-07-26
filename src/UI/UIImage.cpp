@@ -16,6 +16,9 @@ UIImage::UIImage(String nameAndTextureSource)
 	this->textureSource = textureSource;
 	name = FilePath::GetFileName(textureSource);
 	color = Vector4f(1,1,1,1);
+
+	navigationEnabled = true;
+	editable = false;
 }
 
 UIImage::UIImage(String uiName, String textureSource)
@@ -33,10 +36,10 @@ UIImage::~UIImage()
 }
 
 /// Subclassing in order to control rendering.
-void UIImage::RenderSelf()
+void UIImage::RenderSelf(GraphicsState * graphicsState)
 {
 	/// First render ourself using only black?
-	UIElement::RenderSelf();
+	UIElement::RenderSelf(graphicsState);
 
 	return;
 	/// Render our pictuuure.
@@ -48,7 +51,7 @@ void UIImage::RenderSelf()
 	/// NEW CODE
 
 	/// Save old shader!
-	Shader * oldShader = graphicsState.activeShader;
+	Shader * oldShader = graphicsState->activeShader;
 
 	// Enable textures if it wasn't already
 	glEnable(GL_TEXTURE_2D);
@@ -66,11 +69,11 @@ void UIImage::RenderSelf()
 		texture->Bufferize();
 
 	glUseProgram(0);
-	graphicsState.activeShader = NULL;
+	graphicsState->activeShader = NULL;
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glLoadMatrixf(graphicsState.projectionMatrixF.getPointer());
-	Matrix4f modelView = graphicsState.viewMatrixF * graphicsState.modelMatrixF;
+	glLoadMatrixf(graphicsState->projectionMatrixF.getPointer());
+	Matrix4f modelView = graphicsState->viewMatrixF * graphicsState->modelMatrixF;
 	glMatrixMode(GL_MODELVIEW);
 	glLoadMatrixf(modelView.getPointer());
 	glColor4f(color.x, color.y, color.z, color.w);
@@ -128,7 +131,7 @@ void UIImage::RenderSelf()
 
 	glUseProgram(oldShader->shaderProgram);
 
-	graphicsState.activeShader = oldShader;
+	graphicsState->activeShader = oldShader;
 
 }
 

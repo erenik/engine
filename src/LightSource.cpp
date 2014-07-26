@@ -49,8 +49,8 @@ void LightSource::Render(){
 	glDisable(GL_LIGHTING);
 
 	// If enabled, render a point cross at the lighting center	
-	if (graphicsState.settings & RENDER_LIGHT_POSITION){
-		glLoadMatrixd(graphicsState.modelMatrixD.getPointer());
+	if (graphicsState->settings & RENDER_LIGHT_POSITION){
+		glLoadMatrixd(graphicsState->modelMatrixD.getPointer());
 		glBegin(GL_POINTS);
 		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 			glVertex3f(position[0], position[1], position[2]);
@@ -73,7 +73,7 @@ void LightSource::renderPosition(GraphicsState &state){
 	// Disabled for now
 	throw 3;
 /*	// Render a point cross at the lighting center	
-	glLoadMatrixd(graphicsState.modelMatrixD.getPointer());
+	glLoadMatrixd(graphicsState->modelMatrixD.getPointer());
 	glBegin(GL_POINTS);
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 		glVertex3f(position[0], position[1], position[2]);

@@ -16,8 +16,10 @@ void CommandLine::Evaluate()
     List<String> tokens = argString.Tokenize(" ");
 	for (int i = 0; i < args.Size(); ++i){
 		String arg = args[i];
-		if (arg == "mute"){
-			AudioMan.DisableAudio();
+		if (arg == "mute")
+		{
+			AudioMan.QueueMessage(new AudioMessage(AM_DISABLE_AUDIO));
+//			AudioMan.DisableAudio();
 		}
 		else if (arg == "host"){
 			NetworkMan.StartSIPServer();

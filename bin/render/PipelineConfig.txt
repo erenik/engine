@@ -1,0 +1,17 @@
+
+
+LoadPipeline FixedPipelinePhong
+LoadPipeline FixedPipelineNormals
+LoadPipeline FixedPipelineDiffuse
+LoadPipeline DeferredPipe
+
+
+UsePipeline FixedPipelinePhong
+
+
+
+
+
+
+
+

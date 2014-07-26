@@ -54,3 +54,18 @@ private:
 	List<ParticleEmitter*> newEmitters;
 };
 
+
+class GMSetParticleSystem : public GraphicsMessage
+{
+public:
+	GMSetParticleSystem(ParticleSystem * ps, int target, Vector3f vec3Value);
+	GMSetParticleSystem(ParticleSystem * ps, int target, float fValue);
+	virtual void Process();
+private:
+	ParticleSystem * ps;
+	int target;
+	Vector3f vec3Value;
+	float fValue;
+};
+
+

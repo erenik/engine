@@ -10,6 +10,9 @@
 #include <Util.h>
 #include <Mutex/Mutex.h>
 
+class CollisionDetector;
+class Integrator;
+class CollisionResolver;
 class PhysicsMessage;
 class AABBSweeper;
 class Mesh;
@@ -25,7 +28,7 @@ class Spring;
 
 
 /// Integrators
-namespace Integrator {
+namespace IntegratorType {
 enum Integrators {
 	/// Physics as calculated using simplified physics of only velocities and no acceleration forces whatsoever.
 	SIMPLIFIED_PHYSICS, SIMPLE_PHYSICS = SIMPLIFIED_PHYSICS,
@@ -36,14 +39,15 @@ enum Integrators {
 	SPACE_RACE_CUSTOM_INTEGRATOR = APPROXIMATE,
 };};
 
-/// Collission Resolvers
-namespace CollisionResolver{
+/// Collision Resolvers
+namespace CollisionResolverType{
 enum collisionResolvers {
 	CUSTOM_SPACE_RACE_PUSHBACK,
 	LAB_PHYSICS_IMPULSES,
 };};
 
-class PhysicsManager{
+class PhysicsManager
+{
 	friend class GraphicsManager;
 	friend class PhysicsOctree;
 	friend class PhysicsMessage;
@@ -62,16 +66,25 @@ private:
 	PhysicsManager();
 	static PhysicsManager * physicsManager;
 public:
+
+	/// Chosen integrator.
+	Integrator * physicsIntegrator;
+	CollisionResolver * collisionResolver;
+	CollisionDetector * collisionDetector;
+
 	// Integrators
+	void LabPhysicsIntegrate(Entity * entity, float timeSinceLastUpdate);
 	void ApproximateIntegrate(Entity * entity, float timeSinceLastUpdate);
+
+	void DetectCollisions();
 
     /// See above.
     /// Defines if AABBs or sphere-octrees should be used to broad-phase collission detection.
     int checkType;
     /// Defines how collissions will be resolved.
-    int collisionResolver;
+    int collisionResolverType;
 	/// How stuff is updated.
-	int integrator;
+	int integratorType;
 
 	static void Allocate();
 	static PhysicsManager * Instance();
@@ -112,16 +125,16 @@ public:
 	inline float GetMessageProcessingFrameTime() const {return messageProcessingTime; };
 	inline float GetRecalculatingPropertiesFrameTime() const { return recalculatingPropertiesDuration; };
 	inline float GetMovementFrameTime() const { return movingDuration; };
-	inline float GetCollissionProcessingFrameTime() const { return collissionProcessingFrameTime; };
+	inline float GetCollisionProcessingFrameTime() const { return collissionProcessingFrameTime; };
 	/// Numeric statistics
-	inline float GetPhysicsMeshCollissionChecks() const { return physicsMeshCollissionChecks; };
+	inline float GetPhysicsMeshCollisionChecks() const { return physicsMeshCollisionChecks; };
 
     /// Loads physics mesh if not already loaded.
     void EnsurePhysicsMesh(Entity * targetEntity);
 	
-	Collission lastCollission;
+	Collision lastCollision;
 
-	bool PauseOnCollission() const { return pauseOnCollission; };
+	bool PauseOnCollision() const { return pauseOnCollision; };
 
 	/// List of all active (or in-active) contacts in-game. Stored here so that deletion works bettar?
 	List<Contact*> contacts;
@@ -129,9 +142,13 @@ public:
 	List<Spring*> springs;
 	/// In kg per m^3
 	float defaultDensity;
+
+	/// Numeric statistics
+	float physicsMeshCollisionChecks;
+
 private:
 	/// Functions for handling the various aspects of the physical simulation procedures.
-	void Integrate(float timeSinceLastUpdate);
+	void Integrate(float timeInSecondsSinceLastUpdate);
 	void ApplyConstraints();
 	/// Applies pathfinding for all relevant entities
 	void ApplyPathfinding();
@@ -142,10 +159,7 @@ private:
 		movingDuration,
 		collissionProcessingFrameTime;
 
-	bool pauseOnCollission;
-
-	/// Numeric statistics
-	float physicsMeshCollissionChecks;
+	bool pauseOnCollision;
 
 	/// Loads PhysicsMesh from mesh counterpart
 	PhysicsMesh * LoadPhysicsMesh(const Mesh * byMeshSource);
@@ -167,19 +181,19 @@ private:
 	/// Simulation speed multiplier
 	float simulationSpeed;
 	/// Flag for skipping collission-calculations.
-	bool ignoreCollissions;
+	bool ignoreCollisions;
 
 	/** Recalculates physical properties for all registered entities. */
 	void RecalculatePhysicsProperties();
 
-    //  Following moved to Collission.h!
+    //  Following moved to Collision.h!
 	/// Updates the entity's collission state (colliding, in rest, on plane) using it's current velocities and the collission normal.
-///	void UpdateCollissionState(Entity * entity, Vector3f collissionNormal = Vector3f());
+///	void UpdateCollisionState(Entity * entity, Vector3f collisionNormal = Vector3f());
 	/** Tests if a collission should occur between the two objects.
 		If so, it will save the collission data into the data parameter and return true.
 		If no collission should occur, it will return false.
 	*/
-	bool TestCollission(Entity * one, Entity * two, List<Collission> & collissionList);
+	bool TestCollision(Entity * one, Entity * two, List<Collision> & collissionList);
 	/// Processes queued messages.
 	void ProcessMessages();
 	/// Processes physics for all registered objects
@@ -218,7 +232,7 @@ private:
 	Queue<PhysicsMessage*> messageQueue;
 
 	/// Physics collission octree for minimizing amount of collission detection checks.
-	PhysicsOctree * entityCollissionOctree;
+	PhysicsOctree * entityCollisionOctree;
 	AABBSweeper * aabbSweeper;
 
 	/// If calculations should pause.
@@ -234,6 +248,7 @@ private:
 	/// Number of registered entities
 	List<Entity*> physicalEntities;
 	List<Entity*> dynamicEntities;
+	List<Entity*> kinematicEntities;
 /*	/// Old manual list implementation~~
 	/// Array with pointers to all registered objects.
 	Entity * physicalEntity[MAX_REGISTERED_ENTITIES];

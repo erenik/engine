@@ -7,6 +7,9 @@
 #include "Graphics/OpenGL.h"
 
 List<int> GLBuffers::buffers;
+List<int> GLVertexArrays::vertexArrays;
+List<int> GLFrameBuffers::frameBuffers;
+List<int> GLRenderBuffers::renderBuffers;
 
 
 /// Returns a new buffer to be used.
@@ -32,7 +35,6 @@ void GLBuffers::FreeAll()
 	return;
 }
 
-List<int> GLVertexArrays::vertexArrays;
 
 unsigned int GLVertexArrays::New()
 {
@@ -55,3 +57,45 @@ void GLVertexArrays::FreeAll()
 	vertexArrays.Clear();
 	return;
 }
+
+
+unsigned int GLFrameBuffers::New()
+{
+	unsigned int newFrameBuffer;
+	glGenFramebuffers(1, &newFrameBuffer);
+	frameBuffers.Add(newFrameBuffer);
+	return newFrameBuffer;
+}
+void GLFrameBuffers::FreeAll()
+{
+	std::cout<<"\nFreeing frame-buffers..";
+	for (int i = 0; i < frameBuffers.Size(); ++i)
+	{
+		unsigned int frameBuffer = frameBuffers[i];
+		glDeleteFramebuffers(1, &frameBuffer);
+	}
+	std::cout<<"\n"<<frameBuffers.Size()<<" vertex arrays freed.";
+	frameBuffers.Clear();
+	return;
+}
+
+unsigned int GLRenderBuffers::New()
+{
+	unsigned int newRenderBuffer;
+	glGenRenderbuffers(1, &newRenderBuffer);
+	renderBuffers.Add(newRenderBuffer);
+	return newRenderBuffer;
+}
+void GLRenderBuffers::FreeAll()
+{
+	std::cout<<"\nFreeing render-buffers..";
+	for (int i = 0; i < renderBuffers.Size(); ++i)
+	{
+		unsigned int renderBuffer = renderBuffers[i];
+		glDeleteRenderbuffers(1, &renderBuffer);
+	}
+	std::cout<<"\n"<<renderBuffers.Size()<<" vertex arrays freed.";
+	renderBuffers.Clear();
+	return;
+}
+

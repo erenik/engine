@@ -12,8 +12,11 @@ public:
 
 	Game();
 	Game(String name, String type, String host, String port, int currentPlayers, int maxPlayers)
-		: name(name), type(type), host(host), port(port), currentPlayers(currentPlayers), maxPlayers(maxPlayers)
+		: name(name), type(type), host(host), currentPlayers(currentPlayers), maxPlayers(maxPlayers)
 	{
+		// Check that this works..
+		port = port.ParseInt();
+		assert(port != 0);
 	}
 
 	bool LoadFrom(String);

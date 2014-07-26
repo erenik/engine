@@ -24,6 +24,11 @@ GMSetEntityTexture::GMSetEntityTexture(Entity * entity, int target, String textu
 
 void GMSetEntityTexture::Process()
 {
+	if (entity == 0)
+	{
+		std::cout<<"\nNULL entity in GMSetEntityTexture!";
+		return;
+	}
 	if (t == NULL){
 		t = TexMan.GetTexture(textureSource);
 		if (!t){
@@ -93,7 +98,11 @@ void GMSetEntity::Process()
 	for (int i = 0; i < entities.Size(); ++i)
 	{
 		Entity * entity = entities[i];
-		
+		if (!entity)
+		{
+			std::cout<<"\nNull entity in GMSetEntity";
+			continue;
+		}
 		/// Should probably just attach this when adding it for rendering...?
 		assert(entity->graphics);
 
@@ -138,8 +147,8 @@ void GMSetEntity::Process()
 	}
 }
 
-GMSetEntityb::GMSetEntityb(Entity * entity, int target, bool value)
-	: GraphicsMessage(GM_SET_ENTITY_BOOLEAN), entity(entity), target(target), bValue(value)
+GMSetEntityb::GMSetEntityb(List<Entity*> entities, int target, bool value)
+	: GraphicsMessage(GM_SET_ENTITY_BOOLEAN), entities(entities), target(target), bValue(value)
 {
 	switch(target)
 	{
@@ -152,18 +161,22 @@ GMSetEntityb::GMSetEntityb(Entity * entity, int target, bool value)
 }
 void GMSetEntityb::Process()
 {
-	assert(entity->graphics);
-	switch(target)
+	for (int i = 0; i < entities.Size(); ++i)
 	{
-		case VISIBILITY:
-			entity->graphics->visible = bValue;
-			break;
-		case REQUIRE_DEPTH_SORTING:
-			if (bValue)
-				entity->graphics->flags |= RenderFlags::REQUIRES_DEPTH_SORTING;
-			else 
-				entity->graphics->flags &= ~RenderFlags::REQUIRES_DEPTH_SORTING;
-			break;
+		Entity * entity = entities[i];
+		assert(entity->graphics);
+		switch(target)
+		{
+			case VISIBILITY:
+				entity->graphics->visible = bValue;
+				break;
+			case REQUIRE_DEPTH_SORTING:
+				if (bValue)
+					entity->graphics->flags |= RenderFlags::REQUIRES_DEPTH_SORTING;
+				else 
+					entity->graphics->flags &= ~RenderFlags::REQUIRES_DEPTH_SORTING;
+				break;
+		}
 	}
 }
 
@@ -191,8 +204,8 @@ void GMSetEntitys::Process()
 }
 
 
-GMSetEntityf::GMSetEntityf(Entity * entity, int target, float value)
-	: GraphicsMessage(GM_SET_ENTITY_FLOAT), entity(entity), target(target), fValue(value)
+GMSetEntityf::GMSetEntityf(List<Entity*> entities, int target, float value)
+	: GraphicsMessage(GM_SET_ENTITY_FLOAT), entities(entities), target(target), fValue(value)
 {
 	switch(target)
 	{
@@ -204,18 +217,22 @@ GMSetEntityf::GMSetEntityf(Entity * entity, int target, float value)
 }
 void GMSetEntityf::Process()
 {
-	assert(entity->graphics);
-	switch(target)
+	for (int i = 0; i < entities.Size(); ++i)
 	{
-		case TEXT_SIZE_RATIO:
-			entity->graphics->textSizeRatio = fValue;
-			break;
+		Entity * entity = entities[i];
+		assert(entity->graphics);
+		switch(target)
+		{
+			case TEXT_SIZE_RATIO:
+				entity->graphics->textSizeRatio = fValue;
+				break;
+		}
 	}
 }
 
 
-GMSetEntityVec4f::GMSetEntityVec4f(Entity * entity, int target, Vector4f value)
-	: GraphicsMessage(GM_SET_ENTITY_VEC4F), entity(entity), target(target), vec4fValue(value)
+GMSetEntityVec4f::GMSetEntityVec4f(List<Entity*> entities, int target, Vector4f value)
+	: GraphicsMessage(GM_SET_ENTITY_VEC4F), entities(entities), target(target), vec4fValue(value)
 {
 	switch(target)
 	{
@@ -229,19 +246,23 @@ GMSetEntityVec4f::GMSetEntityVec4f(Entity * entity, int target, Vector4f value)
 }
 void GMSetEntityVec4f::Process()
 {
-	assert(entity->graphics);
-	switch(target)
+	for (int i = 0; i < entities.Size(); ++i)
 	{
-		case TEXT_COLOR:
-			entity->graphics->textColor = vec4fValue;
-			std::cout<<"lall";
-			break;
-		case TEXT_POSITION:
-			entity->graphics->textPositionOffset = vec4fValue;
-			break;
-		case RENDER_OFFSET:
-			entity->graphics->renderOffset = vec4fValue;
-			break;
+		Entity * entity = entities[i];
+		assert(entity->graphics);
+		switch(target)
+		{
+			case TEXT_COLOR:
+				entity->graphics->textColor = vec4fValue;
+				std::cout<<"lall";
+				break;
+			case TEXT_POSITION:
+				entity->graphics->textPositionOffset = vec4fValue;
+				break;
+			case RENDER_OFFSET:
+				entity->graphics->renderOffset = vec4fValue;
+				break;
+		}
 	}
 }
 

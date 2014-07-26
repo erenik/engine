@@ -8,8 +8,8 @@
 // Utility function used by e.g. RenderOverlay.
 void GraphicsManager::RenderFullScreen(Texture * texture, float alpha)
 {
-	int width = graphicsState.windowWidth;
-	int height = graphicsState.windowHeight;
+	int width = graphicsState->windowWidth;
+	int height = graphicsState->windowHeight;
 
 	// Buffer if needed.
 	if (texture->glid == -1)
@@ -24,7 +24,7 @@ void GraphicsManager::RenderFullScreen(Texture * texture, float alpha)
 	// Reset projection matrix for this
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-//	glLoadMatrixd(graphicsState.projectionMatrixD.getPointer());
+//	glLoadMatrixd(graphicsState->projectionMatrixD.getPointer());
 
 	glOrtho(0, width, 0, height, 1, 10);
 	// Reset modelmatrix too
@@ -32,7 +32,7 @@ void GraphicsManager::RenderFullScreen(Texture * texture, float alpha)
 	glLoadIdentity();
 	float z = -1.01f;		
 	glTranslatef(0,0,z);
-	Matrix4d modelView = graphicsState.viewMatrixD * graphicsState.modelMatrixD;
+	Matrix4d modelView = graphicsState->viewMatrixD * graphicsState->modelMatrixD;
 //	glLoadMatrixd(modelView.getPointer());
 
 	// Disable depth-testing in-case deferred rendering is enabled D:
@@ -43,9 +43,9 @@ void GraphicsManager::RenderFullScreen(Texture * texture, float alpha)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	// Enable texturing
 	glEnable(GL_TEXTURE_2D);
-	if (graphicsState.currentTexture != texture){
+	if (graphicsState->currentTexture != texture){
 		glBindTexture(GL_TEXTURE_2D, texture->glid);
-		graphicsState.currentTexture = texture;
+		graphicsState->currentTexture = texture;
 	}
 	// Buffer it again..
 	int error = glGetError();
@@ -85,7 +85,7 @@ void GraphicsManager::RenderFullScreen(Texture * texture, float alpha)
 	}
 	glDisable(GL_TEXTURE_2D);
 	// Load projection matrix again
-	glLoadMatrixd(graphicsState.projectionMatrixD.getPointer());
+	glLoadMatrixd(graphicsState->projectionMatrixD.getPointer());
 
 	// Enable disabled stuffs.
 	glEnable(GL_DEPTH_TEST);	

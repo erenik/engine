@@ -40,10 +40,13 @@ public:
 	operator const char * ();
 	operator const char * () const;
 	operator const wchar_t * () const;
-	operator const bool () const;
+	// What..? seriously?
+//	operator const bool () const;
 
 	// Static Parsing functions
 	static String ToString(const int value);
+	// Uses the format "0xNNNNNNNN".
+	static String ToHexString(const int value);
 	static String ToString(const float value, int decimalsAfterZero = -1);
 
 	/// For example used with the arguments (lines,"//","/*","*/") for C++
@@ -125,6 +128,8 @@ public:
 
 	/// Amount of characters (not counting ending NULL-character)
 	int Length() const;
+	/// Current allocation size of the array. May be used in order to access e.g. the null-character for special parsers.
+	int ArraySize() const;
 
 	/// Removes all whitespace characters up until first non-whitespace character.
 	int RemoveInitialWhitespaces();

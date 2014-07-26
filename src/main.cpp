@@ -108,7 +108,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 int main(int argc, char **argv)
 {
 #endif
-
 	// Set application-defaults here already?
 	/// Call to set application name, root directories for various features, etc.
 	SetApplicationDefaults();
@@ -416,6 +415,7 @@ int main(int argc, char **argv)
 	PreferencesManager::Allocate();
 	PlayerManager::Allocate();
 	MessageManager::Allocate();
+	ShaderManager::Allocate();
 	GraphicsManager::Allocate();
 	TextureManager::Allocate();
 	NetworkManager::Allocate();
@@ -584,6 +584,7 @@ int main(int argc, char **argv)
 	ScriptManager::Deallocate();
 	MessageManager::Deallocate();
 	GraphicsManager::Deallocate();
+	ShaderManager::Deallocate();
 	FrameStatistics::Deallocate();
 	TextureManager::Deallocate();
 	NetworkManager::Deallocate();

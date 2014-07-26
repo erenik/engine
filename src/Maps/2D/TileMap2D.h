@@ -28,7 +28,7 @@ public:
 	virtual void OnExit();	// Called once when exiting the map
 
 	/// Render!
-	void Render();
+	void Render(GraphicsState * graphicsState);
 
 	/// Loads map data from file.
 	virtual bool Load(const char * fromFile);
@@ -116,9 +116,9 @@ private:
 	/// If it should render
 	bool render;
 	/// Renders entities
-	void RenderEntities();
+	void RenderEntities(GraphicsState * graphicsState);
 	/// Render symbolic quads for events.
-	void RenderEvents();
+	void RenderEvents(GraphicsState * graphicsState);
 
 	/// For le adding! Has to be called at least once before using the 2D moving functions. 
 	/// If positions are provided these will be attempted to be used.

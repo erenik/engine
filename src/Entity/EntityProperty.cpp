@@ -7,8 +7,9 @@
 #include "../Entity/Entity.h"
 #include <cassert>
 
-EntityProperty::EntityProperty(Entity * entity)
-: entity(entity){
+EntityProperty::EntityProperty(String name, Entity * owner)
+: name(name), owner(owner)
+{
 	currentState = NULL;
 	previousState = NULL;
 	queuedState = NULL;
@@ -74,6 +75,12 @@ void EntityProperty::RevertToPreviousState(){
 	previousState = tmp;
 	currentState->OnEnter();
 };
+
+/// If reacting to collisions...
+void EntityProperty::OnCollision(Collision & data)
+{
+}
+
 
 /// Callback for when one or more paths have been invalidated to due changes in the map.
 void EntityProperty::PathsInvalidated(){

@@ -85,7 +85,7 @@ void Sparks::Process(float timeInSeconds)
 					ParticleEmitter * emitter = emitters[currEmitter];
 
 					emitter->GetNewParticle(positions[i], velocities[i]);
-					velocities[i] *= primaryVelocity * (rand() % 81 + 20) * 0.002f;
+					velocities[i] *= primaryVelocity * (rand() % 81 + 20) * 0.002f * emissionVelocity;
 				}
 				else
 				{
@@ -171,10 +171,10 @@ void Sparks::Process(float timeInSeconds)
 	previousDirection = newDirection;
 }
 
-void Sparks::Render()
+void Sparks::Render(GraphicsState * graphicsState)
 {
     /// Based on the optimization level, will probably be pow(0.5, optimizationLevel);
-    optimizationLevel = pow(0.5f, graphicsState.optimizationLevel);
+    optimizationLevel = pow(0.5f, graphicsState->optimizationLevel);
     if (optimizationLevel == 0)
         return;
     assert(optimizationLevel > 0);
@@ -183,9 +183,9 @@ void Sparks::Render()
 
     glUseProgram(0);
     glMatrixMode(GL_PROJECTION);
-    glLoadMatrixf(graphicsState.projectionMatrixF.getPointer());
+    glLoadMatrixf(graphicsState->projectionMatrixF.getPointer());
     glMatrixMode(GL_MODELVIEW);
-    Matrix4f viewMatrix = graphicsState.viewMatrixF.getPointer();
+    Matrix4f viewMatrix = graphicsState->viewMatrixF.getPointer();
     Matrix4f modelMatrix;
   //  if (relativeTo)
   //      modelMatrix = relativeTo->transformationMatrix;
@@ -216,15 +216,16 @@ void Sparks::Render()
 		glEnable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, diffuse->glid);
 		Vector3f leftBase, upBase, left, up;
-		leftBase = graphicsState.camera->LeftVector() * particleSize;
-		upBase = graphicsState.camera->UpVector() * particleSize;
+		leftBase = graphicsState->camera->LeftVector() * particleSize;
+		upBase = graphicsState->camera->UpVector() * particleSize;
 		glBegin(GL_QUADS);
 		float optimizedAlpha = 1 / optimizationLevel + 2.f;
 		for (int i = 0; i < particlesToProcess; ++i){
 			if (lifeDuration[i] >= lifeTime[i])
 				continue;
 			glColor4f(colors[i].x, colors[i].y, colors[i].z, 0.75f * optimizedAlpha * colors[i].w * 0.8f * pow((1.0f - lifeDuration[i] / lifeTime[i]), 4));
-			float sizeRatio = pow(lifeDuration[i]+1.0f, 2.0f);
+			// Making size equal throughout the duration, to differentiate it from the Exhaust particle system.
+			float sizeRatio = 1.f; // pow(lifeDuration[i]+1.0f, 2.0f);
 		//	if (lifeDuration[i] > 1.0f)
 		//		sizeRatio = pow(5.0f, lifeDuration[i]-1.0f);
 			left = leftBase * sizeRatio;

@@ -94,6 +94,36 @@ bool GMUI::GetGlobalUI()
 	*/
 }
 
+GMSetUIp::GMSetUIp(String uiName, int target, Texture * tex, UserInterface * ui)
+	: GMUI(GM_SET_UI_POINTER, ui), name(uiName), target(target), texture(tex)
+{
+	switch(target)
+	{
+	case GMUI::TEXTURE:
+		break;
+	default:
+		assert(false && "Bad target in GMSetUIp");
+	}
+}
+void GMSetUIp::Process()
+{
+	if (!GetUI())
+        return;
+	if (!name.Length())
+		return;
+	UIElement * e = ui->GetElementByName(name);
+	if (!e){
+		std::cout<<"\nINFO: No element found with specified name \""<<name<<"\"";
+		return;
+	}
+	switch(target)
+	{
+		case GMUI::TEXTURE: 		
+		{
+			e->texture = texture;
+		}
+	}	
+}
 
 /// Used to set arbitrary amounts of booleans. Mainly used for binary matrices (UIMatrix).
 GMSetUIvb::GMSetUIvb(String uiName, int target, List<bool*> boolData, Viewport * viewport /*= NULL*/)
@@ -126,6 +156,44 @@ void GMSetUIvb::Process()
 			matrix->SetData(data);
             break;
         }
+	}
+}
+
+GMSetUIi::GMSetUIi(String uiName, int target, int value, UserInterface * ui)
+: GMUI(GM_SET_UI_INTEGER, ui), uiName(uiName), target(target), value(value)
+{
+	switch(target)
+	{
+		case GMUI::INTEGER_INPUT:
+			break;
+		default:
+			assert(false && "Bad target in GMSetUIi");
+	}
+}
+void GMSetUIi::Process()
+{
+	if (!GetUI())
+        return;
+	if (!uiName.Length())
+		return;
+	UIElement * e = ui->GetElementByName(uiName);
+	if (!e){
+		std::cout<<"\nINFO: No element found with specified name \""<<uiName<<"\"";
+		return;
+	}
+	switch(target)
+	{
+		case GMUI::INTEGER_INPUT:
+		{
+			if (e->type != UIType::INTEGER_INPUT)
+			{
+				std::cout<<"\nTrying to set integer input of element of other type.";
+				assert(e->type == UIType::INTEGER_INPUT);
+				return;
+			}
+			UIIntegerInput * intInput = (UIIntegerInput*) e;
+			intInput->SetValue(value);
+		}
 	}
 }
 
@@ -191,6 +259,16 @@ void GMSetUIv2i::Process()
 
 GMSetUIv3f::GMSetUIv3f(String UIname, int target, Vector3f v, Viewport * viewport/* = NULL*/)
 : GMUI(GM_SET_UI_VEC3F, viewport), name(UIname), target(target), value(v)
+{
+	AssertTarget();
+}
+
+GMSetUIv3f::GMSetUIv3f(String uiName, int target, Vector3f v, UserInterface * ui)
+: GMUI(GM_SET_UI_VEC3F, ui), name(uiName), target(target), value(v)
+{
+	AssertTarget();
+}
+void GMSetUIv3f::AssertTarget()
 {
 	switch(target){
 		case GMUI::TEXT_COLOR:

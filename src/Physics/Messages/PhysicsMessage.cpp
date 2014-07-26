@@ -27,12 +27,12 @@ void PhysicsMessage::Process(){
 			Physics.UnregisterAllEntities();
 			break;
 		case PM_IGNORE_COLLISSIONS:
-			Physics.ignoreCollissions = true;
+			Physics.ignoreCollisions = true;
 			break;
 		case PM_RESET_SETTINGS:
 			Physics.gravitation = Vector3f(0, -DEFAULT_GRAVITY, 0);
 			Physics.simulationSpeed = 1.0f;
-			Physics.ignoreCollissions = false;
+			Physics.ignoreCollisions = false;
 			break;
 	}
 }

@@ -16,8 +16,7 @@ Square::Square()
 	// Allocate data
 	vertex = new Vector3f[vertices];
 	normal = new Vector3f[normals];
-	u = new float[uvs];
-	v = new float[uvs];
+	uv = new Vector2f[uvs];
 	face = new MeshFace[faces];
 	for (int i = 0; i < faces; ++i){
 		int numV = 3;
@@ -29,11 +28,11 @@ Square::Square()
 	/// Set default vector
 	normal[0] = Vector3f(0, 0, 1);	// Vector toward user
 	/// Set default UVs
-	u[0] = 0;		v[0] = 0.0f;
-	u[1] = 1.0f;	v[1] = 0.0f;
-	u[2] = 1.0f;	v[2] = 1.0f;
-	u[3] = 0;		v[3] = 1.0f;
-
+	uv[0] = Vector2f(0, 0.0f);
+	uv[1] = Vector2f(1.f, 0.0f);
+	uv[2] = Vector2f(1.f, 1.0f);
+	uv[3] = Vector2f(0, 1.0f);
+	
 	/// Set default face indices
 	face[0].vertex[0] = 0;	face[0].uv[0] = 0;	face[0].normal[0] = 0;
 	face[0].vertex[1] = 1;	face[0].uv[1] = 1;	face[0].normal[1] = 0;
@@ -59,8 +58,7 @@ Square::~Square()
 	}
 #define DeleteArr(a) {delete[] a; a= NULL;}
 	DeleteArr(face);
-	DeleteArr(u);
-	DeleteArr(v);
+	DeleteArr(uv);
 	DeleteArr(vertex);
 	DeleteArr(normal);
 };
@@ -76,8 +74,9 @@ void Square::SetDimensions(float left, float right, float bottom, float top, flo
 /// Sets UV coordinates of the square using provided arguments
 void Square::SetUVs(float left, float right, float bottom, float top)
 {
-	u[0] = left;	v[0] = bottom;
-	u[1] = right;	v[1] = bottom;
-	u[2] = right;	v[2] = top;
-	u[3] = left;	v[3] = top;
+	uv[0] = Vector2f(left, bottom);
+	uv[1] = Vector2f(right, bottom);
+	uv[2] = Vector2f(right, top);
+	uv[3] = Vector2f(left, top);
+	
 };

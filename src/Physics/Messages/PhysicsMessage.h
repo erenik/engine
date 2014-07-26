@@ -45,6 +45,18 @@ enum physicsMessages {
 enum physicsTargets{
 	NULL_PHYSICS_TARGET,
 
+	// Global stuff
+	SIMULATION_SPEED,
+
+	// Custom types.
+	PHYSICS_INTEGRATOR,
+	COLLISION_RESOLVER,
+	COLLISION_DETECTOR,
+
+	/// Collisions
+	COLLISION_CATEGORY,
+	COLLISION_FILTER,
+
     /// For disabling stuff.
     LOCK_POSITION,
 
@@ -55,17 +67,31 @@ enum physicsTargets{
 
 	// Separate float and Vector targets?
 	POSITION,
+	POSITION_Y,
+	POSITION_X,
 	TRANSLATE,
 	SCALE,
 	ROTATE,
 	SET_POSITION,
 	SET_SCALE,
-	SET_ROTATION,
+	SET_ROTATION, // In degrees or radians?
 	GRAVITY,
 	ACCELERATION, ACCELERATION_MULTIPLIER, // <- Lazy me, but might be good, hm?
 	ANGULAR_ACCELERATION,
 	VELOCITY,
+
+	// Relative acceleration, meaning acceleration in relation to the entity's current direction vectors (up, left, forward)
+	RELATIVE_ACCELERATION, 
+	// Relative rotation compared to entity's current direction vectors. 
+	// The speed of these rotations will vary with the entity's rate/radius of turns (ROT) (turning rate), current air speed and time.
+	// Mainly used for airplanes and similar vehicles.
+	RELATIVE_ROTATION,
+
+	RESET_ROTATION, // Non-argument message, resets angle/quaternion for rotation.
 	ANGULAR_VELOCITY,
+	CONSTANT_ROTATION_VELOCITY, 
+	CONSTANT_ROTATION_SPEED = CONSTANT_ROTATION_VELOCITY,
+
 	FRICTION,
 	RESTITUTION,
 	ESTIMATION_MODE, /// For network-synchronization
@@ -76,6 +102,7 @@ enum physicsTargets{
 	VELOCITY_RETAINED_WHILE_TURNING,
 	AIR_DENSITY,
 	DEFAULT_DENSITY,
+	GRAVITY_MULTIPLIER, // Used when you want an entity to be extra affected or perhaps not at all by gravity (not affecting other entities)
 
 	/// Boolean targets
 	COLLISIONS_ENABLED,
@@ -90,7 +117,7 @@ enum physicsTargets{
 	DESTINATION,
 
 	// Integer targets,
-	INTEGRATOR,		// Global
+	INTEGRATOR_TYPE,		// Global
 	// Entity integrator targets
 	PHYSICS_TYPE,	// using this with PMSetEntity is the same as using PMSetPhysicsType
 	PHYSICS_SHAPE,
@@ -142,8 +169,12 @@ private:
 
 class PMSetEntity : public PhysicsMessage {
 public:
+	// For resets and similar
+	PMSetEntity(int target, List<Entity*> targetEntities);
 	PMSetEntity(int target, List<Entity*> targetEntities, float value);
+	PMSetEntity(int target, List<Entity*> targetEntities, Vector2f value, long long timeStamp = 0);
 	PMSetEntity(int target, List<Entity*> targetEntities, Vector3f value, long long timeStamp = 0);
+	PMSetEntity(int target, List<Entity*> targetEntities, Quaternion value, long long timeStamp = 0);
 	PMSetEntity(int target, List<Entity*> targetEntities, bool value);
 	PMSetEntity(int target, List<Entity*> targetEntities, int value);
 	void Process();
@@ -152,6 +183,7 @@ protected:
 		NULL_TYPE,
 		INTEGER, FLOAT,
 		BOOLEAN, VECTOR3F,
+		VECTOR2F, QUATERNION
 	};
 	int dataType;
 	int target;
@@ -161,19 +193,31 @@ protected:
 	List<Entity*> entities;
 	float fValue;
 	Vector3f vec3fValue;
+	Vector2f vec2fValue;
+	Quaternion qValue;
 };
+
+class Integrator;
+class CollisionResolver;
+class CollisionDetector;
 
 class PMSet : public PhysicsMessage {
 public:
 	PMSet(int target, float value);
 	PMSet(int target, bool bValue);
 	PMSet(int target, int iValue);
+	PMSet(Integrator * integrator);
+	PMSet(CollisionResolver * cr);
+	PMSet(CollisionDetector * cd);
 	virtual void Process();
 private:
 	int target;
 	int iValue;
 	float floatValue;
 	bool bValue;
+	Integrator * physicsIntegrator;
+	CollisionResolver * cr;
+	CollisionDetector * cd;
 };
 
 class PMSetWaypoint : public PhysicsMessage {

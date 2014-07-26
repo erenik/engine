@@ -7,7 +7,9 @@
 
 #include "MathLib.h"
 #include "PhysicsLib.h"
+#include "Graphics/OpenGL.h"
 
+class FrameBuffer;
 class Camera;
 class UserInterface;
 class Window;
@@ -34,8 +36,15 @@ public:
 	void UpdateSize();
 	UserInterface * GetUI();
 
+	/// Sets up frame-buffers for this viewport, resizing them as needed. Creates frame buffer if needed. Returns false if something failed along the way.
+	bool BindFrameBuffer();
+	/// Creates a default set of ish 8 render buffers joint to a FrameBuffer object.
+	void CreateFrameBuffer();
+
+	FrameBuffer * frameBuffer;
+
 	/// For distinguation and later alteration
-	String viewportName;
+	String name;
 	/// Parent window it resides in.
 	Window * window;
 
@@ -76,8 +85,8 @@ public:
 	/// Dragged from GraphicsManager
 	/// Booleans for extra rendering tools
 	bool renderPhysics;
-	bool renderCollissions;
-	bool renderCollissionTriangles;
+	bool renderCollisions;
+	bool renderCollisionTriangles;
 	bool renderSeparatingAxes;
 	bool renderGrid;
 	bool renderFPS;

@@ -76,6 +76,14 @@ void Vector2f::ReadFrom(std::fstream & file){
 	file.read((char*)&y, sizeof(float));
 }
 
+
+/// Clamp to an interval.
+void Vector2f::Clamp(float min, float max)
+{
+	ClampFloat(x, min, max);
+	ClampFloat(y, min, max);
+}
+
 // ************************************************************************//
 // Arithmetics
 // ************************************************************************//
@@ -192,6 +200,11 @@ float Vector2f::operator [](int index){
 /// Multiplies the elements in the two vectors internally, returning the product.
 Vector2f Vector2f::ElementMultiplication(const Vector2f otherVector) const {
 	return Vector2f(x * otherVector.x, y * otherVector.y);
+}
+/// Make sure all elements are non-0 before calling this...
+Vector2f Vector2f::ElementDivision(const Vector2f dividend) const 
+{
+	return Vector2f(x / dividend.x, y / dividend.y);
 }
 
 // Dot product.

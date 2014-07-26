@@ -37,7 +37,7 @@ OggStream::OggStream()
 : MultimediaStream(MultimediaType::OGG)
 {
 	this->oggFile = 0;
-	this->vorbisComment = 0;
+	
 	hasTheora = false;
 	hasVorbis = false;
 	theoraSetupInfo = NULL;
@@ -45,6 +45,9 @@ OggStream::OggStream()
 	rowBufferData = NULL;
 	frameTexture = NULL;
 	rowBufferSize = 0;
+
+	vorbisInfo = 0;
+	vorbisComment = 0;
 }
 
 OggStream::~OggStream()
@@ -60,7 +63,8 @@ FILE* outfile = NULL;
 
 /* Helper; just grab some more compressed bitstream and sync it for
    page extraction */
-int ReadOggData(std::fstream & fromFile, ogg_sync_state * intoOss){
+int ReadOggData(std::fstream & fromFile, ogg_sync_state * intoOss)
+{
   char * buffer = ogg_sync_buffer(intoOss, 4096);
   fromFile.read(buffer, 4096);
   int bytesWritten = fromFile.gcount();
@@ -91,10 +95,10 @@ static int dump_comments(th_comment *_tc){
 /// Attempts to open target file. Returns false upon failure.
 bool OggStream::Open(String path)
 {
-	/// If already got another file open, abort.
+	/// If already got another file open, close it.
 	if (file.is_open()){
-		std::cout<<"\nAlready got another file open!";
-		return false;
+		std::cout<<"\nAlready got another file open! Closing it.";
+		file.close();
 	}
 
 	file.open(path.c_str(), std::ios_base::in | std::ios_base::binary);
@@ -119,7 +123,8 @@ bool OggStream::Open(String path)
 
 	// Read data until parse is done.
 	bool nonHeaderPageEncountered = false;
-	while(!nonHeaderPageEncountered){
+	while(!nonHeaderPageEncountered)
+	{
 		/// Read in the initial page of the OGG, file, being the first 4 kb (4096 bytes)
 		int read = ReadOggData(file, &oggSyncState);
 		if (!read){
@@ -305,9 +310,11 @@ bool OggStream::Open(String path)
 		fprintf(stderr,"Unknown pixel format: %i\n", theoraInfo.pixel_fmt);
 		exit(1);
 	}
-	std::cout<<"\nYUV4MPEG2 C "<<CHROMA_TYPES[theoraInfo.pixel_fmt]<<" A"<<theoraInfo.aspect_numerator<<":"<<theoraInfo.aspect_denominator<<" H%d F%d:%d I%c A%d:%d\n";
-	std::cout<<"\nTheora video should now be available for streaming to target texture object.";
-
+	if (hasTheora)
+	{
+		std::cout<<"\nYUV4MPEG2 C "<<CHROMA_TYPES[theoraInfo.pixel_fmt]<<" A"<<theoraInfo.aspect_numerator<<":"<<theoraInfo.aspect_denominator<<" H%d F%d:%d I%c A%d:%d\n";
+		std::cout<<"\nTheora video should now be available for streaming to target texture object.";
+	}
 //	, theoraInfo.frame_width, theoraInfo.frame_height, theoraInfo.fps_numerator,theoraInfo.fps_denominator,'p',
 //	theoraInfo.aspect_numerator,theoraInfo.aspect_denominator);
 
@@ -333,7 +340,12 @@ bool OggStream::Open(String path)
 		/// Grab info and comment.
 		vorbisInfo = ov_info(&oggVorbisFile, -1);
 		vorbisComment = ov_comment(&oggVorbisFile, -1);
-
+	}
+	else 
+	{
+		// Require audio.
+		std::cout<<"\nUnable to open audio! aborting.";
+		return false;
 	}
 
 	return true;
@@ -341,7 +353,11 @@ bool OggStream::Open(String path)
 /// Closes target file and stream.
 void OggStream::Close()
 {
-
+	/// Close the main Ogg/Theora file-stream too.
+	if (file.is_open())
+		file.close();
+	// Close it too..
+	ov_clear(&oggVorbisFile);
 	return;
 }
 
@@ -610,6 +626,9 @@ Texture * OggStream::GetFrameTexture()
 /// Returns amount of channels present in the audio stream.
 int OggStream::AudioChannels()
 {
+	assert(vorbisInfo);
+	if (!vorbisInfo)
+		return 0;
 	return vorbisInfo->channels;
 }
 

@@ -56,6 +56,9 @@ public:
 	/// Reads from file stream.
 	void ReadFrom(std::fstream & file);
 
+	/// Clamp to an interval.
+	void Clamp(float min, float max);
+
 	// Simple arithmetics
 	/** Simple addition
 		Postcondition: Adds the addend's coordinates to the calling vector's.
@@ -108,6 +111,8 @@ public:
 
 	/// Multiplies the elements in the two vectors internally, returning the product.
 	Vector2f ElementMultiplication(const Vector2f otherVector) const;
+	/// Make sure all elements are non-0 before calling this...
+	Vector2f ElementDivision(const Vector2f dividend) const;
 
 	// Dot product.
 	float DotProduct(const Vector2f otherVector) const;

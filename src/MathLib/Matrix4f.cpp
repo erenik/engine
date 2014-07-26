@@ -393,6 +393,16 @@ void Matrix4f::Scale(const Vector3f & scalingVector){
 	element[10] *= scalingVector.z;
 }
 
+
+/// Returns true if it has non-0 values in the scale diagonal (elements 0, 5 and 10)
+bool Matrix4f::HasValidScale()
+{
+	if (element[0] && element[5] && element[10])
+		return true;
+	return false;
+}
+
+
 // ************************************************************************//
 // Content access
 // ************************************************************************//

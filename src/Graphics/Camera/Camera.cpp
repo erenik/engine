@@ -75,6 +75,7 @@ Camera * CameraManager::DefaultCamera()
 
 float Camera::defaultRotationSpeed = 0.09f;
 float Camera::defaultVelocity = 1.0f;
+bool Camera::defaultInheritEntityRotation = true;
 
 Camera::Camera()
 {
@@ -99,8 +100,8 @@ void Camera::Nullify()
 	rotation = Vector3f(PI*0.25f, PI*0.125f, 0);
 	flySpeed = 1.0f;
 	rotationSpeed = 0.1f;
-	memset(navigation, 0, sizeof(bool)*6);
-	memset(orientation, 0, sizeof(bool)*6);
+	memset(navigationControls, 0, sizeof(bool)*6);
+	memset(orientationControls, 0, sizeof(bool)*6);
 	/// Ratio of the display device/context. Both should be at least 1.0, with the other scaling up as needed.
 	widthRatio = 1.0f;
 	heightRatio = 1.0f;
@@ -116,6 +117,9 @@ void Camera::Nullify()
 
 	adjustProjectionMatrixToWindow = false;
 	windowToTrack = NULL;
+
+	useQuaternions = false;
+	inheritEntityRotation = defaultInheritEntityRotation;
 }
 
 
@@ -142,24 +146,24 @@ void Camera::AdjustProjectionMatrixToWindow(Window * window)
 /// Begin moving in the specified direction
 void Camera::Begin(int direction)
 {
-	navigation[direction] = true;
+	navigationControls[direction] = true;
 	UpdateNavigation();
 }
 /// Stop moving in the specified direction
 void Camera::End(int direction)
 {
-	navigation[direction] = false;
+	navigationControls[direction] = false;
 	UpdateNavigation();
 }
 /// Begin rotating in the specified direction
 void Camera::BeginRotate(int direction)
 {
-	orientation[direction] = true;
+	orientationControls[direction] = true;
 	UpdateNavigation();
 }
 /// Stop rotating in the specified direction
 void Camera::EndRotate(int direction){
-	orientation[direction] = false;
+	orientationControls[direction] = false;
 	UpdateNavigation();
 }
 
@@ -177,6 +181,10 @@ void Camera::Update()
 	if (adjustProjectionMatrixToWindow)
 	{
 		Vector2i windowWorkingArea = windowToTrack->WorkingArea();
+		if (windowWorkingArea.Length() <= 0 || windowWorkingArea.Length() > 100000)
+		{
+		std::cout<<"lall";
+		}
 		float halfWidth = windowWorkingArea.x * 0.5f;
 		float halfHeight = windowWorkingArea.y * 0.5f;
 		right = halfWidth;
@@ -196,6 +204,10 @@ void Camera::Update()
 	bottom *= zoom;
 	top *= zoom;
 
+	/// Nothing to create matrix out of...
+	if (left == right || bottom == top &&
+		left == 0 || bottom == 0)
+		return;
 
 	/// Begin by updating projection matrix as that is unlikely to vary with foci
 	switch(projectionType)
@@ -215,7 +227,8 @@ void Camera::Update()
 	if (entityToTrack){
 		// Move camera before before main scenegraph rendering begins
 		// Rotate it
-		if (trackingMode == TrackingMode::FROM_BEHIND){
+		if (trackingMode == TrackingMode::FROM_BEHIND)
+		{
 			float distance;
 			// First translate the camera relative to the viewing rotation-"origo"
 			/*
@@ -242,6 +255,7 @@ void Camera::Update()
 			
 			Vector3f rotation = Vector3f(); //
 			rotation = -entityToTrack->rotation;
+
 			/// Need to.. 
 			/// Rotate more, so that we view the entity from the front instead, if camera is in reverse-mode.
 			if (revert)
@@ -250,11 +264,30 @@ void Camera::Update()
 			}
 			rotation += offsetRotation;
 
+			/// o-o
+			if (entityToTrack->physics && entityToTrack->physics->useQuaternions)
+			{
+				if (inheritEntityRotation)
+				{
+					this->orientation = - entityToTrack->physics->orientation;
+					/// Apply offset-rotation?
+					useQuaternions = true;
+
+					rotationMatrix = orientation.Matrix();
+				}
+			}
+			else 
+			{
+				useQuaternions = false;
 			/// Hmm..
 //			rotationMatrix = entityToTrack->rotationMatrix;
+				rotationMatrix.Multiply(Matrix4d().InitRotationMatrix(rotation.x, 1, 0, 0));
+				rotationMatrix.Multiply(Matrix4d().InitRotationMatrix(rotation.y, 0, 1, 0));
+			}
 
-			rotationMatrix.Multiply(Matrix4d().InitRotationMatrix(rotation.x, 1, 0, 0));
-			rotationMatrix.Multiply(Matrix4d().InitRotationMatrix(rotation.y, 0, 1, 0));
+
+
+			
 
 			viewMatrix.Multiply(rotationMatrix);
 				/*
@@ -277,8 +310,20 @@ void Camera::Update()
 			*/
 		}
 
+		// Take the relative position and multiply it with the local axes of the entity we're tracking?
+		Vector3f offset;
+		if (inheritEntityRotation)
+		{
+			Vector3f up = entityToTrack->rotationMatrix.GetColumn(1);
+			Vector3f right = entityToTrack->rotationMatrix.GetColumn(0);
+			Vector3f forward = entityToTrack->rotationMatrix.GetColumn(2);
+			offset = relativePosition.x * right + relativePosition.y * up + relativePosition.z * forward;
+		}
+		else 
+			offset = relativePosition;
+
 		// Then translate the camera to it's position. (i.e. translate the world until camera is at a good position).
-		Matrix4d translationMatrix = Matrix4d().Translate(-this->entityToTrack->position - relativePosition);
+		Matrix4d translationMatrix = Matrix4d().Translate(-this->entityToTrack->position - offset);
 		viewMatrix.Multiply(translationMatrix);
 		/// If from behind, adjust it slightly afterward too!
 		if (trackingMode == TrackingMode::FROM_BEHIND){
@@ -388,39 +433,39 @@ void Camera::ProcessMovement(int timeInMs)
 	position += totalPosDiff;	
 }
 
-/// Updates base velocities depending on navigation booleans
+/// Updates base velocities depending on navigationControls booleans
 void Camera::UpdateNavigation()
 {
 	/// Navigation
-	if (navigation[Direction::UP] && !navigation[Direction::DOWN])
+	if (navigationControls[Direction::UP] && !navigationControls[Direction::DOWN])
 		this->velocity.y = -this->defaultVelocity * this->flySpeed;
-	else if (navigation[Direction::DOWN] && !navigation[Direction::UP])
+	else if (navigationControls[Direction::DOWN] && !navigationControls[Direction::UP])
 		this->velocity.y = this->defaultVelocity * this->flySpeed;
 	else
 		this->velocity.y = 0;
-	if (navigation[Direction::FORWARD] && !navigation[Direction::BACKWARD])
+	if (navigationControls[Direction::FORWARD] && !navigationControls[Direction::BACKWARD])
 		this->velocity.z = this->defaultVelocity * this->flySpeed;
-	else if (navigation[Direction::BACKWARD] && !navigation[Direction::FORWARD])
+	else if (navigationControls[Direction::BACKWARD] && !navigationControls[Direction::FORWARD])
 		this->velocity.z = -this->defaultVelocity * this->flySpeed;
 	else
 		this->velocity.z = 0;
-	if (navigation[Direction::LEFT] && !navigation[Direction::RIGHT])
+	if (navigationControls[Direction::LEFT] && !navigationControls[Direction::RIGHT])
 		this->velocity.x = this->defaultVelocity * this->flySpeed;
-	else if (navigation[Direction::RIGHT] && !navigation[Direction::LEFT])
+	else if (navigationControls[Direction::RIGHT] && !navigationControls[Direction::LEFT])
 		this->velocity.x = -this->defaultVelocity * this->flySpeed;
 	else
 		this->velocity.x = 0;
 
 	/// Rotation
-	if (orientation[Direction::UP] && !orientation[Direction::DOWN])
+	if (orientationControls[Direction::UP] && !orientationControls[Direction::DOWN])
 		this->rotationVelocity.x = this->defaultRotationSpeed * this->rotationSpeed;
-	else if (orientation[Direction::DOWN] && !orientation[Direction::UP])
+	else if (orientationControls[Direction::DOWN] && !orientationControls[Direction::UP])
 		this->rotationVelocity.x = -this->defaultRotationSpeed * this->rotationSpeed;
 	else
 		this->rotationVelocity.x = 0;
-	if (orientation[Direction::LEFT] && !orientation[Direction::RIGHT])
+	if (orientationControls[Direction::LEFT] && !orientationControls[Direction::RIGHT])
 		this->rotationVelocity.y = this->defaultRotationSpeed * this->rotationSpeed;
-	else if (orientation[Direction::RIGHT] && !orientation[Direction::LEFT])
+	else if (orientationControls[Direction::RIGHT] && !orientationControls[Direction::LEFT])
 		this->rotationVelocity.y = -this->defaultRotationSpeed * this->rotationSpeed;
 	else
 		this->rotationVelocity.y = 0;

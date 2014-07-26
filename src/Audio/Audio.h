@@ -11,6 +11,7 @@
 #include <Util.h>
 #include "AudioTypes.h"
 
+#include "OpenAL.h"
 #include <AL/al.h>
 
 class MultimediaStream;
@@ -29,16 +30,7 @@ enum audioSource {
 	AUDIO_SOURCE_NULL, OGG_STREAM, WAV,
 };
 
-/// Buffer object that stores state of a buffer of RAW PCM data.
-class AudioBuffer {
-public:
-	AudioBuffer();
-	// AL id
-	ALuint alBuffer;
-	/// If it has gotten good new data.
-	bool buffered;
-	/// Whether it is queued or not?
-};
+
 
 class Audio {
 	friend class AudioManager;
@@ -49,6 +41,9 @@ public:
 	Audio(char type, String name, bool repeat = false, float awesomeness = 1.0);
 	~Audio();		// Destructor if needed?
     void Nullify(); // Sets default values.
+
+	// Yer.
+	void BufferData(MultimediaStream * fromStream, AudioBuffer * intoBuffer);
 
 	/// Generate audio source if not existing.
 	void CreateALObjects();
@@ -83,7 +78,19 @@ public:
 	/// Playback time in milliseconds.
 	long long PlaybackTimeMs();
 
+	/** If true, deletion should be performed upon finished playback of this audio-clip. 
+		Recommended for "fire-and-forget" sound effects.
+	*/
+	bool deleteOnEnd;
+
 private:
+
+	void QueueBuffer(AudioBuffer * buf);
+	void UnqueueBuffer(AudioBuffer * buf);
+
+	/// Bad boolean, should go away after audio is re-worked with an own messaging system.
+	bool firstBufferDone;
+
 	// Playback time in seconds.
 	float playbackTime;
 

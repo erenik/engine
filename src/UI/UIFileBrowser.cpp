@@ -237,7 +237,7 @@ void UIFileBrowser::SetActiveFile(String file){
 
 
 /// Rendering
-void UIFileBrowser::Render()
+void UIFileBrowser::Render(GraphicsState * graphicsState)
 {
 	// Create children first if not done so already!!
 	if (!childrenCreated)
@@ -245,7 +245,7 @@ void UIFileBrowser::Render()
 	// Load directory if not done so already.
 	if (!directoryLoaded)
 		LoadDirectory(true);
-	UIList::Render();
+	UIList::Render(graphicsState);
 }
 
 

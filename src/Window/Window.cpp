@@ -93,6 +93,12 @@ Window::Window(String name)
 	windowStyle = 0;
 	dwExStyle = 0;
 #endif
+
+	saveScreenshot = false;
+	/// 50 ms, 20 fps recording speed.
+	isRecording = false;
+	recordVideo = false;
+	msBetweenFrames = 50;
 }
 
 Window::~Window()

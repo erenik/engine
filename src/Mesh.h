@@ -17,6 +17,7 @@ struct MeshFace {
 private:
     void Nullify();
 public:
+
 	/// Debug
 	void Print();
 
@@ -25,6 +26,13 @@ public:
 	void operator = (const MeshFace * otherMeshFace);
 	/// Copy CONSTRUCTOR
 	void operator = (const MeshFace & otherMeshFace);
+
+	// Call after setting numVertices
+	void Allocate();
+	void Deallocate();
+
+	bool WriteTo(std::fstream & fileStream);
+	bool ReadFrom(std::fstream & fileStream);
 
 	/// Number of vertices in the MeshFace. A MeshFace will have no more than 255 vertices, and if it does: this program won't like it anyway :P
 	unsigned char numVertices;
@@ -55,6 +63,15 @@ public:
 	Mesh();
 	/// Destructor
 	virtual ~Mesh();
+
+	// Allocates the vertex, u,v and normal arrays
+	void AllocateArrays();
+	void DeallocateArrays();
+	
+	/// Load from customized compressed data form. Returns true upon success.
+	bool SaveCompressedTo(String compressedPath);
+	/// Load from customized compressed data form. Returns true upon success.
+	bool LoadCompressedFrom(String compressedPath);
 
     /// Mostly for debug
 	void PrintContents();
@@ -103,10 +120,12 @@ public:
 
 	/// Carteesian coordinates for the vertices
 	Vector3f * vertex;
+	/// Joint UV-coordinates replacing the old separate u/v arrays!
+	Vector2f * uv;
 	/// U-coordinates for the textures
-	float * u;
+//	float * u;
 	/// V-coordinates for the textures
-	float * v;
+//	float * v;
 	/// Normals for each vertex. Pointer is null if
 	Vector3f * normal;
 	/// MeshFaces that define the mesh, using the provided vertices and UV-coordinates
@@ -129,6 +148,8 @@ public:
 
 	/// Vertex count for the generated buffer objects.
 	unsigned int vboVertexCount;
+
+	bool IsTriangulated(){return triangulated;};
 private:
 	/// Set after calling Triangulate only.
 	bool triangulated;

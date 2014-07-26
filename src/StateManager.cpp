@@ -10,7 +10,8 @@
 #include "Script/ScriptManager.h"
 #include "Network/NetworkManager.h"
 #include "Window/WindowManager.h"
-#include "Audio/AudioManager.h"
+
+#include "File/LogFile.h"
 
 /// Global statemanager.
 StateManager * StateManager::stateMan = NULL;
@@ -207,6 +208,9 @@ void * StateManager::StateProcessor(void * vArgs){
 	long long newTime = Timer::GetCurrentTimeMs();
 	while(StateMan.shouldLive)
 	{
+
+		Log("State processor frame start");
+
 		/// Update time
 		time = newTime;
 		newTime = Timer::GetCurrentTimeMs();
@@ -240,8 +244,6 @@ void * StateManager::StateProcessor(void * vArgs){
 		//	if (!WindowMan.InFocus())
 		//		Sleep(5);
 
-			// Process audio
-			AudioMan.Update();
 			/// Process network, sending packets and receiving packets
 			NetworkMan.ProcessNetwork();
 			/// Get input from XBox devices if possible
@@ -269,6 +271,7 @@ void * StateManager::StateProcessor(void * vArgs){
 		/// (like properly destroying windows)
 		MesMan.ProcessMessages();
 	}
+
 	std::cout<<"\n>>> StateProcessingThread ending...";
 #ifdef WINDOWS
 	stateProcessingThread = NULL;

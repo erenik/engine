@@ -6,7 +6,7 @@
 #include "Entity/Entity.h"
 #include "Graphics/OpenGL.h"
 #include "Model.h"
-#include "Physics/Collission/Collission.h"
+#include "Physics/Collision/Collision.h"
 
 OrientedBoundingBox::OrientedBoundingBox()
 {
@@ -43,7 +43,7 @@ bool OrientedBoundingBox::IsInside(Sphere & sphere){
 	return true;
 }
 
-bool OrientedBoundingBox::Collide(Sphere & sphere, Collission & collissionData){
+bool OrientedBoundingBox::Collide(Sphere & sphere, Collision & collissionData){
 	sphere.position;
 	Vector3f obbToSphere = sphere.position - position;
 	float vecDotForward, vecDotUp, vecDotRight,
@@ -112,13 +112,13 @@ bool OrientedBoundingBox::Collide(Sphere & sphere, Collission & collissionData){
 
 	/// If flagged, assert that the preliminary normal somewhat coincides with the final result!
 	if (collissionData.results & PRELIMINARY_COLLISSION_NORMAL){
-		float dot = collissionData.preliminaryCollissionNormal.DotProduct(normal);
+		float dot = collissionData.preliminaryCollisionNormal.DotProduct(normal);
 	//	assert(dot > 0.9f);
 		if (dot < 0.9f){
-			std::cout<<"\nWARNING: Collission normal does not align with the preliminary normal! Bahaaa! ö.ö";	
+			std::cout<<"\nWARNING: Collision normal does not align with the preliminary normal! Bahaaa! ö.ö";	
 		}
 	}
-	collissionData.collissionNormal = normal;
+	collissionData.collisionNormal = normal;
 	
 
 	return true;

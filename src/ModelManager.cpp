@@ -4,6 +4,9 @@
 #include <cstdlib>
 //#include <windows.h>
 
+#include "File/FileUtil.h"
+#include "String/StringUtil.h"
+
 #include "ObjReader.h"
 #include "Model.h"
 #include "XML/XMLParser.h"
@@ -32,8 +35,9 @@ ModelManager::ModelManager(){
 	defaultTexture = NULL;
 }
 
-ModelManager::~ModelManager(){
-
+ModelManager::~ModelManager()
+{
+	modelList.ClearAndDelete();
 }
 
 /// Loads required models (either hard-coded or from file)
@@ -117,31 +121,59 @@ Model * ModelManager::LoadObj(String source)
 		source += ".obj";
 	}
 
-    /// Try opening the file first.
-    std::fstream file;
-    file.open(source.c_str());
-    if (!file.is_open()){
-        std::cout<<"\nUnable to open file stream to "<<source;
-        file.close();
-        return NULL;
-    }
-    file.close();
-
-  //  path.Replace('\\', '/'); // Replace bad folder slashes with good-'uns!
-	std::cout<<"\nLoading model from source: "<<source;
 	Mesh * mesh = NULL;
 	std::cout<<"\nCreating mesh.";
 	mesh = new Mesh();
-	bool result = false;
-	std::cout<<"\nCalling ObjReader::ReadObj";
-	result = ObjReader::ReadObj(source.c_str(), mesh);
- //   mesh->PrintContents();
+	
 
-	if (result){
+	// Check if a compressed version exists.
+	String compressedPath = source;
+	compressedPath.Remove("obj/");
+	compressedPath = "CompressedObj/" + compressedPath;
+	// Ensure folders exist for the path.
+	List<String> pathFolders = compressedPath.Tokenize("/");
+	pathFolders.RemoveIndex(pathFolders.Size() - 1);
+	String compressedFolderPath = MergeLines(pathFolders, "/");
+	CreateDirectoriesForPath(compressedFolderPath);
+	compressedPath.Remove(".obj");
+	compressedPath += ".cobj";
+	bool compressedLoadResult = mesh->LoadCompressedFrom(compressedPath);
+	bool modelLoaded = false;
+	if (compressedLoadResult)
+	{
+		// ... 
+		modelLoaded = true;
+	}
+	// Load regular model.
+	else {
+
+	   /// Try opening the file first.
+		std::fstream file;
+		file.open(source.c_str());
+		if (!file.is_open()){
+			std::cout<<"\nUnable to open file stream to "<<source;
+			file.close();
+			// Delete mesh if not needed.
+			delete mesh;
+			return NULL;
+		}
+		file.close();
+
+	  //  path.Replace('\\', '/'); // Replace bad folder slashes with good-'uns!
+		std::cout<<"\nLoading model from source: "<<source;
+		std::cout<<"\nCalling ObjReader::ReadObj";
+		modelLoaded = ObjReader::ReadObj(source.c_str(), mesh);
+	 //   mesh->PrintContents();
+
+	}
+	// If model was loaded, create new model for it.
+	if (modelLoaded){
 		Model * model = new Model();
 		model->mesh = mesh;
+		
 		// Calculate bounds, and set bounds since this function assumes static/single mesh-models!
-		mesh->CalculateBounds();
+		if (mesh->max.MaxPart() == 0 && mesh->min.MaxPart() == 0)
+			mesh->CalculateBounds();
 
 		model->aabb = AxisAlignedBoundingBox(mesh->min, mesh->max);
 
@@ -153,19 +185,26 @@ Model * ModelManager::LoadObj(String source)
 		model->source = source;
 		std::cout<<" .obj successfully read!";
 
-		/// Create the triangulated one straight away~
-		std::cout<<"\nCreating triangulized mesh..";
-		model->triangulizedMesh = new Mesh();
-		model->triangulizedMesh->LoadDataFrom(model->mesh);
-		std::cout<<"\nTriangulized mesh finished o-o.";
-		std::cout<<"\nTriangulate.";
-		model->triangulizedMesh->Triangulate();
-		std::cout<<"\nTriangulated.";
-		if (model->triangulizedMesh->normal == NULL)
-			model->triangulizedMesh->RecalculateNormals();
-		std::cout<<"\nNormalized";
-		model->triangulizedMesh->CalculateUVTangents();
-		std::cout<<"\nUVd";
+		/// Create the triangulated one straight away~, if needed..!
+		if (!model->mesh->IsTriangulated())
+		{
+			std::cout<<"\nCreating triangulized mesh..";
+			model->triangulizedMesh = new Mesh();
+			model->triangulizedMesh->LoadDataFrom(model->mesh);
+			std::cout<<"\nTriangulized mesh finished o-o.";
+			std::cout<<"\nTriangulate.";
+			model->triangulizedMesh->Triangulate();
+			std::cout<<"\nTriangulated.";
+			if (model->triangulizedMesh->normal == NULL)
+				model->triangulizedMesh->RecalculateNormals();
+			std::cout<<"\nNormalized";
+//			model->triangulizedMesh->CalculateUVTangents();
+	//		std::cout<<"\nUVd";
+
+			// Save the triangulized mesh in compressed form !
+			model->triangulizedMesh->SaveCompressedTo(compressedPath);
+		}
+
 		modelList.Add(model);
 		return model;
 	}

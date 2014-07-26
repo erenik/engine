@@ -69,7 +69,7 @@ void PhysicsManager::ApproximateIntegrate(Entity * entity, float timeSinceLastUp
     if (!(physics->state & PhysicsState::IN_REST))
 	{
 //                dynamicEntity->physics->velocity += this->gravitation * timeSinceLastUpdate;
-		physics->linearMomentum += this->gravitation * physics->mass * timeSinceLastUpdate;
+		physics->linearMomentum += this->gravitation * physics->mass * timeSinceLastUpdate * physics->gravityMultiplier;
 //                std::cout<<"Applying gravitation to velocity.";
     }
         
@@ -168,7 +168,7 @@ void PhysicsManager::ApproximateIntegrate(Entity * entity, float timeSinceLastUp
 	// Move position
 
 
-    // Reposition them in the entityCollissionOctree as needed...!
+    // Reposition them in the entityCollisionOctree as needed...!
     // This could maybe be done less times per loop, but that would apply to the whole loop below if so...!
 
 }

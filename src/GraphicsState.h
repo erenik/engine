@@ -8,10 +8,17 @@
 #include "Lighting.h"
 */
 
+// Might as well include OpenGL here 
+#include "Graphics/OpenGL.h"
+
 #include "PhysicsLib/Frustum.h"
 #include "Util/List/List.h"
 #include "Selection.h"
 
+#include "Pathfinding/Path.h"
+
+class RenderPipeline;
+class Waypoint;
 class Window;
 class Viewport;
 class Shader;
@@ -35,7 +42,7 @@ class Light;
 #define SCISSOR_DISABLED                0x00000040  // For toggling scissor-functionality which is used by UILists et al.
 
 // Macro while rendering
-#define ActiveViewport (graphicsState.activeViewport)
+#define ActiveViewport (graphicsState->activeViewport)
 
 
 /** A structure containing information about the current rendering settings and temporary variables, including:
@@ -48,11 +55,16 @@ struct GraphicsState {
 public:
 	GraphicsState();
 public:
+	/// What pipeline is currently being used.
+	RenderPipeline * renderPipe;
 	/// Window we are currently rendering to.
 	Window * activeWindow; 
 	Viewport * activeViewport;
 	/// Current width and height of the active window.
 	int windowWidth, windowHeight;
+
+	/// All entities to render?
+	List<Entity*> entities;
 
 	/// Active frustum to be compared with.
 	Frustum viewFrustum;
@@ -132,9 +144,21 @@ public:
 	// If currently recording screenshots in succession
 	bool recording;
 	int framesRecorded;
-};
 
-/// Global struct for current render-pipe. Should only be modified and touched from render-threads.
-extern GraphicsState graphicsState;
+	/// Moved here from RenderSettings.
+	/// ===============================
+	/// Bitwise &-ed flags for setting only some things with the message? :)
+	int flags;
+	// Navmesh and pathfinding.
+	List<Waypoint*> selectedWaypoints;
+	Path pathToRender;
+	/// Color used to clear the screen.
+	Vector3f clearColor;
+
+	// For foggy-fogsome.
+	float fogBegin, fogEnd;
+
+
+};
 
 #endif

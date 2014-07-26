@@ -57,8 +57,8 @@ public:
 	/** Creates a duplicate entity, copying all relevant information (as possible). */
 	Entity * CreateEntity(Entity * entity);
 	/** Creates an entity with target model and texture and places it into the active map. */
-	Entity * CreateEntity(Model * model, Texture * texture, Vector3f position = Vector3f());
-	/// Adds target entity to the map, registering it for physics and graphicsState.
+	Entity * CreateEntity(String name, Model * model, Texture * texture, Vector3f position = Vector3f());
+	/// Adds target entity to the map, registering it for physics and graphicsState->
 	bool AddEntity(Entity * entity);
 
 	/** Adds an event ~ */
@@ -74,8 +74,10 @@ public:
 	/// Oy. Gets active map's events.
 	List<Script*> GetEvents();
 
-	/** Queries deletion of all entities in the active map. */
-	int DeleteEntities();
+	// Deletes all entities in the active map.
+	int DeleteAllEntities();
+	// Delete specific entities.
+	int DeleteEntities(List<Entity*> entities);
 	/** Queries deletion of specified entity in active map. */
 	bool DeleteEntity(Entity * entity);
 	/** Notifies the map that the entity has been registered from one or more services.

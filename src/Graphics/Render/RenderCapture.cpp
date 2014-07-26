@@ -9,11 +9,13 @@
 #include "File/FileUtil.h"
 #include "TextureManager.h"
 #include "Window/Window.h"
+#include "System/Memory.h"
 
 void GraphicsManager::RenderCapture()
 {
-	Vector2i windowSize = graphicsState.activeWindow->WorkingArea();
-	if (graphicsState.promptScreenshot)
+	Window * window = graphicsState->activeWindow;
+	Vector2i windowSize = window->WorkingArea();
+	if (window->saveScreenshot)
 	{
 		// Grab frame! o.o
 		static Texture * frame = NULL;
@@ -36,54 +38,54 @@ void GraphicsManager::RenderCapture()
 				return;
 			}
 		}
-		frame->Save(dirPath+"/"+String::ToString(++graphicsState.screenshotsTaken)+".png", true);
-		graphicsState.promptScreenshot = false;
+		frame->Save(dirPath+"/"+String::ToString(++graphicsState->screenshotsTaken)+".png", true);
+		window->saveScreenshot = false;
 	}
 
-	// If we are currently recording.
-	static bool isRecording = false;
-	static List<Texture*> frames;
-	static int64 lastFrame;
-	int timeBetweenFrames = 200;
-	static int framesSaved = 0;
-	static String videoDirPath = "output/video";
+	// If not interested in video...
+	if (!window->recordVideo && !window->isRecording && window->frames.Size() == 0)
+		return;
+
 	int64 now = Timer::GetCurrentTimeMs();
-	// When starting.
-	if (!isRecording && graphicsState.recording)
+	
+	// When starting,
+	if (window->recordVideo == true && !window->isRecording)
 	{
-		frames.ClearAndDelete();
-		isRecording = true;
-		lastFrame = now;
-		framesSaved = 0;
-		graphicsState.framesRecorded = 0;
+		window->frames.ClearAndDelete();
+		window->isRecording = true;
+		// Frame time should be savable into the texture objects.
 	}
-	// If recording o-o
-	if (graphicsState.recording && lastFrame + timeBetweenFrames < now)
+	// When recording.
+	if (window->isRecording)
 	{
 		// Grab frame! o.o
-		static Texture * frame = NULL;
-		if (!frame)
-			frame = TexMan.New();
+		Texture * frame = NULL;
+		frame = TexMan.New();
+		frame->name = window->name + "_"+String::ToString(window->frames.Size()); 
 		frame->bpp = 4; // 4 bytes per pixel, RGBA
 		frame->Resize(windowSize);
 		glReadPixels(0, 0, windowSize.x, windowSize.y, GL_RGBA, GL_UNSIGNED_BYTE, frame->data);
 		// Flip it.
 		frame->FlipY();
 		// Add it to list of frames to save.
-		frames.Add(frame);
+		window->frames.Add(frame);
+		// Check amount of free memory available.
+		int freeMBs = AvailableMemoryMB();
 		// If we exceed a pre-defined limit, which should be relative to the amount of free memory, stop recording.
-		if (frames.Size() > 800)
-			graphicsState.recording = false;
-		++graphicsState.framesRecorded;
-		lastFrame = now;
-		std::cout<<"\n"<<graphicsState.framesRecorded<<" frames recorded";
+		if (freeMBs < 50)
+		{
+			std::cout<<"\nMemory limit reached, halting video capture procedure.";
+			window->isRecording = false;
+		}
+		if (window->frames.Size() % 100 == 0)
+			std::cout<<"\n"<<window->frames.Size()<<" frames recorded";
 	}
+	static String videoDirPath = "output/video/";
 	/// If stopping.
-	if (isRecording && !graphicsState.recording)
+	if (window->isRecording && !window->recordVideo)
 	{
-		// Save all textures to file-system!
-		isRecording = false;
-		
+		// Start saving all textures to file-system.
+		window->isRecording = false;
 		if (!PathExists(videoDirPath))
 		{
 			/// Builds a path of folders so that the given path can be used. Returns false if it fails to meet the path-required. NOTE: Only works with relative directories!
@@ -96,23 +98,17 @@ void GraphicsManager::RenderCapture()
 	}
 
 	/// After recording, save one .png file each frame until done.
-	if (!isRecording && framesSaved < frames.Size())
+	if (!window->isRecording && window->frames.Size())
 	{
-		for (int i = framesSaved; i < frames.Size(); ++i)
-		{
-			Texture * frame = frames[i];
-			frame->Save(videoDirPath+"/"+String::ToString(i)+".png", true);
-			break;
-		}
-		++framesSaved;
-		// When done, de-allocate frame data.
-		if (framesSaved >= frames.Size())
-		{
-			frames.ClearAndDelete();
-		}
+		// Fetch next frame, and save it.
+		Texture * frame = window->frames[0];
+		frame->Save(videoDirPath+"/"+frame->name+".png", true);
+		window->frames.Remove(frame, ListOption::RETAIN_ORDER);
+		TexMan.DeleteTexture(frame);
 	}
 
-	if (isRecording)
+	// Render thingy if schmingy
+	if (window->isRecording)
 	{
 		// Render a "recording" symbol somewhere?
 		glUseProgram(0);
@@ -130,7 +126,7 @@ void GraphicsManager::RenderCapture()
 		glLoadIdentity();
 		float z = -1.01f;		
 		glTranslatef(0,0,z);
-		Matrix4d modelView = graphicsState.viewMatrixD * graphicsState.modelMatrixD;
+		Matrix4d modelView = graphicsState->viewMatrixD * graphicsState->modelMatrixD;
 	//	glLoadMatrixd(modelView.getPointer());
 
 		// Disable depth-testing in-case deferred rendering is enabled D:
@@ -145,7 +141,7 @@ void GraphicsManager::RenderCapture()
 		if (texture->glid == -1)
 			texture->Bufferize();
 		glBindTexture(GL_TEXTURE_2D, texture->glid);
-		graphicsState.currentTexture = texture;
+		graphicsState->currentTexture = texture;
 		// Buffer it again..
 		int error = glGetError();
 		if (error != GL_NO_ERROR){
@@ -187,7 +183,7 @@ void GraphicsManager::RenderCapture()
 		}
 		glDisable(GL_TEXTURE_2D);
 		// Load projection matrix again
-		glLoadMatrixd(graphicsState.projectionMatrixD.getPointer());
+		glLoadMatrixd(graphicsState->projectionMatrixD.getPointer());
 
 		// Enable disabled stuffs.
 		glEnable(GL_DEPTH_TEST);	

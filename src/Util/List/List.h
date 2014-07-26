@@ -5,6 +5,7 @@
 #define LIST_H
 
 #include <cstdlib>
+#include <cstdarg>
 
 #define CLEAR_AND_DELETE(p) {for(int i = 0; i < p.Size(); ++i) delete p[i]; p.Clear();}
 #define DELETE_LIST_IF_VALID(p) {if(p) CLEAR_AND_DELETE((*p)); delete p; p = NULL;}
@@ -35,7 +36,7 @@ public:
 	/// Operator overloading
 	operator bool() const { return currentItems? true : false; };
 	/// Assignment operator overloading
-	const List<T> * operator = (const List &otherList);
+	const List<T> & operator = (const List &otherList);
 	const List * operator += (const List &otherList);
 	const List operator += (const T &newItem);
 	const List operator -= (const T &itemToRemove);
@@ -46,9 +47,9 @@ public:
 	const List operator - (const T &itemToRemove) const;
 
 	/// Array-indexing operator, varying version
-	T& operator[](int index);
+	virtual T& operator[](int index);
 	/// Array-indexing operator, const version
-	const T& operator[](int index) const;
+	virtual const T& operator[](int index) const;
 	/// Get last one.
 	T& Last();
 
@@ -59,8 +60,12 @@ public:
 	bool Insert(value_type item, int atIndex);
 	/// Adds an item to the list
 	bool Add(value_type item);
+	/// Adds an item to the list
+	bool Add(List<value_type> item);
 	/// Adds an item to the list at the requested index, pushing along the rest. Used for keeping them sorted or stuff.
 	bool Add(value_type item, int requestedIndex);
+	/// Adds multiple items to the list
+	bool Add(int numItems, T item, T item2, ...);
 	/// Remove target item, searching for it.
 	bool Remove(value_type item);
 	/// Can be called with ListOption::RETAIN_ORDER to guarantee that internal order is preserved.
@@ -86,7 +91,7 @@ public:
 
 	/// Polls the existance/copy of target item in the queue.
 	bool Exists(value_type item) const;
-	/// Polls the existance/copy of target item in the queue. Returns it's index if so and -1 if not.
+	/// Returns content by index. Similar to the [] operator.
 	value_type & GetIndex(int index);
 
 	/// Polls the existance/copy of target item in the queue. Returns it's index if so and -1 if not.
@@ -155,7 +160,8 @@ List<T>::List(const T & initialItem){
 
 /// Operator overloading
 template <class T>
-const List<T> * List<T>::operator = (const List &otherList){
+const List<T> & List<T>::operator = (const List &otherList)
+{
 	if (arr)
 		delete[] arr;
 	arr = NULL;
@@ -170,7 +176,7 @@ const List<T> * List<T>::operator = (const List &otherList){
 		}
 		currentItems = otherList.currentItems;
 	}
-	return this;
+	return *this;
 }
 template <class T>
 const List<T> * List<T>::operator += (const List<T> &otherList) {
@@ -260,8 +266,10 @@ bool List<T>::Insert(T item, int atIndex)
 
 /// Adds an item to the list
 template <class T>
-bool List<T>::Add(T item) {
-	if (currentItems == arrLength){
+bool List<T>::Add(T item) 
+{
+	if (currentItems == arrLength)
+	{
 		try {
 			Resize(currentItems * 2);
 		} catch (...){
@@ -271,6 +279,45 @@ bool List<T>::Add(T item) {
 	}
 	arr[currentItems] = item;
 	++currentItems;
+	return true;
+}
+
+/// Adds an item to the list
+template <class T>
+bool List<T>::Add(List<T> items)
+{
+	// Resize as needed.
+	Resize(currentItems + items.Size());
+	// And add 'em.
+	for (int i = 0; i < items.Size(); ++i)
+	{
+		arr[currentItems + i] = items[i];
+	}
+	currentItems = currentItems + items.Size();
+	return true;
+}
+	
+
+/// Adds 3 items to the list
+template <class T>
+bool List<T>::Add(int numItems, T item, T item2, ...) 
+{
+	Add(item);
+	Add(item2);
+	// Variable length arguments.
+	// http://www.cprogramming.com/tutorial/c/lesson17.html
+	/* Initializing arguments to store all values after num */
+	va_list arguments;    
+	int extraArgs = numItems - 2;
+    va_start ( arguments, item2);
+    /* Sum all the inputs; we still rely on the function caller to tell us how
+     * many there are */
+    for ( int x = 0; x < extraArgs; x++ )        
+    {
+		T itemt = va_arg (arguments, T);
+        Add(itemt);
+    }
+    va_end ( arguments );      // Cleans up the list
 	return true;
 }
 
@@ -298,10 +345,13 @@ bool List<T>::Add(T item, int requestedIndex) {
 
 /// Remove target item or index
 template <class T>
-bool List<T>::Remove(T item){
-	for (int i = 0; i < currentItems; ++i){
+bool List<T>::Remove(T item)
+{
+	for (int i = 0; i < currentItems; ++i)
+	{
 		/// found it!
-		if (arr[i] == item){
+		if (arr[i] == item)
+		{
 			currentItems--;
 			arr[i] = arr[currentItems];
 			return true;
@@ -339,7 +389,8 @@ bool List<T>::RemoveIndex(int index){
 }
 
 template <class T>
-bool List<T>::RemoveIndex(int index, int removeOption){
+bool List<T>::RemoveIndex(int index, int removeOption)
+{
 	assert(index < currentItems && "Index out of bounds! You're probably doing something wrong.");
 	if (index >= currentItems)
 		return false;
@@ -347,7 +398,7 @@ bool List<T>::RemoveIndex(int index, int removeOption){
     assert(removeOption == ListOption::RETAIN_ORDER);
 
     /// Move down the remaining objects.
-	for (int i = index; i < currentItems; ++i){
+	for (int i = index; i < currentItems - 1; ++i){
 		arr[i] = arr[i+1];
 	}
 	--currentItems;
@@ -432,7 +483,8 @@ void List<T>::Allocate(int newSize){
 
 /// Resizing function
 template <class T>
-void List<T>::Resize(int newSize){
+void List<T>::Resize(int newSize)
+{
 	if (newSize == 0)
 		newSize = 8;
 	assert(newSize >= currentItems);

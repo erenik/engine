@@ -6,18 +6,19 @@
 #include "Graphics/Camera/Camera.h"
 
 /// Sorts and renders the alpha-entities that were queued up earlier.
-void GraphicsManager::RenderAlphaEntities(){
-	graphicsState.settings |= RENDER_SORTED_ENTITIES;
+void GraphicsManager::RenderAlphaEntities()
+{
+	graphicsState->settings |= RENDER_SORTED_ENTITIES;
 //	glDisable(GL_DEPTH_TEST);
 	glDepthMask(GL_FALSE);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-//	SetShaderProgram("Flat");
-	graphicsState.entitiesRequiringSorting.SortByDistance(graphicsState.camera->Position());
+//	ShadeMan.SetActiveShader("Flat");
+	graphicsState->entitiesRequiringSorting.SortByDistance(graphicsState->camera->Position());
 	// Render from back to front!
-	for (int i = graphicsState.entitiesRequiringSorting.Size() - 1; i >= 0; --i){
-		graphicsState.entitiesRequiringSorting[i]->Render();
+	for (int i = graphicsState->entitiesRequiringSorting.Size() - 1; i >= 0; --i){
+		graphicsState->entitiesRequiringSorting[i]->Render(graphicsState);
 	}
 	/// Clear it here every frame, or elsewhere (at start of render frame perhaps?)
-	graphicsState.entitiesRequiringSorting.Clear();
-	graphicsState.settings &= ~RENDER_SORTED_ENTITIES;
+	graphicsState->entitiesRequiringSorting.Clear();
+	graphicsState->settings &= ~RENDER_SORTED_ENTITIES;
 }

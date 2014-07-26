@@ -6,15 +6,18 @@
 #define CONTOUR_H
 
 #include "MathLib.h"
-#include "List/List.h"
+#include "List/CircularList.h"
 
 class Contour 
 {
 public:
-	List<Vector3f> points;
+	CircularList<Vector3f> points;
 	/// Size.
 	float area;
+	/// Center of mass assuming the contour makes up a solid 2D body.
 	Vector3f centerOfMass;
+	/// Raw average of all points.
+	Vector3f averageContourVertexPosition;
 };
 
 #endif

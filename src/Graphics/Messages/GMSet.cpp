@@ -58,19 +58,20 @@ GMSet::GMSet(int t, void * data)
 
 void GMSet::Process()
 {
+	GraphicsState * graphicsState = Graphics.graphicsState;
 	switch(target)
 	{
 		case MAIN_CAMERA:
 			Graphics.cameraToTrack = (Camera*)pData;
 			break;
 		case FOG_BEGIN:
-			Graphics.renderSettings->fogBegin = floatValue;
+			graphicsState->fogBegin = floatValue;
 			break;
 		case FOG_END:
-			Graphics.renderSettings->fogEnd = floatValue;
+			graphicsState->fogEnd = floatValue;
 			break;
 	    case CLEAR_COLOR:
-            Graphics.renderSettings->clearColor = vec3fValue;
+            graphicsState->clearColor = vec3fValue;
             break;
 		case ACTIVE_USER_INTERFACE:
 		{
@@ -128,14 +129,16 @@ GMSetf::GMSetf(int target, float value): GraphicsMessage(GM_SET_FLOAT) {
 	this->floatValue = value;
 }
 
-void GMSetf::Process(){
+void GMSetf::Process()
+{	
+	GraphicsState * graphicsState = Graphics.graphicsState;
 	switch (target){
 		case GRID_SPACING: {
-			graphicsState.gridSpacing = floatValue;
+			graphicsState->gridSpacing = floatValue;
 			break;
 		}
 		case GRID_SIZE: {
-			graphicsState.gridSize = (int)floatValue;
+			graphicsState->gridSize = (int)floatValue;
 			break;
 		}
 		default: {
@@ -257,11 +260,21 @@ void GMSetUI::Process()
 
 
 GMSetOverlay::GMSetOverlay(String textureName, int fadeInTimeInMs)
-: GraphicsMessage(GM_SET_OVERLAY), textureName(textureName), fadeInTime(fadeInTimeInMs)
-{
-	
+: GraphicsMessage(GM_SET_OVERLAY), textureName(textureName), fadeInTimeInMs(fadeInTimeInMs)
+{	
+	tex = 0;
 }
+
+GMSetOverlay::GMSetOverlay(Texture * tex, int fadeInTimeInMs)
+: GraphicsMessage(GM_SET_OVERLAY), tex(tex), fadeInTimeInMs(fadeInTimeInMs)
+{
+}
+
+
 void GMSetOverlay::Process()
 {
-	Graphics.SetOverlayTexture(textureName, fadeInTime);
+	if (tex)
+		Graphics.SetOverlayTexture(tex, fadeInTimeInMs);
+	else
+		Graphics.SetOverlayTexture(textureName, fadeInTimeInMs);
 }

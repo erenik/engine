@@ -1,0 +1,43 @@
+RenderConfig
+
+Name	DeferredPipe
+
+// Fixed or multi-pass.
+// If Fixed is omitted it is assumed it is a multi-pass pipeline.
+Multi-pass
+// Fixed
+
+/// Specify the passes
+
+// Renders opaque entities?
+
+
+// Pass name.
+RenderPass	DeferredDataGather
+
+// Specify shader to use for this render-pass.
+Shader DeferredGather // Raw data of all visible entities
+
+// What to render - whose Render function to call.
+Input	Entities
+// Target output. Default will make the standard output be rendered to.
+Output	DeferredGather
+
+
+RenderPass	DeferredLighting
+
+Input	DeferredGather
+
+
+
+
+
+
+
+
+
+
+
+
+
+

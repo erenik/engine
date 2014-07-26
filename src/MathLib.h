@@ -19,4 +19,7 @@
 #include "MathLib/Vector4f.h"
 #include "MathLib/Trigonometry.h"
 
+#include "MathLib/Quaternion.h"
+
+
 #endif /// MATHLIB_H

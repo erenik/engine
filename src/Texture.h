@@ -20,6 +20,15 @@
 #define MAX_TEXTURE_TARGETS	NORMAL_MAP
 
 
+namespace DataType {
+	enum dataTypes 
+	{
+		UNSIGNED_CHAR,
+		INTEGER,
+		FLOAT
+	};
+};
+
 struct TextureData{
 };
 
@@ -36,6 +45,14 @@ class Texture
 public:
 	~Texture();
 
+	/// Deallocates the memory for the data buffers located on the heap.
+	void Deallocate();
+	// Reallocate based on new size and format.
+	void Reallocate();
+
+
+	// Same thing as Resize.
+	void SetSize(Vector2i newSize);
 	/// Resets width, height and creates a new data buffer after deleting the old one.
 	void Resize(Vector2i newSize);
 
@@ -50,6 +67,11 @@ public:
 	/// Retrieves a sample color from the texture, using given amount of samples. Works in squares, meaning values 1, 4, 16, 64, etc. should be used.
 	Vector4f GetSampleColor(int samples = 4);
 
+	/// 0 - Unsigned char, 1 - Int, 2 - Float
+	int DataType();
+	int NumPixels();
+	/// Returns amount of channels, depending on the format.
+	int GetChannels();
 	/// Uses glGetTexImage to procure image data from GL and insert it into the data-array of the texture object.
 	void LoadDataFromGL();
 
@@ -67,7 +89,10 @@ public:
 	Vector4f GetPixel(int index);
 	/// Gets color data from specified pixel in RGBA
 	Vector4f GetPixel(int x, int y);
-	/// Sets color of target pixel. Returns false if it is out of bounds.
+
+	/// Sets color of target pixel. Pixel size in pixels x pixels.
+	void SetPixel(Vector2i location, Vector4f color, int pixelSize = 1);
+	/// Sets color of target pixel. 
 	void SetPixel(int x, int y, Vector4f color);
 	/// Pretty much highest result of: Vector3f(r,g,b).MaxPart() * a   -> perceived intensity on black background.
 	float GetMaxIntensity();
@@ -91,13 +116,21 @@ public:
 	/// Abbreviated source name
 	String name;
 
+
+	/// Is set automatically upon creation to the current millisecond count.
+	int64 creationDate;
 	/// For updating when painting in it.
 	long long lastUpdate;
 	
 	enum formats{
 		NULL_FORMAT,
+		SINGLE_16F, // Single channel red/greyscale image, 16 bits float per pixel.
 		RGB,
-		RGBA,
+		RGB_8 = RGB, // standard 8 bit per channel, 3 channels
+		RGB_16F, // 3 channel, 16 bit float per channel. 
+		RGB_32F,
+		RGBA, // standard 8 bit per channel, 4 channels
+		RGBA_8 = RGBA,
 		CMYK,
 		FORMATS
 	};
@@ -118,6 +151,10 @@ public:
 	int width;
 	/// Height in pixels
 	int height;
+
+	/// Width and height. Might replace width and height above with this one?
+	Vector2i size;
+
 	/** Raw RGBA texture data.
 		Pixel index psi below. and the pixel index with offsets of 0 to 3 give the RGBA components respectively.
 		int psi = y * width * bpp + x * bpp;
@@ -128,6 +165,11 @@ public:
 		}
 	*/
 	unsigned char * data;
+
+	/// New data locations for extended formats. Will see when we can replace data with cData..
+	unsigned char * cData;
+	float * fData;
+
 	/// Length of the above dynamic array.
 	int dataBufferSize;
 	/// Keeps track of active amount of users for this texture.

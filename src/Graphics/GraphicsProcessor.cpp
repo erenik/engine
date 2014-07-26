@@ -17,6 +17,11 @@
 #include <cstdio>
 #include <cstring>
 
+#include "Audio/AudioManager.h"
+#include "Audio/OpenAL.h"
+
+#include "File/LogFile.h"
+
 /// Windows includes and globals
 #ifdef WINDOWS
 #include <windows.h>
@@ -129,8 +134,8 @@ void * GraphicsManager::Processor(void * vArgs){
 	/// Check GL version
 	const GLubyte * data;
 	data = glGetString(GL_VERSION);
-	Graphics.GL_VERSION_MAJOR = data[0]-48;//, (char*)&Graphics.GL_VERSION_MAJOR, 10);
-	Graphics.GL_VERSION_MINOR = data[2]-48;
+	GL_VERSION_MAJOR = data[0]-48;//, (char*)&GL_VERSION_MAJOR, 10);
+	GL_VERSION_MINOR = data[2]-48;
 	fprintf(stdout, "\nGL Status: Using GL %s", data);
 	/// Check GLSL version
 	data = glGetString(GL_SHADING_LANGUAGE_VERSION);
@@ -163,7 +168,7 @@ void * GraphicsManager::Processor(void * vArgs){
 		std::cout<<"\nFramebuffer objects supported but require EXT.";
 		Graphics.support_framebuffer_via_ext = true;
 	}
-	if (Graphics.GL_VERSION_MAJOR < 4)
+	if (GL_VERSION_MAJOR < 4)
 		Graphics.useDeferred = false;
 
 	 // If support is via EXT (OpenGL version < 3), add the EXT suffix; otherwise functions are core (OpenGL version >= 3)
@@ -192,7 +197,7 @@ void * GraphicsManager::Processor(void * vArgs){
 
     std::cout<<"\nCreating shaders...";
 	// Load shaders!
-	Graphics.CreateShaders();
+	ShadeMan.CreateDefaultShaders();
 
 	// Display the window ^^
 #ifdef WINDOWS
@@ -203,16 +208,23 @@ void * GraphicsManager::Processor(void * vArgs){
 	/// Bufferize the rendering box
 	Graphics.OnBeginRendering();
 
+	LogGraphics("Begin rendering");
+
     // Some times.
     long long lastOptimization = Timer::GetCurrentTimeMs();
     long long now;
 	// To use when not rendering, since I'm failing with it at the moment.
 	long long timeNotRendered = lastOptimization;
 
-	// Then begin the main rendering loop
-	while(Graphics.shouldLive){
+	// Pointarr.
+	GraphicsState * graphicsState = Graphics.graphicsState;
 
-		
+	// Then begin the main rendering loop
+	while(Graphics.shouldLive)
+	{
+
+		LogGraphics("New frame");
+	
 
 		/// Timing
 		Timer physicsTimer, graphicsTimer, total;
@@ -220,7 +232,7 @@ void * GraphicsManager::Processor(void * vArgs){
 
 		total.Start();
         now = Timer::GetCurrentTimeMs();
-		graphicsState.currentFrameTime = now;
+		graphicsState->currentFrameTime = now;
 
 		Timer sleepTimer;
 		sleepTimer.Start();
@@ -243,6 +255,10 @@ void * GraphicsManager::Processor(void * vArgs){
 		
 		// Process Active Multimedia-streams if available.
 		MultimediaMan.Update();
+
+		// Process audio
+		AudioMan.Update();
+
 
 		graphicsTimer.Start();
 		// Process graphics messages
@@ -300,30 +316,39 @@ void * GraphicsManager::Processor(void * vArgs){
 		long renderFrameTime = graphicsTimer.GetMs();
 		Graphics.renderFrameTime = renderFrameTime;
 		Graphics.physicsFrameTime = physicsTimer.GetMs();
-		graphicsState.frameTime = Graphics.frameTime * 0.001;
+		graphicsState->frameTime = Graphics.frameTime * 0.001;
 	//	std::cout<<"\nTotalFrameTime: "<<renderFrameTime;
 
         /// Push frame time and increase optimization once a second if needed.
 		FrameStats.PushFrameTime(total.GetMs());
 		int fps = FrameStats.FPS();
 		/// Enable the below via some option maybe, it just distracts atm.
-	//	graphicsState.optimizationLevel = 3;
+	//	graphicsState->optimizationLevel = 3;
 
-        if (graphicsState.optimizationLevel < 5 && fps < 20 && now > lastOptimization + 100){
-			graphicsState.optimizationLevel++;
+        if (graphicsState->optimizationLevel < 5 && fps < 20 && now > lastOptimization + 100){
+			graphicsState->optimizationLevel++;
             lastOptimization = now;
-            std::cout<<"\nFPS low, increasing graphics optimization level to: "<<graphicsState.optimizationLevel;
+            std::cout<<"\nFPS low, increasing graphics optimization level to: "<<graphicsState->optimizationLevel;
         }
 		
-		else if (graphicsState.optimizationLevel > 0 && fps > 40 && now > lastOptimization + 500)
+		else if (graphicsState->optimizationLevel > 0 && fps > 40 && now > lastOptimization + 500)
 		{
-			graphicsState.optimizationLevel--;
+			graphicsState->optimizationLevel--;
 			lastOptimization = now;
-			std::cout<<"\nFPS high again, decreasing graphics optimization level to: "<<graphicsState.optimizationLevel;
+			std::cout<<"\nFPS high again, decreasing graphics optimization level to: "<<graphicsState->optimizationLevel;
 		}
 		
 		
 	}
+
+	/// Shut down all remaining music.
+	AudioMan.StopAndRemoveAll();
+
+	/// Deallocate audio stufs, since that loop is here still..
+	AudioBuffer::FreeAll();
+	ALSource::FreeAll();
+
+
 
 //	std::cout<<"\nExiting rendering loop. Beginning deallocating graphical resources.";
 
@@ -339,8 +364,10 @@ void * GraphicsManager::Processor(void * vArgs){
 
 	/// Unbind vertex array so that all may be freed correctly?
 	glBindVertexArray(0);
-
 	GLVertexArrays::FreeAll();
+	// Unbind frame buffer so they can be freed.
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	GLFrameBuffers::FreeAll();
 
 	List<Window*> windows = WindowMan.GetWindows();
 	for (int i = 0; i < windows.Size(); ++i)
@@ -360,7 +387,6 @@ void * GraphicsManager::Processor(void * vArgs){
 #endif
 	timeTaken = clock() - timeStart;
 	std::cout<<"\nDeleting rendering context... "<<timeTaken / CLOCKS_PER_SEC<<" seconds";
-
 
 	std::cout<<"\nGraphicsThread ending...";
 	/// Mark as ready for window-destruction!

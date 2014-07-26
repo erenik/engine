@@ -3,8 +3,6 @@
 
 #include "GraphicsState.h"
 
-GraphicsState graphicsState;
-
 GraphicsState::GraphicsState()
 {
 	activeWindow = NULL;
@@ -25,5 +23,9 @@ GraphicsState::GraphicsState()
 	promptScreenshot = recording = false;
 	screenshotsTaken = 0;
 	framesRecorded = 0;
+
+	flags = 0;
+	fogBegin = 500.0f;
+	fogEnd = 2500.0f;
 };
 

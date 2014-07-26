@@ -31,6 +31,8 @@ public:
 	VectorMessage(String message, Vector3f vectorValue);
 	VectorMessage(String message, Vector4f vectorValue);
 	virtual ~VectorMessage();
+	// Returns the values embedded within in the Vector4f format, converting as necessary.
+	Vector4f GetVector4f();
 	enum vectorTypes {
 		VECTOR_2I,
 		VECTOR_3F,

@@ -4,20 +4,27 @@
 #include "Graphics/GraphicsManager.h"
 #include "Mesh/Square.h"
 #include "OS/Sleep.h"
+
 #include "Graphics/Camera/Camera.h"
 #include "GraphicsState.h"
+
 #include "../RenderSettings.h"
+
+#include "Render/RenderPipeline.h"
 
 // Renders the scene normally using the active camera using frustum culling.
 void GraphicsManager::RenderScene()
 {
+	
+
+
 	glBlendFunc(GL_ONE, GL_ZERO);
 	GLuint error = glGetError();
 	if (error != GL_NO_ERROR){
 		std::cout<<"\nGLError in RenderScene "<<error;
 	}
 
-	Shader * shader = SetShaderProgram("Phong");
+	Shader * shader = ShadeMan.SetActiveShader("Phong");
     if (shader == NULL){
     //    std::cout<<"\nUnable to set Phong shader in GraphicsManager::RenderScene";
     #ifdef WINDOWS
@@ -25,12 +32,12 @@ void GraphicsManager::RenderScene()
     #endif
         return;
     }
-	graphicsState.settings |= ENABLE_SPECIFIC_ENTITY_OPTIONS;
+	graphicsState->settings |= ENABLE_SPECIFIC_ENTITY_OPTIONS;
 
 	// Set fog properties as needed.
-	glUniform1f(shader->uniformFogBeginDistance, renderSettings->fogBegin);
-	glUniform1f(shader->uniformFogEndDistance, renderSettings->fogEnd);
-	glUniform3f(shader->uniformFogColor, renderSettings->clearColor.x, renderSettings->clearColor.y, renderSettings->clearColor.z);
+	glUniform1f(shader->uniformFogBeginDistance, graphicsState->fogBegin);
+	glUniform1f(shader->uniformFogEndDistance, graphicsState->fogEnd);
+	glUniform3f(shader->uniformFogColor, graphicsState->clearColor.x, graphicsState->clearColor.y, graphicsState->clearColor.z);
 
 	if (backfaceCullingEnabled){
 		glEnable(GL_CULL_FACE);
@@ -49,30 +56,30 @@ void GraphicsManager::RenderScene()
 	// Reset matrices: This may as well be done before rendering is done, since the matrices
 	// will need to be reset all the time depending on the content to be rendered and where ^^
 	/// Camera is already updated, so just use it's matrices straight away ^^
-	Camera & camera = *graphicsState.camera;
+	Camera & camera = *graphicsState->camera;
 
 	// Camera calculations are now done inside the camera, so the camPos/camLookingAtVector/camUpVector can now be removed!
 	// If view frustum culling is enabled, set it in the settings and update the frustum with the camera's current position.
 	if (true /*useOctree && frustumCullingActive*/){
-		graphicsState.viewFrustum.SetCamPos(Vector3f((Vector4f)camera.Position()), Vector3f((Vector4f)camera.LookingAt()), Vector3f((Vector4f)camera.UpVector()));
-		Frustum & viewFrustum = graphicsState.viewFrustum;
+		graphicsState->viewFrustum.SetCamPos(Vector3f((Vector4f)camera.Position()), Vector3f((Vector4f)camera.LookingAt()), Vector3f((Vector4f)camera.UpVector()));
+		Frustum & viewFrustum = graphicsState->viewFrustum;
 //		std::cout<<"\nViewfrustum: "<<viewFrustum.left<<" "<<viewFrustum.right<<" nearplane: "<<viewFrustum.nearPlaneDistance<<" farplane: "<<viewFrustum.farPlaneDistance;
 	}
 
-	if (!graphicsState.activeShader)
+	if (!graphicsState->activeShader)
 		return;
 
 	// Load in the model and view matrices
-//	graphicsState.activeShader->uniformViewMatrix = glGetUniformLocation(shader->shaderProgram, "viewMatrix");
-	glUniformMatrix4fv(graphicsState.activeShader->uniformViewMatrix, 1, false, graphicsState.viewMatrixF.getPointer());
+//	graphicsState->activeShader->uniformViewMatrix = glGetUniformLocation(shader->shaderProgram, "viewMatrix");
+	glUniformMatrix4fv(graphicsState->activeShader->uniformViewMatrix, 1, false, graphicsState->viewMatrixF.getPointer());
 	error = glGetError();
-//	graphicsState.activeShader->uniformModelMatrix = glGetUniformLocation(shader->shaderProgram, "modelMatrix");
-	glUniformMatrix4fv(graphicsState.activeShader->uniformModelMatrix, 1, false, graphicsState.modelMatrixF.getPointer());
+//	graphicsState->activeShader->uniformModelMatrix = glGetUniformLocation(shader->shaderProgram, "modelMatrix");
+	glUniformMatrix4fv(graphicsState->activeShader->uniformModelMatrix, 1, false, graphicsState->modelMatrixF.getPointer());
 	error = glGetError();
 	// Set later! ALSO: glProgramUniform is in a later GL version compared to glUniform!
-/*	if (graphicsState.activeShader && graphicsState.activeShader->uniformEyePosition != -1)
+/*	if (graphicsState->activeShader && graphicsState->activeShader->uniformEyePosition != -1)
 		if (glProgramUniform4f != NULL)
-		glProgramUniform4f(graphicsState.activeShader->shaderProgram, graphicsState.activeShader->uniformEyePosition, camera.Position().x, camera.Position().y, camera.Position().z, 1.0f);
+		glProgramUniform4f(graphicsState->activeShader->shaderProgram, graphicsState->activeShader->uniformEyePosition, camera.Position().x, camera.Position().y, camera.Position().z, 1.0f);
 */
 	error = glGetError();
 
@@ -83,10 +90,10 @@ void GraphicsManager::RenderScene()
 
 	// Load projection matrix into shader
 //	GLuint uniformProjectionMatrix = glGetUniformLocation(shader->shaderProgram, "projectionMatrix");
-	graphicsState.projectionMatrixF = graphicsState.projectionMatrixD;
-	glUniformMatrix4fv(graphicsState.activeShader->uniformProjectionMatrix, 1, false, graphicsState.projectionMatrixF.getPointer());
+	graphicsState->projectionMatrixF = graphicsState->projectionMatrixD;
+	glUniformMatrix4fv(graphicsState->activeShader->uniformProjectionMatrix, 1, false, graphicsState->projectionMatrixF.getPointer());
 
-	Matrix4f mvp = graphicsState.projectionMatrixF * graphicsState.viewMatrixF * graphicsState.modelMatrixF;
+	Matrix4f mvp = graphicsState->projectionMatrixF * graphicsState->viewMatrixF * graphicsState->modelMatrixF;
 	/// Just testing that the matrix is set correctly..
 	//Vector4f point = Vector4f(1.0, 1.0, 1.0, 1.0f);
 	//point = mvp * point;
@@ -109,15 +116,15 @@ void GraphicsManager::RenderScene()
 	/// Set legacy rendering setting
 	bool useLegacy = false;
 	if (useLegacy)
-		graphicsState.settings |= USE_LEGACY_GL;
+		graphicsState->settings |= USE_LEGACY_GL;
 	else
-		graphicsState.settings &= ~USE_LEGACY_GL;
+		graphicsState->settings &= ~USE_LEGACY_GL;
 
 	/// Deferred rendering setting ^^
 	bool useDeferred = false;
 	/// Switch off deferred if GL version is too low. 3.0 is require for handling gl*Framebuffer functions
 	/// Seems buggy even at 3.ish, maybe raise cap to 4?
-	if (Graphics.GL_VERSION_MAJOR < 3)
+	if (GL_VERSION_MAJOR < 3)
 		useDeferred = false;
   //  std::cout<<"\nUsing deferred: "<<useDeferred;
 	 // If support is via EXT (OpenGL version < 3), add the EXT suffix; otherwise functions are core (OpenGL version >= 3)
@@ -132,9 +139,9 @@ void GraphicsManager::RenderScene()
 	glGenerateMipmap = (PFNGLGENERATEMIPMAPPROC)wglGetProcAddress((std::string("glGenerateMipmap") + suffix).c_str());
 */
 
-	if (graphicsState.settings & USE_LEGACY_GL){
+	if (graphicsState->settings & USE_LEGACY_GL){
 		// Set default shader program
-		graphicsState.activeShader = NULL;
+		graphicsState->activeShader = NULL;
 		glUseProgram(0);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
@@ -143,7 +150,7 @@ void GraphicsManager::RenderScene()
 		/// Clear errors
 		error = glGetError();
 		/// Use Deferred-shader to store all data correctly!
-		if (SetShaderProgram("Deferred") == NULL){
+		if (ShadeMan.SetActiveShader("Deferred") == NULL){
 			std::cout<<"\nUnable to set Deferred Shader. Breaking rendering.";
 		//	assert(false && "Unable to set Deferred Shader. Breaking rendering.");
 			return;
@@ -184,30 +191,28 @@ void GraphicsManager::RenderScene()
 	}
 	/// Only set shader properties if we're using modern GL!
 	else {
-		SetShaderProgram("Flat");
-	//	SetShaderProgram("Normal");
-	//	SetShaderProgram("Depth");
-		Shader * shader = SetShaderProgram("Phong");
+		ShadeMan.SetActiveShader("Flat");
+	//	ShadeMan.SetActiveShader("Normal");
+	//	ShadeMan.SetActiveShader("Depth");
+		Shader * shader = ShadeMan.SetActiveShader("Phong");
 
 		/// Load lighting settings to shader ^^
-		if (!LoadLighting(graphicsState.lighting, shader))
-			///  ..or default if none is provided.
-			LoadLighting(&defaultLighting, shader);
+		LoadLighting(graphicsState->lighting, shader);
 	}
 	// Set primary color
-	glUniform4f(graphicsState.activeShader->uniformPrimaryColorVec4, 1.f,1.f,1.f,1.f);
+	glUniform4f(graphicsState->activeShader->uniformPrimaryColorVec4, 1.f,1.f,1.f,1.f);
 
 	// Reset bound textures
-	graphicsState.currentTexture = NULL;
+	graphicsState->currentTexture = NULL;
 	// Update view and projection matrix in specified shader
-	if (graphicsState.activeShader && graphicsState.activeShader->uniformProjectionMatrix != -1)
-		glUniformMatrix4fv(graphicsState.activeShader->uniformProjectionMatrix, 1, false, graphicsState.projectionMatrixF.getPointer());
+	if (graphicsState->activeShader && graphicsState->activeShader->uniformProjectionMatrix != -1)
+		glUniformMatrix4fv(graphicsState->activeShader->uniformProjectionMatrix, 1, false, graphicsState->projectionMatrixF.getPointer());
 	// Update view and projection matrix in specified shader
-	if (graphicsState.activeShader && graphicsState.activeShader->uniformViewMatrix != -1)
-		glUniformMatrix4fv(graphicsState.activeShader->uniformViewMatrix, 1, false, graphicsState.viewMatrixF.getPointer());
+	if (graphicsState->activeShader && graphicsState->activeShader->uniformViewMatrix != -1)
+		glUniformMatrix4fv(graphicsState->activeShader->uniformViewMatrix, 1, false, graphicsState->viewMatrixF.getPointer());
 	// Update camera in the world
-	if (graphicsState.activeShader && graphicsState.activeShader->uniformEyePosition != -1)
-		glUniform4f(graphicsState.activeShader->uniformEyePosition, camera.Position().x, camera.Position().y, camera.Position().z, 1.0f);
+	if (graphicsState->activeShader && graphicsState->activeShader->uniformEyePosition != -1)
+		glUniform4f(graphicsState->activeShader->uniformEyePosition, camera.Position().x, camera.Position().y, camera.Position().z, 1.0f);
 
 	error = glGetError();
 
@@ -219,7 +224,7 @@ void GraphicsManager::RenderScene()
 	//	vfcOctree->RenderWithCulling(*graphicsState);
 
         // Render without culling
-		vfcOctree->Render();
+		vfcOctree->Render(graphicsState);
 	}
 	else {
 	}
@@ -239,25 +244,23 @@ void GraphicsManager::RenderScene()
 		/// Enter light-data as uniforms or alternatively render in a for-loop....
 		error = glGetError();
 		/// Set shader program
-		Shader * shader = SetShaderProgram("Lighting");
+		Shader * shader = ShadeMan.SetActiveShader("Lighting");
 
 		// Set primary color and other uniforms
-		if (graphicsState.activeShader->uniformPrimaryColorVec4 == -1){
-			int loc = glGetUniformLocation(graphicsState.activeShader->shaderProgram, "primaryColorVec4");
+		if (graphicsState->activeShader->uniformPrimaryColorVec4 == -1){
+			int loc = glGetUniformLocation(graphicsState->activeShader->shaderProgram, "primaryColorVec4");
 			if (loc != -1)
-				graphicsState.activeShader->uniformPrimaryColorVec4 = loc;
+				graphicsState->activeShader->uniformPrimaryColorVec4 = loc;
 		}
 		else
-			glUniform4f(graphicsState.activeShader->uniformPrimaryColorVec4, 1,1,1,1);
+			glUniform4f(graphicsState->activeShader->uniformPrimaryColorVec4, 1,1,1,1);
 
 		/// Load lighting settings to shader ^^
-		if (!LoadLighting(graphicsState.lighting, shader))
-			///  ..or default if none is provided.
-			LoadLighting(&defaultLighting, shader);
+		LoadLighting(graphicsState->lighting, shader);
 
 		// Update camera in the world
-		if (graphicsState.activeShader && graphicsState.activeShader->uniformEyePosition != -1)
-			glUniform4f(graphicsState.activeShader->uniformEyePosition, camera.Position().x, camera.Position().y, camera.Position().z, 1.0f);
+		if (graphicsState->activeShader && graphicsState->activeShader->uniformEyePosition != -1)
+			glUniform4f(graphicsState->activeShader->uniformEyePosition, camera.Position().x, camera.Position().y, camera.Position().z, 1.0f);
 
 		/*
 uniform sampler2D diffuseMap;
@@ -335,12 +338,12 @@ uniform sampler2D positionMap;*/
 		glBindTexture(GL_TEXTURE_2D, pickingTexture);
 
 		// Set sampler in client state
-/*		if (graphicsState.activeShader->uniformBaseTexture != -1)
-			glUniform1i(graphicsState.activeShader->uniformBaseTexture, 0);		// Sets sampler
-		if (graphicsState.activeShader->uniformNormalMap != -1)
-			glUniform1i(graphicsState.activeShader->uniformNormalMap, 1);		// Sets sampler
+/*		if (graphicsState->activeShader->uniformBaseTexture != -1)
+			glUniform1i(graphicsState->activeShader->uniformBaseTexture, 0);		// Sets sampler
+		if (graphicsState->activeShader->uniformNormalMap != -1)
+			glUniform1i(graphicsState->activeShader->uniformNormalMap, 1);		// Sets sampler
 */
-		graphicsState.currentTexture = 0;
+		graphicsState->currentTexture = 0;
 
 		// Render!
 		error = glGetError();

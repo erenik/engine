@@ -31,8 +31,8 @@ extern Display*                display; // connection to X server
 void GraphicsManager::RenderWindow()
 {
 
-	Window * window = graphicsState.activeWindow;
-	Vector2i windowSize = graphicsState.activeWindow->WorkingArea();
+	Window * window = graphicsState->activeWindow;
+	Vector2i windowSize = graphicsState->activeWindow->WorkingArea();
 	Timer timer;
 	timer.Start();
 
@@ -77,21 +77,21 @@ void GraphicsManager::RenderWindow()
 	// Reset matrices (needed?)
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	graphicsState.modelMatrixD.LoadIdentity();
-	graphicsState.modelMatrixF.LoadIdentity();
+	graphicsState->modelMatrixD.LoadIdentity();
+	graphicsState->modelMatrixF.LoadIdentity();
 
 	// Reset settings to default
-	graphicsState.renderedObjects = 0;
-	graphicsState.settings |= RENDER_LIGHT_POSITION;	// Enable light-rendering.
+	graphicsState->renderedObjects = 0;
+	graphicsState->settings |= RENDER_LIGHT_POSITION;	// Enable light-rendering.
 	
 	// Reset scissor-variables
-	graphicsState.viewportX0 = graphicsState.viewportY0 = 0;
+	graphicsState->viewportX0 = graphicsState->viewportY0 = 0;
 
 	// OK til here.
 
 	// Set default shader program
-	Shader * shader = SetShaderProgram("Flat");
-	assert(shader && "Unable to set \"Flat\" shader");
+	Shader * shader = ShadeMan.SetActiveShader("Flat");
+//	assert(shader && "Unable to set \"Flat\" shader");
 
     Timer viewportsTimer, viewportTimer;
     viewportsTimer.Start();
@@ -102,14 +102,14 @@ void GraphicsManager::RenderWindow()
 
 
 	
-//	this->cameraToTrack->ProcessMovement(graphicsState.frameTime);
+//	this->cameraToTrack->ProcessMovement(graphicsState->frameTime);
 
 	
 	/// Render all viewports..
 	if (window->renderViewports)
 	{
 
-		List<Viewport*> viewports = graphicsState.activeWindow->viewports;
+		List<Viewport*> viewports = graphicsState->activeWindow->viewports;
 		// assert(viewports.Size() && "Really? No viewport to render anything?");
 		for (int i = 0; i < viewports.Size(); ++i){
 			viewportTimer.Start();
@@ -120,10 +120,10 @@ void GraphicsManager::RenderWindow()
 			}
 			if (vp->camera)
 			{
-				graphicsState.camera = vp->camera;
-				vp->camera->ProcessMovement(graphicsState.frameTime);
+				graphicsState->camera = vp->camera;
+				vp->camera->ProcessMovement(graphicsState->frameTime);
 			}
-			graphicsState.activeViewport = vp;
+			graphicsState->activeViewport = vp;
 			RenderViewport(vp);
 			if (i < 4)
 				renderViewportFrameTime[i] = (float)viewportTimer.GetMs();
@@ -134,7 +134,7 @@ void GraphicsManager::RenderWindow()
 	PrintTime("\nRendering viewports: ");
 
 	// Reset scissor-variables
-	graphicsState.viewportX0 = graphicsState.viewportY0 = 0;
+	graphicsState->viewportX0 = graphicsState->viewportY0 = 0;
 
 	// Deferred, bit more complex
 	/*

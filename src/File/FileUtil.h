@@ -33,7 +33,7 @@ int GetFilesInDirectory(String directory, List<String> & result);
 bool CreateFolder(String withPath);
 
 /// Creates directories until the entire path is valid.
-bool CreateDirectoriesForPath(String dirPath);	
+bool CreateDirectoriesForPath(String dirPath, bool skipLast = false);	
 /// Builds a path of folders so that the given path can be used. Returns false if it fails to meet the path-required. NOTE: Only works with relative directories!
 bool EnsureFoldersExistForPath(String path);
 /// For example "var/bra/da", ".awe", might return "var/bra/da15.awe" if 14 occurences already exist.

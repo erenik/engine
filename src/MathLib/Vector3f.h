@@ -79,6 +79,9 @@ public:
 	/// Reads from file stream.
 	void ReadFrom(std::fstream & file);
 
+	/// Clamp to an interval.
+	void Clamp(float min, float max);
+	void Clamp(Vector3f min, Vector3f max);
 
 	// Simple arithmetics
 	/** Simple addition
@@ -148,6 +151,7 @@ public:
 
 	/// Multiplies the elements in the two vectors internally, returning the product.
 	Vector3f ElementMultiplication(const Vector3f otherVector) const;
+	Vector3f ElementDivision(const Vector3f otherVector) const;
 
 	/// Calculates the length of the vector.
 	float Length() const;

@@ -5,7 +5,7 @@
 #include "Application/Application.h"
 
 #include "FilePath/FilePath.h"
-#include "Graphics/Fonts/Font.h"
+#include "Graphics/Fonts/TextFont.h"
 #include "UI/UIElement.h"
 #include "UI/UserInterface.h"
 

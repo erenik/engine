@@ -125,6 +125,8 @@ public:
 	Matrix4d Scale(Vector3d vec);
 
 
+	/// Returns true if it has non-0 values in the scale diagonal (elements 0, 5 and 10)
+	bool HasValidScale();
 
 	// Content access
 	/** Returns a pointer to the start of the matrix element array. */

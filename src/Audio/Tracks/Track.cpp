@@ -16,12 +16,14 @@ void Track::Play(){
 #ifdef AUDIO
 	if (audio)
 	{
+		assert(false);
 		/// Pause all other BGMs?
-		AudioMan.PauseAllOfType(AudioType::BGM);
+	//	AudioMan.PauseAllOfType(AudioType::BGM);
 		audio->Play();
 	}
 	else {
-		audio = AudioMan.PlayFromSource(AudioType::BGM, source, loop);
+		assert(false);
+	//	audio = AudioMan.PlayFromSource(AudioType::BGM, source, loop);
 //	AudioMan.PlayFromSource(BGM, source, true);
 	}
 #endif

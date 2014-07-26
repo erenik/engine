@@ -26,8 +26,11 @@ PMUnregisterEntity::PMUnregisterEntity(Entity * i_entity)
 	entity = i_entity;
 }
 
-void PMUnregisterEntity::Process(){
-	std::cout<<"\nUnregistering selection for Physics.";
+void PMUnregisterEntity::Process()
+{
+//	std::cout<<"\nUnregistering selection for Physics.";
+	if (!entity->registeredForPhysics)
+		return;
 	int result = Physics.UnregisterEntity(entity);
 	if (result != 0){
 		std::cout<<"\nERROR: Failed to unregister entity!";

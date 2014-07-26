@@ -7,5 +7,6 @@
 
 // Defines new types for the compiler. Mostly just referring to existing types.
 typedef __int64 int64;
+typedef int		int32;
 
 #endif

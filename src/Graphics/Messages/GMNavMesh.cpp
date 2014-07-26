@@ -13,13 +13,14 @@ GMSetSelectedWaypoints::GMSetSelectedWaypoints(List<Waypoint*> waypointsToRender
 	wpList = waypointsToRenderAsSelected;	
 };
 
-void GMSetSelectedWaypoints::Process(){
-	Graphics.renderSettings->selectedWaypoints = wpList;
+void GMSetSelectedWaypoints::Process()
+{
+	Graphics.graphicsState->selectedWaypoints = wpList;
 };
 
 GMSetPathToRender::GMSetPathToRender(Path path)
 : GraphicsMessage(GM_NAVMESH), path(path){	
 }
 void GMSetPathToRender::Process(){
-	Graphics.renderSettings->pathToRender = path;
+	Graphics.graphicsState->pathToRender = path;
 }

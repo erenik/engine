@@ -13,7 +13,8 @@ class Vector3f;
 class Quaternion {
 public:
     Quaternion();
-    Quaternion(Vector3f vec, float w);
+	/// Generates a rotation quaternion based on given axis and rotation around it
+    Quaternion(Vector3f axis, float angle);
     Quaternion(const Quaternion& other);
     Quaternion(float x, float y, float z, float w = 1);
 
@@ -24,6 +25,9 @@ public:
     Matrix4f Matrix() const;
     /// Normalize to length/magnitude 1.
     void Normalize();
+
+	// Unary operator overloading
+	Quaternion operator - () const;
 
     /// Quaterntion-Quaterntion multiplication
     void operator +=(const Quaternion & addend);

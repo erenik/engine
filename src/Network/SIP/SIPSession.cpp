@@ -366,7 +366,7 @@ void SIPSession::SubscribeToNewPeerConnections(Peer * peer)
         return;
     }
     // Once we successfully register ourselves with a client, subscribe to events like new peers connecting!
-	SIPSubscribePacket subscribe(PEER_CONNECTED_EVENT, 300, SIPPacket::NextCSeq());
+	SIPSubscribePacket subscribe(PEER_CONNECTED_EVENT, 300, SIPPacket::NextCSeq().ParseInt());
     subscribe.Send(peer);
     std::cout<<"Sent Subscription for event: "<<PEER_CONNECTED_EVENT;
 }
@@ -582,7 +582,7 @@ bool SIPSession::HandlePacket(SIPPacket* packet, Peer* peer)
                 // Subscribe to new peer-connections
                 SubscribeToNewPeerConnections(peer);
 				// Subscribe to available games, search for 60 seconds
-				SIPSubscribePacket sub(GAME_SEARCH_EVENT, 60, SIPPacket::NextCSeq());
+				SIPSubscribePacket sub(GAME_SEARCH_EVENT, 60, SIPPacket::NextCSeq().ParseInt());
 				sub.Send(peer);
 			}
             // Subscription successful.

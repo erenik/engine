@@ -17,9 +17,9 @@ void GraphicsManager::RenderWindows()
 		if (!window->IsVisible())
 			continue;
 		bool ok = window->MakeGLContextCurrent();
-		graphicsState.activeWindow = window;
-		graphicsState.windowWidth = window->WorkingArea().x;
-		graphicsState.windowHeight = window->WorkingArea().y;
+		graphicsState->activeWindow = window;
+		graphicsState->windowWidth = window->WorkingArea().x;
+		graphicsState->windowHeight = window->WorkingArea().y;
 
 		// Render all that is needed
 		RenderWindow();

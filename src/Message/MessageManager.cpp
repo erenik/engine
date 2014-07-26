@@ -190,15 +190,47 @@ void MessageManager::ProcessMessage(Message * message){
 	// Do note that not all messages uses the string-argument...
 //	if (!msg.Length())
 //		return;
+	
+	// Let active lighting process messages if wanted.
+	Lighting * activeLighting = Graphics.ActiveLighting();
+	if (activeLighting)
+	{
+		if (activeLighting->ProcessMessage(message))
+			return;
+	}
+
 	msg.SetComparisonMode(String::NOT_CASE_SENSITIVE);
 	if (msg.Contains("NavigateUI(")){
 		bool toggle = msg.Tokenize("()")[1].ParseBool();
 		Input.NavigateUI(toggle);
 		return;
 	}
+	else if (msg == "DisableLogging")
+	{
+		extern bool loggingEnabled;
+		loggingEnabled = false;
+	}
+	else if (msg == "EnableLogging")
+	{
+		extern bool loggingEnabled;
+		loggingEnabled = true;
+	}
+	else if (msg.Contains("Paste:") && message->type == MessageType::PASTE)
+	{
+		// Check for active ui element.
+		UserInterface * ui = ActiveUI();
+		if (ui){
+			UIElement * element = ui->GetActiveElement();
+			if (element)
+			{
+				element->ProcessMessage(message);
+			}
+		}
+	}
 	else if (msg == "mute")
 	{
-		AudioMan.DisableAudio();
+		AudioMan.QueueMessage(new AudioMessage(AM_DISABLE_AUDIO));
+//		AudioMan.DisableAudio();
 	}
 	else if (msg == "CreateMainWindow")
 	{	
@@ -263,7 +295,7 @@ void MessageManager::ProcessMessage(Message * message){
 	else if (msg.Contains("UIProceed("))
 	{
 		String name = msg.Tokenize("()")[1];
-		UserInterface * ui = StateMan.ActiveState()->GetUI();
+		UserInterface * ui = RelevantUI();
 		UIElement * e = ui->GetElementByName(name);
 		if (!e)
 			return;
@@ -273,7 +305,7 @@ void MessageManager::ProcessMessage(Message * message){
 	else if (msg.Contains("UITextureInput("))
 	{
 		String name = msg.Tokenize("()")[1];
-		UserInterface * ui = StateMan.ActiveState()->GetUI();
+		UserInterface * ui = RelevantUI();
 		UIElement * e = ui->GetElementByName(name);
 		if (e->type != UIType::TEXTURE_INPUT)
 			return;
@@ -285,7 +317,7 @@ void MessageManager::ProcessMessage(Message * message){
 	else if (msg.Contains("UIStringInput("))
 	{
 		String name = msg.Tokenize("()")[1];
-		UserInterface * ui = StateMan.ActiveState()->GetUI();
+		UserInterface * ui = RelevantUI();
 		UIElement * e = ui->GetElementByName(name);
 		if (e->type != UIType::STRING_INPUT)
 			return;
@@ -297,7 +329,7 @@ void MessageManager::ProcessMessage(Message * message){
 	else if (msg.Contains("UIFloatInput("))
 	{
 		String name = msg.Tokenize("()")[1];
-		UserInterface * ui = StateMan.ActiveState()->GetUI();
+		UserInterface * ui = RelevantUI();
 		UIElement * e = ui->GetElementByName(name);
 		if (e->type != UIType::FLOAT_INPUT)
 			return;
@@ -309,7 +341,7 @@ void MessageManager::ProcessMessage(Message * message){
 	else if (msg.Contains("UIIntegerInput("))
 	{
 		String name = msg.Tokenize("()")[1];
-		UserInterface * ui = StateMan.ActiveState()->GetUI();
+		UserInterface * ui = RelevantUI();
 		UIElement * e = ui->GetElementByName(name);
 		if (e->type != UIType::INTEGER_INPUT)
 			return;

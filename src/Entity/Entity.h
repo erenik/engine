@@ -8,10 +8,7 @@
 #include "../MathLib.h"
 #include "String/AEString.h"
 
-#ifdef USE_QUATERNIONS
-#include "MathLib/Quaternion.h"
-#endif
-
+struct Collision;
 class Model;
 class Player;
 struct Material;
@@ -45,6 +42,11 @@ class Entity {
 public:
 	/// Default destructor
 	~Entity();
+
+	/// If reacting to collisions,.. pokes all properties about it too.
+	virtual void OnCollision(Collision & data);
+
+
 	/// Deallocates additional points as needed.
 	void Delete();
 
@@ -89,11 +91,11 @@ public:
 	/** Rendering method using legacy code
 		Should only be used by the graphics manager. USE WITH CAUTION.
 	*/
-	void RenderOld(GraphicsState &state);
+	void RenderOld(GraphicsState * state);
 	/** Rendering method
 		Should only be used by the graphics manager. USE WITH CAUTION.
 	*/
-	void Render();
+	void Render(GraphicsState * graphicsState);
 
 	/// Gets velocity, probably from the PhysicsState
 	Vector3f Velocity();
@@ -102,8 +104,15 @@ public:
 	void SetPosition(Vector3f position);
 	/** Sets position */
 	void SetPosition(float x, float y, float z);
+	/// New rotation. Should hopefully make old rotatoin system obsolete... maybe :P
+	/// Rotates around the globally defined quaternion axis.
+	void RotateGlobal(Quaternion withQuaternion);
 	/** Rotates the Entity */
 	void Rotate(Vector3f rotation);
+	/// Quaternion initial rotation.
+	void SetRotation(Quaternion quat);
+	/// Rotation from the default (looking into -Z
+	void SetRotation(Vector3f rotationFromZMinus1);
 	/** Sets scale of the entity */
 	void SetScale(Vector3f scale);
 	/** Scales the Entity */

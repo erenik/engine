@@ -18,6 +18,9 @@ public:
 	Text(const String & string);
 	Text(const char * string);
 	Text(const wchar_t * string);
+
+	/// Pastes text into this text. How it will behave depends on the caret positions.
+	void Paste(String text);
 	/** For rendering active input location. The caret position lies by default
 		on the left "side" of the index!
 		A value of -1 indicates that it should not be rendered/is not active.

@@ -19,6 +19,7 @@
 
 struct Gamepad;
 
+#define InputMan (*InputManager::Instance())
 #define Input		(*InputManager::Instance())
 
 /// Disable this for disabling debug commands like reloading UI/shaders
@@ -266,8 +267,8 @@ private:
 	/// For disabling/enabling mouse-input!
 	bool mouseLocked;
 
-    /// Evaluates if the active key generates any new events by looking at the relevant key bindings
-	void EvaluateKeyPressed(int activeKeyCode, bool downBefore);
+    /// Evaluates if the active key generates any new events by looking at the relevant key bindings. 
+	void EvaluateKeyPressed(int activeKeyCode, bool downBefore, UIElement * activeElement);
 	/// Evaluates if the active key generates any new events by looking at the relevant key bindings
 	void EvaluateKeyReleased(int activeKeyCode);
 	/// For handling text-input

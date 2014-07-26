@@ -28,5 +28,24 @@ private:
 	static List<int> vertexArrays;
 };
 
+class GLFrameBuffers 
+{
+public:
+	static unsigned int New();
+	static void FreeAll();
+private:
+	static List<int> frameBuffers;
+};
+
+class GLRenderBuffers
+{
+public:
+	static unsigned int New();
+	static void FreeAll();
+private:
+	static List<int> renderBuffers;
+};
+
+
 
 #endif

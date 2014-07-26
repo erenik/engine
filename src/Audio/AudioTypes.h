@@ -12,6 +12,7 @@ enum audioType {
 	SFX, 
 	UIS, 
 	SPEECH,
+	NUM_TYPES,
 };};
 
 #endif

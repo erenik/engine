@@ -26,6 +26,12 @@ Message::~Message(){
 }
 
 
+PasteMessage::PasteMessage()
+	: Message(MessageType::PASTE)
+{
+
+}
+
 SetStringMessage::SetStringMessage(String message, String value)
 : Message(MessageType::SET_STRING)
 {

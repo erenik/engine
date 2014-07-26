@@ -19,4 +19,18 @@
     #include <GL/gl.h>
 #endif // OSs
 
+
+/// Various statistics and caps related to GL. These are/should be set ONCE upon starting the rendering thread.
+
+/// Keeps track of GL version for the client
+extern int GL_VERSION_MAJOR;
+extern int GL_VERSION_MINOR;
+
+#include "String/AEString.h"
+
+/// Uses switch-case to print out relevant informatoin to the console. Returns the error code if any.
+int CheckGLError(String inFunction);
+/// Similar to CheckGLError but will assert if there is an error. Returns the error code if any.
+int AssertGLError(String inFunction);
+
 #endif

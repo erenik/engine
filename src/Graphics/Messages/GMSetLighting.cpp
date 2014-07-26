@@ -16,5 +16,6 @@ GMSetLighting::~GMSetLighting(){
 
 void GMSetLighting::Process()
 {
-	graphicsState.lighting = lighting;	
+	GraphicsState * graphicsState = Graphics.graphicsState;
+	graphicsState->lighting = lighting;	
 }

@@ -167,9 +167,9 @@ void GameState::HandleDADFiles(List<String> & files){
 
 
 /// What happens.. when we rendar?!
-void GameState::Render(GraphicsState & graphgics)
+void GameState::Render(GraphicsState * graphgics)
 {
-	std::cout<<"\nDefault GameState::Render called. Overloading failed or window got state rendering enabled in vain.";
+//	std::cout<<"\nDefault GameState::Render called. Overloading failed or window got state rendering enabled in vain.";
 }
 
 #include "../Initializer.h"

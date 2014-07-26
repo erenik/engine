@@ -19,45 +19,91 @@ GMSetCamera::GMSetCamera(Camera * cameraToTrack, Window * inWindow)
 	target = CAMERA_TO_TRACK;
 }
 
-GMSetCamera::GMSetCamera(int target, Vector3f vec3fValue)
-: GraphicsMessage(GM_SET_CAMERA), target(target), vec3fValue(vec3fValue)
+GMSetCamera::GMSetCamera(Camera * camera, int target, Vector3f vec3fValue)
+: GraphicsMessage(GM_SET_CAMERA), camera(camera), target(target), vec3fValue(vec3fValue)
 {
-
+	switch(target)
+	{
+		case RELATIVE_POSITION:
+		case OFFSET_ROTATION:
+			break;
+		default:
+			assert(false);
+	}
 };
 
-GMSetCamera::GMSetCamera(int target, float fValue)
-: GraphicsMessage(GM_SET_CAMERA), target(target), fValue(fValue)
+GMSetCamera::GMSetCamera(Camera * camera, int target, float fValue)
+: GraphicsMessage(GM_SET_CAMERA), camera(camera), target(target), fValue(fValue)
 {
+	switch(target)
+	{
+		case DISTANCE_FROM_CENTER_OF_MOVEMENT:
+			break;
+		default:
+			assert(false);
+	}
+}
 
+GMSetCamera::GMSetCamera(Camera * camera, int target, bool bValue)
+: GraphicsMessage(GM_SET_CAMERA), camera(camera), target(target), bValue(bValue)
+{
+	switch(target)
+	{
+		case INHERIT_ROTATION:
+			break;
+		default:
+			assert(false);
+	}
+}
+	
+
+GMSetCamera::GMSetCamera(Camera * camera, int target, Entity * entity)
+: GraphicsMessage(GM_SET_CAMERA), camera(camera), target(target), entity(entity)
+{
+	switch(target)
+	{
+		case ENTITY_TO_TRACK:
+			break;
+		default:
+			assert(false);
+	}
 }
 
 void GMSetCamera::Process()
+{
+
+	// For setting camera attributes
+//		if (!camera)
+//			camera = Graphics.ActiveCamera();
+	switch(target)
 	{
-		// For setting camera
-		switch(target)
+		case ENTITY_TO_TRACK:
 		{
-			case CAMERA_TO_TRACK:
-			{
-				if (!window)
-					window = WindowMan.MainWindow();
-				Viewport * vp = window->MainViewport();
-				vp->camera = camera;
-				break;
-			}
+			// Ensure it will actually try and follow it too..?
+			camera->entityToTrack = entity;
+			break;
 		}
-		// For setting camera attributes
-		if (!camera)
-			camera = Graphics.ActiveCamera();
-		switch(target)
+		case INHERIT_ROTATION:
 		{
-			case OFFSET_ROTATION:
-				camera->offsetRotation = vec3fValue;
-				break;
-			case RELATIVE_POSITION:
-				camera->relativePosition = vec3fValue;
-				break;
-			case DISTANCE_FROM_CENTER_OF_MOVEMENT:
-				camera->distanceFromCentreOfMovement = fValue;
-				break;
+			camera->inheritEntityRotation = bValue;
+			break;
 		}
+		case CAMERA_TO_TRACK:
+		{
+			if (!window)
+				window = WindowMan.MainWindow();
+			Viewport * vp = window->MainViewport();
+			vp->camera = camera;
+			break;
+		}
+		case OFFSET_ROTATION:
+			camera->offsetRotation = vec3fValue;
+			break;
+		case RELATIVE_POSITION:
+			camera->relativePosition = vec3fValue;
+			break;
+		case DISTANCE_FROM_CENTER_OF_MOVEMENT:
+			camera->distanceFromCentreOfMovement = fValue;
+			break;
 	}
+}

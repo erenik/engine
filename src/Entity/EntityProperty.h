@@ -7,7 +7,8 @@
 #include "String/AEString.h"
 class Entity;
 class EntityPropertyState;
-struct Message;
+class Message;
+struct Collision;
 
 /// The EntityProperty is pretty much a StateMachine that can be attached to the entities.... wat?
 class EntityProperty 
@@ -17,7 +18,7 @@ class EntityProperty
 	friend class EntityPropertyState;
 public:
 	/// Default annulizing constructor.
-	EntityProperty(Entity * entity);
+	EntityProperty(String name, Entity * owner);
 	virtual ~EntityProperty();
 
 	/// Should correspond to class-name.
@@ -33,6 +34,10 @@ public:
 	/// Enters the previous state again.
 	void RevertToPreviousState();
 
+	/// If reacting to collisions...
+	virtual void OnCollision(Collision & data);
+
+
 	/// Callback for when one or more paths have been invalidated to due changes in the map.
 	void PathsInvalidated();
 
@@ -44,7 +49,7 @@ public:
 	void ProcessMessage(Message * message);
 
 	/// Reference, should not be altered.
-	Entity * entity;
+	Entity * owner;
 
 private:
 	/// GameState-control variables

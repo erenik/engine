@@ -7,17 +7,46 @@
 
 #include <fstream>
 #include "String/AEString.h"
+#include "OS/OS.h"
+#include "System/DataTypes.h"
+#include "Time/Time.h"
+
+// Perform windows-specific includes straight-away!
+#if defined WINDOWS
+	#include "OS/WindowsIncludes.h"
+#endif
+
 
 /// General file-class?
 class File {
 public:
-	/// Static function to fetch all lines of text from a given file. 
-	static List<String> GetLines(String fromFile);
+	/// Constructor
+	File(String path);
+	/// Last time this file was modified. Returns -1 if the file does not exist and -2 if the function fails.
+	Time LastModified();
 	void Close();
+
+	/// Static function to fetch all lines of text from a given file by name. 
+	static List<String> GetLines(String fromFile);
+	
 protected:
 	std::fstream * Open(String path);
 	const String Path() const;
+	
+	// Private stuffs
 private:
+
+	/// Ensures that the file handle has been opened successfully. Returns false if it fails.
+	bool OpenFileHandleIfNeeded();
+
+	// Current file handle state.
+	bool open;
+
+#ifdef WINDOWS
+	HANDLE fileHandle;
+	
+#endif
+
 	String path;
 	std::fstream fileStream;
 };

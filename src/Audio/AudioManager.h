@@ -15,6 +15,7 @@
 #include <stdexcept>
 #include <Util.h>
 #include "AudioTypes.h"
+#include "Messages/AudioMessage.h"
 
 /// Macro for accessing the audio manager singleton!
 #define AudioMan (*AudioManager::Instance())
@@ -23,13 +24,20 @@
 typedef struct ALCdevice_struct ALCdevice;
 typedef struct ALCcontext_struct ALCcontext;
 
+class Message;
 class Audio;
 class MultimediaStream;
 
 /** A general utility manager for handling sounds and music pieces with varying degrees of complexity.
 	It is designed to be able to work with OpenAL mainly.
 */
-class AudioManager {
+class AudioManager 
+{
+	friend class AudioMessage;
+	friend class MultimediaStream;
+	friend class AMPlay;
+	friend class AMSet;
+	friend class Audio;
 private:
 	AudioManager();
 	static AudioManager * audioManager;
@@ -48,12 +56,34 @@ public:
 	/// Saves preferences to the PreferencesManager. Should be called from the application's global state on exit.
 	void SavePreferences();
 
+	/// Yer.
+	void QueueMessage(AudioMessage* message);
 
+	/// Updates the streams and volumes, also processes any queued messages ^^
+	void Update();
+	
+	/// Getters
+	float MasterVolume(){ return masterVolume; };
+	/// Returns the current volume for target category (0.0 to 1.0)
+	float CategoryVolume(int category);
+	
+
+	// Yup.
+	void StopAndRemoveAll();
+
+private:
 	/** Attempts to play audio from given source. Optional arguments control loop-mode and relative volume.
 		Returns the relevant Audio object upon success.
 	*/
 	Audio * PlayFromSource(char type, String fromSource, bool repeat = false, float volume = 1.0f);
-	void Play(char type, String name, bool repeat = false, float volume = 1.0);
+	/// Type? Defined where..?
+	Audio * Play(char type, String name, bool repeat = false, float volume = 1.0);
+	/// Name is should correspond to filename or path, expected locatoin in ./sound/sfx/
+	void PlaySFX(String name, float volume = 1.f);
+	/// Plays target BGM, pausing all others. Default sets to repeat.
+	Audio * PlayBGM(String name, float volume = 1.f);
+
+	// Halting playback
 	void Pause(String name);
 	void Stop(String name);
 	void Stop(int index);
@@ -72,9 +102,6 @@ public:
 	void PauseAllOfType(char type);
 	void StopAllOfType(char type);
 
-	/// Updates the streams and volumes ^^
-	void Update();
-	float MasterVolume(){ return masterVolume; };
 	/// Sets master volume, from 0.0 to 1.0
 	void SetMasterVolume(float level);
 	/// Calls update volume for all audio
@@ -84,8 +111,24 @@ public:
 	bool pauseUpdates;	
 	/// If we're currently udpating
 	bool updating;		
+	
 
+	/// For processing general messages.
+	void ProcessMessage(Message * mes);
+	
 private:
+
+	bool ClaimAudioMutex();
+	bool ReleaseAudioMutex();
+
+	// yer.
+	void ProcessAudioMessages();
+	/// o=o
+	List<AudioMessage*> messageQueue;
+
+	/// Volumes for the various audio categories (BGM, SFX, etc.)
+	List<float> categoryVolumes;
+
 	/// Value applied to all audio.
 	float masterVolume;
 	/// To toggle it in run-time.
@@ -94,12 +137,6 @@ private:
 	void Pause(Audio * audio);
 	/// List of active audio
 	List<Audio*> audioList;
-
-#ifdef USE_OPEN_AL
-	// Open AL device and context, similar to OpenGL device and context!
-	ALCdevice * alcDevice;		// Device
-	ALCcontext * alcContext;	// Rendering audio context
-#endif
 
 	bool initialized;	// Consider using other relevant variables to test if initialization succeeded.
 };

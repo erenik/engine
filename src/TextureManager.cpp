@@ -42,6 +42,45 @@ Texture * TextureManager::GetTexture(String nameOrSource)
     return tex;
 }
 
+/// 0xRRGGBBAA (red green blue alpha)
+Texture * TextureManager::GetTextureByHex24(int hexColor)
+{
+	int alphaBit = 255;
+	int alpha = 0xFF;
+	int hexColor32 = hexColor << 8;
+	hexColor32 += alpha;
+	unsigned char r, g, b, a;
+	r = hexColor32 >> 24 % 256;
+	g = hexColor32 >> 16 % 256;
+	b = hexColor32 >> 8 % 256;
+	a = hexColor32 >> 0 % 256;	
+	return GetTextureByHex32(hexColor32);
+}
+
+/// 0xRRGGBBAA (red green blue alpha)
+Texture * TextureManager::GetTextureByHex32(int hexColor)
+{
+	String texName = "HexColor:"+String::ToHexString(hexColor);
+	Texture * tex = NULL;
+	tex = GetTextureByName(texName);
+	if (!tex)
+	{
+		tex = New();
+		tex->name = texName;
+		tex->SetSize(Vector2i(1,1));
+		unsigned char r, g, b, a;
+		r = hexColor >> 24 % 256;
+		g = hexColor >> 16 % 256;
+		b = hexColor >> 8 % 256;
+		a = hexColor >> 0 % 256;
+		Vector4f color(r,g,b,a);
+		float inv255 = 1 / 255.f;
+		color *= inv255;
+		tex->SetColor(color);
+	}
+	return tex;
+}
+
 /// Gets texture with specified name. This assumes each texture has gotten a unique name.
 Texture * TextureManager::GetTextureByName(String name){
 	if (name.Length() == 0)
@@ -71,7 +110,7 @@ Texture * TextureManager::GetTextureByName(String name){
 		return GenerateTexture("Blue", Vector4f(0,0,1,1));
 
 //	std::cout<<"\nTexture not loaded, attempting to load it.";
-	return LoadTexture(name);
+	return NULL; // LoadTexture(name);
 }
 
 /// Returns texture in the list by specified index.
@@ -140,6 +179,14 @@ Texture * TextureManager::NewDynamic()
 	return tex;
 }
 
+/// Deletes target texture and its associated memory. The object should not be touched any more after calling this.
+void TextureManager::DeleteTexture(Texture * texture)
+{
+	textures.Remove(texture);
+	delete texture;
+}
+
+
 /// Prints a list of all objects to console, starting with their ID
 void TextureManager::ListTextures(){
 	std::cout<<"\nListing textures: ";
@@ -185,7 +232,8 @@ Texture * TextureManager::GenerateTexture(String withName, Vector4f andColor)
 #include "LodePNG/lodepng.h"
 #include "Globals.h"
 
-Texture * TextureManager::LoadTexture(String source){
+Texture * TextureManager::LoadTexture(String source)
+{
 	source = FilePath::MakeRelative(source);
 	for (int i = 0; i < textures.Size(); ++i){
 		if (textures[i]->source.Contains(source) ||
@@ -243,11 +291,8 @@ Texture * TextureManager::LoadTexture(String source){
 			file.clear();
 			std::cout<<"\nUnable to open file.";
 			file.close();
-Sleep(100);
 	//		std::cout<<"\nERROR: File "<<source.c_str()<<" does not exist!";
-Sleep(100);
 	//		assert("TextureManager::LoadTexture: ERROR: File <<source<< does not exist!");
-Sleep(100);
 			return NULL;
 		}
 		std::cout<<"\nFile exists";
@@ -452,7 +497,7 @@ void TextureManager::BufferizeTexture(Texture * texture){
 		return;
 	}
 	if (texture->glid != -1){
-		std::cout<<"\nTexture \""<<texture->source<<"\" already bufferized! Skipping.";
+//		std::cout<<"\nTexture \""<<texture->source<<"\" already bufferized! Skipping.";
 		return;
 	}
 	GLuint error;

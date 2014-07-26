@@ -679,8 +679,10 @@ void InputManager::MouseWheel(Window * window, float delta){
 //=======================================================//
 extern void generalInputProcessor(int action, int inputDevice = 0);
 extern void debuggingInputProcessor(int action, int inputDevice = 0);
+
 /// Evaluates if the active key generates any new events by looking at the relevant key bindings
-void InputManager::EvaluateKeyPressed(int activeKeyCode, bool downBefore){
+void InputManager::EvaluateKeyPressed(int activeKeyCode, bool downBefore, UIElement * activeElement)
+{
 	/// Evaluate relevant key-bindings!
 	Binding * binding;
 
@@ -708,17 +710,16 @@ void InputManager::EvaluateKeyPressed(int activeKeyCode, bool downBefore){
 	}
 
 	/// Check if we have an active ui element. If so don't fucking do anything.
-	UIElement * activeElement = NULL;
 	UserInterface * userInterface = RelevantUI();
 	if (userInterface)
 	{
-		activeElement = userInterface->GetActiveElement();
 		UIElement * hoverElement = userInterface->GetHoverElement();
-		// UI-navigation if focused.
-		if (navigateUI)
+		// UI-navigation if no element is active. Active elements have the responsibility to let go of their activity at the user's behest.
+		if (navigateUI && !activeElement)
 		{
 			bool uiCommand = true;
-			switch(activeKeyCode){
+			switch(activeKeyCode)
+			{
 				case KEY::BACKSPACE:
 				case KEY::ESCAPE:
 				{
@@ -759,6 +760,10 @@ void InputManager::EvaluateKeyPressed(int activeKeyCode, bool downBefore){
 		} // END: UI-navigation if focused.
 	}
 	
+	// By default, don't process regular keybindings if there is an active ui element.
+	if (activeElement)
+		return;
+
 	// Callback state for handling if applicable?
 	GameState * state = StateMan.ActiveState();
 	if (state && state->keyPressedCallback)
@@ -872,21 +877,23 @@ void InputManager::KeyDown(int keyCode, bool downBefore){
 
 	keyPressed[keyCode] = true;
 	UserInterface * ui = RelevantUI();
+	UIElement * activeElement = NULL;
 	if (ui)
 	{
 		UIElement * inputFocusElement = RelevantUI()->ActiveInputFocusElement();
 		// Catch the codes there that don't get caught in WM_CHAR?
-		if (inputFocusElement){
+		if (inputFocusElement)
+		{
+			activeElement = inputFocusElement;
 			/// Use the result somehow to determine if other actions can be triggered, too.
 			int result = inputFocusElement->OnKeyDown(keyCode, downBefore);
 			Graphics.QueryRender();
-			return;
 		}
 	}
 
 	keyPressed[keyCode] = true;
 //	std::cout<<"\nKeyDown ^^";
-	EvaluateKeyPressed(keyCode, downBefore);
+	EvaluateKeyPressed(keyCode, downBefore, activeElement);
 };
 
 void InputManager::OnStopActiveInput(){
@@ -1287,6 +1294,8 @@ void InputManager::UIPrevious()
 UIElement * InputManager::HoverElement()
 {
 	UserInterface * ui = RelevantUI();
+	if (!ui)
+		return NULL;
 	UIElement * element = ui->GetHoverElement();
 	return element;
 }

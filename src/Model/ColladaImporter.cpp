@@ -233,14 +233,13 @@ Mesh * ColladaImporter::CreateMesh(String name){
 		mesh->uvs = numUVsArg->value.ParseInt();
 		assert(mesh->uvs > 0);
 		std::cout<<"\nUVs to parse: "<<mesh->uvs;
-		mesh->u = new float[mesh->uvs];
-		mesh->v = new float[mesh->uvs];
+		mesh->uv = new Vector2f[mesh->uvs];
 		List<String> uvDataTokens = floatArray->data.Tokenize(" ");
 		assert(uvDataTokens.Size() == mesh->uvs);
 		int uvsParsed = 0;
 		for (int i = 0; i < uvDataTokens.Size(); i += 2){
-			mesh->u[uvsParsed] = uvDataTokens[i].ParseFloat();
-			mesh->v[uvsParsed] = uvDataTokens[i+1].ParseFloat();
+			mesh->uv[uvsParsed].x = uvDataTokens[i].ParseFloat();
+			mesh->uv[uvsParsed].y = uvDataTokens[i+1].ParseFloat();
 			++uvsParsed;
 		}
 	}

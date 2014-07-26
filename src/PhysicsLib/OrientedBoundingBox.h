@@ -10,7 +10,7 @@
 #include "Model/Geometry.h"
 #include "List/List.h"
 
-struct Collission;
+struct Collision;
 class Entity;
 struct Edge;
 struct Face;
@@ -27,7 +27,7 @@ public:
 
 	/// Checks whether the target sphere is within this OBB or not. Might not factor in radius!
 	bool IsInside(Sphere & sphere);
-	bool Collide(Sphere & sphere, Collission & collissionData);
+	bool Collide(Sphere & sphere, Collision & collissionData);
 
     /// Lokal Y+, X+ and Z- axes
     Vector3f localUp, localRight, localForward;
