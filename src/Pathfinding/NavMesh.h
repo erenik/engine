@@ -8,7 +8,7 @@
 #include "../Globals.h"
 #include "String/AEString.h"
 
-struct Ray;
+class Ray;
 
 /// An organization of waypoints that are interconnected somehow, like a map.
 class NavMesh {
@@ -38,7 +38,7 @@ public:
 	Waypoint * defaultStart, * defaultGoal;
 
 	/// Scales the positions/elevations of all waypoints.
-	int Scale(float amount);
+	void Scale(float amount);
 	/// Loads from target navmesh file (specific to this system)
 	bool LoadFromFile(const char * filename);
 	/// Saves to target navmesh file (specific to this system)

@@ -1,7 +1,7 @@
 // Emil Hedemalm
 // 2013-03-30
 
-#include "GameState.h"
+#include "AppState.h"
 #include "../UI/UserInterface.h"
 #include "Message/Message.h"
 #include "../StateManager.h"
@@ -18,7 +18,7 @@ void EmptyFunction(){
 };
 
 
-GameState::GameState()
+AppState::AppState()
 {
 	/// Initialize default values, even if inherited.
 	lastTime = 0;
@@ -26,17 +26,17 @@ GameState::GameState()
     name = "DefaultStateName";
 	keyPressedCallback = false;
 };
-GameState::~GameState(){
+AppState::~AppState(){
 	assert(ui == NULL);
 }
 
 /// Callback function that will be triggered via the MessageManager when messages are processed.
-void GameState::ProcessPacket(Packet * packet){
+void AppState::ProcessPacket(Packet * packet){
 	// DON'T worite this line D:
 	//std::cout<<"\nState::ProcessPacket called:";
 }
 /// Callback function that will be triggered via the MessageManager when messages are processed.
-void GameState::ProcessMessage(Message * message){
+void AppState::ProcessMessage(Message * message){
 	std::cout<<"\nState::ProcessMessage called:";
 	switch(message->type){
 		case MessageType::STRING: {
@@ -68,8 +68,8 @@ void GameState::ProcessMessage(Message * message){
 	}
 }
 
-void GameState::OnChatMessageReceived(ChatMessage * cm){
-    std::cout<<"\nDefault GameState::OnChatMessageReceived triggered.";
+void AppState::OnChatMessageReceived(ChatMessage * cm){
+    std::cout<<"\nDefault AppState::OnChatMessageReceived triggered.";
 }
 
 /// Input functions for the various states
@@ -77,42 +77,42 @@ void GameState::OnChatMessageReceived(ChatMessage * cm){
 	Argument true indicate that the button was pressed, while false indicates that it was just released.
 	Default arguments for x and y indicate that they should not be refreshed.
 */
-void GameState::MouseClick(Window * window, bool down, int x, int y, UIElement * elementClicked){
-	std::cout<<"\nDefault GameState::MouseClick activated.";
+void AppState::MouseClick(Window * window, bool down, int x, int y, UIElement * elementClicked){
+	std::cout<<"\nDefault AppState::MouseClick activated.";
 }
 /** Handles a mouse click.
 	Argument true indicate that the button was pressed, while false indicates that it was just released.
 	Default arguments for x and y indicate that they should not be refreshed.
 */
-void GameState::MouseRightClick(Window * window, bool down, int x, int y, UIElement * elementClicked){
+void AppState::MouseRightClick(Window * window, bool down, int x, int y, UIElement * elementClicked){
 #ifdef _DEFAULT_STATE_DEBUG
-	std::cout<<"\nDefault GameState::MouseRightClick activated.";
+	std::cout<<"\nDefault AppState::MouseRightClick activated.";
 #endif
 }
 /// Interprets a mouse-move message to target position.
-void GameState::MouseMove(Window * window, int x, int y, bool lDown, bool rDown, UIElement * elementOver){
+void AppState::MouseMove(Window * window, int x, int y, bool lDown, bool rDown, UIElement * elementOver){
 #ifdef _DEFAULT_STATE_DEBUG
-	std::cout<<"\nDefault GameState::MouseMove activated.";
+	std::cout<<"\nDefault AppState::MouseMove activated.";
 #endif
 }
 /** Handles mouse wheel input.
 	Positive delta signifies scrolling upward or away from the user, negative being toward the user.
 */
-void GameState::MouseWheel(Window * window, float delta)
+void AppState::MouseWheel(Window * window, float delta)
 {
 #ifdef _DEFAULT_STATE_DEBUG
-	std::cout<<"\nDefault GameState::MouseWheel activated.";
+	std::cout<<"\nDefault AppState::MouseWheel activated.";
 #endif
 }
 
 
 /// Callback from the Input-manager, query it for additional information as needed.
-void GameState::KeyPressed(int keyCode, bool downBefore){
-	std::cout<<"\nDefault GameState::KeyPressed activated.";
+void AppState::KeyPressed(int keyCode, bool downBefore){
+	std::cout<<"\nDefault AppState::KeyPressed activated.";
 }
 
 /*
-void GameState::OnExit(GameState * nextState){
+void AppState::OnExit(AppState * nextState){
 	print("\nLeaving state: "<<this->id);
 }
 */
@@ -121,16 +121,16 @@ void GameState::OnExit(GameState * nextState){
 /** Function to handle custom actions defined per state.
 		This function is called by the various bindings that the state defines.
 	*/
-void GameState::InputProcessor(int action, int inputDevice/* = 0*/){
+void AppState::InputProcessor(int action, int inputDevice/* = 0*/){
 	std::cout<<"\nState::InputProcessor called.";
 }
 /// Creates default key-bindings for the state.
-void GameState::CreateDefaultBindings(){
+void AppState::CreateDefaultBindings(){
 	std::cout<<"\nState::CreateDefaultBindings called.";
 }
 
 /// Creates the user interface for this state
-void GameState::CreateUserInterface()
+void AppState::CreateUserInterface()
 {
 	std::cout<<"\nState::CreateUserInterface called for "<<name;
 	if (ui)
@@ -141,7 +141,7 @@ void GameState::CreateUserInterface()
 /** Attempts to free the resources used by the user interface before deleting it.
 	Aborts and returns false if any errors occur along the way.
 */
-bool GameState::DeallocateUserInterface()
+bool AppState::DeallocateUserInterface()
 {
     std::cout<<"\nCalling DeallocateUserInterface for state: "<<name;
 	if (ui){
@@ -161,15 +161,15 @@ bool GameState::DeallocateUserInterface()
 }
 
 /// For handling drag-and-drop files.
-void GameState::HandleDADFiles(List<String> & files){
+void AppState::HandleDADFiles(List<String> & files){
 	// Default. Do nothing.
 }
 
 
 /// What happens.. when we rendar?!
-void GameState::Render(GraphicsState * graphgics)
+void AppState::Render(GraphicsState * graphgics)
 {
-//	std::cout<<"\nDefault GameState::Render called. Overloading failed or window got state rendering enabled in vain.";
+//	std::cout<<"\nDefault AppState::Render called. Overloading failed or window got state rendering enabled in vain.";
 }
 
 #include "../Initializer.h"
@@ -186,7 +186,7 @@ Exit::Exit()
     name = "Exiting state";
 }
 
-void Exit::OnEnter(GameState * previousState){
+void Exit::OnEnter(AppState * previousState){
     if (previousState == this){
         std::cout<<"\nWARNING: Already in exit state.";
         return;

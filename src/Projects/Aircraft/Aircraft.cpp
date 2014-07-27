@@ -59,7 +59,7 @@ AircraftState::~AircraftState()
 
 }
 /// Function when entering this state, providing a pointer to the previous StateMan.
-void AircraftState::OnEnter(GameState * previousState)
+void AircraftState::OnEnter(AppState * previousState)
 {
 	// Set custom integrator
 	Physics.QueueMessage(new PMSet(new AircraftIntegrator()));
@@ -104,7 +104,7 @@ void AircraftState::Process(int timeInMs)
 }
 
 /// Function when leaving this state, providing a pointer to the next StateMan.
-void AircraftState::OnExit(GameState * nextState)
+void AircraftState::OnExit(AppState * nextState)
 {
 
 }

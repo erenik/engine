@@ -6,7 +6,7 @@
 
 struct Vertex;
 struct Edge;
-struct Triangle;
+class Triangle;
 
 #include "MathLib.h"
 #include "List/List.h"

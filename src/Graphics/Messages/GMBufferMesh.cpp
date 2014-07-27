@@ -5,6 +5,8 @@
 #include "../GraphicsManager.h"
 #include "GraphicsMessages.h"
 
+#include "Mesh.h"
+
 GMBufferMesh::GMBufferMesh(Mesh * iMesh) : GraphicsMessage(GM_BUFFER_MESH) {
 	mesh = iMesh;
 }

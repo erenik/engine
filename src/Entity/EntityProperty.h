@@ -52,7 +52,7 @@ public:
 	Entity * owner;
 
 private:
-	/// GameState-control variables
+	/// AppState-control variables
 	EntityPropertyState * currentState;
 	EntityPropertyState * previousState;
 	EntityPropertyState * queuedState;

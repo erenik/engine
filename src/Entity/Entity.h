@@ -19,7 +19,7 @@ struct PhysicsProperty;
 struct PathfindingProperty;
 class ScriptProperty;
 class CompactEntity;
-struct Triangle;
+class Triangle;
 class EntityProperty;
 /*
 #include "GL/glew.h"

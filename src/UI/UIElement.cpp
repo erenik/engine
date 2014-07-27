@@ -1057,8 +1057,8 @@ void UIElement::Bufferize()
 		if (err != GL_NO_ERROR)
 			std::cout<<"\nGLError buffering UI in UIElement::Bufferize";
 
-		// Count total vertex/texture point pairs without any further optimization.
-		unsigned int vertexCount = mesh->faces * 3;
+		// Count total vertices/texture point pairs without any further optimization.
+		unsigned int vertexCount = mesh->faces.Size() * 3;
 		unsigned int floatsPerVertex = 3 + 3 + 2;  // Pos + Normal + UV
 		unsigned int vboVertexDataLength = vertexCount * floatsPerVertex;
 		float * vboVertexData = new float[vboVertexDataLength];
@@ -1073,25 +1073,28 @@ void UIElement::Bufferize()
 
 		// Load all data in one big fat array, yo Data
 		unsigned int vertexDataCounted = 0;
-		// Reset vertex count
+		// Reset vertices count
 		vboVertexCount = 0;
-		for (int i = 0; i < mesh->faces; ++i){
+		for (int i = 0; i < mesh->faces.Size(); ++i)
+		{
+			MeshFace * face = &mesh->faces[i];
 			// Count vertices in all triangles
-			for (int j = 0; j < 3; ++j){
-				int currentVertex = mesh->face[i].vertex[j];
+			for (int j = 0; j < 3; ++j)
+			{
+				int currentVertex = face->vertices[j];
 				// Position
-				vboVertexData[vertexDataCounted + 0] = mesh->vertex[currentVertex].x;
-				vboVertexData[vertexDataCounted + 1] = mesh->vertex[currentVertex].y;
-				vboVertexData[vertexDataCounted + 2] = mesh->vertex[currentVertex].z;
+				vboVertexData[vertexDataCounted + 0] = mesh->vertices[currentVertex].x;
+				vboVertexData[vertexDataCounted + 1] = mesh->vertices[currentVertex].y;
+				vboVertexData[vertexDataCounted + 2] = mesh->vertices[currentVertex].z;
 				// Normal
-				int currentNormal = mesh->face[i].normal[j];
-				vboVertexData[vertexDataCounted + 3] = mesh->normal[currentNormal].x;
-				vboVertexData[vertexDataCounted + 4] = mesh->normal[currentNormal].y;
-				vboVertexData[vertexDataCounted + 5] = mesh->normal[currentNormal].z;
+				int currentNormal = face->normals[j];
+				vboVertexData[vertexDataCounted + 3] = mesh->normals[currentNormal].x;
+				vboVertexData[vertexDataCounted + 4] = mesh->normals[currentNormal].y;
+				vboVertexData[vertexDataCounted + 5] = mesh->normals[currentNormal].z;
 				// UV
-				int currentUV = mesh->face[i].uv[j];
-				vboVertexData[vertexDataCounted + 6] = mesh->uv[currentUV].x;
-				vboVertexData[vertexDataCounted + 7] = mesh->uv[currentUV].y;
+				int currentUV = face->uvs[j];
+				vboVertexData[vertexDataCounted + 6] = mesh->uvs[currentUV].x;
+				vboVertexData[vertexDataCounted + 7] = mesh->uvs[currentUV].y;
 				vertexDataCounted += 8;
 				++vboVertexCount;
 			}
@@ -1355,6 +1358,11 @@ void UIElement::RenderSelf(GraphicsState * graphicsState)
 			this->font = Graphics.GetFont(this->fontSource);
 			if (this->font)
 				graphicsState->currentFont = this->font;
+		}
+		// If still no font, use default font.
+		if (!font)
+		{
+			graphicsState->currentFont = Graphics.GetFont(TextFont::defaultFontSource);
 		}
 	}
 	// Render text if applicable!

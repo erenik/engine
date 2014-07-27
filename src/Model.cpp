@@ -1,5 +1,9 @@
+/// Emil Hedemalm
+/// 2014-07-27 (header added recently, original was much older)
+/// A complete model, which may have multiple mesh-parts.
 
 #include "Model.h"
+#include "Mesh.h"
 
 #include <cstdlib>
 #include "PhysicsLib/Shapes.h"
@@ -38,6 +42,17 @@ String Model::Source(){
 	if (mesh)
 		return mesh->source;
 	return "";
+}
+
+String Model::RelativePath()
+{ 
+	return mesh->RelativePath(); 
+}
+
+/// Calls render on the triangulized mesh parts within.
+void Model::Render()
+{
+	GetTriangulatedMesh()->Render();
 }
 
 void Model::SetName(String i_name){

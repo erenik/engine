@@ -34,13 +34,15 @@ namespace PhysicsShape  {
 #ifndef PLANE_H
 #define PLANE_H
 
-struct Ray;
-struct Plane;
+class Ray;
+class Plane;
 
 
 /// A 3-dimensional plane
 /// Defines a plane class, used for physical calculations/checks.
-struct Plane {
+class Plane 
+{
+public:
 	Plane() {
 		Set3Points(Vector3f(-0.5f,0,-0.5f), Vector3f(0.5f,0,-0.5f),Vector3f(0.5f,0,0.5f));
 	};
@@ -69,7 +71,9 @@ struct Plane {
 	float D;
 };
 
-struct Triangle : public Plane {
+class Triangle : public Plane 
+{
+public:
 	Triangle() : Plane() {
 	};
 	/// Positions isn't updated correctly with just the inherited plane-constructor!
@@ -79,7 +83,7 @@ struct Triangle : public Plane {
 };
 
 /// Assumes following point-order: lower-left (min), lower-right, upper-right (max), upper-left.
-struct Quad : public Plane {
+class Quad : public Plane {
 private:
 	/// Make Set3Points inaccessible!
 	void Set3Points(Vector3f p1, Vector3f p2, Vector3f p3);
@@ -115,14 +119,16 @@ public:
 	Vector3f point4;
 };
 /// For polygons
-struct Ngon : public Plane {
+class Ngon : public Plane {
 	Ngon();
 	// Empty..
 };
 
 #endif
 
-struct Cylinder {
+class Cylinder 
+{
+public:
 	Cylinder() { radius = 1.0f; length = 1.0f; };
 	Vector3f position;
 	Vector3f rotation;
@@ -130,7 +136,9 @@ struct Cylinder {
 	float length;
 };
 
-struct Sphere {
+class Sphere 
+{
+public:
 #define DEFAULT_SECTIONS	8
 	Sphere() { radius = 1.0f; sections = DEFAULT_SECTIONS; };
 	Sphere(float radius, Vector3f position = Vector3f());
@@ -148,7 +156,9 @@ struct Cube {
 		fartherTopLeft, fartherTopRight, fartherBottomLeft, fartherBottomRight;
 };
 
-struct Ray{
+class Ray
+{
+public:
     /// Returns true if they intersect, and the distance (along the ray) if so.
     bool Intersect(Triangle & triangle, float * distance);
 
@@ -157,7 +167,9 @@ struct Ray{
 };
 
 /// Used for line-segments.
-struct Line {
+class Line 
+{
+public:
 	Line();
 	Line(Vector3f start, Vector3f stop);
 	float Length();

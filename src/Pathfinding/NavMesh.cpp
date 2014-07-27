@@ -541,16 +541,17 @@ int NavMesh::DiscardUnwalkables(){
 	return 0;
 }
 /// For scaling le navmesh (i.e.: all waypoints)
-int NavMesh::Scale(float scale){
+void NavMesh::Scale(float scale)
+{
 	for (int i = 0; i < waypoints.Size(); ++i){
 		waypoints[i]->position *= scale;
 		waypoints[i]->elevation *= scale;
 	}
-	return waypoints;
 }
 
 /// Attempts to merge all walkable waypoints depending on their distance to each other.
-int NavMesh::MergeWaypointsByProximity(float maxDistance){
+int NavMesh::MergeWaypointsByProximity(float maxDistance)
+{
 	int waypointsBeforeMerge = waypoints.Size();
 	int walkablesBeforeMerge = walkables;
 	std::cout<<"\nMerging Waypoints by Proximity, maxDistance: "<<maxDistance;
@@ -561,13 +562,13 @@ int NavMesh::MergeWaypointsByProximity(float maxDistance){
 		toMerge[i] = new Waypoint * [MAX_MERGE_SETS];
 	}
 	int * setSize = new int[MAX_MERGE_SETS];
-	memset(setSize, 0, sizeof(int) * waypoints);
+	memset(setSize, 0, sizeof(int) * waypoints.Size());
 	int setsDone = 0;
 	std::cout<<"\nGathering data for merges...";
 	/// Go through every waypoint
 	for (int i = 0; i < waypoints.Size(); ++i){
 		if (i%100 == 0)
-			std::cout<<"\n"<<i<<" out of "<<waypoints<<" processed.";
+			std::cout<<"\n"<<i<<" out of "<<waypoints.Size()<<" processed.";
 		/// Skip unpassables
 		if (!waypoints[i]->passable)
 			continue;
@@ -613,7 +614,7 @@ int NavMesh::MergeWaypointsByProximity(float maxDistance){
 		optimized = true;
 
 	std::cout<<"\nNavMesh "<<source<<" optimized with "<<merges<<" merges.";
-	std::cout<<"\nAmount of waypoints decreased from "<<waypointsBeforeMerge<<" to "<<waypoints;
+	std::cout<<"\nAmount of waypoints decreased from "<<waypointsBeforeMerge<<" to "<<waypoints.Size();
 	std::cout<<"\nAmount of walkables decreased from "<<walkablesBeforeMerge<<" to "<<walkables;
 	return merges;
 }
@@ -621,11 +622,12 @@ int NavMesh::MergeWaypointsByProximity(float maxDistance){
 /** Optimization function for merging a select number of waypoints, averaging the position,
 	and re-directing all neighbours' pointers to the new merged waypoint.
 */
-bool NavMesh::MergeWaypoints(Waypoint ** waypointList, int waypointsToMerge){
+bool NavMesh::MergeWaypoints(Waypoint ** waypointList, int waypointsToMerge)
+{
 	if (waypointList == NULL || waypointsToMerge < 2)
 		return false;
 
-	int WAYPOINTS_BEFORE_MERGE = waypoints;
+	int WAYPOINTS_BEFORE_MERGE = waypoints.Size();
 
 	/// Check that none of the waypoints have already been merged.
 	for (int i = 0; i < waypointsToMerge; ++i){

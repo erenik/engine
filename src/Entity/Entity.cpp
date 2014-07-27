@@ -1,6 +1,8 @@
 // Emil Hedemalm
 // 2013-03-17
 
+#include "Mesh.h"
+
 #include "../Material.h"
 #include "../Model.h"
 #include "Entity.h"
@@ -211,7 +213,7 @@ void Entity::RenderOld(GraphicsState * graphicsState){
 	graphicsState->modelMatrixD.Multiply(transformationMatrix);
 	graphicsState->modelMatrixF = graphicsState->modelMatrixD;
 	Matrix4f modelView = graphicsState->viewMatrixF * graphicsState->modelMatrixF;
-	// Set uniform matrix in shader to point to the GameState modelView matrix.
+	// Set uniform matrix in shader to point to the AppState modelView matrix.
 	glMatrixMode(GL_MODELVIEW);
 	glLoadMatrixf(modelView.getPointer());
 	if (graphicsState->activeShader)
@@ -225,21 +227,22 @@ void Entity::RenderOld(GraphicsState * graphicsState){
 
 	// Render the model, old-school
 	Mesh * mesh = model->GetTriangulatedMesh();
-	for (int i = 0; i < mesh->faces; ++i){
+	for (int i = 0; i < mesh->faces.Size(); ++i)
+	{
 		glBegin(GL_TRIANGLES);
-		MeshFace * face = &mesh->face[i];
+		MeshFace * face = &mesh->faces[i];
 		if (face->numVertices > 3){
-			std::cout<<"\nmesh face with more than 3 vertices D:";
+			std::cout<<"\nmesh face with more than 3 numVertices D:";
 		}
 		for (int j = 0; j < 3; ++j){
-			Vector3f position = Vector3f(mesh->vertex[face->vertex[j]].x, mesh->vertex[face->vertex[j]].y, mesh->vertex[face->vertex[j]].z);
+			Vector3f position = Vector3f(mesh->vertices[face->vertices[j]].x, mesh->vertices[face->vertices[j]].y, mesh->vertices[face->vertices[j]].z);
 			position = graphicsState->modelMatrixF * position;
 			position = graphicsState->viewMatrixF * position;
 			position = graphicsState->projectionMatrixF * position;
 
-			glNormal3f(mesh->normal[face->normal[j]].x, mesh->normal[face->normal[j]].y, mesh->normal[face->normal[j]].z);
-			glTexCoord2f(mesh->uv[face->uv[j]].x, mesh->uv[face->uv[j]].y);
-			glVertex3f(mesh->vertex[face->vertex[j]].x, mesh->vertex[face->vertex[j]].y, mesh->vertex[face->vertex[j]].z);
+			glNormal3f(mesh->normals[face->normals[j]].x, mesh->normals[face->normals[j]].y, mesh->normals[face->normals[j]].z);
+			glTexCoord2f(mesh->uvs[face->uvs[j]].x, mesh->uvs[face->uvs[j]].y);
+			glVertex3f(mesh->vertices[face->vertices[j]].x, mesh->vertices[face->vertices[j]].y, mesh->vertices[face->vertices[j]].z);
 		}
 		glEnd();
 	}
@@ -405,7 +408,7 @@ void Entity::Render(GraphicsState * graphicsState)
 		glUniform1i(graphicsState->activeShader->uniformUseNormalMap, 0);
 
 	// Send in texture-data to shader!
-	// Set uniform matrix in shader to point to the GameState modelView matrix.
+	// Set uniform matrix in shader to point to the AppState modelView matrix.
 /*	GLuint uniform = glGetUniformLocation(graphicsState->activeShader->shaderProgram, "texturesToApply");
 	if (uniform != -1)
 		glUniform1i(uniform, texturesToApply);
@@ -441,15 +444,15 @@ void Entity::Render(GraphicsState * graphicsState)
 		graphicsState->modelMatrixD.Multiply(transformationMatrix);
 		graphicsState->modelMatrixF = graphicsState->modelMatrixD;		
 	}
-	// Set uniform matrix in shader to point to the GameState modelView matrix.
+	// Set uniform matrix in shader to point to the AppState modelView matrix.
 	glUniformMatrix4fv(graphicsState->activeShader->uniformModelMatrix, 1, false, graphicsState->modelMatrixF.getPointer());
 	error = glGetError();
 
-	// Set uniform matrix in shader to point to the GameState modelView matrix.
+	// Set uniform matrix in shader to point to the AppState modelView matrix.
 	GLuint uniform = glGetUniformLocation(graphicsState->activeShader->shaderProgram, "normalMatrix");
-	Vector3f normal = Vector3f(0,1,0);
+	Vector3f normals = Vector3f(0,1,0);
 	Matrix4f normalMatrix = graphicsState->modelMatrixF.InvertedCopy().TransposedCopy();
-	normal = normalMatrix.Product(normal);
+	normals = normalMatrix.Product(normals);
 	if (uniform != -1)
 		glUniformMatrix4fv(uniform, 1, false, normalMatrix.getPointer());
 	error = glGetError();
@@ -504,7 +507,7 @@ void Entity::Render(GraphicsState * graphicsState)
 				// Apply transformation
 				graphicsState->modelMatrixD.Multiply(transformationMatrix);
 				graphicsState->modelMatrixF = graphicsState->modelMatrixD;
-				// Set uniform matrix in shader to point to the GameState modelView matrix.
+				// Set uniform matrix in shader to point to the AppState modelView matrix.
 				glUniformMatrix4fv(graphicsState->activeShader->uniformModelMatrix, 1, false, graphicsState->modelMatrixF.getPointer());
 				error = glGetError();
 				/// Set other render-mode so we know what we're looking at.

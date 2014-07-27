@@ -6,8 +6,9 @@
 #include "GraphicsState.h"
 #include "Pathfinding/WaypointManager.h"
 #include "Pathfinding/PathManager.h"
-#include "ModelManager.h"
 
+#include "ModelManager.h"
+#include "Model.h"
 
 
 #define SELECTED_HARD_COLOR {glColor4f(1.8f, 1.6f, 0.5f, 0.6f);}
@@ -172,10 +173,10 @@ void GraphicsManager::RenderPath(){
 		transform.Scale(4);
 		transform.Translate(wp->position);
 		transform.Translate(0, 1.0f, 0);
-		/// Set uniform matrix in shader to point to the GameState modelView matrix.
+		/// Set uniform matrix in shader to point to the AppState modelView matrix.
  		glUniformMatrix4fv(graphicsState->activeShader->uniformModelMatrix, 1, false, transform.getPointer());
 		// Render if we got a model ^^
-		model->GetTriangulatedMesh()->Render();
+		model->Render();
 	}
 	/// Draw a line-strip too, using default renderer!
 	waypointRendered = 0;
@@ -206,7 +207,7 @@ void GraphicsManager::RenderPath(){
 			0.4f + waypointRendered / waypoints, 
 			1.0f);
 		++waypointRendered;
-		/// Set uniform matrix in shader to point to the GameState modelView matrix.
+		/// Set uniform matrix in shader to point to the AppState modelView matrix.
  		glVertex3f(wp->position.x, wp->position.y + 1.0f, wp->position.z);
 	}
 	glEnd();

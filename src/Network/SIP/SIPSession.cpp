@@ -399,7 +399,7 @@ bool SIPSession::EnsurePeerData(Peer * peer, SIPPacket * packet){
     String senderData = packet->senderData;
     // Parse sender data for name and stuff
     List<String> tokens = senderData.Tokenize(" <>\n\r\t@;:");
-    std::cout << "Tokens: "<<tokens;
+	std::cout << "Tokens: "<<tokens.Size();
     if (tokens.Size() < 4)
         return false;
     assert(tokens.Size() >= 4);

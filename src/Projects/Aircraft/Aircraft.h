@@ -3,20 +3,20 @@
 /// Simple flying aircraft game/simulator to test physics and possibly rendering 
 
 
-#include "GameStates/GameState.h"
+#include "AppStates/AppState.h"
 
-class AircraftState : public GameState 
+class AircraftState : public AppState 
 {
 public:
 	AircraftState();
 	/// Virtual destructor to discard everything appropriately.
 	virtual ~AircraftState();
 	/// Function when entering this state, providing a pointer to the previous StateMan.
-	virtual void OnEnter(GameState * previousState);
+	virtual void OnEnter(AppState * previousState);
 	/// Main processing function, using provided time since last frame.
 	virtual void Process(int timeInMs);
 	/// Function when leaving this state, providing a pointer to the next StateMan.
-	virtual void OnExit(GameState * nextState);
+	virtual void OnExit(AppState * nextState);
 
 	/// Callback function that will be triggered via the MessageManager when messages are processed.
 	virtual void ProcessPacket(Packet * packet);

@@ -6,7 +6,7 @@
 
 #include "InputMapping.h"
 #include "../Globals.h"
-#include "GameStates/GameState.h"
+#include "AppStates/AppState.h"
 
 #include <ctime>
 #include <Util.h>

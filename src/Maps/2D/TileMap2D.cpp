@@ -202,13 +202,13 @@ void TileMap2D::Render(GraphicsState * graphicsState)
 				// Apply transformation
 				graphicsState->modelMatrixD.Multiply(transformationMatrix);
 				graphicsState->modelMatrixF = graphicsState->modelMatrixD;
-				// Set uniform matrix in shader to point to the GameState modelView matrix.
+				// Set uniform matrix in shader to point to the AppState modelView matrix.
 				glUniformMatrix4fv(graphicsState->activeShader->uniformModelMatrix, 1, false, graphicsState->modelMatrixF.getPointer());
 
 				// Texture enabled.
 				glBindTexture(GL_TEXTURE_2D, previewTexture->glid);
 				// Render it.			
-				model->mesh->Render();
+				model->Render();
 				/// Reset transformation matrix.
 				graphicsState->modelMatrixF = graphicsState->modelMatrixD = Matrix4d();
 
@@ -230,7 +230,7 @@ void TileMap2D::Render(GraphicsState * graphicsState)
 				transformationMatrix = Matrix4f::InitTranslationMatrix(Vector3f(tile->position.x, tile->position.y, 0.f));
 				// Apply transformation
 				graphicsState->modelMatrixF = transformationMatrix;
-				// Set uniform matrix in shader to point to the GameState modelView matrix.
+				// Set uniform matrix in shader to point to the AppState modelView matrix.
 				glUniformMatrix4fv(graphicsState->activeShader->uniformModelMatrix, 1, false, graphicsState->modelMatrixF.getPointer());
 				
 				/// Set texture.
@@ -247,7 +247,7 @@ void TileMap2D::Render(GraphicsState * graphicsState)
 					glBindTexture(GL_TEXTURE_2D, tex->glid);
 				}
 				/// Set position.
-				model->mesh->Render();
+				model->Render();
 			}
 		}
 
@@ -283,7 +283,7 @@ void TileMap2D::Render(GraphicsState * graphicsState)
 			graphicsState->modelMatrixD = Matrix4d();
 			graphicsState->modelMatrixD.Multiply(transformationMatrix);
 			graphicsState->modelMatrixF = graphicsState->modelMatrixD;
-			// Set uniform matrix in shader to point to the GameState modelView matrix.
+			// Set uniform matrix in shader to point to the AppState modelView matrix.
 			glUniformMatrix4fv(graphicsState->activeShader->uniformModelMatrix, 1, false, graphicsState->modelMatrixF.getPointer());
 			// Bind texture
 			if (!got->texture){
@@ -296,7 +296,7 @@ void TileMap2D::Render(GraphicsState * graphicsState)
 			}
 			/// Disable depth test.. should not be needed.
 			/// Render
-			model->mesh->Render();
+			model->Render();
 		}
 		/// Render (active) entities!
 		for (int i = 0; i < entities.Size(); ++i)
@@ -333,7 +333,7 @@ void TileMap2D::Render(GraphicsState * graphicsState)
 			graphicsState->modelMatrixD = Matrix4d();
 			graphicsState->modelMatrixD.Multiply(transformationMatrix);
 			graphicsState->modelMatrixF = graphicsState->modelMatrixD;
-			// Set uniform matrix in shader to point to the GameState modelView matrix.
+			// Set uniform matrix in shader to point to the AppState modelView matrix.
 			glUniformMatrix4fv(graphicsState->activeShader->uniformModelMatrix, 1, false, graphicsState->modelMatrixF.getPointer());
 			// Bind texture
 			Texture * diffuseMap = NULL;
@@ -348,7 +348,7 @@ void TileMap2D::Render(GraphicsState * graphicsState)
 			}
 			/// Disable depth test.. should not be needed.
 			/// Render
-			model->mesh->Render();
+			model->Render();
 		}
 
 	}
@@ -1341,11 +1341,12 @@ int TileMap2D::GenerateWaypoints(NavMesh * navMesh)
 {
 	std::cout<<"\nTileMap2D::GenerateWaypoints";
 	assert(tileTypesAssignedToTiles);
-	for (int i = 0; i < levels.Size(); ++i){
-		int waypointsPre = navMesh->waypoints;
+	for (int i = 0; i < levels.Size(); ++i)
+	{
+		int waypointsPre = navMesh->waypoints.Size();
 		TileMapLevel * level = levels[i];
 		level->GenerateWaypoints(navMesh, 1.1f);
-		int waypointsPost = navMesh->waypoints;
+		int waypointsPost = navMesh->waypoints.Size();
 		std::cout<<"\nWaypoints: "<<waypointsPre<<" post:"<<waypointsPost;
 		assert(waypointsPost > waypointsPre);
 	}

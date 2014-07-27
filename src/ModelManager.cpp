@@ -1,4 +1,11 @@
+/// Emil Hedemalm
+/// 2014-07-27
+/// A manager for all models encapsulating 3D-data.
+
 #include "ModelManager.h"
+
+#include "Model.h"
+#include "Mesh.h"
 
 #include <iostream>
 #include <cstdlib>
@@ -41,13 +48,23 @@ ModelManager::~ModelManager()
 }
 
 /// Loads required models (either hard-coded or from file)
-void ModelManager::Initialize(){
+void ModelManager::Initialize()
+{
 	LoadObj("sphere.obj");
 	LoadObj("cube.obj");
 	LoadObj("plane.obj");
 	LoadObj("Sphere6.obj");
 	LoadObj("Awesome haus_uv.obj");
 };
+
+/// Creates a new model that may be dynamically manipulated and re-buffered as editing proceeds.
+Model * ModelManager::NewDynamic()
+{
+	Model * model = new Model();
+	modelList.Add(model);
+	return model;
+}
+
 
 /// Returns pointer to model at target index
 Model * ModelManager::GetModel(int index){
@@ -195,7 +212,8 @@ Model * ModelManager::LoadObj(String source)
 			std::cout<<"\nTriangulate.";
 			model->triangulizedMesh->Triangulate();
 			std::cout<<"\nTriangulated.";
-			if (model->triangulizedMesh->normal == NULL)
+			// If no normals? Recalculate 'em.
+			if (model->triangulizedMesh->normals.Size() == NULL)
 				model->triangulizedMesh->RecalculateNormals();
 			std::cout<<"\nNormalized";
 //			model->triangulizedMesh->CalculateUVTangents();
@@ -289,7 +307,7 @@ Model * ModelManager::LoadCollada(String source){
 	std::cout<<"\nTriangulate.";
 	model->triangulizedMesh->Triangulate();
 	std::cout<<"\nTriangulated.";
-	if (model->triangulizedMesh->normal == NULL)
+	if (model->triangulizedMesh->normals.Size() == NULL)
 		model->triangulizedMesh->RecalculateNormals();
 	std::cout<<"\nNormalized";
 	model->triangulizedMesh->CalculateUVTangents();

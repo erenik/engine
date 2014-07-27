@@ -162,7 +162,7 @@ private:
 	bool pauseOnCollision;
 
 	/// Loads PhysicsMesh from mesh counterpart
-	PhysicsMesh * LoadPhysicsMesh(const Mesh * byMeshSource);
+	PhysicsMesh * LoadPhysicsMesh(Mesh * byMeshSource);
 	/// Getter funcsschtlions
 	PhysicsMesh * GetPhysicsMesh(const String bySourceFile);
 	PhysicsMesh * GetPhysicsMesh(const Mesh * byMeshSource);

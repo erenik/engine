@@ -30,7 +30,7 @@ public:
 	virtual void Process(int timeInMs);
 	virtual void OnEnd();
 private:
-	GameState * gs;
+	AppState * gs;
 };
 
 class UIElement;

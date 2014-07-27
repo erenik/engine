@@ -336,6 +336,9 @@ addProject("Horror" horrorFolders)
 set(aircraftFolders "Projects/Aircraft")
 addProject("Aircraft" aircraftFolders)
 
+set(MORPGFolders "Projects/MORPG")
+addProject("MORPG" MORPGFolders)
+
 # Create our projects
 set(ipmFolders "Projects/IPM" "CV")
 addProject("IPM" ipmFolders)

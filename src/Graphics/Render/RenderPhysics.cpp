@@ -4,12 +4,14 @@
 #include "Graphics/GraphicsManager.h"
 #include "Physics/PhysicsManager.h"
 #include "Physics/PhysicsProperty.h"
-#include "ModelManager.h"
 #include "PhysicsLib/PhysicsMesh.h"
 #include "Physics/Collision/CollisionShapeOctree.h"
 #include "GraphicsState.h"
 #include "Physics/Springs/Spring.h"
 #include "Viewport.h"
+
+#include "ModelManager.h"
+#include "Model.h"
 
 #define PRINT_ERROR std::cout<<"\nGLError in Render "<<error;
 
@@ -120,7 +122,7 @@ void GraphicsManager::RenderPhysics(){
 
             glUniformMatrix4fv(graphicsState->activeShader->uniformModelMatrix, 1, false, aabbMatrix.getPointer());
             Model * cube = ModelMan.GetModel("cube.obj");
-            cube->mesh->Render();
+            cube->Render();
       //  }
 
         glUniform1f(glGetUniformLocation(graphicsState->activeShader->shaderProgram, "rainbowXYZFactor"), rainbowXYZFactor);
@@ -223,7 +225,7 @@ rerer
 				Sphere * sphere = (Sphere*)entity->physics->shape;
 				model = ModelMan.GetModel("sphere.obj");
 				Matrix4f transform = Matrix4f(transformationMatrix);
-				/// Set uniform matrix in shader to point to the GameState modelView matrix.
+				/// Set uniform matrix in shader to point to the AppState modelView matrix.
 				glUniformMatrix4fv(graphicsState->activeShader->uniformModelMatrix, 1, false, transform.getPointer());
 				// Render if we got a model ^^
 				if (model)
@@ -295,11 +297,11 @@ rerer
 	//	transformationMatrix.multiply(Matrix4d::GetRotationMatrixY(entity->rotation.y));
 	//	transformationMatrix.multiply(Matrix4d::GetRotationMatrixZ(entity->rotation.z));
 		Matrix4f transform = Matrix4f(transformationMatrix);
-		/// Set uniform matrix in shader to point to the GameState modelView matrix.
+		/// Set uniform matrix in shader to point to the AppState modelView matrix.
 		glUniformMatrix4fv(graphicsState->activeShader->uniformModelMatrix, 1, false, transform.getPointer());
 		// Render if we got a model ^^
 		if (model)
-			model->GetTriangulatedMesh()->Render();
+			model->Render();
 
 	}
 
@@ -429,11 +431,11 @@ rerer
 			Model * model = c.one->model;
 			glUniform4f(shader->uniformPrimaryColorVec4, 15.0f, 0.0f, 0.0f, 0.1f);
 			glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, cr.onePreResolution.getPointer());
-			model->mesh->Render();
+			model->Render();
 			
 			model = c.two->model;
 			glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, cr.twoPreResolution.getPointer());
-			model->mesh->Render();
+			model->Render();
 		}
 	}
 	else {

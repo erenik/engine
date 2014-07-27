@@ -7,7 +7,7 @@
 
 #include "AEGlew.h"
 
-struct Triangle;
+class Triangle;
 struct GraphicsState;
 
 /// A struct for a geometric MeshFace, containing number of vertices and indices for which vertex is used and which UV-coordinate is used.
@@ -28,8 +28,8 @@ public:
 	void operator = (const MeshFace & otherMeshFace);
 
 	// Call after setting numVertices
-	void Allocate();
-	void Deallocate();
+	void AllocateArrays();
+	void DeallocateArrays();
 
 	bool WriteTo(std::fstream & fileStream);
 	bool ReadFrom(std::fstream & fileStream);
@@ -37,11 +37,11 @@ public:
 	/// Number of vertices in the MeshFace. A MeshFace will have no more than 255 vertices, and if it does: this program won't like it anyway :P
 	unsigned char numVertices;
 	/// Dynamic array for the vertices, since the MeshFace can be an arbitrary polygon.
-	unsigned int * vertex;
+	List<unsigned int> vertices;
 	/// Dynamic array for uv-coordinates, since the MeshFace can be an arbitrary polygon.
-	unsigned int * uv;
+	List<unsigned int> uvs;
 	/// Dynamic array for normal-coordinates, since the MeshFace can be an arbitrary polygon.
-	unsigned int * normal;
+	List<unsigned int> normals;
 
 	// MeshFace UV "up"- and "right"-tangent respectively for NormalMapping.
 	Vector4f uvTangent;
@@ -63,6 +63,12 @@ public:
 	Mesh();
 	/// Destructor
 	virtual ~Mesh();
+
+	/// Deletes all parts within this mesh (vertices, faces, edges, etc.)
+	void Delete();
+
+	/// Adds a plane, creating 2 faces in a counter-clockwise manner.
+	void AddPlane(Vector3f upperLeft, Vector3f lowerLeft, Vector3f lowerRight, Vector3f upperRight);
 
 	// Allocates the vertex, u,v and normal arrays
 	void AllocateArrays();
@@ -110,26 +116,23 @@ public:
 	Vector3f max, min;
 
 	/// Amount of vertices in the mesh.
-	int vertices;
+	int numVertices;
 	/// Amount of UV-coordinates in the mesh.
-	int uvs;
+	int numUVs;
 	/// Amount of MeshFaces in the mesh.
-	int faces;
+	int numFaces;
 	/// Amount of normals in the mesh.
-	int normals;
+	int numNormals;
 
 	/// Carteesian coordinates for the vertices
-	Vector3f * vertex;
+	List<Vector3f> vertices;
 	/// Joint UV-coordinates replacing the old separate u/v arrays!
-	Vector2f * uv;
-	/// U-coordinates for the textures
-//	float * u;
-	/// V-coordinates for the textures
-//	float * v;
+	List<Vector2f> uvs;
 	/// Normals for each vertex. Pointer is null if
-	Vector3f * normal;
+	List<Vector3f> normals;
 	/// MeshFaces that define the mesh, using the provided vertices and UV-coordinates
-	MeshFace * face;
+	List<MeshFace> faces;
+
 	/// Texture ID used when rendering the MeshFaces.
 	GLuint textureID;
 	/// Identifier for the Vertex Buffer
@@ -150,7 +153,7 @@ public:
 	unsigned int vboVertexCount;
 
 	bool IsTriangulated(){return triangulated;};
-private:
+protected:
 	/// Set after calling Triangulate only.
 	bool triangulated;
 	// How many floats were buffered, per vertex.

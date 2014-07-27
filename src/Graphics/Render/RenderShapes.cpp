@@ -27,7 +27,8 @@ void GraphicsManager::RenderShapes(){
 	glEnd();
 
     // Render all queued shapes!
-    for (int i = 0; i < renderShapes; ++i){
+	for (int i = 0; i < renderShapes.Size(); ++i)
+	{
         Renderable * r = renderShapes[i];
         r->Render();
     }

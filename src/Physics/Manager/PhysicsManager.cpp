@@ -17,6 +17,8 @@
 #include "Physics/CollisionResolver.h"
 #include "Physics/CollisionDetector.h"
 
+#include "Mesh.h"
+
 #include <ctime>
 
 PhysicsManager * PhysicsManager::physicsManager = NULL;
@@ -189,7 +191,7 @@ void PhysicsManager::SetPhysicsShape(List<Entity*> targetEntities, int type)
 			PhysicsMesh * mesh = entity->physics->physicsMesh;
 			if (!mesh)
 				break;
-			// Use an octree when the face number exceeds a predefined limit.
+			// Use an octree when the faces number exceeds a predefined limit.
 			if (mesh->triangles.Size() > 12 || mesh->quads.Size() > 6) // 12 for cube o-o
 				entity->physics->usesCollisionShapeOctree = true;
 			break;
@@ -264,26 +266,28 @@ void PhysicsManager::EnsurePhysicsMeshIfNeeded(Entity * targetEntity){
 }
 
 /// Loads PhysicsMesh from mesh counterpart
-PhysicsMesh * PhysicsManager::LoadPhysicsMesh(const Mesh * byMeshSource){
+PhysicsMesh * PhysicsManager::LoadPhysicsMesh(Mesh * byMeshSource)
+{
 	assert(byMeshSource);
 	PhysicsMesh * mesh = new PhysicsMesh();
 	mesh->meshCounterpart = byMeshSource;
-	for (int i = 0; i < byMeshSource->faces; ++i){
+	for (int i = 0; i < byMeshSource->numFaces; ++i)
+	{
 		// Just copy shit from it
-		MeshFace * face = &byMeshSource->face[i];
-		assert((face->numVertices <= 4 || face->numVertices >= 3) && "Bad vertex count in face");
+		MeshFace * faces = &byMeshSource->faces[i];
+		assert((faces->numVertices <= 4 || faces->numVertices >= 3) && "Bad vertices count in faces");
 
-		Vector3f p1 = byMeshSource->vertex[face->vertex[0]],
-			p2 = byMeshSource->vertex[face->vertex[1]],
-			p3 = byMeshSource->vertex[face->vertex[2]];
+		Vector3f p1 = byMeshSource->vertices[faces->vertices[0]],
+			p2 = byMeshSource->vertices[faces->vertices[1]],
+			p3 = byMeshSource->vertices[faces->vertices[2]];
 
-		if (face->numVertices == 4){
-			Vector3f p4 = byMeshSource->vertex[face->vertex[3]];
+		if (faces->numVertices == 4){
+			Vector3f p4 = byMeshSource->vertices[faces->vertices[3]];
 			Quad * quad = new Quad();
 			quad->Set4Points(p1, p2, p3, p4);
 			mesh->quads.Add(quad);
 		}
-		else if (face->numVertices == 3){
+		else if (faces->numVertices == 3){
 			Triangle * tri = new Triangle();
 			tri->Set3Points(p1, p2, p3);
 			mesh->triangles.Add(tri);

@@ -152,7 +152,7 @@ void AStar(Waypoint * from, Waypoint * to, Path& path){
 	openSet[0] = from;
 
 	/// Map of nodes we came from, cost from start along best known path and estimated cost to goal
-	assert(nm->waypoints < SET_SIZE);
+	assert(nm->waypoints.Size() < SET_SIZE);
 	List<Waypoint*> & waypointList = nm->waypoints;
 	Waypoint ** cameFrom = new Waypoint * [nm->waypoints.Size()];
 	memset(cameFrom, 0, sizeof(Waypoint *) * nm->waypoints.Size());

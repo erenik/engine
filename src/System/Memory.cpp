@@ -8,7 +8,7 @@
 
 struct MemoryStatus 
 {
-	int freeBytes;
+	int64 freeBytes;
 	// Percentage.
 	int memoryLoad;
 } memoryStatus;

@@ -9,7 +9,7 @@
 
 /// Compact saveable version of the event
 struct CompactEvent{};
-class GameState;
+class AppState;
 
 // Script flags
 #define DELETE_WHEN_ENDED	0x00000001

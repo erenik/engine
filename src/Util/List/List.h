@@ -33,8 +33,14 @@ public:
 	List(const List &otherList);
 	List(const T & initialItem);
 
+	/** Sets currentItems to arraySize. 
+		Useful if using Allocate() followed by a memory operation using the GetArray()'s pointer, 
+		instead of filling the list one object at a time.
+	*/
+	void SetFull();
+
 	/// Operator overloading
-	operator bool() const { return currentItems? true : false; };
+//	operator bool() const { return currentItems? true : false; }; // <- Was causing loads of shitty errors
 	/// Assignment operator overloading
 	const List<T> & operator = (const List &otherList);
 	const List * operator += (const List &otherList);
@@ -83,7 +89,7 @@ public:
 	bool Swap(int index, int otherIndex);
 
     /// Resizes the array. Recommended to use before filling it to avoid re-sizings later which might slow down the system if used repetitively.
-    void Allocate(int newSize);
+    void Allocate(int newSize, bool setFull = false);
 
 	value_type * GetArray() { return arr; };
 	/// Returns size of the list
@@ -156,6 +162,16 @@ List<T>::List(const T & initialItem){
 	currentItems = 0;
 	inUse = false;
 	Add(initialItem);
+}
+
+/** Sets currentItems to arraySize. 
+	Useful if using Allocate() followed by a memory operation using the GetArray()'s pointer, 
+	instead of filling the list one object at a time.
+*/
+template <class T>
+void List<T>::SetFull()
+{
+	currentItems = arrLength;
 }
 
 /// Operator overloading
@@ -419,7 +435,8 @@ int List<T>::Clear(){
 /// Doesn't work in GCC apparently, maybe bad move.
 
 template <class T>
-int List<T>::ClearAndDelete(){
+int List<T>::ClearAndDelete()
+{
 	for (int i = 0; i < currentItems; ++i)
 		delete arr[i];
 	int itemsRemoved = currentItems;
@@ -477,8 +494,11 @@ int List<T>::GetIndexOf(T item) const {
 
 /// Resizes the array. Recommended to use before filling it to avoid re-sizings later which might slow down the system if used repetitively.
 template <class T>
-void List<T>::Allocate(int newSize){
+void List<T>::Allocate(int newSize, bool setFull)
+{
 	Resize(newSize);
+	if (setFull)
+		currentItems = newSize;
 }
 
 /// Resizing function

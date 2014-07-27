@@ -1396,11 +1396,15 @@ void String::Reallocate(int size)
 	}
 	arraySize = size;
 	assert(arraySize > 0);
+	assert(arr || warr);
 }
 
 /// Copies data from other string, using method determined by ofType.
-void String::Copy(const String & fromTargetString, int ofType){
+void String::Copy(const String & fromTargetString, int ofType)
+{
     int length = fromTargetString.Length();
+	if (length == 0)
+		return;
     assert(length < arraySize);
 	switch(ofType){
 		case NULL_TYPE:

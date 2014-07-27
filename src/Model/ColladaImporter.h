@@ -9,7 +9,7 @@
 
 class XMLParser;
 class XMLElement;
-struct Mesh;
+class Mesh;
 
 enum axises{
 	Y_UP,

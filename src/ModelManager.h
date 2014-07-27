@@ -1,11 +1,13 @@
+/// Emil Hedemalm
+/// 2014-07-27
+/// A manager for all models encapsulating 3D-data.
 
-
-#ifndef OBJECT_HANDLER_H
-#define OBJECT_HANDLER_H
+#ifndef MODEL_MANAGER_H
+#define MODEL_MANAGER_H
 
 #include "Util.h"
-#include "Model.h"
 
+class Model;
 class Texture;
 
 /// Maximum amount of simultaneously loaded objects
@@ -28,6 +30,10 @@ public:
 	~ModelManager();
 	/// Loads required models (either hard-coded or from file)
 	void Initialize();
+
+
+	/// Creates a new model that may be dynamically manipulated and re-buffered as editing proceeds.
+	Model * NewDynamic();
 
 	/// Returns pointer to model at target index
 	Model * GetModel(int index);

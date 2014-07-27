@@ -15,7 +15,7 @@ class Model;
 class Texture;
 class TileMap2D;
 class Script;
-struct Ray;
+class Ray;
 
 /** Defines a class that keeps track of and separates different maps,
 	where maps are basically just a grouping of entities, events, etc.

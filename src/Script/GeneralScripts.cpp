@@ -55,7 +55,7 @@ void StateChanger::Process(int timeInMs)
 		return;
 	}
 	// Wait until the state has been entered too.
-	GameState * activeState = StateMan.ActiveState();
+	AppState * activeState = StateMan.ActiveState();
 	if (activeState == gs)
 		scriptState = Script::ENDING;
 }

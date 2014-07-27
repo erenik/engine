@@ -5,11 +5,10 @@ Abused file: http://3dexport.com/3dmodel-wooden-box-open-39443.htm
 #ifndef OBJREADER_H
 #define OBJREADER_H
 
-#include <GL/glew.h>
-#include "Mesh.h"
-
 #include <fstream>
 #include <sstream>
+
+class Mesh;
 
 /// Custom OBJ-reader class.
 class ObjReader {

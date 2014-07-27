@@ -62,7 +62,7 @@ int TileGrid2D::GenerateWaypoints(NavMesh * navMesh, float maxNeighbourDistance)
 	/// Wait until its claimable
 	while(!WaypointMan.GetActiveNavMeshMutex())
 		;
-	int waypointsPre = navMesh->waypoints;
+	int waypointsPre = navMesh->waypoints.Size();
 		
 	std::cout<<"\nTileGrid2D::GenerateWaypoints";
 	/// Create 'em
@@ -94,7 +94,7 @@ int TileGrid2D::GenerateWaypoints(NavMesh * navMesh, float maxNeighbourDistance)
 	navMesh->ConnectWaypointsByProximity(maxNeighbourDistance);
 
 	/// Check..
-	int waypointsPost = navMesh->waypoints;
+	int waypointsPost = navMesh->waypoints.Size();
 	int waypointsCreated = waypointsPost - waypointsPre;
 	std::cout<<"\nWaypoints: "<<waypointsPre<<" post:"<<waypointsPost;
 	assert(waypointsPost > waypointsPre);	

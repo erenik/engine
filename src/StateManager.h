@@ -5,11 +5,11 @@
 #define STATE_MANAGER_H
 
 #include "Globals.h"
-#include "GameStates/GameState.h"
-#include "GameStates/GameStates.h"
+#include "AppStates/AppState.h"
+#include "AppStates/AppStates.h"
 #include <Util.h>
 
-class GameState;
+class AppState;
 
 #define StateMan		(*StateManager::Instance())
 
@@ -68,23 +68,26 @@ public:
 	/// Tries to queue previous state.
 	void QueuePreviousState();
 	/// Performs switch operations when transitioning states.
-	void QueueState(GameState * state);
+	void QueueState(AppState * state);
 
 	/// Sets a global state, that can process global messages and packets
 	void SetGlobalState(int id);
+	/// Sets a global state, that can process global messages and packets
+	void SetGlobalState(AppState * newGlobalState);
+
 	/// Returns state of given ID so that messages may be sent to it before entering it.
-	GameState * GetStateByID(int id);
-	GameState * GetStateByName(String name);
+	AppState * GetStateByID(int id);
+	AppState * GetStateByName(String name);
 
 	/// Returns ID of the global state
 	int GlobalID();
 	/// Returns ID of the active StateMan.
 	int ActiveStateID();
 	/// Returns a pointer to the global state
-	GameState * GlobalState() { return globalState; };
+	AppState * GlobalState() { return globalState; };
 	/// Returns a pointer to the active StateMan.
-	GameState * ActiveState() { return activeState; };
-	GameState * PreviousState() { return previousState; };
+	AppState * ActiveState() { return activeState; };
+	AppState * PreviousState() { return previousState; };
 
 	// For handling drag-n-drog files.
 	void HandleDADFiles(List<String> & files);
@@ -97,17 +100,17 @@ private:
 	void EnterQueuedState();
 
 	/// Registers a state to the state manager for use. Returns true upon success.
-	bool RegisterState(GameState * state);
+	bool RegisterState(AppState * state);
 
 	/// Array with all states
-	List<GameState*> stateList;
+	List<AppState*> stateList;
 
 	/// Currently active global state
-	GameState * globalState;
+	AppState * globalState;
 	/// Currently active state.
-	GameState * activeState;
-	GameState * previousState;
-	Queue<GameState *> queuedStates;
+	AppState * activeState;
+	AppState * previousState;
+	Queue<AppState *> queuedStates;
 };
 
 

@@ -163,7 +163,15 @@ bool Texture::CreateDataBuffer()
 	if (data)
 		return false;
 	dataBufferSize = width * height * bpp;
-	data = new unsigned char [dataBufferSize];
+	try 
+	{
+		data = new unsigned char [dataBufferSize];
+	} catch (...)
+	{
+		std::cout<<"\nAllocation failed.";
+		assert(false);
+		return false;
+	}
 	return true;
 }
 

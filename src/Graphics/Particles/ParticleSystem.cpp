@@ -75,7 +75,6 @@ void ParticleSystem::SetEmitter(Contour contour)
 void ParticleSystem::SetEmitter(List<ParticleEmitter*> newEmitters)
 {
 	// Delete the old emitter
-	if (emitters)
-		emitters.ClearAndDelete();
+	emitters.ClearAndDelete();
 	emitters = newEmitters;
 }

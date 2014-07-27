@@ -5,7 +5,10 @@
 #include "ModelManager.h"
 #include "GraphicsState.h"
 #include "Shader.h"
+
 #include "Entity/Entity.h"
+
+#include "Model.h"
 
 #ifndef max
 #define max(a,b) ((a > b)? (a) : (b))
@@ -58,6 +61,6 @@ void AlphaModelEffect::Render(GraphicsState * graphicsState)
 //	std::cout<<"\nAlpha: "<<primaryColor.w;
 
 	// Render stuffs.
-	model->mesh->Render();
+	model->Render();
 
 }

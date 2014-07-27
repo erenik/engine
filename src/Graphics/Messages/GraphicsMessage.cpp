@@ -94,7 +94,7 @@ void GraphicsMessage::Process()
 				if (globalUI->IsGeometryCreated())
 					globalUI->DeleteGeometry();
 			}
-			GameState * globalState = StateMan.GlobalState();
+			AppState * globalState = StateMan.GlobalState();
 			if (globalState)
 			{
 				globalState->CreateUserInterface();
@@ -104,7 +104,7 @@ void GraphicsMessage::Process()
 			/// Refresh current UI too.
 			Graphics.SetUI(NULL);
 
-			GameState * state = StateMan.ActiveState();
+			AppState * state = StateMan.ActiveState();
 			UserInterface * ui = state->GetUI();
 			bool wasActive = (ui == Graphics.GetUI());
 			if (ui){

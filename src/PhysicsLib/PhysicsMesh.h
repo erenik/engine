@@ -6,9 +6,9 @@
 
 #include <Util.h>
 
-struct Triangle;
-struct Quad;
-struct Ngon;
+class Triangle;
+class Quad;
+class Ngon;
 class Mesh;
 class CollisionShapeOctree;
 

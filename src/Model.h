@@ -1,14 +1,16 @@
+/// Emil Hedemalm
+/// 2014-07-27 (header added recently, original was much older)
+/// A complete model, which may have multiple mesh-parts.
 
+#ifndef MODEL_H
+#define MODEL_H
 
-#ifndef OBJECT_H
-#define OBJECT_H
-
-#include "Mesh.h"
 #include "Util.h"
 #include "PhysicsLib/AxisAlignedBoundingBox.h"
 
+class Mesh;
 class Texture;
-struct Triangle;
+class Triangle;
 
 /** Defines a single object-type that may be used by several instanced entities
 	and include several kinds of meshes, default textures, etc.
@@ -18,11 +20,15 @@ class Model {
 public:
 	Model();
 	~Model();
+
+	/// Calls render on the triangulized mesh parts within.
+	void Render();
+
 	void SetName(String name);
 	String Name(){ return name; };
 	String Source();
 	/// Returns the source location using relative path.
-	String RelativePath() { return mesh->RelativePath(); };
+	String RelativePath();
 
 	/// Returns a list of all triangles in this model.
 	List<Triangle> GetTris();

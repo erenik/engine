@@ -658,7 +658,7 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 	std::fstream file;
 	file.open(fromFile.c_str(), std::ios_base::in);
 
-	//	assert(file.is_open() && "Unable to open file in GameState::LoadUI");
+	//	assert(file.is_open() && "Unable to open file in AppState::LoadUI");
 	if (!file.is_open()){
 		std::cout<<"\nUserInterface::LoadFromFile: Unable to open file: "<<fromFile;
 		return false;

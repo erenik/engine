@@ -2,7 +2,7 @@
 #ifndef STATES_H
 #define STATES_H
 
-#include "GameStates.h"
+#include "AppStates.h"
 #include "../Globals.h"
 #include "../Selection.h"
 #include "../UI/UIElement.h"
@@ -20,19 +20,19 @@ class Window;
 
 void EmptyFunction();
 
-class GameState {
+class AppState {
 	friend class StateManager;
 	friend class InputManager;
 public:
-	GameState();
+	AppState();
 	/// Virtual destructor to discard everything appropriately.
-	virtual ~GameState();
+	virtual ~AppState();
 	/// Function when entering this state, providing a pointer to the previous StateMan.
-	virtual void OnEnter(GameState * previousState) = 0;
+	virtual void OnEnter(AppState * previousState) = 0;
 	/// Main processing function, using provided time since last frame.
 	virtual void Process(int timeInMs) = 0;
 	/// Function when leaving this state, providing a pointer to the next StateMan.
-	virtual void OnExit(GameState * nextState) = 0;
+	virtual void OnExit(AppState * nextState) = 0;
 
 	/// Callback function that will be triggered via the MessageManager when messages are processed.
 	virtual void ProcessPacket(Packet * packet);
@@ -103,20 +103,20 @@ private:
 
 };
 
-class Initialization : public GameState{
+class Initialization : public AppState{
 public:
 	Initialization();
-	void OnEnter(GameState * previousState);
+	void OnEnter(AppState * previousState);
 	void Process(int timeInMs);
-	void OnExit(GameState * nextState);
+	void OnExit(AppState * nextState);
 };
 
-class Exit : public GameState{
+class Exit : public AppState{
 public:
 	Exit();
-	void OnEnter(GameState * previousState);
+	void OnEnter(AppState * previousState);
 	void Process(int timeInMs);
-	void OnExit(GameState * nextState){
+	void OnExit(AppState * nextState){
 		// shouldn't be entered ever
 	};
 };

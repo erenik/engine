@@ -4,15 +4,16 @@
 #ifndef GRAPHICS_MESSAGE_H
 #define GRAPHICS_MESSAGE_H
 
-#include "../Mesh.h"
 #include "../Selection.h"
 #include "../Lighting.h"
 
+class Triangle;
+class Mesh;
 class UserInterface;
 class Viewport;
 class Texture;
 class Model;
-struct Ray;
+class Ray;
 class Renderable;
 class Window;
 

@@ -194,12 +194,12 @@ void GMSetGlobalUI::Process()
 
 /// Regular UI setter for the main window (Assumes 1 main window)
 GMSetUI::GMSetUI(UserInterface * ui)
-: GraphicsMessage(GM_SET_UI), ui(ui), window(WindowMan.MainWindow())
+: GraphicsMessage(GM_SET_UI), ui(ui), window(WindowMan.MainWindow()), viewport(0)
 {
 }
 // Regular UI setter per window.
 GMSetUI::GMSetUI(UserInterface * ui, Window * forWindow /*= NULL*/)
-: GraphicsMessage(GM_SET_UI), ui(ui), window(forWindow)
+: GraphicsMessage(GM_SET_UI), ui(ui), window(forWindow), viewport(0)
 {
 }
 // If viewport is unspecified (NULL) the global UI will be swapped.

@@ -49,7 +49,7 @@ StateManager::~StateManager()
 	if (activeState)
 		activeState->OnExit(NULL);
 	while (stateList.Size()){
-        GameState * gs = stateList[0];
+        AppState * gs = stateList[0];
         std::cout<<"\nDeleting game state: "<<gs->name;
         stateList.Remove(gs);
 		delete gs;
@@ -58,7 +58,7 @@ StateManager::~StateManager()
 
 void StateManager::Initialize(){
 	/// Create and queue the init-state right away!
-	GameState * initState = new Initialization();
+	AppState * initState = new Initialization();
 	RegisterState(initState);
 	QueueState(initState);
 	RegisterStates();
@@ -73,9 +73,11 @@ void StateManager::CreateDefaultInputBindings(){
 }
 
 /// Queries all states to create their own user interfaces.
-void StateManager::CreateUserInterfaces(){
+void StateManager::CreateUserInterfaces()
+{
+	assert(false);
     for (int i = 0; i < stateList.Size(); ++i){
-        GameState * gs = stateList[i];
+        AppState * gs = stateList[i];
         assert(stateList[i]);
 		if (gs->ui)
 			delete gs->ui;
@@ -87,14 +89,14 @@ void StateManager::CreateUserInterfaces(){
 /// Queries all states to deallocate their UIs
 void StateManager::DeallocateUserInterfaces(){
 	for (int i = 0; i < stateList.Size(); ++i){
-        GameState * gs = stateList[i];
+        AppState * gs = stateList[i];
         assert(stateList[i]);
 	//	std::cout<<"\nDeallocating user interface for "<<gs->name;
         stateList[i]->DeallocateUserInterface();
 	}
 }
 
-bool StateManager::RegisterState(GameState * i_state){
+bool StateManager::RegisterState(AppState * i_state){
 	stateList.Add(i_state);
 	assert(stateList.Size() < GameStateID::MAX_GAME_STATES);
 	return false;
@@ -105,7 +107,7 @@ void StateManager::QueuePreviousState(){
 	QueueState(previousState);
 }
 
-void StateManager::QueueState(GameState * gs)
+void StateManager::QueueState(AppState * gs)
 {
 	if (!gs)
 	{
@@ -121,7 +123,7 @@ void StateManager::EnterQueuedState()
 {
 	if (queuedStates.isOff())
 		return;
-	GameState * queuedState = queuedStates.Pop();
+	AppState * queuedState = queuedStates.Pop();
 	if (activeState)				// If we were in a valid state,
 		activeState->OnExit(queuedState);	// Call onExit for the previous state
 	previousState = activeState;
@@ -134,7 +136,7 @@ void StateManager::EnterQueuedState()
 
 void StateManager::SetGlobalState(int id)
 {
-	GameState *newGlobalState = NULL;
+	AppState *newGlobalState = NULL;
 	// Try to find the requested state
 	for (int i = 0; i < stateList.Size(); ++i){
 		if (stateList[i]->id == id){
@@ -142,6 +144,13 @@ void StateManager::SetGlobalState(int id)
 			break;
 		}
 	}
+	if (newGlobalState)
+		SetGlobalState(newGlobalState);
+}
+
+/// Sets a global state, that can process global messages and packets
+void StateManager::SetGlobalState(AppState * newGlobalState)
+{
 	if(globalState)
 		globalState->OnExit(newGlobalState);
 	if (newGlobalState)
@@ -149,7 +158,8 @@ void StateManager::SetGlobalState(int id)
 	globalState = newGlobalState;
 }
 
-GameState * StateManager::GetStateByID(int id){
+
+AppState * StateManager::GetStateByID(int id){
 	for (int i = 0; i < stateList.Size(); ++i){
 		if (stateList[i]->id == id)
 			return stateList[i];
@@ -157,7 +167,7 @@ GameState * StateManager::GetStateByID(int id){
 	return NULL;
 }
 
-GameState * StateManager::GetStateByName(String name){
+AppState * StateManager::GetStateByName(String name){
 	for (int i = 0; i < stateList.Size(); ++i)
 		if (stateList[i]->name == name)
 			return stateList[i];

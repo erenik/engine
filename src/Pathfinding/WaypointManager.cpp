@@ -151,6 +151,7 @@ NavMesh * WaypointManager::GenerateNavMesh(List<Entity*> fromEntities)
 /// generates and stores new waypoints for this entity into the active navmesh.
 void WaypointManager::GenerateWaypointsFromEntity(Entity * entity)
 {
+	/*
 	Model * model = entity->model;
 	if (model == NULL)
 		return;
@@ -158,29 +159,34 @@ void WaypointManager::GenerateWaypointsFromEntity(Entity * entity)
 	Mesh * mesh = model->mesh;
 	if (mesh == NULL)
 		return;
-	for (int j = 0; j < mesh->faces; ++j){
+	for (int j = 0; j < mesh->faces.Size(); ++j)
+	{
 		/// Get average position of all vertices in face.
-		MeshFace * face = &mesh->face[j];
+		MeshFace * face = &mesh->faces[j];
 		Vector3f position;
 		for (int v = 0; v < face->numVertices; ++v){
-			position += mesh->vertex[face->vertex[v]];
+			position += mesh->vertices[face->vertices[v]];
 		}
 		position /= face->numVertices;
 		position = entity->transformationMatrix.Product(position);
-		Vector3f normal = mesh->normal[face->normal[0]];
-		normal = entity->rotationMatrix.Product(normal);
+		Vector3f normals = mesh->normals[face->normals[0]];
+		normals = entity->rotationMatrix.Product(normals);
 
-		if (normal.DotProduct(Vector3f(0,1,0)) > minimumInclination){
+		if (normals.DotProduct(Vector3f(0,1,0)) > minimumInclination){
 			Waypoint * newWp = new Waypoint();
 			newWp->position = position;
 			newWp->pData = (void*)&mesh->face[j];
 			activeNavMesh->AddWaypoint(newWp);
 		}
-	}	
+	}
+	*/
 }
 
 /// Attempts to load a spherical world from target entity's model file.
-void WaypointManager::GenerateNavMeshFromWorld(Entity * worldEntity){
+void WaypointManager::GenerateNavMeshFromWorld(Entity * worldEntity)
+{
+
+	/*
 	assert(worldEntity && "NullEntity provided in WaypointManager::GenerateNavMeshFromWorld");
 	// Get source file
 	assert(worldEntity->model && worldEntity->model->mesh->source && "Lacking data to make navMesh from probably");
@@ -199,7 +205,7 @@ void WaypointManager::GenerateNavMeshFromWorld(Entity * worldEntity){
 		/// Get average position of all vertices in face.
 		Vector3f position;
 		for (int v = 0; v < mesh->face[i].numVertices; ++v){
-			position += mesh->vertex[mesh->face[i].vertex[v]];
+			position += mesh->vertices[mesh->face[i].vertices[v]];
 		}
 		position /= mesh->face[i].numVertices;
 		newWp->position = position;
@@ -219,7 +225,7 @@ void WaypointManager::GenerateNavMeshFromWorld(Entity * worldEntity){
 		/// Check with every other waypoint.
 		for (int j = i+1; j < activeNavMesh->waypoints.Size(); ++j){
 
-			/// And check every vertex with each other in here.
+			/// And check every vertices with each other in here.
 			for (int k = 0; k < face->numVertices; ++k){
 
 				Waypoint * wp2 = activeNavMesh->waypoints[j];
@@ -227,8 +233,8 @@ void WaypointManager::GenerateNavMeshFromWorld(Entity * worldEntity){
 				///.. No I meant check with every other waypoint's VERTICES!
 				for (int l = 0; l < f2->numVertices; ++l){
 					Vector3f * v, *v2;
-					v = &mesh->vertex[face->vertex[k]];
-					v2 = &mesh->vertex[f2->vertex[l]];
+					v = &mesh->vertices[face->vertices[k]];
+					v2 = &mesh->vertices[f2->vertices[l]];
 					if (v == v2){
 						/// THIS IS NEIGHBOUR :D
 						wp->AddNeighbour(wp2);
@@ -245,8 +251,8 @@ void WaypointManager::GenerateNavMeshFromWorld(Entity * worldEntity){
 	for (int i = 0; i < activeNavMesh->waypoints; ++i){
 		Waypoint * wp = activeNavMesh->waypoints[i];
 		MeshFace * f = (MeshFace *) wp->pData;
-		/// Just compare one normal for now..
-		float normalDotPosition = mesh->normal[f->normal[0]].DotProduct(wp->position.NormalizedCopy());
+		/// Just compare one normals for now..
+		float normalDotPosition = mesh->normals[f->normals[0]].DotProduct(wp->position.NormalizedCopy());
 		if (normalDotPosition < 0.5f){
 			wp->passable = false;
 			--activeNavMesh->walkables;
@@ -284,7 +290,7 @@ void WaypointManager::GenerateNavMeshFromWorld(Entity * worldEntity){
 		/// Get average position of all vertices in face.
 		Vector3f position;
 		for (int v = 0; v < sphere->face[i].numVertices; ++v){
-			position += sphere->vertex[sphere->face[i].vertex[v]];
+			position += sphere->vertices[sphere->face[i].vertices[v]];
 		}
 		position /= sphere->face[i].numVertices;
 		newWp->position = position;
@@ -309,15 +315,15 @@ void WaypointManager::GenerateNavMeshFromWorld(Entity * worldEntity){
 			Waypoint * wp2 = activeNavMesh->waypoints[j];
 			if (!wp2->IsAerial())
 				continue;
-			/// And check every vertex with each other in here.
+			/// And check every vertices with each other in here.
 			for (int k = 0; k < face->numVertices; ++k){
 
 				MeshFace * f2 = (MeshFace *) wp2->pData;
 				///.. No I meant check with every other waypoint's VERTICES!
 				for (int l = 0; l < f2->numVertices; ++l){
 					Vector3f * v, *v2;
-					v = &mesh->vertex[face->vertex[k]];
-					v2 = &mesh->vertex[f2->vertex[l]];
+					v = &mesh->vertices[face->vertices[k]];
+					v2 = &mesh->vertices[f2->vertices[l]];
 					if (v == v2){
 						/// THIS IS NEIGHBOUR :D
 						wp->AddNeighbour(wp2);
@@ -350,6 +356,7 @@ int WaypointManager::CleansePData(){
 		activeNavMesh->waypoints[i]->pData = NULL;
 	}
 	return nullified;
+	*/
 }
 
 /** Attempts to toggle walkability on the waypoint closest to the provided position both in the current array
@@ -378,7 +385,8 @@ bool WaypointManager::ToggleWaypointWalkability(Vector3f position){
 	/// Check the new mesh too!
 	closestWaypoint = this->activeNavMesh->waypoints[0];
 	distance = (closestWaypoint->position - position).Length();
-	for (int i = 0; i < activeNavMesh->waypoints; ++i){
+	for (int i = 0; i < activeNavMesh->waypoints.Size(); ++i)
+	{
 		newDist = (activeNavMesh->waypoints[i]->position - position).Length();
 		if (newDist < distance){
 			distance = newDist;
@@ -402,7 +410,7 @@ bool WaypointManager::ToggleWaypointWalkability(Vector3f position){
 Waypoint * WaypointManager::GetFreeWaypoint(){
 	Waypoint * wp = NULL;
 	while(true){
-		wp = activeNavMesh->waypoints[rand()%activeNavMesh->waypoints];
+		wp = activeNavMesh->waypoints[rand()%activeNavMesh->waypoints.Size()];
 		if (wp->passable && wp->pData == NULL)
 			return wp;
 	}
@@ -436,11 +444,12 @@ Waypoint * WaypointManager::GetClosestValidWaypoint(Vector3f position){
 }
 
 /// Gets the closest valid free waypoint (equivalent to GetFreeWaypoint combined with GetClosestValidWaypoint)
-Waypoint * WaypointManager::GetClosestValidFreeWaypoint(Vector3f position){
-	assert(activeNavMesh->waypoints > 0);
+Waypoint * WaypointManager::GetClosestValidFreeWaypoint(Vector3f position)
+{
+	assert(activeNavMesh->waypoints.Size() > 0);
 	/// Get an initial one..
 	Waypoint * closest = NULL;
-	for (int i = 0; i < activeNavMesh->waypoints; ++i){
+	for (int i = 0; i < activeNavMesh->waypoints.Size(); ++i){
 		if (!activeNavMesh->waypoints[i]->passable)
 			continue;
 		if (activeNavMesh->waypoints[i]->pData)
@@ -449,7 +458,8 @@ Waypoint * WaypointManager::GetClosestValidFreeWaypoint(Vector3f position){
 		break;
 	}
 	float closestDist = (closest->position - position).Length();
-	for (int i = 0; i < activeNavMesh->waypoints; ++i){
+	for (int i = 0; i < activeNavMesh->waypoints.Size(); ++i)
+	{
 		if (!activeNavMesh->waypoints[i]->passable)
 			continue;
 		if (activeNavMesh->waypoints[i]->pData)

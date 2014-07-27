@@ -6,6 +6,8 @@
 #include "ModelManager.h"
 #include "GraphicsState.h"
 
+#include "Model.h"
+
 /// Do render lights plz
 
 /// bölöööö
@@ -53,7 +55,7 @@ void GraphicsManager::RenderLights(){
 			//	graphicsState->modelMatrixF = Matrix4f::Translation(position);
 				Model * model = ModelMan.GetModel("Sphere6");
 				if (model)
-					model->mesh->Render();
+					model->Render();
 				else
 					std::cout<<"\nUnable to render PointLight!";
 				break;

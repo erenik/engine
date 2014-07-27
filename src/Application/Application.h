@@ -15,6 +15,7 @@
 
 	...
 	Application::name = "My application";
+	TextFont::defaultFontSource = "img/fonts/myFont.png";
 
 */
 void SetApplicationDefaults();

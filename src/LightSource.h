@@ -18,7 +18,7 @@ public:
 	LightSource();
 	/** Activates the light source and renders any applicable children as normal.
 		Deactivates it's light source and renders the sibling if it has any afterwards.
-		If RENDER_LIGHT_POSITION is specified in the GameState, the light source will be rendered using 7 GL_POINTS at it's current location.
+		If RENDER_LIGHT_POSITION is specified in the AppState, the light source will be rendered using 7 GL_POINTS at it's current location.
 	*/
 	void Render();
 	/** Renders the position of the light source using 7 GL_POINTS, one in the center and the rest each 1 carteesian unit away from the source.

@@ -7,6 +7,7 @@
 #include "XML/XMLElement.h"
 #include "Mesh.h"
 
+
 ColladaImporter::ColladaImporter(){
 	up_axis = Y_UP;
 	unit = 1.0f;
@@ -22,6 +23,7 @@ ColladaImporter::~ColladaImporter(){
 
 /// Attempts to load from file. All content will be stored internally until a build-command is issued.
 bool ColladaImporter::Load(String fromFile){
+/*
 	if (parser){
 		assert(false && "Already loaded");
 		return true;
@@ -86,6 +88,7 @@ bool ColladaImporter::Load(String fromFile){
 	// Scene data, empty nodes, cameras, spotlights, directional lights, point lights, ambient lights, 
 	// Triangle lists, polygon lists, baked matrices, matrices
 
+	*/
 	return true;
 }
 
@@ -111,7 +114,9 @@ List<String> ColladaImporter::Geometries(){
 
 
 /// Creates the named mesh (a reference must exist within the parsed data).
-Mesh * ColladaImporter::CreateMesh(String name){
+Mesh * ColladaImporter::CreateMesh(String name)
+{
+/*
 	Mesh * mesh = new Mesh();
 	Xelement * geo = GetGeometry(name);
 	assert(geo);
@@ -141,9 +146,9 @@ Mesh * ColladaImporter::CreateMesh(String name){
 		Xelement * floatArray = vertexSource->GetElement("float_array");
 		Xarg * numVertsArg = floatArray->GetArgument("count");
 		assert(numVertsArg);
-		mesh->vertices = numVertsArg->value.ParseInt();
+		mesh->numVertices = numVertsArg->value.ParseInt();
 		assert(mesh->vertices > 0);
-		mesh->vertex = new Vector3f[mesh->vertices];
+		mesh->vertex.Allocate(mesh->vertices);
 		
 		List<String> vertexDataTokens = floatArray->data.Tokenize(" ");
 		assert(vertexDataTokens.Size() == mesh->vertices);
@@ -194,7 +199,7 @@ Mesh * ColladaImporter::CreateMesh(String name){
 		mesh->normals = numNormalsArg->value.ParseInt();
 		assert(mesh->normals > 0);
 		std::cout<<"\nNormals to parse: "<<mesh->normals;
-		mesh->normal = new Vector3f[mesh->normals];
+		mesh->normal.Allocate(mesh->normals);
 		List<String> normalDataTokens = floatArray->data.Tokenize(" ");
 		assert(normalDataTokens.Size() == mesh->normals);
 		int normalsParsed = 0;
@@ -233,7 +238,7 @@ Mesh * ColladaImporter::CreateMesh(String name){
 		mesh->uvs = numUVsArg->value.ParseInt();
 		assert(mesh->uvs > 0);
 		std::cout<<"\nUVs to parse: "<<mesh->uvs;
-		mesh->uv = new Vector2f[mesh->uvs];
+		mesh->uv.Allocate(mesh->uvs);
 		List<String> uvDataTokens = floatArray->data.Tokenize(" ");
 		assert(uvDataTokens.Size() == mesh->uvs);
 		int uvsParsed = 0;
@@ -260,7 +265,7 @@ Mesh * ColladaImporter::CreateMesh(String name){
 
 	std::cout<<"\nTotal faces needed: "<<facesNeeded;
 	// Create faces, jaow.
-	mesh->face = new MeshFace[facesNeeded];
+	mesh->face.Allocate(facesNeeded);
 	mesh->faces = facesNeeded;
 
 	// For each poly-list, create faces!
@@ -289,12 +294,7 @@ Mesh * ColladaImporter::CreateMesh(String name){
 			face->numVertices = faceVertexCounts[i].ParseInt();
 			assert(face->numVertices > 0 && face->numVertices < 20);
 			assert(face->vertex == NULL);
-			face->vertex = new unsigned int[face->numVertices];
-			if (hasNormals)
-				face->normal = new unsigned int[face->numVertices];
-			if (hasUVs)
-				face->uv = new unsigned int[face->numVertices];
-
+			face->AllocateArrays();
 			for (int i = 0; i < face->numVertices; ++i){
 				face->vertex[i] = polyArgList[polyArgListEnumerator].ParseInt();
 				if (hasNormals){
@@ -310,6 +310,8 @@ Mesh * ColladaImporter::CreateMesh(String name){
 		}
 	}
 	return mesh;
+*/
+	return NULL;
 }
 
 // Private functions, utility and stuff.
@@ -324,3 +326,4 @@ XMLElement * ColladaImporter::GetGeometry(String byName){
 	}
 	return NULL;
 }
+

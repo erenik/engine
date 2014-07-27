@@ -28,7 +28,7 @@
 #include "Gamepad.h"
 
 /// TODO: Implement gamepad bindings better?
-// #include "SpaceRace/GameStates/Racing/Actions.h"
+// #include "SpaceRace/AppStates/Racing/Actions.h"
 
 /// Global inputmanager
 InputManager * InputManager::input = NULL;
@@ -639,7 +639,7 @@ void InputManager::MouseMove(Window * window, int x, int y)
 	}
 
 	/// If no active gamestate, return...
-	GameState * currentState = StateMan.ActiveState();
+	AppState * currentState = StateMan.ActiveState();
 	if (currentState)
 	{
 		currentState->MouseMove(window, x, y, lButtonDown, rButtonDown, element);
@@ -765,7 +765,7 @@ void InputManager::EvaluateKeyPressed(int activeKeyCode, bool downBefore, UIElem
 		return;
 
 	// Callback state for handling if applicable?
-	GameState * state = StateMan.ActiveState();
+	AppState * state = StateMan.ActiveState();
 	if (state && state->keyPressedCallback)
 		state->KeyPressed(activeKeyCode, downBefore);
 
@@ -824,7 +824,7 @@ void InputManager::EvaluateKeyReleased(int activeKeyCode){
 	}
 
 	// The global one!
-	GameState * global = StateMan.GlobalState();
+	AppState * global = StateMan.GlobalState();
 	if (global){
 		binding = StateMan.GlobalState()->inputMapping.EvaluateKeyRelease(activeKeyCode, this->keyPressed);
 		if (binding){
@@ -837,7 +837,7 @@ void InputManager::EvaluateKeyReleased(int activeKeyCode){
 	}
 
 	// First the specific one!
-	GameState * activeGameState = StateMan.ActiveState();
+	AppState * activeGameState = StateMan.ActiveState();
 	if (activeGameState){
 		binding = activeGameState->inputMapping.EvaluateKeyRelease(activeKeyCode, this->keyPressed);
 		if (binding){

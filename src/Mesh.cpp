@@ -5,8 +5,8 @@
 
 #include "Graphics/OpenGL.h"
 #include "Graphics/GLBuffers.h"
-#include "Graphics/GraphicsManager.h"
-#include "GraphicsState.h"
+//#include "Graphics/GraphicsManager.h"
+//#include "GraphicsState.h"
 
 #include "Mesh.h"
 #include "Material.h"
@@ -20,26 +20,23 @@
 MeshFace::MeshFace(){
 	Nullify();
 }
-void MeshFace::Nullify(){
+void MeshFace::Nullify()
+{
     numVertices = 0;
-	vertex = uv = normal = NULL;
 };
-MeshFace::~MeshFace(){
-//	std::cout<<"\nMesh face destructor.";
-	if (vertex)
-		delete[] vertex;
-	if (uv)
-		delete[] uv;
-	if (normal)
-		delete[] normal;
-	vertex = uv = normal = NULL;
+MeshFace::~MeshFace()
+{
+	vertices.Clear();
+	uvs.Clear();
+	normals.Clear();
 }
 
 /// Debug
-void MeshFace::Print(){
-	std::cout<<"v:";
+void MeshFace::Print()
+{
+	std::cout<<"\nv:";
 	for (int i = 0; i < numVertices; ++i){
-		std::cout<<" "<<vertex[i];
+		std::cout<<" "<<vertices[i];
 	}
 }
 
@@ -55,55 +52,39 @@ void MeshFace::operator = (const MeshFace * otherMeshFace){
 }
 
 /// Copy CONSTRUCTOR
-void MeshFace::operator = (const MeshFace & otherMeshFace){
-   //  std::cout<<"op1";
-  //   std::cout<<"hai.";
+void MeshFace::operator = (const MeshFace & otherMeshFace)
+{
 	numVertices = otherMeshFace.numVertices;
 	assert(otherMeshFace.numVertices);
-	vertex = new unsigned int[numVertices];
-	uv = new unsigned int[numVertices];
-	normal = new unsigned int[numVertices];
-	for (int i = 0; i < numVertices; ++i){
-		vertex[i] = otherMeshFace.vertex[i];
-	}
-	if (otherMeshFace.uv){
-		for (int i = 0; i < numVertices; ++i){
-			uv[i] = otherMeshFace.uv[i];
-		}
-	}
-	if (otherMeshFace.normal){
-		for (int i = 0; i < numVertices; ++i){
-			normal[i] = otherMeshFace.normal[i];
-		}
-	}
+	
+	vertices = otherMeshFace.vertices;
+	uvs = otherMeshFace.uvs;
+	normals = otherMeshFace.normals;
+
 	uvTangent = otherMeshFace.uvTangent;
  }
 
 // Call after setting numVertices
-void MeshFace::Allocate()
+void MeshFace::AllocateArrays()
 {
-	vertex = new unsigned int[numVertices];
-	uv = new unsigned int[numVertices];
-	normal = new unsigned int[numVertices];
+	vertices.Allocate(numVertices, true);
+	uvs.Allocate(numVertices, true);
+	normals.Allocate(numVertices, true);
 }
 
-void MeshFace::Deallocate()
+void MeshFace::DeallocateArrays()
 {
-	if (vertex)
-		delete[] vertex;
-	if (uv)
-		delete[] uv;
-	if (normal)
-		delete[] normal;
-	vertex = uv = normal = NULL;
+	vertices.Clear();
+	uvs.Clear();
+	normals.Clear();
 }
 
 bool MeshFace::WriteTo(std::fstream & file)
 {
 	file.write((char*)&numVertices, sizeof(int));
-	file.write((char*)vertex, sizeof(int) * numVertices);
-	file.write((char*)uv, sizeof(int) * numVertices);
-	file.write((char*)normal, sizeof(int) * numVertices);
+	file.write((char*)vertices.GetArray(), sizeof(int) * numVertices);
+	file.write((char*)uvs.GetArray(), sizeof(int) * numVertices);
+	file.write((char*)normals.GetArray(), sizeof(int) * numVertices);
 	return true;
 }
 bool MeshFace::ReadFrom(std::fstream & file)
@@ -111,25 +92,27 @@ bool MeshFace::ReadFrom(std::fstream & file)
 	file.read((char*)&numVertices, sizeof(int));
 	assert(numVertices < 20);
 	// Assume deallocation before is not necessary...
-	Allocate();
-	file.read((char*)vertex, sizeof(int) * numVertices);
-	file.read((char*)uv, sizeof(int) * numVertices);
-	file.read((char*)normal, sizeof(int) * numVertices);
+	AllocateArrays();
+	file.read((char*)vertices.GetArray(), sizeof(int) * numVertices);
+	file.read((char*)uvs.GetArray(), sizeof(int) * numVertices);
+	file.read((char*)normals.GetArray(), sizeof(int) * numVertices);
+	vertices.SetFull();
+	uvs.SetFull();
+	normals.SetFull();
 	return true;
 }
 
 
 
-Mesh::Mesh(){
+Mesh::Mesh()
+{
 	Nullify();
 }
 
-/// Nullifies all default variables!
-void Mesh::Nullify(){
-	vertices = uvs = faces = normals = 0;
-	vertex = NULL;
-	uv = NULL;
-	face = NULL;
+	/// Nullifies all default variables!
+void Mesh::Nullify()
+{
+	numVertices = numUVs = numFaces = numNormals = 0;
 	textureID = 0;
 	vboBuffer = NULL;
 	floatsPerVertex = 0;
@@ -142,35 +125,37 @@ Mesh::~Mesh()
 	
 }
 
-// Allocates the vertex, u,v and normal arrays
+/// Deletes all parts within this mesh (numVertices, numFaces, edges, etc.)
+void Mesh::Delete()
+{
+	DeallocateArrays();
+	numVertices = numUVs = numNormals = numFaces = 0;
+	min = max = Vector3f();
+	triangulated = false;
+}
+
+/// Adds a plane, creating 2 numFaces in a counter-clockwise manner.
+void Mesh::AddPlane(Vector3f upperLeft, Vector3f lowerLeft, Vector3f lowerRight, Vector3f upperRight)
+{
+	
+}
+
+// Allocates the vertices, u,v and normals arrays
 void Mesh::AllocateArrays()
 {
-	if (vertices)
-		vertex = new Vector3f[vertices];
-	if (uvs)
-		uv = new Vector2f[uvs];
-	if (normals)
-		normal = new Vector3f[normals];
-	if (faces)
-		face = new MeshFace[faces];
+	vertices.Allocate(numVertices, true);
+	uvs.Allocate(numUVs, true);
+	normals.Allocate(numNormals, true);
+	faces.Allocate(numFaces, true);
 }
 
 void Mesh::DeallocateArrays()
 {
 //	std::cout<<"\nMesh destructor.";
-	if (vertex != NULL)
-		delete[] vertex;
-	if (uv != NULL)
-		delete[] uv;
-	if (normals)
-		delete[] normal;
-	if (face != NULL)
-		delete[] face;
-
-	vertex = NULL;
-	uv = NULL;
-	normal = NULL;
-	face = NULL;
+	vertices.Clear();
+	uvs.Clear();
+	normals.Clear();
+	faces.Clear();
 }
 
 /// Load from customized compressed data form. Returns true upon success.
@@ -196,24 +181,24 @@ bool Mesh::SaveCompressedTo(String compressedPath)
 	min.WriteTo(file);
 
 	// Write number of each specific array.
-	file.write((char*)&vertices, sizeof(int));
-	file.write((char*)&uvs, sizeof(int));
-	file.write((char*)&normals, sizeof(int));
-	file.write((char*)&faces, sizeof(int));
+	file.write((char*)&numVertices, sizeof(int));
+	file.write((char*)&numUVs, sizeof(int));
+	file.write((char*)&numNormals, sizeof(int));
+	file.write((char*)&numFaces, sizeof(int));
 	
 	// Then start writing the data of the arrays.
 	int sizeOfVertex = sizeof(Vector3f);
-	if (vertices)
-		file.write((char*)vertex, vertices * sizeOfVertex);
-	if (uvs)
-		file.write((char*)uv, uvs * sizeof(Vector2f));
-	if (normals)
-		file.write((char*)normal, normals * sizeOfVertex);
+	if (numVertices)
+		file.write((char*)vertices.GetArray(), numVertices * sizeOfVertex);
+	if (numUVs)
+		file.write((char*)uvs.GetArray(), numUVs * sizeof(Vector2f));
+	if (numNormals)
+		file.write((char*)normals.GetArray(), numNormals * sizeOfVertex);
 
-	// Save all faces.
-	for (int i = 0; i < faces; ++i)
+	// Save all numFaces.
+	for (int i = 0; i < numFaces; ++i)
 	{
-		MeshFace & mf = face[i];
+		MeshFace & mf = faces[i];
 		mf.WriteTo(file);
 	}
 	std::cout<<"\nMesh saved in compressed form to file: "<<compressedPath;
@@ -243,10 +228,10 @@ bool Mesh::LoadCompressedFrom(String compressedPath)
 	min.ReadFrom(file);
 
 	// Write number of each specific array.
-	file.read((char*)&vertices, sizeof(int));
-	file.read((char*)&uvs, sizeof(int));
-	file.read((char*)&normals, sizeof(int));
-	file.read((char*)&faces, sizeof(int));
+	file.read((char*)&numVertices, sizeof(int));
+	file.read((char*)&numUVs, sizeof(int));
+	file.read((char*)&numNormals, sizeof(int));
+	file.read((char*)&numFaces, sizeof(int));
 	
 	// Allocate arrays.
 	AllocateArrays();
@@ -254,39 +239,48 @@ bool Mesh::LoadCompressedFrom(String compressedPath)
 	// Then start writing the data of the arrays.
 	int sizeOfVertex = sizeof(Vector3f);
 	int sizeOfUV = sizeof(Vector2f);
-	if (vertices)
-		file.read((char*)vertex, vertices * sizeOfVertex);
-	if (uvs)
-		file.read((char*)uv, uvs * sizeof(Vector2f));
-	if (normals)
-		file.read((char*)normal, normals * sizeOfVertex);
 
-	// Save all faces.
-	for (int i = 0; i < faces; ++i)
+	// Load 'em.
+	if (numVertices)
+		file.read((char*)vertices.GetArray(), numVertices * sizeOfVertex);
+	if (numUVs)
+		file.read((char*)uvs.GetArray(), numUVs * sizeof(Vector2f));
+	if (numNormals)
+		file.read((char*)normals.GetArray(), numNormals * sizeOfVertex);
+
+
+	// Save all numFaces.
+	for (int i = 0; i < numFaces; ++i)
 	{
-		MeshFace & mf = face[i];
+		MeshFace & mf = faces[i];
 		mf.ReadFrom(file);
 	}
+
 	std::cout<<"\nMesh saved in compressed form to file: "<<compressedPath;
 	return true;
 }
 
 
 /// Mostly for debug
-void Mesh::PrintContents(){
-
-    for (int i = 0; i < faces; ++i){
-        MeshFace * f = &face[i];
-        std::cout<<"\nMeshFace "<<i<<": vertices("<<(int)f->numVertices<<"): ";
+void Mesh::PrintContents()
+{
+	assert(false);
+	return;
+	/*
+    for (int i = 0; i < numFaces; ++i)
+	{
+        MeshFace * f = &faces[i];
+        std::cout<<"\nMeshFace "<<i<<": numVertices("<<(int)f->numVertices<<"): ";
         for (int v = 0; v < f->numVertices; ++v){
-            if (f->vertex)
-             std::cout<<"v"<<f->vertex[v];
-            if (f->uv)
-             std::cout<<"t"<<f->uv[v];
-            if (f->normal)
-             std::cout<<"n"<<f->normal[v];
+            if (f->vertices)
+             std::cout<<"v"<<f->vertices[v];
+            if (f->uvs)
+             std::cout<<"t"<<f->uvs[v];
+            if (f->normals)
+             std::cout<<"n"<<f->normals[v];
         }
     }
+	*/
 }
 
 /// Replaces copy-constructor.
@@ -297,54 +291,49 @@ bool Mesh::LoadDataFrom(const Mesh * otherMesh)
     Nullify();
 //	return true;
 
-	assert(otherMesh->vertices);
-	std::cout<<"\nMesh vertices: "<<otherMesh->vertices;
+	assert(otherMesh->numVertices);
+	std::cout<<"\nMesh numVertices: "<<otherMesh->numVertices;
 	name = otherMesh->name;
 	source = otherMesh->source;
-	vertices = otherMesh->vertices;
-	uvs = otherMesh->uvs;
-	normals = otherMesh->normals;
-	faces = otherMesh->faces;
-	std::cout<<"\nMesh faces: "<<otherMesh->faces;
-//	return true;
-	vertex = new Vector3f[vertices];
-	for (int i = 0; i < vertices; ++i){
-		vertex[i] = otherMesh->vertex[i];
-	}
-//	return true;
-	if (uvs){
-		uv = new Vector2f[uvs];
-		for (int i = 0; i < uvs; ++i){
-			uv[i] = otherMesh->uv[i];
-		}
-	}
-	else {
-		uv = NULL;
-	}
-//	return true;
-	if (normals){
-		normal = new Vector3f[normals];
-		for (int i = 0; i < normals; ++i){
-			normal[i] = otherMesh->normal[i];
-		}
-	}
-	else
-		normal = NULL;
- //   return true;
-	if (faces){
-		face = new MeshFace[faces];
-	//	std::cout<<"\nMeshFaces: "<<faces;
-    //    std::cout<<"\nOtherMeshFace: "<<&otherMesh->face[0]<<" "<<otherMesh->face[0].numVertices;
+	numVertices = otherMesh->numVertices;
+	numUVs = otherMesh->numUVs;
+	numNormals = otherMesh->numNormals;
+	numFaces = otherMesh->numFaces;
+	std::cout<<"\nMesh numFaces: "<<otherMesh->numFaces;
 
-		for (int i = 0; i < faces; ++i){
-		//    std::cout<<"\nCopying face "<<i<<" ";
-         //   face[i].uvTangent = otherMesh->face[i].uvTangent;
-			face[i] = otherMesh->face[i];
-		//	std::cout<<"v0: "<<face[i].vertex[0]<<" Original: "<<otherMesh->face[i].vertex;
-		//	assert(face[i].vertex != otherMesh->face[i].vertex);
-		//	if (face[i].vertex[0] > 3000000)
+	AllocateArrays();
+	// Copy numVertices.
+	for (int i = 0; i < numVertices; ++i)
+	{
+		vertices[i] = otherMesh->vertices[i];
+	}
+	// Copy numUVs.
+	if (numUVs){
+		for (int i = 0; i < numUVs; ++i){
+			uvs[i] = otherMesh->uvs[i];
+		}
+	}
+	// Copy numNormals.
+	if (numNormals){
+		for (int i = 0; i < numNormals; ++i){
+			normals[i] = otherMesh->normals[i];
+		}
+	}
+	// Copy numFaces.
+	if (numFaces)
+	{
+	//	std::cout<<"\nMeshFaces: "<<numFaces;
+    //    std::cout<<"\nOtherMeshFace: "<<&otherMesh->faces[0]<<" "<<otherMesh->faces[0].numVertices;
+
+		for (int i = 0; i < numFaces; ++i){
+		//    std::cout<<"\nCopying faces "<<i<<" ";
+         //   faces[i].uvTangent = otherMesh->faces[i].uvTangent;
+			faces[i] = otherMesh->faces[i];
+		//	std::cout<<"v0: "<<faces[i].vertices[0]<<" Original: "<<otherMesh->faces[i].vertices;
+		//	assert(faces[i].vertices != otherMesh->faces[i].vertices);
+		//	if (faces[i].vertices[0] > 3000000)
          //       ; //Sleep(5000);
-		//	assert(face[i].vertex[0] < 3000000);
+		//	assert(faces[i].vertices[0] < 3000000);
 		}
 	}
 	return true;
@@ -374,11 +363,11 @@ void Mesh::Render(){
 	// Check for valid buffer before rendering
 	if (vboBuffer != 0 && vboBuffer < 3000000){
 
-		assert(floatsPerVertex >= 8 && "Bad float-count per vertex, ne?!");
+		assert(floatsPerVertex >= 8 && "Bad float-count per vertices, ne?!");
 
 		// Set VBO and render
 
-		// Bind vertices
+		// Bind numVertices
 		glBindBuffer(GL_ARRAY_BUFFER, vboBuffer);
 		glVertexAttribPointer((GLuint) 0, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * floatsPerVertex, 0);		// Position
 		glEnableVertexAttribArray(0);
@@ -398,8 +387,8 @@ void Mesh::Render(){
 		glVertexAttribPointer((GLuint) 3, 4, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * floatsPerVertex, (void *)offsetT);		// UVs
 		glEnableVertexAttribArray(3);
 
-		checkGLError();
-		int vertices = vboVertexCount;
+		CheckGLError("Mesh::Render");
+		int numVertices = vboVertexCount;
 
 		// Render normally
 		int glError = glGetError();
@@ -416,7 +405,7 @@ void Mesh::Render(){
 
 		// Unbind buffer
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		checkGLError();
+		CheckGLError("Mesh::Render");
 	}
 	else if (vboBuffer > 3000000){
 		std::cout<<"\nVBO buffer unreasonably high: "<<vboBuffer<<" Make sure it was buffered correctly?";
@@ -437,7 +426,7 @@ String Mesh::RelativePath() {
 // Creates a sphere with specified amount of sections (both longitude and latitude).
 void CreateSphere(Mesh &mesh, int sections){
 	// Check that the mesh isn't already allocated and being used.
-	if (mesh.vertices)
+	if (mesh.numVertices)
 		throw 1;
 
 	// Give it an automized name based on the sections
@@ -449,96 +438,92 @@ void CreateSphere(Mesh &mesh, int sections){
 	int vertexCount = (sections + 1) * (sections + 1);
 
 	// Default to 0
-	mesh.uvs = mesh.normals = mesh.vertices = 0;
+	mesh.numUVs = mesh.numNormals = mesh.numVertices = 0;
 
 	// Allocate arrays
-	mesh.vertex = new Vector3f[vertexCount];
-	mesh.uv = new Vector2f[vertexCount];
-	mesh.normal = new Vector3f[vertexCount];
+	mesh.vertices.Allocate(vertexCount);
+	mesh.uvs.Allocate(vertexCount);
+	mesh.normals.Allocate(vertexCount);
 
 	// For each row
 	for (int i = 0; i < sections+1; ++i){
-		// For each vertex in the row
+		// For each vertices in the row
 		for (int j = 0; j < sections+1; ++j){
 
 
 			int cIndex = i * (sections + 1) + j;
 			//						Regular sinus for x				multiply with sine of row to get the relative size.
-			mesh.vertex[cIndex].x = 1 * sin((j) / dSections * PI * 2) * sin((i) / dSections * PI);
-			mesh.vertex[cIndex].y = 1 * cos((i) / dSections * PI);
-			mesh.vertex[cIndex].z = 1 * cos((j) / dSections * PI * 2) * sin((i) / dSections * PI);
+			mesh.vertices[cIndex].x = 1 * sin((j) / dSections * PI * 2) * sin((i) / dSections * PI);
+			mesh.vertices[cIndex].y = 1 * cos((i) / dSections * PI);
+			mesh.vertices[cIndex].z = 1 * cos((j) / dSections * PI * 2) * sin((i) / dSections * PI);
 
-			mesh.uv[cIndex].x = (j / (float)sections);
-			mesh.uv[cIndex].y = (1 - i / (float) sections);
+			mesh.uvs[cIndex].x = (j / (float)sections);
+			mesh.uvs[cIndex].y = (1 - i / (float) sections);
 
-			mesh.normal[cIndex] = Vector3f(mesh.vertex[cIndex].x, mesh.vertex[cIndex].y, mesh.vertex[cIndex].z).Normalize();
+			mesh.normals[cIndex] = Vector3f(mesh.vertices[cIndex].x, mesh.vertices[cIndex].y, mesh.vertices[cIndex].z).Normalize();
 
-			++mesh.vertices;
-			++mesh.uvs;
-			++mesh.normals;
+			++mesh.numVertices;
+			++mesh.numUVs;
+			++mesh.numNormals;
 		}
 	}
 
 
 	// Triangulate straight away.
-	mesh.face = new MeshFace[sections * sections * 2];
+	mesh.faces.Allocate(sections * sections * 2);
 	// Default to 0.
-	mesh.faces = 0;
+	mesh.numFaces = 0;
 	// Index to start looking at for each row.
 	int index = 0;
-	// Create faces
+	// Create numFaces
 	for (int i = 0; i < sections; ++i){
 		for (int j = 0; j < sections; ++j){
-			// 3 vertices
-			MeshFace * face = &mesh.face[mesh.faces];
-			face->numVertices = 3;
+			// 3 numVertices
+			MeshFace * faces = &mesh.faces[mesh.numFaces];
+			faces->numVertices = 3;
 			// Allocate
-			face->vertex = new unsigned int[face->numVertices];
-			face->uv = new unsigned int[face->numVertices];
-			face->normal = new unsigned int[face->numVertices];
+			faces->AllocateArrays();
 			int v;
-			v = 0; face->vertex[v] = face->normal[v] = face->uv[v] = index + j + 1 + sections;
-			v = 1; face->vertex[v] = face->normal[v] = face->uv[v] = index + j + 1 + sections + 1;
-			v = 2; face->vertex[v] = face->normal[v] = face->uv[v] = index + j + 1;
-			++mesh.faces;
+			v = 0; faces->vertices[v] = faces->normals[v] = faces->uvs[v] = index + j + 1 + sections;
+			v = 1; faces->vertices[v] = faces->normals[v] = faces->uvs[v] = index + j + 1 + sections + 1;
+			v = 2; faces->vertices[v] = faces->normals[v] = faces->uvs[v] = index + j + 1;
+			++mesh.numFaces;
 
-			// 3 vertices
-			face = &mesh.face[mesh.faces];
-			face->numVertices = 3;
+			// 3 numVertices
+			faces = &mesh.faces[mesh.numFaces];
+			faces->numVertices = 3;
 			// Allocate
-			face->vertex = new unsigned int[face->numVertices];
-			face->uv = new unsigned int[face->numVertices];
-			face->normal = new unsigned int[face->numVertices];
-			v = 0; face->vertex[v] = face->normal[v] = face->uv[v] = index + j + 1;
-			v = 1; face->vertex[v] = face->normal[v] = face->uv[v] = index + j;
-			v = 2; face->vertex[v] = face->normal[v] = face->uv[v] = index + j + 1 + sections;
-			++mesh.faces;
+			faces->AllocateArrays();
+			v = 0; faces->vertices[v] = faces->normals[v] = faces->uvs[v] = index + j + 1;
+			v = 1; faces->vertices[v] = faces->normals[v] = faces->uvs[v] = index + j;
+			v = 2; faces->vertices[v] = faces->normals[v] = faces->uvs[v] = index + j + 1 + sections;
+			++mesh.numFaces;
 
-	/*		// Use one normal per face so we can see each face nao
-			glNormal3f(vertex[index+j].x, vertex[index+j].y, vertex[index+j].z);
+	/*		// Use one normals per faces so we can see each faces nao
+			glNormal3f(vertices[index+j].x, vertices[index+j].y, vertices[index+j].z);
 
 			// 1
-			//	glNormal3f(vertex[index+j+1+sections].x, vertex[index+j+1+sections].y, vertex[index+j+1+sections].z);
+			//	glNormal3f(vertices[index+j+1+sections].x, vertices[index+j+1+sections].y, vertices[index+j+1+sections].z);
 			glTexCoord2f(j / (float)sections, 1 - (i+1) / (float) sections);
-			glVector3f(vertex[index+j+1+sections].x, vertex[index+j+1+sections].y, vertex[index+j+1+sections].z);
+			glVector3f(vertices[index+j+1+sections].x, vertices[index+j+1+sections].y, vertices[index+j+1+sections].z);
 
 			// 2
-			//	glNormal3f(vertex[index+j+1+sections+1].x, vertex[index+j+1+sections+1].y, vertex[index+j+1+sections+1].z);
+			//	glNormal3f(vertices[index+j+1+sections+1].x, vertices[index+j+1+sections+1].y, vertices[index+j+1+sections+1].z);
 			glTexCoord2f((j+1) / (float)sections, 1 - (i+1) / (float) sections);
-			glVector3f(vertex[index+j+1+sections+1].x, vertex[index+j+1+sections+1].y, vertex[index+j+1+sections+1].z);
+			glVector3f(vertices[index+j+1+sections+1].x, vertices[index+j+1+sections+1].y, vertices[index+j+1+sections+1].z);
 
 			// 3
-			//	glNormal3f(vertex[index+j+1].x, vertex[index+j+1].y, vertex[index+j+1].z);
+			//	glNormal3f(vertices[index+j+1].x, vertices[index+j+1].y, vertices[index+j+1].z);
 			glTexCoord2f((j+1) / (float)sections, 1 - i / (float) sections);
-			glVector3f(vertex[index+j+1].x, vertex[index+j+1].y, vertex[index+j+1].z);
+			glVector3f(vertices[index+j+1].x, vertices[index+j+1].y, vertices[index+j+1].z);
 
 			// 4
 			glTexCoord2f(j / (float)sections, 1 - i / (float) sections);
-			glVector3f(vertex[index+j].x, vertex[index+j].y, vertex[index+j].z);
-			++mesh.faces;
+			glVector3f(vertices[index+j].x, vertices[index+j].y, vertices[index+j].z);
+			++mesh.numFaces;
 			*/
 		}
-		// Increment sections + 1 since we're using extra vertices for simplicities sake.
+		// Increment sections + 1 since we're using extra numVertices for simplicities sake.
 		index += sections + 1;
 	}
 }
@@ -548,65 +533,61 @@ void CreateSphere(Mesh &mesh, int sections){
 void Mesh::Triangulate()
 {
 	triangulated = true;
-	int newMeshFacesNeeded = faces;
-    if (faces == 0)
+	int newMeshFacesNeeded = numFaces;
+    if (numFaces == 0)
         return;
-	std::cout<<"\nMeshFaces: "<<faces;
-	for (int i = 0; i < faces; ++i){
+	std::cout<<"\nMeshFaces: "<<numFaces;
+	for (int i = 0; i < numFaces; ++i){
 	 //   std::cout<<"D:";
-		MeshFace * currentMeshFace = &face[i];
+		MeshFace * currentMeshFace = &faces[i];
 		if (currentMeshFace->numVertices > 3){
 			int MeshFacesToAdd = currentMeshFace->numVertices - 3;
-		//	std::cout<<"\nMeshFaces to add in face "<<i<<": "<<MeshFacesToAdd;
+		//	std::cout<<"\nMeshFaces to add in faces "<<i<<": "<<MeshFacesToAdd;
 			newMeshFacesNeeded += currentMeshFace->numVertices - 3;
 			if (MeshFacesToAdd > 20){
-				std::cout<<"\nMeshFace vertex amount very large("<<(int)currentMeshFace->numVertices<<"), printing debug info:";
+				std::cout<<"\nMeshFace vertices amount very large("<<(int)currentMeshFace->numVertices<<"), printing debug info:";
 				assert(currentMeshFace->numVertices - 3 < 18);
 				std::cout<<"\nAborting Triangularization since mesh data seems faulty!";
 				return;
 			}
 		}
 	}
-	std::cout<<"\nNew faces needed:"<<newMeshFacesNeeded;
+	std::cout<<"\nNew numFaces needed:"<<newMeshFacesNeeded;
 	// Allocate new MeshFace array
-	int MeshFaceSize = sizeof(face);
-	MeshFace * newMeshFace = new MeshFace[newMeshFacesNeeded];
+	int MeshFaceSize = sizeof(faces);
+	List<MeshFace> newMeshFace;
+	newMeshFace.Allocate(newMeshFacesNeeded, true);
 	int MeshFacesAddedSoFar = 0;
-	for (int i = 0; i < faces; ++i){
+	for (int i = 0; i < numFaces; ++i){
 		MeshFace * newTri = &newMeshFace[MeshFacesAddedSoFar];
-		MeshFace * oldMeshFace = &face[i];
+		MeshFace * oldMeshFace = &faces[i];
 		// Just copy
-		if (face[i].numVertices == 3){
-			newTri->normal = new unsigned int[3];
-			newTri->uv = new unsigned int[3];
-			newTri->vertex = new unsigned int[3];
+		if (faces[i].numVertices == 3)
+		{
 			newTri->numVertices = 3;
-			for (int j = 0; j < 3; ++j){
-				newTri->normal[j] = face[i].normal[j];
-				newTri->uv[j] = face[i].uv[j];
-				newTri->vertex[j] = face[i].vertex[j];
-			}
+		//	newTri->AllocateArrays();
+			newTri->normals = faces[i].normals;
+			newTri->uvs = faces[i].uvs;
+			newTri->vertices = faces[i].vertices;
 			MeshFacesAddedSoFar++;
 		}
 		else {
-			int numVertices = face[i].numVertices;
-	//		std::cout<<"\nConverting old face...";
+			int numVertices = faces[i].numVertices;
+	//		std::cout<<"\nConverting old faces...";
 	//		std::cout<<"\n";
 	//		oldMeshFace->Print();
-	//		std::cout<<"\nInto new faces...!";
+	//		std::cout<<"\nInto new numFaces...!";
 			for (int j = 0; j < numVertices-2; ++j){
-				/// Create new triangle for every extra vertex!
-				newTri->normal = new unsigned int[3];
-				newTri->uv = new unsigned int[3];
-				newTri->vertex = new unsigned int[3];
+				/// Create new triangle for every extra vertices!
 				newTri->numVertices = 3;
-				newTri->normal[0] = face[i].normal[0];
-				newTri->uv[0] = face[i].uv[0];
-				newTri->vertex[0] = face[i].vertex[0];
+				newTri->AllocateArrays();
+				newTri->normals[0] = faces[i].normals[0];
+				newTri->uvs[0] = faces[i].uvs[0];
+				newTri->vertices[0] = faces[i].vertices[0];
 				for (int k = j+1; k < j+3; ++k){
-					newTri->normal[k - j] = face[i].normal[k];
-					newTri->uv[k - j] = face[i].uv[k];
-					newTri->vertex[k - j] = face[i].vertex[k];
+					newTri->normals[k - j] = faces[i].normals[k];
+					newTri->uvs[k - j] = faces[i].uvs[k];
+					newTri->vertices[k - j] = faces[i].vertices[k];
 				}
 				MeshFacesAddedSoFar++;
 	//			std::cout<<"\n";
@@ -616,57 +597,56 @@ void Mesh::Triangulate()
 			}
 		}
 	}
-	delete[] face;
-	face = newMeshFace;
-	faces = newMeshFacesNeeded;
+	faces.Clear();
+	faces = newMeshFace;
+	numFaces = newMeshFacesNeeded;
 }
 
-/// Deletes and recalculates ALL normals
-void Mesh::RecalculateNormals(){
-	std::cout<<"\nRecalculating normals...";
-	if (normal)
-		delete[] normal;
-	normals = faces;
-	normal = new Vector3f[normals];
-	/// For every face...
-	for (int i = 0; i < faces; ++i){
-		assert(face[i].numVertices >= 3);
-		Vector3f line1 = vertex[face[i].vertex[1]] - vertex[face[i].vertex[0]];
-		Vector3f line2 = vertex[face[i].vertex[2]] - vertex[face[i].vertex[0]];
-		normal[i] = line1.CrossProduct(line2).NormalizedCopy();
-		if (face[i].normal == NULL)
-			face[i].normal = new unsigned int[face[i].numVertices];
-		for (int v = 0; v < face[i].numVertices; ++v){
-			face[i].normal[v] = i;
+/// Deletes and recalculates ALL numNormals
+void Mesh::RecalculateNormals()
+{
+	std::cout<<"\nRecalculating numNormals...";
+	numNormals = numFaces;
+	normals.Allocate(numNormals);
+	/// For every faces...
+	for (int i = 0; i < numFaces; ++i){
+		assert(faces[i].numVertices >= 3);
+		Vector3f line1 = vertices[faces[i].vertices[1]] - vertices[faces[i].vertices[0]];
+		Vector3f line2 = vertices[faces[i].vertices[2]] - vertices[faces[i].vertices[0]];
+		normals[i] = line1.CrossProduct(line2).NormalizedCopy();
+		if (faces[i].normals.Size() == NULL)
+			faces[i].normals.Allocate(faces[i].numVertices);
+		for (int v = 0; v < faces[i].numVertices; ++v){
+			faces[i].normals[v] = i;
 		}
 	}
 }
 
 /// Calculates radial and AABB boundaries.
 void Mesh::CalculateBounds(){
-	min = vertex[0];
-	max = vertex[0];
+	min = vertices[0];
+	max = vertices[0];
 	radius = 0;
 	float newRadius = 0;
-	for (int i = 0; i < vertices; ++i){
-		newRadius = vertex[i].LengthSquared();
+	for (int i = 0; i < numVertices; ++i){
+		newRadius = vertices[i].LengthSquared();
 		if (newRadius > radius)
 			radius = newRadius;
 
 		// Get min
-		if (vertex[i].x < min.x)
-			min.x = vertex[i].x;
-		if (vertex[i].y < min.y)
-			min.y = vertex[i].y;
-		if (vertex[i].z < min.z)
-			min.z = vertex[i].z;
+		if (vertices[i].x < min.x)
+			min.x = vertices[i].x;
+		if (vertices[i].y < min.y)
+			min.y = vertices[i].y;
+		if (vertices[i].z < min.z)
+			min.z = vertices[i].z;
 		// Get max
-		if (vertex[i].x > max.x)
-			max.x = vertex[i].x;
-		if (vertex[i].y > max.y)
-			max.y = vertex[i].y;
-		if (vertex[i].z > max.z)
-			max.z = vertex[i].z;
+		if (vertices[i].x > max.x)
+			max.x = vertices[i].x;
+		if (vertices[i].y > max.y)
+			max.y = vertices[i].y;
+		if (vertices[i].z > max.z)
+			max.z = vertices[i].z;
 	}
 	radius = sqrt(radius);
 	centerOfMesh = (max - min)/2.0f + min;
@@ -683,19 +663,19 @@ void Mesh::CalculateBounds(){
 
 	// Below assumes centered mesh. This may not always be the case!
 	/*
-	for (int i = 0; i < vertices; ++i){
+	for (int i = 0; i < numVertices; ++i){
 		// Radius
-		newRadius = (vertex[i] - centerOfMesh).Length();
+		newRadius = (vertices[i] - centerOfMesh).Length();
 		if (newRadius > radius)
 			radius = newRadius;
 	}*/
 }
 
-/** Centerizes the model by pushing all vertices by the length of the the centerOfMesh vector.
+/** Centerizes the model by pushing all numVertices by the length of the the centerOfMesh vector.
 	Resets centerOfMesh afterward. */
 void Mesh::Center(){
-	for (int i = 0; i < vertices; ++i){
-		vertex[i] -= centerOfMesh;
+	for (int i = 0; i < numVertices; ++i){
+		vertices[i] -= centerOfMesh;
 	}
 	centerOfMesh = Vector3f();
 }
@@ -706,29 +686,29 @@ void Mesh::CalculateUVTangents()
 	// Not working anyway.. fit it.
 	assert(false);
 	/*
-	if (!uv)
+	if (!uvs)
 		return;
-	for (int i = 0; i < faces; ++i){
-		MeshFace * f = &face[i];
+	for (int i = 0; i < numFaces; ++i){
+		MeshFace * f = &faces[i];
 		if (f->numVertices < 3)
             continue;
 
 		// Reference:
 		// http://www.terathon.com/code/tangent.html
 
-		/// 3 Points on the face
+		/// 3 Points on the faces
 		Vector3f v1, v2, v3;
-		v1 = vertex[f->vertex[0]];
-		v2 = vertex[f->vertex[1]];
-		v3 = vertex[f->vertex[2]];
+		v1 = vertices[f->vertices[0]];
+		v2 = vertices[f->vertices[1]];
+		v3 = vertices[f->vertices[2]];
 
 		float v1u, v2u, v3u, v1v, v2v, v3v;
-		v1u = u[f->uv[0]];
-		v2u = u[f->uv[1]];
-		v3u = u[f->uv[2]];
-		v1v = v[f->uv[0]];
-		v2v = v[f->uv[1]];
-		v3v = v[f->uv[2]];
+		v1u = u[f->uvs[0]];
+		v2u = u[f->uvs[1]];
+		v3u = u[f->uvs[2]];
+		v1v = v[f->uvs[0]];
+		v2v = v[f->uvs[1]];
+		v3v = v[f->uvs[2]];
 
 		float x1 = v2.x - v1.x;
         float x2 = v3.x - v1.x;
@@ -748,13 +728,13 @@ void Mesh::CalculateUVTangents()
         Vector3d tdir((s1 * x2 - s2 * x1) * r, (s1 * y2 - s2 * y1) * r,
                 (s1 * z2 - s2 * z1) * r);
 
-		// face UV "up"- and "right"-tangent respectively.
+		// faces UV "up"- and "right"-tangent respectively.
 		Vector3f tan1f = sdir;
 		Vector3f tan2f = tdir;
 
 		for (int j = 0; j < 3 && j < f->numVertices; ++j){
-			// Only check the 3 first vertices.
-			const Vector3d& n = normal[f->normal[j]];
+			// Only check the 3 first numVertices.
+			const Vector3d& n = normals[f->normals[j]];
 			const Vector3d& t = tan1f;
 
 			Vector4d vertexTangent;
@@ -818,12 +798,12 @@ void Mesh::Bufferize()
 	if (err != GL_NO_ERROR)
 		std::cout<<"\nUnknown error?";
 
-	// Count total vertex/texture point pairs without any further optimization.
-	unsigned int vertexCount = faces * 3;
+	// Count total vertices/texture point pairs without any further optimization.
+	unsigned int vertexCount = numFaces * 3;
 	floatsPerVertex = 3 + 3 + 2 + 4;  // Pos + Normal + UV + NormalMappingTangent
 	float * vboVertexData = new float[vertexCount * floatsPerVertex];
 
-    std::cout<<"\nVertexCount: "<<vertexCount<<" MeshFaceCount: "<<faces;
+    std::cout<<"\nVertexCount: "<<vertexCount<<" MeshFaceCount: "<<numFaces;
 
 	// Generate And bind The Vertex Buffer
 	/// Check that the buffer isn't already generated
@@ -835,35 +815,38 @@ void Mesh::Bufferize()
 
 	// Load all data in one big fat array, yo Data
 	unsigned int vertexDataCounted = 0;
-	// Reset vertex count
+	// Reset vertices count
 	vboVertexCount = 0;
-	for (int i = 0; i < faces; ++i){
-		// Count vertices in all triangles
-		for (int j = 0; j < 3; ++j){
-			MeshFace * f = &face[i];
+	for (int i = 0; i < numFaces; ++i)
+	{
+		MeshFace * face = &faces[i];
+//		face->Print();
+		// Count numVertices in all triangles
+		for (int j = 0; j < 3; ++j)
+		{
 		//	std::cout<<"\nCurrentVertex";
-			int currentVertex = face[i].vertex[j];
-			assert(face[i].vertex[j] < 3000000);
+			int currentVertex = face->vertices[j];
+			assert(face->vertices[j] < 3000000);
 			// Position
-			vboVertexData[vertexDataCounted + 0] = vertex[currentVertex].x;
-			vboVertexData[vertexDataCounted + 1] = vertex[currentVertex].y;
-			vboVertexData[vertexDataCounted + 2] = vertex[currentVertex].z;
+			vboVertexData[vertexDataCounted + 0] = vertices[currentVertex].x;
+			vboVertexData[vertexDataCounted + 1] = vertices[currentVertex].y;
+			vboVertexData[vertexDataCounted + 2] = vertices[currentVertex].z;
 			// Normal
-			if (normal){
-				int currentNormal = face[i].normal[j];
-				vboVertexData[vertexDataCounted + 3] = normal[currentNormal].x;
-				vboVertexData[vertexDataCounted + 4] = normal[currentNormal].y;
-				vboVertexData[vertexDataCounted + 5] = normal[currentNormal].z;
+			if (numNormals){
+				int currentNormal = face->normals[j];
+				vboVertexData[vertexDataCounted + 3] = normals[currentNormal].x;
+				vboVertexData[vertexDataCounted + 4] = normals[currentNormal].y;
+				vboVertexData[vertexDataCounted + 5] = normals[currentNormal].z;
 			}
 			else
 				vboVertexData[vertexDataCounted + 3] =
 				vboVertexData[vertexDataCounted + 4] =
 				vboVertexData[vertexDataCounted + 5] = 0;
 			// UV
-			if (uv){
-				int currentUV = face[i].uv[j];
-				vboVertexData[vertexDataCounted + 6] = uv[currentUV].x;
-				vboVertexData[vertexDataCounted + 7] = uv[currentUV].y;
+			if (numUVs){
+				int currentUV = face->uvs[j];
+				vboVertexData[vertexDataCounted + 6] = uvs[currentUV].x;
+				vboVertexData[vertexDataCounted + 7] = uvs[currentUV].y;
 			}
 			else {
 				vboVertexData[vertexDataCounted + 6] =
@@ -871,10 +854,10 @@ void Mesh::Bufferize()
 			}
 			/// Tangents for NormalMapping
 			if (true) {
-				vboVertexData[vertexDataCounted + 8] = f->uvTangent.x;
-				vboVertexData[vertexDataCounted + 9] = f->uvTangent.y;
-				vboVertexData[vertexDataCounted + 10] = f->uvTangent.z;
-				vboVertexData[vertexDataCounted + 11] = f->uvTangent.w;
+				vboVertexData[vertexDataCounted + 8] = face->uvTangent.x;
+				vboVertexData[vertexDataCounted + 9] = face->uvTangent.y;
+				vboVertexData[vertexDataCounted + 10] = face->uvTangent.z;
+				vboVertexData[vertexDataCounted + 11] = face->uvTangent.w;
 			}
 			else {
 				vboVertexData[vertexDataCounted + 8] =
@@ -900,7 +883,7 @@ void Mesh::Bufferize()
 	vboVertexData = NULL;
 }
 
-/// Searches through the mesh's vertices and returns the maximum bounding radius required by the Entity.
+/// Searches through the mesh's numVertices and returns the maximum bounding radius required by the Entity.
 float getMaxBoundingRadius(Mesh * mesh){
 /*	if (mesh == NULL){
 		std::cout<<"WARNING: Mesh NULL in getMaxBoundingRadius!";
@@ -908,13 +891,13 @@ float getMaxBoundingRadius(Mesh * mesh){
 	}
 	*/
 	float maxX = 0.0f, maxY = 0.0f, maxZ = 0.0f;
-	for (int i = 0; i < mesh->vertices; ++i){
-		if (AbsoluteValue(mesh->vertex[i].x) > maxX)
-			maxX = mesh->vertex[i].x;
-		if (AbsoluteValue(mesh->vertex[i].y) > maxY)
-			maxY = mesh->vertex[i].y;
-		if (AbsoluteValue(mesh->vertex[i].z) > maxZ)
-			maxZ = mesh->vertex[i].z;
+	for (int i = 0; i < mesh->numVertices; ++i){
+		if (AbsoluteValue(mesh->vertices[i].x) > maxX)
+			maxX = mesh->vertices[i].x;
+		if (AbsoluteValue(mesh->vertices[i].y) > maxY)
+			maxY = mesh->vertices[i].y;
+		if (AbsoluteValue(mesh->vertices[i].z) > maxZ)
+			maxZ = mesh->vertices[i].z;
 	}
 	float max = sqrt(pow(maxX, 2) + pow(maxY, 2) + pow(maxZ, 2));
 	return max;
@@ -922,18 +905,18 @@ float getMaxBoundingRadius(Mesh * mesh){
 
 List<Triangle> Mesh::GetTris(){
 	List<Triangle> triangles;
-	for (int i = 0; i < faces; ++i){
+	for (int i = 0; i < numFaces; ++i){
 		// Just copy shit from it
-		MeshFace * f = &face[i];
-		assert((f->numVertices <= 4 || f->numVertices >= 3) && "Bad vertex count in face");
+		MeshFace * f = &faces[i];
+		assert((f->numVertices <= 4 || f->numVertices >= 3) && "Bad vertices count in faces");
 
-		Vector3f p1 = vertex[f->vertex[0]],
-			p2 = vertex[f->vertex[1]],
-			p3 = vertex[f->vertex[2]];
+		Vector3f p1 = vertices[f->vertices[0]],
+			p2 = vertices[f->vertices[1]],
+			p3 = vertices[f->vertices[2]];
 
 		if (f->numVertices == 4){
-			assert(false && "face has quads!");
-// 			Vector3f p4 = vertex[face->vertex[3]];
+			assert(false && "faces has quads!");
+// 			Vector3f p4 = vertices[faces->vertices[3]];
 // 			Quad * quad = new Quad();
 // 			quad->Set4Points(p1, p2, p3, p4);
 // 			quads.Add(quad);

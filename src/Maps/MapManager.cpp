@@ -2,7 +2,10 @@
 /// 2013-03-01
 
 #include "MapManager.h"
+
 #include "ModelManager.h"
+#include "Model.h"
+
 #include "Entity/EntityManager.h"
 #include "Entity/Entity.h"
 #include "Entity/CompactEntity.h"
@@ -493,7 +496,11 @@ Entity * MapManager::CreateEntity(String name, Model * model, Texture * texture,
 /// Adds target entity to the map, registering it for physics and graphicsState->
 bool MapManager::AddEntity(Entity * entity)
 {
-	assert(activeMap && "Active Map not set in MapManager::CreateEntity!");
+	if (!activeMap)
+	{
+		// Create it then..?
+		activeMap = CreateMap("DefaultMap");
+	}
 	bool addResult = activeMap->AddEntity(entity);
 	if (addResult == false){
 		EntityMan.DeleteEntity(entity);
@@ -766,8 +773,8 @@ bool MapManager::CreateNavMesh(List<Entity*> entitiesToCreateFrom){
 	ASSERT_ACTIVE_MAP(false);
 	Graphics.PauseRendering();
 	/// If we got any paths, clear them first.
-	if (activeMap->paths)
-		CLEAR_AND_DELETE(activeMap->paths);
+	activeMap->paths.ClearAndDelete();
+
 	if (activeMap->navMesh == NULL)
 		activeMap->navMesh = WaypointMan.CreateNavMesh(activeMap->name + " Navmesh");
 	/// If it already had stuff, clear it.

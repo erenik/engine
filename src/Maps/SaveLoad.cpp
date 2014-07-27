@@ -263,7 +263,7 @@ bool Map::WriteEntities(std::fstream &file){
 		++entitiesAdded;
 	}
 	assert(cEntities.Size() == entities.Size());
-	if (cEntities){
+	if (cEntities.Size()){
 		// First write what block we're beginning
 		int blockType = BLOCK_ENTITIES;
 		file.write((char*) &blockType, sizeof(int));

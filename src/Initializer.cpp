@@ -69,8 +69,9 @@ void * Initialize(void * vArgs){
 	MapMan.Initialize();
 
 	// Allocate all UIs
+	// All UI should be created only when necessary! Set it up manually in each App-state as wanted.
 	// Begin loading heavier things after we've set up the rendering thread.
-	StateMan.CreateUserInterfaces();
+//	StateMan.CreateUserInterfaces();
 
 	// Check that all managers have been initialized before we continue..
 

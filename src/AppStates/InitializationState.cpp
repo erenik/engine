@@ -1,7 +1,7 @@
 // Emil Hedemalm
 // 2013-07-03 Linuxifying!
 
-#include "GameState.h"
+#include "AppState.h"
 #include "../Managers.h"
 extern UserInterface * ui[GameStateID::MAX_GAME_STATES];
 
@@ -20,7 +20,7 @@ Initialization::Initialization(){
     name = "Initialization state";
 }
 
-void Initialization::OnEnter(GameState * previousState){
+void Initialization::OnEnter(AppState * previousState){
 	std::cout<<"\nEntering Initialization StateMan.";
 #ifdef WINDOWS
 	// Get last window position
@@ -42,7 +42,7 @@ void Initialization::Process(int timeInMs)
 	Graphics.renderQueried = true;
 }
 
-void Initialization::OnExit(GameState * nextState){
+void Initialization::OnExit(AppState * nextState){
 	std::cout<<"\nLeaving Initialization StateMan.";
 	// Sets full-screen style if specified
 	if (Graphics.shouldFullScreen){
