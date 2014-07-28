@@ -3,7 +3,7 @@
 /// A complete model, which may have multiple mesh-parts.
 
 #include "Model.h"
-#include "Mesh.h"
+#include "Mesh/Mesh.h"
 
 #include <cstdlib>
 #include "PhysicsLib/Shapes.h"
@@ -52,7 +52,13 @@ String Model::RelativePath()
 /// Calls render on the triangulized mesh parts within.
 void Model::Render()
 {
-	GetTriangulatedMesh()->Render();
+	Mesh * triangulatedMesh = GetTriangulatedMesh();
+	if (!triangulatedMesh)
+	{
+		std::cout<<"\nUnable to render model: "<<name;
+		return;
+	}
+	triangulatedMesh->Render();
 }
 
 void Model::SetName(String i_name){
@@ -81,6 +87,22 @@ Mesh * Model::GetTriangulatedMesh()
 		return mesh;
 	else if (triangulizedMesh)
 		return triangulizedMesh;
+	assert(false && "Lakcing triangulized mesh");
 	return NULL;
+}
+
+/// Re-creates the triangulized mesh. Call after changes have been made to the base mesh.
+bool Model::RegenerateTriangulizedMesh()
+{
+	// Hope noone's using this model.. maybe flag it somehow first..
+	if (triangulizedMesh)
+		// Delete all but any potential GL buffers we were using.
+		triangulizedMesh->Delete();
+	else
+		triangulizedMesh = new Mesh();
+
+	triangulizedMesh->LoadDataFrom(mesh);
+	triangulizedMesh->Triangulate();
+	return true;
 }
 

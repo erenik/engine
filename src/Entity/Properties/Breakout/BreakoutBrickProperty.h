@@ -12,6 +12,9 @@ class BreakoutBrickProperty : public EntityProperty
 {
 public:
 	BreakoutBrickProperty(Entity * owner);
+	/// Returns the ID of this specific property-type (used when identifying it within an entity later on).
+	virtual int ID();
+
 	
 	/// Time passed in seconds..!
 	virtual void Process(int timeInMs);

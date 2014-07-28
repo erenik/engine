@@ -500,6 +500,7 @@ bool MapManager::AddEntity(Entity * entity)
 	{
 		// Create it then..?
 		activeMap = CreateMap("DefaultMap");
+		MakeActive(activeMap);
 	}
 	bool addResult = activeMap->AddEntity(entity);
 	if (addResult == false){

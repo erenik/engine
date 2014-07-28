@@ -501,15 +501,66 @@ int CollisionShapeOctree::FindCollisions(Entity * targetEntity, List<Collision> 
 }
 
 /// Checks if the target Entity is inside this CollisionShapeOctree Entity, intersecting it or outside.
-int CollisionShapeOctree::IsEntityInside(Entity * entity, Matrix4f & localTransform){
-	// Make box test insteeeead
-//	return INSIDE;
-
+int CollisionShapeOctree::IsEntityInside(Entity * entity, Matrix4f & localTransform)
+{
 	/// Transform the vectors to the local transform position.
 	Vector4f minVec(left, bottom, farBound, 1.0f);
 	Vector4f maxVec(right, top, nearBound, 1.0f);
 	minVec = localTransform * minVec;
 	maxVec = localTransform * maxVec;
+
+	float midX = (left + right) * 0.5f;
+	float midY = (top + bottom) * 0.5f;
+	Vector4f hitherCenter(midX, midY, nearBound, 1.f);
+	hitherCenter = localTransform * hitherCenter;
+
+	Vector3f hitherTopLeft(left, top, nearBound), 
+		hitherTopRight(right, top, nearBound), 
+		hitherBottomLeft(left, bottom, nearBound), 
+		hitherBottomRight(right, bottom, nearBound);
+	Vector3f fartherTopLeft( left, top, farBound), 
+		fartherTopRight(right, top, farBound), 
+		fartherBottomLeft(left, bottom, farBound), 
+		fartherBottomRight(right, bottom, farBound);
+	
+	// Gather the 6 planes.
+	Plane planes[6];
+	// Same code as in Frustum class, pretty much.
+	planes[LEFT_PLANE].Set3Points(hitherTopLeft, hitherBottomLeft, fartherBottomLeft);
+	planes[RIGHT_PLANE].Set3Points(hitherTopRight, fartherTopRight, fartherBottomRight);
+	planes[BOTTOM_PLANE].Set3Points(fartherBottomRight, fartherBottomLeft, hitherBottomLeft);
+	planes[TOP_PLANE].Set3Points(fartherTopRight, hitherTopRight, hitherTopLeft);
+	planes[NEAR_PLANE].Set3Points(hitherBottomLeft, hitherTopLeft, hitherTopRight);
+	planes[FAR_PLANE].Set3Points(fartherBottomLeft, fartherBottomRight, fartherTopRight);
+
+	// Transform them according to the transform.
+	for (int i = 0; i < 6; ++i)
+	{
+		Plane & plane = planes[i];
+		plane = plane.Transform(localTransform);
+	}
+
+	// Finally check stuff.
+	float distance;
+	int result = Loc::INSIDE;
+
+	float radius = entity->physics->physicalRadius;
+
+	for(int i=0; i < 6; i++) 
+	{
+		Plane * plane = &planes[i];
+		distance = plane->Distance(entity->position);
+		if (distance < -radius)
+			return Loc::OUTSIDE;
+		else if (distance < radius)
+			result =  Loc::INTERSECT;
+	}
+	return(result);
+
+
+	/// The below approach doesn't work when the transform includes rotation.
+	/*
+	
 	float entityLeft = entity->position.x - entity->radius,
 		entityRight = entity->position.x + entity->radius,
 		entityTop = entity->position.y + entity->radius,
@@ -535,6 +586,7 @@ int CollisionShapeOctree::IsEntityInside(Entity * entity, Matrix4f & localTransf
 		)
 		return INTERSECT;
 	// It's outside if the previous were false, logical :P
+	*/
 	return OUTSIDE;
 }
 

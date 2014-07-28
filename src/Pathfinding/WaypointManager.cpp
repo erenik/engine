@@ -7,7 +7,7 @@
 #include <cstring>
 #include "Maps/Map.h"
 #include "Entity/Entity.h"
-#include "Mesh.h"
+#include "Mesh/Mesh.h"
 #include "ModelManager.h"
 
 float WaypointManager::minimumWaypointProximity = 10.0f;

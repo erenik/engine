@@ -128,10 +128,10 @@ private:
 
 class GMUnregisterEntities : public GraphicsMessage {
 public:
-	GMUnregisterEntities(Selection selection);
+	GMUnregisterEntities(List<Entity*> entities);
 	void Process();
 private:
-	Selection selection;
+	List<Entity*> entities;
 };
 
 class ParticleSystem;

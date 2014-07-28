@@ -66,9 +66,9 @@ enum physicsTargets{
 	ANGULAR_DAMPING,
 
 	// Separate float and Vector targets?
-	POSITION,
-	POSITION_Y,
-	POSITION_X,
+	PT_POSITION,
+	PT_POSITION_Y,
+	PT_POSITION_X,
 	TRANSLATE,
 	SCALE,
 	ROTATE,
@@ -78,7 +78,7 @@ enum physicsTargets{
 	GRAVITY,
 	ACCELERATION, ACCELERATION_MULTIPLIER, // <- Lazy me, but might be good, hm?
 	ANGULAR_ACCELERATION,
-	VELOCITY,
+	PT_VELOCITY,
 
 	// Relative acceleration, meaning acceleration in relation to the entity's current direction vectors (up, left, forward)
 	RELATIVE_ACCELERATION, 

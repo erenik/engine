@@ -15,13 +15,18 @@
 #include "Message/MessageManager.h"
 
 PongBallProperty::PongBallProperty(Entity * owner, float defaultMinHorizontalVel)
-	: EntityProperty("PongBallProperty", owner), defaultMinHorizontalVel(defaultMinHorizontalVel)
+	: EntityProperty("PongBallProperty", ID(), owner), defaultMinHorizontalVel(defaultMinHorizontalVel)
 {
 	minimumHorizontalVelocity = 0.f;
 	velocityIncreasePerBounce = 0.f;
 	maxYVel = 1000.f;
 };
 
+/// Returns the ID of this specific property-type (used when identifying it within an entity later on).
+int PongBallProperty::ID()
+{
+	return EntityPropertyID::MINI_GAME_1 + 1;
+}
 
 /// Time passed in seconds..!
 void PongBallProperty::Process(int timeInMs)

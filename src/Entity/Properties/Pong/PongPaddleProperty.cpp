@@ -14,10 +14,17 @@
 #include "Physics/Messages/PhysicsMessage.h"
 
 PongPaddleProperty::PongPaddleProperty(Entity * owner, Vector2f lookAt, float aiSpeed)
-	: EntityProperty("PongPaddleProperty", owner), aiSpeed(aiSpeed), lookAt(lookAt)
+	: EntityProperty("PongPaddleProperty", ID(), owner), aiSpeed(aiSpeed), lookAt(lookAt)
 {
 	score = 0;
 	lastUserInput = Time::Now();
+}
+
+
+/// Returns the ID of this specific property-type (used when identifying it within an entity later on).
+int PongPaddleProperty::ID()
+{
+	return EntityPropertyID::MINI_GAME_1 + 0;
 }
 
 /// Time passed in seconds..!
@@ -77,7 +84,7 @@ void PongPaddleProperty::Process(int timeInMs)
 			toMove *= aiSpeed;
 			toMove.y += closestBall->physics->velocity.y * 0.5f;
 			toMove.x = toMove.z = 0;
-			Physics.QueueMessage(new PMSetEntity(VELOCITY, owner, Vector3f(toMove)));
+			Physics.QueueMessage(new PMSetEntity(PT_VELOCITY, owner, Vector3f(toMove)));
 			moved = true;
 		}
 	}
@@ -89,5 +96,5 @@ void PongPaddleProperty::Process(int timeInMs)
 
 void PongPaddleProperty::StopMovement()
 {
-	Physics.QueueMessage(new PMSetEntity(VELOCITY, owner, Vector3f()));
+	Physics.QueueMessage(new PMSetEntity(PT_VELOCITY, owner, Vector3f()));
 }

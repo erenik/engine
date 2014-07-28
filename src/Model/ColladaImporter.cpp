@@ -5,7 +5,7 @@
 #include "ColladaImporter.h"
 #include "XML/XMLParser.h"
 #include "XML/XMLElement.h"
-#include "Mesh.h"
+#include "Mesh/Mesh.h"
 
 
 ColladaImporter::ColladaImporter(){

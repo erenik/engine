@@ -14,13 +14,16 @@ void GMUnregisterEntity::Process(){
 }
 
 
-GMUnregisterEntities::GMUnregisterEntities(Selection i_selection) : GraphicsMessage(GM_UNREGISTER_ENTITIES){
-	selection = i_selection;
+GMUnregisterEntities::GMUnregisterEntities(List<Entity*> entities) 
+	: GraphicsMessage(GM_UNREGISTER_ENTITIES), entities(entities)
+{
+	/*
 	for (int i = 0; i < selection.Size(); ++i){
 		assert(selection[i]->registeredForRendering);
-	}
+	}*/
 }
 
-void GMUnregisterEntities::Process(){
-	Graphics.UnregisterEntities(selection);
+void GMUnregisterEntities::Process()
+{
+	Graphics.UnregisterEntities(entities);
 }

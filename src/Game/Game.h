@@ -6,11 +6,14 @@
 #define GAME_H
 
 #include "String/AEString.h"
+#include "Time/Time.h"
+
+class Entity;
 
 class Game {
 public:
 
-	Game();
+	Game(String name);
 	Game(String name, String type, String host, String port, int currentPlayers, int maxPlayers)
 		: name(name), type(type), host(host), currentPlayers(currentPlayers), maxPlayers(maxPlayers)
 	{
@@ -19,11 +22,17 @@ public:
 		assert(port != 0);
 	}
 
+	/// Call on a per-frame basis.
+	virtual void Process() = 0;
+	/// Fetches all entities concerning this game.
+	virtual List<Entity*> GetEntities() = 0;
+
+
 	bool LoadFrom(String);
 	String ToString();
 
 	/// Game-time in milliseconds. Should be updated by the game's global game state (specifically needed for networked-games).
-	long long gameTime;
+	int64 gameTime;
 
 	/// User-defined name of the game.
 	String name;

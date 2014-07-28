@@ -9,7 +9,11 @@
 // A sub-space of the main graphics targets as defined in GraphicsMessages.h
 enum cameraTargets
 {
-	CAMERA_TO_TRACK = CAMERA_TARGET_0, // Setting global camera
+	CAMERA_TO_TRACK = CAMERA_TARGET_0, 
+	// Setting global camera
+	// Setting camera position and orientation.
+	ROTATION,
+	POSITION,
 	/** Relative position of the camera compared to the entity. 
 		If the camera is inheriting the entity's rotation, this relative position will be re-calculated using the entity's local orientation axes.
 	*/

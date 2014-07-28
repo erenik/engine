@@ -9,6 +9,9 @@ class SpaceShooterCR : public CollisionResolver
 public:
 	/// Returns false if the colliding entities are no longer in contact after resolution.
 	virtual bool ResolveCollision(Collision & c);
+	/// Resolves collisions.
+	virtual int ResolveCollisions(List<Collision> collisions);
+	
 };
 
 

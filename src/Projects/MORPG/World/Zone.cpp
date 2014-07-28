@@ -7,6 +7,7 @@
 Zone::Zone()
 {
 	isWater = false;
+	isMountain = false;
 }
 
 /// If this zone is to be painted on a map, what color would it be?
@@ -21,6 +22,11 @@ bool Zone::IsWater()
 {
 	return isWater;
 };
+
+bool Zone::IsMountain()
+{
+	return isMountain;
+}
 
 void Zone::SetWater(bool w)
 { 

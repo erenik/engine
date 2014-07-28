@@ -23,7 +23,7 @@ class Triangle;
 class EntityProperty;
 /*
 #include "GL/glew.h"
-#include "Mesh.h"
+#include "Mesh/Mesh.h"
 #include "Texture.h"
 */
 
@@ -34,7 +34,8 @@ struct LifeAttribute{
 /** An encapsulation Entity for objects, including their corresponding transforms, textures, Mesh, etc.
 	An entiy with an ID of 0 can be considered invalid.
 */
-class Entity {
+class Entity 
+{
 	friend class EntityManager;
 	friend class BlueprintManager;
 	/// Default constructor, only available to the EntityManager!
@@ -59,6 +60,8 @@ public:
 
 	/// Getter.
 	EntityProperty * GetProperty(String byName);
+	/// Getter.
+	EntityProperty * GetProperty(int byID);
 
 
 	/// Contains additional render information for effects or attached entities.

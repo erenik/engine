@@ -5,12 +5,14 @@
 #include "../GraphicsManager.h"
 #include "GraphicsMessages.h"
 
-#include "Mesh.h"
+#include "Mesh/Mesh.h"
 
-GMBufferMesh::GMBufferMesh(Mesh * iMesh) : GraphicsMessage(GM_BUFFER_MESH) {
+GMBufferMesh::GMBufferMesh(Mesh * iMesh) : GraphicsMessage(GM_BUFFER_MESH) 
+{
 	mesh = iMesh;
 }
 
-void GMBufferMesh::Process(){
+void GMBufferMesh::Process()
+{
 	mesh->Bufferize();
 }

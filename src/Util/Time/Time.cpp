@@ -133,7 +133,12 @@ int64 Time::Microseconds()
 	}	
 	return -1;
 }
-	
+
+int64 Time::Milliseconds()
+{
+	int64 micro = Microseconds();
+	return micro / 1000;
+}	
 
 /// Total time in seconds.
 int64 Time::Seconds()

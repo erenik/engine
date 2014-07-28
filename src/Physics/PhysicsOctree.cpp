@@ -165,7 +165,7 @@ bool PhysicsOctree::AddEntity(Entity * targetEntity){
 	} /// End of trying to enter it into any of our children
 
 	// Okay, no spot in children, check if we should subdivide it (if the children aren't already allocated, that is!)
-	if (entities.Size() > MAX_INITIAL_NODES_BEFORE_SUBDIVISION && child[0] == NULL){
+	if (entities.Size() > MAX_INITIAL_NODES_BEFORE_SUBDIVISION && child[0] == NULL && this->subdivision < MAX_SUBDIVISION){
 		// Subdivide and then try push all our children down the tree further, so they don't get stuck here without reason.
 		subdivide();
 		List<Entity*> tempList(entities);

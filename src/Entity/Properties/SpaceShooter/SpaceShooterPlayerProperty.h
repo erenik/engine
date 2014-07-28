@@ -10,22 +10,37 @@
 
 #include "SpaceShooterProjectileProperty.h"
 
+class SpaceShooter;
+
 class SpaceShooterPlayerProperty : public EntityProperty
 {
 public:
-	SpaceShooterPlayerProperty(Entity * owner);
+	/// Reference to the game and this property's owner.
+	SpaceShooterPlayerProperty(SpaceShooter * game, Entity * owner);
+	// Static version.
+	static int ID();
+
+	void Remove();
+	/// D:
+	void Destroy();
+	// Reset sleep.
+	void OnSpawn();
+	
 	/// Time passed in seconds..!
 	virtual void Process(int timeInMs);
 
-	
+
+	/// If reacting to collisions...
+	virtual void OnCollision(Collision & data);
+
 	/// Determines type of projectile spawned.
-	SpaceShooterWeaponType type;
+	SpaceShooterWeaponType weaponType;
 
 	// player score
 	int score;
 
 	// Since enemies go from right to left..
-	bool player;
+	bool isPlayer;
 	bool enemy;
 
 	// For transformations.
@@ -33,8 +48,18 @@ public:
 	/// For switching on AI
 	Time lastUserInput;
 
+
+	/// True for players and allies.
+	bool allied;
+
+	/// When deaded...
+	bool sleeping;
+
 private:
 
+	Time lastFire;
+
+	SpaceShooter * game;
 };
 
 

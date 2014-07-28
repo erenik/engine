@@ -2,13 +2,17 @@
 // 2013-03-20
 
 //#include <windows.h>
+#include "Mesh/Mesh.h"
+
+#include "Mesh/EFace.h"
+#include "Mesh/EMesh.h"
+#include "Mesh/EVertex.h"
 
 #include "Graphics/OpenGL.h"
 #include "Graphics/GLBuffers.h"
 //#include "Graphics/GraphicsManager.h"
 //#include "GraphicsState.h"
 
-#include "Mesh.h"
 #include "Material.h"
 #include "OS/Sleep.h"
 #include "PhysicsLib/Shapes.h"
@@ -16,6 +20,8 @@
 #include <fstream>
 #include <iostream>
 #include <Util.h>
+
+#include "Matrix/Matrix.h"
 
 MeshFace::MeshFace(){
 	Nullify();
@@ -90,7 +96,7 @@ bool MeshFace::WriteTo(std::fstream & file)
 bool MeshFace::ReadFrom(std::fstream & file)
 {
 	file.read((char*)&numVertices, sizeof(int));
-	assert(numVertices < 20);
+//	assert(numVertices < 20);
 	// Assume deallocation before is not necessary...
 	AllocateArrays();
 	file.read((char*)vertices.GetArray(), sizeof(int) * numVertices);
@@ -139,6 +145,13 @@ void Mesh::AddPlane(Vector3f upperLeft, Vector3f lowerLeft, Vector3f lowerRight,
 {
 	
 }
+
+/// Adds a grid (basically a plane), with the specified amount of cells/faces in X and Y.
+void Mesh::AddGrid(Vector3f upperLeft, Vector3f lowerLeft, Vector3f lowerRight, Vector3f upperRight, Vector2i gridSizeDivision)
+{
+	assert(false);
+}
+
 
 // Allocates the vertices, u,v and normals arrays
 void Mesh::AllocateArrays()
@@ -338,6 +351,82 @@ bool Mesh::LoadDataFrom(const Mesh * otherMesh)
 	}
 	return true;
 }
+
+/// For creating an optimized version of the more complex/pointer-oriented E(ditable)-Mesh.
+bool Mesh::LoadDataFrom(const EMesh * otherMesh)
+{
+	std::cout<<"\nLoadDataFrom mesh constructor begun...";
+    /// Deallocate as needed first?
+	DeallocateArrays();
+	/// Nullify stuff.
+	Nullify();
+
+	// Fetch numbers
+	name = otherMesh->name;
+	source = otherMesh->source;
+	numVertices = otherMesh->vertices.Size();
+	numUVs = otherMesh->uvs.Size();
+	numNormals = otherMesh->normals.Size();
+	numFaces = otherMesh->faces.Size();
+
+	// If no normals, generate 1.
+	bool generateNormals = false;
+	if (numNormals == 0)
+	{
+		numNormals = 1;
+		generateNormals = true;
+	}
+
+	// Allocate
+	AllocateArrays();
+	
+	/// Extract all actual data.
+	for (int i = 0; i < otherMesh->vertices.Size(); ++i)
+	{
+		Vector3f data = *(Vector3f*)otherMesh->vertices[i];
+		vertices[i] = data;
+	}
+	// Load UVs
+	for (int i = 0; i < otherMesh->uvs.Size(); ++i)
+	{
+		Vector2f data = *(Vector2f*)otherMesh->uvs[i];
+		uvs[i] = data;
+	}
+	if (generateNormals)
+	{
+		normals[0] = Vector3f(0,1,0);
+	}
+
+	for (int i = 0; i < otherMesh->faces.Size(); ++i)
+	{
+		MeshFace & face = faces[i];
+		EFace * eFace = otherMesh->faces[i];
+		face.numVertices = eFace->vertices.Size();
+		face.AllocateArrays();
+		for (int j = 0; j < face.numVertices; ++j)
+		{
+			EVertex * vertex = eFace->vertices[j];
+			// Now the bothersome part, fetch the indices of the vertices..
+			int index = otherMesh->vertices.GetIndexOf(vertex);
+			// Fetch UV if possible.
+			EUV * uv = 0;
+			uv = vertex->uvCoord;
+
+			int uvIndex = 0;
+			if (uv)
+			{
+				uvIndex = otherMesh->uvs.GetIndexOf(uv);
+			}
+			// .. and decrement it? or increment..? Nah. Should be 0-based!
+			face.vertices[j] = index;
+			face.normals[j] = 0;
+			face.uvs[j] = uvIndex;
+		}
+	}
+	
+	return true;
+}
+
 
 /*
 Mesh::Mesh(const Mesh * mesh){
@@ -770,7 +859,7 @@ void Mesh::Bufferize()
 	// Check if already buffered, stupid..
 	if (this->vboBuffer){
 //		std::cout<<"\nINFO: Mesh "<<name<<" already buffered, skipping!";
-		return;
+	//	return;
 	}
 	/// Check for mesh-Entity
 	if (!name)

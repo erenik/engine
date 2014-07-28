@@ -34,7 +34,7 @@ void PhysicsManager::ApproximateIntegrate(Entity * entity, float timeSinceLastUp
                 Re
         */
 #define AIR_DENSITY	1.225 // kg/m^3
-#define VELOCITY dynamicEntity->physics->velocity
+#define PT_VELOCITY dynamicEntity->physics->velocity
 #define MASS 500
         if (currentVelocity > 10.f)
 		{

@@ -23,10 +23,17 @@ BreakoutPowerupMessage::BreakoutPowerupMessage(Powerup power)
 
 
 BreakoutPowerupProperty::BreakoutPowerupProperty(Entity * owner)
-	: EntityProperty("BreakoutPowerupProperty", owner)
+	: EntityProperty("BreakoutPowerupProperty", ID(), owner)
 {
 	sleeping = false;
 }
+
+/// Returns the ID of this specific property-type (used when identifying it within an entity later on).
+int BreakoutPowerupProperty::ID()
+{
+	return EntityPropertyID::MINI_GAME_2 + 3;
+}
+
 
 /// If reacting to collisions...
 void BreakoutPowerupProperty::OnCollision(Collision & data)

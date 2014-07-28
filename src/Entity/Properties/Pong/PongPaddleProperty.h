@@ -11,6 +11,9 @@ class PongPaddleProperty : public EntityProperty
 {
 public:
 	PongPaddleProperty(Entity * owner, Vector2f lookAt, float aiSpeed);
+	/// Returns the ID of this specific property-type (used when identifying it within an entity later on).
+	virtual int ID();
+
 
 	/// Time passed in seconds..!
 	virtual void Process(int timeInMs);

@@ -14,11 +14,17 @@
 #include "Physics/Messages/PhysicsMessage.h"
 
 BreakoutPaddleProperty::BreakoutPaddleProperty(Entity * owner, Vector2f lookAt, float aiSpeed)
-	: EntityProperty("BreakoutPaddleProperty", owner), aiSpeed(aiSpeed), lookAt(lookAt)
+	: EntityProperty("BreakoutPaddleProperty", ID(), owner), aiSpeed(aiSpeed), lookAt(lookAt)
 {
 	score = 0;
 	lastUserInput = Time::Now();
 	initialScale = Vector3f(1,1,1);
+}
+
+/// Returns the ID of this specific property-type (used when identifying it within an entity later on).
+int BreakoutPaddleProperty::ID()
+{
+	return EntityPropertyID::MINI_GAME_2 + 0;
 }
 
 /// Time passed in seconds..!
@@ -97,7 +103,7 @@ void BreakoutPaddleProperty::Process(int timeInMs)
 			toMove *= aiSpeed;
 			toMove.x += closestBall->physics->velocity.x * 0.5f;
 			toMove.y = toMove.z = 0;
-			Physics.QueueMessage(new PMSetEntity(VELOCITY, owner, Vector3f(toMove)));
+			Physics.QueueMessage(new PMSetEntity(PT_VELOCITY, owner, Vector3f(toMove)));
 			moved = true;
 		}
 	}
@@ -147,5 +153,5 @@ void BreakoutPaddleProperty::OnPowerupsUpdated()
 
 void BreakoutPaddleProperty::StopMovement()
 {
-	Physics.QueueMessage(new PMSetEntity(VELOCITY, owner, Vector3f()));
+	Physics.QueueMessage(new PMSetEntity(PT_VELOCITY, owner, Vector3f()));
 }

@@ -9,6 +9,7 @@
 
 class Triangle;
 struct GraphicsState;
+class EMesh;
 
 /// A struct for a geometric MeshFace, containing number of vertices and indices for which vertex is used and which UV-coordinate is used.
 struct MeshFace {
@@ -69,6 +70,9 @@ public:
 
 	/// Adds a plane, creating 2 faces in a counter-clockwise manner.
 	void AddPlane(Vector3f upperLeft, Vector3f lowerLeft, Vector3f lowerRight, Vector3f upperRight);
+	/// Adds a grid (basically a plane), with the specified amount of cells/faces in X and Y.
+	void AddGrid(Vector3f upperLeft, Vector3f lowerLeft, Vector3f lowerRight, Vector3f upperRight, Vector2i gridSizeDivision);
+
 
 	// Allocates the vertex, u,v and normal arrays
 	void AllocateArrays();
@@ -83,6 +87,8 @@ public:
 	void PrintContents();
 	/// Replaces copy-constructor.
 	bool LoadDataFrom(const Mesh * otherMesh);
+	/// For creating an optimized version of the more complex/pointer-oriented E(ditable)-Mesh.
+	bool LoadDataFrom(const EMesh * otherMesh);
 	/// Triangulates the mesh.
 	void Triangulate();
 	/// Deletes and recalculates ALL normals

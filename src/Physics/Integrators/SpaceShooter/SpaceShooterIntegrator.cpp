@@ -54,7 +54,7 @@ void SpaceShooterIntegrator::IntegrateVelocity(Entity * forEntity, float timeInS
 	/// Check if player
 	// If so, limit to inside the radiusiusius
 	SpaceShooterPlayerProperty * sspp = (SpaceShooterPlayerProperty *) forEntity->GetProperty("SpaceShooterPlayerProperty");
-	if (sspp && sspp->player)
+	if (sspp && sspp->isPlayer)
 	{
 		Vector3f position = forEntity->position;
 		ClampFloat(position.x, frameMin.x, frameMax.x);

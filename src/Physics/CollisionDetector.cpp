@@ -15,8 +15,8 @@ int CollisionDetector::DetectCollisions(Entity * one, Entity * two, List<Collisi
 {
 	Collision data;
 
-	if (! (one->physics->collisionFilter & two->physics->collisionFilter &&
-		two->physics->collisionFilter & one->physics->collisionFilter))
+	if (! (one->physics->collisionFilter & two->physics->collisionCategory &&
+		two->physics->collisionFilter & one->physics->collisionCategory))
 		return false;
 
 	/// Skip if for some reason they are equal to each other (implementation dependant if this check is made)
@@ -174,6 +174,15 @@ int CollisionDetector::DetectCollisions(Entity * one, Entity * two, List<Collisi
 	//	std::cout<<"\nTesting collission for: "<<cube->name;
 		if (CubeSphereCollision(cube, sphere, data))
 			shouldCollide = true;
+	}
+	else if (shapeTypes[ShapeType::MESH] >= 2)
+	{
+		// Mesh-mesh collision...
+		if (!SpheresColliding(one->position, two->position, one->physics->physicalRadius + two->physics->physicalRadius))
+			return false;
+		data.collisionNormal = (one->position - two->position).NormalizedCopy();
+		/// CBA serious collision, just do it as if they are spheres for now?
+		shouldCollide = true;
 	}
 	else {
 		std::cout<<"\nINFO: Unknown collission imminent.";

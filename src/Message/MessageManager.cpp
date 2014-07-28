@@ -95,7 +95,8 @@ void MessageManager::ProcessMessages()
 	msgQueueMutex.Release();
 
 	// And then process them.
-	while (messageQueueCopy.Length()){
+	while (messageQueueCopy.Length())
+	{
 		Message * message = messageQueueCopy.Pop();
 		ProcessMessage(message);
 	//	assert(message->data == NULL && "OY!");

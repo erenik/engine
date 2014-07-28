@@ -7,6 +7,8 @@
 class MORPG : public AppState 
 {
 public:
+	MORPG();
+
 	/// Function when entering this state, providing a pointer to the previous StateMan.
 	void OnEnter(AppState * previousState);
 	/// Main processing function, using provided time since last frame.

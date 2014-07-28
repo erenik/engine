@@ -118,7 +118,8 @@ int GraphicsManager::UnregisterEntities(List<Entity*> & toUnregister){
 }
 
 /// Unregisters all entities possible from rendering.
-int GraphicsManager::UnregisterAll(){
+int GraphicsManager::UnregisterAll()
+{
 	while(registeredEntities.Size() > 0){
 		UnregisterEntity(registeredEntities[0]);
 	}

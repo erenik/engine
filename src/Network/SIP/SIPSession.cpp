@@ -150,15 +150,20 @@ List<Packet*> SIPSession::ReadPackets()
 }
 
 /// Returns a list of available games from all peers.
-List<Game*> SIPSession::GetAvailableGames(){
+List<Game*> SIPSession::GetAvailableGames()
+{
 	List<Game*> games;
 	for (int i = 0; i < peers.Size(); ++i){
 		Peer * p = peers[i];
 		SIPSessionData * peerSIPSessionData = this->GetSessionData(p);
-		for (int j = 0; j < peerSIPSessionData->soughtGames.Size(); ++j){
+		for (int j = 0; j < peerSIPSessionData->soughtGames.Size(); ++j)
+		{
+			assert(false);
+			/*
 			Game * game = new Game();
 			game->LoadFrom(peerSIPSessionData->soughtGames[j]);
 			games.Add(game);
+			*/
 		}
 	}
 	return games;

@@ -72,6 +72,9 @@ public:
 	*/
 	Vector3f(const Vector4d& base);
 
+	/// Virtual destructor so sub-classes get de-allocated appropriately.
+	virtual ~Vector3f();
+
 	/// Printing out data
 	friend std::ostream& operator <<(std::ostream& os, const Vector3f& vec);
 	/// Writes to file stream.

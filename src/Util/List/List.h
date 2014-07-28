@@ -206,9 +206,10 @@ const List<T> * List<T>::operator += (const List<T> &otherList) {
 	return this;
 }
 template <class T>
-const List<T> List<T>::operator += (const T &newItem){
+const List<T> List<T>::operator += (const T &newItem)
+{
 	if (currentItems + 1 > arrLength)
-		Resize(currentItems * 2);
+		Resize(currentItems * 2 + 1);
 	Add(newItem);
 	return *this;
 }
@@ -287,7 +288,7 @@ bool List<T>::Add(T item)
 	if (currentItems == arrLength)
 	{
 		try {
-			Resize(currentItems * 2);
+			Resize(currentItems * 2 + 1);
 		} catch (...){
 			std::cout << "\nUnable to allocate larger size array!";
 			return false;
@@ -342,7 +343,7 @@ template <class T>
 bool List<T>::Add(T item, int requestedIndex) {
 	if (currentItems == arrLength){
 		try {
-			Resize(currentItems * 2);
+			Resize(currentItems * 2 + 1);
 		} catch (...){
 			std::cout << "\nUnable to allocate larger size array!";
 			return false;
@@ -505,8 +506,11 @@ void List<T>::Allocate(int newSize, bool setFull)
 template <class T>
 void List<T>::Resize(int newSize)
 {
+	// Just remove if 0.
 	if (newSize == 0)
+	{
 		newSize = 8;
+	}
 	assert(newSize >= currentItems);
 	T * newArr = new T[newSize];
 	for (int i = 0; i < currentItems; ++i)

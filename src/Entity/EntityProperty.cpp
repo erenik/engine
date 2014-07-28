@@ -7,8 +7,9 @@
 #include "../Entity/Entity.h"
 #include <cassert>
 
-EntityProperty::EntityProperty(String name, Entity * owner)
-: name(name), owner(owner)
+EntityProperty::EntityProperty(String name, int id, Entity * owner)
+: name(name), owner(owner), id(id)
+	
 {
 	currentState = NULL;
 	previousState = NULL;
@@ -81,6 +82,11 @@ void EntityProperty::OnCollision(Collision & data)
 {
 }
 
+/// Returns the ID of this specific property (used when identifying it within an entity later on).
+int EntityProperty::GetID()
+{
+	return id;
+}
 
 /// Callback for when one or more paths have been invalidated to due changes in the map.
 void EntityProperty::PathsInvalidated(){

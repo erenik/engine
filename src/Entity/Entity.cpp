@@ -1,7 +1,7 @@
 // Emil Hedemalm
 // 2013-03-17
 
-#include "Mesh.h"
+#include "Mesh/Mesh.h"
 
 #include "../Material.h"
 #include "../Model.h"
@@ -158,6 +158,20 @@ EntityProperty * Entity::GetProperty(String byName)
 	}
 	return NULL;
 }
+
+/// Getter.
+EntityProperty * Entity::GetProperty(int byID)
+{
+	for (int i = 0; i < properties.Size(); ++i)
+	{
+		EntityProperty * prop = properties[i];
+		if (prop->GetID() == byID)
+			return prop;
+	}
+	return NULL;
+
+}
+
 
 
 /** Buffers this entities' models into graphics memory.
@@ -488,7 +502,7 @@ void Entity::Render(GraphicsState * graphicsState)
 	if (render && model)
 	{
 		// Render the model
-		model->GetTriangulatedMesh()->Render();
+		model->Render();
 		++graphicsState->renderedObjects;		// increment rendered objects for debug info
 
 

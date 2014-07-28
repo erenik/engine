@@ -41,6 +41,7 @@ public:
 
 	bool IsWater();
 	void SetWater(bool w);
+	bool IsMountain();
 
 	virtual bool WriteTo(std::fstream & file);
 	virtual bool ReadFrom(std::fstream & file);
@@ -61,6 +62,7 @@ public:
 
 private:
 	bool isWater;
+	bool isMountain;
 };
 
 #endif

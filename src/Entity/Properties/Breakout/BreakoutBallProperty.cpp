@@ -21,12 +21,18 @@
 #include "Audio/AudioManager.h"
 
 BreakoutBallProperty::BreakoutBallProperty(Entity * owner, float defaultMinHorizontalVel)
-	: EntityProperty("BreakoutBallProperty", owner), defaultMinVerticalVel(defaultMinHorizontalVel)
+	: EntityProperty("BreakoutBallProperty", ID(), owner), defaultMinVerticalVel(defaultMinHorizontalVel)
 {
 	minimumVerticalVelocity = 0.f;
 	velocityIncreasePerBounce = 0.f;
 	maxYVel = 1000.f;
 };
+
+/// Returns the ID of this specific property-type (used when identifying it within an entity later on).
+int BreakoutBallProperty::ID()
+{
+	return EntityPropertyID::MINI_GAME_2 + 2;
+}
 
 
 /// Time passed in seconds..!

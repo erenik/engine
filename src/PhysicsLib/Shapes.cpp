@@ -1,8 +1,20 @@
 #include "Shapes.h"
 #include <cassert>
 
+Plane::Plane()
+{
+	Set3Points(Vector3f(-0.5f,0,-0.5f), Vector3f(0.5f,0,-0.5f),Vector3f(0.5f,0,0.5f));
+};
+
+// Creates a plane, setting its 3 reference points in counter clockwise order.
+Plane::Plane(Vector3f point1, Vector3f point2, Vector3f point3)
+{
+	Set3Points(point1, point2, point3);
+}
+
 /// Copy constructor
-Plane::Plane(const Plane &plane){
+Plane::Plane(const Plane &plane)
+{
 	Set3Points(plane.point1, plane.point2, plane.point3);
 }
 /** Product with Matrix

@@ -41,6 +41,9 @@ class BreakoutPowerupProperty : public EntityProperty
 public:
 
 	BreakoutPowerupProperty(Entity * owner);
+	/// Returns the ID of this specific property-type (used when identifying it within an entity later on).
+	virtual int ID();
+
 
 	/// If reacting to collisions...
 	virtual void OnCollision(Collision & data);

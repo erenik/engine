@@ -43,9 +43,10 @@ class Plane;
 class Plane 
 {
 public:
-	Plane() {
-		Set3Points(Vector3f(-0.5f,0,-0.5f), Vector3f(0.5f,0,-0.5f),Vector3f(0.5f,0,0.5f));
-	};
+	// Creates a flat plane in X/Z, with a normal point in Y+
+	Plane();
+	// Creates a plane, setting its 3 reference points in counter clockwise order.
+	Plane(Vector3f point1, Vector3f point2, Vector3f point3);
 	/// Copy constructor
 	Plane(const Plane &plane);
 

@@ -30,7 +30,10 @@ GameSession::~GameSession()
 
 
 /// Returns a Game-object containing all necessary info about this specific game instance.
-Game * GameSession::GetGame(){
+Game * GameSession::GetGame()
+{
+	assert(false);
+	/*
 	assert(isHost);
 	Game * game = new Game();
 	game->name = name;
@@ -43,6 +46,8 @@ Game * GameSession::GetGame(){
 	game->currentPlayers = this->currentPlayers;
 	game->maxPlayers = this->maxPlayers;
 	return game;
+	*/
+	return NULL;
 }
 
 /// Performs regular tcp connection via Session, but also sets up our client UDP socket.

@@ -51,6 +51,7 @@ public:
 
 	// Current total in micro-seconds since the starting-point.
 	int64 Microseconds();
+	int64 Milliseconds();
 	/// Total time in seconds.
 	int64 Seconds();
 
@@ -66,6 +67,8 @@ public:
 	/// The amount of intervals in this time. Exactly how intervals is used is up to which functions you wish to use.
 	int64 intervals;
 	
+	/// o-o
+	int Type(){ return type;};
 private:
 	/// Fetches calender data given the intervals and type defined now.
 	void FetchCalenderData();

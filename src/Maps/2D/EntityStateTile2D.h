@@ -18,6 +18,11 @@ public:
 	/// Render, why does the entity state have a render function..?
 	void Render();
 
+	/// Returns the ID of this specific property-type (used when identifying it within an entity later on).
+	virtual int ID();
+
+	
+
 	virtual void OnEnter();
 	virtual void Process(int timeInMs);
 	virtual void OnExit();

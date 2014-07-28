@@ -6,26 +6,39 @@
 #define SPACE_SHOOTER_PROJECTILE_PROPERTY_H
 
 #include "Entity/EntityProperty.h"
+#include "Game/SpaceShooter/SpaceShooterWeaponType.h"
 
-struct SpaceShooterWeaponType 
-{
-	String name;
-	// Determines model/texture, possibly more.
-	int type;
-	// amount
-	int damage;
-};
+class SpaceShooter;
 
 class SpaceShooterProjectileProperty : public EntityProperty 
 {
 public:
-	SpaceShooterProjectileProperty(Entity * owner);
+	SpaceShooterProjectileProperty(SpaceShooter * game, Entity * owner, SpaceShooterWeaponType type);
+	// Static version.
+	static int ID();
+
+	/// If reacting to collisions...
+	virtual void OnCollision(Collision & data);
+
+	// Fall asleep.. unregistering it from physics, graphics, etc.
+	void Sleep();
+
+	/// Time passed in seconds..!
+	virtual void Process(int timeInMs);
+
+	/// Resets sleep-flag, among other things
+	void OnSpawn();
 
 	SpaceShooterWeaponType type;
 
 	// Whose side the projectile belongs to. Determines who it will react to/damage.
 	bool player;
 	bool enemy;
+
+	/// If not currently active (available for re-use).
+	bool sleeping;
+private:
+	SpaceShooter * game;
 };
 
 #endif

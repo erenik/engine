@@ -24,6 +24,7 @@ GMSetCamera::GMSetCamera(Camera * camera, int target, Vector3f vec3fValue)
 {
 	switch(target)
 	{
+		case ROTATION:
 		case RELATIVE_POSITION:
 		case OFFSET_ROTATION:
 			break;
@@ -81,6 +82,12 @@ void GMSetCamera::Process()
 		{
 			// Ensure it will actually try and follow it too..?
 			camera->entityToTrack = entity;
+			break;
+		}
+		case ROTATION:
+		{
+			camera->rotation = vec3fValue;
+			// If using quaternions, should supply one as argument...
 			break;
 		}
 		case INHERIT_ROTATION:

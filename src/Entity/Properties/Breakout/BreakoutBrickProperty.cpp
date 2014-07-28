@@ -17,10 +17,17 @@
 Random brickRandom;
 
 BreakoutBrickProperty::BreakoutBrickProperty(Entity * owner)
-	: EntityProperty("BreakoutBrickProperty", owner), hitsNeeded(1), score(1), hitsTaken(0),
+	: EntityProperty("BreakoutBrickProperty", ID(), owner), hitsNeeded(1), score(1), hitsTaken(0),
 	sleeping(false)
 {
 }
+
+/// Returns the ID of this specific property-type (used when identifying it within an entity later on).
+int BreakoutBrickProperty::ID()
+{
+	return EntityPropertyID::MINI_GAME_2 + 1;
+}
+
 
 /// Time passed in seconds..!
 void BreakoutBrickProperty::Process(int timeInMs)

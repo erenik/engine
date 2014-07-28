@@ -50,6 +50,10 @@ public:
 #define GetTriangulizedMesh GetTriangulatedMesh
 	Mesh * GetTriangulatedMesh();
 
+	/// Re-creates the triangulized mesh. Call after changes have been made to the base mesh.
+	bool RegenerateTriangulizedMesh();
+
+
 	/// Keeps track of active amount of users for this model.
 	int users;
 

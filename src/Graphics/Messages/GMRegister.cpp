@@ -9,7 +9,8 @@ GMRegisterEntity::GMRegisterEntity(Entity * i_entity) : GraphicsMessage(GM_REGIS
 	entity = i_entity;
 }
 
-void GMRegisterEntity::Process(){
+void GMRegisterEntity::Process()
+{
 ///	entity->model->mesh.Bufferize();
 	assert(Graphics.registeredEntities.Size() == Graphics.vfcOctree->RegisteredEntities());
 	entity->Bufferize();
@@ -18,7 +19,8 @@ void GMRegisterEntity::Process(){
 }
 
 
-GMRegisterEntities::GMRegisterEntities(Selection i_selection) : GraphicsMessage(GM_REGISTER_ENTITIES){
+GMRegisterEntities::GMRegisterEntities(Selection i_selection) : GraphicsMessage(GM_REGISTER_ENTITIES)
+{
 	selection = i_selection;
 	for (int i = 0; i < selection.Size(); ++i){
 		if (selection[i]->registeredForRendering){
@@ -27,8 +29,10 @@ GMRegisterEntities::GMRegisterEntities(Selection i_selection) : GraphicsMessage(
 	}
 }
 
-void GMRegisterEntities::Process(){
-	for (int i = 0; i < selection.Size(); ++i){
+void GMRegisterEntities::Process()
+{
+	for (int i = 0; i < selection.Size(); ++i)
+	{
 		if (selection[i]->registeredForRendering){
 			assert(!selection[i]->registeredForRendering);
 		}
@@ -61,7 +65,8 @@ GMClear::GMClear(int target)
 : GraphicsMessage(GM_CLEAR), target(target){
 }
 
-void GMClear::Process(){
+void GMClear::Process()
+{
 	switch(target){
 		case PARTICLE_SYSTEMS:
 			Graphics.particleSystems.Clear();

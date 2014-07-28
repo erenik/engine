@@ -6,7 +6,7 @@
 #include "Entity/Entity.h"
 #include "Physics/PhysicsProperty.h"
 #include "Model.h"
-#include "Mesh.h"
+#include "Mesh/Mesh.h"
 #include "Physics/PhysicsManager.h"
 
 /// Fucking macros (on windows)

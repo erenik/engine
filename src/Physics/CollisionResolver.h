@@ -12,7 +12,7 @@ class CollisionResolver
 {
 public:
 	/// Resolves collisions.
-	int ResolveCollisions(List<Collision> collisions);
+	virtual int ResolveCollisions(List<Collision> collisions);
 	/// Returns false if the colliding entities are no longer in contact after resolution.
 	virtual bool ResolveCollision(Collision & c) = 0;
 private:

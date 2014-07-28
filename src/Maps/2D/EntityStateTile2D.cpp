@@ -13,7 +13,7 @@
 #include "Model.h"
 
 EntityStateTile2D::EntityStateTile2D(Entity * owner)
-: EntityProperty("EntityStateTile2D", owner)
+: EntityProperty("EntityStateTile2D", EntityPropertyID::UTILITY_PROPERTIES, owner)
 {
 }
 
@@ -26,6 +26,13 @@ void EntityStateTile2D::Render()
 {
 	std::cout<<"erer:";
 }
+
+/// Returns the ID of this specific property-type (used when identifying it within an entity later on).
+int EntityStateTile2D::ID()
+{
+	return EntityPropertyID::UTILITY_PROPERTIES;
+}
+
 
 void EntityStateTile2D::OnEnter(){
 

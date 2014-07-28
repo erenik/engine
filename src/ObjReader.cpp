@@ -8,7 +8,7 @@
 #include "Timer/Timer.h"
 
 // #include <GL/glew.h>
-#include "Mesh.h"
+#include "Mesh/Mesh.h"
 
 
 bool ObjReader::ReadObj(const char * filename, Mesh * mesh)

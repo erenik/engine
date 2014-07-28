@@ -3,6 +3,7 @@
 /// Collision-detection for a Breakout-type game
 
 #include "SpaceShooterCD.h"
+#include "Physics/Collision/Collision.h"
 
 /// Brute-force method. Does not rely on other structures that require further updates. All entities are present in the list.
 int SpaceShooterCD::DetectCollisions(List<Entity*> entities, List<Collision> & collisions)
@@ -35,10 +36,28 @@ int SpaceShooterCD::DetectCollisions(List<Entity*> entities, List<Collision> & c
 				continue;
 			if (!entity2->physics->collissionsEnabled)
 				continue;
-			numCol += CollisionDetector::DetectCollisions(entity, entity2, collisions);
+			numCol += DetectCollisions(entity, entity2, collisions);
 		}
 	}
 	return numCol;
+}
+
+
+
+
+/// Detects collisions between two entities. Method used is based on physics-shape. Sub-class to override it.
+int SpaceShooterCD::DetectCollisions(Entity * one, Entity * two, List<Collision> & collisions)
+{
+	if (SpheresColliding(one->position, two->position, one->physics->physicalRadius + two->physics->physicalRadius))
+	{
+		Collision c;
+		c.one = one;
+		c.two = two;
+		c.collisionNormal = (two->position - one->position).NormalizedCopy();
+		collisions.Add(c);
+		return true;
+	}
+	return false;
 }
 
 

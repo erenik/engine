@@ -5,7 +5,7 @@
 #include "ModelManager.h"
 
 #include "Model.h"
-#include "Mesh.h"
+#include "Mesh/Mesh.h"
 
 #include <iostream>
 #include <cstdlib>

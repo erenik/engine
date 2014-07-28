@@ -6,7 +6,7 @@
 #define SQUARE_H
 
 #include "Globals.h"
-#include "Mesh.h"
+#include "Mesh/Mesh.h"
 
 /// A simple 2D square mesh used mainly for UI
 class Square : public Mesh {

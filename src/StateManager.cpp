@@ -38,6 +38,7 @@ StateManager::StateManager(){
 	globalState = NULL;
 	activeState = NULL;
 	previousState = NULL;
+	queuedGlobalState = NULL;
 	shouldLive = true;
 	paused = false;
 };
@@ -118,6 +119,15 @@ void StateManager::QueueState(AppState * gs)
 	std::cout<<"\nERROR: Trying to queue an unknown/non-existant game state.";
 }
 
+/// Performs switch operations when transitioning states.
+void StateManager::QueueGlobalState(AppState * state)
+{	
+	if (!state)
+		return;
+	queuedGlobalState = state;
+}
+
+
 /// Enteres queued state (if any)
 void StateManager::EnterQueuedState()
 {
@@ -133,6 +143,21 @@ void StateManager::EnterQueuedState()
 	Resume(); // By default, unpause if paused.
 	return;							// And break the loop ^^
 }
+
+void StateManager::EnterQueuedGlobalState()
+{
+	if (!queuedGlobalState)
+		return;
+	if (globalState)				// If we were in a valid state,
+		globalState->OnExit(queuedGlobalState);	// Call onExit for the previous state
+	queuedGlobalState->OnEnter(globalState);	// Then onEnter for the new state
+	globalState = queuedGlobalState;			// Then reset the active state pointer!
+	queuedGlobalState = NULL;
+	Resume(); // By default, unpause if paused.
+	return;							// And break the loop ^^
+
+}
+
 
 void StateManager::SetGlobalState(int id)
 {
@@ -235,6 +260,7 @@ void * StateManager::StateProcessor(void * vArgs){
 		/// Enter new state if queued.
 		if (!quittingApplication)
 		{
+			StateMan.EnterQueuedGlobalState();
 			StateMan.EnterQueuedState();
 			ScriptMan.Process(timeDiff);
 			/// Wosh.

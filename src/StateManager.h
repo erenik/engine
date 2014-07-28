@@ -69,6 +69,8 @@ public:
 	void QueuePreviousState();
 	/// Performs switch operations when transitioning states.
 	void QueueState(AppState * state);
+	/// Performs switch operations when transitioning states.
+	void QueueGlobalState(AppState * state);
 
 	/// Sets a global state, that can process global messages and packets
 	void SetGlobalState(int id);
@@ -98,6 +100,7 @@ private:
 	bool paused;
 	/// Enteres queued state (if any)
 	void EnterQueuedState();
+	void EnterQueuedGlobalState();
 
 	/// Registers a state to the state manager for use. Returns true upon success.
 	bool RegisterState(AppState * state);
@@ -110,6 +113,7 @@ private:
 	/// Currently active state.
 	AppState * activeState;
 	AppState * previousState;
+	AppState * queuedGlobalState;
 	Queue<AppState *> queuedStates;
 };
 

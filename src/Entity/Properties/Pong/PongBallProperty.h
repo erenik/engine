@@ -12,6 +12,9 @@ class PongBallProperty : public EntityProperty
 {
 public:
 	PongBallProperty(Entity * owner, float defaultMinHorizontalVel);
+	/// Returns the ID of this specific property-type (used when identifying it within an entity later on).
+	virtual int ID();
+
 
 	/// Time passed in seconds..!
 	virtual void Process(int timeInMs);

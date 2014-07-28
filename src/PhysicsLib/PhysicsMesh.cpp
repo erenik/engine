@@ -1,7 +1,7 @@
 
 #include "PhysicsMesh.h"
 #include "Physics/Collision/CollisionShapeOctree.h"
-#include "Mesh.h"
+#include "Mesh/Mesh.h"
 
 
 PhysicsMesh::PhysicsMesh(){

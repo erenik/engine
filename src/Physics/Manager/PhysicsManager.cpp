@@ -17,7 +17,7 @@
 #include "Physics/CollisionResolver.h"
 #include "Physics/CollisionDetector.h"
 
-#include "Mesh.h"
+#include "Mesh/Mesh.h"
 
 #include <ctime>
 

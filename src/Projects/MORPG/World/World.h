@@ -8,6 +8,7 @@
 #include <fstream>
 #include "String/AEString.h"
 #include "MathLib.h"
+#include "Matrix/Matrix.h"
 
 class Texture;
 class Model;
@@ -38,9 +39,9 @@ public:
 	bool ReadFrom(std::fstream & file);
 
 	/// Based on zones.
-	void GeneratePreviewTexture();
+	Texture * GeneratePreviewTexture();
 	/// Based on zones.
-	void GenerateWorldModel();
+	Model * GenerateWorldModel();
 
 	/// Getters.
 	Nation * GetNationByID(int id);
@@ -54,6 +55,7 @@ public:
 	List<Nation*> nations;
 	/// All zones.
 	List<Zone*> zones;
+	Matrix<Zone*> zoneMatrix;
 	/// All characters in the world.
 	List<Character*> characters;
 	/// All quests in the world.

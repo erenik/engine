@@ -98,6 +98,12 @@ Vector3f::Vector3f(const Vector4d& base){
 	z = (float)base.z;
 }
 
+/// Virtual destructor so sub-classes get de-allocated appropriately.
+Vector3f::~Vector3f()
+{
+}
+
+
 /// Printing out data
 std::ostream& operator <<(std::ostream& os, const Vector3f& vec){
 	os << vec.x << " " << vec.y << " " << vec.z;

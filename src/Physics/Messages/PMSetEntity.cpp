@@ -47,8 +47,8 @@ PMSetEntity::PMSetEntity(int target, List<Entity*> targetEntities, float value)
 		case FRICTION:
 		case RESTITUTION:
 		case VELOCITY_RETAINED_WHILE_TURNING:
-		case POSITION_Y:
-		case POSITION_X:
+		case PT_POSITION_Y:
+		case PT_POSITION_X:
 			break;
 		default:
 			assert("Mismatched target and value in PMSetEntity!");
@@ -70,8 +70,8 @@ PMSetEntity::PMSetEntity(int target, List<Entity*> targetEntities, Vector2f valu
 	switch(target)
 	{
 		case SET_SCALE:
-		case VELOCITY:
-		case POSITION:
+		case PT_VELOCITY:
+		case PT_POSITION:
 			break;
 		default:
 			assert(false && "Mismatched target and value in PMSetEntity!");
@@ -93,10 +93,10 @@ PMSetEntity::PMSetEntity(int target, List<Entity*> targetEntities, Vector3f valu
 	vec3fValue = value;
 	switch(target)
 	{
-		case VELOCITY:
+		case PT_VELOCITY:
 		case ANGULAR_VELOCITY:
 		case CONSTANT_ROTATION_VELOCITY:
-		case POSITION:
+		case PT_POSITION:
 		case TRANSLATE:
 		case SCALE:
 		case ROTATE:
@@ -277,7 +277,8 @@ void PMSetEntity::Process()
 				if (entity->physics->estimator)
 					entity->physics->estimator->smoothingDuration = iValue;
 			/// Vec3 types
-			case VELOCITY:
+			case PT_VELOCITY:
+				ASSERT_ENTITY_NOT_STATIC;
 				switch(dataType)
 				{
 					case VECTOR2F:
@@ -300,7 +301,7 @@ void PMSetEntity::Process()
 				entity->physics->constantAngularVelocity= vec3fValue;
 				break;
 			case SET_POSITION:
-			case POSITION:
+			case PT_POSITION:
 			{
 				switch(dataType)
 				{
@@ -318,11 +319,11 @@ void PMSetEntity::Process()
 				}
 				break;
 			}
-			case POSITION_Y:
+			case PT_POSITION_Y:
 				entity->position.y = fValue;
 				entity->RecalculateMatrix();
 				break;
-			case POSITION_X:
+			case PT_POSITION_X:
 				entity->position.x = fValue;
 				entity->RecalculateMatrix();
 				break;

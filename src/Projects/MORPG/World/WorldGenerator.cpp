@@ -28,6 +28,13 @@ bool WorldGenerator::GenerateWorld(World & world)
 	/// 0 to 1, how many of the tiles should be settlements. (Recommended value around 0.1?)
 	float settlements;
 */
+	/// Allocate zone matrix
+	world.zoneMatrix.SetDefaultValue(0);
+	world.zoneMatrix.Allocate(size);
+	
+//	world.zoneMatrix.PrintContents();
+
+
 	/// Generate zones.
 	for (int x = 0; x < size.x; ++x)
 	{
@@ -36,9 +43,13 @@ bool WorldGenerator::GenerateWorld(World & world)
 			Zone * zone = new Zone();
 			zone->position = Vector3i(x,y,0);
 			world.zones.Add(zone);
+			assert(world.zoneMatrix[x][y] == 0);
+			world.zoneMatrix[x][y] = zone;
 		}
 	}
 	world.size = size;
+
+//	world.zoneMatrix.PrintContents();
 
 	/// Mark water
 	assert(water < 1.f);

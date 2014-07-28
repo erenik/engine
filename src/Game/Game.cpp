@@ -5,7 +5,8 @@
 #include "Game.h"
 #include "String/StringUtil.h"
 
-Game::Game()
+Game::Game(String name)
+	: name(name)
 {
 }
 

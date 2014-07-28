@@ -2,14 +2,18 @@
 #include "../PhysicsManager.h"
 #include <cassert>
 
-PMUnregisterEntities::PMUnregisterEntities(List<Entity*> targetEntities): PhysicsMessage(PM_UNREGISTER_ENTITIES){
+PMUnregisterEntities::PMUnregisterEntities(List<Entity*> targetEntities): PhysicsMessage(PM_UNREGISTER_ENTITIES)
+{
 	entities = targetEntities;
+	/*
 	for (int i = 0; i < entities.Size(); ++i){
 		assert(entities[i]->registeredForPhysics);
 	}
+	*/
 }
 
-void PMUnregisterEntities::Process(){
+void PMUnregisterEntities::Process()
+{
 	std::cout<<"\nUnregistering selection for Physics.";
 	int failed = Physics.UnregisterEntities(entities);
 	if (failed == 0){
