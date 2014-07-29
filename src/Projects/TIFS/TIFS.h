@@ -45,6 +45,9 @@ public:
 	/// Creates the user interface for this state. Is called automatically when re-building the UI with the CTRL+R+U command.
 	virtual void CreateUserInterface();
 
+
+	/// Randomly!!!! o-=o
+	void CreateTurrets();
 	/// Creates a turret!
 	void CreateTurret(int ofSize, Vector3f atLocation);
 

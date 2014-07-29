@@ -152,10 +152,12 @@ public:
 	/// Radius of the bounding sphere.
 	float radius;
 
-	/// Child objects, for example wheels for a bike, etc.
-	Entity ** child;
-	/// Keeps track of the amount of children this node has.
-	int children;
+	/** Child entities, for example wheels for a bike, etc.
+		All child-entities are merely here by relation, and should not be processed (in general) when the parent is processed!
+	*/
+	List<Entity*> children;
+	/// Parent entity. Helps dictate how the transformation-matrix will be calculated.
+	Entity * parent;
 
 	/// Status, for whether it's part of rendering, physics, etc.
 	bool registeredForRendering;

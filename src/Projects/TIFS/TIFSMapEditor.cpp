@@ -26,7 +26,10 @@
 
 #include "Maps/MapManager.h"
 
+#include "Model.h"
 #include "ModelManager.h"
+#include "Mesh/EMesh.h"
+
 #include "TextureManager.h"
 
 #include "Input/InputManager.h"
@@ -104,6 +107,7 @@ void TIFSMapEditor::ProcessMessage(Message * message)
 			{
 				GenerateGround();
 			}
+
 			break;	
 		}
 	}
@@ -125,9 +129,19 @@ void TIFSMapEditor::GenerateGround()
 	// Clear old grid/ground, if any.
 	MapMan.DeleteEntities(tifs->groundEntities);
 	tifs->groundEntities.Clear();
-
+/*
 	// Generate a nice grid..
+	static Model * groundModel = 0;
+	if (!groundModel)
+		groundModel = new Model();
+	
+	static EMesh * eMesh = 0;
+	if (!eMesh)
+		eMesh = new EMesh();
 
+
+	eMesh->CreateGrid(Vector3f());
+*/
 	Entity * ground = MapMan.CreateEntity("Ground", ModelMan.GetModel("plane"), TexMan.GetTexture("Grey"));
 	tifs->groundEntities.Add(ground);
 

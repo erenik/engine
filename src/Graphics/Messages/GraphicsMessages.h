@@ -120,6 +120,9 @@ enum graphicsTargets
 {
 	GT_NULL_GRAPHIC_TARGET,
 
+	// Parenting, for relative displacement/rotation, etc.
+	GT_PARENT,
+
 	GT_OVERLAY_TEXTURE,
 	GT_ACTIVE_USER_INTERFACE,
 	GT_GRID_SPACING,

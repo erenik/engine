@@ -93,8 +93,6 @@ Entity::Entity(int i_id)
 	normalMap = NULL;
 	material = new Material(defaultMaterial);
 	model = NULL;
-	child = NULL;
-	children = 0;
 	id = i_id;
 	/// Owner o-o
 	this->player = NULL;
@@ -111,6 +109,8 @@ Entity::Entity(int i_id)
 	this->scripts = NULL;
 	/// Create it automatiaclly so we don't have to, cheers..
 	this->pathfindingProperty = new PathfindingProperty(this);
+
+	parent = NULL;
 }
 
 /// Default constructor...
@@ -264,9 +264,11 @@ void Entity::RenderOld(GraphicsState * graphicsState){
 	++graphicsState->renderedObjects;		// increment rendered objects for debug info
 
 	// Render children if needed
+	/*
 	if (child)
 		for (int i = 0; i < children; ++i)
 			child[i]->RenderOld(graphicsState);
+*/
 
 	// Revert the model matrix to the old one in the stack
 	graphicsState->modelMatrixD = tmp;
@@ -547,9 +549,12 @@ void Entity::Render(GraphicsState * graphicsState)
 	}
 
 	// Render children if needed
+	// No, children are rendered independently!
+	/*
 	if (child)
 		for (int i = 0; i < children; ++i)
 			child[i]->Render(graphicsState);
+*/
 
 	// Revert the model matrix to the old one in the stack
 	graphicsState->modelMatrixD = tmp;
@@ -791,6 +796,12 @@ void Entity::RecalculateMatrix()
 	transformationMatrix.Multiply((Matrix4d().Translate(Vector3d(position))));
 	transformationMatrix.Multiply(rotationMatrix);
 	transformationMatrix.Multiply((Matrix4d().Scale(Vector3d(scale))));
+
+	/// Use parent matrix, apply ours on top of it!
+	if (parent)
+	{
+		transformationMatrix = parent->transformationMatrix * transformationMatrix;
+	}
 
 		// Ensure it has a scale..?
 //	assert(transformationMatrix.HasValidScale());

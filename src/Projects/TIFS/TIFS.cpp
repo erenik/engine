@@ -20,6 +20,7 @@
 
 #include "Graphics/GraphicsManager.h"
 #include "Graphics/Messages/GMSet.h"
+#include "Graphics/Messages/GMSetEntity.h"
 
 #include "Message/Message.h"
 
@@ -27,6 +28,15 @@
 #include "StateManager.h"
 
 #include "Input/InputManager.h"
+
+#include "Maps/MapManager.h"
+#include "ModelManager.h"
+#include "TextureManager.h"
+
+#include "Physics/PhysicsManager.h"
+#include "Physics/Messages/PhysicsMessage.h"
+
+#include "Random/Random.h"
 
 TIFS * tifs = NULL;
 TIFSMapEditor * mapEditor = NULL;
@@ -45,8 +55,6 @@ void RegisterStates()
 	StateMan.RegisterState(mapEditor);
 	StateMan.QueueGlobalState(tifs);
 }
-
-
 
 
 TIFS::TIFS()
@@ -106,6 +114,10 @@ void TIFS::ProcessMessage(Message * message)
 				Graphics.QueueMessage(new GMSetUI(ui));
 				StateMan.QueueState(NULL);
 			}
+			else if (msg == "CreateTurrets")
+			{
+				CreateTurrets();
+			}
 			break;	
 		}
 	}
@@ -120,4 +132,55 @@ void TIFS::CreateUserInterface()
 	ui = new UserInterface();
 	ui->Load("gui/TIFS.gui");
 
+}
+
+
+void TIFS::CreateTurrets()
+{
+	MapMan.DeleteEntities(turrets);
+	turrets.Clear();
+
+	Random turretRandom;
+	int turretsToCreate = 5;
+	for (int i = 0; i < turretsToCreate; ++i)
+	{
+		Vector3f position;
+		position.x = turretRandom.Randf(50.f) - 25.f;
+		position.z = turretRandom.Randf(50.f) - 25.f;
+		CreateTurret(0, position);
+	}
+}
+
+
+/// Creates a turret!
+void TIFS::CreateTurret(int ofSize, Vector3f atLocation)
+{
+	Entity * turretBase = MapMan.CreateEntity("TurretBase", ModelMan.GetModel("Turrets/LargeBase"), TexMan.GetTexture("Green"));
+	Physics.QueueMessage(new PMSetEntity(turretBase, PT_POSITION, atLocation));
+	turrets.Add(turretBase);
+
+
+	/// Add a child-mesh-part to the first turret-part!
+	Model * swivel = ModelMan.GetModel("Turrets/LargeSwivel");
+	Entity * swivelEntity = MapMan.CreateEntity("TurretSwivel", swivel, TexMan.GetTexture("Blue"));
+	
+	/// Make the swivel's transformation depend on the base'.
+	Graphics.QueueMessage(new GMSetEntity(swivelEntity, GT_PARENT, turretBase)); 
+	turrets.Add(swivelEntity);
+
+	// Move it up a bit.
+	bool createUnderBarrel = true;
+	if (createUnderBarrel)
+	{
+		Model * underBarrel = ModelMan.GetModel("Turrets/LargeUnderBarrel");
+		Entity * underBarrelEntity = MapMan.CreateEntity("TurretUnderBarrel", underBarrel, TexMan.GetTexture("Red"), Vector3f(0, 2, -1.f));
+		Graphics.QueueMessage(new GMSetEntity(underBarrelEntity, GT_PARENT, swivelEntity));
+		turrets.Add(underBarrelEntity);
+
+		// Add barrel.
+		Model * barrel = ModelMan.GetModel("Turrets/LargeBarrel");
+		Entity * barrelEntity = MapMan.CreateEntity("TurretBarrel", barrel, TexMan.GetTexture("White"));
+		Graphics.QueueMessage(new GMSetEntity(barrelEntity, GT_PARENT, underBarrelEntity));
+		turrets.Add(barrelEntity);
+	}
 }

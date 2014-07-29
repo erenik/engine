@@ -54,6 +54,18 @@ GMSetEntity::GMSetEntity(Entity * entity, int target)
 	}
 }
 
+GMSetEntity::GMSetEntity(List<Entity*> entities, int target, Entity * otherEntity)
+: GraphicsMessage(GM_SET_ENTITY), entities(entities), target(target), otherEntity(otherEntity)
+{
+	switch(target)
+	{
+		case GT_PARENT:
+			break;
+		default:
+			assert(false);
+	}
+}
+
 
 GMSetEntity::GMSetEntity(List<Entity*> entities, int target, Camera * camera)
 	: GraphicsMessage(GM_SET_ENTITY), entities(entities), target(target), camera(camera)
@@ -108,6 +120,15 @@ void GMSetEntity::Process()
 
 		switch(target)
 		{
+			// Parenting
+			case GT_PARENT:
+			{
+				entity->parent = otherEntity;
+				otherEntity->children.Add(entity);
+				// Recalculate its matrix.
+				entity->RecalculateMatrix();
+				break;
+			}
 			// Filter to enable per-viewport disabled rendering.
 			case GT_CAMERA_FILTER:
 			case GT_ADD_CAMERA_FILTER:
