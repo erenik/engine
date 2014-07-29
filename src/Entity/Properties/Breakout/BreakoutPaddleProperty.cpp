@@ -103,7 +103,7 @@ void BreakoutPaddleProperty::Process(int timeInMs)
 			toMove *= aiSpeed;
 			toMove.x += closestBall->physics->velocity.x * 0.5f;
 			toMove.y = toMove.z = 0;
-			Physics.QueueMessage(new PMSetEntity(PT_VELOCITY, owner, Vector3f(toMove)));
+			Physics.QueueMessage(new PMSetEntity(owner, PT_VELOCITY, Vector3f(toMove)));
 			moved = true;
 		}
 	}
@@ -145,13 +145,13 @@ void BreakoutPaddleProperty::OnPowerupsUpdated()
 	// Update scale.
 	Vector3f scale = initialScale;
 	scale.x *= width;
-	Physics.QueueMessage(new PMSetEntity(SET_SCALE, owner, scale));
+	Physics.QueueMessage(new PMSetEntity(owner, PT_SET_SCALE, scale));
 
-	Physics.QueueMessage(new PMSet(SIMULATION_SPEED, speed));
+	Physics.QueueMessage(new PMSet(PT_SIMULATION_SPEED, speed));
 }
 	
 
 void BreakoutPaddleProperty::StopMovement()
 {
-	Physics.QueueMessage(new PMSetEntity(PT_VELOCITY, owner, Vector3f()));
+	Physics.QueueMessage(new PMSetEntity(owner, PT_VELOCITY, Vector3f()));
 }

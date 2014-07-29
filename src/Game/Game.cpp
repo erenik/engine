@@ -8,7 +8,24 @@
 Game::Game(String name)
 	: name(name)
 {
+	Nullify();
 }
+
+Game::Game(String name, String type, String host, String port, int currentPlayers, int maxPlayers)
+: name(name), type(type), host(host), currentPlayers(currentPlayers), maxPlayers(maxPlayers)
+{
+	// Check that this works..
+	port = port.ParseInt();
+	assert(port != 0);
+	Nullify();
+}
+
+// Resets variables (mainly called on creation)
+void Game::Nullify()
+{
+	paused = false;
+}
+
 
 bool Game::LoadFrom(String s){
 	List<String> tokens = s.Tokenize(";");

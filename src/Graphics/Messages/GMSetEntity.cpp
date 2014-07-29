@@ -48,7 +48,7 @@ GMSetEntity::GMSetEntity(Entity * entity, int target)
 {
 	switch(target)
 	{
-		case CLEAR_CAMERA_FILTER:
+		case GT_CLEAR_CAMERA_FILTER:
 			break;
 		default: assert(false && "Bad target");
 	}
@@ -60,9 +60,9 @@ GMSetEntity::GMSetEntity(List<Entity*> entities, int target, Camera * camera)
 {
 	switch(target)
 	{
-		case CAMERA_FILTER:
-		case ADD_CAMERA_FILTER:
-		case REMOVE_CAMERA_FILTER:
+		case GT_CAMERA_FILTER:
+		case GT_ADD_CAMERA_FILTER:
+		case GT_REMOVE_CAMERA_FILTER:
 			break;
 		default: assert(false && "Bad target");
 	}
@@ -73,9 +73,9 @@ GMSetEntity::GMSetEntity(List<Entity*> entities, int target, String string)
 {
 	switch(target)
 	{
-		case ANIMATION:
-		case QUEUED_ANIMATION:
-		case ANIMATION_SET:
+		case GT_ANIMATION:
+		case GT_QUEUED_ANIMATION:
+		case GT_ANIMATION_SET:
 			break;
 		default:
 			assert(false && "Bad target in GMSetEntity");
@@ -86,8 +86,8 @@ GMSetEntity::GMSetEntity(Entity * entity, int target, Model * model)
 : GraphicsMessage(GM_SET_ENTITY), entities(entity), target(target), model(model)
 {
 	switch(target){
-		case MODEL:
-		case ANIMATION_SET:
+		case GT_MODEL:
+		case GT_ANIMATION_SET:
 			break;
 		default:
 			assert(false && "Bad target in GMSetEntity");
@@ -109,18 +109,18 @@ void GMSetEntity::Process()
 		switch(target)
 		{
 			// Filter to enable per-viewport disabled rendering.
-			case CAMERA_FILTER:
-			case ADD_CAMERA_FILTER:
+			case GT_CAMERA_FILTER:
+			case GT_ADD_CAMERA_FILTER:
 				if (!entity->graphics->cameraFilter.Exists(camera))
 					entity->graphics->cameraFilter.Add(camera);
 				break;
-			case REMOVE_CAMERA_FILTER:
+			case GT_REMOVE_CAMERA_FILTER:
 				entity->graphics->cameraFilter.Remove(camera);
 				break;
-			case CLEAR_CAMERA_FILTER:
+			case GT_CLEAR_CAMERA_FILTER:
 				entity->graphics->cameraFilter.Clear();
 				break;
-			case ANIMATION_SET:
+			case GT_ANIMATION_SET:
 			{
 				AnimationSet * anim = AnimationMan.GetAnimationSet(string);
 				if (!anim)
@@ -130,15 +130,15 @@ void GMSetEntity::Process()
 					entity->graphics->hasAnimation = true;
 				break;
 			}
-			case ANIMATION:
+			case GT_ANIMATION:
 				assert(entity->graphics);
 				entity->graphics->SetAnimation(string);
 				break;
-			case QUEUED_ANIMATION:
+			case GT_QUEUED_ANIMATION:
 				assert(entity->graphics);
 				entity->graphics->SetQueuedAnimation(string);
 				break;
-			case MODEL:
+			case GT_MODEL:
 				entity->model = model;
 				break;
 			default:
@@ -152,8 +152,8 @@ GMSetEntityb::GMSetEntityb(List<Entity*> entities, int target, bool value)
 {
 	switch(target)
 	{
-		case VISIBILITY:
-		case REQUIRE_DEPTH_SORTING:
+		case GT_VISIBILITY:
+		case GT_REQUIRE_DEPTH_SORTING:
 			break;
 		default:
 			assert(false && "Bad target in GMSetEntityb");
@@ -167,10 +167,10 @@ void GMSetEntityb::Process()
 		assert(entity->graphics);
 		switch(target)
 		{
-			case VISIBILITY:
+			case GT_VISIBILITY:
 				entity->graphics->visible = bValue;
 				break;
-			case REQUIRE_DEPTH_SORTING:
+			case GT_REQUIRE_DEPTH_SORTING:
 				if (bValue)
 					entity->graphics->flags |= RenderFlags::REQUIRES_DEPTH_SORTING;
 				else 
@@ -186,7 +186,7 @@ GMSetEntitys::GMSetEntitys(Entity * entity, int target, String value)
 {
 	switch(target)
 	{
-		case TEXT:
+		case GT_TEXT:
 			break;
 		default:
 			assert(false && "Bad target in GMSetEntitys");
@@ -197,7 +197,7 @@ void GMSetEntitys::Process()
 	assert(entity->graphics);
 	switch(target)
 	{
-		case TEXT:
+		case GT_TEXT:
 			entity->graphics->text = sValue;
 			break;
 	}
@@ -209,7 +209,7 @@ GMSetEntityf::GMSetEntityf(List<Entity*> entities, int target, float value)
 {
 	switch(target)
 	{
-		case TEXT_SIZE_RATIO:
+		case GT_TEXT_SIZE_RATIO:
 			break;
 		default:
 			assert(false && "Bad value");
@@ -223,7 +223,7 @@ void GMSetEntityf::Process()
 		assert(entity->graphics);
 		switch(target)
 		{
-			case TEXT_SIZE_RATIO:
+			case GT_TEXT_SIZE_RATIO:
 				entity->graphics->textSizeRatio = fValue;
 				break;
 		}
@@ -236,9 +236,9 @@ GMSetEntityVec4f::GMSetEntityVec4f(List<Entity*> entities, int target, Vector4f 
 {
 	switch(target)
 	{
-		case TEXT_COLOR:
-		case TEXT_POSITION:
-		case RENDER_OFFSET:
+		case GT_TEXT_COLOR:
+		case GT_TEXT_POSITION:
+		case GT_RENDER_OFFSET:
 			break;
 		default:
 			assert(false && "Bad value");
@@ -252,14 +252,14 @@ void GMSetEntityVec4f::Process()
 		assert(entity->graphics);
 		switch(target)
 		{
-			case TEXT_COLOR:
+			case GT_TEXT_COLOR:
 				entity->graphics->textColor = vec4fValue;
 				std::cout<<"lall";
 				break;
-			case TEXT_POSITION:
+			case GT_TEXT_POSITION:
 				entity->graphics->textPositionOffset = vec4fValue;
 				break;
-			case RENDER_OFFSET:
+			case GT_RENDER_OFFSET:
 				entity->graphics->renderOffset = vec4fValue;
 				break;
 		}

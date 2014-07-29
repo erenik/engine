@@ -101,7 +101,7 @@ void TileMap2D::ResetTiles()
 void TileMap2D::OnEnter()
 {
 	std::cout<<"\nTileMap2D::OnEnter map: "<<name<<" ";
-	Graphics.QueueMessage(new GMSet(ACTIVE_2D_MAP_TO_RENDER, this));
+	Graphics.QueueMessage(new GMSet(GT_ACTIVE_2D_MAP_TO_RENDER, this));
 	std::cout<<"\nTileMap2D::OnEnter ended? ";
 	/// Let default map load all events and stuff though!
 	Map::OnEnter();

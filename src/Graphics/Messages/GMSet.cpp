@@ -22,8 +22,8 @@ GMSet::GMSet(int target, float floatValue)
 : GraphicsMessage(GM_SET), target(target), floatValue(floatValue)
 {
 	switch(target){
-		case FOG_BEGIN:
-		case FOG_END:
+		case GT_FOG_BEGIN:
+		case GT_FOG_END:
 			break;
 		default:
 			assert(false && "Bad target in GMSet");
@@ -35,7 +35,7 @@ GMSet::GMSet(int target, Vector3f value)
 : GraphicsMessage(GM_SET), target(target), vec3fValue(value)
 {
     switch(target){
-        case CLEAR_COLOR:
+        case GT_CLEAR_COLOR:
             break;
         default:
             assert(false && "Bad target om GMSet");
@@ -47,9 +47,9 @@ GMSet::GMSet(int t, void * data)
 : GraphicsMessage(GM_SET), target(t), pData(data)
 {
 	switch(t) {
-		case MAIN_CAMERA:
-		case OVERLAY_TEXTURE:
-		case ACTIVE_2D_MAP_TO_RENDER:
+		case GT_MAIN_CAMERA:
+		case GT_OVERLAY_TEXTURE:
+		case GT_ACTIVE_2D_MAP_TO_RENDER:
 			break;
 		default:
 			assert(false);
@@ -61,19 +61,19 @@ void GMSet::Process()
 	GraphicsState * graphicsState = Graphics.graphicsState;
 	switch(target)
 	{
-		case MAIN_CAMERA:
+		case GT_MAIN_CAMERA:
 			Graphics.cameraToTrack = (Camera*)pData;
 			break;
-		case FOG_BEGIN:
+		case GT_FOG_BEGIN:
 			graphicsState->fogBegin = floatValue;
 			break;
-		case FOG_END:
+		case GT_FOG_END:
 			graphicsState->fogEnd = floatValue;
 			break;
-	    case CLEAR_COLOR:
+	    case GT_CLEAR_COLOR:
             graphicsState->clearColor = vec3fValue;
             break;
-		case ACTIVE_USER_INTERFACE:
+		case GT_ACTIVE_USER_INTERFACE:
 		{
 			assert(false && "Deprecated?");
 			/*
@@ -107,12 +107,12 @@ void GMSet::Process()
 			break;
 			*/
 		}
-		case OVERLAY_TEXTURE: {
+		case GT_OVERLAY_TEXTURE: {
 			Texture * t = (Texture*) pData;
 			Graphics.SetOverlayTexture(t);
 			break;
 		}
-		case ACTIVE_2D_MAP_TO_RENDER: {
+		case GT_ACTIVE_2D_MAP_TO_RENDER: {
 			TileMap2D * map = (TileMap2D*) pData;
 			Graphics.mapToRender = map;
 			break;
@@ -133,11 +133,11 @@ void GMSetf::Process()
 {	
 	GraphicsState * graphicsState = Graphics.graphicsState;
 	switch (target){
-		case GRID_SPACING: {
+		case GT_GRID_SPACING: {
 			graphicsState->gridSpacing = floatValue;
 			break;
 		}
-		case GRID_SIZE: {
+		case GT_GRID_SIZE: {
 			graphicsState->gridSize = (int)floatValue;
 			break;
 		}
@@ -150,7 +150,7 @@ void GMSetf::Process()
 
 void GMSets::Process(){
 	switch(target){
-		case OVERLAY_TEXTURE: {
+		case GT_OVERLAY_TEXTURE: {
 			Graphics.SetOverlayTexture(str);
 			break;
 		}

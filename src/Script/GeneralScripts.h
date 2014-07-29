@@ -73,7 +73,7 @@ protected:
 		BACKGROUND,
 		LAYER_1,
 		LAYER_2,
-		TEXT, // Separate layer to contain text.
+		GT_TEXT, // Separate layer to contain text.
 		MAX_OVERLAY_LAYERS,
 	};
 private:

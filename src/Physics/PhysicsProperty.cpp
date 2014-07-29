@@ -113,6 +113,8 @@ void PhysicsProperty::Nullify()
 	collisionCategory = 0x00000001;
 	/// 0x00000001 by default. is binary AND-ed to the opposing entities' category to see if a collision should occur or not.
 	collisionFilter = 0x00000001;
+
+	paused = false;
 }
 
 /// Sets mass, re-calculates inverse mass.

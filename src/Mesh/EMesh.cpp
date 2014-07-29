@@ -14,6 +14,7 @@
 #include "EVertex.h"
 #include "EFace.h"
 #include "EUV.h"
+#include "ENormal.h"
 
 
 EMesh::EMesh()
@@ -24,6 +25,8 @@ EMesh::EMesh()
 	/// Nullifies all default variables!
 void EMesh::Nullify()
 {
+	source = "Generated EMesh";
+	name = "EMesh";
 }
 
 EMesh::~EMesh()

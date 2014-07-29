@@ -14,13 +14,9 @@ class Game {
 public:
 
 	Game(String name);
-	Game(String name, String type, String host, String port, int currentPlayers, int maxPlayers)
-		: name(name), type(type), host(host), currentPlayers(currentPlayers), maxPlayers(maxPlayers)
-	{
-		// Check that this works..
-		port = port.ParseInt();
-		assert(port != 0);
-	}
+	Game(String name, String type, String host, String port, int currentPlayers, int maxPlayers);
+	// Resets variables (mainly called on creation)
+	void Nullify();
 
 	/// Call on a per-frame basis.
 	virtual void Process() = 0;
@@ -34,6 +30,9 @@ public:
 	/// Game-time in milliseconds. Should be updated by the game's global game state (specifically needed for networked-games).
 	int64 gameTime;
 
+
+	/// If paused..
+	bool paused;
 	/// User-defined name of the game.
 	String name;
 	/// Type of game, this will be set by game

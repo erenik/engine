@@ -57,7 +57,10 @@ bool RenderPipeline::Load(String fromFile)
 		/// Specific stuffs.
 		if (parseState == ParseState::RENDER_PASS)
 		{
-			String arg = line.Tokenize(" \t")[1];
+			List<String> tokens = line.Tokenize(" \t");
+			if (tokens.Size() < 2)
+				continue;
+			String arg = tokens[1];
 			if (line.Contains("Input"))
 			{
 				if (arg == "Entities")

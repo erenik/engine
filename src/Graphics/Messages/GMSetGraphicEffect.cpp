@@ -39,10 +39,10 @@ void GMSetGraphicEffect::Process(){
 		return;
 
 	switch(target){
-		case RELATIVE_SCALE:
+		case GT_RELATIVE_SCALE:
 			gfx->relativeScale = vec3fValue;
 			break;
-		case ALPHA:
+		case GT_ALPHA:
 			gfx->primaryColor.w = floatValue;
 			if (gfx->primaryColor.w > gfx->maxAlpha)
 				gfx->primaryColor.w = gfx->maxAlpha;

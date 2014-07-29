@@ -221,7 +221,7 @@ void Session::SendPackets(){
 	/// For testing purposes, create text-packets.
 	/*
 	if (!packetQueue.Size()){
-		Packet * packet = new Packet(PacketType::TEXT);
+		Packet * packet = new Packet(PacketType::GT_TEXT);
 		packet->data = "Testing packet 123";
 		packetQueue.Add(packet);
 	}*/

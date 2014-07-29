@@ -46,14 +46,14 @@ void GMRegisterEntities::Process()
 GMRegister::GMRegister(List<ParticleSystem*> particleSystems)
 : GraphicsMessage(GM_REGISTER), 
 particleSystems(particleSystems),
-target(PARTICLE_SYSTEMS)
+target(GT_PARTICLE_SYSTEMS)
 {
 }
 
 void GMRegister::Process()
 {	
 	switch(target){
-		case PARTICLE_SYSTEMS:
+		case GT_PARTICLE_SYSTEMS:
 			Graphics.particleSystems += particleSystems;
 			break;
 		default:
@@ -68,7 +68,7 @@ GMClear::GMClear(int target)
 void GMClear::Process()
 {
 	switch(target){
-		case PARTICLE_SYSTEMS:
+		case GT_PARTICLE_SYSTEMS:
 			Graphics.particleSystems.Clear();
 			break;
 		default:

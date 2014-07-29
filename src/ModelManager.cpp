@@ -74,13 +74,14 @@ Model * ModelManager::GetModel(int index){
 }
 
 /// Returns a pointer to model with target name, loads it if it wasn't found.
-Model * ModelManager::GetModel(String name){
+Model * ModelManager::GetModel(String name)
+{
 	name = FilePath::MakeRelative(name);
 //    std::cout<<"\nGetModel: "<<name;
-	for (int i = 0; i < modelList.Size(); ++i){
+	for (int i = 0; i < modelList.Size(); ++i)
+	{
 		String modelName = modelList[i]->Name();
- //       std::cout<<"\nModel name: "<<modelName;
-		if (modelList[i]->Name().Contains(name))
+		if (modelName.Contains(name))
 			return modelList[i];
 	}
 	std::cout<<"\nINFO: Unable to load model "<<name<<", trying to load from file.";
@@ -138,11 +139,6 @@ Model * ModelManager::LoadObj(String source)
 		source += ".obj";
 	}
 
-	Mesh * mesh = NULL;
-	std::cout<<"\nCreating mesh.";
-	mesh = new Mesh();
-	
-
 	// Check if a compressed version exists.
 	String compressedPath = source;
 	compressedPath.Remove("obj/");
@@ -154,28 +150,48 @@ Model * ModelManager::LoadObj(String source)
 	CreateDirectoriesForPath(compressedFolderPath);
 	compressedPath.Remove(".obj");
 	compressedPath += ".cobj";
-	bool compressedLoadResult = mesh->LoadCompressedFrom(compressedPath);
-	bool modelLoaded = false;
-	if (compressedLoadResult)
+
+	bool loadCompressed = true;
+	if (!FileExists(compressedPath))
 	{
-		// ... 
-		modelLoaded = true;
+		loadCompressed = false;
 	}
-	// Load regular model.
-	else {
-
-	   /// Try opening the file first.
-		std::fstream file;
-		file.open(source.c_str());
-		if (!file.is_open()){
-			std::cout<<"\nUnable to open file stream to "<<source;
-			file.close();
-			// Delete mesh if not needed.
-			delete mesh;
-			return NULL;
+	bool modelLoaded = false;
+		
+	Mesh * mesh = NULL;
+	loadCompressed = true;
+	if (loadCompressed)
+	{
+		std::cout<<"\nCreating mesh.";
+		mesh = new Mesh();
+		bool compressedLoadResult = mesh->LoadCompressedFrom(compressedPath);
+		std::cout<<"\nMesh loaded.";
+		/*
+		// Try deleting it straight away.
+		delete mesh;
+		mesh = 0;
+		compressedLoadResult = false;
+		*/
+		if (compressedLoadResult)
+		{
+			// ... 
+			modelLoaded = true;
 		}
-		file.close();
+	}
+	// Load regular model if needed.
+	if (!modelLoaded)
+	{
 
+		// Check if original source exists.
+		if (!FileExists(source))
+		{
+			if (mesh)
+				delete mesh;
+			return false;
+		}
+		if (!mesh)
+			mesh = new Mesh();
+	
 	  //  path.Replace('\\', '/'); // Replace bad folder slashes with good-'uns!
 		std::cout<<"\nLoading model from source: "<<source;
 		std::cout<<"\nCalling ObjReader::ReadObj";

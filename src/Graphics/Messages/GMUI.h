@@ -29,7 +29,7 @@ public:
 		/// Lists of booleans
 		MATRIX_DATA,
 		// Vectors
-		TEXT_COLOR,
+		GT_TEXT_COLOR,
 		VECTOR_INPUT, // Whole input for UIVectorInput class.
 		/// Vector2i
 		MATRIX_SIZE,
@@ -37,11 +37,11 @@ public:
 		INTEGER_INPUT,
 		// Floats
 		FLOAT_INPUT, // Single nested input for UIFloatInput class.
-		TEXT_SIZE_RATIO, // Yup.
-		ALPHA, // Assuming color only varies by alpha...
+		GT_TEXT_SIZE_RATIO, // Yup.
+		GT_ALPHA, // Assuming color only varies by alpha...
 		TEXT_ALPHA,
 		// Bools
-		VISIBILITY,
+		GT_VISIBILITY,
 		CHILD_VISIBILITY, // Used to specify the visibility of all children via GMSetUIb instead of having an own message-class.
 		ACTIVATABLE,
 		HOVERABLE,
@@ -49,7 +49,7 @@ public:
 		CHILD_TOGGLED, // Used to specify the toggled-parameter of all children via GMSetUIb. Function: together with a TOGGLED message to change the active button in a .. button list.
 		ENABLED, // For temporarily enabling/disabling things like buttons.
 		// Strings
-		TEXT,
+		GT_TEXT,
 		TEXTURE_SOURCE,
 		STRING_INPUT_TEXT, // For UIStringInput
 		INTEGER_INPUT_TEXT, // For UIIntegerInput

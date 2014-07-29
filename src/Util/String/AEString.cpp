@@ -37,6 +37,7 @@ String::String()
 
 String::~String()
 {
+	/*
 //	std::cout<<"\nString destructor.";
     if (testbuff){
         if (strcmp(testbuff, "Deleted") == 0 || strlen(testbuff) > 3){
@@ -44,6 +45,7 @@ String::~String()
         }
         strcpy(testbuff, "Deleted");
     }
+	*/
 	Delete();
 }
 String::String(const String * string){
@@ -1276,7 +1278,7 @@ void String::Nullify(){
 	type = NULL_TYPE;
 	comparisonMode = CASE_SENSITIVE;
   //  testbuff = new char[10];
-    testbuff = 0;
+//    testbuff = 0;
    // strcpy(testbuff, "W");
 }
 

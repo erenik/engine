@@ -23,8 +23,10 @@
 
 #include "Matrix/Matrix.h"
 
-MeshFace::MeshFace(){
-	Nullify();
+MeshFace::MeshFace()
+{
+    numVertices = 0;
+//	Nullify();
 }
 void MeshFace::Nullify()
 {
@@ -32,9 +34,10 @@ void MeshFace::Nullify()
 };
 MeshFace::~MeshFace()
 {
-	vertices.Clear();
-	uvs.Clear();
-	normals.Clear();
+	// No need to de-allocate... all arrays in List objects are de-allocated automatically!
+//	vertices.Deallocate();
+//	uvs.Deallocate();
+//	normals.Deallocate();
 }
 
 /// Debug
@@ -87,24 +90,27 @@ void MeshFace::DeallocateArrays()
 
 bool MeshFace::WriteTo(std::fstream & file)
 {
+	assert(numVertices > 0);
 	file.write((char*)&numVertices, sizeof(int));
+	std::cout<<"\nNumVertices: "<<numVertices;
 	file.write((char*)vertices.GetArray(), sizeof(int) * numVertices);
 	file.write((char*)uvs.GetArray(), sizeof(int) * numVertices);
 	file.write((char*)normals.GetArray(), sizeof(int) * numVertices);
 	return true;
 }
+
 bool MeshFace::ReadFrom(std::fstream & file)
 {
 	file.read((char*)&numVertices, sizeof(int));
+	
+	/// Why are there 0 vertices? This face should have been skipped if so?
+	assert(numVertices > 0);
 //	assert(numVertices < 20);
 	// Assume deallocation before is not necessary...
 	AllocateArrays();
 	file.read((char*)vertices.GetArray(), sizeof(int) * numVertices);
 	file.read((char*)uvs.GetArray(), sizeof(int) * numVertices);
 	file.read((char*)normals.GetArray(), sizeof(int) * numVertices);
-	vertices.SetFull();
-	uvs.SetFull();
-	normals.SetFull();
 	return true;
 }
 
@@ -123,12 +129,22 @@ void Mesh::Nullify()
 	vboBuffer = NULL;
 	floatsPerVertex = 0;
 	triangulated = false;
+	loadedFromCompactObj = false;
+
 }
 
 Mesh::~Mesh()
 {
-	DeallocateArrays();
-	
+	/*
+	// Deallocate the lists.
+	vertices.Deallocate();
+	std::cout<<"lall";
+	uvs.Deallocate();
+	std::cout<<"lall";
+	normals.Deallocate();
+	std::cout<<"lall";
+	faces.Deallocate();
+	*/
 }
 
 /// Deletes all parts within this mesh (numVertices, numFaces, edges, etc.)
@@ -156,10 +172,14 @@ void Mesh::AddGrid(Vector3f upperLeft, Vector3f lowerLeft, Vector3f lowerRight, 
 // Allocates the vertices, u,v and normals arrays
 void Mesh::AllocateArrays()
 {
-	vertices.Allocate(numVertices, true);
-	uvs.Allocate(numUVs, true);
-	normals.Allocate(numNormals, true);
-	faces.Allocate(numFaces, true);
+	if (numVertices)
+		vertices.Allocate(numVertices, true);
+	if (numUVs)
+		uvs.Allocate(numUVs, true);
+	if (numNormals)
+		normals.Allocate(numNormals, true);
+	if (numFaces)
+		faces.Allocate(numFaces, true);
 }
 
 void Mesh::DeallocateArrays()
@@ -170,6 +190,17 @@ void Mesh::DeallocateArrays()
 	normals.Clear();
 	faces.Clear();
 }
+
+	struct p1 {
+		float a;
+	};
+	struct p2 {
+		float a,b;
+	};
+	struct p3 {
+		float a,b,c;
+	};
+
 
 /// Load from customized compressed data form. Returns true upon success.
 bool Mesh::SaveCompressedTo(String compressedPath)
@@ -200,13 +231,39 @@ bool Mesh::SaveCompressedTo(String compressedPath)
 	file.write((char*)&numFaces, sizeof(int));
 	
 	// Then start writing the data of the arrays.
-	int sizeOfVertex = sizeof(Vector3f);
+	int sizeOfUV = sizeof(Vector2f);
+
+	int sizeOfVector3i = sizeof(Vector3i);
+	int sizeOfVector3f = sizeof(Vector3f);
+	int sizeOfVector3d = sizeof(Vector3d);
+
+	int sizeOfP1 = sizeof(p1);
+	int sizeOfP2 = sizeof(p2);
+	int sizeOfP3 = sizeof(p3);
+
+
+	int sizeOfVertex = sizeOfVector3f;
+
+	Vector3f * vertexArrayPtr = vertices.GetArray();
+
+	int size = numVertices * sizeOfVertex;
+
+	// Write data.
+	/*
+	for (int i = 0; i < numVertices; ++i)
+		vertices[i].WriteTo(file);
+	for (int i = 0; i < numUVs; ++i)
+		uvs[i].WriteTo(file);
+	for (int i = 0; i < numNormals; ++i)
+		normals[i].WriteTo(file);
+	/**/
 	if (numVertices)
 		file.write((char*)vertices.GetArray(), numVertices * sizeOfVertex);
 	if (numUVs)
-		file.write((char*)uvs.GetArray(), numUVs * sizeof(Vector2f));
+		file.write((char*)uvs.GetArray(), numUVs * sizeOfUV);
 	if (numNormals)
 		file.write((char*)normals.GetArray(), numNormals * sizeOfVertex);
+//*/
 
 	// Save all numFaces.
 	for (int i = 0; i < numFaces; ++i)
@@ -232,6 +289,10 @@ bool Mesh::LoadCompressedFrom(String compressedPath)
 	version.ReadFrom(file);
 	this->name.ReadFrom(file);
 	this->source.ReadFrom(file);
+	
+	assert(source.Length());
+	assert(name.Length());
+
 
 	// Write extra data so that they do not have to be re-calculated.?
 	centerOfMesh.ReadFrom(file);
@@ -249,27 +310,53 @@ bool Mesh::LoadCompressedFrom(String compressedPath)
 	// Allocate arrays.
 	AllocateArrays();
 
+
 	// Then start writing the data of the arrays.
 	int sizeOfVertex = sizeof(Vector3f);
 	int sizeOfUV = sizeof(Vector2f);
 
+
 	// Load 'em.
+
+
+	int sizeOfP1 = sizeof(p1);
+	int sizeOfP2 = sizeof(p2);
+	int sizeOfP3 = sizeof(p3);
+
+	Vector3f * vertexArrayPtr = vertices.GetArray();
+
+	int size = numVertices * sizeOfVertex;
+
+
+
+	// Read data.
+	/*
+	for (int i = 0; i < numVertices; ++i)
+		vertices[i].ReadFrom(file);
+	for (int i = 0; i < numUVs; ++i)
+		uvs[i].ReadFrom(file);
+	for (int i = 0; i < numNormals; ++i)
+		normals[i].ReadFrom(file);
+
+	/**/
 	if (numVertices)
 		file.read((char*)vertices.GetArray(), numVertices * sizeOfVertex);
 	if (numUVs)
-		file.read((char*)uvs.GetArray(), numUVs * sizeof(Vector2f));
+		file.read((char*)uvs.GetArray(), numUVs * sizeOfUV);
 	if (numNormals)
 		file.read((char*)normals.GetArray(), numNormals * sizeOfVertex);
+//*/
 
-
-	// Save all numFaces.
+	// Load all numFaces.
 	for (int i = 0; i < numFaces; ++i)
 	{
 		MeshFace & mf = faces[i];
 		mf.ReadFrom(file);
+//		mf.Print();	
 	}
+	loadedFromCompactObj = true;
 
-	std::cout<<"\nMesh saved in compressed form to file: "<<compressedPath;
+	std::cout<<"\nCompressed mesh loaded from file: "<<compressedPath;
 	return true;
 }
 
@@ -312,6 +399,8 @@ bool Mesh::LoadDataFrom(const Mesh * otherMesh)
 	numUVs = otherMesh->numUVs;
 	numNormals = otherMesh->numNormals;
 	numFaces = otherMesh->numFaces;
+	loadedFromCompactObj = otherMesh->loadedFromCompactObj;
+
 	std::cout<<"\nMesh numFaces: "<<otherMesh->numFaces;
 
 	AllocateArrays();
@@ -621,15 +710,16 @@ void CreateSphere(Mesh &mesh, int sections){
 /// Triangulates the mesh.
 void Mesh::Triangulate()
 {
-	triangulated = true;
 	int newMeshFacesNeeded = numFaces;
     if (numFaces == 0)
         return;
 	std::cout<<"\nMeshFaces: "<<numFaces;
-	for (int i = 0; i < numFaces; ++i){
+	for (int i = 0; i < numFaces; ++i)
+	{
 	 //   std::cout<<"D:";
 		MeshFace * currentMeshFace = &faces[i];
-		if (currentMeshFace->numVertices > 3){
+		if (currentMeshFace->numVertices > 3)
+		{
 			int MeshFacesToAdd = currentMeshFace->numVertices - 3;
 		//	std::cout<<"\nMeshFaces to add in faces "<<i<<": "<<MeshFacesToAdd;
 			newMeshFacesNeeded += currentMeshFace->numVertices - 3;
@@ -642,53 +732,63 @@ void Mesh::Triangulate()
 		}
 	}
 	std::cout<<"\nNew numFaces needed:"<<newMeshFacesNeeded;
+
+	// Already triangulated..
+	if (newMeshFacesNeeded == faces.Size())
+	{
+		triangulated = true;
+		return;
+	}
+
 	// Allocate new MeshFace array
 	int MeshFaceSize = sizeof(faces);
-	List<MeshFace> newMeshFace;
-	newMeshFace.Allocate(newMeshFacesNeeded, true);
+	List<MeshFace> newMeshFaces;
+	newMeshFaces.Allocate(newMeshFacesNeeded, true);
 	int MeshFacesAddedSoFar = 0;
 	for (int i = 0; i < numFaces; ++i){
-		MeshFace * newTri = &newMeshFace[MeshFacesAddedSoFar];
-		MeshFace * oldMeshFace = &faces[i];
+		MeshFace * newTri = &newMeshFaces[MeshFacesAddedSoFar];
+		MeshFace & oldMeshFace = faces[i];
 		// Just copy
-		if (faces[i].numVertices == 3)
+		if (oldMeshFace.numVertices == 3)
 		{
 			newTri->numVertices = 3;
 		//	newTri->AllocateArrays();
-			newTri->normals = faces[i].normals;
-			newTri->uvs = faces[i].uvs;
-			newTri->vertices = faces[i].vertices;
+			newTri->normals = oldMeshFace.normals;
+			newTri->uvs = oldMeshFace.uvs;
+			newTri->vertices = oldMeshFace.vertices;
 			MeshFacesAddedSoFar++;
 		}
 		else {
-			int numVertices = faces[i].numVertices;
+			int numVertices = oldMeshFace.numVertices;
 	//		std::cout<<"\nConverting old faces...";
 	//		std::cout<<"\n";
 	//		oldMeshFace->Print();
 	//		std::cout<<"\nInto new numFaces...!";
-			for (int j = 0; j < numVertices-2; ++j){
+			for (int j = 0; j < numVertices-2; ++j)
+			{
+				newTri = &newMeshFaces[MeshFacesAddedSoFar];
 				/// Create new triangle for every extra vertices!
 				newTri->numVertices = 3;
 				newTri->AllocateArrays();
-				newTri->normals[0] = faces[i].normals[0];
-				newTri->uvs[0] = faces[i].uvs[0];
-				newTri->vertices[0] = faces[i].vertices[0];
-				for (int k = j+1; k < j+3; ++k){
-					newTri->normals[k - j] = faces[i].normals[k];
-					newTri->uvs[k - j] = faces[i].uvs[k];
-					newTri->vertices[k - j] = faces[i].vertices[k];
+				newTri->normals[0] = oldMeshFace.normals[0];
+				newTri->uvs[0] = oldMeshFace.uvs[0];
+				newTri->vertices[0] = oldMeshFace.vertices[0];
+				for (int k = j+1; k < j+3; ++k)
+				{
+					newTri->normals[k - j] = oldMeshFace.normals[k];
+					newTri->uvs[k - j] = oldMeshFace.uvs[k];
+					newTri->vertices[k - j] = oldMeshFace.vertices[k];
 				}
 				MeshFacesAddedSoFar++;
 	//			std::cout<<"\n";
 	//			newTri->Print();
-				newTri = &newMeshFace[MeshFacesAddedSoFar];
-
 			}
 		}
 	}
 	faces.Clear();
-	faces = newMeshFace;
+	faces = newMeshFaces;
 	numFaces = newMeshFacesNeeded;
+	triangulated = true;
 }
 
 /// Deletes and recalculates ALL numNormals
@@ -842,8 +942,18 @@ void Mesh::CalculateUVTangents()
 
 }
 
-void Mesh::Bufferize()
+/// Will bufferize the mesh. If force is true it will re-done even if it has already been bufferized once.
+void Mesh::Bufferize(bool force)
 {
+	// Check if already buffered, stupid..
+	if (this->vboBuffer){
+//		std::cout<<"\nINFO: Mesh "<<name<<" already buffered, skipping!";
+		return;
+	}
+	
+	assert(source.Length());
+	assert(name.Length());
+
 	/// Always triangulate before buffering.
 	if (!triangulated)
 	{
@@ -856,11 +966,6 @@ void Mesh::Bufferize()
         return;
     }
 
-	// Check if already buffered, stupid..
-	if (this->vboBuffer){
-//		std::cout<<"\nINFO: Mesh "<<name<<" already buffered, skipping!";
-	//	return;
-	}
 	/// Check for mesh-Entity
 	if (!name)
 		std::cout<<"\nBuffering un-named Mesh.";
@@ -915,7 +1020,7 @@ void Mesh::Bufferize()
 		{
 		//	std::cout<<"\nCurrentVertex";
 			int currentVertex = face->vertices[j];
-			assert(face->vertices[j] < 3000000);
+			assert(currentVertex < 3000000 && currentVertex >= 0);
 			// Position
 			vboVertexData[vertexDataCounted + 0] = vertices[currentVertex].x;
 			vboVertexData[vertexDataCounted + 1] = vertices[currentVertex].y;

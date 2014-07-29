@@ -39,6 +39,9 @@ public:
 	/// Is it outside the frame?
 	bool IsPositionOutsideFrame(Vector3f pos);
 
+	/// Will.. remove from rendering/physics relevant entities and set the pause-state.
+	void SetPause(bool pause);
+
 	// For setting main plane for the game.
 	void SetZ(float z);
 	void SetFrameSize(Vector2i size);

@@ -4,7 +4,7 @@
 
 #include "SpaceShooterIntegrator.h"
 #include "Message/MessageManager.h"
-#include "Entity/Properties/SpaceShooter/SpaceShooterPlayerProperty.h"
+#include "SpaceShooterPlayerProperty.h"
 
 SpaceShooterIntegrator::SpaceShooterIntegrator(float zPlane)
 {
@@ -38,9 +38,11 @@ void SpaceShooterIntegrator::IntegrateKinematicEntities(List<Entity*> kinematicE
 
 void SpaceShooterIntegrator::IntegrateVelocity(Entity * forEntity, float timeInSeconds)
 {
-	PhysicsProperty * dp = forEntity->physics;
+	PhysicsProperty * pp = forEntity->physics;
+	if (pp->paused)
+		return;
 	Vector3f & position = forEntity->position;
-	Vector3f & velocity = dp->velocity;
+	Vector3f & velocity = pp->velocity;
 	forEntity->position += forEntity->physics->velocity  * timeInSeconds;
 
 	if (constantZ)

@@ -120,7 +120,7 @@ void OverlayScript::OnBegin()
 		label->sizeRatioY = 0.2f;
 		label->alignmentY = 0.2f;
 		label->textureSource = "80Gray50Alpha.png";
-		overlayUI[TEXT] = label;
+		overlayUI[GT_TEXT] = label;
 		Graphics.QueueMessage(new GMAddGlobalUI(label));
 	}
 }
@@ -141,7 +141,7 @@ void OverlayScript::SetLayerAlpha(int layer, float alpha)
 		case BACKGROUND:
 		case LAYER_1:
 		case LAYER_2:
-			Graphics.QueueMessage(new GMSetGlobalUIf(overlayUI[layer]->name, GMUI::ALPHA, alpha, WindowMan.MainWindow()));
+			Graphics.QueueMessage(new GMSetGlobalUIf(overlayUI[layer]->name, GMUI::GT_ALPHA, alpha, WindowMan.MainWindow()));
 			break;
 	}
 }
@@ -161,7 +161,7 @@ float OverlayScript::GetLayerAlpha(int layer)
 // Set main text.
 void OverlayScript::SetText(String text)
 {
-	Graphics.QueueMessage(new GMSetGlobalUIs(OVERLAY_UI_TEXT, GMUI::TEXT, text));
+	Graphics.QueueMessage(new GMSetGlobalUIs(OVERLAY_UI_TEXT, GMUI::GT_TEXT, text));
 }
 
 
@@ -194,7 +194,7 @@ void FadeInBackground::OnBegin()
 	OverlayScript::OnBegin();
 
 	// Set alpha of primary texture to 1 and secondary to 0 to start fading properly.
-	Graphics.QueueMessage(new GMSetGlobalUIf(OVERLAY_BACKGROUND_2, GMUI::ALPHA, 0.0f));
+	Graphics.QueueMessage(new GMSetGlobalUIf(OVERLAY_BACKGROUND_2, GMUI::GT_ALPHA, 0.0f));
 	// Set texture of second one to fade to.
 	Graphics.QueueMessage(new GMSetGlobalUIs(OVERLAY_BACKGROUND_2, GMUI::TEXTURE_SOURCE, fadeInTextureSource));
 
@@ -223,7 +223,7 @@ void FadeInBackground::Process(int timeInMs)
 		alpha = float(timePassed) / fadeInDuration;
 //		std::cout<<"\nAlpha: "<<alpha;
 		// Fade-in new one as we fade-out the other?
-		Graphics.QueueMessage(new GMSetGlobalUIf(OVERLAY_BACKGROUND_2, GMUI::ALPHA, alpha));
+		Graphics.QueueMessage(new GMSetGlobalUIf(OVERLAY_BACKGROUND_2, GMUI::GT_ALPHA, alpha));
 		// Swap them once alpha is full.
 		if (alpha > 1.0f || timePassed > fadeInDuration)
 		{
@@ -254,8 +254,8 @@ void FadeInBackground::Process(int timeInMs)
 void FadeInBackground::OnEnd()
 {
 	Graphics.QueueMessage(new GMSetGlobalUIs(OVERLAY_BACKGROUND_1, GMUI::TEXTURE_SOURCE, fadeInTextureSource));
-	Graphics.QueueMessage(new GMSetGlobalUIf(OVERLAY_BACKGROUND_1, GMUI::ALPHA, 1.0f));
-	Graphics.QueueMessage(new GMSetGlobalUIf(OVERLAY_BACKGROUND_2, GMUI::ALPHA, 1.0f));
+	Graphics.QueueMessage(new GMSetGlobalUIf(OVERLAY_BACKGROUND_1, GMUI::GT_ALPHA, 1.0f));
+	Graphics.QueueMessage(new GMSetGlobalUIf(OVERLAY_BACKGROUND_2, GMUI::GT_ALPHA, 1.0f));
 	// Notify parent etc. when finishing.
 	Script::OnEnd();
 }
@@ -306,7 +306,7 @@ void FadeOutBackground::Process(int timeInMs)
 		alpha = float(fadeOutDuration - timePassed) / Maximum(fadeOutDuration,1) * startAlpha;
 		alpha = Maximum(alpha, 0.0f);
 		// Fade-in new one as we fade-out the other?
-		Graphics.QueueMessage(new GMSetGlobalUIf(OVERLAY_BACKGROUND_1, GMUI::ALPHA, alpha));
+		Graphics.QueueMessage(new GMSetGlobalUIf(OVERLAY_BACKGROUND_1, GMUI::GT_ALPHA, alpha));
 		if (alpha <= 0.0f)
 		{
 			fadeState++;
@@ -365,7 +365,7 @@ void FadeInEffect::OnBegin()
 	OverlayScript::OnBegin();
 
 	// Set alpha of primary texture to 1 and secondary to 0 to start fading properly.
-	Graphics.QueueMessage(new GMSetGlobalUIf(OVERLAY_FADE_UI_2, GMUI::ALPHA, 0.0f));
+	Graphics.QueueMessage(new GMSetGlobalUIf(OVERLAY_FADE_UI_2, GMUI::GT_ALPHA, 0.0f));
 	// Set texture of second one to fade to.
 	Graphics.QueueMessage(new GMSetGlobalUIs(OVERLAY_FADE_UI_2, GMUI::TEXTURE_SOURCE, fadeInTextureSource));
 
@@ -394,7 +394,7 @@ void FadeInEffect::Process(int timeInMs)
 		alpha = float(timePassed) / Maximum(fadeInDuration,1);
 		std::cout<<"\nAlpha: "<<alpha;
 		// Fade-in new one as we fade-out the other?
-		Graphics.QueueMessage(new GMSetGlobalUIf(OVERLAY_FADE_UI_2, GMUI::ALPHA, alpha));
+		Graphics.QueueMessage(new GMSetGlobalUIf(OVERLAY_FADE_UI_2, GMUI::GT_ALPHA, alpha));
 		// Swap them once alpha is full.
 		if (alpha > 1.0f || timePassed > fadeInDuration)
 		{
@@ -424,8 +424,8 @@ void FadeInEffect::Process(int timeInMs)
 void FadeInEffect::OnEnd()
 {
 	Graphics.QueueMessage(new GMSetGlobalUIs(OVERLAY_FADE_UI_1, GMUI::TEXTURE_SOURCE, fadeInTextureSource));
-	Graphics.QueueMessage(new GMSetGlobalUIf(OVERLAY_FADE_UI_1, GMUI::ALPHA, 1.0f));
-	Graphics.QueueMessage(new GMSetGlobalUIf(OVERLAY_FADE_UI_2, GMUI::ALPHA, 0.0f));
+	Graphics.QueueMessage(new GMSetGlobalUIf(OVERLAY_FADE_UI_1, GMUI::GT_ALPHA, 1.0f));
+	Graphics.QueueMessage(new GMSetGlobalUIf(OVERLAY_FADE_UI_2, GMUI::GT_ALPHA, 0.0f));
 	// Notify parent etc. when finishing.
 	Script::OnEnd();
 }
@@ -478,7 +478,7 @@ void FadeOutEffect::Process(int timeInMs)
 		alpha = float(fadeOutDuration - timePassed) / Maximum(fadeOutDuration * startAlpha, 1);
 		alpha = Maximum(alpha, 0.0f);
 		// Fade-in new one as we fade-out the other?
-		Graphics.QueueMessage(new GMSetGlobalUIf(OVERLAY_FADE_UI_1, GMUI::ALPHA, alpha));
+		Graphics.QueueMessage(new GMSetGlobalUIf(OVERLAY_FADE_UI_1, GMUI::GT_ALPHA, alpha));
 		if (alpha <= 0.0f)
 		{
 			fadeState++;
@@ -587,7 +587,7 @@ void FadeTextEffect::OnEnd()
 {
 	// Set alpha to both channels.
 	Graphics.QueueMessage(new GMSetGlobalUIf(OVERLAY_UI_TEXT, GMUI::TEXT_ALPHA, 0.0f));
-	Graphics.QueueMessage(new GMSetGlobalUIf(OVERLAY_UI_TEXT, GMUI::ALPHA, 0.0f));	
+	Graphics.QueueMessage(new GMSetGlobalUIf(OVERLAY_UI_TEXT, GMUI::GT_ALPHA, 0.0f));	
 	// Notify parent etc. when finishing.
 	Script::OnEnd();
 }

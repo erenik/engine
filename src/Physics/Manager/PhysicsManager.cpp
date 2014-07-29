@@ -277,9 +277,16 @@ PhysicsMesh * PhysicsManager::LoadPhysicsMesh(Mesh * byMeshSource)
 		MeshFace * faces = &byMeshSource->faces[i];
 		assert((faces->numVertices <= 4 || faces->numVertices >= 3) && "Bad vertices count in faces");
 
-		Vector3f p1 = byMeshSource->vertices[faces->vertices[0]],
-			p2 = byMeshSource->vertices[faces->vertices[1]],
-			p3 = byMeshSource->vertices[faces->vertices[2]];
+		int vi0 = faces->vertices[0],
+			vi1 = faces->vertices[1],
+			vi2 = faces->vertices[2];
+
+		assert(vi0 < byMeshSource->vertices.Size() && 
+			vi0 >= 0);
+
+		Vector3f p1 = byMeshSource->vertices[vi0],
+			p2 = byMeshSource->vertices[vi1],
+			p3 = byMeshSource->vertices[vi2];
 
 		if (faces->numVertices == 4){
 			Vector3f p4 = byMeshSource->vertices[faces->vertices[3]];

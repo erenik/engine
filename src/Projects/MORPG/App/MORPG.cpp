@@ -65,7 +65,7 @@ void MORPG::OnEnter(AppState * previousState)
 	if (!mapPreviewCamera)
 		mapPreviewCamera = CameraMan.NewCamera();
 
-	Graphics.QueueMessage(new GMSetCamera(mapPreviewCamera, ROTATION, Vector3f()));
+	Graphics.QueueMessage(new GMSetCamera(mapPreviewCamera, CT_ROTATION, Vector3f()));
 
 	/// World map... 
 //	worldMapEntity = MapMan.CreateEntity("World map entity", NULL, NULL);
@@ -132,7 +132,7 @@ void MORPG::ProcessMessage(Message * message)
 		//			
 					Model * plane = ModelMan.GetModel("plane");
 					Texture * white = TexMan.GetTexture("White");
-					Graphics.QueueMessage(new GMSetEntity(worldMapEntity, MODEL, plane));
+					Graphics.QueueMessage(new GMSetEntity(worldMapEntity, GT_MODEL, plane));
 					Graphics.QueueMessage(new GMSetEntityTexture(worldMapEntity, DIFFUSE_MAP, white));
 
 					// Re-bufferize the texture.
@@ -140,10 +140,10 @@ void MORPG::ProcessMessage(Message * message)
 					// Same for the model..
 					Graphics.QueueMessage(new GMBufferMesh(model->GetTriangulatedMesh()));
 					// Try our model..
-					Graphics.QueueMessage(new GMSetEntity(worldMapEntity, MODEL, model));
+					Graphics.QueueMessage(new GMSetEntity(worldMapEntity, GT_MODEL, model));
 
 					Graphics.QueueMessage(new GMSetEntityTexture(worldMapEntity, DIFFUSE_MAP, tex));
-					Physics.QueueMessage(new PMSetEntity(SET_SCALE, worldMapEntity, Vector3f(15.f, 1.f, 15.f)));
+					Physics.QueueMessage(new PMSetEntity(worldMapEntity, PT_SET_SCALE, Vector3f(15.f, 1.f, 15.f)));
 				}
 				return;
 			}

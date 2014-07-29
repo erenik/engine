@@ -9,23 +9,23 @@
 // A sub-space of the main graphics targets as defined in GraphicsMessages.h
 enum cameraTargets
 {
-	CAMERA_TO_TRACK = CAMERA_TARGET_0, 
+	CT_CAMERA_TO_TRACK = GT_CAMERA_TARGET_0, 
 	// Setting global camera
 	// Setting camera position and orientation.
-	ROTATION,
-	POSITION,
+	CT_ROTATION,
+	CT_POSITION,
 	/** Relative position of the camera compared to the entity. 
 		If the camera is inheriting the entity's rotation, this relative position will be re-calculated using the entity's local orientation axes.
 	*/
-	RELATIVE_POSITION,
-	DISTANCE_FROM_CENTER_OF_MOVEMENT,
-	OFFSET_ROTATION,
+	CT_RELATIVE_POSITION,
+	CT_DISTANCE_FROM_CENTER_OF_MOVEMENT,
+	CT_OFFSET_ROTATION,
 
-	ENTITY_TO_TRACK,
+	CT_ENTITY_TO_TRACK,
 
 	// When true, the camera inherits rotation from the entity it is tracking. Default enabled, but may be adjusted via Camera::defaultInheritEntityRotation
-	INHERIT_ROTATION, 
-//	GLOBAL_POSITION_OFFSET, // Global position offset, in contrast to the RELATIVE_POSITION which takes into consideration the entity's current orientation.
+	CT_INHERIT_ROTATION, 
+//	GLOBAL_POSITION_OFFSET, // Global position offset, in contrast to the CT_RELATIVE_POSITION which takes into consideration the entity's current orientation.
 };
 
 class GMTrack : public GraphicsMessage

@@ -90,6 +90,8 @@ public:
 
     /// Resizes the array. Recommended to use before filling it to avoid re-sizings later which might slow down the system if used repetitively.
     void Allocate(int newSize, bool setFull = false);
+	/// Deallocates the array. Use in destructors. If items stored within are allocated on the heap, it is recommended to call ClearAndDelete() first.
+	void Deallocate();
 
 	value_type * GetArray() { return arr; };
 	/// Returns size of the list
@@ -139,6 +141,7 @@ List<T>::List()
 template <class T>
 List<T>::~List()
 {
+	assert(arrLength >= 0 && arrLength < 10000000);
 	if (arr)
 		delete[] arr;
 	arr = NULL;
@@ -240,12 +243,16 @@ const List<T> List<T>::operator - (const List<T> &otherList) const
 }
 
 template <class T>
-T& List<T>::operator[](int index) {
+T& List<T>::operator[](int index) 
+{
+	assert(index >= 0 && index < arrLength);
 	return arr[index];
 }
 
 template <class T>
-const T& List<T>::operator[](int index) const {
+const T& List<T>::operator[](int index) const 
+{
+	assert(index >= 0 && index < arrLength);
 	return arr[index];
 }
 
@@ -501,6 +508,20 @@ void List<T>::Allocate(int newSize, bool setFull)
 	if (setFull)
 		currentItems = newSize;
 }
+
+/// Deallocates the array. Use in destructors. If items stored within are allocated on the heap, it is recommended to call ClearAndDelete() first.
+template <class T>
+void List<T>::Deallocate()
+{
+	if (arr)
+	{
+		delete[] arr;
+		arr = 0;
+	}
+	arrLength = 0;
+	currentItems = 0;
+}
+
 
 /// Resizing function
 template <class T>

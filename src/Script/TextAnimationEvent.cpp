@@ -22,9 +22,9 @@ void TextAnimationEvent::OnBegin(){
 	{
 		case NOTICE:
 			// Default alpha to 0 first on the text.
-			Graphics.QueueMessage(new GMSetUIv4f(elementName, GMUI::TEXT_COLOR, Vector4f(0,0,0,0), viewport));
+			Graphics.QueueMessage(new GMSetUIv4f(elementName, GMUI::GT_TEXT_COLOR, Vector4f(0,0,0,0), viewport));
 			// Make UI visible if not already.
-			Graphics.QueueMessage(new GMSetUIb(elementName, GMUI::VISIBILITY, true, viewport));
+			Graphics.QueueMessage(new GMSetUIb(elementName, GMUI::GT_VISIBILITY, true, viewport));
 
 			break;
 	}
@@ -41,7 +41,7 @@ void TextAnimationEvent::Process(int timeInMs)
 				/// Fade-in the text.
 				float relativeAlpha = timePassed / fadeInDuration;
 			//	std::cout<<"\nRelative Alpha: "<<relativeAlpha;
-				Graphics.QueueMessage(new GMSetUIv4f(elementName, GMUI::TEXT_COLOR, Vector4f(1,1,1, relativeAlpha), viewport));
+				Graphics.QueueMessage(new GMSetUIv4f(elementName, GMUI::GT_TEXT_COLOR, Vector4f(1,1,1, relativeAlpha), viewport));
 			}
 			/// Stay
 			else if (timePassed < duration + fadeInDuration){
@@ -52,7 +52,7 @@ void TextAnimationEvent::Process(int timeInMs)
 				/// Fade-out the text.
 				float relativeAlpha = 1.0f - (timePassed - duration - fadeInDuration) / fadeOutDuration;
 			//	std::cout<<"\nRelative Alpha: "<<relativeAlpha;
-				Graphics.QueueMessage(new GMSetUIv4f(elementName, GMUI::TEXT_COLOR, Vector4f(1,1,1, relativeAlpha), viewport));
+				Graphics.QueueMessage(new GMSetUIv4f(elementName, GMUI::GT_TEXT_COLOR, Vector4f(1,1,1, relativeAlpha), viewport));
 			}
 			else
 				this->scriptState = ENDING;
@@ -63,9 +63,9 @@ void TextAnimationEvent::OnEnd(){
 	switch(type){
 		case NOTICE:
 			// Default alpha to 0 first on the text.
-			Graphics.QueueMessage(new GMSetUIv4f(elementName, GMUI::TEXT_COLOR, Vector4f(0,0,0,0), viewport));
+			Graphics.QueueMessage(new GMSetUIv4f(elementName, GMUI::GT_TEXT_COLOR, Vector4f(0,0,0,0), viewport));
 			// Make UI visible if not already.
-			Graphics.QueueMessage(new GMSetUIb(elementName, GMUI::VISIBILITY, false, viewport));
+			Graphics.QueueMessage(new GMSetUIb(elementName, GMUI::GT_VISIBILITY, false, viewport));
 			break;
 	}
 }

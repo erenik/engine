@@ -3,8 +3,8 @@
 #define MESH_H
 
 #include "MathLib.h"
-#include <Util.h>
-
+#include "List/List.h"
+#include "String/AEString.h"
 #include "AEGlew.h"
 
 class Triangle;
@@ -36,13 +36,13 @@ public:
 	bool ReadFrom(std::fstream & fileStream);
 
 	/// Number of vertices in the MeshFace. A MeshFace will have no more than 255 vertices, and if it does: this program won't like it anyway :P
-	unsigned char numVertices;
+	int numVertices;
 	/// Dynamic array for the vertices, since the MeshFace can be an arbitrary polygon.
-	List<unsigned int> vertices;
+	List<int> vertices;
 	/// Dynamic array for uv-coordinates, since the MeshFace can be an arbitrary polygon.
-	List<unsigned int> uvs;
+	List<int> uvs;
 	/// Dynamic array for normal-coordinates, since the MeshFace can be an arbitrary polygon.
-	List<unsigned int> normals;
+	List<int> normals;
 
 	// MeshFace UV "up"- and "right"-tangent respectively for NormalMapping.
 	Vector4f uvTangent;
@@ -98,8 +98,8 @@ public:
 	/** Centerizes the model by pushing all vertices by the length of the the centerOfMesh vector.
 		Resets centerOfMesh afterward. */
 	void Center();
-	/// Buffers the mesh into graphics memory.
-	void Bufferize();
+	/// Buffers the mesh into graphics memory. Use force to make it re-bufferize already buffered meshes.
+	void Bufferize(bool force = false);
 	/// Renders the meshi-mesh :3
 	void Render();
 
@@ -164,6 +164,9 @@ protected:
 	bool triangulated;
 	// How many floats were buffered, per vertex.
 	int floatsPerVertex;
+
+	/// own format.
+	bool loadedFromCompactObj;
 };
 
 struct GraphicsState;

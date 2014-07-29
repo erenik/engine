@@ -320,7 +320,7 @@ void UIInput::OnTextUpdated()
 	if (!ui)
 		ui = this->GetRoot()->ui;
 	assert(ui);
-	Graphics.QueueMessage(new GMSetUIs(name, GMUI::TEXT, editText, true, this->ui));
+	Graphics.QueueMessage(new GMSetUIs(name, GMUI::GT_TEXT, editText, true, this->ui));
 }
 
 
@@ -370,7 +370,7 @@ String UIStringInput::GetValue()
 }
 void UIStringInput::SetValue(String value)
 {
-	Graphics.QueueMessage(new GMSetUIs(input->name, GMUI::TEXT, value));
+	Graphics.QueueMessage(new GMSetUIs(input->name, GMUI::GT_TEXT, value));
 }
 
 

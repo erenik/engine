@@ -64,6 +64,10 @@ void SpaceShooterPlayerProperty::Process(int timeInMs)
 	if (sleeping)
 		return;
 
+	// If game is paused.
+	if (game->paused)
+		return;
+
 	// Sleep if outside frame too.
 	if (game->IsPositionOutsideFrame(owner->position))
 	{
@@ -78,7 +82,7 @@ void SpaceShooterPlayerProperty::Process(int timeInMs)
 	// Get look-at direction.
 	Vector4f minusZ(0,0,-1,0);
 	Vector4f lookAt = owner->rotationMatrix.Product(minusZ);
-	std::cout<<"\nLook at: "<<lookAt;
+//	std::cout<<"\nLook at: "<<lookAt;
 
 	Time now = Time::Now();
 	if (lastFire.Type() == 0)
@@ -97,12 +101,12 @@ void SpaceShooterPlayerProperty::Process(int timeInMs)
 
 	Vector3f position = owner->position;
 	position += lookAt * owner->scale.MaxPart();
-	Physics.QueueMessage(new PMSetEntity(PT_POSITION, projectile, position));
+	Physics.QueueMessage(new PMSetEntity(projectile, PT_POSITION, position));
 	/// Add own velocity to the ammo velocity?
 	Vector3f initialVelocity = lookAt * weaponType.initialVelocity;
 	if (owner && owner->physics)
 		initialVelocity += owner->physics->velocity;
-	Physics.QueueMessage(new PMSetEntity(PT_VELOCITY, projectile, initialVelocity));
+	Physics.QueueMessage(new PMSetEntity(projectile, PT_VELOCITY, initialVelocity));
 
 	game->SetupCollisionFilter(projectile, allied);
 }

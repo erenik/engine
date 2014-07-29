@@ -53,6 +53,10 @@ void SpaceShooterProjectileProperty::Sleep()
 /// Time passed in seconds..!
 void SpaceShooterProjectileProperty::Process(int timeInMs)
 {
+	// If game is paused.
+	if (game->paused)
+		return;
+
 	if (game->IsPositionOutsideFrame(owner->position))
 	{
 		// Remove ourselves.

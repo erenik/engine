@@ -208,7 +208,7 @@ void UIFileBrowser::OnDirPathUpdated(bool fromRenderThread)
 	else
 	{
 		if (dirInput)
-			Graphics.QueueMessage(new GMSetUIs(dirInput->name, GMUI::TEXT, currentPath));
+			Graphics.QueueMessage(new GMSetUIs(dirInput->name, GMUI::GT_TEXT, currentPath));
 	}
 	// Save path into the list of old file browsers.
 	for (int i = 0; i < oldFileBrowsers.Size(); ++i){
@@ -230,7 +230,7 @@ void UIFileBrowser::OnDirPathUpdated(bool fromRenderThread)
 
 /// Sets file in the input-field for later evaluation.
 void UIFileBrowser::SetActiveFile(String file){
-	Graphics.QueueMessage(new GMSetUIs(fileInput->name, GMUI::TEXT, file, ui));
+	Graphics.QueueMessage(new GMSetUIs(fileInput->name, GMUI::GT_TEXT, file, ui));
 	fileSelection.Clear();
 	fileSelection.Add(file);
 }

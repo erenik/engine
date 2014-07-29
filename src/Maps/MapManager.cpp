@@ -205,7 +205,7 @@ bool MapManager::MakeActive(Map * map)
 		activeMap->OnExit();
 		/// Unregister all entities
 		Graphics.QueueMessage(new GraphicsMessage(GM_UNREGISTER_ALL_ENTITIES));
-		Graphics.QueueMessage(new GMClear(PARTICLE_SYSTEMS));
+		Graphics.QueueMessage(new GMClear(GT_PARTICLE_SYSTEMS));
 		Physics.QueueMessage(new PhysicsMessage(PM_CLEAR_ALL_ENTITIES));
 		activeMap = NULL;
 		// Clear entities?

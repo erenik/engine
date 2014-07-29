@@ -14,14 +14,14 @@
 #include "Physics/Calc/EntityPhysicsEstimator.h"
 
 // For resets and similar
-PMSetEntity::PMSetEntity(int target, List<Entity*> targetEntities)
+PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target)
 	: target(target)
 {
 	type = PM_SET_ENTITY;
 	entities = targetEntities;
 	switch(target)
 	{
-		case RESET_ROTATION:
+		case PT_RESET_ROTATION:
 			break;
 		default:
 			assert(false && "Bad target in PMSetEntity");
@@ -29,7 +29,7 @@ PMSetEntity::PMSetEntity(int target, List<Entity*> targetEntities)
 }
 
 
-PMSetEntity::PMSetEntity(int target, List<Entity*> targetEntities, float value)
+PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, float value)
 : target(target)
 {
 	dataType = FLOAT;
@@ -41,12 +41,12 @@ PMSetEntity::PMSetEntity(int target, List<Entity*> targetEntities, float value)
 	}
 	fValue = value;
 	switch(target){
-		case MASS:
-		case SCALE:
-		case SET_SCALE:
-		case FRICTION:
-		case RESTITUTION:
-		case VELOCITY_RETAINED_WHILE_TURNING:
+		case PT_MASS:
+		case PT_SCALE:
+		case PT_SET_SCALE:
+		case PT_FRICTION:
+		case PT_RESTITUTION:
+		case PT_VELOCITY_RETAINED_WHILE_TURNING:
 		case PT_POSITION_Y:
 		case PT_POSITION_X:
 			break;
@@ -55,7 +55,7 @@ PMSetEntity::PMSetEntity(int target, List<Entity*> targetEntities, float value)
 	}
 }
 
-PMSetEntity::PMSetEntity(int target, List<Entity*> targetEntities, Vector2f value, long long timeStamp)
+PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, Vector2f value, long long timeStamp)
 : target(target), timeStamp(timeStamp)
 {
 	dataType = VECTOR2F;
@@ -69,7 +69,7 @@ PMSetEntity::PMSetEntity(int target, List<Entity*> targetEntities, Vector2f valu
 	vec2fValue = value;
 	switch(target)
 	{
-		case SET_SCALE:
+		case PT_SET_SCALE:
 		case PT_VELOCITY:
 		case PT_POSITION:
 			break;
@@ -79,7 +79,7 @@ PMSetEntity::PMSetEntity(int target, List<Entity*> targetEntities, Vector2f valu
 }
 
 
-PMSetEntity::PMSetEntity(int target, List<Entity*> targetEntities, Vector3f value, long long timeStamp)
+PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, Vector3f value, long long timeStamp)
 : target(target), timeStamp(timeStamp)
 {
 	dataType = VECTOR3F;
@@ -94,31 +94,31 @@ PMSetEntity::PMSetEntity(int target, List<Entity*> targetEntities, Vector3f valu
 	switch(target)
 	{
 		case PT_VELOCITY:
-		case ANGULAR_VELOCITY:
-		case CONSTANT_ROTATION_VELOCITY:
+		case PT_ANGULAR_VELOCITY:
+		case PT_CONSTANT_ROTATION_VELOCITY:
 		case PT_POSITION:
-		case TRANSLATE:
-		case SCALE:
-		case ROTATE:
-		case SET_POSITION:
+		case PT_TRANSLATE:
+		case PT_SCALE:
+		case PT_ROTATE:
+		case PT_SET_POSITION:
 			break;
-		case SET_SCALE:
+		case PT_SET_SCALE:
 			assert(vec3fValue.x && vec3fValue.y && vec3fValue.z);
 			break;
-		case SET_ROTATION:
-		case ACCELERATION:  
-		case RELATIVE_ACCELERATION:
-		case ACCELERATION_MULTIPLIER:
-		case ANGULAR_ACCELERATION:
-		case DESTINATION:
-		case RELATIVE_ROTATION:
+		case PT_SET_ROTATION:
+		case PT_ACCELERATION:  
+		case PT_RELATIVE_ACCELERATION:
+		case PT_ACCELERATION_MULTIPLIER:
+		case PT_ANGULAR_ACCELERATION:
+		case PT_DESTINATION:
+		case PT_RELATIVE_ROTATION:
 			break;
 		default:
 			assert(false && "Mismatched target and value in PMSetEntity!");
 	}
 }
 
-PMSetEntity::PMSetEntity(int target, List<Entity*> targetEntities, Quaternion value, long long timeStamp /*= 0*/)
+PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, Quaternion value, long long timeStamp /*= 0*/)
 	: target(target), timeStamp(timeStamp)
 {
 	dataType = QUATERNION;
@@ -132,17 +132,17 @@ PMSetEntity::PMSetEntity(int target, List<Entity*> targetEntities, Quaternion va
 	qValue = value;
 	switch(target)
 	{
-		case ANGULAR_VELOCITY:
-		case CONSTANT_ROTATION_VELOCITY:
-		case ROTATE:
-		case SET_ROTATION:
+		case PT_ANGULAR_VELOCITY:
+		case PT_CONSTANT_ROTATION_VELOCITY:
+		case PT_ROTATE:
+		case PT_SET_ROTATION:
 			break;
 		default:
 			assert(false && "Mismatched target and value in PMSetEntity!");
 	}
 }
 
-PMSetEntity::PMSetEntity(int target, List<Entity*> targetEntities, bool value)
+PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, bool value)
 : target(target)
 {
 	dataType = BOOLEAN;
@@ -150,19 +150,20 @@ PMSetEntity::PMSetEntity(int target, List<Entity*> targetEntities, bool value)
 	entities = targetEntities;
 	bValue = value;
 	switch(target){
-		case COLLISIONS_ENABLED:
-		case COLLISSION_CALLBACK:
-		case NO_COLLISSION_RESOLUTION:
-		case LOCK_POSITION:
-		case SIMULATION_ENABLED:
-		case ESTIMATION_ENABLED:
+		case PT_COLLISIONS_ENABLED:
+		case PT_COLLISSION_CALLBACK:
+		case PT_NO_COLLISSION_RESOLUTION:
+		case PT_LOCK_POSITION:
+		case PT_SIMULATION_ENABLED:
+		case PT_ESTIMATION_ENABLED:
+		case PT_PAUSED:
 			break;
 		default:
 			assert(false && "Mismatched target and value in PMSetEntity!");
 	}
 }
 
-PMSetEntity::PMSetEntity(int target, List<Entity*> targetEntities, int value)
+PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, int value)
 : target(target)
 {
 	dataType = INTEGER;
@@ -171,14 +172,14 @@ PMSetEntity::PMSetEntity(int target, List<Entity*> targetEntities, int value)
 	entities = targetEntities;
 	iValue = value;
 	switch(target){
-		case PHYSICS_TYPE:
-		case PHYSICS_SHAPE:
-		case ESTIMATION_MODE:
-		case ESTIMATION_DELAY:
-		case ESTIMATION_SMOOTHING_DURATION:
-		case GRAVITY_MULTIPLIER:
-		case COLLISION_CATEGORY:
-		case COLLISION_FILTER:
+		case PT_PHYSICS_TYPE:
+		case PT_PHYSICS_SHAPE:
+		case PT_ESTIMATION_MODE:
+		case PT_ESTIMATION_DELAY:
+		case PT_ESTIMATION_SMOOTHING_DURATION:
+		case PT_GRAVITY_MULTIPLIER:
+		case PT_COLLISION_CATEGORY:
+		case PT_COLLISION_FILTER:
 			break;
 		default:
 			assert(false && "Mismatched target and value in PMSetEntity!");
@@ -204,30 +205,36 @@ void PMSetEntity::Process()
 		PhysicsProperty * physics = entity->physics;
 		switch(target)
 		{
-			case COLLISION_CATEGORY:
+			case PT_PAUSED:
+			{
+				physics->paused = bValue;
+				break;
+			}
+			case PT_COLLISION_CATEGORY:
 				physics->collisionCategory = iValue;
 				break;
-			case COLLISION_FILTER:
+			case PT_COLLISION_FILTER:
 				physics->collisionFilter = iValue;
 				break;
-			case RESET_ROTATION:
+			case PT_RESET_ROTATION:
 			{
 				physics->orientation = Quaternion();
 				entity->rotation = Vector3f();
 				break;	
 			}
 			// Float types?
-			case MASS:
+			case PT_MASS:
 				entity->physics->mass = fValue;
 				break;
-			case GRAVITY_MULTIPLIER:
+			case PT_GRAVITY_MULTIPLIER:
 				if (dataType == INTEGER)
 					entity->physics->gravityMultiplier = iValue;
 				else if (dataType == FLOAT)
 					entity->physics->gravityMultiplier = fValue;
 				break;
 			// Waypoint?
-			case DESTINATION:{
+			case PT_DESTINATION:
+			{
 				NavMesh * nm = WaypointMan.ActiveNavMesh();
 				assert(nm);
 				if(!nm)
@@ -259,21 +266,21 @@ void PMSetEntity::Process()
 				break;
 			}
 			/// Int-types
-			case PHYSICS_TYPE:
+			case PT_PHYSICS_TYPE:
 				Physics.SetPhysicsType(entity, iValue);
 				break;
-			case PHYSICS_SHAPE:
+			case PT_PHYSICS_SHAPE:
 				Physics.SetPhysicsShape(entity, iValue);
 				break;
-			case ESTIMATION_MODE:
+			case PT_ESTIMATION_MODE:
 				if (entity->physics->estimator)
 					entity->physics->estimator->estimationMode = iValue;
 				break;
-			case ESTIMATION_DELAY:
+			case PT_ESTIMATION_DELAY:
 				if (entity->physics->estimator)
 					entity->physics->estimator->estimationDelay = iValue;
 				break;
-			case ESTIMATION_SMOOTHING_DURATION:
+			case PT_ESTIMATION_SMOOTHING_DURATION:
 				if (entity->physics->estimator)
 					entity->physics->estimator->smoothingDuration = iValue;
 			/// Vec3 types
@@ -294,13 +301,13 @@ void PMSetEntity::Process()
 						break;
 				}
 				break;
-			case ANGULAR_VELOCITY:
+			case PT_ANGULAR_VELOCITY:
 				entity->physics->angularVelocity = vec3fValue;
 				break;
-			case CONSTANT_ROTATION_VELOCITY:
+			case PT_CONSTANT_ROTATION_VELOCITY:
 				entity->physics->constantAngularVelocity= vec3fValue;
 				break;
-			case SET_POSITION:
+			case PT_SET_POSITION:
 			case PT_POSITION:
 			{
 				switch(dataType)
@@ -327,15 +334,15 @@ void PMSetEntity::Process()
 				entity->position.x = fValue;
 				entity->RecalculateMatrix();
 				break;
-			case TRANSLATE:
+			case PT_TRANSLATE:
 				entity->Translate(vec3fValue);
 				break;
-			case SCALE:
+			case PT_SCALE:
 				entity->Scale(vec3fValue);
 				entity->physics->UpdateProperties(entity);
 			//	std::cout<<"\nEntity scale set to "<<vec3fValue;
 				break;
-			case SET_SCALE:
+			case PT_SET_SCALE:
 			{
 				switch(dataType)
 				{
@@ -355,7 +362,7 @@ void PMSetEntity::Process()
 		//		std::cout<<"\nEntity scale set to "<<vec3fValue;
 				break;
 			}
-			case ROTATE:
+			case PT_ROTATE:
 			{
 				switch(dataType)
 				{
@@ -369,7 +376,7 @@ void PMSetEntity::Process()
 				entity->physics->UpdateProperties(entity);
 				break;
 			}
-			case SET_ROTATION: 
+			case PT_SET_ROTATION: 
 			{
 				switch(dataType)
 				{
@@ -388,29 +395,29 @@ void PMSetEntity::Process()
 				entity->physics->UpdateProperties(entity);
 				break;
 			}
-			case ACCELERATION:
+			case PT_ACCELERATION:
 				ASSERT_ENTITY_NOT_STATIC;
 				entity->physics->acceleration = vec3fValue;
 				break;
-			case ANGULAR_ACCELERATION:
+			case PT_ANGULAR_ACCELERATION:
 				ASSERT_ENTITY_NOT_STATIC;
 				entity->physics->angularAcceleration = vec3fValue;
 				break;
-			case RELATIVE_ACCELERATION:
+			case PT_RELATIVE_ACCELERATION:
 				ASSERT_ENTITY_NOT_STATIC;
 				entity->physics->relativeAcceleration = vec3fValue;
 				break;
-			case RELATIVE_ROTATION:
+			case PT_RELATIVE_ROTATION:
 				ASSERT_ENTITY_NOT_STATIC;
 				entity->physics->relativeRotation = vec3fValue;
 				break;
-			case FRICTION:
+			case PT_FRICTION:
 				entity->physics->friction = fValue;
 				break;
-			case RESTITUTION:
+			case PT_RESTITUTION:
 				entity->physics->restitution = fValue;
 				break;
-			case COLLISIONS_ENABLED:
+			case PT_COLLISIONS_ENABLED:
 				/// Best to re-register the entity to make sure that everything works as intended..!
 				Physics.UnregisterEntity(entity);
 				entity->physics->collissionsEnabled = false;
@@ -422,28 +429,28 @@ void PMSetEntity::Process()
 				}
 				*/
 				break;
-			case COLLISSION_CALLBACK:
+			case PT_COLLISSION_CALLBACK:
 				entity->physics->collissionCallback = bValue;
 				break;
-			case NO_COLLISSION_RESOLUTION:
+			case PT_NO_COLLISSION_RESOLUTION:
 				entity->physics->noCollisionResolutions = bValue;
 				break;
-            case LOCK_POSITION:
+            case PT_LOCK_POSITION:
                 if (bValue)
                     entity->physics->locks |= POSITION_LOCKED;
                 else
                     entity->physics->locks &= ~POSITION_LOCKED;
                 break;
-			case SIMULATION_ENABLED:
+			case PT_SIMULATION_ENABLED:
 				entity->physics->simulationEnabled = bValue;
 				break;
-			case ESTIMATION_ENABLED:
+			case PT_ESTIMATION_ENABLED:
 				entity->physics->estimationEnabled = bValue;
 				if (bValue && !entity->physics->estimator){
 					entity->physics->estimator = new EntityPhysicsEstimator(entity);
 				}
 				break;
-			case VELOCITY_RETAINED_WHILE_TURNING:
+			case PT_VELOCITY_RETAINED_WHILE_TURNING:
 				entity->physics->velocityRetainedWhileRotating = fValue;
 				break;
 			default:

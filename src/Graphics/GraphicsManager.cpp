@@ -415,7 +415,8 @@ void GraphicsManager::RepositionEntities(){
 }
 
 /// Called before the main rendering loop is begun, after initial GL allocations
-void GraphicsManager::OnBeginRendering(){
+void GraphicsManager::OnBeginRendering()
+{
     Graphics.enteringMainLoop = true;
 	Graphics.deferredRenderingBox->Bufferize();
 };

@@ -224,6 +224,8 @@ public:
 	// Quaternion + Matrices
 
 	/// Set to any value as defined in Collision.h's enum "collissionCallbackRequirements"
+	/// Paused o-o
+	bool paused;
 	int collissionCallback;
 	float collissionCallbackRequirementValue;
 	/// Flagging this will make all collissions resolve as if there had been no collission at all. Should be coupled with the collissionCallback variable.

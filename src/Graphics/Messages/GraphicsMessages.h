@@ -118,54 +118,54 @@ enum graphicsMessages {
 /// Targets for some of the prior messages,
 enum graphicsTargets
 {
-	NULL_GRAPHIC_TARGET,
+	GT_NULL_GRAPHIC_TARGET,
 
-	OVERLAY_TEXTURE,
-	ACTIVE_USER_INTERFACE,
-	GRID_SPACING,
-	GRID_SIZE,
-	ACTIVE_2D_MAP_TO_RENDER,
-	MAX_GRAPHICS_TARGETS,
+	GT_OVERLAY_TEXTURE,
+	GT_ACTIVE_USER_INTERFACE,
+	GT_GRID_SPACING,
+	GT_GRID_SIZE,
+	GT_ACTIVE_2D_MAP_TO_RENDER,
+	GT_MAX_GRAPHICS_TARGETS,
 
 	// Particle systems
-	PARTICLE_SYSTEMS,
-	PARTICLE_INITIAL_COLOR,
-	PARTICLE_EMISSION_VEOCITY,
+	GT_PARTICLE_SYSTEMS,
+	GT_PARTICLE_INITIAL_COLOR,
+	GT_PARTICLE_EMISSION_VEOCITY,
 
     // General stuff
-	MAIN_CAMERA,	// To use when rendering scenes.
-    CLEAR_COLOR,    // Color to clear screen/window with.
-	FOG_BEGIN,		// Foggy fog-some. Fog color is defined be the CLEAR_COLOR by default.
-	FOG_END,
+	GT_MAIN_CAMERA,	// To use when rendering scenes.
+    GT_CLEAR_COLOR,    // Color to clear screen/window with.
+	GT_FOG_BEGIN,		// Foggy fog-some. Fog color is defined be the GT_CLEAR_COLOR by default.
+	GT_FOG_END,
 
 	// Camera targets
-	CAMERA_TARGET_0,
-	CAMERA_TARGET_20 = CAMERA_TARGET_0 + 20,
+	GT_CAMERA_TARGET_0,
+	GT_CAMERA_TARGET_20 = GT_CAMERA_TARGET_0 + 20,
 
 	// Added with SetEntity
-	REQUIRE_DEPTH_SORTING, // So rendering things work properly, specifically for sprites.
-	VISIBILITY,
-	TEXT,
-	TEXT_COLOR,
-	TEXT_POSITION,
-	TEXT_SIZE_RATIO,
-	CAMERA_FILTER, // Filter to enable per-viewport disabled rendering of an entity for example.
-	ADD_CAMERA_FILTER, // Adds a camera filter.
-	REMOVE_CAMERA_FILTER,
-	CLEAR_CAMERA_FILTER, // For clearing said filter.
-	RENDER_OFFSET, // For rendering at a position slightly different than that stated by the physics and navMesh grid.
+	GT_REQUIRE_DEPTH_SORTING, // So rendering things work properly, specifically for sprites.
+	GT_VISIBILITY,
+	GT_TEXT,
+	GT_TEXT_COLOR,
+	GT_TEXT_POSITION,
+	GT_TEXT_SIZE_RATIO,
+	GT_CAMERA_FILTER, // Filter to enable per-viewport disabled rendering of an entity for example.
+	GT_ADD_CAMERA_FILTER, // Adds a camera filter.
+	GT_REMOVE_CAMERA_FILTER,
+	GT_CLEAR_CAMERA_FILTER, // For clearing said filter.
+	GT_RENDER_OFFSET, // For rendering at a position slightly different than that stated by the physics and navMesh grid.
 	
 	// Added with GraphicsEffects.
-	ALPHA,
-	RELATIVE_SCALE,
-	MODEL,
-	ANIMATION_SET, // Should maybe use other enum?
-	ANIMATION,
-	QUEUED_ANIMATION,
-	TEXTURE,
+	GT_ALPHA,
+	GT_RELATIVE_SCALE,
+	GT_MODEL,
+	GT_ANIMATION_SET, // Should maybe use other enum?
+	GT_ANIMATION,
+	GT_QUEUED_ANIMATION,
+	GT_TEXTURE,
 
 
-	MAX_TARGET,
+	GT_MAX_TARGETS,
 };
 
 #endif

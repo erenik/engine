@@ -5,9 +5,9 @@
 #include "SpaceShooterCR.h"
 #include "Physics/Collision/Collision.h"
 
-#include "Entity/Properties/SpaceShooter/SpaceShooterPlayerProperty.h"
-#include "Entity/Properties/SpaceShooter/SpaceShooterProjectileProperty.h"
-#include "Entity/Properties/SpaceShooter/SpaceShooterPowerupProperty.h"
+#include "SpaceShooterPlayerProperty.h"
+#include "SpaceShooterProjectileProperty.h"
+#include "SpaceShooterPowerupProperty.h"
 
 /// Returns false if the colliding entities are no longer in contact after resolution.
 bool SpaceShooterCR::ResolveCollision(Collision & c)

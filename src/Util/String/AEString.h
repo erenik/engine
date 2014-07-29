@@ -143,7 +143,7 @@ public:
 	virtual bool WriteTo(std::fstream& file) const;
 
 private:
-    char * testbuff;
+//    char * testbuff;
 	/// Calculation functions for array size needed for common procedures (generally string length + 1).
 	static int Size(const String & string);
 	static int Size(const char * c_str);

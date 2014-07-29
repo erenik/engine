@@ -26,8 +26,10 @@ Model::~Model()
 {
 	// Do stuff
 	if (triangleList)
+	{
 		CLEAR_AND_DELETE((*triangleList));
-	delete triangleList;
+		delete triangleList;
+	}
 	triangleList = NULL;
 	
 	if (mesh)

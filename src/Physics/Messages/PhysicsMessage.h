@@ -43,86 +43,90 @@ enum physicsMessages {
 };
 
 enum physicsTargets{
-	NULL_PHYSICS_TARGET,
+	PT_NULL_PHYSICS_TARGET,
 
 	// Global stuff
-	SIMULATION_SPEED,
+	PT_SIMULATION_SPEED,
 
 	// Custom types.
-	PHYSICS_INTEGRATOR,
-	COLLISION_RESOLVER,
-	COLLISION_DETECTOR,
+	PT_PHYSICS_INTEGRATOR,
+	PT_COLLISION_RESOLVER,
+	PT_COLLISION_DETECTOR,
 
 	/// Collisions
-	COLLISION_CATEGORY,
-	COLLISION_FILTER,
+	PT_COLLISION_CATEGORY,
+	PT_COLLISION_FILTER,
 
     /// For disabling stuff.
-    LOCK_POSITION,
+    PT_LOCK_POSITION,
 
 	// Floats
-	MASS,
-	LINEAR_DAMPING,
-	ANGULAR_DAMPING,
+	PT_MASS,
+	PT_LINEAR_DAMPING,
+	PT_ANGULAR_DAMPING,
 
 	// Separate float and Vector targets?
 	PT_POSITION,
 	PT_POSITION_Y,
 	PT_POSITION_X,
-	TRANSLATE,
-	SCALE,
-	ROTATE,
-	SET_POSITION,
-	SET_SCALE,
-	SET_ROTATION, // In degrees or radians?
-	GRAVITY,
-	ACCELERATION, ACCELERATION_MULTIPLIER, // <- Lazy me, but might be good, hm?
-	ANGULAR_ACCELERATION,
+	PT_TRANSLATE,
+	PT_SCALE,
+	PT_ROTATE,
+	PT_SET_POSITION,
+	PT_SET_SCALE,
+	PT_SET_ROTATION, // In degrees or radians?
+	PT_GRAVITY,
+	PT_ACCELERATION, PT_ACCELERATION_MULTIPLIER, // <- Lazy me, but might be good, hm?
+	PT_ANGULAR_ACCELERATION,
 	PT_VELOCITY,
 
 	// Relative acceleration, meaning acceleration in relation to the entity's current direction vectors (up, left, forward)
-	RELATIVE_ACCELERATION, 
+	PT_RELATIVE_ACCELERATION, 
 	// Relative rotation compared to entity's current direction vectors. 
 	// The speed of these rotations will vary with the entity's rate/radius of turns (ROT) (turning rate), current air speed and time.
 	// Mainly used for airplanes and similar vehicles.
-	RELATIVE_ROTATION,
+	PT_RELATIVE_ROTATION,
 
-	RESET_ROTATION, // Non-argument message, resets angle/quaternion for rotation.
-	ANGULAR_VELOCITY,
-	CONSTANT_ROTATION_VELOCITY, 
-	CONSTANT_ROTATION_SPEED = CONSTANT_ROTATION_VELOCITY,
+	PT_RESET_ROTATION, // Non-argument message, resets angle/quaternion for rotation.
+	PT_ANGULAR_VELOCITY,
+	PT_CONSTANT_ROTATION_VELOCITY, 
+	PT_CONSTANT_ROTATION_SPEED = PT_CONSTANT_ROTATION_VELOCITY,
 
-	FRICTION,
-	RESTITUTION,
-	ESTIMATION_MODE, /// For network-synchronization
-	ESTIMATION_DELAY, /// For properly setting up interpolation
-	ESTIMATION_SMOOTHING_DURATION, /// For extrapolation smoothing
+	PT_FRICTION,
+	PT_RESTITUTION,
+	PT_ESTIMATION_MODE, /// For network-synchronization
+	PT_ESTIMATION_DELAY, /// For properly setting up interpolation
+	PT_ESTIMATION_SMOOTHING_DURATION, /// For extrapolation smoothing
 
 	// Floaturs
-	VELOCITY_RETAINED_WHILE_TURNING,
-	AIR_DENSITY,
-	DEFAULT_DENSITY,
-	GRAVITY_MULTIPLIER, // Used when you want an entity to be extra affected or perhaps not at all by gravity (not affecting other entities)
+	PT_VELOCITY_RETAINED_WHILE_TURNING,
+	PT_AIR_DENSITY,
+	PT_DEFAULT_DENSITY,
+	PT_GRAVITY_MULTIPLIER, // Used when you want an entity to be extra affected or perhaps not at all by gravity (not affecting other entities)
 
 	/// Boolean targets
-	COLLISIONS_ENABLED,
-	COLLISSION_CALLBACK,
-	NO_COLLISSION_RESOLUTION,
-	PAUSE_ON_COLLISSION,
-	SIMULATION_ENABLED, /// If disabled, no simulation will be done, including collissions, gravity etc. Used for network synchronization for example.
-	ESTIMATION_ENABLED, /// For network-synchronization
+	/** For pausing/freezing the actions of a single-entity without having to unregister/re-register or stuff. 
+		Exactly how a paused entity is to react to collisions is up to the current collision detector and resolver. One may ignore it and another may treat it as being static.
+	*/
+	PT_PAUSED, 
+	PT_COLLISIONS_ENABLED,
+	PT_COLLISSION_CALLBACK,
+	PT_NO_COLLISSION_RESOLUTION,
+	PT_PAUSE_ON_COLLISSION,
+	PT_SIMULATION_ENABLED, /// If disabled, no simulation will be done, including collissions, gravity etc. Used for network synchronization for example.
+	PT_ESTIMATION_ENABLED, /// For network-synchronization
 
 	/// Waypoint: Pointer targets
-	ENTITY,
-	DESTINATION,
+	PT_ENTITY,
+	PT_DESTINATION,
 
 	// Integer targets,
-	INTEGRATOR_TYPE,		// Global
+	PT_INTEGRATOR_TYPE,		// Global
 	// Entity integrator targets
-	PHYSICS_TYPE,	// using this with PMSetEntity is the same as using PMSetPhysicsType
-	PHYSICS_SHAPE,
+	PT_PHYSICS_TYPE,	// using this with PMSetEntity is the same as using PMSetPhysicsType
+	PT_PHYSICS_SHAPE,
 
-	MAX_PHYSICS_TARGETS
+	PT_MAX_PHYSICS_TARGETS
 
 };
 
@@ -170,13 +174,13 @@ private:
 class PMSetEntity : public PhysicsMessage {
 public:
 	// For resets and similar
-	PMSetEntity(int target, List<Entity*> targetEntities);
-	PMSetEntity(int target, List<Entity*> targetEntities, float value);
-	PMSetEntity(int target, List<Entity*> targetEntities, Vector2f value, long long timeStamp = 0);
-	PMSetEntity(int target, List<Entity*> targetEntities, Vector3f value, long long timeStamp = 0);
-	PMSetEntity(int target, List<Entity*> targetEntities, Quaternion value, long long timeStamp = 0);
-	PMSetEntity(int target, List<Entity*> targetEntities, bool value);
-	PMSetEntity(int target, List<Entity*> targetEntities, int value);
+	PMSetEntity(List<Entity*> targetEntities, int target);
+	PMSetEntity(List<Entity*> targetEntities, int target, float value);
+	PMSetEntity(List<Entity*> targetEntities, int target, Vector2f value, long long timeStamp = 0);
+	PMSetEntity(List<Entity*> targetEntities, int target, Vector3f value, long long timeStamp = 0);
+	PMSetEntity(List<Entity*> targetEntities, int target, Quaternion value, long long timeStamp = 0);
+	PMSetEntity(List<Entity*> targetEntities, int target, bool value);
+	PMSetEntity(List<Entity*> targetEntities, int target, int value);
 	void Process();
 protected:
 	enum dataTypes{

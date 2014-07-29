@@ -8,17 +8,21 @@
 #include "Pathfinding/PathfindingProperty.h"
 
 PMSetWaypoint::PMSetWaypoint(Vector3f position, int target, void * value)
-: PhysicsMessage(PM_SET_WAYPOINT), position(position), target(target), pValue(value){
+: PhysicsMessage(PM_SET_WAYPOINT), position(position), target(target), pValue(value)
+{
 	switch(target){
-		case ENTITY:
+		case PT_ENTITY:
 			break;
 		default:
 			assert(false && "Bad target");
 	}
 }
-void PMSetWaypoint::Process(){
+
+void PMSetWaypoint::Process()
+{
 	switch(target){
-		case ENTITY:{
+		case PT_ENTITY:
+		{
 			NavMesh * nm = WaypointMan.ActiveNavMesh();
 			if (!nm){
 				assert(false);

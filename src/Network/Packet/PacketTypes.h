@@ -10,7 +10,7 @@
 namespace PacketType {
 enum packetTypes{
 	NULL_TYPE,
-	TEXT, // Raw text packet for testing purposes.
+	GT_TEXT, // Raw text packet for testing purposes.
 	SIP, // General Session Initiation Protocol
 	AUDIO_TRANSMISSION, // Audio transmission
 	VIDEO, // Video transmission

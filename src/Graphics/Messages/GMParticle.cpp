@@ -82,7 +82,7 @@ GMSetParticleSystem::GMSetParticleSystem(ParticleSystem * ps, int target, Vector
 {
 	switch(target)
 	{
-	case PARTICLE_INITIAL_COLOR:
+	case GT_PARTICLE_INITIAL_COLOR:
 		break;
 	default:
 		assert(false);
@@ -93,7 +93,7 @@ GMSetParticleSystem::GMSetParticleSystem(ParticleSystem * ps, int target, float 
 {
 	switch(target)
 	{
-	case PARTICLE_EMISSION_VEOCITY:
+	case GT_PARTICLE_EMISSION_VEOCITY:
 		break;
 	default:
 		assert(false);
@@ -104,10 +104,10 @@ void GMSetParticleSystem::Process()
 {
 	switch(target)
 	{
-		case PARTICLE_INITIAL_COLOR:
+		case GT_PARTICLE_INITIAL_COLOR:
 			ps->color = vec3Value;
 			break;
-		case PARTICLE_EMISSION_VEOCITY:
+		case GT_PARTICLE_EMISSION_VEOCITY:
 			ps->emissionVelocity = fValue;
 			break;
 	}

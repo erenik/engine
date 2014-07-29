@@ -84,7 +84,7 @@ void PongPaddleProperty::Process(int timeInMs)
 			toMove *= aiSpeed;
 			toMove.y += closestBall->physics->velocity.y * 0.5f;
 			toMove.x = toMove.z = 0;
-			Physics.QueueMessage(new PMSetEntity(PT_VELOCITY, owner, Vector3f(toMove)));
+			Physics.QueueMessage(new PMSetEntity(owner, PT_VELOCITY, Vector3f(toMove)));
 			moved = true;
 		}
 	}
@@ -96,5 +96,5 @@ void PongPaddleProperty::Process(int timeInMs)
 
 void PongPaddleProperty::StopMovement()
 {
-	Physics.QueueMessage(new PMSetEntity(PT_VELOCITY, owner, Vector3f()));
+	Physics.QueueMessage(new PMSetEntity(owner, PT_VELOCITY, Vector3f()));
 }

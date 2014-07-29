@@ -4,13 +4,13 @@
 
 #include "SpaceShooter.h"
 
-#include "Entity/Properties/SpaceShooter/SpaceShooterPlayerProperty.h"
-#include "Entity/Properties/SpaceShooter/SpaceShooterProjectileProperty.h"
-#include "Entity/Properties/SpaceShooter/SpaceShooterPowerupProperty.h"
+#include "SpaceShooterPlayerProperty.h"
+#include "SpaceShooterProjectileProperty.h"
+#include "SpaceShooterPowerupProperty.h"
 
-#include "Physics/Integrators/SpaceShooter/SpaceShooterIntegrator.h"
-#include "Physics/CollisionResolvers/SpaceShooter/SpaceShooterCR.h"
-#include "Physics/CollisionDetectors/SpaceShooter/SpaceShooterCD.h"
+#include "SpaceShooterIntegrator.h"
+#include "SpaceShooterCR.h"
+#include "SpaceShooterCD.h"
 
 #include "Graphics/GraphicsManager.h"
 #include "Graphics/Messages/GMSetEntity.h"
@@ -81,6 +81,8 @@ SpaceShooter::~SpaceShooter()
 	SAFE_DELETE(spaceShooterCR);
 	SAFE_DELETE(spaceShooterCD);
 	*/
+
+	MapMan.DeleteEntities(GetEntities());
 }
 
 void SpaceShooter::ProcessMessage(Message * message)
@@ -93,6 +95,10 @@ void SpaceShooter::ProcessMessage(Message * message)
 	else if (msg == "Reset")
 	{
 		Reset();
+	}
+	else if (msg == "Pause/Break")
+	{
+		this->SetPause(!paused);
 	}
 }
 
@@ -190,28 +196,28 @@ void SpaceShooter::SetupPlayingField()
 
 	// Move stuff to edges of field.
 	float playerX = -gameSize.x * 0.4f;
-	Physics.QueueMessage(new PMSetEntity(PT_POSITION, player1, Vector3f(playerX, 0, constantZ)));
-	Physics.QueueMessage(new PMSetEntity(SET_SCALE, players, shipScale));
+	Physics.QueueMessage(new PMSetEntity(player1, PT_POSITION, Vector3f(playerX, 0, constantZ)));
+	Physics.QueueMessage(new PMSetEntity(players, PT_SET_SCALE, shipScale));
 	SetupCollisionFilter(players, true);
 	// Set player as kinematic
 
 	// Score-boards..
-	Physics.QueueMessage(new PMSetEntity(PT_POSITION, score1Entity, Vector3f(0, 0, constantZ + 2)));
+	Physics.QueueMessage(new PMSetEntity(score1Entity, PT_POSITION, Vector3f(0, 0, constantZ + 2)));
 //			Physics.QueueMessage(new PMSetEntity(PT_POSITION, score2Entity, Vector3f(scoreColumns.y, 0, z->GetFloat() - 2)));
-	Physics.QueueMessage(new PMSetEntity(COLLISIONS_ENABLED, scoreEntities, false));
+	Physics.QueueMessage(new PMSetEntity(scoreEntities, PT_COLLISIONS_ENABLED, false));
 
 	// Set scale of score-board text relative to screen size.
-	Graphics.QueueMessage(new GMSetEntityf(scoreEntities, TEXT_SIZE_RATIO, gameSize.y * 0.25f));
-	Graphics.QueueMessage(new GMSetEntityVec4f(scoreEntities, TEXT_COLOR, Vector4f(0.5,0.5f,0.5f,1)));
+	Graphics.QueueMessage(new GMSetEntityf(scoreEntities, GT_TEXT_SIZE_RATIO, gameSize.y * 0.25f));
+	Graphics.QueueMessage(new GMSetEntityVec4f(scoreEntities, GT_TEXT_COLOR, Vector4f(0.5,0.5f,0.5f,1)));
 
 	// Make players kinematic.
-	Physics.QueueMessage(new PMSetEntity(PHYSICS_TYPE, players, PhysicsType::KINEMATIC));
+	Physics.QueueMessage(new PMSetEntity(players, PT_PHYSICS_TYPE, PhysicsType::KINEMATIC));
 
 	// Set scale of all to same?
 	float scale = shipScale;
-	Physics.QueueMessage(new PMSetEntity(SET_SCALE, players, scale));
-	Physics.QueueMessage(new PMSetEntity(SET_ROTATION, players, Quaternion(Vector3f(1, 0, 0), PI * 0.5f)));
-	Physics.QueueMessage(new PMSetEntity(ROTATE, players, Quaternion(Vector3f(0, 0, -1), PI * 0.5f)));
+	Physics.QueueMessage(new PMSetEntity(players, PT_SET_SCALE, scale));
+	Physics.QueueMessage(new PMSetEntity(players, PT_SET_ROTATION, Quaternion(Vector3f(1, 0, 0), PI * 0.5f)));
+	Physics.QueueMessage(new PMSetEntity(players, PT_ROTATE, Quaternion(Vector3f(0, 0, -1), PI * 0.5f)));
 
 	player1Properties->initialScale = Vector3f(scale,scale,scale);
 	player1Properties->OnSpawn();
@@ -225,10 +231,10 @@ void SpaceShooter::SetupPlayingField()
 	// Place 'em.
 
 	// Set all to use mesh collissions.
-	Physics.QueueMessage(new PMSetEntity(PHYSICS_SHAPE, GetEntities(), PhysicsShape::MESH));
+	Physics.QueueMessage(new PMSetEntity(GetEntities(), PT_PHYSICS_SHAPE, PhysicsShape::MESH));
 			
 	// Disable gravity for the game entities.
-	Physics.QueueMessage(new PMSetEntity(GRAVITY_MULTIPLIER, GetEntities(), 0.f));
+	Physics.QueueMessage(new PMSetEntity(GetEntities(), PT_GRAVITY_MULTIPLIER, 0.f));
 
 	// Disable collisions between the entities and the wall?
 			
@@ -273,7 +279,7 @@ Entity * SpaceShooter::NewProjectile(SpaceShooterWeaponType weaponType)
 	switch(weaponType.type)
 	{
 		case SpaceShooterWeaponType::RAILGUN:
-			Graphics.QueueMessage(new GMSetEntity(newProjectile, MODEL, ModelMan.GetModel("Cube")));
+			Graphics.QueueMessage(new GMSetEntity(newProjectile, GT_MODEL, ModelMan.GetModel("Cube")));
 			Graphics.QueueMessage(new GMSetEntityTexture(newProjectile, DIFFUSE_MAP, TexMan.GetTexture("Cyan")));
 			break;
 		default:
@@ -302,6 +308,15 @@ bool SpaceShooter::IsPositionOutsideFrame(Vector3f pos)
 	return false;
 }
 
+/// Will.. remove from rendering/physics relevant entities and set the pause-state.
+void SpaceShooter::SetPause(bool pause)
+{
+	this->paused = pause;
+	// Pause..
+	Physics.QueueMessage(new PMSetEntity(GetEntities(), PT_PAUSED, pause));
+}
+
+
 void SpaceShooter::SetZ(float z)
 {
 	constantZ = z;
@@ -320,15 +335,19 @@ void SpaceShooter::SetShipScale(float scale)
 {
 	shipScale = scale;
 	// Update all entities scales?
-	Physics.QueueMessage(new PMSetEntity(SET_SCALE, players, shipScale));
+	Physics.QueueMessage(new PMSetEntity(players, PT_SET_SCALE, shipScale));
 }
 
 
 
 void SpaceShooter::SetPlayerPosition(Vector3f position)
 {
+	if (!player1)
+		return;
 	// Move it!
-	Physics.QueueMessage(new PMSetEntity(PT_POSITION_Y, player1, position.y));
+	Physics.QueueMessage(new PMSetEntity(player1, PT_POSITION_Y, position.y));
+	if (!player1Properties)
+		return;
 	player1Properties->lastUserInput = Time::Now();
 }
 
@@ -340,14 +359,15 @@ void SpaceShooter::SetupPhysics()
 		spaceShooterIntegrator = new SpaceShooterIntegrator(1.f);
 		spaceShooterCR = new SpaceShooterCR();
 		spaceShooterCD = new SpaceShooterCD();
-		spaceShooterIntegrator->constantZ = constantZ;
 	}
-	if (Physics.physicsIntegrator != spaceShooterIntegrator)
+	Integrator * currentIntegrator = Physics.physicsIntegrator;
+	if (currentIntegrator != spaceShooterIntegrator)
 	{
 		Physics.QueueMessage(new PMSet(spaceShooterIntegrator));
 		Physics.QueueMessage(new PMSet(spaceShooterCR));
 		Physics.QueueMessage(new PMSet(spaceShooterCD));
 	}
+	spaceShooterIntegrator->constantZ = constantZ;
 }
 
 /// Sets up stuff specific for the entities in this little game.
@@ -361,13 +381,13 @@ void SpaceShooter::SetupCollisionFilter(List<Entity*> entities, bool allied /*= 
 {
 	int colCat = allied? collisionCategoryPlayer : collisionCategoryEnemy;
 	int colFilter = allied? collisionCategoryEnemy : collisionCategoryPlayer;
-	Physics.QueueMessage(new PMSetEntity(COLLISION_CATEGORY, entities, colCat));
-	Physics.QueueMessage(new PMSetEntity(COLLISION_FILTER, entities, colFilter));
+	Physics.QueueMessage(new PMSetEntity(entities, PT_COLLISION_CATEGORY, colCat));
+	Physics.QueueMessage(new PMSetEntity(entities, PT_COLLISION_FILTER, colFilter));
 }
 
 void SpaceShooter::SetProjectileScale(List<Entity*> entities)
 {
-	Physics.QueueMessage(new PMSetEntity(SET_SCALE, entities, projectileScale));
+	Physics.QueueMessage(new PMSetEntity(entities, PT_SET_SCALE, projectileScale));
 }
 
 
@@ -407,14 +427,14 @@ void SpaceShooter::SpawnEnemies(int level)
 		Vector3f position;
 		position.x = i * 50.f;
 		position.y = enemyRandom.Randf(gameSize.y) - gameSize.y * 0.5f;
-		Physics.QueueMessage(new PMSetEntity(PT_POSITION, enemy, position));
+		Physics.QueueMessage(new PMSetEntity(enemy, PT_POSITION, position));
 
 
 		// Give it some speed.
 		float speed = 15 + level;
 		Vector3f dir(-1,0,0);
 		Vector3f velocity = dir * speed;
-		Physics.QueueMessage(new PMSetEntity(PT_VELOCITY, enemy, velocity));
+		Physics.QueueMessage(new PMSetEntity(enemy, PT_VELOCITY, velocity));
 
 		// Make active!
 		Physics.QueueMessage(new PMRegisterEntity(enemy));
@@ -425,12 +445,11 @@ void SpaceShooter::SpawnEnemies(int level)
 
 	// Set scale of all to same?
 	float scale = shipScale;
-	Physics.QueueMessage(new PMSetEntity(SET_SCALE, enemies, shipScale));
-	Physics.QueueMessage(new PMSetEntity(SET_SCALE, enemies, scale));
-	Physics.QueueMessage(new PMSetEntity(SET_ROTATION, enemies, Quaternion(Vector3f(1, 0, 0), PI * 0.5f)));
-	Physics.QueueMessage(new PMSetEntity(ROTATE, enemies, Quaternion(Vector3f(0, 0, 1), PI * 0.5f)));
+	Physics.QueueMessage(new PMSetEntity(enemies, PT_SET_SCALE, shipScale));
+	Physics.QueueMessage(new PMSetEntity(enemies, PT_SET_ROTATION, Quaternion(Vector3f(1, 0, 0), PI * 0.5f)));
+	Physics.QueueMessage(new PMSetEntity(enemies, PT_ROTATE, Quaternion(Vector3f(0, 0, 1), PI * 0.5f)));
 
-	Physics.QueueMessage(new PMSetEntity(PHYSICS_SHAPE, enemies, PhysicsShape::MESH));
+	Physics.QueueMessage(new PMSetEntity(enemies, PT_PHYSICS_SHAPE, PhysicsShape::MESH));
 
 	Physics.Resume();
 }

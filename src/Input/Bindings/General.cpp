@@ -22,7 +22,8 @@
 #include "Message/MessageManager.h"
 
 
-enum generalActions{
+enum generalActions
+{
 	NULL_ACTION,
 
 	// Debug-renders.
@@ -93,6 +94,9 @@ void CreateDefaultGeneralBindings()
 
 	
 	int ctrl = KEY::CTRL;
+
+	// Always nice to be able to pause anywhere..
+	mapping->CreateBinding("Pause/Break", KEY::PAUSE_BREAK);
 
 	mapping->CreateBinding(CLOSE_WINDOW, ctrl, KEY::W);
 	mapping->CreateBinding(OPEN_LIGHTING_EDITOR, ctrl, KEY::O, KEY::L);
