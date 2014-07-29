@@ -68,7 +68,7 @@ public:
 	virtual void InputProcessor(int action, int inputDevice = 0);
 	/// Creates default key-bindings for the state.
 	virtual void CreateDefaultBindings();
-	/// Creates the user interface for this state
+	/// Creates the user interface for this state. Is called automatically when re-building the UI with the CTRL+R+U command.
 	virtual void CreateUserInterface();
 	/** Attempts to free the resources used by the user interface before deleting it.
 		Aborts and returns false if any errors occur along the way.

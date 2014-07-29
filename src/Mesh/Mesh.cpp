@@ -92,10 +92,12 @@ bool MeshFace::WriteTo(std::fstream & file)
 {
 	assert(numVertices > 0);
 	file.write((char*)&numVertices, sizeof(int));
-	std::cout<<"\nNumVertices: "<<numVertices;
+//	std::cout<<"\nNumVertices: "<<numVertices;
+	
 	file.write((char*)vertices.GetArray(), sizeof(int) * numVertices);
 	file.write((char*)uvs.GetArray(), sizeof(int) * numVertices);
 	file.write((char*)normals.GetArray(), sizeof(int) * numVertices);
+	//*/
 	return true;
 }
 
@@ -108,9 +110,16 @@ bool MeshFace::ReadFrom(std::fstream & file)
 //	assert(numVertices < 20);
 	// Assume deallocation before is not necessary...
 	AllocateArrays();
+	/*
+	for (int i = 0; i < numVertices; ++i)
+	{
+	vertices[i]
+	}
+	/**/
 	file.read((char*)vertices.GetArray(), sizeof(int) * numVertices);
 	file.read((char*)uvs.GetArray(), sizeof(int) * numVertices);
 	file.read((char*)normals.GetArray(), sizeof(int) * numVertices);
+	//*/
 	return true;
 }
 
@@ -249,14 +258,14 @@ bool Mesh::SaveCompressedTo(String compressedPath)
 	int size = numVertices * sizeOfVertex;
 
 	// Write data.
-	/*
+	
 	for (int i = 0; i < numVertices; ++i)
 		vertices[i].WriteTo(file);
 	for (int i = 0; i < numUVs; ++i)
 		uvs[i].WriteTo(file);
 	for (int i = 0; i < numNormals; ++i)
 		normals[i].WriteTo(file);
-	/**/
+	/*
 	if (numVertices)
 		file.write((char*)vertices.GetArray(), numVertices * sizeOfVertex);
 	if (numUVs)
@@ -330,7 +339,7 @@ bool Mesh::LoadCompressedFrom(String compressedPath)
 
 
 	// Read data.
-	/*
+	
 	for (int i = 0; i < numVertices; ++i)
 		vertices[i].ReadFrom(file);
 	for (int i = 0; i < numUVs; ++i)
@@ -338,7 +347,7 @@ bool Mesh::LoadCompressedFrom(String compressedPath)
 	for (int i = 0; i < numNormals; ++i)
 		normals[i].ReadFrom(file);
 
-	/**/
+	/*
 	if (numVertices)
 		file.read((char*)vertices.GetArray(), numVertices * sizeOfVertex);
 	if (numUVs)
