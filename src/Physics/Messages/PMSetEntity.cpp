@@ -453,6 +453,9 @@ void PMSetEntity::Process()
 			case PT_VELOCITY_RETAINED_WHILE_TURNING:
 				entity->physics->velocityRetainedWhileRotating = fValue;
 				break;
+			case PT_LINEAR_DAMPING:
+				entity->physics->linearDamping = fValue;
+				break;
 			default:
 				assert(false && "Implement=?");
 				break;

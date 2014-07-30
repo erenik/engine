@@ -2,7 +2,7 @@
 /// 2014-07-30
 /// Property/Controller class for all turrets, providing aiming- and appropriate rotations for them, as well as handling repair/damage states.
 
-#include "Entity/EntityProperty.h"
+#include "TIFSProperties.h"
 
 class TIFSTurretProperty : public EntityProperty
 {

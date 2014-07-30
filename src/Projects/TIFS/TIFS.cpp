@@ -18,11 +18,17 @@
 #include "TIFS.h"
 #include "TIFSMapEditor.h"
 
+#include "TIFS/Physics/TIFSIntegrator.h"
+
 #include "TIFS/Properties/TIFSTurretProperty.h"
+#include "TIFS/Properties/TIFSDroneProperty.h"
 
 #include "Graphics/GraphicsManager.h"
 #include "Graphics/Messages/GMSet.h"
 #include "Graphics/Messages/GMSetEntity.h"
+#include "Graphics/Messages/GMCamera.h"
+#include "Graphics/Camera/Camera.h"
+
 
 #include "Message/Message.h"
 
@@ -38,10 +44,13 @@
 #include "Physics/PhysicsManager.h"
 #include "Physics/Messages/PhysicsMessage.h"
 
+
 #include "Random/Random.h"
 
 TIFS * tifs = NULL;
 TIFSMapEditor * mapEditor = NULL;
+
+Camera * freeFlyCamera = NULL;
 
 void SetApplicationDefaults()
 {
@@ -64,11 +73,26 @@ TIFS::TIFS()
 	
 }
 
+TIFSIntegrator * integrator = 0;
+
 /// Function when entering this state, providing a pointer to the previous StateMan.
 void TIFS::OnEnter(AppState * previousState)
 {
-	// Remove shit.
+	// Setup integrator.
+	if (!integrator)
+		integrator = new TIFSIntegrator();
 
+	if (!freeFlyCamera)
+		freeFlyCamera = CameraMan.NewCamera();
+
+	// Set free form camera as active.
+	Graphics.QueueMessage(new GMSetCamera(freeFlyCamera));
+	ResetCamera();
+
+	Physics.QueueMessage(new PMSet(integrator));
+
+	// Remove shit.
+	
 	// Do shit.
 
 	if (!ui)
@@ -82,10 +106,12 @@ void TIFS::OnEnter(AppState * previousState)
 	Input.ForceNavigateUI(true);
 
 }
+
 /// Main processing function, using provided time since last frame.
 void TIFS::Process(int timeInMs)
 {
-
+	// Sleep.
+	Sleep(100);
 }
 /// Function when leaving this state, providing a pointer to the next StateMan.
 void TIFS::OnExit(AppState * nextState)
@@ -124,9 +150,18 @@ void TIFS::ProcessMessage(Message * message)
 			{
 				SpawnDrones();
 			}
+			else if (msg == "ResetCamera")
+				ResetCamera();
 			break;	
 		}
 	}
+}
+
+/// Creates default key-bindings for the state.
+void TIFS::CreateDefaultBindings()
+{
+	InputMapping * mapping = &this->inputMapping;
+	mapping->CreateBinding("ResetCamera", KEY::HOME);
 }
 
 
@@ -140,6 +175,14 @@ void TIFS::CreateUserInterface()
 
 }
 
+void TIFS::ResetCamera()
+{
+	// Reset the freeFlyCamera?
+	Graphics.QueueMessage(new GMSetCamera(freeFlyCamera, CT_POSITION, Vector3f(0,40,30)));
+	Graphics.QueueMessage(new GMSetCamera(freeFlyCamera, CT_ROTATION, Vector3f(-0.4f, 0, 0)));
+}
+
+
 Random droneRandom;
 
 /// Randomly!!!! o-=o
@@ -148,15 +191,28 @@ void TIFS::SpawnDrones()
 	MapMan.DeleteEntities(drones);
 	drones.Clear();
 
-	Vector3f pos;
-	pos.x = droneRandom.Randf(50.f) - 25.f;
-	pos.z = droneRandom.Randf(50.f) - 25.f;
-	pos.y = droneRandom.Randf(50.f);
-
-	Entity * drone = MapMan.CreateEntity("Drone", ModelMan.GetModel("Sphere"), TexMan.GetTexture("Cyan"), pos);
-	drones.Add(drone);
+	int numDronesToSpawn = 5;
+	for (int i = 0; i < 5; ++i)
+	{
+		Vector3f pos;
+		pos.x = droneRandom.Randf(50.f) - 25.f;
+		pos.z = droneRandom.Randf(50.f) - 25.f;
+		pos.y = droneRandom.Randf(50.f);
+	
+		SpawnDrone(pos);
+	}
 }
 
+
+void TIFS::SpawnDrone(Vector3f atLocation)
+{
+	Entity * drone = MapMan.CreateEntity("Drone", ModelMan.GetModel("Sphere"), TexMan.GetTexture("Cyan"), atLocation);
+	TIFSDroneProperty * droneProp = new TIFSDroneProperty(drone);
+	drone->properties.Add(droneProp);
+	drones.Add(drone);
+	// Setup physics and other stuff.
+	droneProp->OnSpawn();
+}
 
 void TIFS::CreateTurrets()
 {

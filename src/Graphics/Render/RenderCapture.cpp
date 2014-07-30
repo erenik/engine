@@ -102,6 +102,9 @@ void GraphicsManager::RenderCapture()
 	{
 		// Fetch next frame, and save it.
 		Texture * frame = window->frames[0];
+		std::cout<<"\nSaving recorded frames. "<<window->frames.Size()<<" frames remaining.";
+		// Replace any slashes with some other character, or it will fail.
+		frame->name.Replace('/', '-');
 		frame->Save(videoDirPath+"/"+frame->name+".png", true);
 		window->frames.Remove(frame, ListOption::RETAIN_ORDER);
 		TexMan.DeleteTexture(frame);

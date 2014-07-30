@@ -10,7 +10,7 @@
 #include "Physics/Messages/PhysicsMessage.h"
 
 TIFSTurretProperty::TIFSTurretProperty(Entity * base, Entity * swivel, Entity * underBarrel, Entity * barrel)
-: EntityProperty("TIFSTurretProperty", EntityPropertyID::CUSTOM_GAME_1, base), base(base), swivel(swivel), underBarrel(underBarrel), barrel(barrel)
+: EntityProperty("TIFSTurretProperty", TIFSProperty::TURRET, base), base(base), swivel(swivel), underBarrel(underBarrel), barrel(barrel)
 {
 	
 }

@@ -146,6 +146,7 @@ public:
 	/// Numeric statistics
 	float physicsMeshCollisionChecks;
 
+	Vector3f GetGravitation() { return gravitation; };
 private:
 	/// Functions for handling the various aspects of the physical simulation procedures.
 	void Integrate(float timeInSecondsSinceLastUpdate);

@@ -42,11 +42,16 @@ public:
 	/// Callback function that will be triggered via the MessageManager when messages are processed.
 	virtual void ProcessMessage(Message * message);
 
+	/// Creates default key-bindings for the state.
+	virtual void CreateDefaultBindings();
 	/// Creates the user interface for this state. Is called automatically when re-building the UI with the CTRL+R+U command.
 	virtual void CreateUserInterface();
 
+	void ResetCamera();
+
 	/// Randomly!!!! o-=o
 	void SpawnDrones();
+	void SpawnDrone(Vector3f atLocation);
 
 	/// Randomly!!!! o-=o
 	void CreateTurrets();

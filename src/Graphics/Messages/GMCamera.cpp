@@ -24,6 +24,7 @@ GMSetCamera::GMSetCamera(Camera * camera, int target, Vector3f vec3fValue)
 {
 	switch(target)
 	{
+		case CT_POSITION:
 		case CT_ROTATION:
 		case CT_RELATIVE_POSITION:
 		case CT_OFFSET_ROTATION:
@@ -84,9 +85,14 @@ void GMSetCamera::Process()
 			camera->entityToTrack = entity;
 			break;
 		}
+		case CT_POSITION:
+		{
+			camera->position = -vec3fValue;
+			break;
+		}
 		case CT_ROTATION:
 		{
-			camera->rotation = vec3fValue;
+			camera->rotation = -vec3fValue;
 			// If using quaternions, should supply one as argument...
 			break;
 		}
@@ -104,10 +110,10 @@ void GMSetCamera::Process()
 			break;
 		}
 		case CT_OFFSET_ROTATION:
-			camera->offsetRotation = vec3fValue;
+			camera->offsetRotation = -vec3fValue;
 			break;
 		case CT_RELATIVE_POSITION:
-			camera->relativePosition = vec3fValue;
+			camera->relativePosition = -vec3fValue;
 			break;
 		case CT_DISTANCE_FROM_CENTER_OF_MOVEMENT:
 			camera->distanceFromCentreOfMovement = fValue;
