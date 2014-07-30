@@ -128,12 +128,12 @@ public:
 		Argument true indicate that the button was pressed, while false indicates that it was just released.
 		Default arguments for x and y indicate that they should not be refreshed.
 	*/
-	void MouseClick(Window * window, bool down, int x = -1, int y = -1, UIElement * elementClicked = NULL);
+	void MouseClick(Window * window, bool down, int x, int y);
 	/** Handles a mouse click.
 		Argument true indicate that the button was pressed, while false indicates that it was just released.
 		Default arguments for x and y indicate that they should not be refreshed.
 	*/
-	void MouseRightClick(Window * window, bool down, int x = -1, int y = -1, UIElement * elementClicked = NULL);
+	void MouseRightClick(Window * window, bool down, int x, int y);
 	/// Interprets a mouse-move message to target position.
 	void MouseMove(Window * window, int x, int y);
 	/** Handles mouse wheel input.

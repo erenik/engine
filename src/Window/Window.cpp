@@ -414,8 +414,36 @@ Vector2i Window::OSWindowSize()
 #endif
 }
 
+// o-o
+bool Window::GetRayFromScreenCoordinates(int mouseX, int mouseY, Ray & ray)
+{
+	return GetRayFromScreenCoordinates(Vector2i(mouseX, mouseY), ray);
+}
+
+bool Window::GetRayFromScreenCoordinates(Vector2i screenCoords, Ray & ray)
+{
+	// Get viewport the screen-coordinate are inside.
+	for (int i = 0; i < viewports.Size(); ++i)
+	{
+		Viewport * vp = viewports[i];
+		// Check if inside
+		if (screenCoords.x < vp->absMin.x ||
+			screenCoords.x > vp->absMax.x)
+			continue;
+		if (screenCoords.y < vp->absMin.y ||
+			screenCoords.y > vp->absMax.y)
+			continue;
+		// Is inside! o.o
+		Vector2i viewportCoords = screenCoords - vp->absMin;
+		return vp->GetRayFromViewportCoordinates(viewportCoords, ray);
+	}
+	// No good viewport :(
+	return false;
+}
+
+
 /// Since some parts of the window may be used by the OS, this has to be taken into consideration when rendering.
-Vector2i Window::WorkingArea()
+Vector2i Window::ClientAreaSize()
 {
 #ifdef WINDOWS
 	RECT rect;

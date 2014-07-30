@@ -270,6 +270,10 @@ Entity * SpaceShooter::NewProjectile(SpaceShooterWeaponType weaponType)
 	}
 	if (!newProjectile)
 	{
+		// Check how many are already created. Max 100 active projectiles? It'll lag otherwise?
+		if (projectiles.Size() > 100)
+			return NULL;
+
 		newProjectile = MapMan.CreateEntity("SpaceShooterProjectile", NULL, NULL);
 		SpaceShooterProjectileProperty * projectileProp = new SpaceShooterProjectileProperty(this, newProjectile, weaponType);
 		newProjectile->properties.Add(projectileProp);
@@ -345,7 +349,15 @@ void SpaceShooter::SetPlayerPosition(Vector3f position)
 	if (!player1)
 		return;
 	// Move it!
-	Physics.QueueMessage(new PMSetEntity(player1, PT_POSITION_Y, position.y));
+	int p = 0;
+	switch(p)
+	{
+		case 1:
+			Physics.QueueMessage(new PMSetEntity(player1, PT_POSITION_Y, position.y));
+			break;
+		default:
+			Physics.QueueMessage(new PMSetEntity(player1, PT_POSITION, position));
+	}
 	if (!player1Properties)
 		return;
 	player1Properties->lastUserInput = Time::Now();

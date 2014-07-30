@@ -14,6 +14,8 @@
 
 #include "Render/RenderBuffer.h"
 
+#include "Graphics/Camera/Camera.h"
+
 Viewport::Viewport()
 {
 	Initialize();
@@ -98,7 +100,7 @@ void Viewport::UpdateSize()
 	if (relative)
 	{
 	//	Vector2i windowSize = window->Size();
-		Vector2i windowWorkingArea = window->WorkingArea();
+		Vector2i windowWorkingArea = window->ClientAreaSize();
 		size = relativeSize.ElementMultiplication(windowWorkingArea);
 		bottomLeftCorner = relativeOffset.ElementMultiplication(windowWorkingArea);
 	}
@@ -106,6 +108,10 @@ void Viewport::UpdateSize()
 	{
 		assert(size.MaxPart());
 	}
+
+	/// Absolute-values of the window... meaning?
+	absMin = bottomLeftCorner;
+	absMax = bottomLeftCorner + size;
 }
 
 
@@ -158,3 +164,71 @@ void Viewport::EnableAllDebugRenders(bool enabled/* = true*/)
 		renderPhysics = renderNavMesh = renderLights = enabled;
 }
 
+
+bool Viewport::GetRayFromViewportCoordinates(Vector2i coords, Ray & ray)
+{
+	// Use coords with the attached camera?
+	assert(camera);
+
+	
+	const Camera & camera = *this->camera;
+
+	std::cout<<"\nCamera: "<<camera.name;
+
+
+	/// Calculate near plane coordinates
+	Vector3f camPosition = camera.Position();
+	Vector3f camLookingAt = camera.LookingAt();
+	Vector4f nearPlaneCenter = camPosition - camLookingAt * camera.nearPlane;
+	Vector4f nearPlaneUpVec = camera.UpVector();
+#define upVector nearPlaneUpVec
+	Vector4f nearPlaneRightVec = -camera.LeftVector();
+#define rightVector nearPlaneRightVec
+
+ //   std::cout<<"\nCamPosition: "<<camPosition<<" LookingAt: "<<camLookingAt;
+
+	/// Lower left corner
+	Frustum camFrustum = camera.GetFrustum();
+	Vector4f nearPlaneLLCorner = nearPlaneCenter - nearPlaneUpVec * camera.GetFrustum().top
+		- nearPlaneRightVec * camera.GetFrustum().right;
+
+ //   std::cout<<"\nNearPlaneCenter: "<<nearPlaneCenter<<" NearPlaneLowerLeftcorner: "<<nearPlaneLLCorner;
+
+	// Get relative positions of where we clicketiclicked, from 0.0 to 1.0 (0,0 in lower left corner)
+	float clientAreaWidth = (float)size.x;
+	float clientAreaHeight = (float)size.y;
+	float relativeX = coords.x / clientAreaWidth,
+		  relativeY = coords.y / clientAreaHeight;
+
+    float zoom = camera.zoom;
+    Frustum frustum = camera.GetFrustum();
+
+ //   relativeX -= 0.5f;
+ //   relativeY -= 0.5f;
+
+    Vector4f startPoint = nearPlaneLLCorner + nearPlaneUpVec * relativeY * camera.GetFrustum().top * 2
+                        + nearPlaneRightVec * relativeX * camera.GetFrustum().right * 2;
+	//Vector4f startPoint = nearPlaneCenter + nearPlaneUpVec * relativeY * frustum.top * 2;
+
+//	nearPlaneLLCorner + nearPlaneUpVec * relativeY * camera.GetFrustum().top * 2
+//						+ nearPlaneRightVec * relativeX * camera.GetFrustum().right * 2;
+
+	Vector4f clickDirection;
+	if (camera.projectionType == Camera::PROJECTION_3D)
+		clickDirection = startPoint - camera.Position();
+	/// Straight direction if orthogonal, always.
+	else if (camera.projectionType == Camera::ORTHOGONAL)
+		clickDirection = camera.LookingAt();
+	clickDirection.Normalize3();
+	Vector4f endPoint = startPoint - clickDirection * camera.farPlane;
+
+    /// Adjust start point so it looks correct on-screen.
+   // startPoint += relativeY * nearPlaneUpVec * frustum.top/ zoom * 0.5f;
+   // startPoint += relativeX * nearPlaneRightVec * frustum.right / zoom * 0.5f;
+
+	Ray result;
+	result.start = startPoint;
+	result.direction = clickDirection;
+	ray = result;
+	return true;
+}

@@ -141,6 +141,20 @@ void Entity::OnCollision(Collision & data)
 	}
 }
 
+/// Fetches an AABB encapsulating this entity, including any children?
+AABB * Entity::GetAABB()
+{
+	if (physics)
+		return &physics->aabb;
+	else 
+	{
+		if (!aabb)
+			aabb = new AxisAlignedBoundingBox();
+	//	RecalculateAABB();
+		return aabb;
+	}
+}
+
 
 /// Deallocates additional points as needed.
 void Entity::Delete()
@@ -801,6 +815,12 @@ void Entity::RecalculateMatrix()
 	if (parent)
 	{
 		transformationMatrix = parent->transformationMatrix * transformationMatrix;
+	}
+
+	// Since we updated something, we should inform our children as well, if any, or they will be lagging behind...
+	for (int i = 0; i < children.Size(); ++i)
+	{
+		children[i]->RecalculateMatrix();
 	}
 
 		// Ensure it has a scale..?

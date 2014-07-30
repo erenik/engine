@@ -29,12 +29,6 @@ Vector3f::Vector3f( float ix,  float iy,  float iz){
 	z = iz;
 }
 
-Vector3f::Vector3f(Vertex3f v1, Vertex3f v2){
-	x = v2.x - v1.x;
-	y = v2.y - v1.y;
-	z = v2.z - v1.z;
-}
-
 Vector3f::Vector3f(float arr[]){
     assert(arr);
 	x = arr[0];

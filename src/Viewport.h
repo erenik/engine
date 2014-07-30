@@ -64,7 +64,7 @@ public:
 	String uiSource;
 	int renderOptions;
 
-	/// Absolute-values of the window... meaning?
+	/// Absolute-values of the window. Calculated when size is updated. (pretty much just min/max of it).
 	Vector2i absMin, absMax;
 
 
@@ -95,6 +95,9 @@ public:
 	bool renderLights; // For 3D-representations of the light-sources!
 	bool renderMap; // For le 2D-map-crap
 	bool renderLookAtVectors;
+
+	/// Fetches ray using viewport-based co-ordinates (not to be confused with the window/screen-space co-ordinates!)
+	bool GetRayFromViewportCoordinates(Vector2i viewportCoords, Ray & ray);
 
 protected:
 	

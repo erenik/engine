@@ -384,7 +384,7 @@ void Camera::Update()
 
 
 	// Update frustum
-	frustum.SetCamInternals(-zoom * widthRatio, zoom * widthRatio, -zoom * heightRatio, zoom * heightRatio, nearPlane, farPlane);
+	frustum.SetCamInternals(left, right, bottom, top, nearPlane, farPlane);
 	frustum.SetCamPos(Vector3f(camPos), Vector3f(lookingAtVector), Vector3f(upVector));
 }
 

@@ -38,6 +38,7 @@ class Viewport;
 class UserInterface;
 class Window;
 class Texture;
+class Ray;
 
 struct Monitor 
 {
@@ -95,7 +96,8 @@ public:
 	void MoveToMonitor(int monitorIndex);
 
 	/// Returns the area available for application-specific rendering. 
-	Vector2i WorkingArea();
+#define WorkingArea ClientAreaSize
+	Vector2i ClientAreaSize();
 	Vector2i GetTopLeftCorner();
 	/// Fetches right-edge X-position of the window.
 	int GetRight();
@@ -179,6 +181,11 @@ public:
 	/** Should NOT be confused with the working/client area of the window! 
 	*/
 	Vector2i OSWindowSize();
+	
+	/// Fetches ray using viewport-based co-ordinates (not to be confused with the window/screen-space co-ordinates!)
+#define GetRayFromWindowCoordinates GetRayFromScreenCoordinates
+	bool GetRayFromScreenCoordinates(int mouseX, int mouseY, Ray & ray);
+	bool GetRayFromScreenCoordinates(Vector2i screenCoords, Ray & ray);
 
 	/// All below should only be touched from within the render-thread.
 	/// When true, will save the next rendered frame's contents as a screenshot to standard screenshot output directory (./output/screenshots/)

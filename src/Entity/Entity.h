@@ -27,6 +27,8 @@ class EntityProperty;
 #include "Texture.h"
 */
 
+class AABB;
+
 struct LifeAttribute{
 	int HP, maxHP;
 };
@@ -47,6 +49,8 @@ public:
 	/// If reacting to collisions,.. pokes all properties about it too.
 	virtual void OnCollision(Collision & data);
 
+	/// Fetches an AABB encapsulating this entity, including any children?
+	AABB * GetAABB();
 
 	/// Deallocates additional points as needed.
 	void Delete();
@@ -195,6 +199,9 @@ private:
 	Texture * specularMap;
 	/// Normalmap texture for more surface~
 	Texture * normalMap;
+
+	/// Axis-aligned bounding box.
+	AABB * aabb;
 };
 
 //Node * createScenegraphNode

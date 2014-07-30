@@ -33,11 +33,7 @@ public:
 	/**	Constructor
 		Postcondition: Initializes a 3D vector to specified values.
 	*/
-	Vector3f(float x,  float y,  float z);
-	/**	Constructor
-		Postcondition: Initializes a 3D vector using v1 as start point and v2 as end point.
-	*/
-	Vector3f(Vertex3f v1, Vertex3f v2);
+	Vector3f(float x,  float y,  float z = 0);
 	/**	Constructor
 		Precondition: The arr-parameter has to be an at least 3 indices long array.
 		Postcondition: Initializes a 3D vector to specified array values.

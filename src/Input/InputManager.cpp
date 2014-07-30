@@ -510,7 +510,8 @@ void InputManager::EnableActiveUI()
 	Argument true indicate that the button was pressed, while false indicates that it was just released.
 	Default arguments for x and y indicate that they should not be refreshed.
 */
-void InputManager::MouseClick(Window * window, bool down, int x, int y, UIElement * elementClicked){
+void InputManager::MouseClick(Window * window, bool down, int x, int y)
+{
 	if (!acceptInput)
 		return;
 	/// If mouse is le locked, return
@@ -570,7 +571,8 @@ void InputManager::MouseClick(Window * window, bool down, int x, int y, UIElemen
 	Argument true indicate that the button was pressed, while false indicates that it was just released.
 	Default arguments for x and y indicate that they should not be refreshed.
 */
-void InputManager::MouseRightClick(Window * window, bool down, int x, int y, UIElement * elementClicked){
+void InputManager::MouseRightClick(Window * window, bool down, int x, int y)
+{
 	if (!acceptInput)
 		return;
 	/// If mouse is le locked, return
@@ -585,30 +587,23 @@ void InputManager::MouseRightClick(Window * window, bool down, int x, int y, UIE
 		std::cout<<" UP!";
 #endif
 
-	/// Inform the active state of the interaction
-	StateMan.ActiveState()->MouseRightClick(window, down, x, y);
-
+	UIElement * element = NULL;
+	UserInterface * userInterface = RelevantUI();	
+	if (userInterface)
+	{
+		element = userInterface->Hover(x, y, true);
+		userInterface->SetHoverElement(element);
+	}
 	// If navigating UI, interpret right-click as cancel/exit?
 	if (this->navigateUI && !down){
 		/// Only activate the cancel function if we are currently within a UI?
-		if (HoverElement())
+		if (element)
 			this->UICancel();
-		return;
 	}
 
-	UIElement * element = NULL;
-	UserInterface * userInterface = StateMan.ActiveState()->GetUI();
-	/*
-	if (userInterface){
-		if (down)
-			element = RelevantUI()->Click((float)x,(float)y);
-		else if (!down)
-			element = RelevantUI()->Activate();
-		if (element){
-			std::cout<<"\nElement: "<<element->name<<" o-o";
-		}
-	}
-	*/
+	/// Inform the active state of the interaction
+	StateMan.ActiveState()->MouseRightClick(window, down, x, y, element);
+
 }
 
 /// Interprets a mouse-move message to target position.

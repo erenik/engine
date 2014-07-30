@@ -9,6 +9,8 @@
 
 class Entity;
 
+#define AABB AxisAlignedBoundingBox
+
 class AxisAlignedBoundingBox {
 public:
     AxisAlignedBoundingBox();
@@ -20,7 +22,7 @@ public:
     Vector3f min;
     Vector3f max;
     Vector3f position;
-    /// Scale assuming a 1,1,1 cube centered at 0,0,0 by default.
+    /// Scale assuming a 1,1,1 cube centered at 0,0,0 by default (i.e.: regular total size along the axises)
     Vector3f scale;
 private:
 

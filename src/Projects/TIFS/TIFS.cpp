@@ -18,6 +18,8 @@
 #include "TIFS.h"
 #include "TIFSMapEditor.h"
 
+#include "TIFS/Properties/TIFSTurretProperty.h"
+
 #include "Graphics/GraphicsManager.h"
 #include "Graphics/Messages/GMSet.h"
 #include "Graphics/Messages/GMSetEntity.h"
@@ -118,6 +120,10 @@ void TIFS::ProcessMessage(Message * message)
 			{
 				CreateTurrets();
 			}
+			else if (msg == "SpawnDrones")
+			{
+				SpawnDrones();
+			}
 			break;	
 		}
 	}
@@ -132,6 +138,23 @@ void TIFS::CreateUserInterface()
 	ui = new UserInterface();
 	ui->Load("gui/TIFS.gui");
 
+}
+
+Random droneRandom;
+
+/// Randomly!!!! o-=o
+void TIFS::SpawnDrones()
+{
+	MapMan.DeleteEntities(drones);
+	drones.Clear();
+
+	Vector3f pos;
+	pos.x = droneRandom.Randf(50.f) - 25.f;
+	pos.z = droneRandom.Randf(50.f) - 25.f;
+	pos.y = droneRandom.Randf(50.f);
+
+	Entity * drone = MapMan.CreateEntity("Drone", ModelMan.GetModel("Sphere"), TexMan.GetTexture("Cyan"), pos);
+	drones.Add(drone);
 }
 
 
@@ -169,18 +192,19 @@ void TIFS::CreateTurret(int ofSize, Vector3f atLocation)
 	turrets.Add(swivelEntity);
 
 	// Move it up a bit.
-	bool createUnderBarrel = true;
-	if (createUnderBarrel)
-	{
-		Model * underBarrel = ModelMan.GetModel("Turrets/LargeUnderBarrel");
-		Entity * underBarrelEntity = MapMan.CreateEntity("TurretUnderBarrel", underBarrel, TexMan.GetTexture("Red"), Vector3f(0, 2, -1.f));
-		Graphics.QueueMessage(new GMSetEntity(underBarrelEntity, GT_PARENT, swivelEntity));
-		turrets.Add(underBarrelEntity);
+	Model * underBarrel = ModelMan.GetModel("Turrets/LargeUnderBarrel");
+	Entity * underBarrelEntity = MapMan.CreateEntity("TurretUnderBarrel", underBarrel, TexMan.GetTexture("Red"), Vector3f(0, 2, -1.f));
+	Graphics.QueueMessage(new GMSetEntity(underBarrelEntity, GT_PARENT, swivelEntity));
+	turrets.Add(underBarrelEntity);
 
-		// Add barrel.
-		Model * barrel = ModelMan.GetModel("Turrets/LargeBarrel");
-		Entity * barrelEntity = MapMan.CreateEntity("TurretBarrel", barrel, TexMan.GetTexture("White"));
-		Graphics.QueueMessage(new GMSetEntity(barrelEntity, GT_PARENT, underBarrelEntity));
-		turrets.Add(barrelEntity);
-	}
+	// Add barrel.
+	Model * barrel = ModelMan.GetModel("Turrets/LargeBarrel");
+	Entity * barrelEntity = MapMan.CreateEntity("TurretBarrel", barrel, TexMan.GetTexture("White"));
+	Graphics.QueueMessage(new GMSetEntity(barrelEntity, GT_PARENT, underBarrelEntity));
+	turrets.Add(barrelEntity);
+
+	// Create the ... Turret Property.
+
+	TIFSTurretProperty * prop = new TIFSTurretProperty(turretBase, swivelEntity, underBarrelEntity, barrelEntity);
+	turretBase->properties.Add(prop);
 }

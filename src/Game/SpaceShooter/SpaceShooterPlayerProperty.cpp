@@ -95,7 +95,11 @@ void SpaceShooterPlayerProperty::Process(int timeInMs)
 
 	// Spawn a projectile? Or senda message to do so?
 	Entity * projectile = game->NewProjectile(weaponType);
-		
+	
+	// If not ok request, skip it then.
+	if (!projectile)
+		return;
+
 	//	MapMan.CreateEntity("Projectile", ModelMan.GetModel("Cube"), TexMan.GetTexture("Red"));
 
 
