@@ -3,6 +3,17 @@
 /// Global state used for this multiplayer online RPG game.
 
 #include "MORPG.h"
+#include "MORPGSession.h"
+
+#include "MORPG/Properties/MORPGCharacterProperty.h"
+
+#include "MORPG/World/Zone.h"
+#include "MORPG/World/WorldGenerator.h"
+#include "MORPG/World/World.h"
+
+#include "MORPG/Physics/MORPGIntegrator.h"
+#include "MORPG/Physics/MORPGCD.h"
+#include "MORPG/Physics/MORPGCR.h"
 
 #include "Application/Application.h"
 
@@ -14,6 +25,8 @@
 
 #include "Physics/PhysicsManager.h"
 #include "Physics/Messages/PhysicsMessage.h"
+
+#include "Input/InputManager.h"
 
 #include "Model.h"
 
@@ -31,13 +44,17 @@
 
 #include "Maps/MapManager.h"
 
-#include "MORPG/World/WorldGenerator.h"
-
+/// Only one such session active per application.
+MORPGSession * session = NULL;
 
 WorldGenerator * activeWorldGenerator = NULL;
 List<WorldGenerator*> worldGenerators;
 
 Camera * mapPreviewCamera = NULL;
+Camera * firstPersonCamera = NULL;
+
+List<Camera*> cameras;
+
 
 void RegisterStates()
 {
@@ -61,11 +78,27 @@ MORPG::MORPG()
 /// Function when entering this state, providing a pointer to the previous StateMan.
 void MORPG::OnEnter(AppState * previousState)
 {
+	// Set integrator
+	Physics.QueueMessage(new PMSet(new MORPGIntegrator()));
+	Physics.QueueMessage(new PMSet(new MORPGCD()));
+	Physics.QueueMessage(new PMSet(new MORPGCR()));
 
 	if (!mapPreviewCamera)
 		mapPreviewCamera = CameraMan.NewCamera();
+	if (!firstPersonCamera)
+		firstPersonCamera = CameraMan.NewCamera();
+	cameras.Add(mapPreviewCamera);
+	cameras.Add(firstPersonCamera);
 
-	Graphics.QueueMessage(new GMSetCamera(mapPreviewCamera, ROTATION, Vector3f()));
+	Graphics.QueueMessage(new GMSetCamera(mapPreviewCamera, CT_ROTATION, Vector3f()));
+	Graphics.QueueMessage(new GMSetCamera(mapPreviewCamera, CT_DISTANCE_FROM_CENTER_OF_MOVEMENT, 3.f));
+	Graphics.QueueMessage(new GMSetCamera(firstPersonCamera, CT_TRACKING_MODE, TrackingMode::FOLLOW_AND_LOOK_AT));
+	// Set it to follow and track us too.
+		
+
+	session = new MORPGSession();
+
+	Input.ForceNavigateUI(true);
 
 	/// World map... 
 //	worldMapEntity = MapMan.CreateEntity("World map entity", NULL, NULL);
@@ -118,6 +151,25 @@ void MORPG::ProcessMessage(Message * message)
 	{
 		case MessageType::STRING:
 		{
+			if (msg.Contains("NextCamera"))
+			{
+				// Get active camera.
+				CameraMan.NextCamera();		
+			}
+			else if (msg.Contains("LoadMap"))
+			{
+				String mapName = msg.Tokenize(":")[1];
+				Zone * zone = world.GetZoneByName(mapName);
+				EnterZone(zone);
+			}
+			else if (msg == "NewGame")
+			{
+				// Load a zone!
+				String username = "UserName1";
+				String password = "password";
+				session->Login(username, password);
+
+			}
 			if (msg == "NewWorld" || msg == "GenerateWorld")
 			{
 				world.Delete();
@@ -132,7 +184,7 @@ void MORPG::ProcessMessage(Message * message)
 		//			
 					Model * plane = ModelMan.GetModel("plane");
 					Texture * white = TexMan.GetTexture("White");
-					Graphics.QueueMessage(new GMSetEntity(worldMapEntity, MODEL, plane));
+					Graphics.QueueMessage(new GMSetEntity(worldMapEntity, GT_MODEL, plane));
 					Graphics.QueueMessage(new GMSetEntityTexture(worldMapEntity, DIFFUSE_MAP, white));
 
 					// Re-bufferize the texture.
@@ -140,10 +192,10 @@ void MORPG::ProcessMessage(Message * message)
 					// Same for the model..
 					Graphics.QueueMessage(new GMBufferMesh(model->GetTriangulatedMesh()));
 					// Try our model..
-					Graphics.QueueMessage(new GMSetEntity(worldMapEntity, MODEL, model));
+					Graphics.QueueMessage(new GMSetEntity(worldMapEntity, GT_MODEL, model));
 
 					Graphics.QueueMessage(new GMSetEntityTexture(worldMapEntity, DIFFUSE_MAP, tex));
-					Physics.QueueMessage(new PMSetEntity(SET_SCALE, worldMapEntity, Vector3f(15.f, 1.f, 15.f)));
+					Physics.QueueMessage(new PMSetEntity(worldMapEntity, PT_SET_SCALE, Vector3f(15.f, 1.f, 15.f)));
 				}
 				return;
 			}
@@ -183,5 +235,55 @@ void MORPG::ProcessMessage(Message * message)
 		}
 	}
 }
+
+/// Load map/zone by name
+void MORPG::EnterZone(Zone * zone)
+{
+	// Detach cameras.
+	// .. TODO
+
+	/// Decide format and stuff later.
+	/// Create a test map for now.
+	/// First clear ALL entities.
+	MapMan.DeleteAllEntities();
+
+	// Test-level of doom >:)
+	bool test = true;
+	if (test)
+	{
+		// Create the test level..!
+		MapMan.CreateEntity("Base", ModelMan.GetModel("Zones/Test.obj"), TexMan.GetTexture("White"));
+
+		// Add characters..!
+		Entity * player = MapMan.CreateEntity("Player", ModelMan.GetModel("Characters/TestCharacter.obj"), TexMan.GetTexture("Red"));
+		// Attach camera to the player.
+		Graphics.QueueMessage(new GMSetCamera(firstPersonCamera, CT_ENTITY_TO_TRACK, player));
+
+		/// o-o...
+		Character * character = NULL;
+
+		// Attach ze propororoty to bind the entity and the player.
+		MORPGCharacterProperty * characterProp = new MORPGCharacterProperty(player, NULL);
+		player->properties.Add(characterProp);
+		
+		// Enable steering!
+		characterProp->inputFocus = true;
+
+		Physics.QueueMessage(new PMSetEntity(player, PT_PHYSICS_TYPE, PhysicsType::DYNAMIC));
+
+		return;
+	}
+	/// Load the base/zone model(s).
+	if (zone)
+	{
+		zone->CreateEntities();
+	}
+	else 
+	{
+	}
+	
+	/// Create the characters within.
+}
+
 
 

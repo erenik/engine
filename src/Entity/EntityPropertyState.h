@@ -4,7 +4,6 @@
 #ifndef ENTITY_PROPERTY_STATE_H
 #define ENTITY_PROPERTY_STATE_H
 
-#include "../Entity/Entity.h"
 #include "EntityProperty.h"
 
 class Entity;

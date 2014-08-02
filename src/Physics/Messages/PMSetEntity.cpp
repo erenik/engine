@@ -106,6 +106,7 @@ PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, Vector3f valu
 			assert(vec3fValue.x && vec3fValue.y && vec3fValue.z);
 			break;
 		case PT_SET_ROTATION:
+		case PT_RELATIVE_VELOCITY:
 		case PT_ACCELERATION:  
 		case PT_RELATIVE_ACCELERATION:
 		case PT_ACCELERATION_MULTIPLIER:
@@ -203,8 +204,14 @@ void PMSetEntity::Process()
 		if (!entity->physics)
 			entity->physics = new PhysicsProperty();
 		PhysicsProperty * physics = entity->physics;
+		PhysicsProperty * pp = physics;
 		switch(target)
 		{
+			case PT_RELATIVE_VELOCITY:
+			{
+				pp->relativeVelocity = vec3fValue;
+				break;
+			}
 			case PT_PAUSED:
 			{
 				physics->paused = bValue;
@@ -302,7 +309,10 @@ void PMSetEntity::Process()
 				}
 				break;
 			case PT_ANGULAR_VELOCITY:
-				entity->physics->angularVelocity = vec3fValue;
+				if (pp->useQuaternions)
+					pp->angularVelocityQuaternion = this->qValue;
+				else
+					entity->physics->angularVelocity = vec3fValue;
 				break;
 			case PT_CONSTANT_ROTATION_VELOCITY:
 				entity->physics->constantAngularVelocity= vec3fValue;

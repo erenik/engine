@@ -5,6 +5,7 @@
 #define AI_PROPERTY_H
 
 #include "String/AEString.h"
+
 class Entity;
 class EntityPropertyState;
 class Message;

@@ -4,6 +4,7 @@
 
 #include "Contact.h"
 #include "Physics/PhysicsProperty.h"
+#include "Entity/Entity.h"
 
 Contact::Contact(){
 	one = two = NULL;

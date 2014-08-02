@@ -4,10 +4,19 @@
 
 #include "Zone.h"
 
+#include "Entity/CompactEntity.h"
+
 Zone::Zone()
 {
 	isWater = false;
 	isMountain = false;
+}
+
+/// Takes all models this zone is composed of and creates it for you. Will also create all characters within (hopefully including you!)
+void Zone::CreateEntities()
+{
+	// Deletes and re-creates entities as needed.
+	LoadFromCompactData();
 }
 
 /// If this zone is to be painted on a map, what color would it be?

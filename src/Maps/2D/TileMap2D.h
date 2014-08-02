@@ -7,7 +7,7 @@
 #include "Maps/Map.h"
 #include "Maps/Grids/Tile.h"
 
-struct GraphicsState;
+class GraphicsState;
 class TileMapLevel;
 class EntityStateTile2D;
 class GridObject;

@@ -2,10 +2,11 @@
 #define SELECTION_H
 
 // #include "../Entity.h"
-class Entity;
-class Camera;
 #include "List/List.h"
 #include <MathLib.h>
+
+class Entity;
+class Camera;
 
 #define MAX_SELECTED 1024
 

@@ -5,14 +5,20 @@
 #include "SpaceShooterProjectileProperty.h"
 #include "Game/SpaceShooter/SpaceShooter.h"
 
+#include "SpaceShooterExplosionProperty.h"
+
 #include "Physics/PhysicsManager.h"
 #include "Physics/Messages/PhysicsMessage.h"
 
 #include "Graphics/GraphicsManager.h"
 #include "Graphics/Messages/GraphicsMessage.h"
+#include "Graphics/Messages/GMSetEntity.h"
 
 #include "Entity/Entity.h"
 #include "Maps/MapManager.h"
+
+#include "ModelManager.h"
+#include "TextureManager.h"
 
 
 SpaceShooterProjectileProperty::SpaceShooterProjectileProperty(SpaceShooter * game, Entity * owner, SpaceShooterWeaponType type)
@@ -38,6 +44,18 @@ void SpaceShooterProjectileProperty::OnCollision(Collision & data)
 
 	// Add some explosive effects?
 	this->Sleep();
+
+	// Explode
+	Entity * explosionEntity = game->NewExplosion(owner->position);
+	Physics.QueueMessage(new PMSetEntity(explosionEntity, PT_SET_SCALE, 45.f));
+	game->explosions.Add(explosionEntity);
+	SpaceShooterExplosionProperty * explode = new SpaceShooterExplosionProperty(explosionEntity);
+	explosionEntity->properties.Add(explode);
+	explode->startTime = Time::Now();
+
+	// MAke it render correctly
+	Graphics.QueueMessage(new GMSetEntityb(explosionEntity, GT_REQUIRE_DEPTH_SORTING, true));
+
 }
 
 
@@ -57,7 +75,15 @@ void SpaceShooterProjectileProperty::Process(int timeInMs)
 	if (game->paused)
 		return;
 
-	if (game->IsPositionOutsideFrame(owner->position))
+	if (sleeping)
+		return;
+
+	// Check life-time too. So we don't remove it straight away on spawn.
+	Time now = Time::Now();
+	int alive = (now - spawnTime).Seconds();
+	// Assume there is some max life-time to all projectiles.!
+	if (/*game->IsPositionOutsideFrame(owner->position) && alive >= 3 || */
+		alive >= 10)
 	{
 		// Remove ourselves.
 		Physics.QueueMessage(new PMUnregisterEntity(owner));
@@ -70,4 +96,5 @@ void SpaceShooterProjectileProperty::Process(int timeInMs)
 void SpaceShooterProjectileProperty::OnSpawn()
 {
 	sleeping = false;
+	spawnTime = Time::Now();
 }

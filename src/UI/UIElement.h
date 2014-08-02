@@ -19,7 +19,7 @@ class Message;
 class UserInterface;
 class Square;
 class Texture;
-struct GraphicsState;
+class GraphicsState;
 class TextFont;
 class UserInterface;
 class UIInput;

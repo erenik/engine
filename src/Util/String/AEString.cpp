@@ -821,7 +821,11 @@ int String::ParseInt()
 }
 float String::ParseFloat()
 {
-	assert(this->type != NULL_TYPE);
+	if (type == NULL_TYPE)
+	{
+		// Empty. 0?
+		return 0.f;
+	}
 	if (this->type == WIDE_CHAR){
 		arr = new char[arraySize];
 		wcstombs(arr, warr, arraySize);

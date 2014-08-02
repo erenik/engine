@@ -42,6 +42,9 @@ void TIFSIntegrator::IntegrateVelocity(Entity * forEntity, float timeInSeconds)
 	/// Add acceleration
 	pp->velocity += pp->acceleration * timeInSeconds;
 
+	// Apply damping
+	pp->velocity *= pow(pp->linearDamping, timeInSeconds);
+
 	// Recalculate matrix!
 	forEntity->RecalculateMatrix();
 

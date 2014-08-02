@@ -4,6 +4,11 @@
 
 #include "AppStates/AppState.h"
 
+class MORPGSession;
+class Zone;
+
+extern MORPGSession * session;
+
 class MORPG : public AppState 
 {
 public:
@@ -22,10 +27,12 @@ public:
 	/// Callback function that will be triggered via the MessageManager when messages are processed.
 	virtual void ProcessMessage(Message * message);
 
+	/// Load map/zone. Leave old one. 
+	virtual void EnterZone(Zone * zone);
+
+
 private:
 	/// World map... 
 	Entity * worldMapEntity;
 
 };
-
-

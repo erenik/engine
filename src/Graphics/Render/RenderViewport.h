@@ -5,7 +5,7 @@
 #include "MathLib.h"
 #include "PhysicsLib.h"
 
-struct GraphicsState;
+class GraphicsState;
 class Camera;
 class UserInterface;
 

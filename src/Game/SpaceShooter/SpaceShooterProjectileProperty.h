@@ -7,6 +7,7 @@
 
 #include "Entity/EntityProperty.h"
 #include "Game/SpaceShooter/SpaceShooterWeaponType.h"
+#include "Time/Time.h"
 
 class SpaceShooter;
 
@@ -37,6 +38,8 @@ public:
 
 	/// If not currently active (available for re-use).
 	bool sleeping;
+
+	Time spawnTime;
 private:
 	SpaceShooter * game;
 };

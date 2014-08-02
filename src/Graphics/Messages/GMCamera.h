@@ -10,16 +10,30 @@
 enum cameraTargets
 {
 	CT_CAMERA_TO_TRACK = GT_CAMERA_TARGET_0, 
+
+	// How to handle all variables provided.
+	CT_TRACKING_MODE,
+
 	// Setting global camera
 	// Setting camera position and orientation.
 	CT_ROTATION,
 	CT_POSITION,
+	CT_OFFSET_ROTATION,
+
 	/** Relative position of the camera compared to the entity. 
 		If the camera is inheriting the entity's rotation, this relative position will be re-calculated using the entity's local orientation axes.
 	*/
 	CT_RELATIVE_POSITION,
+	CT_RELATIVE_POSITION_Y,
 	CT_DISTANCE_FROM_CENTER_OF_MOVEMENT,
-	CT_OFFSET_ROTATION,
+	/// Speed by with the DfCoM changes.
+	CT_DISTANCE_FROM_CENTER_OF_MOVEMENT_SPEED_MULTIPLIER,
+	CT_DISTANCE_FROM_CENTER_OF_MOVEMENT_SPEED,
+	/// 
+	CT_ROTATION_SPEED_YAW,
+	CT_ROTATION_SPEED_PITCH,
+	/// o-o
+	CT_ZOOM_SPEED,
 
 	CT_ENTITY_TO_TRACK,
 
@@ -46,6 +60,7 @@ public:
 	/// For setting global/main camera to track. If window is NULL the main window will be selected.
 	GMSetCamera(Camera * cameraToTrack, Window * inWindow = NULL);
 	GMSetCamera(Camera * camera, int target, Vector3f vec3fValue);
+	GMSetCamera(Camera * camera, int target, int iValue);
 	GMSetCamera(Camera * camera, int target, float fValue);
 	GMSetCamera(Camera * camera, int target, bool bValue);
 	GMSetCamera(Camera * camera, int target, Entity * entity);
@@ -53,6 +68,7 @@ public:
 
 private:
 	int target;
+	int iValue;
 	float fValue;
 	bool bValue;
 	Vector3f vec3fValue;

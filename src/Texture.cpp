@@ -89,18 +89,20 @@ void Texture::SetSize(Vector2i newSize)
 	Resize(newSize);
 }
 
-/// Resets width, height and creates a new data buffer after deleting the old one.
-void Texture::Resize(Vector2i newSize)
+/// Resets width, height and creates a new data buffer after deleting the old one. Returns false if it failed (due to lacking memory).
+bool Texture::Resize(Vector2i newSize)
 {
 	if (width == newSize.x && height == newSize.y)
-		return;
+		return true;
 	width = newSize.x;
 	height = newSize.y;
 	if (data)
 		delete[] data;
 	data = NULL;
-	CreateDataBuffer();
+	if (!CreateDataBuffer())
+		return false;
 	lastUpdate = Timer::GetCurrentTimeMs();
+	return true;
 }
 
 // Flips along Y axis?
@@ -169,7 +171,6 @@ bool Texture::CreateDataBuffer()
 	} catch (...)
 	{
 		std::cout<<"\nAllocation failed.";
-		assert(false);
 		return false;
 	}
 	return true;
@@ -591,6 +592,14 @@ bool Texture::Save(String toFile, bool overwrite /* = false */)
 	}*/
 	
 	LodePNG::Encoder encoder;
+	// Set settings for quicker saving... so slow right now...
+	LodePNG_EncodeSettings settings = encoder.getSettings();
+	// Zlibsettings seems most relevant..
+	settings.auto_choose_color = 0;
+	settings.zlibsettings.windowSize = 2048;
+	settings.zlibsettings.btype = 2;
+	settings.zlibsettings.useLZ77 = 0;
+	encoder.setSettings(settings);
 	encoder.encode(image, this->data, width, height); //decode the png
 
 	try {

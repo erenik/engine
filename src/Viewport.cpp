@@ -168,12 +168,12 @@ void Viewport::EnableAllDebugRenders(bool enabled/* = true*/)
 bool Viewport::GetRayFromViewportCoordinates(Vector2i coords, Ray & ray)
 {
 	// Use coords with the attached camera?
-	assert(camera);
+	assert(this->camera);
 
 	
 	const Camera & camera = *this->camera;
-
-	std::cout<<"\nCamera: "<<camera.name;
+	
+//	std::cout<<"\nCamera: "<<camera.name;
 
 
 	/// Calculate near plane coordinates

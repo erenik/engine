@@ -62,6 +62,12 @@ Window * MainWindow()
 {
 	return WindowMan.MainWindow();
 }
+/// Window mouse is currently hovering over.
+Window * HoverWindow()
+{
+	return WindowMan.HoverWindow();
+}
+
 
 Window::Window(String name)
 {

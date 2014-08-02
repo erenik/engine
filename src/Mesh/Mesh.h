@@ -1,3 +1,6 @@
+/// Emil Hedemalm
+/// 2014-08-01
+/// Old contents, but new file separation. 
 
 #ifndef MESH_H
 #define MESH_H
@@ -6,48 +9,11 @@
 #include "List/List.h"
 #include "String/AEString.h"
 #include "AEGlew.h"
+#include "MeshFace.h"
 
 class Triangle;
-struct GraphicsState;
+class GraphicsState;
 class EMesh;
-
-/// A struct for a geometric MeshFace, containing number of vertices and indices for which vertex is used and which UV-coordinate is used.
-struct MeshFace {
-	MeshFace();
-	~MeshFace();
-private:
-    void Nullify();
-public:
-
-	/// Debug
-	void Print();
-
-    /// Copy CONSTRUCTOR
-	MeshFace(const MeshFace & otherMeshFace);
-	void operator = (const MeshFace * otherMeshFace);
-	/// Copy CONSTRUCTOR
-	void operator = (const MeshFace & otherMeshFace);
-
-	// Call after setting numVertices
-	void AllocateArrays();
-	void DeallocateArrays();
-
-	bool WriteTo(std::fstream & fileStream);
-	bool ReadFrom(std::fstream & fileStream);
-
-	/// Number of vertices in the MeshFace. A MeshFace will have no more than 255 vertices, and if it does: this program won't like it anyway :P
-	int numVertices;
-	/// Dynamic array for the vertices, since the MeshFace can be an arbitrary polygon.
-	List<int> vertices;
-	/// Dynamic array for uv-coordinates, since the MeshFace can be an arbitrary polygon.
-	List<int> uvs;
-	/// Dynamic array for normal-coordinates, since the MeshFace can be an arbitrary polygon.
-	List<int> normals;
-
-	// MeshFace UV "up"- and "right"-tangent respectively for NormalMapping.
-	Vector4f uvTangent;
-	Vector3f uvBiTangent;
-};
 
 /** A struct for a geometric mesh, containing vertices, UV-coordinates, MeshFaces, material properties and a single texture ID.
 Mesh using different texture will have to be defined later. */
@@ -169,7 +135,7 @@ protected:
 	bool loadedFromCompactObj;
 };
 
-struct GraphicsState;
+class GraphicsState;
 
 /// Function to render a mesh easily with just a pointer to the active mesh.
 //void RenderMesh(GraphicsState &state, Mesh * mesh);

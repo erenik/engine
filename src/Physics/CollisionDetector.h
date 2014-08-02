@@ -5,8 +5,8 @@
 #ifndef COLLISION_DETECTOR_H
 #define COLLISION_DETECTOR_H
 
-#include "Entity/Entity.h"
 #include "Physics/PhysicsProperty.h"
+#include "Entity/Entity.h"
 
 class CollisionDetector 
 {

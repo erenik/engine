@@ -7,7 +7,7 @@
 #include "PhysicsLib.h"
 #include "List/List.h"
 
-struct GraphicsState;
+class GraphicsState;
 class Entity;
 
 /** View Frustum Culling Octree

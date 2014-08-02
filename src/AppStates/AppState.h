@@ -14,7 +14,7 @@
 
 class Packet;
 class Message;
-struct GraphicsState;
+class GraphicsState;
 class ChatMessage;
 class Window;
 

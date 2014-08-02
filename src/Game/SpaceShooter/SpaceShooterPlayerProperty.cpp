@@ -20,6 +20,9 @@
 #include "Graphics/GraphicsManager.h"
 #include "Graphics/Messages/GraphicsMessage.h"
 
+#include "Input/InputManager.h"
+#include "Window/WindowManager.h"
+
 SpaceShooterPlayerProperty::SpaceShooterPlayerProperty(SpaceShooter * game, Entity * owner)
 	: EntityProperty("SpaceShooterPlayerProperty", ID(), owner), game(game), weaponType(SpaceShooterWeaponType::RAILGUN)
 {
@@ -28,6 +31,8 @@ SpaceShooterPlayerProperty::SpaceShooterPlayerProperty(SpaceShooter * game, Enti
 	isPlayer = false;
 
 	lastFire = Time::Now();
+
+	useMouseInput = false;
 }
 
 int SpaceShooterPlayerProperty::ID()
@@ -40,7 +45,6 @@ void SpaceShooterPlayerProperty::Remove()
 	Graphics.QueueMessage(new GMUnregisterEntity(owner));
 	Physics.QueueMessage(new PMUnregisterEntity(owner));
 	sleeping = true;
-	game->OnPlayerDestroyed(owner);
 }
 	
 /// D:
@@ -55,6 +59,10 @@ void SpaceShooterPlayerProperty::Destroy()
 void SpaceShooterPlayerProperty::OnSpawn()
 {
 	sleeping = false;
+	weaponType = SpaceShooterWeaponType(SpaceShooterWeaponType::RAILGUN);
+	weaponType.initialVelocity = 65.f;
+	if (isPlayer)
+		weaponType.coolDown /= 2.f;
 }
 	
 
@@ -68,15 +76,41 @@ void SpaceShooterPlayerProperty::Process(int timeInMs)
 	if (game->paused)
 		return;
 
+	if (useMouseInput)
+	{
+		// Grab mouse co-odinates.
+		Vector2i mousePos = Input.GetMousePosition();
+
+		// Project them onto the relevant window.
+		Ray ray;
+		Window * window = HoverWindow();
+		bool good = false;
+		if (window)
+			good = window->GetRayFromScreenCoordinates(mousePos, ray);
+		if (good)
+		{
+			// Set position
+			Vector3f position = ray.start;
+			Physics.QueueMessage(new PMSetEntity(owner, PT_SET_POSITION, position));
+		}
+	}
+
 	// Sleep if outside frame too.
 	if (game->IsPositionOutsideFrame(owner->position))
 	{
-		if (owner->position.x < -game->gameSize.x * 0.5f - owner->scale.MaxPart())
+		// If player, just move it inside the frame?
+		if (isPlayer)
+		{
+		
+		}
+		// Enemy? Destroy it?
+		else if (owner->position.x < -game->gameSize.x * 0.5f - owner->scale.MaxPart())
 		{
 			// Sleep
 			Remove();
+			game->OnPlayerDestroyed(owner);
+			return;
 		}
-		return;
 	}
 
 	// Get look-at direction.
@@ -88,23 +122,37 @@ void SpaceShooterPlayerProperty::Process(int timeInMs)
 	if (lastFire.Type() == 0)
 		lastFire = Time::Now();
 	int millisecondsPassedSinceLastFire = (now - lastFire).Milliseconds();
+
+	if (isPlayer)
+	{
+//		std::cout<<"\nMilliseconds since last fire: "<<millisecondsPassedSinceLastFire;
+	}
+
 	if (millisecondsPassedSinceLastFire < weaponType.coolDown)
 		return;
+
+	if (isPlayer)
+		std::cout<<"\nPew!";
 
 	lastFire = 0;
 
 	// Spawn a projectile? Or senda message to do so?
-	Entity * projectile = game->NewProjectile(weaponType);
+	Vector3f position = owner->position;
+	position += lookAt * owner->scale.MaxPart();
+
+	Entity * projectile = game->NewProjectile(weaponType, position);
 	
 	// If not ok request, skip it then.
 	if (!projectile)
+	{
+		if (isPlayer)
+			std::cout<<"..No?";
 		return;
+	}
 
 	//	MapMan.CreateEntity("Projectile", ModelMan.GetModel("Cube"), TexMan.GetTexture("Red"));
 
 
-	Vector3f position = owner->position;
-	position += lookAt * owner->scale.MaxPart();
 	Physics.QueueMessage(new PMSetEntity(projectile, PT_POSITION, position));
 	/// Add own velocity to the ammo velocity?
 	Vector3f initialVelocity = lookAt * weaponType.initialVelocity;
@@ -133,6 +181,7 @@ void SpaceShooterPlayerProperty::OnCollision(Collision & data)
 	{
 		Destroy();
 		sspp->Destroy();
+		game->OnPlayerDestroyed(owner);
 		return;
 	}
 
@@ -142,6 +191,7 @@ void SpaceShooterPlayerProperty::OnCollision(Collision & data)
 		// Take damage? D:
 		// Die?!
 		Destroy();
+		game->OnPlayerDestroyed(owner);
 	}
 }
 	

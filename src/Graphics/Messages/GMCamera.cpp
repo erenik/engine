@@ -34,12 +34,30 @@ GMSetCamera::GMSetCamera(Camera * camera, int target, Vector3f vec3fValue)
 	}
 };
 
+GMSetCamera::GMSetCamera(Camera * camera, int target, int iValue)
+: GraphicsMessage(GM_SET_CAMERA), camera(camera), target(target), iValue(iValue)
+{
+	switch(target)
+	{
+		case CT_TRACKING_MODE:
+			break;
+		default:
+			assert(false);
+	}
+}
+
 GMSetCamera::GMSetCamera(Camera * camera, int target, float fValue)
 : GraphicsMessage(GM_SET_CAMERA), camera(camera), target(target), fValue(fValue)
 {
 	switch(target)
 	{
+		case CT_RELATIVE_POSITION_Y:
 		case CT_DISTANCE_FROM_CENTER_OF_MOVEMENT:
+		case CT_ROTATION_SPEED_YAW:
+		case CT_ROTATION_SPEED_PITCH:
+		case CT_ZOOM_SPEED:
+		case CT_DISTANCE_FROM_CENTER_OF_MOVEMENT_SPEED:
+		case CT_DISTANCE_FROM_CENTER_OF_MOVEMENT_SPEED_MULTIPLIER:
 			break;
 		default:
 			assert(false);
@@ -79,10 +97,37 @@ void GMSetCamera::Process()
 //			camera = Graphics.ActiveCamera();
 	switch(target)
 	{
+		case CT_TRACKING_MODE:
+		{
+			camera->trackingMode = iValue;
+			break;
+		}
 		case CT_ENTITY_TO_TRACK:
 		{
 			// Ensure it will actually try and follow it too..?
 			camera->entityToTrack = entity;
+			if (entity)
+				entity->cameraFocus = camera;
+			break;
+		}
+		case CT_DISTANCE_FROM_CENTER_OF_MOVEMENT_SPEED:
+			camera->dfcomSpeed = fValue;
+			break;
+		case CT_DISTANCE_FROM_CENTER_OF_MOVEMENT_SPEED_MULTIPLIER:
+			camera->dfcomSpeedMultiplier = fValue;
+			break;
+		case CT_ZOOM_SPEED:
+			assert(false);
+//			camera->zoomSpeed = fValue;
+			break;
+		case CT_ROTATION_SPEED_YAW:
+		{
+			camera->rotationalVelocityEuler.y = fValue;
+			break;
+		}
+		case CT_ROTATION_SPEED_PITCH:
+		{
+			camera->rotationalVelocityEuler.x = fValue;
 			break;
 		}
 		case CT_POSITION:
@@ -106,17 +151,27 @@ void GMSetCamera::Process()
 			if (!window)
 				window = WindowMan.MainWindow();
 			Viewport * vp = window->MainViewport();
+			// Notify the camera that it lost camera focus.
+			if (vp->camera)
+				vp->camera->OnLoseCameraFocus();
 			vp->camera = camera;
+			if (vp->camera)
+				vp->camera->OnGainCameraFocus();
 			break;
 		}
 		case CT_OFFSET_ROTATION:
 			camera->offsetRotation = -vec3fValue;
 			break;
+		case CT_RELATIVE_POSITION_Y:
+			camera->relativePosition.y = fValue;
+			break;
 		case CT_RELATIVE_POSITION:
-			camera->relativePosition = -vec3fValue;
+			camera->relativePosition = vec3fValue;
 			break;
 		case CT_DISTANCE_FROM_CENTER_OF_MOVEMENT:
 			camera->distanceFromCentreOfMovement = fValue;
 			break;
+		default:
+			assert(false);
 	}
 }

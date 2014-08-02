@@ -2,7 +2,7 @@
 #ifndef LIGHTING_H
 #define LIGHTING_H
 
-struct GraphicsState;
+class GraphicsState;
 
 #include "Light.h"
 class Light;

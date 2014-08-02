@@ -5,7 +5,7 @@
 #include "Shader.h"
 #include "String/AEString.h"
 
-struct GraphicsState;
+class GraphicsState;
 
 namespace RenderTarget 
 {

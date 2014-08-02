@@ -7,7 +7,7 @@
 #include "Grid.h"
 #include "MathLib.h"
 struct Tile;
-struct GraphicsState;
+class GraphicsState;
 
 namespace GridType {
 enum gridTypes {

@@ -5,8 +5,8 @@
 #ifndef COLLISION_RESOLVER_H
 #define COLLISION_RESOLVER_H
 
-#include "Entity/Entity.h"
 #include "Physics/PhysicsProperty.h"
+#include "Entity/Entity.h"
 
 class CollisionResolver 
 {

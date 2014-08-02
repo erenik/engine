@@ -9,7 +9,7 @@
 #include "UIElement.h"
 
 class Square;
-struct GraphicsState;
+class GraphicsState;
 class UIElement;
 class Window;
 

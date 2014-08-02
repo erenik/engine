@@ -4,7 +4,7 @@
 #ifndef PARTICLE_SYSTEM_H
 #define PARTICLE_SYSTEM_H
 
-struct GraphicsState;
+class GraphicsState;
 class Entity;
 class Texture;
 

@@ -5,9 +5,11 @@
 #define PHYSICS_MESSAGE_H
 
 #include "MathLib.h"
-#include "Entity/Entity.h"
 #include "Selection.h"
 #include "PhysicsLib/Shapes.h"
+
+class Entity;
+
 //#include "PhysicsManager.h"
 //class PhysicsManager;
 
@@ -64,11 +66,11 @@ enum physicsTargets{
 	PT_MASS,
 	PT_LINEAR_DAMPING,
 	PT_ANGULAR_DAMPING,
+	PT_POSITION_Y,
+	PT_POSITION_X,
 
 	// Separate float and Vector targets?
 	PT_POSITION,
-	PT_POSITION_Y,
-	PT_POSITION_X,
 	PT_TRANSLATE,
 	PT_SCALE,
 	PT_ROTATE,
@@ -82,13 +84,15 @@ enum physicsTargets{
 
 	// Relative acceleration, meaning acceleration in relation to the entity's current direction vectors (up, left, forward)
 	PT_RELATIVE_ACCELERATION, 
+	/// Velocity in the entity's current direction vectors (based on rotation)
+	PT_RELATIVE_VELOCITY,
 	// Relative rotation compared to entity's current direction vectors. 
 	// The speed of these rotations will vary with the entity's rate/radius of turns (ROT) (turning rate), current air speed and time.
 	// Mainly used for airplanes and similar vehicles.
 	PT_RELATIVE_ROTATION,
 
 	PT_RESET_ROTATION, // Non-argument message, resets angle/quaternion for rotation.
-	PT_ANGULAR_VELOCITY,
+	PT_ANGULAR_VELOCITY, 	PT_ROTATIONAL_VELOCITY = PT_ANGULAR_VELOCITY,
 	PT_CONSTANT_ROTATION_VELOCITY, 
 	PT_CONSTANT_ROTATION_SPEED = PT_CONSTANT_ROTATION_VELOCITY,
 

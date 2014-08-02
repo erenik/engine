@@ -5,8 +5,8 @@
 #ifndef PHYSICS_INTEGRATOR_H
 #define PHYSICS_INTEGRATOR_H
 
-#include "Entity/Entity.h"
 #include "Physics/PhysicsProperty.h"
+#include "Entity/Entity.h"
 
 class Integrator 
 {

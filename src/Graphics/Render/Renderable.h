@@ -15,7 +15,7 @@ struct RenderOptions {
     Vector4f color;
 };
 
-struct GraphicsState;
+class GraphicsState;
 
 class Renderable {
 public:

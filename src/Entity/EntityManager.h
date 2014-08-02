@@ -6,8 +6,12 @@
 /// Maximum amount of objects in the scene
 const int MAX_ENTITIES = 5000;
 
-#include "Entity.h"
+#include "String/AEString.h"
 #include "../Selection.h"
+
+class Entity;
+class Model;
+class Texture;
 
 #define EntityMan	(*EntityManager::Instance())
 
@@ -41,7 +45,7 @@ private:
 	/// Counter for generating IDs to entities
 	static int idCounter;
 	/// Array of loaded entities.
-	Entity entity[MAX_ENTITIES];
+	List<Entity*> entities;
 };
 
 

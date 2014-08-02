@@ -111,6 +111,7 @@ Entity::Entity(int i_id)
 	this->pathfindingProperty = new PathfindingProperty(this);
 
 	parent = NULL;
+	cameraFocus = NULL;
 }
 
 /// Default constructor...
@@ -924,7 +925,8 @@ String Entity::GetTextureSource(int target)
 }
 
 /// Returns all faces of the entity, transformed with it's current transformation. COSTLY FUNCTION.
-List<Triangle> Entity::GetTris(){
+List<Triangle> Entity::GetTris()
+{
 	List<Triangle> triangles;
 	if (model){
 		triangles += model->GetTris();
@@ -940,3 +942,17 @@ List<Triangle> Entity::GetTris(){
 	}
 	return triangles;
 }
+
+
+/// Returns the center of this entity, determined by position, rotation, and current model.
+Vector3f Entity::CenterOfGravityWorldSpace()
+{
+	// Fetch the model or something.
+	if (!model)
+		return position;
+	Vector4f center = model->centerOfModel;
+	// Multiply co-ordinates of model center with our matrix.
+	Vector4f centerWorldSpace = transformationMatrix.Product(center);
+	return centerWorldSpace;
+}
+

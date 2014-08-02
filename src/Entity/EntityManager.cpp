@@ -53,13 +53,22 @@ Entity * EntityManager::CreateEntity(String name, Model * model, Texture * textu
 	}
 	*/
 	// Get a spot om the entity list
-	for (int i = 0; i < MAX_ENTITIES; ++i){
-		if (entity[i].id == 0){
-			newEntity = &entity[i];
+	for (int i = 0; i < entities.Size(); ++i)
+	{
+		if (entities[i]->id == 0)
+		{
+			newEntity = entities[i];
 			break;
 		}
 	}
-	if (newEntity == NULL){
+	// Create it if needed.
+	if (!newEntity)
+	{
+		newEntity = new Entity(idCounter++);
+		entities.Add(newEntity);
+	}
+	if (newEntity == NULL)
+	{
 		std::cout<<"\nWARNING: Could not create new entity! Array is full. Prompting deletion of unused entities.";
 		int result = DeleteUnusedEntities();
 		if (result){
@@ -72,7 +81,6 @@ Entity * EntityManager::CreateEntity(String name, Model * model, Texture * textu
 	newEntity->SetName(name);
 	newEntity->SetModel(model);
 	newEntity->SetTexture(DIFFUSE_MAP | SPECULAR_MAP, texture);
-	newEntity->id = this->idCounter++;
 
 	return newEntity;
 }
@@ -94,28 +102,32 @@ bool EntityManager::DeleteEntity(Entity * entity)
 int EntityManager::DeleteUnusedEntities()
 {
 	int deletedEntities = 0;
-	for (int i = 0; i < MAX_ENTITIES; ++i){
+	for (int i = 0; i < entities.Size(); ++i)
+	{
+		Entity * entity = entities[i];
 		/// Only process those that have been flagged.
-		if (!entity[i].flaggedForDeletion)
+		if (!entity->flaggedForDeletion)
 			continue;
 		/// Check that it isn't still registered with any other manager!
-		if (entity[i].registeredForRendering){
-			std::cout<<"\nWARNING: Entity: "<<entity[i].name<<" registered for rendering while flagged for deletion!";
+		if (entity->registeredForRendering){
+			std::cout<<"\nWARNING: Entity: "<<entity->name<<" registered for rendering while flagged for deletion!";
 			continue;
 		}
-		if (entity[i].registeredForPhysics){
-			std::cout<<"\nWARNING: Entity: "<<entity[i].name<<" registered for physics while flagged for deletion!";
+		if (entity->registeredForPhysics){
+			std::cout<<"\nWARNING: Entity: "<<entity->name<<" registered for physics while flagged for deletion!";
 			continue;
 		}
 
 		/// Reset ID.
-		entity[i].id = 0;
-		entity[i].name = "";
+		entity->id = 0;
+		entity->name = "";
 
 		/// De-flag after deletion is finished.
-		entity[i].flaggedForDeletion = false;
+		entity->flaggedForDeletion = false;
 		/// Increment amount that was successfully deleted.
 		++deletedEntities;
+		entities.Remove(entity);
+		delete entity;
 	}
 	return deletedEntities;
 }

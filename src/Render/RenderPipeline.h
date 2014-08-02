@@ -12,7 +12,7 @@
 #include "String/AEString.h"
 
 class RenderPass;
-struct GraphicsState;
+class GraphicsState;
 
 class RenderPipeline
 {

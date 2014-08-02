@@ -4,6 +4,7 @@
 
 #include "SpaceShooterCD.h"
 #include "Physics/Collision/Collision.h"
+#include "Entity/Entity.h"
 
 /// Brute-force method. Does not rely on other structures that require further updates. All entities are present in the list.
 int SpaceShooterCD::DetectCollisions(List<Entity*> entities, List<Collision> & collisions)

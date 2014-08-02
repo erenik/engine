@@ -16,10 +16,10 @@ Random::Random()
 /// Initialize with random seed.
 void Random::Init(int64 seed)
 {
-	x = seed >> 8;
-	y = seed >> 16;
-	z = seed >> 24;
-	w = seed >> 32;
+	x = seed * 3;
+	y = seed * 7;
+	z = seed * 15;
+	w = seed * 16;
 }
 
 

@@ -24,6 +24,10 @@ class WindowManager {
 	WindowManager();
 	~WindowManager();
 	static WindowManager * windowManager;
+#ifdef WINDOWS
+	friend LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+#endif
+
 public:
 	static void Allocate();
 	static void Deallocate();
@@ -43,6 +47,7 @@ public:
 	Window * GetWindowByHWND(HWND hWnd);
 #endif
 	Window * MainWindow() {return mainWindow;};
+	Window * HoverWindow() { return hoverWindow;};
 	List<Window*> GetWindows(){return windows;};
 	/// If an application window is the top one, it is returned. If another app is currently the top one, the most recently interacted window of this app is returned.
 	Window * GetCurrentlyActiveWindow();
@@ -66,6 +71,8 @@ public:
 private:
 	// Main window. Stores initial GL context that is to be shared and also binds its destroy message to closing the application.
 	Window * mainWindow;
+	// Window mouse is currently hovering over (as per the latest mouse-related message received)
+	Window * hoverWindow;
 	Window * lastActiveWindow;
 	/// All windows 
 	List<Window*> windows;

@@ -113,6 +113,9 @@ public:
 	String GetLastErrorString();
 protected:
 
+	/// Deletes all entities within the map and re-loads/re-creates them. The entities however are NOT queued to be rendered or participate in physics straight away.
+	void LoadFromCompactData();
+
 	/// If this map is currently active and being rendered/interacted with?
 	bool active;
 

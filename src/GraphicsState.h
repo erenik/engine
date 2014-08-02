@@ -51,7 +51,7 @@ class Light;
 	- an index of the currently bound texture, to avoid re-binding the same texture.
 	- an integer with flags for debugging purposes.
 */
-struct GraphicsState {
+class GraphicsState {
 public:
 	GraphicsState();
 public:

@@ -7,7 +7,7 @@
 #include <Util.h>
 #include <MathLib.h>
 
-struct GraphicsState;
+class GraphicsState;
 class Model;
 class Entity;
 

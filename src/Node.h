@@ -4,7 +4,7 @@
 
 #include <GL/glew.h>
 #include "MathLib.h"
-struct GraphicsState;
+class GraphicsState;
 
 /// A base node class for usage in a Scenegraph rendering tree.
 class Node {

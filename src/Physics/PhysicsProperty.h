@@ -125,6 +125,8 @@ public:
 
     /// Orientatin quaternion, q(t),
     Quaternion orientation;
+	/// Angular velocity as expressed by a quaternion! (refers to global rotations)
+	Quaternion angularVelocityQuaternion;
 
     /// Orientation, R(t),  (or rotation for the noobs (me))
     Matrix3f orientationMatrix;
@@ -176,6 +178,8 @@ public:
 	// Speeds - All velocities are global, whilst the accelerations are set in local space!
 	/// LinearVelocity, v(t) = P(t) / M (= linear momentum divided by mass)
 	Vector3f velocity;
+	/// Velocity relative to current entity rotation. 
+	Vector3f relativeVelocity;
 	Vector3f acceleration;
 	/// Relative acceleration in the entity's current right/up/forward vector directions.
 	Vector3f relativeAcceleration;

@@ -12,7 +12,7 @@ struct Collision;
 class Model;
 class Player;
 struct Material;
-struct GraphicsState;
+class GraphicsState;
 class Texture;
 struct GraphicsProperty;
 struct PhysicsProperty;
@@ -21,6 +21,7 @@ class ScriptProperty;
 class CompactEntity;
 class Triangle;
 class EntityProperty;
+class Camera;
 /*
 #include "GL/glew.h"
 #include "Mesh/Mesh.h"
@@ -136,6 +137,9 @@ public:
 	/// Recalculates a transformation matrix using argument vectors for position, rotation and translation.
 	static Matrix4f RecalculateMatrix(Vector3f & position, Vector3f & rotation, Vector3f & scale);
 
+	/// Returns the center of this entity, determined by position, rotation, and current model.
+	Vector3f CenterOfGravityWorldSpace();
+
 	/// World coordinate position
 	Vector3f position;
 	/// Scale in x,y,z
@@ -192,6 +196,8 @@ public:
 	Model * model;
 	/// Owner, or stuff.
 	Player * player;
+	/// If a camera is currently tracking this entity, it should be stored here. This will be set from the graphics-thread by the CameraManager ALONE!
+	Camera * cameraFocus;
 private:
 	/// Texture to be used for this Entity. TODO: Rename to DiffuseMap?
 	Texture * diffuseMap;

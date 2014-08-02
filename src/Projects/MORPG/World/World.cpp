@@ -150,3 +150,15 @@ Model * World::GenerateWorldModel()
 }
 
 
+
+Zone * World::GetZoneByName(String name)
+{
+	for (int i = 0; i < zones.Size(); ++i)
+	{
+		Zone * zone = zones[i];
+		if (zone->name == name)
+			return zone;
+	}
+	return NULL;
+}
+

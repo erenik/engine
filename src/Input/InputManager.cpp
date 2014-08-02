@@ -644,7 +644,8 @@ void InputManager::MouseMove(Window * window, int x, int y)
 /** Handles mouse wheel input.
 	Positive delta signifies scrolling upward or away from the user, negative being toward the user.
 */
-void InputManager::MouseWheel(Window * window, float delta){
+void InputManager::MouseWheel(Window * window, float delta)
+{
 	if (!acceptInput)
 		return;
 	std::cout<<"\nMouseWheel: "<<delta;
@@ -667,6 +668,11 @@ void InputManager::MouseWheel(Window * window, float delta){
 	StateMan.ActiveState()->MouseWheel(window, delta);
 	/// Call to render if needed.
 	Graphics.QueryRender();
+}
+
+Vector2i InputManager::GetMousePosition()
+{
+	return Vector2i(mouseX, mouseY);
 }
 
 //=======================================================//

@@ -55,6 +55,9 @@ public:
 	/// When deaded...
 	bool sleeping;
 
+
+	// False by default. If true will use default behaviour of following the mouse.
+	bool useMouseInput;
 private:
 
 	Time lastFire;

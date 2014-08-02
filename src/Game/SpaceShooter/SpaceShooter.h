@@ -29,12 +29,17 @@ public:
 	List<Entity*> GetEntities();
 
 
+	/// If set (with true), will enabled tracking/movement of the player with the mouse.
+	void UseMouseInput(bool useItOrNot);
+
 	void Reset();
 	// Call to re-create the playing field as it started out.
 	void SetupPlayingField();
 
 	/// Creates a new projectile entity, setting up model and scale appropriately.
-	Entity * NewProjectile(SpaceShooterWeaponType weaponType);
+	Entity * NewProjectile(SpaceShooterWeaponType weaponType, Vector3f atPosition);
+
+	Entity * NewExplosion(Vector3f atPosition);
 
 	/// Is it outside the frame?
 	bool IsPositionOutsideFrame(Vector3f pos);
@@ -84,7 +89,7 @@ public:
 //	List<Entity*> entities;// <- really good?
 	List<Entity*> players;
 	List<Entity*> enemies;
-	List<Entity*> projectiles, powerups;
+	List<Entity*> projectiles, powerups, explosions;
 	List<Entity*> scoreEntities;
 
 	Entity * player1;

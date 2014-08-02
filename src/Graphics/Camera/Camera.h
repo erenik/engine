@@ -9,6 +9,7 @@
 #include "MathLib.h"
 #include "PhysicsLib.h"
 #include <String/AEString.h>
+#include "Time/Time.h"
 
 class Window;
 
@@ -17,7 +18,9 @@ class Window;
 
 namespace TrackingMode {
 enum trackingMode {
-	FROM_BEHIND, THIRD_PERSON,
+	FROM_BEHIND, 
+	THIRD_PERSON,
+	FOLLOW_AND_LOOK_AT, // Should be smooth. MMORPG-style.
 };};
 
 class Entity;
@@ -38,6 +41,16 @@ public:
 	// Called from render/physics thread. updates movement/position of all cameras.
 	void Process();
 	
+	/** Makes active the next camera (compared to the current one) by queueinga message to the graphics-manager.
+		Assumes only 1 active camera is being used for 1 main viewport or window.
+	*/
+	Camera * NextCamera();
+	/** Makes active the previous camera (compared to the current one) by queueinga message to the graphics-manager.
+		Assumes only 1 active camera is being used for 1 main viewport or window.
+	*/
+	Camera * PreviousCamera();
+
+
 	Camera * DefaultCamera();
 	
 private:
@@ -60,6 +73,11 @@ public:
 	void PrintData() const;
 
 
+	/// For de-coupling bindings to any relevant entities.
+	void OnLoseCameraFocus();
+	/// For coupling bindings to relevant entities.
+	void OnGainCameraFocus();
+
 	/** When called, will set the adjustProjectionMatrixToWindow variable to true and adjust the projection matrix
 		To map each pixel in the screen to one unit in-game.
 		Regular projection matrices use width and height ratios based on > 1.0f, e.g. 1.666 and 1.0
@@ -70,7 +88,8 @@ public:
 	String name;
 
 	/// Defines viewing distance to active object. Should be near 0 if first-person, larger if 3rd-person.
-	float distanceFromCentreOfMovement;
+#define distanceFromCentreOfMovement distanceFromCenterOfMovement
+	float distanceFromCenterOfMovement;
 	/// Center of Orientation in the world.
 	Vector3f position;
 	/// Defines where we are looking relative to z = -1
@@ -80,10 +99,20 @@ public:
 	float rotationSpeed;
 	/// For when doing adjustments after all regular matrix operations?
 	float elevation;
+	
 	/// Current travel speed
 	Vector3f velocity;
 	/// Current rotational speed
 	Vector3f rotationVelocity;
+	/// Pitch, yaw, roll. Used to distinguish what kind of rotations are being used, and specifically/more importantly: in which order.
+	Vector3f rotationalVelocityEuler;
+	/** To distinguish it from the general "rotation" earlier which is.. idk.
+		If tracking an entity, these angles will be in relation to the entity, while if not these wil be along the global axises.
+	*/
+	Vector3f rotationEuler;
+	/// The quaternion as built up by the 3 rotations as specified by rotationEuler.
+	Quaternion orientationEuler;
+
 	/// To get a "speedy" effect when following entities.
 	bool scaleDistanceWithVelocity;
 	/// For faster scrolling when zoomed out e.g. in editors.
@@ -127,7 +156,7 @@ public:
 	Frustum GetFrustum() const {return frustum; };
 
 	/// To be called from render/physics-thread. Moves the camera using it's given enabled directions and velocities.
-	void ProcessMovement(int timeInMs);
+	void ProcessMovement(float timeInSeconds);
 	/// Last time processMovement was called.
 	long long lastMovement;
 
@@ -181,6 +210,18 @@ public:
 	Vector3f relativePosition;
 
 private:
+	/// cool.
+	Time lastUpdate;
+
+	/// Tracking mode realizing functions. Suitable for single-player character games (e.g. RPG).
+	void FollowAndLookAt(float timeInSeconds);
+	/// Follow position and rotation rather fiercly. Suitable for racing-games.
+	void TrackFromBehind();
+	/// Some old relic.
+	void TrackThirdPerson();
+
+	// Velocities! :D
+	float dfcomSpeed, dfcomSpeedMultiplier;
 
 	/// See the function with same name.
 	bool adjustProjectionMatrixToWindow;

@@ -18,6 +18,9 @@ public:
     Quaternion(const Quaternion& other);
     Quaternion(float x, float y, float z, float w = 1);
 
+	/// Returns the absolute value of the highest value of x, y, and z-components.
+	float MaxPart();
+
     /// Printing out data
 	friend std::ostream& operator <<(std::ostream& os, const Quaternion& q);
 
@@ -46,6 +49,12 @@ public:
 
     /// Coordinates, expressed in the xi + yj + zk + w format.
     float x,y,z,w;
+	// Angle in radians
+	float angle;
+	// Axis by which we rotate.
+	Vector3f axis;
+	// Recalculates them based on axis and angle.
+	void RecalculateXYZW();
 private:
 };
 

@@ -8,8 +8,9 @@
 #include "Physics/Collision/Collisions.h"
 #include "Physics/Collision/Collision.h"
 #include "PhysicsLib.h"
-#include "Entity/Entity.h"
 #include <Util.h>
+
+class GraphicsState;
 class Entity;
 
 /** Physics Collision Detection Octree

@@ -43,6 +43,13 @@ void TIFSDroneProperty::Process(int timeInMs)
 		// Move to it.
 		Vector3f toDestination = destination - owner->position;
 		Physics.QueueMessage(new PMSetEntity(owner, PT_ACCELERATION, toDestination));
+
+		float distance2 = toDestination.LengthSquared();
+		if (distance2 < 10)
+		{
+			// Destination reached.
+			destination = Vector3f();
+		}
 	}
 }
 

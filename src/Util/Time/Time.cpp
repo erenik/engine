@@ -102,6 +102,13 @@ String Time::ToString(String withFormat)
 Time Time::operator - (const Time & otherTime) const 
 {
 	Time newTime;
+	if (type != otherTime.type)
+	{
+		// Undefined behaviour.
+		std::cout<<"\nTime - otherTime with different types. Undefined behaviour, setting intervals to 0.";
+		newTime.intervals = 0;
+		return newTime;
+	}
 	assert(type == otherTime.type);
 	newTime.intervals = intervals - otherTime.intervals;
 	newTime.type = type;
@@ -129,7 +136,8 @@ int64 Time::Microseconds()
 			/// 100-nano sec to micro second conversion..
 			return intervals / 10;
 		default:
-			assert(false && "Undefined");
+			std::cout<<"\nFetching milliseconds from time of undefined type. Returning 0.";
+			return 0;
 	}	
 	return -1;
 }

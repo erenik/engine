@@ -7,10 +7,12 @@
 
 #include "String/AEString.h"
 #include "MathLib.h"
+#include "Maps/Map.h"
 
 class Nation;
 class Building;
 class Character;
+class CompactEntity;
 
 struct BuildingSlot 
 {
@@ -25,10 +27,13 @@ struct BuildingSlot
 	Vector3f position;
 };
 
-class Zone 
+class Zone : public Map
 {
 public:
 	Zone();
+
+	/// Takes all models this zone is composed of and creates it for you. Will also create all characters within (hopefully including you!)
+	void CreateEntities();
 
 	String name;
 	int id;
@@ -59,6 +64,11 @@ public:
 	/// Who has control over this zone? Anyone?
 	Nation * controllingNation;
 	int controllingNationID;
+
+protected:
+	/// All entities which comprise the "base" along which we will walk and physicall interact with on the most part. 
+//	List<CompactEntity*> compactBaseEntities;
+
 
 private:
 	bool isWater;

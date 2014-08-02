@@ -5,7 +5,7 @@
 #ifndef CONTACT_H
 #define CONTACT_H
 
-#include "Entity/Entity.h"
+class Entity;
 
 enum contactTypes{
 	NULL_CONTACT,

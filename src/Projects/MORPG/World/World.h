@@ -45,7 +45,8 @@ public:
 
 	/// Getters.
 	Nation * GetNationByID(int id);
-	
+	Zone * GetZoneByName(String name);
+
 	/// Preview texture for this world (pretty much the world-map?)
 	Texture * texture;
 	/// Dynamically created model. Should/could be used together with the preview texture! :)

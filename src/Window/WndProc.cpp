@@ -401,6 +401,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		int yPos = GET_Y_LPARAM(lParam);
 //		std::cout<<"\nMouse move: "<<xPos<<" "<<yPos;
 		Input.MouseMove(window, XtoWindow(xPos), YtoWindow(yPos));
+		WindowMan.hoverWindow = window;
 		return 0; // If an application processes this message, it should return zero.
 		break;
 	}

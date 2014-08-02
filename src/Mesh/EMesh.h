@@ -82,7 +82,7 @@ protected:
 	int floatsPerVertex;
 };
 
-struct GraphicsState;
+class GraphicsState;
 
 /// Function to render a mesh easily with just a pointer to the active mesh.
 //void RenderMesh(GraphicsState &state, EMesh * mesh);

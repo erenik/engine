@@ -13,19 +13,19 @@ Quaternion::Quaternion(){
 
 /// Generates a rotation quaternion based on given axis and rotation around it
 Quaternion::Quaternion(Vector3f axis, float angle)
+: axis(axis), angle(angle)
 {
-	float halfAngle = angle * 0.5f;
-	float sinHalfAngle = sin(halfAngle);
-	float cosHalfAngle = cos(halfAngle);
-	x = axis.x * sinHalfAngle;
-	y = axis.y * sinHalfAngle;
-	z = axis.z * sinHalfAngle;
-	w = cosHalfAngle;
-
+	/*
+	x = axis.x;
+	y = axis.y;
+	z = axis.z;
+	w = angle;
+	*/
+	RecalculateXYZW();
 }
 
 Quaternion::Quaternion(const Quaternion& other)
-: x(other.x), y(other.y), z(other.z), w(other.w)
+: x(other.x), y(other.y), z(other.z), w(other.w), axis(other.axis), angle(other.angle)
 {
 }
 
@@ -33,6 +33,20 @@ Quaternion::Quaternion(float x, float y, float z, float w /*= 0*/)
 : x(x), y(y), z(z), w(w)
 {
 }
+
+/// Returns the absolute value of the highest value of x, y, and z-components.
+float Quaternion::MaxPart()
+{
+	if (AbsoluteValue(x) > AbsoluteValue(y)){
+		if (AbsoluteValue(x) > AbsoluteValue(z))
+			return AbsoluteValue(x);
+		return AbsoluteValue(z);
+	}
+	else if (AbsoluteValue(y) > AbsoluteValue(z))
+		return AbsoluteValue(y);
+	return AbsoluteValue(z);
+}
+
 
 /// Printing out data
 std::ostream& operator <<(std::ostream& os, const Quaternion& q){
@@ -158,6 +172,17 @@ void Quaternion::ApplyAngularVelocity(const Vector3f & velocity, float time){
     w += q.w * 0.5f;
 }
 
+// Recalculates them based on axis and angle.
+void Quaternion::RecalculateXYZW()
+{
+	float halfAngle = angle * 0.5f;
+	float sinHalfAngle = sin(halfAngle);
+	float cosHalfAngle = cos(halfAngle);
+	x = axis.x * sinHalfAngle;
+	y = axis.y * sinHalfAngle;
+	z = axis.z * sinHalfAngle;
+	w = cosHalfAngle;
+}
 
 
 

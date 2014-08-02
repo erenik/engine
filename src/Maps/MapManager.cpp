@@ -832,39 +832,7 @@ Path * MapManager::GetPath(String byName){
 /// Loads data from compact versions, registering them in the various managers.
 void MapManager::LoadFromCompactData(Map * map)
 {
-	std::cout<<"\nMapManager::LoadFromCompactData for map: "<<map->name;
-
-	if (map->NumEntities() > 0){
-		std::cout<<"ERROR: Map has "<<map->NumEntities()<<" remaining entities. Delete these before reloading from compact map data!";
-		map->RemoveAllEntities();
-		assert(map->NumEntities() == 0);
-	//	return;
-	}
-	/// TODO: Make function of creating stuff from compact format
-	int entitiesToCreate = map->cEntities.Size();
-	if (entitiesToCreate == 0){
-		std::cout<<"\nNo entities in map compact data, skipping LoadFromCompactData";
-		return;
-	}
-	assert(entitiesToCreate > 0);
-	std::cout<<"\nCreating entities from compact file format...";
-	/// Convert cEntities to regular entities, etc.
-	for (int i = 0; i < entitiesToCreate; ++i)
-	{
-		/// Get model and texture...
-		Model * model = ModelMan.GetModel(map->cEntities[i]->model);
-		Texture * texture = TexMan.GetTextureBySource(map->cEntities[i]->diffuseMap);
-		if (!model){
-			std::cout<<"\nWARNING: Unable to locate model, skipping entity.";
-			continue;
-		}
-		/// Ask entity manager to create them :P
-		Entity * newEntity = EntityMan.CreateEntity(map->cEntities[i]->name, model, texture);
-		newEntity->LoadCompactEntityData(map->cEntities[i]);
-		/// Add them to the map ^^
-		map->AddEntity(newEntity);
-	}
-
+	map->LoadFromCompactData();
 }
 
 

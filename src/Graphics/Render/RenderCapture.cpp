@@ -46,24 +46,41 @@ void GraphicsManager::RenderCapture()
 	if (!window->recordVideo && !window->isRecording && window->frames.Size() == 0)
 		return;
 
-	int64 now = Timer::GetCurrentTimeMs();
-	
 	// When starting,
 	if (window->recordVideo == true && !window->isRecording)
 	{
 		window->frames.ClearAndDelete();
 		window->isRecording = true;
 		// Frame time should be savable into the texture objects.
+		window->captureStart = Time::Now();
+		
 	}
 	// When recording.
+	bool grabFrame = false;
 	if (window->isRecording)
+	{
+		Time now = Time::Now();
+		// See if enough time has passed. Is a new frame due?
+		int millisecondsPassed = (now - window->captureStart).Milliseconds();
+		// Min milliseconds per frame.
+		if (millisecondsPassed > window->frames.Size() * 50)
+			grabFrame = true;
+	}
+	if (grabFrame)
 	{
 		// Grab frame! o.o
 		Texture * frame = NULL;
 		frame = TexMan.New();
 		frame->name = window->name + "_"+String::ToString(window->frames.Size()); 
 		frame->bpp = 4; // 4 bytes per pixel, RGBA
-		frame->Resize(windowSize);
+		// Resize/allocate the frame. 
+		if (!frame->Resize(windowSize))
+		{
+			// If it fails, skip this loop and stop recording.
+			window->recordVideo = false;
+			window->isRecording = false;
+			return;
+		}
 		glReadPixels(0, 0, windowSize.x, windowSize.y, GL_RGBA, GL_UNSIGNED_BYTE, frame->data);
 		// Flip it.
 		frame->FlipY();

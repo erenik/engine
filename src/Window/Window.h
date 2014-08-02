@@ -24,6 +24,7 @@
 #include "OS.h"
 #include "String/AEString.h"
 #include "MathLib.h"
+#include "Time/Time.h"
 
 #ifdef WINDOWS
 #include "Windows.h"
@@ -59,6 +60,8 @@ List<Monitor> GetMonitors();
 Window * ActiveWindow();
 /// Fetches the main application window.
 Window * MainWindow();
+/// Window mouse is currently hovering over.
+Window * HoverWindow();
 
 class Window 
 {
@@ -194,6 +197,8 @@ public:
 	bool recordVideo;
 	/// Will be true when recording.
 	bool isRecording;
+	/// When capture started.
+	Time captureStart;
 	/// Frames stored while recording.
 	List<Texture*> frames;
 	/// Will dictate general framerate while recording.

@@ -6,7 +6,7 @@
 #define FONT_H
 
 class Texture;
-struct GraphicsState;
+class GraphicsState;
 
 #include "Util.h"
 #include "MathLib.h"

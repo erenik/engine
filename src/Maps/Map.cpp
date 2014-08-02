@@ -17,6 +17,9 @@ extern GraphicsManager graphics;
 #include <cstring>
 #include "Physics/PhysicsManager.h"
 
+#include "ModelManager.h"
+#include "TextureManager.h"
+
 Map::Map()
 {
 	this->onEnter = NULL;
@@ -111,6 +114,45 @@ String Map::GetLastErrorString()
 	lastErrorString = String();
 	return s;
 }
+
+/// Deletes all entities within the map and re-loads/re-creates them. The entities however are NOT queued to be rendered or participate in physics straight away.
+void Map::LoadFromCompactData()
+{
+	std::cout<<"\nMap::LoadFromCompactData for map: "<<name;
+
+	if (NumEntities() > 0){
+		std::cout<<"ERROR: Map has "<<NumEntities()<<" remaining entities. Delete these before reloading from compact map data!";
+		RemoveAllEntities();
+		assert(NumEntities() == 0);
+	//	return;
+	}
+	/// TODO: Make function of creating stuff from compact format
+	int entitiesToCreate = cEntities.Size();
+	if (entitiesToCreate == 0){
+		std::cout<<"\nNo entities in map compact data, skipping LoadFromCompactData";
+		return;
+	}
+	assert(entitiesToCreate > 0);
+	std::cout<<"\nCreating entities from compact file format...";
+	/// Convert cEntities to regular entities, etc.
+	for (int i = 0; i < entitiesToCreate; ++i)
+	{
+		CompactEntity * cEntity = cEntities[i];
+		/// Get model and texture...
+		Model * model = ModelMan.GetModel(cEntity->model);
+		Texture * texture = TexMan.GetTextureBySource(cEntity->diffuseMap);
+		if (!model){
+			std::cout<<"\nWARNING: Unable to locate model, skipping entity.";
+			continue;
+		}
+		/// Ask entity manager to create them :P
+		Entity * newEntity = EntityMan.CreateEntity(cEntity->name, model, texture);
+		newEntity->LoadCompactEntityData(cEntity);
+		/// Add them to the map ^^
+		AddEntity(newEntity);
+	}
+}
+
 
 void Map::RemoveAllEvents(){
 	events.ClearAndDelete();

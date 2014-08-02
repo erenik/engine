@@ -141,6 +141,8 @@ public:
 	*/
 	void MouseWheel(Window * window, float delta);
 
+	Vector2i GetMousePosition();
+
 	//=======================================================//
 	/// Keyboard input
 	//=======================================================//

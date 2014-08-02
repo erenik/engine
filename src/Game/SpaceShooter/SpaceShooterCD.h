@@ -6,6 +6,7 @@
 #define SPACE_SHOOTER_CD_H
 
 #include "Physics/CollisionDetector.h"
+#include "Entity/Entity.h"
 
 /// Add all pong-entities to the Pong-specific collision filter.
 #define SPACE_SHOOTER_PHYSICS_CATEGORY_MAIN (1 << 4) // 16

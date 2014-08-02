@@ -7,6 +7,7 @@
 #include "SpaceShooterPlayerProperty.h"
 #include "SpaceShooterProjectileProperty.h"
 #include "SpaceShooterPowerupProperty.h"
+#include "SpaceShooterExplosionProperty.h"
 
 #include "SpaceShooterIntegrator.h"
 #include "SpaceShooterCR.h"
@@ -59,7 +60,7 @@ SpaceShooter::SpaceShooter()
 	player1Properties = 0;
 	constantZ = 0;
 	shipScale = 20.f;
-	projectileScale = 5.f;
+	projectileScale = 3.f;
 
 		/// 1 << 4 
 	collisionCategoryPlayer = 1 << 4;
@@ -124,8 +125,15 @@ void SpaceShooter::Process()
 /// Fetches all entities concerning this game.
 List<Entity*> SpaceShooter::GetEntities()
 {
-	return players + projectiles + powerups + scoreEntities + enemies;
+	return players + projectiles + powerups + scoreEntities + enemies + explosions;
 }
+
+/// If set (with true), will enabled tracking/movement of the player with the mouse.
+void SpaceShooter::UseMouseInput(bool useItOrNot)
+{
+	player1Properties->useMouseInput = useItOrNot;
+}
+
 
 void SpaceShooter::Reset()
 {
@@ -230,8 +238,8 @@ void SpaceShooter::SetupPlayingField()
 
 	// Place 'em.
 
-	// Set all to use mesh collissions.
-	Physics.QueueMessage(new PMSetEntity(GetEntities(), PT_PHYSICS_SHAPE, PhysicsShape::MESH));
+	// Set all to use mesh collissions... no.
+//	Physics.QueueMessage(new PMSetEntity(GetEntities(), PT_PHYSICS_SHAPE, PhysicsShape::MESH));
 			
 	// Disable gravity for the game entities.
 	Physics.QueueMessage(new PMSetEntity(GetEntities(), PT_GRAVITY_MULTIPLIER, 0.f));
@@ -252,19 +260,20 @@ void SpaceShooter::SetupPlayingField()
 }
 
 /// Creates a new projectile entity, setting up model and scale appropriately.
-Entity * SpaceShooter::NewProjectile(SpaceShooterWeaponType weaponType)
+Entity * SpaceShooter::NewProjectile(SpaceShooterWeaponType weaponType, Vector3f atPosition)
 {
 	Entity * newProjectile = NULL;
+	SpaceShooterProjectileProperty * projectileProp;
 	// Check if we have a sleeping projectile.
 	for (int i = 0; i < projectiles.Size(); ++i)
 	{
 		Entity * entity = projectiles[i];
-		SpaceShooterProjectileProperty * prop = (SpaceShooterProjectileProperty*) entity->GetProperty("SpaceShooterProjectileProperty");
-		if (prop && prop->sleeping)
+		projectileProp = (SpaceShooterProjectileProperty*) entity->GetProperty("SpaceShooterProjectileProperty");
+		if (projectileProp && projectileProp->sleeping)
 		{
 			newProjectile = entity;
-			// Remove sleeping from the thingy.
-			prop->OnSpawn();
+			// Set position straight away.
+			Physics.QueueMessage(new PMSetEntity(newProjectile, PT_SET_POSITION, atPosition));
 			break;
 		}
 	}
@@ -274,8 +283,8 @@ Entity * SpaceShooter::NewProjectile(SpaceShooterWeaponType weaponType)
 		if (projectiles.Size() > 100)
 			return NULL;
 
-		newProjectile = MapMan.CreateEntity("SpaceShooterProjectile", NULL, NULL);
-		SpaceShooterProjectileProperty * projectileProp = new SpaceShooterProjectileProperty(this, newProjectile, weaponType);
+		newProjectile = MapMan.CreateEntity("SpaceShooterProjectile", NULL, NULL, atPosition);
+		projectileProp = new SpaceShooterProjectileProperty(this, newProjectile, weaponType);
 		newProjectile->properties.Add(projectileProp);
 		projectiles.Add(newProjectile);
 	}
@@ -283,7 +292,7 @@ Entity * SpaceShooter::NewProjectile(SpaceShooterWeaponType weaponType)
 	switch(weaponType.type)
 	{
 		case SpaceShooterWeaponType::RAILGUN:
-			Graphics.QueueMessage(new GMSetEntity(newProjectile, GT_MODEL, ModelMan.GetModel("Cube")));
+			Graphics.QueueMessage(new GMSetEntity(newProjectile, GT_MODEL, ModelMan.GetModel("Sphere")));
 			Graphics.QueueMessage(new GMSetEntityTexture(newProjectile, DIFFUSE_MAP, TexMan.GetTexture("Cyan")));
 			break;
 		default:
@@ -297,8 +306,37 @@ Entity * SpaceShooter::NewProjectile(SpaceShooterWeaponType weaponType)
 	SetupPhysics(newProjectile);
 	SetProjectileScale(newProjectile);
 
+	// Remove sleeping from the thingy.
+	projectileProp->OnSpawn();
+
 	return newProjectile;
 }
+
+Entity * SpaceShooter::NewExplosion(Vector3f atPosition)
+{
+	Entity * newExplosion = NULL;
+
+	for (int i = 0; i < explosions.Size(); ++i)
+	{
+		Entity * explosion = explosions[i];
+		SpaceShooterExplosionProperty * prop = (SpaceShooterExplosionProperty *) explosion->GetProperty("SpaceShooterExplosionProperty");
+		if (prop && prop->sleeping)
+		{
+			newExplosion = explosion;
+			prop->sleeping = false;
+			Physics.QueueMessage(new PMSetEntity(newExplosion, PT_SET_POSITION, atPosition));
+		}
+	}
+
+	if (newExplosion == NULL)
+		newExplosion = MapMan.CreateEntity("Explosion", ModelMan.GetModel("Sprite"), TexMan.GetTexture("Explosion"), atPosition);
+
+	// Register for graphics!
+	Graphics.QueueMessage(new GMRegisterEntity(newExplosion));
+
+	return newExplosion;
+}
+
 
 
 /// Is it outside the frame?
@@ -404,19 +442,28 @@ void SpaceShooter::SetProjectileScale(List<Entity*> entities)
 
 
 
+Random enemyRandom;
+	
 /// Spawns enemies for a level. This will spawn all enemies, far to the right. 
 void SpaceShooter::SpawnEnemies(int level)
 {
 
 	Physics.Pause();
 
-	Random enemyRandom;
 	int enemiesToSpawn = level + 10;
 
 	// Remove all entities first.
-	Physics.QueueMessage(new PMUnregisterEntities(enemies));
-	Graphics.QueueMessage(new GMUnregisterEntities(enemies));
+//	Physics.QueueMessage(new PMUnregisterEntities(enemies));
+//	Graphics.QueueMessage(new GMUnregisterEntities(enemies));
+	// Mark them as sleeping too!
+	for (int i = 0; i < enemies.Size(); ++i)
+	{
+		Entity * enemy = enemies[i];
+		SpaceShooterPlayerProperty * enemyProp = (SpaceShooterPlayerProperty*)enemy->GetProperty(SpaceShooterPlayerProperty::ID());
+		enemyProp->Remove();
+	}
 
+	// Create new enemy-entities as needed.
 	int enemiesToCreate = enemiesToSpawn - enemies.Size();
 	for (int i = 0; i < enemiesToCreate; ++i)
 	{
@@ -437,7 +484,7 @@ void SpaceShooter::SpawnEnemies(int level)
 		SetupPhysics(enemy);
 
 		Vector3f position;
-		position.x = i * 50.f;
+		position.x = gameSize.x * 0.5f + i * 50.f;
 		position.y = enemyRandom.Randf(gameSize.y) - gameSize.y * 0.5f;
 		Physics.QueueMessage(new PMSetEntity(enemy, PT_POSITION, position));
 

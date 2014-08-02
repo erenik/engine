@@ -6,8 +6,9 @@
 #define GRID_OBJECT_H
 
 #include "MathLib.h"
-#include "Entity/Entity.h"
 #include "Tile.h"
+
+class Entity;
 
 /** Grid Object Type
 	Basic information about the grid object, shared by all version of the specified grid object.

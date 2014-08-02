@@ -53,8 +53,8 @@ public:
 
 	// Same thing as Resize.
 	void SetSize(Vector2i newSize);
-	/// Resets width, height and creates a new data buffer after deleting the old one.
-	void Resize(Vector2i newSize);
+	/// Resets width, height and creates a new data buffer after deleting the old one. Returns false if it failed (due to lacking memory).
+	bool Resize(Vector2i newSize);
 
 	// Flips along Y axis?
 	void FlipY();

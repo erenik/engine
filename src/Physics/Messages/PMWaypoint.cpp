@@ -7,6 +7,8 @@
 #include "Pathfinding/WaypointManager.h"
 #include "Pathfinding/PathfindingProperty.h"
 
+#include "Entity/Entity.h"
+
 PMSetWaypoint::PMSetWaypoint(Vector3f position, int target, void * value)
 : PhysicsMessage(PM_SET_WAYPOINT), position(position), target(target), pValue(value)
 {
