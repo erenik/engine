@@ -15,6 +15,8 @@ public:
 	/// Time passed in seconds..! Will steer if inputFocus is true.
 	virtual void Process(int timeInMs);
 
+	void ToggleAutorun();
+
 	// Default false. Enable to steer this entity.
 	bool inputFocus;
 
@@ -29,6 +31,8 @@ private:
 	/// For handling movement.
 	Vector3f lastAcc;
 	float lastRight;
+	bool autorun;
+	float movementSpeed;
 };
 
 

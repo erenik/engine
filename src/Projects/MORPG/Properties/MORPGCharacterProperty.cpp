@@ -9,6 +9,7 @@
 #include "Input/InputManager.h"
 
 #include "Physics/PhysicsManager.h"
+#include "Physics/PhysicsProperty.h"
 
 #include "Graphics/GraphicsManager.h"
 #include "Graphics/Messages/GMCamera.h"
@@ -20,6 +21,8 @@ MORPGCharacterProperty::MORPGCharacterProperty(Entity * characterEntity, Charact
 {
 	inputFocus = false;
 	lastRight = 0.f;
+	autorun = false;
+	movementSpeed = 2.f;
 }
 
 /// Time passed in seconds..! Will steer if inputFocus is true.
@@ -28,6 +31,36 @@ void MORPGCharacterProperty::Process(int timeInMs)
 	if (inputFocus)
 		ProcessInput();
 }
+
+/// o-o
+void MORPGCharacterProperty::ToggleAutorun()
+{
+	autorun = !autorun;
+	/// New state.. do stuffelistuff.
+	if (autorun)
+	{
+		// Do we have a velocity? If not disable autorun straight away.
+		if (!owner->physics->velocity.MaxPart())
+		{
+			autorun = false;
+			return;
+		}
+		// Set relative velocity. It will solve the issue of direction by using the current rotation :)
+		Vector3f velocity(0, 0, -ch->movementSpeed);
+		Physics.QueueMessage(new PMSetEntity(owner, PT_RELATIVE_VELOCITY, velocity));
+		/// Disable regular velocity.
+		Physics.QueueMessage(new PMSetEntity(owner, PT_VELOCITY, Vector3f())); 
+		/// Set damping in case the regular velocity persist somehow.
+		Physics.QueueMessage(new PMSetEntity(owner, PT_LINEAR_DAMPING, 0.5f));
+	}
+	// Leaving autorun-mode.
+	else 
+	{
+		Physics.QueueMessage(new PMSetEntity(owner, PT_LINEAR_DAMPING, 0.9f));
+		Physics.QueueMessage(new PMSetEntity(owner, PT_RELATIVE_VELOCITY, Vector3f()));
+	}
+}
+
 
 
 /** Checks states via InputManager. Regular key-bindings should probably still be defined in the main game state 
@@ -59,33 +92,64 @@ void MORPGCharacterProperty::ProcessInput()
 //	Vector3f rot;
 //	rot.y = right;
 
-	if (lastAcc != acc)
+	// 
+	// Auto-running,.
+	if (autorun)
 	{
-		// Set speed.
-		Physics.QueueMessage(new PMSetEntity(owner, PT_RELATIVE_VELOCITY, acc));
-		lastAcc = acc;
-
-		if (acc.MaxPart() == 0)
-			Physics.QueueMessage(new PMSetEntity(owner, PT_LINEAR_DAMPING, 0.5f));
-		else
-			Physics.QueueMessage(new PMSetEntity(owner, PT_LINEAR_DAMPING, 0.99f));
+		if (lastAcc != acc)
+		{
+		}
+		if (right != lastRight)
+		{
+			// Rotate int Y..
+			Quaternion q = Quaternion(Vector3f(0,1,0), right);
+			Physics.QueueMessage(new PMSetEntity(owner, PT_ROTATIONAL_VELOCITY, q));
+			lastRight = right;
+		}
 	}
-	if (right != lastRight)
-	{
-		// Rotate int Y..
-		Quaternion q = Quaternion(Vector3f(0,1,0), right);
-		Physics.QueueMessage(new PMSetEntity(owner, PT_ROTATIONAL_VELOCITY, q));
-		lastRight = right;
-	}
-
-	
+			
+	/// o-o cameraaaa focsuuuuuu!
 	if (owner->cameraFocus)
 	{
+
+		// Free-form running (relative to camera)
+		if (!autorun)
+		{
+			/// Get camera transform.
+			Vector3f forwardVector = -forward * owner->cameraFocus->LookingAt();
+			forwardVector.Normalize();
+			Vector3f rightwardVector = -right * owner->cameraFocus->LeftVector();
+			rightwardVector.Normalize();
+			Vector3f newVelocity = forwardVector + rightwardVector;
+			// Remove Y-component.
+			newVelocity.y = 0;
+			Vector3f normalizedVelocity = newVelocity.NormalizedCopy();
+			// Multiply movement speed.
+			newVelocity = normalizedVelocity * movementSpeed;
+			
+			static Vector3f lastVelocity;
+			if (lastVelocity != newVelocity)
+			{
+				// And set it!
+				Physics.QueueMessage(new PMSetEntity(owner, PT_VELOCITY, newVelocity)); 
+				lastVelocity = newVelocity;
+				
+				if (newVelocity.MaxPart())
+				{
+					// Set our rotation toward this new destination too!
+					float yaw = atan2(normalizedVelocity.z, normalizedVelocity.x) + PI * 0.5f;
+					Physics.QueueMessage(new PMSetEntity(owner, PT_ROTATION_YAW, yaw));
+				}
+			}
+		}
+
+
 		/// Make sure the camera is rotating around the center of the entity.
 		float height = 1.7f;
 		if (owner->cameraFocus->relativePosition.y != height)
 		{
-			Graphics.QueueMessage(new GMSetCamera(owner->cameraFocus, CT_RELATIVE_POSITION_Y, height - owner->model->centerOfModel.y));
+			Graphics.QueueMessage(new GMSetCamera(owner->cameraFocus, CT_RELATIVE_POSITION_Y, height));
+			Graphics.QueueMessage(new GMSetCamera(owner->cameraFocus, CT_TRACKING_POSITION_OFFSET, Vector3f(0,height,0)));
 		}
 		/// Camera Control, Booyakasha!
 		float cameraRight = 0.f;

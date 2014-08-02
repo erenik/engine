@@ -49,6 +49,7 @@ PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, float value)
 		case PT_VELOCITY_RETAINED_WHILE_TURNING:
 		case PT_POSITION_Y:
 		case PT_POSITION_X:
+		case PT_ROTATION_YAW:
 			break;
 		default:
 			assert("Mismatched target and value in PMSetEntity!");
@@ -384,6 +385,14 @@ void PMSetEntity::Process()
 						break;
 				}
 				entity->physics->UpdateProperties(entity);
+				break;
+			}
+			case PT_ROTATION_YAW:
+			{
+				//
+				Vector3f newRotation = entity->rotation;
+				newRotation.y = fValue;
+				entity->SetRotation(newRotation);
 				break;
 			}
 			case PT_SET_ROTATION: 

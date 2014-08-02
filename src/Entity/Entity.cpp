@@ -743,11 +743,23 @@ void Entity::SetRotation(Vector3f rotation)
 	this->rotation = rotation;
 	if (physics && physics->useQuaternions)
 	{
-		physics->orientation = Quaternion();
-		Quaternion rotationQuaternion = Quaternion(rotation, 1.0f);
-		rotationQuaternion.Normalize();
-		physics->orientation = physics->orientation * rotationQuaternion;
+		/// This assumes Euler angles, so construct an euler angle now!
+		Quaternion pitch(Vector3f(1,0,0), rotation.x), 
+			yaw(Vector3f(0,1,0), rotation.y),
+			roll(Vector3f(0,0,1), rotation.z);
+		
+		Quaternion pitchYaw = pitch * yaw;
+		pitchYaw.Normalize();
+		
+		Quaternion newOrientation = pitch * yaw * roll;
+		physics->orientation = newOrientation;
 		physics->orientation.Normalize();
+
+		//physics->orientation = Quaternion();
+		//Quaternion rotationQuaternion = Quaternion(rotation, 1.0f);
+		//rotationQuaternion.Normalize();
+		//physics->orientation = physics->orientation * rotationQuaternion;
+		//physics->orientation.Normalize();
 	}
 	RecalculateMatrix();
 }

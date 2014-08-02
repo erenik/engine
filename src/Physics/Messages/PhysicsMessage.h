@@ -77,6 +77,7 @@ enum physicsTargets{
 	PT_SET_POSITION,
 	PT_SET_SCALE,
 	PT_SET_ROTATION, // In degrees or radians?
+	PT_ROTATION_YAW, // For setting the yaw (y) component.
 	PT_GRAVITY,
 	PT_ACCELERATION, PT_ACCELERATION_MULTIPLIER, // <- Lazy me, but might be good, hm?
 	PT_ANGULAR_ACCELERATION,

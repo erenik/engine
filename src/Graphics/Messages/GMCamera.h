@@ -36,6 +36,7 @@ enum cameraTargets
 	CT_ZOOM_SPEED,
 
 	CT_ENTITY_TO_TRACK,
+	CT_TRACKING_POSITION_OFFSET,
 
 	// When true, the camera inherits rotation from the entity it is tracking. Default enabled, but may be adjusted via Camera::defaultInheritEntityRotation
 	CT_INHERIT_ROTATION, 

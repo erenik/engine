@@ -145,7 +145,7 @@ void Camera::Nullify()
 	farPlane = -100000.0f;
 	zoom = 0.1f;
 	distanceFromCentreOfMovement = 0.0f;
-	position = Vector3f(10, -10, -20);
+	position = Vector3f(-10, 10, 20);
 	rotation = Vector3f(PI*0.25f, PI*0.125f, 0);
 	flySpeed = 1.0f;
 	rotationSpeed = 0.1f;
@@ -329,7 +329,7 @@ void Camera::Update()
 
 
 		// Then translate the camera to it's position. (i.e. translate the world until camera is at a good position).
-		Matrix4d translationMatrix = Matrix4d().Translate(this->position + relativePosition);
+		Matrix4d translationMatrix = Matrix4d().Translate(-this->position + relativePosition);
 		viewMatrix.Multiply(translationMatrix);
 	}
 
@@ -560,12 +560,13 @@ Ray Camera::GetRayFromScreenCoordinates(Window * window, int mouseX, int mouseY)
 	return result;
 }
 
+#define Maximum(a,b) (a > b? a : b)
 
 /// Tracking mode realizing functions.
 void Camera::FollowAndLookAt(float timeInSeconds)
 {
 	/// Since the position might not be aligned with the center of gravity, look for it.
-	Vector3f entityPosition = entityToTrack->CenterOfGravityWorldSpace();
+	Vector3f entityPosition = entityToTrack->position + trackingPositionOffset;
 
 	/// Move position towards entity if it is not close enough to desired range.
 	Vector3f toEntity = entityPosition - position;
@@ -573,11 +574,11 @@ void Camera::FollowAndLookAt(float timeInSeconds)
 	Vector3f optimalPosition = entityPosition - toEntity.NormalizedCopy() * distanceFromCenterOfMovement;
 
 	/// Strive to have the camera along a certain plane as compared to the entity.
-	optimalPosition.y = entityPosition.y + relativePosition.y;
-	optimalPosition.y += Maximum(distanceFromCenterOfMovement * 0.35f - 2.f, 0);
+	optimalPosition.y = relativePosition.y;
+	optimalPosition.y += Maximum(distanceFromCenterOfMovement * 0.45f - 1.f, 0);
 
 	// If we have any rotation requested, take the optimal position and rotate it (compared to the entity) in target direction! :)
-
+	
 
 
 	// Smooth us toward this optimal position!	
@@ -590,8 +591,7 @@ void Camera::FollowAndLookAt(float timeInSeconds)
 
 	// Look at it from our new position!
 	// Find rotation yaw needed.
-	Vector3f trackingPositionOffset = relativePosition;
-	toEntity = entityPosition + trackingPositionOffset - position;
+	toEntity = entityPosition - position;
 	Vector2f toEntityXZ(toEntity.x, toEntity.z);
 	toEntityXZ.Normalize();
 	float yawNeeded = atan2(toEntityXZ.y, toEntityXZ.x);
@@ -620,7 +620,7 @@ void Camera::FollowAndLookAt(float timeInSeconds)
 		offset = relativePosition;
 
 	// Then translate the camera to it's position. (i.e. translate the world until camera is at a good position).
-	Matrix4d translationMatrix = Matrix4d().Translate(-position + relativePosition);
+	Matrix4d translationMatrix = Matrix4d().Translate(-position);
 	viewMatrix.Multiply(translationMatrix);
 }
 

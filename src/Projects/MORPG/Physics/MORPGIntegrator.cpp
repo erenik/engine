@@ -38,6 +38,8 @@ void MORPGIntegrator::IntegrateVelocity(Entity * forEntity, float timeInSeconds)
 	// Add the relative velocity (from player desired movement)
 	velocity += forEntity->rotationMatrix.Product(pp->relativeVelocity);
 
+	Vector3f lookAt = forEntity->rotationMatrix.Product(Vector3f(0,0,2.f));
+
 	Vector3f distanceTraveled;
 	if (velocity.MaxPart())
 	{

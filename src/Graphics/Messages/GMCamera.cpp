@@ -28,6 +28,7 @@ GMSetCamera::GMSetCamera(Camera * camera, int target, Vector3f vec3fValue)
 		case CT_ROTATION:
 		case CT_RELATIVE_POSITION:
 		case CT_OFFSET_ROTATION:
+		case CT_TRACKING_POSITION_OFFSET:
 			break;
 		default:
 			assert(false);
@@ -132,9 +133,12 @@ void GMSetCamera::Process()
 		}
 		case CT_POSITION:
 		{
-			camera->position = -vec3fValue;
+			camera->position = vec3fValue;
 			break;
 		}
+		case CT_TRACKING_POSITION_OFFSET:
+			camera->trackingPositionOffset = vec3fValue;
+			break;
 		case CT_ROTATION:
 		{
 			camera->rotation = -vec3fValue;

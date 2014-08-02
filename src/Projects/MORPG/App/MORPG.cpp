@@ -5,6 +5,8 @@
 #include "MORPG.h"
 #include "MORPGSession.h"
 
+#include "MORPG/Character/Character.h"
+
 #include "MORPG/Properties/MORPGCharacterProperty.h"
 
 #include "MORPG/World/Zone.h"
@@ -73,6 +75,7 @@ void SetApplicationDefaults()
 MORPG::MORPG()
 {
 	worldMapEntity = NULL;
+	characterProp = NULL;
 }
 
 /// Function when entering this state, providing a pointer to the previous StateMan.
@@ -151,7 +154,13 @@ void MORPG::ProcessMessage(Message * message)
 	{
 		case MessageType::STRING:
 		{
-			if (msg.Contains("NextCamera"))
+			if (msg == "ToggleAutorun")
+			{
+				// Get our player! o.o
+				if (characterProp)
+					characterProp->ToggleAutorun();
+			}
+			else if (msg.Contains("NextCamera"))
 			{
 				// Get active camera.
 				CameraMan.NextCamera();		
@@ -236,6 +245,13 @@ void MORPG::ProcessMessage(Message * message)
 	}
 }
 
+/// Creates default key-bindings for the state.
+void MORPG::CreateDefaultBindings()
+{
+	InputMapping * mapping = &this->inputMapping;
+	mapping->CreateBinding("ToggleAutorun", KEY::R);
+}
+
 /// Load map/zone by name
 void MORPG::EnterZone(Zone * zone)
 {
@@ -260,10 +276,10 @@ void MORPG::EnterZone(Zone * zone)
 		Graphics.QueueMessage(new GMSetCamera(firstPersonCamera, CT_ENTITY_TO_TRACK, player));
 
 		/// o-o...
-		Character * character = NULL;
+		Character * character = new Character();
 
 		// Attach ze propororoty to bind the entity and the player.
-		MORPGCharacterProperty * characterProp = new MORPGCharacterProperty(player, NULL);
+		characterProp = new MORPGCharacterProperty(player, character);
 		player->properties.Add(characterProp);
 		
 		// Enable steering!

@@ -205,6 +205,9 @@ public:
 	*/
 	Ray GetRayFromScreenCoordinates(Window * window, int mouseX, int mouseY) const;
 
+	/// When tracking entities, may add this to the position of the entity (E.g. making it track the head of a character).
+	Vector3f trackingPositionOffset;
+
 
 	Vector3f offsetRotation;
 	Vector3f relativePosition;
