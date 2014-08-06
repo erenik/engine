@@ -12,6 +12,7 @@
 #include "Physics/PhysicsManager.h"
 #include "Physics/Messages/PhysicsMessage.h"
 #include "Physics/PhysicsProperty.h"
+#include "PhysicsLib/Shapes/Ray.h"
 
 #include "Maps/MapManager.h"
 #include "ModelManager.h"

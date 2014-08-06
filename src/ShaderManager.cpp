@@ -169,11 +169,6 @@ Shader * ShaderManager::SetActiveShader(String shaderName)
 /// Sets selected shader to be active. Prints out error information and does not set to new shader if it fails.
 Shader * ShaderManager::SetActiveShader(Shader * shader)
 {
-	// Compile it if not done already?
-	if (!shader->built)
-	{
-		shader->Compile();
-	}
 	GraphicsState * graphicsState = Graphics.graphicsState;
 	if(GL_VERSION_MAJOR < 2){
 		std::cout<<"\nERROR: Unable to set shader program as GL major version is below 2.";
@@ -185,6 +180,14 @@ Shader * ShaderManager::SetActiveShader(Shader * shader)
 		glUseProgram(0);
 		graphicsState->activeShader = 0;
 		return NULL;
+	}
+	else 
+	{
+		// Compile it if not done already?
+		if (!shader->built)
+		{
+			shader->Compile();
+		}
 	}
 	int currentProgram;
 	glGetIntegerv(GL_CURRENT_PROGRAM, &currentProgram);

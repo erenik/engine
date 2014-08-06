@@ -1,6 +1,10 @@
 #include "Waypoint.h"
-#include "../PhysicsLib.h"
+//#include "../PhysicsLib.h"
 #include <cassert>
+
+#include "PhysicsLib.h"
+
+#include "PhysicsLib/Shapes/Plane.h"
 
 Waypoint::Waypoint()
 {
@@ -10,7 +14,7 @@ Waypoint::Waypoint()
 	maxNeighbours = 0;
 	neighbours = 0;
 	passable = true;
-	physicsShape = ShapeType::PLANE;
+	physicsShape = PhysicsShape::PLANE;
 	shape = new Plane();
 	
 	parent = NULL;

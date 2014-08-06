@@ -6,7 +6,7 @@
 
 #include "MathLib.h"
 #include "Selection.h"
-#include "PhysicsLib/Shapes.h"
+// #include "PhysicsLib/Shapes.h"
 
 class Entity;
 
@@ -212,6 +212,7 @@ class CollisionDetector;
 
 class PMSet : public PhysicsMessage {
 public:
+	PMSet(int target, Vector3f value);
 	PMSet(int target, float value);
 	PMSet(int target, bool bValue);
 	PMSet(int target, int iValue);
@@ -220,10 +221,18 @@ public:
 	PMSet(CollisionDetector * cd);
 	virtual void Process();
 private:
+	enum {
+		FLOAT,
+		VEC3F,
+		INT,
+		BOOL,
+	};
 	int target;
+	int dataType;
 	int iValue;
 	float floatValue;
 	bool bValue;
+	Vector3f vec3fValue;
 	Integrator * physicsIntegrator;
 	CollisionResolver * cr;
 	CollisionDetector * cd;

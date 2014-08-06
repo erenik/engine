@@ -100,6 +100,8 @@ public:
 	void operator /= (const float &f);
 	/// Internal element multiplication
 	void operator *= (const float &f);
+	/// Per-element multiplication
+	void operator *= (const Vector2f &vec);
 
 	/// Internal element multiplication
 	Vector2f operator * (const float &f) const;
@@ -141,6 +143,9 @@ public:
 	/// Utility functions
 	static Vector2f Minimum(const Vector2f & vec1, const Vector2f & vec2);
 	static Vector2f Maximum(const Vector2f & vec1, const Vector2f & vec2);
+
+	/// Comparison.
+	bool IsWithinMinMax(Vector2f min, Vector2f max);
 
 public:
 	/// x-coordinate

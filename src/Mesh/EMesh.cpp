@@ -5,7 +5,6 @@
 #include "EMesh.h"
 #include "Material.h"
 #include "OS/Sleep.h"
-#include "PhysicsLib/Shapes.h"
 
 #include <fstream>
 #include <iostream>

@@ -8,6 +8,10 @@
 #include "Physics/Calc/EntityPhysicsEstimator.h"
 #include "Physics/Integrator.h"
 
+#include "PhysicsLib/Shapes/AABB.h"
+#include "PhysicsLib/Shapes/OBB.h"
+
+
 void PhysicsManager::Integrate(float timeInSecondsSinceLastUpdate)
 {
     assert(timeInSecondsSinceLastUpdate > 0);
@@ -82,8 +86,8 @@ void PhysicsManager::Integrate(float timeInSecondsSinceLastUpdate)
                 this->entityCollisionOctree->RepositionEntity(dynamicEntity);
             else if (checkType == AABB_SWEEP){
                 /// Recalculate AABB
-                dynamicEntity->physics->aabb.Recalculate(dynamicEntity);
-                dynamicEntity->physics->obb.Recalculate(dynamicEntity);
+                dynamicEntity->physics->aabb->Recalculate(dynamicEntity);
+                dynamicEntity->physics->obb->Recalculate(dynamicEntity);
             }
         }
     //    std::cout<<"\nPost-positioning Velocity: "<<dynamicEntity->physics->velocity;

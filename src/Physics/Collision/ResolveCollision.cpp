@@ -11,6 +11,8 @@
 #include "Message/MessageManager.h"
 #include "Physics/Contact/Contact.h"
 
+#include "PhysicsLib/Shapes/OBB.h"
+
 #ifndef min
 #define min(a, b) ((a < b)? (a) : (b))
 #endif
@@ -219,9 +221,9 @@ bool ResolveCollision(Collision &data)
 		
 		/// Recalculate matrices if not already done.
 		one->RecalculateMatrix();
-		one->physics->obb.Recalculate(one);
+		one->physics->obb->Recalculate(one);
 		two->RecalculateMatrix();
-		two->physics->obb.Recalculate(two);
+		two->physics->obb->Recalculate(two);
 		
 		bool restrictKineticEnergy = false;
 		// Ensure kinematic energy hasn't flown through the roof..

@@ -19,6 +19,8 @@
 #include "XML/XMLParser.h"
 #include "Model/ColladaImporter.h"
 
+#include "PhysicsLib/Shapes/AABB.h"
+
 // Static model manager singleton
 ModelManager * ModelManager::modelManager = NULL;
 
@@ -208,7 +210,9 @@ Model * ModelManager::LoadObj(String source)
 		if (mesh->max.MaxPart() == 0 && mesh->min.MaxPart() == 0)
 			mesh->CalculateBounds();
 
-		model->aabb = AxisAlignedBoundingBox(mesh->min, mesh->max);
+		if (model->aabb)
+			delete model->aabb;
+		model->aabb = new AABB(mesh->min, mesh->max);
 
 		// Centering can be bad to configuring stuff yourself..!
 	//	mesh->Center();

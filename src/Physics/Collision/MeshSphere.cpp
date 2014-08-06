@@ -6,6 +6,9 @@
 #include "../PhysicsProperty.h"
 #include "Graphics/GraphicsManager.h"
 
+#include "PhysicsLib/PhysicsMesh.h"
+#include "PhysicsLib/Shapes/Quad.h"
+
 bool MeshSphereCollision(Entity * meshEntity, Entity * sphereEntity, Collision &data)
 {
 	assert(meshEntity->physics->physicsShape == ShapeType::MESH &&

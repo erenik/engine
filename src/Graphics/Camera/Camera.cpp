@@ -11,6 +11,8 @@
 #include "Graphics/GraphicsManager.h"
 #include "Graphics/Messages/GMCamera.h"
 
+#include "PhysicsLib/Shapes/Ray.h"
+
 CameraManager::CameraManager()
 {
 	defaultCamera = NULL;
@@ -447,21 +449,21 @@ void Camera::UpdateNavigation()
 {
 	/// Navigation
 	if (navigationControls[Direction::UP] && !navigationControls[Direction::DOWN])
-		this->velocity.y = -this->defaultVelocity * this->flySpeed;
-	else if (navigationControls[Direction::DOWN] && !navigationControls[Direction::UP])
 		this->velocity.y = this->defaultVelocity * this->flySpeed;
+	else if (navigationControls[Direction::DOWN] && !navigationControls[Direction::UP])
+		this->velocity.y = -this->defaultVelocity * this->flySpeed;
 	else
 		this->velocity.y = 0;
 	if (navigationControls[Direction::FORWARD] && !navigationControls[Direction::BACKWARD])
-		this->velocity.z = this->defaultVelocity * this->flySpeed;
-	else if (navigationControls[Direction::BACKWARD] && !navigationControls[Direction::FORWARD])
 		this->velocity.z = -this->defaultVelocity * this->flySpeed;
+	else if (navigationControls[Direction::BACKWARD] && !navigationControls[Direction::FORWARD])
+		this->velocity.z = this->defaultVelocity * this->flySpeed;
 	else
 		this->velocity.z = 0;
 	if (navigationControls[Direction::LEFT] && !navigationControls[Direction::RIGHT])
-		this->velocity.x = this->defaultVelocity * this->flySpeed;
-	else if (navigationControls[Direction::RIGHT] && !navigationControls[Direction::LEFT])
 		this->velocity.x = -this->defaultVelocity * this->flySpeed;
+	else if (navigationControls[Direction::RIGHT] && !navigationControls[Direction::LEFT])
+		this->velocity.x = this->defaultVelocity * this->flySpeed;
 	else
 		this->velocity.x = 0;
 

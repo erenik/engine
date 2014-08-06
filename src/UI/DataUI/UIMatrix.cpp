@@ -101,7 +101,7 @@ void UIMatrix::CreateMatrix()
 /// Stuff.
 void UIMatrix::SetText(Text newText, bool force)
 {
-	Graphics.QueueMessage(new GMSetUIs(label->name, GMUI::GT_TEXT, newText));
+	Graphics.QueueMessage(new GMSetUIs(label->name, GMUI::TEXT, newText));
 }
 
 /// Sets new column and row sizes. Only to be called when doing initial parse or from the render-thread!

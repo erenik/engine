@@ -3,12 +3,10 @@
 #define FRUSTUM_H
 
 #include "../MathLib.h"
-#include "Physics.h"
-
-/// Number used for converting angles to radians, just multiply it in.
-#define ANG2RAD 3.14159265358979323846/180.0
+// #include "Physics.h"
 
 #include "Shapes.h"
+#include "Plane.h"
 
 enum planeSideEnum{
 	LEFT_PLANE = NULL, RIGHT_PLANE,

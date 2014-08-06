@@ -6,7 +6,9 @@
 #include "Mesh/Mesh.h"
 
 #include <cstdlib>
-#include "PhysicsLib/Shapes.h"
+
+#include "PhysicsLib/Shapes/AABB.h"
+#include "PhysicsLib/Shapes/Triangle.h"
 
 char * Model::defaultMesh = NULL;
 Texture * Model::defaultTexture = NULL;
@@ -20,7 +22,9 @@ Model::Model()
 
 	mesh = NULL;
 	triangulizedMesh = NULL;
- }
+
+	aabb = NULL;
+}
 
 Model::~Model()
 {
@@ -38,6 +42,9 @@ Model::~Model()
 		delete triangulizedMesh;
 
 	mesh = triangulizedMesh = NULL;
+
+	if (aabb)
+		delete aabb;
 }
 
 String Model::Source(){

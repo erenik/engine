@@ -6,13 +6,14 @@
 #define VIEWPORT_H
 
 #include "MathLib.h"
-#include "PhysicsLib.h"
+//#include "PhysicsLib.h"
 #include "Graphics/OpenGL.h"
 
 class FrameBuffer;
 class Camera;
 class UserInterface;
 class Window;
+class Ray;
 
 /** A struct to properly divide window screen-space.
 	Can include settings/options that act on a per-viewport basis.

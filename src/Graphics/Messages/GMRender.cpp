@@ -6,7 +6,6 @@
 #include "GraphicsMessage.h"
 #include "GraphicsMessages.h"
 #include "Graphics/Render/RenderRay.h"
-#include "PhysicsLib/Shapes.h"
 #include "Graphics/Render/Renderable.h"
 
 enum {

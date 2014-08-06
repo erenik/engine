@@ -26,6 +26,8 @@
 #include "Graphics/Fonts/TextFont.h"
 #include "EntityProperty.h"
 
+#include "PhysicsLib/Shapes/AABB.h"
+
 const Material Entity::defaultMaterial = Material();
 
 /// Creates a compact entity out of this Entity object
@@ -146,14 +148,10 @@ void Entity::OnCollision(Collision & data)
 AABB * Entity::GetAABB()
 {
 	if (physics)
-		return &physics->aabb;
-	else 
-	{
-		if (!aabb)
-			aabb = new AxisAlignedBoundingBox();
-	//	RecalculateAABB();
-		return aabb;
-	}
+		return physics->aabb;
+	if (!aabb)
+		aabb = new AABB();
+	return aabb;
 }
 
 
@@ -836,6 +834,7 @@ void Entity::RecalculateMatrix()
 		children[i]->RecalculateMatrix();
 	}
 
+	worldPosition = transformationMatrix.Product(Vector4f());
 		// Ensure it has a scale..?
 //	assert(transformationMatrix.HasValidScale());
 }

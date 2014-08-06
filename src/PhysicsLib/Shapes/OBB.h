@@ -2,23 +2,27 @@
 /// 2013-09-19
 /// An oriented bounding bux, for le physicsz!
 
-#ifndef ORIENTEDBOUNDINGBOX_H
-#define ORIENTEDBOUNDINGBOX_H
+#ifndef ORIENTED_BOUNDING_BOX_H
+#define ORIENTED_BOUNDING_BOX_H
 
 #include "MathLib.h"
-#include "PhysicsLib.h"
+//#include "PhysicsLib.h"
 #include "Model/Geometry.h"
 #include "List/List.h"
+#include "Triangle.h"
 
 struct Collision;
 class Entity;
-struct Edge;
-struct Face;
+class Edge;
+class Face;
+class Sphere;
 
-class OrientedBoundingBox {
+#define OrientedBoundingBox OBB
+
+class OBB {
 public:
-    OrientedBoundingBox();
-    virtual ~OrientedBoundingBox();
+    OBB();
+    virtual ~OBB();
 
     /// Recalculate it using the entity's base model's AABB and current matrix.
     void Recalculate(Entity * entity);

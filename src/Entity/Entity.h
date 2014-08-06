@@ -140,7 +140,10 @@ public:
 	/// Returns the center of this entity, determined by position, rotation, and current model.
 	Vector3f CenterOfGravityWorldSpace();
 
-	/// World coordinate position
+	/// Recalculated in RecalculateMatrix. Used to get child positions correctly.
+	Vector4f worldPosition;
+
+	/// Relative world coordinate position
 	Vector3f position;
 	/// Scale in x,y,z
 	Vector3f scale;
@@ -199,6 +202,7 @@ public:
 	/// If a camera is currently tracking this entity, it should be stored here. This will be set from the graphics-thread by the CameraManager ALONE!
 	Camera * cameraFocus;
 private:
+
 	/// Texture to be used for this Entity. TODO: Rename to DiffuseMap?
 	Texture * diffuseMap;
 	/// Normalmap texture for more surface~

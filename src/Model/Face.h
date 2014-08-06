@@ -5,13 +5,15 @@
 #define FACE_H
 
 struct Vertex;
-struct Edge;
+class Edge;
 class Triangle;
 
 #include "MathLib.h"
 #include "List/List.h"
 
-struct Face {
+class Face 
+{
+public:
 	Face();
 	/// Quad initializer.
 	Face(Vertex *, Vertex *, Vertex *, Vertex *);

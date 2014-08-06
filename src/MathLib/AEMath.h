@@ -23,12 +23,22 @@ const float ZERO = 0.0000000001f;
 #endif
 
 #ifndef RoundFloat
-#define RoundFloat(value) (floor((value)+0.5f))
+#define RoundFloat(value) (floor((value) + 0.5f))
 #endif
 
 #ifndef RoundInt
-#define RoundInt(x) ((int)floor((x)+0.5f))
+#define RoundInt(x) ((int)floor((x) + 0.5f))
 #endif
+
+#ifndef MaximumFloat
+#define MaximumFloat(x, y) (x > y ? x : y)
+#endif
+
+#ifndef MinimumFloat
+#define MinimumFloat(x, y) (x < y ? x : y)
+#endif
+
+
 
 /*
 #ifndef max

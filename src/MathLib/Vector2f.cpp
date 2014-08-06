@@ -173,6 +173,13 @@ void Vector2f::operator *= (const float &f){
 	x *= f;
 	y *= f;
 }
+/// Per-element multiplication
+void Vector2f::operator *= (const Vector2f &vec)
+{
+	x *= vec.x;
+	y *= vec.y;
+}
+
 /// Internal element multiplication
 Vector2f Vector2f::operator * (const float &f) const {
 	return Vector2f(x * f, y * f);
@@ -262,4 +269,15 @@ Vector2f Vector2f::Maximum(const Vector2f & vec1, const Vector2f & vec2){
 		vec1.x > vec2.x ? vec1.x : vec2.x,
 		vec1.y > vec2.y ? vec1.y : vec2.y
 	);
+}
+
+/// Comparison.
+bool Vector2f::IsWithinMinMax(Vector2f min, Vector2f max)
+{
+	if (x < max.x &&
+		x > min.x &&
+		y < max.y &&
+		y > min.y)
+		return true;
+	return false;
 }

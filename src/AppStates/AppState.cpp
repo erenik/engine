@@ -36,8 +36,9 @@ void AppState::ProcessPacket(Packet * packet){
 	//std::cout<<"\nState::ProcessPacket called:";
 }
 /// Callback function that will be triggered via the MessageManager when messages are processed.
-void AppState::ProcessMessage(Message * message){
-	std::cout<<"\nState::ProcessMessage called:";
+void AppState::ProcessMessage(Message * message)
+{
+//	std::cout<<"\nState::ProcessMessage called:";
 	switch(message->type){
 		case MessageType::STRING: {
 			String s = message->msg;
@@ -61,7 +62,7 @@ void AppState::ProcessMessage(Message * message){
 					assert(false && "NULL-element :<");
 			}
 			else {
-				std::cout<<"\nUndefined message received: "<<message->msg;
+//				std::cout<<"\nUndefined message received: "<<message->msg;
 			}
 			break;
 		}

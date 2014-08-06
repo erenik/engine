@@ -16,6 +16,8 @@
 
 #include "Graphics/Camera/Camera.h"
 
+#include "PhysicsLib/Shapes/Ray.h"
+
 Viewport::Viewport()
 {
 	Initialize();

@@ -6,6 +6,8 @@
 #include "Physics/PhysicsProperty.h"
 #include "Physics/Springs/Spring.h"
 
+#include "PhysicsLib/Force.h"
+
 
 void PhysicsManager::LabPhysicsIntegrate(Entity * dynamicEntity, float timeSinceLastUpdate)
 {

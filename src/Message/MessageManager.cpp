@@ -391,7 +391,7 @@ void MessageManager::ProcessMessage(Message * message){
 			uiName = message->element->name;
 		}
 		bool visibility = params[2].ParseBool();
-		Graphics.QueueMessage(new GMSetUIb(uiName, GMUI::GT_VISIBILITY, visibility));
+		Graphics.QueueMessage(new GMSetUIb(uiName, GMUI::VISIBILITY, visibility));
 		return;
 	}
 	else if (msg.Contains("SetText(")){
@@ -406,7 +406,7 @@ void MessageManager::ProcessMessage(Message * message){
 		}
 		String text = params[2];
 		text.Remove("\"", true);
-		Graphics.QueueMessage(new GMSetUIs(uiName, GMUI::GT_TEXT, text));
+		Graphics.QueueMessage(new GMSetUIs(uiName, GMUI::TEXT, text));
 		return;
 	}
 	else if (msg.Contains("CyclicUIY(")){

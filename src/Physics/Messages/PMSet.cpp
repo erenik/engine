@@ -8,6 +8,20 @@
 #include "Physics/CollisionResolver.h"
 #include "Physics/CollisionDetector.h"
 
+PMSet::PMSet(int target, Vector3f value)
+: PhysicsMessage(PM_SET), target(target), vec3fValue(value)
+{
+	dataType = VEC3F;
+	switch(target)
+	{
+		case PT_GRAVITY:
+			break;
+		default:
+			assert(false);
+	}
+}
+
+
 PMSet::PMSet(int target, float fValue)
 : PhysicsMessage(PM_SET), target(target), floatValue(fValue)
 {
@@ -83,7 +97,15 @@ void PMSet::Process()
 			Physics.defaultDensity = floatValue;
 			break;
 		case PT_GRAVITY:
-			Physics.gravitation.y = floatValue;
+			switch(dataType)
+			{
+			case VEC3F:
+				Physics.gravitation = vec3fValue;
+				break;
+			case FLOAT:
+				Physics.gravitation.y = floatValue;
+				break;
+			}
 			break;
 		case PT_PAUSE_ON_COLLISSION:
 			Physics.pauseOnCollision = bValue;

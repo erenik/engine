@@ -2,7 +2,7 @@
 // 2013-09-04
 // A class for optimizing collission-detection in physics.
 
-#include "AxisAlignedBoundingBox.h"
+#include "AABB.h"
 #include "Entity/Entity.h"
 #include "Physics/PhysicsProperty.h"
 #include "Model.h"
@@ -13,20 +13,20 @@
 #undef max
 #undef min
 
-AxisAlignedBoundingBox::AxisAlignedBoundingBox(){
+AABB::AABB(){
     min = Vector3f(-0.5f,-0.5f,-0.5f);
     max = Vector3f(0.5f,0.5f,0.5);
     scale = Vector3f(1,1,1);
 }
 
-AxisAlignedBoundingBox::AxisAlignedBoundingBox(Vector3f min, Vector3f max)
+AABB::AABB(Vector3f min, Vector3f max)
 : min(min), max(max)
 {
     scale = max - min;
     position = (max + min) * 0.5f;
 }
 
-bool AxisAlignedBoundingBox::Intersect(const AxisAlignedBoundingBox &aabb2) const {
+bool AABB::Intersect(const AABB &aabb2) const {
     if (min.x > aabb2.max.x ||
         min.y > aabb2.max.y ||
         min.z > aabb2.max.z ||
@@ -39,12 +39,12 @@ bool AxisAlignedBoundingBox::Intersect(const AxisAlignedBoundingBox &aabb2) cons
 }
 
 /// Recalculate the AABBs constraints based on the given entity using it.
-void AxisAlignedBoundingBox::Recalculate(Entity * entity)
+void AABB::Recalculate(Entity * entity)
 {
     Vector3f bounds[8];
     /// Reset min and max depending on the base AABB.
-    min = entity->model->aabb.min;
-    max = entity->model->aabb.max;
+    min = entity->model->aabb->min;
+    max = entity->model->aabb->max;
     Vector3f newMin, newMax;
     /// 8 vectors (extents), for-looped for funs.
     for (int i = 0; i < 8; ++i){

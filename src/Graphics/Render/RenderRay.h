@@ -5,7 +5,7 @@
 #ifndef RENDER_RAY_H
 #define RENDER_RAY_H
 
-#include "PhysicsLib/Shapes.h"
+#include "PhysicsLib/Shapes/Ray.h"
 
 class RenderRay : public Ray {
 public:

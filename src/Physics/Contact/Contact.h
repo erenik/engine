@@ -7,12 +7,16 @@
 
 class Entity;
 
+#include "MathLib.h"
+
 enum contactTypes{
 	NULL_CONTACT,
 	RESTING_CONTACT
 };
 
-struct Contact {
+/// Used for some collision systems, but also the Raycasting system within the Physics system.
+struct Contact 
+{
 	Contact();
 	Contact(Entity * one, Entity * two);
 	/// Eased testing test.
@@ -22,6 +26,8 @@ struct Contact {
 	Entity * one, * two;
 	/// Only resting contact used for now.
 	int type;
+	/// Position of the contact, if any.
+	Vector3f position;
 };
 
 struct RestingContact : public Contact {

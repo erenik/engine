@@ -15,13 +15,14 @@
 
 #include "Material.h"
 #include "OS/Sleep.h"
-#include "PhysicsLib/Shapes.h"
 
 #include <fstream>
 #include <iostream>
 #include <Util.h>
 
 #include "Matrix/Matrix.h"
+
+#include "PhysicsLib/Shapes/Triangle.h"
 
 Mesh::Mesh()
 {

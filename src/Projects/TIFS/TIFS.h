@@ -15,11 +15,13 @@
 
 #include "AppStates/AppState.h"
 
+class Camera;
 class Message;
 class Packet;
 class TIFS;
 class TIFSMapEditor;
 class Entity;
+class TIFSPlayerProperty;
 
 // Global pointers to the game states.
 extern TIFS * tifs;
@@ -58,6 +60,9 @@ public:
 	/// Creates a turret!
 	void CreateTurret(int ofSize, Vector3f atLocation);
 
+	// Spawn player
+	void SpawnPlayer();
+
 	/// o-o
 	List<Entity*> players,
 		turrets,
@@ -65,7 +70,16 @@ public:
 		motherships,
 		groundEntities;
 
+	List<Camera*> cameras;
+
+	// Player property for steering.
+	TIFSPlayerProperty * playerProp;
 private:
+	// Creates a new game with standard stuff.
+	void NewGame();
+
+	void HideMainMenu();
+	void ShowHUD();
 
 };
 

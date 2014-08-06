@@ -160,6 +160,16 @@ Vector2i  Vector2i::operator - (Vector2i subtractor) const {
 	return newVec;
 }
 
+/// Returns a subtracted vector based on this vector and the subtractor.
+Vector2i  Vector2i::operator * (const Vector2i elementMultiplier) const 
+{
+	Vector2i newVec;
+	newVec.x = x * elementMultiplier.x;
+	newVec.y = y * elementMultiplier.y;
+	return newVec;
+};
+
+
 /// Multiplication with int
 Vector2i operator * (int multiplier, Vector2i& vector){
 	Vector2i  newVec;

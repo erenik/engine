@@ -89,6 +89,8 @@ public:
 	Vector2i  operator + (const Vector2i addend) const;
 	/// Returns a subtracted vector based on this vector and the subtractor.
 	Vector2i  operator - (const Vector2i subtractor) const;
+	/// Returns a subtracted vector based on this vector and the subtractor.
+	Vector2i  operator * (const Vector2i elementMultiplier) const;
 
 	/// Multiplication with ints
 	friend Vector2i operator * (int multiplier, Vector2i& vector);

@@ -4,6 +4,7 @@
 #include "../Entity/Entity.h"
 #include "Collisions.h"
 #include "../PhysicsProperty.h"
+#include "PhysicsLib/Shapes/Quad.h"
 
 bool QuadSphereCollision(Entity * quadEntity, Entity * sphere, Collision &data){
 	assert(quadEntity->physics->physicsShape == ShapeType::QUAD);

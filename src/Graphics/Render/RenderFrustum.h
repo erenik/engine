@@ -5,7 +5,7 @@
 #define RENDER_FRUSTUM_H
 
 #include "Renderable.h"
-#include "PhysicsLib/Frustum.h"
+#include "PhysicsLib/Shapes/Frustum.h"
 
 class RenderFrustum : public Renderable {
 public:

@@ -1,19 +1,21 @@
 /// Emil Hedemalm
 /// 2013-09-19
 
-#include "OrientedBoundingBox.h"
-#include "AxisAlignedBoundingBox.h"
+#include "OBB.h"
+#include "AABB.h"
 #include "Entity/Entity.h"
 #include "Graphics/OpenGL.h"
 #include "Model.h"
 #include "Physics/Collision/Collision.h"
 
-OrientedBoundingBox::OrientedBoundingBox()
+#include "PhysicsLib/Shapes/Sphere.h"
+
+OBB::OBB()
 {
     //ctor
 }
 
-OrientedBoundingBox::~OrientedBoundingBox()
+OBB::~OBB()
 {
     //dtor
 	vertexList.ClearAndDelete();
@@ -23,7 +25,7 @@ OrientedBoundingBox::~OrientedBoundingBox()
 
 
 /// Checks whether the target sphere is within this OBB or not. Might not factor in radius!
-bool OrientedBoundingBox::IsInside(Sphere & sphere){
+bool OBB::IsInside(Sphere & sphere){
 	sphere.position;
 	Vector3f obbToSphere = sphere.position - position;
 	float dot;
@@ -43,7 +45,7 @@ bool OrientedBoundingBox::IsInside(Sphere & sphere){
 	return true;
 }
 
-bool OrientedBoundingBox::Collide(Sphere & sphere, Collision & collissionData){
+bool OBB::Collide(Sphere & sphere, Collision & collissionData){
 	sphere.position;
 	Vector3f obbToSphere = sphere.position - position;
 	float vecDotForward, vecDotUp, vecDotRight,
@@ -126,10 +128,12 @@ bool OrientedBoundingBox::Collide(Sphere & sphere, Collision & collissionData){
 
 
 /// Recalculate it using the entity's base model's AABB and current matrix.
-void OrientedBoundingBox::Recalculate(Entity * entity){
+void OBB::Recalculate(Entity * entity)
+{
+	assert(entity->model);
     assert(entity->physics);
 //    std::cout<<"\nRecalculating OBB for entity "<<entity<<" "<<entity->position;
-    AxisAlignedBoundingBox & aabb = entity->model->aabb;
+    AABB & aabb = *entity->model->aabb;
     Vector3f & min = aabb.min, & max = aabb.max;
 	localSize = max - min;
 	localHalfSize = localSize * 0.5f;
@@ -261,7 +265,7 @@ void OrientedBoundingBox::Recalculate(Entity * entity){
 }
 
 
-void OrientedBoundingBox::Render(){
+void OBB::Render(){
     glBegin(GL_LINE_STRIP);
 #define RENDER(p);  glVertex3f(p.x,p.y,p.z);
     glColor3f(1,0,0);

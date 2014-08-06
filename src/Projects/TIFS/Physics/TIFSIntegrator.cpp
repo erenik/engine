@@ -6,9 +6,11 @@
 
 #include "Physics/PhysicsManager.h"
 
+
 /** All entities sent here should be fully dynamic! 
 	Kinematic ones may or may not work (consider adding own integration function).
 */
+/*
 void TIFSIntegrator::IntegrateDynamicEntities(List<Entity*> dynamicEntities, float timeInSeconds)
 {
 	for (int i = 0; i < dynamicEntities.Size(); ++i)
@@ -21,7 +23,7 @@ void TIFSIntegrator::IntegrateDynamicEntities(List<Entity*> dynamicEntities, flo
 
 /** All entities sent here should be fully kinematic! 
 	If not subclassed, the standard IntegrateEntities is called.
-*/
+*//*
 void TIFSIntegrator::IntegrateKinematicEntities(List<Entity*> kinematicEntities, float timeInSeconds)
 {
 
@@ -139,4 +141,4 @@ void TIFSIntegrator::IntegrateVelocity(Entity * forEntity, float timeInSeconds)
 		pp->velocity = pp->velocity - forward * oldForwardDotVel + newForward * oldForwardDotVel;
 	}
 	*/
-}
+//}

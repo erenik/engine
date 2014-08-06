@@ -4,6 +4,8 @@
 #include "Collisions.h"
 #include "Entity/Entity.h"
 #include "Physics/PhysicsProperty.h"
+#include "PhysicsLib/Shapes/Cube.h"
+#include "PhysicsLib/Shapes/Frustum.h"
 
 bool CubeSphereCollision(Entity * cubeEntity, Entity * sphereEntity, Collision &data){
 	assert(cubeEntity->physics->physicsShape == ShapeType::CUBE &&

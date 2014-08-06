@@ -2,12 +2,18 @@
 // 2013-07-03 Linuxification.
 
 #include "Graphics/GraphicsManager.h"
+
 #include "Physics/PhysicsManager.h"
 #include "Physics/PhysicsProperty.h"
-#include "PhysicsLib/PhysicsMesh.h"
-#include "Physics/Collision/CollisionShapeOctree.h"
-#include "GraphicsState.h"
 #include "Physics/Springs/Spring.h"
+#include "Physics/Collision/CollisionShapeOctree.h"
+
+#include "PhysicsLib/PhysicsMesh.h"
+#include "PhysicsLib/Shapes/AABB.h"
+#include "PhysicsLib/Shapes/Quad.h"
+#include "PhysicsLib/Shapes/Cube.h"
+
+#include "GraphicsState.h"
 #include "Viewport.h"
 
 #include "ModelManager.h"
@@ -115,10 +121,10 @@ void GraphicsManager::RenderPhysics(){
            // glColor4f(0.5f,0.5f,0.5f,1.0f);
             glUniform1f(glGetUniformLocation(graphicsState->activeShader->shaderProgram, "rainbowXYZFactor"), 0.2f);
             Matrix4f aabbMatrix;
-            AxisAlignedBoundingBox & aabb = entity->physics->aabb;
+            AABB * aabb = entity->physics->aabb;
         //    std::cout<<"\nAABB: Position: "<<aabb.position<<" scale: "<<aabb.scale<<" min: "<<aabb.min<<" max: "<<aabb.max;
-            aabbMatrix.Translate(entity->physics->aabb.position);
-            aabbMatrix.Scale(entity->physics->aabb.scale);
+            aabbMatrix.Translate(aabb->position);
+            aabbMatrix.Scale(aabb->scale);
 
             glUniformMatrix4fv(graphicsState->activeShader->uniformModelMatrix, 1, false, aabbMatrix.getPointer());
             Model * cube = ModelMan.GetModel("cube.obj");
@@ -199,11 +205,12 @@ void GraphicsManager::RenderPhysics(){
 
 				break;
 			}
+								  /*
 			case ShapeType::CYLINDER: {
 				Cylinder * cylinder = (Cylinder*)entity->physics->shape;
 				model = ModelMan.GetModel("sphere.obj");
 				break;
-			}
+			}*/
 			case ShapeType::SPHERE: {
 				// Multiply by entity
 				transformationMatrix.Multiply((Matrix4d().Scale(entity->radius)));

@@ -7,6 +7,7 @@
 
 #include <cstdlib>
 #include <cstdarg>
+#include "MathLib.h"
 
 #define CLEAR_AND_DELETE(p) {for(int i = 0; i < p.Size(); ++i) delete p[i]; p.Clear();}
 #define DELETE_LIST_IF_VALID(p) {if(p) CLEAR_AND_DELETE((*p)); delete p; p = NULL;}
@@ -45,6 +46,8 @@ public:
 
 	/// Resizing function
 	void Allocate(Vector2i size);
+	/// Same as allocate..
+	virtual void SetSize(Vector2i size);
 	
 	/// Prints conents, along with position (x/y)
 	void PrintContents();
@@ -94,7 +97,7 @@ public:
 	/// If wanting to save/load it, allow this.
 	value_type * GetArray() { return arr; };
 	/// Returns size of the matrix.
-	const int & Size() const;
+	const Vector2i & Size() const;
 
 	/// Polls the existance/copy of target item in the queue.
 	bool Exists(value_type item) const;
@@ -174,6 +177,14 @@ void Matrix<T>::Allocate(Vector2i size)
 	this->size = size;
 }
 
+/// Same as allocate..
+template <class T>
+void Matrix<T>::SetSize(Vector2i size)
+{
+	Allocate(size);
+}
+	
+
 /// Prints conents, along with position (x/y)
 template <class T>
 void Matrix<T>::PrintContents()
@@ -204,6 +215,13 @@ const T * Matrix<T>::operator[](int x) const
 	return &arr[index];	
 }
 
+/// Returns size of the matrix.
+template <class T>
+const Vector2i & Matrix<T>::Size() const
+{
+	return size;
+}
+
 
 /// Returns target element as if treating the matrix data as a long list.
 template <class T>
@@ -220,6 +238,20 @@ template <class T>
 int Matrix<T>::Elements()
 {
 	return arrLength;
+}
+
+/// Polls the existance/copy of target item in the queue. Returns it's index if so and -1 if not.
+template <class T>
+Vector2i Matrix<T>::GetLocationOf(T item) const
+{
+	for (int i = 0; i < arrLength; ++i)
+	{
+		if (arr[i] == item)
+		{
+			return Vector2i(i / size.y, i % size.x);
+		}
+	}
+	return Vector2i(-1,-1);
 }
 
 

@@ -9,8 +9,6 @@
 #include "Entity/EntityManager.h"
 #include "Entity/Entity.h"
 #include "Entity/CompactEntity.h"
-#include "Physics/PhysicsProperty.h"
-#include "Physics/PhysicsManager.h"
 #include "Graphics/GraphicsManager.h"
 #include "Texture.h"
 #include "TextureManager.h"
@@ -25,6 +23,13 @@
 #include "Graphics/Render/Renderable.h"
 #include <cstring>
 #include "Script/Script.h"
+
+#include "Physics/PhysicsProperty.h"
+#include "Physics/PhysicsManager.h"
+
+#include "PhysicsLib/Shapes/Sphere.h"
+#include "PhysicsLib/Shapes/Ray.h"
+
 
 // Singleton initialization.
 MapManager * MapManager::mapMan = NULL;

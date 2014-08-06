@@ -4,15 +4,21 @@
 #ifndef PHYSICS_PROPERTY_H
 #define PHYSICS_PROPERTY_H
 
+#include "PhysicsLib.h"
+#include "Entity/Entity.h"
 #include "Physics/PhysicsSettings.h"
-#include "../PhysicsLib.h"
+
 class PhysicsOctree;
 struct CompactPhysics;
-struct PhysicsMesh;
+class PhysicsMesh;
 struct AABBSweepNode;
 struct Contact;
 class Spring;
 class EntityPhysicsEstimator;
+class AABB;
+class OBB;
+class Force;
+class Entity;
 
 enum collissionStates {
     COLLISSION_STATE_NULL,
@@ -117,8 +123,8 @@ public:
 //	Vector3f physicalPosition;
 
     /// Coordinates for axis-aligned bounding box (if used)
-    AxisAlignedBoundingBox aabb;
-    OrientedBoundingBox obb;
+    AABB * aabb;
+    OBB * obb;
     AABBSweepNode * aabbSweepNodes[2];
 
     /// NOTE: Position, x(t), is defined in the base Entity-class!

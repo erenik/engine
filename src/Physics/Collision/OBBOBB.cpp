@@ -3,11 +3,14 @@
 /// Oriented bounding box intersection test.
 
 #include "Collisions.h"
-#include "PhysicsLib/OrientedBoundingBox.h"
+#include "PhysicsLib/Shapes/OBB.h"
+#include "PhysicsLib/Shapes/Line.h"
+#include "PhysicsLib/Shapes/Quad.h"
+#include "PhysicsLib/Shapes/Sphere.h"
 #include "Physics/PhysicsManager.h"
 
 /// Checks intersection along an axis... yup.
-bool IntersectOnAxis(OrientedBoundingBox * obb1, OrientedBoundingBox * obb2, Vector3f axis, float & intersectionDepth){
+bool IntersectOnAxis(OBB * obb1, OBB * obb2, Vector3f axis, float & intersectionDepth){
 	
 	float oneMax, oneMin, twoMax, twoMin;
 	float tmp;
@@ -165,7 +168,7 @@ void EnsurePointWithinFaceBoundary(Vector3f & point, const Face & face, const Ve
 }
 
 /// For them OBBs.
-bool OBBOBBCollision(OrientedBoundingBox * obb1, OrientedBoundingBox * obb2, Collision & data){
+bool OBBOBBCollision(OBB * obb1, OBB * obb2, Collision & data){
 
     /// Data-data!
     Sphere sphere;
@@ -402,7 +405,8 @@ bool OBBOBBCollision(OrientedBoundingBox * obb1, OrientedBoundingBox * obb2, Col
     /// Set it's radius to be a fraction (0.0001f?) of the related bounding box.
 	assert(obb2->localSize.MaxPart() > 0);
     sphere.radius = obb2->localSize.MaxPart() * 0.0001f;
-    for (int i = 0; i < 8; ++i){
+    for (int i = 0; i < 8; ++i)
+	{
         /// Set the vertex to be a very small sphere!
         sphere.position = obb2->corners[i];
 

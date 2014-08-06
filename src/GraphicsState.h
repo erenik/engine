@@ -11,7 +11,7 @@
 // Might as well include OpenGL here 
 #include "Graphics/OpenGL.h"
 
-#include "PhysicsLib/Frustum.h"
+#include "PhysicsLib/Shapes/Frustum.h"
 #include "Util/List/List.h"
 #include "Selection.h"
 

@@ -3,6 +3,9 @@
 #include "Physics/Collision/CollisionShapeOctree.h"
 #include "Mesh/Mesh.h"
 
+#include "PhysicsLib/Shapes/Ray.h"
+#include "PhysicsLib/Shapes/Ngon.h"
+#include "PhysicsLib/Shapes/Quad.h"
 
 PhysicsMesh::PhysicsMesh(){
 	collisionShapeOctree = NULL;
@@ -17,6 +20,27 @@ PhysicsMesh::~PhysicsMesh(){
 		delete collisionShapeOctree;
 	collisionShapeOctree = NULL;
 };
+
+/// Performs a raycast considering target ray and the transform of this physics mesh.
+List<Intersection> PhysicsMesh::Raycast(Ray & ray, Matrix4f & transform)
+{
+	List<Intersection> intersections;
+	// o-o
+	for (int i = 0; i < triangles.Size(); ++i)
+	{
+		Triangle triangle = *triangles[i];	
+		triangle.Transform(transform);
+		// Do intersection test
+		float distance;
+		if (ray.Intersect(triangle, &distance))
+		{
+			Intersection newI;
+			newI.distance = distance;
+			intersections.Add(newI);
+		}
+	}
+	return intersections;
+}
 
 /// Generates a collission shape octree that can be used in the local-coordinate system or multiplied by matrices to be used globally.
 void PhysicsMesh::GenerateCollisionShapeOctree()

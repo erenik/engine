@@ -5,7 +5,7 @@
 #ifndef AABBSWEEPER_H
 #define AABBSWEEPER_H
 
-#include "AxisAlignedBoundingBox.h"
+#include "PhysicsLib/Shapes/AABB.h"
 #include "List/List.h"
 
 struct EntityPair {
@@ -21,7 +21,7 @@ struct AABBSweepNode {
         START,
         STOP,
     };
-    AxisAlignedBoundingBox * aabb;
+    AABB * aabb;
     Entity * entity;
     int type;
 };

@@ -7,9 +7,10 @@
 
 #include "Direction.h"
 #include "MathLib.h"
-#include "PhysicsLib.h"
+//#include "PhysicsLib.h"
 #include <String/AEString.h>
 #include "Time/Time.h"
+#include "PhysicsLib/Shapes/Frustum.h"
 
 class Window;
 

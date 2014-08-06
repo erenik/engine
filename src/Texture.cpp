@@ -306,6 +306,11 @@ bool Texture::Bufferize()
 		std::cout<<"\nNo data to bufferize!";
 		return false;
 	}
+	if (height == 0 || width == 0)
+	{
+		// nothing to buferize..
+		return false;
+	}
 	queueRebufferization = false;
 	/// Don't bufferize multiple times if not special texture, pew!
 	if (glid != -1 && !dynamic){

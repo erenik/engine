@@ -17,6 +17,12 @@
 #include "Physics/CollisionResolver.h"
 #include "Physics/CollisionDetector.h"
 
+#include "PhysicsLib/PhysicsMesh.h"
+#include "PhysicsLib/Shapes/Sphere.h"
+#include "PhysicsLib/Shapes/Quad.h"
+#include "PhysicsLib/Shapes/Cube.h"
+#include "PhysicsLib/Shapes/Ray.h"
+
 #include "Mesh/Mesh.h"
 
 #include <ctime>
@@ -102,6 +108,63 @@ void PhysicsManager::InitOctree(float size){
 void PhysicsManager::InitOctree(float leftBound, float rightBound, float topBound, float bottomBound, float nearBound, float farBound){
 	entityCollisionOctree->SetBoundaries(leftBound, rightBound, topBound, bottomBound, nearBound, farBound);
 }
+
+/// Casts a ray.
+List<Intersection> PhysicsManager::Raycast(Ray & ray)
+{
+	// Pause physics while at it?
+	Pause();
+	List<Intersection> intersections;
+	// Grab entities.
+	List<Entity*> entities = physicalEntities;
+
+	// Do some initial filtering, as most of the entities will either: not be relevant for the raycast or may be culled quickly using a sphere-ray check.
+	
+	// Do brute-force ray-casting. Improve later.
+	float distance;
+	for (int i = 0; i < entities.Size(); ++i)
+	{
+		Entity * entity = entities[i];
+		PhysicsProperty * pp = entity->physics;
+		switch(pp->physicsShape)
+		{
+			case PhysicsShape::SPHERE:
+			{
+				// Grab the entity's sphere, do check.
+				Sphere * sp = (Sphere*)pp->shape;
+				sp->position = entity->worldPosition;
+				assert(sp);
+		//		RayQuadIntersection
+				
+				if (ray.Intersect(*sp, &distance))
+				{
+					Intersection iSec;
+					iSec.distance = distance;
+					iSec.entity = entity;
+					intersections.Add(iSec);
+				}
+				break;
+			}
+			case PhysicsShape::MESH:
+			{
+				List<Intersection> iSecs = pp->physicsMesh->Raycast(ray, entity->transformationMatrix);
+				// Mark which entity it was..
+				for (int j = 0; j < iSecs.Size(); ++j)
+				{
+					iSecs[j].entity = entity;
+				}
+				intersections += iSecs;
+				break;
+			}
+			default:
+				assert(false);
+		}
+	}
+	// Resume if paused.
+	Resume();
+	return intersections;
+}
+
 
 /// Queues a message to the physics-queue, waiting for the mutex to be released before accessing it.
 void PhysicsManager::QueueMessage(PhysicsMessage * msg) {
@@ -357,7 +420,7 @@ void PhysicsManager::RecalculatePhysicsProperties(){
 	//	physics->physicalPosition += entity->model->centerOfModel.ElementMultiplication(entity->scale);
 		// Recalculate radius
 		physics->physicalRadius = entity->model->radius * entity->scale.MaxPart();
-		physics->aabb.Recalculate(entity);
+		physics->aabb->Recalculate(entity);
 	}
 }
 

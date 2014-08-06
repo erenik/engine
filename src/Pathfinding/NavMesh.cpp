@@ -2,9 +2,10 @@
 // Date: 2013-02-27
 
 #include "NavMesh.h"
-#include "PhysicsLib/Shapes.h"
 #include <cstring>
 #include <ctime>
+
+#include "PhysicsLib/Shapes/Ray.h"
 
 /// An organization of waypoints that are interconnected somehow, like a map.
 NavMesh::NavMesh(){
@@ -700,7 +701,8 @@ bool NavMesh::MergeWaypoints(Waypoint ** waypointList, int waypointsToMerge)
 }
 
 /// Selection..
-Waypoint * NavMesh::GetClosestToRay(Ray & ray){
+Waypoint * NavMesh::GetClosestToRay(Ray & ray)
+{
 	float closestDot = 0.0f;
 	Waypoint * closest = NULL;
 	float dotProd = 0.0f;

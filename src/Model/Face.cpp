@@ -3,7 +3,7 @@
 
 #include "Vertex.h"
 #include "Edge.h"
-#include "PhysicsLib.h"
+#include "PhysicsLib/Shapes/Triangle.h"
 
 Face::Face(){
 

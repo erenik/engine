@@ -4,8 +4,9 @@
 #ifndef VFC_OCTREE_H
 #define VFC_OCTREE_H
 
-#include "PhysicsLib.h"
+#include "PhysicsLib/Location.h"
 #include "List/List.h"
+#include "PhysicsLib/Shapes/Frustum.h"
 
 class GraphicsState;
 class Entity;

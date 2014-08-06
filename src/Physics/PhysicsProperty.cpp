@@ -7,6 +7,9 @@
 #include "Model.h"
 #include "Contact/Contact.h"
 
+#include "PhysicsLib/Shapes/AABB.h"
+#include "PhysicsLib/Shapes/OBB.h"
+
 PhysicsProperty::PhysicsProperty()
 {
 	Nullify();
@@ -74,6 +77,8 @@ PhysicsProperty::PhysicsProperty(const CompactPhysics * compactPhysics){
 /// Set default values.
 void PhysicsProperty::Nullify()
 {
+	aabb = 0;
+	obb = 0;
     locks = 0;
     inertiaTensorCalculated = false;
 	type = PhysicsType::NULL_TYPE;
@@ -128,7 +133,7 @@ void PhysicsProperty::SetMass(float mass)
 void PhysicsProperty::CalculateInertiaTensor()
 {
 	/// Calculate it's mass too while we're at it.
-	Vector3f scale = aabb.scale;
+	Vector3f scale = aabb->scale;
 	/// TODO: Move mass settings elsewhere! And have it depend on a density parameter so it can scale well?
 	/// Density in kg/m³ or g/dm³
 	float defaultDensity = 500;
@@ -141,9 +146,9 @@ void PhysicsProperty::CalculateInertiaTensor()
 	/// Calculate intertia tensor!
 	/// Ref: http://en.wikipedia.org/wiki/List_of_moment_of_inertia_tensors
 	float m = 1.0f / 12.0f * mass;
-	float h2 = pow(aabb.scale.y, 2);
-	float w2 = pow(aabb.scale.x, 2);
-	float d2 = pow(aabb.scale.z, 2);
+	float h2 = pow(aabb->scale.y, 2);
+	float w2 = pow(aabb->scale.x, 2);
+	float d2 = pow(aabb->scale.z, 2);
 
 	#define PRINT(m) std::cout<<"\n m: "<<m;
 	std::cout<<"\nm: "<<m;
@@ -197,7 +202,7 @@ void PhysicsProperty::ApplyImpulse(Vector3f impulse, Vector3f position){
 	linearMomentum += deltaLinearMomentum;
 
 	/// Give it an increase to the angular momentum.
-	Vector3f centerToPosition = position - obb.position;
+	Vector3f centerToPosition = position - obb->position;
 	Vector3f crossProduct = -centerToPosition.CrossProduct(impulse);
 	/// Try only cross product..?
 //	Vector3f deltaAngularMomentum = inertiaTensorInverted.product(crossProduct);
@@ -224,8 +229,8 @@ void PhysicsProperty::UpdateProperties(Entity * entity)
 	if (entity->model)
 	{
 		physicalRadius = entity->model->radius * entity->scale.MaxPart();
-		aabb.Recalculate(entity);
-		obb.Recalculate(entity);
+		aabb->Recalculate(entity);
+		obb->Recalculate(entity);
 	}
 	else 
 		physicalRadius = 0;

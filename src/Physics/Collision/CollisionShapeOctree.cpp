@@ -9,7 +9,8 @@
 #include "Graphics/Camera/Camera.h"
 #include "Collision.h"
 #include "Viewport.h"
-extern PhysicsManager physics;
+
+#include "PhysicsLib/Shapes/Sphere.h"
 
 /// Define the static values
 

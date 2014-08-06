@@ -4,7 +4,9 @@
 #ifndef PHYSICS_MANAGER_H
 #define PHYSICS_MANAGER_H
 
-#include "../PhysicsLib.h"
+//#include "../PhysicsLib.h"
+#include "PhysicsLib.h"
+#include "PhysicsLib/Intersection.h"
 #include "PhysicsOctree.h"
 #include "Messages/PhysicsMessage.h"
 #include <Util.h>
@@ -18,6 +20,8 @@ class AABBSweeper;
 class Mesh;
 struct Contact;
 class Spring;
+class PhysicsMesh;
+class Ray;
 
 #define Physics		(*PhysicsManager::Instance())
 
@@ -77,6 +81,9 @@ public:
 	void ApproximateIntegrate(Entity * entity, float timeSinceLastUpdate);
 
 	void DetectCollisions();
+
+	/// Casts a ray.
+	List<Intersection> Raycast(Ray & ray);
 
     /// See above.
     /// Defines if AABBs or sphere-octrees should be used to broad-phase collission detection.

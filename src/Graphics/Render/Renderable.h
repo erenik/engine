@@ -6,7 +6,7 @@
 #define RENDERABLE_H
 
 #include "MathLib.h"
-#include "PhysicsLib/Shapes.h"
+#include "PhysicsLib/Shapes/Triangle.h"
 
 struct RenderOptions {
     RenderOptions();

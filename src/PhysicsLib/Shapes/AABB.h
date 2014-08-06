@@ -9,13 +9,13 @@
 
 class Entity;
 
-#define AABB AxisAlignedBoundingBox
+//#define AABB AABB
 
-class AxisAlignedBoundingBox {
+class AABB {
 public:
-    AxisAlignedBoundingBox();
-    AxisAlignedBoundingBox(Vector3f min, Vector3f max);
-    bool Intersect(const AxisAlignedBoundingBox &aabb2) const;
+    AABB();
+    AABB(Vector3f min, Vector3f max);
+    bool Intersect(const AABB &aabb2) const;
     /// Recalculate the AABBs constraints based on the given entity's transform and base model AABB.
     void Recalculate(Entity * entity);
 

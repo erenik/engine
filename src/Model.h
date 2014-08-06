@@ -6,8 +6,9 @@
 #define MODEL_H
 
 #include "Util.h"
-#include "PhysicsLib/AxisAlignedBoundingBox.h"
+#include "MathLib.h"
 
+class AABB;
 class Mesh;
 class Texture;
 class Triangle;
@@ -62,7 +63,7 @@ public:
 	/// Radius
 	float radius;
 	/// AABB
-	AxisAlignedBoundingBox aabb;
+	AABB * aabb;
 
 private:
 

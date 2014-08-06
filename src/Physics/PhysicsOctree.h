@@ -7,9 +7,10 @@
 
 #include "Collision/Collisions.h"
 #include "Collision/Collision.h"
-#include "../PhysicsLib.h"
+//#include "../PhysicsLib.h"
 #include "../Entity/Entity.h"
 #include <Util.h>
+#include "PhysicsLib/Location.h"
 class Entity;
 
 /** Physics Collision Detection Octree

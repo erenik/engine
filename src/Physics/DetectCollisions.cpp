@@ -52,7 +52,7 @@ void PhysicsManager::DetectCollisions()
 
 				/// TODO: Do Narrow-phase!
                 Collision collissionData;
-                bool collissionImminent = OBBOBBCollision(&ep.one->physics->obb, &ep.two->physics->obb, collissionData);
+                bool collissionImminent = OBBOBBCollision(ep.one->physics->obb, ep.two->physics->obb, collissionData);
                 if (collissionImminent){
                     /// Set them to render as collidididiing!
                     ep.one->physics->collissionState = COLLIDING;
@@ -94,7 +94,7 @@ void PhysicsManager::DetectCollisions()
 							collissionData.results |= RESOLVED;
 								
 							Collision tempData;
-							bool stillColliding = OBBOBBCollision(&ep.one->physics->obb, &ep.two->physics->obb, tempData);
+							bool stillColliding = OBBOBBCollision(ep.one->physics->obb, ep.two->physics->obb, tempData);
 							if (stillColliding && AbsoluteValue(tempData.distanceIntoEachOther) > 0.001f){
 								/*
 								std::cout<<"\n UGUUUUUUUUUUUUUUUUUUUUUU";

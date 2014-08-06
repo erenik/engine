@@ -23,9 +23,10 @@ enum collissionCallbackRequirements{
 	COLLISSION_CALLBACK_TYPES
 };
 
-#include "../PhysicsLib.h"
+//#include "../PhysicsLib.h"
+#include "PhysicsLib/Shapes/Triangle.h"
 #include "../MathLib.h"
-class Entity;
+#include "Entity/Entity.h"
 
 struct CollisionResolution {
 	Vector3f deltaLinearMomentum[2];

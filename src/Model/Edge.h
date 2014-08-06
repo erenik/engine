@@ -8,7 +8,8 @@
 #include "Face.h"
 #include "MathLib.h"
 
-struct Edge {
+class Edge {
+public:
 	Edge();
 	Edge(Vertex * one, Vertex * two);
 	Edge(Vector3f start, Vector3f stop);

@@ -4,6 +4,8 @@
 #include "../PhysicsManager.h"
 #include "PhysicsLib/AABBSweeper.h"
 
+#include "PhysicsLib/Shapes/OBB.h"
+
 /** Registers an Entity to take part in physics calculations. This requires that the Entity has the physics attribute attached.
 	Returns 0 upon success, 1 if it's lacking a physics attribute, 2 if the Entity array has been filled and 3 if the dynamic entity array has been filled.
 */
@@ -36,6 +38,12 @@ int PhysicsManager::RegisterEntity(Entity * newEntity)
 	if (physicalEntities.Exists(newEntity))
 		return 4;
 	physicalEntities.Add(newEntity);
+
+	PhysicsProperty * pp = newEntity->physics;
+	if (!pp->aabb)
+		pp->aabb = new AABB();
+	if (!pp->obb)
+		pp->obb = new OBB();
 
     /// Update size/AABB/etc.
     newEntity->physics->UpdateProperties(newEntity);
@@ -97,8 +105,8 @@ int PhysicsManager::RegisterEntity(Entity * newEntity)
 	/// Recalculate AABB/OBB-data.
 	if (newEntity->model)
 	{
-		newEntity->physics->aabb.Recalculate(newEntity);
-		newEntity->physics->obb.Recalculate(newEntity);
+		newEntity->physics->aabb->Recalculate(newEntity);
+		newEntity->physics->obb->Recalculate(newEntity);
 	}
 //	assert(entitiesInOctree == physicalEntitiesNum);
 

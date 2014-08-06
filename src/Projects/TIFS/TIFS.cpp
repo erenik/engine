@@ -19,13 +19,17 @@
 #include "TIFSMapEditor.h"
 
 #include "TIFS/Physics/TIFSIntegrator.h"
+#include "TIFS/Physics/TIFSCD.h"
+#include "TIFS/Physics/TIFSCR.h"
 
+#include "TIFS/Properties/TIFSPlayerProperty.h"
 #include "TIFS/Properties/TIFSTurretProperty.h"
 #include "TIFS/Properties/TIFSDroneProperty.h"
 
 #include "Graphics/GraphicsManager.h"
 #include "Graphics/Messages/GMSet.h"
 #include "Graphics/Messages/GMSetEntity.h"
+#include "Graphics/Messages/GMUI.h"
 #include "Graphics/Messages/GMCamera.h"
 #include "Graphics/Camera/Camera.h"
 
@@ -50,6 +54,7 @@
 TIFS * tifs = NULL;
 TIFSMapEditor * mapEditor = NULL;
 
+Camera * firstPersonCamera = NULL;
 Camera * freeFlyCamera = NULL;
 
 void SetApplicationDefaults()
@@ -74,6 +79,8 @@ TIFS::TIFS()
 }
 
 TIFSIntegrator * integrator = 0;
+TIFSCD * cd = 0;
+TIFSCR * cr = 0;
 
 /// Function when entering this state, providing a pointer to the previous StateMan.
 void TIFS::OnEnter(AppState * previousState)
@@ -81,15 +88,33 @@ void TIFS::OnEnter(AppState * previousState)
 	// Setup integrator.
 	if (!integrator)
 		integrator = new TIFSIntegrator();
+	if (!cd)
+		cd = new TIFSCD();
+	if (!cr)
+		cr = new TIFSCR();
+
+	Physics.QueueMessage(new PMSet(integrator));
+	Physics.QueueMessage(new PMSet(cd));
+	Physics.QueueMessage(new PMSet(cr));
+	
+	// Set 0 gravity for now..
+	Physics.QueueMessage(new PMSet(PT_GRAVITY, Vector3f()));
 
 	if (!freeFlyCamera)
 		freeFlyCamera = CameraMan.NewCamera();
+	if (!firstPersonCamera)
+		firstPersonCamera = CameraMan.NewCamera();
+
+	cameras.Add(2, freeFlyCamera, firstPersonCamera);
+//	Graphics.QueueMessage(new GMSetCamera(freeFlyCamera, CT_ROTATION, Vector3f()));
+//	Graphics.QueueMessage(new GMSetCamera(freeFlyCamera, CT_DISTANCE_FROM_CENTER_OF_MOVEMENT, 3.f));
+	Graphics.QueueMessage(new GMSetCamera(firstPersonCamera, CT_TRACKING_MODE, TrackingMode::FOLLOW_AND_LOOK_AT));
+
 
 	// Set free form camera as active.
 	Graphics.QueueMessage(new GMSetCamera(freeFlyCamera));
 	ResetCamera();
 
-	Physics.QueueMessage(new PMSet(integrator));
 
 	// Remove shit.
 	
@@ -132,7 +157,22 @@ void TIFS::ProcessMessage(Message * message)
 	{
 		case MessageType::STRING:
 		{
-			if (msg == "Editor" || msg == "GoToEditor")
+			if (msg == "ToggleAutorun")
+			{
+				// Get our player! o.o
+				if (playerProp)
+					playerProp->ToggleAutorun();
+			}
+			else if (msg.Contains("NextCamera"))
+			{
+				// Get active camera.
+				CameraMan.NextCamera();		
+			}
+			else if (msg == "NewGame")
+			{
+				NewGame();
+			}
+			else if (msg == "Editor" || msg == "GoToEditor")
 			{
 				// Go there?
 				StateMan.QueueState(mapEditor);
@@ -162,6 +202,7 @@ void TIFS::CreateDefaultBindings()
 {
 	InputMapping * mapping = &this->inputMapping;
 	mapping->CreateBinding("ResetCamera", KEY::HOME);
+	mapping->CreateBinding("ToggleAutorun", KEY::R);
 }
 
 
@@ -263,4 +304,58 @@ void TIFS::CreateTurret(int ofSize, Vector3f atLocation)
 
 	TIFSTurretProperty * prop = new TIFSTurretProperty(turretBase, swivelEntity, underBarrelEntity, barrelEntity);
 	turretBase->properties.Add(prop);
+}
+
+// Spawn player
+void TIFS::SpawnPlayer()
+{
+	// Add characters..!
+	Entity * player = MapMan.CreateEntity("Player", ModelMan.GetModel("Characters/TestCharacter.obj"), TexMan.GetTexture("Red"));
+	// Attach camera to the player.
+	Graphics.QueueMessage(new GMSetCamera(firstPersonCamera, CT_ENTITY_TO_TRACK, player));
+
+	// Make first person camera active
+	Graphics.QueueMessage(new GMSetCamera(firstPersonCamera));
+
+	// Attach ze propororoty to bind the entity and the player.
+	playerProp = new TIFSPlayerProperty(player);
+	player->properties.Add(playerProp);
+	
+	// Enable steering!
+	playerProp->inputFocus = true;
+
+	Physics.QueueMessage(new PMSetEntity(player, PT_PHYSICS_TYPE, PhysicsType::DYNAMIC));
+
+}
+
+
+
+// Creates a new game with standard stuff.
+void TIFS::NewGame()
+{
+	// Hide the menu
+	HideMainMenu();
+	ShowHUD();
+
+	// Spawn turrets
+	CreateTurrets();
+
+	// Spawn drones
+	SpawnDrones();
+
+	// Spawn player
+	SpawnPlayer();
+}
+
+
+void TIFS::HideMainMenu()
+{
+	Graphics.QueueMessage(new GMSetUIb("MainMenu", GMUI::VISIBILITY, false));
+}
+
+
+void TIFS::ShowHUD()
+{
+	// Create if needed.
+	// Show it.
 }

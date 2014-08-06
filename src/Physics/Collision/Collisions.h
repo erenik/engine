@@ -8,10 +8,15 @@
 
 #include "Collision.h"
 
-class OrientedBoundingBox;
+class Triangle;
+class Edge;
+class Face;
+class Sphere;
+class Quad;
+class OBB;
 
 /// For them OBBs.
-bool OBBOBBCollision(OrientedBoundingBox * obb1, OrientedBoundingBox * obb2, Collision &data);
+bool OBBOBBCollision(OBB * obb1, OBB * obb2, Collision &data);
 
 /// For checking between static shapes (most raw data types, pretty much)
 bool TriangleSphereCollision(Triangle * triangle, Sphere * sphere, Collision &data);

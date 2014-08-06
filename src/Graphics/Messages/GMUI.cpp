@@ -271,7 +271,7 @@ GMSetUIv3f::GMSetUIv3f(String uiName, int target, Vector3f v, UserInterface * ui
 void GMSetUIv3f::AssertTarget()
 {
 	switch(target){
-		case GMUI::GT_TEXT_COLOR:
+		case GMUI::TEXT_COLOR:
 		case GMUI::VECTOR_INPUT:
 			break;
 		default:
@@ -291,7 +291,7 @@ void GMSetUIv3f::Process()
 		return;
 	}
     switch(target){
-        case GMUI::GT_TEXT_COLOR:
+        case GMUI::TEXT_COLOR:
             e->textColor = value;
             break;
         case GMUI::VECTOR_INPUT:
@@ -320,7 +320,7 @@ void GMSetUIv4f::AssertTarget()
 {
 	switch(target){
 		case GMUI::VECTOR_INPUT:
-	    case GMUI::GT_TEXT_COLOR:
+	    case GMUI::TEXT_COLOR:
 			break;
 		default:
 			assert(false && "Invalid target in GMSetUIv4f");
@@ -340,7 +340,7 @@ void GMSetUIv4f::Process()
 		return;
 	}
     switch(target){
-        case GMUI::GT_TEXT_COLOR:
+        case GMUI::TEXT_COLOR:
             e->textColor = value;
             break;
         case GMUI::VECTOR_INPUT:
@@ -378,8 +378,8 @@ void GMSetUIf::AssertTarget()
 {
 	switch(target){
 		case GMUI::FLOAT_INPUT:
-		case GMUI::GT_TEXT_SIZE_RATIO:
-		case GMUI::GT_ALPHA:
+		case GMUI::TEXT_SIZE_RATIO:
+		case GMUI::ALPHA:
 		case GMUI::TEXT_ALPHA:
 			break;
 		default:
@@ -400,13 +400,13 @@ void GMSetUIf::Process()
 		return;
 	}
 	switch(target){
-		case GMUI::GT_ALPHA:
+		case GMUI::ALPHA:
 			element->color.w = value;
 			break;
 		case GMUI::TEXT_ALPHA:
 			element->textColor.w = value;
 			break;
-		case GMUI::GT_TEXT_SIZE_RATIO:
+		case GMUI::TEXT_SIZE_RATIO:
 			element->textSizeRatio = value;
 			break;
 		case GMUI::FLOAT_INPUT:
@@ -436,7 +436,7 @@ void GMSetUIb::AssertTarget()
 	if (!name.Length())
 		std::cout<<"ERROR: Invalid name-length of provided element, yo?";
     switch(target){
-        case GMUI::GT_VISIBILITY:
+        case GMUI::VISIBILITY:
         case GMUI::TOGGLED:
         case GMUI::ACTIVATABLE:
 		case GMUI::HOVERABLE:
@@ -485,7 +485,7 @@ void GMSetUIb::Process()
 			}
 			break;
 		}
-		case GMUI::GT_VISIBILITY:
+		case GMUI::VISIBILITY:
 			e->visible = value;
 			break;
 		case GMUI::CHILD_VISIBILITY:
@@ -550,7 +550,7 @@ GMSetUIs::GMSetUIs(String uiName, int target, Text text, bool force, Viewport * 
 void GMSetUIs::AssertTarget()
 {
 	switch(target){
-		case GMUI::GT_TEXT:
+		case GMUI::TEXT:
 		case GMUI::TEXTURE_SOURCE:
 		case GMUI::TEXTURE_INPUT_SOURCE:
 		case GMUI::STRING_INPUT_TEXT:
@@ -604,7 +604,7 @@ void GMSetUIs::Process(){
 			ii->input->SetText(text);
 			break;
 		}
-		case GMUI::GT_TEXT:
+		case GMUI::TEXT:
 			e->SetText(text, force);
 			break;
 		default:
