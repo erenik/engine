@@ -9,7 +9,6 @@
 
 EntityProperty::EntityProperty(String name, int id, Entity * owner)
 : name(name), owner(owner), id(id)
-	
 {
 	currentState = NULL;
 	previousState = NULL;
@@ -19,10 +18,19 @@ EntityProperty::EntityProperty(String name, int id, Entity * owner)
 
 EntityProperty::~EntityProperty()
 {
-	if (currentState) delete currentState;
-	if (previousState) delete previousState;
-	if (queuedState) delete queuedState;
-	if (globalState) delete globalState;
+	if (currentState) 
+		delete currentState;
+	if (previousState) 
+		delete previousState;
+	if (queuedState) 
+		delete queuedState;
+	if (globalState) 
+		delete globalState;
+	for (int i = 0; i < owners.Size(); ++i)
+	{
+		Entity * ownerI = owners[i];
+		ownerI->properties.Remove(this);
+	}
 };
 
 /// Sets global entity state!

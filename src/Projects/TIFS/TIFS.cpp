@@ -304,6 +304,9 @@ void TIFS::CreateTurret(int ofSize, Vector3f atLocation)
 
 	TIFSTurretProperty * prop = new TIFSTurretProperty(turretBase, swivelEntity, underBarrelEntity, barrelEntity);
 	turretBase->properties.Add(prop);
+	swivelEntity->properties.Add(prop);
+	underBarrelEntity->properties.Add(prop);
+	barrelEntity->properties.Add(prop);
 }
 
 // Spawn player

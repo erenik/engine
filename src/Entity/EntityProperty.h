@@ -78,7 +78,8 @@ public:
 
 	/// Reference, should not be altered.
 	Entity * owner;
-
+	// For properties with multiple owners.
+	List<Entity*> owners;
 
 protected:
 	/// ID.

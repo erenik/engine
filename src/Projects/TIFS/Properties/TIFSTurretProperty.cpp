@@ -10,9 +10,10 @@
 #include "Physics/Messages/PhysicsMessage.h"
 
 TIFSTurretProperty::TIFSTurretProperty(Entity * base, Entity * swivel, Entity * underBarrel, Entity * barrel)
-: EntityProperty("TIFSTurretProperty", TIFSProperty::TURRET, base), base(base), swivel(swivel), underBarrel(underBarrel), barrel(barrel)
+: EntityProperty("TIFSTurretProperty", TIFSProperty::TURRET, NULL), base(base), swivel(swivel), underBarrel(underBarrel), barrel(barrel)
 {
-	
+	// Add owners manually
+	owners.Add(4, base, swivel, underBarrel, barrel);
 }
 
 /// Time passed in seconds..!
@@ -31,7 +32,7 @@ void TIFSTurretProperty::Process(int timeInMs)
 	// Aim at it.
 	if (target)
 	{
-		Vector3f toTarget = target->position - owner->position;
+		Vector3f toTarget = target->position - barrel->worldPosition;
 		float distance = toTarget.Length();
 		Vector3f toTargetNormalized = toTarget.NormalizedCopy();
 
