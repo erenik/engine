@@ -1,3 +1,6 @@
+/// Emil Hedemalm
+/// 2014-08-07 (though older)
+/// Frustum class, i.e. a cube with various tilts on the sides. Used for camera culling among other things.
 
 #ifndef FRUSTUM_H
 #define FRUSTUM_H

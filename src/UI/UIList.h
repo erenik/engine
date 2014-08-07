@@ -10,7 +10,10 @@ class UIScrollBarHandle : public UIElement {
 public:
     UIScrollBarHandle();
 	virtual ~UIScrollBarHandle();
+
     void Move(float distance);
+	float GetScrollPosition();
+	void SetScrollPosition(float f);
 
 	/// Activation functions
 	virtual UIElement * Hover(int mouseX, int mouseY);
@@ -41,8 +44,13 @@ public:
 	virtual UIElement * Click(int mouseX, int mouseY);
 	// Does something..
     void Update(float newSize);
-    /// Move the scrollbar, capping it depending on it's size (will never exceed the 0.0 - 1.0 limits)
+    
+	/// Move the scrollbar, capping it depending on it's size (will never exceed the 0.0 - 1.0 limits)
     void Move(float distance);
+	/// Returns current scroll position, based on the handle.
+	float GetScrollPosition();
+	void SetScrollPosition(float f);
+
     /// Returns the current relative start of the contents, 0.0 being top and close to (pages) at the maximum, varying with the content length.
     float GetStart();
     /// Returns the current relative start of the contents
@@ -77,6 +85,10 @@ public:
 		The delta corresponds to amount of "pages" it should scroll.
 	*/
 	virtual bool OnScroll(float delta);
+	/// Returns the current scroll position.
+	float GetScrollPosition();
+	/// Set current scroll position.
+	void SetScrollPosition(float fValue);
 
     /// Scroll, not capped.
 	virtual bool Scroll(float absoluteDistanceInPages);

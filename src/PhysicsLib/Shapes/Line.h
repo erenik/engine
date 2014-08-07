@@ -11,6 +11,12 @@ class Line
 public:
 	Line();
 	Line(Vector3f start, Vector3f stop);
+
+	/** Intersection test. If an intersection occurs a non-0 result will be returned. 
+		1 for regular intersections, 2 for overlapping points and 3 for colinear intersections.
+	*/
+	int Intersect(Line & withOtherLine);
+	// From start to stop?
 	float Length();
 	// Calculates distance to point.
 	float Distance(Vector3f point);

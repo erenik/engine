@@ -32,6 +32,60 @@ Line::Line(Vector3f start, Vector3f stop)
 	weight = 1;
 }
 
+
+// Returns ze area using showlace formulae http://en.wikipedia.org/wiki/Shoelace_formula
+int Area(Vector2i p1, Vector2i p2, Vector2i p3)
+{
+	return (p1.x * p2.y + p2.x * p3.y + p3.x * p1.y - p2.x * p1.y - p3.x * p2.y - p1.x * p3.y) * 0.5;
+}
+
+/// Returns true if the points are provided in clockwise order. http://stackoverflow.com/questions/1165647/how-to-determine-if-a-list-of-polygon-points-are-in-clockwise-order
+bool Clockwise(Vector2i p1, Vector2i p2, Vector2i p3)
+{
+	return (p1.x * p2.y + p2.x * p3.y + p3.x * p1.y - p2.x * p1.y - p3.x * p2.y - p1.x * p3.y) > 0;
+}
+
+/// Returns true if the points are provided in clockwise order. http://stackoverflow.com/questions/1165647/how-to-determine-if-a-list-of-polygon-points-are-in-clockwise-order
+bool CounterClockwise(Vector2i p1, Vector2i p2, Vector2i p3)
+{
+	return (p1.x * p2.y + p2.x * p3.y + p3.x * p1.y - p2.x * p1.y - p3.x * p2.y - p1.x * p3.y) < 0;
+}
+
+/// Yields an orientation.
+enum orientations
+{
+	CLOCKWISE,
+	COUNTER_CLOCKWISE,
+	COLINEAR,
+};
+
+int Orientation(Vector2i p1, Vector2i p2, Vector2i p3)
+{
+	int val = (p1.x * p2.y + p2.x * p3.y + p3.x * p1.y - p2.x * p1.y - p3.x * p2.y - p1.x * p3.y);
+	if (val > 0)
+		return CLOCKWISE;
+	else if (val < 0)
+		return COUNTER_CLOCKWISE;
+	return COLINEAR;
+}
+
+/// Boolean intersection test.
+int Line::Intersect(Line & withOtherLine)
+{
+	// http://www.geeksforgeeks.org/check-if-two-given-line-segments-intersect/
+	int or1 = Orientation(start, stop, withOtherLine.start);
+	int or2 = Orientation(start, stop, withOtherLine.stop);
+	if (or1 == or2)
+		return false;
+	int or3 = Orientation(withOtherLine.start, withOtherLine.stop, start);
+	int or4 = Orientation(withOtherLine.start, withOtherLine.stop, stop);
+	if (or3 != or4)
+		return false;
+
+	// Ok, we got an intersection confirmed, now the question is what type.
+	return 1;
+}
+
 float Line::Length()
 {
 	return (stop - start).Length();

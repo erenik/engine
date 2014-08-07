@@ -1,4 +1,10 @@
+/// Emil Hedemalm
+/// 2014-08-07 (though older)
+/// Frustum class, i.e. a cube with various tilts on the sides. Used for camera culling among other things.
+
 #include "Frustum.h"
+
+#include "PhysicsLib.h"
 
 Frustum::Frustum(){
 	left = right = bottom = top = 0;

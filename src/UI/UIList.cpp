@@ -28,6 +28,17 @@ UIScrollBarHandle::~UIScrollBarHandle()
 void UIScrollBarHandle::Move(float distance)
 {
     alignmentY += distance;
+	SetScrollPosition(alignmentY);
+}
+
+float UIScrollBarHandle::GetScrollPosition()
+{
+	return alignmentY;
+}
+
+void UIScrollBarHandle::SetScrollPosition(float f)
+{
+    alignmentY = f;
     if (alignmentY > 1.0f - sizeRatioY * 0.5f)
         alignmentY = 1.0f - sizeRatioY * 0.5f;
     else if (alignmentY < 0.0f + sizeRatioY * 0.5f)
@@ -37,6 +48,8 @@ void UIScrollBarHandle::Move(float distance)
 //	this->QueueBuffering();
 	this->isBuffered = false;
 }
+
+
 
 /// Activation functions
 UIElement * UIScrollBarHandle::Hover(int mouseX, int mouseY)
@@ -216,6 +229,18 @@ void UIScrollBar::Move(float distance)
 {
     handle->Move(distance);
 }
+
+/// Returns current scroll position, based on the handle.
+float UIScrollBar::GetScrollPosition()
+{
+	return handle->GetScrollPosition();
+}
+
+void UIScrollBar::SetScrollPosition(float f)
+{
+	handle->SetScrollPosition(f);
+}
+
 
 /// Returns the current relative start of the contents
 float UIScrollBar::GetStart()
@@ -492,6 +517,24 @@ bool UIList::OnScroll(float delta)
     }
     return true;
 }
+
+/// Returns the current scroll position.
+float UIList::GetScrollPosition()
+{
+	if (scrollBarY)
+		return scrollBarY->GetScrollPosition();
+	return 0.f;
+}
+
+/// Set current scroll position.
+void UIList::SetScrollPosition(float fValue)
+{
+	if (scrollBarY)
+		scrollBarY->SetScrollPosition(fValue);
+	return;
+}
+
+
 
 /// Scroll, not capped.
 bool UIList::Scroll(float absoluteDistanceInPages)

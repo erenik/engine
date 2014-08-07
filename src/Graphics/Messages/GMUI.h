@@ -36,6 +36,7 @@ public:
 		/// Integers,
 		INTEGER_INPUT,
 		// Floats
+		SCROLL_POSITION_Y,
 		FLOAT_INPUT, // Single nested input for UIFloatInput class.
 		TEXT_SIZE_RATIO, // Yup.
 		ALPHA, // Assuming color only varies by alpha...

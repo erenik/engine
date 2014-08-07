@@ -113,11 +113,11 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 	# For enabling/disabling Debug-assertions (among other things)
 	# http://msdn.microsoft.com/en-us/library/abx4dbyh%28v=vs.80%29.aspx
 	message("Release flags: ${CMAKE_CXX_FLAGS_RELEASE}")
-	set(CMAKE_CXX_FLAGS_RELEASE        "/O2 /Oi /GL /FD /EHsc /MT /Gy /W3 /nologo /c /Zi /TP /errorReport:prompt")
+	set(CMAKE_CXX_FLAGS_RELEASE        "/O2 /Oi /MP /GL /FD /EHsc /MT /Gy /W3 /nologo /c /Zi /TP /errorReport:prompt")
 	message("Release flags: ${CMAKE_CXX_FLAGS_RELEASE}")
 
 	message("Debug flags: ${CMAKE_CXX_FLAGS_DEBUG}")
-	set(CMAKE_CXX_FLAGS_DEBUG        "/Od /Gm /EHsc /RTC1 /MTd /W3 /nologo /c /ZI /TP /errorReport:prompt")
+	set(CMAKE_CXX_FLAGS_DEBUG        "/Od /MP /EHsc /RTC1 /MTd /W3 /nologo /c /ZI /TP /errorReport:prompt")
 	message("Debug flags: ${CMAKE_CXX_FLAGS_DEBUG}")
 
 	# References: /OPT:REF - Eliminate Unreferenced Data

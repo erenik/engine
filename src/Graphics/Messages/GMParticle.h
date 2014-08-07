@@ -3,7 +3,8 @@
 /// Messages related to particles and particle-systems
 
 #include "GraphicsMessage.h"
-#include "Contour.h"
+#include "PhysicsLib/Shapes/Contour.h"
+
 class ParticleSystem;
 class ParticleEmitter;
 

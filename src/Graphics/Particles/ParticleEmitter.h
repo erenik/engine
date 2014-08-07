@@ -2,7 +2,7 @@
 /// 2014-06-27
 /// Particle emitter.
 
-#include "Contour.h"
+#include "PhysicsLib/Shapes/Contour.h"
 #include "MathLib.h"
 
 class Mesh;

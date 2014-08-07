@@ -376,7 +376,9 @@ GMSetUIf::GMSetUIf(String UIname, int target, float value, Viewport * viewport /
 
 void GMSetUIf::AssertTarget()
 {
-	switch(target){
+	switch(target)
+	{
+		case GMUI::SCROLL_POSITION_Y:
 		case GMUI::FLOAT_INPUT:
 		case GMUI::TEXT_SIZE_RATIO:
 		case GMUI::ALPHA:
@@ -399,7 +401,15 @@ void GMSetUIf::Process()
 		std::cout<<"\nINFO: No element found with specified name \""<<name<<"\"";
 		return;
 	}
-	switch(target){
+	switch(target)
+	{
+		case GMUI::SCROLL_POSITION_Y:
+		{
+			assert(element->type == UIType::LIST);
+			UIList * list = (UIList*) element;
+			list->SetScrollPosition(value);
+			break;
+		}
 		case GMUI::ALPHA:
 			element->color.w = value;
 			break;
