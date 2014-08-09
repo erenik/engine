@@ -6,7 +6,7 @@
 ParticleSystem::ParticleSystem(String type)
 : type(type), name("Undefined")
 {
-    lifeDuration = NULL;
+    lifeDurations = NULL;
     positions = NULL;
     relativeTo = NULL;
     colors = NULL;
@@ -17,9 +17,9 @@ ParticleSystem::ParticleSystem(String type)
 }
 ParticleSystem::~ParticleSystem(){
     std::cout<<"\nParticleSystem Destructor.....";
-    if (lifeDuration)
-        delete[] lifeDuration;
-        lifeDuration = NULL;
+    if (lifeDurations)
+        delete[] lifeDurations;
+        lifeDurations = NULL;
 	if (lifeTime)
 		delete[] lifeTime;
 		lifeTime = NULL;	

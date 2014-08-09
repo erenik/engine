@@ -79,7 +79,9 @@ enum graphicsMessages {
 	GM_SET_CAMERA,
 
 	// Particle effects,
-	GM_ATTACH_PARTICLE_SYSTEM,
+	GM_ATTACH_PARTICLE_SYSTEM,	// Entity based systems.
+	GM_REGISTER_PARTICLE_SYSTEM, // Global based systems
+	GM_ATTACH_PARTICLE_EMITTER, // Attaching emitters to systems.
 	GM_PAUSE_EMISSION,
 	GM_RESUME_EMISSION,
 	GM_SET_PARTICLE_EMITTER,

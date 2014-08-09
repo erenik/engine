@@ -624,3 +624,24 @@ String Texture::RelativePath() const {
 	FilePath path(source);
 	return path.RelativePath();
 }
+
+
+
+/** An own PNG-saving function, since the library I'm using now is a tad slow (compared to OpenCV) while OpenCV demands 
+	additional dependencies which may not be wanted!
+*/
+bool Texture::SavePNG(String toPath)
+{
+	std::fstream file;
+	file.open(toPath.c_str(), std::ios_base::out);
+	if (!file.is_open())
+		return false;
+
+
+
+
+
+	file.close();
+	return true;
+}
+

@@ -14,7 +14,8 @@ namespace RenderTarget
 		DEFERRED_GATHER, // Renders to several textures.
 		FINAL_GATHER,	 // Render to final gather texture for the initial lighting pass.
 		// Inputs
-		ENTITIES,
+		ENTITIES, // All entities registered for rendering.
+		PARTICLE_SYSTEMS, // All particle systems
 		DEFAULT,
 	};
 };

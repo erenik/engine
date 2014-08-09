@@ -15,8 +15,12 @@ public:
 	/// Time passed in seconds..!
 	virtual void Process(int timeInMs);
 
+	static int ID();
 	/// o-o
 	Entity * target;
+
+	int currentHP, maxHP;
+	bool active;
 
 private:
 	Vector3f destination;

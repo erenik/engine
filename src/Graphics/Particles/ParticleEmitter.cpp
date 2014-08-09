@@ -7,14 +7,22 @@
 
 Random random;
 
+ParticleEmitter::ParticleEmitter()
+: type(EmitterType::NONE)
+{
+	Initialize();	
+}
+
 ParticleEmitter::ParticleEmitter(Contour contour)
 	: contour(contour), type(EmitterType::CONTOUR)
 {
+	Initialize();
 }  
 
 ParticleEmitter::ParticleEmitter(Vector3f point, Vector3f direction)
 	: point(point), direction(direction), type(EmitterType::POINT_DIRECTIONAL)
 {
+	Initialize();
 	this->direction.Normalize();
 }
 
@@ -22,8 +30,14 @@ ParticleEmitter::ParticleEmitter(Vector3f point, Vector3f direction)
 ParticleEmitter::ParticleEmitter(Vector3f point)
 	: point(point), type(EmitterType::POINT_CIRCLE)
 {
-
+	Initialize();
 }
+
+void ParticleEmitter::Initialize()
+{
+	enabled = true;
+}
+
 /// Stuff.
 bool ParticleEmitter::GetNewParticle(Vector3f & position, Vector3f & velocity)
 {

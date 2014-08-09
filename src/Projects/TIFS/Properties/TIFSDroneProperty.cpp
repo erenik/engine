@@ -13,7 +13,15 @@ TIFSDroneProperty::TIFSDroneProperty(Entity * owner)
 : EntityProperty("TIFSDroneProperty", TIFSProperty::DRONE, owner) 
 {
 
+	currentHP = maxHP = 5000;
+	active = true;
 }
+
+int TIFSDroneProperty::ID()
+{
+	return TIFSProperty::DRONE;
+}
+
 
 /// Setup physics here.
 void TIFSDroneProperty::OnSpawn()

@@ -30,6 +30,7 @@ FirstPersonPlayerProperty::FirstPersonPlayerProperty(String propertyName, int id
 	lastRight = 0.f;
 	autorun = false;
 	movementSpeed = 2.f;
+	primaryTarget = NULL;
 }
 
 /// Time passed in seconds..! Will steer if inputFocus is true.
@@ -220,6 +221,7 @@ void FirstPersonPlayerProperty::UpdateTargetsByCursorPosition()
 {
 	Ray ray;
 	Window * activeWindow = ActiveWindow();
+	lastRaycastTargetPosition = Vector3f();
 	if (activeWindow != MainWindow())
 		return;
 	// Try to get ray.
@@ -229,6 +231,12 @@ void FirstPersonPlayerProperty::UpdateTargetsByCursorPosition()
 	// Do ray cast within the physics system
 	List<Intersection> contacts = Physics.Raycast(ray);
 	targets.Clear();
+
+	if (contacts.Size())
+	{
+		lastRaycastTargetPosition = ray.start + ray.direction * contacts[0].distance;
+	}
+
 	/// Move list of contacts to list of entities?
 	for (int i = 0; i < contacts.Size(); ++i)
 	{
@@ -236,10 +244,14 @@ void FirstPersonPlayerProperty::UpdateTargetsByCursorPosition()
 		Entity * entity = contact.entity;
 		targets.Add(entity);
 	}
+	// Set primary target to the first one from the raycast.
 	if (targets.Size())
 	{
+		primaryTarget = targets[0];
 		std::cout<<"\nTarget found: "<<targets[0]->name;	
 	}
+	else
+		primaryTarget = NULL;
 }
 
 

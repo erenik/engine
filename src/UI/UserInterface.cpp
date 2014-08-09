@@ -334,7 +334,8 @@ bool UserInterface::Unbufferize()
 /** Renders the whole UIElement structure.
 	Overloaded by subclasses in order to enable custom perspective or other stuff for the UI.
 */
-void UserInterface::Render(GraphicsState * graphicsState){
+void UserInterface::Render(GraphicsState * graphicsState)
+{
 	/// Disable depth-test.
 	glDisable(GL_DEPTH_TEST);
 	/// Render the tree.
@@ -1141,7 +1142,8 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 				ENSURE_NEXT_TOKEN
 				element->exitable = (NEXT_TOKEN).ParseBool();
 			}
-			else if (token == "visible"){
+			else if (token == "visible" || token == "visibility")
+			{
 				ENSURE_NEXT_TOKEN
 				element->visible = (NEXT_TOKEN).ParseBool();
 			}

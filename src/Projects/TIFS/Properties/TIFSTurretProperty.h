@@ -12,14 +12,17 @@ public:
 
 	/// Time passed in seconds..!
 	virtual void Process(int timeInMs);
-
+	
+	static int ID();
 
 	// Might not use
 	Entity * target;
 	// Parts
 	Entity * base, * swivel, * underBarrel, * barrel;
 
-	
+	int currentHP, maxHP;
+	bool active;
+
 };
 
 

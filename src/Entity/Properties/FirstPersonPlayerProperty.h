@@ -25,7 +25,7 @@ public:
 	// Default false. Enable to steer this entity.
 	bool inputFocus;
 
-private:
+protected:
 	/** Checks states via InputManager. Regular key-bindings should probably still be defined in the main game state 
 		and then passed on as messages to the character with inputFocus turned on.
 	*/
@@ -35,6 +35,9 @@ private:
 
 	// Targets dictated by the latest call to UpdateTargets
 	List<Entity*> targets;
+	Entity * primaryTarget;
+	/// Set to be the first raycast target position when calling UpdateTargetsByCursorPosition
+	Vector3f lastRaycastTargetPosition;
 
 	/// For handling movement.
 	Vector3f lastAcc;

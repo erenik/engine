@@ -22,6 +22,7 @@ class TIFS;
 class TIFSMapEditor;
 class Entity;
 class TIFSPlayerProperty;
+class ToolParticleSystem;
 
 // Global pointers to the game states.
 extern TIFS * tifs;
@@ -30,6 +31,7 @@ extern TIFSMapEditor * mapEditor;
 /// The main/global Application state for the game.
 class TIFS : public AppState 
 {
+	friend class TIFSPlayerProperty;
 public:
 	TIFS();
 	/// Function when entering this state, providing a pointer to the previous StateMan.
@@ -74,12 +76,20 @@ public:
 
 	// Player property for steering.
 	TIFSPlayerProperty * playerProp;
+
 private:
 	// Creates a new game with standard stuff.
 	void NewGame();
 
 	void HideMainMenu();
+	void ShowMainMenu();
+	void HideTitle();
+	void ShowTitle();
 	void ShowHUD();
+	void HideHUD();
+
+	/// o-o
+	ToolParticleSystem * toolParticles;
 
 };
 

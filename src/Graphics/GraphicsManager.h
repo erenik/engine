@@ -35,12 +35,15 @@ class RenderPipeline;
 
 #define MAX_TEXTURES	250
 
+#define GraphicsMan (*GraphicsManager::Instance())
 #define Graphics	(*GraphicsManager::Instance())
 
 
 // Defines a class that handles textures, rendering and it's contexts and settings
-class GraphicsManager {
+class GraphicsManager 
+{
 	friend class GraphicsMessage;
+	friend class GMRegisterParticleSystem;
 	friend class GMRegisterEntity;
 	friend class GMRegisterEntities;
 	friend class GMUnregisterEntity;
@@ -213,8 +216,10 @@ public:
 private:
     /// Wosh. For like Frustum and other custom stuff.
     List<Renderable*> renderShapes;
-	/// List of all particle systems that will be updated each frame.
+	/// List of all particle systems that will be updated each frame. Is this really worth having an own separate list for...?
 	List<ParticleSystem*> particleSystems;
+	/// List of all global particle systems that will be updated and rendered in separate draw calls.
+	List<ParticleSystem*> globalParticleSystems;
 
 	/// For deferred.
 	void BindFrameBuffer();

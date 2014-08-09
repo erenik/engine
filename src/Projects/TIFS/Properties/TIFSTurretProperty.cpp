@@ -14,7 +14,16 @@ TIFSTurretProperty::TIFSTurretProperty(Entity * base, Entity * swivel, Entity * 
 {
 	// Add owners manually
 	owners.Add(4, base, swivel, underBarrel, barrel);
+
+	maxHP = 40000;
+	currentHP = 20000;
 }
+
+int TIFSTurretProperty::ID()
+{
+	return TIFSProperty::TURRET;
+}
+
 
 /// Time passed in seconds..!
 void TIFSTurretProperty::Process(int timeInMs)

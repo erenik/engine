@@ -50,6 +50,8 @@ void GraphicsManager::RenderViewport(Viewport * vp)
 	// Clear lists so that the render-passes are performed as requested.
 	graphicsState->graphicEffectsToBeRendered.Clear();
 	graphicsState->particleEffectsToBeRendered.Clear();
+	// Add global particle systems if they are within range?
+	graphicsState->particleEffectsToBeRendered.Add(Graphics.globalParticleSystems);
 
 	Timer sceneTimer, alphaEntitiesTimer, effectsTimer, uiTimer;
 	sceneTimer.Start();

@@ -34,7 +34,18 @@ bool Ray::Intersect(Sphere & sphere, float * distance)
 //		assert(false && "2 solutions exist");
 		float d1 = left + squareRoot;
 		float d2 = left - squareRoot;
-		*distance = d1 < d2 ? d1 : d2;
+		/// Both solutions negative? then the intersection is behind the ray's starting point.
+		if (d1 < 0 && d2 < 0)
+			return false;
+		if (d1 < 0)
+		{
+			*distance = d1;
+		}
+		else if (d2 < 0)
+			*distance = d2;
+		// Both solutions positive?
+		else
+			*distance = d1 < d2 ? d1 : d2;
 	}
 	return true;
 }

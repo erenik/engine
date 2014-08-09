@@ -19,6 +19,29 @@ private:
 	ParticleSystem * pa;
 };
 
+/** Registers a particle system for global operation.
+	Are these deleted later on? Probably shouldn't.
+*/
+class GMRegisterParticleSystem : public GraphicsMessage 
+{
+public:
+	GMRegisterParticleSystem(ParticleSystem * pa);
+	virtual void Process();
+private:
+	ParticleSystem * pa;
+};
+
+/// Attaches a particle emitter to a specific particle system to dictate where new particles should emerge.
+class GMAttachParticleEmitter : public GraphicsMessage 
+{
+public:
+	GMAttachParticleEmitter(ParticleEmitter * pe, ParticleSystem * pa);
+	virtual void Process();
+private:
+	ParticleSystem * ps;
+	ParticleEmitter * pe;
+};
+
 class GMPauseEmission : public GraphicsMessage 
 {
 public:
@@ -67,6 +90,17 @@ private:
 	int target;
 	Vector3f vec3Value;
 	float fValue;
+};
+
+
+// Got generating particles using specific data.
+class GMGenerateParticles : public GraphicsMessage {
+public:
+	GMGenerateParticles(String particleTypeName, void * extraData);
+	void Process();
+private:
+	String name;
+	void * data;
 };
 
 

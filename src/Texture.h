@@ -182,6 +182,12 @@ public:
 	/// Set when rebufferization is queued. This flag is set for dynamic textures, for example for video produced by the MultimediaManager and its MultimediaStreams.
 	bool queueRebufferization;
 private:
+
+	/** An own PNG-saving function, since the library I'm using now is a tad slow (compared to OpenCV) while OpenCV demands 
+		additional dependencies which may not be wanted!
+	*/
+	bool SavePNG(String toPath);
+
 	/// Private ID as given on creation
 	int id;
 	static int IDenumerator;

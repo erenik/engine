@@ -14,10 +14,15 @@ class Texture;
 
 class ParticleSystem {
 	friend class GraphicsManager;
+	friend class GMAttachParticleEmitter;
 public:
     ParticleSystem(String type);
     virtual ~ParticleSystem();
+	/** Processes the particles within the system, moving them wherever they are going or performing whatever transformation they should ungergo.
+		If emitters are attached to this system they may also automatically create or emit new particles.
+	*/
     virtual void Process(float timeInSeconds);
+	/// Renders the particles
     virtual void Render(GraphicsState * graphicsState);
     virtual void PrintData();
     virtual void AttachTo(Entity * entity, Matrix4f relativePosition);
@@ -68,7 +73,7 @@ protected:
     int particlesToProcess;
 
     /// Raw data
-    float * lifeDuration, * lifeTime;
+    float * lifeDurations, * lifeTime;
     Vector3f * positions;
     Vector3f * velocities;
     Vector4f * colors;

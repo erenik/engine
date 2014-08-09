@@ -25,7 +25,7 @@ Sparks::Sparks(Entity * reference)
     relativeTo = reference;
 
     maxRangeSq = maxRange * maxRange;
-    lifeDuration = new float[maxParticles];
+    lifeDurations = new float[maxParticles];
 	lifeTime = new float[maxParticles];
     positions = new Vector3f[maxParticles];
     velocities = new Vector3f[maxParticles];
@@ -41,7 +41,7 @@ Sparks::Sparks(Entity * reference)
         velocities[i].x += sideVelocityRange * (rand()%201-100) * 0.01f;
         velocities[i].y += sideVelocityRange * (rand()%201-100) * 0.01f;
         velocities[i].z = primaryVelocity * (rand()%81 + 20) * 0.01f;
-        lifeDuration[i] = maxLifeTime;
+        lifeDurations[i] = maxLifeTime;
 		lifeTime[i] = maxLifeTime;
         colors[i] = color;
     }
@@ -70,7 +70,7 @@ void Sparks::Process(float timeInSeconds)
 
     /// Process and spawn new particles as needed
     for(int i = 0; i < particlesToProcess; ++i){
-        if (lifeDuration[i] > lifeTime[i]){
+        if (lifeDurations[i] > lifeTime[i]){
             if (emissionPaused)
                 continue;
             if (toSpawn)
@@ -156,7 +156,7 @@ void Sparks::Process(float timeInSeconds)
 				}
 				lifeTime[i] *= emissionRatio;
 				*/
-        		lifeDuration[i] = 0;
+        		lifeDurations[i] = 0;
                 colors[i] = color;
                 --toSpawn;
                 ++spawnedThisFrame;
@@ -165,7 +165,7 @@ void Sparks::Process(float timeInSeconds)
 		/// Move alive particles
 		positions[i] += velocities[i] * timeInSeconds;
 		velocities[i] *= velocityDecay;
-		lifeDuration[i] += timeInSeconds;
+		lifeDurations[i] += timeInSeconds;
     }
 	previousPosition = newPosition;
 	previousDirection = newDirection;
@@ -199,9 +199,9 @@ void Sparks::Render(GraphicsState * graphicsState)
 	if (pointsOnly){
 		glBegin(GL_POINTS);
 		for (int i = 0; i < particlesToProcess; ++i){
-			if (lifeDuration[i] >= lifeTime[i])
+			if (lifeDurations[i] >= lifeTime[i])
 				continue;
-			glColor4f(colors[i].x, colors[i].y, colors[i].z, colors[i].w * lifeDuration[i] / lifeTime[i]);
+			glColor4f(colors[i].x, colors[i].y, colors[i].z, colors[i].w * lifeDurations[i] / lifeTime[i]);
 			Vector3f & p = positions[i];
 			glVertex3f(p.x, p.y, p.z);
 		}
@@ -221,9 +221,9 @@ void Sparks::Render(GraphicsState * graphicsState)
 		glBegin(GL_QUADS);
 		float optimizedAlpha = 1 / optimizationLevel + 2.f;
 		for (int i = 0; i < particlesToProcess; ++i){
-			if (lifeDuration[i] >= lifeTime[i])
+			if (lifeDurations[i] >= lifeTime[i])
 				continue;
-			glColor4f(colors[i].x, colors[i].y, colors[i].z, 0.75f * optimizedAlpha * colors[i].w * 0.8f * pow((1.0f - lifeDuration[i] / lifeTime[i]), 4));
+			glColor4f(colors[i].x, colors[i].y, colors[i].z, 0.75f * optimizedAlpha * colors[i].w * 0.8f * pow((1.0f - lifeDurations[i] / lifeTime[i]), 4));
 			// Making size equal throughout the duration, to differentiate it from the Exhaust particle system.
 			float sizeRatio = 1.f; // pow(lifeDuration[i]+1.0f, 2.0f);
 		//	if (lifeDuration[i] > 1.0f)

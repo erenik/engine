@@ -24,7 +24,7 @@ Exhaust::Exhaust(Entity * reference)
     relativeTo = reference;
 
     maxRangeSq = maxRange * maxRange;
-    lifeDuration = new float[maxParticles];
+    lifeDurations = new float[maxParticles];
 	lifeTime = new float[maxParticles];
     positions = new Vector3f[maxParticles];
     velocities = new Vector3f[maxParticles];
@@ -40,7 +40,7 @@ Exhaust::Exhaust(Entity * reference)
         velocities[i].x += sideVelocityRange * (rand()%201-100) * 0.01f;
         velocities[i].y += sideVelocityRange * (rand()%201-100) * 0.01f;
         velocities[i].z = primaryVelocity * (rand()%81 + 20) * 0.01f;
-        lifeDuration[i] = maxLifeTime;
+        lifeDurations[i] = maxLifeTime;
 		lifeTime[i] = maxLifeTime;
         colors[i] = color;
     }
@@ -65,7 +65,7 @@ void Exhaust::Process(float timeInSeconds)
 
     /// Process and spawn new particles as needed
     for(int i = 0; i < particlesToProcess; ++i){
-        if (lifeDuration[i] > lifeTime[i]){
+        if (lifeDurations[i] > lifeTime[i]){
             if (emissionPaused)
                 continue;
             if (toSpawn){
@@ -94,7 +94,7 @@ void Exhaust::Process(float timeInSeconds)
 					lifeTime[i] *= 0.5f;
 				}
 				lifeTime[i] *= emissionRatio;
-				lifeDuration[i] = 0;
+				lifeDurations[i] = 0;
                 colors[i] = color;
                 --toSpawn;
                 ++spawnedThisFrame;
@@ -103,7 +103,7 @@ void Exhaust::Process(float timeInSeconds)
 		/// Move alive particles
 		positions[i] += velocities[i] * timeInSeconds;
 		velocities[i] *= velocityDecay;
-		lifeDuration[i] += timeInSeconds;
+		lifeDurations[i] += timeInSeconds;
     }
 	previousPosition = newPosition;
 	previousDirection = newDirection;
@@ -137,9 +137,9 @@ void Exhaust::Render(GraphicsState * graphicsState)
 	if (pointsOnly){
 		glBegin(GL_POINTS);
 		for (int i = 0; i < particlesToProcess; ++i){
-			if (lifeDuration[i] >= lifeTime[i])
+			if (lifeDurations[i] >= lifeTime[i])
 				continue;
-			glColor4f(colors[i].x, colors[i].y, colors[i].z, colors[i].w * lifeDuration[i] / lifeTime[i]);
+			glColor4f(colors[i].x, colors[i].y, colors[i].z, colors[i].w * lifeDurations[i] / lifeTime[i]);
 			Vector3f & p = positions[i];
 			glVertex3f(p.x, p.y, p.z);
 		}
@@ -159,10 +159,10 @@ void Exhaust::Render(GraphicsState * graphicsState)
 		glBegin(GL_QUADS);
 		float optimizedAlpha = 1 / optimizationLevel;
 		for (int i = 0; i < particlesToProcess; ++i){
-			if (lifeDuration[i] >= lifeTime[i])
+			if (lifeDurations[i] >= lifeTime[i])
 				continue;
-			glColor4f(colors[i].x, colors[i].y, colors[i].z, 0.75f * optimizedAlpha * colors[i].w * 0.8f * pow((1.0f - lifeDuration[i] / lifeTime[i]), 4));
-			float sizeRatio = pow(lifeDuration[i]+1.0f, 3.0f);
+			glColor4f(colors[i].x, colors[i].y, colors[i].z, 0.75f * optimizedAlpha * colors[i].w * 0.8f * pow((1.0f - lifeDurations[i] / lifeTime[i]), 4));
+			float sizeRatio = pow(lifeDurations[i]+1.0f, 3.0f);
 		//	if (lifeDuration[i] > 1.0f)
 		//		sizeRatio = pow(5.0f, lifeDuration[i]-1.0f);
 			left = leftBase * sizeRatio;

@@ -13,6 +13,8 @@
 #include "RenderBuffer.h"
 #include "Viewport.h"
 
+#include "Graphics/Particles/ParticleSystem.h"
+
 RenderPass::RenderPass()
 {
 	shader = 0;
@@ -198,6 +200,15 @@ void RenderPass::Render(GraphicsState * graphicsState)
 				entity->Render(graphicsState);
 			}
 			break;
+		}
+		case RenderTarget::PARTICLE_SYSTEMS:
+		{
+			// Render all registered particle systems.
+			for (int i = 0; i < graphicsState->particleEffectsToBeRendered.Size(); ++i)
+			{
+				ParticleSystem * ps = graphicsState->particleEffectsToBeRendered[i];
+				ps->Render(graphicsState);
+			}
 		}
 	}
 	/// Extract the texture data from the buffers to see what it looks like?

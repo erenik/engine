@@ -26,7 +26,10 @@
 #include "TIFS/Properties/TIFSTurretProperty.h"
 #include "TIFS/Properties/TIFSDroneProperty.h"
 
+#include "TIFS/Graphics/ToolParticles.h"
+
 #include "Graphics/GraphicsManager.h"
+#include "Graphics/Messages/GMParticles.h"
 #include "Graphics/Messages/GMSet.h"
 #include "Graphics/Messages/GMSetEntity.h"
 #include "Graphics/Messages/GMUI.h"
@@ -75,7 +78,7 @@ void RegisterStates()
 
 TIFS::TIFS()
 {
-	
+	toolParticles = NULL;
 }
 
 TIFSIntegrator * integrator = 0;
@@ -104,6 +107,7 @@ void TIFS::OnEnter(AppState * previousState)
 		freeFlyCamera = CameraMan.NewCamera();
 	if (!firstPersonCamera)
 		firstPersonCamera = CameraMan.NewCamera();
+	firstPersonCamera->distanceFromCenterOfMovement = 5.f;
 
 	cameras.Add(2, freeFlyCamera, firstPersonCamera);
 //	Graphics.QueueMessage(new GMSetCamera(freeFlyCamera, CT_ROTATION, Vector3f()));
@@ -115,6 +119,13 @@ void TIFS::OnEnter(AppState * previousState)
 	Graphics.QueueMessage(new GMSetCamera(freeFlyCamera));
 	ResetCamera();
 
+
+	// Create and set up particle system we want to use.
+	if (!toolParticles)
+	{
+		toolParticles = new ToolParticleSystem();
+		Graphics.QueueMessage(new GMRegisterParticleSystem(toolParticles));
+	}
 
 	// Remove shit.
 	
@@ -157,13 +168,23 @@ void TIFS::ProcessMessage(Message * message)
 	{
 		case MessageType::STRING:
 		{
-			if (msg == "ToggleAutorun")
+			if (playerProp)
 			{
-				// Get our player! o.o
-				if (playerProp)
+				if (msg == "Repair")
+				{
+					playerProp->SetToolMode(0);
+				}
+				if (msg == "Activate")
+					playerProp->SetToolMode(1);
+				if (msg == "RedirectFire")
+					playerProp->SetToolMode(2);
+				if (msg == "ToggleAutorun")
+				{
+					// Get our player! o.o
 					playerProp->ToggleAutorun();
+				}
 			}
-			else if (msg.Contains("NextCamera"))
+			if (msg.Contains("NextCamera"))
 			{
 				// Get active camera.
 				CameraMan.NextCamera();		
@@ -171,6 +192,25 @@ void TIFS::ProcessMessage(Message * message)
 			else if (msg == "NewGame")
 			{
 				NewGame();
+			}
+			else if (msg == "ToggleMainMenu")
+			{
+				// check this somehow..
+				UserInterface * ui = ActiveUI();
+				UIElement * e = ui->GetElementByName("MainMenu");
+				bool mainMenuOpen = e->visible;
+				if (mainMenuOpen)
+				{
+					HideMainMenu();
+					HideTitle();
+					ShowHUD();
+				}
+				else 
+				{
+					ShowMainMenu();
+					ShowTitle();
+					HideHUD();
+				}
 			}
 			else if (msg == "Editor" || msg == "GoToEditor")
 			{
@@ -203,6 +243,10 @@ void TIFS::CreateDefaultBindings()
 	InputMapping * mapping = &this->inputMapping;
 	mapping->CreateBinding("ResetCamera", KEY::HOME);
 	mapping->CreateBinding("ToggleAutorun", KEY::R);
+	mapping->CreateBinding("ToggleMainMenu", KEY::ESC);
+	mapping->CreateBinding("Repair", KEY::F1);
+	mapping->CreateBinding("Activate", KEY::F2);
+	mapping->CreateBinding("RedirectFire", KEY::F3);
 }
 
 
@@ -338,6 +382,7 @@ void TIFS::NewGame()
 {
 	// Hide the menu
 	HideMainMenu();
+	HideTitle();
 	ShowHUD();
 
 	// Spawn turrets
@@ -356,9 +401,49 @@ void TIFS::HideMainMenu()
 	Graphics.QueueMessage(new GMSetUIb("MainMenu", GMUI::VISIBILITY, false));
 }
 
+void TIFS::ShowMainMenu()
+{
+	Graphics.QueueMessage(new GMSetUIb("MainMenu", GMUI::VISIBILITY, true));
+}
+
+void TIFS::HideTitle()
+{
+	Graphics.QueueMessage(new GMSetUIb("TIFS", GMUI::VISIBILITY, false));
+}
+
+void TIFS::ShowTitle()
+{
+	Graphics.QueueMessage(new GMSetUIb("TIFS", GMUI::VISIBILITY, true));
+}
+
+String hudSource = "gui/HUD.gui";
 
 void TIFS::ShowHUD()
 {
 	// Create if needed.
-	// Show it.
+	UserInterface * ui = ActiveUI();
+	if (!ui)
+		return;
+	UIElement * element = NULL;
+	/// Check if it's a source file, if so try and load that first.
+	element = ui->GetElementBySource(hudSource);
+	if (!element)
+	{
+		// For each player, add it to his screen.. just 1 screen now tho.
+		UIElement * element = UserInterface::LoadUIAsElement(hudSource);
+		assert(element);
+		Graphics.QueueMessage(new GMAddUI(element));
+	}
+	else 
+	{
+		// Just make it visible.
+		Graphics.QueueMessage(new GMSetUIb("HUD", GMUI::VISIBILITY, true, ui));
+	}
 }
+
+void TIFS::HideHUD()
+{
+	// Just make it visible.
+	Graphics.QueueMessage(new GMSetUIb("HUD", GMUI::VISIBILITY, false, ui));	
+}
+
