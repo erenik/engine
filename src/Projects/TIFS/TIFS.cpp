@@ -293,7 +293,11 @@ void TIFS::SpawnDrones()
 
 void TIFS::SpawnDrone(Vector3f atLocation)
 {
-	Entity * drone = MapMan.CreateEntity("Drone", ModelMan.GetModel("Sphere"), TexMan.GetTexture("Cyan"), atLocation);
+	Model * model = ModelMan.GetModel("obj/Drones/Drone.obj");
+	Texture * diffuseMap = TexMan.GetTexture("img/Drones/DroneDiffuseMap.png");
+//ModelMan.GetModel("Sphere")
+	//TexMan.GetTexture("Cyan")
+	Entity * drone = MapMan.CreateEntity("Drone", model, diffuseMap, atLocation);
 	TIFSDroneProperty * droneProp = new TIFSDroneProperty(drone);
 	drone->properties.Add(droneProp);
 	drones.Add(drone);
@@ -321,14 +325,17 @@ void TIFS::CreateTurrets()
 /// Creates a turret!
 void TIFS::CreateTurret(int ofSize, Vector3f atLocation)
 {
-	Entity * turretBase = MapMan.CreateEntity("TurretBase", ModelMan.GetModel("Turrets/LargeBase"), TexMan.GetTexture("Green"));
+	Texture * diffuseMap = TexMan.GetTexture("img/Turrets/BigTurretDiffuse.png");
+// TexMan.GetTexture("Green")
+
+	Entity * turretBase = MapMan.CreateEntity("TurretBase", ModelMan.GetModel("Turrets/LargeBase"), diffuseMap);
 	Physics.QueueMessage(new PMSetEntity(turretBase, PT_POSITION, atLocation));
 	turrets.Add(turretBase);
 
 
 	/// Add a child-mesh-part to the first turret-part!
 	Model * swivel = ModelMan.GetModel("Turrets/LargeSwivel");
-	Entity * swivelEntity = MapMan.CreateEntity("TurretSwivel", swivel, TexMan.GetTexture("Blue"));
+	Entity * swivelEntity = MapMan.CreateEntity("TurretSwivel", swivel, diffuseMap);
 	
 	/// Make the swivel's transformation depend on the base'.
 	Graphics.QueueMessage(new GMSetEntity(swivelEntity, GT_PARENT, turretBase)); 
@@ -336,13 +343,13 @@ void TIFS::CreateTurret(int ofSize, Vector3f atLocation)
 
 	// Move it up a bit.
 	Model * underBarrel = ModelMan.GetModel("Turrets/LargeUnderBarrel");
-	Entity * underBarrelEntity = MapMan.CreateEntity("TurretUnderBarrel", underBarrel, TexMan.GetTexture("Red"), Vector3f(0, 2, -1.f));
+	Entity * underBarrelEntity = MapMan.CreateEntity("TurretUnderBarrel", underBarrel, diffuseMap, Vector3f(0, 1.8f, -0.5f));
 	Graphics.QueueMessage(new GMSetEntity(underBarrelEntity, GT_PARENT, swivelEntity));
 	turrets.Add(underBarrelEntity);
 
 	// Add barrel.
 	Model * barrel = ModelMan.GetModel("Turrets/LargeBarrel");
-	Entity * barrelEntity = MapMan.CreateEntity("TurretBarrel", barrel, TexMan.GetTexture("White"));
+	Entity * barrelEntity = MapMan.CreateEntity("TurretBarrel", barrel, diffuseMap);
 	Graphics.QueueMessage(new GMSetEntity(barrelEntity, GT_PARENT, underBarrelEntity));
 	turrets.Add(barrelEntity);
 
@@ -359,7 +366,11 @@ void TIFS::CreateTurret(int ofSize, Vector3f atLocation)
 void TIFS::SpawnPlayer()
 {
 	// Add characters..!
-	Entity * player = MapMan.CreateEntity("Player", ModelMan.GetModel("Characters/TestCharacter.obj"), TexMan.GetTexture("Red"));
+	Model * model;
+//	ModelMan.GetModel("Characters/TestCharacter.obj");
+	model = ModelMan.GetModel("dae/TestCharacter.dae");
+
+	Entity * player = MapMan.CreateEntity("Player", model, TexMan.GetTexture("Red"));
 	// Attach camera to the player.
 	Graphics.QueueMessage(new GMSetCamera(firstPersonCamera, CT_ENTITY_TO_TRACK, player));
 

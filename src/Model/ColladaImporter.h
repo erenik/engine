@@ -33,6 +33,8 @@ public:
 	/// Creates the named mesh (a reference must exist within the parsed data).
 	Mesh * CreateMesh(String name);
 private:
+	/// Source, set when calling Load.
+	String source;
 
 	XMLElement * GetGeometry(String byName);
 

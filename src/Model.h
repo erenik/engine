@@ -62,8 +62,9 @@ public:
 	Vector3f centerOfModel;
 	/// Radius
 	float radius;
-	/// AABB
-	AABB * aabb;
+
+	/// Returns the AABB.
+	const AABB & GetAABB();
 
 private:
 

@@ -23,6 +23,7 @@
 #include "Matrix/Matrix.h"
 
 #include "PhysicsLib/Shapes/Triangle.h"
+#include "PhysicsLib/Shapes/AABB.h"
 
 Mesh::Mesh()
 {
@@ -38,7 +39,7 @@ void Mesh::Nullify()
 	floatsPerVertex = 0;
 	triangulated = false;
 	loadedFromCompactObj = false;
-
+	aabb = NULL;
 }
 
 Mesh::~Mesh()
@@ -53,6 +54,8 @@ Mesh::~Mesh()
 	std::cout<<"lall";
 	faces.Deallocate();
 	*/
+	if (aabb)
+		delete aabb;
 }
 
 /// Deletes all parts within this mesh (numVertices, numFaces, edges, etc.)
@@ -60,7 +63,7 @@ void Mesh::Delete()
 {
 	DeallocateArrays();
 	numVertices = numUVs = numNormals = numFaces = 0;
-	min = max = Vector3f();
+//	min = max = Vector3f();
 	triangulated = false;
 }
 
@@ -129,8 +132,10 @@ bool Mesh::SaveCompressedTo(String compressedPath)
 	centerOfMesh.WriteTo(file);
 	file.write((char*)&radius, sizeof(float));
 	file.write((char*)&triangulated, sizeof(bool));
-	max.WriteTo(file);
-	min.WriteTo(file);
+
+	// Write min/max data from the aabb.
+	aabb->max.WriteTo(file);
+	aabb->min.WriteTo(file);
 
 	// Write number of each specific array.
 	file.write((char*)&numVertices, sizeof(int));
@@ -206,8 +211,11 @@ bool Mesh::LoadCompressedFrom(String compressedPath)
 	centerOfMesh.ReadFrom(file);
 	file.read((char*)&radius, sizeof(float));
 	file.read((char*)&triangulated, sizeof(bool));
-	max.ReadFrom(file);
-	min.ReadFrom(file);
+	
+	if (!aabb)
+		aabb = new AABB();
+	aabb->max.ReadFrom(file);
+	aabb->min.ReadFrom(file);
 
 	// Write number of each specific array.
 	file.read((char*)&numVertices, sizeof(int));
@@ -720,7 +728,12 @@ void Mesh::RecalculateNormals()
 }
 
 /// Calculates radial and AABB boundaries.
-void Mesh::CalculateBounds(){
+void Mesh::CalculateBounds()
+{
+	if (!aabb)
+		aabb = new AABB();
+	Vector3f & min = aabb->min;
+	Vector3f & max = aabb->max;
 	min = vertices[0];
 	max = vertices[0];
 	radius = 0;
@@ -766,6 +779,11 @@ void Mesh::CalculateBounds(){
 		if (newRadius > radius)
 			radius = newRadius;
 	}*/
+
+	/// Create AABB if needed?
+	if (!aabb)
+		aabb = new AABB(min, max);
+
 }
 
 /** Centerizes the model by pushing all numVertices by the length of the the centerOfMesh vector.

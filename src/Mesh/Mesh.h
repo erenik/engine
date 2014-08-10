@@ -15,6 +15,8 @@ class Triangle;
 class GraphicsState;
 class EMesh;
 
+class AABB;
+
 /** A struct for a geometric mesh, containing vertices, UV-coordinates, MeshFaces, material properties and a single texture ID.
 Mesh using different texture will have to be defined later. */
 class Mesh {
@@ -85,7 +87,7 @@ public:
 	/// Radius
 	float radius;
 	/// AABB
-	Vector3f max, min;
+//	Vector3f max, min;
 
 	/// Amount of vertices in the mesh.
 	int numVertices;
@@ -125,6 +127,9 @@ public:
 	unsigned int vboVertexCount;
 
 	bool IsTriangulated(){return triangulated;};
+
+	/// size of it all.
+	AABB * aabb;
 protected:
 	/// Set after calling Triangulate only.
 	bool triangulated;

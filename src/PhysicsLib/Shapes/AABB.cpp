@@ -43,8 +43,8 @@ void AABB::Recalculate(Entity * entity)
 {
     Vector3f bounds[8];
     /// Reset min and max depending on the base AABB.
-    min = entity->model->aabb->min;
-    max = entity->model->aabb->max;
+    min = entity->model->mesh->aabb->min;
+    max = entity->model->mesh->aabb->max;
     Vector3f newMin, newMax;
     /// 8 vectors (extents), for-looped for funs.
     for (int i = 0; i < 8; ++i){

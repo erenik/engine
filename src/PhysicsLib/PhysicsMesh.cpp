@@ -1,3 +1,7 @@
+/// Emil Hedemalm
+/// 2014-08-10
+/// A physics mesh based on a regular mesh.
+
 
 #include "PhysicsMesh.h"
 #include "Physics/Collision/CollisionShapeOctree.h"
@@ -6,6 +10,8 @@
 #include "PhysicsLib/Shapes/Ray.h"
 #include "PhysicsLib/Shapes/Ngon.h"
 #include "PhysicsLib/Shapes/Quad.h"
+
+#include "PhysicsLib/Shapes/AABB.h"
 
 PhysicsMesh::PhysicsMesh(){
 	collisionShapeOctree = NULL;
@@ -49,18 +55,20 @@ void PhysicsMesh::GenerateCollisionShapeOctree()
 	Mesh * mesh = (Mesh*)meshCounterpart;
 	assert(mesh != NULL);
 	collisionShapeOctree = new CollisionShapeOctree();
-	if (mesh->min.MaxPart() == 0 && mesh->max.MaxPart() == 0)
+	if (!mesh->aabb)
 		mesh->CalculateBounds();
-	assert(mesh->min.MaxPart() != 0 && mesh->max.MaxPart() != 0);
+	assert(mesh->aabb);
 	/// Fetch size of object and extend the size of the octree by 10% just to make sure that it works later on.
-	Vector3f size = mesh->max - mesh->min;
+	Vector3f size = mesh->aabb->scale;
+	Vector3f min = mesh->aabb->min,
+		max = mesh->aabb->max;
 	collisionShapeOctree->SetBoundaries(
-		mesh->min.x - size.x * 0.1f,
-		mesh->max.x + size.x * 0.1f,
-		mesh->max.y + size.y * 0.1f,
-		mesh->min.y - size.y * 0.1f,
-		mesh->max.z + size.z * 0.1f,
-		mesh->min.z - size.z * 0.1f);
+		min.x - size.x * 0.1f,
+		max.x + size.x * 0.1f,
+		max.y + size.y * 0.1f,
+		min.y - size.y * 0.1f,
+		max.z + size.z * 0.1f,
+		min.z - size.z * 0.1f);
 
 	// Adding triangles..
 	for (int i = 0; i < triangles.Size(); ++i)

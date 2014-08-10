@@ -71,7 +71,8 @@ VFCOctree::~VFCOctree(){
 /** Recursive subdivision function that subdivides the nodes down the tree specified amount of levels. 
 	If MAX_SUBDIVISION is passed an exception will be thrown.
 */
-void VFCOctree::subdivide(int levels){
+void VFCOctree::subdivide(int levels)
+{
 	// Decrement levels
 	levels--;
 	// Check that the maximum subdivision level hasn't been reached.
@@ -141,7 +142,9 @@ bool VFCOctree::AddEntity(Entity * targetEntity){
 	} /// End of trying to enter it into any of our children
 
 	// Okay, no spot in children, check if we should subdivide it (if the children aren't already allocated, that is!)
-	if (entities.Size() > MAX_INITIAL_NODES_BEFORE_SUBDIVISION && child[0] == NULL){
+	if (entities.Size() > MAX_INITIAL_NODES_BEFORE_SUBDIVISION && child[0] == NULL && 
+		subdivision < MAX_SUBDIVISION)
+	{
 		// Subdivide and then try push all our children down the tree further, so they don't get stuck here without reason.
 		subdivide();
 		List<Entity*> tempList(entities);

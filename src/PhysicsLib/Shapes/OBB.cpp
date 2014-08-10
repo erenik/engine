@@ -133,8 +133,8 @@ void OBB::Recalculate(Entity * entity)
 	assert(entity->model);
     assert(entity->physics);
 //    std::cout<<"\nRecalculating OBB for entity "<<entity<<" "<<entity->position;
-    AABB & aabb = *entity->model->aabb;
-    Vector3f & min = aabb.min, & max = aabb.max;
+    const AABB & aabb = entity->model->GetAABB();
+    const Vector3f & min = aabb.min, & max = aabb.max;
 	localSize = max - min;
 	localHalfSize = localSize * 0.5f;
 

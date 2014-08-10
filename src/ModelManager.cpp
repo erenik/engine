@@ -87,7 +87,11 @@ Model * ModelManager::GetModel(String name)
 			return modelList[i];
 	}
 	std::cout<<"\nINFO: Unable to load model "<<name<<", trying to load from file.";
-	Model * newModel = LoadObj(name);
+	Model * newModel = NULL;
+	if (name.Contains(".dae"))
+		newModel = LoadCollada(name);
+	else
+		newModel = LoadObj(name);
 	return newModel;
 }
 
@@ -207,12 +211,8 @@ Model * ModelManager::LoadObj(String source)
 		model->mesh = mesh;
 		
 		// Calculate bounds, and set bounds since this function assumes static/single mesh-models!
-		if (mesh->max.MaxPart() == 0 && mesh->min.MaxPart() == 0)
+		if (!mesh->aabb)
 			mesh->CalculateBounds();
-
-		if (model->aabb)
-			delete model->aabb;
-		model->aabb = new AABB(mesh->min, mesh->max);
 
 		// Centering can be bad to configuring stuff yourself..!
 	//	mesh->Center();
@@ -299,7 +299,11 @@ Model * ModelManager::LoadCollada(String source){
 	colladaImporter.Load(source);
 
 	List<String> geometries = colladaImporter.Geometries();
-	assert(geometries.Size() == 1);
+	if (!geometries.Size())
+	{
+		std::cout<<"\nNo geometry found within the file.";
+		return NULL;
+	}
 	mesh = colladaImporter.CreateMesh(geometries[0]);
 
 	assert(mesh);
@@ -317,6 +321,7 @@ Model * ModelManager::LoadCollada(String source){
 	model->radius = mesh->radius;
 	model->centerOfModel = mesh->centerOfMesh;
 	model->SetName(source);
+	model->source = source;
 	std::cout<<" .dae successfully read!";
 
 	/// Create the triangulated one straight away~
@@ -330,7 +335,7 @@ Model * ModelManager::LoadCollada(String source){
 	if (model->triangulizedMesh->normals.Size() == NULL)
 		model->triangulizedMesh->RecalculateNormals();
 	std::cout<<"\nNormalized";
-	model->triangulizedMesh->CalculateUVTangents();
+//	model->triangulizedMesh->CalculateUVTangents();
 	std::cout<<"\nUVd";
 	modelList.Add(model);
 	return model;

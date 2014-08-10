@@ -22,8 +22,6 @@ Model::Model()
 
 	mesh = NULL;
 	triangulizedMesh = NULL;
-
-	aabb = NULL;
 }
 
 Model::~Model()
@@ -42,9 +40,6 @@ Model::~Model()
 		delete triangulizedMesh;
 
 	mesh = triangulizedMesh = NULL;
-
-	if (aabb)
-		delete aabb;
 }
 
 String Model::Source(){
@@ -115,3 +110,8 @@ bool Model::RegenerateTriangulizedMesh()
 	return true;
 }
 
+/// Returns the AABB.
+const AABB & Model::GetAABB()
+{
+	return *mesh->aabb;
+}

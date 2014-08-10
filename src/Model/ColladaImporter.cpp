@@ -22,8 +22,8 @@ ColladaImporter::~ColladaImporter(){
 }
 
 /// Attempts to load from file. All content will be stored internally until a build-command is issued.
-bool ColladaImporter::Load(String fromFile){
-/*
+bool ColladaImporter::Load(String fromFile)
+{
 	if (parser){
 		assert(false && "Already loaded");
 		return true;
@@ -37,6 +37,7 @@ bool ColladaImporter::Load(String fromFile){
 	if (!result)
 		return false;
 
+	source = fromFile;
 	/// Find out what we've got inside..!
 
 	// Begin with basics
@@ -88,7 +89,7 @@ bool ColladaImporter::Load(String fromFile){
 	// Scene data, empty nodes, cameras, spotlights, directional lights, point lights, ambient lights, 
 	// Triangle lists, polygon lists, baked matrices, matrices
 
-	*/
+	
 	return true;
 }
 
@@ -116,20 +117,22 @@ List<String> ColladaImporter::Geometries(){
 /// Creates the named mesh (a reference must exist within the parsed data).
 Mesh * ColladaImporter::CreateMesh(String name)
 {
-/*
 	Mesh * mesh = new Mesh();
 	Xelement * geo = GetGeometry(name);
 	assert(geo);
 	/// Find out what's needed in here to create stuff.
 	Xelement * meshElement = geo->GetElement("mesh");
 	assert(meshElement);
+	mesh->source = source;
+	mesh->name = name;
 	
 	/////////////////////////////////////////////////////////////////
 	// Parse vertices!
 	/////////////////////////////////////////////////////////////////
 	Xelement * vertices = meshElement->GetElement("vertices");
 	assert(vertices);
-	if (vertices){
+	if (vertices)
+	{
 		std::cout<<"\nFinding vertex data...";
 		Xelement * vertexInput = vertices->GetElement("input");
 		assert(vertexInput);
@@ -147,27 +150,35 @@ Mesh * ColladaImporter::CreateMesh(String name)
 		Xarg * numVertsArg = floatArray->GetArgument("count");
 		assert(numVertsArg);
 		mesh->numVertices = numVertsArg->value.ParseInt();
-		assert(mesh->vertices > 0);
-		mesh->vertex.Allocate(mesh->vertices);
+		assert(mesh->numVertices > 0);
+
+		// Set full after allocation.
+		mesh->vertices.Allocate(mesh->numVertices, true);
 		
 		List<String> vertexDataTokens = floatArray->data.Tokenize(" ");
-		assert(vertexDataTokens.Size() == mesh->vertices);
+		assert(vertexDataTokens.Size() == mesh->numVertices);
 		int vertexPositionsParsed = 0;
 		for (int i = 0; i < vertexDataTokens.Size(); i += 3){
-			mesh->vertex[vertexPositionsParsed].x = vertexDataTokens[i].ParseFloat();
-			mesh->vertex[vertexPositionsParsed].y = vertexDataTokens[i+1].ParseFloat();
-			mesh->vertex[vertexPositionsParsed].z = vertexDataTokens[i+2].ParseFloat();
+			mesh->vertices[vertexPositionsParsed].x = vertexDataTokens[i].ParseFloat();
+			mesh->vertices[vertexPositionsParsed].y = vertexDataTokens[i+1].ParseFloat();
+			mesh->vertices[vertexPositionsParsed].z = vertexDataTokens[i+2].ParseFloat();
 			++vertexPositionsParsed;
 		}
 	}
-	switch(up_axis){
-		case Z_UP:{
-			for (int i = 0; i < mesh->vertices; ++i){
-				Vector3f v = mesh->vertex[i];
-				mesh->vertex[i] = Vector3f(v.x, v.z, v.y);
+	// Swap co-ordinates as needed.
+	switch(up_axis)
+	{
+		case Z_UP:
+		{
+			for (int i = 0; i < mesh->vertices.Size(); ++i)
+			{
+				Vector3f v = mesh->vertices[i];
+				mesh->vertices[i] = Vector3f(v.x, v.z, v.y);
 			}
 			break;
 		}		
+		default:
+			assert(false);
 	}
 
 	/////////////////////////////////////////////////////////////////
@@ -190,23 +201,26 @@ Mesh * ColladaImporter::CreateMesh(String name)
 			break;
 		}
 	}
-	if (hasNormals){	
+	// If it had normals, fetch 'em.
+	if (hasNormals)
+	{	
 		Xelement * normalSourceElement = meshElement->GetElement("source", normalsSource);
 		std::cout<<"\nFinding normal data...";
 		Xelement * floatArray = normalSourceElement->GetElement("float_array");
 		Xarg * numNormalsArg = floatArray->GetArgument("count");
 		assert(numNormalsArg);
-		mesh->normals = numNormalsArg->value.ParseInt();
-		assert(mesh->normals > 0);
-		std::cout<<"\nNormals to parse: "<<mesh->normals;
-		mesh->normal.Allocate(mesh->normals);
+		mesh->numNormals = numNormalsArg->value.ParseInt();
+		assert(mesh->numNormals > 0);
+		std::cout<<"\nNormals to parse: "<<mesh->numNormals;
+		/// o-o
+		mesh->normals.Allocate(mesh->numNormals, true);
 		List<String> normalDataTokens = floatArray->data.Tokenize(" ");
-		assert(normalDataTokens.Size() == mesh->normals);
+		assert(normalDataTokens.Size() == mesh->numNormals);
 		int normalsParsed = 0;
 		for (int i = 0; i < normalDataTokens.Size(); i += 3){
-			mesh->normal[normalsParsed].x = normalDataTokens[i].ParseFloat();
-			mesh->normal[normalsParsed].y = normalDataTokens[i+1].ParseFloat();
-			mesh->normal[normalsParsed].z = normalDataTokens[i+2].ParseFloat();
+			mesh->normals[normalsParsed].x = normalDataTokens[i].ParseFloat();
+			mesh->normals[normalsParsed].y = normalDataTokens[i+1].ParseFloat();
+			mesh->normals[normalsParsed].z = normalDataTokens[i+2].ParseFloat();
 			++normalsParsed;
 		}
 	}
@@ -229,22 +243,27 @@ Mesh * ColladaImporter::CreateMesh(String name)
 			break;
 		}
 	}
-	if (hasUVs){	
+	// If it had UV's, parse 'em!
+	if (hasUVs)
+	{	
 		Xelement * uvSourceElement = meshElement->GetElement("source", uvsSource);
 		std::cout<<"\nFinding normal data...";
 		Xelement * floatArray = uvSourceElement->GetElement("float_array");
 		Xarg * numUVsArg = floatArray->GetArgument("count");
 		assert(numUVsArg);
-		mesh->uvs = numUVsArg->value.ParseInt();
-		assert(mesh->uvs > 0);
-		std::cout<<"\nUVs to parse: "<<mesh->uvs;
-		mesh->uv.Allocate(mesh->uvs);
+		mesh->numUVs = numUVsArg->value.ParseInt();
+		assert(mesh->numUVs > 0);
+		std::cout<<"\nUVs to parse: "<<mesh->numUVs;
+		
+		mesh->uvs.Allocate(mesh->numUVs, true);
+		
 		List<String> uvDataTokens = floatArray->data.Tokenize(" ");
-		assert(uvDataTokens.Size() == mesh->uvs);
+		assert(uvDataTokens.Size() == mesh->numUVs);
 		int uvsParsed = 0;
-		for (int i = 0; i < uvDataTokens.Size(); i += 2){
-			mesh->uv[uvsParsed].x = uvDataTokens[i].ParseFloat();
-			mesh->uv[uvsParsed].y = uvDataTokens[i+1].ParseFloat();
+		for (int i = 0; i < uvDataTokens.Size(); i += 2)
+		{
+			mesh->uvs[uvsParsed].x = uvDataTokens[i].ParseFloat();
+			mesh->uvs[uvsParsed].y = uvDataTokens[i+1].ParseFloat();
 			++uvsParsed;
 		}
 	}
@@ -265,12 +284,13 @@ Mesh * ColladaImporter::CreateMesh(String name)
 
 	std::cout<<"\nTotal faces needed: "<<facesNeeded;
 	// Create faces, jaow.
-	mesh->face.Allocate(facesNeeded);
-	mesh->faces = facesNeeded;
+	mesh->faces.Allocate(facesNeeded);
+	mesh->numFaces = facesNeeded;
 
 	// For each poly-list, create faces!
 	int facesParsed = 0;
-	for (int i = 0; i < polyLists.Size(); ++i){
+	for (int i = 0; i < polyLists.Size(); ++i)
+	{
 		Xelement * polyList = polyLists[i];
 		int polysInThisPolyList = polyList->GetArgument("count")->value.ParseInt();
 		List<Xelement*> inputList = polyList->GetElements("input");
@@ -288,20 +308,24 @@ Mesh * ColladaImporter::CreateMesh(String name)
 
 		// Create le faces.
 		int polyArgListEnumerator = 0;
-		for (int i = 0; i < polysInThisPolyList; ++i){
-			MeshFace * face = &mesh->face[facesParsed];
+		for (int i = 0; i < polysInThisPolyList; ++i)
+		{
+			MeshFace * face = &mesh->faces[facesParsed];
 			++facesParsed;
 			face->numVertices = faceVertexCounts[i].ParseInt();
 			assert(face->numVertices > 0 && face->numVertices < 20);
-			assert(face->vertex == NULL);
+			assert(face->vertices.Size() == NULL);
 			face->AllocateArrays();
-			for (int i = 0; i < face->numVertices; ++i){
-				face->vertex[i] = polyArgList[polyArgListEnumerator].ParseInt();
-				if (hasNormals){
-					face->normal[i] = polyArgList[polyArgListEnumerator+1].ParseInt();
+			for (int i = 0; i < face->numVertices; ++i)
+			{
+				face->vertices[i] = polyArgList[polyArgListEnumerator].ParseInt();
+				if (hasNormals)
+				{
+					face->normals[i] = polyArgList[polyArgListEnumerator+1].ParseInt();
 				}
-				if (hasUVs){
-					face->uv[i] = polyArgList[polyArgListEnumerator+2].ParseInt();
+				if (hasUVs)
+				{
+					face->uvs[i] = polyArgList[polyArgListEnumerator+2].ParseInt();
 				}
 
 				/// The stride is usually the size of the input list. I.e. 3 for vertex/normal/UV, 2 for vertex/normal, etc.
@@ -310,8 +334,7 @@ Mesh * ColladaImporter::CreateMesh(String name)
 		}
 	}
 	return mesh;
-*/
-	return NULL;
+//	return NULL;
 }
 
 // Private functions, utility and stuff.
