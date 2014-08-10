@@ -9,6 +9,8 @@
 #include "LodePNG/lodepng.h"
 #include <cassert>
 
+#include "opencv2/opencv.hpp"
+
 int Texture::IDenumerator = 0;
 
 Texture::Texture()
@@ -111,7 +113,6 @@ void Texture::FlipY()
 	// RGBA ftw
 	if (bpp != 4)
 		return;
-	unsigned char r,g,b,a;
 	// Row Buffer! o-o
 	static unsigned char buf[2048 * 4];
 	int lineBufSize = width * bpp;
@@ -181,18 +182,18 @@ Vector4f Texture::GetSampleColor(int samples /*= 4*/)
 {
 	Vector4f colorTotal;
 	int xDist, yDist;
-	xDist = yDist = RoundFloat(sqrt((float)samples));
+	xDist = yDist = (int)RoundFloat(sqrt((float)samples));
 	int stepsPerX = width / xDist;
 	int stepsPerY = height / yDist;
 	for (int i = 0; i < samples; ++i)
 	{
 		int xStep = i % xDist;
 		int yStep = i / yDist;
-		int x = stepsPerX * (xStep + 0.5f);
-		int y = stepsPerY * (yStep + 0.5f);
+		int x = (int) stepsPerX * (xStep + 0.5f);
+		int y = (int) stepsPerY * (yStep + 0.5f);
 		colorTotal += GetPixel(x,y);
 	}
-	Vector4f colorAverage = colorTotal / samples;
+	Vector4f colorAverage = colorTotal / (float)samples;
 	return colorAverage;
 }
 
@@ -432,11 +433,11 @@ void Texture::SetPixel(Vector2i location, Vector4f color, int pixelSize)
 			if (x < 0 || x >= width)
 				continue;
 			int psi = y * width * bpp + x * bpp;
-			buf[psi] = color.x * 255.0f;
-			buf[psi+1] = color.y * 255.0f;
-			buf[psi+2] = color.z * 255.0f;
+			buf[psi] = (unsigned char) color.x * 255.0f;
+			buf[psi+1] = (unsigned char) color.y * 255.0f;
+			buf[psi+2] = (unsigned char) color.z * 255.0f;
 			if (bpp > 3)
-				buf[psi+3] = color.w * 255.0f;
+				buf[psi+3] = (unsigned char) color.w * 255.0f;
 		}
 	}
 	lastUpdate = Timer::GetCurrentTimeMs();
@@ -452,11 +453,11 @@ void Texture::SetPixel(int x, int y, Vector4f color)
 	color.Clamp(0, 1);
 	/// PixelStartIndex
 	int psi = y * width * bpp + x * bpp;
-	buf[psi] = color.x * 255.0f;
-	buf[psi+1] = color.y * 255.0f;
-	buf[psi+2] = color.z * 255.0f;
+	buf[psi] = (unsigned char) color.x * 255.0f;
+	buf[psi+1] = (unsigned char) color.y * 255.0f;
+	buf[psi+2] = (unsigned char) color.z * 255.0f;
 	if (bpp > 3)
-		buf[psi+3] = color.w * 255.0f;
+		buf[psi+3] = (unsigned char) color.w * 255.0f;
 	lastUpdate = Timer::GetCurrentTimeMs();
 }
 
@@ -570,6 +571,7 @@ void Texture::SetColorOfRow(int row, Vector4f color)
 /// Saves the texture in it's entirety to target file. If overwrite is false it will fail if the file already exists.
 bool Texture::Save(String toFile, bool overwrite /* = false */)
 {
+
 	if (!data)
 	{
 		std::cout<<"\nTexture lacking data to write!";
@@ -579,10 +581,9 @@ bool Texture::Save(String toFile, bool overwrite /* = false */)
 		toFile += ".png";
 	if (FileExists(toFile) && !overwrite)
 		return false;
+
+	return SaveOpenCV(toFile);
 	
-	/// Wow much progress
-	std::cout<<"\nSaving texture to file \""<<toFile.c_str()<<"\"...";
-	std::vector<unsigned char> image;
 
 	/*
 	int channels = GetChannels();
@@ -595,6 +596,11 @@ bool Texture::Save(String toFile, bool overwrite /* = false */)
 			continue;
 		std::cout<<"\nPixel "<<i<<": "<<(int)cData[ppi];
 	}*/
+
+
+	/// Wow much progress
+	std::cout<<"\nSaving texture to file \""<<toFile.c_str()<<"\"...";
+	std::vector<unsigned char> image;
 	
 	LodePNG::Encoder encoder;
 	// Set settings for quicker saving... so slow right now...
@@ -623,6 +629,43 @@ bool Texture::Save(String toFile, bool overwrite /* = false */)
 String Texture::RelativePath() const {
 	FilePath path(source);
 	return path.RelativePath();
+}
+
+bool Texture::SaveOpenCV(String toPath)
+{
+	cv::Mat mat;
+	mat.create(cv::Size(width, height), CV_8UC3);
+	int channels = 3;
+	int bytesPerChannel = 1;
+	for (int y = 0; y < mat.rows; ++y)
+	{
+		for (int x = 0; x < mat.cols; ++x)
+		{
+			/// Pixel start index.
+			int psi = (mat.step * y) + (x * channels) * bytesPerChannel;
+			int psiTex = ((height - y - 1) * width + x) * bpp;
+			/// Depending on the step count...
+			switch(channels)
+			{			
+				/// RGB!
+				case 3:
+					mat.data[psi+0] = data[psiTex+2];
+					mat.data[psi+1] = data[psiTex+1];
+					mat.data[psi+2] = data[psiTex+0];
+					break;
+				// Default gray scale?
+				default:
+					break;
+			}
+		}
+	}
+	// Write it!
+	std::vector<int> compression_params;
+	compression_params.push_back(CV_IMWRITE_PNG_COMPRESSION);
+	// Quick save!
+	compression_params.push_back(1);
+	cv::imwrite(toPath.c_str(), mat, compression_params);
+	return true;
 }
 
 

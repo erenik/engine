@@ -188,7 +188,7 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 		# Theora
 		set(custom_libraries ${custom_libraries} "-ltheora" "-ltheoradec")
 		# Open CV
-		set(custom_libraries ${custom_libraries} "-lopencv_core -lopencv_highgui -lopencv_imgproc")
+#		set(custom_libraries ${custom_libraries} "-lopencv_core -lopencv_highgui -lopencv_imgproc")
 	ENDIF(UNIX)
 
 	# Win32 MSVC++
@@ -238,7 +238,10 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 		set(DEBUG_LIBS ${DEBUG_LIBS} Winmm.lib)
 		
 		# Open CV
-		set(DEBUG_LIBS ${DEBUG_LIBS} opencv_core248d.lib opencv_highgui248d.lib opencv_imgproc248d.lib)
+		set(DEBUG_LIBS ${DEBUG_LIBS} opencv_core248d.lib 
+			opencv_highgui248d.lib # needed for imwrite
+			#opencv_imgproc248d.lib
+			)
 	
 		# Release library dependencies
 		set(RELEASE_LIBS 
@@ -256,7 +259,10 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 			libtheora_static_release.lib
 		)
 		# OpenCV
-		set(RELEASE_LIBS ${RELEASE_LIBS} opencv_core248.lib opencv_highgui248.lib opencv_imgproc248.lib)
+		set(RELEASE_LIBS ${RELEASE_LIBS} opencv_core248.lib #basics
+			opencv_highgui248.lib  # needed for imwrite
+			#opencv_imgproc248.lib
+			)
 
 		create_file_group(${PROJECT_SOURCE_DIR}/${source_dir} "/")
 	ENDIF(MSVC)

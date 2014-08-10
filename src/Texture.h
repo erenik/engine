@@ -183,6 +183,9 @@ public:
 	bool queueRebufferization;
 private:
 
+
+	// Save via openCV
+	bool SaveOpenCV(String toPath);
 	/** An own PNG-saving function, since the library I'm using now is a tad slow (compared to OpenCV) while OpenCV demands 
 		additional dependencies which may not be wanted!
 	*/

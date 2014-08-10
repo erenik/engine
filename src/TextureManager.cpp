@@ -1,3 +1,7 @@
+/// Emil Hedemalm
+/// 2014-08-10 (although older)
+/// Texture manageeer
+
 #include "TextureManager.h"
 
 #include <fstream>
@@ -7,6 +11,14 @@
 #include "Graphics/GraphicsManager.h"
 
 #include "OS/Sleep.h"
+
+#include <vector>
+#include "LodePNG/lodepng.h"
+#include "Globals.h"
+
+#include "opencv2/opencv.hpp"
+
+#include "Time/Time.h"
 
 /// Texture manager for the application.
 TextureManager * TextureManager::texMan = NULL;
@@ -229,11 +241,6 @@ Texture * TextureManager::GenerateTexture(String withName, Vector4f andColor)
 	return newTex;
 }
 
-
-#include <vector>
-#include "LodePNG/lodepng.h"
-#include "Globals.h"
-
 Texture * TextureManager::LoadTexture(String source)
 {
 	source = FilePath::MakeRelative(source);
@@ -281,6 +288,158 @@ Texture * TextureManager::LoadTexture(String source)
 
 	std::cout<<"\nLoading texture \""<<source.c_str()<<"\"...";
 
+
+	Texture * texture = new Texture();
+	// resize texture so the comparison gets valid...
+	Timer timer;
+	timer.Start();
+
+	// Prefer OpenCV since it's faster.
+	bool ok;
+	ok = LoadTextureOpenCV(source, texture);
+	if (!ok)
+	{
+		delete texture;
+		return NULL;
+	}
+
+	/*
+	bool ok = LoadTextureLodePNG(source, texture);
+	if (!ok)
+	{
+		delete texture;
+		return NULL;
+	}
+	int64 first = timer.GetMicro();	
+
+	// resize texture so the comparison gets valid...
+	delete[] texture->data;
+	texture->data = 0;
+	texture->width = texture->height = 0;
+
+	timer.Start();
+	int64 second = timer.GetMicro();
+
+	std::cout<<"\nLodePNG: "<<first * 0.000001f<<" OpenCV: "<<second * 0.000001f;
+*/
+
+	// Save other texture details now before returning.
+	texture->SetSource(source);
+	texture->SetName(source);
+	std::cout<<"\nTexture loaded as: "<<texture->name;
+
+	textures.Add(texture);
+	/// Queue the texture for bufferization. This may want to be adjusted somewhere else maybe.
+	/// If queueing from within the manager we will thread-deadlock. Better buffer it right before rendering..!
+///	Graphics.QueueMessage(new GMBufferTexture(texture));
+	return texture;
+}
+
+/// Attempts to load a texture using OpenCV imread.
+bool TextureManager::LoadTextureOpenCV(String source, Texture * texture)
+{
+	cv::Mat mat;
+	mat = cv::imread(source.c_str(), CV_LOAD_IMAGE_UNCHANGED);
+	if (!mat.cols || !mat.rows)
+		return false;
+	/// First update size of our texture depending on the given one.
+	if (texture->width != mat.cols || texture->height != mat.rows)
+	{
+		texture->Resize(Vector2i(mat.cols, mat.rows));
+	}
+	
+//	std::cout<<"\nMat step: "<<mat->step;
+	int channels = mat.channels();
+	/// Depending on the depth, parse differently below.
+	int channelDepth = mat.depth();
+	int bytesPerChannel = 1;
+	switch(channelDepth)
+	{
+		case CV_8U: case CV_8S: 
+			bytesPerChannel = 1;
+			break;
+		case CV_16U: case CV_16S: 
+			// Convert to single-channel if needed...
+			mat.convertTo(mat, CV_8UC3);
+			bytesPerChannel = 1;
+			break;
+		case CV_32S: case CV_32F: 
+			bytesPerChannel = 4;
+			break;
+		default:
+			assert(false);
+			return false;
+	}
+
+	/// Fetch data pointer now that any needed conversions are done.
+	unsigned char * data = (unsigned char*) (mat.data);
+	unsigned char * texData = texture->data;
+	float minFloat = 0, maxFloat = 0;	
+
+	for (int y = 0; y < mat.rows; ++y)
+	{
+		for (int x = 0; x < mat.cols; ++x)
+		{
+			unsigned char b,g,r,a = 255;
+			/// Pixel start index.
+			int psi = (mat.step * y) + (x * channels) * bytesPerChannel;
+			/// Depending on the step count...
+			switch(channels)
+			{			
+				case 1:
+				{
+					if (bytesPerChannel == 1)
+						b = g = r = data[psi];
+					else if (bytesPerChannel == 4)
+					{
+						float * fPtr = (float*)&data[psi];
+						float fValue = *fPtr;
+						if (fValue > maxFloat)
+							maxFloat = fValue;
+						if (fValue < minFloat)
+							minFloat = fValue;
+						unsigned char cValue = (unsigned char) fValue;
+						b = g = r = cValue;
+					}
+					break;
+					
+				}
+				/// RGB!
+				case 3:
+					b = data[psi+0];
+					g = data[psi+1];
+					r = data[psi+2];
+					break;
+				case 4:
+				{
+					b = data[psi+0];
+					g = data[psi+1];
+					r = data[psi+2];
+					a = data[psi+3];
+					break;
+				}
+				// Default gray scale?
+				default:
+					b = g = r = data[psi];
+					break;
+			}
+			// Always rgba!
+			int texPsi = ((texture->width * (texture->height - y - 1)) + x) * texture->bpp;
+			texData[texPsi+0] = r;
+			texData[texPsi+1] = g;
+			texData[texPsi+2] = b;
+			texData[texPsi+3] = a;
+//			texture->SetPixel(x, mat.rows - y - 1, Vector4f(r / 255.f,g / 255.f,b / 255.f,1));
+		}
+	}
+	/// Send a message so that the texture is re-buffered.
+	Graphics.QueueMessage(new GMBufferTexture(texture));
+	return true;
+}
+
+
+bool TextureManager::LoadTextureLodePNG(String source, Texture * texture)
+{
 	std::vector<unsigned char> buffer, image;
 
 	/// Check that the file exists
@@ -323,9 +482,6 @@ Texture * TextureManager::LoadTexture(String source)
 		//MessageBox(NULL, filename, "Error reading texture file", MB_OK | MB_ICONEXCLAMATION);
 		return NULL;
 	}
-
-	/// Create the texture now that we have decoded the data!
-	Texture * texture = new Texture();
 
 	// Set Texture to RGBA since we will assign Alpha-values by default anyway
 	texture->format = Texture::RGBA;
@@ -442,48 +598,7 @@ Texture * TextureManager::LoadTexture(String source)
 	/// Since we converted the image to RGBA above, fix the BitsPerPixel again!
 	texture->bpp = 4;
 
-/*
-	/// Flip the texture!
-	std::cout<<"\nFlipping texture "<<source<<"!";
-	for (unsigned int i = 0; i < height/2; ++i){
-		for (unsigned int j = 0; j < width; ++j){
-			for (int s = 0; s < 4; ++s){
-				unsigned char tmp = data->data[i * width * 4 + j * 4 + s];
-				data->data[i * width * 4 + j * 4 + s] = data->data[(height - i - 1) * width * 4 + j * 4 + s];
-				data->data[(height - i - 1) * width * 4 + j * 4 + s] = tmp;
-			}
-		}
-	}
-*/
-
-
-	/*
-	glGenTextures(1, &texture[freeSlot].glid);
-	glBindTexture(GL_TEXTURE_2D, texture[freeSlot].glid);  // Bind glTexture ID.
-
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
-		width, height, 0,
-		GL_RGBA, GL_UNSIGNED_BYTE, data.data);
-	{
-		GLuint error = glGetError();
-		if (error != GL_NO_ERROR){
-			print("\nGL Error in TextureManager::LoadTexture: ");
-			print(error);
-		}
-	}
-	*/
-
-	// Save other texture details now before returning.
-	texture->SetSource(source);
-	texture->SetName(source);
-	std::cout<<"\nTexture loaded as: "<<texture->name;
-
-	textures.Add(texture);
-	/// Queue the texture for bufferization. This may want to be adjusted somewhere else maybe.
-	/// If queueing from within the manager we will thread-deadlock. Better buffer it right before rendering..!
-///	Graphics.QueueMessage(new GMBufferTexture(texture));
-	return texture;
+	return true;
 }
 
 void TextureManager::BufferizeTexture(int index){

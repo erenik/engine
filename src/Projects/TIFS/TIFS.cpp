@@ -79,6 +79,7 @@ void RegisterStates()
 TIFS::TIFS()
 {
 	toolParticles = NULL;
+	playerProp = NULL;
 }
 
 TIFSIntegrator * integrator = 0;
@@ -181,7 +182,8 @@ void TIFS::ProcessMessage(Message * message)
 				if (msg == "ToggleAutorun")
 				{
 					// Get our player! o.o
-					playerProp->ToggleAutorun();
+					if (playerProp)
+						playerProp->ToggleAutorun();
 				}
 			}
 			if (msg.Contains("NextCamera"))

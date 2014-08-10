@@ -47,6 +47,8 @@ void FirstPersonPlayerProperty::ToggleAutorun()
 	/// New state.. do stuffelistuff.
 	if (autorun)
 	{
+		if (!owner->physics)
+			return;
 		// Do we have a velocity? If not disable autorun straight away.
 		if (!owner->physics->velocity.MaxPart())
 		{

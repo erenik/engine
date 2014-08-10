@@ -1,4 +1,6 @@
-
+/// Emil Hedemalm
+/// 2014-08-10 (although older)
+/// Texture manageeer
 
 #ifndef TEXTURE_MANAGER_H
 #define TEXTURE_MANAGER_H
@@ -81,6 +83,10 @@ public:
 	void FreeTextures();
 
 private:
+	/// Attempts to load a texture using OpenCV imread.
+	bool LoadTextureOpenCV(String source, Texture * texture);
+	/// Attempts to load a texture using LodePNG library.
+	bool LoadTextureLodePNG(String source, Texture * texture);
 
 	/// Textures used by the manager
 	List<Texture*> textures;

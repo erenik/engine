@@ -82,8 +82,8 @@ void GraphicsManager::RenderCapture()
 			return;
 		}
 		glReadPixels(0, 0, windowSize.x, windowSize.y, GL_RGBA, GL_UNSIGNED_BYTE, frame->data);
-		// Flip it.
-		frame->FlipY();
+		// Flip it. Why..?
+//		frame->FlipY();
 		// Add it to list of frames to save.
 		window->frames.Add(frame);
 		// Check amount of free memory available.
