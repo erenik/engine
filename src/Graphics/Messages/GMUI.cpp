@@ -577,7 +577,8 @@ void GMSetUIs::AssertTarget()
 GMSetUIs::~GMSetUIs(){
 }
 
-void GMSetUIs::Process(){
+void GMSetUIs::Process()
+{
 	if (!GetUI())
         return;
 	UIElement * e = ui->GetElementByName(uiName);

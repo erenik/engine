@@ -732,6 +732,10 @@ void Mesh::CalculateBounds()
 {
 	if (!aabb)
 		aabb = new AABB();
+
+	if (!vertices.Size())
+		return;
+
 	Vector3f & min = aabb->min;
 	Vector3f & max = aabb->max;
 	min = vertices[0];

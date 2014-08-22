@@ -9,6 +9,8 @@
 #include "Globals.h"
 #include "MessageTypes.h"
 #include <Util.h>
+#include "DataTypes.h"
+#include "MathLib.h"
 
 class Script;
 class UIElement;
@@ -36,6 +38,23 @@ class PasteMessage : public Message
 public:
 	PasteMessage();
 	String text;
+};
+
+class DragAndDropMessage : public Message 
+{
+public:
+	/// Text drag-n-drop.
+	DragAndDropMessage(Vector2i pos, String text);
+	// Add more constructors later..
+	
+	/// Data type contained in the message. See DataType.h for types.
+	int dataType;
+	String string;
+	/// Mouse/cursor position when drop is commenced.
+	Vector2i position;
+
+	/// If a UI has been processed by this message, this flag will be set to true.
+	bool processed;
 };
 
 class SetStringMessage : public Message {

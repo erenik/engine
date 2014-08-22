@@ -15,7 +15,7 @@ class Vector2f;
 class Vector3i;
 class Vector3f;
 
-/** A three-dimensional vector class using ints.
+/** A two-dimensional vector class using ints.
 */
 class Vector2i {
 public:

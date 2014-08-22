@@ -169,6 +169,8 @@ void Viewport::EnableAllDebugRenders(bool enabled/* = true*/)
 
 bool Viewport::GetRayFromViewportCoordinates(Vector2i coords, Ray & ray)
 {
+	if (!camera)
+		return false;
 	// Use coords with the attached camera?
 	assert(this->camera);
 

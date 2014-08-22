@@ -42,19 +42,19 @@ CollisionShapeOctree::CollisionShapeOctree(float i_leftBound, float i_rightBound
 
 /// Default destructor that deallocates all children
 CollisionShapeOctree::~CollisionShapeOctree(){
-	childList.ClearAndDelete();
+	children.ClearAndDelete();
 }
 
 /// Removes unused children. After optimizing now new triangles may be added.
 void CollisionShapeOctree::Optimize()
 {
-	for (int i = 0; i < childList.Size(); ++i)
+	for (int i = 0; i < children.Size(); ++i)
 	{
 		/// If it has no triangles in it, just remove it.
-		CollisionShapeOctree * child = childList[i];
+		CollisionShapeOctree * child = children[i];
 		if (child->RegisteredShapes() == 0)
 		{
-			childList.Remove(child);
+			children.Remove(child);
 			delete child;
 			--i;
 		}
@@ -104,83 +104,83 @@ void CollisionShapeOctree::subdivide(int levels)
 	if (childSubdivisionLvl > MAX_SUBDIVISION)
 		throw 4;
 	// Check if the children aren't already allocated.
-	if (childList.Size() == 0)
+	if (children.Size() == 0)
 	{
 		/// Check sizes, if for example width, height or depth any approach a certain value, opt to instead perform a quad- or perhaps even a binary subdivision.
 		if (height < width * 0.5f)
 		{
 			/// Ok, so height is low, skip height when subdividing, perform a quad-division.
 			/// Hither left, hither right, farther left, farther right
-			childList.Add(new CollisionShapeOctree(left, center.x, top, bottom, nearBound, center.z, childSubdivisionLvl));
-			childList.Add(new CollisionShapeOctree(center.x, right, top, bottom, nearBound, center.z, childSubdivisionLvl));
-			childList.Add(new CollisionShapeOctree(left, center.x, top, bottom, center.z, farBound, childSubdivisionLvl));
-			childList.Add(new CollisionShapeOctree(center.x, right, top, bottom, center.z, farBound, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(left, center.x, top, bottom, nearBound, center.z, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(center.x, right, top, bottom, nearBound, center.z, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(left, center.x, top, bottom, center.z, farBound, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(center.x, right, top, bottom, center.z, farBound, childSubdivisionLvl));
 			/// And the four on the axes, left, right, hither, farther
-			childList.Add(new CollisionShapeOctree(left, center.x, top, bottom, (center.z + nearBound)*0.5f, (center.z + farBound)*0.5f, childSubdivisionLvl));
-			childList.Add(new CollisionShapeOctree(center.x, right, top, bottom, (center.z + nearBound)*0.5f, (center.z + farBound)*0.5f, childSubdivisionLvl));
-			childList.Add(new CollisionShapeOctree((center.x+left)*0.5f, (center.x+right)*0.5f, top, bottom, nearBound, center.z, childSubdivisionLvl));
-			childList.Add(new CollisionShapeOctree((center.x+left)*0.5f, (center.x+right)*0.5f, top, bottom, center.z, farBound, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(left, center.x, top, bottom, (center.z + nearBound)*0.5f, (center.z + farBound)*0.5f, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(center.x, right, top, bottom, (center.z + nearBound)*0.5f, (center.z + farBound)*0.5f, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree((center.x+left)*0.5f, (center.x+right)*0.5f, top, bottom, nearBound, center.z, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree((center.x+left)*0.5f, (center.x+right)*0.5f, top, bottom, center.z, farBound, childSubdivisionLvl));
 			// Center
-			childList.Add(new CollisionShapeOctree((center.x+left)*0.5f, (center.x+right)*0.5f, top, bottom, (center.z+nearBound)*0.5f, (center.z+farBound)*0.5f, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree((center.x+left)*0.5f, (center.x+right)*0.5f, top, bottom, (center.z+nearBound)*0.5f, (center.z+farBound)*0.5f, childSubdivisionLvl));
 		}
 		/// Standard extended octree division here if all lengths (width, height, depth) are near equal in size.
 		else {
 			/// Standard variant octree subdivision with complementary compartments (25 in total).
 			/// First primary octree division 8, in order:
 			/// HITHER_LOWER_LEFT, HITHER_LOWER_RIGHT, HITHER_UPPER_LEFT, HITHER_UPPER_RIGHT, FARTHER_LOWER_LEFT, FARTHER_LOWER_RIGHT, FARTHER_UPPER_LEFT, FARTHER_UPPER_RIGHT.
-			childList.Add(new CollisionShapeOctree(left, center.x, center.y, bottom, nearBound, center.z, childSubdivisionLvl));
-			childList.Add(new CollisionShapeOctree(center.x, right, center.y, bottom, nearBound, center.z, childSubdivisionLvl));
-			childList.Add(new CollisionShapeOctree(left, center.x, top, center.y, nearBound, center.z, childSubdivisionLvl));
-			childList.Add(new CollisionShapeOctree(center.x, right, top, center.y, nearBound, center.z, childSubdivisionLvl));
-			childList.Add(new CollisionShapeOctree(left, center.x, center.y, bottom, center.z, farBound, childSubdivisionLvl));
-			childList.Add(new CollisionShapeOctree(center.x, right, center.y, bottom, center.z, farBound, childSubdivisionLvl));
-			childList.Add(new CollisionShapeOctree(left, center.x, top, center.y, center.z, farBound, childSubdivisionLvl));
-			childList.Add(new CollisionShapeOctree(center.x, right, top, center.y, center.z, farBound, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(left, center.x, center.y, bottom, nearBound, center.z, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(center.x, right, center.y, bottom, nearBound, center.z, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(left, center.x, top, center.y, nearBound, center.z, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(center.x, right, top, center.y, nearBound, center.z, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(left, center.x, center.y, bottom, center.z, farBound, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(center.x, right, center.y, bottom, center.z, farBound, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(left, center.x, top, center.y, center.z, farBound, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(center.x, right, top, center.y, center.z, farBound, childSubdivisionLvl));
 
 			
 			// UPPER_LEFT, UPPER_RIGHT, LOWER_LEFT, LOWER_RIGHT, FARTHER_DOWN, FARTHER_UP, HITHER_DOWN, HITHER_UP,
-			childList.Add(new CollisionShapeOctree(left, center.x, top, center.y, (center.z + nearBound)*0.5f, (center.z + farBound)*0.5f, childSubdivisionLvl));
-			childList.Add(new CollisionShapeOctree(center.x, right, top, center.y, (center.z + nearBound)*0.5f, (center.z + farBound)*0.5f, childSubdivisionLvl));
-			childList.Add(new CollisionShapeOctree(left, center.x, center.y, bottom, (center.z + nearBound)*0.5f, (center.z + farBound)*0.5f, childSubdivisionLvl));
-			childList.Add(new CollisionShapeOctree(center.x, right, center.y, bottom, (center.z + nearBound)*0.5f, (center.z + farBound)*0.5f, childSubdivisionLvl));
-			childList.Add(new CollisionShapeOctree((center.x+left)*0.5f, (center.x+right)*0.5f, center.y, bottom, center.z, farBound, childSubdivisionLvl));
-			childList.Add(new CollisionShapeOctree((center.x+left)*0.5f, (center.x+right)*0.5f, top, center.y, center.z, farBound, childSubdivisionLvl));
-			childList.Add(new CollisionShapeOctree((center.x+left)*0.5f, (center.x+right)*0.5f, center.y, bottom, nearBound, center.z, childSubdivisionLvl));
-			childList.Add(new CollisionShapeOctree((center.x+left)*0.5f, (center.x+right)*0.5f, top, center.y, nearBound, center.z, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(left, center.x, top, center.y, (center.z + nearBound)*0.5f, (center.z + farBound)*0.5f, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(center.x, right, top, center.y, (center.z + nearBound)*0.5f, (center.z + farBound)*0.5f, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(left, center.x, center.y, bottom, (center.z + nearBound)*0.5f, (center.z + farBound)*0.5f, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(center.x, right, center.y, bottom, (center.z + nearBound)*0.5f, (center.z + farBound)*0.5f, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree((center.x+left)*0.5f, (center.x+right)*0.5f, center.y, bottom, center.z, farBound, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree((center.x+left)*0.5f, (center.x+right)*0.5f, top, center.y, center.z, farBound, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree((center.x+left)*0.5f, (center.x+right)*0.5f, center.y, bottom, nearBound, center.z, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree((center.x+left)*0.5f, (center.x+right)*0.5f, top, center.y, nearBound, center.z, childSubdivisionLvl));
 
 			// Center
-			childList.Add(new CollisionShapeOctree((center.x+left)*0.5f, (center.x+right)*0.5f, (center.y+top)*0.5f, (center.y+bottom)*0.5f, (center.z+nearBound)*0.5f, (center.z+farBound)*0.5f, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree((center.x+left)*0.5f, (center.x+right)*0.5f, (center.y+top)*0.5f, (center.y+bottom)*0.5f, (center.z+nearBound)*0.5f, (center.z+farBound)*0.5f, childSubdivisionLvl));
 
 			// + Center-branches
 			//HITHER, FARTHER, LEFTER, RIGHTER, UPPER, LOWER,
-			childList.Add(new CollisionShapeOctree((center.x+left)*0.5f, (center.x+right)*0.5f, (center.y+top)*0.5f, (center.y+bottom)*0.5f, nearBound, center.z, childSubdivisionLvl));
-			childList.Add(new CollisionShapeOctree((center.x+left)*0.5f, (center.x+right)*0.5f, (center.y+top)*0.5f, (center.y+bottom)*0.5f, center.z, farBound, childSubdivisionLvl));
-			childList.Add(new CollisionShapeOctree(left, center.x, (center.y+top)*0.5f, (center.y+bottom)*0.5f, (center.z+nearBound)*0.5f, (center.z+farBound)*0.5f, childSubdivisionLvl));
-			childList.Add(new CollisionShapeOctree(center.x, right, (center.y+top)*0.5f, (center.y+bottom)*0.5f, (center.z+nearBound)*0.5f, (center.z+farBound)*0.5f, childSubdivisionLvl));
-			childList.Add(new CollisionShapeOctree((center.x+left)*0.5f, (center.x+right)*0.5f, top, center.y, (center.z+nearBound)*0.5f, (center.z+farBound)*0.5f, childSubdivisionLvl));
-			childList.Add(new CollisionShapeOctree((center.x+left)*0.5f, (center.x+right)*0.5f, center.y, bottom, (center.z+nearBound)*0.5f, (center.z+farBound)*0.5f, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree((center.x+left)*0.5f, (center.x+right)*0.5f, (center.y+top)*0.5f, (center.y+bottom)*0.5f, nearBound, center.z, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree((center.x+left)*0.5f, (center.x+right)*0.5f, (center.y+top)*0.5f, (center.y+bottom)*0.5f, center.z, farBound, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(left, center.x, (center.y+top)*0.5f, (center.y+bottom)*0.5f, (center.z+nearBound)*0.5f, (center.z+farBound)*0.5f, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(center.x, right, (center.y+top)*0.5f, (center.y+bottom)*0.5f, (center.z+nearBound)*0.5f, (center.z+farBound)*0.5f, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree((center.x+left)*0.5f, (center.x+right)*0.5f, top, center.y, (center.z+nearBound)*0.5f, (center.z+farBound)*0.5f, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree((center.x+left)*0.5f, (center.x+right)*0.5f, center.y, bottom, (center.z+nearBound)*0.5f, (center.z+farBound)*0.5f, childSubdivisionLvl));
 
 			// + Huggers(apartments, whatever)
 			// FATHER_LEFT, FARTHER_RIGHT, HITHER_LEFT, HITHER_RIGHT,
-			childList.Add(new CollisionShapeOctree(left, center.x, (center.y+top)*0.5f, (center.y+bottom)*0.5f, center.z, farBound, childSubdivisionLvl));
-			childList.Add(new CollisionShapeOctree(center.x, right, (center.y+top)*0.5f, (center.y+bottom)*0.5f, center.z, farBound, childSubdivisionLvl));
-			childList.Add(new CollisionShapeOctree(left, center.x, (center.y+top)*0.5f, (center.y+bottom)*0.5f, nearBound, center.z, childSubdivisionLvl));
-			childList.Add(new CollisionShapeOctree(center.x, right, (center.y+top)*0.5f, (center.y+bottom)*0.5f, nearBound, center.z, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(left, center.x, (center.y+top)*0.5f, (center.y+bottom)*0.5f, center.z, farBound, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(center.x, right, (center.y+top)*0.5f, (center.y+bottom)*0.5f, center.z, farBound, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(left, center.x, (center.y+top)*0.5f, (center.y+bottom)*0.5f, nearBound, center.z, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(center.x, right, (center.y+top)*0.5f, (center.y+bottom)*0.5f, nearBound, center.z, childSubdivisionLvl));
 		}
 	}
-	for (int i = 0; i < childList.Size(); ++i)
-		childList[i]->parent = this;
+	for (int i = 0; i < children.Size(); ++i)
+		children[i]->parent = this;
 	// Subdivide all children further if levels is still positive.
 	if (levels > 0){
-		for (int i = 0; i < childList.Size(); ++i)
-			childList[i]->subdivide(levels);
+		for (int i = 0; i < children.Size(); ++i)
+			children[i]->subdivide(levels);
 	}
 }
 
 void CollisionShapeOctree::clearAll(){
 	triangles.Clear();
-	for (int i = 0; i < childList.Size(); ++i)
-		childList[i]->clearAll();
+	for (int i = 0; i < children.Size(); ++i)
+		children[i]->clearAll();
 }
 
 
@@ -199,10 +199,10 @@ bool CollisionShapeOctree::AddTriangle(Triangle * tri)
 		return false;
 	}
 	// If we have children, check if it fits in any of them.
-	if (childList.Size()){
+	if (children.Size()){
 		int result = OUTSIDE;
-		for (int i = 0; i < childList.Size(); ++i){
-			result = childList[i]->IsTriangleInside(tri);
+		for (int i = 0; i < children.Size(); ++i){
+			result = children[i]->IsTriangleInside(tri);
 			switch(result){
 					// If the Entity is outside, just check next child-node~
 				case OUTSIDE:
@@ -211,7 +211,7 @@ bool CollisionShapeOctree::AddTriangle(Triangle * tri)
 				case INTERSECT: break;
 					// If it is inside, continue down the chain and then return from hierrr.
 				case INSIDE:
-					return childList[i]->AddTriangle(tri);
+					return children[i]->AddTriangle(tri);
 			}
 		}
 		// If we arrived here, it's either intersecting or something, so add it to our current children since it can't go further down the tree.
@@ -221,7 +221,7 @@ bool CollisionShapeOctree::AddTriangle(Triangle * tri)
 	} /// End of trying to enter it into any of our children
 
 	// Okay, no spot in children, check if we should subdivide it (if the children aren't already allocated, that is!)
-	if (triangles.Size() > MAX_INITIAL_NODES_BEFORE_SUBDIVISION && childList.Size() == NULL){
+	if (triangles.Size() > MAX_INITIAL_NODES_BEFORE_SUBDIVISION && children.Size() == NULL){
 		// Subdivide and then try push all our children down the tree further, so they don't get stuck here without reason.
 		subdivide();
 		List<Triangle*> tempList(triangles);
@@ -241,8 +241,8 @@ bool CollisionShapeOctree::AddTriangle(Triangle * tri)
 bool CollisionShapeOctree::Exists(Triangle * tri){
 	if (triangles.Exists(tri))
 		return true;
-	for (int i = 0; i < childList.Size(); ++i){
-		if (childList[i]->Exists(tri))
+	for (int i = 0; i < children.Size(); ++i){
+		if (children[i]->Exists(tri))
 			return true;
 	}
 	return false;
@@ -261,8 +261,8 @@ bool CollisionShapeOctree::RemoveTriangle(Triangle * tri){
 		return true;
 	}
 	// Go through all children. If one of them finds the target Entity, return true without processing any more children.
-	for (int i = 0; i < childList.Size(); ++i){
-		if (childList[i]->RemoveTriangle(tri))
+	for (int i = 0; i < children.Size(); ++i){
+		if (children[i]->RemoveTriangle(tri))
 			return true;
 	}
 	if (this->subdivision == 0){
@@ -276,8 +276,8 @@ bool CollisionShapeOctree::RemoveTriangle(Triangle * tri){
 int CollisionShapeOctree::RegisteredShapes(){
 	int total = 0;
 	total += triangles.Size();
-	for (int i = 0; i < childList.Size(); ++i){
-		total += childList[i]->RegisteredShapes();
+	for (int i = 0; i < children.Size(); ++i){
+		total += children[i]->RegisteredShapes();
 	}
 	return total;
 }
@@ -300,8 +300,8 @@ void CollisionShapeOctree::PrintContents()
 	}
 
 	/// Print children if any
-	for (int i = 0; i < childList.Size(); ++i){
-		childList[i]->PrintContents();
+	for (int i = 0; i < children.Size(); ++i){
+		children[i]->PrintContents();
 	}
 }
 
@@ -315,8 +315,8 @@ bool CollisionShapeOctree::Render(GraphicsState * graphicsState)
 	/// Check if inside any children, render only that child if so
 	int childIndex = -1;
 	// Render children first
-	for (int i = 0; i < childList.Size(); ++i){
-		CollisionShapeOctree * child = childList[i];
+	for (int i = 0; i < children.Size(); ++i){
+		CollisionShapeOctree * child = children[i];
 		if (cam.x < child->right &&
 			cam.x > child->left &&
 			cam.y < child->top &&
@@ -337,9 +337,9 @@ bool CollisionShapeOctree::Render(GraphicsState * graphicsState)
 
 
 	// Render children first
-	for (int i = 0; i < childList.Size(); ++i){
+	for (int i = 0; i < children.Size(); ++i){
 		/// Render, and if true (meaning it was inside), don't render ourselves or any more stuff
-		if (childList[i]->Render(graphicsState))
+		if (children[i]->Render(graphicsState))
 			wasInside = true;
 	}
 	/// Skip parents if we're inside a sub-element
@@ -423,6 +423,9 @@ int CollisionShapeOctree::FindCollisions(Entity * targetEntity, List<Collision> 
 		Triangle tri = *trianglePointer;
 		assert(trianglePointer->normal.MaxPart());
 		tri.Transform(localTransform);
+		// Probably a bad matrix one frame.. just skip it.
+		if (!tri.normal.MaxPart())
+			continue;
 		assert(tri.normal.MaxPart());
 		Viewport * viewport = ActiveViewport;
 		if (viewport)
@@ -466,8 +469,8 @@ int CollisionShapeOctree::FindCollisions(Entity * targetEntity, List<Collision> 
 	/// If entry node, begin all recursion.
 	if (this->subdivision == entrySubdivisionLevel){
 		/// Then all children
-		for (int i = 0; i < childList.Size(); ++i){
-			CollisionShapeOctree * ch = childList[i];
+		for (int i = 0; i < children.Size(); ++i){
+			CollisionShapeOctree * ch = children[i];
 			/// Do the actual culling with this continue-statement, yo!
 			if (ch->IsEntityInside(targetEntity, localTransform) == OUTSIDE)
 				continue;
@@ -481,8 +484,8 @@ int CollisionShapeOctree::FindCollisions(Entity * targetEntity, List<Collision> 
 	/// Process children if subdivision level is higher (further down the tree.)
 	else if (this->subdivision > entrySubdivisionLevel){
 		/// Then all children
-		for (int i = 0; i < childList.Size(); ++i){
-			CollisionShapeOctree * child = childList[i];
+		for (int i = 0; i < children.Size(); ++i){
+			CollisionShapeOctree * child = children[i];
 			/// Do the actual culling with this continue-statement, yo!
 			if (child->IsEntityInside(targetEntity, localTransform) == OUTSIDE)
 				continue;

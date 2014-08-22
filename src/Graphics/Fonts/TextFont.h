@@ -59,6 +59,8 @@ private:
 	void RenderCaret();
 	// Renders character at current position.
 	void RenderChar(char c);
+	/// For rendering a quad on top over the character's which are selected, pretty much.
+	void RenderSelection(char currentChar);
 	/// Re-instates old shader as needed.
 	void OnEndRender(GraphicsState * graphicsState);
 

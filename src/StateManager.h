@@ -76,6 +76,9 @@ public:
 	void SetGlobalState(int id);
 	/// Sets a global state, that can process global messages and packets
 	void SetGlobalState(AppState * newGlobalState);
+	/// Sets active/current state.
+	void SetActiveState(AppState * state);
+
 
 	/// Returns state of given ID so that messages may be sent to it before entering it.
 	AppState * GetStateByID(int id);

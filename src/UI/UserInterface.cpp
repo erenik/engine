@@ -41,6 +41,16 @@ UserInterface * ActiveUI()
 	return activeWindow->GetUI();
 }
 
+/// UI which the mouse is currently hovering over, which may be any window.
+UserInterface * HoverUI()
+{
+	Window * hoverWindow = WindowMan.HoverWindow();
+	if (!hoverWindow)
+		return NULL;
+	return hoverWindow->GetUI();
+}
+
+
 /// Fetches either the Global or Active UI, taking into consideration both active window and if there exist any valid content in the Global UI.
 UserInterface * RelevantUI()
 {
@@ -1168,7 +1178,8 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
                 else
                     element->textureSource = defaultRootFolder + NEXT_TOKEN;
 			}
-			else if (token == "text"){
+			else if (token == "text")
+			{
 				ENSURE_NEXT_TOKEN
 				String text = tokens[1];
 		/*		std::cout<<"\nTex: "<<line;
@@ -1279,9 +1290,9 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 						break;
 					}
                     std::cout<<"\nAdding element "<<element->name<<" as child to "<<e->name;
-                    int childrenPre = e->childList.Size();
+                    int childrenPre = e->children.Size();
 					e->AddChild(element);
-                    int children = e->childList.Size();
+                    int children = e->children.Size();
                     assert(children > childrenPre);
 				}
 				else {

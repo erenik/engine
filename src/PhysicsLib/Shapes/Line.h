@@ -5,6 +5,19 @@
 #ifndef LINE_H
 #define LINE_H
 
+#include "MathLib.h"
+
+namespace IntersectionType {
+	enum intersectionTypes 
+	{
+		NO_INTERSECTION = 0,
+		INTERSECTION = 1, GENERAL = INTERSECTION,
+		POINT_IN_SEGMENT, // One endpoint occurs in the other segment?
+		COLINEAR,  // Completely colinear
+
+	};
+};
+
 /// Used for line-segments.
 class Line 
 {

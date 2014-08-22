@@ -5,24 +5,28 @@
 #include "RREntityState.h"
 
 #include "Message/Message.h"
-#include "Physics/Messages/CollissionCallback.h"
-#include "Graphics/GraphicsManager.h"
-#include "Graphics/GraphicsProperty.h"
-#include "Maps/MapManager.h"
-#include "Maps/2D/TileMap2D.h"
+
+#include "Physics/Messages/CollisionCallback.h"
 #include "Physics/Messages/PhysicsMessage.h"
 #include "Physics/PhysicsManager.h"
+#include "Physics/PhysicsProperty.h"
+
+#include "Graphics/GraphicsManager.h"
+#include "Graphics/GraphicsProperty.h"
 #include "Graphics/Messages/GMSetEntity.h"
 #include "Graphics/Messages/GraphicsMessages.h"
-#include "Physics/PhysicsProperty.h"
+
+#include "Maps/MapManager.h"
+#include "Maps/2D/TileMap2D.h"
+#include "Maps/2D/EntityStateTile2D.h"
+
 #include "Pathfinding/PathfindingProperty.h"
 #include "Script/ScriptManager.h"
-#include "Maps/2D/EntityStateTile2D.h"
 
 const float RREntityState::DEFAULT_MOVEMENT_SPEED = 0.25f;
 
 RREntityState::RREntityState(Entity * entity)
-: EntityProperty(entity)
+: EntityProperty("RREntityState", 0, entity)
 {
 	name = "RREntityState";
 	entityTile2D = NULL;
@@ -97,7 +101,7 @@ void RREntityState::ProcessMessage(Message * message)
 				}
 				Vector2i intTile = GetInteractionTile();
 				/// Send along our entity as reference.
-				tmap->Interact(intTile, entity);
+				tmap->Interact(intTile, owner);
 			}
 			break;						  
 		}					  
@@ -131,7 +135,7 @@ void RREntityState::EnableMovement()
 Vector2i RREntityState::GetInteractionTile()
 {		
 	// Check if tile is vacant and walkable, if so move to it.
-	Vector3f pos = entity->position;
+	Vector3f pos = owner->position;
 	pos.Round();
 	int tileX = pos.x;
 	int tileY = pos.y;
@@ -158,7 +162,8 @@ Vector2i RREntityState::GetInteractionTile()
 }
 
 /// Based on the requested direction..!
-void RREntityState::UpdateQueuedMovement(){
+void RREntityState::UpdateQueuedMovement()
+{
 	if (up)
 		queuedDirection = Direction::UP;
 	else if (left)
@@ -173,11 +178,11 @@ void RREntityState::UpdateQueuedMovement(){
 	if (queuedDirection != Direction::NONE){
 		lastQueuedDirection = queuedDirection;
 		// Inform the Physics/Pathfinder of it!
-		Graphics.QueueMessage(new GMSetEntity(entity, ANIMATION, "Walk"));
+		Graphics.QueueMessage(new GMSetEntity(owner, GT_ANIMATION, "Walk"));
 	}
 	/// And not?
 	else {
-		PathfindingProperty * path = entity->pathfindingProperty;
+		PathfindingProperty * path = owner->pathfindingProperty;
 		path->desiredVelocity = Vector3f();
 		std::cout<<"\nStopping.";
 	}
@@ -198,7 +203,7 @@ void RREntityState::HandleMovement(int timePassedInMs)
 			previousDirection = direction;
 			direction = Direction::NONE;
 			TileMap2D * map = (TileMap2D*)MapMan.ActiveMap();
-			Vector3f pos = entity->position;
+			Vector3f pos = owner->position;
 			pos.Round();
 			assert(false);
 		//	map->OnArrive(entity, pos.x, pos.y);
@@ -210,7 +215,7 @@ void RREntityState::HandleMovement(int timePassedInMs)
 		/// Process the movement
 		Vector3f framePosition = newPosition * movementProgress + previousPosition * (1 - movementProgress);
 	//	Graphics.PauseRendering();
-		Physics.QueueMessage(new PMSetEntity(POSITION, entity, framePosition));
+		Physics.QueueMessage(new PMSetEntity(owner, PT_POSITION, framePosition));
 	//	entity->recalculateMatrix();
 	//	Graphics.ResumeRendering();
 		
@@ -219,7 +224,7 @@ void RREntityState::HandleMovement(int timePassedInMs)
 	/// If we reached next tile, see if we got a queued direction and occupy that next tile if possible and if so! :)
 	if (direction == Direction::NONE && queuedDirection != Direction::NONE){
 		// Check if tile is vacant and walkable, if so move to it.
-		Vector3f pos = entity->position;
+		Vector3f pos = owner->position;
 //		std::cout<<"\nPosition: "<<pos;
 
 		TileMap2D * map = (TileMap2D*)MapMan.ActiveMap();
@@ -274,13 +279,13 @@ void RREntityState::HandleMovement(int timePassedInMs)
 			break;
 		}
 		requestedVelocity *= 5.0f;
-		assert(entity->physics);
+		assert(owner->physics);
 
 		/// Send requested velocity to the animation thingy!
-		PathfindingProperty * path = entity->pathfindingProperty;
+		PathfindingProperty * path = owner->pathfindingProperty;
 		path->desiredVelocity = requestedVelocity;
 		/// Consider setting this somewhere else..
-		entity->physics->boundToNavMesh = true;
+		owner->physics->boundToNavMesh = true;
 //		std::cout<<"\nSetting desired velocity to: "<<requestedVelocity;
 		/// Update 2D-position.
 		if (entityTile2D)
@@ -311,7 +316,7 @@ void RREntityState::HandleMovement(int timePassedInMs)
 	}
 	// No queued movement and no current movement = stand still!
 	else if (direction == Direction::NONE && queuedDirection == Direction::NONE){
-		Graphics.QueueMessage(new GMSetEntity(entity, ANIMATION, "Idle"));
+		Graphics.QueueMessage(new GMSetEntity(owner, GT_ANIMATION, "Idle"));
 	}
 	/// Walk more if we had stuff remaining, yo.
 	if (timeRemainingAfterReachingDestination > 0){

@@ -171,7 +171,7 @@ Model * ModelManager::LoadObj(String source)
 		std::cout<<"\nCreating mesh.";
 		mesh = new Mesh();
 		bool compressedLoadResult = mesh->LoadCompressedFrom(compressedPath);
-		std::cout<<"\nMesh loaded.";
+	
 		/*
 		// Try deleting it straight away.
 		delete mesh;
@@ -180,6 +180,11 @@ Model * ModelManager::LoadObj(String source)
 		*/
 		if (compressedLoadResult)
 		{
+			std::cout<<"\nMesh loaded.";
+			if (mesh->radius < 0)
+				mesh->CalculateBounds();
+			assert(mesh->radius > 0);
+	
 			// ... 
 			modelLoaded = true;
 		}
@@ -202,6 +207,9 @@ Model * ModelManager::LoadObj(String source)
 		std::cout<<"\nLoading model from source: "<<source;
 		std::cout<<"\nCalling ObjReader::ReadObj";
 		modelLoaded = ObjReader::ReadObj(source.c_str(), mesh);
+		if (mesh->radius < 0)
+			mesh->CalculateBounds();
+		assert(mesh->radius > 0);
 	 //   mesh->PrintContents();
 
 	}
@@ -244,6 +252,7 @@ Model * ModelManager::LoadObj(String source)
 		}
 
 		modelList.Add(model);
+		assert(model->radius > 0);
 		return model;
 	}
 	else {

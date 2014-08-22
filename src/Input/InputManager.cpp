@@ -607,8 +607,10 @@ void InputManager::MouseRightClick(Window * window, bool down, int x, int y)
 }
 
 /// Interprets a mouse-move message to target position.
-void InputManager::MouseMove(Window * window, int x, int y)
+void InputManager::MouseMove(Window * window, Vector2i activeWindowAreaCoords)
 {	
+	int x = activeWindowAreaCoords.x;
+	int y = activeWindowAreaCoords.y;
 	if (!acceptInput)
 		return;
 	/// If mouse is le locked, return
@@ -641,6 +643,7 @@ void InputManager::MouseMove(Window * window, int x, int y)
 	}
 	Graphics.QueryRender();
 }
+
 /** Handles mouse wheel input.
 	Positive delta signifies scrolling upward or away from the user, negative being toward the user.
 */
@@ -653,10 +656,11 @@ void InputManager::MouseWheel(Window * window, float delta)
 	if (ui)
 	{
 		UIElement * element = ui->GetElementByPosition(mouseX, mouseY);
-		if (element){
-			delta *= 0.5f;
+		if (element)
+		{
+			delta *= 2.f;
 			if (KeyPressed(KEY::CTRL))
-				delta *= 5;
+				delta *= 0.25f;
 	//		std::cout<<"\nWheeled over element: "<<element->name;
 			bool scrolled = element->OnScroll(delta);
 			if (scrolled)
@@ -726,6 +730,17 @@ void InputManager::EvaluateKeyPressed(int activeKeyCode, bool downBefore, UIElem
 				{
 					bool didSomething = UICancel();
 					uiCommand = didSomething;
+					// Nothing relevant?
+					if (!didSomething)
+					{
+						// Are we in the main window? If not, make it active? (maybe should add a Window-stack..? lol)
+						if (ActiveWindow() != MainWindow())
+						{
+							/// This should make it active.
+							ActiveWindow()->Hide();
+							MainWindow()->BringToTop();
+						}
+					}
 					/// Check navigate UI stuff after actually popping anything?
 					if (!didSomething && !forceNavigateUI)
 						navigateUI = false;
@@ -1010,6 +1025,8 @@ List<UIElement*> InputManager::UIGetRelevantElements()
 {
 	List<UIElement*> elements;
 	UserInterface * ui = RelevantUI();
+	if (!ui)
+		return elements;
 //	UIElement * element;
 	List<UIElement*> uiList;
 	assert(ui);
@@ -1044,7 +1061,8 @@ void InputManager::UIUp()
 	else {
 		// If not, or if the element couldn't find the named one, try and let it figure out for itself which one it would suggest for us!
 		if (!element){
-			UIElement * desiredElement = hoverElement->GetUpNeighbour(NULL);
+			bool searchChildrenOnly = false;
+			UIElement * desiredElement = hoverElement->GetUpNeighbour(NULL, searchChildrenOnly);
 			if (desiredElement)
 				element = desiredElement;
 		}
@@ -1126,7 +1144,8 @@ void InputManager::UIDown()
 	else {
 		// If not, or if the element couldn't find the named one, try and let it figure out for itself which one it would suggest for us!
 		if (!element){
-			UIElement * desiredElement = hoverElement->GetDownNeighbour(NULL);
+			bool searchChildrenOnly = false;
+			UIElement * desiredElement = hoverElement->GetDownNeighbour(NULL, searchChildrenOnly);
 			if (desiredElement)
 				element = desiredElement;
 		}
@@ -1158,7 +1177,8 @@ void InputManager::UILeft(){
 	else {
 		// If not, or if the element couldn't find the named one, try and let it figure out for itself which one it would suggest for us!
 		if (!element){
-			UIElement * desiredElement = hoverElement->GetLeftNeighbour(NULL);
+			bool searchChildrenOnly = false;
+			UIElement * desiredElement = hoverElement->GetLeftNeighbour(NULL, searchChildrenOnly);
 			if (desiredElement)
 				element = desiredElement;
 		}
@@ -1191,7 +1211,8 @@ void InputManager::UIRight()
 	else {
 		// If not, or if the element couldn't find the named one, try and let it figure out for itself which one it would suggest for us!
 		if (!element){
-			UIElement * desiredElement = hoverElement->GetRightNeighbour(NULL);
+			bool searchChildrenOnly = false;
+			UIElement * desiredElement = hoverElement->GetRightNeighbour(NULL, searchChildrenOnly);
 			if (desiredElement)
 				element = desiredElement;
 		}
@@ -1206,6 +1227,8 @@ void InputManager::UIRight()
 bool InputManager::UIPage(float amount)
 {
 	UserInterface * ui = RelevantUI();
+	// TODO: Add a UIElement::UIPage function, which scrolls up or down a page (if inside a UIList), updating the active hover item.
+	/// Then update the list position and stuff as is done with regular hover and UI-navigation functions!
 	UIElement * hoverElement = ui->GetHoverElement();
 	if (!hoverElement)
 		return false;
@@ -1294,7 +1317,7 @@ void InputManager::UIPrevious()
 /// Returns the element that the cursor is currently hovering over.
 UIElement * InputManager::HoverElement()
 {
-	UserInterface * ui = RelevantUI();
+	UserInterface * ui = HoverUI();
 	if (!ui)
 		return NULL;
 	UIElement * element = ui->GetHoverElement();

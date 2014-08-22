@@ -100,7 +100,14 @@ const String File::Path() const {
 }
 
 /// SaveFile
-const char * SaveFile::saveFolder = "sav";
+/// Default save folder, usually "$Documents$/MyGames/$AppName$/saves/"
+String SaveFile::saveFolder = "saves";
+
+/// Default constructor, doesn't open any streams.
+SaveFile::SaveFile()
+{
+
+}
 
 std::fstream * SaveFile::Open(String saveName, String gameName, String customHeaderData, bool overwriteIfNeeded)
 {
@@ -176,3 +183,4 @@ bool SaveFileHeader::ReadFrom(std::fstream & stream){
 	customHeaderData.ReadFrom(stream);
 	return true;
 }
+

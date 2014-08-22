@@ -60,7 +60,8 @@ public:
 
 	/// Center of mesh (measured from internal structure), calculated after it's been loaded.
 	Vector3f centerOfModel;
-	/// Radius
+	
+	/// Radius as based in origo (0,0,0). If a local radius is desired, recalculate it using the centerOfModel.
 	float radius;
 
 	/// Returns the AABB.

@@ -85,6 +85,20 @@ public:
 		The delta corresponds to amount of "pages" it should scroll.
 	*/
 	virtual bool OnScroll(float delta);
+
+	/** Suggests a neighbour which could be to the right of this element. 
+		Meant to be used for UI-navigation support. The reference element 
+		indicates the element to which we are seeking a compatible or optimum neighbour, 
+		and should be NULL for the initial call.
+
+		If searchChildrenOnly is true, the call should not recurse to any parents. 
+		This is set by special classes such as UIList and UIColumnList when they know
+		a certain element should be or contain the correct neighbour element.
+	*/
+	virtual UIElement * GetUpNeighbour(UIElement * referenceElement, bool & searchChildrenOnly);
+	virtual UIElement * GetDownNeighbour(UIElement * referenceElement, bool & searchChildrenOnly);
+	
+
 	/// Returns the current scroll position.
 	float GetScrollPosition();
 	/// Set current scroll position.
@@ -106,6 +120,8 @@ protected:
 	/// Called whenever an element is deleted externally. Sub-class in order to properly deal with references.
 //	virtual void OnElementDeleted(UIElement * element);
 
+	// Default true.
+	bool createScrollBarsAutomatically;
 
 private:
 

@@ -82,6 +82,9 @@ public:
 	/// Frees the GL allocated IDs/memory of all textures.
 	void FreeTextures();
 
+	/// Checks if target image is supported for loading by the game engine.
+	bool SupportedImageFileType(String fileName);
+
 private:
 	/// Attempts to load a texture using OpenCV imread.
 	bool LoadTextureOpenCV(String source, Texture * texture);

@@ -260,55 +260,66 @@ void * GraphicsManager::Processor(void * vArgs){
 		AudioMan.Update();
 
 
-		graphicsTimer.Start();
-		// Process graphics messages
-		gmTimer.Start();
-		
-	//	try {
-			Graphics.ProcessMessages();
-	/*	} 
-		catch(...)
+		/// Process graphics if we can claim the mutex within 10 ms. If not, skip it this iteration.
+		if (GraphicsMan.graphicsProcessingMutex.Claim(10))
 		{
-			std::cout<<"Errors thrown while processing graphics messages.";
-		}
-		*/
+			Graphics.processing = true;
+			graphicsTimer.Start();
+			// Process graphics messages
+			gmTimer.Start();
 		
-		Graphics.graphicsMessageProcessingFrameTime = gmTimer.GetMs();
-		/// Check if we should render or not.
-		bool renderOnQuery = Graphics.renderOnQuery;
-		bool renderQueried = Graphics.renderQueried;
-		bool shouldRender = (renderOnQuery && renderQueried) || !renderOnQuery;
-	//	std::cout<<"\n- Processing graphics messages time taken: "<<gmTimer.GetMs();
-		if (Graphics.renderingEnabled && shouldRender && !Graphics.renderingStopped)
-		{
-		    guTimer.Start();
-			// Update the lights' positions as needed.
-			Graphics.UpdateLighting();
-			// Reposition all entities that are physically active (dynamic entities) in the octrees and other optimization structures!
-			Graphics.RepositionEntities();
-			Graphics.Process();
-			Graphics.graphicsUpdatingFrameTime = guTimer.GetMs();
-		//	std::cout<<"\n- Updating entities frame time: "<<guTimer.GetMs();
-			Timer timer;
-			timer.Start();
-			/// Process movement for cameras.
-			CameraMan.Process();
-			// Render
-			Graphics.RenderWindows();
-			timer.Stop();
-	//		std::cout<<"\n- Render frame time: "<<timer.GetMs();
-			Graphics.renderQueried = false;
-			
-		}
-		
-		else {
-			if (now > timeNotRendered + 1000)
+		//	try {
+				Graphics.ProcessMessages();
+		/*	} 
+			catch(...)
 			{
-//				std::cout<<"\nPrint if rendering is disabled?";
-				timeNotRendered = now;
+				std::cout<<"Errors thrown while processing graphics messages.";
 			}
+			*/
+		
+			Graphics.graphicsMessageProcessingFrameTime = gmTimer.GetMs();
+			/// Check if we should render or not.
+			bool renderOnQuery = Graphics.renderOnQuery;
+			bool renderQueried = Graphics.renderQueried;
+			bool shouldRender = (renderOnQuery && renderQueried) || !renderOnQuery;
+		//	std::cout<<"\n- Processing graphics messages time taken: "<<gmTimer.GetMs();
+			if (Graphics.renderingEnabled && shouldRender && !Graphics.renderingStopped)
+			{
+				guTimer.Start();
+				// Update the lights' positions as needed.
+				Graphics.UpdateLighting();
+				// Reposition all entities that are physically active (dynamic entities) in the octrees and other optimization structures!
+				Graphics.RepositionEntities();
+				Graphics.Process();
+				Graphics.graphicsUpdatingFrameTime = guTimer.GetMs();
+			//	std::cout<<"\n- Updating entities frame time: "<<guTimer.GetMs();
+				Timer timer;
+				timer.Start();
+				/// Process movement for cameras.
+				CameraMan.Process();
+				// Render
+				Graphics.RenderWindows();
+				timer.Stop();
+		//		std::cout<<"\n- Render frame time: "<<timer.GetMs();
+				Graphics.renderQueried = false;
+			
+			}
+		
+			else {
+				if (now > timeNotRendered + 1000)
+				{
+	//				std::cout<<"\nPrint if rendering is disabled?";
+					timeNotRendered = now;
+				}
+			}
+			graphicsTimer.Stop();
+			Graphics.processing = false;
+			Graphics.graphicsProcessingMutex.Release();
 		}
-		graphicsTimer.Stop();
+		else {
+			// Busy.
+			std::cout<<"\nUnable to claim grpahicsProcessing mutex within given time frame, skipping processing this iteration";
+		}
 	//	std::cout<<"\nGraphicsFrameTime: "<<graphicsTimer.GetMs();
 
 		total.Stop();

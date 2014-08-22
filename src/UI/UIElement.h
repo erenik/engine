@@ -128,15 +128,23 @@ public:
 
 	/// Yup.
 	void InheritNeighbours(UIElement * fromElement);
-	/// Suggests a neighbour which could be to the right of this element. Meant to be used for UI-navigation support. The reference element indicates the element to which we are seeking a compatible or optimum neighbour, and should be NULL for the initial call.
-	UIElement * GetUpNeighbour(UIElement * referenceElement);
-	/// Suggests a neighbour which could be to the right of this element. Meant to be used for UI-navigation support. The reference element indicates the element to which we are seeking a compatible or optimum neighbour, and should be NULL for the initial call.
-	UIElement * GetRightNeighbour(UIElement * referenceElement);
-	/// Suggests a neighbour which could be to the right of this element. Meant to be used for UI-navigation support. The reference element indicates the element to which we are seeking a compatible or optimum neighbour, and should be NULL for the initial call.
-	UIElement * GetDownNeighbour(UIElement * referenceElement);
-	/// Suggests a neighbour which could be to the right of this element. Meant to be used for UI-navigation support. The reference element indicates the element to which we are seeking a compatible or optimum neighbour, and should be NULL for the initial call.
-	UIElement * GetLeftNeighbour(UIElement * referenceElement);
+	/** Suggests a neighbour which could be to the right of this element. 
+		Meant to be used for UI-navigation support. The reference element 
+		indicates the element to which we are seeking a compatible or optimum neighbour, 
+		and should be NULL for the initial call.
+
+		If searchChildrenOnly is true, the call should not recurse to any parents. 
+		This is set by special classes such as UIList and UIColumnList when they know
+		a certain element should be or contain the correct neighbour element.
+	*/
+	virtual UIElement * GetUpNeighbour(UIElement * referenceElement, bool & searchChildrenOnly);
+	virtual UIElement * GetRightNeighbour(UIElement * referenceElement, bool & searchChildrenOnly);
+	virtual UIElement * GetDownNeighbour(UIElement * referenceElement, bool & searchChildrenOnly);
+	virtual UIElement * GetLeftNeighbour(UIElement * referenceElement, bool & searchChildrenOnly);
 	
+	/// Works recursively.
+	UIElement * GetElementClosestTo(Vector3f & position);
+
 	// Sets the selected flag to false for the element and all beneath it.
 	void DeselectAll();
 
@@ -154,7 +162,7 @@ public:
 	virtual void OnHover();
 
 	// Reference functions
-	List<UIElement*> GetChildren() { return childList; };
+	List<UIElement*> GetChildren() { return children; };
 	UIElement* GetElementWithID(int elementId);
 	UIElement* GetElementByPos(int posX, int posY);
 	UIElement* GetActiveElement();
@@ -203,6 +211,10 @@ public:
 	// Adjust hierarchy
 	virtual void AddChild(UIElement* child); // Sets child pointer to child UI element, NULL if non
 	void SetParent(UIElement *in_parent);
+
+	/// Checks if the target element is somehow a part of this list. If it is, the function will return the index of the child it is or belongs to. Otherwise -1 will be returned.
+	int BelongsToChildIndex(UIElement * ele);
+
 
 	/// Queues the UIElement to be buffered via the GraphicsManager
 	void QueueBuffering();
@@ -410,7 +422,7 @@ protected:
 
 	// Hierarchal pointers
 	UIElement * parent;					// Pointer to parent UI element
-	List<UIElement*> childList;					// Pointer-array to a child.
+	List<UIElement*> children;					// Pointer-array to a child.
 
 	/// Id stuff
 	int id;								// ID of the UI, used for changing properties in the element.

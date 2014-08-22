@@ -126,7 +126,7 @@ bool Population::LoadFrom(String file)
 			growth = value.ParseFloat();
 		
 		/// Lines with at least 2 arguments to the key
-		if (tokens <= 3)
+		if (tokens.Size() <= 3)
 			continue;
 		String value2 = tokens[2];
 		if (key == "origin")

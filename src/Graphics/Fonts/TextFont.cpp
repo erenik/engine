@@ -400,6 +400,20 @@ void TextFont::RenderText(Text & text, GraphicsState * graphicsState)
 	Shader * oldShader = graphicsState->activeShader;
 	// Start rendering.
 	PrepareForRender(graphicsState);
+
+	/// Sort the carets in order to render selected text properly.
+	int min, max;
+	if (text.caretPosition < text.previousCaretPosition)
+	{
+		min = text.caretPosition;
+		max = text.previousCaretPosition;
+	}
+	else 
+	{
+		max = text.caretPosition;
+		min = text.previousCaretPosition;
+	}
+
 	bool shouldRenderCaret = Timer::GetCurrentTimeMs() % 1000 > 500;
 	for (int i = 0; i < text.Length()+1; ++i)
 	{
@@ -414,6 +428,11 @@ void TextFont::RenderText(Text & text, GraphicsState * graphicsState)
 		nextChar = text.c_str()[i + 1];
 		StartChar();				// Move in.
 		RenderChar(currentChar);	// Render
+		/// If we are between the 2 active carets, render the region the char covers over with a white quad ?
+		if (text.previousCaretPosition != -1 && i >= min && i < max)
+		{
+			RenderSelection(currentChar);			
+		}
 		EndChar();					// Move out.
 		lastChar = currentChar;
 	}
@@ -525,6 +544,69 @@ void TextFont::RenderChar(char c)
 	glTexCoord2f(x1, y1);
 	glVertex3f(-halfScale.x + xStart, halfScale.y + yStart, 0);
 }
+
+/// Render the character as selected.
+void TextFont::RenderSelection(char c)
+{
+	// Stop the quads.
+	glEnd();
+
+	CheckGLError("TextFont::RenderSelection 1");
+
+	// Switch to additive rendering 
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+	
+
+	CheckGLError("TextFont::RenderSelection 1.5");
+
+	int characterX = c % 16;
+	int characterY = c / 16;
+	/// Texture co-ordinates.
+	float & xStart = pivotPoint.x;
+	float & yStart = pivotPoint.y;
+	
+	// Bind the texture to use. Preferably a gray sort.
+	Texture * tex = TexMan.GetTextureByHex32(0xFFFFFF22);
+	if (tex->glid == -1)
+		tex->Bufferize();
+	glBindTexture(GL_TEXTURE_2D, tex->glid);
+
+	CheckGLError("TextFont::RenderSelection 2");
+
+	float width = this->charWidth[c];
+	float halfWidth = width * 0.5f;
+
+	// Render the quad!
+	glBegin(GL_QUADS);
+
+	float x1 = halfWidth * -halfScale.x + xStart - padding.x * 0.5f,
+		x2 = halfWidth * halfScale.x + xStart + padding.x * 0.5f;
+
+	// And actual rendering.
+	glTexCoord2f(0, 1);
+	glVertex3f(x2, -halfScale.y + yStart, 0);
+	glTexCoord2f(1, 1);
+	glVertex3f(x1, -halfScale.y + yStart, 0);
+	glTexCoord2f(1, 0);
+	glVertex3f(x1, halfScale.y + yStart, 0);
+	glTexCoord2f(0, 0);
+	glVertex3f(x2, halfScale.y + yStart, 0);
+
+	glEnd();
+
+	CheckGLError("TextFont::RenderSelection 3");
+
+	// Re-bind old texture.
+	glBindTexture(GL_TEXTURE_2D, this->texture->glid);
+
+	// Reset blend-mode.
+	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	CheckGLError("TextFont::RenderSelection 4");
+	// Begin quads again.
+	glBegin(GL_QUADS);
+}
+
 	
 
 /// Re-instates old shader as needed.

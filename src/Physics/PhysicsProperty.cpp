@@ -228,6 +228,7 @@ void PhysicsProperty::UpdateProperties(Entity * entity)
 {
 	if (entity->model)
 	{
+		assert(entity->model->radius > 0);
 		physicalRadius = entity->model->radius * entity->scale.MaxPart();
 		aabb->Recalculate(entity);
 		obb->Recalculate(entity);

@@ -1,19 +1,26 @@
 /// Emil Hedemalm
 /// 2014-03-05
-/// Used by camera navigation
+/// Directions and their vectors.
 
 #ifndef DIRECTION_H
 #define DIRECTION_H
 
-namespace Direction{
-enum direction {
-	NONE,
-	FORWARD, 
-	BACKWARD, 
-	LEFT, 
-	RIGHT, 
-	UP, 
-	DOWN
-};};
+#include "MathLib.h"
+
+namespace Direction
+{
+	enum direction {
+		NONE = -1,
+		FORWARD = 0, 
+		BACKWARD, 
+		LEFT, 
+		RIGHT, 
+		UP, 
+		DOWN,
+		DIRECTIONS
+	};
+	/// Returns unit-vectors.
+	Vector3f GetVector(int forDirection);
+};
 
 #endif

@@ -594,9 +594,9 @@ bool MapManager::DeleteEntity(Entity * entity){
 	}
 	entity->flaggedForDeletion = true;
 //	std::cout<<"\nEntity flagged for deletion. ";
-	if (entity->registeredForRendering)
+	if (entity->registeredForRendering && GraphicsManager::Instance())
 		Graphics.QueueMessage(new GMUnregisterEntity(entity));
-	if (entity->registeredForPhysics)
+	if (entity->registeredForPhysics && PhysicsManager::Instance())
 		Physics.QueueMessage(new PMUnregisterEntity(entity));
 	// Remove entity from the map too...!
 	activeMap->RemoveEntity(entity);

@@ -47,19 +47,21 @@ Texture::~Texture()
 
 void Texture::Deallocate()
 {
-	if (cData)
-		delete[] cData;
-	if (fData)
-		delete[] fData;
-	if (cData && cData != data)
-		delete[] data;
-	cData = data = NULL;
+	delete[] data;
+	data = NULL;
+	cData = NULL;
 	fData = NULL;
 }
 
 // Reallocate based on new size and format.
 void Texture::Reallocate()
 {
+	if (!data == NULL)
+	{
+		Deallocate();
+	}
+	assert(data == NULL);
+	
 	// Allocate.
 	int areaInPixels = size.x * size.y;
 	int channels = GetChannels();
@@ -76,6 +78,7 @@ void Texture::Reallocate()
 	{
 		fData = new float[bufferSizeNeeded];
 		memset(fData, 0, sizeof(float));
+		data = (unsigned char*)fData;
 	}
 	else if (dataType == DataType::UNSIGNED_CHAR)
 	{
@@ -433,11 +436,11 @@ void Texture::SetPixel(Vector2i location, Vector4f color, int pixelSize)
 			if (x < 0 || x >= width)
 				continue;
 			int psi = y * width * bpp + x * bpp;
-			buf[psi] = (unsigned char) color.x * 255.0f;
-			buf[psi+1] = (unsigned char) color.y * 255.0f;
-			buf[psi+2] = (unsigned char) color.z * 255.0f;
+			buf[psi] = (unsigned char) (color.x * 255.0f);
+			buf[psi+1] = (unsigned char) (color.y * 255.0f);
+			buf[psi+2] = (unsigned char) (color.z * 255.0f);
 			if (bpp > 3)
-				buf[psi+3] = (unsigned char) color.w * 255.0f;
+				buf[psi+3] = (unsigned char) (color.w * 255.0f);
 		}
 	}
 	lastUpdate = Timer::GetCurrentTimeMs();
@@ -453,11 +456,11 @@ void Texture::SetPixel(int x, int y, Vector4f color)
 	color.Clamp(0, 1);
 	/// PixelStartIndex
 	int psi = y * width * bpp + x * bpp;
-	buf[psi] = (unsigned char) color.x * 255.0f;
-	buf[psi+1] = (unsigned char) color.y * 255.0f;
-	buf[psi+2] = (unsigned char) color.z * 255.0f;
+	buf[psi] = (unsigned char) (color.x * 255.0f);
+	buf[psi+1] = (unsigned char) (color.y * 255.0f);
+	buf[psi+2] = (unsigned char) (color.z * 255.0f);
 	if (bpp > 3)
-		buf[psi+3] = (unsigned char) color.w * 255.0f;
+		buf[psi+3] = (unsigned char) (color.w * 255.0f);
 	lastUpdate = Timer::GetCurrentTimeMs();
 }
 
@@ -663,7 +666,7 @@ bool Texture::SaveOpenCV(String toPath)
 	std::vector<int> compression_params;
 	compression_params.push_back(CV_IMWRITE_PNG_COMPRESSION);
 	// Quick save!
-	compression_params.push_back(1);
+	compression_params.push_back(3);
 	cv::imwrite(toPath.c_str(), mat, compression_params);
 	return true;
 }

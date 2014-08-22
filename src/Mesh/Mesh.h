@@ -84,7 +84,7 @@ public:
 
 	/// Center of mesh (measured from internal structure), calculated after it's been loaded.
 	Vector3f centerOfMesh;
-	/// Radius
+	/// Radius, global such.
 	float radius;
 	/// AABB
 //	Vector3f max, min;

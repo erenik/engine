@@ -67,11 +67,7 @@ bool Map::AddEvent(Script * event){
 bool Map::RemoveEntity(Entity * entity)
 {
 	entities.Remove(entity);
-	if (this->active)
-	{
-		Graphics.QueueMessage(new GMUnregisterEntity(entity));
-		Physics.QueueMessage(new PMUnregisterEntity(entity));
-	}
+	// Already removed via map manager.
 	return true;
 }
 

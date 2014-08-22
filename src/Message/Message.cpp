@@ -32,6 +32,15 @@ PasteMessage::PasteMessage()
 
 }
 
+/// Text drag-n-drop.
+DragAndDropMessage::DragAndDropMessage(Vector2i pos, String text)
+	: Message(MessageType::DRAG_AND_DROP), position(pos), string(text)
+{
+	dataType = DataType::STRING;
+	processed = false;
+}
+
+
 SetStringMessage::SetStringMessage(String message, String value)
 : Message(MessageType::SET_STRING)
 {

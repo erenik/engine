@@ -79,6 +79,7 @@ void PhysicsManager::Integrate(float timeInSecondsSinceLastUpdate)
 	for (int i = 0; i < dynamicEntities.Size(); ++i)
 	{
 		Entity * dynamicEntity = dynamicEntities[i];
+		PhysicsProperty * pp = dynamicEntity->physics;
         Vector3f vel = dynamicEntity->physics->velocity;
         /// Update octree or AABB position as needed.
         if (dynamicEntity->physics->collissionsEnabled){
@@ -90,6 +91,10 @@ void PhysicsManager::Integrate(float timeInSecondsSinceLastUpdate)
                 dynamicEntity->physics->obb->Recalculate(dynamicEntity);
             }
         }
+
+		/// Re-calculate physical radius.
+		pp->physicalRadius = dynamicEntity->radius * dynamicEntity->scale.MaxPart();
+
     //    std::cout<<"\nPost-positioning Velocity: "<<dynamicEntity->physics->velocity;
         /// Ensure that the movement didn't adjust the velocity...
         assert(vel.x == dynamicEntity->physics->velocity.x);

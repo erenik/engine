@@ -17,6 +17,8 @@ class Window;
 UserInterface * GlobalUI();
 /// Fetches active/current UI, taking into consideration active window.
 UserInterface * ActiveUI();
+/// UI which the mouse is currently hovering over, which may be any window.
+UserInterface * HoverUI();
 /// Fetches either the Global or Active UI, taking into consideration both active window and if there exist any valid content in the Global UI.
 UserInterface * RelevantUI();
 UserInterface * GetRelevantUIForWindow(Window * window);

@@ -65,8 +65,8 @@ void GraphicsManager::Allocate()
 	RenderPipeMan.LoadFromPipelineConfig();
 	Graphics.graphicsState->renderPipe = RenderPipeMan.activePipeline;
 }
-GraphicsManager * GraphicsManager::Instance(){
-	assert(graphicsManager);
+GraphicsManager * GraphicsManager::Instance()
+{
 	return graphicsManager;
 }
 
@@ -171,12 +171,14 @@ GraphicsManager::GraphicsManager()
 	graphicsState = new GraphicsState();
 	renderSettings = new RenderSettings();
 
-
+	paused = false;
+	processing = false;
 
 	ResetSleepTimes();
 
 	// Create mutex for threading
 	graphicsMessageQueueMutex.Create("graphicsMessageQueueMutex");
+	graphicsProcessingMutex.Create("graphicsProcessingMutex");
 }
 
 /// Queries render of 1 frame by posting a GMRender message to the graphics message queue. Should be used instead of setting the boolean below straight away!
@@ -191,6 +193,20 @@ void GraphicsManager::ResetSleepTimes(){
 	sleepTime = 0;
 	outOfFocusSleepTime = 5;
 }
+
+void GraphicsManager::Pause()
+{
+	paused = true;
+	while(!graphicsProcessingMutex.Claim(-1))
+		;
+	assert(!processing);
+}
+void GraphicsManager::Resume()
+{
+	paused = false;
+	graphicsProcessingMutex.Release();
+}
+
 
 GraphicsManager::~GraphicsManager()
 {
@@ -211,6 +227,7 @@ GraphicsManager::~GraphicsManager()
         }
     }
 	graphicsMessageQueueMutex.Destroy();
+	graphicsProcessingMutex.Destroy();
 
 	/// Delete stuff
 	if (deferredRenderingBox){

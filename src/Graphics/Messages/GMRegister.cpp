@@ -11,7 +11,9 @@ GMRegisterEntity::GMRegisterEntity(Entity * i_entity) : GraphicsMessage(GM_REGIS
 
 void GMRegisterEntity::Process()
 {
-///	entity->model->mesh.Bufferize();
+	GraphicsManager & manager = GraphicsMan;
+	assert(manager.vfcOctree);
+	///	entity->model->mesh.Bufferize();
 	assert(Graphics.registeredEntities.Size() == Graphics.vfcOctree->RegisteredEntities());
 	entity->Bufferize();
 	Graphics.RegisterEntity(entity);

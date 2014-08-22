@@ -141,7 +141,7 @@ private:
 	/// Parent node pointer. NULL only if root-node!
 	CollisionShapeOctree * parent;
 	/// Child node list. This will be dynamic as sometimes the subdivision might choose to use a quad-tree hierarchy instead of the current 25-tree subdivision.
-	List<CollisionShapeOctree*> childList; 
+	List<CollisionShapeOctree*> children; 
 	//child[MAX_CHILD_NODES];
 };
 

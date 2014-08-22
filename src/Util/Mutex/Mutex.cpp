@@ -30,6 +30,14 @@ Mutex::Mutex(){
 	#endif
 }
 
+/// Calls Destroy.
+Mutex::~Mutex()
+{
+	if (isCreated)
+		Destroy();
+}
+
+
 #if defined LINUX | defined OSX
 /// Creates, asserts if fails, run once
 bool Mutex::Create(String i_name){
@@ -124,7 +132,8 @@ bool Mutex::Claim(int milliseconds)
 	int result;
 	int i = INFINITE;
 	result = WAIT_TIMEOUT;
-	while(result == WAIT_TIMEOUT){
+	while(result == WAIT_TIMEOUT)
+	{
 		result = WaitForSingleObject(this->win32MutexHandle, milliseconds);
 		if (result == WAIT_FAILED || result == WAIT_TIMEOUT){
 			result = GetLastError();

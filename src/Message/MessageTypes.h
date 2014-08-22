@@ -10,6 +10,7 @@ namespace MessageType {
 enum messageTypes{
 	NULL_TYPE,
 	STRING,
+	DRAG_AND_DROP,
 	PASTE, // Copy-paste.
 	CONSOLE_COMMAND, // Supposed to be entered from any input or maybe console for more complex usage.
 	/// Messages sent from the UI system

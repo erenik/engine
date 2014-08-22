@@ -70,6 +70,115 @@ String::String(const char c){
 	arr[0] = c;
 	arr[1] = '\0';
 }
+
+String::String(const int iValue)
+{
+	Nullify();
+	/// Hard core.
+	int i2 = iValue, numDigits = 0, negative = 0;
+	if (iValue < 0)
+		negative = 1;
+	List<int> digits;
+	while(i2 > 0)
+	{
+		++numDigits;
+		digits.Add(i2 % 10);
+		i2 /= 10;
+	}
+	numDigits = numDigits? numDigits : 1;
+	int charactersNeeded = numDigits + negative + 1;
+	type = String::CHAR;
+	Reallocate(charactersNeeded);
+	// Copy over ze data.
+	int index = 0;
+	if (negative)
+		arr[index++] = '-';
+
+	// Special case.
+	if (digits.Size() == 0)
+		arr[0] = '0';
+	
+	while (digits.Size())
+	{
+		// Insert the last one.
+		arr[index++] = digits.Last() + '0';
+		digits.RemoveIndex(digits.Size() - 1);
+	}
+}
+
+/// -1 will make the float be printed with default amount (as needed).
+String::String(const float fValue, int decimalsAfterZeroAndNotation /*= -1*/)
+{
+	Nullify();
+	type = String::CHAR;
+	int bufSize = 20;
+	Reallocate(bufSize);
+//	char buf[50];
+    int success;
+	int minDecimalsAfterZero = decimalsAfterZeroAndNotation % 16;
+	bool scientificNotation = decimalsAfterZeroAndNotation & SCIENTIFIC_NOTATION;
+	/// Printf o-o
+	/// http://www.cplusplus.com/reference/cstdio/printf/
+	String specifier = "f";
+	if (scientificNotation)
+		specifier = "e";
+	/// If default, use as many zeros as needed?
+	if (minDecimalsAfterZero < 0)
+		minDecimalsAfterZero = 0;
+
+	String precision = minDecimalsAfterZero? "." + String(minDecimalsAfterZero) : "";
+
+	int width = 5;
+	String minChars = String(width);
+	
+    String format = "%" + minChars + precision + specifier;
+
+	/// If default, use as many zeros as needed?
+	/*
+	if (decimalsAfterZero < 0)
+		decimalsAfterZero = 10;
+    String format = "%5."+ ToString(decimalsAfterZero) + "f";
+    success = snprintf(buf, sizeof(buf), format.c_str(), value);
+	*/
+
+    success = snprintf(arr, bufSize, format.c_str(), fValue);
+	if (!success){
+        std::cout << "String(const float) failed";
+		return;
+	}
+	/// Remove unneccessary trailing zeros, and the decimal point if it's still there... wat
+	int len = bufSize;
+	bool done = false;
+	for (int i = len-1; i > 0; --i){
+		switch(arr[i]){
+			/// Waste of space	
+			case '0': 
+				arr[i] = '\0';
+				break;
+			/// Waste of space, but end cutoff after this, or we'll clip away valueable numbers.
+			case '.':
+				arr[i] = '\0';
+				done = true;
+				break;
+			/// Valid number, stop cutting away digits.
+			case '1':
+			case '2':
+			case '3':
+			case '4':
+			case '5':
+			case '6':
+			case '7':
+			case '8':
+			case '9':
+				done = true;
+				break;
+		}
+		if (done)
+			break;
+	}
+}
+
+
 String::String(const char * string){
 	Nullify();
 	type = String::CHAR;
@@ -407,11 +516,12 @@ String String::Part(int fromIndex /*= 0*/, int toIndex /*= -1*/){
 	return newString;
 }
 
-/// Removes any non-numeral, non-decimal characters
+/// Returns the last detected number within.
 String String::Numberized() const
 {
 	assert(type == CHAR);
 	String newString;
+	String lastNumberString;
 	for (int i = 0; i < arraySize; ++i)
 	{
 		char c = arr[i];
@@ -430,8 +540,18 @@ String String::Numberized() const
 			case '.':
 				newString.Add(c);
 				break;
+			default: 
+			{
+				// Abort the current string.
+				if (newString.Length() >= 1)
+					lastNumberString = newString;
+				newString = String();
+				break;
+			}
 		}
 	}
+	if (newString.Length() < 1 && lastNumberString.Length() > 0)
+		newString = lastNumberString;
 	return newString;
 }
 

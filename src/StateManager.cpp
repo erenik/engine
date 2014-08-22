@@ -183,6 +183,16 @@ void StateManager::SetGlobalState(AppState * newGlobalState)
 	globalState = newGlobalState;
 }
 
+/// Sets active/current state.
+void StateManager::SetActiveState(AppState * state)
+{
+	if (activeState)
+		activeState->OnExit(state);
+	if (state)
+		state->OnEnter(activeState);
+	previousState = activeState;
+	activeState = state;
+}
 
 AppState * StateManager::GetStateByID(int id){
 	for (int i = 0; i < stateList.Size(); ++i){
@@ -224,6 +234,7 @@ void StateManager::HandleDADFiles(List<String> & files){
 
 #ifdef WINDOWS
 #include <process.h>
+#include <Ole2.h>
 #endif
 
 
@@ -232,7 +243,13 @@ extern bool quittingApplication;
 
 /// Thread function for processing the active state, which might calculate events, timers, AI and all game objects.
 #ifdef WINDOWS
-void StateManager::StateProcessor(void * vArgs){
+void StateManager::StateProcessor(void * vArgs)
+{
+	// http://msdn.microsoft.com/en-us/library/windows/desktop/ms695279%28v=vs.85%29.aspx
+	int result = OleInitialize(NULL);
+//	int result = CoInitializeEx(NULL, COINIT_MULTITHREADED);
+	assert(result == S_OK);
+
 #elif defined LINUX | defined OSX
 void * StateManager::StateProcessor(void * vArgs){
 #endif
@@ -310,6 +327,12 @@ void * StateManager::StateProcessor(void * vArgs){
 
 	std::cout<<"\n>>> StateProcessingThread ending...";
 #ifdef WINDOWS
+	// De-allocate COM stuffs
+	// http://msdn.microsoft.com/en-us/library/windows/desktop/ms688715%28v=vs.85%29.aspx
+	// CoUninitialize();
+	OleUninitialize();
+
+
 	stateProcessingThread = NULL;
 	_endthread();
 #elif defined LINUX | defined OSX

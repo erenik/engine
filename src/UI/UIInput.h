@@ -14,6 +14,12 @@ class UIInput : public UIElement {
 public:
 	UIInput(String name = "");
 	virtual ~UIInput();
+
+	/** Called by OS-functions to query if the UI wants to process drag-and-drop files. If so the active element where the mouse is hovering may opt to do magic with it.
+		If no magic, or action, is taken, it will return false, at which point the game state should be called to handle general drag-and-drop files.
+	*/
+	virtual bool HandleDADFiles(List<String> files);
+
 	// When clicking/Enter pressed on keyboard.
 	virtual UIElement * Click(int mouseX, int mouseY);
 	// When button is released.
@@ -61,11 +67,16 @@ class UIStringInput : public UIElement {
 public:
 	UIStringInput(String name, String onTrigger);
 	virtual ~UIStringInput();
+
+	/// Sent by UIInput elements upon pressing Enter and thus confirmign the new input, in case extra actions are warranted. (e.g. UITextureInput to update the texture provided as reference).
+	virtual void OnInputUpdated(UIInput * inputElement);
+
 	/// Creates the label and input.
 	void CreateChildren();
 	/// Getter/setter for the input element.
 	String GetValue();
 	void SetValue(String value);
+
 	/// Same as onTrigger, set to all inputs.
 	String action;
 	UIInput * input;
@@ -107,11 +118,16 @@ class UIFloatInput : public UIElement {
 public:
 	UIFloatInput(String name, String onTrigger);
 	virtual ~UIFloatInput();
+
+	/// Sent by UIInput elements upon pressing Enter and thus confirmign the new input, in case extra actions are warranted. (e.g. UITextureInput to update the texture provided as reference).
+	virtual void OnInputUpdated(UIInput * inputElement);
+
 	/// Creates the label and input.
 	void CreateChildren();
 	/// Getter/setter for the input element.
 	float GetValue();
 	void SetValue(float value);
+
 	/// Same as onTrigger, set to all inputs.
 	String action;
 	/// for eased access.
@@ -126,11 +142,16 @@ class UIIntegerInput : public UIElement {
 public:
 	UIIntegerInput(String name, String onTrigger);
 	virtual ~UIIntegerInput();
+
+	/// Sent by UIInput elements upon pressing Enter and thus confirmign the new input, in case extra actions are warranted. (e.g. UITextureInput to update the texture provided as reference).
+	virtual void OnInputUpdated(UIInput * inputElement);
+
 	/// Creates the label and input.
 	void CreateChildren();
 	/// Getter/setter for the input element.
 	int GetValue();
 	void SetValue(int value);
+
 	/// Same as onTrigger, set to all inputs.
 	String action;
 	/// for eased access.
@@ -146,6 +167,10 @@ public:
 	/// Amount of elements in the vector first (primarily 3 or 4)
 	UIVectorInput(int numInputs, String name, String onTrigger);
 	virtual ~UIVectorInput();
+
+	/// Sent by UIInput elements upon pressing Enter and thus confirmign the new input, in case extra actions are warranted. (e.g. UITextureInput to update the texture provided as reference).
+	virtual void OnInputUpdated(UIInput * inputElement);
+
 	/// Creates ze children!
 	void CreateChildren();
 

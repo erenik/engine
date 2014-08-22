@@ -28,7 +28,8 @@ void TextureManager::Allocate(){
 	assert(texMan == NULL);
 	texMan = new TextureManager();
 }
-void TextureManager::Deallocate(){
+void TextureManager::Deallocate()
+{
 	assert(texMan);
 	delete(texMan);
 	texMan = NULL;
@@ -36,7 +37,8 @@ void TextureManager::Deallocate(){
 
 TextureManager::TextureManager(){}
 
-TextureManager::~TextureManager(){
+TextureManager::~TextureManager()
+{
 	textures.ClearAndDelete();
 }
 
@@ -335,9 +337,28 @@ Texture * TextureManager::LoadTexture(String source)
 	return texture;
 }
 
+
+
+/// Checks if target image is supported for loading by the game engine.
+bool TextureManager::SupportedImageFileType(String fileName)
+{
+	/// Supported via OpenCV: http://docs.opencv.org/modules/highgui/doc/reading_and_writing_images_and_video.html?highlight=imread#imread
+	List<String> extensions;
+	extensions.Add(7, ".png", ".bmp", ".dib", 
+		".tif", ".tiff", ".jpg", 
+		".jpeg");
+	for (int i = 0; i < extensions.Size(); ++i)
+	{
+		if (fileName.Contains(extensions[i]))
+			return true;
+	}
+	return false;
+}		
+
 /// Attempts to load a texture using OpenCV imread.
 bool TextureManager::LoadTextureOpenCV(String source, Texture * texture)
 {
+	/// Supported via OpenCV: http://docs.opencv.org/modules/highgui/doc/reading_and_writing_images_and_video.html?highlight=imread#imread
 	cv::Mat mat;
 	mat = cv::imread(source.c_str(), CV_LOAD_IMAGE_UNCHANGED);
 	if (!mat.cols || !mat.rows)

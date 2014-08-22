@@ -6,7 +6,7 @@
 
 #include "UI/UserInterface.h"
 #include "Maps/MapManager.h"
-#include "Graphics/Fonts/Font.h"
+#include "Graphics/Fonts/TextFont.h"
 #include "Script/Script.h"
 
 void SetApplicationDefaults()

@@ -17,7 +17,7 @@ Texture * Model::defaultTexture = NULL;
 Model::Model()
 {
 	users = 0;
-	this->radius = 0;
+	radius = 0;
 	triangleList = NULL;
 
 	mesh = NULL;

@@ -40,6 +40,7 @@ class UserInterface;
 class Window;
 class Texture;
 class Ray;
+class DragAndDrop;
 
 struct Monitor 
 {
@@ -76,6 +77,8 @@ public:
 
 	bool IsMain() {return main;};
 
+	/// o-o
+	Vector2i GetWindowCoordsFromScreenCoords(Vector2i screenPos);
 	
 	/// Updates positions, using parent as relative (if specified)
 	void UpdatePosition();
@@ -165,6 +168,10 @@ public:
 	HDC		hdc;			
 	/// GL rendering context
 	HGLRC	hglrc;		
+
+	/// For drag-n-drop operatrions. See http://msdn.microsoft.com/en-us/library/windows/desktop/ms678405%28v=vs.85%29.aspx
+	DragAndDrop * dad;
+
 #endif
 	
 	Vector4f backgroundColor;

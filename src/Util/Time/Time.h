@@ -43,6 +43,9 @@ public:
 
 	/// Arithmetic operations
 	Time operator - (const Time & otherTime) const;
+	/// Arithmetic operations
+	Time operator -= (const Time & otherTime);
+	Time operator += (const Time & otherTime);
 
 	// Conversion operators
 	operator const int64 () const;

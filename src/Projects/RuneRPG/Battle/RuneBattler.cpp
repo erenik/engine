@@ -393,7 +393,7 @@ void RuneBattler::OnKO()
 	if (entity)
 	{
 		// Make it invisible!
-		Graphics.QueueMessage(new GMSetEntityb(entity, VISIBILITY, false));
+		Graphics.QueueMessage(new GMSetEntityb(entity, GT_VISIBILITY, false));
 	}
 }
 

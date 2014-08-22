@@ -1,7 +1,6 @@
 // Emil Hedemalm
 // 2013-07-03 Linuxifying!
 
-#include "../../DataObject.h"
 #include "OS/Sleep.h"
 #include "Player/PlayerManager.h"
 #include "Graphics/Messages/GraphicsMessages.h"

@@ -181,6 +181,17 @@ public:
 	bool shouldFullScreen;
 	bool useDeferred;
 
+	/** Default false. Adjust with Pause() and Resume() respectively. Will halt both message processing and rendering.
+		Should only be used for brief intervals.
+		The graphicsProcessingMutex is also used to ensure that the pause/resume procedures work correctly.
+	*/
+	void Pause();
+	void Resume();
+	/// Set using Pause/Resume
+	bool paused;
+	/// True while processing Messages or rendering.
+	bool processing;
+
 	/// Camera to track for changes/updates.
 	Camera * cameraToTrack;
 	Camera * defaultCamera;
@@ -235,6 +246,7 @@ private:
 
 	/// Mutex to be used for accessing the message queue.
 	Mutex graphicsMessageQueueMutex;
+	Mutex graphicsProcessingMutex;
 
 	/// Sets overlay texture to be rendered on top of everything else
 	void SetOverlayTexture(Texture * t, int fadeInTime = 0);

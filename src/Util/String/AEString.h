@@ -25,8 +25,17 @@ public:
 	String(const String & string);
 	String(const char * string);
 	String(const char * from, const char * to); // User-defined length of any given c_str :)
-	String(const char c);
+	String(const char c); // Because constructors are awesome.
+	String(const int iValue);
+	/// -1 will make the float be printed with default amount (as needed). Use String::SCIENTIFIC_NOTATION if that is desired.
+	String(const float fValue, int decimalsAfterZeroAndNotation = -1);
 	String(const wchar_t * string);
+
+	// For printing floats in various formats
+	enum {
+		SCIENTIFIC_NOTATION = 16
+	};
+
 	// ..assignment operators
 	const String& operator = (const String & otherString);
 	const String& operator = (const char * otherString);
@@ -63,7 +72,7 @@ public:
 	/// Returns a substring, from index to index, -1 signifies end of the string.
 	String Part(int fromIndex = 0, int toIndex = -1);
 
-	/// Removes any non-numeral, non-decimal characters
+	/// Returns the last detected number within.
 	String Numberized() const;
 
 	/// For printing it o-o;

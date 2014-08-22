@@ -479,6 +479,8 @@ void PMSetEntity::Process()
 				assert(false && "Implement=?");
 				break;
 		}
+		/// Recalculate radius, etc.
+		pp->UpdateProperties(entity);
 
 		/// Update collission state for it
 		Vector3f nullVec;

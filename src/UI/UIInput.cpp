@@ -6,9 +6,14 @@
 #include "UIInput.h"
 #include "UIList.h"
 #include "UIImage.h"
+
+#include "Input/InputManager.h"
 #include "Input/Keys.h"
+
 #include "Message/Message.h"
+#include "Message/VectorMessage.h"
 #include "Message/MessageManager.h"
+
 #include "Graphics/GraphicsManager.h"
 #include "Graphics/Messages/GMUI.h"
 
@@ -34,6 +39,28 @@ UIInput::~UIInput()
 //	std::cout<<"\nUIInput destructor";
 }
 
+/** Called by OS-functions to query if the UI wants to process drag-and-drop files. If so the active element where the mouse is hovering may opt to do magic with it.
+	If no magic, or action, is taken, it will return false, at which point the game state should be called to handle general drag-and-drop files.
+*/
+bool UIInput::HandleDADFiles(List<String> files)
+{
+	// Grab first file.
+	if (files.Size() == 0)
+		return false;
+	String firstFile = files[0];
+	// Enter it as input.
+	editText = firstFile;
+	// Pause graphics and just set it, or it won't work.
+	Graphics.Pause();
+	editText = text = firstFile;
+	// Remove active flag if it was active.
+	state &= ~UIState::ACTIVE;
+	Graphics.Resume();
+	// Activate the messages this element had.
+	MesMan.QueueMessages(onTrigger, this);		
+	return true;
+}
+
 // When clicking/Enter pressed on keyboard.
 UIElement * UIInput::Click(int mouseX, int mouseY)
 {
@@ -54,6 +81,20 @@ void UIInput::ProcessMessage(Message * message)
 {
 	switch(message->type)
 	{
+		case MessageType::DRAG_AND_DROP:
+		{
+			DragAndDropMessage * dadm = (DragAndDropMessage*) message;
+			if (dadm->dataType == DataType::STRING)
+			{
+				Graphics.Pause();
+				editText = dadm->string;
+				SetText(dadm->string);
+				Graphics.Resume();
+				// Activate the messages this element had.
+				MesMan.QueueMessages(onTrigger, this);
+			}
+			break;
+		}
 		case MessageType::PASTE:
 		{
 			PasteMessage * pm = (PasteMessage*) message;
@@ -63,7 +104,8 @@ void UIInput::ProcessMessage(Message * message)
 			// Store caret position from the text, as it should be able to handle this all.
 			this->caretPosition = editText.caretPosition;
 			// Update thingy so text is updated also..
-			this->OnTextUpdated();	
+			this->OnTextUpdated();
+			break;
 		}
 	}
 }
@@ -87,7 +129,11 @@ int UIInput::OnKeyDown(int keyCode, bool downBefore)
 	if (!inputActive)
 		return 0;
 
-	switch(keyCode){
+	int oldCaretPosition = editText.caretPosition;
+
+	bool moveCommand = false;
+	switch(keyCode)
+	{
 		case KEY::BACKSPACE: {
 	#ifndef WINDOWS
 			// Double trigger at the moment..
@@ -108,30 +154,26 @@ int UIInput::OnKeyDown(int keyCode, bool downBefore)
 			if (downBefore)
 				return 0;
 			StopInput();
-			// Activate the messages this element had.
-			MesMan.QueueMessages(onTrigger, this);
+			// Activate the messages this element had, if any. If using as a compound e.g. inside a StringInput, then this onTrigger may be omitted.
+			if (onTrigger.Length())
+				MesMan.QueueMessages(onTrigger, this);
+			else 
+			{
+				
+			}
 			/// Notify of the update to self and then parents, so that extra actions may be taken.
 			this->OnInputUpdated(this);
-	/*
-			OnStopActiveInput();
-
-			if (wcslen(inputBuffers[selectedInputBuffer]) == 0)
-				return;
-			// Copy to old buffer ^^
-			wcscpy(inputBuffers[0], inputBuffers[selectedInputBuffer]);
-			// Move back previous buffers first! And reset the most recent used old buffer to 0
-			for (int i = INPUT_BUFFERS - 1; i > 0; --i){
-				wcscpy(inputBuffers[i], inputBuffers[i-1]);
-			}
-			memset(inputBuffers[0], 0, sizeof(wchar_t) * BUFFER_SIZE);
-			std::cout<<"\nExiting text-entering mode.";
-		//	std::cout<<"\nSending input to state input-binding processor.";
-	*/
 			break;
 		}
 		// Delete
 		case KEY::DELETE_KEY:
 		{
+			// Delete selection if any
+			if (editText.DeleteSelection())
+			{
+				caretPosition = editText.caretPosition;
+				break;
+			}
 			String left = editText.Part(0, caretPosition);
 			String right = editText.Part(caretPosition+1);
 			editText = left + right;
@@ -142,53 +184,52 @@ int UIInput::OnKeyDown(int keyCode, bool downBefore)
 		case KEY::END:
 			caretPosition = editText.Length();
 			editText.caretPosition = caretPosition;
+			moveCommand = true;
 			break;
 		case KEY::HOME:
 			caretPosition = 0;
 			editText.caretPosition = caretPosition;
+			moveCommand = true;
 			break;
-		case KEY::UP: {
-	/*		/// Get one of the old previous buffers ^^
-			selectedInputBuffer++;
-			if (selectedInputBuffer > INPUT_BUFFERS)
-				selectedInputBuffer = INPUT_BUFFERS;
-			int length = wcslen(inputBuffers[selectedInputBuffer]);
-			if (length > 0){
-			//	_tcscpy(inputBuffers[0], inputBuffers[selectedInputBuffer-1]);
-				caretPosition = length;
-			}
-			OnTextInputUpdated();
-			PrintBuffer();
-	*/
+		case KEY::UP: 
+		{
+			break;
 		}
-		case KEY::DOWN: {
-	/*		/// Get one of the old previous buffers ^^
-			selectedInputBuffer--;
-			if (selectedInputBuffer < 0)
-				selectedInputBuffer = 0;
-
-			int length = wcslen(inputBuffers[selectedInputBuffer]);
-			if (length > 0){
-			//	_tcscpy(inputBuffers[0], inputBuffers[selectedInputBuffer-1]);
-				caretPosition = length;
-			}
-			OnTextInputUpdated();
-			PrintBuffer();
-			return;
-	*/	}
+		case KEY::DOWN: 
+		{
+			break;
+		}
 		case KEY::LEFT:
 			if (caretPosition > 0)
 				--caretPosition;
 			// Update the text to render.
 			editText.caretPosition = caretPosition;
+			moveCommand = true;
 			break;
 		case KEY::RIGHT:
 			if (caretPosition < editText.Length())
 				++caretPosition;
 			// Update the text to render.
 			editText.caretPosition = caretPosition;
+			moveCommand = true;
 			break;
 	}
+
+	// If was trying to move.. 
+	if (moveCommand && oldCaretPosition != editText.caretPosition)
+	{
+		if (!Input.KeyPressed(KEY::SHIFT))
+		{
+			// Reset the "previous caret"!
+			editText.previousCaretPosition = -1;
+		}
+		// But if shift is pressed, and the previous caret is -1, then set it!
+		else if (editText.previousCaretPosition == -1)
+		{
+			editText.previousCaretPosition = oldCaretPosition;
+		}
+	}
+
 	OnTextUpdated();
 
 	// Return from here no matter what now, since we don't want any hot-key
@@ -214,7 +255,29 @@ int UIInput::OnChar(int asciiCode)
 	    OnBackspace();
 		return 0;
 	}
-
+	/// If control is held, only evaluate it as a special command.
+	if (Input.KeyPressed(KEY::CTRL))
+	{
+		switch(asciiCode)
+		{
+			/// Generated by CTRL+A on windows.. o.O "Start of heading"
+			case 1:
+			{
+				std::cout<<"ERKA:REKA";
+				// Select all text! o.o
+				editText.SelectAll();
+				OnTextUpdated();
+				break;
+			}
+			case 'A':
+			case 'a':
+			{
+				std::cout<<"ERKA:REKA";
+				break;
+			}
+		}
+		return 0;
+	}
 	// Escape, cancel input
 	else if (asciiCode == 0x1B)
 	{
@@ -262,6 +325,9 @@ int UIInput::OnChar(int asciiCode)
 					return 0;
 			}
 		}
+		/// If any text is selected, remove it and start inserting characters where it was.
+		if (editText.DeleteSelection())
+			caretPosition = editText.caretPosition;
 
 		String firstHalf = editText.Part(0, caretPosition);
 		String secondHalf = editText.Part(caretPosition);
@@ -276,7 +342,10 @@ int UIInput::OnChar(int asciiCode)
 
 
 /// For handling text-input
-void UIInput::OnBackspace(){
+void UIInput::OnBackspace()
+{
+	// Delete selection if any
+	editText.DeleteSelection();
     if (caretPosition > 0)
 	{
         --caretPosition;	// Move back caret
@@ -292,7 +361,8 @@ void UIInput::OnBackspace(){
 
 
 /// Begins input! >)
-void UIInput::BeginInput(){
+void UIInput::BeginInput()
+{
 	inputActive = true;
 	// Set active state if not done so already.
 	this->AddState(UIState::ACTIVE);
@@ -336,6 +406,19 @@ UIStringInput::UIStringInput(String name, String onTrigger)
 UIStringInput::~UIStringInput()
 {
 }
+
+/// Sent by UIInput elements upon pressing Enter and thus confirmign the new input, in case extra actions are warranted. (e.g. UITextureInput to update the texture provided as reference).
+void UIStringInput::OnInputUpdated(UIInput * inputElement)
+{
+	// Only logical thing should be our input calling us straight away.
+	assert(inputElement == input);
+	// Post a SetString message accordingly.
+	SetStringMessage * m = new SetStringMessage(action, GetValue());
+	MesMan.QueueMessage(m);
+	return;
+
+}
+
 /// Creates the label and input.
 void UIStringInput::CreateChildren()
 {
@@ -435,7 +518,7 @@ void UITextureInput::CreateChildren()
 	input->name = name + "Input";
 	input->text = "";
 	input->sizeRatioX = 0.55f;
-	input->onTrigger = "UIStringInput("+name+")";
+//	input->onTrigger = "UIStringInput("+name+")";
 	box->AddChild(input);
 
 	uiImage = new UIImage("Black");
@@ -473,6 +556,18 @@ UIFloatInput::UIFloatInput(String name, String onTrigger)
 UIFloatInput::~UIFloatInput(){
 	// Nothing special, let base class handle children.
 }
+
+/// Sent by UIInput elements upon pressing Enter and thus confirmign the new input, in case extra actions are warranted. (e.g. UITextureInput to update the texture provided as reference).
+void UIFloatInput::OnInputUpdated(UIInput * inputElement)
+{
+	// Only logical thing should be our input calling us straight away.
+	assert(inputElement == input);
+	// Post a SetString message accordingly.
+	FloatMessage * m = new FloatMessage(action, GetValue());
+	MesMan.QueueMessage(m);
+}
+
+
 /// Creates the label and input.
 void UIFloatInput::CreateChildren(){
 /// Use a column-list to automatically get links between the elements, etc.
@@ -497,7 +592,7 @@ void UIFloatInput::CreateChildren(){
 	input->numbersOnly = true;
 	input->text = "0";
 	input->sizeRatioX = spacePerElement;
-	input->onTrigger = "UIFloatInput("+name+")";
+//	input->onTrigger = "UIFloatInput("+name+")";
 	box->AddChild(input);
 }
 
@@ -524,6 +619,16 @@ UIIntegerInput::~UIIntegerInput()
 {
 	// Nothing special, let base class handle children.
 }
+
+/// Sent by UIInput elements upon pressing Enter and thus confirmign the new input, in case extra actions are warranted. (e.g. UITextureInput to update the texture provided as reference).
+void UIIntegerInput::OnInputUpdated(UIInput * inputElement)
+{
+	assert(inputElement == input);
+	IntegerMessage * m = new IntegerMessage(action, GetValue());
+	MesMan.QueueMessage(m);
+}
+
+
 /// Creates the label and input.
 void UIIntegerInput::CreateChildren()
 {
@@ -549,7 +654,7 @@ void UIIntegerInput::CreateChildren()
 	input->numbersOnly = true;
 	input->text = "0";
 	input->sizeRatioX = spacePerElement;
-	input->onTrigger = "UIIntegerInput("+name+")";
+//	input->onTrigger = "UIIntegerInput("+name+")";
 	box->AddChild(input);
 }
 
@@ -578,6 +683,32 @@ UIVectorInput::~UIVectorInput()
 {
 
 }
+
+/// Sent by UIInput elements upon pressing Enter and thus confirmign the new input, in case extra actions are warranted. (e.g. UITextureInput to update the texture provided as reference).
+void UIVectorInput::OnInputUpdated(UIInput * inputElement)
+{
+	assert(this->inputs.Exists(inputElement));
+	/// Fetch vector data from the input first.
+	VectorMessage * m = NULL;
+	switch(numInputs)
+	{
+		case 2:
+			m = new VectorMessage(action, GetValue2i());
+			break;
+		case 3:
+			m = new VectorMessage(action, GetValue3f());
+			break;
+		case 4:
+			m = new VectorMessage(action, GetValue4f());
+			break;
+		default:
+			assert(false && "implement");
+			break;
+	}
+	if (m)
+		MesMan.QueueMessage(m);
+}
+
 /// Creates ze children!
 void UIVectorInput::CreateChildren()
 {
@@ -604,7 +735,7 @@ void UIVectorInput::CreateChildren()
 		input->numbersOnly = true;
 		input->text = "0";
 		input->sizeRatioX = spacePerElement;
-		input->onTrigger = "UIVectorInput("+name+")";
+	//	input->onTrigger = "UIVectorInput("+name+")";
 		box->AddChild(input);
 		inputs.Add(input);
 	}

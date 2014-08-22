@@ -858,7 +858,15 @@ Matrix4f Entity::RecalculateMatrix(Vector3f & position, Vector3f & rotation, Vec
 	return matrix;
 }
 
-
+/// Recalculates the radius of the entity, both in the upper level radius as well as the physics-property variable one if applicable.
+void Entity::RecalculateRadius()
+{
+	float newRadius = model->radius * scale.MaxPart();
+	this->radius = newRadius;
+	/// Recalculate physical radius too.
+	if (physics)
+		physics->physicalRadius = radius;
+}
 
 /// Sets name for this entity.
 bool Entity::SetName(const char * i_name){
@@ -867,7 +875,8 @@ bool Entity::SetName(const char * i_name){
 };
 
 /// Sets model to be used by this entity.
-bool Entity::SetModel(Model * i_model){
+bool Entity::SetModel(Model * i_model)
+{
 	if (!i_model)
 		return false;
 	if (model)

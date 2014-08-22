@@ -192,492 +192,514 @@ void MessageManager::ProcessMessage(Message * message){
 //	if (!msg.Length())
 //		return;
 	
-	// Let active lighting process messages if wanted.
-	Lighting * activeLighting = Graphics.ActiveLighting();
-	if (activeLighting)
-	{
-		if (activeLighting->ProcessMessage(message))
-			return;
-	}
 
-	msg.SetComparisonMode(String::NOT_CASE_SENSITIVE);
-	if (msg.Contains("NavigateUI(")){
-		bool toggle = msg.Tokenize("()")[1].ParseBool();
-		Input.NavigateUI(toggle);
-		return;
-	}
-	else if (msg == "DisableLogging")
+	switch(message->type)
 	{
-		extern bool loggingEnabled;
-		loggingEnabled = false;
-	}
-	else if (msg == "EnableLogging")
-	{
-		extern bool loggingEnabled;
-		loggingEnabled = true;
-	}
-	else if (msg.Contains("Paste:") && message->type == MessageType::PASTE)
-	{
-		// Check for active ui element.
-		UserInterface * ui = ActiveUI();
-		if (ui){
-			UIElement * element = ui->GetActiveElement();
-			if (element)
+		case MessageType::DRAG_AND_DROP:
+		{
+			DragAndDropMessage * dadm = (DragAndDropMessage*) message;
+			// Hover to where the drop is to take place.
+			InputMan.MouseMove(HoverWindow(), dadm->position);
+			/// Check cursor location, can we drop stuff?
+			UIElement * e = InputMan.HoverElement();
+			if (e)
+				e->ProcessMessage(message);
+			break;
+		}
+		case MessageType::STRING:
+		{
+			// Let active lighting process messages if wanted.
+			Lighting * activeLighting = Graphics.ActiveLighting();
+			if (activeLighting)
 			{
-				element->ProcessMessage(message);
+				if (activeLighting->ProcessMessage(message))
+					return;
 			}
-		}
-	}
-	else if (msg == "mute")
-	{
-		AudioMan.QueueMessage(new AudioMessage(AM_DISABLE_AUDIO));
-//		AudioMan.DisableAudio();
-	}
-	else if (msg == "CreateMainWindow")
-	{	
-		// Creates the main application window. A message is sent upon startup from the initializer thread for this.
-		if (!WindowMan.MainWindow())
-		{
-			Window * mainWindow = WindowMan.CreateMainWindow();
-			// Optionally set more user-related stuff to the options before creating it.
+			msg.SetComparisonMode(String::NOT_CASE_SENSITIVE);
+			if (msg.Contains("NavigateUI(")){
+				bool toggle = msg.Tokenize("()")[1].ParseBool();
+				Input.NavigateUI(toggle);
+				return;
+			}
+			else if (msg == "DisableLogging")
+			{
+				extern bool loggingEnabled;
+				loggingEnabled = false;
+			}
+			else if (msg == "EnableLogging")
+			{
+				extern bool loggingEnabled;
+				loggingEnabled = true;
+			}
+			else if (msg.Contains("Paste:") && message->type == MessageType::PASTE)
+			{
+				// Check for active ui element.
+				UserInterface * ui = ActiveUI();
+				if (ui){
+					UIElement * element = ui->GetActiveElement();
+					if (element)
+					{
+						element->ProcessMessage(message);
+					}
+				}
+			}
+			else if (msg == "mute")
+			{
+				AudioMan.QueueMessage(new AudioMessage(AM_DISABLE_AUDIO));
+		//		AudioMan.DisableAudio();
+			}
+			else if (msg == "CreateMainWindow")
+			{	
+				// Creates the main application window. A message is sent upon startup from the initializer thread for this.
+				if (!WindowMan.MainWindow())
+				{
+					Window * mainWindow = WindowMan.CreateMainWindow();
+					// Optionally set more user-related stuff to the options before creating it.
 			
-			// Then create it!
-			mainWindow->Create();
-			/// Create default UI and globalUI that may later on be replaced as needed.
-			mainWindow->CreateUI();
-			mainWindow->CreateGlobalUI();
-			mainWindow->backgroundColor = Vector4f(1,0,0,1);
-		}
-		// Reveal the main window to the user now that all managers are allocated.
-		WindowMan.MainWindow()->Show();
-	}
-	else if (msg == "HideWindows")
-	{
-		if (MainWindow())
-		{
-			MainWindow()->Hide();
-		}
-	}
-	else if (msg == "DestroyMainWindow" || 
-		msg == "DeleteWindows" || 
-		msg == "DeleteMainWindow")
-	{
-		if (WindowMan.MainWindow())
-		{
-			Window * mainWindow = WindowMan.MainWindow();
-			mainWindow->Hide();
-			mainWindow->Destroy();
-		}
-	}
-	else if (msg.Contains("MaximizeWindow("))
-	{
-		String windowName = msg.Tokenize("()")[1];
-		Window * window = WindowMan.GetWindowByName(windowName);
-		if (!window->IsFullScreen())
-			window->ToggleFullScreen();
-	}
+					// Then create it!
+					mainWindow->Create();
+					/// Create default UI and globalUI that may later on be replaced as needed.
+					mainWindow->CreateUI();
+					mainWindow->CreateGlobalUI();
+					mainWindow->backgroundColor = Vector4f(1,0,0,1);
+				}
+				// Reveal the main window to the user now that all managers are allocated.
+				WindowMan.MainWindow()->Show();
+			}
+			else if (msg == "HideWindows")
+			{
+				if (MainWindow())
+				{
+					MainWindow()->Hide();
+				}
+			}
+			else if (msg == "DestroyMainWindow" || 
+				msg == "DeleteWindows" || 
+				msg == "DeleteMainWindow")
+			{
+				if (WindowMan.MainWindow())
+				{
+					Window * mainWindow = WindowMan.MainWindow();
+					mainWindow->Hide();
+					mainWindow->Destroy();
+				}
+			}
+			else if (msg.Contains("MaximizeWindow("))
+			{
+				String windowName = msg.Tokenize("()")[1];
+				Window * window = WindowMan.GetWindowByName(windowName);
+				if (!window->IsFullScreen())
+					window->ToggleFullScreen();
+			}
 
-	else if (msg.Contains("INTERPRET_CONSOLE_COMMAND(this)"))
-	{
-		String command = message->element->text;
-		Message * newMes = new Message(MessageType::CONSOLE_COMMAND);
-		newMes->msg = command;
-		MesMan.QueueMessage(newMes);	
-		return;
-	}
-	else if (msg == "TogglePause(this)"){
-		UIElement * e = message->element;
-		if (e->type != UIType::VIDEO)
-			return;
-		UIVideo * video = (UIVideo*) e;
-		video->TogglePause();
+			else if (msg.Contains("INTERPRET_CONSOLE_COMMAND(this)"))
+			{
+				String command = message->element->text;
+				Message * newMes = new Message(MessageType::CONSOLE_COMMAND);
+				newMes->msg = command;
+				MesMan.QueueMessage(newMes);	
+				return;
+			}
+			else if (msg == "TogglePause(this)"){
+				UIElement * e = message->element;
+				if (e->type != UIType::VIDEO)
+					return;
+				UIVideo * video = (UIVideo*) e;
+				video->TogglePause();
 
-	}
-	else if (msg.Contains("UIProceed("))
-	{
-		String name = msg.Tokenize("()")[1];
-		UserInterface * ui = RelevantUI();
-		UIElement * e = ui->GetElementByName(name);
-		if (!e)
-			return;
-		e->Proceed();
-		return;
-	}
-	else if (msg.Contains("UITextureInput("))
-	{
-		String name = msg.Tokenize("()")[1];
-		UserInterface * ui = RelevantUI();
-		UIElement * e = ui->GetElementByName(name);
-		if (e->type != UIType::TEXTURE_INPUT)
-			return;
-		UITextureInput * ti = (UITextureInput*) e;
-		TextureMessage * m = new TextureMessage(ti->action, ti->GetTextureSource());
-		MesMan.QueueMessage(m);
-		return;	
-	}
-	else if (msg.Contains("UIStringInput("))
-	{
-		String name = msg.Tokenize("()")[1];
-		UserInterface * ui = RelevantUI();
-		UIElement * e = ui->GetElementByName(name);
-		if (e->type != UIType::STRING_INPUT)
-			return;
-		UIStringInput * si = (UIStringInput*)e;
-		SetStringMessage * m = new SetStringMessage(si->action, si->GetValue());
-		MesMan.QueueMessage(m);
-		return;
-	}
-	else if (msg.Contains("UIFloatInput("))
-	{
-		String name = msg.Tokenize("()")[1];
-		UserInterface * ui = RelevantUI();
-		UIElement * e = ui->GetElementByName(name);
-		if (e->type != UIType::FLOAT_INPUT)
-			return;
-		UIFloatInput * fi = (UIFloatInput*)e;
-		FloatMessage * m = new FloatMessage(fi->action, fi->GetValue());
-		MesMan.QueueMessage(m);
-		return;
-	}
-	else if (msg.Contains("UIIntegerInput("))
-	{
-		String name = msg.Tokenize("()")[1];
-		UserInterface * ui = RelevantUI();
-		UIElement * e = ui->GetElementByName(name);
-		if (e->type != UIType::INTEGER_INPUT)
-			return;
-		UIIntegerInput * ii = (UIIntegerInput*)e;
-		IntegerMessage * m = new IntegerMessage(ii->action, ii->GetValue());
-		MesMan.QueueMessage(m);
-		return;
-	}
-	else if (msg.Contains("UIVectorInput("))
-	{
-		String name = msg.Tokenize("()")[1];
-		UserInterface * ui = RelevantUI();
-		UIElement * e = ui->GetElementByName(name);
-		if (e->type != UIType::VECTOR_INPUT)
-			return;
-		UIVectorInput * vi = (UIVectorInput*)e;
-		/// Fetch vector data from the input first.
-		VectorMessage * m = NULL;
-		switch(vi->numInputs)
-		{
-			case 2:
-				m = new VectorMessage(vi->action, vi->GetValue2i());
-				break;
-			case 3:
-				m = new VectorMessage(vi->action, vi->GetValue3f());
-				break;
-			case 4:
-				m = new VectorMessage(vi->action, vi->GetValue4f());
-				break;
-			default:
-				assert(false && "implement");
-				break;
-		}
-		if (m)
-			MesMan.QueueMessage(m);
-		return;
-	}
-	else if (msg.Contains("setVisibility")){
-		List<String> params = msg.Tokenize("(),");
-		assert(params.Size() >= 2 && "Invalid amount of arguments to SetVisibility UI command!");
+			}
+			else if (msg.Contains("UIProceed("))
+			{
+				String name = msg.Tokenize("()")[1];
+				UserInterface * ui = RelevantUI();
+				UIElement * e = ui->GetElementByName(name);
+				if (!e)
+					return;
+				e->Proceed();
+				return;
+			}
+			else if (msg.Contains("UITextureInput("))
+			{
+				String name = msg.Tokenize("()")[1];
+				UserInterface * ui = RelevantUI();
+				UIElement * e = ui->GetElementByName(name);
+				if (e->type != UIType::TEXTURE_INPUT)
+					return;
+				UITextureInput * ti = (UITextureInput*) e;
+				TextureMessage * m = new TextureMessage(ti->action, ti->GetTextureSource());
+				MesMan.QueueMessage(m);
+				return;	
+			}
+			else if (msg.Contains("UIStringInput("))
+			{
+				String name = msg.Tokenize("()")[1];
+				UserInterface * ui = RelevantUI();
+				UIElement * e = ui->GetElementByName(name);
+				if (e->type != UIType::STRING_INPUT)
+					return;
+				UIStringInput * si = (UIStringInput*)e;
+				SetStringMessage * m = new SetStringMessage(si->action, si->GetValue());
+				MesMan.QueueMessage(m);
+				return;
+			}
+			else if (msg.Contains("UIFloatInput("))
+			{
+				String name = msg.Tokenize("()")[1];
+				UserInterface * ui = RelevantUI();
+				UIElement * e = ui->GetElementByName(name);
+				if (e->type != UIType::FLOAT_INPUT)
+					return;
+				UIFloatInput * fi = (UIFloatInput*)e;
+				FloatMessage * m = new FloatMessage(fi->action, fi->GetValue());
+				MesMan.QueueMessage(m);
+				return;
+			}
+			else if (msg.Contains("UIIntegerInput("))
+			{
+				String name = msg.Tokenize("()")[1];
+				UserInterface * ui = RelevantUI();
+				UIElement * e = ui->GetElementByName(name);
+				if (e->type != UIType::INTEGER_INPUT)
+					return;
+				UIIntegerInput * ii = (UIIntegerInput*)e;
+				IntegerMessage * m = new IntegerMessage(ii->action, ii->GetValue());
+				MesMan.QueueMessage(m);
+				return;
+			}
+			else if (msg.Contains("UIVectorInput("))
+			{
+				String name = msg.Tokenize("()")[1];
+				UserInterface * ui = RelevantUI();
+				UIElement * e = ui->GetElementByName(name);
+				if (e->type != UIType::VECTOR_INPUT)
+					return;
+				UIVectorInput * vi = (UIVectorInput*)e;
+				/// Fetch vector data from the input first.
+				VectorMessage * m = NULL;
+				switch(vi->numInputs)
+				{
+					case 2:
+						m = new VectorMessage(vi->action, vi->GetValue2i());
+						break;
+					case 3:
+						m = new VectorMessage(vi->action, vi->GetValue3f());
+						break;
+					case 4:
+						m = new VectorMessage(vi->action, vi->GetValue4f());
+						break;
+					default:
+						assert(false && "implement");
+						break;
+				}
+				if (m)
+					MesMan.QueueMessage(m);
+				return;
+			}
+			else if (msg.Contains("setVisibility")){
+				List<String> params = msg.Tokenize("(),");
+				assert(params.Size() >= 2 && "Invalid amount of arguments to SetVisibility UI command!");
 
-		String uiName = params[1];
-		/// Check if the name-parameter is 'this'
-		if (uiName == "this"){
-			// std::cout<<"\nElement with 'this' lacking name.. fix yo.";
-			uiName = message->element->name;
-		}
-		bool visibility = params[2].ParseBool();
-		Graphics.QueueMessage(new GMSetUIb(uiName, GMUI::VISIBILITY, visibility));
-		return;
-	}
-	else if (msg.Contains("SetText(")){
-		List<String> params = msg.Tokenize("(),");
-		assert(params.Size() >= 2 && "Invalid amount of arguments to SetVisibility UI command!");
+				String uiName = params[1];
+				/// Check if the name-parameter is 'this'
+				if (uiName == "this"){
+					// std::cout<<"\nElement with 'this' lacking name.. fix yo.";
+					uiName = message->element->name;
+				}
+				bool visibility = params[2].ParseBool();
+				Graphics.QueueMessage(new GMSetUIb(uiName, GMUI::VISIBILITY, visibility));
+				return;
+			}
+			else if (msg.Contains("SetText(")){
+				List<String> params = msg.Tokenize("(),");
+				assert(params.Size() >= 2 && "Invalid amount of arguments to SetVisibility UI command!");
 
-		String uiName = params[1];
-		/// Check if the name-parameter is 'this'
-		if (uiName == "this"){
-			// std::cout<<"\nElement with 'this' lacking name.. fix yo.";
-			uiName = message->element->name;
-		}
-		String text = params[2];
-		text.Remove("\"", true);
-		Graphics.QueueMessage(new GMSetUIs(uiName, GMUI::TEXT, text));
-		return;
-	}
-	else if (msg.Contains("CyclicUIY(")){
-		Input.cyclicY = msg.Tokenize("()")[1].ParseBool();
-		return;
-	}
-	else if (msg.Contains("Query(")){
-		// Create a new UI to place on top of it all!
-		String uiName = msg;
-		List<String> params = msg.Tokenize("(),");
-		assert(params.Size() >= 2);
-		String action = params[1];
-		/// Create the dialogue
-		UIQueryDialogue * dialog = new UIQueryDialogue(action, action);
-		dialog->navigateUIOnPush = true;
-		dialog->exitable = true;
-		if (params.Size() >= 4){
-			dialog->headerText = params[2];
-			dialog->textToPresent = params[3];
-		}
-		dialog->CreateChildren();
-		/// Add the dialogue to the global UI
-		Graphics.QueueMessage(new GMAddGlobalUI(dialog, "root"));
-		/// Push it to the top... should not be needed with the global ui.
-		Graphics.QueueMessage(new GMPushUI(dialog, GlobalUI()));
-		return;
-	}
-	else if (msg.Contains("SetFileBrowserDirectory(")){
-		List<String> params = msg.Tokenize(",()");
-		String uiName = params[1];
-		UIElement * ui = RelevantUI()->GetElementByName(uiName);
-		if (!ui)
-			return;
-		assert(ui->type == UIType::FILE_BROWSER);
-		UIFileBrowser * fb = (UIFileBrowser*)ui;
-		String path = params[2];
-		if (path == "this")
-			path = message->element->text;
-		fb->SetPath(path, false);
-		return;
-	}
-	else if (msg.Contains("UpdateFileBrowserDirectory(")){
-		List<String> params = msg.Tokenize(",()");
-		String uiName = params[1];
-		UIElement * ui = RelevantUI()->GetElementByName(uiName);
-		if (!ui)
-			return;
-		assert(ui->type == UIType::FILE_BROWSER);
-		UIFileBrowser * fb = (UIFileBrowser*)ui;
-		String path = params[2];
-		if (path == "this")
-			path = message->element->text;
-		fb->UpdatePath(path, false);
-		return;
-	}
-	else if (msg.Contains("EvaluateFileBrowserSelection("))
-	{
-		List<String> params = msg.Tokenize("()");
-		String uiName = params[1];
-		UIElement * ui = RelevantUI()->GetElementByName(uiName);
-		if (!ui)
-			return;
-		FileEvent * message = new FileEvent();
-		UIFileBrowser * fb = (UIFileBrowser*)ui;
-		message->msg = fb->action;
-		message->files = fb->GetFileSelection();
-		// Queue the new message.
-		QueueMessage(message);
-		return;
-	}
-	else if (msg.Contains("SetFileBrowserFile("))
-	{
-		List<String> params = msg.Tokenize(",()");
-		String uiName = params[1];
-		UIElement * ui = RelevantUI()->GetElementByName(uiName);
-		if (!ui)
-			return;
-		assert(ui->type == UIType::FILE_BROWSER);
-		UIFileBrowser * fb = (UIFileBrowser*)ui;
-		String file = params[2];
-		if (file == "this"){
-			file = message->element->text;
-		}
-		fb->SetActiveFile(file);
-		return;
-	}
-	else if (msg.Contains("OpenFileBrowser(")){
-		/// Parse stuff
-		List<String> params = msg.Tokenize("(),");
-		assert(params.Size() >= 3);
-		String title = params[1];
-		title.Remove("\"", true);
-		String action = params[2];
-		String filter;
-		if (params.Size() >= 4){
-			filter = params[3];
-			filter.Remove("\"", true);
-		}
-		/// Create the browser.
-		UIFileBrowser * fileBrowser = new UIFileBrowser(title, action, filter);
-		fileBrowser->CreateChildren();
-		fileBrowser->LoadDirectory(false);
-		/// Push it to the UI.
-		Graphics.QueueMessage(new GMAddUI(fileBrowser, "root"));
-		Graphics.QueueMessage(new GMPushUI(fileBrowser, RelevantUI()));
-		return;
-	}
-	else if (msg.Contains("QuitApplication"))
-	{
-		StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_EXIT));
-		return;
-	}
-	else if (msg.Contains("PushToStack(") || msg.Contains("PushUI(")){
-		// Fetch target.
-		List<String> params = msg.Tokenize("(),");
-		assert(params.Size() >= 2 && "Invalid amount of arguments to PushToStack UI command!");
-		if (params.Size() < 2)
-			return;
-		/// The user might want to enter either an element or a whole new UI here, so investigate it!
-		String uiName = params[1];
-		String uiSrc = uiName;
-		/// Check if the element exists...!
-		UserInterface * ui = ActiveUI();
-		if (!ui)
-			return;
-		UIElement * element = NULL;
-		/// Check if it's a source file, if so try and load that first.
-		if (uiName.Contains(".gui"))
-		{
-			element = ui->GetElementBySource(uiName);
-			if (!element){
-				// Load it.
-				element = UserInterface::LoadUIAsElement(uiSrc);
-				/// Return if we fail to load.
-				if (!element){
-					std::cout<<"\nUnable to load ui: "<<uiName;
+				String uiName = params[1];
+				/// Check if the name-parameter is 'this'
+				if (uiName == "this"){
+					// std::cout<<"\nElement with 'this' lacking name.. fix yo.";
+					uiName = message->element->name;
+				}
+				String text = params[2];
+				text.Remove("\"", true);
+				Graphics.QueueMessage(new GMSetUIs(uiName, GMUI::TEXT, text));
+				return;
+			}
+			else if (msg.Contains("CyclicUIY(")){
+				Input.cyclicY = msg.Tokenize("()")[1].ParseBool();
+				return;
+			}
+			else if (msg.Contains("Query(")){
+				// Create a new UI to place on top of it all!
+				String uiName = msg;
+				List<String> params = msg.Tokenize("(),");
+				assert(params.Size() >= 2);
+				String action = params[1];
+				/// Create the dialogue
+				UIQueryDialogue * dialog = new UIQueryDialogue(action, action);
+				dialog->navigateUIOnPush = true;
+				dialog->exitable = true;
+				if (params.Size() >= 4){
+					dialog->headerText = params[2];
+					dialog->textToPresent = params[3];
+				}
+				dialog->CreateChildren();
+				/// Add the dialogue to the global UI
+				Graphics.QueueMessage(new GMAddGlobalUI(dialog, "root"));
+				/// Push it to the top... should not be needed with the global ui.
+				Graphics.QueueMessage(new GMPushUI(dialog, GlobalUI()));
+				return;
+			}
+			else if (msg.Contains("SetFileBrowserDirectory("))
+			{
+				List<String> params = msg.Tokenize(",()");
+				String uiName = params[1];
+				UIElement * ui = RelevantUI()->GetElementByName(uiName);
+				if (!ui)
+					return;
+				assert(ui->type == UIType::FILE_BROWSER);
+				UIFileBrowser * fb = (UIFileBrowser*)ui;
+				String path = params[2];
+				if (path == "this")
+					path = message->element->text;
+				fb->SetPath(path, false);
+				return;
+			}
+			else if (msg.Contains("UpdateFileBrowserDirectory("))
+			{
+				List<String> params = msg.Tokenize(",()");
+				String uiName = params[1];
+				UIElement * ui = RelevantUI()->GetElementByName(uiName);
+				if (!ui)
+					return;
+				assert(ui->type == UIType::FILE_BROWSER);
+				UIFileBrowser * fb = (UIFileBrowser*)ui;
+				String path = params[2];
+				if (path == "this")
+					path = message->element->text;
+				fb->UpdatePath(path, false);
+				return;
+			}
+			else if (msg.Contains("EvaluateFileBrowserSelection("))
+			{
+				List<String> params = msg.Tokenize("()");
+				String uiName = params[1];
+				UIElement * ui = RelevantUI()->GetElementByName(uiName);
+				if (!ui)
+					return;
+				FileEvent * message = new FileEvent();
+				UIFileBrowser * fb = (UIFileBrowser*)ui;
+				message->msg = fb->action;
+				message->files = fb->GetFileSelection();
+				// Queue the new message.
+				QueueMessage(message);
+				return;
+			}
+			else if (msg.Contains("SetFileBrowserFile("))
+			{
+				List<String> params = msg.Tokenize(",()");
+				String uiName = params[1];
+				UIElement * ui = RelevantUI()->GetElementByName(uiName);
+				if (!ui)
+					return;
+				assert(ui->type == UIType::FILE_BROWSER);
+				UIFileBrowser * fb = (UIFileBrowser*)ui;
+				String file = params[2];
+				if (file == "this"){
+					file = message->element->text;
+				}
+				fb->SetActiveFile(file);
+				return;
+			}
+			else if (msg.Contains("OpenFileBrowser(")){
+				/// Parse stuff
+				List<String> params = msg.Tokenize("(),");
+				assert(params.Size() >= 3);
+				String title = params[1];
+				title.Remove("\"", true);
+				String action = params[2];
+				String filter;
+				if (params.Size() >= 4){
+					filter = params[3];
+					filter.Remove("\"", true);
+				}
+				/// Create the browser.
+				UIFileBrowser * fileBrowser = new UIFileBrowser(title, action, filter);
+				fileBrowser->CreateChildren();
+				fileBrowser->LoadDirectory(false);
+				/// Push it to the UI.
+				Graphics.QueueMessage(new GMAddUI(fileBrowser, "root"));
+				Graphics.QueueMessage(new GMPushUI(fileBrowser, RelevantUI()));
+				return;
+			}
+			else if (msg.Contains("QuitApplication"))
+			{
+				StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_EXIT));
+				return;
+			}
+			else if (msg.Contains("PushToStack(") || msg.Contains("PushUI(")){
+				// Fetch target.
+				List<String> params = msg.Tokenize("(),");
+				assert(params.Size() >= 2 && "Invalid amount of arguments to PushToStack UI command!");
+				if (params.Size() < 2)
+					return;
+				/// The user might want to enter either an element or a whole new UI here, so investigate it!
+				String uiName = params[1];
+				String uiSrc = uiName;
+				/// Check if the element exists...!
+				UserInterface * ui = ActiveUI();
+				if (!ui)
+					return;
+				UIElement * element = NULL;
+				/// Check if it's a source file, if so try and load that first.
+				if (uiName.Contains(".gui"))
+				{
+					element = ui->GetElementBySource(uiName);
+					if (!element){
+						// Load it.
+						element = UserInterface::LoadUIAsElement(uiSrc);
+						/// Return if we fail to load.
+						if (!element){
+							std::cout<<"\nUnable to load ui: "<<uiName;
+							return;
+						}
+						/// If we load here, reset elementName since uiName since it probably changed.
+						uiName = element->name;
+						/// Make sure it is exitable.
+						element->exitable = true;
+						Graphics.QueueMessage(new GMAddUI(element));
+					}
+				}
+				/// Regular name
+				else {
+					element = ui->GetElementByName(uiName);		
+				}
+				/// Push it to stack if not.
+				if (element)
+					Graphics.QueueMessage(new GMPushUI(element->name, ui));
+				return;
+			}
+			else if (msg.Contains("PopFromStack(") || msg.Contains("PopUI("))
+			{
+				std::cout<<"\nPopFromStack/PopUI received.";
+				// Fetch target.
+				List<String> params = msg.Tokenize("(),");
+				assert(params.Size() >= 2 && "Invalid amount of arguments to PopFromStack UI command!");
+				if (params.Size() < 2){
+					std::cout<<"\nToo few parameters.";
 					return;
 				}
-				/// If we load here, reset elementName since uiName since it probably changed.
-				uiName = element->name;
-				/// Make sure it is exitable.
-				element->exitable = true;
-				Graphics.QueueMessage(new GMAddUI(element));
+				String uiName = params[1];
+				if (uiName == "this")
+					uiName = message->element->name;
+				/// Force pop it?
+				Graphics.QueueMessage(new GMPopUI(uiName, RelevantUI(), true));
+				return;
 			}
-		}
-		/// Regular name
-		else {
-			element = ui->GetElementByName(uiName);		
-		}
-		/// Push it to stack if not.
-		if (element)
-			Graphics.QueueMessage(new GMPushUI(element->name, ui));
-		return;
-	}
-	else if (msg.Contains("PopFromStack(") || msg.Contains("PopUI("))
-	{
-		std::cout<<"\nPopFromStack/PopUI received.";
-		// Fetch target.
-		List<String> params = msg.Tokenize("(),");
-		assert(params.Size() >= 2 && "Invalid amount of arguments to PopFromStack UI command!");
-		if (params.Size() < 2){
-			std::cout<<"\nToo few parameters.";
-			return;
-		}
-		String uiName = params[1];
-		if (uiName == "this")
-			uiName = message->element->name;
-		/// Force pop it?
-		Graphics.QueueMessage(new GMPopUI(uiName, RelevantUI(), true));
-		return;
-	}
-	else if (msg == "Back")
-	{
-		UserInterface * ui = RelevantUI();
-		UIElement * stackTop = ui->GetStackTop();
-		Graphics.QueueMessage(new GMPopUI(stackTop->name, ui));
-		return;
-	}
-	else if (msg.Contains("begin_input(") ||
-		msg.Contains("BeginInput("))
-	{
-		String elementName = msg.Tokenize("()")[1];
-		UIElement * element;
-		if (elementName == "this")
-			element = message->element;
-		else
-			element = StateMan.ActiveState()->GetUI()->GetElementByName(elementName);
-		if (!element)
-			return;
-		assert(element->demandInputFocus);
-		((UIInput*)element)->BeginInput();
-		return;
-		/*
-		UserInterface * ui = StateMan.ActiveState()->GetUI();
-		UIElement * element = message->element;
-		if (!element){
-			std::cout<<"\nNo active element, fetching hover element.";
-			element = ui->GetHoverElement();
-		}
-		if (element != NULL){
-			// assert(element->onTrigger);
-			if (!element->onTrigger)
-				std::cout<<"\nBegnning input for element without onTrigger specified!";
-			Input.SetActiveUIInputElement(element);
-			Input.EnterTextInputMode(element->onTrigger);
-		}
-		else
-			assert(false && "NULL-element :<");
-		return;
-		*/
-	}
-	else if (msg.Contains("Remove(") || msg.Contains("DeleteUI("))
-	{
-		UserInterface * ui = StateMan.ActiveState()->GetUI();
-		UIElement * element;
-		String uiName = msg.Tokenize("()")[1];
-		/// this-deletion
-		if (uiName == "this"){
-			if (message->element)
-				element = message->element;
-			else
-				element = ui->GetActiveElement();
-		}
-		/// Named deletion
-		else {
-			element = ui->GetElementByName(uiName);
-		}
-		/// For all usual AI, the state is not active after activation, so just grab the one with the hover-state!
-		if (element == NULL)
-			element = ui->GetHoverElement();
-		assert(element);
-		if (element == NULL){
-			std::cout<<"\nERRORRRR: Invalid hellelemend? No active hover element, yo..";
-			return;
-		}
-		Graphics.QueueMessage(new GMRemoveUI(element));
-		return;
-	}
-	else if (msg.Contains("ContinueEvent(")){
-		List<Script*> events, mapEvents;
-		Map * map = MapMan.ActiveMap();
-		if (map)
-			mapEvents = map->GetEvents();
-		List<Script*> moreEvents = ScriptMan.GetActiveEvents();
-		events += mapEvents + moreEvents;
-		String targetEvent = msg.Tokenize("()")[1];
-		for (int i = 0; i < events.Size(); ++i){
-			Script * event = events[i];
-			if (event->name == targetEvent)
-				event->lineFinished = true;
-		}
-		return;
-	}
-	else if (msg.Contains("ActivateDialogueAlternative(")){
-		List<Script*> events = MapMan.ActiveMap()->GetEvents();
-		List<Script*> moreEvents = ScriptMan.GetActiveEvents();
-		events += moreEvents;
-		String argsString = msg.Tokenize("()")[1];
-		List<String> args = argsString.Tokenize(" ,");
-		String targetEvent = args[0];
-		String alternative = args[1];
-		assert(alternative);
-		for (int i = 0; i < events.Size(); ++i){
-			Script * e = events[i];
-			if (e->name == targetEvent){
-				e->ContinueToAlternative(alternative);
+			else if (msg == "Back")
+			{
+				UserInterface * ui = RelevantUI();
+				UIElement * stackTop = ui->GetStackTop();
+				Graphics.QueueMessage(new GMPopUI(stackTop->name, ui));
+				return;
 			}
+			else if (msg.Contains("begin_input(") ||
+				msg.Contains("BeginInput("))
+			{
+				String elementName = msg.Tokenize("()")[1];
+				UIElement * element;
+				if (elementName == "this")
+					element = message->element;
+				else
+					element = StateMan.ActiveState()->GetUI()->GetElementByName(elementName);
+				if (!element)
+					return;
+				assert(element->demandInputFocus);
+				((UIInput*)element)->BeginInput();
+				return;
+				/*
+				UserInterface * ui = StateMan.ActiveState()->GetUI();
+				UIElement * element = message->element;
+				if (!element){
+					std::cout<<"\nNo active element, fetching hover element.";
+					element = ui->GetHoverElement();
+				}
+				if (element != NULL){
+					// assert(element->onTrigger);
+					if (!element->onTrigger)
+						std::cout<<"\nBegnning input for element without onTrigger specified!";
+					Input.SetActiveUIInputElement(element);
+					Input.EnterTextInputMode(element->onTrigger);
+				}
+				else
+					assert(false && "NULL-element :<");
+				return;
+				*/
+			}
+			else if (msg.Contains("Remove(") || msg.Contains("DeleteUI("))
+			{
+				UserInterface * ui = StateMan.ActiveState()->GetUI();
+				UIElement * element;
+				String uiName = msg.Tokenize("()")[1];
+				/// this-deletion
+				if (uiName == "this"){
+					if (message->element)
+						element = message->element;
+					else
+						element = ui->GetActiveElement();
+				}
+				/// Named deletion
+				else {
+					element = ui->GetElementByName(uiName);
+				}
+				/// For all usual AI, the state is not active after activation, so just grab the one with the hover-state!
+				if (element == NULL)
+					element = ui->GetHoverElement();
+				assert(element);
+				if (element == NULL){
+					std::cout<<"\nERRORRRR: Invalid hellelemend? No active hover element, yo..";
+					return;
+				}
+				Graphics.QueueMessage(new GMRemoveUI(element));
+				return;
+			}
+			else if (msg.Contains("ContinueEvent(")){
+				List<Script*> events, mapEvents;
+				Map * map = MapMan.ActiveMap();
+				if (map)
+					mapEvents = map->GetEvents();
+				List<Script*> moreEvents = ScriptMan.GetActiveEvents();
+				events += mapEvents + moreEvents;
+				String targetEvent = msg.Tokenize("()")[1];
+				for (int i = 0; i < events.Size(); ++i){
+					Script * event = events[i];
+					if (event->name == targetEvent)
+						event->lineFinished = true;
+				}
+				return;
+			}
+			else if (msg.Contains("ActivateDialogueAlternative(")){
+				List<Script*> events = MapMan.ActiveMap()->GetEvents();
+				List<Script*> moreEvents = ScriptMan.GetActiveEvents();
+				events += moreEvents;
+				String argsString = msg.Tokenize("()")[1];
+				List<String> args = argsString.Tokenize(" ,");
+				String targetEvent = args[0];
+				String alternative = args[1];
+				assert(alternative);
+				for (int i = 0; i < events.Size(); ++i){
+					Script * e = events[i];
+					if (e->name == targetEvent){
+						e->ContinueToAlternative(alternative);
+					}
+				}
+				return;
+			}
+
+			break;
 		}
-		return;
 	}
 
+	
 	// First send it to global state
 	if (StateManager::Instance()){
 		if (StateMan.GlobalState())

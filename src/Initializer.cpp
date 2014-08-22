@@ -140,6 +140,7 @@ void * Deallocate(void *vArgs)
 	Sleep(10);
 
 	StateMan.SetGlobalState(NULL);
+	StateMan.SetActiveState(NULL);
 	// Stop audio
 //	audio.shouldLive = false;
 	// Stop the state loop

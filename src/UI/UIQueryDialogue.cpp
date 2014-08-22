@@ -58,8 +58,8 @@ UIQueryDialogue::~UIQueryDialogue()
 /// Creates the relevant children. Separate function in order to not have everything allocated in the constructor.
 void UIQueryDialogue::CreateChildren(){
 	/// Clear any children if we had any first.
-	if (childList.Size())
-		childList.ClearAndDelete();
+	if (children.Size())
+		children.ClearAndDelete();
 	/// Create the "box"
 	UIList * box = new UIList();
 	box->sizeRatioX = box->sizeRatioY = 0.5f;
@@ -160,8 +160,8 @@ UIStringDialogue::~UIStringDialogue()
 /// Creates the relevant children. Separate function in order to not have everything allocated in the constructor.
 void UIStringDialogue::CreateChildren(){
 	/// Clear any children if we had any first.
-	if (childList.Size())
-		childList.ClearAndDelete();
+	if (children.Size())
+		children.ClearAndDelete();
 	/// Create the "box"
 	UIList * box = new UIList();
 	box->sizeRatioX = box->sizeRatioY = 0.5f;

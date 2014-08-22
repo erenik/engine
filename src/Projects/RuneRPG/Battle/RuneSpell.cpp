@@ -152,8 +152,9 @@ bool RuneSpellManager::LoadFromCSV(String file)
 			// If not, now loop through the words, parsing them according to the column name.
 			// First create the new spell to load the data into!
 			RuneSpell * spell = New();
-			for (int i = 0; i < words.Size(); ++i){
-				String columnName = columnNames;
+			for (int i = 0; i < words.Size(); ++i)
+			{
+				String columnName = columnNames[i];
 				String word = words[i];
 				if (columnName == "Namn" || columnName == "Name")
 				{

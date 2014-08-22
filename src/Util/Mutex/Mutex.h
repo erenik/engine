@@ -16,6 +16,8 @@ private:
 public:
 	/// Doesn't do anything
 	Mutex();
+	/// Calls Destroy if needed.
+	~Mutex();
 
 /// Hide them if incorrect OS..!
 #ifdef WINDOWS

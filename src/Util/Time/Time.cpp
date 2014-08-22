@@ -115,6 +115,25 @@ Time Time::operator - (const Time & otherTime) const
 	return newTime;
 }
 
+/// Arithmetic operations
+Time Time::operator -= (const Time & otherTime)
+{
+	if (type == 0)
+		type = otherTime.type;
+	assert(type == otherTime.type);
+	intervals -= otherTime.intervals;
+	return Time(*this);
+}
+Time Time::operator += (const Time & otherTime)
+{
+	if (type == 0)
+		type = otherTime.type;
+	assert(type == otherTime.type);
+	intervals += otherTime.intervals;
+	return Time(*this);
+}
+
+
 
 // Conversion operators
 Time::operator const int64 () const 

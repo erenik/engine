@@ -8,6 +8,8 @@
 #include "UI/UserInterface.h"
 #include "Graphics/GLBuffers.h"
 
+#include "DragAndDrop.h"
+
 /// List of active monitors.
 List<Monitor> monitors;
 
@@ -98,6 +100,7 @@ Window::Window(String name)
 
 	windowStyle = 0;
 	dwExStyle = 0;
+	dad = NULL;
 #endif
 
 	saveScreenshot = false;
@@ -117,8 +120,26 @@ Window::~Window()
     XCloseDisplay(display);
 #endif
 
+	if (dad)
+		delete dad;
+
 	/// Probably dynamically allocated, yeah.
 	viewports.ClearAndDelete();
+}
+
+/// o-o
+Vector2i Window::GetWindowCoordsFromScreenCoords(Vector2i screenPos)
+{
+#ifdef WINDOWS
+	POINT pt;
+	pt.x = screenPos.x;
+	pt.y = screenPos.y;
+	BOOL ok = ScreenToClient(hWnd, &pt);
+	if (!ok)
+		return Vector2i(-1,-1);
+#endif
+	// Invert Y because windows calculates the Y coordinate inversly from what we do.
+	return Vector2i(pt.x, clientAreaSize.y - pt.y);
 }
 
 /// Updates positions, using parent as relative (if specified)
@@ -503,6 +524,24 @@ void Window::Show()
 	else
 		ShowWindow(hWnd, SW_SHOWNOACTIVATE);
 	UpdateWindow(hWnd);
+
+	if (!dad)
+		dad = new DragAndDrop();
+	/// Enable Drag-n-drop for the window for non-File types too.
+	int result = RegisterDragDrop(hWnd, dad);
+	switch(result)
+	{
+		case DRAGDROP_E_INVALIDHWND:
+			std::cout<<"Invalid hwNd";
+			break;
+		case DRAGDROP_E_ALREADYREGISTERED:
+			std::cout<<"ar;edastret";
+			break;
+		case E_OUTOFMEMORY:
+			std::cout<<"Invalid MEM";
+			break;
+	}
+
 #endif
 }
 

@@ -137,6 +137,9 @@ public:
 	/// Recalculates a transformation matrix using argument vectors for position, rotation and translation.
 	static Matrix4f RecalculateMatrix(Vector3f & position, Vector3f & rotation, Vector3f & scale);
 
+	/// Recalculates the radius of the entity, both in the upper level radius as well as the physics-property variable one if applicable.
+	void RecalculateRadius();
+
 	/// Returns the center of this entity, determined by position, rotation, and current model.
 	Vector3f CenterOfGravityWorldSpace();
 

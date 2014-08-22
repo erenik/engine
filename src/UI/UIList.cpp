@@ -17,6 +17,7 @@ UIScrollBarHandle::UIScrollBarHandle()
     hoverable = true;
     activateable = true;
     isSysElement = true;
+	highlightOnHover = true;
     activationMessage = "BeginScroll(this)";
 }
 
@@ -114,10 +115,11 @@ UIScrollBar::~UIScrollBar()
 //	std::cout<<"\nUIScrollBar destructor.";
 }
 
-void UIScrollBar::CreateHandle(){
+void UIScrollBar::CreateHandle()
+{
     assert(handle == NULL);
     handle = new UIScrollBarHandle();
-    handle->textureSource = "img/80Gray50Alpha.png";
+    handle->textureSource = "Gray";
  //   handle->text = "Joooooo";
     AddChild(handle);
     previousSize = 1.0f;
@@ -180,8 +182,8 @@ UIElement * UIScrollBar::Click(int mouseX, int mouseY)
 
 	// Alright, the mouse is inside this element!
 	// Do we have children?
-	for (int i = childList.Size()-1; i >= 0; --i){
-		UIElement * child = childList[i];
+	for (int i = children.Size()-1; i >= 0; --i){
+		UIElement * child = children[i];
 	    if (!child->visible)
             continue;
 		result = child->Click(mouseX, mouseY);
@@ -297,6 +299,10 @@ UIList::UIList()
 	highlightOnHover = false;
 	// Clear initial stuff! As no elements should be present this should work.
 	Clear();
+
+	// Default true.
+	createScrollBarsAutomatically = true;
+ 
 }
 
 UIList::~UIList()
@@ -308,15 +314,15 @@ UIList::~UIList()
 void UIList::Clear()
 {
 	// Delete everything. Including side-bars!
-    for (int i = 0; i < childList.Size(); /* Empty */){
-    	UIElement * c = childList[i];
+    for (int i = 0; i < children.Size(); /* Empty */){
+    	UIElement * c = children[i];
 		/*
 		if (c->isSysElement){
     	    ++i;
             continue;
         }
 		*/
-		childList.Remove(c);
+		children.Remove(c);
 		if (c->vboBuffer)
             c->FreeBuffers();
         if (c->mesh)
@@ -335,14 +341,14 @@ void UIList::AddChild(UIElement* child)
 {
 	/// Automate name if none was given.
 	if (child->name.Length() < 1)
-		child->name = this->name + "Element"+String::ToString(childList.Size());
+		child->name = this->name + "Element"+String::ToString(children.Size());
 
     /// Inherit neighbours.
 	child->InheritNeighbours(this);
 
  //   std::cout<<"\nAdding child "<<child->name<<" text: "<<child->text;
 	/// If first child, place it at the top.
-	if (childList.Size() == 0){
+	if (children.Size() == 0){
 		UIElement::AddChild(child);
 		child->alignmentY = 1.0f - child->sizeRatioY * 0.5f;
 		return;
@@ -351,8 +357,8 @@ void UIList::AddChild(UIElement* child)
 	// Get bottom child
 	float bottom = 1.0f;
 	UIElement * bottomElement = NULL;
-	for (int i = 0; i < childList.Size(); ++i){
-		UIElement * c = childList[i];
+	for (int i = 0; i < children.Size(); ++i){
+		UIElement * c = children[i];
 		/// Skip 'system' elements like scroll-bars and handles that will be deleted shortly!
 		if (c->isSysElement)
             continue;
@@ -369,9 +375,13 @@ void UIList::AddChild(UIElement* child)
 	contentsSize = 1 - child->alignmentY + child->sizeRatioY * 0.5f;
 
 	/// Check if we should add scroll-bars to zis list!
-	if (child->alignmentY - child->sizeRatioY * 0.5f < 0){
-	    if (scrollBarY){
-	        childList.Remove(scrollBarY);
+	bool needScrollBarY = child->alignmentY - child->sizeRatioY * 0.5f < 0;
+	needScrollBarY &= createScrollBarsAutomatically;
+	if (needScrollBarY)
+	{
+	    if (scrollBarY)
+		{
+	        children.Remove(scrollBarY);
 	   //     std::cout<<"\nTrying to delete stuff?";
 			if (scrollBarY->vboBuffer != -1)
 				scrollBarY->FreeBuffers();
@@ -399,11 +409,13 @@ void UIList::AddChild(UIElement* child)
 	}
 
 	// Bind them for proper navigation.
-    if (bottomElement){
+    if (bottomElement)
+	{
 	//	std::cout<<"\nBottomElement name: "<<bottomElement;
 
-        bottomElement->downNeighbourName = child->name;
-		child->upNeighbourName = bottomElement->name;
+		// Let navigation use the UIList to determine who should be the up/down neighbour. Don't assign that here!
+   //     bottomElement->downNeighbourName = child->name;
+	//	child->upNeighbourName = bottomElement->name;
     }
 }
 
@@ -421,8 +433,8 @@ UIElement * UIList::Hover(int mouseX, int mouseY)
     }
     UIElement * e = NULL;
     /// Check le children.
-    for (int i = 0; i < childList.Size(); ++i){
-        UIElement * child = childList[i];
+    for (int i = 0; i < children.Size(); ++i){
+        UIElement * child = children[i];
         if (child->isSysElement)
             e = child->Hover(mouseX, mouseY);
         else
@@ -447,8 +459,8 @@ UIElement * UIList::Click(int mouseX, int mouseY)
 
     UIElement * e = NULL;
     /// Check le children.
-    for (int i = 0; i < childList.Size(); ++i){
-        UIElement * child = childList[i];
+    for (int i = 0; i < children.Size(); ++i){
+        UIElement * child = children[i];
         if (child->isSysElement)
             e = child->Click(mouseX, mouseY);
         else
@@ -472,8 +484,8 @@ UIElement * UIList::GetElement(int mouseX, int mouseY){
         listY -= scrollBarY->GetStart() * sizeY;
     UIElement * e = this;
     /// Check le children.
-    for (int i = 0; i < childList.Size(); ++i){
-        UIElement * child = childList[i];
+    for (int i = 0; i < children.Size(); ++i){
+        UIElement * child = children[i];
         if (child->isSysElement)
             e = child->Click(mouseX, mouseY);
         else
@@ -518,6 +530,99 @@ bool UIList::OnScroll(float delta)
     return true;
 }
 
+/// Suggests a neighbour which could be to the right of this element. Meant to be used for UI-navigation support. The reference element indicates the element to which we are seeking a compatible or optimum neighbour, and should be NULL for the initial call.
+UIElement * UIList::GetUpNeighbour(UIElement * referenceElement, bool & searchChildrenOnly)
+{
+	// Check if the element is part of this list.
+	int index = BelongsToChildIndex(referenceElement);
+	// Part of us somehow?
+	if (index != -1)
+	{
+		// Part of this list!
+		if (index > 0)
+		{
+			// Return child one step below it.
+			for (int i = index - 1; i >= 0; --i)
+			{
+				// Or further below as needed..
+				UIElement * child = children[i];
+				/// If activatable? Return it straight away.
+				if (child->activateable)
+					return child;
+				
+				// Set to only search children now!
+				searchChildrenOnly = true;
+				UIElement * neighbour = child->GetElementClosestTo(referenceElement->position);
+				if (neighbour == child)
+					continue;
+				if (neighbour)
+					return neighbour;
+			}
+		}
+	}	
+	// Not part of our list? Check the most bottom element in this list and return it then!
+	else if (children.Size())
+	{
+		return children.Last();
+	}
+	// No children? Do we have a valid up-element?
+	UIElement * upEle = UIElement::GetUpNeighbour(referenceElement, searchChildrenOnly);
+	if (upEle)
+		return upEle;
+
+	// No good found? Return the caller element so the cursor stays in place.
+	return referenceElement;
+}
+
+/// Suggests a neighbour which could be to the right of this element. Meant to be used for UI-navigation support. The reference element indicates the element to which we are seeking a compatible or optimum neighbour, and should be NULL for the initial call.
+UIElement * UIList::GetDownNeighbour(UIElement * referenceElement, bool & searchChildrenOnly)
+{
+	// Check if the element is part of this list.
+	UIElement * search = referenceElement;
+	// Check if the element is part of this list.
+	int index = BelongsToChildIndex(referenceElement);
+	// Part of us somehow?
+	if (index != -1)
+	{
+		// Part of this list!
+		if (index < children.Size() - 1)
+		{
+			// Return child one step below it.
+			for (int i = index + 1; i < children.Size(); ++i)
+			{
+				// Or further below as needed..
+				UIElement * child = children[i];
+				/// If activatable? Return it straight away.
+				if (child->activateable)
+					return child;
+				// Set to only search children now!
+				searchChildrenOnly = true;
+				UIElement * neighbour = child->GetElementClosestTo(referenceElement->position);
+				if (neighbour == child)
+					continue;
+					
+//					child->GetDownNeighbour(referenceElement, searchChildrenOnly);
+				if (neighbour)
+					return neighbour;
+			}
+		}
+	}
+	// Not part of our list? Check the most top-most element in this list and return it then!
+	else if (children.Size())
+	{
+		return children[0];
+	}
+	// No children? Do we have a valid up-element?
+	UIElement * upEle = UIElement::GetDownNeighbour(referenceElement, searchChildrenOnly);
+	if (upEle)
+		return upEle;
+
+	// No good found? Return the caller element so the cursor stays in place.
+	return referenceElement;
+}
+
+
+
 /// Returns the current scroll position.
 float UIList::GetScrollPosition()
 {
@@ -554,8 +659,8 @@ bool UIList::Scroll(float absoluteDistanceInPages)
 void UIList::FormatElements(){
     if (!formatX)
         return;
-    for (int i = 0; i < childList.Size(); ++i){
-        UIElement * e = childList[i];
+    for (int i = 0; i < children.Size(); ++i){
+        UIElement * e = children[i];
         if (e->isSysElement)
             continue;
         if (scrollBarY){
@@ -575,7 +680,7 @@ void UIList::Render(GraphicsState * graphicsState)
 {
     // Render ourself and maybe children.
     RenderSelf(graphicsState);
-    if (childList.Size())
+    if (children.Size())
         RenderChildren(graphicsState);
 }
 
@@ -594,8 +699,8 @@ void UIList::RenderChildren(GraphicsState * graphicsState)
     }
 
     /// Render all children
-	for (int i = 0; i < childList.Size(); ++i){
-        UIElement * child = childList[i];
+	for (int i = 0; i < children.Size(); ++i){
+        UIElement * child = children[i];
         if (!child->visible)
             continue;
 
@@ -661,9 +766,9 @@ UIColumnList::~UIColumnList()
 
 /// Deletes all children and content inside.
 void UIColumnList::Clear(){
-	while(childList.Size()){
-		UIElement * c = childList[0];
-		childList.Remove(c);
+	while(children.Size()){
+		UIElement * c = children[0];
+		children.Remove(c);
 		c->FreeBuffers();
 		c->DeleteGeometry();
 		delete c;
@@ -675,13 +780,13 @@ void UIColumnList::AddChild(UIElement* child)
 {
 	/// Automate name if none was given.
 	if (child->name.Length() < 1)
-		child->name = this->name + "Element"+String::ToString(childList.Size());
+		child->name = this->name + "Element"+String::ToString(children.Size());
 
     /// Inherit up- and down- neighbours.
 	child->InheritNeighbours(this);
 
 	/// If first child, place it at the top.
-	if (childList.Size() == 0){
+	if (children.Size() == 0){
 		UIElement::AddChild(child);
 		child->alignmentX = 0.0f + child->sizeRatioX * 0.5f + padding;
 		return;
@@ -691,8 +796,8 @@ void UIColumnList::AddChild(UIElement* child)
 	float left = 0.f;
     // Bind UIs too, so save the rightmost child within for later.
     UIElement * rightmost = NULL;
-	for (int i = 0; i < childList.Size(); ++i){
-		UIElement * c = childList[i];
+	for (int i = 0; i < children.Size(); ++i){
+		UIElement * c = children[i];
 		rightmost = c;
 		float childLeftEdge = c->alignmentX + c->sizeRatioX * 0.5f;
 		if (childLeftEdge > left)

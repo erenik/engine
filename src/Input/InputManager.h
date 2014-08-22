@@ -135,7 +135,7 @@ public:
 	*/
 	void MouseRightClick(Window * window, bool down, int x, int y);
 	/// Interprets a mouse-move message to target position.
-	void MouseMove(Window * window, int x, int y);
+	void MouseMove(Window * window, Vector2i activeWindowAreaCoords);
 	/** Handles mouse wheel input.
 		Positive delta signifies scrolling upward or away from the user, negative being toward the user.
 	*/

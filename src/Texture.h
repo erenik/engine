@@ -12,22 +12,13 @@
 #include <cstdlib>
 #include <Util.h>
 #include "MathLib.h"
+#include "DataTypes.h"
 
 // For if-checking for applying normal maps, specular maps, etc.
 #define DIFFUSE_MAP		0x0000001
 #define SPECULAR_MAP	0x0000002
 #define NORMAL_MAP		0x0000004
 #define MAX_TEXTURE_TARGETS	NORMAL_MAP
-
-
-namespace DataType {
-	enum dataTypes 
-	{
-		UNSIGNED_CHAR,
-		INTEGER,
-		FLOAT
-	};
-};
 
 struct TextureData{
 };
@@ -166,8 +157,9 @@ public:
 	*/
 	unsigned char * data;
 
-	/// New data locations for extended formats. Will see when we can replace data with cData..
+	/// Pointers to access the data. If the data is allocated of type char, cData should point to data and fData to NULL.
 	unsigned char * cData;
+	/// Pointers to access the data. If the data is allocated of type float, fData should point to data and cData to NULL.
 	float * fData;
 
 	/// Length of the above dynamic array.

@@ -43,6 +43,10 @@
     
     // Global variables
     extern uintptr_t initializerThread;
+
+	// For COM-interaction, drag-n-drop, http://msdn.microsoft.com/en-us/library/windows/desktop/ms690134%28v=vs.85%29.aspx
+	#include <Ole2.h>
+
 /// Linux-specifics!
 #elif defined USE_X11
     #include <GL/glew.h>
@@ -255,6 +259,13 @@ int main(int argc, char **argv)
 
     // Register window pre-stuffs.
 #ifdef WINDOWS
+	// For COM-interaction, drag-n-drop, http://msdn.microsoft.com/en-us/library/windows/desktop/ms690134%28v=vs.85%29.aspx
+	// http://msdn.microsoft.com/en-us/library/windows/desktop/ms695279%28v=vs.85%29.aspx
+//	int result = CoInitializeEx(NULL, COINIT_MULTITHREADED);
+//	int result = OleInitialize(NULL);
+//	assert(result == S_OK);
+
+
 	// Create the window manager.
 	WindowManager::Allocate();
 	// Save to global application instance variables.
@@ -481,7 +492,8 @@ int main(int argc, char **argv)
 	{
 		// Sleep a bit? No?
 		Sleep(500);
-		if (StateMan.ActiveStateID() == GameStateID::GAME_STATE_EXITING)
+		if (StateMan.ActiveStateID() == GameStateID::GAME_STATE_EXITING || 
+			(!StateMan.ActiveState() && !StateMan.GlobalState()))
 		{
 			break;
 		}
@@ -616,6 +628,11 @@ int main(int argc, char **argv)
     std::cout<<"\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>";
 	Sleep(100);
 #ifdef WINDOWS
+
+	// De-allocate COM stuffs
+	// http://msdn.microsoft.com/en-us/library/windows/desktop/ms688715%28v=vs.85%29.aspx
+//	CoUninitialize();
+
 	/// Post debug to output window.
 //	_CrtSetReportMode( _CRT_ERROR, _CRTDBG_MODE_DEBUG );
 	/// Post memory leaks

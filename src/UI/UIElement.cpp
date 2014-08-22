@@ -36,15 +36,15 @@ Vector4f UIElement::defaultTextColor = Vector4f(1,1,1,1);
 /// Called when this UI is made active (again).
 void UIElement::OnEnterScope(){
 	// Do nothing in general.
-	for (int i = 0; i < childList.Size(); ++i)
-		childList[i]->OnEnterScope();
+	for (int i = 0; i < children.Size(); ++i)
+		children[i]->OnEnterScope();
 }
 /// Called once this element is no longer visible for any reason. E.g. switching game states to display another UI.
 void UIElement::OnExitScope()
 {
 	// Do nothing in general.
-	for (int i = 0; i < childList.Size(); ++i)
-		childList[i]->OnExitScope();
+	for (int i = 0; i < children.Size(); ++i)
+		children[i]->OnExitScope();
 	if (onExit.Length())
 		MesMan.QueueMessages(onExit);
 }
@@ -176,7 +176,7 @@ UIElement::~UIElement()
 	/// Hierarchy
 	parent = NULL;
 	/// Use for-loop instead of crazy recursion for deallocating the children
-	childList.ClearAndDelete();
+	children.ClearAndDelete();
 
 	/// Deallocate texture and mesh if needed, as well as vbo, we should never do that here though!
 	assert(vboBuffer == -1 && "vboBuffer not released in UIElement::~UIElement()!");
@@ -215,7 +215,7 @@ void UIElement::SetText(Text newText, bool force)
 
 void UIElement::DeleteElement(int targetID){
 	UIElement* target = NULL;
-	childList.ClearAndDelete();
+	children.ClearAndDelete();
 }
 
 /** Deletes target element if it is found.
@@ -223,9 +223,9 @@ void UIElement::DeleteElement(int targetID){
 */
 bool UIElement::Delete(UIElement * element){
 	/// If found it, delete it.
-	if (childList.Exists(element))
+	if (children.Exists(element))
 	{
-		childList.Remove(element);
+		children.Remove(element);
 		/// Free GL buffers and deallocate it!
 		element->FreeBuffers();
 		element->DeleteGeometry();
@@ -234,9 +234,9 @@ bool UIElement::Delete(UIElement * element){
 	}
 	/// If not, continue recursive among all children.
 	else {
-		for (int i = 0; i < childList.Size(); ++i){
+		for (int i = 0; i < children.Size(); ++i){
 			/// Remove it
-			if (childList.Remove(element))
+			if (children.Remove(element))
 				return true;
 		}
 	}
@@ -286,8 +286,8 @@ UIElement* UIElement::Hover(int mouseX, int mouseY)
 
 	// Alright, the mouse is inside this element!
 	// Do we have children?
-	for (int i = childList.Size()-1; i >= 0; --i){
-	    UIElement * child = childList[i];
+	for (int i = children.Size()-1; i >= 0; --i){
+	    UIElement * child = children[i];
 	    if (!child->visible)
             continue;
 		result = child->Hover(mouseX, mouseY);
@@ -362,8 +362,8 @@ UIElement* UIElement::Click(int mouseX, int mouseY)
 
 	// Alright, the mouse is inside this element!
 	// Do we have children?
-	for (int i = childList.Size()-1; i >= 0; --i){
-		UIElement * child = childList[i];
+	for (int i = children.Size()-1; i >= 0; --i){
+		UIElement * child = children[i];
 	    if (!child->visible)
             continue;
 		result = child->Click(mouseX, mouseY);
@@ -393,8 +393,8 @@ UIElement* UIElement::Activate(){
 		return 0;
 	// Alright, the mouse is inside this element!
 	// Do we have children?
-	for (int i = childList.Size()-1; i >= 0; --i){
-		UIElement * child = childList[i];
+	for (int i = children.Size()-1; i >= 0; --i){
+		UIElement * child = children[i];
 	    if (!child->visible)
             continue;
 		result = child->Activate();
@@ -448,8 +448,8 @@ UIElement * UIElement::GetElement(float & mouseX, float & mouseY){
         return NULL;
 	}
     // Do we have children?
-	for (int i = 0; i < childList.Size(); ++i){
-		UIElement * child = childList[i];
+	for (int i = 0; i < children.Size(); ++i){
+		UIElement * child = children[i];
 	    if (!child->visible)
             continue;
 		result = child->GetElement(mouseX, mouseY);
@@ -467,9 +467,9 @@ UIElement * UIElement::GetElement(String byName, int andType)
 		if (name == byName)
 			return this;
 	}
-	for (int i = 0; i < childList.Size(); ++i)
+	for (int i = 0; i < children.Size(); ++i)
 	{
-		UIElement * child = childList[i];
+		UIElement * child = children[i];
 		UIElement * found = child->GetElement(byName, andType);
 		if (found)
 			return found;
@@ -508,7 +508,8 @@ void UIElement::OnToggled(UICheckBox * box)
 		parent->OnToggled(box);
 }
 
-void UIElement::InheritNeighbours(UIElement * fromElement){
+void UIElement::InheritNeighbours(UIElement * fromElement)
+{
 	if (!leftNeighbourName.Length())
 		leftNeighbourName = fromElement->leftNeighbourName;
     if (!rightNeighbourName.Length())
@@ -521,7 +522,7 @@ void UIElement::InheritNeighbours(UIElement * fromElement){
 
 
 /// Suggests a neighbour which could be to the top of this element. Meant to be used for UI-navigation support. The reference element indicates the element from which we are seeking a compatible or optimum neighbour.
-UIElement * UIElement::GetUpNeighbour(UIElement * referenceElement)
+UIElement * UIElement::GetUpNeighbour(UIElement * referenceElement, bool & searchChildrenOnly)
 {
 	UIElement * element = NULL;
 	// Ok, we are the one,
@@ -538,25 +539,42 @@ UIElement * UIElement::GetUpNeighbour(UIElement * referenceElement)
 		if (upNeighbourName.Length())
 			element = this->GetRoot()->GetElementByName(upNeighbourName);
 		/// If still haven't found a decent one, consult our parent.
-		if (!element && parent){
-			element = parent->GetUpNeighbour(referenceElement);
+		if (!element && !searchChildrenOnly)
+		{
+			if (parent)
+				element = parent->GetUpNeighbour(referenceElement, searchChildrenOnly);
+			/// No parent? Then we probably don't have any good one, search lower down, yo.
+			else 
+				return NULL;
 		}
 	}
 	/// All-right, so we found a suitable neighbour hopefully. Make sure that it is hoverable?
-	if (element && !element->hoverable){
+	if (element && !element->activateable)
+	{
 		/// First query if the element has any valid hoverable children, if so select them.
 		UIElement * childElement = element->GetElementByFlag(UIFlag::ACTIVATABLE);
 		if (childElement)
 			element = childElement;
 		/// If no valid children could be found, continue searching.
-		else
-			element = element->GetUpNeighbour(NULL);
+		else 
+		{
+			// Except if we have started recursing, then just return NULL or ourself..
+			if (element == this)
+				return NULL;
+//			element = element->GetUpNeighbour(NULL, searchChildrenOnly);
+		}
+	}
+	// Nothing found? Then set ourselves to be this sought after element!
+	if (!element)
+	{
+		// Or any of our children.. might be better.
+		element = GetElementClosestTo(referenceElement->position);
 	}
 	return element;
 }
 
 /// Suggests a neighbour which could be to the right of this element. Meant to be used for UI-navigation support. The reference element indicates the element to which we are seeking a compatible or optimum neighbour.
-UIElement * UIElement::GetRightNeighbour(UIElement * referenceElement)
+UIElement * UIElement::GetRightNeighbour(UIElement * referenceElement, bool & searchChildrenOnly)
 {
 	UIElement * element = NULL;
 	// Ok, we are the one,
@@ -564,7 +582,8 @@ UIElement * UIElement::GetRightNeighbour(UIElement * referenceElement)
 		referenceElement = this;
 	}
 	/// If we have a pointer, just use it!
-	if (rightNeighbour){
+	if (rightNeighbour)
+	{
 		element = rightNeighbour;
 	}
 	/// If not, fetch it if possible.
@@ -573,25 +592,41 @@ UIElement * UIElement::GetRightNeighbour(UIElement * referenceElement)
 		if (rightNeighbourName.Length())
 			element = this->GetRoot()->GetElementByName(rightNeighbourName);
 		/// If still haven't found a decent one, consult our parent.
-		if (!element && parent){
-			element = parent->GetRightNeighbour(referenceElement);
+		if (!element && !searchChildrenOnly)
+		{
+			if (parent)
+				element = parent->GetRightNeighbour(referenceElement, searchChildrenOnly);
+			/// No parent? Then we probably don't have any good one, search lower down, yo.
+			else 
+				return NULL;
 		}
 	}
 	/// All-right, so we found a suitable neighbour hopefully. Make sure that it is hoverable?
-	if (element && !element->hoverable){
+	if (element && !element->activateable){
 		/// First query if the element has any valid hoverable children, if so select them.
-		UIElement * childElement = element->GetElementByFlag(UIFlag::HOVERABLE);
+		UIElement * childElement = element->GetElementByFlag(UIFlag::ACTIVATABLE);
 		if (childElement)
 			element = childElement;
 		/// If no valid children could be found, continue searching.
-		else
-			element = element->GetRightNeighbour(NULL);
+		else {
+			// Except if we have started recursing, then just return NULL or ourself..
+			if (element == this)
+				return NULL;
+//			element = element->GetRightNeighbour(NULL, searchChildrenOnly);
+		}
+	}
+	// Nothing found? Then set ourselves to be this sought after element!
+	if (!element)
+	{
+		return NULL;
+		// Or any of our children.. might be better.
+	//	element = GetElementClosestTo(referenceElement->position);
 	}
 	return element;
 }
 
 /// Suggests a neighbour which could be to the right of this element. Meant to be used for UI-navigation support. The reference element indicates the element to which we are seeking a compatible or optimum neighbour, and should be NULL for the initial call.
-UIElement * UIElement::GetDownNeighbour(UIElement * referenceElement)
+UIElement * UIElement::GetDownNeighbour(UIElement * referenceElement, bool & searchChildrenOnly)
 {
 	UIElement * element = NULL;
 	// Ok, we are the one,
@@ -608,25 +643,43 @@ UIElement * UIElement::GetDownNeighbour(UIElement * referenceElement)
 		if (downNeighbourName.Length())
 			element = this->GetRoot()->GetElementByName(downNeighbourName);
 		/// If still haven't found a decent one, consult our parent.
-		if (!element && parent){
-			element = parent->GetDownNeighbour(referenceElement);
+		if (!element && !searchChildrenOnly)
+		{
+			if (parent)
+				element = parent->GetDownNeighbour(referenceElement, searchChildrenOnly);
+			/// No parent? Then we probably don't have any good one, search lower down, yo.
+			else 
+				return NULL;
 		}
 	}
 	/// All-right, so we found a suitable neighbour hopefully. Make sure that it is hoverable?
-	if (element && !element->hoverable){
+	if (element && !element->activateable){
 		/// First query if the element has any valid hoverable children, if so select them.
-		UIElement * childElement = element->GetElementByFlag(UIFlag::HOVERABLE);
+		UIElement * childElement = element->GetElementByFlag(UIFlag::ACTIVATABLE);
 		if (childElement)
 			element = childElement;
 		/// If no valid children could be found, continue searching.
-		else
-			element = element->GetDownNeighbour(NULL);
+		else 
+		{
+			// Except if we have started recursing, then just return NULL or ourself..
+			if (element == this)
+				return NULL;
+//			element = element->GetDownNeighbour(NULL, searchChildrenOnly);
+		}
+	}
+	// Nothing found? Then set ourselves to be this sought after element!
+	if (!element)
+	{
+		return NULL;
+		// Or any of our children.. might be better.
+	//	element = GetElementClosestTo(referenceElement->position);
 	}
 	return element;
 
 }
 /// Suggests a neighbour which could be to the right of this element. Meant to be used for UI-navigation support. The reference element indicates the element to which we are seeking a compatible or optimum neighbour, and should be NULL for the initial call.
-UIElement * UIElement::GetLeftNeighbour(UIElement * referenceElement){
+UIElement * UIElement::GetLeftNeighbour(UIElement * referenceElement, bool & searchChildrenOnly)
+{
 	UIElement * element = NULL;
 	// Ok, we are the one,
 	if (referenceElement == NULL){
@@ -641,29 +694,71 @@ UIElement * UIElement::GetLeftNeighbour(UIElement * referenceElement){
 		/// Check if we got a preferred neighbour.
 		if (leftNeighbourName.Length())
 			element = this->GetRoot()->GetElementByName(leftNeighbourName);
+
 		/// If still haven't found a decent one, consult our parent.
-		if (!element && parent){
-			element = parent->GetLeftNeighbour(referenceElement);
+		if (!element && !searchChildrenOnly)
+		{
+			if (parent)
+				element = parent->GetLeftNeighbour(referenceElement, searchChildrenOnly);
+			/// No parent? Then we probably don't have any good one, search lower down, yo.
+			else 
+				return NULL;
 		}
 	}
 	/// All-right, so we found a suitable neighbour hopefully. Make sure that it is hoverable?
-	if (element && !element->hoverable){
+	if (element && !element->activateable){
 		/// First query if the element has any valid hoverable children, if so select them.
-		UIElement * childElement = element->GetElementByFlag(UIFlag::HOVERABLE);
+		UIElement * childElement = element->GetElementByFlag(UIFlag::ACTIVATABLE);
 		if (childElement)
 			element = childElement;
 		/// If no valid children could be found, continue searching.
 		else
-			element = element->GetLeftNeighbour(NULL);
+		{
+			// Except if we have started recursing, then just return NULL or ourself..
+			if (element == this)
+				return NULL;
+//			element = element->GetLeftNeighbour(referenceElement, searchChildrenOnly);
+		}
+	}
+	// Nothing found? Then set ourselves to be this sought after element!
+	if (!element)
+	{
+		return NULL;
+		// Or any of our children.. might be better.
+	//	element = GetElementClosestTo(referenceElement->position);
 	}
 	return element;
+}
+
+/// Works recursively.
+UIElement * UIElement::GetElementClosestTo(Vector3f & position)
+{
+	UIElement * closest = NULL;
+	float closestDistance = 1000000.f;
+	for (int i = 0; i < children.Size(); ++i)
+	{
+		UIElement * child = children[i];
+		float dist = (child->position - position).Length();
+		if (dist < closestDistance)
+		{
+			closest = child;
+			closestDistance = dist;
+		}
+	}
+	// Recurse on the closest one.
+	if (closest)
+		closest = closest->GetElementClosestTo(position);
+	// Fetch self if no neighbour close enough.
+	if (!closest)
+		return this;
+	return closest;
 }
 
 
 // Sets the selected flag to false for all children.
 void UIElement::DeselectAll(){
-	for (int i = 0; i < childList.Size(); ++i){
-		childList[i]->DeselectAll();
+	for (int i = 0; i < children.Size(); ++i){
+		children[i]->DeselectAll();
 	}
 	selected = false;
 }
@@ -684,8 +779,8 @@ UIElement* UIElement::GetElementByPos(int i_posX, int i_posY){
 
 	// Alright, the mouse is inside this element!
 	// Do we have children?
-	for (int i = 0; i < childList.Size(); ++i){
-		result = childList[i]->GetElementByPos((int)(i_posX - posX), (int)(i_posY - posY));
+	for (int i = 0; i < children.Size(); ++i){
+		result = children[i]->GetElementByPos((int)(i_posX - posX), (int)(i_posY - posY));
 		// If so, check if they are the active element.
 		if (result != NULL){
 			// The active element has been found further down the tree,
@@ -703,8 +798,8 @@ UIElement* UIElement::GetActiveElement(){
 	if (state & UIState::ACTIVE)
 		return this;
 	UIElement * result = NULL;
-	for (int i = 0; i < childList.Size(); ++i){
-		result = childList[i]->GetActiveElement();
+	for (int i = 0; i < children.Size(); ++i){
+		result = children[i]->GetActiveElement();
 		if (result)
 			return result;
 	}
@@ -716,10 +811,10 @@ UIElement* UIElement::GetElementByState(int stateFlag){
 	if (state & stateFlag)
 		return this;
 	UIElement * result = NULL;
-	for (int i = 0; i < childList.Size(); ++i){
-		if (!childList[i]->visible)
+	for (int i = 0; i < children.Size(); ++i){
+		if (!children[i]->visible)
 			continue;
-		result = childList[i]->GetElementByState(stateFlag);
+		result = children[i]->GetElementByState(stateFlag);
 		if (result)
 			return result;
 	}
@@ -732,11 +827,11 @@ bool UIElement::GetElementsByState(int stateFlags, List<UIElement*> & listToFill
 	if (state & stateFlags)
 		listToFill.Add(this);
 	UIElement * result = NULL;
-	for (int i = 0; i < childList.Size(); ++i){
+	for (int i = 0; i < children.Size(); ++i){
 		/// Skip invisible children by default.
-		if (!childList[i]->visible)
+		if (!children[i]->visible)
 			continue;
-		childList[i]->GetElementsByState(stateFlags, listToFill);
+		children[i]->GetElementsByState(stateFlags, listToFill);
 	}
 	return true;
 }
@@ -747,11 +842,11 @@ UIElement * UIElement::GetElementByFlag(int uiFlags){
 	if (ConformsToFlags(uiFlags))
 		return this;
 	UIElement * result = NULL;
-	for (int i = 0; i < childList.Size(); ++i){
+	for (int i = 0; i < children.Size(); ++i){
 		/// Skip invisible children by default.
-		if (!childList[i]->visible)
+		if (!children[i]->visible)
 			continue;
-		result = childList[i]->GetElementByFlag(uiFlags);
+		result = children[i]->GetElementByFlag(uiFlags);
 		if (result)
 			return result;
 	}
@@ -763,11 +858,11 @@ bool UIElement::GetElementsByFlags(int uiFlags, List<UIElement*> & listToFill){
 	if (ConformsToFlags(uiFlags))
 		listToFill.Add(this);
 	UIElement * result = NULL;
-	for (int i = 0; i < childList.Size(); ++i){
+	for (int i = 0; i < children.Size(); ++i){
 		/// Skip invisible children by default.
-		if (!childList[i]->visible)
+		if (!children[i]->visible)
 			continue;
-		childList[i]->GetElementsByFlags(uiFlags, listToFill);
+		children[i]->GetElementsByFlags(uiFlags, listToFill);
 	}
 	return true;
 }
@@ -806,8 +901,8 @@ UIElement* UIElement::GetElementWithID(int elementID){
 	if (id == elementID)
 		return this;
 	UIElement * result = NULL;
-	for (int i = 0; i < childList.Size(); ++i){
-		result = childList[i]->GetElementWithID(elementID);
+	for (int i = 0; i < children.Size(); ++i){
+		result = children[i]->GetElementWithID(elementID);
 		if (result)
 			return result;
 	}
@@ -868,8 +963,8 @@ void UIElement::Print(int level){
     std::cout<<std::setfill(' ')<<std::setw(level)<<level<<" - "<<name<<", "<<textureSource;
     if (!visible)
         return;
-    for (int i = 0; i < childList.Size(); ++i)
-        childList[i]->Print(level+1);
+    for (int i = 0; i < children.Size(); ++i)
+        children[i]->Print(level+1);
 }
 
 // Movement functions. These take into consideration the parent element and UIType
@@ -949,12 +1044,12 @@ UIElement * UIElement::GetElementWithName(String i_name){
 	if (i_name == name)
 		return this;
 	UIElement * result;
-	for (int i = 0; i < childList.Size(); ++i){
-        UIElement * child = childList[i];
+	for (int i = 0; i < children.Size(); ++i){
+        UIElement * child = children[i];
         assert(child && "NULL-child? wtf?");
    //     std::cout<<"\nChild name: "<<child->name;
-		String childName = childList[i]->name;
-		result = childList[i]->GetElementWithName(i_name);
+		String childName = children[i]->name;
+		result = children[i]->GetElementWithName(i_name);
 		if (result)
 			return result;
 	}
@@ -969,17 +1064,17 @@ UIElement * UIElement::GetElementBySource(String i_source)
 		source.Contains(i_source))
 		return this;
 	UIElement * result = NULL;
-	for (int i = 0; i < childList.Size() && result == NULL; ++i)
+	for (int i = 0; i < children.Size() && result == NULL; ++i)
 	{
-		result = childList[i]->GetElementBySource(i_source);
+		result = children[i]->GetElementBySource(i_source);
 	}
 	return result;
 }
 
 /// Getterrr
 const UIElement * UIElement::GetChild(int index){
-	assert(index >= 0 && index < childList.Size());
-	return childList[index];
+	assert(index >= 0 && index < children.Size());
+	return children[index];
 }
 
 // Structurization
@@ -999,7 +1094,7 @@ void UIElement::AddChild(UIElement *in_child){
 		in_child->name = baseName +"_"+ String::ToString(i);
 	}
 
-	childList.Add(in_child);
+	children.Add(in_child);
 	// Set it's parent to this.
 	in_child->parent = this;
 	in_child->ui = ui;
@@ -1019,6 +1114,21 @@ bool UIElement::AddToParent(String parentName, UIElement * child)
 void UIElement::SetParent(UIElement *in_parent){
 	parent = in_parent;
 }
+
+/// Checks if the target element is somehow a part of this list. If it is, the function will return the index of the child it is or belongs to. Otherwise -1 will be returned.
+int UIElement::BelongsToChildIndex(UIElement * search)
+{
+	if (!search)
+		return -1;
+	int index = children.GetIndexOf(search);
+	while(search->parent && index == -1)
+	{
+		index = children.GetIndexOf(search);
+		search = search->parent;
+	}
+	return index;
+}
+
 
 /// Queues the UIElement to be buffered via the GraphicsManager
 void UIElement::QueueBuffering()
@@ -1116,8 +1226,8 @@ void UIElement::Bufferize()
 	;//std::cout<<" Buffering successful.";
 
 	// Bufferize children too!
-	for (int i = 0; i < childList.Size(); ++i){
-		childList[i]->Bufferize();
+	for (int i = 0; i < children.Size(); ++i){
+		children[i]->Bufferize();
 	}
 
 	// Bufferize textures straight away if needed too
@@ -1138,8 +1248,8 @@ void UIElement::FreeBuffers()
 		glDeleteVertexArrays(1, &vertexArray);
 		vertexArray = -1;
 	}
-	for (int i = 0; i < childList.Size(); ++i){
-		childList[i]->FreeBuffers();
+	for (int i = 0; i < children.Size(); ++i){
+		children[i]->FreeBuffers();
 	}
 	isBuffered = false;
 }
@@ -1153,7 +1263,7 @@ void UIElement::Render(GraphicsState * graphicsState)
 
     // Render ourself and maybe children.
     RenderSelf(graphicsState);
-    if (childList.Size())
+    if (children.Size())
         RenderChildren(graphicsState);
 
 	// Pop matrices
@@ -1454,8 +1564,8 @@ void UIElement::RenderChildren(GraphicsState * graphicsState)
 {
 	bool scissorDisabled = (graphicsState->settings & SCISSOR_DISABLED) > 0;
     // Render all children
-	for (int i = 0; i < childList.Size(); ++i){
-        UIElement * child = childList[i];
+	for (int i = 0; i < children.Size(); ++i){
+        UIElement * child = children[i];
    //     std::cout<<"\nRendering UIElement "<<child<<" with name "<<(child?child->name : "NULL");
         if (!child->visible)
             continue;
@@ -1619,9 +1729,9 @@ void UIElement::AdjustToWindow(int w_left, int w_right, int w_bottom, int w_top)
 	}
 
 	/// Adjust all children too
-	for (int i = 0; i < childList.Size(); ++i){
-		assert(childList[i] != this);
-		childList[i]->AdjustToWindow((int)left, (int)right, (int)bottom,(int)top);
+	for (int i = 0; i < children.Size(); ++i){
+		assert(children[i] != this);
+		children[i]->AdjustToWindow((int)left, (int)right, (int)bottom,(int)top);
 	}
 }
 
@@ -1653,20 +1763,20 @@ int UIElement::GetAlignment(String byName){
 /** Sets slider level by adjusting it's child's position.
 	Values should be within the range [0.0,1.0]. **/
 void UISlider::SetLevel(float level){
-	if(!childList.Size()){
+	if(!children.Size()){
 		std::cout<<"\nSlider "<<this->name<<" lacking child (sliderHandle)!";
 		return;
 	}
-	childList[0]->alignmentX = level;
+	children[0]->alignmentX = level;
 	return;
 }
 /// Returns the slider's level
 float UISlider::GetLevel(){
-	if (!childList.Size()){
+	if (!children.Size()){
 		std::cout<<"\nERROR: Unable to get slider level as it has no child (handle)!";
 		return 0;
 	}
-	return childList[0]->alignmentX;
+	return children[0]->alignmentX;
 }
 
 // Creates the Square mesh used for rendering the UIElement and calls SetDimensions with it's given values.
@@ -1675,8 +1785,8 @@ void UIElement::CreateGeometry(){
 //	std::cout<<"\nResizing geometry "<<name<<": L"<<left<<" R"<<right<<" B"<<bottom<<" T"<<top<<" Z"<<this->zDepth;
 	sq->SetDimensions((float)left, (float)right, (float)bottom, (float)top, this->zDepth);
 	this->mesh = sq;
-	for (int i = 0; i < childList.Size(); ++i){
-		childList[i]->CreateGeometry();
+	for (int i = 0; i < children.Size(); ++i){
+		children[i]->CreateGeometry();
 	}
 	isGeometryCreated = true;
 
@@ -1688,8 +1798,8 @@ void UIElement::ResizeGeometry()
 	assert(mesh);
 //    std::cout<<"\nResizing geometry: L"<<left<<" R"<<right<<" B"<<bottom<<" T"<<top<<" Z"<<this->zDepth;
 	this->mesh->SetDimensions((float)left, (float)right, (float)bottom, (float)top, this->zDepth);
-	for (int i = 0; i < childList.Size(); ++i){
-		childList[i]->ResizeGeometry();
+	for (int i = 0; i < children.Size(); ++i){
+		children[i]->ResizeGeometry();
 	}
 }
 void UIElement::DeleteGeometry(){
@@ -1698,8 +1808,8 @@ void UIElement::DeleteGeometry(){
 		return;
 	delete mesh;
 	mesh = NULL;
-	for (int i = 0; i < childList.Size(); ++i){
-		childList[i]->DeleteGeometry();
+	for (int i = 0; i < children.Size(); ++i){
+		children[i]->DeleteGeometry();
 	}
 }
 
@@ -1716,8 +1826,8 @@ void UIElement::AddState(int i_state)
 void UIElement::RemoveState(int statesToRemove, bool recursive /* = false*/){
 	state &= ~statesToRemove;
 	if (recursive){
-		for (int i = 0; i < childList.Size(); ++i){
-			childList[i]->RemoveState(statesToRemove, recursive);
+		for (int i = 0; i < children.Size(); ++i){
+			children[i]->RemoveState(statesToRemove, recursive);
 		}
 	}
 }
@@ -1739,8 +1849,8 @@ void UIElement::RemoveFlags(int flags){
 	state &= antiFlag;
 	if (state == 0)
 		state = UIState::IDLE;
-	for (int i = 0; i < childList.Size(); ++i){
-		childList[i]->RemoveFlags(flags);
+	for (int i = 0; i < children.Size(); ++i){
+		children[i]->RemoveFlags(flags);
 	}
 }
 

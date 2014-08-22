@@ -32,6 +32,9 @@ UIFileBrowser::UIFileBrowser(String title, String action, String fileFilter)
 	directoryLoaded = false;
 	childrenCreated = false;
 
+	// Since the file browser should cover EXACTLY 1 screen, disable any scroll-bars popping up and blocking big parts of the screen...
+	createScrollBarsAutomatically = false;
+
 	/// Scan if this browser has appeared before, and use the old path if so.
 	for (int i = 0; i < oldFileBrowsers.Size(); ++i){
 		String oldFileBrowser = oldFileBrowsers[i];
@@ -51,7 +54,7 @@ UIFileBrowser::~UIFileBrowser()
 /// Creates ze children!
 void UIFileBrowser::CreateChildren()
 {
-	assert(this->childList.Size()==0);
+	assert(this->children.Size()==0);
 	
 	// Create a title
 	UILabel * label = new UILabel();
@@ -97,12 +100,13 @@ void UIFileBrowser::CreateChildren()
 	cList->AddChild(okButton);
 	
 	/// Bind neighbours for proper ui navigation...
+	/*
 	cancelButton->rightNeighbourName = okButton->name;
 	cancelButton->upNeighbourName = fileInput->name;
 	okButton->leftNeighbourName = cancelButton->name;
 	fileInput->downNeighbourName = okButton->name;
 	dirList->downNeighbourName = fileInput->name;
-
+	*/
 	childrenCreated = true;
 }
 
@@ -208,7 +212,7 @@ void UIFileBrowser::OnDirPathUpdated(bool fromRenderThread)
 	else
 	{
 		if (dirInput)
-			Graphics.QueueMessage(new GMSetUIs(dirInput->name, GMUI::TEXT, currentPath));
+			Graphics.QueueMessage(new GMSetUIs(dirInput->name, GMUI::TEXT, currentPath, ui));
 	}
 	// Save path into the list of old file browsers.
 	for (int i = 0; i < oldFileBrowsers.Size(); ++i){
