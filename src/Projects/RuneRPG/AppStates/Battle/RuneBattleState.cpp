@@ -1214,9 +1214,21 @@ void RuneBattleState::HideMenus()
 void RuneBattleState::UpdatePlayerHPUI()
 {
 	List<RuneBattler*> playerBattlers = GetPlayerBattlers();
-	for (int i = 0; i < playerBattlers.Size(); ++i){
+	for (int i = 0; i < playerBattlers.Size(); ++i)
+	{
 		RuneBattler * playerBattler = playerBattlers[i];
-		Graphics.QueueMessage(new GMSetUIs("Player"+STRINT(i)+"HP", GMUI::TEXT, "HP: "+STRINT(playerBattler->hp)+"/"+STRINT(playerBattler->maxHP)));
+		int hp = playerBattler->hp;
+		int maxHP = playerBattler->maxHP;
+		float ratio = hp / (float) maxHP;
+		String uiName = "Player"+STRINT(i)+"HP";
+		Graphics.QueueMessage(new GMSetUIs(uiName, GMUI::TEXT, "HP: "+STRINT(playerBattler->hp)+"/"+STRINT(playerBattler->maxHP)));
+		if (ratio < 0.25f)
+			Graphics.QueueMessage(new GMSetUIv3f(uiName, GMUI::TEXT_COLOR, Vector3f(1.f, 0.f, 0.f)));
+		else if (ratio < 0.5f)
+			Graphics.QueueMessage(new GMSetUIv3f(uiName, GMUI::TEXT_COLOR, Vector3f(1.f, 1.f, 0.f)));
+		// Good hp.
+		else 
+			Graphics.QueueMessage(new GMSetUIv3f(uiName, GMUI::TEXT_COLOR, Vector3f(1.f, 1.f, 1.f)));
 	}
 }
 
