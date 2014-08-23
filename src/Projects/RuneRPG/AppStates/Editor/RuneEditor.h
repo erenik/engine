@@ -164,13 +164,6 @@ private:
 	void CreateLight();
 	void DeleteLight();
 
-
-	void TranslateActiveEntities(Vector3f distance);
-	void SetScaleActiveEntities(Vector3f scale);
-	void ScaleActiveEntities(Vector3f scale);
-	void RotateActiveEntities(Vector3f rotation);
-
-
 	/// Set defaults!
 	void ResetCamera();
 	/// The RuneEditor camera! :D

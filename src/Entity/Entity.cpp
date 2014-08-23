@@ -496,7 +496,8 @@ void Entity::Render(GraphicsState * graphicsState)
 //	std::cout<<"Rendererr";
 
 	// Check for modifiers to apply
-	if (graphics && graphicsState->settings & ENABLE_SPECIFIC_ENTITY_OPTIONS){
+	if (graphics && graphicsState->settings & ENABLE_SPECIFIC_ENTITY_OPTIONS)
+	{
 		if (graphics->flags & RenderFlags::DISABLE_DEPTH_WRITE)
 			glDepthMask(GL_FALSE);
 		if (graphics->flags & RenderFlags::DISABLE_BACKFACE_CULLING)
@@ -508,11 +509,15 @@ void Entity::Render(GraphicsState * graphicsState)
 		}
 
 	}
+	/// TODO: Add a query if an entity should be sorted and let the render-passes the render pipeline handle them as needed.
 	/// If requries sorting, save it in ze list
-	if (requiresSorting){
+	/*
+	if (requiresSorting)
+	{
 		graphicsState->entitiesRequiringSorting.Add(this);
 		render = false;
 	}
+	*/
 	// Only render if previous states say so.
 	if (render && model)
 	{

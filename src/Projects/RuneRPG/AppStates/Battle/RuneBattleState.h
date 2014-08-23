@@ -20,7 +20,11 @@ class RuneBattleState : public RRGameState {
 public:
 	RuneBattleState();
 	virtual ~RuneBattleState();
+
 	void OnEnter(AppState * previousState);
+	/// Returns true upon success.
+	bool StartQueuedBattle();
+
 	void Process(int timeInMs);
 	void OnExit(AppState * nextState);
 

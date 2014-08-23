@@ -4,6 +4,7 @@
 
 #include "PhysicsLib/Shapes/Contour.h"
 #include "MathLib.h"
+#include "Random/Random.h"
 
 class Mesh;
 
@@ -46,4 +47,7 @@ private:
 	int type;
 	/// For point-based emitters.
 	Vector2f point, direction;
+
+	// o.o
+	Random random;
 };

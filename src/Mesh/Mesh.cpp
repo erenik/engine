@@ -133,10 +133,6 @@ bool Mesh::SaveCompressedTo(String compressedPath)
 	file.write((char*)&radius, sizeof(float));
 	file.write((char*)&triangulated, sizeof(bool));
 
-	// Write min/max data from the aabb.
-	aabb->max.WriteTo(file);
-	aabb->min.WriteTo(file);
-
 	// Write number of each specific array.
 	file.write((char*)&numVertices, sizeof(int));
 	file.write((char*)&numUVs, sizeof(int));
@@ -212,11 +208,6 @@ bool Mesh::LoadCompressedFrom(String compressedPath)
 	file.read((char*)&radius, sizeof(float));
 	file.read((char*)&triangulated, sizeof(bool));
 	
-	if (!aabb)
-		aabb = new AABB();
-	aabb->max.ReadFrom(file);
-	aabb->min.ReadFrom(file);
-
 	// Write number of each specific array.
 	file.read((char*)&numVertices, sizeof(int));
 	file.read((char*)&numUVs, sizeof(int));

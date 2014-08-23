@@ -17,6 +17,9 @@ public:
 	RuneBattler(int defaultTypes);
 	virtual ~RuneBattler();
 
+	/// Creates the Entity to animate and visualize this battler while in action. Will add the entity to the active map straight away (using MapMan.CreateEntity())
+	void CreateEntity();
+
 	/// If dead, for example, it is not.
 	virtual bool IsARelevantTarget();
 

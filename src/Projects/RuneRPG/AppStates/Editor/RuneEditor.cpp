@@ -687,15 +687,14 @@ void RuneEditor::MouseMove(Window * window, int x, int y, bool lDown, bool rDown
 		return;
 	Vector2i size = level->Size();
 	
-	/// Get position in le welt.
-//	std::cout<<"\nRetrieving plane coordinate in das welt.";
+	/// Get position in le welt, in order to use it later on for manipulating tiles or entities in the map.
 	Plane plane;
 	plane.Set3Points(Vector3f(0,-1,0), Vector3f(1,0,0), Vector3f(0,0,0));
-	Vector3f collissionPoint;
+	Vector3f collisionPoint;
 	Ray clickRay = runeEditorCamera->GetRayFromScreenCoordinates(WindowMan.MainWindow(), x, y);
-	if (RayPlaneIntersection(clickRay, plane, &collissionPoint))
+	if (clickRay.Intersect(plane, &collisionPoint))
 	{
-		cursorPosition = cursorPositionPreRounding = collissionPoint;
+		cursorPosition = cursorPositionPreRounding = collisionPoint;
 		cursorPosition.Round();
 	}
 	/// Update cursor position!
@@ -1305,6 +1304,8 @@ void RuneEditor::OnTileTypesUpdated()
 /// Transitions to the level test state!
 void RuneEditor::Playtest()
 {
+	assert(false);
+	/*
 	AppState * gs = StateMan.GetStateByID(RUNE_GAME_STATE_MAP);
 	MapState * ms = (MapState*) gs;
 	ms->SetEnterMode(EnterMode::TESTING_MAP);
@@ -1329,7 +1330,7 @@ void RuneEditor::Playtest()
 			StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_EDITOR));
 			return;
 		}
-		Entity * playerEntity = MapMan.CreateEntity(m,t,position);
+		Entity * playerEntity = MapMan.CreateEntity(, m, t, position);
 		playerEntity->name = "Player";
 //		playerEntity->state = new EntityProperty(player);
 		// Lall.
@@ -1340,6 +1341,7 @@ void RuneEditor::Playtest()
 	if (e)
 		e->flags |= PLAYER_OWNED_ENTITY;
 	StateMan.QueueState(StateMan.GetStateByID(RUNE_GAME_STATE_MAP));
+	*/
 }
 
 /// Paint!
@@ -1731,8 +1733,9 @@ void RuneEditor::OnSelectedLightUpdated()
 
 
 /// Saves the map to set mapFilePath. Assumes any file-checks have been done beforehand. Pauses input and physics while saving.
-bool RuneEditor::SaveMap(){
-	Graphics.QueueMessage(new GMSets(OVERLAY_TEXTURE, "img/saving_map.png"));
+bool RuneEditor::SaveMap()
+{
+	Graphics.QueueMessage(new GMSets(GT_OVERLAY_TEXTURE, "img/saving_map.png"));
 	bool physicsWasPaused = Physics.IsPaused();
 	Physics.Pause();
 	// Pause input too?
@@ -1748,7 +1751,7 @@ bool RuneEditor::SaveMap(){
 	// Close the menu if it's open
 	Graphics.QueueMessage(new GMPopUI("MainMenu", ui));
 	// Resume control
-	Graphics.QueueMessage(new GMSet(OVERLAY_TEXTURE, (Texture*)NULL));
+	Graphics.QueueMessage(new GMSet(GT_OVERLAY_TEXTURE, (Texture*)NULL));
 	if (!physicsWasPaused)
 	Physics.Resume();
 	Input.acceptInput = true;
@@ -1760,7 +1763,7 @@ bool RuneEditor::LoadMap(String fromFile)
 {
 	if (!fromFile.Contains(".tmap"))
 		fromFile += ".tmap";
-	Graphics.QueueMessage(new GMSets(OVERLAY_TEXTURE, "img/loading_map.png"));
+	Graphics.QueueMessage(new GMSets(GT_OVERLAY_TEXTURE, "img/loading_map.png"));
 	bool physicsWasPaused = Physics.IsPaused();
 	Physics.Pause();
 	// Pause input too?
@@ -1777,7 +1780,7 @@ bool RuneEditor::LoadMap(String fromFile)
 	// Close the menu if it's open
 	Graphics.QueueMessage(new GMPopUI("MainMenu", ui));
 	// Resume control
-	Graphics.QueueMessage(new GMSet(OVERLAY_TEXTURE, (Texture*)NULL));
+	Graphics.QueueMessage(new GMSet(GT_OVERLAY_TEXTURE, (Texture*)NULL));
 	if (!physicsWasPaused)
 	Physics.Resume();
 	Input.acceptInput = true;
@@ -1785,9 +1788,10 @@ bool RuneEditor::LoadMap(String fromFile)
 }
 
 
-void RuneEditor::SetMapSize(int xSize, int ySize){
+void RuneEditor::SetMapSize(int xSize, int ySize)
+{
 	Graphics.PauseRendering();
-	MapMan.DeleteEntities();
+	MapMan.DeleteAllEntities();
 	MapMan.DeleteEvents();
 	map->SetSize(xSize, ySize);
 	Graphics.ResumeRendering();

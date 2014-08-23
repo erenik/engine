@@ -20,7 +20,8 @@
 #include "Graphics/Messages/GMLight.h"
 #include "Message/MessageManager.h"
 
-void RuneEditor::InputProcessor(int action, int inputDevice/* = 0*/){
+void RuneEditor::InputProcessor(int action, int inputDevice/* = 0*/)
+{
 	/// Don't do some stuff if entering text man..
 	if (Input.IsInTextEnteringMode())
 		return;
@@ -100,14 +101,14 @@ void RuneEditor::InputProcessor(int action, int inputDevice/* = 0*/){
 		case LOAD_MAP: {
 			/// Clear selection first!
 			runeEditorSelection.Clear();
-			Graphics.QueueMessage(new GMSets(OVERLAY_TEXTURE, "img/loading_map.png"));
+			Graphics.QueueMessage(new GMSetOverlay("img/loading_map.png"));
 			std::cout<<"\nInput>>LOAD_MAP";
 			String filename = Input.GetInputBuffer();
 			Map * loadedMap = MapMan.LoadMap(filename.c_str());
 			// Set map to be active!
 			if (loadedMap)
 				MapMan.MakeActive(loadedMap);
-			Graphics.QueueMessage(new GMSet(OVERLAY_TEXTURE, (Texture*)NULL));
+			Graphics.QueueMessage(new GMSetOverlay(NULL));
 			break;}
 		case LOAD_MODEL:
 			std::cout<<"\nInput>>LOAD_MODEL";
@@ -180,79 +181,6 @@ void RuneEditor::InputProcessor(int action, int inputDevice/* = 0*/){
 				break;
 			/// Delete them...
 			runeEditorSelection.DeleteEntities();
-			break;
-		}
-	// ************************************************* //
-	/// Entity manipulation
-	// ************************************************* //
-		case TRANSLATE_ENTITY_PROMPT: { /// Begins prompt for entity translation
-			if (runeEditorSelection.Size() == 0)
-				return;
-			Entity * entity = runeEditorSelection[0];
-			std::cout<<"\nTranslate Entity prompt: Current translation: "<<entity->position;
-			Input.EnterTextInputMode("TRANSLATE_ENTITY");
-			break;
-		}
-		case TRANSLATE_ENTITY: {		/// Translates active entity/entities
-			float translation[3];
-			if (Input.ParseFloats(translation, 3) == 3)
-				TranslateActiveEntities(Vector3f(translation));
-			break;
-		}
-		case RESET_ENTITY_SCALE:	/// Resets scale to 1.0 on all lengths
-			std::cout<<"\nResetting scale for target entities...";
-			SetScaleActiveEntities(Vector3f(1.0f,1.0f,1.0f));
-			break;
-		case SCALE_ENTITY_PROMPT: {	/// Begins prompt for entity scaling
-			if (runeEditorSelection.Size() == 0)
-				return;
-			Entity * entity = runeEditorSelection[0];
-			std::cout<<"\nScale Entity prompt: Current scale: "<<entity->scale;
-			Input.EnterTextInputMode("SCALE_ENTITY");
-			break;
-		}
-		case SCALE_ENTITY: {		/// Scales active entity/entities
-			float scale[3];
-			int floatsParsed = Input.ParseFloats(scale, 3);
-			if (floatsParsed == 3)
-				ScaleActiveEntities(Vector3f(scale));
-			else if (floatsParsed == 1)
-				ScaleActiveEntities(Vector3f(scale[0], scale[0], scale[0]));
-			break;
-		}
-		case ROTATE_ENTITY_PROMPT: {	/// Begins prompt for entity rotation
-			if (runeEditorSelection.Size() == 0)
-				return;
-			Entity * entity = runeEditorSelection[0];
-			std::cout<<"\nRotate Entity prompt: Current Rotation: "<<entity->rotation;
-			Input.EnterTextInputMode("ROTATE_ENTITY");
-			break;
-		}
-		case ROTATE_ENTITY: 			/// Rotates active entity/entities
-			float rotation[3];
-			if (Input.ParseFloats(rotation, 3) == 3)
-				RotateActiveEntities(Vector3f(rotation));
-			break;
-		case SET_ENTITY_NAME_PROMPT: {	/// Begins a prompt to set active entity's name.
-			if (runeEditorSelection.Size() == 0)
-				return;
-			std::cout<<"\nSet Entity Name prompt: ";
-			Entity * entity = runeEditorSelection[0];
-			//  Copy past name to buffer
-			Input.EnterTextInputMode("SET_ENTITY_NAME");
-			if (entity->name){
-				std::cout<<"Current name: "<<entity->name;
-				Input.SetInputBuffer(entity->name);
-			}
-			Input.PrintBuffer();
-			break;
-		}
-		case SET_ENTITY_NAME: {		/// Sets name to target entity by parsing input-buffer
-			String name = Input.GetInputBuffer();
-			Entity * entity = runeEditorSelection[0];
-			entity->SetName(name);
-			if (name)
-				std::cout<<"\nName set: "<<entity->name;
 			break;
 		}
 	// ************************************************** //

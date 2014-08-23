@@ -5,8 +5,6 @@
 #include "ParticleEmitter.h"
 #include "Random/Random.h"
 
-Random random;
-
 ParticleEmitter::ParticleEmitter()
 : type(EmitterType::NONE)
 {

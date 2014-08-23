@@ -6,6 +6,13 @@
 #include "FileUtil.h"
 #include "Timer/Timer.h"
 
+// o.o
+File::File()
+{
+	fileHandle = 0;
+	open = false;
+}
+
 // Constructor
 File::File(String path)
 {
@@ -53,7 +60,8 @@ bool File::OpenFileHandleIfNeeded()
 
 
 
-std::fstream * File::Open(String path){
+std::fstream * File::Open(String path)
+{
 	/// Add /save/ unless it already exists in the path.
 	fileStream.open(path.c_str(), std::ios_base::out | std::ios_base::binary);
 	bool success = fileStream.is_open();
@@ -109,7 +117,7 @@ SaveFile::SaveFile()
 
 }
 
-std::fstream * SaveFile::Open(String saveName, String gameName, String customHeaderData, bool overwriteIfNeeded)
+std::fstream * SaveFile::OpenSaveFileStream(String saveName, String gameName, String customHeaderData, bool overwriteIfNeeded)
 {
 	String path = String(saveFolder) + "/" + gameName + "/" + saveName;
 	String pathPreExtension = path;

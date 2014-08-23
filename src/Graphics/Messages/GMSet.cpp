@@ -189,7 +189,8 @@ void GMSetGlobalUI::Process()
 			oldGlobalUI->DeleteGeometry();
 	}
 	window->globalUI = ui;
-	ui->OnEnterScope();
+	if (ui)
+		ui->OnEnterScope();
 }
 
 /// Regular UI setter for the main window (Assumes 1 main window)

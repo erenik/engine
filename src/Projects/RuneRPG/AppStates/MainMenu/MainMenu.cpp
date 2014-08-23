@@ -40,6 +40,9 @@ void MainMenu::OnEnter(AppState * previousState)
 	// Load tile-types! Maybe do this only once?
 	TileTypes.LoadTileTypes("data/tiles.txt");
 
+	if (!ui)
+		CreateUserInterface();
+
 //	Graphics.EnableAllDebugRenders(false);
 
 	// Begin loading textures here for the UI

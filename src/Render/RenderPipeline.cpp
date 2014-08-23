@@ -112,7 +112,9 @@ void RenderPipeline::Render(GraphicsState * graphics)
 	for (int i = 0; i < renderPasses.Size(); ++i)
 	{
 		RenderPass * rp = renderPasses[i];
-		rp->Render(graphics);
+		bool ok = rp->Render(graphics);
+		if (!ok)
+			std::cout<<"\nError in render-pass: "<<rp->name;
 	}
 }
 

@@ -93,12 +93,13 @@ void RuneBattleState::CreateUserInterface(){
 
 void RuneBattleState::OnEnter(AppState * previousState)
 {
+	if (!ui)
+		CreateUserInterface();
 	paused = false;
 	// Load initial texture and set it to render over everything else
 	Graphics.QueueMessage(new GMSetOverlay("img/loadingData.png", 100));
 
 	battleType = NORMAL_BATTLE;
-	Sleep(100);
 
 	// Begin loading textures here for the UI
 	Graphics.QueueMessage(new GMSetUI(ui));
@@ -109,48 +110,25 @@ void RuneBattleState::OnEnter(AppState * previousState)
     Graphics.QueueMessage(new GMSetUIb("TargetsMenu", GMUI::VISIBILITY, false));
 	Graphics.QueueMessage(new GMSetUIs("Narrator", GMUI::TEXT, "An enemy appears!"));
 
-	// Check for data (battlers)
-	bool gotData = false;
-	String requestedBattle = BattleMan.QueuedBattle();
-	battleSource = requestedBattle;
-	BattleMan.StartBattle();
-	gotData = requestedBattle.Length() != 0;
-	if (!gotData){
-		requestedBattle = "data/Battles/testBattle.txt";
-	}
-	/// Load it!
-	bool result = LoadBattle(requestedBattle);
-	/// Failed to load battle, try a new one or return?
-	if (!result){
-		EndBattle();
+	/// Starts the queued battle if any. If none is queued, don't do any more?
+	if (!StartQueuedBattle())
 		return;
-	}
-	if (requestedBattle.Contains("Practice")){
-		battleType = PRACTICE_DUMMY_BATTLE;
-	}
+
 
 	/// Set editor selection as the renderable one!
 	Graphics.selectionToRender = NULL;
 
 	// And set it as active
 	Graphics.cameraToTrack = camera;
-//	Graphics.cameraToTrack->SetRatio(Graphics.width, Graphics.height);
-//	Graphics.UpdateProjection();
-//	Graphics.EnableAllDebugRenders(false);
 	MainWindow()->MainViewport()->EnableAllDebugRenders(false);
 	MainWindow()->renderFPS = true;
 
 	// Set graphics manager to render UI, and remove the overlay-texture.
 	Graphics.QueueMessage(new GraphicsMessage(GM_CLEAR_OVERLAY_TEXTURE));
 
-	// And start tha music..
-#ifdef USE_AUDIO
-	AudioMan.Play(BGM, "2013-02-21 Impacto.ogg", true);
-#endif
-    /// Start the battle-timer
+	/// Start the battle-timer
     timer.Start();
-    lastTime = timer.GetMs();
-	/// Notify the input-manager to use menu-navigation.
+ 	/// Notify the input-manager to use menu-navigation.
 	Input.ForceNavigateUI(true);
 
 	// Open window with extra UI for tweaking stuff in real-time on the battle?
@@ -169,26 +147,49 @@ void RuneBattleState::OnEnter(AppState * previousState)
 	}
 	battleTestWindow->Show();
 
+
 	logVisibility = false;
-	// Update it.
+	// Update it. <- What? Seriously.
 	ToggleLogVisibility();
 
 
-	/// TODO: Adjust the viewport to cover only the active (non-UI) region? 
-	List<Viewport*> vps;
-	int viewports = 1;
-	for (int i = 0; i < viewports; ++i)
-	{
-		float viewportSizeX = 1.f / viewports;
-		Viewport * battleViewport = new Viewport();
-		battleViewport->backgroundColor = Vector4f(0, 0 + 0.1f * i, 0, 1);
-		battleViewport->SetRelative(Vector2f(0 + viewportSizeX * i, 0.2f), Vector2f(viewportSizeX, 0.8f));
-		vps.Add(battleViewport);
-	}
-	Graphics.QueueMessage(new GMSetViewports(vps, MainWindow()));
+	/// Set up a dedicated viewport for the battle as we are not interested in rendering stuff behind the UI in the bottom part of the screen?
+	float viewportSizeX = 1.f;
+	Viewport * battleViewport = new Viewport();
+	battleViewport->backgroundColor = Vector4f(0.2f, 0.2f, 0.2f, 1);
+	battleViewport->SetRelative(Vector2f(0, 0.2f), Vector2f(viewportSizeX, 0.8f));
+	Graphics.QueueMessage(new GMSetViewports(battleViewport, MainWindow()));
 
 	// Set graphics manager to render UI, and remove the overlay-texture.
-	Graphics.QueueMessage(new GraphicsMessage(GM_CLEAR_OVERLAY_TEXTURE));
+	Graphics.QueueMessage(new GMSetOverlay(NULL));
+}
+
+/// Returns true upon success.
+bool RuneBattleState::StartQueuedBattle()
+{
+	// Check for data (battlers)
+	bool gotData = false;
+	String requestedBattle = BattleMan.QueuedBattle();
+	battleSource = requestedBattle;
+	BattleMan.StartBattle();
+	gotData = requestedBattle.Length() != 0;
+	if (!gotData){
+		requestedBattle = "data/Battles/testBattle.txt";
+	}
+	/// Load it!
+	bool result = LoadBattle(requestedBattle);
+	/// Failed to load battle, try a new one or return?
+	if (!result){
+		EndBattle();
+		return false;
+	}
+	if (requestedBattle.Contains("Practice")){
+		battleType = PRACTICE_DUMMY_BATTLE;
+	}
+	// Start applicable music..
+
+
+	return true;
 }
 
 
@@ -200,7 +201,7 @@ void RuneBattleState::OnExit(AppState *nextState)
 	Input.ForceNavigateUI(false);
 
 	// Load initial texture and set it to render over everything else
-	Graphics.QueueMessage(new GMSet(OVERLAY_TEXTURE, TexMan.GetTexture("img/loadingData.png")));
+	Graphics.QueueMessage(new GMSetOverlay(TexMan.GetTexture("img/loadingData.png")));
 
 	Sleep(100);
 	// Begin loading textures here for the UI
@@ -313,6 +314,8 @@ void RuneBattleState::CreatePartyUI()
 		UIElement * ui = new UIColumnList();
 		ui->name = "Player"+String::ToString(i);
 		ui->textureSource = "img/80gray50Alpha.png";
+		/// Assume max 4 players.
+		ui->sizeRatioY = 0.25f;
 
 		Vector4f textColor = Vector4f(1,1,1,1);
 
@@ -392,9 +395,9 @@ void RuneBattleState::Process(int timeInMs)
 			while(pointerEntities.Size() < targetBattlers.Size())
 			{
 				// Create entities for handling this target-rendering...
-				Entity * entity = MapMan.CreateEntity(ModelMan.GetModel("obj/3DPointer.obj"), TexMan.GetTexture("Grey"));
+				Entity * entity = MapMan.CreateEntity("Targeting Pointer", ModelMan.GetModel("obj/3DPointer.obj"), TexMan.GetTexture("Grey"));
 				pointerEntities.Add(entity);
-				Physics.QueueMessage(new PMSetEntity(SET_SCALE, entity, 0.5f));
+				Physics.QueueMessage(new PMSetEntity(entity, PT_SET_SCALE, 0.5f));
 			} 
 			RuneBattler * targetBattler = targetBattlers[i];
 			Entity * battlerEntity = targetBattler->entity;
@@ -402,8 +405,8 @@ void RuneBattleState::Process(int timeInMs)
 				continue;
 			Entity * pointerEntity = pointerEntities[i];
 			// Reveal the targetting arrows and move them info place.
-			Physics.QueueMessage(new PMSetEntity(POSITION, pointerEntities[i], battlerEntity->position + Vector3f(0,battlerEntity->scale.y,0)));
-			Graphics.QueueMessage(new GMSetEntityb(pointerEntity, VISIBILITY, true));
+			Physics.QueueMessage(new PMSetEntity(pointerEntities[i], PT_POSITION, battlerEntity->position + Vector3f(0,battlerEntity->scale.y,0)));
+			Graphics.QueueMessage(new GMSetEntityb(pointerEntity, GT_VISIBILITY, true));
 		}
 	}
 	else 
@@ -412,7 +415,7 @@ void RuneBattleState::Process(int timeInMs)
 		for (int i = 0; i < pointerEntities.Size(); ++i)
 		{
 			Entity * pointerEntity = pointerEntities[i];
-			Graphics.QueueMessage(new GMSetEntityb(pointerEntity, VISIBILITY, false));
+			Graphics.QueueMessage(new GMSetEntityb(pointerEntity, GT_VISIBILITY, false));
 		}
 	}
 
@@ -849,7 +852,7 @@ void RuneBattleState::SetupBattleMap()
 		assert(MapMan.MakeActive(map));
 	}
 	// Clear old entities
-	MapMan.DeleteEntities();
+	MapMan.DeleteAllEntities();
 
 	/// Set map size..
 	mapSize = Vector2i(10,5);
@@ -890,22 +893,7 @@ void RuneBattleState::CreateBattlerEntities()
 	for (int i = 0; i < battlers.Size(); ++i)
 	{
 		RuneBattler * battler = battlers[i];
-		// Place them and their entities on the grid.
-		Model * model = ModelMan.GetModel("obj/Sprite.obj");
-		Texture * tex;
-		if (battler->isEnemy)
-			tex = TexMan.GetTexture("White");
-		else 
-			tex = TexMan.GetTexture("Red");
-		Entity * entity = MapMan.CreateEntity(model, tex);
-		battler->entity = entity;
-		/// Give it animation set if applicable.
-		if (battler->animationSet.Length())
-			Graphics.QueueMessage(new GMSetEntity(entity, ANIMATION_SET, battler->animationSet));
-		/// Scale it.
-		Physics.QueueMessage(new PMSetEntity(SET_SCALE, entity, 2.f));
-		/// Set relative position due to the animation's form.
-
+		battler->CreateEntity();
 	}
 }
 
@@ -928,11 +916,11 @@ void RuneBattleState::PlaceBattlers()
 
 		Vector3f position = wp->position;
 		position.z = 1 - position.y * 0.1f; 
-		Physics.QueueMessage(new PMSetEntity(POSITION, entity, position));
+		Physics.QueueMessage(new PMSetEntity(entity, PT_POSITION, position));
 		/// Require depth-sorting so the alpha-blending will work.
-		Graphics.QueueMessage(new GMSetEntityb(entity, REQUIRE_DEPTH_SORTING, true));
+		Graphics.QueueMessage(new GMSetEntityb(entity, GT_REQUIRE_DEPTH_SORTING, true));
 		/// Update render-offset while at it, so that all sprites assume 0.25f of the sprite to be the bottom/center?
-		Graphics.QueueMessage(new GMSetEntityVec4f(entity, RENDER_OFFSET, Vector3f(0, 0.75f, 0)));
+		Graphics.QueueMessage(new GMSetEntityVec4f(entity, GT_RENDER_OFFSET, Vector3f(0, 0.75f, 0)));
 		wp->entity = entity;
 	}
 }
@@ -949,7 +937,7 @@ void RuneBattleState::SetupCamera()
 	camera->Nullify();
 	camera->projectionType = Camera::ORTHOGONAL;
 	camera->rotation = Vector3f();
-	camera->position = Vector3f(-mapSize.x * 0.5, -mapSize.y * 0.5 + 1.f, -20.f);
+	camera->position = Vector3f(mapSize.x * 0.5, mapSize.y * 0.5 + 1.f, 20.f);
 	/// Somehow calculate appropriate zoom...
 	camera->zoom = 5.f;
 	camera->distanceFromCentreOfMovement = -10.f;
@@ -1009,6 +997,7 @@ void RuneBattleState::Log(String string)
 	UIElement * newElement = new UILabel();
 	newElement->text = string;
 	newElement->sizeRatioY = 0.15f;
+	assert(ui);
 	newElement->textColor = ui->defaultTextColor;
 	Graphics.QueueMessage(new GMAddUI(newElement, "Log"));
 }

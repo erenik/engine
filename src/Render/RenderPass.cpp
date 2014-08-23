@@ -22,8 +22,8 @@ RenderPass::RenderPass()
 }
 
 
-// Renders this pass..!
-void RenderPass::Render(GraphicsState * graphicsState)
+// Renders this pass. Returns false if some error occured, usually mid-way and aborting the rest of the procedure.
+bool RenderPass::Render(GraphicsState * graphicsState)
 {
 	switch(output)
 	{
@@ -37,36 +37,28 @@ void RenderPass::Render(GraphicsState * graphicsState)
 		{
 			// Set up/fetch render buffers for this, based on the viewport.
 			if (!graphicsState->activeViewport->BindFrameBuffer())
-				return;
+				return false;
 			break;
 		}
 	}
-	
-	glBlendFunc(GL_ONE, GL_ZERO);
-	GLuint error = glGetError();
-	if (error != GL_NO_ERROR){
-		std::cout<<"\nGLError in RenderScene "<<error;
-	}
 
+	// Set shader to use in this render-pass.
 	if (!shader)
 	{
 		shader = ShadeMan.SetActiveShader(shaderName);
 		if (!shader)
 		{
 			std::cout<<"\nSkipping render pass. Failed to grab specified shader: "<<shaderName;
-			return;
+			return false;
 		}
 	}
 	else {
 		ShadeMan.SetActiveShader(shader);
 	}
-	
-    if (shader == NULL){
-    //    std::cout<<"\nUnable to set Phong shader in GraphicsManager::RenderScene";
-    #ifdef WINDOWS
-        assert(shader && "Unable to set \"Phong\" shader");
-    #endif
-        return;
+	// Return if we couldn't even set the shader..
+    if (shader == NULL)
+	{
+        return false;
     }
 	graphicsState->settings |= ENABLE_SPECIFIC_ENTITY_OPTIONS;
 
@@ -103,13 +95,13 @@ void RenderPass::Render(GraphicsState * graphicsState)
 	}
 
 	if (!graphicsState->activeShader)
-		return;
+		return false;
 
 	// Load in the model and view matrices
 	glUniformMatrix4fv(graphicsState->activeShader->uniformViewMatrix, 1, false, graphicsState->viewMatrixF.getPointer());
-	error = glGetError();
+	CheckGLError("RenderPass, setting view matrix");
 	glUniformMatrix4fv(graphicsState->activeShader->uniformModelMatrix, 1, false, graphicsState->modelMatrixF.getPointer());
-	error = glGetError();
+	CheckGLError("RenderPass, setting model matrix");
 
 	// Load projection matrix into shader
 	graphicsState->projectionMatrixF = graphicsState->projectionMatrixD;
@@ -180,7 +172,7 @@ void RenderPass::Render(GraphicsState * graphicsState)
 	if (graphicsState->activeShader && graphicsState->activeShader->uniformEyePosition != -1)
 		glUniform4f(graphicsState->activeShader->uniformEyePosition, camera.Position().x, camera.Position().y, camera.Position().z, 1.0f);
 
-	error = glGetError();
+	CheckGLError("RenderPass, eye position");
 
 
 	switch(input)
@@ -222,6 +214,7 @@ void RenderPass::Render(GraphicsState * graphicsState)
 	}
 	// Unbind the framebuffer so that UI and stuff will render as usual.
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	return true;
 }
 
 

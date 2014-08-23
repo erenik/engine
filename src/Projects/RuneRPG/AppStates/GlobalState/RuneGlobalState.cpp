@@ -240,7 +240,7 @@ void RuneGlobalState::ProcessMessage( Message * message )
 		/// Save it.
 		SaveFile save;
 		String customHeaderData = playerName + " Level 1";
-		std::fstream * stream = save.Open(saveName, "RuneRPG", customHeaderData, false);
+		std::fstream * stream = save.OpenSaveFileStream(saveName, "RuneRPG", customHeaderData, false);
 		if (!stream){
 			std::cout<<"\nUnable to open a valid save-file for writing, aborting! D:";
 			return;

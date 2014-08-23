@@ -519,6 +519,8 @@ void LoadLighting(Lighting * lighting, Shader * shader)
 	if (shader->uniformLight.ambientVec4 == -1)
 		return;
 
+	CheckGLError("LoadLighting before gl calls.");
+
 	/// Set ambient
 	GLfloat ambient[4];
 	ambient[0] = lighting->global_ambient.x;
@@ -526,10 +528,7 @@ void LoadLighting(Lighting * lighting, Shader * shader)
 	ambient[2] = lighting->global_ambient.z;
 	ambient[3] = lighting->global_ambient.w;
 	glUniform4fv(shader->uniformLight.ambientVec4, 1, ambient);
-	error = glGetError();
-	if (error != GL_NO_ERROR){
-		std::cout<<"\nGL_ERROR: Error setting global ambient luminosity";
-	}
+	CheckGLError("Error setting global ambient luminosity");
 	
 	// If no diffuse uniform, abort.
 	if (shader->uniformLight.diffuseVec4 == -1)
@@ -588,7 +587,8 @@ void LoadLighting(Lighting * lighting, Shader * shader)
 
 	/// Set all data
 	/// Set Diffuse
-	if (shader->uniformLight.diffuseVec4 != -1){
+	if (shader->uniformLight.diffuseVec4 != -1)
+	{
 		glUniform4fv(shader->uniformLight.diffuseVec4, activeLights, diffuse);
 		error = glGetError();
 		if (error != GL_NO_ERROR){

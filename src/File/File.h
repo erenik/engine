@@ -20,6 +20,8 @@
 /// General file-class?
 class File {
 public:
+	// o.o
+	File();
 	/// Constructor
 	File(String path);
 	/// Last time this file was modified. Returns -1 if the file does not exist and -2 if the function fails.
@@ -43,8 +45,7 @@ private:
 	bool open;
 
 #ifdef WINDOWS
-	HANDLE fileHandle;
-	
+	HANDLE fileHandle;	
 #endif
 
 	String path;
@@ -64,7 +65,7 @@ struct SaveFileHeader {
 };
 
 /// Automatically detects a good folder to save it in.
-class SaveFile 
+class SaveFile : public File
 {
 public:
 	/// Default constructor, doesn't open any streams.

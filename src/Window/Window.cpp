@@ -10,6 +10,8 @@
 
 #include "DragAndDrop.h"
 
+#include "Graphics/GraphicsManager.h"
+
 /// List of active monitors.
 List<Monitor> monitors;
 
@@ -584,8 +586,13 @@ UserInterface * Window::GetUI()
 /// Fetches the global (system) UI.
 UserInterface * Window::GetGlobalUI(bool fromRenderThread)
 {
-	if (!globalUI && fromRenderThread)
+	if (!globalUI)
+	{
+		std::cout<<"\nTrying to get Global UI which is non-existant. Creating it for you.";
+		GraphicsMan.Pause();
 		CreateGlobalUI();
+		GraphicsMan.Resume();
+	}
 	assert(globalUI && "Should have been created at start.");
 	return globalUI;	
 }

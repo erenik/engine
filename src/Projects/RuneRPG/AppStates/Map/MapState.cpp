@@ -6,8 +6,12 @@
 #include "OS/Sleep.h"
 #include "Actions.h"
 #include "Message/Message.h"
-#include "../UI/UserInterface.h"
 #include "Viewport.h"
+
+#include "UI/UIButtons.h"
+#include "UI/UserInterface.h"
+
+#include "PhysicsLib/Shapes/Ray.h"
 
 #include "Physics/Messages/CollisionCallback.h"
 #include "Physics/Messages/PhysicsMessage.h"
@@ -19,40 +23,37 @@
 #include "Graphics/Messages/GMParticles.h"
 #include "Graphics/Messages/GMUI.h"
 
-#include <Util.h>
-#include <iomanip>
-#include "Maps/2D/TileMap2D.h"
 #include "RuneRPG/EntityStates/RREntityState.h"
-#include "../../RRPlayer.h"
-#include "Player/PlayerManager.h"
 #include "RuneRPG/Battle/RuneBattler.h"
-#include "Script/Script.h"
-#include "Script/ScriptProperty.h"
-#include "Graphics/Camera/Camera.h"
-#include "Entity/EntityFlags.h"
-#include "../../RuneDirectories.h"
-#include "Graphics/Messages/GMSet.h"
-#include "../RuneGameStatesEnum.h"
-#include "Graphics/Messages/GMSetEntity.h"
 #include "RuneRPG/Item/RuneShop.h"
 #include "RuneRPG/Item/RuneConsumable.h"
-#include "UI/UIButtons.h"
+
+#include "Graphics/Camera/Camera.h"
+#include "Graphics/Messages/GMSet.h"
+#include "Graphics/Messages/GMSetEntity.h"
+#include "Graphics/GraphicsManager.h"
+#include "Graphics/Animation/AnimationManager.h"
+
+#include "Maps/2D/TileMap2D.h"
+#include "../../RRPlayer.h"
+#include "Player/PlayerManager.h"
+#include "Script/Script.h"
+#include "Script/ScriptProperty.h"
+#include "Entity/EntityFlags.h"
+#include "../../RuneDirectories.h"
+#include "../RuneGameStatesEnum.h"
 #include "Window/WindowManager.h"
 
-
-#include "Graphics/GraphicsManager.h"
 #include "TextureManager.h"
 #include "Maps/MapManager.h"
 #include "StateManager.h"
 #include "Input/InputManager.h"
 #include "Script/ScriptManager.h"
 #include "ModelManager.h"
-#include "Graphics/Animation/AnimationManager.h"
 #include "Pathfinding/WaypointManager.h"
 #include "File/File.h"
 #include "File/FileUtil.h"
 #include "RuneRPG/PopulationManager.h"
-#include "Window/WindowManager.h"
 
 extern UserInterface * ui[GameStateID::MAX_GAME_STATES];
 
@@ -199,7 +200,7 @@ void MapState::OnEnter(AppState * previousState)
 	ResetCamera();
 
 	// Set graphics manager to render UI, and remove the overlay-texture.
-	Graphics.QueueMessage(new GMSet(OVERLAY_TEXTURE, (Texture*)NULL));
+	Graphics.QueueMessage(new GMSetOverlay(NULL));
 }
 
 void MapState::OnExit(AppState *nextState)
@@ -211,7 +212,7 @@ void MapState::OnExit(AppState *nextState)
 	TileMap2D * map = this->ActiveMap();
 	std::cout<<"\nMapState::OnExit";
 	// Load initial texture and set it to render over everything else
-	Graphics.QueueMessage(new GMSet(OVERLAY_TEXTURE, TexMan.GetTexture("img/loadingData.png")));
+	Graphics.QueueMessage(new GMSetOverlay(TexMan.GetTexture("img/loadingData.png")));
 	
 	// Begin loading textures here for the UI
 	Graphics.QueueMessage(new GraphicsMessage(GM_CLEAR_UI));
@@ -317,7 +318,7 @@ void MapState::MouseClick(bool down, int x, int y, UIElement * elementClicked)
 		/// Get main (our) player entity?
 		Entity * playerEntity = GetMainPlayerEntity();
 		if (playerEntity)
-			Physics.QueueMessage(new PMSetEntity(DESTINATION, playerEntity, wp->position));
+			Physics.QueueMessage(new PMSetEntity(playerEntity, PT_DESTINATION, wp->position));
 	}
 }
 void MapState::MouseRightClick(bool down, int x, int y, UIElement * elementClicked){
@@ -346,11 +347,12 @@ void MapState::MouseMove(int x, int y, bool lDown, bool rDown, UIElement * eleme
 	/// Get position in le welt.
 	Plane plane;
 	plane.Set3Points(Vector3f(0,-1,0), Vector3f(1,0,0), Vector3f(0,0,0));
-	Vector3f collissionPoint;
+	Vector3f collisionPoint;
 	// , *Graphics.cameraToTrack
 	Ray clickRay = Graphics.ActiveCamera()->GetRayFromScreenCoordinates(WindowMan.MainWindow(), x, y);
-	if (RayPlaneIntersection(clickRay, plane, &collissionPoint)){
-		cursorPosition = collissionPoint;
+	if (clickRay.Intersect(plane, &collisionPoint))
+	{
+		cursorPosition = collisionPoint;
 	}
 	/*
 	/// Update cursor position!
@@ -552,17 +554,17 @@ void MapState::SpawnNPC(String fromRef, int x, int y)
 		std::cout<<"\nERROR: Something already on that tile, or it not walkable, skipping SpawnEntity!";
 	}
 	// Create the entity
-	Entity * entity = MapMan.CreateEntity(m,t,position);
+	Entity * entity = MapMan.CreateEntity(name, m, t, position);
 	TileMap2D * tMap = (TileMap2D*)MapMan.ActiveMap();
 	if (entity == NULL){
 		std::cout<<"\nERROR: Unable to create entity in MapState!";
 		return;
 	}
 	/// Give it test animation
-	Graphics.QueueMessage(new GMSetEntity(entity, ANIMATION_SET, "Map/Test"));
+	Graphics.QueueMessage(new GMSetEntity(entity, GT_ANIMATION_SET, "Map/Test"));
 	
 	// Set target waypoint to be occupied by this new entity.
-	Physics.QueueMessage(new PMSetWaypoint(position, ENTITY, entity));
+	Physics.QueueMessage(new PMSetWaypoint(position, PT_ENTITY, entity));
 	
 	// Set flags for the entity so it behaves and is removed correctly.
 	entity->flags |= SPAWNED_BY_EVENT;
@@ -757,6 +759,8 @@ void MapState::ProcessMessage(Message * message)
 			}
 			else if (string.Contains("SpawnEntity"))
 			{
+				assert(false);
+				/*
 				std::cout<<"\nSpawning entity--";
 				Model * m = ModelMan.GetModel("Sprite");
 				Texture * t = TexMan.GetTexture("RuneRPG/Units/200");
@@ -785,7 +789,7 @@ void MapState::ProcessMessage(Message * message)
 				if (!tmap->IsTileVacant(position)){
 					std::cout<<"\nERROR: Something already on that tile, or it not walkable, skipping SpawnEntity!";
 				}
-				Entity * entity = MapMan.CreateEntity(m,t,position);
+				Entity * entity = MapMan.CreateEntity("Spawns an entity...? wat.", m, t, position);
 				TileMap2D * tMap = (TileMap2D*)MapMan.ActiveMap();
 				if (entity == NULL){
 					std::cout<<"\nERROR: Unable to create entity in MapState!";
@@ -801,8 +805,10 @@ void MapState::ProcessMessage(Message * message)
 				/// Create a proper entity state for it based on the EntityStateTile2D
 				entity->properties.Add(new RREntityState(entity));
 				lastModifiedEntity = entity;
+				*/
 			}
-			else if (string.Contains("OnInteract")){
+			else if (string.Contains("OnInteract"))
+			{
 				/*
 				if (!lastModifiedEntity){
 					std::cout<<"\nERROR: lastModifiedEntity NULL, cannot set OnInteract";
@@ -905,7 +911,7 @@ bool MapState::PlacePlayers(Vector3i position)
 	if (e){
 		std::cout<<"\nEntity already exists, moving it.";
 		activeMap->MoveEntity(e, position);
-		Physics.QueueMessage(new PMSetEntity(POSITION, e, e->position));
+		Physics.QueueMessage(new PMSetEntity(e, PT_POSITION, e->position));
 		return true;
 	}
 
@@ -921,7 +927,7 @@ bool MapState::PlacePlayers(Vector3i position)
 	{
 		RRPlayer * player = players[i];
 		Entity * playerEntity = NULL;
-		playerEntity = MapMan.CreateEntity(m,t,position);
+		playerEntity = MapMan.CreateEntity("PlayerEntity: "+player->name, m, t, position);
 		if (playerEntity == NULL)
 		{
 			assert(playerEntity);
@@ -935,11 +941,11 @@ bool MapState::PlacePlayers(Vector3i position)
 		RREntityState * playerState = new RREntityState(playerEntity);
 		playerEntity->properties.Add(playerState);
 		/// Give it test animation
-		Graphics.QueueMessage(new GMSetEntity(playerEntity, ANIMATION_SET, "Map/Test"));
-		Physics.QueueMessage(new PMSetEntity(PHYSICS_TYPE, playerEntity, PhysicsType::DYNAMIC));
+		Graphics.QueueMessage(new GMSetEntity(playerEntity, GT_ANIMATION_SET, "Map/Test"));
+		Physics.QueueMessage(new PMSetEntity(playerEntity, PT_PHYSICS_TYPE, PhysicsType::DYNAMIC));
 		Waypoint * wp = WaypointMan.GetClosestVacantWaypoint(position);
 		assert(wp);
-		Physics.QueueMessage(new PMSetWaypoint(wp->position, ENTITY, playerEntity));
+		Physics.QueueMessage(new PMSetWaypoint(wp->position, PT_ENTITY, playerEntity));
 
 		// Re-bind the player
 		player->mapEntity = playerEntity;

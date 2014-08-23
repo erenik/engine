@@ -12,8 +12,16 @@
 #include "File/File.h"
 #include "RuneBattleActionLibrary.h"
 
+#include "Maps/MapManager.h"
+
 #include "Graphics/GraphicsManager.h"
 #include "Graphics/Messages/GMSetEntity.h"
+
+#include "Physics/PhysicsManager.h"
+#include "Physics/Messages/PhysicsMessage.h"
+
+#include "ModelManager.h"
+#include "TextureManager.h"
 
 #include "Random/Random.h"
 
@@ -25,6 +33,43 @@ RuneBattler::RuneBattler() : Battler()
 RuneBattler::~RuneBattler()
 {
 	this->actions.ClearAndDelete();
+}
+
+
+/// Creates the Entity to animate and visualize this battler while in action.
+void RuneBattler::CreateEntity()
+{
+	/// Skip if we already have an entity. No need to re-create it, yo?
+	if (entity)
+		return;
+	// Place them and their entities on the grid.
+	Model * model = NULL;
+	Texture * tex;
+	if (isEnemy)
+	{
+		tex = TexMan.GetTexture("White");
+		model = ModelMan.GetModel("obj/Sprite.obj");
+	}
+	// Player! Face 'em leftward!
+	else 
+	{
+		tex = TexMan.GetTexture("Red");
+		model = ModelMan.GetModel("obj/SpriteMirroredUVs.obj");
+	}
+	/// o.o
+	entity = MapMan.CreateEntity("RuneBattlerEntity: "+name, model, tex);
+	
+	/// Give it animation set if applicable.
+	if (animationSet.Length())
+		Graphics.QueueMessage(new GMSetEntity(entity, GT_ANIMATION_SET, animationSet));
+	/// Give a default animation set to those lacking one.
+	else 
+	{
+		Graphics.QueueMessage(new GMSetEntity(entity, GT_ANIMATION_SET, "anim/Battle/SwordSlasher"));		
+	}
+	/// Scale it.
+	Physics.QueueMessage(new PMSetEntity(entity, PT_SET_SCALE, 2.f));
+	/// Set relative position due to the animation's form.
 }
 
 void RuneBattler::Nullify()
