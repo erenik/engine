@@ -6,6 +6,17 @@
 
 #include "DataTypes.h"
 
+/// o.o prepends the names of all variables in the list.
+void PrependVariables(List<Variable> & list, String withString)
+{
+	for (int i = 0; i < list.Size(); ++i)
+	{
+		Variable & var = list[i];
+		var.name = withString+var.name;
+	}
+}
+
+
 Variable::Variable()
 {
 	type = DataType::NO_TYPE;

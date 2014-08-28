@@ -134,7 +134,7 @@ public:
 protected:
 
 	/// Applies all effects this spells should apply. If needed to re-apply multiple effects, this function should be called again until it returns true.
-	bool ApplyEffects(int timeInMs);
+	bool ApplyEffects(RBattleState & bs);
 
 	/// Set to true once all effects have been applied.
 	bool allEffectsApplied;

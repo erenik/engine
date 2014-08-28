@@ -7,6 +7,7 @@
 
 #include "String/AEString.h"
 
+
 class Variable
 {
 public:
@@ -31,6 +32,8 @@ public:
 
 };
 
+/// o.o prepends the names of all variables in the list.
+void PrependVariables(List<Variable> & list, String withString);
 
 
 #endif

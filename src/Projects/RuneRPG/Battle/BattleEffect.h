@@ -6,6 +6,7 @@
 #define BATTLE_EFFECT_H
 
 #include "String/AEString.h"
+#include "RuneRPG/RuneRPG.h"
 
 class RBattleState;
 class RuneBattler;
@@ -21,7 +22,7 @@ public:
 		
 		Long-time buffs/debuffs are copied onto the target.
 	*/
-	virtual void ApplyTo(RuneBattler * targetBattler);
+	virtual void ApplyTo(RuneBattler * targetBattler, RuneBattler * subject, RBattleState & bs);
 	/// Adjusts the stat as the effect dictates. Which stat should be re-calculated using this is set in statType (see BattleStats.h for enum)
 	int AdjustedStat(int baseStatValue);
 
@@ -29,12 +30,16 @@ public:
 	bool Process(RBattleState & battleState);
 
 
-	enum 
+	enum types
 	{
+		BAD_TYPE = -1,
 		INCREASE, // Constant or relative adjustments
 		DECREASE,
 		ADD_DAMAGE, // E.g. Enfire, adds elemental damage on a per-attack basis.
 		DAMAGE, // Damage, probably magical or pseudo/semi-magical.
+		DEATH, // Argument contains chance or potency.
+		RESTORE, // ..
+		SPAWN_ELEMENTAL, // o.o;
 	};
 	/// Name of this effect. Name will correspond  to type.
 	String name;
@@ -45,6 +50,9 @@ public:
 	/// If the effect is associated with any specific element.
 	int element;
 
+	/// Power of this effect, no matter what kind it be. This is generally parsed from the argument to this effect... lol waste 
+//	int spellPower;
+
 	/// Name of the equation to use.
 	String equation;
 	/// Most effect have some arguments which are then passed to the equation.
@@ -54,14 +62,27 @@ public:
 	int constantAdjustment;
 //	float relativeAdjustment;
 
-	/// ..
-	enum durations
+	/// If true, this is a buff or debuff that is attached to the target upon application.
+	bool attachToTarget;
+	/// If this is a "Spikes" type spell, is isa buff/debuff which applies some kind of state or damage to attackers on this battler.
+	bool applyOnAttacker;
+
+	/// If true, this effect will repeat itself X times before being considered fully applied.
+	bool repeat;
+	/// The number of iterations which this effect will repeat itself.
+	int iterations;
+
+	enum durationTypes
 	{
 		// Positive values are milliseconds.
 		INSTANTANEOUS = 0,
-		PERMANENT = -1,
+		TIME_IN_MS,
+		ATTACKS,
+		PERMANENT,
 	};
-	int durationInMs;
+	/// o.o
+	int durationType;
+	int durationValue;
 	/// Starts at 0, increments when Process() is called.
 	int timeAttached;
 

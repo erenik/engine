@@ -10,6 +10,8 @@
 #include "Variable.h"
 #include "Expression.h"
 
+#define Equation Function
+
 class Function 
 {
 public:

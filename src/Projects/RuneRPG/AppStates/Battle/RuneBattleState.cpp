@@ -1071,8 +1071,8 @@ void RuneBattleState::OpenCommandsMenu(RuneBattler * battler)
         RuneBattleActionCategory * rbac = battler->actionCategories[i];
         UIElement * categoryButton = new UIButton();
         categoryButton->sizeRatioY = 0.2f;
-        std::cout<<"\nAdding category: "<<rbac;
-        std::cout<<"\n.."<<rbac->name;
+     //   std::cout<<"\nAdding category: "<<rbac;
+     //   std::cout<<"\n.."<<rbac->name;
         categoryButton->text = rbac->name;
         categoryButton->textColor = Vector4f(1,1,1,1);
         categoryButton->textureSource = DEFAULT_UI_TEXTURE;
@@ -1089,7 +1089,7 @@ void RuneBattleState::OpenCommandsMenu(RuneBattler * battler)
             categoryButton->activationMessage = "OpenSubMenu("+rbac->name+")";
         }
         Graphics.QueueMessage(new GMAddUI(categoryButton, "CommandsMenu"));
-        std::cout<<"\nAdding category-button "<<categoryButton->text;
+//        std::cout<<"\nAdding category-button "<<categoryButton->text;
     }
 	// Add extra commans for special battles?
 	if (battleType == PRACTICE_DUMMY_BATTLE){
@@ -1099,7 +1099,7 @@ void RuneBattleState::OpenCommandsMenu(RuneBattler * battler)
         categoryButton->textureSource = DEFAULT_UI_TEXTURE;
 		categoryButton->activationMessage = "AbortPractice()";
         Graphics.QueueMessage(new GMAddUI(categoryButton, "CommandsMenu"));
-        std::cout<<"\nAdding category-button "<<categoryButton->text;
+  //      std::cout<<"\nAdding category-button "<<categoryButton->text;
 	}
 
     /// Reveal the commands-menu when a party-member is ready for action, jRPG-style

@@ -113,6 +113,12 @@ void RuneBattler::Nullify()
 		/// Initialize all to 0-ints?
 		baseStats.Add(Variable(GetStatShortString(i),0));
 	}
+	
+	/// Reset all to 1.
+	for (int i = 0; i < Stat::NUM_BATTLER_STATS; ++i)
+	{
+		baseStats[i].iValue = 1;
+	}
 	/// Set som default values for testing purposes.
 	for (int i = Stat::FIRST_CORE_STAT; i <= Stat::LAST_CORE_STAT; ++i)
 		baseStats[i].iValue = 5;
@@ -227,7 +233,7 @@ void RuneBattler::Process(RBattleState & battleState)
 	/// Queue up an action, random ones work fine.
 	if (actions.Size() == 0)
 	{
-		std::cout<<"\nBattler lacking any valid action to take";
+//		std::cout<<"\nBattler lacking any valid action to take";
 		// Load 'em.
 		if (!UpdateActions())
 			return;

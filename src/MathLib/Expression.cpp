@@ -195,7 +195,10 @@ bool Expression::TryEvaluate()
 					pe.knownVariables = knownVariables;
 					bool ok = pe.TryEvaluate();
 					if (!ok)
+					{
+						this->result.text = pe.result.text;
 						return false;
+					}
 
 					// Remove all the evaluation symbols that were part of the parenthesis and replace them with the result.
 					evaluationSymbols.RemovePart(parenthesisStart, i);
@@ -234,14 +237,20 @@ bool Expression::TryEvaluate()
 				// Extract the variable via its name!
 				Variable * var = GetVariableForName(sym.text);
 				if (!var)
+				{
+					result.text = "Undefined variable \'"+sym.text+"\'";
 					return false;
+				}
 				switch(var->type)
 				{
 					case DataType::FLOAT:	sym.text = String(var->fValue);	break;
 					case DataType::INTEGER:	sym.text = String(var->iValue);	break;
 					default:
+					{
+						result.text = "Undefined variable data type: "+var->type;
 						assert(false);
 						return false;
+					}
 				}
 				// Should have been converted to constant.
 				sym.type = Symbol::CONSTANT;

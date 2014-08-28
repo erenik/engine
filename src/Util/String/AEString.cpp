@@ -937,6 +937,14 @@ int String::ParseInt()
 	}
 	else if (this->type == NULL_TYPE)
 		return 0;
+	for (int i = 0; i < arraySize; ++i)
+	{
+		if (arr[i] == 0)
+			break;
+		if (isdigit(arr[i]) || arr[i] == '-')
+			continue;
+		arr[i] = ' ';
+	}
 	return atoi(arr);
 }
 float String::ParseFloat()

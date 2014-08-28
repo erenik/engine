@@ -4,10 +4,17 @@
 
 #include "BattleEffect.h"
 #include "RuneBattler.h"
+#include "BattleStats.h"
+
+#include "MathLib/Function.h"
 
 BattleEffect::BattleEffect()
 {
 	applied = false;
+	durationType = BattleEffect::INSTANTANEOUS;
+	attachToTarget = false;
+	applyOnAttacker = false;
+	repeat = false;
 }
 
 
@@ -17,15 +24,64 @@ BattleEffect::BattleEffect()
 	
 	Long-time buffs/debuffs are copied onto the target.
 */
-void BattleEffect::ApplyTo(RuneBattler * battler)
+void BattleEffect::ApplyTo(RuneBattler * target, RuneBattler * subject, RBattleState & bs)
 {
+	if (attachToTarget)
+	{
+		/// Add this effect to the target battler. Let them re-calculate their stats as needed. o.o
+		target->appliedEffects.Add(*this);
+		return;
+	}
 	switch(type)
 	{
-		case BattleEffect::DECREASE:
-		case BattleEffect::INCREASE:
+		case BattleEffect::DAMAGE:
 		{
-			/// Add this effect to the target battler. Let them re-calculate their stats as needed. o.o
-			battler->appliedEffects.Add(*this);
+			// Check equation.
+			Function func = Function::GetFunctionByName(this->equation);
+			/// Grab all variables from the battlers!
+			List<Variable> targetStats = target->GetCurrentStats(), 
+				casterStats = subject->GetCurrentStats();
+
+			/// Add variables which are relevant to this spell to the variable list.
+			for (int i = 0; i < casterStats.Size(); ++i)
+			{
+				Variable & var = casterStats[i];
+				if (var.name == GetStatShortString(Stat::SPELL_POWER))
+				{
+					var.iValue = RParseInt(argument);
+					assert(var.iValue > 0);
+				}
+			}
+
+			PrependVariables(targetStats, "Target");
+			PrependVariables(casterStats, "Subject");
+			
+			int damage;
+			// Calculate damage!
+			ExpressionResult result = func.Evaluate(targetStats + casterStats);
+			switch(result.type)
+			{
+				case DataType::FLOAT:
+				{
+					damage = result.fResult;
+					break;
+				}
+				case DataType::INTEGER:
+				{
+					damage = result.iResult;	
+					break;
+				}
+				case DataType::NO_TYPE:
+				{
+					std::cout<<"\nFunction evaluation error: "<<result.text;
+					break;
+				}
+				default:
+					assert(false);
+			}
+			/// Apply the damage to the target and narrate it.
+			target->Damage(damage);		
+			bs.log = target->name+" takes "+String(damage)+" points of damage.";
 			break;
 		}
 		default:
@@ -50,7 +106,9 @@ bool BattleEffect::Process(RBattleState & battleState)
 {
 	/// Starts at 0, increments when Process() is called.
 	timeAttached += battleState.timeInMs;
-	if (timeAttached > durationInMs)
+	if (durationType == TIME_IN_MS && timeAttached > durationValue)
+		return false;
+	else if (durationType == INSTANTANEOUS)
 		return false;
 
 	return true;

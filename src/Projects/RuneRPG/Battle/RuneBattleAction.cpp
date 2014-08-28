@@ -120,7 +120,7 @@ void RuneBattleAction::Process(RBattleState & battleState)
 	if (!allEffectsApplied && millisAnimated > 200)
 	{
 		/// Apply effects!
-		allEffectsApplied = ApplyEffects(battleState.timeInMs);
+		allEffectsApplied = ApplyEffects(battleState);
 	}
 
 	/// Alreayd finished?
@@ -258,8 +258,47 @@ void RuneBattleAction::ParseDurations(String fromString)
 		return;
 	}
 
-	List<String> tokens = fromString.Tokenize(" ");
+	List<String> tokens = fromString.Tokenize(" ()");
+	int effectIndex = 0;
 	/// Poke Karl about this... easier parsing would be nice.
+	for (int i = 0; i < tokens.Size(); ++i)
+	{
+		String tok = tokens[i];
+ 		BattleEffect * effect = &effects[effectIndex];
+		if (tok == "0")
+		{
+			effect->durationType = BattleEffect::INSTANTANEOUS;
+		}
+		else if (tok == "Time")
+		{
+			String nextTok = tokens[i+1];
+			effect->durationType = BattleEffect::TIME_IN_MS;
+			effect->durationValue = nextTok.ParseFloat() * 1000;
+			++i;
+		}
+		else if (tok == "Turn")
+		{
+			String nextTok = tokens[i+1];
+			effect->durationType = BattleEffect::TIME_IN_MS;
+			effect->durationValue = nextTok.ParseFloat() * 1000;
+			++i;
+		}
+		else if (tok == "Attack")
+		{
+			String nextTok = tokens[i+1];
+			effect->durationType = BattleEffect::ATTACKS;
+			effect->durationValue = nextTok.ParseInt();
+			++i;
+		}
+		else if (tok == "inf")
+		{
+			effect->durationType = BattleEffect::PERMANENT;
+		}
+		else {
+			assert(false && "Bad token in RuneBattleAction::ParseDuration");
+		}
+		++effectIndex;
+	}
 
 //	BattleEffect & effect = spell->effects.Last();
 //	effect.durationInMs = BattleEffect::INSTANTANEOUS; // GetDurationByString(word);
@@ -276,43 +315,104 @@ void RuneBattleAction::ParseEffects(String fromString)
 		String effectStr = effectTokens[i];
 		String argument;
 		if (effectTokens.Size() > i + 1)
+		{
 			argument = effectTokens[i+1];
+		}
 		effectStr.SetComparisonMode(String::NOT_CASE_SENSITIVE);
 		BattleEffect effect;
+		effect.name = effectStr;
+		effect.argument = argument;
 		if (effectStr.Contains("Increase"))
 		{
 			effect.type = BattleEffect::INCREASE;
+			effect.attachToTarget = true;
+		}
+		else if (effectStr.Contains("Decrease"))
+		{
+			effect.type = BattleEffect::DECREASE;
+			effect.attachToTarget = true;
 		}
 		else if (effectStr.Contains("Add Damage"))
 		{
 			effect.type = BattleEffect::ADD_DAMAGE;
 			/// Parse element here too then.
 			effect.element = GetElementByString(effectStr);
+			/// Check which equation type to use.
+			if (effectStr.Contains(" P "))
+				effect.equation = "Magic Skill damage";
+			else if (effectStr.Contains(" M "))
+				effect.equation = "Magic Spell damage";
+			effect.attachToTarget = true;
 		}
 		else if (effectStr.Contains("Damage"))
 		{
 			effect.type = BattleEffect::DAMAGE;
 			effect.element = GetElementByString(effectStr);
+			/// Check which equation type to use.
+			if (effectStr.Contains(" P "))
+				effect.equation = "Magic Skill damage";
+			else if (effectStr.Contains(" M "))
+				effect.equation = "Magic Spell damage";
+		}
+		/// Special specifier to make the previous effect multiply itself X times?
+		else if (effectStr.Contains("*"))
+		{
+			/// Mark the previous effect as repeating.
+			BattleEffect & previousEffect = effects.Last();
+			// Parse number of repeats.
+			previousEffect.repeat = true;
+			previousEffect.iterations = effectStr.ParseInt();
+			assert(previousEffect.iterations > 0);
+			continue;
+		}
+		/// Repetition of a previous effect. o.o
+		else if (effectStr.Contains("&"))
+		{
+			// ..
+			effect.type = effects.Last().type;
+		}
+		else if (effectStr.Contains("Instakill Chance"))
+		{
+			effect.type = BattleEffect::DEATH;
+		}
+		else if (effectStr.Contains("Restore"))
+		{
+			effect.type = BattleEffect::RESTORE;
+		}
+		else if (effectStr.Contains("Combo"))
+			continue;
+		else if (effectStr.Contains("Spawn Elemental"))
+		{
+			effect.type = BattleEffect::SPAWN_ELEMENTAL;
+			effect.element = GetElementByString(effectStr);
 		}
 		else 
 		{
-			/// Skip if no good effect was determined.
-			continue;
+			std::cout<<"\nUnidentified effect string: "<<effectStr;
+			/// Always add some shit. Add something ludicurous? lol.
+			effect.type = BattleEffect::BAD_TYPE;
+			assert(false && "Bad type");
+		}
+		if (effectStr.Contains("Return"))
+		{
+			effect.applyOnAttacker = true;
+			effect.attachToTarget = true;
 		}
 		switch(effect.type)
 		{
 			case BattleEffect::DECREASE:
 			case BattleEffect::INCREASE:
-			{
-				// Check next token.
-				effect.statType = GetStatByString(effectStr);
-				if (effect.statType == Stat::INVALID)
-					continue;
-				effect.argument = argument;
-				effects.Add(effect);
-			}
-			break;
+				{
+					// Check next token.
+					effect.statType = GetStatByString(effectStr);
+					if (effect.statType == Stat::INVALID)
+						continue;
+					effect.argument = argument;
+				}
+				break;
 		}
+		// Just add the effect without parsing anything else.
+		effects.Add(effect);
 	}
 
 	// Parse it one character at a time, since we have parenthesis and stuff? or..
@@ -374,7 +474,7 @@ bool RuneBattleAction::HasValidTargets()
 
 
 /// Applies all effects this spells should apply. If needed to re-apply multiple effects, this function should be called again until it returns true.
-bool RuneBattleAction::ApplyEffects(int timeInMs)
+bool RuneBattleAction::ApplyEffects(RBattleState & bs)
 {
 	bool allEffectsApplied = true;
 	for (int i = 0; i < effects.Size(); ++i)
@@ -383,7 +483,7 @@ bool RuneBattleAction::ApplyEffects(int timeInMs)
 		effect.applied = true;
 		for (int j = 0; j < targets.Size(); ++j)
 		{
-			effect.ApplyTo(targets[j]);
+			effect.ApplyTo(targets[j], subjects[0], bs);
 		}
 		if (!effect.applied)
 		{

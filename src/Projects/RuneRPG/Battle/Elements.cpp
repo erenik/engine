@@ -11,7 +11,7 @@ int GetElementByString(String str)
 		String elementName = GetElementString(i);
 		if (elementName.Length() == 0)
 			continue;
-		if (str.Contains(str))
+		if (str.Contains(elementName))
 			return i;
 	}	
 	return -1;
