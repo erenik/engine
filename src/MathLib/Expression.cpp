@@ -14,6 +14,20 @@ ExpressionResult::ExpressionResult(int type)
 	expressionResult = NULL;
 }
 
+/// Returns the result as a float.
+float ExpressionResult::GetFloat()
+{
+	switch(type)
+	{
+		case DataType::FLOAT:
+			return fResult;
+		case DataType::INTEGER:
+			return iResult;
+	}
+	return 0;
+}
+
+
 Expression::Expression()
 {
 	resultSymbol = NULL;
@@ -223,8 +237,8 @@ bool Expression::TryEvaluate()
 					return false;
 				switch(var->type)
 				{
-					case DataType::FLOAT:	sym.text = String(var->fData);	break;
-					case DataType::INTEGER:	sym.text = String(var->iData);	break;
+					case DataType::FLOAT:	sym.text = String(var->fValue);	break;
+					case DataType::INTEGER:	sym.text = String(var->iValue);	break;
 					default:
 						assert(false);
 						return false;

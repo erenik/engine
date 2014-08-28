@@ -17,6 +17,8 @@ class ExpressionResult
 public:
 	// Bad typ defualt constructor.
 	ExpressionResult(int type = -1);
+	/// Returns the result as a float.
+	float GetFloat();
 	/// Will be any of the defined enumerated constants in DataTypes.h
 	int type;
 	/// The result in text-form.

@@ -7,10 +7,30 @@
 
 #include "String/AEString.h"
 
+class RBattleState;
+class RuneBattler;
+
 class BattleEffect
 {
 public:
-	enum {
+	BattleEffect();
+
+	/** Applies this effect to target battler. 
+		This should eventually set the applied flag of this effect once all effects have 
+		been successfully applied or if the spell fails for some reason.
+		
+		Long-time buffs/debuffs are copied onto the target.
+	*/
+	virtual void ApplyTo(RuneBattler * targetBattler);
+	/// Adjusts the stat as the effect dictates. Which stat should be re-calculated using this is set in statType (see BattleStats.h for enum)
+	int AdjustedStat(int baseStatValue);
+
+	/// Called each frame when the battler it is attached to is being processed. Returns false when it should be removed from the battler.
+	bool Process(RBattleState & battleState);
+
+
+	enum 
+	{
 		INCREASE, // Constant or relative adjustments
 		DECREASE,
 		ADD_DAMAGE, // E.g. Enfire, adds elemental damage on a per-attack basis.
@@ -30,7 +50,11 @@ public:
 	/// Most effect have some arguments which are then passed to the equation.
 	String argument;
 
-	/// Because MS is cool.
+	/// For increase/decrease stats, holds the value applied when calling AdjustedStat
+	int constantAdjustment;
+//	float relativeAdjustment;
+
+	/// ..
 	enum durations
 	{
 		// Positive values are milliseconds.
@@ -38,6 +62,11 @@ public:
 		PERMANENT = -1,
 	};
 	int durationInMs;
+	/// Starts at 0, increments when Process() is called.
+	int timeAttached;
+
+	/// When the effect is to be applied by a spell, set to true once it has been successfully and fully been applied.
+	bool applied;
 };
 
 

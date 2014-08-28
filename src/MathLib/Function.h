@@ -14,12 +14,23 @@ class Function
 {
 public:
 	Function();
+	/// Returns false if no symbols are presented or if there are semantic errors.
+	bool Good();
+	
+	/** Loads functions to be used from target file. Each row is considered one function usually.
+		Returns amount of functions loaded.
+	*/
+	static int LoadFunctions(String fromFile);
+
 	/** Functions from text. 
 		A regular expression is expected in the form of "a = bx + c" or "f(x) = ax + m".
 
 		Returns false if there exists any errors in the function, i.e. semantic errors such as lacking parenthesis.
+		Loaded functions are stored within the loadedFunctions list.
 	*/
 	bool LoadFunction(String fromText);
+	/// Fetches a function by name. The name is defined as the part to the left of the equals-sign.
+	static Function GetFunctionByName(String name);
 
 	/// Evaluates the function with no additional arguments.
 	ExpressionResult Evaluate();
@@ -29,6 +40,8 @@ public:
 	/// E.g. "f(x)" in the case of "f(x) = ax + m".
 	String returnName;
 
+	/// List of loaded functions.
+	static List<Function> loadedFunctions;
 private:
 	
 	/// If the expression is ok.

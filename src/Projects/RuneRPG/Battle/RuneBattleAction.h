@@ -8,11 +8,14 @@
 #include "String/AEString.h"
 #include "System/DataTypes.h"
 #include "BattleEffect.h"
+#include "RuneBattle.h"
 
 class RuneBattler;
+class BattleAnimation;
 
 #ifndef TARGET_FILTER_H
 #define TARGET_FILTER_H
+
 /// For target filtering
 namespace TargetFilter 
 { 
@@ -51,9 +54,6 @@ class RuneBattleAction
 {
 public:
     RuneBattleAction();
-
-	/// Will depend on the filter.
-	bool HasValidTargets();
     /// Sets relevant vars and pointers to 0/NULL upon creation.
 	void Nullify();
 	virtual ~RuneBattleAction();
@@ -63,11 +63,14 @@ public:
 	/// wat. this really needed anymore?
 	/*
     virtual void OnBegin(BattleState & battleState);
-    /// Should return true once the action (including animation, sound etc.) has been finished.
-    virtual bool Process(BattleState & battleState);
     virtual void OnEnd(BattleState & battleState);
 	*/
 
+	/// First calling of the action when adding it to the list of active battle actions for a battler.
+    virtual void OnBegin(RBattleState & battleState);
+	/// Should return true once the action (including animation, sound etc.) has been finished.
+    virtual void Process(RBattleState & battleState);
+    
 	String name;
 	String id;
 	String source;
@@ -88,9 +91,9 @@ public:
 	int actionCost;
 
 	/// Time in seconds that the participant is frozen for. This time starts when the animation starts.
-	float freezeTime;
+	float freezeTimeInSeconds;
 	/// The time in seconds before the action or spell's effect begins. Interruptions may occur before this time has ended.
-	float castTime;
+	float castTimeInSeconds;
 
 	/// Checks for a name and stuff.
 	bool IsValid();
@@ -104,13 +107,40 @@ public:
 
 	void SetElements(String toParse);
 
+	/// Will depend on the filter.
+	bool HasValidTargets();
+
 	/// Which elements are associated with this spell.
 	List<int> elements;
 	
 	List<BattleEffect> effects;
 
 
+	/// When true, spell cast time has elapsed.
+	bool casted;
+	/// When true, the player is free to start casting his next spells or perform whatever action is queued up.
+	bool freezeTimeOver;
+	/// When true, remove the spell from the list of active actions and delete it.
+	bool finished;
+
+	/// Starts at 0, increments with the milliseconds as specified in the BattleState when Process is called.
+	int millisecondsProcessed;
+	/// Starts at 0, starts increasing after the animations begin when the casting time finishes.
+	int millisAnimated;
+
+	RuneBattler * primarySubject;
+	RuneBattler * primaryTarget;
+
 protected:
+
+	/// Applies all effects this spells should apply. If needed to re-apply multiple effects, this function should be called again until it returns true.
+	bool ApplyEffects(int timeInMs);
+
+	/// Set to true once all effects have been applied.
+	bool allEffectsApplied;
+
+	/// 
+	List<BattleAnimation *> animationSequences;
 
 	void EvaluateLine(String line);
 	void PhysicalDamage(String line);
@@ -123,8 +153,6 @@ private:
 
 	/// Set during processing.
 	String narr;
-	RuneBattler * primarySubject;
-	RuneBattler * primaryTarget;
 	bool died;
 	// Start time of the action?
     int64 startTime;

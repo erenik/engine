@@ -4,6 +4,16 @@
 
 #include "RuneBattle.h"
 #include "File/File.h"
+#include "MathLib/Function.h"
+
+/// Loads the expressions/functions/equations for battle from target file.
+void RuneBattle::LoadBattleFunctions(String fromSource)
+{
+	int loaded = Function::LoadFunctions(fromSource);
+	std::cout<<"\n"<<loaded<<" battle-functions loaded.";
+	assert(loaded);
+}
+
 
 bool RuneBattle::Load(String fromSource)
 {

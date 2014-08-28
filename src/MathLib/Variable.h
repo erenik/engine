@@ -26,8 +26,8 @@ public:
 	int type;
 
 	/// Some common variable data types.
-	float fData;
-	int iData;
+	float fValue;
+	int iValue;
 
 };
 

@@ -340,13 +340,13 @@ void RuneBattleState::CreatePartyUI()
 		UIElement * hp = new UIElement();
 		hp->name = "Player" + STRINT(i) + "HP";
 		hp->textColor = textColor;
-		hp->text = "HP: "+String::ToString(rb->maxHP)+"/"+String::ToString(rb->hp);
+		hp->text = "HP: "+String::ToString(rb->HP())+"/"+String::ToString(rb->MaxHP());
 		hp->sizeRatioX = 0.2f;
 		ui->AddChild(hp);
 
 		UIElement * mp = new UIElement();
 		mp->textColor = textColor;
-		mp->text = "MP: "+String::ToString(rb->maxMP)+"/"+String::ToString(rb->mp);
+		mp->text = "MP: "+String::ToString(rb->MP())+"/"+String::ToString(rb->MaxMP());
 		mp->sizeRatioX = 0.2f;
 		ui->AddChild(mp);
 
@@ -385,7 +385,7 @@ RuneBattler * RuneBattleState::GetIdlePlayer()
 
 void RuneBattleState::Process(int timeInMs)
 {
-	/// Process key input for navigating the 3D - Space
+	/// Process key input <- ?
 	Sleep(10);
  
 	if (paused)
@@ -395,11 +395,14 @@ void RuneBattleState::Process(int timeInMs)
 	bs.battlers = battlers;
 	bs.timeInMs = timeInMs;
 
-	// Process all battlers.
+	// Process all battlers, as well as their attached effects and active actions.
 	for (int i = 0; i < battlers.Size(); ++i)
 	{
 		RuneBattler * rb = battlers[i];
 		rb->Process(bs);
+		/// Narrate as needed.
+		if (bs.log.Length())
+			Graphics.QueueMessage(new GMSetUIs("Narrator", GMUI::TEXT, bs.log));
 	}
 
 	/// Check if commands window is opened.
@@ -553,6 +556,11 @@ void RuneBattleState::ProcessMessage(Message * message)
 			else if (string == "interpret_console_Command"){
 				StateMan.ActiveState()->InputProcessor(INTERPRET_CONSOLE_COMMAND);
 				return;
+			}
+			/// Sent when pressing Pause/Break or optionally ALT+P if that is defined in this game state?
+			else if (string == "Pause/Break")
+			{
+				paused = !paused;
 			}
 			else if (msg.Contains("LoadBattle("))
 			{
@@ -1240,11 +1248,11 @@ void RuneBattleState::UpdatePlayerHPUI()
 	for (int i = 0; i < playerBattlers.Size(); ++i)
 	{
 		RuneBattler * playerBattler = playerBattlers[i];
-		int hp = playerBattler->hp;
-		int maxHP = playerBattler->maxHP;
+		int hp = playerBattler->HP();
+		int maxHP = playerBattler->MaxHP();
 		float ratio = hp / (float) maxHP;
 		String uiName = "Player"+STRINT(i)+"HP";
-		Graphics.QueueMessage(new GMSetUIs(uiName, GMUI::TEXT, "HP: "+STRINT(playerBattler->hp)+"/"+STRINT(playerBattler->maxHP)));
+		Graphics.QueueMessage(new GMSetUIs(uiName, GMUI::TEXT, "HP: "+STRINT(hp)+"/"+STRINT(maxHP)));
 		if (ratio < 0.25f)
 			Graphics.QueueMessage(new GMSetUIv3f(uiName, GMUI::TEXT_COLOR, Vector3f(1.f, 0.f, 0.f)));
 		else if (ratio < 0.5f)
@@ -1269,7 +1277,6 @@ void RuneBattleState::CreateDefaultBindings(){
 	/// Create default bindings
 
 	mapping->CreateBinding("ToggleBattleLog", KEY::L);
-
 
 	// old shit
     mapping->CreateBinding(PRINT_BATTLER_ACTIONS, KEY::P, KEY::B, "Print battler actions");

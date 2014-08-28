@@ -6,6 +6,8 @@
 
 #include "String/AEString.h"
 #include "RuneBattle.h"
+#include "BattleEffect.h"
+#include "MathLib/Variable.h"
 
 class Entity;
 class RuneBattleAction;
@@ -19,6 +21,9 @@ public:
 	/// from 0 to 4, 0 being player, 1-3 being enemies 1-3
 	RuneBattler(int defaultTypes);
 	virtual ~RuneBattler();
+
+	/// Adds the Attack, Item and Flee commands.
+	void AddDefaultActions();
 
 	/// Increments action points and other stuff according to current effects.
 	/// For AI, it will also queue up actions accordingly to the state of the battle at large.
@@ -40,6 +45,9 @@ public:
 	
 	/// Sets MP/HP to max, etc.
 	virtual void ResetStats();
+
+	/// Returns a list of variables containing each stat using their specified short-name, taken into consideration all effects that have been applied.
+	List<Variable> GetCurrentStats();
 
 	/// Take damage o-o
 	bool Damage(int dmg);
@@ -64,18 +72,24 @@ public:
 	/// Shield defense modifier, including buffs/debuffs. Will mostly vary within the 0.0 to 20.0 interval.
 	float ShieldDefenseModifier();
 
+	/// Returns the base-stat variable containing HP, so that it may be adjusted.
+	Variable * GetHP();
+
 	/// Returns current HP, including buffs/debuffs.
 	int HP();
-	/// Returns current Attack power, including buffs/debuffs.
-	int AttackPower();
-	/// Returns current physical and magical defense power, including buffs/debuffs.
-	int DefensePower();
-	/// Returns current offensive magical power, including buffs/debuffs applied to it.
-	int MagicPower();
-	/// Returns current agility, including buffs/debuffs.
-	int Agility();
-	/// Returns current speed, including buffs/debuffs.
-	int Speed();
+	int MaxHP();
+	int MP();
+	int MaxMP();
+	///// Returns current Attack power, including buffs/debuffs.
+	//int AttackPower();
+	///// Returns current physical and magical defense power, including buffs/debuffs.
+	//int DefensePower();
+	///// Returns current offensive magical power, including buffs/debuffs applied to it.
+	//int MagicPower();
+	///// Returns current agility, including buffs/debuffs.
+	//int Agility();
+	///// Returns current speed, including buffs/debuffs.
+	//int Speed();
 	/// Returns current amount of action points, floored.
 	int ActionPoints();
 
@@ -122,19 +136,33 @@ public:
 
 	/// List of currently queued actions.
 	List<RuneBattleAction*> queuedActions;
+	List<RuneBattleAction*> activeBattleActions;
+
+	/// Current effects applied to this battler, mostly buffs/debuffs.
+	List<BattleEffect> appliedEffects;
+
 
 	/// True for all non-players.
 	bool isAI;
 
+
+	/// All stats related to a battler! o.o See BattleStats.h for names, short names and the enum defining the list.
+	/// Base-stats define the permanent stats as gained by leveling up, etc, while the currentStats defines the stats as they currently look like.
+	List<Variable> baseStats;
+	/// Base-stats define the permanent stats as gained by leveling up, etc, while the currentStats defines the stats as they currently look like.
+	List<Variable> currentStats;
+
+	/// Updates all current stats. Should be called every time effects have been applied or any other change is done to the base-stats.
+	void UpdateCurrentStats();
+
+
 	// Some basic stats, maybe move them elsewhere? (Stat class/struct?)
-	int hp, mp;
-
-	int agility, magicPower, magicSkill, speed;
-
+//	int hp, mp;
+//	int agility, magicPower, magicSkill, speed;
 	/// Player stat, default 5. Max theoretical 405. Defines player's physical strength
-	int attackPower;
+//	int attackPower;
 	/// Player stat, default 5. Max theoretical 405. Defines player's physical and magical defense (reduces incoming damage)
-	int defensePower;
+//	int defensePower;
 	
 
 	/// These require further investigation later on!

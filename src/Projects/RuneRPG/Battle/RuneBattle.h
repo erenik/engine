@@ -10,15 +10,21 @@
 
 class RuneBattler;
 
-struct RBattleState
+class RBattleState
 {
-	int64 timeInMs;
+public:
+	/// Temporary log. May be modified by actions so that text is presented in either log-form of in-game.
+	String log;
+	int timeInMs;
 	List<RuneBattler*> battlers;
 };
 
 // To read in pre-defined battles from .txt or otherwise!
 struct RuneBattle
 {
+	/// Loads the expressions/functions/equations for battle from target file.
+	static void LoadBattleFunctions(String fromSource);
+
 	/// Parses data concerning this battle.
 	bool Load(String fromSource);
 

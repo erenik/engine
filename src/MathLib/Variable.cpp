@@ -18,12 +18,12 @@ Variable::Variable(String name)
 }
 
 Variable::Variable(String name, int iValue)
-	: name(name), iData(iValue), type(DataType::INTEGER)
+	: name(name), iValue(iValue), type(DataType::INTEGER)
 {
 }	
 
 Variable::Variable(String name, float fValue)
-	: name(name), fData(fValue), type(DataType::FLOAT)
+	: name(name), fValue(fValue), type(DataType::FLOAT)
 {
 
 }

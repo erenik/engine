@@ -329,26 +329,26 @@ endmacro(addProject)
 # Create our projects
 set(runeRPGFolders "Projects/RuneRPG")
 addProject("RuneRPG" runeRPGFolders)
-set(musicPlayerFolders "Projects/MusicPlayer")
-addProject("MusicPlayer" musicPlayerFolders)
-set (sideScrollerFolders "Projects/SideScroller")
-addProject("SideScroller" sideScrollerFolders)
-set(spaceRaceFolders "Projects/SpaceRace")
-addProject("SpaceRace" spaceRaceFolders)
+# set(musicPlayerFolders "Projects/MusicPlayer")
+# addProject("MusicPlayer" musicPlayerFolders)
+# set (sideScrollerFolders "Projects/SideScroller")
+# addProject("SideScroller" sideScrollerFolders)
+# set(spaceRaceFolders "Projects/SpaceRace")
+# addProject("SpaceRace" spaceRaceFolders)
 
-set(horrorFolders "Projects/Horror")
-addProject("Horror" horrorFolders)
+# set(horrorFolders "Projects/Horror")
+# addProject("Horror" horrorFolders)
 
-set(aircraftFolders "Projects/Aircraft")
-addProject("Aircraft" aircraftFolders)
+# set(aircraftFolders "Projects/Aircraft")
+# addProject("Aircraft" aircraftFolders)
 
-set(MORPGFolders "Projects/MORPG")
-addProject("MORPG" MORPGFolders)
+# set(MORPGFolders "Projects/MORPG")
+# addProject("MORPG" MORPGFolders)
 
-set(TIFSFolders "Projects/TIFS")
-addProject("TIFS" TIFSFolders)
+# set(TIFSFolders "Projects/TIFS")
+# addProject("TIFS" TIFSFolders)
 
-# Create our projects
-set(ipmFolders "Projects/IPM" "CV")
-addProject("IPM" ipmFolders)
+# # Create our projects
+# set(ipmFolders "Projects/IPM" "CV")
+# addProject("IPM" ipmFolders)
 

@@ -79,6 +79,7 @@ void RuneGlobalState::OnEnter(AppState * previousState)
 		TileTypes.CreateDefaultTiles();
 		PopulationManager::Allocate();
 
+		RuneBattle::LoadBattleFunctions("data/Equations.txt");
 	}
 	// Load grid object types.
 	GridObjectTypeMan.SetSavePath("data/Map/objects.dat");

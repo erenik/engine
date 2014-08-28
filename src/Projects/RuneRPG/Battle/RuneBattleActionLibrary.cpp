@@ -165,9 +165,9 @@ bool RuneBattleActionLibrary::LoadSpellsFromCSV(String fileName)
 			else if (column.Contains("Effect"))
 				spell->ParseEffects(value);
 			else if (column.Contains("Freeze time"))
-				spell->freezeTime = value.ParseFloat();
+				spell->freezeTimeInSeconds = value.ParseFloat();
 			else if (column.Contains("Cast time"))
-				spell->castTime = value.ParseFloat();
+				spell->castTimeInSeconds = value.ParseFloat();
 			else if (column.Contains("Duration"))
 				spell->ParseDurations(value);
 			else 
