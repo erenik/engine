@@ -26,7 +26,7 @@ void GraphicsManager::RenderCapture()
 		glReadPixels(0, 0, windowSize.x, windowSize.y, GL_RGBA, GL_UNSIGNED_BYTE, frame->data);
 		// Flip it.
 	//	frame.FlipXY();
-		frame->FlipY();
+	//	frame->FlipY();
 		
 		String dirPath = "output/screenshots";
 		if (!PathExists(dirPath))

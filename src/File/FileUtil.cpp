@@ -131,9 +131,9 @@ int GetDirectoriesInDirectory(String directory, List<String> & dirs){
 #endif
 }
 
-/** Getting directories~
+/** Getting files in target directory.
+	The Result list will contain the names of each file in the directory, not including the directory path.
 	Returns 1 upon success, 0 if there is no such directory.
-	Results will be added to the result-list provided.
 */
 int GetFilesInDirectory(String directory, List<String> & files)
 {

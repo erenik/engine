@@ -55,6 +55,8 @@ void main(void)
 	gl_FragColor += vec4(position.x / 20000, position.y / 12000, position.z / 40, 0)*1.0;
 	gl_FragColor *= primaryColorVec4;
 	gl_FragColor += highlightColorVec4;
+	
+//	gl_FragColor.x = 1;
 //	gl_FragColor = vec4(0,0,0,1);
 //	return;
 	

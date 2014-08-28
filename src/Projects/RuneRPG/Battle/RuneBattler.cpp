@@ -10,6 +10,7 @@
 #include "RuneBattleAction.h"
 #include "Battle/BattleManager.h"
 #include "File/File.h"
+
 #include "RuneBattleActionLibrary.h"
 
 #include "Maps/MapManager.h"
@@ -25,16 +26,23 @@
 
 #include "Random/Random.h"
 
-RuneBattler::RuneBattler() : Battler()
+RuneBattler::RuneBattler()
 {
 	Nullify();
 }
 
 RuneBattler::~RuneBattler()
 {
-	this->actions.ClearAndDelete();
+	actions.ClearAndDelete();
+	queuedActions.ClearAndDelete();
+	actionCategories.ClearAndDelete();
 }
 
+/// Queues a new battle action to be executed when possible.
+void RuneBattler::QueueAction(RuneBattleAction * rba)
+{
+	queuedActions.Add(rba);
+}
 
 /// Creates the Entity to animate and visualize this battler while in action.
 void RuneBattler::CreateEntity()
@@ -80,7 +88,7 @@ void RuneBattler::Nullify()
 	weaponDamage = spellDamage = 1;
 	magicArmor = magicPower = magicSkill = spellDamage = 0;
 //	initiative = 1000;
-	state = BattlerState::WAITING_FOR_INITIATIVE;
+	state = IDLE;
 
 	/// Default stats start always at 5.
 	attackPower = 
@@ -101,7 +109,6 @@ void RuneBattler::Nullify()
 
 /// from 0 to 4, 0 being player, 1-3 being enemies 1-3
 RuneBattler::RuneBattler(int defaultTypes) 
-: Battler()
 {
 	Nullify();
 	switch(defaultTypes){
@@ -149,7 +156,7 @@ RuneBattler::RuneBattler(int defaultTypes)
 /// If dead, for example, it is not.
 bool RuneBattler::IsARelevantTarget()
 {
-	if (this->state == BattlerState::INCAPACITATED ||
+	if (this->state == RuneBattler::DEAD ||
 		this->unconscious == true)
 		return false;
 	return true;
@@ -163,37 +170,35 @@ void RuneBattler::RecalculateActionPointsFillUpSpeed()
 	std::cout<<"Action points fill up speed per millisecond recalculated to: "<<this->actionPointsFillUpSpeed;
 }
 
-
-void RuneBattler::Process(BattleState &battleState)
+/// Increments action points and other stuff according to current effects.
+/// For AI, it will also queue up actions accordingly to the state of the battle at large.
+void RuneBattler::Process(RBattleState & battleState)
 {
 	// Woo!
-	if (state == BattlerState::INCAPACITATED ||
+	if (state == RuneBattler::DEAD ||
 		unconscious == true)
 		return;
 
     /// Check state, has it queued an action yet?
-	if (state == BattlerState::WAITING_FOR_INITIATIVE)
+	if (state == RuneBattler::IDLE)
 	{
 		if (this->actionPointsFillUpSpeed == 0)
 			this->RecalculateActionPointsFillUpSpeed();
 
-		this->actionPoints += actionPointsFillUpSpeed * battleState.timeDiff;
-        if (actionPoints >= 100){
-			if (!isAI){
-				Message * msg = new Message(MessageType::STRING);
-				msg->msg = "BattlerReady("+this->name+")";
-				msg->data = (char*)this;
-				MesMan.QueueMessage(msg);
-			}
-			actionPoints = 100;
-			state = BattlerState::IDLE;
-        }
-    }
+		this->actionPoints += actionPointsFillUpSpeed * battleState.timeInMs;
+		// Use some other boolean to just signify that the menu should be opened..
+		/*
+		Message * msg = new Message(MessageType::STRING);
+		msg->msg = "BattlerReady("+this->name+")";
+		msg->data = (char*)this;
+		MesMan.QueueMessage(msg);
+		*/
+	}
 
     /// Process status-effects.
 
     /// Return if no AI.
-	if (!isAI || state != BattlerState::IDLE)
+	if (!isAI || state != RuneBattler::IDLE)
         return;
 
 	/// Queue up an action, random ones work fine.
@@ -204,10 +209,19 @@ void RuneBattler::Process(BattleState &battleState)
 		if (!UpdateActions())
 			return;
 	}
-	BattleAction * ba = actions[rand()%actions.Size()];
+	RuneBattleAction * ba = actions[rand()%actions.Size()];
 	RuneBattleAction * rba = new RuneBattleAction(*ba);
 	rba->subjects = this;
-	RuneBattler * b = (RuneBattler*)BattleMan.RandomTarget(rba->targetFilter, this);
+	/// Fine applicable targets..
+	List<RuneBattler*> applicableTargets;
+	for (int i = 0; i < battleState.battlers.Size(); ++i)
+	{
+		RuneBattler * rb = battleState.battlers[i];
+		if (rb->isEnemy != this->isEnemy)
+			applicableTargets.Add(rb);
+	}
+	/// Then just randomize 1 for now.
+	RuneBattler * b =  applicableTargets[rand()%applicableTargets.Size()];
 	if (b)
 		rba->targets.Add(b);
 	/// What if no valid targets?
@@ -217,22 +231,24 @@ void RuneBattler::Process(BattleState &battleState)
 		delete rba;
 		return;
 	}
-	BattleMan.QueueAction(rba);
-	state = BattlerState::PREPARING_ACTION;
-
+	queuedActions.Add(rba);
+	state = RuneBattler::PREPARING_FOR_ACTION;
     /// Since no good AI atm, return.
     return;
 }
 
 void RuneBattler::OnActionFinished()
 {
-	state = BattlerState::WAITING_FOR_INITIATIVE;
+	if (queuedActions.Size())
+		state = RuneBattler::PREPARING_FOR_ACTION;
+	else
+		state = RuneBattler::IDLE;
 }
 
-/// Checks the initiative-parameter!
+/// Returns true if no actions are queued, false if not.
 bool RuneBattler::IsIdle()
 {
-	if (state == BattlerState::IDLE)
+	if (queuedActions.Size() == 0)
         return true;
     return false;
 }
@@ -283,13 +299,39 @@ bool RuneBattler::UpdateActions()
 	for (int i = 0; i < actionNames.Size(); ++i)
 	{
 		String name = actionNames[i];
+		name.SetComparisonMode(String::NOT_CASE_SENSITIVE);
+		/// Special cases
+		if (name == "All spells")
+		{
+			// Create a copy of each spell!
+			List<RuneBattleAction*> spells = RBALib.GetSpells();
+			for (int j = 0; j < spells.Size(); ++j)
+				actions.Add(new RuneBattleAction(*spells[j]));
+			continue;
+		}
+
 		const RuneBattleAction * action = RBALib.GetBattleAction(name);
 		if (action)
-			this->AddActions(new RuneBattleAction(*action));
+			actions.Add(new RuneBattleAction(*action));
 	}
 	if (actions.Size())
 		return true;
 	return false;
+}
+
+/// Divides the actions into categories depending on the given scheme.
+void RuneBattler::UpdateActionCategories(int usingSortingScheme)
+{
+	actionCategories.ClearAndDelete();
+	// Default scheme! no categories! :D
+	for (int i = 0; i < actions.Size(); ++i)
+	{
+		RuneBattleAction * action = actions[i];
+		RuneBattleActionCategory * cat = new RuneBattleActionCategory();
+		cat->name = action->name;
+		cat->isAction = action;
+		actionCategories.Add(cat);
+	}
 }
 
 /// Average armor rating of all equipment pieces, including buffs/debuffs. Will mostly vary within the 1.0 to 20.0 interval.
@@ -423,17 +465,14 @@ void RuneBattler::OnKO()
 	// Reset some variables.
 	hp = 0;
 	unconscious = true;
-	state = BattlerState::INCAPACITATED;
+	state = RuneBattler::DEAD;
 
 	/// Queue a message of the event to the game state.
 	MesMan.QueueMessage(new Message("OnBattlerIncapacitated("+name+")"));
 	
-	// Notify all queued actions to be halted.
-	for (int i = 0; i < this->actionsQueued.Size(); ++i)
-	{
-		BattleAction * ba = actionsQueued[i];
-		ba->Cancel();
-	}
+	// Notify all queued actions to be halted. -> Delete 'em.
+	queuedActions.ClearAndDelete();
+
 	/// If we got a visible entity, animate it for death.
 	if (entity)
 	{
@@ -475,7 +514,7 @@ bool RuneBattler::Load(String source)
 		}
 		else if (inputMode == ACTIONS)
 		{
-			this->actionNames.Add(key);
+			this->actionNames.Add(line);
 		}
 
 	

@@ -6,10 +6,12 @@
 #include "Graphics/GraphicsManager.h"
 #include "Viewport.h"
 #include "OS/Sleep.h"
+
 #include "UI/UITypes.h"
 #include "UI/UIList.h"
-#include "UI/UIInput.h"
+#include "UI/UIInputs.h"
 #include "UI/DataUI/UIMatrix.h"
+
 #include "Input/InputManager.h"
 #include "StateManager.h"
 #include "Message/MessageManager.h"

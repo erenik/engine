@@ -3,7 +3,11 @@
 
 #include "RuneBattleAction.h"
 #include "RuneBattler.h"
+#include "BattleStats.h"
+
 #include "Timer/Timer.h"
+
+#include "Elements.h"
 
 #include "Graphics/GraphicsManager.h"
 #include "Graphics/Messages/GMUI.h"
@@ -18,20 +22,14 @@
 
 Random random;
 
+RuneBattleActionCategory::RuneBattleActionCategory()
+{
+	isAction = NULL;
+};
+
 RuneBattleAction::RuneBattleAction() 
-: BattleAction()
 {
-    //ctor
-    className = "RuneBattleAction";
-
 	/// 2 seconds duration default.
-	duration = 2000;
-	Nullify();
-}
-
-RuneBattleAction::RuneBattleAction(const BattleAction & ref): BattleAction(ref)
-{
-    /// Initialize the rest.
 	Nullify();
 }
 
@@ -59,6 +57,9 @@ void RuneBattleAction::Nullify()
 	primarySubject = NULL;
 
 	spellPower = 0;
+	
+	/// Default is 1 enemy, okay?
+	targetFilter = TargetFilter::ENEMY;
 }
 
 RuneBattleAction::~RuneBattleAction()
@@ -69,6 +70,8 @@ RuneBattleAction::~RuneBattleAction()
 /// Based on the one in BattleAction?
 bool RuneBattleAction::Load(String fromFile)
 {
+	assert(false);
+	/*
 	/// First load basic stuff.
 	bool ok = BattleAction::Load(fromFile);
 	/// Then load specific stuff for runeRPG in it.
@@ -86,70 +89,10 @@ bool RuneBattleAction::Load(String fromFile)
 		if (key.Contains("SpellPower"))
 			this->spellPower = value.ParseFloat();
 	}
+	*/
+	bool ok = false;
 	return ok;
 }
-
-
-void RuneBattleAction::OnBegin(BattleState & battleState)
-{
-	/// Set start time
-	startTime = Timer::GetCurrentTimeMs();
-	/// See if we've got a duration saved somewhere.
-	for (int i = 0; i < this->onBegin.Size(); ++i)
-	{
-		String line = this->onBegin[i];
-		EvaluateLine(line);
-	}
-}
-
-/// Should return true once the action (including animation, sound etc.) has been finished.
-bool RuneBattleAction::Process(BattleState & battleState)
-{
-	int64 time = Timer::GetCurrentTimeMs();
-	if (time - startTime > duration)
-		return true;
-	return false;
-}
-
-void RuneBattleAction::OnEnd(BattleState & battleState)
-{
-	// Remove it from it's subject's queue if not done so already. (some spells may continue after "casting" is done, and may not be present here then).
-	for (int i = 0; i < subjects.Size(); ++i)
-	{
-		RuneBattler * subject = subjects[i];
-		subject->actionsQueued.Remove(this);
-		subject->OnActionFinished();
-	}	
-	narr = String();
-	String str;
-	primarySubject = subjects[0];
-	if (!primarySubject)
-		return;
-
-	if (targets.Size())
-	{
-		primaryTarget = targets[0];
-	}
-	if (!primaryTarget)
-		return;
-	died = false;
-    for (int i = 0; i < onEnd.Size(); ++i)
-	{
-        String s = onEnd[i];
-        EvaluateLine(s);
-    }
-	if (died){
-		Narrate(primaryTarget->name+" is KO'd!");
-	}
-	if (!primaryTarget->isAI)
-		MesMan.QueueMessage(new Message("OnAttackPlayers()"));
-
-	/// Send the stringstream's characters to the narrator!	
-	if (narr.Length())
-		Narrate(narr);
-}
-
-
 
 void RuneBattleAction::EvaluateLine(String line)
 {
@@ -365,3 +308,146 @@ void RuneBattleAction::Narrate(String line)
 {
 	Graphics.QueueMessage(new GMSetUIs("Narrator", GMUI::TEXT, line));
 }
+
+/// Checks for a name and stuff.
+bool RuneBattleAction::IsValid()
+{
+	if (name.Length() <= 0)
+		return false;
+	return true;
+}
+
+/// Parses a string with targets as defined in a CSV file. E.g. "Ally Select 1"
+void RuneBattleAction::ParseTargets(String fromTargetString)
+{
+	/// If-else should do.
+	if (fromTargetString.Contains("Select 1"))
+		targetFilter = TargetFilter::ENEMY;
+	else if (fromTargetString.Contains("Self"))
+		targetFilter = TargetFilter::SELF;
+	else if (fromTargetString.Contains("World"))
+		targetFilter = TargetFilter::POINT;
+	/*
+	List<String> toks = fromString.Tokenize(" ");
+	for (int i = 0; i < toks.Size(); ++i)
+	{
+
+		// spell->SetTargetFilterByString(word);
+	}
+	*/
+}	
+
+void RuneBattleAction::ParseElements(String fromString)
+{
+	List<String> toks = fromString.Tokenize(" ");
+	for (int i = 0; i < toks.Size(); ++i)
+	{
+		// spell->SetTargetFilterByString(word);
+	}	
+}
+
+void RuneBattleAction::ParseDurations(String fromString)
+{
+	// Get latest effect and set duration for it.
+	if (effects.Size() == 0)
+	{
+	//	std::cout<<"\nNo effect to attach duration to!";					
+		return;
+	}
+
+	List<String> tokens = fromString.Tokenize(" ");
+	/// Poke Karl about this... easier parsing would be nice.
+
+//	BattleEffect & effect = spell->effects.Last();
+//	effect.durationInMs = BattleEffect::INSTANTANEOUS; // GetDurationByString(word);
+
+}
+
+void RuneBattleAction::ParseEffects(String fromString)
+{
+	List<String> tokens = fromString.Tokenize(" ");
+	List<String> effectTokens = fromString.Tokenize("()");
+	// Add them one at a time.
+	for (int i = 0; i < effectTokens.Size(); i += 2)
+	{
+		String effectStr = effectTokens[i];
+		String argument;
+		if (effectTokens.Size() > i + 1)
+			argument = effectTokens[i+1];
+		effectStr.SetComparisonMode(String::NOT_CASE_SENSITIVE);
+		BattleEffect effect;
+		if (effectStr.Contains("Increase"))
+		{
+			effect.type = BattleEffect::INCREASE;
+		}
+		else if (effectStr.Contains("Add Damage"))
+		{
+			effect.type = BattleEffect::ADD_DAMAGE;
+			/// Parse element here too then.
+			effect.element = GetElementByString(effectStr);
+		}
+		else if (effectStr.Contains("Damage"))
+		{
+			effect.type = BattleEffect::DAMAGE;
+			effect.element = GetElementByString(effectStr);
+		}
+		else 
+		{
+			/// Skip if no good effect was determined.
+			continue;
+		}
+		switch(effect.type)
+		{
+			case BattleEffect::DECREASE:
+			case BattleEffect::INCREASE:
+			{
+				// Check next token.
+				effect.statType = GetStatByString(effectStr);
+				if (effect.statType == Stat::INVALID)
+					continue;
+				effect.argument = argument;
+				effects.Add(effect);
+			}
+			break;
+		}
+	}
+
+	// Parse it one character at a time, since we have parenthesis and stuff? or..
+	/*
+	// Create a new effect!
+	Effect * effect = new Effect();
+	effect->SetType(value);
+	spell->effects.Add(effect);
+	*/
+}
+
+void RuneBattleAction::ParseOtherCosts(String fromString)
+{
+	// o.o
+}
+
+void RuneBattleAction::SetElements(String toParse)
+{
+	elements.Clear();
+	toParse.SetComparisonMode(String::NOT_CASE_SENSITIVE);
+	if (toParse.Contains("Fire"))
+		elements.Add(Element::FIRE);
+	if (toParse.Contains("Water"))
+		elements.Add(Element::WATER);
+	if (toParse.Contains("EARTH"))
+		elements.Add(Element::EARTH);
+	if (toParse.Contains("AIR"))
+		elements.Add(Element::AIR);
+	
+	if (toParse.Contains("CHAOS"))
+		elements.Add(Element::CHAOS);
+	if (toParse.Contains("BALANCE"))
+		elements.Add(Element::BALANCE);
+	if (toParse.Contains("LIFE"))
+		elements.Add(Element::LIFE);
+	if (toParse.Contains("DEATH"))
+		elements.Add(Element::DEATH);
+}
+
+
+

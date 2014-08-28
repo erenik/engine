@@ -6,7 +6,6 @@
 #include "RuneGlobalState.h"
 #include "UI/UserInterface.h"
 #include "Battle/BattleManager.h"
-#include "RuneRPG/Battle/RuneSpell.h"
 #include "Maps/Grids/TileTypeManager.h"
 #include "Script/Script.h"
 #include "Script/ScriptManager.h"
@@ -39,7 +38,7 @@ extern UserInterface * ui[GameStateID::MAX_GAME_STATES];
 #include "Graphics/Fonts/TextFont.h"
 
 #include "Maps/Grids/GridObject.h"
-#include "UI/UIInput.h"
+#include "UI/UIInputs.h"
 #include "RuneRPG/Network/RRPacket.h"
 #include "RuneRPG/PopulationManager.h"
 #include "RuneRPG/Battle.h"
@@ -72,15 +71,14 @@ void RuneGlobalState::OnEnter(AppState * previousState)
 		TileTypeManager::Allocate();
 
 		RuneBattleActionLibrary::Allocate();
+		/// Load from file!
+		RBALib.LoadSpellsFromCSV("data/spells.csv");
 
-		/// Spell-manager!
-		RuneSpellManager::Allocate();
+
 		// Enter some tile types into the manager
 		TileTypes.CreateDefaultTiles();
 		PopulationManager::Allocate();
 
-		/// Load from file!
-		RuneSpellMan.LoadFromCSV("data/spells.csv");
 	}
 	// Load grid object types.
 	GridObjectTypeMan.SetSavePath("data/Map/objects.dat");
@@ -108,7 +106,8 @@ void RuneGlobalState::OnExit(AppState * nextState)
 {
 	std::cout<<"\nLeaving RuneGlobalState state.";
 
-	if (BattleManager::IsAllocated()){
+	if (BattleManager::IsAllocated())
+	{
 	    BattleActionLibrary::Deallocate();
 		BattleManager::Deallocate();
 		RuneBattlerManager::Deallocate();

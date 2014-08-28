@@ -16,10 +16,16 @@ class NavMesh;
 class TileGrid2D;
 class Waypoint;
 
-class RuneBattleState : public RRGameState {
+/// cba place it elsewhere
+extern List<String> queuedBattles;
+
+class RuneBattleState : public RRGameState 
+{
 public:
 	RuneBattleState();
 	virtual ~RuneBattleState();
+	/// Singleton it for access to all functions.
+	static RuneBattleState * state;
 
 	void OnEnter(AppState * previousState);
 	/// Returns true upon success.
@@ -42,10 +48,15 @@ public:
 	void ProcessMessage(Message * message);
 
 private:
+	/// CBA to keep track of the BattleManager anymore.
+	List<RuneBattler*> battlers;
+
+
 	/// Gets target battlers
 	RuneBattler * GetBattler(String byName);
 	/// Gets all active battlers
 	List<RuneBattler*> GetBattlers();
+	List<RuneBattler*> GetPlayerBattlers();
 	/// Gets all active battlers by filtering string. This can be comma-separated names of other kinds of specifiers.
 	List<RuneBattler*> GetBattlers(String byFilter);
 

@@ -4,11 +4,14 @@
 #ifndef RUNE_BATTLER_H
 #define RUNE_BATTLER_H
 
-#include "Battle/Battler.h"
+#include "String/AEString.h"
+#include "RuneBattle.h"
 
 class Entity;
+class RuneBattleAction;
+class RuneBattleActionCategory;
 
-class RuneBattler : public Battler 
+class RuneBattler
 {
 	friend class RuneBattlerManager;
 public:
@@ -17,16 +20,24 @@ public:
 	RuneBattler(int defaultTypes);
 	virtual ~RuneBattler();
 
+	/// Increments action points and other stuff according to current effects.
+	/// For AI, it will also queue up actions accordingly to the state of the battle at large.
+	void Process(RBattleState & battleState);
+
+	/// Queues a new battle action to be executed when possible.
+	void QueueAction(RuneBattleAction * rba);
+
 	/// Creates the Entity to animate and visualize this battler while in action. Will add the entity to the active map straight away (using MapMan.CreateEntity())
 	void CreateEntity();
 
 	/// If dead, for example, it is not.
 	virtual bool IsARelevantTarget();
 
-	virtual void Process(BattleState &battleState);
 	virtual void OnActionFinished();
-    /// Checks the initiative-parameter!
+
+    /// Returns true if no actions are queued, false if not.
     virtual bool IsIdle();
+	
 	/// Sets MP/HP to max, etc.
 	virtual void ResetStats();
 
@@ -39,6 +50,8 @@ public:
 
 	/// Updates which actions it has available using the RuneBattleAction library...?
 	bool UpdateActions();
+	/// Divides the actions into categories depending on the given scheme.
+	void UpdateActionCategories(int usingSortingScheme);
 
 	/// Weapon damage, including buffs/debuffs. Will mostly vary within the 1.0 to 20.0 interval.
 	float WeaponDamage();
@@ -84,8 +97,34 @@ public:
 	bool Load(String fromFile);
 	String Source() const { return source; };
 
-	/// Name is inherited from Battler
-    /// String name;
+	/// o.o
+    String name;
+	String source;
+
+	enum {
+		IDLE,
+		PREPARING_FOR_ACTION,
+		CASTING,
+		EXECUTING_ACTION,
+		DEAD,
+	};
+	/// Current state. See enum above.
+	int state;
+
+	/// When initializing/loading, the battle actions known to the battler will be stored here. Assumes unique action names.
+	List<String> actionNames;
+	List<RuneBattleAction*> actions;
+	/** For sorting the actions into categories. Exactly how the sorting is done will depend on current player settings.
+		Sorting schemes:
+		0 - No sorting. No categories.
+	*/
+	List<RuneBattleActionCategory*> actionCategories;
+
+	/// List of currently queued actions.
+	List<RuneBattleAction*> queuedActions;
+
+	/// True for all non-players.
+	bool isAI;
 
 	// Some basic stats, maybe move them elsewhere? (Stat class/struct?)
 	int hp, mp;
@@ -138,7 +177,6 @@ public:
 	String animationSet;
 
 private:
-	String source;
 	/// Statuses and stuff
 	void Nullify();
 };

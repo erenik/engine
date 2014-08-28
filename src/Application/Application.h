@@ -27,6 +27,9 @@ namespace Application
 	extern bool queryOnQuit;
 	extern String name;
 
+	/// Controls the main loop of the program. Set to false from within the Deallocator-thread.
+	extern bool live;
+
 #ifdef WINDOWS
 
 #include "Windows.h"

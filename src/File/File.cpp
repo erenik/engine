@@ -72,10 +72,10 @@ std::fstream * File::Open(String path)
 	return &fileStream;
 }
 
-/// Static function to fetch all lines of text from a given file. 
-List<String> File::GetLines(String fromFile)
+/// Static function to fetch all contents of a file as if it were just one big string.
+String File::GetContents(String fromFile)
 {
-	List<String> lines;
+	String fileContents;
 	std::fstream file;
 	file.open(fromFile.c_str(), std::ios_base::in | std::ios_base::binary);
 	if (file.is_open())
@@ -88,14 +88,22 @@ List<String> File::GetLines(String fromFile)
 		file.seekg( 0, std::ios::beg);
 		file.read((char*) data, fileSize);
 		file.close();
-		String fileContents(data);
-		lines = fileContents.GetLines();
+		fileContents = String(data);
 	}
 	else 
 	{
 		file.close();
 		std::cout<<"\nFile::GetLines: Unable to open file: "<<fromFile;
 	}
+	return fileContents;
+}
+
+
+/// Static function to fetch all lines of text from a given file. 
+List<String> File::GetLines(String fromFile)
+{
+	String fileContents = GetContents(fromFile);
+	List<String> lines = fileContents.GetLines();
 	return lines;
 }
 

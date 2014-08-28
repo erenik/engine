@@ -10,8 +10,6 @@
 
 #include "DragAndDrop.h"
 
-#include "Graphics/GraphicsManager.h"
-
 /// List of active monitors.
 List<Monitor> monitors;
 
@@ -203,7 +201,10 @@ void Window::ToggleFullScreen()
 			WS_SIZEBOX |		// The window has a sizing border. Same as the WS_THICKFRAME style.
 			WS_SYSMENU |		// The window has a window menu on its title bar. The WS_CAPTION style must also be specified.
 			WS_THICKFRAME |		// The window has a sizing border. Same as the WS_SIZEBOX style.
-			WS_SYSMENU | WS_POPUP | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_VISIBLE | // Have no idea..
+			WS_SYSMENU | WS_POPUP | 
+		//	WS_CLIPCHILDREN |  // If parent window should not be re-drawn where child windows area..
+			WS_CLIPSIBLINGS | 
+			WS_VISIBLE | // Have no idea..
 			0;
 
 		/// If not resizable, de-flag it
@@ -282,7 +283,9 @@ void Window::ToggleFullScreen()
 		// Sets full-screen style if specified
 		SetWindowLongPtr(hWnd, GWL_STYLE,
 			WS_SYSMENU |
-			WS_POPUP | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_VISIBLE);
+			WS_POPUP | 
+		//	WS_CLIPCHILDREN | 
+			WS_CLIPSIBLINGS | WS_VISIBLE);
 		MoveWindow(hWnd, newMin.x, newMin.y, newSize.x, newSize.y, true);
 #elif defined LINUX
         XResizeWindow(display, window, Graphics.ScreenWidth(), Graphics.ScreenHeight());
@@ -306,7 +309,7 @@ void Window::SetDefaults()
 //		WS_VISIBLE | // Have no idea..
 //			WS_POPUP | WS_CLIPCHILDREN | WS_CLIPSIBLINGS |
 WS_CLIPSIBLINGS |
-WS_CLIPCHILDREN | 
+// WS_CLIPCHILDREN | 
 		0;
 
 	/// If not resizable, de-flag it
@@ -336,12 +339,10 @@ bool Window::Create()
 	wcscpy(szWindowClass, WindowMan.defaultWcx.lpszClassName);
 	
 	HWND parent = NULL;
-	if (
-		// false && 
-		!this->main && WindowMan.MainWindow())
+	if (!this->main && WindowMan.MainWindow())
 	{
 		std::cout<<"\nAdding as child to main window.";
-			parent = WindowMan.MainWindow()->hWnd;
+		parent = WindowMan.MainWindow()->hWnd;
 	}
 	
 
@@ -358,13 +359,18 @@ bool Window::Create()
 		position.y += parentRect.top;
 	}
 
+	bool useParenting = false;
+	if (!useParenting)
+		parent = NULL;
+
 	hWnd = CreateWindowExW(
 		dwExStyle,
 		szWindowClass, szTitle,
 		windowStyle,
 		position.x, position.y,
 		size.x, size.y,
-		parent, NULL,
+		parent, 
+		NULL,
 		Application::hInstance, NULL);
 /*	hWnd = CreateWindow(				// The parameters to CreateWindow explained:
 		szWindowClass,					// szWindowClass: the name of the application
@@ -586,14 +592,10 @@ UserInterface * Window::GetUI()
 /// Fetches the global (system) UI.
 UserInterface * Window::GetGlobalUI(bool fromRenderThread)
 {
-	if (!globalUI)
-	{
-		std::cout<<"\nTrying to get Global UI which is non-existant. Creating it for you.";
-		GraphicsMan.Pause();
+	if (!globalUI && fromRenderThread)
 		CreateGlobalUI();
-		GraphicsMan.Resume();
-	}
-	assert(globalUI && "Should have been created at start.");
+//	assert(globalUI && "Should have been created at start."); 
+	// BS. Create it if it's really needed.
 	return globalUI;	
 }
 

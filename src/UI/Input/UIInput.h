@@ -1,0 +1,73 @@
+/// Emil Hedemalm
+/// 2014-01-14
+/// Multi-purpose input element.
+
+#ifndef UI_INPUT_H
+#define UI_INPUT_H
+
+#include "UI/UIElement.h"
+
+/// Base class for input. Will yield control and process its onTrigger message once ENTER is pressed. Will only yield control if ESC is pressed.
+class UIInput : public UIElement 
+{
+public:
+	UIInput(String name = "");
+	virtual ~UIInput();
+
+	/** Called by OS-functions to query if the UI wants to process drag-and-drop files. If so the active element where the mouse is hovering may opt to do magic with it.
+		If no magic, or action, is taken, it will return false, at which point the game state should be called to handle general drag-and-drop files.
+	*/
+	virtual bool HandleDADFiles(List<String> files);
+
+	// When clicking/Enter pressed on keyboard.
+	virtual UIElement * Click(int mouseX, int mouseY);
+	// When button is released.
+	virtual UIElement * Activate();
+
+
+	// Used for handling things like drag-n-drop and copy-paste operations, etc. as willed.
+	virtual void ProcessMessage(Message * message);
+
+	/// Calls UIElement::SetText in addition to setting the editText to the same value if force is true.
+	virtual void SetText(Text newText, bool force = false);
+
+	/// Called once this element is no longer visible for any reason. E.g. switching game states to display another UI, or when this or a parent has been popped from the ui.
+	virtual void OnExitScope();
+
+	/** Used by input-captuing elements. Should not be called for any base UI elements(?). 
+		Return value of significance, but not defined yet.
+	*/
+	virtual int OnKeyDown(int keyCode, bool downBefore);
+	/// Used for getting text. This will be local translated language key codes?
+	virtual int OnChar(int asciiCode);
+	/// Begins input! >)
+	void BeginInput();
+
+	/// For making it a float/integer-only thingy.
+	bool numbersOnly;
+	/// For any valid alpha-numeric + a few key signs mathematical expressions.
+	bool mathematicalExpressionsOnly;
+
+protected:
+	/// For handling text-input
+	void OnBackspace();
+	/// Halts input and removes Active state.
+	void StopInput();
+	// sends message to update the ui with new caret and stuff.
+	void OnTextUpdated();
+
+	/// Necessary for text-editing.
+	int caretPosition;
+	/// Text before editing begun, for when canceling an edit.
+	Text previousText;
+	/// Text used during editing, used to update the rendered and used text-string, but not one and the same!
+	Text editText;
+
+private:
+	// Add variables that limit what can be entered into this input?
+	// If currently active.
+	bool inputActive;
+};
+
+
+#endif

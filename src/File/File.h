@@ -28,6 +28,8 @@ public:
 	Time LastModified();
 	void Close();
 
+	/// Static function to fetch all contents of a file as if it were just one big string.
+	static String GetContents(String fromFile);
 	/// Static function to fetch all lines of text from a given file by name. 
 	static List<String> GetLines(String fromFile);
 	

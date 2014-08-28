@@ -187,7 +187,8 @@ bool Script::Load(String fromFile)
 			line.RemoveInitialWhitespaces();
 			name = line;
 		}
-		else if (line.Contains("TriggerCondition")){
+		else if (line.Contains("TriggerCondition"))
+		{
 			String tok = tokens[1];
 			if (tok == "OnEnter")
 				triggerCondition = ON_ENTER;
@@ -226,8 +227,15 @@ void Script::Process(int timeInMs)
 		return;
 	}
 	String line = lines[currentLine];
+	// Skip one-line comments if any remain.
+	if (line.StartsWith("//"))
+	{
+		++currentLine;
+		return;
+	}
 	timePassed += (int)timeInMs;
 
+	// Line not processed? Evaluate it.
 	if (!lineProcessed)
 	{
 		/// Evaluate the current line, look if we have to check for line-finishing conditions or not.

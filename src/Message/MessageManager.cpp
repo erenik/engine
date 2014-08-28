@@ -3,7 +3,7 @@
 //#include "IO.h"
 
 #include "Message/Message.h"
-#include "Message/VectorMessage.h"
+#include "Message/MathMessage.h"
 #include "FileEvent.h"
 #include "Network/Packet/Packet.h"
 #include <Mutex/Mutex.h>
@@ -16,10 +16,12 @@
 #include "Maps/MapManager.h"
 #include "Script/ScriptManager.h"
 
+#include "UI/UIInputs.h"
 #include "UI/UITypes.h"
 #include "UI/UIFileBrowser.h"
 #include "UI/UIQueryDialogue.h"
 #include "UI/UIVideo.h"
+
 #include "Network/NetworkManager.h"
 #include "Window/WindowManager.h"
 #include "Audio/AudioManager.h"
@@ -184,15 +186,14 @@ void MessageManager::ProcessPacket(Packet * packet)
 	if (StateMan.ActiveState())
 		StateMan.ActiveState()->ProcessPacket(packet);
 }
-void MessageManager::ProcessMessage(Message * message){
+void MessageManager::ProcessMessage(Message * message)
+{
 	// Check for UI-messages first.
 	String msg = message->msg;
-	UserInterface * globalUI = GlobalUI();
+//	UserInterface * globalUI = GlobalUI();
 	// Do note that not all messages uses the string-argument...
 //	if (!msg.Length())
 //		return;
-	
-
 	switch(message->type)
 	{
 		case MessageType::DRAG_AND_DROP:
@@ -220,6 +221,11 @@ void MessageManager::ProcessMessage(Message * message){
 				bool toggle = msg.Tokenize("()")[1].ParseBool();
 				Input.NavigateUI(toggle);
 				return;
+			}
+			else if (msg == "IgnoreMouseInput")
+			{
+				bool & ignore = InputMan.ignoreMouse;
+				ignore = !ignore;
 			}
 			else if (msg == "DisableLogging")
 			{

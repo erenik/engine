@@ -72,7 +72,7 @@ public:
 	virtual void ProcessMessage(Message * message);
 
 	/// Sets text, queueing recalculation of the rendered variant. If not force, will ignore for active ui input elements.
-	void SetText(Text newText, bool force = false);
+	virtual void SetText(Text newText, bool force = false);
 
 	/// Public variablessss
 	String name;
@@ -110,6 +110,9 @@ public:
 	virtual UIElement * GetElement(float & mouseX, float & mouseY);
 
 	UIElement * GetElement(String byName, int andType);
+
+	/// Used by e.g. ScrollBarHandle's in order to slide its content according to mouse movement, even when the mouse extends beyond the scope of the element.
+	virtual void OnMouseMove(Vector2i activeWindowCoords);
 
     /** For mouse-scrolling. By default calls it's parent's OnScroll. Returns true if the element did anything because of the scroll.
 		The delta corresponds to amount of "pages" it should scroll.
@@ -375,7 +378,10 @@ public:
 
 	/// When true, re-directs all (or most) keyboard input to the target element for internal processing. Must be subclass of UIInput as extra functions there are used for this.
 	bool demandInputFocus;
-	/// Used by input-captuing elements. Should not be called for any base UI elements(?)
+
+	/** Used by input-captuing elements. Calls recursively upward until an element wants to respond to the input.
+		Returns 1 if it processed anything, 0 if not.
+	*/
 	virtual int OnKeyDown(int keyCode, bool downBefore);
 	/// Used for getting text. This will be local translated language key codes?
 	virtual int OnChar(int asciiCode);

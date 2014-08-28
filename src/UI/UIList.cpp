@@ -56,11 +56,13 @@ void UIScrollBarHandle::SetScrollPosition(float f)
 UIElement * UIScrollBarHandle::Hover(int mouseX, int mouseY)
 {
 	UIElement * element = UIElement::Hover(mouseX, mouseY);
+	/* Moved to be handled within OnMouseMove
 	if (element == this && Input.lButtonDown)
 	{
 		float alignmentY = (mouseY - parent->bottom) / (float)this->parent->sizeY;
 		this->SetAlignmentY(alignmentY);
 	}
+	*/
 	return element;
 }
 	
@@ -79,6 +81,12 @@ UIElement * UIScrollBarHandle::Click(int mouseX, int mouseY)
 	return clickElement;
 }
 
+/// Used by e.g. ScrollBarHandle's in order to slide its content according to mouse movement, even when the mouse extends beyond the scope of the element.
+void UIScrollBarHandle::OnMouseMove(Vector2i activeWindowCoords)
+{
+	float alignmentY = (activeWindowCoords.y  - parent->bottom) / (float) this->parent->sizeY;
+	SetAlignmentY(alignmentY);
+}
 
 // Setting
 void UIScrollBarHandle::SetAlignmentY(float y)

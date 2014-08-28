@@ -156,14 +156,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	}
 	case WM_ACTIVATE: {
 		/// Just got active
-		if (wParam != WA_INACTIVE){
+		if (wParam != WA_INACTIVE)
+		{
 			window->inFocus = true;
-			std::cout<<"\nWindow received focus";
 		}
 		/// Got inactivated
 		else {
 			window->inFocus = false;
-			std::cout<<"\nWindow lost focus";
 		}
 		return 0;				  
 	}
@@ -343,6 +342,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	case WM_LBUTTONDOWN: 
 	{
+		SetCapture(hWnd);
 		int xPos = GET_X_LPARAM(lParam);
 		int yPos = GET_Y_LPARAM(lParam);
 		Input.MouseClick(window, true, XtoWindow(xPos), YtoWindow(yPos));
@@ -351,20 +351,25 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	}
 	case WM_RBUTTONDOWN: 
 	{
+		SetCapture(hWnd);
 		int xPos = GET_X_LPARAM(lParam);
 		int yPos = GET_Y_LPARAM(lParam);
 		Input.MouseRightClick(window, true, XtoWindow(xPos), YtoWindow(yPos));
 		return 0; // If an application processes this message, it should return zero.
 		break;
 	}
-	case WM_LBUTTONUP: {
+	case WM_LBUTTONUP: 
+	{
+		ReleaseCapture();
 		int xPos = GET_X_LPARAM(lParam);
 		int yPos = GET_Y_LPARAM(lParam);
 		Input.MouseClick(window, false, XtoWindow(xPos), YtoWindow(yPos));
 		return 0; // If an application processes this message, it should return zero.
 		break;
 	}
-	case WM_RBUTTONUP: {
+	case WM_RBUTTONUP: 
+	{
+		ReleaseCapture();
 		int xPos = GET_X_LPARAM(lParam);
 		int yPos = GET_Y_LPARAM(lParam);
 		Input.MouseRightClick(window, false, XtoWindow(xPos), YtoWindow(yPos));

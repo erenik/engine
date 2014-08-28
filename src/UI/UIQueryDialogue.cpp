@@ -6,7 +6,7 @@
 #include "UIQueryDialogue.h"
 #include "UIList.h"
 #include "UIButtons.h"
-#include "UIInput.h"
+#include "UIInputs.h"
 #include "Message/Message.h"
 #include "Message/MessageManager.h"
 

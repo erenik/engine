@@ -46,16 +46,20 @@ InputManager * InputManager::Instance(){
 	}
 	return input;
 }
-void InputManager::Deallocate(){
+
+void InputManager::Deallocate()
+{
 	assert(input);
 	delete(input);
 	input = NULL;
 }
 
-InputManager::InputManager(){
+InputManager::InputManager()
+{
 	/// Default mouse data
 	prevMouseX = prevMouseY = mouseX = mouseY = startMouseX = startMouseY = 0;
 	lButtonDown = rButtonDown = false;
+	ignoreMouse = false;
 	mouseCameraState = NULL_STATE;
 	acceptInput = false;
 	mouseLocked = false;
@@ -80,6 +84,9 @@ InputManager::InputManager(){
 	/// Reset input device availability
 	for (int i = 0; i < InputDevice::MAX_INPUT_DEVICES; ++i)
 		inputDeviceAvailability[i] = false;
+
+	/// Used to make user-experience more fluid.
+	lastMouseMoveWindow = NULL;
 }
 InputManager::~InputManager(){
 #ifdef WINDOWS
@@ -514,6 +521,8 @@ void InputManager::MouseClick(Window * window, bool down, int x, int y)
 {
 	if (!acceptInput)
 		return;
+	if (ignoreMouse)
+		return;
 	/// If mouse is le locked, return
 	if (mouseLocked)
 		return;
@@ -527,45 +536,43 @@ void InputManager::MouseClick(Window * window, bool down, int x, int y)
 #endif
 
 
-	UIElement * element = NULL;
+	UIElement * activeElement = NULL;
 	UserInterface * userInterface = RelevantUI();	
 	if (userInterface)
 	{
-		element = userInterface->Hover(x, y, true);
-		userInterface->SetHoverElement(element);
-	//	std::cout<<"InputMAnager:: OnMouse down: "<<down;
-		if (userInterface && element){
-			if (down){
-				element = userInterface->Click(x, y, true);
-		//		clickElement = element;
+		// Fetch hover-element from earlier, yo?
+		activeElement = userInterface->GetActiveElement();
+		if (activeElement)
+			activeElement->Activate();
+
+		if (userInterface)
+		{
+			// Down!
+			if (down)
+			{
+				userInterface->Click(x,y,true);
 			}
-			else if (!down)
+			// Up!
+			else if (!down && activeElement)
 			{
 				/// Why click again?
-				element = userInterface->Click(x, y, true);
-				if (element){
-					element->Activate();	
-					if (element->activationMessage.Length() != 0){
-						if (element->activationMessage.Type() == String::WIDE_CHAR)
-							element->activationMessage.ConvertToChar();
-						MesMan.QueueMessages(element->activationMessage, element);
+				if (activeElement)
+				{
+					activeElement->Activate();	
+					if (activeElement->activationMessage.Length() != 0){
+						if (activeElement->activationMessage.Type() == String::WIDE_CHAR)
+							activeElement->activationMessage.ConvertToChar();
+						MesMan.QueueMessages(activeElement->activationMessage, activeElement);
 					}
 				}
-				element = userInterface->Hover(x,y, true);
-				userInterface->SetHoverElement(element);
-			}
-			if (element){
-	//			std::cout<<"\nElement: "<<element->name<<" o-o";
-				if (element->text)
-					std::cout<<" "<<element->text;
+				// Hover afterwards.
+				UIElement * hoverElement = userInterface->Hover(x,y, true);
+				userInterface->SetHoverElement(hoverElement);
 			}
 		}
-		/// Don't process state stuff if we're inside an interactable element.
-		if (element)
-			return;
 	}
 	/// Inform the active state of the interaction
-	StateMan.ActiveState()->MouseClick(window, down, x, y, element);
+	StateMan.ActiveState()->MouseClick(window, down, x, y, activeElement);
 }
 /** Handles a mouse click.
 	Argument true indicate that the button was pressed, while false indicates that it was just released.
@@ -574,6 +581,8 @@ void InputManager::MouseClick(Window * window, bool down, int x, int y)
 void InputManager::MouseRightClick(Window * window, bool down, int x, int y)
 {
 	if (!acceptInput)
+		return;
+	if (ignoreMouse)
 		return;
 	/// If mouse is le locked, return
 	if (mouseLocked)
@@ -613,9 +622,13 @@ void InputManager::MouseMove(Window * window, Vector2i activeWindowAreaCoords)
 	int y = activeWindowAreaCoords.y;
 	if (!acceptInput)
 		return;
+	if (ignoreMouse)
+		return;
 	/// If mouse is le locked, return
 	if (mouseLocked)
 		return;
+
+	lastMouseMoveWindow = window;
 
 	/// Save coordinates
 	this->mouseX = x;
@@ -626,10 +639,20 @@ void InputManager::MouseMove(Window * window, Vector2i activeWindowAreaCoords)
 	UIElement * element = NULL;
 	if (userInterface)
 	{
-		// Save old hover element...? wat
-		UIElement * hoverElement = userInterface->GetHoverElement();
-		element = userInterface->Hover(x, y, true);
-		userInterface->SetHoverElement(element);		
+		// If we had any active element since earlier, notify it of our mouse move.
+		UIElement * activeElement = userInterface->GetActiveElement();
+		if (activeElement)
+			activeElement->OnMouseMove(activeWindowAreaCoords);
+		// If we have an active element, don't hover, to retain focus on the active element (e.g. the scroll-bar).
+		else 
+		{
+			// Save old hover element...? wat
+			UIElement * hoverElement = userInterface->Hover(x, y, true);
+		}
+
+
+	//	element = userInterface->Hover(x, y, true);
+	//	userInterface->SetHoverElement(element);		
 		// This should fix so that the mouse cannot move the cursor if the underlying UI cannot later be activated.. ish.
 //		if ((element && !element->highlightOnHover) || !element)
 //			element = hoverElement;
@@ -649,7 +672,13 @@ void InputManager::MouseMove(Window * window, Vector2i activeWindowAreaCoords)
 */
 void InputManager::MouseWheel(Window * window, float delta)
 {
+	/// Use the window last passed to the MouseMove function, as the Mouse Wheel message (at least in windows) was not the same as the one hovering over.
+#ifdef WINDOWS
+	window = lastMouseMoveWindow;
+#endif
 	if (!acceptInput)
+		return;
+	if (ignoreMouse)
 		return;
 	std::cout<<"\nMouseWheel: "<<delta;
 	UserInterface * ui = GetRelevantUIForWindow(window);

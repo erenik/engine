@@ -31,6 +31,11 @@ public:
 	/// Places the previous caret position a the beginning and the caret position at the end. Any regular input after that will replace all the text.
 	void SelectAll();
 
+	/// Returns the position of the caret when moving it back one word (exactly how it moves will depend on some settings?)
+	int CaretPositionAtPreviousWord();
+	/// Returns the position of the caret when moving it forward one word (exactly how it moves will depend on some settings?)
+	int CaretPositionAtNextWord();
+
 	/** For rendering active input location. The caret position lies by default
 		on the left "side" of the index!
 		A value of -1 indicates that it should not be rendered/is not active.

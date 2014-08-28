@@ -182,6 +182,8 @@ public:
 		PANNING
 	};
 	int mouseCameraState;
+	/// Default false. Toggleable with CTRL+I+M. When true, all mouse input is disabled.
+	bool ignoreMouse;
 
 	/// Global flag for if input should be processed whatsoever.
 	bool acceptInput;
@@ -320,6 +322,9 @@ private:
 	int caretPosition;
 	/// Specifies the action to be sent down to the input-binding upon pressing Enter when in text-edit mode.
 	String actionToBeTakenUponCompletion;
+
+	/// Used to make user-experience more fluid.
+	Window * lastMouseMoveWindow;
 };
 
 

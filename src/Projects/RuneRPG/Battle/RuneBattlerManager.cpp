@@ -10,19 +10,9 @@
 #include "File/File.h"
 ;
 
-void AddActionToBattler(RuneBattler * battler, String actionName){
+void AddActionToBattler(RuneBattler * battler, String actionName)
+{
 	assert(false);
-    BattleAction * ba = BALib.Get(actionName);
-    if (ba){
-        battler->actions.Add(ba);
-		assert(ba->category);
-		if (!ba->category){
-			std::cout<<"\nWARNING: Action "<<actionName<<" lacking category. Fix this.";
-			return;
-		}
-        if (!battler->actionCategories.Exists(ba->category))
-            battler->actionCategories.Add(ba->category);
-    }
 }
 
 RuneBattlerManager * RuneBattlerManager::runeBattlerManager = NULL;

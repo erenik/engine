@@ -234,6 +234,15 @@ void Vector3f::operator *= (const float &f){
 	y *= f;
 	z *= f;
 }
+
+/// Internal element multiplication
+void Vector3f::operator *= (const Vector3f &f)
+{
+	x *= f.x;
+	y *= f.y;
+	z *= f.z;
+}
+	
 /// Internal element multiplication
 void Vector3f::operator *= (const Matrix4f &mat)
 {

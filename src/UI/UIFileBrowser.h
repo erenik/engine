@@ -11,8 +11,9 @@
 #ifndef UI_FILE_BROWSER_H
 #define UI_FILE_BROWSER_H
 
-#include "UIInput.h"
 #include "UIList.h"
+
+class UIInput;
 
 #define UIFileDialogue UIFileBrowser
 

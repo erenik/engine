@@ -9,7 +9,8 @@
 
 #define RuneBattlers (*RuneBattlerManager::Instance())
 
-class RuneBattlerManager {
+class RuneBattlerManager 
+{
 	RuneBattlerManager();
 	~RuneBattlerManager();
 	static RuneBattlerManager * runeBattlerManager;

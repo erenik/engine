@@ -42,6 +42,9 @@ GMSetCamera::GMSetCamera(Camera * camera, int target, int iValue)
 	{
 		case CT_TRACKING_MODE:
 			break;
+		case CT_ENTITY_TO_TRACK:
+			entity = (Entity*)iValue;
+			break;
 		default:
 			assert(false);
 	}

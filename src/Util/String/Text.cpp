@@ -91,3 +91,32 @@ void Text::SelectAll()
 	caretPosition = Length() + 1;
 }
 
+/// Returns the position of the caret when moving it back one word (exactly how it moves will depend on some settings?)
+int Text::CaretPositionAtPreviousWord()
+{
+	int prevPos = 0;
+	for (int i = caretPosition - 1; i >= 0; --i)
+	{
+		char c = arr[i];
+		if (isalnum(c))
+			continue;
+		prevPos = i;
+		break;
+	}
+	return prevPos;
+}
+
+/// Returns the position of the caret when moving it forward one word (exactly how it moves will depend on some settings?)
+int Text::CaretPositionAtNextWord()
+{
+	int prevPos = Length();
+	for (int i = caretPosition + 1; i < Length(); ++i)
+	{
+		if (isalnum(arr[i]))
+			continue;
+		prevPos = i;
+		break;
+	}
+	return prevPos;
+}
+

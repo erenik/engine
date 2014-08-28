@@ -100,6 +100,8 @@
 #endif // POSIX threads
 
 
+#include "MathLib/Function.h"
+
 /// Le main! (^o-o^);
 #ifdef WINDOWS
 // WinMain - Start the application and it's threads
@@ -118,6 +120,42 @@ int main(int argc, char **argv)
 
 	/// Allocate allocators.
 	String::InitializeAllocator();
+
+	/// Initialize math lib
+	Expression::InitializeConstants();
+
+
+	/*
+	Function func;
+	bool ok = func.LoadFunction("distance = PI * (0.1 * a)");
+//	bool ok = func.LoadFunction("distance = v0 * t + a * t ^ 2 / 2");
+	if (!ok)
+		return 0;
+
+	List<int> results;
+
+	for (int i = 0; i < 40; ++i)
+	{
+		Variable var("a", i);
+		List<Variable> variables(var);
+
+		ExpressionResult result =  func.Evaluate(variables);
+		switch(result.type)
+		{
+			case DataType::FLOAT:
+				std::cout<<"\nResult: "<<result.fResult;	
+				break;
+			case DataType::INTEGER:
+				std::cout<<"\nResult: "<<result.iResult;
+				break;
+			default:
+				std::cout<<"\nNo workie?";
+				break;
+		}
+	}
+	
+	return 0;
+	*/
 
 /// Save away command-line arguments for future processing.
 #ifdef WINDOWS
@@ -251,9 +289,16 @@ int main(int argc, char **argv)
 #endif // WINDOWS
 
 	// Unit tests here if wanted.
+// #define test
 #ifdef test
-	EstimatorVec3f::Test(9, 4);
-	Sleep(20000);
+	
+	String s = "blabal,wewe,wrre,,,ere";
+	List<String> ls = s.Tokenize(",", true);
+	for (int i = 0; i < ls.Size(); ++i)
+	{
+		std::cout<<"\nLs "<<i<<": "<<ls[i];
+	}
+
 	return 0;
 #endif
 
@@ -488,15 +533,10 @@ int main(int argc, char **argv)
     }
 // Main wait loop. Does nothing but wait for the game to finish.
 #ifdef WINDOWS
-	while(true)
+	while(Application::live)
 	{
 		// Sleep a bit? No?
 		Sleep(500);
-		if (StateMan.ActiveStateID() == GameStateID::GAME_STATE_EXITING || 
-			(!StateMan.ActiveState() && !StateMan.GlobalState()))
-		{
-			break;
-		}
 	}
 
 /// X11 message loop!

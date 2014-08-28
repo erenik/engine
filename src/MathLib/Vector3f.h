@@ -124,6 +124,8 @@ public:
 	/// Internal element multiplication
 	void operator *= (const float &f);
 	/// Internal element multiplication
+	void operator *= (const Vector3f &f);
+	/// Internal element multiplication
 	void operator *= (const Matrix4f &mat);
 
 	/// Internal element multiplication

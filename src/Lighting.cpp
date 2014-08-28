@@ -20,7 +20,7 @@
 #include "UI/UIButtons.h"
 
 #include "Message/MessageManager.h"
-#include "Message/VectorMessage.h"
+#include "Message/MathMessage.h"
 
 
 String lightngEditorWindowName = "LightingEditor";

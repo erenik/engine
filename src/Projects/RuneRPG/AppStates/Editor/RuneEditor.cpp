@@ -28,7 +28,7 @@
 
 #include "Message/Message.h"
 #include "Message/FileEvent.h"
-#include "Message/VectorMessage.h"
+#include "Message/MathMessage.h"
 #include "Message/MessageManager.h"
 
 #include "Viewport.h"

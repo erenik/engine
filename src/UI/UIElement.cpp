@@ -386,7 +386,8 @@ UIElement* UIElement::Click(int mouseX, int mouseY)
 // Returns a non-0 message once the highest-level appropriate element has been found.
 // No co-ordinates are required since we will instead require the element to already
 // clicked.
-UIElement* UIElement::Activate(){
+UIElement* UIElement::Activate()
+{
 	UIElement* result = 0;
 	// Don't process invisible UIElements, please.
 	if (visible == false)
@@ -475,6 +476,12 @@ UIElement * UIElement::GetElement(String byName, int andType)
 			return found;
 	}
 	return NULL;
+}
+
+/// o.o
+void UIElement::OnMouseMove(Vector2i activeWindowCoords)
+{
+	// By default.. do nothing.
 }
 
 
@@ -1895,9 +1902,13 @@ UISlider::~UISlider()
 }
 
 
-/// Used by input-captuing elements. Should not be called for any base UI elements(?)
-int UIElement::OnKeyDown(int keyCode, bool downBefore){
-	assert(false);
+/** Used by input-captuing elements. Calls recursively upward until an element wants to respond to the input.
+	Returns 1 if it processed anything, 0 if not.
+*/
+int UIElement::OnKeyDown(int keyCode, bool downBefore)
+{
+	if (parent)
+		parent->OnKeyDown(keyCode, downBefore);
 	return 0;
 }
 /// Used for getting text. This will be local translated language key codes?

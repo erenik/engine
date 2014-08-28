@@ -10,7 +10,7 @@
 #include "UI/UserInterface.h"
 #include "UI/UIButtons.h"
 
-#include "Message/VectorMessage.h"
+#include "Message/MathMessage.h"
 
 #include "Graphics/GraphicsManager.h"
 #include "Graphics/Messages/GMUI.h"

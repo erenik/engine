@@ -8,7 +8,8 @@ namespace Application {
 
 	bool queryOnQuit;
 	String name;
-	
+
+	bool live = true;
 	// OS-specifics below
 #ifdef WINDOWS
 

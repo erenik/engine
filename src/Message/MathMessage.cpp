@@ -2,8 +2,7 @@
 /// 2014-02-14
 /// A message to set the values of a certain vector.
 
-#include "VectorMessage.h"
-#include "MathLib.h"
+#include "MathMessage.h"
 
 FloatMessage::FloatMessage(String message, float value)
 :Message(MessageType::FLOAT_MESSAGE), value(value)

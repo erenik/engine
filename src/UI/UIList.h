@@ -22,6 +22,10 @@ public:
 	// be highlighted/hovered above.
 	virtual UIElement * Click(int mouseX, int mouseY);
 
+	/// Used by e.g. ScrollBarHandle's in order to slide its content according to mouse movement, even when the mouse extends beyond the scope of the element.
+	virtual void OnMouseMove(Vector2i activeWindowCoords);
+
+
 	// Sets alignment, queueing rebuffering.
 	void SetAlignmentY(float y);
 };

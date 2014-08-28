@@ -6,6 +6,15 @@
 #define RUNE_BATTLE_H
 
 #include "String/AEString.h"
+#include "DataTypes.h"
+
+class RuneBattler;
+
+struct RBattleState
+{
+	int64 timeInMs;
+	List<RuneBattler*> battlers;
+};
 
 // To read in pre-defined battles from .txt or otherwise!
 struct RuneBattle

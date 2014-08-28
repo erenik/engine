@@ -85,6 +85,12 @@ public:
 	/// Clears the list of entries and deletes every single one of them. USE WITH CAUTION!
 	int ClearAndDelete();
 
+	/// Returns a part of this list (sub-list?), including all indices between the range, including the start and stop indices.
+	List<T> Part(int startIndex, int stopIndex) const;
+	/// Removes the part of the list spanning within the designated indices (inclusive of the edge-indices).
+	void RemovePart(int fromIndex, int toIndex);
+					
+
 	/// Swaps items at given indices.
 	bool Swap(int index, int otherIndex);
 
@@ -451,6 +457,35 @@ int List<T>::ClearAndDelete()
 	currentItems = 0;
 	return itemsRemoved;
 }
+
+/// Returns a part of this list (sub-list?), including all indices between the range, including the start and stop indices.
+template <class T>
+List<T> List<T>::Part(int startIndex, int stopIndex) const
+{
+	List<T> partList;
+	for (int i = startIndex; i <= stopIndex; ++i)
+	{
+		partList.Add(arr[i]);
+	}
+	return partList;
+}
+
+/// Removes the part of the list spanning within the designated indices (inclusive of the edge-indices).
+template <class T>
+void List<T>::RemovePart(int fromIndex, int toIndex)
+{
+	/// Move down the list, retaining order by default.
+	int itemsRemoved = toIndex - fromIndex + 1;
+	for (int i = fromIndex; i < fromIndex + itemsRemoved; ++i)
+	{
+		int moveIndex = i + itemsRemoved;
+		// Skip moving when the move index is out of bounds (removing items at the end of the list).
+		if (moveIndex >= arrLength)
+			continue;
+		arr[i] = arr[moveIndex];
+	}
+	currentItems -= itemsRemoved;
+}	
 
 /// Swaps items at given indices.
 template <class T>

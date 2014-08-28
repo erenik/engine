@@ -8,6 +8,7 @@
 #include "OS/Sleep.h"
 #include "Graphics/Messages/GMSet.h"
 #include "File/File.h"
+#include "Application/Application.h"
 
 #ifdef WINDOWS
 #include <process.h>
@@ -205,6 +206,9 @@ void * Deallocate(void *vArgs)
 	AudioMan.Shutdown();
 
 	std::cout<<"\n>>>DeallocatorThread ending...";
+
+	/// Set the application's live to false so that the main loop will exit.
+	Application::live = false;
 
 	/// Deallocation thread quitting!
 #ifdef WINDOWS

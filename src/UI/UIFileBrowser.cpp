@@ -3,7 +3,7 @@
 /// A file-browser extention of the UI-classes.
 
 #include "UITypes.h"
-#include "UIInput.h"
+#include "UIInputs.h"
 #include "UIFileBrowser.h"
 #include "UIButtons.h"
 #include "File/FileUtil.h"
@@ -36,12 +36,16 @@ UIFileBrowser::UIFileBrowser(String title, String action, String fileFilter)
 	createScrollBarsAutomatically = false;
 
 	/// Scan if this browser has appeared before, and use the old path if so.
-	for (int i = 0; i < oldFileBrowsers.Size(); ++i){
+	for (int i = 0; i < oldFileBrowsers.Size(); ++i)
+	{
 		String oldFileBrowser = oldFileBrowsers[i];
 		List<String> tokens = oldFileBrowser.Tokenize(";");
 		String oldName = tokens[0];
-		if (oldName == name){
-			currentPath = tokens[1];
+		if (oldName == name)
+		{
+			if (tokens.Size() > 1)
+				currentPath = tokens[1];
+			break;
 		}
 	}
 }

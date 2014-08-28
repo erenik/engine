@@ -22,6 +22,8 @@ namespace AffectedSide {
 	};
 };
 
+#ifndef TARGET_FILTER_H
+#define TARGET_FILTER_H
 /// For target filtering
 namespace TargetFilter 
 { enum {
@@ -39,6 +41,7 @@ namespace TargetFilter
 	POINT,
     TARGET_FILTERS,
 };};
+#endif
 
 /// Shape of the spell. This affects to some degree how the animation will be scaled, rotated or otherwise..?
 namespace SpellShape 
@@ -87,6 +90,8 @@ public:
     /// Variables!
     /// Name is good.
     String name;
+	/// A few letters.
+	String id;
 	/// Source file loaded from.
 	String source;
     /// Category it belongs to, for dividing and auto-generating menus.

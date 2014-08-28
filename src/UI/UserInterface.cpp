@@ -13,7 +13,7 @@
 #include "../GraphicsState.h"
 #include <iomanip>
 #include "UIList.h"
-#include "UIInput.h"
+#include "UIInputs.h"
 #include "UIButtons.h"
 #include "UIVideo.h"
 #include "UIImage.h"
@@ -995,7 +995,8 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 					element->text = element->name = firstQuote;
 				SET_DEFAULTS
 			}
-			else if (token == "TextField" || token == "Input"){
+			else if (token == "TextField" || token == "Input")
+			{
 				ADD_PREVIOUS_TO_UI_IF_NEEDED
 				element = new UITextField();
 				SET_DEFAULTS
@@ -1056,7 +1057,7 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 				if (element->type == UIType::STRING_INPUT)
 				{
 					UIStringInput * si = (UIStringInput*) element;
-					si->SetValue(firstQuote);
+					si->SetText(firstQuote);
 				}
 			}
 			else if (token == "IntegerInput" ||

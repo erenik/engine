@@ -4,8 +4,8 @@
 #ifndef AE_MATH_H
 #define AE_MATH_H
 
-// PI o.o
-const float PI = 3.1415926535897f;
+#include "Constants.h"
+
 #define DEGREES_TO_RADIANS(d) (d * 0.01745329251f)
 #define RADIANS_TO_DEGREES(r) (r * 57.2957795f)
 
