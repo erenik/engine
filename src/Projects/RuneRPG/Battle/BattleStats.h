@@ -21,7 +21,7 @@
 
 
 
-namespace Stat
+namespace RStat
 {
 	enum 
 	{
@@ -50,19 +50,26 @@ namespace Stat
 		WEAPON_DAMAGE,
 
 		ARMOR_RATING, // Physical def form armor
-		MAGIC_ARMOR, // Magical def from armor
+		MAGIC_ARMOR_RATING, // Magical def from armor
 
 		SHIELD_BLOCK_RATING,
 		SHIELD_DEFENSE_MODIFIER,
+
+
+		/// Temporary and/or character/environment mixed based stats.
+		BATTLER_TEMPERATURE,
 
 		/// World-/Environment stats
 		WORLD_TEMP,
 
 		/// Total stats.
 		NUM_STATS = WORLD_TEMP + 1,
+		/// Aggregate referral type to the core and suvivability stats listen above.
+		ALL_CORE_AND_SURVIVABILITY_STATS,
 
 		/// Total battler stats...
-		NUM_BATTLER_STATS = MAGIC_ARMOR+1,
+		NUM_BATTLER_STATS = SHIELD_DEFENSE_MODIFIER+1,
+		
 
 	};	
 };

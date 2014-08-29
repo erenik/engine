@@ -15,22 +15,30 @@ class Symbol
 public:
 	Symbol();
 	Symbol(String text, int type);
+	Symbol(List<String> list, int type);
 	/// Types.
 	enum {
 		BAD_TYPE = -1,
-		CONSTANT,
-		VARIABLE,
-		OPERATOR,
-		BEGIN_PARENTHESIS,
-		END_PARENTHESIS,
+		CONSTANT, // 3.14
+		VARIABLE, // AnyVariableWrittenWithOneWord
+		OPERATOR, // * + - / ^ &
+		BEGIN_PARENTHESIS, // (
+		END_PARENTHESIS, // )
+		ARGUMENT_ENUMERATOR, // , 
+		FUNCTION_ARGUMENTS, // List of arguments, see list param
 	};
 	/// Type, see above.
 	int type;
 	/// In raw-text.
 	String text;
+	/// May hold arguments
+	List<String> list;
 	/// Only applicable for 
 	String name;
 };
+
+
+void PrintSymbols(List<Symbol> symbols);
 
 
 #endif

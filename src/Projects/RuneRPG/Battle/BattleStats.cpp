@@ -9,14 +9,17 @@ int GetStatByString(String str)
 {
 	str.SetComparisonMode(String::NOT_CASE_SENSITIVE);
 	if (str.Contains("Max") && str.Contains("HP"))
-		return Stat::MAX_HP;
+		return RStat::MAX_HP;
+	if (str.Contains("All"))
+		return RStat::ALL_CORE_AND_SURVIVABILITY_STATS;
 
-	for (int i = 0; i < Stat::NUM_STATS; ++i)
+	for (int i = 0; i < RStat::NUM_STATS; ++i)
 	{
 		String statName = GetStatString(i);
-		if (statName.Length() == 0)
-			continue;
+		String shortStatName = GetStatShortString(i);
 		if (str.Contains(statName))
+			return i;
+		if (str.Contains(shortStatName))
 			return i;
 	}
 
@@ -32,13 +35,18 @@ String GetStatString(int byStat)
 		/// Gear-based stats
 		
 		/// Char stats
-		case Stat::ATTACK_POWER: return "Attack power";
-		case Stat::DEFENSE_POWER: return "Defense";
-		case Stat::AGILITY: return "Agility";
-		case Stat::SPEED: return "Speed";
-		case Stat::MAX_HP: return "Max HP";
+		case RStat::ATTACK_POWER: return "Attack power";
+		case RStat::DEFENSE_POWER: return "Defense";
+		case RStat::AGILITY: return "Agility";
+		case RStat::SPEED: return "Speed";
+		case RStat::MAX_HP: return "Max HP";
+		case RStat::MAGIC_SKILL: return "Magic skill";
+		case RStat::MAGIC_POWER: return "Magic power";
+
+		case RStat::BATTLER_TEMPERATURE: return "Battler Temperature";
+
 		// Environment
-		case Stat::WORLD_TEMP: return "Worldtemp";
+		case RStat::WORLD_TEMP: return "World temperature";
 	}
 	return String();
 }
@@ -69,34 +77,36 @@ String GetStatShortString(int byStat)
 {
 	switch(byStat)
 	{
-		case Stat::ATTACK_POWER: return "AttackPower";
-		case Stat::DEFENSE_POWER: return "DefensePower";
-		case Stat::AGILITY: return "Agility";
-		case Stat::SPEED: return "Speed";
-		case Stat::MAX_HP: return "MaxHP";
-		case Stat::CURRENT_HP: return "CurrentHP";
-		case Stat::MAX_MP: return "MaxMP";
-		case Stat::CURRENT_MP: return "CurrentMP";
-		case Stat::MAGIC_POWER: return "MagicPower";
-		case Stat::MAGIC_SKILL: return "MagicSkill";
-
-		case Stat::BATTLE_GEAR_WEIGHT_LIMIT: return "BattleGearWeightLimit";
-		case Stat::BATTLE_GEAR_WEIGHT: return "BattleGearWeight"; // From gear.
+		case RStat::ATTACK_POWER: return "AttackPower";
+		case RStat::DEFENSE_POWER: return "DefensePower";
+		case RStat::AGILITY: return "Agility";
+		case RStat::SPEED: return "Speed";
+		case RStat::MAX_HP: return "MaxHP";
+		case RStat::CURRENT_HP: return "CurrentHP";
+		case RStat::MAX_MP: return "MaxMP";
+		case RStat::CURRENT_MP: return "CurrentMP";
+		case RStat::MAGIC_POWER: return "MagicPower";
+		case RStat::MAGIC_SKILL: return "MagicSkill";
+		
+		case RStat::BATTLE_GEAR_WEIGHT_LIMIT: return "BattleGearWeightLimit";
+		case RStat::BATTLE_GEAR_WEIGHT: return "BattleGearWeight"; // From gear.
 
 		// From skill.
-		case Stat::SPELL_POWER: return "SpellPower";
-		case Stat::SPELL_CAST_TIME: return "SpellCastTime";
+		case RStat::SPELL_POWER: return "SpellPower";
+		case RStat::SPELL_CAST_TIME: return "SpellCastTime";
 
-			// From gear.
-		case Stat::WEAPON_DAMAGE: return "WeaponDamage";
-		case Stat::ARMOR_RATING: return "ArmorRating";
-		case Stat::MAGIC_ARMOR: return "MagicArmor";
+		// From gear.
+		case RStat::WEAPON_DAMAGE: return "WeaponDamage";
+		case RStat::ARMOR_RATING: return "ArmorRating";
+		case RStat::MAGIC_ARMOR_RATING: return "MagicArmorRating";
 
-		case Stat::SHIELD_BLOCK_RATING: "ShieldBlockRating";
-		case Stat::SHIELD_DEFENSE_MODIFIER: "ShieldDefenseModifier";
+		case RStat::SHIELD_BLOCK_RATING: return "ShieldBlockRating";
+		case RStat::SHIELD_DEFENSE_MODIFIER: return "ShieldDefenseModifier";
+
+		case RStat::BATTLER_TEMPERATURE: return "Targettemp";
 
 		// Environment stats
-		case Stat::WORLD_TEMP: return "WorldTemp";
+		case RStat::WORLD_TEMP: return "WorldTemp";
 		default:
 			assert(false);
 	}

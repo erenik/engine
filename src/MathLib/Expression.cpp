@@ -83,7 +83,7 @@ bool Expression::ParseExpression(String exp)
 			alpha = String();
 		}
 		/// Numerics
-		if (isdigit(c) || c == '.' || c == ',')
+		if (isdigit(c) || c == '.')
 		{
 			numeric += c;
 		}
@@ -108,6 +108,9 @@ bool Expression::ParseExpression(String exp)
 				break;
 			case ')':
 				symbols.Add(Symbol(c, Symbol::END_PARENTHESIS));
+				break;
+			case ',':
+				symbols.Add(Symbol(c, Symbol::ARGUMENT_ENUMERATOR));
 				break;
 		};
 	}
@@ -174,6 +177,8 @@ bool Expression::TryEvaluate()
 	/// Search for parenthesis.
 	int parenthesisStart = -1;
 	int parenthesis = 0;
+	int argumentStart = -1;
+	bool argumentEnumerating = false;
 	for (int i = 0; i < evaluationSymbols.Size(); ++i)
 	{
 		Symbol & evalSymbol = evaluationSymbols[i];
@@ -183,14 +188,76 @@ bool Expression::TryEvaluate()
 				++parenthesis;
 				// Store start of the parenthesis.
 				if (parenthesis == 1)
+				{
 					parenthesisStart = i;
+					argumentStart = i;
+				}
 				break;
+			case Symbol::ARGUMENT_ENUMERATOR:
+			{
+				// Demand a parenthesis!
+				if (parenthesis <= 0)
+				{	
+					result.text = "Unexpected argument enumerator ',' outside a parenthesis";
+					return false;
+				}
+				/// Only evaluate 1 level up?
+				if (parenthesis == 1)
+				{
+					// Comma encountered? Then we are definitely enumerating arguments.
+					argumentEnumerating = true;
+					/// Store the first part within a first parenthesis, and evaluate it!
+					Expression pe(evaluationSymbols.Part(argumentStart + 1, i - 1));
+					// Transfer the known variables too.
+					pe.knownVariables = knownVariables;
+					bool ok = pe.TryEvaluate();
+					if (!ok)
+					{
+						this->result.text = pe.result.text;
+						return false;
+					}
+
+					PrintSymbols(evaluationSymbols);
+					// Remove all the evaluation symbols that were part of the parenthesis and replace them with the result.
+					evaluationSymbols.RemovePart(argumentStart + 1, i - 1);
+					PrintSymbols(evaluationSymbols);
+					
+					// Insert the new parenthesis-result-symbol. where the parenthesis was.
+					Symbol sym(pe.result.text, Symbol::CONSTANT);
+					/// Place it back right after the argument start token was (the first parenthesis or comma)
+					evaluationSymbols.Insert(sym, argumentStart + 1);
+
+					PrintSymbols(evaluationSymbols);
+						
+					/// Store the current position as argument start again for the next argument's parse to work out well.
+					argumentStart = i;
+				}
+				break;
+			}
 			case Symbol::END_PARENTHESIS:
 				--parenthesis;
 				// If at "ground"-level, store the symbols within as a parenthesis expression to be evaluated first.
 				if (parenthesis == 0)
 				{
 					Expression pe(evaluationSymbols.Part(parenthesisStart + 1, i - 1));
+					/// Remove and store the parenthesis as an argument-list instead of evaluating it as an expression.
+					if (argumentEnumerating)
+					{
+						// Remove all the evaluation symbols that were part of the parenthesis and replace them with the result.
+						PrintSymbols(evaluationSymbols);
+						evaluationSymbols.RemovePart(parenthesisStart, i);
+						PrintSymbols(evaluationSymbols);
+						List<String> args;
+						for (int j = 0; j < pe.symbols.Size(); ++j)
+						{
+							args.Add(pe.symbols[j].text);							
+						} 
+						Symbol sym(args, Symbol::FUNCTION_ARGUMENTS);
+						// Insert the new parenthesis-result-symbol. where the parenthesis was.
+						evaluationSymbols.Insert(sym, parenthesisStart);
+						PrintSymbols(evaluationSymbols);
+						break;
+					}
 					// Transfer the known variables too.
 					pe.knownVariables = knownVariables;
 					bool ok = pe.TryEvaluate();
@@ -201,11 +268,14 @@ bool Expression::TryEvaluate()
 					}
 
 					// Remove all the evaluation symbols that were part of the parenthesis and replace them with the result.
+					PrintSymbols(evaluationSymbols);
 					evaluationSymbols.RemovePart(parenthesisStart, i);
+					PrintSymbols(evaluationSymbols);
 					
 					// Insert the new parenthesis-result-symbol. where the parenthesis was.
 					Symbol sym(pe.result.text, Symbol::CONSTANT);
 					evaluationSymbols.Insert(sym, parenthesisStart);
+					PrintSymbols(evaluationSymbols);
 				}
 				break;
 		}

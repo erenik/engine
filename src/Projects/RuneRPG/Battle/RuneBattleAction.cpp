@@ -215,7 +215,9 @@ void RuneBattleAction::Narrate(String line)
 /// Checks for a name and stuff.
 bool RuneBattleAction::IsValid()
 {
-	if (name.Length() <= 0)
+	if (name.Length() == 0)
+		name = id;
+	if (effects.Size() <= 0)
 		return false;
 	return true;
 }
@@ -249,13 +251,14 @@ void RuneBattleAction::ParseElements(String fromString)
 	}	
 }
 
-void RuneBattleAction::ParseDurations(String fromString)
+/// Returns false if any errors occured while parsing. Errors may not always be fatal but could be highly relevant.
+bool RuneBattleAction::ParseDurations(String fromString)
 {
 	// Get latest effect and set duration for it.
 	if (effects.Size() == 0)
 	{
 	//	std::cout<<"\nNo effect to attach duration to!";					
-		return;
+		return false;
 	}
 
 	List<String> tokens = fromString.Tokenize(" ()");
@@ -264,6 +267,11 @@ void RuneBattleAction::ParseDurations(String fromString)
 	for (int i = 0; i < tokens.Size(); ++i)
 	{
 		String tok = tokens[i];
+		if (effectIndex >= effects.Size())
+		{
+			std::cout<<"\nParseDurations Error: effectIndex out of bounds.";
+			return false;
+		}
  		BattleEffect * effect = &effects[effectIndex];
 		if (tok == "0")
 		{
@@ -302,7 +310,7 @@ void RuneBattleAction::ParseDurations(String fromString)
 
 //	BattleEffect & effect = spell->effects.Last();
 //	effect.durationInMs = BattleEffect::INSTANTANEOUS; // GetDurationByString(word);
-
+	return true;
 }
 
 void RuneBattleAction::ParseEffects(String fromString)
@@ -386,6 +394,12 @@ void RuneBattleAction::ParseEffects(String fromString)
 			effect.type = BattleEffect::SPAWN_ELEMENTAL;
 			effect.element = GetElementByString(effectStr);
 		}
+		else if (effectStr.Contains("Pause actionbar"))
+		{
+			effect.type = BattleEffect::PAUSES_ACTIONBAR;
+		}
+		else if (effectStr.Length() < 3)
+			continue;
 		else 
 		{
 			std::cout<<"\nUnidentified effect string: "<<effectStr;
@@ -405,7 +419,7 @@ void RuneBattleAction::ParseEffects(String fromString)
 				{
 					// Check next token.
 					effect.statType = GetStatByString(effectStr);
-					if (effect.statType == Stat::INVALID)
+					if (effect.statType == RStat::INVALID)
 						continue;
 					effect.argument = argument;
 				}

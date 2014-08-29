@@ -181,6 +181,10 @@ public:
 		Max action points = 100 + Max(0, (Speed - 50) * 0.5)
 	*/
 	float actionPoints;
+	/** Points for spending on battle actions. 
+		Max action points = 100 + Max(0, (Speed - 50) * 0.5)
+	*/
+	int maxActionPoints;
 	
 	int weaponDamage, spellDamage;
 	int armor, magicArmor;

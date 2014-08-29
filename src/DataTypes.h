@@ -22,6 +22,7 @@ namespace DataType
 		VECTOR2F, // Defined in /MathLib/Vector2f.h
 		QUATERNION, // Defined in /MathLib/Quaternion.h
 		EXPRESSION, // Defined in /MathLib/Expression.h
+		ARGUMENT_LIST, // Part of Expression calculation as defined in /MathLib/Expression/ If commas are used, it is assumed that it is part of an argument list.
 	};
 };
 

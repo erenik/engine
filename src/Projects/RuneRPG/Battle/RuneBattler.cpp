@@ -108,21 +108,21 @@ void RuneBattler::Nullify()
 	battleWeightLimit = 1;
 
 	// Create stats.
-	for (int i = 0; i < Stat::NUM_STATS; ++i)
+	for (int i = 0; i < RStat::NUM_STATS; ++i)
 	{
 		/// Initialize all to 0-ints?
 		baseStats.Add(Variable(GetStatShortString(i),0));
 	}
 	
 	/// Reset all to 1.
-	for (int i = 0; i < Stat::NUM_BATTLER_STATS; ++i)
+	for (int i = 0; i < RStat::NUM_BATTLER_STATS; ++i)
 	{
 		baseStats[i].iValue = 1;
 	}
 	/// Set som default values for testing purposes.
-	for (int i = Stat::FIRST_CORE_STAT; i <= Stat::LAST_CORE_STAT; ++i)
+	for (int i = RStat::FIRST_CORE_STAT; i <= RStat::LAST_CORE_STAT; ++i)
 		baseStats[i].iValue = 5;
-	for (int i = Stat::FIRST_SURVIVAL_STAT; i <= Stat::LAST_SURVIVAL_STAT; ++i)
+	for (int i = RStat::FIRST_SURVIVAL_STAT; i <= RStat::LAST_SURVIVAL_STAT; ++i)
 		baseStats[i].iValue = 50;
 
 	/// yo.
@@ -154,6 +154,11 @@ void RuneBattler::RecalculateActionPointsFillUpSpeed()
 	ExpressionResult result = actionBarFillupSpeedFunc.Evaluate(currentStats);
 	this->actionPointsFillUpSpeed = result.GetFloat();
 	std::cout<<"Action points fill up speed per millisecond recalculated to: "<<this->actionPointsFillUpSpeed;
+
+	Function maxActionPointsFunc = Function::GetFunctionByName("Max action points");
+	assert(maxActionPointsFunc.Good());
+	result = maxActionPointsFunc.Evaluate(currentStats);
+	maxActionPoints = result.GetFloat();
 }
 
 /// Increments action points and other stuff according to current effects.
@@ -215,6 +220,8 @@ void RuneBattler::Process(RBattleState & battleState)
 			this->RecalculateActionPointsFillUpSpeed();
 
 		this->actionPoints += actionPointsFillUpSpeed * battleState.timeInMs;
+		if (actionPoints > maxActionPoints)
+			actionPoints = maxActionPoints;
 		// Use some other boolean to just signify that the menu should be opened..
 		/*
 		Message * msg = new Message(MessageType::STRING);
@@ -405,25 +412,25 @@ float RuneBattler::ShieldDefenseModifier()
 /// Returns the variable containing HP, so that it may be adjusted.
 Variable * RuneBattler::GetHP()
 {
-	return &baseStats[Stat::CURRENT_HP];
+	return &baseStats[RStat::CURRENT_HP];
 }
 
 /// Returns current HP, including buffs/debuffs.
 int RuneBattler::HP()
 {
-	return currentStats[Stat::CURRENT_HP].iValue;
+	return currentStats[RStat::CURRENT_HP].iValue;
 }
 int RuneBattler::MaxHP()
 {
-	return currentStats[Stat::MAX_HP].iValue;
+	return currentStats[RStat::MAX_HP].iValue;
 }
 int RuneBattler::MP()
 {
-	return currentStats[Stat::CURRENT_MP].iValue;
+	return currentStats[RStat::CURRENT_MP].iValue;
 }
 int RuneBattler::MaxMP()
 {
-	return currentStats[Stat::MAX_MP].iValue;
+	return currentStats[RStat::MAX_MP].iValue;
 }
 
 

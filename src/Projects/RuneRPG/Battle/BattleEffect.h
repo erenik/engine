@@ -40,6 +40,7 @@ public:
 		DEATH, // Argument contains chance or potency.
 		RESTORE, // ..
 		SPAWN_ELEMENTAL, // o.o;
+		PAUSES_ACTIONBAR, // D:
 	};
 	/// Name of this effect. Name will correspond  to type.
 	String name;

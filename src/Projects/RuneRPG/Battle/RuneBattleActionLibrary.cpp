@@ -133,6 +133,7 @@ bool RuneBattleActionLibrary::LoadSpellsFromCSV(String fileName)
 		for (int k = 0; k < values.Size(); ++k)
 		{
 			String column;
+			bool error = false;
 			/// In-case extra data is added beyond the columns defined above..?
 			if (columns.Size() > k)
 				column = columns[k];
@@ -169,10 +170,16 @@ bool RuneBattleActionLibrary::LoadSpellsFromCSV(String fileName)
 			else if (column.Contains("Cast time"))
 				spell->castTimeInSeconds = value.ParseFloat();
 			else if (column.Contains("Duration"))
-				spell->ParseDurations(value);
+			{
+				error = !spell->ParseDurations(value);
+			}
 			else 
 			{
 		//		std::cout<<"\nUnknown column D:";
+			}
+			if (error)
+			{
+				std::cout<<"\n .. when parsing line \'"<<line<<"\'";
 			}
 		}
 		if (!spell->IsValid())

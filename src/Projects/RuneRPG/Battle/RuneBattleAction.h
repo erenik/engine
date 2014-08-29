@@ -101,7 +101,8 @@ public:
 	/// Parses a string with targets as defined in a CSV file. E.g. "Ally Select 1"
 	void ParseTargets(String fromString);
 	void ParseElements(String fromString);
-	void ParseDurations(String fromString);
+	/// Returns false if any errors occured while parsing. Errors may not always be fatal but could be highly relevant.
+	bool ParseDurations(String fromString);
 	void ParseEffects(String fromString);
 	void ParseOtherCosts(String fromString);
 

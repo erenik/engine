@@ -478,11 +478,11 @@ void List<T>::RemovePart(int fromIndex, int toIndex)
 	int itemsRemoved = toIndex - fromIndex + 1;
 	for (int i = fromIndex; i < fromIndex + itemsRemoved; ++i)
 	{
-		int moveIndex = i + itemsRemoved;
-		// Skip moving when the move index is out of bounds (removing items at the end of the list).
-		if (moveIndex >= arrLength)
-			continue;
-		arr[i] = arr[moveIndex];
+		/// Move back the ENTIRE array. Nost just the same amount as removed...
+		for (int j = i; j < currentItems - itemsRemoved; ++j)
+		{
+			arr[j] = arr[j + itemsRemoved];
+		}
 	}
 	currentItems -= itemsRemoved;
 }	

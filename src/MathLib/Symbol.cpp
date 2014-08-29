@@ -16,3 +16,20 @@ Symbol::Symbol(String text, int type)
 	: text(text), type(type)
 {
 }
+
+Symbol::Symbol(List<String> list, int type)
+: list(text), type(type)
+{
+}
+	
+
+
+void PrintSymbols(List<Symbol> symbols)
+{
+	for (int i = 0; i < symbols.Size(); ++i)
+	{
+		Symbol & symbol = symbols[i];
+		std::cout<<"\nSymbol "<<i<<": "<<symbol.text;
+	}
+}
+

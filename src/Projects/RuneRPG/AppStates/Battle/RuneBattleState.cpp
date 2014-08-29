@@ -1168,9 +1168,11 @@ void RuneBattleState::OpenTargetMenu()
     /// Return if it was a false call.
     if (!battlers.Size())
         return;
+
     /// First clear the commands-menu of any existing items.
     Graphics.QueueMessage(new GMClearUI("TargetsMenu"));
 	List<RuneBattler*> relevantBattlersToTarget;
+	List<String> otherTargets;
     for (int i = 0; i < battlers.Size(); ++i)
 	{
         RuneBattler * b = battlers[i];
@@ -1194,11 +1196,28 @@ void RuneBattleState::OpenTargetMenu()
 				if (b == activePlayerBattler)
 					relevantBattlersToTarget.Add(b);
 				break;
+			case TargetFilter::ALL:
+			case TargetFilter::POINT:
+				break;
             default:
 				std::cout<<"unsupported target mode ("<<targetMode<<")for now, I'm afraid!";
                 assert(false && "unsupported target mode for now, I'm afraid!");
         }
     }
+
+	/// Non-battler specific targets.
+	switch(targetMode)
+	{	
+		case TargetFilter::ALL:
+			// Add 'ALL' as an option. o.o
+			otherTargets.Add("All battlers");
+			break;
+		case TargetFilter::POINT:
+			/// Disable UI-navigation so that the point may be navigated to!
+			Input.ForceNavigateUI(false);
+			otherTargets.Add("Point");
+			break;
+	}
 
 	Vector4f textColor(1,1,1,1);
 
@@ -1217,6 +1236,19 @@ void RuneBattleState::OpenTargetMenu()
         Graphics.QueueMessage(new GMAddUI(targetButton, "TargetsMenu"));
         std::cout<<"\nAdding category-button "<<targetButton->text;
     }
+	for (int i = 0; i < otherTargets.Size(); ++i)
+	{
+		String otherTarget = otherTargets[i];
+        UIElement * targetButton = new UIButton();
+        targetButton->sizeRatioY = 0.2f;
+        targetButton->text = otherTarget;
+        targetButton->textColor = textColor;
+		targetButton->onHover = "SetTargetBattlers(this)";
+        targetButton->activationMessage = "SetTarget("+otherTarget+")&&ExecuteAction()";
+        targetButton->textureSource = DEFAULT_UI_TEXTURE;
+        Graphics.QueueMessage(new GMAddUI(targetButton, "TargetsMenu"));
+        std::cout<<"\nAdding category-button "<<targetButton->text;
+	}
 
 	/// Add a cancel-button.
 	UIElement * cancelButton = new UIButton();

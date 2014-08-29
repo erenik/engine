@@ -46,7 +46,7 @@ void BattleEffect::ApplyTo(RuneBattler * target, RuneBattler * subject, RBattleS
 			for (int i = 0; i < casterStats.Size(); ++i)
 			{
 				Variable & var = casterStats[i];
-				if (var.name == GetStatShortString(Stat::SPELL_POWER))
+				if (var.name == GetStatShortString(RStat::SPELL_POWER))
 				{
 					var.iValue = RParseInt(argument);
 					assert(var.iValue > 0);
@@ -74,6 +74,7 @@ void BattleEffect::ApplyTo(RuneBattler * target, RuneBattler * subject, RBattleS
 				case DataType::NO_TYPE:
 				{
 					std::cout<<"\nFunction evaluation error: "<<result.text;
+					damage = 0;
 					break;
 				}
 				default:
