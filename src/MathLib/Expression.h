@@ -64,6 +64,8 @@ public:
 
 private:
 	
+	/// Evaluates target variable. Expects a variable name and write the value back in the same string. Returns false if it doesn't exist, setting the error string appropriately.
+	bool EvaluateVariable(String & inputOutputString);
 
 	/// Tries to evaluate the expression.
 	bool TryEvaluate();

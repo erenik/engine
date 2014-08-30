@@ -39,6 +39,9 @@ public:
 	/// Evaluates the function with given variable arguments.
 	ExpressionResult Evaluate(List<Variable> args);
 
+	/// Static simple functions such as Max, Min and Random
+	static ExpressionResult Evaluate(String functionName, List<String> arguments);
+
 	/// E.g. "f(x)" in the case of "f(x) = ax + m".
 	String returnName;
 

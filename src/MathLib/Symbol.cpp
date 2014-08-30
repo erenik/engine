@@ -18,7 +18,7 @@ Symbol::Symbol(String text, int type)
 }
 
 Symbol::Symbol(List<String> list, int type)
-: list(text), type(type)
+: list(list), type(type)
 {
 }
 	

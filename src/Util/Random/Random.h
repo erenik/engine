@@ -20,7 +20,14 @@ public:
 	/// Returns a random value between 0 and max (inclusive)
 	int Randi(int max);
 private:
+	/// First approach
 	unsigned int x, y, z, w;
+
+	/// Xor shift star
+#define XOR_SHIFT_STAR_VALUES  16
+	uint64 s[ XOR_SHIFT_STAR_VALUES ];
+	int p;
+
 };
 
 #endif RANDOM_H

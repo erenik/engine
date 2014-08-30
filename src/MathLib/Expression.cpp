@@ -6,6 +6,8 @@
 #include "Expression.h"
 #include "Constants.h"
 #include <cmath>
+#include "String/StringUtil.h"
+#include "Function.h"
 
 // Bad typ defualt constructor.
 ExpressionResult::ExpressionResult(int type)
@@ -167,6 +169,31 @@ List<String> Expression::RequiredVariables()
 	return varNames;
 }
 
+/// Evaluates target variable. Expects a variable name and write the value back in the same string. Returns false if it doesn't exist, setting the error string appropriately.
+bool Expression::EvaluateVariable(String & inputOutputString)
+{
+	String varName = inputOutputString;
+	Variable * var = GetVariableForName(varName);
+	if (!var)
+	{
+		result.text = "Undefined variable \'"+varName+"\'";
+		return false;
+	}
+	switch(var->type)
+	{
+		case DataType::FLOAT:	inputOutputString = String(var->fValue);	break;
+		case DataType::INTEGER:	inputOutputString = String(var->iValue);	break;
+		default:
+		{
+			result.text = "Undefined variable data type: "+var->type;
+			assert(false);
+			return false;
+		}
+	}
+	return true;
+}
+
+
 /// Tries to evaluate the expression.
 bool Expression::TryEvaluate()
 {
@@ -179,6 +206,9 @@ bool Expression::TryEvaluate()
 	int parenthesis = 0;
 	int argumentStart = -1;
 	bool argumentEnumerating = false;
+
+	PrintSymbols(evaluationSymbols);
+
 	for (int i = 0; i < evaluationSymbols.Size(); ++i)
 	{
 		Symbol & evalSymbol = evaluationSymbols[i];
@@ -229,6 +259,8 @@ bool Expression::TryEvaluate()
 
 					PrintSymbols(evaluationSymbols);
 						
+					/// Move back i so that parsing will work out as intended?
+					i -= pe.symbols.Size() - 1;
 					/// Store the current position as argument start again for the next argument's parse to work out well.
 					argumentStart = i;
 				}
@@ -250,12 +282,29 @@ bool Expression::TryEvaluate()
 						List<String> args;
 						for (int j = 0; j < pe.symbols.Size(); ++j)
 						{
-							args.Add(pe.symbols[j].text);							
+							Symbol & argSym = pe.symbols[j];
+							switch(argSym.type)
+							{
+								case Symbol::VARIABLE:
+									/// Evaluate it now!
+									if (!EvaluateVariable(argSym.text))
+										return false;
+								case Symbol::CONSTANT: 
+									args.Add(argSym.text);
+									break;
+							}
 						} 
 						Symbol sym(args, Symbol::FUNCTION_ARGUMENTS);
+						sym.text = "Args: "+MergeLines(args, ", ");
 						// Insert the new parenthesis-result-symbol. where the parenthesis was.
 						evaluationSymbols.Insert(sym, parenthesisStart);
 						PrintSymbols(evaluationSymbols);
+
+						/// Move back i so that parsing will work out as intended?
+						i -= pe.symbols.Size() - 1;
+						/// Store the current position as argument start again for the next argument's parse to work out well.
+						argumentStart = i;
+
 						break;
 					}
 					// Transfer the known variables too.
@@ -276,85 +325,169 @@ bool Expression::TryEvaluate()
 					Symbol sym(pe.result.text, Symbol::CONSTANT);
 					evaluationSymbols.Insert(sym, parenthesisStart);
 					PrintSymbols(evaluationSymbols);
+
+					// Move back i so that parsing will work out as intended for the next parenthesis.
+					// This since we removed several symbols. We need to adjust i to remain in the same relative location to the parenthesis we just evaluated.
+					int symbolsRemoved = i - parenthesisStart + 1;
+					i -= symbolsRemoved;
 				}
 				break;
 		}
 	}
-
 	// All parenthesis should have been evaluated recursively above.
-
-	// Now do regular evaluation..
-	Symbol var1, var2;
-	// Short for operator, since that is a keyword in C++ 
-	Symbol op1, 
-		// Special case with e.g. a * - b ?
-		* op2;
-
-	/// Go from right to left, to make it easier to handle + and - signs?
+	
+	/// Evaluate any functions which are present.
+		/// Go from right to left, to make it easier to handle + and - signs?
 	for (int i = evaluationSymbols.Size() - 1; i >= 0; --i)
 	{
 		Symbol & sym = evaluationSymbols[i];
 		switch(sym.type)
 		{
-			case Symbol::OPERATOR:
-				if (op1.type == Symbol::BAD_TYPE)
-					op1 = sym;
+			case Symbol::FUNCTION_ARGUMENTS:
+			{
+				/// Check if function name is available before?
+				if (i == 0)
+				{
+					result.text = "Function argument list requires preceding function name.";
+					return false;
+				}
+				Symbol & preceding = evaluationSymbols[i-1];
+				if (preceding.type != Symbol::VARIABLE)
+				{
+					result.text = "Function argument list requires preceding function name. Encountered \'"+preceding.text+"\'";
+					return false;
+				}
+				/// Get function with that name then!
+				ExpressionResult result = Function::Evaluate(preceding.text, sym.list);
+				if (result.type == -1)
+				{
+					this->result.text = result.text;
+					return false;
+				}
+				PrintSymbols(evaluationSymbols);
+				// Save the result and replace the function and arguments with the new symbol o.o
+				evaluationSymbols.RemovePart(i-1, i);
+				Symbol resultSymbol(result.text, Symbol::CONSTANT);
+				evaluationSymbols.Add(resultSymbol, i-1);
+				PrintSymbols(evaluationSymbols);
 				break;
-
+			}
+		}
+	}
+	/// Now we should only have constants left...
+	// Convert variables to constants.
+	for (int i = 0; i < evaluationSymbols.Size(); ++i)
+	{
+		Symbol & sym = evaluationSymbols[i];
+		switch(sym.type)
+		{
 			// Variables handle exactly as constants, except that the values have to be extracted before-hand.
 			case Symbol::VARIABLE:
 			{
 				// Extract the variable via its name!
-				Variable * var = GetVariableForName(sym.text);
-				if (!var)
-				{
-					result.text = "Undefined variable \'"+sym.text+"\'";
+				if (!EvaluateVariable(sym.text))
 					return false;
-				}
-				switch(var->type)
-				{
-					case DataType::FLOAT:	sym.text = String(var->fValue);	break;
-					case DataType::INTEGER:	sym.text = String(var->iValue);	break;
-					default:
-					{
-						result.text = "Undefined variable data type: "+var->type;
-						assert(false);
-						return false;
-					}
-				}
 				// Should have been converted to constant.
 				sym.type = Symbol::CONSTANT;
 			}
-			case Symbol::CONSTANT:
-				// Since we're reading backwards, set var2 first.
-				if (var2.type == Symbol::BAD_TYPE)
-					var2 = sym;
-				else 
-				{
-					var1 = sym;
-					// Evaluate the expression part using the given operator.
-					Symbol symbol = Evaluate(var1, var2, op1);
-					// Save the symbol as var2 for the next operation.
-					var2 = symbol;
-					// Reset var1 and op
-					var1 = op1 = Symbol();
-				}
-				break;
 		}
 	}
+	/// Evaluate the operators, starting with those of highest priority.
+	int priority = 5;
+	/** 0	+ -
+		1	/ * %
+		2	^
+	*/
+	while (priority >= 0)
+	{
+		for (int i = 0; i < evaluationSymbols.Size(); ++i)
+		{
+			Symbol & opSym = evaluationSymbols[i];
+			/// Skip non-operators.
+			switch(opSym.type)
+			{
+				case Symbol::OPERATOR:
+					break;
+				default:
+					continue;
+			}			
+			char cop = opSym.text.c_str()[0];
+			/// Check operator priority, evaluate only the current priority level.
+			bool correctPrioLevel = false;
+			switch(priority)
+			{
+				case 0:
+					switch(cop)
+					{
+						case '-':
+						case '+':
+							correctPrioLevel = true;
+							break;
+					}
+					break;
+				case 1:
+					switch(cop)
+					{
+						case '*':
+						case '/':
+						case '%':
+							correctPrioLevel = true;
+							break;
+					}
+					break;
+				case 2:
+					switch(cop)
+					{
+						case '^':
+							correctPrioLevel = true;
+							break;
+					}
+					break;
+				default:
+					continue;
+			}
+			if (!correctPrioLevel)
+				continue;
+			assert(i < evaluationSymbols.Size() - 1);
+			assert(i > 0);
+
+			Symbol * pre = &evaluationSymbols[i-1];
+			Symbol * post = &evaluationSymbols[i+1];
+			assert(pre->type == Symbol::CONSTANT);
+			assert(post->type == Symbol::CONSTANT);
+
+			// Evaluate the expression part using the given operator.
+			Symbol symbol = Evaluate(*pre, *post, opSym);
+			PrintSymbols(evaluationSymbols);
+			// Remove the operator and operands.
+			evaluationSymbols.RemovePart(i-1, i+1);
+			PrintSymbols(evaluationSymbols);
+			/// Insert the new result symbol in its place.
+			evaluationSymbols.Insert(symbol, i-1);
+			PrintSymbols(evaluationSymbols);
+			/// Move back i to properly evaluate the rest.
+			i -= 1;
+		}
+		--priority;
+	}
+
+	/// Ensure we end up with just 1 final symbol.
+	assert(evaluationSymbols.Size() == 1);
+
+	Symbol sym = evaluationSymbols[0];
 	// Store text from the latest var2 as the final answer in the expression!
-	result.text = var2.text;
-	switch(var2.type)
+	result.text = sym.text;
+	switch(sym.type)
 	{
 		case Symbol::CONSTANT:
-			if (var2.text.Contains("."))
+			if (sym.text.Contains("."))
 			{
 				result.type = DataType::FLOAT;
-				result.fResult = var2.text.ParseFloat();
+				result.fResult = result.text.ParseFloat();
 			}
 			else {
 				result.type = DataType::INTEGER;
-				result.iResult = var2.text.ParseInt();
+				result.iResult = result.text.ParseInt();
 			}
 			break;
 	}

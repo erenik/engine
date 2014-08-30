@@ -4,6 +4,7 @@
 
 #include "Function.h"
 #include "File/File.h"
+#include "Random/Random.h"
 
 List<Function> Function::loadedFunctions;
 
@@ -124,5 +125,56 @@ ExpressionResult Function::Evaluate(List<Variable> args)
 }
 
 
+/// Static simple functions such as Max, Min and Random
+ExpressionResult Function::Evaluate(String functionName, List<String> arguments)
+{
+	ExpressionResult result;
+	assert(arguments.Size());
+	if (functionName == "Max")
+	{
+		float max = arguments[0].ParseFloat();
+		for (int i = 1; i < arguments.Size(); ++i)
+		{
+			float f = arguments[i].ParseFloat();
+			if (f > max)
+				max = f;
+		}
+		result.type = DataType::FLOAT;
+		result.fResult = max;
+		result.text = String(max);
+	}
+	else if (functionName == "Min")
+	{
+		float min = arguments[0].ParseFloat();
+		for (int i = 1; i < arguments.Size(); ++i)
+		{
+			float f = arguments[i].ParseFloat();
+			if (f < min)
+				min = f;
+		}
+		result.type = DataType::FLOAT;
+		result.fResult = min;
+	}
+	else if (functionName == "Random")
+	{
+		if (arguments.Size() != 2)
+		{
+			result.text = "Expected 2 arguments for function Random";
+			return false;
+		}
+		Random rand;
+		float min = arguments[0].ParseFloat();
+		float max = arguments[1].ParseFloat();
+		result.fResult = rand.Randf(max - min) + min;
+		result.type = DataType::FLOAT;
+		result.text = result.fResult;
+	}
+	else 
+	{
+		result.type == -1;
+		result.text = "Undefined function name \'"+functionName+"\'";
+	}
+	return result;
+}
 
 

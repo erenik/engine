@@ -476,13 +476,10 @@ void List<T>::RemovePart(int fromIndex, int toIndex)
 {
 	/// Move down the list, retaining order by default.
 	int itemsRemoved = toIndex - fromIndex + 1;
-	for (int i = fromIndex; i < fromIndex + itemsRemoved; ++i)
+	/// Move back the ENTIRE array. Nost just the same amount as removed...
+	for (int j = fromIndex; j < currentItems - itemsRemoved; ++j)
 	{
-		/// Move back the ENTIRE array. Nost just the same amount as removed...
-		for (int j = i; j < currentItems - itemsRemoved; ++j)
-		{
-			arr[j] = arr[j + itemsRemoved];
-		}
+		arr[j] = arr[j + itemsRemoved];
 	}
 	currentItems -= itemsRemoved;
 }	
