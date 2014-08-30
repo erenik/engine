@@ -554,6 +554,9 @@ UIElement * UIList::GetUpNeighbour(UIElement * referenceElement, bool & searchCh
 			{
 				// Or further below as needed..
 				UIElement * child = children[i];
+				// Skip the scroll-bars if they react to this...
+				if (child->isSysElement)
+					continue;
 				/// If activatable? Return it straight away.
 				if (child->activateable)
 					return child;
@@ -600,6 +603,9 @@ UIElement * UIList::GetDownNeighbour(UIElement * referenceElement, bool & search
 			{
 				// Or further below as needed..
 				UIElement * child = children[i];
+				// Skip the scroll-bars if they react to this...
+				if (child->isSysElement)
+					continue;
 				/// If activatable? Return it straight away.
 				if (child->activateable)
 					return child;
@@ -621,9 +627,9 @@ UIElement * UIList::GetDownNeighbour(UIElement * referenceElement, bool & search
 		return children[0];
 	}
 	// No children? Do we have a valid up-element?
-	UIElement * upEle = UIElement::GetDownNeighbour(referenceElement, searchChildrenOnly);
-	if (upEle)
-		return upEle;
+	UIElement * downEle = UIElement::GetDownNeighbour(referenceElement, searchChildrenOnly);
+	if (downEle)
+		return downEle;
 
 	// No good found? Return the caller element so the cursor stays in place.
 	return referenceElement;

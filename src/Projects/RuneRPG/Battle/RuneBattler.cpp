@@ -186,11 +186,25 @@ void RuneBattler::Process(RBattleState & battleState)
 	if (queuedActions.Size() && !frozenInAction)
 	{
 		RuneBattleAction * rba = queuedActions[0];
-		if (!rba->primarySubject)
-			rba->primarySubject = this;
-		queuedActions.Remove(rba); // Remove from queue
-		activeBattleActions.Add(rba); // Add to list of active actions.
-		rba->OnBegin(battleState); // Call on Begin for it!
+		/// Check if we can initiate the action yet.
+		bool readyToStart = true;
+		if (rba->actionCost > actionPoints ||
+			rba->manaCost > currentStats[RStat::CURRENT_MP].iValue)
+		{
+			readyToStart = false;
+		}
+		if (readyToStart)
+		{
+			// Remove costs as necessary.
+			actionPoints -= rba->actionCost;
+			currentStats[RStat::CURRENT_MP].iValue -= rba->manaCost;
+
+			if (!rba->primarySubject)
+				rba->primarySubject = this;
+			queuedActions.Remove(rba); // Remove from queue
+			activeBattleActions.Add(rba); // Add to list of active actions.
+			rba->OnBegin(battleState); // Call on Begin for it!
+		}
 	}
 
 	// If dead, don't process any more?
@@ -219,7 +233,7 @@ void RuneBattler::Process(RBattleState & battleState)
 		if (this->actionPointsFillUpSpeed == 0)
 			this->RecalculateActionPointsFillUpSpeed();
 
-		this->actionPoints += actionPointsFillUpSpeed * battleState.timeInMs;
+		this->actionPoints += actionPointsFillUpSpeed * battleState.timeInMs * 0.001;
 		if (actionPoints > maxActionPoints)
 			actionPoints = maxActionPoints;
 		// Use some other boolean to just signify that the menu should be opened..
@@ -312,6 +326,7 @@ bool RuneBattler::Damage(int dmg)
 {
 	Variable * hp = GetHP();
 	hp->iValue -= dmg;
+	UpdateCurrentStats();
 	if (hp->iValue <= 0)
 	{
 		OnKO();
@@ -345,6 +360,7 @@ bool RuneBattler::MagicDamage(int dmg)
 bool RuneBattler::UpdateActions()
 {
 	actions.Clear();
+
 	for (int i = 0; i < actionNames.Size(); ++i)
 	{
 		String name = actionNames[i];
@@ -356,6 +372,14 @@ bool RuneBattler::UpdateActions()
 			List<RuneBattleAction*> spells = RBALib.GetSpells();
 			for (int j = 0; j < spells.Size(); ++j)
 				actions.Add(new RuneBattleAction(*spells[j]));
+			continue;
+		}
+		else if (name == "All skills")
+		{
+			// Create a copy of each spell!
+			List<RuneBattleAction*> skills = RBALib.GetSkills();
+			for (int j = 0; j < skills.Size(); ++j)
+				actions.Add(new RuneBattleAction(*skills[j]));
 			continue;
 		}
 
@@ -372,14 +396,49 @@ bool RuneBattler::UpdateActions()
 void RuneBattler::UpdateActionCategories(int usingSortingScheme)
 {
 	actionCategories.ClearAndDelete();
-	// Default scheme! no categories! :D
-	for (int i = 0; i < actions.Size(); ++i)
+	switch(usingSortingScheme)
 	{
-		RuneBattleAction * action = actions[i];
-		RuneBattleActionCategory * cat = new RuneBattleActionCategory();
-		cat->name = action->name;
-		cat->isAction = action;
-		actionCategories.Add(cat);
+		// Default scheme! no categories! :D
+		case 0:
+			for (int i = 0; i < actions.Size(); ++i)
+			{
+				RuneBattleAction * action = actions[i];
+				RuneBattleActionCategory * cat = new RuneBattleActionCategory();
+				cat->name = action->name;
+				cat->isAction = action;
+				actionCategories.Add(cat);
+			}
+			break;
+		// Standard categories: Attack, Spells, Skills, Items
+		case 1:
+		{
+			RuneBattleActionCategory * attack = new RuneBattleActionCategory("Attack"),
+				* spells = new RuneBattleActionCategory("Spells"),
+				* skills = new RuneBattleActionCategory("Skills");
+			actionCategories.Add(3, attack, spells, skills);
+			for (int i = 0; i < actions.Size(); ++i)
+			{
+				RuneBattleAction * rba = actions[i];
+				switch(rba->type)
+				{
+					case RuneBattleAction::MUNDANE_ACTION:
+						/// Only a few of these..
+						if (rba->name == "Attack")
+							attack->isAction = rba;
+						break;
+					case RuneBattleAction::MAGIC_SKILL:
+						skills->actions.Add(rba);
+						break;
+					case RuneBattleAction::MAGIC_SPELL:
+						spells->actions.Add(rba);
+						break;
+					default:
+						assert(false && "Bad action type should be one of the following: magic skill, magic spell or mundane action");
+				}
+			}
+
+			break;
+		}
 	}
 }
 

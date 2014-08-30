@@ -5,6 +5,7 @@
 
 #include "AEString.h"
 #include <cstdio>       // used for snprintf(...), replace itoa
+#include "MathLib/AEMath.h"
 
 #include "OS/OS.h"
 #include <fstream>
@@ -75,7 +76,7 @@ String::String(const int iValue)
 {
 	Nullify();
 	/// Hard core.
-	int i2 = iValue, numDigits = 0, negative = 0;
+	int i2 = AbsoluteValue(iValue), numDigits = 0, negative = 0;
 	if (iValue < 0)
 		negative = 1;
 	List<int> digits;

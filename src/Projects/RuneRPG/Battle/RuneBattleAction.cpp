@@ -23,7 +23,8 @@
 
 Random random;
 
-RuneBattleActionCategory::RuneBattleActionCategory()
+RuneBattleActionCategory::RuneBattleActionCategory(String withName)
+: name(withName)
 {
 	isAction = NULL;
 };
@@ -38,6 +39,10 @@ void RuneBattleAction::Nullify()
 {
 	primaryTarget = NULL;
 	primarySubject = NULL;
+
+	/// Default values..
+	actionCost = 10;
+	manaCost = 0;
 
 	spellPower = 0;
 	casted = false;

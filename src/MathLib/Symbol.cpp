@@ -6,6 +6,8 @@
 */
 
 #include "Symbol.h"
+#include "DataTypes.h"
+#include "Expression.h"
 
 Symbol::Symbol()
 {
@@ -17,11 +19,27 @@ Symbol::Symbol(String text, int type)
 {
 }
 
-Symbol::Symbol(List<String> list, int type)
-: list(list), type(type)
+Symbol::Symbol(List<Symbol> symbols, int type)
+: symbols(symbols), type(type)
 {
 }
 	
+// Copy constructor o.o
+Symbol::Symbol(const ExpressionResult & result)
+{
+	switch(result.type)
+	{
+		case DataType::FLOAT:
+		case DataType::INTEGER:
+			type = Symbol::CONSTANT;
+			text = result.text;
+			break;
+		default:
+			type = -1;
+			assert(false);
+	}
+}
+
 
 
 void PrintSymbols(List<Symbol> symbols)

@@ -3,7 +3,7 @@
 /// Library for managing all actions available for battlers in the RuneRPG game
 
 #include "RuneBattleActionLibrary.h"
-
+#include "Elements.h"
 #include "File/File.h"
 
 RuneBattleActionLibrary * RuneBattleActionLibrary::runeBattleActionLibrary = NULL;
@@ -13,7 +13,7 @@ RuneBattleActionLibrary::RuneBattleActionLibrary()
 }
 RuneBattleActionLibrary::~RuneBattleActionLibrary()
 {
-	runeBattleActions.ClearAndDelete();
+	AllActions().ClearAndDelete();
 }
 void RuneBattleActionLibrary::Allocate()
 {
@@ -36,36 +36,71 @@ RuneBattleActionLibrary * RuneBattleActionLibrary::Instance()
 const RuneBattleAction * RuneBattleActionLibrary::GetBattleAction(String byNameOrSource)
 {
 //	RuneBattleAction * rba = 
-	return GetBattleActionBySource(byNameOrSource);
+	List<RuneBattleAction*> allActions = AllActions();
+	for (int i = 0; i < allActions.Size(); ++i)
+	{
+		RuneBattleAction * rba = allActions[i];
+		if (rba->name == byNameOrSource)
+			return rba;
+	}
+	return NULL;
 }
 
 /// Fetches battle action by source file.
 const RuneBattleAction * RuneBattleActionLibrary::GetBattleActionBySource(String bySource)
 {
+	assert(false);
+	/*
 #define ACTION_DIR "data/BattleActions/"
 	if (!bySource.Contains(ACTION_DIR))
 		bySource = ACTION_DIR + bySource;
 	if (!bySource.Contains(".ba"))
 		bySource = bySource + ".ba";
-	for (int i = 0; i < runeBattleActions.Size(); ++i)
+	for (int i = 0; i < AllActions().Size(); ++i)
 	{
-		RuneBattleAction * rab = (RuneBattleAction *) runeBattleActions[i];
+		RuneBattleAction * rab = (RuneBattleAction *) AllActions()[i];
 		if (rab->source == bySource)
 			return rab;
 	}
 	return LoadBattleAction(bySource);
-
+*/
+	return NULL;
 }
 	
 
 /// Reloads all battle actions.
 void RuneBattleActionLibrary::Reload()
 {
+	assert(false);
+	/*
 	for (int i = 0; i < runeBattleActions.Size(); ++i)
 	{
 		RuneBattleAction * rab = runeBattleActions[i];
 		rab->Load(rab->source);
-	}
+	}*/
+}
+
+/// Creates Attack, Flee and.. Use Item?
+void RuneBattleActionLibrary::CreateDefaultActions()
+{
+	assert(mundaneActions.Size() == 0);
+	RuneBattleAction * attack = new RuneBattleAction();
+	attack->name = "Attack";
+	attack->type = RuneBattleAction::MUNDANE_ACTION;
+	attack->targetFilter = TargetFilter::ENEMY;
+
+	BattleEffect damage;
+	damage.type = BattleEffect::DAMAGE;
+	damage.equation = "Base damage";
+	damage.element = Element::PHYSICAL; 
+//	damage.isPhysical = true;
+	attack->effects.Add(damage);
+
+	attack->actionCost = 20;
+	attack->freezeTimeInSeconds = 0.5f;
+	attack->castTimeInSeconds = 0.5f;
+
+	mundaneActions.Add(attack);
 }
 
 
@@ -87,6 +122,12 @@ const RuneBattleAction * RuneBattleActionLibrary::LoadBattleAction(String bySour
 	*/
 }
 
+/// Returns all spells, skills and mundane actions together.
+List<RuneBattleAction*> RuneBattleActionLibrary::AllActions()
+{
+	return spells + skills + mundaneActions;
+}
+
 /// Returns list of all spells, as battle-action objects. The object will be created as usual via the BattleActionLibrary.
 List<RuneBattleAction*> RuneBattleActionLibrary::GetSpells()
 {
@@ -101,6 +142,32 @@ List<RuneBattleAction*> RuneBattleActionLibrary::GetSkills()
 
 /// Load from a CSV file (Comma-separated values).
 bool RuneBattleActionLibrary::LoadSpellsFromCSV(String fileName)
+{
+	List<RuneBattleAction*> actionsLoaded = LoadBattleActionsFromCSV(fileName);
+	for (int i = 0; i < actionsLoaded.Size(); ++i)
+	{
+		RuneBattleAction * rba = actionsLoaded[i];
+		rba->type = RuneBattleAction::MAGIC_SPELL;
+	}
+	spells = actionsLoaded;
+	return actionsLoaded.Size() > 0;
+}
+
+/// Load from a CSV file (Comma-separated values).
+bool RuneBattleActionLibrary::LoadSkillsFromCSV(String fileName)
+{
+	List<RuneBattleAction*> actionsLoaded = LoadBattleActionsFromCSV(fileName);
+	for (int i = 0; i < actionsLoaded.Size(); ++i)
+	{
+		RuneBattleAction * rba = actionsLoaded[i];
+		rba->type = RuneBattleAction::MAGIC_SKILL;
+	}
+	skills = actionsLoaded;
+	return actionsLoaded.Size() > 0;
+}
+
+/// Loads battle actions from target CSV file (actions, spell, mundane skills, w/e).
+List<RuneBattleAction*> RuneBattleActionLibrary::LoadBattleActionsFromCSV(String fileName)
 {
 	String contents = File::GetContents(fileName);
 	List<String> lines = contents.GetLines();
@@ -121,6 +188,8 @@ bool RuneBattleActionLibrary::LoadSpellsFromCSV(String fileName)
 	// Keep empty strings or all will break.
 	columns = firstLine.Tokenize(separator, true);
 
+	List<RuneBattleAction*> actionsLoaded;
+
 	// For each line after the first one, parse a spell.
 	for (int j = 1; j < lines.Size(); ++j)
 	{
@@ -129,7 +198,7 @@ bool RuneBattleActionLibrary::LoadSpellsFromCSV(String fileName)
 		List<String> values = line.Tokenize(separator, true);
 		// If not, now loop through the words, parsing them according to the column name.
 		// First create the new spell to load the data into!
-		RuneBattleAction * spell = new RuneBattleAction();
+		RuneBattleAction * newAction = new RuneBattleAction();
 		for (int k = 0; k < values.Size(); ++k)
 		{
 			String column;
@@ -140,38 +209,38 @@ bool RuneBattleActionLibrary::LoadSpellsFromCSV(String fileName)
 			String value = values[k];
 			column.SetComparisonMode(String::NOT_CASE_SENSITIVE);
 			if (column == "Name")
-				spell->name = value;
+				newAction->name = value;
 			else if (column.Contains("ID"))
-				spell->id = value;
+				newAction->id = value;
 			else if (column.Contains("Description"))
-				spell->description = value;
+				newAction->description = value;
 			else if (column.Contains("Keywords"))
-				spell->keywords = value;
+				newAction->keywords = value;
 			else if (column.Contains("Mana cost"))
-				spell->manaCost = value.ParseInt();
+				newAction->manaCost = value.ParseInt();
 			else if (column.Contains("Action cost"))
-				spell->actionCost = value.ParseInt();
+				newAction->actionCost = value.ParseInt();
 			else if (column.Contains("Other costs"))
-				spell->ParseOtherCosts(value);
+				newAction->ParseOtherCosts(value);
 			else if (column.Contains("Power"))
-				spell->spellPower = value.ParseInt();
+				newAction->spellPower = value.ParseInt();
 			else if (column.Contains("Target"))
 				// As the spell may have multiple targets, parse it as well.
-				spell->ParseTargets(value);
+				newAction->ParseTargets(value);
 			else if (column.Contains("Location"))
 				;
 	//				spell->originatingLocation = GetOriginatingLocationByString(word);
 			else if (column.Contains("Element"))
-				spell->ParseElements(value);
+				newAction->ParseElements(value);
 			else if (column.Contains("Effect"))
-				spell->ParseEffects(value);
+				newAction->ParseEffects(value);
 			else if (column.Contains("Freeze time"))
-				spell->freezeTimeInSeconds = value.ParseFloat();
+				newAction->freezeTimeInSeconds = value.ParseFloat();
 			else if (column.Contains("Cast time"))
-				spell->castTimeInSeconds = value.ParseFloat();
+				newAction->castTimeInSeconds = value.ParseFloat();
 			else if (column.Contains("Duration"))
 			{
-				error = !spell->ParseDurations(value);
+				error = !newAction->ParseDurations(value);
 			}
 			else 
 			{
@@ -182,12 +251,14 @@ bool RuneBattleActionLibrary::LoadSpellsFromCSV(String fileName)
 				std::cout<<"\n .. when parsing line \'"<<line<<"\'";
 			}
 		}
-		if (!spell->IsValid())
-			delete spell;
-		else
-			spells.Add(spell);
+		if (!newAction->IsValid())
+			delete newAction;
+		else 
+		{
+			actionsLoaded.Add(newAction);
+		}
 	}
-	return true;
+	return actionsLoaded;
 }
 
 

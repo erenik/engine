@@ -42,7 +42,7 @@ class RuneBattleAction;
 class RuneBattleActionCategory 
 {
 public:
-	RuneBattleActionCategory();
+	RuneBattleActionCategory(String withName = "");
 	String name;
 	/// Actions available in this category.
 	List<RuneBattleAction*> actions;
@@ -74,7 +74,14 @@ public:
 	String name;
 	String id;
 	String source;
-
+	
+	enum {
+		MUNDANE_ACTION,
+		MAGIC_SKILL,
+		MAGIC_SPELL,
+	};
+	/// Mundane action, magic skill or magic spell. See enum above.
+	int type;
 	/// See TargetFilter namespace-enum above.
 	int targetFilter;
 

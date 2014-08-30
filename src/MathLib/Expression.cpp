@@ -13,7 +13,6 @@
 ExpressionResult::ExpressionResult(int type)
 	: type(type)
 {
-	expressionResult = NULL;
 }
 
 /// Returns the result as a float.
@@ -247,10 +246,10 @@ bool Expression::TryEvaluate()
 						return false;
 					}
 
-					PrintSymbols(evaluationSymbols);
+//					PrintSymbols(evaluationSymbols);
 					// Remove all the evaluation symbols that were part of the parenthesis and replace them with the result.
 					evaluationSymbols.RemovePart(argumentStart + 1, i - 1);
-					PrintSymbols(evaluationSymbols);
+//					PrintSymbols(evaluationSymbols);
 					
 					// Insert the new parenthesis-result-symbol. where the parenthesis was.
 					Symbol sym(pe.result.text, Symbol::CONSTANT);
@@ -271,31 +270,60 @@ bool Expression::TryEvaluate()
 				// If at "ground"-level, store the symbols within as a parenthesis expression to be evaluated first.
 				if (parenthesis == 0)
 				{
-					Expression pe(evaluationSymbols.Part(parenthesisStart + 1, i - 1));
 					/// Remove and store the parenthesis as an argument-list instead of evaluating it as an expression.
 					if (argumentEnumerating)
 					{
-						// Remove all the evaluation symbols that were part of the parenthesis and replace them with the result.
-						PrintSymbols(evaluationSymbols);
+						/// Non-function evaluation of the contents of a parenthesis!
+						Expression pe(evaluationSymbols.Part(parenthesisStart, i));
+
+					// Remove all the evaluation symbols that were part of the parenthesis and replace them with the result.
+//						PrintSymbols(evaluationSymbols);
 						evaluationSymbols.RemovePart(parenthesisStart, i);
-						PrintSymbols(evaluationSymbols);
-						List<String> args;
+//						PrintSymbols(evaluationSymbols);
+						List<Symbol> argSymbols;
+						Symbol argSymbol;
+
+						/// Evaluated arguments.
+						List<Symbol> args;
+
+						/// Evaluate the symbols detected within the parenthesis before merging them into a Function-Arguments symbol.
+						int parenthesisCounter2 = 0;
 						for (int j = 0; j < pe.symbols.Size(); ++j)
 						{
 							Symbol & argSym = pe.symbols[j];
 							switch(argSym.type)
 							{
-								case Symbol::VARIABLE:
-									/// Evaluate it now!
-									if (!EvaluateVariable(argSym.text))
-										return false;
-								case Symbol::CONSTANT: 
-									args.Add(argSym.text);
+								case Symbol::BEGIN_PARENTHESIS:
+									if (parenthesisCounter2 > 0)
+										argSymbols.Add(argSym);
+									parenthesisCounter2++;
+									break;
+								case Symbol::END_PARENTHESIS:
+									parenthesisCounter2--;		
+									if (parenthesisCounter2 > 0)
+										argSymbols.Add(argSym);
+									if (parenthesisCounter2 != 0)
+										break;
+								case Symbol::ARGUMENT_ENUMERATOR:
+								{
+									// Evaluate the symbols.
+									Expression argumentExp(argSymbols);
+									ExpressionResult expRes = argumentExp.Evaluate(knownVariables);
+									expRes.type != -1;
+									argSymbol = expRes;
+
+									args.Add(argSymbol);
+									argSymbols.Clear();
+									break;
+								}
+								default:
+									argSymbols.Add(argSym);
 									break;
 							}
-						} 
+						}
+
 						Symbol sym(args, Symbol::FUNCTION_ARGUMENTS);
-						sym.text = "Args: "+MergeLines(args, ", ");
+						sym.text = "Args: "+String(args.Size());
 						// Insert the new parenthesis-result-symbol. where the parenthesis was.
 						evaluationSymbols.Insert(sym, parenthesisStart);
 						PrintSymbols(evaluationSymbols);
@@ -307,29 +335,37 @@ bool Expression::TryEvaluate()
 
 						break;
 					}
-					// Transfer the known variables too.
-					pe.knownVariables = knownVariables;
-					bool ok = pe.TryEvaluate();
-					if (!ok)
-					{
-						this->result.text = pe.result.text;
-						return false;
+					/// Non-function evaluation of the contents of a parenthesis!
+					else {
+						Expression pe(evaluationSymbols.Part(parenthesisStart + 1, i - 1));
+						// Transfer the known variables too.
+						pe.knownVariables = knownVariables;
+						bool ok = pe.TryEvaluate();
+						if (!ok)
+						{
+							this->result.text = pe.result.text;
+							return false;
+						}
+
+						// Remove all the evaluation symbols that were part of the parenthesis and replace them with the result.
+	//					PrintSymbols(evaluationSymbols);
+						evaluationSymbols.RemovePart(parenthesisStart, i);
+	//					PrintSymbols(evaluationSymbols);
+						
+						// Insert the new parenthesis-result-symbol. where the parenthesis was.
+						Symbol sym(pe.result.text, Symbol::CONSTANT);
+						evaluationSymbols.Insert(sym, parenthesisStart);
+						PrintSymbols(evaluationSymbols);
+
+						// Move back i so that parsing will work out as intended for the next parenthesis.
+						// This since we removed several symbols. We need to adjust i to remain in the same relative location to the parenthesis we just evaluated.
+						int symbolsRemoved = i - parenthesisStart + 1;
+						i -= symbolsRemoved;
 					}
-
-					// Remove all the evaluation symbols that were part of the parenthesis and replace them with the result.
-					PrintSymbols(evaluationSymbols);
-					evaluationSymbols.RemovePart(parenthesisStart, i);
-					PrintSymbols(evaluationSymbols);
-					
-					// Insert the new parenthesis-result-symbol. where the parenthesis was.
-					Symbol sym(pe.result.text, Symbol::CONSTANT);
-					evaluationSymbols.Insert(sym, parenthesisStart);
-					PrintSymbols(evaluationSymbols);
-
-					// Move back i so that parsing will work out as intended for the next parenthesis.
-					// This since we removed several symbols. We need to adjust i to remain in the same relative location to the parenthesis we just evaluated.
-					int symbolsRemoved = i - parenthesisStart + 1;
-					i -= symbolsRemoved;
+				}
+				else if (argumentEnumerating)
+				{
+					std::cout<<"\ncpbrn";
 				}
 				break;
 		}
@@ -358,18 +394,18 @@ bool Expression::TryEvaluate()
 					return false;
 				}
 				/// Get function with that name then!
-				ExpressionResult result = Function::Evaluate(preceding.text, sym.list);
+				ExpressionResult result = Function::Evaluate(preceding.text, sym.symbols, knownVariables);
 				if (result.type == -1)
 				{
 					this->result.text = result.text;
 					return false;
 				}
-				PrintSymbols(evaluationSymbols);
+//				PrintSymbols(evaluationSymbols);
 				// Save the result and replace the function and arguments with the new symbol o.o
 				evaluationSymbols.RemovePart(i-1, i);
 				Symbol resultSymbol(result.text, Symbol::CONSTANT);
 				evaluationSymbols.Add(resultSymbol, i-1);
-				PrintSymbols(evaluationSymbols);
+//				PrintSymbols(evaluationSymbols);
 				break;
 			}
 		}
@@ -458,13 +494,13 @@ bool Expression::TryEvaluate()
 
 			// Evaluate the expression part using the given operator.
 			Symbol symbol = Evaluate(*pre, *post, opSym);
-			PrintSymbols(evaluationSymbols);
+//			PrintSymbols(evaluationSymbols);
 			// Remove the operator and operands.
 			evaluationSymbols.RemovePart(i-1, i+1);
-			PrintSymbols(evaluationSymbols);
+//			PrintSymbols(evaluationSymbols);
 			/// Insert the new result symbol in its place.
 			evaluationSymbols.Insert(symbol, i-1);
-			PrintSymbols(evaluationSymbols);
+//			PrintSymbols(evaluationSymbols);
 			/// Move back i to properly evaluate the rest.
 			i -= 1;
 		}
@@ -508,6 +544,8 @@ Symbol Expression::Evaluate(Symbol sym1, Symbol sym2, Symbol op)
 	if (totalOperands.Contains("."))
 		typeNeeded = DataType::FLOAT; // Could use double too.
 
+	// Depending on type, convert it back to a string.
+	Symbol resultSym;
 	float f1, f2, fres;
 	int i1, i2, ires;
 	switch(typeNeeded)
@@ -525,6 +563,7 @@ Symbol Expression::Evaluate(Symbol sym1, Symbol sym2, Symbol op)
 				default:
 					assert(false);
 			}
+			resultSym.text = String(fres);
 			break;
 		case DataType::INTEGER:
 			i1 = sym1.text.ParseInt();
@@ -540,21 +579,10 @@ Symbol Expression::Evaluate(Symbol sym1, Symbol sym2, Symbol op)
 				default:
 					assert(false);
 			}
+			resultSym.text = String(ires);
 			break;
 		default:
 			assert(false);
-	}
-
-	// Depending on type, convert it back to a string.
-	Symbol resultSym;
-	switch(typeNeeded)
-	{
-		case DataType::FLOAT:
-			resultSym.text = String(fres);
-			break;
-		case DataType::INTEGER:
-			resultSym.text = String(ires);
-			break;
 	}
 	resultSym.type = Symbol::CONSTANT;
 	return resultSym;

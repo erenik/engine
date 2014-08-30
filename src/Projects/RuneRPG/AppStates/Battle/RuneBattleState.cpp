@@ -395,6 +395,9 @@ void RuneBattleState::Process(int timeInMs)
 	bs.battlers = battlers;
 	bs.timeInMs = timeInMs;
 
+	/// Update UI, yo.
+	UpdatePlayerHPUI();
+
 	// Process all battlers, as well as their attached effects and active actions.
 	for (int i = 0; i < battlers.Size(); ++i)
 	{
@@ -463,8 +466,10 @@ void RuneBattleState::Process(int timeInMs)
 	List<RuneBattler*> players = GetPlayerBattlers();
     String str = "Combatants: "+String::ToString(battlers.Size())+" of which players: "+String::ToString(players.Size());
 
-    for (int i = 0; i < battlers.Size(); ++i){
-        RuneBattler * b = (RuneBattler*)battlers[i];
+	List<RuneBattler*> playerBattlers = GetPlayerBattlers();
+    for (int i = 0; i < players.Size(); ++i)
+	{
+        RuneBattler * b = (RuneBattler*)playerBattlers[i];
 		int actionPoints = b->ActionPoints();
 		String strAP = STRINT(actionPoints);
 		str += "\nBattler"+STRINT(i)+": "+b->name+" Initiative: " + strAP;
@@ -1064,8 +1069,11 @@ void RuneBattleState::OpenCommandsMenu(RuneBattler * battler)
 		battler->UpdateActions();
 	}
 	if (battler->actionCategories.Size() == 0)
-		battler->UpdateActionCategories(0);
-    activePlayerBattler = battler;
+	{
+		int sortingScheme = 1;
+		battler->UpdateActionCategories(sortingScheme);
+	}  
+	activePlayerBattler = battler;
     for (int i = 0; i < battler->actionCategories.Size(); ++i)
 	{
         RuneBattleActionCategory * rbac = battler->actionCategories[i];
@@ -1112,7 +1120,7 @@ void RuneBattleState::OpenSubMenu(String whichMenu)
 {
 	/// Close and re-use the commands-menu as the user will most times not back away from it.
   //  Graphics.QueueMessage(new GMSetUIb("CommandsMenu", GMUI::VISIBILITY, false));
-	std::cout<<"\n\nOPEN Sub menu: "<<whichMenu;
+//	std::cout<<"\n\nOPEN Sub menu: "<<whichMenu;
     /// Return if it was a false call.
     commandsMenuOpen = true;
 #define MENU	String("SubCommandMenu")
@@ -1137,13 +1145,13 @@ void RuneBattleState::OpenSubMenu(String whichMenu)
 		RuneBattleAction * ba = rbac->actions[i];
 		UIElement * actionButton = new UIButton();
         actionButton->sizeRatioY = 0.2f;
-        std::cout<<"\nAdding action: "<<ba->name;
+//        std::cout<<"\nAdding action: "<<ba->name;
         actionButton->text = ba->name;
         actionButton->textColor = textColor;
         actionButton->textureSource = DEFAULT_UI_TEXTURE;
         actionButton->activationMessage = "SetAction("+ba->name+")&&OpenTargetMenu("+ba->targetFilter+")";
         Graphics.QueueMessage(new GMAddUI(actionButton, MENU));
-        std::cout<<"\nAdding action-button "<<actionButton->text;
+  //      std::cout<<"\nAdding action-button "<<actionButton->text;
     }
 
 	/// Add a cancel-button.
@@ -1155,7 +1163,7 @@ void RuneBattleState::OpenSubMenu(String whichMenu)
 	cancelButton->textureSource = DEFAULT_UI_TEXTURE;
 	cancelButton->activationMessage = "PopFromStack(" + MENU + ")";
 	Graphics.QueueMessage(new GMAddUI(cancelButton, MENU));
-	std::cout<<"\nAdding cancel-button.";
+//	std::cout<<"\nAdding cancel-button.";
 
     /// Reveal the commands-menu when a party-member is ready for action, jRPG-style
     Graphics.QueueMessage(new GMPushUI(MENU, ui));

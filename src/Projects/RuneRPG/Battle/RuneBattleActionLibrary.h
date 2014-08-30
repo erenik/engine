@@ -21,14 +21,17 @@ public:
 	const RuneBattleAction * GetBattleActionBySource(String source);
 	/// Reloads all battle actions.
 	void Reload();
+	
+	/// Creates Attack, Flee and.. Use Item?
+	void CreateDefaultActions();
 
 	/// ///////////////////////////////
 	/// Taken from RuneSpellManager
 	/// ///////////////////////////////
-
+	/// Returns all spells, skills and mundane actions together.
+	List<RuneBattleAction*> AllActions();
 	/// Returns list of all spells.
 	List<RuneBattleAction*> GetSpells();
-
 	/// Returns list of all non-spell, non-mundane skills.
 	List<RuneBattleAction*> GetSkills();
 
@@ -38,13 +41,19 @@ public:
 
 	/// Load spells from a CSV file (Comma-separated values).
 	bool LoadSpellsFromCSV(String file);
+	/// Load skills from a CSV file (Comma-separated values).
+	bool LoadSkillsFromCSV(String file);
 	/// Sup.
 
 private:
+	/// Loads battle actions from target CSV file (actions, spell, mundane skills, w/e). Returns the list of actions loaded this way. 
+	List<RuneBattleAction*> LoadBattleActionsFromCSV(String file);
+
 	const RuneBattleAction * LoadBattleAction(String bySource);
 	
-	/// List of all actions.
-	List<RuneBattleAction*> runeBattleActions;
-	/// Sublists with magic-focused Spells, Physical based magical skills and Mundane physical skills.
+	/// List of all actions. no.
+//	List<RuneBattleAction*> runeBattleActions;
+
+	/// Skills with all actions of various types.
 	List<RuneBattleAction*> spells, skills, mundaneActions;
 };

@@ -96,6 +96,8 @@ void UIElement::Nullify(){
 	toggled = false;
 	visible = true;
 
+	inStack = false;
+
 	removeOnPop = false;
 
     isSysElement = false;
@@ -545,8 +547,8 @@ UIElement * UIElement::GetUpNeighbour(UIElement * referenceElement, bool & searc
 		/// Check if we got a preferred neighbour.
 		if (upNeighbourName.Length())
 			element = this->GetRoot()->GetElementByName(upNeighbourName);
-		/// If still haven't found a decent one, consult our parent.
-		if (!element && !searchChildrenOnly)
+		/// If still haven't found a decent one, consult our parent. Unless we're in the stack of course, upon which it means we have found no decent new neighbour.
+		if (!element && !searchChildrenOnly && !inStack)
 		{
 			if (parent)
 				element = parent->GetUpNeighbour(referenceElement, searchChildrenOnly);
@@ -598,8 +600,8 @@ UIElement * UIElement::GetRightNeighbour(UIElement * referenceElement, bool & se
 		/// Check if we got a preferred neighbour.
 		if (rightNeighbourName.Length())
 			element = this->GetRoot()->GetElementByName(rightNeighbourName);
-		/// If still haven't found a decent one, consult our parent.
-		if (!element && !searchChildrenOnly)
+		/// If still haven't found a decent one, consult our parent. Unless we're in the stack of course, upon which it means we have found no decent new neighbour.
+		if (!element && !searchChildrenOnly && !inStack)
 		{
 			if (parent)
 				element = parent->GetRightNeighbour(referenceElement, searchChildrenOnly);
@@ -649,8 +651,8 @@ UIElement * UIElement::GetDownNeighbour(UIElement * referenceElement, bool & sea
 		/// Check if we got a preferred neighbour.
 		if (downNeighbourName.Length())
 			element = this->GetRoot()->GetElementByName(downNeighbourName);
-		/// If still haven't found a decent one, consult our parent.
-		if (!element && !searchChildrenOnly)
+		/// If still haven't found a decent one, consult our parent. Unless we're in the stack of course, upon which it means we have found no decent new neighbour.
+		if (!element && !searchChildrenOnly && !inStack)
 		{
 			if (parent)
 				element = parent->GetDownNeighbour(referenceElement, searchChildrenOnly);
@@ -702,8 +704,8 @@ UIElement * UIElement::GetLeftNeighbour(UIElement * referenceElement, bool & sea
 		if (leftNeighbourName.Length())
 			element = this->GetRoot()->GetElementByName(leftNeighbourName);
 
-		/// If still haven't found a decent one, consult our parent.
-		if (!element && !searchChildrenOnly)
+		/// If still haven't found a decent one, consult our parent. Unless we're in the stack of course, upon which it means we have found no decent new neighbour.
+		if (!element && !searchChildrenOnly && !inStack)
 		{
 			if (parent)
 				element = parent->GetLeftNeighbour(referenceElement, searchChildrenOnly);

@@ -22,6 +22,7 @@ namespace Element
 		CHAOS,
 		BALANCE,
 		NUM_ELEMENTS,
+		PHYSICAL, // Although not technically an element, it's stored here to preserve space but also make it easier to manage.
 	};
 };
 

@@ -10,12 +10,18 @@
 
 #include "String/AEString.h"
 
+class ExpressionResult;
+
 class Symbol 
 {
 public:
 	Symbol();
 	Symbol(String text, int type);
-	Symbol(List<String> list, int type);
+	Symbol(List<Symbol> symbols, int type);
+	
+	// Copy constructor o.o
+	Symbol(const ExpressionResult & result);
+
 	/// Types.
 	enum {
 		BAD_TYPE = -1,
@@ -27,12 +33,13 @@ public:
 		ARGUMENT_ENUMERATOR, // , 
 		FUNCTION_ARGUMENTS, // List of arguments, see list param
 	};
+	
 	/// Type, see above.
 	int type;
 	/// In raw-text.
 	String text;
 	/// May hold arguments
-	List<String> list;
+	List<Symbol> symbols;
 	/// Only applicable for 
 	String name;
 };

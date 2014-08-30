@@ -23,8 +23,6 @@ public:
 	int type;
 	/// The result in text-form.
 	String text;
-	/// Depending on type, any of the following will include the relevant data.
-	Expression * expressionResult;
 	float fResult;
 	int iResult;
 };

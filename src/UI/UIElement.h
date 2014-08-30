@@ -299,6 +299,9 @@ public:
 	/// For checkboxes.
 	bool toggled;
 	
+	/// If in the UI-interaction/navigation stack, so that navigation commands don't go outside it or to a parent-node.
+	bool inStack;
+
 	/// Says that when pressing ESC (or similar) this menu/element can/will be closed. This should work recursively until an element that is closable is found.
 	bool exitable;
 	/// Message to be processed when exiting this menu (could be anything, or custom stuff).

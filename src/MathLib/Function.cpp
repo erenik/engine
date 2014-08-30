@@ -126,16 +126,17 @@ ExpressionResult Function::Evaluate(List<Variable> args)
 
 
 /// Static simple functions such as Max, Min and Random
-ExpressionResult Function::Evaluate(String functionName, List<String> arguments)
+ExpressionResult Function::Evaluate(String functionName, List<Symbol> arguments, List<Variable> knownVariables)
 {
 	ExpressionResult result;
 	assert(arguments.Size());
+
 	if (functionName == "Max")
 	{
-		float max = arguments[0].ParseFloat();
+		float max = arguments[0].text.ParseFloat();
 		for (int i = 1; i < arguments.Size(); ++i)
 		{
-			float f = arguments[i].ParseFloat();
+			float f = arguments[i].text.ParseFloat();
 			if (f > max)
 				max = f;
 		}
@@ -145,10 +146,10 @@ ExpressionResult Function::Evaluate(String functionName, List<String> arguments)
 	}
 	else if (functionName == "Min")
 	{
-		float min = arguments[0].ParseFloat();
+		float min = arguments[0].text.ParseFloat();
 		for (int i = 1; i < arguments.Size(); ++i)
 		{
-			float f = arguments[i].ParseFloat();
+			float f = arguments[i].text.ParseFloat();
 			if (f < min)
 				min = f;
 		}
@@ -163,8 +164,8 @@ ExpressionResult Function::Evaluate(String functionName, List<String> arguments)
 			return false;
 		}
 		Random rand;
-		float min = arguments[0].ParseFloat();
-		float max = arguments[1].ParseFloat();
+		float min = arguments[0].text.ParseFloat();
+		float max = arguments[1].text.ParseFloat();
 		result.fResult = rand.Randf(max - min) + min;
 		result.type = DataType::FLOAT;
 		result.text = result.fResult;

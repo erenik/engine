@@ -71,8 +71,12 @@ void RuneGlobalState::OnEnter(AppState * previousState)
 		TileTypeManager::Allocate();
 
 		RuneBattleActionLibrary::Allocate();
+		/// Create Attack, etc.
+		RBALib.CreateDefaultActions();
 		/// Load from file!
-		RBALib.LoadSpellsFromCSV("data/spells.csv");
+		RBALib.LoadSpellsFromCSV("data/Spells.csv");
+		/// Load from file!
+		RBALib.LoadSkillsFromCSV("data/Skills.csv");
 
 
 		// Enter some tile types into the manager

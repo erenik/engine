@@ -6,6 +6,7 @@
 #include "RuneBattler.h"
 #include "BattleStats.h"
 
+#include "Elements.h"
 #include "MathLib/Function.h"
 
 BattleEffect::BattleEffect()
@@ -49,7 +50,8 @@ void BattleEffect::ApplyTo(RuneBattler * target, RuneBattler * subject, RBattleS
 				if (var.name == GetStatShortString(RStat::SPELL_POWER))
 				{
 					var.iValue = RParseInt(argument);
-					assert(var.iValue > 0);
+					if (var.iValue == 0 && element != Element::PHYSICAL)
+						std::cout<<"\nNote: Spell power 0. Disregard this message for regular attacks for the time being.";
 				}
 			}
 

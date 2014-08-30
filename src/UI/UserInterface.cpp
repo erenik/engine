@@ -561,6 +561,8 @@ int UserInterface::PushToStack(UIElement * element)
 	/// This adds at the end, yes?
 	stack.Add(element);
 	element->visible = true;
+	/// Mark as in the stack, so that navigation commands don't go outside it or to a parent-node.
+	element->inStack = true;
 	return PUSHED_TO_STACK;
 }
 void UserInterface::PopFromStack(String elementName){
@@ -588,6 +590,7 @@ bool UserInterface::PopFromStack(UIElement * element, bool force)
 	assert(!stack.Exists(element));
 	/// Make it invisible in any case?
 	element->visible = false;
+	element->inStack = false;
 	/// Call on exit scope for it!
 	element->OnExitScope();
 	return result;
@@ -600,6 +603,7 @@ UIElement * UserInterface::PopFromStack(){
 	UIElement * last = stack.Last();
 	stack.Remove(last, ListOption::RETAIN_ORDER);
 	last->visible = false;
+	last->inStack = false;
 	return last;
 }
 int UserInterface::StackSize() const {
