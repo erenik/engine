@@ -43,7 +43,8 @@ UICheckBox::~UICheckBox()
 //	std::cout<<"\nUICheckBox destructor";
 }
 
-UIElement* UICheckBox::Activate(){
+UIElement* UICheckBox::Activate()
+{
 	UIElement* result = 0;
 	// Don't process invisible UIElements, please.
 	if (visible == false)
@@ -52,12 +53,10 @@ UIElement* UICheckBox::Activate(){
 	// Assume no checkbox has any children.
 
 	// Check the element's state. If it is active, we've found it. Dialogues work too, or?
-	if (state & UIState::ACTIVE){
-		if (type == UIType::INPUT_FIELD || type == UIType::TEXT_FIELD)
-			state |= UIState::ACTIVE; // Input-fields remain active as they begin input upon activation!
+	if (state & UIState::ACTIVE)
+	{
 		/// Just unflag the active state, try ensure that the hover-state remains!
-		else
-			state &= ~UIState::ACTIVE;
+		state &= ~UIState::ACTIVE;
 		// Now return our message!
 		if (selectable == true){
 			toggled = !toggled;

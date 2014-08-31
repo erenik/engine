@@ -82,68 +82,14 @@ void GraphicsMessage::Process()
 			Input.acceptInput = false;
 			Sleep(10);
 			
+			/// Pause execution of the main thread, so that it doesn't try to access any dying UI elements while reloading.
+			StateMan.Pause();
+
 			/// Reloads 'em all.
 			UserInterface::ReloadAll();
-/*
-			/// Delete and re-create the globalUI
-			UserInterface * globalUI = Graphics.GetGlobalUI();
-			if (globalUI)
-			{
-				if (globalUI->IsBuffered())
-					globalUI->Unbufferize();
-				if (globalUI->IsGeometryCreated())
-					globalUI->DeleteGeometry();
-			}
-			AppState * globalState = StateMan.GlobalState();
-			if (globalState)
-			{
-				globalState->CreateUserInterface();
-				Graphics.SetGlobalUI(globalState->GetUI());
-			}
 
-			/// Refresh current UI too.
-			Graphics.SetUI(NULL);
+			StateMan.Resume();
 
-			AppState * state = StateMan.ActiveState();
-			UserInterface * ui = state->GetUI();
-			bool wasActive = (ui == Graphics.GetUI());
-			if (ui){
-				if (ui->IsBuffered())
-					ui->Unbufferize();
-				if (ui->IsGeometryCreated())
-					ui->DeleteGeometry();
-			}
-			state->CreateUserInterface();
-
-			
-			ui = state->GetUI();
-			if (ui)
-			{
-				std::cout<<"\nRecreating ui: "<<ui->Source();
-				/// Always re-adjust to window and re-create geometry/re-bufferize
-				ui->AdjustToWindow(Graphics.width, Graphics.height);
-				ui->CreateGeometry();
-				ui->ResizeGeometry();
-				ui->Bufferize();
-
-				/// Set the ui again, since the state probably de-allocated and re-allocated it.
-				Graphics.SetUI(ui);
-
-				// Update for all render-viewports UIs too!
-				for (int i = 0; i < Graphics.renderViewports.Size(); ++i){
-					if (!Graphics.renderViewports[i]->GetUI())
-						continue;
-					ui = Graphics.renderViewports[i]->GetUI();
-					ui->Unbufferize();
-					ui->DeleteGeometry();
-					ui->Load(ui->Source());
-					ui->AdjustToWindow(Graphics.width, Graphics.height);
-					ui->CreateGeometry();
-					ui->ResizeGeometry();
-					ui->Bufferize();
-				}	
-			}
-			*/
 			Input.acceptInput = true;
 			Graphics.renderQueried = true;
 

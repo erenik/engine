@@ -15,6 +15,7 @@
 #include <vector>
 #include "LodePNG/lodepng.h"
 #include "Globals.h"
+#include "Color.h"
 
 #include "opencv2/opencv.hpp"
 
@@ -124,6 +125,12 @@ Texture * TextureManager::GetTextureByName(String name){
 		return GenerateTexture("Blue", Vector4f(0,0,1,1));
 	else if (name == "Cyan")
 		return GenerateTexture("Cyan", Vector4f(0,1,1,1));
+	/// Hex-code go!
+	else if (name.Contains("0x"))
+	{
+		return GenerateTexture(name, Color::ColorByHexName(name));
+	}
+	
 
 //	std::cout<<"\nTexture not loaded, attempting to load it.";
 	return NULL; // LoadTexture(name);

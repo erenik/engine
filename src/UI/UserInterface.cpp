@@ -17,9 +17,11 @@
 #include "UIButtons.h"
 #include "UIVideo.h"
 #include "UIImage.h"
-#include "Graphics/Fonts/TextFont.h"
 #include "UI/UITypes.h"
 #include "UI/DataUI/UIMatrix.h"
+#include "UI/Buttons/UIRadioButtons.h"
+
+#include "Graphics/Fonts/TextFont.h"
 #include "Window/WindowManager.h"
 #include "Viewport.h"
 
@@ -234,22 +236,7 @@ void UserInterface::SetHoverElement(UIElement * targetElement)
 	by mouse-clicking, pressing enter on selction or otherwise. */
 void UserInterface::Activate(UIElement* activeElement)
 {
-	std::cout<<"\nUserInterface::Activate called";
-	if (activeElement->activationMessage.Length() == 0){
-		std::cout<<"Activatable UI element has no valid activation message string!";
-		return;
-	}
-	if (activeElement->activationMessage.Length() != 0){
-		List<String> msgs = activeElement->activationMessage.Tokenize("&");
-		for (int i = 0; i < msgs.Size(); ++i){
-			Message * message = new Message(msgs[i]);
-			message->element = activeElement;
-			MesMan.QueueMessage(message);
-		}
-	}
-	else {
-		std::cout<<"\nonActivate and activationMessage both NULL in element: "<<activeElement->name;
-	}
+	assert(false);
 }
 
 // Goes through the active stack until an element is found which corresponds to the given (visible) co-ordinates.
@@ -1098,6 +1085,15 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 				SET_DEFAULTS
 				vi->CreateChildren();
 			}
+			else if (token == "RadioButtons")
+			{
+				ADD_PREVIOUS_TO_UI_IF_NEEDED
+				String action = "Set"+secondQuote;
+				UIRadioButtons * rb = new UIRadioButtons(firstQuote.ParseInt(), secondQuote, action);
+				element = rb;
+				SET_DEFAULTS
+				rb->CreateChildren();
+			}
 			else if (token == "Image")
 			{
 				ADD_PREVIOUS_TO_UI_IF_NEEDED
@@ -1201,6 +1197,28 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 					break;
 				}
 				element->text = text;
+			}
+			/// Used for setting aggregate types. 
+			else if (token == "texts")
+			{
+				List<String> texts = line.Tokenize("\"");
+				/// Removing each other index should gather all texts appropriately?
+				texts.RemoveIndex(0, ListOption::RETAIN_ORDER);
+				for (int i = 1; i < texts.Size(); ++i)
+				{
+					texts.RemoveIndex(i, ListOption::RETAIN_ORDER);
+				}
+				// First off: UIRadioButtons
+				switch(element->type)
+				{
+					case UIType::RADIO_BUTTONS:
+					{
+						UIRadioButtons * rb = (UIRadioButtons*) element;
+						rb->SetTexts(texts);
+						break;
+					}
+				}
+			
 			}
 			else if (token == "textColor"){
 				switch(tokens.Size()-1){

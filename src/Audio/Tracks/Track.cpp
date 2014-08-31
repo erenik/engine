@@ -12,19 +12,19 @@ Track::Track()
 	loop = false;
 }
 
-void Track::Play(){
+void Track::Play()
+{
 #ifdef AUDIO
+	if (!audio)
+	{
+	
+	}
 	if (audio)
 	{
 		assert(false);
 		/// Pause all other BGMs?
 	//	AudioMan.PauseAllOfType(AudioType::BGM);
 		audio->Play();
-	}
-	else {
-		assert(false);
-	//	audio = AudioMan.PlayFromSource(AudioType::BGM, source, loop);
-//	AudioMan.PlayFromSource(BGM, source, true);
 	}
 #endif
 }

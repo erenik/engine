@@ -185,11 +185,10 @@ public:
 		Max action points = 100 + Max(0, (Speed - 50) * 0.5)
 	*/
 	int maxActionPoints;
-	
-	int weaponDamage, spellDamage;
-	int armor, magicArmor;
-	int maxHP, maxMP;
 
+	/// o.o
+	bool canBlock, canParry, canDodge;
+	
 	/// BAd name, yo.
 	int delay;
 

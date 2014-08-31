@@ -38,7 +38,7 @@ public:
 	Audio();
 	/// Creates a new audio object using given path.
 	Audio(String path);
-	Audio(char type, String name, bool repeat = false, float awesomeness = 1.0);
+	Audio(char type, String source, bool repeat = false, float awesomeness = 1.0);
 	~Audio();		// Destructor if needed?
     void Nullify(); // Sets default values.
 
@@ -83,6 +83,8 @@ public:
 	*/
 	bool deleteOnEnd;
 
+	/// Default directory from where audio is assumed to be stored. This to help build paths to find audio straight away?
+	static String audioDirectory;
 private:
 
 	void QueueBuffer(AudioBuffer * buf);

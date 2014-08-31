@@ -431,6 +431,22 @@ UIElement* UIElement::Activate()
 		else {
 			// Element not activatable
 		}
+		/// It it us! Activate power!
+		if (activationMessage.Length() == 0){
+			std::cout<<"Activatable UI element has no valid activation message string!";
+		}
+		else if (activationMessage.Length() != 0)
+		{
+			List<String> msgs = activationMessage.Tokenize("&");
+			for (int i = 0; i < msgs.Size(); ++i){
+				Message * message = new Message(msgs[i]);
+				message->element = this;
+				MesMan.QueueMessage(message);
+			}
+		}
+		else {
+			std::cout<<"\nonActivate and activationMessage both NULL in element: "<<name;
+		}
 		return this;
 	}
 	// If not, return 0, since we haven't found the right element.

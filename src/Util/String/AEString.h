@@ -98,6 +98,8 @@ public:
 	// Extract data o-o
 	bool ParseBool();
 	int ParseInt();
+	/// Tries to parse hexadecimal values in the form of "0xAABBCCDD" or "0xAABBCC"
+	int ParseHex();
 	float ParseFloat();
 	double ParseDouble();
 

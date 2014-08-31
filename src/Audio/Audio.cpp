@@ -38,6 +38,7 @@
 
 bool Audio::audioEnabled = true;
 int Audio::defaultBufferSize = 4096 * 4;
+String Audio::audioDirectory = "sound";
 
 // Default constructor
 Audio::Audio()
@@ -147,13 +148,16 @@ Audio::Audio(String i_path)
 }
 
 // Regular constructor
-Audio::Audio(char i_type, String i_name, bool i_repeat, float audioVolume)
+Audio::Audio(char i_type, String source, bool i_repeat, float audioVolume)
 {
     Nullify();
 	type = i_type;
-	name = i_name;
-	String newPath;
-	try {
+	name = source;
+	
+	path = source;
+	if (!path.Contains(Audio::audioDirectory))
+	{
+		String newPath;
 		newPath = "sound";
 		switch(type){
 			case AudioType::BGM: newPath += "/bgm/"; break;
@@ -163,17 +167,10 @@ Audio::Audio(char i_type, String i_name, bool i_repeat, float audioVolume)
 			case AudioType::SPEECH: newPath += "/spc/"; break;
 		}
 		newPath += name;
-
-		// Check that the file exists maybe?
-		state = AudioState::AUDIO_ERROR;
-
 		path = newPath;
-
 	}
-	catch(String error) {
-		std::cout<< error;
-		state = AudioState::AUDIO_ERROR;
-	}
+	// Check that the file exists maybe?
+	state = AudioState::AUDIO_ERROR;
 	repeat = i_repeat;
 	volume = audioVolume;
 }

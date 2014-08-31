@@ -455,7 +455,7 @@ float RuneBattler::MagicArmorRating()
 /// Weapon damage, including buffs/debuffs. Will mostly vary within the 1.0 to 20.0 interval.
 float RuneBattler::WeaponDamage()
 {
-	return this->weaponDamage;
+	return currentStats[RStat::WEAPON_MODIFIER].iValue;
 }
 /// Shield block rating, including buffs/debuffs. Will mostly vary within the 0.0 to 20.0 interval.
 float RuneBattler::ShieldBlockRating()

@@ -166,6 +166,19 @@ bool RuneBattleActionLibrary::LoadSkillsFromCSV(String fileName)
 	return actionsLoaded.Size() > 0;
 }
 
+/// Load from a CSV file (Comma-separated values).
+bool RuneBattleActionLibrary::LoadMundaneAbilitiesFromCSV(String fileName)
+{
+	List<RuneBattleAction*> actionsLoaded = LoadBattleActionsFromCSV(fileName);
+	for (int i = 0; i < actionsLoaded.Size(); ++i)
+	{
+		RuneBattleAction * rba = actionsLoaded[i];
+		rba->type = RuneBattleAction::MUNDANE_ACTION;
+	}
+	this->mundaneActions = actionsLoaded;
+	return actionsLoaded.Size() > 0;
+}
+
 /// Loads battle actions from target CSV file (actions, spell, mundane skills, w/e).
 List<RuneBattleAction*> RuneBattleActionLibrary::LoadBattleActionsFromCSV(String fileName)
 {

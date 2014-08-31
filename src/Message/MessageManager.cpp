@@ -116,7 +116,8 @@ bool MessageManager::QueueDelayedMessage(Message * message)
 }
 
 /// Queues a bunch of string-based messages in the form "Message1&Message2&Message3&..."
-bool MessageManager::QueueMessages(String messages, UIElement * elementThatTriggeredIt){
+bool MessageManager::QueueMessages(String messages, UIElement * elementThatTriggeredIt)
+{
 	msgQueueMutex.Claim(-1);	
 	try{
 		List<String> messageList = messages.Tokenize("&");
@@ -136,7 +137,8 @@ bool MessageManager::QueueMessages(String messages, UIElement * elementThatTrigg
 	return true;
 }
 
-bool MessageManager::QueueMessage(Message* msg){
+bool MessageManager::QueueMessage(Message* msg)
+{
 	msgQueueMutex.Claim(-1);
     try{
 		messageQueue.Push(msg);

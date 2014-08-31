@@ -8,6 +8,7 @@
 #include "AppStates/AppState.h"
 #include "AppStates/AppStates.h"
 #include <Util.h>
+#include "Mutex/Mutex.h"
 
 class AppState;
 
@@ -62,6 +63,8 @@ public:
 		Will NOT affect input, audio or network updates as these are vital.
 	*/
 	bool IsPaused();
+
+	// Pauses using a mutex.
 	void Pause();
 	void Resume();
 
@@ -100,6 +103,10 @@ public:
 	/// If the thread should keep on processing.
 	bool shouldLive;
 private:
+
+	/// o-o
+	Mutex stateProcessingMutex;
+
 	bool paused;
 	/// Enteres queued state (if any)
 	void EnterQueuedState();

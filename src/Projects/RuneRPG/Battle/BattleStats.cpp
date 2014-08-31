@@ -23,8 +23,8 @@ int GetStatByString(String str)
 			return i;
 	}
 
-	std::cout<<"\nUndefined stat string: "<<str;
-	assert(false && "Undefined stat string!");
+//	std::cout<<"\nUndefined stat string: "<<str;
+//	assert(false && "Undefined stat string!");
 	return -1;
 }
 
@@ -42,6 +42,12 @@ String GetStatString(int byStat)
 		case RStat::MAX_HP: return "Max HP";
 		case RStat::MAGIC_SKILL: return "Magic skill";
 		case RStat::MAGIC_POWER: return "Magic power";
+
+		// From gear.
+		case RStat::WEAPON_MODIFIER: return "Weapon Modifier";
+		case RStat::ARMOR_RATING: return "Armour Rating";
+		case RStat::MAGIC_ARMOR_RATING: return "Magic Armour Rating";
+
 
 		case RStat::BATTLER_TEMPERATURE: return "Battler Temperature";
 
@@ -96,7 +102,7 @@ String GetStatShortString(int byStat)
 		case RStat::SPELL_CAST_TIME: return "SpellCastTime";
 
 		// From gear.
-		case RStat::WEAPON_DAMAGE: return "WeaponDamage";
+		case RStat::WEAPON_MODIFIER: return "WeaponModifier";
 		case RStat::ARMOR_RATING: return "ArmorRating";
 		case RStat::MAGIC_ARMOR_RATING: return "MagicArmorRating";
 

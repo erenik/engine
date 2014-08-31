@@ -24,6 +24,8 @@ public:
 	/// Reloads all battlers by their respective source file.
 	void ReloadBattlers();
 
+	List<RuneBattler*> GetBattlers(){return battlers;};
+
 	/// Looks for a "Battlers.list" which should then specify the battler-files to load.
 	bool LoadFromDirectory(String dir);
 	bool LoadBattles(String fromDirectory);
@@ -40,8 +42,13 @@ public:
 	bool IsIdle();
 
 	static String rootBattlerDir;
+	
+	/// Loads battlers from target CSV file.
+	bool LoadBattlersFromCSV(String file);
 private:
-	List<RuneBattler*> runeBattlers;
+
+
+	List<RuneBattler*> battlers;
 	List<RuneBattle*> runeBattles;
 
 

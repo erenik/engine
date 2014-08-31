@@ -1268,13 +1268,18 @@ bool InputManager::UIPage(float amount)
 /** Emulates Pressing a mouse-button or Enter-key in order to continue with whatever dialogue was up, using the selected or default option (if any)
 	Returns true if it actually did something. False if e.g. no UI item was active or in hover state.
 */
-bool InputManager::UIProceed(){
+bool InputManager::UIProceed()
+{
 	UserInterface * ui = RelevantUI();
 	UIElement * hoverElement = ui->GetHoverElement();
 	if (!hoverElement)
 		return false;
+	/// Set it as active if needed.
+	hoverElement->state |= UIState::ACTIVE;
+	/// Activate it.
+	hoverElement->Activate();
 	/// Trigger active hover-element.
-	ui->Activate(hoverElement);
+//	ui->Activate(hoverElement);
 	return true;
 }
 

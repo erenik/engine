@@ -25,7 +25,7 @@ namespace RStat
 {
 	enum 
 	{
-		INVALID = -1,
+		INVALID = -1, BAD_STAT = -1,
 		/// Player stats
 		ATTACK_POWER, FIRST_CORE_STAT = ATTACK_POWER,
 		DEFENSE_POWER, // Same thing as "Vitality" in some games.
@@ -47,7 +47,7 @@ namespace RStat
 		SPELL_CAST_TIME,
 
 		// From gear 
-		WEAPON_DAMAGE,
+		WEAPON_MODIFIER,
 
 		ARMOR_RATING, // Physical def form armor
 		MAGIC_ARMOR_RATING, // Magical def from armor

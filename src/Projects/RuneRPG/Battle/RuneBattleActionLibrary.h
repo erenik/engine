@@ -43,7 +43,8 @@ public:
 	bool LoadSpellsFromCSV(String file);
 	/// Load skills from a CSV file (Comma-separated values).
 	bool LoadSkillsFromCSV(String file);
-	/// Sup.
+	/// Loads mundane abilities, like Attack but also enemy actions.
+	bool LoadMundaneAbilitiesFromCSV(String file);
 
 private:
 	/// Loads battle actions from target CSV file (actions, spell, mundane skills, w/e). Returns the list of actions loaded this way. 

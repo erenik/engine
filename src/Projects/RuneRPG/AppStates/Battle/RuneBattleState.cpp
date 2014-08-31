@@ -56,6 +56,9 @@
 #include "ModelManager.h"
 #include "TextureManager.h"
 
+#include "Audio/AudioManager.h"
+#include "Audio/Messages/AudioMessage.h"
+
 extern UserInterface * ui[GameStateID::MAX_GAME_STATES];
 
 #define DEFAULT_UI_TEXTURE  "img/80gray50Alpha.png"
@@ -880,6 +883,9 @@ bool RuneBattleState::LoadBattle(String fromSource)
 	
 	// Randomize starting initiative.
 	ResetInitiative();
+
+	// Start the music! :D
+	AudioMan.QueueMessage(new AMPlay(AudioType::BGM, "Somewhere.ogg", 0.1f));
 
 	// Reload ui.
 	commandsMenuOpen = false;

@@ -83,7 +83,8 @@ bool Mutex::Destroy(){
 bool Mutex::Create(String i_name){
 	i_name.ConvertToWideChar();
 	win32MutexHandle = CreateMutex(NULL, false, i_name);
-	if (!win32MutexHandle){
+	if (!win32MutexHandle)
+	{
 		int error = GetLastError();
 		if (error != NO_ERROR){
 			assert(false && "\nError when creating mutex:" && error);
@@ -97,26 +98,30 @@ bool Mutex::Create(String i_name){
 }
 
 /// Retrieves the mutex name for handling. This is required for any further operations
-bool Mutex::Open(){
+bool Mutex::Open()
+{
     assert(isCreated);
     assert(!this->isOpened && "Trying to open mutex that is already opened!");
-        win32MutexHandle = OpenMutex(MUTEX_ALL_ACCESS, FALSE, name);
-        if (!win32MutexHandle){
-            int error = GetLastError();
-            assert(error && "\nUnable to open physics mutex ");
-            return false;
-        }
+    win32MutexHandle = OpenMutex(MUTEX_ALL_ACCESS, FALSE, name);
+    if (!win32MutexHandle)
+	{
+        int error = GetLastError();
+        assert(error && "\nUnable to open physics mutex ");
+        return false;
+    }
     this->isOpened = true;
     return true;
 }
 /// Releases the mutex name for handling
-bool Mutex::Close(){
+bool Mutex::Close()
+{
     assert(isCreated);
 	assert(this->isOpened && "Trying to close mutex that wasn't opened properly!");
 	int result;
 	result = CloseHandle(win32MutexHandle);
-	if (result){
-        this->isOpened = false;
+	if (result)
+	{
+		this->isOpened = false;
 		win32MutexHandle = NULL;
 	}
     else
@@ -135,10 +140,30 @@ bool Mutex::Claim(int milliseconds)
 	while(result == WAIT_TIMEOUT)
 	{
 		result = WaitForSingleObject(this->win32MutexHandle, milliseconds);
-		if (result == WAIT_FAILED || result == WAIT_TIMEOUT){
-			result = GetLastError();
-			assert("Waiting for PhysicsMessageQueueMutex failed!" && result && false);
-			return false;
+		switch(result)
+		{
+			case WAIT_ABANDONED:
+			{
+				assert(false && "Abandoned mutex D:");
+				return false;
+			}
+			case WAIT_FAILED:
+			case WAIT_TIMEOUT:
+			{
+				result = GetLastError();
+				return false;
+				break;
+			}
+			case WAIT_OBJECT_0:
+			{
+				/// The state of the specified object is signaled. wait-successful?
+				break;
+			}
+			default:
+			{
+
+				break;
+			}
 		}
 	}
 	isClaimed = true;
@@ -153,6 +178,20 @@ bool Mutex::Release()
 //	assert(this->isClaimed && "Trying to release unclaimed mutex!");
 	int result;
 	result = ReleaseMutex(win32MutexHandle);
+	if (!result)
+	{
+		int error = GetLastError();
+		switch(error)
+		{
+			case ERROR_NOT_OWNER:
+			{
+				std::cout<<"\nTrying to release mutex from thread which is not owner of it!";
+				break;
+			}
+			default:
+				std::cout<<"\nError releasing mutex: "<<error;
+		}
+	}
     if (result)
         this->isClaimed = false;
     else {

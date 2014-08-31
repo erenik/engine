@@ -71,13 +71,18 @@ void RuneGlobalState::OnEnter(AppState * previousState)
 		TileTypeManager::Allocate();
 
 		RuneBattleActionLibrary::Allocate();
+
 		/// Create Attack, etc.
 		RBALib.CreateDefaultActions();
 		/// Load from file!
-		RBALib.LoadSpellsFromCSV("data/Spells.csv");
-		/// Load from file!
-		RBALib.LoadSkillsFromCSV("data/Skills.csv");
+		RBALib.LoadSpellsFromCSV("data/Spells.csv"); // Mage-magic focused spells
+		RBALib.LoadSkillsFromCSV("data/Skills.csv"); // Combat magical skills
+		RBALib.LoadMundaneAbilitiesFromCSV("data/Abilities.csv"); // Mundane actions/abilities
 
+		/// Load battlers 
+		RuneBattlers.LoadBattlersFromCSV("data/TestCharactersMage.csv");
+		RuneBattlers.LoadBattlersFromCSV("data/TestCharactersWarrior.csv");
+		RuneBattlers.LoadBattlersFromCSV("data/Enemies.csv");
 
 		// Enter some tile types into the manager
 		TileTypes.CreateDefaultTiles();
@@ -302,6 +307,25 @@ void RuneGlobalState::ProcessMessage( Message * message )
 		}
 		// Then find saves.
 		// Add them.
+	}
+	else if (msg.Contains("UpdateBattlersList("))
+	{
+
+		String targetUIList = msg.Tokenize("()")[1];
+		// Clear the target ui first.
+		UserInterface * inUI = message->element->ui;
+		Graphics.QueueMessage(new GMClearUI(targetUIList, inUI));
+		List<RuneBattler*> battlers = RuneBattlers.GetBattlers();
+		for (int i = 0; i < battlers.Size(); ++i)
+		{
+			RuneBattler * battler = battlers[i];
+			if (battler->name.Length() == 0)
+				continue;
+			UIButton * addBattlerButton = new UIButton(battler->name);
+			addBattlerButton->activationMessage = "AddBattler:"+battler->name;
+			addBattlerButton->sizeRatioY = 0.1f;
+			Graphics.QueueMessage(new GMAddUI(addBattlerButton, targetUIList, inUI));
+		}
 	}
 }
 

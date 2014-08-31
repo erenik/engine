@@ -8,6 +8,8 @@
 #include "Battle/BattleAction.h"
 #include "File/FileUtil.h"
 #include "File/File.h"
+
+#include "BattleStats.h"
 ;
 
 void AddActionToBattler(RuneBattler * battler, String actionName)
@@ -21,9 +23,7 @@ String RuneBattlerManager::rootBattlerDir = "data/Battlers/";
 RuneBattlerManager::RuneBattlerManager(){}
 RuneBattlerManager::~RuneBattlerManager()
 {
-	for (int i = 0; i < runeBattlers.Size(); ++i)
-		delete runeBattlers[i];
-	runeBattlers.Clear();
+	battlers.ClearAndDelete();
 }
 
 RuneBattlerManager * RuneBattlerManager::Instance(){
@@ -53,11 +53,14 @@ void RuneBattlerManager::ReloadBattles()
 /// Reloads all battlers by their respective source file.
 void RuneBattlerManager::ReloadBattlers()
 {
-	for (int i = 0; i < runeBattlers.Size(); ++i)
+	assert(false);
+	/*
+	for (int i = 0; i < battlers.Size(); ++i)
 	{
-		RuneBattler * rb = runeBattlers[i];
+		RuneBattler * rb = battlers[i];
 		rb->Load(rb->source);
 	}
+	*/
 }
 
 
@@ -87,11 +90,11 @@ bool RuneBattlerManager::LoadFromDirectory(String dir)
 		if (!result)
 			delete battler;
 		else {
-			for (int b = 0; b < runeBattlers.Size(); ++b){
-				String name = runeBattlers[b]->name;
+			for (int b = 0; b < battlers.Size(); ++b){
+				String name = battlers[b]->name;
 				if (name == battler->name){
 					std::cout<<"\nWARNING: Battler with name "<<name<<" already exists! Deleting previous entry.";
-					runeBattlers.Remove(runeBattlers[b]);
+					battlers.Remove(battlers[b]);
 				}
 			}
 
@@ -104,10 +107,10 @@ bool RuneBattlerManager::LoadFromDirectory(String dir)
             if (battler->actions.Size() == 0)
                 AddActionToBattler(battler, "Attack");
 
-            runeBattlers.Add(battler);
+            battlers.Add(battler);
 		}
 	}
-	std::cout<<"\nBattlerTypes now "<<runeBattlers.Size();
+	std::cout<<"\nBattlerTypes now "<<battlers.Size();
 	*/
 	return true;
 }
@@ -138,7 +141,7 @@ const RuneBattler * RuneBattlerManager::LoadBattler(String fromSource)
 		fromSource = rootBattlerDir + fromSource;
 	if (battler->Load(fromSource))
 	{
-		this->runeBattlers.Add(battler);
+		this->battlers.Add(battler);
 		return battler;
 	}
 	return NULL;
@@ -184,27 +187,117 @@ const RuneBattler * RuneBattlerManager::GetBattlerBySource(String bySource)
 	if (!bySource.Contains(".b"))
 		bySource += ".b";
 
-	for (int i = 0; i < runeBattlers.Size(); ++i){
-		String source = runeBattlers[i]->Source();
+	for (int i = 0; i < battlers.Size(); ++i){
+		String source = battlers[i]->Source();
 		if (source == bySource)
-			return runeBattlers[i];
+			return battlers[i];
 	}
 	// Could not find it? try loading it?
 	return this->LoadBattler(bySource);
 }
 
-RuneBattler RuneBattlerManager::GetBattlerType(String byName){
-	assert(runeBattlers.Size() > 0);
+RuneBattler RuneBattlerManager::GetBattlerType(String byName)
+{
+	assert(battlers.Size() > 0);
 
-	std::cout<<"\nGetBattlerType: by name "<<byName<<" out of "<<runeBattlers.Size()<<" types";
-	for (int i = 0; i < runeBattlers.Size(); ++i){
-		String battlerName = runeBattlers[i]->name;
+	std::cout<<"\nGetBattlerType: by name "<<byName<<" out of "<<battlers.Size()<<" types";
+	for (int i = 0; i < battlers.Size(); ++i){
+		String battlerName = battlers[i]->name;
 		std::cout<<"\nBattler "<<i<<": "<<battlerName;
-		if (runeBattlers[i]->name == byName){
-			return *runeBattlers[i];
+		if (battlers[i]->name == byName){
+			return *battlers[i];
 		}
 	}
 	std::cout<<"\nERROR: There is no RuneBattler with name \""<<byName<<"\"!";
 	assert(false && "Undefined RuneBattler type!");
 	return RuneBattler();
+}
+
+
+/// Loads battlers from target CSV file.
+bool RuneBattlerManager::LoadBattlersFromCSV(String fileName)
+{
+	String contents = File::GetContents(fileName);
+	List<String> lines = contents.GetLines();
+
+	int tempLineNumber;
+
+	String separator;
+	int numCommas = contents.Count(',');
+	int numSemisColons = contents.Count(';');
+	if (numSemisColons > numCommas)
+		separator = ";";
+	else
+		separator = ",";
+
+	/// Column-names. Parse from the first line.
+	List<String> columns;
+	String firstLine = lines[0];
+	// Keep empty strings or all will break.
+	columns = firstLine.Tokenize(separator, true);
+
+	int battlersLoaded = 0;
+	// For each line after the first one, parse a spell.
+	for (int j = 1; j < lines.Size(); ++j)
+	{
+		String & line = lines[j];
+		// Keep empty strings or all will break.
+		List<String> values = line.Tokenize(separator, true);
+		// If not, now loop through the words, parsing them according to the column name.
+		// First create the new spell to load the data into!
+		RuneBattler * newBattler = new RuneBattler();
+		for (int k = 0; k < values.Size(); ++k)
+		{
+			String column;
+			bool error = false;
+			/// In-case extra data is added beyond the columns defined above..?
+			if (columns.Size() > k)
+				column = columns[k];
+			String value = values[k];
+			column.SetComparisonMode(String::NOT_CASE_SENSITIVE);
+			if (column == "Name")
+				newBattler->name = value;
+
+			int stat = GetStatByString(column);
+			if (stat != RStat::BAD_STAT)
+			{
+				newBattler->baseStats[stat].iValue = value.ParseInt();
+				continue;
+			}
+			else if (column == "AP")
+				newBattler->maxActionPoints = value.ParseInt();
+			else if (column == "Armour total")
+				newBattler->baseStats[RStat::ARMOR_RATING].iValue = value.ParseInt();
+			else if (column == "Magic Armour total")
+				newBattler->baseStats[RStat::MAGIC_ARMOR_RATING].iValue = value.ParseInt();
+			else if (column == "Block")
+				newBattler->canBlock = value.ParseBool();
+			else if (column == "Parry")
+				newBattler->canParry = value.ParseBool();
+			else if (column == "Dodge")
+				newBattler->canDodge = value.ParseBool();
+			else if (column == "Abilities")
+				newBattler->actionNames = value.Tokenize(",");
+
+			if (error)
+			{
+				std::cout<<"\n .. when parsing line \'"<<line<<"\'";
+			}
+		}
+		// Remove older versions of the same battler
+		for (int i = 0; i < battlers.Size(); ++i)
+		{
+			RuneBattler * b = battlers[i];
+			/// Identified by having the same name.
+			if (b->name == newBattler->name)
+			{
+				battlers.Remove(b);
+				delete b;
+			}
+		}
+		// And add the new one.
+		battlers.Add(newBattler);
+		++battlersLoaded;
+	}
+	return battlersLoaded;
 }

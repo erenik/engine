@@ -948,6 +948,19 @@ int String::ParseInt()
 	}
 	return atoi(arr);
 }
+
+/// Tries to parse hexadecimal values in the form of "0xAABBCCDD" or "0xAABBCC"
+int String::ParseHex()
+{
+	if (type == NULL_TYPE)
+		return 0;
+	assert(type == CHAR);
+	//atoi(
+	int val = strtol(arr, NULL, 16);
+	return val;
+}
+
+
 float String::ParseFloat()
 {
 	if (type == NULL_TYPE)
