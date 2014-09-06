@@ -60,6 +60,8 @@ public:
 	/// An expression is basically just a bunch of symbols.
 	List<Symbol> symbols;
 
+	/// For debugging, may be set using PrintExpressionSymbols in OnEnter.ini or similar files which are loaded upon start-up.
+	static bool printExpressionSymbols;
 private:
 	
 	/// Evaluates target variable. Expects a variable name and write the value back in the same string. Returns false if it doesn't exist, setting the error string appropriately.

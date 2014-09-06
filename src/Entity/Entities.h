@@ -1,3 +1,7 @@
+/// Emil Hedemalm
+/// 2014-08-31 (2013-03-07 in .cpp)
+/// Handles groups of entities.
+
 #ifndef SELECTION_H
 #define SELECTION_H
 
@@ -12,19 +16,22 @@ class Camera;
 
 /** Class for handling selections/groups of entities. TODO: Consider entering sorting functions etc!
 */
-class Selection : public List<Entity*> {
+class Entities : public List<Entity*> 
+{
 public:
 	/// Default empty constructor
-	Selection();
-	virtual ~Selection();
+	Entities();
+	virtual ~Entities();
 	/// Copy constructor..!
-	Selection(const Selection & otherSelection);
-	Selection(const List<Entity*> & entityList);
+	Entities(const Entities & otherSelection);
+	Entities(const List<Entity*> & entityList);
 
 	/// Removes all entities that are outside the frustum.
-	Selection CullByCamera(Camera * camera) const;
+	Entities CullByCamera(Camera * camera) const;
 	/// Sorts by distance to selected position.
 	void SortByDistance(Vector3f position);
+	/// Calculates based on Z-depth of the camera's near-plane.
+	void SortByDistanceToCamera(Camera * camera);
 
 	/// Prints a simple list with entity names n stuff
 	void ListEntities();
@@ -32,9 +39,9 @@ public:
 	void DeleteEntities();
 
 	/// Selects next entity using given one as reference for the previous one.
-	Selection SelectNext(Entity * entity) const;
+	Entities SelectNext(Entity * entity) const;
 	/// Selects previous entity using given one as reference for the previous one.
-	Selection SelectPrevious(Entity * entity) const;
+	Entities SelectPrevious(Entity * entity) const;
 private:
 	/// Inherited variables from List<Entity*>
 };

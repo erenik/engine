@@ -40,6 +40,7 @@ void Mesh::Nullify()
 	triangulated = false;
 	loadedFromCompactObj = false;
 	aabb = NULL;
+	radius = 0;
 }
 
 Mesh::~Mesh()

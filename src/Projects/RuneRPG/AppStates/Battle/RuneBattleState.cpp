@@ -1,5 +1,6 @@
 // Emil Hedemalm
 // 2013-06-28
+// Handles battles 
 
 #include "RuneBattleState.h"
 
@@ -36,6 +37,7 @@
 #include "UI/UIButtons.h"
 #include "UI/UIFileBrowser.h"
 #include "UI/UIList.h"
+#include "UI/UIInputs.h"
 
 #include "Entity/EntityProperty.h"
 #include "Player/PlayerManager.h"
@@ -55,7 +57,10 @@
 #include "StateManager.h"
 #include "ModelManager.h"
 #include "TextureManager.h"
+#include "Color.h"
 
+#include "RuneRPG/Battle/BattleStats.h"
+#include "Message/MathMessage.h"
 #include "Audio/AudioManager.h"
 #include "Audio/Messages/AudioMessage.h"
 
@@ -82,6 +87,7 @@ RuneBattleState::RuneBattleState()
 	selectedBattleAction = NULL;
 	paused = false;
 	state = this;
+	addBattlerMode = ADD_BATTLER_TO_ENEMY_SIDE;
 }
 
 RuneBattleState::~RuneBattleState()
@@ -90,7 +96,8 @@ RuneBattleState::~RuneBattleState()
 }
 
 /// Creates the user interface for this state
-void RuneBattleState::CreateUserInterface(){
+void RuneBattleState::CreateUserInterface()
+{
 	if (ui)
 		delete ui;
 	ui = new UserInterface();
@@ -126,8 +133,6 @@ void RuneBattleState::OnEnter(AppState * previousState)
 
 	// And set it as active
 	Graphics.cameraToTrack = camera;
-	MainWindow()->MainViewport()->EnableAllDebugRenders(false);
-	MainWindow()->renderFPS = true;
 
 	// Set graphics manager to render UI, and remove the overlay-texture.
 	Graphics.QueueMessage(new GraphicsMessage(GM_CLEAR_OVERLAY_TEXTURE));
@@ -150,6 +155,7 @@ void RuneBattleState::OnEnter(AppState * previousState)
 		battleTestWindow->Create();
 		battleTestWindow->DisableAllRenders();
 		battleTestWindow->renderUI = true;
+		battleTestWindow->hideOnEsc = false;
 	}
 	battleTestWindow->Show();
 
@@ -162,6 +168,7 @@ void RuneBattleState::OnEnter(AppState * previousState)
 	/// Set up a dedicated viewport for the battle as we are not interested in rendering stuff behind the UI in the bottom part of the screen?
 	float viewportSizeX = 1.f;
 	Viewport * battleViewport = new Viewport();
+	battleViewport->EnableAllDebugRenders(false);
 	battleViewport->backgroundColor = Vector4f(0.2f, 0.2f, 0.2f, 1);
 	battleViewport->SetRelative(Vector2f(0, 0.2f), Vector2f(viewportSizeX, 0.8f));
 	Graphics.QueueMessage(new GMSetViewports(battleViewport, MainWindow()));
@@ -348,6 +355,7 @@ void RuneBattleState::CreatePartyUI()
 		ui->AddChild(hp);
 
 		UIElement * mp = new UIElement();
+		mp->name = "Player" + STRINT(i) + "MP";
 		mp->textColor = textColor;
 		mp->text = "MP: "+String::ToString(rb->MP())+"/"+String::ToString(rb->MaxMP());
 		mp->sizeRatioX = 0.2f;
@@ -532,6 +540,30 @@ void RuneBattleState::ProcessMessage(Message * message)
 	String msg = message->msg;
 	switch(message->type)
 	{
+		case MessageType::INTEGER_MESSAGE:
+		{
+			IntegerMessage * setInt = (IntegerMessage*) message;
+			if (msg == "SetAddBattlerSide")
+			{
+				addBattlerMode = setInt->value;
+			}
+			else if (msg.Contains("SetActiveBattlerStat"))
+			{
+				String statName = msg.Tokenize(":")[1];
+				RuneBattler * battler = GetBattler(activeEditBattlerName);
+				if (!battler)
+					return;
+				int index = GetStatByString(statName);
+				if (index >= 0)
+				{
+					Variable * stat = &battler->baseStats[index];
+					stat->iValue = setInt->value;
+				}
+				/// Update current stats.
+				battler->UpdateCurrentStats();
+			}
+			break;
+		}
 		case MessageType::ON_UI_ELEMENT_HOVER:
 		{
 			UIElement * element = message->element;
@@ -569,6 +601,71 @@ void RuneBattleState::ProcessMessage(Message * message)
 			else if (string == "Pause/Break")
 			{
 				paused = !paused;
+			}
+			else if (msg.Contains("UpdateBattlersList("))
+			{
+
+				String targetUIList = msg.Tokenize("()")[1];
+				// Clear the target ui first.
+				UserInterface * inUI = message->element->ui;
+				Graphics.QueueMessage(new GMClearUI(targetUIList, inUI));
+				List<RuneBattler*> battlers = RuneBattlers.GetBattlers();
+				for (int i = 0; i < battlers.Size(); ++i)
+				{
+					RuneBattler * battler = battlers[i];
+					if (battler->name.Length() == 0)
+						continue;
+					UIButton * addBattlerButton = new UIButton(battler->name);
+					addBattlerButton->activationMessage = "AddBattler:"+battler->name;
+					addBattlerButton->sizeRatioY = 0.1f;
+					Graphics.QueueMessage(new GMAddUI(addBattlerButton, targetUIList, inUI));
+				}
+			}
+			else if (msg.Contains("AddBattler"))
+			{
+				String battlerName = msg.Tokenize(":")[1];
+				const RuneBattler * battlerReference = RuneBattlers.GetBattlerByName(battlerName);
+				if (!battlerReference)
+				{
+					std::cout<<"\nError: No Battler found with given name \'"<<battlerName<<"\'";
+					return;
+				}
+				RuneBattler * newBattler = new RuneBattler(*battlerReference);
+				/// Create a copy of it?
+				switch(addBattlerMode)
+				{
+					case ADD_BATTLER_TO_ENEMY_SIDE:
+						newBattler->isAI = true;
+						newBattler->isEnemy = true;
+						battlers.Add(newBattler);
+						break;
+					case ADD_BATTLER_REPLACE_PLAYER:
+					{
+						// Remove the old player?
+						if (activePlayerBattler){
+							battlers.Remove(activePlayerBattler);
+							delete activePlayerBattler;						
+							activePlayerBattler = newBattler;
+						}
+						battlers.Add(newBattler);
+						newBattler->isAI = false;
+						newBattler->isEnemy = false;
+						
+						/// Update menus if it was a player. Just hide and they should refresh...
+						HideMenus();
+						this->CreatePartyUI();
+						break;
+					}
+				}
+				// Recalculate stats!
+				newBattler->UpdateCurrentStats();
+				/// o.o
+				newBattler->name = GetNewSpawnName(newBattler->name);
+				/// Create entity for it.
+				newBattler->CreateEntity();
+				/// Place it.
+				PlaceBattler(newBattler);
+				break;
 			}
 			else if (msg.Contains("LoadBattle("))
 			{
@@ -707,6 +804,8 @@ void RuneBattleState::ProcessMessage(Message * message)
 			}
 			else if (string == "ExecuteAction()")
 			{
+				if (!activePlayerBattler)
+					return;
 				/// Fetch the action.
 				if (!selectedBattleAction)
 				{
@@ -742,6 +841,86 @@ void RuneBattleState::ProcessMessage(Message * message)
                 commandsMenuOpen = false;
                 activePlayerBattler = NULL;
 				return;
+			}
+			else if (msg.Contains("UpdateActiveBattlersList("))
+			{
+				String targetUIList = msg.Tokenize("()")[1];
+				UserInterface * inUI = message->element->ui;
+
+				// Clear the target ui first.
+				Graphics.QueueMessage(new GMClearUI(targetUIList, inUI));
+				for (int i = 0; i < battlers.Size(); ++i)
+				{
+					RuneBattler * battler = battlers[i];
+					if (battler->name.Length() == 0)
+						continue;
+					UIButton * addBattlerButton = new UIButton(battler->name);
+					addBattlerButton->activationMessage = "SetActiveBattler("+battler->name+")&PushUI(ActiveBattlerStats)";
+					addBattlerButton->sizeRatioY = 0.1f;
+					Graphics.QueueMessage(new GMAddUI(addBattlerButton, targetUIList, inUI));
+				}
+			}
+			else if (msg.Contains("SetActiveBattler("))
+			{
+				String name = msg.Tokenize("()")[1];
+				activeEditBattlerName = name;
+				/// Fetch the actual battler when editing the ui... which I guess we should do now.
+				RuneBattler * battler = NULL;
+				for (int i = 0; i < battlers.Size(); ++i)
+				{
+					RuneBattler * rb = battlers[i];
+					if (rb->name == name)
+					{
+						battler = rb;
+					}
+				}
+				String targetUIList = "ActiveBattlerStats";
+				UserInterface * inUI = message->element->ui;
+				Graphics.QueueMessage(new GMClearUI(targetUIList, inUI));
+				/// Leave empty list if there is some error.
+				if (!battler)
+					break;
+				/// Add label with name.
+				UILabel * nameLabel = new UILabel(name);
+				nameLabel->sizeRatioY = 0.1f;
+				Graphics.QueueMessage(new GMAddUI(nameLabel, targetUIList, inUI));
+				/// List all base stats.
+				for (int i = 0; i < battler->baseStats.Size(); ++i)
+				{
+					Variable * stat = &battler->baseStats[i];
+					UIColumnList * box = new UIColumnList("ActiveBattlerStatCL:"+stat->name);
+					box->sizeRatioY = 0.1f;
+					UIIntegerInput * statInput = new UIIntegerInput(stat->name, "SetActiveBattlerStat:"+stat->name);
+					statInput->CreateChildren();
+					statInput->SetValue(stat->iValue);
+					statInput->sizeRatioX = 0.8f;
+					/// Check current value. Is it differing from the base value?
+					Variable * current = &battler->currentStats[i];
+					int diff = current->iValue - stat->iValue;
+					UILabel * statModifierLabel = new UILabel();
+					if (diff != 0)
+					{
+						// Add label with the diff.
+						String diffText = String(diff);
+						if (diff > 0)
+							diffText = "+" + diffText;
+						// Add a plus sign if positive.
+						statModifierLabel->SetText(diffText, true);
+						if (diff > 0)
+							statModifierLabel->textColor = Color::ColorByHex24(0x22FF22);
+						else 
+							statModifierLabel->textColor = Color::ColorByHex24(0xFF2222);
+					}
+					else {
+						statModifierLabel->SetText("+0");
+						statModifierLabel->textColor = Color::ColorByHex16(0xFF11);
+					}					
+					box->AddChild(statInput);
+					box->AddChild(statModifierLabel);
+					/// Add label with name.
+					Graphics.QueueMessage(new GMAddUI(box, targetUIList, inUI));
+				}
+				/// List other stats not stored in that list?
 			}
 		}
 	}
@@ -791,7 +970,8 @@ bool RuneBattleState::LoadBattle(String fromSource)
 	}
 	
 	// If still no players, create a test one?
-	if (!GetPlayerBattlers().Size()){
+	if (!GetPlayerBattlers().Size())
+	{
 		const RuneBattler * base = RuneBattlers.GetBattlerBySource("Player");
 		assert(base);
 		RuneBattler * battler = new RuneBattler(*base);
@@ -809,58 +989,19 @@ bool RuneBattleState::LoadBattle(String fromSource)
 		}
 		RuneBattler * newEnemy =  new RuneBattler(*runeBattlerBase);
 		newEnemy->isEnemy = true;
+		newEnemy->isAI = true;
 		std::cout<<"\nAdding RuneBattler enemy: "<<newEnemy->name;
 		battlers.Add(newEnemy);
 	}
 	/// Fetch all battlers.
 	for (int i = 0; i < battlers.Size(); ++i){
 		battlers[i]->ResetStats();
-	}
-	
+	}	
 	/// For all battlers, count the names, and adjust them if there are ANY multiples at all out there.
-	struct NameCount 
-	{
-		String name;
-		int count;
-		List<RuneBattler*> battlers;
-	};
-	List<NameCount> names;
 	for (int i = 0; i < battlers.Size(); ++i)
 	{
 		RuneBattler * battler = battlers[i];
-		String name = battler->name;
-		bool occurredInNameCount = false;
-		for (int j = 0; j < names.Size(); ++j)
-		{
-			NameCount & nc = names[j];
-			if (nc.name == name)
-			{
-				occurredInNameCount = true;
-				nc.battlers.Add(battler);
-				nc.count++;
-			}
-		}
-		if (!occurredInNameCount)
-		{
-			NameCount nc;
-			nc.name = name;
-			nc.count = 1;
-			nc.battlers.Add(battler);
-			names.Add(nc);
-		}
-	}
-	/// Adjust names as needed.
-	for (int i = 0; i < names.Size(); ++i)
-	{
-		NameCount & nc = names[i];
-		if (nc.count <= 1)
-			continue;
-		for (int j = 0; j < nc.count; ++j)
-		{
-			RuneBattler * battler = nc.battlers[j];
-			// Enumerate them .. A .. B .. C etc.
-			battler->name = battler->name + " " + (char)('A' + j);
-		}
+		battler->name = GetNewSpawnName(battler->name);
 	}
 
 	Log("RuneBattle loaded from file: "+fromSource);
@@ -885,7 +1026,7 @@ bool RuneBattleState::LoadBattle(String fromSource)
 	ResetInitiative();
 
 	// Start the music! :D
-	AudioMan.QueueMessage(new AMPlay(AudioType::BGM, "Somewhere.ogg", 0.1f));
+	AudioMan.QueueMessage(new AMPlay(AudioType::BGM, "Somewhere.ogg", 0.5f));
 
 	// Reload ui.
 	commandsMenuOpen = false;
@@ -958,25 +1099,34 @@ void RuneBattleState::PlaceBattlers()
 	for (int i = 0; i < battlers.Size(); ++i)
 	{
 		RuneBattler * battler = battlers[i];
-		// Place them and their entities on the grid.
-		Entity * entity = battler->entity;
-		Waypoint * wp;
-		if (battler->isEnemy)
-		{
-			wp = GetFreeEnemyPosition();
-		}
-		else 
-			wp = GetFreeAllyPosition();
-
-		Vector3f position = wp->position;
-		position.z = 1 - position.y * 0.1f; 
-		Physics.QueueMessage(new PMSetEntity(entity, PT_POSITION, position));
-		/// Require depth-sorting so the alpha-blending will work.
-		Graphics.QueueMessage(new GMSetEntityb(entity, GT_REQUIRE_DEPTH_SORTING, true));
-		/// Update render-offset while at it, so that all sprites assume 0.25f of the sprite to be the bottom/center?
-		Graphics.QueueMessage(new GMSetEntityVec4f(entity, GT_RENDER_OFFSET, Vector3f(0, 0.75f, 0)));
-		wp->entity = entity;
+		PlaceBattler(battler);
 	}
+}
+
+/// Places the battler somewhere on the map, where fitting.
+void RuneBattleState::PlaceBattler(RuneBattler * battler)
+{
+	// Place them and their entities on the grid.
+	Entity * entity = battler->entity;
+	assert(battler->entity && "Create the entity first!");
+	Waypoint * wp;
+	if (battler->isEnemy)
+	{
+		wp = GetFreeEnemyPosition();
+	}
+	else 
+		wp = GetFreeAllyPosition();
+
+	Vector3f position = wp->position;
+	position.z = 1 - position.y * 0.1f; 
+	Physics.QueueMessage(new PMSetEntity(entity, PT_POSITION, position));
+	/// Require depth-sorting so the alpha-blending will work.
+	Graphics.QueueMessage(new GMSetEntityb(entity, GT_REQUIRE_DEPTH_SORTING, true));
+	/// Update render-offset while at it, so that all sprites assume 0.25f of the sprite to be the bottom/center?
+	Graphics.QueueMessage(new GMSetEntityVec4f(entity, GT_RENDER_OFFSET, Vector3f(0, 0.75f, 0)));
+	/// Set waypoint via physics thread.
+	Physics.QueueMessage(new PMSetEntity(entity, PT_CURRENT_WAYPOINT, wp));
+//	wp->entity = entity;
 }
 
 /// Setup camera
@@ -1190,6 +1340,7 @@ void RuneBattleState::OpenTargetMenu()
     for (int i = 0; i < battlers.Size(); ++i)
 	{
         RuneBattler * b = battlers[i];
+		std::cout<<"\nBattler "<<i<<": "<<b->name<<" ai: "<<b->isAI;
 		/// Skip dead targets.
         if (!b->IsARelevantTarget())
 			continue;
@@ -1300,9 +1451,28 @@ void RuneBattleState::UpdatePlayerHPUI()
 		String uiName = "Player"+STRINT(i)+"HP";
 		Graphics.QueueMessage(new GMSetUIs(uiName, GMUI::TEXT, "HP: "+STRINT(hp)+"/"+STRINT(maxHP)));
 		if (ratio < 0.25f)
-			Graphics.QueueMessage(new GMSetUIv3f(uiName, GMUI::TEXT_COLOR, Vector3f(1.f, 0.f, 0.f)));
+			Graphics.QueueMessage(new GMSetUIv3f(uiName, GMUI::TEXT_COLOR, Vector3f(1.f, 0.2f, 0.2f)));
 		else if (ratio < 0.5f)
 			Graphics.QueueMessage(new GMSetUIv3f(uiName, GMUI::TEXT_COLOR, Vector3f(1.f, 1.f, 0.f)));
+		else if (ratio < 0.75f)
+			Graphics.QueueMessage(new GMSetUIv3f(uiName, GMUI::TEXT_COLOR, Vector3f(1.f, 1.f, 0.5f)));
+		// Good hp.
+		else 
+			Graphics.QueueMessage(new GMSetUIv3f(uiName, GMUI::TEXT_COLOR, Vector3f(1.f, 1.f, 1.f)));
+
+
+		/// MP!
+		int mp = playerBattler->MP();
+		int maxMP = playerBattler->MaxMP();
+		ratio = mp / (float) maxMP;
+		uiName = "Player"+STRINT(i)+"MP";
+		Graphics.QueueMessage(new GMSetUIs(uiName, GMUI::TEXT, "MP: "+STRINT(mp)+"/"+STRINT(maxMP)));
+		if (ratio < 0.25f)
+			Graphics.QueueMessage(new GMSetUIv3f(uiName, GMUI::TEXT_COLOR, Vector3f(0.4f, 0.4f, 1.0f)));
+		else if (ratio < 0.5f)
+			Graphics.QueueMessage(new GMSetUIv3f(uiName, GMUI::TEXT_COLOR, Vector3f(0.f, 1.f, 1.f)));
+		else if (ratio < 0.75f)
+			Graphics.QueueMessage(new GMSetUIv3f(uiName, GMUI::TEXT_COLOR, Vector3f(0.5f, 1.f, 1.f)));
 		// Good hp.
 		else 
 			Graphics.QueueMessage(new GMSetUIv3f(uiName, GMUI::TEXT_COLOR, Vector3f(1.f, 1.f, 1.f)));
@@ -1329,3 +1499,24 @@ void RuneBattleState::CreateDefaultBindings(){
 	mapping->CreateBinding(PRINT_FRAME_TIME, KEY::CTRL, KEY::T);
 
 };
+
+
+/// Creates an appropriate name for target battler based on the amount of battlers of that type that has been spawned this fight.
+String RuneBattleState::GetNewSpawnName(String byBaseName)
+{
+	for (int i = 0; i < spawnedThisFight.Size(); ++i)
+	{
+		SpawnHistory & hist = spawnedThisFight[i];
+		if (hist.name == byBaseName)
+		{
+			++hist.number;
+			return byBaseName + " " + String((char)('A' + hist.number));
+		}
+	}
+	// Create a new spawn-history for this name.
+	SpawnHistory newHist;
+	newHist.name = byBaseName;
+	newHist.number = 0;
+	spawnedThisFight.Add(newHist);
+	return byBaseName;
+}

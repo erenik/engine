@@ -7,7 +7,7 @@
 
 #include "../Globals.h"
 #include <Util.h>
-#include "../Selection.h"
+#include "Entity/Entities.h"
 #include "../Lighting.h"
 
 //#include "..\EntityManager.h"
@@ -97,8 +97,8 @@ public:
 	const String Creator() { return creator;};
 //	static const int MAX_NAME = 260;
 
-	/// Selection is kind of obsolete now what with the utility list class..
-///	Selection GetEntities();
+	/// Entities is kind of obsolete now what with the utility list class..
+///	Entities GetEntities();
 
 	Entity * GetEntity(String byName);
 	/** Returns a list of entities in the map. */
@@ -150,7 +150,7 @@ protected:
 	/// Adds target event to the map.
 	virtual bool AddEvent(Script * eventScript);
 	/** Removes target entities from the map. Returns number of failed removals. */
-	int RemoveEntities(Selection entities);
+	int RemoveEntities(Entities entities);
 	/// Deletes all entities from the map.
 	void RemoveAllEntities();
 

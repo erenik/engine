@@ -438,7 +438,8 @@ UIElement* UIElement::Activate()
 		else if (activationMessage.Length() != 0)
 		{
 			List<String> msgs = activationMessage.Tokenize("&");
-			for (int i = 0; i < msgs.Size(); ++i){
+			for (int i = 0; i < msgs.Size(); ++i)
+			{
 				Message * message = new Message(msgs[i]);
 				message->element = this;
 				MesMan.QueueMessage(message);

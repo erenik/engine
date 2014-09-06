@@ -1,5 +1,6 @@
-// Emil Hedemalm
-// 2013-07-09
+/// Emil Hedemalm
+/// 2013-07-09
+/// A battler in a the RuneRPG battles!
 
 #include "RuneBattler.h"
 #include <cmath>
@@ -8,7 +9,6 @@
 #include "Message/MessageManager.h"
 #include "Message/Message.h"
 #include "RuneBattleAction.h"
-#include "Battle/BattleManager.h"
 #include "File/File.h"
 
 #include "RuneBattleActionLibrary.h"
@@ -28,6 +28,7 @@
 
 #include "MathLib/Function.h"
 #include "BattleStats.h"
+#include "RuneRPG/Item/ItemTypes.h"
 
 RuneBattler::RuneBattler()
 {
@@ -39,7 +40,47 @@ RuneBattler::~RuneBattler()
 	actions.ClearAndDelete();
 	queuedActions.ClearAndDelete();
 	actionCategories.ClearAndDelete();
+
+	if (entity)
+	{
+		MapMan.DeleteEntity(entity);
+	}
 }
+
+/// Attempts to equip the provided gear.
+void RuneBattler::Equip(List<RuneItem> gear)
+{
+	/// Check the gear we are equipping.
+	for (int i = 0; i < gear.Size(); ++i)
+	{
+		RuneItem gearPiece = gear[i];
+		if (gearPiece.type == ItemType::WEAPON)
+			*weapon = gearPiece;
+		else if (gearPiece.type == ItemType::GEAR)
+		{
+			// Check slot.
+			switch(gearPiece.slot)
+			{
+				case Slot::HEAD:
+					*headPiece = gearPiece;
+					break;
+				case Slot::TORSO:
+					*torsoPiece = gearPiece;
+					break;
+				case Slot::HANDS:
+					*handsPiece = gearPiece;
+					break;
+				case Slot::FEET:
+					*feetPiece = gearPiece;
+					break;
+				case Slot::OFF_HAND:
+					*offHand = gearPiece;
+					break;
+			}
+		}
+	}
+}
+
 
 /// Adds the Attack, Item and Flee commands.
 void RuneBattler::AddDefaultActions()
@@ -97,8 +138,8 @@ void RuneBattler::Nullify()
 	delay = 5000 + rand()%10000;
 	state = IDLE;
 
-
 	entity = NULL;
+	isAI = false;
 	isEnemy = false;
 	actionPoints = 0;
 	actionPointsFillUpSpeed = 0;
@@ -125,6 +166,46 @@ void RuneBattler::Nullify()
 	for (int i = RStat::FIRST_SURVIVAL_STAT; i <= RStat::LAST_SURVIVAL_STAT; ++i)
 		baseStats[i].iValue = 50;
 
+	timeSinceLastManaGain = 0;
+
+	/// Add ze weapon.
+	allGear = RuneItem::DefaultGear();
+	weapon = headPiece = torsoPiece = handsPiece = feetPiece = offHand = NULL;
+//	allGear.Add(RuneItem::DefaultWeapon());
+	for (int i = 0; i < allGear.Size(); ++i)
+	{
+		RuneItem & piece = allGear[i];
+		switch(piece.type)
+		{
+			case ItemType::WEAPON:
+				weapon = &piece;
+				break;
+			case ItemType::GEAR:
+			{
+				switch(piece.slot)
+				{
+					case Slot::HEAD:
+						headPiece = &piece;
+						break;
+					case Slot::TORSO:
+						torsoPiece = &piece;
+						break;
+					case Slot::HANDS:
+						handsPiece = &piece;
+						break;
+					case Slot::FEET:
+						feetPiece = &piece;
+						break;
+					case Slot::OFF_HAND:
+						offHand = &piece;
+						break;
+				}
+				break;
+			}
+		}
+	}
+	assert(headPiece && torsoPiece && handsPiece && feetPiece && offHand);
+	
 	/// yo.
 	UpdateCurrentStats();
 }
@@ -165,6 +246,7 @@ void RuneBattler::RecalculateActionPointsFillUpSpeed()
 /// For AI, it will also queue up actions accordingly to the state of the battle at large.
 void RuneBattler::Process(RBattleState & battleState)
 {
+	int timeInMs = battleState.timeInMs;
 	/// For each battle action, process it. Old actions may also be present which are still animating or have some effect to do after animation finishes.
 	bool frozenInAction = false;
 	for (int i = 0; i < activeBattleActions.Size(); ++i)
@@ -236,6 +318,20 @@ void RuneBattler::Process(RBattleState & battleState)
 		this->actionPoints += actionPointsFillUpSpeed * battleState.timeInMs * 0.001;
 		if (actionPoints > maxActionPoints)
 			actionPoints = maxActionPoints;
+
+		/// For mana gain over time.
+		timeSinceLastManaGain += timeInMs;
+		if (timeSinceLastManaGain > 1000)
+		{
+			timeSinceLastManaGain = 0;
+			int & currentMP = baseStats[RStat::CURRENT_MP].iValue;
+			int & maxMP = baseStats[RStat::MAX_MP].iValue;
+			++currentMP;
+			if (currentMP > maxMP)
+				currentMP = maxMP;
+			else
+				UpdateCurrentStats();
+		}
 		// Use some other boolean to just signify that the menu should be opened..
 		/*
 		Message * msg = new Message(MessageType::STRING);
@@ -360,6 +456,12 @@ bool RuneBattler::MagicDamage(int dmg)
 bool RuneBattler::UpdateActions()
 {
 	actions.Clear();
+	/// Always allow players to attack..
+	if (!isAI)
+	{
+		if (!actionNames.Exists("Attack"))
+			actionNames.Add("Attack");
+	}
 
 	for (int i = 0; i < actionNames.Size(); ++i)
 	{
@@ -369,7 +471,7 @@ bool RuneBattler::UpdateActions()
 		if (name == "All spells")
 		{
 			// Create a copy of each spell!
-			List<RuneBattleAction*> spells = RBALib.GetSpells();
+			List<const RuneBattleAction*> spells = RBALib.GetSpells();
 			for (int j = 0; j < spells.Size(); ++j)
 				actions.Add(new RuneBattleAction(*spells[j]));
 			continue;
@@ -377,12 +479,74 @@ bool RuneBattler::UpdateActions()
 		else if (name == "All skills")
 		{
 			// Create a copy of each spell!
-			List<RuneBattleAction*> skills = RBALib.GetSkills();
+			List<const RuneBattleAction*> skills = RBALib.GetSkills();
 			for (int j = 0; j < skills.Size(); ++j)
 				actions.Add(new RuneBattleAction(*skills[j]));
 			continue;
 		}
-
+		else if (name == "Attack")
+		{
+			const RuneBattleAction * action = RBALib.GetBattleAction("Basic Attack");
+			if (action)
+				actions.Add(new RuneBattleAction(*action));
+			continue;
+		}
+		else if (name.Contains("Skill:"))
+		{
+			String skillName = name.Tokenize(":")[1];
+			// Fetching a range of skills based on id.
+			if (skillName.Length() < 6 && skillName.Contains("-"))
+			{
+				String startID = skillName.Tokenize("-")[0];
+				String stopID = skillName.Tokenize("-")[1];
+				List<const RuneBattleAction*> skills = RBALib.GetSkills();
+				bool started = false;
+				for (int j = 0; j < skills.Size(); ++j)
+				{
+					const RuneBattleAction * skill = skills[j];
+					if (skill->id == startID)
+						started = true;
+					if (started)
+						actions.Add(new RuneBattleAction(*skill));
+					if (skill->id == stopID)
+						started = false;
+				}
+				continue;
+			} 
+			// Default, get by simple name.
+			const RuneBattleAction * action = RBALib.GetBattleAction(skillName);
+			if (action)
+				actions.Add(new RuneBattleAction(*action));
+			continue;
+		}
+		else if (name.Contains("Spell:"))
+		{
+			String skillName = name.Tokenize(":")[1];
+			// Fetching a range of skills based on id.
+			if (skillName.Length() < 6 && skillName.Contains("-"))
+			{
+				String startID = skillName.Tokenize("-")[0];
+				String stopID = skillName.Tokenize("-")[1];
+				List<const RuneBattleAction*> skills = RBALib.GetSpells();
+				bool started = false;
+				for (int j = 0; j < skills.Size(); ++j)
+				{
+					const RuneBattleAction * skill = skills[j];
+					if (skill->id == startID)
+						started = true;
+					if (started)
+						actions.Add(new RuneBattleAction(*skill));
+					if (skill->id == stopID)
+						started = false;
+				}
+				continue;
+			} 
+			// Default, get by simple name.
+			const RuneBattleAction * action = RBALib.GetBattleAction(skillName);
+			if (action)
+				actions.Add(new RuneBattleAction(*action));
+			continue;
+		}
 		const RuneBattleAction * action = RBALib.GetBattleAction(name);
 		if (action)
 			actions.Add(new RuneBattleAction(*action));
@@ -414,8 +578,10 @@ void RuneBattler::UpdateActionCategories(int usingSortingScheme)
 		{
 			RuneBattleActionCategory * attack = new RuneBattleActionCategory("Attack"),
 				* spells = new RuneBattleActionCategory("Spells"),
-				* skills = new RuneBattleActionCategory("Skills");
-			actionCategories.Add(3, attack, spells, skills);
+				* skills = new RuneBattleActionCategory("Skills"),
+				* mundaneActions = new RuneBattleActionCategory("Mundane Actions"),
+				* items = new RuneBattleActionCategory("Items");
+			actionCategories.Add(5, attack, spells, skills, mundaneActions, items);
 			for (int i = 0; i < actions.Size(); ++i)
 			{
 				RuneBattleAction * rba = actions[i];
@@ -423,8 +589,14 @@ void RuneBattler::UpdateActionCategories(int usingSortingScheme)
 				{
 					case RuneBattleAction::MUNDANE_ACTION:
 						/// Only a few of these..
-						if (rba->name == "Attack")
+						if (rba->name == "Attack" || rba->name == "Basic Attack")
+						{
 							attack->isAction = rba;
+						}
+						else 
+						{
+							mundaneActions->actions.Add(rba);						
+						}
 						break;
 					case RuneBattleAction::MAGIC_SKILL:
 						skills->actions.Add(rba);
@@ -432,11 +604,29 @@ void RuneBattler::UpdateActionCategories(int usingSortingScheme)
 					case RuneBattleAction::MAGIC_SPELL:
 						spells->actions.Add(rba);
 						break;
+					case RuneBattleAction::USE_ITEM:
+						items->actions.Add(rba);
+						break;
 					default:
 						assert(false && "Bad action type should be one of the following: magic skill, magic spell or mundane action");
 				}
 			}
-
+			/// Remove those categories which have no ability at all.
+			for (int i = 0; i < actionCategories.Size(); ++i)
+			{
+				RuneBattleActionCategory * rbac = actionCategories[i];
+				if (rbac->actions.Size() == 0 && rbac->isAction == NULL)
+				{
+					actionCategories.Remove(rbac);
+					delete rbac;
+					--i;
+				}
+			}
+			/// If we have no actions at all, create a category to show this explicitly?
+			if (actionCategories.Size() == 0)
+			{
+				actionCategories.Add(new RuneBattleActionCategory("No valid actions available"));
+			}
 			break;
 		}
 	}
@@ -736,6 +926,36 @@ void RuneBattler::UpdateCurrentStats()
 	for (int i = 0; i < baseStats.Size(); ++i)
 	{
 		Variable baseStat = baseStats[i];
+
+		/// Look at all gear.
+		for (int j = 0; j < allGear.Size(); ++j)
+		{
+			RuneItem & gear = allGear[j];
+			for (int k = 0; k < gear.equipEffects.Size(); ++k)
+			{
+				BattleEffect & effect = gear.equipEffects[k];
+				switch(effect.type)
+				{
+					case BattleEffect::INCREASE:
+					case BattleEffect::DECREASE:
+					{
+						int statType = effect.statType;
+						// i = stat type in this case.
+						if (statType == i)
+						{
+							baseStat.iValue = effect.AdjustedStat(baseStat.iValue);
+						}
+						break;
+					}
+					default:
+					{
+						std::cout<<"\nDefault, no effect on this stat..";
+						break;
+					}
+				}
+			}
+		}
+
 		/// Look at all effects..!
 		for (int j = 0; j < appliedEffects.Size(); ++j)
 		{
@@ -744,6 +964,7 @@ void RuneBattler::UpdateCurrentStats()
 			{
 				case BattleEffect::INCREASE:
 				case BattleEffect::DECREASE:
+				{
 					int statType = effect.statType;
 					// i = stat type in this case.
 					if (statType == i)
@@ -751,6 +972,12 @@ void RuneBattler::UpdateCurrentStats()
 						baseStat.iValue = effect.AdjustedStat(baseStat.iValue);
 					}
 					break;
+				}
+				default:
+				{
+					std::cout<<"\nDefault, no effect on this stat..";
+					break;
+				}
 			}
 		}
 		currentStats.Add(baseStat);

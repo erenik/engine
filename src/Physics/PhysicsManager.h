@@ -124,7 +124,7 @@ public:
 	bool IsPaused() const { return paused; };
 
 	/// Returns a list of all registered entities.
-	Selection GetEntities();
+	Entities GetEntities();
 	List<Entity*> GetDynamicEntities();
 	const Vector3f Gravity() const { return gravitation; };
 

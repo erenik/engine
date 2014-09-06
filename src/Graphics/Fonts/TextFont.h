@@ -98,7 +98,7 @@ private:
 	Vector2f padding;
 	/// Index of current character within the text.
 	int currentCharIndex, lastCharIndex;
-	char currentChar, lastChar, nextChar;
+	unsigned char currentChar, lastChar, nextChar;
 	/// Current row width.
 	float rowSizeX;
 	float maxRowSizeX;

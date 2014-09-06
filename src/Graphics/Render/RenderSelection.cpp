@@ -6,7 +6,7 @@
 #include "GraphicsState.h"
 
 /// Actively manipulated entities
-//extern Selection editorSelection;
+//extern Entities editorSelection;
 
 // Renders the selected(active) entities in the editor/debugg-mode
 void GraphicsManager::RenderSelection(){

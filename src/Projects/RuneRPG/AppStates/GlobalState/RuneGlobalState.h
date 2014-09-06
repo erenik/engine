@@ -3,7 +3,7 @@
 // Global app/game-state for the RuneRPG game.
 
 #include "../RRGameState.h"
-#include "Selection.h"
+#include "Entity/Entities.h"
 
 #define TEST_BATTLE_PATH "data/RuneRPG/testBattle.txt"
 #define BATTLERS_DIRECTORY "data/RuneRPG/Battlers/"
@@ -30,7 +30,7 @@ public:
 	virtual void MouseMove(int x, int y, bool lDown = false, bool rDown = false, UIElement * elementOver = NULL);
 	void MouseWheel(float delta);
 	/// Interpret selection queries for additional processing (updating UI for example).
-	void OnSelect(Selection &selection);
+	void OnSelect(Entities &selection);
 
 	/// Increases playback speed and notifies relevant systems of the change
 	void IncreaseSpeed();

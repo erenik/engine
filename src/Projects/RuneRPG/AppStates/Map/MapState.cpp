@@ -26,7 +26,6 @@
 #include "RuneRPG/EntityStates/RREntityState.h"
 #include "RuneRPG/Battle/RuneBattler.h"
 #include "RuneRPG/Item/RuneShop.h"
-#include "RuneRPG/Item/RuneConsumable.h"
 
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Messages/GMSet.h"
@@ -1023,7 +1022,7 @@ void MapState::ZoneTo(String mapName)
 	for (int i = 0; i < navMesh->waypoints.Size(); ++i)
 	{	
 		Waypoint * wp = navMesh->waypoints[i];
-		wp->entity = NULL;
+		wp->entities.Clear();
 	}
 
 	// Load populations for this zone.

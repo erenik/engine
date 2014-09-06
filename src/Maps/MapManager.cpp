@@ -764,7 +764,7 @@ void MapManager::LoadMapsFromDirectory(const char * directory){
 
 /** Reloads active map from file, returning it upon success and NULL upon failure. */
 Map * MapManager::ReloadFromFile(){
-	Selection mapEntities = GetEntities();
+	Entities mapEntities = GetEntities();
 	for (int i = 0; i < mapEntities.Size(); ++i){
 		activeMap->RemoveEntity(mapEntities[i]);
 	}

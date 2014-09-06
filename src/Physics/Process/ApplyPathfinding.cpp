@@ -50,10 +50,10 @@ void PhysicsManager::ApplyPathfinding(){
 				std::cout<<"\nTarget waypoint behind us! Halting,.. hopefully.";
 				// Not aligned, mening that we have passed it somehow, so place us at it!
 				entity->position = targetWaypoint->position;
-				currentWaypoint->entity = NULL;
+				currentWaypoint->entities.Remove(entity);
 				currentWaypoint = targetWaypoint;
 				targetWaypoint = NULL;
-				currentWaypoint->entity = entity;
+				currentWaypoint->entities.Add(entity);
 				/// Check if we'ge got a queued destination we should change to.
 				if (pathProp->queuedDestination){
 					pathProp->OnPathCompleted();
@@ -120,7 +120,7 @@ void PhysicsManager::ApplyPathfinding(){
 					if (!neighbour->passable)
 						continue;
 					/// Regard WP's with entities as occupied too!
-					if (neighbour->entity)
+					if (neighbour->entities.Size())
 						continue;
 					Vector3f toNeighbour = neighbour->position - currentWaypoint->position;
 				//	std::cout<<"\n toNeighbour "<<i<<": "<<toNeighbour;
@@ -135,11 +135,12 @@ void PhysicsManager::ApplyPathfinding(){
 				
 		    }
 		    /// If we found a new valid target waypoint, make our way there!
-		    if (newTargetWaypoint){
+		    if (newTargetWaypoint)
+			{
 		    //	std::cout<<"\nNew target waypoint found";
 				targetWaypoint = newTargetWaypoint;
-				targetWaypoint->entity = entity;
-				currentWaypoint->entity = NULL;
+				targetWaypoint->entities.Add(entity);
+				currentWaypoint->entities.Remove(entity);
 				Vector3f toNextNormalized = newTargetWaypoint->position - currentWaypoint->position;
 				toNextNormalized.Normalize();
 				/// Update velocity depending on stuff. This row update allows smooth diagnoal movement.. I think.

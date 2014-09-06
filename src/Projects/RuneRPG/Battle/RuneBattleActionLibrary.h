@@ -29,11 +29,11 @@ public:
 	/// Taken from RuneSpellManager
 	/// ///////////////////////////////
 	/// Returns all spells, skills and mundane actions together.
-	List<RuneBattleAction*> AllActions();
+	List<const RuneBattleAction*> AllActions();
 	/// Returns list of all spells.
-	List<RuneBattleAction*> GetSpells();
+	List<const RuneBattleAction*> GetSpells();
 	/// Returns list of all non-spell, non-mundane skills.
-	List<RuneBattleAction*> GetSkills();
+	List<const RuneBattleAction*> GetSkills();
 
 
 	/// Creates a new spell, adding it to the list and returning it.

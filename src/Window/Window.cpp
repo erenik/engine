@@ -108,6 +108,9 @@ Window::Window(String name)
 	isRecording = false;
 	recordVideo = false;
 	msBetweenFrames = 50;
+
+	hideOnEsc = true;
+
 }
 
 Window::~Window()

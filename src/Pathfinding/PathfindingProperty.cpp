@@ -16,6 +16,12 @@ PathfindingProperty::PathfindingProperty(Entity * entity)
 	queuedDestination = NULL;
 }
 
+PathfindingProperty::~PathfindingProperty()
+{
+	/// Remove pointers to this entity if possible.
+	if (currentWaypoint)
+		currentWaypoint->entities.Remove(this->owner);
+}	
 
 void PathfindingProperty::OnPathCompleted(){
 	currentPath = queuedPath;

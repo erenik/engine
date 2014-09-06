@@ -5,7 +5,6 @@
 #include "OS/Sleep.h"
 #include "RuneGlobalState.h"
 #include "UI/UserInterface.h"
-#include "Battle/BattleManager.h"
 #include "Maps/Grids/TileTypeManager.h"
 #include "Script/Script.h"
 #include "Script/ScriptManager.h"
@@ -22,7 +21,6 @@ extern UserInterface * ui[GameStateID::MAX_GAME_STATES];
 #include "RuneRPG/Battle/RuneBattlerManager.h"
 #include "Player/PlayerManager.h"
 #include "Graphics/Messages/GMSet.h"
-#include "Battle/BattleAction.h"
 
 
 #include "Graphics/GraphicsManager.h"
@@ -42,6 +40,7 @@ extern UserInterface * ui[GameStateID::MAX_GAME_STATES];
 #include "RuneRPG/Network/RRPacket.h"
 #include "RuneRPG/PopulationManager.h"
 #include "RuneRPG/Battle.h"
+#include "RuneRPG/Item/RuneItem.h"
 
 #include "Window/WindowManager.h"
 
@@ -61,13 +60,9 @@ void RuneGlobalState::OnEnter(AppState * previousState)
 	WindowMan.lockChildWindowRelativePositions = true;
 
 	/// Allocate all necessary managers!
-	if (!BattleManager::IsAllocated()){
-		BattleManager::Allocate();
+	if (true)
+	{
 		RuneBattlerManager::Allocate();
-		BattleActionLibrary::Allocate();
-//		BALib.LoadFromDirectory(ACTIONS_DIRECTORY);
-//		RuneBattlers.LoadFromDirectory(BATTLERS_DIRECTORY);
-//		RuneBattlers.LoadBattles(BATTLES_DIRECTORY);
 		TileTypeManager::Allocate();
 
 		RuneBattleActionLibrary::Allocate();
@@ -78,6 +73,11 @@ void RuneGlobalState::OnEnter(AppState * previousState)
 		RBALib.LoadSpellsFromCSV("data/Spells.csv"); // Mage-magic focused spells
 		RBALib.LoadSkillsFromCSV("data/Skills.csv"); // Combat magical skills
 		RBALib.LoadMundaneAbilitiesFromCSV("data/Abilities.csv"); // Mundane actions/abilities
+
+		/// Load items!
+		RuneItem::LoadWeaponsFromCSV("data/Weapons.csv");
+		RuneItem::LoadArmourFromCSV("data/Armour.csv");
+		RuneItem::LoadConsumablesFromCSV("data/Usables.csv");
 
 		/// Load battlers 
 		RuneBattlers.LoadBattlersFromCSV("data/TestCharactersMage.csv");
@@ -116,10 +116,8 @@ void RuneGlobalState::OnExit(AppState * nextState)
 {
 	std::cout<<"\nLeaving RuneGlobalState state.";
 
-	if (BattleManager::IsAllocated())
+	if (true)
 	{
-	    BattleActionLibrary::Deallocate();
-		BattleManager::Deallocate();
 		RuneBattlerManager::Deallocate();
 		PopulationManager::Deallocate();
 		RuneBattleActionLibrary::Deallocate();
@@ -138,8 +136,9 @@ void RuneGlobalState::ProcessMessage( Message * message )
 {
 	String msg = message->msg;
 	msg.SetComparisonMode(String::NOT_CASE_SENSITIVE);
-	if (msg.Contains("BattleTest") || msg.Contains("TestBattle")){
-		BattleMan.QueueBattle("Practice");
+	if (msg.Contains("BattleTest") || msg.Contains("TestBattle"))
+	{
+	//	BattleMan.QueueBattle("Practice");
 		StateMan.QueueState(StateMan.GetStateByID(RUNE_GAME_STATE_BATTLE_STATE));
 	}
 	else if (msg == "LoadMultiplayerDefaults")
@@ -308,25 +307,6 @@ void RuneGlobalState::ProcessMessage( Message * message )
 		// Then find saves.
 		// Add them.
 	}
-	else if (msg.Contains("UpdateBattlersList("))
-	{
-
-		String targetUIList = msg.Tokenize("()")[1];
-		// Clear the target ui first.
-		UserInterface * inUI = message->element->ui;
-		Graphics.QueueMessage(new GMClearUI(targetUIList, inUI));
-		List<RuneBattler*> battlers = RuneBattlers.GetBattlers();
-		for (int i = 0; i < battlers.Size(); ++i)
-		{
-			RuneBattler * battler = battlers[i];
-			if (battler->name.Length() == 0)
-				continue;
-			UIButton * addBattlerButton = new UIButton(battler->name);
-			addBattlerButton->activationMessage = "AddBattler:"+battler->name;
-			addBattlerButton->sizeRatioY = 0.1f;
-			Graphics.QueueMessage(new GMAddUI(addBattlerButton, targetUIList, inUI));
-		}
-	}
 }
 
 /*
@@ -365,6 +345,6 @@ void RuneGlobalState::MouseWheel(float delta){
 
 }
 
-void RuneGlobalState::OnSelect(Selection &selection){
+void RuneGlobalState::OnSelect(Entities &selection){
 
 }

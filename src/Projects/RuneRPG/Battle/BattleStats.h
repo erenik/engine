@@ -55,6 +55,7 @@ namespace RStat
 		SHIELD_BLOCK_RATING,
 		SHIELD_DEFENSE_MODIFIER,
 
+		PARRY_RATING,
 
 		/// Temporary and/or character/environment mixed based stats.
 		BATTLER_TEMPERATURE,
@@ -68,7 +69,7 @@ namespace RStat
 		ALL_CORE_AND_SURVIVABILITY_STATS,
 
 		/// Total battler stats...
-		NUM_BATTLER_STATS = SHIELD_DEFENSE_MODIFIER+1,
+		NUM_BATTLER_STATS = BATTLER_TEMPERATURE+1,
 		
 
 	};	

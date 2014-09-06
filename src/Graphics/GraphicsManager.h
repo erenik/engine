@@ -195,8 +195,8 @@ public:
 	/// Camera to track for changes/updates.
 	Camera * cameraToTrack;
 	Camera * defaultCamera;
-	/// Selection to track for changes/updates and rendering.
-	Selection * selectionToRender;
+	/// Entities to track for changes/updates and rendering.
+	Entities * selectionToRender;
 
 	const long FrameTime() const { return frameTime; };
 	const long RenderFrameTime() const { return renderFrameTime; };

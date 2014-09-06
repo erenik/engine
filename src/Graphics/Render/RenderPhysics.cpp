@@ -25,7 +25,7 @@
 void RenderLine(Vector3f origin, Vector3f end, Vector4f baseColor);
 void RenderFadingLine(Vector3f origin, Vector3f end, Vector4f baseColor, Vector4f highlightColor);
 
-Selection physicalEntities;
+Entities physicalEntities;
 long lastFetch = 0;
 /// Renders physical bounds for all entities within the frustum. Does a local frustum culling that will slow down the system more ^^
 void GraphicsManager::RenderPhysics(){

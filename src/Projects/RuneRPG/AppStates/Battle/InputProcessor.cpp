@@ -5,7 +5,6 @@
 #include "Actions.h"
 #include "Graphics/GraphicsManager.h"
 #include "Graphics/Camera/Camera.h"
-#include "Battle/BattleAction.h"
 // Don't include all managers. Ever.
 
 void RuneBattleState::InputProcessor(int action, int inputDevice/* = 0*/){
@@ -18,7 +17,7 @@ void RuneBattleState::InputProcessor(int action, int inputDevice/* = 0*/){
 	switch(action){
 		/// Menu navigation, yush!
 		case PRINT_BATTLER_ACTIONS:
-            BALib.PrintAll();
+//            RBALib.PrintAll();
             break;
 		case CHANGE_CAMERA:
 			switch(PLAYER_CAMERA.trackingMode){

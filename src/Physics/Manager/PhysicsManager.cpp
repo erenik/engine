@@ -4,7 +4,7 @@
 #include "../PhysicsManager.h"
 #include "../Entity/Entity.h"
 #include "../Model.h"
-#include "../Selection.h"
+#include "Entity/Entities.h"
 #include "../Collision/Collisions.h"
 #include "Graphics/GraphicsManager.h"
 #include "PhysicsLib/AABBSweeper.h"
@@ -290,10 +290,10 @@ void PhysicsManager::Pause(){
 }
 
 /// Returns a list of all registered entities.
-Selection PhysicsManager::GetEntities(){
+Entities PhysicsManager::GetEntities(){
 	if (physicalEntities.Size() == 0)
-		return Selection();
-	return Selection(physicalEntities);
+		return Entities();
+	return Entities(physicalEntities);
 }
 List<Entity*> PhysicsManager::GetDynamicEntities(){
 	return dynamicEntities;

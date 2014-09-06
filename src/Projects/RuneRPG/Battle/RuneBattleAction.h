@@ -9,34 +9,10 @@
 #include "System/DataTypes.h"
 #include "BattleEffect.h"
 #include "RuneBattle.h"
+#include "TargetFilters.h"
 
 class RuneBattler;
 class BattleAnimation;
-
-#ifndef TARGET_FILTER_H
-#define TARGET_FILTER_H
-
-/// For target filtering
-namespace TargetFilter 
-{ 
-	enum {
-		NULL_TARGET,
-		/// The caster
-		SELF, 
-		/// For selecting a battler target.
-		ALLY,
-		ENEMY,
-		RANDOM,
-		ALLIES,
-		ENEMIES,
-		ALL,
-		/// For selecting a target based on the map
-		POINT,
-		TARGET_FILTERS,
-	};
-};
-#endif
-
 class RuneBattleAction;
 
 class RuneBattleActionCategory 
@@ -79,6 +55,7 @@ public:
 		MUNDANE_ACTION,
 		MAGIC_SKILL,
 		MAGIC_SPELL,
+		USE_ITEM,
 	};
 	/// Mundane action, magic skill or magic spell. See enum above.
 	int type;

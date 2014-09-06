@@ -109,6 +109,8 @@ String GetStatShortString(int byStat)
 		case RStat::SHIELD_BLOCK_RATING: return "ShieldBlockRating";
 		case RStat::SHIELD_DEFENSE_MODIFIER: return "ShieldDefenseModifier";
 
+		case RStat::PARRY_RATING:	return "ParryRating";
+
 		case RStat::BATTLER_TEMPERATURE: return "Targettemp";
 
 		// Environment stats

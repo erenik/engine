@@ -7,7 +7,7 @@
 const int MAX_ENTITIES = 5000;
 
 #include "String/AEString.h"
-#include "../Selection.h"
+#include "Entity/Entities.h"
 
 class Entity;
 class Model;

@@ -7,7 +7,7 @@
 //#define MAX_AI_ENTITIES	500
 //
 //struct AIMessage;
-//class Selection;
+//class Entities;
 //class Entity;
 //
 //#define AI			(*AIManager::Instance())
@@ -41,7 +41,7 @@
 //	/** Registers a selection of entities to take part in AI calculations. This requires that the entities have AI attributes attached.
 //		Returns 0 upon success or a positive number equal to the amount of entities that it failed to register.
 //	*/
-//	int RegisterEntities(Selection & selection);
+//	int RegisterEntities(Entities & selection);
 //	/// Unregisters and re-registers selected entity.
 //	void ReregisterEntity(Entity * entity) { UnregisterEntity(entity); RegisterEntity(entity); };
 //	/// Unregisters an Entity from the AI calculations. Returns 0 if it found the Entity and successfully removed it, 1 if not.
@@ -49,7 +49,7 @@
 //	/** Unregisters a selection of entities from AI calculations.
 //		Returns 0 upon success or a positive number equal to the amount of entities that it failed to unregister.
 //	*/
-//	int UnregisterEntities(Selection & selection);
+//	int UnregisterEntities(Entities & selection);
 //	/** Unregisters all entities from AI calculations.
 //		Returns 0 upon success or a positive number equal to the amount of entities that it failed to 
 //		unregister. */

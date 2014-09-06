@@ -36,6 +36,8 @@ public:
 	RuneBattle GetBattleBySource(String source);
 	/// Gets battler by source. You must then create a copy of the const reference yourself before using it. 
 	const RuneBattler * GetBattlerBySource(String bySource);
+	/// Gets battler by name. You must then create a copy of the const reference yourself before using it. 
+	const RuneBattler * GetBattlerByName(String name);
 	/// Deprecate or rename this function. God...
 	RuneBattler GetBattlerType(String byName);
 	/// Stuff!

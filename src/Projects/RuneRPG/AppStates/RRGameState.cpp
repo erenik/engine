@@ -11,7 +11,6 @@
 #include "Graphics/GraphicsManager.h"
 #include "Message/MessageManager.h"
 #include "StateManager.h"
-#include "Battle/BattleManager.h"
 
 // Static variables.
 RRSession * RRGameState::session;
@@ -36,7 +35,8 @@ void RRGameState::CreateSessionIfNeeded()
 /// For starting it from anywhere.
 void RRGameState::StartBattle(String battleRef)
 {
-	BattleMan.QueueBattle(battleRef);
+//	RuneBattleState.
+//	BattleMan.QueueBattle(battleRef);
 //	RuneBattleState * battleState = ;
 	// Enter battle state.
 	StateMan.QueueState(StateMan.GetStateByID(RUNE_GAME_STATE_BATTLE_STATE));

@@ -13,10 +13,12 @@ class Path;
 class Waypoint;
 
 /// Entity property to handle pathfinding!
-struct PathfindingProperty {
+class PathfindingProperty 
+{
 	friend class PhysicsManager;
 public:
 	PathfindingProperty(Entity * owner);
+	virtual ~PathfindingProperty();
 	void OnPathCompleted();
 	// Woo
 	void SetQueuedDestination(Waypoint * wp);

@@ -4,10 +4,10 @@
 
 #include "AppStates.h"
 #include "../Globals.h"
-#include "../Selection.h"
+#include "Entity/Entities.h"
 #include "../UI/UIElement.h"
 #include "../UI/UserInterface.h"
-#include "Selection.h"
+#include "Entity/Entities.h"
 #include "Input/InputMapping.h"
 
 #include <ctime>

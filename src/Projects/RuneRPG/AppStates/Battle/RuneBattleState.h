@@ -7,7 +7,7 @@
 #include "Game/GameConstants.h"
 #include "../RRGameState.h"
 #include "AppStates/AppStates.h"
-#include "Selection.h"
+#include "Entity/Entities.h"
 
 class Camera;
 class RuneBattler;
@@ -18,6 +18,13 @@ class Waypoint;
 
 /// cba place it elsewhere
 extern List<String> queuedBattles;
+
+/// To give proper name to everything.
+struct SpawnHistory 
+{
+	String name;
+	int number;
+};
 
 class RuneBattleState : public RRGameState 
 {
@@ -113,8 +120,10 @@ private:
 	void SetupLighting();
 	/// Create entities! 
 	void CreateBattlerEntities();
-	/// Place them on the grid.
+	/// Place them on the grid. Calls PlaceBattlers() with default arguments.
 	void PlaceBattlers();
+	/// Places the battler somewhere on the map, where fitting.
+	void PlaceBattler(RuneBattler * battler);
 	/// Setup camera
 	void SetupCamera();
 
@@ -148,6 +157,9 @@ private:
     List<RuneBattler *> targetBattlers;
 	RuneBattler * activePlayerBattler;
 
+	/// For editing and debugging in the dedicated battle-test window.
+	String activeEditBattlerName;
+
 	/** List of all active players! (human-controlled, either locally or via network).
 		Index 0 will always be the primary local player.
 		Refer to the MultiplayerProperty for organizing entities with different players (name/IP/etc).
@@ -159,8 +171,22 @@ private:
 	/// The main camera
 	Camera * camera;
 
+	/// 0 - 
+	enum {
+		ADD_BATTLER_TO_ENEMY_SIDE,
+		ADD_BATTLER_REPLACE_PLAYER,
+	};
+	int addBattlerMode;
+
 	/// Default true when entering the state.
 	bool paused;
+
+
+	/// Creates an appropriate name for target battler based on the amount of battlers of that type that has been spawned this fight.
+	String GetNewSpawnName(String byBaseName);
+
+	/// Keeps track of what has been spawned this fight.
+	List<SpawnHistory> spawnedThisFight;
 };
 
 #endif

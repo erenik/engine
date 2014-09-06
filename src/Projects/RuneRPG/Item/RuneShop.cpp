@@ -3,7 +3,7 @@
 /// A shop in the RuneRPG world.
 
 #include "RuneShop.h"
-#include "RuneConsumable.h"
+#include "RuneItem.h"
 
 RuneShop RuneShop::testShop;
 
@@ -24,11 +24,4 @@ void RuneShop::SetupTestShop()
 	// Already has items. Return.
 	if (testShop.items.Size())
 		return;
-	RuneConsumable * potion = new RuneConsumable("Potion");
-	potion->price = 50;
-	testShop.items.Add(potion);
-
-	RuneConsumable * hiPotion = new RuneConsumable("Hi-Potion");
-	hiPotion->price = 150;
-	testShop.items.Add(hiPotion);
 }

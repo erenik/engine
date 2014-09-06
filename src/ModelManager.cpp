@@ -181,7 +181,7 @@ Model * ModelManager::LoadObj(String source)
 		if (compressedLoadResult)
 		{
 			std::cout<<"\nMesh loaded.";
-			if (mesh->radius < 0)
+			if (mesh->radius <= 0)
 				mesh->CalculateBounds();
 			assert(mesh->radius > 0);
 	
@@ -207,7 +207,7 @@ Model * ModelManager::LoadObj(String source)
 		std::cout<<"\nLoading model from source: "<<source;
 		std::cout<<"\nCalling ObjReader::ReadObj";
 		modelLoaded = ObjReader::ReadObj(source.c_str(), mesh);
-		if (mesh->radius < 0)
+		if (mesh->radius <= 0)
 			mesh->CalculateBounds();
 		assert(mesh->radius > 0);
 	 //   mesh->PrintContents();

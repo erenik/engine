@@ -540,35 +540,21 @@ void InputManager::MouseClick(Window * window, bool down, int x, int y)
 	UserInterface * userInterface = RelevantUI();	
 	if (userInterface)
 	{
+
 		// Fetch hover-element from earlier, yo?
 		activeElement = userInterface->GetActiveElement();
-		if (activeElement)
-			activeElement->Activate();
-
-		if (userInterface)
+		// Down!
+		if (down)
 		{
-			// Down!
-			if (down)
-			{
-				userInterface->Click(x,y,true);
-			}
-			// Up!
-			else if (!down && activeElement)
-			{
-				/// Why click again?
-				if (activeElement)
-				{
-					activeElement->Activate();	
-					if (activeElement->activationMessage.Length() != 0){
-						if (activeElement->activationMessage.Type() == String::WIDE_CHAR)
-							activeElement->activationMessage.ConvertToChar();
-						MesMan.QueueMessages(activeElement->activationMessage, activeElement);
-					}
-				}
-				// Hover afterwards.
-				UIElement * hoverElement = userInterface->Hover(x,y, true);
-				userInterface->SetHoverElement(hoverElement);
-			}
+			userInterface->Click(x,y,true);
+		}
+		// Up!
+		else if (!down && activeElement)
+		{
+			activeElement->Activate();	
+			// Hover afterwards.
+			UIElement * hoverElement = userInterface->Hover(x,y, true);
+			userInterface->SetHoverElement(hoverElement);
 		}
 	}
 	/// Inform the active state of the interaction
@@ -762,11 +748,13 @@ void InputManager::EvaluateKeyPressed(int activeKeyCode, bool downBefore, UIElem
 					// Nothing relevant?
 					if (!didSomething)
 					{
+						Window * activeWindow = ActiveWindow();
 						// Are we in the main window? If not, make it active? (maybe should add a Window-stack..? lol)
-						if (ActiveWindow() != MainWindow())
+						if (activeWindow != MainWindow())
 						{
 							/// This should make it active.
-							ActiveWindow()->Hide();
+							if (activeWindow->hideOnEsc)
+								activeWindow->Hide();
 							MainWindow()->BringToTop();
 						}
 					}
@@ -1406,7 +1394,7 @@ void InputManager::PushToStack(UIElement * element, UserInterface * ui)
 		std::cout<<"\nERROR: No activatable UI in the one pushed to stack just now?";
 		return;
 	}
-	std::cout<<"\nHovering to element \""<<firstActivatable->name<<"\" with text \""<<firstActivatable->text<<"\"";
+//	std::cout<<"\nHovering to element \""<<firstActivatable->name<<"\" with text \""<<firstActivatable->text<<"\"";
 	ui->SetHoverElement(firstActivatable);
 
 	// Set navigation cyclicity.
@@ -1455,7 +1443,7 @@ UIElement * InputManager::PopFromStack(UIElement * element, UserInterface * ui, 
 		std::cout<<"\nERROR: No activatable UI in the one pushed to stack just now?";
 		return element;
 	}
-	std::cout<<"\nHovering to element \""<<firstActivatable->name<<"\" with text \""<<firstActivatable->text<<"\"";
+//	std::cout<<"\nHovering to element \""<<firstActivatable->name<<"\" with text \""<<firstActivatable->text<<"\"";
 	ui->SetHoverElement(firstActivatable);
 
 	/// If no activatable menu item is out, set navigate UI to false?

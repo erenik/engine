@@ -3,7 +3,7 @@
 
 #include "AppStates/AppState.h"
 #include "AppStates/AppStates.h"
-#include "Selection.h"
+#include "Entity/Entities.h"
 
 class GridObject;
 class GridObjectType;
@@ -40,7 +40,7 @@ public:
 	virtual void ProcessMessage(Message * message);
 
 	///
-	virtual Selection GetActiveSelection() { return runeEditorSelection; };
+	virtual Entities GetActiveSelection() { return runeEditorSelection; };
 
 	/// Called every time the current selection is updated.
 	void OnSelectionUpdated();
@@ -169,7 +169,7 @@ private:
 	/// The RuneEditor camera! :D
 	Camera * runeEditorCamera;
 	/// Actively manipulated entities
-	Selection runeEditorSelection;
+	Entities runeEditorSelection;
 
 	/// Mouse states
 	bool lButtonDown;

@@ -27,7 +27,8 @@ namespace RenderFlags {
 };
 
 /// Class for holding any relevant data beyond static single models/textures
-struct GraphicsProperty {
+struct GraphicsProperty 
+{
 	friend class GMSetEntity;
 	friend class GMQueueAnimation;
 	friend class Entity;
@@ -63,7 +64,12 @@ public:
 	Vector4f textPositionOffset; 
 	/// For rendering the entity at a slightly different position than is stated by the Physics/NavMesh managers.
 	Vector3f renderOffset;
+
+	/// Currently calculated manually when sorting before rendering.
+	float zDepth;
+
 private:
+
 	/// Sets current animation. Only called from the GMSetEntity message. If faulty, animation will be nullified.
 	void SetAnimation(String name);
 	/// Sets queued animation. Only called from the GMSetEntity message.

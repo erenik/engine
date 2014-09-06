@@ -97,11 +97,9 @@ void GraphicsManager::RenderViewport(Viewport * vp)
 		Graphics.RenderEntityVectors();
 
 	// Render the grid, yo, for orientation in world space.
-//#define ALWAYS_GRID
-#ifndef ALWAYS_GRID
-	if (ActiveViewport->renderGrid)
-#endif
+	if (vp->renderGrid)
 		Graphics.RenderGrid();
+
 	// Render vfcOctree with regular objects
 	Graphics.RenderSelection();
 //#define ALWAYS_PHYSICS

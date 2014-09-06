@@ -1,6 +1,11 @@
+/// Emil Hedemalm
+/// 2014-08-31 (although much older)
+/// Message manager which takes care of glueing together most of the engine.
+
 #include "Message/MessageManager.h"
 
 //#include "IO.h"
+#include "MathLib/Expression.h"
 
 #include "Message/Message.h"
 #include "Message/MathMessage.h"
@@ -238,6 +243,10 @@ void MessageManager::ProcessMessage(Message * message)
 			{
 				extern bool loggingEnabled;
 				loggingEnabled = true;
+			}
+			else if (msg == "PrintExpressionSymbols")
+			{
+				Expression::printExpressionSymbols = true;
 			}
 			else if (msg.Contains("Paste:") && message->type == MessageType::PASTE)
 			{

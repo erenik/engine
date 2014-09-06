@@ -215,6 +215,11 @@ public:
 	bool getNextFrame;
 	Texture * frameTexture;
 
+	/** For child windows, if true, will hide it when the user press Esc if no elements are present in the UI stack. 
+		If not, only focus will shift to the main window.
+		True by default.
+	*/
+	bool hideOnEsc;
 private:
 
 	

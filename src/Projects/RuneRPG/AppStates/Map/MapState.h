@@ -7,7 +7,7 @@
 #include "Game/GameConstants.h"
 #include "../RRGameState.h"
 #include "AppStates/AppStates.h"
-#include "Selection.h"
+#include "Entity/Entities.h"
 
 class Window;
 class RuneEntity;

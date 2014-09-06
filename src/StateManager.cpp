@@ -262,81 +262,92 @@ void * StateManager::StateProcessor(void * vArgs){
     std::cout<<"\n===========================================______________________-----";
 	long long time = Timer::GetCurrentTimeMs();
 	long long newTime = Timer::GetCurrentTimeMs();
+	
+	Log("State processor starting");
 	while(StateMan.shouldLive)
 	{
-		/// Pause for a bit if the processing mutex is claimed.
-		if (StateMan.stateProcessingMutex.Claim(-1))
+		// For catching them errors.
+		try 
 		{
-			Log("State processor frame start");
-
-			/// Update time
-			time = newTime;
-			newTime = Timer::GetCurrentTimeMs();
-			int timeDiff = newTime - time;
-			if (timeDiff > 250)
+			/// Pause for a bit if the processing mutex is claimed.
+			if (StateMan.stateProcessingMutex.Claim(-1))
 			{
-				if (timeDiff > 1000)
-					std::cout<<"\nStateManager: Throwing away "<<timeDiff * 0.001f<<" seconds.";
-				timeDiff = timeDiff % 100;
-			}
-			float timeDiffF = ((float)timeDiff) * 0.001f;
-			/// Enter new state if queued.
-			if (!quittingApplication)
-			{
-				StateMan.EnterQueuedGlobalState();
-				StateMan.EnterQueuedState();
-				ScriptMan.Process(timeDiff);
-				/// Wosh.
-				if (!StateMan.IsPaused()){
-					/// Process the active StateMan.
-					if (StateMan.GlobalState())
-						StateMan.GlobalState()->Process(timeDiff);
-					if (StateMan.ActiveState())
-						StateMan.ActiveState()->Process(timeDiff);
-					if (MapMan.ActiveMap())
-						MapMan.ActiveMap()->Process(timeDiff);
-				}
-				/// If not in any state, sleep a bit, yo.
-				else
-					Sleep(5);
-				/// If not in focus, sleep moar!
-			//	if (!WindowMan.InFocus())
-			//		Sleep(5);
-
-				/// Process network, sending packets and receiving packets
-				NetworkMan.ProcessNetwork();
-				/// Get input from XBox devices if possible
-				Input.UpdateDeviceStates();
-
-				
-				// Main message loop for all extra created windows, since they are dependent on the thread they were created in...
-	#ifdef WINDOWS
-				// Get messages and dispatch them to WndProc
-				MSG msg;
-				// http://msdn.microsoft.com/en-us/library/windows/desktop/ms644943%28v=vs.85%29.aspx
-				while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) && StateMan.ActiveStateID() != GameStateID::GAME_STATE_EXITING)
+				/// Update time
+				time = newTime;
+				newTime = Timer::GetCurrentTimeMs();
+				int timeDiff = newTime - time;
+				if (timeDiff > 250)
 				{
-					TranslateMessage(&msg);
-					DispatchMessage(&msg);
+					if (timeDiff > 1000)
+						std::cout<<"\nStateManager: Throwing away "<<timeDiff * 0.001f<<" seconds.";
+					timeDiff = timeDiff % 100;
 				}
-				// TODO: Add linux version in an elif for more created windows?
-	#endif
-				/// Process network packets if applicable
-				MesMan.ProcessPackets();
-			
-			}
+				float timeDiffF = ((float)timeDiff) * 0.001f;
+				/// Enter new state if queued.
+				if (!quittingApplication)
+				{
+					StateMan.EnterQueuedGlobalState();
+					StateMan.EnterQueuedState();
+					ScriptMan.Process(timeDiff);
+					/// Wosh.
+					if (!StateMan.IsPaused()){
+						/// Process the active StateMan.
+						if (StateMan.GlobalState())
+							StateMan.GlobalState()->Process(timeDiff);
+						if (StateMan.ActiveState())
+							StateMan.ActiveState()->Process(timeDiff);
+						if (MapMan.ActiveMap())
+							MapMan.ActiveMap()->Process(timeDiff);
+					}
+					/// If not in any state, sleep a bit, yo.
+					else
+						Sleep(5);
+					/// If not in focus, sleep moar!
+				//	if (!WindowMan.InFocus())
+				//		Sleep(5);
 
-			/// Always process messages, even if quitting, as some messages need to be processed here 
-			/// (like properly destroying windows)
-			MesMan.ProcessMessages();
-			/// Release mutex at the end of the frame.
-			StateMan.stateProcessingMutex.Release();
+					/// Process network, sending packets and receiving packets
+					NetworkMan.ProcessNetwork();
+					/// Get input from XBox devices if possible
+					Input.UpdateDeviceStates();
+
+					
+					// Main message loop for all extra created windows, since they are dependent on the thread they were created in...
+		#ifdef WINDOWS
+					// Get messages and dispatch them to WndProc
+					MSG msg;
+					// http://msdn.microsoft.com/en-us/library/windows/desktop/ms644943%28v=vs.85%29.aspx
+					while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) && StateMan.ActiveStateID() != GameStateID::GAME_STATE_EXITING)
+					{
+						TranslateMessage(&msg);
+						DispatchMessage(&msg);
+					}
+					// TODO: Add linux version in an elif for more created windows?
+		#endif
+					/// Process network packets if applicable
+					MesMan.ProcessPackets();
+				
+				}
+
+				/// Always process messages, even if quitting, as some messages need to be processed here 
+				/// (like properly destroying windows)
+				MesMan.ProcessMessages();
+				/// Release mutex at the end of the frame.
+				StateMan.stateProcessingMutex.Release();
+			}
+			else {
+				/// Unable to grab mutex? Then sleep for a bit.
+				Sleep(40);
+			}
 		}
-		else {
-			/// Unable to grab mutex? Then sleep for a bit.
-			Sleep(40);
+		catch (...)
+		{
+			Log("An unexpected error occurred.");
+			std::cout<<"An unexpected error occurred.";
+			Sleep(5000);
 		}
 	}
+	Log("State processing thread ending");
 
 	std::cout<<"\n>>> StateProcessingThread ending...";
 #ifdef WINDOWS

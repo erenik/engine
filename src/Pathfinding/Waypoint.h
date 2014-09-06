@@ -1,6 +1,11 @@
+/// Emil Hedemalm
+/// 2014-08-31
+/// A waypoint for managing path-finding and entity locations in 2D/3D-space.
+
 #ifndef WAYPOINT_H
 #define WAYPOINT_H
 
+#include "List/List.h"
 #include "../MathLib.h"
 #include <fstream>
 
@@ -29,7 +34,7 @@ public:
 	/// Distance from center of world. :)
 	float elevation;
 	/// Entity that's currently at this waypoint (mostly for debugging)
-	Entity * entity;
+	List<Entity*> entities;
 	/// Passability
 	bool passable;
 	/// Other data

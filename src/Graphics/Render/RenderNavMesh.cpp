@@ -28,7 +28,7 @@ void SetColorForWaypoint(Waypoint * wp)
 	}
 
 	// If the waypoint currently has an entity, adjust color.
-	if (wp->entity){
+	if (wp->entities.Size()){
 		color += Vector4f(2.0f,0,0,0.7f);
 	}
 	/// If in selection, highlight
@@ -87,10 +87,13 @@ void GraphicsManager::RenderNavMesh()
 	}
 	glEnd();
 
-	if (true /*renderNavMeshNeighbours*/){
-		for (int i = 0; i < nm->waypoints.Size(); ++i){
+	if (true /*renderNavMeshNeighbours*/)
+	{
+		for (int i = 0; i < nm->waypoints.Size(); ++i)
+		{
 			Waypoint * wp = nm->waypoints[i];
-			for (int j = 0; j < wp->neighbours; ++j){
+			for (int j = 0; j < wp->neighbours; ++j)
+			{
 				Waypoint * nb = wp->neighbour[j];
 				glBegin(GL_LINES);
 					SetColorForWaypoint(wp);

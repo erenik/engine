@@ -230,21 +230,7 @@ bool RuneBattleAction::IsValid()
 /// Parses a string with targets as defined in a CSV file. E.g. "Ally Select 1"
 void RuneBattleAction::ParseTargets(String fromTargetString)
 {
-	/// If-else should do.
-	if (fromTargetString.Contains("Select 1"))
-		targetFilter = TargetFilter::ENEMY;
-	else if (fromTargetString.Contains("Self"))
-		targetFilter = TargetFilter::SELF;
-	else if (fromTargetString.Contains("World"))
-		targetFilter = TargetFilter::POINT;
-	/*
-	List<String> toks = fromString.Tokenize(" ");
-	for (int i = 0; i < toks.Size(); ++i)
-	{
-
-		// spell->SetTargetFilterByString(word);
-	}
-	*/
+	targetFilter = ParseTargetFilter(fromTargetString);
 }	
 
 void RuneBattleAction::ParseElements(String fromString)
@@ -320,127 +306,7 @@ bool RuneBattleAction::ParseDurations(String fromString)
 
 void RuneBattleAction::ParseEffects(String fromString)
 {
-	List<String> tokens = fromString.Tokenize(" ");
-	List<String> effectTokens = fromString.Tokenize("()");
-	// Add them one at a time.
-	for (int i = 0; i < effectTokens.Size(); i += 2)
-	{
-		String effectStr = effectTokens[i];
-		String argument;
-		if (effectTokens.Size() > i + 1)
-		{
-			argument = effectTokens[i+1];
-		}
-		effectStr.SetComparisonMode(String::NOT_CASE_SENSITIVE);
-		BattleEffect effect;
-		effect.name = effectStr;
-		effect.argument = argument;
-		if (effectStr.Contains("Increase"))
-		{
-			effect.type = BattleEffect::INCREASE;
-			effect.attachToTarget = true;
-		}
-		else if (effectStr.Contains("Decrease"))
-		{
-			effect.type = BattleEffect::DECREASE;
-			effect.attachToTarget = true;
-		}
-		else if (effectStr.Contains("Add Damage"))
-		{
-			effect.type = BattleEffect::ADD_DAMAGE;
-			/// Parse element here too then.
-			effect.element = GetElementByString(effectStr);
-			/// Check which equation type to use.
-			if (effectStr.Contains(" P "))
-				effect.equation = "Magic Skill damage";
-			else if (effectStr.Contains(" M "))
-				effect.equation = "Magic Spell damage";
-			effect.attachToTarget = true;
-		}
-		else if (effectStr.Contains("Damage"))
-		{
-			effect.type = BattleEffect::DAMAGE;
-			effect.element = GetElementByString(effectStr);
-			/// Check which equation type to use.
-			if (effectStr.Contains(" P "))
-				effect.equation = "Magic Skill damage";
-			else if (effectStr.Contains(" M "))
-				effect.equation = "Magic Spell damage";
-		}
-		/// Special specifier to make the previous effect multiply itself X times?
-		else if (effectStr.Contains("*"))
-		{
-			/// Mark the previous effect as repeating.
-			BattleEffect & previousEffect = effects.Last();
-			// Parse number of repeats.
-			previousEffect.repeat = true;
-			previousEffect.iterations = effectStr.ParseInt();
-			assert(previousEffect.iterations > 0);
-			continue;
-		}
-		/// Repetition of a previous effect. o.o
-		else if (effectStr.Contains("&"))
-		{
-			// ..
-			effect.type = effects.Last().type;
-		}
-		else if (effectStr.Contains("Instakill Chance"))
-		{
-			effect.type = BattleEffect::DEATH;
-		}
-		else if (effectStr.Contains("Restore"))
-		{
-			effect.type = BattleEffect::RESTORE;
-		}
-		else if (effectStr.Contains("Combo"))
-			continue;
-		else if (effectStr.Contains("Spawn Elemental"))
-		{
-			effect.type = BattleEffect::SPAWN_ELEMENTAL;
-			effect.element = GetElementByString(effectStr);
-		}
-		else if (effectStr.Contains("Pause actionbar"))
-		{
-			effect.type = BattleEffect::PAUSES_ACTIONBAR;
-		}
-		else if (effectStr.Length() < 3)
-			continue;
-		else 
-		{
-			std::cout<<"\nUnidentified effect string: "<<effectStr;
-			/// Always add some shit. Add something ludicurous? lol.
-			effect.type = BattleEffect::BAD_TYPE;
-			assert(false && "Bad type");
-		}
-		if (effectStr.Contains("Return"))
-		{
-			effect.applyOnAttacker = true;
-			effect.attachToTarget = true;
-		}
-		switch(effect.type)
-		{
-			case BattleEffect::DECREASE:
-			case BattleEffect::INCREASE:
-				{
-					// Check next token.
-					effect.statType = GetStatByString(effectStr);
-					if (effect.statType == RStat::INVALID)
-						continue;
-					effect.argument = argument;
-				}
-				break;
-		}
-		// Just add the effect without parsing anything else.
-		effects.Add(effect);
-	}
-
-	// Parse it one character at a time, since we have parenthesis and stuff? or..
-	/*
-	// Create a new effect!
-	Effect * effect = new Effect();
-	effect->SetType(value);
-	spell->effects.Add(effect);
-	*/
+	this->effects = BattleEffect::ParseEffects(fromString);
 }
 
 void RuneBattleAction::ParseOtherCosts(String fromString)

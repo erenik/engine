@@ -58,6 +58,13 @@ bool RenderPipeline::Load(String fromFile)
 		if (parseState == ParseState::RENDER_PASS)
 		{
 			List<String> tokens = line.Tokenize(" \t");
+			if (tokens.Size() == 0)
+				continue;
+			String key = tokens[0];
+			if (key == "DisableDepthTest")
+			{
+				rp->depthTestEnabled = false;
+			}
 			if (tokens.Size() < 2)
 				continue;
 			String arg = tokens[1];

@@ -77,7 +77,7 @@ public:
 	*/
 	bool MergeWaypoints(Waypoint ** waypointList, int waypointsToMerge);
 
-	/// Selection..
+	/// Entities..
 	Waypoint * GetClosestToRay(Ray & ray);
 	/// If maxDistance is positive, it will limit the search within that vicinity-range. A negative number will set no limit.
 	Waypoint * GetClosestTo(Vector3f position, float maxDistance = -1.f);

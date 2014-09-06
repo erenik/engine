@@ -5,11 +5,12 @@
 #include <cmath>
 #include <fstream>
 #include <cstring>
-#include "Battle/BattleAction.h"
 #include "File/FileUtil.h"
 #include "File/File.h"
 
 #include "BattleStats.h"
+#include "String/StringUtil.h"
+#include "RuneRPG/Item/RuneItem.h"
 ;
 
 void AddActionToBattler(RuneBattler * battler, String actionName)
@@ -196,6 +197,19 @@ const RuneBattler * RuneBattlerManager::GetBattlerBySource(String bySource)
 	return this->LoadBattler(bySource);
 }
 
+/// Gets battler by name. You must then create a copy of the const reference yourself before using it. 
+const RuneBattler * RuneBattlerManager::GetBattlerByName(String name)
+{
+	for (int i = 0; i < battlers.Size(); ++i)
+	{
+		RuneBattler * rb = battlers[i];
+		if (rb->name == name)
+			return rb;
+	}
+	return NULL;
+}
+
+
 RuneBattler RuneBattlerManager::GetBattlerType(String byName)
 {
 	assert(battlers.Size() > 0);
@@ -277,7 +291,24 @@ bool RuneBattlerManager::LoadBattlersFromCSV(String fileName)
 			else if (column == "Dodge")
 				newBattler->canDodge = value.ParseBool();
 			else if (column == "Abilities")
-				newBattler->actionNames = value.Tokenize(",");
+				newBattler->actionNames += value.Tokenize(",");
+			else if (column == "Spells")
+			{
+				List<String> spells = value.Tokenize(",");
+				PrependStrings(spells, "Spell:");
+				newBattler->actionNames += spells;
+			}
+			else if (column == "Skills")
+			{
+				List<String> skills = value.Tokenize(",");
+				PrependStrings(skills, "Skill:");
+				newBattler->actionNames += skills;
+			}
+			else if (column == "Equipped")
+			{
+				List<RuneItem> gear = RuneItem::GetGearByString(value);
+				newBattler->Equip(gear);
+			}
 
 			if (error)
 			{

@@ -152,8 +152,7 @@ void * Deallocate(void *vArgs)
 	// Start with stopping the network before deallocating anything to avoid errors
 	NetworkMan.Shutdown();
 
-	/// Stop rendering. The function will wait until it is confirmed that rendering has halted.
-	Graphics.StopRendering();
+	/// Stop rendering. 
 	Graphics.shouldLive = false;
 	
 	// Notify the message manager and game states to hide their windows.

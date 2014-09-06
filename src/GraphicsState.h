@@ -13,7 +13,7 @@
 
 #include "PhysicsLib/Shapes/Frustum.h"
 #include "Util/List/List.h"
-#include "Selection.h"
+#include "Entity/Entities.h"
 
 #include "Pathfinding/Path.h"
 
@@ -81,7 +81,7 @@ public:
 	List<GraphicEffect*> graphicEffectsToBeRendered;
 	List<ParticleSystem*> particleEffectsToBeRendered;
 	/// Entities that require depth-sorting before they can be rendered..!
-	Selection entitiesRequiringSorting;
+	Entities entitiesRequiringSorting;
 
 	/// The current model matrix in floats.
 	Matrix4f modelMatrixF;

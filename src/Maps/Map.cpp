@@ -72,7 +72,7 @@ bool Map::RemoveEntity(Entity * entity)
 }
 
 /** Removes target entities from the map. Returns number of failed removals. */
-int Map::RemoveEntities(Selection entitySelection){
+int Map::RemoveEntities(Entities entitySelection){
 	int failed = entities.Size();
 	int previousMax = entities.Size();
 	for (int j = 0; j < entitySelection.Size(); ++j){
@@ -153,8 +153,8 @@ void Map::LoadFromCompactData()
 void Map::RemoveAllEvents(){
 	events.ClearAndDelete();
 }
-/* Selection Map::GetEntities(){
-	return Selection(entities.GetArray(), entities.Size());
+/* Entities Map::GetEntities(){
+	return Entities(entities.GetArray(), entities.Size());
 }
 */
 

@@ -11,10 +11,19 @@
 class RBattleState;
 class RuneBattler;
 
+
+
 class BattleEffect
 {
 public:
 	BattleEffect();
+
+	/** Parses effects in the form of a string, where each effect ends with a parenthesis containing arguments of the effect's potency.
+		E.g: Increase MaxMP Constant(50)
+	*/
+	static List<BattleEffect> ParseEffects(String fromString);
+	/// Used for creating the constant stat adjustments applied by gear
+	static BattleEffect ConstantStatIncrease(int statType, int increase);
 
 	/** Applies this effect to target battler. 
 		This should eventually set the applied flag of this effect once all effects have 
@@ -35,6 +44,7 @@ public:
 		BAD_TYPE = -1,
 		INCREASE, // Constant or relative adjustments
 		DECREASE,
+		REMOVE_STAT_BUFFS_AND_DEBUFFS, // Removes all INCREASE and DECREASE type effects.
 		ADD_DAMAGE, // E.g. Enfire, adds elemental damage on a per-attack basis.
 		DAMAGE, // Damage, probably magical or pseudo/semi-magical.
 		DEATH, // Argument contains chance or potency.

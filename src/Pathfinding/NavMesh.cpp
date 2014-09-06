@@ -700,7 +700,7 @@ bool NavMesh::MergeWaypoints(Waypoint ** waypointList, int waypointsToMerge)
 	return true;
 }
 
-/// Selection..
+/// Entities..
 Waypoint * NavMesh::GetClosestToRay(Ray & ray)
 {
 	float closestDot = 0.0f;

@@ -62,16 +62,19 @@ bool UIInput::HandleDADFiles(List<String> files)
 // When clicking/Enter pressed on keyboard.
 UIElement * UIInput::Click(int mouseX, int mouseY)
 {
-	UIElement * e = UIElement::Click(mouseX,mouseY);
+	UIElement * e = UIElement::Click(mouseX, mouseY);
 	if (e == this){
 		BeginInput();
 	}
 	return e;
 }
 // When button is released.
-UIElement* UIInput::Activate(){
+UIElement* UIInput::Activate()
+{
+	// Make this element active for input!
+	BeginInput();
 	// Skip this.
-	return NULL;
+	return this;
 }
 
 // Used for handling things like drag-n-drop and copy-paste operations, etc. as willed.
@@ -132,6 +135,8 @@ void UIInput::OnExitScope()
 /// Used by input-captuing elements. Should not be called for any base UI elements(?)
 int UIInput::OnKeyDown(int keyCode, bool downBefore)
 {
+	bool isActive = (state & UIState::ACTIVE);
+	assert(inputActive == isActive);
 	if (!inputActive)
 		return 0;
 
@@ -262,6 +267,8 @@ int UIInput::OnKeyDown(int keyCode, bool downBefore)
 /// Used for getting text. This will be local translated language key codes?
 int UIInput::OnChar(int asciiCode)
 {
+	bool isActive = (state & UIState::ACTIVE);
+	assert(inputActive == isActive);
 	if (!this->inputActive)
 		return 0;
 	/// Make sure the buffer period has passed ^^

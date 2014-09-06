@@ -21,7 +21,7 @@ void GMRegisterEntity::Process()
 }
 
 
-GMRegisterEntities::GMRegisterEntities(Selection i_selection) : GraphicsMessage(GM_REGISTER_ENTITIES)
+GMRegisterEntities::GMRegisterEntities(Entities i_selection) : GraphicsMessage(GM_REGISTER_ENTITIES)
 {
 	selection = i_selection;
 	for (int i = 0; i < selection.Size(); ++i){

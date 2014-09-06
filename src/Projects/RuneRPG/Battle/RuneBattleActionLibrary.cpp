@@ -36,10 +36,10 @@ RuneBattleActionLibrary * RuneBattleActionLibrary::Instance()
 const RuneBattleAction * RuneBattleActionLibrary::GetBattleAction(String byNameOrSource)
 {
 //	RuneBattleAction * rba = 
-	List<RuneBattleAction*> allActions = AllActions();
+	List<const RuneBattleAction*> allActions = AllActions();
 	for (int i = 0; i < allActions.Size(); ++i)
 	{
-		RuneBattleAction * rba = allActions[i];
+		const RuneBattleAction * rba = allActions[i];
 		if (rba->name == byNameOrSource)
 			return rba;
 	}
@@ -123,21 +123,21 @@ const RuneBattleAction * RuneBattleActionLibrary::LoadBattleAction(String bySour
 }
 
 /// Returns all spells, skills and mundane actions together.
-List<RuneBattleAction*> RuneBattleActionLibrary::AllActions()
+List<const RuneBattleAction*> RuneBattleActionLibrary::AllActions()
 {
-	return spells + skills + mundaneActions;
+	return ConvertList<RuneBattleAction*, const RuneBattleAction * >(spells + skills + mundaneActions);
 }
 
 /// Returns list of all spells, as battle-action objects. The object will be created as usual via the BattleActionLibrary.
-List<RuneBattleAction*> RuneBattleActionLibrary::GetSpells()
+List<const RuneBattleAction*> RuneBattleActionLibrary::GetSpells()
 {
-	return spells;
+	return ConvertList<RuneBattleAction*, const RuneBattleAction * >(spells);
 }
 
 /// Returns list of all spells, as battle-action objects. The object will be created as usual via the BattleActionLibrary.
-List<RuneBattleAction*> RuneBattleActionLibrary::GetSkills()
+List<const RuneBattleAction*> RuneBattleActionLibrary::GetSkills()
 {
-	return skills;
+	return ConvertList<RuneBattleAction*, const RuneBattleAction * >(skills);
 }
 
 /// Load from a CSV file (Comma-separated values).

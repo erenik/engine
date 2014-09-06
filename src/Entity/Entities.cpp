@@ -1,7 +1,8 @@
 /// Emil Hedemalm
 /// 2013-03-07
+/// Handles groups of entities.
 
-#include "Selection.h"
+#include "Entity/Entities.h"
 #include <cassert>
 
 #include "Maps/MapManager.h"
@@ -9,28 +10,30 @@
 #include "Graphics/Camera/Camera.h"
 #include <cstring>
 
-Selection::Selection()
+#include "Graphics/GraphicsProperty.h"
+
+Entities::Entities()
 : List<Entity*>()
 {
 
 };
 
-Selection::~Selection()
+Entities::~Entities()
 {
 	
 };
 
 /// Copy constructor..!
-Selection::Selection(const Selection& otherSelection) : List<Entity*> ((List<Entity*>&)otherSelection) {
-	currentItems = otherSelection.currentItems;
+Entities::Entities(const Entities& otherEntities) : List<Entity*> ((List<Entity*>&)otherEntities) {
+	currentItems = otherEntities.currentItems;
 	arrLength = currentItems;
 	arr = new Entity * [currentItems];
 	for (int i = 0; i < currentItems; ++i){
-		arr[i] = otherSelection.arr[i];
+		arr[i] = otherEntities.arr[i];
 	}
 }
 /// Inherit-Copy constructor
-Selection::Selection(const List<Entity*> &entityList) : List<Entity*> ((List<Entity*>&)entityList){
+Entities::Entities(const List<Entity*> &entityList) : List<Entity*> ((List<Entity*>&)entityList){
 	currentItems = entityList.Size();
 	arrLength  = currentItems;
 	arr = new Entity * [currentItems];
@@ -40,8 +43,8 @@ Selection::Selection(const List<Entity*> &entityList) : List<Entity*> ((List<Ent
 }
 
 /// Removes all entities that are outside the frustum.
-Selection Selection::CullByCamera(Camera * camera) const{
-	Selection culled;
+Entities Entities::CullByCamera(Camera * camera) const{
+	Entities culled;
 	int found = 0;
 	for (int i = 0; i < this->currentItems; ++i){
 		if (arr[i] == NULL)
@@ -56,7 +59,8 @@ Selection Selection::CullByCamera(Camera * camera) const{
 }
 
 /// Sorts by distance to selected position.
-void Selection::SortByDistance(Vector3f position) {
+void Entities::SortByDistance(Vector3f position) 
+{
 	float distance[MAX_SELECTED];
 	memset(distance, 0, sizeof(float) * MAX_SELECTED);
 	for (int i = 0; i < currentItems; ++i){
@@ -83,8 +87,48 @@ void Selection::SortByDistance(Vector3f position) {
 	}
 }
 
+/// Calculates based on Z-depth of the camera's near-plane.
+void Entities::SortByDistanceToCamera(Camera * camera)
+{
+	// Find the camera near-plane.
+	Frustum frustum = camera->GetFrustum();
+	Plane plane(frustum.hitherBottomLeft, frustum.hitherBottomRight, frustum.hitherTopRight);
+
+	Entity * entity, * entity2, * tmp;
+	/// Use insertion sort, as we can assume that the entities will remain nearly sorted all the time?
+	/// http://en.wikipedia.org/wiki/Insertion_sort
+	for (int i = 0; i < currentItems; ++i)
+	{
+		// Calculate distances as we go.
+		entity = arr[i];
+		entity->graphics->zDepth = -plane.Distance(entity->position);
+		tmp = entity;
+		// Compare with previous items.
+		for (int j = i - 1; j >= 0; --j)
+		{
+			entity2 = arr[j];
+			// If zdepth is lower on tmp, move entity2 up one step.
+			if (tmp->graphics->zDepth > entity2->graphics->zDepth)
+			{
+				arr[j + 1] = arr[j]; 
+			}
+			// Once we find another item with a lesser depth, place tmp in the previous spot.
+			else {
+				arr[j + 1] = tmp;
+				tmp = 0;
+				// Break inner loop.
+				break;
+			}
+		}
+		// Special case, placing the closest one.
+		if (tmp)
+			arr[0] = tmp;
+	}
+}
+
+
 /// Prints a simple list with entity names n stuff
-void Selection::ListEntities(){
+void Entities::ListEntities(){
 	std::cout<<"\nList selection: ";
 	for (int i = 0; i < currentItems; ++i){
 		std::cout<<"\n"<<i<<". ";
@@ -94,7 +138,7 @@ void Selection::ListEntities(){
 	}
 }
 
-void Selection::DeleteEntities(){
+void Entities::DeleteEntities(){
 	/// Reply is valid, proceed with deletion
 	for (int i = 0; i < currentItems; ++i){
 		// Mark the entity as deleted
@@ -105,7 +149,7 @@ void Selection::DeleteEntities(){
 }
 
 /// Selects next entity using given one as reference for the previous one.
-Selection Selection::SelectNext(Entity * referenceEntity) const {
+Entities Entities::SelectNext(Entity * referenceEntity) const {
 	/// If we had one selected, get next one.
 	Entity * newOne = NULL;
 	if (currentItems >= 1 && referenceEntity){
@@ -127,13 +171,13 @@ Selection Selection::SelectNext(Entity * referenceEntity) const {
 	else if (currentItems)
 		newOne = arr[0];
 	else
-		return Selection();
+		return Entities();
 	assert(newOne);
-	return Selection(newOne);
+	return Entities(newOne);
 }
 
 /// Selects next entity using given one as reference for the previous one.
-Selection Selection::SelectPrevious(Entity * referenceEntity) const {
+Entities Entities::SelectPrevious(Entity * referenceEntity) const {
 	Entity * newOne = NULL;
 	/// If we had one selected, get next one.
 	if (currentItems >= 1 && referenceEntity){
@@ -154,7 +198,7 @@ Selection Selection::SelectPrevious(Entity * referenceEntity) const {
 	else if (currentItems)
 		newOne = arr[currentItems-1];
 	else
-		return Selection();
+		return Entities();
 	assert(newOne);
-	return Selection(newOne);
+	return Entities(newOne);
 }

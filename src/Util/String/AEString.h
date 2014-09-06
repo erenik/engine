@@ -146,7 +146,8 @@ public:
 
 	/// Removes all whitespace characters up until first non-whitespace character.
 	int RemoveInitialWhitespaces();
-    
+    void RemoveTrailingWhitespaces();
+
     /// Prints the contents of the string both in integer and character form
     void PrintData() const;
 

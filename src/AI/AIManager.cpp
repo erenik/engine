@@ -6,7 +6,7 @@
 //#include "AIState.h"
 //#include "../Globals.h"
 //#include "../Entity/Entity.h"
-//#include "../Selection.h"
+//#include "Entity/Entities.h"
 //#include <ctime>
 //#include <cassert>
 //
@@ -96,7 +96,7 @@
 ///** Registers a selection of entities to take part in physics calculations. This requires that the entities have physics attributes attached.
 //	Returns 0 upon success or a positive number equal to the amount of entities that it failed to register.
 //*/
-//int AIManager::RegisterEntities(Selection & selection){
+//int AIManager::RegisterEntities(Entities & selection){
 //	int failedRegistrations = 0;
 //	for (int i = 0; i < selection.Size(); ++i){
 //		if (RegisterEntity(selection[i]) != 0)
@@ -133,7 +133,7 @@
 ///** Unregisters a selection of entities from physics calculations.
 //	Returns 0 upon success or a positive number equal to the amount of entities that it failed to unregister.
 //*/
-//int AIManager::UnregisterEntities(Selection & selection){
+//int AIManager::UnregisterEntities(Entities & selection){
 //	int failedUnregistrations = 0;
 //	for (int i = 0; i < selection.Size(); ++i){
 //		if (UnregisterEntity(selection[i]) != 0)

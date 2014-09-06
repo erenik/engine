@@ -5,10 +5,11 @@
 #define PHYSICS_MESSAGE_H
 
 #include "MathLib.h"
-#include "Selection.h"
+#include "Entity/Entities.h"
 // #include "PhysicsLib/Shapes.h"
 
 class Entity;
+class Waypoint;
 
 //#include "PhysicsManager.h"
 //class PhysicsManager;
@@ -121,9 +122,10 @@ enum physicsTargets{
 	PT_SIMULATION_ENABLED, /// If disabled, no simulation will be done, including collissions, gravity etc. Used for network synchronization for example.
 	PT_ESTIMATION_ENABLED, /// For network-synchronization
 
-	/// Waypoint: Pointer targets
+	/// Waypoints, Pathfinding and NavMesh control. Mainly various pointer targets
 	PT_ENTITY,
 	PT_DESTINATION,
+	PT_CURRENT_WAYPOINT,
 
 	// Integer targets,
 	PT_INTEGRATOR_TYPE,		// Global
@@ -186,6 +188,7 @@ public:
 	PMSetEntity(List<Entity*> targetEntities, int target, Quaternion value, long long timeStamp = 0);
 	PMSetEntity(List<Entity*> targetEntities, int target, bool value);
 	PMSetEntity(List<Entity*> targetEntities, int target, int value);
+	PMSetEntity(List<Entity*> targetEntities, int target, Waypoint * waypoint);
 	void Process();
 protected:
 	enum dataTypes{
@@ -204,6 +207,7 @@ protected:
 	Vector3f vec3fValue;
 	Vector2f vec2fValue;
 	Quaternion qValue;
+	Waypoint * waypoint;
 };
 
 class Integrator;

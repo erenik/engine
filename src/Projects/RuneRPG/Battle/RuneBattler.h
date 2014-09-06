@@ -1,5 +1,6 @@
-// Emil Hedemalm
-// 2013-07-09
+/// Emil Hedemalm
+/// 2013-07-09
+/// A battler in a the RuneRPG battles!
 
 #ifndef RUNE_BATTLER_H
 #define RUNE_BATTLER_H
@@ -8,6 +9,7 @@
 #include "RuneBattle.h"
 #include "BattleEffect.h"
 #include "MathLib/Variable.h"
+#include "RuneRPG/Item/RuneItem.h"
 
 class Entity;
 class RuneBattleAction;
@@ -21,6 +23,9 @@ public:
 	/// from 0 to 4, 0 being player, 1-3 being enemies 1-3
 	RuneBattler(int defaultTypes);
 	virtual ~RuneBattler();
+
+	/// Attempts to equip the provided gear.
+	void Equip(List<RuneItem> gear);
 
 	/// Adds the Attack, Item and Flee commands.
 	void AddDefaultActions();
@@ -115,6 +120,11 @@ public:
     String name;
 	String source;
 
+	/// Equipped gear. Assume a primary weapon.
+	// Pointer to our weapon, present in allGear.
+	RuneItem * weapon, * headPiece, * torsoPiece, * handsPiece, * feetPiece, * offHand;
+	List<RuneItem> allGear;
+
 	enum {
 		IDLE,
 		PREPARING_FOR_ACTION,
@@ -208,6 +218,9 @@ public:
 	String animationSet;
 
 private:
+	/// For mana gain over time.
+	int64 timeSinceLastManaGain;
+
 	/// Statuses and stuff
 	void Nullify();
 };

@@ -156,6 +156,7 @@ float OverlayScript::GetLayerAlpha(int layer)
 			return overlayUI[layer]->color.w;
 			break;
 	}
+	throw 3;
 }
 
 // Set main text.

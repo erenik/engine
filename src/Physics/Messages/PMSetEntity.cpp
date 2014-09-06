@@ -188,6 +188,17 @@ PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, int value)
 	}
 }
 
+PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, Waypoint * waypoint)
+: target(target), entities(targetEntities), waypoint(waypoint)
+{
+	switch(target)
+	{
+		case PT_CURRENT_WAYPOINT:
+			break;
+		default:
+			assert(false && "Mistmatched target and value in PMSetEntity!");
+	}
+}
 
 void PMSetEntity::Process()
 {
@@ -206,8 +217,16 @@ void PMSetEntity::Process()
 			entity->physics = new PhysicsProperty();
 		PhysicsProperty * physics = entity->physics;
 		PhysicsProperty * pp = physics;
+		PathfindingProperty * pathProp = entity->pathfindingProperty;
 		switch(target)
 		{
+			// Waypoints and pathfinding.
+			case PT_CURRENT_WAYPOINT:
+				// Set the waypoint in the entity property..
+				pathProp->currentWaypoint = waypoint;
+				waypoint->entities.Add(entity);
+				break;
+			/// Stuff.
 			case PT_RELATIVE_VELOCITY:
 			{
 				pp->relativeVelocity = vec3fValue;

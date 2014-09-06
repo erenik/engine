@@ -16,7 +16,7 @@ class GraphicsState;
 class Texture;
 struct GraphicsProperty;
 struct PhysicsProperty;
-struct PathfindingProperty;
+class PathfindingProperty;
 class ScriptProperty;
 class CompactEntity;
 class Triangle;

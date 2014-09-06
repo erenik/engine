@@ -41,4 +41,7 @@ public:
 	// Output
 	int renderTarget;
 
+	/// Default true.
+	bool depthTestEnabled;
+
 };

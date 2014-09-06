@@ -62,13 +62,18 @@ void UIRadioButtons::OnToggled(UICheckBox * box)
 	/// Set a message!
 	IntegerMessage * im = new IntegerMessage(action, index);
 	MesMan.QueueMessage(im);
+	bool somethingToggled = false;
 	/// De-toggle the other elements.
 	for (int i = 0; i < buttons.Size(); ++i)
 	{
 		UICheckBox * button = buttons[i];
+		somethingToggled |= button->toggled;
 		if (button == box)
 			continue;
 		button->toggled = false;
 	}
+	/// Ensure always one radio button is toggled.
+	if (!somethingToggled)
+		box->toggled = true;
 }
 

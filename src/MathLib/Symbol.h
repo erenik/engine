@@ -46,7 +46,7 @@ public:
 
 
 void PrintSymbols(List<Symbol> symbols);
-
+void PrintSymbolsInALine(List<Symbol> symbols);
 
 #endif
 

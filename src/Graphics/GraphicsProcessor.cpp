@@ -63,13 +63,19 @@ void * GraphicsManager::Processor(void * vArgs){
     std::cout<<"\nInstancesBegun: "<<renderInstancesBegun;
     assert(renderInstancesBegun == 1);
 
+
+	LogGraphics("Graphics processing thread started");
+
     int result;
 #ifdef WINDOWS
 
 	/// Wait until we have a valid window we can render onto.
 	while(WindowMan.NumWindows() == 0)
-		Sleep(5);
-
+	{
+		LogGraphics("Waiting for windows");
+		Sleep(50);
+	}
+	LogGraphics("Creating GL context");
 	Window * mainWindow = WindowMan.GetWindow(0);
 	mainWindow->CreateGLContext();
 	mainWindow->MakeGLContextCurrent();
@@ -125,6 +131,8 @@ void * GraphicsManager::Processor(void * vArgs){
 
 	// Initialize glew
     std::cout<<"\nInitializing GLEW...";
+	LogGraphics("Initializing GLEW");
+
 //	glewExperimental = GL_TRUE;
 	result = glewInit();
 	if (result != GLEW_OK){
@@ -205,10 +213,10 @@ void * GraphicsManager::Processor(void * vArgs){
 	UpdateWindow(hWnd);*/
 #endif
 
+
 	/// Bufferize the rendering box
 	Graphics.OnBeginRendering();
 
-	LogGraphics("Begin rendering");
 
     // Some times.
     long long lastOptimization = Timer::GetCurrentTimeMs();
@@ -219,138 +227,142 @@ void * GraphicsManager::Processor(void * vArgs){
 	// Pointarr.
 	GraphicsState * graphicsState = Graphics.graphicsState;
 
+	LogGraphics("Beginning main rendering/physics/multimedia loop");
 	// Then begin the main rendering loop
 	while(Graphics.shouldLive)
 	{
-
-		LogGraphics("New frame");
-	
-
-		/// Timing
-		Timer physicsTimer, graphicsTimer, total;
-		Timer gmTimer, guTimer;
-
-		total.Start();
-        now = Timer::GetCurrentTimeMs();
-		graphicsState->currentFrameTime = now;
-
-		Timer sleepTimer;
-		sleepTimer.Start();
-		/// Sleep at least a bit...
-		Sleep(Graphics.sleepTime);
-		/// Sleep more when not in focus.
-		if (!WindowMan.InFocus())
-			Sleep(Graphics.outOfFocusSleepTime);
-		sleepTimer.Stop();
-//		std::cout<<"\nSlept for "<<sleepTimer.GetMs()<<" ms";
-
-		physicsTimer.Start();
-	//	std::cout<<"\nProcessing physics messages... ";
-		/// Process any available physics messages first
-		Physics.ProcessMessages();
-		// Process physics from here in order to avoid graphical issues
-		Physics.ProcessPhysics();
-		physicsTimer.Stop();
-
-		
-		// Process Active Multimedia-streams if available.
-		MultimediaMan.Update();
-
-		// Process audio
-		AudioMan.Update();
-
-
-		/// Process graphics if we can claim the mutex within 10 ms. If not, skip it this iteration.
-		if (GraphicsMan.graphicsProcessingMutex.Claim(10))
+		try 
 		{
-			Graphics.processing = true;
-			graphicsTimer.Start();
-			// Process graphics messages
-			gmTimer.Start();
-		
-		//	try {
-				Graphics.ProcessMessages();
-		/*	} 
-			catch(...)
-			{
-				std::cout<<"Errors thrown while processing graphics messages.";
-			}
-			*/
-		
-			Graphics.graphicsMessageProcessingFrameTime = gmTimer.GetMs();
-			/// Check if we should render or not.
-			bool renderOnQuery = Graphics.renderOnQuery;
-			bool renderQueried = Graphics.renderQueried;
-			bool shouldRender = (renderOnQuery && renderQueried) || !renderOnQuery;
-		//	std::cout<<"\n- Processing graphics messages time taken: "<<gmTimer.GetMs();
-			if (Graphics.renderingEnabled && shouldRender && !Graphics.renderingStopped)
-			{
-				guTimer.Start();
-				// Update the lights' positions as needed.
-				Graphics.UpdateLighting();
-				// Reposition all entities that are physically active (dynamic entities) in the octrees and other optimization structures!
-				Graphics.RepositionEntities();
-				Graphics.Process();
-				Graphics.graphicsUpdatingFrameTime = guTimer.GetMs();
-			//	std::cout<<"\n- Updating entities frame time: "<<guTimer.GetMs();
-				Timer timer;
-				timer.Start();
-				/// Process movement for cameras.
-				CameraMan.Process();
-				// Render
-				Graphics.RenderWindows();
-				timer.Stop();
-		//		std::cout<<"\n- Render frame time: "<<timer.GetMs();
-				Graphics.renderQueried = false;
+			/// Timing
+			Timer physicsTimer, graphicsTimer, total;
+			Timer gmTimer, guTimer;
+
+			total.Start();
+			now = Timer::GetCurrentTimeMs();
+			graphicsState->currentFrameTime = now;
+
+			Timer sleepTimer;
+			sleepTimer.Start();
+			/// Sleep at least a bit...
+			Sleep(Graphics.sleepTime);
+			/// Sleep more when not in focus.
+			if (!WindowMan.InFocus())
+				Sleep(Graphics.outOfFocusSleepTime);
+			sleepTimer.Stop();
+	//		std::cout<<"\nSlept for "<<sleepTimer.GetMs()<<" ms";
+
+			physicsTimer.Start();
+		//	std::cout<<"\nProcessing physics messages... ";
+			/// Process any available physics messages first
+			Physics.ProcessMessages();
+			// Process physics from here in order to avoid graphical issues
+			Physics.ProcessPhysics();
+			physicsTimer.Stop();
+
 			
-			}
-		
-			else {
-				if (now > timeNotRendered + 1000)
+			// Process Active Multimedia-streams if available.
+			MultimediaMan.Update();
+
+			// Process audio
+			AudioMan.Update();
+
+
+			/// Process graphics if we can claim the mutex within 10 ms. If not, skip it this iteration.
+			if (GraphicsMan.graphicsProcessingMutex.Claim(10))
+			{
+				Graphics.processing = true;
+				graphicsTimer.Start();
+				// Process graphics messages
+				gmTimer.Start();
+			
+			//	try {
+					Graphics.ProcessMessages();
+			/*	} 
+				catch(...)
 				{
-	//				std::cout<<"\nPrint if rendering is disabled?";
-					timeNotRendered = now;
+					std::cout<<"Errors thrown while processing graphics messages.";
 				}
+				*/
+			
+				Graphics.graphicsMessageProcessingFrameTime = gmTimer.GetMs();
+				/// Check if we should render or not.
+				bool renderOnQuery = Graphics.renderOnQuery;
+				bool renderQueried = Graphics.renderQueried;
+				bool shouldRender = (renderOnQuery && renderQueried) || !renderOnQuery;
+			//	std::cout<<"\n- Processing graphics messages time taken: "<<gmTimer.GetMs();
+				if (Graphics.renderingEnabled && shouldRender && !Graphics.renderingStopped)
+				{
+					guTimer.Start();
+					// Update the lights' positions as needed.
+					Graphics.UpdateLighting();
+					// Reposition all entities that are physically active (dynamic entities) in the octrees and other optimization structures!
+					Graphics.RepositionEntities();
+					Graphics.Process();
+					Graphics.graphicsUpdatingFrameTime = guTimer.GetMs();
+				//	std::cout<<"\n- Updating entities frame time: "<<guTimer.GetMs();
+					Timer timer;
+					timer.Start();
+					/// Process movement for cameras.
+					CameraMan.Process();
+					// Render
+					Graphics.RenderWindows();
+					timer.Stop();
+			//		std::cout<<"\n- Render frame time: "<<timer.GetMs();
+					Graphics.renderQueried = false;
+				
+				}
+			
+				else {
+					if (now > timeNotRendered + 1000)
+					{
+		//				std::cout<<"\nPrint if rendering is disabled?";
+						timeNotRendered = now;
+					}
+				}
+				graphicsTimer.Stop();
+				Graphics.processing = false;
+				Graphics.graphicsProcessingMutex.Release();
 			}
-			graphicsTimer.Stop();
-			Graphics.processing = false;
-			Graphics.graphicsProcessingMutex.Release();
+			else {
+				// Busy.
+				std::cout<<"\nUnable to claim grpahicsProcessing mutex within given time frame, skipping processing this iteration";
+			}
+		//	std::cout<<"\nGraphicsFrameTime: "<<graphicsTimer.GetMs();
+
+			total.Stop();
+			Graphics.frameTime = total.GetMs();
+			long renderFrameTime = graphicsTimer.GetMs();
+			Graphics.renderFrameTime = renderFrameTime;
+			Graphics.physicsFrameTime = physicsTimer.GetMs();
+			graphicsState->frameTime = Graphics.frameTime * 0.001;
+		//	std::cout<<"\nTotalFrameTime: "<<renderFrameTime;
+
+			/// Push frame time and increase optimization once a second if needed.
+			FrameStats.PushFrameTime(total.GetMs());
+			int fps = FrameStats.FPS();
+			/// Enable the below via some option maybe, it just distracts atm.
+		//	graphicsState->optimizationLevel = 3;
+
+			if (graphicsState->optimizationLevel < 5 && fps < 20 && now > lastOptimization + 100){
+				graphicsState->optimizationLevel++;
+				lastOptimization = now;
+				std::cout<<"\nFPS low, increasing graphics optimization level to: "<<graphicsState->optimizationLevel;
+			}
+			
+			else if (graphicsState->optimizationLevel > 0 && fps > 40 && now > lastOptimization + 500)
+			{
+				graphicsState->optimizationLevel--;
+				lastOptimization = now;
+				std::cout<<"\nFPS high again, decreasing graphics optimization level to: "<<graphicsState->optimizationLevel;
+			}
 		}
-		else {
-			// Busy.
-			std::cout<<"\nUnable to claim grpahicsProcessing mutex within given time frame, skipping processing this iteration";
-		}
-	//	std::cout<<"\nGraphicsFrameTime: "<<graphicsTimer.GetMs();
-
-		total.Stop();
-		Graphics.frameTime = total.GetMs();
-		long renderFrameTime = graphicsTimer.GetMs();
-		Graphics.renderFrameTime = renderFrameTime;
-		Graphics.physicsFrameTime = physicsTimer.GetMs();
-		graphicsState->frameTime = Graphics.frameTime * 0.001;
-	//	std::cout<<"\nTotalFrameTime: "<<renderFrameTime;
-
-        /// Push frame time and increase optimization once a second if needed.
-		FrameStats.PushFrameTime(total.GetMs());
-		int fps = FrameStats.FPS();
-		/// Enable the below via some option maybe, it just distracts atm.
-	//	graphicsState->optimizationLevel = 3;
-
-        if (graphicsState->optimizationLevel < 5 && fps < 20 && now > lastOptimization + 100){
-			graphicsState->optimizationLevel++;
-            lastOptimization = now;
-            std::cout<<"\nFPS low, increasing graphics optimization level to: "<<graphicsState->optimizationLevel;
-        }
-		
-		else if (graphicsState->optimizationLevel > 0 && fps > 40 && now > lastOptimization + 500)
+		catch(...)
 		{
-			graphicsState->optimizationLevel--;
-			lastOptimization = now;
-			std::cout<<"\nFPS high again, decreasing graphics optimization level to: "<<graphicsState->optimizationLevel;
+			LogGraphics("An unexpected error occurred");
+			std::cout<<"\nAn unexpected error occurred";
 		}
-		
-		
 	}
+	LogGraphics("Ending main rendering/physics/multimedia loop");
 
 	/// Shut down all remaining music.
 	AudioMan.StopAndRemoveAll();

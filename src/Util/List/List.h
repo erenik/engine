@@ -122,6 +122,16 @@ protected:
 	bool inUse;		// Defines that the list is currently being popped or pushed.
 };
 
+template<class T, class B> 
+List<B> ConvertList(List<T> tList)
+{
+	List<B> bList;
+	for (int i = 0; i < tList.Size(); ++i)
+	{
+		bList.Add(tList[i]);
+	}
+	return bList;
+}
 
 /// Implementation below because I'm too lazy to find how to include a separate blerargh template file in OSX.
 
@@ -155,7 +165,8 @@ List<T>::~List()
 }
 /// Copy constructor
 template <class T>
-List<T>::List(const List & otherList){
+List<T>::List(const List & otherList)
+{
 	arrLength = otherList.arrLength;
 	arr = new T[arrLength];
 	currentItems = otherList.currentItems;
@@ -164,6 +175,7 @@ List<T>::List(const List & otherList){
 		arr[i] = otherList.arr[i];
 	}
 }
+
 template <class T>
 List<T>::List(const T & initialItem){
 	arr = NULL;

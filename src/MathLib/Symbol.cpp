@@ -41,13 +41,28 @@ Symbol::Symbol(const ExpressionResult & result)
 }
 
 
+void PrintSymbolsInALine(List<Symbol> symbols)
+{
+	String str;
+	if (symbols.Size())
+		str += "\nSymbols: "+symbols[0].text;
+	for (int i = 1; i < symbols.Size(); ++i)
+	{
+		Symbol & symbol = symbols[i];
+		str += " "+symbol.text;
+	}
+	std::cout<<str;
+}
+
 
 void PrintSymbols(List<Symbol> symbols)
 {
+	String str;
 	for (int i = 0; i < symbols.Size(); ++i)
 	{
 		Symbol & symbol = symbols[i];
-		std::cout<<"\nSymbol "<<i<<": "<<symbol.text;
+		str += "\nSymbol "+String(i)+": "+symbol.text;
 	}
+	std::cout<<str;
 }
 

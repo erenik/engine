@@ -32,8 +32,9 @@ void PMSetWaypoint::Process()
 			}
 			Waypoint * wp = nm->GetClosestTo(position);
 			assert(wp);
-			wp->entity = (Entity*)pValue;
-			wp->entity->pathfindingProperty->currentWaypoint = wp;
+			Entity * entity = (Entity*)pValue;
+			wp->entities.Add(entity);
+			entity->pathfindingProperty->currentWaypoint = wp;
 			break;
 		}
 	}

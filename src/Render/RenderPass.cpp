@@ -19,6 +19,7 @@ RenderPass::RenderPass()
 {
 	shader = 0;
 	shaderName = "Phong";
+	depthTestEnabled = true;
 }
 
 
@@ -77,7 +78,11 @@ bool RenderPass::Render(GraphicsState * graphicsState)
 	}
 
 	// Set some standard rendering options.
-    glEnable(GL_DEPTH_TEST);
+	if (depthTestEnabled)
+	    glEnable(GL_DEPTH_TEST);
+	else 
+		glDisable(GL_DEPTH_TEST);
+
 	glDepthMask(GL_TRUE);
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_LIGHTING);
@@ -185,10 +190,12 @@ bool RenderPass::Render(GraphicsState * graphicsState)
 		}
 		case RenderTarget::ENTITIES:
 		{
+			Entities entitiesToRender = graphicsState->entities;
+			entitiesToRender.SortByDistanceToCamera(graphicsState->camera);
 			// Render all entities listed in the graphicsState!
-			for (int i = 0; i < graphicsState->entities.Size(); ++i)
+			for (int i = 0; i < entitiesToRender.Size(); ++i)
 			{
-				Entity * entity = graphicsState->entities[i];
+				Entity * entity = entitiesToRender[i];
 				entity->Render(graphicsState);
 			}
 			break;

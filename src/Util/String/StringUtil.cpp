@@ -51,3 +51,12 @@ String VectorString(Vector3f v)
 	return String::ToString(v.x) + " " + String::ToString(v.y) + " " + String::ToString(v.z);
 };
 
+
+/// o.o prepends the names of all variables in the list.
+void PrependStrings(List<String> & list, String withString)
+{
+	for (int i = 0; i < list.Size(); ++i)
+	{
+		list[i] = withString + list[i];
+	}
+}

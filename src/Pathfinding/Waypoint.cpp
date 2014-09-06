@@ -25,7 +25,6 @@ Waypoint::Waypoint()
 	pData = NULL;
 	id = -1;
 
-	entity = NULL;
 };
 
 Waypoint::~Waypoint(){
@@ -130,11 +129,12 @@ bool Waypoint::IsAerial(){
 }
 
 /// Returns true or false depending on statically set check-parameters, for example having the entity or pData pointers set can result in a false.
-bool Waypoint::IsVacant(){
+bool Waypoint::IsVacant()
+{
 //	std::cout<<"\nWaypoint passable: "<<passable<<" enitity:" <<entity<<" pData:"<<pData;
 	if (!passable)
 		return false;
-	if (entity)
+	if (entities.Size())
 		return false;
 //	if (pData)
 //		return false;

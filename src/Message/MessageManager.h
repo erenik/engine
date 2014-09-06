@@ -1,5 +1,6 @@
 // Emil Hedemalm
 // 2013-03-17
+/// Message manager which takes care of glueing together most of the engine.
 
 #ifndef MESSAGEMANAGER_H
 #define MESSAGEMANAGER_H

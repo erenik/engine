@@ -9,6 +9,8 @@
 #include "String/StringUtil.h"
 #include "Function.h"
 
+bool Expression::printExpressionSymbols = false;
+
 // Bad typ defualt constructor.
 ExpressionResult::ExpressionResult(int type)
 	: type(type)
@@ -206,7 +208,9 @@ bool Expression::TryEvaluate()
 	int argumentStart = -1;
 	bool argumentEnumerating = false;
 
-	PrintSymbols(evaluationSymbols);
+	if (printExpressionSymbols)
+		PrintSymbolsInALine(evaluationSymbols);
+//	PrintSymbols(evaluationSymbols);
 
 	for (int i = 0; i < evaluationSymbols.Size(); ++i)
 	{
@@ -256,7 +260,7 @@ bool Expression::TryEvaluate()
 					/// Place it back right after the argument start token was (the first parenthesis or comma)
 					evaluationSymbols.Insert(sym, argumentStart + 1);
 
-					PrintSymbols(evaluationSymbols);
+//					PrintSymbolsInALine(evaluationSymbols);
 						
 					/// Move back i so that parsing will work out as intended?
 					i -= pe.symbols.Size() - 1;
@@ -326,7 +330,7 @@ bool Expression::TryEvaluate()
 						sym.text = "Args: "+String(args.Size());
 						// Insert the new parenthesis-result-symbol. where the parenthesis was.
 						evaluationSymbols.Insert(sym, parenthesisStart);
-						PrintSymbols(evaluationSymbols);
+				//		PrintSymbols(evaluationSymbols);
 
 						/// Move back i so that parsing will work out as intended?
 						i -= pe.symbols.Size() - 1;
@@ -355,7 +359,7 @@ bool Expression::TryEvaluate()
 						// Insert the new parenthesis-result-symbol. where the parenthesis was.
 						Symbol sym(pe.result.text, Symbol::CONSTANT);
 						evaluationSymbols.Insert(sym, parenthesisStart);
-						PrintSymbols(evaluationSymbols);
+//						PrintSymbolsInALine(evaluationSymbols);
 
 						// Move back i so that parsing will work out as intended for the next parenthesis.
 						// This since we removed several symbols. We need to adjust i to remain in the same relative location to the parenthesis we just evaluated.
@@ -494,13 +498,10 @@ bool Expression::TryEvaluate()
 
 			// Evaluate the expression part using the given operator.
 			Symbol symbol = Evaluate(*pre, *post, opSym);
-//			PrintSymbols(evaluationSymbols);
 			// Remove the operator and operands.
 			evaluationSymbols.RemovePart(i-1, i+1);
-//			PrintSymbols(evaluationSymbols);
 			/// Insert the new result symbol in its place.
 			evaluationSymbols.Insert(symbol, i-1);
-//			PrintSymbols(evaluationSymbols);
 			/// Move back i to properly evaluate the rest.
 			i -= 1;
 		}

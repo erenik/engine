@@ -4,7 +4,7 @@
 #ifndef GRAPHICS_MESSAGE_H
 #define GRAPHICS_MESSAGE_H
 
-#include "../Selection.h"
+#include "Entity/Entities.h"
 #include "../Lighting.h"
 
 class Triangle;
@@ -112,10 +112,10 @@ private:
 
 class GMRegisterEntities : public GraphicsMessage {
 public:
-	GMRegisterEntities(Selection selection);
+	GMRegisterEntities(Entities selection);
 	void Process();
 private:
-	Selection selection;
+	Entities selection;
 };
 
 class GMUnregisterEntity : public GraphicsMessage {

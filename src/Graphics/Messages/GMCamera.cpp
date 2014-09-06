@@ -9,7 +9,7 @@
 
 void GMTrack::Process()
 {
-		Graphics.ActiveCamera()->entityToTrack = entity;
+	Graphics.ActiveCamera()->entityToTrack = entity;
 };
 
 /// For setting global/main camera to track.
@@ -22,6 +22,7 @@ GMSetCamera::GMSetCamera(Camera * cameraToTrack, Window * inWindow)
 GMSetCamera::GMSetCamera(Camera * camera, int target, Vector3f vec3fValue)
 : GraphicsMessage(GM_SET_CAMERA), camera(camera), target(target), vec3fValue(vec3fValue)
 {
+	assert(camera);
 	switch(target)
 	{
 		case CT_POSITION:
@@ -38,6 +39,7 @@ GMSetCamera::GMSetCamera(Camera * camera, int target, Vector3f vec3fValue)
 GMSetCamera::GMSetCamera(Camera * camera, int target, int iValue)
 : GraphicsMessage(GM_SET_CAMERA), camera(camera), target(target), iValue(iValue)
 {
+	assert(camera);
 	switch(target)
 	{
 		case CT_TRACKING_MODE:
@@ -71,6 +73,7 @@ GMSetCamera::GMSetCamera(Camera * camera, int target, float fValue)
 GMSetCamera::GMSetCamera(Camera * camera, int target, bool bValue)
 : GraphicsMessage(GM_SET_CAMERA), camera(camera), target(target), bValue(bValue)
 {
+	assert(camera);
 	switch(target)
 	{
 		case CT_INHERIT_ROTATION:
@@ -84,6 +87,7 @@ GMSetCamera::GMSetCamera(Camera * camera, int target, bool bValue)
 GMSetCamera::GMSetCamera(Camera * camera, int target, Entity * entity)
 : GraphicsMessage(GM_SET_CAMERA), camera(camera), target(target), entity(entity)
 {
+	assert(camera);
 	switch(target)
 	{
 		case CT_ENTITY_TO_TRACK:

@@ -820,6 +820,7 @@ bool String::Remove(const String & subString, bool all /*= false*/){
 			*/
 		}
 	}
+	throw 3;
 }
 
 /// Concatenates strings
@@ -1271,6 +1272,7 @@ char & String::CharAt(int index){
 	else if (type == WIDE_CHAR)
 		assert(false && "Convert to char");
 	assert(false);
+	throw 3;
 }
 
 
@@ -1334,7 +1336,8 @@ int String::ArraySize() const
 
 
 /// Removes all whitespace characters up until first non-whitespace character.
-int String::RemoveInitialWhitespaces(){
+int String::RemoveInitialWhitespaces()
+{
 	if (arraySize <= 0)
 		return -1;
 	switch(type){
@@ -1369,6 +1372,34 @@ int String::RemoveInitialWhitespaces(){
 	}
 }
 
+void String::RemoveTrailingWhitespaces()
+{
+	if (arraySize <= 0)
+		return;
+	switch(type){
+		case CHAR: {
+			int lastWhitespace = -1;
+			/// Start at the end of the current text, trailing to the start
+			for (int i = this->Length() - 1; i >= 0; --i)
+			{
+				if (arr[i] == ' ' ||
+					arr[i] == '\t' ||
+					arr[i] == '\n')
+				{
+					arr[i] = '\0';
+				}
+				else
+					break;
+			}
+			break;
+		}
+		case WIDE_CHAR:
+			assert(false && "implement!");
+			return;
+		default:
+			return;
+	}
+}
 
 /// Prints the contents of the string both in integer and character form
 void String::PrintData() const{
