@@ -24,6 +24,7 @@ enum graphicsMessages {
 	GM_PRINT_SCREENSHOT,
 	
 	// Animation
+	GM_PLAY_ANIMATION,
 	GM_QUEUE_ANIMATION,
 
 	// Setters

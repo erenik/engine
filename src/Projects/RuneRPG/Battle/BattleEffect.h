@@ -51,6 +51,7 @@ public:
 		RESTORE, // ..
 		SPAWN_ELEMENTAL, // o.o;
 		PAUSES_ACTIONBAR, // D:
+		ATTEMPT_FLEE,
 	};
 	/// Name of this effect. Name will correspond  to type.
 	String name;

@@ -109,6 +109,21 @@ List<BattleEffect> BattleEffect::ParseEffects(String fromString)
 		{
 			effect.type = BattleEffect::PAUSES_ACTIONBAR;
 		}
+		else if (effectStr.Contains("Use Basic Attack"))
+		{
+			effect.type = BattleEffect::DAMAGE;
+			effect.equation = "Basic Attack";
+		}
+		else if (effectStr.Contains("Attempt Flee"))
+		{
+			effect.type = BattleEffect::ATTEMPT_FLEE;
+			effect.argument = argument;
+		}
+		else if (effectStr == "Opens spell tab" ||
+			effectStr == "Opens item tab")
+			continue;
+		else if (effectStr == "N/A")
+			continue;
 		else if (effectStr.Length() < 3)
 			continue;
 		else 

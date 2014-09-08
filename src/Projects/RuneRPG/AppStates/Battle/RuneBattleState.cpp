@@ -335,7 +335,7 @@ void RuneBattleState::CreatePartyUI()
 		ui->name = "Player"+String::ToString(i);
 		ui->textureSource = "img/80gray50Alpha.png";
 		/// Assume max 4 players.
-		ui->sizeRatioY = 0.25f;
+		ui->sizeRatioY = 1.f;
 
 		Vector4f textColor = Vector4f(1,1,1,1);
 
@@ -425,7 +425,10 @@ void RuneBattleState::Process(int timeInMs)
 		List<RuneBattler*> playerBattlers = GetPlayerBattlers();
 		if (playerBattlers.Size())
 		{
-			OpenCommandsMenu(playerBattlers[0]);
+			RuneBattler * player = playerBattlers[0];
+			// Open menu if no queued actions!
+			if (player->queuedActions.Size() == 0)
+				OpenCommandsMenu(player);
 		}
 	}
 

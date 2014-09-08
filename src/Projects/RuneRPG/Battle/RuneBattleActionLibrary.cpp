@@ -5,6 +5,7 @@
 #include "RuneBattleActionLibrary.h"
 #include "Elements.h"
 #include "File/File.h"
+#include "BattleAnimation.h"
 
 RuneBattleActionLibrary * RuneBattleActionLibrary::runeBattleActionLibrary = NULL;
 
@@ -222,7 +223,16 @@ List<RuneBattleAction*> RuneBattleActionLibrary::LoadBattleActionsFromCSV(String
 			String value = values[k];
 			column.SetComparisonMode(String::NOT_CASE_SENSITIVE);
 			if (column == "Name")
+			{
 				newAction->name = value;
+				if (value == "Attack")
+				{
+					newAction->targetFilter = TargetFilter::ENEMY;
+					newAction->animationSequences.Add(BattleAnimation::Attack());
+				}
+				if (value == "Flee")
+					newAction->targetFilter = TargetFilter::SELF;
+			}
 			else if (column.Contains("ID"))
 				newAction->id = value;
 			else if (column.Contains("Description"))

@@ -17,6 +17,16 @@ private:
 	Entity * entity;
 };
 
+class GMPlayAnimation : public GraphicsMessage 
+{
+public:
+	GMPlayAnimation(String animationName, Entity * forEntity);
+	virtual void Process();
+private:
+	String animationName;
+	Entity * entity;
+};
+
 #endif
 
 

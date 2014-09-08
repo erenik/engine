@@ -21,3 +21,16 @@ void GMQueueAnimation::Process()
 }
 
 
+GMPlayAnimation::GMPlayAnimation(String animationName, Entity * forEntity)
+: GraphicsMessage(GM_PLAY_ANIMATION), entity(forEntity), animationName(animationName)
+{
+}
+
+void GMPlayAnimation::Process()
+{
+	if (!entity)
+		return;
+	if (!entity->graphics)
+		return;
+	entity->graphics->SetAnimation(animationName);
+}

@@ -132,10 +132,11 @@ void RuneBattleAction::Process(RBattleState & battleState)
 	finished = true;
 	for (int i = 0; i < animationSequences.Size(); ++i)
 	{
-		BattleAnimation * anim = animationSequences[i];
+		BattleAnimation & anim = animationSequences[i];
+		anim.triggererAction = this;
 		/// Process all animations.
-		anim->Process(battleState.timeInMs);
-		if (!anim->isOver)
+		anim.Process(battleState.timeInMs);
+		if (!anim.isOver)
 		{
 			finished = false;
 		}

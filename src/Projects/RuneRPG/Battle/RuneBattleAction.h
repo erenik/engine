@@ -10,9 +10,9 @@
 #include "BattleEffect.h"
 #include "RuneBattle.h"
 #include "TargetFilters.h"
+#include "BattleAnimation.h"
 
 class RuneBattler;
-class BattleAnimation;
 class RuneBattleAction;
 
 class RuneBattleActionCategory 
@@ -26,9 +26,13 @@ public:
 	RuneBattleAction * isAction;
 };
 
+
+typedef RuneBattleAction RBA;
+
 class RuneBattleAction
 {
 public:
+
     RuneBattleAction();
     /// Sets relevant vars and pointers to 0/NULL upon creation.
 	void Nullify();
@@ -116,6 +120,9 @@ public:
 	RuneBattler * primarySubject;
 	RuneBattler * primaryTarget;
 
+	/// o.o;
+	List<BattleAnimation> animationSequences;
+
 protected:
 
 	/// Applies all effects this spells should apply. If needed to re-apply multiple effects, this function should be called again until it returns true.
@@ -123,9 +130,6 @@ protected:
 
 	/// Set to true once all effects have been applied.
 	bool allEffectsApplied;
-
-	/// 
-	List<BattleAnimation *> animationSequences;
 
 	void EvaluateLine(String line);
 	void PhysicalDamage(String line);

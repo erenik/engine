@@ -86,7 +86,13 @@ void RuneBattler::Equip(List<RuneItem> gear)
 void RuneBattler::AddDefaultActions()
 {
 	// Attack,.. regular physical attack!
+	const RBA * attack = RBALib.GetBattleAction("Attack");
+	assert(attack);
+	this->actions.Add(new RuneBattleAction(*attack));
 	// Flee,  50% success, 40 ap,  1 second cast time, 0 second freeze-time.
+	const RBA * flee = RBALib.GetBattleAction("Flee");
+	assert(flee);
+	this->actions.Add(new RuneBattleAction(*flee));
 }
 
 
@@ -264,6 +270,11 @@ void RuneBattler::Process(RBattleState & battleState)
 		frozenInAction |= !rba->freezeTimeOver;
 	}
 
+	// If dead, don't process any more?
+	if (state == RuneBattler::DEAD ||
+		unconscious == true)
+		return;
+
 	/// Make active a queued action if we are not frozen.
 	if (queuedActions.Size() && !frozenInAction)
 	{
@@ -288,11 +299,6 @@ void RuneBattler::Process(RBattleState & battleState)
 			rba->OnBegin(battleState); // Call on Begin for it!
 		}
 	}
-
-	// If dead, don't process any more?
-	if (state == RuneBattler::DEAD ||
-		unconscious == true)
-		return;
 
 	/// Evaluate if any effects should be removed due to duration, or apply some effects?
 	for (int i = 0; i < appliedEffects.Size(); ++i)
@@ -355,6 +361,9 @@ void RuneBattler::Process(RBattleState & battleState)
 		if (!UpdateActions())
 			return;
 	}
+	// Return if already got an action queued.
+	if (queuedActions.Size())
+		return;
 	RuneBattleAction * ba = actions[rand()%actions.Size()];
 	RuneBattleAction * rba = new RuneBattleAction(*ba);
 	rba->subjects = this;
@@ -363,13 +372,20 @@ void RuneBattler::Process(RBattleState & battleState)
 	for (int i = 0; i < battleState.battlers.Size(); ++i)
 	{
 		RuneBattler * rb = battleState.battlers[i];
-		if (rb->isEnemy != this->isEnemy)
-			applicableTargets.Add(rb);
+		if (rb->isEnemy == this->isEnemy)
+			continue;
+		if (rb->state == DEAD)
+			continue;
+		applicableTargets.Add(rb);
 	}
-	/// Then just randomize 1 for now.
-	RuneBattler * b =  applicableTargets[rand()%applicableTargets.Size()];
-	if (b)
-		rba->targets.Add(b);
+	/// No valid target! Abort! o.o
+	if (applicableTargets.Size())
+	{	
+		/// Then just randomize 1 for now.
+		RuneBattler * b =  applicableTargets[rand()%applicableTargets.Size()];
+		if (b)
+			rba->targets.Add(b);
+	}
 	/// What if no valid targets?
 	if (!rba->HasValidTargets())
 	{
@@ -378,7 +394,6 @@ void RuneBattler::Process(RBattleState & battleState)
 		return;
 	}
 	queuedActions.Add(rba);
-	state = RuneBattler::PREPARING_FOR_ACTION;
     /// Since no good AI atm, return.
     return;
 }
@@ -458,10 +473,7 @@ bool RuneBattler::UpdateActions()
 	actions.Clear();
 	/// Always allow players to attack..
 	if (!isAI)
-	{
-		if (!actionNames.Exists("Attack"))
-			actionNames.Add("Attack");
-	}
+		AddDefaultActions();
 
 	for (int i = 0; i < actionNames.Size(); ++i)
 	{
@@ -484,9 +496,9 @@ bool RuneBattler::UpdateActions()
 				actions.Add(new RuneBattleAction(*skills[j]));
 			continue;
 		}
-		else if (name == "Attack")
+		else if (name == "Attack" || name == "Basic Attack")
 		{
-			const RuneBattleAction * action = RBALib.GetBattleAction("Basic Attack");
+			const RuneBattleAction * action = RBALib.GetBattleAction("Attack");
 			if (action)
 				actions.Add(new RuneBattleAction(*action));
 			continue;
@@ -580,8 +592,10 @@ void RuneBattler::UpdateActionCategories(int usingSortingScheme)
 				* spells = new RuneBattleActionCategory("Spells"),
 				* skills = new RuneBattleActionCategory("Skills"),
 				* mundaneActions = new RuneBattleActionCategory("Mundane Actions"),
-				* items = new RuneBattleActionCategory("Items");
-			actionCategories.Add(5, attack, spells, skills, mundaneActions, items);
+				* items = new RuneBattleActionCategory("Items"),
+				* flee = new RuneBattleActionCategory("Flee");
+			actionCategories.Add(6, attack, spells, skills, 
+				mundaneActions, items, flee);
 			for (int i = 0; i < actions.Size(); ++i)
 			{
 				RuneBattleAction * rba = actions[i];
@@ -592,6 +606,10 @@ void RuneBattler::UpdateActionCategories(int usingSortingScheme)
 						if (rba->name == "Attack" || rba->name == "Basic Attack")
 						{
 							attack->isAction = rba;
+						}
+						else if (rba->name == "Flee")
+						{
+							flee->isAction = rba;
 						}
 						else 
 						{

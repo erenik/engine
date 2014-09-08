@@ -17,6 +17,7 @@
 #include "UIButtons.h"
 #include "UIVideo.h"
 #include "UIImage.h"
+#include "UILog.h"
 #include "UI/UITypes.h"
 #include "UI/DataUI/UIMatrix.h"
 #include "UI/Buttons/UIRadioButtons.h"
@@ -24,6 +25,7 @@
 #include "Graphics/Fonts/TextFont.h"
 #include "Window/WindowManager.h"
 #include "Viewport.h"
+#include "Color.h"
 
 /// Fetches the global UI, taking into consideration active window.
 UserInterface * GlobalUI()
@@ -936,21 +938,31 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 				ENSURE_NEXT_TOKEN
 				defaultTextSize = NEXT_TOKEN.ParseFloat();
 			}
-			else if (token == "defaultTextColor"){
-				switch(tokens.Size()-1){
-					case 1: // Assume it's alpha and keep the other colors as usual
-						defaultTextColor.w = NEXT_TOKEN.ParseFloat();
-						break;
-					case 4:
-						defaultTextColor.w = tokens[4].ParseFloat();
-					case 3: // Assume it's RGB
-						defaultTextColor.x = tokens[1].ParseFloat();
-						defaultTextColor.y = tokens[2].ParseFloat();
-						defaultTextColor.z = tokens[3].ParseFloat();
-						break;
-					case 2: case 0:
-						assert(false && "Irregular amount of tokens following \"defaultTextColor\"; 1 for alpha, 3 for RGB and 4 for RGBA.");
-						break;
+			else if (token == "defaultTextColor")
+			{
+				// Hex detected!
+				if (line.Contains("0x"))
+				{
+					element->textColor = Color::ColorByHexName(NEXT_TOKEN);
+				}
+				else 
+				{
+					switch(tokens.Size()-1)
+					{
+						case 1: // Assume it's alpha and keep the other colors as usual
+							defaultTextColor.w = NEXT_TOKEN.ParseFloat();
+							break;
+						case 4:
+							defaultTextColor.w = tokens[4].ParseFloat();
+						case 3: // Assume it's RGB
+							defaultTextColor.x = tokens[1].ParseFloat();
+							defaultTextColor.y = tokens[2].ParseFloat();
+							defaultTextColor.z = tokens[3].ParseFloat();
+							break;
+						case 2: case 0:
+							assert(false && "Irregular amount of tokens following \"defaultTextColor\"; 1 for alpha, 3 for RGB and 4 for RGBA.");
+							break;
+					}
 				}
 			}
 			else if (token == "defaultRootFolder"){
@@ -1004,6 +1016,14 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 			else if (token == "ColumnList"){
 				ADD_PREVIOUS_TO_UI_IF_NEEDED
 					element = new UIColumnList();
+				if (tokens.Size() > 1)
+					element->name = firstQuote;
+				SET_DEFAULTS
+			}
+			else if (token == "Log")
+			{
+				ADD_PREVIOUS_TO_UI_IF_NEEDED
+				element = new UILog();
 				if (tokens.Size() > 1)
 					element->name = firstQuote;
 				SET_DEFAULTS
@@ -1220,21 +1240,31 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 				}
 			
 			}
-			else if (token == "textColor"){
-				switch(tokens.Size()-1){
-					case 1: // Assume it's alpha and keep the other colors as usual
-						element->textColor.w = NEXT_TOKEN.ParseFloat();
-						break;
-					case 4: case 5: case 6: case 7: case 8: case 9: case 10: case 11: case 12:
-						element->textColor.w = tokens[4].ParseFloat();
-					case 3: // Assume it's RGB
-						element->textColor.x = tokens[1].ParseFloat();
-						element->textColor.y = tokens[2].ParseFloat();
-						element->textColor.z = tokens[3].ParseFloat();
-						break;
-					case 2: case 0:
-						assert(false && "Irregular amount of tokens following \"textColor\"; 1 for alpha, 3 for RGB and 4 for RGBA.");
-						break;
+			else if (token == "textColor")
+			{
+				// Hex detected!
+				if (line.Contains("0x"))
+				{
+					element->textColor = Color::ColorByHexName(NEXT_TOKEN);
+				}
+				else 
+				{
+					switch(tokens.Size()-1)
+					{
+						case 1: // Assume it's alpha and keep the other colors as usual
+							element->textColor.w = NEXT_TOKEN.ParseFloat();
+							break;
+						case 4: case 5: case 6: case 7: case 8: case 9: case 10: case 11: case 12:
+							element->textColor.w = tokens[4].ParseFloat();
+						case 3: // Assume it's RGB
+							element->textColor.x = tokens[1].ParseFloat();
+							element->textColor.y = tokens[2].ParseFloat();
+							element->textColor.z = tokens[3].ParseFloat();
+							break;
+						case 2: case 0:
+							assert(false && "Irregular amount of tokens following \"textColor\"; 1 for alpha, 3 for RGB and 4 for RGBA.");
+							break;
+					}
 				}
 			}
 			else if (token == "textSizeRatio" || token == "textSize"){

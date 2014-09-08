@@ -30,6 +30,7 @@ namespace RenderFlags {
 struct GraphicsProperty 
 {
 	friend class GMSetEntity;
+	friend class GMPlayAnimation;
 	friend class GMQueueAnimation;
 	friend class Entity;
 public:
