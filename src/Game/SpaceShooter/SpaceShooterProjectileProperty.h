@@ -39,7 +39,8 @@ public:
 	/// If not currently active (available for re-use).
 	bool sleeping;
 
-	Time spawnTime;
+	int timeAliveMs;
+
 private:
 	SpaceShooter * game;
 };

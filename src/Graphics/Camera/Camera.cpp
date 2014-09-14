@@ -122,6 +122,18 @@ Camera * CameraManager::DefaultCamera()
 	return defaultCamera;
 }
 
+/// Lists all cameras to standard output
+void CameraManager::ListCameras()
+{
+	std::cout<<"\n"<<cameras.Size()<<" active cameras";
+	for (int i = 0; i < cameras.Size(); ++i)
+	{
+		Camera * camera = cameras[i];
+		std::cout<<"\nCamera "<<camera->name<<", pos "<<camera->position;
+	}
+}
+
+
 
 
 float Camera::defaultRotationSpeed = 0.09f;
@@ -403,6 +415,8 @@ void Camera::ProcessMovement(float timeInSeconds)
 		lastMovement = Timer::GetCurrentTimeMs();
 		return;
 	}
+	if (velocity.MaxPart() == 0 && rotationalVelocityEuler.MaxPart() == 0 && dfcomSpeedMultiplier == 1.f)
+		return;
 	Vector3f deltaP = velocity * timeInSeconds;
 	/// We might want to calculate the position Diff using local camera co-ordinates..!
 	Vector3f rightVec = this->lookingAtVector.CrossProduct(upVector);
@@ -441,7 +455,6 @@ void Camera::ProcessMovement(float timeInSeconds)
 	{
 		distanceFromCenterOfMovement += dfcomSpeed * timeInSeconds;
 	}
-	
 }
 
 /// Updates base velocities depending on navigationControls booleans

@@ -666,11 +666,11 @@ void InputManager::MouseWheel(Window * window, float delta)
 		return;
 	if (ignoreMouse)
 		return;
-	std::cout<<"\nMouseWheel: "<<delta;
+//	std::cout<<"\nMouseWheel: "<<delta;
 	UserInterface * ui = GetRelevantUIForWindow(window);
 	if (ui)
 	{
-		UIElement * element = ui->GetElementByPosition(mouseX, mouseY);
+		UIElement * element = ui->GetHoverElement();
 		if (element)
 		{
 			delta *= 2.f;
@@ -824,7 +824,7 @@ void InputManager::EvaluateKeyPressed(int activeKeyCode, bool downBefore, UIElem
 			StateMan.ActiveState()->InputProcessor(binding->action, binding->inputDevice);
 		else if (binding->stringAction.Length())
 		{
-			std::cout<<"\nQueueing action: "<<binding->stringAction;
+//			std::cout<<"\nQueueing action: "<<binding->stringAction;
 			MesMan.QueueMessages(binding->stringAction);
 		}
 	}

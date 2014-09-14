@@ -30,6 +30,7 @@
 #include "Network/NetworkManager.h"
 #include "Window/WindowManager.h"
 #include "Audio/AudioManager.h"
+#include "Graphics/Camera/Camera.h"
 
 MessageManager * MessageManager::messageManager = NULL;
 
@@ -259,6 +260,10 @@ void MessageManager::ProcessMessage(Message * message)
 						element->ProcessMessage(message);
 					}
 				}
+			}
+			else if (msg == "List cameras")
+			{
+				CameraMan.ListCameras();
 			}
 			else if (msg == "mute")
 			{

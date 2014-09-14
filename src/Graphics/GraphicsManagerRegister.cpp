@@ -26,11 +26,9 @@ bool GraphicsManager::RegisterEntity(Entity * entity)
 	GraphicsProperty * graphics = entity->graphics;
 	if (graphics){
 		// Check for attached dynamic lights
-		if (graphics->particleSystems){
-			for (int i = 0; i < graphics->particleSystems->Size(); ++i){
-				ParticleSystem * ps = (*graphics->particleSystems)[i];
-				RegisterParticleSystem(ps);
-			}
+		for (int i = 0; i < graphics->particleSystems.Size(); ++i){
+			ParticleSystem * ps = graphics->particleSystems[i];
+			RegisterParticleSystem(ps);
 		}
 	}
 	/// If no graphics property exists. Add it.
@@ -71,23 +69,23 @@ bool GraphicsManager::UnregisterEntity(Entity * entity)
 	entity->registeredForRendering = false;
 
 	// Check for additional graphics-data
-	if (entity->graphics){
+	if (entity->graphics)
+	{
 		GraphicsProperty * gp = entity->graphics;
+			
 		// Check for attached dynamic lights
-		if (entity->graphics->dynamicLights){
-			for (int i = 0; i < entity->graphics->dynamicLights->Size(); ++i){
-				Light * light = (*gp->dynamicLights)[i];
-				List<Light*> * dynamicLights = &graphicsState->dynamicLights;
-				bool removed = dynamicLights->Remove(light);
-				assert(removed);
-			}
+		for (int i = 0; i < gp->dynamicLights.Size(); ++i)
+		{
+			Light * light = gp->dynamicLights[i];
+			List<Light*> & dynamicLights = graphicsState->dynamicLights;
+			bool removed = dynamicLights.Remove(light);
+			assert(removed);
 		}
-		if (gp->particleSystems){
-			List<ParticleSystem*> entityParticleSystems = *gp->particleSystems;
-			for (int i = 0; i < entityParticleSystems.Size(); ++i){
-				ParticleSystem * ps = entityParticleSystems[i];
-				bool succeeded = particleSystems.Remove(ps);
-			}
+		List<ParticleSystem*> & entityParticleSystems = gp->particleSystems;
+		for (int i = 0; i < entityParticleSystems.Size(); ++i)
+		{
+			ParticleSystem * ps = entityParticleSystems[i];
+			bool succeeded = particleSystems.Remove(ps);
 		}
 	}
 

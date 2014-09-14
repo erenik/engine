@@ -26,6 +26,11 @@ public:
 	/// And the stats!
 	float sceneTime, alphaTime, effectsTime, uiTime;
 
+	float graphicsMessages, renderTotal, totalGraphics;
+	float multimedia;
+	float physicsProcessing, physicsMessages, totalPhysics, 
+		physicsIntegration;
+
 
 	/// Pushes the frame time which is then used to calculate the average frame-time.
 	void PushFrameTime(float frameTime);

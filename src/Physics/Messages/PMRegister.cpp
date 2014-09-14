@@ -7,7 +7,7 @@ PMRegisterEntity::PMRegisterEntity(Entity * i_entity): PhysicsMessage(PM_REGISTE
 //	assert(i_entity->registeredForPhysics != true);
 	if (Physics.physicalEntities.Exists(entity))
 	{
-        std::cout<<"Already registered? prewprewr";
+      //  std::cout<<"Already registered? prewprewr";
 	}
 }
 

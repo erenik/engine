@@ -19,6 +19,14 @@ EntityPhysicsEstimator::EntityPhysicsEstimator(Entity * owner)
 	rotationEstimator.EnableExtrapolation();
 	velocityEstimator.EnableExtrapolation();
 }
+
+
+	/// New from base class.
+void EntityPhysicsEstimator::Process(int timeInMs)
+{
+	assert(false);
+}
+
 /// Calculates and sets new values for the entity.
 void EntityPhysicsEstimator::Process(){
 	

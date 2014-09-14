@@ -60,8 +60,8 @@ public:
 	bool useMouseInput;
 private:
 
-	Time lastFire;
-
+	long millisecondsPassedSinceLastFire;
+	
 	SpaceShooter * game;
 };
 

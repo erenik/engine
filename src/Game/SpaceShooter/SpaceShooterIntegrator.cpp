@@ -12,7 +12,7 @@ SpaceShooterIntegrator::SpaceShooterIntegrator(float zPlane)
 }
 
 
-void SpaceShooterIntegrator::IntegrateDynamicEntities(List<Entity*> dynamicEntities, float timeInSeconds)
+void SpaceShooterIntegrator::IntegrateDynamicEntities(List<Entity*> & dynamicEntities, float timeInSeconds)
 {
 	for (int i = 0; i < dynamicEntities.Size(); ++i)
 	{
@@ -26,7 +26,7 @@ void SpaceShooterIntegrator::IntegrateDynamicEntities(List<Entity*> dynamicEntit
 /** All entities sent here should be fully kinematic! 
 	If not subclassed, the standard IntegrateEntities is called.
 */
-void SpaceShooterIntegrator::IntegrateKinematicEntities(List<Entity*> kinematicEntities, float timeInSeconds)
+void SpaceShooterIntegrator::IntegrateKinematicEntities(List<Entity*> & kinematicEntities, float timeInSeconds)
 {
 	for (int i = 0; i < kinematicEntities.Size(); ++i)
 	{
@@ -55,7 +55,7 @@ void SpaceShooterIntegrator::IntegrateVelocity(Entity * forEntity, float timeInS
 
 	/// Check if player
 	// If so, limit to inside the radiusiusius
-	SpaceShooterPlayerProperty * sspp = (SpaceShooterPlayerProperty *) forEntity->GetProperty("SpaceShooterPlayerProperty");
+	SpaceShooterPlayerProperty * sspp = forEntity->GetProperty<SpaceShooterPlayerProperty>();
 	if (sspp && sspp->isPlayer)
 	{
 		Vector3f position = forEntity->position;

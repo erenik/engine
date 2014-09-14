@@ -29,6 +29,12 @@ VectorMessage::VectorMessage(String message, Vector2i vectorValue)
 	this->msg = message;
 }
 
+VectorMessage::VectorMessage(String message, Vector2f vectorValue)
+	: Message(MessageType::VECTOR_MESSAGE), vectorType(VECTOR_2F), vec2f(vectorValue)
+{
+	this->msg = message;
+}
+
 VectorMessage::VectorMessage(String message, Vector3f vectorValue)
 : Message(MessageType::VECTOR_MESSAGE), vectorType(VECTOR_3F), vec3f(vectorValue)
 {

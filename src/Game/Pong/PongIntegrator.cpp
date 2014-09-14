@@ -12,7 +12,7 @@ PongIntegrator::PongIntegrator(float zPlane)
 }
 
 
-void PongIntegrator::IntegrateDynamicEntities(List<Entity*> dynamicEntities, float timeInSeconds)
+void PongIntegrator::IntegrateDynamicEntities(List<Entity*> & dynamicEntities, float timeInSeconds)
 {
 	for (int i = 0; i < dynamicEntities.Size(); ++i)
 	{
@@ -26,7 +26,7 @@ void PongIntegrator::IntegrateDynamicEntities(List<Entity*> dynamicEntities, flo
 /** All entities sent here should be fully kinematic! 
 	If not subclassed, the standard IntegrateEntities is called.
 */
-void PongIntegrator::IntegrateKinematicEntities(List<Entity*> kinematicEntities, float timeInSeconds)
+void PongIntegrator::IntegrateKinematicEntities(List<Entity*> & kinematicEntities, float timeInSeconds)
 {
 	for (int i = 0; i < kinematicEntities.Size(); ++i)
 	{

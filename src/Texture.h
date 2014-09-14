@@ -96,6 +96,9 @@ public:
 	void SetColorOfColumn(int column, Vector4f color);
 	void SetColorOfRow(int row, Vector4f color);
 
+	/// Sets sampling mode based on samplingMode current value.
+	void SetSamplingMode();
+
 	/// Saves the texture in it's entirety to target file. If overwrite is false it will fail if the file already exists.
 	bool Save(String toFile, bool overwrite = false);
 
@@ -166,6 +169,13 @@ public:
 	int dataBufferSize;
 	/// Keeps track of active amount of users for this texture.
 	int users;
+
+	/// Defines how sampling should be done for this texture. NEAREST will produce pixels while LINEAR smoothes. Default is LINEAR
+	enum samplingModes {
+		NEAREST,
+		LINEAR,
+	};
+	int samplingMode;
 
 	/// For using mipmaps. Default is true.
 	bool mipmappingEnabled;

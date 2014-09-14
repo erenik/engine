@@ -415,10 +415,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		float zDelta = GET_WHEEL_DELTA_WPARAM(wParam);
 		int xPos = GET_X_LPARAM(lParam);
 		int yPos = GET_Y_LPARAM(lParam);
-		std::cout<<" zDelta pre: "<<zDelta;
+	//	std::cout<<" zDelta pre: "<<zDelta;
 		zDelta /= WHEEL_DELTA;
 		zDelta /= 10.f;
-		std::cout<<" post: "<<zDelta;
+	//	std::cout<<" post: "<<zDelta;
 		Input.MouseWheel(window, zDelta);
 		return 0; // If an application processes this message, it should return zero.
 		break;

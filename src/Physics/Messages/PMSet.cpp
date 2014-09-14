@@ -8,6 +8,8 @@
 #include "Physics/CollisionResolver.h"
 #include "Physics/CollisionDetector.h"
 
+#include "File/LogFile.h"
+
 PMSet::PMSet(int target, Vector3f value)
 : PhysicsMessage(PM_SET), target(target), vec3fValue(value)
 {
@@ -62,8 +64,8 @@ PMSet::PMSet(int target, int iValue)
 	}
 }
 
-PMSet::PMSet(Integrator * physicsIntegrator)
-	: PhysicsMessage(PM_SET), target(PT_PHYSICS_INTEGRATOR), physicsIntegrator(physicsIntegrator)
+PMSet::PMSet(Integrator * newPhysicsIntegrator)
+	: PhysicsMessage(PM_SET), target(PT_PHYSICS_INTEGRATOR), i(newPhysicsIntegrator)
 {
 }
 
@@ -115,25 +117,41 @@ void PMSet::Process()
 			break;
 		case PT_PHYSICS_INTEGRATOR: 
 		{
+			PhysicsManager & physics = PhysicsMan;
+			// Same. Skip.
+			if (physics.physicsIntegrator == i)
+				break;
 			// Delete theo ld one?
-			if (Physics.physicsIntegrator)
-				delete Physics.physicsIntegrator;
-			Physics.physicsIntegrator = physicsIntegrator;
+			if (physics.physicsIntegrator)
+			{
+				delete physics.physicsIntegrator;
+				physics.physicsIntegrator = NULL;
+			}
+			LogPhysics("Setting new integrator");
+			physics.physicsIntegrator = i;
 			break;
 		}
 		case PT_COLLISION_RESOLVER:	
 		{
+			PhysicsManager & physics = PhysicsMan;
+			if (physics.collisionResolver == cr)
+				break;
 			// Delete theo ld one?
-			if (Physics.collisionResolver)
-				delete Physics.collisionResolver;
-			Physics.collisionResolver = cr;
+			if (physics.collisionResolver)
+				delete physics.collisionResolver;
+			LogPhysics("Setting new collision resolver");
+			physics.collisionResolver = cr;
 			break;
 		}
 		case PT_COLLISION_DETECTOR:	
 		{
-			if (Physics.collisionDetector)
-				delete Physics.collisionDetector;
-			Physics.collisionDetector = cd;
+			PhysicsManager & physics = PhysicsMan;
+			if (physics.collisionDetector == cd)
+				break;
+			if (physics.collisionDetector)
+				delete physics.collisionDetector;
+			LogPhysics("Setting new collision detector");
+			physics.collisionDetector = cd;
 			break;
 		}
 	}

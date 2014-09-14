@@ -227,6 +227,6 @@ void PhysicsManager::DetectCollisions()
 
 		}
 		collissionTimer.Stop();
-		collissionProcessingFrameTime += collissionTimer.GetMs();
+//		collissionProcessingFrameTime += collissionTimer.GetMs();
 	}
 }

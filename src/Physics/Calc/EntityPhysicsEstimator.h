@@ -5,13 +5,17 @@
 #ifndef ENTITY_PHYSICS_ESTIMATOR_H
 #define ENTITY_PHYSICS_ESTIMATOR_H
 
-#include "PhysicsLib/Estimator.h"
+#include "PhysicsLib/EstimatorVec3f.h"
 class Entity;
 
 /// Entity physics estimator
 class EntityPhysicsEstimator : public Estimator {
 public:
 	EntityPhysicsEstimator(Entity * owner);
+
+	/// New from base class.
+	virtual void Process(int timeInMs);
+
 	/// Calculates and sets new values for the entity.
 	virtual void Process();
 	/// Adds a position using current time to that estimator.

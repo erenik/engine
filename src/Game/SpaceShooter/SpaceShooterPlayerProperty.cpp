@@ -31,7 +31,7 @@ SpaceShooterPlayerProperty::SpaceShooterPlayerProperty(SpaceShooter * game, Enti
 	sleeping = false;
 	isPlayer = false;
 
-	lastFire = Time::Now();
+	millisecondsPassedSinceLastFire = 0;
 
 	useMouseInput = false;
 }
@@ -43,6 +43,8 @@ int SpaceShooterPlayerProperty::ID()
 
 void SpaceShooterPlayerProperty::Remove()
 {
+	if (sleeping)
+		return;
 	Graphics.QueueMessage(new GMUnregisterEntity(owner));
 	Physics.QueueMessage(new PMUnregisterEntity(owner));
 	sleeping = true;
@@ -119,23 +121,23 @@ void SpaceShooterPlayerProperty::Process(int timeInMs)
 	Vector4f lookAt = owner->rotationMatrix.Product(minusZ);
 //	std::cout<<"\nLook at: "<<lookAt;
 
-	Time now = Time::Now();
-	if (lastFire.Type() == 0)
-		lastFire = Time::Now();
-	int millisecondsPassedSinceLastFire = (now - lastFire).Milliseconds();
+	/// Check if within active game area.
+	/// Don't fire anything if not.
+	if (owner->position.x > game->right + 10.f)
+		return;
 
+	millisecondsPassedSinceLastFire += timeInMs;
 	if (isPlayer)
 	{
 //		std::cout<<"\nMilliseconds since last fire: "<<millisecondsPassedSinceLastFire;
 	}
-
 	if (millisecondsPassedSinceLastFire < weaponType.coolDown)
 		return;
 
 	if (isPlayer)
-		std::cout<<"\nPew!";
+	;//	std::cout<<"\nPew!";
 
-	lastFire = 0;
+	millisecondsPassedSinceLastFire = 0;
 
 	// Spawn a projectile? Or senda message to do so?
 	Vector3f position = owner->position;

@@ -90,9 +90,15 @@ PhysicsManager::~PhysicsManager()
 	springs.ClearAndDelete();
 
 	if (physicsIntegrator)
+	{
 		delete physicsIntegrator;
+		physicsIntegrator = NULL;
+	}
 	if (collisionResolver)
+	{
 		delete collisionResolver;
+		collisionResolver = NULL;
+	}
 }
 
 /// Performs various tests in order to optimize performance during runtime later.
@@ -425,17 +431,23 @@ void PhysicsManager::RecalculatePhysicsProperties(){
 }
 
 /// Processes queued messages.
-void PhysicsManager::ProcessMessages(){
-    static Timer messageTimer;
-    messageTimer.Start();
+void PhysicsManager::ProcessMessages()
+{
 	while(!physicsMessageQueueMutex.Claim(-1));
+	List<PhysicsMessage*> messages;
     // Process queued messages
-	while (!messageQueue.isOff()){
-		PhysicsMessage * msg = messageQueue.Pop();
-		msg->Process();
-		delete msg;
+	while (!messageQueue.isOff())
+	{
+		messages.Add(messageQueue.Pop());
 	}
 	physicsMessageQueueMutex.Release();
-    messageTimer.Stop();
-	messageProcessingTime = messageTimer.GetMs();
+	// Release mutex
+
+	/// Then start actually processing the messages.
+	for (int i = 0; i < messages.Size(); ++i)
+	{
+		PhysicsMessage * msg = messages[i];
+		msg->Process();
+	}
+	messages.ClearAndDelete();
 }

@@ -472,12 +472,14 @@ Entity * MapManager::CreateEntity(Entity * referenceEntity)
 Entity * MapManager::CreateEntity(String name, Model * model, Texture * texture, Vector3f position)
 {
 	// Allow 0 models, for exmaple for text-rendering entities, etc.
-	if (!model){
-		std::cout<<"\nWarning: Entity lacking model, is this how it's sposed to be?";
+	if (!model)
+	{
+	//	std::cout<<"\nWarning: Entity lacking model, is this how it's sposed to be?";
 	//	model = ModelMan.GetModel(0);
 	}
-	if (!texture){
-		std::cout<<"\nWarning: Entity lacking texture, is this how it's sposed to be?";
+	if (!texture)
+	{
+	//	std::cout<<"\nWarning: Entity lacking texture, is this how it's sposed to be?";
 	}
 //	std::cout<<"\nCreating entity with model "<<(model? model->Name() : String("None"))<<" and texture: "<<(texture? texture->name : String("None"));
 

@@ -9,6 +9,8 @@
 
 #include "PhysicsLib/AABBSweeper.h"
 
+#include "Graphics/FrameStatistics.h"
+
 #include "Graphics/GraphicsManager.h"
 //#include "Entity/Entity.h"
 
@@ -45,9 +47,14 @@ void PhysicsManager::ProcessPhysics()
 		return;
 	}
 
+	/// Debugging time statistics
+	float messageProcessingTime = 0;
+	float recalculatingPropertiesDuration = 0;
+	float collissionProcessingFrameTime = 0;
+
 	// Reset previous frame-times
 	recalculatingPropertiesDuration = 0;
-	movingDuration = 0;
+	float integration = 0;
 	collissionProcessingFrameTime = 0;
 	physicsMeshCollisionChecks = 0;
 
@@ -71,7 +78,7 @@ void PhysicsManager::ProcessPhysics()
 		/// Awesome.
 		Integrate(timeInSecondsSinceLastUpdate);
 		moving.Stop();
-		movingDuration += moving.GetMs();
+		integration += moving.GetMs();
 
 		/// Apply external constraints
 	//	ApplyContraints();
@@ -95,4 +102,9 @@ void PhysicsManager::ProcessPhysics()
 			collisionResolver->ResolveCollisions(collisions);
 
 	}
+
+	// Reset previous frame-times
+	FrameStats.physicsIntegration = integration;
+	collissionProcessingFrameTime = 0;
+	physicsMeshCollisionChecks = 0;
 }

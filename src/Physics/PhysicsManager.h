@@ -23,8 +23,8 @@ class Spring;
 class PhysicsMesh;
 class Ray;
 
-#define Physics		(*PhysicsManager::Instance())
-
+#define PhysicsMan	(*PhysicsManager::Instance())
+#define Physics		PhysicsMan
 
 /// Checktypes
 #define OCTREE      1
@@ -128,11 +128,6 @@ public:
 	List<Entity*> GetDynamicEntities();
 	const Vector3f Gravity() const { return gravitation; };
 
-	/// Debugging time statistics
-	inline float GetMessageProcessingFrameTime() const {return messageProcessingTime; };
-	inline float GetRecalculatingPropertiesFrameTime() const { return recalculatingPropertiesDuration; };
-	inline float GetMovementFrameTime() const { return movingDuration; };
-	inline float GetCollisionProcessingFrameTime() const { return collissionProcessingFrameTime; };
 	/// Numeric statistics
 	inline float GetPhysicsMeshCollisionChecks() const { return physicsMeshCollisionChecks; };
 
@@ -160,12 +155,6 @@ private:
 	void ApplyConstraints();
 	/// Applies pathfinding for all relevant entities
 	void ApplyPathfinding();
-
-	/// Debugging time statistics
-	float messageProcessingTime,
-		recalculatingPropertiesDuration,
-		movingDuration,
-		collissionProcessingFrameTime;
 
 	bool pauseOnCollision;
 
@@ -254,9 +243,9 @@ private:
 
 
 	/// Number of registered entities
-	List<Entity*> physicalEntities;
-	List<Entity*> dynamicEntities;
-	List<Entity*> kinematicEntities;
+	Entities physicalEntities,
+		dynamicEntities,
+		kinematicEntities;
 /*	/// Old manual list implementation~~
 	/// Array with pointers to all registered objects.
 	Entity * physicalEntity[MAX_REGISTERED_ENTITIES];

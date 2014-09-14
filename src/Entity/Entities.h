@@ -25,6 +25,8 @@ public:
 	/// Copy constructor..!
 	Entities(const Entities & otherSelection);
 	Entities(const List<Entity*> & entityList);
+	// New list from single entity.
+	Entities(Entity * entity);
 
 	/// Removes all entities that are outside the frustum.
 	Entities CullByCamera(Camera * camera) const;

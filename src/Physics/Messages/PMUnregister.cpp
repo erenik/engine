@@ -14,13 +14,13 @@ PMUnregisterEntities::PMUnregisterEntities(List<Entity*> targetEntities): Physic
 
 void PMUnregisterEntities::Process()
 {
-	std::cout<<"\nUnregistering selection for Physics.";
+//	std::cout<<"\nUnregistering selection for Physics.";
 	int failed = Physics.UnregisterEntities(entities);
 	if (failed == 0){
-		std::cout<<"\n"<<entities.Size()<<" entities unregistered successfully from Physics.";
+	//	std::cout<<"\n"<<entities.Size()<<" entities unregistered successfully from Physics.";
 		return;
 	}
-	std::cout<<"\nUnable to register "<<failed<<" of "<<entities.Size()<<" entities. Make sure they all have physicsProperties.";				
+//	std::cout<<"\nAll "<<entities.Size()<<" unregistered, among "<<failed<<" were already unregistered.";				
 }
 
 

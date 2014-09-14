@@ -22,18 +22,32 @@ public:
 
 	/// Getters
 	Vector2i GetValue2i();
+	Vector2f GetValue2f();
 	Vector3f GetValue3f();
 	Vector4f GetValue4f();
 	
 	/// Setters
-	void SetValue4f(Vector4f vec);
-	void SetValue3f(Vector3f vec);
 	void SetValue2i(Vector2i vec);
+	void SetValue2f(Vector2f vec);
+	void SetValue3f(Vector3f vec);
+	void SetValue4f(Vector4f vec);
+	
+	/** For mouse-scrolling. By default calls it's parent's OnScroll. Returns true if the element did anything because of the scroll.
+		The delta corresponds to amount of "pages" it should scroll.
+	*/
+	bool OnScroll(float delta);
 	
 	/// Action to be taken when any of the fields are triggered.
 	String action;
 	int numInputs;
 	int maxDecimals;
+
+	/// Defines what messages and functions will be relevant for this specific input. Default is FLOATS
+	enum {
+		INTEGERS,
+		FLOATS,
+	};
+	int dataType;
 
 	/// If true, will accept and interpret any input as a mathematical expression, evaluating it as such.
 	bool acceptMathematicalExpressions;

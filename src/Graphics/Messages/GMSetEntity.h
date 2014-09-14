@@ -3,7 +3,9 @@
 
 #include "GraphicsMessage.h"
 #include "GraphicsMessages.h"
+
 struct AnimationSet;
+class EstimatorFloat;
 
 /** For setting textures, for applicable texture-targets, see Shader.h or the following
 	DIFFUSE_MAP		0x0000001
@@ -75,6 +77,17 @@ private:
 	int target;
 };
 
+class GMSetEntityi : public GraphicsMessage 
+{
+public:
+	GMSetEntityi(List<Entity*> entities, int target, int value);
+	virtual void Process();
+private:
+	List<Entity*> entities;
+	int iValue;
+	int target;
+};
+
 class GMSetEntityVec4f : public GraphicsMessage 
 {
 public:
@@ -87,5 +100,18 @@ private:
 };
 
 
+class GMSlideEntityf : public GraphicsMessage 
+{
+public:
+	GMSlideEntityf(Entities entities, int target, EstimatorFloat * usingPrefilledEstimator);
+	GMSlideEntityf(Entities entities, int target, float targetValue, int timeInMs);
+	virtual void Process();
+private:
+	Entities entities;
+	EstimatorFloat * estimatorFloat;
+	float targetValue;
+	int target;
+	int timeInMs;
+};
 
 

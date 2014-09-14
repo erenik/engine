@@ -6,10 +6,13 @@
 #define DRAG_AND_DROP_H
 
 #include "OS/OS.h"
+#include "String/AEString.h"
 
 #ifdef WINDOWS
 
 #include <Windows.h>
+#include <OleIdl.h>
+#include <shellapi.h>
 
 #ifndef _COM_Outptr_
 #define _COM_Outptr_ __RPC__deref_out
@@ -51,6 +54,12 @@ public:
 		/* [out][in] */ __RPC__inout DWORD *pdwEffect);
    
 private:
+
+	/** Fetches active dropping object. 
+		May be called from any of the funtions to further deduce what possible effects a drop could have on this location.
+	*/	
+	int GetObject(IDataObject * pDataObj);
+
 	/// Checks if the point has something we can drop data onto.
 	bool Droppable(POINTL pt);
 	/// Updates flag depending on the point and content (which was known since the first call to...
@@ -60,6 +69,9 @@ private:
 	/// o-o
 	unsigned int refCount;
 };
+
+List<String> GetFilesFromHDrop(HDROP hDrop);
+
 
 #endif // WINDOWS
 

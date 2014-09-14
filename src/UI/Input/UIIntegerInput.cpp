@@ -51,7 +51,8 @@ bool UIIntegerInput::OnScroll(float delta)
 		MesMan.QueueMessage(m);
 		return true;
 	}
-	return false;
+	// If not, do as regular UIElements do, probably query parents..
+	return UIElement::OnScroll(delta);
 }
 
 /** Used by input-capturing elements. Calls recursively upward until an element wants to respond to the input.

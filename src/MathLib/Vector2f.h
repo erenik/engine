@@ -88,6 +88,9 @@ public:
 	Vector2f  operator + (const Vector2f addend) const;
 	/// Returns a subtracted vector based on this vector and the subtractor.
 	Vector2f  operator - (const Vector2f subtractor) const;
+	/// Returns a subtracted vector based on this vector and the subtractor.
+	Vector2f  operator * (const Vector2f elementMultiplier) const;
+
 
 	/// Multiplication with ints
 	friend Vector2f operator * (float multiplier, Vector2f& vector);

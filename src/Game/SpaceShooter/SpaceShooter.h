@@ -100,6 +100,9 @@ public:
 	/// Absolute co-ordinates of the game field.
 	float top, bottom, left, right;
 
+	/// If the player only can steer in Y. Default false.
+	bool yOnly;
+
 	// For setting up the playing field.
 	// Spacing between the left side and the player.
 	float leftSpacing;		
@@ -121,6 +124,12 @@ public:
 	int collisionCategoryPlayer;
 	/// 1 << 5
 	int collisionCategoryEnemy;
+
+	/// Dead time in milli-seconds.
+	bool playerDead;
+	int deadTimeMs;
+	Time lastFrame;
+	
 
 private:
 };

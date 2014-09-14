@@ -12,12 +12,15 @@
 /// Applies pathfinding for all relevant entities
 void PhysicsManager::ApplyPathfinding(){
 	/// Woo!
-	for (int i = 0; i < dynamicEntities.Size(); ++i){
+	for (int i = 0; i < dynamicEntities.Size(); ++i)
+	{
 		
 		// Fetch initial data
 		Entity * entity = dynamicEntities[i];
 		PhysicsProperty * physics = entity->physics;
 		PathfindingProperty * pathProp = entity->pathfindingProperty;
+		if (!pathProp)
+			continue;
 		Path * path = NULL;
 		bool hasPathsToTread = pathProp->HasPathsToTread();	
 		if (pathProp){

@@ -9,7 +9,8 @@ GMUnregisterEntity::GMUnregisterEntity(Entity * i_entity) : GraphicsMessage(GM_U
 	entity = i_entity;
 }
 
-void GMUnregisterEntity::Process(){
+void GMUnregisterEntity::Process()
+{
 	Graphics.UnregisterEntity(entity);
 }
 

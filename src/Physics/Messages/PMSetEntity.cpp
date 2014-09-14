@@ -204,7 +204,7 @@ void PMSetEntity::Process()
 {
 #define ASSERT_ENTITY_NOT_STATIC { \
 	if (entity->physics->type == PhysicsType::STATIC){ \
-		std::cout<<"\nEntity "<<entity->name<<" physics is static, converting to dynamic."; \
+/*		std::cout<<"\nEntity "<<entity->name<<" physics is static, converting to dynamic."; */\
 		Physics.SetPhysicsType(entity, PhysicsType::DYNAMIC); \
 	} \
 }
@@ -484,7 +484,8 @@ void PMSetEntity::Process()
 				break;
 			case PT_ESTIMATION_ENABLED:
 				entity->physics->estimationEnabled = bValue;
-				if (bValue && !entity->physics->estimator){
+				if (bValue && !entity->physics->estimator)
+				{
 					entity->physics->estimator = new EntityPhysicsEstimator(entity);
 				}
 				break;

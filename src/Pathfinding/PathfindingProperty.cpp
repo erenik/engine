@@ -33,7 +33,8 @@ void PathfindingProperty::QueuePath(Path path){
 	queuedPath = path;
 }
 
-bool PathfindingProperty::HasPathsToTread(){
+bool PathfindingProperty::HasPathsToTread()
+{
 	if (currentPath.Waypoints())
 		return true;
 	if (queuedPath.Waypoints())

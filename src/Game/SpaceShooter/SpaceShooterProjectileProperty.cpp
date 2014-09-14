@@ -35,6 +35,10 @@ int SpaceShooterProjectileProperty::ID()
 /// If reacting to collisions...
 void SpaceShooterProjectileProperty::OnCollision(Collision & data)
 {
+	/// Already exploded! o.o
+	if (sleeping)
+		return;
+
 	// If projectile-projectile, remove them both?
 	Entity * other = 0;
 	if (data.one == owner)
@@ -49,13 +53,7 @@ void SpaceShooterProjectileProperty::OnCollision(Collision & data)
 	Entity * explosionEntity = game->NewExplosion(owner->position);
 	Physics.QueueMessage(new PMSetEntity(explosionEntity, PT_SET_SCALE, 45.f));
 	game->explosions.Add(explosionEntity);
-	SpaceShooterExplosionProperty * explode = new SpaceShooterExplosionProperty(explosionEntity);
-	explosionEntity->properties.Add(explode);
-	explode->startTime = Time::Now();
-
-	// MAke it render correctly
-	Graphics.QueueMessage(new GMSetEntityb(explosionEntity, GT_REQUIRE_DEPTH_SORTING, true));
-
+	
 }
 
 
@@ -79,16 +77,14 @@ void SpaceShooterProjectileProperty::Process(int timeInMs)
 		return;
 
 	// Check life-time too. So we don't remove it straight away on spawn.
-	Time now = Time::Now();
-	int alive = (now - spawnTime).Seconds();
+	timeAliveMs += timeInMs;
 	// Assume there is some max life-time to all projectiles.!
 	if (/*game->IsPositionOutsideFrame(owner->position) && alive >= 3 || */
-		alive >= 10)
+		timeAliveMs >= 10000 ||
+		(owner->position.x < game->left  && owner->Velocity().x < 0) ||
+		(owner->position.x > game->right && owner->Velocity().x > 0) )
 	{
-		// Remove ourselves.
-		Physics.QueueMessage(new PMUnregisterEntity(owner));
-		Graphics.QueueMessage(new GMUnregisterEntity(owner));
-		sleeping = true;
+		Sleep();
 	}
 }
 
@@ -96,5 +92,5 @@ void SpaceShooterProjectileProperty::Process(int timeInMs)
 void SpaceShooterProjectileProperty::OnSpawn()
 {
 	sleeping = false;
-	spawnTime = Time::Now();
+	timeAliveMs = 0;
 }

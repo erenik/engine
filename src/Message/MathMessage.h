@@ -28,6 +28,7 @@ public:
 class VectorMessage : public Message {
 public:
 	VectorMessage(String message, Vector2i vectorValue);
+	VectorMessage(String message, Vector2f vectorValue);
 	VectorMessage(String message, Vector3f vectorValue);
 	VectorMessage(String message, Vector4f vectorValue);
 	virtual ~VectorMessage();
@@ -35,12 +36,14 @@ public:
 	Vector4f GetVector4f();
 	enum vectorTypes {
 		VECTOR_2I,
+		VECTOR_2F,
 		VECTOR_3F,
 		VECTOR_4F,
 	};
 	/// Specifies which kind of vector data is sent along in this message. See enum above.
 	int vectorType;
 	Vector2i vec2i;
+	Vector2f vec2f;
 	Vector3f vec3f;
 	Vector4f vec4f;
 };

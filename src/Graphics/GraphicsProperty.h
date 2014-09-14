@@ -18,6 +18,7 @@ struct AnimationSet;
 struct Animation;
 class ParticleSystem;
 class Camera;
+class Estimator;
 
 /// Flags for toggling stuff
 namespace RenderFlags {
@@ -26,16 +27,24 @@ namespace RenderFlags {
 	const int REQUIRES_DEPTH_SORTING	=	0x00000004; // For alpha effects, these usually require depth-sorting!
 };
 
+#define ADD_GRAPHICS_PROPERTY_IF_NEEDED(entity) {if (!entity->graphics) entity->graphics = new GraphicsProperty(entity);}
+
 /// Class for holding any relevant data beyond static single models/textures
 struct GraphicsProperty 
 {
 	friend class GMSetEntity;
+	friend class GMSlideEntityf;
 	friend class GMPlayAnimation;
 	friend class GMQueueAnimation;
 	friend class Entity;
 public:
+	
 	GraphicsProperty(Entity * owner);
 	~GraphicsProperty();
+
+	/// Processes estimators related to this entity. Possibly particle effects too?
+	virtual void Process(int timeInMs);
+
 	/// Loads save data from target CompactGraphics equivalent that can be saved to file.
 	bool LoadDataFrom(const CompactGraphics * cGraphics);
 	/// Fetches relevant texture for current frame time. This assumes that the element has an active animation playing.
@@ -48,18 +57,22 @@ public:
 	bool visible;
 	/// Effects are graphics that are rendered after the regular render-passes,
 	/// usually with other (unique) blending modes.
-	List<GraphicEffect*> * effects;
+	List<GraphicEffect*> effects;
 	/// Particle systems attached to le entity
-	List<ParticleSystem*> * particleSystems;
+	List<ParticleSystem*> particleSystems;
 	/// Lights that are attached to the entity (relative position/direction/etc.)
 	/// Dynamic lights are updated each frame whilst the static lights are added
 	/// to the primary lighting-setup on attachment.
-	List<Light*> * dynamicLights, * staticLights;
+	List<Light*> dynamicLights, staticLights;
 
 	// For rendering a text string next to an entity
 	Text text;
 	// Relative to the 1.0 unit length used by entities? so 1 = 1 meter. 0.01 = 1 cm?
 	float textSizeRatio;
+
+	/// Equivalent to "primaryColorVec4f" which is used in the shader's multiplicatively. Default should be (1,1,1,1)
+	Vector4f color;
+
 	Vector4f textColor;
 	// Offset?
 	Vector4f textPositionOffset; 
@@ -69,7 +82,14 @@ public:
 	/// Currently calculated manually when sorting before rendering.
 	float zDepth;
 
+	/// E.g. GL_ONE for additive blending, or GL_ONE_MINUS_SRC_ALPHA for regular alpha-blending. Default GL_SRC_ALPHA for source and GL_ONE_MINUS_SRC_ALPHA for dest.
+	int blendModeSource, blendModeDest; 
+	/// If true, requires depth test while rendering, false skips. Default true.
+	bool depthTest;
+
 private:
+	/// Estimators which are currently tweaking various graphic-specific values over time.
+	List<Estimator*> estimators;
 
 	/// Sets current animation. Only called from the GMSetEntity message. If faulty, animation will be nullified.
 	void SetAnimation(String name);

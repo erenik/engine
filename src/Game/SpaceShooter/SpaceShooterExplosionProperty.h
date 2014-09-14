@@ -12,7 +12,13 @@ public:
 	/// Time passed in seconds..!
 	virtual void Process(int timeInMs);
 
-	Time startTime;
+	/// Call to reset time alive to 0.
+	void OnSpawn();
+
+	/// ID of this class, also assigned to all created properties of this type.
+	static int ID();
+
+	int timeAliveMs;
 
 	/// o-o
 	bool sleeping;

@@ -6,6 +6,9 @@
 #include "GMSetEntity.h"
 #include "TextureManager.h"
 #include "Model.h"
+
+#include "PhysicsLib/EstimatorFloat.h"
+
 #include "Graphics/Animation/AnimationManager.h"
 #include "Graphics/Animation/AnimationSet.h"
 #include "Graphics/GraphicsProperty.h"
@@ -50,7 +53,8 @@ GMSetEntity::GMSetEntity(Entity * entity, int target)
 	{
 		case GT_CLEAR_CAMERA_FILTER:
 			break;
-		default: assert(false && "Bad target");
+		default: 
+			assert(false && "Bad target");
 	}
 }
 
@@ -105,6 +109,8 @@ GMSetEntity::GMSetEntity(Entity * entity, int target, Model * model)
 			assert(false && "Bad target in GMSetEntity");
 	}
 }
+
+
 void GMSetEntity::Process()
 {
 	for (int i = 0; i < entities.Size(); ++i)
@@ -117,6 +123,7 @@ void GMSetEntity::Process()
 		}
 		/// Should probably just attach this when adding it for rendering...?
 		assert(entity->graphics);
+		GraphicsProperty * graphics = entity->graphics;
 
 		switch(target)
 		{
@@ -175,6 +182,7 @@ GMSetEntityb::GMSetEntityb(List<Entity*> entities, int target, bool value)
 	{
 		case GT_VISIBILITY:
 		case GT_REQUIRE_DEPTH_SORTING:
+		case GT_DEPTH_TEST:
 			break;
 		default:
 			assert(false && "Bad target in GMSetEntityb");
@@ -188,6 +196,9 @@ void GMSetEntityb::Process()
 		assert(entity->graphics);
 		switch(target)
 		{
+			case GT_DEPTH_TEST:
+				entity->graphics->depthTest = bValue;
+				break;
 			case GT_VISIBILITY:
 				entity->graphics->visible = bValue;
 				break;
@@ -231,6 +242,7 @@ GMSetEntityf::GMSetEntityf(List<Entity*> entities, int target, float value)
 	switch(target)
 	{
 		case GT_TEXT_SIZE_RATIO:
+		case GT_ALPHA:
 			break;
 		default:
 			assert(false && "Bad value");
@@ -244,12 +256,50 @@ void GMSetEntityf::Process()
 		assert(entity->graphics);
 		switch(target)
 		{
+			case GT_ALPHA:
+				entity->graphics->color.w = fValue;
+				break;
 			case GT_TEXT_SIZE_RATIO:
 				entity->graphics->textSizeRatio = fValue;
 				break;
 		}
 	}
 }
+
+GMSetEntityi::GMSetEntityi(List<Entity*> entities, int target, int value)
+	: GraphicsMessage(GM_SET_ENTITY_INTEGER), entities(entities), target(target), iValue(value)
+{
+	switch(target)
+	{
+		case GT_BLEND_MODE_SRC:
+		case GT_BLEND_MODE_DST:
+			break;
+		default:
+			assert(false);
+	}
+}
+
+void GMSetEntityi::Process()
+{
+	for (int i = 0; i < entities.Size(); ++i)
+	{
+		Entity * entity = entities[i];
+		/// Should probably just attach this when adding it for rendering...?
+		assert(entity->graphics);
+		GraphicsProperty * graphics = entity->graphics;
+
+		switch(target)
+		{
+			case GT_BLEND_MODE_SRC:
+				graphics->blendModeSource = iValue;
+				break;
+			case GT_BLEND_MODE_DST:
+				graphics->blendModeDest = iValue;
+				break;
+		}
+	}
+}
+
 
 
 GMSetEntityVec4f::GMSetEntityVec4f(List<Entity*> entities, int target, Vector4f value)
@@ -275,7 +325,7 @@ void GMSetEntityVec4f::Process()
 		{
 			case GT_TEXT_COLOR:
 				entity->graphics->textColor = vec4fValue;
-				std::cout<<"lall";
+			//	std::cout<<"lall";
 				break;
 			case GT_TEXT_POSITION:
 				entity->graphics->textPositionOffset = vec4fValue;
@@ -284,6 +334,59 @@ void GMSetEntityVec4f::Process()
 				entity->graphics->renderOffset = vec4fValue;
 				break;
 		}
+	}
+}
+
+GMSlideEntityf::GMSlideEntityf(Entities entities, int target, EstimatorFloat * usingPrefilledEstimator)
+	:  GraphicsMessage(GM_SLIDE_ENTITY), entities(entities), target(target), estimatorFloat(usingPrefilledEstimator)
+{
+	switch(target)
+	{
+		case GT_ALPHA:
+			break;
+		default:
+			assert(false);
+	}
+}
+
+GMSlideEntityf::GMSlideEntityf(Entities entities, int target, float targetValue, int timeInMs)
+	:  GraphicsMessage(GM_SLIDE_ENTITY), entities(entities), target(target), targetValue(targetValue), timeInMs(timeInMs)
+{
+	switch(target)
+	{
+		case GT_ALPHA:
+			break;
+		default:
+			assert(false && "Invalid target in GMSlideEntity");
+	}
+}
+
+#include "PhysicsLib/EstimatorFloat.h"
+
+void GMSlideEntityf::Process()
+{
+	for (int i = 0; i < entities.Size(); ++i)
+	{
+		Entity * entity = entities[i];
+		GraphicsProperty * graphics = entity->graphics;
+		assert(graphics);
+		// Create the slider (estimator)
+		if (!estimatorFloat)
+		{
+			// Non pre-filled? 
+			estimatorFloat = new EstimatorFloat();
+			estimatorFloat->AddState(graphics->color.w, 0);
+			estimatorFloat->AddState(this->targetValue, this->timeInMs);
+		}
+		switch(target)
+		{
+			case GT_ALPHA:
+				estimatorFloat->variableToPutResultTo = &graphics->color.w;
+				break;
+			default:
+				assert(false);
+		}
+		graphics->estimators.Add(estimatorFloat);
 	}
 }
 

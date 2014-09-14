@@ -50,9 +50,11 @@ public:
 		Assumes only 1 active camera is being used for 1 main viewport or window.
 	*/
 	Camera * PreviousCamera();
-
-
 	Camera * DefaultCamera();
+
+	/// Lists all cameras to standard output
+	void ListCameras();
+
 	
 private:
 	Camera * defaultCamera;

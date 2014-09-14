@@ -28,6 +28,7 @@ Texture::Texture()
 	dynamic = false;
 	mipmappingEnabled = true;
 	dataBufferSize = 0;
+	samplingMode = LINEAR;
 	creationDate = lastUpdate = Timer::GetCurrentTimeMs();
 
 	fData = NULL;
@@ -567,6 +568,23 @@ void Texture::SetColorOfRow(int row, Vector4f color)
 			buf[psi+2] = (unsigned char) (color.z * 255.f);
 			buf[psi+3] = (unsigned char) (color.w * 255.f);
 		}
+	}
+}
+
+
+/// Sets sampling mode based on samplingMode current value.
+void Texture::SetSamplingMode()
+{
+	switch(samplingMode)
+	{
+		case LINEAR:
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			break;
+		case NEAREST:
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			break;
 	}
 }
 

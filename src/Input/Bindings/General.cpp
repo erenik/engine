@@ -19,7 +19,7 @@
 
 #include "Message/FileEvent.h"
 #include "Message/MessageManager.h"
-
+#include "Window/DragAndDrop.h"
 
 enum generalActions
 {
@@ -98,6 +98,7 @@ void CreateDefaultGeneralBindings()
 	mapping->CreateBinding("Pause/Break", KEY::PAUSE_BREAK);
 	// For toggling mouse input.
 	mapping->CreateBinding("IgnoreMouseInput", KEY::CTRL, KEY::I, KEY::M);
+	mapping->CreateBinding("List cameras", KEY::CTRL, KEY::L, KEY::C);
 
 	mapping->CreateBinding(CLOSE_WINDOW, ctrl, KEY::W);
 	mapping->CreateBinding(OPEN_LIGHTING_EDITOR, ctrl, KEY::O, KEY::L);
@@ -212,28 +213,7 @@ void generalInputProcessor(int action, int inputDevice)
 		}
 		case PRINT_FRAME_TIME:
 		{
-			std::cout<<"\nFrame time, total: "<<Graphics.FrameTime()<<" Average FPS: "<< 1000.0f / Graphics.FrameTime()
-                <<" \n- MessageProcessing: "<<Graphics.graphicsMessageProcessingFrameTime
-                <<" \n- Updates: "<<Graphics.graphicsUpdatingFrameTime
-				<<" \n- Render: "<<Graphics.RenderFrameTime()
-				<<" \n  - PreRender: "<<Graphics.preRenderFrameTime
-				<<" \n  - PostRender(UI,grid): "<<Graphics.postViewportFrameTime
-				<<" \n  - Swapbuffers: "<<Graphics.swapBufferFrameTime
-                <<" \n  - Viewports: "<<Graphics.renderViewportsFrameTime;
-			
-			/*
-            for (int i = 0; i < Graphics.GetViewports().Size() && i < 4; ++i)
-                std::cout<<" \n    - v"<<i<<" : "<<Graphics.renderViewportFrameTime[i];
-
-            std::cout<<" \n- Physics: "<<Graphics.PhysicsFrameTime()
-				<<" \n  - Recalculating properties: "<<Physics.GetRecalculatingPropertiesFrameTime()
-				<<" \n  - Movement: "<<Physics.GetMovementFrameTime()
-				<<" \n  - Collision: "<<Physics.GetCollisionProcessingFrameTime()
-				<<" \n    - PhysicsMeshCollisionChecks: "<<Physics.GetPhysicsMeshCollisionChecks()
-				<<" \n  - Processing messages: "<<Physics.GetMessageProcessingFrameTime();
-*/
 			FrameStats.Print();
-
             break;
 		}
 		case PRINT_PLAYER_INPUT_DEVICES: {
@@ -437,38 +417,14 @@ void generalInputProcessor(int action, int inputDevice)
 						return;
 
 					HDROP hDrop = (HDROP) GetClipboardData(CF_HDROP);
-					if (hDrop == NULL) {
-						int error = GetLastError();
-						std::cout<<"\nERROR: GetClipboardData failed: "<<error;
-						if (error == 1418)
-							std::cout<<": Clipboard not open";
-						break;
-					}
-					const int MAX_FILES = 10;
-					wchar_t filename[MAX_FILES][MAX_PATH];
-					wchar_t fileSuffix[10];
-					/// First extract amount of files available
-					int result = DragQueryFileW(hDrop, 0xFFFFFFFF, filename[0], MAX_PATH);
-					std::cout<<"\nINFO: Pasting from clipboard: 1 file(s):";
-					for (int i = 0; i < result && i < MAX_FILES; ++i){
-						int pathLength = DragQueryFileW(hDrop, i, filename[i], MAX_PATH);
-#ifdef _UNICODE
-						std::wcout<<"\n- "<<filename[i];
-#else
-						std::cout<<"\n- "<<filename[i];
-#endif
-					}
+					
+					List<String> files = GetFilesFromHDrop(hDrop);
+
 					// Close clipboard before we begin any further processing!
 					assert(CloseClipboard());
-					/// Go through and see if we should do anything with any of the files!
-					List<String> files;
-					for (int i = 0; i < result && i < MAX_FILES; ++i)
-					{
-						/// Check file-ending, deal with appropriately
-						memset(fileSuffix, 0, sizeof(wchar_t) * 10);
-						String file = filename[i];
-						files.Add(file);
-					}
+
+
+					assert(files.Size());
 					/// Send a message about it.
 					FileEvent * fe = new FileEvent();
 					fe->files = files;

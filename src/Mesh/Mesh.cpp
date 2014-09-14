@@ -48,11 +48,8 @@ Mesh::~Mesh()
 	/*
 	// Deallocate the lists.
 	vertices.Deallocate();
-	std::cout<<"lall";
 	uvs.Deallocate();
-	std::cout<<"lall";
 	normals.Deallocate();
-	std::cout<<"lall";
 	faces.Deallocate();
 	*/
 	if (aabb)

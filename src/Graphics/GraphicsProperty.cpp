@@ -9,15 +9,11 @@
 #include "Graphics/Animation/AnimationSet.h"
 #include "Graphics/Animation/Animation.h"
 #include "TextureManager.h"
-
+#include "PhysicsLib/Estimator.h"
 
 GraphicsProperty::GraphicsProperty(Entity * owner)
 : owner(owner)
 {
-	effects = NULL;
-	dynamicLights = NULL;
-	staticLights = NULL;
-	particleSystems = NULL;
 	flags = 0;
 	visible = true;
 	textColor = Vector4f(1,1,1,1);
@@ -28,58 +24,47 @@ GraphicsProperty::GraphicsProperty(Entity * owner)
 	animationSet = NULL;
 	queuedAnimation = NULL;
 	currentAnimation = NULL;
+
+	blendModeSource = GL_SRC_ALPHA;
+	blendModeDest = GL_ONE_MINUS_SRC_ALPHA;
+	depthTest = true;
+
+	color = Vector4f(1,1,1,1);
 }
 
 
 /// Loads save data from target CompactGraphics equivalent that can be saved to file.
 bool GraphicsProperty::LoadDataFrom(const CompactGraphics * cGraphics)
 {
-	effects = NULL;
-	dynamicLights = NULL;
-	staticLights = NULL;
-	particleSystems = NULL;
 	flags = cGraphics->flags;
 	return true;
 }
 
 GraphicsProperty::~GraphicsProperty()
 {
-	if (effects){
-	    for (int i = 0; i < effects->Size(); ++i){
-            GraphicEffect * e =(*effects)[i];
-            delete e;
-	    }
-		effects->Clear();
-		delete effects;
-	}
-	effects = NULL;
-
-	if (particleSystems){
-	    for (int i = 0; i < particleSystems->Size(); ++i){
-            ParticleSystem * ps = (*particleSystems)[i];
-            delete ps;
-	    }
-		particleSystems->Clear();
-		delete particleSystems;
-	}
-	particleSystems = NULL;
-
-	if (dynamicLights){
-	    for (int i = 0; i < dynamicLights->Size(); ++i)
-            delete (*dynamicLights)[i];
-		dynamicLights->Clear();
-		delete dynamicLights;
-	}
-	dynamicLights = NULL;
-
-	if (staticLights){
-	    for (int i = 0; i < staticLights->Size(); ++i)
-            delete (*staticLights)[i];
-		staticLights->Clear();
-		delete staticLights;
-	}
-	staticLights = NULL;
+	estimators.ClearAndDelete();
+	effects.ClearAndDelete();
+	particleSystems.ClearAndDelete();
+	dynamicLights.ClearAndDelete();
+	staticLights.ClearAndDelete();
 }
+
+/// Processes estimators related to this entity.
+void GraphicsProperty::Process(int timeInMs)
+{
+	for (int i = 0; i < estimators.Size(); ++i)
+	{
+		Estimator * estimator = estimators[i];
+		estimator->Process(timeInMs);
+		if (estimator->finished)
+		{
+			estimators.RemoveIndex(i, ListOption::RETAIN_ORDER);
+			--i;
+			delete estimator;
+		}
+	}
+}
+
 
 /// Sets current animation. Only called from the GMSetEntity message.
 void GraphicsProperty::SetAnimation(String name)

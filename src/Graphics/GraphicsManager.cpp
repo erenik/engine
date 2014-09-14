@@ -22,7 +22,6 @@
 #include "Graphics/Messages/GMUI.h"
 #include "RenderSettings.h"
 #include "GraphicsState.h"
-#include "GraphicsManager.h"
 #include "TextureManager.h"
 #include "Physics/PhysicsManager.h"
 #include "StateManager.h"
@@ -33,6 +32,9 @@
 #include "Render/RenderRay.h"
 #include "Render/Renderable.h"
 #include "Render/RenderPipelineManager.h"
+
+#include "GraphicsManager.h"
+#include "GraphicsProperty.h"
 
 //#include "Texture/Texture.h"
 //#include "Texture/TextureManager.h"
@@ -191,7 +193,7 @@ void GraphicsManager::QueryRender()
 /// Set default values to the sleep-times.
 void GraphicsManager::ResetSleepTimes(){
 	sleepTime = 0;
-	outOfFocusSleepTime = 5;
+	outOfFocusSleepTime = 15;
 }
 
 void GraphicsManager::Pause()
@@ -544,25 +546,30 @@ void GraphicsManager::ProcessMessages()
 	long long now;
 	List<GraphicsMessage*> graphicsMessages;
 	// Process queued messages
-	while (!messageQueue.isOff()){
+	while (!messageQueue.isOff())
+	{
 		GraphicsMessage * msg = messageQueue.Pop();
 		graphicsMessages.Add(msg);
 	}
 	graphicsMessageQueueMutex.Release();
 
 	/// Process each message.
-	while(graphicsMessages.Size())
+	int numMessages = graphicsMessages.Size();
+	if (numMessages > 1000)
 	{
-		GraphicsMessage * gm = graphicsMessages[0];
-		gm->Process();
-		delete gm;
-		now = Timer::GetCurrentTimeMs();
-		// Retaining the order they were queued, if possible...
-		graphicsMessages.Remove(gm, ListOption::RETAIN_ORDER);
-		/// Only process 10 ms of messages each frame!
-//		if (now > messageProcessStartTime + 100)
-//			break;
+		std::cout<<"\n"<<numMessages<<" messages to process.";
 	}
+	for (int i = 0; i < numMessages; ++i)
+	{
+		GraphicsMessage * gm = graphicsMessages[i];
+		gm->Process();
+		now = Timer::GetCurrentTimeMs();
+		/// Only process 10 ms of messages each frame!
+		if (i % 1000 == 0 && i > 0)
+			std::cout<<"\n"<<numMessages - i<<" of "<<numMessages<<" messages to process in GraphicsManager::ProcessMessages...";
+	}
+	// Clear and delete all at once...
+	graphicsMessages.ClearAndDelete();
 }
 
 void GraphicsManager::ToggleFullScreen(Window * window)
@@ -915,9 +922,12 @@ void GraphicsManager::DeallocFrameBuffer(){
 void GraphicsManager::UpdateLighting()
 {
 	Lighting * lightingToRender = graphicsState->lighting;
+	if (lightingToRender == NULL)
+		return;
 	// Reset the lights in the lighting to be first only the static ones.
 	*lightingToRender = lighting;
-	for (int i = 0; i < graphicsState->dynamicLights.Size(); ++i){
+	for (int i = 0; i < graphicsState->dynamicLights.Size(); ++i)
+	{
 		Light * light = graphicsState->dynamicLights[i];
 		// Update it's position relative to the entity.. important!
 		Entity * owner = light->owner;
@@ -936,10 +946,23 @@ void GraphicsManager::UpdateLighting()
 
 #include "Particles/ParticleSystem.h"
 
-void GraphicsManager::Process(){
+void GraphicsManager::Process()
+{
+	static Time lastTime = Time::Now();
+	Time now = Time::Now();
+
+	int milliseconds = (now - lastTime).Milliseconds();
+	lastTime = now;
+
 	/// Process particle effects.
 	for (int i = 0; i < particleSystems.Size(); ++i){
 		particleSystems[i]->Process(graphicsState->frameTime);
+	}
+	/// Process entity specific controls and systems
+	for (int i = 0; i < registeredEntities.Size(); ++i)
+	{
+		Entity * entity = registeredEntities[i];
+		entity->graphics->Process(milliseconds);
 	}
 }
 

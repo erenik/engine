@@ -18,6 +18,7 @@ void PhysicsManager::Integrate(float timeInSecondsSinceLastUpdate)
 
 	if (physicsIntegrator)
 	{
+		physicsIntegrator->IsGood();
 		physicsIntegrator->IntegrateDynamicEntities(dynamicEntities, timeInSecondsSinceLastUpdate);
 		physicsIntegrator->IntegrateKinematicEntities(kinematicEntities, timeInSecondsSinceLastUpdate);
 	}
@@ -82,9 +83,12 @@ void PhysicsManager::Integrate(float timeInSecondsSinceLastUpdate)
 		PhysicsProperty * pp = dynamicEntity->physics;
         Vector3f vel = dynamicEntity->physics->velocity;
         /// Update octree or AABB position as needed.
-        if (dynamicEntity->physics->collissionsEnabled){
+        if (dynamicEntity->physics->collissionsEnabled)
+		{
             if (checkType == OCTREE)
-                this->entityCollisionOctree->RepositionEntity(dynamicEntity);
+			{
+				entityCollisionOctree->RepositionEntity(dynamicEntity);
+			}
             else if (checkType == AABB_SWEEP){
                 /// Recalculate AABB
                 dynamicEntity->physics->aabb->Recalculate(dynamicEntity);

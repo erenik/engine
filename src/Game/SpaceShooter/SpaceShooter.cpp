@@ -71,7 +71,10 @@ SpaceShooter::SpaceShooter()
 	gameState = SETTING_UP_PLAYFIELD;
 
 	level = 0;
+	playerDead = false;
+	lastFrame = Time::Now();
 
+	yOnly = false;
 }
 
 SpaceShooter::~SpaceShooter()
@@ -106,7 +109,8 @@ void SpaceShooter::ProcessMessage(Message * message)
 /// Call on a per-frame basis.
 void SpaceShooter::Process()
 {
-	
+	Time now = Time::Now();
+	int timeInMs = (now - lastFrame).Milliseconds();
 	// 
 	switch(gameState)
 	{
@@ -117,9 +121,18 @@ void SpaceShooter::Process()
 		}
 		case GAME_BEGUN:
 		{
-			break;
+			if (playerDead)
+			{
+				deadTimeMs += timeInMs;
+				if (deadTimeMs > 2000)
+				{
+					Reset();
+				}
+			}
+			break; 
 		}
 	}
+	lastFrame = now;
 }
 
 /// Fetches all entities concerning this game.
@@ -138,6 +151,7 @@ void SpaceShooter::UseMouseInput(bool useItOrNot)
 void SpaceShooter::Reset()
 {
 	level = 0;
+	playerDead = false;
 	SetupPlayingField();
 }
 
@@ -319,18 +333,27 @@ Entity * SpaceShooter::NewExplosion(Vector3f atPosition)
 	for (int i = 0; i < explosions.Size(); ++i)
 	{
 		Entity * explosion = explosions[i];
-		SpaceShooterExplosionProperty * prop = (SpaceShooterExplosionProperty *) explosion->GetProperty("SpaceShooterExplosionProperty");
+		SpaceShooterExplosionProperty * prop = explosion->GetProperty<SpaceShooterExplosionProperty>();
 		if (prop && prop->sleeping)
 		{
 			newExplosion = explosion;
-			prop->sleeping = false;
+			prop->OnSpawn();
 			Physics.QueueMessage(new PMSetEntity(newExplosion, PT_SET_POSITION, atPosition));
 		}
 	}
 
 	if (newExplosion == NULL)
+	{
 		newExplosion = MapMan.CreateEntity("Explosion", ModelMan.GetModel("Sprite"), TexMan.GetTexture("Explosion"), atPosition);
-
+		SpaceShooterExplosionProperty * explode = new SpaceShooterExplosionProperty(newExplosion);
+		newExplosion->properties.Add(explode);
+		explode->OnSpawn();
+	}
+	// Make it render correctly
+	Graphics.QueueMessage(new GMSetEntityb(newExplosion, GT_REQUIRE_DEPTH_SORTING, true));
+	Graphics.QueueMessage(new GMSetEntityi(newExplosion, GT_BLEND_MODE_SRC, GL_SRC_ALPHA));
+	Graphics.QueueMessage(new GMSetEntityi(newExplosion, GT_BLEND_MODE_DST, GL_DST_ALPHA));
+	Graphics.QueueMessage(new GMSetEntityb(newExplosion, GT_DEPTH_TEST, false));
 	// Register for graphics!
 	Graphics.QueueMessage(new GMRegisterEntity(newExplosion));
 
@@ -386,15 +409,16 @@ void SpaceShooter::SetPlayerPosition(Vector3f position)
 {
 	if (!player1)
 		return;
+	if (player1Properties->useMouseInput)
+		return;
 	// Move it!
-	int p = 0;
-	switch(p)
+	if (yOnly)
 	{
-		case 1:
-			Physics.QueueMessage(new PMSetEntity(player1, PT_POSITION_Y, position.y));
-			break;
-		default:
-			Physics.QueueMessage(new PMSetEntity(player1, PT_POSITION, position));
+		Physics.QueueMessage(new PMSetEntity(player1, PT_POSITION_Y, position.y));
+	}
+	else 
+	{
+		Physics.QueueMessage(new PMSetEntity(player1, PT_POSITION, position));
 	}
 	if (!player1Properties)
 		return;
@@ -534,7 +558,8 @@ void SpaceShooter::OnPlayerDestroyed(Entity * player)
 	if (player == player1)
 	{
 		std::cout<<"\n PLYAER HIT!";
-		MesMan.QueueMessages("Reset");
+		playerDead = true;
+		deadTimeMs = 0;
 		return;
 	}
 

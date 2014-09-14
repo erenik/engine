@@ -144,6 +144,17 @@ Vector2f  Vector2f::operator - (Vector2f subtractor) const {
 	return newVec;
 }
 
+/// Returns a subtracted vector based on this vector and the subtractor.
+Vector2f Vector2f::operator * (const Vector2f elementMultiplier) const 
+{
+	Vector2f newVec;
+	newVec.x = x * elementMultiplier.x;
+	newVec.y = y * elementMultiplier.y;
+	return newVec;
+}
+
+
+
 /// Multiplication with float
 Vector2f operator * (float multiplier, Vector2f& vector){
 	Vector2f  newVec;

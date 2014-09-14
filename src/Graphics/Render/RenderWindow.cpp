@@ -121,7 +121,6 @@ void GraphicsManager::RenderWindow()
 			if (vp->camera)
 			{
 				graphicsState->camera = vp->camera;
-				vp->camera->ProcessMovement(graphicsState->frameTime);
 			}
 			graphicsState->activeViewport = vp;
 			RenderViewport(vp);

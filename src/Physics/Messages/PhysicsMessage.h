@@ -237,7 +237,7 @@ private:
 	float floatValue;
 	bool bValue;
 	Vector3f vec3fValue;
-	Integrator * physicsIntegrator;
+	Integrator * i;
 	CollisionResolver * cr;
 	CollisionDetector * cd;
 };

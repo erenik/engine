@@ -64,6 +64,14 @@ public:
 	String value;
 };
 
+class BoolMessage : public Message 
+{
+public:
+	BoolMessage(String message, bool value);
+	virtual ~BoolMessage();
+	bool value;
+};
+
 class TextureMessage : public Message {
 public:
 	TextureMessage(String message, String textureSource);

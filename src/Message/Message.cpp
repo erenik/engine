@@ -52,6 +52,16 @@ SetStringMessage::~SetStringMessage()
 
 }
 
+BoolMessage::BoolMessage(String message, bool value)
+	: Message(MessageType::BOOL_MESSAGE), value (value)
+{
+	msg = message;
+}
+BoolMessage::~BoolMessage()
+{
+
+}
+
 TextureMessage::TextureMessage(String message, String textureSource)
 : Message(MessageType::TEXTURE_MESSAGE)
 {

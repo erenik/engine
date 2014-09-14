@@ -43,7 +43,10 @@ enum graphicsMessages {
 	GM_SET_ENTITY_STRING,
 	GM_SET_ENTITY_TEXTURE,
 	GM_SET_ENTITY_FLOAT,
+	GM_SET_ENTITY_INTEGER,
 	GM_SET_ENTITY_VEC4F,
+	/// Setting values to change over time.
+	GM_SLIDE_ENTITY,
 
 	// Stuff
 	GM_CLEAR_OVERLAY_TEXTURE,
@@ -146,10 +149,13 @@ enum graphicsTargets
 
 	// Camera targets
 	GT_CAMERA_TARGET_0,
-	GT_CAMERA_TARGET_20 = GT_CAMERA_TARGET_0 + 20,
+	GT_CAMERA_TARGET_20 = GT_CAMERA_TARGET_0 + 50,
 
 	// Added with SetEntity
 	GT_REQUIRE_DEPTH_SORTING, // So rendering things work properly, specifically for sprites.
+	GT_BLEND_MODE_SRC, // E.g. GL_ONE for additive blending, or GL_ONE_MINUS_SRC_ALPHA for regular alpha-blending.
+	GT_BLEND_MODE_DST,
+	GT_DEPTH_TEST, // True to require depth test, false to skip.
 	GT_VISIBILITY,
 	GT_TEXT,
 	GT_TEXT_COLOR,

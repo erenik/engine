@@ -246,8 +246,7 @@ const String& String::operator = (const char * otherString)
 	type = String::CHAR;
 	Reallocate(length+1);
     memset(arr, 0, arraySize);
-/*	std::cout<<"lall";
-	std::cout<<"Length of \""<<otherString<<"\": "<<length<<" arraySize: "<<arraySize;
+/*	std::cout<<"Length of \""<<otherString<<"\": "<<length<<" arraySize: "<<arraySize;
 	for (int i = 0; i < arraySize; ++i)
 	{
 		char c = arr[i];

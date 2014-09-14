@@ -24,23 +24,40 @@ Entities::~Entities()
 };
 
 /// Copy constructor..!
-Entities::Entities(const Entities& otherEntities) : List<Entity*> ((List<Entity*>&)otherEntities) {
+Entities::Entities(const Entities& otherEntities) 
+: List<Entity*> ((List<Entity*>&)otherEntities) 
+{
+	// Already done in List<Entity*> constructor?
+	/*
 	currentItems = otherEntities.currentItems;
 	arrLength = currentItems;
 	arr = new Entity * [currentItems];
 	for (int i = 0; i < currentItems; ++i){
 		arr[i] = otherEntities.arr[i];
 	}
+	*/
 }
+
 /// Inherit-Copy constructor
-Entities::Entities(const List<Entity*> &entityList) : List<Entity*> ((List<Entity*>&)entityList){
+Entities::Entities(const List<Entity*> &entityList) 
+: List<Entity*> ((List<Entity*>&)entityList)
+{
+	// Already done in List<Entity*> constructor?
+	/*
 	currentItems = entityList.Size();
 	arrLength  = currentItems;
 	arr = new Entity * [currentItems];
 	for (int i = 0; i < currentItems; ++i){
 		arr[i] = entityList[i];
-	}
+	}*/
 }
+
+// New list from single entity.
+Entities::Entities(Entity * entity)
+	: List<Entity*>(entity)
+{
+}
+
 
 /// Removes all entities that are outside the frustum.
 Entities Entities::CullByCamera(Camera * camera) const{

@@ -57,7 +57,7 @@ int PhysicsManager::RegisterEntity(Entity * newEntity)
 		aabbSweeper->RegisterEntity(newEntity);
 	}
 	else {
-		std::cout<<"\nWARNING: Entity: "<<newEntity->name<<" not flagged for physics! Is this the intent?";
+	//	std::cout<<"\nWARNING: Entity: "<<newEntity->name<<" not flagged for physics! Is this the intent?";
 	}
 
 

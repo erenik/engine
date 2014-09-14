@@ -70,10 +70,14 @@ float FrameStatistics::FPS(){
 
 void FrameStatistics::Print(){
 	std::cout
-		<<"\nNew frame statistics (total): "
-		<<"\n- Scene: "<<lastSceneTime
-		<<"\n- Alphas: "<<lastAlphaTime
-		<<"\n- Effects: "<<lastEffectsTime
-		<<"\n- UI: "<<lastUITime
+		<<"\nFrame statistics (total): "
+		<<"\n- Physics total: "<< totalPhysics
+		<<"\n	- processing: "<<physicsProcessing
+		<<"\n		- integration: " <<physicsIntegration
+		<<"\n	- messages: "<<physicsMessages
+		<<"\n- Graphics total: "<<totalGraphics
+		<<"\n	- render: "<<renderTotal
+		<<"\n	- messages: "<<graphicsMessages
+		<<"\n- Multimedia/Audio: "<<multimedia
 		<<"\n- Average FPS: "<<fps;
 }

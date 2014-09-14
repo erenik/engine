@@ -21,20 +21,18 @@ GMSetGraphicEffect::GMSetGraphicEffect(int target, String effectName, void * dat
 
 }
 
-void GMSetGraphicEffect::Process(){
+void GMSetGraphicEffect::Process()
+{
 	GraphicEffect * gfx = NULL;
-	List<GraphicEffect*> * effects;
-	if (owner){
-		effects = owner->graphics->effects;
-	}
-	assert(effects && "WARNING: No valid list was provided in GMSetGraphicEffect!");
-	for (int i = 0; i < effects->Size(); ++i){
-		if ((*effects)[i]->name == effectName){
-			gfx = (*effects)[i];
+	List<GraphicEffect*> & effects = owner->graphics->effects;
+	for (int i = 0; i < effects.Size(); ++i)
+	{
+		if (effects[i]->name == effectName)
+		{
+			gfx = effects[i];
 			break;
 		}
 	}
-	assert(gfx && "WARNING: Unable to find effect in GMSetGraphicEffect, returning!");
 	if (gfx == NULL)
 		return;
 

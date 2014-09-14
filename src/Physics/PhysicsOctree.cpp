@@ -132,7 +132,8 @@ void PhysicsOctree::clearAll(){
 /** Adds a scenegraph Entity to this vfcOctree Entity unless max nodes has been reached.
 	If MAX_INITIAL_NODES_BEFORE_SUBDIVISION is reached, subdivision hasn't yet been done and MAX_SUBDIVISION hasn't been reached, subdivision occurs.
 */
-bool PhysicsOctree::AddEntity(Entity * targetEntity){
+bool PhysicsOctree::AddEntity(Entity * targetEntity)
+{
 	// Check that it isn't already added!
 	bool exists = entities.Exists(targetEntity);
 	if (exists){
@@ -141,18 +142,22 @@ bool PhysicsOctree::AddEntity(Entity * targetEntity){
 		return false;
 	}
 	// If we have children, check if it fits in any of them.
-	if (child[0]){
+	if (child[0])
+	{
 		int result = OUTSIDE;
-		for (int i = 0; i < MAX_CHILDREN; ++i){
+		for (int i = 0; i < MAX_CHILDREN; ++i)
+		{
 			result = child[i]->IsEntityInside(targetEntity);
-			switch(result){
-					// If the Entity is outside, just check next Entity~
+			switch(result)
+			{		
 				case OUTSIDE:
-					continue; 	break;
+					// If the Entity is outside, just check next octree-section~
+					continue; 
+				case INTERSECT: 
 					// If intersecting, don't do anything. Check all children and handle intersections after this for-loop.
-				case INTERSECT: break;
-					// If it is inside, continue down the chain and then return from hierrr.
+					break;
 				case INSIDE:
+					// If it is inside, continue down the chain and then return from hierrr.
 					return child[i]->AddEntity(targetEntity);
 			}
 		}
@@ -195,7 +200,8 @@ bool PhysicsOctree::Exists(Entity * entity){
 }
 
 /// Removes the Entity and re-inserts it to it's new location
-bool PhysicsOctree::RepositionEntity(Entity * entity){
+bool PhysicsOctree::RepositionEntity(Entity * entity)
+{
 	// Check for vfcOctree node in Entity.
 	PhysicsOctree * node = entity->physics->octreeNode;
 	if (node == NULL){
@@ -204,15 +210,15 @@ bool PhysicsOctree::RepositionEntity(Entity * entity){
 	assert(node);
 	/// Why do we check this? This means that the entity will not move to a lesser vfcOctree node even if that is possibubul öAö
 	int status = node->IsEntityInside(entity);
-	switch(status){
+	switch(status)
+	{
 		case INSIDE:
-			/// Check if it can go down further the vfcOctree
-			RemoveEntity(entity);
-			AddEntity(entity);
-			break;
+			/// Still inside the node it was in on the start of the frame? Then leave it be.
+			return true;
 		case OUTSIDE: case INTERSECT:
 			// Send it upwards until it fits
-			while(true){
+			while(true)
+			{
 				if (node->parent == NULL){
 					std::cout<<"\nWARNING: Object outside root node! Unregistering from physics!";
 					entity->physics->octreeNode = NULL;

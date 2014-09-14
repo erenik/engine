@@ -3,7 +3,8 @@
 
 #include "UITypes.h"
 #include "UIButtons.h"
-
+#include "Message/Message.h"
+#include "Message/MessageManager.h"
 
 UIButton::UIButton(String i_name)
 : UIElement()
@@ -61,6 +62,9 @@ UIElement* UICheckBox::Activate()
 		if (selectable == true){
 			toggled = !toggled;
 			OnToggled(this);
+			// Send a message!
+			BoolMessage * msg = new BoolMessage(activationMessage, toggled);
+			MesMan.QueueMessage(msg);
 			/*
 			if (type== UIType::CHECKBOX){
 				selected = !selected;

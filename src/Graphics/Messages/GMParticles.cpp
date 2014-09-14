@@ -16,12 +16,9 @@ GMAttachParticleSystem::GMAttachParticleSystem(Entity * entity, ParticleSystem *
 }
 void GMAttachParticleSystem::Process()
 {
-	if (!entity->graphics)
-		entity->graphics = new GraphicsProperty(entity);
-	if (!entity->graphics->particleSystems)
-		entity->graphics->particleSystems = new List<ParticleSystem*>();
+	ADD_GRAPHICS_PROPERTY_IF_NEEDED(entity);
 	// Add it.
-	entity->graphics->particleSystems->Add(pa);
+	entity->graphics->particleSystems.Add(pa);
 }
 
 GMRegisterParticleSystem::GMRegisterParticleSystem(ParticleSystem * pa)
@@ -50,11 +47,11 @@ GMPauseEmission::GMPauseEmission(Entity * entity)
 }
 void GMPauseEmission::Process()
 {
-	if (!entity->graphics || !entity->graphics->particleSystems)
+	if (!entity->graphics)
 		return;
-	for (int i = 0; i < entity->graphics->particleSystems->Size(); ++i)
+	for (int i = 0; i < entity->graphics->particleSystems.Size(); ++i)
 	{
-		ParticleSystem * ps = entity->graphics->particleSystems->GetIndex(i);
+		ParticleSystem * ps = entity->graphics->particleSystems[i];
 		ps->PauseEmission();
 	}
 }
@@ -66,11 +63,11 @@ GMResumeEmission::GMResumeEmission(Entity * entity)
 
 void GMResumeEmission::Process()
 {
-	if (!entity->graphics || !entity->graphics->particleSystems)
+	if (!entity->graphics)
 		return;
-	for (int i = 0; i < entity->graphics->particleSystems->Size(); ++i)
+	for (int i = 0; i < entity->graphics->particleSystems.Size(); ++i)
 	{
-		ParticleSystem * ps = entity->graphics->particleSystems->GetIndex(i);
+		ParticleSystem * ps = entity->graphics->particleSystems[i];
 		ps->ResumeEmission();
 	}
 }

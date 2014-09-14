@@ -19,6 +19,7 @@ enum messageTypes{
 	FILE_EVENT,
 	TEXTURE_MESSAGE,
 	SET_STRING,			// For setting strings, usually via dedicated ui.
+	BOOL_MESSAGE,		// For setting booleans. Sent from UICheckBox.
 	FLOAT_MESSAGE,		// For setting floats, simple as that.
 	INTEGER_MESSAGE,	// For setting Integers.
 	VECTOR_MESSAGE,		// For setting vectors, simple as that.

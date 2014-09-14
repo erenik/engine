@@ -833,7 +833,8 @@ UIElement* UIElement::GetActiveElement(){
 }
 
 /// Getter for element by state, where the stateFlag will be bitwise anded (&) to fetch the correct element.
-UIElement* UIElement::GetElementByState(int stateFlag){
+UIElement* UIElement::GetElementByState(int stateFlag)
+{
 	if (state & stateFlag)
 		return this;
 	UIElement * result = NULL;
@@ -1886,7 +1887,9 @@ UILabel::UILabel(String name /*= ""*/)
 	this->name = name;
 	text = name;
 	type = UIType::LABEL;
-	selectable = hoverable = activateable = false;
+	hoverable = true;
+	highlightOnHover = false;
+	selectable = activateable = false;
 	/// Set text-color at least for labels!
 	textColor = defaultTextColor;
 };
