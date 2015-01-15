@@ -1,25 +1,30 @@
-engine
-======
+Real-time C++ engine architecture for games and interactivity
+=============================================================
 
-Intro
------
+First scratches began with a Games in Windows course, but it all started in 2012 when me and a friend wanted to develop an RTS game. However, we didn't want to just make a game, but also an architecture around it: a game engine. After the summer of 2012 I continued using what we had started on in courses at school and developing it further in my spare time. 
 
-Real-time game/simulation engine project that I began with a friend in 2012.
-Solo project since around a year ago or earlier!
+During the spring of 2014 I used it in my specialization project at school where the Network solution was [re-worked a bit](http://focus.gscept.com/2014ip08/).
+
+Later on during spring/summer of 2014 it was used again as the basis for my [thesis work](https://pure.ltu.se/portal/en/studentthesis/interaktiv-projektionskartlaggning%28bcca6075-4774-466c-9990-4f3cd91343d4%29.html) at Bosch Sensortec, and has been used since for various demonstrations of image-based interactivity.
+
+
+Active projects
+---------------
+
+To be updated.
 
 
 Usage
 -----
 
-Currently usage is allowed for private projects only. 
-If you wish to use it for any commercial projects please contact me first.
+Free for educational and private purposes, assuming you have informed me first.
+Usage for commercial purposes can be negotiated.
 
 
-Contribution and participation
-------------------------------
+Building
+--------
+Steps for building it and making available binary files needed and external libraries will be tended to shortly.
 
-I am open to having more people join the project of developing this engine, but I am also strict and know what I want with it.
-Currently I am using the engine as a test-bed for a school project. Until that is finished the project will be strictly read-only.
-Steps for building it and making available binary files needed and external libraries will be tended to as well when the time is right.
+
 
 
