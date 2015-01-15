@@ -41,11 +41,12 @@ bool Packet::Send(Peer * peer){
 	return Send(peer->primaryCommunicationSocket);
 }	
 
-bool Packet::Send(Socket * sock){
+bool Packet::Send(Socket * sock)
+{
 	if (!sock)
 		return false;
 	assert(size > 0);
-	int bytesWritten = sock->Write(data.c_str(), size);
+	int bytesWritten = sock->Write((const char *) data.GetData(), data.Bytes());
 	return bytesWritten > 0;
 }
 

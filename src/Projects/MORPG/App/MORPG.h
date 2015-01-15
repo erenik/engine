@@ -14,6 +14,7 @@ class MORPG : public AppState
 {
 public:
 	MORPG();
+	virtual ~MORPG();
 
 	/// Function when entering this state, providing a pointer to the previous StateMan.
 	void OnEnter(AppState * previousState);

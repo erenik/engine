@@ -10,20 +10,55 @@
 
 #include "Network/Packet/Packet.h"
 
+#include "MPackets.h"
+
 MORPGSession::MORPGSession()
 : GameSession("MORPGSessionX", "MORPG game", 0)
 {
 	self = NULL;
 }
 
+MORPGSession::~MORPGSession()
+{
+}
+
 /// Reads packets, creating them and returning them for processing. Note that some packets will already be handled to some extent within the session (for exampling many SIP messages).
 List<Packet*> MORPGSession::ReadPackets()
 {
 	// Eh... so what do I do here.
-	assert(false);
+	List<Packet*> packetsReceived;
+	const int packetBufferSize = 5000;
+	char packetBuffer[packetBufferSize];
 
-	List<Packet*> packets;
-	return packets;
+	/// Gather relevant sockets to check for received data.
+	List<Socket*> socketsToCheck;
+	if (isHost)
+	{
+		socketsToCheck = sockets;
+	}
+	else {
+		if (hostSocket)
+			socketsToCheck = hostSocket;
+	}	
+
+	/// Check all sockets now.
+	for (int i = 0; i < socketsToCheck.Size(); ++i)
+	{
+		Socket * s = socketsToCheck[i];
+		int bytesRead = s->Read(packetBuffer, packetBufferSize);
+		// Read one packet each frame?
+		if (bytesRead > 0)
+		{
+			MPacket * pack = new MPacket();
+			pack->data.PushBytes((uchar*)packetBuffer, bytesRead);
+			/// Assign socket it was sent from and extract peer if possible.
+			pack->socket = s;
+			/// Extract packet info?
+			pack->ExtractData();
+			packetsReceived.Add(pack);
+		}
+	}
+	return packetsReceived;
 };
 
 

@@ -12,6 +12,7 @@ class MORPGSession : public GameSession
 {
 public:
 	MORPGSession();
+	virtual ~MORPGSession();
 
 	/// Reads packets, creating them and returning them for processing. Note that some packets will already be handled to some extent within the session (for exampling many SIP messages).
 	virtual List<Packet*> ReadPackets();

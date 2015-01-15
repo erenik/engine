@@ -46,6 +46,8 @@
 
 #include "Maps/MapManager.h"
 
+#include "Network/NetworkManager.h"
+
 /// Only one such session active per application.
 MORPGSession * session = NULL;
 
@@ -78,6 +80,14 @@ MORPG::MORPG()
 	characterProp = NULL;
 }
 
+MORPG::~MORPG()
+{
+	// Delete the world..!
+	world.Delete();
+	worldGenerators.ClearAndDelete();
+}
+
+
 /// Function when entering this state, providing a pointer to the previous StateMan.
 void MORPG::OnEnter(AppState * previousState)
 {
@@ -97,9 +107,9 @@ void MORPG::OnEnter(AppState * previousState)
 	Graphics.QueueMessage(new GMSetCamera(mapPreviewCamera, CT_DISTANCE_FROM_CENTER_OF_MOVEMENT, 3.f));
 	Graphics.QueueMessage(new GMSetCamera(firstPersonCamera, CT_TRACKING_MODE, TrackingMode::FOLLOW_AND_LOOK_AT));
 	// Set it to follow and track us too.
-		
-
+	
 	session = new MORPGSession();
+	NetworkMan.AddSession(session);
 
 	Input.ForceNavigateUI(true);
 
@@ -134,7 +144,7 @@ void MORPG::Process(int timeInMs)
 /// Function when leaving this state, providing a pointer to the next StateMan.
 void MORPG::OnExit(AppState * nextState)
 {
-
+	// Will never be called.
 }
 
 /// Creates the user interface for this state

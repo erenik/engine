@@ -391,6 +391,10 @@ bool TextureManager::LoadTextureOpenCV(String source, Texture * texture)
 	mat = cv::imread(source.c_str(), CV_LOAD_IMAGE_UNCHANGED);
 	if (!mat.cols || !mat.rows)
 		return false;
+
+	texture->source = source;
+	texture->name = source;
+
 	/// First update size of our texture depending on the given one.
 	if (texture->width != mat.cols || texture->height != mat.rows)
 	{

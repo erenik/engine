@@ -119,8 +119,6 @@ Model * World::GenerateWorldModel()
 		Vector2i gridSizeWanted = size - Vector2i(1,1);
 		/// Just take -1 on both and we should get the right amount of vertices! :)
 		eMesh->AddGrid(topLeft, bottomLeft, bottomRight, topRight, size);
-		
-
 	}
 	
 //	zoneMatrix.PrintContents();

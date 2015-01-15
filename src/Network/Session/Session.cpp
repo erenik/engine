@@ -202,7 +202,7 @@ void Session::Send(Packet * packet)
 void Session::SendText(String text)
 {
 	Packet textPack = Packet(PacketType::TEXT);
-	textPack.data = text;
+	textPack.data.Push(text);
 	// Include terminating NULL-sign.
 	textPack.size = text.Length() + 1;
 	Send(&textPack);
@@ -238,8 +238,7 @@ List<Packet*> Session::ReadPackets()
 		if (bytesRead > 0)
 		{
 			Packet * pack = new Packet(PacketType::NULL_TYPE);
-			pack->data.Allocate(bytesRead, 0);
-			strcpy(pack->data.c_str_editable(), packetBuffer);
+			pack->data.PushBytes((uchar *)packetBuffer, bytesRead);
 			packetsReceived.Add(pack);
 		}
 	}

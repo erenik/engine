@@ -15,6 +15,10 @@ class DataStream
 public:
 	DataStream();
 	virtual ~DataStream();
+	/// Pushes the text into the stream, including ending NULL-sign.
+	void Push(String text);
+	/// Pushes the text into the stream, replacing ending NULL-sign with '\n'.
+	void PushLine(String text);
 	/// Pushes bytes to the end of the array.
 	void PushBytes(uchar * fromArray, int numberOfBytes);
 	// Pops all bytes up to the specified point in the array.
@@ -27,6 +31,10 @@ public:
 	uchar * GetData() { return data; };
 	/// Returns the current data as a string. Do note that this will fail if there are binary 0s within the stream. Returns false if something.. happens.
 	bool GetDataAsString(String & string);
+	/// Returns the first line within the stream. Will return false if no '\n' or '\0' sequence was found.
+	bool FirstLine(String & string);
+	/// Number of bytes currently in the stream.
+	int Bytes();
 	/// Number of free bytes within, before a re-allocation is necessary.
 	int FreeBytes();
 protected:

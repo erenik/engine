@@ -8,6 +8,7 @@
 class Socket;
 class Peer;
 
+#include "DataStream/DataStream.h"
 #include "String/AEString.h"
 #include "PacketTypes.h"
 
@@ -46,7 +47,7 @@ public:
 	/// Type of packet, 0 = default, 1 = SIP 
 	int type;
 	/// Total raw data that is to be sent.
-	String data;
+	DataStream data;
 	/// Total size of received data/data to be sent.
 	int size;
 	/// Sender

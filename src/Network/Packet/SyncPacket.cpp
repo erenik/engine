@@ -19,8 +19,9 @@ void SyncPacket::AddEntity(Entity *entity)
 }
 
 /// Re-writes the data to be sent.
-void SyncPacket::UpdateData(){
-	data = "";
+void SyncPacket::UpdateData()
+{
+	data.PopAll();
 	std::stringstream ss;
 	ss << propertiesToSync + "\n";
 	for (int i = 0; i < entities.Size(); ++i)
@@ -28,7 +29,8 @@ void SyncPacket::UpdateData(){
 		if (propertiesToSync.Contains("position"))
 			ss << entities[i]->position;
 	}
-	data = ss.str().c_str();
+	String text = ss.str().c_str();
+	data.Push(text);
 }
 
 #ifndef SYNC_PACK_H

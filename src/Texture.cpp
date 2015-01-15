@@ -582,6 +582,7 @@ bool Texture::Bufferize()
 	/// Release the kraken! o.o
 	if (releaseOnBufferization && !dynamic)
 	{
+		std::cout<<"\nTexture "<<name<<" buffered. Deleting allocated memory from loading procedure.";
 		delete[] data;
 		data = NULL;
 		dataBufferSize = 0;
@@ -674,7 +675,8 @@ void Texture::SetPixel(int x, int y, Vector4f color)
 }
 
 /// Pretty much highest result of: Vector3f(r,g,b).MaxPart() * a   -> perceived intensity on black background.
-float Texture::GetMaxIntensity(){
+float Texture::GetMaxIntensity()
+{
 	assert(bpp == 4 && format == Texture::RGBA);
 	float maxIntensity = 0;
 	unsigned char * buf = data;

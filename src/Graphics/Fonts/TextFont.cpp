@@ -159,7 +159,8 @@ bool TextFont::Load(String path){
 
 
 /// Loads texture for a font, calls ParseTextureData after the texture has been selected.
-bool TextFont::LoadFromTexture(Texture * i_texture){
+bool TextFont::LoadFromTexture(Texture * i_texture)
+{
 	if (i_texture == NULL){
 		i_texture = TexMan.GetTextureByName(textureSource);
 		if (i_texture == NULL)
@@ -199,7 +200,8 @@ bool TextFont::LoadFromTexture(Texture * i_texture){
 };
 
 /// Makes the texture-data white even if black? o-o
-void TextFont::MakeTextureWhite(){
+void TextFont::MakeTextureWhite()
+{
 	float intensity = texture->GetMaxIntensity();
 	Vector3f color(1,1,1);
 	color *= 1 - intensity;
@@ -492,7 +494,10 @@ void TextFont::PrepareForRender(GraphicsState & graphicsState)
 	glDepthMask(GL_FALSE);
 
 	if (texture->glid == -1)
+	{
+		texture->releaseOnBufferization = false;
 		TexMan.BufferizeTexture(texture);
+	}
 	glBindTexture(GL_TEXTURE_2D, texture->glid);
 
 	// when texture area is small, bilinear filter the closest mipmap

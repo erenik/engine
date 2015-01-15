@@ -19,7 +19,8 @@ StateManager * StateManager::stateMan = NULL;
 /// Thread for the state processor
 extern uintptr_t stateProcessingThread;
 
-void StateManager::Allocate(){
+void StateManager::Allocate()
+{
 	assert(stateMan == NULL);
 	stateMan = new StateManager();
 }
@@ -46,22 +47,13 @@ StateManager::StateManager()
 
 StateManager::~StateManager()
 {
-	if (globalState)
-		globalState->OnExit(NULL);
-	if (activeState)
-		activeState->OnExit(NULL);
-	globalState = activeState = NULL;
-	while (stateList.Size()){
-        AppState * gs = stateList[0];
-        std::cout<<"\nDeleting game state: "<<gs->name;
-        stateList.Remove(gs);
-		delete gs;
-	}
+	DeleteStates();
 };
 
 /// Deletes all application states (global and current/active ones).
 void StateManager::DeleteStates()
 {
+	previousState = globalState = activeState = NULL;
 	this->stateList.ClearAndDelete();
 }
 

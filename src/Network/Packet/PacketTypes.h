@@ -18,6 +18,7 @@ enum packetTypes{
 	SYNCHRONIZATION, // Synchronization protocol for basic entity attributes.
 	GAME_SPECIFIC, // Game specific protocol, this might require further thinking...
 	SR_PACKET, // Space race packet
+	MORPG_PACKET, // MORPG project packet.
 	GAME_SPECIFIC_START,
 	GAME_SPECIFIC_END,
 	PACKET_TYPES,

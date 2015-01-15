@@ -26,6 +26,20 @@ DataStream::~DataStream()
 	data = NULL;
 }
 
+/// Pushes the text into the stream, including ending NULL-sign.
+void DataStream::Push(String text)
+{
+	PushBytes((uchar*)text.c_str(), text.Length() + 1);
+}
+
+/// Pushes the text into the stream, replacing ending NULL-sign with '\n'.
+void DataStream::PushLine(String text)
+{
+	PushBytes((uchar*)text.c_str(), text.Length());
+	char end = '\n';
+	PushBytes((uchar*) &end, 1);
+}
+
 /// Pushes bytes to the end of the array.
 void DataStream::PushBytes(uchar * fromArray, int numberOfBytes)
 {
@@ -90,6 +104,20 @@ bool DataStream::GetDataAsString(String & string)
 	memset(string.c_str_editable(), 0, bytesUsed + 1);
 	memcpy(string.c_str_editable(), data, bytesUsed);  
 	return true;
+}
+
+/// Returns the first line within the stream. Will return false if no '\n' or '\0' sequence was found.
+bool FirstLine(String & string)
+{
+	assert(false);
+	return false;
+}
+
+
+/// Number of bytes currently in the stream.
+int DataStream::Bytes()
+{
+	return bytesUsed;
 }
 
 /// Number of free bytes within, before a re-allocation is necessary.
