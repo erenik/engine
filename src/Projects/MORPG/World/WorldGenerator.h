@@ -25,6 +25,8 @@ public:
 	Vector2i size;
 	/// 0 to 1, how much surface should be covered with water.
 	float water; 
+	/// Used to determine much the water spreads from its original sources.
+	int waterLevel;
 	/// 0 to 1, how much land surface should be mountainous (much easier to handle, since they will have fewer zones, etc.)
 	float mountains;
 	/// 0 to 1, how many of the tiles should be settlements. (Recommended value around 0.1?)

@@ -30,6 +30,10 @@ void EMesh::Nullify()
 
 EMesh::~EMesh()
 {
+	faces.ClearAndDelete();
+	vertices.ClearAndDelete();
+	uvs.ClearAndDelete();
+	normals.ClearAndDelete();
 }
 
 /// Deletes all parts within this mesh

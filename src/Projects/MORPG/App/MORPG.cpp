@@ -3,6 +3,9 @@
 /// Global state used for this multiplayer online RPG game.
 
 #include "MORPG.h"
+
+#include "MHost.h"
+
 #include "MORPGSession.h"
 
 #include "MORPG/Character/Character.h"
@@ -10,7 +13,6 @@
 #include "MORPG/Properties/MORPGCharacterProperty.h"
 
 #include "MORPG/World/Zone.h"
-#include "MORPG/World/WorldGenerator.h"
 #include "MORPG/World/World.h"
 
 #include "MORPG/Physics/MORPGIntegrator.h"
@@ -48,22 +50,25 @@
 
 #include "Network/NetworkManager.h"
 
+/// World map... 
+Entity * worldMapEntity = NULL;
+
 /// Only one such session active per application.
 MORPGSession * session = NULL;
-
-WorldGenerator * activeWorldGenerator = NULL;
-List<WorldGenerator*> worldGenerators;
 
 Camera * mapPreviewCamera = NULL;
 Camera * firstPersonCamera = NULL;
 
 List<Camera*> cameras;
 
+MHost * hostState = NULL;
 
 void RegisterStates()
 {
 	MORPG * global = new MORPG();
+	hostState = new MHost();
 	StateMan.RegisterState(global);
+	StateMan.RegisterState(hostState);
 	StateMan.QueueGlobalState(global);
 }
 
@@ -84,7 +89,6 @@ MORPG::~MORPG()
 {
 	// Delete the world..!
 	world.Delete();
-	worldGenerators.ClearAndDelete();
 }
 
 
@@ -126,13 +130,6 @@ void MORPG::OnEnter(AppState * previousState)
 	Graphics.QueueMessage(new GMSetUI(ui));
 	Graphics.QueueMessage(new GMSetOverlay(NULL));
 
-	/// Create world-generators.
-	if (worldGenerators.Size() == 0)
-	{
-		WorldGenerator * generator = new WorldGenerator();
-		worldGenerators.Add(generator);
-		activeWorldGenerator = generator;
-	}
 }
 
 /// Main processing function, using provided time since last frame.
@@ -153,7 +150,7 @@ void MORPG::CreateUserInterface()
 	if (ui)
 		delete ui;
 	ui = new UserInterface();
-	ui->Load("gui/MORPG.gui");
+	ui->Load("gui/MainMenu.gui");
 }
 
 /// Callback function that will be triggered via the MessageManager when messages are processed.
@@ -164,7 +161,12 @@ void MORPG::ProcessMessage(Message * message)
 	{
 		case MessageType::STRING:
 		{
-			if (msg == "ToggleAutorun")
+			if (msg == "NewWorld")
+			{
+				hostState->enterMode = MHost::WORLD_CREATION;
+				StateMan.QueueState(hostState);
+			}
+			else if (msg == "ToggleAutorun")
 			{
 				// Get our player! o.o
 				if (characterProp)
@@ -188,58 +190,6 @@ void MORPG::ProcessMessage(Message * message)
 				String password = "password";
 				session->Login(username, password);
 
-			}
-			if (msg == "NewWorld" || msg == "GenerateWorld")
-			{
-				world.Delete();
-				activeWorldGenerator->GenerateWorld(world);
-				Texture * tex = world.GeneratePreviewTexture();
-				Model * model = world.GenerateWorldModel();
-
-				if (!worldMapEntity)
-					MapMan.CreateEntity("WorldMap", model, tex);
-				else
-				{
-		//			
-					Model * plane = ModelMan.GetModel("plane");
-					Texture * white = TexMan.GetTexture("White");
-					Graphics.QueueMessage(new GMSetEntity(worldMapEntity, GT_MODEL, plane));
-					Graphics.QueueMessage(new GMSetEntityTexture(worldMapEntity, DIFFUSE_MAP, white));
-
-					// Re-bufferize the texture.
-					Graphics.QueueMessage(new GMBufferTexture(tex));
-					// Same for the model..
-					Graphics.QueueMessage(new GMBufferMesh(model->GetTriangulatedMesh()));
-					// Try our model..
-					Graphics.QueueMessage(new GMSetEntity(worldMapEntity, GT_MODEL, model));
-
-					Graphics.QueueMessage(new GMSetEntityTexture(worldMapEntity, DIFFUSE_MAP, tex));
-					Physics.QueueMessage(new PMSetEntity(worldMapEntity, PT_SET_SCALE, Vector3f(15.f, 1.f, 15.f)));
-				}
-				return;
-			}
-			else if (msg == "MoarWater")
-			{
-				activeWorldGenerator->water += 0.05f;
-				if (activeWorldGenerator->water > 0.95f)
-					activeWorldGenerator->water = 0.95f;
-				MesMan.QueueMessages("GenerateWorld");
-			}
-			else if (msg == "LessWater")
-			{
-				activeWorldGenerator->water -= 0.05f;
-				if (activeWorldGenerator->water < 0.0f)
-					activeWorldGenerator->water = 0.0f;
-				MesMan.QueueMessages("GenerateWorld");
-			}
-			else if (msg == "SaveWorld")
-			{
-				std::fstream file;
-				file.open("tmp.world", std::ios_base::out);
-				if (!file.is_open())
-					return;
-				world.WriteTo(file);
-				file.close();			
 			}
 			else if (msg == "LoadWorld")
 			{
@@ -287,6 +237,7 @@ void MORPG::EnterZone(Zone * zone)
 
 		/// o-o...
 		Character * character = new Character();
+		world.characters.Add(character);
 
 		// Attach ze propororoty to bind the entity and the player.
 		characterProp = new MORPGCharacterProperty(player, character);

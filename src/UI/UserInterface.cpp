@@ -1182,6 +1182,23 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 				std::cout<<"\nSkipping row and going to next one!";
 				break;
 			}
+			else if (token == "DataType")
+			{
+				switch(element->type)
+				{
+					case UIType::VECTOR_INPUT:
+					{
+						UIVectorInput * vi = (UIVectorInput*) element;
+						String dataType = NEXT_TOKEN;
+						dataType.SetComparisonMode(String::NOT_CASE_SENSITIVE);
+						if (dataType.Contains("Integer"))
+							vi->SetDataType(UIVectorInput::INTEGERS);
+						else 
+							vi->SetDataType(UIVectorInput::FLOATS);
+						break;				
+					}
+				}
+			}
 			else if (element == NULL){
 			    String previousLine = lines[i-1];
                 std::cout<<"\nTrying to act upon a null-element! Continuing until a new element is created!";

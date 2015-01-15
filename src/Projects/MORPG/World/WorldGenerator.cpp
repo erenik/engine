@@ -10,6 +10,7 @@ WorldGenerator::WorldGenerator()
 {
 	size = Vector2i(20, 20);
 	water = 0.2f;
+	waterLevel = 0;
 }
 
 /// Generates a new world.
@@ -47,6 +48,8 @@ bool WorldGenerator::GenerateWorld(World & world)
 			world.zoneMatrix[x][y] = zone;
 		}
 	}
+	world.ConnectZonesByDistance(1.2f);
+
 	world.size = size;
 
 //	world.zoneMatrix.PrintContents();
@@ -56,15 +59,45 @@ bool WorldGenerator::GenerateWorld(World & world)
 	int numZones = world.zones.Size();
 	int numWaterTiles = water * numZones;
 	int waterTilesCreated = 0;
+
+	List<Zone*> waterOrigins;
+	int failedAttempts = 0;
 	while (waterTilesCreated < numWaterTiles)
 	{
 		int randomTileIndex = generatorRandom.Randi(numZones-1);
 		Zone * zone = world.zones[randomTileIndex];
 		if (zone->IsWater())
+		{
+			++failedAttempts;
+			if (failedAttempts > 1000)
+				break;
 			continue;
+		}
 		zone->SetWater(true);
 		++waterTilesCreated;
+		waterOrigins.Add(zone);
 	}
 
+	// Raise the water-level..!
+	for (int i = 0; i < waterLevel; ++i)
+	{	
+		List<Zone*> newWaterOrigins;
+		for (int j = 0; j < waterOrigins.Size(); ++j)
+		{
+			Zone * zone = waterOrigins[j];
+			List<Zone*> neighbours = zone->neighbours;
+			for (int k = 0; k < neighbours.Size(); ++k)
+			{
+				Zone * neighbour = neighbours[k];
+				if (!neighbour->IsWater())
+				{
+					newWaterOrigins.Add(neighbour);
+					neighbours[k]->SetWater(true);
+				}
+			}
+		}
+		waterOrigins = newWaterOrigins;
+	}
+	
 	return true;
 }

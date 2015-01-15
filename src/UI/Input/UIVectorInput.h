@@ -37,6 +37,9 @@ public:
 	*/
 	bool OnScroll(float delta);
 	
+	/// See dataTypes below.
+	void SetDataType(int dataType);
+
 	/// Action to be taken when any of the fields are triggered.
 	String action;
 	int numInputs;

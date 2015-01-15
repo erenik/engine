@@ -25,6 +25,11 @@ MORPGCharacterProperty::MORPGCharacterProperty(Entity * characterEntity, Charact
 	movementSpeed = 2.f;
 }
 
+MORPGCharacterProperty::~MORPGCharacterProperty()
+{
+}
+
+
 /// Time passed in seconds..! Will steer if inputFocus is true.
 void MORPGCharacterProperty::Process(int timeInMs)
 {

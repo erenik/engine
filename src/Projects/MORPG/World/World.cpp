@@ -21,6 +21,7 @@
 #include "Graphics/GraphicsManager.h"
 
 World world;
+EMesh worldEMesh;
 
 World::World()
 {
@@ -93,20 +94,17 @@ Model * World::GenerateWorldModel()
 		model = ModelMan.NewDynamic();
 
 	// Create the mesh for it.
-	static EMesh * eMesh = 0;
 	if (!model->mesh)
 	{
-		eMesh = new EMesh();
 		Mesh * mesh = new Mesh();
 		model->mesh = mesh;
-
 	}
 	int tiles = size.x * size.y;
 	// If the amount of vertices is not the same as the amount suggested by the amount of zones...
-	if (eMesh->vertices.Size() != tiles)
+	if (worldEMesh.vertices.Size() != tiles)
 	{
 		// Then delete the existing data.
-		eMesh->Delete();
+		worldEMesh.Delete();
 
 		/// Create a regular plane.
 		Vector3f topLeft(-1,0,1),
@@ -118,12 +116,12 @@ Model * World::GenerateWorldModel()
 		// Since the grid "size" is actually the amount of faces, we will ahve to adjust it so that we instead get 1 vertex per "size"
 		Vector2i gridSizeWanted = size - Vector2i(1,1);
 		/// Just take -1 on both and we should get the right amount of vertices! :)
-		eMesh->AddGrid(topLeft, bottomLeft, bottomRight, topRight, size);
+		worldEMesh.AddGrid(topLeft, bottomLeft, bottomRight, topRight, size);
 	}
 	
 //	zoneMatrix.PrintContents();
 	// Fetch the matrix of vertices created with te grid.
-	Matrix<EVertex*> & vertices = eMesh->vertexMatrix;
+	Matrix<EVertex*> & vertices = worldEMesh.vertexMatrix;
 
 	/// Manipulate them depending on what the tiles were randomized to become!
 	for (int x = 0; x < size.x; ++x)
@@ -143,7 +141,7 @@ Model * World::GenerateWorldModel()
 	}
 
 	/// Load the new data from the editable mesh into the renderable/optimized one!
-	model->mesh->LoadDataFrom(eMesh);
+	model->mesh->LoadDataFrom(&worldEMesh);
 	model->RegenerateTriangulizedMesh();
 
 	Graphics.ResumeRendering();
@@ -163,3 +161,39 @@ Zone * World::GetZoneByName(String name)
 	return NULL;
 }
 
+Zone * World::GetZoneByPosition(Vector3f pos)
+{
+	Zone * closest = NULL;
+	float closestDist = 1000000.f;
+	for (int i = 0; i < zones.Size(); ++i)
+	{
+		Zone * zone = zones[i];
+		float dist = (zone->position - pos).Length();
+		if (dist < closestDist)
+		{
+			closestDist = dist;
+			closest = zone;
+		}
+	}
+	return closest;
+}
+
+/// Like a navmesh..
+void World::ConnectZonesByDistance(float minDist)
+{
+	Zone * zone1, * zone2;
+	for (int i = 0; i < zones.Size(); ++i)
+	{
+		zone1 = zones[i];
+		for (int j = i + 1; j < zones.Size(); ++j)
+		{
+			zone2 = zones[j];
+			float dist = (zone1->position - zone2->position).Length();
+			if (dist < minDist)
+			{
+				zone1->neighbours.Add(zone2);
+				zone2->neighbours.Add(zone1);
+			}
+		}
+	}
+}

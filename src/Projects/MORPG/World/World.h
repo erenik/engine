@@ -46,6 +46,9 @@ public:
 	/// Getters.
 	Nation * GetNationByID(int id);
 	Zone * GetZoneByName(String name);
+	Zone * GetZoneByPosition(Vector3f pos);
+	/// Like a navmesh..
+	void ConnectZonesByDistance(float minDist);
 
 	/// Preview texture for this world (pretty much the world-map?)
 	Texture * texture;

@@ -11,7 +11,7 @@ class MORPGCharacterProperty : public EntityProperty
 {
 public:
 	MORPGCharacterProperty(Entity * characterEntity, Character * associatedWithCharacter);
-
+	virtual ~MORPGCharacterProperty();
 	/// Time passed in seconds..! Will steer if inputFocus is true.
 	virtual void Process(int timeInMs);
 

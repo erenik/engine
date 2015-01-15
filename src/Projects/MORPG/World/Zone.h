@@ -53,7 +53,8 @@ public:
 
 	/// Current characters within this zone.
 	List<Character*> characters;
-
+	/// Neighbour-zones.
+	List<Zone*> neighbours;
 
 	/// Slots where buildings could be placed.
 	List<BuildingSlot*> buildingSlots;

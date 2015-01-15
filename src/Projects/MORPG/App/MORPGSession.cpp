@@ -12,6 +12,8 @@
 
 #include "MPackets.h"
 
+#include "Globals.h"
+
 MORPGSession::MORPGSession()
 : GameSession("MORPGSessionX", "MORPG game", 0)
 {
@@ -20,6 +22,7 @@ MORPGSession::MORPGSession()
 
 MORPGSession::~MORPGSession()
 {
+	SAFE_DELETE(self);
 }
 
 /// Reads packets, creating them and returning them for processing. Note that some packets will already be handled to some extent within the session (for exampling many SIP messages).
@@ -73,7 +76,9 @@ void MORPGSession::Login(String userName, String passWord)
 
 	// Select character!
 	if (!self)
+	{
 		self = new Character();
+	}
 	self->name = "Me";
 	/// Either set position as loaded from the server, or call some function to place our character somewhere else?
 	self->position = Vector3f();

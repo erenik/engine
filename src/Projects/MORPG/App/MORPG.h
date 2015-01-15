@@ -9,6 +9,8 @@ class Zone;
 class MORPGCharacterProperty;
 
 extern MORPGSession * session;
+/// World map... 
+extern Entity * worldMapEntity;
 
 class MORPG : public AppState 
 {
@@ -37,9 +39,8 @@ public:
 
 
 private:
-	/// World map... 
-	Entity * worldMapEntity;
 
 	/// The character property of the character we are currently controlling (both camera focus and input-focus!)
 	MORPGCharacterProperty * characterProp;
+
 };
