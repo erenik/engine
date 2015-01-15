@@ -11,6 +11,7 @@ namespace MultimediaType {
 enum multimediaTypes {
 	UNKNOWN,
 	OGG, /// Container format. Can include both Vorbis, Theora, etc.
+	WAV, /// Waveform Audio File Format. Audio-only.
 	
 };
 };

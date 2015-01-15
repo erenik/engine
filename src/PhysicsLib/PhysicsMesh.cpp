@@ -13,6 +13,8 @@
 
 #include "PhysicsLib/Shapes/AABB.h"
 
+#include "File/LogFile.h"
+
 PhysicsMesh::PhysicsMesh(){
 	collisionShapeOctree = NULL;
 };
@@ -71,14 +73,21 @@ void PhysicsMesh::GenerateCollisionShapeOctree()
 		min.z - size.z * 0.1f);
 
 	// Adding triangles..
+	int skipped = 0;
 	for (int i = 0; i < triangles.Size(); ++i)
 	{
 		Triangle * triangle = triangles[i];
+		if (triangle->normal.MaxPart() == 0)
+		{
+			++skipped;
+			continue;
+		}
 		assert(triangle->normal.MaxPart());
 		collisionShapeOctree->AddTriangle(triangles[i]);
 	//	collisionShapeOctree->PrintContents();
 	}
-
+	if (skipped)
+		LogPhysics("\n"+String(skipped)+" triangles skipped while generating colision octree for mesh: "+mesh->source);
 	
 //	collisionShapeOctree->PrintContents();
 	

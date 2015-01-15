@@ -1,16 +1,17 @@
 // Emil Hedemalm
 // 2013-03-17
+
 #include "CollisionShapeOctree.h"
 #include "Physics/PhysicsProperty.h"
 #include "Physics/PhysicsManager.h"
 #include "Graphics/GraphicsManager.h"
-#include <GL/glew.h>
+#include "Graphics/OpenGL.h"
 #include "GraphicsState.h"
 #include "Graphics/Camera/Camera.h"
 #include "Collision.h"
 #include "Viewport.h"
 
-#include "PhysicsLib/Shapes/Sphere.h"
+#include "Sphere.h"
 
 /// Define the static values
 

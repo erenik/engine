@@ -5,10 +5,10 @@
 #include "AABB.h"
 #include "Entity/Entity.h"
 #include "Graphics/OpenGL.h"
-#include "Model.h"
+#include "Model/Model.h"
 #include "Physics/Collision/Collision.h"
 
-#include "PhysicsLib/Shapes/Sphere.h"
+#include "Sphere.h"
 
 OBB::OBB()
 {
@@ -130,6 +130,14 @@ bool OBB::Collide(Sphere & sphere, Collision & collissionData){
 /// Recalculate it using the entity's base model's AABB and current matrix.
 void OBB::Recalculate(Entity * entity)
 {
+	if (!entity->model->mesh->aabb)
+		return;
+	// Edges are created below, so clear 'em.
+	if(edgeList.Size() != 0)
+		edgeList.ClearAndDelete();
+	if (faceList.Size() != 0)
+		faceList.ClearAndDelete();
+
 	assert(entity->model);
     assert(entity->physics);
 //    std::cout<<"\nRecalculating OBB for entity "<<entity<<" "<<entity->position;
@@ -223,26 +231,25 @@ void OBB::Recalculate(Entity * entity)
 
 		/// Bind edges and faces..
 		int verticesInCommon;
-		for (int i = 0; i < edgeList.Size(); ++i){
+		for (int i = 0; i < edgeList.Size(); ++i)
+		{
 			Edge * e = edgeList[i];
-			for (int j = 0; j < faceList.Size(); ++j){
+			for (int j = 0; j < faceList.Size(); ++j)
+			{
 				int verticesInCommon = 0;
 				Face * f = faceList[j];
-				for (int k = 0; k < f->vertexList.Size(); ++k){
+				for (int k = 0; k < f->vertexList.Size(); ++k)
+				{
 					Vertex * v = f->vertexList[k];
 					if (v == e->start || 
 						v == e->stop)
 						++verticesInCommon;
 				}
 				/// Add the edge to the face and the face to the edge if they coincide.
-				if (verticesInCommon >= 2){
+				if (verticesInCommon >= 2)
+				{
 					e->faceList.Add(f);
 					f->edgeList.Add(e);
-			/*		std::cout<<"\nEdge-Face binding...";
-					std::cout<<"\nEdge "<<i<<" vertices:\n v0: "<<e->start->position<<"\n v1: "<<e->stop->position;
-					std::cout<<"\nFace "<<j<<" vertices: \n v0: "<<f->vertexList[0]->position<<"\n v1: "<<f->vertexList[1]->position
-						<<"\n v2: "<<f->vertexList[2]->position<<"\n v3: "<<f->vertexList[3]->position;
-						*/
 				}
 			}
 			/// There should be at least two faces for each edge..
@@ -257,7 +264,8 @@ void OBB::Recalculate(Entity * entity)
 		vertexList[i]->position = corners[i];
 	}
 	/// Recalculate the normals of the faces.
-	for (int i = 0; i < faceList.Size(); ++i){
+	for (int i = 0; i < faceList.Size(); ++i)
+	{
 		faceList[i]->RecalculateNormal();
 		faceList[i]->RecalculateTriangles();
 	}

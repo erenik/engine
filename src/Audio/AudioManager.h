@@ -37,6 +37,7 @@ class AudioManager
 	friend class MultimediaStream;
 	friend class AMPlay;
 	friend class AMSet;
+	friend class AMStop;
 	friend class Audio;
 private:
 	AudioManager();
@@ -44,6 +45,9 @@ private:
 public:
 	~AudioManager();
 	static AudioManager * Instance() { return audioManager; };
+	/// If true, you may queue messages.
+	static bool AudioProcessingActive();
+
 	/// Called once in the initializer thread after allocation but before the engine gets started.
 	void Initialize();
 	/// Called once in the deallocator thread when stop procedures have begun but before deallocation occurs.

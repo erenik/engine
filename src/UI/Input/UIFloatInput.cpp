@@ -52,7 +52,8 @@ bool UIFloatInput::OnScroll(float delta)
 		MesMan.QueueMessage(m);
 		return true;
 	}
-	return false;
+	// If not, do as regular UIElements do, probably query parents..
+	return UIElement::OnScroll(delta);
 }
 
 /// Sent by UIInput elements upon pressing Enter and thus confirming the new input, in case extra actions are warranted. (e.g. UITextureInput to update the texture provided as reference).

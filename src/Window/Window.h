@@ -71,7 +71,8 @@ class Window
 	friend LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 #endif
 	friend class WindowManager;
-	Window(String name);
+	/// Default constructor, one name.
+	Window(String name, String displayName);
 public:
 	~Window();	
 
@@ -117,6 +118,8 @@ public:
 	/// Fills contents of current frame into target texture. Exactly which frame which will be sampled depends on the render-thread.
 	void GetFrameContents(Texture * intoTexture);
 
+	void SetBackgroundColor(Vector4f color, bool applyToViewports);
+
 	/// Fetches the UI which is displayed on top of everything else, used for fade-effects etc. Is created dynamically if not set earlier.
 	UserInterface * GetUI();
 	/// Fetches the global (system) UI.
@@ -139,7 +142,7 @@ public:
 	// Reference name used when coding/working with the window.
 	String name;
 	// Title that should be rendered by the OS.
-	String title;
+	String displayName;
 
 	
 	/// Disables all render-flags below
@@ -207,6 +210,7 @@ public:
 	/// When capture started.
 	Time captureStart;
 	/// Frames stored while recording.
+	Texture * frame;
 	List<Texture*> frames;
 	/// Will dictate general framerate while recording.
 	int msBetweenFrames;

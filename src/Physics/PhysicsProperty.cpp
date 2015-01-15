@@ -4,24 +4,33 @@
 #include "PhysicsOctree.h"
 #include "PhysicsProperty.h"
 #include "CompactPhysics.h"
-#include "Model.h"
+#include "Model/Model.h"
 #include "Contact/Contact.h"
 
 #include "PhysicsLib/Shapes/AABB.h"
 #include "PhysicsLib/Shapes/OBB.h"
+
+#include "PhysicsLib/Estimator.h"
 
 PhysicsProperty::PhysicsProperty()
 {
 	Nullify();
 };
 
-PhysicsProperty::~PhysicsProperty() {
+#define SAFE_DELETE(a) {if (a) delete a; a = NULL;}
+
+PhysicsProperty::~PhysicsProperty() 
+{
 	/// Contacts will be deleted in the physics manager!
 	if (shape)
 	{
 		delete shape;
 		shape = NULL;
 	}
+	SAFE_DELETE(aabb);
+	SAFE_DELETE(obb);
+
+	estimators.ClearAndDelete();
 };
 
 /// Copy constructor
@@ -138,7 +147,8 @@ void PhysicsProperty::CalculateInertiaTensor()
 	/// Density in kg/m³ or g/dm³
 	float defaultDensity = 500;
 	mass = scale.x * scale.y * scale.z * defaultDensity;
-	assert(mass > 0);
+	if (!mass <= 0)
+		mass = 1;
 	if (mass <= 0)
 		return;
 	inverseMass = 1 / mass;
@@ -228,7 +238,7 @@ void PhysicsProperty::UpdateProperties(Entity * entity)
 {
 	if (entity->model)
 	{
-		assert(entity->model->radius > 0);
+	//	assert(entity->model->radius > 0);
 		physicalRadius = entity->model->radius * entity->scale.MaxPart();
 		aabb->Recalculate(entity);
 		obb->Recalculate(entity);

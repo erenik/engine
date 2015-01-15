@@ -44,7 +44,8 @@ bool Packet::Send(Peer * peer){
 bool Packet::Send(Socket * sock){
 	if (!sock)
 		return false;
-	int bytesWritten = sock->Write(data.c_str(), data.Length());
+	assert(size > 0);
+	int bytesWritten = sock->Write(data.c_str(), size);
 	return bytesWritten > 0;
 }
 

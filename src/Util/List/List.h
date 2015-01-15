@@ -52,6 +52,11 @@ public:
 	const List operator + (const T &newItem) const;
 	const List operator - (const T &itemToRemove) const;
 
+	/** Extraction operator for when the list has 1 element (similar but inverted relationship of when creating a list from a single element of class T)
+		Will throw errors or assertions if the list has any number of elements except 1.
+	*/
+	operator const T & ();
+
 	/// Array-indexing operator, varying version
 	virtual T& operator[](int index);
 	/// Array-indexing operator, const version
@@ -122,6 +127,7 @@ protected:
 	bool inUse;		// Defines that the list is currently being popped or pushed.
 };
 
+// Conversion of a list's contents from class T to class B. o.o
 template<class T, class B> 
 List<B> ConvertList(List<T> tList)
 {
@@ -259,6 +265,29 @@ const List<T> List<T>::operator - (const List<T> &otherList) const
 	}	
 	return newList;
 }
+template <class T>
+const List<T> List<T>::operator + (const T &newItem) const 
+{
+	List<T> newList;
+	newList += *this;
+	newList.Add(newItem);
+	return newList;
+}
+
+/** Extraction operator for when the list has 1 element (similar but inverted relationship of when creating a list from a single element of class T)
+	Will throw errors or assertions if the list has any number of elements except 1.
+*/
+template <class T>
+List<T>::operator const T & () 
+{
+	if (this->currentItems != 1)
+	{
+		assert(false && "Number of items not 1. Handle with some other functions that the simple conversion operator.");
+		throw 3;
+	}
+	return arr[0];
+}
+
 
 template <class T>
 T& List<T>::operator[](int index) 
@@ -295,6 +324,8 @@ bool List<T>::Insert(T item, int atIndex)
 			return false;
 		}
 	}
+	if (arrLength == 0)
+		Resize(1);
 	/// Move everything back 1 step.
 	for (int i = currentItems; i > atIndex; --i)
 	{
@@ -571,15 +602,22 @@ void List<T>::Deallocate()
 template <class T>
 void List<T>::Resize(int newSize)
 {
+	// If same size, return. Already got the full length. Waste of time to delete and re-allocate.
+	if (newSize == arrLength)
+		return;
 	// Just remove if 0.
 	if (newSize == 0)
 	{
 		newSize = 8;
 	}
-	assert(newSize >= currentItems);
 	T * newArr = new T[newSize];
-	for (int i = 0; i < currentItems; ++i)
-		newArr[i] = arr[i];
+	// If new array is larger, copy over old items.
+	if (newSize >= currentItems)
+	{
+		for (int i = 0; i < currentItems; ++i)
+			newArr[i] = arr[i];
+	}
+	// If not, don't
 	if (arr)
 		delete[] arr;
 	arr = newArr;

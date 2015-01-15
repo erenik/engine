@@ -27,13 +27,20 @@ class SIPSession : public Session {
 public:
 	/// CC
 	SIPSession();
+	virtual ~SIPSession();
 	/// Creates the SIPRegister packet using the data in the given Peer-structure for ourselves.
 	void Initialize();
 
+	/// Attempts to connect on all valid ports (33000 to 33010), until 1 works.
+	virtual bool ConnectTo(String ipAddress);
 	/// Connects to address/port.
 	virtual bool ConnectTo(String ipAddress, int port);
+	/// Connects to address/port in given range, until it works.
+	virtual bool ConnectTo(String ipAddress, int startPort, int stopPort);
+	/// Attempts to start hosting a session of this kind, using any available port in the 33000 to 33010 range. 
+	virtual bool Host();
 	/// Attempts to start hosting a session of this kind. 
-	virtual bool Host(int port = 33000);
+	virtual bool Host(int port);
 	/// Stops the session, disconnecting any connections and sockets the session might have.
 	virtual void Stop();
 
@@ -43,12 +50,14 @@ public:
 	/// Function to process new incoming connections but also disbard old connections that are no longer active.
 	virtual void EvaluateConnections();
 	/// Returns a list of all peers that have connected since the last call to ReadPackets
-	List<Peer*> GetNewPeers();
+//	List<Peer*> GetNewPeers();
 	/// Returns a list of all peers that have disconnected since the last call to EvaluateConnections();
 	List<Peer*> GetDisconnectedPeers();
     
 	/// Sends target packet to all peers in this session using default targetsm, via host if possible.
 	virtual void Send(Packet * packet);
+	/// Constructs and sends a SIP INFO packet to all peers.
+	virtual void SendInfo(String info);
 	/// Reads packets, creating them and returning them for processing. Note that some packets will already be handled to some extent within the session (for exampling many SIP messages).
 	virtual List<Packet*> ReadPackets();
 	
@@ -57,6 +66,11 @@ public:
 
 	/// Uses the "name <name@ip>" from/to field to associate a peer.
 	Peer * GetPeerByData(String data);
+
+	/// Creates SIP Session Data structure and attaches it to the new peer as needed.
+	void EnsureSIPSessionData(Peer * forPeer);
+	/// Sends a BadRequest, complaining that the sender should register first before sending shit.
+	void DemandRegistration(SIPPacket * packet);
 
 	/// Handles packet received from target peer. Returns the validity of the peer after processing the packet. If false, the peer has been invalidated.
     bool HandlePacket(SIPPacket* packet, Peer* peer);
@@ -68,6 +82,7 @@ public:
     /// Ensures that all peer-parameters have been set apporpriately, using the given packet's data as needed. Returns false upon failure to extract peer data from packet.
     bool EnsurePeerData(Peer * peer, SIPPacket * packet);
 	/// Builds and sends a SIP Register message to target peer.
+	void RegisterWithPeer(Socket * sock);
 	void RegisterWithPeer(Peer * peer);
 	/// Number of peers reigsterd successfully.
 	int NumRegisteredPeers();
@@ -100,8 +115,8 @@ public:
 	/// Sets event state. If it didn't exist before it will be created.
 	void SetEventState(String eventName, String eventState);
 
-	/// List of peers that have recently joined/connected.
-	List<Peer*> newPeers;
+	/// List of peers that have recently joined/connected. <- Why?
+//	List<Peer*> newPeers;
 	/// List of peers that have recently disconnected.
 	List<Peer*> disconnectedPeers;
 protected:

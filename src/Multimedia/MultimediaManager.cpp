@@ -89,9 +89,11 @@ MultimediaStream * MultimediaManager::Play(String fromPath)
 
 	/// Check file ending.
 	String fileType = FilePath::FileEnding(fromPath);
-	if (fileType == "ogg"){
+	if (fileType == "ogg")
+	{
 		/// Try play it with ogg
 		/// TODO: Identify if it contains Theora or what it contains?
+#ifdef OGG
 		newStream = new OggStream();
 		/// Open path.
 		newStream->Open(fromPath);
@@ -99,6 +101,7 @@ MultimediaStream * MultimediaManager::Play(String fromPath)
 		streams.Add(newStream);
 		// Play it straight away..?
 		newStream->Play();
+#endif
 	}
 	else {
 		std::cout<<"\nMultimediaManager::Play: Unknown video type. Unable to play.";
@@ -130,10 +133,10 @@ void MultimediaManager::Update()
 		ms->UpdateMediaTime();
 		
 	//	ms->mediaTime += timeDiff;
-		int currentFrameTime = ms->CurrentFrameTime();
-		if (ms->mediaTime > currentFrameTime)
+		int frametimeStartMs = ms->CurrentFrameTime();
+		if (ms->mediaTime > frametimeStartMs)
 		{
-			int timeToPass = ms->mediaTime - currentFrameTime;
+			int timeToPass = ms->mediaTime - frametimeStartMs;
 			float timePerFrame = ms->TimePerFrame();
 			timePerFrame *= 1000;
 			int framesToPass = timeToPass / timePerFrame;

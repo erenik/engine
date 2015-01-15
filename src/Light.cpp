@@ -34,6 +34,7 @@ void Light::Nullify()
 	owner = NULL;
 	registeredForRendering = false;
 	lighting = NULL;
+	currentlyActive = true;
 }
 Light::Light(const Light & otherLight)
 {
@@ -54,6 +55,12 @@ Light::Light(const Light & otherLight)
 	owner = NULL;
 }
 
+Light::~Light()
+{
+
+}
+	
+
 String lightEditorName = "LightEditor";
 	
 
@@ -68,7 +75,7 @@ void Light::OpenEditorWindow()
 	}
 	// Create it if not existing.
 	else {
-		window = WindowMan.NewWindow(lightEditorName);
+		window = WindowMan.NewWindow(lightEditorName, "Light editor");
 		UserInterface * ui = window->CreateUI();
 		ui->Load("gui/LightEditor.gui");
 		window->DisableAllRenders();
@@ -108,6 +115,7 @@ void Light::ProcessMessage(Message * message)
 			{
 				name = ssm->value;
 				OnPropertiesUpdated();
+				assert(lighting);
 				this->lighting->UpdateLightList();
 			}
 			break;

@@ -42,6 +42,7 @@ void GraphicsManager::RenderWindow()
 
 	FrameStats.Reset();
 
+	/*
     Timer preRenderTimer;
     preRenderTimer.Start();
 
@@ -64,11 +65,12 @@ void GraphicsManager::RenderWindow()
    // glClearColor(0.1f, 0.1f, 0.15f, 0.5f);
 //    glClearColor(renderSettings->clearColor.x, renderSettings->clearColor.y, renderSettings->clearColor.z, 1.0f);
     PrintTime("\nglClearColor: ");
-
+	*/
 	Vector4f color = window->backgroundColor; 
+	color = Vector4f(0.2f, 0.2f, 0.2f, 1.f);
 	glClearColor(color.x, color.y, color.z, color.w);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+	/*
 	/// Testing...
 //	return;
 
@@ -93,9 +95,7 @@ void GraphicsManager::RenderWindow()
 	Shader * shader = ShadeMan.SetActiveShader("Flat");
 //	assert(shader && "Unable to set \"Flat\" shader");
 
-    Timer viewportsTimer, viewportTimer;
-    viewportsTimer.Start();
-
+    
     preRenderFrameTime = preRenderTimer.GetMs();
 
 	PrintTime("\nPre-render stuff: ");
@@ -103,15 +103,18 @@ void GraphicsManager::RenderWindow()
 
 	
 //	this->cameraToTrack->ProcessMovement(graphicsState->frameTime);
-
+*/
 	
 	/// Render all viewports..
+	Timer viewportsTimer, viewportTimer;
+    viewportsTimer.Start();
 	if (window->renderViewports)
 	{
 
 		List<Viewport*> viewports = graphicsState->activeWindow->viewports;
 		// assert(viewports.Size() && "Really? No viewport to render anything?");
-		for (int i = 0; i < viewports.Size(); ++i){
+		for (int i = 0; i < viewports.Size(); ++i)
+		{
 			viewportTimer.Start();
 			Viewport * vp = viewports[i];
 			if (vp == NULL){
@@ -131,7 +134,7 @@ void GraphicsManager::RenderWindow()
 	}
 	
 	PrintTime("\nRendering viewports: ");
-
+	/*
 	// Reset scissor-variables
 	graphicsState->viewportX0 = graphicsState->viewportY0 = 0;
 
@@ -166,10 +169,10 @@ void GraphicsManager::RenderWindow()
 
 
 //	std::cout<<"\nRenderViewports: "<<renderViewports.Size();
-
-
+	
     Timer postViewportTimer;
     postViewportTimer.Start();
+	/*
 
 	PrintTime("\nView port rendered");
 
@@ -178,15 +181,18 @@ void GraphicsManager::RenderWindow()
 //	std::cout<<"\nViewport size: "<<width<<" x" <<height;
 //	UpdateProjection();
 
-	if (window->renderState && StateMan.ActiveState())
+	if (window->renderState && StateMan.ActiveState() && false)
 		StateMan.ActiveState()->Render(graphicsState);
 
 	// And render FPS while we're at it...!
 	if (window->renderFPS)
 		RenderFPS();
 	
+		*/
+
 	UserInterface * ui = window->ui, 
 		* globalUI = window->globalUI;
+	
 	// Render UI if applicable
 	if (window->renderUI && ui)
 		RenderUI(ui);

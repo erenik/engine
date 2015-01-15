@@ -3,7 +3,7 @@
 #include "../PhysicsProperty.h"
 #include "../PhysicsManager.h"
 #include "../Entity/Entity.h"
-#include "../Model.h"
+#include "Model/Model.h"
 #include "Entity/Entities.h"
 #include "../Collision/Collisions.h"
 #include "Graphics/GraphicsManager.h"
@@ -18,7 +18,7 @@
 #include "Physics/CollisionDetector.h"
 
 #include "PhysicsLib/PhysicsMesh.h"
-#include "PhysicsLib/Shapes/Sphere.h"
+#include "Sphere.h"
 #include "PhysicsLib/Shapes/Quad.h"
 #include "PhysicsLib/Shapes/Cube.h"
 #include "PhysicsLib/Shapes/Ray.h"
@@ -79,26 +79,21 @@ PhysicsManager::PhysicsManager()
 
 PhysicsManager::~PhysicsManager()
 {
-    delete aabbSweeper;
-    aabbSweeper = NULL;
-	delete entityCollisionOctree;
-	entityCollisionOctree = NULL;
+	// Delete remaining messages.
+	while(messageQueue.Length())
+		delete messageQueue.Pop();
+
+	SAFE_DELETE(aabbSweeper);
+	SAFE_DELETE(entityCollisionOctree);
 	CLEAR_AND_DELETE(physicsMeshes);
 	physicsMeshes.ClearAndDelete();
 	physicsMessageQueueMutex.Destroy();
 	contacts.ClearAndDelete();
 	springs.ClearAndDelete();
 
-	if (physicsIntegrator)
-	{
-		delete physicsIntegrator;
-		physicsIntegrator = NULL;
-	}
-	if (collisionResolver)
-	{
-		delete collisionResolver;
-		collisionResolver = NULL;
-	}
+	SAFE_DELETE(physicsIntegrator);
+	SAFE_DELETE(collisionResolver);
+	SAFE_DELETE(collisionDetector);
 }
 
 /// Performs various tests in order to optimize performance during runtime later.

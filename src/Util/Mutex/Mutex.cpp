@@ -2,7 +2,8 @@
 // 2013-03-29
 
 #include "Mutex.h"
-#include "../Timer/Timer.h"
+#include "Time/Time.h"
+// #include "../Timer/Timer.h"
 
 #ifdef WINDOWS
 	#include <Windows.h>
@@ -17,6 +18,16 @@
 //public:
 int Mutex::activeMutexes = 0;
 bool Mutex::logClaimsAndReleases = false;
+
+MutexHandle::MutexHandle(Mutex & mutexToHandle)
+{
+	this->mutex = &mutexToHandle;
+	mutex->Claim(-1);
+}
+MutexHandle::~MutexHandle()
+{
+	mutex->Release();
+}
 
 /// Doesn't do anything
 Mutex::Mutex(){
@@ -80,7 +91,9 @@ bool Mutex::Destroy(){
 #elif defined WINDOWS
 
 /// Create a mutex
-bool Mutex::Create(String i_name){
+bool Mutex::Create(String i_name)
+{
+	i_name += String((int)(Time::Now().Milliseconds()));
 	i_name.ConvertToWideChar();
 	win32MutexHandle = CreateMutex(NULL, false, i_name);
 	if (!win32MutexHandle)

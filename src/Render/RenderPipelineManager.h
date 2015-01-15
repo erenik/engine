@@ -25,5 +25,8 @@ public:
 
 	RenderPipeline * activePipeline;
 	List<RenderPipeline*> renderPipelines;
+
+private:
+	File pipelineConfig;
 };
 

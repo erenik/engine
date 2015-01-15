@@ -26,7 +26,7 @@ UIMatrix::~UIMatrix()
 }
 
 /// Splitting up the rendering.
-void UIMatrix::RenderSelf(GraphicsState * graphicsState)
+void UIMatrix::RenderSelf(GraphicsState & graphicsState)
 {
 	if (rebuildMatrix)
 	{

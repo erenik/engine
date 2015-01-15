@@ -18,9 +18,9 @@ void GraphicsManager::RenderCapture()
 	if (window->saveScreenshot)
 	{
 		// Grab frame! o.o
-		static Texture * frame = NULL;
+		Texture * frame = window->frame;
 		if (!frame)
-			frame = TexMan.New();
+			window->frames = frame = TexMan.New();
 		frame->bpp = 4; // 4 bytes per pixel, RGBA
 		frame->Resize(windowSize);
 		glReadPixels(0, 0, windowSize.x, windowSize.y, GL_RGBA, GL_UNSIGNED_BYTE, frame->data);
@@ -131,7 +131,7 @@ void GraphicsManager::RenderCapture()
 	if (window->isRecording)
 	{
 		// Render a "recording" symbol somewhere?
-		glUseProgram(0);
+		ShadeMan.SetActiveShader(0);
 	
 		// Fill the polygons!
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

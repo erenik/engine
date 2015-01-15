@@ -7,8 +7,8 @@
 #include "Pathfinding/WaypointManager.h"
 #include "Pathfinding/PathManager.h"
 
-#include "ModelManager.h"
-#include "Model.h"
+#include "Model/ModelManager.h"
+#include "Model/Model.h"
 
 
 #define SELECTED_HARD_COLOR {glColor4f(1.8f, 1.6f, 0.5f, 0.6f);}
@@ -133,7 +133,8 @@ void GraphicsManager::RenderNavMesh()
 }
 
 /// Renders target paths
-void GraphicsManager::RenderPath(){
+void GraphicsManager::RenderPath()
+{
 	if (!PathMan.GetLatsPathMutex(10))
 		return;
 	
@@ -141,6 +142,8 @@ void GraphicsManager::RenderPath(){
 		
 	//  Old shit.
 	return;
+
+	Shader * shader = ActiveShader();
 	/// Get last calculated path
 	Path path;
 	PathMan.GetLastPath(path);
@@ -164,7 +167,7 @@ void GraphicsManager::RenderPath(){
 			std::cout<<"\nWARNING: Waypoint is NULL for some reason o.O";
 		}
 		/// Passable
-		glUniform4f(graphicsState->activeShader->uniformPrimaryColorVec4, 
+		glUniform4f(shader->uniformPrimaryColorVec4, 
 			0.4f + waypointRendered / waypoints, 
 			1.0f + waypointRendered / waypoints, 
 			0.4f + waypointRendered / waypoints, 
@@ -172,14 +175,12 @@ void GraphicsManager::RenderPath(){
 		++waypointRendered;
 		/// Translate to waypoint position.
 		Matrix4f transform;
-		transform.LoadIdentity();
+		transform = Matrix4f::InitTranslationMatrix(wp->position + Vector3f(0,1,0));
 		transform.Scale(4);
-		transform.Translate(wp->position);
-		transform.Translate(0, 1.0f, 0);
 		/// Set uniform matrix in shader to point to the AppState modelView matrix.
- 		glUniformMatrix4fv(graphicsState->activeShader->uniformModelMatrix, 1, false, transform.getPointer());
+ 		glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, transform.getPointer());
 		// Render if we got a model ^^
-		model->Render();
+		model->Render(*graphicsState);
 	}
 	/// Draw a line-strip too, using default renderer!
 	waypointRendered = 0;

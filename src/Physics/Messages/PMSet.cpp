@@ -59,6 +59,15 @@ PMSet::PMSet(int target, int iValue)
 	switch(target){
 		case PT_INTEGRATOR_TYPE:
 			break;
+		case PT_PHYSICS_INTEGRATOR:
+			i = NULL;
+			break;
+		case PT_COLLISION_DETECTOR:
+			cd = NULL;
+			break;
+		case PT_COLLISION_RESOLVER:
+			cr = NULL;
+			break;
 		default:
 			assert(false && "Invalid target in PMSet");
 	}

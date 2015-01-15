@@ -5,7 +5,7 @@
 #ifndef UIELEMENT_H
 #define UIELEMENT_H
 
-#include <GL/glew.h>
+#include <glew.h>
 
 #include <cstdlib>
 #include <ctime>
@@ -46,7 +46,8 @@ namespace UIFlag {
 	const int ACTIVATABLE	=	0x00000004; // Gosh-
 };
 
-class UIElement{
+class UIElement
+{
 	friend class UserInterface;
 	friend class InputManager;
 	friend class GraphicsManager;
@@ -65,6 +66,9 @@ public:
 	/// Copy-cosntructor.
 	UIElement(const UIElement & reference);
 
+	/// Sets the bufferized flag. Should only be called before program shutdown. Ensures less assertions will fail.
+	void SetBufferized(bool bufferizedFlag);
+	
 	/// Callback-function for sub-classes to implement own behaviour to run within the UI-class' code.
 	virtual void Proceed();
 
@@ -103,6 +107,9 @@ public:
 	virtual void Clear();
 
 	/// Activation functions
+	// Hovers over this element. calling OnHover after setting the UIState::HOVER flag.
+	virtual UIElement * Hover();
+	// Recursive hover function which will return the element currently hovered over using given co-ordinates.
 	virtual UIElement * Hover(int mouseX, int mouseY);	// Skickar hover-meddelande till UI-objektet.
 	virtual UIElement * Click(int mouseX, int mouseY);						// Skicker Genererar meddelande ifall man tryckt på elementet
 	virtual UIElement * Activate();						// When button is released.
@@ -184,6 +191,7 @@ public:
 	bool IsVisible();
 
 	/// Gets absolute position and stores them in the pointers' variables, in pixels, relative to upper left corner
+	Vector2i GetAbsolutePos();
 	void GetAbsolutePos(int * posX, int * posY);
 	/// Absolute positions, in pixels, relative to upper left corner
 	int GetAbsolutePosX();
@@ -212,7 +220,7 @@ public:
     bool AddToParent(String parentName, UIElement * child);
 
 	// Adjust hierarchy
-	virtual void AddChild(UIElement* child); // Sets child pointer to child UI element, NULL if non
+	virtual bool AddChild(UIElement* child); // Sets child pointer to child UI element, NULL if non
 	void SetParent(UIElement *in_parent);
 
 	/// Checks if the target element is somehow a part of this list. If it is, the function will return the index of the child it is or belongs to. Otherwise -1 will be returned.
@@ -226,7 +234,7 @@ public:
 	/// Releases resources used by the UIElement. Should only be called by a thread with valid GL context!
 	void FreeBuffers();
 	/// Rendering
-	virtual void Render(GraphicsState * graphicsState);
+	virtual void Render(GraphicsState & graphicsState);
 
 	/// Adjusts the UI element size and position relative to new window size
 	void AdjustToWindow(int left, int right, int bottom, int top);
@@ -359,7 +367,7 @@ public:
 	/// For example UIState::HOVER, not to be confused with flags! State = current, Flags = possibilities
 	void AddState(int state);
 	/// For example UIState::HOVER, if recursive will apply to all children.
-	void RemoveState(int state, bool recursive = false);
+	virtual void RemoveState(int state, bool recursive = false);
 
 
 	/// Wether NavigateUI should be enabled when this element is pushed. Default is false.
@@ -398,6 +406,9 @@ public:
 
 // Some inherited for UI subclasses
 protected:
+	// Offset used for internal elements. Mainly used by lists.
+	Vector2i pageBegin;
+
 	/// Similar to UI, this checks if this particular element is buffered or not.
 	bool isBuffered;
 	bool isGeometryCreated;
@@ -411,8 +422,8 @@ protected:
     float currentTextSizeRatio;
 
     /// Splitting up the rendering.
-    virtual void RenderSelf(GraphicsState * graphicsState);
-    virtual void RenderChildren(GraphicsState * graphicsState);
+    virtual void RenderSelf(GraphicsState & graphicsState);
+    virtual void RenderChildren(GraphicsState & graphicsState);
 
 	// Creates the Square mesh used for rendering the UIElement and calls SetDimensions with it's given values.
 	void CreateGeometry();

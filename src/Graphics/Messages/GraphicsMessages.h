@@ -4,6 +4,8 @@
 enum graphicsMessages {
 	GM_NULL,
 
+	GM_SHUTDOWN,
+
 	// Entire pipeline configuration
 	GM_CYCLE_RENDER_PIPELINE,
 	GM_CYCLE_RENDER_PIPELINE_BACK,
@@ -29,6 +31,7 @@ enum graphicsMessages {
 
 	// Setters
 	GM_SET,				// For setting default textures and stuff
+	GM_SET_INTEGER,
 	GM_SET_FLOAT,
 	GM_SET_TEXTURE,
 	GM_SET_STRING,
@@ -84,7 +87,8 @@ enum graphicsMessages {
 
 	// Particle effects,
 	GM_ATTACH_PARTICLE_SYSTEM,	// Entity based systems.
-	GM_REGISTER_PARTICLE_SYSTEM, // Global based systems
+	GM_REGISTER_PARTICLE_SYSTEM, // Global based systems, registering
+	GM_UNREGISTER_PARTICLE_SYSETM, // Global based systems, unregistering and deletion
 	GM_ATTACH_PARTICLE_EMITTER, // Attaching emitters to systems.
 	GM_PAUSE_EMISSION,
 	GM_RESUME_EMISSION,
@@ -127,7 +131,21 @@ enum graphicsTargets
 	GT_NULL_GRAPHIC_TARGET,
 
 	// Parenting, for relative displacement/rotation, etc.
+	GT_PARENTING_TARGETS = 0,
 	GT_PARENT,
+
+	/// Sleep- and thread-control for efficiency and regulation,
+	GM_SET_OUT_OF_FOCUS_SLEEP_TIME,
+
+	// Blending calculations
+	GT_BLEND_EQUATION,
+
+	// General stuff
+	GT_GENERAL_TARGETS = GT_PARENTING_TARGETS + 100,
+	GT_MAIN_CAMERA,	// To use when rendering scenes.
+    GT_CLEAR_COLOR,    // Color to clear screen/window with.
+	GT_FOG_BEGIN,		// Foggy fog-some. Fog color is defined be the GT_CLEAR_COLOR by default.
+	GT_FOG_END,
 
 	GT_OVERLAY_TEXTURE,
 	GT_ACTIVE_USER_INTERFACE,
@@ -137,21 +155,26 @@ enum graphicsTargets
 	GT_MAX_GRAPHICS_TARGETS,
 
 	// Particle systems
-	GT_PARTICLE_SYSTEMS,
+	GT_PARTICLE_TARGETS_0 = GT_GENERAL_TARGETS + 100,
+	GT_PARTICLE_SYSTEMS = GT_PARTICLE_TARGETS_0,
 	GT_PARTICLE_INITIAL_COLOR,
 	GT_PARTICLE_EMISSION_VEOCITY,
-
-    // General stuff
-	GT_MAIN_CAMERA,	// To use when rendering scenes.
-    GT_CLEAR_COLOR,    // Color to clear screen/window with.
-	GT_FOG_BEGIN,		// Foggy fog-some. Fog color is defined be the GT_CLEAR_COLOR by default.
-	GT_FOG_END,
-
+	GT_PARTICLE_SCALE,
+	GT_PARTICLE_TEXTURE, // Setting source or texture.
+	GT_PARTICLE_LIFE_TIME,
+	GT_USE_INSTANCED_RENDERING,
+	GT_SET_PARTICLE_EMITTER_OF_PARTICLE_SYSTEM,
+	GT_EMITTER_POSITION, // Position of emitters
+	GT_EMITTER_DIRECTION, // Dir for point/directional emitters
+	GT_EMISSIONS_PER_SECOND, // Per emitter
+	
 	// Camera targets
+	GT_CAMERA_TARGETS = GT_PARTICLE_TARGETS_0 + 100,
 	GT_CAMERA_TARGET_0,
 	GT_CAMERA_TARGET_20 = GT_CAMERA_TARGET_0 + 50,
 
 	// Added with SetEntity
+	GT_SET_ENTITY_TARGETS = GT_CAMERA_TARGETS + 100,
 	GT_REQUIRE_DEPTH_SORTING, // So rendering things work properly, specifically for sprites.
 	GT_BLEND_MODE_SRC, // E.g. GL_ONE for additive blending, or GL_ONE_MINUS_SRC_ALPHA for regular alpha-blending.
 	GT_BLEND_MODE_DST,
@@ -166,8 +189,11 @@ enum graphicsTargets
 	GT_REMOVE_CAMERA_FILTER,
 	GT_CLEAR_CAMERA_FILTER, // For clearing said filter.
 	GT_RENDER_OFFSET, // For rendering at a position slightly different than that stated by the physics and navMesh grid.
+	GT_ANIMATE_SKIN_USING_SHADERS, // For toggling Skeleton-animation to be conducted on the CPU or using Shaders on the GPU.
+	GT_PAUSE_ANIMATIONS, // For temporary pausing of all graphical animations.
 	
 	// Added with GraphicsEffects.
+	GT_GRAPHIC_EFFECTS_TARGETS = GT_SET_ENTITY_TARGETS + 100,
 	GT_ALPHA,
 	GT_RELATIVE_SCALE,
 	GT_MODEL,

@@ -4,6 +4,10 @@
 
 #include "Integrator.h"
 
+Integrator::Integrator()
+{
+	constantZ = 0.f;
+}
 
 void Integrator::IsGood()
 {

@@ -1,3 +1,5 @@
+/*
+
 
 #include "Node.h"
 
@@ -23,7 +25,7 @@ void Node::Render(){
 		sibling->Render();
 }
 
-/** Calls render on all children. */
+/** Calls render on all children. 
 void Node::renderChildren(GraphicsState &state){
 	Node * ptr = child;
 	while (ptr != NULL){
@@ -65,10 +67,13 @@ void Node::addSibling(Node * node){
 	}
 }
 
-/** Calls delete on this node's child. Recursively deleting everything below. Sets the child pointer to null afterwards. */
+/** Calls delete on this node's child. Recursively deleting everything below. Sets the child pointer to null afterwards. 
 void Node::deleteChild(){
 	Node * toDelete = child;
 	child = NULL;
 	if (toDelete)
 		delete toDelete;
 }
+
+*/
+

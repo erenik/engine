@@ -12,7 +12,6 @@
 #include "AudioTypes.h"
 
 #include "OpenAL.h"
-#include <AL/al.h>
 
 class MultimediaStream;
 
@@ -22,6 +21,7 @@ enum audioStatus {
 	READY,
 	PLAYING,
 	PAUSED,
+	ENDING, // While playing on the last buffer.
 	ENDED,
 	AUDIO_ERROR,
 };};
@@ -55,7 +55,7 @@ public:
 	bool IsPlaying();
 	void Resume();			// Resumes ONLY if the audio was currently paused.
 	void Pause();			// Pause at current time
-	void Stop();			// Stops and brings currentTime to 0.
+	void Stop(bool andSeekToStart);			// Stops and brings currentTime to 0.
 	// Buffers new data from underlying streams and pushes it into AL for playback.
 	void Update();			
 
@@ -105,8 +105,6 @@ private:
 	int state;			// Playing, paused, stopped, error, etc.
 	/// Updates playback volume. 
 	void UpdateVolume(float masterVolume);
-	/// For disabling playback functions. Usually set by the AudioManager ONLY.
-	static bool audioEnabled;
 
 	/// Total volume as calculated with UpdateVolume. 
 	float absoluteVolume;
@@ -114,16 +112,13 @@ private:
     bool loaded;
 	//TODO: add .wav plaback variables/classes
 	
-	/// Raw audio data array used when quering data from the underlying stream.
-	char * bufferData;
 	/// AL source, pretty much the ID of the sound in the AL-world.
-	ALuint alSource;
+	unsigned int alSource; // (ALuint)
+
 	/// Buffers for buffering audio data. Amount of buffers should be stored in another variable.
 	List<AudioBuffer*> audioBuffers;
 	/// Queued buffers. Order in which they are queued is relevant!
 	List<AudioBuffer*> queuedBuffers;
-	/// For setting initial size of the bufferData array.
-	static int defaultBufferSize;
 };
 
 #endif

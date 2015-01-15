@@ -10,7 +10,7 @@
 #include <Util.h>
 
 /// Should include includes to OpenAL here.. or...?
-#include <AL/al.h>
+#include "Audio/OpenAL.h"
 
 /// Buffer sizes.. might need separate ones for audio and video...?
 #define FOURKB		4096
@@ -36,11 +36,12 @@ class MultimediaStream {
 public:
 	// Default constructor, See types in MultimediaTypes.h
 	MultimediaStream(int type);	
+	virtual ~MultimediaStream();
 
 	/// Attempts to open target file. Returns false upon failure.
-    virtual bool Open(String path); 
+    virtual bool Open(String path) = 0;
 	/// Closes target file and stream.
-	virtual void Close();
+	virtual void Close() = 0;
 
 	/// Updates media time by checking how far the audio has played (easier to synchronize graphics to audio than reversed?)
 	virtual void UpdateMediaTime();
@@ -69,14 +70,16 @@ public:
 		Amount of bytes may reach 0 even if the media has not ended. Returns -1 on error. Returns -2 if the stream is paused.
 		If loop is set to true it will try to automatically seek to the beginning when it reaches the end of the file.
 	*/
-	virtual int BufferAudio(char * buf, int maxBytes, bool loop);
+	virtual int BufferAudio(char * buf, int maxBytes, bool loop) = 0;
 
 	/** Returns a texture which will be updated as the stream progresses. 
 		If the stream lacks graphics NULL will be returned.
 		If the texture has the rebufferize flag set it has to be re-buffered to gain new frame data.
 	*/
 	virtual Texture * GetFrameTexture();
-	
+
+	// Path we're streaming from.
+	String path;
 
 	/// If flagged, will restart once ended.
 	bool loop;
@@ -124,6 +127,13 @@ protected:
 	
 	/// See streamStates above. Initial value is StreamState::NOT_INITIALIZED
 	int streamState;
+
+	/// Audio-specific data.
+	/// Channels
+	int audioChannels;
+	/// Audio frequency, or samples per second, usually 44.1 kHz or some similar rather high value.
+	int samplesPerSecond;
+
 
 private:
 

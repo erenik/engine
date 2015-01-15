@@ -7,144 +7,21 @@
 #include "Graphics/OpenGL.h"
 #include "Globals.h"
 
-#include <iostream>
 #include <fstream>
+#include <iostream>
+
+#include "ShaderManager.h"
+
+#include "Graphics/GraphicsManager.h"
+
 //#include "Macros.h"
 
-/// Initialize a SHADARRR
-const int LOG_MAX = 2048;
-char shaderLog[LOG_MAX];
-	
-/// 
-ShaderPart::ShaderPart(int type)
-: type(type)
+/// Ease-of-use function which grabs the active shader via the manager.
+Shader * ActiveShader()
 {
-	shaderKernelPart = -1;
+	return ShaderMan.ActiveShader();
 }
 
-void ShaderPart::Delete()
-{
-	if (shaderKernelPart){
-		int deleteStatus = -1;
-		glGetShaderiv(shaderKernelPart, GL_DELETE_STATUS, &deleteStatus);
-		if (deleteStatus == GL_FALSE)
-			glDeleteShader(shaderKernelPart);
-		shaderKernelPart = NULL;
-	}
-}
-
-// Loads from source.
-bool ShaderPart::Load(String fromSource)
-{
-	CreateShaderKernelIfNeeded();
-	source = fromSource;
-	char * data;
-	int size = 0, start = 0;
-	String vertSource, fragSource;
-	try {
-		// Open file
-		std::fstream file;
-		file.open(source.c_str(), std::ios_base::in);
-		if (!file.is_open()){
-		    std::cout<<"\nUnable to open stream to file \""<<source<<"\"";
-		    return false;
-		}
-		// Extract length of file.
-		start = (int)file.tellg();
-		file.seekg(0, std::ios::end);
-		size = ((int)file.tellg()) - start;
-		file.seekg(0, std::ios::beg);
-		// Allocate and read data.
-		data = new char [size+5];
-		memset(data, 0, size+5);
-		file.read(data, size);
-		// Close file again
-		file.close();
-
-		/// Add a null-sign ffs!
-		data[size] = 0;
-
-		if (file.fail()){
-
-			if (file.fail())
-				file.clear(std::ios_base::failbit);
-			if (file.eof())
-				file.clear(std::ios_base::eofbit);
-			if (file.bad())
-				file.clear(std::ios_base::badbit);
-			if (file.good())
-
-				// Reset bits
-				int state = file.exceptions();
-		}
-
-		/* Associate the source code buffers with each handle */
-		glShaderSource(shaderKernelPart, 1, (const GLchar **) &data, 0);
-        // Copy data first!
-		vertSource = String(data);
-		// Deallocate data again
-		delete[] data;
-		data = NULL;
-	} catch (...) {
-		std::cout<<"\nFile I/O Error: Failed to read shader source from "<<source;
-		return false;
-	}
-	return true;
-}
-
-void ShaderPart::CreateShaderKernelIfNeeded()
-{
-	if (shaderKernelPart == -1)
-	{
-		switch(type)
-		{
-			case ShaderType::VERTEX_SHADER:
-				shaderKernelPart = glCreateShader(GL_VERTEX_SHADER);
-				break;
-			case ShaderType::FRAGMENT_SHADER:
-				shaderKernelPart = glCreateShader(GL_FRAGMENT_SHADER);
-				break;
-		}
-	}
-}
-// Copmpiles it, returning the result.
-bool ShaderPart::Compile()
-{
-	CreateShaderKernelIfNeeded();
-	
-	/* Compile our shader objects */
-	glCompileShader(shaderKernelPart);
-	
-	// Check if compilation failed.
-	int status = NULL;
-	glGetShaderiv(shaderKernelPart, GL_COMPILE_STATUS, &status);
-	// If compilation failed, extract info log o-o
-	int resultLength = 0;
-	if (status == GL_FALSE){
-		glGetShaderInfoLog(shaderKernelPart, LOG_MAX, &resultLength, shaderLog);
-		if (resultLength > 0){
-			// Just return if compilation fails for now. Enter a warning here or debug breakpoint if needed ^^
-			String cError = "\nCompilation Error: ";
-			cError += source;
-			cError += ": Failed compiling vertex shader: \n";
-			cError += shaderLog;
-
-			std::cout<<cError;
-			glGetError();	// Release any eventual errors
-			
-			std::fstream dump;
-			String dumpFileName = "ShaderCompilationError_VertexShader_";
-			dumpFileName += name;
-			dump.open(dumpFileName.c_str(), std::ios_base::out);
-			if (dump.is_open()){
-				dump << cError;
-			}
-			dump.close();
-			return false;
-		}
-	}
-	return true;
-}
 
 Shader::Shader()
 {
@@ -166,7 +43,7 @@ Shader::Shader()
 	uniformNormalMap = -1;
 
 	/// Set the using uniforms to -1.
-	uniformUseDiffuseMap = uniformUseSpecularMap = uniformUseNormalMap = -1;
+	uniformUseDiffuseMap = uniformUseSpecularMap = uniformUseNormalMap = uniformBoneSkinningMatrixMap = -1;
 
 	// Foggy fog-some!
 	uniformFogBeginDistance = uniformFogEndDistance = uniformFogColor = -1;
@@ -186,6 +63,10 @@ Shader::~Shader()
 		std::cout<<"WARNING: "<<name<<" Fragment shader not deallocated!";
 		assert(false && "fragmentShader not deallocated!");
 	}
+
+	shaderParts.ClearAndDelete();
+	vertexShader = NULL;
+	fragmentShader = NULL;
 }
 
 void Shader::DeleteShader()
@@ -219,9 +100,29 @@ bool Shader::Compile()
 	{
 		vertexShader = new ShaderPart(ShaderType::VERTEX_SHADER);
 		shaderParts.Add(vertexShader);
+		vertexShader->name = name;
 		fragmentShader = new ShaderPart(ShaderType::FRAGMENT_SHADER);
 		shaderParts.Add(fragmentShader);
+		fragmentShader->name = name;
 	}
+
+	/// If we have made at least an attempt before.
+	if (lastCompileAttempt.Type() != TimeType::UNDEFINED)
+	{
+		// Check the last edit time of the sources.
+		Time mostRecentEdit = MostRecentEdit();
+		// Skip compilation if we've already tried with the latest sources.
+		if (mostRecentEdit < lastCompileAttempt)
+		{
+			std::cout<<"\nShader \'"<<name<<"\' up to date. Compile status: "<< (built ? "OK" : "Errors, see log files");
+			/// Return last built state.
+			return built;
+		}
+	}
+
+	// Reset built flag.
+	built = false;
+	lastCompileAttempt = Time::Now();
 
 	std::cout<<"\nRecompiling shader: "<<name;
 
@@ -239,8 +140,10 @@ bool Shader::Compile()
 	if (!fragmentShader->Load(fragmentSource))
 		return false;
 	
-	vertexShader->Compile();
-	fragmentShader->Compile();
+	if (!vertexShader->Compile())
+		return false;
+	if (!fragmentShader->Compile())
+		return false;
 	
 	/* Attach our shaders to our program */
 	glAttachShader(shaderProgram, vertexShader->shaderKernelPart);
@@ -252,23 +155,8 @@ bool Shader::Compile()
 	glBindAttribLocation(shaderProgram, 1, "in_UV");
 	glBindAttribLocation(shaderProgram, 2, "in_Normal");
 	glBindAttribLocation(shaderProgram, 3, "in_Tangent");
-
-	GLuint attrib = glGetAttribLocation(shaderProgram, "in_Position");
-	if (attrib == -1){
-		std::cout<<"\nUnable to get attribute location for in_Position!";
-	}
-	attrib = glGetAttribLocation(shaderProgram, "in_UV");
-	if (attrib == -1){
-		std::cout<<"\nUnable to get attribute location for in_UV!";
-	}
-	attrib = glGetAttribLocation(shaderProgram, "in_Normal");
-	if (attrib == -1){
-		std::cout<<"\nUnable to get attribute location for in_Normal!";
-	}
-	attrib = glGetAttribLocation(shaderProgram, "in_Tangent");
-	if (attrib == -1){
-		std::cout<<"\nUnable to get attribute location for in_Tangent!";
-	}
+	glBindAttribLocation(shaderProgram, 4, "in_BoneIndices");
+	glBindAttribLocation(shaderProgram, 5, "in_BoneWeights");
 
 	error = glGetError();
 
@@ -314,6 +202,8 @@ bool Shader::Compile()
 
 	// Extract uniforms.
 	ExtractUniforms();
+	// .. and attributes!
+	ExtractAttributes();
 
 	// Enable rendering now if it wasn't already
 	built = true;
@@ -350,7 +240,8 @@ void Shader::ExtractUniforms()
 	// First diffuse
 	glActiveTexture(GL_TEXTURE0 + 0);
 	uniformBaseTexture = glGetUniformLocation(shaderProgram, "baseImage");
-	if (uniformBaseTexture == -1){
+	if (uniformBaseTexture == -1)
+	{
 		uniformBaseTexture = glGetUniformLocation(shaderProgram, "diffuseMap");
 		if (uniformBaseTexture == -1)
 			std::cout<<"\nUniformBaseTexture \"baseImage/diffuseMap\" could not be located and set!";
@@ -358,16 +249,17 @@ void Shader::ExtractUniforms()
 	// Specular map
 	glActiveTexture(GL_TEXTURE0 + 1);
 	uniformSpecularMap = glGetUniformLocation(shaderProgram, "specularMap");
-	if (uniformSpecularMap == -1)
-		std::cout<<"\nUniformSpecularMap \"specularMap\" could not be located and set!";
 	// Normal map
 	glActiveTexture(GL_TEXTURE0 + 2);
 	uniformNormalMap = glGetUniformLocation(shaderProgram, "normalMap");
-	if (uniformNormalMap == -1)
-		std::cout<<"\nUniformNormalMap \"normalMap\" could not be located and set!";
+	
+	// Skinning matrix data map
+	glActiveTexture(GL_TEXTURE0 + 3);
+	uniformBoneSkinningMatrixMap = glGetUniformLocation(shaderProgram, "boneSkinningMatrixMap");
+
 	glActiveTexture(GL_TEXTURE0 + 0);
 
-	/// Set the using uniforms to -1.
+	/// Extract textures boolean uniforms.
 	uniformUseDiffuseMap = glGetUniformLocation(shaderProgram, "useDiffuseMap");
 	uniformUseSpecularMap = glGetUniformLocation(shaderProgram, "useSpecularMap");
 	uniformUseNormalMap = glGetUniformLocation(shaderProgram, "useNormalMap");
@@ -408,5 +300,157 @@ void Shader::ExtractUniforms()
 	uniformLight.spotCutoffFloat = glGetUniformLocation(shaderProgram, "light_spotCutoff");
 	uniformLight.spotExponentInt = glGetUniformLocation(shaderProgram, "light_spotExponent");
 	
+
+	/// Extract attributes and uniforms as possible.
+	uniforms.Clear();
+	// get count
+	int numUniforms;
+	glGetProgramiv(shaderProgram, GL_OBJECT_ACTIVE_UNIFORMS_ARB, &numUniforms);
+	if (CheckGLError("Shader active uniforms") == GL_NO_ERROR)
+	{
+		for (int i = 0; i < numUniforms; ++i)
+		{
+			const int bufSize = 250;
+			char nameBuf[bufSize];
+			int size;
+			int length;
+			GLenum type;
+			// for i in 0 to count:
+			glGetActiveUniform (shaderProgram, i, bufSize, &length, &size, &type, nameBuf);
+			GLSLIdentifier uniform;
+			uniform.name = nameBuf;
+			uniform.location = glGetUniformLocation(shaderProgram, nameBuf);
+			uniform.type = type;
+			uniform.size = size;
+			uniforms.Add(uniform);
+		}
+	}
+}
+
+/// Extracts all attributes (input streams/buffers).
+void Shader::ExtractAttributes()
+{
+	
+	// Attributes for regular entity and UI rendering (older approaches, non-instanced, non-deferred, etc.)
+	attributePosition = glGetAttribLocation(shaderProgram, "in_Position");
+	attributeUV = glGetAttribLocation(shaderProgram, "in_UV");
+	attributeNormal = glGetAttribLocation(shaderProgram, "in_Normal");
+	attributeTangent = glGetAttribLocation(shaderProgram, "in_Tangent");
+
+	// Attributes added with instanced particle rendering. 
+	attributeVertexPosition = glGetAttribLocation(shaderProgram, "in_VertexPosition");
+	attributeParticlePositionScale = glGetAttribLocation(shaderProgram, "in_ParticlePositionScale");
+	attributeColor = glGetAttribLocation(shaderProgram, "in_Color");
+
+	/// Attributes added with skeletal animation, vec4 both of them, thereby limiting number of bone-weights to 4 per vertex.
+	attributeBoneIndices = glGetAttribLocation(shaderProgram, "in_BoneIndices");
+	attributeBoneWeights = glGetAttribLocation(shaderProgram, "in_BoneWeights");
+
+	/// Get them all enumerated nicely if lists are desired of all active attributes.
+	// Just clear previous list first though.
+	attributes.Clear();
+	int numAttributes;
+	glGetProgramiv(shaderProgram, GL_OBJECT_ACTIVE_ATTRIBUTES_ARB, &numAttributes);
+	if (CheckGLError("Shader active attributes") == GL_NO_ERROR)
+	{
+		for (int i = 0; i < numAttributes; ++i)
+		{
+			const int bufSize = 250;
+			char nameBuf[bufSize];
+			int size;
+			int length;
+			GLenum type;
+			glGetActiveAttrib(shaderProgram, i, bufSize, &length, &size, &type, nameBuf);
+			GLSLIdentifier attrib;
+			attrib.name = nameBuf;
+			// Get the attribute location.
+			attrib.location = glGetAttribLocation(shaderProgram, nameBuf);
+			attrib.type = type;
+			attrib.size = size;
+			attributes.Add(attrib);
+		}
+	}
+}
+
+/// Prints the lists gathered in ExtractUniforms
+void Shader::PrintAttributes()
+{
+	std::cout<<"\nTotal attributes: "<<attributes.Size();
+	for (int i = 0; i < attributes.Size(); ++i)
+	{
+		GLSLIdentifier & attribute = attributes[i];
+		std::cout<<"\nAttribute "<<i<<": "<<attribute.name<<", type: "<<attribute.type<<" size: "<<attribute.size;
+	}
+}
+void Shader::PrintUniforms()
+{
+	std::cout<<"\nTotal uniforms: "<<uniforms.Size();
+	for (int i = 0; i < uniforms.Size(); ++i)
+	{
+		GLSLIdentifier & uniform = uniforms[i];
+		std::cout<<"\nAttribute "<<i<<": "<<uniform.name<<", type: "<<uniform.type<<" size: "<<uniform.size;
+	}
+}
+
+/// Enables the respective vertex attribute pointers.
+void Shader::OnMadeActive()
+{
+	for (int i = 0; i < attributes.Size(); ++i)
+	{
+		GLSLIdentifier & attribute = attributes[i];
+		glEnableVertexAttribArray(attribute.location);
+	}
+	SetTextureLocations();
+	LoadLighting(Graphics.graphicsState->lighting, this);
+}
+/// Disables the respective vertex attribute pointers.
+void Shader::OnMadeInactive()
+{
+	for (int i = 0; i < attributes.Size(); ++i)
+	{
+		GLSLIdentifier & attribute = attributes[i];
+		glDisableVertexAttribArray(attribute.location);
+	}
+}
+
+
+/** Sets the texture indices to the default values, so that binding is done correctly afterwards. 
+	The equivalent texture unit is glActiveTexture(GL_TEXTURE0 + value). Default values are as follows:
+	0 - Diffuse/Default map
+	1 - Specular map
+	2 - Normal map
+	3 - Bone skinning matrix map
+*/
+void Shader::SetTextureLocations()
+{
+	glUniform1i(uniformBaseTexture, 0);
+	glUniform1i(uniformSpecularMap, 1);
+	glUniform1i(uniformNormalMap, 2);
+	glUniform1i(uniformBoneSkinningMatrixMap, 3); // Sets sampler to use texture #3 for skinning maps	
+
+	// Un-bind all previous texture!
+	for (int i = 0; i < 4; ++i)
+	{
+		glActiveTexture(GL_TEXTURE0 + i);
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+	glActiveTexture(GL_TEXTURE0);
+
+	CheckGLError("SetTextureLocations");
+}
+
+
+/// Returns the most recent edit time of the shader parts this program constitutes of.
+Time Shader::MostRecentEdit()
+{
+	Time mostRecentEdit;
+	for (int i = 0; i < shaderParts.Size(); ++i)
+	{
+		ShaderPart * part = shaderParts[i];
+		Time lastModified = part->source.LastModified();
+		if (lastModified > mostRecentEdit)
+			mostRecentEdit = lastModified;
+	}
+	return mostRecentEdit;
 }
 

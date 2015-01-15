@@ -31,6 +31,10 @@
 #ifdef _MSC_VER // MSVC++ specific header
 #define MSVC
     #include <crtdbg.h>
+#ifdef _DEBUG
+	// Visual leak detector, o.o, http://vld.codeplex.com/
+	#include <vld.h> 
+#endif
 #endif 
     #include "config.h"
     #include <io.h>
@@ -466,6 +470,9 @@ int main(int argc, char **argv)
 
 #endif
 	
+	// Create mutexes.
+	CreateUIMutex();
+
 	// Initialize all managers
 	CameraManager::Allocate();
 	PreferencesManager::Allocate();
@@ -635,7 +642,6 @@ int main(int argc, char **argv)
 #endif
 	ScriptManager::Deallocate();
 	MessageManager::Deallocate();
-	GraphicsManager::Deallocate();
 	ShaderManager::Deallocate();
 	FrameStatistics::Deallocate();
 	TextureManager::Deallocate();
@@ -645,9 +651,11 @@ int main(int argc, char **argv)
 #endif // USE_FTP
 	StateManager::Deallocate();
 	MapManager::Deallocate();
+	// Delete all entities, yo! wtf
+	EntityManager::Deallocate();
+	GraphicsManager::Deallocate();
 	PhysicsManager::Deallocate();
 	ModelManager::Deallocate();
-//	EntityManager::Deallocate();
 	PathManager::Deallocate();
 	WaypointManager::Deallocate();
 	InputManager::Deallocate();
@@ -655,18 +663,20 @@ int main(int argc, char **argv)
 	PreferencesManager::Deallocate();
 	WindowManager::Deallocate();
 	CameraManager::Deallocate();
+	UserInterface::DeleteAll();
 
+	
 	std::cout<<"\nManagers deallocated.";
 	timeTaken = clock() - timeStart;
 	std::cout<<"\nWaiting for manager-deallocation: "<<timeTaken / CLOCKS_PER_SEC<<" seconds";
-	Sleep(100);
 	
-	std::cout<<"\nDestroying window.";
-	Sleep(10);
+	// Delete mutexes.
+	DeleteUIMutex();
+
 	std::cout<<"\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>";
 	std::cout<<"\n>>>Main finishing.    >>>";
     std::cout<<"\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>";
-	Sleep(100);
+
 #ifdef WINDOWS
 
 	// De-allocate COM stuffs
@@ -677,7 +687,7 @@ int main(int argc, char **argv)
 //	_CrtSetReportMode( _CRT_ERROR, _CRTDBG_MODE_DEBUG );
 	/// Post memory leaks
 //	_CrtDumpMemoryLeaks();
-	Sleep(10);
+	Sleep(100);
 	return (int) 0;
 #elif defined LINUX | defined OSX
     return 0;

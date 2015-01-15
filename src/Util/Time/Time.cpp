@@ -17,13 +17,13 @@ Time::Time()
 	type = 0;
 }
 /// Undefined time.
-Time::Time(int intervals)
+Time::Time(uint64 intervals)
 	: intervals(intervals)
 {
 	type = TimeType::UNDEFINED;
 }
 /// Time using a given type and starting-point. 
-Time::Time(int intervals, int type)
+Time::Time(uint64 intervals, int type)
 	: intervals(intervals), type(type)
 {
 }
@@ -133,7 +133,49 @@ Time Time::operator += (const Time & otherTime)
 	return Time(*this);
 }
 
+/// Comparison operators
+/// Larger than, returns true if this time is larger (more recent) than the other time. False if not.
+bool Time::operator > (const Time & otherTime)
+{
+	Time otherTimeTmp = otherTime;
+	// Convert as necessary
+	otherTimeTmp.ConvertTo(type);
+	// Compare
+	return intervals > otherTime.intervals;
+}
 
+/// Lesser than, returns true if this time is smaller (older) than the other time. False if not.
+bool Time::operator < (const Time & otherTime)
+{
+	Time otherTimeTmp = otherTime;
+	// Convert as necessary
+	otherTimeTmp.ConvertTo(type);
+	// Compare
+	return intervals < otherTime.intervals;
+}	
+
+bool Time::operator == (const Time & otherTime)
+{
+	if (type == otherTime.type)
+	{
+		if (intervals == otherTime.intervals)
+			return true;
+		return false;
+	}
+	// Convert as necessary?
+	if (type != otherTime.type)
+	{
+		if (type == TimeType::UNDEFINED ||
+			otherTime.type == TimeType::UNDEFINED)
+			// Any bad type? Not equal then.
+			return false;
+
+		//
+		assert(false && "Convert as necessary.");
+
+	}
+	return false;
+}
 
 // Conversion operators
 Time::operator const int64 () const 
@@ -144,6 +186,31 @@ Time::operator const int64 () const
 Time::operator const int32 () const
 {
 	return intervals;
+}
+
+/// Converts this time into specified type.
+void Time::ConvertTo(int toType)
+{
+	// Same type, skip.
+	if (type == toType)
+		return;
+	switch(type)
+	{
+		// Converting from undefined.. just set intervals to 0.
+		case TimeType::UNDEFINED:
+			intervals = 0;
+			break;
+		default:
+			switch(toType)
+			{
+				case TimeType::UNDEFINED:
+					intervals = 0;
+					break;
+				default:
+					assert(false && "Lacking conversion scheme");
+			}
+	}
+	this->type = toType;
 }
 
 // Current total in micro-seconds since the starting-point.

@@ -1,6 +1,6 @@
 #include "Lighting.h"
 
-#include <GL/glew.h>
+#include <Graphics/OpenGL.h>
 
 #include <iostream>
 #include <ctime>
@@ -21,11 +21,11 @@
 
 #include "Message/MessageManager.h"
 #include "Message/MathMessage.h"
+#include "Message/FileEvent.h"
 
+Window * Lighting::lightingEditor = NULL;
 
-String lightngEditorWindowName = "LightingEditor";
 String lightList = "LightList";
-
 
 /// Default constructor, sets all light pointers and other variables to 0/NULL
 Lighting::Lighting()
@@ -54,11 +54,40 @@ const Lighting * Lighting::operator = (const Lighting & otherLighting)
 	return this;
 }
 
+bool Lighting::SaveLighting(String toFileName)
+{
+	if (!toFileName.Contains(".lighting"))
+		toFileName.Add(".lighting");
+	std::fstream file;
+	file.open(toFileName.c_str(), std::ios_base::out | std::ios_base::binary);
+	if (!file.is_open())
+		return false;
+	this->WriteTo(file);
+	file.close();
+}
+
+bool Lighting::LoadLighting(String fromFileName)
+{
+	if (activeLight)
+		activeLight->CloseEditorWindow();
+	std::fstream file;
+	file.open(fromFileName.c_str(), std::ios_base::in | std::ios_base::binary);
+	if (!file.is_open())
+		return false;
+	this->ReadFrom(file);
+	file.close();
+	// Stuff.
+	this->OpenEditorWindow();
+	// Make it active.
+//	Graphics.QueueMessage(new GMSetLighting(this));
+}
+
 /// Used for all copy-constructors.
 void Lighting::Copy(const Lighting * fromThisLighting)
 {
 	lights.ClearAndDelete();
-	for (int i = 0; i < fromThisLighting->lights.Size(); ++i){
+	for (int i = 0; i < fromThisLighting->lights.Size(); ++i)
+	{
 		Light * otherLight = fromThisLighting->lights[i];
 		Light * newLight = new Light(*otherLight);
 		lights.Add(newLight);
@@ -81,12 +110,27 @@ bool Lighting::ProcessMessage(Message * message)
 		Light * light = activeLight;
 		if (light)
 		{
+			light->lighting = this;
 			light->ProcessMessage(message);
 		}
 		return true;
 	}
 	switch(message->type)
 	{
+		case MessageType::FILE_EVENT:
+		{
+			FileEvent * fileEvent = (FileEvent*) message;
+			String file = fileEvent->files[0];
+			if (msg == "LoadLighting")
+			{
+				LoadLighting(file);
+			}
+			else if (msg == "SaveLighting")
+			{
+				SaveLighting(file);
+			}
+			break;
+		}
 		case MessageType::VECTOR_MESSAGE:
 		{
 			VectorMessage * vm = (VectorMessage*) message;
@@ -100,10 +144,9 @@ bool Lighting::ProcessMessage(Message * message)
 		{
 			if (msg == "OnReloadUI")
 			{
-				Window * window = WindowMan.GetWindowByName(lightngEditorWindowName);
-				if (window)
+				if (lightingEditor)
 				{	
-					UserInterface * ui = window->ui;
+					UserInterface * ui = lightingEditor->ui;
 					Graphics.QueueMessage(new GMSetUIv3f("GlobalAmbient", GMUI::VECTOR_INPUT, GetAmbient(), ui));
 					this->UpdateLightList();
 				}
@@ -112,26 +155,30 @@ bool Lighting::ProcessMessage(Message * message)
 			}
 			else if (msg == "SaveLighting")
 			{
-				std::fstream file;
-				file.open("temp.lighting", std::ios_base::out | std::ios_base::binary);
-				if (!file.is_open())
-					return false;
-				this->WriteTo(file);
-				file.close();
+				MesMan.QueueMessages("OpenFileBrowser(Save Lighting,SaveLighting,.lighting)");
 			}
 			else if (msg == "LoadLighting")
 			{
+				// If arguments exist, load it.
+				if (msg.Contains("("))
+				{
+					String arg = msg.Tokenize("()")[1];
+					if (arg.Length() == 0)
+						arg = "temp.lighting";
+					LoadLighting(arg);
+				}
+				// Else open a file-browser for it.
+				else 
+				{
+					MesMan.QueueMessages("OpenFileBrowser(Load Lighting,LoadLighting,.lighting)");
+				}
+			}
+			else if (msg == "ClearLights")
+			{
 				if (activeLight)
 					activeLight->CloseEditorWindow();
-				std::fstream file;
-				file.open("temp.lighting", std::ios_base::in | std::ios_base::binary);
-				if (!file.is_open())
-					return false;
-				this->ReadFrom(file);
-				file.close();
-				// Stuff.
-				this->OpenEditorWindow();
-				
+				this->DeleteAllLights();
+				UpdateLightList();
 			}
 			else if (msg == "DisableLight")
 			{
@@ -187,36 +234,34 @@ bool Lighting::ProcessMessage(Message * message)
 Window * Lighting::OpenEditorWindow()
 {
 	// Look for an existing lighting-editor window.
-	Window * window = WindowMan.GetWindowByName(lightngEditorWindowName);
-	if (window)
+	if (lightingEditor)
 	{
 	
 	}
 	// Create it if not existing.
 	else {
-		window = WindowMan.NewWindow(lightngEditorWindowName);
-		UserInterface * ui = window->CreateUI();
+		lightingEditor = WindowMan.NewWindow("LightingEditor", "Lighting editor");
+		UserInterface * ui = lightingEditor->CreateUI();
 		ui->Load("gui/LightingMenu.gui");
-		window->SetRequestedSize(Vector2i(400, 320));
-		window->DisableAllRenders();
-		window->renderUI = true;
-		window->CreateGlobalUI();
-		window->Create();
+		lightingEditor->SetRequestedSize(Vector2i(400, 320));
+		lightingEditor->DisableAllRenders();
+		lightingEditor->renderUI = true;
+		lightingEditor->CreateGlobalUI();
+		lightingEditor->Create();
 	}
 	
 	// Show it.
-	window->Show();
+	lightingEditor->Show();
 	// Bring it to the top if needed.
-	window->BringToTop();
+	lightingEditor->BringToTop();
 
 	
 	// Set default values as specified in this lighting.
-	UserInterface * ui = window->ui;
+	UserInterface * ui = lightingEditor->ui;
 
 	Graphics.QueueMessage(new GMSetUIv3f("GlobalAmbient", GMUI::VECTOR_INPUT, GetAmbient(), ui));
-
-	UpdateLightList(window);
-	return window;
+	UpdateLightList(lightingEditor);
+	return lightingEditor;
 }
 
 /// Updates UI for all lights in this lighting.
@@ -224,7 +269,7 @@ void Lighting::UpdateLightList(Window * inWindow)
 {
 	Window * window = inWindow;
 	if (!window)
-		window = WindowMan.GetWindowByName(lightngEditorWindowName);
+		window = lightingEditor;
 	if (!window)
 		return;
 	// Set default values as specified in this lighting.
@@ -247,7 +292,6 @@ Light * Lighting::NewLight(String name)
 {
 	Light * light = new Light(this);
 	light->name = name;
-	light->currentlyActive = true;
 	activeLight = light;
 	lastUpdate = Timer::GetCurrentTimeMs();
 	lights.Add(light);
@@ -447,6 +491,8 @@ int Lighting::DeleteAllLights()
 /// Loads from target file, calling ReadFrom once a valid stream has been opened.
 bool Lighting::LoadFrom(String fileName)
 {
+	if (!fileName.Contains(".lighting"))
+		fileName += ".lighting";
 	std::fstream file;
 	file.open(fileName.c_str(), std::ios_base::in | std::ios_base::binary);
 	if (!file.is_open())
@@ -534,7 +580,6 @@ void LoadLighting(Lighting * lighting, Shader * shader)
 	if (shader->uniformLight.diffuseVec4 == -1)
 		return;
 
-
 	/// Gather all data
 	static GLfloat diffuse[MAX_LIGHTS * 4];
 	static GLfloat specular[MAX_LIGHTS * 4];
@@ -584,6 +629,9 @@ void LoadLighting(Lighting * lighting, Shader * shader)
 
 		activeLights++;
 	}
+
+//	std::cout<<"\nActive lights: "<<activeLights<<" of "<<lighting->lights.Size();
+
 
 	/// Set all data
 	/// Set Diffuse

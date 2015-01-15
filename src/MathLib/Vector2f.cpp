@@ -200,6 +200,13 @@ Vector2f Vector2f::operator / (const float &f) const {
 	return Vector2f(x / f, y / f);
 }
 
+/// Per element division.
+Vector2f Vector2f::operator / (const Vector2f &v) const 
+{
+	return Vector2f(x / v.x, y / v.y); 
+}
+
+
 float Vector2f::operator [](int index){
 	switch(index){
 		case 0:

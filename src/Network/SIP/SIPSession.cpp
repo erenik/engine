@@ -15,14 +15,23 @@
 #include "Message/MessageManager.h"
 #include "Network/NetworkManager.h"
 
+#include "Message/MessageManager.h"
+#include "Message/Message.h"
+
 SIPSession::SIPSession()
 : Session("Primary communication session", "SIP Session", SessionType::SIP)
 {
 	registerPacket = NULL;
 }
 
+SIPSession::~SIPSession()
+{
+	delete registerPacket;
+}
+
 /// Creates the SIPRegister packet using the data in the given Peer-structure for ourselves.
-void SIPSession::Initialize(){
+void SIPSession::Initialize()
+{
 	assert(registerPacket == NULL);
 	/// Register for an hour by default (seconds)
 	registerPacket = new SIPRegisterPacket(3600);
@@ -30,6 +39,12 @@ void SIPSession::Initialize(){
 	SIPSessionData * sipSessionData = new SIPSessionData(me);
 	me->sessionData.Add((SessionData*)sipSessionData);
 	sipSessionData->ourTag = "1";
+}
+
+/// Attempts to connect on all valid ports (33000 to 33010), until 1 works.
+bool SIPSession::ConnectTo(String ipAddress)
+{
+	return ConnectTo(ipAddress, 33000, 33010);
 }
 
 /// Connects to address/port.
@@ -42,6 +57,40 @@ bool SIPSession::ConnectTo(String ipAddress, int port)
 		return true;
 	}
 	lastErrorString = sock->GetLastErrorString();
+	delete sock;
+	return false;
+}
+
+/// Connects to address/port.
+bool SIPSession::ConnectTo(String ipAddress, int startPort, int stopPort)
+{
+	for (int i = startPort; i <= stopPort; ++i)
+	{
+		int port = i;
+		if (ipAddress == "127.0.0.1" && port == this->port)
+			continue;
+		bool ok = ConnectTo(ipAddress, port);
+		if (ok)
+		{
+			std::cout<<"\n\nNETWORK:\nSuccessfully connected to: "<<ipAddress<<" at port "<<port;
+			return true;
+		}
+	}
+	return false;
+}
+
+/// Attempts to start hosting a session of this kind, using any available port in the 33000 to 33010 range. 
+bool SIPSession::Host()
+{
+	for (int i = 33000; i < 33010; ++i)
+	{
+		bool ok = Host(i);
+		if (ok)
+		{
+			std::cout<<"\n\nNETWORK:\nHosted successfully on port "<<i;
+			return true;
+		}
+	}
 	return false;
 }
 
@@ -107,11 +156,12 @@ void SIPSession::EvaluateConnections()
 }
 
 /// Returns a list of all peers that have connected since the last call to GetNewPeers
+/*
 List<Peer*> SIPSession::GetNewPeers(){
 	List<Peer*> listToReturn = newPeers;
 	newPeers.Clear();
 	return listToReturn;
-}
+}*/
 
 /// Returns a list of all peers that have disconnected since the last call to EvaluateConnections();
 List<Peer*> SIPSession::GetDisconnectedPeers(){
@@ -127,6 +177,13 @@ void SIPSession::Send(Packet * packet)
 	Session::Send(packet);
 }
 
+/// Constructs and sends a SIP INFO packet to all peers.
+void SIPSession::SendInfo(String info)
+{
+	SIPInfoPacket pack(info);
+	Session::Send(&pack);
+}
+
 /// Reads packets, creating them and returning them for processing. Note that some packets will already be handled to some extent within the session (for exampling many SIP messages).
 List<Packet*> SIPSession::ReadPackets()
 {
@@ -137,7 +194,8 @@ List<Packet*> SIPSession::ReadPackets()
 		// Reach packets
 		Socket * socket = sockets[i];
 		sipPacketParser.ReadPackets(socket, packets);
-		for (int i = 0; i < packets.Size(); ++i){
+		for (int i = 0; i < packets.Size(); ++i)
+		{
 			// Handle SIP-based packets straight away
 			SIPPacket * packet = packets[i];
 			packet->ParseHeader();
@@ -198,7 +256,6 @@ void SIPSession::FindPeersForPacket(SIPPacket * packet, Peer * sender)
             return;
         }
         String recipient = packet->recipientData;
-		assert(packet->recipientData.Length());
      //   std::cout<< "recipient: "<<recipient;
         String address = packet->recipientData;
 
@@ -344,6 +401,12 @@ bool SIPSession::ExtractPeerTag(Peer * peer, SIPPacket * packet)
 	return false;
 }
 
+void SIPSession::RegisterWithPeer(Socket * sock)
+{
+    SIPRegisterPacket pack(3600);
+    pack.Send(sock);
+}
+
 /// Builds and sends a SIP Register message to target peer.
 void SIPSession::RegisterWithPeer(Peer * peer)
 {
@@ -436,6 +499,31 @@ bool SIPSession::EnsurePeerData(Peer * peer, SIPPacket * packet){
     return true;
 }
 
+
+void SIPSession::EnsureSIPSessionData(Peer * peer)
+{
+	SIPSessionData * peerSIPSessionData = this->GetSessionData(peer);
+	if (!peerSIPSessionData){
+		/// Create SIP Session data for the peer if not done already.
+		peerSIPSessionData = new SIPSessionData(peer);
+		peer->sessionData.Add(peerSIPSessionData);
+	}
+	peerSIPSessionData = GetSessionData(peer);
+	/// Reset SIP data since its ish a new connection.
+	peerSIPSessionData->Reset();
+	assert(peerSIPSessionData);
+}
+
+/// Sends a BadRequest, complaining that the sender should register first before sending shit.
+void SIPSession::DemandRegistration(SIPPacket * packet)
+{
+	SIPBadRequestPacket pack(packet, "Not registered! Please register before sending any other requests.");
+	if (packet->sender)
+		pack.Send(packet->sender);
+	else
+		pack.Send(packet->socket);
+} 
+
 /// Handles packet received from target peer. Returns the validity of the peer after processing the packet. If false, the peer has been invalidated.
 bool SIPSession::HandlePacket(SIPPacket* packet, Peer* peer)
 {
@@ -458,6 +546,26 @@ bool SIPSession::HandlePacket(SIPPacket* packet, Peer* peer)
     {
         case SIP_BAD_REQUEST:
         {
+			SIPBadRequestPacket * badReq = (SIPBadRequestPacket*) packet;
+			/// If registration failed, try to register again?
+			if (badReq->GetBodyAsString().Contains("Please register"))
+			{
+				if (badReq->sender)
+					this->RegisterWithPeer(badReq->sender);
+				else 
+					RegisterWithPeer(badReq->socket);
+				break;
+			}
+			else if (badReq->GetBodyAsString().Contains("Use a new name and try again"))
+			{
+				/// Adjust our name?
+				me->name += String((int)Time::Now().Seconds());
+				if (badReq->sender)
+					this->RegisterWithPeer(badReq->sender);
+				else 
+					RegisterWithPeer(badReq->socket);	
+			}
+
 			std::cout << "ERROR: Bad Request returned from server T___T";
             // TODO: Give a valid GUI response or some other kind of itnernal handling?
 //            QMessageBox::information(NULL, "Network Error", "Bad Request from server: "+packet->data);
@@ -503,19 +611,11 @@ bool SIPSession::HandlePacket(SIPPacket* packet, Peer* peer)
 				/// Create a new peer!
 				peer = new Peer();
 				newPeer = true;
+				/// Ensure peer has SIPSessionData
+				EnsureSIPSessionData(peer);
+				peerSIPSessionData = peer->GetSessionData<SIPSessionData>();
 			}
-			/// Ensure peer has SIPSessionData
-			peerSIPSessionData = this->GetSessionData(peer);
-			if (!peerSIPSessionData){
-				/// Create SIP Session data for the peer if not done already.
-				peerSIPSessionData = new SIPSessionData(peer);
-				peer->sessionData.Add(peerSIPSessionData);
-			}
-			peerSIPSessionData = GetSessionData(peer);
-			/// Reset SIP data since its ish a new connection.
-			peerSIPSessionData->Reset();
-			assert(peerSIPSessionData);
-
+		
 			/// Bind the socket that sent the packet to the new peer.
 			peer->primaryCommunicationSocket = packet->socket;
 			packet->socket->peer = peer;
@@ -541,8 +641,11 @@ bool SIPSession::HandlePacket(SIPPacket* packet, Peer* peer)
 
 			/// Save new peer into list of peers
 			if (newPeer)
-				peers.Add(peer);
-			newPeers.Add(peer);
+			{
+				NetworkMan.AddPeer(peer);
+			}
+			peers.Add(peer);
+	//		newPeers.Add(peer);
 
             // If we're not registered with them yet, go ahead and do that now too, since we want mutual registration here, fully P2P..?
             if (!peerSIPSessionData->registeredWithPeer)
@@ -565,11 +668,16 @@ bool SIPSession::HandlePacket(SIPPacket* packet, Peer* peer)
 				/// If not peer, create it
 				if (!peer)
 					peer = NetworkMan.GetPeerByName(name);
-				if (!peer){
+				if (!peer)
+				{
 					peer = new Peer();
 					peer->primaryCommunicationSocket = packet->socket;
 					peers.Add(peer);
-					newPeers.Add(peer);
+					EnsureSIPSessionData(peer);
+					NetworkMan.AddPeer(peer);
+
+
+					peerSIPSessionData = peer->GetSessionData<SIPSessionData>();
 				}
 				// Ensure peer-contact data before replying.
                 EnsurePeerData(peer, packet);
@@ -581,6 +689,7 @@ bool SIPSession::HandlePacket(SIPPacket* packet, Peer* peer)
                     std::cout<<"Merge done!";
                     peerInvalidated = true;
                 }
+
                 // Bool that WE are registered with the peer.
                 peerSIPSessionData->registeredWithPeer = true;
 
@@ -673,8 +782,11 @@ bool SIPSession::HandlePacket(SIPPacket* packet, Peer* peer)
         case SIP_NOTIFY:
         {
             // Avoid handling notify messages until the peer has been verified.
-            if (!peer->isValid)
+            if (!peer || !peer->isValid)
+			{
+				DemandRegistration(packet);
                 break;
+			}
             bool validNotification = false;
             SIPNotifyPacket * notifyPacket = (SIPNotifyPacket*) packet;
             std::cout<<"SIP_NOTIFY received with event: "<<notifyPacket->event;
@@ -726,16 +838,17 @@ bool SIPSession::HandlePacket(SIPPacket* packet, Peer* peer)
         // Application-specific packets.
         case SIP_INFO:
         {
-            if (peer->isValid && peerSIPSessionData->registeredWithUs)
+            if (peer && peer->isValid && peerSIPSessionData->registeredWithUs)
 				std::cout<<"\nValid SIP Info packet received"; // Q_EMIT SIPInfoPacketReceived(packet);
             else {
                 // TODO: Reply with some kind of error-package?
                 std::cout<<"Peer not registered yet! Handle appropriately.";
-                SIPBadRequestPacket * pack = new SIPBadRequestPacket(packet, "Not registered! Please register before sending any other requests.");
-                pack->Send(peer);
+				DemandRegistration(packet);
                 break;
             }
             // Send the packet to the MainWindow for default-processing?
+			SIPMessage * sipMessage = new SIPMessage(packet->GetBodyAsString());
+			MesMan.QueueMessage(sipMessage);
           //  std::cout<<"SIPInfo packet received, emitting signal for it to be handled elsewhere (as it's probably content-specific/-related)";
             break;
         }

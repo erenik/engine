@@ -8,11 +8,14 @@
 
 
 /// /////////////// PRUURRURS
-XMLParser::XMLParser(){
+XMLParser::XMLParser()
+{
 	data = NULL;
 	size = 0;
 }
-XMLParser::~XMLParser(){
+
+XMLParser::~XMLParser()
+{
 	if (data)
 		delete[] data;
 	data = NULL;
@@ -21,7 +24,8 @@ XMLParser::~XMLParser(){
 
 
 /// Wosh. Returns false if could not le open. yo.
-bool XMLParser::Read(String fromFile){
+bool XMLParser::Read(String fromFile)
+{
 	assert(data == NULL);
 	std::fstream file;
 	file.open(fromFile.c_str(), std::ios_base::in);
@@ -47,7 +51,8 @@ bool XMLParser::Read(String fromFile){
 /** After reading, parsing will create all separate XMLElements and store them hierarchically.
 	NOTE: For huge files the parser can take a while.
 */
-bool XMLParser::Parse(){
+bool XMLParser::Parse()
+{
 	assert(data);
 	if (data == NULL)
 		return false;
@@ -78,9 +83,16 @@ bool XMLParser::Parse(){
 
 	/// For when finding where to.. stuff.
 	char * begin;
-	for (int i = 0; i < size; ++i){
+	char previousCharacter = 0;
+	char character = 0;
+	char nextCharacter = 0;
+
+	for (int i = 0; i < size; ++i)
+	{
 		char * c = &data[i];
-		char character = *c;
+		previousCharacter = character;
+		character = *c;
+		nextCharacter = *(c + 1);
 		if (character == 0){
 			std::cout<<"\nNULL before end of file. No good, yes? No? o.o;";
 			std::cout<<"\nConsidering file finished!";
@@ -155,7 +167,7 @@ bool XMLParser::Parse(){
 					begin = 0;
 					state = READING_ELEMENT_ARGS;
 				}
-				else if (character == '/'){
+				else if (character == '/' && ((nextCharacter == '>') || (previousCharacter == '<'))){
 					state = ENDING_ELEMENT;
 				}
 				else if (character == '>'){
@@ -246,8 +258,10 @@ bool XMLParser::Parse(){
 }
 
 /// Wosh. Recursive on all rootElements until a valid element is found or NULL if none :)
-XMLElement * XMLParser::GetElement(String byName){
-	for (int i = 0; i < rootElements.Size(); ++i){
+XMLElement * XMLParser::GetElement(String byName)
+{
+	for (int i = 0; i < rootElements.Size(); ++i)
+	{
 		XMLElement * e = rootElements[i]->GetElement(byName);
 		if (e)
 			return e;
@@ -255,3 +269,14 @@ XMLElement * XMLParser::GetElement(String byName){
 	return NULL;
 }
 
+/// Recursive fetcher which takes into consideration one single attribute-value combination which must fit as well.
+XMLElement * XMLParser::GetElement(String byName, String withAttribute, String thatHasGivenAttributeValue)
+{
+	for (int i = 0; i < rootElements.Size(); ++i){
+		XMLElement * e = rootElements[i]->GetElement(byName, withAttribute, thatHasGivenAttributeValue);
+		if (e)
+			return e;
+	}
+	return NULL;
+}
+	

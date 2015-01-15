@@ -123,6 +123,28 @@ void GMSet::Process()
 	}
 }
 
+GMSeti::GMSeti(int target, int iValue)
+	: GraphicsMessage(GM_SET_INTEGER), target(target), iValue(iValue)
+{
+	switch(target)
+	{
+		case GM_SET_OUT_OF_FOCUS_SLEEP_TIME:
+			break;
+		default:
+			assert(false);
+	}
+}
+
+void GMSeti::Process()
+{
+	switch(target)
+	{
+		case GM_SET_OUT_OF_FOCUS_SLEEP_TIME:
+			GraphicsMan.outOfFocusSleepTime = iValue;
+			break;
+	}
+}
+
 
 GMSetf::GMSetf(int target, float value): GraphicsMessage(GM_SET_FLOAT) {
 	this->target = target;

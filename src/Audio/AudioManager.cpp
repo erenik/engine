@@ -10,9 +10,11 @@
 #include "System/PreferencesManager.h"
 // #include "../globals.h"
 
-#ifdef USE_OPEN_AL
-#include <AL/al.h>
-#include <AL/alc.h>
+#include "OpenAL.h"
+
+#ifdef E_OPENAL
+	#include <AL/al.h>
+	#include <AL/alc.h>
 // #include <alut.h>
 #endif
 
@@ -44,15 +46,25 @@ AudioManager::AudioManager(){
 	masterVolume = 0.1f;
 }
 
-AudioManager::~AudioManager(){
+AudioManager::~AudioManager()
+{
 	audioList.ClearAndDelete();
-#ifdef USE_OPEN_AL
+#ifdef OPENAL
 	alcMakeContextCurrent( NULL );
 	alcDestroyContext( alcContext );
 	alcCloseDevice( alcDevice );
 //	alutExit();
 #endif
 }
+
+#include "Graphics/GraphicsManager.h"
+
+/// If true, you may queue messages.
+bool AudioManager::AudioProcessingActive()
+{
+	return GraphicsManager::GraphicsProcessingActive();
+}
+
 
 void AudioManager::Initialize()
 {
@@ -61,8 +73,7 @@ void AudioManager::Initialize()
 	// Create mutex for handling race-conditions/threading
 	audioMessageQueueMutex.Create("audioMessageQueueMutex");
 
-#ifdef USE_OPEN_AL
-
+#ifdef OPENAL
 	std::cout<<"\nInitializing OpenAL Utilities...";
 	std::cout<<"\nChecking for available devices...";
 	if (alcIsExtensionPresent(NULL, "ALC_ENUMERATION_EXT") == AL_TRUE){
@@ -229,10 +240,13 @@ void testPlaybackLoop(){
 }
 #endif // USE_AUDIO
 
-void AudioManager::PauseAllOfType(char type){
+void AudioManager::PauseAllOfType(char type)
+{
 	if (!initialized)
 		return;
-	ALCboolean result = alcMakeContextCurrent(alcContext);
+	
+	GRAB_AL_CONTEXT
+
 	Audio * audio;
 	for (int i = 0; i < audioList.Size(); ++i){
 		audio = audioList[i];
@@ -242,12 +256,15 @@ void AudioManager::PauseAllOfType(char type){
 	}
 }
 
-void AudioManager::StopAllOfType(char type){
+void AudioManager::StopAllOfType(char type)
+{
 	Audio * audio;
-	for (int i = 0; i < audioList.Size(); ++i){
+	for (int i = 0; i < audioList.Size(); ++i)
+	{
 		audio = audioList[i];
-		if (audio->type == type && audio->type){
-			audio->Stop();
+		if (audio->type == type && audio->type)
+		{
+			audio->Stop(true);
 		}
 	}
 }
@@ -279,8 +296,8 @@ Audio * AudioManager::PlayFromSource(char type, String fromSource, bool repeat /
     }
 	// Does what?
 	pauseUpdates = true;
-	ALCboolean result = alcMakeContextCurrent(alcContext);
-	assert(result && "Unable to set alcContext in AudioManager::Play");
+
+	GRAB_AL_CONTEXT
 
 	// Create audio
 	std::cout<<"\nAudio not found, tryng to create and load it.";
@@ -329,9 +346,7 @@ Audio * AudioManager::Play(char type, String name, bool repeat, float volume)
    // assert(initialized);
 
 	pauseUpdates = true;
-	ALCboolean result = alcMakeContextCurrent(alcContext);
-	assert(result && "Unable to set alcContext in AudioManager::Play");
-
+	GRAB_AL_CONTEXT
 	// Look if we already have an element with same name
 	Audio * audio;
 	for (int i = 0; i < audioList.Size(); ++i){
@@ -368,6 +383,9 @@ Audio * AudioManager::Play(char type, String name, bool repeat, float volume)
 	return audio;
 }
 
+#define CHECK_INITIALIZED {if (!initialized){std::cout<<"\nAudio manager not initialized. Returning"; return;}}
+#define CHECK_AUDIO_ENABLED {if (!audioEnabled){std::cout<<"\nAudio disabled. Returning"; return;}}
+
 /// Name is should correspond to filename or path, expected locatoin in ./sound/sfx/
 void AudioManager::PlaySFX(String name, float volume /*= 1.f*/)
 {
@@ -377,20 +395,18 @@ void AudioManager::PlaySFX(String name, float volume /*= 1.f*/)
     std::cout<<"\nAudio disabled. Returning.";
 	return;
 #endif
-    if (!initialized)
-        return;
-	if (!audioEnabled)
-		return;
+	CHECK_INITIALIZED
+	CHECK_AUDIO_ENABLED
 
 	pauseUpdates = true;
-	ALCboolean result = alcMakeContextCurrent(alcContext);
-	assert(result && "Unable to set alcContext in AudioManager::Play");
+
+	GRAB_AL_CONTEXT
 
 	// Create audio
-	std::cout<<"\nAudio not found, tryng to create and load it.";
+//	std::cout<<"\nAudio not found, tryng to create and load it.";
 	Audio * audio = new Audio(AudioType::SFX, name, false, volume);
 	bool loadResult = audio->Load();
-	std::cout<<"\nLoad result: "<<loadResult;
+//	std::cout<<"\nLoad result: "<<loadResult;
 //	assert(loadResult && "Could not load audio data?");
 	if (loadResult == false){
         delete audio;
@@ -431,13 +447,13 @@ void AudioManager::Pause(String name){
 void AudioManager::Pause(Audio * audio){
 	if (!initialized)
 		return;
-	ALCboolean result = alcMakeContextCurrent(alcContext);
+	GRAB_AL_CONTEXT
 	audio->Pause();
 }
 
-void AudioManager::Stop(String name){
-	ALCboolean result = alcMakeContextCurrent(alcContext);
-	assert(result && "Unable to make alc context current");
+void AudioManager::Stop(String name)
+{
+	GRAB_AL_CONTEXT
 	// Look if we already have an element with same name
 	Audio * audio;
 	for (int i = 0; i < audioList.Size(); ++i){
@@ -450,9 +466,10 @@ void AudioManager::Stop(String name){
 	}
 }
 
-void AudioManager::Stop(int index){
-	ALCboolean result = alcMakeContextCurrent(alcContext);
-	audioList[index]->Stop();
+void AudioManager::Stop(int index)
+{
+	GRAB_AL_CONTEXT
+	audioList[index]->Stop(true);
 	delete audioList[index];
 	audioList[index] = NULL;
 }
@@ -471,7 +488,6 @@ Audio * AudioManager::CreateAudioStream(MultimediaStream * stream)
 void AudioManager::EnableAudio()
 {
 	audioEnabled = true;
-	Audio::audioEnabled = true;
 	for (int i = 0; i < audioList.Size(); ++i){
 		Audio * audio = audioList[i];
 		audio->Resume();
@@ -482,7 +498,6 @@ void AudioManager::EnableAudio()
 void AudioManager::DisableAudio()
 {
 	audioEnabled = false;
-	Audio::audioEnabled = false;
 	for (int i = 0; i < audioList.Size(); ++i){
 		Audio * audio = audioList[i];
 		audio->Pause();
@@ -492,8 +507,7 @@ void AudioManager::DisableAudio()
 void AudioManager::Update()
 {
 	/// Get context, always
-	ALCboolean result = alcMakeContextCurrent(alcContext);
-	assert(result && "Unable to make alc context current");
+	GRAB_AL_CONTEXT
 
 	// Process messages.
 	ProcessAudioMessages();
@@ -543,7 +557,7 @@ void AudioManager::StopAndRemoveAll()
 	while(audioList.Size())
 	{
 		Audio * audio = audioList[0];
-		audio->Stop();
+		audio->Stop(false);
 		delete audio;
 		audioList.Remove(audio);
 	}

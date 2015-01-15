@@ -16,13 +16,18 @@ Peer::Peer()
 	primaryCommunicationSocket = NULL;
 }
 
+Peer::~Peer()
+{
+	sessionData.ClearAndDelete();
+}
+
 /// Removes any references to target socket.
 void Peer::RemoveSocket(Socket * sock){
 	if (sock == this->primaryCommunicationSocket)
 		primaryCommunicationSocket = NULL;
 	sockets.Remove(sock);
 }
-
+	
 /// Returns target session data. For example SessionType::SIP as argument.
 SessionData * Peer::GetSessionData(int sessionType, int andSubType /* = -1 */){
 	for (int i = 0; i < sessionData.Size(); ++i){

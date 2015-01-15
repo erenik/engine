@@ -10,7 +10,7 @@
 #include "StateManager.h"
 #include "Physics/PhysicsManager.h"
 #include "Graphics/FrameStatistics.h"
-#include "ModelManager.h"
+#include "Model/ModelManager.h"
 #include "TextureManager.h"
 #include "Multimedia/MultimediaManager.h"
 #include "Application/Application.h"
@@ -109,7 +109,7 @@ void CreateDefaultGeneralBindings()
 	mapping->CreateBinding(CYCLE_RENDER_PIPELINE_BACK, ctrl, KEY::R, KEY::MINUS);
 
 	Input.general.CreateBinding(RECORD_VIDEO, KEY::CTRL, KEY::R, KEY::V);
-	Input.general.CreateBinding(PRINT_SCREENSHOT, KEY::PRINT_SCREEN);
+	Input.general.CreateBinding("PrintScreenshot", KEY::PRINT_SCREEN);
     Input.general.CreateBinding(PRINT_FRAME_TIME, KEY::CTRL, KEY::T);
 
 	Input.general.CreateBinding(QUIT_APPLICATION, KEY::ALT, KEY::F4);
@@ -183,9 +183,6 @@ void generalInputProcessor(int action, int inputDevice)
 			break;
 		case RECORD_VIDEO:
 			Graphics.QueueMessage(new GMRecordVideo(activeWindow));
-			break;
-		case PRINT_SCREENSHOT:
-			Graphics.QueueMessage(new GraphicsMessage(GM_PRINT_SCREENSHOT));
 			break;
 		case PRINT_TO_FILE:
 			std::cout<<"\nPrint to file command issued.";
@@ -461,7 +458,7 @@ void generalInputProcessor(int action, int inputDevice)
 							// function to insert the text and repaint the
 							// window.
 							String text = lpstr;
-							text.PrintData();
+							std::cout<<"\nPaste text intercepted: "<<text;
 							PasteMessage * pasteMessage = new PasteMessage();
 							pasteMessage->msg = "Paste:Text";
 							pasteMessage->text = text;

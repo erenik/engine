@@ -56,7 +56,6 @@ class PhysicsManager
 	friend class PhysicsOctree;
 	friend class PhysicsMessage;
 	friend class PMSet;
-	friend class PMSetGravity;
 	friend class PMRegisterEntity;
 	friend class PMRegisterEntities;
 	friend class PMUnregisterEntity;

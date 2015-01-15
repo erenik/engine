@@ -287,7 +287,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		keyCode = GetKeyCodeFromVK(wParam);
 		// Pass keycode to input manager if applicable
 		if (keyCode)
+		{
 			Input.KeyDown(keyCode, downBefore > 0);
+		}
 		return 0;	// An application should return zero if it processes this message.
 		break;
 	}
@@ -299,7 +301,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		keyCode = GetKeyCodeFromVK(wParam);
 		// Pass keycode to input manager if applicable
 		if (keyCode)
+		{
 			Input.KeyUp(keyCode);
+		}
 		return 0;	// An application should return zero if it processes this message.
 		break;
 	}
@@ -313,7 +317,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		keyCode = GetKeyCodeFromVK(wParam);
 		// Pass keycode to input manager if applicable
 		if (keyCode)
+		{
 			Input.KeyDown(keyCode, downBefore > 0);
+		}
 		return 0;	// An application should return zero if it processes this message.
 		break;
 	}

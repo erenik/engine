@@ -8,16 +8,18 @@
 #include "Audio.h"
 #include "ALDebug.h"
 #include "AudioManager.h"
+
 #include "Multimedia/MultimediaStream.h"
 #include "Multimedia/MultimediaTypes.h"
 #include "Multimedia/Ogg/OggStream.h"
+#include "Multimedia/Wav/WavStream.h"
 
 #include "File/FileUtil.h"
 
-#define BUILD_AL
-#ifdef BUILD_AL
-#include <AL/al.h>
-#include <AL/alc.h>
+#include <cmath>
+
+#ifdef OPENAL
+	#include "OpenAL.h"
 // #include <AL/alut.h>
 #endif
 
@@ -35,9 +37,8 @@
 //	AUDIO_ERROR,
 //};
 
+#define audioEnabled (AudioMan.AudioEnabled())
 
-bool Audio::audioEnabled = true;
-int Audio::defaultBufferSize = 4096 * 4;
 String Audio::audioDirectory = "sound";
 
 // Default constructor
@@ -54,10 +55,10 @@ void Audio::Nullify()
 	state = AudioState::NOT_INITIALIZED;
 	audioStream = NULL;
 	absoluteVolume = 1.0f;
-	assert(defaultBufferSize > 0);
-	bufferData = new char[defaultBufferSize];
 
+#ifdef OPENAL
 	alSource = 0;
+#endif
 	audioBuffers.ClearAndDelete();
 
 //	audioBuffers.Add(new AudioBuffer());
@@ -78,9 +79,13 @@ void Audio::Nullify()
 /// Generate audio source if not existing.
 void Audio::CreateALObjects()
 {
+#ifdef OPENAL
 	/// Skip is source is valid already.
 	if (alSource)
+	{
+		std::cout<<"\nalSource already created.";
 		return;
+	}
 	// Create audio buffers.
 	assert(audioBuffers.Size() == 0);
 	for (int i = 0; i < 2; ++i)
@@ -91,7 +96,7 @@ void Audio::CreateALObjects()
 	alSource = ALSource::New();
 	if (alSource == 0)		// Throw an error if we can't generate a source.
 		throw 5;
-	std::cout<<"\nALSource generated: "<<alSource;
+//	std::cout<<"\nALSource generated: "<<alSource;
 	assert(alSource > 0);
 	/// Set some basic properties for the audio.
 	alSource3f(alSource, AL_POSITION,        0.0, 0.0, 0.0);
@@ -99,11 +104,13 @@ void Audio::CreateALObjects()
 	alSource3f(alSource, AL_DIRECTION,       0.0, 0.0, 0.0);
 	alSourcef (alSource, AL_ROLLOFF_FACTOR,  0.0          );
 	alSourcei (alSource, AL_SOURCE_RELATIVE, AL_TRUE      );
+#endif
 }
 
 /// Destructor that deletes AL resources as well as other thingies!
 Audio::~Audio()
 {
+#ifdef OPENAL
 	int error = 0;
 	/// Deallocate al IDs.
     if (alSource != 0)
@@ -131,6 +138,7 @@ Audio::~Audio()
 		ALSource::Free(alSource);
 		AssertALError();
 	}
+#endif
 	
     if (audioStream){
         audioStream->Close();
@@ -179,7 +187,7 @@ bool Audio::Load()
 {
     assert(!loaded);
     assert(audioStream == NULL);
-    std::cout<<"\nAudio::Load for "<<name<<" assumed to be located at "<<path;
+//    std::cout<<"\nAudio::Load for "<<name<<" assumed to be located at "<<path;
 
 	if (!FileExists(path))
 	{
@@ -188,19 +196,23 @@ bool Audio::Load()
 	}
 
     // Stream
-	if (name.Contains(".ogg"))
+	if (name.Contains(".ogg") ||
+		name.Contains(".opus"))
 	{
-        std::cout<<"\nFile deemed of type Ogg Vorbis, trying to load.";
+//        std::cout<<"\nFile deemed of type Ogg Vorbis, trying to load.";
+#ifdef OGG
 		audioStream = new OggStream();
 		loaded = audioStream->Open(path.c_str());
 		assert(loaded);	
+#endif
 	}
-	else if (name.Contains(".wav")){
-	    std::cout<<"\nFile deemd of type Waveform Audio File Format, trying to load.";
+	else if (name.Contains(".wav"))
+	{
+	  //  std::cout<<"\nFile deemed of type Waveform Audio File Format, trying to load.";
         // Load wavvy
-        assert(false && "Add a Wav-stream?");
-      //  audioStream = new AudioStream();
-      //  loaded = audioStream->Open(path.c_str());
+		audioStream = new WavStream();
+		loaded = audioStream->Open(path);
+		assert(loaded);
 	}
 	else {
         assert(false && "Unsupported audio-format I'm afraid!");
@@ -223,12 +235,14 @@ void Audio::Play()
 		CreateALObjects();
 	}
 
-    std::cout<<"\nPlaying audio "<<name;
+//    std::cout<<"\nPlaying audio "<<name;
 //	assert(audioStream->Type() != MultimediaType::UNKNOWN);
 	/// Check type
-	switch(this->type){
+	switch(this->type)
+	{
 		case AudioType::BGM:
-		case AudioType::BGS: {
+		case AudioType::BGS: 
+		{
 			// Pause all others.
 			AudioMan.StopAllOfType(this->type);
 			break;
@@ -237,6 +251,7 @@ void Audio::Play()
 			break;
 	}
 
+#ifdef OPENAL
 	int channels = audioStream->AudioChannels();
     ALuint format;
 	if(channels == 1)
@@ -244,11 +259,8 @@ void Audio::Play()
     else
         format = AL_FORMAT_STEREO16;
 
-
 	/// Stream source is reloaded below anyway, so skip this check.
 //	assert(audioStream->source > 0);
-
-
 
 	/// Set volume..?
 	UpdateVolume(AudioMan.MasterVolume());
@@ -263,6 +275,7 @@ void Audio::Play()
 			std::cout<<"Error playing audio.";
 
 	}
+#endif
 	playbackEnded = false;
 }
 
@@ -276,6 +289,7 @@ void Audio::Resume()
 {
 	/// Set volume..?
 	UpdateVolume(AudioMan.MasterVolume());
+#ifdef OPENAL
 	/// Play it!
 	alSourcePlay(alSource);
 	int error = alGetError();
@@ -287,25 +301,33 @@ void Audio::Resume()
 			std::cout<<"Error playing audio.";
 
 	}
+#endif
 	playbackEnded = false;
 }
 
 void Audio::Pause()
 {
+#ifdef OPENAL
 	alSourcePause(alSource);
+#endif
 	state = AudioState::PAUSED;
 	// TODO: save time
 //	currentTime = stream.
 }
 
-void Audio::Stop()
+void Audio::Stop(bool andSeekToStart)
 {
+#ifdef OPENAL
 	// Stahp!
 	alSourceStop(alSource);
-	// Seek to start.
-	audioStream->Seek(0);
+	if (andSeekToStart)
+	{
+		// Seek to start.
+		audioStream->Seek(0);
+	}
 	// Clear current audio buffers.
 	UnqueueBuffers();
+#endif
 	// And mark our new state.
 	state = AudioState::READY;
 }
@@ -333,6 +355,26 @@ void Audio::Update()
 {
 	if (!audioEnabled)
 		return;
+
+#ifdef OPENAL
+	// If ending, just wait until the al State reaches STOPPED.
+	if (state == AudioState::ENDING)
+	{
+		ALint alSourceState = 0;
+		alGetSourcei(alSource, AL_SOURCE_STATE, &alSourceState);
+		switch(alSourceState){
+			case AL_INITIAL: 
+			case AL_PLAYING: 
+				return;
+			case AL_PAUSED:
+			case AL_STOPPED:
+			{
+				state = AudioState::ENDED;
+				playbackEnded = true;
+				return;
+			}
+		}
+	}
 
 	// Check if playing?
 	if (state != AudioState::PLAYING)
@@ -449,7 +491,7 @@ void Audio::Update()
 			QueueBuffer(audioBuffer);
 		}
 	}
-
+#endif
     return;
 }
 
@@ -473,16 +515,21 @@ void Audio::UnqueueBuffers()
 void Audio::UpdateVolume(float masterVolume)
 {
 	absoluteVolume = this->volume * masterVolume;
+//	std::cout<<"\nUpdating volume: "<<absoluteVolume<<" for source "<<alSource;
 	/// Set volume in AL.
+//	std::cout<<"\nVolume updated: "<<absoluteVolume;
+	
+#ifdef OPENAL
 	alSourcef(alSource, AL_GAIN, absoluteVolume);
 	int error = alGetError();
 	switch(error){
 		case AL_NO_ERROR:
 			break;
 		default:
-			//std::cout<<"\nError o-o";
+			std::cout<<"\nError o-o";
 			break;
 	}
+#endif
 }
 
 
@@ -499,11 +546,19 @@ void Audio::BufferData(MultimediaStream * fromStream, AudioBuffer * intoBuffer)
 		int channels = audioStream->AudioChannels();
 		int format = 0;
 		int frequency = audioStream->AudioFrequency();
+		if (frequency < 0 || frequency > 1000000)
+		{
+			std::cout<<"\nAudio sampling rate/frequency outside allowed range.";
+			assert(frequency > 0 && frequency < 1000000);
+			return;
+		}
 		int bytesBuffered = audioStream->BufferAudio(buf, BUFFER_SIZE, repeat);
+//		std::cout<<"\nBytes buffered: "<<bytesBuffered;
 			
 		float durationBuffered;
 		int numberOfSampleFrames;
 		int sampleRate = frequency;
+#ifdef OPENAL
 		switch(channels)
 		{
 			case 1: 
@@ -515,9 +570,15 @@ void Audio::BufferData(MultimediaStream * fromStream, AudioBuffer * intoBuffer)
 				numberOfSampleFrames = bytesBuffered * 0.25;
 				break;
 		}
+#endif
 		durationBuffered = numberOfSampleFrames / (float)sampleRate;
 		bufferDuration = durationBuffered;
 		totalDurationBuffered += durationBuffered;
+
+		int bytesPerSample = 2;
+		int divisible = bytesPerSample * channels;
+		int rest = bytesBuffered % divisible;
+		assert(rest == 0);
 
 	/*			// If unable to buffer data, assume we are at the end of the file. If so, check if we can re-start the file (assuming looping is enabled)
 		if (bytesBuffered <= 0 && repeat){
@@ -527,14 +588,68 @@ void Audio::BufferData(MultimediaStream * fromStream, AudioBuffer * intoBuffer)
 	*/
 		if (bytesBuffered <= 0)
 		{
-			playbackEnded = true;
-			std::cout<<"\nUnable to buffer audio data! Assuming at end of stream.";
-			state = AudioState::ENDED;
+		//	std::cout<<"\nUnable to buffer audio data! Assuming at end of stream.";
+			state = AudioState::ENDING;
 			intoBuffer->buffered = false;
 			return;
 		}
 	//		std::cout<<"\nBuffer more PCM data: "<<bytesBuffered;
+//		std::cout<<" Format: "<<format<<" frequency: "<<frequency;
 		/// Samples per second yo....
+	//	bytesBuffered = 262144;
+
+		int bytesPerSampleTimesChannels = bytesPerSample * channels;
+		int samples = bytesBuffered / bytesPerSample;
+
+		// Flip the bytes?
+		bool flipBytes = false;
+		if (flipBytes)
+		{
+			for (int i = 0; i < bytesBuffered; i += bytesPerSample)
+			{
+				uchar tmp = buf[i];
+				buf[i] = buf[i+1];
+				buf[i+1] = tmp;
+			}
+		}
+		bool nullifyLeft = false;
+		if (nullifyLeft)
+		{
+			for (int i = 0; i < bytesBuffered; i += bytesPerSampleTimesChannels)
+			{
+				buf[i] = 0;
+				buf[i+1] = 0;
+			}
+		}
+		bool nullifyRight = false;
+		if (nullifyRight)
+		{
+			for (int i = bytesPerSample; i < bytesBuffered; i += bytesPerSampleTimesChannels)
+			{
+				buf[i] = 0;
+				buf[i+1] = 0;
+			}
+		}
+
+		/// Sine-wave, please.
+		bool sine = false;
+		short * shortBuf = (short*) buf;
+		static int sines = 0;
+		if (sine)
+		{
+			for (int i = 0; i < samples; i += channels)
+			{
+				sines++;
+				int sinV = sin(sines * 0.1f) * SHRT_MAX;
+				shortBuf[i] = sinV;
+//				int sinV2 = sin(sines * 0.2f) * SHRT_MAX;
+	//			shortBuf[i+1] = sinV2;
+//				std::cout<<"\nSin value: "<<sinV;
+			}
+		}
+#ifdef OPENAL
+		CheckALError("Before buffering");
+//		frequency *= 0.5f;
 		alBufferData(intoBuffer->alBuffer, format, buf, bytesBuffered, frequency);
 		int error = alGetError();
 		switch(error){
@@ -544,9 +659,11 @@ void Audio::BufferData(MultimediaStream * fromStream, AudioBuffer * intoBuffer)
 				break;
 			default:
 				std::cout<<"\nError buffering AL Data";
+				PrintALError(error);
 				intoBuffer->buffered = false;
 				break;
 		}
+#endif
 	}
 	catch (...){
 		std::cout<<"\nStreaming failed, aborting.";

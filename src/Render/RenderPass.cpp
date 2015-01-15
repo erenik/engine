@@ -24,7 +24,7 @@ RenderPass::RenderPass()
 
 
 // Renders this pass. Returns false if some error occured, usually mid-way and aborting the rest of the procedure.
-bool RenderPass::Render(GraphicsState * graphicsState)
+bool RenderPass::Render(GraphicsState & graphicsState)
 {
 	switch(output)
 	{
@@ -37,7 +37,7 @@ bool RenderPass::Render(GraphicsState * graphicsState)
 		case RenderTarget::DEFERRED_GATHER:
 		{
 			// Set up/fetch render buffers for this, based on the viewport.
-			if (!graphicsState->activeViewport->BindFrameBuffer())
+			if (!graphicsState.activeViewport->BindFrameBuffer())
 				return false;
 			break;
 		}
@@ -61,12 +61,12 @@ bool RenderPass::Render(GraphicsState * graphicsState)
 	{
         return false;
     }
-	graphicsState->settings |= ENABLE_SPECIFIC_ENTITY_OPTIONS;
+	graphicsState.settings |= ENABLE_SPECIFIC_ENTITY_OPTIONS;
 
 	// Set fog properties as needed.
-	glUniform1f(shader->uniformFogBeginDistance, graphicsState->fogBegin);
-	glUniform1f(shader->uniformFogEndDistance, graphicsState->fogEnd);
-	glUniform3f(shader->uniformFogColor, graphicsState->clearColor.x, graphicsState->clearColor.y, graphicsState->clearColor.z);
+	glUniform1f(shader->uniformFogBeginDistance, graphicsState.fogBegin);
+	glUniform1f(shader->uniformFogEndDistance, graphicsState.fogEnd);
+	glUniform3f(shader->uniformFogColor, graphicsState.clearColor.x, graphicsState.clearColor.y, graphicsState.clearColor.z);
 
 	bool backfaceCullingEnabled = false;
 	if (backfaceCullingEnabled){
@@ -90,29 +90,29 @@ bool RenderPass::Render(GraphicsState * graphicsState)
 	// Reset matrices: This may as well be done before rendering is done, since the matrices
 	// will need to be reset all the time depending on the content to be rendered and where ^^
 	/// Camera is already updated, so just use it's matrices straight away ^^
-	Camera & camera = *graphicsState->camera;
+	Camera & camera = *graphicsState.camera;
 
 	// Camera calculations are now done inside the camera, so the camPos/camLookingAtVector/camUpVector can now be removed!
 	// If view frustum culling is enabled, set it in the settings and update the frustum with the camera's current position.
 	if (true /*useOctree && frustumCullingActive*/){
-		graphicsState->viewFrustum.SetCamPos(Vector3f((Vector4f)camera.Position()), Vector3f((Vector4f)camera.LookingAt()), Vector3f((Vector4f)camera.UpVector()));
-		Frustum & viewFrustum = graphicsState->viewFrustum;
+		graphicsState.viewFrustum.SetCamPos(Vector3f((Vector4f)camera.Position()), Vector3f((Vector4f)camera.LookingAt()), Vector3f((Vector4f)camera.UpVector()));
+		Frustum & viewFrustum = graphicsState.viewFrustum;
 	}
 
-	if (!graphicsState->activeShader)
+	if (!shader)
 		return false;
 
 	// Load in the model and view matrices
-	glUniformMatrix4fv(graphicsState->activeShader->uniformViewMatrix, 1, false, graphicsState->viewMatrixF.getPointer());
+	glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, graphicsState.viewMatrixF.getPointer());
 	CheckGLError("RenderPass, setting view matrix");
-	glUniformMatrix4fv(graphicsState->activeShader->uniformModelMatrix, 1, false, graphicsState->modelMatrixF.getPointer());
+	glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, graphicsState.modelMatrixF.getPointer());
 	CheckGLError("RenderPass, setting model matrix");
 
 	// Load projection matrix into shader
-	graphicsState->projectionMatrixF = graphicsState->projectionMatrixD;
-	glUniformMatrix4fv(graphicsState->activeShader->uniformProjectionMatrix, 1, false, graphicsState->projectionMatrixF.getPointer());
+	graphicsState.projectionMatrixF = graphicsState.projectionMatrixD;
+	glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, graphicsState.projectionMatrixF.getPointer());
 
-	Matrix4f mvp = graphicsState->projectionMatrixF * graphicsState->viewMatrixF * graphicsState->modelMatrixF;
+	Matrix4f mvp = graphicsState.projectionMatrixF * graphicsState.viewMatrixF * graphicsState.modelMatrixF;
 
 	// Set parameters for regular rendering her!
 	glEnable(GL_BLEND);
@@ -126,9 +126,9 @@ bool RenderPass::Render(GraphicsState * graphicsState)
 	/// Set legacy rendering setting
 	bool useLegacy = false;
 	if (useLegacy)
-		graphicsState->settings |= USE_LEGACY_GL;
+		graphicsState.settings |= USE_LEGACY_GL;
 	else
-		graphicsState->settings &= ~USE_LEGACY_GL;
+		graphicsState.settings &= ~USE_LEGACY_GL;
 
 	/// Deferred rendering setting ^^
 	bool useDeferred = false;
@@ -149,34 +149,35 @@ bool RenderPass::Render(GraphicsState * graphicsState)
 	glGenerateMipmap = (PFNGLGENERATEMIPMAPPROC)wglGetProcAddress((std::string("glGenerateMipmap") + suffix).c_str());
 */
 
-	if (graphicsState->settings & USE_LEGACY_GL){
+	if (graphicsState.settings & USE_LEGACY_GL){
 		// Set default shader program
-		graphicsState->activeShader = NULL;
-		glUseProgram(0);
+		shader = NULL;
+		ShadeMan.SetActiveShader(0);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
 	
 	if (shader)
 	{
 		/// Load lighting settings to shader ^^
-		LoadLighting(graphicsState->lighting, shader);
+		LoadLighting(graphicsState.lighting, shader);
 	}
 	
 	// Set primary color
-	glUniform4f(graphicsState->activeShader->uniformPrimaryColorVec4, 1.f,1.f,1.f,1.f);
+	glUniform4f(shader->uniformPrimaryColorVec4, 1.f,1.f,1.f,1.f);
 
 	// Reset bound textures
-	graphicsState->currentTexture = NULL;
-	// Update view and projection matrix in specified shader
-	if (graphicsState->activeShader && graphicsState->activeShader->uniformProjectionMatrix != -1)
-		glUniformMatrix4fv(graphicsState->activeShader->uniformProjectionMatrix, 1, false, graphicsState->projectionMatrixF.getPointer());
-	// Update view and projection matrix in specified shader
-	if (graphicsState->activeShader && graphicsState->activeShader->uniformViewMatrix != -1)
-		glUniformMatrix4fv(graphicsState->activeShader->uniformViewMatrix, 1, false, graphicsState->viewMatrixF.getPointer());
-	// Update camera in the world
-	if (graphicsState->activeShader && graphicsState->activeShader->uniformEyePosition != -1)
-		glUniform4f(graphicsState->activeShader->uniformEyePosition, camera.Position().x, camera.Position().y, camera.Position().z, 1.0f);
+	graphicsState.currentTexture = NULL;
 
+	Shader * shader = ActiveShader();
+	// Set uniforms as applicable.
+	if (shader)
+	{
+		// Update view and projection matrix in specified shader
+		glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, graphicsState.projectionMatrixF.getPointer());
+		glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, graphicsState.viewMatrixF.getPointer());
+		glUniform4f(shader->uniformEyePosition, camera.Position().x, camera.Position().y, camera.Position().z, 1.0f);
+	}
+	
 	CheckGLError("RenderPass, eye position");
 
 
@@ -190,24 +191,26 @@ bool RenderPass::Render(GraphicsState * graphicsState)
 		}
 		case RenderTarget::ENTITIES:
 		{
-			Entities entitiesToRender = graphicsState->entities;
-			entitiesToRender.SortByDistanceToCamera(graphicsState->camera);
+			Entities entitiesToRender = graphicsState.entities;
+			entitiesToRender.SortByDistanceToCamera(graphicsState.camera);
 			// Render all entities listed in the graphicsState!
 			for (int i = 0; i < entitiesToRender.Size(); ++i)
 			{
 				Entity * entity = entitiesToRender[i];
 				entity->Render(graphicsState);
 			}
+			// Only entities for now!
 			break;
 		}
 		case RenderTarget::PARTICLE_SYSTEMS:
 		{
 			// Render all registered particle systems.
-			for (int i = 0; i < graphicsState->particleEffectsToBeRendered.Size(); ++i)
+			for (int i = 0; i < graphicsState.particleEffectsToBeRendered.Size(); ++i)
 			{
-				ParticleSystem * ps = graphicsState->particleEffectsToBeRendered[i];
+				ParticleSystem * ps = graphicsState.particleEffectsToBeRendered[i];
 				ps->Render(graphicsState);
 			}
+			break;
 		}
 	}
 	/// Extract the texture data from the buffers to see what it looks like?
@@ -215,7 +218,7 @@ bool RenderPass::Render(GraphicsState * graphicsState)
 	{
 		case RenderTarget::DEFERRED_GATHER:
 		{
-			graphicsState->activeViewport->frameBuffer->DumpTexturesToFile();
+			graphicsState.activeViewport->frameBuffer->DumpTexturesToFile();
 			break;
 		}
 	}

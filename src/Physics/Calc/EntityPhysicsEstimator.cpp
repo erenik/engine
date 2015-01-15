@@ -27,6 +27,15 @@ void EntityPhysicsEstimator::Process(int timeInMs)
 	assert(false);
 }
 
+/** Estimates values for given time. If loop is true, the given time will be modulated to be within the interval of applicable time-values.
+	If the estimator's output pointer is set, data for the given estimation will be written there accordingly.
+*/
+void EntityPhysicsEstimator::Estimate(int64 forGivenTimeInMs, bool loop)
+{
+	// o.o
+	assert(false);
+}
+
 /// Calculates and sets new values for the entity.
 void EntityPhysicsEstimator::Process(){
 	
@@ -40,9 +49,11 @@ void EntityPhysicsEstimator::Process(){
 	SetDefaults(rotationEstimator);
 	SetDefaults(velocityEstimator);
 
+	/*
 	owner->position = positionEstimator.Calculate(cTime);
 	owner->rotation = rotationEstimator.Calculate(cTime);
 	owner->physics->velocity = velocityEstimator.Calculate(cTime);
+	*/
 	owner->RecalculateMatrix();
 
 	

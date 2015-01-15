@@ -5,11 +5,15 @@
 #include "../UI/UserInterface.h"
 #include "Message/Message.h"
 #include "../StateManager.h"
-#include "Graphics/GraphicsManager.h"
 #include "Input/InputManager.h"
 #include "Network/NetworkManager.h"
 #include "OS/Sleep.h"
 #include "Chat/ChatMessage.h"
+
+#include "Graphics/GraphicsManager.h"
+#include "Graphics/Messages/GMUI.h"
+
+#include "File/LogFile.h"
 
 //#include <windows.h>
 
@@ -26,8 +30,13 @@ AppState::AppState()
     name = "DefaultStateName";
 	keyPressedCallback = false;
 };
-AppState::~AppState(){
-	assert(ui == NULL);
+AppState::~AppState()
+{
+	if (ui)
+	{
+		Graphics.QueueMessage(new GMDelete(ui));
+		ui = NULL;
+	}
 }
 
 /// Callback function that will be triggered via the MessageManager when messages are processed.
@@ -134,10 +143,11 @@ void AppState::CreateDefaultBindings(){
 void AppState::CreateUserInterface()
 {
 	std::cout<<"\nState::CreateUserInterface called for "<<name;
+	Log("State::CreateUserInterface called for state "+name+". Empty UI is created by default!");
 	if (ui)
 		delete ui;
 	ui = new UserInterface();
-	ui->Load("gui/Empty.gui");
+	ui->CreateRoot();
 }
 /** Attempts to free the resources used by the user interface before deleting it.
 	Aborts and returns false if any errors occur along the way.

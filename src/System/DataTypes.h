@@ -8,7 +8,9 @@
 // Defines new types for the compiler. Mostly just referring to existing types.
 typedef	__int64	int64;
 typedef unsigned __int64 uint64;
-typedef int	int32;
+typedef	int	int32;
+typedef unsigned int uint32;
 typedef unsigned char uchar;
+typedef unsigned short ushort;
 
 #endif

@@ -9,15 +9,35 @@
 // o.o
 File::File()
 {
+	Nullify();
+}
+
+// Constructor
+File::File(String cPath)
+{
+	Nullify();
+	this->path = cPath;
+}
+
+// Resets file handles etc.
+void File::Nullify()
+{
 	fileHandle = 0;
 	open = false;
 }
 
-// Constructor
-File::File(String path)
+File::~File()
 {
+	if (fileHandle)
+		CloseHandle(fileHandle);
 	fileHandle = 0;
-	open = false;
+}
+
+/// Assignment operator. Similar to constructor.
+void File::operator = (String assignedPath)
+{
+	Nullify();
+	this->path = assignedPath;
 }
 
 /// Last time this file was modified. Returns -1 if the file does not exist and -2 if the function fails.
@@ -31,7 +51,11 @@ Time File::LastModified()
 
 	FILETIME creationTime, lastAccessTime, lastWriteTime;
 	bool result = GetFileTime(fileHandle, &creationTime, &lastAccessTime, &lastWriteTime);
-
+	if (!result)
+	{
+		int error = GetLastError();
+		assert(error && false);
+	}
 	
 	ULARGE_INTEGER uli;
 	uli.HighPart = lastWriteTime.dwHighDateTime;
@@ -40,6 +64,16 @@ Time File::LastModified()
 	return lastModified;
 #endif
 }
+
+/// Sets path.
+void File::SetPath(String filePath)
+{
+	// Close previous file streams and handles if any.
+	Close();
+	path = filePath;
+	editTimeWhenReadLast = Time();
+}
+
 
 /// Ensures that the file handle has been opened successfully. Returns false if it fails.
 bool File::OpenFileHandleIfNeeded()
@@ -60,16 +94,24 @@ bool File::OpenFileHandleIfNeeded()
 
 
 
-std::fstream * File::Open(String path)
+std::fstream * File::Open()
 {
 	/// Add /save/ unless it already exists in the path.
-	fileStream.open(path.c_str(), std::ios_base::out | std::ios_base::binary);
+	fileStream.open(path.c_str(), std::ios_base::out | std::ios_base::in | std::ios_base::binary);
 	bool success = fileStream.is_open();
 	if (!success){
 		/// Try another path?
 		return NULL;
-	}
+	}	
 	return &fileStream;
+}
+
+/// Fetches contents of this file.
+String File::GetContents()
+{
+	/// Contains the LastModified time when we last accessed this file.
+	editTimeWhenReadLast = LastModified();
+	return GetContents(path);
 }
 
 /// Static function to fetch all contents of a file as if it were just one big string.
@@ -80,22 +122,40 @@ String File::GetContents(String fromFile)
 	file.open(fromFile.c_str(), std::ios_base::in | std::ios_base::binary);
 	if (file.is_open())
 	{	
-		int start  = (int) file.tellg();
-		file.seekg( 0, std::ios::end );
-		int fileSize = (int) file.tellg();
-		char * data = new char [fileSize+2];
-		memset(data, 0, fileSize+1);
-		file.seekg( 0, std::ios::beg);
-		file.read((char*) data, fileSize);
-		file.close();
-		fileContents = String(data);
+		fileContents = GetContents(file);
 	}
 	else 
 	{
-		file.close();
 		std::cout<<"\nFile::GetLines: Unable to open file: "<<fromFile;
 	}
+	file.close();
 	return fileContents;
+}
+
+String File::GetContents(std::fstream & fileStream)
+{
+	assert(fileStream.is_open());
+	fileStream.seekg( 0, std::ios::beg);
+	int start  = (int) fileStream.tellg();
+	fileStream.seekg( 0, std::ios::end );
+	int fileSize = (int) fileStream.tellg();
+	assert(fileSize);
+	char * data = new char [fileSize+2];
+	memset(data, 0, fileSize+1);
+	fileStream.seekg( 0, std::ios::beg);
+	fileStream.read((char*) data, fileSize);
+	String strData(data);
+	delete[] data;
+	return strData;
+}
+
+/// Fetches contents from file in form of lines. (\r\n removed and used as tokenizers)
+List<String> File::GetLines()
+{
+	String contents = GetContents(path);
+	editTimeWhenReadLast = LastModified();
+	List<String> lines = contents.GetLines();
+	return lines;
 }
 
 
@@ -107,9 +167,32 @@ List<String> File::GetLines(String fromFile)
 	return lines;
 }
 
-void File::Close(){
+void File::Close()
+{
+	if (fileHandle)
+		CloseHandle(fileHandle);
+	fileHandle = NULL;
 	fileStream.close();
 }
+
+bool File::IsOpen()
+{
+	if (fileHandle)
+		return true;
+	else if (fileStream.is_open())
+		return true;
+	return false;
+}
+
+/// Returns true if the last write time has changed compared to the last time that we extracted contents from this file.
+bool File::HasChanged()
+{
+	Time lastEdit = LastModified();
+	if (lastEdit == editTimeWhenReadLast)
+		return false;
+	return true;
+}
+
 
 const String File::Path() const {
 	return path;
@@ -127,7 +210,11 @@ SaveFile::SaveFile()
 
 std::fstream * SaveFile::OpenSaveFileStream(String saveName, String gameName, String customHeaderData, bool overwriteIfNeeded)
 {
-	String path = String(saveFolder) + "/" + gameName + "/" + saveName;
+	// Close old file stream.
+	fileStream.close();
+
+	// Update path.
+	path = String(saveFolder) + "/" + gameName + "/" + saveName;
 	String pathPreExtension = path;
 	String extension = ".sav";
 	if (!path.Contains(extension))
@@ -135,16 +222,19 @@ std::fstream * SaveFile::OpenSaveFileStream(String saveName, String gameName, St
 	EnsureFoldersExistForPath(path);
 	/// Check if it already exists.
 	path = GetFirstFreePath(pathPreExtension, extension);
-	std::fstream * stream = File::Open(path);
+
+	// Open file stream
+	fileStream.open(path.c_str());
+	if (!fileStream.is_open())
+		return NULL;
+	// Write header.
 	SaveFileHeader header;
 	header.gameName = gameName;
 	header.saveName = saveName;
 	header.dateSaved = Timer::GetCurrentTimeMs();
 	header.customHeaderData = customHeaderData;
-	if (stream){
-		header.WriteTo(*stream);
-	}
-	return stream;
+	header.WriteTo(fileStream);
+	return &fileStream;
 }
 
 /// Returns list of all saves

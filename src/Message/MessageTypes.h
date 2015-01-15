@@ -26,7 +26,10 @@ enum messageTypes{
 	DATA_MESSAGE, // For DataMessage
 	DATA, // Probably obsolete.
 	COLLISSION_CALLBACK, // Sent by the physics system if certain stuff are met.
-	EDITOR_MESSAGE,	
+	EDITOR_MESSAGE,
+	CURL, // HTTP and similar stuff, sent by the CURLManager
+	SIP, // Session Initiation Protocol, sent from the NetworkManager when certain SIP packets are received.
+
 	// Consider creating packets straight away for these networking features instead of using the message system?
 	/// Make room for 100 different network packets (no more than like 10 should be needed, but eh..)
 	FIRST_NETWORK_MESSAGE = 100,

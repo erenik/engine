@@ -70,7 +70,7 @@ private:
 	/// Tries to evaluate the expression.
 	bool TryEvaluate();
 	/// Evaluates a binary expression-part of the following format:  sym1 op sym2
-	Symbol Evaluate(Symbol sym1, Symbol sym2, Symbol op);
+	Symbol Evaluate(Symbol * sym1, Symbol * sym2, Symbol op);
 	/// Works with the knownVariables list.
 	Variable * GetVariableForName(String name);
 

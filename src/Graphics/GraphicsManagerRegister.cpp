@@ -24,11 +24,13 @@ bool GraphicsManager::RegisterEntity(Entity * entity)
 	entity->registeredForRendering = true;
 	// Check for additional graphics-data
 	GraphicsProperty * graphics = entity->graphics;
-	if (graphics){
-		// Check for attached dynamic lights
-		for (int i = 0; i < graphics->particleSystems.Size(); ++i){
+	if (graphics)
+	{
+		// Check for attached graphical properties.
+		for (int i = 0; i < graphics->particleSystems.Size(); ++i)
+		{
 			ParticleSystem * ps = graphics->particleSystems[i];
-			RegisterParticleSystem(ps);
+			RegisterParticleSystem(ps, false);
 		}
 	}
 	/// If no graphics property exists. Add it.
@@ -127,10 +129,24 @@ int GraphicsManager::UnregisterAll()
 }
 
 
-bool GraphicsManager::RegisterParticleSystem(ParticleSystem * ps)
+bool GraphicsManager::RegisterParticleSystem(ParticleSystem * ps, bool global)
 {
 	if (!particleSystems.Exists(ps))
 		particleSystems.Add(ps);
+	if (global)
+		if (!globalParticleSystems.Exists(ps))
+			globalParticleSystems.Add(ps);
 	ps->registeredForRendering = true;
+	return true;
+}
+
+bool GraphicsManager::UnregisterParticleSystem(ParticleSystem * ps)
+{
+	assert(ps);
+	if (!ps)
+		return false;
+	particleSystems.Remove(ps);
+	globalParticleSystems.Remove(ps);
+	ps->registeredForRendering = false;
 	return true;
 }

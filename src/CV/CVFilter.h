@@ -9,17 +9,22 @@
 #ifndef CV_FILTER_H
 #define CV_FILTER_H
 
-#include "CVBlob.h"
-#include "String/AEString.h"
-#include <opencv2/opencv.hpp>
+
 #include "CVFilterTypes.h"
+#include "CVFilterSetting.h"
+
+#define CATCH_EXCEPTION(inFunction) {std::cout<<"\nCaught exception in function: "<<inFunction;}
 
 class CVPipeline;
+class UserInterface;
+
+#undef ERROR
 
 #define CVResult CVOutputType
 #define CVOutputType CVReturnType
 namespace CVReturnType {
 	enum {
+		ERROR = -2, CV_ERROR = ERROR,
 		NO_OUTPUT = -1,
 		NOTHING = NO_OUTPUT,
 		// Undefined output?
@@ -27,6 +32,7 @@ namespace CVReturnType {
 		// OpenCV-based output.
 		CV_IMAGE,
 		CV_CONTOURS,
+		CV_CONTOUR_SEGMENTS,
 		CV_CONVEX_HULLS,
 		CV_CONVEXITY_DEFECTS,
 		CV_CIRCLES,
@@ -34,6 +40,10 @@ namespace CVReturnType {
 		CV_LINES, // std::vector<cv::Vec4i>
 		CV_CHANNELS,
 		APPROXIMATED_POLYGONS,
+		CV_CONTOUR_ELLIPSES,
+		CV_OPTICAL_FLOW,
+		
+		CV_TEMPLATE_MATCHES,
 
 		// Custom output
 		LINES, // Columns and rows mainly
@@ -45,64 +55,35 @@ namespace CVReturnType {
 		VIDEO,
 		RENDER, // Any arbitrary render-output/visualizations
 		FINGER_STATES,
+		POINT_CLOUDS,
+		SWIPES_GESTURES, // As delivered by CVSwipeGesture
 	};
 };
 
-/// Possible value types of settings.
-namespace CVSettingType {
-enum settingTypes
-{
-    INT = 1,
-    FLOAT,
-    STRING,
-	BOOL,
-	VECTOR_3F,
-	BUTTON, // A bool that is only activated once at a time, not saved.
-};};
 
-/// Structure for a saved setting.
-struct CVFilterSetting
-{
-	// Default constructor only used for when loading from file.
-	CVFilterSetting();
-	/// Creates a simple button!
-	CVFilterSetting(String name);
-	// Regular constructors.
-	CVFilterSetting(String name, String value);
-	CVFilterSetting(String name, bool value);
-	CVFilterSetting(String name, float initialValue);
-	CVFilterSetting(String name, int value);
-	CVFilterSetting(String name, Vector3f value);
-
-	/// Save/load
-	bool WriteTo(std::fstream & file);
-	bool ReadFrom(std::fstream & file);
-
-    int type;
-    String name;
-    
-    String sValue;
-    float fValue;
-    int iValue;
-	bool bValue;
-	Vector3f vec3fData;
-};
-
+class Message;
 
 /// Filter class for processing cv-based images.
 class CVFilter 
 {
+	friend class CVPipeline;
 public:
 	// Must specify name when creating! o.o
 	CVFilter(int id);
 	// Virtual destructor for proper deallocatoin when sub-classing.
 	virtual ~CVFilter();
+
+	/// Called upon adding the filter to the active pipeline.
+	virtual void OnAdd();
 	// Should be called when deleting a filter while the application is running. Removes things as necessary.
 	virtual void OnDelete();
 	/// For reacting to when enabling/disabling a filter. Needed for e.g. Render-filters. Not required to subclass.
 	virtual void SetEnabled(bool state);
 	// Name of the filter.
 	String name;
+
+	/// Build-in messaging system. Used for advanced applications to communicate with the game engine properly.
+	virtual void ProcessMessage(Message * message);
 
 	/// Save/load
 	bool WriteTo(std::fstream & file);
@@ -123,6 +104,9 @@ public:
 	/// Returns the settings in their entirety
 	List<CVFilterSetting*> GetSettings() {return settings;};
 
+	/// Creates UI for editing this filter. Assumes an element named FilterEditor is present which will contain all created elements.
+	void UpdateEditUI(UserInterface * inUI);
+
 	/// If currently enabled. Default is true.
 	bool enabled;
 
@@ -141,7 +125,15 @@ public:
 
 	/// Time in milliseconds consumed by the filter for calculation.
 	int64 processingTime, renderTime;
+
+	/// Temporary thing. Set each iteration.
+	CVFilter * previousFilter;
 protected:
+
+	
+	/// Return-type of this filter. Set automatically using the result it returns~..!
+	int returnType;
+
 	/// Type, as defined in the enum CVFilterID.
 	int id;
 	/// Type of filter, as in CVFilterType
@@ -157,5 +149,7 @@ CVFilter * CreateFilterByName(String filterName);
 CVFilter * CreateFilterByID(int id);
 /// Returns sample filter of target type. These are static and should not be used directly.
 CVFilter * GetSampleFilter(int id);
+/// Call once upon exit.
+void DeleteSampleFilters();
 
 #endif

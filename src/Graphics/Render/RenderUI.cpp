@@ -14,8 +14,9 @@ void GraphicsManager::RenderUI(UserInterface * ui)
 		return;
 	/// Set UI Shader program
 	Shader * shader = ShadeMan.SetActiveShader("UI");
-	if (shader == NULL && GL_VERSION_MAJOR > 2){
-	    assert(false);
+	if (shader == NULL && GL_VERSION_MAJOR > 2)
+	{
+		std::cout<<"\nUI shader unavailable for some reason. Unable to render UI.";
 		return;
     }
 
@@ -40,14 +41,14 @@ void GraphicsManager::RenderUI(UserInterface * ui)
 	glDisable(GL_LIGHTING);
 	glDisable(GL_COLOR_MATERIAL);
 
+	// Enable blending.
+	glEnable(GL_BLEND);
+
 
     /// Setup scissor test variables
     glEnable(GL_SCISSOR_TEST);
 //	std::cout<<"\nWidth: "<<Graphics.Width()<<" Height: "<<Graphics.Height();
-    graphicsState->leftScissor = 0;
-	graphicsState->rightScissor = graphicsState->windowWidth;
-	graphicsState->bottomScissor = 0;
-	graphicsState->topScissor = graphicsState->windowHeight;
+	graphicsState->scissor = Rect(0, 0, graphicsState->windowWidth, graphicsState->windowHeight);
 
     PrintGLError("GLError in RenderUI setting shader");
 	
@@ -74,48 +75,10 @@ void GraphicsManager::RenderUI(UserInterface * ui)
 	point = Vector4f(0, 0, 0, 1.0f);
 	point = projection * point;
 
-	// Load projection matrix into shader
-	shader->uniformProjectionMatrix = glGetUniformLocation(shader->shaderProgram, "projectionMatrix");
-	shader->uniformViewMatrix = glGetUniformLocation(shader->shaderProgram, "viewMatrix");
-	shader->uniformModelMatrix = glGetUniformLocation(shader->shaderProgram, "modelMatrix");
-//	std::cout<<"\nProj: "<<shader->uniformProjectionMatrix<<" view: "<<shader->uniformViewMatrix<<" model: "<<shader->uniformModelMatrix;
 	PrintGLError("GLError in RenderUI getting uniform locations");
 
-//	std::cout<<"\nShader matrix locations: "<<shader->uniformProjectionMatrix<<" "<<shader->uniformViewMatrix<<" "<<shader->uniformModelMatrix;
-	/*assert(shader->uniformProjectionMatrix != -1);
-	assert(shader->uniformViewMatrix != -1);
-	assert(shader->uniformModelMatrix != -1);
-	*/
-	if (shader->uniformProjectionMatrix == -1)
-	{
-		std::cout<<"\nShader: "<<shader->name<<" lacking projection matrix?";
-	}
-	if (shader->uniformViewMatrix == -1)
-	{
-		std::cout<<"\nShader: "<<shader->name<<" lacking view matrix?";
-	}
-	if (shader->uniformModelMatrix == -1)
-	{
-		std::cout<<"\nShader: "<<shader->name<<" lacking model matrix?";
-	}
-
-
+	// Load matrices into shader
     Matrix4f view = Matrix4f();
-
-  /*
-    GLchar matrixBuf[32];
-    int length;
-    int uniformVariableSize;
-    GLenum uniformType;
-    glGetActiveUniform(shader->shaderProgram,
-                       shader->uniformViewMatrix,
-                       32 * sizeof(char),
-                       &length,
-                       &uniformVariableSize,
-                       &uniformType,
-                       (GLchar*)&matrixBuf);
-    PrintGLError("GLError in RenderUI getting active uniform for view matrix?");
-*/
     // Upload view matrix too...
     glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, view.getPointer());
     PrintGLError("GLError in RenderUI uploading viewMatrix");
@@ -131,13 +94,12 @@ void GraphicsManager::RenderUI(UserInterface * ui)
 	if (ui == NULL)
 		return;
 	try {
-		ui->Render(graphicsState);
+		ui->Render(*graphicsState);
 	} catch(...){
 		std::cout<<"\nERROR: Exception trying to render ui: "<<ui->Source();
 	}
 
 	// Enable alpha-blendinggg!
-	glEnable(GL_BLEND);
 	glDisable(GL_SCISSOR_TEST);
 
 	// Clear errors upon entering.

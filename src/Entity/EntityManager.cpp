@@ -1,6 +1,6 @@
 
 #include "EntityManager.h"
-#include "../Model.h"
+#include "Model/Model.h"
 #include "Texture.h"
 #include "Graphics/GraphicsManager.h"
 extern GraphicsManager graphics;
@@ -9,7 +9,8 @@ int EntityManager::idCounter = 1;
 
 EntityManager * EntityManager::entityManager = NULL;
 
-void EntityManager::Allocate(){
+void EntityManager::Allocate()
+{
 	assert(entityManager == NULL);
 	entityManager = new EntityManager();
 }
@@ -28,8 +29,10 @@ EntityManager::EntityManager(){
 
 };
 
-EntityManager::~EntityManager(){
-
+EntityManager::~EntityManager()
+{
+	// Delete 'em! o.o
+	entities.ClearAndDelete();
 };
 
 /// Creates entity using specified model and base texture

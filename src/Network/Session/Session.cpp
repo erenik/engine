@@ -2,6 +2,8 @@
 /// 2014-01-24
 /// A general media- or network-session of any sort. Will mostly refer to a gaming session.
 
+#define SAFE_DELETE(p) {if (p) delete p; p = NULL;}
+
 #include "Session.h"
 #include "SessionTypes.h"
 #include "Network/Peer.h"
@@ -32,8 +34,11 @@ Session::Session(String name, String typeName, int type)
 	maxPeers = 32;
 }
 
-Session::~Session(){
+Session::~Session()
+{
 	std::cout<<"\nSession destructor.";
+	SAFE_DELETE(tcpServer);
+	SAFE_DELETE(hostSocket);
 }
 
 
@@ -52,8 +57,15 @@ bool Session::IsConnected() const
 /// Connects to address/port.
 bool Session::ConnectTo(String ipAddress, int port)
 {
-	assert(!isHost);
-	assert(hostSocket == NULL);
+//	assert(!isHost);
+//	assert(hostSocket == NULL);
+	// Set host flag to false if we try to connect, making us act as clients instead from now on!
+	isHost = false;
+	if (hostSocket)
+	{
+		hostSocket->Close();
+		delete hostSocket;
+	}
 	hostSocket = new TcpSocket();
 	bool success = hostSocket->ConnectTo(ipAddress, port);
 	if (success)
@@ -166,7 +178,8 @@ void Session::EvaluateConnections(){
 /// Sends target packet to all peers in this session using default targetsm, via host if possible.
 void Session::Send(Packet * packet)
 {
-	if (isHost){
+	if (isHost)
+	{
 		/*
 		for (int i = 0; i < peers.Size(); ++i){
 			Peer * p = peers[i];
@@ -185,6 +198,53 @@ void Session::Send(Packet * packet)
 	}
 }
 
+/// Sends text as a packet.
+void Session::SendText(String text)
+{
+	Packet textPack = Packet(PacketType::TEXT);
+	textPack.data = text;
+	// Include terminating NULL-sign.
+	textPack.size = text.Length() + 1;
+	Send(&textPack);
+}
+	
+
+/** Reads packets, creating them and returning them for processing. 
+	Each batch of received bytes is considered one "packet". Subclass to override.
+*/
+List<Packet*> Session::ReadPackets()
+{
+	List<Packet*> packetsReceived;
+	const int packetBufferSize = 5000;
+	char packetBuffer[packetBufferSize];
+
+	/// Gather relevant sockets to check for received data.
+	List<Socket*> socketsToCheck;
+	if (isHost)
+	{
+		socketsToCheck = sockets;
+	}
+	else {
+		if (hostSocket)
+			socketsToCheck = hostSocket;
+	}	
+
+	/// Check all sockets now.
+	for (int i = 0; i < socketsToCheck.Size(); ++i)
+	{
+		Socket * s = socketsToCheck[i];
+		int bytesRead = s->Read(packetBuffer, packetBufferSize);
+		// Read one packet each frame?
+		if (bytesRead > 0)
+		{
+			Packet * pack = new Packet(PacketType::NULL_TYPE);
+			pack->data.Allocate(bytesRead, 0);
+			strcpy(pack->data.c_str_editable(), packetBuffer);
+			packetsReceived.Add(pack);
+		}
+	}
+	return packetsReceived;
+}
 
 /// Returns type name of this session.
 String Session::TypeName(){

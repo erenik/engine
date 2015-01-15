@@ -13,6 +13,7 @@
 
 class Vector3f;
 class Vector4d;
+class String;
 
 /** A four-dimensional vector class using floats.
 */
@@ -50,8 +51,12 @@ public:
 	friend std::ostream& operator <<(std::ostream& os, const Vector3f& vec);
 	/// Writes to file stream.
 	void WriteTo(std::fstream & file);
+
 	/// Reads from file stream.
 	void ReadFrom(std::fstream & file);
+	/// Reads from String. Expects space-separated values. E.g. 3 8.14 -15 0.0
+	void ReadFrom(const String & string);
+
 
 	/// Clamp to an interval.
 	void Clamp(float min, float max);
@@ -131,6 +136,8 @@ public:
 
 	/** Calculates the length of the vector, considering only {x y z}. */
 	float Length3() const;
+	/** Calculates the length of the vector, considering only {x y z}. */
+	float Length3Squared() const;
 	/** Normalizes the vector coordinates so that the length of {x y z} becomes 1 */
 	void Normalize3();
     /// Returns a normalized (x,y,z) copy of the given vector.

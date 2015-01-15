@@ -19,7 +19,7 @@
 #include "Graphics/GraphicsManager.h"
 #include "Graphics/Messages/GMCamera.h"
 
-#include "Model.h"
+#include "Model/Model.h"
 
 #include "Window/Window.h"
 
@@ -227,7 +227,7 @@ void FirstPersonPlayerProperty::UpdateTargetsByCursorPosition()
 	if (activeWindow != MainWindow())
 		return;
 	// Try to get ray.
-	if (!activeWindow->GetRayFromScreenCoordinates(Input.mouseX, Input.mouseY, ray))
+	if (!activeWindow->GetRayFromScreenCoordinates(Input.mousePosition, ray))
 		return;
 
 	// Do ray cast within the physics system

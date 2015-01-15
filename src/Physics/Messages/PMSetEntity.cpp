@@ -6,7 +6,7 @@
 #include "../../Entity/Entity.h"
 #include "../PhysicsManager.h"
 #include "../Collision/Collision.h"
-#include "Model.h"
+#include "Model/Model.h"
 #include "Pathfinding/NavMesh.h"
 #include "Pathfinding/WaypointManager.h"
 #include "Pathfinding/PathManager.h"
@@ -73,6 +73,7 @@ PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, Vector2f valu
 		case PT_SET_SCALE:
 		case PT_VELOCITY:
 		case PT_POSITION:
+		case PT_SET_POSITION:
 			break;
 		default:
 			assert(false && "Mismatched target and value in PMSetEntity!");
@@ -137,6 +138,7 @@ PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, Quaternion va
 		case PT_ANGULAR_VELOCITY:
 		case PT_CONSTANT_ROTATION_VELOCITY:
 		case PT_ROTATE:
+		case PT_SET_PRE_TRANSLATE_ROTATION:
 		case PT_SET_ROTATION:
 			break;
 		default:
@@ -151,7 +153,9 @@ PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, bool value)
 	type = PM_SET_ENTITY;
 	entities = targetEntities;
 	bValue = value;
-	switch(target){
+	switch(target)
+	{
+		case PT_USE_QUATERNIONS:
 		case PT_COLLISIONS_ENABLED:
 		case PT_COLLISSION_CALLBACK:
 		case PT_NO_COLLISSION_RESOLUTION:
@@ -182,6 +186,7 @@ PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, int value)
 		case PT_GRAVITY_MULTIPLIER:
 		case PT_COLLISION_CATEGORY:
 		case PT_COLLISION_FILTER:
+		case PT_SET_SCALE:
 			break;
 		default:
 			assert(false && "Mismatched target and value in PMSetEntity!");
@@ -199,6 +204,19 @@ PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, Waypoint * wa
 			assert(false && "Mistmatched target and value in PMSetEntity!");
 	}
 }
+
+PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, Entity * referenceEntity)
+	: target(target), entities(targetEntities), referenceEntity(referenceEntity)
+{
+	switch(target)
+	{
+		case PT_SET_PARENT:
+			break;
+		default:
+			assert(false && "Bad target");
+	}
+}
+
 
 void PMSetEntity::Process()
 {
@@ -220,12 +238,24 @@ void PMSetEntity::Process()
 		PathfindingProperty * pathProp = entity->pathfindingProperty;
 		switch(target)
 		{
+			case PT_USE_QUATERNIONS:
+				pp->useQuaternions = bValue;
+				break;
 			// Waypoints and pathfinding.
 			case PT_CURRENT_WAYPOINT:
 				// Set the waypoint in the entity property..
 				pathProp->currentWaypoint = waypoint;
 				waypoint->entities.Add(entity);
 				break;
+			// Parenting
+			case PT_SET_PARENT:
+			{
+				entity->parent = referenceEntity;
+				referenceEntity->children.Add(entity);
+				// Update transform straight away?
+				entity->RecalculateMatrix();
+				break;
+			}
 			/// Stuff.
 			case PT_RELATIVE_VELOCITY:
 			{
@@ -329,13 +359,15 @@ void PMSetEntity::Process()
 				}
 				break;
 			case PT_ANGULAR_VELOCITY:
+				ASSERT_ENTITY_NOT_STATIC;
 				if (pp->useQuaternions)
 					pp->angularVelocityQuaternion = this->qValue;
 				else
 					entity->physics->angularVelocity = vec3fValue;
 				break;
 			case PT_CONSTANT_ROTATION_VELOCITY:
-				entity->physics->constantAngularVelocity= vec3fValue;
+				ASSERT_ENTITY_NOT_STATIC;
+				entity->physics->constantAngularVelocity = vec3fValue;
 				break;
 			case PT_SET_POSITION:
 			case PT_POSITION:
@@ -364,6 +396,10 @@ void PMSetEntity::Process()
 				entity->position.x = fValue;
 				entity->RecalculateMatrix();
 				break;
+			case PT_POSITION_Z:
+				entity->position.z = fValue;
+				entity->RecalculateMatrix();
+				break;
 			case PT_TRANSLATE:
 				entity->Translate(vec3fValue);
 				break;
@@ -376,6 +412,9 @@ void PMSetEntity::Process()
 			{
 				switch(dataType)
 				{
+					case INTEGER:
+						entity->SetScale(Vector3f(iValue, iValue, iValue));
+						break;
 					case FLOAT:	
 						entity->SetScale(Vector3f(fValue, fValue, fValue)); 
 						break;
@@ -414,12 +453,27 @@ void PMSetEntity::Process()
 				entity->SetRotation(newRotation);
 				break;
 			}
+			case PT_SET_PRE_TRANSLATE_ROTATION: 
+			{
+				switch(dataType)
+				{
+					case QUATERNION:
+					{
+						physics->preTranslateRotationQ = qValue;
+						break;
+					}
+					default:
+						assert(false);
+				}
+				break;	
+			}
 			case PT_SET_ROTATION: 
 			{
 				switch(dataType)
 				{
 					case VECTOR3F:
-						if (entity->physics->estimationEnabled){
+						if (entity->physics->estimationEnabled)
+						{
 							entity->physics->estimator->AddRotation(vec3fValue, timeStamp);
 							break;
 						}

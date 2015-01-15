@@ -8,7 +8,7 @@
 #include "MathLib.h"
 #include <Util.h>
 
-#include "AEGlew.h"
+#include "Graphics/OpenGL.h"
 #include "Matrix/Matrix.h"
 
 class Triangle;

@@ -10,6 +10,7 @@
 #include "AEMath.h"
 #include <iostream>
 #include <cmath>
+#include "List/List.h"
 #include "Vector4f.h"
 #include "Vertex3f.h"
 
@@ -20,6 +21,7 @@ class Vector3d;
 class Vector4f;
 class Vector4d;
 class Matrix4f;
+class String;
 
 /** A three-dimensional vector class using floats.
 */
@@ -71,12 +73,19 @@ public:
 	/// Virtual destructor so sub-classes get de-allocated appropriately.
 	virtual ~Vector3f();
 
+	/// o.o Create Vectors!
+	static List<Vector3f> FromFloatList(List<float> floatList, int numMatricesToExtract);
+
 	/// Printing out data
 	friend std::ostream& operator <<(std::ostream& os, const Vector3f& vec);
 	/// Writes to file stream.
 	void WriteTo(std::fstream & file);
+	
 	/// Reads from file stream.
 	void ReadFrom(std::fstream & file);
+	/// Reads from String. Expects space-separated values. E.g. 3 8.14 -15
+	void ReadFrom(const String & string);
+
 
 	/// Clamp to an interval.
 	void Clamp(float min, float max);

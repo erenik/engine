@@ -155,11 +155,15 @@ private:
 
 class GMSetLighting : public GraphicsMessage {
 public:
+	/// Sets copy of the given lighting setup.
+	GMSetLighting(Lighting & lighting);
+	/// Sets copy of the given lighting setup. Should be removed since pointers imply setting a newly allocated object.
 	GMSetLighting(Lighting * lighting);
 	~GMSetLighting();
 	void Process();
 private:
-	Lighting * lighting;
+	Lighting lighting;
+	Lighting * lightingPtr;
 };
 
 /// ALWAYS send at least 1 Viewport.

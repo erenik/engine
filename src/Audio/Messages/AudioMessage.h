@@ -10,6 +10,7 @@
 
 enum audioMessageTypes
 {
+	AM_SHUTDOWN,
 	AM_DISABLE_AUDIO,
 	AM_SET, // general setter.
 	AM_PLAY,
@@ -72,6 +73,22 @@ class AMPlayBGM : public AMPlay
 {
 public:
 	AMPlayBGM(String nameOrSource, float volume = 1.f);
+private:
+};
+
+class AMStop : public AudioMessage 
+{
+public: 
+	AMStop(int audioType);
+	virtual void Process();
+private:
+	int audioType;
+};
+
+class AMStopBGM : public AMStop
+{
+public:
+	AMStopBGM();
 private:
 };
 

@@ -1,3 +1,5 @@
+/// Emil Hedemalm
+/// 2015-01-14 (although much older originally)
 
 #include "InputMapping.h"
 #include "../Globals.h"
@@ -14,8 +16,13 @@ InputMapping::InputMapping(){
 	this->mappings = 0;
 }
 
+InputMapping::~InputMapping()
+{
+	this->bindings.ClearAndDelete();
+}
 
 #include "InputManager.h"
+
 /** Evaluates by looking at the bindings if an action should be taken or not.
 	Returns:	 the action to process if applicable.
 	Parameters:
@@ -27,7 +34,8 @@ Binding * InputMapping::EvaluateInput(int activeKeyCode, bool * keyPressedState,
 {
 	int triggeredBindings = 0;
 	/// Assume the active key is the last one in the chain
-	for (int i = 0; i < bindings.Size(); ++i){
+	for (int i = 0; i < bindings.Size(); ++i)
+	{
 		/// DEBUG
 		Binding * binding = bindings[i];
 	//	if (binding->action == 9 && activeKeyCode == KEY::E)

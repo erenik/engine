@@ -18,25 +18,56 @@
 
 
 /// General file-class?
-class File {
+class File 
+{
+	File(const File & otherFile);
 public:
 	// o.o
 	File();
 	/// Constructor
 	File(String path);
+	/// Frees file handles.
+	~File();
+	// Resets file handles etc.
+	void Nullify();
+
+	/// Assignment operator. Similar to constructor.
+	void operator = (String path);
+
 	/// Last time this file was modified. Returns -1 if the file does not exist and -2 if the function fails.
 	Time LastModified();
-	void Close();
+	
+	/// Sets path, closing any previously held file streams to the file at the previous path.
+	void SetPath(String filePath);
 
+	std::fstream * Open();
+	void Close();
+	bool IsOpen();
+
+	/// Returns true if the last write time has changed compared to the last time that we extracted contents from this file.
+	bool HasChanged();
+
+	/// Fetches contents of this file.
+	String GetContents();
 	/// Static function to fetch all contents of a file as if it were just one big string.
 	static String GetContents(String fromFile);
+	/// Fetches contents from file in form of lines. (\r\n removed and used as tokenizers)
+	List<String> GetLines();
 	/// Static function to fetch all lines of text from a given file by name. 
 	static List<String> GetLines(String fromFile);
 	
-protected:
-	std::fstream * Open(String path);
+	/// Contains the LastModified time when we last accessed this file.
+	Time editTimeWhenReadLast;
+
 	const String Path() const;
+
+protected:
+	/// Fetches contents from target stream.
+	static String GetContents(std::fstream & fromFileStream);
 	
+	// The path to this file.
+	String path;
+
 	// Private stuffs
 private:
 
@@ -50,7 +81,6 @@ private:
 	HANDLE fileHandle;	
 #endif
 
-	String path;
 	std::fstream fileStream;
 };
 

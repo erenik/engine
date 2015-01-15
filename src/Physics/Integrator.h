@@ -11,6 +11,7 @@
 class Integrator 
 {
 public:
+	Integrator();
 
 	void IsGood();
 	/** All entities sent here should be fully dynamic! 
@@ -22,6 +23,10 @@ public:
 	*/
 	virtual void IntegrateKinematicEntities(List<Entity*> & kinematicEntities, float timeInSeconds) = 0;
 	
+
+	/// For 2D-based integrators, this holds the value where most entities will be placed or enforced to stay at, Z-wise.
+	float constantZ;
+
 private:
 };
 

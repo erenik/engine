@@ -1,7 +1,7 @@
 // Emil Hedemalm
 // 2013-07-03, Linuxifying!
 
-#include <GL/glew.h>
+#include <Graphics/OpenGL.h>
 
 #include "UIElement.h"
 #include "UITypes.h"
@@ -184,13 +184,21 @@ UIElement::~UIElement()
 	assert(vboBuffer == -1 && "vboBuffer not released in UIElement::~UIElement()!");
 	/// Textures will be deallocated by the texture manager...
 	/// But take care of the mesh!
-	if (mesh){
-		delete mesh;
-		mesh = NULL;
-	}
+	SAFE_DELETE(mesh);
 	/// Inform the input manager that we delete the element.
 	// Input.OnElementDeleted(this);
 }
+
+/// Sets the bufferized flag. Should only be called before program shutdown. Ensures less assertions will fail.
+void UIElement::SetBufferized(bool bufferizedFlag)
+{
+	if (bufferizedFlag == false)
+		vboBuffer = -1;
+	for (int i = 0; i < children.Size(); ++i)
+	{
+		children[i]->SetBufferized(bufferizedFlag);
+	}
+}	
 
 /// Callback-function for sub-classes to implement own behaviour to run within the UI-class' code.
 void UIElement::Proceed()
@@ -254,6 +262,14 @@ void UIElement::Clear() {
 // Activation functions
 //******************************************************************************//
 
+// Hovers over this element. calling OnHover after setting the UIState::HOVER flag.
+UIElement * UIElement::Hover()
+{
+	AddState(UIState::HOVER);
+	this->OnHover();
+	return this;
+}	
+
 // Returns true once the highest-level appropriate element has been selected,
 // or it has been determined that the selected child was not the active one.
 // A value of true will thus make the algorithm return true and ending it's calculations.
@@ -288,7 +304,8 @@ UIElement* UIElement::Hover(int mouseX, int mouseY)
 
 	// Alright, the mouse is inside this element!
 	// Do we have children?
-	for (int i = children.Size()-1; i >= 0; --i){
+	for (int i = children.Size()-1; i >= 0; --i)
+	{
 	    UIElement * child = children[i];
 	    if (!child->visible)
             continue;
@@ -505,7 +522,8 @@ void UIElement::OnMouseMove(Vector2i activeWindowCoords)
 
 
 /// For mouse-scrolling. By default calls it's parent's OnScroll.
-bool UIElement::OnScroll(float delta){
+bool UIElement::OnScroll(float delta)
+{
     if (parent)
         return parent->OnScroll(delta);
     return false;
@@ -838,10 +856,13 @@ UIElement* UIElement::GetElementByState(int stateFlag)
 	if (state & stateFlag)
 		return this;
 	UIElement * result = NULL;
-	for (int i = 0; i < children.Size(); ++i){
-		if (!children[i]->visible)
+	for (int i = 0; i < children.Size(); ++i)
+	{
+		UIElement * child = children[i];
+		String childText = child->text;
+		if (!child->visible)
 			continue;
-		result = children[i]->GetElementByState(stateFlag);
+		result = child->GetElementByState(stateFlag);
 		if (result)
 			return result;
 	}
@@ -949,6 +970,20 @@ bool UIElement::IsVisible()
 }
 
 /// Gets absolute position and stores them in the pointers' variables, in pixels, relative to upper left corner
+Vector2i UIElement::GetAbsolutePos()
+{
+	Vector2i absPos ((int) floor(posX+0.5f), (int) floor(posY+0.5f));
+	UIElement* pp = parent;
+	// While parent pointer is non-NULL
+	while(pp){
+		// Increment result
+		absPos += pp->pageBegin;
+		pp = pp->parent;
+	}
+	// Increment positions
+	return absPos;
+}
+	
 void UIElement::GetAbsolutePos(int * i_posX, int * i_posY){
 	int resX = (int) floor(posX+0.5f);
 	int resY = (int) floor(posY+0.5f);
@@ -1105,10 +1140,11 @@ const UIElement * UIElement::GetChild(int index){
 }
 
 // Structurization
-void UIElement::AddChild(UIElement *in_child){
+bool UIElement::AddChild(UIElement *in_child)
+{
     assert(in_child);
     if (in_child == NULL)
-        return;
+        return false;
 	if (in_child->name.Length() == 0)
 	{
 		in_child->name = name + "Child";
@@ -1125,6 +1161,7 @@ void UIElement::AddChild(UIElement *in_child){
 	// Set it's parent to this.
 	in_child->parent = this;
 	in_child->ui = ui;
+	return true;
 }
 
 
@@ -1135,6 +1172,7 @@ bool UIElement::AddToParent(String parentName, UIElement * child)
         padre->AddChild(child);
         return true;
     }
+	std::cout<<"\nUnable to add element "<<child->name<<" to parent \'"<<parentName<<"\'. Could not find parent within UI.";
     return false;
 }
 
@@ -1283,18 +1321,21 @@ void UIElement::FreeBuffers()
 
 
 /// Render, public function that calls internal render functions.
-void UIElement::Render(GraphicsState * graphicsState)
+void UIElement::Render(GraphicsState & graphicsState)
 {
     // Push matrices
-	Matrix4d tmp = graphicsState->modelMatrixD;
+	Matrix4d tmp = graphicsState.modelMatrixD;
 
     // Render ourself and maybe children.
     RenderSelf(graphicsState);
+	PrintGLError("GLError in UIElement::Render after RenderSelf");
+	
     if (children.Size())
         RenderChildren(graphicsState);
+	PrintGLError("GLError in UIElement::Render after RenderChildren");
 
 	// Pop matrices
-	graphicsState->modelMatrixF = graphicsState->modelMatrixD = tmp;
+	graphicsState.modelMatrixF = graphicsState.modelMatrixD = tmp;
 }
 
 /// Sets disabled-flag.
@@ -1309,8 +1350,9 @@ bool UIElement::IsDisabled(){
 }
 
 /// Splitting up the rendering.
-void UIElement::RenderSelf(GraphicsState * graphicsState)
+void UIElement::RenderSelf(GraphicsState & graphicsState)
 {
+	PrintGLError("GLError before UIElement::Render?!");
 	if (!isGeometryCreated)
 	{
 		AdjustToParent();
@@ -1324,7 +1366,7 @@ void UIElement::RenderSelf(GraphicsState * graphicsState)
 		Bufferize();
 	}
 
-    PrintGLError("GLError before UIElement::Render?!");
+    PrintGLError("GLError in UIElement::Render 2");
 	/// If not buffered, do it nau!
 	if (vboBuffer == -1){
 		/// If not created geometry, do that too.
@@ -1345,6 +1387,9 @@ void UIElement::RenderSelf(GraphicsState * graphicsState)
 	assert(vboBuffer && "No valid vboBuffer in UIElement::Render!");
 
 	bool validTexture = true;
+	
+	// When rendering an objectwith this program.
+	glActiveTexture(GL_TEXTURE0 + 0);	
 
 	// Set texture
 	if (texture && texture->glid){
@@ -1417,21 +1462,21 @@ void UIElement::RenderSelf(GraphicsState * graphicsState)
 		{
 			highlightColor *= 0.75f;
 		}
-		Shader * activeShader = graphicsState->activeShader;
+		Shader * shader = ActiveShader();
 
 	//	assert(activeShader->uniformPrimaryColorVec4 != -1);
-		if (activeShader->uniformPrimaryColorVec4 == -1)
+		if (shader->uniformPrimaryColorVec4 == -1)
 		{
 			std::cout<<"\nUI shader lacking primary color?";
 		}
-		glUniform4f(activeShader->uniformPrimaryColorVec4,
+		glUniform4f(shader->uniformPrimaryColorVec4,
 			baseColor.x, baseColor.y, baseColor.z, color.w);
-		if (activeShader->uniformHighlightColorVec4 == -1)
+		if (shader->uniformHighlightColorVec4 == -1)
 		{
 			std::cout<<"\nUI shader lacking highlight color?";
 		}
 		//assert(activeShader->uniformHighlightColorVec4 != -1);
-		glUniform4f(activeShader->uniformHighlightColorVec4,
+		glUniform4f(shader->uniformHighlightColorVec4,
 			highlightColor.x, highlightColor.y, highlightColor.z, 0.0f);
 
 		// Set material?	-	Not needed for UI!?
@@ -1441,39 +1486,33 @@ void UIElement::RenderSelf(GraphicsState * graphicsState)
 		// Set VBO and render
 		// Bind vertices
 		glBindBuffer(GL_ARRAY_BUFFER, vboBuffer);
-		glVertexAttribPointer((GLuint) 0, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 8, 0);		// Position
-		glEnableVertexAttribArray(0);
-
-		// Bind Normals
-		static const GLint offsetN = 3 * sizeof(GLfloat);		// Buffer already bound once at start!
-		glVertexAttribPointer((GLuint) 2, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 8, (void *)offsetN);		// UVs
-		glEnableVertexAttribArray(2);
-
+		glVertexAttribPointer(shader->attributePosition, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 8, 0);		// Position
+		
 		// Bind UVs
 		static const GLint offsetU = 6 * sizeof(GLfloat);		// Buffer already bound once at start!
-		glVertexAttribPointer((GLuint) 1, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 8, (void *)offsetU);		// UVs
-		glEnableVertexAttribArray(1);
-
+		glVertexAttribPointer(shader->attributeUV, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 8, (void *)offsetU);		// UVs
+		
         PrintGLError("GLError Binding Buffers");
 		int vertices = vboVertexCount;
 
 
 
 		// If moveable, translate it to it's proper position!
-		if (moveable){
+		if (moveable)
+		{
 			///
-			if (activeShader->uniformModelMatrix != -1){
+			if (shader->uniformModelMatrix != -1){
 				/// TRanslatem power !
-				Matrix4d * model = &graphicsState->modelMatrixD;
+				Matrix4d * model = &graphicsState.modelMatrixD;
 				float transX = alignmentX * parent->sizeX;
 				float transY = alignmentY * parent->sizeY;
 				model->Translate(transX,transY,0);
-				graphicsState->modelMatrixF = graphicsState->modelMatrixD;
+				graphicsState.modelMatrixF = graphicsState.modelMatrixD;
 			}
 		}
 
 		/// Load in ze model matrix
-		glUniformMatrix4fv(graphicsState->activeShader->uniformModelMatrix, 1, false, graphicsState->modelMatrixF.getPointer());
+		glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, graphicsState.modelMatrixF.getPointer());
 
         PrintGLError("GLError glUniformMatrix in UIElement");
 		// Render normally
@@ -1489,26 +1528,26 @@ void UIElement::RenderSelf(GraphicsState * graphicsState)
 	/// Bind correct font if applicable.
 	if (this->text.Length()){
 		if (this->font){
-			graphicsState->currentFont = this->font;
+			graphicsState.currentFont = this->font;
 		}
 		else if (this->fontSource && !this->font){
 			this->font = Graphics.GetFont(this->fontSource);
 			if (this->font)
-				graphicsState->currentFont = this->font;
+				graphicsState.currentFont = this->font;
 		}
 		// If still no font, use default font.
 		if (!font)
 		{
-			graphicsState->currentFont = Graphics.GetFont(TextFont::defaultFontSource);
+			graphicsState.currentFont = Graphics.GetFont(TextFont::defaultFontSource);
 		}
 	}
 	// Render text if applicable!
 	if ((this->text.Length() || text.caretPosition > -1) 
-		&& graphicsState->currentFont)
+		&& graphicsState.currentFont)
 	{
-		TextFont * currentFont = graphicsState->currentFont;
-		Matrix4d tmp = graphicsState->modelMatrixD;
-		graphicsState->modelMatrixD.Translate(this->left, this->top,(this->zDepth+0.05));
+		TextFont * currentFont = graphicsState.currentFont;
+		Matrix4d tmp = graphicsState.modelMatrixD;
+		graphicsState.modelMatrixD.Translate(this->left, this->top,(this->zDepth+0.05));
 		float pixels = sizeY * textSizeRatio; // Graphics.Height();
 	//	pixels *= this->sizeRatioY;
 
@@ -1573,74 +1612,46 @@ void UIElement::RenderSelf(GraphicsState * graphicsState)
 
 		pixels *= currentTextSizeRatio; //this->textSizeRatio;
 //		std::cout<<"\nTextToRender size in pixels: "<<pixels;
-		graphicsState->modelMatrixD.Scale(pixels);	//Graphics.Height()
-		graphicsState->modelMatrixF = graphicsState->modelMatrixD;
+		graphicsState.modelMatrixD.Scale(pixels);	//Graphics.Height()
+		graphicsState.modelMatrixF = graphicsState.modelMatrixD;
 		Vector4f textColorToRender = this->textColor;
 		// If disabled, dull the color! o.o
 		if (this->IsDisabled())
 			textColorToRender *= 0.55f;
 	//	color.w *= 0.5f;
-		graphicsState->currentFont->SetColor(textColorToRender);
+		graphicsState.currentFont->SetColor(textColorToRender);
 //		std::cout<<"\nTextToRender: "<<textToRender;
-		graphicsState->currentFont->RenderText(this->textToRender, graphicsState);
-		graphicsState->modelMatrixF = graphicsState->modelMatrixD = tmp;
+		graphicsState.currentFont->RenderText(this->textToRender, graphicsState);
+		graphicsState.modelMatrixF = graphicsState.modelMatrixD = tmp;
 	}
 }
 
-void UIElement::RenderChildren(GraphicsState * graphicsState)
+void UIElement::RenderChildren(GraphicsState & graphicsState)
 {
-	bool scissorDisabled = (graphicsState->settings & SCISSOR_DISABLED) > 0;
+	Vector4d initialPositionTopRight(right, top, 0, 1), 
+			initialPositionBottomLeft(left, bottom, 0, 1);
+	Vector3f currTopRight = graphicsState.modelMatrixF * initialPositionTopRight;
+	Vector3f currBottomLeft = graphicsState.modelMatrixF * initialPositionBottomLeft;
+
+	Rect previousScissor = graphicsState.scissor;
+	Rect uiRect(currBottomLeft.x, currBottomLeft.y, currTopRight.x, currTopRight.y);
+	Rect uiScissor = previousScissor.Intersection(uiRect);
+
+	// Set scissor! o.o
+	graphicsState.SetGLScissor(uiScissor);
+
     // Render all children
-	for (int i = 0; i < children.Size(); ++i){
+	for (int i = 0; i < children.Size(); ++i)
+	{
         UIElement * child = children[i];
-   //     std::cout<<"\nRendering UIElement "<<child<<" with name "<<(child?child->name : "NULL");
         if (!child->visible)
             continue;
-
-        Rect previousScissor((int)graphicsState->leftScissor, (int)graphicsState->bottomScissor, (int)graphicsState->rightScissor, (int)graphicsState->topScissor);
-
-        Vector3f relativePosition = graphicsState->modelMatrixF * Vector3f();
- //       std::cout<<"\nRelative position: "<<relativePosition;
-
-		/// Do scissor calculations if not disabled and we're not root since it's stats are not necessarily updated.
-		if (!scissorDisabled && parent){
-			float currentLeft = left + relativePosition.x,
-				currentRight = right + relativePosition.x,
-				currentTop = top + relativePosition.y,
-				currentBottom = bottom + relativePosition.y;
-
-			graphicsState->leftScissor = graphicsState->leftScissor > currentLeft ? graphicsState->leftScissor : currentLeft;
-			graphicsState->rightScissor = graphicsState->rightScissor < currentRight ? graphicsState->rightScissor : currentRight;
-			graphicsState->bottomScissor = graphicsState->bottomScissor > currentBottom ? graphicsState->bottomScissor : currentBottom;
-			graphicsState->topScissor = graphicsState->topScissor < currentTop ? graphicsState->topScissor : currentTop;
-		}
-
-	    int scissorWidth = (int) (graphicsState->rightScissor - graphicsState->leftScissor);
-	    int scissorHeight = (int) (graphicsState->topScissor - graphicsState->bottomScissor);
-
-	  //  assert(scissorWidth >= 0);
-	  //  assert(scissorHeight >= 0);
-	  /// If bad scissor do nothing.
-        if (scissorWidth < 0 || scissorHeight < 0){
-          //  std::cout<<"\nScissor NOT VISIBLE:  e "<<name<<" left: "<<left<<" right: "<<right<<" top: "<<top<<" bottom: "<<bottom<<" width: "<<scissorWidth<<" height: "<<scissorHeight;
-        }
-        /// If not, render.
-        else {
-            if (!scissorDisabled){
-            //    std::cout<<"\nGLScissor: e "<<name<<" posX "<<posX<<" sizeX "<<sizeX<<" posY "<<posY<<" sizeY "<<sizeY;
-                glScissor((GLint) (graphicsState->leftScissor + graphicsState->viewportX0),
-                          (GLint) (graphicsState->bottomScissor + graphicsState->viewportY0),
-                          scissorWidth,
-                          scissorHeight);
-            }
-            child->Render(graphicsState);
-        }
-        /// And pop the scissor statistics back as they were.
-		graphicsState->leftScissor = (float)previousScissor.x0;
-	    graphicsState->rightScissor = (float)previousScissor.x1;
-	    graphicsState->bottomScissor = (float)previousScissor.y0;
-	    graphicsState->topScissor = (float)previousScissor.y1;
+		// Render
+		child->Render(graphicsState);
+		// Reset scissor if needed.
+		graphicsState.SetGLScissor(uiScissor);
 	}
+	graphicsState.SetGLScissor(previousScissor);
 }
 
 
@@ -1807,7 +1818,8 @@ float UISlider::GetLevel(){
 }
 
 // Creates the Square mesh used for rendering the UIElement and calls SetDimensions with it's given values.
-void UIElement::CreateGeometry(){
+void UIElement::CreateGeometry()
+{
 	Square * sq = new Square();
 //	std::cout<<"\nResizing geometry "<<name<<": L"<<left<<" R"<<right<<" B"<<bottom<<" T"<<top<<" Z"<<this->zDepth;
 	sq->SetDimensions((float)left, (float)right, (float)bottom, (float)top, this->zDepth);
@@ -1816,7 +1828,6 @@ void UIElement::CreateGeometry(){
 		children[i]->CreateGeometry();
 	}
 	isGeometryCreated = true;
-
 }
 void UIElement::ResizeGeometry()
 {
@@ -1829,7 +1840,8 @@ void UIElement::ResizeGeometry()
 		children[i]->ResizeGeometry();
 	}
 }
-void UIElement::DeleteGeometry(){
+void UIElement::DeleteGeometry()
+{
 //	assert(mesh);
 	if (mesh == NULL)
 		return;

@@ -92,6 +92,35 @@ struct ConnectionErrorMessage : public Message{
 	ConnectionErrorMessage(const char i_text[]);
 };
 
+
+#define CURLMessage HttpMessage 
+
+class HttpMessage : public Message 
+{
+public:
+	HttpMessage(String msg, int responseCode)
+		: Message(MessageType::CURL), responseCode(responseCode)
+	{
+		this->msg = msg;
+	}
+	int responseCode;
+	String contents;
+	String url;
+}; 
+
+/** SIP packet contents wrapped into a Message class here for eased processing across the engine.
+	Unless specified otherwise, only SIP INFO messages may be transmitted like this.
+*/
+class SIPMessage : public Message 
+{
+public:
+	SIPMessage(String msg)
+		: Message(MessageType::SIP)
+	{
+		this->msg = msg;
+	}
+};
+
 /*void Message::Process(){
 
 }*/

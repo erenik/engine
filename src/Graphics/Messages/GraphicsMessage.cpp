@@ -30,6 +30,11 @@ void GraphicsMessage::Process()
 	GraphicsState * graphicsState = Graphics.graphicsState;
 	switch(type)
 	{
+		case GM_SHUTDOWN:
+		{
+			GraphicsMan.shouldLive = false;
+			break;
+		}
 		case GM_CYCLE_RENDER_PIPELINE:
 		{
 			RenderPipeline * pipe = RenderPipeMan.Next();
@@ -139,9 +144,9 @@ void GMDeleteVBOs::Process(){
 }
 
 // Unbuffers and deletes (i.e. all data) related to a UserInterface-object, including the object itself!
-GMDelete::GMDelete(UserInterface * ui) : GraphicsMessage(GM_DELETE_UI){
-	assert(ui->IsCreated());
-	assert(ui->IsBuffered());
+GMDelete::GMDelete(UserInterface * ui) 
+	: GraphicsMessage(GM_DELETE_UI)
+{
 	this->ui = ui;
 }
 void GMDelete::Process()

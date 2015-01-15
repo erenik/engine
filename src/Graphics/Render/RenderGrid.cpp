@@ -8,7 +8,7 @@ void GraphicsManager::RenderGrid(){
 	GLuint error = glGetError();
 	// Draw awesome grid for debugging, yo.
 	if (true){
-		glUseProgram(0);
+		ShadeMan.SetActiveShader(0);
 		glMatrixMode(GL_PROJECTION);
 		glLoadMatrixd(graphicsState->projectionMatrixD.getPointer());
 		glMatrixMode(GL_MODELVIEW);

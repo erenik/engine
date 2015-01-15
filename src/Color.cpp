@@ -23,7 +23,7 @@ Color::Color(uchar r, uchar g, uchar b, uchar a)
 /// E.g. "0x115588AA"
 Color Color::ColorByHexName(String byHexName)
 {
-	int hex = byHexName.ParseHex();
+	uint32 hex = byHexName.ParseHex();
 
 	Color newColor;
 
@@ -43,13 +43,13 @@ Color Color::ColorByHexName(String byHexName)
 }
 
 /// Anticipates a hex-color in 0xRRGGBBAA format.
-Color Color::ColorByHex32(int hex)
+Color Color::ColorByHex32(uint32 hex)
 {
-	unsigned char r, g, b, a;
-	r = hex >> 24 % 256;
-	g = hex >> 16 % 256;
-	b = hex >> 8 % 256;
-	a = hex >> 0 % 256;
+	uint32 r, g, b, a;
+	r = (hex >> 24) % 256;
+	g = (hex >> 16) % 256;
+	b = (hex >> 8) % 256;
+	a = (hex >> 0) % 256;
 
 	Color newColor(r,g,b,a);
 	float inv255 = 1 / 255.f;
@@ -57,7 +57,7 @@ Color Color::ColorByHex32(int hex)
 	return newColor;
 }
 /// Anticipates a hex-color in 0xRRGGBB format.
-Color Color::ColorByHex24(int hex)
+Color Color::ColorByHex24(uint32 hex)
 {
 	unsigned char r, g, b;
 	r = hex >> 16 % 256;
@@ -70,21 +70,21 @@ Color Color::ColorByHex24(int hex)
 }
 
 /// Anticipates a hex-color in 0xLLAA format, where L is luminosity or grey-scale.
-Color Color::ColorByHex16(int hex)
+Color Color::ColorByHex16(uint32 hex)
 {
-	unsigned char l, a;
-	l = hex >> 8 % 256;
-	a = hex >> 256;
+	uint32 l, a;
+	l = (hex >> 8) % 256;
+	a = hex % 256;
 	Color newColor(l, l, l, a);
 	float inv255 = 1 / 255.f;
 	newColor *= inv255;	
 	return newColor;
 }
 /// Anticipates a hex-color in 0xLL format, where L is luminosity or grey-scale.
-Color Color::ColorByHex8(int hex)
+Color Color::ColorByHex8(uint32 hex)
 {
 	unsigned char l;
-	l = hex >> 256;
+	l = hex % 256;
 	Color newColor(l, l, l, 255);
 	float inv255 = 1 / 255.f;
 	newColor *= inv255;	

@@ -3,8 +3,8 @@
 
 #include "MapManager.h"
 
-#include "ModelManager.h"
-#include "Model.h"
+#include "Model/ModelManager.h"
+#include "Model/Model.h"
 
 #include "Entity/EntityManager.h"
 #include "Entity/Entity.h"
@@ -27,7 +27,7 @@
 #include "Physics/PhysicsProperty.h"
 #include "Physics/PhysicsManager.h"
 
-#include "PhysicsLib/Shapes/Sphere.h"
+#include "Sphere.h"
 #include "PhysicsLib/Shapes/Ray.h"
 
 
@@ -66,8 +66,9 @@ MapManager::MapManager(){
 	processOnEnter = true;
 }
 
-MapManager::~MapManager(){
-
+MapManager::~MapManager()
+{
+	maps.ClearAndDelete();
 }
 
 /// Sets default settings and loads the default map.
@@ -589,16 +590,20 @@ int MapManager::DeleteEntities(List<Entity*> entities)
 }
 
 /** Queries deletion of specified entity in active map. */
-bool MapManager::DeleteEntity(Entity * entity){
+bool MapManager::DeleteEntity(Entity * entity)
+{
+	if (!entity)
+		return false;
 	// Check that it isn't already flagged for deletion
 	if (!entity && !entity->flaggedForDeletion){
 		return false;
 	}
 	entity->flaggedForDeletion = true;
 //	std::cout<<"\nEntity flagged for deletion. ";
-	if (entity->registeredForRendering && GraphicsManager::Instance())
+	// Unregister no matter what. If it wasn't already unregisterd, nothing will hurt of it.
+	if (GraphicsManager::Instance())
 		Graphics.QueueMessage(new GMUnregisterEntity(entity));
-	if (entity->registeredForPhysics && PhysicsManager::Instance())
+	if (PhysicsManager::Instance())
 		Physics.QueueMessage(new PMUnregisterEntity(entity));
 	// Remove entity from the map too...!
 	activeMap->RemoveEntity(entity);

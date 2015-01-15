@@ -1,7 +1,7 @@
 #ifndef UNIFORM_LIGHT_H
 #define UNIFORM_LIGHT_H
 
-#include <GL/glew.h>
+#include "Graphics/OpenGL.h"
 
 /// Struct containing uniform IDs for a material in the shader
 struct UniformMaterial{

@@ -8,19 +8,27 @@
 #include "List/List.h"
 #include "AudioBuffer.h"
 
-#define BUILD_AL
-#ifdef BUILD_AL
-#include <AL/al.h>
-#include <AL/alc.h>
-// #include <AL/alut.h>
+#ifdef OPENAL
+	#include <AL/al.h>
+	#include <AL/alc.h>
+	// #include <AL/alut.h>
+
+	int CheckALError();
+	int AssertALError();
+
+	// Open AL device and context, similar to OpenGL device and context!
+	extern ALCdevice * alcDevice;		// Device
+	extern ALCcontext * alcContext;	// Rendering audio context
+
+#define GRAB_AL_CONTEXT {ALCboolean result = alcMakeContextCurrent(alcContext); assert(result && "Unable to make alc context current");}
+
+
+#define AL_FREE_ALL {ALSource::FreeAll();}
+
+#else // NO AL
+#define AL_FREE_ALL {}
+#define GRAB_AL_CONTEXT 
 #endif
-
-int CheckALError();
-int AssertALError();
-
-// Open AL device and context, similar to OpenGL device and context!
-extern ALCdevice * alcDevice;		// Device
-extern ALCcontext * alcContext;	// Rendering audio context
 
 class ALSource 
 {

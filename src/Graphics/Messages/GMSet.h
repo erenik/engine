@@ -16,13 +16,22 @@ class GMSet : public GraphicsMessage {
 public:
 	GMSet(int target, void *pData);
 	GMSet(int target, Vector3f vec3fValue);
-	GMSet(int target, float floatValue); 
+	GMSet(int target, float floatValue);
 	void Process();
 private:
 	float floatValue;
 	int target;
 	Vector3f vec3fValue;
 	void * pData;
+};
+
+class GMSeti : public GraphicsMessage {
+public:
+	GMSeti(int target, int iValue);
+	virtual void Process();
+private:
+	int target;
+	int iValue;
 };
 
 class GMSetf : public GraphicsMessage {

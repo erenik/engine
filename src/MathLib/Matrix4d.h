@@ -68,18 +68,13 @@ public:
 	/// Returns target column of the matrix.
 	Vector4d GetColumn(int columnIndex);
 
-	/** Initializes a rotation matrix around the X-axis. */
-	Matrix4d InitRotationMatrixX(double radians);
-	/** Initializes and returns a rotation matrix around the X-axis. */
-	static Matrix4d GetRotationMatrixX(double radians);
-	/** Initializes a rotation matrix around the Y-axis. */
-	Matrix4d InitRotationMatrixY(double radians);
-	/** Initializes and returns a rotation matrix around the Y-axis. */
-	static Matrix4d GetRotationMatrixY(double radians);
-	/** Initializes a rotation matrix around the Z-axis. */
-	Matrix4d InitRotationMatrixZ(double radians);
-	/** Initializes and returns a rotation matrix around the Z-axis. */
-	static Matrix4d GetRotationMatrixZ(double radians);
+	/// Initializes a rotation matrix around the X-axis.
+	static Matrix4d InitRotationMatrixX(double radians);
+	/// Initializes a rotation matrix around the Y-axis. 
+	static Matrix4d InitRotationMatrixY(double radians);
+	/// Initializes a rotation matrix around the Z-axis. 
+	static Matrix4d InitRotationMatrixZ(double radians);
+
 	/** Initializes a rotation matrix using provided vector parameters. */
 	Matrix4d InitRotationMatrix(double angle, double x, double y, double z);
 	/** Initializes a rotation matrix using provided vector. */

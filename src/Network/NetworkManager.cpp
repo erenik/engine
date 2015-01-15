@@ -15,6 +15,10 @@
 #include "Game/Game.h"
 #include <cassert>
 
+#include "String/StringUtil.h"
+#include "Message/Message.h"
+#include "CURLManager.h"
+#include "Http.h"
 
 #define print(a) {std::cout<< a ; }
 void PrintNetworkError(int i_error = -1)
@@ -153,9 +157,12 @@ NetworkManager::~NetworkManager()
 	sessions.ClearAndDelete();
 }
 
-void NetworkManager::Allocate(){
+void NetworkManager::Allocate()
+{
 	assert(networkManager == NULL);
 	networkManager = new NetworkManager();
+	CURLManager::Allocate();
+	HttpManager::Allocate();
 }
 NetworkManager * NetworkManager::Instance(){
 	assert(networkManager);
@@ -165,6 +172,8 @@ void NetworkManager::Deallocate(){
 	assert(networkManager);
 	delete(networkManager);
 	networkManager = NULL;
+	CURLManager::Deallocate();
+	HttpManager::Deallocate();
 }
 
 /// Starts up the initial SIP server, identities host machine data, etc.
@@ -226,19 +235,24 @@ void NetworkManager::Initialize()
 	initialized = true;
 }
 /// Shuts down all active sessions.
-void NetworkManager::Shutdown(){
+void NetworkManager::Shutdown()
+{
 	while(sessions.Size()){
 		Session * s = sessions[0];
 		s->Stop();
 		sessions.Remove(s);
 		delete s;
 	}
+	if (sipSession)
+		delete sipSession;
+	sipSession = NULL;
 }
 
 /// Adds new peer!
 void NetworkManager::AddPeer(Peer * newPeer)
 {
 	peers.Add(newPeer);
+	OnNewPeersConnected(newPeer);
 }
 
 /// Returns object representing self. This should not be modified after sessions have been started of any kind.
@@ -267,7 +281,10 @@ Session * NetworkManager::GetSessionByName(String name){
 /// As defined in SessionTypes.h and specific sub type header file. E.g. GameSessionTypes.h
 Session * NetworkManager::GetSession(int byType, int andSubType /* = -1 */)
 {
-	for (int i = 0; i < sessions.Size(); ++i){
+	if (byType == SessionType::SIP)
+		return sipSession;
+	for (int i = 0; i < sessions.Size(); ++i)
+	{
 		Session * s = sessions[i];
 		if (s->type != byType)
 			continue;
@@ -278,6 +295,13 @@ Session * NetworkManager::GetSession(int byType, int andSubType /* = -1 */)
 	}
 	return NULL;
 }
+
+/// Make sure it works first..?
+SIPSession * NetworkManager::GetSIPSession()
+{
+	return sipSession;
+}
+	
 
 /// Starts given session, adding it to the list of active sessions.
 bool NetworkManager::AddSession(Session * session){
@@ -320,7 +344,6 @@ void NetworkManager::SetSIPServerPort(int port){
     std::cout << "SIP server port set to: "<<sipPort;
 }
 
-
 /// Query function for the SIP server.
 bool NetworkManager::IsSIPServerRunning()
 {
@@ -332,6 +355,7 @@ bool NetworkManager::IsSIPServerRunning()
 	return false;
 }
 
+/// Starts SIP server with previously set port via SetSIPServerPort. Default ports are 33000 through 33010, starting at 33000.
 bool NetworkManager::StartSIPServer()
 {
     if (!initialized)
@@ -449,11 +473,16 @@ void NetworkManager::Disconnect()
 //==================================================
 void NetworkManager::ProcessNetwork()
 {
+	CURLMan.Process();
+	HttpMan.Process();
+
 	if (!this->initialized)
 		return;
 	List<Packet*> packets;
 
 	/// Process the main SIP session.
+	if (!sipSession)
+		return;
 	this->sipSession->EvaluateConnections();
 	packets += this->sipSession->ReadPackets();
 	this->sipSession->SendPackets();
@@ -461,9 +490,9 @@ void NetworkManager::ProcessNetwork()
 	OnPeersDisconnected(disconnectedPeers);
 
 	/// Add new peers from sip-session list to our total list.
-	List<Peer*> newPeers = sipSession->GetNewPeers();
-	this->peers += newPeers;
-	OnNewPeersConnected(newPeers);
+//	List<Peer*> newPeers = sipSession->GetNewPeers();
+//	this->peers += newPeers;
+//	OnNewPeersConnected(newPeers);
 
 	// Process active sessions.
 	for (int i = 0; i < sessions.Size(); ++i){
@@ -618,8 +647,9 @@ void NetworkManager::OnPeersDisconnected(List<Peer*>  dcPeers){
 */
 Peer * NetworkManager::OnPeerRegistered(Peer * peer)
 {
-    assert(false);
-    return peer;
+	
+	MesMan.QueueMessages("OnPeerConnected("+peer->name+")");
+	return peer;
 }
 
 /*

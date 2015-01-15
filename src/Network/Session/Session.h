@@ -43,8 +43,12 @@ public:
 	
 	/// Sends target packet to all peers in this session using default primary sockets, via host if possible.
 	virtual void Send(Packet * packet);
-	/// Reads packets, creating them and returning them for processing. Note that some packets will already be handled to some extent within the session (for exampling many SIP messages).
-	virtual List<Packet*> ReadPackets() = 0;
+	/// Sends text as a packet.
+	virtual void SendText(String text);
+	/** Reads packets, creating them and returning them for processing. 
+		Each batch of received bytes is considered one "packet". Subclass to override.
+	*/
+	virtual List<Packet*> ReadPackets();
 
 	/// Name of this session, could be "Emil's Game" or "Lobby Chat" for example.
 	String name;

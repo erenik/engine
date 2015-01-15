@@ -8,7 +8,7 @@
 
 #include "OS/OS.h"
 
-#include <GL/glew.h>
+#include <glew.h>
 
 #ifdef OSX
     #include <OpenGL/gl.h>
@@ -25,6 +25,9 @@
 /// Keeps track of GL version for the client
 extern int GL_VERSION_MAJOR;
 extern int GL_VERSION_MINOR;
+
+// Checks for the requirement of having gl version 3.3 or higher
+#define GL_VERSION_3_3_OR_HIGHER (GL_VERSION_MAJOR > 3 || (GL_VERSION_MAJOR == 3 && GL_VERSION_MINOR >= 3))
 
 #include "String/AEString.h"
 

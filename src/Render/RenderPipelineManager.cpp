@@ -4,6 +4,9 @@
 
 #include "RenderPipelineManager.h"
 #include "File/File.h"
+#include "File/LogFile.h"
+
+#include "Graphics/GraphicsManager.h"
 
 RenderPipelineManager::RenderPipelineManager()
 {
@@ -82,10 +85,24 @@ RenderPipeline * RenderPipelineManager::Previous()
 // Loads from render/PipelineConfig.txt 
 void RenderPipelineManager::LoadFromPipelineConfig()
 {
+	// Open file if not already done so.
+	if (!pipelineConfig.Path().Length())
+		pipelineConfig.SetPath("render/PipelineConfig.txt");
+
+	// Check last read time of the file-handle.
+	if (!pipelineConfig.HasChanged())
+	{
+		std::cout<<"\nPipeline config file not changed, skipping.";
+		return;
+	}
+
+	// Set pipeline
+	GraphicsMan.graphicsState->renderPipe = NULL;
 	// Delete old pipelines.
 	renderPipelines.ClearAndDelete();
 
-	List<String> lines = File::GetLines("render/PipelineConfig.txt");
+
+	List<String> lines = pipelineConfig.GetLines();
 	for (int i = 0; i < lines.Size(); ++i)
 	{
 		String line = lines[i];
@@ -116,7 +133,16 @@ void RenderPipelineManager::LoadFromPipelineConfig()
 		}
 	}
 	if (!activePipeline)
-		activePipeline = renderPipelines[0];
+	{
+		if (renderPipelines.Size())
+			activePipeline = renderPipelines[0];
+	}
+	if (!activePipeline)
+	{
+		LogGraphics("No active render pipelines to use!");
+		assert(false && "No active render pipelines to use");
+	}
+	GraphicsMan.graphicsState->renderPipe = activePipeline;
 }
 
 

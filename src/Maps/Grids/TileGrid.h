@@ -43,7 +43,7 @@ public:
 	/// Returns tile at target position or NULL if no existy.
 	Tile * GetTile(Vector2i position);
 	/// Rendering! Called from render-thread onry
-	virtual void Render(GraphicsState * graphicsState);
+	virtual void Render(GraphicsState & graphicsState);
 protected:	
 	int gridType;
 	void Deallocate();

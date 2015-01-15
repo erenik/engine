@@ -59,6 +59,19 @@ Matrix4f::Matrix4f(const Matrix4d& base){
 	}
 }
 
+/// o.o Create matrices!
+List<Matrix4f> Matrix4f::FromFloatList(List<float> floatList, int numMatricesToExtract, bool transpose)
+{
+	List<Matrix4f> matrices;
+	for (int i = 0; i < numMatricesToExtract; ++i)
+	{
+		Matrix4f matrix = &floatList[i * 16];
+		if (transpose)
+			matrix.Transpose();
+		matrices.Add(matrix);
+	}
+	return matrices;
+}
 
 /// Printing out data
 std::ostream& operator <<(std::ostream& os, const Matrix4f& mat){
@@ -83,16 +96,46 @@ void Matrix4f::LoadIdentity(){
 	element[15] = 1;
 }
 
-void Matrix4f::InitRotationMatrixX(float radians){
+/// Conversion
+Matrix3f Matrix4f::GetMatrix3f(){
+    Matrix3f matrix;
+#define mat matrix.element
+    mat[0] = element[0];
+    mat[1] = element[1];
+    mat[2] = element[2];
+
+    mat[3] = element[4];
+    mat[4] = element[5];
+    mat[5] = element[6];
+
+    mat[6] = element[8];
+    mat[7] = element[9];
+    mat[8] = element[10];
+#undef mat
+    return matrix;
+}
+
+
+/// Returns target column of the matrix.
+Vector4f Matrix4f::GetColumn(int columnIndex)
+{
+	int s = columnIndex * 4;
+	return Vector4f(element[s], element[s+1], element[s+2], element[s+3]);	
+}
+
+
+/*
+Matrix4f Matrix4f::InitRotationMatrixX(float radians){
 	LoadIdentity();
 	element[5] = cos((float)radians);
 	element[6] = sin((float)radians);
 	element[9] = -sin((float)radians);
 	element[10] = cos((float)radians);
 }
+*/
 
-/** Initializes and returns a rotation matrix around the X-axis. */
-Matrix4f Matrix4f::GetRotationMatrixX(float radians){
+/// Initializes and returns a rotation matrix around the X-axis. 
+Matrix4f Matrix4f::InitRotationMatrixX(float radians){
 	float element[16];
 	for (int i = 0; i < 16; ++i){
 		element[i] = 0;
@@ -106,16 +149,8 @@ Matrix4f Matrix4f::GetRotationMatrixX(float radians){
 	return Matrix4f(element);
 }
 
-void Matrix4f::InitRotationMatrixY(float radians){
-	LoadIdentity();
-	element[0] = cos((float)radians);
-	element[8] = sin((float)radians);
-	element[2] = -sin((float)radians);
-	element[10] = cos((float)radians);
-}
-
 /** Initializes and returns a rotation matrix around the X-axis. */
-Matrix4f Matrix4f::GetRotationMatrixY(float radians){
+Matrix4f Matrix4f::InitRotationMatrixY(float radians){
 	float element[16];
 	for (int i = 0; i < 16; ++i){
 		element[i] = 0;
@@ -129,12 +164,15 @@ Matrix4f Matrix4f::GetRotationMatrixY(float radians){
 	return Matrix4f(element);
 }
 
-void Matrix4f::InitRotationMatrixZ(float radians){
-	LoadIdentity();
-	element[0] = cos((float)radians);
-	element[1] = sin((float)radians);
-	element[4] = -sin((float)radians);
-	element[5] = cos((float)radians);
+/// Initializes a rotation matrix around the Z-axis.
+Matrix4f Matrix4f::InitRotationMatrixZ(float radians)
+{
+	Matrix4f mat;
+	mat.element[0] = cos((float)radians);
+	mat.element[1] = sin((float)radians);
+	mat.element[4] = -sin((float)radians);
+	mat.element[5] = cos((float)radians);
+	return mat;
 }
 
 void Matrix4f::InitRotationMatrix(float angle, float x, float y, float z){
@@ -182,6 +220,15 @@ Matrix4f Matrix4f::InitTranslationMatrix(Vector3f translation)
 	return mat;
 }
 
+/// Creates a scaling matrix (XYZ)
+Matrix4f Matrix4f::InitScalingMatrix(Vector3f scale)
+{
+	Matrix4f mat;
+	mat.element[0] = scale.x;
+	mat.element[5] = scale.x;
+	mat.element[10] = scale.x;
+	return mat;
+}
 
 void Matrix4f::InitProjectionMatrix(float left, float right, float bottom, float top, float nearVal, float farVal){
 	LoadIdentity();
@@ -359,18 +406,21 @@ void Matrix4f::Translate(float x, float y, float z){
 	element[14] += z;
 }
 
+/*
 void Matrix4f::Translate(Vector3f vec){
 	element[12] += vec.GetX();
 	element[13] += vec.GetY();
 	element[14] += vec.GetZ();
 }
-
-/** Returns an initialized translation-matrix using given vector. */
+*/
+/*
+/// Returns an initialized translation-matrix using given vector. 
 Matrix4f Matrix4f::Translation(Vector3f trans){
 	Matrix4f mat;
 	mat.Translate(trans);
 	return mat;
 }
+*/
 
 void Matrix4f::Scale(float ratio)
 {

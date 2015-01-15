@@ -18,10 +18,14 @@ class Peer {
 public:
 	/// Peer o/o
 	Peer();
+	virtual ~Peer();
 	/// Name of the client! Might be good, yes.
 	String name;
 	/// Removes any references to target socket.
 	void RemoveSocket(Socket * sock);
+	/// o.o
+	template<class T>
+	T * GetSessionData();
 	/// Returns target session data. For example SessionType::SIP as argument.
 	SessionData * GetSessionData(int sessionType, int andSubType = -1);
 	/// Networking sessions that this peer is taking part in.
@@ -56,5 +60,20 @@ private:
 	void ExtractDataFrom(Peer * otherPeer);
 
 };
+
+/// Template functions.
+/// o.o
+template <class T>
+T * Peer::GetSessionData()
+{
+	for (int i = 0; i < sessionData.Size(); ++i)
+	{
+		SessionData * sd = sessionData[i];
+		if (sd->type == T::Type())
+			return (T*)sd;
+	}
+	return NULL;
+}
+
 
 #endif

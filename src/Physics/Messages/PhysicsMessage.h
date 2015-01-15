@@ -10,6 +10,7 @@
 
 class Entity;
 class Waypoint;
+class EstimatorFloat;
 
 //#include "PhysicsManager.h"
 //class PhysicsManager;
@@ -30,6 +31,8 @@ enum physicsMessages {
 	PM_SET_PHYSICS_SHAPE,	//
 	PM_SET,					// General setter function for global physics attributes
 	PM_SET_ENTITY,			// General setter function for entity physics attributes
+	PM_SLIDE_ENTITY,	// For applying/attaching sliders/estimators for adjusting values over time.
+	PM_CLEAR_ESTIMATORS, // For removing existing sliding effects.
 
 	/// For setting waypoint attributes in real-time.
 	PM_SET_WAYPOINT,
@@ -51,6 +54,9 @@ enum physicsTargets{
 	// Global stuff
 	PT_SIMULATION_SPEED,
 
+	// Parenting
+	PT_SET_PARENT,
+
 	// Custom types.
 	PT_PHYSICS_INTEGRATOR,
 	PT_COLLISION_RESOLVER,
@@ -63,12 +69,16 @@ enum physicsTargets{
     /// For disabling stuff.
     PT_LOCK_POSITION,
 
+	/// For what rotation system to use when re-calculating the rotation matrix part of the transform
+	PT_USE_QUATERNIONS,
+
 	// Floats
 	PT_MASS,
 	PT_LINEAR_DAMPING,
 	PT_ANGULAR_DAMPING,
 	PT_POSITION_Y,
 	PT_POSITION_X,
+	PT_POSITION_Z,
 
 	// Separate float and Vector targets?
 	PT_POSITION,
@@ -77,8 +87,9 @@ enum physicsTargets{
 	PT_ROTATE,
 	PT_SET_POSITION,
 	PT_SET_SCALE,
+	PT_SET_PRE_TRANSLATE_ROTATION, // In order to use the translation as an arm-extension into a specified rotated direction.
 	PT_SET_ROTATION, // In degrees or radians?
-	PT_ROTATION_YAW, // For setting the yaw (y) component.
+	PT_ROTATION_Y, PT_ROTATION_YAW = PT_ROTATION_Y, // For setting the yaw (y) component.
 	PT_GRAVITY,
 	PT_ACCELERATION, PT_ACCELERATION_MULTIPLIER, // <- Lazy me, but might be good, hm?
 	PT_ANGULAR_ACCELERATION,
@@ -189,6 +200,7 @@ public:
 	PMSetEntity(List<Entity*> targetEntities, int target, bool value);
 	PMSetEntity(List<Entity*> targetEntities, int target, int value);
 	PMSetEntity(List<Entity*> targetEntities, int target, Waypoint * waypoint);
+	PMSetEntity(List<Entity*> targetEntities, int target, Entity * referenceEntity);
 	void Process();
 protected:
 	enum dataTypes{
@@ -208,6 +220,28 @@ protected:
 	Vector2f vec2fValue;
 	Quaternion qValue;
 	Waypoint * waypoint;
+	Entity * referenceEntity;
+};
+
+class PMSlideEntity : public PhysicsMessage 
+{
+public:
+	PMSlideEntity(List<Entity*> targetEntities, int target, EstimatorFloat * estimatorFloat);
+	virtual ~PMSlideEntity();
+	virtual void Process();
+private:
+	Entities targetEntities;
+	EstimatorFloat * estimatorFloat;
+	int target;
+};
+
+class PMClearEstimators : public PhysicsMessage 
+{
+public:
+	PMClearEstimators(Entities entities);
+	virtual void Process();
+private:
+	Entities entities;
 };
 
 class Integrator;
@@ -250,15 +284,6 @@ private:
 	Vector3f position;
 	int target;
 	void * pValue;
-};
-
-
-class PMSetGravity : public PhysicsMessage {
-public:
-	PMSetGravity(Vector3f newGravity);
-	void Process();
-private:
-	Vector3f newGravity;
 };
 
 class PMSetVelocity : public PhysicsMessage {

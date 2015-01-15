@@ -25,17 +25,39 @@ private:
 class GMRegisterParticleSystem : public GraphicsMessage 
 {
 public:
-	GMRegisterParticleSystem(ParticleSystem * pa);
+	GMRegisterParticleSystem(ParticleSystem * ps, bool global);
 	virtual void Process();
 private:
-	ParticleSystem * pa;
+	ParticleSystem * ps;
+	bool global;
+};
+
+class GMUnregisterParticleSystem : public GraphicsMessage 
+{
+public:
+	GMUnregisterParticleSystem(ParticleSystem * ps, bool deleteOnUnregister);
+	virtual void Process();
+private:
+	ParticleSystem * ps;
+	bool deleteOnUnregister;
 };
 
 /// Attaches a particle emitter to a specific particle system to dictate where new particles should emerge.
 class GMAttachParticleEmitter : public GraphicsMessage 
 {
 public:
-	GMAttachParticleEmitter(ParticleEmitter * pe, ParticleSystem * pa);
+	GMAttachParticleEmitter(ParticleEmitter * pe, ParticleSystem * ps);
+	virtual void Process();
+private:
+	ParticleSystem * ps;
+	ParticleEmitter * pe;
+};
+
+class GMDetachParticleEmitter : public GraphicsMessage 
+{
+public:
+	GMDetachParticleEmitter(ParticleEmitter * pe);
+	GMDetachParticleEmitter(ParticleEmitter * pe, ParticleSystem * ps);
 	virtual void Process();
 private:
 	ParticleSystem * ps;
@@ -66,6 +88,7 @@ public:
 	/// Sets a (2D) contour to be the emitter shape.
 	GMSetParticleEmitter(ParticleSystem * ps, Contour contour);
 	GMSetParticleEmitter(ParticleSystem * ps, List<ParticleEmitter*> newEmitters);
+	GMSetParticleEmitter(ParticleEmitter * emitter, int target, Vector3f vec3fValue);
 	virtual void Process();
 private:
 	ParticleSystem * ps;
@@ -73,8 +96,11 @@ private:
 		CONTOUR,
 		NEW_EMITTER_LIST,
 	};
+	Vector3f vec3fValue;
+	int target;
 	int type;
 	Contour contour;
+	ParticleEmitter * emitter; // For when setting settings for a single emitter
 	List<ParticleEmitter*> newEmitters;
 };
 
@@ -84,12 +110,18 @@ class GMSetParticleSystem : public GraphicsMessage
 public:
 	GMSetParticleSystem(ParticleSystem * ps, int target, Vector3f vec3Value);
 	GMSetParticleSystem(ParticleSystem * ps, int target, float fValue);
+	GMSetParticleSystem(ParticleSystem * ps, int target, int iValue);
+	GMSetParticleSystem(ParticleSystem * ps, int target, bool bValue);
+	GMSetParticleSystem(ParticleSystem * ps, int target, String sValue);
 	virtual void Process();
 private:
 	ParticleSystem * ps;
 	int target;
 	Vector3f vec3Value;
 	float fValue;
+	bool bValue;
+	String sValue;
+	int iValue;
 };
 
 

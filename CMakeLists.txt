@@ -2,6 +2,14 @@
 
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 
+# Create options
+set(LIBCURL "OFF" CACHE BOOL "Whether to compile and link with LibCURL. Required for HTTP requests")
+set(OPENCV "ON" CACHE BOOL "Whether to compile and link with OpenCV. Required for image processing.")
+set(OPUS "ON" CACHE BOOL "Whether to compile and link with (Ogg/)Opus. Required for certain sound playback.")
+set(VORBIS "ON" CACHE BOOL "Whether to compile and link with (Ogg/)Vorbis. Required for certain sound playback.")
+set(OPENAL "ON" CACHE BOOL "Whether to compile and link with OpenAL soft. Required for sound playback.")
+set(THEORA "ON" CACHE BOOL "Whether to compile and link with (Ogg/)Theora. Required for certain video playback.")
+
 message("Defining file group macro")
 #This macro will go through the source dirs and group the files in a nice tree <-- Stolen from Aksel
 macro(create_file_group ROOT_DIR groupname)
@@ -98,6 +106,25 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 	project(${ProjectName})
 	set(project_name ${ProjectName})
 
+	# Generate a Header file with indications as to which libraries are being built and linked against.
+	SET(libs "// Auto-generated header file based on CMake build options. -- Emil")
+		IF (LIBCURL)
+			SET(libs ${libs} "\n#define LIBCURL")
+		ENDIF(LIBCURL)
+		IF (OPENCV)
+			SET(libs ${libs} "\n#define OPENCV")
+		ENDIF(OPENCV)
+		IF (OPUS OR VORBIS OR THEORA)
+			SET(libs ${libs} "\n#define BUILD_OGG")
+		ENDIF (OPUS OR VORBIS OR THEORA)
+		IF (OPUS)
+			SET(libs ${libs} "\n#define OPUS")
+		ENDIF(OPUS)
+		IF (VORBIS)
+			SET(libs ${libs} "\n#define VORBIS")
+		ENDIF(VORBIS)
+	file(WRITE "${PROJECT_SOURCE_DIR}/src/Libs.h" ${libs})
+	
 	# Win32 MSVC++
 	IF(MSVC)
 		# In order to retain edit-and-continue build mode, must specify SAFESEH:NO in newer VS version.
@@ -171,7 +198,7 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 		# For each folder, include their lib/include folders
 		IF(IS_DIRECTORY ${depDir}/${dependency})
 			link_directories("${depDir}/${dependency}/lib")
-			include_directories("${depDir}/${dependency}")
+			include_directories("${depDir}/${dependency}/include")
 		ENDIF()
 	ENDFOREACH()	
 	
@@ -188,7 +215,7 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 		# Theora
 		set(custom_libraries ${custom_libraries} "-ltheora" "-ltheoradec")
 		# Open CV
-#		set(custom_libraries ${custom_libraries} "-lopencv_core -lopencv_highgui -lopencv_imgproc")
+		set(custom_libraries ${custom_libraries} "-lopencv_core -lopencv_highgui -lopencv_imgproc")
 	ENDIF(UNIX)
 
 	# Win32 MSVC++
@@ -200,6 +227,8 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 			-D_CRT_SECURE_NO_WARNINGS
 			-DUNICODE
 			-D_UNICODE
+			# For statically linked OpenAL!
+		#	-DAL_LIBTYPE_STATIC
 			# Target platform
 #			-D_WIN32_WINNT=0x0600
 		)
@@ -224,12 +253,6 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 		#	glu32.lib
 		#	opengl32.lib
 			ws2_32.lib
-			# Audio
-			OpenAL32.lib
-			libogg_static_MTd.lib
-			libvorbis_static_MTd.lib
-			libvorbisfile_static_MTd.lib
-			libtheora_static_MTd.lib
 		)
 		# FMOD Studio, Audio
 	#	set(DEBUG_LIBS ${DEBUG_LIBS} fmod_vc.lib)
@@ -237,12 +260,7 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 		# Windows media library for setting system volume
 		set(DEBUG_LIBS ${DEBUG_LIBS} Winmm.lib)
 		
-		# Open CV
-		set(DEBUG_LIBS ${DEBUG_LIBS} opencv_core248d.lib 
-			opencv_highgui248d.lib # needed for imwrite
-			#opencv_imgproc248d.lib
-			)
-	
+			
 		# Release library dependencies
 		set(RELEASE_LIBS 
 			# For Microsoft game pads via DX SDK.
@@ -251,18 +269,74 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 			glu32.lib
 			opengl32.lib
 			ws2_32.lib
-			# Audio
-			OpenAL32.lib
-			libogg_static_release.lib
-			libvorbis_static_release.lib
-			libvorbisfile_static_release.lib
-			libtheora_static_release.lib
 		)
-		# OpenCV
-		set(RELEASE_LIBS ${RELEASE_LIBS} opencv_core248.lib #basics
-			opencv_highgui248.lib  # needed for imwrite
-			#opencv_imgproc248.lib
+
+		if (OPENAL)
+			set(DEBUG_LIBS ${DEBUG_LIBS} OpenAL32.lib)
+			set(RELEASE_LIBS ${RELEASE_LIBS} OpenAL32.lib)
+		ENDIF(OPENAL)
+			
+		# OGG Container for Vorbis, Opus, Theora, etc.
+		if ((VORBIS OR OPUS) OR THEORA)
+			message("Linking with OGG")
+			set(DEBUG_LIBS ${DEBUG_LIBS} libogg_static_MTd.lib)
+			set(RELEASE_LIBS ${RELEASE_LIBS} libogg_static_release.lib)
+		ENDIF((VORBIS OR OPUS) OR THEORA)
+			
+		# VORBIS Audio codec
+		if (VORBIS)
+			message("Linking with VORBIS")
+			set(DEBUG_LIBS ${DEBUG_LIBS} 
+				libvorbis_static_MTd.lib
+				libvorbisfile_static_MTd.lib
 			)
+			set(RELEASE_LIBS ${RELEASE_LIBS} 
+				libvorbis_static_release.lib
+				libvorbisfile_static_release.lib
+			)
+		ENDIF(VORBIS)
+
+		# OPUS Audio codec/compression library
+		if (OPUS)
+			message("Linking with OPUS")
+			set(DEBUG_LIBS ${DEBUG_LIBS} opusd.lib celtd.lib
+				silk_commond.lib silk_fixedd.lib silk_floatd.lib opusfiled.lib
+			)
+			set(RELEASE_LIBS ${RELEASE_LIBS} opus.lib celt.lib
+				silk_common.lib silk_fixed.lib silk_float.lib opusfile.lib
+			)
+		ENDIF(OPUS)
+
+		# Theora video codec
+		if (THEORA)
+			set(DEBUG_LIBS ${DEBUG_LIBS} libtheora_static_MTd.lib)
+			set(RELEASE_LIBS ${RELEASE_LIBS} libtheora_static_release.lib)
+		ENDIF(THEORA)
+		
+		# OpenCV - Image processing and input/output
+		if (OPENCV)
+			message("Linking with OpenCV")
+			set(DEBUG_LIBS ${DEBUG_LIBS} opencv_core248d.lib opencv_highgui248d.lib 
+				opencv_imgproc248d.lib opencv_video248d.lib
+			)
+			set(RELEASE_LIBS ${RELEASE_LIBS} opencv_core248.lib opencv_highgui248.lib 
+				opencv_imgproc248.lib opencv_video248.lib
+			)
+		ENDIF(OPENCV)
+
+		# Curl - HTTP and other internet stuffs
+		if (LIBCURL)
+			message("Linking with libcurl.")
+			#message("Libs: " ${RELEASE_LIBS})
+			set(DEBUG_LIBS ${DEBUG_LIBS}
+				libcurld_static.lib
+			)
+			set(RELEASE_LIBS ${RELEASE_LIBS}
+				libcurl_static.lib
+			)
+		ENDIF(LIBCURL)
+				
+		
 
 		create_file_group(${PROJECT_SOURCE_DIR}/${source_dir} "/")
 	ENDIF(MSVC)
@@ -327,8 +401,11 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 endmacro(addProject)
 
 # Create our projects
-set(runeRPGFolders "Projects/RuneRPG")
-addProject("RuneRPG" runeRPGFolders)
+set(tetrisFolders "Projects/Tetris")
+addProject("Tetris" tetrisFolders)
+
+#set(runeRPGFolders "Projects/RuneRPG")
+#addProject("RuneRPG" runeRPGFolders)
 # set(musicPlayerFolders "Projects/MusicPlayer")
 # addProject("MusicPlayer" musicPlayerFolders)
 # set (sideScrollerFolders "Projects/SideScroller")
@@ -338,7 +415,6 @@ addProject("RuneRPG" runeRPGFolders)
 
 # set(horrorFolders "Projects/Horror")
 # addProject("Horror" horrorFolders)
-
 # set(aircraftFolders "Projects/Aircraft")
 # addProject("Aircraft" aircraftFolders)
 
@@ -351,4 +427,3 @@ addProject("RuneRPG" runeRPGFolders)
 # # Create our projects
 # set(ipmFolders "Projects/IPM" "CV")
 # addProject("IPM" ipmFolders)
-

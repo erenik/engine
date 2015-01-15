@@ -68,7 +68,8 @@ int GetDirectoriesInDirectory(String directory, List<String> & dirs){
 		directory += '/';
 	if (!directory.ContainsChar('*'))
 		directory += '*';
-	HANDLE findHandle =  FindFirstFileW(directory.wc_str(), &data);
+	HANDLE findHandle = NULL;
+	findHandle = FindFirstFileW(directory.wc_str(), &data);
 	if (findHandle == INVALID_HANDLE_VALUE){
 		std::cout<<"\nInvalid Handle Value? ";
 		int e = GetLastError();
@@ -80,12 +81,12 @@ int GetDirectoriesInDirectory(String directory, List<String> & dirs){
 		return 0;
 	}
 
-	BY_HANDLE_FILE_INFORMATION fileInfo;
-	GetFileInformationByHandle(findHandle, &fileInfo);
-	String dirName = data.cFileName;
-	
+	// lolwat is this..no need to check file info here, yo?
+//	BY_HANDLE_FILE_INFORMATION fileInfo;
+//	GetFileInformationByHandle(findHandle, &fileInfo);
 
-	while (findHandle != INVALID_HANDLE_VALUE){
+	while (findHandle != INVALID_HANDLE_VALUE)
+	{
 		// Get next file..?
 		BOOL result = FindNextFile(findHandle, &data);
 		/// No more files if fail here.
@@ -162,9 +163,9 @@ int GetFilesInDirectory(String directory, List<String> & files)
 		return 0;
 	}
 
-	String dirName = data.cFileName;
-	BY_HANDLE_FILE_INFORMATION fileInfo;
-	GetFileInformationByHandle(findHandle, &fileInfo);
+//	String dirName = data.cFileName;
+//	BY_HANDLE_FILE_INFORMATION fileInfo;
+//	GetFileInformationByHandle(findHandle, &fileInfo);
 
 	while (findHandle != INVALID_HANDLE_VALUE){
 		// Get next file..?

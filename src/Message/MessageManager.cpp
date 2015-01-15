@@ -21,6 +21,9 @@
 #include "Maps/MapManager.h"
 #include "Script/ScriptManager.h"
 
+#include "Network/Http.h"
+#include "Network/CURLManager.h"
+
 #include "UI/UIInputs.h"
 #include "UI/UITypes.h"
 #include "UI/UIFileBrowser.h"
@@ -30,7 +33,10 @@
 #include "Network/NetworkManager.h"
 #include "Window/WindowManager.h"
 #include "Audio/AudioManager.h"
+#include "Multimedia/MultimediaManager.h"
+
 #include "Graphics/Camera/Camera.h"
+#include "Graphics/Messages/GMSet.h"
 
 MessageManager * MessageManager::messageManager = NULL;
 
@@ -202,6 +208,17 @@ void MessageManager::ProcessMessage(Message * message)
 	// Do note that not all messages uses the string-argument...
 //	if (!msg.Length())
 //		return;
+
+	// Let active lighting process messages if wanted.
+	Lighting * activeLighting = Graphics.ActiveLighting();
+	if (activeLighting)
+	{
+		if (activeLighting->ProcessMessage(message))
+			return;
+	}
+			
+	WindowMan.ProcessMessage(message);
+
 	switch(message->type)
 	{
 		case MessageType::DRAG_AND_DROP:
@@ -215,17 +232,72 @@ void MessageManager::ProcessMessage(Message * message)
 				e->ProcessMessage(message);
 			break;
 		}
+		case MessageType::PASTE:
+		{
+			if (msg.Contains("Paste:"))
+			{
+				// Check for active ui element.
+				UserInterface * ui = ActiveUI();
+				if (ui){
+					UIElement * element = ui->GetActiveElement();
+					if (element)
+					{
+						element->ProcessMessage(message);
+					}
+				}
+			}	
+		}
 		case MessageType::STRING:
 		{
-			// Let active lighting process messages if wanted.
-			Lighting * activeLighting = Graphics.ActiveLighting();
-			if (activeLighting)
-			{
-				if (activeLighting->ProcessMessage(message))
-					return;
-			}
 			msg.SetComparisonMode(String::NOT_CASE_SENSITIVE);
-			if (msg.Contains("NavigateUI(")){
+
+			if (msg == "AcceptInput:false")
+				Input.acceptInput = false;
+			else if (msg == "SetGlobalState:NULL")
+				StateMan.SetGlobalState(NULL);
+			else if (msg == "SetActiveState:NULL")
+				StateMan.SetActiveState(NULL);
+			else if (msg == "StateMan.DeleteStates")
+				StateMan.DeleteStates();
+			else if (msg == "NetworkMan.Shutdown")
+				NetworkMan.Shutdown();
+			else if (msg == "StateMan.Shutdown")
+				StateMan.shouldLive = false;
+			else if (msg == "MultimediaMan.Shutdown")
+				MultimediaMan.Shutdown();
+			else if (msg == "AudioMan.Shutdown")
+				AudioMan.QueueMessage(new AudioMessage(AM_SHUTDOWN));
+			else if (msg == "GraphicsMan.Shutdown")
+				Graphics.QueueMessage(new GraphicsMessage(GM_SHUTDOWN));
+			else if (msg == "PrintScreenshot")
+			{
+				Graphics.QueueMessage(new GraphicsMessage(GM_PRINT_SCREENSHOT));
+			}
+			else if (msg.Contains("SetOutOfFocusSleep("))
+			{
+				int sleepTime = msg.Tokenize("()")[1].ParseInt();
+				GraphicsMan.QueueMessage(new GMSeti(GM_SET_OUT_OF_FOCUS_SLEEP_TIME, sleepTime));
+			}
+			else if (msg.Contains("PrintHttpOutput("))
+			{
+				bool value = msg.Tokenize("()")[1].ParseBool();
+				printHttpOutput = value;
+			}
+			else if (msg.Contains("SetHttpTool:"))
+			{
+				httpTool = msg.Tokenize(":")[1].ParseInt();
+			}
+			else if (msg.Contains("HttpGet:"))
+			{
+				String url = msg - "HttpGet:";
+				HttpGet(url);
+			}
+			else if (msg.Contains("PlayBGM:"))
+			{
+				String source = msg - "PlayBGM:";
+				AudioMan.QueueMessage(new AMPlayBGM(source, 1.f));
+			}
+			else if (msg.Contains("NavigateUI(")){
 				bool toggle = msg.Tokenize("()")[1].ParseBool();
 				Input.NavigateUI(toggle);
 				return;
@@ -248,18 +320,6 @@ void MessageManager::ProcessMessage(Message * message)
 			else if (msg == "PrintExpressionSymbols")
 			{
 				Expression::printExpressionSymbols = true;
-			}
-			else if (msg.Contains("Paste:") && message->type == MessageType::PASTE)
-			{
-				// Check for active ui element.
-				UserInterface * ui = ActiveUI();
-				if (ui){
-					UIElement * element = ui->GetActiveElement();
-					if (element)
-					{
-						element->ProcessMessage(message);
-					}
-				}
 			}
 			else if (msg == "List cameras")
 			{
@@ -310,10 +370,12 @@ void MessageManager::ProcessMessage(Message * message)
 			{
 				String windowName = msg.Tokenize("()")[1];
 				Window * window = WindowMan.GetWindowByName(windowName);
-				if (!window->IsFullScreen())
-					window->ToggleFullScreen();
+				if (window)
+				{
+					if (!window->IsFullScreen())
+						window->ToggleFullScreen();
+				}
 			}
-
 			else if (msg.Contains("INTERPRET_CONSOLE_COMMAND(this)"))
 			{
 				String command = message->element->text;
@@ -549,8 +611,10 @@ void MessageManager::ProcessMessage(Message * message)
 				fileBrowser->CreateChildren();
 				fileBrowser->LoadDirectory(false);
 				/// Push it to the UI.
-				Graphics.QueueMessage(new GMAddUI(fileBrowser, "root"));
-				Graphics.QueueMessage(new GMPushUI(fileBrowser, RelevantUI()));
+				UserInterface * ui = RelevantUI();
+				assert(ui);
+				Graphics.QueueMessage(new GMAddUI(fileBrowser, "root", ui));
+				Graphics.QueueMessage(new GMPushUI(fileBrowser, ui));
 				return;
 			}
 			else if (msg.Contains("QuitApplication"))

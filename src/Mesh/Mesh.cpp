@@ -25,6 +25,13 @@
 #include "PhysicsLib/Shapes/Triangle.h"
 #include "PhysicsLib/Shapes/AABB.h"
 
+#include "GraphicsState.h"
+#include "Shader.h"
+
+#include "Model/SkeletalAnimationNode.h"
+#include "TextureManager.h"
+
+
 Mesh::Mesh()
 {
 	Nullify();
@@ -35,12 +42,25 @@ void Mesh::Nullify()
 {
 	numVertices = numUVs = numFaces = numNormals = 0;
 	textureID = 0;
-	vboBuffer = NULL;
 	floatsPerVertex = 0;
 	triangulated = false;
 	loadedFromCompactObj = false;
 	aabb = NULL;
 	radius = 0;
+
+	skeleton = NULL;
+
+	// Standard position/normal/uv/tanget buffer.
+	vertexBuffer = NULL;
+	// Bone index/weights buffer.
+	boneIndexBuffer = boneWeightsBuffer = -1;
+
+	/// Raw buffer data before sending into GL.
+	vertexData = NULL;
+	vertexDataSize = 0;
+
+	boneIndexData = NULL;
+	boneWeightData = NULL;
 }
 
 Mesh::~Mesh()
@@ -54,6 +74,15 @@ Mesh::~Mesh()
 	*/
 	if (aabb)
 		delete aabb;
+
+	// Delete buffer data arrays if any remain.
+	if (vertexData)
+		delete[] vertexData;
+
+	if (boneIndexData)
+		delete[] boneIndexData;
+	if (boneWeightData)
+		delete[] boneWeightData;
 }
 
 /// Deletes all parts within this mesh (numVertices, numFaces, edges, etc.)
@@ -289,15 +318,20 @@ void Mesh::PrintContents()
 }
 
 /// Replaces copy-constructor.
-bool Mesh::LoadDataFrom(const Mesh * otherMesh)
+bool Mesh::LoadDataFrom(const Mesh * otherMesh, bool nullify /*= false*/)
 {
-    std::cout<<"\nLoadDataFrom mesh constructor begun...";
+   // std::cout<<"\nLoadDataFrom mesh constructor begun...";
 
-    Nullify();
+	// Update update time.
+	lastUpdate = otherMesh->lastUpdate;
+
+	// Why.. nullify.... _T_
+	if (nullify)
+	    Nullify();
 //	return true;
 
 	assert(otherMesh->numVertices);
-	std::cout<<"\nMesh numVertices: "<<otherMesh->numVertices;
+//	std::cout<<"\nMesh numVertices: "<<otherMesh->numVertices;
 	name = otherMesh->name;
 	source = otherMesh->source;
 	numVertices = otherMesh->numVertices;
@@ -305,44 +339,14 @@ bool Mesh::LoadDataFrom(const Mesh * otherMesh)
 	numNormals = otherMesh->numNormals;
 	numFaces = otherMesh->numFaces;
 	loadedFromCompactObj = otherMesh->loadedFromCompactObj;
-
-	std::cout<<"\nMesh numFaces: "<<otherMesh->numFaces;
-
-	AllocateArrays();
-	// Copy numVertices.
-	for (int i = 0; i < numVertices; ++i)
-	{
-		vertices[i] = otherMesh->vertices[i];
-	}
-	// Copy numUVs.
-	if (numUVs){
-		for (int i = 0; i < numUVs; ++i){
-			uvs[i] = otherMesh->uvs[i];
-		}
-	}
-	// Copy numNormals.
-	if (numNormals){
-		for (int i = 0; i < numNormals; ++i){
-			normals[i] = otherMesh->normals[i];
-		}
-	}
-	// Copy numFaces.
-	if (numFaces)
-	{
-	//	std::cout<<"\nMeshFaces: "<<numFaces;
-    //    std::cout<<"\nOtherMeshFace: "<<&otherMesh->faces[0]<<" "<<otherMesh->faces[0].numVertices;
-
-		for (int i = 0; i < numFaces; ++i){
-		//    std::cout<<"\nCopying faces "<<i<<" ";
-         //   faces[i].uvTangent = otherMesh->faces[i].uvTangent;
-			faces[i] = otherMesh->faces[i];
-		//	std::cout<<"v0: "<<faces[i].vertices[0]<<" Original: "<<otherMesh->faces[i].vertices;
-		//	assert(faces[i].vertices != otherMesh->faces[i].vertices);
-		//	if (faces[i].vertices[0] > 3000000)
-         //       ; //Sleep(5000);
-		//	assert(faces[i].vertices[0] < 3000000);
-		}
-	}
+	this->skeleton = otherMesh->skeleton;
+	vertexWeights = otherMesh->vertexWeights;
+	
+	vertices = otherMesh->vertices;
+	originalVertexPositions = otherMesh->originalVertexPositions;
+	uvs = otherMesh->uvs;
+	normals = otherMesh->normals;
+	faces = otherMesh->faces;
 	return true;
 }
 
@@ -439,43 +443,55 @@ void Mesh::SetName(String str){
 #include <iostream>
 
 /// Renders the meshi-mesh :3
-void Mesh::Render(){
+void Mesh::Render(GraphicsState & graphicsState)
+{
+	// Re-bufferize as needed.
+	if (lastBufferization < lastUpdate)
+	{
+		Bufferize(false, true);
+	}
+	else if (vertexBuffer == 0)
+	{
+		Bufferize(false, false);
+		std::cout<<"\nTrying to render mesh "<<name<<" with buffer "<<vertexBuffer<<". Attempting to bufferize it.";
+	//	this->Bufferize();
+	}
+
 
 	int error = glGetError();
-
+	Shader * shader = ActiveShader();
 	// Check for valid buffer before rendering
-	if (vboBuffer != 0 && vboBuffer < 3000000){
+	if (vertexBuffer != 0 && vertexBuffer < 3000000)
+	{
 
 		assert(floatsPerVertex >= 8 && "Bad float-count per vertices, ne?!");
 
 		// Set VBO and render
+		CheckGLError("Mesh::Render - before binding stuff");
 
 		// Bind numVertices
-		glBindBuffer(GL_ARRAY_BUFFER, vboBuffer);
-		glVertexAttribPointer((GLuint) 0, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * floatsPerVertex, 0);		// Position
-		glEnableVertexAttribArray(0);
-
+		glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+		glVertexAttribPointer(shader->attributePosition, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * floatsPerVertex, 0);		// Position
+		
 		// Bind Normals
 		static const GLint offsetN = 3 * sizeof(GLfloat);		// Buffer already bound once at start!
-		glVertexAttribPointer((GLuint) 2, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * floatsPerVertex, (void *)offsetN);		// UVs
-		glEnableVertexAttribArray(2);
-
+		glVertexAttribPointer(shader->attributeNormal, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * floatsPerVertex, (void *)offsetN);		// Normals
+		
 		// Bind UVs
 		static const GLint offsetU = 6 * sizeof(GLfloat);		// Buffer already bound once at start!
-		glVertexAttribPointer((GLuint) 1, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * floatsPerVertex, (void *)offsetU);		// UVs
-		glEnableVertexAttribArray(1);
-
+		glVertexAttribPointer(shader->attributeUV, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * floatsPerVertex, (void *)offsetU);		// UVs
+		
 		// Bind Tangents
 		static const GLint offsetT = 8 * sizeof(GLfloat);		// Buffer already bound once at start!
-		glVertexAttribPointer((GLuint) 3, 4, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * floatsPerVertex, (void *)offsetT);		// UVs
-		glEnableVertexAttribArray(3);
-
-		CheckGLError("Mesh::Render");
-		int numVertices = vboVertexCount;
+		if (shader->attributeTangent != -1)
+			glVertexAttribPointer(shader->attributeTangent, 4, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * floatsPerVertex, (void *)offsetT);		// Tangents
+		
+		CheckGLError("Mesh::Render - binding stuff");
+		int numVertices = vertexDataCount;
 
 		// Render normally
 		int glError = glGetError();
-		glDrawArrays(GL_TRIANGLES, 0, vboVertexCount);        // Draw All Of The Triangles At Once
+		glDrawArrays(GL_TRIANGLES, 0, vertexDataCount);        // Draw All Of The Triangles At Once
 		glError = glGetError();
 		if (glError != GL_NO_ERROR){
 			std::cout<<"\nGL_ERROR: "<<glError<<" when rendering Mesh: ";
@@ -488,16 +504,53 @@ void Mesh::Render(){
 
 		// Unbind buffer
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		CheckGLError("Mesh::Render");
+		CheckGLError("Mesh::Render - unbinding");
 	}
-	else if (vboBuffer > 3000000){
-		std::cout<<"\nVBO buffer unreasonably high: "<<vboBuffer<<" Make sure it was buffered correctly?";
+	else if (vertexBuffer > 3000000){
+		std::cout<<"\nVBO buffer unreasonably high: "<<vertexBuffer<<" Make sure it was buffered correctly?";
 		assert(false && "VBO buffer unreasonably high");
 	}
-	else {
-		std::cout<<"\nTrying to render mesh "<<name<<" with buffer "<<vboBuffer<<". Attempting to bufferize it.";
-		this->Bufferize();
+}
+
+/// Re-skins the mesh's vertices to match the current skeletal animation. Every single vertex will be re-calculated and then re-buffered.
+void Mesh::SkinToCurrentSkeletalAnimation()
+{
+	/// Save original vertices if not already done so.
+	if (originalVertexPositions.Size() != vertices.Size())
+		originalVertexPositions = vertices;
+	
+	for (int i = 0; i < vertices.Size(); ++i)
+	{
+		Vector3f & vertexPosition = vertices[i];
+		vertexPosition = Vector3f();
+		Vector3f & originalVertexPosition = originalVertexPositions[i];
+		List<VertexWeight> & vertex_weights = vertexWeights[i];
+		for (int i = 0; i < vertex_weights.Size(); ++i)
+		{
+			/**	The skinning calculation for each vertex v in a bind shape is as follows.
+
+				for (int i = 0; i < numVertices; ++i)
+					skinnedVertexPosition += {[(vertexPosition * BSM) * IBMi * JMi] * JW}
+
+				• n: The number of joints that influence vertex v
+				• BSM: Bind-shape matrix
+				• IBMi: Inverse bind-pose matrix of joint i
+				• JMi: Transformation matrix of joint i
+				• JW: Weight of the influence of joint i on vertex v
+			*/
+			int boneIndex = vertex_weights[i].boneIndex;
+			Matrix4f & inverseBindMatrix = invBindPoseMatrices[boneIndex];
+			Bone * bone = skeleton->GetBoneByIndex(boneIndex);
+			assert(bone);
+			float & weight = vertex_weights[i].weight;
+			
+			Matrix4f skinningMatrix = bone->nodeModelMatrix * inverseBindMatrix;
+			Vector3f attempt2 = skinningMatrix.Product(originalVertexPosition) * weight;
+			Vector3f skinning2 = bone->nodeModelMatrix.Product(inverseBindMatrix.Product(bindShapeMatrix.Product(originalVertexPosition))) * weight;
+			vertexPosition += skinning2;
+		}
 	}
+	this->lastUpdate = Time::Now();
 }
 
 /// Returns the relative path to the resource the mesh was loaded from.
@@ -618,17 +671,17 @@ void Mesh::Triangulate()
 	int newMeshFacesNeeded = numFaces;
     if (numFaces == 0)
         return;
-	std::cout<<"\nMeshFaces: "<<numFaces;
+//	std::cout<<"\nMeshFaces: "<<numFaces;
 	for (int i = 0; i < numFaces; ++i)
 	{
 	 //   std::cout<<"D:";
 		MeshFace * currentMeshFace = &faces[i];
 		if (currentMeshFace->numVertices > 3)
 		{
-			int MeshFacesToAdd = currentMeshFace->numVertices - 3;
+			int meshFacesToAdd = currentMeshFace->numVertices - 3;
 		//	std::cout<<"\nMeshFaces to add in faces "<<i<<": "<<MeshFacesToAdd;
 			newMeshFacesNeeded += currentMeshFace->numVertices - 3;
-			if (MeshFacesToAdd > 20){
+			if (meshFacesToAdd > 20){
 				std::cout<<"\nMeshFace vertices amount very large("<<(int)currentMeshFace->numVertices<<"), printing debug info:";
 				assert(currentMeshFace->numVertices - 3 < 18);
 				std::cout<<"\nAborting Triangularization since mesh data seems faulty!";
@@ -636,7 +689,7 @@ void Mesh::Triangulate()
 			}
 		}
 	}
-	std::cout<<"\nNew numFaces needed:"<<newMeshFacesNeeded;
+//	std::cout<<"\nNew numFaces needed:"<<newMeshFacesNeeded;
 
 	// Already triangulated..
 	if (newMeshFacesNeeded == faces.Size())
@@ -646,12 +699,13 @@ void Mesh::Triangulate()
 	}
 
 	// Allocate new MeshFace array
-	int MeshFaceSize = sizeof(faces);
+	int meshFaceSize = sizeof(faces);
 	List<MeshFace> newMeshFaces;
 	newMeshFaces.Allocate(newMeshFacesNeeded, true);
-	int MeshFacesAddedSoFar = 0;
-	for (int i = 0; i < numFaces; ++i){
-		MeshFace * newTri = &newMeshFaces[MeshFacesAddedSoFar];
+	int meshFacesAddedSoFar = 0;
+	for (int i = 0; i < numFaces; ++i)
+	{
+		MeshFace * newTri = &newMeshFaces[meshFacesAddedSoFar];
 		MeshFace & oldMeshFace = faces[i];
 		// Just copy
 		if (oldMeshFace.numVertices == 3)
@@ -661,7 +715,7 @@ void Mesh::Triangulate()
 			newTri->normals = oldMeshFace.normals;
 			newTri->uvs = oldMeshFace.uvs;
 			newTri->vertices = oldMeshFace.vertices;
-			MeshFacesAddedSoFar++;
+			meshFacesAddedSoFar++;
 		}
 		else {
 			int numVertices = oldMeshFace.numVertices;
@@ -671,7 +725,7 @@ void Mesh::Triangulate()
 	//		std::cout<<"\nInto new numFaces...!";
 			for (int j = 0; j < numVertices-2; ++j)
 			{
-				newTri = &newMeshFaces[MeshFacesAddedSoFar];
+				newTri = &newMeshFaces[meshFacesAddedSoFar];
 				/// Create new triangle for every extra vertices!
 				newTri->numVertices = 3;
 				newTri->AllocateArrays();
@@ -684,7 +738,7 @@ void Mesh::Triangulate()
 					newTri->uvs[k - j] = oldMeshFace.uvs[k];
 					newTri->vertices[k - j] = oldMeshFace.vertices[k];
 				}
-				MeshFacesAddedSoFar++;
+				meshFacesAddedSoFar++;
 	//			std::cout<<"\n";
 	//			newTri->Print();
 			}
@@ -862,13 +916,16 @@ void Mesh::CalculateUVTangents()
 }
 
 /// Will bufferize the mesh. If force is true it will re-done even if it has already been bufferized once.
-void Mesh::Bufferize(bool force)
+void Mesh::Bufferize(bool useOriginalPositions, bool force)
 {
 	// Check if already buffered, stupid..
-	if (this->vboBuffer){
+	if (this->vertexBuffer && !force && originalPositionsBuffered == useOriginalPositions)
+	{
 //		std::cout<<"\nINFO: Mesh "<<name<<" already buffered, skipping!";
 		return;
 	}
+
+	originalPositionsBuffered = useOriginalPositions;
 	
 	assert(source.Length());
 	assert(name.Length());
@@ -889,7 +946,7 @@ void Mesh::Bufferize(bool force)
 	if (!name)
 		std::cout<<"\nBuffering un-named Mesh.";
 	else
-		std::cout<<"\nBuffering mesh \""<<name<<"\"";
+		; // std::cout<<"\nBuffering mesh \""<<name<<"\"";
 
 	/// Create VAO
 //	GLuint vertexArrayObject[1];
@@ -914,22 +971,49 @@ void Mesh::Bufferize(bool force)
 	// Count total vertices/texture point pairs without any further optimization.
 	unsigned int vertexCount = numFaces * 3;
 	floatsPerVertex = 3 + 3 + 2 + 4;  // Pos + Normal + UV + NormalMappingTangent
-	float * vboVertexData = new float[vertexCount * floatsPerVertex];
+	int vertexDataSizeNeeded = vertexCount * floatsPerVertex;
+	if (vertexDataSize != vertexDataSizeNeeded)
+	{
+		if (vertexData)
+			delete[] vertexData;
+		vertexData = new float[vertexDataSizeNeeded];
+		vertexDataSize = vertexDataSizeNeeded;
+	}
 
-    std::cout<<"\nVertexCount: "<<vertexCount<<" MeshFaceCount: "<<numFaces;
+	// Create buffer for bone-index and weights data.
+	int bonesPerVertex = 4;
+//	int * boneIndexData = new int[vertexCount * bonesPerVertex];
+//	float * boneWeightsData = new float[vertexCount * bonesPerVertex];
+
+ //   std::cout<<"\nVertexCount: "<<vertexCount<<" MeshFaceCount: "<<numFaces;
 
 	// Generate And bind The Vertex Buffer
 	/// Check that the buffer isn't already generated
-	if (vboBuffer == 0)
+	if (vertexBuffer == 0)
 	{
-		vboBuffer = GLBuffers::New();
+		vertexBuffer = GLBuffers::New();
 	}
-	glBindBuffer(GL_ARRAY_BUFFER, vboBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
 
 	// Load all data in one big fat array, yo Data
 	unsigned int vertexDataCounted = 0;
 	// Reset vertices count
-	vboVertexCount = 0;
+	vertexDataCount = 0;
+	int numBoneIndices = 0, numBoneWeights = 0;
+	// Bone index data size. Also used for bone weight data.
+	int boneIndexDataSize = faces.Size() * 3 * 4;
+	if (boneIndexData == 0)
+	{
+		boneIndexData = new int[boneIndexDataSize];
+		boneWeightData = new float[boneIndexDataSize];
+	}
+
+	List<Vector3f> * vertexPositionData = &vertices;
+	assert(vertexPositionData->Size() == vertices.Size());
+	if (useOriginalPositions && originalVertexPositions.Size())
+	{
+		vertexPositionData = &originalVertexPositions;
+	}
 	for (int i = 0; i < numFaces; ++i)
 	{
 		MeshFace * face = &faces[i];
@@ -937,63 +1021,164 @@ void Mesh::Bufferize(bool force)
 		// Count numVertices in all triangles
 		for (int j = 0; j < 3; ++j)
 		{
-		//	std::cout<<"\nCurrentVertex";
+			// Add standard vertex data.
 			int currentVertex = face->vertices[j];
 			assert(currentVertex < 3000000 && currentVertex >= 0);
 			// Position
-			vboVertexData[vertexDataCounted + 0] = vertices[currentVertex].x;
-			vboVertexData[vertexDataCounted + 1] = vertices[currentVertex].y;
-			vboVertexData[vertexDataCounted + 2] = vertices[currentVertex].z;
+			vertexData[vertexDataCounted + 0] = (*vertexPositionData)[currentVertex].x;
+			vertexData[vertexDataCounted + 1] = (*vertexPositionData)[currentVertex].y;
+			vertexData[vertexDataCounted + 2] = (*vertexPositionData)[currentVertex].z;
 			// Normal
-			if (numNormals){
+			if (numNormals)
+			{
 				int currentNormal = face->normals[j];
-				vboVertexData[vertexDataCounted + 3] = normals[currentNormal].x;
-				vboVertexData[vertexDataCounted + 4] = normals[currentNormal].y;
-				vboVertexData[vertexDataCounted + 5] = normals[currentNormal].z;
+				vertexData[vertexDataCounted + 3] = normals[currentNormal].x;
+				vertexData[vertexDataCounted + 4] = normals[currentNormal].y;
+				vertexData[vertexDataCounted + 5] = normals[currentNormal].z;
 			}
 			else
-				vboVertexData[vertexDataCounted + 3] =
-				vboVertexData[vertexDataCounted + 4] =
-				vboVertexData[vertexDataCounted + 5] = 0;
-			// UV
-			if (numUVs){
-				int currentUV = face->uvs[j];
-				vboVertexData[vertexDataCounted + 6] = uvs[currentUV].x;
-				vboVertexData[vertexDataCounted + 7] = uvs[currentUV].y;
+			{
+				vertexData[vertexDataCounted + 3] =
+				vertexData[vertexDataCounted + 4] =
+				vertexData[vertexDataCounted + 5] = 0;
 			}
-			else {
-				vboVertexData[vertexDataCounted + 6] =
-				vboVertexData[vertexDataCounted + 7] = 0.0f;
+			// UV
+			if (numUVs)
+			{
+				int currentUV = face->uvs[j];
+				vertexData[vertexDataCounted + 6] = uvs[currentUV].x;
+				vertexData[vertexDataCounted + 7] = uvs[currentUV].y;
+			}
+			else 
+			{
+				vertexData[vertexDataCounted + 6] =
+				vertexData[vertexDataCounted + 7] = 0.0f;
 			}
 			/// Tangents for NormalMapping
-			if (true) {
-				vboVertexData[vertexDataCounted + 8] = face->uvTangent.x;
-				vboVertexData[vertexDataCounted + 9] = face->uvTangent.y;
-				vboVertexData[vertexDataCounted + 10] = face->uvTangent.z;
-				vboVertexData[vertexDataCounted + 11] = face->uvTangent.w;
+			if (true) 
+			{
+				vertexData[vertexDataCounted + 8] = face->uvTangent.x;
+				vertexData[vertexDataCounted + 9] = face->uvTangent.y;
+				vertexData[vertexDataCounted + 10] = face->uvTangent.z;
+				vertexData[vertexDataCounted + 11] = face->uvTangent.w;
 			}
-			else {
-				vboVertexData[vertexDataCounted + 8] =
-				vboVertexData[vertexDataCounted + 9] =
-				vboVertexData[vertexDataCounted + 10] =
-				vboVertexData[vertexDataCounted + 11] = 0;
+			else 
+			{
+				vertexData[vertexDataCounted + 8] =
+				vertexData[vertexDataCounted + 9] =
+				vertexData[vertexDataCounted + 10] =
+				vertexData[vertexDataCounted + 11] = 0;
 			}
 			vertexDataCounted += floatsPerVertex;
-			++vboVertexCount;
+			++vertexDataCount;
+			
+			// Add skeletal data as needed
+			if (skeleton)
+			{
+				assert(vertexWeights.Size() == vertices.Size());
+				List<VertexWeight> & vertex_weights = vertexWeights[currentVertex];
+				for (int w = 0; w < 4; ++w)
+				{
+					if (w < vertex_weights.Size())
+					{
+						VertexWeight & weight = vertex_weights[w];
+						boneIndexData[numBoneIndices] = weight.boneIndex;
+						boneWeightData[numBoneIndices] = weight.weight;
+					}
+					else {
+						boneIndexData[numBoneIndices] = -1;
+						boneWeightData[numBoneIndices] = 0;
+					}
+					++numBoneIndices;
+				}
+			}
+			
+			/*
+			
+			/// Save original vertices if not already done so.
+			if (originalVertexPositions.Size() != vertices.Size())
+				originalVertexPositions = vertices;
+	
+				for (int i = 0; i < vertices.Size(); ++i)
+				{
+					Vector3f & vertexPosition = vertices[i];
+					vertexPosition = Vector3f();
+					Vector3f & originalVertexPosition = originalVertexPositions[i];
+					List<VertexWeight> & vertex_weights = vertexWeights[i];
+					for (int i = 0; i < vertex_weights.Size(); ++i)
+					{
+						//	The skinning calculation for each vertex v in a bind shape is as follows.
+
+						//	for (int i = 0; i < numVertices; ++i)
+						//		skinnedVertexPosition += {[(vertexPosition * BSM) * IBMi * JMi] * JW}
+
+						//	• n: The number of joints that influence vertex v
+						//	• BSM: Bind-shape matrix
+						//	• IBMi: Inverse bind-pose matrix of joint i
+						//	• JMi: Transformation matrix of joint i
+						//	• JW: Weight of the influence of joint i on vertex v
+						//
+						int boneIndex = vertex_weights[i].boneIndex;
+						Matrix4f & inverseBindMatrix = invBindPoseMatrices[boneIndex];
+						Bone * bone = skeleton->GetBoneByIndex(boneIndex);
+						assert(bone);
+						Matrix4f & skinningMatrix = inverseBindMatrix * bone->nodeModelMatrix;
+						float & weight = vertex_weights[i].weight;
+			
+						Vector3f previousAttempt = skinningMatrix.Product(originalVertexPosition) * weight;
+						Vector3f skinning2 = bone->nodeModelMatrix.Product(inverseBindMatrix.Product(bindShapeMatrix.Product(originalVertexPosition))) * weight;
+						vertexPosition += skinning2;
+					}
+				}
+				this->lastUpdate = Time::Now();
+			*/
+
+
 		}
 	}
-	if ((unsigned int)vboVertexCount >= vertexCount * floatsPerVertex)
+	if ((unsigned int)vertexDataCount >= vertexCount * floatsPerVertex)
 		throw 3;
 
 	// Enter the data too, fucking moron Emil-desu, yo!
-	glBufferData(GL_ARRAY_BUFFER, vertexDataCounted*sizeof(float), vboVertexData, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, vertexDataCounted*sizeof(float), vertexData, GL_STATIC_DRAW);
+
+	// Save buffer-time.
+	lastBufferization = Time::Now();
 
 	// Check for errors before we proceed.
 	GLuint error = glGetError();
 	if (error != GL_NO_ERROR)
 		throw 6;
-	delete[] vboVertexData;
-	vboVertexData = NULL;
+
+	// Buffer bone indices
+	if (skeleton)
+	{
+		if (boneIndexBuffer == -1)
+			boneIndexBuffer = GLBuffers::New();
+		glBindBuffer(GL_ARRAY_BUFFER, boneIndexBuffer);
+		glBufferData(GL_ARRAY_BUFFER, boneIndexDataSize * sizeof(int), boneIndexData, GL_STATIC_DRAW);
+
+		// Buffer bone weights
+		if (boneWeightsBuffer == -1)
+			boneWeightsBuffer = GLBuffers::New();
+		glBindBuffer(GL_ARRAY_BUFFER, boneWeightsBuffer);
+		glBufferData(GL_ARRAY_BUFFER, boneIndexDataSize * sizeof(float), boneWeightData, GL_STATIC_DRAW);
+
+		/*
+		std::cout<<"\nBone buffer data. ";
+		for (int i = 0; i < boneIndexDataSize; ++i)
+		{
+			std::cout<<"\nBone i: "<<boneIndexData[i]<<" w: "<<boneWeightData[i];
+			if ((i + 1) % 4 == 0)
+				std::cout<<"\n";
+		}
+		std::cout<<"\nBone buffer data.. ";
+		*/
+	}
+	// Deletion moved to destructor!
+//	delete[] vertexData;
+//	vertexData = NULL;
+
 }
 
 /// Searches through the mesh's numVertices and returns the maximum bounding radius required by the Entity.

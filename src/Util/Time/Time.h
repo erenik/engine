@@ -25,9 +25,9 @@ public:
 	/// 0 time.
 	Time();
 	/// Undefined time.
-	Time(int intervals);
+	Time(uint64 intervals);
 	/// Time using a given type and starting-point. 
-	Time(int intervals, int type);
+	Time(uint64 intervals, int type);
 
 	/// Returns current time in default time-type/-format.
 	static Time Now();
@@ -47,10 +47,19 @@ public:
 	Time operator -= (const Time & otherTime);
 	Time operator += (const Time & otherTime);
 
+	/// Comparison operators
+	/// Larger than, returns true if this time is larger (more recent) than the other time. False if not.
+	bool operator > (const Time & otherTime);
+	/// Lesser than, returns true if this time is smaller (older) than the other time. False if not.
+	bool operator < (const Time & otherTime);
+	bool operator == (const Time & otherTime);
+
 	// Conversion operators
 	operator const int64 () const;
 	operator const int32 () const;
 	
+	/// Converts this time into specified type.
+	void ConvertTo(int type);
 
 	// Current total in micro-seconds since the starting-point.
 	int64 Microseconds();
@@ -68,7 +77,7 @@ public:
 	int Year();
 
 	/// The amount of intervals in this time. Exactly how intervals is used is up to which functions you wish to use.
-	int64 intervals;
+	uint64 intervals;
 	
 	/// o-o
 	int Type(){ return type;};

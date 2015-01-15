@@ -16,8 +16,8 @@
 #include "GraphicsState.h"
 #include "Viewport.h"
 
-#include "ModelManager.h"
-#include "Model.h"
+#include "Model/ModelManager.h"
+#include "Model/Model.h"
 
 #define PRINT_ERROR std::cout<<"\nGLError in Render "<<error;
 
@@ -28,7 +28,8 @@ void RenderFadingLine(Vector3f origin, Vector3f end, Vector4f baseColor, Vector4
 Entities physicalEntities;
 long lastFetch = 0;
 /// Renders physical bounds for all entities within the frustum. Does a local frustum culling that will slow down the system more ^^
-void GraphicsManager::RenderPhysics(){
+void GraphicsManager::RenderPhysics()
+{
     // Fetch new entities only if the camera has been updated and max once per sec to not lagg too much.
 	if (clock() > lastFetch + CLOCKS_PER_SEC * 0.5f){
 		physicalEntities = Physics.GetEntities();
@@ -53,11 +54,11 @@ void GraphicsManager::RenderPhysics(){
 	/// Set rainbow factor for XYZ ^w^
 	float rainbowXYZFactor = 0.5f;
 	// Set color of the wireframes of all selected objects
-	glUniform4f(graphicsState->activeShader->uniformPrimaryColorVec4, 0.0f, 0.8f, 1.0f, 0.2f);
+	glUniform4f(shader->uniformPrimaryColorVec4, 0.0f, 0.8f, 1.0f, 0.2f);
 	// Set projection and view matrices just in-case too.
-	glUniformMatrix4fv(graphicsState->activeShader->uniformViewMatrix, 1, false, graphicsState->viewMatrixF.getPointer());
+	glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, graphicsState->viewMatrixF.getPointer());
 	GLuint error = glGetError();
-	glUniformMatrix4fv(graphicsState->activeShader->uniformProjectionMatrix, 1, false, graphicsState->projectionMatrixF.getPointer());
+	glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, graphicsState->projectionMatrixF.getPointer());
 	error = glGetError();
 
 	/// Disable crap
@@ -93,45 +94,45 @@ void GraphicsManager::RenderPhysics(){
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         /// Render AABB
-        const GLuint & uniformPrimaryColorVec4 = graphicsState->activeShader->uniformPrimaryColorVec4;
-       // assert(graphicsState->activeShader->uniformPrimaryColorVec4 != -1);
+        const GLuint & uniformPrimaryColorVec4 = shader->uniformPrimaryColorVec4;
+       // assert(shader->uniformPrimaryColorVec4 != -1);
     //    std::cout<<"\n";
     //    std::cout<<"Shader: "<<shader->name;
     //    std::cout<<" UPC4: "<<uniformPrimaryColorVec4;
         PhysicsProperty * physics = entity->physics;
 		if (!physics)
 			continue;
-        const Shader & shader = *graphicsState->activeShader;
+		Shader * shader = ActiveShader();
         switch(physics->collissionState){
             case AABB_IDLE:
-                glUniform4f(graphicsState->activeShader->uniformPrimaryColorVec4, 0.3f, 0.3f, 0.3f, 1.0f);
+                glUniform4f(shader->uniformPrimaryColorVec4, 0.3f, 0.3f, 0.3f, 1.0f);
                 break;
             case AABB_INTERSECTING:
           //      std::cout<<"\nAABB_INTERSECTING!";
-                glUniform4f(graphicsState->activeShader->uniformPrimaryColorVec4, 0.8f, 0.7f, 0.3f, 1.0f);
+                glUniform4f(shader->uniformPrimaryColorVec4, 0.8f, 0.7f, 0.3f, 1.0f);
                 break;
             case COLLIDING:
-                glUniform4f(graphicsState->activeShader->uniformPrimaryColorVec4, 1.0f, 0.2f, 0.2f, 1.0f);
+                glUniform4f(shader->uniformPrimaryColorVec4, 1.0f, 0.2f, 0.2f, 1.0f);
                 break;
             default:
-                glUniform4f(graphicsState->activeShader->uniformPrimaryColorVec4, 0.5f, 0.5f, 0.5f, 1.0f);
+                glUniform4f(shader->uniformPrimaryColorVec4, 0.5f, 0.5f, 0.5f, 1.0f);
         }
 
       //  if (i == 0){
            // glColor4f(0.5f,0.5f,0.5f,1.0f);
-            glUniform1f(glGetUniformLocation(graphicsState->activeShader->shaderProgram, "rainbowXYZFactor"), 0.2f);
+            glUniform1f(glGetUniformLocation(shader->shaderProgram, "rainbowXYZFactor"), 0.2f);
             Matrix4f aabbMatrix;
             AABB * aabb = entity->physics->aabb;
         //    std::cout<<"\nAABB: Position: "<<aabb.position<<" scale: "<<aabb.scale<<" min: "<<aabb.min<<" max: "<<aabb.max;
-            aabbMatrix.Translate(aabb->position);
+			aabbMatrix = Matrix4f::InitTranslationMatrix(aabb->position);
             aabbMatrix.Scale(aabb->scale);
 
-            glUniformMatrix4fv(graphicsState->activeShader->uniformModelMatrix, 1, false, aabbMatrix.getPointer());
+            glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, aabbMatrix.getPointer());
             Model * cube = ModelMan.GetModel("cube.obj");
-            cube->Render();
+            cube->Render(*graphicsState);
       //  }
 
-        glUniform1f(glGetUniformLocation(graphicsState->activeShader->shaderProgram, "rainbowXYZFactor"), rainbowXYZFactor);
+        glUniform1f(glGetUniformLocation(shader->shaderProgram, "rainbowXYZFactor"), rainbowXYZFactor);
 
         // Should only need to translate to physical position straight away since that's what we're rendering...!
 	//	transformationMatrix.multiply((Matrix4d().translate(Vector3d(entity->physics->physicalPosition))));
@@ -233,10 +234,10 @@ rerer
 				model = ModelMan.GetModel("sphere.obj");
 				Matrix4f transform = Matrix4f(transformationMatrix);
 				/// Set uniform matrix in shader to point to the AppState modelView matrix.
-				glUniformMatrix4fv(graphicsState->activeShader->uniformModelMatrix, 1, false, transform.getPointer());
+				glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, transform.getPointer());
 				// Render if we got a model ^^
 				if (model)
-                    model->triangulizedMesh->Render();
+                    model->triangulatedMesh->Render();
 #endif
 
 				// Revert transform
@@ -305,10 +306,10 @@ rerer
 	//	transformationMatrix.multiply(Matrix4d::GetRotationMatrixZ(entity->rotation.z));
 		Matrix4f transform = Matrix4f(transformationMatrix);
 		/// Set uniform matrix in shader to point to the AppState modelView matrix.
-		glUniformMatrix4fv(graphicsState->activeShader->uniformModelMatrix, 1, false, transform.getPointer());
+		glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, transform.getPointer());
 		// Render if we got a model ^^
 		if (model)
-			model->Render();
+			model->Render(*graphicsState);
 
 	}
 
@@ -438,11 +439,11 @@ rerer
 			Model * model = c.one->model;
 			glUniform4f(shader->uniformPrimaryColorVec4, 15.0f, 0.0f, 0.0f, 0.1f);
 			glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, cr.onePreResolution.getPointer());
-			model->Render();
+			model->Render(*graphicsState);
 			
 			model = c.two->model;
 			glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, cr.twoPreResolution.getPointer());
-			model->Render();
+			model->Render(*graphicsState);
 		}
 	}
 	else {

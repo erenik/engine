@@ -56,9 +56,9 @@ public:
 	void updateCulling();
 
 	/// Render the objects that are in the frustum, using checks against the frustum against the current VFCOctree ndoe.
-	void RenderWithCulling(GraphicsState * graphicsState);
+	void RenderWithCulling(GraphicsState & graphicsState);
 	/// Renders the children and all objects without any checks
-	void Render(GraphicsState * graphicsState);
+	void Render(GraphicsState & graphicsState);
 
 	/// Sets all children scenegraph nodes to the provided state
 	void setInFrustum(bool inTrueOrOutFalse);

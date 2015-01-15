@@ -5,21 +5,32 @@
 #ifndef MESH_H
 #define MESH_H
 
+#include "Graphics/OpenGL.h"
+
 #include "MathLib.h"
 #include "List/List.h"
 #include "String/AEString.h"
-#include "AEGlew.h"
 #include "MeshFace.h"
+#include "Time/Time.h"
 
 class Triangle;
 class GraphicsState;
 class EMesh;
-
 class AABB;
+
+class SkeletalAnimationNode;
+
+class VertexWeight
+{
+public:
+	float weight;
+	int boneIndex;
+};
 
 /** A struct for a geometric mesh, containing vertices, UV-coordinates, MeshFaces, material properties and a single texture ID.
 Mesh using different texture will have to be defined later. */
-class Mesh {
+class Mesh 
+{
 private:
 	Mesh(const Mesh & mesh);
 	/// Nullifies all default variables!
@@ -53,8 +64,8 @@ public:
 
     /// Mostly for debug
 	void PrintContents();
-	/// Replaces copy-constructor.
-	bool LoadDataFrom(const Mesh * otherMesh);
+	/// Replaces copy-constructor. Set nullify to true if you are creating the new mesh for the first time.
+	bool LoadDataFrom(const Mesh * otherMesh, bool nullify = false);
 	/// For creating an optimized version of the more complex/pointer-oriented E(ditable)-Mesh.
 	bool LoadDataFrom(const EMesh * otherMesh);
 	/// Triangulates the mesh.
@@ -67,9 +78,14 @@ public:
 		Resets centerOfMesh afterward. */
 	void Center();
 	/// Buffers the mesh into graphics memory. Use force to make it re-bufferize already buffered meshes.
-	void Bufferize(bool force = false);
+	void Bufferize(bool useOriginalPositions, bool force);
+
 	/// Renders the meshi-mesh :3
-	void Render();
+	void Render(GraphicsState & graphicsState);
+	/// Re-skins the mesh's vertices to match the current skeletal animation. Every single vertex will be re-calculated and then re-buffered.
+	void SkinToCurrentSkeletalAnimation();
+	/// Updates the skinning matrix map to be used for skinning using shaders.
+	void UpdateSkinningMatrixMap();
 
 	/// For NormalMapping~
 	void CalculateUVTangents();
@@ -89,6 +105,9 @@ public:
 	/// AABB
 //	Vector3f max, min;
 
+	/// Set upon loading and while animating, to make sure the triangulated/rendered version is up to date.
+	Time lastUpdate, lastBufferization;
+
 	/// Amount of vertices in the mesh.
 	int numVertices;
 	/// Amount of UV-coordinates in the mesh.
@@ -100,6 +119,8 @@ public:
 
 	/// Carteesian coordinates for the vertices
 	List<Vector3f> vertices;
+	/// When skeleton animation is initiated, the vertices list will be updated. Therefore, all original vertex positions will be stored here henceforth.
+	List<Vector3f> originalVertexPositions;
 	/// Joint UV-coordinates replacing the old separate u/v arrays!
 	List<Vector2f> uvs;
 	/// Normals for each vertex. Pointer is null if
@@ -107,11 +128,30 @@ public:
 	/// MeshFaces that define the mesh, using the provided vertices and UV-coordinates
 	List<MeshFace> faces;
 
+	/// Vertex-bone weights in compact form. Indices to the bones.
+	List<Vector4i> boneIndices;
+	/// Vertex-bone weights in compact form. Weights of said indices.
+	List<Vector4f> boneWeights;
+	
+	/// Skinning data! o.o
+	List<int> weightsPerVertex;	
+	/// Contains max weights per vertex for this mesh. May vary depending on the DCC tool used to generate it.
+	int maxWeightsPerVertex;
+	/// Weights for each vertex. Each vertex will have a list of weights.
+	List<List<VertexWeight>> vertexWeights;
+	/// Inverse bind pose matrices for all bones/joints.
+	List<Matrix4f> invBindPoseMatrices;
+	// Bind-shape matrix (relationship between skeleton and skin when it was bound/defined)
+	Matrix4f bindShapeMatrix;
+
 	/// Texture ID used when rendering the MeshFaces.
 	GLuint textureID;
-	/// Identifier for the Vertex Buffer
-	GLuint vboBuffer;
-
+	/// Identifier for the Vertex Buffer, containing one or more of the following data: positions, normals, uvs, tangents, bone indices and bone weights. 
+	GLuint vertexBuffer;
+	/// Buffer for the bone indices data. This will never change during animation and may be loaded once.
+	GLuint boneIndexBuffer;
+	/// Buffer for the bone weights. This will never change during animatoin either and may be loaded once too.
+	GLuint boneWeightsBuffer;
 
 	/// Sets source of the texture.
 	void SetSource(String str);
@@ -124,20 +164,33 @@ public:
 	String name;
 
 	/// Vertex count for the generated buffer objects.
-	unsigned int vboVertexCount;
+	unsigned int vertexDataCount;
 
 	bool IsTriangulated(){return triangulated;};
 
 	/// size of it all.
 	AABB * aabb;
+
+	// Whole skeleton for a mesh! o.o D: :D
+	SkeletalAnimationNode * skeleton;
+
 protected:
 	/// Set after calling Triangulate only.
 	bool triangulated;
 	// How many floats were buffered, per vertex.
 	int floatsPerVertex;
 
+	bool originalPositionsBuffered;
 	/// own format.
 	bool loadedFromCompactObj;
+
+	/// Used during buffering operations. Stored here so that it may be re-used o.o;
+	float * vertexData; 
+	int vertexDataSize; // Size of said array.
+
+	int * boneIndexData;
+	float * boneWeightData;
+
 };
 
 class GraphicsState;

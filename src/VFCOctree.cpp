@@ -217,7 +217,7 @@ int VFCOctree::RegisteredEntities(){
 
 #include <cassert>
 /// Just render daonw!
-void VFCOctree::Render(GraphicsState * graphicsState){
+void VFCOctree::Render(GraphicsState & graphicsState){
 	assert(this);
 	// Render all objects in this node,
 	int i;
@@ -237,7 +237,8 @@ void VFCOctree::Render(GraphicsState * graphicsState){
 }
 
 /// Render the objects that are in the frustum!
-void VFCOctree::RenderWithCulling(GraphicsState * graphicsState){
+void VFCOctree::RenderWithCulling(GraphicsState & graphicsState)
+{
 	// Set all active objects to be inside, all comparisons should just be with Octree objects to keep down the amount of comparisons
 	for (int i = 0; i < entities.Size(); ++i){
 		// Do individual check of all nodes here so we don't render in vain.

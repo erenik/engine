@@ -44,6 +44,7 @@ class GraphicsManager
 {
 	friend class GraphicsMessage;
 	friend class GMRegisterParticleSystem;
+	friend class GMUnregisterParticleSystem;
 	friend class GMRegisterEntity;
 	friend class GMRegisterEntities;
 	friend class GMUnregisterEntity;
@@ -74,6 +75,8 @@ public:
 	static GraphicsManager * Instance();
 	static void Deallocate();
 	~GraphicsManager();
+	/// If true, it is still OK to queue messages.
+	static bool GraphicsProcessingActive();
 
 	/// Loads all settings from files and OS
 	void Initialize();
@@ -296,6 +299,8 @@ private:
 	void RenderAlphaEntities();
 	/// Renders nicelish graphical effectslies! :#
 	void RenderEffects();
+	/// Re-renders the current scene, but this time illustrating Skeleton/Animation data.
+	void RenderSkeletons();
 	/// Renders wireframe's around all entities that are currently selected, without caring about depth for clarity.
 	void RenderSelection();
 	/// Renders the provided UI.
@@ -324,8 +329,9 @@ private:
 	/// Unregisters all entities possible from rendering.
 	int UnregisterAll();
 
-	/// Yup.
-	bool RegisterParticleSystem(ParticleSystem * ps);
+	/// If global is true, the particle system is considered global, and will be updated and rendered separately compared to entity-based particle systems.
+	bool RegisterParticleSystem(ParticleSystem * ps, bool global);
+	bool UnregisterParticleSystem(ParticleSystem * ps);
 
 	/// Screen size
 	int scrWidth, scrHeight;

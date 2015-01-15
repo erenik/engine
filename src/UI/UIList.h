@@ -10,8 +10,8 @@ class UIScrollBarHandle : public UIElement {
 public:
     UIScrollBarHandle();
 	virtual ~UIScrollBarHandle();
-
-    void Move(float distance);
+	/// Returns the actual distance moved.
+    float Move(float distance);
 	float GetScrollPosition();
 	void SetScrollPosition(float f);
 
@@ -49,8 +49,10 @@ public:
 	// Does something..
     void Update(float newSize);
     
-	/// Move the scrollbar, capping it depending on it's size (will never exceed the 0.0 - 1.0 limits)
-    void Move(float distance);
+	/** Move the scrollbar, capping it depending on it's size (will never exceed the 0.0 - 1.0 limits)
+		Returns the actual distance moved.
+	*/
+    float Move(float distance);
 	/// Returns current scroll position, based on the handle.
 	float GetScrollPosition();
 	void SetScrollPosition(float f);
@@ -78,7 +80,7 @@ public:
 	/// Deletes all children and content inside.
 	void Clear();
 	// Adjusts hierarchy besides the regular addition
-	virtual void AddChild(UIElement* child); // Sets child pointer to child UI element, NULL if non
+	virtual bool AddChild(UIElement* child); // Sets child pointer to child UI element, NULL if non
 
 	/// Activation functions
 	virtual UIElement* Hover(int mouseX, int mouseY);
@@ -102,6 +104,8 @@ public:
 	virtual UIElement * GetUpNeighbour(UIElement * referenceElement, bool & searchChildrenOnly);
 	virtual UIElement * GetDownNeighbour(UIElement * referenceElement, bool & searchChildrenOnly);
 	
+	// Get last child which is not a system element
+	UIElement * LastChild();
 
 	/// Returns the current scroll position.
 	float GetScrollPosition();
@@ -115,7 +119,7 @@ public:
 	void FormatElements();
 
 	/// Rendering
-	virtual void Render(GraphicsState * graphicsState);
+	virtual void Render(GraphicsState & graphicsState);
 
 	/// Called to ensure visibility of target element.
 	virtual void EnsureVisibility(UIElement * element);
@@ -129,7 +133,7 @@ protected:
 
 private:
 
-    virtual void RenderChildren(GraphicsState * graphicsState);
+    virtual void RenderChildren(GraphicsState & graphicsState);
 
 	/// Total contents size
 	float contentsSize;
@@ -149,7 +153,7 @@ public:
 	/// Deletes all children and content inside.
 	void Clear();
 	// Adjusts hierarchy besides the regular addition
-	void AddChild(UIElement* child); // Sets child pointer to child UI element, NULL if non
+	virtual bool AddChild(UIElement* child); // Sets child pointer to child UI element, NULL if non
 };
 
 

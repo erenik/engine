@@ -27,10 +27,10 @@ public:
 	*/
 	Vector2f CalculateRenderSizeUnits(Text text);
 	/// Calculates the render size in pixels if the text were to be rendered now.
-	Vector2f CalculateRenderSizeWorldSpace(Text text, GraphicsState * graphics);
+	Vector2f CalculateRenderSizeWorldSpace(Text text, GraphicsState & graphics);
 
 	/// Renders text using matrices in the graphicsState, but with the default GL shader.
-	void RenderText(Text & text, GraphicsState * graphics);
+	void RenderText(Text & text, GraphicsState & graphics);
 	
 	void SetTextureSource(const String s) { textureSource = s; };
 	const String GetTextureSource() { return textureSource; };
@@ -54,7 +54,7 @@ public:
 private:
 
 	/// Sets up text-shader and font texture.
-	void PrepareForRender(GraphicsState * graphicsState);
+	void PrepareForRender(GraphicsState & graphicsState);
 	/// Renders the caret.
 	void RenderCaret();
 	// Renders character at current position.
@@ -62,7 +62,7 @@ private:
 	/// For rendering a quad on top over the character's which are selected, pretty much.
 	void RenderSelection(char currentChar);
 	/// Re-instates old shader as needed.
-	void OnEndRender(GraphicsState * graphicsState);
+	void OnEndRender(GraphicsState & graphicsState);
 
 	/** New functions and variables which should make the calculation of render size and actual rendering of the 
 		texts easier to understand, using an iterative state-machine approach.

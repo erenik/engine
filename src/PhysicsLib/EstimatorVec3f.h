@@ -8,25 +8,39 @@
 #include "Estimator.h"
 
 /// Subclass for Vector3f handling
-class EstimationStateVec3f : public EstimatorState {
+class EstimationVec3f : public Estimation {
 public:
-	EstimationStateVec3f();
-	EstimationStateVec3f(Vector3f value, long long timeStamp);
-	Vector3f data;
+	EstimationVec3f();
+	EstimationVec3f(Vector3f value, int64 timeStampInMs);
+	Vector3f value;
 };
 
 /// An object for calculating and estimating values, for example with interpolation/extrapolation. Subclass for more custom behaviour.
-class EstimatorVec3f {
+class EstimatorVec3f : public Estimator {
 public:
 	/// Tests the estimator, printing results to file and also console output.
 	static void Test(int vectorValuesToGenerate, int samplesPerValue);
 
+	/// Empty constructor for variable-lengthed data which is edited as time goes.
+	EstimatorVec3f();
 	/// Constructor. First argument sets array for which the estimation will be used.
 	EstimatorVec3f(int sampleDataArraySize, int initialMode = EstimationMode::NONE);
+	void Nullify();
+	/// Virtual destructor.
 	virtual ~EstimatorVec3f();
+
+	
+	/** Estimates values for given time. If loop is true, the given time will be modulated to be within the interval of applicable time-values.
+		If the estimator's output pointer is set, data for the given estimation will be written there accordingly.
+	*/
+	virtual void Estimate(int64 forGivenTimeInMs, bool loop);
+	/// Proceeds a time-step.
+	virtual void Process(int timeInMs);
+
 	/// Calculates values as estimated for given time.
-	Vector3f Calculate(long long forGivenTime);
-	void AddState(Vector3f vec, long long timeStamp);
+//	Vector3f Calculate(long long forGivenTime);
+
+	void AddState(Vector3f vec, int64 timeInMs);
 	/// Required to use any extrapolation, since it requires another estimator inside for smoothing.
 	void EnableExtrapolation();
 	/// See modes above.
@@ -39,21 +53,18 @@ public:
 	Vector3f lastCalculation;
 	/// Current velocity using estimation.
 	Vector3f CurrentVelocity() {return currentVelocity;};
+
+	/// Result destination.
+	Vector3f * variableToPutResultTo;
+
 protected:
 	/// Sets bool flag to false if the given time is old, i.e. within a range of already known values. If so, GetInterpolatedValue should be used instead/afterward.
 	Vector3f GetExtrapolatedValue(long long forGivenTime, bool & good);
-	Vector3f GetInterpolatedValue(long long forGivenTime);
+	
 
 	/// Fetches estimation state by index relative to currentIndex. 0 refers to next state, with negative values being past. 
-	EstimationStateVec3f * GetState(int index);
-	EstimationStateVec3f * states;
-	/// Size of states-array from which we sample.
-	int arraySize;
-	/// Current index in which new data has been placed. meaning all indexes behind it, including itself, are populated.
-	int currentIndex;
-	/// Flagged once after all elements have been populated.
-	bool hasLooped;
-
+	EstimationVec3f * GetState(int index);
+	
 	/// Flag, since more actions are taken when extrapolation is wanted.
 	bool extrapolationEnabled;
 
@@ -61,9 +72,9 @@ protected:
 	EstimatorVec3f * extrapolatorValueSmoother;
 
 	/// Base for extrapolation, gets data from lastEstimation upon each new state-update.
-	EstimationStateVec3f extrapolatorBase;
+	EstimationVec3f extrapolatorBase;
 	/// Last extrapolation calculation made.
-	EstimationStateVec3f lastExtrapolation;
+	EstimationVec3f lastExtrapolation;
 	/// Estiamted velocity. Could maybe be inserted when adding a state, but for now it will be approximated as well.
 	Vector3f estimatedVelocity;
 

@@ -13,14 +13,22 @@
 #include "Game/Game.h"
 
 SIPSessionData::SIPSessionData(Peer * owner)
-: SessionData(SessionType::SIP), owner(owner)
+: SessionData(Type()), owner(owner)
 {
 	Reset();
 }
 
-SIPSessionData::~SIPSessionData(){
+SIPSessionData::~SIPSessionData()
+{
 	eventSubscriptions.ClearAndDelete();
 }
+
+// ID used for template function identification.
+int SIPSessionData::Type()
+{
+	return SessionType::SIP;
+}
+
 
 /// Resets variables for the session
 void SIPSessionData::Reset()
@@ -52,13 +60,15 @@ void SIPSessionData::UpdateSenderData(Peer * owner){
 }
 
 /// Woo. Subscribes for a while.
-void SIPSessionData::SubscribeToEvent(String eventType, int duration){
+void SIPSessionData::SubscribeToEvent(String eventType, int duration)
+{
 	SIPEventSubscription * target = NULL; 
-	for (int i = 0; i < eventSubscriptions.Size(); ++i){
+	for (int i = 0; i < eventSubscriptions.Size(); ++i)
+	{
 		SIPEventSubscription * e = eventSubscriptions[i];
-		if (e->name == eventType){
+		if (e->name == eventType)
+		{
 			std::cout<<"\nTarget already subscribed to event.";
-			assert(false && "Target already subscribed to event.");
 			target = e;
 			break;
 		}

@@ -5,7 +5,7 @@
 #include "AABB.h"
 #include "Entity/Entity.h"
 #include "Physics/PhysicsProperty.h"
-#include "Model.h"
+#include "Model/Model.h"
 #include "Mesh/Mesh.h"
 #include "Physics/PhysicsManager.h"
 
@@ -41,6 +41,8 @@ bool AABB::Intersect(const AABB &aabb2) const {
 /// Recalculate the AABBs constraints based on the given entity using it.
 void AABB::Recalculate(Entity * entity)
 {
+	if (!entity->model->mesh->aabb)
+		return;
     Vector3f bounds[8];
     /// Reset min and max depending on the base AABB.
     min = entity->model->mesh->aabb->min;

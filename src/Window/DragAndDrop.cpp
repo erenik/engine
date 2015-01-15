@@ -89,7 +89,9 @@ HRESULT STDMETHODCALLTYPE DragAndDrop::DragOver(
 	{
 		/// Create own mouse-move effects to see that it works.
 		Vector2i windowCoords = hoverWindow->GetWindowCoordsFromScreenCoords(Vector2i(pt.x, pt.y));
+		uiMutex.Claim();
 		InputMan.MouseMove(HoverWindow(), windowCoords);
+		uiMutex.Release();
 	}	
 	
 	return S_OK;

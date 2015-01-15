@@ -125,9 +125,23 @@ int Socket::Read(char * intoBuffer, int maxBytesToRead)
         return 0;
 
 	int bytesRead = recv(sockfd, intoBuffer, maxBytesToRead, NULL);
-	if (bytesRead == SOCKET_ERROR){
+	if (bytesRead == SOCKET_ERROR)
+	{
 		int error = WSAGetLastError();
 		std::cout<<"\nError receiving/reading socket, errorCode: "<<error<<" Setting delete flag.";
+		switch(error)
+		{
+			case WSAECONNABORTED:
+			{
+				std::cout<<"\nInternal software error? D:";
+				break;
+			}
+			default:
+			{
+				/// http://msdn.microsoft.com/en-us/library/windows/desktop/ms740668%28v=vs.85%29.aspx
+				std::cout<<"\nSome other error occurred. Look it up?";
+			}
+		}
 		deleteFlag = 1;
 	}
 	bytesReceived += bytesRead;

@@ -20,7 +20,7 @@ void GraphicsManager::RenderFPS(){
 	// Draw awesome grid for debugging, yo.
 	if (true){
 	    if (GL_VERSION_MAJOR >= 2)
-            glUseProgram(0);
+            ShadeMan.SetActiveShader(0);
 		// Set projection
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();

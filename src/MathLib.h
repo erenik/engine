@@ -5,6 +5,7 @@
 
 #include "MathLib/AEMath.h"
 
+#include "MathLib/Matrix2f.h"
 #include "MathLib/Matrix3d.h"
 #include "MathLib/Matrix3f.h"
 #include "MathLib/Matrix4d.h"
@@ -15,6 +16,7 @@
 #include "MathLib/Vector3i.h"
 #include "MathLib/Vector3d.h"
 #include "MathLib/Vector3f.h"
+#include "MathLib/Vector4i.h"
 #include "MathLib/Vector4d.h"
 #include "MathLib/Vector4f.h"
 #include "MathLib/Trigonometry.h"

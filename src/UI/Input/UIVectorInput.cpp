@@ -21,7 +21,7 @@ UIVectorInput::UIVectorInput(int numInputs, String name, String onTrigger)
 	this->numInputs = numInputs;
 	this->name = name;
 	this->action = onTrigger;
-	maxDecimals = 3;
+	maxDecimals = -1;
 	dataType = FLOATS;
 }
 UIVectorInput::~UIVectorInput()

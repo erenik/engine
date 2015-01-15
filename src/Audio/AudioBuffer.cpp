@@ -24,7 +24,9 @@ AudioBuffer * AudioBuffer::New()
 		return oldBuffer;
 	}
 	AudioBuffer * newBuffer = new AudioBuffer();
+#ifdef OPENAL
 	alGenBuffers(1, &newBuffer->alBuffer);
+#endif
 	newBuffer->inUse = true;
 	buffers.Add(newBuffer);
 	return newBuffer;
@@ -41,6 +43,7 @@ void AudioBuffer::Free()
 
 void AudioBuffer::FreeAll()
 {
+#ifdef OPENAL
 	// Fetch context if needed.
 	ALCboolean result = alcMakeContextCurrent(alcContext);
 	assert(result && "Unable to make alc context current");
@@ -56,8 +59,11 @@ void AudioBuffer::FreeAll()
 		int error = CheckALError();
 		if (error = AL_NO_ERROR)
 			++freed;
+		// Actually delete it too, yo.
+		delete buffer;
 	}
 	std::cout<<"\n"<<freed<<" alBuffers freed.";
+#endif
 }
 
 /// oo
@@ -67,8 +73,9 @@ void AudioBuffer::Free(AudioBuffer * buffer)
 	buffer->attached = false;
 }
 
-bool AudioBuffer::AttachTo(ALuint alSource)
+bool AudioBuffer::AttachTo(unsigned int alSource)
 {
+#ifdef OPENAL
 	assert(attached == false);
 	alSourceQueueBuffers(alSource, 1, &alBuffer);
 	int error = CheckALError();
@@ -77,11 +84,13 @@ bool AudioBuffer::AttachTo(ALuint alSource)
 		attached = true;
 		return true;
 	}
+#endif
 	return false;
 };
 
-bool AudioBuffer::DetachFrom(ALuint alSource)
+bool AudioBuffer::DetachFrom(unsigned int alSource)
 {
+#ifdef OPENAL
 	assert(attached);
 	alSourceUnqueueBuffers(alSource, 1, &alBuffer);
 	int error = AssertALError();
@@ -90,6 +99,7 @@ bool AudioBuffer::DetachFrom(ALuint alSource)
 		attached = false;
 		return true;
 	}
+#endif
 	return false;
 }
 

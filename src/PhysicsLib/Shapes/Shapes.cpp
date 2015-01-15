@@ -14,12 +14,6 @@ Ngon::Ngon(){
 	assert(false);
 }
 
-/// Sphere Initializer
-Sphere::Sphere(float radius, Vector3f position /* = Vector3f()*/ )
-: radius(radius), position(position), sections(DEFAULT_SECTIONS)
-{
-}
-
 
 
 

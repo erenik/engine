@@ -4,7 +4,7 @@
 #include "Mesh/Mesh.h"
 
 #include "../Material.h"
-#include "../Model.h"
+#include "Model/Model.h"
 #include "Entity.h"
 #include "Graphics/GraphicsProperty.h"
 #include "Graphics/CompactGraphics.h"
@@ -20,7 +20,7 @@
 #include "Texture.h"
 #include "Shader.h"
 #include "TextureManager.h"
-#include "ModelManager.h"
+#include "Model/ModelManager.h"
 #include "Script/ScriptProperty.h"
 #include "Physics/Calc/EntityPhysicsEstimator.h"
 #include <cstring>
@@ -195,13 +195,15 @@ EntityProperty * Entity::GetProperty(int byID)
 void Entity::Bufferize()
 {
 	if (model)
-		model->GetTriangulizedMesh()->Bufferize();
+		model->GetTriangulizedMesh()->Bufferize(false, false);
 }
 
-void Entity::RenderOld(GraphicsState * graphicsState){
+void Entity::RenderOld(GraphicsState & graphicsState)
+{
+	Shader * shader = ActiveShader();
 	int error = 0;
 	// Bind texture if it isn't already bound.
-	if (diffuseMap && graphicsState->currentTexture != diffuseMap){
+	if (diffuseMap && graphicsState.currentTexture != diffuseMap){
 		// When rendering an objectwith this program.
 		glActiveTexture(GL_TEXTURE0 + 0);
 		// Bind texture
@@ -209,44 +211,44 @@ void Entity::RenderOld(GraphicsState * graphicsState){
 		error = glGetError();
 
 		// Set sampler in client graphicsState
-		if (graphicsState->activeShader && graphicsState->activeShader->uniformBaseTexture != -1)
-			glUniform1i(graphicsState->activeShader->uniformBaseTexture, 0);		// Sets sampler
+		if (shader && shader->uniformBaseTexture != -1)
+			glUniform1i(shader->uniformBaseTexture, 0);		// Sets sampler
 		// Bind sampler
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		graphicsState->currentTexture = diffuseMap;
+		graphicsState.currentTexture = diffuseMap;
 		glEnable(GL_TEXTURE_2D);
 		glColor4f(1,1,1,1);
 	}
 	else if (diffuseMap == NULL){
 		glBindTexture(GL_TEXTURE_2D, NULL);
-		graphicsState->currentTexture = NULL;
+		graphicsState.currentTexture = NULL;
 	}
 
 	error = glGetError();
 	// Assign material
 	// glProgramUniform Core since version 	4.1!
 	// Use glUniform! Core since 2.0
-	if (graphicsState->activeShader){
-		glUniform4f(graphicsState->activeShader->uniformMaterial.ambientVec4, material->ambient[0], material->ambient[1], material->ambient[2], material->ambient[3]);
-		glUniform4f(graphicsState->activeShader->uniformMaterial.diffuseVec4, material->diffuse[0], material->diffuse[1], material->diffuse[2], material->diffuse[3]);
-		glUniform4f(graphicsState->activeShader->uniformMaterial.specularVec4, material->specular[0], material->specular[1], material->specular[2], material->specular[3]);
-		glUniform1i(graphicsState->activeShader->uniformMaterial.shininessInt, material->shininess);
+	if (shader){
+		glUniform4f(shader->uniformMaterial.ambientVec4, material->ambient[0], material->ambient[1], material->ambient[2], material->ambient[3]);
+		glUniform4f(shader->uniformMaterial.diffuseVec4, material->diffuse[0], material->diffuse[1], material->diffuse[2], material->diffuse[3]);
+		glUniform4f(shader->uniformMaterial.specularVec4, material->specular[0], material->specular[1], material->specular[2], material->specular[3]);
+		glUniform1i(shader->uniformMaterial.shininessInt, material->shininess);
 	}
 
 	error = glGetError();
 	// Save old matrix to the stack
-	Matrix4d tmp = graphicsState->modelMatrixD;
+	Matrix4d tmp = graphicsState.modelMatrixD;
 
 	// Apply transformation
-	graphicsState->modelMatrixD.Multiply(transformationMatrix);
-	graphicsState->modelMatrixF = graphicsState->modelMatrixD;
-	Matrix4f modelView = graphicsState->viewMatrixF * graphicsState->modelMatrixF;
+	graphicsState.modelMatrixD.Multiply(transformationMatrix);
+	graphicsState.modelMatrixF = graphicsState.modelMatrixD;
+	Matrix4f modelView = graphicsState.viewMatrixF * graphicsState.modelMatrixF;
 	// Set uniform matrix in shader to point to the AppState modelView matrix.
 	glMatrixMode(GL_MODELVIEW);
 	glLoadMatrixf(modelView.getPointer());
-	if (graphicsState->activeShader)
-		glUniformMatrix4fv(graphicsState->activeShader->uniformModelMatrix, 1, false, graphicsState->modelMatrixF.getPointer());
+	if (shader)
+		glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, graphicsState.modelMatrixF.getPointer());
 	error = glGetError();
 
 	// Set texture
@@ -265,9 +267,9 @@ void Entity::RenderOld(GraphicsState * graphicsState){
 		}
 		for (int j = 0; j < 3; ++j){
 			Vector3f position = Vector3f(mesh->vertices[face->vertices[j]].x, mesh->vertices[face->vertices[j]].y, mesh->vertices[face->vertices[j]].z);
-			position = graphicsState->modelMatrixF * position;
-			position = graphicsState->viewMatrixF * position;
-			position = graphicsState->projectionMatrixF * position;
+			position = graphicsState.modelMatrixF * position;
+			position = graphicsState.viewMatrixF * position;
+			position = graphicsState.projectionMatrixF * position;
 
 			glNormal3f(mesh->normals[face->normals[j]].x, mesh->normals[face->normals[j]].y, mesh->normals[face->normals[j]].z);
 			glTexCoord2f(mesh->uvs[face->uvs[j]].x, mesh->uvs[face->uvs[j]].y);
@@ -276,7 +278,7 @@ void Entity::RenderOld(GraphicsState * graphicsState){
 		glEnd();
 	}
 
-	++graphicsState->renderedObjects;		// increment rendered objects for debug info
+	++graphicsState.renderedObjects;		// increment rendered objects for debug info
 
 	// Render children if needed
 	/*
@@ -286,7 +288,7 @@ void Entity::RenderOld(GraphicsState * graphicsState){
 */
 
 	// Revert the model matrix to the old one in the stack
-	graphicsState->modelMatrixD = tmp;
+	graphicsState.modelMatrixD = tmp;
 }
 
 /// Gets velocity, probably from the PhysicsState
@@ -397,7 +399,7 @@ void Entity::SetRotation(Vector3f rotation)
 /// Sets scale of the entity
 void Entity::SetScale(Vector3f scale)
 {
-	assert(scale.x && scale.y && scale.z);
+//	assert(scale.x && scale.y && scale.z);
 	this->scale = scale;
 	RecalculateMatrix();
 }
@@ -429,6 +431,7 @@ void Entity::RecalculateMatrix()
 {
 
     rotationMatrix = Matrix4d();
+	Matrix4d preTranslateMat;
 		
 	// Quaternions for those entities wanting to use it.
     if (physics && physics->useQuaternions){
@@ -437,19 +440,27 @@ void Entity::RecalculateMatrix()
         q.Normalize();
      //   std::cout<<"\nQ postN: "<<q;
         rotationMatrix = q.Matrix();
-        double * parr = rotationMatrix.getPointer();
+       // float * parr = rotationMatrix.getPointer();
      //   std::cout<<"\nMatrix: "<<parr[0]<<" "<<parr[1];
+
+		Quaternion q2 = physics->preTranslateRotationQ;
+		if (physics->preTranslateRotationQ.y != 0)
+		{
+			int i = + q2.y;
+		}
+		preTranslateMat = q2.Matrix();
     }
 	// Euclidean co-ordinates.
 	else 
 	{
 		rotationMatrix.Multiply(Matrix4d::GetRotationMatrixX(rotation.x));
-		rotationMatrix.Multiply(Matrix4d::GetRotationMatrixY(rotation.y));
 		rotationMatrix.Multiply(Matrix4d::GetRotationMatrixZ(rotation.z));
+		rotationMatrix.Multiply(Matrix4d::GetRotationMatrixY(rotation.y));
 	}
 
 	transformationMatrix = Matrix4d();
 
+	transformationMatrix.Multiply(preTranslateMat);
 	transformationMatrix.Multiply((Matrix4d().Translate(Vector3d(position))));
 	transformationMatrix.Multiply(rotationMatrix);
 	transformationMatrix.Multiply((Matrix4d().Scale(Vector3d(scale))));

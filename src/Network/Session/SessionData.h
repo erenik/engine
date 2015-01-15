@@ -10,6 +10,7 @@ class SessionData {
 public:
 	/// See SessionTypes in Session.h for valid types.
 	SessionData(int type, int subType = -1);
+	virtual ~SessionData();
 	/// Type should be same as the Session type, See SessionTypes.h for a full list of session-types.
 	int type;
 	/// See e.g. GameSessionTypes.h

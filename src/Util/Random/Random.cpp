@@ -78,3 +78,13 @@ int Random::Randi(int max)
 {
 	return Randf() * max;
 }
+
+/// Returns a random vlaue between 0 and max (inclusive)
+int64 Random::Rand64(int64 max)
+{
+	int64 rand64 = Randi(INT_MAX);
+	rand64 *= 0xFFFFFFFF;
+	rand64 += Randi(INT_MAX);
+	int64 modulated = rand64 % max;
+	return modulated;
+}

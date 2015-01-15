@@ -45,6 +45,8 @@ public:
 	/// Loads all textures required by target Entity.
 	bool LoadTextures(Entity * Entity);
 
+	/// Generates a texture with automatic name and given color. The texture will be exactly 1 or 2x2 pixels, simply for the color!
+	Texture * GenerateTexture(Vector4f andColor);
 	/// Generates a texture with given name and color. The texture will be exactly 1 or 2x2 pixels, simply for the color!
 	Texture * GenerateTexture(String withName, Vector4f andColor);
 
@@ -67,9 +69,9 @@ public:
     /// Getter function that first tries to fetch texture by name, and if that failes tries to get it by it's source.
     Texture * GetTexture(String nameOrSource);
 	/// 0xRRGGBB (red green blue)
-	Texture * GetTextureByHex24(int hexColor);
+	Texture * GetTextureByHex24(uint32 hexColor);
 	/// 0xRRGGBBAA (red green blue alpha)
-	Texture * GetTextureByHex32(int hexColor);
+	Texture * GetTextureByHex32(uint32 hexColor);
 	/// Gets texture with specified name. This assumes each texture has gotten a unique name.
 	Texture * GetTextureByName(String name);
 	/// Returns texture in the list by specified index.

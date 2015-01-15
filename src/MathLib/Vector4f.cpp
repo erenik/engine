@@ -7,6 +7,8 @@
 #include "Vector4f.h"
 #include <fstream>
 
+#include "String/AEString.h"
+
 Vector4f::Vector4f(){
 	x = y = z = 0;
 	w = 1;
@@ -71,6 +73,16 @@ void Vector4f::ReadFrom(std::fstream & file){
 	file.read((char*)&y, sizeof(float));
 	file.read((char*)&z, sizeof(float));
 	file.read((char*)&w, sizeof(float));
+}
+
+/// Reads from String. Expects space-separated values. E.g. 3 8.14 -15 0.0
+void Vector4f::ReadFrom(const String & string)
+{
+	List<String> tokens = string.Tokenize(" ");
+	x = tokens[0].ParseFloat();
+	y = tokens[1].ParseFloat();
+	z = tokens[2].ParseFloat();
+	w = tokens[3].ParseFloat();
 }
 
 
@@ -260,6 +272,13 @@ Vector4f Vector4f::ElementMultiplication(const Vector4f otherVector) const {
  float Vector4f::Length3() const{
 	return sqrt(pow((float)x, 2) + pow((float)y, 2)+ pow((float)z, 2));
 }
+
+/** Calculates the length of the vector, considering only {x y z}. */
+ float Vector4f::Length3Squared() const 
+ {
+	return x * x + y * y + z * z;
+ }
+
 
 void Vector4f::Normalize3(){
 	float vecLength = Length3();

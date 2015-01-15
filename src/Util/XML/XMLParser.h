@@ -11,8 +11,6 @@ class XMLElement;
 #include "List/List.h"
 
 /// Eased definitions for usage.
-#define Xarg		XMLArgument
-#define Xelement	XMLElement
 #define Xparser		XMLParser
 
 class XMLParser {
@@ -29,6 +27,8 @@ public:
 	
 	/// Wosh. Recursive on all rootElements until a valid element is found or NULL if none :)
 	XMLElement * GetElement(String byName);
+	/// Recursive fetcher which takes into consideration one single attribute-value combination which must fit as well.
+	XMLElement * GetElement(String byName, String withAttribute, String thatHasGivenAttributeValue);
 	
 	List<XMLElement*> rootElements;
 

@@ -5,7 +5,7 @@
 #include "Collisions.h"
 #include "../PhysicsProperty.h"
 
-#include "PhysicsLib/Shapes/Sphere.h"
+#include "Sphere.h"
 
 bool TriangleSphereCollision(Entity * triEntity, Entity * sphereEntity, Collision &data){
 	assert(triEntity->physics->physicsShape == ShapeType::TRIANGLE);

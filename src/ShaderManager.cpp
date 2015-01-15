@@ -17,7 +17,7 @@ ShaderManager * ShaderManager::shaderManager = NULL;
 
 ShaderManager::ShaderManager()
 {
-
+	activeShader = NULL;
 }
 ShaderManager::~ShaderManager()
 {
@@ -89,27 +89,38 @@ Shader * ShaderManager::CreateShader(const char * name, int i_flags)
 
 void ShaderManager::DeleteShaders()
 {
+	/// Unbind currently bound shader program so that it may be deallocated.
+	ShadeMan.SetActiveShader(0);
+	// Delete 'em.
     while(shaders.Size()){
         Shader * shader = shaders[0];
 		shader->DeleteShader();
 		shaders.RemoveIndex(0);
 		delete shader;
     }
-	/// Unbind currently bound shader program so that it may be deallocated.
-	glUseProgram(0);
 }
 
 
 /// Returns a shader program with the given name
 Shader * ShaderManager::GetShader(String name)
 {
-	for (int i = 0; i < shaders.Size(); ++i){
+	for (int i = 0; i < shaders.Size(); ++i)
+	{
 	    Shader * shader = shaders[i];
 		if (shader->name == 0)
 			continue;
-		if(name == shader->name){
+		if(name == shader->name)
 			return shader;
-		}
+	}
+	// Try to load it if it doesn't exist.
+	Shader * shader = CreateShader(name);
+	if (RecompileShader(shader))
+		return shader;
+	if (shader == NULL)
+	{
+		assert(shader && "No such shader, yo?");
+		std::cout<<"\nTried to find shader, but it was ze unsuccessful D:";
+		return NULL;
 	}
 	return NULL;
 }
@@ -165,11 +176,19 @@ Shader * ShaderManager::SetActiveShader(String shaderName)
 	return SetActiveShader(shader);
 }
 
-
 /// Sets selected shader to be active. Prints out error information and does not set to new shader if it fails.
 Shader * ShaderManager::SetActiveShader(Shader * shader)
 {
-	GraphicsState * graphicsState = Graphics.graphicsState;
+	/// Same shader, no state changes required.
+	if (shader == activeShader)
+		return shader;
+	
+	/// If we had a previously active shader, disable their specific vertex attribute pointers.
+	if (activeShader)
+	{
+		activeShader->OnMadeInactive();
+	}
+
 	if(GL_VERSION_MAJOR < 2){
 		std::cout<<"\nERROR: Unable to set shader program as GL major version is below 2.";
         return NULL;
@@ -178,7 +197,7 @@ Shader * ShaderManager::SetActiveShader(Shader * shader)
 	if (shader == NULL)
 	{
 		glUseProgram(0);
-		graphicsState->activeShader = 0;
+		activeShader = 0;
 		return NULL;
 	}
 	else 
@@ -186,24 +205,33 @@ Shader * ShaderManager::SetActiveShader(Shader * shader)
 		// Compile it if not done already?
 		if (!shader->built)
 		{
-			shader->Compile();
+			Time mostRecentEdit = shader->MostRecentEdit();
+			if (shader->lastCompileAttempt < mostRecentEdit)
+				shader->Compile();
 		}
 	}
-	int currentProgram;
-	glGetIntegerv(GL_CURRENT_PROGRAM, &currentProgram);
-	// Just return if we're already using it ~
-	if (currentProgram == shader->shaderProgram)
+	// Ensure it was built correctly.
+	if (shader && shader->built)
 	{
-	    return shader;
-    }
-	else if (shader && shader->built){
 		glUseProgram(shader->shaderProgram);
-		graphicsState->activeShader = shader;
+		activeShader = shader;
+		// Enable respective vertex array/attribute pointers.
+		shader->OnMadeActive();
+		CheckGLError("ShaderManager::SetActiveShader");
 		return shader;
 	}
-	/// No shader was found, return NULL that default shader is now in use.
-	glUseProgram(0);
-	graphicsState->activeShader = 0;
+	else {
+		/// No shader was found, return NULL that default shader is now in use.
+		glUseProgram(0);
+		activeShader = 0;
+	}
 	return NULL;
+}
+
+
+/// Returns the active shader, or NULL if the default shading program is in use.
+Shader * ShaderManager::ActiveShader()
+{
+	return activeShader;
 }
 

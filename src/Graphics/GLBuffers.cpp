@@ -10,7 +10,7 @@ List<int> GLBuffers::buffers;
 List<int> GLVertexArrays::vertexArrays;
 List<int> GLFrameBuffers::frameBuffers;
 List<int> GLRenderBuffers::renderBuffers;
-
+List<int> GLTextures::textures;
 
 /// Returns a new buffer to be used.
 unsigned int GLBuffers::New()
@@ -98,4 +98,25 @@ void GLRenderBuffers::FreeAll()
 	renderBuffers.Clear();
 	return;
 }
+
+
+unsigned int GLTextures::New()
+{
+	unsigned int newTexture;
+	glGenTextures(1, &newTexture);
+	textures.Add(newTexture);
+	return newTexture;
+}
+void GLTextures::FreeAll()
+{
+	std::cout<<"\nFreeing textures..";
+	for (int i = 0; i < textures.Size(); ++i)
+	{
+		unsigned int texture = textures[i];
+		glDeleteTextures(1, &texture);
+	}
+	std::cout<<"\n"<<textures.Size()<<" vertex arrays freed.";
+	textures.Clear();
+}
+
 

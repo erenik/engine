@@ -7,11 +7,17 @@
 #include "XML/XMLElement.h"
 #include "Mesh/Mesh.h"
 
+#include "SkeletalAnimationNode.h"
 
-ColladaImporter::ColladaImporter(){
+#include "String/StringUtil.h"
+
+ColladaImporter::ColladaImporter()
+{
 	up_axis = Y_UP;
 	unit = 1.0f;
 	parser = NULL;
+
+	library_animations = NULL;
 }
 
 
@@ -67,7 +73,7 @@ bool ColladaImporter::Load(String fromFile)
 		}
 	}
 
-	// Wosh.
+	// Quickly scan for geometry
 	Xelement * geometries = parser->GetElement("library_geometries");
 	if (geometries){
 		geometryList = geometries->children;
@@ -77,8 +83,32 @@ bool ColladaImporter::Load(String fromFile)
 			std::cout<<"\nFound geometry: "<<name->value;
 		}
 	}
+	// .. animations
+	library_animations = parser->GetElement("library_animations");
+	if (library_animations)
+	{
+		animationList = library_animations->children;
+		for (int i = 0; i < animationList.Size(); ++i)
+		{
+			Xelement * animation = animationList[i];
+			Xarg * name = animation->GetArgument("id");
+			std::cout<<"\nFound animation: "<<name->value;
+		}
+	}
+	// .. controllers (e.g. bones)
+	library_controllers = parser->GetElement("library_controllers");
+	if (library_controllers)
+	{
+		controllerList = library_controllers->children;
+		for (int i = 0; i < controllerList.Size(); ++i)
+		{
+			Xelement * controller = controllerList[i];
+			Xarg * name = controller->GetArgument("name");
+			std::cout<<"\nFound controller: "<<name->value;
+		}
+	}
 
-
+	library_visual_scenes = parser->GetElement("library_visual_scenes");
 
 	/// Required for exporters..?
 	// Translation, Scaling, Rotation, Parenting, Static objects, Animated objects, Skewing, Transparency/Reflectivity, Texture-mapping method..?
@@ -125,7 +155,7 @@ Mesh * ColladaImporter::CreateMesh(String name)
 	assert(meshElement);
 	mesh->source = source;
 	mesh->name = name;
-	
+
 	/////////////////////////////////////////////////////////////////
 	// Parse vertices!
 	/////////////////////////////////////////////////////////////////
@@ -149,21 +179,14 @@ Mesh * ColladaImporter::CreateMesh(String name)
 		Xelement * floatArray = vertexSource->GetElement("float_array");
 		Xarg * numVertsArg = floatArray->GetArgument("count");
 		assert(numVertsArg);
-		mesh->numVertices = numVertsArg->value.ParseInt();
+		mesh->numVertices = vertexSource->GetElement("accessor")->GetArgument("count")->value.ParseInt();
 		assert(mesh->numVertices > 0);
 
 		// Set full after allocation.
-		mesh->vertices.Allocate(mesh->numVertices, true);
 		
 		List<String> vertexDataTokens = floatArray->data.Tokenize(" ");
-		assert(vertexDataTokens.Size() == mesh->numVertices);
-		int vertexPositionsParsed = 0;
-		for (int i = 0; i < vertexDataTokens.Size(); i += 3){
-			mesh->vertices[vertexPositionsParsed].x = vertexDataTokens[i].ParseFloat();
-			mesh->vertices[vertexPositionsParsed].y = vertexDataTokens[i+1].ParseFloat();
-			mesh->vertices[vertexPositionsParsed].z = vertexDataTokens[i+2].ParseFloat();
-			++vertexPositionsParsed;
-		}
+		List<float> vertexFloatList = StringListToFloatList(vertexDataTokens);
+		mesh->vertices = Vector3f::FromFloatList(vertexFloatList, mesh->numVertices);
 	}
 	// Swap co-ordinates as needed.
 	switch(up_axis)
@@ -177,6 +200,11 @@ Mesh * ColladaImporter::CreateMesh(String name)
 			}
 			break;
 		}		
+		case Y_UP:
+		{
+			// Automatically compatible, do nothing.
+			break;
+		}
 		default:
 			assert(false);
 	}
@@ -190,7 +218,8 @@ Mesh * ColladaImporter::CreateMesh(String name)
 	List<Xelement*> inputs = tempPL->GetElements("input");
 	String normalsSource;
 	bool hasNormals = false;
-	for (int i = 0; i < inputs.Size(); ++i){
+	for (int i = 0; i < inputs.Size(); ++i)
+	{
 		Xelement * input = inputs[i];
 		Xarg * semantic = input->GetArgument("semantic");
 		if (semantic->value == "NORMAL"){
@@ -217,7 +246,8 @@ Mesh * ColladaImporter::CreateMesh(String name)
 		List<String> normalDataTokens = floatArray->data.Tokenize(" ");
 		assert(normalDataTokens.Size() == mesh->numNormals);
 		int normalsParsed = 0;
-		for (int i = 0; i < normalDataTokens.Size(); i += 3){
+		for (int i = 0; i < normalDataTokens.Size(); i += 3)
+		{
 			mesh->normals[normalsParsed].x = normalDataTokens[i].ParseFloat();
 			mesh->normals[normalsParsed].y = normalDataTokens[i+1].ParseFloat();
 			mesh->normals[normalsParsed].z = normalDataTokens[i+2].ParseFloat();
@@ -232,10 +262,12 @@ Mesh * ColladaImporter::CreateMesh(String name)
 	assert(tempPL);
 	String uvsSource;
 	bool hasUVs = false;
-	for (int i = 0; i < inputs.Size(); ++i){
+	for (int i = 0; i < inputs.Size(); ++i)
+	{
 		Xelement * input = inputs[i];
 		Xarg * semantic = input->GetArgument("semantic");
-		if (semantic->value == "TEXCOORD"){
+		if (semantic->value == "TEXCOORD")
+		{
 			Xarg * uvSource = input->GetArgument("source");
 			uvsSource = uvSource->value;
 			uvsSource.Remove("#");
@@ -275,7 +307,8 @@ Mesh * ColladaImporter::CreateMesh(String name)
 
 	int facesNeeded = 0;
 	/// First gather how many faces we'll need in total for all poly lists..!
-	for (int i = 0; i < polyLists.Size(); ++i){
+	for (int i = 0; i < polyLists.Size(); ++i)
+	{
 		Xelement * polyList = polyLists[i];
 		int polysInThisPolyList = polyList->GetArgument("count")->value.ParseInt();
 		facesNeeded += polysInThisPolyList;
@@ -284,7 +317,7 @@ Mesh * ColladaImporter::CreateMesh(String name)
 
 	std::cout<<"\nTotal faces needed: "<<facesNeeded;
 	// Create faces, jaow.
-	mesh->faces.Allocate(facesNeeded);
+	mesh->faces.Allocate(facesNeeded, true);
 	mesh->numFaces = facesNeeded;
 
 	// For each poly-list, create faces!
@@ -333,8 +366,126 @@ Mesh * ColladaImporter::CreateMesh(String name)
 			}
 		}
 	}
+
+	// Create skeleton tooo! o.o
+
+	// Create skeleton!
+	SkeletalAnimationNode * skeleton =  CreateSkeleton("root");
+	if (skeleton)
+	{
+		mesh->skeleton = skeleton;
+		// Load animations for the skeleton, if there are any?
+		skeleton->LoadAnimations(animationList);
+
+
+
+		// Get skin!
+		Xelement * skin = library_controllers->GetElement("skin");
+		// Load skinning data!
+		Xelement * vertexWeightsElement = skin->GetElement("vertex_weights");
+		List<String> vcount = vertexWeightsElement->GetElement("vcount")->data.Tokenize(" \n\t");
+		// weights per vertex.
+		mesh->weightsPerVertex = StringListToIntList(vcount);
+		// 
+		List<String> vertexWeightIndicesStr = vertexWeightsElement->GetElement("v")->data.Tokenize(" \n\t");
+		List<int> vertexJointWeightIndices = StringListToIntList(vertexWeightIndicesStr);
+		
+		/// Fetch bind matrices.
+		Xelement * jointsE = skin->GetElement("joints");
+		String invBindMatrixSource = jointsE->GetElement("input", "semantic", "INV_BIND_MATRIX")->GetArgument("source")->value;
+		invBindMatrixSource.Remove("#");
+		Xelement * invBindMatrix = skin->GetElement("source", "id", invBindMatrixSource);
+		int numMatrices = invBindMatrix->GetElement("accessor")->GetArgument("count")->value.ParseInt();
+		List<float> bindPosesFloats = StringListToFloatList(invBindMatrix->GetElement("float_array")->data.Tokenize(" \n\t"));
+		/// o.o Create matrices!
+		List<Matrix4f> invBindPoseMatrices = Matrix4f::FromFloatList(bindPosesFloats, numMatrices, true);
+		/// o.o
+		mesh->invBindPoseMatrices = invBindPoseMatrices;
+	
+		String weightsSourceStr, jointNamesStr;
+
+		// Fetch bind-shape matrix (relationship between skeleton and skin)
+		mesh->bindShapeMatrix = Matrix4f::FromFloatList(StringListToFloatList(skin->GetElement("bind_shape_matrix")->data.Tokenize(" \t\n")), 1, true);
+
+		// Fetch input semantics. Ensure that we are parsing the right way.
+		List<Xelement*> vwInputs = vertexWeightsElement->GetElements("input");
+		for (int i = 0; i < vwInputs.Size(); ++i)
+		{
+			Xelement * input = vwInputs[i];
+			Xarg * semantic = input->GetArgument("semantic"), * offset = input->GetArgument("offset");
+			switch(i)
+			{
+				case 0:
+					assert(semantic->value == "JOINT" && offset->value == "0");
+					jointNamesStr = input->GetArgument("source")->value;
+					jointNamesStr.Remove("#");
+					break;
+				case 1:
+					assert(semantic->value == "WEIGHT" && offset->value == "1");
+					weightsSourceStr = input->GetArgument("source")->value;
+					weightsSourceStr.Remove("#");
+					break;
+				default:
+					assert(false);
+			}
+		}
+		// Fetch names.
+		Xelement * jointsElement = skin->GetElement("source", "id", jointNamesStr);
+		List<String> names = jointsElement->GetElement("Name_array")->data.Tokenize(" \t\n");
+		skeleton->AssignBoneIndices(names);
+
+		/// Fetch weights.
+		Xelement * weightsSource = skin->GetElement("source", "id", weightsSourceStr);		
+		List<float> vertexWeights = StringListToFloatList(weightsSource->GetElement("float_array")->data.Tokenize(" \n\t"));
+	
+		// For each vertex..
+		int vertexJointWeightIndex = 0;
+		int maxWeightsPerVertex = 0;
+
+		int numVertexWeights = vertexWeightsElement->GetArgument("count")->value.ParseInt();
+		for (int vertexIndex = 0; vertexIndex < numVertexWeights; ++vertexIndex)
+		{
+			// Add a new list of weights.
+			List<VertexWeight> weights;
+			int weightsForThisVertex = mesh->weightsPerVertex[vertexIndex];
+			if (weightsForThisVertex > maxWeightsPerVertex)
+				maxWeightsPerVertex = weightsForThisVertex;
+			// For each weight per vertex
+			for (int vertexWeightIndex = 0; vertexWeightIndex < weightsForThisVertex; ++vertexWeightIndex)
+			{
+					int jointIndex = vertexJointWeightIndices[vertexJointWeightIndex];
+					int weightIndex = vertexJointWeightIndices[vertexJointWeightIndex+1];
+					float weight = vertexWeights[weightIndex];
+					VertexWeight vw;
+					vw.boneIndex = jointIndex;
+					vw.weight = weight;
+					weights.Add(vw);
+				//	std::cout<<"\nVertexWeight: "<<vw.weight;
+					vertexJointWeightIndex += 2;
+			}
+			mesh->vertexWeights.Add(weights);
+		}
+		mesh->maxWeightsPerVertex = maxWeightsPerVertex;
+	}
+	
+
 	return mesh;
 //	return NULL;
+}
+
+/// Creates a skeleton (including all animation) based on the underlying nodes attached to the node of given name (must be defined in the visual scene of the collada file)
+SkeletalAnimationNode * ColladaImporter::CreateSkeleton(String nodeName)
+{
+	// Find the element.
+	Xelement * root = library_visual_scenes->GetElement("node", "name", nodeName);
+	if (!root)
+	{
+		std::cout<<"\nNode with given name \'"<<nodeName<<"\'could not be found.";
+		return NULL;
+	}
+	Bone * newSkeleton = new Bone();
+	newSkeleton->ParseCollada(root);
+	return newSkeleton;
 }
 
 // Private functions, utility and stuff.

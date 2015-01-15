@@ -22,6 +22,10 @@ const float ZERO = 0.0000000001f;
 #define ClampFloat(a, min, max) if(a < min) a = min; else if(a > max) a = max;
 #endif
 
+#ifndef ClampedFloat
+#define ClampedFloat(a, min, max) ((a < min ? a : (a > max? max : a)))
+#endif
+
 #ifndef RoundFloat
 #define RoundFloat(value) (floor((value) + 0.5f))
 #endif

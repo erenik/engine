@@ -111,6 +111,9 @@ public:
 	/// Internal element division.
 	Vector2f operator / (const float &f) const;
 
+	/// Per element division.
+	Vector2f operator / (const Vector2f &v) const;
+
 	/// Operator overloading for the array-access operator []
 	float operator [](int index);
 

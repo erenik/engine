@@ -16,7 +16,7 @@ void GraphicsManager::RenderAlphaEntities()
 	graphicsState->entitiesRequiringSorting.SortByDistance(graphicsState->camera->Position());
 	// Render from back to front!
 	for (int i = graphicsState->entitiesRequiringSorting.Size() - 1; i >= 0; --i){
-		graphicsState->entitiesRequiringSorting[i]->Render(graphicsState);
+		graphicsState->entitiesRequiringSorting[i]->Render(*graphicsState);
 	}
 	/// Clear it here every frame, or elsewhere (at start of render frame perhaps?)
 	graphicsState->entitiesRequiringSorting.Clear();

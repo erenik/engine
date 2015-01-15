@@ -6,7 +6,7 @@
 #define VARIABLE_H
 
 #include "String/AEString.h"
-
+#include "MathLib.h"
 
 class Variable
 {
@@ -16,6 +16,8 @@ public:
 	Variable(String name);
 	Variable(String name, int iValue);
 	Variable(String name, float fValue);
+	Variable(String name, Vector3f vec3f);
+	Variable(String name, Vector4f vec4f);
 	
 	int Type() const { return type; };
 	/// Prints string. Returns type-string too.
@@ -29,6 +31,8 @@ public:
 	/// Some common variable data types.
 	float fValue;
 	int iValue;
+	Vector3f vec3fValue;
+	Vector4f vec4fValue;
 
 };
 

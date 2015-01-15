@@ -1,8 +1,9 @@
 // Emil Hedemalm
 // 2013-07-14
 
+#include "Graphics/OpenGL.h"
+
 #include "Exhaust.h"
-#include "GL/glew.h"
 #include "GraphicsState.h"
 #include "Entity/Entity.h"
 #include "Graphics/Camera/Camera.h"
@@ -11,21 +12,22 @@
 #include "../FrameStatistics.h"
 
 Exhaust::Exhaust(Entity * reference)
-: ParticleSystem("PointEmitter")
+: ParticleSystem("PointEmitter", true)
 {
+	/*
     pointsOnly = false;
     diffuse = NULL;
     maxParticles = 10000;
     particlesToProcess = maxParticles;
     emissionsPerSecond = 10000;
     maxRange = 1000;
-    maxLifeTime = 5.0f;
+    particleLifeTime = 5.0f;
     /// Wosh!
     relativeTo = reference;
 
     maxRangeSq = maxRange * maxRange;
     lifeDurations = new float[maxParticles];
-	lifeTime = new float[maxParticles];
+	lifeTimes = new float[maxParticles];
     positions = new Vector3f[maxParticles];
     velocities = new Vector3f[maxParticles];
     colors = new Vector4f[maxParticles];
@@ -40,11 +42,12 @@ Exhaust::Exhaust(Entity * reference)
         velocities[i].x += sideVelocityRange * (rand()%201-100) * 0.01f;
         velocities[i].y += sideVelocityRange * (rand()%201-100) * 0.01f;
         velocities[i].z = primaryVelocity * (rand()%81 + 20) * 0.01f;
-        lifeDurations[i] = maxLifeTime;
-		lifeTime[i] = maxLifeTime;
+        lifeDurations[i] = particleLifeTime;
+		lifeTimes[i] = particleLifeTime;
         colors[i] = color;
     }
     color = Vector4f(0.1f, 0.2f, 0.4f, 1.0f);
+	*/
 }
 Exhaust::~Exhaust()
 {
@@ -52,6 +55,7 @@ Exhaust::~Exhaust()
 }
 void Exhaust::Process(float timeInSeconds)
 {
+	/*
     /// Prepare some data
     int spawnedThisFrame = 0;
 	int toSpawnThisFrameTotal = (int)floor(emissionsPerSecond * timeInSeconds * emissionRatio+0.5f);
@@ -64,8 +68,10 @@ void Exhaust::Process(float timeInSeconds)
 	Vector3f newDirection = rotationMatrix.Product(Vector4f(0,0,1,0));
 
     /// Process and spawn new particles as needed
-    for(int i = 0; i < particlesToProcess; ++i){
-        if (lifeDurations[i] > lifeTime[i]){
+    for(int i = 0; i < particlesToProcess; ++i)
+	{
+        if (lifeDurations[i] > lifeTime[i])
+		{
             if (emissionPaused)
                 continue;
             if (toSpawn){
@@ -107,10 +113,12 @@ void Exhaust::Process(float timeInSeconds)
     }
 	previousPosition = newPosition;
 	previousDirection = newDirection;
+	*/
 }
 
 void Exhaust::Render(GraphicsState * graphicsState)
 {
+	/*
     /// Based on the optimization level, will probably be pow(0.5, optimizationLevel);
     optimizationLevel = pow(0.5f, graphicsState->optimizationLevel);
     if (optimizationLevel == 0)
@@ -119,7 +127,7 @@ void Exhaust::Render(GraphicsState * graphicsState)
     /// Calculate particles to process based on the graphicsState's optimization level.
     particlesToProcess = (int) (optimizationLevel * maxParticles);
 
-    glUseProgram(0);
+    ShadeMan.SetActiveShader(0);
     glMatrixMode(GL_PROJECTION);
     glLoadMatrixf(graphicsState->projectionMatrixF.getPointer());
     glMatrixMode(GL_MODELVIEW);
@@ -185,6 +193,7 @@ void Exhaust::Render(GraphicsState * graphicsState)
 		}
 		glEnd();
 	}
+	*/
 }
 
 void Exhaust::PrintData(){

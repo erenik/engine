@@ -39,6 +39,16 @@ Variable::Variable(String name, float fValue)
 
 }
 
+Variable::Variable(String name, Vector3f vec3f)
+	: name(name), vec3fValue(vec3f), type(DataType::VECTOR_3F)
+{
+}
+
+Variable::Variable(String name, Vector4f vec4f)
+	: name(name), vec4fValue(vec4f), type(DataType::VECTOR_4F)
+{
+}
+
 String Variable::PrintType() 
 {
 	String s;
@@ -47,7 +57,8 @@ String Variable::PrintType()
 		case DataType::INTEGER: s = "Integer"; break;
 		case DataType::FLOAT: s = "Float"; break;
 		case DataType::STRING: s = "String"; break;
-		case DataType::VECTOR3F: s = "Vector3f"; break;
+		case DataType::VECTOR_3F: s = "Vector3f"; break;
+		case DataType::VECTOR_4F: s = "Vector4f"; break;
 		default: s = "Bad/no type"; break;
 	}
 	if (s.Length())

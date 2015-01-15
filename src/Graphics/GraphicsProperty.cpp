@@ -11,6 +11,12 @@
 #include "TextureManager.h"
 #include "PhysicsLib/Estimator.h"
 
+#include "Entity/Entity.h"
+#include "Model/Model.h"
+#include "Mesh/Mesh.h"
+
+#include "Model/SkeletalAnimationNode.h"
+
 GraphicsProperty::GraphicsProperty(Entity * owner)
 : owner(owner)
 {
@@ -30,6 +36,12 @@ GraphicsProperty::GraphicsProperty(Entity * owner)
 	depthTest = true;
 
 	color = Vector4f(1,1,1,1);
+
+	skeletalAnimationEnabled = false;
+	shaderBasedSkeletonAnimation = false;
+
+
+	allAnimationsPaused = false;
 }
 
 
@@ -52,6 +64,9 @@ GraphicsProperty::~GraphicsProperty()
 /// Processes estimators related to this entity.
 void GraphicsProperty::Process(int timeInMs)
 {
+	if (allAnimationsPaused)
+		return;
+		
 	for (int i = 0; i < estimators.Size(); ++i)
 	{
 		Estimator * estimator = estimators[i];
@@ -63,12 +78,42 @@ void GraphicsProperty::Process(int timeInMs)
 			delete estimator;
 		}
 	}
+	// Re-calculate joint transforms as needed?
+	if (skeletalAnimationEnabled)
+	{
+		
+
+		Model * model = owner->model;
+		Mesh * mesh = model->mesh;
+		
+		Time now = Time::Now();
+		if (!mesh->skeleton)
+			return;
+		mesh->skeleton->AnimateForTime(now.Milliseconds(), true);
+		Matrix4f identity;
+		mesh->skeleton->UpdateMatrices(identity);
+			
+
+		if (shaderBasedSkeletonAnimation)
+		{
+			model->UpdateSkinningMatrixMap();
+		}
+		else 
+		{
+			mesh->SkinToCurrentSkeletalAnimation();
+		}
+	}
 }
 
 
 /// Sets current animation. Only called from the GMSetEntity message.
 void GraphicsProperty::SetAnimation(String name)
 {
+	if (!animationSet)
+	{
+		std::cout<<"\nTrying to set animation when lacking animation set.";
+		return;
+	}
 	Animation * anim = animationSet->GetAnimation(name);
 	if (anim == currentAnimation && (!anim || anim->repeatable))
 		return;
@@ -117,21 +162,19 @@ Texture * GraphicsProperty::GetTextureForCurrentFrame(int64 & frameTime)
 
 	/// Calculate animation-time.
 	int64 animTime = frameTime - animStartTime;
-	if (animTime > currentAnimation->totalDuration && currentAnimation->repeatable){
-		int c = animTime / currentAnimation->totalDuration;
-		if (c > 1000)
-			animStartTime = frameTime;
-		animStartTime += currentAnimation->totalDuration;
+	if (animTime > currentAnimation->totalDuration && currentAnimation->repeatable)
+	{
+		animTime = animTime % currentAnimation->totalDuration;
 	}
 
 	/// Get right frame
 	Texture * texture = currentAnimation->GetTexture(animTime);
 
 	// If not repeatable, halt it once it exceeds its duration.
-	if (animTime > currentAnimation->totalDuration)
+	if (animTime > currentAnimation->totalDuration && !currentAnimation->repeatable)
 	{
 		currentAnimation = NULL;	
 	}
-
+	assert(texture);
 	return texture;
 }

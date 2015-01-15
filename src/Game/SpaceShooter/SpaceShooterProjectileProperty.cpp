@@ -17,7 +17,7 @@
 #include "Entity/Entity.h"
 #include "Maps/MapManager.h"
 
-#include "ModelManager.h"
+#include "Model/ModelManager.h"
 #include "TextureManager.h"
 
 
@@ -50,8 +50,7 @@ void SpaceShooterProjectileProperty::OnCollision(Collision & data)
 	this->Sleep();
 
 	// Explode
-	Entity * explosionEntity = game->NewExplosion(owner->position);
-	Physics.QueueMessage(new PMSetEntity(explosionEntity, PT_SET_SCALE, 45.f));
+	Entity * explosionEntity = game->NewExplosion(owner->position, ExplosionType::PROJECTILE);
 	game->explosions.Add(explosionEntity);
 	
 }

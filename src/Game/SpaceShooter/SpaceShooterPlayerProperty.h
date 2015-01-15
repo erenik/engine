@@ -28,10 +28,9 @@ public:
 	
 	/// Time passed in seconds..!
 	virtual void Process(int timeInMs);
-
-
 	/// If reacting to collisions...
 	virtual void OnCollision(Collision & data);
+	void Damage(SpaceShooterWeaponType & type);
 
 	/// Determines type of projectile spawned.
 	SpaceShooterWeaponType weaponType;
@@ -58,6 +57,10 @@ public:
 
 	// False by default. If true will use default behaviour of following the mouse.
 	bool useMouseInput;
+
+	/// o.o
+	int hp;
+	int maxHP;
 private:
 
 	long millisecondsPassedSinceLastFire;

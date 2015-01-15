@@ -15,7 +15,7 @@
 #include "Maps/MapManager.h"
 #include "Physics/PhysicsManager.h"
 #include "Input/InputManager.h"
-#include "ModelManager.h"
+#include "Model/ModelManager.h"
 #include "Entity/EntityManager.h"
 #include "Pathfinding/PathManager.h"
 #include "Pathfinding/WaypointManager.h"

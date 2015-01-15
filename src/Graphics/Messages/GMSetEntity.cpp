@@ -5,7 +5,7 @@
 #include "GraphicsMessages.h"
 #include "GMSetEntity.h"
 #include "TextureManager.h"
-#include "Model.h"
+#include "Model/Model.h"
 
 #include "PhysicsLib/EstimatorFloat.h"
 
@@ -13,6 +13,13 @@
 #include "Graphics/Animation/AnimationSet.h"
 #include "Graphics/GraphicsProperty.h"
 #include "Graphics/GraphicsManager.h"
+
+GMSetEntityTexture::GMSetEntityTexture(Entity * entity, Texture * texture)
+	: GraphicsMessage(GM_SET_ENTITY_TEXTURE), entity(entity), t(texture)
+{
+	target = DIFFUSE_MAP | SPECULAR_MAP;
+}
+
 
 GMSetEntityTexture::GMSetEntityTexture(Entity * entity, int target, Texture * texture)
 : GraphicsMessage(GM_SET_ENTITY_TEXTURE), entity(entity), target(target), textureSource(String()), t(texture)
@@ -175,14 +182,16 @@ void GMSetEntity::Process()
 	}
 }
 
-GMSetEntityb::GMSetEntityb(List<Entity*> entities, int target, bool value)
-	: GraphicsMessage(GM_SET_ENTITY_BOOLEAN), entities(entities), target(target), bValue(value)
+GMSetEntityb::GMSetEntityb(List<Entity*> entities, int target, bool value, bool recursive)
+	: GraphicsMessage(GM_SET_ENTITY_BOOLEAN), entities(entities), target(target), bValue(value), recurse(recursive)
 {
 	switch(target)
 	{
 		case GT_VISIBILITY:
 		case GT_REQUIRE_DEPTH_SORTING:
 		case GT_DEPTH_TEST:
+		case GT_ANIMATE_SKIN_USING_SHADERS:
+		case GT_PAUSE_ANIMATIONS:
 			break;
 		default:
 			assert(false && "Bad target in GMSetEntityb");
@@ -193,6 +202,8 @@ void GMSetEntityb::Process()
 	for (int i = 0; i < entities.Size(); ++i)
 	{
 		Entity * entity = entities[i];
+		if (entity->children.Size())
+			entities.Add(entity->children);
 		assert(entity->graphics);
 		switch(target)
 		{
@@ -208,6 +219,12 @@ void GMSetEntityb::Process()
 				else 
 					entity->graphics->flags &= ~RenderFlags::REQUIRES_DEPTH_SORTING;
 				break;
+			case GT_ANIMATE_SKIN_USING_SHADERS:
+				entity->graphics->shaderBasedSkeletonAnimation = bValue;
+				break;
+			case GT_PAUSE_ANIMATIONS:
+				entity->graphics->allAnimationsPaused = bValue;
+				break;
 		}
 	}
 }
@@ -219,6 +236,8 @@ GMSetEntitys::GMSetEntitys(Entity * entity, int target, String value)
 	switch(target)
 	{
 		case GT_TEXT:
+		case GT_ANIMATION:
+		case GT_ANIMATION_SET:
 			break;
 		default:
 			assert(false && "Bad target in GMSetEntitys");
@@ -232,6 +251,22 @@ void GMSetEntitys::Process()
 		case GT_TEXT:
 			entity->graphics->text = sValue;
 			break;
+		case GT_ANIMATION:
+			assert(entity->graphics);
+			entity->graphics->SetAnimation(sValue);
+			break;
+		case GT_ANIMATION_SET:
+		{
+			AnimationSet * anim = AnimationMan.GetAnimationSet(sValue);
+			assert(anim && "Unable to find anim!");
+			if (!anim)
+				return;
+			entity->graphics->animationSet = anim;
+			if (anim->animations.Size())
+				entity->graphics->hasAnimation = true;
+			break;
+		}
+
 	}
 }
 
@@ -368,6 +403,11 @@ void GMSlideEntityf::Process()
 	for (int i = 0; i < entities.Size(); ++i)
 	{
 		Entity * entity = entities[i];
+		if (!entity)
+		{
+			std::cout<<"\nNULL entity.";
+			continue;
+		}
 		GraphicsProperty * graphics = entity->graphics;
 		assert(graphics);
 		// Create the slider (estimator)
@@ -375,8 +415,8 @@ void GMSlideEntityf::Process()
 		{
 			// Non pre-filled? 
 			estimatorFloat = new EstimatorFloat();
-			estimatorFloat->AddState(graphics->color.w, 0);
-			estimatorFloat->AddState(this->targetValue, this->timeInMs);
+			estimatorFloat->AddStateMs(graphics->color.w, 0);
+			estimatorFloat->AddStateMs(this->targetValue, this->timeInMs);
 		}
 		switch(target)
 		{
@@ -387,6 +427,26 @@ void GMSlideEntityf::Process()
 				assert(false);
 		}
 		graphics->estimators.Add(estimatorFloat);
+	}
+}
+
+
+GMClearEstimators::GMClearEstimators(Entities entities)
+	: GraphicsMessage(0), entities(entities)
+{
+
+}
+void GMClearEstimators::Process()
+{
+	for (int i = 0; i < entities.Size(); ++i)
+	{
+		Entity * entity = entities[i];
+		if (!entity)
+		{
+			std::cout<<"\nWARNING: NULL entity in GMClearEstimators";
+			continue;
+		}
+		entity->graphics->estimators.ClearAndDelete();
 	}
 }
 

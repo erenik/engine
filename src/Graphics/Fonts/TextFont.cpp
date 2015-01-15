@@ -18,6 +18,8 @@
 
 #include "Time/Time.h"
 
+#include "ShaderManager.h"
+
 String TextFont::defaultFontSource; // = "font3.png";
 
 /// Prints the values of the error code in decimal as well as hex and the literal meaning of it.
@@ -379,25 +381,25 @@ Vector2f TextFont::CalculateRenderSizeUnits(Text text)
 }
 
 /// Calculates the render size in pixels if the text were to be rendered now.
-Vector2f TextFont::CalculateRenderSizeWorldSpace(Text text, GraphicsState * graphics)
+Vector2f TextFont::CalculateRenderSizeWorldSpace(Text text, GraphicsState & graphics)
 {
 	// Just grab required render size and multiply with the model-matrix?
 	Vector2f renderSize = CalculateRenderSizeUnits(text);
 	Vector4f size(renderSize.x, renderSize.y, 0, 0);
-	Vector4f transformed = graphics->modelMatrixF.Product(size);
+	Vector4f transformed = graphics.modelMatrixF.Product(size);
 	return Vector2f(transformed.x, AbsoluteValue(transformed.y));
 }
 
 
 
 /// Renders text ^^
-void TextFont::RenderText(Text & text, GraphicsState * graphicsState)
+void TextFont::RenderText(Text & text, GraphicsState & graphicsState)
 {
 	// Set starting variables.
 	NewText(text);
 
 	/// Save old shader!
-	Shader * oldShader = graphicsState->activeShader;
+	Shader * oldShader = ActiveShader();
 	// Start rendering.
 	PrepareForRender(graphicsState);
 
@@ -444,16 +446,12 @@ void TextFont::RenderText(Text & text, GraphicsState * graphicsState)
 	
 	OnEndRender(graphicsState);
 	/// Revert to old shader!
-	graphicsState->activeShader = oldShader;
-	if (oldShader == NULL)
-		glUseProgram(0);
-	else
-		glUseProgram(oldShader->shaderProgram);
+	ShadeMan.SetActiveShader(oldShader);
 }
 
 
 
-void TextFont::PrepareForRender(GraphicsState * graphicsState)
+void TextFont::PrepareForRender(GraphicsState & graphicsState)
 {
 	if (!texture){
 		std::cout<<"\nERROR: Texture not allocated in Font::RenderText";
@@ -463,28 +461,23 @@ void TextFont::PrepareForRender(GraphicsState * graphicsState)
 		MakeTextureWhite();
 	}
 
-	/// Save old shader!
-	Shader * oldShader = graphicsState->activeShader;
-
 	// Enable textures if it wasn't already
 	glEnable(GL_TEXTURE_2D);
 	PrintGLError("Font.h: glEnable(GL_TEXTURE_2D) error");
 	/// Set fill mode!
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-	glUseProgram(0);
+	ShadeMan.SetActiveShader(0);
 
 	glEnable(GL_TEXTURE_2D);
 //	glEnable(GL_LIGHTING);
 	glDisable(GL_COLOR_MATERIAL);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
-
-	graphicsState->activeShader = NULL;
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glLoadMatrixf(graphicsState->projectionMatrixF.getPointer());
-	Matrix4f modelView = graphicsState->viewMatrixF * graphicsState->modelMatrixF;
+	glLoadMatrixf(graphicsState.projectionMatrixF.getPointer());
+	Matrix4f modelView = graphicsState.viewMatrixF * graphicsState.modelMatrixF;
 	glMatrixMode(GL_MODELVIEW);
 	glLoadMatrixf(modelView.getPointer());
 	glColor4f(color.x, color.y, color.z, color.w);
@@ -514,7 +507,7 @@ void TextFont::PrepareForRender(GraphicsState * graphicsState)
 		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	}
 
-//	glUseProgram(graphicsState->activeShader->shaderProgram);
+//	glUseProgram(shader->shaderProgram);
 
 	/// Begin the QUADS!
 	glBegin(GL_QUADS);
@@ -610,7 +603,7 @@ void TextFont::RenderSelection(char c)
 	
 
 /// Re-instates old shader as needed.
-void TextFont::OnEndRender(GraphicsState * graphicsState)
+void TextFont::OnEndRender(GraphicsState & graphicsState)
 {
 	glEnd();
 	
@@ -620,250 +613,3 @@ void TextFont::OnEndRender(GraphicsState * graphicsState)
 
 }
 
-
-
-
-
-	/*
-
-//	std::cout<<"\nTextFont::CalculateRenderSizeX";
-	if (text.Length() < 1){
-		// std::cout<<"\nERROR: NULL-string passed to Font::RenderText";
-		return;
-	}
-	else if (!texture){
-		std::cout<<"\nERROR: Texture not allocated in Font::RenderText";
-		return;
-	}
-	if (!whitened){
-		MakeTextureWhite();
-	}
-
-	/// Save old shader!
-	Shader * oldShader = graphicsState->activeShader;
-
-	// Enable textures if it wasn't already
-	glEnable(GL_TEXTURE_2D);
-	PrintGLError("Font.h: glEnable(GL_TEXTURE_2D) error");
-	/// Set fill mode!
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-	glUseProgram(0);
-
-	glEnable(GL_TEXTURE_2D);
-//	glEnable(GL_LIGHTING);
-	glDisable(GL_COLOR_MATERIAL);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	
-
-	graphicsState->activeShader = NULL;
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glLoadMatrixf(graphicsState->projectionMatrixF.getPointer());
-	Matrix4f modelView = graphicsState->viewMatrixF * graphicsState->modelMatrixF;
-	glMatrixMode(GL_MODELVIEW);
-	glLoadMatrixf(modelView.getPointer());
-	glColor4f(color.x, color.y, color.z, color.w);
-	glEnable(GL_BLEND);
-	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	glDisable(GL_LIGHTING);
-
-
-	// Disable depth test..
-	glDisable(GL_DEPTH_TEST);
-
-	if (texture->glid == -1)
-		TexMan.BufferizeTexture(texture);
-	glBindTexture(GL_TEXTURE_2D, texture->glid);
-
-	// when texture area is small, bilinear filter the closest mipmap
-	// when texture area is large, bilinear filter the original
-	bool linear = false;
-	if (linear){
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	}
-	else {
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	}
-
-//	glUseProgram(graphicsState->activeShader->shaderProgram);
-
-	const char * c_str = text.c_str();
-	unsigned char c, previousChar;
-	int characterX, characterY;
-	float x1, x2, y1, y2;
-	/// Starting position for each letter, starting at 0
-	// xStart was previously "left", but is better suited as "centerX"
-	float xStart = 0.0f;
-	float yStart = 0.0f;
-	float scale = 1.0f, halfScale = 0.5f;
-	float spacing = scale * 0.15;
-	xStart += spacing; // Always start with some space ;)
-	/// Deprecated
-	float bleedEdgeWidth = 0.00f;
-	/// Begin the QUADS!
-	glBegin(GL_QUADS);
-//	std::cout<<"\nRendering text: "<<c_str;
-	bool renderedCaret = false;
-	int64 renderTime = 	Timer::GetCurrentTimeMs();
-	bool shouldRenderCaret = renderTime % 1000 >= 500 && text.caretPosition >= 0;
-	if (text.caretPosition >= 0 && shouldRenderCaret)
-	{
-		; //std::cout<<"found carrot";
-	}
-	for (int i = 0; i <= (int)strlen(c_str); ++i){
-		c = c_str[i];
-    //    std::cout<<"\nc "<<i<<": (int)"<<(int)c<<" (char)"<<c;
-		// Check for caret!
-		if (text.caretPosition == i && shouldRenderCaret){
-			char caret = '|';
-			characterX = caret % 16;
-			characterY = caret / 16;
-			float offsetXStart = 0.0f;
-			offsetXStart -= charWidth[caret]* halfScale;
-			xStart += offsetXStart;
-			x1 = characterX / 16.0f + bleedEdgeWidth;
-			x2 = (characterX+1) / 16.0f - bleedEdgeWidth;
-			y1 = (16 - characterY) / 16.0f - bleedEdgeWidth;
-			y2 = (16 - characterY - 1) / 16.0f + bleedEdgeWidth;
-			glTexCoord2f(x1, y2);
-			glVertex3f(-halfScale + xStart, -scale + yStart, 0);
-			glTexCoord2f(x2, y2);
-			glVertex3f(halfScale + xStart, -scale + yStart, 0);
-			glTexCoord2f(x2, y1);
-			glVertex3f(halfScale + xStart, yStart, 0);
-			glTexCoord2f(x1, y1);
-			glVertex3f(-halfScale + xStart, yStart, 0);
-			xStart -= offsetXStart;
-			renderedCaret = true;
-		}
-
-		// Handle special characters differently!
-		switch(c){
-			// Backspace, handle like in C++, allow for special escape sequences such as \n by looking at the next character.
-			case '\\': 
-			{ 
-				char c2 = c_str[i+1];
-				switch(c2){
-					case 'n': // Newline!
-						yStart -= scale;
-						xStart = spacing;
-						++i;
-						continue;
-						break;
-					// Unknown escape sequence, continue.
-					default:
-						break;
-				}
-				break;
-			}
-			case '\0': // Break the loop at the end o-o
-				break;
-			case '\n': // And go to next row if we get a newline character!
-				yStart -= scale;
-				xStart = spacing;
-				continue;
-				break;
-				
-			case 'ö':
-				std::cout<<"ll;;;h";
-				break;
-		};
-
-		xStart += charWidth[c] * halfScale;
-
-		characterX = c % 16;
-		characterY = c / 16;
-		x1 = characterX / 16.0f + bleedEdgeWidth;
-		x2 = (characterX+1) / 16.0f - bleedEdgeWidth;
-		y1 = (16 - characterY) / 16.0f - bleedEdgeWidth;
-		y2 = (16 - characterY - 1) / 16.0f + bleedEdgeWidth;
-
-	//	x1 = y1 = 0.0f;
-	//	y2 = x2 = 1.0f;
-	//	glBegin(GL_TRIANGLES);
-		glTexCoord2f(x1, y2);
-		glVertex3f(-halfScale + xStart, -scale + yStart, 0);
-		glTexCoord2f(x2, y2);
-		glVertex3f(halfScale + xStart, -scale + yStart, 0);
-		glTexCoord2f(x2, y1);
-		glVertex3f(halfScale + xStart, yStart, 0);
-		glTexCoord2f(x1, y1);
-		glVertex3f(-halfScale + xStart, yStart, 0);
-
-		// Move character in half it's width no matter what.
-		// No need for letter spacing before first letter has passed by!
-		xStart += charWidth[c] * halfScale + spacing;//i * scale * 0.6f;
-
-
-		previousChar = c;
-	//	if (i == 0)
-	//		break;
-	}
-
-	if (!renderedCaret && shouldRenderCaret)
-	{
-		// Check for caret!
-		char caret = '|';
-		characterX = caret % 16;
-		characterY = caret / 16;
-		float offsetXStart = 0.0f;
-		offsetXStart -= charWidth[caret]* halfScale;
-		xStart += offsetXStart;
-		x1 = characterX / 16.0f + bleedEdgeWidth;
-		x2 = (characterX+1) / 16.0f - bleedEdgeWidth;
-		y1 = (16 - characterY) / 16.0f - bleedEdgeWidth;
-		y2 = (16 - characterY - 1) / 16.0f + bleedEdgeWidth;
-		glTexCoord2f(x1, y2);
-		glVertex3f(-halfScale + xStart, -scale + yStart, 0);
-		glTexCoord2f(x2, y2);
-		glVertex3f(halfScale + xStart, -scale + yStart, 0);
-		glTexCoord2f(x2, y1);
-		glVertex3f(halfScale + xStart, yStart, 0);
-		glTexCoord2f(x1, y1);
-		glVertex3f(-halfScale + xStart, yStart, 0);
-		xStart -= offsetXStart;
-		renderedCaret = true;
-	}
-
-	/// End the .. quads :D
-	glEnd();
-
-	*/
-
-/*
-glBegin(GL_TRIANGLES);
- for (int i = 0; i < strlen(text); ++i){
-  char c = text[i];
-  int x = c % 16;
-  int y = c / 16;
-  float x1 = x / 16.0f;
-  float x2 = (x+1) / 16.0f;
-  float y1 = (16 - y) / 16.0f;
-  float y2 = (16 - y - 1) / 16.0f;
-  float spacing = i * 2;
-  glTexCoord2d(x1,y1); glVertex2d(-1 + spacing, -1);
-  glTexCoord2d(x1,y2); glVertex2d(-1 + spacing, 1);
-  glTexCoord2d(x2,y2); glVertex2d(1 + spacing, 1);
-
-  glTexCoord2d(x2,y2); glVertex2d(1 + spacing, 1);
-  glTexCoord2d(x2,y1); glVertex2d(1 + spacing, -1);
-  glTexCoord2d(x1,y1); glVertex2d(-1 + spacing, -1);
- }
- glEnd();
-*/
-
-/*
-	PrintGLError("Font.h: Error after rendering error");
-
-	/// Revert to old shader!
-	graphicsState->activeShader = oldShader;
-	if (oldShader == NULL)
-		glUseProgram(0);
-	else
-		glUseProgram(oldShader->shaderProgram);
-
-		*/

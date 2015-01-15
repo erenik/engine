@@ -51,6 +51,8 @@ public:
 	Session * GetSessionByName(String byName);
 	/// As defined in SessionTypes.h and specific sub type header file. E.g. GameSessionTypes.h. If no subtype is provided, the first of specified type will be returned.
 	Session * GetSession(int byType, int andSubType = -1);
+	/// Make sure it works first..?
+	SIPSession * GetSIPSession();
 	/// Adds given session, adding it to the list of active sessions.
 	bool AddSession(Session * session);
 

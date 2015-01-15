@@ -58,6 +58,12 @@ StateManager::~StateManager()
 	}
 };
 
+/// Deletes all application states (global and current/active ones).
+void StateManager::DeleteStates()
+{
+	this->stateList.ClearAndDelete();
+}
+
 void StateManager::Initialize()
 {
 	/// Create and queue the init-state right away!
@@ -308,10 +314,9 @@ void * StateManager::StateProcessor(void * vArgs){
 
 					/// Process network, sending packets and receiving packets
 					NetworkMan.ProcessNetwork();
+
 					/// Get input from XBox devices if possible
 					Input.UpdateDeviceStates();
-
-					
 					// Main message loop for all extra created windows, since they are dependent on the thread they were created in...
 		#ifdef WINDOWS
 					// Get messages and dispatch them to WndProc

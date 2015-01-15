@@ -8,6 +8,21 @@
 #include "../../OS/OS.h"
 
 typedef void* HANDLE;
+class Mutex;
+
+/** A RAII-based Mutex wrapper class. 
+	Intended use is to create a MutexHandle with given mutex at the start of the intended closed execution code,
+	and then when the function exists, the MutexHandle is de-allocated automatically (assuming you create it on the Stack)
+	making the Mutex release no matter how you return, without having to explicitly call Mutex.Release();
+*/
+class MutexHandle 
+{
+public:
+	MutexHandle(Mutex & mutex);
+	~MutexHandle();
+private:
+	Mutex * mutex;
+};
 
 // A Multi-platform class for handling mutexes (for locking/unlocking threads)
 class Mutex {
@@ -25,7 +40,7 @@ public:
 	bool Create(String name);
 	/** Attempts to claim the mutex. If milliseconds is -1 it will wait indefinitely
 		until it manages to retrieve it. */
-	bool Claim(int milliseconds);
+	bool Claim(int milliseconds = -1);
 	/** Releases the claimed mutex. */
 	bool Release();
 	/// Deallocate/free resources for this mutex and closes it.
@@ -45,6 +60,8 @@ public:
 #endif
 
     const String GetName() const { return name; };
+
+	bool IsCreated() const { return isCreated; };
 
 private:
 

@@ -29,5 +29,18 @@ void PrependStrings(List<String> & list, String withString);
 #include "MathLib.h"
 String VectorString(Vector3f v);
 
+/// Conversion.
+List<float> StringListToFloatList(List<String> & stringList);
+List<int> StringListToIntList(List<String> & stringList);
+
+void PrintStringList(List<String> & toPrint, bool sortingValueToo = false);
+/// Assigns values to strings based on numbers found within.
+void AssignStringsValues(List<String> & stringList, bool debugPrint = false);
+/// Sorts by assigned values.
+void SortStrings(List<String> & listToSort, bool debugPrint = false);
+
+/// Assigns values and sorts, based on found numbers inside.
+void SortStringsByNumberizedValues(List<String> & listToSort, bool debugPrint = false);
+
 
 #endif

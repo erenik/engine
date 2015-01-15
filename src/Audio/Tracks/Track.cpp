@@ -51,9 +51,11 @@ void Track::Resume()
 		this->Play();
 }
 
-void Track::Stop(){
-	if (audio){
-		audio->Stop();
+void Track::Stop()
+{
+	if (audio)
+	{
+		audio->Stop(true);
 	}
 }
 

@@ -340,10 +340,9 @@ bool SIPPacket::Send(Peer * receiver)
 				std::cout<<"SIPPacket::Send:\nPacket: ";
 				Print();
 				receiver->Print();
-
-				std::cout<<"ERROR: Unable to send to receiver. Receiver not valid or not synchronized correctly. See receiver and packet data above.";
-				assert(false);
-				return false;
+				std::cout<<"WARNING: Sending packet to undefined receiver. May not be desired for too long.";
+			//	assert(false);
+			//	return false;
 //				assert(receiver->isValid);
 			}
 	}

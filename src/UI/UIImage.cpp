@@ -36,12 +36,14 @@ UIImage::~UIImage()
 }
 
 /// Subclassing in order to control rendering.
-void UIImage::RenderSelf(GraphicsState * graphicsState)
+void UIImage::RenderSelf(GraphicsState & graphicsState)
 {
 	/// First render ourself using only black?
 	UIElement::RenderSelf(graphicsState);
 
 	return;
+
+	/*
 	/// Render our pictuuure.
 
 	/// Set mip-map filtering to closest
@@ -51,7 +53,7 @@ void UIImage::RenderSelf(GraphicsState * graphicsState)
 	/// NEW CODE
 
 	/// Save old shader!
-	Shader * oldShader = graphicsState->activeShader;
+	Shader * oldShader = ActiveShader();
 
 	// Enable textures if it wasn't already
 	glEnable(GL_TEXTURE_2D);
@@ -68,12 +70,11 @@ void UIImage::RenderSelf(GraphicsState * graphicsState)
 	if (texture->glid == -1)
 		texture->Bufferize();
 
-	glUseProgram(0);
-	graphicsState->activeShader = NULL;
+	ShadeMan.SetActiveShader(0);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glLoadMatrixf(graphicsState->projectionMatrixF.getPointer());
-	Matrix4f modelView = graphicsState->viewMatrixF * graphicsState->modelMatrixF;
+	glLoadMatrixf(graphicsState.projectionMatrixF.getPointer());
+	Matrix4f modelView = graphicsState.viewMatrixF * graphicsState.modelMatrixF;
 	glMatrixMode(GL_MODELVIEW);
 	glLoadMatrixf(modelView.getPointer());
 	glColor4f(color.x, color.y, color.z, color.w);
@@ -131,7 +132,10 @@ void UIImage::RenderSelf(GraphicsState * graphicsState)
 
 	glUseProgram(oldShader->shaderProgram);
 
-	graphicsState->activeShader = oldShader;
+
+	ShadeMan
+	shader = oldShader;
+	*/
 
 }
 

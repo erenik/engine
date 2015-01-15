@@ -25,10 +25,10 @@
 #include "Pathfinding/NavMesh.h"
 #include "Pathfinding/Waypoint.h"
 #include "Graphics/GraphicsProperty.h"
-#include "Model.h"
+#include "Model/Model.h"
 #include "OS/Sleep.h"
 #include <cassert>
-#include "ModelManager.h"
+#include "Model/ModelManager.h"
 
 
 TileMap2D::TileMap2D(){
@@ -122,7 +122,7 @@ void TileMap2D::OnExit(){
 #define PRINT_ERROR	std::cout<<"\nGLError in Render "<<error;
 
 /// Render!
-void TileMap2D::Render(GraphicsState * graphicsState)
+void TileMap2D::Render(GraphicsState & graphicsState)
 {
 	if (!render)
 		return;
@@ -140,7 +140,7 @@ void TileMap2D::Render(GraphicsState * graphicsState)
 		std::cout<<"\nGLError before TileMap2D::Render "<<error;
 	}
 	/// Stuff needed to cull decently.
-	Camera & camera = *graphicsState->camera;
+	Camera & camera = *graphicsState.camera;
 	Frustum frustum = camera.GetFrustum();
 	Vector3f min = frustum.hitherBottomLeft - Vector3f(1,1,1), max = frustum.fartherTopRight + Vector3f(1,1,1);	
 
@@ -153,9 +153,9 @@ void TileMap2D::Render(GraphicsState * graphicsState)
 
 		LoadLighting(&lighting, shader);
 
-		glUniformMatrix4fv(graphicsState->activeShader->uniformViewMatrix, 1, false, graphicsState->viewMatrixF.getPointer());
-		glUniformMatrix4fv(graphicsState->activeShader->uniformModelMatrix, 1, false, graphicsState->modelMatrixF.getPointer());
-		glUniformMatrix4fv(graphicsState->activeShader->uniformProjectionMatrix, 1, false, graphicsState->projectionMatrixF.getPointer());
+		glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, graphicsState.viewMatrixF.getPointer());
+		glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, graphicsState.modelMatrixF.getPointer());
+		glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, graphicsState.projectionMatrixF.getPointer());
 
 		/// Reset color
 		glColor4f(1,1,1,1);
@@ -164,8 +164,8 @@ void TileMap2D::Render(GraphicsState * graphicsState)
 		// When rendering an object with this program.
 		glActiveTexture(GL_TEXTURE0 + 0);		// Select server-side active texture unit
 		// Set sampler in client graphicsState
-		if (graphicsState->activeShader->uniformBaseTexture != -1)
-			glUniform1i(graphicsState->activeShader->uniformBaseTexture, 0);		// Sets sampler
+		if (shader->uniformBaseTexture != -1)
+			glUniform1i(shader->uniformBaseTexture, 0);		// Sets sampler
 		// Texture scaling parameters
 //		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 //		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -173,8 +173,8 @@ void TileMap2D::Render(GraphicsState * graphicsState)
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 		// Set diffuse map to be used in the shader.
-		if (graphicsState->activeShader->uniformUseDiffuseMap != -1)
-			glUniform1i(graphicsState->activeShader->uniformUseDiffuseMap, 1);
+		if (shader->uniformUseDiffuseMap != -1)
+			glUniform1i(shader->uniformUseDiffuseMap, 1);
 
 		Model * model = ModelMan.GetModel("Sprite");
 		// For correct placement.
@@ -194,23 +194,23 @@ void TileMap2D::Render(GraphicsState * graphicsState)
 			if (previewTexture)
 			{
 				// Save old matrix to the stack
-				Matrix4d tmp = graphicsState->modelMatrixD;
+				Matrix4d tmp = graphicsState.modelMatrixD;
 				Vector2i mapSize = Size();
 			
 				Matrix4d transformationMatrix = Matrix4d::InitTranslationMatrix(Vector3f(mapSize.x * 0.5f + offset.x, mapSize.y * 0.5f + offset.y, -0.1f));
 				transformationMatrix.Scale(Vector3f(mapSize.x, mapSize.y, 1));
 				// Apply transformation
-				graphicsState->modelMatrixD.Multiply(transformationMatrix);
-				graphicsState->modelMatrixF = graphicsState->modelMatrixD;
+				graphicsState.modelMatrixD.Multiply(transformationMatrix);
+				graphicsState.modelMatrixF = graphicsState.modelMatrixD;
 				// Set uniform matrix in shader to point to the AppState modelView matrix.
-				glUniformMatrix4fv(graphicsState->activeShader->uniformModelMatrix, 1, false, graphicsState->modelMatrixF.getPointer());
+				glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, graphicsState.modelMatrixF.getPointer());
 
 				// Texture enabled.
 				glBindTexture(GL_TEXTURE_2D, previewTexture->glid);
 				// Render it.			
-				model->Render();
+				model->Render(graphicsState);
 				/// Reset transformation matrix.
-				graphicsState->modelMatrixF = graphicsState->modelMatrixD = Matrix4d();
+				graphicsState.modelMatrixF = graphicsState.modelMatrixD = Matrix4d();
 
 			}
 			/// Render tiles.
@@ -229,9 +229,9 @@ void TileMap2D::Render(GraphicsState * graphicsState)
 
 				transformationMatrix = Matrix4f::InitTranslationMatrix(Vector3f(tile->position.x, tile->position.y, 0.f));
 				// Apply transformation
-				graphicsState->modelMatrixF = transformationMatrix;
+				graphicsState.modelMatrixF = transformationMatrix;
 				// Set uniform matrix in shader to point to the AppState modelView matrix.
-				glUniformMatrix4fv(graphicsState->activeShader->uniformModelMatrix, 1, false, graphicsState->modelMatrixF.getPointer());
+				glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, graphicsState.modelMatrixF.getPointer());
 				
 				/// Set texture.
 				if (!tile->type)
@@ -247,7 +247,7 @@ void TileMap2D::Render(GraphicsState * graphicsState)
 					glBindTexture(GL_TEXTURE_2D, tex->glid);
 				}
 				/// Set position.
-				model->Render();
+				model->Render(graphicsState);
 			}
 		}
 
@@ -280,11 +280,11 @@ void TileMap2D::Render(GraphicsState * graphicsState)
 			Matrix4d transformationMatrix = Matrix4d::InitTranslationMatrix(Vector3f(position.x + offset.x, position.y + offset.y, 0.1f - position.y * 0.0001f));
 			transformationMatrix.Scale(Vector3f(got->size.x, got->size.y, 1.f));
 			// Apply transformation
-			graphicsState->modelMatrixD = Matrix4d();
-			graphicsState->modelMatrixD.Multiply(transformationMatrix);
-			graphicsState->modelMatrixF = graphicsState->modelMatrixD;
+			graphicsState.modelMatrixD = Matrix4d();
+			graphicsState.modelMatrixD.Multiply(transformationMatrix);
+			graphicsState.modelMatrixF = graphicsState.modelMatrixD;
 			// Set uniform matrix in shader to point to the AppState modelView matrix.
-			glUniformMatrix4fv(graphicsState->activeShader->uniformModelMatrix, 1, false, graphicsState->modelMatrixF.getPointer());
+			glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, graphicsState.modelMatrixF.getPointer());
 			// Bind texture
 			if (!got->texture){
 				got->texture = TexMan.GetTexture(got->textureSource);
@@ -296,7 +296,7 @@ void TileMap2D::Render(GraphicsState * graphicsState)
 			}
 			/// Disable depth test.. should not be needed.
 			/// Render
-			model->Render();
+			model->Render(graphicsState);
 		}
 		/// Render (active) entities!
 		for (int i = 0; i < entities.Size(); ++i)
@@ -330,15 +330,15 @@ void TileMap2D::Render(GraphicsState * graphicsState)
 			Matrix4d transformationMatrix = Matrix4d::InitTranslationMatrix(Vector3f(position.x + offset.x, position.y + offset.y, 0.1f - position.y * 0.0001f));
 			transformationMatrix.Scale(Vector3f(spriteSize.x, spriteSize.y, 1));
 			// Apply transformation
-			graphicsState->modelMatrixD = Matrix4d();
-			graphicsState->modelMatrixD.Multiply(transformationMatrix);
-			graphicsState->modelMatrixF = graphicsState->modelMatrixD;
+			graphicsState.modelMatrixD = Matrix4d();
+			graphicsState.modelMatrixD.Multiply(transformationMatrix);
+			graphicsState.modelMatrixF = graphicsState.modelMatrixD;
 			// Set uniform matrix in shader to point to the AppState modelView matrix.
-			glUniformMatrix4fv(graphicsState->activeShader->uniformModelMatrix, 1, false, graphicsState->modelMatrixF.getPointer());
+			glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, graphicsState.modelMatrixF.getPointer());
 			// Bind texture
 			Texture * diffuseMap = NULL;
 			if (entity->graphics)
-				diffuseMap = entity->graphics->GetTextureForCurrentFrame(graphicsState->currentFrameTime);
+				diffuseMap = entity->graphics->GetTextureForCurrentFrame(graphicsState.frametimeStartMs);
 			if (!diffuseMap)
 				diffuseMap = entity->GetTexture(DIFFUSE_MAP);
 			if (diffuseMap){
@@ -348,7 +348,7 @@ void TileMap2D::Render(GraphicsState * graphicsState)
 			}
 			/// Disable depth test.. should not be needed.
 			/// Render
-			model->Render();
+			model->Render(graphicsState);
 		}
 
 	}
@@ -357,9 +357,9 @@ void TileMap2D::Render(GraphicsState * graphicsState)
 	if (old){
 		ShadeMan.SetActiveShader(0);
 		glMatrixMode(GL_PROJECTION);
-		glLoadMatrixd(graphicsState->projectionMatrixD.getPointer());
+		glLoadMatrixd(graphicsState.projectionMatrixD.getPointer());
 		glMatrixMode(GL_MODELVIEW);
-		Matrix4d modelView = graphicsState->viewMatrixD * graphicsState->modelMatrixD;
+		Matrix4d modelView = graphicsState.viewMatrixD * graphicsState.modelMatrixD;
 		glLoadMatrixd(modelView.getPointer());
 
 		error = glGetError();
@@ -374,7 +374,7 @@ void TileMap2D::Render(GraphicsState * graphicsState)
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glDisable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, 0);
-		graphicsState->currentTexture = NULL;
+		graphicsState.currentTexture = NULL;
 		// Disable lighting
 		glDisable(GL_LIGHTING);
 		error = glGetError();
@@ -384,7 +384,7 @@ void TileMap2D::Render(GraphicsState * graphicsState)
 		glDisable(GL_COLOR_MATERIAL);
 
 		float z = -4;
-		Vector3f ambient = graphicsState->lighting->GetAmbient();
+		Vector3f ambient = graphicsState.lighting->GetAmbient();
 		glColor4f(ambient.x, ambient.y, ambient.z, 1.0f);
 
 		error = glGetError();
@@ -403,7 +403,7 @@ void TileMap2D::Render(GraphicsState * graphicsState)
 		glLineStipple(1, 0x0101);
 		glLineWidth(1.0f);
 
-		Vector3f camPos = graphicsState->camera->Position();
+		Vector3f camPos = graphicsState.camera->Position();
 
 		
 		/// Render whole texture map?
@@ -437,7 +437,7 @@ void TileMap2D::Render(GraphicsState * graphicsState)
 		}
 
 		/// If stuff, render preview map
-		if (graphicsState->camera->zoom > 20)
+		if (graphicsState.camera->zoom > 20)
 		{
 			return;
 		}
@@ -536,10 +536,10 @@ void TileMap2D::Render(GraphicsState * graphicsState)
 
 }
 
-void TileMap2D::RenderEntities(GraphicsState * graphicsState)
+void TileMap2D::RenderEntities(GraphicsState & graphicsState)
 {
 	/// Might wanna replace the following code with one that sorts the entities depending on Y
-	Vector3f camPos = graphicsState->camera->Position();
+	Vector3f camPos = graphicsState.camera->Position();
 	GLuint error;
 
 	/// Sort entities by Y
@@ -567,10 +567,10 @@ void TileMap2D::RenderEntities(GraphicsState * graphicsState)
 
 		float z = 0.1f;
 		//	glBlendFunc(GL_ONE, GL_ONE);
-		ShadeMan.SetActiveShader("Flat");
+		Shader * shader = ShadeMan.SetActiveShader("Flat");
 		/// Load in matrices, yawow!
-		glUniformMatrix4fv(graphicsState->activeShader->uniformProjectionMatrix, 1, false, graphicsState->projectionMatrixF.getPointer());
-		glUniformMatrix4fv(graphicsState->activeShader->uniformViewMatrix, 1, false, graphicsState->viewMatrixF.getPointer());
+		glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, graphicsState.projectionMatrixF.getPointer());
+		glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, graphicsState.viewMatrixF.getPointer());
 		glColor4f(1,1,1,1.0f);
 		glEnable(GL_TEXTURE_2D);
 		glEnable(GL_BLEND);
@@ -606,7 +606,7 @@ void TileMap2D::RenderEntities(GraphicsState * graphicsState)
 }
 
 /// Render symbolic quads for events.
-void TileMap2D::RenderEvents(GraphicsState * graphicsState)
+void TileMap2D::RenderEvents(GraphicsState & graphicsState)
 {
 	Texture * tex = TexMan.GetTextureBySource("img/Events/DefaultEvent.png");
 	if (tex->glid == -1){

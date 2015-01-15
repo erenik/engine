@@ -27,6 +27,16 @@ private:
 	Entity * entity;
 };
 
+// For skeletal animations
+class GMPlaySkeletalAnimation : public GraphicsMessage 
+{
+public:
+	GMPlaySkeletalAnimation(Entity * entity);
+	virtual void Process();
+private:
+	Entity * entity;
+};
+
 #endif
 
 

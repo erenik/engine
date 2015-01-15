@@ -2,21 +2,25 @@
 /// 2014-06-27
 /// Particle emitter.
 
+#ifndef PARTICLE_EMITTER_H
+#define PARTICLE_EMITTER_H
+
 #include "PhysicsLib/Shapes/Contour.h"
 #include "MathLib.h"
 #include "Random/Random.h"
 
 class Mesh;
+class Entity;
 
 namespace EmitterType {
-enum emitterTypes
-{
-	DEFAULT,
-	CONTOUR,
-	POINT_DIRECTIONAL,
-	POINT_CIRCLE,
-	NONE, // Default constructor.
-}; 
+	enum emitterTypes
+	{
+		DEFAULT,
+		CONTOUR,
+		POINT_DIRECTIONAL,
+		POINT_CIRCLE,
+		NONE, // Default constructor.
+	}; 
 };
 
 class ParticleEmitter 
@@ -25,29 +29,96 @@ class ParticleEmitter
 public:
 	// Default constructor with no assigned type or anything. MUST overload GetNewParticle if so!
 	ParticleEmitter();
+	/// Virtual destructor for subclasses.
+	virtual ~ParticleEmitter();
 	ParticleEmitter(Contour contour);
     ParticleEmitter(Mesh * mesh);
-    ParticleEmitter(int shape);
+	/// See EmitterTypes above.
+    ParticleEmitter(int type);
 	/// Point-based directional emitter
 	ParticleEmitter(Vector3f point, Vector3f direction);
 	/// Point-based circular emitter
 	ParticleEmitter(Vector3f point);
-	void Initialize();
-	/// Stuff.
+	/// Initializes and allocates stuff.
+	virtual void Initialize();
+
+	/// Attaches this emitter to target system.
+	virtual void AttachTo(ParticleSystem * ps);
+
+	/// Called each frame to update position and other according to automations (if any)
+	void Update();
+	/// Query how many particles this emitter wants to emit, considering the time that has elapsed.
+	int ParticlesToEmit(float timeInSeconds);
+	/// Default new particle.
 	virtual bool GetNewParticle(Vector3f & position, Vector3f & velocity);
+	/// Extended particle emission.
+	virtual bool GetNewParticle(Vector3f & position, Vector3f & velocity, float & scale, float & lifeTime, Vector4f & color);
 
+	void SetParticleLifeTime(float timeInSeconds);
+	void SetEmissionVelocity(float vel);
+	void SetColor(Vector4f color);
+	void SetScale(float scale);
 
+	/// Default 1000?
+	float particlesPerSecond;
+	/// If specified (non 0), the emitter will be deleted after the specified time has elapsed (while emitting).
+	int deleteAfterMs;
 	/// For temporary disabling. True by default
 	bool enabled;
+
+
+	/** Default true. If the correspond Set- function is called before, these will be set to false.
+		Inheritance allows a particle system to transfer attributes so that not every emitter has 
+		to be re-set with the same variables every time they are to be attached.
+	*/
+	bool inheritColor,
+		inheritEmissionVelocity,
+		inheritParticleLifeTime,
+		inheritScale,
+		inheritEmissionsPerSecond;
+
+	/// For point-based emitters.
+	Vector3f position, direction;
+	/// Position will be relative to the tracked entity, if any.
+	Entity * entityToTrack;
+	/// That it is currently attached to.
+	List<ParticleSystem*> particleSystems;
 private:
+
+	// Time we started emitting particles. Used to calculate how many particles we should emit next!
+	float secondsEmitted;
+	// Total emissions performed.
+	int64 emissions;
+
+	/** Belonging particle system. An emitter almost always belongs to just 1 system. 
+		Re-write and virtualize the system in sub-classes if you want to be obnoxious about this.
+	*/
+	ParticleSystem * ps;
+
+	/// Calculate in ParticlesToEmit, decremented each time GetNewParticle is called.
+	int toSpawn;
+
+	// o.o
+	float emissionVelocity;
+	// Particle scale
+	float scale;
+
+	/// Current elapsed duration for the emitter.
+	int elapsedDurationMs;
+	/// Particle life time in.. seconds?
+	float particleLifeTime;
+
     int shapeType;
     Mesh * m;
 	Contour contour;
 	// See enum above.
 	int type;
-	/// For point-based emitters.
-	Vector2f point, direction;
+	
+	/// Default (1,1,1,1) or the same as the particle system it is used in.
+	Vector4f color;
 
 	// o.o
 	Random random;
 };
+
+#endif

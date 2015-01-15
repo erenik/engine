@@ -7,7 +7,8 @@
 
 int Binding::defaultInputDevice = InputDevice::KEYBOARD_1;
 
-Binding::Binding(){
+Binding::Binding()
+{
     inputCombinationArray = NULL;
     blockingKeyArray = NULL;
     inputs = blocks = 0;
@@ -15,7 +16,9 @@ Binding::Binding(){
     stopAction = -1;
     activateOnRepeat = false;
 	inputDevice = defaultInputDevice;
+	activateOverUI = true;
 }
+
 Binding::~Binding(){
     if (inputCombinationArray)
         delete[] inputCombinationArray;
@@ -24,6 +27,23 @@ Binding::~Binding(){
         delete[] blockingKeyArray;
     blockingKeyArray = NULL;
 }
+
+/// Returns self to chain settings.
+Binding & Binding::SetActivateOnRepeat(bool repeat)
+{
+	activateOnRepeat = repeat;	
+	return *this;
+}
+/** If true (default), will activate even while mouse/cursor is over an activatable/interactable UI element.
+	Set false to make it be ignored when the user is hovering over some UI (to enable default UI-interaction bindings).
+*/
+Binding & Binding::SetActivateOverUI(bool ignoreUI)
+{
+	activateOverUI = ignoreUI;
+	return *this;
+}
+
+
 /// Sets name for this binding's input-combination
 void Binding::SetName(String name){
     this->name = name;

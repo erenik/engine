@@ -7,6 +7,7 @@
 #ifndef MATRIX4F_H
 #define MATRIX4F_H
 
+#include "List/List.h"
 #include <cmath>
 #include "Vector3f.h"
 #include "Vector4f.h"
@@ -52,6 +53,10 @@ public:
 	/** Conversion constructor from the double-class. */
 	Matrix4f(const Matrix4d& base);
 
+	/// o.o Create matrices!
+	static List<Matrix4f> FromFloatList(List<float> floatList, int numMatricesToExtract, bool transpose);
+	
+
 	/// Printing out data
 	friend std::ostream& operator <<(std::ostream& os, const Matrix4f& mat);
 
@@ -59,22 +64,35 @@ public:
 	/** Reloads the identity matrix. */
 	void LoadIdentity();
 
-	/** Initializes a rotation matrix around the X-axis. */
-	void InitRotationMatrixX(float radians);
-	/** Initializes and returns a rotation matrix around the X-axis. */
-	static Matrix4f GetRotationMatrixX(float radians);
+	/// Conversion
+	Matrix3f GetMatrix3f();
+
+	/// Returns target column of the matrix.
+	Vector4f GetColumn(int columnIndex);
+
+#define GetRotationMatrixX InitRotationMatrixX
+#define GetRotationMatrixY InitRotationMatrixY
+#define GetRotationMatrixZ InitRotationMatrixZ
+	/// Initializes a rotation matrix around the X-axis.
+	static Matrix4f InitRotationMatrixX(float radians);
 	/** Initializes a rotation matrix around the Y-axis. */
-	void InitRotationMatrixY(float radians);
-	/** Initializes and returns a rotation matrix around the X-axis. */
-	static Matrix4f GetRotationMatrixY(float radians);
-	/** Initializes a rotation matrix around the Z-axis. */
-	void InitRotationMatrixZ(float radians);
+	static Matrix4f InitRotationMatrixY(float radians);
+	/// Initializes a rotation matrix around the Z-axis.
+	static Matrix4f InitRotationMatrixZ(float radians);
+
 	/** Initializes a rotation matrix using provided vector parameters. */
 	void InitRotationMatrix(float angle, float x, float y, float z);
 	/** Initializes a rotation matrix using provided vector. */
 	void InitRotationMatrix(float angle, Vector3f vector);
+
+#define Translation InitTranslationMatrix
+	/** Returns an initialized translation-matrix using given vector. */
+//	static Matrix4f Translation(Vector3f trans);
 	/** Initializes a translation matrix using provided vector. */
 	static Matrix4f InitTranslationMatrix(Vector3f translation);
+
+	/// Creates a scaling matrix (XYZ)
+	static Matrix4f InitScalingMatrix(Vector3f scale);
 
 	/** Initializes a perspective projection matrix.
 	The function can be called as it is, using the default values left -1, right 1, bottom -1, top 1, near -1 and far -10.
@@ -101,10 +119,10 @@ public:
 	// 3D-operations
 	/** Applies 3D translation using given parameters. */
 	void Translate(float x, float y, float z);
+
 	/** Applies 3D translation using given vector. */
-	void Translate(Vector3f vec);
-	/** Returns an initialized translation-matrix using given vector. */
-	static Matrix4f Translation(Vector3f trans);
+//	void Translate(Vector3f vec);
+
 	/** Applies 3D scaling with provided ratio to x, y and z-dimensions. */
 	void Scale(float ratio);
 	/** Applies 3D scaling using the provided x, y and z-ratios. */

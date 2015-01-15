@@ -15,7 +15,8 @@
 #endif // LINUX
 
 #ifdef WINDOWS
-#define Sleep(ms) Sleep(ms)
+void Wait(int milliseconds);
+//#define Sleep(ms) Sleep(ms)
 #endif
 
 /// MACCORENA

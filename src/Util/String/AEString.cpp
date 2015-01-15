@@ -57,14 +57,17 @@ String::String(const String * string){
 }
 
 /// Copy constructor and assignment operators
-String::String(const String & string){
+String::String(const String & string)
+{
 	Nullify();
 	type = string.type;
 	int lengthRequired = string.Length() + 1;
 	Reallocate(lengthRequired);
 	Copy(string, type);
 }
-String::String(const char c){
+
+String::String(const char c)
+{
 	Nullify();
 	type = String::CHAR;
 	Reallocate(1+1);
@@ -180,7 +183,8 @@ String::String(const float fValue, int decimalsAfterZeroAndNotation /*= 0*/)
 }
 
 
-String::String(const char * string){
+String::String(const char * string)
+{
 	Nullify();
 	type = String::CHAR;
 	int lengthArr = 0;
@@ -191,9 +195,6 @@ String::String(const char * string){
     if (string)
         lengthStr = strlen(string);
     Reallocate(lengthStr+1);
-//    std::cout<<"\nStr: "<<string;
- //   std::cout<<"\nString lengths: "<<lengthArr<<" "<<lengthStr<<" Arr:"<<arr<<" Str: "<<string;
-//	std::cout<<"\nStrlen: "<<lengthStr<<" ArraySize: "<<arraySize;
 	strncpy(arr, string, arraySize-1);
 	assert(arraySize > 0);
 }
@@ -217,6 +218,19 @@ String::String(const wchar_t * string){
 		wcscpy(warr, string);
 	}
 }
+
+// o.o
+bool String::Allocate(int numberOfCharacters, char initialValue)
+{
+	Delete();
+	type = CHAR;
+	arr = new char[numberOfCharacters];
+	memset(arr, initialValue, numberOfCharacters);
+	arraySize = numberOfCharacters;
+	return true;
+}
+
+
 // ..assignment operators
 const String& String::operator = (const String & otherString)
 {
@@ -306,6 +320,16 @@ String::operator const char * () const {
 	assert(type == CHAR);
 	return arr;
 }
+
+/*
+String::operator const wchar_t * ()
+{
+	if (type == NULL_TYPE)
+		return NULL;
+	assert(type == WIDE_CHAR);
+	return warr;
+}*/
+
 String::operator const wchar_t * () const {
 	if (type == NULL_TYPE)
 		return NULL;
@@ -341,18 +365,18 @@ String String::ToString(const int value){
 }
 
 // Uses the format 0xNNNN where the number of digits (N) beyond x varies with the most significant bits of the given value.
-String String::ToHexString(const int initialValue)
+String String::ToHexString(const uint32 initialValue)
 {
-	int value = initialValue;
+	uint32 value = initialValue;
 	String str;
 	for (int i = 0; i < 8; ++i)
 	{
 		int fourBitValue = value % 16;
 		String c;
 		if (fourBitValue < 10)
-			c = '0' + fourBitValue;
+			c = fourBitValue;
 		else
-			c = 'A' + fourBitValue - 10;
+			c = (char) ('A' + fourBitValue - 10);
 		str = c + str;
 		value = value >> 4;
 	}
@@ -442,6 +466,13 @@ String String::operator - (const String & otherString){
 		Remove(otherString);
 	return String(this);
 }
+String String::operator - (const char * otherString)
+{
+	String copy = *this;
+	copy.Remove(otherString);
+	return copy;
+}
+
 /// Concatenating
 String String::operator + (const String & otherString) {
 	String newString = String(this);
@@ -482,8 +513,11 @@ std::ostream& operator <<(std::ostream& os, const String& str){
 }
 
 
-/// Returns a substring, from index to index, -1 signifies end of the string.
-String String::Part(int fromIndex /*= 0*/, int toIndex /*= -1*/){
+/** Returns a substring, from start index to stop index (excluding the stop index), -1 signifies end of the string.
+	Mathematical notation would be [fromIndex, toIndex[
+*/
+String String::Part(int fromIndex /*= 0*/, int toIndex /*= -1*/) const
+{
 	String newString;
 	if (toIndex <= -1)
 		toIndex = arraySize;
@@ -493,24 +527,31 @@ String String::Part(int fromIndex /*= 0*/, int toIndex /*= -1*/){
 	assert(partSize);
 	// Set type and reallocate.
 	newString.type = type;
+	// +1 for including the end index.
 	newString.Reallocate(partSize+1);
 	int charsWritten = 0;
 	switch(type){
 		case CHAR:
 			assert(arr);
 			assert(newString.arr);
-			for (int i = fromIndex; i < toIndex; ++i){
+			for (int i = fromIndex; i < toIndex; ++i)
+			{
 				newString.arr[charsWritten] = arr[i];
 				++charsWritten;
 			}
+			/// Add a final null-size?
+			newString.arr[charsWritten] = '\0';
 			break;
 		case WIDE_CHAR:
 			assert(warr);
 			assert(newString.warr);
-			for (int i = fromIndex; i < toIndex; ++i){
+			for (int i = fromIndex; i < toIndex; ++i)
+			{
 				newString.warr[charsWritten] = warr[i];
 				++charsWritten;
 			}
+			/// Add a final null-size?
+			newString.warr[charsWritten] = '\0';
 			break;
 	}
 	return newString;
@@ -519,12 +560,19 @@ String String::Part(int fromIndex /*= 0*/, int toIndex /*= -1*/){
 /// Returns the last detected number within.
 String String::Numberized() const
 {
-	assert(type == CHAR);
+//	assert(type == CHAR);
 	String newString;
 	String lastNumberString;
 	for (int i = 0; i < arraySize; ++i)
 	{
-		char c = arr[i];
+		char c;
+		switch(type)
+		{
+			case CHAR:	c = arr[i]; break;
+			case WCHAR: c = warr[i]; break;
+			default:
+				assert(false);
+		}
 		switch(c)
 		{
 			case '0':
@@ -553,6 +601,46 @@ String String::Numberized() const
 	if (newString.Length() < 1 && lastNumberString.Length() > 0)
 		newString = lastNumberString;
 	return newString;
+}
+
+/// Returns true if only numbers, decimals and commas are present (hex 0x may also work, later?)
+bool String::IsNumber()
+{
+	for (int i = 0; i < arraySize; ++i)
+	{
+		char c;
+		switch(type)
+		{
+			case CHAR:	c = arr[i]; break;
+			case WCHAR: c = warr[i]; break;
+			default:
+				assert(false);
+		}
+		switch(c)
+		{
+			case '\0':
+				i = arraySize;
+				break;
+			case '-':
+			case 'x':
+			case 'e':
+			case '0':
+			case '1':
+			case '2':
+			case '3':
+			case '4':
+			case '5':
+			case '6':
+			case '7':
+			case '8':
+			case '9':
+			case '.':
+				break;
+			default:
+				return false;
+		}
+	}
+	return true;
 }
 
 
@@ -682,72 +770,74 @@ int String::Count(char c) const
 	return count;
 }
 
-bool String::Contains(const String & subString){
-	if (subString.Length() == 0)
-		return false;
-	switch(type){
-		case NULL_TYPE: default:
-		//	assert(false && "Bad type");
-			return false;
-		case String::CHAR:
-			// If needed, convert the sub string to char before continuing
-			if (subString.type == String::WIDE_CHAR){
-				char * tempArray = new char[subString.arraySize];
-				wcstombs(tempArray, subString.warr, subString.arraySize);
-				char * result = strstr(arr, tempArray);
-				delete[] tempArray;
-				if (result)
-					return true;
-				return false;
-			}
+bool String::Contains(const String & subString)
+{
+	if (Find(subString) >= 0)
+		return true;
+	return false;
+}
 
-			if (subString.arr == NULL || arr == NULL)
-				return false;
-			// Not case-senstitive.. do some more work..!
-			if (comparisonMode == NOT_CASE_SENSITIVE){
-				String temp = arr;
-				String temp2 = subString;
-				temp.ToUpper();
-				temp2.ToUpper();
-				if (temp.Contains(temp2))
-					return true;
-			}
-			else {// Case-sensitive
-        //        std::cout<<"\nArr: "<<arr;
-        //        PrintData();
-        //        std::cout<<"\nSubString.arr: "<<subString.arr;
-        //        subString.PrintData();
-                if (strstr(arr, subString.arr)){
-			//	    std::cout<<"\nFound substring "<<subString.arr;
-			//	    std::cout<<"\nIn string "<<arr;
-					return true;
-				}
-			}
-			break;
-		case String::WIDE_CHAR:
-			// If needed, convert our wide char string to simple string before doing the comparison!
-			if (subString.type == String::CHAR){
-				if (arr) 
-					delete[] arr;
-				arr = new char[arraySize];
-				wcstombs(arr, warr, arraySize);
-				if (comparisonMode == NOT_CASE_SENSITIVE){
-					String temp = arr;
-					String temp2 = subString;
-					temp.ToUpper();
-					temp2.ToUpper();
-					if (temp.Contains(temp2))
-						return true;
-				}
-				else if (strstr(arr, subString.arr))
-					return true;
-				return false;
-			}
-			if (wcsstr(warr, subString.warr))
+/// Search with index as return value. -1 if it could not be found.
+int String::Find(const String & subString)
+{
+	if (type == NULL_TYPE)
+		return -1;
+
+	if (type == WIDE_CHAR)
+	{
+		String cVersion = this;
+		cVersion.ConvertToChar();
+		return cVersion.Find(subString);
+	}
+	if (subString.Length() == 0)
+		return -1;
+
+	assert(arr);
+	char * tempArray = NULL;
+	String findString = subString;
+	// If needed, convert the sub string to char before continuing
+	if (subString.type == String::WIDE_CHAR)
+	{
+		findString.ConvertToChar();
+	}
+	else if (subString.arr == NULL)
+		return -1;
+
+	// Not case-senstitive.. do some more work..!
+	if (comparisonMode == NOT_CASE_SENSITIVE)
+	{
+		String temp = arr;
+		String temp2 = findString;
+		temp.ToUpper();
+		temp2.ToUpper();
+		return temp.Find(temp2);
+	}
+	// Case-sensitive
+	char * result = strstr(arr, subString.arr);
+    if (result)
+	{
+		int index = result - arr;
+		return index;
+	}
+	return -1;
+}
+
+
+bool String::EndsWith(char c) const
+{
+	assert(type == String::CHAR);
+	for (int i = 0; i < arraySize; ++i)
+	{
+		if (arr[i] == '\0')
+		{
+			if (i > 0 && arr[i-1] == c)
 				return true;
+			break;
+		}
 	}
 	return false;
 }
+	
 
 /// Similar to Contains but works only on the beginning of the string.
 bool String::StartsWith(const String & subString)
@@ -916,9 +1006,9 @@ bool String::ParseBool(){
 	int oldComparisonMode = this->comparisonMode;
 	this->comparisonMode = String::NOT_CASE_SENSITIVE;
 	bool result;
-	if (this->Equals("true") || this->Equals("yes"))
+	if (this->Contains("true") || this->Contains("yes"))
 		result = true;
-	else if (this->Equals("false") || this->Equals("no"))
+	else if (this->Contains("false") || this->Contains("no"))
 		result = false;
 	else {
 		std::cout<<"\nString::ParseBool:"<<c_str()<<"\n";
@@ -950,13 +1040,46 @@ int String::ParseInt()
 }
 
 /// Tries to parse hexadecimal values in the form of "0xAABBCCDD" or "0xAABBCC"
-int String::ParseHex()
+uint64 String::ParseHex()
 {
 	if (type == NULL_TYPE)
 		return 0;
 	assert(type == CHAR);
-	//atoi(
-	int val = strtol(arr, NULL, 16);
+	int initialOxEncountered = 0;
+	uint64 val = 0;
+	for (int i = 0; i < arraySize; ++i)
+	{
+		char & c = arr[i];
+		if (c == 0)
+			break;
+		
+		if (initialOxEncountered == 0 && c == '0')
+			initialOxEncountered = 1;
+		else if (initialOxEncountered == 1 && c == 'x')
+			initialOxEncountered = 2;
+		else if (initialOxEncountered == 2)
+		{
+			if (isdigit(c))
+			{
+				int cVal = c - '0';
+				val = (val << 4) + cVal;
+			}
+			else if (c >= 'A' && c <= 'F')
+			{
+				int cVal = 10 + c - 'A';
+				val = (val << 4) + cVal;
+			}
+			else if (c >= 'a' && c <= 'f')
+			{
+				int cVal = 10 + c - 'a';
+				val = (val << 4) + cVal;
+			}
+			else 
+				break;
+		}
+		else
+			c = ' ';
+	}
 	return val;
 }
 
@@ -989,11 +1112,15 @@ double String::ParseDouble(){
 /** Returns a number of strings by splitting it's current contents using the provided tokens.
 	If keepEmptyStrings is true then any empty strings generated by two tokens right next to each other will be retained.
 */
-List<String> String::Tokenize(const char * charTokens, bool keepEmptyStrings /*= false*/) const 
+List<String> String::Tokenize(String charTokens, bool keepEmptyStrings /*= false*/) const 
 {
-	List<String> list;
-	int tokens = strlen(charTokens);
-	switch(this->type){
+	List<String> tokens;
+	// Only a null-char? lol
+	if (arraySize == 1)
+		return tokens;
+	int numTokens = strlen(charTokens);
+	switch(this->type)
+	{
 		case WIDE_CHAR: // Perform quick conversion
 			{
 			}
@@ -1002,79 +1129,40 @@ List<String> String::Tokenize(const char * charTokens, bool keepEmptyStrings /*=
 			break;
 		/// Just return an empty list if the type is undefined.
 		default:
-			return list;
-			break;
+			return tokens;
 	}
 	// Regular char-strings..
 	if (type == CHAR)
 	{
-		assert(this->arr && this->arraySize);
-		char * stringStart = arr, * stringEnd = NULL;
-		const int BUFFER_SIZE = (4096*5);
-		char buf[BUFFER_SIZE];
-		assert(BUFFER_SIZE > arraySize);
-		int tokenLength = 0;
-		int i;
+		int tokenStartIndex = 0;
 		String token;
-		// For each character..
-		for (i = 0; i < arraySize; ++i)
+		bool good = false;
+		for (int i = 1; i < arraySize; ++i)
 		{
-			memset(buf, 0, BUFFER_SIZE);
-			bool isToken = true;
-			while(isToken)
+			char c = arr[i];
+			if (charTokens.ContainsChar(c) || c == '\0')
 			{
-				isToken = false;
-				for (int t = 0; t < tokens; ++t)
+				// Token found!
+				token = Part(tokenStartIndex, i);
+				good = true;
+				if (token.Length() == 0 && !keepEmptyStrings)
 				{
-					if(arr[i] == charTokens[t])
-					{
-						isToken = true;
-					}
+					good = false;
 				}
-				if (!isToken)
-					break;
-				// Token found, tokenize
-				stringEnd = &arr[i];
-				tokenLength = stringEnd - stringStart;
-				++i;
-				// IF zero length,..
-				if (tokenLength <= 0)
+				if (good)
 				{
-					stringStart = &arr[i];
-					// ..add if only keepEmptyStrings is true.
-					if (keepEmptyStrings)
-						list.Add(String());
-					continue;
+					tokens.Add(token);
 				}
-				assert(tokenLength < BUFFER_SIZE);
-				strncpy(buf, stringStart, tokenLength);
-				stringStart = stringEnd+1;
-				token = buf;
-			//	token.PrintData();
-				list.Add(token);
-				memset(buf, 0, BUFFER_SIZE);
+				tokenStartIndex = i + 1;
 			}
-			// Final char, so tokenize the last part too
-			if (arr[i] == 0)
-			{
-				stringEnd = &arr[i];
-				tokenLength = stringEnd - stringStart;
-				++i;
-				if (tokenLength <= 0){
-					stringStart = &arr[i];
-					i = arraySize;
-					if (keepEmptyStrings)
-						list.Add(String());
-					break;
-				}
-				strncpy(buf, stringStart, tokenLength);
-				stringStart = stringEnd+1;
-				String token(buf);
-				list.Add(token);
-				i = arraySize;
-				break;
-			}
+			// Return once we reach the terminating NULL sign.
+			if (c == '\0')
+				return tokens;
 		}
+//		return tokens;
+		assert(false && "Didn't encounter NULL sign in string.");
+		PrintData();
+		std::cout<<"\nlallilal";
 	}
 	else if (type == WIDE_CHAR)
 	{
@@ -1089,8 +1177,11 @@ List<String> String::Tokenize(const char * charTokens, bool keepEmptyStrings /*=
 		String token;
 		for (i = 0; i < arraySize; ++i){
 			wmemset(buf, 0, BUFFER_SIZE);
-			for (int t = 0; t < tokens; ++t){
-				while (warr[i] == charTokens[t]){
+			for (int t = 0; t < numTokens; ++t)
+			{
+				wchar_t wcharToken = charTokens.warr? charTokens.warr[t] : charTokens.arr[t];
+				while (warr[i] == wcharToken)
+				{
 					// Token found, tokenize
 					stringEnd = &warr[i];
 					stringEndIndex = i;
@@ -1106,7 +1197,7 @@ List<String> String::Tokenize(const char * charTokens, bool keepEmptyStrings /*=
 					stringStart = stringEnd+1;
 					stringStartIndex = stringEndIndex+1;
 					token = buf;
-					list.Add(token);
+					tokens.Add(token);
 					wmemset(buf, 0, BUFFER_SIZE);
 				}
 			}
@@ -1123,13 +1214,13 @@ List<String> String::Tokenize(const char * charTokens, bool keepEmptyStrings /*=
 				wmemcpy(buf, stringStart, tokenLength);
 				stringStart = stringEnd+1;
 				String token(buf);
-				list.Add(token);
+				tokens.Add(token);
 				i = arraySize;
 				break;
 			}
 		}
 	}
-	return list;
+	return tokens;
 }
 
 /// Returns a number of strings by dividing them by '\n' and '\r', which are removed in the process(!).
@@ -1252,6 +1343,12 @@ const wchar_t * String::wc_str(){
 		mbstowcs(warr, arr, arraySize);
 	}
 	return warr;
+}
+
+char * String::c_str_editable()
+{
+	assert(type == CHAR);
+	return arr;
 }
 
 char String::At(int index) const {
@@ -1401,10 +1498,14 @@ void String::RemoveTrailingWhitespaces()
 }
 
 /// Prints the contents of the string both in integer and character form
-void String::PrintData() const{
+void String::PrintData() const
+{
     std::cout<<"\nArr: "<<arr;
-    for (int i = 0; i < Length(); ++i){
+    for (int i = 0; i < arraySize; ++i)
+	{
         std::cout<<"\nchar "<<i<<": "<<(int)arr[i]<<" (char): "<<arr[i];
+		if (arr[i] == 0)
+			break;
     }
 }
 
@@ -1533,7 +1634,7 @@ void String::Reallocate(int size)
 				delete[] tmp;
 #endif
 			}
-			else {
+			else if (arr == 0){
 #ifdef USE_BLOCK_ALLOCATOR
 				arr = stringAllocator.AllocateNewArray<char>(size);
 #else
@@ -1552,7 +1653,7 @@ void String::Reallocate(int size)
 				/// Check if we have any contents before the new array is to be built.		
 				if (warr){
 					wchar_t * tmp = new wchar_t[arraySize];
-					wcscpy(tmp, warr);
+					wcsncpy(tmp, warr, arraySize);
 					delete[] warr;
 					warr = new wchar_t[size];
 					wcscpy(warr, tmp);
@@ -1560,7 +1661,6 @@ void String::Reallocate(int size)
 				}
 				else {
 					warr = new wchar_t[size];
-					wmemset(warr, L'\0', size);
 					wcscpy(warr, L"");
 				}
 			}
@@ -1568,7 +1668,10 @@ void String::Reallocate(int size)
 				assert(warr == NULL);
 				assert(arr == NULL);
 				warr = new wchar_t[size];
+				wcscpy(warr, L"");
 			}
+			// Initialize with zeros?
+		//	wmemset(warr, L'\0', size);
 			break;
 		}
 		default: {

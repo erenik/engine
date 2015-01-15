@@ -17,7 +17,7 @@ extern GraphicsManager graphics;
 #include <cstring>
 #include "Physics/PhysicsManager.h"
 
-#include "ModelManager.h"
+#include "Model/ModelManager.h"
 #include "TextureManager.h"
 
 Map::Map()
@@ -161,12 +161,12 @@ void Map::RemoveAllEvents(){
 // Process called each game loop by the stateManager
 void Map::Process(float timePassed)
 {
-	for (int i = 0; i < entities.Size(); ++i){
+	for (int i = 0; i < entities.Size(); ++i)
+	{
 		Entity * entity = entities[i];
-		entity->name;
-		for (int i = 0; i < entity->properties.Size(); ++i)
+		for (int j = 0; j < entity->properties.Size(); ++j)
 		{
-			entity->properties[i]->Process(timePassed);
+			entity->properties[j]->Process(timePassed);
 		}
 	}
 }
@@ -195,6 +195,6 @@ bool Map::ParseDependencies()
 }
 
 /// Render?
-void Map::Render(){
+void Map::Render(GraphicsState & graphicsState){
 	std::cout<<"\nWARNING: Map::Render() called! This should only be called in appropriately defined subclasses!";
 }

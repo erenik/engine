@@ -18,8 +18,9 @@ namespace DataType
 		FLOAT,
 		BOOLEAN,
 		STRING, // Defined in /Util/String/AEString.h
-		VECTOR3F, // Defined in /MathLib/Vector3f.h
-		VECTOR2F, // Defined in /MathLib/Vector2f.h
+		VECTOR_2F, // Defined in /MathLib/Vector2f.h
+		VECTOR_3F, // Defined in /MathLib/Vector3f.h
+		VECTOR_4F, // Defined in /MathLib/Vector4f.h
 		QUATERNION, // Defined in /MathLib/Quaternion.h
 		EXPRESSION, // Defined in /MathLib/Expression.h
 		ARGUMENT_LIST, // Part of Expression calculation as defined in /MathLib/Expression/ If commas are used, it is assumed that it is part of an argument list.

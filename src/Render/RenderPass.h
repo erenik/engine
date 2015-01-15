@@ -26,7 +26,7 @@ public:
 	RenderPass();
 
 	// Renders this pass. Returns false if some error occured, usually mid-way and aborting the rest of the procedure.
-	bool Render(GraphicsState * graphics);
+	bool Render(GraphicsState & graphics);
 
 	// Names are always good.
 	String name;

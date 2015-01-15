@@ -2,6 +2,8 @@
 /// 2014-08-10 (although older)
 /// Texture manageeer
 
+#include "Libs.h"
+
 #include "TextureManager.h"
 
 #include <fstream>
@@ -17,7 +19,9 @@
 #include "Globals.h"
 #include "Color.h"
 
+#ifdef OPENCV
 #include "opencv2/opencv.hpp"
+#endif
 
 #include "Time/Time.h"
 
@@ -54,15 +58,21 @@ Texture * TextureManager::GetTexture(String nameOrSource)
     tex = GetTextureByName(nameOrSource);
     if (!tex)
         tex = GetTextureBySource(nameOrSource);
+
+	if (tex)
+	{
+		if (tex->source.Length() == 0)
+			tex->SetSource(nameOrSource);
+	}
     return tex;
 }
 
 /// 0xRRGGBBAA (red green blue alpha)
-Texture * TextureManager::GetTextureByHex24(int hexColor)
+Texture * TextureManager::GetTextureByHex24(uint32 hexColor)
 {
 	int alphaBit = 255;
 	int alpha = 0xFF;
-	int hexColor32 = hexColor << 8;
+	uint32 hexColor32 = hexColor << 8;
 	hexColor32 += alpha;
 	unsigned char r, g, b, a;
 	r = hexColor32 >> 24 % 256;
@@ -73,9 +83,9 @@ Texture * TextureManager::GetTextureByHex24(int hexColor)
 }
 
 /// 0xRRGGBBAA (red green blue alpha)
-Texture * TextureManager::GetTextureByHex32(int hexColor)
+Texture * TextureManager::GetTextureByHex32(uint32 hexColor)
 {
-	String texName = "HexColor:"+String::ToHexString(hexColor);
+	String texName = String::ToHexString(hexColor);
 	Texture * tex = NULL;
 	tex = GetTextureByName(texName);
 	if (!tex)
@@ -97,7 +107,8 @@ Texture * TextureManager::GetTextureByHex32(int hexColor)
 }
 
 /// Gets texture with specified name. This assumes each texture has gotten a unique name.
-Texture * TextureManager::GetTextureByName(String name){
+Texture * TextureManager::GetTextureByName(String name)
+{
 	if (name.Length() == 0)
 		return NULL;
 	name = FilePath::MakeRelative(name);
@@ -228,6 +239,13 @@ int TextureManager::LoadTextures(List<String> & texturesToLoad){
 	return failed;
 }
 
+/// Generates a texture with automatic name and given color. The texture will be exactly 1 or 2x2 pixels, simply for the color!
+Texture * TextureManager::GenerateTexture(Vector4f andColor)
+{
+	String name = "GeneratedTexture: r"+String(andColor.x)+" g"+String(andColor.y)+" b"+String(andColor.z);
+	return GenerateTexture(name, andColor);
+}
+
 /// Generates a texture with given name and color. The texture will be exactly 1 or 2x2 pixels, simply for the color!
 Texture * TextureManager::GenerateTexture(String withName, Vector4f andColor)
 {
@@ -244,6 +262,7 @@ Texture * TextureManager::GenerateTexture(String withName, Vector4f andColor)
 	newTex->CreateDataBuffer();
 	newTex->SetColor(andColor);
 	newTex->name = withName;
+	newTex->source = "Generated";
 
 
 	textures.Add(newTex);
@@ -365,6 +384,8 @@ bool TextureManager::SupportedImageFileType(String fileName)
 /// Attempts to load a texture using OpenCV imread.
 bool TextureManager::LoadTextureOpenCV(String source, Texture * texture)
 {
+#ifdef OPENCV
+
 	/// Supported via OpenCV: http://docs.opencv.org/modules/highgui/doc/reading_and_writing_images_and_video.html?highlight=imread#imread
 	cv::Mat mat;
 	mat = cv::imread(source.c_str(), CV_LOAD_IMAGE_UNCHANGED);
@@ -398,6 +419,7 @@ bool TextureManager::LoadTextureOpenCV(String source, Texture * texture)
 			assert(false);
 			return false;
 	}
+	texture->bytesPerChannel = bytesPerChannel;
 
 	/// Fetch data pointer now that any needed conversions are done.
 	unsigned char * data = (unsigned char*) (mat.data);
@@ -462,12 +484,16 @@ bool TextureManager::LoadTextureOpenCV(String source, Texture * texture)
 	}
 	/// Send a message so that the texture is re-buffered.
 	Graphics.QueueMessage(new GMBufferTexture(texture));
+#endif
 	return true;
 }
 
 
 bool TextureManager::LoadTextureLodePNG(String source, Texture * texture)
 {
+	/// Obsoleted?
+	/*
+
 	std::vector<unsigned char> buffer, image;
 
 	/// Check that the file exists
@@ -538,6 +564,7 @@ bool TextureManager::LoadTextureLodePNG(String source, Texture * texture)
 		// Allocate texture data array.
 		texture->dataBufferSize = width*height*4;
 		texture->data = new unsigned char [texture->dataBufferSize];
+		memset(texture->data, '0', texture->dataBufferSize);
 		// And save the width and height.
 		texture->width = width;
 		texture->height = height;
@@ -625,7 +652,7 @@ bool TextureManager::LoadTextureLodePNG(String source, Texture * texture)
 
 	/// Since we converted the image to RGBA above, fix the BitsPerPixel again!
 	texture->bpp = 4;
-
+	*/
 	return true;
 }
 
@@ -636,7 +663,13 @@ void TextureManager::BufferizeTexture(int index){
 	assert(false && "index outside valid range in TextureManager::BufferizeTexture");
 }
 
-void TextureManager::BufferizeTexture(Texture * texture){
+void TextureManager::BufferizeTexture(Texture * texture)
+{
+	texture->Bufferize();
+
+	/*
+	assert(texture->source.Length());
+	assert(texture->name.Length());
 	if (texture == NULL){
 		assert(texture && "NULL texture provided in TextureManager::BufferizeTexture, skipping it!");
 		return;
@@ -703,7 +736,7 @@ void TextureManager::BufferizeTexture(Texture * texture){
 		}
 	}
 	*/
-
+	/*
 	error = glGetError();
 	if (error != GL_NO_ERROR){
 		std::cout<<"\nGL Error in TextureManager::BufferizeTexture: "<<error;

@@ -12,22 +12,22 @@ class Entity;
 class Sparks : public ParticleSystem 
 {
 public:
-    Sparks(Entity * reference);
-    virtual ~Sparks();
-    void Process(float timeInSeconds);
-    void Render(GraphicsState * graphicsState);
+	/// Creates a global particle system
+	Sparks(bool emitWithEmittersOnly);
+	/// Creates a particle system which will be attached to a specific entity.
+    Sparks(Entity * reference, bool emitWithEmittersOnly);
+	virtual ~Sparks();
+
+	void Render(GraphicsState & graphicsState);
     void PrintData();
 	void AttachTo(Entity * entity, Matrix4f relativePosition);
 
 	// Relative to the entity.
 	Vector4f relativePosition;
 private:
-    float primaryVelocity;
-    float sideVelocityRange;
 
 	Vector3f previousPosition;
 	Vector3f previousDirection;
-
 };
 
 

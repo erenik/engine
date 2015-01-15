@@ -27,6 +27,19 @@
 #include "Viewport.h"
 #include "Color.h"
 
+/// Mutex for interacting with the UI. Any UI. Used to make sure the graphics isn't deleting anything the input is touching and vice-versa.
+Mutex uiMutex;
+
+void CreateUIMutex()
+{
+	uiMutex.Create("UIMutex");
+}
+void DeleteUIMutex()
+{
+	uiMutex.Destroy();
+}
+
+
 /// Fetches the global UI, taking into consideration active window.
 UserInterface * GlobalUI()
 {
@@ -99,7 +112,11 @@ UserInterface::UserInterface()
 
 UserInterface::~UserInterface()
 {
-	assert(!isBuffered);
+	// All buffers are removed via gl later. just send a warning for now?
+	if (isBuffered)
+		std::cout<<"\nWARNING: UserInterface buffered while deallocating it?";
+	if (isGeometryCreated)
+		DeleteGeometry();
 	assert(!isGeometryCreated);
 	if (root != NULL)
 		delete root;
@@ -333,7 +350,7 @@ bool UserInterface::Unbufferize()
 /** Renders the whole UIElement structure.
 	Overloaded by subclasses in order to enable custom perspective or other stuff for the UI.
 */
-void UserInterface::Render(GraphicsState * graphicsState)
+void UserInterface::Render(GraphicsState & graphicsState)
 {
 	/// Disable depth-test.
 	glDisable(GL_DEPTH_TEST);
@@ -449,6 +466,24 @@ bool UserInterface::Delete(UIElement * element){
 	return false;
 }
 
+/// Deletes all UIs that have not already been deleted so far.
+void UserInterface::DeleteAll()
+{
+	while(userInterfaces.Size())
+	{
+		UserInterface * ui = userInterfaces[0];
+		ui->SetBufferized(false);
+		delete ui;
+	}
+}
+
+/// Sets the bufferized flag. Should only be called before program shutdown. Ensures less assertions will fail.
+void UserInterface::SetBufferized(bool bufferizedFlag)
+{
+	this->isBuffered = bufferizedFlag;
+	if (root)
+		root->SetBufferized(bufferizedFlag);
+}	
 
 /** Reloads all existing UserInterfaces based on their respective source-files. Should only be called from RENER THREAD! As it will want to deallocate stuff.
 	Use Graphics.QueueMessage(new GraphicsMessage(GM_RELOAD_UI));
@@ -740,8 +775,11 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 	element->visible = defaultVisibility;\
 	}
 #define ADD_PREVIOUS_TO_UI_IF_NEEDED {\
-	if (element && element != root)\
-    root->AddToParent(defaultParent, element);\
+	if (element && element != root){\
+		bool addedOK = root->AddToParent(defaultParent, element);\
+		if (!addedOK)\
+			delete element;\
+	}\
 	element = NULL;\
 	}
 

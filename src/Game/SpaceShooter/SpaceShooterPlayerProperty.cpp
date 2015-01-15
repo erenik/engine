@@ -4,6 +4,7 @@
 /// Applicable to both human and "enemy"/AI-players.
 
 #include "SpaceShooterPlayerProperty.h"
+#include "SpaceShooterExplosionProperty.h"
 
 #include "Entity/Entity.h"
 
@@ -15,7 +16,7 @@
 #include "PhysicsLib/Shapes/Ray.h"
 
 #include "Maps/MapManager.h"
-#include "ModelManager.h"
+#include "Model/ModelManager.h"
 #include "TextureManager.h"
 
 #include "Graphics/GraphicsManager.h"
@@ -34,6 +35,9 @@ SpaceShooterPlayerProperty::SpaceShooterPlayerProperty(SpaceShooter * game, Enti
 	millisecondsPassedSinceLastFire = 0;
 
 	useMouseInput = false;
+
+	score = 100;
+	hp = maxHP = 100;
 }
 
 int SpaceShooterPlayerProperty::ID()
@@ -56,11 +60,28 @@ void SpaceShooterPlayerProperty::Destroy()
 	if (sleeping)
 		return;
 	Remove();
+	hp = 0;
+	if (allied)
+	{
+		game->UpdatePlayerHP();
+	}
+	else {
+		game->score += this->score;
+		game->OnScoreUpdated();
+	}
+
+	// Explode
+	Entity * explosionEntity = game->NewExplosion(owner->position, ExplosionType::SHIP);
+	game->explosions.Add(explosionEntity);
+
+	// Update the game that we died. T_T
+	game->OnPlayerDestroyed(this->owner);
 }
 
 // Reset sleep.
 void SpaceShooterPlayerProperty::OnSpawn()
 {
+	hp = maxHP;
 	sleeping = false;
 	weaponType = SpaceShooterWeaponType(SpaceShooterWeaponType::RAILGUN);
 	weaponType.initialVelocity = 65.f;
@@ -107,7 +128,8 @@ void SpaceShooterPlayerProperty::Process(int timeInMs)
 		
 		}
 		// Enemy? Destroy it?
-		else if (owner->position.x < -game->gameSize.x * 0.5f - owner->scale.MaxPart())
+		if ((game->flipX > 0 && owner->position.x < -game->gameSize.x * 0.5f - owner->scale.MaxPart()) ||
+			game->flipX < 0 && owner->position.x > game->gameSize.x * 0.5f + owner->scale.MaxPart())
 		{
 			// Sleep
 			Remove();
@@ -143,7 +165,11 @@ void SpaceShooterPlayerProperty::Process(int timeInMs)
 	Vector3f position = owner->position;
 	position += lookAt * owner->scale.MaxPart();
 
-	Entity * projectile = game->NewProjectile(weaponType, position);
+	/// Add own velocity to the ammo velocity?
+	Vector3f initialVelocity = lookAt * weaponType.initialVelocity;
+	if (owner && owner->physics)
+		initialVelocity += owner->physics->velocity;
+	Entity * projectile = game->NewProjectile(weaponType, position, initialVelocity);
 	
 	// If not ok request, skip it then.
 	if (!projectile)
@@ -157,10 +183,7 @@ void SpaceShooterPlayerProperty::Process(int timeInMs)
 
 
 	Physics.QueueMessage(new PMSetEntity(projectile, PT_POSITION, position));
-	/// Add own velocity to the ammo velocity?
-	Vector3f initialVelocity = lookAt * weaponType.initialVelocity;
-	if (owner && owner->physics)
-		initialVelocity += owner->physics->velocity;
+	
 	Physics.QueueMessage(new PMSetEntity(projectile, PT_VELOCITY, initialVelocity));
 
 	game->SetupCollisionFilter(projectile, allied);
@@ -170,6 +193,8 @@ void SpaceShooterPlayerProperty::Process(int timeInMs)
 /// If reacting to collisions...
 void SpaceShooterPlayerProperty::OnCollision(Collision & data)
 {
+	if (sleeping)
+		return;
 	// Check what we are colliding with.
 	Entity * other = 0;
 	if (data.one == owner)
@@ -178,13 +203,11 @@ void SpaceShooterPlayerProperty::OnCollision(Collision & data)
 		other = data.one;
 
 	SpaceShooterPlayerProperty * sspp = (SpaceShooterPlayerProperty *) other->GetProperty(SpaceShooterPlayerProperty::ID());
-	
 	// Player-player collision? Sleep 'em both.
 	if (sspp)
 	{
 		Destroy();
 		sspp->Destroy();
-		game->OnPlayerDestroyed(owner);
 		return;
 	}
 
@@ -192,9 +215,23 @@ void SpaceShooterPlayerProperty::OnCollision(Collision & data)
 	if (sspp2)
 	{
 		// Take damage? D:
-		// Die?!
-		Destroy();
-		game->OnPlayerDestroyed(owner);
+		this->Damage(sspp2->type);
 	}
 }
 	
+void SpaceShooterPlayerProperty::Damage(SpaceShooterWeaponType & type)
+{
+	if (sleeping)
+		return;
+	hp -= type.damage;
+	if (hp < 0)
+	{
+		// Die?!
+		hp = 0;
+		Destroy();
+	}
+	if (this->allied)
+	{
+		game->UpdatePlayerHP();
+	}
+}

@@ -5,9 +5,17 @@
 #include "String/AEString.h"
 
 /// Structure for a single binding, binding an arbitrary amount of inputs to a single action
-struct Binding {
+struct Binding 
+{
 	Binding();
 	~Binding();
+
+	/// Returns self to chain settings.
+	Binding & SetActivateOnRepeat(bool repeat);
+	/** If true (default), will activate even while mouse/cursor is over an activatable/interactable UI element.
+		Set false to make it be ignored when the user is hovering over some UI (to enable default UI-interaction bindings).
+	*/
+	Binding & SetActivateOverUI(bool ignoreUI);
 
 	/// Used in the Bindings constructor, initially set to KEYBOARD_1.
 	static int defaultInputDevice;
@@ -33,6 +41,8 @@ struct Binding {
 	int stopAction;
 	/// Defaults if the bindings activate on repeated inputs sent from the OS after the initial one. (holding keys down, for example)
 	bool activateOnRepeat;
+	/// If true, is activatable whenever. If false, will not be evaluated when any UI is currently being hovered over.
+	bool activateOverUI;
 	/// By default, keyboard 1.
 	int inputDevice;
 };

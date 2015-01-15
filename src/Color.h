@@ -20,13 +20,13 @@ public:
 	/// E.g. "0x115588AA"
 	static Color ColorByHexName(String byHexName);
 	/// Anticipates a hex-color in 0xRRGGBBAA format.
-	static Color ColorByHex32(int hex);
+	static Color ColorByHex32(uint32 hex);
 	/// Anticipates a hex-color in 0xRRGGBB format.
-	static Color ColorByHex24(int hex);
+	static Color ColorByHex24(uint32 hex);
 	/// Anticipates a hex-color in 0xLLAA format, where L is luminosity or grey-scale.
-	static Color ColorByHex16(int hex);
+	static Color ColorByHex16(uint32 hex);
 	/// Anticipates a hex-color in 0xLL format, where L is luminosity or grey-scale.
-	static Color ColorByHex8(int hex);
+	static Color ColorByHex8(uint32 hex);
 	String name;
 
 };

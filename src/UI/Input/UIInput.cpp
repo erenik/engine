@@ -30,6 +30,7 @@ UIInput::UIInput(String name /*= ""*/)
 	inputActive = false;
 	numbersOnly = false;
 	mathematicalExpressionsOnly = false;
+	concealCharacters = false;
 }
 
 UIInput::~UIInput()
@@ -76,6 +77,20 @@ UIElement* UIInput::Activate()
 	// Skip this.
 	return this;
 }
+
+/// Default calls parent class RemoveState. If the Active flag is removed, input is also halted/cancelled.
+void UIInput::RemoveState(int state, bool recursive /*= false*/)
+{
+	bool wasActive = this->state & UIState::ACTIVE;
+	UIElement::RemoveState(state, recursive);
+	// And restore old string!
+	if (wasActive && (state & UIState::ACTIVE))
+	{
+		editText = previousText;
+		StopInput();	
+	}
+}
+
 
 // Used for handling things like drag-n-drop and copy-paste operations, etc. as willed.
 void UIInput::ProcessMessage(Message * message)
@@ -243,7 +258,7 @@ int UIInput::OnKeyDown(int keyCode, bool downBefore)
 	}
 
 	// If was trying to move.. 
-	if (moveCommand && oldCaretPosition != editText.caretPosition)
+	if (moveCommand /*&& oldCaretPosition != editText.caretPosition*/)
 	{
 		if (!Input.KeyPressed(KEY::SHIFT))
 		{
@@ -330,7 +345,7 @@ int UIInput::OnChar(int asciiCode)
 				return 0;
 			default:
 				#ifdef _DEBUG_ASCII
-				std::cout<<"\nAsciiCode: "<<(int)asciiCode<<" "<<asciiCode;
+				std::cout<<"\nAsciiCode: "<<(int)asciiCode<<" "<<(unsigned char)asciiCode;
 				#endif
 				break;
 		}
@@ -431,10 +446,11 @@ void UIInput::BeginInput()
 void UIInput::StopInput()
 {
 	inputActive = false;
-	this->RemoveState(UIState::ACTIVE);
 	/// Remove caret
 	editText.caretPosition = -1;
 	OnTextUpdated();
+	// o.o
+	UIElement::RemoveState(UIState::ACTIVE);
 }
 
 // sends message to update the ui with new caret and stuff.

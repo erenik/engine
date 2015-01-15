@@ -42,6 +42,9 @@ public:
 	static void Deallocate();
 	~StateManager();
 
+	/// Deletes all application states (global and current/active ones).
+	void DeleteStates();
+
 	/// Registers states to be used by the state manager.
 	void Initialize();
 	/// Queries all states to create their own input-bindings.

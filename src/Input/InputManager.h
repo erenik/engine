@@ -175,7 +175,8 @@ public:
 	/// Previous mouse position
 	int prevMouseX, prevMouseY;
 	/// Current mouse position
-	int mouseX, mouseY;
+	Vector2i mousePosition;
+//	int mouseX, mouseY;
 	enum mouseCameraStates {
 		NULL_STATE,
 		ROTATING,

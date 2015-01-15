@@ -57,7 +57,7 @@ void InputManager::Deallocate()
 InputManager::InputManager()
 {
 	/// Default mouse data
-	prevMouseX = prevMouseY = mouseX = mouseY = startMouseX = startMouseY = 0;
+	prevMouseX = prevMouseY = startMouseX = startMouseY = 0;
 	lButtonDown = rButtonDown = false;
 	ignoreMouse = false;
 	mouseCameraState = NULL_STATE;
@@ -122,10 +122,13 @@ void InputManager::Initialize(){
 }
 
 /// Clears flags for all input keys. Returns amount of keys that were in need of resetting.
-int InputManager::ClearInputFlags(){
+int InputManager::ClearInputFlags()
+{
 	int inputsReset = 0;
-	for (int i = 0; i < KEY::TOTAL_KEYS; ++i){
-		if (this->keyPressed[i]){
+	for (int i = 0; i < KEY::TOTAL_KEYS; ++i)
+	{
+		if (this->keyPressed[i])
+		{
 			++inputsReset;
 			// Flag it as false
 			this->keyPressed[i] = false;
@@ -546,6 +549,9 @@ void InputManager::MouseClick(Window * window, bool down, int x, int y)
 		// Down!
 		if (down)
 		{
+			// Remove the ACTIVE flag from the previous active element, if any.
+			if (activeElement)
+				activeElement->RemoveState(UIState::ACTIVE);
 			userInterface->Click(x,y,true);
 		}
 		// Up!
@@ -617,8 +623,7 @@ void InputManager::MouseMove(Window * window, Vector2i activeWindowAreaCoords)
 	lastMouseMoveWindow = window;
 
 	/// Save coordinates
-	this->mouseX = x;
-	this->mouseY = y;
+	mousePosition = Vector2i(x,y);
 
 	/// If we have a global UI (system ui), process it first.
 	UserInterface * userInterface = GetRelevantUIForWindow(window);
@@ -635,7 +640,6 @@ void InputManager::MouseMove(Window * window, Vector2i activeWindowAreaCoords)
 			// Save old hover element...? wat
 			UIElement * hoverElement = userInterface->Hover(x, y, true);
 		}
-
 
 	//	element = userInterface->Hover(x, y, true);
 	//	userInterface->SetHoverElement(element);		
@@ -681,17 +685,21 @@ void InputManager::MouseWheel(Window * window, float delta)
 			if (scrolled)
 				// Mark some variable... to pass to the MouseWheel of the state.
 				;
+			
+			// Do a mouse hover/move too!
+			ui->Hover(mousePosition.x, mousePosition.y);
 		}
 	}
 	/// If no UI has been selected/animated, pass the message on to the stateManager
 	StateMan.ActiveState()->MouseWheel(window, delta);
+	
 	/// Call to render if needed.
 	Graphics.QueryRender();
 }
 
 Vector2i InputManager::GetMousePosition()
 {
-	return Vector2i(mouseX, mouseY);
+	return mousePosition;
 }
 
 //=======================================================//
@@ -703,10 +711,42 @@ extern void debuggingInputProcessor(int action, int inputDevice = 0);
 /// Evaluates if the active key generates any new events by looking at the relevant key bindings
 void InputManager::EvaluateKeyPressed(int activeKeyCode, bool downBefore, UIElement * activeElement)
 {
+	/// Check if we have an active ui element.
+	UserInterface * userInterface = RelevantUI();
+	UIElement * hoverElement = NULL;
+	if (userInterface)
+		hoverElement = userInterface->GetHoverElement();
+
 	/// Evaluate relevant key-bindings!
 	Binding * binding;
 
-//    std::cout<<"\nEvaluateKeyPressed called for key: "<<GetKeyString(activeKeyCode);
+	// First the specific one!
+	bool fromGlobal = false;
+	binding = StateMan.ActiveState()->inputMapping.EvaluateInput(activeKeyCode, this->keyPressed, downBefore);
+	// The global one!
+	if (!binding && StateMan.GlobalState())
+	{
+		binding = StateMan.GlobalState()->inputMapping.EvaluateInput(activeKeyCode, this->keyPressed, downBefore);
+		fromGlobal = true;
+	}
+	// If we found some binding to evaluate..
+	if (binding && (binding->activateOverUI || (hoverElement == NULL)))
+	{
+	//	std::cout<<"\nFound binding in activeState: "<<binding->name;
+		if (binding->action != -1)
+		{
+			if (fromGlobal)
+				StateMan.GlobalState()->InputProcessor(binding->action, binding->inputDevice);
+			else
+				StateMan.ActiveState()->InputProcessor(binding->action, binding->inputDevice);
+		}
+		else if (binding->stringAction.Length())
+		{
+//			std::cout<<"\nQueueing action: "<<binding->stringAction;
+			MesMan.QueueMessages(binding->stringAction);
+		}
+		goto endKeyPressed;
+	}
 
 	/// Evaluate debug inputs first of all.
 #if defined(DEBUG_INPUT_ENABLED)
@@ -721,26 +761,25 @@ void InputManager::EvaluateKeyPressed(int activeKeyCode, bool downBefore, UIElem
 	/// Let the general one process things first for certain events, yow.
 	// Then the general one!
 	binding = general.EvaluateInput(activeKeyCode, this->keyPressed, downBefore);
-	if(binding){
+	if(binding)
+	{
 		if (binding->action != -1)
 			generalInputProcessor(binding->action, binding->inputDevice);
 		else if (binding->stringAction.Length())
 			MesMan.QueueMessages(binding->stringAction);
-		return;
+		goto endKeyPressed;
 	}
 
 	/// Check if we have an active ui element. If so don't fucking do anything.
-	UserInterface * userInterface = RelevantUI();
 	if (userInterface)
 	{
-		UIElement * hoverElement = userInterface->GetHoverElement();
 		// UI-navigation if no element is active. Active elements have the responsibility to let go of their activity at the user's behest.
 		if (navigateUI && !activeElement)
 		{
 			bool uiCommand = true;
 			switch(activeKeyCode)
 			{
-				case KEY::BACKSPACE:
+			//	case KEY::BACKSPACE: - Not all too natural.
 				case KEY::ESCAPE:
 				{
 					bool didSomething = UICancel();
@@ -797,37 +836,14 @@ void InputManager::EvaluateKeyPressed(int activeKeyCode, bool downBefore, UIElem
 	if (activeElement)
 		return;
 
+endKeyPressed:
+
 	// Callback state for handling if applicable?
 	AppState * state = StateMan.ActiveState();
 	if (state && state->keyPressedCallback)
 		state->KeyPressed(activeKeyCode, downBefore);
 
 	// Then general one! o-o
-
-	// The global one!
-	if (StateMan.GlobalState()){
-		binding = StateMan.GlobalState()->inputMapping.EvaluateInput(activeKeyCode, this->keyPressed, downBefore);
-		if (binding){
-			if (binding->action != -1)
-				StateMan.GlobalState()->InputProcessor(binding->action, binding->inputDevice);
-			else if (binding->stringAction.Length())
-				MesMan.QueueMessages(binding->stringAction);
-		//	return;
-		}
-	}
-
-	// First the specific one!
-	binding = StateMan.ActiveState()->inputMapping.EvaluateInput(activeKeyCode, this->keyPressed, downBefore);
-	if (binding){
-	//	std::cout<<"\nFound binding in activeState: "<<binding->name;
-		if (binding->action != -1)
-			StateMan.ActiveState()->InputProcessor(binding->action, binding->inputDevice);
-		else if (binding->stringAction.Length())
-		{
-//			std::cout<<"\nQueueing action: "<<binding->stringAction;
-			MesMan.QueueMessages(binding->stringAction);
-		}
-	}
 	Graphics.QueryRender();
 }
 
@@ -1056,10 +1072,10 @@ List<UIElement*> InputManager::UIGetRelevantElements()
 
 void InputManager::UIUp()
 {
-	std::cout<<"\nUIUp";
+//	std::cout<<"\nUIUp";
 	UserInterface * ui = RelevantUI();
 	List<UIElement*> relevantElements = UIGetRelevantElements();
-	std::cout<<" Relevant elements: "<<relevantElements.Size();
+//	std::cout<<" Relevant elements: "<<relevantElements.Size();
 	if (!relevantElements.Size())
 		return;
 	UIElement * element = NULL;
@@ -1141,7 +1157,7 @@ void InputManager::UIUp()
 
 void InputManager::UIDown()
 {
-	std::cout<<"\nUIDown";
+//	std::cout<<"\nUIDown";
 	UserInterface * ui = RelevantUI();
 	List<UIElement*> relevantElements = UIGetRelevantElements();
 	if (!relevantElements.Size())
@@ -1172,11 +1188,12 @@ void InputManager::UIDown()
 		return;
 	ui->SetHoverElement(element);
 }
-void InputManager::UILeft(){
-	std::cout<<"\nUIUp";
+void InputManager::UILeft()
+{
+//	std::cout<<"\nUIUp";
 	UserInterface * ui = RelevantUI();
 	List<UIElement*> relevantElements = UIGetRelevantElements();
-	std::cout<<" Relevant elements: "<<relevantElements.Size();
+//	std::cout<<" Relevant elements: "<<relevantElements.Size();
 	if (!relevantElements.Size())
 		return;
 	UIElement * element = NULL;
@@ -1249,7 +1266,19 @@ bool InputManager::UIPage(float amount)
 	UIElement * hoverElement = ui->GetHoverElement();
 	if (!hoverElement)
 		return false;
-	return hoverElement->OnScroll(amount);
+	// Get position of hoverelement before scroll
+	Vector2i absPos = hoverElement->GetAbsolutePos();
+	bool didScroll = hoverElement->OnScroll(amount);
+	if (didScroll)
+	{
+//		std::cout<<"\nMouse pos: "<<InputMan.mousePosition;
+//		std::cout<<"\nElement pos pre scroll: "<<absPos;
+		// Re-hover at old co-ordinates.
+		MouseMove(ActiveWindow(), absPos);
+	}
+	else {
+	}
+	return didScroll;
 }
 
 

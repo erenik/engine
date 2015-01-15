@@ -17,10 +17,13 @@
 #include "Windows.h"
 #endif
 
+class Message;
 
 #define WindowMan (*WindowManager::Instance())
 
-class WindowManager {
+class WindowManager 
+{
+	friend class Window;
 	WindowManager();
 	~WindowManager();
 	static WindowManager * windowManager;
@@ -33,6 +36,9 @@ public:
 	static void Deallocate();
 	static WindowManager * Instance();
 
+	/// For handling Window-specific messages (instead of having everything the in the MessageManager)
+	void ProcessMessage(Message * message);
+
 #ifdef WINDOWS
 	WNDCLASSEXW defaultWcx;
 #endif
@@ -40,7 +46,7 @@ public:
 	/// For creating the first window, sets certain properties as needed.
 	Window * CreateMainWindow();
 	/// Creates a new window, returning a reference to it.
-	Window * NewWindow(String name);
+	Window * NewWindow(String name, String displayName);
 	Window * GetWindow(int index);
 	Window * GetWindowByName(String name);
 #ifdef WINDOWS
@@ -54,6 +60,9 @@ public:
 	const int NumWindows() const;
 	/// Used to create the window class to be used when creating windows?
 	bool CreateDefaultWindowClass();
+
+	/// Print stuff
+	void ListWindows();
 
 	/// Using relative positions
 	void UpdateChildWindows();
@@ -69,6 +78,9 @@ public:
 	/// If set, will make child windows move along the main window when it is moved. Useful for certain editors..?
 	bool lockChildWindowRelativePositions;
 private:
+	/// To see if the application should quit?
+	void OnWindowHidden(Window * w);
+
 	// Main window. Stores initial GL context that is to be shared and also binds its destroy message to closing the application.
 	Window * mainWindow;
 	// Window mouse is currently hovering over (as per the latest mouse-related message received)

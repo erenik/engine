@@ -12,7 +12,7 @@ class PongPlayerProperty : public EntityProperty
 public:
 	PongPlayerProperty(Entity * owner, Vector2f lookAt, float aiSpeed);
 	/// Returns the ID of this specific property-type (used when identifying it within an entity later on).
-	virtual int ID();
+	static int ID();
 
 
 	/// Time passed in seconds..!

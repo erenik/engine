@@ -173,11 +173,11 @@ Tile * TileGrid2D::GetTile(Vector2i position)
 
 
 /// Rendering! Called from render-thread onry
-void TileGrid2D::Render(GraphicsState * graphicsState)
+void TileGrid2D::Render(GraphicsState & graphicsState)
 {	
 	/// 
-	Vector3f camPos = graphicsState->camera->Position();
-	Camera & camera = *graphicsState->camera;
+	Vector3f camPos = graphicsState.camera->Position();
+	Camera & camera = *graphicsState.camera;
 	Frustum frustum = camera.GetFrustum();
 	Vector3f min = frustum.hitherBottomLeft - Vector3f(1,1,1), max = frustum.fartherTopRight + Vector3f(1,1,1);
 	int tilesToRender = (int) ((max.x - min.x) * (max.y - max.y));

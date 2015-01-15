@@ -25,7 +25,7 @@ void GraphicsManager::RenderViewport(Viewport * vp)
 
 	// draw bg
 	glClearColor(vp->backgroundColor.x, vp->backgroundColor.y, vp->backgroundColor.z,1);
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// Fetch camera to use. 
 	Camera * camera = vp->camera;
@@ -53,6 +53,7 @@ void GraphicsManager::RenderViewport(Viewport * vp)
 	// Add global particle systems if they are within range?
 	graphicsState->particleEffectsToBeRendered.Add(Graphics.globalParticleSystems);
 
+
 	Timer sceneTimer, alphaEntitiesTimer, effectsTimer, uiTimer;
 	sceneTimer.Start();
 
@@ -60,25 +61,23 @@ void GraphicsManager::RenderViewport(Viewport * vp)
 	// TODO: Actually cull it too. 
 	graphicsState->entities = registeredEntities;
 	
-
 	/// Old pipeline configuration! Only testing with the regular entities first. 
 	RenderPipeline * renderPipeline = graphicsState->renderPipe;
 	/// Test with alpha-entities and other passes later on...
 	if (renderPipeline)
 	{
-		renderPipeline->Render(graphicsState);
+		renderPipeline->Render(*graphicsState);
 	}
 	// Default/old fixed pipeline.
 	else {
 		// Render le map as wanted?
 		if (Graphics.mapToRender && ActiveViewport->renderMap){
-			Graphics.mapToRender->Render(graphicsState);
+			Graphics.mapToRender->Render(*graphicsState);
 		}
 		// Render the scene, now
 		else
 			Graphics.RenderScene();
 	}	
-
 
 	FrameStats.sceneTime += sceneTimer.GetMs();
 
@@ -91,6 +90,9 @@ void GraphicsManager::RenderViewport(Viewport * vp)
 	effectsTimer.Start();
 	Graphics.RenderEffects();
 	FrameStats.effectsTime += effectsTimer.GetMs();
+
+
+	Graphics.RenderSkeletons();
 
 	/// Wosh.
 	if (Graphics.renderLookAtVectors)

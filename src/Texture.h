@@ -8,7 +8,7 @@
 #pragma comment(lib, "opengl32.lib")
 #pragma comment(lib, "glu32.lib")
 
-#include <GL/glew.h>
+#include "Graphics/OpenGL.h"
 #include <cstdlib>
 #include <Util.h>
 #include "MathLib.h"
@@ -19,6 +19,11 @@
 #define SPECULAR_MAP	0x0000002
 #define NORMAL_MAP		0x0000004
 #define MAX_TEXTURE_TARGETS	NORMAL_MAP
+
+namespace cv
+{
+	class Mat;
+};
 
 struct TextureData{
 };
@@ -41,7 +46,6 @@ public:
 	// Reallocate based on new size and format.
 	void Reallocate();
 
-
 	// Same thing as Resize.
 	void SetSize(Vector2i newSize);
 	/// Resets width, height and creates a new data buffer after deleting the old one. Returns false if it failed (due to lacking memory).
@@ -53,7 +57,7 @@ public:
 	void FlipXY();
 
 	/// Creates the data buffer. Width, height and bpp must be set before hand.
-	bool CreateDataBuffer();
+	bool CreateDataBuffer(int withGivenSize = -1);
 
 	/// Retrieves a sample color from the texture, using given amount of samples. Works in squares, meaning values 1, 4, 16, 64, etc. should be used.
 	Vector4f GetSampleColor(int samples = 4);
@@ -65,6 +69,9 @@ public:
 	int GetChannels();
 	/// Uses glGetTexImage to procure image data from GL and insert it into the data-array of the texture object.
 	void LoadDataFromGL();
+
+	/// Loads data from target OpenCV mat.
+	void LoadFromCVMat(cv::Mat & mat);
 
 	/// For debugging.
 	bool MakeRed();
@@ -118,6 +125,7 @@ public:
 	
 	enum formats{
 		NULL_FORMAT,
+		GREYSCALE,
 		SINGLE_16F, // Single channel red/greyscale image, 16 bits float per pixel.
 		RGB,
 		RGB_8 = RGB, // standard 8 bit per channel, 3 channels
@@ -157,6 +165,8 @@ public:
 			buf[psi+2] += color.z * 255.0f;
 			buf[psi+3] += alpha * 255.0f;
 		}
+
+		Always assumes 4 channels are being used, even if they aren't, in order to bufferize decently into OpenGL.
 	*/
 	unsigned char * data;
 
@@ -183,8 +193,19 @@ public:
 	bool dynamic;
 	/// Set when rebufferization is queued. This flag is set for dynamic textures, for example for video produced by the MultimediaManager and its MultimediaStreams.
 	bool queueRebufferization;
-private:
 
+	/// 1 for Greyscale, 3 for RGB, 4 for RGBA, etc. Custom types may use any amount of channels.
+	int channels;
+	/// Bytes per channel. All channels must have same amount of bytes per.
+	int bytesPerChannel;
+
+	/** If true, will make texture memory in CPU be cleared after successful bufferization to video memory.
+		Textures marked with 'dynamic' boolean will not be cleared in this manner.
+		Default is true, as it should reduce RAM consumption considerably.
+	*/
+	static bool releaseOnBufferization;
+
+private:
 
 	// Save via openCV
 	bool SaveOpenCV(String toPath);

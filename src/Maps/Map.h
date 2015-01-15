@@ -83,7 +83,7 @@ public:
 	/// Make sure you call this from the render-thread or pause rendering before manipulation!
 	Lighting * GetLightingEditable() {return &lighting; };
 	/// Render?
-	virtual void Render();
+	virtual void Render(GraphicsState & graphicsState);
 
 	/// Parse model and texture dependencies if they were not included in the file upon loading!
 	bool ParseDependencies();

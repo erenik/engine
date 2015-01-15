@@ -4,6 +4,7 @@
 
 #include "OpenAL.h"
 
+#ifdef OPENAL
 
 // Open AL device and context, similar to OpenGL device and context!
 ALCdevice * alcDevice = 0;		// Device
@@ -41,9 +42,7 @@ int AssertALError()
 	int error = CheckALError();
 	assert(error == AL_NO_ERROR);
 	return error;
-}
-			
-
+}		
 
 List<ALSource*> ALSource::sources;
 
@@ -85,6 +84,8 @@ void ALSource::FreeAll()
 		ALSource * source = sources[0];
 		alDeleteSources(1, &source->alSource);
 		sources.RemoveIndex(0);
+		// Actually delete it too..
+		delete source;
 	}
 }
 
@@ -100,3 +101,4 @@ ALSource * ALSource::GetFree()
 	return NULL;
 }
 
+#endif

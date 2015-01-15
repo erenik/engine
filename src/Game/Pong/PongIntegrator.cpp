@@ -5,6 +5,7 @@
 #include "PongIntegrator.h"
 #include "Message/MessageManager.h"
 #include "Time/Time.h"
+#include "PongBallProperty.h"
 
 PongIntegrator::PongIntegrator(float zPlane)
 {
@@ -51,7 +52,7 @@ void PongIntegrator::IntegrateVelocity(Entity * forEntity, float timeInSeconds)
 	{
 		if (speed > 0)
 		{
-			std::cout<<"\nSpeed: "<<speed<<" Velocity: "<<velocity.x<<" timeInSeconds: "<<timeInSeconds;
+//			std::cout<<"\nSpeed: "<<speed<<" Velocity: "<<velocity.x<<" timeInSeconds: "<<timeInSeconds;
 		}
 		lastTime = now;
 	}
@@ -62,21 +63,17 @@ void PongIntegrator::IntegrateVelocity(Entity * forEntity, float timeInSeconds)
 		forEntity->physics->velocity.z = 0;
 	}
 
-	forEntity->RecalculateMatrix();
+	/// If ball.
+	PongBallProperty * pbp = forEntity->GetProperty<PongBallProperty>();
+	if (pbp && speed)
+	{
+		// Check minimum velocity.
+		float minVel = pbp->minimumHorizontalVelocity;
+		if (speed < minVel)
+			velocity *= minVel / speed * 1.01f;
+	}
 
-	// Goal! No! Solve with collisions!
-	/*
-	if (position.x > frameMax.x)
-	{
-		velocity = Vector3f();
-		MesMan.QueueMessages("RightGoal");
-	}
-	else if (position.x < frameMin.x)
-	{
-		velocity = Vector3f();
-		MesMan.QueueMessages("LeftGoal");
-	}
-	*/
+	forEntity->RecalculateMatrix();
 		
 	if (position.y >= frameMax.y)
 	{

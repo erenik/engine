@@ -47,7 +47,7 @@ public:
 	int type;
 	/// Total raw data that is to be sent.
 	String data;
-	/// Total size of received data.
+	/// Total size of received data/data to be sent.
 	int size;
 	/// Sender
 	Peer * sender;

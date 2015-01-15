@@ -77,15 +77,16 @@ void * Initialize(void * vArgs){
 	// Check that all managers have been initialized before we continue..
 
 	// Run startup.ini if it is available, running all its arguments through the message manager, one line at a time.
-	List<String> lines = File::GetLines("startup.ini");
-	for (int i = 0; i < lines.Size(); ++i)
 	{
-		String line = lines[i];
-		if (line.StartsWith("//"))
-			continue;
-		MesMan.QueueMessages(line);
+		List<String> lines = File::GetLines("startup.ini");
+		for (int i = 0; i < lines.Size(); ++i)
+		{
+			String line = lines[i];
+			if (line.StartsWith("//"))
+				continue;
+			MesMan.QueueMessages(line);
+		}
 	}
-
 
 	// TexMan.loadTextures(GAME_STATE_INITIALIZATION);
 	// TexMan.loadTextures(GAME_STATE_MAIN_MENU);
@@ -114,7 +115,8 @@ void * Initialize(void * vArgs){
 
 #ifdef WINDOWS
 	initializerThread = NULL;
-	_endthread();
+	// May not be needed, and hinders destructors from being called.
+//	_endthread();
 #endif
 }
 
@@ -130,38 +132,26 @@ void Deallocate(void *vArgs)
 void * Deallocate(void *vArgs)
 #endif
 {
-
 	quittingApplication = true;
     std::cout<<"\nDeallocatorThread started.";
 	assert(deallocatorThreadStartCount < 1);
 	++deallocatorThreadStartCount;
 
 	/// Stop input.
-	Input.acceptInput = false;
-	Sleep(10);
+	MesMan.QueueMessages("AcceptInput:false");
+	MesMan.QueueMessages("HideWindows");
+	MesMan.QueueMessages("SetGlobalState:NULL");
+	MesMan.QueueMessages("SetActiveState:NULL");
+	MesMan.QueueMessages("StateMan.DeleteStates");
+	MesMan.QueueMessages("NetworkMan.Shutdown");
+	MesMan.QueueMessages("MultimediaMan.Shutdown");
+	MesMan.QueueMessages("AudioMan.Shutdown");
+	MesMan.QueueMessages("GraphicsMan.Shutdown");
 
-	StateMan.SetGlobalState(NULL);
-	StateMan.SetActiveState(NULL);
-	// Stop audio
-//	audio.shouldLive = false;
-	// Stop the state loop
-	
+	// Stop the state loop	
 	double timeStart = clock();
 	double timeTaken;
-
-	// Start with stopping the network before deallocating anything to avoid errors
-	NetworkMan.Shutdown();
-
-	/// Stop rendering. 
-	Graphics.shouldLive = false;
 	
-	// Notify the message manager and game states to hide their windows.
-	while(WindowMan.MainWindow() && WindowMan.MainWindow()->IsVisible())
-	{
-		MesMan.QueueMessages("HideWindows");
-		Sleep(10);
-	}
-
 #ifdef WINDOWS
 	while(graphicsThread)
 		Sleep(10);
@@ -181,7 +171,7 @@ void * Deallocate(void *vArgs)
 #endif
 
 	// Stop graphics processing, now that we hopefully have deallocated all resources that are relevant!
-	StateMan.shouldLive = false;
+	MesMan.QueueMessages("StateMan.Shutdown");
 
     std::cout<<"\nWaiting for state processing thread to end..";
 
@@ -196,14 +186,6 @@ void * Deallocate(void *vArgs)
 	while(!Graphics.finished)
 		Sleep(10);
 
-	StateMan.DeallocateUserInterfaces();
-	timeTaken = clock() - timeStart;
-	std::cout<<"\nDeallocating UIs: "<<timeTaken / CLOCKS_PER_SEC<<" seconds";
-
-	/// Remove bindings between active elements, such as multimedia and audio that cannot be destroyed without planning.
-	MultimediaMan.Shutdown();
-	AudioMan.Shutdown();
-
 	std::cout<<"\n>>>DeallocatorThread ending...";
 
 	/// Set the application's live to false so that the main loop will exit.
@@ -212,7 +194,8 @@ void * Deallocate(void *vArgs)
 	/// Deallocation thread quitting!
 #ifdef WINDOWS
 	deallocatorThread = NULL;
-	_endthread();
+	// May not be needed, and hinders destructors from being called.
+//	_endthread();
 	/// Inform that we're done here.
 #elif defined LINUX | defined OSX
     deallocatorThread = NULL;

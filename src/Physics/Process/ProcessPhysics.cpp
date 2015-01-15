@@ -9,9 +9,10 @@
 
 #include "PhysicsLib/AABBSweeper.h"
 
-#include "Graphics/FrameStatistics.h"
+#include "PhysicsLib/Estimator.h"
 
-#include "Graphics/GraphicsManager.h"
+#include "Graphics/FrameStatistics.h"
+// #include "Graphics/GraphicsManager.h"
 //#include "Entity/Entity.h"
 
 static Timer recalc, moving;
@@ -59,7 +60,8 @@ void PhysicsManager::ProcessPhysics()
 	physicsMeshCollisionChecks = 0;
 
 	/// Do one process for each 10 ms we've gotten stored up
-	while (totalTimeSinceLastUpdate > ZERO){
+	while (totalTimeSinceLastUpdate > ZERO)
+	{
 		/// Get sub-time to calculate.
 		float dt = 0.010f * simulationSpeed;
 #define timeDiff    dt
@@ -67,6 +69,27 @@ void PhysicsManager::ProcessPhysics()
 		if (totalTimeSinceLastUpdate < timeInSecondsSinceLastUpdate)
 			timeInSecondsSinceLastUpdate = totalTimeSinceLastUpdate;
 		totalTimeSinceLastUpdate -= timeInSecondsSinceLastUpdate;
+
+		/// Process estimators (if any) within all registered entities?
+		int milliseconds = dt * 1000.f;
+		for (int i = 0 ; i < physicalEntities.Size(); ++i)
+		{
+			Entity * entity = physicalEntities[i];
+			List<Estimator*> & estimators = entity->physics->estimators;
+			for (int j = 0; j < estimators.Size(); ++j)
+			{
+				Estimator * estimator = estimators[j];
+				estimator->Process(milliseconds);
+				// Re-calculate transform matrix, as it was probably affected..?
+				entity->RecalculateMatrix();
+				if (estimator->finished)
+				{
+					estimators.RemoveIndex(j, ListOption::RETAIN_ORDER);
+					--j;
+					delete estimator;
+				}
+			}
+		}
 
 		recalc.Start();
 		// Begin by recalculating physics position and scales

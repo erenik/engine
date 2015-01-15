@@ -10,14 +10,16 @@ Face::Face(){
 }
 
 /// Quad initializer.
-Face::Face(Vertex * v0, Vertex * v1, Vertex * v2, Vertex * v3){
+Face::Face(Vertex * v0, Vertex * v1, Vertex * v2, Vertex * v3)
+{
 	vertexList.Add(v0);
 	vertexList.Add(v1);
 	vertexList.Add(v2);
 	vertexList.Add(v3);
 }
 
-Face::~Face(){
+Face::~Face()
+{
 	/// The triangles are the only dynamically allocated part that needs removal upon destruction.
 	triangleList.ClearAndDelete();
 }
@@ -35,13 +37,16 @@ void Face::RecalculateNormal(){
 }
 
 /// Recalculates triangles, creating them if they did not previously exist.
-void Face::RecalculateTriangles(){
-	if (vertexList.Size() < 3){
+void Face::RecalculateTriangles()
+{
+	if (vertexList.Size() < 3)
+	{
 		if (triangleList.Size())
 			triangleList.ClearAndDelete();
 		return;
 	}
-	if (triangleList.Size() != vertexList.Size() - 2){
+	if (triangleList.Size() != vertexList.Size() - 2)
+	{
 		triangleList.ClearAndDelete();
 		for (int i = 0; i < vertexList.Size() - 2; ++i){
 			Triangle * t = new Triangle();

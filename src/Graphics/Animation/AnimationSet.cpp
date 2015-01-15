@@ -73,6 +73,8 @@ bool AnimationSet::Load(String fromFolder)
 	}
 	// Look for a "timing.txt" or similar file.
 	// Set various details of the animations based on the info in the txt-file.
+	std::cout<<"\nAnimation set loaded from folder: "<<fromFolder;
+	return true;
 }
 
 
@@ -100,13 +102,48 @@ Animation * AnimationSet::LoadAnimationFromFolder(String fromFolder)
 	}
 	// Create animation
 	Animation * anim = new Animation();
+	anim->repeatable = true; // Default repeatable?
 	List<String> tokens = fromFolder.Tokenize("/");
 	anim->name = tokens[tokens.Size()-1];
-	for (int i = 0; i < files.Size(); ++i){
+	List<String> unsortedSources;
+	for (int i = 0; i < files.Size(); ++i)
+	{
 		String file = files[i];
+		if (!file.Contains(".png"))
+			continue;
 		file = fromFolder + "/" + file;
-		anim->frameSources.Add(file);
+		unsortedSources.Add(file);
 	}
+	// Sort by name?
+	List<String> sortedSources;
+	int leastIndex = -1;
+	int leastValue = INT_MAX;
+	while(unsortedSources.Size())
+	{
+		leastIndex = -1;
+		leastValue = INT_MAX;
+		for (int i = 0; i < unsortedSources.Size(); ++i)
+		{
+			String & source = unsortedSources[i];
+			int value = source.ParseInt();
+			if (value < leastValue)
+			{
+				leastValue = value;
+				leastIndex = i;
+			}
+		}
+		// Take the least index and add it to the sorted array
+		if (leastIndex >= 0)
+		{
+			String source = unsortedSources[leastIndex];
+			sortedSources.Add(source);
+			unsortedSources.RemoveIndex(leastIndex);
+		}
+		else 
+			break;
+	}
+	anim->frameSources = sortedSources;
+
 	anim->frames = anim->frameSources.Size();
 	// Calculate frame-times.
 	anim->totalDuration = 1000;

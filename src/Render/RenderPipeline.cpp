@@ -13,6 +13,13 @@ RenderPipeline::RenderPipeline()
 	type = RenderPipeline::FIXED;
 }
 
+RenderPipeline::~RenderPipeline()
+{
+	std::cout<<"\npppp";
+	/// Delete render-passes on deletion of this pipeline.
+	renderPasses.ClearAndDelete();
+}
+
 namespace ParseState 
 {
 	enum {
@@ -114,7 +121,7 @@ void RenderPipeline::BeginFrame()
 	// Bind frames
 }
 
-void RenderPipeline::Render(GraphicsState * graphics)
+void RenderPipeline::Render(GraphicsState & graphics)
 {
 	for (int i = 0; i < renderPasses.Size(); ++i)
 	{

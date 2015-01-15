@@ -33,7 +33,9 @@ namespace RenderFlags {
 struct GraphicsProperty 
 {
 	friend class GMSetEntity;
+	friend class GMSetEntitys;
 	friend class GMSlideEntityf;
+	friend class GMClearEstimators;
 	friend class GMPlayAnimation;
 	friend class GMQueueAnimation;
 	friend class Entity;
@@ -87,6 +89,17 @@ public:
 	/// If true, requires depth test while rendering, false skips. Default true.
 	bool depthTest;
 
+	/** If true, skeleton will be animated, and hopefully skin will be rendered accordingly if proper shaders are used.
+		Default false. Set with GMPlaySkeletalAnimation()
+	*/
+	bool skeletalAnimationEnabled;
+	/// If true, will try to render the skinned animation using shaders. If false, all vertices will be re-calculated in the CPU.
+	bool shaderBasedSkeletonAnimation;
+
+
+	/// Pauses general automations but also things such as bone/skinning-updates o.o
+	bool allAnimationsPaused;
+
 private:
 	/// Estimators which are currently tweaking various graphic-specific values over time.
 	List<Estimator*> estimators;
@@ -95,6 +108,11 @@ private:
 	void SetAnimation(String name);
 	/// Sets queued animation. Only called from the GMSetEntity message.
 	void SetQueuedAnimation(String name);
+
+	/// Sets current animation. Only called from the GMSetEntity message. If faulty, animation will be nullified.
+	void SetSkeletalAnimation(String name);
+	/// Sets queued animation. Only called from the GMSetEntity message.
+	void SetQueuedSkeletalAnimation(String name);
 
 	/// Set of animations, usually belong to one model/character.
 	AnimationSet * animationSet;

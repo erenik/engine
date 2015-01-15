@@ -84,6 +84,8 @@ public:
 	/// Reads from file stream.
 	void ReadFrom(std::fstream & file);
 private:
+	bool SaveLighting(String toFileName);
+	bool LoadLighting(String fromFileName);
 	/// Used for all copy-constructors.
 	void Copy(const Lighting * fromThisLighting);
 
@@ -101,6 +103,10 @@ private:
 	Light * activeLight;
 	/// Number of lights we've created
 	int lightCounter;
+
+
+	/// o.o
+	static Window * lightingEditor;
 };
 
 /// Loads selected lighting into the active shader program

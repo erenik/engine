@@ -7,13 +7,13 @@
 /// Size of states-array from which we sample.
 #define arraySize states.Size()
 
-EstimationStateFloat::EstimationStateFloat()
-	: EstimatorState(EstimatorType::FLOAT)
+EstimationFloat::EstimationFloat()
+	: Estimation(EstimatorType::FLOAT)
 {
 }
 
-EstimationStateFloat::EstimationStateFloat(float fValue, int64 timeStamp)
-	: EstimatorState(EstimatorType::FLOAT, timeStamp), value(fValue)
+EstimationFloat::EstimationFloat(float fValue, int64 timeStamp)
+	: Estimation(EstimatorType::FLOAT, timeStamp), value(fValue)
 {
 }
 
@@ -26,14 +26,64 @@ EstimatorFloat::EstimatorFloat()
 	
 }
 
+/** Estimates values for given time. If loop is true, the given time will be modulated to be within the interval of applicable time-values.
+	If the estimator's output pointer is set, data for the given estimation will be written there accordingly.
+*/
+void EstimatorFloat::Estimate(int64 forGivenTimeInMs, bool loop)
+{
+	int64 modulatedTime = forGivenTimeInMs;
+	if (loop)
+		modulatedTime = forGivenTimeInMs % totalIntervalMs + minMs;
+	
+	Estimation * before, * after;
+	float ratioBefore, ratioAfter;
+	this->GetStates(before, after, ratioBefore, ratioAfter, modulatedTime);
+//	std::cout<<"\nRelative: "<<relative<<" = "<<relativeTime<<" / "<<timeBetween<<", after->time:"<<after->time<<" before->time:"<<before->time
+//		<<" Before/after index: "<<beforeIndex<<"/"<<afterIndex;
+
+	/// Interpolated value
+	float beforeF = (before? ((EstimationFloat *)before)->value * ratioBefore : 0);
+	float afterF = (after? ((EstimationFloat *)after)->value * ratioAfter : 0);
+	float finalValue =  beforeF + afterF;
+//	std::cout<<"\nFinal value: "<<finalValue<<" before:"<<before<<" after:"<<after;
+	if (finalValue > 10.f)
+	{
+	//	std::cout<<"\n Lall";
+	}
+
+	if (lastCalculation < finalValue)
+	{
+	//	std::cout<<" lastCalc "<<lastCalculation;
+	}
+	
+//	std::cout<<"\nFinal value: "<<finalValue;
+
+	if (variableToPutResultTo)
+		*variableToPutResultTo = finalValue;
+	else {
+		std::cout<<"\nEstimating with no output result placement.";
+	}
+
+	lastCalculation = finalValue;
+}	
+
 /// Process, i.e. increase recorded duration and evaluate the floating point value at the new time point.
 void EstimatorFloat::Process(int timeInMs)
 {
 	if (finished)
 		return;
-	// just testin..
+	/// Increment elapsed time.
 	timeElapsedMs += timeInMs;
+
+	// Estimate value! Final value will be written as necessary straight from the Estimate function.
+	this->Estimate(timeElapsedMs, loop);
+
+	/// Mark as finished when applicable.
+	int64 time = states.Last()->time;
+	if (timeElapsedMs > time)
+		finished = true;
 	
+	/*
 
 	float value;
 	int mode = EstimationMode::INTERPOLATION;
@@ -41,14 +91,12 @@ void EstimatorFloat::Process(int timeInMs)
 		// Just grab latest value.
 		case EstimationMode::NONE:
 		{
-			/*
 			if (currentIndex >= 0)
 				value = states[currentIndex].data;
 			else if (hasLooped)
 				value = states[arraySize-1].data;
 			else
 				value = Vector3f();
-				*/
 			break;
 		}
 		// Smooth between one to two values.
@@ -62,44 +110,34 @@ void EstimatorFloat::Process(int timeInMs)
 		case EstimationMode::EXTRAPOLATION: 
 		case EstimationMode::EXTRAPOLATION_PLUS_COLLISION_CORRECTION:
 		{
-			/*
 			bool good;
 			value = GetExtrapolatedValue(forGivenTime, good);
 			if (!good){
 				/// If not good time, just fetch latest input value.
 				value = GetState(0)->data;
-			}*/
+			}
 			break;
 		}
 		case EstimationMode::INTER_PLUS_EXTRA:
 		{
-			/*
 			bool good;
 			value = GetExtrapolatedValue(forGivenTime, good);
 			if (!good){
 				value = GetInterpolatedValue(forGivenTime);
-			}*/
+			}
 
 			break;
 		}
 	}			
 
-	/// Save away it in case we need it later. (extrapolator...!)
-	lastCalculation = value;
-
-	/// Mark as finished when applicable.
-	if (timeElapsedMs > states.Last().time)
-		finished = true;
-	
-	/// Apply value where requested.
-	*variableToPutResultTo = value;
+*/
 }
 
 /// For adding any length of states as arguments.
-void EstimatorFloat::AddStates(int numStates, float f1, int timeStamp1, float f2, int timeStamp2, ...)
+void EstimatorFloat::AddStatesMs(int numStates, float f1, int timeStamp1, float f2, int timeStamp2, ...)
 {
-	AddState(f1, timeStamp1);
-	AddState(f2, timeStamp2);
+	AddStateMs(f1, timeStamp1);
+	AddStateMs(f2, timeStamp2);
 
 	// Variable length arguments.
 	// http://www.cprogramming.com/tutorial/c/lesson17.html
@@ -113,71 +151,70 @@ void EstimatorFloat::AddStates(int numStates, float f1, int timeStamp1, float f2
 		/// Has to be double, as floats are not supported in stdarg, see http://stackoverflow.com/questions/11270588/variadic-function-va-arg-doesnt-work-with-float
 		float fx = (float) va_arg (argptr, double);
 		int timeStampx = (int) va_arg (argptr, int);
-		std::cout<<"\nfx"<<fx<<" timestamp"<<timeStampx;
-		AddState(fx, timeStampx);
+	//	std::cout<<"\nfx"<<fx<<" timestamp"<<timeStampx;
+		AddStateMs(fx, timeStampx);
+    }
+    va_end ( argptr );      // Cleans up the list
+}	
+
+/// For adding any length of states as arguments. timestamps in seconds.
+void EstimatorFloat::AddStatesSeconds(int states, float f1, float timeStamp1, float f2, float timeStamp2, ...)
+{
+	AddStateMs(f1, timeStamp1 * 1000);
+	AddStateMs(f2, timeStamp2 * 1000);
+
+	// Variable length arguments.
+	// http://www.cprogramming.com/tutorial/c/lesson17.html
+	/* Initializing arguments to store all values after num */
+	va_list argptr;    
+	int extraStates = states - 2;
+    va_start ( argptr, timeStamp2);
+    // Sum all the inputs; we still rely on the function caller to tell us how many there are.
+    for (int x = 0; x < extraStates; x++ )        
+    {
+		/// Has to be double, as floats are not supported in stdarg, see http://stackoverflow.com/questions/11270588/variadic-function-va-arg-doesnt-work-with-float
+		float fx = (float) va_arg (argptr, double);
+		float timeStampx = (float) va_arg (argptr, double);
+	//	std::cout<<"\nfx"<<fx<<" timestamp"<<timeStampx;
+		int64 millis = timeStampx * 1000;
+		AddStateMs(fx, millis);
     }
     va_end ( argptr );      // Cleans up the list
 
-
-}	
-
-/// o.o
-void EstimatorFloat::AddState(float fValue, int timeStamp)
-{
-	EstimationStateFloat newState = EstimationStateFloat(fValue, timeStamp);
-	states.Add(newState);
-	
-	++currentIndex;
-	if (currentIndex >= arraySize){
-		currentIndex = 0;
-		hasLooped = true;
-	}
-	/*
-	/// If using extrapolation, do more things now.
-	if (extrapolationEnabled)
-	{
-		extrapolatorBase.data = lastExtrapolation.data;
-		extrapolatorBase.time = lastExtrapolation.time;
-		/// If bad, fix.
-		if (extrapolatorBase.data != extrapolatorBase.data){
-			lastExtrapolation.data = Vector3f();
-			estimatedVelocity = Vector3f();
-			extrapolatorBase.data = Vector3f();
-			return;
-		}
-
-		/// Get new velocity by looking at the last two state values, but also the difference between this most recent state value and our own predicted value
-		/// First diff between our estimation and the new value.
-		int denom = (timeStamp - extrapolatorBase.time);
-		if (denom == 0){
-			estimatedVelocity = Vector3f();
-			return;
-		}
-		estimatedVelocity = (vec - extrapolatorBase.data) / AbsoluteValue(denom);
-		/// Next the diff between the last two stored values.
-		int previousIndex = currentIndex - 1;
-		if (previousIndex < 0)
-			previousIndex += arraySize;
-		EstimationStateVec3f * previousState = &states[previousIndex];
-		int denom2 = (timeStamp - previousState->time);
-		if (denom2 == 0)
-			return;
-		estimatedVelocity += (vec - previousState->data) / AbsoluteValue(denom2);
-		// Apply damping to estimated velocity?
-	//	estimatedVelocity *= 0.95f;
-		if (estimatedVelocity.x != estimatedVelocity.x)
-		{
-			std::cout<<"\nWooops.";
-		}
-	}
-	*/
 }
 
 
-/// Fetches interpolated value for given time-stamp.
-float EstimatorFloat::GetInterpolatedValue(int64 forGivenTime)
+/// o.o
+void EstimatorFloat::AddStateMs(float fValue, int64 timeStampInMs)
 {
-	EstimationStateFloat * after = NULL, * before = NULL;
+	// Set lastCalculation to the initially added value!
+	if (states.Size() == 0)
+		lastCalculation = fValue;
+
+	EstimationFloat * newState = new EstimationFloat(fValue, timeStampInMs);
+	Estimator::AddState(newState);
+}
+
+/// Inserts the state at a decent location based on the time-stamp.
+void EstimatorFloat::InsertState(float f, int64 timeStampInMs)
+{
+	EstimationFloat * newState = new EstimationFloat(f, timeStampInMs);
+	Estimator::InsertState(newState);
+}
+
+/// Fetches interpolated value for given time-stamp.
+float EstimatorFloat::GetInterpolatedValue(int64 forGivenTimeInMs)
+{
+	Estimation * after = NULL, * before = NULL;
+	float ratioBefore, ratioAfter;
+	Estimator::GetStates(before, after, ratioBefore, ratioAfter, forGivenTimeInMs);
+	
+	EstimationFloat * afterF = (EstimationFloat*)after, * beforeF = (EstimationFloat*) before;
+	float finalValue = beforeF->value * ratioBefore + afterF->value * ratioAfter;
+	return finalValue;
+	
+
+	/*
 	bool loopedTwice = false;
 	int beforeIndex = -1, afterIndex = -1;
 	/// First find two given points in time that are behind and before our requested time.
@@ -194,8 +231,8 @@ float EstimatorFloat::GetInterpolatedValue(int64 forGivenTime)
 				break;
 		}
 
-		EstimationStateFloat * state = &states[i];
-		if (state->time > forGivenTime){
+		EstimationFloat * state = &states[i];
+		if (state->time > forGivenTimeInMs){
 			after = state;
 			afterIndex = i;
 		}
@@ -205,7 +242,7 @@ float EstimatorFloat::GetInterpolatedValue(int64 forGivenTime)
 			beforeIndex = i;
 			break;
 		}
-		else if (state->time < forGivenTime){
+		else if (state->time < forGivenTimeInMs){
 			before = state;
 			beforeIndex = -1;
 			break;
@@ -216,20 +253,21 @@ float EstimatorFloat::GetInterpolatedValue(int64 forGivenTime)
 	}
 	/// If we couldn't find neither before nor after requested time, just return now.
 	if (!after && !before){
-		std::cout<<"No after or before state found in estimator.";	
+	//	std::cout<<"No after or before state found in estimator.";	
 		return 0.f;
 	}
 	if (!after){
-		std::cout<<"No after found, using before state.";		
+	//	std::cout<<"No after found, using before state.";		
 		return before->value;
 	}
-	if (!before){
-		std::cout<<"No before found, using after state.";		
+	if (!before)
+	{
+	//	std::cout<<"No before found, using after state.";		
 		return after->value;
 	}
 	/// Scale between them only if both are valid
 	float timeBetween = (float) (after->time - before->time);
-	float relativeTime = (float) (forGivenTime - before->time);
+	float relativeTime = (float) (forGivenTimeInMs - before->time);
 	if (timeBetween == 0)
 	{
 		timeBetween = relativeTime;
@@ -241,11 +279,13 @@ float EstimatorFloat::GetInterpolatedValue(int64 forGivenTime)
 	/// Interpolated value
 	float finalValue = before->value * (1 - relative) + after->value * relative;
 	return finalValue;
+	*/
 }
 
 
 /// Fetches estimation state by index. 0 refers to current/last index, with negative values being past. 
-EstimationStateFloat * EstimatorFloat::GetState(int index)
+/*
+EstimationFloat * EstimatorFloat::GetState(int index)
 {
 	assert(states.Size());
 	int arrayIndex = currentIndex + index;
@@ -258,3 +298,4 @@ EstimationStateFloat * EstimatorFloat::GetState(int index)
 		arrayIndex = 0;
 	return &states[arrayIndex];
 }
+*/

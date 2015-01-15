@@ -7,7 +7,8 @@
 #include "Application/Application.h"
 #include "Command/CommandLine.h"
 #include "FilePath/FilePath.h"
-
+#include "Message/Message.h"
+#include "Message/MessageManager.h"
 #include <cassert>
 
 WindowManager * WindowManager::windowManager = 0;
@@ -18,6 +19,8 @@ WindowManager::WindowManager()
 	mainWindow = NULL;
 	lastActiveWindow = NULL;
 	lockChildWindowRelativePositions = false;
+
+	hoverWindow = NULL;
 }
 WindowManager::~WindowManager()
 {
@@ -42,6 +45,39 @@ WindowManager * WindowManager::Instance()
 	assert(windowManager);
 	return windowManager;
 }
+
+/// For handling Window-specific messages (instead of having everything the in the MessageManager)
+void WindowManager::ProcessMessage(Message * message)
+{
+#define ASSERT_WINDOW {if (!window){ std::cout<<"\nERROR: No window by given name \'"<<windowName<<"\'"; return;}}
+	String msg = message->msg;
+	switch(message->type)
+	{
+		case MessageType::STRING:
+		{
+			if (msg.Contains("HideWindow("))
+			{
+				String windowName = msg.Tokenize("()")[1];
+				Window * window = GetWindowByName(windowName);
+				ASSERT_WINDOW;
+				window->Hide();
+			}
+			else if (msg.Contains("MoveWindowToMonitor("))
+			{
+				List<String> args = msg.Tokenize("(,)");
+				if (args.Size() < 3)
+					return;
+				String windowName = args[1];
+				int monitor = args[2].ParseInt();
+				Window * window = WindowMan.GetWindowByName(windowName);
+				ASSERT_WINDOW;
+				window->MoveToMonitor(monitor);
+			}
+			break;	
+		}
+	}
+}
+
 
 /// Used to create the window class to be used when creating windows?
 bool WindowManager::CreateDefaultWindowClass()
@@ -93,6 +129,17 @@ bool WindowManager::CreateDefaultWindowClass()
     }
 }
 
+/// Print stuff
+void WindowManager::ListWindows()
+{
+	for (int i = 0; i < windows.Size(); ++i)
+	{
+		Window * window = windows[i];
+		std::cout<<"\nWindow "<<i<<" name: "<<window->name<<" displayName: "<<window->displayName;
+	}
+}
+
+
 /// Removes and deletes all windows.
 void WindowManager::DeleteWindows()
 {
@@ -102,17 +149,17 @@ void WindowManager::DeleteWindows()
 /// For creating the first window, sets certain properties as needed.
 Window * WindowManager::CreateMainWindow()
 {
-	mainWindow = new Window(Application::name);
+	mainWindow = new Window("MainWindow", Application::name);
 	mainWindow->main = true;
 	windows.Add(mainWindow);
 	return mainWindow;
 }
 
 /// Creates a new window, returning a reference to it.
-Window * WindowManager::NewWindow(String name)
+Window * WindowManager::NewWindow(String name, String displayName)
 {
 
-	Window * window = new Window(name);
+	Window * window = new Window(name, displayName);
 	windows.Add(window);
 	return window;
 }
@@ -195,6 +242,22 @@ bool WindowManager::InFocus()
 	}
 	return false;
 }
+
+/// To see if the application should quit?
+void WindowManager::OnWindowHidden(Window * w)
+{
+	for (int i = 0; i < windows.Size(); ++i)
+	{
+		Window * window = windows[i];
+		if (window->IsVisible())
+		{
+			return;
+		}
+	}
+	/// Shutdown if no windows were visible.
+	MesMan.QueueMessages("QuitApplication");
+}
+
 
 
 /// Using relative positions

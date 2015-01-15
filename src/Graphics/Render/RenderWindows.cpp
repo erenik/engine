@@ -10,8 +10,12 @@ void GraphicsManager::RenderWindows()
 {
 
 	List<Window*> windows = WindowMan.GetWindows();
+
+	int times = 0;
+
 	for (int i = 0; i < windows.Size(); ++i)
 	{
+	renderWindowStart:
 		Window * window = windows[i];
 		// Only render visible windows?
 		if (!window->IsVisible())
@@ -20,6 +24,9 @@ void GraphicsManager::RenderWindows()
 		graphicsState->activeWindow = window;
 		graphicsState->windowWidth = window->WorkingArea().x;
 		graphicsState->windowHeight = window->WorkingArea().y;
+
+		// Reset shader. Force window to explicitly set an own one, so that attributes are bound correctly.
+		ShadeMan.SetActiveShader(0);
 
 		// Render all that is needed
 		RenderWindow();
@@ -39,5 +46,13 @@ void GraphicsManager::RenderWindows()
 #endif
 		int64 swapBufferFrameTime = swapBufferTimer.GetMs();	
 	//	std::cout<<"\nSwapBufferTime: "<<swapBufferFrameTime;
+		++times;
+		if (times >= 2 || true)
+		{
+			times = 0;
+			continue;
+		}
+		else
+			goto renderWindowStart;
 	}
 }

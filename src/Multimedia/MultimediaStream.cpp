@@ -18,6 +18,12 @@ MultimediaStream::MultimediaStream(int type)
 	mediaTime = 0;
 	audio = NULL;
 	audioTime = 0;
+
+	audioChannels = 0;
+}
+
+MultimediaStream::~MultimediaStream()
+{
 }
 
 /// Attempts to open target file. Returns false upon failure.
@@ -26,11 +32,6 @@ bool MultimediaStream::Open(String path)
 	assert(false && "Subclass");
 	return false;
 } 
-/// Closes target file and stream.
-void MultimediaStream::Close()
-{
-	assert(false && "Subclass");
-}
 
 /// Updates media time by checking how far the audio has played (easier to synchronize graphics to audio than reversed?)
 void MultimediaStream::UpdateMediaTime()
@@ -136,13 +137,11 @@ void MultimediaStream::SetVolume(float level)
 /// Returns amount of channels present in the audio stream.
 int MultimediaStream::AudioChannels()
 {
-	assert(false && "Subclass");
-	return 0;
+	return audioChannels;
 }
 
 /// Gets frequency of the audio. This is typically 48000 or similar?
 int MultimediaStream::AudioFrequency()
 {
-	assert(false && "Subclass");
-	return 0;
+	return samplesPerSecond;
 }

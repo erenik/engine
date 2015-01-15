@@ -75,7 +75,7 @@ void UIVideo::TogglePause()
 }
 
 /// Subclassing in order to render the video!
-void UIVideo::RenderSelf(GraphicsState * graphicsState)
+void UIVideo::RenderSelf(GraphicsState & graphicsState)
 {
 	/// Old code
 	UIElement::RenderSelf(graphicsState);
@@ -100,9 +100,6 @@ void UIVideo::RenderSelf(GraphicsState * graphicsState)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	/// Save old shader!
-	Shader * oldShader = graphicsState->activeShader;
-
 	// Enable textures if it wasn't already
 	glEnable(GL_TEXTURE_2D);
 	/// Set fill mode!
@@ -114,13 +111,14 @@ void UIVideo::RenderSelf(GraphicsState * graphicsState)
 	if (videoFrameTexture->queueRebufferization)
 		videoFrameTexture->Bufferize();
 
-	
-	glUseProgram(0);
-	graphicsState->activeShader = NULL;
+	/// Save old shader!
+	Shader * pastShader = ActiveShader();
+
+	ShadeMan.SetActiveShader(0);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glLoadMatrixf(graphicsState->projectionMatrixF.getPointer());
-	Matrix4f modelView = graphicsState->viewMatrixF * graphicsState->modelMatrixF;
+	glLoadMatrixf(graphicsState.projectionMatrixF.getPointer());
+	Matrix4f modelView = graphicsState.viewMatrixF * graphicsState.modelMatrixF;
 	glMatrixMode(GL_MODELVIEW);
 	glLoadMatrixf(modelView.getPointer());
 	glColor4f(1,1,1,1);
@@ -176,8 +174,5 @@ void UIVideo::RenderSelf(GraphicsState * graphicsState)
 		glVertex3f(x1, y2, 0);
 	glEnd();
 	
-	glUseProgram(oldShader->shaderProgram);
-
-	graphicsState->activeShader = oldShader;
-	
+	ShadeMan.SetActiveShader(pastShader);	
 }

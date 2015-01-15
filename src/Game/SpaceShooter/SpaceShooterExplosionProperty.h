@@ -5,6 +5,15 @@
 #include "Entity/EntityProperty.h"
 #include "Time/Time.h"
 
+namespace ExplosionType
+{
+	enum 
+	{
+		PROJECTILE,
+		SHIP,
+	}; 
+};
+
 class SpaceShooterExplosionProperty : public EntityProperty 
 {
 public:
@@ -12,6 +21,8 @@ public:
 	/// Time passed in seconds..!
 	virtual void Process(int timeInMs);
 
+	/// Should be called before OnSpawn so that triggers and timers are setup correctly!
+	void SetType(int type);
 	/// Call to reset time alive to 0.
 	void OnSpawn();
 
@@ -23,4 +34,5 @@ public:
 	/// o-o
 	bool sleeping;
 private:
+	int type;
 };

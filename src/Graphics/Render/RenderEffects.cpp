@@ -25,17 +25,20 @@ void GraphicsManager::RenderEffects(){
 	glUniformMatrix4fv(effect->uniformProjectionMatrix, 1, false, graphicsState->projectionMatrixF.getPointer());
 	glUniformMatrix4fv(effect->uniformViewMatrix, 1, false, graphicsState->viewMatrixF.getPointer());
 	assert(effect);
-	for (int i = 0; i < graphicsState->graphicEffectsToBeRendered.Size(); ++i){
-		graphicsState->graphicEffectsToBeRendered[i]->Render(graphicsState);
+	for (int i = 0; i < graphicsState->graphicEffectsToBeRendered.Size(); ++i)
+	{
+		graphicsState->graphicEffectsToBeRendered[i]->Render(*graphicsState);
 	}
 
-    for (int i = 0; i < graphicsState->particleEffectsToBeRendered.Size(); ++i){
+    for (int i = 0; i < graphicsState->particleEffectsToBeRendered.Size(); ++i)
+	{
 		ParticleSystem * ps = graphicsState->particleEffectsToBeRendered[i];
-		if (!ps->registeredForRendering){
-			RegisterParticleSystem(ps);
-		}
-        ps->Render(graphicsState);
+		ps->Render(*graphicsState);
     }
+
+	// Reset blend equation after particle effects are done.
+	glBlendEquation(GL_FUNC_ADD);
+
 
 	glDisable(GL_CULL_FACE);
 	// Enable depth write

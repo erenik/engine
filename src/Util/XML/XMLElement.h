@@ -8,6 +8,9 @@
 #include "List/List.h"
 #include "Queue/Queue.h"
 
+#define Xarg		XMLArgument
+#define Xelement	XMLElement
+
 /// Argument to an Element
 struct XMLArgument {
 	String name;
@@ -24,9 +27,14 @@ public:
 	XMLElement * GetElement(String byName);
 	/// Require ID too! Recursive on all rootElements until a valid element is found or NULL if none :)
 	XMLElement * GetElement(String byName, String withID);
+	/// Recursive fetcher which takes into consideration one single attribute-value combination which must fit as well.
+	XMLElement * GetElement(String byName, String withAttribute, String thatHasGivenAttributeValue);
+	
 	/// Returns all elements with the given name.
 	List<XMLElement*> GetElements(String byName); 
-	/// Returns the given argument's value string if it exists, or NULL if no such argument exists within this element.
+	/** Returns the given argument's value string if it exists, or NULL if no such argument exists within this element.
+		These are usually called attribute name/values in XML-specifications.
+	*/
 	XMLArgument * GetArgument(String byName);
 	/// Debug
 	void Print();
@@ -35,6 +43,7 @@ public:
 
 	/// <XMLElementName arg="value"> data </XMLElement>
 	String name;
+	/// Data in between the start and stop tags. <XMLElementName> data </XMLElementName>
 	String data;
 	List<XMLArgument*> args;
 	List<XMLElement*> children;

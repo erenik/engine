@@ -245,7 +245,7 @@ void UIFileBrowser::SetActiveFile(String file){
 
 
 /// Rendering
-void UIFileBrowser::Render(GraphicsState * graphicsState)
+void UIFileBrowser::Render(GraphicsState & graphicsState)
 {
 	// Create children first if not done so already!!
 	if (!childrenCreated)

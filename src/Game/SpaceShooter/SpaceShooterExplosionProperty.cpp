@@ -25,6 +25,11 @@ int SpaceShooterExplosionProperty::ID()
 	return 5;
 }
 
+void SpaceShooterExplosionProperty::SetType(int newType)
+{
+	this->type = newType;
+}
+
 /// Call to reset time alive to 0.
 void SpaceShooterExplosionProperty::OnSpawn()
 {
@@ -33,17 +38,28 @@ void SpaceShooterExplosionProperty::OnSpawn()
 	Graphics.QueueMessage(new GMSetEntityf(owner, GT_ALPHA, 0.f));
 	// Start an animation which adjusts alpha of this entity from 1.f to 0.f over a certain duration.
 	EstimatorFloat * estimator = new EstimatorFloat();
-	estimator->AddStates(4, 
-		0.f, 0,
-		1.f, 100,
-		1.5f, 1000,
-		0.f, 4000);
-	/*
-	estimator->AddState(0.f, 0);
-	estimator->AddState(1.f, 100);
-	estimator->AddState(1.f, 1000);
-	estimator->AddState(0.f, 4000);
-	*/
+	switch(type)
+	{
+		case ExplosionType::PROJECTILE:
+			estimator->AddStatesMs(3, 
+				0.f, 0,
+				1.f, 100,
+				0.f, 1000);
+			// Set scale accordingly too.
+			Physics.QueueMessage(new PMSetEntity(this->owner, PT_SET_SCALE, 25.f));
+			break;
+		case ExplosionType::SHIP:
+			estimator->AddStatesMs(4, 
+				0.f, 0,
+				1.f, 100,
+				1.1f, 150,
+				0.f, 2000);
+			// Set scale accordingly too.
+			Physics.QueueMessage(new PMSetEntity(this->owner, PT_SET_SCALE, 65.f));
+			break;
+		default:
+			assert(false);
+	}
 	Graphics.QueueMessage(new GMSlideEntityf(owner, GT_ALPHA, estimator));
 }
 

@@ -1,7 +1,12 @@
+/// Emil Hedemalm
+/// 2015-01-06
+/// For rendering overlay over everything.
 
 #include "Graphics/GraphicsManager.h"
 #include "Texture.h"
 #include "GraphicsState.h"
+
+#include "File/LogFile.h"
 
 #define PRINT_ERROR	std::cout<<"\nGLError in Render "<<error;
 
@@ -16,7 +21,7 @@ void GraphicsManager::RenderFullScreen(Texture * texture, float alpha)
 		texture->Bufferize();
 
 	/// Use default shader for overlays
-	glUseProgram(0);
+	ShadeMan.SetActiveShader(0);
 	
 	// Fill the polygons!
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -102,8 +107,10 @@ void GraphicsManager::RenderOverlay()
 //		str += " overlay: " + overlayTexture->name;
 		if (overlayTexture->glid == -1)
 			overlayTexture->Bufferize();
-
-		RenderFullScreen(overlayTexture, 1.0f);
+		if (overlayTexture->glid != -1)
+			RenderFullScreen(overlayTexture, 1.0f);
+		else 
+			LogGraphics("Trying to render unbuffered overlay texture.");
 	}
 	// And if we have a queued overlay texture, render it on top!
 	if (queuedOverlayTexture)

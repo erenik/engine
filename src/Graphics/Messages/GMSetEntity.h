@@ -14,6 +14,8 @@ class EstimatorFloat;
 */
 class GMSetEntityTexture : public GraphicsMessage {
 public:
+	// Defualt, sets both diffuse and specular map.
+	GMSetEntityTexture(Entity * entity, Texture * texture);
 	GMSetEntityTexture(Entity * entity, int target, Texture * texture);
 	GMSetEntityTexture(Entity * entity, int target, String textureSource);
 	void Process();
@@ -46,11 +48,12 @@ private:
 class GMSetEntityb : public GraphicsMessage 
 {
 public:
-	GMSetEntityb(List<Entity*> entities, int target, bool value);
+	GMSetEntityb(List<Entity*> entities, int target, bool value, bool recursive = false);
 	virtual void Process();
 private:
 	List<Entity*> entities;
 	bool bValue;
+	bool recurse;
 	int target;
 };
 
@@ -114,4 +117,12 @@ private:
 	int timeInMs;
 };
 
+class GMClearEstimators : public GraphicsMessage 
+{
+public:
+	GMClearEstimators(Entities entities);
+	virtual void Process();
+private:
+	Entities entities;
+};
 

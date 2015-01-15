@@ -8,18 +8,22 @@
 #include "PongCR.h"
 #include "PongCD.h"
 
+#include "Graphics/Particles/Sparks.h"
+
 #include "Graphics/GraphicsManager.h"
 #include "Graphics/Messages/GMSetEntity.h"
+#include "Graphics/Messages/GMParticles.h"
 
 #include "Audio/AudioManager.h"
 
 #include "Time/Time.h"
 
 #include "Message/Message.h"
+#include "Message/MathMessage.h"
 #include "Message/MessageManager.h"
 
 #include "Maps/MapManager.h"
-#include "ModelManager.h"
+#include "Model/ModelManager.h"
 #include "TextureManager.h"
 
 #include "Physics/PhysicsManager.h"
@@ -28,15 +32,8 @@
 #include "PongPlayerProperty.h"
 #include "PongBallProperty.h"
 
-
-
-PongIntegrator * pongIntegrator = 0;
-PongCR * pongCR = 0;
-PongCD * pongCD = 0;
-	
-
 Pong::Pong()
-	: Game("SpaceShooter")
+	: Game2D("SpaceShooter")
 {
 	player1 = NULL;
 	score1Entity = NULL;
@@ -46,23 +43,42 @@ Pong::Pong()
 	/// o-o
 	gameState = SETTING_UP_PLAYFIELD;
 
+	aiSpeed = 1.f;
+	initialBallSpeed = 1.f;
+	paddleScale = 1.f;
 	ballScale = 5;
 	ballSpeedIncreasePerCollision = 1.f;
 
 	distanceFromCenter = 0.8f;
 
 	paddleScale = 5.f;
+
+	useMouseInput = false;
+
+	pongIntegrator = 0;
+	pongCR = 0;
+	pongCD = 0;
+
+	particleSystem = NULL;
 }
 
 Pong::~Pong()
 {
-	// These should be deleted by the physics-manager.
-	/*
-	SAFE_DELETE(spaceShooterIntegrator);
-	SAFE_DELETE(spaceShooterCR);
-	SAFE_DELETE(spaceShooterCD);
-	*/
+	// Reset integrator and stuff before we delete any entities, or wat?
+	Physics.QueueMessage(new PMSet(PT_PHYSICS_INTEGRATOR, NULL));
+	Physics.QueueMessage(new PMSet(PT_COLLISION_DETECTOR, NULL));
+	Physics.QueueMessage(new PMSet(PT_COLLISION_RESOLVER, NULL));
+	Sleep(50);
+	ballProperties.Clear();
 	MapMan.DeleteEntities(GetEntities());
+	// Unregister particle system!
+	if (GraphicsManager::GraphicsProcessingActive())
+	{
+		Graphics.QueueMessage(new GMUnregisterParticleSystem((ParticleSystem*)particleSystem, true));
+	}
+	else if (particleSystem)
+		delete particleSystem;
+	particleSystem = NULL;
 }
 
 	/// Allocates and sets things up.
@@ -77,8 +93,8 @@ void Pong::Initialize()
 		* blue = TexMan.GetTexture("Blue"),
 		* green = TexMan.GetTexture("Green"),
 		* gray = TexMan.GetTexture("Grey"),
-		* horizontalBarColor = TexMan.GetTextureByHex32(0x000077FF),
-		* verticalBarColor = TexMan.GetTextureByHex24(0x999999);
+		* horizontalBarColor = TexMan.GetTexture("0x88"),
+		* verticalBarColor = TexMan.GetTexture("0xAA");
 	Model * sphere = ModelMan.GetModel("Sphere");
 	Model * pad = ModelMan.GetModel("Pong/Paddle");
 	
@@ -111,6 +127,8 @@ void Pong::Initialize()
 		std::cout<<"\nEntity"<<entity;
 	}
 
+	particleSystem = new Sparks(true);
+
 	gameState = SETTING_UP_PLAYFIELD;
 }
 
@@ -120,26 +138,25 @@ void Pong::ProcessMessage(Message * message)
 	String msg = message->msg;
 	switch(message->type)
 	{
+		case MessageType::VECTOR_MESSAGE:
+		{
+			VectorMessage * vm = (VectorMessage*) message;
+			OnGoal(vm->GetVector3f());		
+			break;
+		}
 		case MessageType::STRING:
 		{
 			// Ball reset message with x-coordinate. Sent when its velocity reaches 0 (goal!)
 			if (msg.Contains(GOAL_MESSAGE))
 			{
 				String arg = msg.Tokenize(":")[1];
-				int posX = arg.ParseInt();
-				if (posX < 0)
-				{
-					++player2Properties->score;
-				}
-				else 
-					++player1Properties->score;
-				
-				// Check if game over, and update score if not!
-				OnScoreUpdated();
+			
 			}
 		}
 	}
 }
+
+Lighting pongLighting;
 
 /// Call on a per-frame basis.
 void Pong::Process()
@@ -149,6 +166,14 @@ void Pong::Process()
 	{
 		case SETTING_UP_PLAYFIELD:
 		{
+			// Register particles system if not already done so.
+			Graphics.QueueMessage(new GMRegisterParticleSystem(particleSystem, true));
+
+			// Load lighting
+			pongLighting.LoadFrom("lighting/Pong");
+			Graphics.QueueMessage(new GMSetLighting(&pongLighting));
+
+
 			RecalculatePlayfieldLines();
 
 			// Set up general stuff.
@@ -165,7 +190,7 @@ void Pong::Process()
 			Physics.QueueMessage(new PMSetEntity(scoreEntities, PT_COLLISIONS_ENABLED, false));
 
 			// Set scale of score-board text relative to screen size.
-			Graphics.QueueMessage(new GMSetEntityf(scoreEntities, GT_TEXT_SIZE_RATIO, frameSize.y * 0.25f));
+			Graphics.QueueMessage(new GMSetEntityf(scoreEntities, GT_TEXT_SIZE_RATIO, gameSize.y * 0.25f));
 			Graphics.QueueMessage(new GMSetEntityVec4f(scoreEntities, GT_TEXT_COLOR, Vector4f(0.5,0.5f,0.5f,1)));
 
 			// Make players kinematic.
@@ -175,7 +200,7 @@ void Pong::Process()
 			Physics.QueueMessage(new PMSetEntity(players, PT_SET_SCALE, paddleScale));
 			
 			// Scale the frame.
-			Physics.QueueMessage(new PMSetEntity(frame, PT_SET_SCALE, Vector2f(frameSize)));
+			Physics.QueueMessage(new PMSetEntity(frame, PT_SET_SCALE, Vector2f(gameSize)));
 
 			// Set restitution and stuff for all.
 	//		Physics.QueueMessage(new PMSetEntity(PT_RESTITUTION, players, 1.05f)); // Increase bounce as we go on? :3
@@ -216,6 +241,12 @@ void Pong::Process()
 List<Entity*> Pong::GetEntities()
 {
 	return players + scoreEntities + frame + balls;
+}
+
+/// Fetches all static entities.
+List<Entity*> Pong::StaticEntities()
+{
+	return scoreEntities + frame;
 }
 
 
@@ -261,15 +292,16 @@ void Pong::SpawnBalls()
 
 	Random pongBallRand;
 
-	Texture * red = TexMan.GetTexture("Red");
+	Texture * red = TexMan.GetTextureByHex24(0xFF5522);
+	Texture * white = TexMan.GetTexture("White");
 	Model * sphere = ModelMan.GetModel("Sphere");
 	
 	// Pause/remove existing balls that are not to be used.
 	for (int i = 0; i < balls.Size(); ++i)
 	{
 		Entity * ball = balls[i];//
-		Physics.QueueMessage(new PMUnregisterEntity(ball));
-		Graphics.QueueMessage(new GMUnregisterEntity(ball));
+		PongBallProperty * pbp = ball->GetProperty<PongBallProperty>();
+		pbp->Sleep();
 	}
 
 	for (int i = 0; i < numBalls; ++i)
@@ -281,8 +313,9 @@ void Pong::SpawnBalls()
 			ball = balls[i];
 		if (!ball)
 		{
-			ball = MapMan.CreateEntity("Ball", sphere, red);
-			pbp = new PongBallProperty(ball, 50.f);
+			ball = MapMan.CreateEntity("Ball", sphere, white);
+			Graphics.QueueMessage(new GMSetEntityTexture(ball, SPECULAR_MAP, white));
+			pbp = new PongBallProperty(this, ball, 50.f);
 			ball->properties.Add(pbp);
 			balls.Add(ball);
 			ballProperties.Add(pbp);
@@ -369,6 +402,20 @@ void Pong::UpdateBallProperties()
 	}
 }
 
+/// o.o Called from ball maybe.
+void Pong::OnGoal(Vector3f atPosition)
+{
+	int posX = atPosition.x;
+	if (posX < 0)
+	{
+		++player2Properties->score;
+	}
+	else 
+		++player1Properties->score;
+				
+	// Check if game over, and update score if not!
+	OnScoreUpdated();
+}
 
 // Sets new amount of balls and resets the game.
 void Pong::SetNumBalls(int num)
@@ -377,12 +424,13 @@ void Pong::SetNumBalls(int num)
 	SpawnBalls();
 }
 
+/*
 void Pong::SetZ(float newZ)
 {
 	this->z = newZ;
 	pongIntegrator->constantZ = z;
 	Physics.QueueMessage(new PMSetEntity(frame, PT_POSITION, Vector3f(0, 0, z)));
-}
+}*/
 
 void Pong::SetInitialBallSpeed(float f)
 {
@@ -404,21 +452,19 @@ void Pong::SetAISpeed(float sp)
 	}
 }
 
-void Pong::SetFrameSize(Vector2f frame)
-{
-	this->frameSize = frame;
-
-	// o-o
-	RecalculatePlayfieldLines();
-
-	gameState = SETTING_UP_PLAYFIELD;
-}
-
 void Pong::SetPaddleScale(float f)
 {
 	paddleScale = f;
 	Physics.QueueMessage(new PMSetEntity(players, PT_SET_SCALE, paddleScale));
 }
+
+void Pong::SetZ(float newZ)
+{
+	this->z = newZ;
+	pongIntegrator->constantZ = z;
+	gameState = SETTING_UP_PLAYFIELD;
+}
+
 
 void Pong::SetPlayer1PositionY(float y)
 {
@@ -443,7 +489,7 @@ void Pong::Reset()
 void Pong::RecalculatePlayfieldLines()
 {
 	// Min and max of the playing field. Calculate them accordingly.
-	Vector2f halfSize = frameSize * 0.5f;
+	Vector2f halfSize = gameSize * 0.5f;
 	Vector3f min, max;
 	min = - halfSize;
 	max = halfSize;

@@ -1,9 +1,12 @@
-
+/// Emil Hedemalm
+/// 2014-11-13 (although older)
+/// Manager for rendering shaders (primarily OpenGL)
 
 #ifndef SHADER_MANAGER_H
 #define SHADER_MANAGER_H
 
-#include <GL/glew.h>
+#include "Graphics/OpenGL.h"
+
 #include "Shader.h"
 #include "Lighting.h"
 #include "List/List.h"
@@ -11,7 +14,8 @@ class Lighting;
 
 #define MAX_SHADERS 32
 
-#define ShadeMan (*ShaderManager::Instance())
+#define ShadeMan ShaderMan
+#define ShaderMan (*ShaderManager::Instance())
 
 class ShaderManager
 {
@@ -38,6 +42,8 @@ public:
 		WARNING: Should only be called from a render-thread, yaow.
 	*/
 	Shader * SetActiveShader(String shaderName);
+	/// Returns the active shader, or NULL if the default shading program is in use.
+	Shader * ActiveShader();
 
 	/// Returns a shader with the given name
 	Shader * GetShader(String name);
@@ -48,6 +54,9 @@ public:
 	/// Reload light data into all shaders that need the update.
 	void ReloadLights(Lighting * newLighting);
 private:
+	/// o.o 
+	Shader * activeShader;
+
 	List<Shader*> shaders;
 };
 

@@ -19,10 +19,11 @@ class RenderPipeline
 public:
 
 	RenderPipeline();
+	virtual ~RenderPipeline();
 
 
 	/// Renders the entire pipeline, using data available within the GraphicsState.
-	void Render(GraphicsState * graphics);	
+	void Render(GraphicsState & graphics);	
 
 	// Loads from target source file.
 	bool Load(String fromFile);

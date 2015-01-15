@@ -71,10 +71,9 @@ Window * HoverWindow()
 }
 
 
-Window::Window(String name)
-{
-	this->name = title = name;
-	
+Window::Window(String name, String displayName)
+	: name(name), displayName(displayName)
+{	
 	resizable = true;
 	isFullScreen = false;
 	main = false;
@@ -111,6 +110,7 @@ Window::Window(String name)
 
 	hideOnEsc = true;
 
+	frame = NULL;
 }
 
 Window::~Window()
@@ -338,7 +338,7 @@ bool Window::Create()
 	// Convert strings..
 	static TCHAR szWindowClass[50];
 	static TCHAR szTitle[50];
-	wcscpy(szTitle, title.wc_str());
+	wcscpy(szTitle, displayName.wc_str());
 	wcscpy(szWindowClass, WindowMan.defaultWcx.lpszClassName);
 	
 	HWND parent = NULL;
@@ -562,6 +562,7 @@ void Window::Hide()
 #ifdef WINDOWS
 	ShowWindow(hWnd, SW_HIDE);
 #endif
+	WindowMan.OnWindowHidden(this);
 }
 
 void Window::BringToTop()
@@ -584,6 +585,18 @@ void Window::GetFrameContents(Texture * intoTexture)
 	frameTexture = NULL;
 }
 
+void Window::SetBackgroundColor(Vector4f color, bool applyToViewports)
+{
+	backgroundColor = color;
+	if (applyToViewports)
+	{
+		for (int i = 0; i < viewports.Size(); ++i)
+		{
+			Viewport * vp = viewports[i];
+			vp->backgroundColor = backgroundColor;
+		}
+	}
+}
 
 /// Fetches the (global) UI which is displayed on top of everything else, used for fade-effects etc. Is created dynamically if not set earlier.
 UserInterface * Window::GetUI()
@@ -616,7 +629,7 @@ UserInterface * Window::CreateUI()
 	assert(ui == NULL);
 	ui = new UserInterface();
 	ui->CreateRoot();
-	ui->name = name + "WindowUI";
+	ui->name = name + "-DefaultUI";
 	return ui;
 }
 

@@ -440,6 +440,7 @@ bool Expression::TryEvaluate()
 	*/
 	while (priority >= 0)
 	{
+		int opSymIndex = -1;
 		for (int i = 0; i < evaluationSymbols.Size(); ++i)
 		{
 			Symbol & opSym = evaluationSymbols[i];
@@ -489,19 +490,29 @@ bool Expression::TryEvaluate()
 			if (!correctPrioLevel)
 				continue;
 			assert(i < evaluationSymbols.Size() - 1);
-			assert(i > 0);
+			assert(i >= 0);
 
-			Symbol * pre = &evaluationSymbols[i-1];
-			Symbol * post = &evaluationSymbols[i+1];
-			assert(pre->type == Symbol::CONSTANT);
-			assert(post->type == Symbol::CONSTANT);
+			Symbol * pre, * post;
+			if (evaluationSymbols.Size() >= 3)
+			{
+				pre = &evaluationSymbols[i-1];
+				post = &evaluationSymbols[i+1];
+				assert(pre->type == Symbol::CONSTANT);
+				assert(post->type == Symbol::CONSTANT);
+			}
+			// Unary operators?
+			else 
+			{
+				pre = NULL;
+				post = &evaluationSymbols[i + 1];	
+			}
 
 			// Evaluate the expression part using the given operator.
-			Symbol symbol = Evaluate(*pre, *post, opSym);
+			Symbol symbol = Evaluate(pre, post, opSym);
 			// Remove the operator and operands.
-			evaluationSymbols.RemovePart(i-1, i+1);
+			evaluationSymbols.RemovePart(pre? i-1 : i, i+1);
 			/// Insert the new result symbol in its place.
-			evaluationSymbols.Insert(symbol, i-1);
+			evaluationSymbols.Insert(symbol, pre? i-1 : i);
 			/// Move back i to properly evaluate the rest.
 			i -= 1;
 		}
@@ -532,14 +543,24 @@ bool Expression::TryEvaluate()
 }
 
 /// Evaluates a binary expression-part of the following format:  sym1 op sym2
-Symbol Expression::Evaluate(Symbol sym1, Symbol sym2, Symbol op)
+Symbol Expression::Evaluate(Symbol * sym1, Symbol * sym2, Symbol op)
 {
 	char cop = op.text.c_str()[0];
 	
-	assert(sym1.type == Symbol::CONSTANT && sym2.type == Symbol::CONSTANT);
+	// Special case unary operators affecting only sym2.
+	if (sym1 == NULL)
+	{
+		Symbol result;
+		result.text = String(sym2->text.ParseFloat() * -1);
+		result.type = Symbol::CONSTANT;
+		return result;
+	}
+
+
+	assert(sym1->type == Symbol::CONSTANT && sym2->type == Symbol::CONSTANT);
 
 	// Use whatever format is best for them.
-	String totalOperands = sym1.text + " " + sym2.text;
+	String totalOperands = sym1->text + " " + sym2->text;
 	/// Assume Int as lowest type?
 	int typeNeeded = DataType::INTEGER;
 	if (totalOperands.Contains("."))
@@ -552,8 +573,8 @@ Symbol Expression::Evaluate(Symbol sym1, Symbol sym2, Symbol op)
 	switch(typeNeeded)
 	{
 		case DataType::FLOAT:
-			f1 = sym1.text.ParseFloat();
-			f2 = sym2.text.ParseFloat();
+			f1 = sym1->text.ParseFloat();
+			f2 = sym2->text.ParseFloat();
 			switch(cop)
 			{
 				case '+':	fres = f1 + f2;	break;
@@ -567,8 +588,8 @@ Symbol Expression::Evaluate(Symbol sym1, Symbol sym2, Symbol op)
 			resultSym.text = String(fres);
 			break;
 		case DataType::INTEGER:
-			i1 = sym1.text.ParseInt();
-			i2 = sym2.text.ParseInt();
+			i1 = sym1->text.ParseInt();
+			i2 = sym2->text.ParseInt();
 			switch(cop)
 			{
 				case '+':	ires = i1 + i2;	break;

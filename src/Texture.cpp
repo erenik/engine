@@ -9,9 +9,22 @@
 #include "LodePNG/lodepng.h"
 #include <cassert>
 
+#include "Libs.h"
+
+#ifdef OPENCV
 #include "opencv2/opencv.hpp"
+#endif
+
+#include "Graphics/GraphicsManager.h"
 
 int Texture::IDenumerator = 0;
+
+/** If true, will make texture memory in CPU be cleared after successful bufferization to video memory.
+	Textures marked with 'dynamic' boolean will not be cleared in this manner.
+	Default is true, as it should reduce RAM consumption considerably.
+*/
+bool Texture::releaseOnBufferization = true;
+
 
 Texture::Texture()
 {
@@ -34,6 +47,9 @@ Texture::Texture()
 	fData = NULL;
 	cData = NULL;
 	data = NULL;
+
+	channels = 4;
+	bytesPerChannel = 1;
 }
 Texture::~Texture()
 {
@@ -98,15 +114,23 @@ void Texture::SetSize(Vector2i newSize)
 /// Resets width, height and creates a new data buffer after deleting the old one. Returns false if it failed (due to lacking memory).
 bool Texture::Resize(Vector2i newSize)
 {
-	if (width == newSize.x && height == newSize.y)
-		return true;
 	width = newSize.x;
 	height = newSize.y;
-	if (data)
-		delete[] data;
-	data = NULL;
-	if (!CreateDataBuffer())
-		return false;
+	
+	/// Always 4-channel data array no matter what part of it will be used!.
+	int sizeRequired = newSize.x * newSize.y * 4 * bytesPerChannel;
+	if (sizeRequired != dataBufferSize)
+	{
+		if (data)
+			delete[] data;
+		data = NULL;
+		if (!CreateDataBuffer(sizeRequired))
+		{
+			size = Vector2i(0,0);
+			return false;
+		}
+	}
+	size = newSize;
 	lastUpdate = Timer::GetCurrentTimeMs();
 	return true;
 }
@@ -165,14 +189,20 @@ void Texture::FlipXY()
 }
 
 /// Creates the data buffer. Width, height and bpp must be set before hand.
-bool Texture::CreateDataBuffer()
+bool Texture::CreateDataBuffer(int withGivenSize /*= -1*/)
 {
 	if (data)
 		return false;
-	dataBufferSize = width * height * bpp;
+	int targetSize = 0;
+	if (withGivenSize > 0)
+		targetSize = withGivenSize;
+	else
+		targetSize = width * height * bpp;
 	try 
 	{
-		data = new unsigned char [dataBufferSize];
+		data = new unsigned char [targetSize];
+		memset(data, 0, targetSize);
+		dataBufferSize = targetSize;
 	} catch (...)
 	{
 		std::cout<<"\nAllocation failed.";
@@ -286,6 +316,156 @@ void Texture::LoadDataFromGL()
 	// If successful, copy it?
 }
 
+/// Loads data from target OpenCV mat.
+void Texture::LoadFromCVMat(cv::Mat & mat)
+{
+#ifdef OPENCV
+	// Update amount of channels and bytes per pixel/channel.
+	bytesPerChannel = 1;
+	/// Depending on the depth, parse differently below.
+	int channelDepth = mat.depth();
+	switch(channelDepth)
+	{
+		case CV_8U: case CV_8S: 
+			bytesPerChannel = 1;
+			break;
+		case CV_16U: case CV_16S: 
+			bytesPerChannel = 2;
+			break;
+		case CV_32S: case CV_32F: 
+			bytesPerChannel = 4;
+			break;
+		default:
+			assert(false);
+			return;
+	}
+	channels = mat.channels();
+	this->bpp = bytesPerChannel * channels;
+	Vector2i newSize(mat.cols, mat.rows);
+	/// First update size of our texture depending on the given one.
+	Resize(newSize);
+	
+//	std::cout<<"\nMat step: "<<mat.step;
+	
+	// Just copy the data..?
+	int type = mat.type();
+	switch(type)
+	{
+		case CV_8UC3:
+		{
+			// cv::Mat accessors
+			uchar * matData = mat.data;
+			// Own matrix accessors
+			unsigned char * buf = this->data;
+			for (int y = 0; y < mat.rows; ++y)
+			{
+				int rowOffset = (mat.step * y);
+				for (int x = 0; x < mat.cols; ++x)
+				{
+					/// Pixel start index.
+					int psi = rowOffset + x * 3;
+					/// Depending on the step count...
+					unsigned char b, g, r;
+					b = matData[psi];
+					g = matData[psi+1];
+					r = matData[psi+2];
+		//			SetPixel(x, mat.rows - y - 1, Vector4f(r / 255.f,g / 255.f,b / 255.f,1));
+					#define ONE_DIV_255 0.00392156862f
+					Vector4f color = Vector4f(r * ONE_DIV_255, g * ONE_DIV_255, b * ONE_DIV_255,1);
+					color.Clamp(0, 1);
+					int texY = mat.rows - y - 1;
+					psi = (texY * width + x) * 4;
+					buf[psi] = (unsigned char) (color.x * 255.0f);
+					buf[psi+1] = (unsigned char) (color.y * 255.0f);
+					buf[psi+2] = (unsigned char) (color.z * 255.0f);
+					buf[psi+3] = 255;
+				}
+			}
+			break;
+		}
+		case CV_8UC4:
+			memcpy(this->data, mat.data, dataBufferSize);
+			break;
+
+		// All other types..?
+		case CV_8UC1:
+		{
+			// cv::Mat accessors
+			uchar * matData = mat.data;
+			// Own matrix accessors
+			unsigned char * buf = this->data;
+			for (int y = 0; y < mat.rows; ++y)
+			{
+				int rowOffset = (mat.step * y);
+				for (int x = 0; x < mat.cols; ++x)
+				{
+					/// Pixel start index.
+					int psi = rowOffset + x;
+					/// Depending on the step count...
+					unsigned char b, g, r;
+					b = g = r = matData[psi];
+		//			SetPixel(x, mat.rows - y - 1, Vector4f(r / 255.f,g / 255.f,b / 255.f,1));
+					#define ONE_DIV_255 0.00392156862f
+					Vector4f color = Vector4f(r * ONE_DIV_255, g * ONE_DIV_255, b * ONE_DIV_255,1);
+					color.Clamp(0, 1);
+					int texY = mat.rows - y - 1;
+					psi = (texY * width + x) * 4;
+					buf[psi] = (unsigned char) (color.x * 255.0f);
+					buf[psi+1] = (unsigned char) (color.y * 255.0f);
+					buf[psi+2] = (unsigned char) (color.z * 255.0f);
+					buf[psi+3] = 255;
+				}
+			}
+			break;
+		}
+		case CV_16UC1:
+		{
+			// cv::Mat accessors
+			int size = sizeof(ushort);
+			ushort * matShortData = (ushort*)mat.data;
+			// Own matrix accessors
+			unsigned char * buf = this->data;
+			ushort * shortBuf = (ushort*) this->data;
+			for (int y = 0; y < mat.rows; ++y)
+			{
+				int yOffset = y * mat.cols;
+				for (int x = 0; x < mat.cols; ++x)
+				{
+					/// Pixel start index.
+					int psi = yOffset + x;
+					ushort r, g, b;
+					r = g = b = matShortData[psi];
+					// Recalculate psi for our own data which is forced to RGBA format.
+					int texY = mat.rows - y - 1;
+					psi = (texY * width + x) * 4;
+					shortBuf[psi] = r;
+					shortBuf[psi+1] = g;
+					shortBuf[psi+2] = b;
+					shortBuf[psi+3] = USHRT_MAX;
+				}
+			}
+			break;
+		}
+		case CV_32F:
+		{
+			// Floating point-data.. o.o
+			std::cout<<"\ncv::Mat in 32-bit floating point format. Might want to process it further?";
+			break;	
+		}
+		default:
+			assert(false && "Implement");
+	}
+
+	/// Mark it as dynamic so buffering works properly... <- Must be old.
+//	dynamic = true;
+
+	/// Send a message so that the texture is re-buffered.
+	Graphics.QueueMessage(new GMBufferTexture(this));
+
+#endif
+}
+
+
 /// For debugging.
 bool Texture::MakeRed(){
 	for (int h = 0; h < height; ++h){
@@ -305,10 +485,11 @@ bool Texture::MakeRed(){
 /// Bufferizes into GL. Should only be called from the render-thread!
 bool Texture::Bufferize()
 {	
-	assert(data);
-	if (!data)
-	{
-		std::cout<<"\nNo data to bufferize!";
+	assert(source.Length());
+	assert(name.Length());
+	/// Don't bufferize multiple times if not special texture, pew!
+	if (glid != -1 && !dynamic){
+//		std::cout<<"\nTexture \""<<source<<"\" already bufferized! Skipping.";
 		return false;
 	}
 	if (height == 0 || width == 0)
@@ -316,12 +497,14 @@ bool Texture::Bufferize()
 		// nothing to buferize..
 		return false;
 	}
-	queueRebufferization = false;
-	/// Don't bufferize multiple times if not special texture, pew!
-	if (glid != -1 && !dynamic){
-//		std::cout<<"\nTexture \""<<source<<"\" already bufferized! Skipping.";
+
+	assert(data);
+	if (!data)
+	{
+		std::cout<<"\nNo data to bufferize!";
 		return false;
 	}
+	queueRebufferization = false;
 
 	GLuint error;
 	// Enable blending
@@ -357,18 +540,31 @@ bool Texture::Bufferize()
 
 	// Generate the texture Entity in GL
 	// Ref: http://www.opengl.org/sdk/docs/man/xhtml/glTexImage2D.xml
-	if (bpp == 4){
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,	width,
-				height,		0, 	GL_RGBA, GL_UNSIGNED_BYTE, data);
-	}
-	else if (bpp == 3)
+	/// Pretty much bits or bytes per pixel/channel.
+	int pixelDataType;
+	int glFormat;
+	switch(format)
 	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		case GREYSCALE:	glFormat = GL_RED; break;
+		case RGB:		glFormat = GL_RGB; break;
+		case RGBA:		glFormat = GL_RGBA;break;
+		default:
+			assert(false);
 	}
-	else {
-		assert(false && "Implement D:");
+	glFormat = GL_RGBA;
+	switch(bytesPerChannel)
+	{
+		case 1:	pixelDataType = GL_UNSIGNED_BYTE; break;
+		case 2:	pixelDataType = GL_UNSIGNED_SHORT; break;
+		case 3:
+		case 4:	pixelDataType = GL_UNSIGNED_INT; break;
+		default:
+			assert(false);
 	}
-
+	
+	glTexImage2D(GL_TEXTURE_2D, 0, glFormat, width, height, 0, glFormat, pixelDataType, data);
+	CheckGLError("Bufferize");
+	
 	/// Generate mip-maps!
 	if (mipmappingEnabled){
 		glGenerateMipmap(GL_TEXTURE_2D);
@@ -382,10 +578,22 @@ bool Texture::Bufferize()
 		std::cout<<"\nGL Error in TextureManager::BufferizeTexture: "<<error;
 	}
 	queueRebufferization = false;
+
+	/// Release the kraken! o.o
+	if (releaseOnBufferization && !dynamic)
+	{
+		delete[] data;
+		data = NULL;
+		dataBufferSize = 0;
+		/// Release cv-memory too, if possible?
+	}
 }
 
-void Texture::SetSource(String str){
+void Texture::SetSource(String str)
+{
 	source = str;
+	if (name.Length() == 0)
+		name = source;
 }
 void Texture::SetName(String str){
 	name = str;
@@ -654,6 +862,7 @@ String Texture::RelativePath() const {
 
 bool Texture::SaveOpenCV(String toPath)
 {
+#ifdef OPENCV
 	cv::Mat mat;
 	mat.create(cv::Size(width, height), CV_8UC3);
 	int channels = 3;
@@ -686,6 +895,7 @@ bool Texture::SaveOpenCV(String toPath)
 	// Quick save!
 	compression_params.push_back(3);
 	cv::imwrite(toPath.c_str(), mat, compression_params);
+#endif
 	return true;
 }
 

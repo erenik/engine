@@ -8,6 +8,7 @@
 #include "Entity/Entity.h"
 #include "Physics/PhysicsSettings.h"
 
+class Estimator;
 class PhysicsOctree;
 struct CompactPhysics;
 class PhysicsMesh;
@@ -131,6 +132,7 @@ public:
 
     /// Orientatin quaternion, q(t),
     Quaternion orientation;
+	Quaternion preTranslateRotationQ;
 	/// Angular velocity as expressed by a quaternion! (refers to global rotations)
 	Quaternion angularVelocityQuaternion;
 
@@ -245,6 +247,10 @@ public:
 	EntityPhysicsEstimator * estimator; 
 	/// For disabling standard simulation. Default: true
 	bool simulationEnabled;
+
+	/// Dynamically created estimators. Delete when finished processing?
+	List<Estimator*> estimators;
+
 };
 
 #endif

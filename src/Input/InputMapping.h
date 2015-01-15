@@ -1,3 +1,6 @@
+/// Emil Hedemalm
+/// 2015-01-14 (although much older originally)
+
 #ifndef INPUT_MAPPING_H
 #define INPUT_MAPPING_H
 
@@ -11,6 +14,7 @@ class InputMapping {
 public:
 	/// Sets the processor function pointer to a default function.
 	InputMapping();
+	virtual ~InputMapping();
 
 	/// Creates a new binding, returning a pointer to it and making it active in the InputMapping editor.
 	Binding * CreateBinding(int action, int key1, const char * name = NULL);

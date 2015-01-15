@@ -11,7 +11,7 @@ Game::Game(String name)
 	Nullify();
 }
 
-Game::Game(String name, String type, String host, String port, int currentPlayers, int maxPlayers)
+Game::Game(String name, int type, String host, String port, int currentPlayers, int maxPlayers)
 : name(name), type(type), host(host), currentPlayers(currentPlayers), maxPlayers(maxPlayers)
 {
 	// Check that this works..
@@ -20,17 +20,42 @@ Game::Game(String name, String type, String host, String port, int currentPlayer
 	Nullify();
 }
 
+Game::~Game()
+{
+	
+}
+
 // Resets variables (mainly called on creation)
 void Game::Nullify()
 {
 	paused = false;
 }
 
+/// Sets if the game should use mouse input in a default manner for the player to play the game or not.
+void Game::UseMouseInput(bool value)
+{
+	useMouseInput = value;
+}
 
-bool Game::LoadFrom(String s){
+
+/// Sets the pause boolean, disabling processing temporarily.
+void Game::SetPause(bool newPausedState)
+{
+	paused = newPausedState;
+}
+
+void Game::SetFrameSize(Vector2i size)
+{
+	gameSize = size;
+	gameState = SETTING_UP_PLAYFIELD;
+}
+
+
+bool Game::LoadFrom(String s)
+{
 	List<String> tokens = s.Tokenize(";");
 	this->name = tokens[0];
-	this->type = tokens[1];
+	this->type = tokens[1].ParseInt();
 	this->host = tokens[2];
 	this->port = tokens[3].ParseInt();
 	this->maxPlayers = tokens[4].ParseInt();

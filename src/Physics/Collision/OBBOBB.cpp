@@ -6,7 +6,7 @@
 #include "PhysicsLib/Shapes/OBB.h"
 #include "PhysicsLib/Shapes/Line.h"
 #include "PhysicsLib/Shapes/Quad.h"
-#include "PhysicsLib/Shapes/Sphere.h"
+#include "Sphere.h"
 #include "Physics/PhysicsManager.h"
 
 /// Checks intersection along an axis... yup.

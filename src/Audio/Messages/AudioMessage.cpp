@@ -19,6 +19,9 @@ void AudioMessage::Process()
 {
 	switch(type)
 	{
+		case AM_SHUTDOWN:
+			AudioMan.Shutdown();
+			break;
 		case AM_DISABLE_AUDIO:
 			AudioMan.DisableAudio();
 			break;
@@ -69,6 +72,7 @@ AMPlay::AMPlay(int audioType, String nameOrSource, float volume)
 
 void AMPlay::Process()
 {
+//	std::cout<<"\nAMPlay called with source: "<<nameOrSource;
 	switch(audioType)
 	{
 		case AudioType::SFX:
@@ -92,3 +96,21 @@ AMPlayBGM::AMPlayBGM(String nameOrSource, float volume)
 	: AMPlay(AudioType::BGM, nameOrSource, volume)
 {
 }
+
+AMStop::AMStop(int audioType)
+	: AudioMessage(AM_STOP), audioType(audioType)
+{
+}
+
+void AMStop::Process()
+{
+	AudioMan.StopAllOfType(audioType);
+}
+
+AMStopBGM::AMStopBGM()
+	: AMStop(AudioType::BGM)
+{
+}
+
+
+

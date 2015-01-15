@@ -6,6 +6,12 @@
 
 #include "String/AEString.h"
 
-void CheckALError(String errorMessage);
+#include "Libs.h"
+
+#ifdef OPENAL
+	void PrintALError(int alErrorCode, bool withNewLine = true);
+	void PrintALError(int alErrorCode, String errorMessage);
+	void CheckALError(String errorMessage);
+#endif // OPENAL
 
 #endif

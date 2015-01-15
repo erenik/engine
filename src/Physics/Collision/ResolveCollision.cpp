@@ -35,6 +35,8 @@ bool ResolveCollision(Collision &data)
 	;
 	Entity * one = data.one;
 	Entity * two = data.two;
+	if (!one->model || !two->model)
+		return false;
 	assert(one);
 	assert(two);
 

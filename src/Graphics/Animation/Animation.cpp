@@ -6,7 +6,8 @@
 #include "TextureManager.h"
 
 /// Fetches texture for current frame!
-Texture * Animation::GetTexture(int animationTime){
+Texture * Animation::GetTexture(int animationTime)
+{
 	int index = 0;
 	while (animationTime > 0){
 		animationTime -= frameDurations[index];
@@ -14,5 +15,6 @@ Texture * Animation::GetTexture(int animationTime){
 		if (index >= frames)
 			index = 0;
 	}
+//	std::cout<<"\nanim time: "<<animationTime<<" index: "<<index;
 	return TexMan.GetTextureBySource(frameSources[index]);
 }

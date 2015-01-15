@@ -110,16 +110,9 @@ Vector4d Matrix4d::GetColumn(int columnIndex)
 	return Vector4d(element[s], element[s+1], element[s+2], element[s+3]);	
 }
 
-Matrix4d Matrix4d::InitRotationMatrixX(double radians){
-	LoadIdentity();
-	element[5] = cos((double)radians);
-	element[6] = sin((double)radians);
-	element[9] = -sin((double)radians);
-	element[10] = cos((double)radians);
-	return Matrix4d(element);
-}
-
-Matrix4d Matrix4d::GetRotationMatrixX(double radians){
+///
+Matrix4d Matrix4d::InitRotationMatrixX(double radians)
+{
 	double element[16];
 	for (int i = 0; i < 16; ++i){
 		element[i] = 0;
@@ -133,52 +126,24 @@ Matrix4d Matrix4d::GetRotationMatrixX(double radians){
 	return Matrix4d(element);
 }
 
-Matrix4d Matrix4d::InitRotationMatrixY(double radians){
-	LoadIdentity();
-	element[0] = cos((double)radians);
-	element[8] = sin((double)radians);
-	element[2] = -sin((double)radians);
-	element[10] = cos((double)radians);
-	return Matrix4d(element);
+Matrix4d Matrix4d::InitRotationMatrixY(double radians)
+{
+	Matrix4d mat;
+	mat.element[0] = cos((double)radians);
+	mat.element[8] = sin((double)radians);
+	mat.element[2] = -sin((double)radians);
+	mat.element[10] = cos((double)radians);
+	return mat;
 }
 
-Matrix4d Matrix4d::GetRotationMatrixY(double radians){
-	double element[16];
-	for (int i = 0; i < 16; ++i){
-		element[i] = 0;
-	}
-	element[5] = 1;
-	element[15] = 1;
-	element[0] = cos((double)radians);
-	element[8] = sin((double)radians);
-	element[2] = -sin((double)radians);
-	element[10] = cos((double)radians);
-	return Matrix4d(element);
-}
-
-Matrix4d Matrix4d::InitRotationMatrixZ(double radians){
-	LoadIdentity();
-	element[0] = cos((double)radians);
-	element[1] = sin((double)radians);
-	element[4] = -sin((double)radians);
-	element[5] = cos((double)radians);
-	return Matrix4d(element);
-}
-
-
-/** Initializes and returns a rotation matrix around the Z-axis. */
-Matrix4d Matrix4d::GetRotationMatrixZ(double radians){
-	double element[16];
-	for (int i = 0; i < 16; ++i){
-		element[i] = 0;
-	}
-	element[10] = 1;
-	element[15] = 1;
-	element[0] = cos((double)radians);
-	element[1] = sin((double)radians);
-	element[4] = -sin((double)radians);
-	element[5] = cos((double)radians);
-	return Matrix4d(element);
+Matrix4d Matrix4d::InitRotationMatrixZ(double radians)
+{
+	Matrix4d mat;
+	mat.element[0] = cos((double)radians);
+	mat.element[1] = sin((double)radians);
+	mat.element[4] = -sin((double)radians);
+	mat.element[5] = cos((double)radians);
+	return mat;
 }
 
 Matrix4d Matrix4d::InitRotationMatrix(double angle, double x, double y, double z){

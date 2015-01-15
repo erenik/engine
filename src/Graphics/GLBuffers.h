@@ -46,6 +46,17 @@ private:
 	static List<int> renderBuffers;
 };
 
+// Will hopefully replace all texture generation/release in the graphics manager later on...
+class GLTextures 
+{
+public:
+	static unsigned int New();
+	static void FreeAll();
+private:
+	static List<int> textures;
+
+};
+
 
 
 #endif

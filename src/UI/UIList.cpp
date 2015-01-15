@@ -26,10 +26,13 @@ UIScrollBarHandle::~UIScrollBarHandle()
 //	std::cout<<"\nUIScrollBarHandle destructor.";
 }
 
-void UIScrollBarHandle::Move(float distance)
+float UIScrollBarHandle::Move(float distance)
 {
+	float alignmentPre = alignmentY;
     alignmentY += distance;
 	SetScrollPosition(alignmentY);
+	float moved = alignmentY - alignmentPre;
+	return moved;
 }
 
 float UIScrollBarHandle::GetScrollPosition()
@@ -150,7 +153,7 @@ UIElement * UIScrollBar::Hover(int mouseX, int mouseY)
 	UIElement * element = UIElement::Hover(mouseX, mouseY);
 	if (element == this && Input.lButtonDown)
 		OnMouseY(mouseY - bottom);
-	return this;
+	return element;
 }
 
 
@@ -235,9 +238,9 @@ void UIScrollBar::Update(float newSize)
     previousSize = newPreviousSize;
 }
 
-void UIScrollBar::Move(float distance)
+float UIScrollBar::Move(float distance)
 {
-    handle->Move(distance);
+    return handle->Move(distance);
 }
 
 /// Returns current scroll position, based on the handle.
@@ -345,7 +348,7 @@ void UIList::Clear()
 }
 
 // Adjusts hierarchy besides the regular addition
-void UIList::AddChild(UIElement* child)
+bool UIList::AddChild(UIElement* child)
 {
 	/// Automate name if none was given.
 	if (child->name.Length() < 1)
@@ -359,7 +362,7 @@ void UIList::AddChild(UIElement* child)
 	if (children.Size() == 0){
 		UIElement::AddChild(child);
 		child->alignmentY = 1.0f - child->sizeRatioY * 0.5f;
-		return;
+		return true;
 	}
 	// If not, find bottom child (or, bottom edge.!
 	// Get bottom child
@@ -425,6 +428,7 @@ void UIList::AddChild(UIElement* child)
    //     bottomElement->downNeighbourName = child->name;
 	//	child->upNeighbourName = bottomElement->name;
     }
+	return true;
 }
 
 #define RETURN_IF_OUTSIDE {if (mouseY > top || mouseY < bottom || \
@@ -433,7 +437,7 @@ void UIList::AddChild(UIElement* child)
 /// Activation functions
 UIElement * UIList::Hover(int mouseX, int mouseY)
 {
-    RETURN_IF_OUTSIDE
+	RETURN_IF_OUTSIDE
     float listX = (float)mouseX;
     float listY = (float)mouseY;
     if (scrollBarY){
@@ -450,8 +454,16 @@ UIElement * UIList::Hover(int mouseX, int mouseY)
         if (e)
             break;
     }
+	// Us? o.o;
     if (e == NULL)
+	{
         e = this;
+		this->AddState(UIState::HOVER);
+	}
+	else 
+	{
+		this->RemoveState(UIState::HOVER);
+	}
     if (scrollBarY){
 //        std::cout<<"\nUIList::Hover "<< (e ? e->name : "NULL") <<" listY: "<<listY<<" mouseY: "<<mouseY;
     }
@@ -513,6 +525,8 @@ UIElement * UIList::GetElement(int mouseX, int mouseY){
 /// Scroll ze listur!
 bool UIList::OnScroll(float delta)
 {
+	float moved = 0;
+	bool thisOrParentMoved = false;
     /// Move the slider and adjust content.
     if (scrollBarY)
 	{
@@ -532,10 +546,34 @@ bool UIList::OnScroll(float delta)
         if (negative)
             distance *= -1.0f;
         distance = pageSize * delta;
-        scrollBarY->Move(distance);
+        moved += scrollBarY->Move(distance);
     //    scrollBarY->PrintDebug();
     }
-    return true;
+	if (moved)
+	{
+		thisOrParentMoved = true;
+	}
+    float moveRemaining = delta - moved;
+	if (moveRemaining == delta)
+		thisOrParentMoved |= UIElement::OnScroll(moveRemaining) != 0;
+	else {
+		// Did all the moving here.
+		std::cout<<"\ndid all the moving.";
+	}
+	// If no movement was done, and a child is selected in this list, go to the top or bottom child instead.
+	UIElement * hoverElement = GetElementByState(UIState::HOVER);
+	if (!thisOrParentMoved && hoverElement)
+	{
+		hoverElement->RemoveState(UIState::HOVER);
+		if (delta > 0)
+		{
+			children[0]->Hover();
+		}
+		else {
+			LastChild()->Hover();
+		}
+	}
+	return thisOrParentMoved;
 }
 
 /// Suggests a neighbour which could be to the right of this element. Meant to be used for UI-navigation support. The reference element indicates the element to which we are seeking a compatible or optimum neighbour, and should be NULL for the initial call.
@@ -563,7 +601,7 @@ UIElement * UIList::GetUpNeighbour(UIElement * referenceElement, bool & searchCh
 				
 				// Set to only search children now!
 				searchChildrenOnly = true;
-				UIElement * neighbour = child->GetElementClosestTo(referenceElement->position);
+				UIElement * neighbour = child->GetUpNeighbour(referenceElement, searchChildrenOnly);
 				if (neighbour == child)
 					continue;
 				if (neighbour)
@@ -574,7 +612,10 @@ UIElement * UIList::GetUpNeighbour(UIElement * referenceElement, bool & searchCh
 	// Not part of our list? Check the most bottom element in this list and return it then!
 	else if (children.Size())
 	{
-		return children.Last();
+		// But first. Scroll to the bottom, to ensure that it is made visible! owo
+		Scroll(-500.f);
+		// Get last child which is not a system element
+		return LastChild();
 	}
 	// No children? Do we have a valid up-element?
 	UIElement * upEle = UIElement::GetUpNeighbour(referenceElement, searchChildrenOnly);
@@ -635,7 +676,18 @@ UIElement * UIList::GetDownNeighbour(UIElement * referenceElement, bool & search
 	return referenceElement;
 }
 
-
+// Get last child which is not a system element
+UIElement * UIList::LastChild()
+{
+	for (int i = children.Size() - 1; i >= 0; --i)
+	{
+		UIElement * child = children[i];
+		if (child->isSysElement)
+			continue;
+		return child;
+	}
+	return NULL;
+}
 
 /// Returns the current scroll position.
 float UIList::GetScrollPosition()
@@ -690,7 +742,7 @@ void UIList::FormatElements(){
 }
 
 /// Rendering
-void UIList::Render(GraphicsState * graphicsState)
+void UIList::Render(GraphicsState & graphicsState)
 {
     // Render ourself and maybe children.
     RenderSelf(graphicsState);
@@ -698,22 +750,36 @@ void UIList::Render(GraphicsState * graphicsState)
         RenderChildren(graphicsState);
 }
 
-void UIList::RenderChildren(GraphicsState * graphicsState)
+void UIList::RenderChildren(GraphicsState & graphicsState)
 {
-	Matrix4d modelMatrix = graphicsState->modelMatrixD;
-    Matrix4d translatedModelMatrix = graphicsState->modelMatrixD;
+	Matrix4d modelMatrix = graphicsState.modelMatrixD;
+	Matrix4d translatedModelMatrix = graphicsState.modelMatrixD;
+
+	Vector4d initialPositionTopRight(right, top, 0, 1), 
+			initialPositionBottomLeft(left, bottom, 0, 1);
+	Vector3f currTopRight = graphicsState.modelMatrixF * initialPositionTopRight;
+	Vector3f currBottomLeft = graphicsState.modelMatrixF * initialPositionBottomLeft;
+
+	Rect previousScissor = graphicsState.scissor;
+	Rect uiRect(currBottomLeft.x, currBottomLeft.y, currTopRight.x, currTopRight.y);
+	Rect uiScissor = previousScissor.Intersection(uiRect);
+	
+	// Set scissor! o.o
+	graphicsState.SetGLScissor(uiScissor);
+   
 
     /// If we got a scrollbar, apply a model matrix to make us render at the proper location.
-    if (scrollBarY && scrollBarY->visible){
-        float pageBegin = scrollBarY->GetStart();
-   //     std::cout<<"\nPage Begin (relative): "<<pageBegin;
-        pageBegin *= sizeY;
-   //     std::cout<<" (pixels): "<<pageBegin;
-        translatedModelMatrix *= Matrix4d::Translation(0, pageBegin, 0);
+    if (scrollBarY && scrollBarY->visible)
+	{
+        float pageBeginY = scrollBarY->GetStart();
+        pageBeginY *= sizeY;
+        translatedModelMatrix *= Matrix4d::Translation(0, pageBeginY, 0);
+		this->pageBegin.y = pageBeginY;
     }
 
     /// Render all children
-	for (int i = 0; i < children.Size(); ++i){
+	for (int i = 0; i < children.Size(); ++i)
+	{
         UIElement * child = children[i];
         if (!child->visible)
             continue;
@@ -721,49 +787,19 @@ void UIList::RenderChildren(GraphicsState * graphicsState)
         /// Set model matrix depending on child-type.
         if (child->isSysElement){
         //    std::cout<<"\nChild: "<<child->name<<" is sys element.";
-            graphicsState->modelMatrixF = graphicsState->modelMatrixD = modelMatrix;
+            graphicsState.modelMatrixF = graphicsState.modelMatrixD = modelMatrix;
         }
         else
-            graphicsState->modelMatrixF = graphicsState->modelMatrixD = translatedModelMatrix;
+            graphicsState.modelMatrixF = graphicsState.modelMatrixD = translatedModelMatrix;
 
-// 		if (name == "DebugList"){
-// 			std::cout<<"\nScissor: l:"<<graphicsState->leftScissor<<" r:"<<graphicsState->rightScissor<<" t:"<<graphicsState->topScissor<<" b:"<<graphicsState->bottomScissor;
-// 			std::cout<<"This l:"<<left<<" r:"<<right<<" t:"<<top<<" b:"<<bottom;
-// 		}
-
-        Rect previousScissor((int)graphicsState->leftScissor, (int)graphicsState->bottomScissor, (int)graphicsState->rightScissor, (int)graphicsState->topScissor);
-	    graphicsState->leftScissor = graphicsState->leftScissor > left ? graphicsState->leftScissor : left;
-	    graphicsState->rightScissor = graphicsState->rightScissor < right ? graphicsState->rightScissor : right;
-	    graphicsState->bottomScissor = graphicsState->bottomScissor > bottom ? graphicsState->bottomScissor : bottom;
-	    graphicsState->topScissor = graphicsState->topScissor < top ? graphicsState->topScissor : top;
-
-	    int scissorWidth = (int) (graphicsState->rightScissor - graphicsState->leftScissor);
-	    int scissorHeight = (int) (graphicsState->topScissor - graphicsState->bottomScissor);
-	  //  std::cout<<"\nScissor e "<<name<<" left: "<<left<<" right: "<<right<<" top: "<<top<<" bottom: "<<bottom<<" width: "<<scissorWidth<<" height: "<<scissorHeight;
-	  //  assert(scissorWidth >= 0);
-	  //  assert(scissorHeight >= 0);
-	  /// If bad scissor do nothing.
-        if (scissorWidth < 0 || scissorHeight < 0){
-
-        }
-        /// If not, render.
-        else {
-            bool scissorDisabled = (graphicsState->settings & SCISSOR_DISABLED) > 0;
-            if (!scissorDisabled){
-             //   std::cout<<"\nGLScissor: e "<<name<<" posX "<<posX<<" sizeX "<<sizeX<<" posY "<<posY<<" sizeY "<<sizeY;
-				glScissor((GLint) (graphicsState->leftScissor + graphicsState->viewportX0),
-					(GLint) (graphicsState->bottomScissor + graphicsState->viewportY0),
-					scissorWidth,
-					scissorHeight);
-            }
-            child->Render(graphicsState);
-        }
-        /// And pop the scissor statistics back as they were.
-		graphicsState->leftScissor = (float)previousScissor.x0;
-	    graphicsState->rightScissor = (float)previousScissor.x1;
-	    graphicsState->bottomScissor = (float)previousScissor.y0;
-	    graphicsState->topScissor = (float)previousScissor.y1;
+		// Render
+        child->Render(graphicsState);
+        
+		// Reset scissor in-case child-elements were manipulatng it.
+		graphicsState.SetGLScissor(uiScissor);
 	}
+	// Reset scissor to how it was before.
+	graphicsState.SetGLScissor(previousScissor);
 }
 
 UIColumnList::UIColumnList(String name)
@@ -790,7 +826,7 @@ void UIColumnList::Clear(){
 	}
 }
 // Adjusts hierarchy besides the regular addition
-void UIColumnList::AddChild(UIElement* child)
+bool UIColumnList::AddChild(UIElement* child)
 {
 	/// Automate name if none was given.
 	if (child->name.Length() < 1)
@@ -803,7 +839,7 @@ void UIColumnList::AddChild(UIElement* child)
 	if (children.Size() == 0){
 		UIElement::AddChild(child);
 		child->alignmentX = 0.0f + child->sizeRatioX * 0.5f + padding;
-		return;
+		return true;
 	}
 	// If not, find bottom child (or, bottom edge.!
 	// Get bottom child
@@ -833,6 +869,7 @@ void UIColumnList::AddChild(UIElement* child)
 		// assert(false && "Implement automatic scrollbars for your columns lists, yo!");
 		std::cout<<"\nImplement automatic scrollbars for your columns lists, yo!";
 	}
+	return true;
 }
 
 
@@ -860,13 +897,13 @@ void UIList::EnsureVisibility(UIElement * element)
 	if (top <= pageTop){
 		float dist = pageTop - top;
 		this->Scroll(dist);
-		std::cout<<"\nScrolling up.";
+	//	std::cout<<"\nScrolling up.";
 	}
 	// And if element's bottom exceeding current viewable bottom, scroll down..!
 	else if (bottom >= pageStop){
 		float dist = pageStop - bottom;
 		this->Scroll(dist);
-		std::cout<<"\nScrolling down.";
+//		std::cout<<"\nScrolling down.";
 	}
 
 //	float

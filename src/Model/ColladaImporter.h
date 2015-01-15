@@ -1,5 +1,6 @@
-// Emil Hedemalm
-// 2013-07-21
+/// Emil Hedemalm
+/// 2013-07-21
+/// http://www.khronos.org/files/collada_spec_1_5.pdf
 
 #ifndef COLLADA_IMPORTER_H
 #define COLLADA_IMPORTER_H
@@ -10,8 +11,10 @@
 class XMLParser;
 class XMLElement;
 class Mesh;
+class SkeletalAnimationNode;
 
-enum axises{
+enum axises
+{
 	Y_UP,
 	Z_UP,
 };
@@ -32,6 +35,11 @@ public:
 
 	/// Creates the named mesh (a reference must exist within the parsed data).
 	Mesh * CreateMesh(String name);
+
+	/// Creates a skeleton (including all animation) based on the underlying nodes attached to the node of given name (must be defined in the visual scene of the collada file)
+	SkeletalAnimationNode * CreateSkeleton(String nodeName);
+
+
 private:
 	/// Source, set when calling Load.
 	String source;
@@ -42,8 +50,11 @@ private:
 	XMLParser * parser;
 
 
-	/// List with all geometries.
-	List<XMLElement*> geometryList;
+	/// List with all geometries, animations, controllers (e.g. bones), entire scenes, etc.
+	List<XMLElement*> geometryList, animationList, controllerList;
+
+	/// The root-libraries.
+	XMLElement * library_visual_scenes, * library_animations, * library_controllers;
 
 	// Basic info.
 	String authoring_tool;

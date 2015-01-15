@@ -13,6 +13,11 @@ class EntityPhysicsEstimator : public Estimator {
 public:
 	EntityPhysicsEstimator(Entity * owner);
 
+
+	/** Estimates values for given time. If loop is true, the given time will be modulated to be within the interval of applicable time-values.
+		If the estimator's output pointer is set, data for the given estimation will be written there accordingly.
+	*/
+	virtual void Estimate(int64 forGivenTimeInMs, bool loop);
 	/// New from base class.
 	virtual void Process(int timeInMs);
 

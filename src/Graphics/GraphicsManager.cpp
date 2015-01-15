@@ -212,6 +212,10 @@ void GraphicsManager::Resume()
 
 GraphicsManager::~GraphicsManager()
 {
+
+	/// Process any remaining messages?
+//	ProcessMessages();
+
 	delete renderSettings;
 	renderSettings = NULL;
 	double timeStart = clock();
@@ -231,6 +235,10 @@ GraphicsManager::~GraphicsManager()
 	graphicsMessageQueueMutex.Destroy();
 	graphicsProcessingMutex.Destroy();
 
+	// De-allocate any remaining messages?
+	while(messageQueue.Length())
+		delete messageQueue.Pop();
+
 	/// Delete stuff
 	if (deferredRenderingBox){
 		delete deferredRenderingBox;
@@ -239,13 +247,6 @@ GraphicsManager::~GraphicsManager()
 
 	timeTaken = clock() - timeStart;
 	std::cout<<"\nWaiting for graphics thread to end... "<<timeTaken / CLOCKS_PER_SEC<<" seconds";
-
-	// Deallocate the vfcOctree if need be
-	timeStart = clock();
-	if (vfcOctree)
-		delete vfcOctree;
-	timeTaken = clock() - timeStart;
-	std::cout<<"\nDeallocating VFCOctree..."<<timeTaken / CLOCKS_PER_SEC<<" seconds";
 
 	// Delete fonts
 	fonts.ClearAndDelete();
@@ -257,7 +258,17 @@ GraphicsManager::~GraphicsManager()
 	delete graphicsState;
 	graphicsState = 0;
 
+	SAFE_DELETE(frustum);
+	SAFE_DELETE(vfcOctree);
+
 	std::cout<<"\n>>> GraphicsManager deallocated successfully.";
+
+}
+
+/// If true, it is still OK to queue messages.
+bool GraphicsManager::GraphicsProcessingActive()
+{
+	return graphicsThread;
 }
 
 void GraphicsManager::Initialize()
@@ -437,15 +448,20 @@ void GraphicsManager::RepositionEntities(){
 void GraphicsManager::OnBeginRendering()
 {
     Graphics.enteringMainLoop = true;
-	Graphics.deferredRenderingBox->Bufferize();
+	Graphics.deferredRenderingBox->Bufferize(false, false);
 };
 
 /// Called after the main rendering loop has ended, before general deallcoations of resources is done.
 void GraphicsManager::OnEndRendering()
 {
+	/// Wait a short while before processing final messages, so that everything is done before exiting.
+	Sleep(100);
+	/// Process final messages?
+	ProcessMessages();
+
 	std::cout<<"\nGraphicsManager::OnEndRendering";
-	glDeleteBuffers(1, &deferredRenderingBox->vboBuffer);
-	deferredRenderingBox->vboBuffer = NULL;
+	glDeleteBuffers(1, &deferredRenderingBox->vertexBuffer);
+	deferredRenderingBox->vertexBuffer = NULL;
 
 	/// Delete the frame-buffer after we're done with it...
 	clock_t timeStart = clock();
@@ -512,7 +528,7 @@ void GraphicsManager::UpdateProjection(float relativeWidth /* = 1.0f */, float r
 //	if (glGetError() != GL_NO_ERROR)
 //		std::cout<<"\nERROR: Unable to load projection matrix to GL";
 	// And do the same for the projection matrix! o-o
-//	glUniformMatrix4fv(graphicsState->activeShader->uniformProjectionMatrix, 1, false, graphicsState->projectionMatrixF.getPointer());
+//	glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, graphicsState->projectionMatrixF.getPointer());
 //	if (glGetError() != GL_NO_ERROR)
 //		int b = 14;
 //	glGetError();
@@ -559,6 +575,8 @@ void GraphicsManager::ProcessMessages()
 	{
 		std::cout<<"\n"<<numMessages<<" messages to process.";
 	}
+	// Claim ui Mutex while processing the messages.
+	uiMutex.Claim();
 	for (int i = 0; i < numMessages; ++i)
 	{
 		GraphicsMessage * gm = graphicsMessages[i];
@@ -568,6 +586,7 @@ void GraphicsManager::ProcessMessages()
 		if (i % 1000 == 0 && i > 0)
 			std::cout<<"\n"<<numMessages - i<<" of "<<numMessages<<" messages to process in GraphicsManager::ProcessMessages...";
 	}
+	uiMutex.Release();
 	// Clear and delete all at once...
 	graphicsMessages.ClearAndDelete();
 }
@@ -921,11 +940,14 @@ void GraphicsManager::DeallocFrameBuffer(){
 /// Updates the graphicsState's lighting to include dynamic lights' new positions as well.
 void GraphicsManager::UpdateLighting()
 {
-	Lighting * lightingToRender = graphicsState->lighting;
-	if (lightingToRender == NULL)
-		return;
+	if (graphicsState->lighting == NULL)
+	{
+		graphicsState->lighting = new Lighting();
+	}
+	// Reload light from the active setup, before dynamic-entity lights are being taken into account.
+	*graphicsState->lighting = lighting;
+
 	// Reset the lights in the lighting to be first only the static ones.
-	*lightingToRender = lighting;
 	for (int i = 0; i < graphicsState->dynamicLights.Size(); ++i)
 	{
 		Light * light = graphicsState->dynamicLights[i];
@@ -939,7 +961,7 @@ void GraphicsManager::UpdateLighting()
 		light->position = owner->transformationMatrix.Product(light->relativePosition);
 		
 		// Add the dynamic light to be rendered.
-		lightingToRender->Add(light);
+		graphicsState->lighting->Add(light);
 	}
 }
 
@@ -955,8 +977,9 @@ void GraphicsManager::Process()
 	lastTime = now;
 
 	/// Process particle effects.
-	for (int i = 0; i < particleSystems.Size(); ++i){
-		particleSystems[i]->Process(graphicsState->frameTime);
+	for (int i = 0; i < particleSystems.Size(); ++i)
+	{
+		particleSystems[i]->Process(milliseconds * 0.001f);
 	}
 	/// Process entity specific controls and systems
 	for (int i = 0; i < registeredEntities.Size(); ++i)

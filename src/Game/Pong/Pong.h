@@ -5,19 +5,23 @@
 */
 
 #include "MathLib.h"
-#include "Game/Game.h"
+#include "Game/Game2D.h"
 #include "Random/Random.h"
 
 class PongPlayerProperty;
 class PongBallProperty;
 class Entity;
 class Message;
+class PongIntegrator;
+class PongCD;
+class PongCR;
+class Sparks;
 
-class Pong : public Game
+class Pong : public Game2D
 {
 public:
 	Pong();
-	~Pong();
+	virtual ~Pong();
 
 	/// Allocates and sets things up.
 	void Initialize();
@@ -28,7 +32,8 @@ public:
 	virtual void Process();
 	/// Fetches all entities concerning this game.
 	List<Entity*> GetEntities();
-
+	/// Fetches all static entities.
+	virtual List<Entity*> StaticEntities();
 
 	/// Sets up physics integrator, etc. as needed.
 	void SetupPhysics();
@@ -41,18 +46,23 @@ public:
 	/// Updates all balls' properties based on given settings.
 	void UpdateBallProperties();
 
+	/// o.o Called from ball maybe.
+	void OnGoal(Vector3f atPosition);
+
 	// Sets new amount of balls and resets the game.
 	void SetNumBalls(int num);
-	void SetZ(float z);
 	void SetInitialBallSpeed(float f);
 	void SetAISpeed(float sp);
-	void SetFrameSize(Vector2f size);
 	void SetPaddleScale(float f);
+	virtual void SetZ(float newZ);
+
 
 	void SetPlayer1PositionY(float y);
 	void SetPlayer2PositionY(float y);
 
-	void Reset();
+	virtual void Reset();
+
+	Sparks * particleSystem;
 
 private:
 
@@ -67,24 +77,13 @@ private:
 	float initialBallSpeed;
 	/// Scale of the player paddles..!
 	float paddleScale;
-	/// Size of the frame within which the game will be played...!
-	Vector2f frameSize;
 	/// X-position for player 1 and 2 respectively.
 	Vector2f playerLines;
 	/// X-position for the 2 scoreboards.
 	Vector2f scoreColumns;
-	/// Constant z used for most all entities.
-	float z;
-
+	
 	// Default 1
 	int numBalls;
-
-	int gameState;
-	enum 
-	{
-		SETTING_UP_PLAYFIELD,
-		GAME_BEGUN,
-	};
 
 	// All entities.
 	List<Entity*> entities;
@@ -103,6 +102,12 @@ private:
 	List<PongBallProperty*> ballProperties;
 	PongPlayerProperty * player1Properties;
 	PongPlayerProperty * player2Properties;
+
+	
+	PongIntegrator * pongIntegrator;
+	PongCR * pongCR;
+	PongCD * pongCD;
+	
 
 	// random number generator.
 	Random pongRand;

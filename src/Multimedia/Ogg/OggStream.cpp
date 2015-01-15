@@ -2,10 +2,11 @@
 // 2013-03-22
 
 #include "OggStream.h"
-#include "Multimedia/MultimediaTypes.h"
-#include "TextureManager.h"
 
 #ifdef BUILD_OGG
+
+#include "Multimedia/MultimediaTypes.h"
+#include "TextureManager.h"
 
 #include "OS/Sleep.h" // For sleep..
 #include <fstream>
@@ -48,6 +49,9 @@ OggStream::OggStream()
 
 	vorbisInfo = 0;
 	vorbisComment = 0;
+
+	hasOpus = false;
+	oggOpusFile = NULL;
 }
 
 OggStream::~OggStream()
@@ -65,11 +69,11 @@ FILE* outfile = NULL;
    page extraction */
 int ReadOggData(std::fstream & fromFile, ogg_sync_state * intoOss)
 {
-  char * buffer = ogg_sync_buffer(intoOss, 4096);
-  fromFile.read(buffer, 4096);
-  int bytesWritten = fromFile.gcount();
-  ogg_sync_wrote(intoOss, bytesWritten);
-  return bytesWritten;
+	char * buffer = ogg_sync_buffer(intoOss, 4096);
+	fromFile.read(buffer, 4096);
+	int bytesWritten = fromFile.gcount();
+	ogg_sync_wrote(intoOss, bytesWritten);
+	return bytesWritten;
 }
 
 
@@ -95,6 +99,9 @@ static int dump_comments(th_comment *_tc){
 /// Attempts to open target file. Returns false upon failure.
 bool OggStream::Open(String path)
 {
+	// Save path we're streaming from.
+	this->path = path;
+
 	/// If already got another file open, close it.
 	if (file.is_open()){
 		std::cout<<"\nAlready got another file open! Closing it.";
@@ -132,11 +139,12 @@ bool OggStream::Open(String path)
 			break;
 		}
 		// Parse data (pages) until raw-data pages are encountered.
-		while(true){
+		while(true)
+		{
 			/// Take sync state data and insert it into an ogg-page.
 			result = ogg_sync_pageout(&oggSyncState, &oggPage);
 			if (result == 0){
-				std::cout<<"\nMore data needed or internal error. Unable to insert ogg-page.";
+//				std::cout<<"\nMore data needed or internal error. Unable to insert ogg-page.";
 				break;
 			}
 			else if (result == -1){
@@ -146,7 +154,7 @@ bool OggStream::Open(String path)
 			/// Check if this is the initial page..?
 			int isStartPage = ogg_page_bos(&oggPage);
 			if (!isStartPage){
-				std::cout<<"\nNot start page. Storing it for later. wat";
+//				std::cout<<"\nNot start page. Storing it for later. wat";
 				nonHeaderPageEncountered = true;
 				// If we know we have Theora, store this page into that stream then.
 				if(hasTheora)
@@ -196,9 +204,10 @@ bool OggStream::Open(String path)
 					}
 				}
 				/// Check if it was an error packet! Only one negative answer is returned if the packet type is non-Theora.
-				else if (result == TH_ENOTFORMAT){
+				else if (result == TH_ENOTFORMAT)
+				{
 					/// Error!
-					std::cout<<"\nFound non-Theora packet.";
+				//	std::cout<<"\nFound non-Theora packet.";
 				}
 				else {
 					std::cout<<"\nError parsing theora packet";
@@ -213,6 +222,12 @@ bool OggStream::Open(String path)
 		}
 		// fall through to non-bos page parsing - whatever that means.
 	}
+
+	// Fully de-allocate the temp stream?
+	if (tempStreamState.body_storage)
+		ogg_stream_clear(&tempStreamState);
+
+//	ogg_stream_clear(&tempStreamState);
 
 	/// Alrighty. We seem to have initial packets and pages handled, now check for additional pages
 	int processingTheoraHeaders = 1;
@@ -331,8 +346,18 @@ bool OggStream::Open(String path)
 	}
 
 
+	bool opened = OpenVorbis();
+	if (!opened)
+		opened = OpenOpus();
+	
+	return true;
+}
+
+/// Attempts to open Vorbis playback from the file-stream.
+bool OggStream::OpenVorbis()
+{
 	/// Grab any available OggVorbis data!
-	result = ov_fopen(path.c_str(), &oggVorbisFile);
+	bool result = ov_fopen(path.c_str(), &oggVorbisFile);
 	if (result == 0){
 		// Success!
 		hasAudio = true;
@@ -340,16 +365,58 @@ bool OggStream::Open(String path)
 		/// Grab info and comment.
 		vorbisInfo = ov_info(&oggVorbisFile, -1);
 		vorbisComment = ov_comment(&oggVorbisFile, -1);
+		std::cout<<"\nFound Vorbis.";
+
+		audioChannels =	vorbisInfo->channels;
+		samplesPerSecond = vorbisInfo->rate;
+	//	std::cout<<"\nBitrate info: nominal: "<<vorbisInfo->bitrate_nominal<<" lower: "<<vorbisInfo->bitrate_lower;
+//		assert(vorbisInfo->bitrate_nominal == vorbisInfo->bitrate_lower);
+
 	}
 	else 
 	{
 		// Require audio.
-		std::cout<<"\nUnable to open audio! aborting.";
+//		std::cout<<"\nUnable to find Vorbis.";
 		return false;
 	}
-
 	return true;
 }
+
+/// Attempts to open Opus playback from the file-stream.
+bool OggStream::OpenOpus()
+{
+#ifdef OPUS
+	/// Grab any available OggVorbis data!
+	int error = 0;
+	oggOpusFile = op_open_file(path.c_str(), &error);
+	if (oggOpusFile)
+	{
+		// Success!
+		hasAudio = true;
+		hasOpus = true;
+		/// Grab info and comment.
+//		vorbisInfo = ov_info(&oggVorbisFile, -1);
+	//	vorbisComment = ov_comment(&oggVorbisFile, -1);
+		std::cout<<"\nFound Opus.";
+		opusHead = op_head(oggOpusFile, -1);
+		opusTags = op_tags(oggOpusFile, -1);
+		std::cout<<"\nVendor: "<<opusTags->vendor;
+		audioChannels = opusHead->channel_count;
+		// Original sampling rate may be used, but for playback 48kHz should be used as that is standard for all Opus.
+		samplesPerSecond = 48000; //opusHead->input_sample_rate
+	}
+	else 
+	{
+		// Require audio.
+	//	std::cout<<"\nUnable to open audio! aborting.";
+		return false;
+	}
+	return true;
+#else
+	return false;
+#endif // OPUS
+}
+
 /// Closes target file and stream.
 void OggStream::Close()
 {
@@ -358,6 +425,17 @@ void OggStream::Close()
 		file.close();
 	// Close it too..
 	ov_clear(&oggVorbisFile);
+	// Clear sync state of any allocated data.
+	ogg_sync_clear(&oggSyncState);
+
+	// Close Opus file stream.
+	if (oggOpusFile)
+	{
+#ifdef OPUS
+		op_free(oggOpusFile);
+		oggOpusFile = NULL;
+#endif
+	}
 	return;
 }
 
@@ -375,10 +453,18 @@ bool OggStream::Pause()
 bool OggStream::Seek(int toTime)
 {
 	/// Seek for audio!
-	if (toTime == 0)
-		toTime = 1;
 	double toTimeDouble = toTime / 1000.f;
-	if (hasVorbis){
+	if (hasOpus)
+	{
+#ifdef OPUS
+		ogg_int64_t samplesIn48kHz = toTime * 48000;
+		op_pcm_seek(oggOpusFile, samplesIn48kHz);
+#endif
+	}
+	if (hasVorbis)
+	{
+		if (toTime == 0)
+			toTime = 1;
 		int result = ov_time_seek(&oggVorbisFile, toTimeDouble);
 		if (result != 0){
 			std::cout<<"some error";
@@ -579,37 +665,76 @@ int OggStream::BufferAudio(char * buf, int maxBytes, bool loop)
 	int bytes = 0;
 	if (!hasAudio)
 		return -1;
-	int sizeToRead = maxBytes;
+	int bytesToRead = maxBytes;
 	int bitstream = 0;
 	int bytesRead = 0;
-	int bytesReadThisLoop = 1;
+	int bytesReadThisLoop = 0;
+	int bytesPerSample = 2;
 	bool seekDone = false;
+	// Reset it to 0s?
+	memset(buf, 0, maxBytes);
 	// Max bytes typical 4096
-	if (hasVorbis){
-		/// Read until we can read no more!
-		while(true)
+	/// Read until we can read no more!
+	while(true)
+	{
+		if (hasOpus)
 		{
-			bytesReadThisLoop = ov_read(&oggVorbisFile, buf + bytesRead, sizeToRead, 0, 2, 1, &bitstream);
-			if (bytesReadThisLoop <= 0){
-				/// Check if we might be at the end of the track.
-				if (sizeToRead > 4096 && loop && !seekDone){
-					/// We're probably at the end if we get no data.
-					/// So if loop is specified, seek to start and try again.
-					Seek(0);
-					seekDone = true;
-					continue;
-				}
-				break;
+#ifdef OPUS
+			// Since opus works in 16-bits (shorts), read the incoming buffer as one.
+			int samplesToRead = bytesToRead * 0.5f;
+		//	samplesToRead = 4;
+			/// Break once we reach a threshold of what we can fit in the buffer.
+			// http://www.opus-codec.org/docs/opusfile_api-0.6/group__stream__decoding.html#ga963c917749335e29bb2b698c1cb20a10
+			assert(samplesToRead % audioChannels == 0);
+			char * pointerLoc = buf + bytesRead;
+			short * shortPointer = (short*) pointerLoc;
+			int samplesRead = op_read(oggOpusFile, shortPointer, samplesToRead, NULL);  
+			if (samplesRead == 0)
+			{
+				std::cout<<"\nSamples read 0. Assuming at end of stream.";
 			}
-			bytesRead += bytesReadThisLoop;
-			sizeToRead = maxBytes - bytesRead;
-			/// If looping, seek and retry
-			/// ov_time_seek(&oggVorbisFile, 0);
+			if (samplesRead % audioChannels != 0)
+			{
+				std::cout<<"\n Samples read not even compared to given audio channels. Assuming at end of stream.";
+			}
+			bytesReadThisLoop = samplesRead * bytesPerSample * audioChannels;
+#endif // OPUS
 		}
+		else if (hasVorbis)
+		{
+			bytesReadThisLoop = ov_read(&oggVorbisFile, buf + bytesRead, bytesToRead, 0, 2, 1, &bitstream);
+		}
+		if (bytesReadThisLoop <= 0){
+			/// Check if we might be at the end of the track.
+			if (bytesToRead > 4096 && loop && !seekDone)
+			{
+				/// We're probably at the end if we get no data.
+				/// So if loop is specified, seek to start and try again.
+				Seek(0);
+				seekDone = true;
+				continue;
+			}
+			break;
+		}
+		bytesRead += bytesReadThisLoop;
+		bytesToRead = maxBytes - bytesRead;
+		// Break if we are approaching the end?
+		if (bytesToRead < 4096)
+			break;
+
+		/// If looping, seek and retry
+		/// ov_time_seek(&oggVorbisFile, 0);
 	}
 	// Read time.
-	audioTime = oggVorbisTime = ov_time_tell(&oggVorbisFile);
-
+	if (hasVorbis)
+		audioTime = oggVorbisTime = ov_time_tell(&oggVorbisFile);
+	else if (hasOpus)
+	{
+	//	OpusFileCallbacks callbacks;
+	//	callbacks.tell;
+//		int64 time = op_tell_func(oggOpusFile);
+	//	audioTime = time;
+	}
 	return bytesRead;
 }
 
@@ -623,21 +748,33 @@ Texture * OggStream::GetFrameTexture()
 	return frameTexture;
 }
 
+/*
 /// Returns amount of channels present in the audio stream.
 int OggStream::AudioChannels()
 {
+	if (oggOpusFile)
+	{
+		int channels = op_channel_count(oggOpusFile, 0);
+		return channels;
+	}
 	assert(vorbisInfo);
 	if (!vorbisInfo)
 		return 0;
 	return vorbisInfo->channels;
 }
+*/
 
+/*
 /// Gets frequency of the audio. This is typically 48000 or similar?
 int OggStream::AudioFrequency()
 {
+	if (oggOpusFile)
+	{
+		return opusHead->input_sample_rate;
+	}
 	return vorbisInfo->rate;
 }
-
+*/
 
 #endif // BUILD_OGG
 

@@ -13,10 +13,8 @@ uniform mat4 modelMatrix = mat4(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1);
 // in_Position was bound to attribute index 0, UV to index 1 and Normals to index 2.
 attribute vec3 in_Position;
 attribute vec2 in_UV;
-attribute vec3 in_Normal;
 
 // Output data for the fragment shader
-varying vec3 normal;		// Interpollated coordinates that have been transformed to view space
 varying vec2 UV_Coord;		// Just passed on
 varying vec3 position;
 

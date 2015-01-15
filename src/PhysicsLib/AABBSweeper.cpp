@@ -29,7 +29,8 @@ AABBSweeper::AABBSweeper()
 
 AABBSweeper::~AABBSweeper()
 {
-
+	axisNodeList[0].ClearAndDelete();
+	axisNodeList[1].ClearAndDelete();
     //dtor
 }
 
@@ -45,14 +46,16 @@ void AABBSweeper::PrintSortedList(){
 }
 
 /// Enters or removes an entity from the lists to be sorted and evaluated.
-void AABBSweeper::RegisterEntity(Entity * entity){
+void AABBSweeper::RegisterEntity(Entity * entity)
+{
     assert(entity);
     assert(entity->physics);
     AABB * aabb = entity->physics->aabb;
     AABBSweepNode * nodes[2];
     nodes[0] = NULL;
     nodes[1] = NULL;
-    for (int i = 0; i < 2; ++i){
+    for (int i = 0; i < 2; ++i)
+	{
         nodes[i] = new AABBSweepNode();
         nodes[i]->entity = entity;
         nodes[i]->aabb = aabb;
@@ -60,7 +63,8 @@ void AABBSweeper::RegisterEntity(Entity * entity){
 //        std::cout<<"\nNode type created: "<<nodes[i]->type<<" "<< (nodes[i]->type == AABBSweepNode::START ? "Start" : "Stop") ;
     }
 
-    for (int i = 0; i < axesToWorkWith; ++i){
+    for (int i = 0; i < axesToWorkWith; ++i)
+	{
         axisNodeList[i].Add(nodes[0]);
         axisNodeList[i].Add(nodes[1]);
     }
@@ -68,8 +72,10 @@ void AABBSweeper::RegisterEntity(Entity * entity){
     entity->physics->aabbSweepNodes[0] = nodes[0];
     entity->physics->aabbSweepNodes[1] = nodes[1];
 }
+
 /// Clear registration, lets the list remain sorted..!
-void AABBSweeper::UnregisterEntity(Entity * entity){
+void AABBSweeper::UnregisterEntity(Entity * entity)
+{
   //  std::cout<<"\nUnregistering entity from AABBSweeper: "<<entity->name;
     AABBSweepNode * removed = NULL;
     for (int i = 0; i < axesToWorkWith; ++i){

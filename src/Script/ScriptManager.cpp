@@ -85,8 +85,12 @@ void ScriptManager::Process(int timeInMs)
 		{
 			script->OnEnd();
 			this->finishedEvents.Add(script);
-			activeScripts.RemoveIndex(i);
+			activeScripts.Remove(script);
+			/// Delete if specified.
+			if (script->flags & DELETE_WHEN_ENDED)
+				delete script;
 			--i;
+			continue;
 		}
 		if (activeScripts.Size() == 0){
 			Input.NavigateUI(false);

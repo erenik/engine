@@ -586,7 +586,7 @@ void Script::EvaluateLine(String & line)
 		}
 		lineFinished = true;
 	}
-	else if (line.Contains("SetInt")){
+	else if (line.Contains("SetInt ")){
 		List<String> tokens = line.Tokenize(" \t");
 		String varName = tokens[1];
 		int value = tokens[2].ParseInt();

@@ -101,11 +101,11 @@ public:
 	/** Rendering method using legacy code
 		Should only be used by the graphics manager. USE WITH CAUTION.
 	*/
-	void RenderOld(GraphicsState * state);
+	void RenderOld(GraphicsState & state);
 	/** Rendering method
 		Should only be used by the graphics manager. USE WITH CAUTION.
 	*/
-	void Render(GraphicsState * graphicsState);
+	void Render(GraphicsState & graphicsState);
 
 	/// Gets velocity, probably from the PhysicsState
 	Vector3f Velocity();
@@ -156,7 +156,7 @@ public:
 	Vector3f rotation;
 
 	/// Rotation matrix that is calculated while transforming.
-	Matrix4d rotationMatrix;
+	Matrix4f rotationMatrix;
 	/// The transformation matrix that is applied when rendering. Do note that RecalculateMatrix has to be called to update this.
 	Matrix4f transformationMatrix;
 

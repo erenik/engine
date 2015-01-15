@@ -12,6 +12,7 @@
 #include "Graphics/OpenGL.h"
 
 #include "PhysicsLib/Shapes/Frustum.h"
+#include "MathLib/Rect.h"
 #include "Util/List/List.h"
 #include "Entity/Entities.h"
 
@@ -54,7 +55,12 @@ class Light;
 class GraphicsState {
 public:
 	GraphicsState();
+	~GraphicsState();
 public:
+	
+	/// Calls glScissor, and updates locally tracked scissor. Appends current viewport x0/y0 co-ordinates automatically to the GL call.
+	void SetGLScissor(const Rect & scissor);
+
 	/// What pipeline is currently being used.
 	RenderPipeline * renderPipe;
 	/// Window we are currently rendering to.
@@ -75,8 +81,8 @@ public:
 	Lighting * lighting;
 	/// Lights which move o-o
 	List<Light*> dynamicLights;
-	/// Active shaderProgram
-	Shader * activeShader;
+	/// Active shaderProgram -> Moved to be stored in ShaderManager::ActiveShader()
+//	Shader * activeShader;
 	/// List of all graphical effects that are to be rendered. Can be stocked up during initial culling!
 	List<GraphicEffect*> graphicEffectsToBeRendered;
 	List<ParticleSystem*> particleEffectsToBeRendered;
@@ -127,13 +133,14 @@ public:
 	/// Time consumed by the previous frame.
 	float frameTime;
 	/// Current time at the start of the frame, i.e. today at 04:60 for example, but in milliseconds probably.
-	long long currentFrameTime;
+	int64 frametimeStartMs;
 
     /// Level of optimization deemed necessary to keep framerate somewhat decent.
 	int optimizationLevel;
 
     /// Scissor! In pixels. Reset before usage.
-    float bottomScissor, topScissor, leftScissor, rightScissor;
+	Rect scissor;
+   // float bottomScissor, topScissor, leftScissor, rightScissor;
 
 	/// Start of the viewport. Default is 0 but should be adjusted for when rendering to multiple viewports for proper scissoring.
 	float viewportX0, viewportY0;

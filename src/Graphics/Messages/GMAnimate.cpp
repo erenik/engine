@@ -34,3 +34,15 @@ void GMPlayAnimation::Process()
 		return;
 	entity->graphics->SetAnimation(animationName);
 }
+
+GMPlaySkeletalAnimation::GMPlaySkeletalAnimation(Entity * entity)
+	: GraphicsMessage(GM_PLAY_ANIMATION), entity(entity)
+{
+}
+void GMPlaySkeletalAnimation::Process()
+{
+	entity->graphics->skeletalAnimationEnabled = true;
+}
+
+
+

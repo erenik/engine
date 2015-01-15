@@ -10,7 +10,7 @@
 #include "Texture.h"
 #include "Shader.h"
 #include "TextureManager.h"
-#include "Model.h"
+#include "Model/Model.h"
 
 EntityStateTile2D::EntityStateTile2D(Entity * owner)
 : EntityProperty("EntityStateTile2D", EntityPropertyID::UTILITY_PROPERTIES, owner)

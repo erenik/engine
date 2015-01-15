@@ -239,7 +239,7 @@ void * GraphicsManager::Processor(void * vArgs){
 
 			total.Start();
 			now = Timer::GetCurrentTimeMs();
-			graphicsState->currentFrameTime = now;
+			graphicsState->frametimeStartMs = now;
 
 			Timer sleepTimer;
 			sleepTimer.Start();
@@ -284,7 +284,7 @@ void * GraphicsManager::Processor(void * vArgs){
 			FrameStats.multimedia = multimedia.GetMs();
 
 			/// Process graphics if we can claim the mutex within 10 ms. If not, skip it this iteration.
-			if (GraphicsMan.graphicsProcessingMutex.Claim(10))
+			if (GraphicsMan.graphicsProcessingMutex.Claim(100))
 			{
 				Graphics.processing = true;
 				Timer graphicsTotal;
@@ -342,7 +342,7 @@ void * GraphicsManager::Processor(void * vArgs){
 			}
 			else {
 				// Busy.
-				std::cout<<"\nUnable to claim grpahicsProcessing mutex within given time frame, skipping processing this iteration";
+				std::cout<<"\nUnable to claim graphicsProcessing mutex within given time frame, skipping processing this iteration";
 			}
 		//	std::cout<<"\nGraphicsFrameTime: "<<graphicsTimer.GetMs();
 
@@ -382,9 +382,9 @@ void * GraphicsManager::Processor(void * vArgs){
 
 	/// Deallocate audio stufs, since that loop is here still..
 	AudioBuffer::FreeAll();
-	ALSource::FreeAll();
-
-
+	
+	// Macro to free all audio OpenAL resources.
+	AL_FREE_ALL
 
 //	std::cout<<"\nExiting rendering loop. Beginning deallocating graphical resources.";
 
@@ -404,6 +404,10 @@ void * GraphicsManager::Processor(void * vArgs){
 	// Unbind frame buffer so they can be freed.
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	GLFrameBuffers::FreeAll();
+	// Free all textures.
+	glBindTexture(GL_TEXTURE_1D, 0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	GLTextures::FreeAll();
 
 	List<Window*> windows = WindowMan.GetWindows();
 	for (int i = 0; i < windows.Size(); ++i)
@@ -429,7 +433,8 @@ void * GraphicsManager::Processor(void * vArgs){
 	Graphics.finished = true;
 #ifdef WINDOWS
 	graphicsThread = NULL;
-	_endthread();
+	// May not be needed, and hinders destructors from being called.
+//	_endthread();
 #elif defined LINUX
     graphicsThread = NULL;
     return 0;

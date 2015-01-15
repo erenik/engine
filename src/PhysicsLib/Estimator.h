@@ -33,11 +33,12 @@ enum estimTypes {
 };};
 
 /// A state to be entered into the estimator.
-class EstimatorState {
+class Estimation {
 public:
-	EstimatorState(int type);
-	EstimatorState(int type, int64 time);
-	long long time;
+	Estimation(int type);
+	Estimation(int type, int64 time);
+	virtual ~Estimation();
+	int64 time;
 	int type;
 };
 
@@ -49,15 +50,49 @@ class Estimator
 public:
 	/// Sets finished to false.
 	Estimator();
+	virtual ~Estimator();
 
+	/** Estimates values for given time. If loop is true, the given time will be modulated to be within the interval of applicable time-values.
+		If the estimator's output pointer is set, data for the given estimation will be written there accordingly.
+	*/
+	virtual void Estimate(int64 forGivenTimeInMs, bool loop) = 0;
 	/// Proceeds a time-step.
 	virtual void Process(int timeInMs) = 0;
+	/// Adding a new state.
+	virtual void AddState(Estimation * state);
+	/// Attempts to insert the given state at a decent place based on it's time-stamp.
+	virtual void InsertState(Estimation * state);
 
 	/// When true, the final state has been reached, and there is no longer any use for this estimator to be active or exist anymore (unless more states are added)
 	bool finished;
 
 	/// Duratoin in milliseconds.
 	int timeElapsedMs;
+
+	/// Minimum and maximum time in ms which the currently stored estimation states cover. Both are 0.0 by default.
+	int64 minMs, maxMs, totalIntervalMs;
+
+	/// Current index in which new data has been placed. meaning all indexes behind it, including itself, are populated.
+	int currentIndex;
+	/// Flagged once after all elements have been populated.
+	bool hasLooped;
+	// o.o
+	bool cyclic;
+
+	/// True if an estimator should loop its input time values. Default false.
+	bool loop;
+
+	/// If true, the handler of estimators should obtain the correct initial value upon attaching the estimator to said value. Default false.
+	bool inheritFirstValue;
+
+protected:
+	/** Calculates and returns the two states which should be used for calculating the current value in e.g. Estimate
+		Both one and two may be NULL.
+	*/
+	void GetStates(Estimation * & before, Estimation * & after, float & ratioBefore, float & ratioAfter, int64 forGivenTimeInMs);
+
+	/// Yo.
+	List<Estimation*> states;
 };
 
 #endif

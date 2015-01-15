@@ -7,11 +7,18 @@
 
 #include <cstdlib>
 #include "UIElement.h"
+#include "Mutex/Mutex.h"
 
 class Square;
 class GraphicsState;
 class UIElement;
 class Window;
+
+/// Mutex for interacting with the UI. Any UI. Used to make sure the graphics isn't deleting anything the input is touching and vice-versa.
+extern Mutex uiMutex;
+
+void CreateUIMutex();
+void DeleteUIMutex();
 
 /// Fetches the global UI, taking into consideration active window.
 UserInterface * GlobalUI();
@@ -31,6 +38,10 @@ public:
 	UserInterface();
 	~UserInterface();
 
+	/// Deletes all UIs that have not already been deleted so far. Called at end of program.
+	static void DeleteAll();
+	/// Sets the bufferized flag. Should only be called before program shutdown. Ensures less assertions will fail.
+	void SetBufferized(bool bufferizedFlag);
 	/** Reloads all existing UserInterfaces based on their respective source-files. Should only be called from RENER THREAD! As it will want to deallocate stuff.
 		Use Graphics.QueueMessage(new GraphicsMessage(GM_RELOAD_UI));
 	*/
@@ -93,7 +104,7 @@ public:
 	/** Renders the whole UIElement structure.
 		Overloaded by subclasses in order to enable custom perspective for the UI.
 	*/
-	virtual void Render(GraphicsState * graphicsState);
+	virtual void Render(GraphicsState & graphicsState);
 
 
     /// Prints the UI's tree recursively. The level parameter is in order to display the tree properly.

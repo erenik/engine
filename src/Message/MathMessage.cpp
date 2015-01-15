@@ -70,3 +70,24 @@ Vector4f VectorMessage::GetVector4f()
 	}
 	return vec;
 }
+
+// Returns the values embedded within in the Vector4f format, converting as necessary.
+Vector3f VectorMessage::GetVector3f()
+{
+	Vector3f vec;
+	switch(vectorType)
+	{
+		case VECTOR_2I:
+			return vec2i;
+		case VECTOR_2F:
+			return vec2f;
+		case VECTOR_3F:
+			return vec3f;
+		case VECTOR_4F:
+			return vec4f;
+		default:
+			assert(false);
+	}
+	return vec;
+}
+	

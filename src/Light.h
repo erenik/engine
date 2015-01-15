@@ -31,6 +31,7 @@ public:
 	/// Default constructor
 	Light(Lighting * lighting);
 	Light(const Light & otherLight);
+	~Light();
 	void Nullify();
 
 	/// Opens a dedicated editor window for this light. Assumes a valid LightEditor.gui is available in the UI directory.

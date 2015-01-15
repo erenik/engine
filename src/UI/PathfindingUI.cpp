@@ -173,12 +173,12 @@
 // 	Enables custom perspective for the UI. */
 // void PathfindingUI::Render(GraphicsState& graphics){
 // 	/// Set UI Shader program
-// 	graphicsState->activeShader = Graphics.shadeMan.GetShaderProgram("UI");
-// 	if (graphicsState->activeShader->built)
-// 		glUseProgram(graphicsState->activeShader->shaderProgram);
+// 	shader = Graphics.shadeMan.GetShaderProgram("UI");
+// 	if (shader->built)
+// 		glUseProgram(shader->shaderProgram);
 // 	else {
-// 		glUseProgram(0);
-// 		graphicsState->activeShader = 0;
+// 		ShadeMan.SetActiveShader(0);
+// 		shader = 0;
 // 		return;
 // 	}
 //
@@ -203,9 +203,9 @@
 // //	point = projection * point;
 //
 // 	// Load projection matrix into shader
-// 	graphicsState->activeShader->uniformProjectionMatrix = glGetUniformLocation(graphicsState->activeShader->shaderProgram, "projectionMatrix");
-// 	graphicsState->activeShader->uniformModelMatrix = glGetUniformLocation(graphicsState->activeShader->shaderProgram, "modelMatrix");
-// 	glUniformMatrix4fv(graphicsState->activeShader->uniformProjectionMatrix, 1, false, projection.getPointer());
+// 	shader->uniformProjectionMatrix = glGetUniformLocation(shader->shaderProgram, "projectionMatrix");
+// 	shader->uniformModelMatrix = glGetUniformLocation(shader->shaderProgram, "modelMatrix");
+// 	glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, projection.getPointer());
 //
 // 	graphicsState->modelMatrixF = graphicsState->modelMatrixD.LoadIdentity();
 //
@@ -216,6 +216,6 @@
 // 	element->render(graphics);
 //
 // 	/// Set to default shader program again
-// 	glUseProgram(0);
+// 	ShadeMan.SetActiveShader(0);
 // }
 //

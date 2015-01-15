@@ -1,7 +1,9 @@
 // Emil Hedemalm
 // 2013-03-22
 
-#define BUILD_OGG
+#include "Libs.h"
+
+#ifdef BUILD_OGG
 
 #ifndef OGG_STREAM_H
 #define OGG_STREAM_H
@@ -18,9 +20,11 @@
 /// Include all necessary files for Ogg container playback. Or.. subclass it? Not sure D:
 #include <ogg/ogg.h>
 /// Vorbis for audio.
-#include <vorbis/codec.h>
-#include <vorbis/vorbisenc.h>
-#include <vorbis/vorbisfile.h>
+#include <codec.h>
+#include <vorbisenc.h>
+#include <vorbisfile.h>
+/// Also Opus for audio http://www.opus-codec.org/ :D
+#include <opusfile.h>
 /// Theora for video.
 #include <theora/theoradec.h>
 #ifdef WINDOWS
@@ -61,13 +65,19 @@ public:
 	virtual Texture * GetFrameTexture();
 
 	/// Returns amount of channels present in the audio stream.
-	virtual int AudioChannels();
+//	virtual int AudioChannels();
 	/// Gets frequency of the audio. This is typically 48000 or similar?
-	virtual int AudioFrequency();
+//	virtual int AudioFrequency();
 
 	
 
 private:
+
+	/// Attempts to open Vorbis playback from the file-stream.
+	bool OpenVorbis();
+	/// Attempts to open Opus playback from the file-stream.
+	bool OpenOpus();
+
 	/** Current frame data in a format liked by the Texture class!
 		Pixel index psi below. and the pixel index with offsets of 0 to 3 give the RGBA components respectively.
 		int psi = y * width * bpp + x * bpp;
@@ -115,7 +125,15 @@ private:
 	vorbis_comment* vorbisComment; // User comments
 	double oggVorbisTime;
 
+	/// Opus
+	bool hasOpus;
+	OggOpusFile * oggOpusFile;
+	const OpusHead * opusHead;
+	const OpusTags * opusTags;
+	OpusFileCallbacks opusFileCallbacks;
+
 };
 
 #endif
 
+#endif // OGG

@@ -5,10 +5,8 @@
 #include "PongCR.h"
 #include "Physics/Collision/Collision.h"
 
-#include "PongPlayerProperty.h"
 #include "PongBallProperty.h"
 
-#include "Audio/AudioManager.h"
 #include "Message/MessageManager.h"
 
 /// Returns false if the colliding entities are no longer in contact after resolution.
@@ -82,20 +80,15 @@ bool PongCR::ResolveCollision(Collision & c)
 				{
 					velocity /= ratio;
 				}
-				// Play SFX!
-				if (staticEntity->GetProperty("PongPlayerProperty"))
-				{
-					if (dynamic->position.x < 0)
-						AudioMan.QueueMessage(new AMPlaySFX("Pong.ogg"));
-//						AudioMan.PlaySFX("Pong.ogg", 1.f);
-					else
-//						AudioMan.PlaySFX("Pong2.ogg", 1.f);
-						AudioMan.QueueMessage(new AMPlaySFX("Pong.ogg"));
-				}
 			}
+
+			if (pbp)
+				pbp->OnCollision(c);
+			/*
 			// Goal if ball and goal!
 			if (pbp && staticEntity->name.Contains("Goal"))
 			{
+				
 				AudioMan.QueueMessage(new AMPlaySFX("PongGoal.ogg"));
 			//	AudioMan.PlaySFX("PongGoal.ogg", 1.f);
 				// Notify of the goal.
@@ -107,6 +100,7 @@ bool PongCR::ResolveCollision(Collision & c)
 				AudioMan.QueueMessage(new AMPlaySFX("PongWall.ogg"));
 	//			AudioMan.PlaySFX("PongWall.ogg", 1.f);
 			}
+	*/
 		}
 		return true;
 	}

@@ -16,7 +16,9 @@ class SIPSessionData : public SessionData {
 public:
 	/// Constructor
 	SIPSessionData(Peer * peer);
-	~SIPSessionData();
+	virtual ~SIPSessionData();
+	// ID used for template function identification.
+	static int Type();
 
 	/// Resets variables for the session
 	void Reset();

@@ -11,6 +11,8 @@
 #include <fstream>
 #include "Matrix4f.h"
 
+#include "String/AEString.h"
+
 #ifndef abs
 #define abs(b) ((b < 0)? (-b) : (b))
 #endif
@@ -18,7 +20,8 @@
 // ************************************************************************//
 // Constructors
 // ************************************************************************//
-Vector3f::Vector3f(){
+Vector3f::Vector3f()
+{
 	x = y = z = 0;
 }
 
@@ -97,6 +100,17 @@ Vector3f::~Vector3f()
 {
 }
 
+/// o.o Create Vectors!
+List<Vector3f> Vector3f::FromFloatList(List<float> floatList, int numVectorsToExtract)
+{
+	List<Vector3f> vectors;
+	for (int i = 0; i < numVectorsToExtract; ++i)
+	{
+		Vector3f vector = &floatList[i * 3];
+		vectors.Add(vector);
+	}
+	return vectors;
+}
 
 /// Printing out data
 std::ostream& operator <<(std::ostream& os, const Vector3f& vec){
@@ -115,6 +129,15 @@ void Vector3f::ReadFrom(std::fstream & file){
 	file.read((char*)&x, sizeof(float));
 	file.read((char*)&y, sizeof(float));
 	file.read((char*)&z, sizeof(float));
+}
+
+/// Reads from String. Expects space-separated values. E.g. 3 8.14 -15
+void Vector3f::ReadFrom(const String & string)
+{
+	List<String> tokens = string.Tokenize(" ");
+	x = tokens[0].ParseFloat();
+	y = tokens[1].ParseFloat();
+	z = tokens[2].ParseFloat();
 }
 
 

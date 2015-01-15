@@ -24,6 +24,8 @@ public:
 	// When button is released.
 	virtual UIElement * Activate();
 
+	/// Default calls parent class RemoveState. If the Active flag is removed, input is also halted/cancelled.
+	virtual void RemoveState(int state, bool recursive = false);
 
 	// Used for handling things like drag-n-drop and copy-paste operations, etc. as willed.
 	virtual void ProcessMessage(Message * message);
@@ -47,6 +49,8 @@ public:
 	bool numbersOnly;
 	/// For any valid alpha-numeric + a few key signs mathematical expressions.
 	bool mathematicalExpressionsOnly;
+	/// If this is a password-type thingy, this will convert so that the characters are always rendered as e.g. stars.
+	bool concealCharacters;
 
 protected:
 	/// For handling text-input

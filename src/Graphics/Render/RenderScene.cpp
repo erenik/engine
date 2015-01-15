@@ -12,6 +12,8 @@
 
 #include "Render/RenderPipeline.h"
 
+#include "File/LogFile.h"
+
 // Renders the scene normally using the active camera using frustum culling.
 void GraphicsManager::RenderScene()
 {
@@ -28,6 +30,7 @@ void GraphicsManager::RenderScene()
     if (shader == NULL){
     //    std::cout<<"\nUnable to set Phong shader in GraphicsManager::RenderScene";
     #ifdef WINDOWS
+		LogGraphics("Unable to set Phong shader.");
         assert(shader && "Unable to set \"Phong\" shader");
     #endif
         return;
@@ -66,20 +69,20 @@ void GraphicsManager::RenderScene()
 //		std::cout<<"\nViewfrustum: "<<viewFrustum.left<<" "<<viewFrustum.right<<" nearplane: "<<viewFrustum.nearPlaneDistance<<" farplane: "<<viewFrustum.farPlaneDistance;
 	}
 
-	if (!graphicsState->activeShader)
+	if (!shader)
 		return;
 
 	// Load in the model and view matrices
-//	graphicsState->activeShader->uniformViewMatrix = glGetUniformLocation(shader->shaderProgram, "viewMatrix");
-	glUniformMatrix4fv(graphicsState->activeShader->uniformViewMatrix, 1, false, graphicsState->viewMatrixF.getPointer());
+//	shader->uniformViewMatrix = glGetUniformLocation(shader->shaderProgram, "viewMatrix");
+	glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, graphicsState->viewMatrixF.getPointer());
 	error = glGetError();
-//	graphicsState->activeShader->uniformModelMatrix = glGetUniformLocation(shader->shaderProgram, "modelMatrix");
-	glUniformMatrix4fv(graphicsState->activeShader->uniformModelMatrix, 1, false, graphicsState->modelMatrixF.getPointer());
+//	shader->uniformModelMatrix = glGetUniformLocation(shader->shaderProgram, "modelMatrix");
+	glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, graphicsState->modelMatrixF.getPointer());
 	error = glGetError();
 	// Set later! ALSO: glProgramUniform is in a later GL version compared to glUniform!
-/*	if (graphicsState->activeShader && graphicsState->activeShader->uniformEyePosition != -1)
+/*	if (shader && shader->uniformEyePosition != -1)
 		if (glProgramUniform4f != NULL)
-		glProgramUniform4f(graphicsState->activeShader->shaderProgram, graphicsState->activeShader->uniformEyePosition, camera.Position().x, camera.Position().y, camera.Position().z, 1.0f);
+		glProgramUniform4f(shader->shaderProgram, shader->uniformEyePosition, camera.Position().x, camera.Position().y, camera.Position().z, 1.0f);
 */
 	error = glGetError();
 
@@ -91,7 +94,7 @@ void GraphicsManager::RenderScene()
 	// Load projection matrix into shader
 //	GLuint uniformProjectionMatrix = glGetUniformLocation(shader->shaderProgram, "projectionMatrix");
 	graphicsState->projectionMatrixF = graphicsState->projectionMatrixD;
-	glUniformMatrix4fv(graphicsState->activeShader->uniformProjectionMatrix, 1, false, graphicsState->projectionMatrixF.getPointer());
+	glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, graphicsState->projectionMatrixF.getPointer());
 
 	Matrix4f mvp = graphicsState->projectionMatrixF * graphicsState->viewMatrixF * graphicsState->modelMatrixF;
 	/// Just testing that the matrix is set correctly..
@@ -141,8 +144,8 @@ void GraphicsManager::RenderScene()
 
 	if (graphicsState->settings & USE_LEGACY_GL){
 		// Set default shader program
-		graphicsState->activeShader = NULL;
-		glUseProgram(0);
+		shader = NULL;
+		ShadeMan.SetActiveShader(0);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
 	/// Deferred rendering, check GL version too! Need > 3.0 for FBOs (Frame Buffer Objects)
@@ -200,19 +203,19 @@ void GraphicsManager::RenderScene()
 		LoadLighting(graphicsState->lighting, shader);
 	}
 	// Set primary color
-	glUniform4f(graphicsState->activeShader->uniformPrimaryColorVec4, 1.f,1.f,1.f,1.f);
+	glUniform4f(shader->uniformPrimaryColorVec4, 1.f,1.f,1.f,1.f);
 
 	// Reset bound textures
 	graphicsState->currentTexture = NULL;
 	// Update view and projection matrix in specified shader
-	if (graphicsState->activeShader && graphicsState->activeShader->uniformProjectionMatrix != -1)
-		glUniformMatrix4fv(graphicsState->activeShader->uniformProjectionMatrix, 1, false, graphicsState->projectionMatrixF.getPointer());
+	if (shader && shader->uniformProjectionMatrix != -1)
+		glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, graphicsState->projectionMatrixF.getPointer());
 	// Update view and projection matrix in specified shader
-	if (graphicsState->activeShader && graphicsState->activeShader->uniformViewMatrix != -1)
-		glUniformMatrix4fv(graphicsState->activeShader->uniformViewMatrix, 1, false, graphicsState->viewMatrixF.getPointer());
+	if (shader && shader->uniformViewMatrix != -1)
+		glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, graphicsState->viewMatrixF.getPointer());
 	// Update camera in the world
-	if (graphicsState->activeShader && graphicsState->activeShader->uniformEyePosition != -1)
-		glUniform4f(graphicsState->activeShader->uniformEyePosition, camera.Position().x, camera.Position().y, camera.Position().z, 1.0f);
+	if (shader && shader->uniformEyePosition != -1)
+		glUniform4f(shader->uniformEyePosition, camera.Position().x, camera.Position().y, camera.Position().z, 1.0f);
 
 	error = glGetError();
 
@@ -224,7 +227,7 @@ void GraphicsManager::RenderScene()
 	//	vfcOctree->RenderWithCulling(*graphicsState);
 
         // Render without culling
-		vfcOctree->Render(graphicsState);
+		vfcOctree->Render(*graphicsState);
 	}
 	else {
 	}
@@ -247,20 +250,20 @@ void GraphicsManager::RenderScene()
 		Shader * shader = ShadeMan.SetActiveShader("Lighting");
 
 		// Set primary color and other uniforms
-		if (graphicsState->activeShader->uniformPrimaryColorVec4 == -1){
-			int loc = glGetUniformLocation(graphicsState->activeShader->shaderProgram, "primaryColorVec4");
+		if (shader->uniformPrimaryColorVec4 == -1){
+			int loc = glGetUniformLocation(shader->shaderProgram, "primaryColorVec4");
 			if (loc != -1)
-				graphicsState->activeShader->uniformPrimaryColorVec4 = loc;
+				shader->uniformPrimaryColorVec4 = loc;
 		}
 		else
-			glUniform4f(graphicsState->activeShader->uniformPrimaryColorVec4, 1,1,1,1);
+			glUniform4f(shader->uniformPrimaryColorVec4, 1,1,1,1);
 
 		/// Load lighting settings to shader ^^
 		LoadLighting(graphicsState->lighting, shader);
 
 		// Update camera in the world
-		if (graphicsState->activeShader && graphicsState->activeShader->uniformEyePosition != -1)
-			glUniform4f(graphicsState->activeShader->uniformEyePosition, camera.Position().x, camera.Position().y, camera.Position().z, 1.0f);
+		if (shader && shader->uniformEyePosition != -1)
+			glUniform4f(shader->uniformEyePosition, camera.Position().x, camera.Position().y, camera.Position().z, 1.0f);
 
 		/*
 uniform sampler2D diffuseMap;
@@ -338,10 +341,10 @@ uniform sampler2D positionMap;*/
 		glBindTexture(GL_TEXTURE_2D, pickingTexture);
 
 		// Set sampler in client state
-/*		if (graphicsState->activeShader->uniformBaseTexture != -1)
-			glUniform1i(graphicsState->activeShader->uniformBaseTexture, 0);		// Sets sampler
-		if (graphicsState->activeShader->uniformNormalMap != -1)
-			glUniform1i(graphicsState->activeShader->uniformNormalMap, 1);		// Sets sampler
+/*		if (shader->uniformBaseTexture != -1)
+			glUniform1i(shader->uniformBaseTexture, 0);		// Sets sampler
+		if (shader->uniformNormalMap != -1)
+			glUniform1i(shader->uniformNormalMap, 1);		// Sets sampler
 */
 		graphicsState->currentTexture = 0;
 
@@ -350,7 +353,7 @@ uniform sampler2D positionMap;*/
 
 		// Render square for the window
 		deferredRenderingBox->name = "DeferredLighting";
-		deferredRenderingBox->Render();
+		deferredRenderingBox->Render(*graphicsState);
 
 		//glDeleteBuffers(1, &box.vboBuffer);
 		//box.vboBuffer = NULL;
@@ -364,7 +367,7 @@ uniform sampler2D positionMap;*/
 		glActiveTexture(GL_TEXTURE0 + 0);
 
 		// Render the light-sources o-o
-		glUseProgram(0);	// Set default program, matrices should still be correct
+		ShadeMan.SetActiveShader(0);	// Set default program, matrices should still be correct
 	//	for (int i = 0; i <
 
 		error = glGetError();
