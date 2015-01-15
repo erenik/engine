@@ -30,12 +30,12 @@
 
 #include "Input/InputManager.h"
 
-#include "Model.h"
+#include "Model/Model.h"
 
 #include "Texture.h"
 #include "TextureManager.h"
 
-#include "ModelManager.h"
+#include "Model/ModelManager.h"
 
 #include "StateManager.h"
 

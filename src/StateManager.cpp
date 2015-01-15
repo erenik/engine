@@ -50,6 +50,7 @@ StateManager::~StateManager()
 		globalState->OnExit(NULL);
 	if (activeState)
 		activeState->OnExit(NULL);
+	globalState = activeState = NULL;
 	while (stateList.Size()){
         AppState * gs = stateList[0];
         std::cout<<"\nDeleting game state: "<<gs->name;

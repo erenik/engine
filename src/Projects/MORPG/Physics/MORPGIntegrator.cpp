@@ -8,7 +8,7 @@
 /** All entities sent here should be fully dynamic! 
 	Kinematic ones may or may not work (consider adding own integration function).
 */
-void MORPGIntegrator::IntegrateDynamicEntities(List<Entity*> dynamicEntities, float timeInSeconds)
+void MORPGIntegrator::IntegrateDynamicEntities(List<Entity*> & dynamicEntities, float timeInSeconds)
 {
 	for (int i = 0; i < dynamicEntities.Size(); ++i)
 	{
@@ -21,7 +21,7 @@ void MORPGIntegrator::IntegrateDynamicEntities(List<Entity*> dynamicEntities, fl
 /** All entities sent here should be fully kinematic! 
 	If not subclassed, the standard IntegrateEntities is called.
 */
-void MORPGIntegrator::IntegrateKinematicEntities(List<Entity*> kinematicEntities, float timeInSeconds)
+void MORPGIntegrator::IntegrateKinematicEntities(List<Entity*> & kinematicEntities, float timeInSeconds)
 {
 
 }

@@ -11,8 +11,8 @@
 
 #include "TextureManager.h"
 
-#include "ModelManager.h"
-#include "Model.h"
+#include "Model/ModelManager.h"
+#include "Model/Model.h"
 
 #include "Mesh/Mesh.h"
 #include "Mesh/EMesh.h"
@@ -66,6 +66,9 @@ Texture * World::GeneratePreviewTexture()
 {
 	if (!texture)
 		texture = TexMan.NewDynamic();
+
+	texture->name = "World Preview texture";
+	texture->source = "World::GeneratePreviewTexture";
 	// Resize it.
 	texture->Resize(size);
 

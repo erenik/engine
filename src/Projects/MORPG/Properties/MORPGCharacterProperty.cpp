@@ -14,7 +14,7 @@
 #include "Graphics/GraphicsManager.h"
 #include "Graphics/Messages/GMCamera.h"
 
-#include "Model.h"
+#include "Model/Model.h"
 
 MORPGCharacterProperty::MORPGCharacterProperty(Entity * characterEntity, Character * associatedWithCharacter)
 : EntityProperty("MORPGCharacterProperty", 0, characterEntity), ch(associatedWithCharacter)

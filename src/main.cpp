@@ -36,7 +36,7 @@
 	#include <vld.h> 
 #endif
 #endif 
-    #include "config.h"
+//    #include "config.h"
     #include <io.h>
 #ifndef UNICODE
 #define UNICODE

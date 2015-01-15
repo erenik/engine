@@ -787,9 +787,12 @@ void MessageManager::ProcessMessage(Message * message)
 
 	
 	// First send it to global state
-	if (StateManager::Instance()){
-		if (StateMan.GlobalState())
-			StateMan.GlobalState()->ProcessMessage(message);
+	StateManager * stateMan = StateManager::Instance();
+	if (stateMan)
+	{
+		AppState * global = StateMan.GlobalState();
+		if (global)
+			global->ProcessMessage(message);
 		// Send it to the state for processing
 		if (StateMan.ActiveState())
 			StateMan.ActiveState()->ProcessMessage(message);
