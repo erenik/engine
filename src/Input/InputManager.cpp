@@ -156,6 +156,19 @@ bool InputManager::DialogueActive(){
 	return element? true : false;
 }
 
+List<int> InputManager::ActiveModifierKeys()
+{
+	List<int> activeModifierKeys;
+	List<int> modifierKeys;
+	modifierKeys.Add(4, KEY::CTRL, KEY::SHIFT, KEY::ALT, KEY::ALT_GR);
+	for (int i = 0; i < modifierKeys.Size(); ++i)
+	{
+		if (this->keyPressed[modifierKeys[i]])
+			activeModifierKeys.Add(modifierKeys[i]);
+	}
+	return activeModifierKeys;
+}
+
 /** Called by OS-functions to query if the UI wants to process drag-and-drop files. If so the active element where the mouse is hovering may opt to do magic with it.
 	If no magic, or action, is taken, it will return false, at which point the game state should be called to handle general drag-and-drop files.
 */
@@ -729,31 +742,14 @@ void InputManager::EvaluateKeyPressed(int activeKeyCode, bool downBefore, UIElem
 		binding = StateMan.GlobalState()->inputMapping.EvaluateInput(activeKeyCode, this->keyPressed, downBefore);
 		fromGlobal = true;
 	}
-	// If we found some binding to evaluate..
-	if (binding && (binding->activateOverUI || (hoverElement == NULL)))
-	{
-	//	std::cout<<"\nFound binding in activeState: "<<binding->name;
-		if (binding->action != -1)
-		{
-			if (fromGlobal)
-				StateMan.GlobalState()->InputProcessor(binding->action, binding->inputDevice);
-			else
-				StateMan.ActiveState()->InputProcessor(binding->action, binding->inputDevice);
-		}
-		else if (binding->stringAction.Length())
-		{
-//			std::cout<<"\nQueueing action: "<<binding->stringAction;
-			MesMan.QueueMessages(binding->stringAction);
-		}
-		goto endKeyPressed;
-	}
+	if (binding)
+		return;
 
 	/// Evaluate debug inputs first of all.
 #if defined(DEBUG_INPUT_ENABLED)
 	// And at last the debug one, if need be
 	binding = debug.EvaluateInput(activeKeyCode, this->keyPressed, downBefore);
 	if (binding){
-		debuggingInputProcessor(binding->action, binding->inputDevice);
 		return;
 	}
 #endif
@@ -763,14 +759,10 @@ void InputManager::EvaluateKeyPressed(int activeKeyCode, bool downBefore, UIElem
 	binding = general.EvaluateInput(activeKeyCode, this->keyPressed, downBefore);
 	if(binding)
 	{
-		if (binding->action != -1)
-			generalInputProcessor(binding->action, binding->inputDevice);
-		else if (binding->stringAction.Length())
-			MesMan.QueueMessages(binding->stringAction);
 		goto endKeyPressed;
 	}
 
-	/// Check if we have an active ui element. If so don't fucking do anything.
+	/// Check if we have an active ui element. If so, navigate it? -> Create actions for navigating UI and just handle them in a separate file?
 	if (userInterface)
 	{
 		// UI-navigation if no element is active. Active elements have the responsibility to let go of their activity at the user's behest.
@@ -864,38 +856,21 @@ void InputManager::EvaluateKeyReleased(int activeKeyCode){
 #endif
 	// Then the general one!
 	binding = general.EvaluateKeyRelease(activeKeyCode, this->keyPressed);
-	if(binding){
-		if (binding->stopAction != -1)
-			generalInputProcessor(binding->stopAction, binding->inputDevice);
-		else if (binding->stringStopAction.Length())
-			MesMan.QueueMessages(binding->stringStopAction);
+	if(binding)
 		return;
-	}
 
 	// The global one!
 	AppState * global = StateMan.GlobalState();
 	if (global){
 		binding = StateMan.GlobalState()->inputMapping.EvaluateKeyRelease(activeKeyCode, this->keyPressed);
-		if (binding){
-			if (binding->stopAction != -1)
-				StateMan.GlobalState()->InputProcessor(binding->stopAction, binding->inputDevice);
-			else if (binding->stringStopAction.Length())
-				MesMan.QueueMessages(binding->stringStopAction);
-			//	return;
-		}
+		if (binding)
+			return;
 	}
 
 	// First the specific one!
 	AppState * activeGameState = StateMan.ActiveState();
 	if (activeGameState){
 		binding = activeGameState->inputMapping.EvaluateKeyRelease(activeKeyCode, this->keyPressed);
-		if (binding){
-			if (binding->stopAction != -1)
-				StateMan.ActiveState()->InputProcessor(binding->stopAction, binding->inputDevice);
-			else if (binding->stringStopAction.Length())
-				MesMan.QueueMessages(binding->stringStopAction);
-			return;
-		}
 	}
 }
 

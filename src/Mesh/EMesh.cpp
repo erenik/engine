@@ -54,14 +54,16 @@ void EMesh::AddPlane(Vector3f upperLeft, Vector3f lowerLeft, Vector3f lowerRight
 /// Adds a grid (basically a plane), with the specified amount of cells/faces in X and Y.
 void EMesh::AddGrid(Vector3f upperLeft, Vector3f lowerLeft, Vector3f lowerRight, Vector3f upperRight, Vector2i gridSizeDivision)
 {
+	gridSizeDivision += Vector2i(1,1);
+
 	/// For all allocated tiles/elements.
 	vertexMatrix.SetDefaultValue(0);
 	vertexMatrix.Allocate(gridSizeDivision);
 
 	Vector3f up = upperLeft - lowerLeft;
-	Vector3f upStep = up / gridSizeDivision.y;
+	Vector3f upStep = up / (gridSizeDivision.y - 1);
 	Vector3f right = lowerRight - lowerLeft;
-	Vector3f rightStep = right / gridSizeDivision.x;
+	Vector3f rightStep = right / (gridSizeDivision.x - 1);
 	// First create the necessary vertices.
 	for (int x = 0; x < gridSizeDivision.x; ++x)
 	{

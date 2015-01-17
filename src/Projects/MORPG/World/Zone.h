@@ -32,6 +32,8 @@ class Zone : public Map
 public:
 	Zone();
 
+	void Nullify();
+
 	/// Takes all models this zone is composed of and creates it for you. Will also create all characters within (hopefully including you!)
 	void CreateEntities();
 
@@ -44,8 +46,11 @@ public:
 	/// If this zone is to be painted on a map, what color would it be?
 	Vector4f GetColor();
 
-	bool IsWater();
+
 	void SetWater(bool w);
+	void SetMountain(bool m);
+
+	bool IsWater();
 	bool IsMountain();
 
 	virtual bool WriteTo(std::fstream & file);
@@ -65,6 +70,9 @@ public:
 	/// Who has control over this zone? Anyone?
 	Nation * controllingNation;
 	int controllingNationID;
+
+	/// o.o 0 = water-line, 1 = land, 0.1 to 0.9 = Beach?, 2 = hills, 3+ = mountains
+	float elevation;
 
 protected:
 	/// All entities which comprise the "base" along which we will walk and physicall interact with on the most part. 

@@ -4,6 +4,7 @@
 #include "InputMapping.h"
 #include "../Globals.h"
 #include <iostream>
+#include "Input/Action.h"
 
 /// Default keyMapping action processor
 void defaultInputProcessor(int action){
@@ -11,9 +12,9 @@ void defaultInputProcessor(int action){
 }
 
 /// Sets the processor function pointer to a default function.
-InputMapping::InputMapping(){
+InputMapping::InputMapping()
+{
 	activeBinding = NULL;
-	this->mappings = 0;
 }
 
 InputMapping::~InputMapping()
@@ -38,106 +39,105 @@ Binding * InputMapping::EvaluateInput(int activeKeyCode, bool * keyPressedState,
 	{
 		/// DEBUG
 		Binding * binding = bindings[i];
-	//	if (binding->action == 9 && activeKeyCode == KEY::E)
-	//		int b = i;
-        // Skip null-actions
-		if (binding->action == 0)
-			continue;
 		// Skip if our active key is not the relevant one
-		int inputRelevantKey = binding->inputCombinationArray[binding->inputs-1];
-		if (binding->inputCombinationArray[binding->inputs-1] != activeKeyCode)
+		if (binding->keysToTriggerIt.Last() != activeKeyCode)
 			continue;
-//		this->binding->Print();
 		// If it is our active key, check that all other pre-requisites are met
 		bool allPrerequisitesMet = true;
-		for (int j = 0; j < binding->inputs; ++j){
-            int cKey = binding->inputCombinationArray[j];
-      //      std::cout<<"\nKeyState for "<<GetKeyString(cKey)<<": "<<keyPressedState[cKey];
-			if (!keyPressedState[binding->inputCombinationArray[j]]){
-				allPrerequisitesMet = false;
-		//		std::cout<<", "<<j+1<<" of "<<b->inputs<<" input-prerequisties met.";
-				break;
-			}
-		}
-		if (!allPrerequisitesMet)
-			continue;
-	//	std::cout<<"\nEvaluating blocks..";
-		for (int j = 0; j < binding->blocks; ++j){
-			if (keyPressedState[binding->blockingKeyArray[j]]){
+		for (int j = 0; j < binding->keysToTriggerIt.Size(); ++j)
+		{
+			int key = binding->keysToTriggerIt[j];
+			if (keyPressedState[key] == false)
+			{
 				allPrerequisitesMet = false;
 				break;
 			}
 		}
 		if (!allPrerequisitesMet)
 			continue;
-		// Check that repeatability not is an issue.
-		if (binding->activateOnRepeat == false && downBefore == true)
-			continue;
+		/// Check if ALT, CTRL or SHIFT are held, without them being included in the keys to trigger. If so, do not trigger it.
+		List<int> activeModifierKeys = InputMan.ActiveModifierKeys();
+		if (activeModifierKeys.Size())
+		{
+			/// If the active modifier keys do not exist in the binding, skip triggering it.
+			if (!binding->keysToTriggerIt.Exists(activeModifierKeys))
+				continue;
+		}
+
+		// Check that repeatability not is an issue.	
+		if (downBefore)
+			binding->action->TriggerRepeat();
+		else 
+			binding->action->TriggerStart();
 //#define LOG_BINDINGS
 #ifdef LOG_BINDINGS
 		if (binding->name)
 			std::cout<<"\nExecuting binding: "<<(b->name ? b->name : "Unnamed");
 #endif
-		/// Process our action!
+		/// Return the binding with was triggered? Only one should be triggered at a time, right?
 		return binding;
-		++triggeredBindings;
 	}
 	return 0;
 }
 
-Binding * InputMapping::EvaluateKeyRelease(int activeKeyCode, bool *keyPressedState){
+Binding * InputMapping::EvaluateKeyRelease(int activeKeyCode, bool *keyPressedState)
+{
 	int triggeredBindings = 0;
 	/// Assume the active key is the last one in the chain
-	for (int i = 0; i < bindings.Size(); ++i){
+	for (int i = 0; i < bindings.Size(); ++i)
+	{
 		Binding * binding = bindings[i];
-		// Skip null-actions
-		if (binding->stopAction == 0)
+		if (!binding->keysToTriggerIt.Exists(activeKeyCode))
 			continue;
-		// Check if the key belonged to any of the previously active states,
-		// make sure that this was part of that combination to!
-		int diff = 0;
-		bool partOfThis = false;
-		/// Required inputs - active ones.
-		for (int j = 0; j < binding->inputs; ++j){
-			if (!keyPressedState[binding->inputCombinationArray[j]]){
-				++diff;
-			}
-			if (binding->inputCombinationArray[j] == activeKeyCode)
-				partOfThis = true;
+		/// Check if ALT, CTRL or SHIFT are held, without them being included in the keys to trigger. If so, do not trigger it.
+		List<int> activeModifierKeys = InputMan.ActiveModifierKeys();
+		if (activeModifierKeys.Size())
+		{
+			/// If the active modifier keys do not exist in the binding, skip triggering it.
+			if (!binding->keysToTriggerIt.Exists(activeModifierKeys))
+				continue;
 		}
-		/// Check the key-blocks too..!
-		for (int j = 0; j < binding->blocks; ++j){
-			if (keyPressedState[binding->blockingKeyArray[j]]){
-				partOfThis = false;
-				break;
+		/// If it is our active key, check that all other pre-requisites are met
+		int keyDiff = binding->keysToTriggerIt.Size();
+		for (int j = 0; j < binding->keysToTriggerIt.Size(); ++j)
+		{
+			int key = binding->keysToTriggerIt[j];
+			if (keyPressedState[key] == true)
+			{
+				--keyDiff;
 			}
 		}
-		/// If the not part of this or diff is not 1, continue.
-		if (!partOfThis || diff != 1)
+		/// If we're more than 1 key away, skip it?
+		if (keyDiff != 1)
 			continue;
-		if (binding->name)
-			;//std::cout<<"\nExecuting stopAction for binding: "<<binding->name;
-		/// Process our action!
+		/// If just one key away, it means it was just triggered and should now end?
+		binding->action->TriggerStop();
+		// if (binding->name)std::cout<<"\nExecuting stopAction for binding: "<<binding->name;
 		/// Process our action!
 		return binding;
-		++triggeredBindings;
 	}
 	return NULL;
 }
 
 
+/*
 /// Creates a new binding, returning a pointer to it
 Binding * InputMapping::CreateBinding(int action, int key1, const char *name){
+	assert(false && "Deprecated");
 	return CreateBinding(action, key1, 0, 0, name);
 }
 /// Creates a new binding, returning a pointer to it
 Binding * InputMapping::CreateBinding(int action, int key1, int key2, const char *name){
+	assert(false && "Deprecated");
 	return CreateBinding(action, key1, key2, 0, name);
 }
 
 /// Creates a new binding, returning a pointer to it
-Binding * InputMapping::CreateBinding(int action, int key1, int key2, int key3, const char *name){
+Binding * InputMapping::CreateBinding(int action, int key1, int key2, int key3, const char *name)
+{
+	assert(false && "Deprecated");
 	Binding * binding = new Binding();
+	/*
 	binding->action = action;
 	int inputs = 0;
 	if (key3)
@@ -164,8 +164,10 @@ Binding * InputMapping::CreateBinding(int action, int key1, int key2, int key3, 
 }
 
 /// Creates a new binding, returning a pointer to it and making it active in the InputMapping editor.
-Binding * InputMapping::CreateBinding(String action, int key1, int key2 /*= 0*/, int key3 /*= 0*/){
+Binding * InputMapping::CreateBinding(String action, int key1, int key2, int key3)
+{
 	Binding * binding = new Binding();
+	/*
 	/// Set action to -1 to show that we want to use the string-type.
 	binding->stringAction = action;
 	binding->action = -1;
@@ -198,7 +200,9 @@ Binding * InputMapping::SetBlockingKeys(int key1, int key2, int key3){
 	return SetBlockingKeys(activeBinding, key1, key2, key3);
 }
 /// Sets blocking keys for the binding
-Binding * InputMapping::SetBlockingKeys(Binding * binding, int key1, int key2, int key3){
+Binding * InputMapping::SetBlockingKeys(Binding * binding, int key1, int key2, int key3)
+{
+	assert(false && "Deprecated");
 	if (binding == NULL){
 		std::cout<<"\nERROR: Binding NULL.";
 		return NULL;
@@ -221,25 +225,18 @@ Binding * InputMapping::SetBlockingKeys(Binding * binding, int key1, int key2, i
 	activeBinding = binding;
 	return binding;
 }
-
+*/
 
 /// Sets the repeatability flag for the active binding (e.g. bolding down keys)
-Binding * InputMapping::Repeatable(bool flag){
-	if (activeBinding == NULL){
-		std::cout<<"\nERROR: No active binding selected.";
-		return NULL;
-	}
-	activeBinding->activateOnRepeat = flag;
+Binding * InputMapping::Repeatable(bool flag)
+{
+	activeBinding->SetActivateOnRepeat(flag);
 	return activeBinding;
 }
 
 /// Sets the repeatability flag for the binding (e.g. holding down keys)
-Binding * InputMapping::Repeatable(Binding * binding, bool flag){
-	if (binding == NULL){
-		std::cout<<"\nERROR: Binding NULL.";
-		return NULL;
-	}
-	binding->activateOnRepeat = flag;
-	activeBinding = binding;
+Binding * InputMapping::Repeatable(Binding * binding, bool flag)
+{
+	binding->SetActivateOnRepeat(flag);
 	return binding;
 }

@@ -2,7 +2,7 @@
 /// 2014-08-21
 /// Class for handling Drag an drop events.
 
-#include "OS/OS.h"
+#include "OS/OSUtil.h"
 
 #ifdef WINDOWS
 
@@ -249,43 +249,5 @@ void DragAndDrop::SetPdwEffect(POINTL pt, __RPC__inout DWORD *pdwEffect)
 		*pdwEffect = DROPEFFECT_NONE;
 }
 
-List<String> GetFilesFromHDrop(HDROP hDrop)
-{
-	List<String> files;
-	if (hDrop == NULL) {
-		int error = GetLastError();
-		std::cout<<"\nERROR: GetClipboardData failed: "<<error;
-		if (error == 1418)
-			std::cout<<": Clipboard not open";
-		return files;
-	}
-	const int MAX_FILES = 10;
-	wchar_t filename[MAX_FILES][MAX_PATH];
-	for (int i = 0; i < MAX_PATH; ++i)
-	{
-		filename[0][i] = 0;
-	}
-	wchar_t fileSuffix[10];
-	/// First extract amount of files available
-	int result = DragQueryFileW(hDrop, 0xFFFFFFFF, filename[0], MAX_PATH);
-	std::cout<<"\nINFO: Pasting from clipboard: 1 file(s):";
-	for (int i = 0; i < result && i < MAX_FILES; ++i){
-		int pathLength = DragQueryFileW(hDrop, i, filename[i], MAX_PATH);
-#ifdef _UNICODE
-		std::wcout<<"\n- "<<filename[i];
-#else
-		std::cout<<"\n- "<<filename[i];
-#endif
-	}
-	/// Go through and see if we should do anything with any of the files!
-	for (int i = 0; i < result && i < MAX_FILES; ++i)
-	{
-		/// Check file-ending, deal with appropriately
-		memset(fileSuffix, 0, sizeof(wchar_t) * 10);
-		String file = filename[i];
-		files.Add(file);
-	}
-	return files;
-}
 
 #endif

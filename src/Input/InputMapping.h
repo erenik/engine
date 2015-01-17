@@ -16,18 +16,6 @@ public:
 	InputMapping();
 	virtual ~InputMapping();
 
-	/// Creates a new binding, returning a pointer to it and making it active in the InputMapping editor.
-	Binding * CreateBinding(int action, int key1, const char * name = NULL);
-	/// Creates a new binding, returning a pointer to it and making it active in the InputMapping editor.
-	Binding * CreateBinding(int action, int key1, int key2, const char * name = NULL);
-	/// Creates a new binding, returning a pointer to it and making it active in the InputMapping editor.
-	Binding * CreateBinding(int action, int key1, int key2, int key3, const char * name = NULL);
-	/// Creates a new binding, returning a pointer to it and making it active in the InputMapping editor.
-	Binding * CreateBinding(String action, int key1, int key2 = 0, int key3 = 0);
-	/// Sets blocking keys for the active binding.
-	Binding * SetBlockingKeys(int key1, int key2 = 0, int key3 = 0);
-	/// Sets blocking keys for the target binding.
-	Binding * SetBlockingKeys(Binding * binding, int key1, int key2 = 0, int key3 = 0);
 	/// Sets the repeatability flag for the active binding (e.g. bolding down keys)
 	Binding * Repeatable(bool flag = true);
 	/// Sets the repeatability flag for the target binding (e.g. holding down keys)
@@ -48,13 +36,10 @@ public:
 	*/
 	Binding * EvaluateKeyRelease(int activeKeyCode, bool * keyPressedStates);
 
-private:
 	/// Pointer to last created/selected/edited binding for eased usage :)
 	Binding * activeBinding;
 	/// Array of bindings
 	List<Binding*> bindings;
-	/// Number of current mappings
-	int mappings;
 };
 
 #endif

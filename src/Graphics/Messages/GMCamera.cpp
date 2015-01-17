@@ -47,6 +47,9 @@ GMSetCamera::GMSetCamera(Camera * camera, int target, int iValue)
 		case CT_ENTITY_TO_TRACK:
 			entity = (Entity*)iValue;
 			break;
+		case CT_DISTANCE_FROM_CENTER_OF_MOVEMENT:
+			fValue = iValue;
+			break;
 		default:
 			assert(false);
 	}

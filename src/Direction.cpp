@@ -6,6 +6,16 @@
 
 #include <cassert>
 
+int Direction::Get(String byString)
+{
+	byString.SetComparisonMode(String::NOT_CASE_SENSITIVE);
+	if (byString == "Left")	return Direction::LEFT;
+	if (byString == "Right")return Direction::RIGHT;
+	if (byString == "UP")	return Direction::UP;
+	if (byString == "DOWN")	return Direction::DOWN;
+	return NONE;
+}
+
 /// Returns unit-vectors.
 Vector3f Direction::GetVector(int forDirection)
 {

@@ -315,9 +315,9 @@ Lighting * GraphicsManager::ActiveLighting()
 
 void GraphicsManager::PauseRendering()
 {
-	Graphics.QueueMessage(new GraphicsMessage(GM_PAUSE_RENDERING));
+	GraphicsMan.QueueMessage(new GraphicsMessage(GM_PAUSE_RENDERING));
 	while (Graphics.renderingEnabled)
-		;
+		Sleep(5);
 	/// Catch the mutex?
 }
 
@@ -597,21 +597,23 @@ void GraphicsManager::ToggleFullScreen(Window * window)
 }
 
 /// Wooo. Font-handlin'
-TextFont * GraphicsManager::GetFont(String byName){
-	if (byName.Contains(".png"))
-		byName = byName.Tokenize(".")[0];
-	for (int i = 0; i < fonts.Size(); ++i){
+TextFont * GraphicsManager::GetFont(String byName)
+{
+	String source = byName;
+	if (!source.Contains(".png"))
+		source += ".png";
+	if (!source.Contains("/"))
+		source = "img/fonts/" + source;
+	
+	for (int i = 0; i < fonts.Size(); ++i)
+	{
 		TextFont * tf = fonts[i];
-		if (tf->name == byName)
+		if (tf->source == source)
 			return tf;
 	}
 	/// Try load it.
 	TextFont * tf = new TextFont();
-	if (!byName.Contains(".png"))
-		byName += ".png";
-	if (!byName.Contains("/"))
-		byName = "img/fonts/" + byName;
-	bool result = tf->Load(byName);
+	bool result = tf->Load(source);
 	if (!result){
 		delete tf;
 		return NULL;

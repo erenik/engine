@@ -29,10 +29,11 @@ public:
 
 	/// Creates default key-bindings for the state.
 	virtual void CreateDefaultBindings();
+	void HandleCameraMessages(String msg);
 private:
 
 	void EnterWorldCreation();
-	void GenerateWorld();
+	void GenerateWorld(bool newRandomSeed = false);
 
 	enum {
 		WORLD_CREATION,

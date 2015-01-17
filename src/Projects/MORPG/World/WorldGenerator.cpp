@@ -10,15 +10,28 @@ WorldGenerator::WorldGenerator()
 {
 	size = Vector2i(20, 20);
 	water = 0.2f;
+	waterDepth = -1.f;
 	waterLevel = 0;
+	smoothing = 0;
+	smoothingMultiplier = 0.1f;
+	mountainHeight = 3.f;
 }
 
 /// Generates a new world.
-bool WorldGenerator::GenerateWorld(World & world)
+bool WorldGenerator::GenerateWorld(World & worldToBeGenerated, bool newRandomSeed)
 {
 	// Various options.
-	if (!world.empty)
+	if (!worldToBeGenerated.empty)
 		return false;
+
+	waterOrigins.Clear();
+
+	if (newRandomSeed)
+	{
+		randomSeed = Random();
+	}
+
+	this->world = &worldToBeGenerated;
 	/*
 	/// Size of the world overall, in tiles (width & height)
 	Vector2i size;
@@ -30,42 +43,68 @@ bool WorldGenerator::GenerateWorld(World & world)
 	float settlements;
 */
 	/// Allocate zone matrix
-	world.zoneMatrix.SetDefaultValue(0);
-	world.zoneMatrix.Allocate(size);
-	
-//	world.zoneMatrix.PrintContents();
+	world->zoneMatrix.SetDefaultValue(0);
 
-
-	/// Generate zones.
-	for (int x = 0; x < size.x; ++x)
+	if (world->zoneMatrix.Size() != size)
 	{
-		for (int y = 0; y < size.y; ++y)
+		world->Delete();
+		world->zoneMatrix.Allocate(size);
+		/// Generate zones.
+		for (int x = 0; x < size.x; ++x)
 		{
-			Zone * zone = new Zone();
-			zone->position = Vector3i(x,y,0);
-			world.zones.Add(zone);
-			assert(world.zoneMatrix[x][y] == 0);
-			world.zoneMatrix[x][y] = zone;
+			for (int y = 0; y < size.y; ++y)
+			{
+				Zone * zone = new Zone();
+				zone->position = Vector3i(x,y,0);
+				world->zones.Add(zone);
+				assert(world->zoneMatrix[x][y] == 0);
+				world->zoneMatrix[x][y] = zone;
+			}
+		}
+		world->ConnectZonesByDistance(1.2f);
+	}
+	else 
+	{
+		// Reset all zones to default.
+		for (int i = 0; i < world->zones.Size(); ++i)
+		{
+			Zone * zone = world->zones[i];
+			zone->Nullify();
 		}
 	}
-	world.ConnectZonesByDistance(1.2f);
-
-	world.size = size;
-
 //	world.zoneMatrix.PrintContents();
 
+	world->size = size;
+
+//	world.zoneMatrix.PrintContents();
+#define Print(s) std::cout<<s;
+	Print("\nMarking water");
+	MarkWater();
+	Print("\nRaising water level");
+	RaiseWaterLevel();
+	Print("\nMarking mountains");
+	MarkMountains();
+	Print("\nSmoothing");
+	Smooth();
+	Print("\nRaw generation complete");
+	return true;
+}
+
+void WorldGenerator::MarkWater()
+{
 	/// Mark water
-	assert(water < 1.f);
-	int numZones = world.zones.Size();
+//	assert(water < 1.f);
+	int numZones = world->zones.Size();
 	int numWaterTiles = water * numZones;
 	int waterTilesCreated = 0;
 
-	List<Zone*> waterOrigins;
+	Random waterRandom = randomSeed;
+
 	int failedAttempts = 0;
 	while (waterTilesCreated < numWaterTiles)
 	{
-		int randomTileIndex = generatorRandom.Randi(numZones-1);
-		Zone * zone = world.zones[randomTileIndex];
+		int randomTileIndex = waterRandom.Randi(numZones-1);
+		Zone * zone = world->zones[randomTileIndex];
 		if (zone->IsWater())
 		{
 			++failedAttempts;
@@ -74,10 +113,14 @@ bool WorldGenerator::GenerateWorld(World & world)
 			continue;
 		}
 		zone->SetWater(true);
+		zone->elevation = waterDepth;
 		++waterTilesCreated;
 		waterOrigins.Add(zone);
 	}
+}
 
+void WorldGenerator::RaiseWaterLevel()
+{
 	// Raise the water-level..!
 	for (int i = 0; i < waterLevel; ++i)
 	{	
@@ -92,12 +135,71 @@ bool WorldGenerator::GenerateWorld(World & world)
 				if (!neighbour->IsWater())
 				{
 					newWaterOrigins.Add(neighbour);
-					neighbours[k]->SetWater(true);
+					neighbour->SetWater(true);
+					neighbour->elevation = waterDepth;
 				}
 			}
 		}
 		waterOrigins = newWaterOrigins;
 	}
-	
-	return true;
 }
+
+void WorldGenerator::MarkMountains()
+{
+	Random mountainRandom = randomSeed;
+	Random mountainHeightRandom = randomSeed;
+
+	int numZones = world->zones.Size();
+	int numMountainTiles = this->mountains * numZones;
+	int mountainTilesCreated = 0;
+
+	int failedAttempts = 0;
+	while (mountainTilesCreated < numMountainTiles)
+	{
+		int randomTileIndex = mountainRandom.Randi(numZones-1);
+		Zone * zone = world->zones[randomTileIndex];
+		if (zone->IsWater())
+		{
+			++failedAttempts;
+			if (failedAttempts > 1000)
+				break;
+			continue;
+		}
+		zone->SetMountain(true);
+		zone->elevation += mountainHeightRandom.Randf(mountainHeight);
+		++mountainTilesCreated;
+	}
+}
+
+void WorldGenerator::Smooth()
+{
+	List<Zone*> & zones = world->zones;
+	// Apply smoothing iteratively.
+	for (int i = 0; i < smoothing; ++i)
+	{	
+		List<float> elevations;
+		for (int j = 0; j < zones.Size(); ++j)
+		{
+			Zone * zone = zones[j];
+			List<Zone*> neighbours = zone->neighbours;
+			// Cacl average elevation of neighbours.
+			float aveEle = 0;
+			for (int k = 0; k < neighbours.Size(); ++k)
+			{
+				Zone * neighbour = neighbours[k];
+				aveEle += neighbour->elevation;
+			}
+			aveEle /= neighbours.Size();
+			// Apply 50% smoothing factor each iteration?
+			float newElevation = zone->elevation * (1 - smoothingMultiplier) + aveEle * smoothingMultiplier;
+			elevations.Add(newElevation);
+		}
+		/// Apply new elevations.
+		for (int i = 0; i < zones.Size(); ++i)
+		{
+			Zone * zone = zones[i];
+			zone->elevation = elevations[i];
+		}
+	}	
+}
+	

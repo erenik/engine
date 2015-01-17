@@ -6,6 +6,7 @@
 #define DIRECTION_H
 
 #include "MathLib.h"
+#include "String/AEString.h"
 
 namespace Direction
 {
@@ -19,6 +20,7 @@ namespace Direction
 		DOWN,
 		DIRECTIONS
 	};
+	int Get(String byString);
 	/// Returns unit-vectors.
 	Vector3f GetVector(int forDirection);
 };

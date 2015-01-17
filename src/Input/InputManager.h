@@ -53,6 +53,8 @@ public:
 	/// Query if we've got any dialogue up that the player must/should respond to before continuing.
 	bool DialogueActive();
 	
+	/// Returns list of all modifier keys (CTRL, SHIFT, etc.) currently being active/pressed.
+	List<int> ActiveModifierKeys();
 
 	/** Called by OS-functions to query if the UI wants to process drag-and-drop files. If so the active element where the mouse is hovering may opt to do magic with it.
 		If no magic, or action, is taken, it will return false, at which point the game state should be called to handle general drag-and-drop files.

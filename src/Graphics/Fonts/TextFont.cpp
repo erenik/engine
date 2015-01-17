@@ -91,9 +91,10 @@ bool TextFont::Save(String path){
 	If the path length is 0 it will attempt to load it from the same location as the
 	given texture for the font.
 */
-bool TextFont::Load(String path){
+bool TextFont::Load(String path)
+{
+	this->source = path;
 	std::fstream f;
-
 	/// Check what kind of path we received first of all.
 	if (path.Contains(".font")){
 		/// Check to see if the file exists first!

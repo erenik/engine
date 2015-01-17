@@ -6,6 +6,7 @@
 #include "Entity/Entity.h"
 #include "Physics/PhysicsProperty.h"
 #include "Window/Window.h"
+#include "Viewport.h"
 #include <cstring>
 
 #include "Graphics/GraphicsManager.h"
@@ -64,6 +65,21 @@ void CameraManager::Process()
 		Camera * camera = cameras[i];
 		camera->ProcessMovement(timeInSeconds);
 	}
+}
+
+/// Returns the currently active camera. This assumes a main camera being used in the main window.
+Camera * CameraManager::ActiveCamera()
+{
+	Camera * renderingCamera = GraphicsMan.ActiveCamera();
+	if (renderingCamera)
+		return renderingCamera;
+	Window * window = MainWindow();
+	if (!window)
+		return NULL;
+	Viewport * vp = window->MainViewport();
+	if (!vp)
+		return NULL;
+	return vp->camera;
 }
 
 /** Makes active the next camera (compared to the current one) by queueinga message to the graphics-manager.
@@ -153,6 +169,8 @@ Camera::~Camera()
 /// Resets everything.
 void Camera::Nullify()
 {
+	movementType = CAMERA_MOVEMENT_RELATIVE;
+	resetCamera = NULL;
 	entityToTrack = NULL;
 	trackingMode = TrackingMode::FROM_BEHIND;
 	nearPlane = -0.1f;
@@ -198,6 +216,15 @@ void Camera::PrintData() const {
 	std::cout<<"\n - Nearplane: "<<nearPlane;
 	std::cout<<"\n - Farplane: "<<farPlane;
 }
+
+/// Resets values to some pre-defined.. values.
+void Camera::Reset()
+{
+	if (!resetCamera)
+		return;
+	*this = *resetCamera;	
+}
+
 
 /// For de-coupling bindings to any relevant entities.
 void Camera::OnLoseCameraFocus()
@@ -420,10 +447,26 @@ void Camera::ProcessMovement(float timeInSeconds)
 	Vector3f deltaP = velocity * timeInSeconds;
 	/// We might want to calculate the position Diff using local camera co-ordinates..!
 	Vector3f rightVec = this->lookingAtVector.CrossProduct(upVector);
-	Vector3f totalPosDiff = - deltaP.z * this->lookingAtVector +
-		deltaP.y * this->upVector +
-		deltaP.x * rightVec;
+	Vector3f totalPosDiff;
+	
+	Vector3f forward, up, right;
+	if (movementType == CAMERA_MOVEMENT_RELATIVE)
+	{
+		forward = - lookingAtVector;
+		up = upVector;
+		right = rightVec;
+	}
+	else
+	{
+		forward = absForward;
+		up = absUp;
+		right = absRight;
+	}
 
+	totalPosDiff = deltaP.z * forward +
+		deltaP.y * up +
+		deltaP.x * right;
+	
 	if (scaleSpeedWithZoom)
 	{
 		totalPosDiff *= zoom;
@@ -776,3 +819,5 @@ void Camera::TrackThirdPerson()
 		viewMatrix.Multiply(Matrix4d::InitTranslationMatrix(Vector3f(0, elevation, 0)));
 	}
 }
+
+

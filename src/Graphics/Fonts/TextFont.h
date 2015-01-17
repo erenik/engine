@@ -49,6 +49,8 @@ public:
 
 	/// Pretty much the string before any texture info (like font1 for font1.png)
 	String name;
+	/// Source of the texture-file to be used.
+	String source;
 
 	static String defaultFontSource;
 private:

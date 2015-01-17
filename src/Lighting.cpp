@@ -64,6 +64,7 @@ bool Lighting::SaveLighting(String toFileName)
 		return false;
 	this->WriteTo(file);
 	file.close();
+	return true;
 }
 
 bool Lighting::LoadLighting(String fromFileName)

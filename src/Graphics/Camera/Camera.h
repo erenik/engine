@@ -42,6 +42,9 @@ public:
 	// Called from render/physics thread. updates movement/position of all cameras.
 	void Process();
 	
+	/// Returns the currently active camera. This assumes a main camera being used in the main window.
+	Camera * ActiveCamera();
+
 	/** Makes active the next camera (compared to the current one) by queueinga message to the graphics-manager.
 		Assumes only 1 active camera is being used for 1 main viewport or window.
 	*/
@@ -61,6 +64,10 @@ private:
 	List<Camera*> cameras;
 };
 
+enum {
+	CAMERA_MOVEMENT_RELATIVE, 
+	CAMERA_MOVEMENT_ABSOLUTE
+};
 
 class Camera 
 {
@@ -75,6 +82,9 @@ public:
 	// Prints data, including position, matrices, etc.
 	void PrintData() const;
 
+	/// Resets values to some pre-defined values stored in the resetCamera member.
+	void Reset();
+	Camera * resetCamera;
 
 	/// For de-coupling bindings to any relevant entities.
 	void OnLoseCameraFocus();
@@ -103,6 +113,11 @@ public:
 	/// For when doing adjustments after all regular matrix operations?
 	float elevation;
 	
+	// Default CAMERA_MOVEMENT_RELATIVE, see enum above.
+	int movementType;
+	// If movementType is CAMERA_MOVEMENT_ABSOLUTE, these vectors are used.
+	Vector3f absRight, absUp, absForward;
+
 	/// Current travel speed
 	Vector3f velocity;
 	/// Current rotational speed
@@ -269,8 +284,6 @@ private:
 	/// o-o 
 	Quaternion orientation;
 };
-
-
 
 /// Screen-to-world space functions, defined by input variables.
 /** Returns a ray in 3D space using the given mouse and camera data.

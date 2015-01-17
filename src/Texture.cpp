@@ -588,6 +588,9 @@ bool Texture::Bufferize()
 		dataBufferSize = 0;
 		/// Release cv-memory too, if possible?
 	}
+	/// Notice again.
+	if (!dynamic)
+		std::cout<<"\nTexture "<<name<<" bufferized.";
 }
 
 void Texture::SetSource(String str)

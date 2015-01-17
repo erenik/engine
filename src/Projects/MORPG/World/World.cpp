@@ -31,6 +31,7 @@ World::World()
 /// Deletes all contents in this world. Makes it ready for loading again.
 void World::Delete()
 {
+	std::cout<<"\nDeleting world...";
 	nations.ClearAndDelete();
 	zones.ClearAndDelete();
 	characters.ClearAndDelete();
@@ -65,6 +66,7 @@ bool World::ReadFrom(std::fstream & file)
 /// Based on zones.
 Texture * World::GeneratePreviewTexture()
 {
+	std::cout<<"\nGenerating preview texture...";
 	if (!texture)
 		texture = TexMan.NewDynamic();
 
@@ -87,6 +89,7 @@ Texture * World::GeneratePreviewTexture()
 /// Based on zones.
 Model * World::GenerateWorldModel()
 {
+	std::cout<<"\nGenerating world model...";
 	// Pause rendering while doing this...
 	Graphics.PauseRendering();
 
@@ -107,33 +110,30 @@ Model * World::GenerateWorldModel()
 		worldEMesh.Delete();
 
 		/// Create a regular plane.
-		Vector3f topLeft(-1,0,1),
-			bottomLeft(-1,0,-1),
-			bottomRight(1,0,-1), 
-			topRight(1,0,1);
+		Vector3f topLeft(0,0,0),
+			bottomLeft(0,0,size.y),
+			bottomRight(size.x,0,size.y), 
+			topRight(size.x,0,0);
 
 		// Add grid of wanted size o-o
 		// Since the grid "size" is actually the amount of faces, we will ahve to adjust it so that we instead get 1 vertex per "size"
 		Vector2i gridSizeWanted = size - Vector2i(1,1);
 		/// Just take -1 on both and we should get the right amount of vertices! :)
-		worldEMesh.AddGrid(topLeft, bottomLeft, bottomRight, topRight, size);
+		worldEMesh.AddGrid(topLeft, bottomLeft, bottomRight, topRight, gridSizeWanted);
 	}
 	
 //	zoneMatrix.PrintContents();
 	// Fetch the matrix of vertices created with te grid.
 	Matrix<EVertex*> & vertices = worldEMesh.vertexMatrix;
 
+	float heightMultiplier = 1.f;
 	/// Manipulate them depending on what the tiles were randomized to become!
 	for (int x = 0; x < size.x; ++x)
 	{
 		for (int y = 0; y < size.y; ++y)
 		{
 			Zone * zone = zoneMatrix[x][y];
-			float elevation = 0.f;
-			if (!zone->IsWater())
-				elevation += 1.f;
-			if (zone->IsMountain())
-				elevation += 2.f;
+			float elevation = zone->elevation * heightMultiplier;
 			// Just set y.
 			EVertex * vertex = vertices[x][y];
 			vertex->y = elevation;
@@ -144,6 +144,7 @@ Model * World::GenerateWorldModel()
 	model->mesh->LoadDataFrom(&worldEMesh);
 	model->RegenerateTriangulizedMesh();
 
+	std::cout<<" done.";
 	Graphics.ResumeRendering();
 	return model;
 }

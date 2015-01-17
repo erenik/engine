@@ -421,7 +421,7 @@ bool Mesh::LoadDataFrom(const EMesh * otherMesh)
 			face.uvs[j] = uvIndex;
 		}
 	}
-	
+	std::cout<<" loaded.";
 	return true;
 }
 

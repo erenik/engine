@@ -525,6 +525,7 @@ String UserInterface::rootUIDir; //  = "gui/";
 */
 bool UserInterface::Load(String fromFile)
 {
+	std::cout<<"\nLoading UI from file "<<fromFile<<"...";
     if (root)
 		delete root;
 	/// Create the root node.
@@ -535,7 +536,10 @@ bool UserInterface::Load(String fromFile)
 	bool success = LoadFromFile(fromFile, root);
 	if (success){
 		source = fromFile;
+		std::cout<<" done.";
 	}
+	else 
+		std::cout<<" failed.";
 	return success;
 }
 

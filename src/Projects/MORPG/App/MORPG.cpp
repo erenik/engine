@@ -31,6 +31,7 @@
 #include "Physics/Messages/PhysicsMessage.h"
 
 #include "Input/InputManager.h"
+#include "Input/Action.h"
 
 #include "Model/Model.h"
 
@@ -209,7 +210,7 @@ void MORPG::ProcessMessage(Message * message)
 void MORPG::CreateDefaultBindings()
 {
 	InputMapping * mapping = &this->inputMapping;
-	mapping->CreateBinding("ToggleAutorun", KEY::R);
+	mapping->bindings.Add(new Binding(Action::FromString("ToggleAutorun"), KEY::R));
 }
 
 /// Load map/zone by name

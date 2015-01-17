@@ -197,6 +197,7 @@ Mesh * Model::GetTriangulatedMesh()
 /// Re-creates the triangulized mesh. Call after changes have been made to the base mesh.
 bool Model::RegenerateTriangulizedMesh()
 {
+	std::cout<<"\nRegenerateTriangulizedMesh...";
 	// Hope noone's using this model.. maybe flag it somehow first..
 	if (triangulatedMesh)
 		// Delete all but any potential GL buffers we were using.
@@ -206,6 +207,7 @@ bool Model::RegenerateTriangulizedMesh()
 
 	triangulatedMesh->LoadDataFrom(mesh);
 	triangulatedMesh->Triangulate();
+	std::cout<<" done.";
 	return true;
 }
 

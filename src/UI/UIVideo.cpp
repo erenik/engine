@@ -61,7 +61,7 @@ bool UIVideo::CreateStream()
 	
 	// If successful, create our texture too?
 	videoFrameTexture = stream->GetFrameTexture();
-
+	return true;
 }
 /// Toggles pause for the video-stream.
 void UIVideo::TogglePause()

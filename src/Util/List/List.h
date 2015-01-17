@@ -29,9 +29,12 @@ public:
 	typedef T value_type;
 
 	List();
-	~List();
 	List(const List &otherList);
 	List(const T & initialItem);
+	/// Creates a new list of specific amount of items.
+	List(int numberOfItems, T item, T item2, ...);
+	void Nullify();
+	~List();
 
 	/** Sets currentItems to arraySize. 
 		Useful if using Allocate() followed by a memory operation using the GetArray()'s pointer, 
@@ -110,6 +113,9 @@ public:
 
 	/// Polls the existance/copy of target item in the queue.
 	bool Exists(value_type item) const;
+	/// Polls the existance/copy of all items in target list within this list. Returns false if any items are missing.
+	bool Exists(List<value_type> subList) const;
+
 	/// Returns content by index. Similar to the [] operator.
 	value_type & GetIndex(int index);
 
@@ -154,20 +160,7 @@ List<B> ConvertList(List<T> tList)
 template <class T>
 List<T>::List()
 {
-	arr = NULL;
-	arrLength = 0;
-	currentItems = 0;
-	inUse = false;
-}
-/// Destructor
-template <class T>
-List<T>::~List()
-{
-	assert(arrLength >= 0 && arrLength < 10000000);
-	if (arr)
-		delete[] arr;
-	arr = NULL;
-	arrLength = 0;
+	Nullify();	
 }
 /// Copy constructor
 template <class T>
@@ -183,12 +176,51 @@ List<T>::List(const List & otherList)
 }
 
 template <class T>
-List<T>::List(const T & initialItem){
+List<T>::List(const T & initialItem)
+{
+	Nullify();
+	Add(initialItem);
+}
+
+/// Creates a new list of specific amount of items.
+template <class T>
+List<T>::List(int numberOfItems, T item, T item2, ...)
+{
+	Nullify();
+	Add(item);
+	Add(item2);
+	// Variable length arguments.
+	// http://www.cprogramming.com/tutorial/c/lesson17.html
+	/* Initializing arguments to store all values after num */
+	va_list arguments;    
+	int extraArgs = numberOfItems - 2;
+    va_start ( arguments, item2);
+    /* Sum all the inputs; we still rely on the function caller to tell us how
+     * many there are */
+    for ( int x = 0; x < extraArgs; x++ )        
+    {
+		T itemt = va_arg (arguments, T);
+        Add(itemt);
+    }
+    va_end ( arguments );      // Cleans up the list
+}
+template <class T>
+void List<T>::Nullify()
+{
 	arr = NULL;
 	arrLength = 0;
 	currentItems = 0;
 	inUse = false;
-	Add(initialItem);
+}	
+/// Destructor
+template <class T>
+List<T>::~List()
+{
+	assert(arrLength >= 0 && arrLength < 10000000);
+	if (arr)
+		delete[] arr;
+	arr = NULL;
+	arrLength = 0;
 }
 
 /** Sets currentItems to arraySize. 
@@ -555,6 +587,21 @@ bool List<T>::Exists(T item) const {
 	}
 	return false;
 }
+
+/// Polls the existance/copy of all items in target list within this list. Returns false if any items are missing.
+template <class T>
+bool List<T>::Exists(List<T> subList) const
+{
+	for (int i = 0; i < currentItems; ++i)
+	{
+		subList.Remove(arr[i]);
+	}
+	/// If the entire sublist is now empty, it means the same items are present in this main list.
+	if (subList.Size())
+		return false;
+	return true;
+}
+
 
 
 /// Polls the existance/copy of target item in the queue. Returns it's index if so and -1 if not.

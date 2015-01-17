@@ -70,9 +70,6 @@ private:
 	unsigned int refCount;
 };
 
-List<String> GetFilesFromHDrop(HDROP hDrop);
-
-
 #endif // WINDOWS
 
 #endif // DRAG_AND_DROP_H
