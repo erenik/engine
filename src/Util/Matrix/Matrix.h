@@ -49,6 +49,9 @@ public:
 	/// Same as allocate..
 	virtual void SetSize(Vector2i size);
 	
+	/// Loads target list as elements into the matrix.
+	bool Load(List<value_type> & listIntoMatrix);
+
 	/// Prints conents, along with position (x/y)
 	void PrintContents();
 
@@ -183,6 +186,27 @@ void Matrix<T>::SetSize(Vector2i size)
 {
 	Allocate(size);
 }
+
+/// Loads target list as elements into the matrix.
+template <class T>
+bool Matrix<T>::Load(List<T> & listIntoMatrix)
+{
+	int matrixSize = size.x * size.y;
+	assert(listIntoMatrix.Size() == matrixSize);
+	if(listIntoMatrix.Size() != matrixSize)
+		return false;
+	int i = 0;
+	for (int x = 0; x < size.x; ++x)
+	{
+		for (int y = 0; y < size.y; ++y)
+		{
+			int arrIndex = x * size.y + y;
+			arr[arrIndex] = listIntoMatrix[i++];
+		}
+	}
+	return true;
+}
+
 	
 
 /// Prints conents, along with position (x/y)

@@ -58,8 +58,10 @@ public:
 	Entity * CreateEntity(Entity * entity);
 	/** Creates an entity with target model and texture and places it into the active map. */
 	Entity * CreateEntity(String name, Model * model, Texture * texture, Vector3f position = Vector3f());
-	/// Adds target entity to the map, registering it for physics and graphicsState->
+	/// Adds target entity to the map, registering it for physics and graphics
 	bool AddEntity(Entity * entity);
+	/// Adds target entity to the map, registering it for physics and graphics
+	bool AddEntities(List<Entity *> entities);
 
 	/** Adds an event ~ */
 	bool AddEvent(Script * eventScript);

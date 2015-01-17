@@ -34,6 +34,8 @@ private:
 
 	void EnterWorldCreation();
 	void GenerateWorld(bool newRandomSeed = false);
+	void GenerateSettlements(bool newRandomSeed = false);
+	void OnWorldUpdated();
 
 	enum {
 		WORLD_CREATION,

@@ -6,6 +6,9 @@
 
 #include "Zone.h"
 
+#include "Model/ModelManager.h"
+#include "TextureManager.h"
+
 WorldGenerator::WorldGenerator()
 {
 	size = Vector2i(20, 20);
@@ -15,6 +18,7 @@ WorldGenerator::WorldGenerator()
 	smoothing = 0;
 	smoothingMultiplier = 0.1f;
 	mountainHeight = 3.f;
+	numSettlements = 3;
 }
 
 /// Generates a new world.
@@ -22,26 +26,16 @@ bool WorldGenerator::GenerateWorld(World & worldToBeGenerated, bool newRandomSee
 {
 	// Various options.
 	if (!worldToBeGenerated.empty)
+	{
+		assert(false && "World not empty, clear it first before generating it again, yo.");
 		return false;
-
+	}
 	waterOrigins.Clear();
-
 	if (newRandomSeed)
 	{
 		randomSeed = Random();
 	}
-
 	this->world = &worldToBeGenerated;
-	/*
-	/// Size of the world overall, in tiles (width & height)
-	Vector2i size;
-	/// 0 to 1, how much surface should be covered with water.
-	float water; 
-	/// 0 to 1, how much land surface should be mountainous (much easier to handle, since they will have fewer zones, etc.)
-	float mountains;
-	/// 0 to 1, how many of the tiles should be settlements. (Recommended value around 0.1?)
-	float settlements;
-*/
 	/// Allocate zone matrix
 	world->zoneMatrix.SetDefaultValue(0);
 
@@ -56,12 +50,13 @@ bool WorldGenerator::GenerateWorld(World & worldToBeGenerated, bool newRandomSee
 			{
 				Zone * zone = new Zone();
 				zone->position = Vector3i(x,y,0);
+				zone->name = "X"+String(x)+" Y"+String(y);
 				world->zones.Add(zone);
 				assert(world->zoneMatrix[x][y] == 0);
 				world->zoneMatrix[x][y] = zone;
 			}
 		}
-		world->ConnectZonesByDistance(1.2f);
+		world->ReconnectZones();
 	}
 	else 
 	{
@@ -87,8 +82,22 @@ bool WorldGenerator::GenerateWorld(World & worldToBeGenerated, bool newRandomSee
 	Print("\nSmoothing");
 	Smooth();
 	Print("\nRaw generation complete");
+	EvaluateZoneTypes();
+	PlaceSettlements();
 	return true;
 }
+
+bool WorldGenerator::GenerateSettlements(World & worldToBeGenerated, bool newRandomSeed)
+{
+	if (newRandomSeed)
+		randomSeed = Random();
+	this->world = &worldToBeGenerated;
+	world->ClearSettlementsAndCharacters();
+	EvaluateZoneTypes();
+	PlaceSettlements();
+	return true;
+}
+
 
 void WorldGenerator::MarkWater()
 {
@@ -203,3 +212,163 @@ void WorldGenerator::Smooth()
 	}	
 }
 	
+// Finds out what type of a zone each zone is, depending on elevation, neighbouring zones, continent(?), etc.
+void WorldGenerator::EvaluateZoneTypes()
+{
+	List<Zone*> & zones = world->zones;
+	for (int i = 0; i < zones.Size(); ++i)
+	{
+		Zone * zone = zones[i];
+		float elevation = zone->elevation;
+		List<Zone*> neighbours = zone->neighbours;
+		int belowWater = 0, aboveWater = 0, muchLower = 0, muchHigher = 0;
+		for (int j = 0; j < neighbours.Size(); ++j)
+		{
+			Zone * neighbour = neighbours[j];
+			float elevation2 = neighbour->elevation;
+			if (elevation2 < world->oceanElevation)
+				++belowWater;
+			else if (elevation2 > world->oceanElevation)
+				++aboveWater;
+			if (elevation2 < elevation - 1.f)
+				++muchLower;
+			else if (elevation2 > elevation + 1.f)
+				++muchHigher;
+		}
+		zone->isWater = elevation < world->oceanElevation;
+		zone->isHighAltitude = elevation > world->oceanElevation + 3.f;
+		/// Land-based zones.
+		if (!zone->isWater)
+		{
+			zone->isCostal = belowWater > 0;
+			zone->isIsland = belowWater >= neighbours.Size(); // Island if all neighbours are water.
+		}
+		/// Water-based zones.
+		else 
+		{
+			zone->isLagoon = aboveWater >= neighbours.Size() - 1;
+		}
+		// Mountains can be both under-water and above water.. right?
+		zone->isMountain = muchLower >= neighbours.Size();
+		zone->isPit = muchHigher >= neighbours.Size();
+	}
+}
+
+/// Places settlements on decent zones. Will vary on zone type how probable it is.
+void WorldGenerator::PlaceSettlements()
+{
+	Random settlementRand = randomSeed;
+	Random settlementSizeRand = randomSeed;
+	int settlementsToCreate = numSettlements;
+	int iterations = 0;
+	while(settlementsToCreate > 0)
+	{
+		// Fail-safe thingy.
+		++iterations;
+		if (iterations > 10000)
+			break;
+		int rand = settlementRand.Randi(world->zones.Size());
+		Zone * zone = world->zones[rand];
+		if (zone->characters.Size())
+			continue;
+		// Don't live in the water, yo... unless it is a lagoon?
+		if (zone->isWater)
+			continue;
+		// Check chance of adding a settlement, based on what kind of tile it is.
+		float chance = 0.1f;
+		// Double chance of settlements on the cost-lines.
+		if (zone->isCostal)
+		{
+			chance *= 2.f;
+		}
+		// Reduce chance based on elevation if it is above 1?
+		if (zone->elevation > 1.f)
+			chance *= 1 / zone->elevation;
+		float rChance = settlementRand.Randf(1.f);
+		if (rChance > chance)
+			continue;
+
+		zone->hasSettlement = true;
+		zone->numInhabitants = settlementSizeRand.Randi(10000);
+		/// Create characters within straight away.
+		CreateCharacters(zone);
+		world->settlements.Add(zone);
+		--settlementsToCreate;
+	}
+}
+
+void WorldGenerator::CreateCharacters(Zone * forZone)
+{
+	if (forZone->buildingSlots.Size() == 0)
+		GenerateBuildingSlots(forZone);
+
+	// Probably want to have the zone laid out first... or? No! o.o Make characters first! Then create houses for them! o.o Yes, yes.
+	int inhabitants = forZone->numInhabitants;
+	int charactersToCreate; 
+	// Some defaults.
+	if (inhabitants < 10)
+	{
+		// A family? Make the parents, some grandparent and some kids? 
+		// Add one house. o.o
+		CreateFamilyZone(forZone);
+	}
+	// Village.
+	else if (inhabitants < 100)
+	{
+		CreateVillageZone(forZone);
+	}
+	// Town
+	else if (inhabitants < 1000)
+	{
+		CreateTownZone(forZone);		
+	}
+	// City
+	else 
+	{
+		CreateCityZone(forZone);
+	}
+	/// Do post-creation settings.. whatever they might be.
+}
+
+// Population 1 to 10.
+void WorldGenerator::CreateFamilyZone(Zone * forZone)
+{
+	BuildingSlot * slot = forZone->GetFreeBuildingSlot();
+	// If not building, no use to add any people to live there.
+	if (!slot)
+		return;
+	Building * building = new Building(ModelMan.GetModel("Buildings/House_3x4_2"), TexMan.GetTextureByColor(Color(125,125,0,255)));
+	forZone->buildings.Add(building);
+	slot->building = building;
+	building->slot = slot;
+}
+
+// Population 11 to 100.
+void WorldGenerator::CreateVillageZone(Zone * forZone)
+{
+	CreateFamilyZone(forZone);
+}
+
+// Population 100 to 1000.
+void WorldGenerator::CreateTownZone(Zone * forZone)
+{
+	CreateVillageZone(forZone);
+}
+
+// Population 1000 and upward.
+void WorldGenerator::CreateCityZone(Zone * forZone)
+{
+	CreateTownZone(forZone);
+}
+
+/// Zone-setup of building slots. Places where one would want to build anything.
+void WorldGenerator::GenerateBuildingSlots(Zone * forZone)
+{
+	BuildingSlot * slot = new BuildingSlot();
+	slot->position = Vector3f(0,0,0);
+	slot->price = -1; // Not for sale?
+	// 3x2 meters?
+	slot->size = Vector2f(3,4);
+	forZone->buildingSlots.Add(slot);
+}
+

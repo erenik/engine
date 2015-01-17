@@ -9,6 +9,7 @@
 #include "String/AEString.h"
 #include "MathLib.h"
 #include "Matrix/Matrix.h"
+#include "Color.h"
 
 class Texture;
 class Model;
@@ -21,6 +22,8 @@ class World
 {
 public:
 	World();
+
+	void ClearSettlementsAndCharacters();
 
 	/// Should there be a single name for it. Most often there is.
 	String name;
@@ -47,6 +50,8 @@ public:
 	Nation * GetNationByID(int id);
 	Zone * GetZoneByName(String name);
 	Zone * GetZoneByPosition(Vector3f pos);
+
+	void ReconnectZones();
 	/// Like a navmesh..
 	void ConnectZonesByDistance(float minDist);
 
@@ -55,10 +60,17 @@ public:
 	/// Dynamically created model. Should/could be used together with the preview texture! :)
 	Model * model;
 
+	// o.o DeFault 0
+	float oceanElevation;
+	/// Some multiplier or stuff for base ocean color..
+	Color oceanColor;
+
 	/// For regional conflicts.
 	List<Nation*> nations;
 	/// All zones.
 	List<Zone*> zones;
+	/// All zones which have people settled in.
+	List<Zone*> settlements;
 	Matrix<Zone*> zoneMatrix;
 	/// All characters in the world.
 	List<Character*> characters;

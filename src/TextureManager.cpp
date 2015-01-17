@@ -67,6 +67,13 @@ Texture * TextureManager::GetTexture(String nameOrSource)
     return tex;
 }
 
+/// Color o.o..
+Texture * TextureManager::GetTextureByColor(Color & color)
+{
+	return GenerateTexture(color.name, color);	
+}
+
+
 /// 0xRRGGBBAA (red green blue alpha)
 Texture * TextureManager::GetTextureByHex24(uint32 hexColor)
 {

@@ -524,8 +524,15 @@ bool MapManager::AddEntity(Entity * entity)
 		Physics.QueueMessage(new PMRegisterEntity(entity));
 	return true;
 }
-
-
+/// Adds target entity to the map, registering it for physics and graphics
+bool MapManager::AddEntities(List<Entity *> entities)
+{
+	for (int i = 0; i < entities.Size(); ++i)
+	{
+		AddEntity(entities[i]);
+	}
+	return true;
+}
 
 /** Adds an event ~ */
 bool MapManager::AddEvent(Script * eventScript)

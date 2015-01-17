@@ -9,8 +9,6 @@ class Zone;
 class MORPGCharacterProperty;
 
 extern MORPGSession * session;
-/// World map... 
-extern Entity * worldMapEntity;
 
 class MORPG : public AppState 
 {

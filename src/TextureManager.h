@@ -7,6 +7,7 @@
 
 #include <Util.h>
 #include "Texture.h"
+#include "Color.h"
 class Entity;
 
 #define TexMan		(*TextureManager::Instance())
@@ -68,6 +69,8 @@ public:
 
     /// Getter function that first tries to fetch texture by name, and if that failes tries to get it by it's source.
     Texture * GetTexture(String nameOrSource);
+	/// Color o.o..
+	Texture * GetTextureByColor(Color & color);
 	/// 0xRRGGBB (red green blue)
 	Texture * GetTextureByHex24(uint32 hexColor);
 	/// 0xRRGGBBAA (red green blue alpha)

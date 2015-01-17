@@ -2,6 +2,9 @@
 /// 2014-07-27
 /// A character.
 
+#ifndef CHARACTER_H
+#define CHARACTER_H
+
 #include "MathLib.h"
 #include "String/AEString.h"
 
@@ -10,6 +13,9 @@ class Character
 {
 public:
 	Character();
+	/// o.o
+	bool WriteTo(std::fstream & file);
+	bool ReadFrom(std::fstream & file);
 	String name;
 	Vector3f position;
 	// Determines how it is to play them. Used actively in the MORPGCharacterProperty. Default while testing: 2.
@@ -17,3 +23,4 @@ public:
 
 };
 
+#endif

@@ -13,6 +13,7 @@
 #include "Graphics/Camera/CameraUtil.h"
 
 #include "MORPG/World/WorldGenerator.h"
+#include "MORPG/World/WorldMap.h"
 
 #include "Message/MessageManager.h"
 #include "Message/Message.h"
@@ -87,6 +88,11 @@ void MHost::ProcessMessage(Message * message)
 				activeWorldGenerator->smoothing = im->value;
 				GenerateWorld();
 			}
+			else if (msg == "SetNumSettlements")
+			{
+				activeWorldGenerator->numSettlements = im->value;
+				GenerateSettlements();
+			}
 			break;	
 		}
 		case MessageType::FLOAT_MESSAGE:
@@ -117,6 +123,11 @@ void MHost::ProcessMessage(Message * message)
 				activeWorldGenerator->smoothingMultiplier = fm->value;
 				GenerateWorld();
 			}
+			else if (msg == "SetOceanElevation")
+			{
+				world.oceanElevation = fm->value;
+				worldMap.UpdateOcean();
+			}
 			break;
 		}
 		case MessageType::VECTOR_MESSAGE:
@@ -132,6 +143,12 @@ void MHost::ProcessMessage(Message * message)
 				activeWorldGenerator->size = vec;
 				GenerateWorld();
 			}
+			else if (msg == "SetOceanColor")
+			{
+				Vector4f vec = vm->vec4f;
+				world.oceanColor = vec;
+				worldMap.UpdateOcean();
+			}
 			break;
 		}
 		case MessageType::STRING:
@@ -140,6 +157,10 @@ void MHost::ProcessMessage(Message * message)
 			{
 				GenerateWorld(true);
 				return;
+			}
+			if (msg == "GenerateSettlements")
+			{
+				GenerateSettlements(true);
 			}
 			else if (msg == "MoarWater")
 			{
@@ -158,11 +179,21 @@ void MHost::ProcessMessage(Message * message)
 			else if (msg == "SaveWorld")
 			{
 				std::fstream file;
-				file.open("tmp.world", std::ios_base::out);
+				file.open("tmp.world", std::ios_base::out | std::ios_base::binary);
 				if (!file.is_open())
 					return;
 				world.WriteTo(file);
 				file.close();			
+			}
+			else if (msg == "LoadWorld")
+			{
+				std::fstream file;
+				file.open("tmp.world", std::ios_base::in | std::ios_base::binary);
+				if (!file.is_open())
+					return;
+				world.ReadFrom(file);
+				OnWorldUpdated();
+				file.close();
 			}
 			HandleCameraMessages(msg);
 			break;
@@ -223,26 +254,17 @@ void MHost::GenerateWorld(bool newRandomSeed)
 {
 //	world.Delete();
 	activeWorldGenerator->GenerateWorld(world, newRandomSeed);
-	Texture * tex = world.GeneratePreviewTexture();
-	Model * model = world.GenerateWorldModel();
+	OnWorldUpdated();
+}
 
-	if (!worldMapEntity)
-		MapMan.CreateEntity("WorldMap", model, tex);
-	else
-	{	
-//		Model * plane = ModelMan.GetModel("plane");
-//		Texture * white = TexMan.GetTexture("White");
-//		Graphics.QueueMessage(new GMSetEntity(worldMapEntity, GT_MODEL, plane));
-//		Graphics.QueueMessage(new GMSetEntityTexture(worldMapEntity, DIFFUSE_MAP, white));
+void MHost::GenerateSettlements(bool newRandomSeed)
+{
+	activeWorldGenerator->GenerateSettlements(world, newRandomSeed);
+	worldMap.UpdateSettlements();
+}
 
-		// Re-bufferize the texture.
-		Graphics.QueueMessage(new GMBufferTexture(tex));
-		// Same for the model..
-		Graphics.QueueMessage(new GMBufferMesh(model->GetTriangulatedMesh()));
-		// Try our model..
-		Graphics.QueueMessage(new GMSetEntity(worldMapEntity, GT_MODEL, model));
-
-		Graphics.QueueMessage(new GMSetEntityTexture(worldMapEntity, DIFFUSE_MAP, tex));
-//		Physics.QueueMessage(new PMSetEntity(worldMapEntity, PT_SET_SCALE, Vector3f(15.f, 1.f, 15.f)));
-	}
+void MHost::OnWorldUpdated()
+{
+	worldMap.Update();
+	worldMap.UpdateSettlements();
 }

@@ -16,6 +16,7 @@ public:
 
 	/// Generates a new world. Will return false if the world is not empty.
 	bool GenerateWorld(World & world, bool newRandomSeed);
+	bool GenerateSettlements(World & world, bool newRandomSeed);
 
 	// Various options.
 	
@@ -31,8 +32,8 @@ public:
 	float mountains;
 	/// How much mountain height can be (maximum) beyond the standard 3.f.
 	float mountainHeight;
-	/// 0 to 1, how many of the tiles should be settlements. (Recommended value around 0.1?)
-	float settlements;
+	/// Exact number.
+	int numSettlements;
 	/// Smooths out elevation depending on adjacent tiles. Number indicates how many iterations the smoothing algorithm uses.
 	int smoothing;
 	/// Multiplier used for smoothing at each iteration. Default 0.1f
@@ -42,6 +43,26 @@ private:
 	void RaiseWaterLevel();
 	void MarkMountains();
 	void Smooth();
+	
+	// Finds out what type of a zone each zone is, depending on elevation, neighbouring zones, continent(?), etc.
+	void EvaluateZoneTypes();
+	/// Places settlements on decent zones. Will vary on zone type how probable it is.
+	void PlaceSettlements();
+	/// Creates characters to live in the zone.
+	void CreateCharacters(Zone * forZone);
+	// Population 1 to 10.
+	void CreateFamilyZone(Zone * forZone);
+	// Population 11 to 100.
+	void CreateVillageZone(Zone * forZone);
+	// Population 100 to 1000.
+	void CreateTownZone(Zone * forZone);
+	// Population 1000 and upward.
+	void CreateCityZone(Zone * forZone);
+
+	/// Zone-setup of building slots. Places where one would want to build anything.
+	void GenerateBuildingSlots(Zone * forZone);
+
+
 	World * world;
 
 	/// Seed to be used.

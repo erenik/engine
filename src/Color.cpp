@@ -7,17 +7,27 @@
 // o.o
 Color::Color()
 : Vector4f()
-{}
+{
+	AssignName();
+}
+
+
+Color::Color(Vector4f & fromVector)
+: Vector4f(fromVector)
+{
+	AssignName();
+}
 
 
 /// Filled with 4 unsigned bytes.
 Color::Color(uchar r, uchar g, uchar b, uchar a)
 : Vector4f()
 {
-	x = r;
-	y = g;
-	z = b;
-	w = a;
+	x = r / 255.f;
+	y = g / 255.f;
+	z = b / 255.f;
+	w = a / 255.f;
+	AssignName();
 }
 
 /// E.g. "0x115588AA"
@@ -91,7 +101,20 @@ Color Color::ColorByHex8(uint32 hex)
 	return newColor;
 }
 
+bool Color::WriteTo(std::fstream & file)
+{
+	name.WriteTo(file);
+	Vector4f::WriteTo(file);
+	return true;
+}
+bool Color::ReadFrom(std::fstream & file)
+{
+	name.ReadFrom(file);
+	Vector4f::ReadFrom(file);
+	return true;
+}
 
-
-
-
+void Color::AssignName()
+{
+	name = "R"+String(x)+"G"+String(y)+"B"+String(z)+"Z"+String(w);
+}

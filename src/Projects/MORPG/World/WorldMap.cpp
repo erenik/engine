@@ -1,0 +1,90 @@
+/// Emil Hedemalm
+/// 2015-01-17
+/// Rendering the world as a whole.
+
+#include "WorldMap.h"
+#include "Zone.h"
+
+#include "Maps/MapManager.h"
+#include "Model/ModelManager.h"
+#include "Model/Model.h"
+#include "TextureManager.h"
+
+#include "Physics/PhysicsManager.h"
+#include "Physics/Messages/PhysicsMessage.h"
+
+#include "Graphics/GraphicsManager.h"
+#include "Graphics/Messages/GMSetEntity.h"
+
+#include "Color.h"
+
+WorldMap worldMap;
+
+WorldMap::WorldMap()
+{
+	worldEntity = NULL;
+	oceanEntity = NULL;
+}
+
+void WorldMap::UpdateOcean()
+{
+	if (!oceanEntity)
+	{
+		oceanEntity = MapMan.CreateEntity("OceanEntity", ModelMan.GetModel("plane.obj"), TexMan.GetTextureByHex32(0x0000FF77));
+		// Set it to render last..?
+		GraphicsMan.QueueMessage(new GMSetEntityb(oceanEntity, GT_REQUIRE_DEPTH_SORTING, true));
+	}
+	// Set height and position.
+	Vector3f position = world.size;
+	position /= 2.f;
+	position.z = position.y;
+	position.y = world.oceanElevation;
+	// Update color
+	GraphicsMan.QueueMessage(new GMSetEntityTexture(oceanEntity, DIFFUSE_MAP | SPECULAR_MAP, TexMan.GetTextureByColor(world.oceanColor)));
+	PhysicsMan.QueueMessage(new PMSetEntity(oceanEntity, PT_SET_POSITION, position)); 
+	// Set scale
+	PhysicsMan.QueueMessage(new PMSetEntity(oceanEntity, PT_SET_SCALE, Vector3f(world.size.x, 1, world.size.y))); 
+}
+
+void WorldMap::Update()
+{
+	Texture * tex = world.GeneratePreviewTexture();
+	tex->Save("World.png", true);
+	Model * model = world.GenerateWorldModel();
+	if (!worldEntity)
+		worldEntity = MapMan.CreateEntity("World", NULL, NULL);
+	assert(worldEntity);
+	// Re-bufferize the texture.
+	GraphicsMan.QueueMessage(new GMBufferTexture(tex));
+	// Same for the model..
+	GraphicsMan.QueueMessage(new GMBufferMesh(model->GetTriangulatedMesh()));
+	// Try our model..
+	GraphicsMan.QueueMessage(new GMSetEntity(worldEntity, GT_MODEL, model));
+	GraphicsMan.QueueMessage(new GMSetEntityTexture(worldEntity, DIFFUSE_MAP | SPECULAR_MAP, tex));
+//		Physics.QueueMessage(new PMSetEntity(worldMapEntity, PT_SET_SCALE, Vector3f(15.f, 1.f, 15.f)));
+	// Place the ocean..!
+	worldMap.UpdateOcean();
+}
+
+// Updates the settlement representations, usually in the form of some building or a crest and text.
+void WorldMap::UpdateSettlements()
+{
+	MapMan.DeleteEntities(settlementEntities);
+	settlementEntities.Clear();
+	for (int i = 0; i < world.settlements.Size(); ++i)
+	{
+		Zone * settlement = world.settlements[i];
+		// Create appropriate representation entities.
+		Entity * entity = settlement->CreateWorldMapRepresentation();
+		settlementEntities.Add(entity);
+		Vector3f pos = settlement->position;
+		// Invert Y, as it got.. not sure.
+		pos.z = world.size.y - pos.y;
+		pos.y = settlement->elevation;
+		entity->position = pos;
+		entity->scale = Vector3f(1,1,1) * 0.1f;
+		entity->RecalculateMatrix();
+	}
+	MapMan.AddEntities(settlementEntities);
+}
+

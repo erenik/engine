@@ -23,9 +23,26 @@
 World world;
 EMesh worldEMesh;
 
+
 World::World()
 {
 	empty = true;
+	oceanElevation = 0;
+	oceanColor = Vector4f(0,0,1,0.5f);
+}
+
+void World::ClearSettlementsAndCharacters()
+{
+	for (int i = 0; i < zones.Size(); ++i)
+	{
+		Zone * zone = zones[i];
+		zone->numInhabitants = 0;
+		zone->inhabitants.Clear();
+		zone->characters.Clear();
+		zone->hasSettlement = false;
+	}
+	characters.ClearAndDelete();
+	settlements.Clear();
 }
 
 /// Deletes all contents in this world. Makes it ready for loading again.
@@ -43,23 +60,40 @@ void World::Delete()
 // x = major, y = minor, z = debug fix number
 Vector3i currentVersion(0,0,0);
 
+#include "List/ListUtil.h"
+
 /// Saves this world to target file. Will save all zones, characters and quests to the same file.
 bool World::WriteTo(std::fstream & file)
 {
 	currentVersion.WriteTo(file);
 	name.WriteTo(file);
+	size.WriteTo(file);
+	WriteListTo(zones, file);
+	WriteListTo(characters,file);
+	oceanColor.WriteTo(file);
 	return true;
 }
 /// Loads from target file. Will load all zones, characters and quests from the same file.
 bool World::ReadFrom(std::fstream & file)
 {
+	// Clear before..?
+	settlements.Clear();
+
 	Vector3i version;
 	version.ReadFrom(file);
 	/// No other version allowed, for now.
 	if (version != currentVersion)
 		return false;
 	name.ReadFrom(file);
-	empty = false;
+	size.ReadFrom(file);
+	ReadListFrom(zones, file);
+	/// Place zones into matrix again.
+	zoneMatrix.Allocate(size);
+	zoneMatrix.Load(zones);
+	/// Re-connect zones.
+	ReconnectZones();
+	ReadListFrom(characters, file);
+	oceanColor.ReadFrom(file);
 	return true;
 }
 
@@ -177,6 +211,11 @@ Zone * World::GetZoneByPosition(Vector3f pos)
 		}
 	}
 	return closest;
+}
+
+void World::ReconnectZones()
+{
+	ConnectZonesByDistance(1.2f);
 }
 
 /// Like a navmesh..

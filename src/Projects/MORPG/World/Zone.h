@@ -8,31 +8,23 @@
 #include "String/AEString.h"
 #include "MathLib.h"
 #include "Maps/Map.h"
+#include "Building.h"
 
 class Nation;
-class Building;
 class Character;
 class CompactEntity;
-
-struct BuildingSlot 
-{
-	/// 
-	Character * owner;
-	// If for sale, price >= 0 if not for sale, price < 0
-	int price;
-
-	/// Size dimensions in x and y.
-	Vector2i size;
-	/// 3D position or use grid position..?
-	Vector3f position;
-};
 
 class Zone : public Map
 {
 public:
 	Zone();
-
+	virtual ~Zone();
 	void Nullify();
+
+	/// Usually the most important building. Use a command to add the entity to a map, as that is not done in this function.
+	Entity * CreateWorldMapRepresentation();
+	BuildingSlot * GetFreeBuildingSlot();
+
 
 	/// Takes all models this zone is composed of and creates it for you. Will also create all characters within (hopefully including you!)
 	void CreateEntities();
@@ -56,8 +48,12 @@ public:
 	virtual bool WriteTo(std::fstream & file);
 	virtual bool ReadFrom(std::fstream & file);
 
+	/// Number of inhabitants. This will be used as a base for how many interactable characters are actually visible and interactable in-game.
+	int numInhabitants;
 	/// Current characters within this zone.
 	List<Character*> characters;
+	/// Characters which regard this zone as their home, and stay here most of the time (for NPCs, anyway).
+	List<Character*> inhabitants;
 	/// Neighbour-zones.
 	List<Zone*> neighbours;
 
@@ -74,14 +70,28 @@ public:
 	/// o.o 0 = water-line, 1 = land, 0.1 to 0.9 = Beach?, 2 = hills, 3+ = mountains
 	float elevation;
 
+	/// Just based on elevation.
+	bool isWater;
+	bool isHighAltitude;
+
+	/// Based on neighbours.
+	/// Land types.
+	bool isCostal;
+	bool isIsland;
+	bool isMountain; // Surrounded by lower zones.
+	bool isPit;	// Surrounded by taller zones.
+	/// Water types.
+	bool isLagoon; // All but one entry to this zone is land-based.
+
+	/// If it has pre-built buildings and inhabitants. The settlement need not cover much at all of the zone's area.
+	bool hasSettlement;
+
 protected:
 	/// All entities which comprise the "base" along which we will walk and physicall interact with on the most part. 
 //	List<CompactEntity*> compactBaseEntities;
 
 
 private:
-	bool isWater;
-	bool isMountain;
 };
 
 #endif

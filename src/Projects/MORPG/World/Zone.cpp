@@ -4,7 +4,9 @@
 
 #include "Zone.h"
 
+#include "Entity/Entity.h"
 #include "Entity/CompactEntity.h"
+#include "Entity/EntityManager.h"
 
 Zone::Zone()
 {
@@ -16,7 +18,44 @@ void Zone::Nullify()
 	isWater = false;
 	isMountain = false;
 	elevation = 1.f;
+	hasSettlement = false;
+	inhabitants = 0;
 }
+
+Zone::~Zone()
+{
+	buildingSlots.ClearAndDelete();
+	buildings.ClearAndDelete();
+}
+
+/// Usually the most important building.
+Entity * Zone::CreateWorldMapRepresentation()
+{
+	// Get the coolest house in town.
+	if (buildings.Size() == 0)
+		return NULL;
+	Building * building = buildings[0];
+	Entity * entity = EntityMan.CreateEntity(name, building->model, building->texture);
+	if (entity == NULL){
+	    std::cout<<"\nERROR: MapManager::CreateEntity:Unable to create entity, returning.";
+        return NULL;
+	}
+	entity->position = position;
+	entity->RecalculateMatrix();
+	return entity;
+}
+
+BuildingSlot * Zone::GetFreeBuildingSlot()
+{
+	for (int i = 0; i < buildingSlots.Size(); ++i)
+	{
+		BuildingSlot * slot = buildingSlots[i];
+		if (slot->building == NULL)
+			return slot;
+	}
+	return NULL;
+}
+
 
 /// Takes all models this zone is composed of and creates it for you. Will also create all characters within (hopefully including you!)
 void Zone::CreateEntities()
@@ -89,10 +128,18 @@ void Zone::SetMountain(bool m)
 
 bool Zone::WriteTo(std::fstream & file)
 {
+	name.WriteTo(file);
+	position.WriteTo(file);
+	file.write((char*) &elevation, sizeof(float));
+//	std::cout<<"\nWrite zone "<<name<<" with elevation "<<elevation;
 	return true;
 }
 bool Zone::ReadFrom(std::fstream & file)
 {
+	name.ReadFrom(file);
+	position.ReadFrom(file);
+	file.read((char*) &elevation, sizeof(float));
+//	std::cout<<"\nRead zone "<<name<<" with elevation "<<elevation;
 	return true;
 }
 

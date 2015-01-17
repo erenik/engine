@@ -51,9 +51,6 @@
 
 #include "Network/NetworkManager.h"
 
-/// World map... 
-Entity * worldMapEntity = NULL;
-
 /// Only one such session active per application.
 MORPGSession * session = NULL;
 
@@ -82,7 +79,6 @@ void SetApplicationDefaults()
 
 MORPG::MORPG()
 {
-	worldMapEntity = NULL;
 	characterProp = NULL;
 }
 
@@ -120,9 +116,6 @@ void MORPG::OnEnter(AppState * previousState)
 
 	/// World map... 
 //	worldMapEntity = MapMan.CreateEntity("World map entity", NULL, NULL);
-	Model * plane = ModelMan.GetModel("plane");
-	Texture * white = TexMan.GetTexture("White");
-	worldMapEntity = MapMan.CreateEntity("World map entity", plane, white);
 
 	// Set up ui.
 	if (!ui)
@@ -191,15 +184,6 @@ void MORPG::ProcessMessage(Message * message)
 				String password = "password";
 				session->Login(username, password);
 
-			}
-			else if (msg == "LoadWorld")
-			{
-				std::fstream file;
-				file.open("tmp.world", std::ios_base::in);
-				if (!file.is_open())
-					return;
-				world.ReadFrom(file);
-				file.close();
 			}
 			break;
 		}
