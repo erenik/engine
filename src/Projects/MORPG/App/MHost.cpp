@@ -231,16 +231,6 @@ void MHost::EnterWorldCreation()
 	}
 	GraphicsMan.QueueMessage(new GMSetUI(worldEditor));
 
-	// Make world-camera active.
-	if (!worldCamera)
-	{
-		worldCamera = CameraMan.NewCamera();
-		worldCamera->movementType = CAMERA_MOVEMENT_ABSOLUTE;
-		worldCamera->absUp = Vector3f(0,0,-1);
-		worldCamera->absRight = Vector3f(1,0,0);
-	}
-	GraphicsMan.QueueMessage(new GMSetCamera(worldCamera));
-
 	/// Create world-generators.
 	if (worldGenerators.Size() == 0)
 	{
@@ -248,6 +238,9 @@ void MHost::EnterWorldCreation()
 		worldGenerators.Add(generator);
 		activeWorldGenerator = generator;
 	}
+
+	// Make the world-map and its camera active for display and thus interaction. o.o
+	worldMap.MakeActive();
 }
 
 void MHost::GenerateWorld(bool newRandomSeed)
@@ -267,4 +260,5 @@ void MHost::OnWorldUpdated()
 {
 	worldMap.Update();
 	worldMap.UpdateSettlements();
+	worldMap.CenterCamera();
 }

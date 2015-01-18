@@ -24,6 +24,9 @@ WorldGenerator::WorldGenerator()
 /// Generates a new world.
 bool WorldGenerator::GenerateWorld(World & worldToBeGenerated, bool newRandomSeed)
 {
+	// Delete it first... geez.
+	worldToBeGenerated.Delete();
+
 	// Various options.
 	if (!worldToBeGenerated.empty)
 	{
@@ -39,35 +42,23 @@ bool WorldGenerator::GenerateWorld(World & worldToBeGenerated, bool newRandomSee
 	/// Allocate zone matrix
 	world->zoneMatrix.SetDefaultValue(0);
 
-	if (world->zoneMatrix.Size() != size)
+	world->zoneMatrix.Allocate(size);
+	/// Generate zones.
+	for (int x = 0; x < size.x; ++x)
 	{
-		world->Delete();
-		world->zoneMatrix.Allocate(size);
-		/// Generate zones.
-		for (int x = 0; x < size.x; ++x)
+		for (int y = 0; y < size.y; ++y)
 		{
-			for (int y = 0; y < size.y; ++y)
-			{
-				Zone * zone = new Zone();
-				zone->position = Vector3i(x,y,0);
-				zone->name = "X"+String(x)+" Y"+String(y);
-				world->zones.Add(zone);
-				assert(world->zoneMatrix[x][y] == 0);
-				world->zoneMatrix[x][y] = zone;
-			}
-		}
-		world->ReconnectZones();
-	}
-	else 
-	{
-		// Reset all zones to default.
-		for (int i = 0; i < world->zones.Size(); ++i)
-		{
-			Zone * zone = world->zones[i];
-			zone->Nullify();
+			Zone * zone = new Zone();
+			zone->position = Vector3i(x,y,0);
+			zone->name = "X"+String(x)+" Y"+String(y);
+			world->zones.Add(zone);
+			assert(world->zoneMatrix[x][y] == 0);
+			world->zoneMatrix[x][y] = zone;
 		}
 	}
-//	world.zoneMatrix.PrintContents();
+	world->ReconnectZones();
+
+	//	world.zoneMatrix.PrintContents();
 
 	world->size = size;
 

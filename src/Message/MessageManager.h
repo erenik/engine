@@ -42,6 +42,7 @@ public:
 
 	/// Queues a bunch of string-based messages in the form "Message1&Message2&Message3&..."
 	bool QueueMessages(String messages, UIElement * elementThatTriggeredIt = NULL);
+	bool QueueMessages(List<String> messages, UIElement * elementThatTriggeredIt = NULL);
 	bool QueueMessage(Message* msg);	// Queues a message
 	bool QueueMessage(int msg);			// Queues a simple numerical message
 	bool QueuePacket(Packet* packet);	// Queue an incoming network packet for future processing

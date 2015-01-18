@@ -51,6 +51,9 @@
 
 #include "Network/NetworkManager.h"
 
+#include "Script/Script.h"
+#include "Script/ScriptManager.h"
+
 /// Only one such session active per application.
 MORPGSession * session = NULL;
 
@@ -124,6 +127,11 @@ void MORPG::OnEnter(AppState * previousState)
 	Graphics.QueueMessage(new GMSetUI(ui));
 	Graphics.QueueMessage(new GMSetOverlay(NULL));
 
+	// Run OnEnter.ini if such a file exists.
+	Script * script = new Script();
+	script->Load("OnEnter.ini");
+	ScriptMan.PlayScript(script);
+//	MesMan.QueueMessages(lines);
 }
 
 /// Main processing function, using provided time since last frame.

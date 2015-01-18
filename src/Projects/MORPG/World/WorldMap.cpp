@@ -15,6 +15,7 @@
 
 #include "Graphics/GraphicsManager.h"
 #include "Graphics/Messages/GMSetEntity.h"
+#include "Graphics/Messages/GMCamera.h"
 
 #include "Color.h"
 
@@ -24,6 +25,7 @@ WorldMap::WorldMap()
 {
 	worldEntity = NULL;
 	oceanEntity = NULL;
+	worldMapCamera = NULL;
 }
 
 void WorldMap::UpdateOcean()
@@ -63,7 +65,9 @@ void WorldMap::Update()
 	GraphicsMan.QueueMessage(new GMSetEntityTexture(worldEntity, DIFFUSE_MAP | SPECULAR_MAP, tex));
 //		Physics.QueueMessage(new PMSetEntity(worldMapEntity, PT_SET_SCALE, Vector3f(15.f, 1.f, 15.f)));
 	// Place the ocean..!
-	worldMap.UpdateOcean();
+	UpdateOcean();
+	UpdateCamera();
+	CenterCamera();
 }
 
 // Updates the settlement representations, usually in the form of some building or a crest and text.
@@ -88,3 +92,51 @@ void WorldMap::UpdateSettlements()
 	MapMan.AddEntities(settlementEntities);
 }
 
+
+// o.o
+void WorldMap::UpdateCamera()
+{
+	if (!worldMapCamera)
+	{
+		worldMapCamera = CameraMan.NewCamera();
+		worldMapCamera->movementType = CAMERA_MOVEMENT_ABSOLUTE;
+		worldMapCamera->absForward = Vector3f(0,0,-1);
+		worldMapCamera->absRight = Vector3f(1,0,0);
+		worldMapCamera->absUp = Vector3f(0,1,0);
+		CenterCamera();
+
+		// Create the default camera-position too.
+		Camera * worldMapResetCamera = CameraMan.NewCamera();
+		worldMapCamera->resetCamera = worldMapResetCamera;
+	}
+	// If the world changed much, adjust position, if not, don't really touch it?
+	// Update the reset-camera's position and stuffs! o.o
+	Vector3f position = FromWorldToWorldMap(world.size * 0.5f, 0.f);
+	worldMapCamera->resetCamera->position = position + Vector3f(0, 20.f, 20.f);	 
+	worldMapCamera->resetCamera->rotation = Vector3f(0.9f, 0, 0);
+	worldMapCamera->resetCamera->flySpeed = world.size.Length() * 0.1f;
+}
+
+// Centers it so that the whole world is visible.
+void WorldMap::CenterCamera()
+{
+	 if (!worldMapCamera)
+		 UpdateCamera();	
+	 // Just reset it to center it.
+	 worldMapCamera->Reset();
+}
+
+// Registers all entities for display and makes the world-map camera active.
+void WorldMap::MakeActive()
+{
+	// Register all entities for display?
+	// Make camera active. Create it if needed?
+	CenterCamera();
+	GraphicsMan.QueueMessage(new GMSetCamera(worldMapCamera));
+}
+
+
+Vector3f WorldMap::FromWorldToWorldMap(Vector2i vec, float elevation)
+{
+	return Vector3f(vec.x, elevation, world.size.y - vec.y);
+}

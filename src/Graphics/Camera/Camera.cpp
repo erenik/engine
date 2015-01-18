@@ -222,7 +222,9 @@ void Camera::Reset()
 {
 	if (!resetCamera)
 		return;
-	*this = *resetCamera;	
+	position = resetCamera->position;
+	rotation = resetCamera->rotation;
+	flySpeed = resetCamera->flySpeed;
 }
 
 
@@ -511,9 +513,9 @@ void Camera::UpdateNavigation()
 	else
 		this->velocity.y = 0;
 	if (navigationControls[Direction::FORWARD] && !navigationControls[Direction::BACKWARD])
-		this->velocity.z = -this->defaultVelocity * this->flySpeed;
-	else if (navigationControls[Direction::BACKWARD] && !navigationControls[Direction::FORWARD])
 		this->velocity.z = this->defaultVelocity * this->flySpeed;
+	else if (navigationControls[Direction::BACKWARD] && !navigationControls[Direction::FORWARD])
+		this->velocity.z = -this->defaultVelocity * this->flySpeed;
 	else
 		this->velocity.z = 0;
 	if (navigationControls[Direction::LEFT] && !navigationControls[Direction::RIGHT])

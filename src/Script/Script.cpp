@@ -133,38 +133,13 @@ bool Script::Load(String fromFile)
 	/// Parsley parse, yes?
 	/// Add root event dir if not already included (could be)
 	/// Assure that at least the data/ dir is included. Any path with it can be assumed to be completely relative!
-	if (!source.Contains(rootEventDir) && !source.Contains("data/"))
-		source = rootEventDir + source;
+//	if (!source.Contains(rootEventDir) && !source.Contains("data/"))
+//		source = rootEventDir + source;
 
 	std::cout<<"\nTrying to open file...";
-	std::fstream file;
-	file.open(source.c_str(), std::ios_base::in);
-	if (!file.is_open()){
-		assert(file.is_open() && "ERROR opening file stream in Script::Load(fromFile)!");
-		std::cout<<"\nERROR: Unable to open file stream to "<<source;
-		file.close();
-		return NULL;
-	}
-
-	int start  = (int) file.tellg();
-	std::cout<<"\nStart: "<<start;
-	file.seekg( 0, std::ios::end );
-	int fileSize = (int) file.tellg();
-	std::cout<<"\nEvent::Load: fileSize: "<<fileSize;
-	if (fileSize <= 0){
-		std::cout<<"\nInvalid file size, returning.";
-		return false;
-	}
-	char * data = new char [fileSize];
-	memset(data, 0, fileSize);
-	file.seekg( 0, std::ios::beg);
-	file.read((char*) data, fileSize);
-	file.close();
-	String fileContents(data);
-	delete[] data; data = NULL;
 	int loadingType = 0;
 	bool midComment = false;
-	List<String> sourceLines = fileContents.GetLines();
+	List<String> sourceLines = 	File::GetLines(source);
 	for (int i = 0; i < sourceLines.Size(); ++i){
 		String & line = sourceLines[i];
 		// Try load the battler from the relative directory.

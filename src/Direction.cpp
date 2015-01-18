@@ -13,6 +13,8 @@ int Direction::Get(String byString)
 	if (byString == "Right")return Direction::RIGHT;
 	if (byString == "UP")	return Direction::UP;
 	if (byString == "DOWN")	return Direction::DOWN;
+	if (byString == "FORWARD")	return Direction::FORWARD;
+	if (byString == "BACKWARD")	return Direction::BACKWARD;
 	return NONE;
 }
 

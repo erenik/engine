@@ -53,6 +53,7 @@ void World::Delete()
 	zones.ClearAndDelete();
 	characters.ClearAndDelete();
 	quests.ClearAndDelete();
+	settlements.Clear();
 	empty = true;
 }
 

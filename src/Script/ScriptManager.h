@@ -41,7 +41,7 @@ public:
 	void ResumeScripts(List<Script*> scripts);
 private:
 	List<Script*> activeScripts;
-	List<Script*> finishedEvents;
+	List<Script*> endedScripts;
 };
 
 #endif

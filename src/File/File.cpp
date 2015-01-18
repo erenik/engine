@@ -139,6 +139,9 @@ String File::GetContents(std::fstream & fileStream)
 	int start  = (int) fileStream.tellg();
 	fileStream.seekg( 0, std::ios::end );
 	int fileSize = (int) fileStream.tellg();
+	// Empty file?
+	if (fileSize == 0)
+		return String();
 	assert(fileSize);
 	char * data = new char [fileSize+2];
 	memset(data, 0, fileSize+1);

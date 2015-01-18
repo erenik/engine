@@ -146,8 +146,36 @@ bool MessageManager::QueueMessages(String messages, UIElement * elementThatTrigg
 		return false;
 	}
 	msgQueueMutex.Release();
+	return true;	
+}
+
+
+/// Queues a bunch of string-based messages in the form "Message1&Message2&Message3&..."
+bool MessageManager::QueueMessages(List<String> messages, UIElement * elementThatTriggeredIt)
+{
+	msgQueueMutex.Claim(-1);	
+	try{
+		for (int i = 0; i < messages.Size(); ++i)
+		{
+			String messageInOriginalList = messages[i];
+			List<String> messageList = messageInOriginalList.Tokenize("&");
+			for (int i = 0; i < messageList.Size(); ++i){
+				String message = messageList[i];
+				Message * msg = new Message(message);
+				msg->element = elementThatTriggeredIt;
+				messageQueue.Push(msg);
+			}
+		}		
+	}
+	catch(...){
+		std::cout<<"\nFailed to push message!";
+		assert(false && "MessageManager::QueueMessage");
+		return false;
+	}
+	msgQueueMutex.Release();
 	return true;
 }
+
 
 bool MessageManager::QueueMessage(Message* msg)
 {

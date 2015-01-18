@@ -8,13 +8,16 @@
 ScriptManager::ScriptManager(){
 	// Wosh.
 }
-ScriptManager::~ScriptManager(){
+ScriptManager::~ScriptManager()
+{
 	// Do nothing with the lists by default!
 	for (int i = 0; i < activeScripts.Size(); ++i){
 		Script * e = activeScripts[i];
 		if (e->flags & DELETE_WHEN_ENDED)
 			delete e;
 	}
+	// Kill old scripts?
+	endedScripts.ClearAndDelete();
 }
 ScriptManager * ScriptManager::eventManager = NULL;
 ScriptManager * ScriptManager::Instance(){
@@ -84,11 +87,17 @@ void ScriptManager::Process(int timeInMs)
 		if (script->scriptState == Script::ENDING)
 		{
 			script->OnEnd();
-			this->finishedEvents.Add(script);
 			activeScripts.Remove(script);
 			/// Delete if specified.
 			if (script->flags & DELETE_WHEN_ENDED)
+			{
 				delete script;
+			}
+			// If not deleted (meant to be re-used?) store it.
+			else 
+			{
+				this->endedScripts.Add(script);
+			}
 			--i;
 			continue;
 		}

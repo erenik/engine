@@ -13,12 +13,15 @@
 List<Binding*> CreateDefaultCameraBindings()
 {
 	List<Binding*> cameraBindings;
-	cameraBindings.Add(5, 
+	cameraBindings.Add(7, 
 		new Binding(new Action("ResetCamera"), KEY::HOME),
-		new Binding(Action::CreateStartStopAction("CameraUp"), KEY::W),
-		new Binding(Action::CreateStartStopAction("CameraDown"), KEY::S),
+		new Binding(Action::CreateStartStopAction("CameraForward"), KEY::W),
+		new Binding(Action::CreateStartStopAction("CameraBackward"), KEY::S),
 		new Binding(Action::CreateStartStopAction("CameraLeft"), KEY::A),
-		new Binding(Action::CreateStartStopAction("CameraRight"), KEY::D));
+		new Binding(Action::CreateStartStopAction("CameraRight"), KEY::D),
+		new Binding(Action::CreateStartStopAction("CameraUp"), KEY::E),
+		new Binding(Action::CreateStartStopAction("CameraDown"), KEY::Q)
+	);
 	return cameraBindings;
 }
 
