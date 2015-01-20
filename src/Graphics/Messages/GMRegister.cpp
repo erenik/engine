@@ -24,11 +24,6 @@ void GMRegisterEntity::Process()
 GMRegisterEntities::GMRegisterEntities(Entities i_selection) : GraphicsMessage(GM_REGISTER_ENTITIES)
 {
 	selection = i_selection;
-	for (int i = 0; i < selection.Size(); ++i){
-		if (selection[i]->registeredForRendering){
-			assert(!selection[i]->registeredForRendering);
-		}
-	}
 }
 
 void GMRegisterEntities::Process()

@@ -14,6 +14,7 @@
 
 #include "MORPG/World/WorldGenerator.h"
 #include "MORPG/World/WorldMap.h"
+#include "MORPG/World/Zone.h"
 
 #include "Message/MessageManager.h"
 #include "Message/Message.h"
@@ -31,6 +32,7 @@
 #include "TextureManager.h"
 
 #include "Input/InputManager.h"
+#include "Input/Action.h"
 
 UserInterface * worldEditor = NULL;
 
@@ -42,6 +44,8 @@ Camera * worldCamera = NULL;
 MHost::MHost()
 : AppState()
 {
+	mode = WORLD_EDITOR;
+	settlementIndex = 0;
 }
 
 MHost::~MHost()
@@ -162,6 +166,31 @@ void MHost::ProcessMessage(Message * message)
 			{
 				GenerateSettlements(true);
 			}
+			if (msg == "WorldEditor")
+			{
+				EnterWorldCreation();
+			}
+			if (msg == "SettlementEditor")
+			{
+				// Enter first settlement in the list.
+				if (world.settlements.Size())
+				{
+					if (mode == SETTLEMENT_EDITOR)
+					{
+						if (Input.KeyPressed(KEY::SHIFT))
+						{
+							--settlementIndex;
+							if (settlementIndex < 0)
+								settlementIndex += world.settlements.Size();
+						}
+						else
+							++settlementIndex;
+					}
+					Zone * zone = world.settlements[settlementIndex % world.settlements.Size()];
+					zone->MakeActive();
+					mode = SETTLEMENT_EDITOR;
+				}
+			}
 			else if (msg == "MoarWater")
 			{
 				activeWorldGenerator->water += 0.05f;
@@ -207,6 +236,9 @@ void MHost::CreateDefaultBindings()
 {
 	// Add camera controls and camera stuff as necessary?
 	InputMapping & mapping = this->inputMapping;
+	mapping.bindings.Add(new Binding(Action::FromString("WorldEditor"), KEY::F1));
+	mapping.bindings.Add(new Binding(Action::FromString("SettlementEditor"), KEY::F2));
+	mapping.bindings.Add(new Binding(Action::FromString("SettlementEditor"), KEY::SHIFT, KEY::F2));
 	// Add default camera bindings.
 	mapping.bindings.Add(CreateDefaultCameraBindings());
 }
@@ -223,6 +255,7 @@ void MHost::HandleCameraMessages(String msg)
 
 void MHost::EnterWorldCreation()
 {
+	mode = WORLD_EDITOR;
 	// Swap gui.
 	if (!worldEditor)
 	{
@@ -253,6 +286,12 @@ void MHost::GenerateWorld(bool newRandomSeed)
 void MHost::GenerateSettlements(bool newRandomSeed)
 {
 	activeWorldGenerator->GenerateSettlements(world, newRandomSeed);
+	// Actually generate the contents of them too?
+	for (int i = 0; i < world.settlements.Size(); ++i)
+	{
+		Zone * zone = world.settlements[i];
+		activeWorldGenerator->GenerateSettlement(zone);
+	}
 	worldMap.UpdateSettlements();
 }
 

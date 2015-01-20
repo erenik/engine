@@ -15,6 +15,7 @@
 
 #include "Graphics/GraphicsManager.h"
 #include "Graphics/Messages/GMSetEntity.h"
+#include "Graphics/Messages/GraphicsMessages.h"
 #include "Graphics/Messages/GMCamera.h"
 
 #include "Color.h"
@@ -130,9 +131,20 @@ void WorldMap::CenterCamera()
 void WorldMap::MakeActive()
 {
 	// Register all entities for display?
+	GraphicsMan.QueueMessage(new GraphicsMessage(GM_UNREGISTER_ALL_ENTITIES));
 	// Make camera active. Create it if needed?
 	CenterCamera();
 	GraphicsMan.QueueMessage(new GMSetCamera(worldMapCamera));
+	GraphicsMan.QueueMessage(new GMRegisterEntities(Entities()));
+}
+
+/// o.o
+List<Entity*> WorldMap::Entities()
+{
+	List<Entity*> entities = settlementEntities;
+	if (worldEntity) entities.Add(worldEntity);
+	if (oceanEntity) entities.Add(oceanEntity);
+	return entities;
 }
 
 
@@ -140,3 +152,9 @@ Vector3f WorldMap::FromWorldToWorldMap(Vector2i vec, float elevation)
 {
 	return Vector3f(vec.x, elevation, world.size.y - vec.y);
 }
+
+Vector3f WorldMap::FromWorldToWorldMap(Vector3i pos)
+{
+	return Vector3f(pos.x, pos.z, pos.y);
+}
+

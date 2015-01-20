@@ -50,6 +50,9 @@ public:
 	/// Reads from file stream.
 	void ReadFrom(std::fstream & file);
 
+	///
+	int DotProduct(Vector3i otherVec);
+
 	// Simple arithmetics
 	/** Simple addition
 		Postcondition: Adds the addend's coordinates to the calling vector's.
@@ -85,9 +88,9 @@ public:
 	/// Subtracts subtractor from this vector.
 	void operator -= (const Vector3i addend);
 	/// Internal element division
-	void operator /= (const int &f);
+	void operator /= (const float &f);
 	/// Internal element multiplication
-	void operator *= (const int &f);
+	void operator *= (const float &f);
 
 	/// Comparison operators
 	bool operator == (const Vector3i other);
@@ -95,9 +98,9 @@ public:
 	bool operator != (const Vector3i other);
 
 	/// Internal element multiplication
-	Vector3i operator * (const int &f) const;
+	Vector3f operator * (const float &f) const;
 	/// Internal element division.
-	Vector3i operator / (const int &f) const;
+	Vector3f operator / (const float &f) const;
 
 	/// Operator overloading for the array-access operator []
 	int operator [](int index);

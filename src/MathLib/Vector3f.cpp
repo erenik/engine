@@ -140,6 +140,12 @@ void Vector3f::ReadFrom(const String & string)
 	z = tokens[2].ParseFloat();
 }
 
+/// Returns abs-version.
+Vector3f Vector3f::Abs() const
+{
+	return Vector3f(x > 0? x : -x, y > 0? y : -y, z > 0? z : -z);
+}
+
 
 /// Clamp to an interval.
 void Vector3f::Clamp(float min, float max)

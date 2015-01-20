@@ -76,8 +76,8 @@ void EMesh::AddGrid(Vector3f upperLeft, Vector3f lowerLeft, Vector3f lowerRight,
 
 			*vertex = lowerLeft + rightStep * x + upStep * y;
 			
-			assert(vertexMatrix[x][y] == 0);
-			vertexMatrix[x][y] = vertex;
+			assert(vertexMatrix.At(Vector2i(x,y)) == 0);
+			vertexMatrix.Set(Vector2i(x,y), vertex);
 
 			// Create a UV-coordinate for each vertex too, I guess?
 			EUV * uv = new EUV();
@@ -99,10 +99,10 @@ void EMesh::AddGrid(Vector3f upperLeft, Vector3f lowerLeft, Vector3f lowerRight,
 			EFace * face = new EFace();
 			/// Add, in counter-clockwise order, the 4 neighbouring vertices, making this a quad.
 			// Top left first..
-			face->AddVertex(vertexMatrix[x][y+1]);
-			face->AddVertex(vertexMatrix[x][y]);
-			face->AddVertex(vertexMatrix[x+1][y]);
-			face->AddVertex(vertexMatrix[x+1][y+1]);
+			face->AddVertex(vertexMatrix.At(x,y+1));
+			face->AddVertex(vertexMatrix.At(x,y));
+			face->AddVertex(vertexMatrix.At(x+1,y));
+			face->AddVertex(vertexMatrix.At(x+1,y+1));
 
 			// Calculate an average normal straight away?
 			face->CalculateNormal();

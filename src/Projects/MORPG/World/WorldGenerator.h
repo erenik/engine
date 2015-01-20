@@ -13,10 +13,13 @@ class WorldGenerator
 {
 public:
 	WorldGenerator();
+	virtual ~WorldGenerator();
 
 	/// Generates a new world. Will return false if the world is not empty.
 	bool GenerateWorld(World & world, bool newRandomSeed);
 	bool GenerateSettlements(World & world, bool newRandomSeed);
+	/// Generates the zone and local population within target zone.
+	bool GenerateSettlement(Zone * inZone);
 
 	// Various options.
 	

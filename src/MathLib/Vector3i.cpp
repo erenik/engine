@@ -72,6 +72,13 @@ void Vector3i::ReadFrom(std::fstream & file){
 	file.read((char*)&z, sizeof(int));
 }
 
+///
+int Vector3i::DotProduct(Vector3i otherVec)
+{
+	return x * otherVec.x + y * otherVec.y + z * otherVec.z;
+}
+
+
 // ************************************************************************//
 // Arithmetics
 // ************************************************************************//
@@ -138,24 +145,24 @@ void Vector3i::operator -= (const Vector3i  subtractor){
 	z -= subtractor.z;
 }
 /// Internal element division
-void Vector3i::operator /= (const int &f){
+void Vector3i::operator /= (const float &f){
 	x /= f;
 	y /= f;
 	z /= f;
 }
 /// Internal element multiplication
-void Vector3i::operator *= (const int &f){
+void Vector3i::operator *= (const float &f){
 	x *= f;
 	y *= f;
 	z *= f;
 }
 /// Internal element multiplication
-Vector3i Vector3i::operator * (const int &f) const {
-	return Vector3i(x * f, y * f, z * f);
+Vector3f Vector3i::operator * (const float &f) const {
+	return Vector3f(x * f, y * f, z * f);
 }
 /// Internal element division.
-Vector3i Vector3i::operator / (const int &f) const {
-	return Vector3i(x / f, y / f, z / f);
+Vector3f Vector3i::operator / (const float &f) const {
+	return Vector3f(x / f, y / f, z / f);
 }
 
 int Vector3i::operator [](int index){

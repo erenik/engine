@@ -38,8 +38,11 @@ private:
 	void OnWorldUpdated();
 
 	enum {
-		WORLD_CREATION,
+		WORLD_CREATION, WORLD_EDITOR = WORLD_CREATION,
+		SETTLEMENT_EDITOR,
 	};
 	int enterMode;
+	int mode;
+	int settlementIndex;
 
 };

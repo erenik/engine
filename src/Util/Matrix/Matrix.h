@@ -16,7 +16,7 @@
 	It is implemented as a dynamic array.
 	The items stored need to have = operator overloaded as well as base constructors!
 
-	Basic usage assumes using the double operator [x][y] to access elements.
+	Basic usage assumes using the double operator [x][y] to access elements (for 2D matrices).
 
 	Suggested approach:
 
@@ -44,8 +44,10 @@ public:
 	/// Sets the default value with is written to each node upon allocation.
 	void SetDefaultValue(T defaultValue);
 
-	/// Resizing function
+	/// Resizing function for 2D matrices.
 	void Allocate(Vector2i size);
+	/// Resizing function for 3D matrices.
+	void Allocate(Vector3i size);
 	/// Same as allocate..
 	virtual void SetSize(Vector2i size);
 	
@@ -72,10 +74,9 @@ public:
 	const List operator - (const T &itemToRemove) const;
 */
 
-	/// Array-indexing operator, varying version. Returns a pointer refereing the the columns at selected index 
-	virtual T * operator[](int x);
-	/// Array-indexing operator, const version. Returns a pointer refereing the the columns at selected index 
-	virtual const T * operator[](int x) const;
+	T At(int x, int y = 0, int z = 0);
+	T At(Vector3i pos);
+	void Set(Vector3i pos, T toT);
 
 	/// Puts item into element at target location.
 	bool Add(value_type item, Vector2i atLocation);
@@ -100,7 +101,7 @@ public:
 	/// If wanting to save/load it, allow this.
 	value_type * GetArray() { return arr; };
 	/// Returns size of the matrix.
-	const Vector2i & Size() const;
+	const Vector3i & Size() const;
 
 	/// Polls the existance/copy of target item in the queue.
 	bool Exists(value_type item) const;
@@ -113,11 +114,15 @@ public:
 	int Elements();
 
 	/// Polls the existance/copy of target item in the queue. Returns it's index if so and -1 if not.
-	Vector2i GetLocationOf(value_type item) const;
+	Vector3i GetLocationOf(value_type item) const;
 
 /// To be inherited by other classes...
 protected:
-	Vector2i size;
+
+	/// Allocates and initializes values no matter dimensionality.
+	void Allocate(int listSize);
+
+	Vector3i size;
 	value_type * arr;
 	int currentItems;
 	int arrLength;
@@ -168,17 +173,36 @@ void Matrix<T>::Allocate(Vector2i size)
 	// 0-size?
 	if (!arrLength)
 		return;
+	Allocate(arrLength);
+	// Set actual matrix size.
+	this->size = size;
+}
+
+/// Resizing function for 3D matrices.
+template <class T>
+void Matrix<T>::Allocate(Vector3i size)
+{
+	assert(size.Length());
+	if (arr) delete[] arr;
+	arrLength = size.x * size.y * size.z;
+	Allocate(arrLength);
+	this->size = size;
+}
+
+/// Allocates and initializes values no matter dimensionality.
+template <class T>
+void Matrix<T>::Allocate(int listSize)
+{
+	arrLength = listSize;
 	arr = new T [arrLength];
 	// Write the default value over the new array if possible.
 	for (int i = 0; i < arrLength; ++i)
 	{
 		arr[i] = defaultValue;
 	}
-
 	currentItems = 0;
-	// Set actual matrix size.
-	this->size = size;
 }
+
 
 /// Same as allocate..
 template <class T>
@@ -196,11 +220,11 @@ bool Matrix<T>::Load(List<T> & listIntoMatrix)
 	if(listIntoMatrix.Size() != matrixSize)
 		return false;
 	int i = 0;
-	for (int x = 0; x < size.x; ++x)
+	for (int y = 0; y < size.y; ++y)
 	{
-		for (int y = 0; y < size.y; ++y)
+		for (int x = 0; x < size.x; ++x)
 		{
-			int arrIndex = x * size.y + y;
+			int arrIndex = y * size.x + x;
 			arr[arrIndex] = listIntoMatrix[i++];
 		}
 	}
@@ -208,7 +232,7 @@ bool Matrix<T>::Load(List<T> & listIntoMatrix)
 }
 
 	
-
+/*
 /// Prints conents, along with position (x/y)
 template <class T>
 void Matrix<T>::PrintContents()
@@ -221,31 +245,14 @@ void Matrix<T>::PrintContents()
 			std::cout<<"\nMatrix x"<<x<<" y"<<y<<": "<<arr[arrIndex];
 		}
 	}
-}
-
-
-/// Array-indexing operator, varying version. Returns a pointer refereing the the columns at selected index 
-template <class T>
-T * Matrix<T>::operator[](int x)
-{
-	int index = x * size.y;
-	return &arr[index];
-}
-/// Array-indexing operator, const version. Returns a pointer refereing the the columns at selected index 
-template <class T>
-const T * Matrix<T>::operator[](int x) const 
-{
-	int index = x * size.y;
-	return &arr[index];	
-}
+}*/
 
 /// Returns size of the matrix.
 template <class T>
-const Vector2i & Matrix<T>::Size() const
+const Vector3i & Matrix<T>::Size() const
 {
 	return size;
 }
-
 
 /// Returns target element as if treating the matrix data as a long list.
 template <class T>
@@ -266,16 +273,38 @@ int Matrix<T>::Elements()
 
 /// Polls the existance/copy of target item in the queue. Returns it's index if so and -1 if not.
 template <class T>
-Vector2i Matrix<T>::GetLocationOf(T item) const
+Vector3i Matrix<T>::GetLocationOf(T item) const
 {
 	for (int i = 0; i < arrLength; ++i)
 	{
 		if (arr[i] == item)
 		{
-			return Vector2i(i / size.y, i % size.x);
+			return Vector3i(i % size.x, (i / size.x) % size.y, i / (size.x * size.y));
 		}
 	}
-	return Vector2i(-1,-1);
+	return Vector3i(-1,-1,-1);
+}
+
+template <class T>
+T Matrix<T>::At(Vector3i pos)
+{	
+	int index = pos.z * size.x * size.y + pos.y * size.x + pos.x;
+	return arr[index];
+}
+
+template <class T>
+T Matrix<T>::At(int x, int y, int z)
+{
+	int index = z * size.x * size.y + y * size.x + x;
+	return arr[index];
+}
+
+
+template <class T>
+void Matrix<T>::Set(Vector3i pos, T toT)
+{
+	int index = pos.z * size.x * size.y + pos.y * size.x + pos.x;
+	arr[index] = toT;
 }
 
 

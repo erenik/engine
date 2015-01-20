@@ -9,10 +9,15 @@
 #include "MathLib.h"
 #include "Maps/Map.h"
 #include "Building.h"
+#include "Matrix/Matrix.h"
 
 class Nation;
 class Character;
 class CompactEntity;
+
+class Zone;
+class Room;
+class Entrance;
 
 class Zone : public Map
 {
@@ -24,7 +29,11 @@ public:
 	/// Usually the most important building. Use a command to add the entity to a map, as that is not done in this function.
 	Entity * CreateWorldMapRepresentation();
 	BuildingSlot * GetFreeBuildingSlot();
+	/// Places room into the zone, adding it to the grid and list.
+	bool Place(Room * room);
 
+	// Registers all entities for display and makes the world-map camera active.
+	void MakeActive();
 
 	/// Takes all models this zone is composed of and creates it for you. Will also create all characters within (hopefully including you!)
 	void CreateEntities();
@@ -48,6 +57,9 @@ public:
 	virtual bool WriteTo(std::fstream & file);
 	virtual bool ReadFrom(std::fstream & file);
 
+	/// Per-zone camera. Maybe too much? 
+	Camera * camera;
+
 	/// Number of inhabitants. This will be used as a base for how many interactable characters are actually visible and interactable in-game.
 	int numInhabitants;
 	/// Current characters within this zone.
@@ -59,6 +71,15 @@ public:
 
 	/// Slots where buildings could be placed.
 	List<BuildingSlot*> buildingSlots;
+
+	/// "Rooms" in the Zone-grid. Used to internally divide the zone when generating it, possibly used for pathfinding optimization too?
+	List<Room*> rooms;
+	/// XY Grid linked to the rooms.
+	Matrix<Room*> roomMatrix;
+	/// Meters per grid element. Default 1.0 (for in-door zones). Use higher values of e.g. 3.0 or upward for outdoor larger zones.
+	float roomGridSize;
+	/// Entrances to this zone.
+	List<Entrance*> entrances;
 
 	/// Buildings within this zone, as buildings may be present even in non-settlements... e.g. ruins... or?
 	List<Building*> buildings;

@@ -3,11 +3,14 @@
 /// Main class for generating a world. Sub-class and overload for custom worlds.
 
 #include "WorldGenerator.h"
+#include "ZoneGenerator.h"
 
 #include "Zone.h"
 
 #include "Model/ModelManager.h"
 #include "TextureManager.h"
+
+ZoneGenerator * zoneGenerator = NULL;
 
 WorldGenerator::WorldGenerator()
 {
@@ -19,6 +22,11 @@ WorldGenerator::WorldGenerator()
 	smoothingMultiplier = 0.1f;
 	mountainHeight = 3.f;
 	numSettlements = 3;
+}
+
+WorldGenerator::~WorldGenerator()
+{
+	SAFE_DELETE(zoneGenerator);
 }
 
 /// Generates a new world.
@@ -52,8 +60,8 @@ bool WorldGenerator::GenerateWorld(World & worldToBeGenerated, bool newRandomSee
 			zone->position = Vector3i(x,y,0);
 			zone->name = "X"+String(x)+" Y"+String(y);
 			world->zones.Add(zone);
-			assert(world->zoneMatrix[x][y] == 0);
-			world->zoneMatrix[x][y] = zone;
+			assert(world->zoneMatrix.At(x,y) == 0);
+			world->zoneMatrix.Set(Vector2i(x,y), zone);
 		}
 	}
 	world->ReconnectZones();
@@ -89,6 +97,19 @@ bool WorldGenerator::GenerateSettlements(World & worldToBeGenerated, bool newRan
 	return true;
 }
 
+/// Generates the zone and local population within target zone.
+bool WorldGenerator::GenerateSettlement(Zone * inZone)
+{
+	// Generate zone contents first?
+	if (inZone->rooms.Size() == 0)
+	{
+		if (!zoneGenerator)
+			zoneGenerator = new ZoneGenerator();
+		zoneGenerator->GenerateZone(inZone);
+	}
+	this->CreateCharacters(inZone);
+	return true;
+}
 
 void WorldGenerator::MarkWater()
 {
@@ -281,8 +302,6 @@ void WorldGenerator::PlaceSettlements()
 
 		zone->hasSettlement = true;
 		zone->numInhabitants = settlementSizeRand.Randi(10000);
-		/// Create characters within straight away.
-		CreateCharacters(zone);
 		world->settlements.Add(zone);
 		--settlementsToCreate;
 	}

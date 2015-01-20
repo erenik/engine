@@ -86,7 +86,8 @@ public:
 	/// Reads from String. Expects space-separated values. E.g. 3 8.14 -15
 	void ReadFrom(const String & string);
 
-
+	/// Returns abs-version.
+	Vector3f Abs() const;
 	/// Clamp to an interval.
 	void Clamp(float min, float max);
 	void Clamp(Vector3f min, Vector3f max);

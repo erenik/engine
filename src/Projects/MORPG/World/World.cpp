@@ -90,7 +90,11 @@ bool World::ReadFrom(std::fstream & file)
 	ReadListFrom(zones, file);
 	/// Place zones into matrix again.
 	zoneMatrix.Allocate(size);
-	zoneMatrix.Load(zones);
+	for (int i = 0; i < zones.Size(); ++i)
+	{
+		Zone * zone = zones[i];
+		zoneMatrix.Set(zone->position, zone);
+	}
 	/// Re-connect zones.
 	ReconnectZones();
 	ReadListFrom(characters, file);
@@ -167,10 +171,10 @@ Model * World::GenerateWorldModel()
 	{
 		for (int y = 0; y < size.y; ++y)
 		{
-			Zone * zone = zoneMatrix[x][y];
+			Zone * zone = zoneMatrix.At(x,y);
 			float elevation = zone->elevation * heightMultiplier;
 			// Just set y.
-			EVertex * vertex = vertices[x][y];
+			EVertex * vertex = vertices.At(x,y);
 			vertex->y = elevation;
 		}
 	}
