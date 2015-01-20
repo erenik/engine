@@ -155,11 +155,19 @@ void ZoneGenerator::AddMaximizedRoom()
 
 void ZoneGenerator::ConnectRooms()
 {
-
+	// Connect entry points. Ensure no empty entry points are found, or that they are locked somehow?
 }
 
 void ZoneGenerator::PlaceBuildingSlots()
 {
-
+	for (int = 0; i < zone->rooms.Size(); ++i)
+	{
+		Room * room = zone->rooms[i];
+		// Check whether we should add building-slots here.
+		if (room->points.Size() < 4) // Skip small rooms.
+			continue;
+		// Just randomly place some rooms inside..? Fuck.
+		room->p
+	}
 }
 

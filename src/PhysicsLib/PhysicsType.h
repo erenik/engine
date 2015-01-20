@@ -7,7 +7,6 @@
 
 namespace PhysicsType {
 enum PhysicsTypes{
-	NULL_TYPE,
 	STATIC,			// Immovable
 	DYNAMIC,		// Interacts with all objects.
 	KINEMATIC,		// Move, but are not affected by other objects.

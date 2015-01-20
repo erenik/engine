@@ -90,8 +90,8 @@ void PhysicsProperty::Nullify()
 	obb = 0;
     locks = 0;
     inertiaTensorCalculated = false;
-	type = PhysicsType::NULL_TYPE;
-	physicsShape = ShapeType::NULL_TYPE;
+	type = PhysicsType::STATIC;
+	physicsShape = ShapeType::SPHERE;
 	usesCollisionShapeOctree = false;
 	shape = NULL;
 #ifdef USE_MASS

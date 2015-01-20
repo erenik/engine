@@ -631,6 +631,22 @@ Vector4f Texture::GetPixel(int x, int y){
 	return color;
 }
 
+/// Gets color data from specified pixel in RGBA
+Vector4i Texture::GetPixelVec4i(int x, int y)
+{
+	assert(bpp == 4 && format == Texture::RGBA);
+	Vector4i color;
+	unsigned char * buf = data;
+	/// PixelStartIndex
+	int psi = y * width * bpp + x * bpp;
+	color.x = buf[psi];
+	color.y = buf[psi+1];
+	color.z = buf[psi+2];
+	color.w = buf[psi+3];
+	return color;
+}
+
+
 /// Sets color of target pixel. 
 void Texture::SetPixel(Vector2i location, Vector4f color, int pixelSize)
 {

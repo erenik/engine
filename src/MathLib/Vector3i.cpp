@@ -4,6 +4,7 @@
 #include "AEMath.h"
 #include "Vector2i.h"
 #include "Vector3i.h"
+#include "Vector4i.h"
 #include "Vector3f.h"
 #include <cassert>
 #include <fstream>
@@ -45,6 +46,13 @@ Vector3i::Vector3i(const Vector2i & base){
 	y = base.y;
 	z = 0;
 }
+Vector3i::Vector3i(const Vector4i& base)
+{
+	x = base.x;
+	y = base.y;
+	z = base.z;
+}
+
 /** Constructor, based on Vector3f equivalent
 */
 Vector3i::Vector3i(const Vector3f & base){

@@ -276,7 +276,7 @@ Texture * TextureManager::GenerateTexture(String withName, Vector4f andColor)
 	return newTex;
 }
 
-Texture * TextureManager::LoadTexture(String source)
+Texture * TextureManager::LoadTexture(String source, bool noPathAdditions)
 {
 	source = FilePath::MakeRelative(source);
 	for (int i = 0; i < textures.Size(); ++i){
@@ -286,11 +286,13 @@ Texture * TextureManager::LoadTexture(String source)
 			return textures[i];
 		}
 	}
-	if (!(source.Contains("img/") || source.Contains("img\\")
-		|| source.Contains("anim/") || source.Contains("anim\\")
-		|| source.Contains(":\\") || source.Contains(":/")))
-		source = "img/" + source;
-
+	if (!noPathAdditions)
+	{
+		if (!(source.Contains("img/") || source.Contains("img\\")
+			|| source.Contains("anim/") || source.Contains("anim\\")
+			|| source.Contains(":\\") || source.Contains(":/")))
+			source = "img/" + source;
+	}
 	if (!source.Contains("."))
 		source = source + ".png";
     source.Replace('\\', '/');

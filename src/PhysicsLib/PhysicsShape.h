@@ -7,12 +7,11 @@
 
 namespace PhysicsShape  {
 	enum PhysicsShapes {
-		NULL_TYPE,
+		SPHERE,		// Uses the Entity's internal [radius] and [position]
 		PLANE,	// An unlimited plane!
 		TRIANGLE,	// A trilangle o-o
 		QUAD,		// A quad o-o;
 		CYLINDER,
-		SPHERE,		// Uses the Entity's internal [radius] and [position]
 		MESH, // Usually refers to PhysicsMesh class.
 		/// Don't mess with the order here, only insert new ones below as the save/load relies on this list for the physics. :)
 		CUBE,

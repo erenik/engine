@@ -10,6 +10,7 @@ include(../../CMakeMacros.txt)
 # Add only specific directories
 add_subdirectory(Tetris)
 add_subdirectory(MORPG)
+add_subdirectory(SpaceShooter2D)
 
 
 

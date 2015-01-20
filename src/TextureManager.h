@@ -39,8 +39,9 @@ public:
 	int LoadTextures(List<String> & texturesToLoad);
 	/** Loads target texture into memory, queueing it's bufferization to the graphicsManager. Returns the Texture's address.
 		If already loaded, returns a pointer to the pre-existing texture.
+		By default textures are assumed to be located in the /img/ directory. If some other path is requested noPathAdditions should be set to true.
 	*/
-	Texture * LoadTexture(String source);
+	Texture * LoadTexture(String source, bool noPathAdditions = false);
 	/// Loads all required textures for the specified state into memory.   WHAT.. I don't even
 	bool LoadTextures(int state);
 	/// Loads all textures required by target Entity.

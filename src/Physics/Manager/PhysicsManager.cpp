@@ -190,7 +190,7 @@ void PhysicsManager::AttachPhysicsTo(Entity * entity){
 
 /// Sets physics type of target entity.
 void PhysicsManager::SetPhysicsType(Entity * entity, int type){
-	if (type <= PhysicsType::NULL_TYPE || type >= PhysicsType::NUM_TYPES){
+	if (type < PhysicsType::STATIC || type >= PhysicsType::NUM_TYPES){
 		std::cout<<"\nERROR: Invalid physics type provided!";
 		return;
 	}
@@ -209,7 +209,7 @@ void PhysicsManager::SetPhysicsType(Entity * entity, int type){
 
 /// Sets physics type of target entities.
 void PhysicsManager::SetPhysicsType(List<Entity*> & targetEntities, int type){
-	if (type <= PhysicsType::NULL_TYPE || type >= PhysicsType::NUM_TYPES){
+	if (type >= PhysicsType::STATIC || type >= PhysicsType::NUM_TYPES){
 		std::cout<<"\nERROR: Invalid physics type provided!";
 		return;
 	}
@@ -224,7 +224,7 @@ void PhysicsManager::SetPhysicsType(List<Entity*> & targetEntities, int type){
 /// Sets physics shape (Plane, Sphere, Mesh, etc.)
 void PhysicsManager::SetPhysicsShape(List<Entity*> targetEntities, int type)
 {
-	if (type <= ShapeType::NULL_TYPE|| type >= ShapeType::NUM_TYPES){
+	if (type < ShapeType::SPHERE || type >= ShapeType::NUM_TYPES){
 		std::cout<<"\nERROR: Invalid physics type provided!";
 		return;
 	}

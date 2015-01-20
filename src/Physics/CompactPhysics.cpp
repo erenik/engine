@@ -78,8 +78,8 @@ bool CompactPhysics::ReadFrom(std::fstream& file){
 	file.read((char*) &physicsShape, sizeof(int));
 
 	/// Simple checks..
-	assert(type != PhysicsType::NULL_TYPE && type < PhysicsType::NUM_TYPES);
-	assert(physicsShape != ShapeType::NULL_TYPE && type < ShapeType::NUM_TYPES);
+	assert(type >= PhysicsType::STATIC && type < PhysicsType::NUM_TYPES);
+	assert(physicsShape >= ShapeType::SPHERE && type < ShapeType::NUM_TYPES);
 
 	file.read((char*) &state, sizeof(int));
 	file.read((char*) &physicalRadius, sizeof(float));
@@ -122,8 +122,8 @@ bool CompactPhysics::ReadFrom(std::fstream& file){
 /// Write data to file stream
 bool CompactPhysics::WriteTo(std::fstream& file){
 	/// Simple checks..
-	assert(type != PhysicsType::NULL_TYPE && type < PhysicsType::NUM_TYPES);
-	assert(physicsShape != ShapeType::NULL_TYPE && type < ShapeType::NUM_TYPES);
+	assert(type >= PhysicsType::STATIC && type < PhysicsType::NUM_TYPES);
+	assert(physicsShape >= ShapeType::SPHERE && type < ShapeType::NUM_TYPES);
 
 	/// First write a version. Always fucking write a version.
 	int version = CP_CURRENT_VERSION;

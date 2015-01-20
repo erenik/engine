@@ -87,6 +87,8 @@ public:
 	Vector4f GetPixel(int index);
 	/// Gets color data from specified pixel in RGBA
 	Vector4f GetPixel(int x, int y);
+	/// Gets color data from specified pixel in RGBA
+	Vector4i GetPixelVec4i(int x, int y);
 
 	/// Sets color of target pixel. Pixel size in pixels x pixels.
 	void SetPixel(Vector2i location, Vector4f color, int pixelSize = 1);

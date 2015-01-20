@@ -112,11 +112,6 @@ int CollisionDetector::DetectCollisions(Entity * one, Entity * two, List<Collisi
 			shouldCollide = true;
 		}
 	}
-	else if (shapeTypes[ShapeType::NULL_TYPE] > 0){
-
-		std::cout<<"\nINFO: PhysicsShape is NULL_TYPE yet part of dynamic calculations!";
-		assert(false && "Bad type in PhysicsManager::TestCollision");
-	}
 	else if (shapeTypes[ShapeType::TRIANGLE] && shapeTypes[ShapeType::SPHERE]){
 		Entity * tri = NULL,
 			* sphere= NULL;
