@@ -50,11 +50,15 @@ int PhysicsManager::RegisterEntity(Entity * newEntity)
     newEntity->physics->UpdateProperties(newEntity);
 
 	/// Add only to octree/AABB-list if flagged to enable collissions!!
-	if (newEntity->physics->collissionsEnabled){
-		entityCollisionOctree->AddEntity(newEntity);
-		assert(newEntity->physics->octreeNode);
-//		std::cout<<"\nRegistering entity for AABBSweeper..";
-		aabbSweeper->RegisterEntity(newEntity);
+	if (newEntity->physics->collissionsEnabled)
+	{
+		if (checkType == OCTREE)
+		{
+			entityCollisionOctree->AddEntity(newEntity);
+			assert(newEntity->physics->octreeNode);
+		}
+		else if (checkType == AABB_SWEEP)
+			aabbSweeper->RegisterEntity(newEntity);
 	}
 	else {
 	//	std::cout<<"\nWARNING: Entity: "<<newEntity->name<<" not flagged for physics! Is this the intent?";
@@ -156,10 +160,13 @@ int PhysicsManager::UnregisterEntity(Entity * entityToRemove)
  //   std::cout<<"\nCollision enabled for entity? "<<entityToRemove->physics->collissionsEnabled;
 
 	/// Remove from octree/AABB-sweeper
-	if (entityToRemove->physics->collissionsEnabled){
-		removedResult = entityCollisionOctree->RemoveEntity(entityToRemove);
+	if (entityToRemove->physics->collissionsEnabled)
+	{
+		if (checkType == OCTREE)
+			removedResult = entityCollisionOctree->RemoveEntity(entityToRemove);
 	//	std::cout<<"\nUnregistering from aabbsweeper...";
-		aabbSweeper->UnregisterEntity(entityToRemove);
+		else if (checkType == AABB_SWEEP)
+			aabbSweeper->UnregisterEntity(entityToRemove);
 	}
 	else {
 		while(entityCollisionOctree->Exists(entityToRemove)){

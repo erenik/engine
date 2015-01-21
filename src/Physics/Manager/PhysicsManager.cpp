@@ -22,6 +22,7 @@
 #include "PhysicsLib/Shapes/Quad.h"
 #include "PhysicsLib/Shapes/Cube.h"
 #include "PhysicsLib/Shapes/Ray.h"
+#include "PhysicsLib/Shapes/OBB.h"
 
 #include "Mesh/Mesh.h"
 
@@ -96,6 +97,12 @@ PhysicsManager::~PhysicsManager()
 	SAFE_DELETE(collisionDetector);
 }
 
+int PhysicsManager::RegisteredEntities()
+{
+	return this->physicalEntities.Size();
+}
+
+
 /// Performs various tests in order to optimize performance during runtime later.
 void PhysicsManager::Initialize(){
 	entityCollisionOctree = new PhysicsOctree();
@@ -164,6 +171,23 @@ List<Intersection> PhysicsManager::Raycast(Ray & ray)
 	// Resume if paused.
 	Resume();
 	return intersections;
+}
+
+void PhysicsManager::RecalculateAABBs()
+{
+	for (int i = 0; i < dynamicEntities.Size(); ++i)
+	{
+		Entity * dynamicEntity = dynamicEntities[i];
+        dynamicEntity->physics->aabb->Recalculate(dynamicEntity);
+    }
+}
+void PhysicsManager::RecalculateOBBs()
+{
+	for (int i = 0; i < dynamicEntities.Size(); ++i)
+	{
+		Entity * dynamicEntity = dynamicEntities[i];
+	  	dynamicEntity->physics->obb->Recalculate(dynamicEntity);
+    }
 }
 
 

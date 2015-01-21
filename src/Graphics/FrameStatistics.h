@@ -20,16 +20,20 @@ public:
 	static FrameStatistics * Instance();
 
 	/// Anulls the frame stats (only for current-frame statistics, not FPS et al)
-	void Reset();
+	void ResetGraphics();
+	void ResetPhysics();
 	void Print();
 
 	/// And the stats!
 	float sceneTime, alphaTime, effectsTime, uiTime;
 
 	float graphicsMessages, renderTotal, totalGraphics;
+	float updateLighting, graphicsRepositionEntities, graphicsProcess;
+	float renderSortEntities, renderEntities, renderPrePipeline, renderPostPipeline;
 	float multimedia;
 	float physicsProcessing, physicsMessages, totalPhysics, 
-		physicsIntegration;
+		physicsIntegration, physicsRecalcAABBs, physicsRecalcOBBs,
+		physicsRecalcProps;
 
 
 	/// Pushes the frame time which is then used to calculate the average frame-time.
@@ -38,11 +42,14 @@ public:
 	/// Returns the average fps, calculated using the PushFrameTime function and a predefined amount of frames to consider when calculating average frame-time.
 	float FPS();
 
+	void QueuePrint();
+	bool printQueued;
 private:
     int maxFramesToConsider;
     float averageFrameTime;
 	List<float> frameTimes;
 	float fps;
+
 
 	float lastSceneTime, lastAlphaTime, lastEffectsTime, lastUITime;
 

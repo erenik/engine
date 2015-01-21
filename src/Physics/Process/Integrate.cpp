@@ -11,11 +11,14 @@
 #include "PhysicsLib/Shapes/AABB.h"
 #include "PhysicsLib/Shapes/OBB.h"
 
+#include "Graphics/FrameStatistics.h"
 
 void PhysicsManager::Integrate(float timeInSecondsSinceLastUpdate)
 {
     assert(timeInSecondsSinceLastUpdate > 0);
 
+	Timer timer;
+	timer.Start();
 	if (physicsIntegrator)
 	{
 		physicsIntegrator->IsGood();
@@ -76,31 +79,48 @@ void PhysicsManager::Integrate(float timeInSecondsSinceLastUpdate)
 
 		}
 	}
+	timer.Stop();
+	int64 ms = timer.GetMs();
+	FrameStats.physicsIntegration += ms;
+//	std::cout<<"\nIntegration: "<<ms;
+
+	timer.Start();
+	//             if (checkType == OCTREE)	entityCollisionOctree->RepositionEntity(dynamicEntity);
+	
+	/// Reposition the entities as appropriate within the optimization structures.
+	RecalculateAABBs();
+	timer.Stop();
+	ms = timer.GetMs();
+	FrameStats.physicsRecalcAABBs += ms;
+//	std::cout<<"\nRe-calculating AABBs: "<<ms;
+
+	bool recalculateOBBs = false;
+	if (recalculateOBBs)
+	{
+		timer.Start();
+		RecalculateOBBs();
+		timer.Stop();
+		ms = timer.GetMs();
+		FrameStats.physicsRecalcOBBs += ms;
+//		std::cout<<"\nRe-calculating OBBs: "<<ms;
+	}
+
+	timer.Start();
 	/// Reposition the entities as appropriate within the optimization structures.
 	for (int i = 0; i < dynamicEntities.Size(); ++i)
 	{
 		Entity * dynamicEntity = dynamicEntities[i];
 		PhysicsProperty * pp = dynamicEntity->physics;
         Vector3f vel = dynamicEntity->physics->velocity;
-        /// Update octree or AABB position as needed.
-        if (dynamicEntity->physics->collissionsEnabled)
-		{
-            if (checkType == OCTREE)
-			{
-				entityCollisionOctree->RepositionEntity(dynamicEntity);
-			}
-            else if (checkType == AABB_SWEEP){
-                /// Recalculate AABB
-                dynamicEntity->physics->aabb->Recalculate(dynamicEntity);
-                dynamicEntity->physics->obb->Recalculate(dynamicEntity);
-            }
-        }
-
 		/// Re-calculate physical radius.
 		pp->physicalRadius = dynamicEntity->radius * dynamicEntity->scale.MaxPart();
-
     //    std::cout<<"\nPost-positioning Velocity: "<<dynamicEntity->physics->velocity;
         /// Ensure that the movement didn't adjust the velocity...
         assert(vel.x == dynamicEntity->physics->velocity.x);
 	}
+	timer.Stop();
+	ms = timer.GetMs();
+	FrameStats.physicsRecalcProps += ms;
+//	std::cout<<"\nRepositioning and re-calculating properties: "<<ms;
+
 }

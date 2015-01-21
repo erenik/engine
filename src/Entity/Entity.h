@@ -206,6 +206,11 @@ public:
 	Player * player;
 	/// If a camera is currently tracking this entity, it should be stored here. This will be set from the graphics-thread by the CameraManager ALONE!
 	Camera * cameraFocus;
+
+	/// Used in Recalc of AABB. Set to true if they have been.
+	bool hasRescaled;
+	bool hasRotated;
+
 private:
 
 	/// Texture to be used for this Entity. TODO: Rename to DiffuseMap?

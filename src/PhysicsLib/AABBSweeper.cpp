@@ -77,21 +77,25 @@ void AABBSweeper::RegisterEntity(Entity * entity)
 void AABBSweeper::UnregisterEntity(Entity * entity)
 {
   //  std::cout<<"\nUnregistering entity from AABBSweeper: "<<entity->name;
-    AABBSweepNode * removed = NULL;
-    for (int i = 0; i < axesToWorkWith; ++i){
+	int removed = 0;
+    for (int i = 0; i < axesToWorkWith; ++i)
+	{
         /// Needed reference & so that it didn't copy the fucking list!
         List<AABBSweepNode*> & axis = axisNodeList[i];
-  //      std::cout<<"\nNodes before removal: "<<axis.Size();
-
-        removed = axis.Remove(entity->physics->aabbSweepNodes[0], ListOption::RETAIN_ORDER);
-        assert(removed);
-        if (removed)
-            delete(removed);
-        removed = axis.Remove(entity->physics->aabbSweepNodes[1], ListOption::RETAIN_ORDER);
-        if (removed)
-            delete(removed);
-   //     std::cout<<"\nNodes after removal: "<<axis.Size();
+		for (int j = 0; j < axis.Size(); ++j)
+		{
+			// Remove all nodes that reference the entity.
+			AABBSweepNode * node = axis[j];
+			if (node->entity == entity)
+			{
+				axis.Remove(node, ListOption::RETAIN_ORDER);
+				--j;
+				delete node;
+			}
+		}
     }
+	if (removed != 2 && removed != 0)
+		std::cout<<"\nRemoved: "<<removed;
 }
 
 /// Returns the amount of nodes currently registered. Should always be registeredEntities * 2.
@@ -109,10 +113,9 @@ int AABBSweeper::Nodes(){
 
 /// Performs the sweep (including sort) and returns a list of all entity pairs whose AABBs are intersecting.
 /// Should be called once per physics frame if in use.
-List<EntityPair> AABBSweeper::Sweep(){
-
+List<EntityPair> AABBSweeper::Sweep()
+{
     assert(axesToWorkWith == 1 && "Sorry! Support only 1 active axis for the time being!");
-
     /// Only sort one axis to begin with?
     for (int i = 0; i < axesToWorkWith; ++i){
         /// Reference...!
@@ -121,34 +124,44 @@ List<EntityPair> AABBSweeper::Sweep(){
         Sort(axis, i);
     }
 
-    /// Sweepty sweep.
-    List<Entity*> activeEntities;
-    List<EntityPair> entityPairs;
-    for (int i = 0; i < axesToWorkWith; ++i){
+    /// Sweepty sweep. Static so re-allocation aren't performed in vain every physics-frame.
+	static List<Entity*> activeEntities;
+    static List<EntityPair> entityPairs;
+	entityPairs.Clear();
+    for (int i = 0; i < axesToWorkWith; ++i)
+	{
         /// Clear the active entities list.
         activeEntities.Clear();
         List<AABBSweepNode*> axis = axisNodeList[i];
-        for (int j = 0; j < axis.Size(); ++j){
+        for (int j = 0; j < axis.Size(); ++j)
+		{
             AABBSweepNode * node = axis[j];
-
             /// If it's a start node, add it to the active list.
-            if (node->type == AABBSweepNode::START){
+            if (node->type == AABBSweepNode::START)
+			{
         //        std::cout<<"\nActive entities: "<<activeEntities.Size()<<". Adding that many pairs (probably?)";
                 /// Also create pairs from it with all other already active entities...!
-                for (int k = 0; k < activeEntities.Size(); ++k){
-                    Entity * e = activeEntities[k];
+                for (int k = 0; k < activeEntities.Size(); ++k)
+				{
+                    Entity * entity = activeEntities[k];
                     /// Skip self, but create a pair for the remaining.
-                    if (e == node->entity)
+                    if (entity == node->entity)
                         continue;
+					if (
+						(
+							(entity->physics->collisionCategory & node->entity->physics->collisionFilter) && 
+							(entity->physics->collisionFilter & node->entity->physics->collisionCategory)
+						) == false)
+						continue;
                     EntityPair ep;
                     /// Sort them by address (hopefully it works)
-                    if (e < node->entity){
-                        ep.one = e;
+                    if (entity < node->entity){
+                        ep.one = entity;
                         ep.two = node->entity;
                     }
                     else {
                         ep.one = node->entity;
-                        ep.two = e;
+                        ep.two = entity;
                     }
           //          std::cout<<"\nAdding pair: "<<ep.one<<" "<<ep.one->position<<" & "<<ep.two<<" "<<ep.two->position;
                     entityPairs.Add(ep);
@@ -185,13 +198,11 @@ List<EntityPair> AABBSweeper::Sweep(){
         else
             ;//         std::cout<<"\nKeeping pair.";
     }
-
   //  std::cout<<"\nSecondary axises checked, pairs are now as follows:";
     for (int i = 0; i < entityPairs.Size(); ++i){
         EntityPair ep = entityPairs[i];
   //      std::cout<<"\nPair "<<i<<": "<<ep.one<<" "<<ep.one->position<<" & "<<ep.two<<" "<<ep.two->position;
     }
-
  //   std::cout<<"\nAA-AABB pairs after examining the remaining two axes: "<<entityPairs.Size();
     return entityPairs;
 }
@@ -206,18 +217,20 @@ enum axes {
 */
 /// Insertionsort reference: http://en.wikipedia.org/wiki/Insertion_sort
 /// Sorts the selected axis, using provided list and axis number (X being 1, Y 2 and Z 3)
-void AABBSweeper::Sort(List<AABBSweepNode*> & listToSort, int axis){
+void AABBSweeper::Sort(List<AABBSweepNode*> & listToSort, int axis)
+{
     /// Insertion sort the shit out of the list, yo!
-    AABBSweepNode ** array = listToSort.GetArray();
+    AABBSweepNode ** listArray = listToSort.GetArray();
     int items = listToSort.Size();
 
     AABBSweepNode * currentNode, * comparisonNode, * tempSwapNode;
     float currentValue, comparisonValue;
     int emptySlot;
     /// Manual sort, commence!
-    for (int i = 1; i < items; ++i){
+    for (int i = 1; i < items; ++i)
+	{
         /// Grab current node, starting from index 0 and moving towards the end.
-        currentNode = array[i];
+        currentNode = listArray[i];
         /// Mark this index as empty for the time being.
         emptySlot = i;
         /// Extract current value depending on the node type (start, stop) and axis.
@@ -231,8 +244,9 @@ void AABBSweeper::Sort(List<AABBSweepNode*> & listToSort, int axis){
         }
 
         /// Assume all previous nodes have already been sorted, and compare only with them (comparing downwards)!
-        for (int j = i-1; j >= 0; --j){
-            comparisonNode = array[j];
+        for (int j = i-1; j >= 0; --j)
+		{
+            comparisonNode = listArray[j];
 
             /// Extract comparison value depending on the node type (start, stop) and axis.
             if (comparisonNode->type == AABBSweepNode::START)
@@ -244,7 +258,7 @@ void AABBSweeper::Sort(List<AABBSweepNode*> & listToSort, int axis){
 
             /// If the current value is less, move up the comparer and move down the empty slot index.
             if (currentValue < comparisonValue){
-                array[emptySlot] = array[j];
+                listArray[emptySlot] = listArray[j];
                 --emptySlot;
             }
             /// A lesser value was encountered! Stop shuffling around and place the current node in the now empty slot.
@@ -253,6 +267,6 @@ void AABBSweeper::Sort(List<AABBSweepNode*> & listToSort, int axis){
                 break;
             }
         }
-        array[emptySlot] = currentNode;
+        listArray[emptySlot] = currentNode;
     }
 }

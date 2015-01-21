@@ -101,19 +101,27 @@ void PhysicsManager::ProcessPhysics()
 		/// Awesome.
 		Integrate(timeInSecondsSinceLastUpdate);
 		moving.Stop();
-		integration += moving.GetMs();
+		int64 ms = moving.GetMs();
+		integration += ms;
 
 		/// Apply external constraints
 	//	ApplyContraints();
 		
+
 		/// Apply pathfinding for all relevant entities
 		ApplyPathfinding();
         
+		Timer collisionTimer;
+		collisionTimer.Start();
 		/// Detect collisions.
 		List<Collision> collisions;
+		// Generate pair of possible collissions via some optimized way (AABB-sorting or Octree).
+		List<EntityPair> pairs = this->aabbSweeper->Sweep();
+//		std::cout<<"\nAABB sweep pairs: "<<pairs.Size()<<" with "<<physicalEntities.Size()<<" entities";
+
 		if (collisionDetector)
 		{
-			collisionDetector->DetectCollisions(physicalEntities, collisions);
+			collisionDetector->DetectCollisions(pairs, collisions);
 		}
 		// Old approach which combined collision-detection and resolution in a big mess...
 		else 
@@ -124,10 +132,15 @@ void PhysicsManager::ProcessPhysics()
 		if (collisionResolver)
 			collisionResolver->ResolveCollisions(collisions);
 
+		int64 colMs = collisionTimer.GetMs();
+		if (colMs > 50)
+		{
+			std::cout<<"\nCollision detection and resolution taking "<<colMs<<" milliseconds per frame.";
+		}
 	}
 
 	// Reset previous frame-times
-	FrameStats.physicsIntegration = integration;
+//	FrameStats.physicsIntegration = integration;
 	collissionProcessingFrameTime = 0;
 	physicsMeshCollisionChecks = 0;
 }

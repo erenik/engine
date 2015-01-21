@@ -5,7 +5,8 @@
 #include "../GraphicsManager.h"
 #include "GraphicsMessages.h"
 
-GMUnregisterEntity::GMUnregisterEntity(Entity * i_entity) : GraphicsMessage(GM_UNREGISTER_ENTITY){
+GMUnregisterEntity::GMUnregisterEntity(Entity * i_entity) : GraphicsMessage(GM_UNREGISTER_ENTITY)
+{
 	entity = i_entity;
 }
 

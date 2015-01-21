@@ -15,7 +15,7 @@ class Color : public Vector4f
 public:
 	// o.o
 	Color();
-	Color(Vector4f & fromVector);
+	Color(const Vector4f & fromVector);
 	/// Filled with 4 unsigned bytes.
 	Color(uchar r, uchar g, uchar b, uchar a);
 	/// E.g. "0x115588AA"

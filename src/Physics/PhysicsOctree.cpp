@@ -240,8 +240,10 @@ bool PhysicsOctree::RepositionEntity(Entity * entity)
 }
 
 // Removes a scenegraph Entity from this vfcOctree. Searches recursively until.
-bool PhysicsOctree::RemoveEntity(Entity * targetEntity){
-	if (entities.Remove(targetEntity)){
+bool PhysicsOctree::RemoveEntity(Entity * targetEntity)
+{
+	if (entities.Remove(targetEntity))
+	{
 		targetEntity->physics->octreeNode = NULL;
 		return true;
 	}

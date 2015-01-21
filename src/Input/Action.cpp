@@ -176,7 +176,7 @@ void Action::TriggerStart()
 		}
 		case PRINT_FRAME_TIME:
 		{
-			FrameStats.Print();
+			FrameStats.QueuePrint();
             break;
 		}
 		case PRINT_PLAYER_INPUT_DEVICES: {

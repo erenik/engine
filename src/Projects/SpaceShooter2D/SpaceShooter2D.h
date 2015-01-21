@@ -5,40 +5,69 @@
 
 #include "AppStates/AppState.h"
 
-class Ship 
-{
-public:
-	Ship();
-	~Ship();
-	/// Creates new ship of specified type.
-	static Ship New(String type);
-	String type;
-	// Default false
-	bool spawned;
-	Entity * entity;
-	// Data details.
-	// Spawn position.
-	Vector3f position;
-	/// As loaded.
-	static List<Ship> types;
-private:
+#include "Ship.h"
+#include "ShipProperty.h"
+#include "Weapon.h"
+#include "Level.h"
+#include "SSIntegrator.h"
+
+#include "Entity/EntityManager.h"
+
+#include "Physics/PhysicsManager.h"
+#include "Physics/Messages/PhysicsMessage.h"
+
+#include "Model/Model.h"
+
+#include "Texture.h"
+#include "TextureManager.h"
+
+#include "Model/ModelManager.h"
+
+#include "StateManager.h"
+
+#include "UI/UserInterface.h"
+
+#include "String/StringUtil.h"
+
+#include "Message/MessageManager.h"
+#include "Message/Message.h"
+
+#include "File/File.h"
+#include "File/FileUtil.h"
+
+#include "Maps/MapManager.h"
+
+#include "Network/NetworkManager.h"
+
+#include "Script/Script.h"
+#include "Script/ScriptManager.h"
+
+#include "Graphics/GraphicsManager.h"
+#include "Graphics/Messages/GMSet.h"
+#include "Graphics/Messages/GMUI.h"
+#include "Graphics/Messages/GMCamera.h"
+#include "Graphics/Messages/GMSetEntity.h"
+#include "Graphics/Camera/Camera.h"
+
+#include "Game/SpaceShooter/SpaceShooterCD.h"
+#include "Game/SpaceShooter/SpaceShooterCR.h"
+
+#include "ShipProperty.h"
+#include "ProjectileProperty.h"
+
+// Collision categories.
+#define CC_PLAYER	1 
+#define CC_ENEMY	2
+
+enum {
+	SHIP_PROP,
+	PROJ_PROP,
 };
 
-class Level 
-{
-public:
-	/// Ships within.
-	List<Ship> ships;
-	/// To determine when things spawn and the duration of the entire "track".
-	int millisecondsPerPixel;
-	/// Music source to play.
-	String music;
-};
-
-
-class SpaceShooterIntegrator;
 class SpaceShooterCR;
 class SpaceShooterCD;
+
+extern int64 nowMs;
 
 class SpaceShooter2D : public AppState 
 {
@@ -61,28 +90,52 @@ public:
 	/// Creates default key-bindings for the state.
 	virtual void CreateDefaultBindings();
 
-private:
+	void UpdateUI();
+	/// Update UI
+	void UpdatePlayerHP();
+	/// Update ui
+	void OnScoreUpdated();
+	/// o.o
+	Entity * OnShipDestroyed(Ship * ship);
+
+	/// o.o
+	int score;
+
+
+// private:
+
 	/// Starts a new game. Calls LoadLevel
 	void NewGame();
 	/// Loads target level. The source and separate .txt description have the same name, just different file-endings, e.g. "Level 1.png" and "Level 1.txt"
 	void LoadLevel(String levelSource);
+	void GameOver();
 
 	void UpdatePlayerVelocity();
+	void ResetCamera();
+
+	/// Process target ship.
+	void Process(Ship & ship);
+	
 
 	enum {
 		IN_MENU,
 		PLAYING_LEVEL,
+		GAME_OVER,
 	};
 	int mode;
-	SpaceShooterIntegrator * integrator;
+	SSIntegrator * integrator;
 	SpaceShooterCR * cr;
 	SpaceShooterCD * cd;
 	Level level;
-	Camera * levelCamera;
-	Entity * playerShip;
+	Ship * playerShip;
 	List<int> movementDirections;
 	/// All ships, including player.
 	List<Entity*> shipEntities;
+	List<Entity*> projectileEntities;
+
+	String levelSource;
 };
 
+
+extern SpaceShooter2D * spaceShooter;
 

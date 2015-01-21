@@ -8,47 +8,12 @@
 #include "Application/Application.h"
 #include "StateManager.h"
 
-#include "Graphics/GraphicsManager.h"
-#include "Graphics/Messages/GMSet.h"
-#include "Graphics/Messages/GMUI.h"
-#include "Graphics/Messages/GMCamera.h"
-#include "Graphics/Messages/GMSetEntity.h"
-#include "Graphics/Camera/Camera.h"
-
-#include "Entity/EntityManager.h"
-
-#include "Physics/PhysicsManager.h"
-#include "Physics/Messages/PhysicsMessage.h"
-
 #include "Input/InputManager.h"
 #include "Input/Action.h"
 
-#include "Model/Model.h"
 
-#include "Texture.h"
-#include "TextureManager.h"
-
-#include "Model/ModelManager.h"
-
-#include "StateManager.h"
-
-#include "UI/UserInterface.h"
-
-#include "Message/MessageManager.h"
-#include "Message/Message.h"
-
-#include "File/FileUtil.h"
-
-#include "Maps/MapManager.h"
-
-#include "Network/NetworkManager.h"
-
-#include "Script/Script.h"
-#include "Script/ScriptManager.h"
-
-#include "Game/SpaceShooter/SpaceShooterIntegrator.h"
-#include "Game/SpaceShooter/SpaceShooterCD.h"
-#include "Game/SpaceShooter/SpaceShooterCR.h"
+List<Weapon> Weapon::types;
+List<Ship> Ship::types;
 
 void SetApplicationDefaults()
 {
@@ -56,32 +21,16 @@ void SetApplicationDefaults()
 	TextFont::defaultFontSource = "img/fonts/font3.png";
 }
 
+
+SpaceShooter2D * spaceShooter = NULL;
+
 void RegisterStates()
 {
-	SpaceShooter2D * ss = new SpaceShooter2D();
-	StateMan.RegisterState(ss);
-	StateMan.QueueState(ss);
+	spaceShooter = new SpaceShooter2D();
+	StateMan.RegisterState(spaceShooter);
+	StateMan.QueueState(spaceShooter);
 }
 
-Ship::Ship()
-{
-	spawned = false;
-	entity = NULL;
-}
-Ship::~Ship()
-{
-	
-}
-
-
-/// Creates new ship of specified type.
-Ship Ship::New(String type)
-{
-	// For now, just add a default one.
-	Ship ship;
-	ship.type = type;
-	return ship;
-}
 
 
 SpaceShooter2D::SpaceShooter2D()
@@ -91,7 +40,7 @@ SpaceShooter2D::SpaceShooter2D()
 }
 SpaceShooter2D::~SpaceShooter2D()
 {
-
+	SAFE_DELETE(playerShip);
 }
 /// Function when entering this state, providing a pointer to the previous StateMan.
 void SpaceShooter2D::OnEnter(AppState * previousState)
@@ -106,7 +55,7 @@ void SpaceShooter2D::OnEnter(AppState * previousState)
 	mode = IN_MENU;
 
 	// Load Space Race integrator
-	integrator = new SpaceShooterIntegrator(0.f);
+	integrator = new SSIntegrator(0.f);
 	PhysicsMan.QueueMessage(new PMSet(integrator));
 	cd = new SpaceShooterCD();
 	PhysicsMan.QueueMessage(new PMSet(cd));
@@ -117,30 +66,108 @@ void SpaceShooter2D::OnEnter(AppState * previousState)
 	Script * script = new Script();
 	script->Load("OnEnter.ini");
 	ScriptMan.PlayScript(script);
+
+	PhysicsMan.checkType = AABB_SWEEP;
 }
+
+
+Time now;
+int64 nowMs;
+int timeElapsedMs;
 
 /// Main processing function, using provided time since last frame.
 void SpaceShooter2D::Process(int timeInMs)
 {
+	Sleep(10);
+//	std::cout<<"\nSS2D entities: "<<shipEntities.Size() + projectileEntities.Size() + 1;
+//	if (playerShip) std::cout<<"\nPlayer position: "<<playerShip->position;
+
+	now = Time::Now();
+	nowMs = (int) now.Milliseconds();
+	timeElapsedMs = timeInMs;
+
+	static int cpBarn = 0;
+	cpBarn += timeElapsedMs;
+	if (cpBarn > 1000)
+	{
+		std::cout<<"\nGraphics entities "<<GraphicsMan.RegisteredEntities()<<" physics "<<PhysicsMan.RegisteredEntities()
+			<<" projectiles "<<projectileEntities.Size()<<" ships "<<shipEntities.Size();
+		cpBarn = 0;
+		int duplicates = shipEntities.Duplicates();
+//		std::cout<<"\nDuplicates: "<<duplicates;
+	}
 	switch(mode)
 	{
 		case PLAYING_LEVEL:
 		{
+			// Check for game over.
+			if (playerShip->hitPoints <= 0)
+			{
+				// Game OVER!
+				GameOver();
+				break;
+			}
+
+			/// Clearing the level
+			if (playerShip->entity->position.x > level.goalPosition)
+			{
+				// Next level? Restart?
+				LoadLevel(levelSource);
+			}
+			/// Remove projectiles which have been passed by.
+			for (int i = 0; i < projectileEntities.Size(); ++i)
+			{
+				Entity * proj = projectileEntities[i];
+				if (proj->position.x < levelCamera->position.x - 20.f ||
+					proj->position.x > levelCamera->position.x + 40.f)
+				{
+					MapMan.DeleteEntity(proj);
+					int occurances = 0;
+					while(projectileEntities.Remove(proj))
+						++occurances;
+					if (occurances > 1)
+					{
+						std::cout<<"BAANANRANER";
+					}
+					--i;
+				}
+			}
 			// Check if we want to spawn any enemy ships.
 			// Add all enemy ships too?
 			for (int i = 0; i < level.ships.Size(); ++i)
 			{
 				Ship & ship = level.ships[i];
 				if (ship.spawned)
+				{
+					if (ship.entity == NULL)
+						continue;
+					// Check if it should de-spawn.
+					if (ship.entity->position.x < levelCamera->position.x - 25.f)
+					{
+						MapMan.DeleteEntity(ship.entity);
+						shipEntities.Remove(ship.entity);
+						ship.entity = NULL;
+					}
+					// If not, process it?
+					else {
+						Process(ship);
+					}
 					continue;
-				if (AbsoluteValue(levelCamera->position.x - ship.position.x) > 20.f)
+				}
+				if (AbsoluteValue(levelCamera->position.x - ship.position.x) > 50.f)
 					continue;
 				Entity * entity = EntityMan.CreateEntity(ship.type, ModelMan.GetModel("sphere.obj"), TexMan.GetTextureByColor(Color(0,255,0,255)));
 				entity->position = ship.position;
 				entity->RecalculateMatrix();
+				ShipProperty * sp = new ShipProperty(&ship, entity);
+				entity->properties.Add(sp);
 				ship.entity = entity;
 				ship.spawned = true;
+				shipEntities.Add(entity);
 				MapMan.AddEntity(entity);
+				// Only collide with the player.
+				PhysicsMan.QueueMessage(new PMSetEntity(entity, PT_COLLISION_FILTER, CC_PLAYER));
+				PhysicsMan.QueueMessage(new PMSetEntity(entity, PT_COLLISION_CATEGORY, CC_ENEMY));
 			}
 		}
 	}
@@ -149,7 +176,8 @@ void SpaceShooter2D::Process(int timeInMs)
 /// Function when leaving this state, providing a pointer to the next StateMan.
 void SpaceShooter2D::OnExit(AppState * nextState)
 {
-
+	MapMan.DeleteAllEntities();
+	Sleep(100);
 }
 
 
@@ -173,6 +201,23 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 		{
 			if (msg == "NewGame")
 				NewGame();
+			if (msg.StartsWith("DisplayCenterText"))
+			{
+				String text = msg;
+				text.Remove("DisplayCenterText");
+				text.RemoveInitialWhitespaces();
+				GraphicsMan.QueueMessage(new GMSetUIs("CenterText", GMUI::TEXT, text));
+			}
+			else if (msg == "ClearCenterText")
+				GraphicsMan.QueueMessage(new GMSetUIs("CenterText", GMUI::TEXT, Text()));
+			else if (msg == "OnReloadUI")
+			{
+				UpdateUI();
+			}
+			else if (msg == "ResetCamera")
+			{
+				ResetCamera();
+			}
 			if (msg.Contains("StartMoveShip"))
 			{
 				String dirStr = msg - "StartMoveShip";
@@ -197,129 +242,103 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 void SpaceShooter2D::CreateDefaultBindings()
 {
 	List<Binding*> & bindings = this->inputMapping.bindings;
-	bindings.Add(4,
-		new Binding(Action::CreateStartStopAction("MoveShipUp"), KEY::W),
-		new Binding(Action::CreateStartStopAction("MoveShipDown"), KEY::S),
-		new Binding(Action::CreateStartStopAction("MoveShipLeft"), KEY::A),
-		new Binding(Action::CreateStartStopAction("MoveShipRight"), KEY::D)
-		);
+#define BINDING(a,b) bindings.Add(new Binding(a,b));
+	BINDING(Action::CreateStartStopAction("MoveShipUp"), KEY::W);
+	BINDING(Action::CreateStartStopAction("MoveShipDown"), KEY::S);
+	BINDING(Action::CreateStartStopAction("MoveShipLeft"), KEY::A);
+	BINDING(Action::CreateStartStopAction("MoveShipRight"), KEY::D);
+	BINDING(Action::FromString("ResetCamera"), KEY::HOME);
+	BINDING(Action::FromString("NewGame"), List<int>(2, KEY::N, KEY::G));
 }
+
+/// Update UI
+void SpaceShooter2D::UpdatePlayerHP()
+{
+	GraphicsMan.QueueMessage(new GMSetUIs("HP", GMUI::TEXT, String(playerShip->hitPoints)));
+}
+// Update ui
+void SpaceShooter2D::OnScoreUpdated()
+{
+
+}
+
+/// o.o
+Entity * SpaceShooter2D::OnShipDestroyed(Ship * ship)
+{
+		// Explode
+//	Entity * explosionEntity = spaceShooter->NewExplosion(owner->position, ship);
+
+//	game->explosions.Add(explosionEntity);
+	return NULL;
+}
+
+
 
 
 /// Starts a new game. Calls LoadLevel
 void SpaceShooter2D::NewGame()
 {
-	LoadLevel("Levels/Stage 1/Level 1-1");
-}
-
-struct ShipColorCoding 
-{
-	String ship;
-	Vector3i color;
-};
-
-/// Loads target level. The source and separate .txt description have the same name, just different file-endings, e.g. "Level 1.png" and "Level 1.txt"
-void SpaceShooter2D::LoadLevel(String levelSource)
-{
-	/// Clear old stuff.
-	level.ships.Clear();
-
-	level.millisecondsPerPixel = 200;
-
-	String sourceTxt = levelSource + ".txt";
-	String sourcePng = levelSource + ".png";
-
-	List<ShipColorCoding> colorCodings;
-	List<String> lines = File::GetLines(sourceTxt);
-	for (int i = 0; i < lines.Size(); ++i)
-	{
-		String line = lines[i];
-		line.SetComparisonMode(String::NOT_CASE_SENSITIVE);
-		if (line.StartsWith("ShipType"))
-		{
-			List<String> tokens = line.Tokenize(" ");
-			ShipColorCoding newCode;
-			if (tokens.Size() < 2)
-				continue;
-			newCode.ship = tokens[1];
-			assert(tokens[2] == "RGB");
-			if (tokens.Size() < 6)
-			{
-				std::cout<<"ERrror";
-				continue;
-			}
-			newCode.color.x = tokens[3].ParseInt();
-			newCode.color.y = tokens[4].ParseInt();
-			newCode.color.z = tokens[5].ParseInt();
-			colorCodings.Add(newCode);
-		}
-	}
-
-	List<String> files ;
-	GetFilesInDirectory("Levels/Stage 1", files);  
-	Texture * tex = TexMan.LoadTexture(sourcePng, true);
-	tex->releaseOnBufferization = false;
-	assert(tex);
-	// Parse it.
-	for (int x = 0; x < tex->width; ++x)
-	{
-		// Get top.
-		int topY = tex->height - 1;
-		for (int y = topY; y > topY - 20; --y)
-		{
-			Vector3i color = tex->GetPixelVec4i(x,y);
-			// Skip if white.
-			if (color.x == 255 && color.y == 255 && color.z == 255)
-				continue;
-			std::cout<<"\nColor "<<color;
-			for (int i = 0; i < colorCodings.Size(); ++i)
-			{
-				ShipColorCoding & coding = colorCodings[i];
-				if (coding.color == color)
-				{
-					Ship newShip = Ship::New(coding.ship);
-					newShip.position.x = x;
-					newShip.position.y = 20 - (topY - y);
-					// Create ship.
-					level.ships.Add(newShip);
-				}
-			}
-		}
-	}
-	if (level.ships.Size() == 0)
-	{	
-		std::cout<<"\nError: No Ships in level.";
-		return;
-	}
-	mode = PLAYING_LEVEL;
-	// Hide main menu
-	GraphicsMan.QueueMessage(new GMSetUIb("MainMenu", GMUI::VISIBILITY, false, ui));
-	GraphicsMan.QueueMessage(new GMSetUIb("HUD", GMUI::VISIBILITY, true, ui));
-	// Add player?
 	if (!playerShip)
 	{
-		playerShip = EntityMan.CreateEntity("Player ship", ModelMan.GetModel("sphere.obj"), TexMan.GetTextureByColor(Color(255,0,0,255)));
-		shipEntities.Add(playerShip);
+		playerShip = new Ship();
+		playerShip->ai = false;
+		playerShip->allied = true;
+		Weapon weapon;
+		weapon.damage = 24;
+		weapon.cooldownMs = 200;
+		weapon.projectileSpeed = 24.f;
+		playerShip->weapons.Add(weapon);
 	}
-	// Set player to mid position.
-	PhysicsMan.QueueMessage(new PMSetEntity(playerShip, PT_SET_POSITION, Vector3f(0, 10.f, 0)));
-	// Register player for rendering.
-	MapMan.AddEntity(playerShip);
-	if (!levelCamera)
-		levelCamera = CameraMan.NewCamera();
-	// Set it up.
-	levelCamera->position = Vector3f(0,10,10);
-	levelCamera->rotation = Vector3f(0,0,0);
-//	levelCamera->Begin(Direction::RIGHT); // Move it..!
-//	levelCamera->
-	GraphicsMan.QueueMessage(new GMSetCamera(levelCamera));
+	// Reset player stats.
+	playerShip->hitPoints = playerShip->maxHitPoints = 500;
 
-	levelCamera->velocity = Vector3f(1,0,0);
-	// Begin movement of player too?
-	PhysicsMan.QueueMessage(new PMSetEntity(playerShip, PT_VELOCITY, Vector3f(1.f, 0, 0)));
-	// No gravity
-	PhysicsMan.QueueMessage(new PMSet(PT_GRAVITY, Vector3f(0,0,0)));
+	LoadLevel("Levels/Stage 1/Level 1-1");
+	mode = PLAYING_LEVEL;
+	UpdateUI();
+	// Play script for animation or whatever.
+	ScriptMan.PlayScript("scripts/NewGame.txt");
+
 }
+
+/// Loads target level. The source and separate .txt description have the same name, just different file-endings, e.g. "Level 1.png" and "Level 1.txt"
+void SpaceShooter2D::LoadLevel(String fromSource)
+{
+	this->levelSource = fromSource;
+	// Delete all entities.
+	MapMan.DeleteAllEntities();
+	level.Load(fromSource);
+	level.SetupCamera();
+	Sleep(50);
+	level.AddPlayer(playerShip);
+}
+
+void SpaceShooter2D::GameOver()
+{
+	mode = GAME_OVER;
+	// Play script for animation or whatever.
+	ScriptMan.PlayScript("scripts/GameOver.txt");
+	// End script by going back to menu or playing a new game.
+}
+
+/// Updates ui depending on mode.
+void SpaceShooter2D::UpdateUI()
+{
+	switch(mode)
+	{
+		case GAME_OVER:
+		case PLAYING_LEVEL:
+			// Hide main menu
+			GraphicsMan.QueueMessage(new GMSetUIb("MainMenu", GMUI::VISIBILITY, false, ui));
+			GraphicsMan.QueueMessage(new GMSetUIb("HUD", GMUI::VISIBILITY, true, ui));
+			UpdatePlayerHP();
+			break;
+		default:
+			GraphicsMan.QueueMessage(new GMSetUIb("MainMenu", GMUI::VISIBILITY, true, ui));
+			GraphicsMan.QueueMessage(new GMSetUIb("HUD", GMUI::VISIBILITY, false, ui));
+			break;
+	}
+}
+
 
 
 
@@ -331,9 +350,21 @@ void SpaceShooter2D::UpdatePlayerVelocity()
 		Vector3f vec = Direction::GetVector(movementDirections[i]);
 		totalVec += vec;
 	}
+	totalVec *= 8.f;
 	// Set player speed.
-	if (playerShip)
+	if (playerShip && playerShip->entity)
 	{
-		PhysicsMan.QueueMessage(new PMSetEntity(playerShip, PT_VELOCITY, totalVec + Vector3f(1,0,0)));
+		PhysicsMan.QueueMessage(new PMSetEntity(playerShip->entity, PT_VELOCITY, totalVec + level.BaseVelocity()));
 	}
+}
+
+void SpaceShooter2D::ResetCamera()
+{
+	levelCamera->projectionType = Camera::ORTHOGONAL;
+	levelCamera->zoom = 15.f;
+}
+
+/// Process target ship.
+void SpaceShooter2D::Process(Ship & ship)
+{
 }

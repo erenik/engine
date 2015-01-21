@@ -12,7 +12,7 @@ Color::Color()
 }
 
 
-Color::Color(Vector4f & fromVector)
+Color::Color(const Vector4f & fromVector)
 : Vector4f(fromVector)
 {
 	AssignName();

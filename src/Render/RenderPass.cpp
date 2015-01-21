@@ -14,6 +14,7 @@
 #include "Viewport.h"
 
 #include "Graphics/Particles/ParticleSystem.h"
+#include "Graphics/FrameStatistics.h"
 
 RenderPass::RenderPass()
 {
@@ -192,13 +193,20 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 		case RenderTarget::ENTITIES:
 		{
 			Entities entitiesToRender = graphicsState.entities;
+			Timer timer;
+			timer.Start();
 			entitiesToRender.SortByDistanceToCamera(graphicsState.camera);
+			timer.Stop();
+			FrameStats.renderSortEntities += timer.GetMs();
+			timer.Start();
 			// Render all entities listed in the graphicsState!
 			for (int i = 0; i < entitiesToRender.Size(); ++i)
 			{
 				Entity * entity = entitiesToRender[i];
 				entity->Render(graphicsState);
 			}
+			timer.Stop();
+			FrameStats.renderEntities += timer.GetMs();
 			// Only entities for now!
 			break;
 		}

@@ -5,7 +5,13 @@
 #include "BreakoutCD.h"
 
 /// Brute-force method. Does not rely on other structures that require further updates. All entities are present in the list.
-int BreakoutCD::DetectCollisions(List<Entity*> entities, List<Collision> & collisions)
+int BreakoutCD::DetectCollisions(List<EntityPair> & pairs, List<Collision> & collisions)
+{
+	return 0;
+}
+
+/// Brute-force method. Does not rely on other structures that require further updates. All entities are present in the list.
+int BreakoutCD::DetectCollisions(List<Entity*> & entities, List<Collision> & collisions)
 {
 	int numCol = 0;
 	// Iterate dynamic entities.

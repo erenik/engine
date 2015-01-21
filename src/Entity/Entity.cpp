@@ -429,34 +429,37 @@ void Entity::Translate(Vector3f translation){
 /// Recalculates the transformation matrix
 void Entity::RecalculateMatrix()
 {
-
-    rotationMatrix = Matrix4d();
-	Matrix4d preTranslateMat;
-		
-	// Quaternions for those entities wanting to use it.
-    if (physics && physics->useQuaternions){
-        Quaternion q = physics->orientation;
-     //   std::cout<<"\nQ preN: "<<q;
-        q.Normalize();
-     //   std::cout<<"\nQ postN: "<<q;
-        rotationMatrix = q.Matrix();
-       // float * parr = rotationMatrix.getPointer();
-     //   std::cout<<"\nMatrix: "<<parr[0]<<" "<<parr[1];
-
-		Quaternion q2 = physics->preTranslateRotationQ;
-		if (physics->preTranslateRotationQ.y != 0)
-		{
-			int i = + q2.y;
-		}
-		preTranslateMat = q2.Matrix();
-    }
-	// Euclidean co-ordinates.
-	else 
+    Matrix4d preTranslateMat;
+	if (hasRotated)
 	{
-		rotationMatrix.Multiply(Matrix4d::GetRotationMatrixX(rotation.x));
-		rotationMatrix.Multiply(Matrix4d::GetRotationMatrixZ(rotation.z));
-		rotationMatrix.Multiply(Matrix4d::GetRotationMatrixY(rotation.y));
+		rotationMatrix = Matrix4d();
+		// Quaternions for those entities wanting to use it.
+		if (physics && physics->useQuaternions){
+			Quaternion q = physics->orientation;
+		 //   std::cout<<"\nQ preN: "<<q;
+			q.Normalize();
+		 //   std::cout<<"\nQ postN: "<<q;
+			rotationMatrix = q.Matrix();
+		   // float * parr = rotationMatrix.getPointer();
+		 //   std::cout<<"\nMatrix: "<<parr[0]<<" "<<parr[1];
+
+			Quaternion q2 = physics->preTranslateRotationQ;
+			if (physics->preTranslateRotationQ.y != 0)
+			{
+				int i = + q2.y;
+			}
+			preTranslateMat = q2.Matrix();
+		}
+		// Euclidean co-ordinates.
+		else 
+		{
+			rotationMatrix.Multiply(Matrix4d::GetRotationMatrixX(rotation.x));
+			rotationMatrix.Multiply(Matrix4d::GetRotationMatrixZ(rotation.z));
+			rotationMatrix.Multiply(Matrix4d::GetRotationMatrixY(rotation.y));
+		}	
+		hasRotated = false;
 	}
+		
 
 	transformationMatrix = Matrix4d();
 

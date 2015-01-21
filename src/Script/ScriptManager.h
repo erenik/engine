@@ -29,6 +29,8 @@ public:
 		- Alternatively a boolean could be set which toggles this behaviour, but plan ahead and make sure that whatever you do doesn't leak memory!
 	*/
 	void PlayScript(Script * script);
+	// The above, but loads it fer ya.
+	void PlayScript(String source);
 	void Process(int timeInMs);
 	List<Script*> GetActiveEvents(){ return activeScripts; };
 

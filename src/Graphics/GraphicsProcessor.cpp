@@ -255,14 +255,13 @@ void * GraphicsManager::Processor(void * vArgs){
 		//	std::cout<<"\nProcessing physics messages... ";
 			
 			Timer totalPhysics;
-
+			FrameStats.ResetPhysics();
 			totalPhysics.Start();
 			pmTimer.Start();
 			/// Process any available physics messages first
 			Physics.ProcessMessages();
 			pmTimer.Stop();
 			FrameStats.physicsMessages = pmTimer.GetMs();
-
 			physicsProcessingTimer.Start();
 			// Process physics from here in order to avoid graphical issues
 			Physics.ProcessPhysics();
@@ -300,27 +299,39 @@ void * GraphicsManager::Processor(void * vArgs){
 				bool renderQueried = Graphics.renderQueried;
 				bool shouldRender = (renderOnQuery && renderQueried) || !renderOnQuery;
 
-				renderTimer.Start();
 			//	std::cout<<"\n- Processing graphics messages time taken: "<<gmTimer.GetMs();
 				if (Graphics.renderingEnabled && shouldRender && !Graphics.renderingStopped)
 				{
+					Timer timer;
+					timer.Start();
+					
 					guTimer.Start();
 					// Update the lights' positions as needed.
 					Graphics.UpdateLighting();
+					timer.Stop();
+					FrameStats.updateLighting = timer.GetMs();
+
 					// Reposition all entities that are physically active (dynamic entities) in the octrees and other optimization structures!
+					timer.Start();
 					Graphics.RepositionEntities();
+					timer.Stop();
+					FrameStats.graphicsRepositionEntities = timer.GetMs();
+
 					/// Process particles systems, etc.
+					timer.Start();
 					Graphics.Process();
 					Graphics.graphicsUpdatingFrameTime = guTimer.GetMs();
 				//	std::cout<<"\n- Updating entities frame time: "<<guTimer.GetMs();
-					Timer timer;
-					timer.Start();
 					/// Process movement for cameras.
 					CameraMan.Process();
-					// Render
-					Graphics.RenderWindows();
 					timer.Stop();
-			//		std::cout<<"\n- Render frame time: "<<timer.GetMs();
+					FrameStats.graphicsProcess = timer.GetMs();
+
+					// Render
+					renderTimer.Start();
+					Graphics.RenderWindows();
+					renderTimer.Stop();
+					FrameStats.renderTotal = renderTimer.GetMs();
 					Graphics.renderQueried = false;
 				
 				}
@@ -332,8 +343,6 @@ void * GraphicsManager::Processor(void * vArgs){
 						timeNotRendered = now;
 					}
 				}
-				renderTimer.Stop();
-				FrameStats.renderTotal = renderTimer.GetMs();
 				graphicsTotal.Stop();
 				FrameStats.totalGraphics = graphicsTotal.GetMs();
 
@@ -350,6 +359,8 @@ void * GraphicsManager::Processor(void * vArgs){
 			/// Push frame time and increase optimization once a second if needed.
 			FrameStats.PushFrameTime(total.GetMs());
 			int fps = FrameStats.FPS();
+			if (FrameStats.printQueued)
+				FrameStats.Print();
 
 			// How long the last frame took. Used for updating some mechanisms next frame.
 			graphicsState->frameTime = Graphics.frameTime * 0.001;

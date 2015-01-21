@@ -65,6 +65,7 @@ void CreateDefaultGeneralBindings()
 	Bind3(Action::FromEnum(RECORD_VIDEO), KEY::CTRL, KEY::R, KEY::V);
 	Bind1(Action::FromEnum(PRINT_SCREENSHOT), KEY::PRINT_SCREEN);
 	Bind2(Action::FromEnum(QUIT_APPLICATION), KEY::ALT, KEY::F4);
+	Bind2(Action::FromEnum(PRINT_FRAME_TIME), KEY::CTRL, KEY::T);
 	
 	/*
 	mapping->CreateBinding(CLOSE_WINDOW, ctrl, KEY::W);

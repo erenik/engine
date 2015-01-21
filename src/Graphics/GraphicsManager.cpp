@@ -271,6 +271,12 @@ bool GraphicsManager::GraphicsProcessingActive()
 	return graphicsThread;
 }
 
+int GraphicsManager::RegisteredEntities()
+{
+	return this->registeredEntities.Size();
+}
+
+
 void GraphicsManager::Initialize()
 {
 	/// Create cameras post-allocation.

@@ -4,6 +4,7 @@
 // Adjustment/machineTime differentiation added 2014-02-10 by Emil
 
 #include "Timer.h"
+#include "Time/Time.h"
 #include <iostream>
 
 long long Timer::adjustment = 0;
@@ -15,8 +16,10 @@ Timer::Timer()
 
 void Timer::Start()
 {
+	start = Time::Now();
+	// Use time..
     running = true;
-
+/*
     #ifdef WINDOWS
         // get ticks per second
         QueryPerformanceFrequency(&frequency);
@@ -27,12 +30,14 @@ void Timer::Start()
         gettimeofday(&t1, NULL);
         start = t1.tv_sec;
 	#endif
+	*/
 };
 
 void Timer::Stop()
 {
+	stop = Time::Now();
     running = false;
-
+/*
     #ifdef WINDOWS
         // stop timer
         QueryPerformanceCounter(&t2);
@@ -47,10 +52,13 @@ void Timer::Stop()
         elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;      // sec to ms
         elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;   // us to ms
     #endif
+	*/
 };
 
 int64 Timer::GetMs()
 {
+	return GetMicros() / 1000;
+	/*
 	int64 milliseconds = 0;
     if (running)
     {
@@ -67,12 +75,17 @@ int64 Timer::GetMs()
     }
 	milliseconds = elapsedMicroseconds / 1000.0;
 	return milliseconds;
+	*/
 }
 
 
 // Returns elapsed time in microseconds.
-int64 Timer::GetMicro()
+int64 Timer::GetMicros()
 {
+	if (stop.Type() == TimeType::UNDEFINED)
+		stop = Time::Now();
+	return (stop - start).Microseconds();
+	/*
 	int64 microSeconds;
     if (running)
     {
@@ -89,6 +102,7 @@ int64 Timer::GetMicro()
     }
 	microSeconds = elapsedMicroseconds;
 	return microSeconds;
+	*/
 }
 
 // Returns time in seconds.

@@ -1269,7 +1269,10 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
         //        std::cout<<"\nLine: "<<line;
 
                 List<String> tmp = line.Tokenize("\"");
-				text = tmp[1];
+				if (tmp.Size() > 1)
+					text = tmp[1];
+				else
+					text = Text();
 		        /// Check special cases like dedicated label child elements.
 				if (element->label){
 					element->label->text = text;
@@ -1368,11 +1371,12 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 				ENSURE_NEXT_TOKEN
 				element->alignmentY = NEXT_TOKEN.ParseFloat();
 			}
-			else if (token == "alignmentXY"){
+			else if (token == "alignmentXY" || token == "alignment"){
 				if (tokens.Size() < 3)
 					continue;
 				element->alignmentX = tokens[1].ParseFloat();
 				element->alignmentY = tokens[2].ParseFloat();
+				int b = element->alignmentY + 3;
 			}
 			else if (token == "rightNeighbour"){
                 element->rightNeighbourName = NEXT_TOKEN;

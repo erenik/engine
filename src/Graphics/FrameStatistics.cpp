@@ -7,8 +7,10 @@
 
 FrameStatistics * FrameStatistics::frameStatistics = NULL;
 
-FrameStatistics::FrameStatistics(){
-	Reset();
+FrameStatistics::FrameStatistics()
+{
+	ResetGraphics();
+	ResetPhysics();
 
     /// Default FPS values
     maxFramesToConsider = 10;
@@ -33,13 +35,23 @@ FrameStatistics * FrameStatistics::Instance(){
 	return frameStatistics;
 }
 
-void FrameStatistics::Reset(){
+void FrameStatistics::ResetGraphics(){
 	/// And the stats!
 	lastSceneTime = sceneTime;
 	lastAlphaTime = alphaTime;
 	lastEffectsTime = effectsTime;
 	lastUITime = uiTime;
 	sceneTime = alphaTime = effectsTime = uiTime = 0.0f;
+	renderSortEntities = renderEntities = 0;
+	renderPrePipeline = renderPostPipeline = 0;
+	updateLighting = graphicsRepositionEntities = graphicsProcess = 0;
+
+}
+
+void FrameStatistics::ResetPhysics()
+{
+	physicsIntegration = 0;
+	physicsRecalcAABBs = physicsRecalcOBBs = physicsRecalcProps = 0;
 }
 
 /// Pushes the frame time which is then used to calculate the average frame-time.
@@ -65,6 +77,11 @@ float FrameStatistics::FPS(){
     return 60;
 }
 
+void FrameStatistics::QueuePrint()
+{
+	printQueued = true;
+}
+
 
 
 
@@ -74,10 +91,20 @@ void FrameStatistics::Print(){
 		<<"\n- Physics total: "<< totalPhysics
 		<<"\n	- processing: "<<physicsProcessing
 		<<"\n		- integration: " <<physicsIntegration
+		<<"\n		- recalc AABBs: " <<physicsRecalcAABBs
+		<<"\n		- recalc OBBs: " <<physicsRecalcOBBs
 		<<"\n	- messages: "<<physicsMessages
 		<<"\n- Graphics total: "<<totalGraphics
-		<<"\n	- render: "<<renderTotal
 		<<"\n	- messages: "<<graphicsMessages
+		<<"\n	- updateLighting: "<<updateLighting
+		<<"\n	- repositionEntities: "<<graphicsRepositionEntities
+		<<"\n	- process: "<<graphicsProcess
+		<<"\n	- render: "<<renderTotal
+		<<"\n		- prePipeline: "<<renderPrePipeline
+		<<"\n		- sortEntities: "<<renderSortEntities
+		<<"\n		- renderEntities: "<<renderEntities
+		<<"\n		- postPipeline: "<<renderPostPipeline
 		<<"\n- Multimedia/Audio: "<<multimedia
 		<<"\n- Average FPS: "<<fps;
+	printQueued = false;
 }

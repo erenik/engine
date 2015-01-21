@@ -15,7 +15,10 @@ class BreakoutCD : public CollisionDetector
 {
 public:
 	/// Brute-force method. Does not rely on other structures that require further updates. All entities are present in the list.
-	virtual int DetectCollisions(List<Entity*> entities, List<Collision> & collisions);
+	virtual int DetectCollisions(List<EntityPair> & pairs, List<Collision> & collisions);
+
+	/// Brute-force method. Does not rely on other structures that require further updates. All entities are present in the list.
+	virtual int DetectCollisions(List<Entity*> & entities, List<Collision> & collisions);
 
 };
 

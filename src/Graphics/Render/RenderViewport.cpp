@@ -13,6 +13,9 @@
 
 void GraphicsManager::RenderViewport(Viewport * vp)
 {
+	Timer timer;
+	timer.Start();
+
 	vp->UpdateSize();
 	/// Viewport.. so width and height are based on the viewport.
 	int width = vp->size.x, height = vp->size.y;
@@ -61,6 +64,9 @@ void GraphicsManager::RenderViewport(Viewport * vp)
 	// TODO: Actually cull it too. 
 	graphicsState->entities = registeredEntities;
 	
+	timer.Stop();
+	FrameStats.renderPrePipeline += timer.GetMs();
+
 	/// Old pipeline configuration! Only testing with the regular entities first. 
 	RenderPipeline * renderPipeline = graphicsState->renderPipe;
 	/// Test with alpha-entities and other passes later on...
@@ -78,6 +84,8 @@ void GraphicsManager::RenderViewport(Viewport * vp)
 		else
 			Graphics.RenderScene();
 	}	
+
+	timer.Start();
 
 	FrameStats.sceneTime += sceneTimer.GetMs();
 
@@ -129,4 +137,7 @@ void GraphicsManager::RenderViewport(Viewport * vp)
 		Graphics.RenderUI(vp->ui);
 	}
 	FrameStats.uiTime += uiTimer.GetMs();
+
+	timer.Stop();
+	FrameStats.renderPostPipeline += timer.GetMs();
 }

@@ -78,6 +78,8 @@ public:
 	/// If true, it is still OK to queue messages.
 	static bool GraphicsProcessingActive();
 
+	int RegisteredEntities();
+
 	/// Loads all settings from files and OS
 	void Initialize();
 	/// Loads and compiles all relevant shaders

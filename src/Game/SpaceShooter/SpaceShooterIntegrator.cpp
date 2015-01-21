@@ -14,11 +14,19 @@ SpaceShooterIntegrator::SpaceShooterIntegrator(float zPlane)
 
 void SpaceShooterIntegrator::IntegrateDynamicEntities(List<Entity*> & dynamicEntities, float timeInSeconds)
 {
+	Timer timer;
+	timer.Start();
 	for (int i = 0; i < dynamicEntities.Size(); ++i)
 	{
 		Entity * dynamicEntity = dynamicEntities[i];
 		IntegrateVelocity(dynamicEntity, timeInSeconds);
 	}
+	timer.Stop();
+	int micros = timer.GetMs();
+	timer.Start();
+	RecalculateMatrices(dynamicEntities);
+	timer.Stop();
+	int micros2 = timer.GetMs();
 }
 
 
@@ -51,8 +59,6 @@ void SpaceShooterIntegrator::IntegrateVelocity(Entity * forEntity, float timeInS
 		forEntity->physics->velocity.z = 0;
 	}
 
-	forEntity->RecalculateMatrix();
-
 	/// Check if player
 	// If so, limit to inside the radiusiusius
 	SpaceShooterPlayerProperty * sspp = forEntity->GetProperty<SpaceShooterPlayerProperty>();
@@ -62,5 +68,4 @@ void SpaceShooterIntegrator::IntegrateVelocity(Entity * forEntity, float timeInS
 		ClampFloat(position.x, frameMin.x, frameMax.x);
 		ClampFloat(position.y, frameMin.y, frameMax.y);		
 	}
-
 }

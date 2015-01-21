@@ -1011,8 +1011,8 @@ bool String::ParseBool(){
 	else if (this->Contains("false") || this->Contains("no"))
 		result = false;
 	else {
-		std::cout<<"\nString::ParseBool:"<<c_str()<<"\n";
-		assert(false && "String::ParseBool was unable to parse a true or false value");
+		std::cout<<"\nString::ParseBool called on string \'"<<c_str()<<"\' returning false by default.";
+		return false;
 	}
 	comparisonMode = oldComparisonMode;
 	return result;

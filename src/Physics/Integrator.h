@@ -8,6 +8,8 @@
 #include "Physics/PhysicsProperty.h"
 #include "Entity/Entity.h"
 
+void RecalculateMatrices(List<Entity*> entities);
+
 class Integrator 
 {
 public:

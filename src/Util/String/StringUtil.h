@@ -25,6 +25,9 @@ String GetSection(String inString, char withStartToken, char andEndToken);
 /// o.o prepends of all the strings in a list.
 void PrependStrings(List<String> & list, String withString);
 
+/// For loading CSV files, looks for the delimiter (usually comma ','), and abserves quotation marks for any occurences of commas within the actual data.
+List<String> TokenizeCSV(String csvString);
+
 
 #include "MathLib.h"
 String VectorString(Vector3f v);

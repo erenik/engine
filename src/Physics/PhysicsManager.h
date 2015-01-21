@@ -70,6 +70,9 @@ private:
 	static PhysicsManager * physicsManager;
 public:
 
+	int RegisteredEntities();
+
+
 	/// Chosen integrator.
 	Integrator * physicsIntegrator;
 	CollisionResolver * collisionResolver;
@@ -80,6 +83,10 @@ public:
 	void ApproximateIntegrate(Entity * entity, float timeSinceLastUpdate);
 
 	void DetectCollisions();
+
+	void RecalculateAABBs();
+	void RecalculateOBBs();
+
 
 	/// Casts a ray.
 	List<Intersection> Raycast(Ray & ray);

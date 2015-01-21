@@ -19,6 +19,7 @@
 #endif
 
 #include "System/DataTypes.h"
+#include "Time/Time.h"
 
 
 class Timer {
@@ -30,7 +31,7 @@ public:
 	// Returns time in milliseconds
 	int64 GetMs();
 	// Returns elapsed time in microseconds.
-	int64 GetMicro();
+	int64 GetMicros();
 	// Returns time in seconds.
 	static int64 GetCurrentTime();
 	// Returns the current time. If true, returns unmodified machine time, if false will return synchronized time as set with SetAdjustment.
@@ -41,8 +42,8 @@ public:
 	static void SetAdjustment(int64 adjustment);
 	static int64 GetAdjustment();
 private:
-	long start;
-	long stop;
+	Time start;
+	Time stop;
 	static long long adjustment;
 
 	// Elapsed time in microseconds.

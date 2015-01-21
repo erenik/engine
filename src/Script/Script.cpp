@@ -311,6 +311,7 @@ void Script::EvaluateLine(String & line)
 	if (line.Contains("Wait("))
 	{
 		WaitScript * wait = new WaitScript(line, this);
+		wait->SetDeleteOnEnd(true);
 		ScriptMan.PlayScript(wait);
 	}
 	else if (line.Contains("PlayScript("))

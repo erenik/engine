@@ -115,7 +115,10 @@ public:
 	bool Exists(value_type item) const;
 	/// Polls the existance/copy of all items in target list within this list. Returns false if any items are missing.
 	bool Exists(List<value_type> subList) const;
-
+	/// Checks occurances of target item in the list.
+	int Occurances(value_type item) const;
+	/// Checks for duplicates in the list.
+	int Duplicates();
 	/// Returns content by index. Similar to the [] operator.
 	value_type & GetIndex(int index);
 
@@ -586,6 +589,37 @@ bool List<T>::Exists(T item) const {
             return true;
 	}
 	return false;
+}
+
+/// Checks occurances of target item in the list.
+template <class T>
+int List<T>::Occurances(value_type item) const
+{
+	int occurances = 0;
+	for (int i = 0; i < currentItems; ++i)
+	{
+		if (arr[i] == item)
+			++occurances;
+	}
+	return occurances;
+}
+	
+/// Checks for duplicates in the list.
+template <class T>
+int List<T>::Duplicates()
+{
+	int duplicates = 0;
+	for (int i = 0; i < currentItems; ++i)
+	{
+		T item = arr[i];
+		for (int j = i + 1; j < currentItems; ++j)
+		{
+			T item2 = arr[j];
+			if (item == item2)
+				++duplicates;
+		}
+	}
+	return duplicates;
 }
 
 /// Polls the existance/copy of all items in target list within this list. Returns false if any items are missing.

@@ -46,7 +46,7 @@ void ScriptManager::PlayScript(Script * newScriptToPlay)
 		for (int i = 0; i < activeScripts.Size(); ++i)
 		{
 			Script * script = activeScripts[i];
-			if (newScriptToPlay->name == script->name)
+			if (newScriptToPlay->source == script->source)
 			{
 				std::cout<<"\nScript "<<script->name<<" already running! Skipping new instance.";
 				/// Delete if specified.
@@ -62,6 +62,24 @@ void ScriptManager::PlayScript(Script * newScriptToPlay)
 	newScriptToPlay->OnBegin();
 	activeScripts.Add(newScriptToPlay);
 }
+
+// The above, but loads it fer ya.
+void ScriptManager::PlayScript(String source)
+{
+	Script * script = new Script();
+	bool ok = script->Load(source);
+	if (ok)
+	{	
+		script->SetDeleteOnEnd(true);
+		PlayScript(script);
+	}
+	else
+	{
+		delete script;
+	}
+}
+
+
 void ScriptManager::Process(int timeInMs)
 {
 //	std::cout<<"\nEventManager::Process";

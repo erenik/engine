@@ -4,6 +4,16 @@
 
 #include "Integrator.h"
 
+void RecalculateMatrices(List<Entity*> entities)
+{
+	for (int i = 0; i < entities.Size(); ++i)
+	{
+		Entity * entity = entities[i];
+		entity->RecalculateMatrix();
+	}
+}
+
+
 Integrator::Integrator()
 {
 	constantZ = 0.f;
