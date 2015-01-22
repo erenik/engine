@@ -100,6 +100,7 @@ bool GraphicsManager::UnregisterEntity(Entity * entity)
 		assert(octreeEntities < octreeEntitiesBeforeRemoval);
 		assert(registeredEntities.Size() == vfcOctree->RegisteredEntities());
 	}
+	entity->registeredForRendering = false;
 	return true;
 };
 

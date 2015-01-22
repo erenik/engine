@@ -100,37 +100,58 @@ bool EntityManager::DeleteEntity(Entity * entity)
 	return true;
 }
 
+void EntityManager::MarkEntitiesForDeletion(List<Entity*> entitiesToMark)
+{
+	Time now = Time::Now();
+	int64 ms = now.Milliseconds();
+	for (int i = 0; i < entitiesToMark.Size(); ++i)
+	{
+		Entity * entity = entitiesToMark[i];
+		if (!entity->flaggedForDeletion)
+		{
+			entity->flaggedForDeletion = true;
+			entity->deletionTimeMs = ms + 3000;
+		}
+	}
+	entitiesToDelete.Add(entitiesToMark);
+}
+
+
 
 /** Deletes (resets IDs) of all entities that have been flagged for deletion and are not registered anywhere still. */
 int EntityManager::DeleteUnusedEntities()
 {
+	if (!entitiesToDelete.Size())
+		return 0;
+	int64 nowMs = Time::Now().Milliseconds();
 	int deletedEntities = 0;
-	for (int i = 0; i < entities.Size(); ++i)
+	int duplicates = entitiesToDelete.Duplicates();
+
+	for (int i = 0; i < entitiesToDelete.Size(); ++i)
 	{
-		Entity * entity = entities[i];
+		Entity * entity = entitiesToDelete[i];
 		/// Only process those that have been flagged.
 		if (!entity->flaggedForDeletion)
 			continue;
+		if (entity->deletionTimeMs > nowMs)
+			continue;
 		/// Check that it isn't still registered with any other manager!
-		if (entity->registeredForRendering){
+		if (entity->registeredForRendering)
+		{
 			std::cout<<"\nWARNING: Entity: "<<entity->name<<" registered for rendering while flagged for deletion!";
 			continue;
 		}
-		if (entity->registeredForPhysics){
+		if (entity->registeredForPhysics)
+		{
 			std::cout<<"\nWARNING: Entity: "<<entity->name<<" registered for physics while flagged for deletion!";
 			continue;
 		}
-
-		/// Reset ID.
-		entity->id = 0;
-		entity->name = "";
-
-		/// De-flag after deletion is finished.
-		entity->flaggedForDeletion = false;
 		/// Increment amount that was successfully deleted.
 		++deletedEntities;
-		entities.Remove(entity);
+		while(entities.Remove(entity));
+		while(entitiesToDelete.Remove(entity));
 		delete entity;
+		--i;
 	}
 	return deletedEntities;
 }

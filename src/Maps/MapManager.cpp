@@ -579,9 +579,7 @@ int MapManager::DeleteAllEntities()
 	activeMap->RemoveEntities(mapEntities);
 	Graphics.QueueMessage(new GraphicsMessage(GM_UNREGISTER_ALL_ENTITIES));
 	Physics.QueueMessage(new PhysicsMessage(PM_UNREGISTER_ALL_ENTITIES));
-	for (int i = 0; i < mapEntities.Size(); ++i){
-		mapEntities[i]->flaggedForDeletion = true;
-	}
+	EntityMan.MarkEntitiesForDeletion(mapEntities);
 	return deleted;
 }
 	
@@ -605,7 +603,6 @@ bool MapManager::DeleteEntity(Entity * entity)
 	if (!entity && !entity->flaggedForDeletion){
 		return false;
 	}
-	entity->flaggedForDeletion = true;
 //	std::cout<<"\nEntity flagged for deletion. ";
 	// Unregister no matter what. If it wasn't already unregisterd, nothing will hurt of it.
 	if (GraphicsManager::Instance())
@@ -614,8 +611,7 @@ bool MapManager::DeleteEntity(Entity * entity)
 		Physics.QueueMessage(new PMUnregisterEntity(entity));
 	// Remove entity from the map too...!
 	activeMap->RemoveEntity(entity);
-	// Delete any other extra bits and pieces needed.
-	entity->Delete();
+	EntityMan.MarkEntitiesForDeletion(entity);
 	return true;
 }
 

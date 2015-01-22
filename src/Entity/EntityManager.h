@@ -38,14 +38,16 @@ public:
 	*/
 	bool DeleteEntity(Entity * entity);
 
-private:
+	void MarkEntitiesForDeletion(List<Entity*> entities);
 	/** Deletes (resets IDs) of all entities that have been flagged for deletion and are not registered anywhere still. */
 	int DeleteUnusedEntities();
+private:
 
 	/// Counter for generating IDs to entities
 	static int idCounter;
 	/// Array of loaded entities.
 	List<Entity*> entities;
+	List<Entity*> entitiesToDelete;
 };
 
 

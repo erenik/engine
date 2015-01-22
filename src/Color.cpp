@@ -8,14 +8,12 @@
 Color::Color()
 : Vector4f()
 {
-	AssignName();
 }
 
 
 Color::Color(const Vector4f & fromVector)
 : Vector4f(fromVector)
 {
-	AssignName();
 }
 
 
@@ -23,11 +21,12 @@ Color::Color(const Vector4f & fromVector)
 Color::Color(uchar r, uchar g, uchar b, uchar a)
 : Vector4f()
 {
-	x = r / 255.f;
-	y = g / 255.f;
-	z = b / 255.f;
-	w = a / 255.f;
-	AssignName();
+	float inv255 = 1 / 255.f;
+	x = r;
+	y = g;
+	z = b;
+	w = a;
+	(*this) *= inv255;	
 }
 
 /// E.g. "0x115588AA"
@@ -62,8 +61,6 @@ Color Color::ColorByHex32(uint32 hex)
 	a = (hex >> 0) % 256;
 
 	Color newColor(r,g,b,a);
-	float inv255 = 1 / 255.f;
-	newColor *= inv255;	
 	return newColor;
 }
 /// Anticipates a hex-color in 0xRRGGBB format.
@@ -74,8 +71,6 @@ Color Color::ColorByHex24(uint32 hex)
 	g = hex >> 8 % 256;
 	b = hex % 256;
 	Color newColor(r, g, b, 255);
-	float inv255 = 1 / 255.f;
-	newColor *= inv255;	
 	return newColor;
 }
 
@@ -86,8 +81,6 @@ Color Color::ColorByHex16(uint32 hex)
 	l = (hex >> 8) % 256;
 	a = hex % 256;
 	Color newColor(l, l, l, a);
-	float inv255 = 1 / 255.f;
-	newColor *= inv255;	
 	return newColor;
 }
 /// Anticipates a hex-color in 0xLL format, where L is luminosity or grey-scale.
@@ -113,6 +106,14 @@ bool Color::ReadFrom(std::fstream & file)
 	Vector4f::ReadFrom(file);
 	return true;
 }
+
+String Color::GetName()
+{
+	if (name.Length() == 0)
+		AssignName();
+	return name;
+}
+
 
 void Color::AssignName()
 {

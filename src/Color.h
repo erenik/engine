@@ -28,12 +28,14 @@ public:
 	static Color ColorByHex16(uint32 hex);
 	/// Anticipates a hex-color in 0xLL format, where L is luminosity or grey-scale.
 	static Color ColorByHex8(uint32 hex);
-	String name;
+
+	String GetName();
 
 	bool WriteTo(std::fstream & file);
 	bool ReadFrom(std::fstream & file);
 
 private:
+	String name;
 	void AssignName();
 };
 

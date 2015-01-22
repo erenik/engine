@@ -219,6 +219,7 @@ int PhysicsManager::UnregisterEntity(Entity * entityToRemove)
 		entityToRemove->pathfindingProperty = NULL;
 	}
 
+	entityToRemove->registeredForPhysics = false;
 //	assert(entitiesInOctree == physicalEntitiesNum);
 	return 0;
 }

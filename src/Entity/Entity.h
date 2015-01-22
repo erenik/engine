@@ -213,6 +213,7 @@ public:
 
 private:
 
+	int64 deletionTimeMs;
 	/// Texture to be used for this Entity. TODO: Rename to DiffuseMap?
 	Texture * diffuseMap;
 	/// Normalmap texture for more surface~

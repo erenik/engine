@@ -64,13 +64,14 @@ Texture * TextureManager::GetTexture(String nameOrSource)
 		if (tex->source.Length() == 0)
 			tex->SetSource(nameOrSource);
 	}
+	assert(tex->name.Length());
     return tex;
 }
 
 /// Color o.o..
 Texture * TextureManager::GetTextureByColor(Color & color)
 {
-	return GenerateTexture(color.name, color);	
+	return GenerateTexture(color.GetName(), color);	
 }
 
 
@@ -106,8 +107,6 @@ Texture * TextureManager::GetTextureByHex32(uint32 hexColor)
 		b = hexColor >> 8 % 256;
 		a = hexColor >> 0 % 256;
 		Vector4f color(r,g,b,a);
-		float inv255 = 1 / 255.f;
-		color *= inv255;
 		tex->SetColor(color);
 	}
 	return tex;
@@ -679,97 +678,6 @@ void TextureManager::BufferizeTexture(int index){
 void TextureManager::BufferizeTexture(Texture * texture)
 {
 	texture->Bufferize();
-
-	/*
-	assert(texture->source.Length());
-	assert(texture->name.Length());
-	if (texture == NULL){
-		assert(texture && "NULL texture provided in TextureManager::BufferizeTexture, skipping it!");
-		return;
-	}
-	if (texture->glid != -1){
-//		std::cout<<"\nTexture \""<<texture->source<<"\" already bufferized! Skipping.";
-		return;
-	}
-	GLuint error;
-	// Enable blending
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	float z = -4;
-	// Buffer it again..
-	//	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, overlayTexture->data.width, overlayTexture->data.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, overlayTexture->data.data);
-	error = glGetError();
-	if (error != GL_NO_ERROR){
-		std::cout<<"\nGLError in Render "<<error;
-	}
-
-	std::cout<<"\nBuffering texture "<<texture->name<<"...";
-	// Generate texture
-	glGenTextures(1, &texture->glid);
-
-	// Set texturing parameters
-//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-
-	// Enable texturing
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, texture->glid);  // Bind glTexture ID.
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-	// Generate the texture Entity in GL
-	// Ref: http://www.opengl.org/sdk/docs/man/xhtml/glTexImage2D.xml
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,	texture->width,
-		texture->height,		0, 	GL_RGBA, GL_UNSIGNED_BYTE, texture->data);
-
-	/// Generate mip-maps!
-	glGenerateMipmap(GL_TEXTURE_2D);
-
-	/*
-	int initialWidth = texture->width, initialHeight = texture->height;
-	int tmpWidth = initialWidth, tmpHeight = initialHeight;
-	std::cout<<"\n0. Width: "<<tmpWidth<<" height: "<<tmpHeight;
-	for (int i = 1; i < 14; ++i){
-		tmpWidth /= 2;
-		tmpHeight /= 2;
-		std::cout<<"\n"<<i<<". Width: "<<tmpWidth<<" height: "<<tmpHeight;
-		if (tmpWidth <= 1 && tmpHeight <= 1)
-			break;
-		glTexImage2D(GL_TEXTURE_2D, i, GL_RGBA,	tmpWidth, tmpHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, texture->data);
-		int error = glGetError();
-		for (int i = 0; i < texture->dataLength; ++i)
-			texture->data[i] /= 2;
-		if (error != GL_NO_ERROR){
-			std::cout<<"\nError: "<<error;
-		}
-	}
-	*/
-	/*
-	error = glGetError();
-	if (error != GL_NO_ERROR){
-		std::cout<<"\nGL Error in TextureManager::BufferizeTexture: "<<error;
-	}
-
-
-	/// Deallocate data from memory if it is no longer needed?
-/*	int lastRed = 0;
-	int newRed = 0;
-	print("\nReds: ");
-	for (int i = 0; i < texture->data.height; ++i){
-		for (int j = 0; j < texture->data.width; ++j){
-			newRed = texture->data.data[(i*texture->data.width + j) * 4];
-			if (newRed != lastRed){
-				print(newRed<<" ");
-				lastRed = newRed;
-			}
-		}
-	}
-	*/
 }
 
 

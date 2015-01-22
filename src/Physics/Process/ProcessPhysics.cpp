@@ -13,6 +13,8 @@
 #include "PhysicsLib/Estimator.h"
 #include "Message/MessageManager.h"
 
+#include "Message/Message.h"
+
 #include "Graphics/FrameStatistics.h"
 // #include "Graphics/GraphicsManager.h"
 //#include "Entity/Entity.h"
@@ -135,21 +137,31 @@ void PhysicsManager::ProcessPhysics()
 		FrameStats.physicsCollisionResolution += timer.GetMs();
 
 		timer.Start();
+		List<Message*> messages;
+		messages.Clear();
 		for (int i = 0; i < collisions.Size(); ++i)
 		{
 			Collision & c = collisions[i];
-			List<Message*> messages;
-			if (c.one->physics->collissionCallback || c.two->physics->collissionCallback)
+			if (c.one->physics->collissionCallback && c.two->physics->collissionCallback)
 			{
+				/// Check max callbacks.
+				int & maxCallbacks1 = c.one->physics->maxCallbacks;
+				int & maxCallbacks2 = c.two->physics->maxCallbacks;
+				if (maxCallbacks1 == 0 || maxCallbacks2 == 0)
+					continue;
 				CollisionCallback * cc = new CollisionCallback(c.one, c.two);
 				messages.Add(cc);
+				if (maxCallbacks1 > 0)
+					--maxCallbacks1;
+				if (maxCallbacks2 > 0)
+					--maxCallbacks2;
 			}
 			else {
 				std::cout<<"\nLALL";
 			}
-			if (messages.Size())
-				MesMan.QueueMessages(messages);
 		}
+		if (messages.Size())
+			MesMan.QueueMessages(messages);
 		timer.Stop();
 		FrameStats.physicsCollisionCallback += timer.GetMs();
 

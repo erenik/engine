@@ -226,7 +226,8 @@ void Weapon::Shoot(Ship * ship)
 	PhysicsProperty * pp = projectileEntity->physics = new PhysicsProperty();
 	pp->type = PhysicsType::DYNAMIC;
 	pp->velocity = vel;
-	pp->collissionCallback = true;			
+	pp->collissionCallback = true;	
+	pp->maxCallbacks = 1;
 	// Set collision category and filter.
 	pp->collisionCategory = ship->allied? CC_PLAYER_PROJ : CC_ENEMY_PROJ;
 	pp->collisionFilter = ship->allied? CC_ENEMY : CC_PLAYER;

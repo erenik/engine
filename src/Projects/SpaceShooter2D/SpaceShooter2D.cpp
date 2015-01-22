@@ -70,7 +70,7 @@ void SpaceShooter2D::OnEnter(AppState * previousState)
 	starEmitter->positionEmitter.Scale(40.f);
 	starEmitter->velocityEmitter.type = EmitterType::CIRCLE_XY;
 	starEmitter->SetEmissionVelocity(0.0001f);
-	starEmitter->SetParticlesPerSecond(20);
+	starEmitter->SetParticlesPerSecond(10);
 	starEmitter->SetParticleLifeTime(50.f);
 	starEmitter->SetScale(0.3f);
 	Graphics.QueueMessage(new GMAttachParticleEmitter(starEmitter, stars));
@@ -360,7 +360,7 @@ void SpaceShooter2D::CreateDefaultBindings()
 /// Update UI
 void SpaceShooter2D::UpdatePlayerHP()
 {
-	GraphicsMan.QueueMessage(new GMSetUIs("HP", GMUI::TEXT, String(playerShip.hitPoints)));
+	GraphicsMan.QueueMessage(new GMSetUIs("HP", GMUI::TEXT, String(playerShip.hitPoints)));	
 }
 void SpaceShooter2D::UpdatePlayerShield()
 {
@@ -447,10 +447,26 @@ void SpaceShooter2D::LoadLevel(String fromSource)
 	level.AddPlayer(&playerShip);
 	// Track player with effects.
 	GraphicsMan.QueueMessage(new GMSetParticleEmitter(starEmitter, GT_EMITTER_ENTITY_TO_TRACK, playerShip.entity));
-	GraphicsMan.QueueMessage(new GMSetParticleEmitter(starEmitter, GT_EMITTER_POSITION_OFFSET, Vector3f(50.f, 0, 0)));
+	GraphicsMan.QueueMessage(new GMSetParticleEmitter(starEmitter, GT_EMITTER_POSITION_OFFSET, Vector3f(70.f, 0, 0)));
 	// Reset player stats.
 	playerShip.hitPoints = playerShip.maxHitPoints;
 	playerShip.shieldValue = playerShip.maxShieldValue;
+
+
+	/// Add emitter for stars at player start.
+	ParticleEmitter * startEmitter = new ParticleEmitter();
+	startEmitter->newType = true;
+	startEmitter->instantaneous = true;
+	startEmitter->constantEmission = 1400;
+	startEmitter->positionEmitter.type = EmitterType::PLANE_XY;
+	startEmitter->positionEmitter.Scale(140.f);
+	startEmitter->velocityEmitter.type = EmitterType::CIRCLE_XY;
+	startEmitter->SetEmissionVelocity(0.0001f);
+	startEmitter->SetParticleLifeTime(20.f);
+	startEmitter->SetScale(0.3f);
+	Graphics.QueueMessage(new GMAttachParticleEmitter(startEmitter, stars));
+
+
 	GraphicsMan.ResumeRendering();
 	mode = PLAYING_LEVEL;
 	UpdateUI();

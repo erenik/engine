@@ -176,8 +176,6 @@ int ParticleEmitter::ParticlesToEmit(float timeInSeconds)
 	secondsEmitted += timeInSeconds;
 	int64 totalParticlesShouldHaveEmittedByNow = secondsEmitted * particlesPerSecond;
 	int particlesToEmit = totalParticlesShouldHaveEmittedByNow - emissions;
-	if (particlesToEmit < 1)
-		particlesToEmit = 1;
 	emissions += particlesToEmit;
 	return particlesToEmit;
 }

@@ -10,6 +10,7 @@
 #include "Script/ScriptManager.h"
 #include "Network/NetworkManager.h"
 #include "Window/WindowManager.h"
+#include "Entity/EntityManager.h"
 
 #include "File/LogFile.h"
 
@@ -330,8 +331,13 @@ void * StateManager::StateProcessor(void * vArgs){
 				/// Always process messages, even if quitting, as some messages need to be processed here 
 				/// (like properly destroying windows)
 				MesMan.ProcessMessages();
+
+				// Clean-up.
+				EntityMan.DeleteUnusedEntities();
+
 				/// Release mutex at the end of the frame.
 				StateMan.stateProcessingMutex.Release();
+
 			}
 			else {
 				/// Unable to grab mutex? Then sleep for a bit.
