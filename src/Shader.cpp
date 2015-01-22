@@ -300,6 +300,8 @@ void Shader::ExtractUniforms()
 	uniformLight.spotCutoffFloat = glGetUniformLocation(shaderProgram, "light_spotCutoff");
 	uniformLight.spotExponentInt = glGetUniformLocation(shaderProgram, "light_spotExponent");
 	
+	// Particle uniforms.
+	uniformParticleDecayAlphaWithLifeTime = glGetUniformLocation(shaderProgram, "particleDecayAlphaWithLifeTime");
 
 	/// Extract attributes and uniforms as possible.
 	uniforms.Clear();
@@ -340,6 +342,7 @@ void Shader::ExtractAttributes()
 	// Attributes added with instanced particle rendering. 
 	attributeVertexPosition = glGetAttribLocation(shaderProgram, "in_VertexPosition");
 	attributeParticlePositionScale = glGetAttribLocation(shaderProgram, "in_ParticlePositionScale");
+	attributeParticleLifeTimeDuration = glGetAttribLocation(shaderProgram, "in_ParticleLifeTimeDuration");
 	attributeColor = glGetAttribLocation(shaderProgram, "in_Color");
 
 	/// Attributes added with skeletal animation, vec4 both of them, thereby limiting number of bone-weights to 4 per vertex.

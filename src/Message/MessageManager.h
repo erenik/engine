@@ -41,6 +41,7 @@ public:
 	bool QueueDelayedMessage(Message * message);
 
 	/// Queues a bunch of string-based messages in the form "Message1&Message2&Message3&..."
+	bool QueueMessages(List<Message*> messages, UIElement * elementThatTriggeredIt = NULL);
 	bool QueueMessages(String messages, UIElement * elementThatTriggeredIt = NULL);
 	bool QueueMessages(List<String> messages, UIElement * elementThatTriggeredIt = NULL);
 	bool QueueMessage(Message* msg);	// Queues a message
@@ -57,7 +58,7 @@ private:
 	Mutex msgQueueMutex;
 	Mutex packetQueueMutex;
 	Queue<Packet *> packetQueue;
-	Queue<Message *> messageQueue;
+	List<Message *> messageQueue;
 	/// Queue with messages that are delayed to a certain time of delivery.
 	List<Message *> delayedMessages;
 

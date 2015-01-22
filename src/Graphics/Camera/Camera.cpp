@@ -57,7 +57,7 @@ void CameraManager::Process()
 	static int64 lastUpdate = 0;
 	int64 cTime = Timer::GetCurrentTimeMs();
 	int timeDiff = cTime - lastUpdate;
-	timeDiff = timeDiff % 1000;
+	timeDiff = timeDiff % 200;
 	lastUpdate = cTime;
 	float timeInSeconds = timeDiff * 0.001f;
 	for (int i = 0; i < cameras.Size(); ++i)

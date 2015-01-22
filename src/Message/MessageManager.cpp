@@ -6,7 +6,7 @@
 
 //#include "IO.h"
 #include "MathLib/Expression.h"
-
+#include "Physics/Messages/CollisionCallback.h"
 #include "Message/Message.h"
 #include "Message/MathMessage.h"
 #include "FileEvent.h"
@@ -60,15 +60,15 @@ MessageManager::MessageManager(){
 	msgQueueMutex.Create("msgQueueMutex");
 	packetQueueMutex.Create("packetQueueMutex");
 }
-MessageManager::~MessageManager(){
-	while(!messageQueue.isOff())
-		delete messageQueue.Pop();
+MessageManager::~MessageManager()
+{
+    msgQueueMutex.Destroy();
+    packetQueueMutex.Destroy();
+	messageQueue.ClearAndDelete();
 #ifdef USE_NETWORK
 	while(!packetQueue.isOff())
 		delete packetQueue.Pop();
 #endif
-    msgQueueMutex.Destroy();
-    packetQueueMutex.Destroy();
 }
 
 void MessageManager::ProcessPackets(){
@@ -89,10 +89,12 @@ void MessageManager::ProcessMessages()
 {
 	/// Fetch available messages, then process them later, or lese mutexes will deadlock if trying to process the messages while locked with e.g. the graphics thread.
     msgQueueMutex.Claim(-1);
-	Queue<Message*> messageQueueCopy;
+	List<Message*> messagesToProcess;
 	// Clear it.
-	while(messageQueue.Length()){
-		messageQueueCopy.Push(messageQueue.Pop());
+	while(messageQueue.Size())
+	{
+		messagesToProcess = messageQueue;
+		messageQueue.Clear();
 	}
 	/// Fetch all delayed messages too.
 	long long cTime = Timer::GetCurrentTimeMs();
@@ -100,22 +102,20 @@ void MessageManager::ProcessMessages()
 		Message * mes = delayedMessages[i];
 		if (mes->timeToProcess < cTime){
 			delayedMessages.Remove(mes);
-			messageQueueCopy.Push(mes);
+			messagesToProcess.Add(mes);
 			--i;
 			continue;
 		}
 	}
-
 	msgQueueMutex.Release();
 
 	// And then process them.
-	while (messageQueueCopy.Length())
+	for (int i = 0; i < messagesToProcess.Size(); ++i)
 	{
-		Message * message = messageQueueCopy.Pop();
-		ProcessMessage(message);
-	//	assert(message->data == NULL && "OY!");
-		delete message;
+		Message * message = messagesToProcess[i];
+		ProcessMessage(message);	
 	}
+	messagesToProcess.ClearAndDelete();
 }
 
 /// For them delayed messages that require special treatment.. :P
@@ -137,7 +137,7 @@ bool MessageManager::QueueMessages(String messages, UIElement * elementThatTrigg
 			String message = messageList[i];
 			Message * msg = new Message(message);
 			msg->element = elementThatTriggeredIt;
-			messageQueue.Push(msg);
+			messageQueue.Add(msg);
 		}
 	}
 	catch(...){
@@ -149,6 +149,22 @@ bool MessageManager::QueueMessages(String messages, UIElement * elementThatTrigg
 	return true;	
 }
 
+
+bool MessageManager::QueueMessages(List<Message*> messages, UIElement * elementThatTriggeredIt)
+{
+	msgQueueMutex.Claim(-1);	
+    try{
+		messageQueue.Add(messages);
+	}
+	catch(...){
+		std::cout<<"\nFailed to push message!";
+		assert(false && "MessageManager::QueueMessage");
+		return false;
+	}
+	msgQueueMutex.Release();
+
+}
+	
 
 /// Queues a bunch of string-based messages in the form "Message1&Message2&Message3&..."
 bool MessageManager::QueueMessages(List<String> messages, UIElement * elementThatTriggeredIt)
@@ -163,7 +179,7 @@ bool MessageManager::QueueMessages(List<String> messages, UIElement * elementTha
 				String message = messageList[i];
 				Message * msg = new Message(message);
 				msg->element = elementThatTriggeredIt;
-				messageQueue.Push(msg);
+				messageQueue.Add(msg);
 			}
 		}		
 	}
@@ -181,7 +197,7 @@ bool MessageManager::QueueMessage(Message* msg)
 {
 	msgQueueMutex.Claim(-1);
     try{
-		messageQueue.Push(msg);
+		messageQueue.Add(msg);
 	}
 	catch(...){
 		std::cout<<"\nFailed to push message!";

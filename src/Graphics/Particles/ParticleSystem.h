@@ -13,6 +13,15 @@ class Texture;
 #include "Graphics/OpenGL.h"
 
 
+namespace DecayType {
+enum {
+	NONE,
+	LINEAR,
+	QUADRATIC,
+	CUBIC
+	};	
+};
+
 class ParticleSystem {
 	friend class GraphicsManager;
 	friend class GMAttachParticleEmitter;
@@ -36,6 +45,9 @@ public:
 	virtual void ProcessParticles(float & timeInSeconds);
 	/// Spawns new particles depending on which emitters are attached.
 	virtual void SpawnNewParticles(int & timeInMs);
+	/// Update buffers to use when rendering.
+	virtual void UpdateBuffers();
+
 	/** Fetches textures required for rendering. Should only be called from Render() or elsewhere in the render thread.
 		Returns false if it failed to fetch any textures, meaning they may still be NULL.
 	*/
@@ -56,6 +68,9 @@ public:
 
 	/// Sets emission velocity. This will be forward to any attached emitters as well.
 	void SetEmissionVelocity(float vel);
+
+	/// For setting alpha decay by life time.
+	void SetAlphaDecay(int decayType);
 
 	/// Name & type
 	String type;
@@ -122,7 +137,10 @@ protected:
 	/// Data buffers used for instanced rendering.
 	GLfloat * particlePositionSizeData;
 	GLubyte * particleColorData;
+	GLfloat * particleLifeTimeDurationData;  // Total life time of this particle + duration lived so far. Used to manipulate other data depending on shader options.
 
+	/// Settings in shader.
+	int decayAlphaWithLifeTime;
 
     // For getting new spawn positions
     List<ParticleEmitter*> emitters;
@@ -131,6 +149,7 @@ protected:
 	GLuint billboardVertexBuffer;
 	GLuint particlePositionScaleBuffer;
 	GLuint particleColorBuffer;
+	GLuint particleLifeTimeDurationBuffer;
 
 private:
 	bool registeredForRendering;

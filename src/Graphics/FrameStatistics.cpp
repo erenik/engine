@@ -16,6 +16,7 @@ FrameStatistics::FrameStatistics()
     maxFramesToConsider = 10;
     averageFrameTime = 0.015f;
 	fps = 60;
+	printQueued = false;
 }
 
 FrameStatistics::~FrameStatistics(){}
@@ -45,6 +46,7 @@ void FrameStatistics::ResetGraphics(){
 	renderSortEntities = renderEntities = 0;
 	renderPrePipeline = renderPostPipeline = 0;
 	updateLighting = graphicsRepositionEntities = graphicsProcess = 0;
+	swapBuffers = 0;
 
 }
 
@@ -52,6 +54,9 @@ void FrameStatistics::ResetPhysics()
 {
 	physicsIntegration = 0;
 	physicsRecalcAABBs = physicsRecalcOBBs = physicsRecalcProps = 0;
+	physicsCollisions = 0;
+	physicsCollisionDetection = physicsCollisionResolution = physicsCollisionCallback = 0;
+
 }
 
 /// Pushes the frame time which is then used to calculate the average frame-time.
@@ -93,6 +98,10 @@ void FrameStatistics::Print(){
 		<<"\n		- integration: " <<physicsIntegration
 		<<"\n		- recalc AABBs: " <<physicsRecalcAABBs
 		<<"\n		- recalc OBBs: " <<physicsRecalcOBBs
+		<<"\n		- collisions: " <<physicsCollisions
+		<<"\n			- detection: " <<physicsCollisionDetection
+		<<"\n			- resolution: " <<physicsCollisionResolution 
+		<<"\n			- callbacks: " <<physicsCollisionCallback
 		<<"\n	- messages: "<<physicsMessages
 		<<"\n- Graphics total: "<<totalGraphics
 		<<"\n	- messages: "<<graphicsMessages
@@ -104,6 +113,7 @@ void FrameStatistics::Print(){
 		<<"\n		- sortEntities: "<<renderSortEntities
 		<<"\n		- renderEntities: "<<renderEntities
 		<<"\n		- postPipeline: "<<renderPostPipeline
+		<<"\n		- swapBuffers: "<<swapBuffers
 		<<"\n- Multimedia/Audio: "<<multimedia
 		<<"\n- Average FPS: "<<fps;
 	printQueued = false;

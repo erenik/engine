@@ -250,6 +250,7 @@ void * GraphicsManager::Processor(void * vArgs){
 			if (!WindowMan.InFocus())
 				Sleep(Graphics.outOfFocusSleepTime);
 			sleepTimer.Stop();
+			int slept = sleepTimer.GetMs();
 	//		std::cout<<"\nSlept for "<<sleepTimer.GetMs()<<" ms";
 
 		//	std::cout<<"\nProcessing physics messages... ";
@@ -285,6 +286,7 @@ void * GraphicsManager::Processor(void * vArgs){
 			/// Process graphics if we can claim the mutex within 10 ms. If not, skip it this iteration.
 			if (GraphicsMan.graphicsProcessingMutex.Claim(100))
 			{
+				FrameStats.ResetGraphics();
 				Graphics.processing = true;
 				Timer graphicsTotal;
 				graphicsTotal.Start();
@@ -300,12 +302,11 @@ void * GraphicsManager::Processor(void * vArgs){
 				bool shouldRender = (renderOnQuery && renderQueried) || !renderOnQuery;
 
 			//	std::cout<<"\n- Processing graphics messages time taken: "<<gmTimer.GetMs();
-				if (Graphics.renderingEnabled && shouldRender && !Graphics.renderingStopped)
+				if (Graphics.renderingEnabled && shouldRender && !Graphics.renderingStopped &&
+					!GraphicsMan.paused)
 				{
 					Timer timer;
-					timer.Start();
-					
-					guTimer.Start();
+					timer.Start();					
 					// Update the lights' positions as needed.
 					Graphics.UpdateLighting();
 					timer.Stop();
@@ -317,12 +318,9 @@ void * GraphicsManager::Processor(void * vArgs){
 					timer.Stop();
 					FrameStats.graphicsRepositionEntities = timer.GetMs();
 
-					/// Process particles systems, etc.
 					timer.Start();
+					/// Process particles and movement for cameras.
 					Graphics.Process();
-					Graphics.graphicsUpdatingFrameTime = guTimer.GetMs();
-				//	std::cout<<"\n- Updating entities frame time: "<<guTimer.GetMs();
-					/// Process movement for cameras.
 					CameraMan.Process();
 					timer.Stop();
 					FrameStats.graphicsProcess = timer.GetMs();

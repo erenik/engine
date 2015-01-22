@@ -6,6 +6,8 @@
 #include "Window/WindowManager.h"
 #include "GraphicsState.h"
 
+#include "Graphics/FrameStatistics.h"
+
 void GraphicsManager::RenderWindows()
 {
 
@@ -45,7 +47,7 @@ void GraphicsManager::RenderWindows()
 		glXSwapBuffers(display, window);
 #endif
 		int64 swapBufferFrameTime = swapBufferTimer.GetMs();	
-	//	std::cout<<"\nSwapBufferTime: "<<swapBufferFrameTime;
+		FrameStats.swapBuffers += swapBufferTimer.GetMs();
 		++times;
 		if (times >= 2 || true)
 		{

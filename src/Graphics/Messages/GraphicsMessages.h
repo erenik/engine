@@ -166,6 +166,8 @@ enum graphicsTargets
 	GT_SET_PARTICLE_EMITTER_OF_PARTICLE_SYSTEM,
 	GT_EMITTER_POSITION, // Position of emitters
 	GT_EMITTER_DIRECTION, // Dir for point/directional emitters
+	GT_EMITTER_ENTITY_TO_TRACK, // Entity to track
+	GT_EMITTER_POSITION_OFFSET, // 
 	GT_EMISSIONS_PER_SECOND, // Per emitter
 	
 	// Camera targets

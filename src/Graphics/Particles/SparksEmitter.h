@@ -15,7 +15,10 @@ public:
 	/// Extended particle emission.
 	virtual bool GetNewParticle(Vector3f & position, Vector3f & velocity, float & scale, float & lifeTime, Vector4f & color);
 
+	void SetRatioRandomVelocity(float part);
+
 private:
+	float velRandPart, velConstPart;
 	static Random velocityRandom;
 	static Random lifeTimeRandom;
 };

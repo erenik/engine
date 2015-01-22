@@ -89,6 +89,7 @@ public:
 	GMSetParticleEmitter(ParticleSystem * ps, Contour contour);
 	GMSetParticleEmitter(ParticleSystem * ps, List<ParticleEmitter*> newEmitters);
 	GMSetParticleEmitter(ParticleEmitter * emitter, int target, Vector3f vec3fValue);
+	GMSetParticleEmitter(ParticleEmitter * emitter, int target, Entity * vec3fValue);
 	virtual void Process();
 private:
 	ParticleSystem * ps;
@@ -97,6 +98,7 @@ private:
 		NEW_EMITTER_LIST,
 	};
 	Vector3f vec3fValue;
+	Entity * entity;
 	int target;
 	int type;
 	Contour contour;

@@ -16,34 +16,55 @@
 Sparks::Sparks(bool emitWithEmittersOnly)
 : ParticleSystem("Sparks", emitWithEmittersOnly)
 {
-	Initialize();
+	InitSparks();
 }
 	
 /// Creates a particle system which will be attached to a specific entity.
 Sparks::Sparks(Entity * reference, bool emitWithEmittersOnly)
 : ParticleSystem("Sparks", emitWithEmittersOnly)
 {
-   Initialize();
-   /// Set link to entity.
-   relativeTo = reference;
+	InitSparks();
+	/// Set link to entity.
+	relativeTo = reference;
 }
 
 Sparks::~Sparks()
 {
     std::cout<<"\nSparks Destructor.....";
 }
-	
 
-void Sparks::Render(GraphicsState & graphicsState)
+void Sparks::InitSparks()
 {
-	if (!FetchTextures())
-		return;
-	if (useInstancedRendering && GL_VERSION_3_3_OR_HIGHER)
-		RenderInstanced(graphicsState);
-	else
-		RenderOld(graphicsState);
+	Initialize();
+	SetAlphaDecay(DecayType::CUBIC);
+}
+
+
+/// Update buffers to use when rendering.
+void Sparks::UpdateBuffers()
+{
+	ParticleSystem::UpdateBuffers();
+	return;
+	for (int i = 0; i < aliveParticles; ++i)
+	{
+		Vector3f & pos = positions[i];
+		int index = i * 4;
+		particlePositionSizeData[index] = pos.x;
+		particlePositionSizeData[index+1] = pos.y;
+		particlePositionSizeData[index+2] = pos.z;
+		particlePositionSizeData[index+3] = scales[i];
+
+		Vector4f & color = colors[i];
+		particleColorData[index] = color.x * 255;
+		particleColorData[index+1] = color.y * 255;
+		particleColorData[index+2] = color.z * 255;
+		particleColorData[index+3] = ((1.f - lifeDurations[i] / lifeTimes[i])) * 255;
+		i = i;
+
+	}
 
 }
+
 
 void Sparks::PrintData(){
 }

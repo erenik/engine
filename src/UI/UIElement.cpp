@@ -859,7 +859,6 @@ UIElement* UIElement::GetElementByState(int stateFlag)
 	for (int i = 0; i < children.Size(); ++i)
 	{
 		UIElement * child = children[i];
-		String childText = child->text;
 		if (!child->visible)
 			continue;
 		result = child->GetElementByState(stateFlag);

@@ -15,7 +15,7 @@ class Ship
 public:
 	Ship();
 	~Ship();
-	void Damage(int amount);
+	void Damage(int amount, bool ignoreShield);
 	void Destroy();
 	// Load ship-types.
 	static bool LoadTypes(String file);
@@ -33,8 +33,9 @@ public:
 	String movementPattern;
 	// Parsed value divided by 5.
 	float speed;
-	int shieldValue;
-	int shieldRegenRate;
+	float shieldValue, maxShieldValue;
+	/// Regen per millisecond
+	float shieldRegenRate;
 	int hitPoints;
 	int maxHitPoints;
 	List<String> abilities;
@@ -47,6 +48,7 @@ public:
 	/// o.o 
 	bool allied;
 	bool ai;
+	bool spawnInvulnerability;
 	/// Yielded when slaying it.
 	int score; 
 

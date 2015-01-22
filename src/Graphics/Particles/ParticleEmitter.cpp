@@ -8,6 +8,59 @@
 
 #include "Entity/Entity.h"
 
+
+float oneDivRandMaxFloat = 0;
+
+
+Emitter::Emitter()
+{
+	up = Vector3f(0,1,0);
+	left = Vector3f(-1,0,0);
+	forward = Vector3f(0,0,-1);
+}
+
+// Scales all 3 base vectors.
+void Emitter::Scale(float scale)
+{
+	up *= scale;
+	left *= scale;
+	forward *= scale;
+}
+
+/// Randomizes acordingly.
+void Emitter::Position(Vector3f & vec)
+{
+	switch(type)
+	{
+		case EmitterType::LINE_Y:
+			vec = (rand() * oneDivRandMaxFloat - 0.5f) * up;
+			break;
+		case EmitterType::PLANE_XY:
+			vec = (rand() * oneDivRandMaxFloat - 0.5f) * left +
+				(rand() * oneDivRandMaxFloat - 0.5f) * up;
+			break;
+		case EmitterType::PLANE_XZ:
+			vec = (rand() * oneDivRandMaxFloat - 0.5f) * left +
+				(rand() * oneDivRandMaxFloat - 0.5f) * forward;
+			break;
+		case EmitterType::CIRCLE_XY:
+		{
+			// Random angle.
+			float angle = (rand() * oneDivRandMaxFloat * 2 * PI);
+			vec = Vector3f(cos(angle), sin(angle), 0) * (rand() * oneDivRandMaxFloat);
+			break;
+		}
+		default:
+			assert(false);
+	}
+}
+
+void Emitter::Velocity(Vector3f & vec)
+{
+	 return Position(vec);
+}
+
+
 ParticleEmitter::ParticleEmitter()
 : type(EmitterType::NONE)
 {
@@ -56,12 +109,21 @@ ParticleEmitter::ParticleEmitter(Vector3f point)
 
 void ParticleEmitter::Initialize()
 {
+	if (oneDivRandMaxFloat == 0)
+		oneDivRandMaxFloat = 1.f / RAND_MAX;
+
+	newType = false;
+
 	entityToTrack = NULL;
 	enabled = true;
 	elapsedDurationMs = 0;
 	deleteAfterMs = 0;
 	particlesPerSecond = 1000;
 	ps = NULL;
+
+
+	instantaneous = false;
+	constantEmission = 0;
 
 	inheritColor = true;
 	inheritEmissionVelocity = true;
@@ -71,6 +133,9 @@ void ParticleEmitter::Initialize()
 
 	secondsEmitted = 0;
 	emissions = 0;
+
+	upVec = Vector3f(0,1,0);
+	leftVec = Vector3f(-1,0,0);
 }
 
 
@@ -98,12 +163,16 @@ void ParticleEmitter::AttachTo(ParticleSystem * targetPS)
 void ParticleEmitter::Update()
 {
 	if (entityToTrack)
-		position = entityToTrack->position;
+		position = entityToTrack->position + positionOffset;
 }
 
 /// Query how many particles this emitter wants to emit, considering the time that has elapsed.
 int ParticleEmitter::ParticlesToEmit(float timeInSeconds)
 {
+	if (instantaneous)
+	{
+		return constantEmission;
+	}
 	secondsEmitted += timeInSeconds;
 	int64 totalParticlesShouldHaveEmittedByNow = secondsEmitted * particlesPerSecond;
 	int particlesToEmit = totalParticlesShouldHaveEmittedByNow - emissions;
@@ -114,8 +183,18 @@ int ParticleEmitter::ParticlesToEmit(float timeInSeconds)
 }
 
 /// Default new particle.
-bool ParticleEmitter::GetNewParticle(Vector3f & position, Vector3f & velocity)
+bool ParticleEmitter::GetNewParticle(Vector3f & particlePosition, Vector3f & particleVelocity)
 {
+	if (newType)
+	{
+		positionEmitter.Position(particlePosition);
+		velocityEmitter.Velocity(particleVelocity);
+		// Add own position to particle.
+		particlePosition += position;
+		particleVelocity *= emissionVelocity;
+		return true;
+	}
+
 	switch(type)
 	{
 		case EmitterType::CONTOUR:
@@ -124,46 +203,57 @@ bool ParticleEmitter::GetNewParticle(Vector3f & position, Vector3f & velocity)
 				return false;
 			// Get a random index in the contour.
 			int randomIndex = rand() % contour.points.Size();
-			position = contour.points[randomIndex];
+			particlePosition = contour.points[randomIndex];
 			// Get next point.
 			Vector3f nextPoint = contour.points[(randomIndex+1) % contour.points.Size()];
 			Vector3f pToNext = nextPoint - position;
 			/// Set the point between this and the next point, actually!
 			float r = (rand() % 100) * 0.01f;
-			position += pToNext * r;
+			particlePosition += pToNext * r;
 			// Use an arbitrary up-vector?
 			Vector3f upVec(0,0,-1);
 			Vector3f crossProduct = upVec.CrossProduct(pToNext);
 			crossProduct.Normalize();
-			velocity = crossProduct;
+			particleVelocity = crossProduct;
 			break;
 		}
+		/*
+		case EmitterType::PLANE:
+		{
+			float up = rand() * oneDivRandMaxFloat - 0.5f;
+			float left = rand() * oneDivRandMaxFloat - 0.5f;
+			// o.o
+			particlePosition = up * upVec + left * leftVec + this->position;
+			particleVelocity = this->direction;
+			break;
+		}
+		*/
 		case EmitterType::POINT_DIRECTIONAL:
 		{
-			position = this->position;
-			velocity = this->direction;
+			particlePosition = this->position;
+			particleVelocity = this->direction;
 			// Randomize it a bit.
 			Vector3f upVec(0,0,-1);
-			Vector3f crossProduct = velocity.CrossProduct(upVec);
+			Vector3f crossProduct = particleVelocity.CrossProduct(upVec);
 			crossProduct.Normalize();
-			velocity += crossProduct * (rand()% 100)*0.01f; 
+			particleVelocity += crossProduct * (rand()% 100)*0.01f; 
 			break;
 		}
 		case EmitterType::POINT_CIRCLE:
 		{
-			position = this->position;
+			particlePosition = this->position;
 			// Random angle.
 			float angle = random.Randf() * 2 * PI;
 			float x = cos(angle);
 			float y = sin(angle);
-			velocity = Vector3f(x,y,0);
+			particleVelocity = Vector3f(x,y,0);
 			break;
 		}
 		default:
 			std::cout<<"\nINVALID PARTICLE EMITTER TYPE";
 			assert(false);
 	}
-	velocity *= emissionVelocity;
+	particleVelocity *= emissionVelocity;
 	return true;
 }
 	
@@ -189,6 +279,13 @@ void ParticleEmitter::SetEmissionVelocity(float vel)
 	emissionVelocity = vel;
 	inheritEmissionVelocity = false;
 }
+
+void ParticleEmitter::SetParticlesPerSecond(int num)
+{
+	particlesPerSecond = num;
+	inheritEmissionsPerSecond = false;
+}
+
 
 void ParticleEmitter::SetColor(Vector4f newColor)
 {

@@ -40,6 +40,7 @@ public:
 	bool sleeping;
 
 	int timeAliveMs;
+	Vector4f color;
 };
 
 #endif

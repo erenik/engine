@@ -137,9 +137,15 @@ void * Deallocate(void *vArgs)
 	assert(deallocatorThreadStartCount < 1);
 	++deallocatorThreadStartCount;
 
+
 	/// Stop input.
 	MesMan.QueueMessages("AcceptInput:false");
 	MesMan.QueueMessages("HideWindows");
+	// Unregister all entities.
+	GraphicsMan.QueueMessage(new GraphicsMessage(GM_UNREGISTER_ALL_ENTITIES));
+	PhysicsMan.QueueMessage(new PhysicsMessage(PM_UNREGISTER_ALL_ENTITIES));
+	Sleep(50);
+
 	MesMan.QueueMessages("SetGlobalState:NULL");
 	MesMan.QueueMessages("SetActiveState:NULL");
 	MesMan.QueueMessages("StateMan.DeleteStates");

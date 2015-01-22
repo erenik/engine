@@ -40,8 +40,6 @@ void GraphicsManager::RenderWindow()
 	
 	PrintTime("\nFrame start!");
 
-	FrameStats.ResetGraphics();
-
 	/*
     Timer preRenderTimer;
     preRenderTimer.Start();

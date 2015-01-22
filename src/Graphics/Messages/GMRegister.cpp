@@ -14,10 +14,8 @@ void GMRegisterEntity::Process()
 	GraphicsManager & manager = GraphicsMan;
 	assert(manager.vfcOctree);
 	///	entity->model->mesh.Bufferize();
-	assert(Graphics.registeredEntities.Size() == Graphics.vfcOctree->RegisteredEntities());
 	entity->Bufferize();
 	Graphics.RegisterEntity(entity);
-	assert(Graphics.registeredEntities.Size() == Graphics.vfcOctree->RegisteredEntities());
 }
 
 
@@ -34,9 +32,7 @@ void GMRegisterEntities::Process()
 			assert(!selection[i]->registeredForRendering);
 		}
 	}
-	assert(Graphics.registeredEntities.Size() == Graphics.vfcOctree->RegisteredEntities());
 	Graphics.RegisterEntities(selection);
-	assert(Graphics.registeredEntities.Size() == Graphics.vfcOctree->RegisteredEntities());
 }
 
 

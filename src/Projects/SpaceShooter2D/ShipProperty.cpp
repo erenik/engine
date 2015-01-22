@@ -79,14 +79,7 @@ void ShipProperty::ProcessWeapons(int timeInMs)
 				continue;
 			Weapon & weapon = ship->weapons[i];
 			assert(weapon.cooldownMs != 0);
-			/// Initialize the weapon as if it had just been fired.
-			if (weapon.lastShotMs == 0)
-				weapon.lastShotMs = nowMs;
-			int timeDiff = nowMs - weapon.lastShotMs;
-			if (timeDiff > weapon.cooldownMs)
-			{
-				weapon.Shoot(ship);
-			}
+			weapon.Shoot(ship);
 		}
 	}
 }
@@ -109,8 +102,6 @@ void ShipProperty::ProcessAI()
 /// If reacting to collisions...
 void ShipProperty::OnCollision(Collision & data)
 {
-	if (sleeping)
-		return;
 	// Check what we are colliding with.
 	Entity * other = 0;
 	if (data.one == owner)
@@ -118,12 +109,25 @@ void ShipProperty::OnCollision(Collision & data)
 	else if (data.two == owner)
 		other = data.one;
 
+	// Here you may generate some graphics effects if you want, but other than that.. don't do anything that has to do with gameplay logic.
+}	
+
+/// If reacting to collisions...
+void ShipProperty::OnCollision(Entity * withEntity)
+{
+	if (sleeping)
+		return;
+	Entity * other = withEntity;
+
 	ShipProperty * sspp = (ShipProperty *) other->GetProperty(ShipProperty::ID());
 	// Player-player collision? Sleep 'em both.
-	if (sspp && !sspp->sleeping)
+	if (sspp)
 	{
-		ship->Damage(sspp->ship->hitPoints);
-		sspp->ship->Damage(ship->hitPoints);
+//		std::cout<<"\nCollision with ship! o.o";
+		if (sspp->sleeping)
+			return;
+		ship->Damage(sspp->ship->hitPoints, true);
+		sspp->ship->Damage(ship->hitPoints, false);
 		return;
 	}
 
@@ -131,7 +135,7 @@ void ShipProperty::OnCollision(Collision & data)
 	if (pp && !pp->sleeping)
 	{
 		// Take damage? D:
-		ship->Damage(pp->weapon.damage);
+		ship->Damage(pp->weapon.damage, false);
+		pp->Destroy();
 	}
 }
-	

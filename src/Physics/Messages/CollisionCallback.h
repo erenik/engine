@@ -13,10 +13,12 @@ class Entity;
 	Do note that the "data" member should be deleted after processing the message as it is
 	Created on a per-message basis!
 */
-struct CollisionCallback : public Message
+class CollisionCallback : public Message
 {
+public:
 	CollisionCallback();
-	~CollisionCallback();
+	CollisionCallback(Entity * one, Entity * two);
+	virtual ~CollisionCallback();
 
 	// Extra variables
 	Entity * one, * two;

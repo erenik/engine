@@ -151,9 +151,11 @@ List<EntityPair> AABBSweeper::Sweep()
 						(
 							(entity->physics->collisionCategory & node->entity->physics->collisionFilter) && 
 							(entity->physics->collisionFilter & node->entity->physics->collisionCategory)
-						) == false)
+							) == false)
+					{
 						continue;
-                    EntityPair ep;
+					}
+					EntityPair ep;
                     /// Sort them by address (hopefully it works)
                     if (entity < node->entity){
                         ep.one = entity;
@@ -233,7 +235,7 @@ void AABBSweeper::Sort(List<AABBSweepNode*> & listToSort, int axis)
         currentNode = listArray[i];
         /// Mark this index as empty for the time being.
         emptySlot = i;
-        /// Extract current value depending on the node type (start, stop) and axis.
+		/// Extract current value depending on the node type (start, stop) and axis.
         if (currentNode->type == AABBSweepNode::START)
             currentValue = currentNode->aabb->min[axis];
         else if (currentNode->type == AABBSweepNode::STOP)

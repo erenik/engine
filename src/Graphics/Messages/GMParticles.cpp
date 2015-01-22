@@ -136,6 +136,19 @@ GMSetParticleEmitter::GMSetParticleEmitter(ParticleEmitter * emitter, int target
 	{
 		case GT_EMITTER_POSITION:
 		case GT_EMITTER_DIRECTION:
+		case GT_EMITTER_POSITION_OFFSET:
+			break;
+		default:
+			assert(false);
+	}
+}
+
+GMSetParticleEmitter::GMSetParticleEmitter(ParticleEmitter * emitter, int target, Entity * entity)
+: GraphicsMessage(GM_SET_PARTICLE_EMITTER), target(target), emitter(emitter), entity(entity)
+{
+	switch(target)
+	{
+		case GT_EMITTER_ENTITY_TO_TRACK:
 			break;
 		default:
 			assert(false);
@@ -151,6 +164,13 @@ void GMSetParticleEmitter::Process()
 			break;
 		case GT_EMITTER_DIRECTION:
 			emitter->direction = vec3fValue;
+			break;
+		// track
+		case GT_EMITTER_ENTITY_TO_TRACK:
+			emitter->entityToTrack = entity;
+			break;
+		case GT_EMITTER_POSITION_OFFSET:
+			emitter->positionOffset = vec3fValue;
 			break;
 		case GT_SET_PARTICLE_EMITTER_OF_PARTICLE_SYSTEM:
 		{

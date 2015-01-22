@@ -33,15 +33,22 @@ public:
 	int damage;
 	// If true, auto-aims at the player.
 	bool aim;
+	/// Not just looking, thinking.
+	bool estimatePosition;
 	/// Angle in degrees.
 	int angle;
+	// Burst stuff.
 	bool burst;
-	/// Last show, format Time::Now().Milliseconds()
-	int lastShotMs;
-	/// For burst.
-	int rounds;
+	// Start time of last/active burst.
+	int burstStartMs;
 	/// Delay between each round within the burst.
 	int burstRoundDelayMs;
+	/// For burst.
+	int burstRounds;
+	// Restarts
+	int burstRoundsShot; 
+	/// Last show, format Time::Now().Milliseconds()
+	int lastShotMs;
 	static List<Weapon> types;
 };
 

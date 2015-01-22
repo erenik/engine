@@ -27,6 +27,9 @@ public:
 	/// If reacting to collisions...
 	virtual void OnCollision(Collision & data);
 
+	/// If reacting to collisions...
+	virtual void OnCollision(Entity * withEntity);
+
 	// Since enemies go from right to left..
 
 	/// When deaded...

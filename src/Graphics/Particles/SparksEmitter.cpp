@@ -10,7 +10,8 @@ Random SparksEmitter::lifeTimeRandom;
 SparksEmitter::SparksEmitter(Vector3f point)
 : ParticleEmitter(point)
 {
-
+	velRandPart = 0.8f;
+	velConstPart = 0.2f;
 }
 
 SparksEmitter::~SparksEmitter()
@@ -25,7 +26,7 @@ bool SparksEmitter::GetNewParticle(Vector3f & position, Vector3f & velocity)
 	/// Fetch default position and velocity.
 	ParticleEmitter::GetNewParticle(position, velocity);
 	/// Randomly distribute velocity along 20-100% of the max value.
-	velocity *= velocityRandom.Randf(0.8f) + 0.2f;
+	velocity *= velocityRandom.Randf(velRandPart) + velConstPart;
 	return true;
 }
 
@@ -40,3 +41,8 @@ bool SparksEmitter::GetNewParticle(Vector3f & position, Vector3f & velocity, flo
 }
 
 
+void SparksEmitter::SetRatioRandomVelocity(float part)
+{
+	velRandPart = part;
+	velConstPart =  1 - part;
+}

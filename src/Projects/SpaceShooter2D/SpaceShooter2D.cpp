@@ -11,10 +11,16 @@
 #include "Input/InputManager.h"
 #include "Input/Action.h"
 
+#include "Physics/Messages/CollisionCallback.h"
+
 
 /// Particle system for sparks/explosion-ish effects.
 Sparks * sparks = NULL;
+Stars * stars = NULL;
 
+ParticleEmitter * starEmitter = NULL;
+
+static bool paused = false;
 
 List<Weapon> Weapon::types;
 List<Ship> Ship::types;
@@ -39,12 +45,10 @@ void RegisterStates()
 
 SpaceShooter2D::SpaceShooter2D()
 {
-	playerShip = NULL;
 	levelCamera = NULL;
 }
 SpaceShooter2D::~SpaceShooter2D()
 {
-	SAFE_DELETE(playerShip);
 }
 /// Function when entering this state, providing a pointer to the previous StateMan.
 void SpaceShooter2D::OnEnter(AppState * previousState)
@@ -54,6 +58,23 @@ void SpaceShooter2D::OnEnter(AppState * previousState)
 	sparks = new Sparks(true);
 	// Register it for rendering.
 	Graphics.QueueMessage(new GMRegisterParticleSystem(sparks, true));
+	
+	stars = new Stars(true);
+	stars->deleteEmittersOnDeletion = true;
+	Graphics.QueueMessage(new GMRegisterParticleSystem(stars, true));
+	
+	/// Add emitter
+	starEmitter = new ParticleEmitter();
+	starEmitter->newType = true;
+	starEmitter->positionEmitter.type = EmitterType::PLANE_XY;
+	starEmitter->positionEmitter.Scale(40.f);
+	starEmitter->velocityEmitter.type = EmitterType::CIRCLE_XY;
+	starEmitter->SetEmissionVelocity(0.0001f);
+	starEmitter->SetParticlesPerSecond(20);
+	starEmitter->SetParticleLifeTime(50.f);
+	starEmitter->SetScale(0.3f);
+	Graphics.QueueMessage(new GMAttachParticleEmitter(starEmitter, stars));
+
 
 	// Remove overlay.
 	// Set up ui.
@@ -84,61 +105,60 @@ void SpaceShooter2D::OnEnter(AppState * previousState)
 Time now;
 int64 nowMs;
 int timeElapsedMs;
+Vector3f frustumMin, frustumMax;
 
 /// Main processing function, using provided time since last frame.
 void SpaceShooter2D::Process(int timeInMs)
 {
 	Sleep(10);
 //	std::cout<<"\nSS2D entities: "<<shipEntities.Size() + projectileEntities.Size() + 1;
-//	if (playerShip) std::cout<<"\nPlayer position: "<<playerShip->position;
+//	if (playerShip) std::cout<<"\nPlayer position: "<<playerShip.position;
 
 	now = Time::Now();
 	nowMs = (int) now.Milliseconds();
 	timeElapsedMs = timeInMs;
-
-	static int cpBarn = 0;
-	cpBarn += timeElapsedMs;
-	if (cpBarn > 1000)
+	
+	// Check camera bounding box.
+	if (levelCamera)
 	{
-		std::cout<<"\nGraphics entities "<<GraphicsMan.RegisteredEntities()<<" physics "<<PhysicsMan.RegisteredEntities()
-			<<" projectiles "<<projectileEntities.Size()<<" ships "<<shipEntities.Size();
-		cpBarn = 0;
-		int duplicates = shipEntities.Duplicates();
-//		std::cout<<"\nDuplicates: "<<duplicates;
+		Frustum frustum = levelCamera->GetFrustum();
+		/// These will hopefully always be in AABB axes.
+		frustumMin = frustum.hitherBottomLeft;
+		frustumMax = frustum.fartherTopRight;
 	}
 	switch(mode)
 	{
 		case PLAYING_LEVEL:
 		{
 			// Check for game over.
-			if (playerShip->hitPoints <= 0)
+			if (playerShip.hitPoints <= 0)
 			{
 				// Game OVER!
 				GameOver();
 				break;
 			}
 
+			float spawnPositionRight = levelCamera->position.x + 16.f;
+			float despawnPositionLeft = levelCamera->position.x - 16.f;
+
 			/// Clearing the level
-			if (playerShip->entity->position.x > level.goalPosition)
+			if (playerShip.entity->position.x > level.goalPosition)
 			{
-				// Next level? Restart?
-				LoadLevel(levelSource);
+				LevelCleared();
+			}
+			else 
+			{
+				/// PRocess the player ship.
+				Process(playerShip);
 			}
 			/// Remove projectiles which have been passed by.
 			for (int i = 0; i < projectileEntities.Size(); ++i)
 			{
 				Entity * proj = projectileEntities[i];
-				if (proj->position.x < levelCamera->position.x - 20.f ||
-					proj->position.x > levelCamera->position.x + 40.f)
+				if ((proj->position - levelCamera->position).LengthSquared() > 2000)
 				{
 					MapMan.DeleteEntity(proj);
-					int occurances = 0;
-					while(projectileEntities.Remove(proj))
-						++occurances;
-					if (occurances > 1)
-					{
-						std::cout<<"BAANANRANER";
-					}
+					projectileEntities.Remove(proj);
 					--i;
 				}
 			}
@@ -151,8 +171,18 @@ void SpaceShooter2D::Process(int timeInMs)
 				{
 					if (ship.entity == NULL)
 						continue;
+					if (ship.spawnInvulnerability)
+					{
+						if (ship.entity->position.x < spawnPositionRight)
+						{
+							// Change color.
+							GraphicsMan.QueueMessage(new GMSetEntityTexture(ship.entity, DIFFUSE_MAP | SPECULAR_MAP, TexMan.GetTextureByColor(Color(255,255,255,255))));
+							ship.spawnInvulnerability = false;
+							continue;				
+						}
+					}
 					// Check if it should de-spawn.
-					if (ship.entity->position.x < levelCamera->position.x - 25.f)
+					if (ship.entity->position.x < despawnPositionLeft)
 					{
 						MapMan.DeleteEntity(ship.entity);
 						shipEntities.Remove(ship.entity);
@@ -164,10 +194,19 @@ void SpaceShooter2D::Process(int timeInMs)
 					}
 					continue;
 				}
-				if (AbsoluteValue(levelCamera->position.x - ship.position.x) > 50.f)
+				if (ship.position.x > spawnPositionRight + 5.f)
 					continue;
 				Entity * entity = EntityMan.CreateEntity(ship.type, ModelMan.GetModel("sphere.obj"), TexMan.GetTextureByColor(Color(0,255,0,255)));
 				entity->position = ship.position;
+				PhysicsProperty * pp = new PhysicsProperty();
+				entity->physics = pp;
+				// Setup physics.
+				pp->type = PhysicsType::DYNAMIC;
+				pp->collisionCategory = CC_ENEMY;
+				pp->collisionFilter = CC_PLAYER | CC_PLAYER_PROJ;
+				pp->collissionCallback = true;
+				// By default, set invulerability on spawn.
+				ship.spawnInvulnerability = true;
 				entity->RecalculateMatrix();
 				ShipProperty * sp = new ShipProperty(&ship, entity);
 				entity->properties.Add(sp);
@@ -175,9 +214,6 @@ void SpaceShooter2D::Process(int timeInMs)
 				ship.spawned = true;
 				shipEntities.Add(entity);
 				MapMan.AddEntity(entity);
-				// Only collide with the player.
-				PhysicsMan.QueueMessage(new PMSetEntity(entity, PT_COLLISION_FILTER, CC_PLAYER));
-				PhysicsMan.QueueMessage(new PMSetEntity(entity, PT_COLLISION_CATEGORY, CC_ENEMY));
 			}
 		}
 	}
@@ -187,10 +223,10 @@ void SpaceShooter2D::Process(int timeInMs)
 void SpaceShooter2D::OnExit(AppState * nextState)
 {
 	// Register it for rendering.
-	Graphics.QueueMessage(new GMUnregisterParticleSystem(sparks, false));
+	Graphics.QueueMessage(new GMUnregisterParticleSystem(sparks, true));
+	Graphics.QueueMessage(new GMUnregisterParticleSystem(stars, true));
 	MapMan.DeleteAllEntities();
 	Sleep(100);
-	SAFE_DELETE(sparks);
 }
 
 
@@ -210,10 +246,65 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 	String msg = message->msg;
 	switch(message->type)
 	{
+		case MessageType::COLLISSION_CALLBACK:
+		{
+
+			CollisionCallback * cc = (CollisionCallback*) message;
+			Entity * one = cc->one;
+			Entity * two = cc->two;
+#define SHIP 0
+#define PROJ 1
+//			std::cout<<"\nColCal: "<<cc->one->name<<" & "<<cc->two->name;
+
+			Entity * shipEntity = NULL;
+			Entity * other = NULL;
+			int oneType = (one == playerShip.entity || shipEntities.Exists(one)) ? SHIP : PROJ;
+			int twoType = (two == playerShip.entity || shipEntities.Exists(two)) ? SHIP : PROJ;
+			int types[5] = {0,0,0,0,0};
+			++types[oneType];
+			++types[twoType];
+			if (oneType == SHIP)
+			{
+				shipEntity = one;
+				other = two;
+			}
+			else if (twoType == SHIP)
+			{
+				shipEntity = two;
+				other = one;
+			}
+			if (shipEntity)
+			{
+				ShipProperty * shipProp = (ShipProperty*)shipEntity->GetProperty(ShipProperty::ID());
+				shipProp->OnCollision(other);
+			}
+			break;
+		}
 		case MessageType::STRING:
 		{
 			if (msg == "NewGame")
 				NewGame();
+			else if (msg == "Pause/Break")
+			{
+				TogglePause();
+			}
+			else if (msg == "ListEntitiesAndRegistrations")
+			{
+				std::cout<<"\nGraphics entities "<<GraphicsMan.RegisteredEntities()<<" physics "<<PhysicsMan.RegisteredEntities()
+					<<" projectiles "<<projectileEntities.Size()<<" ships "<<shipEntities.Size();
+			}
+			else if (msg == "NextLevel")
+			{
+				// Next level? Restart?
+				LoadLevel(levelSource);
+			}
+			else if (msg == "ClearLevel")
+			{
+				level.ships.Clear();
+				MapMan.DeleteEntities(shipEntities);
+				PhysicsMan.QueueMessage(new PMSetEntity(playerShip.entity, PT_POSITION, Vector3f(level.goalPosition - 5.f, 10, 0)));
+				GraphicsMan.QueueMessage(new GMSetCamera(levelCamera, CT_POSITION, Vector3f(level.goalPosition - 5.f, 10, 0)));
+			}
 			if (msg.StartsWith("DisplayCenterText"))
 			{
 				String text = msg;
@@ -262,12 +353,18 @@ void SpaceShooter2D::CreateDefaultBindings()
 	BINDING(Action::CreateStartStopAction("MoveShipRight"), KEY::D);
 	BINDING(Action::FromString("ResetCamera"), KEY::HOME);
 	BINDING(Action::FromString("NewGame"), List<int>(2, KEY::N, KEY::G));
+	BINDING(Action::FromString("ClearLevel"), List<int>(2, KEY::C, KEY::L));
+	BINDING(Action::FromString("ListEntitiesAndRegistrations"), List<int>(2, KEY::L, KEY::E));
 }
 
 /// Update UI
 void SpaceShooter2D::UpdatePlayerHP()
 {
-	GraphicsMan.QueueMessage(new GMSetUIs("HP", GMUI::TEXT, String(playerShip->hitPoints)));
+	GraphicsMan.QueueMessage(new GMSetUIs("HP", GMUI::TEXT, String(playerShip.hitPoints)));
+}
+void SpaceShooter2D::UpdatePlayerShield()
+{
+	GraphicsMan.QueueMessage(new GMSetUIs("Shield", GMUI::TEXT, String((int)playerShip.shieldValue)));
 }
 // Update ui
 void SpaceShooter2D::OnScoreUpdated()
@@ -291,31 +388,54 @@ Entity * SpaceShooter2D::OnShipDestroyed(Ship * ship)
 /// Starts a new game. Calls LoadLevel
 void SpaceShooter2D::NewGame()
 {
-	if (!playerShip)
-	{
-		playerShip = new Ship();
-		playerShip->ai = false;
-		playerShip->allied = true;
-		Weapon weapon;
-		weapon.damage = 24;
-		weapon.cooldownMs = 200;
-		weapon.projectileSpeed = 24.f;
-		playerShip->weapons.Add(weapon);
-	}
-	// Reset player stats.
-	playerShip->hitPoints = playerShip->maxHitPoints = 500;
+	// Load weapons.
+	Weapon::LoadTypes("Ship Data/Alien/Weapons.csv");
+	Weapon::LoadTypes("Ship Data/Human/Weapons.csv");
+	// Load ship-types.
+	Ship::LoadTypes("Ship Data/Alien/Ships.csv");
+	Ship::LoadTypes("Ship Data/Human/Ships.csv");
 
+
+	if (playerShip.name.Length() == 0)
+	{
+		playerShip = Ship::New("Default");
+		playerShip.ai = false;
+		playerShip.allied = true;
+		if (playerShip.weapons.Size() == 0)
+		{
+			std::cout<<"\nAdding default weapon.";
+			Weapon weapon;
+			weapon.damage = 24;
+			weapon.cooldownMs = 200;
+			weapon.projectileSpeed = 24.f;
+			playerShip.weapons.Add(weapon);
+			playerShip.maxHitPoints = 500;
+		}
+	}
 	LoadLevel("Levels/Stage 1/Level 1-1");
-	mode = PLAYING_LEVEL;
-	UpdateUI();
 	// Play script for animation or whatever.
 	ScriptMan.PlayScript("scripts/NewGame.txt");
 
 }
 
+void SpaceShooter2D::TogglePause()
+{
+	paused = !paused;
+	if (paused)
+	{
+		GraphicsMan.QueueMessage(new GraphicsMessage(GM_PAUSE_RENDERING));
+		PhysicsMan.Pause();
+	}
+	else {
+		GraphicsMan.QueueMessage(new GraphicsMessage(GM_RESUME_RENDERING));
+		PhysicsMan.Resume();
+	}
+}
+
 /// Loads target level. The source and separate .txt description have the same name, just different file-endings, e.g. "Level 1.png" and "Level 1.txt"
 void SpaceShooter2D::LoadLevel(String fromSource)
 {
+	GraphicsMan.QueueMessage(new GMSetParticleEmitter(starEmitter, GT_EMITTER_ENTITY_TO_TRACK, NULL));
 	this->levelSource = fromSource;
 	// Delete all entities.
 	MapMan.DeleteAllEntities();
@@ -324,16 +444,36 @@ void SpaceShooter2D::LoadLevel(String fromSource)
 	GraphicsMan.PauseRendering();
 	level.Load(fromSource);
 	level.SetupCamera();
-	level.AddPlayer(playerShip);
+	level.AddPlayer(&playerShip);
+	// Track player with effects.
+	GraphicsMan.QueueMessage(new GMSetParticleEmitter(starEmitter, GT_EMITTER_ENTITY_TO_TRACK, playerShip.entity));
+	GraphicsMan.QueueMessage(new GMSetParticleEmitter(starEmitter, GT_EMITTER_POSITION_OFFSET, Vector3f(50.f, 0, 0)));
+	// Reset player stats.
+	playerShip.hitPoints = playerShip.maxHitPoints;
+	playerShip.shieldValue = playerShip.maxShieldValue;
 	GraphicsMan.ResumeRendering();
+	mode = PLAYING_LEVEL;
+	UpdateUI();
 }
 
 void SpaceShooter2D::GameOver()
 {
-	mode = GAME_OVER;
-	// Play script for animation or whatever.
-	ScriptMan.PlayScript("scripts/GameOver.txt");
-	// End script by going back to menu or playing a new game.
+	if (mode != GAME_OVER)
+	{
+		mode = GAME_OVER;
+		// Play script for animation or whatever.
+		ScriptMan.PlayScript("scripts/GameOver.txt");
+		// End script by going back to menu or playing a new game.
+	}
+}
+
+void SpaceShooter2D::LevelCleared()
+{
+	if (mode != LEVEL_CLEARED)
+	{
+		mode = LEVEL_CLEARED;
+		ScriptMan.PlayScript("scripts/LevelComplete.txt");
+	}
 }
 
 /// Updates ui depending on mode.
@@ -347,6 +487,7 @@ void SpaceShooter2D::UpdateUI()
 			GraphicsMan.QueueMessage(new GMSetUIb("MainMenu", GMUI::VISIBILITY, false, ui));
 			GraphicsMan.QueueMessage(new GMSetUIb("HUD", GMUI::VISIBILITY, true, ui));
 			UpdatePlayerHP();
+			UpdatePlayerShield();
 			break;
 		default:
 			GraphicsMan.QueueMessage(new GMSetUIb("MainMenu", GMUI::VISIBILITY, true, ui));
@@ -368,9 +509,9 @@ void SpaceShooter2D::UpdatePlayerVelocity()
 	}
 	totalVec *= 8.f;
 	// Set player speed.
-	if (playerShip && playerShip->entity)
+	if (playerShip.entity)
 	{
-		PhysicsMan.QueueMessage(new PMSetEntity(playerShip->entity, PT_VELOCITY, totalVec + level.BaseVelocity()));
+		PhysicsMan.QueueMessage(new PMSetEntity(playerShip.entity, PT_VELOCITY, totalVec + level.BaseVelocity()));
 	}
 }
 
@@ -383,4 +524,13 @@ void SpaceShooter2D::ResetCamera()
 /// Process target ship.
 void SpaceShooter2D::Process(Ship & ship)
 {
+	if (ship.hasShield)
+	{
+		// Repair shield
+		ship.shieldValue += timeElapsedMs * ship.shieldRegenRate;
+		if (ship.shieldValue > ship.maxShieldValue)
+			ship.shieldValue = ship.maxShieldValue;
+		if (ship.allied)
+			UpdatePlayerShield();
+	}
 }

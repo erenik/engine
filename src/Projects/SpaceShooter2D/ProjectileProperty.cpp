@@ -21,7 +21,7 @@ int ProjectileProperty::ID()
 void ProjectileProperty::OnCollision(Collision & data)
 {
 	// Do nothing?
-	Destroy();
+//	Destroy();
 }
 
 void ProjectileProperty::Destroy()
@@ -43,12 +43,13 @@ void ProjectileProperty::Destroy()
 
 	// Add a temporary emitter to the particle system to add some sparks to the collision
 	SparksEmitter * tmpEmitter = new SparksEmitter(owner->position);
-	tmpEmitter->SetEmissionVelocity(5.f);
-	tmpEmitter->particlesPerSecond = 2000;
-	tmpEmitter->deleteAfterMs = 20;	
-	tmpEmitter->SetParticleLifeTime(3.5f);
+	tmpEmitter->SetEmissionVelocity(3.f);
+	tmpEmitter->constantEmission = 40;
+	tmpEmitter->instantaneous = true;
+	tmpEmitter->SetParticleLifeTime(2.5f);
 	tmpEmitter->SetScale(0.1f);
-	tmpEmitter->SetColor(Vector4f(0.1f, 0.5f, 1.f, 1.f));
+	tmpEmitter->SetColor(color);
+	tmpEmitter->SetRatioRandomVelocity(1.f);
 	Graphics.QueueMessage(new GMAttachParticleEmitter(tmpEmitter, sparks));
 
 //	float volume = distanceModifierToVolume * explosionSFXVolume;

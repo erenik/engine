@@ -50,6 +50,7 @@
 #include "Graphics/Messages/GMSetEntity.h"
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Particles/Sparks.h"
+#include "Graphics/Particles/Stars.h"
 #include "Graphics/Particles/SparksEmitter.h"
 
 #include "Game/SpaceShooter/SpaceShooterCD.h"
@@ -59,8 +60,10 @@
 #include "ProjectileProperty.h"
 
 // Collision categories.
-#define CC_PLAYER	1 
-#define CC_ENEMY	2
+#define CC_PLAYER		1 
+#define CC_ENEMY		2
+#define CC_PLAYER_PROJ	4
+#define CC_ENEMY_PROJ	8
 
 enum {
 	SHIP_PROP,
@@ -73,6 +76,9 @@ class SpaceShooterCD;
 extern int64 nowMs;
 /// Particle system for sparks/explosion-ish effects.
 extern Sparks * sparks;
+
+/// These will hopefully always be in AABB axes.
+extern Vector3f frustumMin, frustumMax;
 
 class SpaceShooter2D : public AppState 
 {
@@ -98,6 +104,7 @@ public:
 	void UpdateUI();
 	/// Update UI
 	void UpdatePlayerHP();
+	void UpdatePlayerShield();
 	/// Update ui
 	void OnScoreUpdated();
 	/// o.o
@@ -111,9 +118,11 @@ public:
 
 	/// Starts a new game. Calls LoadLevel
 	void NewGame();
+	void TogglePause();
 	/// Loads target level. The source and separate .txt description have the same name, just different file-endings, e.g. "Level 1.png" and "Level 1.txt"
 	void LoadLevel(String levelSource);
 	void GameOver();
+	void LevelCleared();
 
 	void UpdatePlayerVelocity();
 	void ResetCamera();
@@ -126,13 +135,14 @@ public:
 		IN_MENU,
 		PLAYING_LEVEL,
 		GAME_OVER,
+		LEVEL_CLEARED,
 	};
 	int mode;
 	SSIntegrator * integrator;
 	SpaceShooterCR * cr;
 	SpaceShooterCD * cd;
 	Level level;
-	Ship * playerShip;
+	Ship playerShip;
 	List<int> movementDirections;
 	/// All ships, including player.
 	List<Entity*> shipEntities;

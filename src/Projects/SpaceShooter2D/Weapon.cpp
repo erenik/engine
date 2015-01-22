@@ -18,12 +18,17 @@ Weapon::Weapon()
 {
 	burst = false;
 	aim = false;
+	estimatePosition = false;
 	projectilePath = STRAIGHT;
 	lastShotMs = 0;
 	cooldownMs = 1000;
 	damage = 5;
 	angle = 0;
 	projectileSpeed = 5.f;
+
+	burstRounds = 3;
+	burstRoundsShot = 0;
+	burstRoundDelayMs = 50;
 }
 
 Weapon Weapon::Get(String byName)
@@ -123,41 +128,108 @@ bool Weapon::LoadTypes(String fromFile)
 	return true;
 }
 
+Random shootRand;
 
 void Weapon::Shoot(Ship * ship)
 {
+	/// Initialize the weapon as if it had just been fired.
+	if (lastShotMs == 0)
+	{
+		lastShotMs = nowMs - cooldownMs + 1000 + shootRand.Randf(cooldownMs);
+		return;
+	}
+	/// For burst..
+	if (burst)
+	{
+		if (burstRoundsShot < burstRounds)
+		{
+			// Check time between burst rounds.
+			int timeDiff = nowMs - lastShotMs;
+			if (timeDiff < burstRoundDelayMs)
+				return;
+			++burstRoundsShot;
+		}
+		else {
+			int timeDiff = nowMs - burstStartMs;
+			if (timeDiff < cooldownMs)
+				return;
+			burstStartMs = nowMs;
+			burstRoundsShot = 0;
+			++burstRoundsShot;
+		}
+	}
+	// Regular fire
+	else {
+		int timeDiff = nowMs - lastShotMs;
+		if (timeDiff < cooldownMs)
+			return;
+	}
+
 	Entity * shipEntity = ship->entity;
 	// Shoot.
-	Texture * tex = TexMan.GetTextureByColor(Color(0,255,255,255));
+	Color color;
+	if (ship->allied)
+		color = Vector4f(1.f, 0.5f, .1f, 1.f);
+	else
+		color = Vector4f(0.8f,0.7f,0.1f,1.f);
+	Texture * tex = TexMan.GetTextureByColor(color);
 	Entity * projectileEntity = EntityMan.CreateEntity(name + " Projectile", ModelMan.GetModel("sphere.obj"), tex);
-	ProjectileProperty * pp = new ProjectileProperty(*this, projectileEntity);
-	projectileEntity->properties.Add(pp);
+	ProjectileProperty * projProp = new ProjectileProperty(*this, projectileEntity);
+	projectileEntity->properties.Add(projProp);
 	// Set scale and position.
 	projectileEntity->position = shipEntity->position;
 	projectileEntity->scale *= 0.1f;
+	projProp->color = color;
 	projectileEntity->RecalculateMatrix();
 	// pew
 	Vector3f dir(-1.f,0,0);
 	if (aim)
 	{
+		Entity * target = NULL;
 		// Aim.
+		if (ship->allied)
+		{
+			assert(false && "Implement. Press ignore to continue anyway.");
+		}
+		else 
+		{
+			target = spaceShooter->playerShip.entity;
+		}
+		if (target == NULL)
+			return;
+		// Estimate position upon impact?
+		Vector3f targetPos = target->position;
+		Vector3f toTarget = targetPos - shipEntity->position;
+		float dist = toTarget.Length();
+		if (estimatePosition)
+		{
+			// Check velocity of target.
+			Vector3f vel = target->Velocity();
+			// Estimated position upon impact... wat.
+			float seconds = dist / projectileSpeed;
+			Vector3f estimatedPosition = targetPos + vel * seconds;
+			toTarget = estimatedPosition - shipEntity->position;
+		}
+		// Aim at the player.
+		dir = toTarget.NormalizedCopy();
 	}
 	// Angle, +180
 	else if (angle)
 	{
-		float worldAngle = (float)angle + 180;
+		float worldAngle = DEGREES_TO_RADIANS((float)angle + 180);
 		dir.x = cos(worldAngle);
 		dir.y = sin(worldAngle);
 	}
 	if (ship->allied)
 		dir *= -1.f;
 	Vector3f vel = dir * projectileSpeed;
-	projectileEntity->physics = new PhysicsProperty();
-	projectileEntity->physics->type = PhysicsType::DYNAMIC;
-	projectileEntity->physics->velocity = vel;
+	PhysicsProperty * pp = projectileEntity->physics = new PhysicsProperty();
+	pp->type = PhysicsType::DYNAMIC;
+	pp->velocity = vel;
+	pp->collissionCallback = true;			
 	// Set collision category and filter.
-	projectileEntity->physics->collisionCategory = ship->allied? CC_PLAYER : CC_ENEMY;
-	projectileEntity->physics->collisionFilter = ship->allied? CC_ENEMY : CC_PLAYER;
+	pp->collisionCategory = ship->allied? CC_PLAYER_PROJ : CC_ENEMY_PROJ;
+	pp->collisionFilter = ship->allied? CC_ENEMY : CC_PLAYER;
 	// Add to map.
 	MapMan.AddEntity(projectileEntity);
 	spaceShooter->projectileEntities.Add(projectileEntity);

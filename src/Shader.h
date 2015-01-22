@@ -104,7 +104,8 @@ public:
 	/// Attributes added with instanced particle rendering. 
 	GLuint attributeVertexPosition, // Vertex XYZ for the model which is instanced.
 		attributeParticlePositionScale, /// World position XYZ and scale stored in the W component 
-		attributeColor; /// Color XYZW for tweaking each individual instance/particle.
+		attributeColor, /// Color XYZW for tweaking each individual instance/particle.
+		attributeParticleLifeTimeDuration; // Life time (total), and duration (current).
 
 	/// Attributes added with skeletal animation, vec4 both of them, thereby limiting number of bone-weights to 4 per vertex.
 	GLuint attributeBoneIndices;
@@ -133,6 +134,9 @@ public:
 
 	/// GL uniform light identifiers
 	UniformLight uniformLight;
+
+	/// Particle uniforms.
+	GLuint uniformParticleDecayAlphaWithLifeTime;
 
 	/// Array of (texture) samplers
 	GLuint sampler[10];		// Max 10 simultaneous samplers

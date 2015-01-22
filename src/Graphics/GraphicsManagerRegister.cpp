@@ -20,7 +20,8 @@ bool GraphicsManager::RegisterEntity(Entity * entity)
 		UnregisterEntity(entity);
 	}
 	registeredEntities.Add(entity);
-	vfcOctree->AddEntity(entity);
+	if (optimizationStructure == VFC_OCTREE)
+		vfcOctree->AddEntity(entity);
 	entity->registeredForRendering = true;
 	// Check for additional graphics-data
 	GraphicsProperty * graphics = entity->graphics;
@@ -62,13 +63,11 @@ bool GraphicsManager::UnregisterEntity(Entity * entity)
 	int octreeEntitiesBeforeRemoval = vfcOctree->RegisteredEntities();
 	if (!entity->registeredForRendering)
 		return true;
-	assert(entitiesBefore == octreeEntitiesBeforeRemoval);
+	entity->registeredForRendering = false;
 	bool result = registeredEntities.Remove(entity);
 	if (!result){
 		std::cout<<"\nWARNING: Unable to remove entity, already unregistered?";
 	}
-	assert(vfcOctree->RemoveEntity(entity));
-	entity->registeredForRendering = false;
 
 	// Check for additional graphics-data
 	if (entity->graphics)
@@ -92,17 +91,15 @@ bool GraphicsManager::UnregisterEntity(Entity * entity)
 	}
 
 	int entitesAfter = registeredEntities.Size();
-	int octreeEntities = vfcOctree->RegisteredEntities();
-	assert(octreeEntities < octreeEntitiesBeforeRemoval);
-	assert(registeredEntities.Size() == vfcOctree->RegisteredEntities());
-
-	/// If marked for deletion, remove graphicsProperty permanently.
-	if (entity->flaggedForDeletion)
+	// Remove from optimization structures, if any.
+	if (optimizationStructure == VFC_OCTREE)
 	{
-//		delete entity->graphics;
-//		entity->graphics = NULL;
+		assert(entitiesBefore == octreeEntitiesBeforeRemoval);
+		assert(vfcOctree->RemoveEntity(entity));
+		int octreeEntities = vfcOctree->RegisteredEntities();
+		assert(octreeEntities < octreeEntitiesBeforeRemoval);
+		assert(registeredEntities.Size() == vfcOctree->RegisteredEntities());
 	}
-
 	return true;
 };
 

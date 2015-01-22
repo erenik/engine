@@ -153,6 +153,15 @@ public:
 	/// Called after the main rendering loop has ended, before general deallcoations of resources is done.
 	void OnEndRendering();
 
+
+	enum {
+		NONE,
+		VFC_OCTREE, // Own octree
+		PHYSICS_AABB_SWEEPER, // Inheriting the physics AABB_SWEEPER sorting, if that helps.
+	};
+	// One of the above. May be inherited from the physics-manager (do it!).
+	int optimizationStructure;
+
 	bool rendering;
 	/// For main rendering.
 	bool backfaceCullingEnabled;

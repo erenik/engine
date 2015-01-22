@@ -238,7 +238,10 @@ public:
 	/// Set to any value as defined in Collision.h's enum "collissionCallbackRequirements"
 	/// Paused o-o
 	bool paused;
-	int collissionCallback;
+	/// Boolean.
+	bool collissionCallback;
+	/// If non-negative, defiens max callbacks. Useful for things as projectiles which should only collide once (optimization). Default unlimited (-1) 
+	int maxCallbacks;
 	float collissionCallbackRequirementValue;
 	/// Flagging this will make all collissions resolve as if there had been no collission at all. Should be coupled with the collissionCallback variable.
 	bool noCollisionResolutions;

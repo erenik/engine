@@ -9,10 +9,6 @@ Camera * levelCamera = NULL;
 bool Level::Load(String fromSource)
 {
 	source = fromSource;
-	// Load weapons.
-	Weapon::LoadTypes("Ship Data/Alien/Weapons.csv");
-	// Load ship-types.
-	Ship::LoadTypes("Ship Data/Alien/Ships.csv");
 
 	/// Clear old stuff.
 	ships.Clear();
@@ -140,19 +136,25 @@ void Level::AddPlayer(Ship * playerShip)
 		playerShip->entity = EntityMan.CreateEntity("Player ship", ModelMan.GetModel("sphere.obj"), TexMan.GetTextureByColor(Color(255,0,0,255)));
 		ShipProperty * sp = new ShipProperty(playerShip, playerShip->entity);
 		playerShip->entity->properties.Add(sp);
+		PhysicsProperty * pp = new PhysicsProperty();
+		playerShip->entity->physics = pp;
+		pp->collissionCallback = true;				
+		pp->collisionCategory = CC_PLAYER;
+		pp->collisionFilter = CC_ENEMY | CC_ENEMY_PROJ;
+		pp->velocity = BaseVelocity();
+		pp->type = PhysicsType::DYNAMIC;
+		// Set player to mid position.
+		playerShip->entity->position = Vector3f(0, 10.f, 0);
 	}
 	// Shortcut..
-	Entity * playerShipEntity = playerShip->entity;
+	Entity * entity = playerShip->entity;
 	// Set player to mid position.
-	PhysicsMan.QueueMessage(new PMSetEntity(playerShipEntity, PT_SET_POSITION, Vector3f(0, 10.f, 0)));
+	PhysicsMan.QueueMessage(new PMSetEntity(entity, PT_SET_POSITION, Vector3f(0, 10.f, 0)));
 	// Set player collision stats.
-	PhysicsMan.QueueMessage(new PMSetEntity(playerShipEntity, PT_COLLISION_CATEGORY, CC_PLAYER));
-	PhysicsMan.QueueMessage(new PMSetEntity(playerShipEntity, PT_COLLISION_FILTER, CC_ENEMY));
 	// Register player for rendering.
-	MapMan.AddEntity(playerShipEntity);
-
+	MapMan.AddEntity(entity);
 	// Begin movement of player too?
-	PhysicsMan.QueueMessage(new PMSetEntity(playerShipEntity, PT_VELOCITY, BaseVelocity()));
+	PhysicsMan.QueueMessage(new PMSetEntity(entity, PT_VELOCITY, BaseVelocity()));
 }
 
 void Level::SetupCamera()

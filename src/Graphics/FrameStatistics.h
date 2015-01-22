@@ -29,11 +29,12 @@ public:
 
 	float graphicsMessages, renderTotal, totalGraphics;
 	float updateLighting, graphicsRepositionEntities, graphicsProcess;
-	float renderSortEntities, renderEntities, renderPrePipeline, renderPostPipeline;
+	float renderSortEntities, renderEntities, renderPrePipeline, renderPostPipeline, swapBuffers;
 	float multimedia;
 	float physicsProcessing, physicsMessages, totalPhysics, 
 		physicsIntegration, physicsRecalcAABBs, physicsRecalcOBBs,
-		physicsRecalcProps;
+		physicsRecalcProps, physicsCollisions;
+	float physicsCollisionDetection, physicsCollisionResolution, physicsCollisionCallback;
 
 
 	/// Pushes the frame time which is then used to calculate the average frame-time.

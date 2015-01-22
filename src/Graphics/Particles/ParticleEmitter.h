@@ -12,6 +12,9 @@
 class Mesh;
 class Entity;
 
+/// Pre-calculated
+extern float oneDivRandMaxFloat;
+
 namespace EmitterType {
 	enum emitterTypes
 	{
@@ -19,9 +22,34 @@ namespace EmitterType {
 		CONTOUR,
 		POINT_DIRECTIONAL,
 		POINT_CIRCLE,
+
+		/// New types using the Emitter sub-system.
+		LINE_Y,
+		PLANE_XY,
+		PLANE_XZ, // Plane in XZ (left-right, forward-backward) axes.
+		CIRCLE_XY,
+
 		NONE, // Default constructor.
 	}; 
 };
+
+/// Based on types above, produces a given result.
+class Emitter 
+{
+public:
+	Emitter();
+	// Scales all 3 base vectors.
+	void Scale(float scale);
+	/// Randomzies acordingly.
+	void Position(Vector3f & vec);
+	void Velocity(Vector3f & vec);
+	int type;
+	/// For later, Linear (pure random), weighted (constant and random part).
+	int distribution;
+	/// For configuring it.
+	Vector3f up, left, forward;
+};
+
 
 class ParticleEmitter 
 {
@@ -56,15 +84,26 @@ public:
 
 	void SetParticleLifeTime(float timeInSeconds);
 	void SetEmissionVelocity(float vel);
+	void SetParticlesPerSecond(int num);
 	void SetColor(Vector4f color);
 	void SetScale(float scale);
 
+
+	/// Constant emission every specified interval.
+	int constantEmission;
+	bool instantaneous;
 	/// Default 1000?
 	float particlesPerSecond;
 	/// If specified (non 0), the emitter will be deleted after the specified time has elapsed (while emitting).
 	int deleteAfterMs;
 	/// For temporary disabling. True by default
 	bool enabled;
+
+	
+	/// For re-work.
+	bool newType;
+	Emitter positionEmitter;
+	Emitter velocityEmitter;
 
 
 	/** Default true. If the correspond Set- function is called before, these will be set to false.
@@ -79,8 +118,11 @@ public:
 
 	/// For point-based emitters.
 	Vector3f position, direction;
+	/// For line-, plane- and cube-based emitters.
+	Vector3f upVec, leftVec;
 	/// Position will be relative to the tracked entity, if any.
 	Entity * entityToTrack;
+	Vector3f positionOffset;
 	/// That it is currently attached to.
 	List<ParticleSystem*> particleSystems;
 private:

@@ -18,8 +18,11 @@ public:
     Sparks(Entity * reference, bool emitWithEmittersOnly);
 	virtual ~Sparks();
 
-	void Render(GraphicsState & graphicsState);
-    void PrintData();
+	void InitSparks();
+	/// Update buffers to use when rendering.
+	virtual void UpdateBuffers();
+
+	void PrintData();
 	void AttachTo(Entity * entity, Matrix4f relativePosition);
 
 	// Relative to the entity.

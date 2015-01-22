@@ -17,7 +17,11 @@ Ship::Ship()
 	ai = true;
 	allied = false;
 	maxHitPoints = hitPoints = 10;
+	canMove = false;
 	canShoot = true;
+	spawnInvulnerability = false;
+	hasShield = false;
+	shieldValue = maxShieldValue = 10;
 }
 
 Ship::~Ship()
@@ -25,8 +29,25 @@ Ship::~Ship()
 	
 }
 
-void Ship::Damage(int amount)
+void Ship::Damage(int amount, bool ignoreShield)
 {
+	if (spawnInvulnerability)
+	{
+	//	std::cout<<"\nInvulnnnn!";
+		return;
+	}			
+	if (hasShield && !ignoreShield)
+	{
+		shieldValue -= amount;
+		amount = -shieldValue;
+		if (shieldValue < 0 )
+			shieldValue = 0;
+		if (this->allied)
+			spaceShooter->UpdatePlayerShield();
+		if (amount < 0)
+			return;
+		shieldValue = 0;
+	}
 	hitPoints -= amount;
 	if (this->allied)
 		spaceShooter->UpdatePlayerHP();
@@ -43,11 +64,12 @@ void Ship::Destroy()
 			sp->sleeping = true;
 		// Add a temporary emitter to the particle system to add some sparks to the collision
 		SparksEmitter * tmpEmitter = new SparksEmitter(entity->position);
-		tmpEmitter->SetEmissionVelocity(6.5f);
-		tmpEmitter->particlesPerSecond = 10000;
-		tmpEmitter->deleteAfterMs = 100;	
+		tmpEmitter->SetRatioRandomVelocity(1.0f);
+		tmpEmitter->SetEmissionVelocity(4.5f);
+		tmpEmitter->constantEmission = 750;
+		tmpEmitter->instantaneous = true;
 		tmpEmitter->SetScale(0.2f);
-		tmpEmitter->SetParticleLifeTime(5.f);
+		tmpEmitter->SetParticleLifeTime(3.5f);
 		tmpEmitter->SetColor(Vector4f(1.f, 0.5f, 0.1f, 1.f));
 		Graphics.QueueMessage(new GMAttachParticleEmitter(tmpEmitter, sparks));
 
@@ -139,7 +161,7 @@ bool Ship::LoadTypes(String file)
 					Weapon & weapon = ship.weapons[0];
 					List<String> toks = value.Tokenize("(),");
 					weapon.burst = true;
-					weapon.rounds = toks[1].ParseInt();
+					weapon.burstRounds = toks[1].ParseInt();
 					weapon.burstRoundDelayMs = (int) (toks[2].ParseFloat() * 1000);
 					weapon.cooldownMs = (int) (toks[3].ParseFloat() * 1000);
 				}
@@ -164,12 +186,12 @@ bool Ship::LoadTypes(String file)
 				ship.movementPattern = value;
 			else if (column == "Speed")
 				ship.speed = value.ParseFloat() * 0.2f;
-			else if (column == "HasShield")
+			else if (column == "Has Shield")
 				ship.hasShield = value.ParseBool();
 			else if (column == "Shield Value")
-				ship.shieldValue = value.ParseInt();
+				ship.shieldValue = ship.maxShieldValue = value.ParseInt();
 			else if (column == "Shield Regen Rate")
-				ship.shieldRegenRate = value.ParseInt();
+				ship.shieldRegenRate = value.ParseInt() / 1000.f;
 			else if (column == "Hit points")
 				ship.maxHitPoints = ship.hitPoints = value.ParseInt();
 			else if (column == "Graphic model")

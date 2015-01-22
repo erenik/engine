@@ -124,6 +124,7 @@ void PrintGLError(const char * text){
 /// Constructor which anulls all relevant variables.
 GraphicsManager::GraphicsManager()
 {
+	optimizationStructure = NONE;
 //	this->defaultLighting.CreateDefaultSetup();
 	frustum = new Frustum();
 	// Biggar frustuuum default plz
@@ -441,12 +442,16 @@ void GraphicsManager::SetOverlayTexture(Texture * texture, int fadeInTime /* = 0
 	renderQueried = true;
 }
 
-void GraphicsManager::RepositionEntities(){
-	List<Entity*> dynamicEntities = Physics.GetDynamicEntities();
-	for (int i = 0; i < dynamicEntities.Size(); ++i){
-		if (!dynamicEntities[i]->registeredForRendering)
-			continue;
-		vfcOctree->RepositionEntity(dynamicEntities[i]);
+void GraphicsManager::RepositionEntities()
+{
+	if (optimizationStructure == VFC_OCTREE)
+	{
+		List<Entity*> dynamicEntities = Physics.GetDynamicEntities();
+		for (int i = 0; i < dynamicEntities.Size(); ++i){
+			if (!dynamicEntities[i]->registeredForRendering)
+				continue;
+			vfcOctree->RepositionEntity(dynamicEntities[i]);
+		}
 	}
 }
 
@@ -587,7 +592,6 @@ void GraphicsManager::ProcessMessages()
 	{
 		GraphicsMessage * gm = graphicsMessages[i];
 		gm->Process();
-		now = Timer::GetCurrentTimeMs();
 		/// Only process 10 ms of messages each frame!
 		if (i % 1000 == 0 && i > 0)
 			std::cout<<"\n"<<numMessages - i<<" of "<<numMessages<<" messages to process in GraphicsManager::ProcessMessages...";

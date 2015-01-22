@@ -197,7 +197,8 @@ Exit::Exit()
     name = "Exiting state";
 }
 
-void Exit::OnEnter(AppState * previousState){
+void Exit::OnEnter(AppState * previousState)
+{
     if (previousState == this){
         std::cout<<"\nWARNING: Already in exit state.";
         return;
@@ -212,6 +213,7 @@ void Exit::OnEnter(AppState * previousState){
     int iret1 = pthread_create(&deallocatorThread , NULL, Deallocate, NULL);
 #endif
 }
+
 void Exit::Process(int timeInMs)
 {
 	// Exiting is actually done elsewhere.

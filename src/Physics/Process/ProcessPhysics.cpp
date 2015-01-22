@@ -7,9 +7,11 @@
 #include "Physics/CollisionResolver.h"
 #include "Physics/CollisionDetector.h"
 
+#include "Physics/Messages/CollisionCallback.h"
 #include "PhysicsLib/AABBSweeper.h"
 
 #include "PhysicsLib/Estimator.h"
+#include "Message/MessageManager.h"
 
 #include "Graphics/FrameStatistics.h"
 // #include "Graphics/GraphicsManager.h"
@@ -91,34 +93,29 @@ void PhysicsManager::ProcessPhysics()
 			}
 		}
 
-		recalc.Start();
-		// Begin by recalculating physics position and scales
-	//	this->RecalculatePhysicsProperties();
-		recalc.Stop();
-		recalculatingPropertiesDuration += recalc.GetMs();
-
-		moving.Start();
 		/// Awesome.
 		Integrate(timeInSecondsSinceLastUpdate);
-		moving.Stop();
-		int64 ms = moving.GetMs();
-		integration += ms;
-
-		/// Apply external constraints
-	//	ApplyContraints();
 		
+		/// Apply external constraints
+	//	ApplyContraints();		
 
 		/// Apply pathfinding for all relevant entities
 		ApplyPathfinding();
         
 		Timer collisionTimer;
 		collisionTimer.Start();
+
+		Timer timer;
+		timer.Start();
 		/// Detect collisions.
 		List<Collision> collisions;
+		Timer sweepTimer;
+		sweepTimer.Start();
 		// Generate pair of possible collissions via some optimized way (AABB-sorting or Octree).
 		List<EntityPair> pairs = this->aabbSweeper->Sweep();
+		sweepTimer.Stop();
+		int sweepDur = sweepTimer.GetMs();
 //		std::cout<<"\nAABB sweep pairs: "<<pairs.Size()<<" with "<<physicalEntities.Size()<<" entities";
-
 		if (collisionDetector)
 		{
 			collisionDetector->DetectCollisions(pairs, collisions);
@@ -126,12 +123,38 @@ void PhysicsManager::ProcessPhysics()
 		// Old approach which combined collision-detection and resolution in a big mess...
 		else 
 			DetectCollisions();
+		timer.Stop();
+		int thisFrame = timer.GetMs();
+		FrameStats.physicsCollisionDetection += thisFrame;
 
-		
+		timer.Start();
 		/// And resolve them.
 		if (collisionResolver)
 			collisionResolver->ResolveCollisions(collisions);
+		timer.Stop();
+		FrameStats.physicsCollisionResolution += timer.GetMs();
 
+		timer.Start();
+		for (int i = 0; i < collisions.Size(); ++i)
+		{
+			Collision & c = collisions[i];
+			List<Message*> messages;
+			if (c.one->physics->collissionCallback || c.two->physics->collissionCallback)
+			{
+				CollisionCallback * cc = new CollisionCallback(c.one, c.two);
+				messages.Add(cc);
+			}
+			else {
+				std::cout<<"\nLALL";
+			}
+			if (messages.Size())
+				MesMan.QueueMessages(messages);
+		}
+		timer.Stop();
+		FrameStats.physicsCollisionCallback += timer.GetMs();
+
+		collisionTimer.Stop();
+		FrameStats.physicsCollisions += collisionTimer.GetMs();
 		int64 colMs = collisionTimer.GetMs();
 		if (colMs > 50)
 		{

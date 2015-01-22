@@ -8,13 +8,16 @@ Message::Message(){
 	type = Message::NULL_TYPE;
 }
 */
-Message::Message(const String & i_string){
+Message::Message(const String & i_string)
+{
 	timeToProcess = 0;
 	msg = i_string;
 	type = MessageType::STRING;
 	data = NULL;
 }
-Message::Message(int i_type){
+
+Message::Message(int i_type)
+{
 	timeToProcess = 0;
 	data = NULL;
 	type = i_type;

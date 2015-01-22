@@ -103,7 +103,8 @@ void PhysicsProperty::Nullify()
 	state = 0;
 	restitution = 0.15f;
 	friction = 0.01f;
-	collissionCallback = IMPACT_VELOCITY;
+	collissionCallback = false;
+	maxCallbacks = -1;
 	collissionCallbackRequirementValue = 1.0f;
 	linearDamping = 0.99f;
 	collissionsEnabled = true;

@@ -27,6 +27,7 @@ ParticleSystem::ParticleSystem(String type, bool emitWithEmittersOnly)
     
 	// Rendering arrays.
 	particlePositionSizeData = NULL;
+	particleLifeTimeDurationData = NULL;
 	particleColorData = NULL;
 
 
@@ -40,6 +41,7 @@ ParticleSystem::ParticleSystem(String type, bool emitWithEmittersOnly)
 	billboardVertexBuffer = -1;
 	particlePositionScaleBuffer = -1;
 	particleColorBuffer = -1;
+	particleLifeTimeDurationBuffer = -1;
 
 	useInstancedRendering = true;
 	deleteEmittersOnDeletion = true;
@@ -65,6 +67,7 @@ ParticleSystem::~ParticleSystem()
 
 	/// Arrays used for instanced rendering.
 	DELETE_ARRAY(particlePositionSizeData);
+	DELETE_ARRAY(particleLifeTimeDurationData);
 	DELETE_ARRAY(particleColorData);
 
 	if (deleteEmittersOnDeletion)
@@ -74,6 +77,7 @@ ParticleSystem::~ParticleSystem()
 /// Sets default values. Calls AllocateArrays.
 void ParticleSystem::Initialize()
 {
+	decayAlphaWithLifeTime = DecayType::LINEAR;
 	pointsOnly = false;
     diffuse = NULL;
     maxParticles = 100000;
@@ -118,6 +122,7 @@ void ParticleSystem::AllocateArrays()
 	{
 		particlePositionSizeData = new GLfloat[maxParticles * 4];
 		particleColorData = new GLubyte[maxParticles * 4];
+		particleLifeTimeDurationData = new GLfloat[maxParticles * 2];
 	}
 }
 
@@ -127,6 +132,8 @@ void ParticleSystem::Process(float timeInSeconds)
 	ProcessParticles(timeInSeconds);
 	int timeInMs = timeInSeconds * 1000;
 	SpawnNewParticles(timeInMs);
+	// Update buffers to use when rendering.
+	UpdateBuffers();
 }
 
 /// Integrates all particles.
@@ -162,7 +169,7 @@ void ParticleSystem::ProcessParticles(float & timeInSeconds)
 /// Spawns new particles depending on which emitters are attached.
 void ParticleSystem::SpawnNewParticles(int & timeInMs)
 {
-	float timeInSeconds = timeInMs * 0.001f;
+	float timeInSeconds = (timeInMs % 200) * 0.001f;
 	/// Spawn new particles as wanted.
 	for (int i = 0; i < emitters.Size(); ++i)
 	{
@@ -194,7 +201,8 @@ void ParticleSystem::SpawnNewParticles(int & timeInMs)
 			++aliveParticles;
 		}
 		/// Check if the emitter should be deleted after some time.
-		if (emitter->deleteAfterMs > 0 && emitter->elapsedDurationMs > emitter->deleteAfterMs)
+		if ((emitter->deleteAfterMs > 0 && emitter->elapsedDurationMs > emitter->deleteAfterMs) ||
+			emitter->instantaneous)
 		{
 			// If so, delete it then!
 			emitters.Remove(emitter);
@@ -216,6 +224,32 @@ void ParticleSystem::SpawnNewParticles(int & timeInMs)
 	}
 }	
 
+/// Update buffers to use when rendering.
+void ParticleSystem::UpdateBuffers()
+{
+	for (int i = 0; i < aliveParticles; ++i)
+	{
+		Vector3f & pos = positions[i];
+		int index = i * 4;
+		particlePositionSizeData[index] = pos.x;
+		particlePositionSizeData[index+1] = pos.y;
+		particlePositionSizeData[index+2] = pos.z;
+		particlePositionSizeData[index+3] = scales[i];
+
+		Vector4f & color = colors[i];
+		particleColorData[index] = color.x * 255;
+		particleColorData[index+1] = color.y * 255;
+		particleColorData[index+2] = color.z * 255;
+		particleColorData[index+3] = color.w * 255;
+
+		int index2 = i * 2;
+		particleLifeTimeDurationData[index2] = lifeTimes[i];
+		particleLifeTimeDurationData[index2+1] = lifeDurations[i];
+
+	}
+}
+
+
 /** Fetches textures required for rendering. Should only be called from Render() or elsewhere in the render thread.
 	Returns false if it failed to fetch any textures, meaning they may still be NULL.
 */
@@ -234,8 +268,15 @@ bool ParticleSystem::FetchTextures()
 	return true;
 }
 
-void ParticleSystem::Render(GraphicsState & graphicsState){
-    assert(false);
+void ParticleSystem::Render(GraphicsState & graphicsState)
+{
+   	if (!FetchTextures())
+		return;
+	if (useInstancedRendering && GL_VERSION_3_3_OR_HIGHER)
+		RenderInstanced(graphicsState);
+	else
+		RenderOld(graphicsState);
+
 }
 void ParticleSystem::PrintData(){
     assert(false);
@@ -292,6 +333,13 @@ void ParticleSystem::SetEmissionVelocity(float vel)
 	}
 }
 
+/// For setting alpha decay by life time.
+void ParticleSystem::SetAlphaDecay(int decayType)
+{
+	decayAlphaWithLifeTime = decayType;
+}
+
+
 /** Renders using instanced functions such as glDrawArraysInstanced and glVertexAttribDivisor, requiring GL versions
 	3.1 and 3.3 respectively. Ensure these requirements are fulfilled before calling the function or the program will crash.
 */
@@ -311,6 +359,9 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 	Matrix4f modelMatrix;
 	if (shader->uniformModelMatrix != -1)
 		glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, modelMatrix.getPointer());
+
+	// Set decay type.
+	glUniform1i(shader->uniformParticleDecayAlphaWithLifeTime, decayAlphaWithLifeTime);
 
 	if (false)
 	{
@@ -360,7 +411,13 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 		glBindBuffer(GL_ARRAY_BUFFER, particlePositionScaleBuffer);
 		glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
 	}
- 
+	if (particleLifeTimeDurationBuffer == -1)
+	{
+		particleLifeTimeDurationBuffer = GLBuffers::New();
+		// Initialize with empty (NULL) buffer : it will be updated later, each frame.
+		glBindBuffer(GL_ARRAY_BUFFER, particleLifeTimeDurationBuffer);
+		glBufferData(GL_ARRAY_BUFFER, maxParticles * 2 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
+	}
 	// The VBO containing the colors of the particles
 	if (particleColorBuffer == -1)
 	{
@@ -368,56 +425,29 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 		// Initialize with empty (NULL) buffer : it will be updated later, each frame.
 		glBindBuffer(GL_ARRAY_BUFFER, particleColorBuffer);
 		glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLubyte), NULL, GL_STREAM_DRAW);
-	}
-		
-	for (int i = 0; i < aliveParticles; ++i)
-	{
-		Vector3f & pos = positions[i];
-		int index = i * 4;
-		particlePositionSizeData[index] = pos.x;
-		particlePositionSizeData[index+1] = pos.y;
-		particlePositionSizeData[index+2] = pos.z;
-		particlePositionSizeData[index+3] = scales[i];
-
-		Vector4f & color = colors[i];
-		particleColorData[index] = color.x * 255;
-		particleColorData[index+1] = color.y * 255;
-		particleColorData[index+2] = color.z * 255;
-		float alpha = 0.f;
-		// Exclusion case, should probably be moved elsewhere..
-		if (lifeDurations[i] >= lifeTimes[i])
-		{
-			// Give it default alpha = 0.
-		}
-		else 
-		{
-			float pAlpha = color.w * pow((1.0f - lifeDurations[i] / lifeTimes[i]), 4);
-			alpha = ClampedFloat(pAlpha, 0.f, 1.f) * 255; 
-		}
-		particleColorData[index+3] = alpha;
-		i = i;
-	}
+	}		
 
 	// Update the buffers that OpenGL uses for rendering.
 	// There are much more sophisticated means to stream data from the CPU to the GPU,
 	// but this is outside the scope of this tutorial.
 	// http://www.opengl.org/wiki/Buffer_Object_Streaming
- 
+
+	// Buffer the actual data.
 	glBindBuffer(GL_ARRAY_BUFFER, particlePositionScaleBuffer);
-//	glBufferData(GL_ARRAY_BUFFER, particlesToProcess * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW); // Buffer orphaning, a common way to improve streaming perf. See above link for details.
 	glBufferSubData(GL_ARRAY_BUFFER, 0, aliveParticles * sizeof(GLfloat) * 4, particlePositionSizeData);
  
 	glBindBuffer(GL_ARRAY_BUFFER, particleColorBuffer);
-//	glBufferData(GL_ARRAY_BUFFER, particlesToProcess * 4 * sizeof(GLubyte), NULL, GL_STREAM_DRAW); // Buffer orphaning, a common way to improve streaming perf. See above link for details.
 	glBufferSubData(GL_ARRAY_BUFFER, 0, aliveParticles * 4 * sizeof(GLubyte), particleColorData);
+
+	glBindBuffer(GL_ARRAY_BUFFER, particleLifeTimeDurationBuffer);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, aliveParticles * sizeof(GLfloat) * 2, particleLifeTimeDurationData);
 
 	// Bind attribute index 0 to vertex positions, attribute index 1 to incoming UV coordinates and index 2 to Normals. 
 //	glBindAttribLocation(shader->shaderProgram, 0, "in_VertexPosition");
 //	glBindAttribLocation(shader->shaderProgram, 1, "in_ParticlePositionScale");
 //	glBindAttribLocation(shader->shaderProgram, 2, "in_Color");
 
-	
-	glGetError();
+	CheckGLError("ParticleSystem::RenderInstanced - buffering the data");
 
 	// 1rst attribute buffer : vertices
 	glBindBuffer(GL_ARRAY_BUFFER, billboardVertexBuffer);
@@ -440,7 +470,7 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 		0, // stride
 		(void*)0 // array buffer offset
 	);
- 
+
 	// 3rd attribute buffer : particles' colors
 	glBindBuffer(GL_ARRAY_BUFFER, particleColorBuffer);
 	glVertexAttribPointer(
@@ -452,6 +482,18 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 		(void*)0 // array buffer offset
 	);
 
+	// 4th attribute buffer : life time and current duration of particles
+	glBindBuffer(GL_ARRAY_BUFFER, particleLifeTimeDurationBuffer);
+	glVertexAttribPointer(
+		shader->attributeParticleLifeTimeDuration, // attribute. Must match the layout in the shader.
+		2, // size : x + y + z + size => 4
+		GL_FLOAT, // type
+		GL_FALSE, // normalized?
+		0, // stride
+		(void*)0 // array buffer offset
+	);
+
+
 
 	// These functions are specific to glDrawArrays*Instanced*.
 	// The first parameter is the attribute buffer we're talking about.
@@ -460,6 +502,7 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 	glVertexAttribDivisor(shader->attributeVertexPosition, 0); // particles vertices : always reuse the same 4 vertices -> 0
 	glVertexAttribDivisor(shader->attributeParticlePositionScale, 1); // positions : one per quad (its center) -> 1
 	glVertexAttribDivisor(shader->attributeColor, 1); // color : one per quad -> 1
+	glVertexAttribDivisor(shader->attributeParticleLifeTimeDuration, 1); // color : one per quad -> 1
 
 	// Bind texture!
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -492,6 +535,7 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 	glVertexAttribDivisor(shader->attributeVertexPosition, 0); 
 	glVertexAttribDivisor(shader->attributeParticlePositionScale, 0); 
 	glVertexAttribDivisor(shader->attributeColor, 0); 
+	glVertexAttribDivisor(shader->attributeParticleLifeTimeDuration, 0);
 
 	CheckGLError("ParticleSystem::RenderInstanced");
 }
