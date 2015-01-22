@@ -495,8 +495,8 @@ bool TextureManager::LoadTextureOpenCV(String source, Texture * texture)
 //			texture->SetPixel(x, mat.rows - y - 1, Vector4f(r / 255.f,g / 255.f,b / 255.f,1));
 		}
 	}
-	/// Send a message so that the texture is re-buffered.
-	Graphics.QueueMessage(new GMBufferTexture(texture));
+	/// Send a message so that the texture is re-buffered... wat.
+//	Graphics.QueueMessage(new GMBufferTexture(texture));
 #endif
 	return true;
 }

@@ -12,6 +12,10 @@
 #include "Input/Action.h"
 
 
+/// Particle system for sparks/explosion-ish effects.
+Sparks * sparks = NULL;
+
+
 List<Weapon> Weapon::types;
 List<Ship> Ship::types;
 
@@ -45,6 +49,12 @@ SpaceShooter2D::~SpaceShooter2D()
 /// Function when entering this state, providing a pointer to the previous StateMan.
 void SpaceShooter2D::OnEnter(AppState * previousState)
 {
+	// Create.. the sparks! o.o
+	// New global sparks system.
+	sparks = new Sparks(true);
+	// Register it for rendering.
+	Graphics.QueueMessage(new GMRegisterParticleSystem(sparks, true));
+
 	// Remove overlay.
 	// Set up ui.
 	if (!ui)
@@ -176,8 +186,11 @@ void SpaceShooter2D::Process(int timeInMs)
 /// Function when leaving this state, providing a pointer to the next StateMan.
 void SpaceShooter2D::OnExit(AppState * nextState)
 {
+	// Register it for rendering.
+	Graphics.QueueMessage(new GMUnregisterParticleSystem(sparks, false));
 	MapMan.DeleteAllEntities();
 	Sleep(100);
+	SAFE_DELETE(sparks);
 }
 
 
@@ -306,10 +319,13 @@ void SpaceShooter2D::LoadLevel(String fromSource)
 	this->levelSource = fromSource;
 	// Delete all entities.
 	MapMan.DeleteAllEntities();
+	shipEntities.Clear();
+	projectileEntities.Clear();
+	GraphicsMan.PauseRendering();
 	level.Load(fromSource);
 	level.SetupCamera();
-	Sleep(50);
 	level.AddPlayer(playerShip);
+	GraphicsMan.ResumeRendering();
 }
 
 void SpaceShooter2D::GameOver()

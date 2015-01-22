@@ -19,8 +19,6 @@ public:
 	static int ID();
 
 	void Remove();
-	/// D:
-	void Destroy();
 	// Reset sleep.
 	void OnSpawn();
 	

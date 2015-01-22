@@ -157,13 +157,12 @@ void Level::AddPlayer(Ship * playerShip)
 
 void Level::SetupCamera()
 {
-	GraphicsMan.QueueMessage(new GMSetCamera(NULL));
 	if (!levelCamera)
 		levelCamera = CameraMan.NewCamera();
 	// Set it up.
 	levelCamera->velocity = BaseVelocity();
-	GraphicsMan.QueueMessage(new GMSetCamera(levelCamera, CT_POSITION, Vector3f(0,10,10)));
-	GraphicsMan.QueueMessage(new GMSetCamera(levelCamera, CT_ROTATION, Vector3f(0,0,0)));
+	levelCamera->position = Vector3f(0,10,10);
+	levelCamera->rotation = Vector3f(0,0,0);
 	spaceShooter->ResetCamera();
 //	levelCamera->Begin(Direction::RIGHT); // Move it..!
 //	levelCamera->

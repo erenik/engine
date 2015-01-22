@@ -46,8 +46,11 @@
 #include "Graphics/Messages/GMSet.h"
 #include "Graphics/Messages/GMUI.h"
 #include "Graphics/Messages/GMCamera.h"
+#include "Graphics/Messages/GMParticles.h"
 #include "Graphics/Messages/GMSetEntity.h"
 #include "Graphics/Camera/Camera.h"
+#include "Graphics/Particles/Sparks.h"
+#include "Graphics/Particles/SparksEmitter.h"
 
 #include "Game/SpaceShooter/SpaceShooterCD.h"
 #include "Game/SpaceShooter/SpaceShooterCR.h"
@@ -68,6 +71,8 @@ class SpaceShooterCR;
 class SpaceShooterCD;
 
 extern int64 nowMs;
+/// Particle system for sparks/explosion-ish effects.
+extern Sparks * sparks;
 
 class SpaceShooter2D : public AppState 
 {

@@ -42,26 +42,6 @@ void ShipProperty::Remove()
 	sleeping = true;
 }
 	
-/// D:
-void ShipProperty::Destroy()
-{
-	if (sleeping)
-		return;
-	ship->hitPoints = 0;
-	// Remove it.. o.o'
-	Remove();
-	if (ship->allied)
-	{
-		spaceShooter->UpdatePlayerHP();
-	}
-	else {
-		spaceShooter->score += ship->score;
-		spaceShooter->OnScoreUpdated();
-	}	
-	// Update the game that we died. T_T
-	spaceShooter->OnShipDestroyed(ship);
-}
-
 // Reset sleep.
 void ShipProperty::OnSpawn()
 {

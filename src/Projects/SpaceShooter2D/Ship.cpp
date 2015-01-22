@@ -17,6 +17,7 @@ Ship::Ship()
 	ai = true;
 	allied = false;
 	maxHitPoints = hitPoints = 10;
+	canShoot = true;
 }
 
 Ship::~Ship()
@@ -40,6 +41,16 @@ void Ship::Destroy()
 		ShipProperty * sp = entity->GetProperty<ShipProperty>();
 		if (sp)
 			sp->sleeping = true;
+		// Add a temporary emitter to the particle system to add some sparks to the collision
+		SparksEmitter * tmpEmitter = new SparksEmitter(entity->position);
+		tmpEmitter->SetEmissionVelocity(6.5f);
+		tmpEmitter->particlesPerSecond = 10000;
+		tmpEmitter->deleteAfterMs = 100;	
+		tmpEmitter->SetScale(0.2f);
+		tmpEmitter->SetParticleLifeTime(5.f);
+		tmpEmitter->SetColor(Vector4f(1.f, 0.5f, 0.1f, 1.f));
+		Graphics.QueueMessage(new GMAttachParticleEmitter(tmpEmitter, sparks));
+
 		MapMan.DeleteEntity(entity);
 		spaceShooter->shipEntities.Remove(entity);
 		entity = NULL;

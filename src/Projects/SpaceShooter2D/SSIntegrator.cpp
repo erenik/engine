@@ -65,9 +65,11 @@ void SSIntegrator::IntegrateVelocity(Entity * forEntity, float timeInSeconds)
 
 	/// Check if player
 	// If so, limit to inside the radiusiusius
-	ShipProperty * sp = forEntity->GetProperty<ShipProperty>();
+	int shipID = ShipProperty::ID();
+	ShipProperty * sp = (ShipProperty*) forEntity->GetProperty(shipID);
 	if (sp && sp->ship->allied)
 	{
+//		std::cout<<"\nShip property: "<<sp<<" ID "<<sp->GetID()<<" allied: "<<sp->ship->allied;
 		Vector3f & position = forEntity->position;
 		ClampFloat(position.x, frameMin.x, frameMax.x);
 		ClampFloat(position.y, frameMin.y, frameMax.y);		
