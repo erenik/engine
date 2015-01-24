@@ -155,7 +155,10 @@ void SpaceShooter2D::Process(int timeInMs)
 			for (int i = 0; i < projectileEntities.Size(); ++i)
 			{
 				Entity * proj = projectileEntities[i];
-				if ((proj->position - levelEntity->position).LengthSquared() > 2000)
+				if (proj->position.x < despawnPositionLeft ||
+					proj->position.x > spawnPositionRight ||
+					proj->position.y < -1.f ||
+					proj->position.y > playingFieldSize.y + 2.f)
 				{
 					MapMan.DeleteEntity(proj);
 					projectileEntities.Remove(proj);
