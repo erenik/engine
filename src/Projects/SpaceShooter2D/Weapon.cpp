@@ -79,8 +79,10 @@ bool Weapon::LoadTypes(String fromFile)
 				weapon.name = value;
 			else if (column == "Angle")
 			{
-				if (value == "Aim")
+				if (value.Contains("Aim"))
 					weapon.aim = true;
+				else if (value.Contains("Predict"))
+					weapon.estimatePosition = true;
 				weapon.angle = value.ParseInt();
 			}
 			else if (column == "Projectile path")

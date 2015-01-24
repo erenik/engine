@@ -85,7 +85,6 @@ public:
 	/** Initializes a rotation matrix using provided vector. */
 	void InitRotationMatrix(float angle, Vector3f vector);
 
-#define Translation InitTranslationMatrix
 	/** Returns an initialized translation-matrix using given vector. */
 //	static Matrix4f Translation(Vector3f trans);
 	/** Initializes a translation matrix using provided vector. */
@@ -119,9 +118,8 @@ public:
 	// 3D-operations
 	/** Applies 3D translation using given parameters. */
 	void Translate(float x, float y, float z);
-
-	/** Applies 3D translation using given vector. */
-//	void Translate(Vector3f vec);
+	/// Builds a 3D translation matrix using given vector.
+	static const Matrix4f Translation(const Vector3f & vec);
 
 	/** Applies 3D scaling with provided ratio to x, y and z-dimensions. */
 	void Scale(float ratio);
@@ -129,6 +127,8 @@ public:
 	void Scale(float xRatio, float yRatio, float zRatio);
 	/// Scale using a given vector
 	void Scale(const Vector3f & scalingVector);
+	/// Builds a 3D scaling matrix using given vector.
+	static const Matrix4f Scaling(const Vector3f & scalingVector);
 
 	/// Returns true if it has non-0 values in the scale diagonal (elements 0, 5 and 10)
 	bool HasValidScale();
@@ -166,13 +166,19 @@ public:
 	*/
 	void operator *= (const Matrix4f matrix);
 
-	/** Operator overloading for the array-access parameter. Returns specified column as as shown below:
+	/** Operator overloading for the array-access. 
+		[ 0] [ 4] [ 8] [12]
+		[ 1] [ 5] [ 9] [13]
+		[ 2] [ 6] [10] [14]
+		[ 3] [ 7] [11] [15]*/
+	float & operator[](const unsigned int index);
+	/** Operator overloading for the array-access. Returns specified column as as shown below:
 	Col	  0    1    2    3
 		[ 0] [ 4] [ 8] [12]
 		[ 1] [ 5] [ 9] [13]
 		[ 2] [ 6] [10] [14]
 		[ 3] [ 7] [11] [15]*/
-	Vector4f operator[](const unsigned int index);
+//	Vector4f operator[](const unsigned int index);
 
 private:
 	/** Array of the matrix elements. */

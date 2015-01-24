@@ -149,6 +149,15 @@ public:
 	List<Entity*> projectileEntities;
 
 	String levelSource;
+
+	/// The level entity, around which the playing field and camera are based upon.
+	Entity * levelEntity;
+
+	/// Default 30x20
+	void SetPlayingFieldSize(Vector2f newSize);
+	Vector2f playingFieldSize;
+	Vector2f playingFieldHalfSize;
+	float playingFieldPadding;
 };
 
 

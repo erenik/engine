@@ -122,7 +122,7 @@ void GraphicsManager::RenderPhysics()
            // glColor4f(0.5f,0.5f,0.5f,1.0f);
             glUniform1f(glGetUniformLocation(shader->shaderProgram, "rainbowXYZFactor"), 0.2f);
             Matrix4f aabbMatrix;
-            AABB * aabb = entity->physics->aabb;
+            AABB * aabb = entity->aabb;
         //    std::cout<<"\nAABB: Position: "<<aabb.position<<" scale: "<<aabb.scale<<" min: "<<aabb.min<<" max: "<<aabb.max;
 			aabbMatrix = Matrix4f::InitTranslationMatrix(aabb->position);
             aabbMatrix.Scale(aabb->scale);

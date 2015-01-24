@@ -22,7 +22,16 @@ enum trackingMode {
 	FROM_BEHIND, 
 	THIRD_PERSON,
 	FOLLOW_AND_LOOK_AT, // Should be smooth. MMORPG-style.
+	ADD_POSITION, // Adds position onto camera position.. only.
 };};
+
+/// Setups for calculating camera matrices. (mainly the view matrix)
+namespace CameraMatrixCalculation {
+enum {
+	DEFAULT_EDITOR,	/// Default editor o.o, see Camera::CalculateDefaultEditorMatrices
+
+};
+};
 
 class Entity;
 class Camera;
@@ -185,7 +194,7 @@ public:
 		taking into consideration distance from center of movement
 		(the private position) among others.
 	*/
-	Vector4f Position() const { return camPos; };
+	Vector3f Position() const { return camPos; };
 	/// Returns the normalized(xyz) vector of the direction the camera is facing.
 	Vector4f LookingAt() const { return lookingAtVector; };
 	/// Returns the normalized(xyz) vector of the up vector of the camera.
@@ -241,6 +250,13 @@ private:
 	/// Some old relic.
 	void TrackThirdPerson();
 
+	/** Calculates a view transform based on the notion of having 
+		a distance from center of movement (as in 3D-modelling programs), 
+		a rotation aroud the same point, and translate the point based on position and relative position summed up.
+	*/
+	static Matrix4d CalculateDefaultEditorMatrices(float distanceFromCenterOfMovement, Vector2f rotationXY, Vector3f worldSpacePosition);
+
+
 	// Velocities! :D
 	float dfcomSpeed, dfcomSpeedMultiplier;
 
@@ -251,8 +267,8 @@ private:
 	/// Ratio of the display device/context. Both should be at least 1.0, with the other scaling up as needed.
 	float widthRatio, heightRatio;
 	/// Real-world position-, looking at- and up-vector.
-	Vector4f camPos, lookingAtVector, upVector, leftVector;
-	Vector4f globalLeftVector, globalLookAtVector, globalUpVector;
+	Vector3f camPos, lookingAtVector, upVector, leftVector;
+	Vector3f globalLeftVector, globalLookAtVector, globalUpVector;
 
 	/// Projection matrix for this camera
 	Matrix4d projectionMatrix;

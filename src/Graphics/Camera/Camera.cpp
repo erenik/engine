@@ -283,7 +283,7 @@ void Camera::Update()
 	float milliseconds = (now - lastUpdate).Milliseconds();
 	float timeInSeconds = milliseconds * 0.001f;
 	
-	/// Load identity matrices before we re-calculate them
+	/// Load identity matrices before we re-calculate them... hmm
 	projectionMatrix.LoadIdentity();
 	viewMatrix.LoadIdentity();
 	rotationMatrix.LoadIdentity();
@@ -336,46 +336,39 @@ void Camera::Update()
 	frustum.SetProjection(projectionType);
 
 
+	Vector3f worldSpacePosition = this->position;
+
 	/// 3rd Person "static-world-rotation" camera
 	if (entityToTrack)
 	{
 		// Move camera before before main scenegraph rendering begins
 		if (trackingMode == TrackingMode::FOLLOW_AND_LOOK_AT)
 		{
+			assert(false && "rework");
 			FollowAndLookAt(timeInSeconds);
 		}
 		// Between 1st and 3rd person? More 1st person though.
-		if (trackingMode == TrackingMode::FROM_BEHIND)
+		else if (trackingMode == TrackingMode::FROM_BEHIND)
 		{
+			assert(false && "rework");
 			TrackFromBehind();
 		}
 		else if (trackingMode == TrackingMode::THIRD_PERSON)
 		{
+			assert(false && "rework");
 			TrackThirdPerson();
-
+		}
+		else if (trackingMode == TrackingMode::ADD_POSITION)
+		{
+			worldSpacePosition += entityToTrack->position;
 		}
 	}
-	/// Regular free-fly camera
-	else {
-		// Move camera before before main scenegraph rendering begins
-		// First translate the camera relative to the viewing rotation-"origo"
-		viewMatrix.Translate(0, 0, this->distanceFromCentreOfMovement);
-		/*
-		// Rotate it
-		viewMatrix.multiply(Matrix4d().InitRotationMatrix(this->rotation.x, 1, 0, 0));
-		viewMatrix.multiply(Matrix4d().InitRotationMatrix(this->rotation.y, 0, 1, 0));
-		*/
-		rotationMatrix.Multiply(Matrix4d().InitRotationMatrix(this->rotation.x, 1, 0, 0));
-		rotationMatrix.Multiply(Matrix4d().InitRotationMatrix(this->rotation.y, 0, 1, 0));
+	
+	/// Apply any after-effects here, such as 'shake', etc.
 
-		viewMatrix.Multiply(rotationMatrix);
-
-
-		// Then translate the camera to it's position. (i.e. translate the world until camera is at a good position).
-		Matrix4d translationMatrix = Matrix4d().Translate(-this->position + relativePosition);
-		viewMatrix.Multiply(translationMatrix);
-	}
-
+	/// Calculate matrices.
+	/// Add a switch case if new/other techniques are requested -> move code from the TrackBehind, etc. to there.
+	viewMatrix = CalculateDefaultEditorMatrices(distanceFromCenterOfMovement, rotation, worldSpacePosition);
 
 
 	/// Some new temporary variables for updating the frustum
@@ -386,27 +379,11 @@ void Camera::Update()
 
 	// Calculate camLook and camUp Vectors
 	Vector4d moveVec = Vector4d(0, 0, -1, 1);
-/*	Matrix4d rotationMatrix;
 
-	moveVec = rotationMatrix.InitRotationMatrix(this->rotation.x, 1, 0, 0).InvertedCopy() * moveVec;
-	moveVec = rotationMatrix.InitRotationMatrix(this->rotation.y, 0, 1, 0).InvertedCopy() * moveVec;
-	lookingAtVector = moveVec;
-	lookingAtVector.Normalize3();	// Normalize!
-
-	moveVec = Vector4d(0, 0, -1, 1);
-	moveVec = rotationMatrix.InitRotationMatrix(this->rotation.x - PI/2, 1, 0, 0).InvertedCopy() * moveVec;
-	moveVec = rotationMatrix.InitRotationMatrix(this->rotation.y, 0, 1, 0).InvertedCopy() * moveVec;
-	upVector = moveVec;
-	upVector.Normalize3();		// Normalize!
-
-	leftVector = upVector.CrossProduct(lookingAtVector);
-	leftVector.Normalize3();
-*/
 	/// Extract global coordinates
 	leftVector = rotationMatrix.InvertedCopy().Product(Vector4f(-1,0,0,1)).NormalizedCopy();
 	lookingAtVector = rotationMatrix.InvertedCopy().Product(Vector4f(0,0,-1,1)).NormalizedCopy();
 	upVector = rotationMatrix.InvertedCopy().Product(Vector4f(0,1,0,1)).NormalizedCopy();
-
 
 	// Update frustum
 	frustum.SetCamInternals(left, right, bottom, top, nearPlane, farPlane);
@@ -820,6 +797,31 @@ void Camera::TrackThirdPerson()
 	if (trackingMode == TrackingMode::FROM_BEHIND){
 		viewMatrix.Multiply(Matrix4d::InitTranslationMatrix(Vector3f(0, elevation, 0)));
 	}
+}
+
+
+/** Calculates a view transform based on the notion of having 
+	a distance from center of movement (as in 3D-modelling programs), 
+	a rotation aroud the same point, and translate the point based on position and relative position summed up.
+*/
+Matrix4d Camera::CalculateDefaultEditorMatrices(float distanceFromCenterOfMovement, Vector2f rotationXY, Vector3f worldSpacePosition)
+{
+	Matrix4d viewMatrix, rotationMatrix;
+	// Move camera before before main scenegraph rendering begins
+	// First translate the camera relative to the viewing rotation-"origo"
+	viewMatrix.Translate(0, 0, distanceFromCentreOfMovement);
+	/*
+	*/
+	rotationMatrix.Multiply(Matrix4d().InitRotationMatrix(rotationXY.x, 1, 0, 0));
+	rotationMatrix.Multiply(Matrix4d().InitRotationMatrix(rotationXY.y, 0, 1, 0));
+
+	/// o.o
+	viewMatrix.Multiply(rotationMatrix);
+
+	// Then translate the camera to it's position. (i.e. translate the world until camera is at a good position).
+	Matrix4d translationMatrix = Matrix4d().Translate(-worldSpacePosition);
+	viewMatrix.Multiply(translationMatrix);
+	return viewMatrix;
 }
 
 

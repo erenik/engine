@@ -28,6 +28,8 @@ void PhysicsManager::ProcessPhysics()
 	/// Returns straight away if paused.
 	if (paused)
 		return;
+	if (physicalEntities.Size() == 0)
+		return;
 
 	activeTriangles.Clear();
 
@@ -155,9 +157,6 @@ void PhysicsManager::ProcessPhysics()
 					--maxCallbacks1;
 				if (maxCallbacks2 > 0)
 					--maxCallbacks2;
-			}
-			else {
-				std::cout<<"\nLALL";
 			}
 		}
 		if (messages.Size())

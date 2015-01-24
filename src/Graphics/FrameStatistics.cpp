@@ -53,10 +53,10 @@ void FrameStatistics::ResetGraphics(){
 void FrameStatistics::ResetPhysics()
 {
 	physicsIntegration = 0;
+	physicsIntegrationRecalcMatrices = 0;
 	physicsRecalcAABBs = physicsRecalcOBBs = physicsRecalcProps = 0;
 	physicsCollisions = 0;
 	physicsCollisionDetection = physicsCollisionResolution = physicsCollisionCallback = 0;
-
 }
 
 /// Pushes the frame time which is then used to calculate the average frame-time.
@@ -96,8 +96,10 @@ void FrameStatistics::Print(){
 		<<"\n- Physics total: "<< totalPhysics
 		<<"\n	- processing: "<<physicsProcessing
 		<<"\n		- integration: " <<physicsIntegration
+		<<"\n		- recalc matrices: " <<physicsIntegrationRecalcMatrices
 		<<"\n		- recalc AABBs: " <<physicsRecalcAABBs
 		<<"\n		- recalc OBBs: " <<physicsRecalcOBBs
+		<<"\n		- recalc props: " <<physicsRecalcProps
 		<<"\n		- collisions: " <<physicsCollisions
 		<<"\n			- detection: " <<physicsCollisionDetection
 		<<"\n			- resolution: " <<physicsCollisionResolution 

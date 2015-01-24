@@ -13,24 +13,36 @@ SSIntegrator::SSIntegrator(float zPlane)
 
 void SSIntegrator::IntegrateDynamicEntities(List<Entity*> & dynamicEntities, float timeInSeconds)
 {
-	if (levelCamera)
+	if (spaceShooter->levelEntity)
 	{
-		frameMin = levelCamera->position - Vector2f(15.f, 10.f);
-		frameMax = levelCamera->position + Vector2f(15.f, 10.f);
+		frameMin = spaceShooter->levelEntity->position - spaceShooter->playingFieldHalfSize;
+		frameMax = spaceShooter->levelEntity->position + spaceShooter->playingFieldHalfSize;
 	}
+	static int shipID = ShipProperty::ID();
 	Timer timer;
 	timer.Start();
 	for (int i = 0; i < dynamicEntities.Size(); ++i)
 	{
 		Entity * dynamicEntity = dynamicEntities[i];
 		IntegrateVelocity(dynamicEntity, timeInSeconds);
+		/// Check if player
+		ShipProperty * sp = (ShipProperty*) dynamicEntity->GetProperty(shipID);
+		// If so, limit to inside the radiusiusius
+		if (sp && sp->ship->allied)
+		{
+	//		std::cout<<"\nShip property: "<<sp<<" ID "<<sp->GetID()<<" allied: "<<sp->ship->allied;
+			Vector3f & position = dynamicEntity->position;
+			ClampFloat(position.x, frameMin.x, frameMax.x);
+			ClampFloat(position.y, frameMin.y, frameMax.y);		
+		}
 	}
 	timer.Stop();
-	int micros = timer.GetMs();
+	integrationTimeMs = timer.GetMs();
+	
 	timer.Start();
 	RecalculateMatrices(dynamicEntities);
 	timer.Stop();
-	int micros2 = timer.GetMs();
+	entityMatrixRecalcMs = timer.GetMs();
 }
 
 
@@ -45,6 +57,7 @@ void SSIntegrator::IntegrateKinematicEntities(List<Entity*> & kinematicEntities,
 		Entity * kinematicEntity = kinematicEntities[i];
 		IntegrateVelocity(kinematicEntity, timeInSeconds);
 	}
+	RecalculateMatrices(kinematicEntities);
 }
 	
 
@@ -61,17 +74,5 @@ void SSIntegrator::IntegrateVelocity(Entity * forEntity, float timeInSeconds)
 	{
 		forEntity->position.z = constantZ;
 		forEntity->physics->velocity.z = 0;
-	}
-
-	/// Check if player
-	// If so, limit to inside the radiusiusius
-	int shipID = ShipProperty::ID();
-	ShipProperty * sp = (ShipProperty*) forEntity->GetProperty(shipID);
-	if (sp && sp->ship->allied)
-	{
-//		std::cout<<"\nShip property: "<<sp<<" ID "<<sp->GetID()<<" allied: "<<sp->ship->allied;
-		Vector3f & position = forEntity->position;
-		ClampFloat(position.x, frameMin.x, frameMax.x);
-		ClampFloat(position.y, frameMin.y, frameMax.y);		
 	}
 }

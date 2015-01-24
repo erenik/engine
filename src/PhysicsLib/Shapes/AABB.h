@@ -11,7 +11,11 @@ class Entity;
 
 //#define AABB AABB
 
+/** By default, all AABBs are re-calculated by the PhysicsManager, but only translation is taken into consideration.
+	All calls to Recalcualte the AABB will perform all calculations needed.
+*/
 class AABB {
+	friend class PhysicsManager;
 public:
     AABB();
     AABB(Vector3f min, Vector3f max);
@@ -25,6 +29,8 @@ public:
     /// Scale assuming a 1,1,1 cube centered at 0,0,0 by default (i.e.: regular total size along the axises)
     Vector3f scale;
 private:
+
+	Vector3f lastScale, lastRot;
 
 };
 

@@ -20,7 +20,6 @@
 /// Rendering method
 void Entity::Render(GraphicsState & graphicsState)
 {
-	
 	Shader * shader = ShaderMan.ActiveShader();
 
 	// Change shader to one supporting skeletal animations if necessary.

@@ -12,6 +12,8 @@
 #include "Input/Action.h"
 
 #include "Physics/Messages/CollisionCallback.h"
+#include "Window/Window.h"
+#include "Viewport.h"
 
 
 /// Particle system for sparks/explosion-ish effects.
@@ -24,6 +26,9 @@ static bool paused = false;
 
 List<Weapon> Weapon::types;
 List<Ship> Ship::types;
+
+/// 4 entities constitude the blackness.
+List<Entity*> blacknessEntities;
 
 void SetApplicationDefaults()
 {
@@ -46,6 +51,9 @@ void RegisterStates()
 SpaceShooter2D::SpaceShooter2D()
 {
 	levelCamera = NULL;
+	SetPlayingFieldSize(Vector2f(30,20));
+	levelEntity = NULL;
+	playingFieldPadding = 1.f;
 }
 SpaceShooter2D::~SpaceShooter2D()
 {
@@ -105,7 +113,6 @@ void SpaceShooter2D::OnEnter(AppState * previousState)
 Time now;
 int64 nowMs;
 int timeElapsedMs;
-Vector3f frustumMin, frustumMax;
 
 /// Main processing function, using provided time since last frame.
 void SpaceShooter2D::Process(int timeInMs)
@@ -118,14 +125,6 @@ void SpaceShooter2D::Process(int timeInMs)
 	nowMs = (int) now.Milliseconds();
 	timeElapsedMs = timeInMs;
 	
-	// Check camera bounding box.
-	if (levelCamera)
-	{
-		Frustum frustum = levelCamera->GetFrustum();
-		/// These will hopefully always be in AABB axes.
-		frustumMin = frustum.hitherBottomLeft;
-		frustumMax = frustum.fartherTopRight;
-	}
 	switch(mode)
 	{
 		case PLAYING_LEVEL:
@@ -138,8 +137,9 @@ void SpaceShooter2D::Process(int timeInMs)
 				break;
 			}
 
-			float spawnPositionRight = levelCamera->position.x + 16.f;
-			float despawnPositionLeft = levelCamera->position.x - 16.f;
+			float removeInvuln = levelEntity->position.x + playingFieldHalfSize.x + playingFieldPadding + 1.f;
+			float spawnPositionRight = removeInvuln + level.BaseVelocity().x;
+			float despawnPositionLeft = levelEntity->position.x - playingFieldHalfSize.x - 1.f;
 
 			/// Clearing the level
 			if (playerShip.entity->position.x > level.goalPosition)
@@ -155,7 +155,7 @@ void SpaceShooter2D::Process(int timeInMs)
 			for (int i = 0; i < projectileEntities.Size(); ++i)
 			{
 				Entity * proj = projectileEntities[i];
-				if ((proj->position - levelCamera->position).LengthSquared() > 2000)
+				if ((proj->position - levelEntity->position).LengthSquared() > 2000)
 				{
 					MapMan.DeleteEntity(proj);
 					projectileEntities.Remove(proj);
@@ -173,7 +173,7 @@ void SpaceShooter2D::Process(int timeInMs)
 						continue;
 					if (ship.spawnInvulnerability)
 					{
-						if (ship.entity->position.x < spawnPositionRight)
+						if (ship.entity->position.x < removeInvuln)
 						{
 							// Change color.
 							GraphicsMan.QueueMessage(new GMSetEntityTexture(ship.entity, DIFFUSE_MAP | SPECULAR_MAP, TexMan.GetTextureByColor(Color(255,255,255,255))));
@@ -194,7 +194,7 @@ void SpaceShooter2D::Process(int timeInMs)
 					}
 					continue;
 				}
-				if (ship.position.x > spawnPositionRight + 5.f)
+				if (ship.position.x > spawnPositionRight)
 					continue;
 				Entity * entity = EntityMan.CreateEntity(ship.type, ModelMan.GetModel("sphere.obj"), TexMan.GetTextureByColor(Color(0,255,0,255)));
 				entity->position = ship.position;
@@ -222,6 +222,8 @@ void SpaceShooter2D::Process(int timeInMs)
 /// Function when leaving this state, providing a pointer to the next StateMan.
 void SpaceShooter2D::OnExit(AppState * nextState)
 {
+	levelEntity = NULL;
+	Sleep(50);
 	// Register it for rendering.
 	Graphics.QueueMessage(new GMUnregisterParticleSystem(sparks, true));
 	Graphics.QueueMessage(new GMUnregisterParticleSystem(stars, true));
@@ -336,6 +338,16 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 				while(movementDirections.Remove(dir));
 				UpdatePlayerVelocity();
 			}
+			else if (msg == "ToggleBlackness")
+			{
+				if (blacknessEntities.Size())
+				{
+					bool visible = blacknessEntities[0]->IsVisible();
+					GraphicsMan.QueueMessage(new GMSetEntityb(blacknessEntities, GT_VISIBILITY, !visible));
+					Viewport * viewport = MainWindow()->MainViewport();
+					viewport->renderGrid = visible;
+				}
+			}
 			break;
 		}
 	}
@@ -355,6 +367,7 @@ void SpaceShooter2D::CreateDefaultBindings()
 	BINDING(Action::FromString("NewGame"), List<int>(2, KEY::N, KEY::G));
 	BINDING(Action::FromString("ClearLevel"), List<int>(2, KEY::C, KEY::L));
 	BINDING(Action::FromString("ListEntitiesAndRegistrations"), List<int>(2, KEY::L, KEY::E));
+	BINDING(Action::FromString("ToggleBlackness"), List<int>(2, KEY::T, KEY::B));
 }
 
 /// Update UI
@@ -435,19 +448,18 @@ void SpaceShooter2D::TogglePause()
 /// Loads target level. The source and separate .txt description have the same name, just different file-endings, e.g. "Level 1.png" and "Level 1.txt"
 void SpaceShooter2D::LoadLevel(String fromSource)
 {
-	GraphicsMan.QueueMessage(new GMSetParticleEmitter(starEmitter, GT_EMITTER_ENTITY_TO_TRACK, NULL));
 	this->levelSource = fromSource;
 	// Delete all entities.
 	MapMan.DeleteAllEntities();
 	shipEntities.Clear();
 	projectileEntities.Clear();
+	
 	GraphicsMan.PauseRendering();
+	PhysicsMan.Pause();
+
 	level.Load(fromSource);
 	level.SetupCamera();
 	level.AddPlayer(&playerShip);
-	// Track player with effects.
-	GraphicsMan.QueueMessage(new GMSetParticleEmitter(starEmitter, GT_EMITTER_ENTITY_TO_TRACK, playerShip.entity));
-	GraphicsMan.QueueMessage(new GMSetParticleEmitter(starEmitter, GT_EMITTER_POSITION_OFFSET, Vector3f(70.f, 0, 0)));
 	// Reset player stats.
 	playerShip.hitPoints = playerShip.maxHitPoints;
 	playerShip.shieldValue = playerShip.maxShieldValue;
@@ -466,8 +478,58 @@ void SpaceShooter2D::LoadLevel(String fromSource)
 	startEmitter->SetScale(0.3f);
 	Graphics.QueueMessage(new GMAttachParticleEmitter(startEmitter, stars));
 
+	/// Add entity to track for both the camera, blackness and player playing field.
+	Vector3f initialPosition = Vector3f(0,10,0);
+	if (!levelEntity)
+	{
+		levelEntity = EntityMan.CreateEntity("LevelEntity", NULL, NULL);
+		levelEntity->position = initialPosition;
+		PhysicsProperty * pp = levelEntity->physics = new PhysicsProperty();
+		pp->collissionsEnabled = false;
+		pp->type = PhysicsType::KINEMATIC;
+		/// Add blackness to track the level entity.
+		for (int i = 0; i < 4; ++i)
+		{
+			Entity * blackness = EntityMan.CreateEntity("Blackness"+String(i), ModelMan.GetModel("sprite.obj"), TexMan.GetTexture("0x0A"));
+			float scale = 50.f;
+			float halfScale = scale * 0.5f;
+			blackness->scale = scale * Vector3f(1,1,1);
+			Vector3f position;
+			position.z = 5.f; // Between game plane and camera
+			switch(i)
+			{
+				case 0: position.x += playingFieldHalfSize.x + halfScale + playingFieldPadding; break;
+				case 1: position.x -= playingFieldHalfSize.x + halfScale + playingFieldPadding; break;
+				case 2: position.y += playingFieldHalfSize.y + halfScale + playingFieldPadding; break;
+				case 3: position.y -= playingFieldHalfSize.y + halfScale + playingFieldPadding; break;
+			}
+			blackness->position = position;
+			levelEntity->AddChild(blackness);
+			blacknessEntities.Add(blackness);
+		}
+		// Register blackness entities for rendering.
+		GraphicsMan.QueueMessage(new GMRegisterEntities(blacknessEntities));
+		PhysicsMan.QueueMessage(new PMRegisterEntities(levelEntity));
+		// Set level camera to track the level entity.
+		GraphicsMan.QueueMessage(new GMSetCamera(levelCamera, CT_ENTITY_TO_TRACK, levelEntity));
+	}
+	// Track ... level with effects.
+	starEmitter->entityToTrack = playerShip.entity;
+	starEmitter->positionOffset = Vector3f(70.f,0,0);
+//	GraphicsMan.QueueMessage(new GMSetParticleEmitter(starEmitter, GT_EMITTER_ENTITY_TO_TRACK, playerShip.entity));
+//	GraphicsMan.QueueMessage(new GMSetParticleEmitter(starEmitter, GT_EMITTER_POSITION_OFFSET, Vector3f(70.f, 0, 0)));
+	// Reset position of level entity if already created.
+	levelEntity->position = initialPosition;
+	levelEntity->physics->velocity = level.BaseVelocity();
+//	PhysicsMan.QueueMessage(new PMSetEntity(levelEntity, PT_POSITION, initialPosition));
+	// Set velocity of the game.
+//	PhysicsMan.QueueMessage(new PMSetEntity(levelEntity, PT_VELOCITY, level.BaseVelocity()));
+	// Reset position of player!
+	playerShip.entity->position = initialPosition;
+//	PhysicsMan.QueueMessage(new PMSetEntity(playerShip.entity, PT_POSITION, initialPosition));
 
 	GraphicsMan.ResumeRendering();
+	PhysicsMan.Resume();
 	mode = PLAYING_LEVEL;
 	UpdateUI();
 }
@@ -549,4 +611,10 @@ void SpaceShooter2D::Process(Ship & ship)
 		if (ship.allied)
 			UpdatePlayerShield();
 	}
+}
+
+void SpaceShooter2D::SetPlayingFieldSize(Vector2f newSize)
+{
+	playingFieldSize = newSize;
+	playingFieldHalfSize = newSize * .5f;
 }

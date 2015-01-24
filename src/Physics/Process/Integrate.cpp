@@ -16,18 +16,20 @@
 void PhysicsManager::Integrate(float timeInSecondsSinceLastUpdate)
 {
     assert(timeInSecondsSinceLastUpdate > 0);
-
 	Timer timer;
-	timer.Start();
+
 	if (physicsIntegrator)
 	{
 		physicsIntegrator->IsGood();
 		physicsIntegrator->IntegrateDynamicEntities(dynamicEntities, timeInSecondsSinceLastUpdate);
 		physicsIntegrator->IntegrateKinematicEntities(kinematicEntities, timeInSecondsSinceLastUpdate);
+		FrameStats.physicsIntegration += physicsIntegrator->integrationTimeMs;
+		FrameStats.physicsIntegrationRecalcMatrices += physicsIntegrator->entityMatrixRecalcMs;
 	}
 	// Old integrators built into the physics-manager.
 	else 
 	{
+		timer.Start();
 		float timeSinceLastUpdate = timeInSecondsSinceLastUpdate;
 		// Process dynamic entities
 		for (int i = 0; i < dynamicEntities.Size(); ++i)
@@ -75,13 +77,11 @@ void PhysicsManager::Integrate(float timeInSecondsSinceLastUpdate)
 
 			// Recalculate the matrix!
 			dynamicEntity->RecalculateMatrix();
-
-
 		}
+		timer.Stop();
+		int64 ms = timer.GetMs();
+		FrameStats.physicsIntegration += ms;
 	}
-	timer.Stop();
-	int64 ms = timer.GetMs();
-	FrameStats.physicsIntegration += ms;
 //	std::cout<<"\nIntegration: "<<ms;
 
 	timer.Start();
@@ -90,7 +90,7 @@ void PhysicsManager::Integrate(float timeInSecondsSinceLastUpdate)
 	/// Reposition the entities as appropriate within the optimization structures.
 	RecalculateAABBs();
 	timer.Stop();
-	ms = timer.GetMs();
+	int ms = timer.GetMs();
 	FrameStats.physicsRecalcAABBs += ms;
 //	std::cout<<"\nRe-calculating AABBs: "<<ms;
 

@@ -577,8 +577,8 @@ int MapManager::DeleteAllEntities()
 	int deleted = 0;
 	List<Entity*> mapEntities = activeMap->GetEntities();
 	activeMap->RemoveEntities(mapEntities);
-	Graphics.QueueMessage(new GraphicsMessage(GM_UNREGISTER_ALL_ENTITIES));
-	Physics.QueueMessage(new PhysicsMessage(PM_UNREGISTER_ALL_ENTITIES));
+	Graphics.QueueMessage(new GMUnregisterEntities(mapEntities));
+	Physics.QueueMessage(new PMUnregisterEntities(mapEntities));
 	EntityMan.MarkEntitiesForDeletion(mapEntities);
 	return deleted;
 }

@@ -24,6 +24,12 @@ int PhysicsManager::RegisterEntity(Entity * newEntity)
 //	std::cout<<"\nPre register: AABBSweeper nodes: "<<aabbSweeperNodes<<" colliding entities: "<<collidingEntities;
 	assert(aabbSweeperNodes == collidingEntities*2);
 
+	/// Create AABB.. unless model is missing.
+	if (newEntity->model && !newEntity->aabb)
+	{
+		newEntity->aabb = new AABB();
+		newEntity->aabb->Recalculate(newEntity);
+	}
 	/// Assertion not valid anymore as some entities are not interested in collissions..!
 //	assert(entitiesInOctree == physicalEntitiesNum);
 	if (newEntity->physics == NULL){
@@ -41,8 +47,6 @@ int PhysicsManager::RegisterEntity(Entity * newEntity)
 	physicalEntities.Add(newEntity);
 
 	PhysicsProperty * pp = newEntity->physics;
-	if (!pp->aabb)
-		pp->aabb = new AABB();
 	if (!pp->obb)
 		pp->obb = new OBB();
 
@@ -110,7 +114,6 @@ int PhysicsManager::RegisterEntity(Entity * newEntity)
 	/// Recalculate AABB/OBB-data.
 	if (newEntity->model)
 	{
-		newEntity->physics->aabb->Recalculate(newEntity);
 		newEntity->physics->obb->Recalculate(newEntity);
 	}
 //	assert(entitiesInOctree == physicalEntitiesNum);

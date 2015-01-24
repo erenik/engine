@@ -105,13 +105,14 @@ bool GraphicsManager::UnregisterEntity(Entity * entity)
 };
 
 /// Unregisters all entities in the selection from rendering. Returns the number of failed unregistrations.
-int GraphicsManager::UnregisterEntities(List<Entity*> & toUnregister){
+int GraphicsManager::UnregisterEntities(List<Entity*> & toUnregister)
+{
 	int failed = 0;
 	for (int i = 0; i < toUnregister.Size(); ++i){
 		if (!UnregisterEntity(toUnregister[i]))
 			++failed;
 	}
-	assert(registeredEntities.Size() == vfcOctree->RegisteredEntities());
+//	assert(registeredEntities.Size() == vfcOctree->RegisteredEntities());
 	return failed;
 }
 
@@ -122,7 +123,7 @@ int GraphicsManager::UnregisterAll()
 		UnregisterEntity(registeredEntities[0]);
 	}
 	registeredEntities.Clear();
-	assert(registeredEntities.Size() == vfcOctree->RegisteredEntities());
+//	assert(registeredEntities.Size() == vfcOctree->RegisteredEntities());
 	return 0;
 }
 

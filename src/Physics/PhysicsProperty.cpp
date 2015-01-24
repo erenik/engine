@@ -27,7 +27,6 @@ PhysicsProperty::~PhysicsProperty()
 		delete shape;
 		shape = NULL;
 	}
-	SAFE_DELETE(aabb);
 	SAFE_DELETE(obb);
 
 	estimators.ClearAndDelete();
@@ -86,7 +85,6 @@ PhysicsProperty::PhysicsProperty(const CompactPhysics * compactPhysics){
 /// Set default values.
 void PhysicsProperty::Nullify()
 {
-	aabb = 0;
 	obb = 0;
     locks = 0;
     inertiaTensorCalculated = false;
@@ -143,6 +141,7 @@ void PhysicsProperty::SetMass(float mass)
 void PhysicsProperty::CalculateInertiaTensor()
 {
 	/// Calculate it's mass too while we're at it.
+	AABB * aabb = owner->aabb;
 	Vector3f scale = aabb->scale;
 	/// TODO: Move mass settings elsewhere! And have it depend on a density parameter so it can scale well?
 	/// Density in kg/m³ or g/dm³
@@ -241,8 +240,6 @@ void PhysicsProperty::UpdateProperties(Entity * entity)
 	{
 	//	assert(entity->model->radius > 0);
 		physicalRadius = entity->model->radius * entity->scale.MaxPart();
-		if (aabb)
-			aabb->Recalculate(entity);
 		if (obb)
 			obb->Recalculate(entity);
 	}

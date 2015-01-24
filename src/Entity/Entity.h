@@ -39,6 +39,7 @@ struct LifeAttribute{
 */
 class Entity 
 {
+	friend class PhysicsManager;
 	friend class EntityManager;
 	friend class BlueprintManager;
 	/// Default constructor, only available to the EntityManager!
@@ -109,6 +110,9 @@ public:
 
 	/// Gets velocity, probably from the PhysicsState
 	Vector3f Velocity();
+	/// Mostly just checking graphics->visibility and if registered for rendering.
+	bool IsVisible();
+
 
 	/** Sets position */
 	void SetPosition(Vector3f position);
@@ -134,8 +138,8 @@ public:
 	/** Translates the Entity */
 	void Translate(Vector3f translation);
 
-	/// Recalculates the transformation matrix
-	void RecalculateMatrix();
+	/// Recalculates the transformation matrix. All parts by default.
+	void RecalculateMatrix(bool allParts = true);
 	/// Recalculates a transformation matrix using argument vectors for position, rotation and translation.
 	static Matrix4f RecalculateMatrix(Vector3f & position, Vector3f & rotation, Vector3f & scale);
 
@@ -167,6 +171,9 @@ public:
 	Vector3f absolutePosition;
 	/// Radius of the bounding sphere.
 	float radius;
+
+	/// o.o Links child and parent for both.
+	void AddChild(Entity * child);
 
 	/** Child entities, for example wheels for a bike, etc.
 		All child-entities are merely here by relation, and should not be processed (in general) when the parent is processed!
@@ -211,6 +218,9 @@ public:
 	bool hasRescaled;
 	bool hasRotated;
 
+	/// Axis-aligned bounding box.
+	AABB * aabb;
+
 private:
 
 	int64 deletionTimeMs;
@@ -221,8 +231,6 @@ private:
 	/// Normalmap texture for more surface~
 	Texture * normalMap;
 
-	/// Axis-aligned bounding box.
-	AABB * aabb;
 };
 
 template<class T>

@@ -178,9 +178,20 @@ void PhysicsManager::RecalculateAABBs()
 	for (int i = 0; i < dynamicEntities.Size(); ++i)
 	{
 		Entity * dynamicEntity = dynamicEntities[i];
-        dynamicEntity->physics->aabb->Recalculate(dynamicEntity);
+		AABB * aabb = dynamicEntity->aabb;
+		aabb->position = dynamicEntity->position;
+		aabb->min = aabb->position - aabb->scale * 0.5f;
+		aabb->max = aabb->position + aabb->scale * 0.5f;
+//		Vector3f minr = aabb->min, maxr = aabb->max;
+//		aabb->Recalculate(dynamicEntity);
+//		if (minr != aabb->min)
+//		{
+//			assert(false);
+	//		std::cout<<"nererer";
+//		}
     }
 }
+
 void PhysicsManager::RecalculateOBBs()
 {
 	for (int i = 0; i < dynamicEntities.Size(); ++i)
@@ -445,7 +456,7 @@ void PhysicsManager::RecalculatePhysicsProperties(){
 	//	physics->physicalPosition += entity->model->centerOfModel.ElementMultiplication(entity->scale);
 		// Recalculate radius
 		physics->physicalRadius = entity->model->radius * entity->scale.MaxPart();
-		physics->aabb->Recalculate(entity);
+		entity->aabb->Recalculate(entity);
 	}
 }
 

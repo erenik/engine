@@ -7,9 +7,10 @@
 #include "Physics/PhysicsProperty.h"
 #include <iomanip>
 
-void EntityPair::PrintDetailed(){
+void EntityPair::PrintDetailed()
+{
     std::cout<<"\nComparing pair: "<<one<<" "<<one->position<<" & "<<two<<" "<<two->position;
-    AABB * oneab = one->physics->aabb, * twoab = two->physics->aabb;
+    AABB * oneab = one->aabb, * twoab = two->aabb;
     std::cout<<"\nOne min/max: "<<oneab->min<<" "<<oneab->max;
     std::cout<<"\nTwo min/max: "<<twoab->min<<" "<<twoab->max;
 }
@@ -50,7 +51,7 @@ void AABBSweeper::RegisterEntity(Entity * entity)
 {
     assert(entity);
     assert(entity->physics);
-    AABB * aabb = entity->physics->aabb;
+    AABB * aabb = entity->aabb;
     AABBSweepNode * nodes[2];
     nodes[0] = NULL;
     nodes[1] = NULL;
@@ -185,7 +186,7 @@ List<EntityPair> AABBSweeper::Sweep()
         EntityPair ep = entityPairs[i];
         Entity * one = ep.one, * two = ep.two;
      //   ep.PrintDetailed();
-        AABB * oneab = one->physics->aabb, * twoab = two->physics->aabb;
+        AABB * oneab = one->aabb, * twoab = two->aabb;
         if (oneab->max.z < twoab->min.z ||
             oneab->min.z > twoab->max.z ||
             oneab->max.y < twoab->min.y ||

@@ -406,6 +406,17 @@ void Matrix4f::Translate(float x, float y, float z){
 	element[14] += z;
 }
 
+/// Builds a 3D translation matrix using given vector.
+const Matrix4f Matrix4f::Translation(const Vector3f & vec)
+{
+	Matrix4f mat;
+	mat.element[12] += vec.x;
+	mat.element[13] += vec.y;
+	mat.element[14] += vec.z;
+	return mat;
+}
+
+
 /*
 void Matrix4f::Translate(Vector3f vec){
 	element[12] += vec.GetX();
@@ -443,6 +454,15 @@ void Matrix4f::Scale(const Vector3f & scalingVector){
 	element[10] *= scalingVector.z;
 }
 
+/// Builds a 3D scaling matrix using given vector.
+const Matrix4f Matrix4f::Scaling(const Vector3f & scalingVector)
+{
+	Matrix4f scaling;
+    scaling.element[0] *= scalingVector.x;
+	scaling.element[5] *= scalingVector.y;
+	scaling.element[10] *= scalingVector.z;
+	return scaling;
+}
 
 /// Returns true if it has non-0 values in the scale diagonal (elements 0, 5 and 10)
 bool Matrix4f::HasValidScale()
@@ -565,6 +585,14 @@ void Matrix4f::operator *= (Matrix4f factor){
 	memcpy(element, newArray, sizeof(float) * 16);
 }
 
+/*
 Vector4f Matrix4f::operator [](const unsigned int index){
 	return Vector4f(&(element[index*4]));
 }
+*/
+
+float & Matrix4f::operator[](const unsigned int index)
+{
+	return element[index];
+}
+

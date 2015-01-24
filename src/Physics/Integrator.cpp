@@ -9,7 +9,7 @@ void RecalculateMatrices(List<Entity*> entities)
 	for (int i = 0; i < entities.Size(); ++i)
 	{
 		Entity * entity = entities[i];
-		entity->RecalculateMatrix();
+		entity->RecalculateMatrix(false);
 	}
 }
 

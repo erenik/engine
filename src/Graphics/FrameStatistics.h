@@ -32,7 +32,7 @@ public:
 	float renderSortEntities, renderEntities, renderPrePipeline, renderPostPipeline, swapBuffers;
 	float multimedia;
 	float physicsProcessing, physicsMessages, totalPhysics, 
-		physicsIntegration, physicsRecalcAABBs, physicsRecalcOBBs,
+		physicsIntegration, physicsIntegrationRecalcMatrices, physicsRecalcAABBs, physicsRecalcOBBs,
 		physicsRecalcProps, physicsCollisions;
 	float physicsCollisionDetection, physicsCollisionResolution, physicsCollisionCallback;
 

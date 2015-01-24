@@ -124,7 +124,6 @@ public:
 //	Vector3f physicalPosition;
 
     /// Coordinates for axis-aligned bounding box (if used)
-    AABB * aabb;
     OBB * obb;
     AABBSweepNode * aabbSweepNodes[2];
 

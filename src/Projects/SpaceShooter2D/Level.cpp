@@ -161,10 +161,10 @@ void Level::SetupCamera()
 {
 	if (!levelCamera)
 		levelCamera = CameraMan.NewCamera();
-	// Set it up.
-	levelCamera->velocity = BaseVelocity();
-	levelCamera->position = Vector3f(0,10,10);
+	// offset to the level entity, just 10 in Z.
+	levelCamera->position = Vector3f(0,0,10);
 	levelCamera->rotation = Vector3f(0,0,0);
+	levelCamera->trackingMode = TrackingMode::ADD_POSITION;
 	spaceShooter->ResetCamera();
 //	levelCamera->Begin(Direction::RIGHT); // Move it..!
 //	levelCamera->

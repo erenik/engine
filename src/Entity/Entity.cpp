@@ -101,6 +101,8 @@ Entity::Entity(int i_id)
 	/// Owner o-o
 	this->player = NULL;
 
+	aabb = NULL;
+
 	// Default all flags to 0.
 	/// Status, for whether it's part of rendering, physics, etc.
 	this->registeredForRendering = false;
@@ -149,8 +151,6 @@ void Entity::OnCollision(Collision & data)
 /// Fetches an AABB encapsulating this entity, including any children?
 AABB * Entity::GetAABB()
 {
-	if (physics)
-		return physics->aabb;
 	if (!aabb)
 		aabb = new AABB();
 	return aabb;
@@ -299,6 +299,17 @@ Vector3f Entity::Velocity()
 	return Vector3f();
 }
 
+/// Mostly just checking graphics->visibility and if registered for rendering.
+bool Entity::IsVisible()
+{
+	if (!registeredForRendering)
+		return false;
+	if (!graphics)
+		return false;
+	return graphics->visible;
+}
+
+
 
 /// Sets position
 void Entity::SetPosition(Vector3f position)
@@ -426,11 +437,11 @@ void Entity::Translate(Vector3f translation){
 	RecalculateMatrix();
 }
 
-/// Recalculates the transformation matrix
-void Entity::RecalculateMatrix()
+/// Recalculates the transformation matrix. All parts by default.
+void Entity::RecalculateMatrix(bool allParts /*= true*/)
 {
-    Matrix4d preTranslateMat;
-	if (hasRotated)
+    Matrix4f preTranslateMat;
+	if (allParts)
 	{
 		rotationMatrix = Matrix4d();
 		// Quaternions for those entities wanting to use it.
@@ -458,31 +469,40 @@ void Entity::RecalculateMatrix()
 			rotationMatrix.Multiply(Matrix4d::GetRotationMatrixY(rotation.y));
 		}	
 		hasRotated = false;
-	}
 		
 
-	transformationMatrix = Matrix4d();
+		transformationMatrix = Matrix4f();
 
-	transformationMatrix.Multiply(preTranslateMat);
-	transformationMatrix.Multiply((Matrix4d().Translate(Vector3d(position))));
-	transformationMatrix.Multiply(rotationMatrix);
-	transformationMatrix.Multiply((Matrix4d().Scale(Vector3d(scale))));
+		transformationMatrix.Multiply(preTranslateMat);
+		transformationMatrix.Multiply((Matrix4f::Translation(position)));
+		transformationMatrix.Multiply(rotationMatrix);
+		transformationMatrix.Multiply((Matrix4f::Scaling(scale)));
 
-	/// Use parent matrix, apply ours on top of it!
-	if (parent)
-	{
-		transformationMatrix = parent->transformationMatrix * transformationMatrix;
+		/// Use parent matrix, apply ours on top of it!
+		if (parent)
+		{
+			transformationMatrix = parent->transformationMatrix * transformationMatrix;
+		}
+
+		// Since we updated something, we should inform our children as well, if any, or they will be lagging behind...
+		/*
+		for (int i = 0; i < children.Size(); ++i)
+		{
+			children[i]->RecalculateMatrix();
+		}*/
+
+		worldPosition = transformationMatrix.Product(Vector4f());
+			// Ensure it has a scale..?
+	//	assert(transformationMatrix.HasValidScale());
 	}
-
-	// Since we updated something, we should inform our children as well, if any, or they will be lagging behind...
-	for (int i = 0; i < children.Size(); ++i)
+	// No rotation? -> 
+	else 
 	{
-		children[i]->RecalculateMatrix();
+		// Just update position.
+		transformationMatrix[12] = position.x;
+		transformationMatrix[13] = position.y;
+		transformationMatrix[14] = position.z;
 	}
-
-	worldPosition = transformationMatrix.Product(Vector4f());
-		// Ensure it has a scale..?
-//	assert(transformationMatrix.HasValidScale());
 }
 
 /// Recalculates a transformation matrix using argument vectors for position, rotation and translation.
@@ -622,3 +642,10 @@ Vector3f Entity::CenterOfGravityWorldSpace()
 	return centerWorldSpace;
 }
 
+/// o.o Links child and parent for both.
+void Entity::AddChild(Entity * child)
+{
+	assert(child->parent == NULL);
+	children.Add(child);
+	child->parent = this;
+}

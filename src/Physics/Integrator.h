@@ -29,6 +29,9 @@ public:
 	/// For 2D-based integrators, this holds the value where most entities will be placed or enforced to stay at, Z-wise.
 	float constantZ;
 
+	/// For performance calculation, should save time required for integration and recalculating entity matrices both.
+	int integrationTimeMs;
+	int entityMatrixRecalcMs;
 private:
 };
 

@@ -998,6 +998,9 @@ void GraphicsManager::Process()
 	{
 		Entity * entity = registeredEntities[i];
 		entity->graphics->Process(milliseconds);
+		// If not registered for physics, update transformation matrix now (since parents may be moving, etc.)
+		if (!entity->registeredForPhysics)
+			entity->RecalculateMatrix();
 	}
 }
 

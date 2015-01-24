@@ -89,8 +89,6 @@ Color Color::ColorByHex8(uint32 hex)
 	unsigned char l;
 	l = hex % 256;
 	Color newColor(l, l, l, 255);
-	float inv255 = 1 / 255.f;
-	newColor *= inv255;	
 	return newColor;
 }
 
