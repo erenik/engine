@@ -43,7 +43,7 @@ public:
 
 private:
 
-	void ProcessAI();
+	void ProcessAI(int timeInMs);
 	long millisecondsPassedSinceLastFire;	
 };
 

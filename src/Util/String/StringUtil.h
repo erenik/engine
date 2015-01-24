@@ -27,6 +27,12 @@ void PrependStrings(List<String> & list, String withString);
 
 /// For loading CSV files, looks for the delimiter (usually comma ','), and abserves quotation marks for any occurences of commas within the actual data.
 List<String> TokenizeCSV(String csvString);
+/** Used to tokenize with some characters used to start and stop the tokenization procedure temporarily.
+	Sample use-case would be to tokenize the string "Aim(7,3), Guard(2,3)" and returning "Aim(7,3)" and "Guard(2,3)",
+	using the tokenizer ',' and ignoreparts "()". 
+	Ignore parts should be in pairs, one starting the ignore part, the other stopping it.
+*/
+List<String> TokenizeIgnore(String string, String tokenizers, String ignoreParts);
 
 
 #include "MathLib.h"

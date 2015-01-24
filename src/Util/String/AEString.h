@@ -99,12 +99,17 @@ public:
 	int Count(char c) const;
 	
 	/// Search with boolean answer.
-	bool Contains(const String & subString);
+	bool Contains(const String & subString) const;
 	/** Search with index as return value. 
 		Returns index of first character of the found substring within this strng.
 		-1 if it could not be found.
 	*/
-	int Find(const String & subString);
+	int Find(const String & subString) const;
+	/** Search with index as return value. 
+		Returns index of first character of the found substring within this strng.
+		-1 if it could not be found.
+	*/
+	int Find(char c) const;
 	bool EndsWith(char c) const;
 	/// Similar to Contains but works only on the beginning of the string.
 	bool StartsWith(const String & subString);
@@ -170,6 +175,8 @@ public:
 	/// Removes all whitespace characters up until first non-whitespace character.
 	int RemoveInitialWhitespaces();
     void RemoveTrailingWhitespaces();
+	/// Returns characters removed.
+	int RemoveSurroundingWhitespaces();
 
     /// Prints the contents of the string both in integer and character form
     void PrintData() const;

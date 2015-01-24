@@ -8,7 +8,7 @@
 #include "File/File.h"
 #include "String/StringUtil.h"
 
-
+#include "File/LogFile.h"
 
 Ship::Ship()
 {
@@ -22,6 +22,9 @@ Ship::Ship()
 	spawnInvulnerability = false;
 	hasShield = false;
 	shieldValue = maxShieldValue = 10;
+	currentMovement = 0;
+	timeInCurrentMovement = 0;
+	speed = 0.f;
 }
 
 Ship::~Ship()
@@ -81,9 +84,13 @@ void Ship::Destroy()
 }
 
 
+String whenParsingFile;
+int row = 0;
+#define LogShip(s) LogToFile("ShipParserErrors.txt", whenParsingFile + " row "+String(row) + String(": ") + s)
 // Load ship-types.
 bool Ship::LoadTypes(String file)
 {
+	whenParsingFile = file;
 	List<String> lines = File::GetLines(file);
 	if (lines.Size() == 0)
 		return false;
@@ -99,6 +106,7 @@ bool Ship::LoadTypes(String file)
 	for (int j = 1; j < lines.Size(); ++j)
 	{
 		String & line = lines[j];
+		row = j;
 		// Keep empty strings or all will break.
 		List<String> values = TokenizeCSV(line);
 		for (int i = 0; i < values.Size(); ++i)
@@ -183,7 +191,9 @@ bool Ship::LoadTypes(String file)
 				}
 			}
 			else if (column == "Movement pattern")
-				ship.movementPattern = value;
+			{
+				ship.ParseMovement(value);
+			}
 			else if (column == "Speed")
 				ship.speed = value.ParseFloat() * 0.2f;
 			else if (column == "Has Shield")
@@ -212,6 +222,140 @@ bool Ship::LoadTypes(String file)
 	return true;
 }
 
+/// E.g. "Straight(10), MoveTo(X Y 5 20, 5)"
+void Ship::ParseMovement(String fromString)
+{
+	movementPatterns.Clear();
+	/// Tokenize.
+	List<String> parts = TokenizeIgnore(fromString, ",", "()");
+	for (int i = 0; i < parts.Size(); ++i)
+	{
+		String part = parts[i];
+		List<String> broken = part.Tokenize("()");
+		if (broken.Size() == 0)
+		{
+			LogShip("Empty movement pattern when parsing ship \'"+name+"\'.");
+			continue;
+		}
+		String partPreParenthesis = broken[0];
+		partPreParenthesis.RemoveSurroundingWhitespaces();
+		Movement move;
+		move.type = -1;
+		for (int j = 0; j < Movement::TYPES; ++j)
+		{
+			String name = Movement::Name(j);
+			if (name == partPreParenthesis)
+			{
+				move.type = j;
+				break;
+			}
+			if (name == "n/a")
+				move.type = Movement::NONE;
+		}
+		if (move.type == -1)
+		{
+			String typesString;
+			for (int j = 0; j < Movement::TYPES; ++j)
+			{
+				typesString += "\n\t"+Movement::Name(j);
+			}
+			LogShip("Unrecognized movement pattern \'"+partPreParenthesis+"\' when parsing ship \'"+name+"\'. Available types are as follows: "+typesString);
+			continue;
+		}
+		// Add it and continue.
+		if (move.type == Movement::NONE)
+		{
+			movementPatterns.Add(move);
+			continue;
+		}
+		// Demand arguments depending on type?
+		if (broken.Size() < 2)
+		{
+			LogShip("Lacking arguments for movement pattern \'"+partPreParenthesis+"\' when parsing data for ship \'"+name+"\'.");
+			continue;
+		}
+		List<String> args = broken[1].Tokenize(",");
+#define DEMAND_ARGS(a) if (args.Size() < a){ \
+	LogShip("Expected "+String(a)+" arguments for movement type \'"+\
+	Movement::Name(move.type)+"\', encountered "+String(args.Size())+"."); \
+	continue;}
+#define GET_DURATION(a) if (args[a] == "inf") move.durationMs = -1; else move.durationMs = args[a].ParseFloat() * 1000;
+		switch(move.type)
+		{
+			case Movement::STRAIGHT:
+				DEMAND_ARGS(1);
+				GET_DURATION(0);
+				break;	
+			case Movement::ZAG:
+				DEMAND_ARGS(3);
+				move.vec.ParseFrom(args[0]);
+				move.zagTimeMs = args[1].ParseFloat() * 1000;
+				GET_DURATION(2);
+				break;
+			case Movement::MOVE_TO:
+			{
+				DEMAND_ARGS(2);
+				// Optionally parse some string for where to go.
+				String arg = args[0];
+				arg.RemoveSurroundingWhitespaces();
+				arg.SetComparisonMode(String::NOT_CASE_SENSITIVE);
+				if (arg == "upper edge")
+				{
+					move.location = Location::UPPER_EDGE; 	
+				}
+				else if (arg == "lower edge")
+				{
+					move.location = Location::LOWER_EDGE;
+				}
+				else if (arg == "center")
+				{
+					move.location = Location::CENTER;
+				}
+				else if (arg == "player")
+				{
+					move.location = Location::PLAYER;
+				}
+				else 
+				{
+					move.vec.ParseFrom(args[0]);
+					move.location = Location::VECTOR;
+				}
+				GET_DURATION(1);
+				break;
+			}
+			case Movement::MOVE_DIR:
+			{
+				DEMAND_ARGS(2);
+				move.vec.ParseFrom(args[0]);
+				GET_DURATION(1);
+				break;
+			}
+			case Movement::CIRCLE:
+			{
+				DEMAND_ARGS(4);
+				move.target = args[0];
+				move.radius = args[1].ParseFloat();
+				move.clockwise = args[2].ParseBool();
+				GET_DURATION(3);
+				break;
+			}
+			case Movement::UP_N_DOWN:
+			{
+				DEMAND_ARGS(2);
+				move.distance = args[0].ParseFloat();
+				GET_DURATION(1);
+				break;
+			}
+		}
+		move.vec.Normalize();
+		movementPatterns.Add(move);
+	}
+	if (movementPatterns.Size() == 0)
+	{
+		movementPatterns.Add(Movement(Movement::NONE));
+	}
+}
+
 
 /// Creates new ship of specified type.
 Ship Ship::New(String shipByName)
@@ -226,4 +370,11 @@ Ship Ship::New(String shipByName)
 	// For now, just add a default one.
 	std::cout<<"\nERROR: Couldn't find ship by name \'"<<shipByName<<"\'";
 	return Ship();
+}
+
+
+/// Calls OnEnter for the initial movement pattern.
+void Ship::StartMovement()
+{
+	movementPatterns[0].OnEnter(this);
 }

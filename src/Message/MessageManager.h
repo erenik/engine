@@ -41,7 +41,7 @@ public:
 	bool QueueDelayedMessage(Message * message);
 
 	/// Queues a bunch of string-based messages in the form "Message1&Message2&Message3&..."
-	bool QueueMessages(List<Message*> messages, UIElement * elementThatTriggeredIt = NULL);
+	bool QueueMessages(const List<Message*> & messages, UIElement * elementThatTriggeredIt = NULL);
 	bool QueueMessages(String messages, UIElement * elementThatTriggeredIt = NULL);
 	bool QueueMessages(List<String> messages, UIElement * elementThatTriggeredIt = NULL);
 	bool QueueMessage(Message* msg);	// Queues a message

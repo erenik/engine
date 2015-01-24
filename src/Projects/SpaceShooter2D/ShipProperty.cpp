@@ -61,7 +61,7 @@ void ShipProperty::Process(int timeInMs)
 	if (ship->ai == true)
 	{
 		// Mainly for movement and stuff
-		ProcessAI();
+		ProcessAI(timeInMs);
 	}
 	ProcessWeapons(timeInMs);
 }
@@ -85,16 +85,20 @@ void ShipProperty::ProcessWeapons(int timeInMs)
 }
 	
 
-void ShipProperty::ProcessAI()
+void ShipProperty::ProcessAI(int timeInMs)
 {
 	// Move?
 	Entity * shipEntity = ship->entity;
-	if (ship->movementPattern == "Straight forward")
+	Movement & move = ship->movementPatterns[ship->currentMovement];
+	move.OnFrame(timeInMs);
+	// Increase time spent in this state accordingly.
+	ship->timeInCurrentMovement += timeInMs;
+	if (ship->timeInCurrentMovement > move.durationMs && move.durationMs > 0)
 	{
-		if (!shipEntity->Velocity().LengthSquared())
-		{
-			Physics.QueueMessage(new PMSetEntity(shipEntity, PT_VELOCITY, Vector3f(-1,0,0) * ship->speed));
-		}
+		ship->currentMovement = (ship->currentMovement + 1) % ship->movementPatterns.Size();
+		ship->timeInCurrentMovement = 0;
+		Movement & newMove = ship->movementPatterns[ship->currentMovement];
+		newMove.OnEnter(ship);
 	}
 }
 

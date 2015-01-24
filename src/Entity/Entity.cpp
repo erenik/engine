@@ -136,6 +136,7 @@ Entity::~Entity()
 		delete material;
 	material = NULL;
 	// Models and textures will be deallocated by their respectice managers!
+	SAFE_DELETE(aabb);
 }
 
 /// If reacting to collisions,.. pokes all properties about it too.

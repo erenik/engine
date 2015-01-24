@@ -18,9 +18,13 @@ bool loggingEnabled = false;
 /// Logs to file, creates the file (and folders) necessary if it does not already exist. Time stamps will probably also be available.
 void LogToFile(String fileName, String logText)
 {
-	if (!loggingEnabled)
-		return;
-
+	if (fileName == PHYSICS_THREAD ||
+		fileName == MAIN_THREAD)
+	{
+		if (!loggingEnabled)
+			return;
+	}
+	
 	bool newLog = true;
 	if (logsStartedThisSession.Exists(fileName))
 	{

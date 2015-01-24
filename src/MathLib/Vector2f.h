@@ -14,6 +14,7 @@
 class Vector2i;
 class Vector3i;
 class Vector3f;
+class String;
 
 /** A three-dimensional vector class using ints.
 */
@@ -55,6 +56,9 @@ public:
 	void WriteTo(std::fstream & file);
 	/// Reads from file stream.
 	void ReadFrom(std::fstream & file);
+	/// Parses from string. Expects in the form of first declaring order "XY", "X Y" or "YX", then parses the space-separated values.
+	void ParseFrom(const String & string);
+
 
 	/// Clamp to an interval.
 	void Clamp(float min, float max);

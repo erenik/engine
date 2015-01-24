@@ -606,6 +606,7 @@ String String::Numberized() const
 /// Returns true if only numbers, decimals and commas are present (hex 0x may also work, later?)
 bool String::IsNumber()
 {
+	bool hasNumbers = false;
 	for (int i = 0; i < arraySize; ++i)
 	{
 		char c;
@@ -624,6 +625,7 @@ bool String::IsNumber()
 			case '-':
 			case 'x':
 			case 'e':
+				break;
 			case '0':
 			case '1':
 			case '2':
@@ -634,13 +636,15 @@ bool String::IsNumber()
 			case '7':
 			case '8':
 			case '9':
+				hasNumbers = true;
+				break;
 			case '.':
 				break;
 			default:
 				return false;
 		}
 	}
-	return true;
+	return hasNumbers;
 }
 
 
@@ -770,7 +774,7 @@ int String::Count(char c) const
 	return count;
 }
 
-bool String::Contains(const String & subString)
+bool String::Contains(const String & subString) const
 {
 	if (Find(subString) >= 0)
 		return true;
@@ -778,7 +782,7 @@ bool String::Contains(const String & subString)
 }
 
 /// Search with index as return value. -1 if it could not be found.
-int String::Find(const String & subString)
+int String::Find(const String & subString) const
 {
 	if (type == NULL_TYPE)
 		return -1;
@@ -821,6 +825,24 @@ int String::Find(const String & subString)
 	}
 	return -1;
 }
+
+/** Search with index as return value. 
+	Returns index of first character of the found substring within this strng.
+	-1 if it could not be found.
+*/
+int String::Find(char c) const
+{
+	assert(type == String::CHAR);
+	for (int i = 0; i < arraySize; ++i)
+	{
+		if (arr[i] == c)
+			return i;
+		if (arr[i] == '\0')
+			return -1;
+	}
+	return -1;
+}
+
 
 
 bool String::EndsWith(char c) const
@@ -1495,6 +1517,58 @@ void String::RemoveTrailingWhitespaces()
 		default:
 			return;
 	}
+}
+
+/// Returns characters removed.
+int String::RemoveSurroundingWhitespaces()
+{
+	if (arraySize <= 0)
+		return -1;
+	switch(type){
+		case CHAR: {
+			int lastWhitespace = -1;
+			for (int i = 0; i < arraySize; ++i)
+			{
+				if (arr[i] == ' ' ||
+					arr[i] == '\t' ||
+					arr[i] == '\n')
+				{
+					lastWhitespace = i;
+				}
+				else
+					break;
+			}
+			if (lastWhitespace != -1){
+		//	    std::cout<<"\nString pre Whitespace removal: "<<c_str();
+				int whitespaces = lastWhitespace - (-1);
+				// Strncpy not safe for using the same string, use memmove for this!
+				// http://www.cplusplus.com/reference/cstring/strncpy/
+				// http://www.cplusplus.com/reference/cstring/memmove/
+				memmove(arr, arr + whitespaces, arraySize - whitespaces);
+			//	std::cout<<"\nString post Whitespace removal: "<<c_str();
+			}
+			/// Start at the end of the current text, trailing to the start
+			int firstWhitespace = 0;
+			for (int i = this->Length() - 1; i >= 0; --i)
+			{
+				if (arr[i] == ' ' ||
+					arr[i] == '\t' ||
+					arr[i] == '\n')
+				{
+					arr[i] = '\0';
+					++firstWhitespace;
+				}
+				else
+					break;
+			}
+			return lastWhitespace + firstWhitespace;
+		}
+		case WIDE_CHAR:
+			assert(false && "implement!");
+			return -2;
+		default:
+			return -1;
+	}	
 }
 
 /// Prints the contents of the string both in integer and character form

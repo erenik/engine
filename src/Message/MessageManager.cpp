@@ -150,7 +150,7 @@ bool MessageManager::QueueMessages(String messages, UIElement * elementThatTrigg
 }
 
 
-bool MessageManager::QueueMessages(List<Message*> messages, UIElement * elementThatTriggeredIt)
+bool MessageManager::QueueMessages(const List<Message*> & messages, UIElement * elementThatTriggeredIt)
 {
 	msgQueueMutex.Claim(-1);	
     try{

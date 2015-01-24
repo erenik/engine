@@ -103,6 +103,44 @@ List<String> TokenizeCSV(String csvString)
 	return tokens;
 }
 
+/** Used to tokenize with some characters used to start and stop the tokenization procedure temporarily.
+	Sample use-case would be to tokenize the string "Aim(7,3), Guard(2,3)" and returning "Aim(7,3)" and "Guard(2,3)",
+	using the tokenizer ',' and ignoreparts "()". 
+	Ignore parts should be in pairs, one starting the ignore part, the other stopping it.
+*/
+List<String> TokenizeIgnore(String string, String tokenizers, String ignoreParts)
+{
+	List<String> tokens;
+	int inIgnorePart = 0;
+	const char * cString = string.c_str();
+	String str;
+	for (int i = 0; i < string.Length(); ++i)
+	{
+		char c = cString[i];
+		for (int i = 0; i < ignoreParts.Length(); i += 2)
+		{
+			if (c == ignoreParts.c_str()[i])
+				++inIgnorePart;
+			if (c == ignoreParts.c_str()[i+1])
+				--inIgnorePart;
+		}
+
+		if (tokenizers.Contains(c) && inIgnorePart == 0)
+		{
+			tokens.Add(str);
+			str = String();
+		}
+		else 
+		{
+			str += c;
+		}
+	}
+	// Add final one.
+	tokens.Add(str);
+	return tokens;
+}
+
+
 
 /// Conversion.
 List<float> StringListToFloatList(List<String> & stringList)

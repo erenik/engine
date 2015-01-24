@@ -2,6 +2,8 @@
 // 2013-10-23
 // The main iterator/integrator/collission-handling function.
 
+#include "Message/Message.h"
+
 #include "Physics/PhysicsManager.h"
 #include "Physics/PhysicsProperty.h"
 #include "Physics/CollisionResolver.h"
@@ -12,8 +14,6 @@
 
 #include "PhysicsLib/Estimator.h"
 #include "Message/MessageManager.h"
-
-#include "Message/Message.h"
 
 #include "Graphics/FrameStatistics.h"
 // #include "Graphics/GraphicsManager.h"
@@ -64,6 +64,10 @@ void PhysicsManager::ProcessPhysics()
 	float integration = 0;
 	collissionProcessingFrameTime = 0;
 	physicsMeshCollisionChecks = 0;
+
+	// To be sent for Collision callback.
+	List<Message*> messages;
+
 
 	/// Do one process for each 10 ms we've gotten stored up
 	while (totalTimeSinceLastUpdate > ZERO)
@@ -139,7 +143,6 @@ void PhysicsManager::ProcessPhysics()
 		FrameStats.physicsCollisionResolution += timer.GetMs();
 
 		timer.Start();
-		List<Message*> messages;
 		messages.Clear();
 		for (int i = 0; i < collisions.Size(); ++i)
 		{

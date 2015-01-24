@@ -9,6 +9,8 @@
 #include <cassert>
 #include <fstream>
 
+#include "String/AEString.h"
+
 #ifndef abs
 #define abs(b) ((b < 0)? (-b) : (b))
 #endif
@@ -74,6 +76,43 @@ void Vector2f::WriteTo(std::fstream & file){
 void Vector2f::ReadFrom(std::fstream & file){
 	file.read((char*)&x, sizeof(float));
 	file.read((char*)&y, sizeof(float));
+}
+
+/// Parses from string. Expects in the form of first declaring order "XY", "X Y" or "YX", then parses the space-separated values.
+void Vector2f::ParseFrom(const String & str)
+{
+	String string = str;
+	string.SetComparisonMode(String::NOT_CASE_SENSITIVE);
+	int xPlace = string.Find("X");
+	int yPlace = string.Find("Y");
+	List<String> parts = string.Tokenize(" ");
+	List<float*> order;
+	if (xPlace >= 0 && yPlace >= 0)
+	{
+		// Both.
+		if (xPlace < yPlace)
+			order.Add(2, &x, &y);
+		else 
+			order.Add(2, &y, &x);
+	}
+	else if (xPlace >= 0)
+		order.Add(&x);
+	else if (yPlace >= 0)
+		order.Add(&y);
+
+	int numbersParsed = 0;
+	for (int i = 0; i < parts.Size(); ++i)
+	{
+		String part = parts[i];
+		if (!part.IsNumber())
+			continue;
+		float number = part.ParseFloat();
+		float * ptr = order[numbersParsed];
+		*ptr = number;
+		++numbersParsed;
+		if (numbersParsed >= order.Size())
+			break;
+	}
 }
 
 

@@ -217,6 +217,7 @@ void SpaceShooter2D::Process(int timeInMs)
 				ship.spawned = true;
 				shipEntities.Add(entity);
 				MapMan.AddEntity(entity);
+				ship.StartMovement();
 			}
 		}
 	}
@@ -588,11 +589,14 @@ void SpaceShooter2D::UpdatePlayerVelocity()
 		Vector3f vec = Direction::GetVector(movementDirections[i]);
 		totalVec += vec;
 	}
-	totalVec *= 8.f;
+	totalVec.Normalize();
+	totalVec *= playerShip.speed;
+	totalVec += level.BaseVelocity();
+
 	// Set player speed.
 	if (playerShip.entity)
 	{
-		PhysicsMan.QueueMessage(new PMSetEntity(playerShip.entity, PT_VELOCITY, totalVec + level.BaseVelocity()));
+		PhysicsMan.QueueMessage(new PMSetEntity(playerShip.entity, PT_VELOCITY, totalVec));
 	}
 }
 
