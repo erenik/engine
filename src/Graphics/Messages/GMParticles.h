@@ -86,9 +86,9 @@ class GMSetParticleEmitter : public GraphicsMessage
 {
 public:
 	/// Sets a (2D) contour to be the emitter shape.
-	GMSetParticleEmitter(ParticleSystem * ps, Contour contour);
+	GMSetParticleEmitter(ParticleSystem * ps, const Contour & contour);
 	GMSetParticleEmitter(ParticleSystem * ps, List<ParticleEmitter*> newEmitters);
-	GMSetParticleEmitter(ParticleEmitter * emitter, int target, Vector3f vec3fValue);
+	GMSetParticleEmitter(ParticleEmitter * emitter, int target, const Vector3f & vec3fValue);
 	GMSetParticleEmitter(ParticleEmitter * emitter, int target, Entity * vec3fValue);
 	virtual void Process();
 private:
@@ -110,7 +110,7 @@ private:
 class GMSetParticleSystem : public GraphicsMessage
 {
 public:
-	GMSetParticleSystem(ParticleSystem * ps, int target, Vector3f vec3Value);
+	GMSetParticleSystem(ParticleSystem * ps, int target, const Vector3f & vec3Value);
 	GMSetParticleSystem(ParticleSystem * ps, int target, float fValue);
 	GMSetParticleSystem(ParticleSystem * ps, int target, int iValue);
 	GMSetParticleSystem(ParticleSystem * ps, int target, bool bValue);

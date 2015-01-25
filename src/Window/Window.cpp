@@ -135,28 +135,28 @@ Vector2i Window::GetWindowCoordsFromScreenCoords(Vector2i screenPos)
 {
 #ifdef WINDOWS
 	POINT pt;
-	pt.x = screenPos.x;
-	pt.y = screenPos.y;
+	pt.x = screenPos[0];
+	pt.y = screenPos[1];
 	BOOL ok = ScreenToClient(hWnd, &pt);
 	if (!ok)
 		return Vector2i(-1,-1);
 #endif
 	// Invert Y because windows calculates the Y coordinate inversly from what we do.
-	return Vector2i(pt.x, clientAreaSize.y - pt.y);
+	return Vector2i(pt.x, clientAreaSize[1] - pt.y);
 }
 
 /// Updates positions, using parent as relative (if specified)
 void Window::UpdatePosition()
 {
-	if (requestedRelativePosition.x || requestedRelativePosition.y )
+	if (requestedRelativePosition[0] || requestedRelativePosition[1] )
 	{	
 		RECT parentRect;
 		bool success = GetWindowRect(MainWindow()->hWnd, &parentRect);
 		position = Vector2i(requestedRelativePosition);
-		position.x += parentRect.left;
-		position.y += parentRect.top;
+		position[0] += parentRect.left;
+		position[1] += parentRect.top;
 	}
-	MoveWindow(hWnd, position.x, position.y, osWindowSize.x, osWindowSize.y, true);
+	MoveWindow(hWnd, position[0], position[1], osWindowSize[0], osWindowSize[1], true);
 }
 
 void Window::Move(Vector2i byThisAmount)
@@ -166,7 +166,7 @@ void Window::Move(Vector2i byThisAmount)
 	Vector2i newPos = currentPos + byThisAmount;
 	Vector2i size = this->OSWindowSize();
 #ifdef WINDOWS
-	MoveWindow(hWnd, newPos.x, newPos.y, size.x, size.y, true); 
+	MoveWindow(hWnd, newPos[0], newPos[1], size[0], size[1], true); 
 #endif
 }
 
@@ -229,7 +229,7 @@ void Window::ToggleFullScreen()
 		// Set some mode..
 		SetWindowLongPtr(hWnd, GWL_STYLE, windowStyle);
 		// And move it.
-		MoveWindow(hWnd, previousPosition.x, previousPosition.y, previousSize.x, previousSize.y, true);
+		MoveWindow(hWnd, previousPosition[0], previousPosition[1], previousSize[0], previousSize[1], true);
 #elif defined LINUX
         XResizeWindow(display, window, Graphics.oldWidth, Graphics.oldHeight);
 #endif
@@ -271,10 +271,10 @@ void Window::ToggleFullScreen()
 		BOOL getMonitorInfoResult = GetMonitorInfoW(hMonitor, &lpmi);
 		if (getMonitorInfoResult)
 		{
-			newMin.x = lpmi.rcMonitor.left - 2;
-			newMin.y = lpmi.rcMonitor.top - 1;
-			newSize.x = lpmi.rcMonitor.right - lpmi.rcMonitor.left + 4;
-			newSize.y = lpmi.rcMonitor.bottom - lpmi.rcMonitor.top + 2;
+			newMin[0] = lpmi.rcMonitor.left - 2;
+			newMin[1] = lpmi.rcMonitor.top - 1;
+			newSize[0] = lpmi.rcMonitor.right - lpmi.rcMonitor.left + 4;
+			newSize[1] = lpmi.rcMonitor.bottom - lpmi.rcMonitor.top + 2;
 		}
 		else {
 			assert(false);
@@ -289,7 +289,7 @@ void Window::ToggleFullScreen()
 			WS_POPUP | 
 		//	WS_CLIPCHILDREN | 
 			WS_CLIPSIBLINGS | WS_VISIBLE);
-		MoveWindow(hWnd, newMin.x, newMin.y, newSize.x, newSize.y, true);
+		MoveWindow(hWnd, newMin[0], newMin[1], newSize[0], newSize[1], true);
 #elif defined LINUX
         XResizeWindow(display, window, Graphics.ScreenWidth(), Graphics.ScreenHeight());
 #endif
@@ -350,16 +350,16 @@ bool Window::Create()
 	
 
 	Vector2i size(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT);
-	if (requestedSize.x && requestedSize.y )
+	if (requestedSize[0] && requestedSize[1] )
 		size = requestedSize;
 	Vector2i position(CW_USEDEFAULT,CW_USEDEFAULT);
-	if (requestedRelativePosition.x || requestedRelativePosition.y )
+	if (requestedRelativePosition[0] || requestedRelativePosition[1] )
 	{	
 		RECT parentRect;
 		bool success = GetWindowRect(parent, &parentRect);
 		position = Vector2i(requestedRelativePosition);
-		position.x += parentRect.left;
-		position.y += parentRect.top;
+		position[0] += parentRect.left;
+		position[1] += parentRect.top;
 	}
 
 	bool useParenting = false;
@@ -370,8 +370,8 @@ bool Window::Create()
 		dwExStyle,
 		szWindowClass, szTitle,
 		windowStyle,
-		position.x, position.y,
-		size.x, size.y,
+		position[0], position[1],
+		size[0], size[1],
 		parent, 
 		NULL,
 		Application::hInstance, NULL);
@@ -465,11 +465,11 @@ bool Window::GetRayFromScreenCoordinates(Vector2i screenCoords, Ray & ray)
 	{
 		Viewport * vp = viewports[i];
 		// Check if inside
-		if (screenCoords.x < vp->absMin.x ||
-			screenCoords.x > vp->absMax.x)
+		if (screenCoords[0] < vp->absMin[0] ||
+			screenCoords[0] > vp->absMax[0])
 			continue;
-		if (screenCoords.y < vp->absMin.y ||
-			screenCoords.y > vp->absMax.y)
+		if (screenCoords[1] < vp->absMin[1] ||
+			screenCoords[1] > vp->absMax[1])
 			continue;
 		// Is inside! o.o
 		Vector2i viewportCoords = screenCoords - vp->absMin;
@@ -518,7 +518,7 @@ void Window::MoveCenterTo(Vector2i position)
 	Vector2i size = OSWindowSize();
 	Vector2i halfSize = size * 0.5f;
 	Vector2i newTopLeft = position - halfSize;
-	MoveWindow(hWnd, newTopLeft.x, newTopLeft.y, size.x, size.y, true);
+	MoveWindow(hWnd, newTopLeft[0], newTopLeft[1], size[0], size[1], true);
 #endif
 }
 

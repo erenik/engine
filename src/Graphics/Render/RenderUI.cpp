@@ -22,7 +22,7 @@ void GraphicsManager::RenderUI(UserInterface * ui)
 
 	Window * window = graphicsState->activeWindow;
 	Vector2i windowWorkingArea = window->WorkingArea();
-	glViewport(0, 0, windowWorkingArea.x, windowWorkingArea.y);
+	glViewport(0, 0, windowWorkingArea[0], windowWorkingArea[1]);
 
 	// Bufferize etc. as needed.
 	if (ui->AdjustToWindow(windowWorkingArea))

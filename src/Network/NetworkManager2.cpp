@@ -876,7 +876,7 @@ NetworkClient* NetworkManager::GetClient( int clientIndex )
 	return &clients[clientIndex];
 }
 
-/// IP should be in the form of aggregate x.y.z.w -> (x*255^3 + y * 255^2 + z * 255 + w) = IP
+/// IP should be in the form of aggregate x[1][2][3] -> (x*255^3 + y * 255^2 + z * 255 + w) = IP
 NetworkClient * NetworkManager::GetClientByIP(in_addr IP){
 	for (int i = 0; i < MAX_CLIENTS; ++i){
 		NetworkClient * c = &clients[i];

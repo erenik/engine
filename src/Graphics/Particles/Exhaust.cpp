@@ -39,9 +39,9 @@ Exhaust::Exhaust(Entity * reference)
 	emissionVelocity = 1.0f;
 
     for(int i = 0; i < maxParticles; ++i){
-        velocities[i].x += sideVelocityRange * (rand()%201-100) * 0.01f;
-        velocities[i].y += sideVelocityRange * (rand()%201-100) * 0.01f;
-        velocities[i].z = primaryVelocity * (rand()%81 + 20) * 0.01f;
+        velocities[i][0] += sideVelocityRange * (rand()%201-100) * 0.01f;
+        velocities[i][1] += sideVelocityRange * (rand()%201-100) * 0.01f;
+        velocities[i][2] = primaryVelocity * (rand()%81 + 20) * 0.01f;
         lifeDurations[i] = particleLifeTime;
 		lifeTimes[i] = particleLifeTime;
         colors[i] = color;
@@ -80,11 +80,11 @@ void Exhaust::Process(float timeInSeconds)
                 positions[i] = positionRatio * newPosition + (1 - positionRatio) * previousPosition;
 		//		std::cout<<"\npositionRatio: "<<positionRatio;
                 velocity = Vector3f();
-				velocity.x += sideVelocityRange * (rand()%201-100) * 0.01f;
-                velocity.y += sideVelocityRange * (rand()%201-100) * 0.01f;
+				velocity[0] += sideVelocityRange * (rand()%201-100) * 0.01f;
+                velocity[1] += sideVelocityRange * (rand()%201-100) * 0.01f;
                 velocity.Normalize();
                 velocity *= sideVelocityRange * (rand()%101) * 0.01f;
-                velocity.z = primaryVelocity * (rand()%81 + 20) * 0.01f;
+                velocity[2] = primaryVelocity * (rand()%81 + 20) * 0.01f;
                 velocity = rotationMatrix.Product(velocity);
 				velocity *= emissionVelocity;
 				/// Add vehicle velocity to total velocity.
@@ -147,9 +147,9 @@ void Exhaust::Render(GraphicsState * graphicsState)
 		for (int i = 0; i < particlesToProcess; ++i){
 			if (lifeDurations[i] >= lifeTime[i])
 				continue;
-			glColor4f(colors[i].x, colors[i].y, colors[i].z, colors[i].w * lifeDurations[i] / lifeTime[i]);
+			glColor4f(colors[i][0], colors[i][1], colors[i][2], colors[i][3] * lifeDurations[i] / lifeTime[i]);
 			Vector3f & p = positions[i];
-			glVertex3f(p.x, p.y, p.z);
+			glVertex3f(p[0], p[1], p[2]);
 		}
 		glEnd();
 	}
@@ -169,7 +169,7 @@ void Exhaust::Render(GraphicsState * graphicsState)
 		for (int i = 0; i < particlesToProcess; ++i){
 			if (lifeDurations[i] >= lifeTime[i])
 				continue;
-			glColor4f(colors[i].x, colors[i].y, colors[i].z, 0.75f * optimizedAlpha * colors[i].w * 0.8f * pow((1.0f - lifeDurations[i] / lifeTime[i]), 4));
+			glColor4f(colors[i][0], colors[i][1], colors[i][2], 0.75f * optimizedAlpha * colors[i][3] * 0.8f * pow((1.0f - lifeDurations[i] / lifeTime[i]), 4));
 			float sizeRatio = pow(lifeDurations[i]+1.0f, 3.0f);
 		//	if (lifeDuration[i] > 1.0f)
 		//		sizeRatio = pow(5.0f, lifeDuration[i]-1.0f);
@@ -178,18 +178,18 @@ void Exhaust::Render(GraphicsState * graphicsState)
 			Vector3f & p = positions[i];
 
 			glTexCoord2f(0.0f, 0.0f);
-			glVertex3f(p.x + left.x + up.x, p.y + left.y + up.y, p.z + left.z + up.z);
+			glVertex3f(p[0] + left[0] + up[0], p[1] + left[1] + up[1], p[2] + left[2] + up[2]);
 
-		//	glColor4f(colors[i].x , colors[i].y - 1.0f, colors[i].z - 1.0f, colors[i].w * lifeDuration[i] / lifeTime);
+		//	glColor4f(colors[i][0] , colors[i][1] - 1.0f, colors[i][2] - 1.0f, colors[i][3] * lifeDuration[i] / lifeTime);
 
 			glTexCoord2f(1.0f, 0.0f);
-			glVertex3f(p.x + left.x - up.x, p.y + left.y - up.y, p.z + left.z - up.z);
+			glVertex3f(p[0] + left[0] - up[0], p[1] + left[1] - up[1], p[2] + left[2] - up[2]);
 
 			glTexCoord2f(1.0f, 1.0f);
-			glVertex3f(p.x - left.x - up.x, p.y - left.y - up.y, p.z - left.z - up.z);
+			glVertex3f(p[0] - left[0] - up[0], p[1] - left[1] - up[1], p[2] - left[2] - up[2]);
 
 			glTexCoord2f(0.0f, 1.0f);
-			glVertex3f(p.x - left.x + up.x, p.y - left.y + up.y, p.z - left.z + up.z);
+			glVertex3f(p[0] - left[0] + up[0], p[1] - left[1] + up[1], p[2] - left[2] + up[2]);
 		}
 		glEnd();
 	}

@@ -8,9 +8,9 @@
 #include <fstream>
 
 /// Macros for going through all tiles.
-#define FOR_TILE_START for (int y = 0; y < size.y; ++y){\
+#define FOR_TILE_START for (int y = 0; y < size[1]; ++y){\
 		List<Tile*> * yTileList = tiles[y];\
-		for (int x = 0; x < size.x; ++x){\
+		for (int x = 0; x < size[0]; ++x){\
 		Tile * tile = (*yTileList)[x];
 #define FOR_TILE_END }}
 
@@ -65,39 +65,39 @@ List<Tile*> TileMapLevel::TilesRequired(GridObjectType * byObjectType, Vector2f 
 	objectSize = objectType->size;
 	pivotPosition = objectType->pivotPosition;
 	
-	if (objectSize.x < 1)
-		objectSize.x = 1;
-	if (objectSize.y < 1)
-		objectSize.y = 1;
+	if (objectSize[0] < 1)
+		objectSize[0] = 1;
+	if (objectSize[1] < 1)
+		objectSize[1] = 1;
 	if (pivotPosition.MaxPart() == 0){
 		pivotPosition = objectSize;
 		pivotPosition /= 2.0f;
 	}
 
-	float pivotToLeft = -pivotPosition.x;
-	float pivotToRight = objectSize.x - pivotPosition.x;
-	float pivotToTop = objectSize.y - pivotPosition.y;
-	float pivotToBottom = -pivotPosition.y;
+	float pivotToLeft = -pivotPosition[0];
+	float pivotToRight = objectSize[0] - pivotPosition[0];
+	float pivotToTop = objectSize[1] - pivotPosition[1];
+	float pivotToBottom = -pivotPosition[1];
 
 	Vector2i doublePivot = pivotPosition * 2;
 
 	/// Depending on the pivot position, adjust the anchor for where to center painting of it.
-	if (doublePivot.x % 2 == 0){
+	if (doublePivot[0] % 2 == 0){
 		/// Even amount of cells in width, center it between the closest two cells X-wise.
-		float x = position.x;
+		float x = position[0];
 		float roundedX = RoundFloat(x);
 		float otherX = 0;
 		if (roundedX <= x)
 			otherX = RoundFloat(x + 0.5f);
 		else 
 			otherX = RoundFloat(x - 0.5f);
-		position.x = (RoundFloat(roundedX) + RoundFloat(otherX)) / 2;
+		position[0] = (RoundFloat(roundedX) + RoundFloat(otherX)) / 2;
 	}
 	else {
-		position.x = RoundFloat(position.x);
+		position[0] = RoundFloat(position[0]);
 	}
-	if (doublePivot.y % 2 == 0){
-		float y = position.y;
+	if (doublePivot[1] % 2 == 0){
+		float y = position[1];
 		float roundedY = RoundFloat(y);
 		float otherY = 0;
 		if (roundedY <= y){
@@ -106,21 +106,21 @@ List<Tile*> TileMapLevel::TilesRequired(GridObjectType * byObjectType, Vector2f 
 		else {
 			otherY = RoundFloat(y - 0.5f);
 		}
-		position.y = (RoundFloat(roundedY) + RoundFloat(otherY)) / 2;
+		position[1] = (RoundFloat(roundedY) + RoundFloat(otherY)) / 2;
 	}
 	else {
-		position.y = RoundFloat(position.y);
+		position[1] = RoundFloat(position[1]);
 	}
 
-	//	glVertex3f(position.x + pivotToLeft, position.y + pivotToBottom,z);
-	//	glVertex3f(position.x + pivotToLeft, position.y + pivotToTop,z);
-	//	glVertex3f(position.x + pivotToRight, position.y + pivotToTop,z);
-	//	glVertex3f(position.x + pivotToRight, position.y + pivotToBottom,z);
+	//	glVertex3f(position[0] + pivotToLeft, position[1] + pivotToBottom,z);
+	//	glVertex3f(position[0] + pivotToLeft, position[1] + pivotToTop,z);
+	//	glVertex3f(position[0] + pivotToRight, position[1] + pivotToTop,z);
+	//	glVertex3f(position[0] + pivotToRight, position[1] + pivotToBottom,z);
 		
-	float left = position.x + pivotToLeft;
-	float right = position.x + pivotToRight;
-	float top = position.y + pivotToTop;
-	float bottom = position.y + pivotToBottom;
+	float left = position[0] + pivotToLeft;
+	float right = position[0] + pivotToRight;
+	float top = position[1] + pivotToTop;
+	float bottom = position[1] + pivotToBottom;
 
 	/// Now that the true pivot location has been found, including pivots if needed, generate a list of positions that we require.
 	int error = 0;
@@ -131,10 +131,10 @@ List<Tile*> TileMapLevel::TilesRequired(GridObjectType * byObjectType, Vector2f 
 	
 	/// Check which tiles are needed.
 	List<Vector2i> positionsNeeded;
-	for (int y = 0; y < objectSize.y; ++y){
-		for (int x = 0; x < objectSize.x; ++x){
+	for (int y = 0; y < objectSize[1]; ++y){
+		for (int x = 0; x < objectSize[0]; ++x){
 			/// Check passability first. We don't need tiles not marked as passable.
-			int index = y * objectSize.x + x;
+			int index = y * objectSize[0] + x;
 			/// If passable, skip it.
 			bool passability = *byObjectType->passability[index];
 			if (passability)
@@ -142,7 +142,7 @@ List<Tile*> TileMapLevel::TilesRequired(GridObjectType * byObjectType, Vector2f 
 			/// Fetch tile for the position, accounting for adjustments due to request location and pivot point.
 			/// Tile position = pivot current position, + difference between pivot position and tile position as defined in the object type.
 			float tileX = x + 0.5f, 
-				tileY = (objectSize.y - y) - 0.5f;
+				tileY = (objectSize[1] - y) - 0.5f;
 
 			Vector2f tilePosition(tileX, tileY);
 			Vector2f objectCenter = byObjectType->size;
@@ -159,7 +159,7 @@ List<Tile*> TileMapLevel::TilesRequired(GridObjectType * byObjectType, Vector2f 
 	for (int i = 0; i < positionsNeeded.Size(); ++i)
 	{
 		Vector2i pos = positionsNeeded[i];
-		Tile * t = GetTile(pos.x, pos.y);
+		Tile * t = GetTile(pos[0], pos[1]);
 		list.Add(t);
 	}
 	return list;
@@ -209,7 +209,7 @@ bool TileMapLevel::AddObject(GridObject * go)
 	/// Sort so that those with highest Y are at the front, since we want to render from back to front. This sorting should probably be moved to a render-thread. o.o'
 	for (int i = 0; i < objects.Size(); ++i){
 		GridObject * g = objects[i];
-		if (go->position.y > g->position.y){
+		if (go->position[1] > g->position[1]){
 			objects.Insert(go, i);
 			inserted = true;
 			break;
@@ -333,16 +333,16 @@ void TileMapLevel::Resize(Vector2i newSize){
 	std::cout<<"\nTileMapLevel::Resize - setting appropriate Z-values";
 
 	std::cout<<"\nRows: "<<tiles.Size();
-	for (int y = 0; y < size.y; ++y){
+	for (int y = 0; y < size[1]; ++y){
 		List<Tile*> * list = tiles[y];
-		for (int x = 0; x < size.x; ++x){
+		for (int x = 0; x < size[0]; ++x){
 			Tile * tile = (*list)[x];
 		}
 	}
 
 	/// Set appropriate Z-value for all tiles.
 	FOR_TILE_START
-		tile->position.z = elevation;
+		tile->position[2] = elevation;
 	FOR_TILE_END
 }
 

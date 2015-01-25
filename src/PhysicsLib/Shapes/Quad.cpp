@@ -12,20 +12,20 @@ Quad::Quad(const Quad &quad){
 /// Returns width x height. Assumes point1 is min and point 3 is max.
 int Quad::ManhattanSize()
 {
-	return point3.x - point1.x + point3.y - point1.y;
+	return point3[0] - point1[0] + point3[1] - point1[1];
 };
 
 
 
 /// Create a rectangular quad using min and max values.
-void Quad::Set2Points(Vector3f min, Vector3f max)
+void Quad::Set2Points(const Vector3f & min, const Vector3f & max)
 {
 	point1 = min;
 	point3 = max;
 	position = (point1 + point3) * 0.5f;
 }
 
-void Quad::Set4Points(Vector3f p1, Vector3f p2, Vector3f p3, Vector3f p4){
+void Quad::Set4Points(const Vector3f & p1, const Vector3f & p2, const Vector3f & p3, const Vector3f & p4){
 	point1 = p1;
 	point2 = p2;
 	point3 = p3;

@@ -12,7 +12,7 @@
 #include "../FrameStatistics.h"
 
 
-StarEmitter::StarEmitter(Vector3f point)
+StarEmitter::StarEmitter(ConstVec3fr point)
 : ParticleEmitter(point)
 {
 	newType = true;
@@ -106,15 +106,15 @@ void Stars::UpdateBuffers()
 	{
 		Vector3f & pos = positions[i];
 		int index = i * 4;
-		particlePositionSizeData[index] = pos.x;
-		particlePositionSizeData[index+1] = pos.y;
-		particlePositionSizeData[index+2] = pos.z;
+		particlePositionSizeData[index] = pos[0];
+		particlePositionSizeData[index+1] = pos[1];
+		particlePositionSizeData[index+2] = pos[2];
 		particlePositionSizeData[index+3] = scales[i];
 
 		Vector4f & color = colors[i];
-		particleColorData[index] = color.x * 255;
-		particleColorData[index+1] = color.y * 255;
-		particleColorData[index+2] = color.z * 255;
+		particleColorData[index] = color[0] * 255;
+		particleColorData[index+1] = color[1] * 255;
+		particleColorData[index+2] = color[2] * 255;
 		particleColorData[index+3] = 255.f;
 	}
 }

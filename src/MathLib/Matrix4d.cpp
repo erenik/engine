@@ -168,9 +168,9 @@ Matrix4d Matrix4d::InitRotationMatrix(double angle, Vector3d vector){
 	double c = cos((double)angle);
 	double s = sin((double)angle);
 	double c1 = 1 - c;
-	double x = vector.GetX();
-	double y = vector.GetY();
-	double z = vector.GetZ();
+	double x = vector[0];
+	double y = vector[1];
+	double z = vector[2];
 	element[0] = x * x * c1 + c;
 	element[1] = y * x * c1 + z * s;
 	element[2] = x * z * c1 - y * s;
@@ -184,7 +184,7 @@ Matrix4d Matrix4d::InitRotationMatrix(double angle, Vector3d vector){
 }
 
 /** Initializes a translation matrix using provided vector. */
-Matrix4d Matrix4d::InitTranslationMatrix(Vector3f translation)
+Matrix4d Matrix4d::InitTranslationMatrix(const Vector3f & translation)
 {
 	Matrix4d mat;
 	mat.Translate(translation);
@@ -369,9 +369,9 @@ Matrix4d Matrix4d::Translate(double x, double y, double z)
 }
 Matrix4d Matrix4d::Translate(Vector3d vec)
 {
-	element[12] += vec.GetX();
-	element[13] += vec.GetY();
-	element[14] += vec.GetZ();
+	element[12] += vec[0];
+	element[13] += vec[1];
+	element[14] += vec[2];
 	return Matrix4d(element);
 }
 /// Builds a translation matrix.
@@ -385,9 +385,9 @@ Matrix4d Matrix4d::Translation(double x, double y, double z){
 
 Matrix4d Matrix4d::Translation(Vector3d vec){
 	Matrix4d mat;
-	mat.element[12] += vec.x;
-	mat.element[13] += vec.y;
-	mat.element[14] += vec.z;
+	mat.element[12] += vec[0];
+	mat.element[13] += vec[1];
+	mat.element[14] += vec[2];
 	return mat;
 }
 
@@ -407,9 +407,9 @@ Matrix4d Matrix4d::Scale(double x, double y, double z){
 }
 
 Matrix4d Matrix4d::Scale(Vector3d vec){
-	element[0] *= vec.x;
-	element[5] *= vec.y;
-	element[10] *= vec.z;
+	element[0] *= vec[0];
+	element[5] *= vec[1];
+	element[10] *= vec[2];
 	return Matrix4d(element);
 }
 

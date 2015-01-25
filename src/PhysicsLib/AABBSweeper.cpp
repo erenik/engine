@@ -42,7 +42,7 @@ void AABBSweeper::PrintSortedList(){
         AABBSweepNode * node = list[i];
         bool isStart = node->type == AABBSweepNode::START;
         std::cout<<"\n"<<std::setw(2)<<i<<": "<<node->entity->name<<" "<< (isStart? ("start") : ("stop"));
-        std::cout<<" "<< (isStart? node->aabb->min.x : node->aabb->max.x);
+        std::cout<<" "<< (isStart? node->aabb->min[0] : node->aabb->max[0]);
     }
 }
 
@@ -187,10 +187,10 @@ List<EntityPair> AABBSweeper::Sweep()
         Entity * one = ep.one, * two = ep.two;
      //   ep.PrintDetailed();
         AABB * oneab = one->aabb, * twoab = two->aabb;
-        if (oneab->max.z < twoab->min.z ||
-            oneab->min.z > twoab->max.z ||
-            oneab->max.y < twoab->min.y ||
-            oneab->min.y > twoab->max.y)
+        if (oneab->max[2] < twoab->min[2] ||
+            oneab->min[2] > twoab->max[2] ||
+            oneab->max[1] < twoab->min[1] ||
+            oneab->min[1] > twoab->max[1])
         {
    //         std::cout<<"\nRemoving pair!";
             /// Removes it!

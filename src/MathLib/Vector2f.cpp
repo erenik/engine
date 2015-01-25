@@ -35,8 +35,8 @@ Vector2f::Vector2f(float arr[]){
 
 
 Vector2f::Vector2f(const Vector2f & base){
-	x = base.x;
-	y = base.y;
+	x = base[0];
+	y = base[1];
 }
 
 
@@ -44,26 +44,26 @@ Vector2f::Vector2f(const Vector2f & base){
 	Postcondition: Initializes a 3D vector to have same values as the referenced vector.
 */
 Vector2f::Vector2f(const Vector2i& base){
-	x = base.x;
-	y = base.y;
+	x = base[0];
+	y = base[1];
 }
 /** Constructor, based on Vector3i equivalent
 */
 Vector2f::Vector2f(const Vector3i& base){
-	x = base.x;
-	y = base.y;
+	x = base[0];
+	y = base[1];
 }
 
 /** Constructor, based on Vector3f equivalent
 */
 Vector2f::Vector2f(const Vector3f & base){
-	x = base.x;
-	y = base.y;
+	x = base[0];
+	y = base[1];
 }
 
 /// Printing out data
 std::ostream& operator <<(std::ostream& os, const Vector2f& vec){
-	os << vec.x << " " << vec.y;
+	os << vec[0] << " " << vec[1];
 	return os;
 }
 
@@ -82,24 +82,16 @@ void Vector2f::ReadFrom(std::fstream & file){
 void Vector2f::ParseFrom(const String & str)
 {
 	String string = str;
-	string.SetComparisonMode(String::NOT_CASE_SENSITIVE);
-	int xPlace = string.Find("X");
-	int yPlace = string.Find("Y");
-	List<String> parts = string.Tokenize(" ");
 	List<float*> order;
-	if (xPlace >= 0 && yPlace >= 0)
+	for (int i = 0; i < string.Length(); ++i)
 	{
-		// Both.
-		if (xPlace < yPlace)
-			order.Add(2, &x, &y);
-		else 
-			order.Add(2, &y, &x);
+		char c = string.c_str()[i];
+		if (c == 'x' || c == 'X')
+			order.Add(&x);
+		else if (c == 'y' || c == 'Y')
+			order.Add(&y);
 	}
-	else if (xPlace >= 0)
-		order.Add(&x);
-	else if (yPlace >= 0)
-		order.Add(&y);
-
+	List<String> parts = string.Tokenize(" ");
 	int numbersParsed = 0;
 	for (int i = 0; i < parts.Size(); ++i)
 	{
@@ -128,14 +120,14 @@ void Vector2f::Clamp(float min, float max)
 // ************************************************************************//
 
 void Vector2f::add(Vector2f addend){
-	x += addend.x;
-	y += addend.y;
+	x += addend[0];
+	y += addend[1];
 }
 
 
 void Vector2f::subtract(Vector2f subtractor){
-	x -= subtractor.x;
-	y -= subtractor.y;
+	x -= subtractor[0];
+	y -= subtractor[1];
 }
 
 void Vector2f::scale(float ratio){
@@ -162,7 +154,7 @@ Vector2f Vector2f::operator - () const {
 /// Binary operator.
 bool Vector2f::operator == (const Vector2f other) const
 {
-	if (x == other.x && y == other.y)
+	if (x == other[0] && y == other[1])
 		return true;
 	return false;
 }
@@ -170,16 +162,16 @@ bool Vector2f::operator == (const Vector2f other) const
 
 Vector2f  Vector2f::operator + (Vector2f addend) const {
 	Vector2f  newVec;
-	newVec.x = x + addend.x;
-	newVec.y = y + addend.y;
+	newVec[0] = x + addend[0];
+	newVec[1] = y + addend[1];
 	return newVec;
 }
 
 
 Vector2f  Vector2f::operator - (Vector2f subtractor) const {
 	Vector2f  newVec;
-	newVec.x = x - subtractor.x;
-	newVec.y = y - subtractor.y;
+	newVec[0] = x - subtractor[0];
+	newVec[1] = y - subtractor[1];
 	return newVec;
 }
 
@@ -187,8 +179,8 @@ Vector2f  Vector2f::operator - (Vector2f subtractor) const {
 Vector2f Vector2f::operator * (const Vector2f elementMultiplier) const 
 {
 	Vector2f newVec;
-	newVec.x = x * elementMultiplier.x;
-	newVec.y = y * elementMultiplier.y;
+	newVec[0] = x * elementMultiplier[0];
+	newVec[1] = y * elementMultiplier[1];
 	return newVec;
 }
 
@@ -197,21 +189,21 @@ Vector2f Vector2f::operator * (const Vector2f elementMultiplier) const
 /// Multiplication with float
 Vector2f operator * (float multiplier, Vector2f& vector){
 	Vector2f  newVec;
-	newVec.x = vector.x * multiplier;
-	newVec.y = vector.y * multiplier;
+	newVec[0] = vector[0] * multiplier;
+	newVec[1] = vector[1] * multiplier;
 	return newVec;
 }
 
 
 void Vector2f::operator += (Vector2f addend){
-	x += addend.x;
-	y += addend.y;
+	x += addend[0];
+	y += addend[1];
 }
 
 
 void Vector2f::operator -= (const Vector2f  subtractor){
-	x -= subtractor.x;
-	y -= subtractor.y;
+	x -= subtractor[0];
+	y -= subtractor[1];
 }
 /// Internal element division
 void Vector2f::operator /= (const float &f){
@@ -226,8 +218,8 @@ void Vector2f::operator *= (const float &f){
 /// Per-element multiplication
 void Vector2f::operator *= (const Vector2f &vec)
 {
-	x *= vec.x;
-	y *= vec.y;
+	x *= vec[0];
+	y *= vec[1];
 }
 
 /// Internal element multiplication
@@ -242,11 +234,23 @@ Vector2f Vector2f::operator / (const float &f) const {
 /// Per element division.
 Vector2f Vector2f::operator / (const Vector2f &v) const 
 {
-	return Vector2f(x / v.x, y / v.y); 
+	return Vector2f(x / v[0], y / v[1]); 
 }
 
 
-float Vector2f::operator [](int index){
+float & Vector2f::operator [](int index){
+	switch(index){
+		case 0:
+			return x;
+		case 1:
+			return y;
+		default:
+			throw 1003;
+	}
+}
+/// Operator overloading for the array-access operator []
+const float & Vector2f::operator [](int index) const
+{
 	switch(index){
 		case 0:
 			return x;
@@ -263,18 +267,18 @@ float Vector2f::operator [](int index){
 // ************************************************************************//
 /// Multiplies the elements in the two vectors internally, returning the product.
 Vector2f Vector2f::ElementMultiplication(const Vector2f otherVector) const {
-	return Vector2f(x * otherVector.x, y * otherVector.y);
+	return Vector2f(x * otherVector[0], y * otherVector[1]);
 }
 /// Make sure all elements are non-0 before calling this...
 Vector2f Vector2f::ElementDivision(const Vector2f dividend) const 
 {
-	return Vector2f(x / dividend.x, y / dividend.y);
+	return Vector2f(x / dividend[0], y / dividend[1]);
 }
 
 // Dot product.
 float Vector2f::DotProduct(const Vector2f otherVector) const 
 {
-	return x * otherVector.x + y * otherVector.y;
+	return x * otherVector[0] + y * otherVector[1];
 }
 
 
@@ -317,24 +321,24 @@ Vector2f Vector2f::NormalizedCopy() const {
 /// Utility functions
 Vector2f Vector2f::Minimum(const Vector2f & vec1, const Vector2f & vec2){
 	return Vector2f(
-		vec1.x < vec2.x ? vec1.x : vec2.x,
-		vec1.y < vec2.y ? vec1.y : vec2.y
+		vec1[0] < vec2[0] ? vec1[0] : vec2[0],
+		vec1[1] < vec2[1] ? vec1[1] : vec2[1]
 	);
 }
 Vector2f Vector2f::Maximum(const Vector2f & vec1, const Vector2f & vec2){
 	return Vector2f(
-		vec1.x > vec2.x ? vec1.x : vec2.x,
-		vec1.y > vec2.y ? vec1.y : vec2.y
+		vec1[0] > vec2[0] ? vec1[0] : vec2[0],
+		vec1[1] > vec2[1] ? vec1[1] : vec2[1]
 	);
 }
 
 /// Comparison.
 bool Vector2f::IsWithinMinMax(Vector2f min, Vector2f max)
 {
-	if (x < max.x &&
-		x > min.x &&
-		y < max.y &&
-		y > min.y)
+	if (x < max[0] &&
+		x > min[0] &&
+		y < max[1] &&
+		y > min[1])
 		return true;
 	return false;
 }

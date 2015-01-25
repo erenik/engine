@@ -10,7 +10,7 @@
 
 #include "File/LogFile.h"
 
-PMSet::PMSet(int target, Vector3f value)
+PMSet::PMSet(int target, const Vector3f & value)
 : PhysicsMessage(PM_SET), target(target), vec3fValue(value)
 {
 	dataType = VEC3F;
@@ -114,7 +114,7 @@ void PMSet::Process()
 				Physics.gravitation = vec3fValue;
 				break;
 			case FLOAT:
-				Physics.gravitation.y = floatValue;
+				Physics.gravitation[1] = floatValue;
 				break;
 			}
 			break;

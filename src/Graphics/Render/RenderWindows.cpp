@@ -24,8 +24,8 @@ void GraphicsManager::RenderWindows()
 			continue;
 		bool ok = window->MakeGLContextCurrent();
 		graphicsState->activeWindow = window;
-		graphicsState->windowWidth = window->WorkingArea().x;
-		graphicsState->windowHeight = window->WorkingArea().y;
+		graphicsState->windowWidth = window->WorkingArea()[0];
+		graphicsState->windowHeight = window->WorkingArea()[1];
 
 		// Reset shader. Force window to explicitly set an own one, so that attributes are bound correctly.
 		ShadeMan.SetActiveShader(0);

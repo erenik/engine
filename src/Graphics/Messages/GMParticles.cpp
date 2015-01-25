@@ -118,7 +118,7 @@ void GMResumeEmission::Process()
 }
 
 /// Sets a (2D) contour to be the emitter shape.
-GMSetParticleEmitter::GMSetParticleEmitter(ParticleSystem * ps, Contour contour)
+GMSetParticleEmitter::GMSetParticleEmitter(ParticleSystem * ps, const Contour & contour)
 : GraphicsMessage(GM_SET_PARTICLE_EMITTER), ps(ps), contour(contour), type(CONTOUR)
 {
 
@@ -129,7 +129,7 @@ GMSetParticleEmitter::GMSetParticleEmitter(ParticleSystem * ps, List<ParticleEmi
 	target = GT_SET_PARTICLE_EMITTER_OF_PARTICLE_SYSTEM;
 }
 
-GMSetParticleEmitter::GMSetParticleEmitter(ParticleEmitter * emitter, int target, Vector3f vec3fValue)
+GMSetParticleEmitter::GMSetParticleEmitter(ParticleEmitter * emitter, int target, ConstVec3fr vec3fValue)
 : GraphicsMessage(GM_SET_PARTICLE_EMITTER), target(target), emitter(emitter), vec3fValue(vec3fValue)
 {
 	switch(target)
@@ -193,7 +193,7 @@ void GMSetParticleEmitter::Process()
 }
 
 
-GMSetParticleSystem::GMSetParticleSystem(ParticleSystem * ps, int target, Vector3f vec3Value)
+GMSetParticleSystem::GMSetParticleSystem(ParticleSystem * ps, int target, ConstVec3fr vec3Value)
 : GraphicsMessage(GM_SET_PARTICLE_SYSTEM), ps(ps), target(target), vec3Value(vec3Value)
 {
 	switch(target)

@@ -23,11 +23,13 @@ namespace EmitterType {
 		POINT_DIRECTIONAL,
 		POINT_CIRCLE,
 
+
 		/// New types using the Emitter sub-system.
 		LINE_Y,
 		PLANE_XY,
 		PLANE_XZ, // Plane in XZ (left-right, forward-backward) axes.
 		CIRCLE_XY,
+		VECTOR, // Constant vector.
 
 		NONE, // Default constructor.
 	}; 
@@ -38,8 +40,12 @@ class Emitter
 {
 public:
 	Emitter();
+	// Sets default up/left/forward vectors.
+	void DefaultVectors();
 	// Scales all 3 base vectors.
 	void Scale(float scale);
+	// Sets scale of all 3 base vectors.
+	void SetScale(float scale);
 	/// Randomzies acordingly.
 	void Position(Vector3f & vec);
 	void Velocity(Vector3f & vec);
@@ -48,6 +54,8 @@ public:
 	int distribution;
 	/// For configuring it.
 	Vector3f up, left, forward;
+	// Constant vector.
+	Vector3f vec;
 };
 
 
@@ -59,14 +67,14 @@ public:
 	ParticleEmitter();
 	/// Virtual destructor for subclasses.
 	virtual ~ParticleEmitter();
-	ParticleEmitter(Contour contour);
+	ParticleEmitter(const Contour & contour);
     ParticleEmitter(Mesh * mesh);
 	/// See EmitterTypes above.
     ParticleEmitter(int type);
 	/// Point-based directional emitter
-	ParticleEmitter(Vector3f point, Vector3f direction);
+	ParticleEmitter(const Vector3f & point, const Vector3f & direction);
 	/// Point-based circular emitter
-	ParticleEmitter(Vector3f point);
+	ParticleEmitter(const Vector3f & point);
 	/// Initializes and allocates stuff.
 	virtual void Initialize();
 

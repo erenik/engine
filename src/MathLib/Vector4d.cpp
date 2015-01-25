@@ -19,17 +19,17 @@ Vector4d::Vector4d(double arr[]){
 }
 
 Vector4d::Vector4d(const Vector4d & base){
-	x = base.x;
-	y = base.y;
-	z = base.z;
-	w = base.w;
+	x = base[0];
+	y = base[1];
+	z = base[2];
+	w = base[3];
 }
 
 // Constructors from other Vector classes
 Vector4d::Vector4d(const Vector3d  & base, double iw){
-	x = base.GetX();
-	y = base.GetY();
-	z = base.GetZ();
+	x = base[0];
+	y = base[1];
+	z = base[2];
 	w = iw;
 }
 
@@ -38,18 +38,18 @@ Vector4d::Vector4d(const Vector3d  & base, double iw){
 // ************************************************************************//
 
 void Vector4d::add(Vector4d addend){
-	x += addend.x;
-	y += addend.y;
-	z += addend.z;
-	w += addend.w;
+	x += addend[0];
+	y += addend[1];
+	z += addend[2];
+	w += addend[3];
 }
 
 
 void Vector4d::subtract(Vector4d subtractor){
-	x -= subtractor.x;
-	y -= subtractor.y;
-	z -= subtractor.z;
-	w -= subtractor.w;
+	x -= subtractor[0];
+	y -= subtractor[1];
+	z -= subtractor[2];
+	w -= subtractor[3];
 }
 
 void Vector4d::scale(double ratio){
@@ -81,37 +81,37 @@ Vector4d Vector4d::operator - () const
 
 Vector4d  Vector4d::operator + (Vector4d addend){
 	Vector4d  newVec;
-	newVec.x = x + addend.x;
-	newVec.y = y + addend.y;
-	newVec.z = z + addend.z;
-	newVec.w = w + addend.w;
+	newVec[0] = x + addend[0];
+	newVec[1] = y + addend[1];
+	newVec[2] = z + addend[2];
+	newVec[3] = w + addend[3];
 	return newVec;
 }
 
 
 Vector4d  Vector4d::operator - (Vector4d subtractor){
 	Vector4d  newVec;
-	newVec.x = x - subtractor.x;
-	newVec.y = y - subtractor.y;
-	newVec.z = z - subtractor.z;
-	newVec.w = w - subtractor.w;
+	newVec[0] = x - subtractor[0];
+	newVec[1] = y - subtractor[1];
+	newVec[2] = z - subtractor[2];
+	newVec[3] = w - subtractor[3];
 	return newVec;
 }
 
 
 void Vector4d::operator += (Vector4d addend){
-	x += addend.x;
-	y += addend.y;
-	z += addend.z;
-	w += addend.w;
+	x += addend[0];
+	y += addend[1];
+	z += addend[2];
+	w += addend[3];
 }
 
 
 void Vector4d::operator -= (const Vector4d  subtractor){
-	x -= subtractor.x;
-	y -= subtractor.y;
-	z -= subtractor.z;
-	w -= subtractor.w;
+	x -= subtractor[0];
+	y -= subtractor[1];
+	z -= subtractor[2];
+	w -= subtractor[3];
 }
 
 /// Internal element multiplication
@@ -133,25 +133,43 @@ double& Vector4d::operator[](const unsigned int index){
 			throw 1003;
 	}
 }
+/// Operator overloading for the array-access operator []
+const double& Vector4d::operator[] (const unsigned int index) const
+{
+	switch(index){
+		case 0:
+			return x;
+		case 1:
+			return y;
+		case 2:
+			return z;
+		case 3:
+			return w;
+		default:
+			throw 1003;
+	}
+}
+
+
 
 // ************************************************************************//
 // Vector operations
 // ************************************************************************//
 
 double Vector4d::ScalarProduct(Vector4d otherVector){
-	return x * otherVector.x + y * otherVector.y + z * otherVector.z + w * otherVector.w;
+	return x * otherVector[0] + y * otherVector[1] + z * otherVector[2] + w * otherVector[3];
 }
 // Same thing as scalar product, silly!
 double Vector4d::DotProduct(Vector4d otherVector){
-	return x * otherVector.x + y * otherVector.y + z * otherVector.z + w * otherVector.w;
+	return x * otherVector[0] + y * otherVector[1] + z * otherVector[2] + w * otherVector[3];
 }
 
 Vector3d Vector4d::CrossProduct(Vector3d otherVector){
-	return Vector3d (y * otherVector.GetX() - z * otherVector.GetY(), z * otherVector.GetX() - x * otherVector.GetZ(), x * otherVector.GetY() - y * otherVector.GetX());
+	return Vector3d (y * otherVector[0] - z * otherVector[1], z * otherVector[0] - x * otherVector[2], x * otherVector[1] - y * otherVector[0]);
 }
 
 Vector3d Vector4d::CrossProduct(Vector4d otherVector){
-	return Vector3d (y * otherVector.z - z * otherVector.y, z * otherVector.x - x * otherVector.z, x * otherVector.y - y * otherVector.x);
+	return Vector3d (y * otherVector[2] - z * otherVector[1], z * otherVector[0] - x * otherVector[2], x * otherVector[1] - y * otherVector[0]);
 }
 
 double Vector4d::Length3() const{
@@ -169,8 +187,8 @@ void Vector4d::Normalize3(){
 Vector4d Vector4d::NormalizedCopy() const{
 	Vector4d newVec;
 	double vecLength = Length3();
-	newVec.x = x / vecLength;
-	newVec.y = y / vecLength;
-	newVec.z = z / vecLength;
+	newVec[0] = x / vecLength;
+	newVec[1] = y / vecLength;
+	newVec[2] = z / vecLength;
 	return newVec;
 }

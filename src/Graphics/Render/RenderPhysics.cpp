@@ -22,8 +22,8 @@
 #define PRINT_ERROR std::cout<<"\nGLError in Render "<<error;
 
 /// Wosh!
-void RenderLine(Vector3f origin, Vector3f end, const Vector4f & baseColor);
-void RenderFadingLine(Vector3f origin, Vector3f end, const Vector4f & baseColor, const Vector4f & highlightColor);
+void RenderLine(const Vector3f & origin, const Vector3f & end, const Vector4f & baseColor);
+void RenderFadingLine(const Vector3f & origin, const Vector3f & end, const Vector4f & baseColor, const Vector4f & highlightColor);
 
 Entities physicalEntities;
 long lastFetch = 0;
@@ -182,16 +182,16 @@ void GraphicsManager::RenderPhysics()
 
 				glColor4f(1.1f, 0.1f, 0.1f, 5.0f);
 				glBegin(GL_QUADS);
-					glVertex3f(sphere->hitherBottomLeft.x, sphere->hitherBottomLeft.y, sphere->hitherBottomLeft.z);
-					glVertex3f(sphere->hitherBottomRight.x, sphere->hitherBottomRight.y, sphere->hitherBottomRight.z);
-					glVertex3f(sphere->hitherTopRight.x, sphere->hitherTopRight.y, sphere->hitherTopRight.z);
-					glVertex3f(sphere->hitherTopLeft.x, sphere->hitherTopLeft.y, sphere->hitherTopLeft.z);
+					glVertex3f(sphere->hitherBottomLeft[0], sphere->hitherBottomLeft[1], sphere->hitherBottomLeft[2]);
+					glVertex3f(sphere->hitherBottomRight[0], sphere->hitherBottomRight[1], sphere->hitherBottomRight[2]);
+					glVertex3f(sphere->hitherTopRight[0], sphere->hitherTopRight[1], sphere->hitherTopRight[2]);
+					glVertex3f(sphere->hitherTopLeft[0], sphere->hitherTopLeft[1], sphere->hitherTopLeft[2]);
 
 				glColor4f(0.1f, 1.1f, 1.1f, 5.0f);
-					glVertex3f(sphere->fartherBottomRight.x, sphere->fartherBottomRight.y, sphere->fartherBottomRight.z);
-					glVertex3f(sphere->fartherBottomLeft.x, sphere->fartherBottomLeft.y, sphere->fartherBottomLeft.z);
-					glVertex3f(sphere->fartherTopLeft.x, sphere->fartherTopLeft.y, sphere->fartherTopLeft.z);
-					glVertex3f(sphere->fartherTopRight.x, sphere->fartherTopRight.y, sphere->fartherTopRight.z);
+					glVertex3f(sphere->fartherBottomRight[0], sphere->fartherBottomRight[1], sphere->fartherBottomRight[2]);
+					glVertex3f(sphere->fartherBottomLeft[0], sphere->fartherBottomLeft[1], sphere->fartherBottomLeft[2]);
+					glVertex3f(sphere->fartherTopLeft[0], sphere->fartherTopLeft[1], sphere->fartherTopLeft[2]);
+					glVertex3f(sphere->fartherTopRight[0], sphere->fartherTopRight[1], sphere->fartherTopRight[2]);
 					glEnd();
 
 				/// Re-enable depth-writing
@@ -273,19 +273,19 @@ rerer
 				glBegin(GL_TRIANGLES);
 				for (int q = 0; q < pm->triangles.Size(); ++q){
 					Triangle * tri = pm->triangles[q];
-					glVertex3f(tri->point1.x, tri->point1.y, tri->point1.z);
-					glVertex3f(tri->point2.x, tri->point2.y, tri->point2.z);
-					glVertex3f(tri->point3.x, tri->point3.y, tri->point3.z);
+					glVertex3f(tri->point1[0], tri->point1[1], tri->point1[2]);
+					glVertex3f(tri->point2[0], tri->point2[1], tri->point2[2]);
+					glVertex3f(tri->point3[0], tri->point3[1], tri->point3[2]);
 				}
 				glEnd();
 				glColor4f(4.1f, 5.1f, 0.1f, 5.0f);
 				glBegin(GL_QUADS);
 				for (int q = 0; q < pm->quads.Size(); ++q){
 					Quad * quad = pm->quads[q];
-					glVertex3f(quad->point1.x, quad->point1.y, quad->point1.z);
-					glVertex3f(quad->point2.x, quad->point2.y, quad->point2.z);
-					glVertex3f(quad->point3.x, quad->point3.y, quad->point3.z);
-					glVertex3f(quad->point4.x, quad->point4.y, quad->point4.z);
+					glVertex3f(quad->point1[0], quad->point1[1], quad->point1[2]);
+					glVertex3f(quad->point2[0], quad->point2[1], quad->point2[2]);
+					glVertex3f(quad->point3[0], quad->point3[1], quad->point3[2]);
+					glVertex3f(quad->point4[0], quad->point4[1], quad->point4[2]);
 				}
 				glEnd();
 
@@ -301,9 +301,9 @@ rerer
 		// Always multiply by entity scale, since this is adjustable everywhere in the editor pretty much..!
 	//	transformationMatrix.multiply((Matrix4d().scale(entity->scale)));
 
-	//	transformationMatrix.multiply(Matrix4d::GetRotationMatrixX(entity->rotation.x));
-	//	transformationMatrix.multiply(Matrix4d::GetRotationMatrixY(entity->rotation.y));
-	//	transformationMatrix.multiply(Matrix4d::GetRotationMatrixZ(entity->rotation.z));
+	//	transformationMatrix.multiply(Matrix4d::GetRotationMatrixX(entity->rotation[0]));
+	//	transformationMatrix.multiply(Matrix4d::GetRotationMatrixY(entity->rotation[1]));
+	//	transformationMatrix.multiply(Matrix4d::GetRotationMatrixZ(entity->rotation[2]));
 		Matrix4f transform = Matrix4f(transformationMatrix);
 		/// Set uniform matrix in shader to point to the AppState modelView matrix.
 		glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, transform.getPointer());
@@ -329,9 +329,9 @@ rerer
 	for (int i = 0; i < Physics.activeTriangles.Size(); ++i){
 		Triangle triangle = Physics.activeTriangles[i];
 		Triangle * tri = &triangle;
-		glVertex3f(tri->point1.x, tri->point1.y, tri->point1.z);
-		glVertex3f(tri->point2.x, tri->point2.y, tri->point2.z);
-		glVertex3f(tri->point3.x, tri->point3.y, tri->point3.z);
+		glVertex3f(tri->point1[0], tri->point1[1], tri->point1[2]);
+		glVertex3f(tri->point2[0], tri->point2[1], tri->point2[2]);
+		glVertex3f(tri->point3[0], tri->point3[1], tri->point3[2]);
 	}
 	glEnd();
 
@@ -375,12 +375,12 @@ rerer
 		glColor4f(1,0,0,1);
 		for (int i = 0; i < c.pointsOne.Size(); ++i){
 			Vector3f p = c.pointsOne[i];
-			glVertex3f(p.x, p.y, p.z);
+			glVertex3f(p[0], p[1], p[2]);
 		}
 		glColor4f(0,1,0,1);
 		for (int i = 0; i < c.pointsTwo.Size(); ++i){
 			Vector3f p = c.pointsTwo[i];
-			glVertex3f(p.x, p.y, p.z);
+			glVertex3f(p[0], p[1], p[2]);
 		}
 		glEnd();
 		glPointSize(1.0f);
@@ -391,7 +391,7 @@ rerer
 			glColor4f(1,0,1,0.2f);
 			for (int i = 0; i < c.separatingAxes.Size(); ++i){
 				Vector3f axis = c.separatingAxes[i];
-	#define VERTEX(v) glVertex3f(v.x,v.y,v.z);
+	#define VERTEX(v) glVertex3f(v[0],v[1],v[2]);
 				VERTEX(c.collissionPoint);
 				VERTEX((c.collissionPoint+axis*5.0f));
 			}
@@ -483,17 +483,17 @@ rerer
 
 
 /// Woshie!
-void RenderLine(Vector3f origin, Vector3f endPoint, const Vector4f & baseColor){
+void RenderLine(const Vector3f & origin, const Vector3f & endPoint, const Vector4f & baseColor){
 		glBegin(GL_LINES);
-#define RenderVertex(v); glVertex3f(v.x,v.y,v.z);
-#define SetColor(c); glColor4f(c.x,c.y,c.z,c.w);
+#define RenderVertex(v); glVertex3f(v[0],v[1],v[2]);
+#define SetColor(c); glColor4f(c[0],c[1],c[2],c[3]);
 		SetColor(baseColor);
 		RenderVertex(origin);
 		RenderVertex(endPoint);
 		glEnd();
 };
 
-void RenderFadingLine(Vector3f origin, Vector3f endPoint, const Vector4f & baseColor, const Vector4f & highlightColor){
+void RenderFadingLine(const Vector3f & origin, const Vector3f & endPoint, const Vector4f & baseColor, const Vector4f & highlightColor){
 
 		glBegin(GL_LINES);
 
@@ -502,8 +502,8 @@ void RenderFadingLine(Vector3f origin, Vector3f endPoint, const Vector4f & baseC
 		int state = AbsoluteValue(timeInMS % 3000);
 	//	std::cout<<"\nState: "<<state;
 
-#define RenderVertex(v); glVertex3f(v.x,v.y,v.z);
-#define SetColor(c); glColor4f(c.x,c.y,c.z,c.w);
+#define RenderVertex(v); glVertex3f(v[0],v[1],v[2]);
+#define SetColor(c); glColor4f(c[0],c[1],c[2],c[3]);
 
 		Vector4f p;
 		p = highlightColor;

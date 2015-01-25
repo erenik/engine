@@ -136,7 +136,7 @@ protected:
 	List<Path*> paths;
 
 	/// Map lighting object, accessed via MapManager
-	Lighting * lighting;
+	Lighting lighting;
 
 	/// List of external dependencies that were not embedded in the file
 	List<String> modelsRequired;

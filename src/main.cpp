@@ -295,8 +295,18 @@ int main(int argc, char **argv)
 #endif // WINDOWS
 
 	// Unit tests here if wanted.
+	
+	List<int> list;
+	int ints[] = {11,22,33,44};
+	list.AddArray(4, ints);
+	for (int i = 0; i < list.Size(); ++i)
+	{
+		std::cout<<"\ni: "<<list[i];
+	}
+
 
 	Vector4f * test = new Vector4f[500];
+	delete[] test;
 //#define test
 #ifdef test
 
@@ -1282,7 +1292,7 @@ void SIMDTest()
 #ifdef USE_SSE
 			std::cout<<"\ni: "<<one.data.m128_f32[0]<<" "<<one.data.m128_f32[1]<<" "<<one.data.m128_f32[2]<<" "<<one.data.m128_f32[3];
 #else
-			std::cout<<"\ni: "<<one.x<<" "<<one.y<<" "<<one.z<<" "<<one.w;
+			std::cout<<"\ni: "<<one[0]<<" "<<one[1]<<" "<<one[2]<<" "<<one[3];
 #endif
 	}
 	timer.Stop();

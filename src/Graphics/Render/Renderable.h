@@ -36,7 +36,7 @@ private:
 class RenderTriangle : public Renderable {
     IMPLEMENTS_RENDERABLE
 public:
-    RenderTriangle(Triangle tri);
+    RenderTriangle(const Triangle & tri);
 private:
     Triangle tri;
 };

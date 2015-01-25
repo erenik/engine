@@ -277,7 +277,7 @@ void Entity::Render(GraphicsState & graphicsState)
 		else
 			glDisable(GL_DEPTH_TEST);
 		// Set multiplicative base color (1,1,1,1) default.
-		glUniform4f(shader->uniformPrimaryColorVec4, graphics->color.x, graphics->color.y, graphics->color.z, graphics->color.w);
+		glUniform4f(shader->uniformPrimaryColorVec4, graphics->color[0], graphics->color[1], graphics->color[2], graphics->color[3]);
 
 		// Bind bone-specific buffers as needed.
 		if (graphics->skeletalAnimationEnabled && graphics->shaderBasedSkeletonAnimation)
@@ -407,7 +407,7 @@ void Entity::Render(GraphicsState & graphicsState)
 			Text & textToRender = graphics->text;
 
 			Vector4f textColor = graphics->textColor;
-			glColor4f(textColor.x, textColor.y, textColor.z, textColor.w);
+			glColor4f(textColor[0], textColor[1], textColor[2], textColor[3]);
 			font->SetColor(textColor);
 			
 			// Calcualte size it would assume with current matrix.
@@ -415,7 +415,7 @@ void Entity::Render(GraphicsState & graphicsState)
 			
 			// Recalculate the matrix to center the text on the entity.
 			modelMatrix = Matrix4d();
-			Vector3f centeringOffset(- textRenderSize.x * 0.5f, textRenderSize.y, 0);
+			Vector3f centeringOffset(- textRenderSize[0] * 0.5f, textRenderSize[1], 0);
 			modelMatrix.Multiply((Matrix4d().Translate(Vector3d(position + centeringOffset))));
 			modelMatrix.Multiply(rotationMatrix);
 			modelMatrix.Multiply((Matrix4d().Scale(Vector3d(scale * graphics->textSizeRatio))));

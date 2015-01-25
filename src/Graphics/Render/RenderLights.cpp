@@ -44,14 +44,14 @@ void GraphicsManager::RenderLights(){
 		Light * light = lighting->GetLight(i);
 		Vector3f position = light->position;
 		Vector3f destination;
-		glColor4f(light->diffuse.x,light->diffuse.y,light->diffuse.z,1);
+		glColor4f(light->diffuse[0],light->diffuse[1],light->diffuse[2],1);
 		switch(light->type){
 			case LightType::POINT: {
 				// Render a sphere, maybe a max/min thingy?
 				glBegin(GL_POINTS);
-					glVertex3f(position.x, position.y, position.z);
+					glVertex3f(position[0], position[1], position[2]);
 				glEnd();
-				glTranslatef(position.x, position.y, position.z);
+				glTranslatef(position[0], position[1], position[2]);
 			//	graphicsState->modelMatrixF = Matrix4f::Translation(position);
 				Model * model = ModelMan.GetModel("Sphere6");
 				if (model)
@@ -67,21 +67,21 @@ void GraphicsManager::RenderLights(){
 				glEnd();
 				destination -= position * 100000;
 				glBegin(GL_LINES);
-					glVertex3f(-destination.x, -destination.y, -destination.z);
+					glVertex3f(-destination[0], -destination[1], -destination[2]);
 					glVertex3f(0,0,0);
 					glVertex3f(0,0,0);
-					glVertex3f(destination.x, destination.y, destination.z);
+					glVertex3f(destination[0], destination[1], destination[2]);
 				glEnd();
 				break;
 			case LightType::SPOTLIGHT:
 				/// Render a sphere as well as a cone?
 				glBegin(GL_POINTS);
-					glVertex3f(position.x, position.y, position.z);
+					glVertex3f(position[0], position[1], position[2]);
 				glEnd();
 				destination = position + light->spotDirection * 100000;
 				glBegin(GL_LINES);
-					glVertex3f(position.x, position.y, position.z);
-					glVertex3f(destination.x, destination.y, destination.z);
+					glVertex3f(position[0], position[1], position[2]);
+					glVertex3f(destination[0], destination[1], destination[2]);
 				glEnd();
 				break;
 			default:

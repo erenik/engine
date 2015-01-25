@@ -79,11 +79,12 @@ void Breakout::Initialize()
 	scoreEntities.Add(score1Entity);
 
 	Model * cube = ModelMan.GetModel("Cube");
-	topBar = MapMan.CreateEntity("Topbar", cube, red);
-	leftBar = MapMan.CreateEntity("LeftBar", cube, green);
-	rightBar = MapMan.CreateEntity("RightBar", cube, blue);
-	base = MapMan.CreateEntity("Goals", cube, verticalBarColor);
-	frame.Add(4, topBar, leftBar, rightBar, base);
+	frame.Add(		
+		topBar = MapMan.CreateEntity("Topbar", cube, red),
+		leftBar = MapMan.CreateEntity("LeftBar", cube, green),
+		rightBar = MapMan.CreateEntity("RightBar", cube, blue),
+		base = MapMan.CreateEntity("Goals", cube, verticalBarColor)
+	);
 
 	/// Add all entities.
 }
@@ -246,9 +247,9 @@ void Breakout::SetupPlayingField()
 	max = halfSize;
 
 	// o-o Store it for future use.
-	top = gameSize.y * 0.5f;
+	top = gameSize[1] * 0.5f;
 	bottom = -top;
-	right = gameSize.x * 0.5f;
+	right = gameSize[0] * 0.5f;
 	left = -right;
 
 	// Set 
@@ -269,16 +270,16 @@ void Breakout::SetupPlayingField()
 //	AudioMan.PlayBGM("Breakout/Breakout.ogg", 1.f);
 
 	// Move stuff to edges of field.
-	Physics.QueueMessage(new PMSetEntity(player1, PT_POSITION, Vector3f(0, -gameSize.y * (0.5f - bottomSpacing * 0.1f), z)));
+	Physics.QueueMessage(new PMSetEntity(player1, PT_POSITION, Vector3f(0, -gameSize[1] * (0.5f - bottomSpacing * 0.1f), z)));
 	Physics.QueueMessage(new PMSetEntity(frame, PT_POSITION, Vector3f(0, 0, z)));
 
 	// Score-boards..
 	Physics.QueueMessage(new PMSetEntity(score1Entity, PT_POSITION, Vector3f(0, 0, z + 2)));
-//			Physics.QueueMessage(new PMSetEntity(PT_POSITION, score2Entity, Vector3f(scoreColumns.y, 0, z->GetFloat() - 2)));
+//			Physics.QueueMessage(new PMSetEntity(PT_POSITION, score2Entity, Vector3f(scoreColumns[1], 0, z->GetFloat() - 2)));
 	Physics.QueueMessage(new PMSetEntity(scoreEntities, PT_COLLISIONS_ENABLED, false));
 
 	// Set scale of score-board text relative to screen size.
-	Graphics.QueueMessage(new GMSetEntityf(scoreEntities, GT_TEXT_SIZE_RATIO, gameSize.y * 0.25f));
+	Graphics.QueueMessage(new GMSetEntityf(scoreEntities, GT_TEXT_SIZE_RATIO, gameSize[1] * 0.25f));
 	Graphics.QueueMessage(new GMSetEntityVec4f(scoreEntities, GT_TEXT_COLOR, Vector4f(0.5,0.5f,0.5f,1)));
 
 	// Make players kinematic.
@@ -290,10 +291,10 @@ void Breakout::SetupPlayingField()
 	player1Properties->initialScale = Vector3f(1, 1, 1) * paddleScale;
 			
 	// Scale the frame.
-	float colWidth = gameSize.x * 0.05f, 
-		colHeight = gameSize.y, 
-		rowWidth = gameSize.x, 
-		rowHeight = gameSize.y * 0.05f;
+	float colWidth = gameSize[0] * 0.05f, 
+		colHeight = gameSize[1], 
+		rowWidth = gameSize[0], 
+		rowHeight = gameSize[1] * 0.05f;
 	Physics.QueueMessage(new PMSetEntity(topBar, PT_SET_SCALE, Vector2f(rowWidth, rowHeight)));
 	Physics.QueueMessage(new PMSetEntity(base, PT_SET_SCALE, Vector2f(rowWidth, rowHeight)));
 	Physics.QueueMessage(new PMSetEntity(leftBar, PT_SET_SCALE, Vector2f(colWidth, colHeight)));
@@ -383,9 +384,9 @@ void Breakout::ProcessMessage(Message * message)
 				String vector = msg.Tokenize(":")[1];
 				List<String> vectorParts = vector.Tokenize(",");
 				Vector3f position;
-				position.x = vectorParts[0].ParseFloat();
-				position.y = vectorParts[1].ParseFloat();
-				position.z = z + 2.f;
+				position[0] = vectorParts[0].ParseFloat();
+				position[1] = vectorParts[1].ParseFloat();
+				position[2] = z + 2.f;
 
 				Entity * newPowerup = MapMan.CreateEntity("Powerup", ModelMan.GetModel("Sprite"), TexMan.GetTexture("Green"));
 				
@@ -468,7 +469,7 @@ void Breakout::CreateUniformBrickMatrix(Vector2i withBrickColumnsAndRows)
 		
 	blockArea = gameSize.ElementMultiplication(Vector2f(1.f - sideSpace * 2, 1.f - totalYSpacing)); 
 	Vector2f gameCenter = Vector2f();
-	Vector2f blockCenter = Vector2f(0, top - blockArea.y * 0.5f - topSpacing * gameSize.y);
+	Vector2f blockCenter = Vector2f(0, top - blockArea[1] * 0.5f - topSpacing * gameSize[1]);
 		
 	// Block size, relative to 
 	Vector2f newBlockSize = blockArea.ElementDivision(partitions);
@@ -476,17 +477,17 @@ void Breakout::CreateUniformBrickMatrix(Vector2i withBrickColumnsAndRows)
 	// Startposition being the lower-left most block's position!
 	Vector2f startPosition = blockCenter - (partitionsF * 0.5f).ElementMultiplication(newBlockSize);
 	Texture * color = TexMan.GetTexture("White");
-	for (int x = 0; x < partitions.x; ++x)
+	for (int x = 0; x < partitions[0]; ++x)
 	{
-		for (int y = 0; y < partitions.y; ++y)
+		for (int y = 0; y < partitions[1]; ++y)
 		{
 			Entity * newBrick = MapMan.CreateEntity("Brick", cube, color);
 			// Setup common physics stuff for each brick.
 			SetupPhysics(newBrick);
 			newBrick->properties.Add(new BreakoutBrickProperty(newBrick));
 			// Set it at some good position.
-			Vector3f position = startPosition + Vector2f(newBlockSize.x * x, newBlockSize.y * y);
-			position.z = z;
+			Vector3f position = startPosition + Vector2f(newBlockSize[0] * x, newBlockSize[1] * y);
+			position[2] = z;
 			Physics.QueueMessage(new PMSetEntity(newBrick, PT_POSITION, position));
 			Physics.QueueMessage(new PMSetEntity(newBrick, PT_SET_SCALE, newBlockSize));
 			Physics.QueueMessage(new PMSetEntity(newBrick, PT_PHYSICS_SHAPE, PhysicsShape::MESH));
@@ -587,14 +588,14 @@ void Breakout::SpawnBalls()
 		// Reset its position.
 		// Center it.
 		Vector3f startPos;
-		startPos.y = -(0.5f - bottomSpacing * 0.9f) * gameSize.y;
+		startPos[1] = -(0.5f - bottomSpacing * 0.9f) * gameSize[1];
 		Physics.QueueMessage(new PMSetEntity(ball, PT_POSITION, startPos));
 
 		// Start the balllllllllllllllllllllll!
 		Vector2f initialVelocity(0, -1);
 		// Move it slightly up or downnnn.
 		float leftNRight = pongBallRand.Randf() - 0.5f;
-		initialVelocity.x  = leftNRight;
+		initialVelocity[0]  = leftNRight;
 		initialVelocity.Normalize();
 		initialVelocity *= bbp->defaultMinVerticalVel;
 		Physics.QueueMessage(new PMSetEntity(ball, PT_VELOCITY, initialVelocity));
@@ -669,16 +670,16 @@ void Breakout::SpawnNewBall()
 	// Reset its position.
 	// Center it.
 	Vector3f startPos;
-	startPos.y = -(0.5f - bottomSpacing * 0.5f) * gameSize.y;
+	startPos[1] = -(0.5f - bottomSpacing * 0.5f) * gameSize[1];
 	// Start it x-wise same as the player.
-	startPos.x = player1->position.x;
+	startPos[0] = player1->position[0];
 	Physics.QueueMessage(new PMSetEntity(ball, PT_POSITION, startPos));
 
 	// Start the balllllllllllllllllllllll!
 	Vector2f initialVelocity(0, 1);
 	// Move it slightly up or downnnn.
 	float leftNRight = pongBallRand.Randf() - 0.5f;
-	initialVelocity.x  = leftNRight;
+	initialVelocity[0]  = leftNRight;
 	initialVelocity.Normalize();
 	initialVelocity *= bbp->defaultMinVerticalVel;
 	Physics.QueueMessage(new PMSetEntity(ball, PT_VELOCITY, initialVelocity));

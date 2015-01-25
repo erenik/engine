@@ -179,8 +179,8 @@ bool ObjReader::ReadObj(const char * filename, Mesh * mesh)
 		{
 			if (tokens.Size() < 3)
 				continue;
-            mesh->uvs[uvsRead].x = tokens[1].ParseFloat();
-            mesh->uvs[uvsRead].y = tokens[2].ParseFloat();
+            mesh->uvs[uvsRead][0] = tokens[1].ParseFloat();
+            mesh->uvs[uvsRead][1] = tokens[2].ParseFloat();
             ++uvsRead;
         }
         // Read in vertices normals mapping coordinates and save them

@@ -298,8 +298,8 @@ void Camera::Update()
 		{
 		std::cout<<"lall";
 		}
-		float halfWidth = windowWorkingArea.x * 0.5f;
-		float halfHeight = windowWorkingArea.y * 0.5f;
+		float halfWidth = windowWorkingArea[0] * 0.5f;
+		float halfHeight = windowWorkingArea[1] * 0.5f;
 		right = halfWidth;
 		left = -right;
 		top = halfHeight;
@@ -372,7 +372,7 @@ void Camera::Update()
 
 
 	/// Some new temporary variables for updating the frustum
-	float sample = viewMatrix.GetColumn(0).x;
+	float sample = viewMatrix.GetColumn(0)[0];
 	assert(AbsoluteValue(sample) < 100000.f);
 	//	Vector4f camPos, lookingAtVector, upVector;
 	camPos = viewMatrix.InvertedCopy() * Vector4d(0,0,0,1);	// THIS
@@ -442,9 +442,9 @@ void Camera::ProcessMovement(float timeInSeconds)
 		right = absRight;
 	}
 
-	totalPosDiff = deltaP.z * forward +
-		deltaP.y * up +
-		deltaP.x * right;
+	totalPosDiff = deltaP[2] * forward +
+		deltaP[1] * up +
+		deltaP[0] * right;
 	
 	if (scaleSpeedWithZoom)
 	{
@@ -459,9 +459,9 @@ void Camera::ProcessMovement(float timeInSeconds)
 	{
 		rotationEuler += rotationalVelocityEuler * timeInSeconds;
 		// Re-calculate the quaternion defining this rotation (if possible).
-		Quaternion pitch(Vector3f(1,0,0), rotationEuler.x);
-		Quaternion yaw(Vector3f(0,1,0), rotationEuler.y);
-		Quaternion roll(Vector3f(0,0,1), rotationEuler.z);
+		Quaternion pitch(Vector3f(1,0,0), rotationEuler[0]);
+		Quaternion yaw(Vector3f(0,1,0), rotationEuler[1]);
+		Quaternion roll(Vector3f(0,0,1), rotationEuler[2]);
 
 		orientationEuler = yaw * pitch; // * roll;
 		// And multiply it!
@@ -484,37 +484,37 @@ void Camera::UpdateNavigation()
 {
 	/// Navigation
 	if (navigationControls[Direction::UP] && !navigationControls[Direction::DOWN])
-		this->velocity.y = this->defaultVelocity * this->flySpeed;
+		this->velocity[1] = this->defaultVelocity * this->flySpeed;
 	else if (navigationControls[Direction::DOWN] && !navigationControls[Direction::UP])
-		this->velocity.y = -this->defaultVelocity * this->flySpeed;
+		this->velocity[1] = -this->defaultVelocity * this->flySpeed;
 	else
-		this->velocity.y = 0;
+		this->velocity[1] = 0;
 	if (navigationControls[Direction::FORWARD] && !navigationControls[Direction::BACKWARD])
-		this->velocity.z = this->defaultVelocity * this->flySpeed;
+		this->velocity[2] = this->defaultVelocity * this->flySpeed;
 	else if (navigationControls[Direction::BACKWARD] && !navigationControls[Direction::FORWARD])
-		this->velocity.z = -this->defaultVelocity * this->flySpeed;
+		this->velocity[2] = -this->defaultVelocity * this->flySpeed;
 	else
-		this->velocity.z = 0;
+		this->velocity[2] = 0;
 	if (navigationControls[Direction::LEFT] && !navigationControls[Direction::RIGHT])
-		this->velocity.x = -this->defaultVelocity * this->flySpeed;
+		this->velocity[0] = -this->defaultVelocity * this->flySpeed;
 	else if (navigationControls[Direction::RIGHT] && !navigationControls[Direction::LEFT])
-		this->velocity.x = this->defaultVelocity * this->flySpeed;
+		this->velocity[0] = this->defaultVelocity * this->flySpeed;
 	else
-		this->velocity.x = 0;
+		this->velocity[0] = 0;
 
 	/// Rotation
 	if (orientationControls[Direction::UP] && !orientationControls[Direction::DOWN])
-		this->rotationVelocity.x = this->defaultRotationSpeed * this->rotationSpeed;
+		this->rotationVelocity[0] = this->defaultRotationSpeed * this->rotationSpeed;
 	else if (orientationControls[Direction::DOWN] && !orientationControls[Direction::UP])
-		this->rotationVelocity.x = -this->defaultRotationSpeed * this->rotationSpeed;
+		this->rotationVelocity[0] = -this->defaultRotationSpeed * this->rotationSpeed;
 	else
-		this->rotationVelocity.x = 0;
+		this->rotationVelocity[0] = 0;
 	if (orientationControls[Direction::LEFT] && !orientationControls[Direction::RIGHT])
-		this->rotationVelocity.y = this->defaultRotationSpeed * this->rotationSpeed;
+		this->rotationVelocity[1] = this->defaultRotationSpeed * this->rotationSpeed;
 	else if (orientationControls[Direction::RIGHT] && !orientationControls[Direction::LEFT])
-		this->rotationVelocity.y = -this->defaultRotationSpeed * this->rotationSpeed;
+		this->rotationVelocity[1] = -this->defaultRotationSpeed * this->rotationSpeed;
 	else
-		this->rotationVelocity.y = 0;
+		this->rotationVelocity[1] = 0;
 };
 
 
@@ -560,8 +560,8 @@ Ray Camera::GetRayFromScreenCoordinates(Window * window, int mouseX, int mouseY)
 
 	Vector2i windowSize = window->WorkingArea();
 	// Get relative positions of where we clicketiclicked, from 0.0 to 1.0 (0,0 in lower left corner)
-	float clientAreaWidth = (float)windowSize.x;
-	float clientAreaHeight = (float)windowSize.y;
+	float clientAreaWidth = (float)windowSize[0];
+	float clientAreaHeight = (float)windowSize[1];
 	float relativeX = mouseX / clientAreaWidth,
 		  relativeY = mouseY / clientAreaHeight;
 
@@ -611,8 +611,8 @@ void Camera::FollowAndLookAt(float timeInSeconds)
 	Vector3f optimalPosition = entityPosition - toEntity.NormalizedCopy() * distanceFromCenterOfMovement;
 
 	/// Strive to have the camera along a certain plane as compared to the entity.
-	optimalPosition.y = relativePosition.y;
-	optimalPosition.y += Maximum(distanceFromCenterOfMovement * 0.45f - 1.f, 0);
+	optimalPosition[1] = relativePosition[1];
+	optimalPosition[1] += Maximum(distanceFromCenterOfMovement * 0.45f - 1.f, 0);
 
 	// If we have any rotation requested, take the optimal position and rotate it (compared to the entity) in target direction! :)
 	
@@ -629,15 +629,15 @@ void Camera::FollowAndLookAt(float timeInSeconds)
 	// Look at it from our new position!
 	// Find rotation yaw needed.
 	toEntity = entityPosition - position;
-	Vector2f toEntityXZ(toEntity.x, toEntity.z);
+	Vector2f toEntityXZ(toEntity[0], toEntity[2]);
 	toEntityXZ.Normalize();
-	float yawNeeded = atan2(toEntityXZ.y, toEntityXZ.x);
+	float yawNeeded = atan2(toEntityXZ[1], toEntityXZ[0]);
 	yawNeeded += PI * 0.5f;
 
-	float xzDistance = Vector2f(toEntity.x,toEntity.z).Length();
-	Vector2f toEntityXY(xzDistance, toEntity.y);
+	float xzDistance = Vector2f(toEntity[0],toEntity[2]).Length();
+	Vector2f toEntityXY(xzDistance, toEntity[1]);
 	toEntityXY.Normalize();
-	float pitchNeeded = -atan2(toEntityXY.y, toEntityXY.x);
+	float pitchNeeded = -atan2(toEntityXY[1], toEntityXY[0]);
 
 	rotationMatrix.Multiply(Matrix4f::GetRotationMatrixX(pitchNeeded));
 	rotationMatrix.Multiply(Matrix4f::GetRotationMatrixY(yawNeeded));
@@ -651,7 +651,7 @@ void Camera::FollowAndLookAt(float timeInSeconds)
 		Vector3f up = entityToTrack->rotationMatrix.GetColumn(1);
 		Vector3f right = entityToTrack->rotationMatrix.GetColumn(0);
 		Vector3f forward = entityToTrack->rotationMatrix.GetColumn(2);
-		offset = relativePosition.x * right + relativePosition.y * up + relativePosition.z * forward;
+		offset = relativePosition[0] * right + relativePosition[1] * up + relativePosition[2] * forward;
 	}
 	else 
 		offset = relativePosition;
@@ -696,7 +696,7 @@ void Camera::TrackFromBehind()
 	/// Rotate more, so that we view the entity from the front instead, if camera is in reverse-mode.
 	if (revert)
 	{
-		rotation.y += PI;
+		rotation[1] += PI;
 	}
 	rotation += offsetRotation;
 
@@ -709,8 +709,8 @@ void Camera::TrackFromBehind()
 		Vector3f totalEuler = entityToTrack->rotation + rotationEuler;
 		// Generate matrix for it
 		rotationMatrix = Matrix4f();
-		rotationMatrix.Multiply(Matrix4d().InitRotationMatrix(totalEuler.x, 1, 0, 0));
-		rotationMatrix.Multiply(Matrix4d().InitRotationMatrix(totalEuler.y, 0, 1, 0));
+		rotationMatrix.Multiply(Matrix4d().InitRotationMatrix(totalEuler[0], 1, 0, 0));
+		rotationMatrix.Multiply(Matrix4d().InitRotationMatrix(totalEuler[1], 0, 1, 0));
 //					Matrix4f inheritedRotationMatrix = inheritedOrientation.Matrix();					
 //					Matrix4f ownRotationMatrix = orientationEuler.Matrix();
 		/// Apply our own quaternion on top of that
@@ -726,8 +726,8 @@ void Camera::TrackFromBehind()
 	else 
 	{
 		useQuaternions = false;
-		rotationMatrix.Multiply(Matrix4d().InitRotationMatrix(rotation.x, 1, 0, 0));
-		rotationMatrix.Multiply(Matrix4d().InitRotationMatrix(rotation.y, 0, 1, 0));
+		rotationMatrix.Multiply(Matrix4d().InitRotationMatrix(rotation[0], 1, 0, 0));
+		rotationMatrix.Multiply(Matrix4d().InitRotationMatrix(rotation[1], 0, 1, 0));
 	}
 
 
@@ -736,8 +736,8 @@ void Camera::TrackFromBehind()
 
 	viewMatrix.Multiply(rotationMatrix);
 		/*
-	viewMatrix.multiply(Matrix4d().InitRotationMatrix(-this->entityToTrack->rotation.x, 1, 0, 0));
-	viewMatrix.multiply(Matrix4d().InitRotationMatrix(-this->entityToTrack->rotation.y, 0, 1, 0));
+	viewMatrix.multiply(Matrix4d().InitRotationMatrix(-this->entityToTrack->rotation[0], 1, 0, 0));
+	viewMatrix.multiply(Matrix4d().InitRotationMatrix(-this->entityToTrack->rotation[1], 0, 1, 0));
 	*/
 
 			// Take the relative position and multiply it with the local axes of the entity we're tracking?
@@ -747,7 +747,7 @@ void Camera::TrackFromBehind()
 		Vector3f up = entityToTrack->rotationMatrix.GetColumn(1);
 		Vector3f right = entityToTrack->rotationMatrix.GetColumn(0);
 		Vector3f forward = entityToTrack->rotationMatrix.GetColumn(2);
-		offset = relativePosition.x * right + relativePosition.y * up + relativePosition.z * forward;
+		offset = relativePosition[0] * right + relativePosition[1] * up + relativePosition[2] * forward;
 	}
 	else 
 		offset = relativePosition;
@@ -769,13 +769,13 @@ void Camera::TrackThirdPerson()
 	// First translate the camera relative to the viewing rotation-"origo"
 	viewMatrix.Translate(0, 0, this->distanceFromCentreOfMovement);
 
-	rotationMatrix.Multiply(Matrix4d().InitRotationMatrix(this->rotation.x, 1, 0, 0));
-	rotationMatrix.Multiply(Matrix4d().InitRotationMatrix(this->rotation.y, 0, 1, 0));
+	rotationMatrix.Multiply(Matrix4d().InitRotationMatrix(this->rotation[0], 1, 0, 0));
+	rotationMatrix.Multiply(Matrix4d().InitRotationMatrix(this->rotation[1], 0, 1, 0));
 
 	viewMatrix.Multiply(rotationMatrix);
 	/*
-	viewMatrix.multiply(Matrix4d().InitRotationMatrix(this->rotation.x, 1, 0, 0));
-	viewMatrix.multiply(Matrix4d().InitRotationMatrix(this->rotation.y, 0, 1, 0));
+	viewMatrix.multiply(Matrix4d().InitRotationMatrix(this->rotation[0], 1, 0, 0));
+	viewMatrix.multiply(Matrix4d().InitRotationMatrix(this->rotation[1], 0, 1, 0));
 	*/
 
 	// Take the relative position and multiply it with the local axes of the entity we're tracking?
@@ -785,7 +785,7 @@ void Camera::TrackThirdPerson()
 		Vector3f up = entityToTrack->rotationMatrix.GetColumn(1);
 		Vector3f right = entityToTrack->rotationMatrix.GetColumn(0);
 		Vector3f forward = entityToTrack->rotationMatrix.GetColumn(2);
-		offset = relativePosition.x * right + relativePosition.y * up + relativePosition.z * forward;
+		offset = relativePosition[0] * right + relativePosition[1] * up + relativePosition[2] * forward;
 	}
 	else 
 		offset = relativePosition;
@@ -804,7 +804,7 @@ void Camera::TrackThirdPerson()
 	a distance from center of movement (as in 3D-modelling programs), 
 	a rotation aroud the same point, and translate the point based on position and relative position summed up.
 */
-Matrix4d Camera::CalculateDefaultEditorMatrices(float distanceFromCenterOfMovement, Vector2f rotationXY, Vector3f worldSpacePosition)
+Matrix4d Camera::CalculateDefaultEditorMatrices(float distanceFromCenterOfMovement, Vector2f rotationXY, ConstVec3fr worldSpacePosition)
 {
 	Matrix4d viewMatrix, rotationMatrix;
 	// Move camera before before main scenegraph rendering begins
@@ -812,8 +812,8 @@ Matrix4d Camera::CalculateDefaultEditorMatrices(float distanceFromCenterOfMoveme
 	viewMatrix.Translate(0, 0, distanceFromCentreOfMovement);
 	/*
 	*/
-	rotationMatrix.Multiply(Matrix4d().InitRotationMatrix(rotationXY.x, 1, 0, 0));
-	rotationMatrix.Multiply(Matrix4d().InitRotationMatrix(rotationXY.y, 0, 1, 0));
+	rotationMatrix.Multiply(Matrix4d().InitRotationMatrix(rotationXY[0], 1, 0, 0));
+	rotationMatrix.Multiply(Matrix4d().InitRotationMatrix(rotationXY[1], 0, 1, 0));
 
 	/// o.o
 	viewMatrix.Multiply(rotationMatrix);

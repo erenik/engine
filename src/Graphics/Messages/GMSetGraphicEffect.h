@@ -14,7 +14,7 @@ class Entity;
 class GMSetGraphicEffect : public GraphicsMessage {
 public:
 	GMSetGraphicEffect(int target, String effectName, float value, Entity * owner = NULL);
-	GMSetGraphicEffect(int target, String effectName, Vector3f value, Entity * owner = NULL);
+	GMSetGraphicEffect(int target, String effectName, const Vector3f & value, Entity * owner = NULL);
 	GMSetGraphicEffect(int target, String effectName, void * data, Entity * owner = NULL); // For any pointer, yo.
 	void Process();
 private:

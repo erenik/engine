@@ -9,11 +9,9 @@ EVertex::EVertex()
 	uvCoord = NULL;
 }
 
-const EVertex & EVertex::operator = (Vector3f assign)
+const EVertex & EVertex::operator = (const Vector3f & assign)
 {
-	x = assign.x;
-	y = assign.y;
-	z = assign.z;
+	data = assign.data;
 	return *this;
 }
 	

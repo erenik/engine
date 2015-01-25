@@ -417,7 +417,7 @@ void Lighting::SetAmbient(float r, float g, float b, float a){
 	this->lastUpdate = GetTime();
 }
 /// Sets ambient values. Alpha defaults to 0.
-void Lighting::SetAmbient(Vector3f values){
+void Lighting::SetAmbient(const Vector3f & values){
 	this->global_ambient = Vector4f(values);
 	this->lastUpdate = GetTime();
 }
@@ -570,10 +570,10 @@ void LoadLighting(Lighting * lighting, Shader * shader)
 
 	/// Set ambient
 	GLfloat ambient[4];
-	ambient[0] = lighting->global_ambient.x;
-	ambient[1] = lighting->global_ambient.y;
-	ambient[2] = lighting->global_ambient.z;
-	ambient[3] = lighting->global_ambient.w;
+	ambient[0] = lighting->global_ambient[0];
+	ambient[1] = lighting->global_ambient[1];
+	ambient[2] = lighting->global_ambient[2];
+	ambient[3] = lighting->global_ambient[3];
 	glUniform4fv(shader->uniformLight.ambientVec4, 1, ambient);
 	CheckGLError("Error setting global ambient luminosity");
 	
@@ -600,30 +600,30 @@ void LoadLighting(Lighting * lighting, Shader * shader)
 		// ... 
 
 		int interval = 4;
-		diffuse[activeLights*interval] = light->diffuse.x;
-		diffuse[activeLights*interval+1] = light->diffuse.y;
-		diffuse[activeLights*interval+2] = light->diffuse.z;
-		diffuse[activeLights*interval+3] = light->diffuse.w;
+		diffuse[activeLights*interval] = light->diffuse[0];
+		diffuse[activeLights*interval+1] = light->diffuse[1];
+		diffuse[activeLights*interval+2] = light->diffuse[2];
+		diffuse[activeLights*interval+3] = light->diffuse[3];
 
-		specular[activeLights*interval] = light->specular.x;
-		specular[activeLights*interval+1] = light->specular.y;
-		specular[activeLights*interval+2] = light->specular.z;
-		specular[activeLights*interval+3] = light->specular.w;
+		specular[activeLights*interval] = light->specular[0];
+		specular[activeLights*interval+1] = light->specular[1];
+		specular[activeLights*interval+2] = light->specular[2];
+		specular[activeLights*interval+3] = light->specular[3];
 
 		interval = 3;
-		position[activeLights*interval] = light->position.x;
-		position[activeLights*interval+1] = light->position.y;
-		position[activeLights*interval+2] = light->position.z;
+		position[activeLights*interval] = light->position[0];
+		position[activeLights*interval+1] = light->position[1];
+		position[activeLights*interval+2] = light->position[2];
 
-		attenuation[activeLights*interval] = light->attenuation.x;
-		attenuation[activeLights*interval+1] = light->attenuation.y;
-		attenuation[activeLights*interval+2] = light->attenuation.z;
+		attenuation[activeLights*interval] = light->attenuation[0];
+		attenuation[activeLights*interval+1] = light->attenuation[1];
+		attenuation[activeLights*interval+2] = light->attenuation[2];
 
 		type[activeLights] = light->type;
 
-		spotDirection[activeLights*interval] = light->spotDirection.x;
-		spotDirection[activeLights*interval+1] = light->spotDirection.y;
-		spotDirection[activeLights*interval+2] = light->spotDirection.z;
+		spotDirection[activeLights*interval] = light->spotDirection[0];
+		spotDirection[activeLights*interval+1] = light->spotDirection[1];
+		spotDirection[activeLights*interval+2] = light->spotDirection[2];
 		/// Calcualte cutoff as a cosine value of the degrees converted to radians before we throw it in ^^
 		spotCutoff[activeLights] = cos(light->spotCutoff / 180.0f * PI);
 		spotExponent[activeLights] = light->spotExponent;

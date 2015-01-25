@@ -32,8 +32,8 @@ void SSIntegrator::IntegrateDynamicEntities(List<Entity*> & dynamicEntities, flo
 		{
 	//		std::cout<<"\nShip property: "<<sp<<" ID "<<sp->GetID()<<" allied: "<<sp->ship->allied;
 			Vector3f & position = dynamicEntity->position;
-			ClampFloat(position.x, frameMin.x, frameMax.x);
-			ClampFloat(position.y, frameMin.y, frameMax.y);		
+			ClampFloat(position[0], frameMin[0], frameMax[0]);
+			ClampFloat(position[1], frameMin[1], frameMax[1]);		
 		}
 	}
 	timer.Stop();
@@ -72,7 +72,7 @@ void SSIntegrator::IntegrateVelocity(Entity * forEntity, float timeInSeconds)
 
 	if (constantZ)
 	{
-		forEntity->position.z = constantZ;
-		forEntity->physics->velocity.z = 0;
+		forEntity->position[2] = constantZ;
+		forEntity->physics->velocity[2] = 0;
 	}
 }

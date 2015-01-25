@@ -8,11 +8,12 @@
 #include "Face.h"
 #include "MathLib.h"
 
-class Edge {
+class Edge 
+{
 public:
 	Edge();
 	Edge(Vertex * one, Vertex * two);
-	Edge(Vector3f start, Vector3f stop);
+	Edge(const Vector3f & start, const Vector3f & stop);
 	Vertex * start;
 	Vertex * stop;
 	/// Is not using any vertices...

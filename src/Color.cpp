@@ -19,14 +19,9 @@ Color::Color(const Vector4f & fromVector)
 
 /// Filled with 4 unsigned bytes.
 Color::Color(uchar r, uchar g, uchar b, uchar a)
-: Vector4f()
+: Vector4f(r,g,b,a)
 {
-	float inv255 = 1 / 255.f;
-	x = r;
-	y = g;
-	z = b;
-	w = a;
-	(*this) *= inv255;	
+	(*this) /= 255.f;	
 }
 
 /// E.g. "0x115588AA"
@@ -115,5 +110,5 @@ String Color::GetName()
 
 void Color::AssignName()
 {
-	name = "R"+String(x)+"G"+String(y)+"B"+String(z)+"Z"+String(w);
+	name = "R"+String((*this)[0])+"G"+String((*this)[1])+"B"+String((*this)[2])+"Z"+String((*this)[3]);
 }

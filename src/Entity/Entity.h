@@ -115,33 +115,33 @@ public:
 
 
 	/** Sets position */
-	void SetPosition(Vector3f position);
+	void SetPosition(const Vector3f & position);
 	/** Sets position */
 	void SetPosition(float x, float y, float z);
 	/// New rotation. Should hopefully make old rotatoin system obsolete... maybe :P
 	/// Rotates around the globally defined quaternion axis.
-	void RotateGlobal(Quaternion withQuaternion);
+	void RotateGlobal(const Quaternion & withQuaternion);
 	/** Rotates the Entity */
-	void Rotate(Vector3f rotation);
+	void Rotate(const Vector3f & rotation);
 	/// Quaternion initial rotation.
-	void SetRotation(Quaternion quat);
+	void SetRotation(const Quaternion & quat);
 	/// Rotation from the default (looking into -Z
-	void SetRotation(Vector3f rotationFromZMinus1);
+	void SetRotation(const Vector3f & rotationFromZMinus1);
 	/** Sets scale of the entity */
-	void SetScale(Vector3f scale);
+	void SetScale(const Vector3f & scale);
 	/** Scales the Entity */
-	void Scale(Vector3f scale);
+	void Scale(const Vector3f & scale);
 	/** Scales the Entity */
 	void Scale(float scale);
 	/** Translates the Entity */
 	void Translate(float x, float y, float z);
 	/** Translates the Entity */
-	void Translate(Vector3f translation);
+	void Translate(const Vector3f & translation);
 
 	/// Recalculates the transformation matrix. All parts by default.
 	void RecalculateMatrix(bool allParts = true);
 	/// Recalculates a transformation matrix using argument vectors for position, rotation and translation.
-	static Matrix4f RecalculateMatrix(Vector3f & position, Vector3f & rotation, Vector3f & scale);
+	static Matrix4f RecalculateMatrix(const Vector3f & position, const Vector3f & rotation, const Vector3f & scale);
 
 	/// Recalculates the radius of the entity, both in the upper level radius as well as the physics-property variable one if applicable.
 	void RecalculateRadius();

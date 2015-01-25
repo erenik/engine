@@ -12,7 +12,7 @@ class Contour
 {
 public:
 	/// Checks if the point is located inside this contour. 
-	bool PointInside(Vector3f point, Vector3f comparisonDir = Vector3f(0,1,0));
+	bool PointInside(const Vector3f & point, const Vector3f & comparisonDir = Vector3f(0,1,0));
 
 	CircularList<Vector3f> points;
 	/// Size.

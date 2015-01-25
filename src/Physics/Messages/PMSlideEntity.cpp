@@ -39,14 +39,14 @@ void PMSlideEntity::Process()
 		{
 			// Non pre-filled? 
 	//		fEstimator = new EstimatorFloat();
-//			fEstimator->AddState(physics->color.w, 0);
+//			fEstimator->AddState(physics->color[3], 0);
 	//		fEstimator->AddState(this->targetValue, this->timeInMs);
 		}
 		switch(target)
 		{
 			case PT_ROTATION_Y:
 			{
-				estimatorFloat->variableToPutResultTo = &entity->rotation.y;
+				estimatorFloat->variableToPutResultTo = &entity->rotation[1];
 				break;
 			}
 			default:

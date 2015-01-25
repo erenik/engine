@@ -105,7 +105,9 @@ public:
 	Vector4i operator / (const int &f) const;
 
 	/// Operator overloading for the array-access operator []
-	int operator [](int index);
+	int & operator [](int index);
+	/// Operator overloading for the array-access operator []
+	const int & operator [](int index) const;
 
 	/// Multiplies the elements in the two vectors internally, returning the product.
 	Vector4i ElementMultiplication(const Vector4i otherVector) const;

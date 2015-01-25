@@ -1257,18 +1257,18 @@ void UIElement::Bufferize()
 			{
 				int currentVertex = face->vertices[j];
 				// Position
-				vboVertexData[vertexDataCounted + 0] = mesh->vertices[currentVertex].x;
-				vboVertexData[vertexDataCounted + 1] = mesh->vertices[currentVertex].y;
-				vboVertexData[vertexDataCounted + 2] = mesh->vertices[currentVertex].z;
+				vboVertexData[vertexDataCounted + 0] = mesh->vertices[currentVertex][0];
+				vboVertexData[vertexDataCounted + 1] = mesh->vertices[currentVertex][1];
+				vboVertexData[vertexDataCounted + 2] = mesh->vertices[currentVertex][2];
 				// Normal
 				int currentNormal = face->normals[j];
-				vboVertexData[vertexDataCounted + 3] = mesh->normals[currentNormal].x;
-				vboVertexData[vertexDataCounted + 4] = mesh->normals[currentNormal].y;
-				vboVertexData[vertexDataCounted + 5] = mesh->normals[currentNormal].z;
+				vboVertexData[vertexDataCounted + 3] = mesh->normals[currentNormal][0];
+				vboVertexData[vertexDataCounted + 4] = mesh->normals[currentNormal][1];
+				vboVertexData[vertexDataCounted + 5] = mesh->normals[currentNormal][2];
 				// UV
 				int currentUV = face->uvs[j];
-				vboVertexData[vertexDataCounted + 6] = mesh->uvs[currentUV].x;
-				vboVertexData[vertexDataCounted + 7] = mesh->uvs[currentUV].y;
+				vboVertexData[vertexDataCounted + 6] = mesh->uvs[currentUV][0];
+				vboVertexData[vertexDataCounted + 7] = mesh->uvs[currentUV][1];
 				vertexDataCounted += 8;
 				++vboVertexCount;
 			}
@@ -1469,14 +1469,14 @@ void UIElement::RenderSelf(GraphicsState & graphicsState)
 			std::cout<<"\nUI shader lacking primary color?";
 		}
 		glUniform4f(shader->uniformPrimaryColorVec4,
-			baseColor.x, baseColor.y, baseColor.z, color.w);
+			baseColor[0], baseColor[1], baseColor[2], color[3]);
 		if (shader->uniformHighlightColorVec4 == -1)
 		{
 			std::cout<<"\nUI shader lacking highlight color?";
 		}
 		//assert(activeShader->uniformHighlightColorVec4 != -1);
 		glUniform4f(shader->uniformHighlightColorVec4,
-			highlightColor.x, highlightColor.y, highlightColor.z, 0.0f);
+			highlightColor[0], highlightColor[1], highlightColor[2], 0.0f);
 
 		// Set material?	-	Not needed for UI!?
 		// Just set a light-parameter to be multiplied to the texture?
@@ -1557,7 +1557,7 @@ void UIElement::RenderSelf(GraphicsState & graphicsState)
 			int rowsAvailable = (int)(1 / textSizeRatio);
 			currentTextSizeRatio = 1.0f;
 			/// Returns the size required by a call to RenderText if it were to be done now. In... pixels? or units
-            float lengthRequired = currentFont->CalculateRenderSizeUnits(text).x * pixels;
+            float lengthRequired = currentFont->CalculateRenderSizeUnits(text)[0] * pixels;
 			if (lengthRequired > rowsAvailable * sizeX){
 				// assert(false && "Too much text!");
 //				std::cout<<"\nNOTE: Too much text for given space and size, scaling down text to fit!";
@@ -1579,7 +1579,7 @@ void UIElement::RenderSelf(GraphicsState & graphicsState)
 					/// Assume word fits?
 					String word = words[i];
 				//	std::cout<<"\nBlubb ";
-					float lengthRequiredWord = currentFont->CalculateRenderSizeUnits(word).x * pixels;
+					float lengthRequiredWord = currentFont->CalculateRenderSizeUnits(word)[0] * pixels;
 				//	std::cout<<"\nBlubb ";
 				//	std::cout<<"\nLengthRequiredWord: "<<lengthRequiredWord<<" sizeX: "<<sizeX;
 					if (lengthRequiredWord >= sizeX && i == 0){
@@ -1588,11 +1588,11 @@ void UIElement::RenderSelf(GraphicsState & graphicsState)
 						pixels *= divider;
 					}
 				//	std::cout<<"\nBlubb ";
-					float lengthRequiredLine = currentFont->CalculateRenderSizeUnits(line).x * pixels;
+					float lengthRequiredLine = currentFont->CalculateRenderSizeUnits(line)[0] * pixels;
 				//	std::cout<<"\nBlubb ";
 					/// Check if catenated line will exceed bounds.
 					line2 = line + " " + word;
-					float lengthRequiredLine2 = currentFont->CalculateRenderSizeUnits(line2).x * pixels;
+					float lengthRequiredLine2 = currentFont->CalculateRenderSizeUnits(line2)[0] * pixels;
 				//	std::cout<<"\nBlubb ";
 					if (lengthRequiredLine2 > sizeX){
 						/// Add first line to textToRender + new line
@@ -1617,7 +1617,7 @@ void UIElement::RenderSelf(GraphicsState & graphicsState)
 		// If disabled, dull the color! o.o
 		if (this->IsDisabled())
 			textColorToRender *= 0.55f;
-	//	color.w *= 0.5f;
+	//	color[3] *= 0.5f;
 		graphicsState.currentFont->SetColor(textColorToRender);
 //		std::cout<<"\nTextToRender: "<<textToRender;
 		graphicsState.currentFont->RenderText(this->textToRender, graphicsState);
@@ -1633,7 +1633,7 @@ void UIElement::RenderChildren(GraphicsState & graphicsState)
 	Vector3f currBottomLeft = graphicsState.modelMatrixF * initialPositionBottomLeft;
 
 	Rect previousScissor = graphicsState.scissor;
-	Rect uiRect(currBottomLeft.x, currBottomLeft.y, currTopRight.x, currTopRight.y);
+	Rect uiRect(currBottomLeft[0], currBottomLeft[1], currTopRight[0], currTopRight[1]);
 	Rect uiScissor = previousScissor.Intersection(uiRect);
 
 	// Set scissor! o.o

@@ -80,8 +80,8 @@ void SpaceShooterProjectileProperty::Process(int timeInMs)
 	// Assume there is some max life-time to all projectiles.!
 	if (/*game->IsPositionOutsideFrame(owner->position) && alive >= 3 || */
 		timeAliveMs >= 10000 ||
-		(owner->position.x < game->left  && owner->Velocity().x < 0) ||
-		(owner->position.x > game->right && owner->Velocity().x > 0) )
+		(owner->position[0] < game->left  && owner->Velocity()[0] < 0) ||
+		(owner->position[0] > game->right && owner->Velocity()[0] > 0) )
 	{
 		Sleep();
 	}

@@ -7,7 +7,7 @@
 Random SparksEmitter::velocityRandom;
 Random SparksEmitter::lifeTimeRandom;
 
-SparksEmitter::SparksEmitter(Vector3f point)
+SparksEmitter::SparksEmitter(const Vector3f & point)
 : ParticleEmitter(point)
 {
 	velRandPart = 0.8f;

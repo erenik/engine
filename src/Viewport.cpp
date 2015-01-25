@@ -199,10 +199,10 @@ bool Viewport::GetRayFromViewportCoordinates(Vector2i coords, Ray & ray)
  //   std::cout<<"\nNearPlaneCenter: "<<nearPlaneCenter<<" NearPlaneLowerLeftcorner: "<<nearPlaneLLCorner;
 
 	// Get relative positions of where we clicketiclicked, from 0.0 to 1.0 (0,0 in lower left corner)
-	float clientAreaWidth = (float)size.x;
-	float clientAreaHeight = (float)size.y;
-	float relativeX = coords.x / clientAreaWidth,
-		  relativeY = coords.y / clientAreaHeight;
+	float clientAreaWidth = (float)size[0];
+	float clientAreaHeight = (float)size[1];
+	float relativeX = coords[0] / clientAreaWidth,
+		  relativeY = coords[1] / clientAreaHeight;
 
     float zoom = camera.zoom;
     Frustum frustum = camera.GetFrustum();

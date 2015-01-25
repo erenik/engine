@@ -19,7 +19,7 @@ GMSetCamera::GMSetCamera(Camera * cameraToTrack, Window * inWindow)
 	target = CT_CAMERA_TO_TRACK;
 }
 
-GMSetCamera::GMSetCamera(Camera * camera, int target, Vector3f vec3fValue)
+GMSetCamera::GMSetCamera(Camera * camera, int target, ConstVec3fr vec3fValue)
 : GraphicsMessage(GM_SET_CAMERA), camera(camera), target(target), vec3fValue(vec3fValue)
 {
 	assert(camera);
@@ -133,12 +133,12 @@ void GMSetCamera::Process()
 			break;
 		case CT_ROTATION_SPEED_YAW:
 		{
-			camera->rotationalVelocityEuler.y = fValue;
+			camera->rotationalVelocityEuler[1] = fValue;
 			break;
 		}
 		case CT_ROTATION_SPEED_PITCH:
 		{
-			camera->rotationalVelocityEuler.x = fValue;
+			camera->rotationalVelocityEuler[0] = fValue;
 			break;
 		}
 		case CT_POSITION:
@@ -177,7 +177,7 @@ void GMSetCamera::Process()
 			camera->offsetRotation = -vec3fValue;
 			break;
 		case CT_RELATIVE_POSITION_Y:
-			camera->relativePosition.y = fValue;
+			camera->relativePosition[1] = fValue;
 			break;
 		case CT_RELATIVE_POSITION:
 			camera->relativePosition = vec3fValue;

@@ -11,14 +11,14 @@ class Sphere : public Mesh
 {
 public:
 	Sphere();
-	Sphere(float radius, Vector3f position = Vector3f());
+	Sphere(float radius, const Vector3f & position = Vector3f());
 	virtual ~Sphere();
 
 	/** Creates a "quadratic" sphere-segment, 
 		using given width and height (both in radians) from the middle of X and Y respectively.
 		Assigns UV-coordinates automatically in a quadratic projection sense.
 
-		Width (Size.x) should be between 0 and 2 PI, while height (Size.y) should be between 0 and PI.
+		Width (Size[0]) should be between 0 and 2 PI, while height (Size[1]) should be between 0 and PI.
 	*/
 	static Sphere * CreateSegmentFromEquator(Vector2f size, Vector2i segments, float offsetX, bool invertTexUCoords);
 

@@ -43,7 +43,7 @@ void GraphicsManager::RenderSelection()
 		glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, graphicsState->viewMatrixF.getPointer());
 	// Update camera in the world
 	if (shader && shader->uniformEyePosition != -1)
-		glUniform4f(shader->uniformEyePosition, camera->Position().x, camera->Position().y, camera->Position().z, 1.0);
+		glUniform4f(shader->uniformEyePosition, camera->Position()[0], camera->Position()[1], camera->Position()[2], 1.0);
 
 
 	PrintGLError("Unable to set wireframe shader");

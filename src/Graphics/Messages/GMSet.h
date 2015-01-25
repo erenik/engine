@@ -15,7 +15,7 @@ class Viewport;
 class GMSet : public GraphicsMessage {
 public:
 	GMSet(int target, void *pData);
-	GMSet(int target, Vector3f vec3fValue);
+	GMSet(int target, const Vector3f & vec3fValue);
 	GMSet(int target, float floatValue);
 	void Process();
 private:

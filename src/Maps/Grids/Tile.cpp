@@ -103,7 +103,7 @@ TileType::TileType()
 : type(NULL), texture(NULL){
 }
 
-TileType::TileType(int type, String name, Vector3f color, Texture * t)
+TileType::TileType(int type, String name, const Vector3f & color, Texture * t)
 : type(type), name(name), color(color), texture(t){
 }
 

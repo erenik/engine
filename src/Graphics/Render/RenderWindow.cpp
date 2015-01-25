@@ -61,12 +61,12 @@ void GraphicsManager::RenderWindow()
 
     // Clears the color and depth buffers
    // glClearColor(0.1f, 0.1f, 0.15f, 0.5f);
-//    glClearColor(renderSettings->clearColor.x, renderSettings->clearColor.y, renderSettings->clearColor.z, 1.0f);
+//    glClearColor(renderSettings->clearColor[0], renderSettings->clearColor[1], renderSettings->clearColor[2], 1.0f);
     PrintTime("\nglClearColor: ");
 	*/
 	Vector4f color = window->backgroundColor; 
 	color = Vector4f(0.2f, 0.2f, 0.2f, 1.f);
-	glClearColor(color.x, color.y, color.z, color.w);
+	glClearColor(color[0], color[1], color[2], color[3]);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	/*
 	/// Testing...
@@ -175,7 +175,7 @@ void GraphicsManager::RenderWindow()
 	PrintTime("\nView port rendered");
 
 	// Reset viewport and the projection matrices as needed after viewports have been drawn!
-	glViewport(0, 0, windowSize.x, windowSize.y);
+	glViewport(0, 0, windowSize[0], windowSize[1]);
 //	std::cout<<"\nViewport size: "<<width<<" x" <<height;
 //	UpdateProjection();
 
@@ -215,7 +215,7 @@ void GraphicsManager::RenderWindow()
 		Texture * tex = window->frameTexture;
 		tex->bpp = 4; // 4 bytes per pixel, RGBA
 		tex->Resize(windowSize);
-		glReadPixels(0, 0, windowSize.x, windowSize.y, GL_RGBA, GL_UNSIGNED_BYTE, tex->data);
+		glReadPixels(0, 0, windowSize[0], windowSize[1], GL_RGBA, GL_UNSIGNED_BYTE, tex->data);
 		window->getNextFrame = false;
 	}
 	

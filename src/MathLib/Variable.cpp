@@ -39,7 +39,7 @@ Variable::Variable(String name, float fValue)
 
 }
 
-Variable::Variable(String name, Vector3f vec3f)
+Variable::Variable(String name, const Vector3f & vec3f)
 	: name(name), vec3fValue(vec3f), type(DataType::VECTOR_3F)
 {
 }

@@ -31,7 +31,7 @@ public:
 	/// Removes all entities that are outside the frustum.
 	Entities CullByCamera(Camera * camera) const;
 	/// Sorts by distance to selected position.
-	void SortByDistance(Vector3f position);
+	void SortByDistance(const Vector3f & position);
 	/// Calculates based on Z-depth of the camera's near-plane.
 	void SortByDistanceToCamera(Camera * camera);
 

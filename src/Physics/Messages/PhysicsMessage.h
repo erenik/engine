@@ -180,7 +180,7 @@ private:
 class PMApplyImpulse : public PhysicsMessage {
 public:
     /// Standard 1 second impulse.
-    PMApplyImpulse(List<Entity*> targetEntities, Vector3f force, Vector3f pointInSpace, float duration = 1.0f);
+    PMApplyImpulse(List<Entity*> targetEntities, const Vector3f & force, const Vector3f & pointInSpace, float duration = 1.0f);
     void Process();
 private:
     List<Entity*> entities;
@@ -195,8 +195,8 @@ public:
 	PMSetEntity(List<Entity*> targetEntities, int target);
 	PMSetEntity(List<Entity*> targetEntities, int target, float value);
 	PMSetEntity(List<Entity*> targetEntities, int target, Vector2f value, long long timeStamp = 0);
-	PMSetEntity(List<Entity*> targetEntities, int target, Vector3f value, long long timeStamp = 0);
-	PMSetEntity(List<Entity*> targetEntities, int target, Quaternion value, long long timeStamp = 0);
+	PMSetEntity(List<Entity*> targetEntities, int target, const Vector3f & value, long long timeStamp = 0);
+	PMSetEntity(List<Entity*> targetEntities, int target, const Quaternion & value, long long timeStamp = 0);
 	PMSetEntity(List<Entity*> targetEntities, int target, bool value);
 	PMSetEntity(List<Entity*> targetEntities, int target, int value);
 	PMSetEntity(List<Entity*> targetEntities, int target, Waypoint * waypoint);
@@ -250,7 +250,7 @@ class CollisionDetector;
 
 class PMSet : public PhysicsMessage {
 public:
-	PMSet(int target, Vector3f value);
+	PMSet(int target, const Vector3f & value);
 	PMSet(int target, float value);
 	PMSet(int target, bool bValue);
 	PMSet(int target, int iValue);
@@ -278,7 +278,7 @@ private:
 
 class PMSetWaypoint : public PhysicsMessage {
 public:
-	PMSetWaypoint(Vector3f position, int target, void * value);
+	PMSetWaypoint(const Vector3f & position, int target, void * value);
 	virtual void Process();
 private:
 	Vector3f position;
@@ -288,7 +288,7 @@ private:
 
 class PMSetVelocity : public PhysicsMessage {
 public:
-	PMSetVelocity(Entity * entity, Vector3f newVelocity);
+	PMSetVelocity(Entity * entity, const Vector3f & newVelocity);
 	void Process();
 private:
 	Entity * entity;

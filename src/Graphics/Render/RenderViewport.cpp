@@ -18,16 +18,16 @@ void GraphicsManager::RenderViewport(Viewport * vp)
 
 	vp->UpdateSize();
 	/// Viewport.. so width and height are based on the viewport.
-	int width = vp->size.x, height = vp->size.y;
+	int width = vp->size[0], height = vp->size[1];
 	
 	/// Absolute coordinates
-	glViewport(vp->bottomLeftCorner.x, vp->bottomLeftCorner.y, vp->size.x, vp->size.y);
+	glViewport(vp->bottomLeftCorner[0], vp->bottomLeftCorner[1], vp->size[0], vp->size[1]);
 
 	glEnable(GL_SCISSOR_TEST);
-	glScissor(vp->bottomLeftCorner.x, vp->bottomLeftCorner.y, vp->size.x, vp->size.y);
+	glScissor(vp->bottomLeftCorner[0], vp->bottomLeftCorner[1], vp->size[0], vp->size[1]);
 
 	// draw bg
-	glClearColor(vp->backgroundColor.x, vp->backgroundColor.y, vp->backgroundColor.z,1);
+	glClearColor(vp->backgroundColor[0], vp->backgroundColor[1], vp->backgroundColor[2],1);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// Fetch camera to use. 

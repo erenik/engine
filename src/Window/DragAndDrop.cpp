@@ -194,7 +194,7 @@ int DragAndDrop::GetObject(IDataObject * pDataObj)
 					// be sure if this is GMEM_FIXED (i.e. normal heap) data or not
 					char * data = (char*) GlobalLock(medium.hGlobal);
  
-		//			Vector2i windowCoords = hoverWindow->GetWindowCoordsFromScreenCoords(Vector2i(pt.x, pt.y));
+		//			Vector2i windowCoords = hoverWindow->GetWindowCoordsFromScreenCoords(Vector2i(pt[0], pt[1]));
 					String text = data;
 					std::cout<<"\nReceived text: "<<text; 
 					// Set the text of target UI element or whatever was there...

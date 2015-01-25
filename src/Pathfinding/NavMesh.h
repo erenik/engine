@@ -80,9 +80,9 @@ public:
 	/// Entities..
 	Waypoint * GetClosestToRay(Ray & ray);
 	/// If maxDistance is positive, it will limit the search within that vicinity-range. A negative number will set no limit.
-	Waypoint * GetClosestTo(Vector3f position, float maxDistance = -1.f);
+	Waypoint * GetClosestTo(const Vector3f & position, float maxDistance = -1.f);
 	/// Returns vacant waypoint closest to target position
-	Waypoint * GetClosestVacantWaypoint(Vector3f position);
+	Waypoint * GetClosestVacantWaypoint(const Vector3f & position);
 	
 	/// Creates neighbour-connections automatically, using only a maximum distance. Returns number of connections made.
 	int ConnectWaypointsByProximity(float maxDistance);

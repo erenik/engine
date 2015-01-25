@@ -55,31 +55,31 @@ void BreakoutIntegrator::IntegrateVelocity(Entity * forEntity, float timeInSecon
 	}
 
 
-	forEntity->position.z = constantZ;
-	forEntity->physics->velocity.z = 0;
+	forEntity->position[2] = constantZ;
+	forEntity->physics->velocity[2] = 0;
 
 	forEntity->RecalculateMatrix();
 
 	// Goal!
-	if (position.x > frameMax.x)
+	if (position[0] > frameMax[0])
 	{
 		velocity = Vector3f();
 		MesMan.QueueMessages("RightGoal");
 	}
-	else if (position.x < frameMin.x)
+	else if (position[0] < frameMin[0])
 	{
 		velocity = Vector3f();
 		MesMan.QueueMessages("LeftGoal");
 	}
 		
-	if (position.y >= frameMax.y)
+	if (position[1] >= frameMax[1])
 	{
-		velocity.y = -AbsoluteValue(velocity.y);
-		position.y = frameMax.y;
+		velocity[1] = -AbsoluteValue(velocity[1]);
+		position[1] = frameMax[1];
 	}
-	else if (position.y <= frameMin.y)
+	else if (position[1] <= frameMin[1])
 	{
-		velocity.y = +AbsoluteValue(velocity.y);
-		position.y = frameMin.y;
+		velocity[1] = +AbsoluteValue(velocity[1]);
+		position[1] = frameMin[1];
 	}
 }

@@ -31,8 +31,8 @@ void AlphaModelEffect::Render(GraphicsState & graphicsState)
 	Shader * shader = ActiveShader();
 	assert(model);
 	/// Override alpha-changes from outside if they decreased it!
-	if (primaryColor.w < lastAlpha)
-		primaryColor.w = lastAlpha,
+	if (primaryColor[3] < lastAlpha)
+		primaryColor[3] = lastAlpha,
 
 	assert(entity);
 	static Matrix4f modelMatrix;
@@ -40,8 +40,8 @@ void AlphaModelEffect::Render(GraphicsState & graphicsState)
 	{
 		modelMatrix = Matrix4f::InitTranslationMatrix(entity->position);
 		modelMatrix.Scale(entity->radius * (entity->scale.ElementMultiplication(relativeScale)).MaxPart());
-		modelMatrix.Multiply(Matrix4f::InitRotationMatrixX(entity->rotation.x));
-		modelMatrix.Multiply(Matrix4f::InitRotationMatrixY(relativeRotation.y + entity->rotation.y));
+		modelMatrix.Multiply(Matrix4f::InitRotationMatrixX(entity->rotation[0]));
+		modelMatrix.Multiply(Matrix4f::InitRotationMatrixY(relativeRotation[1] + entity->rotation[1]));
 		graphicsState.modelMatrixF = modelMatrix;
 	};
 
@@ -51,15 +51,15 @@ void AlphaModelEffect::Render(GraphicsState & graphicsState)
 		// Model matrix
 		glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, graphicsState.modelMatrixF.getPointer());
 		// Alpha
-		glUniform4f(shader->uniformPrimaryColorVec4, primaryColor.x, primaryColor.y, primaryColor.z, primaryColor.w);
+		glUniform4f(shader->uniformPrimaryColorVec4, primaryColor[0], primaryColor[1], primaryColor[2], primaryColor[3]);
 	}
-	primaryColor.w -= linearDecay * graphicsState.frameTime;
-	primaryColor.w *= pow(1.0f - relativeDecay, graphicsState.frameTime); 
-	primaryColor.w = max(primaryColor.w, 0.0f);
-	lastAlpha = primaryColor.w;
-	relativeRotation.y += 0.2f * graphicsState.frameTime;
+	primaryColor[3] -= linearDecay * graphicsState.frameTime;
+	primaryColor[3] *= pow(1.0f - relativeDecay, graphicsState.frameTime); 
+	primaryColor[3] = max(primaryColor[3], 0.0f);
+	lastAlpha = primaryColor[3];
+	relativeRotation[1] += 0.2f * graphicsState.frameTime;
 
-//	std::cout<<"\nAlpha: "<<primaryColor.w;
+//	std::cout<<"\nAlpha: "<<primaryColor[3];
 
 	// Render stuffs.
 	model->Render(graphicsState);

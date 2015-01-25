@@ -104,22 +104,21 @@ void Pong::Initialize()
 	player2 = MapMan.CreateEntity("Player2", pad, white);
 	player2Properties = new PongPlayerProperty(player2, Vector2f(-1, 0), 15.f);
 	player2->properties.Add(player2Properties);
-	players.Add(2, player1, player2);
+	players.Add(player1, player2);
 
 	score1Entity = MapMan.CreateEntity("Player1Score", NULL, alpha);
 	score2Entity = MapMan.CreateEntity("Player2Score", NULL, alpha);
-	scoreEntities.Add(2, score1Entity, score2Entity);
+	scoreEntities.Add(score1Entity, score2Entity);
 		
 
 
 	horizontalBars = MapMan.CreateEntity("Walls", ModelMan.GetModel("Pong/HorizontalBars"), horizontalBarColor);
 	goals = MapMan.CreateEntity("Goals", ModelMan.GetModel("Pong/VerticalBars"), verticalBarColor);
-	frame.Add(2, horizontalBars, goals);
+	frame.Add(horizontalBars, goals);
 
 	/// Add all entities.
-	entities.Add(6, 
-		player1, player2, horizontalBars, 
-		goals, score1Entity, score2Entity);
+	entities.Add(player1, player2);
+	entities.Add(horizontalBars, goals, score1Entity, score2Entity);
 
 	for (int i = 0; i < entities.Size(); ++i)
 	{
@@ -180,17 +179,17 @@ void Pong::Process()
 			SetupPhysics(entities);
 
 			// Move stuff to edges of field.
-			Physics.QueueMessage(new PMSetEntity(player1, PT_POSITION, Vector3f(playerLines.x, 0, z)));
-			Physics.QueueMessage(new PMSetEntity(player2, PT_POSITION, Vector3f(playerLines.y, 0, z)));
+			Physics.QueueMessage(new PMSetEntity(player1, PT_POSITION, Vector3f(playerLines[0], 0, z)));
+			Physics.QueueMessage(new PMSetEntity(player2, PT_POSITION, Vector3f(playerLines[1], 0, z)));
 			Physics.QueueMessage(new PMSetEntity(frame, PT_POSITION, Vector3f(0, 0, z)));
 
 			// Score-boards..
-			Physics.QueueMessage(new PMSetEntity(score1Entity, PT_POSITION, Vector3f(scoreColumns.x, 0, z - 2)));
-			Physics.QueueMessage(new PMSetEntity(score2Entity, PT_POSITION, Vector3f(scoreColumns.y, 0, z - 2)));
+			Physics.QueueMessage(new PMSetEntity(score1Entity, PT_POSITION, Vector3f(scoreColumns[0], 0, z - 2)));
+			Physics.QueueMessage(new PMSetEntity(score2Entity, PT_POSITION, Vector3f(scoreColumns[1], 0, z - 2)));
 			Physics.QueueMessage(new PMSetEntity(scoreEntities, PT_COLLISIONS_ENABLED, false));
 
 			// Set scale of score-board text relative to screen size.
-			Graphics.QueueMessage(new GMSetEntityf(scoreEntities, GT_TEXT_SIZE_RATIO, gameSize.y * 0.25f));
+			Graphics.QueueMessage(new GMSetEntityf(scoreEntities, GT_TEXT_SIZE_RATIO, gameSize[1] * 0.25f));
 			Graphics.QueueMessage(new GMSetEntityVec4f(scoreEntities, GT_TEXT_COLOR, Vector4f(0.5,0.5f,0.5f,1)));
 
 			// Make players kinematic.
@@ -356,10 +355,10 @@ void Pong::SpawnBalls()
 		Vector2f initialVelocity(r * 2 - 1, 0);
 		// Move it slightly up or downnnn.
 		float upNDown = pongBallRand.Randf() - 0.5f;
-		initialVelocity.y  = upNDown;
+		initialVelocity[1]  = upNDown;
 		initialVelocity.Normalize();
 		initialVelocity *= pbp->minimumHorizontalVelocity;
-		std::cout<<"\nInitial velocity: "<<initialVelocity.x;
+		std::cout<<"\nInitial velocity: "<<initialVelocity[0];
 		Physics.QueueMessage(new PMSetEntity(ball, PT_VELOCITY, initialVelocity));
 
 		// Reset stuff!
@@ -403,9 +402,9 @@ void Pong::UpdateBallProperties()
 }
 
 /// o.o Called from ball maybe.
-void Pong::OnGoal(Vector3f atPosition)
+void Pong::OnGoal(ConstVec3fr atPosition)
 {
-	int posX = atPosition.x;
+	int posX = atPosition[0];
 	if (posX < 0)
 	{
 		++player2Properties->score;
@@ -500,15 +499,15 @@ void Pong::RecalculatePlayfieldLines()
 
 
 	// X-values, left and right.
-	playerLines = Vector2f(min.x, max.x);
+	playerLines = Vector2f(min[0], max[0]);
 	playerLines *= distanceFromCenter;
 
 	// Update player positions?
-	Physics.QueueMessage(new PMSetEntity(player1, PT_POSITION_X, playerLines.x));
-	Physics.QueueMessage(new PMSetEntity(player2, PT_POSITION_X, playerLines.y));
+	Physics.QueueMessage(new PMSetEntity(player1, PT_POSITION_X, playerLines[0]));
+	Physics.QueueMessage(new PMSetEntity(player2, PT_POSITION_X, playerLines[1]));
 
 	// Middle!
-	scoreColumns = Vector2f(min.x, max.x);
+	scoreColumns = Vector2f(min[0], max[0]);
 	scoreColumns *= 0.5f;
 
 }

@@ -166,10 +166,10 @@ void Matrix<T>::SetDefaultValue(T newDefaultValue)
 template <class T>
 void Matrix<T>::Allocate(Vector2i size)
 {
-	assert(size.x && size.y);
+	assert(size[0] && size[1]);
 	if (arr)
 		delete[] arr;
-	arrLength = size.x * size.y;
+	arrLength = size[0] * size[1];
 	// 0-size?
 	if (!arrLength)
 		return;
@@ -184,7 +184,7 @@ void Matrix<T>::Allocate(Vector3i size)
 {
 	assert(size.Length());
 	if (arr) delete[] arr;
-	arrLength = size.x * size.y * size.z;
+	arrLength = size[0] * size[1] * size[2];
 	Allocate(arrLength);
 	this->size = size;
 }
@@ -215,16 +215,16 @@ void Matrix<T>::SetSize(Vector2i size)
 template <class T>
 bool Matrix<T>::Load(List<T> & listIntoMatrix)
 {
-	int matrixSize = size.x * size.y;
+	int matrixSize = size[0] * size[1];
 	assert(listIntoMatrix.Size() == matrixSize);
 	if(listIntoMatrix.Size() != matrixSize)
 		return false;
 	int i = 0;
-	for (int y = 0; y < size.y; ++y)
+	for (int y = 0; y < size[1]; ++y)
 	{
-		for (int x = 0; x < size.x; ++x)
+		for (int x = 0; x < size[0]; ++x)
 		{
-			int arrIndex = y * size.x + x;
+			int arrIndex = y * size[0] + x;
 			arr[arrIndex] = listIntoMatrix[i++];
 		}
 	}
@@ -237,11 +237,11 @@ bool Matrix<T>::Load(List<T> & listIntoMatrix)
 template <class T>
 void Matrix<T>::PrintContents()
 {
-	for (int x = 0; x < size.x; ++x)
+	for (int x = 0; x < size[0]; ++x)
 	{
-		for (int y = 0; y < size.y; ++y)
+		for (int y = 0; y < size[1]; ++y)
 		{
-			int arrIndex = x * size.y + y;
+			int arrIndex = x * size[1] + y;
 			std::cout<<"\nMatrix x"<<x<<" y"<<y<<": "<<arr[arrIndex];
 		}
 	}
@@ -279,7 +279,7 @@ Vector3i Matrix<T>::GetLocationOf(T item) const
 	{
 		if (arr[i] == item)
 		{
-			return Vector3i(i % size.x, (i / size.x) % size.y, i / (size.x * size.y));
+			return Vector3i(i % size[0], (i / size[0]) % size[1], i / (size[0] * size[1]));
 		}
 	}
 	return Vector3i(-1,-1,-1);
@@ -288,14 +288,14 @@ Vector3i Matrix<T>::GetLocationOf(T item) const
 template <class T>
 T Matrix<T>::At(Vector3i pos)
 {	
-	int index = pos.z * size.x * size.y + pos.y * size.x + pos.x;
+	int index = pos[2] * size[0] * size[1] + pos[1] * size[0] + pos[0];
 	return arr[index];
 }
 
 template <class T>
 T Matrix<T>::At(int x, int y, int z)
 {
-	int index = z * size.x * size.y + y * size.x + x;
+	int index = z * size[0] * size[1] + y * size[0] + x;
 	return arr[index];
 }
 
@@ -303,7 +303,7 @@ T Matrix<T>::At(int x, int y, int z)
 template <class T>
 void Matrix<T>::Set(Vector3i pos, T toT)
 {
-	int index = pos.z * size.x * size.y + pos.y * size.x + pos.x;
+	int index = pos[2] * size[0] * size[1] + pos[1] * size[0] + pos[0];
 	arr[index] = toT;
 }
 

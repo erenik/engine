@@ -31,15 +31,15 @@ bool OBB::IsInside(Sphere & sphere){
 	float dot;
 
 	dot = localForward.DotProduct(obbToSphere);
-	if (AbsoluteValue(dot) > localHalfSize.z)
+	if (AbsoluteValue(dot) > localHalfSize[2])
 		return false;
 
 	dot = localUp.DotProduct(obbToSphere);
-	if (AbsoluteValue(dot) > localHalfSize.y)
+	if (AbsoluteValue(dot) > localHalfSize[1])
 		return false;
 
 	dot = localRight.DotProduct(obbToSphere);
-	if (AbsoluteValue(dot) > localHalfSize.x)
+	if (AbsoluteValue(dot) > localHalfSize[0])
 		return false;
 
 	return true;
@@ -55,23 +55,23 @@ bool OBB::Collide(Sphere & sphere, Collision & collissionData){
 
 	vecDotForward = localForward.DotProduct(obbToSphere);
 	if (vecDotForward < 0)
-		sign.z = -1;
+		sign[2] = -1;
 	avdf = AbsoluteValue(vecDotForward);
-	if (avdf > localHalfSize.z)
+	if (avdf > localHalfSize[2])
 		return false;
 
 	vecDotUp = localUp.DotProduct(obbToSphere);
 	if (vecDotUp < 0)
-		sign.y = -1;
+		sign[1] = -1;
 	avdu = AbsoluteValue(vecDotUp);
-	if (avdu > localHalfSize.y)
+	if (avdu > localHalfSize[1])
 		return false;
 
 	vecDotRight = localRight.DotProduct(obbToSphere);
 	if (vecDotRight < 0)
-		sign.x = -1;
+		sign[0] = -1;
 	avdr = AbsoluteValue(vecDotRight);
-	if (avdr > localHalfSize.x)
+	if (avdr > localHalfSize[0])
 		return false;
 	
 #define FORWARD	1
@@ -85,13 +85,13 @@ bool OBB::Collide(Sphere & sphere, Collision & collissionData){
 		if (avdf > avdr){
 			/// Forward was closest!
 			closest = FORWARD;
-			normal = localForward * sign.z;
+			normal = localForward * sign[2];
 			distanceInto = avdf;
 		}
 		else {
 			/// Right was closest!
 			closest = RIGHT;
-			normal = localRight * sign.x;
+			normal = localRight * sign[0];
 			distanceInto = avdr;
 		}
 	}
@@ -99,13 +99,13 @@ bool OBB::Collide(Sphere & sphere, Collision & collissionData){
 		if (avdu > avdr){
 			/// Up closest
 			closest = UP;
-			normal = localUp * sign.y;
+			normal = localUp * sign[1];
 			distanceInto = avdu;
 		}
 		else {
 			/// Right closest;
 			closest = RIGHT;
-			normal = localRight * sign.x;
+			normal = localRight * sign[0];
 			distanceInto = avdr;
 		}
 	}
@@ -146,14 +146,14 @@ void OBB::Recalculate(Entity * entity)
 	localSize = max - min;
 	localHalfSize = localSize * 0.5f;
 
-    corners[0] = Vector3f(min.x, min.y, min.z);
-    corners[1] = Vector3f(max.x, min.y, min.z);
-    corners[2] = Vector3f(max.x, max.y, min.z);
-    corners[3] = Vector3f(min.x, max.y, min.z);
-    corners[4] = Vector3f(min.x, min.y, max.z);
-    corners[5] = Vector3f(max.x, min.y, max.z);
-    corners[6] = Vector3f(max.x, max.y, max.z);
-    corners[7] = Vector3f(min.x, max.y, max.z);
+    corners[0] = Vector3f(min[0], min[1], min[2]);
+    corners[1] = Vector3f(max[0], min[1], min[2]);
+    corners[2] = Vector3f(max[0], max[1], min[2]);
+    corners[3] = Vector3f(min[0], max[1], min[2]);
+    corners[4] = Vector3f(min[0], min[1], max[2]);
+    corners[5] = Vector3f(max[0], min[1], max[2]);
+    corners[6] = Vector3f(max[0], max[1], max[2]);
+    corners[7] = Vector3f(min[0], max[1], max[2]);
 
 	localUp = entity->rotationMatrix.Product(Vector3f(0,1,0));
 	localForward = entity->rotationMatrix.Product(Vector3f(0,0,-1));
@@ -275,7 +275,7 @@ void OBB::Recalculate(Entity * entity)
 
 void OBB::Render(){
     glBegin(GL_LINE_STRIP);
-#define RENDER(p);  glVertex3f(p.x,p.y,p.z);
+#define RENDER(p);  glVertex3f(p[0],p[1],p[2]);
     glColor3f(1,0,0);
     RENDER(corners[0]);
 

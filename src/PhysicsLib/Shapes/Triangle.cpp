@@ -11,7 +11,7 @@ Triangle::Triangle(const Triangle &tri)
 	position = (point1 + point2 + point3) * 0.33333f;
 }
 
-void Triangle::Set3Points(Vector3f p1, Vector3f p2, Vector3f p3){
+void Triangle::Set3Points(const Vector3f & p1, const Vector3f & p2, const Vector3f & p3){
 	point1 = p1;
 	point2 = p2;
 	point3 = p3;

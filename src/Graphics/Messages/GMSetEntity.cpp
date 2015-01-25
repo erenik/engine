@@ -292,7 +292,7 @@ void GMSetEntityf::Process()
 		switch(target)
 		{
 			case GT_ALPHA:
-				entity->graphics->color.w = fValue;
+				entity->graphics->color[3] = fValue;
 				break;
 			case GT_TEXT_SIZE_RATIO:
 				entity->graphics->textSizeRatio = fValue;
@@ -415,13 +415,13 @@ void GMSlideEntityf::Process()
 		{
 			// Non pre-filled? 
 			estimatorFloat = new EstimatorFloat();
-			estimatorFloat->AddStateMs(graphics->color.w, 0);
+			estimatorFloat->AddStateMs(graphics->color[3], 0);
 			estimatorFloat->AddStateMs(this->targetValue, this->timeInMs);
 		}
 		switch(target)
 		{
 			case GT_ALPHA:
-				estimatorFloat->variableToPutResultTo = &graphics->color.w;
+				estimatorFloat->variableToPutResultTo = &graphics->color[3];
 				break;
 			default:
 				assert(false);

@@ -16,7 +16,7 @@ class EVertex : public Vector3f
 {
 public:
 	EVertex();
-	const EVertex & operator = (Vector3f assign);
+	const EVertex & operator = (const Vector3f & assign);
 	/// o-o
 //	Vector3f position;
 	/// Faces this vertex is part of.

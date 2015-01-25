@@ -14,7 +14,7 @@ class Quaternion {
 public:
     Quaternion();
 	/// Generates a rotation quaternion based on given axis and rotation around it
-    Quaternion(Vector3f axis, float angle);
+    Quaternion(const Vector3f & axis, float angle);
     Quaternion(const Quaternion& other);
     Quaternion(float x, float y, float z, float w = 1);
 
@@ -33,7 +33,7 @@ public:
 	Quaternion operator - () const;
 
     /// Quaterntion-Quaterntion multiplication
-    void operator +=(const Quaternion & addend);
+//    void operator +=(const Quaternion & addend);
     void operator *=(const Quaternion & multiplier);
     Quaternion Multiply(const Quaternion & quaternion);
     Quaternion operator * (const Quaternion &f) const;

@@ -16,7 +16,7 @@ public:
 	Variable(String name);
 	Variable(String name, int iValue);
 	Variable(String name, float fValue);
-	Variable(String name, Vector3f vec3f);
+	Variable(String name, const Vector3f & vec3f);
 	Variable(String name, const Vector4f & vec4f);
 	
 	int Type() const { return type; };

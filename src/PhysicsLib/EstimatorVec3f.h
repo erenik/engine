@@ -11,7 +11,7 @@
 class EstimationVec3f : public Estimation {
 public:
 	EstimationVec3f();
-	EstimationVec3f(Vector3f value, int64 timeStampInMs);
+	EstimationVec3f(const Vector3f & value, int64 timeStampInMs);
 	Vector3f value;
 };
 
@@ -40,7 +40,7 @@ public:
 	/// Calculates values as estimated for given time.
 //	Vector3f Calculate(long long forGivenTime);
 
-	void AddState(Vector3f vec, int64 timeInMs);
+	void AddState(const Vector3f & vec, int64 timeInMs);
 	/// Required to use any extrapolation, since it requires another estimator inside for smoothing.
 	void EnableExtrapolation();
 	/// See modes above.

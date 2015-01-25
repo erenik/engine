@@ -146,7 +146,7 @@ void PhysicsProperty::CalculateInertiaTensor()
 	/// TODO: Move mass settings elsewhere! And have it depend on a density parameter so it can scale well?
 	/// Density in kg/m³ or g/dm³
 	float defaultDensity = 500;
-	mass = scale.x * scale.y * scale.z * defaultDensity;
+	mass = scale[0] * scale[1] * scale[2] * defaultDensity;
 	if (!mass <= 0)
 		mass = 1;
 	if (mass <= 0)
@@ -156,9 +156,9 @@ void PhysicsProperty::CalculateInertiaTensor()
 	/// Calculate intertia tensor!
 	/// Ref: http://en.wikipedia.org/wiki/List_of_moment_of_inertia_tensors
 	float m = 1.0f / 12.0f * mass;
-	float h2 = pow(aabb->scale.y, 2);
-	float w2 = pow(aabb->scale.x, 2);
-	float d2 = pow(aabb->scale.z, 2);
+	float h2 = pow(aabb->scale[1], 2);
+	float w2 = pow(aabb->scale[0], 2);
+	float d2 = pow(aabb->scale[2], 2);
 
 	#define PRINT(m) std::cout<<"\n m: "<<m;
 	std::cout<<"\nm: "<<m;
@@ -202,7 +202,8 @@ float PhysicsProperty::KineticEnergy(){
 }
 
 /// Applies target impulse at specified position to this entity. Impulse in Ns (kg*m/s)
-void PhysicsProperty::ApplyImpulse(Vector3f impulse, Vector3f position){
+void PhysicsProperty::ApplyImpulse(const Vector3f & impulse, const Vector3f & position)
+{
 	/// Static objects don't apply anything anyway.
 	if (inverseMass == 0)
 		return;

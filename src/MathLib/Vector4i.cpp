@@ -50,35 +50,35 @@ Vector4i::Vector4i(int arr[]){
 */
 Vector4i::Vector4i(const Vector2i& base, int z, int w)
 {
-	x = base.x;
-	y = base.y;
+	x = base[0];
+	y = base[1];
 	this->z = z;
 	this->w = w;
 }
 
 Vector4i::Vector4i(const Vector3f & base, int w)
 {
-	x = (int)RoundFloat(base.x);
-	y = (int)RoundFloat(base.y);
-	z = (int)RoundFloat(base.z);
+	x = (int)RoundFloat(base[0]);
+	y = (int)RoundFloat(base[1]);
+	z = (int)RoundFloat(base[2]);
 	this->w = w;
 }
 
 Vector4i::Vector4i(const Vector4i & base)
 {
-	x = base.x;
-	y = base.y;
-	z = base.z;
-	w = base.w;
+	x = base[0];
+	y = base[1];
+	z = base[2];
+	w = base[3];
 }
 
 // Constructors from other Vector classes
 Vector4i::Vector4i(const Vector4f& base)
 {
-	x = (int)RoundFloat(base.x);
-	y = (int)RoundFloat(base.y);
-	z = (int)RoundFloat(base.z);
-	w = (int)RoundFloat(base.w);
+	x = (int)RoundFloat(base[0]);
+	y = (int)RoundFloat(base[1]);
+	z = (int)RoundFloat(base[2]);
+	w = (int)RoundFloat(base[3]);
 }
 
 /*
@@ -102,7 +102,7 @@ List<Vector4i> Vector4i::FromFloatList(List<float> floatList, int numVectorsToEx
 
 /// Printing out data
 std::ostream& operator <<(std::ostream& os, const Vector4i& vec){
-	os << vec.x << " " << vec.y << " " << vec.z;
+	os << vec[0] << " " << vec[1] << " " << vec[2];
 	return os;
 }
 
@@ -140,9 +140,9 @@ void Vector4i::Clamp(float min, float max)
 
 void Vector4i::Clamp(Vector4i min, Vector4i max)
 {
-	ClampFloat(x, min.x, max.x);
-	ClampFloat(y, min.y, max.y);
-	ClampFloat(z, min.z, max.z);
+	ClampFloat(x, min[0], max[0]);
+	ClampFloat(y, min[1], max[1]);
+	ClampFloat(z, min[2], max[2]);
 }*/
 
 // ************************************************************************//
@@ -150,16 +150,16 @@ void Vector4i::Clamp(Vector4i min, Vector4i max)
 // ************************************************************************//
 
 void Vector4i::Add(Vector4i addend){
-	x += addend.x;
-	y += addend.y;
-	z += addend.z;
+	x += addend[0];
+	y += addend[1];
+	z += addend[2];
 }
 
 
 void Vector4i::Subtract(Vector4i subtractor){
-	x -= subtractor.x;
-	y -= subtractor.y;
-	z -= subtractor.z;
+	x -= subtractor[0];
+	y -= subtractor[1];
+	z -= subtractor[2];
 }
 
 void Vector4i::Scale(float ratio)
@@ -184,20 +184,20 @@ void Vector4i::Scale(float ix, float iy, float iz)
 /// Comparison operators
 bool Vector4i::operator == (const Vector4i comparand) const 
 {
-	if (comparand.x == x &&
-		comparand.y == y &&
-		comparand.z == z &&
-		comparand.w == w)
+	if (comparand[0] == x &&
+		comparand[1] == y &&
+		comparand[2] == z &&
+		comparand[3] == w)
 		return true;
 	return false;
 }
 
 bool Vector4i::operator != (const Vector4i comparand) const 
 {
-	if (comparand.x != x ||
-		comparand.y != y ||
-		comparand.z != z ||
-		comparand.w != w)
+	if (comparand[0] != x ||
+		comparand[1] != y ||
+		comparand[2] != z ||
+		comparand[3] != w)
 		return true;
 	return false;
 }
@@ -212,10 +212,10 @@ Vector4i Vector4i::operator - () const
 
 Vector4i  Vector4i::operator + (Vector4i addend) const {
 	Vector4i  newVec;
-	newVec.x = x + addend.x;
-	newVec.y = y + addend.y;
-	newVec.z = z + addend.z;
-	newVec.w = w + addend.w;
+	newVec[0] = x + addend[0];
+	newVec[1] = y + addend[1];
+	newVec[2] = z + addend[2];
+	newVec[3] = w + addend[3];
 	return newVec;
 }
 
@@ -223,10 +223,10 @@ Vector4i  Vector4i::operator + (Vector4i addend) const {
 Vector4i  Vector4i::operator - (Vector4i subtractor) const 
 {
 	Vector4i  newVec;
-	newVec.x = x - subtractor.x;
-	newVec.y = y - subtractor.y;
-	newVec.z = z - subtractor.z;
-	newVec.w = w - subtractor.w;
+	newVec[0] = x - subtractor[0];
+	newVec[1] = y - subtractor[1];
+	newVec[2] = z - subtractor[2];
+	newVec[3] = w - subtractor[3];
 	return newVec;
 }
 
@@ -234,26 +234,26 @@ Vector4i  Vector4i::operator - (Vector4i subtractor) const
 Vector4i operator * (float multiplier, const Vector4i vector)
 {
 	Vector4i  newVec;
-	newVec.x = vector.x * multiplier;
-	newVec.y = vector.y * multiplier;
-	newVec.z = vector.z * multiplier;
-	newVec.w = vector.w * multiplier;
+	newVec[0] = vector[0] * multiplier;
+	newVec[1] = vector[1] * multiplier;
+	newVec[2] = vector[2] * multiplier;
+	newVec[3] = vector[3] * multiplier;
 	return newVec;
 }
 
 /// Adds addend to this vector.
 void Vector4i::operator += (Vector4i addend)
 {
-	x += addend.x;
-	y += addend.y;
-	z += addend.z;
+	x += addend[0];
+	y += addend[1];
+	z += addend[2];
 }
 
 
 void Vector4i::operator -= (const Vector4i  subtractor){
-	x -= subtractor.x;
-	y -= subtractor.y;
-	z -= subtractor.z;
+	x -= subtractor[0];
+	y -= subtractor[1];
+	z -= subtractor[2];
 }
 
 /// Internal element division
@@ -273,18 +273,18 @@ void Vector4i::operator *= (const float &f){
 /// Internal element multiplication
 void Vector4i::operator *= (const Vector4i &f)
 {
-	x *= f.x;
-	y *= f.y;
-	z *= f.z;
+	x *= f[0];
+	y *= f[1];
+	z *= f[2];
 }
 	
 /// Internal element multiplication
 void Vector4i::operator *= (const Matrix4f &mat)
 {
 	Vector4f newVec = mat.Product(Vector4f(*this));
-	x = newVec.x;
-	y = newVec.y;
-	z = newVec.z;
+	x = newVec[0];
+	y = newVec[1];
+	z = newVec[2];
 }
 
 /// Internal element multiplication
@@ -297,7 +297,7 @@ Vector4i Vector4i::operator / (const float &f) const {
 }
 */
 
-int Vector4i::operator [](int index)
+int & Vector4i::operator [](int index)
 {
 	switch(index){
 		case 0:
@@ -313,6 +313,22 @@ int Vector4i::operator [](int index)
 	}
 }
 
+/// Operator overloading for the array-access operator []
+const int & Vector4i::operator [](int index) const
+{
+	switch(index){
+		case 0:
+			return x;
+		case 1:
+			return y;
+		case 2:
+			return z;
+		case 3:
+			return w;
+		default:
+			throw 1003;
+	}
+}
 
 // ************************************************************************//
 // Vector operations
@@ -320,24 +336,24 @@ int Vector4i::operator [](int index)
 /*
 float Vector4i::ScalarProduct(Vector4i otherVector) const 
 {
-	return x * otherVector.x + y * otherVector.y + z * otherVector.z;
+	return x * otherVector[0] + y * otherVector[1] + z * otherVector[2];
 }
 // Same thing as scalar product, silly!
 float Vector4i::DotProduct(Vector4i otherVector) const {
-	return x * otherVector.x + y * otherVector.y + z * otherVector.z;
+	return x * otherVector[0] + y * otherVector[1] + z * otherVector[2];
 }
 
 Vector4i Vector4i::CrossProduct(Vector4i otherVector) const {
-	return Vector4i (y * otherVector.z - z * otherVector.y, z * otherVector.x - x * otherVector.z, x * otherVector.y - y * otherVector.x);
+	return Vector4i (y * otherVector[2] - z * otherVector[1], z * otherVector[0] - x * otherVector[2], x * otherVector[1] - y * otherVector[0]);
 }
 
 /// Multiplies the elements in the two vectors internally, returning the product.
 Vector4i Vector4i::ElementMultiplication(const Vector4i otherVector) const {
-	return Vector4i(x * otherVector.x, y * otherVector.y, z * otherVector.z);
+	return Vector4i(x * otherVector[0], y * otherVector[1], z * otherVector[2]);
 }
 Vector4i Vector4i::ElementDivision(const Vector4i otherVector) const 
 {
-	return Vector4i(x / otherVector.x, y / otherVector.y, z / otherVector.z);
+	return Vector4i(x / otherVector[0], y / otherVector[1], z / otherVector[2]);
 }
 */
 /// Calculates the length of the vector.
@@ -383,17 +399,17 @@ Vector4i Vector4i::NormalizedCopy() const {
 /// Utility functions
 Vector4i Vector4i::Minimum(const Vector4i & vec1, const Vector4i & vec2){
 	return Vector4i(
-		vec1.x < vec2.x ? vec1.x : vec2.x,
-		vec1.y < vec2.y ? vec1.y : vec2.y,
-		vec1.z < vec2.z ? vec1.z : vec2.z,
+		vec1[0] < vec2[0] ? vec1[0] : vec2[0],
+		vec1[1] < vec2[1] ? vec1[1] : vec2[1],
+		vec1[2] < vec2[2] ? vec1[2] : vec2[2],
 		1
 	);
 }
 Vector4i Vector4i::Maximum(const Vector4i & vec1, const Vector4i & vec2){
 	return Vector4i(
-		vec1.x > vec2.x ? vec1.x : vec2.x,
-		vec1.y > vec2.y ? vec1.y : vec2.y,
-		vec1.z > vec2.z ? vec1.z : vec2.z,
+		vec1[0] > vec2[0] ? vec1[0] : vec2[0],
+		vec1[1] > vec2[1] ? vec1[1] : vec2[1],
+		vec1[2] > vec2[2] ? vec1[2] : vec2[2],
 		1
 	);
 }

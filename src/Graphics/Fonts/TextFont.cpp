@@ -186,7 +186,7 @@ bool TextFont::LoadFromTexture(Texture * i_texture)
 /*	int validPixels = 0;
 	for (int i = 0; i < texture->width * texture->height; ++i){
 		Vector4f pixel = texture->GetPixel(i);
-		if (pixel.w == 0)
+		if (pixel[3] == 0)
 			continue;
 		++validPixels;
 	}
@@ -229,7 +229,7 @@ void TextFont::ParseTextureData(){
 			for (int x = xStart; x < xStart + fontWidth; ++x){
 				// Check if valid pixel.
 				Vector4f pixel = texture->GetPixel(x,y);
-				if (pixel.w == 0)
+				if (pixel[3] == 0)
 					continue;
 				if (firstPixel){
 					left = right = x;
@@ -274,13 +274,13 @@ void TextFont::NewText(Text text)
 	scale = Vector2f(1,1);
 	halfScale = scale * 0.5f;
 	padding = scale * 0.15;
-	padding.y *= 0.5;
+	padding[1] *= 0.5;
 	maxRowSizeX = 0;
 
-	pivotPoint = Vector2f(0, -halfScale.y);
+	pivotPoint = Vector2f(0, -halfScale[1]);
 	// If using frame-padding...
 	if (useFramePadding)
-		pivotPoint += Vector2f(padding.x, -padding.y);
+		pivotPoint += Vector2f(padding[0], -padding[1]);
 }
 
 void TextFont::StartChar()
@@ -309,15 +309,15 @@ void TextFont::StartChar()
 			std::cout<<"ll;;;h";
 			break;
 	};
-	pivotPoint.x += charWidth[currentChar] * halfScale.x;
+	pivotPoint[0] += charWidth[currentChar] * halfScale[0];
 }
 
 void TextFont::EndChar()
 {
-	pivotPoint.x += charWidth[currentChar] * halfScale.x;
+	pivotPoint[0] += charWidth[currentChar] * halfScale[0];
 	// Row finished?
 	if (IsCharacter(nextChar))
-		pivotPoint.x += padding.x;
+		pivotPoint[0] += padding[0];
 }
 
 /// New lines!
@@ -325,18 +325,18 @@ void TextFont::NewLine()
 {
 	// Add padding if needed
 	if (useFramePadding)
-		pivotPoint.x += padding.x;
+		pivotPoint[0] += padding[0];
 	// Save row size.
-	rowSizeX = pivotPoint.x;
+	rowSizeX = pivotPoint[0];
 	if (rowSizeX > maxRowSizeX)
 		maxRowSizeX = rowSizeX;
 	rowSizes.Add(rowSizeX);
 	// Go left to the start of the row..
-	pivotPoint.x = 0;
+	pivotPoint[0] = 0;
 	if (useFramePadding)
-		pivotPoint.x = padding.x;
+		pivotPoint[0] = padding[0];
 	// And go down one row.
-	pivotPoint.y -= scale.y;
+	pivotPoint[1] -= scale[1];
 }
 
 /// Called when encountering the NULL-character.
@@ -344,9 +344,9 @@ void TextFont::EndText()
 {
 	// Add padding if needed
 	if (useFramePadding)
-		pivotPoint.x += padding.x;
+		pivotPoint[0] += padding[0];
 	// Save row size.
-	rowSizeX = pivotPoint.x;
+	rowSizeX = pivotPoint[0];
 	if (rowSizeX > maxRowSizeX)
 		maxRowSizeX = rowSizeX;
 	rowSizes.Add(rowSizeX);
@@ -359,7 +359,7 @@ Vector2f TextFont::CalculateRenderSizeUnits(Text text)
 {
 	if (text.Length() < 1)
 	{
-		return Vector2f(scale.x, scale.y);
+		return Vector2f(scale[0], scale[1]);
 	}
 	// Set starting variables.
 	NewText(text);
@@ -380,7 +380,7 @@ Vector2f TextFont::CalculateRenderSizeUnits(Text text)
 		EndChar();
 		lastChar = currentChar;
 	}
-	return Vector2f (maxRowSizeX, pivotPoint.y);
+	return Vector2f (maxRowSizeX, pivotPoint[1]);
 }
 
 /// Calculates the render size in pixels if the text were to be rendered now.
@@ -388,9 +388,9 @@ Vector2f TextFont::CalculateRenderSizeWorldSpace(Text text, GraphicsState & grap
 {
 	// Just grab required render size and multiply with the model-matrix?
 	Vector2f renderSize = CalculateRenderSizeUnits(text);
-	Vector4f size(renderSize.x, renderSize.y, 0, 0);
+	Vector4f size(renderSize[0], renderSize[1], 0, 0);
 	Vector4f transformed = graphics.modelMatrixF.Product(size);
-	return Vector2f(transformed.x, AbsoluteValue(transformed.y));
+	return Vector2f(transformed[0], AbsoluteValue(transformed[1]));
 }
 
 
@@ -483,7 +483,7 @@ void TextFont::PrepareForRender(GraphicsState & graphicsState)
 	Matrix4f modelView = graphicsState.viewMatrixF * graphicsState.modelMatrixF;
 	glMatrixMode(GL_MODELVIEW);
 	glLoadMatrixf(modelView.getPointer());
-	glColor4f(color.x, color.y, color.z, color.w);
+	glColor4f(color[0], color[1], color[2], color[3]);
 	glEnable(GL_BLEND);
 	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -531,17 +531,17 @@ void TextFont::RenderChar(char c)
 	x2 = (characterX+1) / 16.0f;
 	y1 = (16 - characterY) / 16.0f;
 	y2 = (16 - characterY - 1) / 16.0f;
-	float & xStart = pivotPoint.x;
-	float & yStart = pivotPoint.y;
+	float & xStart = pivotPoint[0];
+	float & yStart = pivotPoint[1];
 	// And actual rendering.
 	glTexCoord2f(x1, y2);
-	glVertex3f(-halfScale.x + xStart, -halfScale.y + yStart, 0);
+	glVertex3f(-halfScale[0] + xStart, -halfScale[1] + yStart, 0);
 	glTexCoord2f(x2, y2);
-	glVertex3f(halfScale.x + xStart, -halfScale.y + yStart, 0);
+	glVertex3f(halfScale[0] + xStart, -halfScale[1] + yStart, 0);
 	glTexCoord2f(x2, y1);
-	glVertex3f(halfScale.x + xStart, halfScale.y + yStart, 0);
+	glVertex3f(halfScale[0] + xStart, halfScale[1] + yStart, 0);
 	glTexCoord2f(x1, y1);
-	glVertex3f(-halfScale.x + xStart, halfScale.y + yStart, 0);
+	glVertex3f(-halfScale[0] + xStart, halfScale[1] + yStart, 0);
 }
 
 /// Render the character as selected.
@@ -561,8 +561,8 @@ void TextFont::RenderSelection(char c)
 	int characterX = c % 16;
 	int characterY = c / 16;
 	/// Texture co-ordinates.
-	float & xStart = pivotPoint.x;
-	float & yStart = pivotPoint.y;
+	float & xStart = pivotPoint[0];
+	float & yStart = pivotPoint[1];
 	
 	// Bind the texture to use. Preferably a gray sort.
 	Texture * tex = TexMan.GetTextureByHex32(0xFFFFFF22);
@@ -578,18 +578,18 @@ void TextFont::RenderSelection(char c)
 	// Render the quad!
 	glBegin(GL_QUADS);
 
-	float x1 = halfWidth * -halfScale.x + xStart - padding.x * 0.5f,
-		x2 = halfWidth * halfScale.x + xStart + padding.x * 0.5f;
+	float x1 = halfWidth * -halfScale[0] + xStart - padding[0] * 0.5f,
+		x2 = halfWidth * halfScale[0] + xStart + padding[0] * 0.5f;
 
 	// And actual rendering.
 	glTexCoord2f(0, 1);
-	glVertex3f(x2, -halfScale.y + yStart, 0);
+	glVertex3f(x2, -halfScale[1] + yStart, 0);
 	glTexCoord2f(1, 1);
-	glVertex3f(x1, -halfScale.y + yStart, 0);
+	glVertex3f(x1, -halfScale[1] + yStart, 0);
 	glTexCoord2f(1, 0);
-	glVertex3f(x1, halfScale.y + yStart, 0);
+	glVertex3f(x1, halfScale[1] + yStart, 0);
 	glTexCoord2f(0, 0);
-	glVertex3f(x2, halfScale.y + yStart, 0);
+	glVertex3f(x2, halfScale[1] + yStart, 0);
 
 	glEnd();
 

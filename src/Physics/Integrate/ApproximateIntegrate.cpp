@@ -51,16 +51,16 @@ void PhysicsManager::ApproximateIntegrate(Entity * entity, float timeSinceLastUp
 			float postVel = physics->velocity.Length();
 		    // This looks like it should always be true,
             // but it's false if x is a NaN.
-            if (!(physics->velocity.x == physics->velocity.x)){
+            if (!(physics->velocity[0] == physics->velocity[0])){
       //          std::cout<<"\nwosh-";
             }
         }
     }
 #ifdef _DEBUG
     // Make object bounce up again if at -100.0f made for testing physics only
-/*		if (dynamicEntity[i]->position.y < -100.0f && dynamicEntity[i]->physics->velocity.y < 0){
-        dynamicEntity[i]->position.y = -100.0f;
-        dynamicEntity[i]->physics->velocity.y = dynamicEntity[i]->physics->velocity.y * -0.4;
+/*		if (dynamicEntity[i]->position[1] < -100.0f && dynamicEntity[i]->physics->velocity[1] < 0){
+        dynamicEntity[i]->position[1] = -100.0f;
+        dynamicEntity[i]->physics->velocity[1] = dynamicEntity[i]->physics->velocity[1] * -0.4;
     }
     */
 #endif

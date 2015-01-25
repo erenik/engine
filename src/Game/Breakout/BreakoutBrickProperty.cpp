@@ -47,7 +47,7 @@ void BreakoutBrickProperty::OnBroken()
 	float r = brickRandom.Randf();
 	if (r > 0.9f)
 	{
-		MesMan.QueueMessages("SpawnPowerup:"+String::ToString(owner->position.x)+","+String::ToString(owner->position.y));
+		MesMan.QueueMessages("SpawnPowerup:"+String::ToString(owner->position[0])+","+String::ToString(owner->position[1]));
 		sleeping = true;
 	}
 }

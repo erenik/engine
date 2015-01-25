@@ -24,8 +24,8 @@ Matrix2f Matrix2f::InitRotationMatrixZ(float radians)
 /// Product with a vector.
 Vector2f Matrix2f::Product(Vector2f vec) const
 {
-	float x = vec.x * element[0] + vec.y * element[2];
-	float y = vec.x * element[1] + vec.y * element[3];
+	float x = vec[0] * element[0] + vec[1] * element[2];
+	float y = vec[0] * element[1] + vec[1] * element[3];
 	return Vector2f(x,y);
 }
 

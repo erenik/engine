@@ -54,7 +54,7 @@ bool PongCR::ResolveCollision(Collision & c)
             Vector3f tVelocity = velocity - nVelocity;
 			// Reflect the velocity.
 			dp->velocity = tVelocity * (1.f - staticEntity->physics->friction) - nVelocity * resitution;
-			dp->velocity.z = 0;
+			dp->velocity[2] = 0;
 
 			float maxVelocityIncrease = 1.2f;
 			
@@ -65,13 +65,13 @@ bool PongCR::ResolveCollision(Collision & c)
 				if (pbp)
 				{	
 					// Lock max y-vel.
-					if (AbsoluteValue(dp->velocity.y) > pbp->maxYVel)
-						dp->velocity.y = pbp->maxYVel * (dp->velocity.y > 0 ? 1.f : -1.f);
+					if (AbsoluteValue(dp->velocity[1]) > pbp->maxYVel)
+						dp->velocity[1] = pbp->maxYVel * (dp->velocity[1] > 0 ? 1.f : -1.f);
 
 					// Ensure X-velocity is at the exact value as specified in the ball property.
-					float relVelX = pbp->minimumHorizontalVelocity / AbsoluteValue(dp->velocity.x);
+					float relVelX = pbp->minimumHorizontalVelocity / AbsoluteValue(dp->velocity[0]);
 					if (relVelX > 0)
-						dp->velocity.x *= relVelX;
+						dp->velocity[0] *= relVelX;
 					pbp->minimumHorizontalVelocity += pbp->velocityIncreasePerBounce;
 				}
 				float newVelocity = velocity.Length();
@@ -92,7 +92,7 @@ bool PongCR::ResolveCollision(Collision & c)
 				AudioMan.QueueMessage(new AMPlaySFX("PongGoal.ogg"));
 			//	AudioMan.PlaySFX("PongGoal.ogg", 1.f);
 				// Notify of the goal.
-				MesMan.QueueMessages(GOAL_MESSAGE+String(":")+String::ToString(dynamic->position.x));
+				MesMan.QueueMessages(GOAL_MESSAGE+String(":")+String::ToString(dynamic->position[0]));
 				pbp->sleeping = true;
 			}
 			else if (staticEntity->name.Contains("Wall"))

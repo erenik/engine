@@ -4,6 +4,6 @@
 #include "Geometry.h"
 
 
-Vertex::Vertex(Vector3f initPos){
+Vertex::Vertex(const Vector3f & initPos){
 	position = initPos;
 }

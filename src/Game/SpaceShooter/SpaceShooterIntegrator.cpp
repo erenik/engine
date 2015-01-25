@@ -55,8 +55,8 @@ void SpaceShooterIntegrator::IntegrateVelocity(Entity * forEntity, float timeInS
 
 	if (constantZ)
 	{
-		forEntity->position.z = constantZ;
-		forEntity->physics->velocity.z = 0;
+		forEntity->position[2] = constantZ;
+		forEntity->physics->velocity[2] = 0;
 	}
 
 	/// Check if player
@@ -65,7 +65,7 @@ void SpaceShooterIntegrator::IntegrateVelocity(Entity * forEntity, float timeInS
 	if (sspp && sspp->isPlayer)
 	{
 		Vector3f position = forEntity->position;
-		ClampFloat(position.x, frameMin.x, frameMax.x);
-		ClampFloat(position.y, frameMin.y, frameMax.y);		
+		ClampFloat(position[0], frameMin[0], frameMax[0]);
+		ClampFloat(position[1], frameMin[1], frameMax[1]);		
 	}
 }

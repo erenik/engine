@@ -79,7 +79,7 @@ void SpaceShooter2D::OnEnter(AppState * previousState)
 	starEmitter->velocityEmitter.type = EmitterType::CIRCLE_XY;
 	starEmitter->SetEmissionVelocity(0.0001f);
 	starEmitter->SetParticlesPerSecond(10);
-	starEmitter->SetParticleLifeTime(50.f);
+	starEmitter->SetParticleLifeTime(60.f);
 	starEmitter->SetScale(0.3f);
 	Graphics.QueueMessage(new GMAttachParticleEmitter(starEmitter, stars));
 
@@ -137,12 +137,12 @@ void SpaceShooter2D::Process(int timeInMs)
 				break;
 			}
 
-			float removeInvuln = levelEntity->position.x + playingFieldHalfSize.x + playingFieldPadding + 1.f;
-			float spawnPositionRight = removeInvuln + level.BaseVelocity().x;
-			float despawnPositionLeft = levelEntity->position.x - playingFieldHalfSize.x - 1.f;
+			float removeInvuln = levelEntity->position[0] + playingFieldHalfSize[0] + playingFieldPadding + 1.f;
+			float spawnPositionRight = removeInvuln + level.BaseVelocity()[0];
+			float despawnPositionLeft = levelEntity->position[0] - playingFieldHalfSize[0] - 1.f;
 
 			/// Clearing the level
-			if (playerShip.entity->position.x > level.goalPosition)
+			if (playerShip.entity->position[0] > level.goalPosition)
 			{
 				LevelCleared();
 			}
@@ -155,10 +155,10 @@ void SpaceShooter2D::Process(int timeInMs)
 			for (int i = 0; i < projectileEntities.Size(); ++i)
 			{
 				Entity * proj = projectileEntities[i];
-				if (proj->position.x < despawnPositionLeft ||
-					proj->position.x > spawnPositionRight ||
-					proj->position.y < -1.f ||
-					proj->position.y > playingFieldSize.y + 2.f)
+				if (proj->position[0] < despawnPositionLeft ||
+					proj->position[0] > spawnPositionRight ||
+					proj->position[1] < -1.f ||
+					proj->position[1] > playingFieldSize[1] + 2.f)
 				{
 					MapMan.DeleteEntity(proj);
 					projectileEntities.Remove(proj);
@@ -176,7 +176,7 @@ void SpaceShooter2D::Process(int timeInMs)
 						continue;
 					if (ship.spawnInvulnerability)
 					{
-						if (ship.entity->position.x < removeInvuln)
+						if (ship.entity->position[0] < removeInvuln)
 						{
 							// Change color.
 							GraphicsMan.QueueMessage(new GMSetEntityTexture(ship.entity, DIFFUSE_MAP | SPECULAR_MAP, TexMan.GetTextureByColor(Color(255,255,255,255))));
@@ -185,7 +185,7 @@ void SpaceShooter2D::Process(int timeInMs)
 						}
 					}
 					// Check if it should de-spawn.
-					if (ship.entity->position.x < despawnPositionLeft)
+					if (ship.entity->position[0] < despawnPositionLeft)
 					{
 						MapMan.DeleteEntity(ship.entity);
 						shipEntities.Remove(ship.entity);
@@ -197,7 +197,7 @@ void SpaceShooter2D::Process(int timeInMs)
 					}
 					continue;
 				}
-				if (ship.position.x > spawnPositionRight)
+				if (ship.position[0] > spawnPositionRight)
 					continue;
 				Entity * entity = EntityMan.CreateEntity(ship.type, ModelMan.GetModel("sphere.obj"), TexMan.GetTextureByColor(Color(0,255,0,255)));
 				entity->position = ship.position;
@@ -368,10 +368,10 @@ void SpaceShooter2D::CreateDefaultBindings()
 	BINDING(Action::CreateStartStopAction("MoveShipLeft"), KEY::A);
 	BINDING(Action::CreateStartStopAction("MoveShipRight"), KEY::D);
 	BINDING(Action::FromString("ResetCamera"), KEY::HOME);
-	BINDING(Action::FromString("NewGame"), List<int>(2, KEY::N, KEY::G));
-	BINDING(Action::FromString("ClearLevel"), List<int>(2, KEY::C, KEY::L));
-	BINDING(Action::FromString("ListEntitiesAndRegistrations"), List<int>(2, KEY::L, KEY::E));
-	BINDING(Action::FromString("ToggleBlackness"), List<int>(2, KEY::T, KEY::B));
+	BINDING(Action::FromString("NewGame"), List<int>(KEY::N, KEY::G));
+	BINDING(Action::FromString("ClearLevel"), List<int>(KEY::C, KEY::L));
+	BINDING(Action::FromString("ListEntitiesAndRegistrations"), List<int>(KEY::L, KEY::E));
+	BINDING(Action::FromString("ToggleBlackness"), List<int>(KEY::T, KEY::B));
 }
 
 /// Update UI
@@ -470,17 +470,35 @@ void SpaceShooter2D::LoadLevel(String fromSource)
 
 
 	/// Add emitter for stars at player start.
+
+	float emissionSpeed = level.starSpeed.Length();
+	Vector3f starDir = level.starSpeed.NormalizedCopy();
+
 	ParticleEmitter * startEmitter = new ParticleEmitter();
 	startEmitter->newType = true;
 	startEmitter->instantaneous = true;
 	startEmitter->constantEmission = 1400;
 	startEmitter->positionEmitter.type = EmitterType::PLANE_XY;
-	startEmitter->positionEmitter.Scale(140.f);
-	startEmitter->velocityEmitter.type = EmitterType::CIRCLE_XY;
-	startEmitter->SetEmissionVelocity(0.0001f);
+	startEmitter->positionEmitter.SetScale(140.f);
+	startEmitter->velocityEmitter.type = EmitterType::VECTOR;
+	startEmitter->velocityEmitter.vec = starDir;
+	startEmitter->SetEmissionVelocity(emissionSpeed);
 	startEmitter->SetParticleLifeTime(20.f);
 	startEmitter->SetScale(0.3f);
 	Graphics.QueueMessage(new GMAttachParticleEmitter(startEmitter, stars));
+
+
+	starEmitter->direction = starDir;
+	starEmitter->SetEmissionVelocity(emissionSpeed);
+	starEmitter->newType = true;
+	starEmitter->positionEmitter.type = EmitterType::PLANE_XY;
+	starEmitter->positionEmitter.SetScale(140.f);
+	starEmitter->velocityEmitter.type = EmitterType::VECTOR;
+	starEmitter->velocityEmitter.vec = starDir;
+	starEmitter->SetEmissionVelocity(emissionSpeed);
+	starEmitter->SetParticleLifeTime(20.f);
+	starEmitter->SetScale(0.3f);
+
 
 	/// Add entity to track for both the camera, blackness and player playing field.
 	Vector3f initialPosition = Vector3f(0,10,0);
@@ -499,13 +517,13 @@ void SpaceShooter2D::LoadLevel(String fromSource)
 			float halfScale = scale * 0.5f;
 			blackness->scale = scale * Vector3f(1,1,1);
 			Vector3f position;
-			position.z = 5.f; // Between game plane and camera
+			position[2] = 5.f; // Between game plane and camera
 			switch(i)
 			{
-				case 0: position.x += playingFieldHalfSize.x + halfScale + playingFieldPadding; break;
-				case 1: position.x -= playingFieldHalfSize.x + halfScale + playingFieldPadding; break;
-				case 2: position.y += playingFieldHalfSize.y + halfScale + playingFieldPadding; break;
-				case 3: position.y -= playingFieldHalfSize.y + halfScale + playingFieldPadding; break;
+				case 0: position[0] += playingFieldHalfSize[0] + halfScale + playingFieldPadding; break;
+				case 1: position[0] -= playingFieldHalfSize[0] + halfScale + playingFieldPadding; break;
+				case 2: position[1] += playingFieldHalfSize[1] + halfScale + playingFieldPadding; break;
+				case 3: position[1] -= playingFieldHalfSize[1] + halfScale + playingFieldPadding; break;
 			}
 			blackness->position = position;
 			levelEntity->AddChild(blackness);

@@ -112,61 +112,61 @@ void CollisionShapeOctree::subdivide(int levels)
 		{
 			/// Ok, so height is low, skip height when subdividing, perform a quad-division.
 			/// Hither left, hither right, farther left, farther right
-			children.Add(new CollisionShapeOctree(left, center.x, top, bottom, nearBound, center.z, childSubdivisionLvl));
-			children.Add(new CollisionShapeOctree(center.x, right, top, bottom, nearBound, center.z, childSubdivisionLvl));
-			children.Add(new CollisionShapeOctree(left, center.x, top, bottom, center.z, farBound, childSubdivisionLvl));
-			children.Add(new CollisionShapeOctree(center.x, right, top, bottom, center.z, farBound, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(left, center[0], top, bottom, nearBound, center[2], childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(center[0], right, top, bottom, nearBound, center[2], childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(left, center[0], top, bottom, center[2], farBound, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(center[0], right, top, bottom, center[2], farBound, childSubdivisionLvl));
 			/// And the four on the axes, left, right, hither, farther
-			children.Add(new CollisionShapeOctree(left, center.x, top, bottom, (center.z + nearBound)*0.5f, (center.z + farBound)*0.5f, childSubdivisionLvl));
-			children.Add(new CollisionShapeOctree(center.x, right, top, bottom, (center.z + nearBound)*0.5f, (center.z + farBound)*0.5f, childSubdivisionLvl));
-			children.Add(new CollisionShapeOctree((center.x+left)*0.5f, (center.x+right)*0.5f, top, bottom, nearBound, center.z, childSubdivisionLvl));
-			children.Add(new CollisionShapeOctree((center.x+left)*0.5f, (center.x+right)*0.5f, top, bottom, center.z, farBound, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(left, center[0], top, bottom, (center[2] + nearBound)*0.5f, (center[2] + farBound)*0.5f, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(center[0], right, top, bottom, (center[2] + nearBound)*0.5f, (center[2] + farBound)*0.5f, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree((center[0]+left)*0.5f, (center[0]+right)*0.5f, top, bottom, nearBound, center[2], childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree((center[0]+left)*0.5f, (center[0]+right)*0.5f, top, bottom, center[2], farBound, childSubdivisionLvl));
 			// Center
-			children.Add(new CollisionShapeOctree((center.x+left)*0.5f, (center.x+right)*0.5f, top, bottom, (center.z+nearBound)*0.5f, (center.z+farBound)*0.5f, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree((center[0]+left)*0.5f, (center[0]+right)*0.5f, top, bottom, (center[2]+nearBound)*0.5f, (center[2]+farBound)*0.5f, childSubdivisionLvl));
 		}
 		/// Standard extended octree division here if all lengths (width, height, depth) are near equal in size.
 		else {
 			/// Standard variant octree subdivision with complementary compartments (25 in total).
 			/// First primary octree division 8, in order:
 			/// HITHER_LOWER_LEFT, HITHER_LOWER_RIGHT, HITHER_UPPER_LEFT, HITHER_UPPER_RIGHT, FARTHER_LOWER_LEFT, FARTHER_LOWER_RIGHT, FARTHER_UPPER_LEFT, FARTHER_UPPER_RIGHT.
-			children.Add(new CollisionShapeOctree(left, center.x, center.y, bottom, nearBound, center.z, childSubdivisionLvl));
-			children.Add(new CollisionShapeOctree(center.x, right, center.y, bottom, nearBound, center.z, childSubdivisionLvl));
-			children.Add(new CollisionShapeOctree(left, center.x, top, center.y, nearBound, center.z, childSubdivisionLvl));
-			children.Add(new CollisionShapeOctree(center.x, right, top, center.y, nearBound, center.z, childSubdivisionLvl));
-			children.Add(new CollisionShapeOctree(left, center.x, center.y, bottom, center.z, farBound, childSubdivisionLvl));
-			children.Add(new CollisionShapeOctree(center.x, right, center.y, bottom, center.z, farBound, childSubdivisionLvl));
-			children.Add(new CollisionShapeOctree(left, center.x, top, center.y, center.z, farBound, childSubdivisionLvl));
-			children.Add(new CollisionShapeOctree(center.x, right, top, center.y, center.z, farBound, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(left, center[0], center[1], bottom, nearBound, center[2], childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(center[0], right, center[1], bottom, nearBound, center[2], childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(left, center[0], top, center[1], nearBound, center[2], childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(center[0], right, top, center[1], nearBound, center[2], childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(left, center[0], center[1], bottom, center[2], farBound, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(center[0], right, center[1], bottom, center[2], farBound, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(left, center[0], top, center[1], center[2], farBound, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(center[0], right, top, center[1], center[2], farBound, childSubdivisionLvl));
 
 			
 			// UPPER_LEFT, UPPER_RIGHT, LOWER_LEFT, LOWER_RIGHT, FARTHER_DOWN, FARTHER_UP, HITHER_DOWN, HITHER_UP,
-			children.Add(new CollisionShapeOctree(left, center.x, top, center.y, (center.z + nearBound)*0.5f, (center.z + farBound)*0.5f, childSubdivisionLvl));
-			children.Add(new CollisionShapeOctree(center.x, right, top, center.y, (center.z + nearBound)*0.5f, (center.z + farBound)*0.5f, childSubdivisionLvl));
-			children.Add(new CollisionShapeOctree(left, center.x, center.y, bottom, (center.z + nearBound)*0.5f, (center.z + farBound)*0.5f, childSubdivisionLvl));
-			children.Add(new CollisionShapeOctree(center.x, right, center.y, bottom, (center.z + nearBound)*0.5f, (center.z + farBound)*0.5f, childSubdivisionLvl));
-			children.Add(new CollisionShapeOctree((center.x+left)*0.5f, (center.x+right)*0.5f, center.y, bottom, center.z, farBound, childSubdivisionLvl));
-			children.Add(new CollisionShapeOctree((center.x+left)*0.5f, (center.x+right)*0.5f, top, center.y, center.z, farBound, childSubdivisionLvl));
-			children.Add(new CollisionShapeOctree((center.x+left)*0.5f, (center.x+right)*0.5f, center.y, bottom, nearBound, center.z, childSubdivisionLvl));
-			children.Add(new CollisionShapeOctree((center.x+left)*0.5f, (center.x+right)*0.5f, top, center.y, nearBound, center.z, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(left, center[0], top, center[1], (center[2] + nearBound)*0.5f, (center[2] + farBound)*0.5f, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(center[0], right, top, center[1], (center[2] + nearBound)*0.5f, (center[2] + farBound)*0.5f, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(left, center[0], center[1], bottom, (center[2] + nearBound)*0.5f, (center[2] + farBound)*0.5f, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(center[0], right, center[1], bottom, (center[2] + nearBound)*0.5f, (center[2] + farBound)*0.5f, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree((center[0]+left)*0.5f, (center[0]+right)*0.5f, center[1], bottom, center[2], farBound, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree((center[0]+left)*0.5f, (center[0]+right)*0.5f, top, center[1], center[2], farBound, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree((center[0]+left)*0.5f, (center[0]+right)*0.5f, center[1], bottom, nearBound, center[2], childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree((center[0]+left)*0.5f, (center[0]+right)*0.5f, top, center[1], nearBound, center[2], childSubdivisionLvl));
 
 			// Center
-			children.Add(new CollisionShapeOctree((center.x+left)*0.5f, (center.x+right)*0.5f, (center.y+top)*0.5f, (center.y+bottom)*0.5f, (center.z+nearBound)*0.5f, (center.z+farBound)*0.5f, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree((center[0]+left)*0.5f, (center[0]+right)*0.5f, (center[1]+top)*0.5f, (center[1]+bottom)*0.5f, (center[2]+nearBound)*0.5f, (center[2]+farBound)*0.5f, childSubdivisionLvl));
 
 			// + Center-branches
 			//HITHER, FARTHER, LEFTER, RIGHTER, UPPER, LOWER,
-			children.Add(new CollisionShapeOctree((center.x+left)*0.5f, (center.x+right)*0.5f, (center.y+top)*0.5f, (center.y+bottom)*0.5f, nearBound, center.z, childSubdivisionLvl));
-			children.Add(new CollisionShapeOctree((center.x+left)*0.5f, (center.x+right)*0.5f, (center.y+top)*0.5f, (center.y+bottom)*0.5f, center.z, farBound, childSubdivisionLvl));
-			children.Add(new CollisionShapeOctree(left, center.x, (center.y+top)*0.5f, (center.y+bottom)*0.5f, (center.z+nearBound)*0.5f, (center.z+farBound)*0.5f, childSubdivisionLvl));
-			children.Add(new CollisionShapeOctree(center.x, right, (center.y+top)*0.5f, (center.y+bottom)*0.5f, (center.z+nearBound)*0.5f, (center.z+farBound)*0.5f, childSubdivisionLvl));
-			children.Add(new CollisionShapeOctree((center.x+left)*0.5f, (center.x+right)*0.5f, top, center.y, (center.z+nearBound)*0.5f, (center.z+farBound)*0.5f, childSubdivisionLvl));
-			children.Add(new CollisionShapeOctree((center.x+left)*0.5f, (center.x+right)*0.5f, center.y, bottom, (center.z+nearBound)*0.5f, (center.z+farBound)*0.5f, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree((center[0]+left)*0.5f, (center[0]+right)*0.5f, (center[1]+top)*0.5f, (center[1]+bottom)*0.5f, nearBound, center[2], childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree((center[0]+left)*0.5f, (center[0]+right)*0.5f, (center[1]+top)*0.5f, (center[1]+bottom)*0.5f, center[2], farBound, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(left, center[0], (center[1]+top)*0.5f, (center[1]+bottom)*0.5f, (center[2]+nearBound)*0.5f, (center[2]+farBound)*0.5f, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(center[0], right, (center[1]+top)*0.5f, (center[1]+bottom)*0.5f, (center[2]+nearBound)*0.5f, (center[2]+farBound)*0.5f, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree((center[0]+left)*0.5f, (center[0]+right)*0.5f, top, center[1], (center[2]+nearBound)*0.5f, (center[2]+farBound)*0.5f, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree((center[0]+left)*0.5f, (center[0]+right)*0.5f, center[1], bottom, (center[2]+nearBound)*0.5f, (center[2]+farBound)*0.5f, childSubdivisionLvl));
 
 			// + Huggers(apartments, whatever)
 			// FATHER_LEFT, FARTHER_RIGHT, HITHER_LEFT, HITHER_RIGHT,
-			children.Add(new CollisionShapeOctree(left, center.x, (center.y+top)*0.5f, (center.y+bottom)*0.5f, center.z, farBound, childSubdivisionLvl));
-			children.Add(new CollisionShapeOctree(center.x, right, (center.y+top)*0.5f, (center.y+bottom)*0.5f, center.z, farBound, childSubdivisionLvl));
-			children.Add(new CollisionShapeOctree(left, center.x, (center.y+top)*0.5f, (center.y+bottom)*0.5f, nearBound, center.z, childSubdivisionLvl));
-			children.Add(new CollisionShapeOctree(center.x, right, (center.y+top)*0.5f, (center.y+bottom)*0.5f, nearBound, center.z, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(left, center[0], (center[1]+top)*0.5f, (center[1]+bottom)*0.5f, center[2], farBound, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(center[0], right, (center[1]+top)*0.5f, (center[1]+bottom)*0.5f, center[2], farBound, childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(left, center[0], (center[1]+top)*0.5f, (center[1]+bottom)*0.5f, nearBound, center[2], childSubdivisionLvl));
+			children.Add(new CollisionShapeOctree(center[0], right, (center[1]+top)*0.5f, (center[1]+bottom)*0.5f, nearBound, center[2], childSubdivisionLvl));
 		}
 	}
 	for (int i = 0; i < children.Size(); ++i)
@@ -318,12 +318,12 @@ bool CollisionShapeOctree::Render(GraphicsState * graphicsState)
 	// Render children first
 	for (int i = 0; i < children.Size(); ++i){
 		CollisionShapeOctree * child = children[i];
-		if (cam.x < child->right &&
-			cam.x > child->left &&
-			cam.y < child->top &&
-			cam.y > child->bottom &&
-			cam.z > child->farBound &&
-			cam.z < child->nearBound)
+		if (cam[0] < child->right &&
+			cam[0] > child->left &&
+			cam[1] < child->top &&
+			cam[1] > child->bottom &&
+			cam[2] > child->farBound &&
+			cam[2] < child->nearBound)
 			childIndex = i;
 		break;
 	}
@@ -358,9 +358,9 @@ bool CollisionShapeOctree::Render(GraphicsState * graphicsState)
 		glBegin(GL_TRIANGLES);
 		for (int q = 0; q < triangles.Size(); ++q){
 			Triangle * tri = triangles[q];
-			glVertex3f(tri->point1.x, tri->point1.y, tri->point1.z);
-			glVertex3f(tri->point2.x, tri->point2.y, tri->point2.z);
-			glVertex3f(tri->point3.x, tri->point3.y, tri->point3.z);
+			glVertex3f(tri->point1[0], tri->point1[1], tri->point1[2]);
+			glVertex3f(tri->point2[0], tri->point2[1], tri->point2[2]);
+			glVertex3f(tri->point3[0], tri->point3[1], tri->point3[2]);
 		}
 		glEnd();
 
@@ -566,28 +566,28 @@ int CollisionShapeOctree::IsEntityInside(Entity * entity, Matrix4f & localTransf
 	/// The below approach doesn't work when the transform includes rotation.
 	/*
 	
-	float entityLeft = entity->position.x - entity->radius,
-		entityRight = entity->position.x + entity->radius,
-		entityTop = entity->position.y + entity->radius,
-		entityBottom = entity->position.y - entity->radius,
-		entityNear = entity->position.z + entity->radius,
-		entityFar = entity->position.z - entity->radius;
+	float entityLeft = entity->position[0] - entity->radius,
+		entityRight = entity->position[0] + entity->radius,
+		entityTop = entity->position[1] + entity->radius,
+		entityBottom = entity->position[1] - entity->radius,
+		entityNear = entity->position[2] + entity->radius,
+		entityFar = entity->position[2] - entity->radius;
 	// Check if it's inside.
-	if (entityRight < maxVec.x &&
-		entityLeft > minVec.x &&
-		entityTop < maxVec.y &&
-		entityBottom > minVec.y &&
-		entityNear < maxVec.z &&
-		entityFar > minVec.z
+	if (entityRight < maxVec[0] &&
+		entityLeft > minVec[0] &&
+		entityTop < maxVec[1] &&
+		entityBottom > minVec[1] &&
+		entityNear < maxVec[2] &&
+		entityFar > minVec[2]
 		)
 		return INSIDE;
 	// Or intersecting, just compare with inverted radius
-	else if (entityLeft < maxVec.x &&
-		entityRight > minVec.x &&
-		entityBottom < maxVec.y &&
-		entityTop > minVec.y &&
-		entityFar < maxVec.z &&
-		entityNear > minVec.z
+	else if (entityLeft < maxVec[0] &&
+		entityRight > minVec[0] &&
+		entityBottom < maxVec[1] &&
+		entityTop > minVec[1] &&
+		entityFar < maxVec[2] &&
+		entityNear > minVec[2]
 		)
 		return INTERSECT;
 	// It's outside if the previous were false, logical :P
@@ -604,12 +604,12 @@ int CollisionShapeOctree::IsTriangleInside(Triangle * tri){
 	max = Vector3f::Maximum(Vector3f::Maximum(tri->point1, tri->point2), tri->point3);
 
 	// Check if it's inside.
-	if (max.x < right &&
-		min.x > left &&
-		max.y < top &&
-		min.y > bottom &&
-		max.z < nearBound &&
-		min.z > farBound
+	if (max[0] < right &&
+		min[0] > left &&
+		max[1] < top &&
+		min[1] > bottom &&
+		max[2] < nearBound &&
+		min[2] > farBound
 		)
 		return INSIDE;
 	// It's outside if the previous were false, logical :P

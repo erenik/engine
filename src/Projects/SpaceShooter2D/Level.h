@@ -29,4 +29,6 @@ public:
 	String music;
 	/// Goal position in X.
 	int goalPosition;
+
+	Vector3f starSpeed;
 };

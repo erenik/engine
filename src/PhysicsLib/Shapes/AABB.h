@@ -18,7 +18,7 @@ class AABB {
 	friend class PhysicsManager;
 public:
     AABB();
-    AABB(Vector3f min, Vector3f max);
+    AABB(const Vector3f & min, const Vector3f & max);
     bool Intersect(const AABB &aabb2) const;
     /// Recalculate the AABBs constraints based on the given entity's transform and base model AABB.
     void Recalculate(Entity * entity);

@@ -18,7 +18,7 @@ Sphere::Sphere()
 }
 
 /// Sphere Initializer
-Sphere::Sphere(float radius, Vector3f position /* = Vector3f()*/ )
+Sphere::Sphere(float radius, const Vector3f & position /* = Vector3f()*/ )
 : radius(radius), position(position), sections(DEFAULT_SECTIONS)
 {
 	offsetX = 0;
@@ -61,7 +61,7 @@ void Sphere::Generate()
 	//if (height > PI)
 	//	height = PI;
 
-	int vertexCount = (segments.x + 1) * (segments.y + 1);
+	int vertexCount = (segments[0] + 1) * (segments[1] + 1);
 
 	// Default to 0
 	numUVs = numNormals = numVertices = 0;
@@ -75,27 +75,27 @@ void Sphere::Generate()
 
 	// Will only depend on where you want it centered?
 	// Since from center,...
-	float offsetY = PI * 0.5 - size.y * 0.5; 
+	float offsetY = PI * 0.5 - size[1] * 0.5; 
 
 	// For each row
-	for (int y = 0; y < segments.y + 1; ++y){
+	for (int y = 0; y < segments[1] + 1; ++y){
 		// For each vertices in the row
-		for (int x = 0; x < segments.x + 1; ++x){
+		for (int x = 0; x < segments[0] + 1; ++x){
 
 
-			int cIndex = y * (segments.x + 1) + x;
+			int cIndex = y * (segments[0] + 1) + x;
 			//						Regular sinus for x				multiply with sine of row to get the relative size.
-			vertices[cIndex].x = 1 * sin((x) * dSegment.x + offsetX) * sin((y) * dSegment.y + offsetY);
-			vertices[cIndex].y = 1 * cos((y) * dSegment.y + offsetY);
-			vertices[cIndex].z = 1 * cos((x) * dSegment.x + offsetX) * sin((y) * dSegment.y + offsetY);
+			vertices[cIndex][0] = 1 * sin((x) * dSegment[0] + offsetX) * sin((y) * dSegment[1] + offsetY);
+			vertices[cIndex][1] = 1 * cos((y) * dSegment[1] + offsetY);
+			vertices[cIndex][2] = 1 * cos((x) * dSegment[0] + offsetX) * sin((y) * dSegment[1] + offsetY);
 
-			uvs[cIndex].x = (x / (float) segments.x);
-			uvs[cIndex].y = (1 - y / (float) segments.y);
+			uvs[cIndex][0] = (x / (float) segments[0]);
+			uvs[cIndex][1] = (1 - y / (float) segments[1]);
 
 			if (invertTexUCoords)
-				uvs[cIndex].x = 1.f - uvs[cIndex].x;
+				uvs[cIndex][0] = 1.f - uvs[cIndex][0];
 
-			normals[cIndex] = Vector3f(vertices[cIndex].x, vertices[cIndex].y, vertices[cIndex].z).NormalizedCopy();
+			normals[cIndex] = Vector3f(vertices[cIndex][0], vertices[cIndex][1], vertices[cIndex][2]).NormalizedCopy();
 
 			++numVertices;
 			++numUVs;
@@ -105,15 +105,15 @@ void Sphere::Generate()
 
 
 	// Triangulate straight away.
-	faces.Allocate(segments.x * segments.y * 2);
+	faces.Allocate(segments[0] * segments[1] * 2);
 	// Default to 0.
 	numFaces = 0;
 	// Index to start looking at for each row.
 	int index = 0;
 	// Create numFaces
-	for (int i = 0; i < segments.y; ++i)
+	for (int i = 0; i < segments[1]; ++i)
 	{
-		for (int j = 0; j < segments.x; ++j){
+		for (int j = 0; j < segments[0]; ++j){
 			// 3 numVertices
 			MeshFace * face = &faces[numFaces];
 			face->numVertices = 3;
@@ -121,11 +121,11 @@ void Sphere::Generate()
 			face->AllocateArrays();
 			int v;
 #define SET_VERTEX(vi,val) {v = vi; face->vertices[v] = face->normals[v] = face->uvs[v] = (val);}
-			SET_VERTEX(0, index + j + 1 + segments.x);
-			SET_VERTEX(1, index + j + 1 + segments.x + 1);
+			SET_VERTEX(0, index + j + 1 + segments[0]);
+			SET_VERTEX(1, index + j + 1 + segments[0] + 1);
 			SET_VERTEX(2, index + j + 1);
-			/*v = 0; face->vertices[v] = face->normals[v] = face->uvs[v] = index + j + 1 + segments.x;
-			v = 1; face->vertices[v] = faces->normals[v] = face->uvs[v] = index + j + 1 + segments.x + 1;
+			/*v = 0; face->vertices[v] = face->normals[v] = face->uvs[v] = index + j + 1 + segments[0];
+			v = 1; face->vertices[v] = faces->normals[v] = face->uvs[v] = index + j + 1 + segments[0] + 1;
 			v = 2; face->vertices[v] = faces->normals[v] = face->uvs[v] = index + j + 1;
 			*/
 			++numFaces;
@@ -137,14 +137,14 @@ void Sphere::Generate()
 			face->AllocateArrays();
 			SET_VERTEX(0, index + j + 1);
 			SET_VERTEX(1, index + j);
-			SET_VERTEX(2, index + j + 1 + segments.x);
+			SET_VERTEX(2, index + j + 1 + segments[0]);
 			//v = 0; faces->vertices[v] = faces->normals[v] = faces->uvs[v] = index + j + 1;
 			//v = 1; faces->vertices[v] = faces->normals[v] = faces->uvs[v] = index + j;
-			//v = 2; faces->vertices[v] = faces->normals[v] = faces->uvs[v] = index + j + 1 + segments.x;
+			//v = 2; faces->vertices[v] = faces->normals[v] = faces->uvs[v] = index + j + 1 + segments[0];
 			++numFaces;
 		}
 		// Increment sections + 1 since we're using extra numVertices for simplicities sake.
-		index += segments.x + 1;
+		index += segments[0] + 1;
 	}	
 }
 

@@ -95,7 +95,8 @@ void Mesh::Delete()
 }
 
 /// Adds a plane, creating 2 numFaces in a counter-clockwise manner.
-void Mesh::AddPlane(Vector3f upperLeft, Vector3f lowerLeft, Vector3f lowerRight, Vector3f upperRight)
+/*
+void Mesh::AddPlane(ConstVec3fr upperLeft, ConstVec3fr lowerLeft, ConstVec3fr lowerRight, ConstVec3fr upperRight)
 {
 	
 }
@@ -105,6 +106,7 @@ void Mesh::AddGrid(Vector3f upperLeft, Vector3f lowerLeft, Vector3f lowerRight, 
 {
 	assert(false);
 }
+*/
 
 
 // Allocates the vertices, u,v and normals arrays
@@ -587,14 +589,14 @@ void CreateSphere(Mesh &mesh, int sections){
 
 			int cIndex = i * (sections + 1) + j;
 			//						Regular sinus for x				multiply with sine of row to get the relative size.
-			mesh.vertices[cIndex].x = 1 * sin((j) / dSections * PI * 2) * sin((i) / dSections * PI);
-			mesh.vertices[cIndex].y = 1 * cos((i) / dSections * PI);
-			mesh.vertices[cIndex].z = 1 * cos((j) / dSections * PI * 2) * sin((i) / dSections * PI);
+			mesh.vertices[cIndex][0] = 1 * sin((j) / dSections * PI * 2) * sin((i) / dSections * PI);
+			mesh.vertices[cIndex][1] = 1 * cos((i) / dSections * PI);
+			mesh.vertices[cIndex][2] = 1 * cos((j) / dSections * PI * 2) * sin((i) / dSections * PI);
 
-			mesh.uvs[cIndex].x = (j / (float)sections);
-			mesh.uvs[cIndex].y = (1 - i / (float) sections);
+			mesh.uvs[cIndex][0] = (j / (float)sections);
+			mesh.uvs[cIndex][1] = (1 - i / (float) sections);
 
-			mesh.normals[cIndex] = Vector3f(mesh.vertices[cIndex].x, mesh.vertices[cIndex].y, mesh.vertices[cIndex].z).Normalize();
+			mesh.normals[cIndex] = Vector3f(mesh.vertices[cIndex][0], mesh.vertices[cIndex][1], mesh.vertices[cIndex][2]).Normalize();
 
 			++mesh.numVertices;
 			++mesh.numUVs;
@@ -634,26 +636,26 @@ void CreateSphere(Mesh &mesh, int sections){
 			++mesh.numFaces;
 
 	/*		// Use one normals per faces so we can see each faces nao
-			glNormal3f(vertices[index+j].x, vertices[index+j].y, vertices[index+j].z);
+			glNormal3f(vertices[index+j][0], vertices[index+j][1], vertices[index+j][2]);
 
 			// 1
-			//	glNormal3f(vertices[index+j+1+sections].x, vertices[index+j+1+sections].y, vertices[index+j+1+sections].z);
+			//	glNormal3f(vertices[index+j+1+sections][0], vertices[index+j+1+sections][1], vertices[index+j+1+sections][2]);
 			glTexCoord2f(j / (float)sections, 1 - (i+1) / (float) sections);
-			glVector3f(vertices[index+j+1+sections].x, vertices[index+j+1+sections].y, vertices[index+j+1+sections].z);
+			glVector3f(vertices[index+j+1+sections][0], vertices[index+j+1+sections][1], vertices[index+j+1+sections][2]);
 
 			// 2
-			//	glNormal3f(vertices[index+j+1+sections+1].x, vertices[index+j+1+sections+1].y, vertices[index+j+1+sections+1].z);
+			//	glNormal3f(vertices[index+j+1+sections+1][0], vertices[index+j+1+sections+1][1], vertices[index+j+1+sections+1][2]);
 			glTexCoord2f((j+1) / (float)sections, 1 - (i+1) / (float) sections);
-			glVector3f(vertices[index+j+1+sections+1].x, vertices[index+j+1+sections+1].y, vertices[index+j+1+sections+1].z);
+			glVector3f(vertices[index+j+1+sections+1][0], vertices[index+j+1+sections+1][1], vertices[index+j+1+sections+1][2]);
 
 			// 3
-			//	glNormal3f(vertices[index+j+1].x, vertices[index+j+1].y, vertices[index+j+1].z);
+			//	glNormal3f(vertices[index+j+1][0], vertices[index+j+1][1], vertices[index+j+1][2]);
 			glTexCoord2f((j+1) / (float)sections, 1 - i / (float) sections);
-			glVector3f(vertices[index+j+1].x, vertices[index+j+1].y, vertices[index+j+1].z);
+			glVector3f(vertices[index+j+1][0], vertices[index+j+1][1], vertices[index+j+1][2]);
 
 			// 4
 			glTexCoord2f(j / (float)sections, 1 - i / (float) sections);
-			glVector3f(vertices[index+j].x, vertices[index+j].y, vertices[index+j].z);
+			glVector3f(vertices[index+j][0], vertices[index+j][1], vertices[index+j][2]);
 			++mesh.numFaces;
 			*/
 		}
@@ -789,29 +791,31 @@ void Mesh::CalculateBounds()
 			radius = newRadius;
 
 		// Get min
-		if (vertices[i].x < min.x)
-			min.x = vertices[i].x;
-		if (vertices[i].y < min.y)
-			min.y = vertices[i].y;
-		if (vertices[i].z < min.z)
-			min.z = vertices[i].z;
+		if (vertices[i][0] < min[0])
+			min[0] = vertices[i][0];
+		if (vertices[i][1] < min[1])
+			min[1] = vertices[i][1];
+		if (vertices[i][2] < min[2])
+			min[2] = vertices[i][2];
 		// Get max
-		if (vertices[i].x > max.x)
-			max.x = vertices[i].x;
-		if (vertices[i].y > max.y)
-			max.y = vertices[i].y;
-		if (vertices[i].z > max.z)
-			max.z = vertices[i].z;
+		if (vertices[i][0] > max[0])
+			max[0] = vertices[i][0];
+		if (vertices[i][1] > max[1])
+			max[1] = vertices[i][1];
+		if (vertices[i][2] > max[2])
+			max[2] = vertices[i][2];
 	}
+	min.PrepareForSIMD();
+	max.PrepareForSIMD();
 	radius = sqrt(radius);
 	centerOfMesh = (max - min)/2.0f + min;
 
 	// Static radius on load (relative to 0,0,0)
 	// Note that this method will absolutely guarantee a radius that is larger than needed.
 	Vector3f extremePoints(
-		abs(min.x) > max.x ? min.x : max.x,
-		abs(min.y) > max.y ? min.y : max.y,
-		abs(min.z) > max.z ? min.z : max.z
+		abs(min[0]) > max[0] ? min[0] : max[0],
+		abs(min[1]) > max[1] ? min[1] : max[1],
+		abs(min[2]) > max[2] ? min[2] : max[2]
 	);
 //	radius = extremePoints.Length();
 
@@ -870,12 +874,12 @@ void Mesh::CalculateUVTangents()
 		v2v = v[f->uvs[1]];
 		v3v = v[f->uvs[2]];
 
-		float x1 = v2.x - v1.x;
-        float x2 = v3.x - v1.x;
-        float y1 = v2.y - v1.y;
-        float y2 = v3.y - v1.y;
-        float z1 = v2.z - v1.z;
-        float z2 = v3.z - v1.z;
+		float x1 = v2[0] - v1[0];
+        float x2 = v3[0] - v1[0];
+        float y1 = v2[1] - v1[1];
+        float y2 = v3[1] - v1[1];
+        float z1 = v2[2] - v1[2];
+        float z2 = v3[2] - v1[2];
 
         float s1 = v2u - v1u;
         float s2 = v3u - v1u;
@@ -902,7 +906,7 @@ void Mesh::CalculateUVTangents()
 			vertexTangent = (t - n * n.DotProduct(t));
 			vertexTangent.Normalize3();
 			// Calculate handedness
-			vertexTangent.w = (n.CrossProduct(t).DotProduct(tan2f) < 0.0F) ? -1.0F : 1.0F;
+			vertexTangent[3] = (n.CrossProduct(t).DotProduct(tan2f) < 0.0F) ? -1.0F : 1.0F;
 
 			/// Lazy first-try!
 			f->uvTangent = vertexTangent;
@@ -1023,16 +1027,16 @@ void Mesh::Bufferize(bool useOriginalPositions, bool force)
 			int currentVertex = face->vertices[j];
 			assert(currentVertex < 3000000 && currentVertex >= 0);
 			// Position
-			vertexData[vertexDataCounted + 0] = (*vertexPositionData)[currentVertex].x;
-			vertexData[vertexDataCounted + 1] = (*vertexPositionData)[currentVertex].y;
-			vertexData[vertexDataCounted + 2] = (*vertexPositionData)[currentVertex].z;
+			vertexData[vertexDataCounted + 0] = (*vertexPositionData)[currentVertex][0];
+			vertexData[vertexDataCounted + 1] = (*vertexPositionData)[currentVertex][1];
+			vertexData[vertexDataCounted + 2] = (*vertexPositionData)[currentVertex][2];
 			// Normal
 			if (numNormals)
 			{
 				int currentNormal = face->normals[j];
-				vertexData[vertexDataCounted + 3] = normals[currentNormal].x;
-				vertexData[vertexDataCounted + 4] = normals[currentNormal].y;
-				vertexData[vertexDataCounted + 5] = normals[currentNormal].z;
+				vertexData[vertexDataCounted + 3] = normals[currentNormal][0];
+				vertexData[vertexDataCounted + 4] = normals[currentNormal][1];
+				vertexData[vertexDataCounted + 5] = normals[currentNormal][2];
 			}
 			else
 			{
@@ -1044,8 +1048,8 @@ void Mesh::Bufferize(bool useOriginalPositions, bool force)
 			if (numUVs)
 			{
 				int currentUV = face->uvs[j];
-				vertexData[vertexDataCounted + 6] = uvs[currentUV].x;
-				vertexData[vertexDataCounted + 7] = uvs[currentUV].y;
+				vertexData[vertexDataCounted + 6] = uvs[currentUV][0];
+				vertexData[vertexDataCounted + 7] = uvs[currentUV][1];
 			}
 			else 
 			{
@@ -1055,10 +1059,10 @@ void Mesh::Bufferize(bool useOriginalPositions, bool force)
 			/// Tangents for NormalMapping
 			if (true) 
 			{
-				vertexData[vertexDataCounted + 8] = face->uvTangent.x;
-				vertexData[vertexDataCounted + 9] = face->uvTangent.y;
-				vertexData[vertexDataCounted + 10] = face->uvTangent.z;
-				vertexData[vertexDataCounted + 11] = face->uvTangent.w;
+				vertexData[vertexDataCounted + 8] = face->uvTangent[0];
+				vertexData[vertexDataCounted + 9] = face->uvTangent[1];
+				vertexData[vertexDataCounted + 10] = face->uvTangent[2];
+				vertexData[vertexDataCounted + 11] = face->uvTangent[3];
 			}
 			else 
 			{
@@ -1188,12 +1192,12 @@ float getMaxBoundingRadius(Mesh * mesh){
 	*/
 	float maxX = 0.0f, maxY = 0.0f, maxZ = 0.0f;
 	for (int i = 0; i < mesh->numVertices; ++i){
-		if (AbsoluteValue(mesh->vertices[i].x) > maxX)
-			maxX = mesh->vertices[i].x;
-		if (AbsoluteValue(mesh->vertices[i].y) > maxY)
-			maxY = mesh->vertices[i].y;
-		if (AbsoluteValue(mesh->vertices[i].z) > maxZ)
-			maxZ = mesh->vertices[i].z;
+		if (AbsoluteValue(mesh->vertices[i][0]) > maxX)
+			maxX = mesh->vertices[i][0];
+		if (AbsoluteValue(mesh->vertices[i][1]) > maxY)
+			maxY = mesh->vertices[i][1];
+		if (AbsoluteValue(mesh->vertices[i][2]) > maxZ)
+			maxZ = mesh->vertices[i][2];
 	}
 	float max = sqrt(pow(maxX, 2) + pow(maxY, 2) + pow(maxZ, 2));
 	return max;

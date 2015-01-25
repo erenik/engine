@@ -9,8 +9,9 @@
 #include "MathLib.h"
 #include "List/List.h"
 
-struct Vertex {
-	Vertex(Vector3f initPos);
+struct Vertex 
+{
+	Vertex(const Vector3f & initPos);
 
 	Vector3f position;
 	List<Edge*> edgeList;

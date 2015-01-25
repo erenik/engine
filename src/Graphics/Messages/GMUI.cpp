@@ -259,13 +259,13 @@ void GMSetUIv2i::Process()
 };
 
 
-GMSetUIv3f::GMSetUIv3f(String UIname, int target, Vector3f v, Viewport * viewport/* = NULL*/)
+GMSetUIv3f::GMSetUIv3f(String UIname, int target, const Vector3f & v, Viewport * viewport/* = NULL*/)
 : GMUI(GM_SET_UI_VEC3F, viewport), name(UIname), target(target), value(v)
 {
 	AssertTarget();
 }
 
-GMSetUIv3f::GMSetUIv3f(String uiName, int target, Vector3f v, UserInterface * ui)
+GMSetUIv3f::GMSetUIv3f(String uiName, int target, ConstVec3fr v, UserInterface * ui)
 : GMUI(GM_SET_UI_VEC3F, ui), name(uiName), target(target), value(v)
 {
 	AssertTarget();
@@ -413,10 +413,10 @@ void GMSetUIf::Process()
 			break;
 		}
 		case GMUI::ALPHA:
-			element->color.w = value;
+			element->color[3] = value;
 			break;
 		case GMUI::TEXT_ALPHA:
-			element->textColor.w = value;
+			element->textColor[3] = value;
 			break;
 		case GMUI::TEXT_SIZE_RATIO:
 			element->textSizeRatio = value;

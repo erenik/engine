@@ -87,6 +87,8 @@ void ShipProperty::ProcessWeapons(int timeInMs)
 
 void ShipProperty::ProcessAI(int timeInMs)
 {
+	if (!ship->canMove)
+		return;
 	// Move?
 	Entity * shipEntity = ship->entity;
 	Movement & move = ship->movementPatterns[ship->currentMovement];

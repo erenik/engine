@@ -111,7 +111,7 @@ void Movement::OnFrame(int timeInMs)
 				state = (state + 1) % 2;
 				Vector3f dir = vec;
 				if (state == 1)
-					dir.y *= -1;
+					dir[1] *= -1;
 				SET_DIRECTION(dir);
 				timeSinceLastUpdate = 0;
 			}
@@ -125,9 +125,9 @@ void Movement::OnFrame(int timeInMs)
 			break;
 		case Movement::UP_N_DOWN:
 		{
-			if (shipEntity->position.y > startPos.y + distance)
+			if (shipEntity->position[1] > startPos[1] + distance)
 				SET_DIRECTION(Vector3f(0,-1,0));
-			else if (shipEntity->position.y < startPos.y - distance)
+			else if (shipEntity->position[1] < startPos[1] - distance)
 				SET_DIRECTION(Vector3f(0,1,0));
 			break;
 		}
@@ -158,7 +158,7 @@ void Movement::MoveToLocation()
 				SET_DIRECTION(Vector3f(0,1,0));
 				++state;
 			}
-			else if (shipEntity->position.y > 20.f && state == 1)
+			else if (shipEntity->position[1] > 20.f && state == 1)
 			{
 				PhysicsMan.QueueMessage(new PMSetEntity(shipEntity, PT_VELOCITY, Vector3f()));
 				++state;
@@ -172,7 +172,7 @@ void Movement::MoveToLocation()
 				SET_DIRECTION(Vector3f(0,-1,0));
 				++state;
 			}
-			if (shipEntity->position.y < 0.f && state == 1)
+			if (shipEntity->position[1] < 0.f && state == 1)
 			{
 				PhysicsMan.QueueMessage(new PMSetEntity(shipEntity, PT_VELOCITY, Vector3f()));
 				++state;
@@ -217,7 +217,7 @@ void Movement::Circle()
 	Vector3f targetToShip = shipEntity->position - pos;
 	targetToShip.Normalize();
 	// Calculate our current angle in relation to the target.
-	float radians = GetAngler(targetToShip.x, targetToShip.y);
+	float radians = GetAngler(targetToShip[0], targetToShip[1]);
 	// Start circling it straight away? Always trying to go clockwise or counter-clockwise?
 	// Select spot a bit along the radian path.
 	radians += clockwise? -0.10f : 0.10f;

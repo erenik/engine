@@ -40,7 +40,7 @@ void GraphicsManager::RenderScene()
 	// Set fog properties as needed.
 	glUniform1f(shader->uniformFogBeginDistance, graphicsState->fogBegin);
 	glUniform1f(shader->uniformFogEndDistance, graphicsState->fogEnd);
-	glUniform3f(shader->uniformFogColor, graphicsState->clearColor.x, graphicsState->clearColor.y, graphicsState->clearColor.z);
+	glUniform3f(shader->uniformFogColor, graphicsState->clearColor[0], graphicsState->clearColor[1], graphicsState->clearColor[2]);
 
 	if (backfaceCullingEnabled){
 		glEnable(GL_CULL_FACE);
@@ -82,7 +82,7 @@ void GraphicsManager::RenderScene()
 	// Set later! ALSO: glProgramUniform is in a later GL version compared to glUniform!
 /*	if (shader && shader->uniformEyePosition != -1)
 		if (glProgramUniform4f != NULL)
-		glProgramUniform4f(shader->shaderProgram, shader->uniformEyePosition, camera.Position().x, camera.Position().y, camera.Position().z, 1.0f);
+		glProgramUniform4f(shader->shaderProgram, shader->uniformEyePosition, camera.Position()[0], camera.Position()[1], camera.Position()[2], 1.0f);
 */
 	error = glGetError();
 
@@ -215,7 +215,7 @@ void GraphicsManager::RenderScene()
 		glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, graphicsState->viewMatrixF.getPointer());
 	// Update camera in the world
 	if (shader && shader->uniformEyePosition != -1)
-		glUniform4f(shader->uniformEyePosition, camera.Position().x, camera.Position().y, camera.Position().z, 1.0f);
+		glUniform4f(shader->uniformEyePosition, camera.Position()[0], camera.Position()[1], camera.Position()[2], 1.0f);
 
 	error = glGetError();
 
@@ -263,7 +263,7 @@ void GraphicsManager::RenderScene()
 
 		// Update camera in the world
 		if (shader && shader->uniformEyePosition != -1)
-			glUniform4f(shader->uniformEyePosition, camera.Position().x, camera.Position().y, camera.Position().z, 1.0f);
+			glUniform4f(shader->uniformEyePosition, camera.Position()[0], camera.Position()[1], camera.Position()[2], 1.0f);
 
 		/*
 uniform sampler2D diffuseMap;

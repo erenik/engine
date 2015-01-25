@@ -80,7 +80,7 @@ public:
 	/** Initializes a rotation matrix using provided vector. */
 	Matrix4d InitRotationMatrix(double angle, Vector3d vector);
 	/** Initializes a translation matrix using provided vector. */
-	static Matrix4d InitTranslationMatrix(Vector3f translation);
+	static Matrix4d InitTranslationMatrix(const Vector3f & translation);
 
 	/** Initializes a perspective projection matrix.
 	The function can be called as it is, using the default values left -1, right 1, bottom -1, top 1, near -1 and far -10.

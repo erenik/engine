@@ -476,7 +476,7 @@ Entity * MapManager::CreateEntity(Entity * referenceEntity)
 }
 
 /** Creates an entity with target model and texture and places it into the active map. */
-Entity * MapManager::CreateEntity(String name, Model * model, Texture * texture, Vector3f position)
+Entity * MapManager::CreateEntity(String name, Model * model, Texture * texture, const Vector3f & position)
 {
 	// Allow 0 models, for exmaple for text-rendering entities, etc.
 	if (!model)
@@ -644,7 +644,7 @@ Lighting MapManager::GetLighting(){
 	Lighting currentLighting;
 //	currentLighting.VerifyData();
 	if (activeMap){
-		currentLighting = *activeMap->lighting;
+		currentLighting = activeMap->lighting;
 	//	currentLighting.VerifyData();
 	}
 	return currentLighting;
@@ -652,7 +652,7 @@ Lighting MapManager::GetLighting(){
 /// Get current map lighting
 void MapManager::SetLighting(const Lighting & lighting){
 	if (activeMap)
-		*activeMap->lighting = lighting;
+		activeMap->lighting = lighting;
 }
 
 /// Lists the loaded maps to console

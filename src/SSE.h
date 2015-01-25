@@ -5,6 +5,11 @@
 #ifndef SSE_MACROS_H
 #define SSE_MACROS_H
 
+#define USE_SSE
+#ifdef USE_SSE
+#include <xmmintrin.h>
+#endif
+
 /// Allocates aligned memory. E.g. Window * window = AllocAligned(Window);
 #define AllocAligned(a) (a*) _aligned_malloc(1 * sizeof(a), 16)
 /// Runs given constructor on the newly allocated memory.

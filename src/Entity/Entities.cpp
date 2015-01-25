@@ -76,7 +76,7 @@ Entities Entities::CullByCamera(Camera * camera) const{
 }
 
 /// Sorts by distance to selected position.
-void Entities::SortByDistance(Vector3f position) 
+void Entities::SortByDistance(ConstVec3fr position) 
 {
 	float distance[MAX_SELECTED];
 	memset(distance, 0, sizeof(float) * MAX_SELECTED);

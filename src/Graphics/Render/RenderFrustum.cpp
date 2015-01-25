@@ -4,7 +4,7 @@
 #include "RenderFrustum.h"
 #include "Graphics/GraphicsManager.h"
 
-RenderFrustum::RenderFrustum(Frustum frustum)
+RenderFrustum::RenderFrustum(const Frustum & frustum)
 : Renderable(), frustum(frustum)
 {
     lifeTime = 5.0f;
@@ -16,10 +16,10 @@ RenderFrustum::~RenderFrustum(){
 }
 
 void RenderFrustum::Render(){
-    glColor4f(color.x, color.y, color.z, 1.0f);
+    glColor4f(color[0], color[1], color[2], 1.0f);
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-#define RENDER(vert) glVertex3f(vert.x,vert.y,vert.z);
+#define RENDER(vert) glVertex3f(vert[0],vert[1],vert[2]);
 
     glBegin(GL_LINE_STRIP);
         RENDER(frustum.hitherTopLeft);

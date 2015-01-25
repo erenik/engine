@@ -10,7 +10,7 @@ Plane::Plane()
 };
 
 // Creates a plane, setting its 3 reference points in counter clockwise order.
-Plane::Plane(Vector3f point1, Vector3f point2, Vector3f point3)
+Plane::Plane(const Vector3f & point1, const Vector3f & point2, const Vector3f & point3)
 {
 	Set3Points(point1, point2, point3);
 }
@@ -50,7 +50,7 @@ Compute vectors v = p1 – p0, and u = p2 – p0;
 		-	C = zn
 To compute the value of D we just use the equation above, hence -D = Ax + By + Cz. Replacing (x,y,z) for a point in the plane (for instance p0), we get D = – n . p0 (dot product).
 */
-void Plane::Set3Points(Vector3f p1, Vector3f p2, Vector3f p3){
+void Plane::Set3Points(const Vector3f & p1, const Vector3f & p2, const Vector3f & p3){
 	point1 = p1;
 	point2 = p2;
 	point3 = p3;
@@ -60,6 +60,7 @@ void Plane::Set3Points(Vector3f p1, Vector3f p2, Vector3f p3){
 	D = - normal.DotProduct(p1);
 }
 
-float Plane::Distance(Vector3f point) const {
+float Plane::Distance(const Vector3f & point) const 
+{
 	return (normal.DotProduct(point) + D);
 }

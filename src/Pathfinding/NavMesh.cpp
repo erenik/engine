@@ -721,7 +721,7 @@ Waypoint * NavMesh::GetClosestToRay(Ray & ray)
 }
 
 /// If maxDistance is positive, it will limit the search within that vicinity-range. A negative number will set no limit.
-Waypoint * NavMesh::GetClosestTo(Vector3f position, float maxDistance /* = -1.f */){
+Waypoint * NavMesh::GetClosestTo(const Vector3f & position, float maxDistance /* = -1.f */){
 	float closestDist = 100000000000000.0f;
 	Waypoint * closest = NULL;
 	float sqMaxLen = maxDistance * maxDistance;
@@ -739,7 +739,7 @@ Waypoint * NavMesh::GetClosestTo(Vector3f position, float maxDistance /* = -1.f 
 	return closest;
 }
 /// Returns vacant waypoint closest to target position
-Waypoint * NavMesh::GetClosestVacantWaypoint(Vector3f position)
+Waypoint * NavMesh::GetClosestVacantWaypoint(const Vector3f & position)
 {
 	float closestDist = 100000000000000.0f;
 	Waypoint * closest = NULL;

@@ -15,7 +15,7 @@ public:
 	/// Positions isn't updated correctly with just the inherited plane-constructor!
 	Triangle(const Triangle &tri);
 	/// Sets the three points that define define the plane in counter clockwise order.
-	void Set3Points(Vector3f p1, Vector3f p2, Vector3f p3);
+	void Set3Points(const Vector3f & p1, const Vector3f & p2, const Vector3f & p3);
 };
 
 #endif

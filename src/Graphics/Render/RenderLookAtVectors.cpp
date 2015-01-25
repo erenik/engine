@@ -50,16 +50,16 @@ void GraphicsManager::RenderEntityVectors(){
 
 		/// Look at!
 		glColor4f(0.0f,0.0f,1.0f,1.0f);
-		glVertex3f(position.x, position.y, position.z);
+		glVertex3f(position[0], position[1], position[2]);
 		glColor4f(1.0f,1.0f,1.0f,1.0f);
-		glVertex3f(destination.x, destination.y, destination.z);
+		glVertex3f(destination[0], destination[1], destination[2]);
 
 		// + 2 guidelines to so we know that it's an arrow too..
-		glVertex3f(nearlyDest.x + upVec.x, nearlyDest.y + upVec.y, nearlyDest.z + upVec.z);
-		glVertex3f(destination.x, destination.y, destination.z);
+		glVertex3f(nearlyDest[0] + upVec[0], nearlyDest[1] + upVec[1], nearlyDest[2] + upVec[2]);
+		glVertex3f(destination[0], destination[1], destination[2]);
 
-		glVertex3f(nearlyDest.x - upVec.x, nearlyDest.y - upVec.y, nearlyDest.z - upVec.z);
-		glVertex3f(destination.x, destination.y, destination.z);
+		glVertex3f(nearlyDest[0] - upVec[0], nearlyDest[1] - upVec[1], nearlyDest[2] - upVec[2]);
+		glVertex3f(destination[0], destination[1], destination[2]);
 	}
 	glEnd();
 }

@@ -63,7 +63,7 @@ bool BreakoutCR::ResolveCollision(Collision & c)
 				return false;
 			// Reflect the velocity.
 			dp->velocity = tVelocity * (1.f - staticEntity->physics->friction) - nVelocity * restitution;
-			dp->velocity.z = 0;
+			dp->velocity[2] = 0;
 
 			/// Move out the dynamic entity
 			dynamic->position += collisionNormal * (-c.distanceIntoEachOther);
@@ -77,13 +77,13 @@ bool BreakoutCR::ResolveCollision(Collision & c)
 				if (pp)
 				{	
 					// Lock max y-vel.
-					if (AbsoluteValue(dp->velocity.y) > pp->maxYVel)
-						dp->velocity.y = pp->maxYVel * (dp->velocity.y > 0 ? 1.f : -1.f);
+					if (AbsoluteValue(dp->velocity[1]) > pp->maxYVel)
+						dp->velocity[1] = pp->maxYVel * (dp->velocity[1] > 0 ? 1.f : -1.f);
 
 					// Ensure X-velocity is at the exact value as specified in the ball property.
-					float relVelY = pp->minimumVerticalVelocity / AbsoluteValue(dp->velocity.y);
+					float relVelY = pp->minimumVerticalVelocity / AbsoluteValue(dp->velocity[1]);
 					if (relVelY > 0)
-						dp->velocity.y *= relVelY;
+						dp->velocity[1] *= relVelY;
 					pp->minimumVerticalVelocity += pp->velocityIncreasePerBounce;
 				}
 				float newVelocity = velocity.Length();

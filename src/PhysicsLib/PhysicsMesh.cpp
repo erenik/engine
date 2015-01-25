@@ -65,12 +65,12 @@ void PhysicsMesh::GenerateCollisionShapeOctree()
 	Vector3f min = mesh->aabb->min,
 		max = mesh->aabb->max;
 	collisionShapeOctree->SetBoundaries(
-		min.x - size.x * 0.1f,
-		max.x + size.x * 0.1f,
-		max.y + size.y * 0.1f,
-		min.y - size.y * 0.1f,
-		max.z + size.z * 0.1f,
-		min.z - size.z * 0.1f);
+		min[0] - size[0] * 0.1f,
+		max[0] + size[0] * 0.1f,
+		max[1] + size[1] * 0.1f,
+		min[1] - size[1] * 0.1f,
+		max[2] + size[2] * 0.1f,
+		min[2] - size[2] * 0.1f);
 
 	// Adding triangles..
 	int skipped = 0;

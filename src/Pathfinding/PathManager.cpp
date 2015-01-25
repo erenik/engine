@@ -113,9 +113,9 @@ void PathManager::SetSearchAlgorithm(const char * name){
 //=============================================================================================//
 
 float ManhattanDistance(Waypoint * from, Waypoint * to){
-	return AbsoluteValue(from->position.x - to->position.x) +
-		AbsoluteValue(from->position.y - to->position.y) +
-		AbsoluteValue(from->position.z - to->position.z);
+	return AbsoluteValue(from->position[0] - to->position[0]) +
+		AbsoluteValue(from->position[1] - to->position[1]) +
+		AbsoluteValue(from->position[2] - to->position[2]);
 };
 
 /** Calculates the given path using the A* algorithm, derived with guidance from Wikipedia

@@ -77,7 +77,7 @@ void UIImage::RenderSelf(GraphicsState & graphicsState)
 	Matrix4f modelView = graphicsState.viewMatrixF * graphicsState.modelMatrixF;
 	glMatrixMode(GL_MODELVIEW);
 	glLoadMatrixf(modelView.getPointer());
-	glColor4f(color.x, color.y, color.z, color.w);
+	glColor4f(color[0], color[1], color[2], color[3]);
 	glEnable(GL_BLEND);
 	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 

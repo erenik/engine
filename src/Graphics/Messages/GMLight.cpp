@@ -39,7 +39,7 @@ void GMAddLight::Process()
 
 
 
-GMSetAmbience::GMSetAmbience(Vector3f value) 
+GMSetAmbience::GMSetAmbience(ConstVec3fr value) 
 : GraphicsMessage(GM_SET_AMBIENCE), value(value)
 {
 
@@ -56,7 +56,7 @@ void GMSetAmbience::Process()
 }
 
 
-GMSetLight::GMSetLight(Light * light, int target, Vector3f value)
+GMSetLight::GMSetLight(Light * light, int target, ConstVec3fr value)
 : GraphicsMessage(GM_SET_LIGHT), target(target), vec3Value(value), light(light) 
 {
 	switch(target)

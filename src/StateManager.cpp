@@ -345,9 +345,9 @@ void * StateManager::StateProcessor(void * vArgs){
 		}
 		catch (...)
 		{
-			Log("An unexpected error occurred.");
+			LogToFile("log/StateProcessorErrors.txt", "An unexpected error occurred in the main processing thread (StateManager::StateProcessor).");
 			std::cout<<"An unexpected error occurred.";
-			Sleep(5000);
+			Sleep(500);
 		}
 	}
 	Log("State processing thread ending");

@@ -63,7 +63,7 @@ public:
     virtual void SetColor(const Vector4f & color);
 
 	/// Sets the emitter to be a contour. Default before calling this is a point or a plane.
-	virtual void SetEmitter(Contour contour);
+	virtual void SetEmitter(const Contour & contour);
 	virtual void SetEmitter(List<ParticleEmitter*> newEmitters);
 
 	/// Sets emission velocity. This will be forward to any attached emitters as well.

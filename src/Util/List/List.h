@@ -38,7 +38,9 @@ public:
 	List(const List &otherList);
 	List(const T & initialItem);
 	/// Creates a new list of specific amount of items.
-	List(int numberOfItems, const T & item, const T & item2, ...);
+	List(const T & item, const T & item2) { Nullify(); Add(item); Add(item2); };
+	List(const T & item, const T & item2, const T & item3) { Nullify(); Add(item, item2, item3); };
+	List(const T & item, const T & item2, const T & item3, const T & item4) { Nullify(); Add(item, item2, item3, item4);};
 	void Nullify();
 	~List();
 
@@ -84,8 +86,12 @@ public:
 	bool Add(const List<value_type> & item);
 	/// Adds an item to the list at the requested index, pushing along the rest. Used for keeping them sorted or stuff.
 	bool Add(const value_type & item, int requestedIndex);
+	void Add(const T & item, const T & item2) { Add(item); Add(item2);};
+	void Add(const T & item, const T & item2, const T & item3) { Add(item); Add(item2); Add(item3);};
+	void Add(const T & item, const T & item2, const T & item3, const T & item4) { Add(item); Add(item2); Add(item3); Add(item4); };
+	void Add(const T & item, const T & item2, const T & item3, const T & item4, const T & item5) { Add(item); Add(item2); Add(item3); Add(item4); Add(item5); };
 	/// Adds multiple items to the list
-	bool Add(int numItems, const T & item, const T & item2, ...);
+	bool AddArray(int numItems, T * itemArray);
 	/// Remove target item, searching for it.
 	bool Remove(const value_type & item);
 	/// Can be called with ListOption::RETAIN_ORDER to guarantee that internal order is preserved.
@@ -131,12 +137,15 @@ public:
 	/// Polls the existance/copy of target item in the queue. Returns it's index if so and -1 if not.
 	int GetIndexOf(const value_type & item) const;
 
+	/// Allocates a new array.
+	static T * AllocateArray(int size);
+	/// Deletes the array and calls the destructor on all objects. Does NOT set currentItems nor arrLength to 0! Deallocate does that.
+	static void DeleteArray(T * arr, int arrLength);
+
 /// To be inherited by other classes...
 protected:
 	/// Resizing function
 	void Resize(int newSize);
-	/// Deletes the array and calls the destructor on all objects. Does NOT set currentItems nor arrLength to 0! Deallocate does that.
-	void DeleteArray();
 
 	value_type * arr;
 	int currentItems;
@@ -179,10 +188,7 @@ List<T>::List(const List & otherList)
 {
 	arrLength = otherList.arrLength;
 
-	arr = (T*) _aligned_malloc(arrLength * sizeof(T), 16);
-	// Run constructor on the new objects?
-	for (int i = 0; i < arrLength; ++i)
-		new((void*)&arr[i]) T();
+	arr = AllocateArray(arrLength);
 
 	currentItems = otherList.currentItems;
 	/// Transfer items
@@ -198,28 +204,6 @@ List<T>::List(const T & initialItem)
 	Add(initialItem);
 }
 
-/// Creates a new list of specific amount of items.
-template <class T>
-List<T>::List(int numberOfItems, const T & item, const T & item2, ...)
-{
-	Nullify();
-	Add(item);
-	Add(item2);
-	// Variable length arguments.
-	// http://www.cprogramming.com/tutorial/c/lesson17.html
-	/* Initializing arguments to store all values after num */
-	va_list arguments;    
-	int extraArgs = numberOfItems - 2;
-    va_start ( arguments, item2);
-    /* Sum all the inputs; we still rely on the function caller to tell us how
-     * many there are */
-    for ( int x = 0; x < extraArgs; x++ )        
-    {
-		T itemt = va_arg (arguments, T);
-        Add(itemt);
-    }
-    va_end ( arguments );      // Cleans up the list
-}
 template <class T>
 void List<T>::Nullify()
 {
@@ -259,11 +243,7 @@ const List<T> & List<T>::operator = (const List &otherList)
 	assert(otherList.arrLength >= otherList.currentItems);
 	if (otherList.arrLength > 0){
 		arrLength = otherList.arrLength;
-		arr = (T*) _aligned_malloc(arrLength * sizeof(T), 16);
-		// Run constructor on the new objects?
-		for (int i = 0; i < arrLength; ++i)
-			new((void*)&arr[i]) T();
-
+		arr = AllocateArray(arrLength);
 		for (int i = 0; i < otherList.currentItems; ++i){
 			arr[i] = otherList.arr[i];
 		}
@@ -420,27 +400,36 @@ bool List<T>::Add(const List<T> & items)
 	return true;
 }
 	
-
-/// Adds 3 items to the list
 template <class T>
-bool List<T>::Add(int numItems, const T & item, const T & item2, ...) 
+bool List<T>::AddArray(int numItems, T * itemArray) 
 {
+	// Resize as needed.
+	Resize(currentItems + numItems);
+	// And add 'em.
+	for (int i = 0; i < numItems; ++i)
+	{
+		arr[currentItems + i] = itemArray[i];
+	}
+	currentItems = currentItems + numItems;
+	return true;
+	/*
 	Add(item);
 	Add(item2);
 	// Variable length arguments.
 	// http://www.cprogramming.com/tutorial/c/lesson17.html
-	/* Initializing arguments to store all values after num */
+	// Initializing arguments to store all values after num 
 	va_list arguments;    
 	int extraArgs = numItems - 2;
     va_start ( arguments, item2);
-    /* Sum all the inputs; we still rely on the function caller to tell us how
-     * many there are */
+    // Sum all the inputs; we still rely on the function caller to tell us how
+     // many there are 
     for ( int x = 0; x < extraArgs; x++ )        
     {
 		T itemt = va_arg (arguments, T);
         Add(itemt);
     }
     va_end ( arguments );      // Cleans up the list
+	*/
 	return true;
 }
 
@@ -684,7 +673,7 @@ void List<T>::Allocate(int newSize, bool setFull)
 template <class T>
 void List<T>::Deallocate()
 {
-	DeleteArray();
+	DeleteArray(arr, arrLength);
 	arrLength = 0;
 	currentItems = 0;
 }
@@ -702,10 +691,7 @@ void List<T>::Resize(int newSize)
 	{
 		newSize = 8;
 	}
-	T * newArr = (T*) _aligned_malloc(newSize * sizeof(T), 16);
-	// Run constructor on the new objects?
-	for (int i = 0; i < newSize; ++i)
-		new((void*)&newArr[i]) T();
+	T * newArr = AllocateArray(newSize);
 	// If new array is larger, copy over old items.
 	if (newSize >= currentItems)
 	{
@@ -713,22 +699,40 @@ void List<T>::Resize(int newSize)
 			newArr[i] = arr[i];
 	}
 	// Delete old array.
-	DeleteArray();
+	DeleteArray(arr, arrLength);
 	// Paste in the new one.
 	arr = newArr;
 	arrLength = newSize;
 }
 
 
+template <class T>
+T * List<T>::AllocateArray(int num)
+{
+#ifdef USE_SSE
+	T * newArr = (T*) _aligned_malloc(newSize * sizeof(T), 16);
+	// Run constructor on the new objects?
+	for (int i = 0; i < newSize; ++i)
+		new((void*)&newArr[i]) T();
+	return newArr;
+#else
+	return new T[num];
+#endif
+}
+
 /// Deletes the array and calls the destructor on all objects. Does NOT set currentItems nor arrLength to 0! Deallocate does that.
 template <class T>
-void List<T>::DeleteArray()
+void List<T>::DeleteArray(T * arr, int arrLength)
 {
 	if (arr)
 	{
+#ifdef USE_SSE
 		for (int i = 0; i < arrLength; ++i)
 			arr[i].~T();
 		_aligned_free(arr);
+#else
+		delete[] arr;
+#endif
 		arr = 0;
 	}
 }

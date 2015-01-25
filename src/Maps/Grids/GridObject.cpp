@@ -24,7 +24,7 @@ void GridObjectType::UpdatePassabilityMatrix()
 	if (matrixSize == size)
 		return;
 	passability.ClearAndDelete();
-	int num = size.x * size.y;
+	int num = size[0] * size[1];
 	for (int i = 0; i < num; ++i){
 		passability.Add(new bool(false));
 	}
@@ -34,9 +34,9 @@ void GridObjectType::UpdatePivotPosition()
 {
 	Vector2i min, max;
 	bool firstFound = false;
-	for (int y = 0; y < size.y; ++y){
-		for (int x = 0; x < size.x; ++x){
-			bool * passable = passability[y * size.x + x];
+	for (int y = 0; y < size[1]; ++y){
+		for (int x = 0; x < size[0]; ++x){
+			bool * passable = passability[y * size[0] + x];
 			if (! *passable)
 			{
 				if (!firstFound){
@@ -44,22 +44,22 @@ void GridObjectType::UpdatePivotPosition()
 					firstFound = true;
 				}
 				else {
-					if (x < min.x)
-						min.x = x;
-					if (x > max.x)
-						max.x = x;
-					if (y < min.y)
-						min.y = y;
-					if (y > max.y)
-						max.y = y;
+					if (x < min[0])
+						min[0] = x;
+					if (x > max[0])
+						max[0] = x;
+					if (y < min[1])
+						min[1] = y;
+					if (y > max[1])
+						max[1] = y;
 				}
 			}
 		}
 	}
-	Vector2f center = Vector2f(size.x / 2.0f, size.y / 2.0f);
+	Vector2f center = Vector2f(size[0] / 2.0f, size[1] / 2.0f);
 	pivotPosition = max + min + Vector2i(1,1);
 	pivotPosition /= 2.0f;
-	pivotPosition.y = size.y - pivotPosition.y;
+	pivotPosition[1] = size[1] - pivotPosition[1];
 
 	UpdatePivotDistances();
 }
@@ -133,10 +133,10 @@ bool GridObjectType::ReadFrom(std::fstream & file)
 /// Updates the 4 below. Call after changing pivot position or size.
 void GridObjectType::UpdatePivotDistances(){
 	/// Distances from pivot to the edges, to be used for rendering etc.
-	pivotToLeft = -pivotPosition.x;
-	pivotToRight = size.x - pivotPosition.x;
-	pivotToTop = size.y - pivotPosition.y;
-	pivotToBottom = -pivotPosition.y;
+	pivotToLeft = -pivotPosition[0];
+	pivotToRight = size[0] - pivotPosition[0];
+	pivotToTop = size[1] - pivotPosition[1];
+	pivotToBottom = -pivotPosition[1];
 }
 
 /////////////////////////// Object

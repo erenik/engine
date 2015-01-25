@@ -46,18 +46,19 @@ Matrix3f::Matrix3f(float elements[9]){
 	Precondition: The vectors have to be at least 3 in amount and are read in as the matrix's 3 columns.
 	Postcondition: The 3D matrix has been initialized using the provided vectors as the matrix's 3 columns.
 */
-Matrix3f::Matrix3f(Vector3f vector, Vector3f vector2, Vector3f vector3){
-	element[0] = vector.x;
-	element[1] = vector.y;
-	element[2] = vector.z;
+Matrix3f::Matrix3f(const Vector3f & vector, const Vector3f & vector2, const Vector3f & vector3)
+{
+	element[0] = vector[0];
+	element[1] = vector[1];
+	element[2] = vector[2];
 
-	element[3] = vector2.x;
-	element[4] = vector2.y;
-	element[5] = vector2.z;
+	element[3] = vector2[0];
+	element[4] = vector2[1];
+	element[5] = vector2[2];
 
-	element[6] = vector3.x;
-	element[7] = vector3.y;
-	element[8] = vector3.z;
+	element[6] = vector3[0];
+	element[7] = vector3[1];
+	element[8] = vector3[2];
 }
 
 Matrix3f::Matrix3f(Matrix4f &base){
@@ -128,13 +129,14 @@ void Matrix3f::InitRotationMatrix(float angle, float x, float y, float z){
 	element[8] = z * z * c1 + c;
 }
 
-void Matrix3f::InitRotationMatrix(float angle, Vector3f vector){
+void Matrix3f::InitRotationMatrix(float angle, const Vector3f & vector)
+{
 	float c = cos((float)angle);
 	float s = sin((float)angle);
 	float c1 = 1 - c;
-	float x = vector.GetX();
-	float y = vector.GetY();
-	float z = vector.GetZ();
+	float x = vector[0];
+	float y = vector[1];
+	float z = vector[2];
 	element[0] = x * x * c1 + c;
 	element[1] = y * x * c1 + z * s;
 	element[2] = x * z * c1 - y * s;
@@ -254,7 +256,8 @@ Matrix3f Matrix3f::product(const Matrix3f factor) const {
 }
 
 /** Product with Vector */
-Vector3f Matrix3f::product(Vector3f vector) const {
+Vector3f Matrix3f::product(const Vector3f & vector) const 
+{
 	float newArray[3];
 	float tempResult;
 	for (int y = 0; y < 3; y++){	// Rows
@@ -283,7 +286,7 @@ Matrix3f Matrix3f::operator * (const Matrix3f factor) const {
 	return Matrix3f(newArray);
 }
 
-Vector3f Matrix3f::operator * (Vector3f vector) const {
+Vector3f Matrix3f::operator * (const Vector3f & vector) const {
 	float newArray[3];
 	float tempResult;
 	for (int y = 0; y < 3; y++){	// Rows

@@ -83,7 +83,7 @@ void PongBallProperty::Process(int timeInMs)
 				// Reset it.
 			//	OnSpawn();
 				// Give points to players too.
-//				MesMan.QueueMessages("PongBallGoal:"+String::ToString(owner->position.x));
+//				MesMan.QueueMessages("PongBallGoal:"+String::ToString(owner->position[0]));
 				sleeping = true;
 				game->OnGoal(owner->position);
 			}
@@ -123,7 +123,7 @@ void PongBallProperty::OnCollision(Collision & data)
 	PongPlayerProperty * playerProp = other->GetProperty<PongPlayerProperty>();
 	if (playerProp)
 	{
-		if (data.collissionPoint.x < 0)
+		if (data.collissionPoint[0] < 0)
 			PlaySFX("Pong.ogg");
 		else
 			PlaySFX("Pong2.ogg");

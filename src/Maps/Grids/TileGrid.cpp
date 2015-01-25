@@ -11,9 +11,9 @@
 #include "Pathfinding/WaypointManager.h"
 
 /// Macros for going through all tiles.
-#define FOR_TILE_START for (int y = 0; y < size.y; ++y){\
+#define FOR_TILE_START for (int y = 0; y < size[1]; ++y){\
 		List<Tile*> * list = tiles[y];\
-		for (int x = 0; x < size.x; ++x){\
+		for (int x = 0; x < size[0]; ++x){\
 		Tile * tile = (*list)[x];
 #define FOR_TILE_END }}
 
@@ -130,10 +130,10 @@ void TileGrid2D::Resize(Vector2i newSize)
 		rowSpacing = Vector2f(1, 0.86602540378f);
 	}
 
-	for (int y = 0; y < size.y; ++y)
+	for (int y = 0; y < size[1]; ++y)
 	{
 		List<Tile*> * list = new List<Tile*>();
-		for (int x = 0; x < size.x; ++x)
+		for (int x = 0; x < size[0]; ++x)
 		{
 			Tile * tile = new Tile();
 			tile->position = rowSpacing.ElementMultiplication(Vector2f(x,y));
@@ -156,11 +156,11 @@ void TileGrid2D::Deallocate(){
 Tile * TileGrid2D::GetTile(int x, int y)
 {
 //	std::cout<<"\nTileGrid2D::GetTile: GridSize: "<<size;
-	if (x < 0 || x >= size.x ||
-		y < 0 || y >= size.y)
+	if (x < 0 || x >= size[0] ||
+		y < 0 || y >= size[1])
 		return NULL;
-	assert(x >= 0 && x < size.x);
-	assert(y >= 0 && y < size.y);
+	assert(x >= 0 && x < size[0]);
+	assert(y >= 0 && y < size[1]);
 	Tile * tile = (*tiles[y])[x];
 	return tile;
 }
@@ -168,7 +168,7 @@ Tile * TileGrid2D::GetTile(int x, int y)
 /// Returns tile at target position or NULL if no existy.
 Tile * TileGrid2D::GetTile(Vector2i position)
 {
-	return GetTile(position.x, position.y);
+	return GetTile(position[0], position[1]);
 }
 
 
@@ -180,7 +180,7 @@ void TileGrid2D::Render(GraphicsState & graphicsState)
 	Camera & camera = *graphicsState.camera;
 	Frustum frustum = camera.GetFrustum();
 	Vector3f min = frustum.hitherBottomLeft - Vector3f(1,1,1), max = frustum.fartherTopRight + Vector3f(1,1,1);
-	int tilesToRender = (int) ((max.x - min.x) * (max.y - max.y));
+	int tilesToRender = (int) ((max[0] - min[0]) * (max[1] - max[1]));
 	if (tilesToRender > 1000)
 		return;
 
@@ -191,17 +191,17 @@ void TileGrid2D::Render(GraphicsState & graphicsState)
 		/// Tile * tile declared via macro.
 		float xPos = float(x);
 		float yPos = float(y);		
-		if (xPos < min.x || xPos > max.x ||
-			yPos < min.y|| yPos > max.y)
+		if (xPos < min[0] || xPos > max[0] ||
+			yPos < min[1]|| yPos > max[1])
 			continue;
 
 		TileType * tt = tile->type;
 		if (tt == NULL){
-			// glColor4f(xPos / size.x, yPos / size.y, 0.5, 1);
+			// glColor4f(xPos / size[0], yPos / size[1], 0.5, 1);
 		}
 		else if (tt->textureSource.Length() < 3){
 			Vector3f c = tt->color;
-			// glColor4f(c.x, c.y, c.z, 1.f);
+			// glColor4f(c[0], c[1], c[2], 1.f);
 		}
 		else if (tt->texture == NULL){
 	        Texture * t = TexMan.LoadTexture(tt->textureSource);
@@ -236,10 +236,10 @@ void TileGrid2D::Render(GraphicsState & graphicsState)
 	FOR_TILE_END
 /*
 	for (int x = left; x < right; ++x){
-		if (x < camPos.x - viewRange || x > camPos.x + viewRange)
+		if (x < camPos[0] - viewRange || x > camPos[0] + viewRange)
 			continue;
 		for (int y = bottom; y < top; ++y){
-			if (y < camPos.y - viewRange || y > camPos.y + viewRange)
+			if (y < camPos[1] - viewRange || y > camPos[1] + viewRange)
 				continue;
 	
 		}

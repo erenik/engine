@@ -53,7 +53,7 @@ void BreakoutBallProperty::Process(int timeInMs)
 			// Reset it.
 		//	OnSpawn();
 			// Give points to players too.
-			MesMan.QueueMessages("BreakoutBallGoal:"+String::ToString(owner->position.x));
+			MesMan.QueueMessages("BreakoutBallGoal:"+String::ToString(owner->position[0]));
 			sleeping = true;
 			// Hide it from physics and graphics too!
 			Graphics.QueueMessage(new GMUnregisterEntity(owner));

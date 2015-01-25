@@ -80,7 +80,7 @@ void BreakoutPaddleProperty::Process(int timeInMs)
 		// Ignore balls going away.
 		if (ball->physics->velocity.DotProduct(lookAt) > 0)
 			continue;
-		float distance = AbsoluteValue(ballToPaddle.y);
+		float distance = AbsoluteValue(ballToPaddle[1]);
 		if (!ball->physics)
 			continue;
 		if (distance > 500.f)
@@ -101,8 +101,8 @@ void BreakoutPaddleProperty::Process(int timeInMs)
 			Vector3f toMove = -ballToPaddle;
 			toMove.Normalize();
 			toMove *= aiSpeed;
-			toMove.x += closestBall->physics->velocity.x * 0.5f;
-			toMove.y = toMove.z = 0;
+			toMove[0] += closestBall->physics->velocity[0] * 0.5f;
+			toMove[1] = toMove[2] = 0;
 			Physics.QueueMessage(new PMSetEntity(owner, PT_VELOCITY, Vector3f(toMove)));
 			moved = true;
 		}
@@ -144,7 +144,7 @@ void BreakoutPaddleProperty::OnPowerupsUpdated()
 	}
 	// Update scale.
 	Vector3f scale = initialScale;
-	scale.x *= width;
+	scale[0] *= width;
 	Physics.QueueMessage(new PMSetEntity(owner, PT_SET_SCALE, scale));
 
 	Physics.QueueMessage(new PMSet(PT_SIMULATION_SPEED, speed));

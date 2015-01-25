@@ -112,7 +112,9 @@ public:
 	Vector2i operator / (const int &f) const;
 
 	/// Operator overloading for the array-access operator []
-	int operator [](int index);
+	int & operator [](int index);
+	/// Operator overloading for the array-access operator []
+	const int & operator [](int index) const;
 
 	/// Multiplies the elements in the two vectors internally, returning the product.
 	Vector2i ElementMultiplication(const Vector2i otherVector) const;

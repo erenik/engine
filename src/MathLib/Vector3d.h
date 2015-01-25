@@ -32,7 +32,7 @@ public:
 	/**	Constructor
 		Postcondition: Initializes a 3D vector using v1 as start point and v2 as end point.
 	*/
-	Vector3d(Vertex3d v1, Vertex3d v2);
+//	Vector3d(Vertex3d v1, Vertex3d v2);
 	/**	Constructor
 		Precondition: The arr-parameter has to be an at least 3 indices long array.
 		Postcondition: Initializes a 3D vector to specified array values. 
@@ -84,7 +84,9 @@ public:
 	Vector3d operator * (const double &d) const;
 
 	/// Operator overloading for the array-access operator []
-	double operator [](int index);
+	double & operator [](int index);
+	/// Operator overloading for the array-access operator []
+	const double operator [](int index) const;
 
 	// Vector products
 	/** Dot product

@@ -47,18 +47,23 @@ bool Level::Load(String fromSource)
 				std::cout<<"ERrror";
 				continue;
 			}
-			newCode.color.x = tokens[3].ParseInt();
-			newCode.color.y = tokens[4].ParseInt();
-			newCode.color.z = tokens[5].ParseInt();
+			newCode.color[0] = tokens[3].ParseInt();
+			newCode.color[1] = tokens[4].ParseInt();
+			newCode.color[2] = tokens[5].ParseInt();
 			colorCodings.Add(newCode);
 		}
 		else if (line.StartsWith("Goal"))
 		{
 			List<String> tokens = line.Tokenize(" ");
 			if (tokens.Size() < 5){std::cout<<"\nError"; continue;}
-			goalColor.x = tokens[2].ParseInt();
-			goalColor.y = tokens[3].ParseInt();
-			goalColor.z = tokens[4].ParseInt();
+			goalColor[0] = tokens[2].ParseInt();
+			goalColor[1] = tokens[3].ParseInt();
+			goalColor[2] = tokens[4].ParseInt();
+		}
+		else if (line.StartsWith("StarSpeed"))
+		{
+			String vector = line - "StarSpeed";
+			starSpeed.ParseFrom(vector);
 		}
 	}
 
@@ -76,9 +81,9 @@ bool Level::Load(String fromSource)
 		{
 			Vector3i color = tex->GetPixelVec4i(x,y);
 			// Skip if white.
-			if (color.x == 255 && color.y == 255 && color.z == 255)
+			if (color[0] == 255 && color[1] == 255 && color[2] == 255)
 				continue;
-			if (color.x == 0 && color.y == 0 && color.z == 0)
+			if (color[0] == 0 && color[1] == 0 && color[2] == 0)
 				continue;
 			if (color == goalColor)
 			{
@@ -94,8 +99,8 @@ bool Level::Load(String fromSource)
 				if (coding.color == color)
 				{
 					Ship newShip = Ship::New(coding.ship);
-					newShip.position.x = (float) x;
-					newShip.position.y = (float) 20 - (topY - y);
+					newShip.position[0] = (float) x;
+					newShip.position[1] = (float) 20 - (topY - y);
 					// Create ship.
 					ships.Add(newShip);
 					found = true;

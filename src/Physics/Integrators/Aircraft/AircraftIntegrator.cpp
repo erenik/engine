@@ -49,9 +49,9 @@ void AircraftIntegrator::IntegrateVelocity(Entity * forEntity, float timeInSecon
 	Vector3f right = forEntity->rotationMatrix.GetColumn(0);
 
 
-	Vector3f upAcc = up * pp->relativeAcceleration.y;
-	Vector3f forwardAcc = forward * pp->relativeAcceleration.z;
-	Vector3f rightAcc = right * pp->relativeAcceleration.x;
+	Vector3f upAcc = up * pp->relativeAcceleration[1];
+	Vector3f forwardAcc = forward * pp->relativeAcceleration[2];
+	Vector3f rightAcc = right * pp->relativeAcceleration[0];
 
 	Vector3f accDueToRelAcc = upAcc + forwardAcc + rightAcc;
 
@@ -107,9 +107,9 @@ void AircraftIntegrator::IntegrateVelocity(Entity * forEntity, float timeInSecon
 
 		// Alright. So now we have rotations along the 3 main local axises...
 		// Now we need to find the 3 quaternions which would apply these rotations (looking from a global perspective)
-		Quaternion pitch(right, rotation.x);
-		Quaternion yaw(up, rotation.y);
-		Quaternion roll(forward, rotation.z);
+		Quaternion pitch(right, rotation[0]);
+		Quaternion yaw(up, rotation[1]);
+		Quaternion roll(forward, rotation[2]);
 
 		// Now multiply these three with the current orientation quaternion one at a time... should be simple enouhg.. maybe :P
 		Quaternion & orientation = pp->orientation;

@@ -79,6 +79,8 @@ public:
 
 	/// Operator overloading for the array-access operator []
 	double& operator[] (const unsigned int index);
+	/// Operator overloading for the array-access operator []
+	const double& operator[] (const unsigned int index) const;
 
 	// Vector products
 	/** Scalar product

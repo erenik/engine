@@ -207,6 +207,7 @@ bool Ship::LoadTypes(String file)
 			else if (column == "Movement pattern")
 			{
 				ship.ParseMovement(value);
+				ship.movementPatterns.Size();
 			}
 			else if (column == "Speed")
 				ship.speed = value.ParseFloat() * 0.2f;
@@ -368,6 +369,7 @@ void Ship::ParseMovement(String fromString)
 	{
 		movementPatterns.Add(Movement(Movement::NONE));
 	}
+	assert(movementPatterns.Size());
 }
 
 
@@ -390,5 +392,9 @@ Ship Ship::New(String shipByName)
 /// Calls OnEnter for the initial movement pattern.
 void Ship::StartMovement()
 {
-	movementPatterns[0].OnEnter(this);
+	if (!canMove)
+		return;
+	assert(movementPatterns.Size());
+	if (movementPatterns.Size())
+		movementPatterns[0].OnEnter(this);
 }

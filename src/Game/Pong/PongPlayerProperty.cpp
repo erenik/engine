@@ -60,7 +60,7 @@ void PongPlayerProperty::Process(int timeInMs)
 		// Ignore balls going away.
 		if (ball->physics->velocity.DotProduct(lookAt) > 0)
 			continue;
-		float distance = AbsoluteValue(ballToPaddle.x);
+		float distance = AbsoluteValue(ballToPaddle[0]);
 		if (!ball->physics)
 			continue;
 		if (distance > 500.f)
@@ -81,8 +81,8 @@ void PongPlayerProperty::Process(int timeInMs)
 			Vector3f toMove = -ballToPaddle;
 			toMove.Normalize();
 			toMove *= aiSpeed;
-			toMove.y += closestBall->physics->velocity.y * 0.5f;
-			toMove.x = toMove.z = 0;
+			toMove[1] += closestBall->physics->velocity[1] * 0.5f;
+			toMove[0] = toMove[2] = 0;
 			Physics.QueueMessage(new PMSetEntity(owner, PT_VELOCITY, Vector3f(toMove)));
 			moved = true;
 		}

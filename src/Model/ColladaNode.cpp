@@ -180,9 +180,9 @@ void ColladaNode::UpdateMatrices(Matrix4f & parentTransformationMatrix)
 	Matrix4f newBoneModelMatrix = parentTransformationMatrix;
 	newBoneModelMatrix *= Matrix4f::InitTranslationMatrix(translation);
 	
-	newBoneModelMatrix *= Matrix4f::InitRotationMatrixZ(DEGREES_TO_RADIANS(this->rotateZ.w));
-	newBoneModelMatrix *= Matrix4f::InitRotationMatrixY(DEGREES_TO_RADIANS(this->rotateY.w));
-	newBoneModelMatrix *= Matrix4f::InitRotationMatrixX(DEGREES_TO_RADIANS(this->rotateX.w));
+	newBoneModelMatrix *= Matrix4f::InitRotationMatrixZ(DEGREES_TO_RADIANS(this->rotateZ[3]));
+	newBoneModelMatrix *= Matrix4f::InitRotationMatrixY(DEGREES_TO_RADIANS(this->rotateY[3]));
+	newBoneModelMatrix *= Matrix4f::InitRotationMatrixX(DEGREES_TO_RADIANS(this->rotateX[3]));
 	// o.o
 	nodeModelMatrix = newBoneModelMatrix;
 	// Update kids.

@@ -47,7 +47,7 @@ public:
 	void UpdateBallProperties();
 
 	/// o.o Called from ball maybe.
-	void OnGoal(Vector3f atPosition);
+	void OnGoal(ConstVec3fr atPosition);
 
 	// Sets new amount of balls and resets the game.
 	void SetNumBalls(int num);

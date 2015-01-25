@@ -97,9 +97,9 @@ public:
 	/// Pretty much highest result of: Vector3f(r,g,b).MaxPart() * a   -> perceived intensity on black background.
 	float GetMaxIntensity();
 	/// Linear addition of all rgb-compontents.
-	void Add(Vector3f color, float alpha = 0.0f);
+	void Add(ConstVec3fr color, float alpha = 0.0f);
 	/// Sets color for all pixels, not touching the alpha.
-	void Colorize(Vector3f color);
+	void Colorize(const Vector3f & color);
 	/// Setts color of all pixels.
 	void SetColor(const Vector4f & color);
 	void SetColorOfColumn(int column, const Vector4f & color);
@@ -162,9 +162,9 @@ public:
 	/** Raw RGBA texture data.
 		Pixel index psi below. and the pixel index with offsets of 0 to 3 give the RGBA components respectively.
 		int psi = y * width * bpp + x * bpp;
-			buf[psi] += color.x * 255.0f;
-			buf[psi+1] += color.y * 255.0f;
-			buf[psi+2] += color.z * 255.0f;
+			buf[psi] += color[0] * 255.0f;
+			buf[psi+1] += color[1] * 255.0f;
+			buf[psi+2] += color[2] * 255.0f;
 			buf[psi+3] += alpha * 255.0f;
 		}
 

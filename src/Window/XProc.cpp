@@ -135,16 +135,16 @@ void * XProc(XEvent & event){
 
         XWindowAttributes window_attributes_return;
         XGetWindowAttributes(display, window, &window_attributes_return);
-        std::cout << "\n" << window_attributes_return.x
-                  << "\n" << window_attributes_return.y
+        std::cout << "\n" << window_attributes_return[0]
+                  << "\n" << window_attributes_return[1]
                   << "\n" << window_attributes_return.width
                   << "\n" << window_attributes_return.height
                   << std::endl;
 
 /*
         XWindowChanges values;
-        values.x = window_attributes_return.x;
-        values.y = window_attributes_return.y;
+        values[0] = window_attributes_return[0];
+        values[1] = window_attributes_return[1];
         values.width = window_attributes_return.width;
         values.height = window_attributes_return.height;
         values.border_width = window_attributes_return.border_width;
@@ -226,7 +226,7 @@ void * XProc(XEvent & event){
 	case KeyPress: 
 	{
 		bool upperCase = Input.KeyPressed(KEY::SHIFT);
-		xKey = (int) XLookupKeysym(&event.xkey, 0);
+		xKey = (int) XLookupKeysym(&event[0]key, 0);
 		//        std::cout << "\nXLookupKeysym "<<(int)xKey<<" "<<(char)xKey;
 		keyCode = GetKeyCodeFromXK(xKey);
 		if (keyCode)
@@ -235,7 +235,7 @@ void * XProc(XEvent & event){
 		int modifier = 0;
 		if (Input.KeyPressed(KEY::SHIFT))
 		    ++modifier;
-		int xKey = (int) XLookupKeysym(&event.xkey, modifier);
+		int xKey = (int) XLookupKeysym(&event[0]key, modifier);
 		//     std::cout << "\nXLookupKeysym "<<(int)xKey<<" "<<(char)xKey;
 		int c = GetCharFromXK(xKey);
 		//     std::cout<<"\nGetCharFromXK: "<<c<<" "<<(char)c;
@@ -251,7 +251,7 @@ void * XProc(XEvent & event){
             if (XEventsQueued(display, QueuedAfterReading)){
                 XEvent nextevnt;
                 XPeekEvent(display, &nextevnt);
-                if (nextevnt.type == KeyPress && nextevnt.xkey.time == event.xkey.time && nextevnt.xkey.keycode == event.xkey.keycode){
+                if (nextevnt.type == KeyPress && nextevnt[0]key.time == event[0]key.time && nextevnt[0]key.keycode == event[0]key.keycode){
                     // delete retriggered KeyPress event
                     XNextEvent (display, &event);
                     is_retriggered = 1;
@@ -261,7 +261,7 @@ void * XProc(XEvent & event){
 */
         if (!is_retriggered){
        //     std::cout << "\nKey Release: ";
-            xKey = (int) XLookupKeysym(&event.xkey, 0);
+            xKey = (int) XLookupKeysym(&event[0]key, 0);
         //    std::cout << "key " << xKey << " was released.";
             keyCode = GetKeyCodeFromXK(xKey);
             if (keyCode)
@@ -272,19 +272,19 @@ void * XProc(XEvent & event){
     }
     case MotionNotify: {
       //  std::cout<<"\nMotion notify";
-        x = event.xbutton.x;
-        y = Graphics.Height() - event.xbutton.y;
-      //  PRINT << " " << event.xbutton.x << "," << event.xbutton.y;
+        x = event[0]button[0];
+        y = Graphics.Height() - event[0]button[1];
+      //  PRINT << " " << event[0]button[0] << "," << event[0]button[1];
         Input.MouseMove(x,y);
         return NULL;
     }
     case ButtonPress:
    //     std::cout << "ButtonPress: ";
-        x = event.xbutton.x;
-        y = Graphics.Height() - event.xbutton.y;
-        state = event.xbutton.state;
-        button = event.xbutton.button;
-   //     PRINT << event.xbutton.button << " " << event.xbutton.x << "," << event.xbutton.y << ", "<< state <<std::endl;
+        x = event[0]button[0];
+        y = Graphics.Height() - event[0]button[1];
+        state = event[0]button.state;
+        button = event[0]button.button;
+   //     PRINT << event[0]button.button << " " << event[0]button[0] << "," << event[0]button[1] << ", "<< state <<std::endl;
         /// Left clickur
         if (button == Button1)
             Input.MouseClick(true, x, y);
@@ -299,11 +299,11 @@ void * XProc(XEvent & event){
         return NULL;
         break;
     case ButtonRelease:
-        x = event.xbutton.x;
-        y = Graphics.Height() - event.xbutton.y;
-        button = event.xbutton.button;
+        x = event[0]button[0];
+        y = Graphics.Height() - event[0]button[1];
+        button = event[0]button.button;
  //       std::cout << "ButtonRelease: ";
- //       PRINT << event.xbutton.button << " " << event.xbutton.x << "," << event.xbutton.y << std::endl;
+ //       PRINT << event[0]button.button << " " << event[0]button[0] << "," << event[0]button[1] << std::endl;
         if (button == Button1)
             Input.MouseClick(false, x, y);
         if (button == Button3)
@@ -322,8 +322,8 @@ void * XProc(XEvent & event){
         Atom wm_protocol = XInternAtom (display, "WM_PROTOCOLS", False);
         Atom wm_delete_window = XInternAtom (display, "WM_DELETE_WINDOW", False);
         // In our case primarily requests to close the window! Ref: http://www.opengl.org/discussion_boards/showthread.php/157469-Properly-destroying-a-window
-        if ((event.xclient.message_type == wm_protocol) // OK, it's comming from the WM
-        && ((Atom)event.xclient.data.l[0] == wm_delete_window)) // This is a close event // wm_delete
+        if ((event[0]client.message_type == wm_protocol) // OK, it's comming from the WM
+        && ((Atom)event[0]client.data.l[0] == wm_delete_window)) // This is a close event // wm_delete
         {
             MesMan.QueueMessages("Query(QuitApplication)");
         }

@@ -62,13 +62,13 @@ int SpaceShooterCD::DetectCollisions(List<EntityPair> & pairs, List<Collision> &
 
 		float radiiSum = entity->physics->physicalRadius + entity2->physics->physicalRadius;
 		Vector3f distance = entity->position - entity2->position;
-		if (abs(distance.x) > radiiSum)
+		if (abs(distance[0]) > radiiSum)
 			continue;
-		if (abs(distance.y) > radiiSum)
+		if (abs(distance[1]) > radiiSum)
 			continue;
-		if (abs(distance.z) > radiiSum)
+		if (abs(distance[2]) > radiiSum)
 			continue;
-		float distanceLengthNotRooted = distance.x * distance.x + distance.y * distance.y + distance.z * distance.z;
+		float distanceLengthNotRooted = distance[0] * distance[0] + distance[1] * distance[1] + distance[2] * distance[2];
 		float radiusPowerOf2 = radiiSum * radiiSum;
 		if (distanceLengthNotRooted > radiusPowerOf2 * 1.05f)
 			continue;

@@ -81,7 +81,7 @@ PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, Vector2f valu
 }
 
 
-PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, Vector3f value, long long timeStamp)
+PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, const Vector3f & value, long long timeStamp)
 : target(target), timeStamp(timeStamp)
 {
 	dataType = VECTOR3F;
@@ -105,7 +105,7 @@ PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, Vector3f valu
 		case PT_SET_POSITION:
 			break;
 		case PT_SET_SCALE:
-			assert(vec3fValue.x && vec3fValue.y && vec3fValue.z);
+			assert(vec3fValue[0] && vec3fValue[1] && vec3fValue[2]);
 			break;
 		case PT_SET_ROTATION:
 		case PT_RELATIVE_VELOCITY:
@@ -121,7 +121,7 @@ PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, Vector3f valu
 	}
 }
 
-PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, Quaternion value, long long timeStamp /*= 0*/)
+PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, const Quaternion & value, long long timeStamp /*= 0*/)
 	: target(target), timeStamp(timeStamp)
 {
 	dataType = QUATERNION;
@@ -375,8 +375,8 @@ void PMSetEntity::Process()
 				switch(dataType)
 				{
 					case VECTOR2F:
-						entity->position.x = vec2fValue.x;
-						entity->position.y = vec2fValue.y;
+						entity->position[0] = vec2fValue[0];
+						entity->position[1] = vec2fValue[1];
 						entity->RecalculateMatrix();
 						break;
 					case VECTOR3F:
@@ -389,15 +389,15 @@ void PMSetEntity::Process()
 				break;
 			}
 			case PT_POSITION_Y:
-				entity->position.y = fValue;
+				entity->position[1] = fValue;
 				entity->RecalculateMatrix();
 				break;
 			case PT_POSITION_X:
-				entity->position.x = fValue;
+				entity->position[0] = fValue;
 				entity->RecalculateMatrix();
 				break;
 			case PT_POSITION_Z:
-				entity->position.z = fValue;
+				entity->position[2] = fValue;
 				entity->RecalculateMatrix();
 				break;
 			case PT_TRANSLATE:
@@ -419,8 +419,8 @@ void PMSetEntity::Process()
 						entity->SetScale(Vector3f(fValue, fValue, fValue)); 
 						break;
 					case VECTOR2F: 
-						entity->scale.x = vec2fValue.x; 
-						entity->scale.y = vec2fValue.y; 
+						entity->scale[0] = vec2fValue[0]; 
+						entity->scale[1] = vec2fValue[1]; 
 						entity->RecalculateMatrix(); 
 						break;
 					case VECTOR3F:	
@@ -449,7 +449,7 @@ void PMSetEntity::Process()
 			{
 				//
 				Vector3f newRotation = entity->rotation;
-				newRotation.y = fValue;
+				newRotation[1] = fValue;
 				entity->SetRotation(newRotation);
 				break;
 			}

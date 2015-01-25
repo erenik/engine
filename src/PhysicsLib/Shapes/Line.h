@@ -23,7 +23,7 @@ class Line
 {
 public:
 	Line();
-	Line(Vector3f start, Vector3f stop);
+	Line(const Vector3f & start, const Vector3f & stop);
 
 	/** Intersection test. If an intersection occurs a non-0 result will be returned. 
 		1 for regular intersections, 2 for overlapping points and 3 for colinear intersections.
@@ -32,7 +32,7 @@ public:
 	// From start to stop?
 	float Length();
 	// Calculates distance to point.
-	float Distance(Vector3f point);
+	float Distance(const Vector3f & point);
 	/// Merges with other lines, taking weights into consideration for Y, but expanding X as necessary.
 	void MergeYExpandX(Line & line);
 	/// Merges with other line, taking weights into consideration.

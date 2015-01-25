@@ -160,11 +160,15 @@ List<int> InputManager::ActiveModifierKeys()
 {
 	List<int> activeModifierKeys;
 	List<int> modifierKeys;
-	modifierKeys.Add(4, KEY::CTRL, KEY::SHIFT, KEY::ALT, KEY::ALT_GR);
+	int modifierKeyArr[] = {
+		KEY::CTRL, KEY::SHIFT, KEY::ALT, KEY::ALT_GR
+	};
+	modifierKeys.AddArray(4, modifierKeyArr);
 	for (int i = 0; i < modifierKeys.Size(); ++i)
 	{
-		if (this->keyPressed[modifierKeys[i]])
-			activeModifierKeys.Add(modifierKeys[i]);
+		int key = modifierKeys[i];
+		if (this->keyPressed[key])
+			activeModifierKeys.Add(key);
 	}
 	return activeModifierKeys;
 }
@@ -235,7 +239,7 @@ void InputManager::UpdateDeviceStates(){
 		lastPacketNumber[i] = tmpXInputState.dwPacketNumber;
 
 		// Parse Xbox controller input data
-		// http://msdn.microsoft.com/en-us/library/windows/desktop/microsoft.directx_sdk.reference.xinput_gamepad%28v=vs.85%29.aspx
+		// http://msdn.microsoft.com/en-us/library/windows/desktop/microsoft.directx_sdk.reference[0]input_gamepad%28v=vs.85%29.aspx
 		XINPUT_GAMEPAD * input = &tmpXInputState.Gamepad;
 
 		// Get float valuesl.....
@@ -623,8 +627,8 @@ void InputManager::MouseRightClick(Window * window, bool down, int x, int y)
 /// Interprets a mouse-move message to target position.
 void InputManager::MouseMove(Window * window, Vector2i activeWindowAreaCoords)
 {	
-	int x = activeWindowAreaCoords.x;
-	int y = activeWindowAreaCoords.y;
+	int x = activeWindowAreaCoords[0];
+	int y = activeWindowAreaCoords[1];
 	if (!acceptInput)
 		return;
 	if (ignoreMouse)
@@ -700,7 +704,7 @@ void InputManager::MouseWheel(Window * window, float delta)
 				;
 			
 			// Do a mouse hover/move too!
-			ui->Hover(mousePosition.x, mousePosition.y);
+			ui->Hover(mousePosition[0], mousePosition[1]);
 		}
 	}
 	/// If no UI has been selected/animated, pass the message on to the stateManager

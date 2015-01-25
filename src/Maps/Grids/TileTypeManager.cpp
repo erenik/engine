@@ -179,14 +179,14 @@ bool TileTypeManager::LoadTileTypes(String fromFile){
 			else if (token == "defaultColor"){
 				switch(tokens.Size()-1){
 					case 1: // Assume it's alpha and keep the other colors as usual
-						defaultColor.w = NEXT_TOKEN.ParseFloat();
+						defaultColor[3] = NEXT_TOKEN.ParseFloat();
 						break;
 					case 4:
-						defaultColor.w = tokens[4].ParseFloat();
+						defaultColor[3] = tokens[4].ParseFloat();
 					case 3: // Assume it's RGB
-						defaultColor.x = tokens[1].ParseFloat();
-						defaultColor.y = tokens[2].ParseFloat();
-						defaultColor.z = tokens[3].ParseFloat();
+						defaultColor[0] = tokens[1].ParseFloat();
+						defaultColor[1] = tokens[2].ParseFloat();
+						defaultColor[2] = tokens[3].ParseFloat();
 						break;
 					case 2: case 0:
 						assert(false && "Irregular amount of tokens following \"defaultTextColor\"; 1 for alpha, 3 for RGB and 4 for RGBA.");
@@ -217,14 +217,14 @@ bool TileTypeManager::LoadTileTypes(String fromFile){
 			else if (token == "Color"){
 				switch(tokens.Size()-1){
 					case 1: // Assume it's alpha and keep the other colors as usual
-						tt->color.w = NEXT_TOKEN.ParseFloat();
+						tt->color[3] = NEXT_TOKEN.ParseFloat();
 						break;
 					case 4: case 5: case 6: case 7: case 8: case 9: case 10: case 11: case 12:
-						tt->color.w = tokens[4].ParseFloat();
+						tt->color[3] = tokens[4].ParseFloat();
 					case 3: // Assume it's RGB
-						tt->color.x = tokens[1].ParseFloat();
-						tt->color.y = tokens[2].ParseFloat();
-						tt->color.z = tokens[3].ParseFloat();
+						tt->color[0] = tokens[1].ParseFloat();
+						tt->color[1] = tokens[2].ParseFloat();
+						tt->color[2] = tokens[3].ParseFloat();
 						break;
 					case 2: case 0:
 						assert(false && "Irregular amount of tokens following \"textColor\"; 1 for alpha, 3 for RGB and 4 for RGBA.");

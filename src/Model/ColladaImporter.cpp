@@ -196,7 +196,7 @@ Mesh * ColladaImporter::CreateMesh(String name)
 			for (int i = 0; i < mesh->vertices.Size(); ++i)
 			{
 				Vector3f v = mesh->vertices[i];
-				mesh->vertices[i] = Vector3f(v.x, v.z, v.y);
+				mesh->vertices[i] = Vector3f(v[0], v[2], v[1]);
 			}
 			break;
 		}		
@@ -248,9 +248,9 @@ Mesh * ColladaImporter::CreateMesh(String name)
 		int normalsParsed = 0;
 		for (int i = 0; i < normalDataTokens.Size(); i += 3)
 		{
-			mesh->normals[normalsParsed].x = normalDataTokens[i].ParseFloat();
-			mesh->normals[normalsParsed].y = normalDataTokens[i+1].ParseFloat();
-			mesh->normals[normalsParsed].z = normalDataTokens[i+2].ParseFloat();
+			mesh->normals[normalsParsed][0] = normalDataTokens[i].ParseFloat();
+			mesh->normals[normalsParsed][1] = normalDataTokens[i+1].ParseFloat();
+			mesh->normals[normalsParsed][2] = normalDataTokens[i+2].ParseFloat();
 			++normalsParsed;
 		}
 	}
@@ -294,8 +294,8 @@ Mesh * ColladaImporter::CreateMesh(String name)
 		int uvsParsed = 0;
 		for (int i = 0; i < uvDataTokens.Size(); i += 2)
 		{
-			mesh->uvs[uvsParsed].x = uvDataTokens[i].ParseFloat();
-			mesh->uvs[uvsParsed].y = uvDataTokens[i+1].ParseFloat();
+			mesh->uvs[uvsParsed][0] = uvDataTokens[i].ParseFloat();
+			mesh->uvs[uvsParsed][1] = uvDataTokens[i+1].ParseFloat();
 			++uvsParsed;
 		}
 	}

@@ -362,7 +362,7 @@ int WaypointManager::CleansePData(){
 /** Attempts to toggle walkability on the waypoint closest to the provided position both in the current array
 	as well as the arrays from which the NavMesh is based upon.
 */
-bool WaypointManager::ToggleWaypointWalkability(Vector3f position){
+bool WaypointManager::ToggleWaypointWalkability(const Vector3f & position){
    /* Mutex mutex;
     mutex.Open("ActiveNavMeshMutex");
     */
@@ -417,7 +417,7 @@ Waypoint * WaypointManager::GetFreeWaypoint(){
 	return NULL;
 }
 /// Returns the closest waypoint to target position that is passable/walkable/valid.
-Waypoint * WaypointManager::GetClosestValidWaypoint(Vector3f position){
+Waypoint * WaypointManager::GetClosestValidWaypoint(const Vector3f & position){
 	int waypoints = activeNavMesh->waypoints.Size();
 	if (!waypoints)
 		return NULL;
@@ -444,7 +444,7 @@ Waypoint * WaypointManager::GetClosestValidWaypoint(Vector3f position){
 }
 
 /// Gets the closest valid free waypoint (equivalent to GetFreeWaypoint combined with GetClosestValidWaypoint)
-Waypoint * WaypointManager::GetClosestValidFreeWaypoint(Vector3f position)
+Waypoint * WaypointManager::GetClosestValidFreeWaypoint(const Vector3f & position)
 {
 	assert(activeNavMesh->waypoints.Size() > 0);
 	/// Get an initial one..
@@ -474,7 +474,7 @@ Waypoint * WaypointManager::GetClosestValidFreeWaypoint(Vector3f position)
 	return closest;
 }
 
-Waypoint * WaypointManager::GetClosestVacantWaypoint(Vector3f position){
+Waypoint * WaypointManager::GetClosestVacantWaypoint(const Vector3f & position){
 	assert(activeNavMesh);
 	Waypoint * wp = activeNavMesh->GetClosestVacantWaypoint(position);
 	return wp;

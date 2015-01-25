@@ -191,14 +191,14 @@ void Matrix4f::InitRotationMatrix(float angle, float x, float y, float z){
 	element[10] = z * z * c1 + c;
 }
 
-void Matrix4f::InitRotationMatrix(float angle, Vector3f vector){
+void Matrix4f::InitRotationMatrix(float angle, const Vector3f & vector){
 	LoadIdentity();
 	float c = cos((float)angle);
 	float s = sin((float)angle);
 	float c1 = 1 - c;
-	float x = vector.GetX();
-	float y = vector.GetY();
-	float z = vector.GetZ();
+	float x = vector[0];
+	float y = vector[1];
+	float z = vector[2];
 	element[0] = x * x * c1 + c;
 	element[1] = y * x * c1 + z * s;
 	element[2] = x * z * c1 - y * s;
@@ -211,22 +211,22 @@ void Matrix4f::InitRotationMatrix(float angle, Vector3f vector){
 }
 
 /** Initializes a translation matrix using provided vector. */
-Matrix4f Matrix4f::InitTranslationMatrix(Vector3f translation)
+Matrix4f Matrix4f::InitTranslationMatrix(const Vector3f & translation)
 {
 	Matrix4f mat;
-	mat.element[12] += translation.x;
-	mat.element[13] += translation.y;
-	mat.element[14] += translation.z;
+	mat.element[12] += translation[0];
+	mat.element[13] += translation[1];
+	mat.element[14] += translation[2];
 	return mat;
 }
 
 /// Creates a scaling matrix (XYZ)
-Matrix4f Matrix4f::InitScalingMatrix(Vector3f scale)
+Matrix4f Matrix4f::InitScalingMatrix(const Vector3f & scale)
 {
 	Matrix4f mat;
-	mat.element[0] = scale.x;
-	mat.element[5] = scale.x;
-	mat.element[10] = scale.x;
+	mat.element[0] = scale[0];
+	mat.element[5] = scale[0];
+	mat.element[10] = scale[0];
 	return mat;
 }
 
@@ -410,18 +410,18 @@ void Matrix4f::Translate(float x, float y, float z){
 const Matrix4f Matrix4f::Translation(const Vector3f & vec)
 {
 	Matrix4f mat;
-	mat.element[12] += vec.x;
-	mat.element[13] += vec.y;
-	mat.element[14] += vec.z;
+	mat.element[12] += vec[0];
+	mat.element[13] += vec[1];
+	mat.element[14] += vec[2];
 	return mat;
 }
 
 
 /*
 void Matrix4f::Translate(Vector3f vec){
-	element[12] += vec.GetX();
-	element[13] += vec.GetY();
-	element[14] += vec.GetZ();
+	element[12] += vec[0];
+	element[13] += vec[1];
+	element[14] += vec[2];
 }
 */
 /*
@@ -449,18 +449,18 @@ void Matrix4f::Scale(float x, float y, float z){
 /// Scale using a given vector
 void Matrix4f::Scale(const Vector3f & scalingVector){
     /// TODO: Re-examine. Seems faulty.
-    element[0] *= scalingVector.x;
-	element[5] *= scalingVector.y;
-	element[10] *= scalingVector.z;
+    element[0] *= scalingVector[0];
+	element[5] *= scalingVector[1];
+	element[10] *= scalingVector[2];
 }
 
 /// Builds a 3D scaling matrix using given vector.
 const Matrix4f Matrix4f::Scaling(const Vector3f & scalingVector)
 {
 	Matrix4f scaling;
-    scaling.element[0] *= scalingVector.x;
-	scaling.element[5] *= scalingVector.y;
-	scaling.element[10] *= scalingVector.z;
+    scaling.element[0] *= scalingVector[0];
+	scaling.element[5] *= scalingVector[1];
+	scaling.element[10] *= scalingVector[2];
 	return scaling;
 }
 

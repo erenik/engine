@@ -33,45 +33,46 @@ Vector3i::Vector3i(int arr[]){
 	z = arr[2];
 }
 
-Vector3i::Vector3i(const Vector3i & base){
-	x = base.x;
-	y = base.y;
-	z = base.z;
+Vector3i::Vector3i(const Vector3i & base)
+{
+	x = base[0];
+	y = base[1];
+	z = base[2];
 }
 
 /** Constructor, based on Vector2i equivalent
 */
 Vector3i::Vector3i(const Vector2i & base){
-	x = base.x;
-	y = base.y;
+	x = base[0];
+	y = base[1];
 	z = 0;
 }
 Vector3i::Vector3i(const Vector4i& base)
 {
-	x = base.x;
-	y = base.y;
-	z = base.z;
+	x = base[0];
+	y = base[1];
+	z = base[2];
 }
 
 /** Constructor, based on Vector3f equivalent
 */
 Vector3i::Vector3i(const Vector3f & base){
-	x = RoundFloat((base.x));
-	y = RoundFloat((base.y));
-	z = RoundFloat(base.z);
+	x = RoundFloat((base[0]));
+	y = RoundFloat((base[1]));
+	z = RoundFloat(base[2]);
 }
 
 Vector3i::Vector3i(const Vector4f& base)
 {
-	x = RoundFloat(base.x);
-	y = RoundFloat(base.y);
-	z = RoundFloat(base.z);
+	x = RoundFloat(base[0]);
+	y = RoundFloat(base[1]);
+	z = RoundFloat(base[2]);
 }
 
 
 /// Printing out data
 std::ostream& operator <<(std::ostream& os, const Vector3i& vec){
-	os << vec.x << " " << vec.y << " " << vec.z;
+	os << vec[0] << " " << vec[1] << " " << vec[2];
 	return os;
 }
 
@@ -91,7 +92,7 @@ void Vector3i::ReadFrom(std::fstream & file){
 ///
 int Vector3i::DotProduct(Vector3i otherVec)
 {
-	return x * otherVec.x + y * otherVec.y + z * otherVec.z;
+	return x * otherVec[0] + y * otherVec[1] + z * otherVec[2];
 }
 
 
@@ -99,14 +100,14 @@ int Vector3i::DotProduct(Vector3i otherVec)
 // Arithmetics
 // ************************************************************************//
 void Vector3i::add(Vector3i addend){
-	x += addend.x;
-	y += addend.y;
-	z += addend.z;
+	x += addend[0];
+	y += addend[1];
+	z += addend[2];
 }
 void Vector3i::subtract(Vector3i subtractor){
-	x -= subtractor.x;
-	y -= subtractor.y;
-	z -= subtractor.z;
+	x -= subtractor[0];
+	y -= subtractor[1];
+	z -= subtractor[2];
 }
 void Vector3i::scale(int ratio){
 	x *= ratio;
@@ -127,38 +128,38 @@ Vector3i Vector3i::operator - () const {
 }
 Vector3i  Vector3i::operator + (Vector3i addend) const {
 	Vector3i  newVec;
-	newVec.x = x + addend.x;
-	newVec.y = y + addend.y;
-	newVec.z = z + addend.z;
+	newVec[0] = x + addend[0];
+	newVec[1] = y + addend[1];
+	newVec[2] = z + addend[2];
 	return newVec;
 }
 
 
 Vector3i  Vector3i::operator - (Vector3i subtractor) const {
 	Vector3i  newVec;
-	newVec.x = x - subtractor.x;
-	newVec.y = y - subtractor.y;
-	newVec.z = z - subtractor.z;
+	newVec[0] = x - subtractor[0];
+	newVec[1] = y - subtractor[1];
+	newVec[2] = z - subtractor[2];
 	return newVec;
 }
 
 /// Multiplication with int
 Vector3i operator * (int multiplier, Vector3i& vector){
 	Vector3i  newVec;
-	newVec.x = vector.x * multiplier;
-	newVec.y = vector.y * multiplier;
-	newVec.z = vector.z * multiplier;
+	newVec[0] = vector[0] * multiplier;
+	newVec[1] = vector[1] * multiplier;
+	newVec[2] = vector[2] * multiplier;
 	return newVec;
 }
 void Vector3i::operator += (Vector3i addend){
-	x += addend.x;
-	y += addend.y;
-	z += addend.z;
+	x += addend[0];
+	y += addend[1];
+	z += addend[2];
 }
 void Vector3i::operator -= (const Vector3i  subtractor){
-	x -= subtractor.x;
-	y -= subtractor.y;
-	z -= subtractor.z;
+	x -= subtractor[0];
+	y -= subtractor[1];
+	z -= subtractor[2];
 }
 /// Internal element division
 void Vector3i::operator /= (const float &f){
@@ -181,23 +182,41 @@ Vector3f Vector3i::operator / (const float &f) const {
 	return Vector3f(x / f, y / f, z / f);
 }
 
-int Vector3i::operator [](int index){
+int & Vector3i::operator [](int index){
 	switch(index){
 		case 0:
 			return x;
 		case 1:
 			return y;
+		case 2:
+			return z;
+		default:
+			throw 1003;
+	}
+}
+
+/// Operator overloading for the array-access operator []
+const int Vector3i::operator [](int index) const
+{
+	switch(index){
+		case 0:
+			return x;
+		case 1:
+			return y;
+		case 2:
+			return z;
 		default:
 			throw 1003;
 	}
 }
 
 
+
 /// Comparison operators
 bool Vector3i::operator == (const Vector3i other){
-	if (x != other.x ||
-		y != other.y ||
-		z != other.z)
+	if (x != other[0] ||
+		y != other[1] ||
+		z != other[2])
 		return false;
 	return true;
 }
@@ -205,9 +224,9 @@ bool Vector3i::operator == (const Vector3i other){
 /// Comparison operators
 bool Vector3i::operator != (const Vector3i other)
 {
-	if (x != other.x ||
-		y != other.y ||
-		z != other.z)
+	if (x != other[0] ||
+		y != other[1] ||
+		z != other[2])
 		return true;
 	return false;
 }
@@ -218,7 +237,7 @@ bool Vector3i::operator != (const Vector3i other)
 // ************************************************************************//
 /// Multiplies the elements in the two vectors internally, returning the product.
 Vector3i Vector3i::ElementMultiplication(const Vector3i otherVector) const {
-	return Vector3i(x * otherVector.x, y * otherVector.y, z * otherVector.z);
+	return Vector3i(x * otherVector[0], y * otherVector[1], z * otherVector[2]);
 }
 
 /// Calculates the length of the vector.
@@ -260,15 +279,15 @@ Vector3i Vector3i::NormalizedCopy() const {
 /// Utility functions
 Vector3i Vector3i::Minimum(const Vector3i & vec1, const Vector3i & vec2){
 	return Vector3i(
-		vec1.x < vec2.x ? vec1.x : vec2.x,
-		vec1.y < vec2.y ? vec1.y : vec2.y,
-		vec1.z < vec2.z ? vec1.z : vec2.z
+		vec1[0] < vec2[0] ? vec1[0] : vec2[0],
+		vec1[1] < vec2[1] ? vec1[1] : vec2[1],
+		vec1[2] < vec2[2] ? vec1[2] : vec2[2]
 	);
 }
 Vector3i Vector3i::Maximum(const Vector3i & vec1, const Vector3i & vec2){
 	return Vector3i(
-		vec1.x > vec2.x ? vec1.x : vec2.x,
-		vec1.y > vec2.y ? vec1.y : vec2.y,
-		vec1.z > vec2.z ? vec1.z : vec2.z
+		vec1[0] > vec2[0] ? vec1[0] : vec2[0],
+		vec1[1] > vec2[1] ? vec1[1] : vec2[1],
+		vec1[2] > vec2[2] ? vec1[2] : vec2[2]
 	);
 }

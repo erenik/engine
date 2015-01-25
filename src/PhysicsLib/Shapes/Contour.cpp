@@ -5,7 +5,7 @@
 #include "Contour.h"
 #include "Line.h"
 
-bool Contour::PointInside(Vector3f point, Vector3f comparisonDir)
+bool Contour::PointInside(const Vector3f & point, const Vector3f & comparisonDir)
 {
 	// Span up a line from the point and far away in some direction.
 	Line pointLine(point, point + comparisonDir * 10000.f);

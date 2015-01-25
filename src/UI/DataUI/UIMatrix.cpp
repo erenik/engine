@@ -107,8 +107,8 @@ void UIMatrix::SetText(Text newText, bool force)
 /// Sets new column and row sizes. Only to be called when doing initial parse or from the render-thread!
 void UIMatrix::SetSize(Vector2i newSize)
 {
-	columns = newSize.x;
-	rows = newSize.y;
+	columns = newSize[0];
+	rows = newSize[1];
 	CreateMatrix();
 }
 

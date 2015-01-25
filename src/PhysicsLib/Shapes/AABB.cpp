@@ -17,7 +17,7 @@ AABB::AABB()
 {
 }
 
-AABB::AABB(Vector3f min, Vector3f max)
+AABB::AABB(const Vector3f & min, const Vector3f & max)
 : min(min), max(max)
 {
     scale = max - min;
@@ -25,16 +25,18 @@ AABB::AABB(Vector3f min, Vector3f max)
 }
 
 bool AABB::Intersect(const AABB &aabb2) const {
-    if (min.x > aabb2.max.x ||
-        min.y > aabb2.max.y ||
-        min.z > aabb2.max.z ||
-        max.x < aabb2.min.x ||
-        max.y < aabb2.min.y ||
-        max.z < aabb2.min.z
+    if (min[0] > aabb2.max[0] ||
+        min[1] > aabb2.max[1] ||
+        min[2] > aabb2.max[2] ||
+        max[0] < aabb2.min[0] ||
+        max[1] < aabb2.min[1] ||
+        max[2] < aabb2.min[2]
         )
         return false;
     return true;
 }
+
+bool debugAABB = false;
 
 /// Recalculate the AABBs constraints based on the given entity using it.
 void AABB::Recalculate(Entity * entity)
@@ -50,40 +52,47 @@ void AABB::Recalculate(Entity * entity)
 	max = entity->model->mesh->aabb->max;
 	Vector3f newMin, newMax;
 	/// 8 vectors (extents), for-looped for funs.
-	for (int i = 0; i < 8; ++i){
+	for (int i = 0; i < 8; ++i)
+	{
 		if (i < 4)
-			bounds[i].x = min.x;
+			bounds[i][0] = min[0];
 		else
-			bounds[i].x = max.x;
+			bounds[i][0] = max[0];
 		if (i%4 < 2)
-			bounds[i].y = min.y;
+			bounds[i][1] = min[1];
 		else
-			bounds[i].y = max.y;
+			bounds[i][1] = max[1];
 		if (i%2 == 0)
-			bounds[i].z = min.z;
+			bounds[i][2] = min[2];
 		else
-			bounds[i].z = max.z;
+			bounds[i][2] = max[2];
+
+		if (debugAABB)
+			std::cout<<"\nBound "<<i<<": "<<bounds[i];
 
 		/// Transform according to entity
 		bounds[i] = entity->transformationMatrix.Product(bounds[i]);
+
+		if (debugAABB)
+			std::cout<<"\nTransformed "<<i<<": "<<bounds[i];
 
 		if (i == 0)
 			newMin = newMax = bounds[i];
 		else {
 			// Get min
-			if (bounds[i].x < newMin.x)
-				newMin.x = bounds[i].x;
-			if (bounds[i].y < newMin.y)
-				newMin.y = bounds[i].y;
-			if (bounds[i].z < newMin.z)
-				newMin.z = bounds[i].z;
+			if (bounds[i][0] < newMin[0])
+				newMin[0] = bounds[i][0];
+			if (bounds[i][1] < newMin[1])
+				newMin[1] = bounds[i][1];
+			if (bounds[i][2] < newMin[2])
+				newMin[2] = bounds[i][2];
 			// Get max
-			if (bounds[i].x > newMax.x)
-				newMax.x = bounds[i].x;
-			if (bounds[i].y > newMax.y)
-				newMax.y = bounds[i].y;
-			if (bounds[i].z > newMax.z)
-				newMax.z = bounds[i].z;
+			if (bounds[i][0] > newMax[0])
+				newMax[0] = bounds[i][0];
+			if (bounds[i][1] > newMax[1])
+				newMax[1] = bounds[i][1];
+			if (bounds[i][2] > newMax[2])
+				newMax[2] = bounds[i][2];
 		}
 	}
 
@@ -91,7 +100,12 @@ void AABB::Recalculate(Entity * entity)
 	min = newMin;
 	max = newMax;
 
+	if (debugAABB)
+		std::cout<<"\nMin "<<min<<" Max "<<max;
+
 	/// Update scale and such.
 	position = (max + min) * 0.5f;
 	scale = max - min;
+	if (debugAABB)
+		std::cout<<"\nPosition "<<position<<" Scale "<<scale;
 }

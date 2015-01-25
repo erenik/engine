@@ -267,14 +267,14 @@ void Entity::RenderOld(GraphicsState & graphicsState)
 			std::cout<<"\nmesh face with more than 3 numVertices D:";
 		}
 		for (int j = 0; j < 3; ++j){
-			Vector3f position = Vector3f(mesh->vertices[face->vertices[j]].x, mesh->vertices[face->vertices[j]].y, mesh->vertices[face->vertices[j]].z);
+			Vector3f position = Vector3f(mesh->vertices[face->vertices[j]][0], mesh->vertices[face->vertices[j]][1], mesh->vertices[face->vertices[j]][2]);
 			position = graphicsState.modelMatrixF * position;
 			position = graphicsState.viewMatrixF * position;
 			position = graphicsState.projectionMatrixF * position;
 
-			glNormal3f(mesh->normals[face->normals[j]].x, mesh->normals[face->normals[j]].y, mesh->normals[face->normals[j]].z);
-			glTexCoord2f(mesh->uvs[face->uvs[j]].x, mesh->uvs[face->uvs[j]].y);
-			glVertex3f(mesh->vertices[face->vertices[j]].x, mesh->vertices[face->vertices[j]].y, mesh->vertices[face->vertices[j]].z);
+			glNormal3f(mesh->normals[face->normals[j]][0], mesh->normals[face->normals[j]][1], mesh->normals[face->normals[j]][2]);
+			glTexCoord2f(mesh->uvs[face->uvs[j]][0], mesh->uvs[face->uvs[j]][1]);
+			glVertex3f(mesh->vertices[face->vertices[j]][0], mesh->vertices[face->vertices[j]][1], mesh->vertices[face->vertices[j]][2]);
 		}
 		glEnd();
 	}
@@ -313,7 +313,7 @@ bool Entity::IsVisible()
 
 
 /// Sets position
-void Entity::SetPosition(Vector3f position)
+void Entity::SetPosition(ConstVec3fr position)
 {
 	this->position = position;
 	RecalculateMatrix();
@@ -326,7 +326,7 @@ void Entity::SetPosition(float x, float y, float z)
 }
 
 /// Rotates around the globally defined quaternion axis.
-void Entity::RotateGlobal(Quaternion withQuaternion)
+void Entity::RotateGlobal(const Quaternion & withQuaternion)
 {
 	// http://www.cprogramming.com/tutorial/3d/quaternions.html
 	// Make sure you got it registerd for physics first... slightly retarded, but yeah.
@@ -344,7 +344,7 @@ void Entity::RotateGlobal(Quaternion withQuaternion)
 }
 	
 /// Rotates the Entity
-void Entity::Rotate(Vector3f rotation)
+void Entity::Rotate(ConstVec3fr rotation)
 {
 	this->rotation += rotation;
 	if (physics && physics->useQuaternions)
@@ -362,7 +362,7 @@ void Entity::Rotate(Vector3f rotation)
 }
 
 /// Quaternion initial rotation.
-void Entity::SetRotation(Quaternion quat)
+void Entity::SetRotation(const Quaternion & quat)
 {
 	// http://www.cprogramming.com/tutorial/3d/quaternions.html
 	// Make sure you got it registerd for physics first... slightly retarded, but yeah.
@@ -381,16 +381,16 @@ void Entity::SetRotation(Quaternion quat)
 }
 	
 
-void Entity::SetRotation(Vector3f rotation)
+void Entity::SetRotation(ConstVec3fr rotation)
 {
 //	assert(false);
 	this->rotation = rotation;
 	if (physics && physics->useQuaternions)
 	{
 		/// This assumes Euler angles, so construct an euler angle now!
-		Quaternion pitch(Vector3f(1,0,0), rotation.x), 
-			yaw(Vector3f(0,1,0), rotation.y),
-			roll(Vector3f(0,0,1), rotation.z);
+		Quaternion pitch(Vector3f(1,0,0), rotation[0]), 
+			yaw(Vector3f(0,1,0), rotation[1]),
+			roll(Vector3f(0,0,1), rotation[2]);
 		
 		Quaternion pitchYaw = pitch * yaw;
 		pitchYaw.Normalize();
@@ -409,31 +409,32 @@ void Entity::SetRotation(Vector3f rotation)
 }
 
 /// Sets scale of the entity
-void Entity::SetScale(Vector3f scale)
+void Entity::SetScale(ConstVec3fr scale)
 {
-//	assert(scale.x && scale.y && scale.z);
+//	assert(scale[0] && scale[1] && scale[2]);
 	this->scale = scale;
 	RecalculateMatrix();
 }
 /// Scales the Entity
-void Entity::Scale(Vector3f scale){
-	this->scale = Vector3f(this->scale.x * scale.x, this->scale.y * scale.y, this->scale.z * scale.z);
+void Entity::Scale(ConstVec3fr scale){
+	this->scale = Vector3f(this->scale[0] * scale[0], this->scale[1] * scale[1], this->scale[2] * scale[2]);
 	RecalculateMatrix();
 }
 /// Scales the Entity
 void Entity::Scale(float scale){
-	this->scale = Vector3f(this->scale.x * scale, this->scale.y * scale, this->scale.z * scale);
+	this->scale = Vector3f(this->scale[0] * scale, this->scale[1] * scale, this->scale[2] * scale);
 	RecalculateMatrix();
 }
 /// Translates the Entity
 void Entity::Translate(float x, float y, float z){
-	this->position.x += x;
-	this->position.y += y;
-	this->position.z += z;
+	this->position[0] += x;
+	this->position[1] += y;
+	this->position[2] += z;
 	RecalculateMatrix();
 }
 /// Translates the Entity
-void Entity::Translate(Vector3f translation){
+void Entity::Translate(ConstVec3fr translation)
+{
 	this->position =  this->position + translation;
 	RecalculateMatrix();
 }
@@ -465,9 +466,9 @@ void Entity::RecalculateMatrix(bool allParts /*= true*/)
 		// Euclidean co-ordinates.
 		else 
 		{
-			rotationMatrix.Multiply(Matrix4d::GetRotationMatrixX(rotation.x));
-			rotationMatrix.Multiply(Matrix4d::GetRotationMatrixZ(rotation.z));
-			rotationMatrix.Multiply(Matrix4d::GetRotationMatrixY(rotation.y));
+			rotationMatrix.Multiply(Matrix4d::GetRotationMatrixX(rotation[0]));
+			rotationMatrix.Multiply(Matrix4d::GetRotationMatrixZ(rotation[2]));
+			rotationMatrix.Multiply(Matrix4d::GetRotationMatrixY(rotation[1]));
 		}	
 		hasRotated = false;
 		
@@ -500,20 +501,20 @@ void Entity::RecalculateMatrix(bool allParts /*= true*/)
 	else 
 	{
 		// Just update position.
-		transformationMatrix[12] = position.x;
-		transformationMatrix[13] = position.y;
-		transformationMatrix[14] = position.z;
+		transformationMatrix[12] = position[0];
+		transformationMatrix[13] = position[1];
+		transformationMatrix[14] = position[2];
 	}
 }
 
 /// Recalculates a transformation matrix using argument vectors for position, rotation and translation.
-Matrix4f Entity::RecalculateMatrix(Vector3f & position, Vector3f & rotation, Vector3f & scale)
+Matrix4f Entity::RecalculateMatrix(ConstVec3fr position, ConstVec3fr rotation, ConstVec3fr scale)
 {
 	Matrix4d rotationMatrix;		
 
-	rotationMatrix.Multiply(Matrix4d::GetRotationMatrixX(rotation.x));
-	rotationMatrix.Multiply(Matrix4d::GetRotationMatrixY(rotation.y));
-	rotationMatrix.Multiply(Matrix4d::GetRotationMatrixZ(rotation.z));
+	rotationMatrix.Multiply(Matrix4d::GetRotationMatrixX(rotation[0]));
+	rotationMatrix.Multiply(Matrix4d::GetRotationMatrixY(rotation[1]));
+	rotationMatrix.Multiply(Matrix4d::GetRotationMatrixZ(rotation[2]));
 	Matrix4d matrix = Matrix4d();
 
 	matrix.Multiply((Matrix4d().Translate(Vector3d(position))));
@@ -625,7 +626,7 @@ List<Triangle> Entity::GetTris()
 		Vector3f newPos = triangles[i].position;
 		/// Seems to be working! :)
 		if (position.LengthSquared() > 1.0f || scale.LengthSquared() > 1.0f)
-			;//assert(prevPos.x != newPos.x);
+			;//assert(prevPos[0] != newPos[0]);
 	}
 	return triangles;
 }

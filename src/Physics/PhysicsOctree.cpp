@@ -73,43 +73,43 @@ void PhysicsOctree::subdivide(int levels){
 	if (!child[0]){
 #define OctreeType	PhysicsOctree
 		// Allocate if needed
-		child[HITHER_LOWER_LEFT] = new PhysicsOctree(left, center.x, center.y, bottom, nearBound, center.z, childSubdivisionLvl);
-		child[HITHER_LOWER_RIGHT] = new PhysicsOctree(center.x, right, center.y, bottom, nearBound, center.z, childSubdivisionLvl);
-		child[HITHER_UPPER_LEFT] = new PhysicsOctree(left, center.x, top, center.y, nearBound, center.z, childSubdivisionLvl);
-		child[HITHER_UPPER_RIGHT] = new PhysicsOctree(center.x, right, top, center.y, nearBound, center.z, childSubdivisionLvl);
-		child[FARTHER_LOWER_LEFT] = new PhysicsOctree(left, center.x, center.y, bottom, center.z, farBound, childSubdivisionLvl);
-		child[FARTHER_LOWER_RIGHT] = new PhysicsOctree(center.x, right, center.y, bottom, center.z, farBound, childSubdivisionLvl);
-		child[FARTHER_UPPER_LEFT] = new PhysicsOctree(left, center.x, top, center.y, center.z, farBound, childSubdivisionLvl);
-		child[FARTHER_UPPER_RIGHT] = new PhysicsOctree(center.x, right, top, center.y, center.z, farBound, childSubdivisionLvl);
+		child[HITHER_LOWER_LEFT] = new PhysicsOctree(left, center[0], center[1], bottom, nearBound, center[2], childSubdivisionLvl);
+		child[HITHER_LOWER_RIGHT] = new PhysicsOctree(center[0], right, center[1], bottom, nearBound, center[2], childSubdivisionLvl);
+		child[HITHER_UPPER_LEFT] = new PhysicsOctree(left, center[0], top, center[1], nearBound, center[2], childSubdivisionLvl);
+		child[HITHER_UPPER_RIGHT] = new PhysicsOctree(center[0], right, top, center[1], nearBound, center[2], childSubdivisionLvl);
+		child[FARTHER_LOWER_LEFT] = new PhysicsOctree(left, center[0], center[1], bottom, center[2], farBound, childSubdivisionLvl);
+		child[FARTHER_LOWER_RIGHT] = new PhysicsOctree(center[0], right, center[1], bottom, center[2], farBound, childSubdivisionLvl);
+		child[FARTHER_UPPER_LEFT] = new PhysicsOctree(left, center[0], top, center[1], center[2], farBound, childSubdivisionLvl);
+		child[FARTHER_UPPER_RIGHT] = new PhysicsOctree(center[0], right, top, center[1], center[2], farBound, childSubdivisionLvl);
 
 		// UPPER_LEFT, UPPER_RIGHT, LOWER_LEFT, LOWER_RIGHT, FARTHER_DOWN, FARTHER_UP, HITHER_DOWN, HITHER_UP,
-		child[UPPER_LEFT] = new OctreeType(left, center.x, top, center.y, (center.z + nearBound)*0.5f, (center.z + farBound)*0.5f, childSubdivisionLvl);
-		child[UPPER_RIGHT] = new OctreeType(center.x, right, top, center.y, (center.z + nearBound)*0.5f, (center.z + farBound)*0.5f, childSubdivisionLvl);
-		child[LOWER_LEFT] = new OctreeType(left, center.x, center.y, bottom, (center.z + nearBound)*0.5f, (center.z + farBound)*0.5f, childSubdivisionLvl);
-		child[LOWER_RIGHT] = new OctreeType(center.x, right, center.y, bottom, (center.z + nearBound)*0.5f, (center.z + farBound)*0.5f, childSubdivisionLvl);
-		child[FARTHER_DOWN] = new OctreeType((center.x+left)*0.5f, (center.x+right)*0.5f, center.y, bottom, center.z, farBound, childSubdivisionLvl);
-		child[FARTHER_UP] = new OctreeType((center.x+left)*0.5f, (center.x+right)*0.5f, top, center.y, center.z, farBound, childSubdivisionLvl);
-		child[HITHER_DOWN] = new OctreeType((center.x+left)*0.5f, (center.x+right)*0.5f, center.y, bottom, nearBound, center.z, childSubdivisionLvl);
-		child[HITHER_UP] = new OctreeType((center.x+left)*0.5f, (center.x+right)*0.5f, top, center.y, nearBound, center.z, childSubdivisionLvl);
+		child[UPPER_LEFT] = new OctreeType(left, center[0], top, center[1], (center[2] + nearBound)*0.5f, (center[2] + farBound)*0.5f, childSubdivisionLvl);
+		child[UPPER_RIGHT] = new OctreeType(center[0], right, top, center[1], (center[2] + nearBound)*0.5f, (center[2] + farBound)*0.5f, childSubdivisionLvl);
+		child[LOWER_LEFT] = new OctreeType(left, center[0], center[1], bottom, (center[2] + nearBound)*0.5f, (center[2] + farBound)*0.5f, childSubdivisionLvl);
+		child[LOWER_RIGHT] = new OctreeType(center[0], right, center[1], bottom, (center[2] + nearBound)*0.5f, (center[2] + farBound)*0.5f, childSubdivisionLvl);
+		child[FARTHER_DOWN] = new OctreeType((center[0]+left)*0.5f, (center[0]+right)*0.5f, center[1], bottom, center[2], farBound, childSubdivisionLvl);
+		child[FARTHER_UP] = new OctreeType((center[0]+left)*0.5f, (center[0]+right)*0.5f, top, center[1], center[2], farBound, childSubdivisionLvl);
+		child[HITHER_DOWN] = new OctreeType((center[0]+left)*0.5f, (center[0]+right)*0.5f, center[1], bottom, nearBound, center[2], childSubdivisionLvl);
+		child[HITHER_UP] = new OctreeType((center[0]+left)*0.5f, (center[0]+right)*0.5f, top, center[1], nearBound, center[2], childSubdivisionLvl);
 
 		// Center
-		child[CENTER] = new OctreeType((center.x+left)*0.5f, (center.x+right)*0.5f, (center.y+top)*0.5f, (center.y+bottom)*0.5f, (center.z+nearBound)*0.5, (center.z+farBound)*0.5, childSubdivisionLvl);
+		child[CENTER] = new OctreeType((center[0]+left)*0.5f, (center[0]+right)*0.5f, (center[1]+top)*0.5f, (center[1]+bottom)*0.5f, (center[2]+nearBound)*0.5, (center[2]+farBound)*0.5, childSubdivisionLvl);
 
 		// + Center-branches
 		//HITHER, FARTHER, LEFTER, RIGHTER, UPPER, LOWER,
-		child[HITHER] = new OctreeType((center.x+left)*0.5f, (center.x+right)*0.5, (center.y+top)*0.5f, (center.y+bottom)*0.5f, nearBound, center.z, childSubdivisionLvl);
-		child[FARTHER] = new OctreeType((center.x+left)*0.5f, (center.x+right)*0.5, (center.y+top)*0.5f, (center.y+bottom)*0.5f, center.z, farBound, childSubdivisionLvl);
-		child[LEFTER] = new OctreeType(left, center.x, (center.y+top)*0.5f, (center.y+bottom)*0.5f, (center.z+nearBound)*0.5f, (center.z+farBound)*0.5f, childSubdivisionLvl);
-		child[RIGHTER] = new OctreeType(center.x, right, (center.y+top)*0.5f, (center.y+bottom)*0.5f, (center.z+nearBound)*0.5f, (center.z+farBound)*0.5f, childSubdivisionLvl);
-		child[UPPER] = new OctreeType((center.x+left)*0.5f, (center.x+right)*0.5f, top, center.y, (center.z+nearBound)*0.5f, (center.z+farBound)*0.5f, childSubdivisionLvl);
-		child[LOWER] = new OctreeType((center.x+left)*0.5f, (center.x+right)*0.5f, center.y, bottom, (center.z+nearBound)*0.5f, (center.z+farBound)*0.5f, childSubdivisionLvl);
+		child[HITHER] = new OctreeType((center[0]+left)*0.5f, (center[0]+right)*0.5, (center[1]+top)*0.5f, (center[1]+bottom)*0.5f, nearBound, center[2], childSubdivisionLvl);
+		child[FARTHER] = new OctreeType((center[0]+left)*0.5f, (center[0]+right)*0.5, (center[1]+top)*0.5f, (center[1]+bottom)*0.5f, center[2], farBound, childSubdivisionLvl);
+		child[LEFTER] = new OctreeType(left, center[0], (center[1]+top)*0.5f, (center[1]+bottom)*0.5f, (center[2]+nearBound)*0.5f, (center[2]+farBound)*0.5f, childSubdivisionLvl);
+		child[RIGHTER] = new OctreeType(center[0], right, (center[1]+top)*0.5f, (center[1]+bottom)*0.5f, (center[2]+nearBound)*0.5f, (center[2]+farBound)*0.5f, childSubdivisionLvl);
+		child[UPPER] = new OctreeType((center[0]+left)*0.5f, (center[0]+right)*0.5f, top, center[1], (center[2]+nearBound)*0.5f, (center[2]+farBound)*0.5f, childSubdivisionLvl);
+		child[LOWER] = new OctreeType((center[0]+left)*0.5f, (center[0]+right)*0.5f, center[1], bottom, (center[2]+nearBound)*0.5f, (center[2]+farBound)*0.5f, childSubdivisionLvl);
 
 		// + Huggers(apartments, whatever)
 		// FATHER_LEFT, FARTHER_RIGHT, HITHER_LEFT, HITHER_RIGHT,
-		child[FATHER_LEFT] = new OctreeType(left, center.x, (center.y+top)*0.5f, (center.y+bottom)*0.5f, center.z, farBound, childSubdivisionLvl);
-		child[FARTHER_RIGHT] = new OctreeType(center.x, right, (center.y+top)*0.5f, (center.y+bottom)*0.5f, center.z, farBound, childSubdivisionLvl);
-		child[HITHER_LEFT] = new OctreeType(left, center.x, (center.y+top)*0.5f, (center.y+bottom)*0.5f, nearBound, center.z, childSubdivisionLvl);
-		child[HITHER_RIGHT] = new OctreeType(center.x, right, (center.y+top)*0.5f, (center.y+bottom)*0.5f, nearBound, center.z, childSubdivisionLvl);
+		child[FATHER_LEFT] = new OctreeType(left, center[0], (center[1]+top)*0.5f, (center[1]+bottom)*0.5f, center[2], farBound, childSubdivisionLvl);
+		child[FARTHER_RIGHT] = new OctreeType(center[0], right, (center[1]+top)*0.5f, (center[1]+bottom)*0.5f, center[2], farBound, childSubdivisionLvl);
+		child[HITHER_LEFT] = new OctreeType(left, center[0], (center[1]+top)*0.5f, (center[1]+bottom)*0.5f, nearBound, center[2], childSubdivisionLvl);
+		child[HITHER_RIGHT] = new OctreeType(center[0], right, (center[1]+top)*0.5f, (center[1]+bottom)*0.5f, nearBound, center[2], childSubdivisionLvl);
 
 	}
 	for (int i = 0; i < MAX_CHILDREN; ++i)
@@ -334,21 +334,21 @@ int PhysicsOctree::IsEntityInside(Entity * entity){
 	// Make box test insteeeead
 
 	// Check if it's inside.
-	if (entity->position.x + entity->physics->physicalRadius < right &&
-		entity->position.x - entity->physics->physicalRadius > left &&
-		entity->position.y + entity->physics->physicalRadius < top &&
-		entity->position.y - entity->physics->physicalRadius > bottom &&
-		entity->position.z + entity->physics->physicalRadius < nearBound &&
-		entity->position.z - entity->physics->physicalRadius > farBound
+	if (entity->position[0] + entity->physics->physicalRadius < right &&
+		entity->position[0] - entity->physics->physicalRadius > left &&
+		entity->position[1] + entity->physics->physicalRadius < top &&
+		entity->position[1] - entity->physics->physicalRadius > bottom &&
+		entity->position[2] + entity->physics->physicalRadius < nearBound &&
+		entity->position[2] - entity->physics->physicalRadius > farBound
 	)
 		return INSIDE;
 	// Or intersecting, just compare with inverted radius
-	else if (entity->position.x - entity->physics->physicalRadius < right &&
-		entity->position.x + entity->physics->physicalRadius > left &&
-		entity->position.y - entity->physics->physicalRadius < top &&
-		entity->position.y + entity->physics->physicalRadius > bottom &&
-		entity->position.z - entity->physics->physicalRadius < nearBound &&
-		entity->position.z + entity->physics->physicalRadius > farBound
+	else if (entity->position[0] - entity->physics->physicalRadius < right &&
+		entity->position[0] + entity->physics->physicalRadius > left &&
+		entity->position[1] - entity->physics->physicalRadius < top &&
+		entity->position[1] + entity->physics->physicalRadius > bottom &&
+		entity->position[2] - entity->physics->physicalRadius < nearBound &&
+		entity->position[2] + entity->physics->physicalRadius > farBound
 	)
 		return INTERSECT;
 	// It's outside if the previous were false, logical :P

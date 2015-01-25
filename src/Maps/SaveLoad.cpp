@@ -304,12 +304,12 @@ bool Map::ResetEvents(){
 
 /// Returns lighting for this map.
 const Lighting * Map::GetLighting() const {
-	return lighting; 
+	return &lighting; 
 }
 
 /// Make sure you call this from the render-thread or pause rendering before manipulation!
 Lighting * Map::GetLightingEditable() {
-	return lighting; 
+	return &lighting; 
 };
 
 

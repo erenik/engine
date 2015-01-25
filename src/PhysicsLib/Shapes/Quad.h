@@ -8,7 +8,7 @@
 class Quad : public Plane {
 private:
 	/// Make Set3Points inaccessible!
-	void Set3Points(Vector3f p1, Vector3f p2, Vector3f p3);
+	void Set3Points(const Vector3f & p1, const Vector3f & p2, const Vector3f & p3);
 public:
 	// Creates a default plane spanning -0.5 to 0.5, quadratically.
 	Quad() {
@@ -31,11 +31,11 @@ public:
 	Quad Transform(const Matrix4f matrix);
 
 	/// Create a rectangular quad using min and max values.
-	void Set2Points(Vector3f min, Vector3f max);
+	void Set2Points(const Vector3f & min, const Vector3f & max);
 	/** Sets all of the points that define the plane in counter clockwise order.
 		the fourth point will be placed to mirror p2 along the line between p1 and p3.
 	*/
-	void Set4Points(Vector3f p1, Vector3f p2, Vector3f p3, Vector3f p4);
+	void Set4Points(const Vector3f & p1, const Vector3f & p2, const Vector3f & p3, const Vector3f & p4);
 
 	/// Fourth point or our quadly quad.
 	Vector3f point4;

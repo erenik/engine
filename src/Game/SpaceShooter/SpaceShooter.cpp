@@ -229,9 +229,9 @@ void SpaceShooter::SetupPlayingField()
 	max = halfSize;
 
 	// o-o Store it for future use.
-	top = gameSize.y * 0.5f;
+	top = gameSize[1] * 0.5f;
 	bottom = -top;
-	right = gameSize.x * 0.5f;
+	right = gameSize[0] * 0.5f;
 	left = -right;
 
 	// Set 
@@ -240,7 +240,7 @@ void SpaceShooter::SetupPlayingField()
 	
 
 	// X-values, left and right.
-	Vector2f playerLines(min.x, max.x);
+	Vector2f playerLines(min[0], max[0]);
 	
 	if (!hpEntity)
 	{
@@ -268,7 +268,7 @@ void SpaceShooter::SetupPlayingField()
 
 
 	// Middle!
-	Vector2f scoreColumns(min.x, max.x);
+	Vector2f scoreColumns(min[0], max[0]);
 	scoreColumns *= 0.5f;
 
 
@@ -280,7 +280,7 @@ void SpaceShooter::SetupPlayingField()
 //	AudioMan.PlayBGM("Breakout/Breakout.ogg", 1.f);
 
 	// Move stuff to edges of field.
-	float playerX = -gameSize.x * 0.4f;
+	float playerX = -gameSize[0] * 0.4f;
 	Physics.QueueMessage(new PMSetEntity(player1, PT_POSITION, Vector3f(playerX * flipX, 0, constantZ)));
 	Physics.QueueMessage(new PMSetEntity(players, PT_SET_SCALE, shipScale));
 	SetupCollisionFilter(players, true);
@@ -298,10 +298,10 @@ void SpaceShooter::SetupPlayingField()
 	player1Properties->OnSpawn();
 			
 	// Scale the frame.
-	float colWidth = gameSize.x * 0.05f, 
-		colHeight = gameSize.y, 
-		rowWidth = gameSize.x, 
-		rowHeight = gameSize.y * 0.05f;
+	float colWidth = gameSize[0] * 0.05f, 
+		colHeight = gameSize[1], 
+		rowWidth = gameSize[0], 
+		rowHeight = gameSize[1] * 0.05f;
 
 	// Place 'em.
 
@@ -327,7 +327,7 @@ void SpaceShooter::SetupPlayingField()
 }
 
 /// Creates a new projectile entity, setting up model and scale appropriately.
-Entity * SpaceShooter::NewProjectile(SpaceShooterWeaponType weaponType, Vector3f atPosition, Vector3f initialVelocity)
+Entity * SpaceShooter::NewProjectile(SpaceShooterWeaponType weaponType, ConstVec3fr atPosition, ConstVec3fr initialVelocity)
 {
 	// Play a Sound-effect for it's spawning!
 	float volume = 0.1f;
@@ -373,7 +373,7 @@ Entity * SpaceShooter::NewProjectile(SpaceShooterWeaponType weaponType, Vector3f
 	{
 		case SpaceShooterWeaponType::RAILGUN:
 			Graphics.QueueMessage(new GMSetEntity(newProjectile, GT_MODEL, ModelMan.GetModel("Sphere")));
-			if (initialVelocity.x > 0)
+			if (initialVelocity[0] > 0)
 				Graphics.QueueMessage(new GMSetEntityTexture(newProjectile, DIFFUSE_MAP, TexMan.GetTexture("0x00FFFF")));
 			else 
 				Graphics.QueueMessage(new GMSetEntityTexture(newProjectile, DIFFUSE_MAP, TexMan.GetTexture("0xFFFF00")));
@@ -395,7 +395,7 @@ Entity * SpaceShooter::NewProjectile(SpaceShooterWeaponType weaponType, Vector3f
 	return newProjectile;
 }
 
-Entity * SpaceShooter::NewExplosion(Vector3f atPosition, int type)
+Entity * SpaceShooter::NewExplosion(ConstVec3fr atPosition, int type)
 {
 	Entity * newExplosion = NULL;
 
@@ -473,12 +473,12 @@ Entity * SpaceShooter::NewExplosion(Vector3f atPosition, int type)
 
 
 /// Is it outside the frame?
-bool SpaceShooter::IsPositionOutsideFrame(Vector3f pos)
+bool SpaceShooter::IsPositionOutsideFrame(ConstVec3fr pos)
 {
-	if (pos.x > right ||
-		pos.x < left ||
-		pos.y > top ||
-		pos.y < bottom)
+	if (pos[0] > right ||
+		pos[0] < left ||
+		pos[1] > top ||
+		pos[1] < bottom)
 		return true;
 	return false;
 }
@@ -522,7 +522,7 @@ void SpaceShooter::SetShipScale(float scale)
 
 
 
-void SpaceShooter::SetPlayerPosition(Vector3f position)
+void SpaceShooter::SetPlayerPosition(ConstVec3fr position)
 {
 	if (!player1)
 		return;
@@ -531,7 +531,7 @@ void SpaceShooter::SetPlayerPosition(Vector3f position)
 	// Move it!
 	if (yOnly)
 	{
-		Physics.QueueMessage(new PMSetEntity(player1, PT_POSITION_Y, position.y));
+		Physics.QueueMessage(new PMSetEntity(player1, PT_POSITION_Y, position[1]));
 	}
 	else 
 	{
@@ -635,8 +635,8 @@ void SpaceShooter::SpawnEnemies(int level)
 		SetupPhysics(enemy);
 
 		Vector3f position;
-		position.x = (gameSize.x * 0.5f + i * 50.f) * flipX;
-		position.y = enemyRandom.Randf(gameSize.y) - gameSize.y * 0.5f;
+		position[0] = (gameSize[0] * 0.5f + i * 50.f) * flipX;
+		position[1] = enemyRandom.Randf(gameSize[1]) - gameSize[1] * 0.5f;
 		// Ensure enemy is not registered for physics when setting position explicitly like this? <- No need? Physics was paused at the start of this function o.o'
 		enemy->SetPosition(position);
 //		Physics.QueueMessage(new PMSetEntity(enemy, PT_POSITION, position));

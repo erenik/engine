@@ -249,7 +249,7 @@ int TextureManager::LoadTextures(List<String> & texturesToLoad){
 /// Generates a texture with automatic name and given color. The texture will be exactly 1 or 2x2 pixels, simply for the color!
 Texture * TextureManager::GenerateTexture(const Vector4f & andColor)
 {
-	String name = "GeneratedTexture: r"+String(andColor.x)+" g"+String(andColor.y)+" b"+String(andColor.z);
+	String name = "GeneratedTexture: r"+String(andColor[0])+" g"+String(andColor[1])+" b"+String(andColor[2]);
 	return GenerateTexture(name, andColor);
 }
 
@@ -378,11 +378,14 @@ Texture * TextureManager::LoadTexture(String source, bool noPathAdditions)
 bool TextureManager::SupportedImageFileType(String fileName)
 {
 	/// Supported via OpenCV: http://docs.opencv.org/modules/highgui/doc/reading_and_writing_images_and_video.html?highlight=imread#imread
-	List<String> extensions;
-	extensions.Add(7, ".png", ".bmp", ".dib", 
+//	List<String> extensions;
+	char * extensions [7] = {
+		".png", ".bmp", ".dib", 
 		".tif", ".tiff", ".jpg", 
-		".jpeg");
-	for (int i = 0; i < extensions.Size(); ++i)
+		".jpeg"
+	};
+//	extensions.Add(7, cExtentions);
+	for (int i = 0; i < 7; ++i)
 	{
 		if (fileName.Contains(extensions[i]))
 			return true;

@@ -35,8 +35,8 @@ Vector2i::Vector2i(int arr[])
 
 Vector2i::Vector2i(const Vector2i & base)
 {
-	x = base.x;
-	y = base.y;
+	x = base[0];
+	y = base[1];
 }
 
 /**	Copy Constructor
@@ -44,40 +44,40 @@ Vector2i::Vector2i(const Vector2i & base)
 */
 Vector2i::Vector2i(const Vector2f& base)
 {
-	x = RoundFloat(base.x);
-	y = RoundFloat(base.y);
+	x = (int) RoundFloat(base[0]);
+	y = (int) RoundFloat(base[1]);
 }
 
 /** Constructor, based on Vector3i equivalent
 */
 Vector2i::Vector2i(const Vector3i& base){
-	x = base.x;
-	y = base.y;
+	x = base[0];
+	y = base[1];
 }
 
 /** Constructor, based on Vector3f equivalent
 */
 Vector2i::Vector2i(const Vector3f & base){
-	x = RoundFloat((base.x));
-	y = RoundFloat((base.y));
+	x = (int) RoundFloat((base[0]));
+	y = (int) RoundFloat((base[1]));
 }
 
 /// Similar to clamp, ensures that this vector's values are within the given range (including the limits)
 void Vector2i::Limit(Vector2i min, Vector2i max)
 {
-	if (x < min.x)
-		x = min.x;
-	else if (x > max.x)
-		x = max.x;
-	if (y < min.y)
-		y = min.y;
-	else if (y > max.y)
-		y = max.y;
+	if (x < min[0])
+		x = min[0];
+	else if (x > max[0])
+		x = max[0];
+	if (y < min[1])
+		y = min[1];
+	else if (y > max[1])
+		y = max[1];
 }
 
 /// Printing out data
 std::ostream& operator <<(std::ostream& os, const Vector2i& vec){
-	os << vec.x << " " << vec.y;
+	os << vec[0] << " " << vec[1];
 	return os;
 }
 
@@ -97,14 +97,14 @@ void Vector2i::ReadFrom(std::fstream & file){
 // ************************************************************************//
 
 void Vector2i::add(Vector2i addend){
-	x += addend.x;
-	y += addend.y;
+	x += addend[0];
+	y += addend[1];
 }
 
 
 void Vector2i::subtract(Vector2i subtractor){
-	x -= subtractor.x;
-	y -= subtractor.y;
+	x -= subtractor[0];
+	y -= subtractor[1];
 }
 
 void Vector2i::scale(int ratio){
@@ -131,7 +131,7 @@ Vector2i Vector2i::operator - () const {
 /// Binary operator.
 bool Vector2i::operator == (const Vector2i other) const
 {
-	if (x == other.x && y == other.y)
+	if (x == other[0] && y == other[1])
 		return true;
 	return false;
 }
@@ -139,7 +139,7 @@ bool Vector2i::operator == (const Vector2i other) const
 /// Binary operator.
 bool Vector2i::operator != (const Vector2i other) const 
 {
-	if (x != other.x || y != other.y)
+	if (x != other[0] || y != other[1])
 		return true;
 	return false;
 }
@@ -147,16 +147,16 @@ bool Vector2i::operator != (const Vector2i other) const
 
 Vector2i  Vector2i::operator + (Vector2i addend) const {
 	Vector2i  newVec;
-	newVec.x = x + addend.x;
-	newVec.y = y + addend.y;
+	newVec[0] = x + addend[0];
+	newVec[1] = y + addend[1];
 	return newVec;
 }
 
 
 Vector2i  Vector2i::operator - (Vector2i subtractor) const {
 	Vector2i  newVec;
-	newVec.x = x - subtractor.x;
-	newVec.y = y - subtractor.y;
+	newVec[0] = x - subtractor[0];
+	newVec[1] = y - subtractor[1];
 	return newVec;
 }
 
@@ -164,8 +164,8 @@ Vector2i  Vector2i::operator - (Vector2i subtractor) const {
 Vector2i  Vector2i::operator * (const Vector2i elementMultiplier) const 
 {
 	Vector2i newVec;
-	newVec.x = x * elementMultiplier.x;
-	newVec.y = y * elementMultiplier.y;
+	newVec[0] = x * elementMultiplier[0];
+	newVec[1] = y * elementMultiplier[1];
 	return newVec;
 };
 
@@ -173,21 +173,21 @@ Vector2i  Vector2i::operator * (const Vector2i elementMultiplier) const
 /// Multiplication with int
 Vector2i operator * (int multiplier, Vector2i& vector){
 	Vector2i  newVec;
-	newVec.x = vector.x * multiplier;
-	newVec.y = vector.y * multiplier;
+	newVec[0] = vector[0] * multiplier;
+	newVec[1] = vector[1] * multiplier;
 	return newVec;
 }
 
 
 void Vector2i::operator += (Vector2i addend){
-	x += addend.x;
-	y += addend.y;
+	x += addend[0];
+	y += addend[1];
 }
 
 
 void Vector2i::operator -= (const Vector2i  subtractor){
-	x -= subtractor.x;
-	y -= subtractor.y;
+	x -= subtractor[0];
+	y -= subtractor[1];
 }
 /// Internal element division
 void Vector2i::operator /= (const int &f){
@@ -202,7 +202,7 @@ void Vector2i::operator *= (const int &f){
 
 /// Internal element multiplication
 Vector2i Vector2i::operator * (const float &f) const {
-	return Vector2i(x * f, y * f);
+	return Vector2i((int) (x * f), (int) (y * f));
 }
 /// Internal element multiplication
 Vector2i Vector2i::operator * (const int &f) const {
@@ -213,7 +213,20 @@ Vector2i Vector2i::operator / (const int &f) const {
 	return Vector2i(x / f, y / f);
 }
 
-int Vector2i::operator [](int index){
+int & Vector2i::operator [](int index)
+{
+	switch(index){
+		case 0:
+			return x;
+		case 1:
+			return y;
+		default:
+			throw 1003;
+	}
+}
+/// Operator overloading for the array-access operator []
+const int & Vector2i::operator [](int index) const
+{
 	switch(index){
 		case 0:
 			return x;
@@ -230,7 +243,7 @@ int Vector2i::operator [](int index){
 // ************************************************************************//
 /// Multiplies the elements in the two vectors internally, returning the product.
 Vector2i Vector2i::ElementMultiplication(const Vector2i otherVector) const {
-	return Vector2i(x * otherVector.x, y * otherVector.y);
+	return Vector2i(x * otherVector[0], y * otherVector[1]);
 }
 
 /// Calculates the length of the vector.
@@ -253,10 +266,10 @@ int Vector2i::GeometricSum()
 }
 
 Vector2i Vector2i::Normalize(){
-	int vecLength = Length();
+	int vecLength = (int) Length();
 	if (vecLength < ZERO){
 		// assert(vecLength != 0 && "Vector2i::Normalize");
-		vecLength = 1.0f;
+		vecLength = 1;
 	}
 
 	x = x / vecLength;
@@ -265,8 +278,9 @@ Vector2i Vector2i::Normalize(){
 }
 
 /** Returns a normalized copy of this vector. */
-Vector2i Vector2i::NormalizedCopy() const {
-	int vecLength = Length();
+Vector2i Vector2i::NormalizedCopy() const 
+{
+	int vecLength = (int) Length();
 	if (vecLength < ZERO){
 		return Vector2i();
 	}
@@ -282,13 +296,13 @@ Vector2i Vector2i::AbsoluteValues()
 /// Utility functions
 Vector2i Vector2i::Minimum(const Vector2i & vec1, const Vector2i & vec2){
 	return Vector2i(
-		vec1.x < vec2.x ? vec1.x : vec2.x,
-		vec1.y < vec2.y ? vec1.y : vec2.y
+		vec1[0] < vec2[0] ? vec1[0] : vec2[0],
+		vec1[1] < vec2[1] ? vec1[1] : vec2[1]
 	);
 }
 Vector2i Vector2i::Maximum(const Vector2i & vec1, const Vector2i & vec2){
 	return Vector2i(
-		vec1.x > vec2.x ? vec1.x : vec2.x,
-		vec1.y > vec2.y ? vec1.y : vec2.y
+		vec1[0] > vec2[0] ? vec1[0] : vec2[0],
+		vec1[1] > vec2[1] ? vec1[1] : vec2[1]
 	);
 }

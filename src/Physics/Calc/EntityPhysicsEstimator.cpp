@@ -71,21 +71,21 @@ void EntityPhysicsEstimator::Process(){
 	lastPosition = owner->position;
 	lastTime = cTime;
 	
-//	std::cout<<"\nPosition: "<<(int)owner->position.x<<" "<<(int)owner->position.y<<" "<<(int)owner->position.z;
+//	std::cout<<"\nPosition: "<<(int)owner->position[0]<<" "<<(int)owner->position[1]<<" "<<(int)owner->position[2];
 }
 //	EstimatorVec3f positionEstimator, rotationEstimator;
 
 
 /// Adds a position using current time to that estimator.
-void EntityPhysicsEstimator::AddPosition(Vector3f pos, long long timeStamp){
+void EntityPhysicsEstimator::AddPosition(const Vector3f & pos, long long timeStamp){
 	positionEstimator.AddState(pos, timeStamp);
 }
 /// Adds a rotation using current time to that estimator.
-void EntityPhysicsEstimator::AddRotation(Vector3f rot, long long timeStamp){
+void EntityPhysicsEstimator::AddRotation(const Vector3f & rot, long long timeStamp){
 	rotationEstimator.AddState(rot, timeStamp);
 }
 /// Adds a velocity using current time to the estimator.
-void EntityPhysicsEstimator::AddVelocity(Vector3f vel, long long timeStamp){
+void EntityPhysicsEstimator::AddVelocity(const Vector3f & vel, long long timeStamp){
 	velocityEstimator.AddState(vel, timeStamp);
 }
 

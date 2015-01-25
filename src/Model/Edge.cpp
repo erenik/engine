@@ -12,7 +12,7 @@ Edge::Edge(Vertex * one, Vertex * two){
 	stop = two;
 }
 
-Edge::Edge(Vector3f start, Vector3f stop)
+Edge::Edge(const Vector3f & start, const Vector3f & stop)
 : startVec3f(start), stopVec3f(stop)
 {
 }

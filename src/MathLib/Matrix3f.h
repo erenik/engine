@@ -44,7 +44,7 @@ public:
 		Precondition: The vectors have to be at least 3 in amount and are read in as the matrix's 3 columns.
 		Postcondition: The 3D matrix has been initialized using the provided vectors as the matrix's 3 columns.
 	*/
-	Matrix3f(Vector3f vector, Vector3f vector2, Vector3f vector3);
+	Matrix3f(const Vector3f & vector, const Vector3f & vector2, const Vector3f & vector3);
 
 	/** Conversion constructor
 		Postcondition: Copies the upper-left co-ordinates to this matrix as if it was a submatrix of the Matrix4f.
@@ -66,7 +66,7 @@ public:
 	/** Initializes a rotation matrix using provided vector parameters. */
 	void InitRotationMatrix(float angle, float x, float y, float z);
 	/** Initializes a rotation matrix using provided vector. */
-	void InitRotationMatrix(float angle, Vector3f vector);
+	void InitRotationMatrix(float angle, const Vector3f & vector);
 
 	// Transposition and invertion
 	/** Returns a transposed version of the matrix, flipping rows and columns. */
@@ -94,7 +94,7 @@ public:
 	/** Product with Vector
 		Postcondition: Returns the product of the matrix and vector without directly modifying them.
 	*/
-	Vector3f product(const Vector3f vector) const;
+	Vector3f product(const Vector3f & vector) const;
 	/** Product with Matrix
 		Postcondition: Returns the product of the matrices without directly modifying them.
 	*/
@@ -102,7 +102,7 @@ public:
 	/** Product with Vector
 		Postcondition: Returns the product of the matrix and vector without directly modifying them.
 	*/
-	Vector3f operator * (const Vector3f vector) const;
+	Vector3f operator * (const Vector3f & vector) const;
 	/** Product with Matrix-assignment
 		Postcondition: The matrices have been multiplied and assigned to this matrix.
 	*/

@@ -12,7 +12,7 @@ class Entity;
 class StarEmitter : public ParticleEmitter 
 {
 public:
-	StarEmitter(Vector3f point);
+	StarEmitter(const Vector3f & point);
 	virtual ~StarEmitter();
 	/// Default new particle.
 	virtual bool GetNewParticle(Vector3f & position, Vector3f & velocity);

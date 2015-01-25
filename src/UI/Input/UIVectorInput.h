@@ -29,7 +29,7 @@ public:
 	/// Setters
 	void SetValue2i(Vector2i vec);
 	void SetValue2f(Vector2f vec);
-	void SetValue3f(Vector3f vec);
+	void SetValue3f(const Vector3f & vec);
 	void SetValue4f(const Vector4f & vec);
 	
 	/** For mouse-scrolling. By default calls it's parent's OnScroll. Returns true if the element did anything because of the scroll.

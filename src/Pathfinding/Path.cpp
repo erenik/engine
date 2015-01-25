@@ -80,7 +80,7 @@ Waypoint * Path::GetWaypoint(int i){
 	return waypoint[i];
 }
 
-Waypoint * Path::GetClosest(Vector3f position) const {
+Waypoint * Path::GetClosest(const Vector3f & position) const {
 	assert(waypoints);
 	float lengthSq = 1000000000000.f,
 		minLengthSq = 100000000000000.f;

@@ -15,7 +15,7 @@ public:
 	// Creates a flat plane in X/Z, with a normal point in Y+
 	Plane();
 	// Creates a plane, setting its 3 reference points in counter clockwise order.
-	Plane(Vector3f point1, Vector3f point2, Vector3f point3);
+	Plane(const Vector3f & point1, const Vector3f & point2, const Vector3f & point3);
 	/// Copy constructor
 	Plane(const Plane &plane);
 
@@ -27,9 +27,9 @@ public:
 	/// Applies the given transform
 	Plane Transform(Matrix4f transformationMatrix);
 	/// Sets the three points that define define the plane in counter clockwise order.
-	void Set3Points(Vector3f p1, Vector3f p2, Vector3f p3);
+	void Set3Points(const Vector3f & p1, const Vector3f & p2, const Vector3f & p3);
 	/// Calculates and returns the distance to target point.
-	float Distance(Vector3f point) const;
+	float Distance(const Vector3f & point) const;
 
 	/// Three points that define the plane. Assigned in counter clockwise order.
 	Vector3f point1, point2, point3;

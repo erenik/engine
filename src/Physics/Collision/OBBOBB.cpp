@@ -10,7 +10,7 @@
 #include "Physics/PhysicsManager.h"
 
 /// Checks intersection along an axis... yup.
-bool IntersectOnAxis(OBB * obb1, OBB * obb2, Vector3f axis, float & intersectionDepth){
+bool IntersectOnAxis(OBB * obb1, OBB * obb2, const Vector3f & axis, float & intersectionDepth){
 	
 	float oneMax, oneMin, twoMax, twoMin;
 	float tmp;
@@ -58,7 +58,8 @@ bool IntersectOnAxis(OBB * obb1, OBB * obb2, Vector3f axis, float & intersection
 
 
 /// Along axis...
-List<Vector3f> FetchExtremePoints(OrientedBoundingBox * obb, Vector3f axis){
+List<Vector3f> FetchExtremePoints(OrientedBoundingBox * obb, const Vector3f & axis)
+{
 	float extreme = 0;
 	float clipRange = obb->localSize.MaxPart() * 0.01f;
 	List<Vector3f> points;
@@ -90,7 +91,8 @@ List<Vector3f> FetchExtremePoints(OrientedBoundingBox * obb, Vector3f axis){
 };
 
 /// Reference: Real-time collission detection page 146-147
-List<Vector3f> ClosestPointsTwoLines(Line one, Line two){
+List<Vector3f> ClosestPointsTwoLines(const Line & one, const Line & two)
+{
 	List<Vector3f> points;
 	float a = one.direction.DotProduct(one.direction);
 	float e = two.direction.DotProduct(two.direction);

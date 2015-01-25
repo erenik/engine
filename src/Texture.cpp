@@ -80,13 +80,13 @@ void Texture::Reallocate()
 	assert(data == NULL);
 	
 	// Allocate.
-	int areaInPixels = size.x * size.y;
+	int areaInPixels = size[0] * size[1];
 	int channels = GetChannels();
 	int bufferSizeNeeded = areaInPixels * channels;
 	int dataType = DataType();
 
-	width = size.x;
-	height = size.y;
+	width = size[0];
+	height = size[1];
 
 	// Save new size.
 	dataBufferSize = bufferSizeNeeded;
@@ -114,11 +114,11 @@ void Texture::SetSize(Vector2i newSize)
 /// Resets width, height and creates a new data buffer after deleting the old one. Returns false if it failed (due to lacking memory).
 bool Texture::Resize(Vector2i newSize)
 {
-	width = newSize.x;
-	height = newSize.y;
+	width = newSize[0];
+	height = newSize[1];
 	
 	/// Always 4-channel data array no matter what part of it will be used!.
-	int sizeRequired = newSize.x * newSize.y * 4 * bytesPerChannel;
+	int sizeRequired = newSize[0] * newSize[1] * 4 * bytesPerChannel;
 	if (sizeRequired != dataBufferSize)
 	{
 		if (data)
@@ -251,7 +251,7 @@ int Texture::DataType()
 
 int Texture::NumPixels()
 {
-	return size.x * size.y;
+	return size[0] * size[1];
 }
 	
 
@@ -288,19 +288,19 @@ void Texture::LoadDataFromGL()
 	switch(format)
 	{
 		case RGB:
-		//	glReadPixels(0,0,size.x, size.y, GL_RGB, GL_UNSIGNED_BYTE, cData);
+		//	glReadPixels(0,0,size[0], size[1], GL_RGB, GL_UNSIGNED_BYTE, cData);
 			glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, cData); 
 			
 			break;
 		case RGBA:
 		{
 			// glReadPixels might be safer..
-		//	glReadPixels(0,0,size.x, size.y, GL_RGBA, GL_UNSIGNED_BYTE, cData);
+		//	glReadPixels(0,0,size[0], size[1], GL_RGBA, GL_UNSIGNED_BYTE, cData);
 			glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, cData); 
 			break;
 		}
 		case SINGLE_16F:
-			//glReadPixels(0,0,size.x, size.y, GL_RED, GL_FLOAT, fData);
+			//glReadPixels(0,0,size[0], size[1], GL_RED, GL_FLOAT, fData);
 			glGetTexImage(GL_TEXTURE_2D, 0, GL_RED, GL_FLOAT, fData); 
 			break;
 		case RGB_16F:
@@ -375,9 +375,9 @@ void Texture::LoadFromCVMat(cv::Mat & mat)
 					color.Clamp(0, 1);
 					int texY = mat.rows - y - 1;
 					psi = (texY * width + x) * 4;
-					buf[psi] = (unsigned char) (color.x * 255.0f);
-					buf[psi+1] = (unsigned char) (color.y * 255.0f);
-					buf[psi+2] = (unsigned char) (color.z * 255.0f);
+					buf[psi] = (unsigned char) (color[0] * 255.0f);
+					buf[psi+1] = (unsigned char) (color[1] * 255.0f);
+					buf[psi+2] = (unsigned char) (color[2] * 255.0f);
 					buf[psi+3] = 255;
 				}
 			}
@@ -410,9 +410,9 @@ void Texture::LoadFromCVMat(cv::Mat & mat)
 					color.Clamp(0, 1);
 					int texY = mat.rows - y - 1;
 					psi = (texY * width + x) * 4;
-					buf[psi] = (unsigned char) (color.x * 255.0f);
-					buf[psi+1] = (unsigned char) (color.y * 255.0f);
-					buf[psi+2] = (unsigned char) (color.z * 255.0f);
+					buf[psi] = (unsigned char) (color[0] * 255.0f);
+					buf[psi+1] = (unsigned char) (color[1] * 255.0f);
+					buf[psi+2] = (unsigned char) (color[2] * 255.0f);
 					buf[psi+3] = 255;
 				}
 			}
@@ -539,7 +539,7 @@ bool Texture::Bufferize()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 	// Generate the texture Entity in GL
-	// Ref: http://www.opengl.org/sdk/docs/man/xhtml/glTexImage2D.xml
+	// Ref: http://www.opengl.org/sdk/docs/man/xhtml/glTexImage2D[0]ml
 	/// Pretty much bits or bytes per pixel/channel.
 	int pixelDataType;
 	int glFormat;
@@ -611,10 +611,10 @@ Vector4f Texture::GetPixel(int index){
 	unsigned char * buf = data;
 	/// PixelStartIndex
 	int psi = index * bpp;
-	color.x = buf[psi] / 255.0f;
-	color.y = buf[psi+1] / 255.0f;
-	color.z = buf[psi+2] / 255.0f;
-	color.w = buf[psi+3] / 255.0f;
+	color[0] = buf[psi] / 255.0f;
+	color[1] = buf[psi+1] / 255.0f;
+	color[2] = buf[psi+2] / 255.0f;
+	color[3] = buf[psi+3] / 255.0f;
 	return color;
 }
 /// Gets color data from specified pixel in RGBA
@@ -624,10 +624,10 @@ Vector4f Texture::GetPixel(int x, int y){
 	unsigned char * buf = data;
 	/// PixelStartIndex
 	int psi = y * width * bpp + x * bpp;
-	color.x = buf[psi] / 255.0f;
-	color.y = buf[psi+1] / 255.0f;
-	color.z = buf[psi+2] / 255.0f;
-	color.w = buf[psi+3] / 255.0f;
+	color[0] = buf[psi] / 255.0f;
+	color[1] = buf[psi+1] / 255.0f;
+	color[2] = buf[psi+2] / 255.0f;
+	color[3] = buf[psi+3] / 255.0f;
 	return color;
 }
 
@@ -639,10 +639,10 @@ Vector4i Texture::GetPixelVec4i(int x, int y)
 	unsigned char * buf = data;
 	/// PixelStartIndex
 	int psi = y * width * bpp + x * bpp;
-	color.x = buf[psi];
-	color.y = buf[psi+1];
-	color.z = buf[psi+2];
-	color.w = buf[psi+3];
+	color[0] = buf[psi];
+	color[1] = buf[psi+1];
+	color[2] = buf[psi+2];
+	color[3] = buf[psi+3];
 	return color;
 }
 
@@ -657,20 +657,20 @@ void Texture::SetPixel(Vector2i location, const Vector4f & toColor, int pixelSiz
 	color.Clamp(0, 1);
 	/// PixelStartIndex
 	
-	for (int y = location.y - pixelSize + 1; y < location.y + pixelSize; ++y)
+	for (int y = location[1] - pixelSize + 1; y < location[1] + pixelSize; ++y)
 	{
 		if (y < 0 || y >= height)
 			continue;
-		for (int x = location.x - pixelSize + 1; x < location.x + pixelSize; ++x)
+		for (int x = location[0] - pixelSize + 1; x < location[0] + pixelSize; ++x)
 		{
 			if (x < 0 || x >= width)
 				continue;
 			int psi = y * width * bpp + x * bpp;
-			buf[psi] = (unsigned char) (color.x * 255.0f);
-			buf[psi+1] = (unsigned char) (color.y * 255.0f);
-			buf[psi+2] = (unsigned char) (color.z * 255.0f);
+			buf[psi] = (unsigned char) (color[0] * 255.0f);
+			buf[psi+1] = (unsigned char) (color[1] * 255.0f);
+			buf[psi+2] = (unsigned char) (color[2] * 255.0f);
 			if (bpp > 3)
-				buf[psi+3] = (unsigned char) (color.w * 255.0f);
+				buf[psi+3] = (unsigned char) (color[3] * 255.0f);
 		}
 	}
 	lastUpdate = Timer::GetCurrentTimeMs();
@@ -687,11 +687,11 @@ void Texture::SetPixel(int x, int y, const Vector4f & toColor)
 	color.Clamp(0, 1);
 	/// PixelStartIndex
 	int psi = y * width * bpp + x * bpp;
-	buf[psi] = (unsigned char) (color.x * 255.0f);
-	buf[psi+1] = (unsigned char) (color.y * 255.0f);
-	buf[psi+2] = (unsigned char) (color.z * 255.0f);
+	buf[psi] = (unsigned char) (color[0] * 255.0f);
+	buf[psi+1] = (unsigned char) (color[1] * 255.0f);
+	buf[psi+2] = (unsigned char) (color[2] * 255.0f);
 	if (bpp > 3)
-		buf[psi+3] = (unsigned char) (color.w * 255.0f);
+		buf[psi+3] = (unsigned char) (color[3] * 255.0f);
 	lastUpdate = Timer::GetCurrentTimeMs();
 }
 
@@ -719,30 +719,30 @@ float Texture::GetMaxIntensity()
 }
 
 /// Linear addition of all rgb-compontents.
-void Texture::Add(Vector3f color, float alpha /*= 0.0f*/){
+void Texture::Add(ConstVec3fr color, float alpha /*= 0.0f*/){
 	assert(bpp == 4 && format == Texture::RGBA);
 	unsigned char * buf = data;
 	for (int y = 0; y < height; ++y){
 		for (int x = 0; x < width; ++x){
 			int psi = y * width * bpp + x * bpp;
-			buf[psi] += (unsigned char) (color.x * 255.0f);
-			buf[psi+1] += (unsigned char) (color.y * 255.0f);
-			buf[psi+2] += (unsigned char) (color.z * 255.0f);
+			buf[psi] += (unsigned char) (color[0] * 255.0f);
+			buf[psi+1] += (unsigned char) (color[1] * 255.0f);
+			buf[psi+2] += (unsigned char) (color[2] * 255.0f);
 			buf[psi+3] += (unsigned char) (alpha * 255.0f);
 		}
 	}
 }
 
 /// Sets color for all pixels, not touching the alpha.
-void Texture::Colorize(Vector3f color){
+void Texture::Colorize(ConstVec3fr color){
 	assert(bpp == 4 && format == Texture::RGBA);
 	unsigned char * buf = data;
 	for (int y = 0; y < height; ++y){
 		for (int x = 0; x < width; ++x){
 			int psi = y * width * bpp + x * bpp;
-			buf[psi] = (unsigned char) (color.x * 255.0f);
-			buf[psi+1] = (unsigned char) (color.y * 255.0f);
-			buf[psi+2] = (unsigned char) (color.z * 255.0f);
+			buf[psi] = (unsigned char) (color[0] * 255.0f);
+			buf[psi+1] = (unsigned char) (color[1] * 255.0f);
+			buf[psi+2] = (unsigned char) (color[2] * 255.0f);
 		}
 	}
 }
@@ -757,10 +757,10 @@ void Texture::SetColor(const Vector4f & color)
 		for (int x = 0; x < width; ++x)
 		{
 			int psi = y * width * bpp + x * bpp;
-			buf[psi] = (unsigned char) (color.x * 255.f);
-			buf[psi+1] = (unsigned char) (color.y * 255.f);
-			buf[psi+2] = (unsigned char) (color.z * 255.f);
-			buf[psi+3] = (unsigned char) (color.w * 255.f);
+			buf[psi] = (unsigned char) (color[0] * 255.f);
+			buf[psi+1] = (unsigned char) (color[1] * 255.f);
+			buf[psi+2] = (unsigned char) (color[2] * 255.f);
+			buf[psi+3] = (unsigned char) (color[3] * 255.f);
 		}
 	}
 }
@@ -776,10 +776,10 @@ void Texture::SetColorOfColumn(int column, const Vector4f & color)
 			if (x != column)
 				continue;
 			int psi = y * width * bpp + x * bpp;
-			buf[psi] = (unsigned char) (color.x * 255.f);
-			buf[psi+1] = (unsigned char) (color.y * 255.f);
-			buf[psi+2] = (unsigned char) (color.z * 255.f);
-			buf[psi+3] = (unsigned char) (color.w * 255.f);
+			buf[psi] = (unsigned char) (color[0] * 255.f);
+			buf[psi+1] = (unsigned char) (color[1] * 255.f);
+			buf[psi+2] = (unsigned char) (color[2] * 255.f);
+			buf[psi+3] = (unsigned char) (color[3] * 255.f);
 		}
 	}
 }
@@ -794,10 +794,10 @@ void Texture::SetColorOfRow(int row, const Vector4f & color)
 		for (int x = 0; x < width; ++x)
 		{
 			int psi = y * width * bpp + x * bpp;
-			buf[psi] = (unsigned char) (color.x * 255.f);
-			buf[psi+1] = (unsigned char) (color.y * 255.f);
-			buf[psi+2] = (unsigned char) (color.z * 255.f);
-			buf[psi+3] = (unsigned char) (color.w * 255.f);
+			buf[psi] = (unsigned char) (color[0] * 255.f);
+			buf[psi+1] = (unsigned char) (color[1] * 255.f);
+			buf[psi+2] = (unsigned char) (color[2] * 255.f);
+			buf[psi+3] = (unsigned char) (color[3] * 255.f);
 		}
 	}
 }

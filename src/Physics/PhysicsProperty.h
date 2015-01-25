@@ -66,7 +66,7 @@ public:
 	/// Calculated using velocity, mass and angular velocity..?
 	float KineticEnergy();
 	/// Applies target impulse at specified position to this entity. Impulse in Ns (kg*m/s)
-	void ApplyImpulse(Vector3f impulse, Vector3f position);
+	void ApplyImpulse(const Vector3f & impulse, const Vector3f & position);
 
 	/// Updates physical radius, Bounding box size, etc. Should be called from the physics thread only!
 	void UpdateProperties(Entity * owner);

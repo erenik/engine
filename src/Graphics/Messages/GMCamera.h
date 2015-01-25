@@ -60,7 +60,7 @@ class GMSetCamera : public GraphicsMessage
 public:
 	/// For setting global/main camera to track. If window is NULL the main window will be selected.
 	GMSetCamera(Camera * cameraToTrack, Window * inWindow = NULL);
-	GMSetCamera(Camera * camera, int target, Vector3f vec3fValue);
+	GMSetCamera(Camera * camera, int target, const Vector3f & vec3fValue);
 	GMSetCamera(Camera * camera, int target, int iValue);
 	GMSetCamera(Camera * camera, int target, float fValue);
 	GMSetCamera(Camera * camera, int target, bool bValue);

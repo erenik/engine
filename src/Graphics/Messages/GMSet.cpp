@@ -31,7 +31,7 @@ GMSet::GMSet(int target, float floatValue)
 	}
 }
 
-GMSet::GMSet(int target, Vector3f value)
+GMSet::GMSet(int target, const Vector3f & value)
 : GraphicsMessage(GM_SET), target(target), vec3fValue(value)
 {
     switch(target){

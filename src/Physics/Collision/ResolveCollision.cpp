@@ -128,14 +128,14 @@ bool ResolveCollision(Collision &data)
         /// ccN = Contact coordinate N
         Vector3f ccX = data.collisionNormal.NormalizedCopy();
         Vector3f ccY(0,1.0f,0), ccZ;
-        if (AbsoluteValue(ccX.x) < AbsoluteValue(ccX.y))
+        if (AbsoluteValue(ccX[0]) < AbsoluteValue(ccX[1]))
             ccY = Vector3f(1.0,0,0);
         CreateOrthonormalBasis(ccX, &ccY, &ccZ);
 
         Vector3f & contactNormal = data.collisionNormal;
 
         /// Matrix * Point(local) = Point(world)
-        Matrix3f basisMatrix(ccX.x, ccX.y, ccX.z, ccY.x, ccY.y, ccY.z, ccZ.x, ccZ.y, ccZ.z);
+        Matrix3f basisMatrix(ccX[0], ccX[1], ccX[2], ccY[0], ccY[1], ccY[2], ccZ[0], ccZ[1], ccZ[2]);
         Matrix3f inverseBasisMatrix = basisMatrix.TransposedCopy();
 
 
@@ -275,7 +275,7 @@ bool ResolveCollision(Collision &data)
 				++requirements;
 			/// Set the entity to be in rest if the momentum and sum of all external forces is below a certain value.
 			if (requirements >= 3 &&
-				AbsoluteValue(collisionNormal.y) > 0.9f
+				AbsoluteValue(collisionNormal[1]) > 0.9f
 				)
 			{
 				RestingContact * ct = new RestingContact(one, two);
@@ -296,8 +296,8 @@ bool ResolveCollision(Collision &data)
 		}
 
 		/// Ensure that the movement didn't adjust the velocity...
-		assert(one->physics->linearMomentum.x == one->physics->linearMomentum.x);
-		assert(two->physics->linearMomentum.x == two->physics->linearMomentum.x);
+		assert(one->physics->linearMomentum[0] == one->physics->linearMomentum[0]);
+		assert(two->physics->linearMomentum[0] == two->physics->linearMomentum[0]);
 		return true;
     }
     /// Differentiate between implementation.
@@ -361,7 +361,7 @@ bool ResolveCollision(Collision &data)
 				std::cout<<"\nDamping: "<<damping;
 			*/
 
-			//float yPart = AbsoluteValue(collisionNormal.y);
+			//float yPart = AbsoluteValue(collisionNormal[1]);
 			///// Using yPart, apply proper collission damping to negate the strange bug.
 			//// If close to 1 in Y, apply 0 damping since the regular friction is working decently. However, as Y part approaches 0, apply damping to full degree.
 			//float damping = pow(0.95f, 1.0f - yPart);

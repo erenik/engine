@@ -6,7 +6,7 @@
  * IN 'COPYING'. PLEASE READ THESE TERMS BEFORE DISTRIBUTING.       *
  *                                                                  *
  * THE OggVorbis SOURCE CODE IS (C) COPYRIGHT 1994-2009             *
- * by the Xiph.Org Foundation http://www.xiph.org/                  *
+ * by the Xiph.Org Foundation http://www[0]iph.org/                  *
  *                                                                  *
  ********************************************************************
 
@@ -1109,7 +1109,7 @@ long ov_bitrate(OggVorbis_File *vf,int i){
     for(i=0;i<vf->links;i++)
       bits+=(vf->offsets[i+1]-vf->dataoffsets[i])*8;
     /* This once read: return(rint(bits/ov_time_total(vf,-1)));
-     * gcc 3.x on x86 miscompiled this at optimisation level 2 and above,
+     * gcc 3[0] on x86 miscompiled this at optimisation level 2 and above,
      * so this is slightly transformed to make it work.
      */
     br = bits/ov_time_total(vf,-1);

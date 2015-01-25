@@ -14,6 +14,12 @@ float oneDivRandMaxFloat = 0;
 
 Emitter::Emitter()
 {
+	DefaultVectors();
+}
+
+// Sets default up/left/forward vectors.
+void Emitter::DefaultVectors()
+{
 	up = Vector3f(0,1,0);
 	left = Vector3f(-1,0,0);
 	forward = Vector3f(0,0,-1);
@@ -27,29 +33,42 @@ void Emitter::Scale(float scale)
 	forward *= scale;
 }
 
+// Sets scale of all 3 base vectors.
+void Emitter::SetScale(float scale)
+{
+	DefaultVectors();
+	up *= scale;
+	left *= scale;
+	forward *= scale;
+}
+
+
 /// Randomizes acordingly.
-void Emitter::Position(Vector3f & vec)
+void Emitter::Position(Vector3f & positionVec)
 {
 	switch(type)
 	{
 		case EmitterType::LINE_Y:
-			vec = (rand() * oneDivRandMaxFloat - 0.5f) * up;
+			positionVec = (rand() * oneDivRandMaxFloat - 0.5f) * up;
 			break;
 		case EmitterType::PLANE_XY:
-			vec = (rand() * oneDivRandMaxFloat - 0.5f) * left +
+			positionVec = (rand() * oneDivRandMaxFloat - 0.5f) * left +
 				(rand() * oneDivRandMaxFloat - 0.5f) * up;
 			break;
 		case EmitterType::PLANE_XZ:
-			vec = (rand() * oneDivRandMaxFloat - 0.5f) * left +
+			positionVec = (rand() * oneDivRandMaxFloat - 0.5f) * left +
 				(rand() * oneDivRandMaxFloat - 0.5f) * forward;
 			break;
 		case EmitterType::CIRCLE_XY:
 		{
 			// Random angle.
 			float angle = (rand() * oneDivRandMaxFloat * 2 * PI);
-			vec = Vector3f(cos(angle), sin(angle), 0) * (rand() * oneDivRandMaxFloat);
+			positionVec = Vector3f(cos(angle), sin(angle), 0) * (rand() * oneDivRandMaxFloat);
 			break;
 		}
+		case EmitterType::VECTOR:
+			positionVec = vec;
+			break;
 		default:
 			assert(false);
 	}
@@ -71,13 +90,13 @@ ParticleEmitter::~ParticleEmitter()
 {
 }
 
-ParticleEmitter::ParticleEmitter(Contour contour)
+ParticleEmitter::ParticleEmitter(const Contour & contour)
 	: contour(contour), type(EmitterType::CONTOUR)
 {
 	Initialize();
 }  
 
-ParticleEmitter::ParticleEmitter(Vector3f point, Vector3f direction)
+ParticleEmitter::ParticleEmitter(const Vector3f & point, const Vector3f & direction)
 	: position(point), direction(direction), type(EmitterType::POINT_DIRECTIONAL)
 {
 	Initialize();
@@ -101,7 +120,7 @@ ParticleEmitter::ParticleEmitter(int type)
 }
 
 /// Point-based circular emitter
-ParticleEmitter::ParticleEmitter(Vector3f point)
+ParticleEmitter::ParticleEmitter(ConstVec3fr point)
 	: position(point), type(EmitterType::POINT_CIRCLE)
 {
 	Initialize();

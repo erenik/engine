@@ -221,8 +221,8 @@ void Weapon::Shoot(Ship * ship)
 	else if (angle)
 	{
 		float worldAngle = DEGREES_TO_RADIANS((float)angle + 180);
-		dir.x = cos(worldAngle);
-		dir.y = sin(worldAngle);
+		dir[0] = cos(worldAngle);
+		dir[1] = sin(worldAngle);
 	}
 	if (ship->allied)
 		dir *= -1.f;

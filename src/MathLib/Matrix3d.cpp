@@ -102,9 +102,9 @@ void Matrix3d::InitRotationMatrix(double angle, Vector3d vector){
 	double c = cos((double)angle);
 	double s = sin((double)angle);
 	double c1 = 1 - c;
-	double x = vector.GetX();
-	double y = vector.GetY();
-	double z = vector.GetZ();
+	double x = vector[0];
+	double y = vector[1];
+	double z = vector[2];
 	element[0] = x * x * c1 + c;
 	element[1] = y * x * c1 + z * s;
 	element[2] = x * z * c1 - y * s;

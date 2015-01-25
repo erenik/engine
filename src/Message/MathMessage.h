@@ -29,7 +29,7 @@ class VectorMessage : public Message {
 public:
 	VectorMessage(String message, Vector2i vectorValue);
 	VectorMessage(String message, Vector2f vectorValue);
-	VectorMessage(String message, Vector3f vectorValue);
+	VectorMessage(String message, const Vector3f & vectorValue);
 	VectorMessage(String message, const Vector4f & vectorValue);
 	virtual ~VectorMessage();
 	// Returns the values embedded within in the Vector4f format, converting as necessary.

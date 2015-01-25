@@ -15,8 +15,7 @@ struct Rect
 	/// Size in x and y.
 	Vector2i Size();
 
-    int x0, x1;
-    int y0, y1;
+	Vector2i min, max;
 };
 
 #endif

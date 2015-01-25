@@ -76,7 +76,7 @@ Tile * TileMap2D::GetTile(int x, int y)
 
 // Fetch tile by position. Z-parameter of position meaning elevation or level.
 Tile * TileMap2D::GetTile(Vector3i position) const{
-	TileMapLevel * level = GetLevelByElevation(position.z);
+	TileMapLevel * level = GetLevelByElevation(position[2]);
 	assert(level);
 	return level->GetTile(position);
 }
@@ -151,7 +151,7 @@ void TileMap2D::Render(GraphicsState & graphicsState)
 		if (!shader)
 			return;
 
-		LoadLighting(lighting, shader);
+		LoadLighting(&lighting, shader);
 
 		glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, graphicsState.viewMatrixF.getPointer());
 		glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, graphicsState.modelMatrixF.getPointer());
@@ -197,8 +197,8 @@ void TileMap2D::Render(GraphicsState & graphicsState)
 				Matrix4d tmp = graphicsState.modelMatrixD;
 				Vector2i mapSize = Size();
 			
-				Matrix4d transformationMatrix = Matrix4d::InitTranslationMatrix(Vector3f(mapSize.x * 0.5f + offset.x, mapSize.y * 0.5f + offset.y, -0.1f));
-				transformationMatrix.Scale(Vector3f(mapSize.x, mapSize.y, 1));
+				Matrix4d transformationMatrix = Matrix4d::InitTranslationMatrix(Vector3f(mapSize[0] * 0.5f + offset[0], mapSize[1] * 0.5f + offset[1], -0.1f));
+				transformationMatrix.Scale(Vector3f(mapSize[0], mapSize[1], 1));
 				// Apply transformation
 				graphicsState.modelMatrixD.Multiply(transformationMatrix);
 				graphicsState.modelMatrixF = graphicsState.modelMatrixD;
@@ -221,13 +221,13 @@ void TileMap2D::Render(GraphicsState & graphicsState)
 			for (int i = 0; i < tiles.Size(); ++i)
 			{
 				tile = tiles[i];
-				if (tile->position.x < min.x || 
-					tile->position.x > max.x ||
-					tile->position.y > max.y ||
-					tile->position.y < min.y)
+				if (tile->position[0] < min[0] || 
+					tile->position[0] > max[0] ||
+					tile->position[1] > max[1] ||
+					tile->position[1] < min[1])
 					continue;
 
-				transformationMatrix = Matrix4f::InitTranslationMatrix(Vector3f(tile->position.x, tile->position.y, 0.f));
+				transformationMatrix = Matrix4f::InitTranslationMatrix(Vector3f(tile->position[0], tile->position[1], 0.f));
 				// Apply transformation
 				graphicsState.modelMatrixF = transformationMatrix;
 				// Set uniform matrix in shader to point to the AppState modelView matrix.
@@ -264,8 +264,8 @@ void TileMap2D::Render(GraphicsState & graphicsState)
 			/// Fetch it's position and texture, assume the anchor point is correct and just paint it.
 			Vector3f position = go->position;
 			/// Skip all out of sight?
-			if (position.x < min.x || position.x > max.x ||
-				position.y < min.y || position.y > max.y)
+			if (position[0] < min[0] || position[0] > max[0] ||
+				position[1] < min[1] || position[1] > max[1])
 				continue;
 			GridObjectType * got = go->type;
 			if (!got){
@@ -277,8 +277,8 @@ void TileMap2D::Render(GraphicsState & graphicsState)
 			}
 			offset = Vector2f(got->size) * 0.5f - got->pivotPosition;
 			/// Add an offset in depth based on Y, so that we can easily render moving entities afterwards.
-			Matrix4d transformationMatrix = Matrix4d::InitTranslationMatrix(Vector3f(position.x + offset.x, position.y + offset.y, 0.1f - position.y * 0.0001f));
-			transformationMatrix.Scale(Vector3f(got->size.x, got->size.y, 1.f));
+			Matrix4d transformationMatrix = Matrix4d::InitTranslationMatrix(Vector3f(position[0] + offset[0], position[1] + offset[1], 0.1f - position[1] * 0.0001f));
+			transformationMatrix.Scale(Vector3f(got->size[0], got->size[1], 1.f));
 			// Apply transformation
 			graphicsState.modelMatrixD = Matrix4d();
 			graphicsState.modelMatrixD.Multiply(transformationMatrix);
@@ -306,8 +306,8 @@ void TileMap2D::Render(GraphicsState & graphicsState)
 			/// Fetch it's position and texture, assume the anchor point is correct and just paint it.
 			Vector3f position = entity->position;
 			/// Skip all out of sight?
-			if (position.x < min.x || position.x > max.x ||
-				position.y < min.y || position.y > max.y)
+			if (position[0] < min[0] || position[0] > max[0] ||
+				position[1] < min[1] || position[1] > max[1])
 				continue;
 			
 			/// Use some offset based on the sprite.
@@ -327,8 +327,8 @@ void TileMap2D::Render(GraphicsState & graphicsState)
 		//		offset = Vector2f(1,1);
 			}
 			/// Add an offset in depth based on Y, so that we can easily render moving entities afterwards.
-			Matrix4d transformationMatrix = Matrix4d::InitTranslationMatrix(Vector3f(position.x + offset.x, position.y + offset.y, 0.1f - position.y * 0.0001f));
-			transformationMatrix.Scale(Vector3f(spriteSize.x, spriteSize.y, 1));
+			Matrix4d transformationMatrix = Matrix4d::InitTranslationMatrix(Vector3f(position[0] + offset[0], position[1] + offset[1], 0.1f - position[1] * 0.0001f));
+			transformationMatrix.Scale(Vector3f(spriteSize[0], spriteSize[1], 1));
 			// Apply transformation
 			graphicsState.modelMatrixD = Matrix4d();
 			graphicsState.modelMatrixD.Multiply(transformationMatrix);
@@ -385,7 +385,7 @@ void TileMap2D::Render(GraphicsState & graphicsState)
 
 		float z = -4;
 		Vector3f ambient = graphicsState.lighting->GetAmbient();
-		glColor4f(ambient.x, ambient.y, ambient.z, 1.0f);
+		glColor4f(ambient[0], ambient[1], ambient[2], 1.0f);
 
 		error = glGetError();
 		if (error != GL_NO_ERROR){
@@ -428,11 +428,11 @@ void TileMap2D::Render(GraphicsState & graphicsState)
 				glTexCoord2f(0.0f, 0.f);
 				glVertex3f(-0.5f, 0, z);
 				glTexCoord2f(0.0f, 1.f);
-				glVertex3f(-0.5f, mapSize.y-0.5f, z);
+				glVertex3f(-0.5f, mapSize[1]-0.5f, z);
 				glTexCoord2f(1.f, 1.f);
-				glVertex3f(mapSize.x-0.5f, mapSize.y-0.5f, z);
+				glVertex3f(mapSize[0]-0.5f, mapSize[1]-0.5f, z);
 				glTexCoord2f(1.f, 0.f);
-				glVertex3f(mapSize.x-0.5f, 0-0.5f, z);
+				glVertex3f(mapSize[0]-0.5f, 0-0.5f, z);
 			glEnd();
 		}
 
@@ -462,8 +462,8 @@ void TileMap2D::Render(GraphicsState & graphicsState)
 			/// Fetch it's position and texture, assume the anchor point is correct and just paint it.
 			Vector3f position = go->position;
 			/// Skip all out of sight.		
-			if (position.x < min.x || position.x > max.x ||
-				position.y < min.y|| position.y > max.y)
+			if (position[0] < min[0] || position[0] > max[0] ||
+				position[1] < min[1]|| position[1] > max[1])
 				continue;
 
 
@@ -475,10 +475,10 @@ void TileMap2D::Render(GraphicsState & graphicsState)
 					continue;
 				go->type = got;
 			}
-			float left = position.x + got->pivotToLeft,
-				right = position.x + got->pivotToRight,
-				top = position.y + got->pivotToTop,
-				bottom = position.y + got->pivotToBottom;
+			float left = position[0] + got->pivotToLeft,
+				right = position[0] + got->pivotToRight,
+				top = position[1] + got->pivotToTop,
+				bottom = position[1] + got->pivotToBottom;
 			float z = 0;
 			
 			glColor4f(1,1,1,1);
@@ -514,8 +514,8 @@ void TileMap2D::Render(GraphicsState & graphicsState)
 
 		// Throw into TileMapLevel-> Draw?
 		Vector2i levelSize = activeLevel->Size();
-		float xSize = (float)levelSize.x;
-		float ySize = (float)levelSize.y;
+		float xSize = (float)levelSize[0];
+		float ySize = (float)levelSize[1];
 		// Draw a quad around it all, yo.
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		glBegin(GL_QUADS);
@@ -552,15 +552,15 @@ void TileMap2D::RenderEntities(GraphicsState & graphicsState)
 		EntityStateTile2D * entityTile2D = entitiesTile2D[i];
 		/// Occlude
 		Vector3i & pos = entityTile2D->position;
-		if (pos.x < camPos.x - viewRange || pos.x > camPos.x + viewRange)
+		if (pos[0] < camPos[0] - viewRange || pos[0] > camPos[0] + viewRange)
 			continue;
-		if (pos.y < camPos.y - viewRange || pos.y > camPos.y + viewRange)
+		if (pos[1] < camPos[1] - viewRange || pos[1] > camPos[1] + viewRange)
 			continue;
 
 		++entitiesRendered;
 		/// Render
-		float xPos = (float)pos.x;
-		float yPos = (float)pos.y;
+		float xPos = (float)pos[0];
+		float yPos = (float)pos[1];
 		// Draw entities too, yo.
 		const Entity * e = entityTile2D->owner;
 	//	std::cout<<"\nRendering entity "<<i<<": "<<e->name;
@@ -620,8 +620,8 @@ void TileMap2D::RenderEvents(GraphicsState & graphicsState)
 	for (int i = 0; i < events.Size(); ++i){
 		Script * event = events[i];
 		event->position;
-		float xPos = event->position.x;
-		float yPos = event->position.y;
+		float xPos = event->position[0];
+		float yPos = event->position[1];
 		glBegin(GL_QUADS);
 			glTexCoord2f(0.0f, 0);
 			glVertex3f(xPos-0.5f, yPos-0.5f, eventZ);
@@ -740,7 +740,7 @@ bool TileMap2D::Load(const char * fromFile)
 		file.read((char*)&hasTexture, sizeof(bool));
 
 		/// Load lighting scheme
-		this->lighting->ReadFrom(file);
+		this->lighting.ReadFrom(file);
 
 		/// Load levels
 		int numLevels = 0;
@@ -813,7 +813,7 @@ bool TileMap2D::Save(const char * toFile)
 		file.write((char*)&hasTexture, sizeof(bool));
 
 		/// Save lighting scheme
-		this->lighting->WriteTo(file);
+		this->lighting.WriteTo(file);
 
 		/// Save levels
 		int numLevels = levels.Size();
@@ -896,8 +896,8 @@ bool TileMap2D::ReadTiles(std::fstream &file){
 		assert(activeLevel);
 		Vector2i size = activeLevel->Size();
 		// Read tiles..
-		for (int x = 0; x < size.x; ++x){
-			for (int y = 0; y < size.y; ++y){
+		for (int x = 0; x < size[0]; ++x){
+			for (int y = 0; y < size[1]; ++y){
 				/// Read type for the tile at given index.
 				Tile * tile = activeLevel->GetTile(Vector2i(x,y));
 				file.read((char*) &tile->typeIndex, sizeof(int));
@@ -1055,8 +1055,8 @@ void TileMap2D::UpdatePreviewTexture()
 
 	/// Change size as needed.
 	Vector2i mapSize = Size();
-	if (previewTexture->width != mapSize.x ||
-		previewTexture->height != mapSize.y)
+	if (previewTexture->width != mapSize[0] ||
+		previewTexture->height != mapSize[1])
 	{
 		/// Rescale
 		previewTexture->Resize(mapSize);
@@ -1069,21 +1069,21 @@ void TileMap2D::UpdatePreviewTexture()
 	/// Update that it all?
 	bool gotOneTexture = false;
 	/// If still negative, set to entire map-size.
-	if (updateMin.x == -1)
+	if (updateMin[0] == -1)
 	{
 		updateMin = Vector2i();
 		updateMax = Size();
 	}
 	Vector2i sizeToUpdate = updateMax - updateMin;
-	int tilesToUpdate = sizeToUpdate.x * sizeToUpdate.y;
+	int tilesToUpdate = sizeToUpdate[0] * sizeToUpdate[1];
 	if (tilesToUpdate)
 		std::cout<<"\nTiles to update: "<<tilesToUpdate;
 
 	updateMin.Limit(Vector2i(), mapSize - Vector2i(1,1));
 	updateMax.Limit(Vector2i(), mapSize - Vector2i(1,1));
-	for (int x = updateMin.x; x <= updateMax.x && x < mapSize.x; ++x)
+	for (int x = updateMin[0]; x <= updateMax[0] && x < mapSize[0]; ++x)
 	{
-		for (int y = updateMin.y; y <= updateMax.y; ++y){
+		for (int y = updateMin[1]; y <= updateMax[1]; ++y){
 			Tile * tile = GetTile(x,y);
 			assert(tile);
 			
@@ -1124,18 +1124,18 @@ void TileMap2D::UpdatePreviewTexture()
 void TileMap2D::ExpandUpdateToInclude(Vector2i position)
 {
 	/// If -1, we have no update since before.
-	if (updateMin.x == -1){
+	if (updateMin[0] == -1){
 		updateMin = updateMax = position;
 		return;
 	}
-	if (position.x < updateMin.x)
-		updateMin.x = position.x;
-	else if (position.x > updateMax.x)
-		updateMax.x = position.x;
-	if (position.y < updateMin.y)
-		updateMin.y = position.y;
-	else if (position.y > updateMax.y)
-		updateMax.y = position.y;
+	if (position[0] < updateMin[0])
+		updateMin[0] = position[0];
+	else if (position[0] > updateMax[0])
+		updateMax[0] = position[0];
+	if (position[1] < updateMin[1])
+		updateMin[1] = position[1];
+	else if (position[1] > updateMax[1])
+		updateMax[1] = position[1];
 	/// Update time while at it, so no need to do that elsewhere.
 	lastUpdate = Timer::GetCurrentTimeMs();
 }
@@ -1193,7 +1193,7 @@ bool TileMap2D::IsTileVacant(Vector3i position){
 bool TileMap2D::MoveEntity(Entity * entity, Vector3i position){
 	std::cout<<"\nTileMap2D::MoveEntity";
 	/// Get right level
-	TileMapLevel * level = GetLevelByElevation(position.z);
+	TileMapLevel * level = GetLevelByElevation(position[2]);
 	if (!level){
 		std::cout<<"\nTileMap2D::MoveEntity: Bad Z-value. No such level exists.";
 		return false;
@@ -1226,7 +1226,7 @@ void TileMap2D::OnArrive(Entity * e, int x, int y){
 /// Returns a walkable tile close to given coordinates.
 Tile * TileMap2D::GetClosestVacantTile(Vector3i position)
 {
-	TileMapLevel * level = GetLevelByElevation(position.z);
+	TileMapLevel * level = GetLevelByElevation(position[2]);
 	float closestDistance = 5000000.0f;
 	Tile * closest = NULL;
 	Tile * t = level->GetClosestVacantTile(position);
@@ -1239,8 +1239,8 @@ Tile * TileMap2D::GetClosestVacantTile(Vector3i position)
 void TileMap2D::RandomizeTiles(){
 	TileMapLevel * level = ActiveLevel();
 	Vector2i size = level->Size();
-	for (int x = 0; x < size.x; ++x){
-		for (int y = 0; y < size.y; ++y){
+	for (int x = 0; x < size[0]; ++x){
+		for (int y = 0; y < size[1]; ++y){
 			Tile * t = activeLevel->GetTile(Vector2i(x,y));
 			if (t->type == NULL)
 				t->type = TileTypes.GetRandom();

@@ -12,7 +12,7 @@ GMSetGraphicEffect::GMSetGraphicEffect(int target, String effectName, float valu
 : GraphicsMessage(GM_SET_GRAPHIC_EFFECT), target(target), effectName(effectName), floatValue(value), owner(owner){
 }
 /// Vector
-GMSetGraphicEffect::GMSetGraphicEffect(int target, String effectName, Vector3f value, Entity * owner)
+GMSetGraphicEffect::GMSetGraphicEffect(int target, String effectName, const Vector3f & value, Entity * owner)
 : GraphicsMessage(GM_SET_GRAPHIC_EFFECT), target(target), effectName(effectName), vec3fValue(value), owner(owner){
 }
 // For any pointer, yo.
@@ -41,9 +41,9 @@ void GMSetGraphicEffect::Process()
 			gfx->relativeScale = vec3fValue;
 			break;
 		case GT_ALPHA:
-			gfx->primaryColor.w = floatValue;
-			if (gfx->primaryColor.w > gfx->maxAlpha)
-				gfx->primaryColor.w = gfx->maxAlpha;
+			gfx->primaryColor[3] = floatValue;
+			if (gfx->primaryColor[3] > gfx->maxAlpha)
+				gfx->primaryColor[3] = gfx->maxAlpha;
 			break;
 		default:
 			assert(false && "Undefined target in GMSetGraphicEffect!");

@@ -52,15 +52,15 @@ void PongIntegrator::IntegrateVelocity(Entity * forEntity, float timeInSeconds)
 	{
 		if (speed > 0)
 		{
-//			std::cout<<"\nSpeed: "<<speed<<" Velocity: "<<velocity.x<<" timeInSeconds: "<<timeInSeconds;
+//			std::cout<<"\nSpeed: "<<speed<<" Velocity: "<<velocity[0]<<" timeInSeconds: "<<timeInSeconds;
 		}
 		lastTime = now;
 	}
 	
 	if (constantZ)
 	{
-		forEntity->position.z = constantZ;
-		forEntity->physics->velocity.z = 0;
+		forEntity->position[2] = constantZ;
+		forEntity->physics->velocity[2] = 0;
 	}
 
 	/// If ball.
@@ -75,14 +75,14 @@ void PongIntegrator::IntegrateVelocity(Entity * forEntity, float timeInSeconds)
 
 	forEntity->RecalculateMatrix();
 		
-	if (position.y >= frameMax.y)
+	if (position[1] >= frameMax[1])
 	{
-		velocity.y = -AbsoluteValue(velocity.y);
-		position.y = frameMax.y;
+		velocity[1] = -AbsoluteValue(velocity[1]);
+		position[1] = frameMax[1];
 	}
-	else if (position.y <= frameMin.y)
+	else if (position[1] <= frameMin[1])
 	{
-		velocity.y = +AbsoluteValue(velocity.y);
-		position.y = frameMin.y;
+		velocity[1] = +AbsoluteValue(velocity[1]);
+		position[1] = frameMin[1];
 	}
 }

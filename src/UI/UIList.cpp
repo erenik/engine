@@ -87,7 +87,7 @@ UIElement * UIScrollBarHandle::Click(int mouseX, int mouseY)
 /// Used by e.g. ScrollBarHandle's in order to slide its content according to mouse movement, even when the mouse extends beyond the scope of the element.
 void UIScrollBarHandle::OnMouseMove(Vector2i activeWindowCoords)
 {
-	float alignmentY = (activeWindowCoords.y  - parent->bottom) / (float) this->parent->sizeY;
+	float alignmentY = (activeWindowCoords[1]  - parent->bottom) / (float) this->parent->sizeY;
 	SetAlignmentY(alignmentY);
 }
 
@@ -761,7 +761,7 @@ void UIList::RenderChildren(GraphicsState & graphicsState)
 	Vector3f currBottomLeft = graphicsState.modelMatrixF * initialPositionBottomLeft;
 
 	Rect previousScissor = graphicsState.scissor;
-	Rect uiRect(currBottomLeft.x, currBottomLeft.y, currTopRight.x, currTopRight.y);
+	Rect uiRect(currBottomLeft[0], currBottomLeft[1], currTopRight[0], currTopRight[1]);
 	Rect uiScissor = previousScissor.Intersection(uiRect);
 	
 	// Set scissor! o.o
@@ -774,7 +774,7 @@ void UIList::RenderChildren(GraphicsState & graphicsState)
         float pageBeginY = scrollBarY->GetStart();
         pageBeginY *= sizeY;
         translatedModelMatrix *= Matrix4d::Translation(0, pageBeginY, 0);
-		this->pageBegin.y = pageBeginY;
+		this->pageBegin[1] = pageBeginY;
     }
 
     /// Render all children

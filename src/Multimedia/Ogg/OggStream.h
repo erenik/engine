@@ -81,9 +81,9 @@ private:
 	/** Current frame data in a format liked by the Texture class!
 		Pixel index psi below. and the pixel index with offsets of 0 to 3 give the RGBA components respectively.
 		int psi = y * width * bpp + x * bpp;
-			buf[psi] += color.x * 255.0f;
-			buf[psi+1] += color.y * 255.0f;
-			buf[psi+2] += color.z * 255.0f;
+			buf[psi] += color[0] * 255.0f;
+			buf[psi+1] += color[1] * 255.0f;
+			buf[psi+2] += color[2] * 255.0f;
 			buf[psi+3] += alpha * 255.0f;
 		}
 	*/

@@ -97,10 +97,10 @@ void FirstPersonPlayerProperty::ProcessInput()
 	right *= rotationSpeed;
 
 	Vector3f acc;
-	acc.z = forward;
+	acc[2] = forward;
 
 //	Vector3f rot;
-//	rot.y = right;
+//	rot[1] = right;
 
 	// 
 	// Auto-running,.
@@ -136,7 +136,7 @@ void FirstPersonPlayerProperty::ProcessInput()
 			rightwardVector.Normalize();
 			Vector3f newVelocity = forwardVector + rightwardVector;
 			// Remove Y-component.
-			newVelocity.y = 0;
+			newVelocity[1] = 0;
 			Vector3f normalizedVelocity = newVelocity.NormalizedCopy();
 			// Multiply movement speed.
 			newVelocity = normalizedVelocity * movementSpeed;
@@ -151,7 +151,7 @@ void FirstPersonPlayerProperty::ProcessInput()
 				if (newVelocity.MaxPart())
 				{
 					// Set our rotation toward this new destination too!
-					float yaw = atan2(normalizedVelocity.z, normalizedVelocity.x) + PI * 0.5f;
+					float yaw = atan2(normalizedVelocity[2], normalizedVelocity[0]) + PI * 0.5f;
 					Physics.QueueMessage(new PMSetEntity(owner, PT_ROTATION_YAW, yaw));
 				}
 			}
@@ -160,7 +160,7 @@ void FirstPersonPlayerProperty::ProcessInput()
 
 		/// Make sure the camera is rotating around the center of the entity.
 		float height = 1.7f;
-		if (owner->cameraFocus->relativePosition.y != height)
+		if (owner->cameraFocus->relativePosition[1] != height)
 		{
 			Graphics.QueueMessage(new GMSetCamera(owner->cameraFocus, CT_RELATIVE_POSITION_Y, height));
 			Graphics.QueueMessage(new GMSetCamera(owner->cameraFocus, CT_TRACKING_POSITION_OFFSET, Vector3f(0,height,0)));

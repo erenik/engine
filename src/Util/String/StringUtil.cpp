@@ -47,9 +47,9 @@ String GetSection(String inString, char withStartToken, char andEndToken){
 }
 
 
-String VectorString(Vector3f v)
+String VectorString(const Vector3f & v)
 {
-	return String::ToString(v.x) + " " + String::ToString(v.y) + " " + String::ToString(v.z);
+	return String::ToString(v[0]) + " " + String::ToString(v[1]) + " " + String::ToString(v[2]);
 };
 
 

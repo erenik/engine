@@ -67,7 +67,7 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 	// Set fog properties as needed.
 	glUniform1f(shader->uniformFogBeginDistance, graphicsState.fogBegin);
 	glUniform1f(shader->uniformFogEndDistance, graphicsState.fogEnd);
-	glUniform3f(shader->uniformFogColor, graphicsState.clearColor.x, graphicsState.clearColor.y, graphicsState.clearColor.z);
+	glUniform3f(shader->uniformFogColor, graphicsState.clearColor[0], graphicsState.clearColor[1], graphicsState.clearColor[2]);
 
 	bool backfaceCullingEnabled = false;
 	if (backfaceCullingEnabled){
@@ -176,7 +176,7 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 		// Update view and projection matrix in specified shader
 		glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, graphicsState.projectionMatrixF.getPointer());
 		glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, graphicsState.viewMatrixF.getPointer());
-		glUniform4f(shader->uniformEyePosition, camera.Position().x, camera.Position().y, camera.Position().z, 1.0f);
+		glUniform4f(shader->uniformEyePosition, camera.Position()[0], camera.Position()[1], camera.Position()[2], 1.0f);
 	}
 	
 	CheckGLError("RenderPass, eye position");

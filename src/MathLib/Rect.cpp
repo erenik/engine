@@ -4,26 +4,27 @@
 #include "Rect.h"
 
 Rect::Rect(){
-    x0 = y0 = 0;
-    x1 = y1 = 1;
+	min = Vector2i(0,0);
+	max = Vector2i(1,1);
 }
 
 Rect::Rect(int x0, int y0, int x1, int y1)
-: x0(x0), y0(y0), x1(x1), y1(y1)
+: min(Vector2i(x0,y0)), max(Vector2i(x1,y1))
 {
+
 }
 
 Rect Rect::Intersection(const Rect & otherRect)
 {
-	Rect iRect(x0 > otherRect.x0 ? x0 : otherRect.x0,
-		y0 > otherRect.y0 ? y0 : otherRect.y0,
-		x1 < otherRect.x1 ? x1 : otherRect.x1,
-		y1 < otherRect.y1 ? y1 : otherRect.y1);
+	Rect iRect(min[0] > otherRect.min[0] ? min[0] : otherRect.min[0],
+		min.y > otherRect.min.y ? min.y : otherRect.min.y,
+		max.x < otherRect.max.x ? max.x : otherRect.max.x,
+		max.y < otherRect.max.y ? max.y : otherRect.max.y);
 	return iRect;
 }
 
 /// Size in x and y.
 Vector2i Rect::Size()
 {
-	return Vector2i(x1 - x0, y1 - y0);
+	return max - min;// Vector2i(max.x - min.x, max.y - min.y);
 }

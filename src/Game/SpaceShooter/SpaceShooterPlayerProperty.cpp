@@ -128,8 +128,8 @@ void SpaceShooterPlayerProperty::Process(int timeInMs)
 		
 		}
 		// Enemy? Destroy it?
-		if ((game->flipX > 0 && owner->position.x < -game->gameSize.x * 0.5f - owner->scale.MaxPart()) ||
-			game->flipX < 0 && owner->position.x > game->gameSize.x * 0.5f + owner->scale.MaxPart())
+		if ((game->flipX > 0 && owner->position[0] < -game->gameSize[0] * 0.5f - owner->scale.MaxPart()) ||
+			game->flipX < 0 && owner->position[0] > game->gameSize[0] * 0.5f + owner->scale.MaxPart())
 		{
 			// Sleep
 			Remove();
@@ -145,7 +145,7 @@ void SpaceShooterPlayerProperty::Process(int timeInMs)
 
 	/// Check if within active game area.
 	/// Don't fire anything if not.
-	if (owner->position.x > game->right + 10.f)
+	if (owner->position[0] > game->right + 10.f)
 		return;
 
 	millisecondsPassedSinceLastFire += timeInMs;

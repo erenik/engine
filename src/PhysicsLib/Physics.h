@@ -10,6 +10,6 @@ const float DEFAULT_GRAVITY = 9.82f;
 // const float DEFAULT_GRAVITY = 0.0000982f;
 
 /// Checks if the target spheres are colliding, returns true if so, and false if not.
-bool SpheresColliding(Vector3f position, Vector3f position2, float radiiSum);
+bool SpheresColliding(const Vector3f & position, const Vector3f & position2, float radiiSum);
 
 #endif

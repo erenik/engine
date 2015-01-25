@@ -63,7 +63,6 @@ bool GraphicsManager::UnregisterEntity(Entity * entity)
 	int octreeEntitiesBeforeRemoval = vfcOctree->RegisteredEntities();
 	if (!entity->registeredForRendering)
 		return true;
-	entity->registeredForRendering = false;
 	bool result = registeredEntities.Remove(entity);
 	if (!result){
 		std::cout<<"\nWARNING: Unable to remove entity, already unregistered?";

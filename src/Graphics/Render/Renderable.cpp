@@ -24,7 +24,7 @@ void Renderable::Render(){
 
 
 
-RenderTriangle::RenderTriangle(Triangle tri)
+RenderTriangle::RenderTriangle(const Triangle & tri)
  : Renderable(), tri(tri)
 {
 }
@@ -33,9 +33,9 @@ void RenderTriangle::Render(){
     if (ro.disableDepthTest){
         glDisable(GL_DEPTH_TEST);
     }
-    glColor4f(ro.color.x, ro.color.y, ro.color.z, ro.color.w);
+    glColor4f(ro.color[0], ro.color[1], ro.color[2], ro.color[3]);
     glBegin(GL_TRIANGLES);
-#define RENDER(p) glVertex3f(p.x,p.y,p.z);
+#define RENDER(p) glVertex3f(p[0],p[1],p[2]);
         RENDER(tri.point1);
         RENDER(tri.point2);
         RENDER(tri.point3);

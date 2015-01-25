@@ -26,7 +26,7 @@ public:
 	int Waypoints() { return waypoints; };
 	/// Returns waypoint at specified index.
 	Waypoint * GetWaypoint(int i);
-	Waypoint * GetClosest(Vector3f position) const;
+	Waypoint * GetClosest(const Vector3f & position) const;
 	Waypoint * GetNext(const Waypoint * previousWaypoint);
 	int GetIndex(const Waypoint * ofThisWaypoint) const;
 	/// Adds specified waypoint at the end of the path

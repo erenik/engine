@@ -6,7 +6,7 @@
 
 #include "Entity/Entity.h"
 
-PMApplyImpulse::PMApplyImpulse(List<Entity*> targetEntities, Vector3f force, Vector3f pointInSpace, float duration /* = 1.0f*/)
+PMApplyImpulse::PMApplyImpulse(List<Entity*> targetEntities, const Vector3f & force, const Vector3f & pointInSpace, float duration /* = 1.0f*/)
 : PhysicsMessage(PM_APPLY_IMPULSE), entities(targetEntities), force(force), position(pointInSpace), duration(duration)
 {
 }

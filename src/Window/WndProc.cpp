@@ -344,7 +344,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	}
 
 #define XtoWindow(coord) (int)coord
-#define YtoWindow(coord) (int)(window->clientAreaSize.y - coord)
+#define YtoWindow(coord) (int)(window->clientAreaSize[1] - coord)
 
 	case WM_LBUTTONDOWN: 
 	{

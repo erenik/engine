@@ -15,7 +15,7 @@ class GridObject;
 /// Tile type
 struct TileType{
 	TileType();
-	TileType(int type, String name, Vector3f color, Texture * t = NULL);
+	TileType(int type, String name, const Vector3f & color, Texture * t = NULL);
 	/// Tile type index
 	int type;
 	/// Name of the tile-type.

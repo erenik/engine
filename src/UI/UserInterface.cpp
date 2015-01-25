@@ -316,9 +316,9 @@ void UserInterface::DeleteGeometry()
 bool UserInterface::AdjustToWindow(Vector2i size)
 {
 	// Check if we need to do anything at all first!
-	if (width == size.x && height == size.y)
+	if (width == size[0] && height == size[1])
 		return false;
-	width = size.x; height = size.y;
+	width = size[0]; height = size[1];
 	root->AdjustToWindow(0, width, 0, height);
 	return true;
 }
@@ -992,14 +992,14 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 					switch(tokens.Size()-1)
 					{
 						case 1: // Assume it's alpha and keep the other colors as usual
-							defaultTextColor.w = NEXT_TOKEN.ParseFloat();
+							defaultTextColor[3] = NEXT_TOKEN.ParseFloat();
 							break;
 						case 4:
-							defaultTextColor.w = tokens[4].ParseFloat();
+							defaultTextColor[3] = tokens[4].ParseFloat();
 						case 3: // Assume it's RGB
-							defaultTextColor.x = tokens[1].ParseFloat();
-							defaultTextColor.y = tokens[2].ParseFloat();
-							defaultTextColor.z = tokens[3].ParseFloat();
+							defaultTextColor[0] = tokens[1].ParseFloat();
+							defaultTextColor[1] = tokens[2].ParseFloat();
+							defaultTextColor[2] = tokens[3].ParseFloat();
 							break;
 						case 2: case 0:
 							assert(false && "Irregular amount of tokens following \"defaultTextColor\"; 1 for alpha, 3 for RGB and 4 for RGBA.");
@@ -1314,14 +1314,14 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 					switch(tokens.Size()-1)
 					{
 						case 1: // Assume it's alpha and keep the other colors as usual
-							element->textColor.w = NEXT_TOKEN.ParseFloat();
+							element->textColor[3] = NEXT_TOKEN.ParseFloat();
 							break;
 						case 4: case 5: case 6: case 7: case 8: case 9: case 10: case 11: case 12:
-							element->textColor.w = tokens[4].ParseFloat();
+							element->textColor[3] = tokens[4].ParseFloat();
 						case 3: // Assume it's RGB
-							element->textColor.x = tokens[1].ParseFloat();
-							element->textColor.y = tokens[2].ParseFloat();
-							element->textColor.z = tokens[3].ParseFloat();
+							element->textColor[0] = tokens[1].ParseFloat();
+							element->textColor[1] = tokens[2].ParseFloat();
+							element->textColor[2] = tokens[3].ParseFloat();
 							break;
 						case 2: case 0:
 							assert(false && "Irregular amount of tokens following \"textColor\"; 1 for alpha, 3 for RGB and 4 for RGBA.");

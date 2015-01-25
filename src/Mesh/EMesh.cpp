@@ -46,13 +46,13 @@ void EMesh::Delete()
 }
 
 /// Adds a plane, creating 2 numFaces in a counter-clockwise manner.
-void EMesh::AddPlane(Vector3f upperLeft, Vector3f lowerLeft, Vector3f lowerRight, Vector3f upperRight)
+void EMesh::AddPlane(const Vector3f & upperLeft, const Vector3f & lowerLeft, const Vector3f & lowerRight, const Vector3f & upperRight)
 {
 	
 }
 
 /// Adds a grid (basically a plane), with the specified amount of cells/faces in X and Y.
-void EMesh::AddGrid(Vector3f upperLeft, Vector3f lowerLeft, Vector3f lowerRight, Vector3f upperRight, Vector2i gridSizeDivision)
+void EMesh::AddGrid(const Vector3f & upperLeft, const Vector3f & lowerLeft, const Vector3f & lowerRight, const Vector3f & upperRight, Vector2i gridSizeDivision)
 {
 	gridSizeDivision += Vector2i(1,1);
 
@@ -61,13 +61,13 @@ void EMesh::AddGrid(Vector3f upperLeft, Vector3f lowerLeft, Vector3f lowerRight,
 	vertexMatrix.Allocate(gridSizeDivision);
 
 	Vector3f up = upperLeft - lowerLeft;
-	Vector3f upStep = up / (gridSizeDivision.y - 1);
+	Vector3f upStep = up / (gridSizeDivision[1] - 1);
 	Vector3f right = lowerRight - lowerLeft;
-	Vector3f rightStep = right / (gridSizeDivision.x - 1);
+	Vector3f rightStep = right / (gridSizeDivision[0] - 1);
 	// First create the necessary vertices.
-	for (int x = 0; x < gridSizeDivision.x; ++x)
+	for (int x = 0; x < gridSizeDivision[0]; ++x)
 	{
-		for (int y = 0; y < gridSizeDivision.y; ++y)
+		for (int y = 0; y < gridSizeDivision[1]; ++y)
 		{
 			// Create the vertex
 			EVertex * vertex = new EVertex();
@@ -81,8 +81,8 @@ void EMesh::AddGrid(Vector3f upperLeft, Vector3f lowerLeft, Vector3f lowerRight,
 
 			// Create a UV-coordinate for each vertex too, I guess?
 			EUV * uv = new EUV();
-			uv->x = x / (float) (gridSizeDivision.x - 1);
-			uv->y = y / (float) (gridSizeDivision.y - 1);
+			uv->x = x / (float) (gridSizeDivision[0] - 1);
+			uv->y = y / (float) (gridSizeDivision[1] - 1);
 			uvs.Add(uv);
 			// Associate it with the vertex.
 			vertex->uvCoord = uv;
@@ -92,9 +92,9 @@ void EMesh::AddGrid(Vector3f upperLeft, Vector3f lowerLeft, Vector3f lowerRight,
 	/// From the matrix of vertices, create a matrix of faces!
 	faceMatrix.SetDefaultValue(0);
 	faceMatrix.Allocate(gridSizeDivision - Vector2i(1,1));
-	for (int x = 0; x < gridSizeDivision.x - 1; ++x)
+	for (int x = 0; x < gridSizeDivision[0] - 1; ++x)
 	{
-		for (int y = 0; y < gridSizeDivision.y - 1; ++y)
+		for (int y = 0; y < gridSizeDivision[1] - 1; ++y)
 		{
 			EFace * face = new EFace();
 			/// Add, in counter-clockwise order, the 4 neighbouring vertices, making this a quad.

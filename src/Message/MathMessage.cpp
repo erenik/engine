@@ -35,7 +35,7 @@ VectorMessage::VectorMessage(String message, Vector2f vectorValue)
 	this->msg = message;
 }
 
-VectorMessage::VectorMessage(String message, Vector3f vectorValue)
+VectorMessage::VectorMessage(String message, const Vector3f & vectorValue)
 : Message(MessageType::VECTOR_MESSAGE), vectorType(VECTOR_3F), vec3f(vectorValue)
 {
 	this->msg = message;
@@ -59,7 +59,7 @@ Vector4f VectorMessage::GetVector4f()
 	switch(vectorType)
 	{
 		case VECTOR_2I:
-			vec = Vector4f(vec2i.x, vec2i.y,0,1);
+			vec = Vector4f(vec2i[0], vec2i[1],0,1);
 			break;
 		case VECTOR_3F:
 			return vec3f;

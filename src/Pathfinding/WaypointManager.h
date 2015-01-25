@@ -65,14 +65,14 @@ public:
 	/** Attempts to toggle walkability on the waypoint closest to the provided position both in the current array
 		as well as the arrays from which the NavMesh is based upon.
 	*/
-	bool ToggleWaypointWalkability(Vector3f position);
+	bool ToggleWaypointWalkability(const Vector3f & position);
 	/// Returns a waypoint that has no active data bound to it's pData member.
 	Waypoint * GetFreeWaypoint();
 	/// Returns the closest waypoint to target position that is passable/walkable/valid.
-	Waypoint * GetClosestValidWaypoint(Vector3f position);
+	Waypoint * GetClosestValidWaypoint(const Vector3f & position);
 	/// Gets the closest valid free waypoint (equivalent to GetFreeWaypoint combined with GetClosestValidWaypoint)
-	Waypoint * GetClosestValidFreeWaypoint(Vector3f position);
-	Waypoint * GetClosestVacantWaypoint(Vector3f position);
+	Waypoint * GetClosestValidFreeWaypoint(const Vector3f & position);
+	Waypoint * GetClosestVacantWaypoint(const Vector3f & position);
 	/// TODO: Make a custom request function using binary & on an integer for search-settings. This is getting cumbersome.. lol
 
 	/** Loads waypoint map from target file. */

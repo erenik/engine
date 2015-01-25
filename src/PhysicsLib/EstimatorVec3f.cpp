@@ -12,7 +12,7 @@ EstimationVec3f::EstimationVec3f()
 }
 
 /// Subclass for Vector3f handling
-EstimationVec3f::EstimationVec3f(Vector3f value, int64 timeStampInMs)
+EstimationVec3f::EstimationVec3f(const Vector3f & value, int64 timeStampInMs)
 : Estimation(EstimatorType::VEC3F, timeStampInMs), value(value)
 {
 }
@@ -152,7 +152,7 @@ Vector3f EstimatorVec3f::Calculate(long long forGivenTime)
 */
 
 
-void EstimatorVec3f::AddState(Vector3f vec, int64 timeInMs)
+void EstimatorVec3f::AddState(const Vector3f & vec, int64 timeInMs)
 {
 	Estimator::AddState(new EstimationVec3f(vec, timeInMs));
 	
@@ -198,7 +198,7 @@ void EstimatorVec3f::AddState(Vector3f vec, int64 timeInMs)
 		estimatedVelocity += (vec - previousState->data) / AbsoluteValue(denom2);
 		// Apply damping to estimated velocity?
 	//	estimatedVelocity *= 0.95f;
-		if (estimatedVelocity.x != estimatedVelocity.x)
+		if (estimatedVelocity[0] != estimatedVelocity[0])
 		{
 			std::cout<<"\nWooops.";
 		}

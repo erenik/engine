@@ -12,13 +12,13 @@ Quaternion::Quaternion(){
 }
 
 /// Generates a rotation quaternion based on given axis and rotation around it
-Quaternion::Quaternion(Vector3f axis, float angle)
+Quaternion::Quaternion(const Vector3f & axis, float angle)
 : axis(axis), angle(angle)
 {
 	/*
-	x = axis.x;
-	y = axis.y;
-	z = axis.z;
+	x = axis[0];
+	y = axis[1];
+	z = axis[2];
 	w = angle;
 	*/
 	RecalculateXYZW();
@@ -103,16 +103,17 @@ Quaternion Quaternion::operator - () const
 }
 
 
+/*
 /// Addition!
 void Quaternion::operator +=(const Quaternion & addend)
 {
 	// There is no addition in quaternions.
 	assert(false);
-    x += addend.x;
-    y += addend.y;
-    z += addend.z;
-    w += addend.w;
-}
+    x += addend[0];
+    y += addend[1];
+    z += addend[2];
+    w += addend[3];
+}*/
 
 /// Quaternion-Quaternion multiplication
 void Quaternion::operator *=(const Quaternion & multiplier){
@@ -128,19 +129,19 @@ Quaternion Quaternion::Multiply(const Quaternion & q2){
     Vector3f result = w * v2 + q2.w * v + v.CrossProduct(v2);
 
     w = w2;
-    x = result.x;
-    y = result.y;
-    z = result.z;
+    x = result[0];
+    y = result[1];
+    z = result[2];
 
     return Quaternion(*this);
 
 /*
     /// First copy ourselves.
     Quaternion q = *this;
-    w = q.w * q2.w - q.x * q2.x - q.y * q2.y - q.z * q2.z;
-    x = q.w * q2.x + q.x * q2.w - q.y * q2.z - q.z * q2.y;
-    y = q.w * q2.y - q.x * q2.z + q.y * q2.w - q.z * q2.x;
-    z = q.w * q2.z + q.x * q2.y - q.y * q2.x + q.z * q2.w;
+    w = q[3] * q2[3] - q[0] * q2[0] - q[1] * q2[1] - q[2] * q2[2];
+    x = q[3] * q2[0] + q[0] * q2[3] - q[1] * q2[2] - q[2] * q2[1];
+    y = q[3] * q2[1] - q[0] * q2[2] + q[1] * q2[3] - q[2] * q2[0];
+    z = q[3] * q2[2] + q[0] * q2[1] - q[1] * q2[0] + q[2] * q2[3];
     */
 }
 
@@ -151,19 +152,19 @@ Quaternion Quaternion::operator * (const Quaternion &multiplier) const{
 }
 
 /// Multiplication with floats
-Quaternion operator * (const float mult, const Quaternion q){
+Quaternion operator * (const float mult, const Quaternion & q){
     return Quaternion(q.x * mult, q.y * mult, q.z * mult, q.w * mult);
 }
 
 /// Rotate by vector
 void Quaternion::Rotate(const Vector3f & vector, float scale){
-    Quaternion q(vector.x * scale, vector.y * scale, vector.z * scale, 0);
+    Quaternion q(vector[0] * scale, vector[1] * scale, vector[2] * scale, 0);
     (*this) *= q;
 }
 
 /// Wosh. Similar to rotate? or no?
 void Quaternion::ApplyAngularVelocity(const Vector3f & velocity, float time){
-    Quaternion q(velocity.x * time, velocity.y * time, velocity.z * time, 0);
+    Quaternion q(velocity[0] * time, velocity[1] * time, velocity[2] * time, 0);
     q *= *this;
 
     x += q.x * 0.5f;
@@ -178,9 +179,9 @@ void Quaternion::RecalculateXYZW()
 	float halfAngle = angle * 0.5f;
 	float sinHalfAngle = sin(halfAngle);
 	float cosHalfAngle = cos(halfAngle);
-	x = axis.x * sinHalfAngle;
-	y = axis.y * sinHalfAngle;
-	z = axis.z * sinHalfAngle;
+	x = axis[0] * sinHalfAngle;
+	y = axis[1] * sinHalfAngle;
+	z = axis[2] * sinHalfAngle;
 	w = cosHalfAngle;
 }
 

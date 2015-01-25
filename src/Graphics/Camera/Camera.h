@@ -254,7 +254,7 @@ private:
 		a distance from center of movement (as in 3D-modelling programs), 
 		a rotation aroud the same point, and translate the point based on position and relative position summed up.
 	*/
-	static Matrix4d CalculateDefaultEditorMatrices(float distanceFromCenterOfMovement, Vector2f rotationXY, Vector3f worldSpacePosition);
+	static Matrix4d CalculateDefaultEditorMatrices(float distanceFromCenterOfMovement, Vector2f rotationXY, const Vector3f & worldSpacePosition);
 
 
 	// Velocities! :D

@@ -15,11 +15,7 @@ class Vector3f;
 class Vector4d;
 class String;
 
-#define USE_SSE
-#ifdef USE_SSE
-#include <xmmintrin.h>
 #include "SSE.h" // Include our SSE macros where Vector is included, since those classes may require byte-alignment too, then.
-#endif
 
 /** A four-dimensional vector class using floats.
 */
@@ -118,6 +114,7 @@ public:
 	void operator -= (const Vector4f & addend);
 	/// Multiplicator o-o
 	void operator *= (const float floatur);
+	void operator /= (const float floatur);
 
 	/// Conversion equal-conversion operator
 	Vector4f& operator = (const Vector4d &other);
@@ -141,7 +138,7 @@ public:
 
 	/** 3D Cross product
 		Postcondition: Calculates the cross product between the vectors as if they were both Vector3fs. Returns a Vector3f.	*/
-	Vector3f CrossProduct(const Vector3f otherVector);
+	Vector3f CrossProduct(const Vector3f & otherVector);
 	/** 3D Cross product
 		Postcondition: Calculates the cross product between the vectors as if they were both Vector3fs. Returns a Vector3f.	*/
 	Vector3f CrossProduct(const Vector4f & otherVector);
@@ -158,22 +155,12 @@ public:
     /// Returns a normalized (x,y,z) copy of the given vector.
 	Vector4f NormalizedCopy() const;
 
-	/// Returns the vector's x-coordinate.
-	const float GetX() const {return x;};
-	/// Returns the vector's y-coordinate.
-	const float GetY() const {return y;};
-	/// Returns the vector's z-coordinate.
-	const float GetZ() const {return z;};
-	/// Returns the vector's w-coordinate.
-	const float GetW() const {return w;};
-
 public:
 #ifdef USE_SSE
 	// Loads data into __m128 structure.
 	void PrepareForSIMD();
 	__m128 data;
-#endif
-
+#else
 	/// x-coordinate
 	float x;
 	/// y-coordinate
@@ -182,6 +169,8 @@ public:
 	float z;
 	/// w-coordinate
 	float w;
+#endif
+
 };
 
 

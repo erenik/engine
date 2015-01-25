@@ -116,7 +116,7 @@ void PhysicsManager::Integrate(float timeInSecondsSinceLastUpdate)
 		pp->physicalRadius = dynamicEntity->radius * dynamicEntity->scale.MaxPart();
     //    std::cout<<"\nPost-positioning Velocity: "<<dynamicEntity->physics->velocity;
         /// Ensure that the movement didn't adjust the velocity...
-        assert(vel.x == dynamicEntity->physics->velocity.x);
+        assert(vel[0] == dynamicEntity->physics->velocity[0]);
 	}
 	timer.Stop();
 	ms = timer.GetMs();

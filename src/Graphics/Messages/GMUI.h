@@ -118,8 +118,8 @@ private:
 /// Used to set Vector-based data, like input for vector-input UI or RGB colors.
 class GMSetUIv3f : public GMUI {
 public:
-	GMSetUIv3f(String UIname, int target, Vector3f v, Viewport * viewport = NULL);
-	GMSetUIv3f(String uiName, int target, Vector3f v, UserInterface * ui);
+	GMSetUIv3f(String UIname, int target, const Vector3f & v, Viewport * viewport = NULL);
+	GMSetUIv3f(String uiName, int target, const Vector3f & v, UserInterface * ui);
 	void Process();
 private:
 	void AssertTarget();

@@ -58,7 +58,7 @@ PhysicsManager::PhysicsManager()
 	lastUpdate = 0;
 	paused = false;
 	ignoreCollisions = false;
-	gravitation.y = -DEFAULT_GRAVITY; // Sets default gravitation (corresponds to 9.82 m/s^2 in real life, if 1 unit is 1 meter in-game.
+	gravitation[1] = -DEFAULT_GRAVITY; // Sets default gravitation (corresponds to 9.82 m/s^2 in real life, if 1 unit is 1 meter in-game.
     checkType = OCTREE;
 
 	physicsMessageQueueMutex.Create("physicsMessageQueueMutex");

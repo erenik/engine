@@ -30,7 +30,7 @@ private:
 class GMSetAmbience : public GraphicsMessage
 {
 public:
-	GMSetAmbience(Vector3f value);
+	GMSetAmbience(ConstVec3fr value);
 	virtual ~GMSetAmbience();
 	virtual void Process();
 private:
@@ -46,7 +46,7 @@ enum lightTargets {
 class GMSetLight : public GraphicsMessage 
 {
 public:
-	GMSetLight(Light * light, int target, Vector3f value);
+	GMSetLight(Light * light, int target, ConstVec3fr value);
 	GMSetLight(Light * light, int target, float value);
 	~GMSetLight();
 	virtual void Process();

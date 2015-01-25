@@ -57,7 +57,7 @@ public:
 	/// Sets ambient using doubles.
 	void SetAmbient(double r, double g, double b, double a = 1.0);
 	/// Sets ambient values. Alpha defaults to 0.
-	void SetAmbient(Vector3f values);
+	void SetAmbient(const Vector3f & values);
 	/// Returns the current values for the global ambient light.
 	Vector4f GetAmbient() const { return Vector4f(global_ambient); };
 	/// Creates a new light source, returning it. NULL on falure.

@@ -21,6 +21,9 @@ enum planeSideEnum{
 /** Class for handling a frustum, source taken in part from lighthouse3d.
 http://www.lighthouse3d.com/tutorials/view-frustum-culling/geometric-approach-implementation/
 */
+#ifdef USE_SSE
+__declspec( align( 16 ) ) 
+#endif
 class Frustum {
 private:
 public:
@@ -49,7 +52,7 @@ public:
 	/// Sets camera internal values using default perspective arguments
 	void SetCamInternals(float left = -1, float right = 1, float bottom = -1, float top = 1, float near = -1, float far = -10);
 	/// Set camera orientation
-	void SetCamPos(Vector3f position, Vector3f lookingAtVector, Vector3f upVector);
+	void SetCamPos(const Vector3f & position, const Vector3f & lookingAtVector, const Vector3f & upVector);
 	/// Checks if a point is within the frustum
 	int PointInFrustum(Vector3f &position) const;
 	/// Checks if a sphere is within the frustum

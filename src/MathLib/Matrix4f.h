@@ -83,15 +83,15 @@ public:
 	/** Initializes a rotation matrix using provided vector parameters. */
 	void InitRotationMatrix(float angle, float x, float y, float z);
 	/** Initializes a rotation matrix using provided vector. */
-	void InitRotationMatrix(float angle, Vector3f vector);
+	void InitRotationMatrix(float angle, const Vector3f & vector);
 
 	/** Returns an initialized translation-matrix using given vector. */
 //	static Matrix4f Translation(Vector3f trans);
 	/** Initializes a translation matrix using provided vector. */
-	static Matrix4f InitTranslationMatrix(Vector3f translation);
+	static Matrix4f InitTranslationMatrix(const Vector3f & translation);
 
 	/// Creates a scaling matrix (XYZ)
-	static Matrix4f InitScalingMatrix(Vector3f scale);
+	static Matrix4f InitScalingMatrix(const Vector3f & scale);
 
 	/** Initializes a perspective projection matrix.
 	The function can be called as it is, using the default values left -1, right 1, bottom -1, top 1, near -1 and far -10.

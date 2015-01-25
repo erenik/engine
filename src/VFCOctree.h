@@ -18,7 +18,7 @@ class Entity;
 class VFCOctree {
 public:
 	/// Top-level constructor
-	VFCOctree(float size, Frustum frustum);
+	VFCOctree(float size, const Frustum & frustum);
 	/// Constructor that sets the node's boundaries.
 	VFCOctree(float leftBound, float rightBound, float topBound, float bottomBound, float nearBound, float farBound, int subdivision);
 	/// Default destructor that deallocates all children
@@ -69,7 +69,7 @@ public:
 	};
 
 	/// Sets the frustum to be used when culling entities.
-	static void SetCullingFrustum(Frustum frustum) {cullingFrustum = frustum; };
+	static void SetCullingFrustum(const Frustum & frustum) {cullingFrustum = frustum; };
 
 	/// Number of nodes before a subdivision should occur.
 	static const int MAX_INITIAL_NODES_BEFORE_SUBDIVISION = 15;

@@ -54,12 +54,12 @@ void Frustum::SetCamInternals(float i_left, float i_right,
 	}
 }
 
-void Frustum::SetCamPos(Vector3f position, Vector3f lookingAtVector, Vector3f upVector){
+void Frustum::SetCamPos(const Vector3f & position, const Vector3f & lookAt, const Vector3f & upVec)
+{
 	// First calculate the right vector using the looking at vector cross produced with the up vector.
-	Vector3f rightVector = lookingAtVector.CrossProduct(upVector);
-	rightVector.Normalize();
-	lookingAtVector.Normalize();
-	upVector.Normalize();
+	Vector3f rightVector = lookAt.CrossProduct(upVec).NormalizedCopy();
+	Vector3f lookingAtVector = lookAt.NormalizedCopy();
+	Vector3f upVector = upVec.NormalizedCopy();
 
 	// Calculate center of the near and far plane to decrease amount of calculations oh-so-slightly
 	Vector3f hitherCenter = position + lookingAtVector * nearPlaneDistance;

@@ -46,12 +46,12 @@ public:
 	void SetupPlayingField();
 
 	/// Creates a new projectile entity, setting up model and scale appropriately.
-	Entity * NewProjectile(SpaceShooterWeaponType weaponType, Vector3f atPosition, Vector3f withInitialVelocity);
+	Entity * NewProjectile(SpaceShooterWeaponType weaponType, ConstVec3fr atPosition, ConstVec3fr withInitialVelocity);
 	/// Creates a new explision entity! See ExplosionTypes enum in SpaceShooterExplosionProperty.h.
-	Entity * NewExplosion(Vector3f atPosition, int type);
+	Entity * NewExplosion(ConstVec3fr atPosition, int type);
 
 	/// Is it outside the frame?
-	bool IsPositionOutsideFrame(Vector3f pos);
+	bool IsPositionOutsideFrame(ConstVec3fr pos);
 
 	/// Will.. remove from rendering/physics relevant entities and set the pause-state.
 	void SetPause(bool pause);
@@ -67,7 +67,7 @@ public:
 
 
 	/// For manual player-control. Usually only Y will be taken into consideration.
-	void SetPlayerPosition(Vector3f pos);
+	void SetPlayerPosition(ConstVec3fr pos);
 
 	/// Sets up physics integrator, etc. as needed.
 	void SetupPhysics();

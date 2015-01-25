@@ -7,7 +7,7 @@
 Frustum VFCOctree::cullingFrustum;
 
 /// Top-level constructor
-VFCOctree::VFCOctree(float size, Frustum i_frustum){
+VFCOctree::VFCOctree(float size, const Frustum & i_frustum){
 	
 	for (int i = 0; i < MAX_CHILD_NODES; ++i){
 		child[i] = NULL;
@@ -82,14 +82,14 @@ void VFCOctree::subdivide(int levels)
 	// Check if the children aren't already allocated.
 	if (!child[0]){
 		// Allocate if needed
-		child[HITHER_LOWER_LEFT] = new VFCOctree(left, center.x, center.y, bottom, nearBound, center.z, childSubdivisionLvl);
-		child[HITHER_LOWER_RIGHT] = new VFCOctree(center.x, right, center.y, bottom, nearBound, center.z, childSubdivisionLvl);
-		child[HITHER_UPPER_LEFT] = new VFCOctree(left, center.x, top, center.y, nearBound, center.z, childSubdivisionLvl);
-		child[HITHER_UPPER_RIGHT] = new VFCOctree(center.x, right, top, center.y, nearBound, center.z, childSubdivisionLvl);
-		child[FARTHER_LOWER_LEFT] = new VFCOctree(left, center.x, center.y, bottom, center.z, farBound, childSubdivisionLvl);
-		child[FARTHER_LOWER_RIGHT] = new VFCOctree(center.x, right, center.y, bottom, center.z, farBound, childSubdivisionLvl);
-		child[FARTHER_UPPER_LEFT] = new VFCOctree(left, center.x, top, center.y, center.z, farBound, childSubdivisionLvl);
-		child[FARTHER_UPPER_RIGHT] = new VFCOctree(center.x, right, top, center.y, center.z, farBound, childSubdivisionLvl);
+		child[HITHER_LOWER_LEFT] = new VFCOctree(left, center[0], center[1], bottom, nearBound, center[2], childSubdivisionLvl);
+		child[HITHER_LOWER_RIGHT] = new VFCOctree(center[0], right, center[1], bottom, nearBound, center[2], childSubdivisionLvl);
+		child[HITHER_UPPER_LEFT] = new VFCOctree(left, center[0], top, center[1], nearBound, center[2], childSubdivisionLvl);
+		child[HITHER_UPPER_RIGHT] = new VFCOctree(center[0], right, top, center[1], nearBound, center[2], childSubdivisionLvl);
+		child[FARTHER_LOWER_LEFT] = new VFCOctree(left, center[0], center[1], bottom, center[2], farBound, childSubdivisionLvl);
+		child[FARTHER_LOWER_RIGHT] = new VFCOctree(center[0], right, center[1], bottom, center[2], farBound, childSubdivisionLvl);
+		child[FARTHER_UPPER_LEFT] = new VFCOctree(left, center[0], top, center[1], center[2], farBound, childSubdivisionLvl);
+		child[FARTHER_UPPER_RIGHT] = new VFCOctree(center[0], right, top, center[1], center[2], farBound, childSubdivisionLvl);
 	}
 	// Subdivide all children further if levels is still positive.
 	if (levels > 0){
@@ -334,21 +334,21 @@ int VFCOctree::IsEntityInside(Entity * entity){
 	// Make box test insteeeead
 	float radius = entity->radius * entity->scale.MaxPart();
 	// Check if it's inside.
-	if (entity->position.x + radius < right &&
-		entity->position.x - radius > left &&
-		entity->position.y + radius < top &&
-		entity->position.y - radius > bottom &&
-		entity->position.z + radius < nearBound &&
-		entity->position.z - radius > farBound
+	if (entity->position[0] + radius < right &&
+		entity->position[0] - radius > left &&
+		entity->position[1] + radius < top &&
+		entity->position[1] - radius > bottom &&
+		entity->position[2] + radius < nearBound &&
+		entity->position[2] - radius > farBound
 	)
 		return INSIDE;
 	// Or intersecting, just compare with inverted radius
-	else if (entity->position.x - radius < right &&
-		entity->position.x + radius > left &&
-		entity->position.y - radius < top &&
-		entity->position.y + radius > bottom &&
-		entity->position.z - radius < nearBound &&
-		entity->position.z + radius > farBound
+	else if (entity->position[0] - radius < right &&
+		entity->position[0] + radius > left &&
+		entity->position[1] - radius < top &&
+		entity->position[1] + radius > bottom &&
+		entity->position[2] - radius < nearBound &&
+		entity->position[2] + radius > farBound
 	)
 		return INTERSECT;
 	// It's outside if the previous were false, logical :P

@@ -25,7 +25,7 @@ Light::Light(Lighting * lighting)
 void Light::Nullify()
 {
 	name = "DefaultLight"; 
-	attenuation.x = 1.0f; 
+	attenuation[0] = 1.0f; 
 	type = 1;
 	lastUpdate = 0;
 	spotExponent = 5;

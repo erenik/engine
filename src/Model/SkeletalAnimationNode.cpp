@@ -123,20 +123,20 @@ bool SkeletalAnimationNode::LoadAnimation(XMLElement * fromAnimationElement)
 
 		/*
 		if (targetVar.Contains("X"))
-			floatAnim->variableToPutResultTo = &jointOrientX.w;
+			floatAnim->variableToPutResultTo = &jointOrientX[3];
 		if (targetVar.Contains("Y"))
-			floatAnim->variableToPutResultTo = &jointOrientY.w;
+			floatAnim->variableToPutResultTo = &jointOrientY[3];
 		if (targetVar.Contains("Z"))
-			floatAnim->variableToPutResultTo = &jointOrientZ.w;
+			floatAnim->variableToPutResultTo = &jointOrientZ[3];
 			*/
 
 		// Old one,
 		if (targetVar.Contains("X"))
-			floatAnim->variableToPutResultTo = &rotateX.w;
+			floatAnim->variableToPutResultTo = &rotateX[3];
 		if (targetVar.Contains("Y"))
-			floatAnim->variableToPutResultTo = &rotateY.w;
+			floatAnim->variableToPutResultTo = &rotateY[3];
 		if (targetVar.Contains("Z"))
-			floatAnim->variableToPutResultTo = &rotateZ.w;
+			floatAnim->variableToPutResultTo = &rotateZ[3];
 			
 	}
 	// Bad target.
@@ -262,13 +262,13 @@ void SkeletalAnimationNode::UpdateMatrices(Matrix4f & parentTransformationMatrix
 	// Translate the matrix according to the specification?
 	Matrix4f newBoneModelMatrix = parentTransformationMatrix;
 	newBoneModelMatrix *= Matrix4f::InitTranslationMatrix(translation);
-	newBoneModelMatrix *= Matrix4f::GetRotationMatrixZ(DEGREES_TO_RADIANS(this->jointOrientZ.w));
-	newBoneModelMatrix *= Matrix4f::GetRotationMatrixY(DEGREES_TO_RADIANS(this->jointOrientY.w));
-	newBoneModelMatrix *= Matrix4f::InitRotationMatrixX(DEGREES_TO_RADIANS(this->jointOrientX.w));
+	newBoneModelMatrix *= Matrix4f::GetRotationMatrixZ(DEGREES_TO_RADIANS(this->jointOrientZ[3]));
+	newBoneModelMatrix *= Matrix4f::GetRotationMatrixY(DEGREES_TO_RADIANS(this->jointOrientY[3]));
+	newBoneModelMatrix *= Matrix4f::InitRotationMatrixX(DEGREES_TO_RADIANS(this->jointOrientX[3]));
 
-	newBoneModelMatrix *= Matrix4f::InitRotationMatrixZ(DEGREES_TO_RADIANS(this->rotateZ.w));
-	newBoneModelMatrix *= Matrix4f::InitRotationMatrixY(DEGREES_TO_RADIANS(this->rotateY.w));
-	newBoneModelMatrix *= Matrix4f::InitRotationMatrixX(DEGREES_TO_RADIANS(this->rotateX.w));
+	newBoneModelMatrix *= Matrix4f::InitRotationMatrixZ(DEGREES_TO_RADIANS(this->rotateZ[3]));
+	newBoneModelMatrix *= Matrix4f::InitRotationMatrixY(DEGREES_TO_RADIANS(this->rotateY[3]));
+	newBoneModelMatrix *= Matrix4f::InitRotationMatrixX(DEGREES_TO_RADIANS(this->rotateX[3]));
 
 	// o.o
 	nodeModelMatrix = newBoneModelMatrix;
@@ -330,20 +330,20 @@ void SkeletalAnimationNode::RenderBones(GraphicsState & graphicsState)
 	// Translate the matrix according to the specification?
 	/* // Multiplicatoin code for the matrix has moved to UpdatedMatrices()
 	graphicsState.modelMatrixF *= Matrix4f::InitTranslationMatrix(translation);
-	graphicsState.modelMatrixF *= Matrix4f::GetRotationMatrixZ(DEGREES_TO_RADIANS(this->jointOrientZ.w));
-	graphicsState.modelMatrixF *= Matrix4f::GetRotationMatrixY(DEGREES_TO_RADIANS(this->jointOrientY.w));
-	graphicsState.modelMatrixF *= Matrix4f::InitRotationMatrixX(DEGREES_TO_RADIANS(this->jointOrientX.w));
+	graphicsState.modelMatrixF *= Matrix4f::GetRotationMatrixZ(DEGREES_TO_RADIANS(this->jointOrientZ[3]));
+	graphicsState.modelMatrixF *= Matrix4f::GetRotationMatrixY(DEGREES_TO_RADIANS(this->jointOrientY[3]));
+	graphicsState.modelMatrixF *= Matrix4f::InitRotationMatrixX(DEGREES_TO_RADIANS(this->jointOrientX[3]));
 
-	graphicsState.modelMatrixF *= Matrix4f::InitRotationMatrixZ(DEGREES_TO_RADIANS(this->rotateZ.w));
-	graphicsState.modelMatrixF *= Matrix4f::InitRotationMatrixY(DEGREES_TO_RADIANS(this->rotateY.w));
-	graphicsState.modelMatrixF *= Matrix4f::InitRotationMatrixX(DEGREES_TO_RADIANS(this->rotateX.w));
+	graphicsState.modelMatrixF *= Matrix4f::InitRotationMatrixZ(DEGREES_TO_RADIANS(this->rotateZ[3]));
+	graphicsState.modelMatrixF *= Matrix4f::InitRotationMatrixY(DEGREES_TO_RADIANS(this->rotateY[3]));
+	graphicsState.modelMatrixF *= Matrix4f::InitRotationMatrixX(DEGREES_TO_RADIANS(this->rotateX[3]));
 	*/
 
 
 	/*
-	graphicsState.modelMatrixF *= Matrix4f::GetRotationMatrixZ(DEGREES_TO_RADIANS(this->rotateZ.w));
-	graphicsState.modelMatrixF *= Matrix4f::GetRotationMatrixY(DEGREES_TO_RADIANS(this->rotateY.w));
-	graphicsState.modelMatrixF *= Matrix4f::InitRotationMatrixX(DEGREES_TO_RADIANS(this->rotateX.w));
+	graphicsState.modelMatrixF *= Matrix4f::GetRotationMatrixZ(DEGREES_TO_RADIANS(this->rotateZ[3]));
+	graphicsState.modelMatrixF *= Matrix4f::GetRotationMatrixY(DEGREES_TO_RADIANS(this->rotateY[3]));
+	graphicsState.modelMatrixF *= Matrix4f::InitRotationMatrixX(DEGREES_TO_RADIANS(this->rotateX[3]));
 	*/
 
 	bool renderText = true;

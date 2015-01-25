@@ -20,9 +20,10 @@ void debuggingInputProcessor(int action, int inputDevice){
 void CreateDefaultDebuggingBindings()
 {
 	/// (int action, int * inputCombinationArray, int inputs, const char * name = NULL);
-	Input.debug.bindings.Add(2,
+	Binding * bindings [] = {
 		new Binding(Action::FromEnum(RELOAD_UI), List<int>(3, KEY::CTRL, KEY::R, KEY::U)),
 		new Binding(Action::FromEnum(RECOMPILE_SHADERS), List<int>(3, KEY::CTRL, KEY::R, KEY::S))
-	);
+	};
+	Input.debug.bindings.AddArray(2, bindings);
 };
 

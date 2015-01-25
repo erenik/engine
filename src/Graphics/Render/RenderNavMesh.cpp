@@ -35,7 +35,7 @@ void SetColorForWaypoint(Waypoint * wp)
 //	if (Graphics.graphicsState->selectedWaypoints.Exists(wp)){
 	//	color += Vector4f(0.2, 0.2f, 0, 0.2f);
 //	}
-	glColor4f(color.x,color.y,color.z,color.w);
+	glColor4f(color[0],color[1],color[2],color[3]);
 }
 
 /// Renders target Navigation-meshes used for pathfinding
@@ -83,7 +83,7 @@ void GraphicsManager::RenderNavMesh()
 		Waypoint * wp = nm->waypoints[i];
 		SetColorForWaypoint(wp);
 		// Render if we got a model ^^
-		glVertex3f(wp->position.x, wp->position.y, wp->position.z);
+		glVertex3f(wp->position[0], wp->position[1], wp->position[2]);
 	}
 	glEnd();
 
@@ -97,11 +97,11 @@ void GraphicsManager::RenderNavMesh()
 				Waypoint * nb = wp->neighbour[j];
 				glBegin(GL_LINES);
 					SetColorForWaypoint(wp);
-					glVertex3f(wp->position.x, wp->position.y, wp->position.z);
+					glVertex3f(wp->position[0], wp->position[1], wp->position[2]);
 					/// Always draw the other vertex as alpha'd to get a better grip, yaow?
 					SetColorForWaypoint(nb);
 					glColor4f(0,0,0,0);
-					glVertex3f(nb->position.x, nb->position.y, nb->position.z); 
+					glVertex3f(nb->position[0], nb->position[1], nb->position[2]); 
 				glEnd();
 			}
 		}
@@ -118,7 +118,7 @@ void GraphicsManager::RenderNavMesh()
 			Waypoint * wp = path.GetWaypoint(i);
 			Vector3f pos = wp->position;
 			glColor4f(1.0f - 0.001f * i, 0.2f + 0.005f * i, 0.2f + 0.005f * i, 0.7f);
-			glVertex3f(pos.x, pos.y, pos.z);
+			glVertex3f(pos[0], pos[1], pos[2]);
 		}
 		glEnd();
 		glEnable(GL_DEPTH_TEST);
@@ -212,7 +212,7 @@ void GraphicsManager::RenderPath()
 			1.0f);
 		++waypointRendered;
 		/// Set uniform matrix in shader to point to the AppState modelView matrix.
- 		glVertex3f(wp->position.x, wp->position.y + 1.0f, wp->position.z);
+ 		glVertex3f(wp->position[0], wp->position[1] + 1.0f, wp->position[2]);
 	}
 	glEnd();
 	return;

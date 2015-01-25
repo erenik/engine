@@ -153,11 +153,11 @@ bool Ray::Intersect(Quad & quad, float * distance)
 	/// *  t/u/v
 	Matrix3f m(start - direction * 1000, quad.point2 - quad.point1, quad.point3 - quad.point1);
 	Vector3f tuv = m.InvertedCopy() * (start - quad.point1);
-	if (tuv.x > 0.0f && tuv.x < 1.0f){
-		std::cout<<"\nIntersects quad 1, t: "<<tuv.x;
-		if (tuv.y < 1.0f && tuv.y > 0.0f &&
-			tuv.z < 1.0f && tuv.z > 0.0f &&
-			tuv.y + tuv.z <= 1.0f){
+	if (tuv[0] > 0.0f && tuv[0] < 1.0f){
+		std::cout<<"\nIntersects quad 1, t: "<<tuv[0];
+		if (tuv[1] < 1.0f && tuv[1] > 0.0f &&
+			tuv[2] < 1.0f && tuv[2] > 0.0f &&
+			tuv[1] + tuv[2] <= 1.0f){
 			std::cout<<" and within triangle!";
 			return true;
 		}
@@ -166,11 +166,11 @@ bool Ray::Intersect(Quad & quad, float * distance)
 	/// Check the other triangle toooooo! :P
 	m = Matrix3f(start - direction * 1000, quad.point4 - quad.point3, quad.point1 - quad.point3);
 	tuv = m.InvertedCopy() * (start - quad.point3);
-	if (tuv.x > 0.0f && tuv.x < 1.0f){
-		std::cout<<"\nIntersects quad 2, t: "<<tuv.x;
-		if (tuv.y < 1.0f && tuv.y > 0.0f &&
-			tuv.z < 1.0f && tuv.z > 0.0f &&
-			tuv.y + tuv.z <= 1.0f){
+	if (tuv[0] > 0.0f && tuv[0] < 1.0f){
+		std::cout<<"\nIntersects quad 2, t: "<<tuv[0];
+		if (tuv[1] < 1.0f && tuv[1] > 0.0f &&
+			tuv[2] < 1.0f && tuv[2] > 0.0f &&
+			tuv[1] + tuv[2] <= 1.0f){
 			std::cout<<" and within triangle!";
 			return true;
 		}
@@ -217,11 +217,11 @@ bool Ray::Intersect(Quad & quad, float * distance)
 //	/// *  t/u/v
 //	Matrix3f m(ray.start - ray.direction * 1000, quad.point2 - quad.point1, quad.point3 - quad.point1);
 //	Vector3f tuv = m.InvertedCopy() * (ray.start - quad.point1);
-//	if (tuv.x > 0.0f && tuv.x < 1.0f){
-//		std::cout<<"\nIntersects quad 1, t: "<<tuv.x;
-//		if (tuv.y < 1.0f && tuv.y > 0.0f &&
-//			tuv.z < 1.0f && tuv.z > 0.0f &&
-//			tuv.y + tuv.z <= 1.0f){
+//	if (tuv[0] > 0.0f && tuv[0] < 1.0f){
+//		std::cout<<"\nIntersects quad 1, t: "<<tuv[0];
+//		if (tuv[1] < 1.0f && tuv[1] > 0.0f &&
+//			tuv[2] < 1.0f && tuv[2] > 0.0f &&
+//			tuv[1] + tuv[2] <= 1.0f){
 //			std::cout<<" and within triangle!";
 //			return true;
 //		}
@@ -230,11 +230,11 @@ bool Ray::Intersect(Quad & quad, float * distance)
 //	/// Check the other triangle toooooo! :P
 //	m = Matrix3f(ray.start - ray.direction * 1000, quad.point4 - quad.point3, quad.point1 - quad.point3);
 //	tuv = m.InvertedCopy() * (ray.start - quad.point3);
-//	if (tuv.x > 0.0f && tuv.x < 1.0f){
-//		std::cout<<"\nIntersects quad 2, t: "<<tuv.x;
-//		if (tuv.y < 1.0f && tuv.y > 0.0f &&
-//			tuv.z < 1.0f && tuv.z > 0.0f &&
-//			tuv.y + tuv.z <= 1.0f){
+//	if (tuv[0] > 0.0f && tuv[0] < 1.0f){
+//		std::cout<<"\nIntersects quad 2, t: "<<tuv[0];
+//		if (tuv[1] < 1.0f && tuv[1] > 0.0f &&
+//			tuv[2] < 1.0f && tuv[2] > 0.0f &&
+//			tuv[1] + tuv[2] <= 1.0f){
 //			std::cout<<" and within triangle!";
 //			return true;
 //		}

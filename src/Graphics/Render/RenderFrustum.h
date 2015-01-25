@@ -9,7 +9,7 @@
 
 class RenderFrustum : public Renderable {
 public:
-    RenderFrustum(Frustum frustum);
+    RenderFrustum(const Frustum & frustum);
     virtual ~RenderFrustum();
     virtual void Render();
 private:

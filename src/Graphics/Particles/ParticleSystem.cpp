@@ -46,7 +46,7 @@ ParticleSystem::ParticleSystem(String type, bool emitWithEmittersOnly)
 	useInstancedRendering = true;
 	deleteEmittersOnDeletion = true;
 
-	// Default? https://www.khronos.org/opengles/sdk/docs/man/xhtml/glBlendEquation.xml
+	// Default? https://www.khronos.org/opengles/sdk/docs/man/xhtml/glBlendEquation[0]ml
 	blendEquation = GL_FUNC_ADD;
 
 	/// Do further initialization and allocate..?
@@ -231,16 +231,16 @@ void ParticleSystem::UpdateBuffers()
 	{
 		Vector3f & pos = positions[i];
 		int index = i * 4;
-		particlePositionSizeData[index] = pos.x;
-		particlePositionSizeData[index+1] = pos.y;
-		particlePositionSizeData[index+2] = pos.z;
+		particlePositionSizeData[index] = pos[0];
+		particlePositionSizeData[index+1] = pos[1];
+		particlePositionSizeData[index+2] = pos[2];
 		particlePositionSizeData[index+3] = scales[i];
 
 		Vector4f & color = colors[i];
-		particleColorData[index] = color.x * 255;
-		particleColorData[index+1] = color.y * 255;
-		particleColorData[index+2] = color.z * 255;
-		particleColorData[index+3] = color.w * 255;
+		particleColorData[index] = color[0] * 255;
+		particleColorData[index+1] = color[1] * 255;
+		particleColorData[index+2] = color[2] * 255;
+		particleColorData[index+3] = color[3] * 255;
 
 		int index2 = i * 2;
 		particleLifeTimeDurationData[index2] = lifeTimes[i];
@@ -300,10 +300,10 @@ void ParticleSystem::SetColor(const Vector4f & icolor){
 }
 
 /// Sets the emitter to be a contour. Default before calling this is a point or a plane.
-void ParticleSystem::SetEmitter(Contour contour)
+void ParticleSystem::SetEmitter(const Contour & contour)
 {
 	// Delete the old emitter
-	std::cout<<"\nSetting new contour as emitter, with position "<<contour.centerOfMass.x<<", "<<contour.centerOfMass.y<<" and points: "<<contour.points.Size();	
+	std::cout<<"\nSetting new contour as emitter, with position "<<contour.centerOfMass[0]<<", "<<contour.centerOfMass[1]<<" and points: "<<contour.points.Size();	
 	emitters.ClearAndDelete();
 	ParticleEmitter * newEmitter = new ParticleEmitter(contour);
 	emitters.Add(newEmitter);
@@ -498,7 +498,7 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 	// These functions are specific to glDrawArrays*Instanced*.
 	// The first parameter is the attribute buffer we're talking about.
 	// The second parameter is the "rate at which generic vertex attributes advance when rendering multiple instances"
-	// http://www.opengl.org/sdk/docs/man/xhtml/glVertexAttribDivisor.xml
+	// http://www.opengl.org/sdk/docs/man/xhtml/glVertexAttribDivisor[0]ml
 	glVertexAttribDivisor(shader->attributeVertexPosition, 0); // particles vertices : always reuse the same 4 vertices -> 0
 	glVertexAttribDivisor(shader->attributeParticlePositionScale, 1); // positions : one per quad (its center) -> 1
 	glVertexAttribDivisor(shader->attributeColor, 1); // color : one per quad -> 1
@@ -573,9 +573,9 @@ void ParticleSystem::RenderOld(GraphicsState & graphicsState)
 		{
 			if (lifeDurations[i] >= lifeTimes[i])
 				continue;
-			glColor4f(colors[i].x, colors[i].y, colors[i].z, colors[i].w * lifeDurations[i] / lifeTimes[i]);
+			glColor4f(colors[i][0], colors[i][1], colors[i][2], colors[i][3] * lifeDurations[i] / lifeTimes[i]);
 			Vector3f & p = positions[i];
-			glVertex3f(p.x, p.y, p.z);
+			glVertex3f(p[0], p[1], p[2]);
 		}
 		glEnd();
 	}
@@ -597,9 +597,9 @@ void ParticleSystem::RenderOld(GraphicsState & graphicsState)
 		{
 			if (lifeDurations[i] >= lifeTimes[i])
 				continue;
-			float alpha = 0.75f * optimizedAlpha * colors[i].w * 0.8f * pow((1.0f - lifeDurations[i] / lifeTimes[i]), 4);
+			float alpha = 0.75f * optimizedAlpha * colors[i][3] * 0.8f * pow((1.0f - lifeDurations[i] / lifeTimes[i]), 4);
 			Vector4f & color = colors[i];
-			glColor4f(color.x, color.y, color.z, alpha);
+			glColor4f(color[0], color[1], color[2], alpha);
 			// Making size equal throughout the duration, to differentiate it from the Exhaust particle system.
 			float sizeRatio = .5f; // pow(lifeDuration[i]+1.0f, 2.0f);
 		//	if (lifeDuration[i] > 1.0f)
@@ -609,18 +609,18 @@ void ParticleSystem::RenderOld(GraphicsState & graphicsState)
 			Vector3f & p = positions[i];
 
 			glTexCoord2f(0.0f, 0.0f);
-			glVertex3f(p.x + left.x + up.x, p.y + left.y + up.y, p.z + left.z + up.z);
+			glVertex3f(p[0] + left[0] + up[0], p[1] + left[1] + up[1], p[2] + left[2] + up[2]);
 
-		//	glColor4f(colors[i].x , colors[i].y - 1.0f, colors[i].z - 1.0f, colors[i].w * lifeDuration[i] / lifeTime);
+		//	glColor4f(colors[i][0] , colors[i][1] - 1.0f, colors[i][2] - 1.0f, colors[i][3] * lifeDuration[i] / lifeTime);
 
 			glTexCoord2f(1.0f, 0.0f);
-			glVertex3f(p.x + left.x - up.x, p.y + left.y - up.y, p.z + left.z - up.z);
+			glVertex3f(p[0] + left[0] - up[0], p[1] + left[1] - up[1], p[2] + left[2] - up[2]);
 
 			glTexCoord2f(1.0f, 1.0f);
-			glVertex3f(p.x - left.x - up.x, p.y - left.y - up.y, p.z - left.z - up.z);
+			glVertex3f(p[0] - left[0] - up[0], p[1] - left[1] - up[1], p[2] - left[2] - up[2]);
 
 			glTexCoord2f(0.0f, 1.0f);
-			glVertex3f(p.x - left.x + up.x, p.y - left.y + up.y, p.z - left.z + up.z);
+			glVertex3f(p[0] - left[0] + up[0], p[1] - left[1] + up[1], p[2] - left[2] + up[2]);
 		}
 		glEnd();
 	}

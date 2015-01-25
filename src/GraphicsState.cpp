@@ -50,7 +50,7 @@ void GraphicsState::SetGLScissor(const Rect & newScissor)
 
 	this->scissor = newScissor;
 	Vector2i size = scissor.Size();
-	glScissor((GLint)(scissor.x0 + viewportX0), (GLint)(scissor.y0 + viewportY0), size.x < 0 ? 0 : size.x, size.y < 0 ? 0 : size.y);
+	glScissor((GLint)(scissor.min[0] + viewportX0), (GLint)(scissor.min[1] + viewportY0), size[0] < 0 ? 0 : size[0], size[1] < 0 ? 0 : size[1]);
 
 	CheckGLError("GraphicsState::SetGLScissor 2");
 }

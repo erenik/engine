@@ -101,7 +101,7 @@ void PhysicsManager::LabPhysicsIntegrate(Entity * dynamicEntity, float timeSince
     /// [  az   0   -ax  ]
     /// [ -ay   ax   0   ]
     Vector3f a = physics->angularVelocity;
-    Matrix3f wtStar(0, a.z, -a.y, -a.z, 0, a.x, a.y, -a.x, 0);
+    Matrix3f wtStar(0, a[2], -a[1], -a[2], 0, a[0], a[1], -a[0], 0);
     Matrix3f Rdot = wtStar * rotationMatrix;
 
 	// Apply stuff if not in rest
@@ -153,7 +153,7 @@ void PhysicsManager::LabPhysicsIntegrate(Entity * dynamicEntity, float timeSince
 		physics->angularVelocity = physics->inertiaTensorInverted * physics->angularMomentum;
 				
 		Quaternion & orientation = physics->orientation;
-		Quaternion rotate(physics->angularVelocity.x, physics->angularVelocity.y, physics->angularVelocity.z);
+		Quaternion rotate(physics->angularVelocity[0], physics->angularVelocity[1], physics->angularVelocity[2]);
 		Quaternion r2(physics->angularVelocity * timeSinceLastUpdate, 1);
 
 		if (physics->angularVelocity.MaxPart() > 0){
@@ -194,7 +194,7 @@ void PhysicsManager::LabPhysicsIntegrate(Entity * dynamicEntity, float timeSince
 	{
 		physics->angularVelocity *= pow(0.95f, timeSinceLastUpdate);
 		dynamicEntity->rotation += physics->angularVelocity * timeSinceLastUpdate;
-		dynamicEntity->rotation.x = dynamicEntity->rotation.z = 0;
+		dynamicEntity->rotation[0] = dynamicEntity->rotation[2] = 0;
 		dynamicEntity->RecalculateMatrix();
 	}
 	/// Process movement if not in rest.
@@ -211,7 +211,7 @@ void PhysicsManager::LabPhysicsIntegrate(Entity * dynamicEntity, float timeSince
 		/// Recalculate matrix after all movement is done.
 		dynamicEntity->RecalculateMatrix();
 		/// Ensure that the movement didn't adjust the velocity...
-		assert(physics->velocity.x == physics->velocity.x);
+		assert(physics->velocity[0] == physics->velocity[0]);
 	}
 }
 
