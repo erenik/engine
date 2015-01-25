@@ -1,12 +1,6 @@
 // Emil Hedemalm
 // 2013-03-22
 
-#include "AudioSettings.h"
-
-#ifndef USE_AUDIO
-	#define AudioMan		NULL //Network disabled.
-#else
-
 #ifndef AUDIO_MANAGER_H
 #define AUDIO_MANAGER_H
 
@@ -146,5 +140,3 @@ private:
 };
 
 #endif
-
-#endif // USE_AUDIO

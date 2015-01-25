@@ -55,9 +55,7 @@ void * Initialize(void * vArgs){
 	Ftp.Initialize();
 #endif
 	WaypointMan.Initialize();
-#ifdef USE_AUDIO
 	AudioMan.Initialize();
-#endif
 
 	// Begin threads for rendering, etc.
 #ifdef WINDOWS
@@ -144,6 +142,7 @@ void * Deallocate(void *vArgs)
 	// Unregister all entities.
 	GraphicsMan.QueueMessage(new GraphicsMessage(GM_UNREGISTER_ALL_ENTITIES));
 	PhysicsMan.QueueMessage(new PhysicsMessage(PM_UNREGISTER_ALL_ENTITIES));
+	AudioMan.QueueMessage(new AudioMessage(AM_STOP_ALL));
 	Sleep(50);
 
 	MesMan.QueueMessages("SetGlobalState:NULL");

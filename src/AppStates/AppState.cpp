@@ -131,12 +131,14 @@ void AppState::OnExit(AppState * nextState){
 /** Function to handle custom actions defined per state.
 		This function is called by the various bindings that the state defines.
 	*/
-void AppState::InputProcessor(int action, int inputDevice/* = 0*/){
-	std::cout<<"\nState::InputProcessor called.";
+void AppState::InputProcessor(int action, int inputDevice/* = 0*/)
+{
+//	std::cout<<"\nState::InputProcessor called.";
 }
 /// Creates default key-bindings for the state.
-void AppState::CreateDefaultBindings(){
-	std::cout<<"\nState::CreateDefaultBindings called.";
+void AppState::CreateDefaultBindings()
+{
+//	std::cout<<"\nState::CreateDefaultBindings called.";
 }
 
 /// Creates the user interface for this state

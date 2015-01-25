@@ -61,6 +61,14 @@ Vector3i::Vector3i(const Vector3f & base){
 	z = RoundFloat(base.z);
 }
 
+Vector3i::Vector3i(const Vector4f& base)
+{
+	x = RoundFloat(base.x);
+	y = RoundFloat(base.y);
+	z = RoundFloat(base.z);
+}
+
+
 /// Printing out data
 std::ostream& operator <<(std::ostream& os, const Vector3i& vec){
 	os << vec.x << " " << vec.y << " " << vec.z;

@@ -575,7 +575,7 @@ SIPRegisterPacket::SIPRegisterPacket(int registrationTime)
 : SIPPacket(SIP_REGISTER)
 {
 	assert(defaultSender && "Trying to create packet before setting default sender! Use SIPPacket::SetDefaultSender first!");
-	std::cout << "Default sender: "<<defaultSender->name<< " "<<defaultSender->ipAddress;
+//	std::cout << "\nDefault sender: "<<defaultSender->name<< " "<<defaultSender->ipAddress;
 	// Use name and ip to overload the ..defaultSender?
 	// Set cSeq
 	cSeq = "1826 REGISTER";
@@ -585,7 +585,7 @@ SIPRegisterPacket::SIPRegisterPacket(int registrationTime)
 	srand((unsigned int)Timer::GetCurrentTimeMs());
 	int tag = rand() % 10000;
 	senderTag = String::ToString(tag);
-	std::cout << "Sender tag: "<<senderTag;
+//	std::cout << "Sender tag: "<<senderTag;
 	// Set desired registration-expiration time
 	assert(registrationTime > 0);
 	this->expirationTime = registrationTime;

@@ -25,6 +25,9 @@ void AudioMessage::Process()
 		case AM_DISABLE_AUDIO:
 			AudioMan.DisableAudio();
 			break;
+		case AM_STOP_ALL:
+			AudioMan.StopAndRemoveAll();
+			break;
 		default:
 			assert(false);
 	}

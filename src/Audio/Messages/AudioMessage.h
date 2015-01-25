@@ -17,6 +17,7 @@ enum audioMessageTypes
 	AM_QUEUE,
 	AM_PAUSE,
 	AM_STOP,
+	AM_STOP_ALL,
 };
 
 enum audioTargets 

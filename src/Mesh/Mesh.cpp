@@ -289,8 +289,6 @@ bool Mesh::LoadCompressedFrom(String compressedPath)
 //		mf.Print();	
 	}
 	loadedFromCompactObj = true;
-
-	std::cout<<"\nCompressed mesh loaded from file: "<<compressedPath;
 	return true;
 }
 

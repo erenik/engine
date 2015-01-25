@@ -22,7 +22,7 @@ void ZoneGenerator::CreateGrid()
 {
 	/// Default 10x10x5 grid-size? Allowing for whatever is wanted and some elevation in between levels, or stuff.
 	zone->roomMatrix.defaultValue = NULL;
-	zone->roomMatrix.Allocate(Vector3i(30,30,5));
+	zone->roomMatrix.Allocate(Vector3i(30,5,30));
 }
 
 void ZoneGenerator::PlaceEntrances()
@@ -42,12 +42,12 @@ void ZoneGenerator::PlaceEntrances()
 		// Some default positions.
 		Vector3i pos;
 		if (direction.x > 0)
-			pos = Vector3i(matrixSize.x - 1, matrixSize.y * 0.5, 0);
+			pos = Vector3i(matrixSize.x - 1, 0, matrixSize.z * 0.5);
 		else if (direction.x < 0)
-			pos = Vector3i(0, matrixSize.y * 0.5, 0);
-		if (direction.y > 0)
-			pos = Vector3i(matrixSize.x * 0.5, matrixSize.y - 1, 0);
-		else if (direction.y < 0)
+			pos = Vector3i(0, 0, matrixSize.z * 0.5);
+		if (direction.z > 0)
+			pos = Vector3i(matrixSize.x * 0.5, 0, matrixSize.z - 1);
+		else if (direction.z < 0)
 			pos = Vector3i(matrixSize.x * 0.5, 0, 0);
 		entrance->position = pos;
 		/// Check that there isn't already an entrance with the same position.
@@ -138,6 +138,7 @@ void ZoneGenerator::AddMaximizedRoom()
 	room->model = ModelMan.GetModel("plane.obj");
 	// Set scale (before multiplication due to grid-size outside).
 	room->scale = size;
+	room->size = size;
 	room->position = averagePosition;
 	for (int x = min.x; x < max.x; ++x)
 	{
@@ -160,14 +161,62 @@ void ZoneGenerator::ConnectRooms()
 
 void ZoneGenerator::PlaceBuildingSlots()
 {
-	for (int = 0; i < zone->rooms.Size(); ++i)
+	for (int i = 0; i < zone->rooms.Size(); ++i)
 	{
 		Room * room = zone->rooms[i];
+		// If already has building-slots, skip it.
+		if (room->buildingSlots.Size())
+			continue;
 		// Check whether we should add building-slots here.
 		if (room->points.Size() < 4) // Skip small rooms.
 			continue;
 		// Just randomly place some rooms inside..? Fuck.
-		room->p
+		List<Vector3i> points = room->GetAbsPoints();
+		int buildingsToPlace = 100;
+		bool good;
+		for (int b = 0; b < buildingsToPlace; ++b)
+		{
+			Vector3f point;
+			int largestSizeShouldPlace;
+			int attempts = 0;
+			good = false;
+			while(true)
+			{
+				++attempts;
+				point = points[rand() % points.Size()];
+				Vector3f closestToOtherBuildings(100,100,100);
+				for (int j = 0; j < room->buildingSlots.Size(); ++j)
+				{
+					BuildingSlot * otherSlot = room->buildingSlots[j];
+					Vector3f toOtherBuilding = (otherSlot->position - point).Abs();
+					toOtherBuilding -= otherSlot->size * 0.5f;
+					closestToOtherBuildings = Vector3f::Minimum(closestToOtherBuildings, toOtherBuilding);
+				}
+				largestSizeShouldPlace = closestToOtherBuildings.MinPart();
+				if (largestSizeShouldPlace < 2.f)
+				{
+					if (attempts > 100)
+						break;
+					continue;
+				}
+				good = true;
+				break;
+			}
+			if (!good)
+				break;
+			largestSizeShouldPlace = min(min(largestSizeShouldPlace,room->size.x), room->size.y);
+			int mod = largestSizeShouldPlace - 1;
+			if (mod < 2)
+				continue;
+			BuildingSlot * slot = new BuildingSlot();
+			slot->position = point;
+			slot->size = Vector3f(rand() % mod + 1, 1, rand() % mod + 1);
+			// Check that we have enough points around? lol
+			room->buildingSlots.Add(slot);
+			// Mark the building in the zone-grid?
+			zone->buildingSlots.Add(slot);
+		}
+		std::cout<<"\n"<<room->buildingSlots.Size()<<" building slots placed.";
 	}
 }
 

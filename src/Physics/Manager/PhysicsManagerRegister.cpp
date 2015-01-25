@@ -21,8 +21,6 @@ int PhysicsManager::RegisterEntity(Entity * newEntity)
             ++collidingEntities;
         }
     }
-//	std::cout<<"\nPre register: AABBSweeper nodes: "<<aabbSweeperNodes<<" colliding entities: "<<collidingEntities;
-	assert(aabbSweeperNodes == collidingEntities*2);
 
 	/// Create AABB.. unless model is missing.
 	if (newEntity->model && !newEntity->aabb)
@@ -62,7 +60,11 @@ int PhysicsManager::RegisterEntity(Entity * newEntity)
 			assert(newEntity->physics->octreeNode);
 		}
 		else if (checkType == AABB_SWEEP)
-			aabbSweeper->RegisterEntity(newEntity);
+		{
+			aabbSweeper->RegisterEntity(newEntity);	
+			//	std::cout<<"\nPost register: AABBSweeper nodes: "<<aabbSweeperNodes<<" colliding entities: "<<collidingEntities;
+			assert(aabbSweeperNodes == collidingEntities*2);
+		}
 	}
 	else {
 	//	std::cout<<"\nWARNING: Entity: "<<newEntity->name<<" not flagged for physics! Is this the intent?";
@@ -107,8 +109,6 @@ int PhysicsManager::RegisterEntity(Entity * newEntity)
             ++collidingEntities;
         }
     }
-//	std::cout<<"\nPost register: AABBSweeper nodes: "<<aabbSweeperNodes<<" colliding entities: "<<collidingEntities;
-	assert(aabbSweeperNodes == collidingEntities*2);
 
 
 	/// Recalculate AABB/OBB-data.
@@ -151,8 +151,6 @@ int PhysicsManager::UnregisterEntity(Entity * entityToRemove)
             ++collidingEntities;
         }
     }
-//	std::cout<<"\nPre unregister: AABBSweeper nodes: "<<aabbSweeperNodes<<" colliding entities: "<<collidingEntities;
-	assert(aabbSweeperNodes == collidingEntities*2);
 
 	// Remove from physical entities list
 	bool removedResult = physicalEntities.Remove(entityToRemove) ;
@@ -206,8 +204,6 @@ int PhysicsManager::UnregisterEntity(Entity * entityToRemove)
             ++collidingEntities;
         }
     }
-//	std::cout<<"\nPost unregister: AABBSweeper nodes: "<<aabbSweeperNodes<<" colliding entities: "<<collidingEntities;
-	assert(aabbSweeperNodes == collidingEntities*2);
 
 	// Check if marked for deletion. If so delete the PhysicsProperty too.
 	if (entityToRemove->flaggedForDeletion)

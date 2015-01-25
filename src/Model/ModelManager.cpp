@@ -132,9 +132,10 @@ Model * ModelManager::LoadObj(String source)
 	assert(source && "Null source sent into ModelManager::LoadObj!");
 	source = FilePath::MakeRelative(source);
 	// Check if it pre-exists
-	for (int i = 0; i < modelList.Size(); ++i){
+	for (int i = 0; i < modelList.Size(); ++i)
+	{
 		Model * model = modelList[i];
-		std::cout<<"\nModel source: "<<model->source;
+	//	std::cout<<"\nModel source: "<<model->source;
 		if (model->mesh->source.Contains(source) || source.Contains(model->mesh->source)){
 			std::cout<<"\nObject already loaded, returning a pointer to it!";
 			return modelList[i];
@@ -164,6 +165,7 @@ Model * ModelManager::LoadObj(String source)
 	compressedPath.Remove(".obj");
 	compressedPath += ".cobj";
 
+	std::cout<<"\nLoading model "<<source<<"... ";
 	bool loadCompressed = true;
 	if (!FileExists(compressedPath))
 	{
@@ -175,10 +177,12 @@ Model * ModelManager::LoadObj(String source)
 	loadCompressed = true;
 	if (loadCompressed)
 	{
-		std::cout<<"\nCreating mesh.";
+//		std::cout<<"\nCreating mesh.";
 		mesh = new Mesh();
 		bool compressedLoadResult = mesh->LoadCompressedFrom(compressedPath);
-	
+		if (compressedLoadResult)
+			std::cout<<"found compressed version.";
+
 		/*
 		// Try deleting it straight away.
 		delete mesh;
@@ -187,7 +191,7 @@ Model * ModelManager::LoadObj(String source)
 		*/
 		if (compressedLoadResult)
 		{
-			std::cout<<"\nMesh loaded.";
+//			std::cout<<"\nMesh loaded.";
 			if (mesh->radius <= 0)
 				mesh->CalculateBounds();
 			assert(mesh->radius > 0);
@@ -221,7 +225,8 @@ Model * ModelManager::LoadObj(String source)
 
 	}
 	// If model was loaded, create new model for it.
-	if (modelLoaded){
+	if (modelLoaded)
+	{
 		Model * model = new Model();
 		model->mesh = mesh;
 		
@@ -235,7 +240,7 @@ Model * ModelManager::LoadObj(String source)
 		model->centerOfModel = mesh->centerOfMesh;
 		model->SetName(source);
 		model->source = source;
-		std::cout<<" .obj successfully read!";
+//		std::cout<<" .obj successfully read!";
 
 		/// Create the triangulated one straight away~, if needed..!
 		if (!model->mesh->IsTriangulated())

@@ -136,4 +136,4 @@ private:
 
 #endif
 
-#endif // OGG
+#endif // BUILD_OGG

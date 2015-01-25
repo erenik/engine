@@ -93,7 +93,7 @@ MultimediaStream * MultimediaManager::Play(String fromPath)
 	{
 		/// Try play it with ogg
 		/// TODO: Identify if it contains Theora or what it contains?
-#ifdef OGG
+#ifdef BUILD_OGG
 		newStream = new OggStream();
 		/// Open path.
 		newStream->Open(fromPath);

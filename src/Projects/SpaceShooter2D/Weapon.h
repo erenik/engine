@@ -13,7 +13,7 @@ class Weapon
 {
 public:
 	Weapon();
-	static Weapon Get(String byName);
+	static bool Get(String byName, Weapon & weapon);
 	static bool LoadTypes(String fromFile);
 	void Shoot(Ship * ship);
 	String name;

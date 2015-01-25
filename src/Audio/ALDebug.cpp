@@ -1,14 +1,11 @@
 // Emil Hedemalm
 // 2013-08-09
 
-#include "AudioSettings.h"
-
-#ifdef USE_AUDIO
+#include "OpenAL.h"
 
 #ifdef OPENAL
 
 #include "ALDebug.h"
-#include <AL/al.h>
 
 void PrintALError(int alErrorCode, bool withNewline )
 {
@@ -51,5 +48,3 @@ void CheckALError(String errorMessage)
 }
 
 #endif // OPENAL
-
-#endif /// USE_AUDIO

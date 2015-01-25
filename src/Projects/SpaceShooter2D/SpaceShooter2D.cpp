@@ -536,6 +536,11 @@ void SpaceShooter2D::LoadLevel(String fromSource)
 	PhysicsMan.Resume();
 	mode = PLAYING_LEVEL;
 	UpdateUI();
+	// Play music?
+	if (level.music.Length())
+	{
+		AudioMan.QueueMessage(new AMPlay(AudioType::BGM, level.music, 1.f));
+	}
 }
 
 void SpaceShooter2D::GameOver()

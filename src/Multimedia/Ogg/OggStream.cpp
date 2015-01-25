@@ -18,7 +18,10 @@
 /// Theora required maybe?
 #include <sys/timeb.h>
 #include <fcntl.h>
+
+#ifdef THEORA
 #include <theora/codec.h>
+#endif
 
 #include "Audio/AudioManager.h"
 
@@ -120,8 +123,10 @@ bool OggStream::Open(String path)
 	ogg_sync_init(&oggSyncState);
 
 	/// Initialize Theora structures needed.
+#ifdef THEORA
 	th_info_init(&theoraInfo);
 	th_comment_init(&theoraComment);
+#endif
 
 	/// Temporary stream state used when parsing.
 	ogg_stream_state tempStreamState;
@@ -176,9 +181,11 @@ bool OggStream::Open(String path)
 			// Peek at the packet to see its contents.
 			// http://xiph.org/ogg/doc/libogg/ogg_stream_packetpeek.html
 			result = ogg_stream_packetpeek(&tempStreamState, &oggPacket);
+#ifdef THEORA
 			// Check the codec of the stream. Is it theora? Should be called until it returns 0?
 			// If we haven't already found a Theora packet, check that
-			if (result == 1 && !hasTheora){
+			if (result == 1 && !hasTheora)
+			{
 				result = th_decode_headerin(&theoraInfo, &theoraComment, &theoraSetupInfo, &oggPacket);
 				if (result >= 0){
 					// Theora header found, so save away this current stream state into the ... wat
@@ -217,6 +224,7 @@ bool OggStream::Open(String path)
 				/// Packet we dont care about for now.
 				ogg_stream_clear(&tempStreamState);
 			}
+#endif
 			/// Check for vorbis packets?
 			/// TODO: Use regular ov_open and stuff? Seems much easier than Theora o.O
 		}
@@ -229,6 +237,7 @@ bool OggStream::Open(String path)
 
 //	ogg_stream_clear(&tempStreamState);
 
+#ifdef THEORA
 	/// Alrighty. We seem to have initial packets and pages handled, now check for additional pages
 	int processingTheoraHeaders = 1;
 	while(hasTheora && processingTheoraHeaders)
@@ -316,6 +325,7 @@ bool OggStream::Open(String path)
 
 	/*Either way, we're done with the codec setup data.*/
 	th_setup_free(theoraSetupInfo);
+#endif
 
 	// In the example they set up additional options for a callback function, namely decoder th_stripe_callback
 
@@ -491,8 +501,9 @@ bool OggStream::StreamNextFrame(int framesToPass /*= 1*/)
 	int videoBufferReady = false;
 
 	/// Read data until video-buffer is ready, but also continue until the desired amount of frames has passed!
-	while(!videoBufferReady || framesToPass > 0){
-
+	while(!videoBufferReady || framesToPass > 0)
+	{
+#ifdef THEORA
 		// Buffer video until we have a decent frame. If we can't read any more packets we break and fetch more data from the file-stream below.
 		while(hasTheora && (!videoBufferReady || framesToPass))
 		{
@@ -518,6 +529,7 @@ bool OggStream::StreamNextFrame(int framesToPass /*= 1*/)
 			else
 				break;
 		}
+#endif
 
 		/// If at end of file, stop streamin'
 		bool atEndOfFile = false;
@@ -540,8 +552,10 @@ bool OggStream::StreamNextFrame(int framesToPass /*= 1*/)
 
 	}
 
+#ifdef THEORA
 	/// If previous loop was successful, we have a frame ready.
-	if (videoBufferReady){
+	if (videoBufferReady)
+	{
 		// Woo!
 		// dumpvideo frame!
 		int h;
@@ -651,6 +665,7 @@ bool OggStream::StreamNextFrame(int framesToPass /*= 1*/)
 	else {
 		streamState = StreamState::ENDED;
 	}
+#endif
 	return true;
 }
 /** Buffers audio data into buf, up to maximum of maxBytes. Returns amount of bytes buffered.

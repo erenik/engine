@@ -494,9 +494,7 @@ int main(int argc, char **argv)
 	PathManager::Allocate();
 	WaypointManager::Allocate();
 	ScriptManager::Allocate();
-#ifdef USE_AUDIO
 	AudioManager::Allocate();
-#endif
 	GameVariableManager::Allocate();
 	FrameStatistics::Allocate();
 	ChatManager::Allocate();
@@ -637,9 +635,7 @@ int main(int argc, char **argv)
 	AnimationManager::Deallocate();
 	ChatManager::Deallocate();
 	GameVariableManager::Deallocate();
-#ifdef USE_AUDIO
 	AudioManager::Deallocate();
-#endif
 	ScriptManager::Deallocate();
 	MessageManager::Deallocate();
 	ShaderManager::Deallocate();

@@ -13,6 +13,7 @@
 
 class Vector2i;
 class Vector4i;
+class Vector4f;
 class Vector3f;
 
 /** A three-dimensional vector class using ints.
@@ -41,6 +42,7 @@ public:
 	*/
 	Vector3i(const Vector2i& base);
 	Vector3i(const Vector4i& base);
+	Vector3i(const Vector4f& base);
 	/** Constructor, based on Vector3f equivalent
 	*/
 	Vector3i(const Vector3f& base);

@@ -128,6 +128,7 @@ Texture * World::GeneratePreviewTexture()
 /// Based on zones.
 Model * World::GenerateWorldModel()
 {
+	return NULL;
 	std::cout<<"\nGenerating world model...";
 	// Pause rendering while doing this...
 	Graphics.PauseRendering();
@@ -156,7 +157,7 @@ Model * World::GenerateWorldModel()
 
 		// Add grid of wanted size o-o
 		// Since the grid "size" is actually the amount of faces, we will ahve to adjust it so that we instead get 1 vertex per "size"
-		Vector2i gridSizeWanted = size - Vector2i(1,1);
+		Vector2i gridSizeWanted = Vector2i(size.x, size.z) - Vector2i(1,1);
 		/// Just take -1 on both and we should get the right amount of vertices! :)
 		worldEMesh.AddGrid(topLeft, bottomLeft, bottomRight, topRight, gridSizeWanted);
 	}
@@ -169,12 +170,15 @@ Model * World::GenerateWorldModel()
 	/// Manipulate them depending on what the tiles were randomized to become!
 	for (int x = 0; x < size.x; ++x)
 	{
-		for (int y = 0; y < size.y; ++y)
+		for (int z = 0; z < size.z; ++z)
 		{
-			Zone * zone = zoneMatrix.At(x,y);
+			Zone * zone = zoneMatrix.At(Vector3i(x,0,z));
+			assert(zone);
+			if (!zone)
+				continue;
 			float elevation = zone->elevation * heightMultiplier;
 			// Just set y.
-			EVertex * vertex = vertices.At(x,y);
+			EVertex * vertex = vertices.At(x,z);
 			vertex->y = elevation;
 		}
 	}

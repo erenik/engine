@@ -1,10 +1,6 @@
 // Emil Hedemalm
 // 2013-03-22
 
-#include "AudioSettings.h"
-
-#ifdef USE_AUDIO
-
 #ifndef AUDIO_H
 #define AUDIO_H
 
@@ -122,5 +118,3 @@ private:
 };
 
 #endif
-
-#endif // USE_AUDIO

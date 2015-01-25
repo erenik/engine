@@ -20,8 +20,8 @@ struct BuildingSlot
 	/// Building currently there.
 	Building * building;
 
-	/// Size dimensions in x and y.
-	Vector2i size;
+	/// Size dimensions in in-game XYZ. Mainly X and Z are interesting. Y for height.
+	Vector3f size;
 	/// 3D position or use grid position..?
 	Vector3f position;
 };

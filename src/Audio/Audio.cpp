@@ -1,10 +1,6 @@
 // Emil Hedemalm
 // 2013-03-22
 
-#include "AudioSettings.h"
-
-#ifdef USE_AUDIO
-
 #include "Audio.h"
 #include "ALDebug.h"
 #include "AudioManager.h"
@@ -18,10 +14,7 @@
 
 #include <cmath>
 
-#ifdef OPENAL
-	#include "OpenAL.h"
-// #include <AL/alut.h>
-#endif
+#include "OpenAL.h"
 
 
 //#include "../globals.h"
@@ -60,9 +53,6 @@ void Audio::Nullify()
 	alSource = 0;
 #endif
 	audioBuffers.ClearAndDelete();
-
-//	audioBuffers.Add(new AudioBuffer());
-//	audioBuffers.Add(new AudioBuffer());
 
 	playbackEnded = false;
 
@@ -163,20 +153,23 @@ Audio::Audio(char i_type, String source, bool i_repeat, float audioVolume)
 	name = source;
 	
 	path = source;
-	if (!path.Contains(Audio::audioDirectory))
-	{
-		String newPath;
-		newPath = "sound";
-		switch(type){
-			case AudioType::BGM: newPath += "/bgm/"; break;
-			case AudioType::BGS: newPath += "/bgs/"; break;
-			case AudioType::SFX: newPath += "/sfx/"; break;
-			case AudioType::UIS: newPath += "/uis/"; break;
-			case AudioType::SPEECH: newPath += "/spc/"; break;
+	/*
+		if (!path.Contains(Audio::audioDirectory))
+		{
+			String newPath;
+			newPath = "sound";
+			switch(type){
+				case AudioType::BGM: newPath += "/bgm/"; break;
+				case AudioType::BGS: newPath += "/bgs/"; break;
+				case AudioType::SFX: newPath += "/sfx/"; break;
+				case AudioType::UIS: newPath += "/uis/"; break;
+				case AudioType::SPEECH: newPath += "/spc/"; break;
+			}
+			newPath += name;
+			path = newPath;
 		}
-		newPath += name;
-		path = newPath;
 	}
+	*/
 	// Check that the file exists maybe?
 	state = AudioState::AUDIO_ERROR;
 	repeat = i_repeat;
@@ -200,7 +193,7 @@ bool Audio::Load()
 		name.Contains(".opus"))
 	{
 //        std::cout<<"\nFile deemed of type Ogg Vorbis, trying to load.";
-#ifdef OGG
+#ifdef BUILD_OGG
 		audioStream = new OggStream();
 		loaded = audioStream->Open(path.c_str());
 		assert(loaded);	
@@ -670,5 +663,3 @@ void Audio::BufferData(MultimediaStream * fromStream, AudioBuffer * intoBuffer)
 		return;
 	}
 }
-
-#endif // USE_AUDIO

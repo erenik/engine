@@ -122,7 +122,6 @@ void StateManager::QueueState(AppState * gs)
 		return;
 	}
 	queuedStates.Push(gs);
-	std::cout<<"\nERROR: Trying to queue an unknown/non-existant game state.";
 }
 
 /// Performs switch operations when transitioning states.

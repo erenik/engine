@@ -115,7 +115,7 @@ void Zone::MakeActive()
 	{
 		CreateEntities();
 		// Update the reset-camera's position and stuffs! o.o
-		Vector3f position = worldMap.FromWorldToWorldMap(roomMatrix.Size() * 0.5f, 0.f);
+		Vector3f position = FromWorldToWorldMap(roomMatrix.Size() * 0.5f, 0.f);
 		camera->resetCamera->position = position + Vector3f(0, 20.f, 20.f);	 
 		camera->resetCamera->rotation = Vector3f(0.9f, 0, 0);
 		camera->resetCamera->flySpeed = roomMatrix.Size().Length() * 0.1f;
@@ -136,9 +136,9 @@ void Zone::CreateEntities()
 		if (room->model)
 		{
 			Entity * entity = EntityMan.CreateEntity("Room", room->model, TexMan.GenerateTexture(Vector4f(1,1,1,1)));
-			Vector3f worldPos = worldMap.FromWorldToWorldMap(room->position);
+			Vector3f worldPos = FromWorldToWorldMap(room->position);
 			entity->position = worldPos * roomGridSize;
-			entity->scale = worldMap.FromWorldToWorldMap(room->scale);
+			entity->scale = FromWorldToWorldMap(room->scale);
 			entity->RecalculateMatrix();
 			entities.Add(entity);
 		}
@@ -150,7 +150,7 @@ void Zone::CreateEntities()
 			{
 				Entity * entity = EntityMan.CreateEntity("Room placeholder plate", ModelMan.GetModel("Plane.obj"), TexMan.GenerateTexture(Vector4f(1,1,1,1)));
 				Vector3f rawPosition = points[j];
-				Vector3f worldPos = worldMap.FromWorldToWorldMap(rawPosition);
+				Vector3f worldPos = FromWorldToWorldMap(rawPosition);
 				entity->position = worldPos * roomGridSize + Vector3f(0.5f,0,0.5f); // Offset so that it is inside the grid correctly.
 				entity->RecalculateMatrix();
 				entities.Add(entity);
@@ -163,13 +163,24 @@ void Zone::CreateEntities()
 			Vector3f dir = point.direction;
 			Texture * tex = TexMan.GenerateTexture(Vector4f(dir.Abs(), 1.f));
 			Entity * entry = EntityMan.CreateEntity("Entry point "+String(j), ModelMan.GetModel("sphere.obj"), tex);
-			Vector3f worldPos = worldMap.FromWorldToWorldMap(point.position);
+			Vector3f worldPos = FromWorldToWorldMap(point.position);
 			// Plus some offset.
-			Vector3f offset = worldMap.FromWorldToWorldMap(point.direction) * 0.2f;
+			Vector3f offset = FromWorldToWorldMap(point.direction) * 0.2f;
 			entry->position = worldPos + offset + Vector3f(0.5f,0.5f,0.5f);
 			entry->scale = Vector3f(1,1,1) * 0.2f;
 			entry->RecalculateMatrix();
 			entities.Add(entry);
+		}
+		// Visualize building-slots
+		for (int j = 0; j < room->buildingSlots.Size(); ++j)
+		{
+			BuildingSlot * bs = room->buildingSlots[j];
+			Entity * bse = EntityMan.CreateEntity("Building slot", ModelMan.GetModel("plane.obj"), TexMan.GenerateTexture(Vector4f(0.2f,0.5f,1,1.f)));
+			bse->scale = FromWorldToWorldMap(bs->size);
+			bse->scale.y = 1.f;
+			bse->position = FromWorldToWorldMap(bs->position) + Vector3f(0,1,0);
+			bse->RecalculateMatrix();
+			entities.Add(bse);
 		}
 	}
 	// Deletes and re-creates entities as needed.

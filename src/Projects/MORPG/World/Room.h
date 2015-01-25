@@ -75,6 +75,8 @@ public:
 	// For pathfinding and stuff.
 	List<Room*> neighbours;
 
+	List<BuildingSlot*> buildingSlots;
+
 	/// Model to be used.
 	Model * model;
 

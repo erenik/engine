@@ -31,16 +31,18 @@ Weapon::Weapon()
 	burstRoundDelayMs = 50;
 }
 
-Weapon Weapon::Get(String byName)
+bool Weapon::Get(String byName, Weapon & weapon)
 {
 	for (int i = 0; i < types.Size(); ++i)
 	{
 		Weapon & weap = types[i];
 		if (weap.name == byName)
-			return weap;
+		{
+			weapon = weap;
+			return true;
+		}
 	}
-	std::cout<<"\nERROR: Unable to find weapon by name \'"<<byName<<"\'";
-	return Weapon();
+	return false;
 }
 
 

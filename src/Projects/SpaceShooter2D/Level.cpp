@@ -16,6 +16,7 @@ bool Level::Load(String fromSource)
 
 	String sourceTxt = source + ".txt";
 	String sourcePng = source + ".png";
+	music = source+".ogg";
 	Vector3i goalColor;
 
 	List<ShipColorCoding> colorCodings;

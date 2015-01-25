@@ -8,6 +8,9 @@
 #include "List/List.h"
 #include "AudioBuffer.h"
 
+// Includes Libs generated file which specifies which audio libraries we are to link to.
+#include "Libs.h"
+
 #ifdef OPENAL
 	#include <AL/al.h>
 	#include <AL/alc.h>

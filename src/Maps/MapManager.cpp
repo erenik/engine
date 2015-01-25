@@ -72,7 +72,10 @@ MapManager::~MapManager()
 }
 
 /// Sets default settings and loads the default map.
-void MapManager::Initialize(){
+void MapManager::Initialize()
+{
+	// Wat..
+/*
 	/// Attempts to load map from specified source file.
 	Map * result = LoadMap("default.map");
 	if (result){
@@ -81,11 +84,13 @@ void MapManager::Initialize(){
 	}
 	else {
 		std::cout<<"\nError loading default map in MapManager, creating fresh one.";
-		result = new Map();
-		result->name = "EditorMap";
-		maps.Add(result);
-		MakeActiveByName("EditorMap");
 	}
+	*/
+	// Create map to play around in?
+	Map * map = new Map();
+	map->name = "EditorMap";
+	maps.Add(map);
+	MakeActiveByName("EditorMap");
 };
 /// Resets all data concering the map, deleting any entities and events within it.
 void MapManager::ResetMap(Map & map){
@@ -164,8 +169,9 @@ int MapManager::MakeActiveByName(String mapName){
 	for (int i = 0; i < maps.Size(); ++i){
 		if (!maps[i]->Name().Length())
 			continue;
-		if (mapName == maps[i]->Name()){
-			std::cout<<"\nFound map "<<mapName<<"! Loading now...";
+		if (mapName == maps[i]->Name())
+		{
+	//		std::cout<<"\nFound map "<<mapName<<"! Loading now...";
 			return MakeActive(maps[i]);
 		}
 	}
@@ -202,7 +208,7 @@ bool MapManager::MakeActive(Map * map)
 	if (activeMap == map)
 		return true;
 
-	std::cout<<"\nMapManager::MakeActive map: "<<(map ? map->name : "NULL");
+//	std::cout<<"\nMapManager::MakeActive map: "<<(map ? map->name : "NULL");
 
 	/// Make last map inactive first?
 	if (this->activeMap)

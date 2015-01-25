@@ -160,7 +160,8 @@ Texture * TextureManager::GetTextureByIndex(int index){
 	return textures[index];
 }
 
-Texture * TextureManager::GetTextureBySource(String source){
+Texture * TextureManager::GetTextureBySource(String source)
+{
 	if (source == 0)
 		return NULL;
 	source = FilePath::MakeRelative(source);
@@ -171,7 +172,7 @@ Texture * TextureManager::GetTextureBySource(String source){
 				return tex;
 		}
 	}
-	std::cout<<"\nTexture not loaded, attempting to load it.";
+//	std::cout<<"\nTexture not loaded, attempting to load it.";
 	return LoadTexture(source);
 }
 
@@ -362,7 +363,7 @@ Texture * TextureManager::LoadTexture(String source, bool noPathAdditions)
 	// Save other texture details now before returning.
 	texture->SetSource(source);
 	texture->SetName(source);
-	std::cout<<"\nTexture loaded as: "<<texture->name;
+	std::cout<<" done.";
 
 	textures.Add(texture);
 	/// Queue the texture for bufferization. This may want to be adjusted somewhere else maybe.

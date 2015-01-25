@@ -1033,7 +1033,7 @@ bool String::ParseBool(){
 	else if (this->Contains("false") || this->Contains("no"))
 		result = false;
 	else {
-		std::cout<<"\nString::ParseBool called on string \'"<<c_str()<<"\' returning false by default.";
+//		std::cout<<"\nString::ParseBool called on string \'"<<c_str()<<"\' returning false by default.";
 		return false;
 	}
 	comparisonMode = oldComparisonMode;

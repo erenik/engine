@@ -28,12 +28,7 @@ void Initialization::OnEnter(AppState * previousState){
 	//	SetWindowPos(hWnd, HWND_TOP, 0, 0, 800, 600, SWP_NOMOVE/*SWP_HIDEWINDOW*/);
 //	MoveWindow(hWnd, 0, 0, 800, 600, true);
 #endif
-
-#ifdef USE_AUDIO
-    // AudioMan.Play(AudioType::SFX, "AeonicEngine.ogg", false, 0.2f);
-
-#endif
-
+    AudioMan.QueueMessage(new AMPlaySFX("AeonicEngine.ogg", 0.2f));
 };
 
 void Initialization::Process(int timeInMs)

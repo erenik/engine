@@ -1,10 +1,6 @@
 // Emil Hedemalm
 // 2013-03-22
 
-#include "AudioSettings.h"
-
-#ifdef USE_AUDIO
-
 #include "AudioManager.h"
 #include "TrackManager.h"
 #include "System/PreferencesManager.h"
@@ -12,14 +8,10 @@
 
 #include "OpenAL.h"
 
-#ifdef E_OPENAL
-	#include <AL/al.h>
-	#include <AL/alc.h>
-// #include <alut.h>
-#endif
-
 #include "Audio.h"
 #include "Mutex/Mutex.h"
+
+#include "Multimedia/Ogg/OggStream.h"
 
 #include <iostream>
 #ifdef USE_FMOD
@@ -74,12 +66,14 @@ void AudioManager::Initialize()
 	audioMessageQueueMutex.Create("audioMessageQueueMutex");
 
 #ifdef OPENAL
-	std::cout<<"\nInitializing OpenAL Utilities...";
-	std::cout<<"\nChecking for available devices...";
-	if (alcIsExtensionPresent(NULL, "ALC_ENUMERATION_EXT") == AL_TRUE){
-		std::cout<<"\nEnumeration extension found!";
+//	std::cout<<"\nInitializing OpenAL Utilities...";
+	std::cout<<"\nChecking for available audio devices...";
+	if (alcIsExtensionPresent(NULL, "ALC_ENUMERATION_EXT") == AL_TRUE)
+	{
+	//	std::cout<<"\nEnumeration extension found.";
 		const char * deviceSpecifier = alcGetString(NULL, ALC_DEVICE_SPECIFIER);
 		const char * defaultDevice = alcGetString(NULL, ALC_DEFAULT_DEVICE_SPECIFIER);
+		std::cout<<"\nDevice specifier: "<<deviceSpecifier<<"\nDefault device: "<<defaultDevice;
 	}
 	else
 		std::cout<<" Enumeration extension not available!";
@@ -110,6 +104,7 @@ void AudioManager::Initialize()
 	}
 	// Set initialized to true after all initialization has been completed correctly.
 	initialized = true;
+	std::cout<<"\nOpenAL initialized successfully.";
 #else
 	std::cout<<"\nINTO: Open AL is currently disabled. Enable it in AudioSettings.h and recompile!";
 #endif // USE_OPEN_AL
@@ -195,51 +190,6 @@ void AudioManager::SavePreferences()
 	Preferences.SetBool("AudioEnabled", audioEnabled);
 }
 
-#ifdef USE_AUDIO
-
-
-void testPlaybackLoop(){
-
-#ifdef USE_OGG_VORBIS
-	OggStream ogg;
-
-//	alutInit(NULL, NULL);
-
-	try
-    {
-     //   if(argc < 2)
-      //      throw string("oggplayer *.ogg");
-
-		String path = "audio\\bgm\\tileatron.ogg";
-        ogg.Open(path);
-
-        ogg.Display();
-
-		if(!ogg.Playback())
-            throw string("Ogg refused to Play.");
-
-        while(ogg.Update())
-        {
-	        if(!ogg.IsPlaying())
-            {
-                if(!ogg.Playback())
-                    throw String("Ogg abruptly stopped.");
-                else
-					std::cout<< "Ogg stream was interrupted.\n";
-            }
-        }
-
-        std::cout<<"Program normal termination.";
-
-    }
-	catch(String error)
-    {
-		std::cout << "Error: "<<error;
-    }
-    #endif // USE_OGG_VORBIS
-}
-#endif // USE_AUDIO
-
 void AudioManager::PauseAllOfType(char type)
 {
 	if (!initialized)
@@ -274,10 +224,6 @@ void AudioManager::StopAllOfType(char type)
 */
 Audio * AudioManager::PlayFromSource(char type, String fromSource, bool repeat /*= false*/, float volume /*= 1.0f*/)
 {
-#ifndef USE_AUDIO
-    std::cout<<"\nAudio disabled. Returning.";
-	return;
-#endif
 	switch(type){
 		case AudioType::BGM:
 		{
@@ -335,10 +281,6 @@ Audio * AudioManager::PlayFromSource(char type, String fromSource, bool repeat /
 
 Audio * AudioManager::Play(char type, String name, bool repeat, float volume)
 {
-#ifndef USE_AUDIO
-    std::cout<<"\nAudio disabled. Returning.";
-	return;
-#endif
     if (!initialized)
         return 0;
 	if (!audioEnabled)
@@ -391,10 +333,6 @@ void AudioManager::PlaySFX(String name, float volume /*= 1.f*/)
 {
 	static int sfxPlayed = 0;
 	++sfxPlayed;
-#ifndef USE_AUDIO
-    std::cout<<"\nAudio disabled. Returning.";
-	return;
-#endif
 	CHECK_INITIALIZED
 	CHECK_AUDIO_ENABLED
 
@@ -606,5 +544,3 @@ void AudioManager::ProcessAudioMessages()
 	}
 }
 
-
-#endif // USE_AUDIO

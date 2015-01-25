@@ -13,7 +13,7 @@ struct Map::OnEnterAttributes{
 // Wosh? o.o
 void Map::OnEnter(){
 
-	std::cout<<"\nMap::OnEnter map: "<<name;
+//	std::cout<<"\nMap::OnEnter map: "<<name;
 	if (events.Size()){
 		std::cout<<"\nLoadeding events..";
 		bool result = LoadEvents();
@@ -31,5 +31,5 @@ void Map::OnEnter(){
 			}
 		}
 	}
-	std::cout<<"\nMap::OnEnter ended: "<<name;
+//	std::cout<<"\nMap::OnEnter ended: "<<name;
 };

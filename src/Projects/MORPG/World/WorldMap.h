@@ -7,6 +7,10 @@
 
 class Entity;
 
+/// Converts co-ordinates from the XY + elevation space used in the world-map to 3D renderable co-ordiantes using XZ and Y for elevation.
+Vector3f FromWorldToWorldMap(Vector2i position, float elevation);
+Vector3f FromWorldToWorldMap(Vector3i position);
+
 class WorldMap 
 {
 public:
@@ -27,10 +31,6 @@ public:
 	
 	/// o.o
 	List<Entity*> Entities();
-
-	/// Converts co-ordinates from the XY + elevation space used in the world-map to 3D renderable co-ordiantes using XZ and Y for elevation.
-	Vector3f FromWorldToWorldMap(Vector2i position, float elevation);
-	Vector3f FromWorldToWorldMap(Vector3i position);
 
 	/// Camera dedicated to the world-map o.o
 	Camera * worldMapCamera;

@@ -14,7 +14,7 @@ ZoneGenerator * zoneGenerator = NULL;
 
 WorldGenerator::WorldGenerator()
 {
-	size = Vector2i(20, 20);
+	size = Vector3i(20, 5, 20);
 	water = 0.2f;
 	waterDepth = -1.f;
 	waterLevel = 0;
@@ -54,14 +54,15 @@ bool WorldGenerator::GenerateWorld(World & worldToBeGenerated, bool newRandomSee
 	/// Generate zones.
 	for (int x = 0; x < size.x; ++x)
 	{
-		for (int y = 0; y < size.y; ++y)
+		for (int z = 0; z < size.z; ++z)
 		{
 			Zone * zone = new Zone();
-			zone->position = Vector3i(x,y,0);
-			zone->name = "X"+String(x)+" Y"+String(y);
+			Vector3i position = Vector3i(x,0,z);
+			zone->position = position;
+			zone->name = "X"+String(x)+" Z"+String(z);
 			world->zones.Add(zone);
-			assert(world->zoneMatrix.At(x,y) == 0);
-			world->zoneMatrix.Set(Vector2i(x,y), zone);
+			assert(world->zoneMatrix.At(position) == 0);
+			world->zoneMatrix.Set(position, zone);
 		}
 	}
 	world->ReconnectZones();

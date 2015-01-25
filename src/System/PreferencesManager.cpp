@@ -58,7 +58,7 @@ PreferencesManager * PreferencesManager::Instance() {
 /// Creates folder as needed.
 void PreferencesManager::EnsurePreferencesFolderExists()
 {
-	std::cout << "Application name: "<<Application::name;
+//	std::cout << "\nApplication name: "<<Application::name;
 	assert(Application::name.Length());
 	/// TODO: Add home path somehow.
 #ifdef WINDOWS
@@ -78,7 +78,7 @@ void PreferencesManager::EnsurePreferencesFolderExists()
 	String dirPath = homePath;
 	dirPath.Add("/.config/");
 	dirPath.Add(Application::name);
-	std::cout << "Dir: "<<dirPath;
+//	std::wcout << "Dir: "<<dirPath;
 	if (!PathExists(dirPath))
 	{
 		/// Creates directories until the entire path is valid.

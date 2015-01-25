@@ -42,6 +42,9 @@
 #include "Script/Script.h"
 #include "Script/ScriptManager.h"
 
+#include "Audio/AudioManager.h"
+#include "Audio/Messages/AudioMessage.h"
+
 #include "Graphics/GraphicsManager.h"
 #include "Graphics/Messages/GMSet.h"
 #include "Graphics/Messages/GMUI.h"

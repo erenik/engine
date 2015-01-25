@@ -24,7 +24,7 @@ public:
 	// Various options.
 	
 	/// Size of the world overall, in tiles (width & height)
-	Vector2i size;
+	Vector3i size;
 	/// 0 to 1, how much surface should be covered with water.
 	float water; 
 	/// Default depth for water. Default -1.

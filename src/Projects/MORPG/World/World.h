@@ -28,7 +28,7 @@ public:
 	/// Should there be a single name for it. Most often there is.
 	String name;
 	/// In x and y, tiles/zones/grid.
-	Vector2i size;
+	Vector3i size;
 
 	/// When ready to load or generate. True at start.
 	bool empty;

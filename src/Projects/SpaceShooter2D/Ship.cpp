@@ -145,13 +145,22 @@ bool Ship::LoadTypes(String file)
 					String name = weaponNames[i];
 					name.RemoveInitialWhitespaces();
 					name.RemoveTrailingWhitespaces();
-					Weapon weapon = Weapon::Get(name);
-					ship.weapons.Add(weapon);
+					Weapon weapon; 
+					bool ok = Weapon::Get(name, weapon);
+					if (ok)
+						ship.weapons.Add(weapon);
+					else 
+						LogShip("Unable to find weapon by name \'"+name+"\' when parsing ship \'"+ship.name+"\'");
 				}
 			}
 			else if (column == "Weapon Ammunition")
 			{
 				List<String> ammos = value.Tokenize(",");
+				if (ammos.Size() != ship.weapons.Size())
+				{
+					LogShip("ERROR: Trying to assign "+String(ammos.Size())+" ammunitions to "+String(ship.weapons.Size())+" weapons when parsing ship \'"+ship.name+"\'");
+					continue;
+				}
 				for (int i = 0; i < ammos.Size(); ++i)
 				{
 					Weapon & weapon = ship.weapons[i];
@@ -163,6 +172,11 @@ bool Ship::LoadTypes(String file)
 			}
 			else if (column == "Weapon Cooldown")
 			{
+				if (ship.weapons.Size() == 0)
+				{
+					LogShip("ERROR: when trying to assign weapon cooldown, no valid weapon.");
+					continue;
+				}
 				if (value.Contains("Burst"))
 				{
 					// PArse burst> Burst(rounds, delayBetweenShots, cooldown)
@@ -179,7 +193,7 @@ bool Ship::LoadTypes(String file)
 					if (cooldowns.Size() != ship.weapons.Size())
 					{
 						// Print error message
-						std::cout<<"\nERROR: Ship \'"<<ship.name<<"\' trying to assign "<<cooldowns.Size()<<" weapon cooldowns to "<<ship.weapons.Size()<<" weapons."; 
+						LogShip("Trying to assign "+String(cooldowns.Size())+" weapon cooldowns to "+String(ship.weapons.Size())+" weapons when parsing ship \'"+ship.name+"\'");
 						continue;
 					}
 					for (int i = 0; i < ship.weapons.Size(); ++i)

@@ -55,18 +55,23 @@ void WorldMap::Update()
 	tex->Save("World.png", true);
 	Model * model = world.GenerateWorldModel();
 	if (!worldEntity)
-		worldEntity = MapMan.CreateEntity("World", NULL, NULL);
+		worldEntity = MapMan.CreateEntity("World", ModelMan.GetModel("plane.obj"), tex);
 	assert(worldEntity);
 	// Re-bufferize the texture.
 	GraphicsMan.QueueMessage(new GMBufferTexture(tex));
 	// Same for the model..
-	GraphicsMan.QueueMessage(new GMBufferMesh(model->GetTriangulatedMesh()));
-	// Try our model..
-	GraphicsMan.QueueMessage(new GMSetEntity(worldEntity, GT_MODEL, model));
-	GraphicsMan.QueueMessage(new GMSetEntityTexture(worldEntity, DIFFUSE_MAP | SPECULAR_MAP, tex));
+	if (model)
+	{
+		GraphicsMan.QueueMessage(new GMBufferMesh(model->GetTriangulatedMesh()));
+		GraphicsMan.QueueMessage(new GMSetEntity(worldEntity, GT_MODEL, model));
+		// Try our model..
+		GraphicsMan.QueueMessage(new GMSetEntityTexture(worldEntity, DIFFUSE_MAP | SPECULAR_MAP, tex));
+	}
+//	else 
+		
 //		Physics.QueueMessage(new PMSetEntity(worldMapEntity, PT_SET_SCALE, Vector3f(15.f, 1.f, 15.f)));
 	// Place the ocean..!
-	UpdateOcean();
+//	UpdateOcean();
 	UpdateCamera();
 	CenterCamera();
 }
@@ -81,6 +86,8 @@ void WorldMap::UpdateSettlements()
 		Zone * settlement = world.settlements[i];
 		// Create appropriate representation entities.
 		Entity * entity = settlement->CreateWorldMapRepresentation();
+		if (!entity)
+			continue;
 		settlementEntities.Add(entity);
 		Vector3f pos = settlement->position;
 		// Invert Y, as it got.. not sure.
@@ -148,12 +155,12 @@ List<Entity*> WorldMap::Entities()
 }
 
 
-Vector3f WorldMap::FromWorldToWorldMap(Vector2i vec, float elevation)
+Vector3f FromWorldToWorldMap(Vector2i vec, float elevation)
 {
 	return Vector3f(vec.x, elevation, world.size.y - vec.y);
 }
 
-Vector3f WorldMap::FromWorldToWorldMap(Vector3i pos)
+Vector3f FromWorldToWorldMap(Vector3i pos)
 {
 	return Vector3f(pos.x, pos.z, pos.y);
 }
