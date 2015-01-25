@@ -133,8 +133,8 @@ private:
 /// Used to set Vector-based data, mainly colors.
 class GMSetUIv4f : public GMUI {
 public:
-	GMSetUIv4f(String UIname, int target, Vector4f v, UserInterface * ui);
-	GMSetUIv4f(String UIname, int target, Vector4f v, Viewport * viewport = NULL);
+	GMSetUIv4f(String UIname, int target, const Vector4f & v, UserInterface * ui);
+	GMSetUIv4f(String UIname, int target, const Vector4f & v, Viewport * viewport = NULL);
 	void Process();
 private:
 	void AssertTarget();

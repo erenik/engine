@@ -145,7 +145,7 @@ void UIVectorInput::SetValue3f(Vector3f vec)
 		inputs[i]->SetText(s);
 	}
 }
-void UIVectorInput::SetValue4f(Vector4f vec)
+void UIVectorInput::SetValue4f(const Vector4f & vec)
 {
 	for (int i = 0; i < inputs.Size() && i < 4; ++i){
 		String s = String::ToString(vec[i], maxDecimals);

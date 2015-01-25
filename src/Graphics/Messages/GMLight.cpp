@@ -22,7 +22,7 @@ void GMClearLighting::Process()
 }
 
 
-GMAddLight::GMAddLight(Light newLight)
+GMAddLight::GMAddLight(const Light & newLight)
 : GraphicsMessage(GM_ADD_LIGHT), light(newLight)
 {
 

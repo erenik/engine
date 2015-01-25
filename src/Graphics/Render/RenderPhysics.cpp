@@ -22,8 +22,8 @@
 #define PRINT_ERROR std::cout<<"\nGLError in Render "<<error;
 
 /// Wosh!
-void RenderLine(Vector3f origin, Vector3f end, Vector4f baseColor);
-void RenderFadingLine(Vector3f origin, Vector3f end, Vector4f baseColor, Vector4f highlightColor);
+void RenderLine(Vector3f origin, Vector3f end, const Vector4f & baseColor);
+void RenderFadingLine(Vector3f origin, Vector3f end, const Vector4f & baseColor, const Vector4f & highlightColor);
 
 Entities physicalEntities;
 long lastFetch = 0;
@@ -483,7 +483,7 @@ rerer
 
 
 /// Woshie!
-void RenderLine(Vector3f origin, Vector3f endPoint, Vector4f baseColor){
+void RenderLine(Vector3f origin, Vector3f endPoint, const Vector4f & baseColor){
 		glBegin(GL_LINES);
 #define RenderVertex(v); glVertex3f(v.x,v.y,v.z);
 #define SetColor(c); glColor4f(c.x,c.y,c.z,c.w);
@@ -493,7 +493,7 @@ void RenderLine(Vector3f origin, Vector3f endPoint, Vector4f baseColor){
 		glEnd();
 };
 
-void RenderFadingLine(Vector3f origin, Vector3f endPoint, Vector4f baseColor, Vector4f highlightColor){
+void RenderFadingLine(Vector3f origin, Vector3f endPoint, const Vector4f & baseColor, const Vector4f & highlightColor){
 
 		glBegin(GL_LINES);
 

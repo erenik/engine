@@ -337,7 +337,7 @@ void GMSetEntityi::Process()
 
 
 
-GMSetEntityVec4f::GMSetEntityVec4f(List<Entity*> entities, int target, Vector4f value)
+GMSetEntityVec4f::GMSetEntityVec4f(List<Entity*> entities, int target, const Vector4f & value)
 	: GraphicsMessage(GM_SET_ENTITY_VEC4F), entities(entities), target(target), vec4fValue(value)
 {
 	switch(target)

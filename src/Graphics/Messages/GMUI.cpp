@@ -306,13 +306,13 @@ void GMSetUIv3f::Process()
     };
 };
 
-GMSetUIv4f::GMSetUIv4f(String UIname, int target, Vector4f v, UserInterface * ui)
+GMSetUIv4f::GMSetUIv4f(String UIname, int target, const Vector4f & v, UserInterface * ui)
 : GMUI(GM_SET_UI_VEC4F, ui), name(UIname), target(target), value(v)
 {
 	AssertTarget();
 }
 
-GMSetUIv4f::GMSetUIv4f(String UIname, int target, Vector4f v, Viewport * viewport /*= NULL*/)
+GMSetUIv4f::GMSetUIv4f(String UIname, int target, const Vector4f & v, Viewport * viewport /*= NULL*/)
 : GMUI(GM_SET_UI_VEC4F, viewport), name(UIname), target(target), value(v)
 {
 	AssertTarget();

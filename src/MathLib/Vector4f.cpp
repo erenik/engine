@@ -9,12 +9,42 @@
 
 #include "String/AEString.h"
 
-Vector4f::Vector4f(){
+// bool Vector4f::useSSE = false;
+
+
+void* Vector4f::operator new(size_t size)
+{
+	void *storage = malloc(size);
+    if(NULL == storage) {
+            throw "allocation fail : no free memory";
+    }	
+}
+void Vector4f::operator delete(void* mem)
+{
+	mem;
+}
+
+
+Vector4f::Vector4f()
+{
+#ifdef USE_SSE
+	float arr[4] = {0,0,0,1};
+	data = _mm_loadu_ps(arr);
+#endif
 	x = y = z = 0;
 	w = 1;
 }
 
-Vector4f::Vector4f( float ix,  float iy,  float iz,  float iw){
+Vector4f::Vector4f( float ix,  float iy,  float iz,  float iw)
+{
+#ifdef USE_SSE
+	float arr[4];
+	arr[0] = ix;
+	arr[1] = iy;
+	arr[2] = iz;
+	arr[3] = iw;
+	data = _mm_loadu_ps(arr);
+#endif
 	x = ix;
 	y = iy;
 	z = iz;
@@ -28,11 +58,20 @@ Vector4f::Vector4f(float arr[]){
 	w = arr[3];
 }
 
-Vector4f::Vector4f(const Vector4f & base){
+Vector4f::Vector4f(const Vector4f & base)
+{
+#ifdef USE_SSE
+	data = base.data;
 	x = base.x;
 	y = base.y;
 	z = base.z;
 	w = base.w;
+#else
+	x = base.x;
+	y = base.y;
+	z = base.z;
+	w = base.w;
+#endif
 }
 
 /**	Copy Conversion Constructor
@@ -100,7 +139,7 @@ void Vector4f::Clamp(float min, float max)
 // Arithmetics
 // ************************************************************************//
 
-void Vector4f::add(Vector4f addend){
+void Vector4f::add(const Vector4f & addend){
 	x += addend.x;
 	y += addend.y;
 	z += addend.z;
@@ -108,7 +147,7 @@ void Vector4f::add(Vector4f addend){
 }
 
 
-void Vector4f::subtract(Vector4f subtractor){
+void Vector4f::subtract(const Vector4f & subtractor){
 	x -= subtractor.x;
 	y -= subtractor.y;
 	z -= subtractor.z;
@@ -146,23 +185,75 @@ Vector4f Vector4f::operator - () const {
 }
 
 
+#include <emmintrin.h>
 
-Vector4f  Vector4f::operator + (Vector4f addend) const {
+struct v4f
+{
+	float x;
+	float y;
+	float z;
+	float w;
+};
+
+typedef union {
+	 v4f v;
+	__m128 f;
+} u4f;
+
+
+// For getting parts straight away o.o;
+// #include <xmmintrin.h>
+Vector4f  Vector4f::operator + (const Vector4f & addend) const {
 	Vector4f  newVec;
+#ifdef USE_SSE
+	newVec.data = _mm_add_ps(data, addend.data);
+	newVec.x = data.m128_f32[0];
+	newVec.y = data.m128_f32[1];
+	newVec.z = data.m128_f32[2];
+	newVec.w = data.m128_f32[3];
+#else
 	newVec.x = x + addend.x;
 	newVec.y = y + addend.y;
 	newVec.z = z + addend.z;
-	newVec.w = w + addend.w;
+	newVec.w = w + addend.w;	
+#endif
+	/*
+	if (useSSE)
+	{
+		u4f u;
+		__m128 left = _mm_setr_ps(x,y,z,w);
+		__m128 right = _mm_setr_ps(addend.x, addend.y, addend.z, addend.w);
+		u.f = _mm_add_ps(left, right);
+		newVec.x = u.v.x;
+		newVec.y = u.v.y;
+		newVec.z = u.v.z;
+		newVec.w = u.v.w;
+	}
+	else 
+	{
+		newVec.x = x + addend.x;
+		newVec.y = y + addend.y;
+		newVec.z = z + addend.z;
+		newVec.w = w + addend.w;	
+	}*/
 	return newVec;
 }
 
 
-Vector4f  Vector4f::operator - (Vector4f subtractor) const {
+Vector4f  Vector4f::operator - (const Vector4f & subtractor) const {
 	Vector4f  newVec;
+#ifdef USE_SSE
+	newVec.data = _mm_sub_ps(data, subtractor.data);
+	newVec.x = data.m128_f32[0];
+	newVec.y = data.m128_f32[1];
+	newVec.z = data.m128_f32[2];
+	newVec.w = data.m128_f32[3];
+#else
 	newVec.x = x - subtractor.x;
 	newVec.y = y - subtractor.y;
 	newVec.z = z - subtractor.z;
 	newVec.w = w - subtractor.w;
+#endif
 	return newVec;
 }
 
@@ -176,27 +267,53 @@ Vector4f operator * (float multiplier, const Vector4f& vector){
 }
 
 
-void Vector4f::operator += (Vector4f addend){
+void Vector4f::operator += (const Vector4f & addend)
+{
+#ifdef USE_SSE
+	data = _mm_add_ps(data, addend.data);
+	x = data.m128_f32[0];
+	y = data.m128_f32[1];
+	z = data.m128_f32[2];
+	w = data.m128_f32[3];
+#else
 	x += addend.x;
 	y += addend.y;
 	z += addend.z;
 	w += addend.w;
+#endif
 }
 
 
-void Vector4f::operator -= (const Vector4f  subtractor){
+void Vector4f::operator -= (const Vector4f & subtractor){
+#ifdef USE_SSE
+	data = _mm_sub_ps(data, subtractor.data);
+	x = data.m128_f32[0];
+	y = data.m128_f32[1];
+	z = data.m128_f32[2];
+	w = data.m128_f32[3];
+#else
 	x -= subtractor.x;
 	y -= subtractor.y;
 	z -= subtractor.z;
 	w -= subtractor.w;
+#endif
 }
 
 /// Multiplicator o-o
 void Vector4f::operator *= (const float floatur){
+#ifdef USE_SSE
+	__m128 mul = _mm_load1_ps(&floatur);
+	data = _mm_mul_ps(data, mul);
+	x = data.m128_f32[0];
+	y = data.m128_f32[1];
+	z = data.m128_f32[2];
+	w = data.m128_f32[3];
+#else
 	x *= floatur;
 	y *= floatur;
 	z *= floatur;
 	w *= floatur;
+#endif
 }
 
 /// Internal element multiplication
@@ -220,10 +337,14 @@ Vector4f& Vector4f::operator = (const Vector4d &other){
 /// Conversion equal-conversion operator
 Vector4f& Vector4f::operator = (const Vector4f &other)
 {
+#ifdef USE_SSE
+	data = other.data;
+#else
 	x = other.x;
 	y = other.y;
 	z = other.z;
 	w = other.w;
+#endif
 	return *this;
 }
 
@@ -244,15 +365,33 @@ float& Vector4f::operator[](const unsigned int index){
 	}
 }
 
+/// Operator overloading for the array-access operator []
+const float& Vector4f::operator[] (const unsigned int index) const
+{
+	switch(index){
+		case 0:
+			return x;
+		case 1:
+			return y;
+		case 2:
+			return z;
+		case 3:
+			return w;
+		default:
+			throw 1003;
+	}
+}
+
+
 // ************************************************************************//
 // Vector operations
 // ************************************************************************//
 
- float Vector4f::ScalarProduct(Vector4f otherVector){
+ float Vector4f::ScalarProduct(const Vector4f & otherVector){
 	return x * otherVector.x + y * otherVector.y + z * otherVector.z + w * otherVector.w;
 }
 // Same thing as scalar product, silly!
- float Vector4f::DotProduct(Vector4f otherVector){
+ float Vector4f::DotProduct(const Vector4f & otherVector){
 	return x * otherVector.x + y * otherVector.y + z * otherVector.z + w * otherVector.w;
 }
 
@@ -260,12 +399,12 @@ float& Vector4f::operator[](const unsigned int index){
 	 return Vector3f (y * otherVector.GetX() - z * otherVector.GetY(), z * otherVector.GetX() - x * otherVector.GetZ(), x * otherVector.GetY() - y * otherVector.GetX());
  }
 
-Vector3f Vector4f::CrossProduct(Vector4f otherVector){
+Vector3f Vector4f::CrossProduct(const Vector4f & otherVector){
 	 return Vector3f (y * otherVector.z - z * otherVector.y, z * otherVector.x - x * otherVector.z, x * otherVector.y - y * otherVector.x);
 }
 
 /// Multiplies the elements in the two vectors internally, returning the product.
-Vector4f Vector4f::ElementMultiplication(const Vector4f otherVector) const {
+Vector4f Vector4f::ElementMultiplication(const Vector4f & otherVector) const {
 	return Vector4f(x * otherVector.x, y * otherVector.y, z * otherVector.z, w * otherVector.w);
 }
 
@@ -293,3 +432,12 @@ Vector4f Vector4f::NormalizedCopy() const{
     Vector4f newVec(x * invVecLength, y * invVecLength, z * invVecLength, 1);
     return newVec;
 }
+
+
+#ifdef USE_SSE
+// Loads data into __m128 structure.
+void Vector4f::PrepareForSIMD()
+{
+	data = _mm_setr_ps(x,y,z,w);
+}
+#endif

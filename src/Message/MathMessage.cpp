@@ -41,7 +41,7 @@ VectorMessage::VectorMessage(String message, Vector3f vectorValue)
 	this->msg = message;
 }
 
-VectorMessage::VectorMessage(String message, Vector4f vectorValue)
+VectorMessage::VectorMessage(String message, const Vector4f & vectorValue)
 : Message(MessageType::VECTOR_MESSAGE), vectorType(VECTOR_4F), vec4f(vectorValue)
 {
 	this->msg = message;

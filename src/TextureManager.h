@@ -48,9 +48,9 @@ public:
 	bool LoadTextures(Entity * Entity);
 
 	/// Generates a texture with automatic name and given color. The texture will be exactly 1 or 2x2 pixels, simply for the color!
-	Texture * GenerateTexture(Vector4f andColor);
+	Texture * GenerateTexture(const Vector4f & andColor);
 	/// Generates a texture with given name and color. The texture will be exactly 1 or 2x2 pixels, simply for the color!
-	Texture * GenerateTexture(String withName, Vector4f andColor);
+	Texture * GenerateTexture(String withName, const Vector4f & andColor);
 
 	/// Buffers all textures required by a certain StateMan.
 	bool BufferizeTextures(int state);

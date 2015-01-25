@@ -94,7 +94,7 @@ private:
 class GMSetEntityVec4f : public GraphicsMessage 
 {
 public:
-	GMSetEntityVec4f(List<Entity*> entities, int target, Vector4f value);
+	GMSetEntityVec4f(List<Entity*> entities, int target, const Vector4f & value);
 	virtual void Process();
 private:
 	List<Entity*> entities;

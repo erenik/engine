@@ -285,7 +285,7 @@ void ParticleEmitter::SetParticlesPerSecond(int num)
 }
 
 
-void ParticleEmitter::SetColor(Vector4f newColor)
+void ParticleEmitter::SetColor(const Vector4f & newColor)
 {
 	this->color = newColor;
 	inheritColor = false;

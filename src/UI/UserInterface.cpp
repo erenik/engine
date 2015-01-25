@@ -504,7 +504,7 @@ void UserInterface::ReloadAll()
 // Creates the root element. Will not create another if it already exists.
 UIElement * UserInterface::CreateRoot()
 {
-	root = new UIElement();
+	root = NewA(UIElement);
 	root->name = "root";
 	root->exitable = false;
 	root->selectable = false;

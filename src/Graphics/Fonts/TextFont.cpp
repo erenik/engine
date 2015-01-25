@@ -258,7 +258,7 @@ void TextFont::ParseTextureData(){
 	}
 }
 
-void TextFont::SetColor(Vector4f textColor){
+void TextFont::SetColor(const Vector4f & textColor){
 	color = textColor;
 }
 

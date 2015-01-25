@@ -91,9 +91,9 @@ public:
 	Vector4i GetPixelVec4i(int x, int y);
 
 	/// Sets color of target pixel. Pixel size in pixels x pixels.
-	void SetPixel(Vector2i location, Vector4f color, int pixelSize = 1);
+	void SetPixel(Vector2i location, const Vector4f & color, int pixelSize = 1);
 	/// Sets color of target pixel. 
-	void SetPixel(int x, int y, Vector4f color);
+	void SetPixel(int x, int y, const Vector4f & color);
 	/// Pretty much highest result of: Vector3f(r,g,b).MaxPart() * a   -> perceived intensity on black background.
 	float GetMaxIntensity();
 	/// Linear addition of all rgb-compontents.
@@ -101,9 +101,9 @@ public:
 	/// Sets color for all pixels, not touching the alpha.
 	void Colorize(Vector3f color);
 	/// Setts color of all pixels.
-	void SetColor(Vector4f color);
-	void SetColorOfColumn(int column, Vector4f color);
-	void SetColorOfRow(int row, Vector4f color);
+	void SetColor(const Vector4f & color);
+	void SetColorOfColumn(int column, const Vector4f & color);
+	void SetColorOfRow(int row, const Vector4f & color);
 
 	/// Sets sampling mode based on samplingMode current value.
 	void SetSamplingMode();

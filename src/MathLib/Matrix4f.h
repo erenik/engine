@@ -152,7 +152,7 @@ public:
 	/** Product with Vector
 		Postcondition: Returns the product of the matrix and vector without directly modifying them.
 	*/
-	Vector4f Product(const Vector4f vector) const;
+	Vector4f Product(const Vector4f & vector) const;
 	/** Product with Matrix
 		Postcondition: Returns the product of the matrices without directly modifying them.
 	*/
@@ -160,7 +160,7 @@ public:
 	/** Product with Vector
 		Postcondition: Returns the product of the matrix and vector without directly modifying them.
 	*/
-	Vector4f operator * (const Vector4f vector) const;
+	Vector4f operator * (const Vector4f & vector) const;
 	/** Product with Matrix-assignment
 		Postcondition: The matrices have been multiplied and assigned to this matrix.
 	*/

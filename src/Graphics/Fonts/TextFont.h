@@ -35,7 +35,7 @@ public:
 	void SetTextureSource(const String s) { textureSource = s; };
 	const String GetTextureSource() { return textureSource; };
 	
-	void SetColor(Vector4f color);
+	void SetColor(const Vector4f & color);
 	/** Saves the font-data to specified path.
 		If the path length is 0 it will attempt to save to the same location as the given
 		texture for the font.

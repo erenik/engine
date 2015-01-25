@@ -149,7 +149,21 @@ void WindowManager::DeleteWindows()
 /// For creating the first window, sets certain properties as needed.
 Window * WindowManager::CreateMainWindow()
 {
+#ifdef USE_SSE
+//	mainWindow = NewAligned<Window>(Window("MainWindow", Application::name));
+	mainWindow = NewAS(Window, Window("MainWindow", Application::name));
+	/* Macro testing.
+	mainWindow = AllocAligned(Window);
+	mainWindow = Construct(mainWindow, Window("MainWindow", Application::name));
+	mainWindow = NewAligned(Window, Window("MainWindow", Application::name));
+*/
+//	mainWindow = NewAligned(Window, Window("MainWindow", Application::name));
+	// Working.
+//	mainWindow = (Window*) _aligned_malloc(1 * sizeof(Window), 16);
+//	mainWindow = new((void*)mainWindow) Window("MainWindow", Application::name);
+#else
 	mainWindow = new Window("MainWindow", Application::name);
+#endif
 	mainWindow->main = true;
 	windows.Add(mainWindow);
 	return mainWindow;

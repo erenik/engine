@@ -15,11 +15,24 @@ class Vector3f;
 class Vector4d;
 class String;
 
+#define USE_SSE
+#ifdef USE_SSE
+#include <xmmintrin.h>
+#include "SSE.h" // Include our SSE macros where Vector is included, since those classes may require byte-alignment too, then.
+#endif
+
 /** A four-dimensional vector class using floats.
 */
+#ifdef USE_SSE
+__declspec( align( 16 ) ) 
+#endif
 class Vector4f {
 
 public:
+
+	void* operator new(size_t);
+    void operator delete(void*);
+
 	// CONSTRUCTORS
 	/**	Default Constructor
 		Postcondition: Initializes a NULL-4D-vector, having x, y & z set to 0 and w to 1.
@@ -65,11 +78,11 @@ public:
 	/** Simple addition
 		Postcondition: Adds the addend's coordinates to the calling vector's.
 	*/
-	void add(const Vector4f addend);
+	void add(const Vector4f & addend);
 	/** Simple subtraction
 		Postcondition: Subtracts the subtractor's coordinates from the calling vector's.
 	*/
-	void subtract(const Vector4f subtractor);
+	void subtract(const Vector4f & subtractor);
 	/** Simple scaling
 		Postcondition: Scales the vector's coordinates by the provided ratio.
 	*/
@@ -87,9 +100,9 @@ public:
 
 	// Operator overloading for the addition and subtraction operations
 	/// Returns a summed vector based on this vector and the addend.
-	Vector4f  operator + (const Vector4f addend) const;
+	Vector4f  operator + (const Vector4f & addend) const;
 	/// Returns a subtracted vector based on this vector and the subtractor.
-	Vector4f  operator - (const Vector4f subtractor) const;
+	Vector4f  operator - (const Vector4f & subtractor) const;
 
 	/// Multiplication with float
 	friend Vector4f operator * (float multiplier, const Vector4f& vector);
@@ -100,9 +113,9 @@ public:
 	Vector3f operator / (const float &f) const;
 
 	/// Adds addend to this vector.
-	void operator += (const Vector4f addend);
+	void operator += (const Vector4f & addend);
 	/// Subtracts subtractor from this vector.
-	void operator -= (const Vector4f addend);
+	void operator -= (const Vector4f & addend);
 	/// Multiplicator o-o
 	void operator *= (const float floatur);
 
@@ -113,26 +126,28 @@ public:
 
 	/// Operator overloading for the array-access operator []
 	float& operator[] (const unsigned int index);
+	/// Operator overloading for the array-access operator []
+	const float& operator[] (const unsigned int index) const;
 
 	// Vector products
 	/** Scalar product
 		Postcondition: Calculates the scalar product of the vector. Same result as calling dotProduct()
 	*/
-	float ScalarProduct(const Vector4f otherVector);
+	float ScalarProduct(const Vector4f & otherVector);
 	/** Dot product
 		Postcondition: Calculates the dot product of the vector. Same result as calling scalarProduct()
 	*/
-	float DotProduct(const Vector4f otherVector);
+	float DotProduct(const Vector4f & otherVector);
 
 	/** 3D Cross product
 		Postcondition: Calculates the cross product between the vectors as if they were both Vector3fs. Returns a Vector3f.	*/
 	Vector3f CrossProduct(const Vector3f otherVector);
 	/** 3D Cross product
 		Postcondition: Calculates the cross product between the vectors as if they were both Vector3fs. Returns a Vector3f.	*/
-	Vector3f CrossProduct(const Vector4f otherVector);
+	Vector3f CrossProduct(const Vector4f & otherVector);
 
 	/// Multiplies the elements in the two vectors internally, returning the product.
-	Vector4f ElementMultiplication(const Vector4f otherVector) const;
+	Vector4f ElementMultiplication(const Vector4f & otherVector) const;
 
 	/** Calculates the length of the vector, considering only {x y z}. */
 	float Length3() const;
@@ -153,6 +168,12 @@ public:
 	const float GetW() const {return w;};
 
 public:
+#ifdef USE_SSE
+	// Loads data into __m128 structure.
+	void PrepareForSIMD();
+	__m128 data;
+#endif
+
 	/// x-coordinate
 	float x;
 	/// y-coordinate
@@ -162,5 +183,6 @@ public:
 	/// w-coordinate
 	float w;
 };
+
 
 #endif

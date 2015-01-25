@@ -148,7 +148,7 @@ void AppState::CreateUserInterface()
 	Log("State::CreateUserInterface called for state "+name+". Empty UI is created by default!");
 	if (ui)
 		delete ui;
-	ui = new UserInterface();
+	ui = NewA(UserInterface);
 	ui->CreateRoot();
 }
 /** Attempts to free the resources used by the user interface before deleting it.

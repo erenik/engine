@@ -295,7 +295,7 @@ void ParticleSystem::ResumeEmission(){
     emissionPaused = false;
 }
 
-void ParticleSystem::SetColor(Vector4f icolor){
+void ParticleSystem::SetColor(const Vector4f & icolor){
     color = icolor;
 }
 

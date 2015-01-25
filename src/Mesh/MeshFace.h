@@ -8,8 +8,10 @@
 
 class Mesh;
 
-/// A struct for a geometric MeshFace, containing number of vertices and indices for which vertex is used and which UV-coordinate is used.
-struct MeshFace {
+// A struct for a geometric MeshFace, containing number of vertices and indices for which vertex is used and which UV-coordinate is used.
+// https://msdn.microsoft.com/en-us/library/83ythb65.aspx
+__declspec( align( 16 ) ) 
+struct  MeshFace {
 	MeshFace();
 	~MeshFace();
 private:

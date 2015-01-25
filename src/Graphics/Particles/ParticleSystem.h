@@ -60,7 +60,7 @@ public:
     /// Emission control.
     virtual void PauseEmission();
     virtual void ResumeEmission();
-    virtual void SetColor(Vector4f color);
+    virtual void SetColor(const Vector4f & color);
 
 	/// Sets the emitter to be a contour. Default before calling this is a point or a plane.
 	virtual void SetEmitter(Contour contour);

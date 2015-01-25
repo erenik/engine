@@ -648,11 +648,12 @@ Vector4i Texture::GetPixelVec4i(int x, int y)
 
 
 /// Sets color of target pixel. 
-void Texture::SetPixel(Vector2i location, Vector4f color, int pixelSize)
+void Texture::SetPixel(Vector2i location, const Vector4f & toColor, int pixelSize)
 {
 	assert(data);
 	assert(bpp >= 3 && format == Texture::RGBA);
 	unsigned char * buf = data;
+	Vector4f color = toColor;
 	color.Clamp(0, 1);
 	/// PixelStartIndex
 	
@@ -677,8 +678,9 @@ void Texture::SetPixel(Vector2i location, Vector4f color, int pixelSize)
 
 
 /// Sets color of target pixel. Returns false if it is out of bounds.
-void Texture::SetPixel(int x, int y, Vector4f color)
+void Texture::SetPixel(int x, int y, const Vector4f & toColor)
 {
+	Vector4f color = toColor;
 	assert(data);
 	assert(bpp >= 3 && format == Texture::RGBA);
 	unsigned char * buf = data;
@@ -746,7 +748,7 @@ void Texture::Colorize(Vector3f color){
 }
 
 /// Setts color of all pixels.
-void Texture::SetColor(Vector4f color)
+void Texture::SetColor(const Vector4f & color)
 {
 	assert(bpp == 4 && format == Texture::RGBA);
 	unsigned char * buf = data;
@@ -763,7 +765,7 @@ void Texture::SetColor(Vector4f color)
 	}
 }
 
-void Texture::SetColorOfColumn(int column, Vector4f color)
+void Texture::SetColorOfColumn(int column, const Vector4f & color)
 {
 	assert(bpp == 4 && format == Texture::RGBA);
 	unsigned char * buf = data;
@@ -781,7 +783,7 @@ void Texture::SetColorOfColumn(int column, Vector4f color)
 		}
 	}
 }
-void Texture::SetColorOfRow(int row, Vector4f color)
+void Texture::SetColorOfRow(int row, const Vector4f & color)
 {
 	assert(bpp == 4 && format == Texture::RGBA);
 	unsigned char * buf = data;

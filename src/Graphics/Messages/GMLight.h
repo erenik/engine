@@ -19,7 +19,7 @@ public:
 class GMAddLight : public GraphicsMessage 
 {
 public:
-	GMAddLight(Light newLight);
+	GMAddLight(const Light & newLight);
 	virtual ~GMAddLight();
 	virtual void Process();
 private:

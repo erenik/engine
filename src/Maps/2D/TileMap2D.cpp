@@ -151,7 +151,7 @@ void TileMap2D::Render(GraphicsState & graphicsState)
 		if (!shader)
 			return;
 
-		LoadLighting(&lighting, shader);
+		LoadLighting(lighting, shader);
 
 		glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, graphicsState.viewMatrixF.getPointer());
 		glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, graphicsState.modelMatrixF.getPointer());
@@ -740,7 +740,7 @@ bool TileMap2D::Load(const char * fromFile)
 		file.read((char*)&hasTexture, sizeof(bool));
 
 		/// Load lighting scheme
-		this->lighting.ReadFrom(file);
+		this->lighting->ReadFrom(file);
 
 		/// Load levels
 		int numLevels = 0;
@@ -813,7 +813,7 @@ bool TileMap2D::Save(const char * toFile)
 		file.write((char*)&hasTexture, sizeof(bool));
 
 		/// Save lighting scheme
-		this->lighting.WriteTo(file);
+		this->lighting->WriteTo(file);
 
 		/// Save levels
 		int numLevels = levels.Size();

@@ -491,7 +491,7 @@ Vector4d Matrix4d::Product(Vector4d vector) const
 	return Vector4d(newArray);
 }
 
-Vector4f Matrix4d::Product(Vector4f vector) const 
+Vector4f Matrix4d::Product(const Vector4f & vector) const 
 {
 	float newArray[4];
 	float tempResult;

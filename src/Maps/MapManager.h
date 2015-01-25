@@ -90,7 +90,7 @@ public:
 	/// Get current map lighting
 	Lighting GetLighting();
 	/// Get current map lighting
-	void SetLighting(Lighting lighting);
+	void SetLighting(const Lighting & lighting);
 
 	/// Checks if a map with given name already exists.
 	bool Exists(String mapName);

@@ -397,7 +397,7 @@ bool Window::Create()
 	}
 
 	// Create a standard viewport at least. Always good to have one.
-	Viewport * vp = new Viewport();
+	Viewport * vp = NewA(Viewport);
 	vp->window = this;
 	viewports.Add(vp);
 
@@ -585,7 +585,7 @@ void Window::GetFrameContents(Texture * intoTexture)
 	frameTexture = NULL;
 }
 
-void Window::SetBackgroundColor(Vector4f color, bool applyToViewports)
+void Window::SetBackgroundColor(const Vector4f & color, bool applyToViewports)
 {
 	backgroundColor = color;
 	if (applyToViewports)
@@ -618,7 +618,7 @@ UserInterface * Window::GetGlobalUI(bool fromRenderThread)
 UserInterface * Window::CreateGlobalUI()
 {
 	assert(!globalUI);
-	globalUI = new UserInterface();
+	globalUI = NewA(UserInterface);
 	globalUI->name = name + "WindowGlobalUI";
 	globalUI->CreateRoot();
 	return globalUI;
@@ -627,7 +627,7 @@ UserInterface * Window::CreateGlobalUI()
 UserInterface * Window::CreateUI()
 {
 	assert(ui == NULL);
-	ui = new UserInterface();
+	ui = NewA(UserInterface);
 	ui->CreateRoot();
 	ui->name = name + "-DefaultUI";
 	return ui;

@@ -44,7 +44,7 @@ Variable::Variable(String name, Vector3f vec3f)
 {
 }
 
-Variable::Variable(String name, Vector4f vec4f)
+Variable::Variable(String name, const Vector4f & vec4f)
 	: name(name), vec4fValue(vec4f), type(DataType::VECTOR_4F)
 {
 }

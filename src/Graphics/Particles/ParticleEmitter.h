@@ -85,7 +85,7 @@ public:
 	void SetParticleLifeTime(float timeInSeconds);
 	void SetEmissionVelocity(float vel);
 	void SetParticlesPerSecond(int num);
-	void SetColor(Vector4f color);
+	void SetColor(const Vector4f & color);
 	void SetScale(float scale);
 
 

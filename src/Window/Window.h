@@ -64,6 +64,7 @@ Window * MainWindow();
 /// Window mouse is currently hovering over.
 Window * HoverWindow();
 
+__declspec( align( 16 ) ) 
 class Window 
 {
 	friend class GraphicsManager;
@@ -118,7 +119,7 @@ public:
 	/// Fills contents of current frame into target texture. Exactly which frame which will be sampled depends on the render-thread.
 	void GetFrameContents(Texture * intoTexture);
 
-	void SetBackgroundColor(Vector4f color, bool applyToViewports);
+	void SetBackgroundColor(const Vector4f & color, bool applyToViewports);
 
 	/// Fetches the UI which is displayed on top of everything else, used for fade-effects etc. Is created dynamically if not set earlier.
 	UserInterface * GetUI();

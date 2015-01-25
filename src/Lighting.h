@@ -15,6 +15,7 @@ class Window;
 /** A structure for keeping track of currently active lights in a scene
 	It contains mostly pointers since it is an encapsulating object for passing data between functions.
 */
+__declspec( align( 16 ) ) 
 class Lighting {
 	/// Loads selected lighting into the active shader program
 	friend void LoadLighting(Lighting * lighting, Shader * shader);

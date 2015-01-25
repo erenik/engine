@@ -82,10 +82,10 @@ private:
 
 class GameVariablefv : public GameVariable{
 	friend class GameVariableManager;
-	GameVariablefv(String name, Vector4f value = Vector4f(0,0,0,1)) : GameVariable(name, VECTOR), value(value){};
+	GameVariablefv(String name, const Vector4f & value = Vector4f(0,0,0,1)) : GameVariable(name, VECTOR), value(value){};
 public:
 	Vector4f Get() const { return value; };
-	void Set(Vector4f v) { value = v; };
+	void Set(const Vector4f & v) { value = v; };
 private:
 	Vector4f value;
 };

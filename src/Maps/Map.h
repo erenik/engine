@@ -79,9 +79,9 @@ public:
 	virtual bool ResetEvents();
 
 	/// Returns lighting for this map.
-	const Lighting * GetLighting() const {return &lighting; };
+	const Lighting * GetLighting() const;
 	/// Make sure you call this from the render-thread or pause rendering before manipulation!
-	Lighting * GetLightingEditable() {return &lighting; };
+	Lighting * GetLightingEditable();
 	/// Render?
 	virtual void Render(GraphicsState & graphicsState);
 
@@ -136,7 +136,7 @@ protected:
 	List<Path*> paths;
 
 	/// Map lighting object, accessed via MapManager
-	Lighting lighting;
+	Lighting * lighting;
 
 	/// List of external dependencies that were not embedded in the file
 	List<String> modelsRequired;

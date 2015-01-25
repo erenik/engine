@@ -231,7 +231,7 @@ bool MapManager::MakeActive(Map * map)
 	// Set new map as active.
 	map->active = true;
 
-	Graphics.QueueMessage(new GMSetLighting(&map->lighting));
+	Graphics.QueueMessage(new GMSetLighting(map->lighting));
 	/// Initial check again.
 	if (!map->Name().Length()){
 		std::cout<<"\nWARNING: Null map set!";
@@ -644,15 +644,15 @@ Lighting MapManager::GetLighting(){
 	Lighting currentLighting;
 //	currentLighting.VerifyData();
 	if (activeMap){
-		currentLighting = activeMap->lighting;
+		currentLighting = *activeMap->lighting;
 	//	currentLighting.VerifyData();
 	}
 	return currentLighting;
 }
 /// Get current map lighting
-void MapManager::SetLighting(Lighting lighting){
+void MapManager::SetLighting(const Lighting & lighting){
 	if (activeMap)
-		activeMap->lighting = lighting;
+		*activeMap->lighting = lighting;
 }
 
 /// Lists the loaded maps to console

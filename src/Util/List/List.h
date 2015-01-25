@@ -18,6 +18,12 @@ namespace ListOption {
     };
 };
 
+
+/// Align all allocation in the List class to 16 byte intervals, in order to support SSE/SIMD?
+/// 	_arr2 = (float*) _aligned_malloc(ARRAY_SIZE * sizeof(float), 16);
+///	_aligned_free(_arr2);
+
+
 /** A custom list class for handling arbitrary amounts of objects easily!
 	It is implemented as a dynamic array.
 	The items stored need to have = operator overloaded as well as base constructors!
@@ -32,7 +38,7 @@ public:
 	List(const List &otherList);
 	List(const T & initialItem);
 	/// Creates a new list of specific amount of items.
-	List(int numberOfItems, T item, T item2, ...);
+	List(int numberOfItems, const T & item, const T & item2, ...);
 	void Nullify();
 	~List();
 
@@ -71,19 +77,19 @@ public:
 		E.g. placing it at index 0 will add it at the beginning of the list.
 		It is recommended to use Add for adding to the end of the list.
 	*/
-	bool Insert(value_type item, int atIndex);
+	bool Insert(const value_type & item, int atIndex);
 	/// Adds an item to the list
-	bool Add(value_type item);
+	bool Add(const value_type & item);
 	/// Adds an item to the list
-	bool Add(List<value_type> item);
+	bool Add(const List<value_type> & item);
 	/// Adds an item to the list at the requested index, pushing along the rest. Used for keeping them sorted or stuff.
-	bool Add(value_type item, int requestedIndex);
+	bool Add(const value_type & item, int requestedIndex);
 	/// Adds multiple items to the list
-	bool Add(int numItems, T item, T item2, ...);
+	bool Add(int numItems, const T & item, const T & item2, ...);
 	/// Remove target item, searching for it.
-	bool Remove(value_type item);
+	bool Remove(const value_type & item);
 	/// Can be called with ListOption::RETAIN_ORDER to guarantee that internal order is preserved.
-	T Remove(value_type item, int removeOption);
+	T Remove(const value_type & item, int removeOption);
 	/// Removes item at target index.
 	bool RemoveIndex(int index);
 	/// Can be called with ListOption::RETAIN_ORDER to guarantee that internal order is preserved.
@@ -112,23 +118,25 @@ public:
 	const int & Size() const;
 
 	/// Polls the existance/copy of target item in the queue.
-	bool Exists(value_type item) const;
+	bool Exists(const value_type & item) const;
 	/// Polls the existance/copy of all items in target list within this list. Returns false if any items are missing.
-	bool Exists(List<value_type> subList) const;
+	bool Exists(const List<value_type> & subList) const;
 	/// Checks occurances of target item in the list.
-	int Occurances(value_type item) const;
+	int Occurances(const value_type & item) const;
 	/// Checks for duplicates in the list.
 	int Duplicates();
 	/// Returns content by index. Similar to the [] operator.
 	value_type & GetIndex(int index);
 
 	/// Polls the existance/copy of target item in the queue. Returns it's index if so and -1 if not.
-	int GetIndexOf(value_type item) const;
+	int GetIndexOf(const value_type & item) const;
 
 /// To be inherited by other classes...
 protected:
 	/// Resizing function
 	void Resize(int newSize);
+	/// Deletes the array and calls the destructor on all objects. Does NOT set currentItems nor arrLength to 0! Deallocate does that.
+	void DeleteArray();
 
 	value_type * arr;
 	int currentItems;
@@ -170,7 +178,12 @@ template <class T>
 List<T>::List(const List & otherList)
 {
 	arrLength = otherList.arrLength;
-	arr = new T[arrLength];
+
+	arr = (T*) _aligned_malloc(arrLength * sizeof(T), 16);
+	// Run constructor on the new objects?
+	for (int i = 0; i < arrLength; ++i)
+		new((void*)&arr[i]) T();
+
 	currentItems = otherList.currentItems;
 	/// Transfer items
 	for (int i = 0; i < currentItems; ++i){
@@ -187,7 +200,7 @@ List<T>::List(const T & initialItem)
 
 /// Creates a new list of specific amount of items.
 template <class T>
-List<T>::List(int numberOfItems, T item, T item2, ...)
+List<T>::List(int numberOfItems, const T & item, const T & item2, ...)
 {
 	Nullify();
 	Add(item);
@@ -220,8 +233,7 @@ template <class T>
 List<T>::~List()
 {
 	assert(arrLength >= 0 && arrLength < 10000000);
-	if (arr)
-		delete[] arr;
+	Deallocate();
 	arr = NULL;
 	arrLength = 0;
 }
@@ -240,15 +252,18 @@ void List<T>::SetFull()
 template <class T>
 const List<T> & List<T>::operator = (const List &otherList)
 {
-	if (arr)
-		delete[] arr;
+	Deallocate();
 	arr = NULL;
 	arrLength = 0;
 	currentItems = 0;
 	assert(otherList.arrLength >= otherList.currentItems);
 	if (otherList.arrLength > 0){
 		arrLength = otherList.arrLength;
-		arr = new T[arrLength];
+		arr = (T*) _aligned_malloc(arrLength * sizeof(T), 16);
+		// Run constructor on the new objects?
+		for (int i = 0; i < arrLength; ++i)
+			new((void*)&arr[i]) T();
+
 		for (int i = 0; i < otherList.currentItems; ++i){
 			arr[i] = otherList.arr[i];
 		}
@@ -349,7 +364,7 @@ T& List<T>::Last() {
 	It is recommended to use Add for adding to the end of the list.
 */
 template <class T>
-bool List<T>::Insert(T item, int atIndex)
+bool List<T>::Insert(const T & item, int atIndex)
 {
 	if (currentItems == arrLength){
 		try {
@@ -374,7 +389,7 @@ bool List<T>::Insert(T item, int atIndex)
 
 /// Adds an item to the list
 template <class T>
-bool List<T>::Add(T item) 
+bool List<T>::Add(const T & item) 
 {
 	if (currentItems == arrLength)
 	{
@@ -392,7 +407,7 @@ bool List<T>::Add(T item)
 
 /// Adds an item to the list
 template <class T>
-bool List<T>::Add(List<T> items)
+bool List<T>::Add(const List<T> & items)
 {
 	// Resize as needed.
 	Resize(currentItems + items.Size());
@@ -408,7 +423,7 @@ bool List<T>::Add(List<T> items)
 
 /// Adds 3 items to the list
 template <class T>
-bool List<T>::Add(int numItems, T item, T item2, ...) 
+bool List<T>::Add(int numItems, const T & item, const T & item2, ...) 
 {
 	Add(item);
 	Add(item2);
@@ -431,7 +446,7 @@ bool List<T>::Add(int numItems, T item, T item2, ...)
 
 /// Adds an item to the list
 template <class T>
-bool List<T>::Add(T item, int requestedIndex) {
+bool List<T>::Add(const T & item, int requestedIndex) {
 	if (currentItems == arrLength){
 		try {
 			Resize(currentItems * 2 + 1);
@@ -453,7 +468,7 @@ bool List<T>::Add(T item, int requestedIndex) {
 
 /// Remove target item or index
 template <class T>
-bool List<T>::Remove(T item)
+bool List<T>::Remove(const T & item)
 {
 	for (int i = 0; i < currentItems; ++i)
 	{
@@ -470,7 +485,7 @@ bool List<T>::Remove(T item)
 
 /// Remove target item or index, keeping the internal order of the remaining objects!
 template <class T>
-T List<T>::Remove(T item, int removeOption){
+T List<T>::Remove(const T & item, int removeOption){
     assert(removeOption == ListOption::RETAIN_ORDER);
 	for (int i = 0; i < currentItems; ++i){
 		/// found it!
@@ -583,7 +598,7 @@ const int & List<T>::Size() const {
 
 /// Polls the existance/copy of target item in the queue.
 template <class T>
-bool List<T>::Exists(T item) const {
+bool List<T>::Exists(const T & item) const {
 	for (int i = 0; i < currentItems; ++i){
 		if (arr[i] == item)
             return true;
@@ -593,7 +608,7 @@ bool List<T>::Exists(T item) const {
 
 /// Checks occurances of target item in the list.
 template <class T>
-int List<T>::Occurances(value_type item) const
+int List<T>::Occurances(const value_type & item) const
 {
 	int occurances = 0;
 	for (int i = 0; i < currentItems; ++i)
@@ -624,15 +639,15 @@ int List<T>::Duplicates()
 
 /// Polls the existance/copy of all items in target list within this list. Returns false if any items are missing.
 template <class T>
-bool List<T>::Exists(List<T> subList) const
+bool List<T>::Exists(const List<T> & subList) const
 {
-	for (int i = 0; i < currentItems; ++i)
+	int found = 0;
+	for (int i = 0; i < subList.Size(); ++i)
 	{
-		subList.Remove(arr[i]);
+		if (!Exists(subList[i]))
+			return false;
 	}
 	/// If the entire sublist is now empty, it means the same items are present in this main list.
-	if (subList.Size())
-		return false;
 	return true;
 }
 
@@ -648,7 +663,7 @@ T & List<T>::GetIndex(int index)
 
 /// Polls the existance/copy of target item in the queue. Returns it's index if so and -1 if not.
 template <class T>
-int List<T>::GetIndexOf(T item) const {
+int List<T>::GetIndexOf(const T & item) const {
 	for (int i = 0; i < currentItems; ++i){
 		if (arr[i] == item)
             return i;
@@ -669,11 +684,7 @@ void List<T>::Allocate(int newSize, bool setFull)
 template <class T>
 void List<T>::Deallocate()
 {
-	if (arr)
-	{
-		delete[] arr;
-		arr = 0;
-	}
+	DeleteArray();
 	arrLength = 0;
 	currentItems = 0;
 }
@@ -691,18 +702,35 @@ void List<T>::Resize(int newSize)
 	{
 		newSize = 8;
 	}
-	T * newArr = new T[newSize];
+	T * newArr = (T*) _aligned_malloc(newSize * sizeof(T), 16);
+	// Run constructor on the new objects?
+	for (int i = 0; i < newSize; ++i)
+		new((void*)&newArr[i]) T();
 	// If new array is larger, copy over old items.
 	if (newSize >= currentItems)
 	{
 		for (int i = 0; i < currentItems; ++i)
 			newArr[i] = arr[i];
 	}
-	// If not, don't
-	if (arr)
-		delete[] arr;
+	// Delete old array.
+	DeleteArray();
+	// Paste in the new one.
 	arr = newArr;
 	arrLength = newSize;
+}
+
+
+/// Deletes the array and calls the destructor on all objects. Does NOT set currentItems nor arrLength to 0! Deallocate does that.
+template <class T>
+void List<T>::DeleteArray()
+{
+	if (arr)
+	{
+		for (int i = 0; i < arrLength; ++i)
+			arr[i].~T();
+		_aligned_free(arr);
+		arr = 0;
+	}
 }
 
 

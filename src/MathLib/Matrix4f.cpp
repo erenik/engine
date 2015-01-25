@@ -527,7 +527,7 @@ Matrix4f Matrix4f::Product(const Matrix4f factor) const
 }
 
 /** Product with Vector */
-Vector4f Matrix4f::Product(Vector4f vector) const {
+Vector4f Matrix4f::Product(const Vector4f & vector) const {
 	float newArray[4];
 	float tempResult;
 	for (int y = 0; y < 4; y++){	// Rows
@@ -556,7 +556,7 @@ Matrix4f Matrix4f::operator * (const Matrix4f factor) const {
 	return Matrix4f(newArray);
 }
 
-Vector4f Matrix4f::operator * (Vector4f vector) const {
+Vector4f Matrix4f::operator * (const Vector4f & vector) const {
 	float newArray[4];
 	float tempResult;
 	for (int y = 0; y < 4; y++){	// Rows

@@ -302,6 +302,17 @@ bool Map::ResetEvents(){
 	return true;
 }
 
+/// Returns lighting for this map.
+const Lighting * Map::GetLighting() const {
+	return lighting; 
+}
+
+/// Make sure you call this from the render-thread or pause rendering before manipulation!
+Lighting * Map::GetLightingEditable() {
+	return lighting; 
+};
+
+
 /// Loads embedded path-data, i.e. paths belonging solely to this map.
 bool Map::ReadPaths(std::fstream &file){
 	int numPaths;
