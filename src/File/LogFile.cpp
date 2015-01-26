@@ -13,11 +13,15 @@
 List<String> logsStartedThisSession;
 
 // yer.
-bool loggingEnabled = false;
+bool loggingEnabled = true;
+int logLevel = WARNING;
 
 /// Logs to file, creates the file (and folders) necessary if it does not already exist. Time stamps will probably also be available.
-void LogToFile(String fileName, String logText)
+void LogToFile(String fileName, String logText, int level)
 {
+	std::cout<<"\n"<<logText;
+	if (level < logLevel)
+		return;
 	if (fileName == PHYSICS_THREAD ||
 		fileName == MAIN_THREAD)
 	{

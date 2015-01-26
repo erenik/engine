@@ -262,7 +262,7 @@ void * StateManager::StateProcessor(void * vArgs){
 	long long time = Timer::GetCurrentTimeMs();
 	long long newTime = Timer::GetCurrentTimeMs();
 	
-	Log("State processor starting");
+	LogMain("State processor starting", INFO);
 	while(StateMan.shouldLive)
 	{
 		// For catching them errors.
@@ -345,12 +345,12 @@ void * StateManager::StateProcessor(void * vArgs){
 		}
 		catch (...)
 		{
-			LogToFile("log/StateProcessorErrors.txt", "An unexpected error occurred in the main processing thread (StateManager::StateProcessor).");
+			LogMain("An unexpected error occurred in the main processing thread (StateManager::StateProcessor).", ERROR);
 			std::cout<<"An unexpected error occurred.";
-			Sleep(500);
+			Sleep(100);
 		}
 	}
-	Log("State processing thread ending");
+	LogMain("State processing thread ending");
 
 	std::cout<<"\n>>> StateProcessingThread ending...";
 #ifdef WINDOWS

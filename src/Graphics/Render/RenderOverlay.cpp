@@ -110,7 +110,7 @@ void GraphicsManager::RenderOverlay()
 		if (overlayTexture->glid != -1)
 			RenderFullScreen(overlayTexture, 1.0f);
 		else 
-			LogGraphics("Trying to render unbuffered overlay texture.");
+			LogGraphics("Trying to render unbuffered overlay texture.", WARNING);
 	}
 	// And if we have a queued overlay texture, render it on top!
 	if (queuedOverlayTexture)

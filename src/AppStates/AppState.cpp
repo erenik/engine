@@ -145,7 +145,7 @@ void AppState::CreateDefaultBindings()
 void AppState::CreateUserInterface()
 {
 	std::cout<<"\nState::CreateUserInterface called for "<<name;
-	Log("State::CreateUserInterface called for state "+name+". Empty UI is created by default!");
+	LogMain("State::CreateUserInterface called for state "+name+". Empty UI is created by default!");
 	if (ui)
 		delete ui;
 	ui = NewA(UserInterface);

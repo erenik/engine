@@ -136,7 +136,7 @@ void PMSet::Process()
 				delete physics.physicsIntegrator;
 				physics.physicsIntegrator = NULL;
 			}
-			LogPhysics("Setting new integrator");
+			LogPhysics("Setting new integrator", INFO);
 			physics.physicsIntegrator = i;
 			break;
 		}
@@ -148,7 +148,7 @@ void PMSet::Process()
 			// Delete theo ld one?
 			if (physics.collisionResolver)
 				delete physics.collisionResolver;
-			LogPhysics("Setting new collision resolver");
+			LogPhysics("Setting new collision resolver", INFO);
 			physics.collisionResolver = cr;
 			break;
 		}
@@ -159,7 +159,7 @@ void PMSet::Process()
 				break;
 			if (physics.collisionDetector)
 				delete physics.collisionDetector;
-			LogPhysics("Setting new collision detector");
+			LogPhysics("Setting new collision detector", INFO);
 			physics.collisionDetector = cd;
 			break;
 		}

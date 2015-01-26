@@ -59,14 +59,15 @@ int GraphicsManager::RegisterEntities(List<Entity*> & toRegister){
 /// Removes an Entity from the rendering vfcOctree.
 bool GraphicsManager::UnregisterEntity(Entity * entity)
 {
+	bool result = registeredEntities.Remove(entity);
+	if (!result){
+		std::cout<<"\nWARNING: Unable to remove entity, already unregistered?";
+		return false;
+	}
 	int entitiesBefore = registeredEntities.Size();
 	int octreeEntitiesBeforeRemoval = vfcOctree->RegisteredEntities();
 	if (!entity->registeredForRendering)
 		return true;
-	bool result = registeredEntities.Remove(entity);
-	if (!result){
-		std::cout<<"\nWARNING: Unable to remove entity, already unregistered?";
-	}
 
 	// Check for additional graphics-data
 	if (entity->graphics)

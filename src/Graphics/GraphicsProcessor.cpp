@@ -8,6 +8,7 @@
 #include "Multimedia/MultimediaManager.h"
 #include "FrameStatistics.h"
 #include "GLBuffers.h"
+#include "Message/MessageManager.h"
 
 #include "OS/OS.h"
 #include "Window/WindowSystem.h"
@@ -48,6 +49,7 @@ extern void testRender();
 #endif // OSXx
 
 int renderInstancesBegun = 0;
+int fatalGraphicsError = 0;
 #include <fstream>
 
 /// Main graphics manager processing thread
@@ -60,22 +62,22 @@ void * GraphicsManager::Processor(void * vArgs){
     std::cout<<"\n=======================================================";
     std::cout<<"\nGraphicsProcessor begun!";
     renderInstancesBegun++;
-    std::cout<<"\nInstancesBegun: "<<renderInstancesBegun;
     assert(renderInstancesBegun == 1);
-
-
-	LogGraphics("Graphics processing thread started");
-
+	if (renderInstancesBegun > 0)
+	{
+		  LogGraphics("Multiple instances of GraphicsProcessor started. Current count: "+String(renderInstancesBegun), WARNING);
+	}
+	LogGraphics("Graphics processing thread started", INFO);
     int result;
 #ifdef WINDOWS
 
 	/// Wait until we have a valid window we can render onto.
 	while(WindowMan.NumWindows() == 0)
 	{
-		LogGraphics("Waiting for windows");
+		LogGraphics("Waiting for windows", INFO);
 		Sleep(50);
 	}
-	LogGraphics("Creating GL context");
+	LogGraphics("Creating GL context", INFO);
 	Window * mainWindow = WindowMan.GetWindow(0);
 	mainWindow->CreateGLContext();
 	mainWindow->MakeGLContextCurrent();
@@ -131,13 +133,28 @@ void * GraphicsManager::Processor(void * vArgs){
 
 	// Initialize glew
     std::cout<<"\nInitializing GLEW...";
-	LogGraphics("Initializing GLEW");
+	LogGraphics("Initializing GLEW", INFO);
 
 //	glewExperimental = GL_TRUE;
-	result = glewInit();
-	if (result != GLEW_OK){
-		/* Problem: glewInit failed, something is seriously wrong. */
-		  std::cout<<"\nGL Error: "<<glewGetErrorString(result)<<"\n";
+	result = -1;
+	int attempts = 0;
+	while(result != GLEW_OK)
+	{
+		result = glewInit();
+		if (result != GLEW_OK){
+			/* Problem: glewInit failed, something is seriously wrong. */
+			LogGraphics("GL Error: "+String((char*)glewGetErrorString(result))+"\n", ERROR);
+			++attempts;
+			LogGraphics("\nWaiting and trying to initialize GLEW again.", INFO);
+			Sleep(50);
+			if (attempts > 20)
+			{
+				LogGraphics("Fatal error: Could not initialize GLEW. (OpenGL Extension Wrangler)", ERROR);
+				fatalGraphicsError = true;
+				MesMan.QueueMessages("QuitApplication");
+				return;
+			}
+		}
 	}
 	/// Check GL version
 	const GLubyte * data;
@@ -227,7 +244,7 @@ void * GraphicsManager::Processor(void * vArgs){
 	// Pointarr.
 	GraphicsState * graphicsState = Graphics.graphicsState;
 
-	LogGraphics("Beginning main rendering/physics/multimedia loop");
+	LogGraphics("Beginning main rendering/physics/multimedia loop", INFO);
 	// Then begin the main rendering loop
 	while(Graphics.shouldLive)
 	{
@@ -380,11 +397,11 @@ void * GraphicsManager::Processor(void * vArgs){
 		}
 		catch(...)
 		{
-			LogGraphics("An unexpected error occurred");
+			LogGraphics("An unexpected error occurred in GraphicsProcessor thread.", ERROR);
 			std::cout<<"\nAn unexpected error occurred";
 		}
 	}
-	LogGraphics("Ending main rendering/physics/multimedia loop");
+	LogGraphics("Ending main rendering/physics/multimedia loop", INFO);
 
 	/// Shut down all remaining music.
 	AudioMan.StopAndRemoveAll();

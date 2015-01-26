@@ -87,7 +87,7 @@ void PhysicsMesh::GenerateCollisionShapeOctree()
 	//	collisionShapeOctree->PrintContents();
 	}
 	if (skipped)
-		LogPhysics("\n"+String(skipped)+" triangles skipped while generating colision octree for mesh: "+mesh->source);
+		LogPhysics("\n"+String(skipped)+" triangles skipped while generating colision octree for mesh: "+mesh->source, INFO);
 	
 //	collisionShapeOctree->PrintContents();
 	

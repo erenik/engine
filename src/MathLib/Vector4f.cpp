@@ -486,3 +486,15 @@ void Vector4f::PrepareForSIMD()
 	data = _mm_setr_ps(x,y,z,w);
 }
 #endif
+
+
+
+/*
+Should be able to place in class!
+union
+{
+    __m128 simd;
+    float v[4];
+    struct { float x, y, z, w; }
+}
+*/

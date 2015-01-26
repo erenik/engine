@@ -139,7 +139,7 @@ void RenderPipelineManager::LoadFromPipelineConfig()
 	}
 	if (!activePipeline)
 	{
-		LogGraphics("No active render pipelines to use!");
+		LogGraphics("No active render pipelines to use!", ERROR);
 		assert(false && "No active render pipelines to use");
 	}
 	GraphicsMan.graphicsState->renderPipe = activePipeline;

@@ -108,6 +108,9 @@
 
 void SIMDTest();
 
+/// Kept in GraphicsProcessor.
+extern int fatalGraphicsError;
+
 
 /// Le main! (^o-o^);
 #ifdef WINDOWS
@@ -538,11 +541,17 @@ int main(int argc, char **argv)
 
 	/// Wait until the render thread has been set up properly?
 	int spams = 0;
+	int errorCode = 0;
     while(!Graphics.enteringMainLoop){
 		++spams;
 		if (spams > 300){
 			std::cout<<"\nWaiting for GraphicsProcessor to enter main rendering-loop.";
 			spams = 0;
+			if (fatalGraphicsError > 0)
+			{
+				errorCode = fatalGraphicsError;
+				break;
+			}
 		}
         Sleep(10);
     }
@@ -694,7 +703,12 @@ int main(int argc, char **argv)
 	/// Post memory leaks
 //	_CrtDumpMemoryLeaks();
 	Sleep(100);
-	return (int) 0;
+	if (errorCode > 0)
+	{
+		std::cout<<"\nApplication ending. Error code: "<<errorCode<<". See log files in /log/ for more info.";
+		Sleep(3000);
+	}
+	return (int) errorCode;
 #elif defined LINUX | defined OSX
     return 0;
 #endif

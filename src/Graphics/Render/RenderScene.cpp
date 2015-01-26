@@ -30,7 +30,7 @@ void GraphicsManager::RenderScene()
     if (shader == NULL){
     //    std::cout<<"\nUnable to set Phong shader in GraphicsManager::RenderScene";
     #ifdef WINDOWS
-		LogGraphics("Unable to set Phong shader.");
+		LogGraphics("Unable to set Phong shader.", ERROR);
         assert(shader && "Unable to set \"Phong\" shader");
     #endif
         return;

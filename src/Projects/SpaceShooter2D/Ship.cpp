@@ -86,7 +86,7 @@ void Ship::Destroy()
 
 String whenParsingFile;
 int row = 0;
-#define LogShip(s) LogToFile("ShipParserErrors.txt", whenParsingFile + " row "+String(row) + String(": ") + s)
+#define LogShip(s) LogToFile("ShipParserErrors.txt", whenParsingFile + " row "+String(row+1) + String(": ") + s)
 // Load ship-types.
 bool Ship::LoadTypes(String file)
 {
@@ -129,7 +129,10 @@ bool Ship::LoadTypes(String file)
 				continue;
 			column.SetComparisonMode(String::NOT_CASE_SENSITIVE);
 			if (column == "Name")
+			{
+				value.RemoveSurroundingWhitespaces();
 				ship.name = value;
+			}
 			else if (column == "Type")
 				ship.type = value;
 			else if (column == "Can Move")
@@ -377,13 +380,18 @@ void Ship::ParseMovement(String fromString)
 Ship Ship::New(String shipByName)
 {
 	shipByName.Replace('_', ' ');
+	shipByName.RemoveSurroundingWhitespaces();
+	List<String> typesNames;
 	for (int i = 0; i < types.Size(); ++i)
 	{
 		Ship & type = types[i];
 		if (type.name == shipByName)
 			return type;
+		typesNames.Add(type.name);
 	}
+	String shipTypesStr = MergeLines(typesNames, ", ");
 	// For now, just add a default one.
+	LogToFile("LevelCreationErrors.txt", "ERROR: Couldn't find ship by name \'"+shipByName+"\'. Available ships types as follows:\n\t" + shipTypesStr);
 	std::cout<<"\nERROR: Couldn't find ship by name \'"<<shipByName<<"\'";
 	return Ship();
 }
