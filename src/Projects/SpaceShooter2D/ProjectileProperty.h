@@ -12,7 +12,7 @@
 class ProjectileProperty : public EntityProperty 
 {
 public:
-	ProjectileProperty(Weapon weaponThatSpawnedIt, Entity * owner);
+	ProjectileProperty(const Weapon & weaponThatSpawnedIt, Entity * owner);
 	// Static version.
 	static int ID();
 

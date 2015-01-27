@@ -123,7 +123,7 @@ public:
 	void NewGame();
 	void TogglePause();
 	/// Loads target level. The source and separate .txt description have the same name, just different file-endings, e.g. "Level 1.png" and "Level 1.txt"
-	void LoadLevel(String levelSource);
+	void LoadLevel(String levelSource = "CurrentStageLevel");
 	void GameOver();
 	void LevelCleared();
 
@@ -152,6 +152,10 @@ public:
 	List<Entity*> projectileEntities;
 
 	String levelSource;
+
+	/// o.o
+	int currentLevel;
+	int currentStage;
 
 	/// The level entity, around which the playing field and camera are based upon.
 	Entity * levelEntity;

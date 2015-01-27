@@ -6,6 +6,7 @@
 #define WEAPON_H
 
 #include "String/AEString.h"
+#include "MathLib.h"
 
 class Ship;
 
@@ -15,6 +16,9 @@ public:
 	Weapon();
 	static bool Get(String byName, Weapon & weapon);
 	static bool LoadTypes(String fromFile);
+	/// Moves the aim of this weapon turrent.
+	void Aim(Ship * ship);
+	/// Shoots using previously calculated aim.
 	void Shoot(Ship * ship);
 	String name;
 	/// -1 = Infinite, >= 0 = Finite
@@ -50,6 +54,9 @@ public:
 	/// Last show, format Time::Now().Milliseconds()
 	int lastShotMs;
 	static List<Weapon> types;
+
+	/// For aiming weapons, mainly. Normalized vector.
+	Vector3f currentAim;
 };
 
 #endif

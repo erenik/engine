@@ -25,6 +25,11 @@ bool Level::Load(String fromSource)
 	{
 		String line = lines[i];
 		line.SetComparisonMode(String::NOT_CASE_SENSITIVE);
+		// o.o
+		if (line.StartsWith("StopLoading"))
+			break;
+		if (line.StartsWith("//"))
+			continue;
 		if (line.StartsWith("MillisecondsPerPixel"))
 		{
 			List<String> tokens = line.Tokenize(" ");
@@ -70,6 +75,8 @@ bool Level::Load(String fromSource)
 	List<String> files ;
 	GetFilesInDirectory("Levels/Stage 1", files);  
 	Texture * tex = TexMan.LoadTexture(sourcePng, true);
+	if (!tex)
+		return false;
 	tex->releaseOnBufferization = false;
 	assert(tex);
 	// Parse it.
@@ -137,30 +144,35 @@ void Level::AddPlayer(Ship * playerShip)
 		MapMan.DeleteEntity(playerShip->entity);
 		playerShip->entity = NULL;
 	}
+	PhysicsProperty * pp = NULL;
 	if (!playerShip->entity)
 	{
-		playerShip->entity = EntityMan.CreateEntity("Player ship", ModelMan.GetModel("sphere.obj"), TexMan.GetTextureByColor(Color(255,0,0,255)));
+		Model * model = playerShip->GetModel();
+		assert(model);
+		playerShip->entity = EntityMan.CreateEntity("Player ship", model, TexMan.GetTextureByColor(Color(255,0,0,255)));
 		ShipProperty * sp = new ShipProperty(playerShip, playerShip->entity);
 		playerShip->entity->properties.Add(sp);
-		PhysicsProperty * pp = new PhysicsProperty();
+		pp = new PhysicsProperty();
 		playerShip->entity->physics = pp;
-		pp->collissionCallback = true;				
-		pp->collisionCategory = CC_PLAYER;
-		pp->collisionFilter = CC_ENEMY | CC_ENEMY_PROJ;
-		pp->velocity = BaseVelocity();
-		pp->type = PhysicsType::DYNAMIC;
-		// Set player to mid position.
-		playerShip->entity->position = Vector3f(0, 10.f, 0);
 	}
 	// Shortcut..
 	Entity * entity = playerShip->entity;
+	pp = entity->physics;
+	pp->collissionCallback = true;				
+	pp->collisionCategory = CC_PLAYER;
+	pp->collisionFilter = CC_ENEMY | CC_ENEMY_PROJ;
+	pp->velocity = BaseVelocity();
+	pp->type = PhysicsType::DYNAMIC;
 	// Set player to mid position.
-	PhysicsMan.QueueMessage(new PMSetEntity(entity, PT_SET_POSITION, Vector3f(0, 10.f, 0)));
-	// Set player collision stats.
+	entity->position = Vector3f(0, 10.f, 0);
+	// Rotate ship with the nose from Z- to Y+
+	float radians = PI / 2;
+	entity->rotation[0] = radians;
+	entity->rotation[1] = -radians;
+	entity->RecalculateMatrix();
+	pp->velocity = BaseVelocity();
 	// Register player for rendering.
 	MapMan.AddEntity(entity);
-	// Begin movement of player too?
-	PhysicsMan.QueueMessage(new PMSetEntity(entity, PT_VELOCITY, BaseVelocity()));
 }
 
 void Level::SetupCamera()

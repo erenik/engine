@@ -77,6 +77,8 @@ private:
 	bool OpenVorbis();
 	/// Attempts to open Opus playback from the file-stream.
 	bool OpenOpus();
+	/// Attemps to open Theora playback from the file-stream.
+	bool OpenTheora();
 
 	/** Current frame data in a format liked by the Texture class!
 		Pixel index psi below. and the pixel index with offsets of 0 to 3 give the RGBA components respectively.
@@ -98,6 +100,7 @@ private:
 
 	/// File stream handle.
 	std::fstream file;
+	bool oggSyncStateUsed; // If used or not.
 	/// Ogg synchronization state, for parsing Ogg pages
 	ogg_sync_state oggSyncState;
 	/// List of states for encode/decode status of all logical bitstreams

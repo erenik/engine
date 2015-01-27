@@ -25,11 +25,33 @@ Ship::Ship()
 	currentMovement = 0;
 	timeInCurrentMovement = 0;
 	speed = 0.f;
+
+	currentRotation = 0;
+	timeInCurrentRotation = 0;
+
+	graphicModel = "obj/Ships/Ship.obj";
 }
 
 Ship::~Ship()
 {
 	
+}
+
+/// Prepends the source with '/obj/Ships/' and appends '.obj'. Uses default 'Ship.obj' if needed.
+Model * Ship::GetModel()
+{
+	String folder = "obj/Ships/";
+	Model * model = ModelMan.GetModel(folder + graphicModel);
+	if (!model)
+	{
+		std::cout<<"\nUnable to find ship model with name \'"<<graphicModel<<"\', using default model.";
+		graphicModel.SetComparisonMode(String::NOT_CASE_SENSITIVE);
+		if (graphicModel.Contains("turret"))
+			model = ModelMan.GetModel(folder + "Turret");
+		else
+			model = ModelMan.GetModel(folder + "Ship");
+	}
+	return model;
 }
 
 void Ship::Damage(int amount, bool ignoreShield)
@@ -99,8 +121,11 @@ bool Ship::LoadTypes(String file)
 	/// Column-names. Parse from the first line.
 	List<String> columns;
 	String firstLine = lines[0];
+	int commas = firstLine.Count(',');
+	int semiColons = firstLine.Count(';');
+	int delimiter = semiColons > commas? ';' : ',';
 	// Keep empty strings or all will break.
-	columns = TokenizeCSV(firstLine);
+	columns = TokenizeCSV(firstLine, delimiter);
 
 	// For each line after the first one, parse data.
 	for (int j = 1; j < lines.Size(); ++j)
@@ -108,7 +133,7 @@ bool Ship::LoadTypes(String file)
 		String & line = lines[j];
 		row = j;
 		// Keep empty strings or all will break.
-		List<String> values = TokenizeCSV(line);
+		List<String> values = TokenizeCSV(line, delimiter);
 		for (int i = 0; i < values.Size(); ++i)
 		{
 			String v = values[i];
@@ -211,6 +236,11 @@ bool Ship::LoadTypes(String file)
 			{
 				ship.ParseMovement(value);
 				ship.movementPatterns.Size();
+			}
+			else if (column == "Rotation pattern")
+			{
+				ship.ParseRotation(value);
+				ship.rotationPatterns.Size();
 			}
 			else if (column == "Speed")
 				ship.speed = value.ParseFloat() * 0.2f;
@@ -376,6 +406,88 @@ void Ship::ParseMovement(String fromString)
 }
 
 
+/// E.g. "DoveDir(3), RotateToFace(player, 5)"
+void Ship::ParseRotation(String fromString)
+{
+	rotationPatterns.Clear();
+	/// Tokenize.
+	List<String> parts = TokenizeIgnore(fromString, ",", "()");
+	for (int i = 0; i < parts.Size(); ++i)
+	{
+		String part = parts[i];
+		List<String> broken = part.Tokenize("()");
+		if (broken.Size() == 0)
+		{
+			LogShip("Empty movement pattern when parsing ship \'"+name+"\'.");
+			continue;
+		}
+		String partPreParenthesis = broken[0];
+		partPreParenthesis.RemoveSurroundingWhitespaces();
+		Rotation rota;
+		rota.type = -1;
+		String name = partPreParenthesis;
+		if (name == "MoveDir")
+			rota.type = Rotation::MOVE_DIR;
+		else if (name == "RotateTo" || name == "RotationTo" || name == "RotateToFace")
+			rota.type = Rotation::ROTATE_TO_FACE;
+		else if (name == "WeaponTarget")
+			rota.type = Rotation::WEAPON_TARGET;
+		else if (name == "None" || name == "n/a")
+			rota.type = Rotation::NONE;
+		if (rota.type == -1)
+		{
+			LogShip("Unrecognized movement pattern \'"+name+"\' when parsing ship \'"+name+"\'. Available types are as follows: \n\
+																						   MoveDir(duration)\
+																						   RotateToFace(location, duration)");
+			continue;
+		}
+		// Add it and continue.
+		if (rota.type == Rotation::NONE)
+		{
+			rotationPatterns.Add(rota);
+			continue;
+		}
+		// Demand arguments depending on type?
+		if (broken.Size() < 2)
+		{
+			LogShip("Lacking arguments for movement pattern \'"+partPreParenthesis+"\' when parsing data for ship \'"+name+"\'.");
+			continue;
+		}
+		List<String> args = broken[1].Tokenize(",");
+#define DEMAND_ARGS(a) if (args.Size() < a){ \
+	LogShip("Expected "+String(a)+" arguments for movement type \'"+\
+	Rotation::Name(rota.type)+"\', encountered "+String(args.Size())+"."); \
+	continue;}
+#define GET_DURATION(a) if (args[a] == "inf") rota.durationMs = -1; else rota.durationMs = args[a].ParseFloat() * 1000;
+		switch(rota.type)
+		{
+			case Rotation::NONE:
+				break;
+			case Rotation::MOVE_DIR:
+			case Rotation::WEAPON_TARGET: 
+				DEMAND_ARGS(1);				// Just durations here.
+				GET_DURATION(0);
+				break;	
+			case Rotation::ROTATE_TO_FACE:
+				DEMAND_ARGS(2);
+				rota.target = args[0];
+				GET_DURATION(1);
+				break;
+			case Rotation::SPINNING:
+				DEMAND_ARGS(2);
+				rota.spinSpeed = args[0].ParseFloat();
+				GET_DURATION(1);
+				break;
+		}
+		rotationPatterns.Add(rota);
+	}
+	if (rotationPatterns.Size() == 0)
+	{
+		rotationPatterns.Add(Rotation(Rotation::NONE));
+	}
+	assert(rotationPatterns.Size());
+}
+
 /// Creates new ship of specified type.
 Ship Ship::New(String shipByName)
 {
@@ -391,18 +503,29 @@ Ship Ship::New(String shipByName)
 	}
 	String shipTypesStr = MergeLines(typesNames, ", ");
 	// For now, just add a default one.
-	LogToFile("LevelCreationErrors.txt", "ERROR: Couldn't find ship by name \'"+shipByName+"\'. Available ships types as follows:\n\t" + shipTypesStr);
+	LogToFile("LevelCreationErrors.txt", "ERROR: Couldn't find ship by name \'"+shipByName+"\'. Available ships types as follows:\n\t" + shipTypesStr, ERROR);
 	std::cout<<"\nERROR: Couldn't find ship by name \'"<<shipByName<<"\'";
 	return Ship();
+}
+
+/// Checks weapon's latest aim dir.
+Vector3f Ship::WeaponTargetDir()
+{
+	for (int i = 0; i < weapons.Size(); ++i)
+	{
+		Weapon & weapon = weapons[i];
+		if (weapon.aim)
+			return weapon.currentAim;
+	}
+	return Vector3f();
 }
 
 
 /// Calls OnEnter for the initial movement pattern.
 void Ship::StartMovement()
 {
-	if (!canMove)
-		return;
-	assert(movementPatterns.Size());
+	if (rotationPatterns.Size())
+		rotationPatterns[0].OnEnter(this);
 	if (movementPatterns.Size())
 		movementPatterns[0].OnEnter(this);
 }

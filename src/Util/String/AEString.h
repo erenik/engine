@@ -120,6 +120,7 @@ public:
 	void Add(const char * otherString);
 	/// Char-wise replacement
 	void Replace(const char a, const char withB);
+	void Replace(String part, String withNewString);
 
 	// Extract data o-o
 	bool ParseBool();

@@ -26,7 +26,7 @@ String GetSection(String inString, char withStartToken, char andEndToken);
 void PrependStrings(List<String> & list, String withString);
 
 /// For loading CSV files, looks for the delimiter (usually comma ','), and abserves quotation marks for any occurences of commas within the actual data.
-List<String> TokenizeCSV(String csvString);
+List<String> TokenizeCSV(String csvString, int delimiter = ',');
 /** Used to tokenize with some characters used to start and stop the tokenization procedure temporarily.
 	Sample use-case would be to tokenize the string "Aim(7,3), Guard(2,3)" and returning "Aim(7,3)" and "Guard(2,3)",
 	using the tokenizer ',' and ignoreparts "()". 

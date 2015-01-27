@@ -52,6 +52,8 @@ int renderInstancesBegun = 0;
 int fatalGraphicsError = 0;
 #include <fstream>
 
+String graphicsThreadDetails;
+
 /// Main graphics manager processing thread
 #ifdef WINDOWS
 void GraphicsManager::Processor(void * vArgs){
@@ -63,7 +65,7 @@ void * GraphicsManager::Processor(void * vArgs){
     std::cout<<"\nGraphicsProcessor begun!";
     renderInstancesBegun++;
     assert(renderInstancesBegun == 1);
-	if (renderInstancesBegun > 0)
+	if (renderInstancesBegun > 1)
 	{
 		  LogGraphics("Multiple instances of GraphicsProcessor started. Current count: "+String(renderInstancesBegun), WARNING);
 	}
@@ -272,6 +274,7 @@ void * GraphicsManager::Processor(void * vArgs){
 
 		//	std::cout<<"\nProcessing physics messages... ";
 			
+			graphicsThreadDetails = "Before physics";
 			Timer totalPhysics;
 			FrameStats.ResetPhysics();
 			totalPhysics.Start();
@@ -289,6 +292,7 @@ void * GraphicsManager::Processor(void * vArgs){
 			totalPhysics.Stop();
 			FrameStats.totalPhysics = totalPhysics.GetMs();
 
+			graphicsThreadDetails = "Multimedia start";
 			Timer multimedia;
 			multimedia.Start();
 			
@@ -296,6 +300,7 @@ void * GraphicsManager::Processor(void * vArgs){
 			MultimediaMan.Update();
 
 			// Process audio
+			graphicsThreadDetails = "AudioMan.Update";
 			AudioMan.Update();
 			multimedia.Stop();
 			FrameStats.multimedia = multimedia.GetMs();
@@ -303,6 +308,7 @@ void * GraphicsManager::Processor(void * vArgs){
 			/// Process graphics if we can claim the mutex within 10 ms. If not, skip it this iteration.
 			if (GraphicsMan.graphicsProcessingMutex.Claim(100))
 			{
+				graphicsThreadDetails = "Start of graphics";
 				FrameStats.ResetGraphics();
 				Graphics.processing = true;
 				Timer graphicsTotal;
@@ -369,8 +375,9 @@ void * GraphicsManager::Processor(void * vArgs){
 				std::cout<<"\nUnable to claim graphicsProcessing mutex within given time frame, skipping processing this iteration";
 			}
 		//	std::cout<<"\nGraphicsFrameTime: "<<graphicsTimer.GetMs();
-
 			total.Stop();
+			graphicsThreadDetails = "After graphics";
+
 			/// Push frame time and increase optimization once a second if needed.
 			FrameStats.PushFrameTime(total.GetMs());
 			int fps = FrameStats.FPS();
@@ -397,7 +404,7 @@ void * GraphicsManager::Processor(void * vArgs){
 		}
 		catch(...)
 		{
-			LogGraphics("An unexpected error occurred in GraphicsProcessor thread.", ERROR);
+			LogGraphics("An unexpected error occurred in GraphicsProcessor thread. Details: "+graphicsThreadDetails, ERROR);
 			std::cout<<"\nAn unexpected error occurred";
 		}
 	}

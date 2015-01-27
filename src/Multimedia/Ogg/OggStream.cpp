@@ -55,6 +55,8 @@ OggStream::OggStream()
 
 	hasOpus = false;
 	oggOpusFile = NULL;
+
+	oggSyncStateUsed = false;
 }
 
 OggStream::~OggStream()
@@ -102,6 +104,9 @@ static int dump_comments(th_comment *_tc){
 /// Attempts to open target file. Returns false upon failure.
 bool OggStream::Open(String path)
 {
+	lastAudioInfo = "OggStream::Open: "+path;
+	std::cout<<lastAudioInfo;
+
 	// Save path we're streaming from.
 	this->path = path;
 
@@ -119,8 +124,91 @@ bool OggStream::Open(String path)
 
 	name = FilePath::GetFileName(path);
 
+	bool openedVideo = false;
+#ifdef THEORA
+	bool openedVideo = OpenTheora();
+#endif
+
+	bool opened = OpenVorbis();
+	if (!opened)
+		opened = OpenOpus();
+	
+	return opened | openedVideo;
+}
+
+/// Attempts to open Vorbis playback from the file-stream.
+bool OggStream::OpenVorbis()
+{
+	lastAudioInfo = "OggStream::OpenVorbis";
+	/// Grab any available OggVorbis data!
+	bool result = ov_fopen(path.c_str(), &oggVorbisFile);
+	if (result == 0){
+		// Success!
+		hasAudio = true;
+		hasVorbis = true;
+		/// Grab info and comment.
+		vorbisInfo = ov_info(&oggVorbisFile, -1);
+		vorbisComment = ov_comment(&oggVorbisFile, -1);
+		std::cout<<"\nFound Vorbis.";
+
+		audioChannels =	vorbisInfo->channels;
+		samplesPerSecond = vorbisInfo->rate;
+	//	std::cout<<"\nBitrate info: nominal: "<<vorbisInfo->bitrate_nominal<<" lower: "<<vorbisInfo->bitrate_lower;
+//		assert(vorbisInfo->bitrate_nominal == vorbisInfo->bitrate_lower);
+
+	}
+	else 
+	{
+		// Require audio.
+//		std::cout<<"\nUnable to find Vorbis.";
+		return false;
+	}
+	return true;
+}
+
+/// Attempts to open Opus playback from the file-stream.
+bool OggStream::OpenOpus()
+{
+#ifdef OPUS
+	lastAudioInfo = "OggStream::OpenOpus";
+	/// Grab any available OggVorbis data!
+	int error = 0;
+	oggOpusFile = op_open_file(path.c_str(), &error);
+	if (oggOpusFile)
+	{
+		// Success!
+		hasAudio = true;
+		hasOpus = true;
+		/// Grab info and comment.
+//		vorbisInfo = ov_info(&oggVorbisFile, -1);
+	//	vorbisComment = ov_comment(&oggVorbisFile, -1);
+		std::cout<<"\nFound Opus.";
+		opusHead = op_head(oggOpusFile, -1);
+		opusTags = op_tags(oggOpusFile, -1);
+		std::cout<<"\nVendor: "<<opusTags->vendor;
+		audioChannels = opusHead->channel_count;
+		// Original sampling rate may be used, but for playback 48kHz should be used as that is standard for all Opus.
+		samplesPerSecond = 48000; //opusHead->input_sample_rate
+	}
+	else 
+	{
+		// Require audio.
+	//	std::cout<<"\nUnable to open audio! aborting.";
+		return false;
+	}
+	return true;
+#else
+	return false;
+#endif // OPUS
+}
+
+/// Attemps to open Theora playback from the file-stream.
+bool OggStream::OpenTheora()
+{
+	lastAudioInfo = "OggStream::OpenTheora";
 	/// Initialize Ogg synchronization state. Always returns 0.
 	ogg_sync_init(&oggSyncState);
+	oggSyncStateUsed = true;
 
 	/// Initialize Theora structures needed.
 #ifdef THEORA
@@ -330,16 +418,19 @@ bool OggStream::Open(String path)
 	// In the example they set up additional options for a callback function, namely decoder th_stripe_callback
 
 	/// Print some more shit.
+#ifdef USE_THEORA
 	static const char *CHROMA_TYPES[4]={"420jpeg","Cpbarn","422","444"};
-	if(theoraInfo.pixel_fmt >= 4 || theoraInfo.pixel_fmt == TH_PF_RSVD){
+	if(theoraInfo.pixel_fmt >= 4 || theoraInfo.pixel_fmt == TH_PF_RSVD)
+	{
 		fprintf(stderr,"Unknown pixel format: %i\n", theoraInfo.pixel_fmt);
-		exit(1);
+		return false;
 	}
 	if (hasTheora)
 	{
 		std::cout<<"\nYUV4MPEG2 C "<<CHROMA_TYPES[theoraInfo.pixel_fmt]<<" A"<<theoraInfo.aspect_numerator<<":"<<theoraInfo.aspect_denominator<<" H%d F%d:%d I%c A%d:%d\n";
 		std::cout<<"\nTheora video should now be available for streaming to target texture object.";
 	}
+#endif
 //	, theoraInfo.frame_width, theoraInfo.frame_height, theoraInfo.fps_numerator,theoraInfo.fps_denominator,'p',
 //	theoraInfo.aspect_numerator,theoraInfo.aspect_denominator);
 
@@ -354,78 +445,9 @@ bool OggStream::Open(String path)
 	if (hasTheora){
 		streamState = StreamState::READY;
 	}
-
-
-	bool opened = OpenVorbis();
-	if (!opened)
-		opened = OpenOpus();
-	
-	return true;
+	return hasTheora;
 }
 
-/// Attempts to open Vorbis playback from the file-stream.
-bool OggStream::OpenVorbis()
-{
-	/// Grab any available OggVorbis data!
-	bool result = ov_fopen(path.c_str(), &oggVorbisFile);
-	if (result == 0){
-		// Success!
-		hasAudio = true;
-		hasVorbis = true;
-		/// Grab info and comment.
-		vorbisInfo = ov_info(&oggVorbisFile, -1);
-		vorbisComment = ov_comment(&oggVorbisFile, -1);
-		std::cout<<"\nFound Vorbis.";
-
-		audioChannels =	vorbisInfo->channels;
-		samplesPerSecond = vorbisInfo->rate;
-	//	std::cout<<"\nBitrate info: nominal: "<<vorbisInfo->bitrate_nominal<<" lower: "<<vorbisInfo->bitrate_lower;
-//		assert(vorbisInfo->bitrate_nominal == vorbisInfo->bitrate_lower);
-
-	}
-	else 
-	{
-		// Require audio.
-//		std::cout<<"\nUnable to find Vorbis.";
-		return false;
-	}
-	return true;
-}
-
-/// Attempts to open Opus playback from the file-stream.
-bool OggStream::OpenOpus()
-{
-#ifdef OPUS
-	/// Grab any available OggVorbis data!
-	int error = 0;
-	oggOpusFile = op_open_file(path.c_str(), &error);
-	if (oggOpusFile)
-	{
-		// Success!
-		hasAudio = true;
-		hasOpus = true;
-		/// Grab info and comment.
-//		vorbisInfo = ov_info(&oggVorbisFile, -1);
-	//	vorbisComment = ov_comment(&oggVorbisFile, -1);
-		std::cout<<"\nFound Opus.";
-		opusHead = op_head(oggOpusFile, -1);
-		opusTags = op_tags(oggOpusFile, -1);
-		std::cout<<"\nVendor: "<<opusTags->vendor;
-		audioChannels = opusHead->channel_count;
-		// Original sampling rate may be used, but for playback 48kHz should be used as that is standard for all Opus.
-		samplesPerSecond = 48000; //opusHead->input_sample_rate
-	}
-	else 
-	{
-		// Require audio.
-	//	std::cout<<"\nUnable to open audio! aborting.";
-		return false;
-	}
-	return true;
-#else
-	return false;
-#endif // OPUS
-}
 
 /// Closes target file and stream.
 void OggStream::Close()
@@ -436,8 +458,10 @@ void OggStream::Close()
 	// Close it too..
 	ov_clear(&oggVorbisFile);
 	// Clear sync state of any allocated data.
-	ogg_sync_clear(&oggSyncState);
-
+	if (oggSyncStateUsed)
+	{
+		ogg_sync_clear(&oggSyncState);
+	}
 	// Close Opus file stream.
 	if (oggOpusFile)
 	{

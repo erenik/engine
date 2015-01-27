@@ -59,7 +59,7 @@ Script::Script(String name, Script * parent /* = NULL */ )
 
 void Script::Nullify()
 {
-	allowMultipleInstances = false;
+	allowMultipleInstances = true;
 	parentScript = NULL;
 	timePassed = 0; // Should be added each process-frame.
 	// Set this to false for those scripts that do not require waiting for completion! o.o
@@ -120,7 +120,8 @@ bool Script::Load()
 /// Wosh o.o, NOTE that the root dir will be appended at the start automatically!
 bool Script::Load(String fromFile)
 {
-	std::cout<<"\nEvent::Load fromFile: "<<fromFile;
+	std::cout<<"\nScript::Load fromFile: "<<fromFile;
+//	Sleep(1000);
 	/// Already loaded, reset and re-load!
 	if (loaded){
 		std::cout<<"\nAlready loaded, resetting.";
@@ -128,19 +129,24 @@ bool Script::Load(String fromFile)
 		Reset();
 		lines.Clear();
 	}
-	std::cout<<"\nSaving source path...";
-	source = fromFile;
+//	std::cout<<"\nSaving source path...";
+	name = source = fromFile;
 	/// Parsley parse, yes?
 	/// Add root event dir if not already included (could be)
 	/// Assure that at least the data/ dir is included. Any path with it can be assumed to be completely relative!
 //	if (!source.Contains(rootEventDir) && !source.Contains("data/"))
 //		source = rootEventDir + source;
 
-	std::cout<<"\nTrying to open file...";
+//	std::cout<<"\nTrying to open file...";
 	int loadingType = 0;
 	bool midComment = false;
+	std::cout<<"\nFetching lines.";
+//	Sleep(1000);
 	List<String> sourceLines = 	File::GetLines(source);
-	for (int i = 0; i < sourceLines.Size(); ++i){
+	std::cout<<"\nLines: "<<sourceLines.Size();
+//	Sleep(1000);
+	for (int i = 0; i < sourceLines.Size(); ++i)
+	{
 		String & line = sourceLines[i];
 		// Try load the battler from the relative directory.
 		if (line.StartsWith("//"))
@@ -180,6 +186,8 @@ bool Script::Load(String fromFile)
 	/// Save source, without the dir dir please!
 	this->source = fromFile;
 	loaded = true;
+	std::cout<<"\nScript loaded.";
+//	Sleep(100);
 	return true;
 }
 

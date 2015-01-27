@@ -18,6 +18,8 @@
 typedef struct ALCdevice_struct ALCdevice;
 typedef struct ALCcontext_struct ALCcontext;
 
+extern String lastAudioInfo;
+
 class Message;
 class Audio;
 class MultimediaStream;

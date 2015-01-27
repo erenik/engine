@@ -38,6 +38,8 @@ class RenderPipeline;
 #define GraphicsMan (*GraphicsManager::Instance())
 #define Graphics	(*GraphicsManager::Instance())
 
+/// If part of the graphics processing, is used to record latest function location in order to track where exceptions are thrown..?
+extern String graphicsThreadDetails;
 
 // Defines a class that handles textures, rendering and it's contexts and settings
 class GraphicsManager 

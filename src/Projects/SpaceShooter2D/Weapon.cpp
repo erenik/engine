@@ -134,6 +134,44 @@ bool Weapon::LoadTypes(String fromFile)
 
 Random shootRand;
 
+/// Moves the aim of this weapon turrent.
+void Weapon::Aim(Ship * ship)
+{
+	// If no aim, just align it with the ship?
+	if (!aim)
+		return;
+
+	Entity * target = NULL;
+	// Aim.
+	if (ship->allied)
+	{
+		assert(false && "Implement. Press ignore to continue anyway.");
+	}
+	else 
+	{
+		target = spaceShooter->playerShip.entity;
+	}
+	if (target == NULL)
+		return;
+	Entity * shipEntity = ship->entity;
+	// Estimate position upon impact?
+	Vector3f targetPos = target->position;
+	Vector3f toTarget = targetPos - shipEntity->position;
+	if (estimatePosition)
+	{
+		float dist = toTarget.Length();
+		// Check velocity of target.
+		Vector3f vel = target->Velocity();
+		// Estimated position upon impact... wat.
+		float seconds = dist / projectileSpeed;
+		Vector3f estimatedPosition = targetPos + vel * seconds;
+		toTarget = estimatedPosition - shipEntity->position;
+	}
+	// Aim at the player.
+	currentAim = toTarget.NormalizedCopy();
+}
+
+/// Shoots using previously calculated aim.
 void Weapon::Shoot(Ship * ship)
 {
 	/// Initialize the weapon as if it had just been fired.
@@ -187,45 +225,25 @@ void Weapon::Shoot(Ship * ship)
 	projectileEntity->RecalculateMatrix();
 	// pew
 	Vector3f dir(-1.f,0,0);
+	// For defaults of forward, invert for player
+	if (ship->allied)
+		dir *= -1.f;
 	if (aim)
 	{
-		Entity * target = NULL;
-		// Aim.
-		if (ship->allied)
-		{
-			assert(false && "Implement. Press ignore to continue anyway.");
-		}
-		else 
-		{
-			target = spaceShooter->playerShip.entity;
-		}
-		if (target == NULL)
-			return;
-		// Estimate position upon impact?
-		Vector3f targetPos = target->position;
-		Vector3f toTarget = targetPos - shipEntity->position;
-		float dist = toTarget.Length();
-		if (estimatePosition)
-		{
-			// Check velocity of target.
-			Vector3f vel = target->Velocity();
-			// Estimated position upon impact... wat.
-			float seconds = dist / projectileSpeed;
-			Vector3f estimatedPosition = targetPos + vel * seconds;
-			toTarget = estimatedPosition - shipEntity->position;
-		}
-		// Aim at the player.
-		dir = toTarget.NormalizedCopy();
+		dir = currentAim;
 	}
 	// Angle, +180
 	else if (angle)
 	{
-		float worldAngle = DEGREES_TO_RADIANS((float)angle + 180);
+		/// Grab current forward-vector.
+		Vector3f forwardDir = shipEntity->transformationMatrix.Product(Vector4f(0,0,-1,1)).NormalizedCopy();
+		/// Get angles from current dir.
+		float angleDegrees = GetAngled(forwardDir.x, forwardDir.y);
+
+		float worldAngle = DEGREES_TO_RADIANS((float)angleDegrees + 180 + angle);
 		dir[0] = cos(worldAngle);
 		dir[1] = sin(worldAngle);
 	}
-	if (ship->allied)
-		dir *= -1.f;
 	Vector3f vel = dir * projectileSpeed;
 	PhysicsProperty * pp = projectileEntity->physics = new PhysicsProperty();
 	pp->type = PhysicsType::DYNAMIC;

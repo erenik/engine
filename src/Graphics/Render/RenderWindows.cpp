@@ -10,7 +10,7 @@
 
 void GraphicsManager::RenderWindows()
 {
-
+	graphicsThreadDetails = "GraphicsManager::RenderWindows";
 	List<Window*> windows = WindowMan.GetWindows();
 
 	int times = 0;

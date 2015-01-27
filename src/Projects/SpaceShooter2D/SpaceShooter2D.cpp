@@ -34,6 +34,7 @@ void SetApplicationDefaults()
 {
 	Application::name = "SpaceShooter2D";
 	TextFont::defaultFontSource = "img/fonts/font3.png";
+	PhysicsProperty::defaultUseQuaternions = false;
 }
 
 
@@ -54,10 +55,14 @@ SpaceShooter2D::SpaceShooter2D()
 	SetPlayingFieldSize(Vector2f(30,20));
 	levelEntity = NULL;
 	playingFieldPadding = 1.f;
+	currentLevel = 1;
+	currentStage = 1;
 }
+
 SpaceShooter2D::~SpaceShooter2D()
 {
 }
+
 /// Function when entering this state, providing a pointer to the previous StateMan.
 void SpaceShooter2D::OnEnter(AppState * previousState)
 {
@@ -199,8 +204,13 @@ void SpaceShooter2D::Process(int timeInMs)
 				}
 				if (ship.position[0] > spawnPositionRight)
 					continue;
-				Entity * entity = EntityMan.CreateEntity(ship.type, ModelMan.GetModel("sphere.obj"), TexMan.GetTextureByColor(Color(0,255,0,255)));
+				Entity * entity = EntityMan.CreateEntity(ship.type, ship.GetModel(), TexMan.GetTextureByColor(Color(0,255,0,255)));
 				entity->position = ship.position;
+				float radians = PI / 2;
+				entity->rotation[0] = radians; // Rotate up from Z- to Y+
+				entity->rotation[1] = radians; // Rorate from Y+ to X-
+				entity->RecalculateMatrix();
+				
 				PhysicsProperty * pp = new PhysicsProperty();
 				entity->physics = pp;
 				// Setup physics.
@@ -210,7 +220,6 @@ void SpaceShooter2D::Process(int timeInMs)
 				pp->collissionCallback = true;
 				// By default, set invulerability on spawn.
 				ship.spawnInvulnerability = true;
-				entity->RecalculateMatrix();
 				ShipProperty * sp = new ShipProperty(&ship, entity);
 				entity->properties.Add(sp);
 				ship.entity = entity;
@@ -299,10 +308,30 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 				std::cout<<"\nGraphics entities "<<GraphicsMan.RegisteredEntities()<<" physics "<<PhysicsMan.RegisteredEntities()
 					<<" projectiles "<<projectileEntities.Size()<<" ships "<<shipEntities.Size();
 			}
+			else if (msg == "ReloadLevel")
+			{
+				LoadLevel();
+			}
 			else if (msg == "NextLevel")
 			{
 				// Next level? Restart?
-				LoadLevel(levelSource);
+				++currentLevel;
+				if (currentLevel > 4)
+				{
+					currentLevel = 4;
+					std::cout<<"\nCannot go to next level, already at level 4. Try switching stage.";
+				}
+				LoadLevel();
+			}
+			else if (msg == "PreviousLevel")
+			{
+				--currentLevel;
+				if (currentLevel < 1)
+				{
+					std::cout<<"\nCannot go to previous level, already at level 1. Try switching stage.";
+					currentLevel = 1;
+				}
+				LoadLevel();
 			}
 			else if (msg == "ClearLevel")
 			{
@@ -314,6 +343,10 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 			if (msg.StartsWith("DisplayCenterText"))
 			{
 				String text = msg;
+				if (text.Contains("$-L"))
+				{
+					text.Replace("$-L", String(currentStage)+"-"+String(currentLevel));
+				}
 				text.Remove("DisplayCenterText");
 				text.RemoveInitialWhitespaces();
 				GraphicsMan.QueueMessage(new GMSetUIs("CenterText", GMUI::TEXT, text));
@@ -372,6 +405,8 @@ void SpaceShooter2D::CreateDefaultBindings()
 	BINDING(Action::FromString("ClearLevel"), List<int>(KEY::C, KEY::L));
 	BINDING(Action::FromString("ListEntitiesAndRegistrations"), List<int>(KEY::L, KEY::E));
 	BINDING(Action::FromString("ToggleBlackness"), List<int>(KEY::T, KEY::B));
+	BINDING(Action::FromString("NextLevel"), List<int>(KEY::N, KEY::L));
+	BINDING(Action::FromString("PreviousLevel"), List<int>(KEY::P, KEY::L));
 }
 
 /// Update UI
@@ -429,10 +464,11 @@ void SpaceShooter2D::NewGame()
 			playerShip.maxHitPoints = 500;
 		}
 	}
-	LoadLevel("Levels/Stage 1/Level 1-1");
+	currentStage = 1;
+	currentLevel = 1;
+	LoadLevel();
 	// Play script for animation or whatever.
 	ScriptMan.PlayScript("scripts/NewGame.txt");
-
 }
 
 void SpaceShooter2D::TogglePause()
@@ -452,6 +488,10 @@ void SpaceShooter2D::TogglePause()
 /// Loads target level. The source and separate .txt description have the same name, just different file-endings, e.g. "Level 1.png" and "Level 1.txt"
 void SpaceShooter2D::LoadLevel(String fromSource)
 {
+	if (fromSource == "CurrentStageLevel")
+	{
+		fromSource = "Levels/Stage "+String(currentStage)+"/Level "+String(currentStage)+"-"+String(currentLevel);
+	}		
 	this->levelSource = fromSource;
 	// Delete all entities.
 	MapMan.DeleteAllEntities();
@@ -559,6 +599,8 @@ void SpaceShooter2D::LoadLevel(String fromSource)
 	{
 		AudioMan.QueueMessage(new AMPlay(AudioType::BGM, level.music, 1.f));
 	}
+	// Run start script.
+	ScriptMan.PlayScript("scripts/OnLevelStart.txt");
 }
 
 void SpaceShooter2D::GameOver()

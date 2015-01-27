@@ -5,7 +5,7 @@
 #include "SpaceShooter2D.h"
 #include "ProjectileProperty.h"
 
-ProjectileProperty::ProjectileProperty(Weapon weaponThatSpawnedIt, Entity * owner)
+ProjectileProperty::ProjectileProperty(const Weapon & weaponThatSpawnedIt, Entity * owner)
 : EntityProperty("ProjProp", ID(), owner), weapon(weaponThatSpawnedIt)
 {
 	sleeping = false;
@@ -68,6 +68,8 @@ void ProjectileProperty::Process(int timeInMs)
 	}
 	else if (weapon.projectilePath == Weapon::SPINNING_OUTWARD)
 	{
-		assert(false);
+		// Right.
+		// 
+		// assert(false);
 	}
 }

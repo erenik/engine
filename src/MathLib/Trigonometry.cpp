@@ -6,7 +6,8 @@
 #include <cmath>
 
 /// Returns the angle in radians, given the coordinates in XY-space, relative to the unit-circle. (0 degrees being X+, increasing counter-clockwise).
-float GetAngler(float x, float y){
+float GetAngler(float x, float y)
+{
 	/// First get raw degrees.
 	float degrees = acos(x);
 	if (y < 0)

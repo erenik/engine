@@ -444,6 +444,7 @@ void GraphicsManager::SetOverlayTexture(Texture * texture, int fadeInTime /* = 0
 
 void GraphicsManager::RepositionEntities()
 {
+	graphicsThreadDetails = "GraphicsManager::RepositionEntities";
 	if (optimizationStructure == VFC_OCTREE)
 	{
 		List<Entity*> dynamicEntities = Physics.GetDynamicEntities();
@@ -566,6 +567,7 @@ void GraphicsManager::QueueMessage(GraphicsMessage *msg){
 // Processes queued messages
 void GraphicsManager::ProcessMessages()
 {
+	graphicsThreadDetails = "GraphicsManager::ProcessMessages";
 	// Wait until claimable.
 	while(!graphicsMessageQueueMutex.Claim(-1));
 	/// Spend only max 10 ms of time processing messages each frame!
@@ -952,6 +954,7 @@ void GraphicsManager::DeallocFrameBuffer(){
 /// Updates the graphicsState's lighting to include dynamic lights' new positions as well.
 void GraphicsManager::UpdateLighting()
 {
+	graphicsThreadDetails = "GraphicsManager::ProcessMessages";
 	if (graphicsState->lighting == NULL)
 	{
 		graphicsState->lighting = new Lighting();
@@ -982,6 +985,7 @@ void GraphicsManager::UpdateLighting()
 
 void GraphicsManager::Process()
 {
+	graphicsThreadDetails = "GraphicsManager::Process";
 	static Time lastTime = Time::Now();
 	Time now = Time::Now();
 

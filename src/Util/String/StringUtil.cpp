@@ -63,7 +63,7 @@ void PrependStrings(List<String> & list, String withString)
 }
 
 /// For loading CSV files, looks for the delimiter (usually comma ','), and abserves quotation marks for any occurences of commas within the actual data.
-List<String> TokenizeCSV(String csvString)
+List<String> TokenizeCSV(String csvString, int delimiter)
 {
 	List<String> tokens;
 //	csvString.PrintData();
@@ -89,7 +89,7 @@ List<String> TokenizeCSV(String csvString)
 				i += 1;
 			}
 		}
-		else if (c == ',' && !withinQuotes)
+		else if (c == delimiter && !withinQuotes)
 		{
 			tokens.Add(str);
 			str = String();

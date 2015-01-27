@@ -178,7 +178,7 @@ void PhysicsManager::RecalculateAABBs()
 	for (int i = 0; i < dynamicEntities.Size(); ++i)
 	{
 		Entity * dynamicEntity = dynamicEntities[i];
-		AABB * aabb = dynamicEntity->aabb;
+		AABB * aabb = dynamicEntity->GetAABB();
 		aabb->position = dynamicEntity->position;
 		aabb->min = aabb->position - aabb->scale * 0.5f;
 		aabb->max = aabb->position + aabb->scale * 0.5f;

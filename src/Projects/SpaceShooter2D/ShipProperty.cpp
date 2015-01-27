@@ -74,11 +74,12 @@ void ShipProperty::ProcessWeapons(int timeInMs)
 		// Do stuff.
 		for (int i = 0; i < ship->weapons.Size(); ++i)
 		{
-			// Dude..
-			if (spaceShooter->projectileEntities.Size() > 500)
-				continue;
 			Weapon & weapon = ship->weapons[i];
-			assert(weapon.cooldownMs != 0);
+			// Aim.
+			weapon.Aim(ship);
+			// Dude..
+			if (spaceShooter->projectileEntities.Size() > 1000)
+				continue;
 			weapon.Shoot(ship);
 		}
 	}
@@ -87,6 +88,18 @@ void ShipProperty::ProcessWeapons(int timeInMs)
 
 void ShipProperty::ProcessAI(int timeInMs)
 {
+	// Rotate accordingly.
+	Rotation & rota = ship->rotationPatterns[ship->currentRotation];
+	rota.OnFrame(timeInMs);
+	// Increase time spent in this state accordingly.
+	ship->timeInCurrentRotation += timeInMs;
+	if (ship->timeInCurrentRotation > rota.durationMs && rota.durationMs > 0)
+	{
+		ship->currentRotation = (ship->currentRotation + 1) % ship->rotationPatterns.Size();
+		ship->timeInCurrentRotation = 0;
+		Rotation & rota2 = ship->rotationPatterns[ship->currentRotation];
+		rota2.OnEnter(ship);
+	}
 	if (!ship->canMove)
 		return;
 	// Move?

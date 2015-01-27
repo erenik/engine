@@ -10,29 +10,31 @@
 #include "Movement.h"
 
 class Entity;
-
-class RotationPattern 
-{
-public:
-	enum {
-		MORE_DIR,
-	};
-};
+class Model;
 
 class Ship 
 {
 public:
 	Ship();
 	~Ship();
+	/// Prepends the source with '/obj/Ships/' and appends '.obj'. Uses default 'Ship.obj' if needed.
+	Model * GetModel();
+
 	void Damage(int amount, bool ignoreShield);
 	void Destroy();
 	// Load ship-types.
 	static bool LoadTypes(String file);
 	/// E.g. "Straight(10), MoveTo(X Y 5 20, 5)"
 	void ParseMovement(String fromString);
+	/// E.g. "DoveDir(3), RotateToFace(player, 5)"
+	void ParseRotation(String fromString);
+
 	/// Creates new ship of specified type.
 	static Ship New(String shipByName);
 	
+	/// Checks weapon's latest aim dir.
+	Vector3f WeaponTargetDir();
+
 	/// Calls OnEnter for the initial movement pattern.
 	void StartMovement();
 	// Name or type. 
@@ -48,6 +50,9 @@ public:
 	List<Movement> movementPatterns;
 	int currentMovement; // Index of which pattern is active at the moment.
 	int timeInCurrentMovement; // Also milliseconds.
+	List<Rotation> rotationPatterns;
+	int currentRotation;
+	int timeInCurrentRotation;
 
 	// Parsed value divided by 5.
 	float speed;

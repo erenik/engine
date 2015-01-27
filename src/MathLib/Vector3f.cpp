@@ -556,15 +556,16 @@ Vector3f Vector3f::NormalizedCopy() const {
 const float Vector3f::MaxPart() const 
 {
 #ifdef USE_SSE
-	if (x > y)
+	Vector3f av(abs(x), abs(y), abs(z));
+	if (av[0] > av[1])
 	{
-		if (x > z)
-			return abs(x);
-		return abs(y);
+		if (av[0] > av[2])
+			return av[0];
+		return av[2];
 	} 
-	if (y > z)
-		return abs(y);
-	return abs(z);
+	if (av[1] > av[2])
+		return av[1];
+	return av[2];
 #else
 	if (AbsoluteValue(x) > AbsoluteValue(y)){
 		if (AbsoluteValue(x) > AbsoluteValue(z))

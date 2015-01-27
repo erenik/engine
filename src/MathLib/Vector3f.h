@@ -202,7 +202,17 @@ public:
 #ifdef USE_SSE
 	// Loads data into __m128 structure.
 	void PrepareForSIMD();
-	__m128 data;
+	
+	// Should be able to place in class!
+	union {
+		float v[4];
+		struct { 
+			float x, y, z, w; 
+		};
+		__m128 data;
+	};
+
+//	__m128 data;
 	// If using SSE, don't use the standard XYX, use only the internal floats of the __m128 struct, preferably using the array index operator []
 #else
 	/// x-coordinate

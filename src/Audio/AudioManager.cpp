@@ -27,6 +27,8 @@ Mutex audioMessageQueueMutex;
 // Short stringstream for debugging using dlog();
 // extern stringstream debugs;
 
+String lastAudioInfo;
+
 // Default constructor
 AudioManager::AudioManager(){
 

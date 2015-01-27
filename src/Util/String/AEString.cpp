@@ -1023,6 +1023,60 @@ void String::Replace(const char a, const char withB){
     }
 }
 
+void String::Replace(String part, String withNewString)
+{
+	if (type != String::CHAR)
+	{
+		assert(false);
+		return;
+	}
+	if (withNewString.type != String::CHAR)
+	{
+		assert(false);
+		return;
+	}
+
+	int parti = 0;
+	for (int i = 0; i < arraySize; ++i)
+	{
+		char c = 1, c2 = 1;
+		parti = 0;
+		while(c == c2)
+		{
+			c = arr[i + parti];
+			c2 = part.arr[parti];
+			// At the end of the find-string?
+			if (c2 == '\0')
+			{
+				bool found = true;
+				// Remove it.
+				// Check length of replace string compared to part string.
+				int diff = withNewString.Length() - part.Length();
+				if (diff <= 0)
+				{
+					// Just add it in there and move the remaining part back.
+					memcpy(arr + i, withNewString.arr, withNewString.Length());
+					// Move the remaining part back.
+					for (int j = i + withNewString.Length(); j < Length() - diff; ++j)
+					{
+						arr[j] = arr[j + 1];
+					}
+				}
+				// Longer?
+				else 
+				{
+					*this = Part(0, i) + withNewString + Part(i + parti);
+				}
+				// Adjust i for next iteration.
+				i += withNewString.Length();
+				break;
+			}
+			++parti;
+		}
+	}
+}
+
+
 // Extract data o-o
 bool String::ParseBool(){
 	int oldComparisonMode = this->comparisonMode;

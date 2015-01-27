@@ -110,6 +110,7 @@ public:
 	bool collissionsEnabled;
 	// Default.. false?
 	bool useQuaternions;
+	static bool defaultUseQuaternions;
 
 	// Current physical properties, affected by a number of properties elsewhere in Entity.
 	float physicalRadius;

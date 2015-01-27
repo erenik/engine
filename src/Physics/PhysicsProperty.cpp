@@ -12,6 +12,8 @@
 
 #include "PhysicsLib/Estimator.h"
 
+bool PhysicsProperty::defaultUseQuaternions = true;
+
 PhysicsProperty::PhysicsProperty()
 {
 	Nullify();
@@ -118,7 +120,7 @@ void PhysicsProperty::Nullify()
 	estimationEnabled = false;
 	estimator = NULL; 
 	// Try it! o.o
-	useQuaternions = true;	
+	useQuaternions = PhysicsProperty::defaultUseQuaternions;	
 	gravityMultiplier = 1.f;
 
 	/// For separating categories and filters.
