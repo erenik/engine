@@ -443,7 +443,7 @@ void Entity::Translate(ConstVec3fr translation)
 void Entity::RecalculateMatrix(bool allParts /*= true*/)
 {
     Matrix4f preTranslateMat;
-	if (allParts)
+	if (allParts || hasRotated)
 	{
 		rotationMatrix = Matrix4d();
 		// Quaternions for those entities wanting to use it.

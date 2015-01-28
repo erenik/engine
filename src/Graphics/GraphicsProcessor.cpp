@@ -404,20 +404,18 @@ void * GraphicsManager::Processor(void * vArgs){
 		}
 		catch(...)
 		{
-			LogGraphics("An unexpected error occurred in GraphicsProcessor thread. Details: "+graphicsThreadDetails, ERROR);
+	
+			String details;
+			if (graphicsThreadDetails.Contains("AudioMan"))
+				details = lastAudioInfo;
+			LogGraphics("An unexpected error occurred in GraphicsProcessor thread.\m- Location: "+graphicsThreadDetails+" \n- Details: "+details, ERROR);
 			std::cout<<"\nAn unexpected error occurred";
 		}
 	}
 	LogGraphics("Ending main rendering/physics/multimedia loop", INFO);
 
-	/// Shut down all remaining music.
-	AudioMan.StopAndRemoveAll();
-
-	/// Deallocate audio stufs, since that loop is here still..
-	AudioBuffer::FreeAll();
-	
-	// Macro to free all audio OpenAL resources.
-	AL_FREE_ALL
+	/// Delete AL context.
+	AudioMan.Shutdown();
 
 //	std::cout<<"\nExiting rendering loop. Beginning deallocating graphical resources.";
 

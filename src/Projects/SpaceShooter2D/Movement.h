@@ -22,42 +22,6 @@ namespace Location {
 	};
 };
 
-class Rotation
-{
-public:
-	enum {
-		NONE, // o.o
-		MOVE_DIR,
-		ROTATE_TO_FACE,
-		SPINNING,
-		WEAPON_TARGET,
-	};
-	Rotation();
-	Rotation(int type);
-	void Nullify();
-
-	static String Name(int type);
-
-	void OnEnter(Ship * ship);
-	void OnFrame(int timeInMs);
-
-
-	// See enum above.
-	int type;
-	int durationMs;
-	// For RotateToFace
-	String target;
-	float spinSpeed;
-
-private:
-	void MoveDir();	
-	void RotateToFace(const Vector3f & position);
-	void RotateToFaceDirection(const Vector3f & direction);
-	Ship * ship;
-	Entity * entity;
-//	Vector3f targetPosition;
-};
-
 
 class Movement 
 {
@@ -66,19 +30,24 @@ public:
 	Movement(int type);
 	void Nullify();
 
+	// Upon entering this movement pattern.
 	void OnEnter(Ship * ship);
+	// Called every frame.
 	void OnFrame(int timeInMs);
+	// Upon exiting this movement pattern.
+	void OnEnd();
 
 	static String Name(int type);
 
 	enum {
 		NONE, // Staying still.
-		STRAIGHT,
+		STRAIGHT, // Plain X-
 		ZAG,
 		MOVE_TO,
 		MOVE_DIR,
 		CIRCLE,
 		UP_N_DOWN,
+		LOOK_AT, // Follows entity's current forward-direction.
 		TYPES
 	};
 	// See enum above.

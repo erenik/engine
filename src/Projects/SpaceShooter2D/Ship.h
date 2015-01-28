@@ -8,6 +8,7 @@
 #include "Weapon.h"
 #include "MathLib.h"
 #include "Movement.h"
+#include "Rotation.h"
 
 class Entity;
 class Model;
@@ -46,6 +47,9 @@ public:
 	bool canShoot;
 	bool hasShield;
 
+	/// In order to not take damage allllll the time (depending on processor speed, etc. too.)
+	int64 lastShipCollisionMs;
+
 	/// Mooovemeeeeeeent
 	List<Movement> movementPatterns;
 	int currentMovement; // Index of which pattern is active at the moment.
@@ -53,6 +57,8 @@ public:
 	List<Rotation> rotationPatterns;
 	int currentRotation;
 	int timeInCurrentRotation;
+	/// Maximum amount of radians the ship may rotate per second.
+	float maxRadiansPerSecond;
 
 	// Parsed value divided by 5.
 	float speed;
@@ -61,6 +67,7 @@ public:
 	float shieldRegenRate;
 	int hitPoints;
 	int maxHitPoints;
+	int collideDamage;
 	List<String> abilities;
 	List<float> abilityCooldown;
 	String graphicModel;

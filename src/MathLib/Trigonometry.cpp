@@ -9,15 +9,16 @@
 float GetAngler(float x, float y)
 {
 	/// First get raw degrees.
-	float degrees = acos(x);
+	float radians = acos(x);
 	if (y < 0)
-		degrees *= -1.0f;
-	return degrees;
+		radians *= -1.0f;
+	return radians;
 }
 /// Returns the angle in degrees, given the coordinates in XY-space, relative to the unit-circle. (0 degrees being X+, increasing counter-clockwise).
-float GetAngled(float x, float y){
+float GetAngled(float x, float y)
+{
 	/// First get raw degrees.
-	float degrees = GetAngler(x,y);
-	degrees *= 360/(2* PI);
+	float radians = GetAngler(x,y);
+	float degrees = radians * 360/(2* PI);
 	return degrees;
 }

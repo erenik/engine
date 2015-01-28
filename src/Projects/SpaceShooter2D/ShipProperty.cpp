@@ -134,8 +134,12 @@ void ShipProperty::OnCollision(Collision & data)
 /// If reacting to collisions...
 void ShipProperty::OnCollision(Entity * withEntity)
 {
+//	std::cout<<"\nShipProperty::OnCollision for entity "<<owner->name;
 	if (sleeping)
+	{
+//		std::cout<<"\nSleeping, skipping stuffs";
 		return;
+	}
 	Entity * other = withEntity;
 
 	ShipProperty * sspp = (ShipProperty *) other->GetProperty(ShipProperty::ID());
@@ -145,8 +149,17 @@ void ShipProperty::OnCollision(Entity * withEntity)
 //		std::cout<<"\nCollision with ship! o.o";
 		if (sspp->sleeping)
 			return;
-		ship->Damage(sspp->ship->hitPoints, true);
-		sspp->ship->Damage(ship->hitPoints, false);
+		// 5 times per second atm.
+		if (ship->lastShipCollisionMs < nowMs - 200)
+		{
+			ship->Damage(sspp->ship->collideDamage, true);
+			ship->lastShipCollisionMs = nowMs;
+		}
+		if (sspp->ship->lastShipCollisionMs < nowMs - 200)
+		{
+			sspp->ship->Damage(ship->collideDamage, false);
+			sspp->ship->lastShipCollisionMs = nowMs;
+		}
 		return;
 	}
 

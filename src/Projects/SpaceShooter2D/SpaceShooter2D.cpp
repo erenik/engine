@@ -271,27 +271,23 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 #define PROJ 1
 //			std::cout<<"\nColCal: "<<cc->one->name<<" & "<<cc->two->name;
 
-			Entity * shipEntity = NULL;
+			Entity * shipEntity1 = NULL, * shipEntity2;
 			Entity * other = NULL;
 			int oneType = (one == playerShip.entity || shipEntities.Exists(one)) ? SHIP : PROJ;
 			int twoType = (two == playerShip.entity || shipEntities.Exists(two)) ? SHIP : PROJ;
 			int types[5] = {0,0,0,0,0};
 			++types[oneType];
 			++types[twoType];
+		//	std::cout<<"\nCollision between "<<one->name<<" and "<<two->name;
 			if (oneType == SHIP)
 			{
-				shipEntity = one;
-				other = two;
+				ShipProperty * shipProp = (ShipProperty*)one->GetProperty(ShipProperty::ID());
+				shipProp->OnCollision(two);
 			}
 			else if (twoType == SHIP)
 			{
-				shipEntity = two;
-				other = one;
-			}
-			if (shipEntity)
-			{
-				ShipProperty * shipProp = (ShipProperty*)shipEntity->GetProperty(ShipProperty::ID());
-				shipProp->OnCollision(other);
+				ShipProperty * shipProp = (ShipProperty*)two->GetProperty(ShipProperty::ID());
+				shipProp->OnCollision(one);
 			}
 			break;
 		}

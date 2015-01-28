@@ -301,11 +301,9 @@ int main(int argc, char **argv)
 		
 //#define test
 #ifdef test
-	String base = "InThePowerOfTheChrist";
-	String try1 = base;
-	try1.Replace("The", "Da");
-	String try2 = base;
-	try2.Replace("The", "Power");
+
+//	Angle::UnitTest();
+
 	return 0;
 #endif
 

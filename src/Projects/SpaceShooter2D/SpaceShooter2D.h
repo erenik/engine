@@ -77,6 +77,7 @@ class SpaceShooterCR;
 class SpaceShooterCD;
 
 extern int64 nowMs;
+extern int timeElapsedMs;
 /// Particle system for sparks/explosion-ish effects.
 extern Sparks * sparks;
 

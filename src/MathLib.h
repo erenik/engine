@@ -5,6 +5,8 @@
 
 #include "MathLib/AEMath.h"
 
+#include "MathLib/Angle.h"
+
 #include "MathLib/Matrix2f.h"
 #include "MathLib/Matrix3d.h"
 #include "MathLib/Matrix3f.h"

@@ -160,9 +160,11 @@ bool OggStream::OpenVorbis()
 	else 
 	{
 		// Require audio.
+		lastAudioInfo = "OggStream::OpenVorbis - failed";
 //		std::cout<<"\nUnable to find Vorbis.";
 		return false;
 	}
+	lastAudioInfo = "OggStream::OpenVorbis - success";
 	return true;
 }
 

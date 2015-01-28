@@ -43,12 +43,8 @@ AudioManager::AudioManager(){
 AudioManager::~AudioManager()
 {
 	audioList.ClearAndDelete();
-#ifdef OPENAL
-	alcMakeContextCurrent( NULL );
-	alcDestroyContext( alcContext );
-	alcCloseDevice( alcDevice );
-//	alutExit();
-#endif
+	// Shutdown if not already done so!
+	Shutdown();
 }
 
 #include "Graphics/GraphicsManager.h"
@@ -144,16 +140,34 @@ void AudioManager::Initialize()
 	{
 		categoryVolumes.Add(1.f);
 	}
+	initialized = true;
 }
 
 /// Called once in the deallocator thread when stop procedures have begun but before deallocation occurs.
 void AudioManager::Shutdown()
 {
-	/// Unbind audio from their streams. Streams should be deleted by the multimedia-manager.
-	for (int i = 0; i < audioList.Size(); ++i){
-		Audio * audio = audioList[i];
-		audio->audioStream = NULL;
+	if (!initialized)
+		return;
+	/// Shut down all remaining music.
+	AudioMan.StopAndRemoveAll();
+	/// Deallocate audio stufs, since that loop is here still..
+	AudioBuffer::FreeAll();
+
+#ifdef OPENAL
+	ALSource::FreeAll();
+
+	if (alcContext)
+	{
+		alcMakeContextCurrent( NULL );
+		alcDestroyContext( alcContext );
+		alcCloseDevice( alcDevice );
+
+		alcContext = NULL;
+		alcDevice = NULL;
 	}
+//	alutExit();
+#endif
+	initialized = false;
 }
 
 void AudioManager::Allocate(){
@@ -446,13 +460,21 @@ void AudioManager::DisableAudio()
 
 void AudioManager::Update()
 {
+	if (!initialized)
+	{
+		std::cout<<"\nAudio manager not initialized. Skipping da beat.";
+		return;
+	}
+	lastAudioInfo = "AudioManager::Update";
 	/// Get context, always
 	GRAB_AL_CONTEXT
 
 	// Process messages.
+	lastAudioInfo = "AudioManager::ProcessAudioMessages";
 	ProcessAudioMessages();
 
 	// Then update volumes and buffer stuff.
+	lastAudioInfo = "AudioManager::Update - volumes and buffering";
 	for (int i = 0; i < audioList.Size(); ++i)
 	{
 		Audio * audio = audioList[i];

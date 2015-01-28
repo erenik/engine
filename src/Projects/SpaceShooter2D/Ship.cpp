@@ -29,7 +29,12 @@ Ship::Ship()
 	currentRotation = 0;
 	timeInCurrentRotation = 0;
 
+	collideDamage = 1;
+	lastShipCollisionMs = 0;
+
 	graphicModel = "obj/Ships/Ship.obj";
+
+	maxRadiansPerSecond = PI / 12;
 }
 
 Ship::~Ship()
@@ -252,8 +257,16 @@ bool Ship::LoadTypes(String file)
 				ship.shieldRegenRate = value.ParseInt() / 1000.f;
 			else if (column == "Hit points")
 				ship.maxHitPoints = ship.hitPoints = value.ParseInt();
+			else if (column == "Collide damage")
+				ship.collideDamage = value.ParseInt();
+			else if (column == "Max rotation per second")
+				ship.maxRadiansPerSecond = DEGREES_TO_RADIANS(value.ParseInt());
 			else if (column == "Graphic model")
 				ship.graphicModel = value;
+			else 
+			{
+				LogShip("Unrecognized column name \'"+column+".");
+			}
 		}
 		// Check for pre-existing ship of same name, remove it if so.
 		for (int i = 0; i < types.Size(); ++i)

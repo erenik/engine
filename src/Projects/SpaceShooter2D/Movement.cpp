@@ -7,122 +7,6 @@
 
 #include "File/LogFile.h"
 
-Rotation::Rotation()
-{
-	Nullify();
-}
-Rotation::Rotation(int rotType)
-{
-	Nullify();
-	this->type = rotType;
-}
-
-void Rotation::Nullify()
-{
-	durationMs = -1;
-	type = -1;
-	spinSpeed = 0.5f;
-}
-
-
-String Rotation::Name(int type)
-{
-	switch(type)
-	{
-		case Rotation::NONE: return "None";
-		case Rotation::MOVE_DIR: return "MoveDir";
-		case Rotation::ROTATE_TO_FACE: return "RotationTo";
-		case Rotation::SPINNING: return "Spinning";
-		default:
-			assert(false);
-	}
-	return String();
-}
-
-void Rotation::OnEnter(Ship * forShip)
-{
-	this->ship = forShip;
-	this->entity = ship->entity;
-	switch(type)
-	{
-		case Rotation::NONE:		
-		case Rotation::ROTATE_TO_FACE: // Nothing first frame.
-		case Rotation::WEAPON_TARGET:
-			return;
-		case Rotation::MOVE_DIR:
-			MoveDir();
-			break;
-		case Rotation::SPINNING:
-			PhysicsMan.QueueMessage(new PMSetEntity(entity, PT_ROTATIONAL_VELOCITY, Vector3f(0,spinSpeed,0)));
-			break;
-	}
-}
-void Rotation::OnFrame(int timeInMs)
-{
-	Entity * targetEntity = NULL;
-	switch(type)
-	{
-		case Rotation::NONE:
-			return;
-		case Rotation::MOVE_DIR:
-			MoveDir();
-			break;
-		case Rotation::ROTATE_TO_FACE:
-		{
-			target.SetComparisonMode(String::NOT_CASE_SENSITIVE);
-			if (target == "Player")
-			{
-				targetEntity = spaceShooter->playerShip.entity;
-				if (targetEntity)
-					RotateToFace(targetEntity->position);
-			}
-			else
-				return;
-			break;
-		}
-		case Rotation::WEAPON_TARGET:
-			RotateToFaceDirection(ship->WeaponTargetDir());
-			break;
-	}
-}
-
-void Rotation::MoveDir()
-{
-	if (!entity->physics)
-	{
-		// Log it.
-		LogToFile("rotationErrors", "Entity "+entity->name+" lacking physics property, thus probably stationary, why does it have a Rotation pattern then?", WARNING);
-		return;
-	}
-	Vector3f dir = entity->Velocity();
-	// Grab angle of current movement dir.
-	dir.Normalize();
-	float radians = GetAngler(dir[0], dir[1]);
-	// Default is pointing right up, meaning PI/2, so deduct it to get it correct?
-	float radiansToSet = radians - PI/2;
-	// Rotate to it.
-	Vector3f rot(PI/2,radiansToSet,0);
-	PhysicsMan.QueueMessage(new PMSetEntity(entity, PT_SET_ROTATION, rot));
-}	
-
-void Rotation::RotateToFace(const Vector3f & position)
-{
-	Vector3f toTarget = position - entity->position;
-	// Grab angle of current movement dir.
-	RotateToFaceDirection(toTarget);
-}
-
-void Rotation::RotateToFaceDirection(const Vector3f & direction)
-{
-	Vector3f dir = direction.NormalizedCopy();
-	float radians = GetAngler(dir[0], dir[1]);
-	// Default is pointing right up, meaning PI/2, so deduct it to get it correct?
-	float radiansToSet = radians - PI/2;
-	// Rotate to it.
-	Vector3f rot(PI/2,radiansToSet,0);
-	PhysicsMan.QueueMessage(new PMSetEntity(entity, PT_SET_ROTATION, rot));		
-}
-
 
 
 Movement::Movement()
@@ -160,6 +44,7 @@ String Movement::Name(int type)
 		case MOVE_DIR: return "MoveDir";
 		case CIRCLE: return "Circle";
 		case UP_N_DOWN: return "Up-and-Down";
+		case LOOK_AT:	return "LookAt";
 	}
 	return String();
 }
@@ -167,6 +52,7 @@ String Movement::Name(int type)
 #define SET_DIRECTION(d) 	Physics.QueueMessage(new PMSetEntity(shipEntity, PT_VELOCITY, d * ship->speed))
 
 
+// Upon entering this movement pattern.
 void Movement::OnEnter(Ship * ship)
 {
 	// Reset stuff.
@@ -207,12 +93,18 @@ void Movement::OnEnter(Ship * ship)
 			SET_DIRECTION(Vector3f(0,1,0));
 			startPos = shipEntity->position;
 			break;
+		case Movement::LOOK_AT:
+			// Flag ship to travel in the direction it is facing, let the integrator solve all problems within.
+			PhysicsMan.QueueMessage(new PMSetEntity(shipEntity, PT_VELOCITY, Vector3f()));
+			PhysicsMan.QueueMessage(new PMSetEntity(shipEntity, PT_RELATIVE_VELOCITY, Vector3f(0,0,-ship->speed)));
+			break;
 		default:
 			assert(false && "Implement. Ignore until emil implements.");
 	}
 }
 
 
+// Called every frame.
 void Movement::OnFrame(int timeInMs)
 {
 	switch(type)
@@ -221,6 +113,7 @@ void Movement::OnFrame(int timeInMs)
 		case Movement::NONE:
 		case Movement::STRAIGHT:
 		case Movement::MOVE_DIR:
+		case Movement::LOOK_AT: // No updates per-frame.
 			break;
 		case Movement::ZAG:
 		{
@@ -253,6 +146,28 @@ void Movement::OnFrame(int timeInMs)
 		}
 		default:
 			assert(false && "Implement. Ignore until emil implements.");
+	}
+}
+	
+// Upon exiting this movement pattern.
+void Movement::OnEnd()
+{
+	switch(type)
+	{
+		// No special update upon leaving this movement pattern.
+		case Movement::NONE:
+		case Movement::STRAIGHT:
+		case Movement::MOVE_DIR:
+		case Movement::UP_N_DOWN:
+		case Movement::CIRCLE:
+		case Movement::MOVE_TO:
+			break;
+		case Movement::LOOK_AT:
+			// Flag ship to travel in the direction it is facing, let the integrator solve all problems within.
+			PhysicsMan.QueueMessage(new PMSetEntity(shipEntity, PT_RELATIVE_VELOCITY, Vector3f()));
+			break;
+		default:
+			assert(false && "Implement. Poke Emil to implement.");
 	}
 }
 
