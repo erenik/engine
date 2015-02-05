@@ -16,6 +16,8 @@
 
 #include "OpenAL.h"
 
+#include "File/LogFile.h"
+
 
 //#include "../globals.h"
 #include <iostream>
@@ -67,14 +69,22 @@ void Audio::Nullify()
 }
 
 /// Generate audio source if not existing.
-void Audio::CreateALObjects()
+bool Audio::CreateALObjects()
 {
+	lastAudioInfo = "Audio::CreateALObjects";
 #ifdef OPENAL
 	/// Skip is source is valid already.
 	if (alSource)
 	{
 		std::cout<<"\nalSource already created.";
-		return;
+		return true;
+	}
+	alSource = ALSource::New();
+	// Throw an error if we can't generate a source.
+	if (alSource == 0)		
+	{
+		LogAudio("Unable to create ALSource for audio: "+this->path, ERROR);
+		return false;
 	}
 	// Create audio buffers.
 	assert(audioBuffers.Size() == 0);
@@ -83,9 +93,6 @@ void Audio::CreateALObjects()
 		AudioBuffer * audioBuffer = AudioBuffer::New();
 		audioBuffers.Add(audioBuffer);
 	}
-	alSource = ALSource::New();
-	if (alSource == 0)		// Throw an error if we can't generate a source.
-		throw 5;
 //	std::cout<<"\nALSource generated: "<<alSource;
 	assert(alSource > 0);
 	/// Set some basic properties for the audio.
@@ -95,6 +102,8 @@ void Audio::CreateALObjects()
 	alSourcef (alSource, AL_ROLLOFF_FACTOR,  0.0          );
 	alSourcei (alSource, AL_SOURCE_RELATIVE, AL_TRUE      );
 #endif
+	lastAudioInfo = "Audio::CreateALObjects - success";
+	return true;
 }
 
 /// Destructor that deletes AL resources as well as other thingies!
@@ -211,7 +220,7 @@ bool Audio::Load()
         assert(false && "Unsupported audio-format I'm afraid!");
 	}
 	audioStream->loop = repeat;
-
+	lastAudioInfo = "Audio::Load for path: "+path; 
     return loaded;
 }
 
@@ -225,7 +234,9 @@ void Audio::Play()
 
 	/// Generate buffers, sources, etc. if not already done so!
 	if (alSource == 0){
-		CreateALObjects();
+		bool ok = CreateALObjects();
+		if (!ok)
+			return;
 	}
 
 //    std::cout<<"\nPlaying audio "<<name;
@@ -513,13 +524,14 @@ void Audio::UpdateVolume(float masterVolume)
 //	std::cout<<"\nVolume updated: "<<absoluteVolume;
 	
 #ifdef OPENAL
+	assert(alSource != 0);
 	alSourcef(alSource, AL_GAIN, absoluteVolume);
 	int error = alGetError();
 	switch(error){
 		case AL_NO_ERROR:
 			break;
 		default:
-			std::cout<<"\nError o-o";
+			std::cout<<"\nALError in Audio::UpdateVolume";
 			break;
 	}
 #endif

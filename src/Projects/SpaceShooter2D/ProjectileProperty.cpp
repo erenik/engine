@@ -31,7 +31,7 @@ void ProjectileProperty::Destroy()
 	// Remove self.
 	sleeping = true;
 	MapMan.DeleteEntity(owner);
-	spaceShooter->projectileEntities.Remove(owner);
+	projectileEntities.Remove(owner);
 
 	// Check distance to player.
 //	Vector3f vectorDistance = (player1->position - atPosition);

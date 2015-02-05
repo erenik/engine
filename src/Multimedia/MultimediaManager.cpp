@@ -97,6 +97,7 @@ MultimediaStream * MultimediaManager::Play(String fromPath)
 		newStream = new OggStream();
 		/// Open path.
 		newStream->Open(fromPath);
+//		lastAudioInfo = "MultimediaManager::Play(fromPath: "+fromPath;
 		newStream->startTime = Timer::GetCurrentTimeMs();
 		streams.Add(newStream);
 		// Play it straight away..?

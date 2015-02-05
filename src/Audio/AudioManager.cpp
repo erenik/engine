@@ -13,6 +13,8 @@
 
 #include "Multimedia/Ogg/OggStream.h"
 
+#include "File/LogFile.h"
+
 #include <iostream>
 #ifdef USE_FMOD
 #include <fmod_studio.hpp>
@@ -283,13 +285,19 @@ Audio * AudioManager::PlayFromSource(char type, String fromSource, bool repeat /
         std::cout<<"\nERROR: Unable to load audio \""<<audio->name<<"\". Aborting playback.";
         return NULL;
 	}
+	lastAudioInfo = "AudioManager::PlayFromSource - audio loaded";
 //	assert(audio->audioStream->source > 0);
-	audioList.Add(audio);
 	/// Generate audio source if not existing.
-	audio->CreateALObjects();
+	if (!audio->CreateALObjects())
+	{
+		LogAudio("Unable to create AL objects for audio: "+audio->name, ERROR);
+		delete audio;
+		return NULL;
+	}
 	audio->UpdateVolume(masterVolume);
 	audio->Play();
 	pauseUpdates = false;
+	audioList.Add(audio);
 	return audio;
 }
 
@@ -332,7 +340,12 @@ Audio * AudioManager::Play(char type, String name, bool repeat, float volume)
         return 0;
 	}
 	/// Generate audio source if not existing.
-	audio->CreateALObjects();
+	if (!audio->CreateALObjects())
+	{
+		LogAudio("Unable to create AL objects for audio: "+audio->name, ERROR);
+		delete audio;
+		return NULL;	
+	}
 	audio->UpdateVolume(masterVolume);
 //	assert(audio->audioStream->source > 0);
 	audioList.Add(audio);

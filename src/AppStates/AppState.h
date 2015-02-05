@@ -78,7 +78,7 @@ public:
 	/// For handling drag-and-drop files.
 	virtual void HandleDADFiles(List<String> & files);
 
-	/// What happens.. when we rendar?!
+	/// Called from the render-thread for every viewport/window, after the main rendering-pipeline has done its job.
 	virtual void Render(GraphicsState * graphicsState);
 
 	/// Getter functions

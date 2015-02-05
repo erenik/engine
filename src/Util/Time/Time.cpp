@@ -48,12 +48,7 @@ Time Time::Now()
 }
 
 
-/** Valid format, where the following characters will be replaced as follows:
-	h - hours in 2 digits
-	m - minute in 2 digits
-	s - seconds in 2 digits
-	
-	Fetches calender data implicitly on each call.
+/** Formats. See .h for clarification.
 */
 String Time::ToString(String withFormat)
 {
@@ -65,30 +60,13 @@ String Time::ToString(String withFormat)
 		char c = withFormat.c_str()[i];
 		switch(c)
 		{
-			case 'h':
-			{
-				if (hour < 10)
-					newString += "0" + String::ToString(hour);
-				else
-					newString += String::ToString(hour);
-				break;
-			}
-			case 'm':
-			{
-				if (minute < 10)
-					newString += "0" + String::ToString(minute);
-				else
-					newString += String::ToString(minute);
-				break;
-			}
-			case 's':
-			{
-				if (second < 10)
-					newString += "0" + String::ToString(second);
-				else
-					newString += String::ToString(second);
-				break;
-			}
+#define TWO_DIGITS(x) if (x < 10) newString += "0" + String(x); else newString += String(x);
+			case 'Y': newString += String(year);	break;
+			case 'M': TWO_DIGITS(month); break;
+			case 'D': TWO_DIGITS(day); break;
+			case 'H': TWO_DIGITS(hour); break;
+			case 'N': TWO_DIGITS(minute); break;
+			case 'S': TWO_DIGITS(second); break;
 			default:
 				newString += c;
 		}
@@ -279,6 +257,8 @@ void Time::FetchCalenderData()
 			SystemTimeToFileTime(&sysTime, &fileTime);
 			
 			// Copy stuff.
+			year = sysTime.wYear;
+			month = sysTime.wMonth;
 			day = sysTime.wDay;
 			hour = sysTime.wHour;
 			minute = sysTime.wMinute;
@@ -287,6 +267,7 @@ void Time::FetchCalenderData()
 			break;
 		}
 		default:
+			std::cout<<"\nBad data in Time. Why are you trying to extract stuff from it?";
 			assert(false);
 
 	}

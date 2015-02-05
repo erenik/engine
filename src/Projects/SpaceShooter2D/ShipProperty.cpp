@@ -78,7 +78,7 @@ void ShipProperty::ProcessWeapons(int timeInMs)
 			// Aim.
 			weapon.Aim(ship);
 			// Dude..
-			if (spaceShooter->projectileEntities.Size() > 1000)
+			if (projectileEntities.Size() > 1000)
 				continue;
 			weapon.Shoot(ship);
 		}

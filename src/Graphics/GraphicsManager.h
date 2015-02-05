@@ -256,6 +256,7 @@ private:
 	/// Should definitely be private..
 	bool renderingEnabled;
 	bool renderingStopped;
+	bool pauseProcessing; // Pauses processing of particles and similar time-based effects which aren't handled in the Physics system.
 
 	/// Time statistics
 	long renderFrameTime, physicsFrameTime, frameTime;

@@ -19,11 +19,12 @@ void debuggingInputProcessor(int action, int inputDevice){
 /// Creates bindings that are used for debugging purposes only
 void CreateDefaultDebuggingBindings()
 {
-	/// (int action, int * inputCombinationArray, int inputs, const char * name = NULL);
-	Binding * bindings [] = {
-		new Binding(Action::FromEnum(RELOAD_UI), List<int>(3, KEY::CTRL, KEY::R, KEY::U)),
-		new Binding(Action::FromEnum(RECOMPILE_SHADERS), List<int>(3, KEY::CTRL, KEY::R, KEY::S))
-	};
-	Input.debug.bindings.AddArray(2, bindings);
+	List<Binding*> & bindings = Input.debug.bindings;
+#define BIND(a,b) bindings.Add(new Binding(a,b))
+
+	BIND(Action::FromEnum(RELOAD_UI), List<int>(KEY::CTRL, KEY::R, KEY::U));
+	BIND(Action::FromEnum(RECOMPILE_SHADERS), List<int>(KEY::CTRL, KEY::R, KEY::S));
+	BIND(Action::FromString("InputMan.printHoverElement"), List<int>(KEY::P, KEY::H, KEY::E));
+
 };
 

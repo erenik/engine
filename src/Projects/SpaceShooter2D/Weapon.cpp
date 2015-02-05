@@ -149,7 +149,7 @@ void Weapon::Aim(Ship * ship)
 	}
 	else 
 	{
-		target = spaceShooter->playerShip.entity;
+		target = playerShip.entity;
 	}
 	if (target == NULL)
 		return;
@@ -255,6 +255,6 @@ void Weapon::Shoot(Ship * ship)
 	pp->collisionFilter = ship->allied? CC_ENEMY : CC_PLAYER;
 	// Add to map.
 	MapMan.AddEntity(projectileEntity);
-	spaceShooter->projectileEntities.Add(projectileEntity);
+	projectileEntities.Add(projectileEntity);
 	lastShotMs = nowMs;
 }

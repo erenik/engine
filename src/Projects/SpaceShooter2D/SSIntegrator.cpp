@@ -13,10 +13,10 @@ SSIntegrator::SSIntegrator(float zPlane)
 
 void SSIntegrator::IntegrateDynamicEntities(List<Entity*> & dynamicEntities, float timeInSeconds)
 {
-	if (spaceShooter->levelEntity)
+	if (levelEntity)
 	{
-		frameMin = spaceShooter->levelEntity->position - spaceShooter->playingFieldHalfSize;
-		frameMax = spaceShooter->levelEntity->position + spaceShooter->playingFieldHalfSize;
+		frameMin = levelEntity->position - playingFieldHalfSize;
+		frameMax = levelEntity->position + playingFieldHalfSize;
 	}
 	static int shipID = ShipProperty::ID();
 	Timer timer;

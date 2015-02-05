@@ -307,3 +307,31 @@ void OSUtil::Paste()
 	}
 #endif
 }
+
+
+#ifdef WINDOWS
+#include "Windows.h"
+#include "Shlobj.h"
+#elif defined LINUX
+#include <unistd.h>
+#include <sys/types.h>
+#include <pwd.h>
+#endif
+
+
+String OSUtil::GetHomeDirectory()
+{
+#ifdef WINDOWS
+	// Get foldeeeer
+	String folderDir = "";
+	WCHAR homePathBuf[MAX_PATH];
+	HRESULT hr = SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL,
+								 SHGFP_TYPE_CURRENT, homePathBuf);
+#elif defined LINUX	
+	/// http://linux.die.net/man/3/getpwuid_r
+	struct passwd * passwordEntryFile;
+	passwordEntryFile = getpwuid(getuid());
+	const char * homePathBuf = passwordEntryFile->pw_dir;
+#endif
+	return String(homePathBuf);
+}

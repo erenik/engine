@@ -56,6 +56,7 @@ void InputManager::Deallocate()
 
 InputManager::InputManager()
 {
+	printHoverElement = 0;
 	/// Default mouse data
 	prevMouseX = prevMouseY = startMouseX = startMouseY = 0;
 	lButtonDown = rButtonDown = false;
@@ -200,98 +201,9 @@ int InputManager::GetNextAvailableInputDevice()
 	return InputDevice::INVALID_DEVICE;
 }
 
-
-/*
-void InputManager::ActivateElement(){
-	UserInterface * ui = RelevantUI();
-	assert(ui);
-	if (hoverElement == NULL){
-		std::cout<<"\nINFO: Not hovering over any valid element! Aborting InputManager::ActivateElement()";
-		return;
-	}
-	assert(hoverElement);
-	ui->Click(hoverElement->posX, hoverElement->posY);
-	ui->Activate();
-}
-*/
-
 /// Fetches and updates the device states for all external controllers (if any)
 void InputManager::UpdateDeviceStates(){
-	/*
-	/// Check for xbox controller input on windows and xbox o-o
-#ifdef WINDOWS
-	for (int i = 0; i < 4; ++i){
-		XINPUT_STATE tmpXInputState;
-		DWORD result = XInputGetState(i, &tmpXInputState);
-
-		// Skip if failed
-		if (result != ERROR_SUCCESS)
-			continue;
-	//	std::cout<<"\nXbox Controller "<<i+1<<" responding as intended? >:3";
-
-		static DWORD lastPacketNumber[4];
-
-		// Check if there's any new data avaiable at all
-		if (tmpXInputState.dwPacketNumber == lastPacketNumber[i]){
-	//		std::cout<<"\nOld data, skipping";
-			continue;
-		}
-		lastPacketNumber[i] = tmpXInputState.dwPacketNumber;
-
-		// Parse Xbox controller input data
-		// http://msdn.microsoft.com/en-us/library/windows/desktop/microsoft.directx_sdk.reference[0]input_gamepad%28v=vs.85%29.aspx
-		XINPUT_GAMEPAD * input = &tmpXInputState.Gamepad;
-
-		// Get float valuesl.....
-#define XINPUT_THUMB_MAX	32768
-
-		gamepadState[i].leftStickX = ((float)input->sThumbLX) / XINPUT_THUMB_MAX;
-		gamepadState[i].leftStickY = ((float)input->sThumbLX) / XINPUT_THUMB_MAX;
-/*
-		Gamepad * gamepad = &gamepadState[i];
-
-		int inputDeviceIndex = GAME_PAD_1 + i;
-
-		// Interpret Game sticks
-		// First left Game stick!
-		if (gamepad->leftStickX < -0.5f){
-			StateMan.ActiveState()->InputProcessor(BEGIN_TURNING_LEFT, inputDeviceIndex);
-		}
-		else if (gamepad->leftStickX > 0.5f){
-			StateMan.ActiveState()->InputProcessor(BEGIN_TURNING_RIGHT, inputDeviceIndex);
-		}
-		else {
-			StateMan.ActiveState()->InputProcessor(STOP_TURNING_LEFT, inputDeviceIndex);
-			StateMan.ActiveState()->InputProcessor(STOP_TURNING_RIGHT, inputDeviceIndex);
-		}
-
-		// Triggers (left, right)
-		// Left trigger
-		if (input->bLeftTrigger > 0){
-			StateMan.ActiveState()->InputProcessor(BEGIN_BREAKING, inputDeviceIndex);
-		}
-		// Right trigger
-		else if (input->bRightTrigger > 0){
-			StateMan.ActiveState()->InputProcessor(BEGIN_ACCELERATION, inputDeviceIndex);
-		}
-		else
-			StateMan.ActiveState()->InputProcessor(STOP_ACCELERATION, inputDeviceIndex);
-
-		/// Button for le boostlur.
-		if (input->wButtons & XINPUT_GAMEPAD_A)
-			StateMan.ActiveState()->InputProcessor(BEGIN_BOOST, inputDeviceIndex);
-		else
-			StateMan.ActiveState()->InputProcessor(STOP_BOOST, inputDeviceIndex);
-
-		// Reset position!
-		if (input->wButtons & XINPUT_GAMEPAD_Y)
-			StateMan.ActiveState()->InputProcessor(RESET_POSITION, inputDeviceIndex);
-
-			*/
-	/*
-	}
-#endif
-	*/
+	// See Input/Gamepad/Gamepad.h
 }
 
 /** DEPRECATING Enters the text-input mode, using a caret and everything to receive user input.
@@ -342,147 +254,6 @@ void InputManager::OnSetUI(UserInterface * ui){
 	//	hoverElement = uiHoverElement;
 	}
 	*/
-}
-
-/** Returns the specified input buffer.
-	Index 0 refers to the new/most recent/active input buffer.
-	Indices 1 to MAX_BUFFERS-1 refer to previously entered buffers.
-*/
-String InputManager::GetInputBuffer(int index){
-	assert(false);
-	/*
-	assert(index >= -1 && index < INPUT_BUFFERS);
-	if (index == -1)
-		return inputBuffers[selectedInputBuffer];
-	return inputBuffers[index];
-	*/
-	return "";
-}
-
-
-/** Attempts to parse a single integer from target string. If no string is provided the system
-	will parse from the inputBuffers[0]. */
-bool InputManager::ParseInt(int &integer, wchar_t * string){
-	assert(false);
-	/*
-	char buffer[BUFFER_SIZE];
-	if (string == NULL){
-		/// Copy from standard input buffer
-		wcstombs(buffer, inputBuffers[selectedInputBuffer], BUFFER_SIZE);
-	}
-	else
-		wcstombs(buffer, string, BUFFER_SIZE);
-	return ParseInt(integer, buffer);
-	*/
-	return false;
-}
-
-/** Attempts to parse a single integer from target string */
-bool InputManager::ParseInt(int &integer, const char * string){
-	assert(false);
-	return false;
-	/*
-	try {
-		char buf[InputManager::BUFFER_SIZE];
-		strcpy(buf, string);
-		char * cStrp;
-		cStrp = strtok(buf, " ");
-		if (cStrp){
-			integer = atoi(buf);
-		}
-		return true;
-	} catch (...) {
-		std::cout<<"\nError reading input buffer";
-	}
-	return false;
-	*/
-}
-
-
-
-/** Attempts to parse select amount of floats from the inputBuffer.
-	Default floats is 3 for the general coordinate system x|y|z.
-	Returns number of successfully parsed floats. */
-int InputManager::ParseFloats(float * floats, int amount){
-	assert(false);
-	/*
-	char cString[InputManager::BUFFER_SIZE];
-	wchar_t * string = inputBuffers[selectedInputBuffer];
-	wcstombs(cString, string, InputManager::BUFFER_SIZE);
-	return ParseFloats(floats, amount, cString);
-	*/
-	return 0;
-}
-
-/** Attempts to parse select amount of floats from target string and places them into the provided array.
-	If no string is provided the system	will parse from the inputBuffers[0].
-	Default floats is 3 for the general coordinate system x|y|z. */
-int InputManager::ParseFloats(float * floats, int amount, wchar_t * string){
-	assert(false);
-	/*
-	// Copy over the buffer
-	char cString[InputManager::BUFFER_SIZE];
-	wcstombs(cString, string, InputManager::BUFFER_SIZE);
-	return ParseFloats(floats, amount, cString);
-	*/
-	return 0;
-}
-/** Attempts to parse select amount of floats from target string and places them into the provided array.
-	If no string is provided the system	will parse from the inputBuffers[0].
-	Default floats is 3 for the general coordinate system x|y|z. */
-int InputManager::ParseFloats(float * floats, int amount, char * string){
-	int floatsRead = 0;
-	try {
-		// Parse until null-sign reached
-		char * ptr = string;
-		int length = strlen(string)+1;
-		char floatBuffer[20];
-		char * fBufP = floatBuffer;
-		memset(floatBuffer, 0, 20);
-		while (ptr < string+length){
-			if (*ptr >= '0' && *ptr <= '9'){
-				*fBufP = *ptr;
-				++fBufP;
-			}
-			else if (*ptr == '.' || *ptr == ','){
-				/// Check for existing decimal/comma
-				for (char * s = floatBuffer; s < fBufP; ++s){
-					if (*s == '.' || *s == ','){
-						std::cout<<"ERROR: Two decimals or commas in single float.";
-						return floatsRead;
-					}
-				}
-				*fBufP = '.';		// Always make it a decimal though!
-				++fBufP;
-			}
-			else if (*ptr == '-'){
-				/// Check for numeral after the minus!
-				if (*(ptr+1) >= '0' && *(ptr+1) <= '9'){
-					*fBufP = *ptr;
-					++fBufP;
-				}
-			}
-			// If something else and the buffer has something in it: try buffer
-			else if (fBufP > floatBuffer){
-				floats[floatsRead] = (float)atof(floatBuffer);
-				++floatsRead;
-				memset(floatBuffer, 0, 20);		// Clear buffer and move back pointer again ^_^
-				fBufP = floatBuffer;
-				/// Return true if we found all values!
-				if (floatsRead == amount)
-					return floatsRead;
-			}
-			/// Break loop after we encounter a null-sign!
-			if (*ptr == '\0')
-				break;
-			++ptr;
-		}
-		/// We have read values, but not all needed!
-		return floatsRead;
-	} catch (...) {
-		std::cout<<"\nError reading input buffer";
-	}
-	return floatsRead;
 }
 
 /// Loads mappings from pre-defined saved archive. Returns true upon success.
@@ -656,6 +427,10 @@ void InputManager::MouseMove(Window * window, Vector2i activeWindowAreaCoords)
 		{
 			// Save old hover element...? wat
 			UIElement * hoverElement = userInterface->Hover(x, y, true);
+			if (printHoverElement)
+			{
+				std::cout<<"\nHoverElement: "<<(hoverElement? hoverElement->name.c_str() : "NULL");
+			}
 		}
 
 	//	element = userInterface->Hover(x, y, true);
@@ -727,7 +502,20 @@ extern void debuggingInputProcessor(int action, int inputDevice = 0);
 
 /// Evaluates if the active key generates any new events by looking at the relevant key bindings
 void InputManager::EvaluateKeyPressed(int activeKeyCode, bool downBefore, UIElement * activeElement)
-{
+{/*
+	std::cout<<"\nKey down: "<<activeKeyCode;
+	String totalKeys;
+	for (int i = 0; i < KEY::TOTAL_KEYS; ++i)
+	{
+		bool held = keyPressed[i];
+		if (held)
+			totalKeys += " "+String(i);
+	}
+	if (totalKeys.Length())
+	{
+		std::cout<<"\nKeys pressed: "<<totalKeys;
+	}
+	*/
 	/// Check if we have an active ui element.
 	UserInterface * userInterface = RelevantUI();
 	UIElement * hoverElement = NULL;

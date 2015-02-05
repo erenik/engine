@@ -705,16 +705,14 @@ void GMAddGlobalUI::Process()
 }
 
 /// Message to add a newly created UI to the active game state's UI.
-GMAddUI::GMAddUI(UIElement * element, String toParent, UserInterface * inUI)
-: GMUI(GM_ADD_UI, inUI), element(element), parentName(toParent)
+GMAddUI::GMAddUI(List<UIElement*> elements, String toParent, UserInterface * inUI)
+: GMUI(GM_ADD_UI, inUI), elements(elements), parentName(toParent)
 {
-	assert(element);
 }
 
-GMAddUI::GMAddUI(UIElement * element, String toParent, Viewport * viewport)
-: GMUI(GM_ADD_UI, viewport), element(element), parentName(toParent)
+GMAddUI::GMAddUI(List<UIElement*> elements, String toParent, Viewport * viewport)
+: GMUI(GM_ADD_UI, viewport), elements(elements), parentName(toParent)
 {
-	assert(element);
 }
 void GMAddUI::Process()
 {
@@ -729,7 +727,10 @@ void GMAddUI::Process()
 		std::cout<<"\nNo UIElement with given name could be found: "<<parentName;
 		return;
 	}
-	e->AddChild(element);
+	for (int i = 0; i < elements.Size(); ++i)
+	{
+		e->AddChild(elements[i]);
+	}
 	Graphics.renderQueried = true;
 }
 

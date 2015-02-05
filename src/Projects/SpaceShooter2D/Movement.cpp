@@ -182,7 +182,7 @@ void Movement::MoveToLocation()
 		case Location::VECTOR:
 		{
 			// Adjust movement vector?
-			pos = spaceShooter->levelEntity->position + vec;
+			pos = levelEntity->position + vec;
 			isPosition = true;
 			break;
 		}
@@ -215,13 +215,13 @@ void Movement::MoveToLocation()
 			break;
 		}
 		case Location::CENTER: 
-			pos = spaceShooter->levelEntity->position;
+			pos = levelEntity->position;
 			isPosition = true;
 			break;
 		case Location::PLAYER:
-			if (spaceShooter->playerShip.entity)
+			if (playerShip.entity)
 			{
-				pos = spaceShooter->playerShip.entity->position;
+				pos = playerShip.entity->position;
 				isPosition = true;
 			}
 			else {
@@ -242,7 +242,7 @@ void Movement::MoveToLocation()
 void Movement::Circle()
 {
 	// Go towards target.
-	Entity * target = spaceShooter->playerShip.entity;
+	Entity * target = playerShip.entity;
 	if (!target)
 	{
 		SET_DIRECTION(Vector3f());

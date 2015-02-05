@@ -8,13 +8,12 @@
 
 #include "String/AEString.h"
 
-// Some standard files used for logging.
-#define PHYSICS_THREAD "log/PhysicsLog.txt"
-#define MAIN_THREAD	"log/MainThreadLog.txt"
+#include "ThreadSetup.h"
 
-#define LogGraphics(s,i) LogToFile(PHYSICS_THREAD, s, i)
 #define LogPhysics(s,i) LogToFile(PHYSICS_THREAD, s, i)
-#define LogMain(s,i) LogToFile(MAIN_THREAD, s)
+#define LogMain(s,i) LogToFile(MAIN_THREAD, s, i)
+#define LogAudio(s,i) LogToFile(AUDIO_THREAD, s,i)
+#define LogGraphics(s,i) LogToFile(GRAPHICS_THREAD, s, i)
 
 #ifdef ERROR
 #undef ERROR

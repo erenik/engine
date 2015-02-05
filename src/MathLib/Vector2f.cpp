@@ -115,6 +115,13 @@ void Vector2f::Clamp(float min, float max)
 	ClampFloat(y, min, max);
 }
 
+void Vector2f::Clamp(Vector2f min, Vector2f max)
+{
+	ClampFloat(x, min.x, max.x);
+	ClampFloat(y, min.y, max.y);
+}
+
+
 // ************************************************************************//
 // Arithmetics
 // ************************************************************************//
@@ -144,13 +151,6 @@ void Vector2f::scale(float ix, float iy){
 // ************************************************************************//
 // Operator overloading
 // ************************************************************************//
-
-// Unary - operator (switch signs of all sub-elements)
-Vector2f Vector2f::operator - () const {
-	return Vector2f(-x, -y);
-}
-
-
 /// Binary operator.
 bool Vector2f::operator == (const Vector2f other) const
 {
@@ -159,6 +159,28 @@ bool Vector2f::operator == (const Vector2f other) const
 	return false;
 }
 
+/// This will return true if and only if all three components (x,y,z) are smaller than their corresponding comparands in the vector comparand.
+bool Vector2f::operator < (const Vector2f & comparand) const
+{
+	if (x < comparand.x &&
+		y < comparand.y)
+		return true;
+	return false;
+}
+/// This will return true if and only if all three components (x,y,z) are larger than their corresponding comparands in the vector comparand.
+bool Vector2f::operator > (const Vector2f & comparand) const
+{
+	if (x > comparand.x &&
+		y > comparand.y)
+		return true;
+	return false;
+}
+
+
+// Unary - operator (switch signs of all sub-elements)
+Vector2f Vector2f::operator - () const {
+	return Vector2f(-x, -y);
+}
 
 Vector2f  Vector2f::operator + (Vector2f addend) const {
 	Vector2f  newVec;

@@ -42,7 +42,7 @@ public:
 	void BufferData(MultimediaStream * fromStream, AudioBuffer * intoBuffer);
 
 	/// Generate audio source if not existing.
-	void CreateALObjects();
+	bool CreateALObjects();
 
     /// Loads the actual data. Retyrns false if faylure. ;^;
     bool Load();

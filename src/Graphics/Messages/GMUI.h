@@ -250,11 +250,11 @@ private:
 /// Message to add a newly created UI to the active game state's UI.
 class GMAddUI : public GMUI{
 public:
-	GMAddUI(UIElement * element, String toParent, UserInterface * inUI);
-	GMAddUI(UIElement * element, String toParent = "root", Viewport * viewport = NULL);
+	GMAddUI(List<UIElement*> elements, String toParent, UserInterface * inUI);
+	GMAddUI(List<UIElement*> elements, String toParent = "root", Viewport * viewport = NULL);
 	void Process();
 private:
-	UIElement * element;
+	List<UIElement*> elements;
 	String parentName;
 };
 

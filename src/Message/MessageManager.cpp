@@ -294,9 +294,10 @@ void MessageManager::ProcessMessage(Message * message)
 		case MessageType::STRING:
 		{
 			msg.SetComparisonMode(String::NOT_CASE_SENSITIVE);
-
 			if (msg == "AcceptInput:false")
 				Input.acceptInput = false;
+			else if (msg.Contains("InputMan.printHoverElement"))
+				Input.printHoverElement = !Input.printHoverElement;
 			else if (msg == "SetGlobalState:NULL")
 				StateMan.SetGlobalState(NULL);
 			else if (msg == "SetActiveState:NULL")
@@ -523,7 +524,8 @@ void MessageManager::ProcessMessage(Message * message)
 					MesMan.QueueMessage(m);
 				return;
 			}
-			else if (msg.Contains("setVisibility")){
+			else if (msg.Contains("setVisibility"))
+			{
 				List<String> params = msg.Tokenize("(),");
 				assert(params.Size() >= 2 && "Invalid amount of arguments to SetVisibility UI command!");
 

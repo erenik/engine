@@ -110,6 +110,42 @@ String::String(const int iValue)
 	}
 }
 
+String::String(const int64 int64Value)
+{
+	Nullify();
+	/// Hard core.
+	int64 i2 = AbsoluteValue(int64Value), numDigits = 0, negative = 0;
+	if (int64Value < 0)
+		negative = 1;
+	List<int> digits;
+	while(i2 > 0)
+	{
+		++numDigits;
+		digits.Add(i2 % 10);
+		i2 /= 10;
+	}
+	numDigits = numDigits? numDigits : 1;
+	int charactersNeeded = numDigits + negative + 1;
+	type = String::CHAR;
+	Reallocate(charactersNeeded);
+	// Copy over ze data.
+	int index = 0;
+	if (negative)
+		arr[index++] = '-';
+
+	// Special case.
+	if (digits.Size() == 0)
+		arr[0] = '0';
+	
+	while (digits.Size())
+	{
+		// Insert the last one.
+		arr[index++] = digits.Last() + '0';
+		digits.RemoveIndex(digits.Size() - 1);
+	}
+}
+
+
 /// -1 will make the float be printed with default amount (as needed).
 String::String(const float fValue, int decimalsAfterZeroAndNotation /*= 0*/)
 {
@@ -1578,6 +1614,7 @@ int String::RemoveSurroundingWhitespaces()
 {
 	if (arraySize <= 0)
 		return -1;
+retry:
 	switch(type){
 		case CHAR: {
 			int lastWhitespace = -1;
@@ -1618,8 +1655,8 @@ int String::RemoveSurroundingWhitespaces()
 			return lastWhitespace + firstWhitespace;
 		}
 		case WIDE_CHAR:
-			assert(false && "implement!");
-			return -2;
+			ConvertToChar();
+			goto retry;
 		default:
 			return -1;
 	}	

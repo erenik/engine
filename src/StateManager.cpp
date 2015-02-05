@@ -350,7 +350,7 @@ void * StateManager::StateProcessor(void * vArgs){
 			Sleep(100);
 		}
 	}
-	LogMain("State processing thread ending");
+	LogMain("State processing thread ending", INFO);
 
 	std::cout<<"\n>>> StateProcessingThread ending...";
 #ifdef WINDOWS

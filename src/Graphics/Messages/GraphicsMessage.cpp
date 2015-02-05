@@ -30,6 +30,16 @@ void GraphicsMessage::Process()
 	GraphicsState * graphicsState = Graphics.graphicsState;
 	switch(type)
 	{
+		case GM_PAUSE_PROCESSING:
+		{
+			GraphicsMan.pauseProcessing = true;
+			break;
+		}
+		case GM_RESUME_PROCESSING:
+		{
+			GraphicsMan.pauseProcessing = false;
+			break;
+		}
 		case GM_SHUTDOWN:
 		{
 			GraphicsMan.shouldLive = false;

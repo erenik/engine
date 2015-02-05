@@ -79,6 +79,16 @@ void ScriptManager::PlayScript(String source)
 	}
 }
 
+void ScriptManager::NewScript(List<String> fromLines)
+{
+	Script * script = new Script();
+	script->loaded = true;
+	script->lines = fromLines;
+	script->SetDeleteOnEnd(true);
+	PlayScript(script);
+}
+
+
 
 void ScriptManager::Process(int timeInMs)
 {

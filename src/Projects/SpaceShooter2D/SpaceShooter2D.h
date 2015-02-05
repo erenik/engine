@@ -84,6 +84,17 @@ extern Sparks * sparks;
 /// These will hopefully always be in AABB axes.
 extern Vector3f frustumMin, frustumMax;
 
+extern Ship playerShip;
+/// The level entity, around which the playing field and camera are based upon.
+extern Entity * levelEntity;
+extern Vector2f playingFieldSize;
+extern Vector2f playingFieldHalfSize;
+extern float playingFieldPadding;
+/// All ships, including player.
+extern List<Entity*> shipEntities;
+extern List<Entity*> projectileEntities;
+extern String playerName;
+
 class SpaceShooter2D : public AppState 
 {
 public:
@@ -105,10 +116,13 @@ public:
 	/// Creates default key-bindings for the state.
 	virtual void CreateDefaultBindings();
 
+	/// Called from the render-thread for every viewport/window, after the main rendering-pipeline has done its job.
+	virtual void Render(GraphicsState * graphicsState);
+
 	void UpdateUI();
-	/// Update UI
-	void UpdatePlayerHP();
-	void UpdatePlayerShield();
+	/// Update UI parts
+	void UpdateUIPlayerHP();
+	void UpdateUIPlayerShield();
 	/// Update ui
 	void OnScoreUpdated();
 	/// o.o
@@ -122,21 +136,37 @@ public:
 
 	/// Starts a new game. Calls LoadLevel
 	void NewGame();
+	void Pause();
+	void Resume();
 	void TogglePause();
+	
 	/// Loads target level. The source and separate .txt description have the same name, just different file-endings, e.g. "Level 1.png" and "Level 1.txt"
 	void LoadLevel(String levelSource = "CurrentStageLevel");
 	void GameOver();
 	void LevelCleared();
 
-	void UpdatePlayerVelocity();
-	void ResetCamera();
-
-	/// Process target ship.
-	void Process(Ship & ship);
+	/// Opens main menu.
+	void OpenMainMenu();
+	/// Where the ship will be re-fitted and new gear bought.
+	void EnterShipWorkshop();
+	/// Returns a list of save-files.
+	void OpenLoadScreen();
+	// Bring up the in-game menu.
+	void OpenInGameMenu();
 	
+	
+	/// Saves current progress.
+	bool SaveGame();
+	/// Loads progress from target save.
+	bool LoadGame(String save);
+
+	void UpdatePlayerVelocity();
+	void ResetCamera();	
 
 	enum {
-		IN_MENU,
+		MAIN_MENU,
+		IN_WORKSHOP,
+		LOAD_SAVES,
 		PLAYING_LEVEL,
 		GAME_OVER,
 		LEVEL_CLEARED,
@@ -146,11 +176,7 @@ public:
 	SpaceShooterCR * cr;
 	SpaceShooterCD * cd;
 	Level level;
-	Ship playerShip;
 	List<int> movementDirections;
-	/// All ships, including player.
-	List<Entity*> shipEntities;
-	List<Entity*> projectileEntities;
 
 	String levelSource;
 
@@ -158,16 +184,17 @@ public:
 	int currentLevel;
 	int currentStage;
 
-	/// The level entity, around which the playing field and camera are based upon.
-	Entity * levelEntity;
-
 	/// Default 30x20
 	void SetPlayingFieldSize(Vector2f newSize);
-	Vector2f playingFieldSize;
-	Vector2f playingFieldHalfSize;
-	float playingFieldPadding;
+
+private:
+	/// Called each app frame to remove projectiles and ships outside the relevant area.
+	void Cleanup();
+	void OnPauseStateUpdated();
+
+	/// For display.
+	String lastError;
 };
 
 
 extern SpaceShooter2D * spaceShooter;
-

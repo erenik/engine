@@ -7,16 +7,7 @@
 #include <cassert>
 #include <fstream>
 #include "File/FileUtil.h"
-#include "OS/OS.h"
-
-#ifdef WINDOWS
-#include "Windows.h"
-#include "Shlobj.h"
-#elif defined LINUX
-#include <unistd.h>
-#include <sys/types.h>
-#include <pwd.h>
-#endif
+#include "OS/OSUtil.h"
 
 #define FILENAME "/preferences.dat"
 
@@ -61,19 +52,7 @@ void PreferencesManager::EnsurePreferencesFolderExists()
 //	std::cout << "\nApplication name: "<<Application::name;
 	assert(Application::name.Length());
 	/// TODO: Add home path somehow.
-#ifdef WINDOWS
-	// Get foldeeeer
-	String folderDir = "";
-	WCHAR homePathBuf[MAX_PATH];
-	HRESULT hr = SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL,
-								 SHGFP_TYPE_CURRENT, homePathBuf);
-#elif defined LINUX	
-	/// http://linux.die.net/man/3/getpwuid_r
-	struct passwd * passwordEntryFile;
-	passwordEntryFile = getpwuid(getuid());
-	const char * homePathBuf = passwordEntryFile->pw_dir;
-#endif
-	String homePath = homePathBuf;
+	String homePath = OSUtil::GetHomeDirectory();
 	homePath.Replace('\\', '/');
 	String dirPath = homePath;
 	dirPath.Add("/.config/");

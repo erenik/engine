@@ -30,6 +30,7 @@ public:
 	String(const char * from, const char * to); // User-defined length of any given c_str :)
 	String(const char c); // Because constructors are awesome.
 	String(const int iValue);
+	String(const int64 int64Value);
 	/// -1 will make the float be printed with default amount (as needed). Use String::SCIENTIFIC_NOTATION if that is desired.
 	String(const float fValue, int decimalsAfterZeroAndNotation = 0);
 	String(const wchar_t * string);

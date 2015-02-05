@@ -10,9 +10,14 @@ enum graphicsMessages {
 	GM_CYCLE_RENDER_PIPELINE,
 	GM_CYCLE_RENDER_PIPELINE_BACK,
 
+	// Render-pass configuration
+	GM_ADD_RENDER_PASS,
+
 	// Pausing!
 	GM_PAUSE_RENDERING,
 	GM_RESUME_RENDERING,
+	GM_PAUSE_PROCESSING, // Mainly affects processing of particles and similar. Rendering is continued as normal.
+	GM_RESUME_PROCESSING,
 
 	// Lighting
 	GM_ADD_LIGHT,

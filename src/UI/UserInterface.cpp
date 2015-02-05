@@ -1232,6 +1232,11 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 				ENSURE_NEXT_TOKEN
 				element->exitable = (NEXT_TOKEN).ParseBool();
 			}
+			else if (token == "hoverable")
+			{
+				ENSURE_NEXT_TOKEN;
+				element->hoverable = NEXT_TOKEN.ParseBool();
+			}
 			else if (token == "visible" || token == "visibility")
 			{
 				ENSURE_NEXT_TOKEN

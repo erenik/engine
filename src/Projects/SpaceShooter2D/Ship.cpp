@@ -73,14 +73,14 @@ void Ship::Damage(int amount, bool ignoreShield)
 		if (shieldValue < 0 )
 			shieldValue = 0;
 		if (this->allied)
-			spaceShooter->UpdatePlayerShield();
+			spaceShooter->UpdateUIPlayerShield();
 		if (amount < 0)
 			return;
 		shieldValue = 0;
 	}
 	hitPoints -= amount;
 	if (this->allied)
-		spaceShooter->UpdatePlayerHP();
+		spaceShooter->UpdateUIPlayerHP();
 	if (hitPoints <= 0)
 		Destroy();
 }
@@ -104,7 +104,7 @@ void Ship::Destroy()
 		Graphics.QueueMessage(new GMAttachParticleEmitter(tmpEmitter, sparks));
 
 		MapMan.DeleteEntity(entity);
-		spaceShooter->shipEntities.Remove(entity);
+		shipEntities.Remove(entity);
 		entity = NULL;
 		// Explosion?
 	}
@@ -259,13 +259,13 @@ bool Ship::LoadTypes(String file)
 				ship.maxHitPoints = ship.hitPoints = value.ParseInt();
 			else if (column == "Collide damage")
 				ship.collideDamage = value.ParseInt();
-			else if (column == "Max rotation per second")
+			else if (column == "Max rotation per second" || column == "Rotation Speed")
 				ship.maxRadiansPerSecond = DEGREES_TO_RADIANS(value.ParseInt());
 			else if (column == "Graphic model")
 				ship.graphicModel = value;
 			else 
 			{
-				LogShip("Unrecognized column name \'"+column+".");
+				LogShip("Unrecognized column name \'"+column+"\'.");
 			}
 		}
 		// Check for pre-existing ship of same name, remove it if so.

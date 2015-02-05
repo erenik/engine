@@ -45,6 +45,9 @@ public:
 	// Input-mappings for all specific game states.
 //	InputMapping inputMapping[MAX_GAME_STATES];
 
+	/// For debugging.
+	bool printHoverElement;
+
 	/// Initializes the manager by loading mappings, generating to defaults if needed.
 	void Initialize();
 	/// Clears flags for all input keys. Returns amount of keys that were in need of resetting.

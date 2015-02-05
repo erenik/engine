@@ -31,6 +31,7 @@ public:
 	void PlayScript(Script * script);
 	// The above, but loads it fer ya.
 	void PlayScript(String source);
+	void NewScript(List<String> fromLines);
 	void Process(int timeInMs);
 	List<Script*> GetActiveEvents(){ return activeScripts; };
 

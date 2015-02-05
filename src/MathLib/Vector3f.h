@@ -121,6 +121,10 @@ public:
 
 	/// Comparison operators
 	bool operator != (const Vector3f & comparand) const;
+	/// This will return true if and only if all three components (x,y,z) are smaller than their corresponding comparands in the vector comparand.
+	bool operator < (const Vector3f & comparand) const;
+	/// This will return true if and only if all three components (x,y,z) are larger than their corresponding comparands in the vector comparand.
+	bool operator > (const Vector3f & comparand) const;
 
 	// Unary - operator (switch signs of all sub-elements)
 	Vector3f operator - () const;

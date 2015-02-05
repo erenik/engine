@@ -1,6 +1,7 @@
 /// Emil Hedemalm
 /// 2014-07-09
 /// Defines one single render pass.
+/// A Render-pass in this sense is just one group of graphics related actions, often painting some data onto a buffer or texture object.
 
 #include "Shader.h"
 #include "String/AEString.h"
@@ -20,13 +21,15 @@ namespace RenderTarget
 	};
 };
 
+
+/// A Render-pass in this sense is just one group of graphics related actions, often painting some data onto a buffer or texture object.
 class RenderPass 
 {
 public:
 	RenderPass();
 
 	// Renders this pass. Returns false if some error occured, usually mid-way and aborting the rest of the procedure.
-	bool Render(GraphicsState & graphics);
+	virtual bool Render(GraphicsState & graphics);
 
 	// Names are always good.
 	String name;
@@ -34,6 +37,12 @@ public:
 	Shader * shader;
 	String shaderName;
 
+	enum {
+		RENDER_ENTITIES, // Renders all entities.
+		RENDER_APP_STATE, // Calls the active application state's Render-function.
+	};
+	/// Basic type this pass is. See enum above.
+	int type;
 	// Input type. 
 	int input;
 	int output;

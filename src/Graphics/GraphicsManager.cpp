@@ -120,7 +120,6 @@ void PrintGLError(const char * text){
 	}
 }
 
-
 /// Constructor which anulls all relevant variables.
 GraphicsManager::GraphicsManager()
 {
@@ -985,11 +984,15 @@ void GraphicsManager::UpdateLighting()
 
 void GraphicsManager::Process()
 {
+	if (pauseProcessing)
+		return;
 	graphicsThreadDetails = "GraphicsManager::Process";
 	static Time lastTime = Time::Now();
 	Time now = Time::Now();
 
 	int milliseconds = (now - lastTime).Milliseconds();
+	// Max 200 milliseconds per batch, 5 fps is needed, yo.
+	milliseconds = milliseconds % 200;
 	lastTime = now;
 
 	/// Process particle effects.

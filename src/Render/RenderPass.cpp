@@ -16,13 +16,16 @@
 #include "Graphics/Particles/ParticleSystem.h"
 #include "Graphics/FrameStatistics.h"
 
+#include "AppStates/AppState.h"
+#include "StateManager.h"
+
 RenderPass::RenderPass()
 {
 	shader = 0;
 	shaderName = "Phong";
 	depthTestEnabled = true;
+	type = RENDER_ENTITIES;
 }
-
 
 // Renders this pass. Returns false if some error occured, usually mid-way and aborting the rest of the procedure.
 bool RenderPass::Render(GraphicsState & graphicsState)
@@ -42,6 +45,18 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 				return false;
 			break;
 		}
+	}
+	/// Check basic type. If specific, call other procedures.
+	switch(type)
+	{
+		case RENDER_APP_STATE:
+		{
+			AppState * state = StateMan.ActiveState();
+			state->Render(&graphicsState);
+			return true;
+		}
+		default:
+			break;
 	}
 
 	// Set shader to use in this render-pass.

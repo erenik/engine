@@ -33,9 +33,12 @@ public:
 	static Time Now();
 
 	/** Valid format, where the following characters will be replaced as follows:
-		h - hours in 2 digits
-		m - minute in 2 digits
-		s - seconds in 2 digits
+		Y - year in 4 digits
+		M - month in 2 digits
+		D - day in 2 digits
+		H - hours in 2 digits
+		N - minute in 2 digits
+		S - seconds in 2 digits
 
 		Fetches calender data implicitly on each call.
 	*/
@@ -89,6 +92,8 @@ private:
 	int minute;
 	int hour;
 	int day;
+	int month;
+	int year;
 
 	/// See enumeratoin above. Defines the duration of one interval, but may also affect how the accessors work (e.g. for other calender-types).
 	int type;

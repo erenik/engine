@@ -18,9 +18,11 @@
 #endif
 
 #ifdef USE_SSE
+/*
 #define x (*this)[0]
 #define y (*this)[1]
 #define z (*this)[2]
+*/
 #endif
 
 // ************************************************************************//
@@ -301,6 +303,25 @@ bool Vector3f::operator != (const Vector3f & comparand) const
 	if (comparand[0] != x ||
 		comparand[1] != y ||
 		comparand[2] != z)
+		return true;
+	return false;
+}
+
+/// This will return true if and only if all three components (x,y,z) are smaller than their corresponding comparands in the vector comparand.
+bool Vector3f::operator < (const Vector3f & comparand) const
+{
+	if (x < comparand.x &&
+		y < comparand.y &&
+		z < comparand.z)
+		return true;
+	return false;
+}
+/// This will return true if and only if all three components (x,y,z) are larger than their corresponding comparands in the vector comparand.
+bool Vector3f::operator > (const Vector3f & comparand) const
+{
+	if (x > comparand.x &&
+		y > comparand.y &&
+		z > comparand.z)
 		return true;
 	return false;
 }

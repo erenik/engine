@@ -62,6 +62,7 @@ public:
 
 	/// Clamp to an interval.
 	void Clamp(float min, float max);
+	void Clamp(Vector2f min, Vector2f max);
 
 	// Simple arithmetics
 	/** Simple addition
@@ -81,11 +82,15 @@ public:
 	*/
 	void scale(float x, float y);
 
-	// Unary - operator (switch signs of all sub-elements)
-	Vector2f operator - () const;
-
 	/// Binary operator.
 	bool operator == (const Vector2f other) const;
+	/// This will return true if and only if all three components (x,y,z) are smaller than their corresponding comparands in the vector comparand.
+	bool operator < (const Vector2f & comparand) const;
+	/// This will return true if and only if all three components (x,y,z) are larger than their corresponding comparands in the vector comparand.
+	bool operator > (const Vector2f & comparand) const;
+
+	// Unary - operator (switch signs of all sub-elements)
+	Vector2f operator - () const;
 
 	// Operator overloading for the addition and subtraction operations
 	/// Returns a summed vector based on this vector and the addend.

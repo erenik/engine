@@ -12,9 +12,11 @@
 
 List<String> GetFilesFromHDrop(HDROP hDrop);
 
-namespace OSUtil {
+namespace OSUtil 
+{
 	void Copy();
 	void Paste();
+	String GetHomeDirectory();
 };
 
 #endif

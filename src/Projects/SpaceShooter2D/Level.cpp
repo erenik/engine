@@ -6,6 +6,12 @@
 
 Camera * levelCamera = NULL;
 
+
+// See header file. Position boundaries.
+float removeInvuln = 0;
+float spawnPositionRight = 0;
+float despawnPositionLeft = 0;
+
 bool Level::Load(String fromSource)
 {
 	source = fromSource;
@@ -189,3 +195,95 @@ void Level::SetupCamera()
 	GraphicsMan.QueueMessage(new GMSetCamera(levelCamera));
 }
 
+
+void Level::Process(int timeInMs)
+{
+	removeInvuln = levelEntity->position[0] + playingFieldHalfSize[0] + playingFieldPadding + 1.f;
+	spawnPositionRight = removeInvuln + BaseVelocity()[0];
+	despawnPositionLeft = levelEntity->position[0] - playingFieldHalfSize[0] - 1.f;
+
+	// Check for game over.
+	if (playerShip.hitPoints <= 0)
+	{
+		// Game OVER!
+		spaceShooter->GameOver();
+		return;
+	}
+
+	/// Clearing the level
+	if (playerShip.entity->position[0] > goalPosition)
+	{
+		spaceShooter->LevelCleared();
+	}
+	else 
+	{
+		/// PRocess the player ship.
+		Process(playerShip);
+	}
+	// Check if we want to spawn any enemy ships.
+	// Add all enemy ships too?
+	for (int i = 0; i < ships.Size(); ++i)
+	{
+		Ship & ship = ships[i];
+		if (ship.spawned)
+		{
+			if (ship.entity == NULL)
+				continue;
+			if (ship.spawnInvulnerability)
+			{
+				if (ship.entity->position[0] < removeInvuln)
+				{
+					// Change color.
+					GraphicsMan.QueueMessage(new GMSetEntityTexture(ship.entity, DIFFUSE_MAP | SPECULAR_MAP, TexMan.GetTextureByColor(Color(255,255,255,255))));
+					ship.spawnInvulnerability = false;
+					continue;				
+				}
+			}
+			// If not, process it?
+			else {
+				Process(ship);
+			}
+			continue;
+		}
+		if (ship.position[0] > spawnPositionRight)
+			continue;
+		Entity * entity = EntityMan.CreateEntity(ship.type, ship.GetModel(), TexMan.GetTextureByColor(Color(0,255,0,255)));
+		entity->position = ship.position;
+		float radians = PI / 2;
+		entity->rotation[0] = radians; // Rotate up from Z- to Y+
+		entity->rotation[1] = radians; // Rorate from Y+ to X-
+		entity->RecalculateMatrix();
+		
+		PhysicsProperty * pp = new PhysicsProperty();
+		entity->physics = pp;
+		// Setup physics.
+		pp->type = PhysicsType::DYNAMIC;
+		pp->collisionCategory = CC_ENEMY;
+		pp->collisionFilter = CC_PLAYER | CC_PLAYER_PROJ;
+		pp->collissionCallback = true;
+		// By default, set invulerability on spawn.
+		ship.spawnInvulnerability = true;
+		ShipProperty * sp = new ShipProperty(&ship, entity);
+		entity->properties.Add(sp);
+		ship.entity = entity;
+		ship.spawned = true;
+		shipEntities.Add(entity);
+		MapMan.AddEntity(entity);
+		ship.StartMovement();
+	}
+
+}
+
+/// Process target ship.
+void Level::Process(Ship & ship)
+{
+	if (ship.hasShield)
+	{
+		// Repair shield
+		ship.shieldValue += timeElapsedMs * ship.shieldRegenRate;
+		if (ship.shieldValue > ship.maxShieldValue)
+			ship.shieldValue = ship.maxShieldValue;
+		if (ship.allied)
+			spaceShooter->UpdateUIPlayerShield();
+	}
+}
