@@ -19,6 +19,8 @@ public:
 	void CreateChildren();
 	/// Sets the texts of the children.
 	void SetTexts(List<String> texts);
+	// Set texture for all elements.
+	void SetTextureSource(String source);
 
 	// Sent when a child checkbox is toggled. 
 	virtual void OnToggled(UICheckBox * box);

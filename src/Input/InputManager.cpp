@@ -340,7 +340,8 @@ void InputManager::MouseClick(Window * window, bool down, int x, int y)
 			// Remove the ACTIVE flag from the previous active element, if any.
 			if (activeElement)
 				activeElement->RemoveState(UIState::ACTIVE);
-			userInterface->Click(x,y,true);
+			UIElement * clicked = userInterface->Click(x,y,true);
+			std::cout<<"\nClicked: "<<clicked? clicked->name : "NULL";
 		}
 		// Up!
 		else if (!down && activeElement)

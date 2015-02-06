@@ -76,6 +76,8 @@ private:
 	*/
 	/// Sets current text and clears old data. Prepares for a new parse or render.
 	void NewText(Text text);
+	/// Evaluates current char. IF true, should skip processing hte current char in the rest of the procedure.
+	bool EvaluateSpecialChar();
 	// Moves variables to prepare for rendering this char.
 	void StartChar();
 	// Moves to the end of this character. 
@@ -136,6 +138,8 @@ private:
 	/// Height per character (in pixels) in the loaded texture
 	int fontHeight;
 
+	/// Index of character in current text which is rendered. Here to allow manipulation of it from within the various state-functions.
+	int i;
 };
 
 #endif

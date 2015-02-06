@@ -54,6 +54,8 @@ void ShipProperty::Process(int timeInMs)
 {
 	if (sleeping)
 		return;
+	if (paused)
+		return;
 
 	// Move?
 	Entity * shipEntity = ship->entity;

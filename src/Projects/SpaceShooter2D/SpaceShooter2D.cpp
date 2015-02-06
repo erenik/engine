@@ -23,13 +23,16 @@
 
 #include "UI/UIList.h"
 
+#include "Game/GameVariableManager.h"
+#include "Message/MathMessage.h"
+
 /// Particle system for sparks/explosion-ish effects.
 Sparks * sparks = NULL;
 Stars * stars = NULL;
 
 ParticleEmitter * starEmitter = NULL;
 
-static bool paused = false;
+bool paused = false;
 
 List<Weapon> Weapon::types;
 List<Ship> Ship::types;
@@ -60,6 +63,7 @@ String playerName;
 Time startDate;
 bool inGameMenuOpened = false;
 bool showLevelStats = false;
+int gearCategory = 0;
 
 void RegisterStates()
 {
@@ -74,9 +78,6 @@ SpaceShooter2D::SpaceShooter2D()
 	SetPlayingFieldSize(Vector2f(30,20));
 	levelEntity = NULL;
 	playingFieldPadding = 1.f;
-	currentLevel = 1;
-	currentStage = 1;
-	playerName = "Player";
 }
 
 SpaceShooter2D::~SpaceShooter2D()
@@ -86,6 +87,14 @@ SpaceShooter2D::~SpaceShooter2D()
 /// Function when entering this state, providing a pointer to the previous StateMan.
 void SpaceShooter2D::OnEnter(AppState * previousState)
 {
+	/// Create game variables.
+	currentLevel = GameVars.CreateInt("currentLevel", 1);
+	currentStage = GameVars.CreateInt("currentStage", 1);
+	playerName = GameVars.CreateString("playerName", "Cytine");
+	score = GameVars.CreateInt("score", 0);
+	money = GameVars.CreateInt("money", 0);
+	playTime = GameVars.CreateInt("playTime", 0);
+	gameStartDate = GameVars.CreateTime("gameStartDate");
 
 	Window * w = MainWindow();
 	assert(w);
@@ -236,6 +245,22 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 	String msg = message->msg;
 	switch(message->type)
 	{
+		case MessageType::SET_STRING:
+		{
+			SetStringMessage * strMes = (SetStringMessage *) message;
+			playerName->strValue = strMes->value;
+			break;
+		}
+		case MessageType::INTEGER_MESSAGE:
+		{
+			IntegerMessage * im = (IntegerMessage*) message;
+			if (msg == "SetGearCategory")
+			{
+				gearCategory = im->value;
+				UpdateGearList();
+			}
+			break;
+		}
 		case MessageType::COLLISSION_CALLBACK:
 		{
 
@@ -292,10 +317,36 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 			{
 				OpenLoadScreen();
 			}
+			else if (msg.Contains("LoadGame("))
+			{
+				bool ok = LoadGame(msg.Tokenize("()")[1]);
+				if (ok)
+				{
+					// Data loaded. Check which state we should enter?
+					if (currentLevel->iValue < 4)
+					{
+						// Enter the next-level straight away.
+						MesMan.QueueMessages("NextLevel");
+					}
+					else 
+					{
+						mode = IN_LOBBY;
+						UpdateUI();
+					}
+				}
+				else {
+					GraphicsMan.QueueMessage(new GMSetUIs("CenterText", GMUI::TEXT, "Load failed. Details: "+lastError));	
+					ScriptMan.NewScript(List<String>("Wait(6000)", "ClearCenterText"));
+				}
+			}
 			else if (msg == "Back")
 			{
 				// Default.
 				OpenMainMenu();
+			}
+			else if (msg == "LoadDefaultName")
+			{
+				GraphicsMan.QueueMessage(new GMSetUIs("PlayerName", GMUI::STRING_INPUT_TEXT, playerName->strValue));
 			}
 			else if (msg == "GoToMainMenu")
 			{
@@ -327,10 +378,17 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 			}
 			else if (msg.StartsWith("ShowLevelStats"))
 			{
-				// Show some statistics.
-				// 
-				String targetUIList = "ScoreBreakdownList";
 				showLevelStats = true;
+				// Add level score to total upon showing level stats. o.o
+				score->iValue += LevelScore()->iValue;
+				GraphicsMan.QueueMessage(new GMSetUIs("LevelKills", GMUI::TEXT, LevelKills()->ToString()));
+				GraphicsMan.QueueMessage(new GMSetUIs("LevelScore", GMUI::TEXT, LevelScore()->ToString()));
+				GraphicsMan.QueueMessage(new GMSetUIs("ScoreTotal", GMUI::TEXT, score->ToString()));
+				UpdateUI();
+			}
+			else if (msg.StartsWith("HideLevelStats"))
+			{
+				showLevelStats = false;
 				UpdateUI();
 			}
 			else if (msg == "Pause/Break")
@@ -349,21 +407,32 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 			else if (msg == "NextLevel")
 			{
 				// Next level? Restart?
-				++currentLevel;
-				if (currentLevel > 4)
+				++currentLevel->iValue;
+				if (currentLevel->iValue > 4)
 				{
-					currentLevel = 4;
-					std::cout<<"\nCannot go to next level, already at level 4. Try switching stage.";
+					currentLevel->iValue = 4;
+				}
+				LoadLevel();
+			}
+			else if (msg == "NextStage")
+			{
+				if (currentStage->iValue >= 8)
+					return;
+				++currentStage->iValue;
+				currentLevel->iValue = 1;
+				if (currentLevel->iValue > 8)
+				{
+					currentLevel->iValue = 8;
 				}
 				LoadLevel();
 			}
 			else if (msg == "PreviousLevel")
 			{
-				--currentLevel;
-				if (currentLevel < 1)
+				--currentLevel->iValue;
+				if (currentLevel->iValue < 1)
 				{
 					std::cout<<"\nCannot go to previous level, already at level 1. Try switching stage.";
-					currentLevel = 1;
+					currentLevel->iValue = 1;
 				}
 				LoadLevel();
 			}
@@ -375,13 +444,34 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 				PhysicsMan.QueueMessage(new PMSetEntity(levelEntity, PT_POSITION, Vector3f(level.goalPosition - 5.f, 10, 0)));
 //				GraphicsMan.QueueMessage(new GMSetCamera(levelCamera, CT_POSITION, Vector3f(level.goalPosition - 5.f, 10, 0)));
 			}
+			else if (msg == "FinishStage")
+			{
+				ScriptMan.PlayScript("scripts/FinishStage.txt");
+			}
+			else if (msg.Contains("GoToLobby"))
+			{
+				mode = IN_LOBBY;
+				UpdateUI();
+			}
+			else if (msg.StartsWith("ShowGearDesc:"))
+			{
+				String text = msg;
+				text.Remove("ShowGearDesc:");
+				GraphicsMan.QueueMessage(new GMSetUIs("GearInfo", GMUI::TEXT, text));
+			}
+			else if (msg.Contains("ExitToMainMenu"))
+			{
+				mode = MAIN_MENU;
+				UpdateUI();
+			}
 			if (msg.StartsWith("DisplayCenterText"))
 			{
 				String text = msg;
 				if (text.Contains("$-L"))
 				{
-					text.Replace("$-L", String(currentStage)+"-"+String(currentLevel));
+					text.Replace("$-L", currentStage->ToString()+"-"+currentLevel->ToString());
 				}
+				text.Replace("Stage $", "Stage "+currentStage->ToString());
 				text.Remove("DisplayCenterText");
 				text.RemoveInitialWhitespaces();
 				GraphicsMan.QueueMessage(new GMSetUIs("CenterText", GMUI::TEXT, text));
@@ -559,14 +649,41 @@ Entity * SpaceShooter2D::OnShipDestroyed(Ship * ship)
 	return NULL;
 }
 
+/// Level score. If -1, returns current.
+GameVariable * SpaceShooter2D::LevelScore(int stage, int level)
+{
+	String name = "Level "+String(stage)+"-"+String(level)+" score";
+	GameVar * gv = GameVars.Get(name);
+	if (!gv)
+		gv = GameVars.CreateInt(name, 0);
+	return gv;
+}
 
+/// Level score. If -1, returns current.
+GameVariable * SpaceShooter2D::LevelKills(int stage, int level)
+{
+	String name = "Level "+String(stage)+"-"+String(level)+" kills";
+	GameVar * gv = GameVars.Get(name);
+	if (!gv)
+		gv = GameVars.CreateInt(name, 0);
+	return gv;
+}
 
 
 /// Starts a new game. Calls LoadLevel
 void SpaceShooter2D::NewGame()
 {
 	startDate = Time::Now();
-
+	score->iValue = 0;
+	for (int i = 0; i < 8; ++i)
+	{
+		for (int j = 0; j < 4; ++j)
+		{
+			LevelKills(i+1,j+1)->iValue = 0;
+			LevelScore(i+1,j+1)->iValue = 0;
+		}
+	}
+	
 	/// Fetch file which dictates where to load weapons and ships from.
 	List<String> lines = File::GetLines("ToLoad.txt");
 	enum {
@@ -609,8 +726,8 @@ void SpaceShooter2D::NewGame()
 			playerShip.maxHitPoints = 500;
 		}
 	}
-	currentStage = 1;
-	currentLevel = 1;
+	currentStage->iValue = 1;
+	currentLevel->iValue = 1;
 	LoadLevel();
 	// Play script for animation or whatever.
 	ScriptMan.PlayScript("scripts/NewGame.txt");
@@ -652,10 +769,15 @@ void SpaceShooter2D::OnPauseStateUpdated()
 /// Loads target level. The source and separate .txt description have the same name, just different file-endings, e.g. "Level 1.png" and "Level 1.txt"
 void SpaceShooter2D::LoadLevel(String fromSource)
 {
+	// Reset stats for this specific level.
+	LevelKills()->iValue = 0;
+	LevelScore()->iValue = 0;
+
 	showLevelStats = false;
+	inGameMenuOpened = false;
 	if (fromSource == "CurrentStageLevel")
 	{
-		fromSource = "Levels/Stage "+String(currentStage)+"/Level "+String(currentStage)+"-"+String(currentLevel);
+		fromSource = "Levels/Stage "+currentStage->ToString()+"/Level "+currentStage->ToString()+"-"+currentLevel->ToString();
 	}		
 	this->levelSource = fromSource;
 	// Delete all entities.
@@ -769,6 +891,9 @@ void SpaceShooter2D::LoadLevel(String fromSource)
 	}
 	// Run start script.
 	ScriptMan.PlayScript("scripts/OnLevelStart.txt");
+
+	// o.o
+	this->Resume();
 }
 
 void SpaceShooter2D::GameOver()
@@ -814,9 +939,25 @@ void SpaceShooter2D::OpenLoadScreen()
 {
 	mode = LOAD_SAVES;
 	/// Returns list of all saves, in the form of their SaveFileHeader objects, which should include all info necessary to judge which save to load!
-	headers = SaveFile::GetSaves("SpaceShooter2D");
+	headers = SaveFile::GetSaves(Application::name);
 	// Clear old list.
 	GraphicsMan.QueueMessage(new GMClearUI("SavesCList"));
+	/// Sort saves by date?
+	for (int i = 0; i < headers.Size(); ++i)
+	{
+		SaveFileHeader & header = headers[i];
+		for (int j = i + 1; j < headers.Size(); ++j)
+		{
+			SaveFileHeader & header2 = headers[j];
+			if (header2.dateSaved > header.dateSaved)
+			{
+				// Switch places.
+				SaveFileHeader tmp = header2;
+				header2 = header;
+				header = tmp;
+			}
+		}
+	}
 	// List 'em.
 	List<UIElement*> saves;
 	for (int i = 0; i < headers.Size(); ++i)
@@ -825,28 +966,18 @@ void SpaceShooter2D::OpenLoadScreen()
 		UIList * list = new UIList();
 		
 		UILabel * label = new UILabel();
-		label->text = "Save "+String(i);
-		label->sizeRatioY = 0.1f;
-		list->AddChild(label);
-
-		label = new UILabel();
-		label->text = h.saveName;
-		label->sizeRatioY = 0.1f;
-		list->AddChild(label);
-
-		label = new UILabel();
-		label->text = h.dateSaved.ToString("Y-M-D - H:N:S");
-		label->sizeRatioY = 0.1f;
-		list->AddChild(label);
-
-		label = new UILabel();
 		label->text = h.customHeaderData;
 		label->sizeRatioY = 0.1f;
+		label->hoverable = false;
+		label->textureSource = "NULL";
 		list->AddChild(label);
 
+		list->highlightOnHover = true;
+		list->sizeRatioX = 0.33f;
 		list->activateable = true;
 		list->highlightOnActive = true;
 		list->activationMessage = "LoadGame("+h.saveName+")";
+		list->textureSource = "0x3366";
 		saves.Add(list);
 	}
 
@@ -865,11 +996,13 @@ void SpaceShooter2D::OpenInGameMenu()
 /// Saves current progress.
 bool SpaceShooter2D::SaveGame()
 {
-	SaveFile save;
-	String customHeaderData = "Stage: "+String(currentStage)+" Level: "+String(currentLevel)+
-		"\n" + startDate.ToString("Y-M-D - H:N:S");
+	SaveFile save(Application::name, playerName->strValue + gameStartDate->ToString());
+	String customHeaderData = "Name: "+playerName->strValue+"\nStage: "+currentStage->ToString()+" Level: "+currentLevel->ToString()+
+		"\nScore: " + String(score->iValue) + 
+		"\nSave date: " + Time::Now().ToString("Y-M-D") + 
+		"\nStart date: " + startDate.ToString("Y-M-D");
 	
-	bool ok = save.OpenSaveFileStream(playerName + String(startDate.Milliseconds()), "SpaceShooter2D", customHeaderData, true);
+	bool ok = save.OpenSaveFileStream(customHeaderData, true);
 	if (!ok)
 	{
 		lastError = save.lastError;
@@ -877,22 +1010,37 @@ bool SpaceShooter2D::SaveGame()
 	}
 	assert(ok);
 	std::fstream & stream = save.GetStream();
-
-	/** Opens a file stream to the targeted location, writing the a SaveFileHeader at the start, including the custom header data, then returns the stream so that all
-		game-related data may be written as wanted.
-	*/
-//	std::fstream * OpenSaveFileStream(String saveName, String gameName, String customHeaderData, bool overwriteIfNeeded);
-	lastError = "Not implemented.";
-	return false;
-
+	if (!GameVars.WriteTo(stream))
+	{
+		lastError = "Unable to save GameVariables to stream.";
+		return false;
+	}
+	// Close the stream.
+	stream.close();
+	// Save custom data.
 	return true;
 }
 
 /// Loads progress from target save.
-bool SpaceShooter2D::LoadGame(String save)
+bool SpaceShooter2D::LoadGame(String saveName)
 {
-
-	return false;
+	SaveFile save(Application::name, saveName);
+	String cHeaderData;
+	bool ok = save.OpenLoadFileStream();
+	if (!ok)
+	{
+		lastError = save.lastError;
+		return false;
+	}
+	std::fstream & stream = save.GetStream();
+	if (!GameVars.ReadFrom(stream))
+	{
+		lastError = "Unable to read GameVariables from save.";
+		return false;
+	}
+	// Close the stream.
+	stream.close();
+	return true;
 }
 
 /// Updates ui depending on mode.
@@ -901,7 +1049,7 @@ void SpaceShooter2D::UpdateUI()
 	/// o.o
 	List<String> toHide, uis;
 	toHide.Add("MainMenu", "HUD", "Saves", "InGameMenu", "Workshop");
-	toHide.Add("Options", "LevelStats");
+	toHide.Add("Options", "LevelStats", "Lobby");
 			
 	// Reveal specifics?
 	switch(mode)
@@ -918,6 +1066,9 @@ void SpaceShooter2D::UpdateUI()
 			uis.Add("HUD");
 			UpdateUIPlayerHP();
 			UpdateUIPlayerShield();
+			break;
+		case IN_LOBBY:
+			uis.Add("Lobby");
 			break;
 		default:
 			assert(false);
@@ -942,6 +1093,90 @@ void SpaceShooter2D::UpdateUI()
 		GraphicsMan.QueueMessage(new GMSetUIb(uis[i], GMUI::VISIBILITY, true));
 	}
 }
+
+#include "Gear.h"
+
+void SpaceShooter2D::UpdateGearList()
+{
+	Gear::Load("data/Shields.csv");
+
+	String gearListUI = "GearList";
+	GraphicsMan.QueueMessage(new GMClearUI(gearListUI));
+
+	List<Gear> gearList = Gear::GetType(gearCategory);
+	// Sort by price.
+	for (int i = 0; i < gearList.Size(); ++i)
+	{
+		Gear & gear = gearList[i];
+		for (int j = i + 1; j < gearList.Size(); ++j)
+		{
+			Gear & gear2 = gearList[j];
+			if (gear2.price < gear.price)
+			{
+				Gear tmp = gear;
+				gear = gear2;
+				gear2 = tmp;
+			}
+		}
+	}
+
+	List<UIElement*> toAdd;
+	for (int i = 0; i < gearList.Size(); ++i)
+	{
+		Gear & gear = gearList[i];
+		if (gear.name.Length() == 0)
+			continue;
+		UIColumnList * list = new UIColumnList();
+		list->highlightOnHover = true;
+		list->textureSource = "0x3344";
+		list->sizeRatioY = 0.2f;
+		list->padding = 0.02f;
+		list->hoverable = true;
+		list->onHover = "ShowGearDesc:"+gear.description;
+		// First a label with the name.
+		UILabel * label = new UILabel(gear.name);
+		label->sizeRatioX = 0.3f;
+		label->hoverable = false;
+		list->AddChild(label);
+		// Add stats?
+		switch(gearCategory)
+		{
+			// Weapons:
+			case 0:
+			{
+				break;
+			}
+			// Shields
+			case 1:
+			{
+				label = new UILabel("Max: "+String(gear.maxShield));
+				label->hoverable = false;
+				label->sizeRatioX = 0.1f;
+				list->AddChild(label);
+				label = new UILabel("Regen: "+String(gear.shieldRegen));
+				label->hoverable = false;
+				label->sizeRatioX = 0.1f;
+				list->AddChild(label);
+				break;
+			}
+			// Armors
+			case 2:
+			{
+				break;		
+			}
+		}
+		// Add price.
+		label = new UILabel(String(gear.price));
+		label->hoverable = false;
+		label->sizeRatioX = 0.2f;
+		list->AddChild(label);
+
+		// Add buy button
+		toAdd.Add(list);
+	}
+	GraphicsMan.QueueMessage(new GMAddUI(toAdd, gearListUI));
+}
+
 
 void SpaceShooter2D::UpdatePlayerVelocity()
 {

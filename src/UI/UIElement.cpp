@@ -291,6 +291,8 @@ UIElement* UIElement::Hover(int mouseX, int mouseY)
 	//	if(child != NULL)
 		return NULL;
 	}
+	if (onHover.Length())
+		MesMan.QueueMessages(onHover);
 
 	// Check axiomaticness
 	if (axiomatic){
@@ -1557,14 +1559,21 @@ void UIElement::RenderSelf(GraphicsState & graphicsState)
 			int rowsAvailable = (int)(1 / textSizeRatio);
 			currentTextSizeRatio = 1.0f;
 			/// Returns the size required by a call to RenderText if it were to be done now. In... pixels? or units
-            float lengthRequired = currentFont->CalculateRenderSizeUnits(text)[0] * pixels;
-			if (lengthRequired > rowsAvailable * sizeX){
+			Vector2f size = currentFont->CalculateRenderSizeUnits(text);
+            Vector2f pixelsRequired = size * pixels;
+			if (pixelsRequired.x > rowsAvailable * sizeX){
 				// assert(false && "Too much text!");
 //				std::cout<<"\nNOTE: Too much text for given space and size, scaling down text to fit!";
-				currentTextSizeRatio = sizeX / lengthRequired;
+				currentTextSizeRatio = sizeX / pixelsRequired.x;
 				// Scale it down, yes.
 			}
-			else if (lengthRequired > sizeX)
+			if (pixelsRequired.y > sizeY)
+			{
+				// D: Divide moar?
+				currentTextSizeRatio *= sizeY / pixelsRequired.y;
+			}
+			/*
+			if (pixelsRequired.x > sizeX)
 			{
 			//	assert(false && "Add thingy to enter new-lines automagically.");
 			//	std::cout<<"\nINFO: Length exceeding size, calculating and inserting newlines as possible.";
@@ -1607,6 +1616,7 @@ void UIElement::RenderSelf(GraphicsState & graphicsState)
 				textToRender += line;
 			//	std::cout<<"\nTextToRender: "<<textToRender;
 			}
+			*/
         }
 
 		pixels *= currentTextSizeRatio; //this->textSizeRatio;

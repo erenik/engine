@@ -31,6 +31,8 @@ File::~File()
 	if (fileHandle)
 		CloseHandle(fileHandle);
 	fileHandle = 0;
+	if (fileStream.is_open())
+		fileStream.close();
 }
 
 /// Assignment operator. Similar to constructor.

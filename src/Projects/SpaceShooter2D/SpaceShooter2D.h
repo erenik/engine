@@ -75,6 +75,7 @@ enum {
 
 class SpaceShooterCR;
 class SpaceShooterCD;
+class GameVariable;
 
 extern int64 nowMs;
 extern int timeElapsedMs;
@@ -94,6 +95,7 @@ extern float playingFieldPadding;
 extern List<Entity*> shipEntities;
 extern List<Entity*> projectileEntities;
 extern String playerName;
+extern bool paused;
 
 class SpaceShooter2D : public AppState 
 {
@@ -120,6 +122,7 @@ public:
 	virtual void Render(GraphicsState * graphicsState);
 
 	void UpdateUI();
+	void UpdateGearList();
 	/// Update UI parts
 	void UpdateUIPlayerHP();
 	void UpdateUIPlayerShield();
@@ -128,9 +131,10 @@ public:
 	/// o.o
 	Entity * OnShipDestroyed(Ship * ship);
 
-	/// o.o
-	int score;
-
+	/// Level score. If -1, returns current.
+	GameVariable * LevelScore(int stage = -1, int level = -1);
+	/// Level score. If -1, returns current.
+	GameVariable * LevelKills(int stage = -1, int level = -1);
 
 // private:
 
@@ -165,6 +169,7 @@ public:
 
 	enum {
 		MAIN_MENU,
+		IN_LOBBY,
 		IN_WORKSHOP,
 		LOAD_SAVES,
 		PLAYING_LEVEL,
@@ -181,8 +186,13 @@ public:
 	String levelSource;
 
 	/// o.o
-	int currentLevel;
-	int currentStage;
+	GameVariable * currentLevel,
+		* currentStage,
+		* score,
+		* money,
+		* playTime,
+		* playerName,
+		* gameStartDate;
 
 	/// Default 30x20
 	void SetPlayingFieldSize(Vector2f newSize);

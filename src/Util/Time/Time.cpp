@@ -5,6 +5,7 @@
 #include "Time.h"
 #include "OS/OS.h"
 #include <cassert>
+#include <fstream>
 
 #ifdef WINDOWS
 #include "OS/WindowsIncludes.h"
@@ -234,6 +235,29 @@ int Time::Hour()
 	return hour;
 }
 	
+
+/// File I/O
+bool Time::WriteTo(std::fstream & stream)
+{
+	int version = 0;
+	stream.write((char*)&version, sizeof(int));
+	assert(type != 0);
+	stream.write((char*)&type, sizeof(int));
+	stream.write((char*)&intervals, sizeof(uint64));
+	return true;
+}
+
+bool Time::ReadFrom(std::fstream & stream)
+{
+	int version;
+	stream.read((char*)&version, sizeof(int));
+	assert(version == 0);
+	stream.read((char*)&type, sizeof(int));
+	assert(type != 0);
+	stream.read((char*)&intervals, sizeof(uint64));
+	return true;
+}
+
 
 
 /// Fetches calender data given the intervals and type defined now.

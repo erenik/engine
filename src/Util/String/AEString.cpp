@@ -1086,23 +1086,10 @@ void String::Replace(String part, String withNewString)
 			{
 				bool found = true;
 				// Remove it.
-				// Check length of replace string compared to part string.
-				int diff = withNewString.Length() - part.Length();
-				if (diff <= 0)
-				{
-					// Just add it in there and move the remaining part back.
-					memcpy(arr + i, withNewString.arr, withNewString.Length());
-					// Move the remaining part back.
-					for (int j = i + withNewString.Length(); j < Length() - diff; ++j)
-					{
-						arr[j] = arr[j + 1];
-					}
-				}
-				// Longer?
-				else 
-				{
-					*this = Part(0, i) + withNewString + Part(i + parti);
-				}
+				String part1 = Part(0, i);
+				String part2 = Part(i + parti);
+				*this = part1 + withNewString + part2;
+
 				// Adjust i for next iteration.
 				i += withNewString.Length();
 				break;
@@ -1678,6 +1665,9 @@ void String::PrintData() const
 bool String::ReadFrom(std::fstream& file)
 {
 	file.read((char*)&type, sizeof(int));
+	/// Don't save shit.
+	if (type == NULL_TYPE)
+		return false;
 	file.read((char*)&arraySize, sizeof(int));
 	assert(arraySize < 1000000);
 	if (arraySize > 1000000)

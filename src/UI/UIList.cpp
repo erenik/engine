@@ -7,6 +7,7 @@
 #include "GraphicsState.h"
 #include "MathLib/Rect.h"
 #include "Input/InputManager.h"
+#include "Message/MessageManager.h"
 
 UIScrollBarHandle::UIScrollBarHandle()
 : UIElement()
@@ -440,6 +441,8 @@ UIElement * UIList::Hover(int mouseX, int mouseY)
 	RETURN_IF_OUTSIDE
     float listX = (float)mouseX;
     float listY = (float)mouseY;
+	if (onHover.Length())
+		MesMan.QueueMessages(onHover);
     if (scrollBarY){
         listY -= scrollBarY->GetStart() * sizeY;
     }
@@ -471,6 +474,7 @@ UIElement * UIList::Hover(int mouseX, int mouseY)
 }
 UIElement * UIList::Click(int mouseX, int mouseY)
 {
+	state &= ~UIState::ACTIVE;
     RETURN_IF_OUTSIDE
     float listX = (float)mouseX;
     float listY = (float)mouseY;
@@ -488,8 +492,15 @@ UIElement * UIList::Click(int mouseX, int mouseY)
         if (e)
             break;
     }
-    if (!e)
+	if (!e)
+	{
         e = this;
+		// If activatable, flag it.
+		if (this->activateable){
+			state |= UIState::ACTIVE;
+			return this;
+		}
+	}
     if (scrollBarY){
         std::cout<<"\nUIList::Click "<< (e ? e->name : "NULL") <<" listY: "<<listY<<" mouseY: "<<mouseY;
     }

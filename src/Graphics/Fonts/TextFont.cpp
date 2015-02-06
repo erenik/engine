@@ -283,9 +283,10 @@ void TextFont::NewText(Text text)
 		pivotPoint += Vector2f(padding[0], -padding[1]);
 }
 
-void TextFont::StartChar()
+/// Evaluates current char. IF true, should skip processing hte current char in the rest of the procedure.
+bool TextFont::EvaluateSpecialChar()
 {
-	// Handle special characters differently!
+	// Evaluate special-characters!
 	switch(currentChar)
 	{
 		// Backspace, handle like in C++, allow for special escape sequences such as \n by looking at the next character.
@@ -295,7 +296,9 @@ void TextFont::StartChar()
 			{
 				case 'n': // Newline!
 					NewLine();
-					break;
+					// Increment by two, so the \n isn't actually rendered?
+					++i;
+					return true;
 				// Unknown escape sequence, continue.
 				default:
 					break;
@@ -303,12 +306,17 @@ void TextFont::StartChar()
 			break;
 		}
 		case '\n': // And go to next row if we get a newline character!
-            NewLine();
-			break;
+			NewLine();
+			return true;
 		case 'ö':
 			std::cout<<"ll;;;h";
 			break;
 	};
+	return false;
+}
+
+void TextFont::StartChar()
+{
 	pivotPoint[0] += charWidth[currentChar] * halfScale[0];
 }
 
@@ -375,12 +383,14 @@ Vector2f TextFont::CalculateRenderSizeUnits(Text text)
 			break;
 		}
 		nextChar = text.c_str()[i + 1];
+		if (EvaluateSpecialChar())
+			continue;
 		StartChar();
 		// RenderChar();
 		EndChar();
 		lastChar = currentChar;
 	}
-	return Vector2f (maxRowSizeX, pivotPoint[1]);
+	return Vector2f (maxRowSizeX, AbsoluteValue(pivotPoint.y));
 }
 
 /// Calculates the render size in pixels if the text were to be rendered now.
@@ -420,7 +430,7 @@ void TextFont::RenderText(Text & text, GraphicsState & graphicsState)
 	}
 
 	bool shouldRenderCaret = Timer::GetCurrentTimeMs() % 1000 > 500;
-	for (int i = 0; i < text.Length()+1; ++i)
+	for (i = 0; i < text.Length()+1; ++i)
 	{
 		if (text.caretPosition == i && shouldRenderCaret)
 		{
@@ -431,6 +441,10 @@ void TextFont::RenderText(Text & text, GraphicsState & graphicsState)
 		if (currentChar == 0)
 			break;
 		nextChar = text.c_str()[i + 1];
+
+		if (EvaluateSpecialChar())
+			continue;
+
 		StartChar();				// Move in.
 		RenderChar(currentChar);	// Render
 		/// If we are between the 2 active carets, render the region the char covers over with a white quad ?

@@ -301,6 +301,11 @@ int main(int argc, char **argv)
 		
 //#define test
 #ifdef test
+	String t = "TestForTheRest";
+	String b = t, c = t;
+	b.Replace("For", "A");
+	c.Replace("For", "Gib");
+
 
 //	Angle::UnitTest();
 

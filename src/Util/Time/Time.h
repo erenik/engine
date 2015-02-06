@@ -81,7 +81,11 @@ public:
 
 	/// The amount of intervals in this time. Exactly how intervals is used is up to which functions you wish to use.
 	uint64 intervals;
-	
+
+	/// File I/O
+	bool WriteTo(std::fstream & stream);
+	bool ReadFrom(std::fstream & stream);
+
 	/// o-o
 	int Type(){ return type;};
 private:

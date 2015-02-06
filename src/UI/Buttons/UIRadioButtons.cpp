@@ -53,6 +53,16 @@ void UIRadioButtons::SetTexts(List<String> texts)
 	}
 }
 
+// Set texture for all elements.
+void UIRadioButtons::SetTextureSource(String source)
+{
+	for (int i = 0; i < buttons.Size(); ++i)
+	{
+		UICheckBox * button = buttons[i];
+		button->textureSource = source;
+	}
+}
+
 /// Sent when a child checkbox is toggled. 
 void UIRadioButtons::OnToggled(UICheckBox * box)
 {

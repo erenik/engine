@@ -204,7 +204,7 @@ void Level::SetupCamera()
 void Level::Process(int timeInMs)
 {
 	removeInvuln = levelEntity->position[0] + playingFieldHalfSize[0] + playingFieldPadding + 1.f;
-	spawnPositionRight = removeInvuln + 10.f;
+	spawnPositionRight = removeInvuln + 15.f;
 	despawnPositionLeft = levelEntity->position[0] - playingFieldHalfSize[0] - 1.f;
 
 	// Check for game over.

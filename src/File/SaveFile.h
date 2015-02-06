@@ -15,6 +15,7 @@ struct SaveFileHeader {
 	String gameName;
 	String saveName;
 	Time dateSaved;
+	/// Informative text to be parsed or displayed straight to the user. All data here should be saved/loaded in the stream as well!
 	String customHeaderData;
 	/// Just so we know where to load the rest from.
 	String fileName;
@@ -25,18 +26,20 @@ class SaveFile : public File
 {
 public:
 	/// Default constructor, doesn't open any streams.
-	SaveFile();
+	SaveFile(String gameName, String saveName);
 	// File destructor closest the file-stream automatically?
 	/// Default save folder, usually "$Documents$/MyGames/$AppName$/saves/"
 	static String saveFolder;
 	/** Opens a file stream to the targeted location, writing the a SaveFileHeader at the start, including the custom header data, then returns the stream so that all
-		game-related data may be written as wanted.
+		game-related data may be written as wanted. 
+		NOTE: The custom header-data is only used for when browsing the saves and should not be used for actual data.
 	*/
-	bool OpenSaveFileStream(String saveName, String gameName, String customHeaderData, bool overwriteIfNeeded);
+	bool OpenSaveFileStream(String customHeaderData, bool overwriteIfNeeded);
 	/** Opens a file stream to the targeted save game, reading the a SaveFileHeader at the start, including the custom header data, then returns the stream so that all
 		game-related data may be written as wanted.
+		Header-data is set in headerData member variable upon loading.
 	*/
-	bool OpenLoadFileStream(String saveName, String gameName, String & customHeaderData);
+	bool OpenLoadFileStream();
 	/// Gets the stream. Should be called after having called OpenSaveFileStream or OpenLoadFileStream sucessfully.
 	std::fstream & GetStream();
 	/// Returns the header as it was saved or loaded.
@@ -45,7 +48,13 @@ public:
 	/// Returns list of all saves, in the form of their SaveFileHeader objects, which should include all info necessary to judge which save to load!
 	static List<SaveFileHeader> GetSaves(String gameName);
 	String lastError;
+	/// Header data, as loaded when calling OpenLoadFileStream.
+	SaveFileHeader headerData;
 private:
+	void BuildPath();
+
+	String gameName;
+	String saveName;
 	// Current file handle state.
 	bool open;
 	String path;

@@ -12,19 +12,18 @@
 String SaveFile::saveFolder = "saves";
 
 /// Default constructor, doesn't open any streams.
-SaveFile::SaveFile()
+SaveFile::SaveFile(String gameName, String saveName)
+: gameName(gameName), saveName(saveName)
 {
 
 }
 
 /// Header currently being used.
 SaveFileHeader header;
-	
-bool SaveFile::OpenSaveFileStream(String saveName, String gameName, String customHeaderData, bool overwriteIfNeeded)
-{
-	// Close old file stream.
-	fileStream.close();
 
+
+void SaveFile::BuildPath()
+{
 	// Ensure folder exists.
 	String folderPath = String(saveFolder) + "/" + gameName + "/";
 	EnsureFoldersExistForPath(folderPath);
@@ -35,8 +34,19 @@ bool SaveFile::OpenSaveFileStream(String saveName, String gameName, String custo
 	String extension = ".sav";
 	if (!path.Contains(extension))
 		path += extension;
-	/// Check if it already exists.
-	path = GetFirstFreePath(pathPreExtension, extension);
+	/// Check if it already exists. Overwrite!
+//	path = GetFirstFreePath(pathPreExtension, extension);
+}
+
+bool SaveFile::OpenSaveFileStream(String customHeaderData, bool overwriteIfNeeded)
+{
+	// Close old file stream.
+	if (fileStream.is_open())
+		fileStream.close();
+
+
+	// Builds the path to the save-file to be used/loaded from.
+	BuildPath();
 
 	// Open file stream
 	fileStream.open(path.c_str(), std::ios_base::out | std::ios_base::binary);
@@ -48,11 +58,41 @@ bool SaveFile::OpenSaveFileStream(String saveName, String gameName, String custo
 	// Write header.
 	header.gameName = gameName;
 	header.saveName = saveName;
-	header.dateSaved = Timer::GetCurrentTimeMs();
+	header.dateSaved = Time::Now();
 	header.customHeaderData = customHeaderData;
 	header.WriteTo(fileStream);
-	return &fileStream;
+	return true;
 }
+
+/** Opens a file stream to the targeted save game, reading the a SaveFileHeader at the start, including the custom header data, then returns the stream so that all
+	game-related data may be written as wanted.
+*/
+bool SaveFile::OpenLoadFileStream()
+{
+	// Close old file stream.
+	if (fileStream.is_open())
+		fileStream.close();
+
+	// Builds the path to the save-file to be used/loaded from.
+	BuildPath();
+
+	// Open file stream
+	fileStream.open(path.c_str(), std::ios_base::in | std::ios_base::binary);
+	if (!fileStream.is_open())
+	{
+		lastError = "Unable to open file-stream to location: "+path;
+		return false;
+	}
+	// Read header.
+	if (!headerData.ReadFrom(fileStream))
+	{
+		lastError = "Unable to read header-data. D:";
+		return false;
+	}
+	// Stream should now be ready to be read further by the application at hand.
+	return true;
+}
+
 
 /// Returns list of all saves
 List<SaveFileHeader> SaveFile::GetSaves(String gameName)
@@ -98,23 +138,23 @@ const SaveFileHeader & SaveFile::GetHeader()
 }
 
 
-String versionHeader; // = "Aeonic Game Engine - By: Emil Hedemalm/Erenik\nSave File.";
+String versionHeader = "Aeonic Game Engine - By: Emil Hedemalm/Erenik\nSave File.\n";
 
 bool SaveFileHeader::WriteTo(std::fstream & stream){
 	versionHeader.WriteTo(stream);
 	gameName.WriteTo(stream);
 	saveName.WriteTo(stream);
-	int size = sizeof(long long);
-	stream.write((char*) &dateSaved, sizeof(long long));
+	dateSaved.WriteTo(stream);
 	customHeaderData.WriteTo(stream);
 	return true;
 }
 bool SaveFileHeader::ReadFrom(std::fstream & stream){
 	String header;
-	header.ReadFrom(stream);
+	if (!header.ReadFrom(stream)) 
+		return false;
 	gameName.ReadFrom(stream);
 	saveName.ReadFrom(stream);
-	stream.read((char*) &dateSaved, sizeof(long long));
+	dateSaved.ReadFrom(stream);
 	customHeaderData.ReadFrom(stream);
 	return true;
 }

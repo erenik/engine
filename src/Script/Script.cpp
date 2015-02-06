@@ -9,7 +9,7 @@
 #include "Message/MessageManager.h"
 #include "Message/Message.h"
 #include "UI/UIList.h"
-#include "Game/GameVariables.h"
+#include "Game/GameVariableManager.h"
 #include <cstring>
 #include "ScriptManager.h"
 #include "GeneralScripts.h"
@@ -704,9 +704,10 @@ void Script::HandleConditional(String line)
 	assert(gv && "No game variable with given name?");
 	int intValue, intComparisonValue;
 	bool statementTrue = false;;
-	switch(gv->Type()){
+	switch(gv->Type())
+	{
 		case GameVariable::INTEGER:
-			intValue = ((GameVariablei*)gv)->Get();
+			intValue = gv->iValue;
 			intComparisonValue = comparisonValue.ParseInt();
 			if (comparisonOperator == ">"){
 				if (intValue > intComparisonValue)

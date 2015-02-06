@@ -21,7 +21,7 @@
 #include "Pathfinding/WaypointManager.h"
 #include "Audio/AudioManager.h"
 #include "TextureManager.h"
-#include "Game/GameVariables.h"
+#include "Game/GameVariableManager.h"
 #include "Script/ScriptManager.h"
 #include "Graphics/FrameStatistics.h"
 #include "Chat/ChatManager.h"

@@ -9,6 +9,7 @@
 #include "String/StringUtil.h"
 
 #include "File/LogFile.h"
+#include "Game/GameVariable.h"
 
 Ship::Ship()
 {
@@ -25,6 +26,7 @@ Ship::Ship()
 	currentMovement = 0;
 	timeInCurrentMovement = 0;
 	speed = 0.f;
+	score = 10;
 
 	currentRotation = 0;
 	timeInCurrentRotation = 0;
@@ -107,6 +109,12 @@ void Ship::Destroy()
 		shipEntities.Remove(entity);
 		entity = NULL;
 		// Explosion?
+		// Increase score and kills.
+		if (!allied)
+		{
+			spaceShooter->LevelScore()->iValue += this->score;
+			spaceShooter->LevelKills()->iValue++;
+		}
 	}
 }
 
@@ -247,6 +255,8 @@ bool Ship::LoadTypes(String file)
 				ship.ParseRotation(value);
 				ship.rotationPatterns.Size();
 			}
+			else if (column == "Score")
+				ship.score = value.ParseInt();
 			else if (column == "Speed")
 				ship.speed = value.ParseFloat() * 0.2f;
 			else if (column == "Has Shield")

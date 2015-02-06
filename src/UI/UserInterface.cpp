@@ -1258,6 +1258,11 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 				ENSURE_NEXT_TOKEN
 				String param = tokens[1];
 				param.SetComparisonMode(String::NOT_CASE_SENSITIVE);
+				if (element->type == UIType::RADIO_BUTTONS)
+				{
+					UIRadioButtons * radio = (UIRadioButtons*)element;
+					radio->SetTextureSource(param);
+				}
                 if (param == "NULL")
                     element->textureSource = String();
                 else
