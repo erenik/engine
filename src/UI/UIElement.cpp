@@ -1561,17 +1561,22 @@ void UIElement::RenderSelf(GraphicsState & graphicsState)
 			/// Returns the size required by a call to RenderText if it were to be done now. In... pixels? or units
 			Vector2f size = currentFont->CalculateRenderSizeUnits(text);
             Vector2f pixelsRequired = size * pixels;
+			float xRatio = 1.f, yRatio = 1.f;
 			if (pixelsRequired.x > rowsAvailable * sizeX){
 				// assert(false && "Too much text!");
 //				std::cout<<"\nNOTE: Too much text for given space and size, scaling down text to fit!";
-				currentTextSizeRatio = sizeX / pixelsRequired.x;
+				xRatio = sizeX / pixelsRequired.x;
 				// Scale it down, yes.
 			}
 			if (pixelsRequired.y > sizeY)
 			{
 				// D: Divide moar?
-				currentTextSizeRatio *= sizeY / pixelsRequired.y;
+				yRatio = sizeY / pixelsRequired.y;
 			}
+			if (xRatio < yRatio)
+				currentTextSizeRatio = xRatio;
+			else
+				currentTextSizeRatio = yRatio;
 			/*
 			if (pixelsRequired.x > sizeX)
 			{

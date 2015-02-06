@@ -85,3 +85,15 @@ List<Gear> Gear::GetType(int type)
 	return list;
 }
 
+Gear Gear::Get(String byName)
+{
+	for (int i = 0; i < availableGear.Size(); ++i)
+	{
+		if (availableGear[i].name == byName)
+			return availableGear[i];
+	}
+	assert(false);
+	return Gear();	
+}
+
+

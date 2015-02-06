@@ -25,6 +25,7 @@
 
 #include "Game/GameVariableManager.h"
 #include "Message/MathMessage.h"
+#include "Gear.h"
 
 /// Particle system for sparks/explosion-ish effects.
 Sparks * sparks = NULL;
@@ -299,13 +300,16 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 				msg = msg.Part(0,found);
 			if (msg == "NewGame")
 				NewGame();
-			else if (msg == "AutoSave")
+			else if (msg.Contains("AutoSave"))
 			{
+				bool silent = msg.Contains("(silent)");
 				bool ok = SaveGame();
 				if (ok)
 				{
+					if (silent)
+						return;
 					GraphicsMan.QueueMessage(new GMSetUIs("CenterText", GMUI::TEXT, "Auto-save: Progress saved"));
-					ScriptMan.NewScript(List<String>("Wait(3000)", "ClearCenterText"));
+					ScriptMan.NewScript(List<String>("Wait(1500)", "ClearCenterText"));
 				}
 				else 
 				{
@@ -446,6 +450,8 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 			}
 			else if (msg == "FinishStage")
 			{
+				/// Add munny o.o
+				money->iValue += 1000 +  (currentStage->iValue - 1) * 2000;
 				ScriptMan.PlayScript("scripts/FinishStage.txt");
 			}
 			else if (msg.Contains("GoToLobby"))
@@ -458,6 +464,27 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 				String text = msg;
 				text.Remove("ShowGearDesc:");
 				GraphicsMan.QueueMessage(new GMSetUIs("GearInfo", GMUI::TEXT, text));
+			}
+			else if (msg.StartsWith("BuyGear:"))
+			{
+				String name = msg;
+				name.Remove("BuyGear:");
+				Gear gear = Gear::Get(name);
+				switch(gear.type)
+				{
+					case Gear::SHIELD_GENERATOR:
+						playerShip.shield = gear;
+						playerShip.shieldRegenRate = gear.shieldRegen;
+						playerShip.maxShieldValue = gear.maxShield;
+						break;
+				}
+				/// Reduce munny
+				money->iValue -= gear.price;
+				/// Update UI to reflect reduced funds.
+				UpdateGearList();
+				// Play some SFX too?
+				// Auto-save.
+				MesMan.QueueMessages("AutoSave(silent)");
 			}
 			else if (msg.Contains("ExitToMainMenu"))
 			{
@@ -967,7 +994,7 @@ void SpaceShooter2D::OpenLoadScreen()
 		
 		UILabel * label = new UILabel();
 		label->text = h.customHeaderData;
-		label->sizeRatioY = 0.1f;
+		label->sizeRatioY = 0.5f;
 		label->hoverable = false;
 		label->textureSource = "NULL";
 		list->AddChild(label);
@@ -1094,11 +1121,11 @@ void SpaceShooter2D::UpdateUI()
 	}
 }
 
-#include "Gear.h"
-
 void SpaceShooter2D::UpdateGearList()
 {
 	Gear::Load("data/Shields.csv");
+
+	GraphicsMan.QueueMessage(new GMSetUIs("wsMunny", GMUI::TEXT, "Money: "+String(money->iValue)));
 
 	String gearListUI = "GearList";
 	GraphicsMan.QueueMessage(new GMClearUI(gearListUI));
@@ -1127,12 +1154,20 @@ void SpaceShooter2D::UpdateGearList()
 		if (gear.name.Length() == 0)
 			continue;
 		UIColumnList * list = new UIColumnList();
-		list->highlightOnHover = true;
-		list->textureSource = "0x3344";
+		if (gear.price < money->iValue)
+		{
+			list->hoverable = true;
+			list->activateable = true;
+			list->textureSource = "0x3344";
+		}
+		else 
+		{
+			list->textureSource = "0x1544";
+		}
 		list->sizeRatioY = 0.2f;
 		list->padding = 0.02f;
-		list->hoverable = true;
 		list->onHover = "ShowGearDesc:"+gear.description;
+		list->activationMessage = "BuyGear:"+gear.name;
 		// First a label with the name.
 		UILabel * label = new UILabel(gear.name);
 		label->sizeRatioX = 0.3f;

@@ -9,6 +9,7 @@
 #include "MathLib.h"
 #include "Movement.h"
 #include "Rotation.h"
+#include "Gear.h"
 
 class Entity;
 class Model;
@@ -90,6 +91,9 @@ public:
 	Vector3f position;
 	/// As loaded.
 	static List<Ship> types;
+
+	/// Used by player, mainly.
+	Gear shield, armor;
 private:
 };
 

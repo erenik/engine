@@ -2,6 +2,9 @@
 /// 2015-02-06
 /// o.o
 
+#ifndef GEAR_H
+#define GEAR_H
+
 #include "String/AEString.h"
 
 class Gear 
@@ -28,8 +31,10 @@ public:
 	/// o.o
 	static bool Load(String fromFile);
 	static List<Gear> GetType(int type);
+	static Gear Get(String byName);
 
 	/// Available to buy!
 	static List<Gear> availableGear;
 };
 
+#endif
