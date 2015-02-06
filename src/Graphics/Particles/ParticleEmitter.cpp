@@ -48,6 +48,20 @@ void Emitter::Position(Vector3f & positionVec)
 {
 	switch(type)
 	{
+		case EmitterType::POINT:
+			positionVec = vec;
+			break;
+		case EmitterType::LINE:
+		{
+			positionVec = (rand() * oneDivRandMaxFloat - 0.5f) * vec;
+			break;
+		}
+		case EmitterType::LINE_BOX:
+		{
+			positionVec = (rand() * oneDivRandMaxFloat - 0.5f) * vec +
+				(rand() * oneDivRandMaxFloat - 0.5f) * vec2;
+			break;
+		}
 		case EmitterType::LINE_Y:
 			positionVec = (rand() * oneDivRandMaxFloat - 0.5f) * up;
 			break;

@@ -150,16 +150,39 @@ void ShipProperty::OnCollision(Entity * withEntity)
 		if (sspp->sleeping)
 			return;
 		// 5 times per second atm.
-		if (ship->lastShipCollisionMs < nowMs - 200)
+		if (ship->lastShipCollisionMs < nowMs - 100)
 		{
 			ship->Damage(sspp->ship->collideDamage, true);
 			ship->lastShipCollisionMs = nowMs;
 		}
-		if (sspp->ship->lastShipCollisionMs < nowMs - 200)
+		if (sspp->ship->lastShipCollisionMs < nowMs - 100)
 		{
 			sspp->ship->Damage(ship->collideDamage, false);
 			sspp->ship->lastShipCollisionMs = nowMs;
 		}
+
+		// Add a temporary emitter to the particle system to add some sparks to the collision
+		Vector3f position = (owner->position + other->position) * 0.5f;
+		SparksEmitter * tmpEmitter = new SparksEmitter();
+		tmpEmitter->newType = true;
+		tmpEmitter->positionEmitter.type = EmitterType::POINT;
+		tmpEmitter->positionEmitter.vec = position;
+		// Set up velocity emitter direction.
+		tmpEmitter->velocityEmitter.type = EmitterType::LINE_BOX;
+		Vector3f vec1 = (owner->position - other->position).NormalizedCopy().CrossProduct(Vector3f(0,0,1)).NormalizedCopy();
+		tmpEmitter->velocityEmitter.vec = vec1;
+		tmpEmitter->velocityEmitter.vec2 = vec1.CrossProduct(Vector3f(0,0,1)).NormalizedCopy() * 0.2f;
+		
+		tmpEmitter->SetRatioRandomVelocity(1.0f);
+		float velocity = (owner->Velocity().Length() + other->Velocity().Length()) * 0.5f;
+		velocity += 1.f;
+		tmpEmitter->SetEmissionVelocity(velocity);
+		tmpEmitter->constantEmission = 50;
+		tmpEmitter->instantaneous = true;
+		tmpEmitter->SetScale(0.15f);
+		tmpEmitter->SetParticleLifeTime(1.5f);
+		tmpEmitter->SetColor(Vector4f(1.f, 0.5f, 0.1f, 1.f));
+		Graphics.QueueMessage(new GMAttachParticleEmitter(tmpEmitter, sparks));
 		return;
 	}
 

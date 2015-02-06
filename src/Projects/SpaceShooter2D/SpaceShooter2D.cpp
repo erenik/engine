@@ -86,6 +86,13 @@ SpaceShooter2D::~SpaceShooter2D()
 /// Function when entering this state, providing a pointer to the previous StateMan.
 void SpaceShooter2D::OnEnter(AppState * previousState)
 {
+
+	Window * w = MainWindow();
+	assert(w);
+	Viewport * vp = w->MainViewport();
+	assert(vp);
+	vp->renderGrid = false;	
+
 	// Add custom render-pass to be used.
 	RenderPass * rs = new RenderPass();
 	rs->type = RenderPass::RENDER_APP_STATE;
@@ -108,14 +115,6 @@ void SpaceShooter2D::OnEnter(AppState * previousState)
 	
 	/// Add emitter
 	starEmitter = new ParticleEmitter();
-	starEmitter->newType = true;
-	starEmitter->positionEmitter.type = EmitterType::PLANE_XY;
-	starEmitter->positionEmitter.Scale(40.f);
-	starEmitter->velocityEmitter.type = EmitterType::CIRCLE_XY;
-	starEmitter->SetEmissionVelocity(0.0001f);
-	starEmitter->SetParticlesPerSecond(10);
-	starEmitter->SetParticleLifeTime(60.f);
-	starEmitter->SetScale(0.3f);
 	Graphics.QueueMessage(new GMAttachParticleEmitter(starEmitter, stars));
 
 
@@ -158,7 +157,8 @@ void SpaceShooter2D::Process(int timeInMs)
 //	if (playerShip) std::cout<<"\nPlayer position: "<<playerShip.position;
 
 	now = Time::Now();
-	nowMs = (int) now.Milliseconds();
+	nowMs = now.Milliseconds();
+	assert(nowMs >= 0);
 	timeElapsedMs = timeInMs;
 	
 	Cleanup();
@@ -460,7 +460,6 @@ void SpaceShooter2D::Render(GraphicsState * graphicsState)
 
 	// Load default shader?
 	ShadeMan.SetActiveShader(NULL);
-	int error;
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadMatrixd(graphicsState->projectionMatrixD.getPointer());
@@ -477,12 +476,14 @@ void SpaceShooter2D::Render(GraphicsState * graphicsState)
 	// Disable lighting
 	glDisable(GL_LIGHTING);
 	glDisable(GL_COLOR_MATERIAL);
+	// Ignore previous stuff there.
+	glDisable(GL_DEPTH_TEST);
 	// Specifies how the red, green, blue and alpha source blending factors are computed
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-	Vector2f minField = levelEntity->position - playingFieldHalfSize;
-	Vector2f maxField = levelEntity->position + playingFieldHalfSize;
+	Vector2f minField = levelEntity->position - playingFieldHalfSize - Vector2f(1,1);
+	Vector2f maxField = levelEntity->position + playingFieldHalfSize + Vector2f(1,1);
 
 	/// o.o
 	for (int i = 0; i < shipEntities.Size(); ++i)
@@ -503,12 +504,17 @@ void SpaceShooter2D::Render(GraphicsState * graphicsState)
 		float dist = to.Length();
 		Vector3f dir = to.NormalizedCopy();
 		Vector3f a,b,c;
+		// Move the position a bit out...?
+		Vector3f center = pos;
+		center.z = 7.f;
+
 		// Center.
-		a = b = c = pos;
+		a = b = c = center;
 		// Move A away from the dir.
-		a += dir * 1.f;
+		a += dir * 0.7f;
 		// Get side-dirs.
 		Vector3f side = dir.CrossProduct(Vector3f(0,0,1)).NormalizedCopy();
+		side *= 0.5f;
 		b += side;
 		c -= side;
 
@@ -525,6 +531,7 @@ void SpaceShooter2D::Render(GraphicsState * graphicsState)
 		glEnd();
 	}
 
+	glEnable(GL_DEPTH_TEST);
 	CheckGLError("SpaceShooter2D::Render");
 }
 
@@ -559,12 +566,32 @@ Entity * SpaceShooter2D::OnShipDestroyed(Ship * ship)
 void SpaceShooter2D::NewGame()
 {
 	startDate = Time::Now();
+
+	/// Fetch file which dictates where to load weapons and ships from.
+	List<String> lines = File::GetLines("ToLoad.txt");
+	enum {
+		SHIPS, WEAPONS
+	};
+	for (int i = 0; i < lines.Size(); ++i)
+	{
+		String line = lines[i];
+		if (line.StartsWith("//"))
+			continue;
+		if (line.Contains("Ships:"))
+			mode = SHIPS;
+		else if (line.Contains("Weapons:"))
+			mode = WEAPONS;
+		else if (mode == SHIPS)
+			Ship::LoadTypes(line);	
+		else if (mode == WEAPONS)
+			Weapon::LoadTypes(line);	
+	}
+	/*
 	// Load weapons.
-	Weapon::LoadTypes("Ship Data/Alien/Weapons.csv");
 	Weapon::LoadTypes("Ship Data/Human/Weapons.csv");
 	// Load ship-types.
-	Ship::LoadTypes("Ship Data/Alien/Ships.csv");
 	Ship::LoadTypes("Ship Data/Human/Ships.csv");
+*/
 
 	if (playerShip.name.Length() == 0)
 	{
@@ -657,24 +684,27 @@ void SpaceShooter2D::LoadLevel(String fromSource)
 	startEmitter->instantaneous = true;
 	startEmitter->constantEmission = 1400;
 	startEmitter->positionEmitter.type = EmitterType::PLANE_XY;
-	startEmitter->positionEmitter.SetScale(140.f);
+	startEmitter->positionEmitter.SetScale(200.f);
 	startEmitter->velocityEmitter.type = EmitterType::VECTOR;
 	startEmitter->velocityEmitter.vec = starDir;
 	startEmitter->SetEmissionVelocity(emissionSpeed);
 	startEmitter->SetParticleLifeTime(20.f);
 	startEmitter->SetScale(0.3f);
+	startEmitter->SetColor(level.starColor);
 	Graphics.QueueMessage(new GMAttachParticleEmitter(startEmitter, stars));
 
 
+	starEmitter->newType = true;
 	starEmitter->direction = starDir;
 	starEmitter->SetEmissionVelocity(emissionSpeed);
-	starEmitter->newType = true;
+	starEmitter->SetParticlesPerSecond(10);
 	starEmitter->positionEmitter.type = EmitterType::PLANE_XY;
-	starEmitter->positionEmitter.SetScale(140.f);
+	starEmitter->positionEmitter.SetScale(40.f);
 	starEmitter->velocityEmitter.type = EmitterType::VECTOR;
 	starEmitter->velocityEmitter.vec = starDir;
 	starEmitter->SetEmissionVelocity(emissionSpeed);
-	starEmitter->SetParticleLifeTime(20.f);
+	starEmitter->SetParticleLifeTime(60.f);
+	starEmitter->SetColor(level.starColor);
 	starEmitter->SetScale(0.3f);
 
 

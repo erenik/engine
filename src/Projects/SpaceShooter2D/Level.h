@@ -3,6 +3,7 @@
 /// Level.
 
 #include "Ship.h"
+#include "Color.h"
 
 struct ShipColorCoding 
 {
@@ -43,4 +44,5 @@ public:
 	int goalPosition;
 
 	Vector3f starSpeed;
+	Color starColor;
 };

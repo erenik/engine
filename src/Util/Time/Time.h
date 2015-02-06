@@ -65,7 +65,7 @@ public:
 	void ConvertTo(int type);
 
 	// Current total in micro-seconds since the starting-point.
-	int64 Microseconds();
+	uint64 Microseconds();
 	int64 Milliseconds();
 	/// Total time in seconds.
 	int64 Seconds();

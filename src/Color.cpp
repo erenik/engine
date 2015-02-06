@@ -100,6 +100,43 @@ bool Color::ReadFrom(std::fstream & file)
 	return true;
 }
 
+/// E.g. RGBA r g b a where r g b a are numbers between 0 and 255, or 0 and 1.0
+bool Color::ParseFrom(String str)
+{
+	// Set default values.
+	x = y = z = 0;
+	w = 1.0f;
+	String string = str;
+	List<float*> order;
+	for (int i = 0; i < string.Length(); ++i)
+	{
+		char c = string.c_str()[i];
+		if (c == 'R' || c == 'r')
+			order.Add(&x);
+		else if (c == 'G' || c == 'g')
+			order.Add(&y);
+		else if (c == 'B' || c == 'b')
+			order.Add(&z);
+		else if (c == 'A' || c == 'a')
+			order.Add(&w);
+	}
+	List<String> parts = string.Tokenize(" ");
+	int numbersParsed = 0;
+	for (int i = 0; i < parts.Size(); ++i)
+	{
+		String part = parts[i];
+		if (!part.IsNumber())
+			continue;
+		float number = part.ParseFloat();
+		float * ptr = order[numbersParsed];
+		*ptr = number;
+		++numbersParsed;
+		if (numbersParsed >= order.Size())
+			break;
+	}	
+	return true;
+}
+
 String Color::GetName()
 {
 	if (name.Length() == 0)

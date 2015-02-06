@@ -65,6 +65,8 @@ public:
 	void ReadFrom(std::fstream & file);
 	/// Reads from String. Expects space-separated values. E.g. 3 8.14 -15 0.0
 	void ReadFrom(const String & string);
+	/// Parses from string. Expects in the form of first declaring order "XY", "X Y" or "YX", then parses the space-separated values.
+	void ParseFrom(const String & string);
 
 
 	/// Clamp to an interval.
@@ -159,7 +161,13 @@ public:
 #ifdef USE_SSE
 	// Loads data into __m128 structure.
 	void PrepareForSIMD();
-	__m128 data;
+	union {
+		struct { 
+			float x, y, z, w; 
+		};
+		__m128 data;
+		float v[4];
+	};
 #else
 	/// x-coordinate
 	float x;

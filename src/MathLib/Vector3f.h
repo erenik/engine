@@ -209,11 +209,11 @@ public:
 	
 	// Should be able to place in class!
 	union {
-		float v[4];
 		struct { 
 			float x, y, z, w; 
 		};
 		__m128 data;
+		float v[4];
 	};
 
 //	__m128 data;

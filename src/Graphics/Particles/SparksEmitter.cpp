@@ -7,6 +7,12 @@
 Random SparksEmitter::velocityRandom;
 Random SparksEmitter::lifeTimeRandom;
 
+SparksEmitter::SparksEmitter()
+: ParticleEmitter()
+{
+}
+
+
 SparksEmitter::SparksEmitter(const Vector3f & point)
 : ParticleEmitter(point)
 {

@@ -25,7 +25,10 @@ namespace EmitterType {
 
 
 		/// New types using the Emitter sub-system.
-		LINE_Y,
+		POINT, // Using vec-vector for position.
+		LINE, // Using the vec-vector.
+		LINE_BOX, // Uses vec- and vec2-vectors to create a box or parralellogram distribution. If both vectors are equal in size a rhomb or quad is formed. Rectangle or parralellogram if one is longer than the other.
+		LINE_Y, // Using up-vector
 		PLANE_XY,
 		PLANE_XZ, // Plane in XZ (left-right, forward-backward) axes.
 		CIRCLE_XY,
@@ -55,7 +58,7 @@ public:
 	/// For configuring it.
 	Vector3f up, left, forward;
 	// Constant vector.
-	Vector3f vec;
+	Vector3f vec, vec2;
 };
 
 

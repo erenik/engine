@@ -148,6 +148,38 @@ void Vector4f::ReadFrom(const String & string)
 	w = tokens[3].ParseFloat();
 }
 
+/// Parses from string. Expects in the form of first declaring order "XY", "X Y" or "YX", then parses the space-separated values.
+void Vector4f::ParseFrom(const String & str)
+{
+	String string = str;
+	List<float*> order;
+	for (int i = 0; i < string.Length(); ++i)
+	{
+		char c = string.c_str()[i];
+		if (c == 'x' || c == 'X')
+			order.Add(&x);
+		else if (c == 'y' || c == 'Y')
+			order.Add(&y);
+		else if (c == 'z' || c == 'Z')
+			order.Add(&z);
+		else if (c == 'w' || c == 'W')
+			order.Add(&w);
+	}
+	List<String> parts = string.Tokenize(" ");
+	int numbersParsed = 0;
+	for (int i = 0; i < parts.Size(); ++i)
+	{
+		String part = parts[i];
+		if (!part.IsNumber())
+			continue;
+		float number = part.ParseFloat();
+		float * ptr = order[numbersParsed];
+		*ptr = number;
+		++numbersParsed;
+		if (numbersParsed >= order.Size())
+			break;
+	}	
+}
 
 /// Clamp to an interval.
 void Vector4f::Clamp(float min, float max)

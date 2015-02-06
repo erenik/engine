@@ -124,6 +124,7 @@ int EntityManager::DeleteUnusedEntities()
 	if (!entitiesToDelete.Size())
 		return 0;
 	int64 nowMs = Time::Now().Milliseconds();
+	assert(nowMs >= 0);
 	int deletedEntities = 0;
 	int duplicates = entitiesToDelete.Duplicates();
 

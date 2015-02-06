@@ -192,7 +192,7 @@ void Time::ConvertTo(int toType)
 }
 
 // Current total in micro-seconds since the starting-point.
-int64 Time::Microseconds()
+uint64 Time::Microseconds()
 {
 	switch(type)
 	{
@@ -209,6 +209,7 @@ int64 Time::Microseconds()
 int64 Time::Milliseconds()
 {
 	int64 micro = Microseconds();
+	assert(micro >= 0);
 	return micro / 1000;
 }	
 
@@ -216,6 +217,7 @@ int64 Time::Milliseconds()
 int64 Time::Seconds()
 {
 	int64 micro = Microseconds();
+	assert(micro >= 0);
 	// Micro (millionth-part) to second.
 	return micro / 1000000;
 }

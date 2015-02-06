@@ -34,6 +34,9 @@ public:
 	bool WriteTo(std::fstream & file);
 	bool ReadFrom(std::fstream & file);
 
+	/// E.g. RGBA r g b a where r g b a are numbers between 0 and 255, or 0 and 1.0
+	bool ParseFrom(String str);
+
 private:
 	String name;
 	void AssignName();

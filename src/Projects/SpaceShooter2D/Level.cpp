@@ -76,6 +76,11 @@ bool Level::Load(String fromSource)
 			String vector = line - "StarSpeed";
 			starSpeed.ParseFrom(vector);
 		}
+		else if (line.StartsWith("StarColor"))
+		{
+			String vector = line - "StarColor";
+			starColor.ParseFrom(vector);
+		}
 	}
 
 	List<String> files ;
@@ -199,7 +204,7 @@ void Level::SetupCamera()
 void Level::Process(int timeInMs)
 {
 	removeInvuln = levelEntity->position[0] + playingFieldHalfSize[0] + playingFieldPadding + 1.f;
-	spawnPositionRight = removeInvuln + BaseVelocity()[0];
+	spawnPositionRight = removeInvuln + 10.f;
 	despawnPositionLeft = levelEntity->position[0] - playingFieldHalfSize[0] - 1.f;
 
 	// Check for game over.

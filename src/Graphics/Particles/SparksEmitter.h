@@ -7,6 +7,7 @@
 class SparksEmitter : public ParticleEmitter
 {
 public:
+	SparksEmitter();
 	SparksEmitter(const Vector3f & point);
 	virtual ~SparksEmitter();
 
