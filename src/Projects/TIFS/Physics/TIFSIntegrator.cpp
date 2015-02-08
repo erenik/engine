@@ -49,6 +49,7 @@ void TIFSIntegrator::IntegrateVelocity(Entity * forEntity, float timeInSeconds)
 
 	// Recalculate matrix!
 	forEntity->RecalculateMatrix();
+	assert(pp->velocity.x == forEntity->physics->velocity.x);
 
 
 	/// Flying code below!

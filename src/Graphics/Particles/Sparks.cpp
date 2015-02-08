@@ -52,7 +52,6 @@ void Sparks::UpdateBuffers()
 		particlePositionSizeData[index] = pos[0];
 		particlePositionSizeData[index+1] = pos[1];
 		particlePositionSizeData[index+2] = pos[2];
-		particlePositionSizeData[index+3] = scales[i];
 
 		Vector4f & color = colors[i];
 		particleColorData[index] = color[0] * 255;

@@ -48,6 +48,7 @@ class TIFS : public AppState
 	friend class TIFSPlayerProperty;
 public:
 	TIFS();
+	virtual ~TIFS();
 	/// Function when entering this state, providing a pointer to the previous StateMan.
 	virtual void OnEnter(AppState * previousState);
 	/// Main processing function, using provided time since last frame.

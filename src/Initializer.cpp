@@ -145,8 +145,8 @@ void * Deallocate(void *vArgs)
 	AudioMan.QueueMessage(new AudioMessage(AM_STOP_ALL));
 	Sleep(50);
 
-	MesMan.QueueMessages("SetGlobalState:NULL");
 	MesMan.QueueMessages("SetActiveState:NULL");
+	MesMan.QueueMessages("SetGlobalState:NULL");
 	MesMan.QueueMessages("StateMan.DeleteStates");
 	MesMan.QueueMessages("NetworkMan.Shutdown");
 	MesMan.QueueMessages("MultimediaMan.Shutdown");

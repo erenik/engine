@@ -105,8 +105,8 @@ public:
 	GLuint attributeVertexPosition, // Vertex XYZ for the model which is instanced.
 		attributeParticlePositionScale, /// World position XYZ and scale stored in the W component 
 		attributeColor, /// Color XYZW for tweaking each individual instance/particle.
-		attributeParticleLifeTimeDuration; // Life time (total), and duration (current).
-
+		attributeParticleLifeTimeDurationScale; // Life time (total), duration (current), as well as scale in X and Y.
+ 
 	/// Attributes added with skeletal animation, vec4 both of them, thereby limiting number of bone-weights to 4 per vertex.
 	GLuint attributeBoneIndices;
 	GLuint attributeBoneWeights;
@@ -120,6 +120,12 @@ public:
 	GLuint uniformViewMatrix;
 	/// GL uniform projection matrix identifier
 	GLuint uniformProjectionMatrix;
+
+	GLuint uniformCameraRightWorldSpace;
+	GLuint uniformCameraUpWorldSpace;
+
+	/// Used to apply a scale to all, in addition to per-particle scale/stuffs.
+	GLuint uniformScale;
 
 	/// GL uniform Eye position
 	GLuint uniformEyePosition;

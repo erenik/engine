@@ -1,5 +1,6 @@
-// Emil Hedemalm
-// Aeonic Games Math
+/// Emil Hedemalm
+/// 2015-02-08 (much older originally)
+/// Aeonic Games Math
 
 #ifndef AE_MATH_H
 #define AE_MATH_H
@@ -13,6 +14,16 @@
 const float ZERO = 0.0000000001f;
 
 #include <cmath>
+
+/// To be used together with rand(), if it is wanted (may be faster than any complex Pseudo-generator?)
+extern float oneDivRandMaxFloat;
+
+namespace MathLib 
+{	
+	// Initializes the various numbers specified above.
+	void Init();
+};
+
 
 #ifndef AbsoluteValue
 #define AbsoluteValue(one)    ((one < 0) ? (-(one)) : (one))

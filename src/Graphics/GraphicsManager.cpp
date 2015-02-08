@@ -123,6 +123,7 @@ void PrintGLError(const char * text){
 /// Constructor which anulls all relevant variables.
 GraphicsManager::GraphicsManager()
 {
+	pauseProcessing = false;
 	optimizationStructure = NONE;
 //	this->defaultLighting.CreateDefaultSetup();
 	frustum = new Frustum();
@@ -1010,7 +1011,8 @@ void GraphicsManager::Process()
 	/// Process particle effects.
 	for (int i = 0; i < particleSystems.Size(); ++i)
 	{
-		particleSystems[i]->Process(milliseconds * 0.001f);
+		ParticleSystem * ps = particleSystems[i];
+		ps->Process(milliseconds * 0.001f);
 	}
 	/// Process entity specific controls and systems
 	for (int i = 0; i < registeredEntities.Size(); ++i)

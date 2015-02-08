@@ -79,6 +79,9 @@ public:
 	/// Time control
 	bool emissionPaused;
 
+	/// Applied to all particles.
+	Vector2f scale;
+
 	/// Settings
 	bool pointsOnly;
 	Texture * diffuse;
@@ -113,6 +116,7 @@ public:
 	// Should be one of GL_FUNC_ADD, GL_FUNC_SUBTRACT and GL_FUNC_REVERSE_SUBTRACT. Defualt is GL_FUNC_ADD.
 	int blendEquation;
 protected:
+	bool initialized;
 	/** Renders using instanced functions such as glDrawArraysInstanced and glVertexAttribDivisor, requiring GL versions
 		3.1 and 3.3 respectively. Ensure these requirements are fulfilled before calling the function or the program will crash.
 	*/
@@ -132,12 +136,12 @@ protected:
     Vector3f * positions;
     Vector3f * velocities;
     Vector4f * colors;
-	float * scales;
+	Vector2f * scales;
 
 	/// Data buffers used for instanced rendering.
 	GLfloat * particlePositionSizeData;
 	GLubyte * particleColorData;
-	GLfloat * particleLifeTimeDurationData;  // Total life time of this particle + duration lived so far. Used to manipulate other data depending on shader options.
+	GLfloat * particleLifeTimeDurationScaleData;  // Total life time of this particle + duration lived so far. Used to manipulate other data depending on shader options.
 
 	/// Settings in shader.
 	int decayAlphaWithLifeTime;
@@ -149,7 +153,7 @@ protected:
 	GLuint billboardVertexBuffer;
 	GLuint particlePositionScaleBuffer;
 	GLuint particleColorBuffer;
-	GLuint particleLifeTimeDurationBuffer;
+	GLuint particleLifeTimeDurationScaleBuffer;
 
 private:
 	bool registeredForRendering;

@@ -230,6 +230,10 @@ void Shader::ExtractUniforms()
 		std::cout<<"\nUnable to find uniform for Model Matrix";
 	}
 
+	uniformCameraRightWorldSpace = glGetUniformLocation(shaderProgram, "cameraRightWorldSpace");
+	uniformCameraUpWorldSpace = glGetUniformLocation(shaderProgram, "cameraUpWorldSpace");
+	uniformScale = glGetUniformLocation(shaderProgram, "scale");
+
 	// Get camera uniforms ^^
 	uniformEyePosition = glGetUniformLocation(shaderProgram, "eyePosition");
 	if (uniformEyePosition == -1){
@@ -342,7 +346,7 @@ void Shader::ExtractAttributes()
 	// Attributes added with instanced particle rendering. 
 	attributeVertexPosition = glGetAttribLocation(shaderProgram, "in_VertexPosition");
 	attributeParticlePositionScale = glGetAttribLocation(shaderProgram, "in_ParticlePositionScale");
-	attributeParticleLifeTimeDuration = glGetAttribLocation(shaderProgram, "in_ParticleLifeTimeDuration");
+	attributeParticleLifeTimeDurationScale = glGetAttribLocation(shaderProgram, "in_ParticleLifeTimeDurationScale");
 	attributeColor = glGetAttribLocation(shaderProgram, "in_Color");
 
 	/// Attributes added with skeletal animation, vec4 both of them, thereby limiting number of bone-weights to 4 per vertex.

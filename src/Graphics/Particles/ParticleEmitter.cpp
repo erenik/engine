@@ -8,10 +8,6 @@
 
 #include "Entity/Entity.h"
 
-
-float oneDivRandMaxFloat = 0;
-
-
 Emitter::Emitter()
 {
 	DefaultVectors();
@@ -93,6 +89,19 @@ void Emitter::Velocity(Vector3f & vec)
 	 return Position(vec);
 }
 
+/// Surface area in square-meters (or square-units, 1 unit in-game defaults to 1 meter, though).
+float Emitter::SurfaceArea()
+{
+	switch(type)
+	{
+		case EmitterType::PLANE_XZ:
+		{
+			return left.Length() * forward.Length();
+		}
+		default:
+			assert(false);
+	}
+}
 
 ParticleEmitter::ParticleEmitter()
 : type(EmitterType::NONE)
@@ -142,9 +151,6 @@ ParticleEmitter::ParticleEmitter(ConstVec3fr point)
 
 void ParticleEmitter::Initialize()
 {
-	if (oneDivRandMaxFloat == 0)
-		oneDivRandMaxFloat = 1.f / RAND_MAX;
-
 	newType = false;
 
 	entityToTrack = NULL;

@@ -17,6 +17,7 @@
 ParticleSystem::ParticleSystem(String type, bool emitWithEmittersOnly)
 	: type(type), name("Undefined"), emitWithEmittersOnly(emitWithEmittersOnly)
 {
+	scale = Vector2f(1,1);
 	// Data arrays.
     lifeDurations = NULL;
 	lifeTimes = NULL;
@@ -27,9 +28,10 @@ ParticleSystem::ParticleSystem(String type, bool emitWithEmittersOnly)
     
 	// Rendering arrays.
 	particlePositionSizeData = NULL;
-	particleLifeTimeDurationData = NULL;
+	particleLifeTimeDurationScaleData = NULL;
 	particleColorData = NULL;
 
+	maxParticles = 100000;
 
     relativeTo = NULL;
     emissionPaused = false;
@@ -41,16 +43,29 @@ ParticleSystem::ParticleSystem(String type, bool emitWithEmittersOnly)
 	billboardVertexBuffer = -1;
 	particlePositionScaleBuffer = -1;
 	particleColorBuffer = -1;
-	particleLifeTimeDurationBuffer = -1;
+	particleLifeTimeDurationScaleBuffer = -1;
 
 	useInstancedRendering = true;
 	deleteEmittersOnDeletion = true;
 
 	// Default? https://www.khronos.org/opengles/sdk/docs/man/xhtml/glBlendEquation[0]ml
 	blendEquation = GL_FUNC_ADD;
+	initialized = false;
+	diffuse = NULL;
 
-	/// Do further initialization and allocate..?
-	Initialize();
+	decayAlphaWithLifeTime = DecayType::LINEAR;
+	pointsOnly = false;
+    diffuse = NULL;
+    particlesToProcess = maxParticles;
+    emissionsPerSecond = 10000;
+    maxRange = 1000;
+	particleLifeTime = 5.0f;
+	/// For global system, no entity is linked.
+	relativeTo = NULL;
+    maxRangeSq = maxRange * maxRange;
+	emissionVelocity = 1.0f;
+	aliveParticles = 0;
+    color = Vector4f(0.1f, 0.5f, 0.4f, 1.0f);
 }
 
 ParticleSystem::~ParticleSystem()
@@ -67,7 +82,7 @@ ParticleSystem::~ParticleSystem()
 
 	/// Arrays used for instanced rendering.
 	DELETE_ARRAY(particlePositionSizeData);
-	DELETE_ARRAY(particleLifeTimeDurationData);
+	DELETE_ARRAY(particleLifeTimeDurationScaleData);
 	DELETE_ARRAY(particleColorData);
 
 	if (deleteEmittersOnDeletion)
@@ -77,31 +92,8 @@ ParticleSystem::~ParticleSystem()
 /// Sets default values. Calls AllocateArrays.
 void ParticleSystem::Initialize()
 {
-	decayAlphaWithLifeTime = DecayType::LINEAR;
-	pointsOnly = false;
-    diffuse = NULL;
-    maxParticles = 100000;
-    particlesToProcess = maxParticles;
-    emissionsPerSecond = 10000;
-    maxRange = 1000;
-	particleLifeTime = 5.0f;
-	/// For global system, no entity is linked.
-	relativeTo = NULL;
-    
-    maxRangeSq = maxRange * maxRange;
-	
-    diffuse = NULL;
-	
-	emissionVelocity = 1.0f;
-
-	aliveParticles = 0;
-
-    color = Vector4f(0.1f, 0.5f, 0.4f, 1.0f);
-
-
 	// Allocate the particle data arrays.
 	AllocateArrays();
-
 }
 
 
@@ -115,20 +107,22 @@ void ParticleSystem::AllocateArrays()
 		positions = new Vector3f[maxParticles];
 		velocities = new Vector3f[maxParticles];
 		colors = new Vector4f[maxParticles];
-		scales = new float[maxParticles];
+		scales = new Vector2f[maxParticles];
 	}
 	/// Hybrid data array which holds 3 floats for positional (x,y,z) and 1 float for size or scale data.
 	if (particlePositionSizeData == NULL)
 	{
 		particlePositionSizeData = new GLfloat[maxParticles * 4];
 		particleColorData = new GLubyte[maxParticles * 4];
-		particleLifeTimeDurationData = new GLfloat[maxParticles * 2];
+		particleLifeTimeDurationScaleData = new GLfloat[maxParticles * 4];
 	}
 }
 
 
 void ParticleSystem::Process(float timeInSeconds)
 {
+	if (!initialized)
+		Initialize();
 	ProcessParticles(timeInSeconds);
 	int timeInMs = timeInSeconds * 1000;
 	SpawnNewParticles(timeInMs);
@@ -191,7 +185,8 @@ void ParticleSystem::SpawnNewParticles(int & timeInMs)
 //				std::cout<<"\nEmitter unable to spawn particle. Max particles reached.";
 				break;
 			}
-			emitter->GetNewParticle(positions[freeIndex], velocities[freeIndex], scales[freeIndex], lifeTimes[freeIndex], colors[freeIndex]);
+			assert(false && "Fix GetNewParticle so that it supports the new Vector2f scale");
+			//			emitter->GetNewParticle(positions[freeIndex], velocities[freeIndex], scales[freeIndex], lifeTimes[freeIndex], colors[freeIndex]);
 			// Multiply velocity by our multiplier?
 			Vector3f & velocity = velocities[freeIndex];
 			velocity *= this->emissionVelocity;
@@ -234,7 +229,6 @@ void ParticleSystem::UpdateBuffers()
 		particlePositionSizeData[index] = pos[0];
 		particlePositionSizeData[index+1] = pos[1];
 		particlePositionSizeData[index+2] = pos[2];
-		particlePositionSizeData[index+3] = scales[i];
 
 		Vector4f & color = colors[i];
 		particleColorData[index] = color[0] * 255;
@@ -242,10 +236,11 @@ void ParticleSystem::UpdateBuffers()
 		particleColorData[index+2] = color[2] * 255;
 		particleColorData[index+3] = color[3] * 255;
 
-		int index2 = i * 2;
-		particleLifeTimeDurationData[index2] = lifeTimes[i];
-		particleLifeTimeDurationData[index2+1] = lifeDurations[i];
-
+//		int index2 = i * 2;
+		particleLifeTimeDurationScaleData[index] = lifeTimes[i];
+		particleLifeTimeDurationScaleData[index+1] = lifeDurations[i];
+		particleLifeTimeDurationScaleData[index+2] = scales[i].x;
+		particleLifeTimeDurationScaleData[index+3] = scales[i].y;
 	}
 }
 
@@ -360,6 +355,12 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 	if (shader->uniformModelMatrix != -1)
 		glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, modelMatrix.getPointer());
 
+	Vector3f right = -graphicsState.camera->LeftVector();
+	glUniform3f(shader->uniformCameraRightWorldSpace, right.x, right.y, right.z);
+	Vector3f up = graphicsState.camera->UpVector();
+	glUniform3f(shader->uniformCameraUpWorldSpace, up.x, up.y, up.z);
+	glUniform2f(shader->uniformScale, scale.x, scale.y);
+
 	// Set decay type.
 	glUniform1i(shader->uniformParticleDecayAlphaWithLifeTime, decayAlphaWithLifeTime);
 
@@ -411,12 +412,12 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 		glBindBuffer(GL_ARRAY_BUFFER, particlePositionScaleBuffer);
 		glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
 	}
-	if (particleLifeTimeDurationBuffer == -1)
+	if (particleLifeTimeDurationScaleBuffer == -1)
 	{
-		particleLifeTimeDurationBuffer = GLBuffers::New();
+		particleLifeTimeDurationScaleBuffer = GLBuffers::New();
 		// Initialize with empty (NULL) buffer : it will be updated later, each frame.
-		glBindBuffer(GL_ARRAY_BUFFER, particleLifeTimeDurationBuffer);
-		glBufferData(GL_ARRAY_BUFFER, maxParticles * 2 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, particleLifeTimeDurationScaleBuffer);
+		glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
 	}
 	// The VBO containing the colors of the particles
 	if (particleColorBuffer == -1)
@@ -439,8 +440,8 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 	glBindBuffer(GL_ARRAY_BUFFER, particleColorBuffer);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, aliveParticles * 4 * sizeof(GLubyte), particleColorData);
 
-	glBindBuffer(GL_ARRAY_BUFFER, particleLifeTimeDurationBuffer);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, aliveParticles * sizeof(GLfloat) * 2, particleLifeTimeDurationData);
+	glBindBuffer(GL_ARRAY_BUFFER, particleLifeTimeDurationScaleBuffer);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, aliveParticles * sizeof(GLfloat) * 4, particleLifeTimeDurationScaleData);
 
 	// Bind attribute index 0 to vertex positions, attribute index 1 to incoming UV coordinates and index 2 to Normals. 
 //	glBindAttribLocation(shader->shaderProgram, 0, "in_VertexPosition");
@@ -483,10 +484,10 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 	);
 
 	// 4th attribute buffer : life time and current duration of particles
-	glBindBuffer(GL_ARRAY_BUFFER, particleLifeTimeDurationBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, particleLifeTimeDurationScaleBuffer);
 	glVertexAttribPointer(
-		shader->attributeParticleLifeTimeDuration, // attribute. Must match the layout in the shader.
-		2, // size : x + y + z + size => 4
+		shader->attributeParticleLifeTimeDurationScale, // attribute. Must match the layout in the shader.
+		4, // size : x + y + z + size => 4
 		GL_FLOAT, // type
 		GL_FALSE, // normalized?
 		0, // stride
@@ -502,7 +503,7 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 	glVertexAttribDivisor(shader->attributeVertexPosition, 0); // particles vertices : always reuse the same 4 vertices -> 0
 	glVertexAttribDivisor(shader->attributeParticlePositionScale, 1); // positions : one per quad (its center) -> 1
 	glVertexAttribDivisor(shader->attributeColor, 1); // color : one per quad -> 1
-	glVertexAttribDivisor(shader->attributeParticleLifeTimeDuration, 1); // color : one per quad -> 1
+	glVertexAttribDivisor(shader->attributeParticleLifeTimeDurationScale, 1); // color : one per quad -> 1
 
 	// Bind texture!
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -535,7 +536,7 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 	glVertexAttribDivisor(shader->attributeVertexPosition, 0); 
 	glVertexAttribDivisor(shader->attributeParticlePositionScale, 0); 
 	glVertexAttribDivisor(shader->attributeColor, 0); 
-	glVertexAttribDivisor(shader->attributeParticleLifeTimeDuration, 0);
+	glVertexAttribDivisor(shader->attributeParticleLifeTimeDurationScale, 0);
 
 	CheckGLError("ParticleSystem::RenderInstanced");
 }

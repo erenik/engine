@@ -38,28 +38,37 @@ Vector4f::Vector4f()
 #ifdef USE_SSE
 	float arr[4] = {0,0,0,1};
 	data = _mm_loadu_ps(arr);
-#endif
+#else
 	x = y = z = 0;
 	w = 1;
+#endif
 }
 
 Vector4f::Vector4f( float ix,  float iy,  float iz,  float iw)
 {
 #ifdef USE_SSE
+	x = ix;
+	y = iy;
+	z = iz;
+	w = iw;
+	/*
 	float arr[4];
 	arr[0] = ix;
 	arr[1] = iy;
 	arr[2] = iz;
 	arr[3] = iw;
 	data = _mm_loadu_ps(arr);
-#endif
+	*/
+#else
 	x = ix;
 	y = iy;
 	z = iz;
 	w = iw;
+#endif
 }
 
-Vector4f::Vector4f(float arr[]){
+Vector4f::Vector4f(float arr[])
+{
 	x = arr[0];
 	y = arr[1];
 	z = arr[2];

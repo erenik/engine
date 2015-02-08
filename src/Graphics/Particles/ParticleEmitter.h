@@ -52,6 +52,8 @@ public:
 	/// Randomzies acordingly.
 	void Position(Vector3f & vec);
 	void Velocity(Vector3f & vec);
+	/// Surface area in square-meters (or square-units, 1 unit in-game defaults to 1 meter, though).
+	float SurfaceArea();
 	int type;
 	/// For later, Linear (pure random), weighted (constant and random part).
 	int distribution;

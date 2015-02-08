@@ -36,7 +36,6 @@
 #include "Graphics/Messages/GMCamera.h"
 #include "Graphics/Camera/Camera.h"
 
-
 #include "Message/Message.h"
 
 #include "Application/Application.h"
@@ -49,12 +48,18 @@
 
 #include "Random/Random.h"
 
+#include "Script/ScriptManager.h"
+
+#include "Weather/WeatherSystem.h"
+
 TIFS * tifs = NULL;
 TIFSMapEditor * mapEditor = NULL;
 
 Camera * firstPersonCamera = NULL;
 Camera * thirdPersonCamera = NULL;
 Camera * freeFlyCamera = NULL;
+
+WeatherSystem * weather = NULL;
 
 void SetApplicationDefaults()
 {
@@ -78,6 +83,11 @@ TIFS::TIFS()
 	playerProp = NULL;
 }
 
+TIFS::~TIFS()
+{
+	SAFE_DELETE(weather);
+}
+
 TIFSIntegrator * integrator = 0;
 TIFSCD * cd = 0;
 TIFSCR * cr = 0;
@@ -92,6 +102,9 @@ void TIFS::OnEnter(AppState * previousState)
 		cd = new TIFSCD();
 	if (!cr)
 		cr = new TIFSCR();
+
+	weather = new WeatherSystem();
+	weather->Initialize();
 
 	Physics.QueueMessage(new PMSet(integrator));
 	Physics.QueueMessage(new PMSet(cd));
@@ -133,6 +146,9 @@ void TIFS::OnEnter(AppState * previousState)
 
 	Input.ForceNavigateUI(true);
 
+	// Run OnEnter script.
+	ScriptMan.PlayScript("OnEnter.txt");
+
 }
 
 /// Main processing function, using provided time since last frame.
@@ -144,6 +160,7 @@ void TIFS::Process(int timeInMs)
 /// Function when leaving this state, providing a pointer to the next StateMan.
 void TIFS::OnExit(AppState * nextState)
 {
+	weather->Shutdown();
 	GraphicsMan.QueueMessage(new GMUnregisterParticleSystem(toolParticles, true));
 }
 
@@ -185,6 +202,16 @@ void TIFS::ProcessMessage(Message * message)
 			else if (msg == "NewGame")
 			{
 				NewGame();
+			}
+			else if (msg.Contains("Rain"))
+			{
+				float amount = msg.Tokenize(" ")[1].ParseFloat();
+				weather->Rain(amount);
+			}
+			else if (msg.Contains("Snow"))
+			{
+				float amount = msg.Tokenize(" ")[1].ParseFloat();
+				weather->Snow(amount);
 			}
 			else if (msg == "ToggleMainMenu")
 			{

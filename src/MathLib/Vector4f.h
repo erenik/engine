@@ -57,7 +57,7 @@ public:
 	Vector4f(const Vector3f & base, float w = 1);
 
 	/// Printing out data
-	friend std::ostream& operator <<(std::ostream& os, const Vector3f& vec);
+	friend std::ostream& operator <<(std::ostream& os, const Vector4f& vec);
 	/// Writes to file stream.
 	void WriteTo(std::fstream & file);
 

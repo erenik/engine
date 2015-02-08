@@ -172,8 +172,7 @@ void StateManager::SetGlobalState(int id)
 			break;
 		}
 	}
-	if (newGlobalState)
-		SetGlobalState(newGlobalState);
+	SetGlobalState(newGlobalState);
 }
 
 /// Sets a global state, that can process global messages and packets
