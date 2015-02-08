@@ -102,6 +102,7 @@ enum graphicsMessages {
 	GM_SET_PARTICLE_SYSTEM,
 
 	// UI messages
+	GM_SET_HOVER_UI,
 	GM_SET_UI_INTEGER,
 	GM_SET_UI_FLOAT,
 	GM_SET_UI_VECTOR,

@@ -15,6 +15,11 @@
 
 #include "AppStates/AppState.h"
 
+#include "Maps/MapManager.h"
+#include "Model/ModelManager.h"
+#include "TextureManager.h"
+#include "Input/Action.h"
+
 class Camera;
 class Message;
 class Packet;
@@ -55,12 +60,12 @@ public:
 
 	/// Randomly!!!! o-=o
 	void SpawnDrones();
-	void SpawnDrone(Vector3f atLocation);
+	void SpawnDrone(ConstVec3fr atLocation);
 
 	/// Randomly!!!! o-=o
 	void CreateTurrets();
 	/// Creates a turret!
-	void CreateTurret(int ofSize, Vector3f atLocation);
+	void CreateTurret(int ofSize, ConstVec3fr atLocation);
 
 	// Spawn player
 	void SpawnPlayer();

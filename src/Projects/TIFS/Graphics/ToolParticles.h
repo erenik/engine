@@ -29,12 +29,13 @@ class ToolParticleEmitter : public ParticleEmitter
 {
 public:
 	ToolParticleEmitter();
-	int ParticlesToSpawn(float timeInSeconds);
-	/// Stuff.
-	virtual bool GetNewParticle(Vector3f & position, Vector3f & velocity, float & maxDistance, Vector4f & color, float & particleScale);
+	/// Default new particle.
+	virtual bool GetNewParticle(Vector3f & position, Vector3f & velocity);
+	/// Extended particle emission.
+	virtual bool GetNewParticle(Vector3f & position, Vector3f & velocity, float & scale, float & lifeTime, Vector4f & color);
 	
 	/// sets positions and updates direction as well as max distance.
-	void SetPositionAndTarget(Vector3f position, Vector3f target);
+	void SetPositionAndTarget(ConstVec3fr position, ConstVec3fr target);
 
 	// Attributes to set to the new particles to spawn.
 	float particleScale;

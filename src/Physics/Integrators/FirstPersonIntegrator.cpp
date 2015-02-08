@@ -14,22 +14,24 @@ FirstPersonIntegrator::FirstPersonIntegrator()
 /** All entities sent here should be fully dynamic! 
 	Kinematic ones may or may not work (consider adding own integration function).
 */
-void FirstPersonIntegrator::IntegrateDynamicEntities(List<Entity*> dynamicEntities, float timeInSeconds)
+void FirstPersonIntegrator::IntegrateDynamicEntities(List<Entity*> & dynamicEntities, float timeInSeconds)
 {
 	for (int i = 0; i < dynamicEntities.Size(); ++i)
 	{
 		Entity * entity = dynamicEntities[i];
-		
 		IntegrateVelocity(entity, timeInSeconds);
-
 	}
 };
 /** All entities sent here should be fully kinematic! 
 	If not subclassed, the standard IntegrateEntities is called.
 */
-void FirstPersonIntegrator::IntegrateKinematicEntities(List<Entity*> kinematicEntities, float timeInSeconds)
+void FirstPersonIntegrator::IntegrateKinematicEntities(List<Entity*> & entities, float timeInSeconds)
 {
-
+	for (int i = 0; i < entities.Size(); ++i)
+	{
+		Entity * entity = entities[i];
+		IntegrateVelocity(entity, timeInSeconds);
+	}
 }
 
 

@@ -130,7 +130,9 @@ void FirstPersonPlayerProperty::ProcessInput()
 		if (!autorun)
 		{
 			/// Get camera transform.
-			Vector3f forwardVector = -forward * owner->cameraFocus->LookingAt();
+			Camera * camera = owner->cameraFocus;
+			Vector3f camLookAt = camera->LookingAt();
+			Vector3f forwardVector = -forward * camLookAt;
 			forwardVector.Normalize();
 			Vector3f rightwardVector = -right * owner->cameraFocus->LeftVector();
 			rightwardVector.Normalize();
@@ -140,25 +142,11 @@ void FirstPersonPlayerProperty::ProcessInput()
 			Vector3f normalizedVelocity = newVelocity.NormalizedCopy();
 			// Multiply movement speed.
 			newVelocity = normalizedVelocity * movementSpeed;
-			
-			static Vector3f lastVelocity;
-			if (lastVelocity != newVelocity)
-			{
-				// And set it!
-				Physics.QueueMessage(new PMSetEntity(owner, PT_VELOCITY, newVelocity)); 
-				lastVelocity = newVelocity;
-				
-				if (newVelocity.MaxPart())
-				{
-					// Set our rotation toward this new destination too!
-					float yaw = atan2(normalizedVelocity[2], normalizedVelocity[0]) + PI * 0.5f;
-					Physics.QueueMessage(new PMSetEntity(owner, PT_ROTATION_YAW, yaw));
-				}
-			}
+			UpdateVelocity(newVelocity);
 		}
 
 
-		/// Make sure the camera is rotating around the center of the entity.
+		/// Make sure the camera is rotating around the center of the entity. <- wat.
 		float height = 1.7f;
 		if (owner->cameraFocus->relativePosition[1] != height)
 		{
@@ -214,6 +202,41 @@ void FirstPersonPlayerProperty::ProcessInput()
 			Graphics.QueueMessage(new GMSetCamera(owner->cameraFocus, CT_DISTANCE_FROM_CENTER_OF_MOVEMENT_SPEED, cameraZoom));
 			Graphics.QueueMessage(new GMSetCamera(owner->cameraFocus, CT_DISTANCE_FROM_CENTER_OF_MOVEMENT_SPEED_MULTIPLIER, cameraZoomMultiplier));
 			pastCameraZoom = cameraZoom;
+		}
+	}
+}
+
+void FirstPersonPlayerProperty::UpdateVelocity(ConstVec3fr newVelocity)
+{
+	static Vector3f lastVelocity;
+	if (lastVelocity == newVelocity)
+	{
+		return;
+	}
+	lastVelocity = newVelocity;
+	Vector3f normalizedVelocity = newVelocity.NormalizedCopy();
+
+	// And set it!
+	Physics.QueueMessage(new PMSetEntity(owner, PT_VELOCITY, newVelocity)); 
+	// Depending on camera tracking-mode...	
+	switch(owner->cameraFocus->trackingMode)
+	{
+		// Either rotate straight away.
+		case TrackingMode::THIRD_PERSON:
+		{				
+			if (newVelocity.MaxPart())
+			{
+				// Set our rotation toward this new destination too!
+				float yaw = atan2(normalizedVelocity[2], normalizedVelocity[0]) + PI * 0.5f;
+				Physics.QueueMessage(new PMSetEntity(owner, PT_ROTATION_YAW, yaw));
+			}
+			break;
+		}
+		// Or possibly induce a rotational velocity.
+		case TrackingMode::FIRST_PERSON:
+		{
+			
+			break;
 		}
 	}
 }

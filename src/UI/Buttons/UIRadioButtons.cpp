@@ -16,13 +16,28 @@ UIRadioButtons::UIRadioButtons(int numberOfButtons, String name, String action)
 	this->type = UIType::RADIO_BUTTONS;
 }
 
+UIRadioButtons::~UIRadioButtons()
+{
+}
+
+
 /// Creates the actual buttons.
 void UIRadioButtons::CreateChildren()
 {
 	assert(children.Size() == 0);
-	int elements = numButtons;
-	float spaceLeft = 1.0f - padding * elements;
-	float spacePerElement = spaceLeft / elements;
+	int elements; 
+	float spaceLeft;
+	float spacePerElement;
+	float labelSize;
+	labelSize = divider.x;
+	elements = numButtons;
+	spaceLeft = (1.0f - divider.x) - padding * elements;
+	spacePerElement = spaceLeft / elements;
+	// Add label!
+	UILabel * label = new UILabel(text);
+	label->sizeRatioX = labelSize;
+	label->text = displayText;
+	AddChild(label);
 
 	for (int i = 0; i < numButtons; ++i)
 	{
@@ -86,4 +101,20 @@ void UIRadioButtons::OnToggled(UICheckBox * box)
 	if (!somethingToggled)
 		box->toggled = true;
 }
+
+/// Toggles appropriately.
+void UIRadioButtons::SetValue(int v)
+{
+	if (v >= buttons.Size() || v < 0)
+	{
+		assert(false);
+		return;
+	}
+	for (int i = 0; i < buttons.Size(); ++i)
+	{
+		buttons[i]->toggled = false;
+	}
+	buttons[v]->toggled = true;
+}
+
 

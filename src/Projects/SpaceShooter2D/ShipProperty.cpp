@@ -90,6 +90,8 @@ void ShipProperty::ProcessWeapons(int timeInMs)
 
 void ShipProperty::ProcessAI(int timeInMs)
 {
+	if (ship->rotationPatterns.Size() == 0)
+		return;
 	// Rotate accordingly.
 	Rotation & rota = ship->rotationPatterns[ship->currentRotation];
 	rota.OnFrame(timeInMs);

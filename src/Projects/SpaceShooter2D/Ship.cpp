@@ -17,7 +17,7 @@ Ship::Ship()
 	entity = NULL;
 	ai = true;
 	allied = false;
-	maxHitPoints = hitPoints = 10;
+	maxHP = hp = 10;
 	canMove = false;
 	canShoot = true;
 	spawnInvulnerability = false;
@@ -67,11 +67,11 @@ void Ship::Damage(int amount, bool ignoreShield)
 	{
 	//	std::cout<<"\nInvulnnnn!";
 		return;
-	}			
+	}
 	if (hasShield && !ignoreShield)
 	{
 		shieldValue -= amount;
-		amount = -shieldValue;
+		amount = (int) -shieldValue;
 		if (shieldValue < 0 )
 			shieldValue = 0;
 		if (this->allied)
@@ -80,10 +80,19 @@ void Ship::Damage(int amount, bool ignoreShield)
 			return;
 		shieldValue = 0;
 	}
-	hitPoints -= amount;
+	// Modulate amount depending on armor toughness and reactivity.
+	float activeToughness = (float)armor.toughness;
+	/// Projectile/explosion-type attacks, reactivity effects.
+	if (!ignoreShield)
+	{
+		activeToughness += armor.reactivity;
+	}
+	amount = (int)(amount / (activeToughness / 10.f));
+
+	hp -= amount;
 	if (this->allied)
 		spaceShooter->UpdateUIPlayerHP();
-	if (hitPoints <= 0)
+	if (hp <= 0)
 		Destroy();
 }
 
@@ -262,11 +271,11 @@ bool Ship::LoadTypes(String file)
 			else if (column == "Has Shield")
 				ship.hasShield = value.ParseBool();
 			else if (column == "Shield Value")
-				ship.shieldValue = ship.maxShieldValue = value.ParseInt();
+				ship.shieldValue = ship.maxShieldValue = (float) value.ParseInt();
 			else if (column == "Shield Regen Rate")
 				ship.shieldRegenRate = value.ParseInt() / 1000.f;
 			else if (column == "Hit points")
-				ship.maxHitPoints = ship.hitPoints = value.ParseInt();
+				ship.maxHP = ship.hp = value.ParseInt();
 			else if (column == "Collide damage")
 				ship.collideDamage = value.ParseInt();
 			else if (column == "Max rotation per second" || column == "Rotation Speed")
@@ -350,7 +359,7 @@ void Ship::ParseMovement(String fromString)
 	LogShip("Expected "+String(a)+" arguments for movement type \'"+\
 	Movement::Name(move.type)+"\', encountered "+String(args.Size())+"."); \
 	continue;}
-#define GET_DURATION(a) if (args[a] == "inf") move.durationMs = -1; else move.durationMs = args[a].ParseFloat() * 1000;
+#define GET_DURATION(a) if (args[a] == "inf") move.durationMs = -1; else move.durationMs = (int) (args[a].ParseFloat() * 1000);
 		switch(move.type)
 		{
 			case Movement::STRAIGHT:
@@ -360,7 +369,7 @@ void Ship::ParseMovement(String fromString)
 			case Movement::ZAG:
 				DEMAND_ARGS(3);
 				move.vec.ParseFrom(args[0]);
-				move.zagTimeMs = args[1].ParseFloat() * 1000;
+				move.zagTimeMs = (int) (args[1].ParseFloat() * 1000);
 				GET_DURATION(2);
 				break;
 			case Movement::MOVE_TO:
@@ -477,11 +486,13 @@ void Ship::ParseRotation(String fromString)
 			continue;
 		}
 		List<String> args = broken[1].Tokenize(",");
+#undef DEMAND_ARGS
 #define DEMAND_ARGS(a) if (args.Size() < a){ \
 	LogShip("Expected "+String(a)+" arguments for movement type \'"+\
 	Rotation::Name(rota.type)+"\', encountered "+String(args.Size())+"."); \
 	continue;}
-#define GET_DURATION(a) if (args[a] == "inf") rota.durationMs = -1; else rota.durationMs = args[a].ParseFloat() * 1000;
+#undef GET_DURATION
+#define GET_DURATION(a) if (args[a] == "inf") rota.durationMs = -1; else rota.durationMs = (int)(args[a].ParseFloat() * 1000);
 		switch(rota.type)
 		{
 			case Rotation::NONE:
@@ -541,6 +552,18 @@ Vector3f Ship::WeaponTargetDir()
 			return weapon.currentAim;
 	}
 	return Vector3f();
+}
+
+/// If using Armor and Shield gear (Player mainly).
+void Ship::UpdateStatsFromGear()
+{
+	hp = this->maxHP = armor.maxHP;
+	shieldValue = this->maxShieldValue = shield.maxShield;
+	this->shieldRegenRate = shield.shieldRegen;
+	// Set weapon stats.
+	Weapon & mainWeapon = weapons[0];
+	mainWeapon.cooldownMs = weapon.reloadTimeMs;
+	mainWeapon.damage = weapon.damage;
 }
 
 

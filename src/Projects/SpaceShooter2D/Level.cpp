@@ -175,7 +175,7 @@ void Level::AddPlayer(Ship * playerShip)
 	pp->velocity = BaseVelocity();
 	pp->type = PhysicsType::DYNAMIC;
 	// Set player to mid position.
-	entity->position = Vector3f(0, 10.f, 0);
+	entity->position = Vector3f(-50.f, 10.f, 0);
 	// Rotate ship with the nose from Z- to Y+
 	float radians = PI / 2;
 	entity->rotation[0] = radians;
@@ -208,7 +208,7 @@ void Level::Process(int timeInMs)
 	despawnPositionLeft = levelEntity->position[0] - playingFieldHalfSize[0] - 1.f;
 
 	// Check for game over.
-	if (playerShip.hitPoints <= 0)
+	if (playerShip.hp <= 0)
 	{
 		// Game OVER!
 		spaceShooter->GameOver();

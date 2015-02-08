@@ -46,6 +46,8 @@ struct Binding
 	/// Identifier for the action to perform once the required combination is met. If -1, use stringAction instead!
 //	int action;
 
+	/// If true, no other binding may be triggered at the same time, even if it contains similar key-strokes. Default false.
+	bool exclusive;
 	/** Trigger action. To replace stringAction, stringStopAction, activateOnRepeat, etc. See Action.h for details.
 		If non-NULL, will override all said variables used below to hopefully clean-up code used elsewhere.
 	*/

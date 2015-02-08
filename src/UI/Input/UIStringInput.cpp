@@ -44,22 +44,19 @@ void UIStringInput::CreateChildren()
 	box->padding = this->padding;
 	AddChild(box);
 
-	int elements = 1 + 1;
-	float spaceLeft = 1.0f - padding * elements;
-	float spacePerElement = spaceLeft / elements;
-
 	/// Create a label
 	label = new UILabel();
 	label->text = name;
-	label->sizeRatioX = 0.3f;
+	label->sizeRatioX = divider.x;
 	box->AddChild(label);
 
 	/// Create 3 children
 	input = new UIInput();
+	input->textureSource = textureSource;
 	/// Set them to only accept floats?
 	input->name = name + "Input";
 	input->text = "";
-	input->sizeRatioX = 0.65f;
+	input->sizeRatioX = 1.0f - divider.x;
 	input->onTrigger = "UIStringInput("+name+")";
 	box->AddChild(input);
 }

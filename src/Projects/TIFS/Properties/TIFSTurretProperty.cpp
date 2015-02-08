@@ -13,7 +13,7 @@ TIFSTurretProperty::TIFSTurretProperty(Entity * base, Entity * swivel, Entity * 
 : EntityProperty("TIFSTurretProperty", TIFSProperty::TURRET, NULL), base(base), swivel(swivel), underBarrel(underBarrel), barrel(barrel)
 {
 	// Add owners manually
-	owners.Add(4, base, swivel, underBarrel, barrel);
+	owners.Add(base, swivel, underBarrel, barrel);
 
 	maxHP = 40000;
 	currentHP = 20000;

@@ -82,7 +82,11 @@ public:
 	String name;
 	/// For when loading from .gui file into ui element.
 	String source; 
-	
+	/// Used by certain input-elements, such as RadioButtons.
+	String displayText;
+	/// Divider, used for input-elements.
+	Vector2f divider;
+
 	/// Called when this UI is made active (again).
 	virtual void OnEnterScope();
 	/// Called once this element is no longer visible for any reason. E.g. switching game states to display another UI, or when this or a parent has been popped from the ui.
@@ -167,6 +171,7 @@ public:
 	/// Message sent when hovering over an element.
 	String onHover;
 	String onTrigger; // For "triggering" the element, e.g. pressing Enter for input fields
+	String onPop;
 
 	/// Called upon hovering on an element. By default queues the string set in onHover to be processed by the message manager and game state.
 	virtual void OnHover();

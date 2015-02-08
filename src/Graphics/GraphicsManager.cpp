@@ -563,6 +563,18 @@ void GraphicsManager::QueueMessage(GraphicsMessage *msg){
 	return;
 }
 
+/** Processes given message without delay, claiming the mutex and blocking all rendering and processing in the thread until the finished. 
+	Use with caution! May be used at start-up and shutdown as well as for other scripted events if a certain timing is required.
+*/
+void GraphicsManager::ProcessMessage(GraphicsMessage * msg)
+{
+	while(!graphicsMessageQueueMutex.Claim(-1))
+		;
+	msg->Process();
+	delete msg;
+	graphicsMessageQueueMutex.Release();
+}
+
 // Processes queued messages
 void GraphicsManager::ProcessMessages()
 {

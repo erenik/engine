@@ -34,7 +34,7 @@ public:
 		/// Vector2i
 		MATRIX_SIZE,
 		/// Integers,
-		INTEGER_INPUT,
+		INTEGER_INPUT, // Used for RadioButtons as well as IntegerInput
 		// Floats
 		SCROLL_POSITION_Y,
 		FLOAT_INPUT, // Single nested input for UIFloatInput class.
@@ -68,6 +68,15 @@ protected:
 	bool global;
 };
 
+class GMSetHoverUI : public GMUI 
+{
+public:
+	GMSetHoverUI(String uiName, UserInterface * inUI = NULL);
+	virtual void Process();
+private:
+	String name;
+};
+
 /// Used to set pointers. Mainly textures or some custom data.
 class GMSetUIp : public GMUI{
 public:
@@ -94,7 +103,7 @@ private:
 class GMSetUIi : public GMUI 
 {
 public:
-	GMSetUIi(String uiName, int target, int value, UserInterface * ui);
+	GMSetUIi(String uiName, int target, int value, UserInterface * ui = NULL);
 	void Process();
 private:
 	String uiName;

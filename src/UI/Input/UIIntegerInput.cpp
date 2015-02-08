@@ -129,6 +129,7 @@ void UIIntegerInput::CreateChildren()
 
 	/// Create 3 children
 	input = new UIInput();
+	input->textureSource = textureSource;
 	/// Set them to only accept floats?
 	input->name = name + "Input";
 	/// Any mathematical expression?

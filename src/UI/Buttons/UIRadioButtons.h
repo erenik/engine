@@ -14,6 +14,7 @@ class UIRadioButtons : public UIColumnList
 public:
 	/// o.o
 	UIRadioButtons(int numberOfButtons, String name, String action);
+	virtual ~UIRadioButtons();
 
 	/// Creates the actual buttons.
 	void CreateChildren();
@@ -24,6 +25,9 @@ public:
 
 	// Sent when a child checkbox is toggled. 
 	virtual void OnToggled(UICheckBox * box);
+
+	/// Toggles appropriately.
+	void SetValue(int v);
 
 	/// Sets activationMessage/onActivate for all buttons.
 	String action;

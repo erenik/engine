@@ -9,6 +9,15 @@
 /// Available to buy!
 List<Gear> Gear::availableGear;
 
+Gear::Gear()
+{
+	toughness = 10;
+	reactivity = 0;
+	price = -1;
+	maxHP = -1;
+	maxShield = -1;
+}
+
 /// o.o
 bool Gear::Load(String fromFile)
 {
@@ -54,10 +63,20 @@ bool Gear::Load(String fromFile)
 				gear.type = value.ParseInt();
 			else if (column == "Price")
 				gear.price = value.ParseInt();
+			else if (column == "Damage")
+				gear.damage = value.ParseInt();
+			else if (column == "Reload time")
+				gear.reloadTimeMs = value.ParseInt();
 			else if (column == "Max Shield")
 				gear.maxShield = value.ParseInt();
 			else if (column == "Shield Regen")
 				gear.shieldRegen = value.ParseInt();
+			else if (column == "Max HP")
+				gear.maxHP = value.ParseInt();
+			else if (column == "Toughness")
+				gear.toughness = value.ParseInt();
+			else if (column == "Reactivity")
+				gear.reactivity = value.ParseInt();
 			else if (column == "Info")
 				gear.description = value;
 		}
@@ -94,6 +113,43 @@ Gear Gear::Get(String byName)
 	}
 	assert(false);
 	return Gear();	
+}
+
+Gear Gear::StartingWeapon()
+{
+	List<Gear> weapons = GetType(WEAPON);
+	for (int i = 0; i < weapons.Size(); ++i)
+	{
+		Gear & weapon = weapons[i];
+		if (weapon.price == 0)
+			return weapon;
+	}
+	assert(false);
+	return Gear();
+}
+Gear Gear::StartingArmor()
+{
+	List<Gear> armors = GetType(ARMOR);
+	for (int i = 0; i < armors.Size(); ++i)
+	{
+		Gear & armor = armors[i];
+		if (armor.price == 0)
+			return armor;
+	}
+	assert(false);
+	return Gear();
+}
+Gear Gear::StartingShield()
+{
+	List<Gear> shields = GetType(SHIELD_GENERATOR);
+	for (int i = 0; i < shields.Size(); ++i)
+	{
+		Gear & shield = shields[i];
+		if (shield.price == 0)
+			return shield;
+	}
+	assert(false);
+	return Gear();
 }
 
 

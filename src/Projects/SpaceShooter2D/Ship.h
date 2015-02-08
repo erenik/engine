@@ -37,6 +37,9 @@ public:
 	/// Checks weapon's latest aim dir.
 	Vector3f WeaponTargetDir();
 
+	/// If using Armor and Shield gear (Player mainly).
+	void UpdateStatsFromGear();
+
 	/// Calls OnEnter for the initial movement pattern.
 	void StartMovement();
 	// Name or type. 
@@ -66,8 +69,8 @@ public:
 	float shieldValue, maxShieldValue;
 	/// Regen per millisecond
 	float shieldRegenRate;
-	int hitPoints;
-	int maxHitPoints;
+	int hp;
+	int maxHP;
 	int collideDamage;
 	List<String> abilities;
 	List<float> abilityCooldown;
@@ -93,7 +96,7 @@ public:
 	static List<Ship> types;
 
 	/// Used by player, mainly.
-	Gear shield, armor;
+	Gear weapon, shield, armor;
 private:
 };
 

@@ -21,7 +21,7 @@ UIInput::UIInput(String name /*= ""*/)
 	type = UIType::INPUT_FIELD;
 	selectable = hoverable = activateable = true;
 	activationMessage = "BEGIN_INPUT(this)";
-	this->textureSource = "80gray.png";
+	this->textureSource = defaultTextureSource;
 	textColor = defaultTextColor;
 
 	/// When true, re-directs all (or most) keyboard input to the target element for internal processing. Must be subclass of UIInput as extra functions there are used for this.

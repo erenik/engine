@@ -44,6 +44,7 @@ Binding::Binding(Action * action, List<int> keysToTriggerIt)
 void Binding::Nullify()
 {
 	inputDevice = defaultInputDevice;
+	exclusive = false;
 }
 
 Binding::~Binding()

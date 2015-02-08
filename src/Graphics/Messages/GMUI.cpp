@@ -11,6 +11,7 @@
 #include "UI/UIList.h"
 #include "UI/UIInputs.h"
 #include "UI/DataUI/UIMatrix.h"
+#include "UI/Buttons/UIRadioButtons.h"
 
 #include "Input/InputManager.h"
 #include "StateManager.h"
@@ -94,6 +95,24 @@ bool GMUI::GetGlobalUI()
 		return true;
 	}
 	*/
+}
+
+GMSetHoverUI::GMSetHoverUI(String uiName, UserInterface * inUI)
+: GMUI(GM_SET_HOVER_UI, inUI), name(uiName)
+{
+}
+void GMSetHoverUI::Process()
+{
+	if (!GetUI())
+        return;
+	if (!name.Length())
+		return;
+	UIElement * e = ui->GetElementByName(name);
+	if (!e){
+		std::cout<<"\nINFO: No element found with specified name \""<<name<<"\"";
+		return;
+	}
+	e->Hover();
 }
 
 GMSetUIp::GMSetUIp(String uiName, int target, Texture * tex, UserInterface * ui)
@@ -187,14 +206,29 @@ void GMSetUIi::Process()
 	{
 		case GMUI::INTEGER_INPUT:
 		{
-			if (e->type != UIType::INTEGER_INPUT)
+			switch(e->type)
 			{
-				std::cout<<"\nTrying to set integer input of element of other type.";
-				assert(e->type == UIType::INTEGER_INPUT);
-				return;
+				case UIType::INTEGER_INPUT:
+				{
+					UIIntegerInput * intInput = (UIIntegerInput*) e;
+					intInput->SetValue(value);
+					break;			
+				}
+				case UIType::RADIO_BUTTONS:
+				{
+					UIRadioButtons * rb = (UIRadioButtons*)e;
+					rb->SetValue(value);
+					break;
+				}
+				default:
+					if (e->type != UIType::INTEGER_INPUT)
+					{
+						std::cout<<"\nTrying to set integer input of element of other type.";
+						assert(e->type == UIType::INTEGER_INPUT);
+						return;
+					}
+				break;
 			}
-			UIIntegerInput * intInput = (UIIntegerInput*) e;
-			intInput->SetValue(value);
 		}
 	}
 }
@@ -840,7 +874,11 @@ void GMPopUI::Process()
 	bool success = Input.PopFromStack(e, ui, force);
 
     /// Post onExit message if it was popped.
-    if (success){
+    if (success)
+	{
+		/// Check if the element has any onPop messages.
+		if (e->onPop)
+			MesMan.QueueMessages(e->onPop);
 		/// If the element wants to keep track of the navigate UI state, then reload it. If not, don't as it will set it to false by default if so.
 		if (e->navigateUIOnPush)
 			Input.LoadNavigateUIState(e->previousNavigateUIState);

@@ -535,7 +535,7 @@ void InputManager::EvaluateKeyPressed(int activeKeyCode, bool downBefore, UIElem
 		binding = StateMan.GlobalState()->inputMapping.EvaluateInput(activeKeyCode, this->keyPressed, downBefore);
 		fromGlobal = true;
 	}
-	if (binding)
+	if (binding && binding->exclusive)
 		return;
 
 	/// Evaluate debug inputs first of all.
@@ -1094,8 +1094,10 @@ void InputManager::UINext()
 	List<UIElement*> uiList;
 	assert(ui);
 	ui->GetElementsByFlags(UIFlag::ACTIVATABLE | UIFlag::VISIBLE, uiList);
-	if (hoverElement == NULL){
-		element = uiList[0];
+	if (hoverElement == NULL)
+	{
+		if (uiList.Size())
+			element = uiList[0];
 		hoverElement = ui->Hover(element->posX, element->posY);
 		assert(hoverElement);
 	}

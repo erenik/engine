@@ -25,7 +25,7 @@ private:
 class GMRegisterParticleSystem : public GraphicsMessage 
 {
 public:
-	GMRegisterParticleSystem(ParticleSystem * ps, bool global);
+	GMRegisterParticleSystem(ParticleSystem * ps, bool global = true);
 	virtual void Process();
 private:
 	ParticleSystem * ps;

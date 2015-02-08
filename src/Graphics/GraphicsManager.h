@@ -140,6 +140,10 @@ public:
 
 	// Enters a message into the message queue
 	void QueueMessage(GraphicsMessage * msg);
+	/** Processes given message without delay, claiming the mutex and blocking all rendering and processing in the thread until the finished. 
+		Use with caution! May be used at start-up and shutdown as well as for other scripted events if a certain timing is required.
+	*/
+	void ProcessMessage(GraphicsMessage * msg);
 	// Processes queued messages
 	void ProcessMessages();
 

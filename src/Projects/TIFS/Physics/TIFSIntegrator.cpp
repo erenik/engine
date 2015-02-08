@@ -28,7 +28,7 @@ void TIFSIntegrator::IntegrateKinematicEntities(List<Entity*> kinematicEntities,
 {
 
 }
-
+*/
 
 void TIFSIntegrator::IntegrateVelocity(Entity * forEntity, float timeInSeconds)
 {
@@ -141,4 +141,4 @@ void TIFSIntegrator::IntegrateVelocity(Entity * forEntity, float timeInSeconds)
 		pp->velocity = pp->velocity - forward * oldForwardDotVel + newForward * oldForwardDotVel;
 	}
 	*/
-//}
+}

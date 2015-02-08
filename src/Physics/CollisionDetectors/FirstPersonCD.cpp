@@ -6,7 +6,16 @@
 #include "FirstPersonCD.h"
 
 /// Brute-force method. Does not rely on other structures that require further updates. All entities are present in the list.
-int FirstPersonCD::DetectCollisions(List<Entity*> entities, List<Collision> & collisions)
+int FirstPersonCD::DetectCollisions(List<EntityPair> & pairs, List<Collision> & collisions)
+{
+	
+
+	return 0;
+}
+
+
+/// Brute-force method. Does not rely on other structures that require further updates. All entities are present in the list.
+int FirstPersonCD::DetectCollisions(List<Entity*> & entities, List<Collision> & collisions)
 {
 	// Implement..
 	return 0;

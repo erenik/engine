@@ -45,9 +45,10 @@ CameraManager * CameraManager::Instance()
 	assert(cameraManager);
 	return cameraManager;
 }
-Camera * CameraManager::NewCamera()
+Camera * CameraManager::NewCamera(String name)
 {
 	Camera * camera = new Camera();
+	camera->name = name;
 	cameras.Add(camera);
 	return camera;
 }
@@ -169,6 +170,11 @@ Camera::~Camera()
 /// Resets everything.
 void Camera::Nullify()
 {
+	// Tracking vars
+	smoothness = 0.2;
+	minTrackingDistance = 1.5f;
+	maxTrackingDistance = 5.f;
+
 	movementType = CAMERA_MOVEMENT_RELATIVE;
 	resetCamera = NULL;
 	entityToTrack = NULL;
@@ -336,39 +342,20 @@ void Camera::Update()
 	frustum.SetProjection(projectionType);
 
 
-	Vector3f worldSpacePosition = this->position;
-
 	/// 3rd Person "static-world-rotation" camera
 	if (entityToTrack)
 	{
-		// Move camera before before main scenegraph rendering begins
-		if (trackingMode == TrackingMode::FOLLOW_AND_LOOK_AT)
-		{
-			assert(false && "rework");
-			FollowAndLookAt(timeInSeconds);
-		}
-		// Between 1st and 3rd person? More 1st person though.
-		else if (trackingMode == TrackingMode::FROM_BEHIND)
-		{
-			assert(false && "rework");
-			TrackFromBehind();
-		}
-		else if (trackingMode == TrackingMode::THIRD_PERSON)
-		{
-			assert(false && "rework");
-			TrackThirdPerson();
-		}
-		else if (trackingMode == TrackingMode::ADD_POSITION)
-		{
-			worldSpacePosition += entityToTrack->position;
-		}
+		Track();
 	}
+	else 
+		positionWithOffsets = this->position;
+
 	
 	/// Apply any after-effects here, such as 'shake', etc.
 
 	/// Calculate matrices.
 	/// Add a switch case if new/other techniques are requested -> move code from the TrackBehind, etc. to there.
-	viewMatrix = CalculateDefaultEditorMatrices(distanceFromCenterOfMovement, rotation, worldSpacePosition);
+	viewMatrix = CalculateDefaultEditorMatrices(distanceFromCenterOfMovement, rotation, positionWithOffsets);
 
 
 	/// Some new temporary variables for updating the frustum
@@ -390,6 +377,71 @@ void Camera::Update()
 	frustum.SetCamPos(Vector3f(camPos), Vector3f(lookingAtVector), Vector3f(upVector));
 
 	lastUpdate = now;
+}
+
+void Camera::Track()
+{
+	switch(trackingMode)
+	{
+		case TrackingMode::THIRD_PERSON:
+		case TrackingMode::FOLLOW_AND_LOOK_AT:
+		{
+			// Get data
+			Vector3f entityPosition = entityToTrack->position;
+			
+			/// The actual position of the camera at the moment.
+			Vector3f currentCamPosition = this->Position();
+			// Look at it from our new position!
+			// Find rotation yaw needed.
+			Vector3f toEntity = entityPosition - currentCamPosition;
+			Vector2f toEntityXZ(toEntity[0], toEntity[2]);
+			toEntityXZ.Normalize();
+			float yawNeeded = atan2(toEntityXZ[1], toEntityXZ[0]);
+			yawNeeded += PI * 0.5f;
+
+			float xzDistance = Vector2f(toEntity[0],toEntity[2]).Length();
+			Vector2f toEntityXY(xzDistance, toEntity[1]);
+			toEntityXY.Normalize();
+			float pitchNeeded = -atan2(toEntityXY[1], toEntityXY[0]);
+		
+			// Set rotations accordingly.
+			rotation.x = pitchNeeded;
+			rotation.y = yawNeeded;
+			
+			// Far away? get closer?
+			// First update toEntity since it will be using the offsetted position from earlier, we want the flat XZ diff.
+			toEntity = entityToTrack->position - position;
+			toEntity.y = 0;
+			float dist = toEntity.Length();
+			float relevantTrackingDistance = dist;
+			ClampFloat(relevantTrackingDistance, minTrackingDistance, maxTrackingDistance);
+			float currentDiff = dist - relevantTrackingDistance;
+			float newDiff = currentDiff * (1 - smoothness);
+			float newDist = newDiff + relevantTrackingDistance;
+			// Reduce the diff.
+			position = entityPosition - toEntity.NormalizedCopy() * newDist;
+
+			/// Copy over so calculation works below...
+			positionWithOffsets = position + trackingPositionOffset;
+			break;
+		}
+		case TrackingMode::FROM_BEHIND:
+		case TrackingMode::FIRST_PERSON:
+		{
+			// Get data
+			Vector3f entityPosition = entityToTrack->position;
+			position = entityPosition;
+			rotation = entityToTrack->rotation;
+			positionWithOffsets = position;
+			break;
+		}
+		case TrackingMode::ADD_POSITION:
+		{
+			positionWithOffsets = this->position;
+			positionWithOffsets += entityToTrack->position;
+			break;
+		}
+	}
 }
 
 /** Sets width/height ratio (commonly known as Aspect ratio).
@@ -599,206 +651,6 @@ Ray Camera::GetRayFromScreenCoordinates(Window * window, int mouseX, int mouseY)
 
 #define Maximum(a,b) (a > b? a : b)
 
-/// Tracking mode realizing functions.
-void Camera::FollowAndLookAt(float timeInSeconds)
-{
-	/// Since the position might not be aligned with the center of gravity, look for it.
-	Vector3f entityPosition = entityToTrack->position + trackingPositionOffset;
-
-	/// Move position towards entity if it is not close enough to desired range.
-	Vector3f toEntity = entityPosition - position;
-	float distance = toEntity.Length();
-	Vector3f optimalPosition = entityPosition - toEntity.NormalizedCopy() * distanceFromCenterOfMovement;
-
-	/// Strive to have the camera along a certain plane as compared to the entity.
-	optimalPosition[1] = relativePosition[1];
-	optimalPosition[1] += Maximum(distanceFromCenterOfMovement * 0.45f - 1.f, 0);
-
-	// If we have any rotation requested, take the optimal position and rotate it (compared to the entity) in target direction! :)
-	
-
-
-	// Smooth us toward this optimal position!	
-	float bigMultiplier = pow(0.5f, timeInSeconds);
-	float smallMultiplier = 1 - bigMultiplier;
-
-	if (distance > 0.1f)
-		position = position * bigMultiplier + optimalPosition * smallMultiplier;
-
-
-	// Look at it from our new position!
-	// Find rotation yaw needed.
-	toEntity = entityPosition - position;
-	Vector2f toEntityXZ(toEntity[0], toEntity[2]);
-	toEntityXZ.Normalize();
-	float yawNeeded = atan2(toEntityXZ[1], toEntityXZ[0]);
-	yawNeeded += PI * 0.5f;
-
-	float xzDistance = Vector2f(toEntity[0],toEntity[2]).Length();
-	Vector2f toEntityXY(xzDistance, toEntity[1]);
-	toEntityXY.Normalize();
-	float pitchNeeded = -atan2(toEntityXY[1], toEntityXY[0]);
-
-	rotationMatrix.Multiply(Matrix4f::GetRotationMatrixX(pitchNeeded));
-	rotationMatrix.Multiply(Matrix4f::GetRotationMatrixY(yawNeeded));
-	// Merge the rotation into the view matrix so it actually rotates also..
-	viewMatrix.Multiply(rotationMatrix);
-
-	// Take the relative position and multiply it with the local axes of the entity we're tracking?
-	Vector3f offset;
-	if (inheritEntityRotation)
-	{
-		Vector3f up = entityToTrack->rotationMatrix.GetColumn(1);
-		Vector3f right = entityToTrack->rotationMatrix.GetColumn(0);
-		Vector3f forward = entityToTrack->rotationMatrix.GetColumn(2);
-		offset = relativePosition[0] * right + relativePosition[1] * up + relativePosition[2] * forward;
-	}
-	else 
-		offset = relativePosition;
-
-	// Then translate the camera to it's position. (i.e. translate the world until camera is at a good position).
-	Matrix4d translationMatrix = Matrix4d().Translate(-position);
-	viewMatrix.Multiply(translationMatrix);
-}
-
-
-/// Follow position and rotation rather fiercly. Suitable for racing-games.
-void Camera::TrackFromBehind()
-{
-	float distance;
-	// First translate the camera relative to the viewing rotation-"origo"
-	/*
-	if (entityToTrack->physics)
-		distance = -this->entityToTrack->physics->physicalRadius*2;
-	else
-		distance = -this->entityToTrack->radius*2;
-*/
-	distance = distanceFromCentreOfMovement;
-	
-	/// Check if we got zis speed option set.
-	if (scaleDistanceWithVelocity){
-		// Scale it a bit more depending on current speed!
-		/// Fetch dot product of entity velocity and our look-direction, since that is what we care about.
-		float dotProduct = this->entityToTrack->Velocity().DotProduct(this->LookingAt());
-		ClampFloat(dotProduct, 0.0f, 10000000.0f);
-		dotProduct *= 0.08f;
-		/// Should now have speed in our vector of interest, so use that as velocity.
-		float distanceMultiplier = pow(dotProduct, 0.08f);
-		ClampFloat(distanceMultiplier, 1.0f, 10.0f);
-		distance *= distanceMultiplier;
-	}
-	viewMatrix.Translate(0, 0, -distance);
-	
-	Vector3f rotation = Vector3f(); //
-	rotation = -entityToTrack->rotation;
-
-	/// Need to.. 
-	/// Rotate more, so that we view the entity from the front instead, if camera is in reverse-mode.
-	if (revert)
-	{
-		rotation[1] += PI;
-	}
-	rotation += offsetRotation;
-
-	/// Inherit rotation?
-	if (inheritEntityRotation)
-	{
-		/*
-		Quaternion inheritedOrientation =- entityToTrack->physics->orientation;
-		// Grab entity's euler angles, if possible.
-		Vector3f totalEuler = entityToTrack->rotation + rotationEuler;
-		// Generate matrix for it
-		rotationMatrix = Matrix4f();
-		rotationMatrix.Multiply(Matrix4d().InitRotationMatrix(totalEuler[0], 1, 0, 0));
-		rotationMatrix.Multiply(Matrix4d().InitRotationMatrix(totalEuler[1], 0, 1, 0));
-//					Matrix4f inheritedRotationMatrix = inheritedOrientation.Matrix();					
-//					Matrix4f ownRotationMatrix = orientationEuler.Matrix();
-		/// Apply our own quaternion on top of that
-		// Quaternion sumOrientation = orientationEuler * inheritedOrientation;
-		// Then extract the matrix.
-		/// Apply offset-rotation?
-//					useQuaternions = true;
-		/// Multiply it, making the own orientation use the local axes.
-//					rotationMatrix = inheritedRotationMatrix.Multiply(ownRotationMatrix);
-*/
-	}
-	// No rotation inheritance.
-	else 
-	{
-		useQuaternions = false;
-		rotationMatrix.Multiply(Matrix4d().InitRotationMatrix(rotation[0], 1, 0, 0));
-		rotationMatrix.Multiply(Matrix4d().InitRotationMatrix(rotation[1], 0, 1, 0));
-	}
-
-
-
-	
-
-	viewMatrix.Multiply(rotationMatrix);
-		/*
-	viewMatrix.multiply(Matrix4d().InitRotationMatrix(-this->entityToTrack->rotation[0], 1, 0, 0));
-	viewMatrix.multiply(Matrix4d().InitRotationMatrix(-this->entityToTrack->rotation[1], 0, 1, 0));
-	*/
-
-			// Take the relative position and multiply it with the local axes of the entity we're tracking?
-	Vector3f offset;
-	if (inheritEntityRotation)
-	{
-		Vector3f up = entityToTrack->rotationMatrix.GetColumn(1);
-		Vector3f right = entityToTrack->rotationMatrix.GetColumn(0);
-		Vector3f forward = entityToTrack->rotationMatrix.GetColumn(2);
-		offset = relativePosition[0] * right + relativePosition[1] * up + relativePosition[2] * forward;
-	}
-	else 
-		offset = relativePosition;
-
-	// Then translate the camera to it's position. (i.e. translate the world until camera is at a good position).
-	Matrix4d translationMatrix = Matrix4d().Translate(-this->entityToTrack->position + offset);
-	viewMatrix.Multiply(translationMatrix);
-	/// If from behind, adjust it slightly afterward too!
-	if (trackingMode == TrackingMode::FROM_BEHIND){
-		viewMatrix.Multiply(Matrix4d::InitTranslationMatrix(Vector3f(0, elevation, 0)));
-	}
-}
-
-
-void Camera::TrackThirdPerson()
-
-{
-	// Not sure what this is really...
-	// First translate the camera relative to the viewing rotation-"origo"
-	viewMatrix.Translate(0, 0, this->distanceFromCentreOfMovement);
-
-	rotationMatrix.Multiply(Matrix4d().InitRotationMatrix(this->rotation[0], 1, 0, 0));
-	rotationMatrix.Multiply(Matrix4d().InitRotationMatrix(this->rotation[1], 0, 1, 0));
-
-	viewMatrix.Multiply(rotationMatrix);
-	/*
-	viewMatrix.multiply(Matrix4d().InitRotationMatrix(this->rotation[0], 1, 0, 0));
-	viewMatrix.multiply(Matrix4d().InitRotationMatrix(this->rotation[1], 0, 1, 0));
-	*/
-
-	// Take the relative position and multiply it with the local axes of the entity we're tracking?
-	Vector3f offset;
-	if (inheritEntityRotation)
-	{
-		Vector3f up = entityToTrack->rotationMatrix.GetColumn(1);
-		Vector3f right = entityToTrack->rotationMatrix.GetColumn(0);
-		Vector3f forward = entityToTrack->rotationMatrix.GetColumn(2);
-		offset = relativePosition[0] * right + relativePosition[1] * up + relativePosition[2] * forward;
-	}
-	else 
-		offset = relativePosition;
-
-	// Then translate the camera to it's position. (i.e. translate the world until camera is at a good position).
-	Matrix4d translationMatrix = Matrix4d().Translate(-this->entityToTrack->position + offset);
-	viewMatrix.Multiply(translationMatrix);
-	/// If from behind, adjust it slightly afterward too!
-	if (trackingMode == TrackingMode::FROM_BEHIND){
-		viewMatrix.Multiply(Matrix4d::InitTranslationMatrix(Vector3f(0, elevation, 0)));
-	}
-}
-
 
 /** Calculates a view transform based on the notion of having 
 	a distance from center of movement (as in 3D-modelling programs), 
@@ -809,7 +661,7 @@ Matrix4d Camera::CalculateDefaultEditorMatrices(float distanceFromCenterOfMoveme
 	Matrix4d viewMatrix, rotationMatrix;
 	// Move camera before before main scenegraph rendering begins
 	// First translate the camera relative to the viewing rotation-"origo"
-	viewMatrix.Translate(0, 0, distanceFromCentreOfMovement);
+	viewMatrix.Translate(0, 0, -distanceFromCentreOfMovement);
 	/*
 	*/
 	rotationMatrix.Multiply(Matrix4d().InitRotationMatrix(rotationXY[0], 1, 0, 0));

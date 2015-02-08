@@ -44,13 +44,8 @@
 
 #include "Input/InputManager.h"
 
-#include "Maps/MapManager.h"
-#include "ModelManager.h"
-#include "TextureManager.h"
-
 #include "Physics/PhysicsManager.h"
 #include "Physics/Messages/PhysicsMessage.h"
-
 
 #include "Random/Random.h"
 
@@ -58,6 +53,7 @@ TIFS * tifs = NULL;
 TIFSMapEditor * mapEditor = NULL;
 
 Camera * firstPersonCamera = NULL;
+Camera * thirdPersonCamera = NULL;
 Camera * freeFlyCamera = NULL;
 
 void SetApplicationDefaults()
@@ -104,17 +100,12 @@ void TIFS::OnEnter(AppState * previousState)
 	// Set 0 gravity for now..
 	Physics.QueueMessage(new PMSet(PT_GRAVITY, Vector3f()));
 
-	if (!freeFlyCamera)
-		freeFlyCamera = CameraMan.NewCamera();
-	if (!firstPersonCamera)
-		firstPersonCamera = CameraMan.NewCamera();
-	firstPersonCamera->distanceFromCenterOfMovement = 5.f;
-
-	cameras.Add(2, freeFlyCamera, firstPersonCamera);
-//	Graphics.QueueMessage(new GMSetCamera(freeFlyCamera, CT_ROTATION, Vector3f()));
-//	Graphics.QueueMessage(new GMSetCamera(freeFlyCamera, CT_DISTANCE_FROM_CENTER_OF_MOVEMENT, 3.f));
-	Graphics.QueueMessage(new GMSetCamera(firstPersonCamera, CT_TRACKING_MODE, TrackingMode::FOLLOW_AND_LOOK_AT));
-
+	freeFlyCamera = CameraMan.NewCamera("FreeFlyCamera");
+	firstPersonCamera = CameraMan.NewCamera("1stPersonCamera");
+	firstPersonCamera->trackingMode = TrackingMode::FIRST_PERSON;
+	thirdPersonCamera = CameraMan.NewCamera("3rdPersonCamera");
+	thirdPersonCamera->trackingMode = TrackingMode::THIRD_PERSON;
+	cameras.Add(freeFlyCamera, firstPersonCamera);
 
 	// Set free form camera as active.
 	Graphics.QueueMessage(new GMSetCamera(freeFlyCamera));
@@ -125,7 +116,7 @@ void TIFS::OnEnter(AppState * previousState)
 	if (!toolParticles)
 	{
 		toolParticles = new ToolParticleSystem();
-		Graphics.QueueMessage(new GMRegisterParticleSystem(toolParticles));
+		GraphicsMan.QueueMessage(new GMRegisterParticleSystem(toolParticles));
 	}
 
 	// Remove shit.
@@ -243,12 +234,14 @@ void TIFS::ProcessMessage(Message * message)
 void TIFS::CreateDefaultBindings()
 {
 	InputMapping * mapping = &this->inputMapping;
-	mapping->CreateBinding("ResetCamera", KEY::HOME);
-	mapping->CreateBinding("ToggleAutorun", KEY::R);
-	mapping->CreateBinding("ToggleMainMenu", KEY::ESC);
-	mapping->CreateBinding("Repair", KEY::F1);
-	mapping->CreateBinding("Activate", KEY::F2);
-	mapping->CreateBinding("RedirectFire", KEY::F3);
+	List<Binding*> & bindings = mapping->bindings;
+	bindings.Add(new Binding(Action::FromString("ResetCamera"), KEY::HOME));
+	bindings.Add(new Binding(Action::FromString("NextCamera"), KEY::C));
+	bindings.Add(new Binding(Action::FromString("ToggleAutorun"), KEY::R));
+	bindings.Add(new Binding(Action::FromString("ToggleMainMenu"), KEY::ESC));
+	bindings.Add(new Binding(Action::FromString("Repair"), KEY::F1));
+	bindings.Add(new Binding(Action::FromString("Activate"), KEY::F2));
+	bindings.Add(new Binding(Action::FromString("RedirectFire"), KEY::F3));
 }
 
 
@@ -267,6 +260,10 @@ void TIFS::ResetCamera()
 	// Reset the freeFlyCamera?
 	Graphics.QueueMessage(new GMSetCamera(freeFlyCamera, CT_POSITION, Vector3f(0,40,30)));
 	Graphics.QueueMessage(new GMSetCamera(freeFlyCamera, CT_ROTATION, Vector3f(-0.4f, 0, 0)));
+	
+	firstPersonCamera->trackingPositionOffset = Vector3f(0,3.5f,0);
+	thirdPersonCamera->trackingPositionOffset = Vector3f(0,3.5f,0);
+
 }
 
 
@@ -291,7 +288,7 @@ void TIFS::SpawnDrones()
 }
 
 
-void TIFS::SpawnDrone(Vector3f atLocation)
+void TIFS::SpawnDrone(ConstVec3fr atLocation)
 {
 	Model * model = ModelMan.GetModel("obj/Drones/Drone.obj");
 	Texture * diffuseMap = TexMan.GetTexture("img/Drones/DroneDiffuseMap.png");
@@ -323,7 +320,7 @@ void TIFS::CreateTurrets()
 
 
 /// Creates a turret!
-void TIFS::CreateTurret(int ofSize, Vector3f atLocation)
+void TIFS::CreateTurret(int ofSize, ConstVec3fr atLocation)
 {
 	Texture * diffuseMap = TexMan.GetTexture("img/Turrets/BigTurretDiffuse.png");
 // TexMan.GetTexture("Green")
@@ -372,8 +369,9 @@ void TIFS::SpawnPlayer()
 
 	Entity * player = MapMan.CreateEntity("Player", model, TexMan.GetTexture("Red"));
 	// Attach camera to the player.
+	Graphics.QueueMessage(new GMSetCamera(thirdPersonCamera, CT_ENTITY_TO_TRACK, player));
 	Graphics.QueueMessage(new GMSetCamera(firstPersonCamera, CT_ENTITY_TO_TRACK, player));
-
+	
 	// Make first person camera active
 	Graphics.QueueMessage(new GMSetCamera(firstPersonCamera));
 

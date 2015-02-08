@@ -296,6 +296,15 @@ void Vector3f::scale(float ix, float iy, float iz){
 // ************************************************************************//
 // Operator overloading
 // ************************************************************************//
+/// o.o
+bool Vector3f::operator == (ConstVec3fr comparand) const
+{
+	if (x == comparand.x &&
+		y == comparand.y &&
+		z == comparand.z)
+		return true;
+	return false;
+}
 
 /// Comparison operators
 bool Vector3f::operator != (const Vector3f & comparand) const 

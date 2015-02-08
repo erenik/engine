@@ -119,6 +119,8 @@ public:
 	*/
 	void scale(float x, float y, float z);
 
+	/// o.o
+	bool operator == (ConstVec3fr comparand) const;
 	/// Comparison operators
 	bool operator != (const Vector3f & comparand) const;
 	/// This will return true if and only if all three components (x,y,z) are smaller than their corresponding comparands in the vector comparand.

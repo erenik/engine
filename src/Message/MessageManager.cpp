@@ -38,6 +38,8 @@
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Messages/GMSet.h"
 
+#include "File/LogFile.h"
+
 MessageManager * MessageManager::messageManager = NULL;
 
 void MessageManager::Allocate(){
@@ -116,6 +118,13 @@ void MessageManager::ProcessMessages()
 		ProcessMessage(message);	
 	}
 	messagesToProcess.ClearAndDelete();
+}
+
+/// Processes string-based message.
+void MessageManager::ProcessMessage(String message)
+{
+	Message msg(message);
+	ProcessMessage(&msg);
 }
 
 /// For them delayed messages that require special treatment.. :P
@@ -673,14 +682,22 @@ void MessageManager::ProcessMessage(Message * message)
 				List<String> params = msg.Tokenize("(),");
 				assert(params.Size() >= 2 && "Invalid amount of arguments to PushToStack UI command!");
 				if (params.Size() < 2)
+				{
+					LogMain("Bad arguments in message: "+msg, ERROR);
 					return;
+				}
 				/// The user might want to enter either an element or a whole new UI here, so investigate it!
 				String uiName = params[1];
 				String uiSrc = uiName;
 				/// Check if the element exists...!
 				UserInterface * ui = ActiveUI();
 				if (!ui)
+					ui = MainUI();
+				if (!ui)
+				{
+					LogMain("No UI to interact with in message: "+msg, ERROR);
 					return;
+				}
 				UIElement * element = NULL;
 				/// Check if it's a source file, if so try and load that first.
 				if (uiName.Contains(".gui"))

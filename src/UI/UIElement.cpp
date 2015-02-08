@@ -60,13 +60,14 @@ bool UIElement::HandleDADFiles(List<String> files)
 }
 
 /// Set default values.
-void UIElement::Nullify(){
+void UIElement::Nullify()
+{
 	/// ID
 	id = idEnumerator++;
 	/// Hierarchy
 	parent = NULL;
 	ui = NULL;
-
+	divider = Vector2f(0.5f, 0.5f);
 	// Graphical properties
 	mesh = NULL;
 	texture = NULL;

@@ -30,6 +30,7 @@ protected:
 		and then passed on as messages to the character with inputFocus turned on.
 	*/
 	void ProcessInput(); 
+	void UpdateVelocity(ConstVec3fr newVel);
 	// Checks mouse position and casts a ray. Will return all entities along the ray, starting with the closest one.
 	void UpdateTargetsByCursorPosition();
 
@@ -45,6 +46,8 @@ protected:
 	bool autorun;
 	// Set this or it won't be able to move.
 	float movementSpeed;
+
+	Vector3f lastVelocity;
 };
 
 

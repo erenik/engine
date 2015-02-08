@@ -20,6 +20,7 @@ class Window;
 namespace TrackingMode {
 enum trackingMode {
 	FROM_BEHIND, 
+	FIRST_PERSON,
 	THIRD_PERSON,
 	FOLLOW_AND_LOOK_AT, // Should be smooth. MMORPG-style.
 	ADD_POSITION, // Adds position onto camera position.. only.
@@ -47,7 +48,7 @@ public:
 	static void Allocate();
 	static void Deallocate();
 	static CameraManager * Instance();
-	Camera * NewCamera();
+	Camera * NewCamera(String name);
 	// Called from render/physics thread. updates movement/position of all cameras.
 	void Process();
 	
@@ -121,6 +122,7 @@ public:
 	float rotationSpeed;
 	/// For when doing adjustments after all regular matrix operations?
 	float elevation;
+	float smoothness;
 	
 	// Default CAMERA_MOVEMENT_RELATIVE, see enum above.
 	int movementType;
@@ -239,16 +241,16 @@ public:
 	Vector3f offsetRotation;
 	Vector3f relativePosition;
 
+	/// For when tracking the entity.
+	float minTrackingDistance;
+	float maxTrackingDistance;
+
 private:
 	/// cool.
 	Time lastUpdate;
 
-	/// Tracking mode realizing functions. Suitable for single-player character games (e.g. RPG).
-	void FollowAndLookAt(float timeInSeconds);
-	/// Follow position and rotation rather fiercly. Suitable for racing-games.
-	void TrackFromBehind();
-	/// Some old relic.
-	void TrackThirdPerson();
+	// Tracks the entity based on given mode.
+	void Track();
 
 	/** Calculates a view transform based on the notion of having 
 		a distance from center of movement (as in 3D-modelling programs), 
@@ -256,6 +258,8 @@ private:
 	*/
 	static Matrix4d CalculateDefaultEditorMatrices(float distanceFromCenterOfMovement, Vector2f rotationXY, const Vector3f & worldSpacePosition);
 
+	/// World position, modulated by tracking and follow- functions, before being used in CalculateDefaultEditorMatrices function.
+	Vector3f positionWithOffsets;
 
 	// Velocities! :D
 	float dfcomSpeed, dfcomSpeedMultiplier;

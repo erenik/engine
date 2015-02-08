@@ -35,6 +35,9 @@ public:
 	*/
 	void ProcessMessages();
 
+	/// Processes string-based message.
+	void ProcessMessage(String message);
+
 	bool messageQueueIsOff();			// Check if the message queue is empty
 
 	/// For them delayed messages that require special treatment.. :P

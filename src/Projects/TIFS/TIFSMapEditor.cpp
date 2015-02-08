@@ -26,8 +26,8 @@
 
 #include "Maps/MapManager.h"
 
-#include "Model.h"
-#include "ModelManager.h"
+#include "Model/Model.h"
+#include "Model/ModelManager.h"
 #include "Mesh/EMesh.h"
 
 #include "TextureManager.h"
@@ -35,7 +35,7 @@
 #include "Input/InputManager.h"
 
 #include "Message/Message.h"
-#include "Message/VectorMessage.h"
+#include "Message/MathMessage.h"
 
 #include "Physics/PhysicsManager.h"
 #include "Physics/Messages/PhysicsMessage.h"

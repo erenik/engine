@@ -58,6 +58,7 @@
 
 #include "Game/SpaceShooter/SpaceShooterCD.h"
 #include "Game/SpaceShooter/SpaceShooterCR.h"
+#include "Game/GameVariableManager.h"
 
 #include "ShipProperty.h"
 #include "ProjectileProperty.h"
@@ -121,6 +122,7 @@ public:
 	/// Called from the render-thread for every viewport/window, after the main rendering-pipeline has done its job.
 	virtual void Render(GraphicsState * graphicsState);
 
+	/// UI stuffs. All implemented in UIHandling.cpp
 	void UpdateUI();
 	void UpdateGearList();
 	/// Update UI parts
@@ -128,6 +130,8 @@ public:
 	void UpdateUIPlayerShield();
 	/// Update ui
 	void OnScoreUpdated();
+	void ShowLevelStats();
+	void LoadDefaultName();
 	/// o.o
 	Entity * OnShipDestroyed(Ship * ship);
 
@@ -140,6 +144,7 @@ public:
 
 	/// Starts a new game. Calls LoadLevel
 	void NewGame();
+	void NewPlayer();
 	void Pause();
 	void Resume();
 	void TogglePause();
@@ -169,12 +174,16 @@ public:
 
 	enum {
 		MAIN_MENU,
+		EDITING_OPTIONS,
+		NEW_GAME,
 		IN_LOBBY,
 		IN_WORKSHOP,
+		BUYING_GEAR,
 		LOAD_SAVES,
 		PLAYING_LEVEL,
 		GAME_OVER,
 		LEVEL_CLEARED,
+		SHOWING_LEVEL_STATS,
 	};
 	int mode;
 	SSIntegrator * integrator;
@@ -192,12 +201,22 @@ public:
 		* money,
 		* playTime,
 		* playerName,
-		* gameStartDate;
+		* gameStartDate,
+		* difficulty;
 
 	/// Default 30x20
 	void SetPlayingFieldSize(Vector2f newSize);
-
+	
+	/// Saves previousMode
+	void SetMode(int newMode, bool updateUI = true);
+	/// o.o
+	int previousMode;
+	/// 0 by default.
+	int gearCategory;
 private:
+	
+	void RenderInLevel(GraphicsState * graphicsState);
+
 	/// Called each app frame to remove projectiles and ships outside the relevant area.
 	void Cleanup();
 	void OnPauseStateUpdated();

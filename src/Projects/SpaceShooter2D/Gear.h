@@ -10,6 +10,7 @@
 class Gear 
 {
 public:
+	Gear();
 	String name;
 	int price;
 	enum {
@@ -19,12 +20,15 @@ public:
 	};
 	int type;
 	// Weapon stats?
-
+	int damage;
+	int reloadTimeMs;
 	// Shield stats.
 	int maxShield;
 	int shieldRegen;
 	// Armor stats
 	int maxHP;
+	int toughness;
+	int reactivity;
 
 	String description;
 
@@ -32,6 +36,10 @@ public:
 	static bool Load(String fromFile);
 	static List<Gear> GetType(int type);
 	static Gear Get(String byName);
+
+	static Gear StartingWeapon();
+	static Gear StartingArmor();
+	static Gear StartingShield();
 
 	/// Available to buy!
 	static List<Gear> availableGear;

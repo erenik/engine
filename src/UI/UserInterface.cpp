@@ -27,6 +27,9 @@
 #include "Viewport.h"
 #include "Color.h"
 
+#include "File/LogFile.h"
+#include "String/StringUtil.h"
+
 /// Mutex for interacting with the UI. Any UI. Used to make sure the graphics isn't deleting anything the input is touching and vice-versa.
 Mutex uiMutex;
 
@@ -54,8 +57,22 @@ UserInterface * ActiveUI()
 {
 	Window * activeWindow = WindowMan.GetCurrentlyActiveWindow();
 	if (!activeWindow)
+	{
+		LogMain("ActiveUI(): No active window!", WARNING);
 		return NULL;
+	}
 	return activeWindow->GetUI();
+}
+
+UserInterface * MainUI()
+{
+	Window * mainWindow = MainWindow();
+	if (!mainWindow)
+	{
+		LogMain("MainUI(): No main window!", WARNING);
+		return NULL;
+	}
+	return mainWindow->GetUI();
 }
 
 /// UI which the mouse is currently hovering over, which may be any window.
@@ -763,6 +780,7 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 	float defaultPadding = 0.0f;
 	float defaultTextSize = 1.0f;
 	String defaultOnTrigger = "";
+	Vector2f defaultDivider = Vector2f(0.5f,0.5f);
 
 #define ENSURE_NEXT_TOKEN if(tokens.Size() < 2){ assert(false && "argument token missing"); continue; };
 #define NEXT_TOKEN	(tokens[1])
@@ -777,6 +795,7 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 	element->onTrigger = defaultOnTrigger;\
 	element->fontSource = TextFont::defaultFontSource;\
 	element->visible = defaultVisibility;\
+	element->divider = defaultDivider;\
 	}
 #define ADD_PREVIOUS_TO_UI_IF_NEEDED {\
 	if (element && element != root){\
@@ -852,6 +871,8 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 		tok.RemoveInitialWhitespaces();
 		if (tok.Length())
 			tokens.Add(tok);
+
+		List<String> newTokens = TokenizeIgnore(line, " \n\r\t", "\"");
 
 		List<String> strings = line.Tokenize("\"");
 		String firstQuote, secondQuote, thirdQuote;
@@ -946,6 +967,11 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 			else if (token == "defaultScalability"){
 				ENSURE_NEXT_TOKEN
 				defaultScalability = NEXT_TOKEN.ParseBool();
+			}
+			else if (token == "defaultDividerX")
+			{
+				ENSURE_NEXT_TOKEN
+				defaultDivider.x = NEXT_TOKEN.ParseFloat();
 			}
 			else if (token == "defaultVisibility"){
 				ENSURE_NEXT_TOKEN
@@ -1150,9 +1176,23 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 			else if (token == "RadioButtons")
 			{
 				ADD_PREVIOUS_TO_UI_IF_NEEDED
-				String action = "Set"+secondQuote;
-				UIRadioButtons * rb = new UIRadioButtons(firstQuote.ParseInt(), secondQuote, action);
+				
+				String name, displayText;
+				int numItems = 1;
+				if (newTokens.Size() >= 3)
+				{
+					numItems = newTokens[1].ParseInt();
+					name = newTokens[2];
+				}
+				if (newTokens.Size() >= 4)
+				{
+					displayText = newTokens[3];
+				}
+				String action = "Set"+name;
+				UIRadioButtons * rb = new UIRadioButtons(numItems, name, action);
 				element = rb;
+				displayText.Remove('\"', true);
+				rb->displayText = displayText;
 				SET_DEFAULTS
 				rb->CreateChildren();
 			}
@@ -1212,6 +1252,11 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 				ENSURE_NEXT_TOKEN
 				element->name = firstQuote;
 			}
+			else if (token == "displayText")
+			{
+				ENSURE_NEXT_TOKEN
+				element->displayText = firstQuote;
+			}
 			else if (token == "Padding"){
 				ENSURE_NEXT_TOKEN
 				element->padding = NEXT_TOKEN.ParseFloat();
@@ -1223,6 +1268,16 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 			else if (token == "onTrigger"){
 				ENSURE_NEXT_TOKEN
 				element->onTrigger = NEXT_TOKEN;
+			}
+			else if (token =="removeOnPop")
+			{
+				ENSURE_NEXT_TOKEN
+				element->removeOnPop = NEXT_TOKEN.ParseBool();
+			}
+			else if (token == "onPop")
+			{
+				ENSURE_NEXT_TOKEN
+				element->onPop = NEXT_TOKEN;
 			}
 			else if (token == "onExit"){
 				ENSURE_NEXT_TOKEN
