@@ -132,6 +132,7 @@ enum physicsTargets{
 	PT_PAUSE_ON_COLLISSION,
 	PT_SIMULATION_ENABLED, /// If disabled, no simulation will be done, including collissions, gravity etc. Used for network synchronization for example.
 	PT_ESTIMATION_ENABLED, /// For network-synchronization
+	PT_FACE_VELOCITY_DIRECTION,
 
 	/// Waypoints, Pathfinding and NavMesh control. Mainly various pointer targets
 	PT_ENTITY,

@@ -139,6 +139,9 @@ public:
     /// Orientation, R(t),  (or rotation for the noobs (me))
     Matrix3f orientationMatrix;
 
+	/// If true, rotation should follow velocity (or relative velocity, at least).
+	bool faceVelocityDirection;
+
     /// More ;___;
     /// Linear momentum, or P(t)
     /// Mass * velocity

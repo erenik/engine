@@ -596,7 +596,7 @@ void CreateSphere(Mesh &mesh, int sections){
 			mesh.uvs[cIndex][0] = (j / (float)sections);
 			mesh.uvs[cIndex][1] = (1 - i / (float) sections);
 
-			mesh.normals[cIndex] = Vector3f(mesh.vertices[cIndex][0], mesh.vertices[cIndex][1], mesh.vertices[cIndex][2]).Normalize();
+			mesh.normals[cIndex] = Vector3f(mesh.vertices[cIndex][0], mesh.vertices[cIndex][1], mesh.vertices[cIndex][2]).NormalizedCopy();
 
 			++mesh.numVertices;
 			++mesh.numUVs;

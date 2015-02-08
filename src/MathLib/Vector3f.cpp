@@ -533,8 +533,32 @@ float Vector3f::DotProduct(const Vector3f & otherVector) const {
 	return x * otherVector[0] + y * otherVector[1] + z * otherVector[2];
 }
 
-Vector3f Vector3f::CrossProduct(const Vector3f & otherVector) const {
-	return Vector3f (y * otherVector[2] - z * otherVector[1], z * otherVector[0] - x * otherVector[2], x * otherVector[1] - y * otherVector[0]);
+Vector3f Vector3f::CrossProduct(const Vector3f & otherVector) const 
+{
+	
+	/*
+#ifdef USE_SSE
+	Vector3f cross;
+	__m128 sse, left, right;
+
+	// x = y * otherVector.z - z * otherVector.y;
+	// y = z * otherVector.x - x * otherVector.z;
+	// z = x * otherVector.y - y * otherVector.x;
+	// y, z, x
+	float arr[4];
+	arr = {y,z,x,0};
+	left = _mm_load_ps(arr);
+
+	sse = _
+	cross.data
+	;
+	return cross;
+#else
+	*/
+	return Vector3f (y * otherVector[2] - z * otherVector[1], 
+		z * otherVector[0] - x * otherVector[2], 
+		x * otherVector[1] - y * otherVector[0]);
+// #else
 }
 
 /// Multiplies the elements in the two vectors internally, returning the product.
@@ -549,28 +573,44 @@ Vector3f Vector3f::ElementDivision(const Vector3f & otherVector) const
 /// Calculates the length of the vector.
 float Vector3f::Length() const 
 {
+#ifdef USE_SSE
+	__m128 sse = _mm_mul_ps(data, data);
+	float sum = sse.m128_f32[0] + sse.m128_f32[1] + sse.m128_f32[2];
+#else
 	float sum = x * x + y * y + z * z;
+#endif
 	if (sum == 0)
 		return 0;
 	assert(abs(sum) != 0 && "VEctor3f::Length");
 	return sqrt(sum);
 }
 /// Calculates the squared length of the vector.
-float Vector3f::LengthSquared() const {
+float Vector3f::LengthSquared() const 
+{
+#ifdef USE_SSE
+	__m128 sse = _mm_mul_ps(data, data);
+	float sum = sse.m128_f32[0] + sse.m128_f32[1] + sse.m128_f32[2];
+	return sum;
+#else
 	return x * x + y * y + z * z;
+#endif
 }
 
-Vector3f Vector3f::Normalize(){
+void Vector3f::Normalize()
+{
 	float vecLength = Length();
 	if (vecLength < ZERO){
 		// assert(vecLength != 0 && "VEctor3f::Normalize");
 		vecLength = 1.0f;
 	}
-
+#ifdef USE_SSE
+	__m128 sse = _mm_load1_ps(&vecLength);
+	data = _mm_div_ps(data, sse);
+#else
 	x = x / vecLength;
 	y = y / vecLength;
 	z = z / vecLength;
-	return Vector3f(x, y, z);
+#endif
 }
 
 /** Returns a normalized copy of this vector. */
@@ -579,7 +619,14 @@ Vector3f Vector3f::NormalizedCopy() const {
 	if (vecLength < ZERO){
 		return Vector3f();
 	}
+#ifdef USE_SSE
+	__m128 sse = _mm_load1_ps(&vecLength);
+	Vector3f vec;
+	vec.data = _mm_div_ps(data, sse);
+	return vec;
+#else
 	return Vector3f(x / vecLength, y / vecLength, z / vecLength);
+#endif
 };
 
 /// Returns the absolute value of the sub-component (x,y,z) of highest absolute value.

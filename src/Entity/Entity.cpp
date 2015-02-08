@@ -87,6 +87,7 @@ void Entity::LoadCompactEntityData(CompactEntity * cEntity)
 
 Entity::Entity(int i_id)
 {
+	updateChildrenOnTransform = false;
 	position = Vector3f(0,0,0);
 	scale = Vector3f(1,1,1);
 	rotation = Vector3f(0,0,0);
@@ -439,8 +440,8 @@ void Entity::Translate(ConstVec3fr translation)
 	RecalculateMatrix();
 }
 
-/// Recalculates the transformation matrix. All parts by default.
-void Entity::RecalculateMatrix(bool allParts /*= true*/)
+/// Recalculates the transformation matrix. All parts by default. If recursively, will update children (or parents?) recursively upon update.
+void Entity::RecalculateMatrix(bool allParts /*= true*/, bool recursively /* = false*/)
 {
     Matrix4f preTranslateMat;
 	if (allParts || hasRotated)
@@ -487,11 +488,13 @@ void Entity::RecalculateMatrix(bool allParts /*= true*/)
 		}
 
 		// Since we updated something, we should inform our children as well, if any, or they will be lagging behind...
-		/*
-		for (int i = 0; i < children.Size(); ++i)
+		if (updateChildrenOnTransform || recursively)
 		{
-			children[i]->RecalculateMatrix();
-		}*/
+			for (int i = 0; i < children.Size(); ++i)
+			{
+				children[i]->RecalculateMatrix(true, true);
+			}
+		}
 
 		worldPosition = transformationMatrix.Product(Vector4f());
 			// Ensure it has a scale..?
@@ -505,6 +508,7 @@ void Entity::RecalculateMatrix(bool allParts /*= true*/)
 		transformationMatrix[13] = position[1];
 		transformationMatrix[14] = position[2];
 	}
+	worldPosition = transformationMatrix * Vector3f();
 }
 
 /// Recalculates a transformation matrix using argument vectors for position, rotation and translation.
@@ -642,6 +646,12 @@ Vector3f Entity::CenterOfGravityWorldSpace()
 	// Multiply co-ordinates of model center with our matrix.
 	Vector4f centerWorldSpace = transformationMatrix.Product(center);
 	return centerWorldSpace;
+}
+
+/// Checks with Rotation matrix.
+Vector3f Entity::LookAt()
+{
+	return rotationMatrix * Vector3f(0,0,-1);
 }
 
 /// o.o Links child and parent for both.

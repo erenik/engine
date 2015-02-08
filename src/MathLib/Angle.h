@@ -11,6 +11,7 @@ struct Angle
 {
 public:
 	Angle();
+	Angle(float normalizedX, float normalizedY);
 	Angle(float radians);
 	Angle(const Vector2f & fromNormalizedVector);
 	/// Assumes normalized vector.
@@ -26,6 +27,9 @@ public:
 
 	/// Truncates so that the angle does not exceed this value in either positive or negative direction.
 	void Truncate(float minMaxValueInRadians);
+
+	/// Asserts angle being a decent number (not undefined).
+	bool IsGood();
 
 	static void UnitTest();
 private:

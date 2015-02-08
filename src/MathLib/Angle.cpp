@@ -17,6 +17,11 @@ Angle::Angle(float radians)
 	Normalize();
 }
 
+Angle::Angle(float x, float y)
+{
+	radians = GetAngler(x,y);
+}
+
 Angle::Angle(const Vector2f & normalizedVector)
 {
 	radians = GetAngler(normalizedVector.x, normalizedVector.y);
@@ -81,6 +86,11 @@ void Angle::Truncate(float minMaxValueInRadians)
 		radians = -minMaxValueInRadians;
 }
 
+/// Asserts angle being a decent number (not undefined).
+bool Angle::IsGood()
+{
+	return (radians == radians);
+}
 
 void Angle::UnitTest()
 {

@@ -55,6 +55,7 @@ void FirstPersonPlayerProperty::ToggleAutorun()
 			autorun = false;
 			return;
 		}
+		Physics.QueueMessage(new PMSetEntity(owner, PT_FACE_VELOCITY_DIRECTION, false));
 		// Set relative velocity. It will solve the issue of direction by using the current rotation :)
 		Vector3f velocity(0, 0, -movementSpeed);
 		Physics.QueueMessage(new PMSetEntity(owner, PT_RELATIVE_VELOCITY, velocity));
@@ -90,7 +91,6 @@ void FirstPersonPlayerProperty::ProcessInput()
 	if (Input.KeyPressed(KEY::D))
 		right += 1.f;
 
-	float movementSpeed = 2.f;
 	forward *= movementSpeed;
 
 	float rotationSpeed = 1.2f;
@@ -224,8 +224,10 @@ void FirstPersonPlayerProperty::UpdateVelocity(ConstVec3fr newVelocity)
 		// Either rotate straight away.
 		case TrackingMode::THIRD_PERSON:
 		{				
+			PhysicsMan.QueueMessage(new PMSetEntity(owner, PT_FACE_VELOCITY_DIRECTION, true));
 			if (newVelocity.MaxPart())
 			{
+				return;
 				// Set our rotation toward this new destination too!
 				float yaw = atan2(normalizedVelocity[2], normalizedVelocity[0]) + PI * 0.5f;
 				Physics.QueueMessage(new PMSetEntity(owner, PT_ROTATION_YAW, yaw));
@@ -235,7 +237,8 @@ void FirstPersonPlayerProperty::UpdateVelocity(ConstVec3fr newVelocity)
 		// Or possibly induce a rotational velocity.
 		case TrackingMode::FIRST_PERSON:
 		{
-			
+			// Disable .. stuff.
+			PhysicsMan.QueueMessage(new PMSetEntity(owner, PT_FACE_VELOCITY_DIRECTION, false));
 			break;
 		}
 	}

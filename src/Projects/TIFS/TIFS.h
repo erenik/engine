@@ -33,6 +33,15 @@ class ToolParticleSystem;
 extern TIFS * tifs;
 extern TIFSMapEditor * mapEditor;
 
+enum 
+{
+	BAD_SIZE,
+	SMALL, // 1
+	MEDIUM, // 2
+	LARGE, // 3
+	SIZES, // 4?
+};
+
 /// The main/global Application state for the game.
 class TIFS : public AppState 
 {
@@ -64,7 +73,7 @@ public:
 
 	/// Randomly!!!! o-=o
 	void CreateTurrets();
-	/// Creates a turret!
+	/// Creates a turret! Sizes Small, Medium and Large accepted.
 	void CreateTurret(int ofSize, ConstVec3fr atLocation);
 
 	// Spawn player

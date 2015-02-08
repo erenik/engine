@@ -74,7 +74,7 @@ bool CubeSphereCollision(Entity * cubeEntity, Entity * sphereEntity, Collision &
 	}
 //	std::cout<<"\nCube-Sphere collission!";
 
-	data.collisionNormal = (cubeEntity->position - sphereEntity->position).Normalize();
+	data.collisionNormal = (cubeEntity->position - sphereEntity->position).NormalizedCopy();
 	data.distanceIntoEachOther = distance;
 	data.results |= DISTANCE_INTO;
 	return true;

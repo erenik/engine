@@ -256,7 +256,8 @@ private:
 		a distance from center of movement (as in 3D-modelling programs), 
 		a rotation aroud the same point, and translate the point based on position and relative position summed up.
 	*/
-	static Matrix4d CalculateDefaultEditorMatrices(float distanceFromCenterOfMovement, Vector2f rotationXY, const Vector3f & worldSpacePosition);
+	static bool CalculateDefaultEditorMatrices(float distanceFromCenterOfMovement, Vector2f rotationXY, const Vector3f & worldSpacePosition,
+		Matrix4d & viewMatrix, Matrix4d & rotationMatrix);
 
 	/// World position, modulated by tracking and follow- functions, before being used in CalculateDefaultEditorMatrices function.
 	Vector3f positionWithOffsets;

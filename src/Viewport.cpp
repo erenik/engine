@@ -209,9 +209,10 @@ bool Viewport::GetRayFromViewportCoordinates(Vector2i coords, Ray & ray)
 
  //   relativeX -= 0.5f;
  //   relativeY -= 0.5f;
-
-    Vector4f startPoint = nearPlaneLLCorner + nearPlaneUpVec * relativeY * camera.GetFrustum().top * 2
-                        + nearPlaneRightVec * relativeX * camera.GetFrustum().right * 2;
+	Vector3f frustumRight = frustum.hitherBottomRight - frustum.hitherBottomLeft;
+	Vector3f frustumUp = frustum.hitherTopLeft - frustum.hitherBottomLeft;
+	Vector4f startPoint = frustum.hitherBottomLeft + frustumUp * relativeY
+                        + frustumRight * relativeX;
 	//Vector4f startPoint = nearPlaneCenter + nearPlaneUpVec * relativeY * frustum.top * 2;
 
 //	nearPlaneLLCorner + nearPlaneUpVec * relativeY * camera.GetFrustum().top * 2
@@ -224,7 +225,12 @@ bool Viewport::GetRayFromViewportCoordinates(Vector2i coords, Ray & ray)
 	else if (camera.projectionType == Camera::ORTHOGONAL)
 		clickDirection = camera.LookingAt();
 	clickDirection.Normalize3();
-	Vector4f endPoint = startPoint - clickDirection * camera.farPlane;
+	Vector3f endPoint = startPoint - clickDirection * camera.farPlane;
+//	std::cout<<"\nEndpoint: "<<endPoint;
+
+	endPoint = frustum.fartherBottomLeft + (frustum.fartherTopLeft - frustum.fartherBottomLeft) * relativeY
+		+ (frustum.fartherBottomRight - frustum.fartherBottomLeft) * relativeX;
+//	std::cout<<" Endpoint 2: "<<endPoint;
 
     /// Adjust start point so it looks correct on-screen.
    // startPoint += relativeY * nearPlaneUpVec * frustum.top/ zoom * 0.5f;
@@ -234,5 +240,6 @@ bool Viewport::GetRayFromViewportCoordinates(Vector2i coords, Ray & ray)
 	result.start = startPoint;
 	result.direction = clickDirection;
 	ray = result;
+//	std::cout<<"\nRay dir: "<<result.direction<<" start: "<<result.start;
 	return true;
 }

@@ -25,6 +25,9 @@ public:
 	// Default false. Enable to steer this entity.
 	bool inputFocus;
 
+	// Set this or it won't be able to move.
+	float movementSpeed;
+
 protected:
 	/** Checks states via InputManager. Regular key-bindings should probably still be defined in the main game state 
 		and then passed on as messages to the character with inputFocus turned on.
@@ -44,8 +47,6 @@ protected:
 	Vector3f lastAcc;
 	float lastRight;
 	bool autorun;
-	// Set this or it won't be able to move.
-	float movementSpeed;
 
 	Vector3f lastVelocity;
 };

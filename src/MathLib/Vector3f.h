@@ -186,7 +186,7 @@ public:
 	/// Calculates the squared length of the vector.
 	float LengthSquared() const;
 	/** Normalizes the vector coordinates so that the length becomes 1 */
-	Vector3f Normalize();
+	void Normalize();
 	/** Returns a normalized copy of this vector. */
 	Vector3f NormalizedCopy() const;
 

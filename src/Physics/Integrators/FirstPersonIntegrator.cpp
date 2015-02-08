@@ -40,22 +40,28 @@ void FirstPersonIntegrator::IntegrateVelocity(Entity * forEntity, float timeInSe
 
 	PhysicsProperty * pp = forEntity->physics;
 	Vector3f & position = forEntity->position;
+	Vector3f & relativeVelocity = pp->relativeVelocity;
 
 	// Add regular velocity (from physics and effects)
 	Vector3f velocity = pp->velocity;
-	// Add the relative velocity (from player desired movement)
-	velocity += forEntity->rotationMatrix.Product(pp->relativeVelocity);
-
-	Vector3f lookAt = forEntity->rotationMatrix.Product(Vector3f(0,0,2.f));
+	Vector3f lookAt = forEntity->rotationMatrix.Product(Vector3f(0,0,1.f));
 
 	Vector3f distanceTraveled;
+	/// Regular velocity, due to external factors, acceleration, etc.
 	if (velocity.MaxPart())
 	{
 		//... and travel!
 		distanceTraveled = velocity  * timeInSeconds;
 		forEntity->position += distanceTraveled;
 	}	
-
+	/// Player induced / controlled constant velocity in relative direction?
+	Vector3f relVelWorldSpaced;
+	if (relativeVelocity.MaxPart())
+	{
+		// Add it.
+		relVelWorldSpaced = forEntity->rotationMatrix * relativeVelocity;
+		forEntity->position += relVelWorldSpaced * timeInSeconds;
+	}
 
 	/// Apply gravity
 	if (applyGravity)
@@ -68,18 +74,42 @@ void FirstPersonIntegrator::IntegrateVelocity(Entity * forEntity, float timeInSe
 	// Apply linear damping
 	pp->velocity *= pow(pp->linearDamping, timeInSeconds);
 
-	// Rotate.
-	Quaternion rotation(pp->angularVelocityQuaternion);
-	if (rotation.w && rotation.MaxPart())
+	bool rotated = false;
+	// Force rot to follow vel.
+	if (pp->faceVelocityDirection && (relVelWorldSpaced.MaxPart() || velocity.MaxPart()))
 	{
-		// Multiple the amount to rotate with time.
-		rotation.angle *= timeInSeconds;
-		// Recalculate it so that it becomes a unit quaternion again.
-		rotation.RecalculateXYZW();
-		pp->orientation = pp->orientation * rotation;
-		//.. and don't forget to normalize it or it will die.
-		pp->orientation.Normalize();
+		// From default of 0,0,-1
+		Vector3f defaultDir(0,0,-1);
+		Vector3f vec1 = (relVelWorldSpaced.MaxPart() > 0)? relVelWorldSpaced : velocity;
+		vec1.Normalize();
+		Angle a(defaultDir.x, defaultDir.z), b(vec1.x, vec1.z);
+		Angle to = b - a;
+		if (to.IsGood())
+		{
+			float angle = to.Radians();
+			Quaternion q(Vector3f(0,1,0), angle);
+			q.Normalize();
+			forEntity->physics->orientation = q;
+			rotated = true;
+	//		forEntity->rotationMatrix = q.Matrix();
+		}
+	}
+	else 
+	{
+		// Rotate.
+		Quaternion rotation(pp->angularVelocityQuaternion);
+		if (rotation.w && rotation.MaxPart())
+		{
+			// Multiple the amount to rotate with time.
+			rotation.angle *= timeInSeconds;
+			// Recalculate it so that it becomes a unit quaternion again.
+			rotation.RecalculateXYZW();
+			pp->orientation = pp->orientation * rotation;
+			//.. and don't forget to normalize it or it will die.
+			pp->orientation.Normalize();
+			rotated = true;
+		}
 	}
 	// Recalculate matrix after integration is done.
-	forEntity->RecalculateMatrix();
+	forEntity->RecalculateMatrix(rotated);
 }

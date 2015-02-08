@@ -410,8 +410,8 @@ bool ResolveCollision(Collision &data)
             Vector3f n2Velocity = two->physics->velocity.DotProduct(collisionNormal) * collisionNormal;
             float totalNormalVelocity = nVelocity.Length() + n2Velocity.Length();
             /// Separate the impact velocities into the two's normal velocities
-            nVelocity = nVelocity.Normalize() * totalNormalVelocity * 1.0f;
-            n2Velocity = n2Velocity.Normalize() * totalNormalVelocity * 1.0f;
+            nVelocity = nVelocity.NormalizedCopy() * totalNormalVelocity * 1.0f;
+            n2Velocity = n2Velocity.NormalizedCopy() * totalNormalVelocity * 1.0f;
             /// Velocity along tangent to the collission normal
             Vector3f tVelocity = one->physics->velocity - nVelocity;
             Vector3f t2Velocity = two->physics->velocity - n2Velocity;
@@ -426,8 +426,8 @@ bool ResolveCollision(Collision &data)
             two->physics->angularVelocity *= 1 - friction;
 
             /// Move back both entities along their normals half the distance
-            Vector3f awayFromTwo = (one->position - two->position).Normalize();
-            Vector3f awayFromOne = (two->position - one->position).Normalize();
+            Vector3f awayFromTwo = (one->position - two->position).NormalizedCopy();
+            Vector3f awayFromOne = (two->position - one->position).NormalizedCopy();
             one->position += distanceIntoEachOther * awayFromTwo * 0.55f; // * +2% to avoid glitchies
             two->position += distanceIntoEachOther * awayFromOne * 0.55f;	// * +2% to avoid glitchies
 

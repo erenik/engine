@@ -44,20 +44,46 @@ void TIFSTurretProperty::Process(int timeInMs)
 		Vector3f toTarget = target->position - barrel->worldPosition;
 		float distance = toTarget.Length();
 		Vector3f toTargetNormalized = toTarget.NormalizedCopy();
+		
+		Angle requiredYaw(toTargetNormalized.x, toTargetNormalized.z);
+		requiredYaw -= Angle(PI/2);
+		// Get current pitch and yaw?
+		Vector3f lookAt = base->LookAt();
+		Vector3f defaultLookAt(0,0,-1);
+		Angle defaultAngle(defaultLookAt.x, defaultLookAt.z);
+		Angle yaw(lookAt.x, lookAt.z);
+		Angle currentYaw = yaw - defaultAngle;
 
-		float yawNeeded = -atan2(toTargetNormalized.x, toTargetNormalized.z);
-		float pitchNeeded = asin(toTargetNormalized.y);
-	
+		Angle yawDiff = requiredYaw - currentYaw;
+		float yawVel = yawDiff.Radians();
+		ClampFloat(yawVel, -yawPerSecond, yawPerSecond);
+
+		/// Set rotation speeds accordingly?
+		PhysicsMan.QueueMessage(new PMSetEntity(base, PT_ANGULAR_VELOCITY, Quaternion(Vector3f(0,1,0), yawVel)));
+
+		Angle pitchNeeded(asin(toTargetNormalized.y));
+		lookAt = underBarrel->LookAt();
+		lookAt.y *= -1;
+		float xz = Vector2f(lookAt.x, lookAt.z).Length();
+		Angle currentPitch(asin(lookAt.y));
+//		currentPitch = Angle(PI/2) - currentPitch;
+		Angle pitchDiff = pitchNeeded - currentPitch;
+		float pitchVel = pitchDiff.Radians();
+		ClampFloat(pitchVel, -pitchPerSecond, pitchPerSecond);
+//		std::cout<<"\nLookAt: "<<lookAt;
+		PhysicsMan.QueueMessage(new PMSetEntity(underBarrel, PT_ANGULAR_VELOCITY, Quaternion(Vector3f(1,0,0), pitchVel)));
+
+
 		// Just turn it. Straight away. (Sounds scary D:)
 		// Yaw the base.
+		/* // Working stuffs, but not smooth enough! o=o
 //		Physics.QueueMessage(new PMSetEntity(base, PT_SET_ROTATION, Vector3f(0, yawNeeded, 0)));
 		Physics.QueueMessage(new PMSetEntity(base, PT_SET_ROTATION, Quaternion(Vector3f(0, 1, 0), yawNeeded)));
 
 		// Pitch the under-barrel (or barrel, if under-barrel does not hexist?)
 //		Physics.QueueMessage(new PMSetEntity(underBarrel, PT_SET_ROTATION, Vector3f(pitchNeeded, 0, 0)));
-		Physics.QueueMessage(new PMSetEntity(underBarrel, PT_SET_ROTATION, Quaternion(Vector3f(1, 0, 0), pitchNeeded)));
-
-	
+		Physics.QueueMessage(new PMSetEntity(underBarrel, PT_SET_ROTATION, Quaternion(Vector3f(1, 0, 0), pitchNeeded)));	
+		*/
 	}
 	// Shoot at it.
 

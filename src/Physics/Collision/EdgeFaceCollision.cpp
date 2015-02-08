@@ -83,8 +83,9 @@ bool EdgeFaceCollision(Edge * edge, Face * face, Collision &data){
 		//	data.distanceIntoEachOther = t;
 			data.distanceIntoEachOther = EPSILON;
 			data.collissionPoint = start + direction.NormalizedCopy() * t;
-			if (data.results & PRELIMINARY_COLLISSION_NORMAL){
-				Vector3f tmpNormal = (edge->faceList[0]->normal + edge->faceList[1]->normal).Normalize();
+			if (data.results & PRELIMINARY_COLLISSION_NORMAL)
+			{
+				Vector3f tmpNormal = (edge->faceList[0]->normal + edge->faceList[1]->normal).NormalizedCopy();
 				float dot = data.preliminaryCollisionNormal.DotProduct(tmpNormal);
 				if (dot < 0.5f){
 					std::cout<<"\nWARNING: Collision normal and preliminary collission-normal do not coincide!";
@@ -97,7 +98,7 @@ bool EdgeFaceCollision(Edge * edge, Face * face, Collision &data){
 				if (edge->faceList.Size() < 2)
 					data.collisionNormal = Vector3f(0,1,0);
 				else 
-					data.collisionNormal = (edge->faceList[0]->normal + edge->faceList[1]->normal).Normalize();
+					data.collisionNormal = (edge->faceList[0]->normal + edge->faceList[1]->normal).NormalizedCopy();
 			}
 			return true;
 		}

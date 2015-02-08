@@ -87,6 +87,7 @@ PhysicsProperty::PhysicsProperty(const CompactPhysics * compactPhysics){
 /// Set default values.
 void PhysicsProperty::Nullify()
 {
+	faceVelocityDirection = false;
 	obb = 0;
     locks = 0;
     inertiaTensorCalculated = false;

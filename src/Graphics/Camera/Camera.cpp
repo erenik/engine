@@ -355,8 +355,11 @@ void Camera::Update()
 
 	/// Calculate matrices.
 	/// Add a switch case if new/other techniques are requested -> move code from the TrackBehind, etc. to there.
-	viewMatrix = CalculateDefaultEditorMatrices(distanceFromCenterOfMovement, rotation, positionWithOffsets);
+	Matrix4d v2, r2;
+	bool ok = CalculateDefaultEditorMatrices(distanceFromCenterOfMovement, rotation, positionWithOffsets, v2, r2);
 
+	viewMatrix = v2;
+	rotationMatrix = r2;
 
 	/// Some new temporary variables for updating the frustum
 	float sample = viewMatrix.GetColumn(0)[0];
@@ -416,11 +419,11 @@ void Camera::Track()
 			float relevantTrackingDistance = dist;
 			ClampFloat(relevantTrackingDistance, minTrackingDistance, maxTrackingDistance);
 			float currentDiff = dist - relevantTrackingDistance;
-			float newDiff = currentDiff * (1 - smoothness);
-			float newDist = newDiff + relevantTrackingDistance;
+			float newDist = relevantTrackingDistance;
 			// Reduce the diff.
-			position = entityPosition - toEntity.NormalizedCopy() * newDist;
-
+			Vector3f newPosition = entityPosition - toEntity.NormalizedCopy() * newDist;
+			/// Smooth it.
+			position = (1 - smoothness) * position + smoothness * newPosition;
 			/// Copy over so calculation works below...
 			positionWithOffsets = position + trackingPositionOffset;
 			break;
@@ -656,9 +659,9 @@ Ray Camera::GetRayFromScreenCoordinates(Window * window, int mouseX, int mouseY)
 	a distance from center of movement (as in 3D-modelling programs), 
 	a rotation aroud the same point, and translate the point based on position and relative position summed up.
 */
-Matrix4d Camera::CalculateDefaultEditorMatrices(float distanceFromCenterOfMovement, Vector2f rotationXY, ConstVec3fr worldSpacePosition)
+bool Camera::CalculateDefaultEditorMatrices(float distanceFromCenterOfMovement, Vector2f rotationXY, ConstVec3fr worldSpacePosition, 
+												Matrix4d & viewMatrix, Matrix4d & rotationMatrix)
 {
-	Matrix4d viewMatrix, rotationMatrix;
 	// Move camera before before main scenegraph rendering begins
 	// First translate the camera relative to the viewing rotation-"origo"
 	viewMatrix.Translate(0, 0, -distanceFromCentreOfMovement);
@@ -673,7 +676,7 @@ Matrix4d Camera::CalculateDefaultEditorMatrices(float distanceFromCenterOfMoveme
 	// Then translate the camera to it's position. (i.e. translate the world until camera is at a good position).
 	Matrix4d translationMatrix = Matrix4d().Translate(-worldSpacePosition);
 	viewMatrix.Multiply(translationMatrix);
-	return viewMatrix;
+	return true;
 }
 
 

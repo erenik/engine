@@ -144,7 +144,7 @@ void TIFS::Process(int timeInMs)
 /// Function when leaving this state, providing a pointer to the next StateMan.
 void TIFS::OnExit(AppState * nextState)
 {
-
+	GraphicsMan.QueueMessage(new GMUnregisterParticleSystem(toolParticles, true));
 }
 
 /// Callback function that will be triggered via the MessageManager when messages are processed.
@@ -264,6 +264,8 @@ void TIFS::ResetCamera()
 	firstPersonCamera->trackingPositionOffset = Vector3f(0,3.5f,0);
 	thirdPersonCamera->trackingPositionOffset = Vector3f(0,3.5f,0);
 
+	thirdPersonCamera->minTrackingDistance = 3.5f;
+	thirdPersonCamera->maxTrackingDistance = 7.5f;
 }
 
 
@@ -275,8 +277,8 @@ void TIFS::SpawnDrones()
 	MapMan.DeleteEntities(drones);
 	drones.Clear();
 
-	int numDronesToSpawn = 5;
-	for (int i = 0; i < 5; ++i)
+	int numDronesToSpawn = 1;
+	for (int i = 0; i < numDronesToSpawn; ++i)
 	{
 		Vector3f pos;
 		pos.x = droneRandom.Randf(50.f) - 25.f;
@@ -308,13 +310,13 @@ void TIFS::CreateTurrets()
 	turrets.Clear();
 
 	Random turretRandom;
-	int turretsToCreate = 5;
+	int turretsToCreate = 1;
 	for (int i = 0; i < turretsToCreate; ++i)
 	{
 		Vector3f position;
 		position.x = turretRandom.Randf(50.f) - 25.f;
 		position.z = turretRandom.Randf(50.f) - 25.f;
-		CreateTurret(0, position);
+		CreateTurret(LARGE, position);
 	}
 }
 
@@ -325,9 +327,12 @@ void TIFS::CreateTurret(int ofSize, ConstVec3fr atLocation)
 	Texture * diffuseMap = TexMan.GetTexture("img/Turrets/BigTurretDiffuse.png");
 // TexMan.GetTexture("Green")
 
+	List<Entity*> turretParts;
+
 	Entity * turretBase = MapMan.CreateEntity("TurretBase", ModelMan.GetModel("Turrets/LargeBase"), diffuseMap);
+	turretBase->updateChildrenOnTransform = true;
 	Physics.QueueMessage(new PMSetEntity(turretBase, PT_POSITION, atLocation));
-	turrets.Add(turretBase);
+	turretParts.Add(turretBase);
 
 
 	/// Add a child-mesh-part to the first turret-part!
@@ -336,19 +341,20 @@ void TIFS::CreateTurret(int ofSize, ConstVec3fr atLocation)
 	
 	/// Make the swivel's transformation depend on the base'.
 	Graphics.QueueMessage(new GMSetEntity(swivelEntity, GT_PARENT, turretBase)); 
-	turrets.Add(swivelEntity);
+	turretParts.Add(swivelEntity);
 
 	// Move it up a bit.
 	Model * underBarrel = ModelMan.GetModel("Turrets/LargeUnderBarrel");
 	Entity * underBarrelEntity = MapMan.CreateEntity("TurretUnderBarrel", underBarrel, diffuseMap, Vector3f(0, 1.8f, -0.5f));
 	Graphics.QueueMessage(new GMSetEntity(underBarrelEntity, GT_PARENT, swivelEntity));
-	turrets.Add(underBarrelEntity);
+	turretParts.Add(underBarrelEntity);
 
 	// Add barrel.
 	Model * barrel = ModelMan.GetModel("Turrets/LargeBarrel");
 	Entity * barrelEntity = MapMan.CreateEntity("TurretBarrel", barrel, diffuseMap);
 	Graphics.QueueMessage(new GMSetEntity(barrelEntity, GT_PARENT, underBarrelEntity));
-	turrets.Add(barrelEntity);
+	turretParts.Add(barrelEntity);
+
 
 	// Create the ... Turret Property.
 
@@ -357,6 +363,12 @@ void TIFS::CreateTurret(int ofSize, ConstVec3fr atLocation)
 	swivelEntity->properties.Add(prop);
 	underBarrelEntity->properties.Add(prop);
 	barrelEntity->properties.Add(prop);
+
+	prop->turretSize = ofSize;
+	prop->yawPerSecond = prop->pitchPerSecond = pow(2.25f, (SIZES - ofSize)) * 0.2f;
+
+	/// Add turret parts.
+	turrets.Add(turretParts);
 }
 
 // Spawn player
@@ -372,18 +384,17 @@ void TIFS::SpawnPlayer()
 	Graphics.QueueMessage(new GMSetCamera(thirdPersonCamera, CT_ENTITY_TO_TRACK, player));
 	Graphics.QueueMessage(new GMSetCamera(firstPersonCamera, CT_ENTITY_TO_TRACK, player));
 	
-	// Make first person camera active
-	Graphics.QueueMessage(new GMSetCamera(firstPersonCamera));
 
 	// Attach ze propororoty to bind the entity and the player.
 	playerProp = new TIFSPlayerProperty(player);
 	player->properties.Add(playerProp);
+	playerProp->movementSpeed = 5.f;
 	
 	// Enable steering!
 	playerProp->inputFocus = true;
 
 	Physics.QueueMessage(new PMSetEntity(player, PT_PHYSICS_TYPE, PhysicsType::DYNAMIC));
-
+	PhysicsMan.QueueMessage(new PMSetEntity(player, PT_FACE_VELOCITY_DIRECTION, true));
 }
 
 
@@ -391,6 +402,9 @@ void TIFS::SpawnPlayer()
 // Creates a new game with standard stuff.
 void TIFS::NewGame()
 {
+	// Delete previous entities?
+	MapMan.DeleteAllEntities();
+
 	// Hide the menu
 	HideMainMenu();
 	HideTitle();
@@ -404,6 +418,9 @@ void TIFS::NewGame()
 
 	// Spawn player
 	SpawnPlayer();
+
+	/// Set 3rd person camera as default.
+	GraphicsMan.QueueMessage(new GMSetCamera(thirdPersonCamera));
 }
 
 

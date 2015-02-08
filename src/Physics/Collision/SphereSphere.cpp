@@ -24,7 +24,7 @@ bool SphereSphereCollision(Entity * one, Entity * two, Collision &data){
 	/// No collission if they're not into each other.
 	if (distance < 0)
 		return false;
-	data.collisionNormal = distanceVector.Normalize();
+	data.collisionNormal = distanceVector.NormalizedCopy();
 	data.distanceIntoEachOther = distance;
 	data.results |= DISTANCE_INTO;
 	return true;

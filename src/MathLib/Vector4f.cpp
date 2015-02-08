@@ -278,10 +278,6 @@ Vector4f  Vector4f::operator - (const Vector4f & subtractor) const {
 	Vector4f  newVec;
 #ifdef USE_SSE
 	newVec.data = _mm_sub_ps(data, subtractor.data);
-	newVec[0] = data.m128_f32[0];
-	newVec[1] = data.m128_f32[1];
-	newVec[2] = data.m128_f32[2];
-	newVec[3] = data.m128_f32[3];
 #else
 	newVec[0] = x - subtractor[0];
 	newVec[1] = y - subtractor[1];
@@ -292,11 +288,17 @@ Vector4f  Vector4f::operator - (const Vector4f & subtractor) const {
 }
 
 /// Multiplication with float
-Vector4f operator * (float multiplier, const Vector4f& vector){
+Vector4f operator * (float multiplier, const Vector4f& vector)
+{
 	Vector4f  newVec;
+#ifdef USE_SSE
+	__m128 mul = _mm_load1_ps(&multiplier);
+	newVec.data = _mm_mul_ps(vector.data, mul);
+#else
 	newVec[0] = vector[0] * multiplier;
 	newVec[1] = vector[1] * multiplier;
 	newVec[2] = vector[2] * multiplier;
+#endif
 	return newVec;
 }
 
@@ -305,10 +307,6 @@ void Vector4f::operator += (const Vector4f & addend)
 {
 #ifdef USE_SSE
 	data = _mm_add_ps(data, addend.data);
-	x = data.m128_f32[0];
-	y = data.m128_f32[1];
-	z = data.m128_f32[2];
-	w = data.m128_f32[3];
 #else
 	x += addend[0];
 	y += addend[1];
@@ -321,10 +319,6 @@ void Vector4f::operator += (const Vector4f & addend)
 void Vector4f::operator -= (const Vector4f & subtractor){
 #ifdef USE_SSE
 	data = _mm_sub_ps(data, subtractor.data);
-	x = data.m128_f32[0];
-	y = data.m128_f32[1];
-	z = data.m128_f32[2];
-	w = data.m128_f32[3];
 #else
 	x -= subtractor[0];
 	y -= subtractor[1];
@@ -338,10 +332,6 @@ void Vector4f::operator *= (const float floatur){
 #ifdef USE_SSE
 	__m128 mul = _mm_load1_ps(&floatur);
 	data = _mm_mul_ps(data, mul);
-	x = data.m128_f32[0];
-	y = data.m128_f32[1];
-	z = data.m128_f32[2];
-	w = data.m128_f32[3];
 #else
 	x *= floatur;
 	y *= floatur;
@@ -355,10 +345,6 @@ void Vector4f::operator /= (const float floatur){
 #ifdef USE_SSE
 	__m128 mul = _mm_load1_ps(&floatur);
 	data = _mm_div_ps(data, mul);
-	x = data.m128_f32[0];
-	y = data.m128_f32[1];
-	z = data.m128_f32[2];
-	w = data.m128_f32[3];
 #else
 	x *= floatur;
 	y *= floatur;
@@ -369,12 +355,28 @@ void Vector4f::operator /= (const float floatur){
 
 
 /// Internal element multiplication
-Vector3f Vector4f::operator * (const float &f) const {
+Vector3f Vector4f::operator * (const float &f) const 
+{
+#ifdef USE_SSE
+	__m128 mul = _mm_load1_ps(&f);
+	Vector3f vec;
+	vec.data = _mm_mul_ps(data, mul);
+	return vec;
+#else
 	return Vector3f(x * f, y * f, z * f);
+#endif
 }
 /// Internal element division.
-Vector3f Vector4f::operator / (const float &f) const {
+Vector3f Vector4f::operator / (const float &f) const 
+{
+#ifdef USE_SSE
+	__m128 mul = _mm_load1_ps(&f);
+	Vector3f vec;
+	vec.data = _mm_div_ps(data, mul);
+	return vec;
+#else
 	return Vector3f(x / f, y / f, z / f);
+#endif
 }
 
 /// Conversion equal-conversion operator
@@ -401,10 +403,6 @@ Vector4f& Vector4f::operator = (const Vector4f &other)
 {
 #ifdef USE_SSE
 	data = other.data;
-	x = other[0];
-	y = other[1];
-	z = other[2];
-	w = other[3];
 #else
 	x = other[0];
 	y = other[1];
@@ -485,8 +483,16 @@ Vector4f Vector4f::ElementMultiplication(const Vector4f & otherVector) const {
 	return Vector4f(x * otherVector[0], y * otherVector[1], z * otherVector[2], w * otherVector[3]);
 }
 
- float Vector4f::Length3() const{
+float Vector4f::Length3() const
+{
+#ifdef USE_SSE
+	float sum;
+	__m128 sse = _mm_mul_ps(data,data);
+	sum = sqrt(sse.m128_f32[0] + sse.m128_f32[1] + sse.m128_f32[2]);
+	return sum;
+#else
 	return sqrt(pow((float)x, 2) + pow((float)y, 2)+ pow((float)z, 2));
+#endif
 }
 
 /** Calculates the length of the vector, considering only {x y z}. */
@@ -496,18 +502,31 @@ Vector4f Vector4f::ElementMultiplication(const Vector4f & otherVector) const {
  }
 
 
-void Vector4f::Normalize3(){
+void Vector4f::Normalize3()
+{
 	float vecLength = Length3();
+#ifdef USE_SSE
+	__m128 sse = _mm_load1_ps(&vecLength);
+	data = _mm_div_ps(data, sse);
+#else
 	x = x / vecLength;
 	y = y / vecLength;
 	z = z / vecLength;
+#endif
 }
 
 /// Returns a normalized (x,y,z) copy of the given vector.
-Vector4f Vector4f::NormalizedCopy() const{
-    float invVecLength = 1.0f / Length3();
-    Vector4f newVec(x * invVecLength, y * invVecLength, z * invVecLength, 1);
-    return newVec;
+Vector4f Vector4f::NormalizedCopy() const
+{
+    float vecLength = Length3();
+#ifdef USE_SSE
+	Vector4f vec;
+	__m128 sse = _mm_load1_ps(&vecLength);
+	vec.data = _mm_div_ps(data, sse);
+	return vec;
+#else
+    return (*this / vecLength);
+#endif
 }
 
 

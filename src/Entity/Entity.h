@@ -138,8 +138,8 @@ public:
 	/** Translates the Entity */
 	void Translate(const Vector3f & translation);
 
-	/// Recalculates the transformation matrix. All parts by default.
-	void RecalculateMatrix(bool allParts = true);
+	/// Recalculates the transformation matrix. All parts by default. If recursively, will update children (or parents?) recursively upon update.
+	void RecalculateMatrix(bool allParts = true, bool recursively = false);
 	/// Recalculates a transformation matrix using argument vectors for position, rotation and translation.
 	static Matrix4f RecalculateMatrix(const Vector3f & position, const Vector3f & rotation, const Vector3f & scale);
 
@@ -149,6 +149,11 @@ public:
 	/// Returns the center of this entity, determined by position, rotation, and current model.
 	Vector3f CenterOfGravityWorldSpace();
 
+	/// Checks with Rotation matrix.
+	Vector3f LookAt();
+
+	/// If true, updates all children once this entity is transformed. Default false.
+	bool updateChildrenOnTransform;
 	/// Recalculated in RecalculateMatrix. Used to get child positions correctly.
 	Vector4f worldPosition;
 

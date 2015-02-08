@@ -163,6 +163,7 @@ PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, bool value)
 		case PT_SIMULATION_ENABLED:
 		case PT_ESTIMATION_ENABLED:
 		case PT_PAUSED:
+		case PT_FACE_VELOCITY_DIRECTION:
 			break;
 		default:
 			assert(false && "Mismatched target and value in PMSetEntity!");
@@ -238,6 +239,11 @@ void PMSetEntity::Process()
 		PathfindingProperty * pathProp = entity->pathfindingProperty;
 		switch(target)
 		{
+			case PT_FACE_VELOCITY_DIRECTION:
+			{
+				pp->faceVelocityDirection = bValue;
+				break;
+			}
 			case PT_USE_QUATERNIONS:
 				pp->useQuaternions = bValue;
 				break;
