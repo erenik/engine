@@ -196,9 +196,14 @@ void Vector3f::ReadFrom(std::fstream & file){
 }
 
 /// Reads from String. Expects space-separated values. E.g. 3 8.14 -15
-void Vector3f::ReadFrom(const String & string)
+void Vector3f::ReadFrom(const String & string, const char * tokenizer)
 {
-	List<String> tokens = string.Tokenize(" ");
+	List<String> tokens = string.Tokenize(tokenizer);
+	if (tokens.Size() < 3)
+	{
+		std::cout<<"\nVector3f::ReadFrom: Unable to read values. Was it tokenized properly?";
+		return;
+	}
 	(*this)[0] = tokens[0].ParseFloat();
 	(*this)[1] = tokens[1].ParseFloat();
 	(*this)[2] = tokens[2].ParseFloat();

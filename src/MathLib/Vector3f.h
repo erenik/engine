@@ -88,10 +88,10 @@ public:
 	/// Writes to file stream.
 	void WriteTo(std::fstream & file);
 	
-	/// Reads from file stream.
+	/// Reads from file stream. 
 	void ReadFrom(std::fstream & file);
-	/// Reads from String. Expects space-separated values. E.g. 3 8.14 -15
-	void ReadFrom(const String & string);
+	/// Reads from String. Expects space- or comma-separated values. E.g. 3 8.14 -15. To use another separator, specify the tokenizer. 
+	void ReadFrom(const String & string, const char * tokenizer = " ,");
 	/// Parses from string. Expects in the form of first declaring order "XY", "X Y" or "YX", then parses the space-separated values.
 	void ParseFrom(const String & string);
 

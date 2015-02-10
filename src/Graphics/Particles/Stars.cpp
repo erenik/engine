@@ -72,6 +72,11 @@ void Stars::InitStars()
 		/// Integrates all particles.
 void Stars::ProcessParticles(float & timeInSeconds)
 {
+#ifdef SSE_PARTICLES
+//		positionsSSE[i] = _mm_add_ps(positions[i].data, _mm_mul_ps(sseTime, _mm_add_ps(velocities[i].data, weather->globalWind.data)));
+	
+#else // Not SSE_PARTICLES
+
 	/// Move/Process all alive particles
 	for (int i = 0; i < aliveParticles; ++i)
 	{
@@ -95,11 +100,16 @@ void Stars::ProcessParticles(float & timeInSeconds)
 			--aliveParticles;
 		}
 	}
+#endif
 }
 
 /// Update buffers to use when rendering.
 void Stars::UpdateBuffers()
 {
+#ifdef SSE_PARTICLES
+//		positionsSSE[i] = _mm_add_ps(positions[i].data, _mm_mul_ps(sseTime, _mm_add_ps(velocities[i].data, weather->globalWind.data)));
+	
+#else // Not SSE_PARTICLES
 	ParticleSystem::UpdateBuffers();
 	return;
 	for (int i = 0; i < aliveParticles; ++i)
@@ -117,6 +127,7 @@ void Stars::UpdateBuffers()
 		particleColorData[index+2] = color[2] * 255;
 		particleColorData[index+3] = 255.f;
 	}
+#endif
 }
 
 

@@ -10,6 +10,7 @@
 
 class PrecipitationSystem;
 class ParticleEmitter;
+class Message;
 
 class Entity;
 
@@ -23,6 +24,8 @@ public:
 	void Initialize();
 	/// Deallocates resources.
 	void Shutdown();
+
+	void ProcessMessage(Message * message);
 
 	/// Starts the rain.
 	void Rain(float amount);

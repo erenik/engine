@@ -14,10 +14,16 @@
 #include "Shader.h"
 #include "ShaderManager.h"
 
+#include "Graphics/FrameStatistics.h"
+
 ParticleSystem::ParticleSystem(String type, bool emitWithEmittersOnly)
 	: type(type), name("Undefined"), emitWithEmittersOnly(emitWithEmittersOnly)
 {
 	scale = Vector2f(1,1);
+#ifdef SSE_PARTICLES
+	positionsSSE = velocitiesSSE = colorsSSE = ldsSSE = NULL;
+#else // Not SSE_PARTICLES
+
 	// Data arrays.
     lifeDurations = NULL;
 	lifeTimes = NULL;
@@ -25,11 +31,12 @@ ParticleSystem::ParticleSystem(String type, bool emitWithEmittersOnly)
 	velocities = NULL;
 	colors = NULL;
 	scales = NULL;
-    
+
 	// Rendering arrays.
 	particlePositionSizeData = NULL;
 	particleLifeTimeDurationScaleData = NULL;
 	particleColorData = NULL;
+#endif
 
 	maxParticles = 100000;
 
@@ -73,6 +80,13 @@ ParticleSystem::~ParticleSystem()
     std::cout<<"\nParticleSystem Destructor.....";
 #define DELETE_ARRAY(a) {if (a) { delete[] a; a = NULL; } }
 
+#ifdef SSE_PARTICLES
+//		positionsSSE[i] = _mm_add_ps(positions[i].data, _mm_mul_ps(sseTime, _mm_add_ps(velocities[i].data, weather->globalWind.data)));
+	DELETE_ARRAY(positionsSSE);
+	DELETE_ARRAY(velocitiesSSE);
+	DELETE_ARRAY(colorsSSE);
+	DELETE_ARRAY(ldsSSE);
+#else // Not SSE_PARTICLES
 	DELETE_ARRAY(lifeDurations);
 	DELETE_ARRAY(lifeTimes);
 	DELETE_ARRAY(positions);
@@ -84,6 +98,7 @@ ParticleSystem::~ParticleSystem()
 	DELETE_ARRAY(particlePositionSizeData);
 	DELETE_ARRAY(particleLifeTimeDurationScaleData);
 	DELETE_ARRAY(particleColorData);
+#endif
 
 	if (deleteEmittersOnDeletion)
 		emitters.ClearAndDelete();
@@ -94,12 +109,19 @@ void ParticleSystem::Initialize()
 {
 	// Allocate the particle data arrays.
 	AllocateArrays();
+	initialized = true;
 }
 
 
 /// Allocates them arrays!
 void ParticleSystem::AllocateArrays()
 {
+#ifdef SSE_PARTICLES
+	positionsSSE = new SSEVec[maxParticles];
+	velocitiesSSE = new SSEVec[maxParticles];
+	colorsSSE = new SSEVec[maxParticles];
+	ldsSSE = new SSEVec[maxParticles]; // Lifetime, duration, scale.
+#else // Not SSE_PARTICLES
 	if (!lifeDurations)
 	{
 		lifeDurations = new float[maxParticles];
@@ -116,6 +138,7 @@ void ParticleSystem::AllocateArrays()
 		particleColorData = new GLubyte[maxParticles * 4];
 		particleLifeTimeDurationScaleData = new GLfloat[maxParticles * 4];
 	}
+#endif
 }
 
 
@@ -123,16 +146,36 @@ void ParticleSystem::Process(float timeInSeconds)
 {
 	if (!initialized)
 		Initialize();
+	Timer timer;
+	timer.Start();
 	ProcessParticles(timeInSeconds);
+	timer.Stop();
+	//	float particleProcessing, particleSpawning, particleBufferUpdate;
+	FrameStats.particleProcessing = timer.GetMs();
 	int timeInMs = timeInSeconds * 1000;
+	timer.Start();
 	SpawnNewParticles(timeInMs);
+	timer.Stop();
+	FrameStats.particleSpawning = timer.GetMs();
 	// Update buffers to use when rendering.
+	timer.Start();
 	UpdateBuffers();
+	timer.Stop();
+	FrameStats.particleBufferUpdate = timer.GetMs();
 }
 
 /// Integrates all particles.
 void ParticleSystem::ProcessParticles(float & timeInSeconds)
 {
+#ifdef SSE_PARTICLES
+	/*
+	/// Move/Process all alive particles
+	for (int i = 0; i < aliveParticles; ++i)
+	{
+		positionsSSE[i] = _mm_add_ps(positionsSSE[i], _mm_mul_ps(sseTime, _mm_add_ps(velocitiesSSE[i], weather->globalWind.data)));
+	}
+	*/
+#else // Not SSE_PARTICLES
 	float velocityDecay = pow(0.55f, timeInSeconds);
 	/// Move/Process all alive particles
 	for (int i = 0; i < aliveParticles; ++i)
@@ -158,11 +201,17 @@ void ParticleSystem::ProcessParticles(float & timeInSeconds)
 			--aliveParticles;
 		}
 	}
+#endif
 }
 
 /// Spawns new particles depending on which emitters are attached.
 void ParticleSystem::SpawnNewParticles(int & timeInMs)
 {
+#ifdef SSE_PARTICLES
+//		positionsSSE[i] = _mm_add_ps(positions[i].data, _mm_mul_ps(sseTime, _mm_add_ps(velocities[i].data, weather->globalWind.data)));
+	
+#else // Not SSE_PARTICLES
+
 	float timeInSeconds = (timeInMs % 200) * 0.001f;
 	/// Spawn new particles as wanted.
 	for (int i = 0; i < emitters.Size(); ++i)
@@ -217,11 +266,22 @@ void ParticleSystem::SpawnNewParticles(int & timeInMs)
 		{
 		}
 	}
+#endif
 }	
 
 /// Update buffers to use when rendering.
 void ParticleSystem::UpdateBuffers()
 {
+#ifdef SSE_PARTICLES
+//		positionsSSE[i] = _mm_add_ps(positions[i].data, _mm_mul_ps(sseTime, _mm_add_ps(velocities[i].data, weather->globalWind.data)));
+	// Should be no update required.
+#else // Not SSE_PARTICLES
+
+#ifdef USE_SSE
+	Vector4f colorMult;
+	float m = 255.f;
+	__m128 mul = _mm_load1_ps(&m);
+#endif
 	for (int i = 0; i < aliveParticles; ++i)
 	{
 		Vector3f & pos = positions[i];
@@ -231,10 +291,19 @@ void ParticleSystem::UpdateBuffers()
 		particlePositionSizeData[index+2] = pos[2];
 
 		Vector4f & color = colors[i];
+		// Multiply color?
+#ifdef USE_SSE
+		colorMult.data = _mm_mul_ps(color.data, mul);
+		particleColorData[index] = colorMult.x;
+		particleColorData[index+1] = colorMult.y;
+		particleColorData[index+2] = colorMult.z;
+		particleColorData[index+3] = colorMult.w;		
+#else
 		particleColorData[index] = color[0] * 255;
 		particleColorData[index+1] = color[1] * 255;
 		particleColorData[index+2] = color[2] * 255;
 		particleColorData[index+3] = color[3] * 255;
+#endif
 
 //		int index2 = i * 2;
 		particleLifeTimeDurationScaleData[index] = lifeTimes[i];
@@ -242,6 +311,7 @@ void ParticleSystem::UpdateBuffers()
 		particleLifeTimeDurationScaleData[index+2] = scales[i].x;
 		particleLifeTimeDurationScaleData[index+3] = scales[i].y;
 	}
+#endif
 }
 
 
@@ -425,7 +495,11 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 		particleColorBuffer = GLBuffers::New();
 		// Initialize with empty (NULL) buffer : it will be updated later, each frame.
 		glBindBuffer(GL_ARRAY_BUFFER, particleColorBuffer);
+#ifdef SSE_PARTICLES
+		glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
+#else
 		glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLubyte), NULL, GL_STREAM_DRAW);
+#endif
 	}		
 
 	// Update the buffers that OpenGL uses for rendering.
@@ -433,6 +507,18 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 	// but this is outside the scope of this tutorial.
 	// http://www.opengl.org/wiki/Buffer_Object_Streaming
 
+#ifdef SSE_PARTICLES
+	// Buffer the actual data.
+	glBindBuffer(GL_ARRAY_BUFFER, particlePositionScaleBuffer);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, aliveParticles * sizeof(GLfloat) * 4, positionsSSE);
+ 
+	glBindBuffer(GL_ARRAY_BUFFER, particleColorBuffer);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, aliveParticles * sizeof(GLfloat) * 4, colorsSSE);
+
+	glBindBuffer(GL_ARRAY_BUFFER, particleLifeTimeDurationScaleBuffer);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, aliveParticles * sizeof(GLfloat) * 4, ldsSSE);
+
+#else // Not SSE_PARTICLES
 	// Buffer the actual data.
 	glBindBuffer(GL_ARRAY_BUFFER, particlePositionScaleBuffer);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, aliveParticles * sizeof(GLfloat) * 4, particlePositionSizeData);
@@ -442,6 +528,7 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 
 	glBindBuffer(GL_ARRAY_BUFFER, particleLifeTimeDurationScaleBuffer);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, aliveParticles * sizeof(GLfloat) * 4, particleLifeTimeDurationScaleData);
+#endif
 
 	// Bind attribute index 0 to vertex positions, attribute index 1 to incoming UV coordinates and index 2 to Normals. 
 //	glBindAttribLocation(shader->shaderProgram, 0, "in_VertexPosition");
@@ -477,7 +564,11 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 	glVertexAttribPointer(
 		shader->attributeColor, // attribute. Must match the layout in the shader.
 		4, // size : r + g + b + a => 4
+#ifdef SSE_PARTICLES
+		GL_FLOAT, // already in float, from 0 to 1.
+#else
 		GL_UNSIGNED_BYTE, // type
+#endif
 		GL_TRUE, // normalized? *** YES, this means that the unsigned char[4] will be accessible with a vec4 (floats) in the shader ***
 		0, // stride
 		(void*)0 // array buffer offset
@@ -543,6 +634,10 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 
 void ParticleSystem::RenderOld(GraphicsState & graphicsState)
 {
+#ifdef SSE_PARTICLES
+//		positionsSSE[i] = _mm_add_ps(positions[i].data, _mm_mul_ps(sseTime, _mm_add_ps(velocities[i].data, weather->globalWind.data)));
+	
+#else // Not SSE_PARTICLES
 	/// Based on the optimization level, will probably be pow(0.5, optimizationLevel);
     optimizationLevel = pow(0.5f, graphicsState.optimizationLevel);
     if (optimizationLevel == 0)
@@ -625,6 +720,7 @@ void ParticleSystem::RenderOld(GraphicsState & graphicsState)
 		}
 		glEnd();
 	}
+#endif
 }
 
 

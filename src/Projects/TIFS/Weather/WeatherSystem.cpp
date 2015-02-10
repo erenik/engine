@@ -7,6 +7,7 @@
 #include "PrecipitationSystem.h"
 #include "Graphics/GraphicsManager.h"
 #include "Graphics/Messages/GMParticles.h"
+#include "Message/Message.h"
 
 WeatherSystem::WeatherSystem()
 {
@@ -28,6 +29,42 @@ void WeatherSystem::Initialize()
 void WeatherSystem::Shutdown()
 {
 	GraphicsMan.QueueMessage(new GMUnregisterParticleSystem(precipitationSystem, true));
+}
+
+void WeatherSystem::ProcessMessage(Message * message)
+{
+	String msg = message->msg;
+	switch(message->type)
+	{
+		case MessageType::STRING:
+		{
+			if (msg.StartsWith("Wind("))
+			{
+				String vecStr = msg.Tokenize("()")[1];
+				globalWind.ReadFrom(vecStr);
+			}
+			else if (msg.StartsWith("PrecipitationSpawnArea"))
+			{
+				String str = msg.Tokenize("()")[1];
+				precipitationSystem->globalEmitter.SetScale(str.ParseFloat());
+			}
+			else if (msg.StartsWith("PrecipitationAltitude"))
+			{
+				String str = msg.Tokenize("()")[1];
+				precipitationSystem->altitude = str.ParseFloat();
+			}
+			else if (msg.Contains("Rain"))
+			{
+				float amount = msg.Tokenize(" ")[1].ParseFloat();
+				Rain(amount);
+			}
+			else if (msg.Contains("Snow"))
+			{
+				float amount = msg.Tokenize(" ")[1].ParseFloat();
+				Snow(amount);
+			}
+		}
+	}
 }
 
 /// Starts the rain.

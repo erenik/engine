@@ -131,7 +131,21 @@ protected:
     /// Based on maxParticles and the current optimization level.
     int particlesToProcess;
 
-    /// Raw data
+#define SSE_PARTICLES
+#ifdef SSE_PARTICLES
+	typedef union {
+		__m128 data;
+		struct{
+			float x,y,z,w;
+		};
+	} SSEVec;
+	SSEVec * positionsSSE,
+		* velocitiesSSE,
+		* colorsSSE,
+		* ldsSSE // Lifetime, duration, scale.
+		;
+#else
+	/// Raw data
     float * lifeDurations, * lifeTimes;
     Vector3f * positions;
     Vector3f * velocities;
@@ -142,6 +156,7 @@ protected:
 	GLfloat * particlePositionSizeData;
 	GLubyte * particleColorData;
 	GLfloat * particleLifeTimeDurationScaleData;  // Total life time of this particle + duration lived so far. Used to manipulate other data depending on shader options.
+#endif
 
 	/// Settings in shader.
 	int decayAlphaWithLifeTime;

@@ -43,6 +43,10 @@ void Sparks::InitSparks()
 /// Update buffers to use when rendering.
 void Sparks::UpdateBuffers()
 {
+#ifdef SSE_PARTICLES
+//		positionsSSE[i] = _mm_add_ps(positions[i].data, _mm_mul_ps(sseTime, _mm_add_ps(velocities[i].data, weather->globalWind.data)));
+	
+#else // Not SSE_PARTICLES
 	ParticleSystem::UpdateBuffers();
 	return;
 	for (int i = 0; i < aliveParticles; ++i)
@@ -61,7 +65,7 @@ void Sparks::UpdateBuffers()
 		i = i;
 
 	}
-
+#endif
 }
 
 

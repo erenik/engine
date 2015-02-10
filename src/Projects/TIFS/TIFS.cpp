@@ -173,6 +173,8 @@ void TIFS::ProcessPacket(Packet * packet)
 void TIFS::ProcessMessage(Message * message)
 {	
 	String msg = message->msg;
+	// o.o
+	weather->ProcessMessage(message);
 	switch(message->type)
 	{
 		case MessageType::STRING:
@@ -202,16 +204,6 @@ void TIFS::ProcessMessage(Message * message)
 			else if (msg == "NewGame")
 			{
 				NewGame();
-			}
-			else if (msg.Contains("Rain"))
-			{
-				float amount = msg.Tokenize(" ")[1].ParseFloat();
-				weather->Rain(amount);
-			}
-			else if (msg.Contains("Snow"))
-			{
-				float amount = msg.Tokenize(" ")[1].ParseFloat();
-				weather->Snow(amount);
 			}
 			else if (msg == "ToggleMainMenu")
 			{

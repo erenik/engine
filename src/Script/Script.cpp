@@ -205,8 +205,8 @@ void Script::Process(int timeInMs)
 		return;
 	if (currentLine < 0 || currentLine >= lines.Size())
 	{
-		std::cout<<"\nScript::Process line out of scope. Aborting";
-		scriptState = ENDING;
+		std::cout<<"\nScript::Process: Line "<<currentLine<<" out of scope. Aborting";
+		scriptState = ENDED;
 		return;
 	}
 	String line = lines[currentLine];
@@ -251,9 +251,11 @@ void Script::OnEnd()
 	if (uiDisabled)
 		Input.EnableActiveUI();
 
-	if (repeatable){
-		scriptState = NOT_BEGUN;
+	if (repeatable)
+	{
+		scriptState = NOT_BEGUN;		
 		currentLine = -1;
+		OnBegin();
 		return;
 	}
 	/// Flag the event as finished!

@@ -33,7 +33,7 @@ public:
 	/// Amount for the global precipitation. Default 0. 1 is 1 rain-drop or snowflake per square-meter (assuming quadratic emitter area).
 	float rainAmount;
 	/// Defines the area of the global precipitation's spawning location possilbities.
-	Emitter global;
+	Emitter globalEmitter;
 private:
 	/// If no cloud-system, spawns globally, based on the given boundaries (.
 	void SpawnNewGlobal(int timeInMs);

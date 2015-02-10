@@ -48,6 +48,10 @@ void FrameStatistics::ResetGraphics(){
 	updateLighting = graphicsRepositionEntities = graphicsProcess = 0;
 	swapBuffers = 0;
 
+	particleProcessing = 0;
+	particleSpawning = 0;
+	particleBufferUpdate = 0;
+	particleProcessingIntegrate = particleProcessingOldify = particleProcessingRedead = 0;
 }
 
 void FrameStatistics::ResetPhysics()
@@ -110,6 +114,12 @@ void FrameStatistics::Print(){
 		<<"\n	- updateLighting: "<<updateLighting
 		<<"\n	- repositionEntities: "<<graphicsRepositionEntities
 		<<"\n	- process: "<<graphicsProcess
+		<<"\n		- particleProcessing: "<<particleProcessing
+		<<"\n			- integrate: "<<particleProcessingIntegrate
+		<<"\n			- oldify: "<<particleProcessingOldify
+		<<"\n			- redead: "<<particleProcessingRedead
+		<<"\n		- particleSpawning: "<<particleSpawning
+		<<"\n		- particleBufferUpdate: "<<particleBufferUpdate
 		<<"\n	- render: "<<renderTotal
 		<<"\n		- prePipeline: "<<renderPrePipeline
 		<<"\n		- sortEntities: "<<renderSortEntities

@@ -50,6 +50,11 @@ ToolParticleSystem::~ToolParticleSystem()
 */
 void ToolParticleSystem::Process(float timeInSeconds)
 {
+#ifdef SSE_PARTICLES
+//		positionsSSE[i] = _mm_add_ps(positions[i].data, _mm_mul_ps(sseTime, _mm_add_ps(velocities[i].data, weather->globalWind.data)));
+	
+#else // Not SSE_PARTICLES
+
 	float velocityDecay = pow(0.55f, timeInSeconds);
 	/// Move/Process all alive particles
 	for (int i = 0; i < aliveParticles; ++i)
@@ -75,6 +80,7 @@ void ToolParticleSystem::Process(float timeInSeconds)
 			--aliveParticles;
 		}
 	}
+#endif
 }
 
 /// Renders the particles

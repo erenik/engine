@@ -29,6 +29,8 @@ public:
 
 	float graphicsMessages, renderTotal, totalGraphics;
 	float updateLighting, graphicsRepositionEntities, graphicsProcess;
+	float particleProcessing, particleSpawning, particleBufferUpdate,
+		particleProcessingIntegrate, particleProcessingOldify, particleProcessingRedead;
 	float renderSortEntities, renderEntities, renderPrePipeline, renderPostPipeline, swapBuffers;
 	float multimedia;
 	float physicsProcessing, physicsMessages, totalPhysics, 
