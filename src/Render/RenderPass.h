@@ -6,12 +6,14 @@
 #include "Shader.h"
 #include "String/AEString.h"
 
+class FrameBuffer;
 class GraphicsState;
 
 namespace RenderTarget 
 {
 	enum {
 		// Outputs. 
+		SHADOW_MAPS, // output of shadow maps when rendering from light's point of view.
 		DEFERRED_GATHER, // Renders to several textures.
 		FINAL_GATHER,	 // Render to final gather texture for the initial lighting pass.
 		// Inputs
@@ -43,6 +45,23 @@ public:
 	};
 	/// Basic type this pass is. See enum above.
 	int type;
+	enum 
+	{
+		DEFAULT, DEFAULT_CAMERA = DEFAULT,
+		LIGHT,
+	};
+	/// If true, is a shadow-mapping pass. Default false. 
+	bool shadowMapping;
+	/** Determines which lights to use when doing the shadow-mapping pass. Just 1? All?
+		Just 1 for now.
+	*/
+	enum {
+		PRIMARY_LIGHT,
+		ALL_LIGHTS,
+	};
+	int lights;
+	/// Can be light or default camera.
+	int camera;
 	// Input type. 
 	int input;
 	int output;
@@ -53,4 +72,10 @@ public:
 	/// Default true.
 	bool depthTestEnabled;
 
+private:
+	/// Creates it as needed.
+	bool BindShadowMapFrameBuffer();
+
+	// o.o 
+	FrameBuffer * shadowMapDepthBuffer;
 };

@@ -29,6 +29,7 @@ class Light
 	friend class Lighting;
 public:
 	/// Default constructor
+	Light();
 	Light(Lighting * lighting);
 	Light(const Light & otherLight);
 	~Light();
@@ -65,6 +66,8 @@ public:
 		A light that is not active can be considered dead, and may thus be replaced at any time!
 	*/
 	bool currentlyActive;
+	/// Default false.
+	bool castsShadow;
 	/// Last time we changed any of it's properties.
 	long lastUpdate;
 	/// Returns name of the light

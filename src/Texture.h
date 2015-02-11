@@ -216,6 +216,8 @@ private:
 	*/
 	bool SavePNG(String toPath);
 
+	bool isDepthTexture;
+
 	/// Private ID as given on creation
 	int id;
 	static int IDenumerator;

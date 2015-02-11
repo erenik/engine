@@ -48,6 +48,7 @@ Texture::Texture()
 	cData = NULL;
 	data = NULL;
 
+	isDepthTexture = false;
 	channels = 4;
 	bytesPerChannel = 1;
 }
@@ -278,41 +279,71 @@ int Texture::GetChannels()
 /// Uses glGetTexImage to procure image data from GL and insert it into the data-array of the texture object.
 void Texture::LoadDataFromGL()
 {
-	std::cout<<"\nTrying to load data from GL...";
+//	std::cout<<"\nTrying to load data from GL...";
 	glBindTexture(GL_TEXTURE_2D, glid);
+	CheckGLError("Texture::LoadDataFromGL - Bind");
 	
 
 	// Calculate 
 	Reallocate();
+
+	int loadChannels = 0;
 
 	switch(format)
 	{
 		case RGB:
 		//	glReadPixels(0,0,size[0], size[1], GL_RGB, GL_UNSIGNED_BYTE, cData);
 			glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, cData); 
-			
+			loadChannels = 3;
 			break;
 		case RGBA:
 		{
+			loadChannels = 4;
 			// glReadPixels might be safer..
 		//	glReadPixels(0,0,size[0], size[1], GL_RGBA, GL_UNSIGNED_BYTE, cData);
 			glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, cData); 
 			break;
 		}
 		case SINGLE_16F:
+			loadChannels = 1;
 			//glReadPixels(0,0,size[0], size[1], GL_RED, GL_FLOAT, fData);
+			// Try the various formats available until one succeeds?
 			glGetTexImage(GL_TEXTURE_2D, 0, GL_RED, GL_FLOAT, fData); 
+			if (glGetError() != GL_NO_ERROR)
+			{
+				isDepthTexture = true;
+				glGetTexImage(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, GL_FLOAT, fData);
+			}
+//			CheckGLError("Texture::LoadDataFromGL - glGetTexImage");
+			// Print data.
+			/*
+			float previous;
+			for (int i = 0; i < dataBufferSize ; ++i)
+			{
+				if (fData[i] != previous)
+				{
+					previous = fData[i];
+					std::cout<<"\n"<<i<<": "<<fData[i];
+				}
+			}
+			*/
 			break;
 		case RGB_16F:
 		case RGB_32F:
 		{
+			loadChannels = 3;
 			glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, fData); 
 			break;
 		}
 		default:
 			assert(false);
 	}
-	
+	int error = CheckGLError("Texture::LoadDataFromGL");
+	if (error == GL_NO_ERROR)
+	{
+		channels = loadChannels;
+	}
+	assert(channels > 0);
 	// If successful, copy it?
 }
 
@@ -887,9 +918,10 @@ bool Texture::SaveOpenCV(String toPath)
 {
 #ifdef OPENCV
 	cv::Mat mat;
-	mat.create(cv::Size(width, height), CV_8UC3);
-	int channels = 3;
+	int cvFormat = CV_8UC3;
+	mat.create(cv::Size(width, height), cvFormat);
 	int bytesPerChannel = 1;
+	int non1s = 0;
 	for (int y = 0; y < mat.rows; ++y)
 	{
 		for (int x = 0; x < mat.cols; ++x)
@@ -897,10 +929,36 @@ bool Texture::SaveOpenCV(String toPath)
 			/// Pixel start index.
 			int psi = (mat.step * y) + (x * channels) * bytesPerChannel;
 			int psiTex = ((height - y - 1) * width + x) * bpp;
+			int psiTex2 = ((height - y - 1) * width + x);
 			/// Depending on the step count...
 			switch(channels)
-			{			
-				/// RGB!
+			{		
+				// Single-channel image.
+				case 1:
+				{
+					// Convert to displayable format?
+					if (fData)
+					{
+						float value = fData[psiTex2];
+						if (isDepthTexture)
+						{
+							// Re-scale it?
+							float originalValue = value;
+							if (originalValue != 1)
+								non1s++;
+							float squared = pow(originalValue, 2);
+//							float shrunk = value / FLT_MAX;
+							// Make it positive?
+//							float positivized = shrunk + 1.f;
+							value = squared * 255.f;
+						}
+						mat.data[psi+0] = mat.data[psi+1] = mat.data[psi+2] = value;
+					}
+					else if (cData)
+						mat.data[psi+0] = mat.data[psi+1] = mat.data[psi+2] = cData[psiTex2];
+					break;
+				}
+				/// RGB! or such.
 				case 3:
 					mat.data[psi+0] = data[psiTex+2];
 					mat.data[psi+1] = data[psiTex+1];
@@ -908,10 +966,14 @@ bool Texture::SaveOpenCV(String toPath)
 					break;
 				// Default gray scale?
 				default:
+					assert(false);
 					break;
 			}
 		}
 	}
+	if (non1s > 0)
+		std::cout<<"\nNon 1s: "<<non1s;
+	
 	// Write it!
 	std::vector<int> compression_params;
 	compression_params.push_back(CV_IMWRITE_PNG_COMPRESSION);

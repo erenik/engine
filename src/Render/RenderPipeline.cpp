@@ -75,7 +75,22 @@ bool RenderPipeline::Load(String fromFile)
 			if (tokens.Size() < 2)
 				continue;
 			String arg = tokens[1];
-			if (line.Contains("Input"))
+			if (line.StartsWith("Camera"))
+			{
+				if (arg == "Light")
+					rp->camera = RenderPass::LIGHT;
+				else if (arg == "Default")
+					rp->camera = RenderPass::DEFAULT_CAMERA;
+			}
+			else if (line.StartsWith("ShadowMapping"))
+			{
+				rp->shadowMapping = true;
+			}
+			else if (line.StartsWith("Lights"))
+			{
+				rp->lights = RenderPass::PRIMARY_LIGHT;
+			}
+			else if (line.Contains("Input"))
 			{
 				if (arg == "Entities")
 					rp->input = RenderTarget::ENTITIES;
@@ -88,6 +103,8 @@ bool RenderPipeline::Load(String fromFile)
 					rp->output = RenderTarget::DEFAULT;
 				else if (arg == "DeferredGather")
 					rp->output = RenderTarget::DEFERRED_GATHER;
+				else if (arg == "ShadowMaps")
+					rp->output = RenderTarget::SHADOW_MAPS;
 			}
 			else if (line.Contains("Shader"))
 			{

@@ -3,6 +3,7 @@
 
 #include "GraphicsState.h"
 #include "Lighting.h"
+#include "Graphics/Camera/Camera.h"
 
 GraphicsState::GraphicsState()
 {
@@ -54,3 +55,11 @@ void GraphicsState::SetGLScissor(const Rect & newScissor)
 
 	CheckGLError("GraphicsState::SetGLScissor 2");
 }
+
+
+void GraphicsState::SetCamera(Camera * camera)
+{	
+	this->camera = camera;
+	projectionMatrixF = projectionMatrixD = camera->ProjectionMatrix4d();
+	viewMatrixF = viewMatrixD = camera->ViewMatrix4d();
+}			

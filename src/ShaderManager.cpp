@@ -179,6 +179,8 @@ Shader * ShaderManager::SetActiveShader(String shaderName)
 /// Sets selected shader to be active. Prints out error information and does not set to new shader if it fails.
 Shader * ShaderManager::SetActiveShader(Shader * shader)
 {
+	CheckGLError("Before ShaderManager::SetActiveShader");
+
 	/// Same shader, no state changes required.
 	if (shader == activeShader)
 		return shader;
@@ -214,6 +216,7 @@ Shader * ShaderManager::SetActiveShader(Shader * shader)
 	if (shader && shader->built)
 	{
 		glUseProgram(shader->shaderProgram);
+		CheckGLError("ShaderManager::glUseProgram");
 		activeShader = shader;
 		// Enable respective vertex array/attribute pointers.
 		shader->OnMadeActive();

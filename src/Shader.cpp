@@ -402,11 +402,13 @@ void Shader::PrintUniforms()
 /// Enables the respective vertex attribute pointers.
 void Shader::OnMadeActive()
 {
+	CheckGLError("Before Shader::OnMadeActive");
 	for (int i = 0; i < attributes.Size(); ++i)
 	{
 		GLSLIdentifier & attribute = attributes[i];
 		glEnableVertexAttribArray(attribute.location);
 	}
+	CheckGLError("Shader::OnMadeActive -enabling vertex attrib arrays");
 	SetTextureLocations();
 	LoadLighting(Graphics.graphicsState->lighting, this);
 }
@@ -430,10 +432,16 @@ void Shader::OnMadeInactive()
 */
 void Shader::SetTextureLocations()
 {
-	glUniform1i(uniformBaseTexture, 0);
-	glUniform1i(uniformSpecularMap, 1);
-	glUniform1i(uniformNormalMap, 2);
-	glUniform1i(uniformBoneSkinningMatrixMap, 3); // Sets sampler to use texture #3 for skinning maps	
+	CheckGLError("Before Shader::SetTextureLocations");
+
+	if (uniformBaseTexture != -1)
+		glUniform1i(uniformBaseTexture, 0);
+	if (uniformSpecularMap != -1)
+		glUniform1i(uniformSpecularMap, 1);
+	if (uniformNormalMap != -1)
+		glUniform1i(uniformNormalMap, 2);
+	if (uniformBoneSkinningMatrixMap != -1)
+		glUniform1i(uniformBoneSkinningMatrixMap, 3); // Sets sampler to use texture #3 for skinning maps	
 
 	// Un-bind all previous texture!
 	for (int i = 0; i < 4; ++i)
@@ -443,7 +451,7 @@ void Shader::SetTextureLocations()
 	}
 	glActiveTexture(GL_TEXTURE0);
 
-	CheckGLError("SetTextureLocations");
+	CheckGLError("Shader::SetTextureLocations");
 }
 
 

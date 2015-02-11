@@ -10,6 +10,7 @@
 #include "Graphics/GraphicsManager.h"
 #include "Graphics/Camera/Camera.h"
 
+#include "FrameBuffer.h"
 #include "RenderBuffer.h"
 #include "Viewport.h"
 
@@ -25,17 +26,29 @@ RenderPass::RenderPass()
 	shaderName = "Phong";
 	depthTestEnabled = true;
 	type = RENDER_ENTITIES;
+	camera = DEFAULT_CAMERA;
+
+	lights = PRIMARY_LIGHT;
+	shadowMapping = false;
+	shadowMapDepthBuffer = NULL;
 }
 
 // Renders this pass. Returns false if some error occured, usually mid-way and aborting the rest of the procedure.
 bool RenderPass::Render(GraphicsState & graphicsState)
 {
+	CheckGLError("Before RenderPass::Render");
 	switch(output)
 	{
 		case RenderTarget::DEFAULT:
 		{
 			// Set default render target.. however one does that.
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			break;
+		}
+		case RenderTarget::SHADOW_MAPS:
+		{
+			// Fetch shadow-map framebuffer for this viewport?
+			BindShadowMapFrameBuffer();
 			break;
 		}
 		case RenderTarget::DEFERRED_GATHER:
@@ -103,8 +116,34 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_LIGHTING);
 
+
+	// Store active camera from the graphicsState
+	Camera * oldCamera = graphicsState.camera;
+	switch(camera)
+	{
+		case DEFAULT_CAMERA:
+		{
+			graphicsState.camera = oldCamera;
+			break;
+		}
+		case RenderPass::LIGHT:
+		{
+			// Now it becomes tricky..
+			static Camera * camera = NULL;
+			if (camera == NULL)
+				camera = CameraMan.NewCamera("LightPOVCamera");
+			camera->projectionType = Camera::ORTHOGONAL; 
+			camera->position = Vector3f(0,0,30);
+			camera->rotation = Vector3f(0,0,0);
+			camera->zoom = 15.f;
+			camera->Update();
+			graphicsState.SetCamera(camera);
+			break;
+		}
+	}
 	// Reset matrices: This may as well be done before rendering is done, since the matrices
 	// will need to be reset all the time depending on the content to be rendered and where ^^
+
 	/// Camera is already updated, so just use it's matrices straight away ^^
 	Camera & camera = *graphicsState.camera;
 
@@ -114,19 +153,18 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 		graphicsState.viewFrustum.SetCamPos(Vector3f((Vector4f)camera.Position()), Vector3f((Vector4f)camera.LookingAt()), Vector3f((Vector4f)camera.UpVector()));
 		Frustum & viewFrustum = graphicsState.viewFrustum;
 	}
+	// Reset model matrix..
+	graphicsState.modelMatrixF.LoadIdentity();
 
-	if (!shader)
-		return false;
-
-	// Load in the model and view matrices
-	glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, graphicsState.viewMatrixF.getPointer());
+	// Load in the model and view matrices from selected camera.
+	glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, camera.ViewMatrix4f().getPointer());
 	CheckGLError("RenderPass, setting view matrix");
 	glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, graphicsState.modelMatrixF.getPointer());
 	CheckGLError("RenderPass, setting model matrix");
 
 	// Load projection matrix into shader
 	graphicsState.projectionMatrixF = graphicsState.projectionMatrixD;
-	glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, graphicsState.projectionMatrixF.getPointer());
+	glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, camera.ProjectionMatrix4f().getPointer());
 
 	Matrix4f mvp = graphicsState.projectionMatrixF * graphicsState.viewMatrixF * graphicsState.modelMatrixF;
 
@@ -236,18 +274,61 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 			break;
 		}
 	}
+	CheckGLError("RenderPass::Render - rendering");
 	/// Extract the texture data from the buffers to see what it looks like?
 	switch(output)
 	{
+		case RenderTarget::SHADOW_MAPS:
+		{
+			shadowMapDepthBuffer->DumpTexturesToFile();
+			break;	
+		}
 		case RenderTarget::DEFERRED_GATHER:
 		{
-			graphicsState.activeViewport->frameBuffer->DumpTexturesToFile();
+			assert(false);
+//			graphicsState.activeViewport->frameBuffer->DumpTexturesToFile();
 			break;
 		}
 	}
+	CheckGLError("RenderPass::Render - extraction");
 	// Unbind the framebuffer so that UI and stuff will render as usual.
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	// Restore active camera from the graphicsState
+	graphicsState.SetCamera(oldCamera);
+	CheckGLError("RenderPass::Render");
 	return true;
 }
+
+/// Creates it as needed.
+bool RenderPass::BindShadowMapFrameBuffer()
+{
+	CheckGLError("Before RenderPass::BindShadowMapFrameBuffer");
+	if (!shadowMapDepthBuffer)
+	{
+		shadowMapDepthBuffer = new FrameBuffer("ShadowMapDepthBuffer");
+	}
+	if (!shadowMapDepthBuffer->IsGood())
+	{
+		// Try and rebuild it..?
+		if (!shadowMapDepthBuffer->CreateDepthBuffer(Vector2i(512,512)))
+		{
+			SAFE_DELETE(shadowMapDepthBuffer);
+			return false;
+		}
+	}
+	int error = glGetError();
+	/// Make frame buffer active
+	shadowMapDepthBuffer->Bind();
+	// Clear depth  and color
+	glClearColor(0.1f, 0.1f, 0.1f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	// Set buffers to render into (the textures ^^)
+	shadowMapDepthBuffer->SetDrawBuffers();
+	CheckGLError("RenderPass::BindShadowMapFrameBuffer");
+	return true;
+}
+
 
 

@@ -131,10 +131,12 @@ void FirstPersonPlayerProperty::ProcessInput()
 		{
 			/// Get camera transform.
 			Camera * camera = owner->cameraFocus;
+			if (!camera)
+				return;
 			Vector3f camLookAt = camera->LookingAt();
 			Vector3f forwardVector = -forward * camLookAt;
 			forwardVector.Normalize();
-			Vector3f rightwardVector = -right * owner->cameraFocus->LeftVector();
+			Vector3f rightwardVector = -right * camera->LeftVector();
 			rightwardVector.Normalize();
 			Vector3f newVelocity = forwardVector + rightwardVector;
 			// Remove Y-component.

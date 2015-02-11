@@ -222,6 +222,8 @@ public:
 	Matrix4f ViewMatrix4f() { return viewMatrix; };
 	/// Returns the projection matrix currently used by the camera.
 	Matrix4d ProjectionMatrix4d() { return projectionMatrix; };
+	/// Returns the projection matrix currently used by the camera.
+	Matrix4f ProjectionMatrix4f() { return projectionMatrix; };
 
 	/// For following camera's!
 	Entity * entityToTrack;

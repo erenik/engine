@@ -16,6 +16,11 @@
 #include "Graphics/Messages/GMUI.h"
 #include "Graphics/Messages/GraphicsMessages.h"
 
+Light::Light()
+{
+	Nullify();
+}
+
 Light::Light(Lighting * lighting)
 {
 	Nullify();
@@ -35,7 +40,9 @@ void Light::Nullify()
 	registeredForRendering = false;
 	lighting = NULL;
 	currentlyActive = true;
+	castsShadow = false;
 }
+
 Light::Light(const Light & otherLight)
 {
 	Nullify();

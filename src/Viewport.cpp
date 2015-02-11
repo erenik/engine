@@ -126,6 +126,8 @@ UserInterface * Viewport::GetUI()
 /// Sets up a frame-buffer for this viewport, resizing it as needed. Creates frame buffer if needed. Returns false if something failed along the way.
 bool Viewport::BindFrameBuffer()
 {
+	assert(false && "Create framebuffer yourself, in the RenderPass");
+	/*
 	if (!frameBuffer)
 	{
 		frameBuffer = new FrameBuffer(this, size);
@@ -150,6 +152,7 @@ bool Viewport::BindFrameBuffer()
 	int numBuffers = frameBuffer->GetDrawBuffers(buffers);
 	glDrawBuffers(numBuffers, buffers);
 	AssertGLError("Viewport::BindFrameBuffer");
+	*/
 	return true;
 };
 

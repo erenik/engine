@@ -60,7 +60,7 @@ public:
 	
 	/// Calls glScissor, and updates locally tracked scissor. Appends current viewport x0/y0 co-ordinates automatically to the GL call.
 	void SetGLScissor(const Rect & scissor);
-
+	void SetCamera(Camera * camera);
 	/// What pipeline is currently being used.
 	RenderPipeline * renderPipe;
 	/// Window we are currently rendering to.

@@ -11,7 +11,7 @@
 class PrecipitationSystem;
 class ParticleEmitter;
 class Message;
-
+class Light;
 class Entity;
 
 class WeatherSystem 
@@ -30,6 +30,8 @@ public:
 	/// Starts the rain.
 	void Rain(float amount);
 	void Snow(float amount);
+	/// Hour in 24-hour format.
+	void SetSunTime(int hour);
 	/// Sets global wind velocity, affecting rain, snow, etc.
 	void Wind(ConstVec3fr globalWind);
 
@@ -43,6 +45,8 @@ private:
 	Vector3f globalWind;
 	/// The sun.
 	Entity * sun;
+	// o.o 
+	Light * sunLight;
 };
 
 

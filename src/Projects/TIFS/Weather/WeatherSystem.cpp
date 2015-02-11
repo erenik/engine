@@ -7,7 +7,9 @@
 #include "PrecipitationSystem.h"
 #include "Graphics/GraphicsManager.h"
 #include "Graphics/Messages/GMParticles.h"
+#include "Graphics/Messages/GMLight.h"
 #include "Message/Message.h"
+#include "Light.h"
 
 WeatherSystem::WeatherSystem()
 {
@@ -24,6 +26,11 @@ void WeatherSystem::Initialize()
 {
 	precipitationSystem = new PrecipitationSystem(this);
 	GraphicsMan.QueueMessage(new GMRegisterParticleSystem(precipitationSystem, true));
+	sunLight = new Light();
+	// Add a light?
+	sunLight->type = LightType::DIRECTIONAL; // Orthogonal.
+	sunLight->castsShadow = true;
+	GraphicsMan.QueueMessage(new GMAddLight(sunLight));
 }
 
 void WeatherSystem::Shutdown()
@@ -52,6 +59,16 @@ void WeatherSystem::ProcessMessage(Message * message)
 			{
 				String str = msg.Tokenize("()")[1];
 				precipitationSystem->altitude = str.ParseFloat();
+			}
+			else if (msg.Contains("SetSunTime"))
+			{
+				List<String> tokens = msg.Tokenize("()");
+				if (tokens.Size() < 2)
+					return;
+				String hourStr = tokens[1];
+				int hour = hourStr.ParseInt();
+				// Set sun position?
+				SetSunTime(hour);
 			}
 			else if (msg.Contains("Rain"))
 			{
@@ -85,6 +102,16 @@ void WeatherSystem::Snow(float amount)
 	precipitationSystem->scale = Vector2f(0.04f,0.04f);
 	precipitationSystem->color = Vector4f(1,1,1,1);
 	precipitationSystem->emissionVelocity = 2.f;
+}
+
+/// Hour in 24-hour format.
+void WeatherSystem::SetSunTime(int hour)
+{
+	float x,y,z;
+	x = 1;
+	y = 1;
+	z = 1;
+	sunLight->position = Vector3f(x,y,z);
 }
 
 /// Sets global wind velocity, affecting rain, snow, etc.

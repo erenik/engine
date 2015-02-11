@@ -22,7 +22,7 @@ void GMClearLighting::Process()
 }
 
 
-GMAddLight::GMAddLight(const Light & newLight)
+GMAddLight::GMAddLight(Light * newLight)
 : GraphicsMessage(GM_ADD_LIGHT), light(newLight)
 {
 
@@ -34,7 +34,7 @@ GMAddLight::~GMAddLight()
 void GMAddLight::Process()
 {
 	Lighting * lighting = Graphics.ActiveLighting();
-	lighting->Add(&light);
+	lighting->lights.Add(light);
 }
 
 

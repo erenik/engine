@@ -19,6 +19,7 @@ __declspec( align( 16 ) )
 class Lighting {
 	/// Loads selected lighting into the active shader program
 	friend void LoadLighting(Lighting * lighting, Shader * shader);
+	friend class GMAddLight;
 #define GetTime clock
 public:
 	String name;
