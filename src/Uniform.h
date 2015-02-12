@@ -33,6 +33,7 @@ struct UniformLight{
 	GLuint dirOrPosVec4;
 	/// Attenuation factors: constant, linear and quadratic. All stored in one vec3
 	GLuint attenuationVec3;
+	GLuint castsShadowsBool;
 	/// Type, 1 = Positional, 2 = Directional, 3 = Spotlight
 	GLuint typeInt;
 

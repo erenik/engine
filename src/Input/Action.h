@@ -28,6 +28,9 @@ enum {
 	RELOAD_UI,
 	RECOMPILE_SHADERS,
 
+	// Debugging stuff.
+	PRINT_SHADOW_MAPS,
+
 	/// Display options
 	TOGGLE_FULL_SCREEN,
 

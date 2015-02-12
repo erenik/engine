@@ -261,6 +261,11 @@ void Shader::ExtractUniforms()
 	glActiveTexture(GL_TEXTURE0 + 3);
 	uniformBoneSkinningMatrixMap = glGetUniformLocation(shaderProgram, "boneSkinningMatrixMap");
 
+	// Shadow maps.
+	glActiveTexture(GL_TEXTURE0 + 4);
+	uniformShadowMap = glGetUniformLocation(shaderProgram, "shadowMap");
+
+
 	glActiveTexture(GL_TEXTURE0 + 0);
 
 	/// Extract textures boolean uniforms.
@@ -299,6 +304,7 @@ void Shader::ExtractUniforms()
 	uniformLight.specularVec4 = glGetUniformLocation(shaderProgram, "light_specular");
 	uniformLight.positionVec3 = glGetUniformLocation(shaderProgram, "light_position");
 	uniformLight.attenuationVec3 = glGetUniformLocation(shaderProgram, "light_attenuation");
+	uniformLight.castsShadowsBool = glGetUniformLocation(shaderProgram, "light_castsShadows");
 	uniformLight.typeInt = glGetUniformLocation(shaderProgram, "light_type");
 	uniformLight.spotDirectionVec3 = glGetUniformLocation(shaderProgram, "light_spotDirection");
 	uniformLight.spotCutoffFloat = glGetUniformLocation(shaderProgram, "light_spotCutoff");
@@ -443,8 +449,12 @@ void Shader::SetTextureLocations()
 	if (uniformBoneSkinningMatrixMap != -1)
 		glUniform1i(uniformBoneSkinningMatrixMap, 3); // Sets sampler to use texture #3 for skinning maps	
 
+	// Location 4 and onwards for the shadow maps?
+	if (uniformShadowMap != -1)
+		glUniform1i(uniformShadowMap, 4);
+
 	// Un-bind all previous texture!
-	for (int i = 0; i < 4; ++i)
+	for (int i = 0; i < 5; ++i)
 	{
 		glActiveTexture(GL_TEXTURE0 + i);
 		glBindTexture(GL_TEXTURE_2D, 0);

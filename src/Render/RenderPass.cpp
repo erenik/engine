@@ -31,11 +31,14 @@ RenderPass::RenderPass()
 	lights = PRIMARY_LIGHT;
 	shadowMapping = false;
 	shadowMapDepthBuffer = NULL;
+	shadows = false;
 }
 
 // Renders this pass. Returns false if some error occured, usually mid-way and aborting the rest of the procedure.
 bool RenderPass::Render(GraphicsState & graphicsState)
 {
+	Lighting * lighting = graphicsState.lighting;
+	List<Light*> lights = lighting->GetLights();
 	CheckGLError("Before RenderPass::Render");
 	switch(output)
 	{
@@ -130,15 +133,67 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 		{
 			// Now it becomes tricky..
 			static Camera * camera = NULL;
+			bool anyShadows = false;
 			if (camera == NULL)
 				camera = CameraMan.NewCamera("LightPOVCamera");
-			camera->projectionType = Camera::ORTHOGONAL; 
-			camera->position = Vector3f(0,0,30);
-			camera->rotation = Vector3f(0,0,0);
-			camera->zoom = 15.f;
-			camera->Update();
-			graphicsState.SetCamera(camera);
+			for (int i = 0; i < lights.Size(); ++i)
+			{
+				Light * light = lights[i];
+				if (!light->castsShadow)
+					continue;
+				if (light->type != LightType::DIRECTIONAL)
+				{
+					std::cout<<"\nLight types beside directional not supported for shadow mappinag at the moment.";
+					continue;
+				}
+				anyShadows = true;
+				camera->projectionType = Camera::ORTHOGONAL;
+				camera->position = light->position;
+				// Set rotation based on position?
+				Angle yaw = Angle(light->position.x, light->position.z);
+				Angle pitch = Angle(Vector2f(light->position.x, light->position.z).Length(), light->position.y);
+				camera->rotation.y = yaw.Radians();
+				camera->rotation.x = pitch.Radians();
+//				camera->position = Vector3f(0,10.f,0);
+//				camera->rotation = Vector3f(0.2f,0,0);
+				camera->zoom = 50.f;
+				camera->Update();
+				Vector3f forward = camera->LookingAt();
+				Vector3f up = camera->UpVector();
+				Vector3f position = camera->ViewProjectionF() * Vector4f(0,0,0,1);
+				graphicsState.SetCamera(camera);
+				// Take current shadow map texture we created earlier and make sure the camera is bound to it for usage later.
+				// Save matrix used to render shadows properly later on?
+	//			light->inverseTransposeMatrix = ;
+				light->shadowMap = this->shadowMapDepthBuffer->renderBuffers[0]->texture;
+				assert(light->shadowMap);
+			}
+			if (!anyShadows)
+			{
+				std::cout<<"\nNo shadows to cast. Skipping pass.";
+				return true;
+			}
 			break;
+		}
+	}
+	// If shadows are to be rendered, look for em in the light.
+	if (shadows)
+	{
+		for (int i = 0; i < lights.Size(); ++i)
+		{
+			Light * light = lights[i];
+			if (light->shadowMap)
+			{
+				// Add this light's shadow map to the list of shadow maps?
+				// When rendering an object with this program.
+				glActiveTexture(GL_TEXTURE0 + 4);		// Select server-side active texture unit o.o;
+				// Just one shadow map for now.
+				light->shadowMapIndex = 0;
+				// Bind texture
+				glBindTexture(GL_TEXTURE_2D, light->shadowMap->glid);
+				// o.o pew.
+				glActiveTexture(GL_TEXTURE0);
+			}
 		}
 	}
 	// Reset matrices: This may as well be done before rendering is done, since the matrices
@@ -280,7 +335,12 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 	{
 		case RenderTarget::SHADOW_MAPS:
 		{
-			shadowMapDepthBuffer->DumpTexturesToFile();
+			/// Save current shadow maps into where it should be saved. E.g. the light that casted it, and/or into the graphicsState.
+			if (graphicsState.activeViewport->printShadowMaps)
+			{
+				graphicsState.activeViewport->printShadowMaps = false;
+				shadowMapDepthBuffer->DumpTexturesToFile();
+			}
 			break;	
 		}
 		case RenderTarget::DEFERRED_GATHER:

@@ -40,6 +40,7 @@ Viewport::Viewport(Vector2i bottomLeftCorner, Vector2i size)
 // Set initial default/NULL-values.
 void Viewport::Initialize()
 {
+	printShadowMaps = false;
 //	camera = new Camera()
 	camera = NULL;
 	// Default to relative size of window.

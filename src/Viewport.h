@@ -97,6 +97,8 @@ public:
 	bool renderMap; // For le 2D-map-crap
 	bool renderLookAtVectors;
 
+	bool printShadowMaps;
+
 	/// Fetches ray using viewport-based co-ordinates (not to be confused with the window/screen-space co-ordinates!)
 	bool GetRayFromViewportCoordinates(Vector2i viewportCoords, Ray & ray);
 

@@ -153,6 +153,10 @@ public:
 		uniformNormalMap;
 	/// Skeletal animation texture storages
 	GLuint uniformBoneSkinningMatrixMap;
+	
+	// Shadow maps.
+	GLuint uniformShadowMap; // Default location: glActiveTexture(GL_TEXTURE0 + 4);
+
 
 	GLuint uniformUseDiffuseMap, 
 		uniformUseSpecularMap, 

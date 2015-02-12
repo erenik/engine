@@ -181,6 +181,8 @@ public:
 	const Matrix4d Projection() { return projectionMatrix; };
 	/// Returns the most recently updated view matrix for this camera
 	const Matrix4d View() { return viewMatrix; };
+
+	const Matrix4f ViewProjectionF();
 	/// Returns a copy of the frustum
 	Frustum GetFrustum() const {return frustum; };
 

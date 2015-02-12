@@ -98,6 +98,20 @@ void Action::TriggerStart()
 		case QUEUE_STRING_START_STOP:
 			MesMan.QueueMessages(startAction);
 			break;
+		case PRINT_SHADOW_MAPS:
+		{
+			List<Window*> windows = WindowMan.GetWindows();
+			for (int i = 0; i < windows.Size(); ++i)
+			{
+				List<Viewport*> viewports = windows[i]->viewports;
+				for (int i = 0; i < viewports.Size(); ++i)
+				{
+					Viewport * vp = viewports[i];
+					vp->printShadowMaps = true;
+				}
+			}
+			break;
+		}
 		case RELOAD_UI:
 			std::cout<<"\nInput>>RELOAD_UI";
 			Graphics.QueueMessage(new GraphicsMessage(GM_RELOAD_UI));

@@ -121,6 +121,9 @@ public:
 	/// Builds a 3D translation matrix using given vector.
 	static const Matrix4f Translation(const Vector3f & vec);
 
+	/// Array must be at least 4 long. Row must be 0 through 3.
+	inline void GetRow(int row, float * intoArray) const;
+
 	/** Applies 3D scaling with provided ratio to x, y and z-dimensions. */
 	void Scale(float ratio);
 	/** Applies 3D scaling using the provided x, y and z-ratios. */

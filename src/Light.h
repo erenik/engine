@@ -22,6 +22,7 @@ enum LightTypes {
 
 class Entity;
 class Message;
+class Texture;
 
 /** Struct for handling a single light source. */
 class Light
@@ -29,7 +30,7 @@ class Light
 	friend class Lighting;
 public:
 	/// Default constructor
-	Light();
+	Light(String name);
 	Light(Lighting * lighting);
 	Light(const Light & otherLight);
 	~Light();
@@ -94,6 +95,12 @@ public:
 
 	// For dynamic lights. Default false.
 	bool registeredForRendering;
+	/// o.o Do not touch!
+	Texture * shadowMap;
+	/** To be loaded into the GLSL shader. 0 and upward refers to shadowMaps in the shader.
+		-1 default value.
+	*/
+	int shadowMapIndex;
 private:
 	// Lighting setup it belongs to.
 	Lighting * lighting;

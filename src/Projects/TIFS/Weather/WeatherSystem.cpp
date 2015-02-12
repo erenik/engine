@@ -26,7 +26,8 @@ void WeatherSystem::Initialize()
 {
 	precipitationSystem = new PrecipitationSystem(this);
 	GraphicsMan.QueueMessage(new GMRegisterParticleSystem(precipitationSystem, true));
-	sunLight = new Light();
+	sunLight = new Light("SunLight");
+	sunLight->position = Vector3f(0, 10000.f, 0);
 	// Add a light?
 	sunLight->type = LightType::DIRECTIONAL; // Orthogonal.
 	sunLight->castsShadow = true;

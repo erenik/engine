@@ -45,7 +45,7 @@ void FrameBuffer::DumpTexturesToFile()
 			tex->Save(viewport->window->name+" "+viewport->name+" "+rb->name+".png", true);
 		else 
 			tex->Save(name+"_"+rb->name+".png", true);
-		Sleep(50);
+//		Sleep(50);
 	}
 }
 

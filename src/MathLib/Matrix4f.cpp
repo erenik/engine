@@ -416,6 +416,15 @@ const Matrix4f Matrix4f::Translation(const Vector3f & vec)
 	return mat;
 }
 
+/// Array must be at least 4 long.
+void Matrix4f::GetRow(int row, float * intoArray) const
+{
+	intoArray[0] = element[0+row];
+	intoArray[1] = element[4+row];
+	intoArray[2] = element[8+row];
+	intoArray[3] = element[12+row];
+}
+
 
 /*
 void Matrix4f::Translate(Vector3f vec){
@@ -538,15 +547,20 @@ Vector4f Matrix4f::Product(const Vector4f & vector) const
 	static __m128 matrixCol;
 	
 	// Load data.
-	matrixCol = _mm_loadu_ps(&element[0]);
+	float row[4];
+	GetRow(0, row);
+	matrixCol = _mm_loadu_ps(row);
 	// Do multiplication.
 	result1 = _mm_mul_ps(matrixCol, vector.data);
 	// Repeat for other 3 columns
-	matrixCol = _mm_loadu_ps(&element[4]);
+	GetRow(1, row);
+	matrixCol = _mm_loadu_ps(row);
 	result2 = _mm_mul_ps(matrixCol, vector.data);
-	matrixCol = _mm_loadu_ps(&element[8]);
+	GetRow(2, row);
+	matrixCol = _mm_loadu_ps(row);
 	result3 = _mm_mul_ps(matrixCol, vector.data);
-	matrixCol = _mm_loadu_ps(&element[12]);
+	GetRow(3, row);
+	matrixCol = _mm_loadu_ps(row);
 	result4 = _mm_mul_ps(matrixCol, vector.data);
 
 	// Okay, got the 16 first multiplication results in, now we want to add together each of them individually, if possible...

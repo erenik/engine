@@ -475,11 +475,13 @@ void Mesh::Render(GraphicsState & graphicsState)
 		
 		// Bind Normals
 		static const GLint offsetN = 3 * sizeof(GLfloat);		// Buffer already bound once at start!
-		glVertexAttribPointer(shader->attributeNormal, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * floatsPerVertex, (void *)offsetN);		// Normals
+		if (shader->attributeNormal != -1)
+			glVertexAttribPointer(shader->attributeNormal, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * floatsPerVertex, (void *)offsetN);		// Normals
 		
 		// Bind UVs
 		static const GLint offsetU = 6 * sizeof(GLfloat);		// Buffer already bound once at start!
-		glVertexAttribPointer(shader->attributeUV, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * floatsPerVertex, (void *)offsetU);		// UVs
+		if (shader->attributeUV != -1)
+			glVertexAttribPointer(shader->attributeUV, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * floatsPerVertex, (void *)offsetU);		// UVs
 		
 		// Bind Tangents
 		static const GLint offsetT = 8 * sizeof(GLfloat);		// Buffer already bound once at start!

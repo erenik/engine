@@ -86,13 +86,7 @@ bool Lighting::LoadLighting(String fromFileName)
 /// Used for all copy-constructors.
 void Lighting::Copy(const Lighting * fromThisLighting)
 {
-	lights.ClearAndDelete();
-	for (int i = 0; i < fromThisLighting->lights.Size(); ++i)
-	{
-		Light * otherLight = fromThisLighting->lights[i];
-		Light * newLight = new Light(*otherLight);
-		lights.Add(newLight);
-	}
+	lights = fromThisLighting->lights;
 	global_ambient = fromThisLighting->global_ambient;
 	this->lastUpdate = fromThisLighting->lastUpdate;
 	this->activeLight = NULL;	// Pointer, set to NULL!!!
@@ -586,6 +580,7 @@ void LoadLighting(Lighting * lighting, Shader * shader)
 	static GLfloat specular[MAX_LIGHTS * 4];
 	static GLfloat position[MAX_LIGHTS * 3];
 	static GLfloat attenuation[MAX_LIGHTS * 3];
+	static GLint castsShadows[MAX_LIGHTS];
 	static GLint type[MAX_LIGHTS];
 	static GLfloat spotDirection[MAX_LIGHTS * 3];
 	static GLfloat spotCutoff[MAX_LIGHTS];
@@ -618,6 +613,8 @@ void LoadLighting(Lighting * lighting, Shader * shader)
 		attenuation[activeLights*interval] = light->attenuation[0];
 		attenuation[activeLights*interval+1] = light->attenuation[1];
 		attenuation[activeLights*interval+2] = light->attenuation[2];
+
+		castsShadows[activeLights] = light->shadowMapIndex;
 
 		type[activeLights] = light->type;
 
@@ -662,10 +659,12 @@ void LoadLighting(Lighting * lighting, Shader * shader)
 	/// Set attenuation
 	if (shader->uniformLight.attenuationVec3 != -1){
 		glUniform3fv(shader->uniformLight.attenuationVec3, activeLights, attenuation);
-		error = glGetError();
-		if (error != GL_NO_ERROR){
-			//std::cout<<"\nGL_ERROR: Error setting light attenuation properties";
-		}
+		CheckGLError("Attenuation");
+	}
+	if (shader->uniformLight.castsShadowsBool != -1)
+	{
+		glUniform1iv(shader->uniformLight.castsShadowsBool, activeLights, castsShadows);
+		CheckGLError("CastsShadows");
 	}
 	/// Set Type
 	if (shader->uniformLight.typeInt != -1){

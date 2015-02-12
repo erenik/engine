@@ -66,6 +66,9 @@ public:
 	int input;
 	int output;
 
+	// Default false. If true, shader will be supplied with shadow maps and the matrices used to create them.
+	bool shadows;
+
 	// Output
 	int renderTarget;
 

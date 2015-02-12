@@ -371,9 +371,10 @@ void Camera::Update()
 	Vector4d moveVec = Vector4d(0, 0, -1, 1);
 
 	/// Extract global coordinates
-	leftVector = rotationMatrix.InvertedCopy().Product(Vector4f(-1,0,0,1)).NormalizedCopy();
-	lookingAtVector = rotationMatrix.InvertedCopy().Product(Vector4f(0,0,-1,1)).NormalizedCopy();
-	upVector = rotationMatrix.InvertedCopy().Product(Vector4f(0,1,0,1)).NormalizedCopy();
+	Matrix4f invertedRot = rotationMatrix.InvertedCopy();
+	leftVector = invertedRot.Product(Vector4f(-1,0,0,1)).NormalizedCopy();
+	lookingAtVector = invertedRot.Product(Vector4f(0,0,-1,1)).NormalizedCopy();
+	upVector = invertedRot.Product(Vector4f(0,1,0,1)).NormalizedCopy();
 
 	// Update frustum
 	frustum.SetCamInternals(left, right, bottom, top, nearPlane, farPlane);
@@ -468,6 +469,12 @@ void Camera::SetRatio(int width, int height)
 	this->widthRatio = (float) width / smallest;
 	this->heightRatio = (float) height / smallest;
 }
+
+const Matrix4f Camera::ViewProjectionF()
+{
+	return viewMatrix * projectionMatrix;
+}
+
 
 /// To be called from render/physics-thread. Moves the camera using it's given enabled directions and velocities.
 void Camera::ProcessMovement(float timeInSeconds)
