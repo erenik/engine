@@ -20,6 +20,17 @@
 /// Rendering method
 void Entity::Render(GraphicsState & graphicsState)
 {
+	// If rendering shadows, skip relevant entities.
+	if (graphics)
+	{
+		if (graphics->castsShadow && graphicsState.shadowPass)
+			return;
+		if (graphics->visible == false)
+			return;
+		// Skip if it is to be filtered with the current camera too.
+		else if (graphics->cameraFilter.Exists(graphicsState.camera))
+			return;
+	}
 	Shader * shader = ShaderMan.ActiveShader();
 	if (!shader)
 	{
@@ -37,16 +48,7 @@ void Entity::Render(GraphicsState & graphicsState)
 		glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, graphicsState.viewMatrixF.getPointer());
 	}
 
-
-	if (graphics)
-	{
-		if (graphics->visible == false)
-			return;
-		// Skip if it is to be filtered with the current camera too.
-		else if (graphics->cameraFilter.Exists(graphicsState.camera))
-			return;
-	}
-	else if (graphicsState.settings & USE_LEGACY_GL){
+	if (graphicsState.settings & USE_LEGACY_GL){
 		RenderOld(graphicsState);
 		return;
 	}

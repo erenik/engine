@@ -158,6 +158,8 @@ public:
 	bool recording;
 	int framesRecorded;
 
+	/// If the current pass is a shadow pass? Default false.
+	bool shadowPass;
 	/// Moved here from RenderSettings.
 	/// ===============================
 	/// Bitwise &-ed flags for setting only some things with the message? :)

@@ -19,6 +19,9 @@
 #include "Model/ModelManager.h"
 #include "TextureManager.h"
 #include "Input/Action.h"
+#include "Graphics/GraphicsProperty.h"
+#include "Physics/PhysicsManager.h"
+#include "Physics/PhysicsProperty.h"
 
 class Camera;
 class Message;

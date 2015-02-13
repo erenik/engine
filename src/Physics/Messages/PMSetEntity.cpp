@@ -265,6 +265,7 @@ void PMSetEntity::Process()
 			/// Stuff.
 			case PT_RELATIVE_VELOCITY:
 			{
+				ASSERT_ENTITY_NOT_STATIC
 				pp->relativeVelocity = vec3fValue;
 				break;
 			}

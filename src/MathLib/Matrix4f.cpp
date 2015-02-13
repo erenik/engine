@@ -59,6 +59,21 @@ Matrix4f::Matrix4f(const Matrix4d& base){
 	}
 }
 
+/// For creating e.g. a rotation matrix based on given vectors.
+void Matrix4f::SetVectors(ConstVec3fr xVec, ConstVec3fr yVec, ConstVec3fr zVec)
+{
+	element[0] = xVec.x;
+	element[1] = xVec.y;
+	element[2] = xVec.z;
+	element[4] = yVec.x;
+	element[5] = yVec.y;
+	element[6] = yVec.z;
+	element[8] = zVec.x;
+	element[9] = zVec.y;
+	element[10] = zVec.z;
+}
+
+
 /// o.o Create matrices!
 List<Matrix4f> Matrix4f::FromFloatList(List<float> floatList, int numMatricesToExtract, bool transpose)
 {

@@ -30,7 +30,15 @@ public:
 
 	int currentHP, maxHP;
 	bool active;
-
+	// current cooldown.
+	int shootCooldown;
+	// weapon cooldown max
+	int weaponCooldownMs;
+	float projectileSpeed;
+private:
+	bool shoot;
+	void Aim();
+	void Shoot();
 };
 
 

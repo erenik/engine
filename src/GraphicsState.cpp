@@ -12,6 +12,7 @@ GraphicsState * graphicsState = NULL;
 
 GraphicsState::GraphicsState()
 {
+	shadowPass = false;
 	activeWindow = NULL;
 	activeViewport = NULL;
 	lighting = NULL;

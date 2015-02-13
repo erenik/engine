@@ -59,7 +59,9 @@ void FirstPersonIntegrator::IntegrateVelocity(Entity * forEntity, float timeInSe
 	if (relativeVelocity.MaxPart())
 	{
 		// Add it.
-		relVelWorldSpaced = forEntity->rotationMatrix * relativeVelocity;
+		Vector3f relVel = relativeVelocity;
+		relVel.z *= -1;
+		relVelWorldSpaced = forEntity->rotationMatrix * relVel;
 		forEntity->position += relVelWorldSpaced * timeInSeconds;
 	}
 

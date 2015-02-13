@@ -100,6 +100,9 @@ public:
 	/// Pauses general automations but also things such as bone/skinning-updates o.o
 	bool allAnimationsPaused;
 
+	/// Default true.
+	bool castsShadow;
+
 private:
 	/// Estimators which are currently tweaking various graphic-specific values over time.
 	List<Estimator*> estimators;

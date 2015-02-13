@@ -53,6 +53,9 @@ public:
 	/** Conversion constructor from the double-class. */
 	Matrix4f(const Matrix4d& base);
 
+	/// For creating e.g. a rotation matrix based on given vectors.
+	void SetVectors(ConstVec3fr xVec, ConstVec3fr yVec, ConstVec3fr zVec);
+
 	/// o.o Create matrices!
 	static List<Matrix4f> FromFloatList(List<float> floatList, int numMatricesToExtract, bool transpose);
 	

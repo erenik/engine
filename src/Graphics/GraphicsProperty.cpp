@@ -20,6 +20,7 @@
 GraphicsProperty::GraphicsProperty(Entity * owner)
 : owner(owner)
 {
+	castsShadow = true;
 	flags = 0;
 	visible = true;
 	textColor = Vector4f(1,1,1,1);

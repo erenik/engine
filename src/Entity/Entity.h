@@ -139,7 +139,8 @@ public:
 	void Translate(const Vector3f & translation);
 
 	/// Recalculates the transformation matrix. All parts by default. If recursively, will update children (or parents?) recursively upon update.
-	void RecalculateMatrix(bool allParts = true, bool recursively = false);
+	/// 0 = Just translation adjustment, 1 = ALL, 2 = Re-build all but rotation. 
+	void RecalculateMatrix(int whichParts = 1, bool recursively = false);
 	/// Recalculates a transformation matrix using argument vectors for position, rotation and translation.
 	static Matrix4f RecalculateMatrix(const Vector3f & position, const Vector3f & rotation, const Vector3f & scale);
 
@@ -151,6 +152,8 @@ public:
 
 	/// Checks with Rotation matrix.
 	Vector3f LookAt();
+	Vector3f UpVec();
+	Vector3f RightVec();
 
 	/// If true, updates all children once this entity is transformed. Default false.
 	bool updateChildrenOnTransform;
@@ -168,6 +171,8 @@ public:
 	Matrix4f rotationMatrix;
 	/// The transformation matrix that is applied when rendering. Do note that RecalculateMatrix has to be called to update this.
 	Matrix4f transformationMatrix;
+	/// Transforms as calculated if this were not child of any other entity.
+	Matrix4f localRotation, localTransform;
 
 	/// Material to be used for this Entity.
 	Material * material;
@@ -222,6 +227,9 @@ public:
 	/// Used in Recalc of AABB. Set to true if they have been.
 	bool hasRescaled;
 	bool hasRotated;
+
+	/// Default false. If true, the entity shares properties with other entities, and Process should thus not be called for it.
+	bool sharedProperties;
 
 	/// Axis-aligned bounding box.
 	AABB * aabb;

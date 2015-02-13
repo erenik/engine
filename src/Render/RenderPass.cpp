@@ -328,12 +328,14 @@ bool RenderPass::SetupOutput()
 			// Set default render target.. however one does that.
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			viewport->SetGLViewport();
+			graphicsState->shadowPass = false;
 			break;
 		}
 		case RenderTarget::SHADOW_MAPS:
 		{
 			// Fetch shadow-map framebuffer for this viewport?
 			BindShadowMapFrameBuffer();
+			graphicsState->shadowPass = true;
 			break;
 		}
 		case RenderTarget::DEFERRED_GATHER:

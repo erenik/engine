@@ -87,6 +87,7 @@ void Entity::LoadCompactEntityData(CompactEntity * cEntity)
 
 Entity::Entity(int i_id)
 {
+	sharedProperties = false;
 	updateChildrenOnTransform = false;
 	position = Vector3f(0,0,0);
 	scale = Vector3f(1,1,1);
@@ -441,36 +442,40 @@ void Entity::Translate(ConstVec3fr translation)
 }
 
 /// Recalculates the transformation matrix. All parts by default. If recursively, will update children (or parents?) recursively upon update.
-void Entity::RecalculateMatrix(bool allParts /*= true*/, bool recursively /* = false*/)
+void Entity::RecalculateMatrix(int whichParts/*= true*/, bool recursively /* = false*/)
 {
     Matrix4f preTranslateMat;
-	if (allParts || hasRotated)
+	if (whichParts > 0 || hasRotated)
 	{
-		rotationMatrix = Matrix4d();
-		// Quaternions for those entities wanting to use it.
-		if (physics && physics->useQuaternions){
-			Quaternion q = physics->orientation;
-		 //   std::cout<<"\nQ preN: "<<q;
-			q.Normalize();
-		 //   std::cout<<"\nQ postN: "<<q;
-			rotationMatrix = q.Matrix();
-		   // float * parr = rotationMatrix.getPointer();
-		 //   std::cout<<"\nMatrix: "<<parr[0]<<" "<<parr[1];
-
-			Quaternion q2 = physics->preTranslateRotationQ;
-			if (physics->preTranslateRotationQ.y != 0)
-			{
-				int i = + q2.y;
-			}
-			preTranslateMat = q2.Matrix();
-		}
-		// Euclidean co-ordinates.
-		else 
+		if (whichParts == 1)
 		{
-			rotationMatrix.Multiply(Matrix4d::GetRotationMatrixX(rotation[0]));
-			rotationMatrix.Multiply(Matrix4d::GetRotationMatrixZ(rotation[2]));
-			rotationMatrix.Multiply(Matrix4d::GetRotationMatrixY(rotation[1]));
-		}	
+			rotationMatrix = Matrix4d();
+			// Quaternions for those entities wanting to use it.
+			if (physics && physics->useQuaternions){
+				Quaternion q = physics->orientation;
+			 //   std::cout<<"\nQ preN: "<<q;
+				q.Normalize();
+			 //   std::cout<<"\nQ postN: "<<q;
+				rotationMatrix = q.Matrix();
+			   // float * parr = rotationMatrix.getPointer();
+			 //   std::cout<<"\nMatrix: "<<parr[0]<<" "<<parr[1];
+
+				Quaternion q2 = physics->preTranslateRotationQ;
+				if (physics->preTranslateRotationQ.y != 0)
+				{
+					int i = + q2.y;
+				}
+				preTranslateMat = q2.Matrix();
+			}
+			// Euclidean co-ordinates.
+			else 
+			{
+				rotationMatrix.Multiply(Matrix4d::GetRotationMatrixX(rotation[0]));
+				rotationMatrix.Multiply(Matrix4d::GetRotationMatrixZ(rotation[2]));
+				rotationMatrix.Multiply(Matrix4d::GetRotationMatrixY(rotation[1]));
+			}	
+			localRotation = rotationMatrix;
+		}
 		hasRotated = false;
 		
 
@@ -478,13 +483,22 @@ void Entity::RecalculateMatrix(bool allParts /*= true*/, bool recursively /* = f
 
 		transformationMatrix.Multiply(preTranslateMat);
 		transformationMatrix.Multiply((Matrix4f::Translation(position)));
-		transformationMatrix.Multiply(rotationMatrix);
+		transformationMatrix.Multiply(localRotation);
 		transformationMatrix.Multiply((Matrix4f::Scaling(scale)));
+		localTransform = transformationMatrix;
 
 		/// Use parent matrix, apply ours on top of it!
 		if (parent)
 		{
-			transformationMatrix = parent->transformationMatrix * transformationMatrix;
+			/// Transforms as calculated if this were not child of any other entity.
+			transformationMatrix = parent->transformationMatrix * localTransform;
+			// Update rotation matrix based on parent too?
+			rotationMatrix = parent->rotationMatrix * localRotation;
+		}
+		else 
+		{
+			rotationMatrix = localRotation;
+			transformationMatrix = localTransform;
 		}
 
 		// Since we updated something, we should inform our children as well, if any, or they will be lagging behind...
@@ -651,8 +665,18 @@ Vector3f Entity::CenterOfGravityWorldSpace()
 /// Checks with Rotation matrix.
 Vector3f Entity::LookAt()
 {
-	return rotationMatrix * Vector3f(0,0,-1);
+	return rotationMatrix * Vector4f(0,0,-1,0);
 }
+
+Vector3f Entity::UpVec()
+{
+	return rotationMatrix * Vector4f(0,1,0,0);
+}
+Vector3f Entity::RightVec()
+{
+	return rotationMatrix * Vector4f(1,0,0,0);
+}
+
 
 /// o.o Links child and parent for both.
 void Entity::AddChild(Entity * child)

@@ -164,6 +164,8 @@ void Map::Process(float timePassed)
 	for (int i = 0; i < entities.Size(); ++i)
 	{
 		Entity * entity = entities[i];
+		if (entity->sharedProperties)
+			continue;
 		for (int j = 0; j < entity->properties.Size(); ++j)
 		{
 			entity->properties[j]->Process(timePassed);

@@ -401,6 +401,11 @@ void TIFS::CreateTurret(int ofSize, ConstVec3fr atLocation)
 	underBarrelEntity->properties.Add(prop);
 	barrelEntity->properties.Add(prop);
 
+	/// Call Process only from the base.
+	swivelEntity->sharedProperties = true;
+	underBarrelEntity->sharedProperties = true;
+	barrelEntity->sharedProperties = true;
+
 	prop->turretSize = ofSize;
 	prop->yawPerSecond = prop->pitchPerSecond = pow(2.25f, (SIZES - ofSize)) * 0.2f;
 
