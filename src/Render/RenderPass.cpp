@@ -344,6 +344,9 @@ bool RenderPass::SetupOutput()
 			break;
 		}
 	}
+	bool wasEnabled = glIsEnabled(GL_SCISSOR_TEST);
+	// Disable scissor for proper clear?
+	glDisable(GL_SCISSOR_TEST);
 	// Clear depth  and color for our target.
 	glClearColor(0.1f, 0.1f, 0.1f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -388,7 +391,7 @@ bool RenderPass::SetupLightPOVCamera()
 		// Adjust light position based on the gathered data above.
 //		lightPosition = lpn * maxDist;
 		
-		LogGraphics("Setting sun: farplane "+String(farPlane)+" zoom: "+String(zoom)+" Position: "+VectorString(lightPosition), INFO);
+//		LogGraphics("Setting sun: farplane "+String(farPlane)+" zoom: "+String(zoom)+" Position: "+VectorString(lightPosition), INFO);
 		
 		camera->projectionType = Camera::ORTHOGONAL;
 		camera->position = lightPosition;
