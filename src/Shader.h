@@ -35,6 +35,7 @@ struct GLSLIdentifier
 #define SHADER_REQUIRED 0x0000001
 
 class Shader;
+class GraphicsState;
 
 /// Ease-of-use function which grabs the active shader via the manager.
 Shader * ActiveShader();
@@ -74,6 +75,8 @@ public:
 		3 - Bone skinning matrix map
 	*/
 	void SetTextureLocations();
+	/// Sets up fog uniforms as possible.
+	void SetupFog(GraphicsState & graphicsState);
 
 	String name;
 	String vertexSource;
@@ -116,10 +119,9 @@ public:
 	/// ========================================
 	/// GL uniform model matrix identifier
 	GLuint uniformModelMatrix;
-	/// GL uniform view matrix identifier
 	GLuint uniformViewMatrix;
-	/// GL uniform projection matrix identifier
 	GLuint uniformProjectionMatrix;
+	GLuint uniformViewProjectionMatrix; // Will replace View and Projection matrices?
 
 	GLuint uniformCameraRightWorldSpace;
 	GLuint uniformCameraUpWorldSpace;
@@ -156,7 +158,7 @@ public:
 	
 	// Shadow maps.
 	GLuint uniformShadowMap; // Default location: glActiveTexture(GL_TEXTURE0 + 4);
-
+	GLuint uniformShadowMapMatrix;
 
 	GLuint uniformUseDiffuseMap, 
 		uniformUseSpecularMap, 

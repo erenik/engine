@@ -8,6 +8,7 @@
 
 class FrameBuffer;
 class GraphicsState;
+class Viewport;
 
 namespace RenderTarget 
 {
@@ -27,8 +28,10 @@ namespace RenderTarget
 /// A Render-pass in this sense is just one group of graphics related actions, often painting some data onto a buffer or texture object.
 class RenderPass 
 {
+	friend class RenderPipeline;
 public:
 	RenderPass();
+	virtual ~RenderPass();
 
 	// Renders this pass. Returns false if some error occured, usually mid-way and aborting the rest of the procedure.
 	virtual bool Render(GraphicsState & graphics);
@@ -76,9 +79,15 @@ public:
 	bool depthTestEnabled;
 
 private:
+	// Parts of rendering.
+	bool SetupOutput();
+	bool SetupLightPOVCamera();
+
+
+	/// Current
+	Viewport * viewport;
 	/// Creates it as needed.
 	bool BindShadowMapFrameBuffer();
-
-	// o.o 
-	FrameBuffer * shadowMapDepthBuffer;
+	/// In pixels.
+	int shadowMapResolution;
 };

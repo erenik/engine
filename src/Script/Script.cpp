@@ -326,9 +326,21 @@ void Script::EvaluateLine(String & line)
 	}
 	else if (line.Contains("PlayScript("))
 	{
+		List<String> tokens = line.Tokenize("(),");
 		// Source of script within the parenthesis.
-		String source = line.Tokenize("()")[1];
-		Script * script = new Script(source, this);
+		String source = tokens[1];
+		bool wait = true;
+		Script * scriptParent = this;
+		if (tokens.Size() >= 3)
+		{
+			wait = tokens[2].ParseBool();
+			if (!wait)
+			{
+				scriptParent = NULL;
+				this->lineFinished = true;
+			}
+		}
+		Script * script = new Script(source, scriptParent);
 		script->source = source;
 		bool loaded = script->Load();
 		assert(loaded);

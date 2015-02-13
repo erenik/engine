@@ -100,26 +100,17 @@ void Action::TriggerStart()
 			break;
 		case PRINT_SHADOW_MAPS:
 		{
-			List<Window*> windows = WindowMan.GetWindows();
-			for (int i = 0; i < windows.Size(); ++i)
-			{
-				List<Viewport*> viewports = windows[i]->viewports;
-				for (int i = 0; i < viewports.Size(); ++i)
-				{
-					Viewport * vp = viewports[i];
-					vp->printShadowMaps = true;
-				}
-			}
+			GraphicsMan.QueueMessage(new GraphicsMessage(GM_DUMP_FRAMEBUFFER_TEXTURES));
 			break;
 		}
 		case RELOAD_UI:
 			std::cout<<"\nInput>>RELOAD_UI";
-			Graphics.QueueMessage(new GraphicsMessage(GM_RELOAD_UI));
+			GraphicsMan.QueueMessage(new GraphicsMessage(GM_RELOAD_UI));
 			// Notify people of zis
 			break;
 		case RECOMPILE_SHADERS:
 			std::cout<<"\nInput>>RECOMPILE_SHADERS";
-			Graphics.QueueMessage(new GraphicsMessage(GM_RECOMPILE_SHADERS));
+			GraphicsMan.QueueMessage(new GraphicsMessage(GM_RECOMPILE_SHADERS));
 			break;
 		case QUIT_APPLICATION:
 			if (Application::queryOnQuit)

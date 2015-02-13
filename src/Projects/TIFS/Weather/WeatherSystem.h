@@ -7,6 +7,7 @@
 #define WEATHER_SYSTEM_H
 
 #include "MathLib.h"
+#include "Time/Time.h"
 
 class PrecipitationSystem;
 class ParticleEmitter;
@@ -25,13 +26,15 @@ public:
 	/// Deallocates resources.
 	void Shutdown();
 
+	/// o.o;
+	void Process(int timeInMs);
 	void ProcessMessage(Message * message);
 
 	/// Starts the rain.
 	void Rain(float amount);
 	void Snow(float amount);
-	/// Hour in 24-hour format.
-	void SetSunTime(int hour);
+	/// Hour in 24-hour format, 0.0 to 24.0.
+	void SetSunTime(float hour);
 	/// Sets global wind velocity, affecting rain, snow, etc.
 	void Wind(ConstVec3fr globalWind);
 
@@ -46,7 +49,13 @@ private:
 	/// The sun.
 	Entity * sun;
 	// o.o 
+	float sunDistance;
+	float sunHours;
+	float sunUp;
 	Light * sunLight;
+	float inGameSecondsPerSecond;
+	/// Or weather-time?
+	Time inGameTime;
 };
 
 

@@ -33,6 +33,8 @@ public:
 	/// Sets the viewport to use relative coordinates.
 	void SetRelative(Vector2f bottomLeftCorner, Vector2f size);
 	void SetCameraToTrack(Camera * camera);
+	/// Calls glViewport with the location and the size of this viewport.
+	void SetGLViewport();
 	/// Update size based on window it resides in.
 	void UpdateSize();
 	UserInterface * GetUI();
@@ -101,6 +103,9 @@ public:
 
 	/// Fetches ray using viewport-based co-ordinates (not to be confused with the window/screen-space co-ordinates!)
 	bool GetRayFromViewportCoordinates(Vector2i viewportCoords, Ray & ray);
+
+	// o.o 
+	FrameBuffer * shadowMapDepthBuffer;
 
 protected:
 	

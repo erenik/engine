@@ -37,10 +37,14 @@ private:
 	Vector3f value;
 };
 
-enum lightTargets {
-	NULL_TARGET,
-	ATTENUATION, // For calculating effective distance in the shaders.
-	COLOR, // Both diffuse and specular.
+namespace LightTarget
+{
+	enum lightTargets {
+		NULL_TARGET,
+		ATTENUATION, // For calculating effective distance in the shaders.
+		COLOR, // Both diffuse and specular.
+		POSITION,
+	};
 };
 
 class GMSetLight : public GraphicsMessage 

@@ -18,10 +18,10 @@ Time::Time()
 	type = 0;
 }
 /// Undefined time.
-Time::Time(uint64 intervals)
-	: intervals(intervals)
+Time::Time(int type)
+	: type(type)
 {
-	type = TimeType::UNDEFINED;
+	intervals = 0;
 }
 /// Time using a given type and starting-point. 
 Time::Time(uint64 intervals, int type)
@@ -192,6 +192,34 @@ void Time::ConvertTo(int toType)
 	this->type = toType;
 }
 
+/// o.o
+void Time::AddMs(int amount)
+{
+	float multiplier = 1.0;
+	switch(type)
+	{
+		case TimeType::WIN32_100NANOSEC_SINCE_JAN1_1601: 
+			// 100 nano to 1 micro: 10, 1 micro  to 1 ms: 1000.
+			multiplier = 10 * 1000; 
+			break; 
+		case TimeType::MILLISECONDS_NO_CALENDER: 
+			multiplier = 1.0f; 
+			break;
+		default:
+			assert(false);
+	}
+	intervals += amount * multiplier;
+}
+
+/// Sets the hour by adding intervals.
+void Time::SetHour(int hour)
+{
+	// Get current hour?
+	int currentHour = Hour();
+	int intervalsPerHour = IntervalsPerHour();
+	intervals += (hour - currentHour) * intervalsPerHour;
+}
+
 // Current total in micro-seconds since the starting-point.
 uint64 Time::Microseconds()
 {
@@ -234,6 +262,22 @@ int Time::Hour()
 	FetchCalenderData();
 	return hour;
 }
+
+int Time::IntervalsPerHour()
+{
+	int intervalsPerHour;
+	switch(type)
+	{
+		case TimeType::MILLISECONDS_NO_CALENDER:
+			/// 1000 ms to s, 60 s to m, 60, m to h (1000 * 3600)
+			intervalsPerHour = 1000 * 3600;
+			break;
+		default:
+			assert(false);
+	}
+	return intervalsPerHour;
+}
+
 	
 
 /// File I/O
@@ -290,6 +334,14 @@ void Time::FetchCalenderData()
 			minute = sysTime.wMinute;
 			second = sysTime.wSecond;
 
+			break;
+		}
+		case TimeType::MILLISECONDS_NO_CALENDER:
+		{
+			second = (intervals / 1000) % 60;
+			minute = (intervals / (1000 * 60)) % 60;
+			hour = (intervals / (1000 * 3600)) % 24;
+			day = intervals / (1000 * 3600 * 24);
 			break;
 		}
 		default:

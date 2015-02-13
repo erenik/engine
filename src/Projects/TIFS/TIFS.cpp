@@ -81,6 +81,9 @@ TIFS::TIFS()
 {
 	toolParticles = NULL;
 	playerProp = NULL;
+	paused = false;
+	fieldSize = 50.f;
+	halfFieldSize = 25.f;
 }
 
 TIFS::~TIFS()
@@ -155,8 +158,13 @@ void TIFS::OnEnter(AppState * previousState)
 void TIFS::Process(int timeInMs)
 {
 	// Sleep.
-	Sleep(100);
+	Sleep(50);
+	if (paused)
+		return;
+	timeInMs %= 100;
+	weather->Process(timeInMs);
 }
+
 /// Function when leaving this state, providing a pointer to the next StateMan.
 void TIFS::OnExit(AppState * nextState)
 {
@@ -196,10 +204,28 @@ void TIFS::ProcessMessage(Message * message)
 						playerProp->ToggleAutorun();
 				}
 			}
+			if (msg.StartsWith("SetFieldSize"))
+			{
+				fieldSize = msg.Tokenize("()")[1].ParseFloat();
+				halfFieldSize = fieldSize * 0.5;
+			}
+			else if (msg.StartsWith("CreateTurrets"))
+			{
+				CreateTurrets(msg.Tokenize("()")[1].ParseFloat());
+			}
+			else if (msg.StartsWith("SpawnDrones"))
+			{
+				SpawnDrones(msg.Tokenize("()")[1].ParseFloat());
+			}
+			if (msg.Contains("Pause/Break"))
+			{
+				TogglePause();
+			}
 			if (msg.Contains("NextCamera"))
 			{
 				// Get active camera.
-				CameraMan.NextCamera();		
+				Camera * activeCamera = CameraMan.NextCamera();		
+				std::cout<<"\nSwitched to camera: "<<activeCamera->name;
 			}
 			else if (msg == "NewGame")
 			{
@@ -233,14 +259,6 @@ void TIFS::ProcessMessage(Message * message)
 			{
 				Graphics.QueueMessage(new GMSetUI(ui));
 				StateMan.QueueState(NULL);
-			}
-			else if (msg == "CreateTurrets")
-			{
-				CreateTurrets();
-			}
-			else if (msg == "SpawnDrones")
-			{
-				SpawnDrones();
 			}
 			else if (msg == "ResetCamera")
 				ResetCamera();
@@ -291,18 +309,18 @@ void TIFS::ResetCamera()
 Random droneRandom;
 
 /// Randomly!!!! o-=o
-void TIFS::SpawnDrones()
+void TIFS::SpawnDrones(int num)
 {
 	MapMan.DeleteEntities(drones);
 	drones.Clear();
 
-	int numDronesToSpawn = 1;
+	int numDronesToSpawn = num;
 	for (int i = 0; i < numDronesToSpawn; ++i)
 	{
 		Vector3f pos;
-		pos.x = droneRandom.Randf(50.f) - 25.f;
-		pos.z = droneRandom.Randf(50.f) - 25.f;
-		pos.y = droneRandom.Randf(50.f);
+		pos.x = droneRandom.Randf(fieldSize) - halfFieldSize;
+		pos.z = droneRandom.Randf(fieldSize) - halfFieldSize;
+		pos.y = droneRandom.Randf(fieldSize);
 	
 		SpawnDrone(pos);
 	}
@@ -323,18 +341,18 @@ void TIFS::SpawnDrone(ConstVec3fr atLocation)
 	droneProp->OnSpawn();
 }
 
-void TIFS::CreateTurrets()
+void TIFS::CreateTurrets(int num)
 {
 	MapMan.DeleteEntities(turrets);
 	turrets.Clear();
 
 	Random turretRandom;
-	int turretsToCreate = 1;
+	int turretsToCreate = num;
 	for (int i = 0; i < turretsToCreate; ++i)
 	{
 		Vector3f position;
-		position.x = turretRandom.Randf(50.f) - 25.f;
-		position.z = turretRandom.Randf(50.f) - 25.f;
+		position.x = turretRandom.Randf(fieldSize) - halfFieldSize;
+		position.z = turretRandom.Randf(fieldSize) - halfFieldSize;
 		CreateTurret(LARGE, position);
 	}
 }
@@ -396,7 +414,8 @@ void TIFS::SpawnPlayer()
 	// Add characters..!
 	Model * model;
 //	ModelMan.GetModel("Characters/TestCharacter.obj");
-	model = ModelMan.GetModel("dae/TestCharacter.dae");
+	model = ModelMan.GetModel("sphere.obj");
+//	model = ModelMan.GetModel("dae/TestCharacter.dae");
 
 	Entity * player = MapMan.CreateEntity("Player", model, TexMan.GetTexture("Red"));
 	// Attach camera to the player.
@@ -407,7 +426,7 @@ void TIFS::SpawnPlayer()
 	// Attach ze propororoty to bind the entity and the player.
 	playerProp = new TIFSPlayerProperty(player);
 	player->properties.Add(playerProp);
-	playerProp->movementSpeed = 5.f;
+	playerProp->movementSpeed = 15.f;
 	
 	// Enable steering!
 	playerProp->inputFocus = true;
@@ -416,7 +435,20 @@ void TIFS::SpawnPlayer()
 	PhysicsMan.QueueMessage(new PMSetEntity(player, PT_FACE_VELOCITY_DIRECTION, true));
 }
 
-
+void TIFS::TogglePause()
+{
+	paused = !paused;
+	if (paused)
+	{
+		GraphicsMan.Pause();
+		PhysicsMan.Pause();
+	}
+	else
+	{
+		GraphicsMan.Resume();
+		PhysicsMan.Resume();
+	}
+}
 
 // Creates a new game with standard stuff.
 void TIFS::NewGame()
@@ -430,13 +462,30 @@ void TIFS::NewGame()
 	ShowHUD();
 
 	// Spawn turrets
-	CreateTurrets();
+//	CreateTurrets();
 
 	// Spawn drones
-	SpawnDrones();
+//	SpawnDrones();
 
 	// Spawn player
 	SpawnPlayer();
+
+	// Create a plane.
+	Model * model = ModelMan.GetModel("plane");
+	Texture * tex = TexMan.GetTexture("0xAA");
+	Entity * plane = MapMan.CreateEntity("Plane", model, tex);
+	PhysicsMan.QueueMessage(new PMSetEntity(plane, PT_SET_SCALE, fieldSize));
+
+	tex = TexMan.GetTexture("0xEE");
+	plane = MapMan.CreateEntity("Plane 2", model, tex);
+	PhysicsMan.QueueMessage(new PMSetEntity(plane, PT_SET_SCALE, 10.f));
+	PhysicsMan.QueueMessage(new PMSetEntity(plane, PT_POSITION, Vector3f(5,5,5)));
+
+
+	// Mothership.
+	Entity * mothership = MapMan.CreateEntity("Mothership", ModelMan.GetModel("obj/Mothership/Mothership.obj"), TexMan.GetTexture("0x77"));
+	PhysicsMan.QueueMessage(new PMSetEntity(mothership, PT_POSITION, Vector3f(0,1000,0)));
+	PhysicsMan.QueueMessage(new PMSetEntity(mothership, PT_SET_SCALE, 3.f));
 
 	/// Set 3rd person camera as default.
 	GraphicsMan.QueueMessage(new GMSetCamera(thirdPersonCamera));

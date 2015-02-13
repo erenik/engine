@@ -4,9 +4,9 @@ LoadPipeline FixedPipelinePhong
 LoadPipeline FixedPipelineNormals
 LoadPipeline FixedPipelineDiffuse
 LoadPipeline DeferredPipe
+LoadPipeline ShadowPipePhong
 
-
-UsePipeline FixedPipelinePhong
+UsePipeline ShadowPipePhong
 
 
 

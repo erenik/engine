@@ -1,0 +1,49 @@
+RenderConfig
+
+// Pipeline featuring our first shadow-mapping pass...! o.o
+Name	ShadowPipePhong
+
+// Fixed or Multi-pass.
+Multi-pass
+
+// Pass name.
+RenderPass ShadowMapping
+ShadowMapping true
+ShadowMapResolution 512
+Lights Primary
+Camera 	Light
+Shader	ShadowMappingLightPrePass
+Input	Entities
+// Render to a render-buffer in order to obtain textures for lighting.
+Output ShadowMaps
+
+
+// Pass name.
+RenderPass Entities
+
+// Specify shader to use for this render-pass.
+Shader	PhongShadows // Ambient, diffuse and specular shading
+Shadows true
+// Use default camera.
+Camera 	Default 
+// What to render - whose Render function to call.
+Input	Entities
+// Target output. Default will make the standard output be rendered to.
+Output	Default
+
+// Render alpha-entities 'n stuff.
+RenderAlpha
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -638,8 +638,7 @@ int main(int argc, char **argv)
 	
 	// Delete ALL windows o-o
 	WindowMan.DeleteWindows();
-
-
+	
 	std::cout<<"\nDeallocating all managers.";
 	timeStart = clock();
 
@@ -675,6 +674,9 @@ int main(int argc, char **argv)
 	WindowManager::Deallocate();
 	CameraManager::Deallocate();
 	UserInterface::DeleteAll();
+
+	/// Delete any remaining small resources.
+	Light::FreeAll();
 
 	
 	std::cout<<"\nManagers deallocated.";

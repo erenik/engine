@@ -173,9 +173,9 @@ public:
 	void Update();
 
 	/** Sets width/height ratio (commonly known as Aspect ratio). Values should span from 1.0 and upward. */
-	void SetRatio(float widthRatio, float heightRatio);
+	void SetRatioF(float widthRatio, float heightRatio, bool force = false);
 	/** Sets width/height ratio using screen size (integers for amount of pixels in length). */
-	void SetRatio(int widthRatio, int heightRatio);
+	void SetRatioI(int widthRatio, int heightRatio);
 
 	/// Returns the most recently updated projection matrix for this camera
 	const Matrix4d Projection() { return projectionMatrix; };
@@ -280,11 +280,14 @@ private:
 	Vector3f globalLeftVector, globalLookAtVector, globalUpVector;
 
 	/// Projection matrix for this camera
-	Matrix4d projectionMatrix;
+	Matrix4f projectionMatrix;
 	/// View matrix for this camera.
-	Matrix4d viewMatrix;
+	Matrix4f viewMatrix;
 	/// The rotation-part of the view-matrix!
-	Matrix4d rotationMatrix;
+	Matrix4f rotationMatrix;
+
+	/// If forced once, ratio is fixed.
+	bool ratioFixed;
 
 	/// Frustum constrained by this camera.
 	Frustum frustum;

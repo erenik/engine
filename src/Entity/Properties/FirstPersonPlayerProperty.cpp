@@ -259,7 +259,11 @@ void FirstPersonPlayerProperty::UpdateTargetsByCursorPosition()
 		return;
 
 	// Do ray cast within the physics system
-	List<Intersection> contacts = Physics.Raycast(ray);
+	// Make message out of ray-casting.
+//	PhysicsMan.QueueMessage(new PMRaycast(ray));
+
+	bool done;
+	List<Intersection> contacts;
 	targets.Clear();
 
 	if (contacts.Size())
@@ -278,7 +282,7 @@ void FirstPersonPlayerProperty::UpdateTargetsByCursorPosition()
 	if (targets.Size())
 	{
 		primaryTarget = targets[0];
-		std::cout<<"\nTarget found: "<<targets[0]->name;	
+//		std::cout<<"\nTarget found: "<<targets[0]->name;	
 	}
 	else
 		primaryTarget = NULL;

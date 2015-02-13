@@ -31,6 +31,7 @@ class Lighting;
 class TextFont;
 class Camera;
 class Light;
+class GraphicsState;
 
 #define checkGLError() {int error = glGetError();if (error != GL_NO_ERROR)throw 1;}
 
@@ -45,6 +46,11 @@ class Light;
 // Macro while rendering
 #define ActiveViewport (graphicsState->activeViewport)
 
+
+/** Main state for rendering. Contains settings for pretty much everything which is not embedded in other objects.
+	Read only unless you know what you're doing (and are located within a render-thread function).
+*/
+extern GraphicsState * graphicsState;
 
 /** A structure containing information about the current rendering settings and temporary variables, including:
 	- the current model matrix.

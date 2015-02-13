@@ -18,6 +18,9 @@
 
 #include "PhysicsLib/Shapes/Ray.h"
 
+#include "Globals.h"
+#include "Render/FrameBuffer.h"
+
 Viewport::Viewport()
 {
 	Initialize();
@@ -40,6 +43,7 @@ Viewport::Viewport(Vector2i bottomLeftCorner, Vector2i size)
 // Set initial default/NULL-values.
 void Viewport::Initialize()
 {
+	shadowMapDepthBuffer = NULL;
 	printShadowMaps = false;
 //	camera = new Camera()
 	camera = NULL;
@@ -73,6 +77,7 @@ Viewport::~Viewport()
 	// Delete UI! o/o
 	delete ui;
 	ui = NULL;
+	SAFE_DELETE(shadowMapDepthBuffer);
 }
 
 /// Unique ID for this viewport.
@@ -95,6 +100,11 @@ void Viewport::SetCameraToTrack(Camera * icamera){
 	camera = icamera;
 }
 
+/// Calls glViewport with the location and the size of this viewport.
+void Viewport::SetGLViewport()
+{
+	glViewport(bottomLeftCorner.x, bottomLeftCorner.y, size.x, size.y);
+}
 
 /// Update size based on window it resides in.
 void Viewport::UpdateSize()

@@ -5,6 +5,11 @@
 #include "Lighting.h"
 #include "Graphics/Camera/Camera.h"
 
+/** Main state for rendering. Contains settings for pretty much everything which is not embedded in other objects.
+	Read only unless you know what you're doing (and are located within a render-thread function).
+*/
+GraphicsState * graphicsState = NULL;
+
 GraphicsState::GraphicsState()
 {
 	activeWindow = NULL;

@@ -15,12 +15,12 @@ GMSetSelectedWaypoints::GMSetSelectedWaypoints(List<Waypoint*> waypointsToRender
 
 void GMSetSelectedWaypoints::Process()
 {
-	Graphics.graphicsState->selectedWaypoints = wpList;
+	graphicsState->selectedWaypoints = wpList;
 };
 
 GMSetPathToRender::GMSetPathToRender(Path path)
 : GraphicsMessage(GM_NAVMESH), path(path){	
 }
 void GMSetPathToRender::Process(){
-	Graphics.graphicsState->pathToRender = path;
+	graphicsState->pathToRender = path;
 }

@@ -65,7 +65,7 @@ void GraphicsManager::Allocate()
 
 	RenderPipelineManager::Allocate();
 	RenderPipeMan.LoadFromPipelineConfig();
-	Graphics.graphicsState->renderPipe = RenderPipeMan.activePipeline;
+	graphicsState->renderPipe = RenderPipeMan.activePipeline;
 }
 GraphicsManager * GraphicsManager::Instance()
 {
@@ -123,6 +123,7 @@ void PrintGLError(const char * text){
 /// Constructor which anulls all relevant variables.
 GraphicsManager::GraphicsManager()
 {
+	graphicsState = new GraphicsState();
 	pauseProcessing = false;
 	optimizationStructure = NONE;
 //	this->defaultLighting.CreateDefaultSetup();
@@ -170,8 +171,6 @@ GraphicsManager::GraphicsManager()
 	float size = 1.0f;
 	deferredRenderingBox->SetDimensions(-size, size, -size, size);
 
-
-	graphicsState = new GraphicsState();
 	renderSettings = new RenderSettings();
 
 	paused = false;
@@ -256,9 +255,7 @@ GraphicsManager::~GraphicsManager()
     rays.ClearAndDelete();
     renderShapes.ClearAndDelete();
 
-	delete graphicsState;
-	graphicsState = 0;
-
+	SAFE_DELETE(graphicsState);
 	SAFE_DELETE(frustum);
 	SAFE_DELETE(vfcOctree);
 

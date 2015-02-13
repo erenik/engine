@@ -38,7 +38,6 @@ Lighting::Lighting()
 }
 Lighting::~Lighting()
 {
-	lights.ClearAndDelete();
 }
 
 /// Copy constructor ^^
@@ -99,17 +98,6 @@ bool Lighting::ProcessMessage(Message * message)
 {
 	String msg = message->msg;
 	// See if it's a message that could apply to our lights.
-	if (msg.StartsWith("SetLight"))
-	{
-		// Fetch active light.
-		Light * light = activeLight;
-		if (light)
-		{
-			light->lighting = this;
-			light->ProcessMessage(message);
-		}
-		return true;
-	}
 	switch(message->type)
 	{
 		case MessageType::FILE_EVENT:

@@ -15,6 +15,7 @@ public:
 	// Default constructor?
 	FrameBuffer(String name);
 	FrameBuffer(Viewport * vp, Vector2i size);
+	virtual ~FrameBuffer();
 	void Nullify();
 
 	void DumpTexturesToFile();

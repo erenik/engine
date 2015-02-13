@@ -27,6 +27,12 @@ FrameBuffer::FrameBuffer(Viewport * vp, Vector2i initialSize)
 	good = false;
 }
 
+FrameBuffer::~FrameBuffer()
+{
+	renderBuffers.ClearAndDelete();
+}
+
+
 void FrameBuffer::Nullify()
 {
 	viewport = NULL;
@@ -224,8 +230,7 @@ bool FrameBuffer::CreateDepthBuffer(Vector2i size)
 	renderBuffers.ClearAndDelete();	
 	
 	// Create the buffers.
-	RenderBuffer * depthBuf = new RenderBuffer("Depth", BufferType::DEPTH_BUFFER, BufferStorageType::DEPTH_16F, textureSize);
-//	RenderBuffer * depthBuf = new RenderBuffer("Depth", BufferType::DEPTH_BUFFER, BufferStorageType::DEPTH_32F, textureSize);
+	RenderBuffer * depthBuf = new RenderBuffer("Depth", BufferType::DEPTH_BUFFER, BufferStorageType::DEPTH_32F, textureSize);
 	renderBuffers.Add(depthBuf);
 
 	// Bind to 0 when done.

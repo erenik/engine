@@ -170,6 +170,7 @@ Camera::~Camera()
 /// Resets everything.
 void Camera::Nullify()
 {
+	ratioFixed = false;
 	// Tracking vars
 	smoothness = 0.2;
 	minTrackingDistance = 1.5f;
@@ -179,8 +180,8 @@ void Camera::Nullify()
 	resetCamera = NULL;
 	entityToTrack = NULL;
 	trackingMode = TrackingMode::FROM_BEHIND;
-	nearPlane = -0.1f;
-	farPlane = -100000.0f;
+	nearPlane = 0.1f;
+	farPlane = 100000.0f;
 	zoom = 0.1f;
 	distanceFromCentreOfMovement = 0.0f;
 	position = Vector3f(-10, 10, 20);
@@ -333,11 +334,27 @@ void Camera::Update()
 	{	
 		// OLD: Perspective-distortions when adjusting width and height!
 		case PROJECTION_3D:
+		{
 			projectionMatrix.InitProjectionMatrix(left, right, bottom, top, nearPlane, farPlane);
+			Vector4f pos = projectionMatrix * Vector4d(0,0,0,1),
+				pos2 = projectionMatrix * Vector4d(10,10,10,1),
+				pos3 = projectionMatrix * Vector4d(100,100,100,1);
+			pos /= pos.w;
+			pos2 /= pos2.w;
+			pos3 /= pos3.w;
 			break;
+		}
 		case ORTHOGONAL:
+		{
 			projectionMatrix.InitOrthoProjectionMatrix(left, right, bottom, top, nearPlane, farPlane);
+			Vector4f pos = projectionMatrix * Vector4d(0,0,0,1),
+				pos2 = projectionMatrix * Vector4d(10,10,10,1),
+				pos3 = projectionMatrix * Vector4d(100,100,100,1);
+			pos /= pos.w;
+			pos2 /= pos2.w;
+			pos3 /= pos3.w;
 			break;
+		}
 	}
 	frustum.SetProjection(projectionType);
 
@@ -361,6 +378,18 @@ void Camera::Update()
 	viewMatrix = v2;
 	rotationMatrix = r2;
 
+
+	Vector4f cameraSpace = viewMatrix * Vector4d(0,0,0,1),
+		cameraSpace2 = viewMatrix * Vector4d(10,10,10,1),
+		cameraSpace3 = viewMatrix * Vector4d(0,0,-500,1);
+	Vector4f screenSpace = projectionMatrix * cameraSpace,
+		screenSpace2 = projectionMatrix * cameraSpace2,
+		screenSpace3 = projectionMatrix * cameraSpace3;
+	screenSpace /= screenSpace.w;
+	screenSpace2 /= screenSpace2.w;
+	screenSpace3 /= screenSpace3.w;
+
+
 	/// Some new temporary variables for updating the frustum
 	float sample = viewMatrix.GetColumn(0)[0];
 	assert(AbsoluteValue(sample) < 100000.f);
@@ -381,6 +410,23 @@ void Camera::Update()
 	frustum.SetCamPos(Vector3f(camPos), Vector3f(lookingAtVector), Vector3f(upVector));
 
 	lastUpdate = now;
+
+	/*
+	Matrix4f vp = projectionMatrix * viewMatrix;
+	Matrix4f vp2 = viewMatrix * projectionMatrix;
+	Matrix4f mvp = Matrix4f() * vp;
+	Matrix4f mvp2 = Matrix4f() * vp2;
+	Matrix4f mvp3 = vp * Matrix4f();
+	Matrix4f mvp4 = vp2 * Matrix4f();
+	Vector4f vec = Vector4f(0,0,0,1);
+	Vector3f screenSpace = vp * vec;
+	Vector3f screenSpace2 = vp2 * Vector4f(0,0,0,1);
+	Vector3f screenSpace3 = mvp * vec,
+		screenSpace4 = mvp2 * vec,
+		screenSpace5 = mvp3 * vec,
+		screenSpace6 = mvp4 * vec,
+		screenSpace7 = mvp4 * vec;
+		*/
 }
 
 void Camera::Track()
@@ -451,8 +497,14 @@ void Camera::Track()
 /** Sets width/height ratio (commonly known as Aspect ratio).
 	Ratios should be 1.0 and above, and will be scaled down as needed.
 */
-void Camera::SetRatio(float width, float height)
+void Camera::SetRatioF(float width, float height, bool force)
 {
+	if (force)
+	{
+		ratioFixed = true;
+	}
+	else if (ratioFixed)
+		return;
 	float smallest = (float)height;
 	if (height > width)
 		smallest = (float)width;
@@ -461,8 +513,10 @@ void Camera::SetRatio(float width, float height)
 }
 /** Sets width/height ratio (commonly known as Aspect ratio) using screen size.
 */
-void Camera::SetRatio(int width, int height)
+void Camera::SetRatioI(int width, int height)
 {
+	if (ratioFixed)
+		return;
 	float smallest = (float)height;
 	if (height > width)
 		smallest = (float)width;
@@ -472,7 +526,7 @@ void Camera::SetRatio(int width, int height)
 
 const Matrix4f Camera::ViewProjectionF()
 {
-	return viewMatrix * projectionMatrix;
+	return projectionMatrix * viewMatrix;
 }
 
 
@@ -683,6 +737,11 @@ bool Camera::CalculateDefaultEditorMatrices(float distanceFromCenterOfMovement, 
 	// Then translate the camera to it's position. (i.e. translate the world until camera is at a good position).
 	Matrix4d translationMatrix = Matrix4d().Translate(-worldSpacePosition);
 	viewMatrix.Multiply(translationMatrix);
+
+
+	Vector3f cameraSpace = viewMatrix * Vector4d(0,0,0,1),
+		cameraSpace2 = viewMatrix * Vector4d(10,10,10,1);
+
 	return true;
 }
 

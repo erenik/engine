@@ -1088,8 +1088,9 @@ bool InputManager::UICancel()
 /// Similar to GoToNextElement above^
 void InputManager::UINext()
 {
+	return;
 	UserInterface * ui = RelevantUI();
-	UIElement * element;
+	UIElement * element = NULL;
 	UIElement * hoverElement = ui->GetHoverElement();
 	List<UIElement*> uiList;
 	assert(ui);

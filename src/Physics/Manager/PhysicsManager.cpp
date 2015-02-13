@@ -201,6 +201,23 @@ void PhysicsManager::RecalculateOBBs()
     }
 }
 
+// Grab AABB of all relevant entities? Check the AABB-sweeper or other relevant handler?
+AABB PhysicsManager::GetAllEntitiesAABB()
+{
+	AABB aabb;
+	for (int i = 0; i < physicalEntities.Size(); ++i)
+	{
+		Entity * entity = physicalEntities[i];
+#ifdef USE_SSE
+		aabb.max.data = _mm_max_ps(aabb.max.data, entity->aabb->max.data);
+		aabb.min.data = _mm_min_ps(aabb.min.data, entity->aabb->min.data);
+#else
+		aabb.max = Vector3f::Maximum(aabb->max, entity->aabb->max);
+		aabb.min = Vector3f::Minimum(aabb->min, entity->aabb->min);
+#endif
+	}
+	return aabb;
+}
 
 /// Queues a message to the physics-queue, waiting for the mutex to be released before accessing it.
 void PhysicsManager::QueueMessage(PhysicsMessage * msg) {

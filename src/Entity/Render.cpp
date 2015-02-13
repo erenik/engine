@@ -21,6 +21,10 @@
 void Entity::Render(GraphicsState & graphicsState)
 {
 	Shader * shader = ShaderMan.ActiveShader();
+	if (!shader)
+	{
+		return;
+	}
 
 	// Change shader to one supporting skeletal animations if necessary.
 	if (this->graphics->skeletalAnimationEnabled && this->graphics->shaderBasedSkeletonAnimation && shader->attributeBoneIndices == -1)

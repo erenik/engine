@@ -413,7 +413,7 @@ int CollisionShapeOctree::FindCollisions(Entity * targetEntity, List<Collision> 
 	if (entrySubdivisionLevel == -1)
 		entrySubdivisionLevel = this->subdivision;
 
-	GraphicsState * graphicsState = Graphics.graphicsState;
+	GraphicsState * graphicsState = graphicsState;
 
 	int collissionsTested = 0;
 	/// First it's current node:

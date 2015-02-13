@@ -239,11 +239,6 @@ public:
 	/// Returns active map being rendered.
 	TileMap2D * ActiveTileMap2D();
 
-	/** Main state for rendering. Contains settings for pretty much everything which is not embedded in other objects.
-		Read only unless you know what you're doing (and are located within a render-thread function).
-	*/
-	GraphicsState * graphicsState;
-
 private:
     /// Wosh. For like Frustum and other custom stuff.
     List<Renderable*> renderShapes;

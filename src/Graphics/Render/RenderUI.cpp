@@ -61,7 +61,7 @@ void GraphicsManager::RenderUI(UserInterface * ui)
 	/// Update projection matrix
 	Matrix4f projection = Matrix4f();
 	projection.LoadIdentity();
-	projection.InitOrthoProjectionMatrix(0, width, 0, height, -1.0f, -100.0f);
+	projection.InitOrthoProjectionMatrix(0, width, 0, height, 1.0f, 100.0f);
 //	projection.InitProjectionMatrix(-1000, 1000, -500, 500, -1, -100);
 	projection.Translate(0, 0, 1.0f);
 

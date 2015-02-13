@@ -220,6 +220,7 @@ void Shader::ExtractUniforms()
 	uniformModelMatrix = glGetUniformLocation(shaderProgram, "modelMatrix");
 	uniformViewMatrix = glGetUniformLocation(shaderProgram, "viewMatrix");
 	uniformProjectionMatrix = glGetUniformLocation(shaderProgram, "projectionMatrix");
+	uniformViewProjectionMatrix = glGetUniformLocation(shaderProgram, "viewProjectionMatrix");
 	if (uniformProjectionMatrix == -1){
 		std::cout<<"\nUnable to find uniform for Projection Matrix";
 	}
@@ -264,6 +265,7 @@ void Shader::ExtractUniforms()
 	// Shadow maps.
 	glActiveTexture(GL_TEXTURE0 + 4);
 	uniformShadowMap = glGetUniformLocation(shaderProgram, "shadowMap");
+	uniformShadowMapMatrix = glGetUniformLocation(shaderProgram, "shadowMapMatrix");
 
 
 	glActiveTexture(GL_TEXTURE0 + 0);
@@ -416,7 +418,7 @@ void Shader::OnMadeActive()
 	}
 	CheckGLError("Shader::OnMadeActive -enabling vertex attrib arrays");
 	SetTextureLocations();
-	LoadLighting(Graphics.graphicsState->lighting, this);
+	LoadLighting(graphicsState->lighting, this);
 }
 /// Disables the respective vertex attribute pointers.
 void Shader::OnMadeInactive()
@@ -464,6 +466,16 @@ void Shader::SetTextureLocations()
 	CheckGLError("Shader::SetTextureLocations");
 }
 
+
+void Shader::SetupFog(GraphicsState & graphicsState)
+{
+	if (uniformFogBeginDistance != -1)
+	{
+		glUniform1f(uniformFogBeginDistance, graphicsState.fogBegin);
+		glUniform1f(uniformFogEndDistance, graphicsState.fogEnd);
+		glUniform3f(uniformFogColor, graphicsState.clearColor[0], graphicsState.clearColor[1], graphicsState.clearColor[2]);
+	}
+}
 
 /// Returns the most recent edit time of the shader parts this program constitutes of.
 Time Shader::MostRecentEdit()

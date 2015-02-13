@@ -87,6 +87,9 @@ public:
 	void RecalculateAABBs();
 	void RecalculateOBBs();
 
+	// Grab AABB of all relevant entities? Check the AABB-sweeper or other relevant handler?
+	AABB GetAllEntitiesAABB();
+
 
 	/// Casts a ray.
 	List<Intersection> Raycast(Ray & ray);

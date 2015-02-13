@@ -69,11 +69,11 @@ public:
 	void ResetCamera();
 
 	/// Randomly!!!! o-=o
-	void SpawnDrones();
+	void SpawnDrones(int num);
 	void SpawnDrone(ConstVec3fr atLocation);
 
 	/// Randomly!!!! o-=o
-	void CreateTurrets();
+	void CreateTurrets(int num);
 	/// Creates a turret! Sizes Small, Medium and Large accepted.
 	void CreateTurret(int ofSize, ConstVec3fr atLocation);
 
@@ -91,8 +91,10 @@ public:
 
 	// Player property for steering.
 	TIFSPlayerProperty * playerProp;
-
+	
+	void TogglePause();
 private:
+	bool paused;
 	// Creates a new game with standard stuff.
 	void NewGame();
 
@@ -106,5 +108,8 @@ private:
 	/// o-o
 	ToolParticleSystem * toolParticles;
 
+
+	// o.o
+	float fieldSize, halfFieldSize;
 };
 

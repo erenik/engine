@@ -191,23 +191,27 @@ Matrix4d Matrix4d::InitTranslationMatrix(const Vector3f & translation)
 	return mat;
 }
 
-void Matrix4d::InitProjectionMatrix(double left, double right, double bottom, double top, double near, double far){
+void Matrix4d::InitProjectionMatrix(double left, double right, double bottom, double top, double near, double far)
+{
 	LoadIdentity();
-	element[0] = - 2.0f * near / (right - left);
-	element[5] = - 2.0f * near / (top - bottom);
+	element[0] = 2.0f * near / (right - left);
+	element[5] = 2.0f * near / (top - bottom);
 	element[8] = (right + left) / (right - left);
 	element[9] = (top + bottom) / (top - bottom);
-	element[10] = - ((-far) + (-near)) / ((-far) - (-near));
+	element[10] = - (far + near) / (far - near);
 	element[11] = -1;
-	element[14] = -2 * -far * -near / ((-far) - (-near));
+	element[14] = -2 * far * near / (far - near);
 	element[15] = 0;
 }
 
-void Matrix4d::InitOrthoProjectionMatrix(double left, double right, double bottom, double top, double near, double far){
+void Matrix4d::InitOrthoProjectionMatrix(double left, double right, double bottom, double top, double near, double far)
+{
+//	near *= -1;
+//	far *= -1;
 	LoadIdentity();
 	element[0] = 2.0f / (right - left);
 	element[5] = 2.0f / (top - bottom);
-	element[10] = 2.0f  / (far - near);
+	element[10] = -2.0f  / (far - near);
 	element[12] = -(right + left) / (right - left);
 	element[13] = -(top + bottom) / (top - bottom);
 	element[14] = -(far + near) / (far - near);

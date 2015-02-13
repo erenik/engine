@@ -29,6 +29,9 @@ enum graphicsMessages {
 	// Recording
 	GM_RECORD_VIDEO,
 	GM_PRINT_SCREENSHOT,
+
+	// Debugging.
+	GM_DUMP_FRAMEBUFFER_TEXTURES,
 	
 	// Animation
 	GM_PLAY_ANIMATION,

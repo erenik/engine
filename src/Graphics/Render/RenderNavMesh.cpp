@@ -32,7 +32,7 @@ void SetColorForWaypoint(Waypoint * wp)
 		color += Vector4f(2.0f,0,0,0.7f);
 	}
 	/// If in selection, highlight
-//	if (Graphics.graphicsState->selectedWaypoints.Exists(wp)){
+//	if (graphicsState->selectedWaypoints.Exists(wp)){
 	//	color += Vector4f(0.2, 0.2f, 0, 0.2f);
 //	}
 	glColor4f(color[0],color[1],color[2],color[3]);

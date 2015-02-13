@@ -28,7 +28,10 @@ namespace BufferStorageType
 	enum bufferTypes 
 	{
 		SINGLE_BYTE,
-		DEPTH_16F, // 16-bit floating point. Used for e.g. depth-buffers.
+		/// Used for e.g. depth-buffers.
+		DEPTH_16F, // 16-bit floating point. 
+		DEPTH_32F, // 32-bit floating point. Should work better for e.g. shadow mapping, but may cost some more memory.
+		/// Vector-buffers.
 		RGBA_8, // 4-channels, 8 bit integers per channel.
 		RGB_16F, // 3-channel, 16 bit floating point values per channel
 		RGB_32F, // 3-channel, 32 bit floating point values per channel

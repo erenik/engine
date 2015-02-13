@@ -230,26 +230,37 @@ Matrix4f Matrix4f::InitScalingMatrix(const Vector3f & scale)
 	return mat;
 }
 
-void Matrix4f::InitProjectionMatrix(float left, float right, float bottom, float top, float nearVal, float farVal){
+void Matrix4f::InitProjectionMatrix(float left, float right, float bottom, float top, float near, float far)
+{
+	Matrix4d proj;
+	proj.InitProjectionMatrix(left,right, bottom, top, near,far);
+	*this = proj;
+	/*
 	LoadIdentity();
-	element[0] = 2.0f * nearVal / (right - left);
-	element[5] = 2.0f * nearVal / (top - bottom);
-	element[8] = -(right + left) / right - left;
-	element[9] = -(top + bottom) / (top - bottom);
-	element[10] = (farVal + nearVal) / (farVal - nearVal);
-	element[11] = 1;
-	element[14] = -2 * farVal * nearVal / (farVal - nearVal);
+	element[0] = 2.0f * near / (right - left);
+	element[5] = 2.0f * near / (top - bottom);
+	element[8] = (right + left) / (right - left);
+	element[9] = (top + bottom) / (top - bottom);
+	element[10] = - (far + near) / (far - near);
+	element[11] = -1;
+	element[14] = -2 * far * near / (far - near);
 	element[15] = 0;
+	*/
 }
 
-void Matrix4f::InitOrthoProjectionMatrix(float left, float right, float bottom, float top, float near, float far){
+void Matrix4f::InitOrthoProjectionMatrix(float left, float right, float bottom, float top, float near, float far)
+{
+	Matrix4d ortho;
+	ortho.InitOrthoProjectionMatrix(left,right,bottom,top,near,far);
+	*this = ortho;
+	/*
 	LoadIdentity();
 	element[0] = 2.0f / (right - left);
 	element[5] = 2.0f / (top - bottom);
-	element[10] = 2.0f  / (far - near);
+	element[10] = - 2.0f  / (far - near);
 	element[12] = -(right + left) / (right - left);
 	element[13] = -(top + bottom) / (top - bottom);
-	element[14] = -(far + near) / (far - near);
+	element[14] = (far + near) / (far - near);*/
 }
 
 

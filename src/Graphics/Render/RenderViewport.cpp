@@ -21,8 +21,7 @@ void GraphicsManager::RenderViewport(Viewport * vp)
 	int width = vp->size[0], height = vp->size[1];
 	
 	/// Absolute coordinates
-	glViewport(vp->bottomLeftCorner[0], vp->bottomLeftCorner[1], vp->size[0], vp->size[1]);
-
+	graphicsState->activeViewport->SetGLViewport();
 	glEnable(GL_SCISSOR_TEST);
 	glScissor(vp->bottomLeftCorner[0], vp->bottomLeftCorner[1], vp->size[0], vp->size[1]);
 
@@ -40,7 +39,7 @@ void GraphicsManager::RenderViewport(Viewport * vp)
 	}
 	// Movement should be processed.. in physics or earlier.
 //	camera->ProcessMovement(graphicsState->frameTime);
-	camera->SetRatio(width, height);
+	camera->SetRatioI(width, height);
 	camera->Update();
 	// Set active camera to current one
 	graphicsState->camera = camera;

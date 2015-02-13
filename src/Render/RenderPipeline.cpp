@@ -82,9 +82,17 @@ bool RenderPipeline::Load(String fromFile)
 				else if (arg == "Default")
 					rp->camera = RenderPass::DEFAULT_CAMERA;
 			}
+			else if (line.StartsWith("Shadows"))
+			{
+				rp->shadows = line.Tokenize(" \t")[1].ParseBool();
+			}
 			else if (line.StartsWith("ShadowMapping"))
 			{
 				rp->shadowMapping = true;
+			}
+			else if (line.StartsWith("ShadowMapResolution"))
+			{
+				rp->shadowMapResolution = line.Tokenize(" \t")[1].ParseInt();
 			}
 			else if (line.StartsWith("Lights"))
 			{

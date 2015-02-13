@@ -15,7 +15,7 @@ GMClearLighting::GMClearLighting()
 }
 void GMClearLighting::Process()
 {
-	GraphicsState * graphicsState = Graphics.graphicsState;
+	GraphicsState * graphicsState = graphicsState;
 	Lighting * lighting = Graphics.ActiveLighting();
 	lighting->DeleteAllLights();
 	graphicsState->dynamicLights.ClearAndDelete();
@@ -61,8 +61,9 @@ GMSetLight::GMSetLight(Light * light, int target, ConstVec3fr value)
 {
 	switch(target)
 	{
-	case ATTENUATION:
-	case COLOR:
+	case LightTarget::ATTENUATION:
+	case LightTarget::COLOR:
+	case LightTarget::POSITION:
 		break;
 	default:
 		assert(false);
@@ -82,11 +83,16 @@ void GMSetLight::Process()
 		return;
 	switch(target)
 	{
-	case ATTENUATION:
-		light->attenuation = vec3Value;
-		break;
-	case COLOR:
-		light->diffuse = vec3Value;
-		break;
+		case LightTarget::ATTENUATION:
+			light->attenuation = vec3Value;
+			break;
+		case LightTarget::COLOR:
+			light->specular = light->diffuse = vec3Value;
+			break;
+		case LightTarget::POSITION:
+			light->position = vec3Value;
+			break;
+		default:
+			assert(false);
 	}
 }

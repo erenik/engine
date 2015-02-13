@@ -77,6 +77,16 @@ const Angle & Angle::operator -= (const Angle & angle)
 	return *this;
 }
 
+float Angle::Cosine()
+{
+	return cos(radians);
+}
+float Angle::Sine()
+{
+	return sin(radians);
+}
+
+
 /// Truncates so that the angle does not exceed this value in either positive or negative direction.
 void Angle::Truncate(float minMaxValueInRadians)
 {

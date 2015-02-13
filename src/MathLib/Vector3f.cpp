@@ -705,19 +705,33 @@ const float Vector3f::MinPartAbs() const
 
 
 /// Utility functions
-Vector3f Vector3f::Minimum(const Vector3f & vec1, const Vector3f & vec2){
+Vector3f Vector3f::Minimum(const Vector3f & vec1, const Vector3f & vec2)
+{
+#ifdef USE_SSE
+	Vector3f newVec;
+	newVec.data = _mm_min_ps(vec1.data, vec2.data);
+	return newVec;
+#else
 	return Vector3f(
 		vec1[0] < vec2[0] ? vec1[0] : vec2[0],
 		vec1[1] < vec2[1] ? vec1[1] : vec2[1],
 		vec1[2] < vec2[2] ? vec1[2] : vec2[2]
 	);
+#endif
 }
-Vector3f Vector3f::Maximum(const Vector3f & vec1, const Vector3f & vec2){
+Vector3f Vector3f::Maximum(const Vector3f & vec1, const Vector3f & vec2)
+{
+#ifdef USE_SSE
+	Vector3f newVec;
+	newVec.data = _mm_max_ps(vec1.data, vec2.data);
+	return newVec;
+#else
 	return Vector3f(
 		vec1[0] > vec2[0] ? vec1[0] : vec2[0],
 		vec1[1] > vec2[1] ? vec1[1] : vec2[1],
 		vec1[2] > vec2[2] ? vec1[2] : vec2[2]
 	);
+#endif
 }
 // Rounds to nearest digit!
 void Vector3f::Round(){

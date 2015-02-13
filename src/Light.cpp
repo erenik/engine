@@ -16,16 +16,20 @@
 #include "Graphics/Messages/GMUI.h"
 #include "Graphics/Messages/GraphicsMessages.h"
 
+List<Light*> Light::lights;
+
 Light::Light(String name)
 : name(name)
 {
 	Nullify();
+	lights.Add(this);
 }
 
 Light::Light(Lighting * lighting)
 {
 	Nullify();
 	this->lighting = lighting;
+	lights.Add(this);
 }
 
 void Light::Nullify()
@@ -66,8 +70,15 @@ Light::Light(const Light & otherLight)
 
 Light::~Light()
 {
-
+	lights.Remove(this);
 }
+
+void Light::FreeAll()
+{
+	while(lights.Size())
+		delete lights[0];
+}
+
 	
 
 String lightEditorName = "LightEditor";
@@ -117,6 +128,19 @@ void Light::ProcessMessage(Message * message)
 	String msg = message->msg;
 	switch(message->type)
 	{
+		case MessageType::STRING:
+		{
+			List<String> tokens = msg.Tokenize("(),");
+			String param = tokens[2];
+			String arg = tokens[3];
+			if (param.Contains("shadowMapFarplane"))
+			{
+				shadowMapFarplane = arg.ParseFloat();
+			}
+			else if (param.Contains("shadowMapZoom"))
+				shadowMapZoom = arg.ParseFloat();
+			break;
+		}
 		case MessageType::SET_STRING:
 		{
 			SetStringMessage * ssm = (SetStringMessage*)message;
@@ -175,6 +199,21 @@ void Light::ProcessMessage(Message * message)
 		}
 	}
 }
+
+// For interaction with UI as well as scripting.
+void Light::ProcessMessageStatic(Message * message)
+{
+	String msg = message->msg;
+	List<String> tokens = msg.Tokenize("(,)");
+	String name = tokens[1];
+	String param = tokens[2];
+	param.SetComparisonMode(String::NOT_CASE_SENSITIVE);
+	String arg = tokens[3];
+	Light * light = GetLight(name);
+	if (light)
+		light->ProcessMessage(message);
+}
+
 
 // Updates UI as necessary
 void Light::OnPropertiesUpdated()
@@ -252,3 +291,17 @@ void Light::SetName(const String newName){
 	assert(abs(newName.Length()) < 5000);
 	name = newName; 
 }
+
+Light * Light::GetLight(String byName)
+{
+	for (int i = 0; i < lights.Size(); ++i)
+	{
+		Light * light = lights[i];
+		if (light->name == byName)
+			return light;
+	}
+	return NULL;
+}
+
+
+

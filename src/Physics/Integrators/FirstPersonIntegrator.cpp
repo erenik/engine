@@ -112,4 +112,9 @@ void FirstPersonIntegrator::IntegrateVelocity(Entity * forEntity, float timeInSe
 	}
 	// Recalculate matrix after integration is done.
 	forEntity->RecalculateMatrix(rotated);
+
+	assert(pp->velocity[0] == pp->velocity[0]);
+	if (pp->velocity[0] != pp->velocity[0])
+		pp->velocity = Vector3f();
+
 }

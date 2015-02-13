@@ -34,6 +34,7 @@ public:
 	Light(Lighting * lighting);
 	Light(const Light & otherLight);
 	~Light();
+	static void FreeAll();
 	void Nullify();
 
 	/// Opens a dedicated editor window for this light. Assumes a valid LightEditor.gui is available in the UI directory.
@@ -41,6 +42,8 @@ public:
 	void CloseEditorWindow();
 	// For interaction with UI as well as scripting.
 	void ProcessMessage(Message * message);
+	// For interaction with UI as well as scripting.
+	static void ProcessMessageStatic(Message * message);
 	// Updates UI as necessary
 	void OnPropertiesUpdated();
 
@@ -101,7 +104,13 @@ public:
 		-1 default value.
 	*/
 	int shadowMapIndex;
+	/// ViewProjection, or rather BiasViewProjection matrix.
+	Matrix4f shadowMappingMatrix;
+	float shadowMapZoom;
+	float shadowMapFarplane;
 private:
+	static Light * GetLight(String byName);
+	static List<Light*> lights;
 	// Lighting setup it belongs to.
 	Lighting * lighting;
 	/// Name of the light

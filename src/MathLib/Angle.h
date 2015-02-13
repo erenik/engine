@@ -25,6 +25,9 @@ public:
 	const Angle & operator += (const Angle & angle);
 	const Angle & operator -= (const Angle & angle);
 
+
+	float Cosine();
+	float Sine();
 	/// Truncates so that the angle does not exceed this value in either positive or negative direction.
 	void Truncate(float minMaxValueInRadians);
 

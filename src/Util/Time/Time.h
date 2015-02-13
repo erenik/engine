@@ -14,6 +14,8 @@ namespace TimeType
 		UNDEFINED,
 		// http://msdn.microsoft.com/en-us/library/windows/desktop/ms724284%28v=vs.85%29.aspx
 		WIN32_100NANOSEC_SINCE_JAN1_1601, 
+		// Custom type only used for handling in-game minute/hour/day cycles within e.g. the Weather system.
+		MILLISECONDS_NO_CALENDER,
 	};
 };
 
@@ -24,8 +26,7 @@ class Time
 public:
 	/// 0 time.
 	Time();
-	/// Undefined time.
-	Time(uint64 intervals);
+	Time(int type);
 	/// Time using a given type and starting-point. 
 	Time(uint64 intervals, int type);
 
@@ -64,6 +65,11 @@ public:
 	/// Converts this time into specified type.
 	void ConvertTo(int type);
 
+	/// o.o
+	void AddMs(int amount);
+	/// Sets the hour in current day by adding or removing diff amount of intervals.
+	void SetHour(int hour);
+
 	// Current total in micro-seconds since the starting-point.
 	uint64 Microseconds();
 	int64 Milliseconds();
@@ -88,6 +94,9 @@ public:
 
 	/// o-o
 	int Type(){ return type;};
+
+	int IntervalsPerHour();
+
 private:
 	/// Fetches calender data given the intervals and type defined now.
 	void FetchCalenderData();

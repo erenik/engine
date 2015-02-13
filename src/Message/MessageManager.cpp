@@ -303,6 +303,10 @@ void MessageManager::ProcessMessage(Message * message)
 		case MessageType::STRING:
 		{
 			msg.SetComparisonMode(String::NOT_CASE_SENSITIVE);
+			if (msg.StartsWith("SetLight"))
+			{
+				Light::ProcessMessageStatic(message);
+			}
 			if (msg == "AcceptInput:false")
 				Input.acceptInput = false;
 			else if (msg.Contains("InputMan.printHoverElement"))

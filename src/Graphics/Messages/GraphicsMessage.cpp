@@ -19,6 +19,10 @@
 #include "Render/RenderPipelineManager.h"
 #include "Render/RenderPipeline.h"
 
+#include "Window/WindowManager.h"
+#include "Render/FrameBuffer.h"
+
+
 GraphicsMessage::GraphicsMessage(int i_type){
 	type = i_type;
 }
@@ -27,9 +31,25 @@ GraphicsMessage::~GraphicsMessage(){
 
 void GraphicsMessage::Process()
 {
-	GraphicsState * graphicsState = Graphics.graphicsState;
 	switch(type)
 	{
+		case GM_DUMP_FRAMEBUFFER_TEXTURES:
+		{
+			List<Window*> windows = WindowMan.GetWindows();
+			for (int i = 0; i < windows.Size(); ++i)
+			{
+				List<Viewport*> viewports = windows[i]->viewports;
+				for (int i = 0; i < viewports.Size(); ++i)
+				{
+					Viewport * vp = viewports[i];
+					if (vp->shadowMapDepthBuffer)
+					{
+						vp->shadowMapDepthBuffer->DumpTexturesToFile();
+					}
+				}
+			}
+			break;
+		}
 		case GM_PAUSE_PROCESSING:
 		{
 			GraphicsMan.pauseProcessing = true;

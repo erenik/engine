@@ -238,6 +238,7 @@ int Texture::DataType()
 	switch(format)
 	{
 		case SINGLE_16F:
+		case SINGLE_32F:
 		case RGB_16F:
 		case RGB_32F:
 			return DataType::FLOAT;
@@ -262,6 +263,7 @@ int Texture::GetChannels()
 	switch(format)
 	{
 		case SINGLE_16F:
+		case SINGLE_32F:
 			return 1;
 		case RGB:
 		case RGB_16F:
@@ -304,6 +306,7 @@ void Texture::LoadDataFromGL()
 			glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, cData); 
 			break;
 		}
+		case SINGLE_32F:
 		case SINGLE_16F:
 			loadChannels = 1;
 			//glReadPixels(0,0,size[0], size[1], GL_RED, GL_FLOAT, fData);
@@ -920,8 +923,9 @@ bool Texture::SaveOpenCV(String toPath)
 	cv::Mat mat;
 	int cvFormat = CV_8UC3;
 	mat.create(cv::Size(width, height), cvFormat);
-	int bytesPerChannel = 1;
+	int bytesPerChannel = 3;
 	int non1s = 0;
+	List<float> valueTypes;
 	for (int y = 0; y < mat.rows; ++y)
 	{
 		for (int x = 0; x < mat.cols; ++x)
@@ -945,8 +949,15 @@ bool Texture::SaveOpenCV(String toPath)
 							// Re-scale it?
 							float originalValue = value;
 							if (originalValue != 1)
+							{
 								non1s++;
-							float squared = pow(originalValue, 2);
+							}
+							if (valueTypes.Size() < 1000)
+							{
+								if (!valueTypes.Exists(originalValue))
+									valueTypes.Add(originalValue);
+							}
+							float squared = pow(originalValue, 1);
 //							float shrunk = value / FLT_MAX;
 							// Make it positive?
 //							float positivized = shrunk + 1.f;
@@ -973,7 +984,16 @@ bool Texture::SaveOpenCV(String toPath)
 	}
 	if (non1s > 0)
 		std::cout<<"\nNon 1s: "<<non1s;
-	
+	if (valueTypes.Size())
+	{
+		std::cout<<"\n"<<(valueTypes.Size() > 1000? "More than " : "") <<valueTypes.Size()<<" value types found.";
+		/*
+		for (int i = 0; i < valueTypes.Size(); ++i)
+		{
+			std::cout<<"\n"<<i<<": "<<valueTypes[i];
+		}*/
+	}
+
 	// Write it!
 	std::vector<int> compression_params;
 	compression_params.push_back(CV_IMWRITE_PNG_COMPRESSION);

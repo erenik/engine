@@ -43,6 +43,9 @@ void RenderBuffer::CreateBuffer()
 		case BufferStorageType::DEPTH_16F:
 			glStorageType = GL_DEPTH_COMPONENT16;
 			break;
+		case BufferStorageType::DEPTH_32F:
+			glStorageType = GL_DEPTH_COMPONENT32;
+			break;
 		case BufferStorageType::RGBA_8:
 			glStorageType = GL_RGBA8;
 			break;
@@ -105,6 +108,12 @@ void RenderBuffer::CreateTexture()
 			glPixelDataType = GL_FLOAT;
 			texture->bpp = 2;
 			texture->format = Texture::SINGLE_16F;
+			break;
+		case BufferStorageType::DEPTH_32F:
+			glPixelDataFormat = GL_DEPTH_COMPONENT;
+			glPixelDataType = GL_FLOAT;
+			texture->bpp = 4;
+			texture->format = Texture::SINGLE_32F;
 			break;
 	}
 	// Create a standard texture with the width and height of our window

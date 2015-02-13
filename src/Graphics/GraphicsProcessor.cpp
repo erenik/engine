@@ -20,6 +20,7 @@
 
 #include "Audio/AudioManager.h"
 #include "Audio/OpenAL.h"
+#include "Globals.h"
 
 #include "File/LogFile.h"
 
@@ -243,9 +244,6 @@ void * GraphicsManager::Processor(void * vArgs){
 	// To use when not rendering, since I'm failing with it at the moment.
 	long long timeNotRendered = lastOptimization;
 
-	// Pointarr.
-	GraphicsState * graphicsState = Graphics.graphicsState;
-
 	LogGraphics("Beginning main rendering/physics/multimedia loop", INFO);
 	// Then begin the main rendering loop
 	while(Graphics.shouldLive)
@@ -372,7 +370,7 @@ void * GraphicsManager::Processor(void * vArgs){
 			}
 			else {
 				// Busy.
-				std::cout<<"\nUnable to claim graphicsProcessing mutex within given time frame, skipping processing this iteration";
+		//		LogGraphics("Unable to claim graphicsProcessing mutex within given time frame, skipping processing this iteration", INFO);
 			}
 		//	std::cout<<"\nGraphicsFrameTime: "<<graphicsTimer.GetMs();
 			total.Stop();
@@ -445,6 +443,7 @@ void * GraphicsManager::Processor(void * vArgs){
 	{
 		windows[i]->DeleteGLContext();
 	}
+
 
     /// Delete rendering context
     time_t timeTaken, timeStart = clock();

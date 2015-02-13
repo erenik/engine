@@ -9,6 +9,10 @@
 #include "Graphics/OpenGL.h"
 #include "Graphics/GraphicsManager.h"
 #include "Graphics/Camera/Camera.h"
+#include "GraphicsState.h"
+
+#include "Physics/PhysicsManager.h"
+#include "PhysicsLib/Shapes/AABB.h"
 
 #include "FrameBuffer.h"
 #include "RenderBuffer.h"
@@ -20,6 +24,9 @@
 #include "AppStates/AppState.h"
 #include "StateManager.h"
 
+#include "File/LogFile.h"
+#include "String/StringUtil.h"
+
 RenderPass::RenderPass()
 {
 	shader = 0;
@@ -30,38 +37,23 @@ RenderPass::RenderPass()
 
 	lights = PRIMARY_LIGHT;
 	shadowMapping = false;
-	shadowMapDepthBuffer = NULL;
 	shadows = false;
+	shadowMapResolution = 512;
+	viewport = NULL;
+}
+
+RenderPass::~RenderPass()
+{
 }
 
 // Renders this pass. Returns false if some error occured, usually mid-way and aborting the rest of the procedure.
 bool RenderPass::Render(GraphicsState & graphicsState)
 {
-	Lighting * lighting = graphicsState.lighting;
-	List<Light*> lights = lighting->GetLights();
+	viewport = graphicsState.activeViewport;
 	CheckGLError("Before RenderPass::Render");
-	switch(output)
-	{
-		case RenderTarget::DEFAULT:
-		{
-			// Set default render target.. however one does that.
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			break;
-		}
-		case RenderTarget::SHADOW_MAPS:
-		{
-			// Fetch shadow-map framebuffer for this viewport?
-			BindShadowMapFrameBuffer();
-			break;
-		}
-		case RenderTarget::DEFERRED_GATHER:
-		{
-			// Set up/fetch render buffers for this, based on the viewport.
-			if (!graphicsState.activeViewport->BindFrameBuffer())
-				return false;
-			break;
-		}
-	}
+	// Setup output buffers?
+	if (!SetupOutput())
+		return false;
 	/// Check basic type. If specific, call other procedures.
 	switch(type)
 	{
@@ -74,7 +66,6 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 		default:
 			break;
 	}
-
 	// Set shader to use in this render-pass.
 	if (!shader)
 	{
@@ -93,12 +84,8 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 	{
         return false;
     }
-	graphicsState.settings |= ENABLE_SPECIFIC_ENTITY_OPTIONS;
 
-	// Set fog properties as needed.
-	glUniform1f(shader->uniformFogBeginDistance, graphicsState.fogBegin);
-	glUniform1f(shader->uniformFogEndDistance, graphicsState.fogEnd);
-	glUniform3f(shader->uniformFogColor, graphicsState.clearColor[0], graphicsState.clearColor[1], graphicsState.clearColor[2]);
+	graphicsState.settings |= ENABLE_SPECIFIC_ENTITY_OPTIONS;
 
 	bool backfaceCullingEnabled = false;
 	if (backfaceCullingEnabled){
@@ -131,46 +118,13 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 		}
 		case RenderPass::LIGHT:
 		{
-			// Now it becomes tricky..
-			static Camera * camera = NULL;
-			bool anyShadows = false;
-			if (camera == NULL)
-				camera = CameraMan.NewCamera("LightPOVCamera");
-			for (int i = 0; i < lights.Size(); ++i)
+			if (!SetupLightPOVCamera())
 			{
-				Light * light = lights[i];
-				if (!light->castsShadow)
-					continue;
-				if (light->type != LightType::DIRECTIONAL)
-				{
-					std::cout<<"\nLight types beside directional not supported for shadow mappinag at the moment.";
-					continue;
-				}
-				anyShadows = true;
-				camera->projectionType = Camera::ORTHOGONAL;
-				camera->position = light->position;
-				// Set rotation based on position?
-				Angle yaw = Angle(light->position.x, light->position.z);
-				Angle pitch = Angle(Vector2f(light->position.x, light->position.z).Length(), light->position.y);
-				camera->rotation.y = yaw.Radians();
-				camera->rotation.x = pitch.Radians();
-//				camera->position = Vector3f(0,10.f,0);
-//				camera->rotation = Vector3f(0.2f,0,0);
-				camera->zoom = 50.f;
-				camera->Update();
-				Vector3f forward = camera->LookingAt();
-				Vector3f up = camera->UpVector();
-				Vector3f position = camera->ViewProjectionF() * Vector4f(0,0,0,1);
-				graphicsState.SetCamera(camera);
-				// Take current shadow map texture we created earlier and make sure the camera is bound to it for usage later.
-				// Save matrix used to render shadows properly later on?
-	//			light->inverseTransposeMatrix = ;
-				light->shadowMap = this->shadowMapDepthBuffer->renderBuffers[0]->texture;
-				assert(light->shadowMap);
-			}
-			if (!anyShadows)
-			{
-				std::cout<<"\nNo shadows to cast. Skipping pass.";
+				// Unbind the framebuffer so that UI and stuff will render as usual.
+				glBindFramebuffer(GL_FRAMEBUFFER, 0);
+				// Restore active camera from the graphicsState
+				graphicsState.SetCamera(oldCamera);
+		//		std::cout<<"\nNo shadows to cast. Skipping pass.";
 				return true;
 			}
 			break;
@@ -179,6 +133,7 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 	// If shadows are to be rendered, look for em in the light.
 	if (shadows)
 	{
+		List<Light*> lights = graphicsState.lighting->GetLights();
 		for (int i = 0; i < lights.Size(); ++i)
 		{
 			Light * light = lights[i];
@@ -189,6 +144,8 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 				glActiveTexture(GL_TEXTURE0 + 4);		// Select server-side active texture unit o.o;
 				// Just one shadow map for now.
 				light->shadowMapIndex = 0;
+				// Set matrix.
+				glUniformMatrix4fv(shader->uniformShadowMapMatrix, 1, false, light->shadowMappingMatrix.getPointer());
 				// Bind texture
 				glBindTexture(GL_TEXTURE_2D, light->shadowMap->glid);
 				// o.o pew.
@@ -212,11 +169,23 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 	graphicsState.modelMatrixF.LoadIdentity();
 
 	// Load in the model and view matrices from selected camera.
-	glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, camera.ViewMatrix4f().getPointer());
-	CheckGLError("RenderPass, setting view matrix");
-	glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, graphicsState.modelMatrixF.getPointer());
-	CheckGLError("RenderPass, setting model matrix");
+	if (shader->uniformViewProjectionMatrix != -1)
+	{
+		Matrix4f viewProj = camera.ViewProjectionF();
+		Vector4f stuff = viewProj * Vector4f(0,0,0,1);
+		stuff /= stuff.w;
+		Vector4f stuff2 = viewProj * Vector4f(0,0,-20.f,1);
+		stuff2 /= stuff2.w;
 
+		glUniformMatrix4fv(shader->uniformViewProjectionMatrix, 1, false, viewProj.getPointer());
+		CheckGLError("RenderPass, setting viewProj");
+	}
+	else {
+		glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, camera.ViewMatrix4f().getPointer());
+		CheckGLError("RenderPass, setting view matrix");
+		glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, graphicsState.modelMatrixF.getPointer());
+		CheckGLError("RenderPass, setting model matrix");
+	}
 	// Load projection matrix into shader
 	graphicsState.projectionMatrixF = graphicsState.projectionMatrixD;
 	glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, camera.ProjectionMatrix4f().getPointer());
@@ -231,6 +200,8 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 	glEnable(GL_TEXTURE_2D);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
+	// Set fog uniforms as needed.
+	shader->SetupFog(graphicsState);
 
 	/// Set legacy rendering setting
 	bool useLegacy = false;
@@ -245,18 +216,6 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 	/// Seems buggy even at 3.ish, maybe raise cap to 4?
 	if (GL_VERSION_MAJOR < 3)
 		useDeferred = false;
-  //  std::cout<<"\nUsing deferred: "<<useDeferred;
-/*	 // If support is via EXT (OpenGL version < 3), add the EXT suffix; otherwise functions are core (OpenGL version >= 3)
-    // or ARB without the EXT suffix, so just get the functions on their own.
-    std::string suffix = (support_framebuffer_via_ext ? "EXT" : "");
-	// Bind functions
-	glGenFramebuffers = (PFNGLGENFRAMEBUFFERSPROC) wglGetProcAddress((std::string("glGenFramebuffers") + suffix).c_str());
-	glDeleteFramebuffers = (PFNGLDELETEFRAMEBUFFERSPROC)wglGetProcAddress((std::string("glDeleteFramebuffers") + suffix).c_str());
-	glBindFramebuffer = (PFNGLBINDFRAMEBUFFERPROC)wglGetProcAddress((std::string("glBindFramebuffer") + suffix).c_str());
-	glFramebufferTexture2D = (PFNGLFRAMEBUFFERTEXTURE2DPROC)wglGetProcAddress((std::string("glFramebufferTexture2D") + suffix).c_str());
-	glCheckFramebufferStatus = (PFNGLCHECKFRAMEBUFFERSTATUSPROC)wglGetProcAddress((std::string("glCheckFramebufferStatus") + suffix).c_str());
-	glGenerateMipmap = (PFNGLGENERATEMIPMAPPROC)wglGetProcAddress((std::string("glGenerateMipmap") + suffix).c_str());
-*/
 
 	if (graphicsState.settings & USE_LEGACY_GL){
 		// Set default shader program
@@ -285,11 +244,8 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 		glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, graphicsState.projectionMatrixF.getPointer());
 		glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, graphicsState.viewMatrixF.getPointer());
 		glUniform4f(shader->uniformEyePosition, camera.Position()[0], camera.Position()[1], camera.Position()[2], 1.0f);
-	}
-	
-	CheckGLError("RenderPass, eye position");
-
-
+		CheckGLError("RenderPass, eye position");
+	}	
 	switch(input)
 	{
 		/// Use previously rendered-to render-buffers associated with this viewport.
@@ -339,8 +295,10 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 			if (graphicsState.activeViewport->printShadowMaps)
 			{
 				graphicsState.activeViewport->printShadowMaps = false;
-				shadowMapDepthBuffer->DumpTexturesToFile();
+				graphicsState.activeViewport->shadowMapDepthBuffer->DumpTexturesToFile();
 			}
+			// Reset viewport to default.
+			graphicsState.activeViewport->SetGLViewport();
 			break;	
 		}
 		case RenderTarget::DEFERRED_GATHER:
@@ -360,32 +318,158 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 	return true;
 }
 
+bool RenderPass::SetupOutput()
+{
+	// Target determines glViewport, glFrameBuffer, etc.
+	switch(output)
+	{
+		case RenderTarget::DEFAULT:
+		{
+			// Set default render target.. however one does that.
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			viewport->SetGLViewport();
+			break;
+		}
+		case RenderTarget::SHADOW_MAPS:
+		{
+			// Fetch shadow-map framebuffer for this viewport?
+			BindShadowMapFrameBuffer();
+			break;
+		}
+		case RenderTarget::DEFERRED_GATHER:
+		{
+			// Set up/fetch render buffers for this, based on the viewport.
+			if (!graphicsState->activeViewport->BindFrameBuffer())
+				return false;
+			break;
+		}
+	}
+	// Clear depth  and color for our target.
+	glClearColor(0.1f, 0.1f, 0.1f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	return true;
+}
+
+bool RenderPass::SetupLightPOVCamera()
+{
+	// Now it becomes tricky..
+	static Camera * camera = NULL;
+	bool anyShadows = false;
+	if (camera == NULL)
+		camera = CameraMan.NewCamera("LightPOVCamera");
+
+	Lighting * lighting = graphicsState->lighting;
+	List<Light*> lights = lighting->GetLights();
+	for (int i = 0; i < lights.Size(); ++i)
+	{
+		Light * light = lights[i];
+		if (!light->castsShadow)
+			continue;
+		if (light->type != LightType::DIRECTIONAL)
+		{
+			std::cout<<"\nLight types beside directional not supported for shadow mappinag at the moment.";
+			continue;
+		}
+		anyShadows = true;
+		
+		Vector3f lightPosition = light->position;
+		Vector3f lpn = lightPosition.NormalizedCopy();
+		// Grab AABB of all relevant entities? Check the AABB-sweeper or other relevant handler?
+		AABB allEntitiesAABB = PhysicsMan.GetAllEntitiesAABB();
+		float mDist = allEntitiesAABB.max.Length();
+		float m2Dist = allEntitiesAABB.min.Length();
+		float maxDist = max(mDist, m2Dist);
+
+		// Distance + some buffer.
+		float farPlane = light->shadowMapFarplane;
+		// Zoom will vary with how wide/long the area is which has to be visible/shadowed.
+		float zoom = light->shadowMapZoom;
+		// Adjust light position based on the gathered data above.
+//		lightPosition = lpn * maxDist;
+		
+		LogGraphics("Setting sun: farplane "+String(farPlane)+" zoom: "+String(zoom)+" Position: "+VectorString(lightPosition), INFO);
+		
+		camera->projectionType = Camera::ORTHOGONAL;
+		camera->position = lightPosition;
+		
+		// Set rotation based on position?
+		Vector2f xz(lpn.x, lpn.z);
+		float xzLen = xz.Length();
+		xz.Normalize();
+		Angle yaw = Angle(xz);
+		yaw -= Angle(PI/2);
+//		std::cout<<"Yaw: "<<yaw.Degrees();
+		Angle pitch = Angle(xzLen, lpn.y);
+		camera->rotation.y = yaw.Radians();
+		camera->rotation.x = pitch.Radians();
+		camera->zoom = zoom;
+		camera->SetRatioF(1,1);
+		camera->farPlane = farPlane;
+		camera->Update();
+		Vector3f forward = camera->LookingAt();
+		Vector3f up = camera->UpVector();
+		Matrix4f viewProjection = camera->ViewProjectionF();
+		Matrix4f viewProj2 = camera->ViewMatrix4f() * camera->ProjectionMatrix4f();
+		Vector3f pos3 = viewProj2 * Vector4f(0,0,0,1);
+		Vector3f position = viewProjection * Vector4f(0,0,0,1),
+			position2 = viewProjection * Vector4f(10,0,0,1),
+			position3 = viewProjection * Vector4f(0,10,0,1),
+			position4 = viewProjection * Vector4f(0,0,10,1);
+		graphicsState->SetCamera(camera);
+		light->shadowMapIndex = 0;
+		float elements [16] = {	0.5, 0, 0, 0,
+								0, 0.5, 0, 0,
+								0, 0, 0.5, 0,
+								0.5, 0.5, 0.5, 1};
+		Matrix4f biasMatrix(elements);
+		Vector3f vec = biasMatrix * Vector3f(0,0,0);
+		Vector3f vec2 = biasMatrix * Vector3f(0.5f, 0.5f, 0.5f);
+		Matrix4f shadowMappingMatrix = biasMatrix * camera->ViewProjectionF();
+		Vector3f shadowSpace = shadowMappingMatrix * Vector3f(0,0,0);
+		Vector3f s2 = shadowMappingMatrix * Vector3f(10,0,0),
+			s3 = shadowMappingMatrix * Vector3f(0,10,0),
+			s4 = shadowMappingMatrix * Vector3f(0,0,10);
+
+		/// Set up a viewport similar to the shadow-map texture we are going to use!
+		glViewport(0, 0, shadowMapResolution, shadowMapResolution);
+		glDisable(GL_SCISSOR_TEST);
+
+		light->shadowMappingMatrix = shadowMappingMatrix;
+		// Take current shadow map texture we created earlier and make sure the camera is bound to it for usage later.
+		// Save matrix used to render shadows properly later on?
+//			light->inverseTransposeMatrix = ;
+		light->shadowMap = graphicsState->activeViewport->shadowMapDepthBuffer->renderBuffers[0]->texture;
+		assert(light->shadowMap);
+		return true;
+	}
+	return false;
+}
+
 /// Creates it as needed.
 bool RenderPass::BindShadowMapFrameBuffer()
 {
 	CheckGLError("Before RenderPass::BindShadowMapFrameBuffer");
-	if (!shadowMapDepthBuffer)
+	if (!viewport->shadowMapDepthBuffer)
 	{
-		shadowMapDepthBuffer = new FrameBuffer("ShadowMapDepthBuffer");
+		viewport->shadowMapDepthBuffer = new FrameBuffer("ShadowMapDepthBuffer");
 	}
-	if (!shadowMapDepthBuffer->IsGood())
+	if (!viewport->shadowMapDepthBuffer->IsGood())
 	{
 		// Try and rebuild it..?
-		if (!shadowMapDepthBuffer->CreateDepthBuffer(Vector2i(512,512)))
+		if (!viewport->shadowMapDepthBuffer->CreateDepthBuffer(Vector2i(1, 1) * shadowMapResolution))
 		{
-			SAFE_DELETE(shadowMapDepthBuffer);
+			SAFE_DELETE(viewport->shadowMapDepthBuffer);
 			return false;
 		}
 	}
 	int error = glGetError();
 	/// Make frame buffer active
-	shadowMapDepthBuffer->Bind();
-	// Clear depth  and color
-	glClearColor(0.1f, 0.1f, 0.1f, 0.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+	viewport->shadowMapDepthBuffer->Bind();
+	// Set viewport size to clear?
+	glViewport(0, 0, viewport->shadowMapDepthBuffer->size.x, viewport->shadowMapDepthBuffer->size.y);
 	// Set buffers to render into (the textures ^^)
-	shadowMapDepthBuffer->SetDrawBuffers();
+	viewport->shadowMapDepthBuffer->SetDrawBuffers();
 	CheckGLError("RenderPass::BindShadowMapFrameBuffer");
 	return true;
 }
