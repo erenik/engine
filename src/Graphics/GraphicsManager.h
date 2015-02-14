@@ -140,6 +140,8 @@ public:
 
 	// Enters a message into the message queue
 	void QueueMessage(GraphicsMessage * msg);
+	// Enters a message into the message queue
+	void QueueMessages(List<GraphicsMessage*> msgs);
 	/** Processes given message without delay, claiming the mutex and blocking all rendering and processing in the thread until the finished. 
 		Use with caution! May be used at start-up and shutdown as well as for other scripted events if a certain timing is required.
 	*/
@@ -366,7 +368,7 @@ private:
 	Frustum * frustum;
 
 	// Queue for messages to be processed between renders
-	Queue<GraphicsMessage*> messageQueue;
+	List<GraphicsMessage*> messageQueue;
 
 	/// Number of registered entities
 	List<Entity*> registeredEntities;

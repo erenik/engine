@@ -442,7 +442,7 @@ int CollisionShapeOctree::FindCollisions(Entity * targetEntity, List<Collision> 
 			return collissionsTested;
 		}
 		// Entity shape-type!
-		switch(targetEntity->physics->physicsShape)
+		switch(targetEntity->physics->shapeType)
 		{
 			case ShapeType::SPHERE: 
 			{

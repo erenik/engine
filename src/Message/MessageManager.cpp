@@ -39,6 +39,7 @@
 #include "Graphics/Messages/GMSet.h"
 
 #include "File/LogFile.h"
+#include "Physics/Messages/PhysicsMessage.h"
 
 MessageManager * MessageManager::messageManager = NULL;
 
@@ -274,6 +275,15 @@ void MessageManager::ProcessMessage(Message * message)
 
 	switch(message->type)
 	{
+		case MessageType::RAYCAST:
+		{
+			Raycast * raycast = (Raycast*) message;
+			if (raycast->relevantEntity)
+			{
+				raycast->relevantEntity->ProcessMessage(message);
+			}
+			break;	
+		}
 		case MessageType::DRAG_AND_DROP:
 		{
 			DragAndDropMessage * dadm = (DragAndDropMessage*) message;

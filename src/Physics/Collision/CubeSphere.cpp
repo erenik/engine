@@ -7,9 +7,10 @@
 #include "PhysicsLib/Shapes/Cube.h"
 #include "PhysicsLib/Shapes/Frustum.h"
 
-bool CubeSphereCollision(Entity * cubeEntity, Entity * sphereEntity, Collision &data){
-	assert(cubeEntity->physics->physicsShape == ShapeType::CUBE &&
-		sphereEntity->physics->physicsShape == ShapeType::SPHERE);
+bool CubeSphereCollision(Entity * cubeEntity, Entity * sphereEntity, Collision &data)
+{
+	assert(cubeEntity->physics->shapeType == ShapeType::CUBE &&
+		sphereEntity->physics->shapeType == ShapeType::SPHERE);
 
 
 	/// Inspired by the frustum codes o.o;

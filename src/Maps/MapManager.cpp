@@ -30,6 +30,7 @@
 #include "Sphere.h"
 #include "PhysicsLib/Shapes/Ray.h"
 
+#include "StateManager.h"
 
 // Singleton initialization.
 MapManager * MapManager::mapMan = NULL;
@@ -524,10 +525,10 @@ bool MapManager::AddEntity(Entity * entity)
 	}
 
 	// Register it with the graphics manager straight away since it's the active map!
-	Graphics.QueueMessage(new GMRegisterEntity(entity));
+	GraphicsQueue.Add(new GMRegisterEntity(entity));
 	// Go ahead and add physics too, most entities will have physics, so.
 	if (defaultAddPhysics)
-		Physics.QueueMessage(new PMRegisterEntity(entity));
+		PhysicsQueue.Add(new PMRegisterEntity(entity));
 	return true;
 }
 /// Adds target entity to the map, registering it for physics and graphics
@@ -583,8 +584,8 @@ int MapManager::DeleteAllEntities()
 	int deleted = 0;
 	List<Entity*> mapEntities = activeMap->GetEntities();
 	activeMap->RemoveEntities(mapEntities);
-	Graphics.QueueMessage(new GMUnregisterEntities(mapEntities));
-	Physics.QueueMessage(new PMUnregisterEntities(mapEntities));
+	GraphicsQueue.Add(new GMUnregisterEntities(mapEntities));
+	PhysicsQueue.Add(new PMUnregisterEntities(mapEntities));
 	EntityMan.MarkEntitiesForDeletion(mapEntities);
 	return deleted;
 }
@@ -612,9 +613,9 @@ bool MapManager::DeleteEntity(Entity * entity)
 //	std::cout<<"\nEntity flagged for deletion. ";
 	// Unregister no matter what. If it wasn't already unregisterd, nothing will hurt of it.
 	if (GraphicsManager::Instance())
-		Graphics.QueueMessage(new GMUnregisterEntity(entity));
+		GraphicsQueue.Add(new GMUnregisterEntity(entity));
 	if (PhysicsManager::Instance())
-		Physics.QueueMessage(new PMUnregisterEntity(entity));
+		PhysicsQueue.Add(new PMUnregisterEntity(entity));
 	// Remove entity from the map too...!
 	activeMap->RemoveEntity(entity);
 	EntityMan.MarkEntitiesForDeletion(entity);

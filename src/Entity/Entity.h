@@ -22,6 +22,7 @@ class CompactEntity;
 class Triangle;
 class EntityProperty;
 class Camera;
+class Message;
 /*
 #include "GL/glew.h"
 #include "Mesh/Mesh.h"
@@ -71,6 +72,8 @@ public:
 	/// Getter.
 	EntityProperty * GetProperty(int byID);
 
+	/// Is then re-directed to the properties in most cases.
+	void ProcessMessage(Message * message);
 
 	/// Contains additional render information for effects or attached entities.
 	GraphicsProperty * graphics;
@@ -211,6 +214,7 @@ public:
 	bool SetTexture(int target, Texture * texture);
 	/// Returns current texture bound to the target.
 	Texture * GetTexture(int target);
+	List<Texture*> GetTextures(int targetFlags);
 	/// Returns path for current texture's source.
 	String GetTextureSource(int target);
 
@@ -243,7 +247,8 @@ private:
 	Texture * specularMap;
 	/// Normalmap texture for more surface~
 	Texture * normalMap;
-
+	/// For "Glow" effects disregarding lighting conditions.
+	Texture * emissiveMap;
 };
 
 template<class T>

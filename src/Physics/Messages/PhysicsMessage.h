@@ -6,6 +6,8 @@
 
 #include "MathLib.h"
 #include "Entity/Entities.h"
+#include "String/AEString.h"
+#include "PhysicsLib/Shapes/Ray.h"
 // #include "PhysicsLib/Shapes.h"
 
 class Entity;
@@ -17,6 +19,7 @@ class EstimatorFloat;
 
 enum physicsMessages {
 	PM_NULL,
+	PM_RAYCAST,
 	PM_RECALCULATE_PHYSICS_PROPERTIES, // Recalculates physics properties for ALL registered entities.
 	PM_SET_GRAVITY,			// Sets gravity vector
 	PM_SET_VELOCITY,		// Set velocity of entity.
@@ -355,5 +358,32 @@ private:
 	float speedMultiplier;
 };
 
-;;;
+/// By default, a Raycast message (see below) is then queued to the MessageManager, which in turn by default sends it straight to the relevant entity.
+class PMRaycast : public PhysicsMessage 
+{
+public:
+	PMRaycast(const Ray & ray);
+	void Process();
+	/// For creating the callback message later upon successful raycast.
+	Entity * relevantEntity;
+	String msg;
+private:
+	Ray ray;
+};
+
+#include "Message/Message.h"
+#include "PhysicsLib/Intersection.h"
+
+/// Reply-message.
+class Raycast : public Message 
+{
+public:
+	Raycast(const Ray & ray, List<Intersection> isecs);
+	// Vars
+	Ray ray;
+	Entity * relevantEntity;
+	List<Intersection> isecs;
+};
+
+;
 #endif

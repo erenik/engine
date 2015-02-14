@@ -70,7 +70,7 @@ void Entity::LoadCompactEntityData(CompactEntity * cEntity)
 		assert(!physics);
 		physics = new PhysicsProperty(cEntity->cPhysics);
 		Physics.QueueMessage(new PMSetPhysicsType(this, physics->type));
-		Physics.QueueMessage(new PMSetPhysicsShape(this, physics->physicsShape));
+		Physics.QueueMessage(new PMSetPhysicsShape(this, physics->shapeType));
 	}
 	if (cEntity->cGraphics){
 		assert(!graphics);
@@ -97,6 +97,7 @@ Entity::Entity(int i_id)
 	diffuseMap = NULL;
 	specularMap = NULL;
 	normalMap = NULL;
+	emissiveMap = NULL;
 	material = new Material(defaultMaterial);
 	model = NULL;
 	id = i_id;
@@ -188,6 +189,16 @@ EntityProperty * Entity::GetProperty(int byID)
 	}
 	return NULL;
 
+}
+
+/// Is then re-directed to the properties in most cases.
+void Entity::ProcessMessage(Message * message)
+{
+	for (int i = 0; i < properties.Size(); ++i)
+	{
+		EntityProperty * prop = properties[i];
+		prop->ProcessMessage(message);
+	}
 }
 
 
@@ -418,13 +429,14 @@ void Entity::SetScale(ConstVec3fr scale)
 	RecalculateMatrix();
 }
 /// Scales the Entity
-void Entity::Scale(ConstVec3fr scale){
-	this->scale = Vector3f(this->scale[0] * scale[0], this->scale[1] * scale[1], this->scale[2] * scale[2]);
+void Entity::Scale(ConstVec3fr scalerVec)
+{
+	this->scale *= scalerVec;
 	RecalculateMatrix();
 }
 /// Scales the Entity
-void Entity::Scale(float scale){
-	this->scale = Vector3f(this->scale[0] * scale, this->scale[1] * scale, this->scale[2] * scale);
+void Entity::Scale(float scaleF){
+	this->scale *= scaleF;
 	RecalculateMatrix();
 }
 /// Translates the Entity
@@ -583,7 +595,8 @@ bool Entity::SetModel(Model * i_model)
 };
 
 /// Sets texture to be used by this entity
-bool Entity::SetTexture(int target, Texture * i_texture){
+bool Entity::SetTexture(int target, Texture * i_texture)
+{
 	if (target & DIFFUSE_MAP){
 		if (diffuseMap)
 			--diffuseMap->users;
@@ -605,6 +618,14 @@ bool Entity::SetTexture(int target, Texture * i_texture){
 		if (normalMap)
 			++normalMap->users;
 	}
+	if (target & EMISSIVE_MAP)
+	{
+		if (emissiveMap)
+			--emissiveMap->users;
+		emissiveMap = i_texture;
+		if (emissiveMap)
+			++emissiveMap->users;
+	}
 	return true;
 }
 
@@ -620,6 +641,21 @@ Texture * Entity::GetTexture(int target){
 	}
 	return NULL;
 }
+
+List<Texture*> Entity::GetTextures(int targetFlags)
+{
+	List<Texture*> texs;
+	if (targetFlags & DIFFUSE_MAP)
+		texs.Add(diffuseMap);
+	if (targetFlags & SPECULAR_MAP)
+		texs.Add(specularMap);
+	if (targetFlags & NORMAL_MAP)
+		texs.Add(normalMap);
+	if (targetFlags & EMISSIVE_MAP)
+		texs.Add(emissiveMap);
+	return texs;
+}
+
 
 /// Returns path for current texture's source.
 String Entity::GetTextureSource(int target)

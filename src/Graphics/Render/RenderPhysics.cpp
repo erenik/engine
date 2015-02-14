@@ -138,7 +138,7 @@ void GraphicsManager::RenderPhysics()
 	//	transformationMatrix.multiply((Matrix4d().translate(Vector3d(entity->physics->physicalPosition))));
 		Model * model = NULL;
 		GLuint error  = glGetError();
-		switch(entity->physics->physicsShape){
+		switch(entity->physics->shapeType){
 	//		PLANE,
 	//CYLINDER,
 	//SPHERE,		// Uses the Entity's internal [radius] and [position]

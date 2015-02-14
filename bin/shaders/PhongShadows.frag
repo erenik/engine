@@ -40,6 +40,7 @@ uniform int		materialShininess	= 8	;
 uniform sampler2D diffuseMap;
 uniform sampler2D specularMap;
 uniform sampler2D normalMap;
+uniform sampler2D emissiveMap;
 
 /// Shadow-mapping o.o
 uniform sampler2D shadowMap;
@@ -313,6 +314,10 @@ void main()
 	
 //	constantColor.xyz = specularTotal;
 
+
+	// Sample emissive map?
+	vec3 emissive = texture2D(emissiveMap, UV_Coord).xyz;
+	gl_FragColor.xyz += emissive;
 	
 	gl_FragColor.xyz += specularTotal;
 	

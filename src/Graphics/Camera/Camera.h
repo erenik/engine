@@ -92,6 +92,13 @@ public:
 	// Prints data, including position, matrices, etc.
 	void PrintData() const;
 
+	/// Recalculates projection matrix only.
+	void UpdateProjectionMatrix();
+	/// Updates all components of the view-matrix. Calls Track() for tracking modes.
+	void UpdateViewMatrix(bool track = true);
+	/// Extracts camera position, lookAt, etc. from the current matrices.
+	void ExtractData();
+
 	/// Resets values to some pre-defined values stored in the resetCamera member.
 	void Reset();
 	Camera * resetCamera;
@@ -186,8 +193,10 @@ public:
 	/// Returns a copy of the frustum
 	Frustum GetFrustum() const {return frustum; };
 
-	/// To be called from render/physics-thread. Moves the camera using it's given enabled directions and velocities.
-	void ProcessMovement(float timeInSeconds);
+	/** To be called from render/physics-thread. Moves the camera using it's given enabled directions and velocities.
+		Returns true if it moved.
+	*/
+	bool ProcessMovement(float timeInSeconds);
 	/// Last time processMovement was called.
 	long long lastMovement;
 

@@ -50,6 +50,8 @@ enum collisionResolvers {
 	LAB_PHYSICS_IMPULSES,
 };};
 
+#define MessageQueueP (PhysicsMan.mesManMessages)
+
 class PhysicsManager
 {
 	friend class GraphicsManager;
@@ -65,6 +67,7 @@ class PhysicsManager
 	friend class PMSetEntity;
 	friend class PMSetSpeed;
 	friend class CollisionShapeOctree;
+	friend class PMRaycast;
 private:
 	PhysicsManager();
 	static PhysicsManager * physicsManager;
@@ -72,6 +75,11 @@ public:
 
 	int RegisteredEntities();
 
+	/// Called once per frame from controlling thread. Handles message-processing, integration, simulation.
+	void Process();
+
+	/// Messages to queue back to the Message-manager upon processing of our own messages, including collision-detection, etc.
+	List<Message*> mesManMessages;
 
 	/// Chosen integrator.
 	Integrator * physicsIntegrator;
@@ -89,10 +97,6 @@ public:
 
 	// Grab AABB of all relevant entities? Check the AABB-sweeper or other relevant handler?
 	AABB GetAllEntitiesAABB();
-
-
-	/// Casts a ray.
-	List<Intersection> Raycast(Ray & ray);
 
     /// See above.
     /// Defines if AABBs or sphere-octrees should be used to broad-phase collission detection.
@@ -121,6 +125,8 @@ public:
 
 	// Enters a message into the message queue
 	void QueueMessage(PhysicsMessage * msg);
+	// Enters a message into the message queue
+	void QueueMessages(List<PhysicsMessage*> msgs);
 
 	/// Attaches a physics property to target entity if it didn't already have one.
 	void AttachPhysicsTo(Entity * entity);
@@ -159,6 +165,9 @@ public:
 
 	Vector3f GetGravitation() { return gravitation; };
 private:
+	/// Casts a ray.
+	List<Intersection> Raycast(Ray & ray);
+
 	/// Functions for handling the various aspects of the physical simulation procedures.
 	void Integrate(float timeInSecondsSinceLastUpdate);
 	void ApplyConstraints();
@@ -235,7 +244,7 @@ private:
 	int UnregisterAllEntities();
 
 	// Queue for messages to be processed between renders
-	Queue<PhysicsMessage*> messageQueue;
+	List<PhysicsMessage*> messageQueue;
 
 	/// Physics collission octree for minimizing amount of collission detection checks.
 	PhysicsOctree * entityCollisionOctree;

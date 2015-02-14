@@ -273,22 +273,7 @@ void * GraphicsManager::Processor(void * vArgs){
 		//	std::cout<<"\nProcessing physics messages... ";
 			
 			graphicsThreadDetails = "Before physics";
-			Timer totalPhysics;
-			FrameStats.ResetPhysics();
-			totalPhysics.Start();
-			pmTimer.Start();
-			/// Process any available physics messages first
-			Physics.ProcessMessages();
-			pmTimer.Stop();
-			FrameStats.physicsMessages = pmTimer.GetMs();
-			physicsProcessingTimer.Start();
-			// Process physics from here in order to avoid graphical issues
-			Physics.ProcessPhysics();
-			physicsProcessingTimer.Stop();
-			FrameStats.physicsProcessing = physicsProcessingTimer.GetMs();
-
-			totalPhysics.Stop();
-			FrameStats.totalPhysics = totalPhysics.GetMs();
+			PhysicsMan.Process();
 
 			graphicsThreadDetails = "Multimedia start";
 			Timer multimedia;

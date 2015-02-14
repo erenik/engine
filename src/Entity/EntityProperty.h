@@ -73,8 +73,7 @@ public:
 	virtual void Process(int timeInMs);
 	EntityPropertyState * GlobalState() { return globalState; };
 
-	/// Sent to both global and current state
-	void ProcessMessage(Message * message);
+	virtual void ProcessMessage(Message * message);
 
 	/// Reference, should not be altered.
 	Entity * owner;

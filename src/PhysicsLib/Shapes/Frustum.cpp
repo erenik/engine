@@ -36,8 +36,8 @@ void Frustum::SetCamInternals(float i_left, float i_right,
 	right = i_right;
 	bottom = i_bottom;
 	top = i_top;
-	nearPlaneDistance = -i_nearPlaneDistance;
-	farPlaneDistance = -i_farPlaneDistance;
+	nearPlaneDistance = i_nearPlaneDistance;
+	farPlaneDistance = i_farPlaneDistance;
 
 	// Calculate farPlane width and height. They should be relative to the ratio between the far and near plane distance and the near plane width.
 	// Regular projection

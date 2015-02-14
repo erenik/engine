@@ -35,8 +35,8 @@ bool PhysicsManager::TestCollision(Entity * one, Entity * two, List<Collision> &
 	int size = sizeof(shapeTypes);
 	int types = ShapeType::NUM_TYPES;
 	memset(shapeTypes, 0, sizeof(shapeTypes));
-	++shapeTypes[one->physics->physicsShape];
-	++shapeTypes[two->physics->physicsShape];
+	++shapeTypes[one->physics->shapeType];
+	++shapeTypes[two->physics->shapeType];
 
 	bool shouldCollide = false;
 	///=================================================================================//
@@ -55,7 +55,7 @@ bool PhysicsManager::TestCollision(Entity * one, Entity * two, List<Collision> &
 	else if (shapeTypes[ShapeType::PLANE] == 1 && shapeTypes[ShapeType::SPHERE]){
 		Entity * planeEntity = NULL,
 			* sphereEntity = NULL;
-		if (one->physics->physicsShape == ShapeType::PLANE){
+		if (one->physics->shapeType == ShapeType::PLANE){
 			planeEntity = one;
 			sphereEntity = two;
 		}
@@ -72,7 +72,7 @@ bool PhysicsManager::TestCollision(Entity * one, Entity * two, List<Collision> &
 	else if (shapeTypes[ShapeType::MESH] == 1 && shapeTypes[ShapeType::SPHERE]){
 		Entity * meshEntity = NULL,
 			* sphereEntity = NULL;
-		if (one->physics->physicsShape == ShapeType::MESH){
+		if (one->physics->shapeType == ShapeType::MESH){
 			meshEntity = one;
 			sphereEntity = two;
 		}
@@ -111,7 +111,7 @@ bool PhysicsManager::TestCollision(Entity * one, Entity * two, List<Collision> &
 	else if (shapeTypes[ShapeType::TRIANGLE] && shapeTypes[ShapeType::SPHERE]){
 		Entity * tri = NULL,
 			* sphere= NULL;
-		if (one->physics->physicsShape == ShapeType::TRIANGLE){
+		if (one->physics->shapeType == ShapeType::TRIANGLE){
 			tri = one;
 			sphere = two;
 		}
@@ -125,7 +125,7 @@ bool PhysicsManager::TestCollision(Entity * one, Entity * two, List<Collision> &
 	else if (shapeTypes[ShapeType::QUAD] && shapeTypes[ShapeType::SPHERE]){
 		Entity * quad = NULL,
 			* sphere= NULL;
-		if (one->physics->physicsShape == ShapeType::TRIANGLE){
+		if (one->physics->shapeType == ShapeType::TRIANGLE){
 			quad = one;
 			sphere = two;
 		}
@@ -149,7 +149,7 @@ bool PhysicsManager::TestCollision(Entity * one, Entity * two, List<Collision> &
 		/// Check radial distance
 		Entity * cube = NULL,
 			* sphere= NULL;
-		if (one->physics->physicsShape == ShapeType::CUBE){
+		if (one->physics->shapeType == ShapeType::CUBE){
 			cube = one;
 			sphere = two;
 		}

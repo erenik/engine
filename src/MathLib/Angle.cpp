@@ -77,6 +77,11 @@ const Angle & Angle::operator -= (const Angle & angle)
 	return *this;
 }
 
+Vector2f Angle::ToVector2f()
+{
+	return Vector2f(Cosine(), Sine());
+}
+
 float Angle::Cosine()
 {
 	return cos(radians);

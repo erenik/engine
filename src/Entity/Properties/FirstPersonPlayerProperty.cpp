@@ -11,7 +11,12 @@
 
 #include "Input/InputManager.h"
 
-#include "Physics/PhysicsManager.h"
+#include "StateManager.h"
+
+#include "Message/Message.h"
+
+#include "Physics/Messages/PhysicsMessage.h"
+//#include "Physics/PhysicsManager.h"
 #include "Physics/PhysicsProperty.h"
 #include "PhysicsLib/Shapes/Ray.h"
 #include "PhysicsLib/Intersection.h"
@@ -40,6 +45,46 @@ void FirstPersonPlayerProperty::Process(int timeInMs)
 		ProcessInput();
 }
 
+
+void FirstPersonPlayerProperty::ProcessMessage(Message * message)
+{
+	switch(message->type)
+	{
+		case MessageType::RAYCAST:
+		{
+			Raycast * raycast = (Raycast*) message;
+			bool done;
+			List<Intersection> contacts = raycast->isecs;
+			targets.Clear();
+
+			Ray ray = raycast->ray;
+			if (contacts.Size())
+			{
+				lastRaycastTargetPosition = ray.start + ray.direction * contacts[0].distance;
+			}
+
+			/// Move list of contacts to list of entities?
+			for (int i = 0; i < contacts.Size(); ++i)
+			{
+				Intersection & contact = contacts[i];
+				Entity * entity = contact.entity;
+//				std::cout<<"\n contacts "<<i<<" "<<entity->name;
+				targets.Add(entity);
+			}
+			// Set primary target to the first one from the raycast.
+			if (targets.Size())
+			{
+				primaryTarget = targets[0];
+		//		std::cout<<"\nTarget found: "<<targets[0]->name;	
+			}
+			else
+				primaryTarget = NULL;
+
+			break;	
+		}
+	}
+}
+
 /// o-o
 void FirstPersonPlayerProperty::ToggleAutorun()
 {
@@ -55,20 +100,20 @@ void FirstPersonPlayerProperty::ToggleAutorun()
 			autorun = false;
 			return;
 		}
-		Physics.QueueMessage(new PMSetEntity(owner, PT_FACE_VELOCITY_DIRECTION, false));
+		PhysicsQueue.Add(new PMSetEntity(owner, PT_FACE_VELOCITY_DIRECTION, false));
 		// Set relative velocity. It will solve the issue of direction by using the current rotation :)
 		Vector3f velocity(0, 0, -movementSpeed);
-		Physics.QueueMessage(new PMSetEntity(owner, PT_RELATIVE_VELOCITY, velocity));
+		PhysicsQueue.Add(new PMSetEntity(owner, PT_RELATIVE_VELOCITY, velocity));
 		/// Disable regular velocity.
-		Physics.QueueMessage(new PMSetEntity(owner, PT_VELOCITY, Vector3f())); 
+		PhysicsQueue.Add(new PMSetEntity(owner, PT_VELOCITY, Vector3f())); 
 		/// Set damping in case the regular velocity persist somehow.
-		Physics.QueueMessage(new PMSetEntity(owner, PT_LINEAR_DAMPING, 0.5f));
+		PhysicsQueue.Add(new PMSetEntity(owner, PT_LINEAR_DAMPING, 0.5f));
 	}
 	// Leaving autorun-mode.
 	else 
 	{
-		Physics.QueueMessage(new PMSetEntity(owner, PT_LINEAR_DAMPING, 0.9f));
-		Physics.QueueMessage(new PMSetEntity(owner, PT_RELATIVE_VELOCITY, Vector3f()));
+		PhysicsQueue.Add(new PMSetEntity(owner, PT_LINEAR_DAMPING, 0.9f));
+		PhysicsQueue.Add(new PMSetEntity(owner, PT_RELATIVE_VELOCITY, Vector3f()));
 	}
 }
 
@@ -113,7 +158,7 @@ void FirstPersonPlayerProperty::ProcessInput()
 		{
 			// Rotate int Y..
 			Quaternion q = Quaternion(Vector3f(0,1,0), right);
-			Physics.QueueMessage(new PMSetEntity(owner, PT_ROTATIONAL_VELOCITY, q));
+			PhysicsQueue.Add(new PMSetEntity(owner, PT_ROTATIONAL_VELOCITY, q));
 			lastRight = right;
 		}
 	}
@@ -185,9 +230,9 @@ void FirstPersonPlayerProperty::ProcessInput()
 
 
 		float cameraZoom = 0.f;
-		float cameraZoomMultiplier = 1.f;
-#define CONSTANT_ZOOM_SPEED 1.f
-#define ZOOM_MULTIPLIER_SPEED 1.3f
+		float cameraZoomMultiplier = 1.01f;
+#define CONSTANT_ZOOM_SPEED 2.f
+#define ZOOM_MULTIPLIER_SPEED 1.4f
 		if (Input.KeyPressed(KEY::PG_DOWN))
 		{
 			cameraZoomMultiplier *= ZOOM_MULTIPLIER_SPEED;
@@ -201,9 +246,20 @@ void FirstPersonPlayerProperty::ProcessInput()
 		static float pastCameraZoom = 1.f;
 		if (cameraZoom != pastCameraZoom)
 		{
-			Graphics.QueueMessage(new GMSetCamera(owner->cameraFocus, CT_DISTANCE_FROM_CENTER_OF_MOVEMENT_SPEED, cameraZoom));
-			Graphics.QueueMessage(new GMSetCamera(owner->cameraFocus, CT_DISTANCE_FROM_CENTER_OF_MOVEMENT_SPEED_MULTIPLIER, cameraZoomMultiplier));
+			GraphicsQueue.Add(new GMSetCamera(owner->cameraFocus, CT_DISTANCE_FROM_CENTER_OF_MOVEMENT_SPEED, cameraZoom));
+			GraphicsQueue.Add(new GMSetCamera(owner->cameraFocus, CT_DISTANCE_FROM_CENTER_OF_MOVEMENT_SPEED_MULTIPLIER, cameraZoomMultiplier));
 			pastCameraZoom = cameraZoom;
+		}
+		float cameraTurn = 0.f;
+		if (Input.KeyPressed(KEY::LEFT))
+			cameraTurn += 1.f;
+		if (Input.KeyPressed(KEY::RIGHT))
+			cameraTurn += -1;
+		static float pastCameraTurn = 0.f;
+		if (cameraTurn != pastCameraTurn)
+		{
+			pastCameraTurn = cameraTurn;
+			GraphicsQueue.Add(new GMSetCamera(owner->cameraFocus, CT_ROTATION_SPEED_YAW, cameraTurn));
 		}
 	}
 }
@@ -219,20 +275,20 @@ void FirstPersonPlayerProperty::UpdateVelocity(ConstVec3fr newVelocity)
 	Vector3f normalizedVelocity = newVelocity.NormalizedCopy();
 
 	// And set it!
-	Physics.QueueMessage(new PMSetEntity(owner, PT_VELOCITY, newVelocity)); 
+	PhysicsQueue.Add(new PMSetEntity(owner, PT_VELOCITY, newVelocity)); 
 	// Depending on camera tracking-mode...	
 	switch(owner->cameraFocus->trackingMode)
 	{
 		// Either rotate straight away.
 		case TrackingMode::THIRD_PERSON:
 		{				
-			PhysicsMan.QueueMessage(new PMSetEntity(owner, PT_FACE_VELOCITY_DIRECTION, true));
+			PhysicsQueue.Add(new PMSetEntity(owner, PT_FACE_VELOCITY_DIRECTION, true));
 			if (newVelocity.MaxPart())
 			{
 				return;
 				// Set our rotation toward this new destination too!
 				float yaw = atan2(normalizedVelocity[2], normalizedVelocity[0]) + PI * 0.5f;
-				Physics.QueueMessage(new PMSetEntity(owner, PT_ROTATION_YAW, yaw));
+				PhysicsQueue.Add(new PMSetEntity(owner, PT_ROTATION_YAW, yaw));
 			}
 			break;
 		}
@@ -240,7 +296,7 @@ void FirstPersonPlayerProperty::UpdateVelocity(ConstVec3fr newVelocity)
 		case TrackingMode::FIRST_PERSON:
 		{
 			// Disable .. stuff.
-			PhysicsMan.QueueMessage(new PMSetEntity(owner, PT_FACE_VELOCITY_DIRECTION, false));
+			PhysicsQueue.Add(new PMSetEntity(owner, PT_FACE_VELOCITY_DIRECTION, false));
 			break;
 		}
 	}
@@ -251,7 +307,6 @@ void FirstPersonPlayerProperty::UpdateTargetsByCursorPosition()
 {
 	Ray ray;
 	Window * activeWindow = ActiveWindow();
-	lastRaycastTargetPosition = Vector3f();
 	if (activeWindow != MainWindow())
 		return;
 	// Try to get ray.
@@ -259,33 +314,12 @@ void FirstPersonPlayerProperty::UpdateTargetsByCursorPosition()
 		return;
 
 	// Do ray cast within the physics system
-	// Make message out of ray-casting.
-//	PhysicsMan.QueueMessage(new PMRaycast(ray));
+	PMRaycast * raycast = new PMRaycast(ray);
+	raycast->relevantEntity = owner;
+	raycast->msg = "UpdateTargetsByCursorPosition";
+	PhysicsQueue.Add(raycast);
 
-	bool done;
-	List<Intersection> contacts;
-	targets.Clear();
-
-	if (contacts.Size())
-	{
-		lastRaycastTargetPosition = ray.start + ray.direction * contacts[0].distance;
-	}
-
-	/// Move list of contacts to list of entities?
-	for (int i = 0; i < contacts.Size(); ++i)
-	{
-		Intersection & contact = contacts[i];
-		Entity * entity = contact.entity;
-		targets.Add(entity);
-	}
-	// Set primary target to the first one from the raycast.
-	if (targets.Size())
-	{
-		primaryTarget = targets[0];
-//		std::cout<<"\nTarget found: "<<targets[0]->name;	
-	}
-	else
-		primaryTarget = NULL;
+	/// React to message of it later on.
 }
 
 

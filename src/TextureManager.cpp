@@ -276,6 +276,20 @@ Texture * TextureManager::GenerateTexture(String withName, const Vector4f & andC
 	return newTex;
 }
 
+/// Buffers all textures required by target Entity.
+bool TextureManager::BufferizeTextures(List<Texture*> textures)
+{
+	int ok = 0;
+	for (int i = 0; i < textures.Size(); ++i)
+	{
+		Texture * tex = textures[i];
+		if (!tex)
+			continue;
+		ok += tex->Bufferize();
+	}
+	return true;
+}
+
 Texture * TextureManager::LoadTexture(String source, bool noPathAdditions)
 {
 	source = FilePath::MakeRelative(source);

@@ -55,6 +55,8 @@ public:
 	/// Buffers all textures required by a certain StateMan.
 	bool BufferizeTextures(int state);
 	/// Buffers all textures required by target Entity.
+	bool BufferizeTextures(List<Texture*> textures);
+	/// Buffers all textures required by target Entity.
 	bool BufferizeTextures(Entity * Entity);
 	/** Bufferizes texture at target index in the texture array.
 		Assertion will be thrown if outside the array.

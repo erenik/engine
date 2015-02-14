@@ -23,7 +23,7 @@ void Entity::Render(GraphicsState & graphicsState)
 	// If rendering shadows, skip relevant entities.
 	if (graphics)
 	{
-		if (graphics->castsShadow && graphicsState.shadowPass)
+		if (graphicsState.shadowPass && !graphics->castsShadow)
 			return;
 		if (graphics->visible == false)
 			return;
@@ -74,106 +74,61 @@ void Entity::Render(GraphicsState & graphicsState)
 	}
 
 	// Bind texture if it isn't already bound.
-	if (diffuseMap && graphicsState.currentTexture == diffuseMap){
+	glActiveTexture(GL_TEXTURE0 + shader->diffuseMapIndex);		// Select server-side active texture unit
+	if (diffuseMap && graphicsState.currentTexture == diffuseMap)
+	{
 		texturesToApply |= DIFFUSE_MAP;
 	}
 	else if (diffuseMap && graphicsState.currentTexture != diffuseMap)
 	{
 		texturesToApply |= DIFFUSE_MAP;
-		// When rendering an object with this program.
-		glActiveTexture(GL_TEXTURE0 + 0);		// Select server-side active texture unit
-
 		// Bind texture
 		glBindTexture(GL_TEXTURE_2D, diffuseMap->glid);
-		error = glGetError();
-		
-		// Bufferize it if queued? Should maybe move bufferization mechanism for textures to the TextureManager to be processed before a frame is rendered?
-		if (diffuseMap->queueRebufferization)
-		{
-			diffuseMap->Bufferize();
-		}
-
-		// Set sampler in client graphicsState
-		if (shader->uniformBaseTexture != -1)
-			glUniform1i(shader->uniformBaseTexture, 0);		// Sets sampler
-		error = glGetError();
-	// Assign material
-		// Bind sampler
-		/// Core since 3.3!
-		// glBindSampler(0, StateMan.sampler[0]);				// Sets sampler graphicsState
-		
 		/// Sets glTExParameter for Min/Mag filtering
 		diffuseMap->SetSamplingMode();
 		graphicsState.currentTexture = diffuseMap;
 	}
 	else if (diffuseMap == NULL){
-		glActiveTexture(GL_TEXTURE0 + 0);		// Select server-side active texture unit
 		glBindTexture(GL_TEXTURE_2D, NULL);
 		graphicsState.currentTexture = NULL;
 	}
 
 	/// Bind specular if it isn't already o-o
+	glActiveTexture(GL_TEXTURE0 + shader->specularMapIndex);		// Select server-side active texture unit
 	if (specularMap){
 		texturesToApply |= SPECULAR_MAP;
-		glActiveTexture(GL_TEXTURE0 + 1);		// Select server-side active texture unit
-
 		// Bind texture
 		glBindTexture(GL_TEXTURE_2D, specularMap->glid);
-		error = glGetError();
-
-		// Set sampler in client graphicsState
-		if (shader->uniformSpecularMap!= -1)
-			glUniform1i(shader->uniformSpecularMap, 1);		// Sets sampler
-		error = glGetError();
-	// Assign material
-		// Bind sampler
-		/// Core since 3.3!
-		// glBindSampler(0, StateMan.sampler[0]);				// Sets sampler graphicsState
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		specularMap->SetSamplingMode();
 		graphicsState.currentSpecularMap = specularMap;
-		glActiveTexture(GL_TEXTURE0 + 0);
 	}
 	else {
-		glActiveTexture(GL_TEXTURE0 + 1);		// Select server-side active texture unit
 		glBindTexture(GL_TEXTURE_2D, NULL);
-		glActiveTexture(GL_TEXTURE0 + 0);
-	//	glBindTexture(GL_TEXTURE_2D, NULL);
 	}
-
+	/// Bind emissive map.
+	glActiveTexture(GL_TEXTURE0 + shader->emissiveMapIndex);		// Select server-side active texture unit
+	if (shader->uniformEmissiveMap != -1)
+	{
+		if (emissiveMap)
+			glBindTexture(GL_TEXTURE_2D, emissiveMap->glid);
+		else
+			glBindTexture(GL_TEXTURE_2D, NULL);
+	}
+	
 	// Bind normalMap too if it isn't already!
-/*	if (normalMap == NULL){
-		normalMap = TexMan.GetTextureBySource"normalMapTest2");
-	}
-*/	if (normalMap){
+	glActiveTexture(GL_TEXTURE0 + shader->normalMapIndex);		// Select server-side active texture unit
+	if (normalMap){
 		texturesToApply |= NORMAL_MAP;
-		glActiveTexture(GL_TEXTURE0 + 2);		// Select server-side active texture unit
-
 		// Bind texture
 		glBindTexture(GL_TEXTURE_2D, normalMap->glid);
-		error = glGetError();
-
-		// Set sampler in client graphicsState
-		if (shader->uniformNormalMap != -1)
-			glUniform1i(shader->uniformNormalMap, 2);		// Sets sampler
-		error = glGetError();
-	// Assign material
-		// Bind sampler
-		/// Core since 3.3!
-		// glBindSampler(0, StateMan.sampler[0]);				// Sets sampler graphicsState
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		normalMap->SetSamplingMode();
 		graphicsState.currentNormalMap = normalMap;
-		glActiveTexture(GL_TEXTURE0 + 0);
-
 	}
 	else {
-		glActiveTexture(GL_TEXTURE0 + 2);		// Select server-side active texture unit
 		glBindTexture(GL_TEXTURE_2D, NULL);
-		glActiveTexture(GL_TEXTURE0 + 0);
-	//	glBindTexture(GL_TEXTURE_2D, NULL);
 	}
-
+	// Default
+	glActiveTexture(GL_TEXTURE0);
 
 	if (texturesToApply & DIFFUSE_MAP)
 		glUniform1i(shader->uniformUseDiffuseMap, 1);
@@ -190,27 +145,9 @@ void Entity::Render(GraphicsState & graphicsState)
 	else
 		glUniform1i(shader->uniformUseNormalMap, 0);
 
-	// Send in texture-data to shader!
-	// Set uniform matrix in shader to point to the AppState modelView matrix.
-/*	GLuint uniform = glGetUniformLocation(shader->shaderProgram, "texturesToApply");
-	if (uniform != -1)
-		glUniform1i(uniform, texturesToApply);
-*/
-
-	error = glGetError();
-	// Assign material
-	// glProgramUniform Core since version 	4.1!
-	// Use glUniform! Core since 2.0
-//	glUniform4f(shader->uniformMaterial.ambientVec4, material->ambient[0], material->ambient[1], material->ambient[2], material->ambient[3]);
-//	glUniform4f(shader->uniformMaterial.diffuseVec4, material->diffuse[0], material->diffuse[1], material->diffuse[2], material->diffuse[3]);
-//	glUniform4f(shader->uniformMaterial.specularVec4, material->specular[0], material->specular[1], material->specular[2], material->specular[3]);
-//	glUniform1i(shader->uniformMaterial.shininessInt, material->shininess);
-
-	error = glGetError();
+	CheckGLError("Setting texture maps");
 	// Save old matrix to the stack
 	Matrix4d tmp = graphicsState.modelMatrixD;
-	/// Recalculate matrix right before rendering.
-//	RecalculateMatrix();
 
 	/// If we have any offsets, apply them and re-calculate the transform matrix if so.
 	if (graphics && graphics->renderOffset.MaxPart())
@@ -229,7 +166,6 @@ void Entity::Render(GraphicsState & graphicsState)
 	}
 	// Set uniform matrix in shader to point to the AppState modelView matrix.
 	glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, graphicsState.modelMatrixF.getPointer());
-	error = glGetError();
 
 	// Set uniform matrix in shader to point to the AppState modelView matrix.
 	GLuint uniform = glGetUniformLocation(shader->shaderProgram, "normalMatrix");
@@ -238,16 +174,10 @@ void Entity::Render(GraphicsState & graphicsState)
 	normals = normalMatrix.Product(normals);
 	if (uniform != -1)
 		glUniformMatrix4fv(uniform, 1, false, normalMatrix.getPointer());
-	error = glGetError();
-
-	// Set texture
-//	if (texture && texture->glid){
-//		glBindTexture(GL_TEXTURE_2D, texture->glid);
-//	}
+	CheckGLError("Matrices");
 
 	bool requiresSorting = false;
 	bool render = true;
-//	std::cout<<"Rendererr";
 
 	// Check for modifiers to apply
 	if (graphics && graphicsState.settings & ENABLE_SPECIFIC_ENTITY_OPTIONS)
@@ -305,12 +235,11 @@ void Entity::Render(GraphicsState & graphicsState)
 			mesh->Bufferize(true, false);
 
 			// Set sampler index to use for the skinning matrix map.
-			glActiveTexture(GL_TEXTURE0 + 3);
+			glActiveTexture(GL_TEXTURE0 + shader->boneSkinningMatrixMapIndex);
 
 			// Bind the texture filled with bone transformation matrix data.
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			glActiveTexture(GL_TEXTURE0 + 3);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 			glBindTexture(GL_TEXTURE_2D, model->boneSkinningMatrixMap);
@@ -330,37 +259,6 @@ void Entity::Render(GraphicsState & graphicsState)
 		++graphicsState.renderedObjects;		// increment rendered objects for debug info
 
 
-		//
-		///// Debug-rendering to visualize differences between pre and post correction!
-		//if (physics && physics->estimator && physics->estimator->estimationMode == EstimationMode::EXTRAPOLATION_PLUS_COLLISION_CORRECTION)
-		//{
-		//	Vector3f pos = position;
-		//	position = physics->estimator->Position();
-		//	Vector3f diff = pos - position;
-		//	/// Only render other part if we get a difference.
-		//	if (true /*diff.MaxPart()*/){
-		//		RecalculateMatrix();
-		//		// Reload matrix into shader. First grab old matrix.
-		//		graphicsState.modelMatrixD = tmp;
-		//		// Apply transformation
-		//		graphicsState.modelMatrixD.Multiply(transformationMatrix);
-		//		graphicsState.modelMatrixF = graphicsState.modelMatrixD;
-		//		// Set uniform matrix in shader to point to the AppState modelView matrix.
-		//		glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, graphicsState.modelMatrixF.getPointer());
-		//		error = glGetError();
-		//		/// Set other render-mode so we know what we're looking at.
-		//		glBlendFunc(GL_ONE, GL_ONE);
-		//		glDisable(GL_DEPTH_TEST);
-		//		// Re-paint
-		//		model->GetTriangulatedMesh()->Render();
-		//		++graphicsState.renderedObjects;		// increment rendered objects for debug info
-		//		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		//		glEnable(GL_DEPTH_TEST);
-		//	}
-		//	/// Reset matrix to the old one to not fuck up camera movement later on?
-		//	position = pos;
-		//	RecalculateMatrix();
-		//}
 	}
 	// Disable any modifiers now, unless we got a modifier that tells us to apply the previous modifiers to the children as well.
 	if (graphics && graphicsState.settings & ENABLE_SPECIFIC_ENTITY_OPTIONS){
@@ -426,11 +324,44 @@ void Entity::Render(GraphicsState & graphicsState)
 			modelMatrix.Multiply(rotationMatrix);
 			modelMatrix.Multiply((Matrix4d().Scale(Vector3d(scale * graphics->textSizeRatio))));
 
-			
+			font->RenderText(textToRender, graphicsState);		
+		}
+	}
+}
 
-			font->RenderText(textToRender, graphicsState);
 
-			
+		//
+		///// Debug-rendering to visualize differences between pre and post correction!
+		//if (physics && physics->estimator && physics->estimator->estimationMode == EstimationMode::EXTRAPOLATION_PLUS_COLLISION_CORRECTION)
+		//{
+		//	Vector3f pos = position;
+		//	position = physics->estimator->Position();
+		//	Vector3f diff = pos - position;
+		//	/// Only render other part if we get a difference.
+		//	if (true /*diff.MaxPart()*/){
+		//		RecalculateMatrix();
+		//		// Reload matrix into shader. First grab old matrix.
+		//		graphicsState.modelMatrixD = tmp;
+		//		// Apply transformation
+		//		graphicsState.modelMatrixD.Multiply(transformationMatrix);
+		//		graphicsState.modelMatrixF = graphicsState.modelMatrixD;
+		//		// Set uniform matrix in shader to point to the AppState modelView matrix.
+		//		glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, graphicsState.modelMatrixF.getPointer());
+		//		error = glGetError();
+		//		/// Set other render-mode so we know what we're looking at.
+		//		glBlendFunc(GL_ONE, GL_ONE);
+		//		glDisable(GL_DEPTH_TEST);
+		//		// Re-paint
+		//		model->GetTriangulatedMesh()->Render();
+		//		++graphicsState.renderedObjects;		// increment rendered objects for debug info
+		//		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		//		glEnable(GL_DEPTH_TEST);
+		//	}
+		//	/// Reset matrix to the old one to not fuck up camera movement later on?
+		//	position = pos;
+		//	RecalculateMatrix();
+		//}
+
 #ifdef DEBUG_TRIANGLE
 			ShadeMan.SetActiveShader(0);
 
@@ -458,7 +389,3 @@ void Entity::Render(GraphicsState & graphicsState)
 			glEnd();
 			glUseProgram(shader->shaderProgram);
 #endif
-		
-		}
-	}
-}

@@ -40,7 +40,7 @@ void GraphicsManager::RenderViewport(Viewport * vp)
 	// Movement should be processed.. in physics or earlier.
 //	camera->ProcessMovement(graphicsState->frameTime);
 	camera->SetRatioI(width, height);
-	camera->Update();
+	camera->UpdateProjectionMatrix();
 	// Set active camera to current one
 	graphicsState->camera = camera;
 

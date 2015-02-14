@@ -25,6 +25,7 @@ enum messageTypes{
 	VECTOR_MESSAGE,		// For setting vectors, simple as that.
 	DATA_MESSAGE, // For DataMessage
 	DATA, // Probably obsolete.
+	RAYCAST, // Defined in Physics/Messages/PhysicsMessage.h sent as a reply to PMRaycast. By default handled by respective entity's properties.
 	COLLISSION_CALLBACK, // Sent by the physics system if certain stuff are met.
 	EDITOR_MESSAGE,
 	CURL, // HTTP and similar stuff, sent by the CURLManager

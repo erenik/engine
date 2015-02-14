@@ -40,9 +40,8 @@ bool GraphicsManager::RegisterEntity(Entity * entity)
 		entity->graphics = new GraphicsProperty(entity);
 	}
 	// Buffer textures and meshes if needed
-	Texture * t = entity->GetTexture(DIFFUSE_MAP);
-	if (t)
-		TexMan.BufferizeTexture(t);
+	List<Texture*> textures = entity->GetTextures(0xFFFFFFF);
+	TexMan.BufferizeTextures(textures);
 	return true;
 };
 

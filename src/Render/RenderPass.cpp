@@ -141,7 +141,7 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 			{
 				// Add this light's shadow map to the list of shadow maps?
 				// When rendering an object with this program.
-				glActiveTexture(GL_TEXTURE0 + 4);		// Select server-side active texture unit o.o;
+				glActiveTexture(GL_TEXTURE0 + shader->shadowMapIndex);		// Select server-side active texture unit o.o;
 				// Just one shadow map for now.
 				light->shadowMapIndex = 0;
 				// Set matrix.

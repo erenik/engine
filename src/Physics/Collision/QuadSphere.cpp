@@ -6,15 +6,17 @@
 #include "../PhysicsProperty.h"
 #include "PhysicsLib/Shapes/Quad.h"
 
-bool QuadSphereCollision(Entity * quadEntity, Entity * sphere, Collision &data){
-	assert(quadEntity->physics->physicsShape == ShapeType::QUAD);
+bool QuadSphereCollision(Entity * quadEntity, Entity * sphere, Collision &data)
+{
+	assert(quadEntity->physics->shapeType == ShapeType::QUAD);
 	Quad * pquad = (Quad*)quadEntity->physics->shape;
 	Quad quad = *(Quad*)quadEntity->physics->shape;
 	quad.Transform(quadEntity->transformationMatrix);
 	return QuadSphereCollision(&quad, sphere, data);
 }
 
-bool QuadSphereCollision(Quad * quad, Entity * sphereEntity, Collision &data){
+bool QuadSphereCollision(Quad * quad, Entity * sphereEntity, Collision &data)
+{
 	float distance = abs(quad->Distance(sphereEntity->position)) - sphereEntity->physics->physicalRadius;
 	/// Collision?!
 	if (distance > ZERO)

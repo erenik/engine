@@ -8,7 +8,7 @@
 #include "Sphere.h"
 
 bool TriangleSphereCollision(Entity * triEntity, Entity * sphereEntity, Collision &data){
-	assert(triEntity->physics->physicsShape == ShapeType::TRIANGLE);
+	assert(triEntity->physics->shapeType == ShapeType::TRIANGLE);
 	assert(triEntity->physics->shape);
 	Triangle tri = *(Triangle*)(triEntity->physics->shape);
 	tri.Transform(triEntity->transformationMatrix);

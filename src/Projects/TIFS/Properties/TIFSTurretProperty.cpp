@@ -125,42 +125,45 @@ void TIFSTurretProperty::Shoot()
 	// Emit some particles at the cannon
 	
 	// Create laser entity, or bullet entity, depending on what is wanted?
-	Entity * entity = EntityMan.CreateEntity("Laser", ModelMan.GetModel("sphere.obj"), TexMan.GetTexture("0x00AAFFFF"));
-	TIFSProjectile * proj = new TIFSProjectile(entity);
-	entity->properties.Add(proj);
-
-	GraphicsProperty * gp = new GraphicsProperty(entity);
+	Entity * projEntity = EntityMan.CreateEntity("Laser", ModelMan.GetModel("sphere.obj"), TexMan.GetTexture("0x00AAFFFF"));
+	TIFSProjectile * proj = new TIFSProjectile(projEntity);
+	projEntity->properties.Add(proj);
+	
+	GraphicsProperty * gp = new GraphicsProperty(projEntity);
 	gp->castsShadow = false;
+	projEntity->SetTexture(EMISSIVE_MAP, TexMan.GetTexture("0x00FF00FF"));
+	projEntity->graphics = gp;
+
 	PhysicsProperty * pp = new PhysicsProperty();
-	entity->physics = pp;
-	pp->owner = entity;
-	Vector3f midPosition = (entity->position + target->position) * 0.5f;
+	projEntity->physics = pp;
+	pp->owner = projEntity;
+	Vector3f midPosition = (projEntity->position + target->position) * 0.5f;
 	// Set scale?
-	entity->scale = Vector3f(0.5,0.5,5);
+	projEntity->scale = Vector3f(0.5,0.5,5);
 	// Rotate?
-	Vector3f toTarget = target->position - entity->position;
+	Vector3f toTarget = target->position - projEntity->position;
 	float toTargetLen = toTarget.Length();
 	Vector3f toTargetN = toTarget.NormalizedCopy();
-	entity->position = this->barrel->transformationMatrix * Vector4f(0,0,0,1) + toTargetN * 0.1f;
+	projEntity->position = this->barrel->transformationMatrix * Vector4f(0,0,0,1) + toTargetN * 0.1f;
 	// Calculate rotations? 
 	// Grab look-at from barrel?
 	Vector3f barrelLookAt = -barrel->LookAt();
 	Vector3f barrelUp = barrel->UpVec();
 	Vector3f barrelRight = barrel->RightVec();
 
-	entity->localRotation.SetVectors(barrelRight, barrelUp, -barrelLookAt);
-	entity->RecalculateMatrix(2);
+	projEntity->localRotation.SetVectors(barrelRight, barrelUp, -barrelLookAt);
+	projEntity->RecalculateMatrix(2);
 		
-	Vector3f lookAt = entity->LookAt();
+	Vector3f lookAt = projEntity->LookAt();
 	if (lookAt.DotProduct(toTargetN) < 0.7f)
 	{
 		std::cout<<"\nFiring into nether..!";
 	}
 
-	MapMan.AddEntity(entity);
+	MapMan.AddEntity(projEntity);
 
 	// Try give it a velocity too?
-	PhysicsMan.QueueMessage(new PMSetEntity(entity, PT_RELATIVE_VELOCITY, Vector3f(0,0,1) * projectileSpeed));
+	PhysicsMan.QueueMessage(new PMSetEntity(projEntity, PT_RELATIVE_VELOCITY, Vector3f(0,0,1) * projectileSpeed));
 
 	// Emit particles at the target?
 

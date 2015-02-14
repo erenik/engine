@@ -41,6 +41,7 @@ Shader::Shader()
 	uniformBaseTexture = -1;
 	uniformSpecularMap = -1;
 	uniformNormalMap = -1;
+	uniformEmissiveMap = -1;
 
 	/// Set the using uniforms to -1.
 	uniformUseDiffuseMap = uniformUseSpecularMap = uniformUseNormalMap = uniformBoneSkinningMatrixMap = -1;
@@ -243,7 +244,6 @@ void Shader::ExtractUniforms()
 
 	// Get textures
 	// First diffuse
-	glActiveTexture(GL_TEXTURE0 + 0);
 	uniformBaseTexture = glGetUniformLocation(shaderProgram, "baseImage");
 	if (uniformBaseTexture == -1)
 	{
@@ -251,24 +251,16 @@ void Shader::ExtractUniforms()
 		if (uniformBaseTexture == -1)
 			std::cout<<"\nUniformBaseTexture \"baseImage/diffuseMap\" could not be located and set!";
 	}
-	// Specular map
-	glActiveTexture(GL_TEXTURE0 + 1);
+	// Per-entity texture maps
 	uniformSpecularMap = glGetUniformLocation(shaderProgram, "specularMap");
-	// Normal map
-	glActiveTexture(GL_TEXTURE0 + 2);
 	uniformNormalMap = glGetUniformLocation(shaderProgram, "normalMap");
-	
-	// Skinning matrix data map
-	glActiveTexture(GL_TEXTURE0 + 3);
+	uniformEmissiveMap = glGetUniformLocation(shaderProgram, "emissiveMap");
 	uniformBoneSkinningMatrixMap = glGetUniformLocation(shaderProgram, "boneSkinningMatrixMap");
 
 	// Shadow maps.
-	glActiveTexture(GL_TEXTURE0 + 4);
 	uniformShadowMap = glGetUniformLocation(shaderProgram, "shadowMap");
 	uniformShadowMapMatrix = glGetUniformLocation(shaderProgram, "shadowMapMatrix");
 
-
-	glActiveTexture(GL_TEXTURE0 + 0);
 
 	/// Extract textures boolean uniforms.
 	uniformUseDiffuseMap = glGetUniformLocation(shaderProgram, "useDiffuseMap");
@@ -442,21 +434,34 @@ void Shader::SetTextureLocations()
 {
 	CheckGLError("Before Shader::SetTextureLocations");
 
-	if (uniformBaseTexture != -1)
-		glUniform1i(uniformBaseTexture, 0);
-	if (uniformSpecularMap != -1)
-		glUniform1i(uniformSpecularMap, 1);
-	if (uniformNormalMap != -1)
-		glUniform1i(uniformNormalMap, 2);
-	if (uniformBoneSkinningMatrixMap != -1)
-		glUniform1i(uniformBoneSkinningMatrixMap, 3); // Sets sampler to use texture #3 for skinning maps	
+	diffuseMapIndex = 0;
+	specularMapIndex = 1;
+	normalMapIndex = 2;
+	emissiveMapIndex = 3;
+	boneSkinningMatrixMapIndex = 4;
+	
+	shadowMapIndex = 5;
 
+	int indicesUsed = 6;
+
+	if (uniformBaseTexture != -1)
+	{
+		glUniform1i(uniformBaseTexture, diffuseMapIndex);
+	}
+	if (uniformSpecularMap != -1)
+		glUniform1i(uniformSpecularMap, specularMapIndex);
+	if (uniformNormalMap != -1)
+		glUniform1i(uniformNormalMap, normalMapIndex);
+	if (uniformEmissiveMap != -1)
+		glUniform1i(uniformEmissiveMap, emissiveMapIndex);
+	if (uniformBoneSkinningMatrixMap != -1)
+		glUniform1i(uniformBoneSkinningMatrixMap, boneSkinningMatrixMapIndex); // Sets sampler to use texture #3 for skinning maps	
 	// Location 4 and onwards for the shadow maps?
 	if (uniformShadowMap != -1)
-		glUniform1i(uniformShadowMap, 4);
+		glUniform1i(uniformShadowMap, shadowMapIndex);
 
 	// Un-bind all previous texture!
-	for (int i = 0; i < 5; ++i)
+	for (int i = 0; i < indicesUsed; ++i)
 	{
 		glActiveTexture(GL_TEXTURE0 + i);
 		glBindTexture(GL_TEXTURE_2D, 0);

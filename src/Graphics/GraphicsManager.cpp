@@ -236,8 +236,7 @@ GraphicsManager::~GraphicsManager()
 	graphicsProcessingMutex.Destroy();
 
 	// De-allocate any remaining messages?
-	while(messageQueue.Length())
-		delete messageQueue.Pop();
+	messageQueue.ClearAndDelete();
 
 	/// Delete stuff
 	if (deferredRenderingBox){
@@ -556,10 +555,23 @@ void GraphicsManager::QueueMessage(GraphicsMessage *msg){
 //	graphicsMessageQueueMutex;
 	while(!graphicsMessageQueueMutex.Claim(-1))
 		;
-	messageQueue.Push(msg);
+	messageQueue.Add(msg);
 	graphicsMessageQueueMutex.Release();
 	return;
 }
+
+// Enters a message into the message queue
+void GraphicsManager::QueueMessages(List<GraphicsMessage*> msgs)
+{
+//	graphicsMessageQueueMutex;
+	while(!graphicsMessageQueueMutex.Claim(-1))
+		;
+	messageQueue.Add(msgs);
+	graphicsMessageQueueMutex.Release();
+	return;
+}
+
+
 
 /** Processes given message without delay, claiming the mutex and blocking all rendering and processing in the thread until the finished. 
 	Use with caution! May be used at start-up and shutdown as well as for other scripted events if a certain timing is required.
@@ -583,12 +595,10 @@ void GraphicsManager::ProcessMessages()
 	long long messageProcessStartTime = Timer::GetCurrentTimeMs();
 	long long now;
 	List<GraphicsMessage*> graphicsMessages;
-	// Process queued messages
-	while (!messageQueue.isOff())
-	{
-		GraphicsMessage * msg = messageQueue.Pop();
-		graphicsMessages.Add(msg);
-	}
+	// Copy messages
+	graphicsMessages = messageQueue;
+	messageQueue.Clear();
+	// Release mutex
 	graphicsMessageQueueMutex.Release();
 
 	/// Process each message.

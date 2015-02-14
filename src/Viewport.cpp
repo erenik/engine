@@ -197,18 +197,18 @@ bool Viewport::GetRayFromViewportCoordinates(Vector2i coords, Ray & ray)
 	/// Calculate near plane coordinates
 	Vector3f camPosition = camera.Position();
 	Vector3f camLookingAt = camera.LookingAt();
-	Vector4f nearPlaneCenter = camPosition - camLookingAt * camera.nearPlane;
+	Vector4f nearPlaneCenter = camPosition + camLookingAt * camera.nearPlane;
 	Vector4f nearPlaneUpVec = camera.UpVector();
 #define upVector nearPlaneUpVec
 	Vector4f nearPlaneRightVec = -camera.LeftVector();
 #define rightVector nearPlaneRightVec
 
- //   std::cout<<"\nCamPosition: "<<camPosition<<" LookingAt: "<<camLookingAt;
+//    std::cout<<"\nCamPosition: "<<camPosition<<" LookingAt: "<<camLookingAt;
 
 	/// Lower left corner
-	Frustum camFrustum = camera.GetFrustum();
-	Vector4f nearPlaneLLCorner = nearPlaneCenter - nearPlaneUpVec * camera.GetFrustum().top
-		- nearPlaneRightVec * camera.GetFrustum().right;
+    Frustum frustum = camera.GetFrustum();
+	Vector4f nearPlaneLLCorner = nearPlaneCenter - nearPlaneUpVec * frustum.top
+		- nearPlaneRightVec * frustum.right;
 
  //   std::cout<<"\nNearPlaneCenter: "<<nearPlaneCenter<<" NearPlaneLowerLeftcorner: "<<nearPlaneLLCorner;
 
@@ -219,7 +219,6 @@ bool Viewport::GetRayFromViewportCoordinates(Vector2i coords, Ray & ray)
 		  relativeY = coords[1] / clientAreaHeight;
 
     float zoom = camera.zoom;
-    Frustum frustum = camera.GetFrustum();
 
  //   relativeX -= 0.5f;
  //   relativeY -= 0.5f;

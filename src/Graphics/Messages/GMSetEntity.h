@@ -11,6 +11,7 @@ class EstimatorFloat;
 	DIFFUSE_MAP		0x0000001
 	SPECULAR_MAP	0x0000002
 	NORMAL_MAP		0x0000004
+	EMISSIVE_MAP	0x0000008
 */
 class GMSetEntityTexture : public GraphicsMessage {
 public:

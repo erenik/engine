@@ -11,6 +11,8 @@
 #include "Network/NetworkManager.h"
 #include "Window/WindowManager.h"
 #include "Entity/EntityManager.h"
+#include "Graphics/GraphicsManager.h"
+#include "Physics/PhysicsManager.h"
 
 #include "File/LogFile.h"
 
@@ -332,6 +334,14 @@ void * StateManager::StateProcessor(void * vArgs){
 
 				// Clean-up.
 				EntityMan.DeleteUnusedEntities();
+
+				// Post messages, if any.
+				if (StateMan.graphicsQueue.Size())
+					GraphicsMan.QueueMessages(StateMan.graphicsQueue);
+				StateMan.graphicsQueue.Clear();
+				if (StateMan.physicsQueue.Size())
+					PhysicsMan.QueueMessages(StateMan.physicsQueue);
+				StateMan.physicsQueue.Clear();
 
 				/// Release mutex at the end of the frame.
 				StateMan.stateProcessingMutex.Release();

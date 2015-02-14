@@ -41,6 +41,7 @@
 #include "Application/Application.h"
 #include "StateManager.h"
 
+#include "Entity/EntityManager.h"
 #include "Input/InputManager.h"
 
 #include "Physics/PhysicsManager.h"
@@ -109,12 +110,12 @@ void TIFS::OnEnter(AppState * previousState)
 	weather = new WeatherSystem();
 	weather->Initialize();
 
-	Physics.QueueMessage(new PMSet(integrator));
-	Physics.QueueMessage(new PMSet(cd));
-	Physics.QueueMessage(new PMSet(cr));
+	PhysicsQueue.Add(new PMSet(integrator));
+	PhysicsQueue.Add(new PMSet(cd));
+	PhysicsQueue.Add(new PMSet(cr));
 	
 	// Set 0 gravity for now..
-	Physics.QueueMessage(new PMSet(PT_GRAVITY, Vector3f()));
+	PhysicsQueue.Add(new PMSet(PT_GRAVITY, Vector3f()));
 
 	freeFlyCamera = CameraMan.NewCamera("FreeFlyCamera");
 	firstPersonCamera = CameraMan.NewCamera("1stPersonCamera");
@@ -124,7 +125,7 @@ void TIFS::OnEnter(AppState * previousState)
 	cameras.Add(freeFlyCamera, firstPersonCamera);
 
 	// Set free form camera as active.
-	Graphics.QueueMessage(new GMSetCamera(freeFlyCamera));
+	GraphicsQueue.Add(new GMSetCamera(freeFlyCamera));
 	ResetCamera();
 
 
@@ -132,7 +133,7 @@ void TIFS::OnEnter(AppState * previousState)
 	if (!toolParticles)
 	{
 		toolParticles = new ToolParticleSystem();
-		GraphicsMan.QueueMessage(new GMRegisterParticleSystem(toolParticles));
+		GraphicsQueue.Add(new GMRegisterParticleSystem(toolParticles));
 	}
 
 	// Remove shit.
@@ -142,10 +143,10 @@ void TIFS::OnEnter(AppState * previousState)
 	if (!ui)
 		CreateUserInterface();
 	// Set ui as active?
-	Graphics.QueueMessage(new GMSetUI(ui));
+	GraphicsQueue.Add(new GMSetUI(ui));
 
 	// Remove shit
-	Graphics.QueueMessage(new GMSetOverlay(NULL));
+	GraphicsQueue.Add(new GMSetOverlay(NULL));
 
 	Input.ForceNavigateUI(true);
 
@@ -169,7 +170,7 @@ void TIFS::Process(int timeInMs)
 void TIFS::OnExit(AppState * nextState)
 {
 	weather->Shutdown();
-	GraphicsMan.QueueMessage(new GMUnregisterParticleSystem(toolParticles, true));
+	GraphicsQueue.Add(new GMUnregisterParticleSystem(toolParticles, true));
 }
 
 /// Callback function that will be triggered via the MessageManager when messages are processed.
@@ -257,7 +258,7 @@ void TIFS::ProcessMessage(Message * message)
 			}
 			else if (msg == "OpenMainMenu")
 			{
-				Graphics.QueueMessage(new GMSetUI(ui));
+				GraphicsQueue.Add(new GMSetUI(ui));
 				StateMan.QueueState(NULL);
 			}
 			else if (msg == "ResetCamera")
@@ -295,8 +296,8 @@ void TIFS::CreateUserInterface()
 void TIFS::ResetCamera()
 {
 	// Reset the freeFlyCamera?
-	Graphics.QueueMessage(new GMSetCamera(freeFlyCamera, CT_POSITION, Vector3f(0,40,30)));
-	Graphics.QueueMessage(new GMSetCamera(freeFlyCamera, CT_ROTATION, Vector3f(-0.4f, 0, 0)));
+	GraphicsQueue.Add(new GMSetCamera(freeFlyCamera, CT_POSITION, Vector3f(0,40,30)));
+	GraphicsQueue.Add(new GMSetCamera(freeFlyCamera, CT_ROTATION, Vector3f(-0.4f, 0, 0)));
 	
 	firstPersonCamera->trackingPositionOffset = Vector3f(0,3.5f,0);
 	thirdPersonCamera->trackingPositionOffset = Vector3f(0,3.5f,0);
@@ -368,7 +369,7 @@ void TIFS::CreateTurret(int ofSize, ConstVec3fr atLocation)
 
 	Entity * turretBase = MapMan.CreateEntity("TurretBase", ModelMan.GetModel("Turrets/LargeBase"), diffuseMap);
 	turretBase->updateChildrenOnTransform = true;
-	Physics.QueueMessage(new PMSetEntity(turretBase, PT_POSITION, atLocation));
+	PhysicsQueue.Add(new PMSetEntity(turretBase, PT_POSITION, atLocation));
 	turretParts.Add(turretBase);
 
 
@@ -377,19 +378,19 @@ void TIFS::CreateTurret(int ofSize, ConstVec3fr atLocation)
 	Entity * swivelEntity = MapMan.CreateEntity("TurretSwivel", swivel, diffuseMap);
 	
 	/// Make the swivel's transformation depend on the base'.
-	Graphics.QueueMessage(new GMSetEntity(swivelEntity, GT_PARENT, turretBase)); 
+	GraphicsQueue.Add(new GMSetEntity(swivelEntity, GT_PARENT, turretBase)); 
 	turretParts.Add(swivelEntity);
 
 	// Move it up a bit.
 	Model * underBarrel = ModelMan.GetModel("Turrets/LargeUnderBarrel");
 	Entity * underBarrelEntity = MapMan.CreateEntity("TurretUnderBarrel", underBarrel, diffuseMap, Vector3f(0, 1.8f, -0.5f));
-	Graphics.QueueMessage(new GMSetEntity(underBarrelEntity, GT_PARENT, swivelEntity));
+	GraphicsQueue.Add(new GMSetEntity(underBarrelEntity, GT_PARENT, swivelEntity));
 	turretParts.Add(underBarrelEntity);
 
 	// Add barrel.
 	Model * barrel = ModelMan.GetModel("Turrets/LargeBarrel");
 	Entity * barrelEntity = MapMan.CreateEntity("TurretBarrel", barrel, diffuseMap);
-	Graphics.QueueMessage(new GMSetEntity(barrelEntity, GT_PARENT, underBarrelEntity));
+	GraphicsQueue.Add(new GMSetEntity(barrelEntity, GT_PARENT, underBarrelEntity));
 	turretParts.Add(barrelEntity);
 
 
@@ -424,8 +425,8 @@ void TIFS::SpawnPlayer()
 
 	Entity * player = MapMan.CreateEntity("Player", model, TexMan.GetTexture("Red"));
 	// Attach camera to the player.
-	Graphics.QueueMessage(new GMSetCamera(thirdPersonCamera, CT_ENTITY_TO_TRACK, player));
-	Graphics.QueueMessage(new GMSetCamera(firstPersonCamera, CT_ENTITY_TO_TRACK, player));
+	GraphicsQueue.Add(new GMSetCamera(thirdPersonCamera, CT_ENTITY_TO_TRACK, player));
+	GraphicsQueue.Add(new GMSetCamera(firstPersonCamera, CT_ENTITY_TO_TRACK, player));
 	
 
 	// Attach ze propororoty to bind the entity and the player.
@@ -436,8 +437,8 @@ void TIFS::SpawnPlayer()
 	// Enable steering!
 	playerProp->inputFocus = true;
 
-	Physics.QueueMessage(new PMSetEntity(player, PT_PHYSICS_TYPE, PhysicsType::DYNAMIC));
-	PhysicsMan.QueueMessage(new PMSetEntity(player, PT_FACE_VELOCITY_DIRECTION, true));
+	PhysicsQueue.Add(new PMSetEntity(player, PT_PHYSICS_TYPE, PhysicsType::DYNAMIC));
+	PhysicsQueue.Add(new PMSetEntity(player, PT_FACE_VELOCITY_DIRECTION, true));
 }
 
 void TIFS::TogglePause()
@@ -476,45 +477,55 @@ void TIFS::NewGame()
 	SpawnPlayer();
 
 	// Create a plane.
+	List<Entity*> entities;
 	Model * model = ModelMan.GetModel("plane");
-	Texture * tex = TexMan.GetTexture("0xAA");
-	Entity * plane = MapMan.CreateEntity("Plane", model, tex);
-	PhysicsMan.QueueMessage(new PMSetEntity(plane, PT_SET_SCALE, fieldSize));
+	Texture * tex = TexMan.GetTexture("0x77");
+	Entity * plane = EntityMan.CreateEntity("Plane", model, tex);
+	PhysicsProperty * pp = new PhysicsProperty();
+	plane->physics = pp;
+	pp->shapeType = PhysicsShape::MESH;
+	plane->Scale(fieldSize);
 
-	tex = TexMan.GetTexture("0xEE");
-	plane = MapMan.CreateEntity("Plane 2", model, tex);
-	PhysicsMan.QueueMessage(new PMSetEntity(plane, PT_SET_SCALE, 10.f));
-	PhysicsMan.QueueMessage(new PMSetEntity(plane, PT_POSITION, Vector3f(5,5,5)));
+	tex = TexMan.GetTexture("0x88");
+	Entity * plane2 = EntityMan.CreateEntity("Plane 2", model, tex);
+	plane2->physics = pp = new PhysicsProperty();
+	pp->shapeType = PhysicsShape::MESH;
+	plane2->position = Vector3f(1,1,1) * 10;
+	plane2->Scale(20);
 
+	// Add ze entities.
+	entities.Add(plane, plane2);
+	// Add zem to ze mapp
+	MapMan.AddEntities(entities);
 
 	// Mothership.
 	Entity * mothership = MapMan.CreateEntity("Mothership", ModelMan.GetModel("obj/Mothership/Mothership.obj"), TexMan.GetTexture("0x77"));
-	PhysicsMan.QueueMessage(new PMSetEntity(mothership, PT_POSITION, Vector3f(0,1000,0)));
-	PhysicsMan.QueueMessage(new PMSetEntity(mothership, PT_SET_SCALE, 3.f));
+	PhysicsQueue.Add(new PMSetEntity(mothership, PT_POSITION, Vector3f(0,1000,0)));
+	PhysicsQueue.Add(new PMSetEntity(mothership, PT_SET_SCALE, 3.f));
 
 	/// Set 3rd person camera as default.
-	GraphicsMan.QueueMessage(new GMSetCamera(thirdPersonCamera));
+	GraphicsQueue.Add(new GMSetCamera(thirdPersonCamera));
 }
 
 
 void TIFS::HideMainMenu()
 {
-	Graphics.QueueMessage(new GMSetUIb("MainMenu", GMUI::VISIBILITY, false));
+	GraphicsQueue.Add(new GMSetUIb("MainMenu", GMUI::VISIBILITY, false));
 }
 
 void TIFS::ShowMainMenu()
 {
-	Graphics.QueueMessage(new GMSetUIb("MainMenu", GMUI::VISIBILITY, true));
+	GraphicsQueue.Add(new GMSetUIb("MainMenu", GMUI::VISIBILITY, true));
 }
 
 void TIFS::HideTitle()
 {
-	Graphics.QueueMessage(new GMSetUIb("TIFS", GMUI::VISIBILITY, false));
+	GraphicsQueue.Add(new GMSetUIb("TIFS", GMUI::VISIBILITY, false));
 }
 
 void TIFS::ShowTitle()
 {
-	Graphics.QueueMessage(new GMSetUIb("TIFS", GMUI::VISIBILITY, true));
+	GraphicsQueue.Add(new GMSetUIb("TIFS", GMUI::VISIBILITY, true));
 }
 
 String hudSource = "gui/HUD.gui";
@@ -533,18 +544,18 @@ void TIFS::ShowHUD()
 		// For each player, add it to his screen.. just 1 screen now tho.
 		UIElement * element = UserInterface::LoadUIAsElement(hudSource);
 		assert(element);
-		Graphics.QueueMessage(new GMAddUI(element));
+		GraphicsQueue.Add(new GMAddUI(element));
 	}
 	else 
 	{
 		// Just make it visible.
-		Graphics.QueueMessage(new GMSetUIb("HUD", GMUI::VISIBILITY, true, ui));
+		GraphicsQueue.Add(new GMSetUIb("HUD", GMUI::VISIBILITY, true, ui));
 	}
 }
 
 void TIFS::HideHUD()
 {
 	// Just make it visible.
-	Graphics.QueueMessage(new GMSetUIb("HUD", GMUI::VISIBILITY, false, ui));	
+	GraphicsQueue.Add(new GMSetUIb("HUD", GMUI::VISIBILITY, false, ui));	
 }
 

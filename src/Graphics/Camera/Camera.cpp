@@ -64,7 +64,9 @@ void CameraManager::Process()
 	for (int i = 0; i < cameras.Size(); ++i)
 	{
 		Camera * camera = cameras[i];
-		camera->ProcessMovement(timeInSeconds);
+		bool moved = camera->ProcessMovement(timeInSeconds);
+		if (moved || camera->entityToTrack)
+			camera->Update();
 	}
 }
 
@@ -224,6 +226,120 @@ void Camera::PrintData() const {
 	std::cout<<"\n - Farplane: "<<farPlane;
 }
 
+/// Recalculates projection matrix only.
+void Camera::UpdateProjectionMatrix()
+{
+	// Calculate values to use for projection matrix.
+	float left, right, bottom, top;
+	// This should probably only be used with orthogonal projection cameras...
+	if (adjustProjectionMatrixToWindow)
+	{
+		Vector2i windowWorkingArea = windowToTrack->WorkingArea();
+		if (windowWorkingArea.Length() <= 0 || windowWorkingArea.Length() > 100000)
+		{
+		std::cout<<"lall";
+		}
+		float halfWidth = windowWorkingArea[0] * 0.5f;
+		float halfHeight = windowWorkingArea[1] * 0.5f;
+		right = halfWidth;
+		left = -right;
+		top = halfHeight;
+		bottom = -top;
+	}
+	else {
+		left = -widthRatio;
+		right = widthRatio;
+		bottom = -heightRatio;
+		top = heightRatio;
+	};
+
+	left *= zoom;
+	right *= zoom;
+	bottom *= zoom;
+	top *= zoom;
+
+	/// Nothing to create matrix out of...
+	if (left == right || bottom == top &&
+		left == 0 || bottom == 0)
+		return;
+
+	/// Begin by updating projection matrix as that is unlikely to vary with foci
+	switch(projectionType)
+	{	
+		// OLD: Perspective-distortions when adjusting width and height!
+		case PROJECTION_3D:
+		{
+			projectionMatrix.InitProjectionMatrix(left, right, bottom, top, nearPlane, farPlane);
+			Vector4f pos = projectionMatrix * Vector4d(0,0,0,1),
+				pos2 = projectionMatrix * Vector4d(10,10,10,1),
+				pos3 = projectionMatrix * Vector4d(100,100,100,1);
+			pos /= pos.w;
+			pos2 /= pos2.w;
+			pos3 /= pos3.w;
+			break;
+		}
+		case ORTHOGONAL:
+		{
+			projectionMatrix.InitOrthoProjectionMatrix(left, right, bottom, top, nearPlane, farPlane);
+			Vector4f pos = projectionMatrix * Vector4d(0,0,0,1),
+				pos2 = projectionMatrix * Vector4d(10,10,10,1),
+				pos3 = projectionMatrix * Vector4d(100,100,100,1);
+			pos /= pos.w;
+			pos2 /= pos2.w;
+			pos3 /= pos3.w;
+			break;
+		}
+	}
+	/// Update frustum data.
+	frustum.SetProjection(projectionType);
+	frustum.SetCamInternals(left, right, bottom, top, nearPlane, farPlane);
+}
+
+/// Updates all components of the view-matrix.
+void Camera::UpdateViewMatrix(bool track /* = true*/)
+{
+	/// 3rd Person "static-world-rotation" camera
+	if (track)
+	{
+		if (entityToTrack)
+		{
+			Track();
+		}
+		else 
+			positionWithOffsets = this->position;
+	}
+	/// Apply any after-effects here, such as 'shake', etc.
+
+	/// Calculate matrices.
+	/// Add a switch case if new/other techniques are requested -> move code from the TrackBehind, etc. to there.
+	Matrix4d v2, r2;
+	bool ok = CalculateDefaultEditorMatrices(distanceFromCenterOfMovement, rotation, positionWithOffsets, v2, r2);
+	viewMatrix = v2;
+	rotationMatrix = r2;
+
+	/// Extract data.
+	ExtractData();
+	// Update frustum
+	frustum.SetCamPos(camPos, lookingAtVector, upVector);
+}
+
+/// Extracts camera position, lookAt, etc. from the current matrices.
+void Camera::ExtractData()
+{
+	//	Vector4f camPos, lookingAtVector, upVector;
+	camPos = viewMatrix.InvertedCopy() * Vector4d(0,0,0,1);	// THIS
+
+	// Calculate camLook and camUp Vectors
+	Vector4d moveVec = Vector4d(0, 0, -1, 1);
+
+	/// Extract global coordinates
+	Matrix4f invertedRot = rotationMatrix.InvertedCopy();
+	leftVector = invertedRot.Product(Vector4f(-1,0,0,1)).NormalizedCopy();
+	lookingAtVector = invertedRot.Product(Vector4f(0,0,-1,1)).NormalizedCopy();
+	upVector = invertedRot.Product(Vector4f(0,1,0,1)).NormalizedCopy();
+}
+
+
 /// Resets values to some pre-defined.. values.
 void Camera::Reset()
 {
@@ -295,138 +411,12 @@ void Camera::Update()
 	viewMatrix.LoadIdentity();
 	rotationMatrix.LoadIdentity();
 
-	// Calculate values to use for projection matrix.
-	float left, right, bottom, top;
-	// This should probably only be used with orthogonal projection cameras...
-	if (adjustProjectionMatrixToWindow)
-	{
-		Vector2i windowWorkingArea = windowToTrack->WorkingArea();
-		if (windowWorkingArea.Length() <= 0 || windowWorkingArea.Length() > 100000)
-		{
-		std::cout<<"lall";
-		}
-		float halfWidth = windowWorkingArea[0] * 0.5f;
-		float halfHeight = windowWorkingArea[1] * 0.5f;
-		right = halfWidth;
-		left = -right;
-		top = halfHeight;
-		bottom = -top;
-	}
-	else {
-		left = -widthRatio;
-		right = widthRatio;
-		bottom = -heightRatio;
-		top = heightRatio;
-	};
+	/// Update respective matrices.
+	UpdateProjectionMatrix();
+	UpdateViewMatrix();
 
-	left *= zoom;
-	right *= zoom;
-	bottom *= zoom;
-	top *= zoom;
-
-	/// Nothing to create matrix out of...
-	if (left == right || bottom == top &&
-		left == 0 || bottom == 0)
-		return;
-
-	/// Begin by updating projection matrix as that is unlikely to vary with foci
-	switch(projectionType)
-	{	
-		// OLD: Perspective-distortions when adjusting width and height!
-		case PROJECTION_3D:
-		{
-			projectionMatrix.InitProjectionMatrix(left, right, bottom, top, nearPlane, farPlane);
-			Vector4f pos = projectionMatrix * Vector4d(0,0,0,1),
-				pos2 = projectionMatrix * Vector4d(10,10,10,1),
-				pos3 = projectionMatrix * Vector4d(100,100,100,1);
-			pos /= pos.w;
-			pos2 /= pos2.w;
-			pos3 /= pos3.w;
-			break;
-		}
-		case ORTHOGONAL:
-		{
-			projectionMatrix.InitOrthoProjectionMatrix(left, right, bottom, top, nearPlane, farPlane);
-			Vector4f pos = projectionMatrix * Vector4d(0,0,0,1),
-				pos2 = projectionMatrix * Vector4d(10,10,10,1),
-				pos3 = projectionMatrix * Vector4d(100,100,100,1);
-			pos /= pos.w;
-			pos2 /= pos2.w;
-			pos3 /= pos3.w;
-			break;
-		}
-	}
-	frustum.SetProjection(projectionType);
-
-
-	/// 3rd Person "static-world-rotation" camera
-	if (entityToTrack)
-	{
-		Track();
-	}
-	else 
-		positionWithOffsets = this->position;
-
-	
-	/// Apply any after-effects here, such as 'shake', etc.
-
-	/// Calculate matrices.
-	/// Add a switch case if new/other techniques are requested -> move code from the TrackBehind, etc. to there.
-	Matrix4d v2, r2;
-	bool ok = CalculateDefaultEditorMatrices(distanceFromCenterOfMovement, rotation, positionWithOffsets, v2, r2);
-
-	viewMatrix = v2;
-	rotationMatrix = r2;
-
-
-	Vector4f cameraSpace = viewMatrix * Vector4d(0,0,0,1),
-		cameraSpace2 = viewMatrix * Vector4d(10,10,10,1),
-		cameraSpace3 = viewMatrix * Vector4d(0,0,-500,1);
-	Vector4f screenSpace = projectionMatrix * cameraSpace,
-		screenSpace2 = projectionMatrix * cameraSpace2,
-		screenSpace3 = projectionMatrix * cameraSpace3;
-	screenSpace /= screenSpace.w;
-	screenSpace2 /= screenSpace2.w;
-	screenSpace3 /= screenSpace3.w;
-
-
-	/// Some new temporary variables for updating the frustum
-	float sample = viewMatrix.GetColumn(0)[0];
-	assert(AbsoluteValue(sample) < 100000.f);
-	//	Vector4f camPos, lookingAtVector, upVector;
-	camPos = viewMatrix.InvertedCopy() * Vector4d(0,0,0,1);	// THIS
-
-	// Calculate camLook and camUp Vectors
-	Vector4d moveVec = Vector4d(0, 0, -1, 1);
-
-	/// Extract global coordinates
-	Matrix4f invertedRot = rotationMatrix.InvertedCopy();
-	leftVector = invertedRot.Product(Vector4f(-1,0,0,1)).NormalizedCopy();
-	lookingAtVector = invertedRot.Product(Vector4f(0,0,-1,1)).NormalizedCopy();
-	upVector = invertedRot.Product(Vector4f(0,1,0,1)).NormalizedCopy();
-
-	// Update frustum
-	frustum.SetCamInternals(left, right, bottom, top, nearPlane, farPlane);
-	frustum.SetCamPos(Vector3f(camPos), Vector3f(lookingAtVector), Vector3f(upVector));
-
+	/// To avoid unneccessaray updates, idk
 	lastUpdate = now;
-
-	/*
-	Matrix4f vp = projectionMatrix * viewMatrix;
-	Matrix4f vp2 = viewMatrix * projectionMatrix;
-	Matrix4f mvp = Matrix4f() * vp;
-	Matrix4f mvp2 = Matrix4f() * vp2;
-	Matrix4f mvp3 = vp * Matrix4f();
-	Matrix4f mvp4 = vp2 * Matrix4f();
-	Vector4f vec = Vector4f(0,0,0,1);
-	Vector3f screenSpace = vp * vec;
-	Vector3f screenSpace2 = vp2 * Vector4f(0,0,0,1);
-	Vector3f screenSpace3 = mvp * vec,
-		screenSpace4 = mvp2 * vec,
-		screenSpace5 = mvp3 * vec,
-		screenSpace6 = mvp4 * vec,
-		screenSpace7 = mvp4 * vec;
-		*/
 }
 
 void Camera::Track()
@@ -531,14 +521,14 @@ const Matrix4f Camera::ViewProjectionF()
 
 
 /// To be called from render/physics-thread. Moves the camera using it's given enabled directions and velocities.
-void Camera::ProcessMovement(float timeInSeconds)
+bool Camera::ProcessMovement(float timeInSeconds)
 {
 	if (lastMovement == 0){
 		lastMovement = Timer::GetCurrentTimeMs();
-		return;
+		return false;
 	}
 	if (velocity.MaxPart() == 0 && rotationalVelocityEuler.MaxPart() == 0 && dfcomSpeedMultiplier == 1.f)
-		return;
+		return false;
 	Vector3f deltaP = velocity * timeInSeconds;
 	/// We might want to calculate the position Diff using local camera co-ordinates..!
 	Vector3f rightVec = this->lookingAtVector.CrossProduct(upVector);
@@ -573,13 +563,44 @@ void Camera::ProcessMovement(float timeInSeconds)
 	/// Apply Y-rotation, global axis.
 	if (rotationalVelocityEuler.MaxPart())
 	{
-		rotationEuler += rotationalVelocityEuler * timeInSeconds;
-		// Re-calculate the quaternion defining this rotation (if possible).
-		Quaternion pitch(Vector3f(1,0,0), rotationEuler[0]);
-		Quaternion yaw(Vector3f(0,1,0), rotationEuler[1]);
-		Quaternion roll(Vector3f(0,0,1), rotationEuler[2]);
+		// Check tracking-modes. 
+		switch(trackingMode)
+		{
+			// If we are locked to an entity, rotate our position around it based on the given speeds.
+			case TrackingMode::THIRD_PERSON:
+			{
+				// check current diff.
+				Vector3f toTarget = entityToTrack->position - position;
+				Vector3f normed = toTarget.NormalizedCopy();
+				// Yaw only for now?
+				Vector2f xz(normed.x, normed.z);
+				xz.Normalize();
+				Angle yaw(xz);
+				yaw += Angle(rotationalVelocityEuler.y * timeInSeconds);
+				/// We got a new direction, myes?
+				float dist = toTarget.Length();
+				Vector2f vec = yaw.ToVector2f();
+				Vector3f vec3(vec.x, 0, vec.y);
+				vec3 *= dist;
+				Vector3f newPos = entityToTrack->position - vec3;
+				/// Retain old Y.
+				newPos.y = position.y;
+				position = newPos;
+				/// Update matrix once to extract data needed to track again later?
+				UpdateViewMatrix(true);
+				break;	
+			}
+			default:
+			{
+				rotationEuler += rotationalVelocityEuler * timeInSeconds;
+				// Re-calculate the quaternion defining this rotation (if possible).
+				Quaternion pitch(Vector3f(1,0,0), rotationEuler[0]);
+				Quaternion yaw(Vector3f(0,1,0), rotationEuler[1]);
+				Quaternion roll(Vector3f(0,0,1), rotationEuler[2]);
 
-		orientationEuler = yaw * pitch; // * roll;
+				orientationEuler = yaw * pitch; // * roll;			
+			}
+		}
 		// And multiply it!
 //		orientation = orientation * rotation;
 	}
@@ -593,6 +614,7 @@ void Camera::ProcessMovement(float timeInSeconds)
 	{
 		distanceFromCenterOfMovement += dfcomSpeed * timeInSeconds;
 	}
+	return true;
 }
 
 /// Updates base velocities depending on navigationControls booleans

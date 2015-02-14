@@ -8,8 +8,9 @@
 ///=================================================================================//
 ///  Plane-Sphere Intersection
 ///=================================================================================//	
-bool PlaneSphereCollision(Entity * planeEntity, Entity * sphereEntity, Collision &data){
-	assert(planeEntity->physics->physicsShape == ShapeType::PLANE);
+bool PlaneSphereCollision(Entity * planeEntity, Entity * sphereEntity, Collision &data)
+{
+	assert(planeEntity->physics->shapeType == ShapeType::PLANE);
 	Plane plane = *(Plane*)planeEntity->physics->shape;
 	Matrix4f m = planeEntity->transformationMatrix;
 	plane.Set3Points(m * plane.point1, m * plane.point2, m * plane.point3);

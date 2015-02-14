@@ -74,7 +74,7 @@ public:
 	/// Basic physics type, defined where? STATIC DYNAMIC KINEMATIC anyway.
 	int type;
 	/// Collision detection shape type
-	int physicsShape;
+	int shapeType;
 	/// Pointer to the mesh of type defined in physicsShape. (e.g. Plane, Sphere, Mesh, etc.)
 	void * shape;
 

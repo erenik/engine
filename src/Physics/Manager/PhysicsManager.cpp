@@ -25,6 +25,7 @@
 #include "PhysicsLib/Shapes/OBB.h"
 
 #include "Mesh/Mesh.h"
+#include "Graphics/FrameStatistics.h"
 
 #include <ctime>
 
@@ -81,8 +82,7 @@ PhysicsManager::PhysicsManager()
 PhysicsManager::~PhysicsManager()
 {
 	// Delete remaining messages.
-	while(messageQueue.Length())
-		delete messageQueue.Pop();
+	messageQueue.ClearAndDelete();
 
 	SAFE_DELETE(aabbSweeper);
 	SAFE_DELETE(entityCollisionOctree);
@@ -100,6 +100,33 @@ PhysicsManager::~PhysicsManager()
 int PhysicsManager::RegisteredEntities()
 {
 	return this->physicalEntities.Size();
+}
+
+/// Called once per frame from controlling thread. Handles message-processing, integration, simulation.
+void PhysicsManager::Process()
+{
+	Timer totalPhysics, timer;
+	FrameStats.ResetPhysics();
+	totalPhysics.Start();
+	timer.Start();
+	/// Process any available physics messages first
+	ProcessMessages();
+	timer.Stop();
+	int ms = timer.GetMs();
+	FrameStats.physicsMessages = ms;
+	timer.Start();
+	// Process physics from here in order to avoid graphical issues
+	ProcessPhysics();
+	timer.Stop();
+	int ms2 = timer.GetMs();
+	FrameStats.physicsProcessing = ms2;
+	if (mesManMessages.Size())
+	{
+		MesMan.QueueMessages(mesManMessages);
+		mesManMessages.Clear();
+	}
+	totalPhysics.Stop();
+	FrameStats.totalPhysics = totalPhysics.GetMs();
 }
 
 
@@ -120,8 +147,8 @@ void PhysicsManager::InitOctree(float leftBound, float rightBound, float topBoun
 /// Casts a ray.
 List<Intersection> PhysicsManager::Raycast(Ray & ray)
 {
-	// Pause physics while at it?
-	Pause();
+	// Pause physics while at it ? <- lollll
+//	Pause();
 	List<Intersection> intersections;
 	// Grab entities.
 	List<Entity*> entities = physicalEntities;
@@ -134,17 +161,15 @@ List<Intersection> PhysicsManager::Raycast(Ray & ray)
 	{
 		Entity * entity = entities[i];
 		PhysicsProperty * pp = entity->physics;
-		switch(pp->physicsShape)
+		switch(pp->shapeType)
 		{
 			case PhysicsShape::SPHERE:
 			{
 				// Grab the entity's sphere, do check.
-				Sphere * sp = (Sphere*)pp->shape;
-				sp->position = entity->worldPosition;
-				assert(sp);
-		//		RayQuadIntersection
-				
-				if (ray.Intersect(*sp, &distance))
+				Sphere sphere;
+				sphere.radius = pp->physicalRadius;
+				sphere.position = entity->worldPosition;				
+				if (ray.Intersect(sphere, &distance))
 				{
 					Intersection iSec;
 					iSec.distance = distance;
@@ -168,8 +193,24 @@ List<Intersection> PhysicsManager::Raycast(Ray & ray)
 				assert(false);
 		}
 	}
+	// Sort by distance.. No D:?
+	for (int i = 0; i < intersections.Size(); ++i)
+	{
+		Intersection & one = intersections[i];
+		for (int j = 1; j < intersections.Size(); ++j)
+		{
+			Intersection & two = intersections[j];
+			if (one.distance > two.distance)
+			{
+				Intersection tmp = one;
+				one = two;
+				two = tmp;
+			}
+		}
+	}
+
 	// Resume if paused.
-	Resume();
+//	Resume();
 	return intersections;
 }
 
@@ -223,9 +264,18 @@ AABB PhysicsManager::GetAllEntitiesAABB()
 void PhysicsManager::QueueMessage(PhysicsMessage * msg) {
 //    std::cout<<"\nMessage queued: "<<msg<<" of type "<<msg->Type();
 	physicsMessageQueueMutex.Claim(-1);
-	messageQueue.Push(msg);
+	messageQueue.Add(msg);
 	physicsMessageQueueMutex.Release();
 }
+
+// Enters a message into the message queue
+void PhysicsManager::QueueMessages(List<PhysicsMessage*> msgs)
+{
+	physicsMessageQueueMutex.Claim(-1);
+	messageQueue.Add(msgs);
+	physicsMessageQueueMutex.Release();	
+}
+
 
 /// Attaches a physics property to target entity if it didn't already have one.
 void PhysicsManager::AttachPhysicsTo(Entity * entity){
@@ -233,7 +283,7 @@ void PhysicsManager::AttachPhysicsTo(Entity * entity){
 		return;
 	entity->physics = new PhysicsProperty();
 	entity->physics->type = PhysicsType::STATIC;
-	entity->physics->physicsShape = ShapeType::SPHERE;
+	entity->physics->shapeType = ShapeType::SPHERE;
 	assert(entity->physics->shape == NULL);
 	entity->physics->shape = new Sphere();
 	((Sphere*)entity->physics->shape)->radius = entity->radius;
@@ -291,7 +341,7 @@ void PhysicsManager::SetPhysicsShape(List<Entity*> targetEntities, int type)
 			delete entity->physics->shape;
 			entity->physics->shape = NULL;
 		}
-		entity->physics->physicsShape = type;
+		entity->physics->shapeType = type;
 		switch(type){
 		case ShapeType::SPHERE:
 			entity->physics->shape = new Sphere();
@@ -376,7 +426,7 @@ void PhysicsManager::EnsurePhysicsMesh(Entity * targetEntity)
 /// Checks if the entity requires a physics mesh and loads it if so.
 void PhysicsManager::EnsurePhysicsMeshIfNeeded(Entity * targetEntity){
 	// Check if we need a physics-mesh.
-	if (targetEntity->physics->physicsShape == ShapeType::MESH){
+	if (targetEntity->physics->shapeType == ShapeType::MESH){
 		EnsurePhysicsMesh(targetEntity);
 	}
 }
@@ -483,10 +533,8 @@ void PhysicsManager::ProcessMessages()
 	while(!physicsMessageQueueMutex.Claim(-1));
 	List<PhysicsMessage*> messages;
     // Process queued messages
-	while (!messageQueue.isOff())
-	{
-		messages.Add(messageQueue.Pop());
-	}
+	messages = messageQueue;
+	messageQueue.Clear();
 	physicsMessageQueueMutex.Release();
 	// Release mutex
 

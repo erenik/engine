@@ -149,16 +149,32 @@ public:
 	/// Array of (texture) samplers
 	GLuint sampler[10];		// Max 10 simultaneous samplers
 
-	/// Texture uniforms.
+	/** Texture uniforms, per-entity.
+		Default IDs/#s of them:
+		0 - Diffuse
+		1 - Specular
+		2 - Normal
+		3 - Emissive
+		4 - Bone/Skinning
+	*/
 	GLuint uniformBaseTexture,
 		uniformSpecularMap,
-		uniformNormalMap;
-	/// Skeletal animation texture storages
-	GLuint uniformBoneSkinningMatrixMap;
-	
+		uniformNormalMap,
+		uniformEmissiveMap;
+	GLuint uniformBoneSkinningMatrixMap;	/// Skeletal animation texture storages
+
 	// Shadow maps.
 	GLuint uniformShadowMap; // Default location: glActiveTexture(GL_TEXTURE0 + 4);
 	GLuint uniformShadowMapMatrix;
+
+	/// Provides the locations for the above, if they should deviate from the defaults.
+	int diffuseMapIndex;
+	int specularMapIndex;
+	int normalMapIndex;
+	int emissiveMapIndex;
+	int boneSkinningMatrixMapIndex;
+	int shadowMapIndex;
+	
 
 	GLuint uniformUseDiffuseMap, 
 		uniformUseSpecularMap, 

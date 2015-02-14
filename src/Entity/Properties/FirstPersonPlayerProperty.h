@@ -20,6 +20,8 @@ public:
 
 	/// Time passed in seconds..! Will steer if inputFocus is true.
 	virtual void Process(int timeInMs);
+	virtual void ProcessMessage(Message * message);
+
 	void ToggleAutorun();
 
 	// Default false. Enable to steer this entity.

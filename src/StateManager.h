@@ -11,6 +11,8 @@
 #include "Mutex/Mutex.h"
 
 class AppState;
+class PhysicsMessage;
+class GraphicsMessage;
 
 #define StateMan		(*StateManager::Instance())
 
@@ -30,6 +32,9 @@ class AppState;
 */
 void RegisterStates();
 
+#define PhysicsQueue (StateMan.physicsQueue)
+#define GraphicsQueue (StateMan.graphicsQueue)
+
 /// Handles switches between game states, re-linking of key bindings, etc.
 class StateManager{
 private:
@@ -41,6 +46,11 @@ public:
 	static StateManager * Instance();
 	static void Deallocate();
 	~StateManager();
+
+
+	/// Queues used to queue messages to be sent in batches to the other thread(s)
+	List<PhysicsMessage*> physicsQueue;
+	List<GraphicsMessage*> graphicsQueue;
 
 	/// Deletes all application states (global and current/active ones).
 	void DeleteStates();

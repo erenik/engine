@@ -31,10 +31,11 @@ void CompactPhysics::Nullify(){
 	noCollisionResolutions = NULL;
 }
 
-CompactPhysics::CompactPhysics(PhysicsProperty * physicsProperty){
+CompactPhysics::CompactPhysics(PhysicsProperty * physicsProperty)
+{
 	Nullify();
 	type = physicsProperty->type;
-	physicsShape = physicsProperty->physicsShape;
+	physicsShape = physicsProperty->shapeType;
 	state = physicsProperty->state;
 	physicalRadius = physicsProperty->physicalRadius;
 	velocity = physicsProperty->velocity;

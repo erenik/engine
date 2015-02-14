@@ -11,8 +11,8 @@
 
 bool MeshSphereCollision(Entity * meshEntity, Entity * sphereEntity, Collision &data)
 {
-	assert(meshEntity->physics->physicsShape == ShapeType::MESH &&
-		sphereEntity->physics->physicsShape == ShapeType::SPHERE);
+	assert(meshEntity->physics->shapeType == ShapeType::MESH &&
+		sphereEntity->physics->shapeType == ShapeType::SPHERE);
 
 //	std::cout<<"\nCollision check with "<<meshEntity->name;
 	/// If Mesh-Mesh comparison, begin with a spherical or AABB check before we use the costly checks.

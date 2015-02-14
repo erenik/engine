@@ -64,3 +64,29 @@ void PMCreateSpring::Process() {
 	}		
 };
 
+PMRaycast::PMRaycast(const Ray & ray)
+: PhysicsMessage(PM_RAYCAST), ray(ray)
+{
+	relevantEntity = NULL;
+}
+
+#include "Message/MessageManager.h"
+
+void PMRaycast::Process()
+{
+	List<Intersection> isecs = PhysicsMan.Raycast(ray);
+	
+	Raycast * raycast = new Raycast(ray, isecs);
+	raycast->relevantEntity = relevantEntity;
+	raycast->msg = msg;
+	MessageQueueP.Add(raycast);
+}
+
+Raycast::Raycast(const Ray & ray, List<Intersection> isecs)
+: Message(MessageType::RAYCAST), ray(ray), isecs(isecs)
+{
+	relevantEntity = NULL;
+}
+
+
+
