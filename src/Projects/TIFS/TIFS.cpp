@@ -205,18 +205,21 @@ void TIFS::ProcessMessage(Message * message)
 						playerProp->ToggleAutorun();
 				}
 			}
+			/// Turret stats.
+			if (msg.StartsWith("TurretCooldown"))
+				TIFSTurretProperty::defaultTurretCooldown = msg.Tokenize("()")[1].ParseFloat();
+			else if (msg.StartsWith("TurretPitchYawPerSecond"))
+				TIFSTurretProperty::defaultPitchYawPerSecond = msg.Tokenize("()")[1].ParseFloat();
+			else if (msg.StartsWith("TurretRecoilSpringConstant"))
+				TIFSTurretProperty::defaultRecoilSpringConstant = msg.Tokenize("()")[1].ParseFloat();
+			else if (msg.StartsWith("TurretRecoilLinearDamping"))
+				TIFSTurretProperty::defaultRecoilLinearDamping= msg.Tokenize("()")[1].ParseFloat();
+
+			// Map creation.
 			if (msg.StartsWith("SetFieldSize"))
 			{
 				fieldSize = msg.Tokenize("()")[1].ParseFloat();
 				halfFieldSize = fieldSize * 0.5;
-			}
-			else if (msg.StartsWith("TurretCooldown"))
-			{
-				TIFSTurretProperty::defaultTurretCooldown = msg.Tokenize("()")[1].ParseFloat();
-			}
-			else if (msg.StartsWith("TurretPitchYawPerSecond"))
-			{
-				TIFSTurretProperty::defaultPitchYawPerSecond = msg.Tokenize("()")[1].ParseFloat();
 			}
 			else if (msg.StartsWith("CreateTurrets"))
 			{
@@ -384,7 +387,7 @@ void TIFS::CreateTurret(int ofSize, ConstVec3fr atLocation)
 
 	List<Entity*> turretParts;
 
-	Entity * turretBase = MapMan.CreateEntity("TurretBase", ModelMan.GetModel("Turrets/LargeBase"), diffuseMap);
+	Entity * turretBase = EntityMan.CreateEntity("TurretBase", ModelMan.GetModel("Turrets/LargeBase"), diffuseMap);
 	turretBase->updateChildrenOnTransform = true;
 	PhysicsQueue.Add(new PMSetEntity(turretBase, PT_POSITION, atLocation));
 	turretParts.Add(turretBase);
@@ -392,7 +395,7 @@ void TIFS::CreateTurret(int ofSize, ConstVec3fr atLocation)
 
 	/// Add a child-mesh-part to the first turret-part!
 	Model * swivel = ModelMan.GetModel("Turrets/LargeSwivel");
-	Entity * swivelEntity = MapMan.CreateEntity("TurretSwivel", swivel, diffuseMap);
+	Entity * swivelEntity = EntityMan.CreateEntity("TurretSwivel", swivel, diffuseMap);
 	
 	/// Make the swivel's transformation depend on the base'.
 	GraphicsQueue.Add(new GMSetEntity(swivelEntity, GT_PARENT, turretBase)); 
@@ -400,15 +403,22 @@ void TIFS::CreateTurret(int ofSize, ConstVec3fr atLocation)
 
 	// Move it up a bit.
 	Model * underBarrel = ModelMan.GetModel("Turrets/LargeUnderBarrel");
-	Entity * underBarrelEntity = MapMan.CreateEntity("TurretUnderBarrel", underBarrel, diffuseMap, Vector3f(0, 1.8f, -0.5f));
+	Entity * underBarrelEntity = EntityMan.CreateEntity("TurretUnderBarrel", underBarrel, diffuseMap);
 	GraphicsQueue.Add(new GMSetEntity(underBarrelEntity, GT_PARENT, swivelEntity));
+	underBarrelEntity->SetPosition(Vector3f(0, 1.8f, -0.5f));
 	turretParts.Add(underBarrelEntity);
 
 	// Add barrel.
 	Model * barrel = ModelMan.GetModel("Turrets/LargeBarrel");
-	Entity * barrelEntity = MapMan.CreateEntity("TurretBarrel", barrel, diffuseMap);
+	Entity * barrelEntity = EntityMan.CreateEntity("TurretBarrel", barrel, diffuseMap);
 	GraphicsQueue.Add(new GMSetEntity(barrelEntity, GT_PARENT, underBarrelEntity));
 	turretParts.Add(barrelEntity);
+	PhysicsProperty * pp = new PhysicsProperty();
+	barrelEntity->physics = pp;
+	pp->type = PhysicsType::DYNAMIC;
+	pp->SetLinearDamping(TIFSTurretProperty::defaultRecoilLinearDamping);
+	pp->SetMass(100.0f);
+	pp->useForces = true;
 
 
 	// Create the ... Turret Property.
@@ -427,6 +437,7 @@ void TIFS::CreateTurret(int ofSize, ConstVec3fr atLocation)
 	prop->turretSize = ofSize;
 //	prop->yawPerSecond = prop->pitchPerSecond = pow(2.25f, (SIZES - ofSize)) * 0.2f;
 
+	MapMan.AddEntities(turretParts);
 	/// Add turret parts.
 	turrets.Add(turretParts);
 }
@@ -522,6 +533,8 @@ void TIFS::NewGame()
 
 	/// Set 3rd person camera as default.
 	GraphicsQueue.Add(new GMSetCamera(thirdPersonCamera));
+
+	ScriptMan.PlayScript("scripts/NewGame.txt");
 }
 
 

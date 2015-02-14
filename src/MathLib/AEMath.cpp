@@ -4,6 +4,7 @@
 
 #include "AEMath.h"
 #include <cstdlib>
+#include "Trigonometry.h"
 
 float oneDivRandMaxFloat = 0;
 
@@ -11,4 +12,11 @@ float oneDivRandMaxFloat = 0;
 void MathLib::Init()
 {
 	oneDivRandMaxFloat = 1.f / RAND_MAX;
+	InitSampled360();
 }
+
+void MathLib::Free()
+{
+	DeallocSampled360();
+}
+

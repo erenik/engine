@@ -39,29 +39,57 @@ void PhysicsMessage::Process(){
 
 
 /// Creates a default spring between the entities in the list (linearly attached).
-PMCreateSpring::PMCreateSpring(List<Entity*> targetEntities, float springConstant = 1.0f)
-: PhysicsMessage(PM_CREATE_SPRING), entities(targetEntities), springConstant(springConstant), springLength(-1.0f){
+PMCreateSpring::PMCreateSpring(List<Entity*> targetEntities, ConstVec3fr position, float springConstant, float springLength)
+: PhysicsMessage(PM_CREATE_SPRING), entities(targetEntities), position(position), springConstant(springConstant), springLength(springLength)
+{
+	toPosition = true;	
+}
 
+/// Creates a default spring between the entities in the list (linearly attached).
+PMCreateSpring::PMCreateSpring(List<Entity*> targetEntities, float springConstant = 1.0f)
+: PhysicsMessage(PM_CREATE_SPRING), entities(targetEntities), springConstant(springConstant), springLength(-1.0f)
+{
+	toPosition = false;
 }
 /// Creates a default spring between the entities in the list (linearly attached).
 PMCreateSpring::PMCreateSpring(List<Entity*> targetEntities, float springConstant, float springLength)
 : PhysicsMessage(PM_CREATE_SPRING), entities(targetEntities), springConstant(springConstant), springLength(springLength)
 {
+	toPosition = false;
 };
 
 #include "Physics/PhysicsProperty.h"
-void PMCreateSpring::Process() {
-	for (int i = 0; i < entities.Size()-1; ++i){
-		Entity * one = entities[i], * two = entities[i+1];
-		Spring * spring = new Spring(one, two);
-		spring->springConstant = springConstant;
-		spring->equilibriumLength = springLength;
-		if (spring->equilibriumLength < 0)
-			spring->equilibriumLength = (one->position - two->position).Length();
-		one->physics->springs.Add(spring);
-		two->physics->springs.Add(spring);
-		Physics.springs.Add(spring);
-	}		
+void PMCreateSpring::Process() 
+{
+	/// Entity-position springs.
+	if (toPosition)
+	{
+		for (int i = 0; i < entities.Size(); ++i)
+		{
+			Entity * entity = entities[i];
+			Spring * spring = new Spring(entity, position);
+			spring->springConstant = springConstant;
+			spring->equilibriumLength = springLength;
+			entity->physics->springs.Add(spring);
+			Physics.springs.Add(spring);
+		}
+	}
+	/// Entity-entity springs
+	else 
+	{
+		for (int i = 0; i < entities.Size()-1; ++i)
+		{
+			Entity * one = entities[i], * two = entities[i+1];
+			Spring * spring = new Spring(one, two);
+			spring->springConstant = springConstant;
+			spring->equilibriumLength = springLength;
+			if (spring->equilibriumLength < 0)
+				spring->equilibriumLength = (one->position - two->position).Length();
+			one->physics->springs.Add(spring);
+			two->physics->springs.Add(spring);
+			Physics.springs.Add(spring);
+		}		
+	}
 };
 
 PMRaycast::PMRaycast(const Ray & ray)

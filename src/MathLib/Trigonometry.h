@@ -13,4 +13,13 @@ float GetAngler(float x, float y);
 */
 float GetAngled(float x, float y);
 
+#define FastSin SinSampled360
+#define FastCos CosSampled360
+
+double SinSampled360(double d);
+double CosSampled360(double d);
+
+void InitSampled360();
+void DeallocSampled360();
+
 #endif

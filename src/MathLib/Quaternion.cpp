@@ -3,6 +3,7 @@
 
 #include "Quaternion.h"
 #include <cassert>
+#include "Trigonometry.h"
 
 /// References: Morgan Kaufmann, Game Physics Engine Development page 188~ish
 
@@ -177,8 +178,8 @@ void Quaternion::ApplyAngularVelocity(const Vector3f & velocity, float time){
 void Quaternion::RecalculateXYZW()
 {
 	float halfAngle = angle * 0.5f;
-	float sinHalfAngle = sin(halfAngle);
-	float cosHalfAngle = cos(halfAngle);
+	float sinHalfAngle = FastSin(halfAngle);
+	float cosHalfAngle = FastCos(halfAngle);
 	x = axis[0] * sinHalfAngle;
 	y = axis[1] * sinHalfAngle;
 	z = axis[2] * sinHalfAngle;

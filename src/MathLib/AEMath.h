@@ -22,6 +22,7 @@ namespace MathLib
 {	
 	// Initializes the various numbers specified above.
 	void Init();
+	void Free();
 };
 
 

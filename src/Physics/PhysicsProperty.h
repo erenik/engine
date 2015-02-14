@@ -71,6 +71,8 @@ public:
 	/// Updates physical radius, Bounding box size, etc. Should be called from the physics thread only!
 	void UpdateProperties(Entity * owner);
 
+	void SetLinearDamping(float newD);
+
 	/// Basic physics type, defined where? STATIC DYNAMIC KINEMATIC anyway.
 	int type;
 	/// Collision detection shape type
@@ -116,7 +118,7 @@ public:
 	float physicalRadius;
 
 	/// Damping applied on a per-second basis for this entity only.
-	float linearDamping;
+	float linearDamping, linearDampingPerPhysicsFrame;
 
 	/** Obsolete! All positional updates should use the entity's own position vector.
 		If a "center of mass" is wanted later on, name it "centerOfMass" or something then...!
@@ -151,6 +153,9 @@ public:
     /// Should be reset at the beginning of each frame.
     Vector3f totalForce;
     List<Force*> forces;
+
+	/// Default false. If true, uses forces, momentum, etc.
+	bool useForces;
 
 	/// Moment of inertia, for calculating rotational kinetic energy. It is a scalar (kg*m^2) compared to the matrices.
 	float momentOfInertia;

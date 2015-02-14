@@ -6,6 +6,13 @@
 #include "Entity/Entity.h"
 
 /// Ref: http://en.wikipedia.org/wiki/Spring_%28device%29#Hooke.27s_law
+Spring::Spring(Entity * one, ConstVec3fr pos)
+: one(one), two(NULL), position(pos)
+{
+	equilibriumLength = 1.0f;
+	springConstant = 1.0f;
+}
+
 Spring::Spring(Entity * one, Entity * two)
 : one(one), two(two)
 {
@@ -14,10 +21,19 @@ Spring::Spring(Entity * one, Entity * two)
 };
 
 /// Returns the force to be exterted onto target entity. Must obviously be either of the entities that are set to the spring.
-Vector3f Spring::GetForce(Entity * subject){
-	assert(subject == one || subject == two);
-	Entity * other = one == subject? two : one;
-	Vector3f toOther = other->position - subject->position;
+Vector3f Spring::GetForce(Entity * subject)
+{
+	Vector3f toOther;
+	if (two)
+	{
+		assert(subject == one || subject == two);
+		Entity * other = one == subject? two : one;
+		toOther = other->position - subject->position;
+	}
+	else 
+	{
+		toOther = position - one->position;
+	}
 	float distance = toOther.Length();
 	float distDiff = distance - equilibriumLength;
 	Vector3f forceVector = distDiff * toOther.NormalizedCopy() * springConstant;

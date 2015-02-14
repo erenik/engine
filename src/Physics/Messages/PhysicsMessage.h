@@ -171,11 +171,15 @@ protected:
 class PMCreateSpring : public PhysicsMessage {
 public:
 	/// Creates a default spring between the entities in the list (linearly attached).
+	PMCreateSpring(List<Entity*> targetEntities, ConstVec3fr position, float springConstant, float springLength);
+	/// Creates a default spring between the entities in the list (linearly attached).
 	PMCreateSpring(List<Entity*> targetEntities, float springConstant);
 	/// Creates a default spring between the entities in the list (linearly attached).
 	PMCreateSpring(List<Entity*> targetEntities, float springConstant, float springLength);
 	void Process();
 private:
+	Vector3f position;
+	bool toPosition;
 	List<Entity*> entities;
 	float springConstant;
 	float springLength;

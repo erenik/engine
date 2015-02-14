@@ -30,6 +30,7 @@ using std::stringstream;
 
 // Safe deletion macro
 #define SAFE_DELETE(p) { if(p) { delete (p); (p) = NULL; } }
+#define SAFE_DELETE_ARR(p) { if(p) { delete[] (p); (p) = NULL; } }
 
 // File I/O
 #define PATH_MAX_LENGTH MAX_PATH

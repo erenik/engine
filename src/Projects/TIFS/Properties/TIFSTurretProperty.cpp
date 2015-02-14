@@ -9,9 +9,12 @@
 
 #include "Physics/Messages/PhysicsMessage.h"
 #include "Entity/EntityManager.h"
+#include "StateManager.h"
 
 int TIFSTurretProperty::defaultTurretCooldown = 2000;
 float TIFSTurretProperty::defaultPitchYawPerSecond = 0.2f;
+float TIFSTurretProperty::defaultRecoilSpringConstant = 225.f;
+float TIFSTurretProperty::defaultRecoilLinearDamping = 0.125f;
 
 TIFSTurretProperty::TIFSTurretProperty(Entity * base, Entity * swivel, Entity * underBarrel, Entity * barrel)
 : EntityProperty("TIFSTurretProperty", TIFSProperty::TURRET, NULL), base(base), swivel(swivel), underBarrel(underBarrel), barrel(barrel)
@@ -19,6 +22,7 @@ TIFSTurretProperty::TIFSTurretProperty(Entity * base, Entity * swivel, Entity * 
 	// Add owners manually
 	owners.Add(base, swivel, underBarrel, barrel);
 
+	springsCreated = false;
 	projectileSpeed = 1000.f;
 	shootCooldown = weaponCooldownMs = defaultTurretCooldown;
 	maxHP = 40000;
@@ -52,10 +56,9 @@ void TIFSTurretProperty::Process(int timeInMs)
 	{
 		Aim();
 	}
-	shootCooldown -= timeInMs;
-	if (shootCooldown > 0)
+	if (Reload(timeInMs))
 		shoot = false;
-
+	
 	// Shoot at it.
 	if (shoot)
 	{
@@ -100,7 +103,7 @@ void TIFSTurretProperty::Aim()
 	float pitchVel = pitchDiff.Radians();
 	ClampFloat(pitchVel, -pitchPerSecond, pitchPerSecond);
 //		std::cout<<"\nLookAt: "<<lookAt;
-	PhysicsMan.QueueMessage(new PMSetEntity(underBarrel, PT_ANGULAR_VELOCITY, Quaternion(Vector3f(1,0,0), pitchVel)));
+	PhysicsQueue.Add(new PMSetEntity(underBarrel, PT_ANGULAR_VELOCITY, Quaternion(Vector3f(1,0,0), pitchVel)));
 
 	// Barrel look-at?
 	Vector3f barrelLookAt = -barrel->LookAt();
@@ -122,9 +125,26 @@ void TIFSTurretProperty::Aim()
 }
 
 
+bool TIFSTurretProperty::Reload(int timeInMs)
+{
+	shootCooldown -= timeInMs;
+	if (shootCooldown > 0)
+		return true;
+	// Stuff.
+	return false;
+}
+
 void TIFSTurretProperty::Shoot()
 {
 	shootCooldown = weaponCooldownMs;
+	if (!springsCreated)
+	{
+		springsCreated = true;
+		PhysicsQueue.Add(new PMCreateSpring(barrel, Vector3f(), defaultRecoilSpringConstant, 0));
+	}
+	// Apply impulse.
+	PhysicsQueue.Add(new PMApplyImpulse(barrel, Vector3f(0,0,-1) * barrel->physics->mass, Vector3f()));
+
 	// Emit some particles at the cannon
 	
 	// Create laser entity, or bullet entity, depending on what is wanted?

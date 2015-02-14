@@ -88,6 +88,7 @@ PhysicsProperty::PhysicsProperty(const CompactPhysics * compactPhysics)
 /// Set default values.
 void PhysicsProperty::Nullify()
 {
+	useForces = false;
 	faceVelocityDirection = false;
 	obb = 0;
     locks = 0;
@@ -109,6 +110,7 @@ void PhysicsProperty::Nullify()
 	maxCallbacks = -1;
 	collissionCallbackRequirementValue = 1.0f;
 	linearDamping = 0.99f;
+	linearDampingPerPhysicsFrame = 0.9999f;
 	collissionsEnabled = true;
 	noCollisionResolutions = false;
 	physicsMesh = NULL;
@@ -250,6 +252,12 @@ void PhysicsProperty::UpdateProperties(Entity * entity)
 	}
 	else 
 		physicalRadius = 0;
+}
+
+void PhysicsProperty::SetLinearDamping(float newD)
+{
+	linearDamping = newD;
+	linearDampingPerPhysicsFrame = pow(newD, 0.010f);
 }
 
 /// See state enumerations above. TODO: Consider making the state-variable below private.

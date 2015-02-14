@@ -25,6 +25,8 @@ public:
 	/// Defaults. Setable via script while testing around.
 	static int defaultTurretCooldown;
 	static float defaultPitchYawPerSecond;
+	static float defaultRecoilSpringConstant;
+	static float defaultRecoilLinearDamping;
 
 	/// Determines how fast it may turn?
 	int turretSize;
@@ -41,8 +43,11 @@ public:
 	int weaponCooldownMs;
 	float projectileSpeed;
 private:
+	bool springsCreated;
+
 	bool shoot;
 	void Aim();
+	bool Reload(int timeInMs);
 	void Shoot();
 
 	Vector3f toTarget;
