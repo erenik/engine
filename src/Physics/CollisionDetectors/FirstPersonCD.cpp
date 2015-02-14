@@ -8,7 +8,12 @@
 /// Brute-force method. Does not rely on other structures that require further updates. All entities are present in the list.
 int FirstPersonCD::DetectCollisions(List<EntityPair> & pairs, List<Collision> & collisions)
 {
-	
+	for (int i = 0; i < pairs.Size(); ++i)
+	{
+		// stuff.
+		EntityPair & pair = pairs[i];
+		// do stuff?
+	}
 
 	return 0;
 }

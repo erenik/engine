@@ -210,6 +210,14 @@ void TIFS::ProcessMessage(Message * message)
 				fieldSize = msg.Tokenize("()")[1].ParseFloat();
 				halfFieldSize = fieldSize * 0.5;
 			}
+			else if (msg.StartsWith("TurretCooldown"))
+			{
+				TIFSTurretProperty::defaultTurretCooldown = msg.Tokenize("()")[1].ParseFloat();
+			}
+			else if (msg.StartsWith("TurretPitchYawPerSecond"))
+			{
+				TIFSTurretProperty::defaultPitchYawPerSecond = msg.Tokenize("()")[1].ParseFloat();
+			}
 			else if (msg.StartsWith("CreateTurrets"))
 			{
 				CreateTurrets(msg.Tokenize("()")[1].ParseFloat());
@@ -334,10 +342,19 @@ void TIFS::SpawnDrone(ConstVec3fr atLocation)
 	Texture * diffuseMap = TexMan.GetTexture("img/Drones/DroneDiffuseMap.png");
 //ModelMan.GetModel("Sphere")
 	//TexMan.GetTexture("Cyan")
-	Entity * drone = MapMan.CreateEntity("Drone", model, diffuseMap, atLocation);
+	Entity * drone = EntityMan.CreateEntity("Drone", model, diffuseMap);
+	drone->SetPosition(atLocation);
+	PhysicsProperty * pp = new PhysicsProperty();
+	drone->physics = pp;
+	pp->type = PhysicsType::DYNAMIC;
+	pp->gravityMultiplier = 0.f;
+	pp->collisionCategory = CC_DRONE;
+	pp->collisionFilter = CC_LASER | CC_ENVIRON;
+
 	TIFSDroneProperty * droneProp = new TIFSDroneProperty(drone);
 	drone->properties.Add(droneProp);
 	drones.Add(drone);
+	MapMan.AddEntity(drone);
 	// Setup physics and other stuff.
 	droneProp->OnSpawn();
 }
@@ -408,7 +425,7 @@ void TIFS::CreateTurret(int ofSize, ConstVec3fr atLocation)
 	barrelEntity->sharedProperties = true;
 
 	prop->turretSize = ofSize;
-	prop->yawPerSecond = prop->pitchPerSecond = pow(2.25f, (SIZES - ofSize)) * 0.2f;
+//	prop->yawPerSecond = prop->pitchPerSecond = pow(2.25f, (SIZES - ofSize)) * 0.2f;
 
 	/// Add turret parts.
 	turrets.Add(turretParts);

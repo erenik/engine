@@ -275,29 +275,24 @@ void * StateManager::StateProcessor(void * vArgs){
 				/// Update time
 				time = newTime;
 				newTime = Timer::GetCurrentTimeMs();
-				int timeDiff = newTime - time;
-				if (timeDiff > 250)
-				{
-					if (timeDiff > 1000)
-						std::cout<<"\nStateManager: Throwing away "<<timeDiff * 0.001f<<" seconds.";
-					timeDiff = timeDiff % 100;
-				}
-				float timeDiffF = ((float)timeDiff) * 0.001f;
+				int timeDiffInMs = newTime - time;
+				timeDiffInMs %= 200; // Max 200 ms per simulation-iteration?
+				float timeDiffF = ((float)timeDiffInMs) * 0.001f;
 				/// Enter new state if queued.
 				if (!quittingApplication)
 				{
 					StateMan.EnterQueuedGlobalState();
 					StateMan.EnterQueuedState();
-					ScriptMan.Process(timeDiff);
+					ScriptMan.Process(timeDiffInMs);
 					/// Wosh.
 					if (!StateMan.IsPaused()){
 						/// Process the active StateMan.
 						if (StateMan.GlobalState())
-							StateMan.GlobalState()->Process(timeDiff);
+							StateMan.GlobalState()->Process(timeDiffInMs);
 						if (StateMan.ActiveState())
-							StateMan.ActiveState()->Process(timeDiff);
+							StateMan.ActiveState()->Process(timeDiffInMs);
 						if (MapMan.ActiveMap())
-							MapMan.ActiveMap()->Process(timeDiff);
+							MapMan.ActiveMap()->Process(timeDiffInMs);
 					}
 					/// If not in any state, sleep a bit, yo.
 					else
@@ -333,7 +328,7 @@ void * StateManager::StateProcessor(void * vArgs){
 				MesMan.ProcessMessages();
 
 				// Clean-up.
-				EntityMan.DeleteUnusedEntities();
+				EntityMan.DeleteUnusedEntities(timeDiffInMs);
 
 				// Post messages, if any.
 				if (StateMan.graphicsQueue.Size())

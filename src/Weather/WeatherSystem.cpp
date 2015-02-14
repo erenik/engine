@@ -117,12 +117,12 @@ void WeatherSystem::ProcessMessage(Message * message)
 			}
 			else if (msg.Contains("Rain"))
 			{
-				float amount = msg.Tokenize(" ")[1].ParseFloat();
+				float amount = msg.Tokenize("(,)")[1].ParseFloat();
 				Rain(amount);
 			}
 			else if (msg.Contains("Snow"))
 			{
-				float amount = msg.Tokenize(" ")[1].ParseFloat();
+				float amount = msg.Tokenize("(,)")[1].ParseFloat();
 				Snow(amount);
 			}
 		}

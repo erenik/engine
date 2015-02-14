@@ -40,7 +40,7 @@ public:
 
 	void MarkEntitiesForDeletion(List<Entity*> entities);
 	/** Deletes (resets IDs) of all entities that have been flagged for deletion and are not registered anywhere still. */
-	int DeleteUnusedEntities();
+	int DeleteUnusedEntities(int timeInMs);
 private:
 
 	/// Counter for generating IDs to entities

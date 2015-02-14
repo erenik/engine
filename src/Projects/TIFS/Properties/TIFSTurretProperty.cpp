@@ -10,16 +10,21 @@
 #include "Physics/Messages/PhysicsMessage.h"
 #include "Entity/EntityManager.h"
 
+int TIFSTurretProperty::defaultTurretCooldown = 2000;
+float TIFSTurretProperty::defaultPitchYawPerSecond = 0.2f;
+
 TIFSTurretProperty::TIFSTurretProperty(Entity * base, Entity * swivel, Entity * underBarrel, Entity * barrel)
 : EntityProperty("TIFSTurretProperty", TIFSProperty::TURRET, NULL), base(base), swivel(swivel), underBarrel(underBarrel), barrel(barrel)
 {
 	// Add owners manually
 	owners.Add(base, swivel, underBarrel, barrel);
 
-	projectileSpeed = 200.f;
-	shootCooldown = weaponCooldownMs = 2000;
+	projectileSpeed = 1000.f;
+	shootCooldown = weaponCooldownMs = defaultTurretCooldown;
 	maxHP = 40000;
 	currentHP = 20000;
+
+	pitchPerSecond = yawPerSecond = defaultPitchYawPerSecond;
 }
 
 int TIFSTurretProperty::ID()
@@ -61,9 +66,9 @@ void TIFSTurretProperty::Process(int timeInMs)
 
 void TIFSTurretProperty::Aim()
 {
-	Vector3f toTarget = target->position - barrel->worldPosition;
-	float distance = toTarget.Length();
-	Vector3f toTargetNormalized = toTarget.NormalizedCopy();
+	toTarget = target->position - barrel->worldPosition;
+	distanceToTarget = toTarget.Length();
+	toTargetNormalized = toTarget.NormalizedCopy();
 	Vector2f toTargetXZ(toTarget.x, toTarget.z);
 	toTargetXZ.Normalize();
 	Angle requiredYaw(toTargetXZ);
@@ -100,10 +105,8 @@ void TIFSTurretProperty::Aim()
 	// Barrel look-at?
 	Vector3f barrelLookAt = -barrel->LookAt();
 	float dot = barrelLookAt.DotProduct(toTargetNormalized);
-	if (dot > 0.8f)
+	if (dot > 0.9f)
 		shoot = true;
-
-
 
 
 	// Just turn it. Straight away. (Sounds scary D:)
@@ -137,14 +140,16 @@ void TIFSTurretProperty::Shoot()
 	PhysicsProperty * pp = new PhysicsProperty();
 	projEntity->physics = pp;
 	pp->owner = projEntity;
+	// Set dynamic and collision with drones.
+	pp->type = PhysicsType::KINEMATIC;
+	pp->collisionCategory = CC_LASER;
+	pp->collisionFilter = CC_DRONE | CC_ENVIRON;
+
 	Vector3f midPosition = (projEntity->position + target->position) * 0.5f;
 	// Set scale?
-	projEntity->scale = Vector3f(0.5,0.5,5);
+	projEntity->scale = Vector3f(0.25,0.25,15.f);
 	// Rotate?
-	Vector3f toTarget = target->position - projEntity->position;
-	float toTargetLen = toTarget.Length();
-	Vector3f toTargetN = toTarget.NormalizedCopy();
-	projEntity->position = this->barrel->transformationMatrix * Vector4f(0,0,0,1) + toTargetN * 0.1f;
+	projEntity->position = this->barrel->transformationMatrix * Vector4f(0,0,0,1) + toTargetNormalized * 0.1f;
 	// Calculate rotations? 
 	// Grab look-at from barrel?
 	Vector3f barrelLookAt = -barrel->LookAt();
@@ -153,9 +158,29 @@ void TIFSTurretProperty::Shoot()
 
 	projEntity->localRotation.SetVectors(barrelRight, barrelUp, -barrelLookAt);
 	projEntity->RecalculateMatrix(2);
-		
+
+	Vector3f upVec = projEntity->UpVec(),
+		rightVec = projEntity->RightVec();
 	Vector3f lookAt = projEntity->LookAt();
-	if (lookAt.DotProduct(toTargetN) < 0.7f)
+	
+	float upDotRight = upVec.DotProduct(rightVec);
+	float upDotLookAt = upVec.DotProduct(lookAt);
+
+	pp->relativeVelocity = Vector3f(0,0,1) * projectileSpeed;
+
+	Vector3f relVelWorldSpaced;
+	if (pp->relativeVelocity.MaxPart())
+	{
+		// Add it.
+		Vector3f relVel = pp->relativeVelocity;
+		relVel.z *= -1;
+		relVelWorldSpaced = projEntity->rotationMatrix * relVel;
+	}
+
+	std::cout<<"\nRelVelWorldspaced: "<<relVelWorldSpaced;
+
+	float dot = lookAt.DotProduct(toTargetNormalized);
+	if (dot < 0.9f)
 	{
 		std::cout<<"\nFiring into nether..!";
 	}
@@ -163,7 +188,6 @@ void TIFSTurretProperty::Shoot()
 	MapMan.AddEntity(projEntity);
 
 	// Try give it a velocity too?
-	PhysicsMan.QueueMessage(new PMSetEntity(projEntity, PT_RELATIVE_VELOCITY, Vector3f(0,0,1) * projectileSpeed));
 
 	// Emit particles at the target?
 

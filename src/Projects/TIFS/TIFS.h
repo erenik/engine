@@ -32,6 +32,12 @@ class Entity;
 class TIFSPlayerProperty;
 class ToolParticleSystem;
 
+#define CC_ENVIRON	1
+#define CC_LASER	(1 << 1)
+#define CC_DRONE	(1 << 2)
+#define CC_TURRET	(1 << 3)
+#define CC_PLAYER	(1 << 4)
+
 // Global pointers to the game states.
 extern TIFS * tifs;
 extern TIFSMapEditor * mapEditor;

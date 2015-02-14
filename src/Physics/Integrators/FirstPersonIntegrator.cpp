@@ -44,7 +44,7 @@ void FirstPersonIntegrator::IntegrateVelocity(Entity * forEntity, float timeInSe
 
 	// Add regular velocity (from physics and effects)
 	Vector3f velocity = pp->velocity;
-	Vector3f lookAt = forEntity->rotationMatrix.Product(Vector3f(0,0,1.f));
+	Vector3f lookAt = forEntity->LookAt();
 
 	Vector3f distanceTraveled;
 	/// Regular velocity, due to external factors, acceleration, etc.

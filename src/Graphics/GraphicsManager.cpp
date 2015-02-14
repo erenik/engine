@@ -1026,9 +1026,9 @@ void GraphicsManager::Process()
 	{
 		Entity * entity = registeredEntities[i];
 		entity->graphics->Process(milliseconds);
-		// If not registered for physics, update transformation matrix now (since parents may be moving, etc.)
-		if (!entity->registeredForPhysics)
-			entity->RecalculateMatrix();
+		/** If not registered for physics, update transformation matrix now (since parents may be moving, etc.... No.)
+			For parenting, make the parent force children to update transform or register them properly via physics. or send a custom GM or PM message to update the matrix!
+		*/
 	}
 }
 

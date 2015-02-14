@@ -239,8 +239,8 @@ public:
 	AABB * aabb;
 
 private:
-
-	int64 deletionTimeMs;
+	Vector3f lookAt, rightVec, upVec;
+	int deletionTimeMs;
 	/// Texture to be used for this Entity. TODO: Rename to DiffuseMap?
 	Texture * diffuseMap;
 	/// Normalmap texture for more surface~

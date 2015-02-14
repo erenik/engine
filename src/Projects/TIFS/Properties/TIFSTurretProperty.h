@@ -4,6 +4,7 @@
 
 #include "TIFSProperties.h"
 #include "MathLib/Angle.h"
+#include "MathLib.h"
 
 class TIFSTurretProperty : public EntityProperty
 {
@@ -20,6 +21,10 @@ public:
 	Entity * target;
 	// Parts
 	Entity * base, * swivel, * underBarrel, * barrel;
+
+	/// Defaults. Setable via script while testing around.
+	static int defaultTurretCooldown;
+	static float defaultPitchYawPerSecond;
 
 	/// Determines how fast it may turn?
 	int turretSize;
@@ -39,6 +44,11 @@ private:
 	bool shoot;
 	void Aim();
 	void Shoot();
+
+	Vector3f toTarget;
+	float distanceToTarget;
+	Vector3f toTargetNormalized;
+
 };
 
 

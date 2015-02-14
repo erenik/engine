@@ -73,7 +73,7 @@ Entity * EntityManager::CreateEntity(String name, Model * model, Texture * textu
 	if (newEntity == NULL)
 	{
 		std::cout<<"\nWARNING: Could not create new entity! Array is full. Prompting deletion of unused entities.";
-		int result = DeleteUnusedEntities();
+		int result = DeleteUnusedEntities(50000); // should delete all
 		if (result){
 			std::cout<<"\n"<<result<<" entities successfully freed/deleted! Attempting to re-add entity again.";
 			return CreateEntity(name, model, texture);
@@ -110,7 +110,7 @@ void EntityManager::MarkEntitiesForDeletion(List<Entity*> entitiesToMark)
 		if (!entity->flaggedForDeletion)
 		{
 			entity->flaggedForDeletion = true;
-			entity->deletionTimeMs = ms + 3000;
+			entity->deletionTimeMs = 3000;
 		}
 	}
 	entitiesToDelete.Add(entitiesToMark);
@@ -119,7 +119,7 @@ void EntityManager::MarkEntitiesForDeletion(List<Entity*> entitiesToMark)
 
 
 /** Deletes (resets IDs) of all entities that have been flagged for deletion and are not registered anywhere still. */
-int EntityManager::DeleteUnusedEntities()
+int EntityManager::DeleteUnusedEntities(int timeInMs)
 {
 	if (!entitiesToDelete.Size())
 		return 0;
@@ -131,10 +131,11 @@ int EntityManager::DeleteUnusedEntities()
 	for (int i = 0; i < entitiesToDelete.Size(); ++i)
 	{
 		Entity * entity = entitiesToDelete[i];
+		entity->deletionTimeMs -= timeInMs;
 		/// Only process those that have been flagged.
 		if (!entity->flaggedForDeletion)
 			continue;
-		if (entity->deletionTimeMs > nowMs)
+		if (entity->deletionTimeMs > 0)
 			continue;
 		/// Check that it isn't still registered with any other manager!
 		if (entity->registeredForRendering)

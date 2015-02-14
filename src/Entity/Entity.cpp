@@ -121,6 +121,7 @@ Entity::Entity(int i_id)
 
 	parent = NULL;
 	cameraFocus = NULL;
+	hasRotated = false;
 }
 
 /// Default constructor...
@@ -523,6 +524,10 @@ void Entity::RecalculateMatrix(int whichParts/*= true*/, bool recursively /* = f
 		}
 
 		worldPosition = transformationMatrix.Product(Vector4f());
+		lookAt = rotationMatrix * Vector4f(0,0,-1,0);
+		upVec = rotationMatrix * Vector4f(0,1,0,0);
+		rightVec = rotationMatrix * Vector4f(1,0,0,0);
+
 			// Ensure it has a scale..?
 	//	assert(transformationMatrix.HasValidScale());
 	}
@@ -701,16 +706,16 @@ Vector3f Entity::CenterOfGravityWorldSpace()
 /// Checks with Rotation matrix.
 Vector3f Entity::LookAt()
 {
-	return rotationMatrix * Vector4f(0,0,-1,0);
+	return lookAt;
 }
 
 Vector3f Entity::UpVec()
 {
-	return rotationMatrix * Vector4f(0,1,0,0);
+	return upVec;
 }
 Vector3f Entity::RightVec()
 {
-	return rotationMatrix * Vector4f(1,0,0,0);
+	return rightVec;
 }
 
 
