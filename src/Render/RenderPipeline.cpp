@@ -84,15 +84,17 @@ bool RenderPipeline::Load(String fromFile)
 			}
 			else if (line.StartsWith("Shadows"))
 			{
-				rp->shadows = line.Tokenize(" \t")[1].ParseBool();
+				rp->shadows = arg.ParseBool();
 			}
+			else if (line.StartsWith("SkyPass"))
+				rp->skyPass = arg.ParseBool();
 			else if (line.StartsWith("ShadowMapping"))
 			{
 				rp->shadowMapping = true;
 			}
 			else if (line.StartsWith("ShadowMapResolution"))
 			{
-				rp->shadowMapResolution = line.Tokenize(" \t")[1].ParseInt();
+				rp->shadowMapResolution = arg.ParseInt();
 			}
 			else if (line.StartsWith("Lights"))
 			{
@@ -104,6 +106,8 @@ bool RenderPipeline::Load(String fromFile)
 					rp->input = RenderTarget::ENTITIES;
 				else if (arg == "DeferredGather")
 					rp->input = RenderTarget::DEFERRED_GATHER;
+				else if (arg == "Box")
+					rp->input = RenderTarget::BOX;
 			}
 			else if (line.Contains("Output"))
 			{

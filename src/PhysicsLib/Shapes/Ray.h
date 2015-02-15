@@ -7,6 +7,7 @@
 
 #include "MathLib.h"
 
+class AABB;
 class Sphere;
 class Triangle;
 class Quad;
@@ -24,6 +25,11 @@ public:
 		If a collission occurs, the point, normal and distance to collission is stored in the pointers.
 	*/
 	bool Intersect(Quad & quad, float * distance);
+	/** Calculates if the provided plane and ray intersect.
+		Returns 1 if an intersection occurs, and 0 if not.
+		If a collission occurs, the point, normal and distance to collission is stored in the pointers.
+	*/
+	bool Intersect(AABB & aabb, float * distance);
 	/** Calculates if the provided plane and ray intersect.
 		Returns 1 if an intersection occurs, and 0 if not.
 		If a collission occurs, the point, normal and distance to collission is stored in the pointers.

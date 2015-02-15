@@ -254,9 +254,21 @@ public:
 	Vector3f offsetRotation;
 	Vector3f relativePosition;
 
-	/// For when tracking the entity.
+	/// Multiplied on all.
+	float trackingDistanceMultiplier; 
+	
+	/// Added for both. Smoothness will be disregarded if going below this threshold.
+	float trackingDistanceBase; 
+	/// Distance possible to retreat and exceed the base.
+	float trackingDistanceLeeway;
+	float trackingRotationalSmoothness;
+	/// Default true. Used mostly for specific tracking-movements.
+	float scaleOffsetWithDistanceToCenterOfMovement;
+
+	/// For clamping the distance if it reaches too far.
 	float minTrackingDistance;
 	float maxTrackingDistance;
+	
 
 private:
 	/// cool.
@@ -264,6 +276,10 @@ private:
 
 	// Tracks the entity based on given mode.
 	void Track();
+	/// Handles rotation
+	void ThirdPersonLookAt();
+	/// Moves adjusts position relative to the target.
+	void ThirdPersonDistance();
 
 	/** Calculates a view transform based on the notion of having 
 		a distance from center of movement (as in 3D-modelling programs), 

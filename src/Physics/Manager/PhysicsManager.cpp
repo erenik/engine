@@ -189,6 +189,19 @@ List<Intersection> PhysicsManager::Raycast(Ray & ray)
 				intersections += iSecs;
 				break;
 			}
+			case PhysicsShape::AABB:
+			{
+				float distance;
+				// Mark which entity it was..
+				if (ray.Intersect(*entity->aabb, &distance))
+				{
+					Intersection iSec;
+					iSec.distance = distance;
+					iSec.entity = entity;
+					intersections.Add(iSec);
+				}
+				break;
+			}
 			default:
 				assert(false);
 		}

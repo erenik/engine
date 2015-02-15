@@ -25,6 +25,7 @@ public:
 	const Angle & operator += (const Angle & angle);
 	const Angle & operator -= (const Angle & angle);
 
+	const Angle & operator *= (const float & f);
 	Vector2f ToVector2f();
 
 	float Cosine();

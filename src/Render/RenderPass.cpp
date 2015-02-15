@@ -27,6 +27,9 @@
 #include "File/LogFile.h"
 #include "String/StringUtil.h"
 
+#include "Model/Model.h"
+#include "Model/ModelManager.h"
+
 RenderPass::RenderPass()
 {
 	shader = 0;
@@ -283,6 +286,14 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 				ps->Render(graphicsState);
 			}
 			break;
+		}
+		case RenderTarget::BOX:
+		{
+			// Get da box.
+			Model * box = ModelMan.GetModel("cube");
+			if (!box)
+				return false;
+			box->Render(graphicsState);
 		}
 	}
 	CheckGLError("RenderPass::Render - rendering");

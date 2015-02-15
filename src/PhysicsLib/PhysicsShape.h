@@ -15,7 +15,7 @@ namespace PhysicsShape  {
 		MESH, // Usually refers to PhysicsMesh class.
 		/// Don't mess with the order here, only insert new ones below as the save/load relies on this list for the physics. :)
 		CUBE,
-
+		AABB, // Refers to the entity's own AABB. 	
 		NUM_TYPES,
 		DEFAULT_TYPE = SPHERE,
 	};

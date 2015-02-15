@@ -175,8 +175,13 @@ void Camera::Nullify()
 	ratioFixed = false;
 	// Tracking vars
 	smoothness = 0.2;
+	scaleOffsetWithDistanceToCenterOfMovement = 0.1f;
+	trackingRotationalSmoothness = 0.7f;
 	minTrackingDistance = 1.5f;
-	maxTrackingDistance = 5.f;
+	maxTrackingDistance = 4.5f;
+	trackingDistanceMultiplier = 1.f; // Multiplied on all.
+	trackingDistanceBase = 5.0f; // Added for both. 
+	trackingDistanceLeeway = 1.5f;
 
 	movementType = CAMERA_MOVEMENT_RELATIVE;
 	resetCamera = NULL;
@@ -426,43 +431,9 @@ void Camera::Track()
 		case TrackingMode::THIRD_PERSON:
 		case TrackingMode::FOLLOW_AND_LOOK_AT:
 		{
-			// Get data
-			Vector3f entityPosition = entityToTrack->position;
-			
-			/// The actual position of the camera at the moment.
-			Vector3f currentCamPosition = this->Position();
-			// Look at it from our new position!
-			// Find rotation yaw needed.
-			Vector3f toEntity = entityPosition - currentCamPosition;
-			Vector2f toEntityXZ(toEntity[0], toEntity[2]);
-			toEntityXZ.Normalize();
-			float yawNeeded = atan2(toEntityXZ[1], toEntityXZ[0]);
-			yawNeeded += PI * 0.5f;
+			ThirdPersonLookAt();
+			ThirdPersonDistance();
 
-			float xzDistance = Vector2f(toEntity[0],toEntity[2]).Length();
-			Vector2f toEntityXY(xzDistance, toEntity[1]);
-			toEntityXY.Normalize();
-			float pitchNeeded = -atan2(toEntityXY[1], toEntityXY[0]);
-		
-			// Set rotations accordingly.
-			rotation.x = pitchNeeded;
-			rotation.y = yawNeeded;
-			
-			// Far away? get closer?
-			// First update toEntity since it will be using the offsetted position from earlier, we want the flat XZ diff.
-			toEntity = entityToTrack->position - position;
-			toEntity.y = 0;
-			float dist = toEntity.Length();
-			float relevantTrackingDistance = dist;
-			ClampFloat(relevantTrackingDistance, minTrackingDistance, maxTrackingDistance);
-			float currentDiff = dist - relevantTrackingDistance;
-			float newDist = relevantTrackingDistance;
-			// Reduce the diff.
-			Vector3f newPosition = entityPosition - toEntity.NormalizedCopy() * newDist;
-			/// Smooth it.
-			position = (1 - smoothness) * position + smoothness * newPosition;
-			/// Copy over so calculation works below...
-			positionWithOffsets = position + trackingPositionOffset;
 			break;
 		}
 		case TrackingMode::FROM_BEHIND:
@@ -483,6 +454,94 @@ void Camera::Track()
 		}
 	}
 }
+
+/// Handles rotation
+void Camera::ThirdPersonLookAt()
+{
+	// Get data
+	Vector3f entityPosition = entityToTrack->position;
+	
+	/// The actual position of the camera at the moment.
+	Vector3f currentCamPosition = camPos;
+	// Look at it from our new position!
+	// Find rotation yaw needed.
+	Vector3f toEntity = entityPosition - currentCamPosition;
+	Vector2f toEntityXZ(toEntity[0], toEntity[2]);
+	Vector2f toEntityXZNormalized = toEntityXZ.NormalizedCopy();
+	float yawNeeded = atan2(toEntityXZNormalized.y, toEntityXZNormalized.x);
+	yawNeeded += PI * 0.5f;
+
+	float xzDistance = Vector2f(toEntity[0],toEntity[2]).Length();
+	Vector2f toEntityXY(xzDistance, toEntity[1]);
+	toEntityXY.Normalize();
+	float pitchNeeded = -atan2(toEntityXY[1], toEntityXY[0]);
+
+	Angle currentPitch = rotation.x;
+	Angle currentYaw = rotation.y;
+	Angle toYaw = Angle(pitchNeeded) - currentPitch;
+	toYaw *= 1 - trackingRotationalSmoothness;
+	Angle toPitch = Angle(yawNeeded) - currentYaw;
+	toPitch *= 1 - trackingRotationalSmoothness;
+	Angle smoothedPitch(currentPitch + toYaw);
+	Angle smoothedYaw(currentYaw + toPitch);
+	// Set rotations accordingly.
+	rotation.x = smoothedPitch.Radians();
+	rotation.y = smoothedYaw.Radians();
+}
+
+/// Moves adjusts position relative to the target.
+void Camera::ThirdPersonDistance()
+{
+	// Get data
+	Vector3f entityPosition = entityToTrack->position;
+	
+	/// The actual position of the camera at the moment.
+	Vector3f currentCamPosition = position;
+	// Look at it from our new position!
+	// Find rotation yaw needed.
+	Vector3f toEntity = entityPosition - currentCamPosition;
+	Vector2f toEntityXZ(toEntity[0], toEntity[2]);
+	Vector2f toEntityXZNormalized = toEntityXZ.NormalizedCopy();
+
+	float xzDistance = Vector2f(toEntity[0],toEntity[2]).Length();
+	Vector2f toEntityXY(xzDistance, toEntity[1]);
+	toEntityXY.Normalize();
+	
+	// Far away? get closer?
+	// First update toEntity since it will be using the offsetted position from earlier, we want the flat XZ diff.
+	float dist = toEntityXZ.Length();
+	float relevantTrackingDistance = dist;
+	minTrackingDistance = trackingDistanceBase - trackingDistanceLeeway;
+	maxTrackingDistance = trackingDistanceBase + trackingDistanceLeeway;
+	minTrackingDistance *= trackingDistanceMultiplier;
+	maxTrackingDistance *= trackingDistanceMultiplier;
+	bool hardSet = false;
+	if (relevantTrackingDistance > maxTrackingDistance || 
+		relevantTrackingDistance < minTrackingDistance)
+	{
+		hardSet = true;
+	}
+	ClampFloat(relevantTrackingDistance, minTrackingDistance, maxTrackingDistance);
+	float currentDiff = dist - relevantTrackingDistance;
+	float newDist = relevantTrackingDistance;
+	if (toEntityXZNormalized.LengthSquared() == 0)
+		toEntityXZNormalized = Vector2f(0,1);
+	// XZ to XYZ
+	Vector3f toMove(toEntityXZNormalized.x, 0, toEntityXZNormalized.y);
+	toMove *= -newDist;
+	// Reduce the diff.
+	Vector3f newPosition = entityPosition + toMove;
+	/// Smooth it.
+	if (hardSet)
+		position = newPosition;
+	else
+		position = (1 - smoothness) * position + smoothness * newPosition;
+	/// Copy over so calculation works below...
+	positionWithOffsets = position + trackingPositionOffset * (scaleOffsetWithDistanceToCenterOfMovement > 0? (distanceFromCenterOfMovement * (scaleOffsetWithDistanceToCenterOfMovement) + 1.f) : 1.f);
+
+}
+
+
 
 /** Sets width/height ratio (commonly known as Aspect ratio).
 	Ratios should be 1.0 and above, and will be scaled down as needed.

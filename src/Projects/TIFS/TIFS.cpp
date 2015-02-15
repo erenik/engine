@@ -87,8 +87,9 @@ TIFS::TIFS()
 	halfFieldSize = 25.f;
 	grid = new TIFSGrid();
 	gridSize = Vector3i(5,5,5);
-	Vector3f mapSize(fieldSize, 100.0f, fieldSize);
-	grid->Resize(gridSize, mapSize);
+//	Vector3f mapSize(fieldSize, 100.0f, fieldSize);
+	// No need to resize here, do that later.
+//	grid->Resize(gridSize, mapSize);
 }
 
 TIFS::~TIFS()
@@ -616,6 +617,9 @@ void TIFS::AddBuildings(int numBuildings)
 		}
 		/// Create "building" of random size based on the given maxSize :)
 		Entity * buildingEntity = EntityMan.CreateEntity("Building", ModelMan.GetModel("cube.obj"), TexMan.GetTexture("0x82"));
+		PhysicsProperty * pp = new PhysicsProperty();
+		buildingEntity->physics = pp;
+		pp->shapeType = PhysicsShape::AABB;
 		/// Set Y to be the default height or something?
 		float sizeSquared = maxSize.LengthSquared();
 		if (maxSize.y == 0)

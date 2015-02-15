@@ -19,7 +19,10 @@ namespace RenderTarget
 		FINAL_GATHER,	 // Render to final gather texture for the initial lighting pass.
 		// Inputs
 		ENTITIES, // All entities registered for rendering.
+		SOLID_ENTITIES, // All non-Alpha entities (most regular ones).
+		ALPHA_ENTITIES, // All entities which some either texture or material transparency.
 		PARTICLE_SYSTEMS, // All particle systems
+		BOX, // Used for SkyBox rendering.
 		DEFAULT,
 	};
 };
@@ -55,6 +58,8 @@ public:
 	};
 	/// If true, is a shadow-mapping pass. Default false. 
 	bool shadowMapping;
+	/// For skyBox rendering. Default false.
+	bool skyPass;
 	/** Determines which lights to use when doing the shadow-mapping pass. Just 1? All?
 		Just 1 for now.
 	*/

@@ -19,6 +19,11 @@
 #include "Input/InputManager.h"
 #include "Input/Keys.h"
 
+#include "StateManager.h"
+#include "Entity/EntityManager.h"
+
+Entity * targetCrossHair = NULL;
+
 TIFSPlayerProperty::TIFSPlayerProperty(Entity * owner)
 : FirstPersonPlayerProperty("TIFSPlayerProperty", TIFSProperty::PLAYER, owner)
 {
@@ -124,6 +129,23 @@ void TIFSPlayerProperty::UpdateHUDTargetInfo()
 		return;
 	}
 //	Graphics.QueueMessage(new GMSetUIb("TargetDetailsList", GMUI::VISIBILITY, true));
+
+	if (!targetCrossHair)
+	{
+		targetCrossHair = EntityMan.CreateEntity("TargetCrossHairEntity", ModelMan.GetModel("Sphere"), TexMan.GetTexture("0x2255AA77"));
+		targetCrossHair->SetPosition(this->lastRaycastTargetPosition);
+		GraphicsProperty * graphics = new GraphicsProperty(targetCrossHair);
+		graphics->blendModeDest = GL_ONE;
+		graphics->depthTest = false;
+		graphics->castsShadow = false;
+		// Only add it to graphics?
+		GraphicsQueue.Add(new GMRegisterEntity(targetCrossHair));
+
+//		MapMan.AddEntity(targetCrossHair);
+	}
+	// Just set position.
+	targetCrossHair->position = this->lastRaycastTargetPosition;
+	targetCrossHair->RecalculateMatrix(Entity::TRANSLATION_ONLY);
 
 	targetDrone = (TIFSDroneProperty *)primaryTarget->GetProperty(TIFSDroneProperty::ID());
 	targetTurret = (TIFSTurretProperty *)primaryTarget->GetProperty(TIFSTurretProperty::ID());
