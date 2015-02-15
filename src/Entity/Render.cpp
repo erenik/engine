@@ -182,11 +182,11 @@ void Entity::Render(GraphicsState & graphicsState)
 	// Check for modifiers to apply
 	if (graphics && graphicsState.settings & ENABLE_SPECIFIC_ENTITY_OPTIONS)
 	{
-		if (graphics->flags & RenderFlags::DISABLE_DEPTH_WRITE)
+		if (graphics->flags & RenderFlag::DISABLE_DEPTH_WRITE)
 			glDepthMask(GL_FALSE);
-		if (graphics->flags & RenderFlags::DISABLE_BACKFACE_CULLING)
+		if (graphics->flags & RenderFlag::DISABLE_BACKFACE_CULLING)
 			glDisable(GL_CULL_FACE);
-		if (graphics->flags & RenderFlags::REQUIRES_DEPTH_SORTING){
+		if (graphics->flags & RenderFlag::REQUIRES_DEPTH_SORTING){
 			bool renderSortedEntities = graphicsState.settings & RENDER_SORTED_ENTITIES;
 			if (!renderSortedEntities)
 				requiresSorting = true;
@@ -262,9 +262,9 @@ void Entity::Render(GraphicsState & graphicsState)
 	}
 	// Disable any modifiers now, unless we got a modifier that tells us to apply the previous modifiers to the children as well.
 	if (graphics && graphicsState.settings & ENABLE_SPECIFIC_ENTITY_OPTIONS){
-		if (graphics->flags & RenderFlags::DISABLE_DEPTH_WRITE)
+		if (graphics->flags & RenderFlag::DISABLE_DEPTH_WRITE)
 			glDepthMask(GL_TRUE);
-		if (graphics->flags & RenderFlags::DISABLE_BACKFACE_CULLING)
+		if (graphics->flags & RenderFlag::DISABLE_BACKFACE_CULLING)
 			glEnable(GL_CULL_FACE);
 	}
 

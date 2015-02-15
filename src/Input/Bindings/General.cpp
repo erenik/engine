@@ -66,6 +66,8 @@ void CreateDefaultGeneralBindings()
 	Bind1(Action::FromEnum(PRINT_SCREENSHOT), KEY::PRINT_SCREEN);
 	Bind2(Action::FromEnum(QUIT_APPLICATION), KEY::ALT, KEY::F4);
 	Bind2(Action::FromEnum(PRINT_FRAME_TIME), KEY::CTRL, KEY::T);
+	Bind3(Action::FromEnum(CYCLE_RENDER_PIPELINE), ctrl, KEY::R, KEY::PLUS);
+	Bind3(Action::FromEnum(CYCLE_RENDER_PIPELINE_BACK), ctrl, KEY::R, KEY::MINUS);
 	
 	/*
 	mapping->CreateBinding(CLOSE_WINDOW, ctrl, KEY::W);

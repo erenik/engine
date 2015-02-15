@@ -52,6 +52,8 @@ public:
 	/// Reads from file stream.
 	void ReadFrom(std::fstream & file);
 
+	/// Default false. Required to be rendered on the SkyBox pass.
+	bool isStar;
 	/// Ambient light intensity. Consider stop using?
 	Vector4f ambient;
 	/// Diffuse light intensity.

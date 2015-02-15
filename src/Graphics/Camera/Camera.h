@@ -231,6 +231,7 @@ public:
 	Matrix4d ViewMatrix4d() { return viewMatrix; };
 	/// Returns the view matrix currently used by the camera.
 	Matrix4f ViewMatrix4f() { return viewMatrix; };
+	Matrix4f RotationMatrix4f() {return rotationMatrix; };
 	/// Returns the projection matrix currently used by the camera.
 	Matrix4d ProjectionMatrix4d() { return projectionMatrix; };
 	/// Returns the projection matrix currently used by the camera.

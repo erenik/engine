@@ -35,6 +35,7 @@ void WeatherSystem::Initialize()
 	sunLight->position = Vector3f(0, 50.f, 0);
 	// Add a light?
 	sunLight->shadowMapFarplane = 55.f;
+	sunLight->isStar = true;
 	sunLight->shadowMapZoom = 50.f;
 	sunLight->type = LightType::DIRECTIONAL; // Orthogonal.
 	sunLight->castsShadow = true;

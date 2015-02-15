@@ -140,6 +140,9 @@ public:
 	/// GL uniform material ID
 	UniformMaterial uniformMaterial;
 
+	/// o.o
+	GLuint uniformSunPosition; // Vec3
+	GLuint uniformSunColor; // Vec4
 	/// GL uniform light identifiers
 	UniformLight uniformLight;
 

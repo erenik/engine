@@ -138,6 +138,7 @@ void TIFSPlayerProperty::UpdateHUDTargetInfo()
 		graphics->blendModeDest = GL_ONE;
 		graphics->depthTest = false;
 		graphics->castsShadow = false;
+		graphics->flags = RenderFlag::ALPHA_ENTITY;
 		// Only add it to graphics?
 		GraphicsQueue.Add(new GMRegisterEntity(targetCrossHair));
 

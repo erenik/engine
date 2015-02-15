@@ -23,6 +23,7 @@ bool GraphicsManager::RegisterEntity(Entity * entity)
 	if (optimizationStructure == VFC_OCTREE)
 		vfcOctree->AddEntity(entity);
 	entity->registeredForRendering = true;
+
 	// Check for additional graphics-data
 	GraphicsProperty * graphics = entity->graphics;
 	if (graphics)
@@ -39,6 +40,13 @@ bool GraphicsManager::RegisterEntity(Entity * entity)
 	{
 		entity->graphics = new GraphicsProperty(entity);
 	}
+
+	/// Add alpha-entities straight to the graphics-state?
+	if (entity->graphics->flags & RenderFlag::ALPHA_ENTITY)
+	{
+		graphicsState->alphaEntities.Add(entity);
+	}
+
 	// Buffer textures and meshes if needed
 	List<Texture*> textures = entity->GetTextures(0xFFFFFFF);
 	TexMan.BufferizeTextures(textures);
@@ -67,12 +75,16 @@ bool GraphicsManager::UnregisterEntity(Entity * entity)
 	int octreeEntitiesBeforeRemoval = vfcOctree->RegisteredEntities();
 	if (!entity->registeredForRendering)
 		return true;
-
+	
 	// Check for additional graphics-data
 	if (entity->graphics)
 	{
 		GraphicsProperty * gp = entity->graphics;
-			
+		
+		/// Specific groups.
+		if (gp->flags & RenderFlag::ALPHA_ENTITY)
+			graphicsState->alphaEntities.Remove(entity);
+
 		// Check for attached dynamic lights
 		for (int i = 0; i < gp->dynamicLights.Size(); ++i)
 		{

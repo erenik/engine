@@ -34,6 +34,7 @@ Light::Light(Lighting * lighting)
 
 void Light::Nullify()
 {
+	isStar = false;
 	attenuation[0] = 1.0f; 
 	type = 1;
 	lastUpdate = 0;

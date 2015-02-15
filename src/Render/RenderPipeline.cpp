@@ -45,6 +45,8 @@ bool RenderPipeline::Load(String fromFile)
 	for (int i = 0; i < lines.Size(); ++i)
 	{
 		String line = lines[i];
+		if (line.StartsWith("EndParse"))
+			break;
 		if (line.StartsWith("//"))
 			continue;
 		else if (line.Contains("Fixed"))
@@ -104,10 +106,14 @@ bool RenderPipeline::Load(String fromFile)
 			{
 				if (arg == "Entities")
 					rp->input = RenderTarget::ENTITIES;
+				else if (arg == "SolidEntities")
+					rp->input = RenderTarget::SOLID_ENTITIES;
+				else if (arg == "AlphaEntities")
+					rp->input = RenderTarget::ALPHA_ENTITIES;
 				else if (arg == "DeferredGather")
 					rp->input = RenderTarget::DEFERRED_GATHER;
-				else if (arg == "Box")
-					rp->input = RenderTarget::BOX;
+				else if (arg == "SkyBox")
+					rp->input = RenderTarget::SKY_BOX;
 			}
 			else if (line.Contains("Output"))
 			{

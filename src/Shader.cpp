@@ -293,6 +293,10 @@ void Shader::ExtractUniforms()
 	uniformLight.diffuseVec4 = glGetUniformLocation(shaderProgram, "light_diffuse");
 	uniformLight.specularVec4 = glGetUniformLocation(shaderProgram, "light_specular");
 
+	// Special lights, stars, sun.
+	uniformSunPosition = glGetUniformLocation(shaderProgram, "sunPosition");
+	uniformSunColor = glGetUniformLocation(shaderProgram, "sunColor");
+
 	// Light detail uniforms
 	uniformLight.diffuseVec4 = glGetUniformLocation(shaderProgram, "light_diffuse");
 	uniformLight.specularVec4 = glGetUniformLocation(shaderProgram, "light_specular");

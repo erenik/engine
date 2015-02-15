@@ -20,6 +20,7 @@
 GraphicsProperty::GraphicsProperty(Entity * owner)
 : owner(owner)
 {
+	owner->graphics = this;
 	castsShadow = true;
 	flags = 0;
 	visible = true;

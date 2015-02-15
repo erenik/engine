@@ -77,6 +77,8 @@ public:
 
 	/// All entities to render?
 	List<Entity*> entities;
+	/// Those requiring depth-sorting and usually rendered in a separate alpha-pass?
+	Entities alphaEntities;
 
 	/// Active frustum to be compared with.
 	Frustum viewFrustum;

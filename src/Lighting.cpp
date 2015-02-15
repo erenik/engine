@@ -542,6 +542,7 @@ void LoadLighting(Lighting * lighting, Shader * shader)
 		return;
 	if (!shader)
 		return;
+
 //#define PRINT_DEBUG
 
 	// Return. If no ambient is present no other light will be either.

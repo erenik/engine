@@ -17,7 +17,8 @@ struct UniformMaterial{
 
 
 /// Struct containing uniform IDs for a light in the shader
-struct UniformLight{
+struct UniformLight
+{
 	/// Specifies if the light is active at all
 	GLuint activeBool;
 	/// Ambient light intensity.

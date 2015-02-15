@@ -6,6 +6,8 @@
 #include "Shader.h"
 #include "String/AEString.h"
 
+#include "Entity/Entities.h"
+
 class FrameBuffer;
 class GraphicsState;
 class Viewport;
@@ -22,7 +24,7 @@ namespace RenderTarget
 		SOLID_ENTITIES, // All non-Alpha entities (most regular ones).
 		ALPHA_ENTITIES, // All entities which some either texture or material transparency.
 		PARTICLE_SYSTEMS, // All particle systems
-		BOX, // Used for SkyBox rendering.
+		SKY_BOX, // Used for SkyBox rendering.
 		DEFAULT,
 	};
 };
@@ -84,10 +86,17 @@ public:
 	bool depthTestEnabled;
 
 private:
+	/// Place 'em here.
+	Entities entitiesToRender;
+
 	// Parts of rendering.
 	bool SetupOutput();
 	bool SetupLightPOVCamera();
 
+	/// o.o
+	void RenderEntities();
+	void RenderAlphaEntities();
+	void RenderSkyBox();
 
 	/// Current
 	Viewport * viewport;
