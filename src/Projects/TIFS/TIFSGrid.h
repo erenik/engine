@@ -9,8 +9,9 @@ class TIFSTile : public Tile
 {
 public:
 	TIFSTile();
-	bool occupied;
+	bool isOccupied;
 	bool isGround; // Default false, set ground manually.
+	bool isRoad;
 };
 
 class TIFSGrid 
@@ -35,6 +36,8 @@ public:
 	*/
 	bool GetNewBuildingPosition(Vector3f & maxSize, Vector3f & position);
 
+	/// o.o
+	void PlaceRoads(int roads);
 	/** Creates a road along the given lines. Fails if any position there is not vacant or already a road. 
 		Should be called before placing buildings and turrets?
 	*/
@@ -43,9 +46,25 @@ public:
 	/// Returns a list of all currently available slot-sizes.
 	List<Vector3i> AvailableSlotSizes();
 
+
+	int maxTilesPerBuilding;
+	int roadWidth;
+	int triesPerBuilding;
 private:
 	/// Expands the list with all neighbours. Max size is increased based on the positions of the tiles and the grid.
 	bool ExpandXZ(List<TIFSTile*> & tiles);
+	/// Expands the list with all neighbours. Max size is increased based on the positions of the tiles and the grid.
+	bool ExpandZ(List<TIFSTile*> & tiles);
+	/// Expands the list with all neighbours. Max size is increased based on the positions of the tiles and the grid.
+	bool ExpandX(List<TIFSTile*> & tiles);
+
+	enum {
+		NO_OPTION = 0,
+		IGNORE_ROADS = 1,
+		IGNORE_NULL = 2,
+	};
+	/// Expands the list with all neighbours. Max size is increased based on the positions of the tiles and the grid.
+	bool Expand(List<TIFSTile*> & tiles, bool x, bool y, bool z, int option = NO_OPTION);
 
 //	Grid * grid;
 

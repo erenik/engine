@@ -107,13 +107,15 @@ void WeatherSystem::ProcessMessage(Message * message)
 			}
 			else if (msg.Contains("SetSunTime"))
 			{
-				List<String> tokens = msg.Tokenize("()");
-				if (tokens.Size() < 2)
+				List<String> tokens = msg.Tokenize("(:)");
+				if (tokens.Size() < 3)
 					return;
 				String hourStr = tokens[1];
 				int hour = hourStr.ParseInt();
+				int minute = tokens[2].ParseInt();
 				// Set sun position?
 				inGameTime.SetHour(hour);
+				inGameTime.SetMinute(minute);
 			}
 			else if (msg.Contains("Rain"))
 			{

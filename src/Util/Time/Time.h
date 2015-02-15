@@ -69,6 +69,8 @@ public:
 	void AddMs(int amount);
 	/// Sets the hour in current day by adding or removing diff amount of intervals.
 	void SetHour(int hour);
+	/// Sets the hour in current hour by adding or removing diff amount of intervals.
+	void SetMinute(int minute);
 
 	// Current total in micro-seconds since the starting-point.
 	uint64 Microseconds();
@@ -96,7 +98,7 @@ public:
 	int Type(){ return type;};
 
 	int IntervalsPerHour();
-
+	int IntervalsPerMinute();
 private:
 	/// Fetches calender data given the intervals and type defined now.
 	void FetchCalenderData();

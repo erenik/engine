@@ -76,7 +76,7 @@ float Random::Randf(float max)
 /// Returns a random value between 0 and max (inclusive)
 int Random::Randi(int max)
 {
-	return Randf() * max;
+	return Randf(max);
 }
 
 /// Returns a random vlaue between 0 and max (inclusive)

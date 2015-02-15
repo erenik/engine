@@ -220,6 +220,15 @@ void Time::SetHour(int hour)
 	intervals += (hour - currentHour) * intervalsPerHour;
 }
 
+/// Sets the hour in current hour by adding or removing diff amount of intervals.
+void Time::SetMinute(int minute)
+{
+	int currentMinute = Minute();
+	int intervalsPerMinute = IntervalsPerMinute();
+	intervals += (minute - currentMinute) * intervalsPerMinute;
+}
+
+
 // Current total in micro-seconds since the starting-point.
 uint64 Time::Microseconds()
 {
@@ -276,6 +285,21 @@ int Time::IntervalsPerHour()
 			assert(false);
 	}
 	return intervalsPerHour;
+}
+
+int Time::IntervalsPerMinute()
+{
+	int intervalsPerMinute;
+	switch(type)
+	{
+		case TimeType::MILLISECONDS_NO_CALENDER:
+			/// 1000 ms to s, 60 s to m, 60, m to h (1000 * 3600)
+			intervalsPerMinute = 1000 * 60;
+			break;
+		default:
+			assert(false);
+	}
+	return intervalsPerMinute;
 }
 
 	

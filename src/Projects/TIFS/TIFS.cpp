@@ -246,6 +246,22 @@ void TIFS::ProcessMessage(Message * message)
 			{
 				CreateField();
 			}
+			else if (msg.StartsWith("RoadWidth"))
+			{
+				grid->roadWidth = msg.Tokenize("()")[1].ParseInt();				
+			}
+			else if (msg.StartsWith("PlaceRoads"))
+			{
+				grid->PlaceRoads(msg.Tokenize("()")[1].ParseInt());
+			}
+			else if (msg.StartsWith("TriesPerBuilding"))
+			{
+				grid->triesPerBuilding = msg.Tokenize("()")[1].ParseInt();
+			}
+			else if (msg.StartsWith("MaxTilesPerBuilding"))
+			{
+				grid->maxTilesPerBuilding = msg.Tokenize("()")[1].ParseInt();
+			}
 			else if (msg.StartsWith("AddBuildings"))
 			{
 				AddBuildings(msg.Tokenize("()")[1].ParseInt());
@@ -601,8 +617,9 @@ void TIFS::AddBuildings(int numBuildings)
 		/// Create "building" of random size based on the given maxSize :)
 		Entity * buildingEntity = EntityMan.CreateEntity("Building", ModelMan.GetModel("cube.obj"), TexMan.GetTexture("0x82"));
 		/// Set Y to be the default height or something?
+		float sizeSquared = maxSize.LengthSquared();
 		if (maxSize.y == 0)
-			maxSize.y = 30.f;
+			maxSize.y = buildingRandom.Randf(sizeSquared * 0.05f) + sizeSquared * 0.01f + 5.f;
 		// Adjust Y based on update Y-scale.
 		position.y = position.y + maxSize.y * 0.5; 
 		buildingEntity->position = position;
