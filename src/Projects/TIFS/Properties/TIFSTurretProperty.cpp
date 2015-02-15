@@ -183,14 +183,7 @@ void TIFSTurretProperty::Shoot()
 	projEntity->localRotation.SetVectors(barrelRight, barrelUp, -barrelLookAt);
 	projEntity->rotationMatrix = projEntity->localRotation;
 	projEntity->RecalculateMatrix(Entity::ALL_BUT_ROTATION);
-
-	Vector3f upVec = projEntity->UpVec(),
-		rightVec = projEntity->RightVec();
-	Vector3f lookAt = projEntity->LookAt();
 	
-	float upDotRight = upVec.DotProduct(rightVec);
-	float upDotLookAt = upVec.DotProduct(lookAt);
-
 	pp->relativeVelocity = Vector3f(0,0,1) * projectileSpeed;
 
 	Vector3f relVelWorldSpaced;
@@ -200,14 +193,6 @@ void TIFSTurretProperty::Shoot()
 		Vector3f relVel = pp->relativeVelocity;
 		relVel.z *= -1;
 		relVelWorldSpaced = projEntity->rotationMatrix * relVel;
-	}
-
-	std::cout<<"\nRelVelWorldspaced: "<<relVelWorldSpaced;
-
-	float dot = lookAt.DotProduct(toTargetNormalized);
-	if (dot < 0.9f)
-	{
-		std::cout<<"\nFiring into nether..!";
 	}
 
 	MapMan.AddEntity(projEntity);

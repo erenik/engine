@@ -102,7 +102,7 @@ void FirstPersonPlayerProperty::ToggleAutorun()
 		}
 		PhysicsQueue.Add(new PMSetEntity(owner, PT_FACE_VELOCITY_DIRECTION, false));
 		// Set relative velocity. It will solve the issue of direction by using the current rotation :)
-		Vector3f velocity(0, 0, -movementSpeed);
+		Vector3f velocity(0, 0, movementSpeed);
 		PhysicsQueue.Add(new PMSetEntity(owner, PT_RELATIVE_VELOCITY, velocity));
 		/// Disable regular velocity.
 		PhysicsQueue.Add(new PMSetEntity(owner, PT_VELOCITY, Vector3f())); 
@@ -230,9 +230,9 @@ void FirstPersonPlayerProperty::ProcessInput()
 
 
 		float cameraZoom = 0.f;
-		float cameraZoomMultiplier = 1.01f;
-#define CONSTANT_ZOOM_SPEED 2.f
-#define ZOOM_MULTIPLIER_SPEED 1.4f
+		float cameraZoomMultiplier = 1.00f;
+#define CONSTANT_ZOOM_SPEED 2.2f
+#define ZOOM_MULTIPLIER_SPEED 1.5f
 		if (Input.KeyPressed(KEY::PG_DOWN))
 		{
 			cameraZoomMultiplier *= ZOOM_MULTIPLIER_SPEED;
@@ -258,6 +258,7 @@ void FirstPersonPlayerProperty::ProcessInput()
 		static float pastCameraTurn = 0.f;
 		if (cameraTurn != pastCameraTurn)
 		{
+			cameraTurn *= 2.f;
 			pastCameraTurn = cameraTurn;
 			GraphicsQueue.Add(new GMSetCamera(owner->cameraFocus, CT_ROTATION_SPEED_YAW, cameraTurn));
 		}

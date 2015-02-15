@@ -35,7 +35,7 @@ void FirstPersonIntegrator::IntegrateDynamicEntities(List<Entity*> & dynamicEnti
 
 	IntegrateVelocity(dynamicEntities, timeInSeconds);
 	timer.Stop();
-	this->integrationTimeMs += timer.GetMs();
+	this->integrationTimeMs = timer.GetMs();
 	RecalcMatrices(dynamicEntities);
 };
 /** All entities sent here should be fully kinematic! 
@@ -43,7 +43,10 @@ void FirstPersonIntegrator::IntegrateDynamicEntities(List<Entity*> & dynamicEnti
 */
 void FirstPersonIntegrator::IntegrateKinematicEntities(List<Entity*> & entities, float timeInSeconds)
 {
+	Timer timer;
+	timer.Start();
 	IntegrateVelocity(entities, timeInSeconds);
+	integrationTimeMs += timer.GetMs();
 	RecalcMatrices(entities);
 }
 
@@ -145,5 +148,5 @@ void FirstPersonIntegrator::RecalcMatrices(List<Entity*> & entities)
 	timer.Start();
 	RecalculateMatrices(entities);
 	timer.Stop();
-	this->entityMatrixRecalcMs += timer.GetMs();
+	this->entityMatrixRecalcMs = timer.GetMs();
 }
