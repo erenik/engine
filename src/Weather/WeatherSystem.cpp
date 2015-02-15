@@ -10,6 +10,7 @@
 #include "Graphics/Messages/GMLight.h"
 #include "Message/Message.h"
 #include "Light.h"
+#include "StateManager.h"
 
 WeatherSystem::WeatherSystem()
 {
@@ -29,7 +30,7 @@ WeatherSystem::~WeatherSystem()
 void WeatherSystem::Initialize()
 {
 	precipitationSystem = new PrecipitationSystem(this);
-	GraphicsMan.QueueMessage(new GMRegisterParticleSystem(precipitationSystem, true));
+	GraphicsQueue.Add(new GMRegisterParticleSystem(precipitationSystem, true));
 	sunLight = new Light("SunLight");
 	sunLight->position = Vector3f(0, 50.f, 0);
 	// Add a light?
@@ -38,14 +39,14 @@ void WeatherSystem::Initialize()
 	sunLight->type = LightType::DIRECTIONAL; // Orthogonal.
 	sunLight->castsShadow = true;
 	sunLight->diffuse = sunLight->specular = Vector4f(1,1,1,1);
-	GraphicsMan.QueueMessage(new GMAddLight(sunLight));
+	GraphicsQueue.Add(new GMAddLight(sunLight));
 	// Set ambient light.
-	GraphicsMan.QueueMessage(new GMSetAmbience(Vector3f(0.5f,0.5f,0.5f)));
+	GraphicsQueue.Add(new GMSetAmbience(Vector3f(0.5f,0.5f,0.5f)));
 }
 
 void WeatherSystem::Shutdown()
 {
-	GraphicsMan.QueueMessage(new GMUnregisterParticleSystem(precipitationSystem, true));
+	GraphicsQueue.Add(new GMUnregisterParticleSystem(precipitationSystem, true));
 }
 
 void WeatherSystem::Process(int timeInMs)
@@ -181,9 +182,15 @@ void WeatherSystem::SetSunTime(float hour)
 
 	/// Place sun 50 away?
 	position *= sunDistance;
+
+
+	sunColor = color;
+	/// Smooth 10% per logic frame (roughly 10 times per second).
+	smoothedSunColor = smoothedSunColor * 0.95f + sunColor * 0.05f;
+	smoothedSunPosition = smoothedSunPosition * 0.95f + position * 0.05f;
 	// Set position.
-	GraphicsMan.QueueMessage(new GMSetLight(sunLight, LightTarget::POSITION, position));
-	GraphicsMan.QueueMessage(new GMSetLight(sunLight, LightTarget::COLOR, color));
+	GraphicsQueue.Add(new GMSetLight(sunLight, LightTarget::POSITION, smoothedSunPosition));
+	GraphicsQueue.Add(new GMSetLight(sunLight, LightTarget::COLOR, smoothedSunColor));
 }
 
 /// Sets global wind velocity, affecting rain, snow, etc.

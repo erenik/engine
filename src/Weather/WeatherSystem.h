@@ -56,6 +56,10 @@ private:
 	float inGameSecondsPerSecond;
 	/// Or weather-time?
 	Time inGameTime;
+
+	Vector3f smoothedSunPosition;
+	Vector4f sunColor;
+	Vector4f smoothedSunColor;
 };
 
 
