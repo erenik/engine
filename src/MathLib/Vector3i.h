@@ -83,6 +83,10 @@ public:
 	Vector3i  operator + (const Vector3i addend) const;
 	/// Returns a subtracted vector based on this vector and the subtractor.
 	Vector3i  operator - (const Vector3i subtractor) const;
+	/// Returns a subtracted vector based on this vector and the subtractor.
+	Vector3f  operator * (const Vector3f & elementMultiplier) const;
+	/// Returns a subtracted vector based on this vector and the subtractor.
+	Vector3f  operator / (const Vector3i & elementDivider) const;
 
 	/// Multiplication with ints
 	friend Vector3i operator * (int multiplier, Vector3i& vector);

@@ -106,7 +106,7 @@ public:
 	/// Polls the existance/copy of target item in the queue.
 	bool Exists(value_type item) const;
 	/// Returns content by index. Similar to the [] operator.
-	value_type & GetItem(Vector2i atLocation);
+	value_type & GetItem(Vector3i atLocation);
 
 	/// Returns target element as if treating the matrix data as a long list.
 	T & Element(int arrayIndex);
@@ -306,6 +306,23 @@ void Matrix<T>::Set(Vector3i pos, T toT)
 	int index = pos[2] * size[0] * size[1] + pos[1] * size[0] + pos[0];
 	arr[index] = toT;
 }
+
+/// Clears the list of entries and deletes every single one of them. USE WITH CAUTION and only on matrices using heap-allocated data!
+template <class T>
+int Matrix<T>::ClearAndDelete()
+{
+	int deleted = 0;
+	for (int i = 0; i < arrLength; ++i)
+	{
+		delete arr[i];
+		arr[i] = NULL;
+		++deleted;
+	}
+	size = Vector3i(0,0,0);
+	arrLength = 0;
+	return deleted;
+}
+
 
 
 #endif

@@ -85,11 +85,16 @@ TIFS::TIFS()
 	paused = false;
 	fieldSize = 50.f;
 	halfFieldSize = 25.f;
+	grid = new TIFSGrid();
+	gridSize = Vector3i(5,5,5);
+	Vector3f mapSize(fieldSize, 100.0f, fieldSize);
+	grid->Resize(gridSize, mapSize);
 }
 
 TIFS::~TIFS()
 {
 	SAFE_DELETE(weather);
+	SAFE_DELETE(grid);
 }
 
 TIFSIntegrator * integrator = 0;
@@ -224,6 +229,26 @@ void TIFS::ProcessMessage(Message * message)
 			{
 				fieldSize = msg.Tokenize("()")[1].ParseFloat();
 				halfFieldSize = fieldSize * 0.5;
+				// Resize.
+				grid->Resize(gridSize, Vector3f(fieldSize, 100.f, fieldSize));
+			}
+			else if (msg.StartsWith("SetGridSize"))
+			{
+				String vecStr = msg.Tokenize("()")[1];
+				Vector3f rr;
+				rr.ReadFrom(vecStr);
+				gridSize = rr;
+				assert(gridSize.Length());
+				// Resize.
+				grid->Resize(gridSize, Vector3f(fieldSize, 100.f, fieldSize));
+			}
+			else if (msg.StartsWith("CreateField"))
+			{
+				CreateField();
+			}
+			else if (msg.StartsWith("AddBuildings"))
+			{
+				AddBuildings(msg.Tokenize("()")[1].ParseInt());
 			}
 			else if (msg.StartsWith("CreateTurrets"))
 			{
@@ -376,8 +401,14 @@ void TIFS::CreateTurrets(int num)
 	for (int i = 0; i < turretsToCreate; ++i)
 	{
 		Vector3f position;
-		position.x = turretRandom.Randf(fieldSize) - halfFieldSize;
-		position.z = turretRandom.Randf(fieldSize) - halfFieldSize;
+		bool ok = grid->GetNewTurretPosition(position);
+		if (!ok)
+		{
+			std::cout<<"\nOut of positions on the grid.";
+			break;
+		}
+//		position.x = turretRandom.Randf(fieldSize) - halfFieldSize;
+//		position.z = turretRandom.Randf(fieldSize) - halfFieldSize;
 		CreateTurret(LARGE, position);
 	}
 }
@@ -414,7 +445,7 @@ void TIFS::CreateTurret(int ofSize, ConstVec3fr atLocation)
 	GraphicsQueue.Add(new GMSetEntity(underBarrelEntity, GT_PARENT, swivelEntity));
 	underBarrelEntity->SetPosition(Vector3f(0, 1.8f, -0.5f));
 	turretParts.Add(underBarrelEntity);
-	pp = new PhysicsProperty();
+	underBarrelEntity->physics = pp = new PhysicsProperty();
 	pp->type = PhysicsType::KINEMATIC;
 	
 	// Add barrel.
@@ -514,6 +545,19 @@ void TIFS::NewGame()
 	// Spawn player
 	SpawnPlayer();
 
+	// Mothership.
+	Entity * mothership = MapMan.CreateEntity("Mothership", ModelMan.GetModel("obj/Mothership/Mothership.obj"), TexMan.GetTexture("0x77"));
+	PhysicsQueue.Add(new PMSetEntity(mothership, PT_POSITION, Vector3f(0,1000,0)));
+	PhysicsQueue.Add(new PMSetEntity(mothership, PT_SET_SCALE, 3.f));
+
+	/// Set 3rd person camera as default.
+	GraphicsQueue.Add(new GMSetCamera(thirdPersonCamera));
+
+	ScriptMan.PlayScript("scripts/NewGame.txt");
+}
+
+void TIFS::CreateField()
+{
 	// Create a plane.
 	List<Entity*> entities;
 	Model * model = ModelMan.GetModel("plane");
@@ -535,18 +579,37 @@ void TIFS::NewGame()
 	entities.Add(plane, plane2);
 	// Add zem to ze mapp
 	MapMan.AddEntities(entities);
-
-	// Mothership.
-	Entity * mothership = MapMan.CreateEntity("Mothership", ModelMan.GetModel("obj/Mothership/Mothership.obj"), TexMan.GetTexture("0x77"));
-	PhysicsQueue.Add(new PMSetEntity(mothership, PT_POSITION, Vector3f(0,1000,0)));
-	PhysicsQueue.Add(new PMSetEntity(mothership, PT_SET_SCALE, 3.f));
-
-	/// Set 3rd person camera as default.
-	GraphicsQueue.Add(new GMSetCamera(thirdPersonCamera));
-
-	ScriptMan.PlayScript("scripts/NewGame.txt");
 }
 
+void TIFS::AddBuildings(int numBuildings)
+{
+//	MapMan.DeleteEntities(turrets);
+//	turrets.Clear();
+
+	Random buildingRandom;
+	int buildingsToCreate = numBuildings;
+	for (int i = 0; i < buildingsToCreate; ++i)
+	{
+		Vector3f position;
+		Vector3f maxSize; 
+		bool ok = grid->GetNewBuildingPosition(maxSize, position);
+		if (!ok)
+		{
+			std::cout<<"\nOut of positions on the grid.";
+			break;
+		}
+		/// Create "building" of random size based on the given maxSize :)
+		Entity * buildingEntity = EntityMan.CreateEntity("Building", ModelMan.GetModel("cube.obj"), TexMan.GetTexture("0x82"));
+		/// Set Y to be the default height or something?
+		if (maxSize.y == 0)
+			maxSize.y = 30.f;
+		// Adjust Y based on update Y-scale.
+		position.y = position.y + maxSize.y * 0.5; 
+		buildingEntity->position = position;
+		buildingEntity->SetScale(maxSize);
+		MapMan.AddEntity(buildingEntity);
+	}
+}
 
 void TIFS::HideMainMenu()
 {

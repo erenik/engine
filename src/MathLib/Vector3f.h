@@ -136,6 +136,10 @@ public:
 	Vector3f  operator + (const Vector3f & addend) const;
 	/// Returns a subtracted vector based on this vector and the subtractor.
 	Vector3f  operator - (const Vector3f & subtractor) const;
+	/// Returns a subtracted vector based on this vector and the subtractor.
+	Vector3f  operator * (const Vector3f & elementMultiplier) const;
+	/// Returns a subtracted vector based on this vector and the subtractor.
+	Vector3f  operator / (const Vector3i & elementDivider) const;
 
 	/// Multiplication with floats
 	friend Vector3f operator * (float multiplier, const Vector3f & vector);

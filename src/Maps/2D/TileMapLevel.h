@@ -6,7 +6,7 @@
 #define TILE_MAP_LEVEL_H
 
 #include "MathLib.h"
-#include "Maps/Grids/TileGrid.h"
+#include "Maps/Grids/TileGrid2D.h"
 #include "Maps/Grids/GridObject.h"
 
 /// Subclass of TileGrid! :)

@@ -572,12 +572,11 @@ void AudioManager::ProcessAudioMessages()
 
 
 	/// Process them.
-	while(messagesToProcess.Size())
+	for(int i = 0; i < messagesToProcess.Size(); ++i)
 	{
-		AudioMessage * am = messagesToProcess[0];
+		AudioMessage * am = messagesToProcess[i];
 		am->Process();
-		messagesToProcess.Remove(am, ListOption::RETAIN_ORDER);
-		delete am;
 	}
+	messagesToProcess.ClearAndDelete();
 }
 

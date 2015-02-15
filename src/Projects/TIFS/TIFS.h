@@ -22,6 +22,7 @@
 #include "Graphics/GraphicsProperty.h"
 #include "Physics/PhysicsManager.h"
 #include "Physics/PhysicsProperty.h"
+#include "TIFSGrid.h"
 
 class Camera;
 class Message;
@@ -106,6 +107,8 @@ private:
 	bool paused;
 	// Creates a new game with standard stuff.
 	void NewGame();
+	void CreateField();
+	void AddBuildings(int num = 5);
 
 	void HideMainMenu();
 	void ShowMainMenu();
@@ -116,8 +119,9 @@ private:
 
 	/// o-o
 	ToolParticleSystem * toolParticles;
+	TIFSGrid * grid;
 
-
+	Vector3i gridSize;
 	// o.o
 	float fieldSize, halfFieldSize;
 };

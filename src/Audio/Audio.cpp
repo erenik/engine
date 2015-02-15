@@ -349,7 +349,7 @@ void Audio::UnqueueBuffer(AudioBuffer * buf)
 	assert(buf->attached);
 	bool ok = buf->DetachFrom(alSource);
 	assert(ok);
-	queuedBuffers.Remove(buf, ListOption::RETAIN_ORDER);
+	queuedBuffers.RemoveItem(buf);
 	/// Assume the buffer should get new data after unqueuing it.
 	buf->buffered = false;
 }

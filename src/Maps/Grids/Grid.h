@@ -10,7 +10,8 @@ class NavMesh;
 
 enum {
 	GRID_TYPE_NULL,
-	TILE_GRID,	/// 2D-rectangular grid.
+	TILE_GRID_2D,	/// 2D-rectangular grid.
+	TILE_GRID_3D,
 };
 
 /// An abstract Grid-class that can be used to keep track of an array of potential positions and the connections in-between.

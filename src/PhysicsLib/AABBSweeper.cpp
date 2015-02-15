@@ -89,7 +89,7 @@ void AABBSweeper::UnregisterEntity(Entity * entity)
 			AABBSweepNode * node = axis[j];
 			if (node->entity == entity)
 			{
-				axis.Remove(node, ListOption::RETAIN_ORDER);
+				axis.RemoveItem(node);
 				--j;
 				delete node;
 			}

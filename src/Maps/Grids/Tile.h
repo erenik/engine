@@ -13,7 +13,8 @@ class GridObject;
 #include "MathLib.h"
 
 /// Tile type
-struct TileType{
+struct TileType
+{
 	TileType();
 	TileType(int type, String name, const Vector3f & color, Texture * t = NULL);
 	/// Tile type index
@@ -51,8 +52,10 @@ public:
 	/// Tile type index
 	int typeIndex;
 	TileType * type;
-	/// Standard tile position: integral using only X and Y
+	/// World position.
 	Vector3f position;
+	/// Position in the grid.
+	Vector3i matrixPosition;
 
 //	const int X() const { return x; };
 //	const int Y() const { return y; };

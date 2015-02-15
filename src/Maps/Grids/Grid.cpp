@@ -16,9 +16,11 @@ int Grid::GenerateWaypoints(NavMesh * navMesh){
 int Grid::Type(){
 	return type;
 }
-String Grid::TypeName(){
+String Grid::TypeName()
+{
 	switch(type){
-		case TILE_GRID: return "TileGrid";
+		case TILE_GRID_2D: return "TileGrid2D";
+		case TILE_GRID_3D: return "TileGrid3D";
 		default: assert(false && "Invalid grid type or lacking type-name");
 	}
 	return "Bad type.";

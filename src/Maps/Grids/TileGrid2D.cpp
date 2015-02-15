@@ -1,7 +1,7 @@
 /// Emil Hedemalm
 /// 2013-12-22
 
-#include "TileGrid.h"
+#include "TileGrid2D.h"
 #include "Tile.h"
 #include "TileTypeManager.h"
 #include "TextureManager.h"
@@ -20,7 +20,7 @@
 
 /// An Grid-class that can handles rectangular grids with square-sized waypoints/tiles.
 TileGrid2D::TileGrid2D()
-: Grid(TILE_GRID)
+: Grid(TILE_GRID_2D)
 {
 	std::cout<<"\nTileGrid2D constructor.";
 	gridType = GridType::RECTANGLES;

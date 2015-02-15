@@ -143,6 +143,24 @@ Vector3i  Vector3i::operator - (Vector3i subtractor) const {
 	return newVec;
 }
 
+/// Returns a subtracted vector based on this vector and the subtractor.
+Vector3f Vector3i::operator * (ConstVec3fr elementMultiplier) const
+{
+	Vector3f newVec;
+	newVec = Vector3f(*this) * elementMultiplier;
+	return newVec;
+}
+
+/// Returns a subtracted vector based on this vector and the subtractor.
+Vector3f  Vector3i::operator / (const Vector3i & elementDivider) const
+{
+	Vector3f result, left(*this), right(elementDivider);
+	result = left / right;
+	return result;
+}
+
+
+
 /// Multiplication with int
 Vector3i operator * (int multiplier, Vector3i& vector){
 	Vector3i  newVec;

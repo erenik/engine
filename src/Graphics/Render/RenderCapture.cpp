@@ -123,7 +123,7 @@ void GraphicsManager::RenderCapture()
 		// Replace any slashes with some other character, or it will fail.
 		frame->name.Replace('/', '-');
 		frame->Save(videoDirPath+"/"+frame->name+".png", true);
-		window->frames.Remove(frame, ListOption::RETAIN_ORDER);
+		window->frames.RemoveItem(frame);
 		TexMan.DeleteTexture(frame);
 	}
 

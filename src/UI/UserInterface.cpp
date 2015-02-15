@@ -631,7 +631,7 @@ bool UserInterface::PopFromStack(UIElement * element, bool force)
 	}
 	/// TODO: Assert that the element is the top-layer one?
 	/// Option to ensure that it doesn't flip any other elements anyway.
-	bool result = stack.Remove(element, ListOption::RETAIN_ORDER) != NULL;
+	bool result = stack.RemoveItem(element) != NULL;
 	assert(!stack.Exists(element));
 	/// Make it invisible in any case?
 	element->visible = false;
@@ -646,7 +646,7 @@ UIElement * UserInterface::PopFromStack(){
 	if (!stack.Size())
 		return NULL;
 	UIElement * last = stack.Last();
-	stack.Remove(last, ListOption::RETAIN_ORDER);
+	stack.Remove(last);
 	last->visible = false;
 	last->inStack = false;
 	return last;

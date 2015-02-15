@@ -377,6 +377,32 @@ Vector3f  Vector3f::operator - (const Vector3f & subtractor) const
 	return newVec;
 }
 
+/// Returns a subtracted vector based on this vector and the subtractor.
+Vector3f Vector3f::operator * (const Vector3f & elementMultiplier) const
+{
+	Vector3f newVec;
+#ifdef USE_SSE
+	newVec.data = _mm_mul_ps(data, elementMultiplier.data);
+#else
+	assert(false);
+#endif
+	return newVec;
+}
+
+/// Returns a subtracted vector based on this vector and the subtractor.
+Vector3f Vector3f::operator / (const Vector3i & elementDivider) const
+{
+	Vector3f newVec;
+#ifdef USE_SSE
+	Vector3f equiv = elementDivider;;
+	newVec.data = _mm_div_ps(data, equiv.data);
+#else
+	assert(false);
+#endif
+	return newVec;
+}
+
+
 /// Multiplication with float
 Vector3f operator * (float multiplier, const Vector3f & vector)
 {

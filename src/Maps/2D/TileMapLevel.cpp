@@ -229,7 +229,7 @@ void TileMapLevel::DeleteObject(GridObject * go)
 		tile->objects.Remove(go);
 	}
 	// Delete it.
-	objects.Remove(go, ListOption::RETAIN_ORDER);
+	objects.Remove(go);
 	delete go;
 }
 

@@ -685,6 +685,7 @@ int main(int argc, char **argv)
 	
 	// Delete mutexes.
 	DeleteUIMutex();
+	MathLib::Free();
 
 	std::cout<<"\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>";
 	std::cout<<"\n>>>Main finishing.    >>>";

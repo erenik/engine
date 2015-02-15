@@ -92,10 +92,14 @@ public:
 	void Add(const T & item, const T & item2, const T & item3, const T & item4, const T & item5) { Add(item); Add(item2); Add(item3); Add(item4); Add(item5); };
 	/// Adds multiple items to the list
 	bool AddArray(int numItems, T * itemArray);
-	/// Remove target item, searching for it.
-	bool Remove(const value_type & item);
-	/// Can be called with ListOption::RETAIN_ORDER to guarantee that internal order is preserved.
-	T Remove(const value_type & item, int removeOption);
+	/// Removes, not caring for internal order. Quicker.
+	bool RemoveItemUnsorted(const value_type & item);
+	/// Removes, retains internal order.
+	T RemoveItem(const value_type & item);
+	/// Removes all occurences of any items in the sublist in this list. Does not retain order. Quicker.
+	int RemoveUnsorted(const List<T> & subListToRemove);
+	/// Removes all occurences of any items in the sublist in this list. Retains order.
+	int Remove(const List<T> & subListToRemove);
 	/// Removes item at target index.
 	bool RemoveIndex(int index);
 	/// Can be called with ListOption::RETAIN_ORDER to guarantee that internal order is preserved.
@@ -457,7 +461,7 @@ bool List<T>::Add(const T & item, int requestedIndex) {
 
 /// Remove target item or index
 template <class T>
-bool List<T>::Remove(const T & item)
+bool List<T>::RemoveItemUnsorted(const T & item)
 {
 	for (int i = 0; i < currentItems; ++i)
 	{
@@ -474,13 +478,16 @@ bool List<T>::Remove(const T & item)
 
 /// Remove target item or index, keeping the internal order of the remaining objects!
 template <class T>
-T List<T>::Remove(const T & item, int removeOption){
-    assert(removeOption == ListOption::RETAIN_ORDER);
-	for (int i = 0; i < currentItems; ++i){
+T List<T>::RemoveItem(const T & item)
+{
+	for (int i = 0; i < currentItems; ++i)
+	{
 		/// found it!
-		if (arr[i] == item){
+		if (arr[i] == item)
+		{
 		    /// Move down the remaining objects.
-		    for (int j = i+1; j < currentItems; ++j){
+		    for (int j = i+1; j < currentItems; ++j)
+			{
                 arr[j-1] = arr[j];
 		    }
 			currentItems--;
@@ -489,6 +496,47 @@ T List<T>::Remove(const T & item, int removeOption){
 	}
 	return NULL;
 }
+
+/// Removes all occurences of any items in the sublist in this list.
+template <class T>
+int List<T>::RemoveUnsorted(const List<T> & subListToRemove)
+{  
+	int removed = 0;
+	for (int i = 0; i < currentItems; ++i)
+	{
+		/// found it?
+		if (subListToRemove.Exists(arr[i]))
+		{
+			currentItems--;
+			arr[i] = arr[currentItems];
+			--i;
+			++removed;
+		}
+	}
+	return removed;
+}
+
+/// Removes all occurences of any items in the sublist in this list.
+template <class T>
+int List<T>::Remove(const List<T> & subListToRemove)
+{  
+	int removed = 0;
+	for (int i = 0; i < currentItems; ++i)
+	{
+		/// found it?
+		if (subListToRemove.Exists(arr[i]))
+		{
+		    /// Move down the remaining objects.
+		    for (int j = i+1; j < currentItems; ++j){
+                arr[j-1] = arr[j];
+		    }
+			currentItems--;
+			++removed;
+		}
+	}
+	return removed;
+}
+	
 
 template <class T>
 bool List<T>::RemoveIndex(int index){
