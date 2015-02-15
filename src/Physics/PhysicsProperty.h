@@ -119,6 +119,7 @@ public:
 
 	/// Damping applied on a per-second basis for this entity only.
 	float linearDamping, linearDampingPerPhysicsFrame;
+	float angularDampingPerPhysicsFrame;
 
 	/** Obsolete! All positional updates should use the entity's own position vector.
 		If a "center of mass" is wanted later on, name it "centerOfMass" or something then...!

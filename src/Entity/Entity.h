@@ -141,9 +141,16 @@ public:
 	/** Translates the Entity */
 	void Translate(const Vector3f & translation);
 
+	enum {
+		TRANSLATION_ONLY,
+		ALL_PARTS,
+		ALL_BUT_ROTATION,
+	};
 	/// Recalculates the transformation matrix. All parts by default. If recursively, will update children (or parents?) recursively upon update.
 	/// 0 = Just translation adjustment, 1 = ALL, 2 = Re-build all but rotation. 
-	void RecalculateMatrix(int whichParts = 1, bool recursively = false);
+	void RecalculateMatrix(int whichParts = ALL_PARTS, bool recursively = false);
+	void RecalcRotationMatrix();
+
 	/// Recalculates a transformation matrix using argument vectors for position, rotation and translation.
 	static Matrix4f RecalculateMatrix(const Vector3f & position, const Vector3f & rotation, const Vector3f & scale);
 
@@ -239,6 +246,9 @@ public:
 	AABB * aabb;
 
 private:
+	/// Used internally.
+	Matrix4f preTranslateMat;
+	/// Calculated after transform or rotation is done.
 	Vector3f lookAt, rightVec, upVec;
 	int deletionTimeMs;
 	/// Texture to be used for this Entity. TODO: Rename to DiffuseMap?

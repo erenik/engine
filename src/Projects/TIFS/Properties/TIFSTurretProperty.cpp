@@ -15,6 +15,8 @@ int TIFSTurretProperty::defaultTurretCooldown = 2000;
 float TIFSTurretProperty::defaultPitchYawPerSecond = 0.2f;
 float TIFSTurretProperty::defaultRecoilSpringConstant = 225.f;
 float TIFSTurretProperty::defaultRecoilLinearDamping = 0.125f;
+float TIFSTurretProperty::defaultProjectileSpeed = 1000.f;
+float TIFSTurretProperty::defaultRecoilSpeed = 1.0f;
 
 TIFSTurretProperty::TIFSTurretProperty(Entity * base, Entity * swivel, Entity * underBarrel, Entity * barrel)
 : EntityProperty("TIFSTurretProperty", TIFSProperty::TURRET, NULL), base(base), swivel(swivel), underBarrel(underBarrel), barrel(barrel)
@@ -23,7 +25,7 @@ TIFSTurretProperty::TIFSTurretProperty(Entity * base, Entity * swivel, Entity * 
 	owners.Add(base, swivel, underBarrel, barrel);
 
 	springsCreated = false;
-	projectileSpeed = 1000.f;
+	projectileSpeed = defaultProjectileSpeed;
 	shootCooldown = weaponCooldownMs = defaultTurretCooldown;
 	maxHP = 40000;
 	currentHP = 20000;
@@ -143,7 +145,7 @@ void TIFSTurretProperty::Shoot()
 		PhysicsQueue.Add(new PMCreateSpring(barrel, Vector3f(), defaultRecoilSpringConstant, 0));
 	}
 	// Apply impulse.
-	PhysicsQueue.Add(new PMApplyImpulse(barrel, Vector3f(0,0,-1) * barrel->physics->mass, Vector3f()));
+	PhysicsQueue.Add(new PMApplyImpulse(barrel, Vector3f(0,0,-defaultRecoilSpeed) * barrel->physics->mass, Vector3f()));
 
 	// Emit some particles at the cannon
 	
@@ -168,8 +170,10 @@ void TIFSTurretProperty::Shoot()
 	Vector3f midPosition = (projEntity->position + target->position) * 0.5f;
 	// Set scale?
 	projEntity->scale = Vector3f(0.25,0.25,15.f);
+	float length = projEntity->scale.z;
 	// Rotate?
-	projEntity->position = this->barrel->transformationMatrix * Vector4f(0,0,0,1) + toTargetNormalized * 0.1f;
+	projEntity->position = this->barrel->transformationMatrix * Vector4f(0,0,0,1) + toTargetNormalized * length;
+	projEntity->position += Vector3f(0,2.f,0);
 	// Calculate rotations? 
 	// Grab look-at from barrel?
 	Vector3f barrelLookAt = -barrel->LookAt();
@@ -177,7 +181,8 @@ void TIFSTurretProperty::Shoot()
 	Vector3f barrelRight = barrel->RightVec();
 
 	projEntity->localRotation.SetVectors(barrelRight, barrelUp, -barrelLookAt);
-	projEntity->RecalculateMatrix(2);
+	projEntity->rotationMatrix = projEntity->localRotation;
+	projEntity->RecalculateMatrix(Entity::ALL_BUT_ROTATION);
 
 	Vector3f upVec = projEntity->UpVec(),
 		rightVec = projEntity->RightVec();

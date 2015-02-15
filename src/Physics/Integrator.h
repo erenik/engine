@@ -25,6 +25,8 @@ public:
 	*/
 	virtual void IntegrateKinematicEntities(List<Entity*> & kinematicEntities, float timeInSeconds) = 0;
 	
+	/// -9.82 y by default
+	Vector3f gravity;
 
 	/// For 2D-based integrators, this holds the value where most entities will be placed or enforced to stay at, Z-wise.
 	float constantZ;
@@ -32,6 +34,13 @@ public:
 	/// For performance calculation, should save time required for integration and recalculating entity matrices both.
 	int integrationTimeMs;
 	int entityMatrixRecalcMs;
+
+protected:
+	/// Provides default "scientific" rigid-body based simulation handling of forces, torques, etc.
+	void CalculateForces(List<Entity*> & entities);
+	void UpdateMomentum(List<Entity*> & entities, float timeInSeconds);
+	void DeriveVelocity(List<Entity*> & entities);
+
 private:
 };
 

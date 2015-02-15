@@ -293,6 +293,8 @@ void * StateManager::StateProcessor(void * vArgs){
 							StateMan.ActiveState()->Process(timeDiffInMs);
 						if (MapMan.ActiveMap())
 							MapMan.ActiveMap()->Process(timeDiffInMs);
+						// Clean-up.
+						EntityMan.DeleteUnusedEntities(timeDiffInMs);
 					}
 					/// If not in any state, sleep a bit, yo.
 					else
@@ -326,9 +328,6 @@ void * StateManager::StateProcessor(void * vArgs){
 				/// Always process messages, even if quitting, as some messages need to be processed here 
 				/// (like properly destroying windows)
 				MesMan.ProcessMessages();
-
-				// Clean-up.
-				EntityMan.DeleteUnusedEntities(timeDiffInMs);
 
 				// Post messages, if any.
 				if (StateMan.graphicsQueue.Size())

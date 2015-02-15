@@ -111,6 +111,7 @@ void PhysicsProperty::Nullify()
 	collissionCallbackRequirementValue = 1.0f;
 	linearDamping = 0.99f;
 	linearDampingPerPhysicsFrame = 0.9999f;
+	angularDampingPerPhysicsFrame = 0.999f;
 	collissionsEnabled = true;
 	noCollisionResolutions = false;
 	physicsMesh = NULL;

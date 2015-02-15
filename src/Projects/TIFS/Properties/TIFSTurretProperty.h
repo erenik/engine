@@ -27,6 +27,9 @@ public:
 	static float defaultPitchYawPerSecond;
 	static float defaultRecoilSpringConstant;
 	static float defaultRecoilLinearDamping;
+	static float defaultProjectileSpeed;
+	static float defaultRecoilSpeed;
+	static float defaultCooldown;
 
 	/// Determines how fast it may turn?
 	int turretSize;

@@ -210,6 +210,10 @@ void TIFS::ProcessMessage(Message * message)
 				TIFSTurretProperty::defaultTurretCooldown = msg.Tokenize("()")[1].ParseFloat();
 			else if (msg.StartsWith("TurretPitchYawPerSecond"))
 				TIFSTurretProperty::defaultPitchYawPerSecond = msg.Tokenize("()")[1].ParseFloat();
+			else if (msg.StartsWith("TurretProjectileSpeed"))
+				TIFSTurretProperty::defaultProjectileSpeed = msg.Tokenize("()")[1].ParseFloat();
+			else if (msg.StartsWith("TurretRecoilSpeed"))
+				TIFSTurretProperty::defaultRecoilSpeed = msg.Tokenize("()")[1].ParseFloat();
 			else if (msg.StartsWith("TurretRecoilSpringConstant"))
 				TIFSTurretProperty::defaultRecoilSpringConstant = msg.Tokenize("()")[1].ParseFloat();
 			else if (msg.StartsWith("TurretRecoilLinearDamping"))
@@ -389,9 +393,12 @@ void TIFS::CreateTurret(int ofSize, ConstVec3fr atLocation)
 
 	Entity * turretBase = EntityMan.CreateEntity("TurretBase", ModelMan.GetModel("Turrets/LargeBase"), diffuseMap);
 	turretBase->updateChildrenOnTransform = true;
-	PhysicsQueue.Add(new PMSetEntity(turretBase, PT_POSITION, atLocation));
+	turretBase->SetPosition(atLocation);
 	turretParts.Add(turretBase);
-
+	PhysicsProperty * pp = new PhysicsProperty();
+	turretBase->physics = pp;
+	pp->type = PhysicsType::KINEMATIC;
+	
 
 	/// Add a child-mesh-part to the first turret-part!
 	Model * swivel = ModelMan.GetModel("Turrets/LargeSwivel");
@@ -407,15 +414,18 @@ void TIFS::CreateTurret(int ofSize, ConstVec3fr atLocation)
 	GraphicsQueue.Add(new GMSetEntity(underBarrelEntity, GT_PARENT, swivelEntity));
 	underBarrelEntity->SetPosition(Vector3f(0, 1.8f, -0.5f));
 	turretParts.Add(underBarrelEntity);
-
+	pp = new PhysicsProperty();
+	pp->type = PhysicsType::KINEMATIC;
+	
 	// Add barrel.
 	Model * barrel = ModelMan.GetModel("Turrets/LargeBarrel");
 	Entity * barrelEntity = EntityMan.CreateEntity("TurretBarrel", barrel, diffuseMap);
 	GraphicsQueue.Add(new GMSetEntity(barrelEntity, GT_PARENT, underBarrelEntity));
 	turretParts.Add(barrelEntity);
-	PhysicsProperty * pp = new PhysicsProperty();
+	pp = new PhysicsProperty();
 	barrelEntity->physics = pp;
 	pp->type = PhysicsType::DYNAMIC;
+	pp->gravityMultiplier = 0.0f;
 	pp->SetLinearDamping(TIFSTurretProperty::defaultRecoilLinearDamping);
 	pp->SetMass(100.0f);
 	pp->useForces = true;

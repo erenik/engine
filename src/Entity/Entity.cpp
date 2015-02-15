@@ -457,43 +457,14 @@ void Entity::Translate(ConstVec3fr translation)
 /// Recalculates the transformation matrix. All parts by default. If recursively, will update children (or parents?) recursively upon update.
 void Entity::RecalculateMatrix(int whichParts/*= true*/, bool recursively /* = false*/)
 {
-    Matrix4f preTranslateMat;
-	if (whichParts > 0 || hasRotated)
+	if (whichParts > TRANSLATION_ONLY || hasRotated)
 	{
-		if (whichParts == 1)
+		if (whichParts == ALL_PARTS || hasRotated)
 		{
-			rotationMatrix = Matrix4d();
-			// Quaternions for those entities wanting to use it.
-			if (physics && physics->useQuaternions){
-				Quaternion q = physics->orientation;
-			 //   std::cout<<"\nQ preN: "<<q;
-				q.Normalize();
-			 //   std::cout<<"\nQ postN: "<<q;
-				rotationMatrix = q.Matrix();
-			   // float * parr = rotationMatrix.getPointer();
-			 //   std::cout<<"\nMatrix: "<<parr[0]<<" "<<parr[1];
-
-				Quaternion q2 = physics->preTranslateRotationQ;
-				if (physics->preTranslateRotationQ.y != 0)
-				{
-					int i = + q2.y;
-				}
-				preTranslateMat = q2.Matrix();
-			}
-			// Euclidean co-ordinates.
-			else 
-			{
-				rotationMatrix.Multiply(Matrix4d::GetRotationMatrixX(rotation[0]));
-				rotationMatrix.Multiply(Matrix4d::GetRotationMatrixZ(rotation[2]));
-				rotationMatrix.Multiply(Matrix4d::GetRotationMatrixY(rotation[1]));
-			}	
-			localRotation = rotationMatrix;
+			RecalcRotationMatrix();
 		}
-		hasRotated = false;
 		
-
 		transformationMatrix = Matrix4f();
-
 		transformationMatrix.Multiply(preTranslateMat);
 		transformationMatrix.Multiply((Matrix4f::Translation(position)));
 		transformationMatrix.Multiply(localRotation);
@@ -505,12 +476,9 @@ void Entity::RecalculateMatrix(int whichParts/*= true*/, bool recursively /* = f
 		{
 			/// Transforms as calculated if this were not child of any other entity.
 			transformationMatrix = parent->transformationMatrix * localTransform;
-			// Update rotation matrix based on parent too?
-			rotationMatrix = parent->rotationMatrix * localRotation;
 		}
 		else 
 		{
-			rotationMatrix = localRotation;
 			transformationMatrix = localTransform;
 		}
 
@@ -519,17 +487,18 @@ void Entity::RecalculateMatrix(int whichParts/*= true*/, bool recursively /* = f
 		{
 			for (int i = 0; i < children.Size(); ++i)
 			{
-				children[i]->RecalculateMatrix(true, true);
+				children[i]->RecalculateMatrix(ALL_PARTS, true);
 			}
 		}
 
-		worldPosition = transformationMatrix.Product(Vector4f());
-		lookAt = rotationMatrix * Vector4f(0,0,-1,0);
-		upVec = rotationMatrix * Vector4f(0,1,0,0);
-		rightVec = rotationMatrix * Vector4f(1,0,0,0);
-
 			// Ensure it has a scale..?
 	//	assert(transformationMatrix.HasValidScale());
+	}
+	else if (parent)
+	{
+		// Force recalculate all.
+		RecalculateMatrix(ALL_PARTS);
+		return;
 	}
 	// No rotation? -> 
 	else 
@@ -539,8 +508,53 @@ void Entity::RecalculateMatrix(int whichParts/*= true*/, bool recursively /* = f
 		transformationMatrix[13] = position[1];
 		transformationMatrix[14] = position[2];
 	}
-	worldPosition = transformationMatrix * Vector3f();
+	worldPosition = transformationMatrix.Product(Vector4f());
 }
+
+void Entity::RecalcRotationMatrix()
+{
+	localRotation = Matrix4d();
+	// Quaternions for those entities wanting to use it.
+	if (physics && physics->useQuaternions){
+		Quaternion q = physics->orientation;
+	 //   std::cout<<"\nQ preN: "<<q;
+		q.Normalize();
+	 //   std::cout<<"\nQ postN: "<<q;
+		localRotation = q.Matrix();
+	   // float * parr = rotationMatrix.getPointer();
+	 //   std::cout<<"\nMatrix: "<<parr[0]<<" "<<parr[1];
+
+		Quaternion q2 = physics->preTranslateRotationQ;
+		if (physics->preTranslateRotationQ.y != 0)
+		{
+			int i = + q2.y;
+		}
+		preTranslateMat = q2.Matrix();
+	}
+	// Euclidean co-ordinates.
+	else 
+	{
+		localRotation.Multiply(Matrix4d::GetRotationMatrixX(rotation[0]));
+		localRotation.Multiply(Matrix4d::GetRotationMatrixZ(rotation[2]));
+		localRotation.Multiply(Matrix4d::GetRotationMatrixY(rotation[1]));
+	}	
+
+	if (parent)
+	{
+		rotationMatrix = parent->rotationMatrix * localRotation;
+	}
+	else
+	{
+		rotationMatrix = localRotation;
+	}
+
+	lookAt = rotationMatrix * Vector4f(0,0,-1,0);
+	upVec = rotationMatrix * Vector4f(0,1,0,0);
+	rightVec = rotationMatrix * Vector4f(1,0,0,0);
+	
+	hasRotated = false;
+}
+
 
 /// Recalculates a transformation matrix using argument vectors for position, rotation and translation.
 Matrix4f Entity::RecalculateMatrix(ConstVec3fr position, ConstVec3fr rotation, ConstVec3fr scale)

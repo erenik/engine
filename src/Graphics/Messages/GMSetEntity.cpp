@@ -129,7 +129,8 @@ void GMSetEntity::Process()
 			continue;
 		}
 		/// Should probably just attach this when adding it for rendering...?
-		assert(entity->graphics);
+		if (!entity->graphics)
+			entity->graphics = new GraphicsProperty(entity);
 		GraphicsProperty * graphics = entity->graphics;
 
 		switch(target)
