@@ -22,10 +22,10 @@ public:
 	/** Product with Matrix
 		Postcondition: Returns the plane multiplied by the given matrix.
 	*/
-	Plane operator * (const Matrix4f matrix) const;
+	Plane operator * (ConstMat4r matrix) const;
 
 	/// Applies the given transform
-	Plane Transform(Matrix4f transformationMatrix);
+	Plane Transform(ConstMat4r transformationMatrix);
 	/// Sets the three points that define define the plane in counter clockwise order.
 	void Set3Points(const Vector3f & p1, const Vector3f & p2, const Vector3f & p3);
 	/// Calculates and returns the distance to target point.

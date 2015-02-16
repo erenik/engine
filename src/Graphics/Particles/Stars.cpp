@@ -135,7 +135,7 @@ void Stars::PrintData(){
 }
 
 
-void Stars::AttachTo(Entity * entity, Matrix4f relativePosition)
+void Stars::AttachTo(Entity * entity, ConstMat4r relativePosition)
 {
 	assert(false);
 }

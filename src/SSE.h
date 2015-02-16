@@ -10,6 +10,17 @@
 #include <xmmintrin.h>
 #endif
 
+// Declarations.
+#ifdef USE_SSE
+// Useful union. Makes it look like a regular vector. :)
+typedef union {
+	__m128 data;
+	struct{
+		float x,y,z,w;
+	};
+} SSEVec;
+#endif
+
 /// Allocates aligned memory. E.g. Window * window = AllocAligned(Window);
 #define AllocAligned(a) (a*) _aligned_malloc(1 * sizeof(a), 16)
 /// Runs given constructor on the newly allocated memory.

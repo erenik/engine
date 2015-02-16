@@ -17,6 +17,8 @@
 class Matrix3f;
 class Matrix4d;
 
+#define ConstMat4r const Matrix4f &
+
 /** A four-dimensional matrix class using floats.
 */
 class Matrix4f {
@@ -149,12 +151,12 @@ public:
 	/** Direct multiplication
 		Postcondition: Multiplies the provided matrix into the left one and returns a copy of the current one.
 	*/
-	Matrix4f Multiply(const Matrix4f matrix);
+	Matrix4f Multiply(ConstMat4r matrix);
 
 	/** Product with Matrix
 		Postcondition: Returns the product of the matrices without directly modifying them.
 	*/
-	Matrix4f Product(const Matrix4f matrix) const;
+	Matrix4f Product(ConstMat4r matrix) const;
 	/** Product with Vector
 		Postcondition: Returns the product of the matrix and vector without directly modifying them.
 	*/
@@ -162,7 +164,7 @@ public:
 	/** Product with Matrix
 		Postcondition: Returns the product of the matrices without directly modifying them.
 	*/
-	Matrix4f operator * (const Matrix4f matrix) const;
+	Matrix4f operator * (ConstMat4r matrix) const;
 	/** Product with Vector
 		Postcondition: Returns the product of the matrix and vector without directly modifying them.
 	*/
@@ -170,7 +172,7 @@ public:
 	/** Product with Matrix-assignment
 		Postcondition: The matrices have been multiplied and assigned to this matrix.
 	*/
-	void operator *= (const Matrix4f matrix);
+	void operator *= (ConstMat4r matrix);
 
 	/** Operator overloading for the array-access. 
 		[ 0] [ 4] [ 8] [12]
@@ -186,9 +188,22 @@ public:
 		[ 3] [ 7] [11] [15]*/
 //	Vector4f operator[](const unsigned int index);
 
-private:
+#ifdef USE_SSE
+	// It's SSE time...!
+	union 
+	{
+		struct {
+			SSEVec col0, col1, col2, col3; // The columns.
+		};
+		/// Array o.o
+		float element[16];
+	};
+#else
 	/** Array of the matrix elements. */
 	float element[16];
+#endif
+
+private:
 };
 
 

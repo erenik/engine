@@ -35,7 +35,8 @@ PhysicsProperty::~PhysicsProperty()
 };
 
 /// Copy constructor
-PhysicsProperty::PhysicsProperty(const PhysicsProperty& other) {
+PhysicsProperty::PhysicsProperty(const PhysicsProperty& other) 
+{
 	Nullify();
 	type = other.type;
 	shapeType = other.shapeType;
@@ -88,6 +89,7 @@ PhysicsProperty::PhysicsProperty(const CompactPhysics * compactPhysics)
 /// Set default values.
 void PhysicsProperty::Nullify()
 {
+	fullyDynamic = true;
 	useForces = false;
 	faceVelocityDirection = false;
 	obb = 0;

@@ -109,7 +109,7 @@ void TIFSTurretProperty::Aim()
 	/// Set rotation speeds accordingly?
 	Quaternion yawQuat(Vector3f(0,1,0), yawVel);
 	assert(yawQuat.x == yawQuat.x);
-	PhysicsMan.QueueMessage(new PMSetEntity(base, PT_ANGULAR_VELOCITY, yawQuat));
+	PhysicsQueue.Add(new PMSetEntity(base, PT_ANGULAR_VELOCITY, yawQuat));
 
 	Angle pitchNeeded(asin(toTargetNormalized.y));
 	lookAt = underBarrel->LookAt();
@@ -187,8 +187,6 @@ void TIFSTurretProperty::Shoot()
 	projEntity->scale = Vector3f(0.25,0.25,15.f);
 	float length = projEntity->scale.z;
 	// Rotate?
-	projEntity->position = this->barrel->transformationMatrix * Vector4f(0,0,0,1) + toTargetNormalized * length;
-	projEntity->position += Vector3f(0,2.f,0);
 	// Calculate rotations? 
 	// Grab look-at from barrel?
 	Vector3f barrelLookAt = -barrel->LookAt();
@@ -197,8 +195,16 @@ void TIFSTurretProperty::Shoot()
 
 	projEntity->localRotation.SetVectors(barrelRight, barrelUp, -barrelLookAt);
 	projEntity->rotationMatrix = projEntity->localRotation;
+	projEntity->hasRotated = false;
 	projEntity->RecalculateMatrix(Entity::ALL_BUT_ROTATION);
 	
+	// Using the updated transform of the actual projectile, derive position for it...
+	Vector3f vectorDir = projEntity->rotationMatrix * Vector4f(0,0,-1,0);
+	toTargetNormalized = vectorDir.NormalizedCopy();
+	projEntity->position = this->barrel->transformationMatrix * Vector4f(0,0,0,1) + toTargetNormalized * length;
+	projEntity->position += Vector3f(0,2.f,0);
+	projEntity->RecalculateMatrix(Entity::TRANSLATION_ONLY); // Update the position we just set.
+
 	pp->relativeVelocity = Vector3f(0,0,1) * projectileSpeed;
 
 	Vector3f relVelWorldSpaced;

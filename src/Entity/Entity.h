@@ -166,7 +166,7 @@ public:
 	Vector3f UpVec();
 	Vector3f RightVec();
 
-	/// If true, updates all children once this entity is transformed. Default false.
+	/// If true, updates all children once this entity is transformed. Default true.
 	bool updateChildrenOnTransform;
 	/// Recalculated in RecalculateMatrix. Used to get child positions correctly.
 	Vector4f worldPosition;

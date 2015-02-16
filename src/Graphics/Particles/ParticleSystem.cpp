@@ -346,10 +346,10 @@ void ParticleSystem::Render(GraphicsState & graphicsState)
 void ParticleSystem::PrintData(){
     assert(false);
 }
-void ParticleSystem::AttachTo(Entity * entity, Matrix4f relativePosition){
+void ParticleSystem::AttachTo(Entity * entity, ConstMat4r relativePosition){
     assert(false);
 }
-void ParticleSystem::SetPosition(Matrix4f relativePosition){
+void ParticleSystem::SetPosition(ConstMat4r relativePosition){
     assert(false);
 }
 

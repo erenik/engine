@@ -73,6 +73,16 @@ public:
 
 	void SetLinearDamping(float newD);
 
+	/** Default true. All entities with this have their matrices updated each physics frame, 
+		in order for collision simulation, etc. to work properly. As an optimization feature
+		entities may be flagged false here, making them only have their matrices updated once 
+		at the end of all physics simulation (before the next graphics- frame).
+
+		It can also be used by those entities which have some simulation and collision interaction,
+		but use a simplified collision shape/type/mesh.
+	*/
+	bool fullyDynamic;
+
 	/// Basic physics type, defined where? STATIC DYNAMIC KINEMATIC anyway.
 	int type;
 	/// Collision detection shape type
@@ -197,6 +207,8 @@ public:
 	Vector3f velocity;
 	/// Velocity relative to current entity rotation. 
 	Vector3f relativeVelocity;
+	/// Used internally by the intergration system.
+	Vector3f currentVelocity;
 	Vector3f acceleration;
 	/// Relative acceleration in the entity's current right/up/forward vector directions.
 	Vector3f relativeAcceleration;

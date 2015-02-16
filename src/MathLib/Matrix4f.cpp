@@ -525,7 +525,8 @@ void Matrix4f::getContents(float * arr){
 /** Direct multiplication
 	Postcondition: Multiplies the provided matrix into the left one and returns a copy of the current one.
 */
-Matrix4f Matrix4f::Multiply(const Matrix4f matrix){
+Matrix4f Matrix4f::Multiply(ConstMat4r matrix)
+{
 	float newArray[16];
 	float tempResult;
 	for (int y = 0; y < 4; y++){	// Rows
@@ -544,7 +545,7 @@ Matrix4f Matrix4f::Multiply(const Matrix4f matrix){
 }
 
 /** Product with Matrix */
-Matrix4f Matrix4f::Product(const Matrix4f factor) const 
+Matrix4f Matrix4f::Product(ConstMat4r factor) const 
 {
 	float newArray[16];
 	float tempResult;
@@ -634,7 +635,7 @@ Vector4f Matrix4f::Product(const Vector4f & vector) const
 #endif
 }
 
-Matrix4f Matrix4f::operator * (const Matrix4f factor) const {
+Matrix4f Matrix4f::operator * (ConstMat4r factor) const {
 	float newArray[16];
 	float tempResult;
 	for (int y = 0; y < 4; y++){	// Rows
@@ -663,7 +664,7 @@ Vector4f Matrix4f::operator * (const Vector4f & vector) const {
 	return Vector4f(newArray);
 }
 
-void Matrix4f::operator *= (Matrix4f factor){
+void Matrix4f::operator *= (ConstMat4r factor){
 	float newArray[16];
 	float tempResult;
 	for (int y = 0; y < 4; y++){	// Rows

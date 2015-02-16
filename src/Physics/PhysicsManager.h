@@ -263,7 +263,9 @@ private:
 	/// Number of registered entities
 	Entities physicalEntities,
 		dynamicEntities,
-		kinematicEntities;
+		kinematicEntities,
+		fullyDynamicEntities, // Most non-static ones?
+		semiDynamicEntities;  // Those entities which are KINEMATIC or DYNAMIC but have the fullyDynamic flag set to false.
 /*	/// Old manual list implementation~~
 	/// Array with pointers to all registered objects.
 	Entity * physicalEntity[MAX_REGISTERED_ENTITIES];

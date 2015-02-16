@@ -514,6 +514,11 @@ void TIFS::SpawnPlayer()
 	GraphicsQueue.Add(new GMSetCamera(thirdPersonCamera, CT_ENTITY_TO_TRACK, player));
 	GraphicsQueue.Add(new GMSetCamera(firstPersonCamera, CT_ENTITY_TO_TRACK, player));
 	
+	// Set physics stuffs.
+	PhysicsProperty * pp = new PhysicsProperty();
+	player->physics = pp;
+	pp->type = PhysicsType::DYNAMIC;
+	pp->gravityMultiplier = 0;
 
 	// Attach ze propororoty to bind the entity and the player.
 	playerProp = new TIFSPlayerProperty(player);
@@ -522,8 +527,8 @@ void TIFS::SpawnPlayer()
 	
 	// Enable steering!
 	playerProp->inputFocus = true;
-
-	PhysicsQueue.Add(new PMSetEntity(player, PT_PHYSICS_TYPE, PhysicsType::DYNAMIC));
+	
+	// other stuff.
 	PhysicsQueue.Add(new PMSetEntity(player, PT_FACE_VELOCITY_DIRECTION, true));
 }
 

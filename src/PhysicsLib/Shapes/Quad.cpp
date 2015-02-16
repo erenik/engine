@@ -37,7 +37,8 @@ void Quad::Set4Points(const Vector3f & p1, const Vector3f & p2, const Vector3f &
 }
 
 /// Applies the given transform
-Quad Quad::Transform(Matrix4f transformationMatrix){
+Quad Quad::Transform(ConstMat4r transformationMatrix)
+{
 	point1 = transformationMatrix * point1;
 	point2 = transformationMatrix * point2;
 	point3 = transformationMatrix * point3;

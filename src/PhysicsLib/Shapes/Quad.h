@@ -26,9 +26,9 @@ public:
 	/** Product with Matrix
 		Postcondition: Returns the plane multiplied by the given matrix.
 	*/
-	Quad operator * (const Matrix4f matrix) const;
+	Quad operator * (ConstMat4r matrix) const;
 	/// Applies the given transform
-	Quad Transform(const Matrix4f matrix);
+	Quad Transform(ConstMat4r matrix);
 
 	/// Create a rectangular quad using min and max values.
 	void Set2Points(const Vector3f & min, const Vector3f & max);

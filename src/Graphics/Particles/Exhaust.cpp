@@ -199,7 +199,3 @@ void Exhaust::Render(GraphicsState * graphicsState)
 void Exhaust::PrintData(){
 }
 
-
-void Exhaust::AttachTo(Entity * entity, Matrix4f relativePosition){
-	assert(false);
-}

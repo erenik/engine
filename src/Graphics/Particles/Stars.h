@@ -38,7 +38,7 @@ public:
 	virtual void UpdateBuffers();
 
     void PrintData();
-	void AttachTo(Entity * entity, Matrix4f relativePosition);
+	void AttachTo(Entity * entity, ConstMat4r relativePosition);
 
 	// Relative to the entity.
 	Vector4f relativePosition;

@@ -464,55 +464,63 @@ void Entity::RecalculateMatrix(int whichParts/*= true*/, bool recursively /* = f
 			RecalcRotationMatrix();
 		}
 		
-		transformationMatrix = Matrix4f();
-		transformationMatrix.Multiply(preTranslateMat);
-		transformationMatrix.Multiply((Matrix4f::Translation(position)));
-		transformationMatrix.Multiply(localRotation);
-		transformationMatrix.Multiply((Matrix4f::Scaling(scale)));
-		localTransform = transformationMatrix;
-
-		/// Use parent matrix, apply ours on top of it!
-		if (parent)
-		{
-			/// Transforms as calculated if this were not child of any other entity.
-			transformationMatrix = parent->transformationMatrix * localTransform;
-		}
-		else 
-		{
-			transformationMatrix = localTransform;
-		}
-
-		// Since we updated something, we should inform our children as well, if any, or they will be lagging behind...
-		if (updateChildrenOnTransform || recursively)
-		{
-			for (int i = 0; i < children.Size(); ++i)
-			{
-				children[i]->RecalculateMatrix(ALL_PARTS, true);
-			}
-		}
+		localTransform = Matrix4f();
+		localTransform.Multiply(preTranslateMat);
+		localTransform.Multiply((Matrix4f::Translation(position)));
+		localTransform.Multiply(localRotation);
+		localTransform.Multiply((Matrix4f::Scaling(scale)));
 
 			// Ensure it has a scale..?
 	//	assert(transformationMatrix.HasValidScale());
-	}
-	else if (parent)
-	{
-		// Force recalculate all.
-		RecalculateMatrix(ALL_PARTS);
-		return;
 	}
 	// No rotation? -> 
 	else 
 	{
 		// Just update position.
-		transformationMatrix[12] = position[0];
-		transformationMatrix[13] = position[1];
-		transformationMatrix[14] = position[2];
+		localTransform[12] = position[0];
+		localTransform[13] = position[1];
+		localTransform[14] = position[2];
+		// Children?
+	}
+	/// Use parent matrix, apply ours on top of it!
+	if (parent)
+	{
+		/// Transforms as calculated if this were not child of any other entity.
+		transformationMatrix = parent->transformationMatrix * localTransform;
+	}
+	else 
+	{
+		transformationMatrix = localTransform;
+	}
+	// Since we updated something, we should inform our children as well, if any, or they will be lagging behind...
+	if (recursively && children.Size())
+	{
+		for (int i = 0; i < children.Size(); ++i)
+		{
+			children[i]->RecalculateMatrix(ALL_PARTS, true);
+		}
 	}
 	worldPosition = transformationMatrix.Product(Vector4f());
 }
 
 void Entity::RecalcRotationMatrix()
 {
+#define EXTRACT_VECTORS \
+	lookAt = rotationMatrix * Vector4f(0,0,-1,0);\
+	upVec = rotationMatrix * Vector4f(0,1,0,0);\
+	rightVec = rotationMatrix * Vector4f(1,0,0,0);
+
+	// If no rotation has occured, just multiply in the parent matrix?
+	if (!hasRotated)
+	{
+		if (parent)
+		{
+			rotationMatrix = parent->rotationMatrix * localRotation;
+			EXTRACT_VECTORS;
+		}
+		// No change? Then vectors should be the same as well.
+		return;
+	}
 	localRotation = Matrix4d();
 	// Quaternions for those entities wanting to use it.
 	if (physics && physics->useQuaternions){
@@ -548,10 +556,8 @@ void Entity::RecalcRotationMatrix()
 		rotationMatrix = localRotation;
 	}
 
-	lookAt = rotationMatrix * Vector4f(0,0,-1,0);
-	upVec = rotationMatrix * Vector4f(0,1,0,0);
-	rightVec = rotationMatrix * Vector4f(1,0,0,0);
-	
+	EXTRACT_VECTORS;
+
 	hasRotated = false;
 
 	/// Recalc normal matrix (rotation for all normals) based on the rotation matrix.

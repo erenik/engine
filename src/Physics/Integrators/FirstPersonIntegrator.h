@@ -21,7 +21,8 @@ public:
 	bool applyGravity;
 
 private:
-	void IntegrateVelocity(List<Entity*> & forEntity, float timeInSeconds);
+	void IntegrateVelocity(List<Entity*> & forEntities, float timeInSeconds);
+	void IntegratePosition(List<Entity*> & forEntities, float timeInSeconds);
 	void RecalcMatrices(List<Entity*> & entities);
 };
 

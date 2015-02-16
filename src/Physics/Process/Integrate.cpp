@@ -23,6 +23,7 @@ void PhysicsManager::Integrate(float timeInSecondsSinceLastUpdate)
 		physicsIntegrator->IsGood();
 		physicsIntegrator->IntegrateDynamicEntities(dynamicEntities, timeInSecondsSinceLastUpdate);
 		physicsIntegrator->IntegrateKinematicEntities(kinematicEntities, timeInSecondsSinceLastUpdate);
+		physicsIntegrator->RecalculateMatrices(fullyDynamicEntities);
 		FrameStats.physicsIntegration += physicsIntegrator->integrationTimeMs;
 		FrameStats.physicsIntegrationRecalcMatrices += physicsIntegrator->entityMatrixRecalcMs;
 	}

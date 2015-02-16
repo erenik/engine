@@ -35,12 +35,13 @@ public:
 	int integrationTimeMs;
 	int entityMatrixRecalcMs;
 
+	/// Called once from the PhysicsManager after integration completes. By default entities with parents are skipped, as the parent should trigger the recursive recalc.
+	void RecalculateMatrices(List<Entity*> & entities);
 protected:
 	/// Provides default "scientific" rigid-body based simulation handling of forces, torques, etc.
 	void CalculateForces(List<Entity*> & entities);
 	void UpdateMomentum(List<Entity*> & entities, float timeInSeconds);
 	void DeriveVelocity(List<Entity*> & entities);
-
 private:
 };
 

@@ -73,7 +73,3 @@ void Sparks::PrintData(){
 }
 
 
-void Sparks::AttachTo(Entity * entity, Matrix4f relativePosition)
-{
-	assert(false);
-}

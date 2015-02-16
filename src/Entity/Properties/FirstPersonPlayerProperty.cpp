@@ -197,8 +197,8 @@ void FirstPersonPlayerProperty::ProcessInput()
 		float height = 1.7f;
 		if (owner->cameraFocus->relativePosition[1] != height)
 		{
-			Graphics.QueueMessage(new GMSetCamera(owner->cameraFocus, CT_RELATIVE_POSITION_Y, height));
-			Graphics.QueueMessage(new GMSetCamera(owner->cameraFocus, CT_TRACKING_POSITION_OFFSET, Vector3f(0,height,0)));
+			GraphicsQueue.Add(new GMSetCamera(owner->cameraFocus, CT_RELATIVE_POSITION_Y, height));
+			GraphicsQueue.Add(new GMSetCamera(owner->cameraFocus, CT_TRACKING_POSITION_OFFSET, Vector3f(0,height,0)));
 		}
 		/// Camera Control, Booyakasha!
 		float cameraRight = 0.f;
@@ -211,7 +211,7 @@ void FirstPersonPlayerProperty::ProcessInput()
 		static float pastCameraRight = 0.f;
 		if (cameraRight != pastCameraRight)
 		{
-			Graphics.QueueMessage(new GMSetCamera(owner->cameraFocus, CT_ROTATION_SPEED_YAW, -cameraRight));
+			GraphicsQueue.Add(new GMSetCamera(owner->cameraFocus, CT_ROTATION_SPEED_YAW, -cameraRight));
 			pastCameraRight = cameraRight;
 		}
 
@@ -224,7 +224,7 @@ void FirstPersonPlayerProperty::ProcessInput()
 		static float pastCameraUp = 0.f;
 		if (cameraUp != pastCameraUp)
 		{
-			Graphics.QueueMessage(new GMSetCamera(owner->cameraFocus, CT_ROTATION_SPEED_PITCH, -cameraUp)); 
+			GraphicsQueue.Add(new GMSetCamera(owner->cameraFocus, CT_ROTATION_SPEED_PITCH, -cameraUp)); 
 			pastCameraUp = cameraUp;
 		}
 

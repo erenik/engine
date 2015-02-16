@@ -23,14 +23,14 @@ Plane::Plane(const Plane &plane)
 /** Product with Matrix
 	Postcondition: Returns the plane multiplied by the given matrix.
 */
-Plane Plane::operator * (const Matrix4f matrix) const {
+Plane Plane::operator * (ConstMat4r matrix) const {
 	Plane p;
 	p.Set3Points(matrix * this->point1, matrix * this->point2, matrix * this->point3);
 	return p;
 }
 
 /// Applies the given transform
-Plane Plane::Transform(Matrix4f transformationMatrix){
+Plane Plane::Transform(ConstMat4r transformationMatrix){
 	point1 = transformationMatrix * point1;
 	point2 = transformationMatrix * point2;
 	point3 = transformationMatrix * point3;

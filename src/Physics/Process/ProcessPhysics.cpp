@@ -8,6 +8,7 @@
 #include "Physics/PhysicsProperty.h"
 #include "Physics/CollisionResolver.h"
 #include "Physics/CollisionDetector.h"
+#include "Physics/Integrator.h"
 
 #include "Physics/Messages/CollisionCallback.h"
 #include "PhysicsLib/AABBSweeper.h"
@@ -175,6 +176,8 @@ void PhysicsManager::ProcessPhysics()
 			std::cout<<"\nCollision detection and resolution taking "<<colMs<<" milliseconds per frame.";
 		}
 	}
+	// Recalc matrices for the semi-dynamic ones.
+	physicsIntegrator->RecalculateMatrices(semiDynamicEntities);
 
 	// Reset previous frame-times
 //	FrameStats.physicsIntegration = integration;

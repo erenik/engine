@@ -55,8 +55,8 @@ public:
 	/// Renders the particles
     virtual void Render(GraphicsState & graphicsState);
     virtual void PrintData();
-    virtual void AttachTo(Entity * entity, Matrix4f relativePosition);
-    virtual void SetPosition(Matrix4f relativePosition);
+    virtual void AttachTo(Entity * entity, ConstMat4r relativePosition);
+    virtual void SetPosition(ConstMat4r  relativePosition);
     /// Emission control.
     virtual void PauseEmission();
     virtual void ResumeEmission();
@@ -133,12 +133,6 @@ protected:
 
 #define SSE_PARTICLES
 #ifdef SSE_PARTICLES
-	typedef union {
-		__m128 data;
-		struct{
-			float x,y,z,w;
-		};
-	} SSEVec;
 	SSEVec * positionsSSE,
 		* velocitiesSSE,
 		* colorsSSE,

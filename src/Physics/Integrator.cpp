@@ -4,16 +4,7 @@
 
 #include "Integrator.h"
 #include "Physics/Springs/Spring.h"
-
-void RecalculateMatrices(List<Entity*> entities)
-{
-	for (int i = 0; i < entities.Size(); ++i)
-	{
-		Entity * entity = entities[i];
-		entity->RecalculateMatrix(Entity::TRANSLATION_ONLY);
-	}
-}
-
+#include "Timer/Timer.h"
 
 Integrator::Integrator()
 {
@@ -71,3 +62,22 @@ void Integrator::DeriveVelocity(List<Entity*> & entities)
 		pp->velocity = pp->linearMomentum * pp->inverseMass;
 	}
 }
+
+
+void Integrator::RecalculateMatrices(List<Entity*> & entities)
+{
+	// Recalc
+	Timer timer;
+	timer.Start();
+	for (int i = 0; i < entities.Size(); ++i)
+	{
+		Entity * entity = entities[i];
+		/// Skip all entities with parents. Let the parent trigger the default recursive recalculation procedure.
+		if (entity->parent)
+			continue;
+		entity->RecalculateMatrix(Entity::TRANSLATION_ONLY, true);
+	}
+	timer.Stop();
+	this->entityMatrixRecalcMs = timer.GetMs();
+}
+

@@ -97,6 +97,16 @@ int PhysicsManager::RegisterEntity(Entity * newEntity)
 			break;
 		}
 	}
+	switch(pp->type)
+	{
+		case PhysicsType::DYNAMIC:
+		case PhysicsType::KINEMATIC:
+			if (pp->fullyDynamic) 
+				fullyDynamicEntities.Add(newEntity);
+			else 
+				semiDynamicEntities.Add(newEntity); 
+	}
+
 
 	Physics.EnsurePhysicsMeshIfNeeded(newEntity);
 
@@ -160,6 +170,9 @@ int PhysicsManager::UnregisterEntity(Entity * entityToRemove)
 
  //   std::cout<<"\nCollision enabled for entity? "<<entityToRemove->physics->collissionsEnabled;
 
+	// pp o.o
+	PhysicsProperty * pp = entityToRemove->physics;
+
 	/// Remove from octree/AABB-sweeper
 	if (entityToRemove->physics->collissionsEnabled)
 	{
@@ -190,6 +203,15 @@ int PhysicsManager::UnregisterEntity(Entity * entityToRemove)
 			assert(kinematicEntities.Remove(entityToRemove) && "Trying to unregister entity that has not been previously registered for dynamic calculations!");
 			break;
 		}
+	}
+	switch(pp->type)
+	{
+		case PhysicsType::DYNAMIC:
+		case PhysicsType::KINEMATIC:
+			if (pp->fullyDynamic) 
+				fullyDynamicEntities.Remove(entityToRemove);
+			else 
+				semiDynamicEntities.Remove(entityToRemove); 
 	}
 
 	/// Mark as not registerd for physics anymore.

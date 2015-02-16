@@ -34,9 +34,9 @@ void FirstPersonIntegrator::IntegrateDynamicEntities(List<Entity*> & dynamicEnti
 	}
 
 	IntegrateVelocity(dynamicEntities, timeInSeconds);
+	IntegratePosition(dynamicEntities, timeInSeconds);
 	timer.Stop();
 	this->integrationTimeMs = timer.GetMs();
-	RecalcMatrices(dynamicEntities);
 };
 /** All entities sent here should be fully kinematic! 
 	If not subclassed, the standard IntegrateEntities is called.
@@ -45,9 +45,8 @@ void FirstPersonIntegrator::IntegrateKinematicEntities(List<Entity*> & entities,
 {
 	Timer timer;
 	timer.Start();
-	IntegrateVelocity(entities, timeInSeconds);
+	IntegratePosition(entities, timeInSeconds);
 	integrationTimeMs += timer.GetMs();
-	RecalcMatrices(entities);
 }
 
 
@@ -59,35 +58,15 @@ void FirstPersonIntegrator::IntegrateVelocity(List<Entity*> & entities, float ti
 		Entity * forEntity = entities[i];
 
 		PhysicsProperty * pp = forEntity->physics;
-		Vector3f & position = forEntity->position;
 		Vector3f & relativeVelocity = pp->relativeVelocity;
 
 		// Add regular velocity (from physics and effects)
 		Vector3f velocity = pp->velocity;
 		Vector3f lookAt = forEntity->LookAt();
 
-		Vector3f distanceTraveled;
-		/// Regular velocity, due to external factors, acceleration, etc.
-		if (velocity.MaxPart())
-		{
-			//... and travel!
-			distanceTraveled = velocity  * timeInSeconds;
-			forEntity->position += distanceTraveled;
-		}	
-		/// Player induced / controlled constant velocity in relative direction?
-		Vector3f relVelWorldSpaced;
-		if (relativeVelocity.MaxPart())
-		{
-			// Add it.
-			Vector3f relVel = relativeVelocity;
-			relVel.z *= -1;
-			relVelWorldSpaced = forEntity->rotationMatrix * relVel;
-			forEntity->position += relVelWorldSpaced * timeInSeconds;
-		}
-
 		/// Apply gravity
-		if (applyGravity)
-			pp->velocity += Physics.GetGravitation() * pp->gravityMultiplier * timeInSeconds;
+		if (pp->gravityMultiplier)
+			pp->velocity += gravity * pp->gravityMultiplier * timeInSeconds;
 
 		// Accelerate in the looking-direction
 		Vector3f localAcceleration = forEntity->rotationMatrix.Product(pp->acceleration);
@@ -96,13 +75,43 @@ void FirstPersonIntegrator::IntegrateVelocity(List<Entity*> & entities, float ti
 		// Apply linear damping
 		pp->velocity *= pow(pp->linearDamping, timeInSeconds);
 
+		/// Player induced / controlled constant velocity in relative direction?
+		Vector3f relVelWorldSpaced;
+		if (relativeVelocity.MaxPart())
+		{
+			// Add it.
+			Vector3f relVel = relativeVelocity;
+			relVel.z *= -1;
+			relVelWorldSpaced = forEntity->rotationMatrix * relVel;
+		}
+		/// Add it up.
+		pp->currentVelocity = velocity + relVelWorldSpaced;
+		
+		assert(pp->velocity[0] == pp->velocity[0]);
+		if (pp->velocity[0] != pp->velocity[0])
+			pp->velocity = Vector3f();
+	}
+}
+
+void FirstPersonIntegrator::IntegratePosition(List<Entity*> & entities, float timeInSeconds)
+{
+	for (int i = 0; i < entities.Size(); ++i)
+	{
+		Entity * forEntity = entities[i];
+		PhysicsProperty * pp = forEntity->physics;
+		Vector3f & position = forEntity->position;
+		/// First position. Simple enough.
+		Vector3f distanceTraveled = pp->currentVelocity * timeInSeconds;
+		forEntity->position += distanceTraveled;
+		
+		/// Rotation below
 		bool rotated = false;
 		// Force rot to follow vel.
-		if (pp->faceVelocityDirection && (relVelWorldSpaced.MaxPart() || velocity.MaxPart()))
+		if (pp->faceVelocityDirection && (pp->currentVelocity.MaxPart()))
 		{
 			// From default of 0,0,-1
 			Vector3f defaultDir(0,0,-1);
-			Vector3f vec1 = (relVelWorldSpaced.MaxPart() > 0)? relVelWorldSpaced : velocity;
+			Vector3f vec1 = pp->currentVelocity;
 			vec1.Normalize();
 			Angle a(defaultDir.x, defaultDir.z), b(vec1.x, vec1.z);
 			Angle to = b - a;
@@ -132,21 +141,5 @@ void FirstPersonIntegrator::IntegrateVelocity(List<Entity*> & entities, float ti
 				forEntity->hasRotated = true;
 			}
 		}
-		
-		assert(pp->velocity[0] == pp->velocity[0]);
-		if (pp->velocity[0] != pp->velocity[0])
-			pp->velocity = Vector3f();
-
 	}
-
-}
-
-void FirstPersonIntegrator::RecalcMatrices(List<Entity*> & entities)
-{
-	// Recalc
-	Timer timer;
-	timer.Start();
-	RecalculateMatrices(entities);
-	timer.Stop();
-	this->entityMatrixRecalcMs = timer.GetMs();
 }
