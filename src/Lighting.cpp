@@ -40,19 +40,6 @@ Lighting::~Lighting()
 {
 }
 
-/// Copy constructor ^^
-Lighting::Lighting(const Lighting& otherLighting)
-{
-	Copy(&otherLighting);
-}
-
-/// Assignment operator...
-const Lighting * Lighting::operator = (const Lighting & otherLighting)
-{
-	Copy(&otherLighting);
-	return this;
-}
-
 bool Lighting::SaveLighting(String toFileName)
 {
 	if (!toFileName.Contains(".lighting"))
@@ -80,17 +67,6 @@ bool Lighting::LoadLighting(String fromFileName)
 	this->OpenEditorWindow();
 	// Make it active.
 //	Graphics.QueueMessage(new GMSetLighting(this));
-}
-
-/// Used for all copy-constructors.
-void Lighting::Copy(const Lighting * fromThisLighting)
-{
-	lights = fromThisLighting->lights;
-	global_ambient = fromThisLighting->global_ambient;
-	this->lastUpdate = fromThisLighting->lastUpdate;
-	this->activeLight = NULL;	// Pointer, set to NULL!!!
-	this->activeLightIndex = 0;	// Default to null
-	this->lightCounter = fromThisLighting->lightCounter;
 }
 
 /// Returns true if the message had any meaning, adjusting values within the lighting.

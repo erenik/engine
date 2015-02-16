@@ -4,6 +4,9 @@
 #include "FrameStatistics.h"
 #include "Globals.h"
 #include <iostream>
+#include "GraphicsState.h"
+#include "Render/RenderPass.h"
+#include "Render/RenderPipeline.h"
 
 FrameStatistics * FrameStatistics::frameStatistics = NULL;
 
@@ -120,10 +123,20 @@ void FrameStatistics::Print(){
 		<<"\n			- redead: "<<particleProcessingRedead
 		<<"\n		- particleSpawning: "<<particleSpawning
 		<<"\n		- particleBufferUpdate: "<<particleBufferUpdate
-		<<"\n	- render: "<<renderTotal
+		<<"\n	- render: "<<renderTotal;
+	// Print the separate passed.
+	String renderPassed = "\n		- RenderPasses:";
+	for (int i = 0; i < graphicsState->renderPipe->renderPasses.Size(); ++i)
+	{
+		RenderPass * rp = graphicsState->renderPipe->renderPasses[i];
+		renderPassed += 
+			"\n			- "+rp->name+": "+String(rp->renderTimeMs);
+	}
+
+	std::cout
 		<<"\n		- prePipeline: "<<renderPrePipeline
 		<<"\n		- sortEntities: "<<renderSortEntities
-		<<"\n		- renderEntities: "<<renderEntities
+		<<renderPassed
 		<<"\n		- postPipeline: "<<renderPostPipeline
 		<<"\n		- swapBuffers: "<<swapBuffers
 		<<"\n- Multimedia/Audio: "<<multimedia

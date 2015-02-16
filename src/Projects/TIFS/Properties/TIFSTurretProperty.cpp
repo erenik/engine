@@ -50,7 +50,22 @@ void TIFSTurretProperty::Process(int timeInMs)
 	{
 		// Get new target
 		if (tifs->drones.Size())
-			target = tifs->drones[0];
+		{
+			// Get closest target?
+			float minSquaredLen = 100000;
+			Entity * closest = NULL;
+			for (int i = 0; i < tifs->drones.Size(); ++i)
+			{
+				Entity * drone = tifs->drones[i];
+				float squaredLen = (drone->position - base->position).LengthSquared();
+				if (squaredLen < minSquaredLen)
+				{
+					closest = drone;
+					minSquaredLen = squaredLen;
+				}
+			}
+			target = closest;
+		}
 	}
 	// Aim at it.
 	shoot = false;

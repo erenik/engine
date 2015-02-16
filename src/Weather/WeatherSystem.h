@@ -60,6 +60,8 @@ private:
 	Vector3f smoothedSunPosition;
 	Vector4f sunColor;
 	Vector4f smoothedSunColor;
+	/// Ambient color, used to paint the sky-box by default too.
+	Vector3f smoothedAmbience;
 };
 
 

@@ -40,6 +40,7 @@ struct LifeAttribute{
 */
 class Entity 
 {
+	friend class RenderPass;
 	friend class PhysicsManager;
 	friend class EntityManager;
 	friend class BlueprintManager;
@@ -183,6 +184,7 @@ public:
 	Matrix4f transformationMatrix;
 	/// Transforms as calculated if this were not child of any other entity.
 	Matrix4f localRotation, localTransform;
+	Matrix4f normalMatrix;
 
 	/// Material to be used for this Entity.
 	Material * material;

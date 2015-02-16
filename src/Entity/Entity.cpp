@@ -553,6 +553,9 @@ void Entity::RecalcRotationMatrix()
 	rightVec = rotationMatrix * Vector4f(1,0,0,0);
 	
 	hasRotated = false;
+
+	/// Recalc normal matrix (rotation for all normals) based on the rotation matrix.
+	normalMatrix = rotationMatrix.InvertedCopy().TransposedCopy();
 }
 
 

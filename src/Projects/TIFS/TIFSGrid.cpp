@@ -28,9 +28,25 @@ TIFSGrid::~TIFSGrid()
 */
 void TIFSGrid::Resize(Vector3i gridSize, ConstVec3fr mapSize)
 {
-	grid.Resize(gridSize);
-	// Set their positions.
+	// Only re-allocate the grid if necessary.
+	bool clean = true;
+	if (grid.Size() != gridSize)
+	{
+		grid.Resize(gridSize);
+		clean = false;
+	}
+
 	List<TIFSTile*> tiles = grid.GetTiles();
+	// Clean it manually here otherwise.
+	if (clean)
+	{
+		for (int i = 0; i < tiles.Size(); ++i)
+		{
+			TIFSTile * tile = tiles[i];
+			*tile = TIFSTile();
+		}	
+	}
+	// Set their positions.
 	for (int i = 0; i < tiles.Size(); ++i)
 	{
 		TIFSTile * tile = tiles[i];

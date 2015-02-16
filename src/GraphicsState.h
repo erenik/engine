@@ -79,6 +79,8 @@ public:
 	List<Entity*> entities;
 	/// Those requiring depth-sorting and usually rendered in a separate alpha-pass?
 	Entities alphaEntities;
+	Entities solidEntities; // Non-alphas...
+	Entities shadowCastingEntities;
 
 	/// Active frustum to be compared with.
 	Frustum viewFrustum;

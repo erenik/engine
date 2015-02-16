@@ -222,6 +222,7 @@ void Shader::ExtractUniforms()
 	uniformViewMatrix = glGetUniformLocation(shaderProgram, "viewMatrix");
 	uniformProjectionMatrix = glGetUniformLocation(shaderProgram, "projectionMatrix");
 	uniformViewProjectionMatrix = glGetUniformLocation(shaderProgram, "viewProjectionMatrix");
+	uniformNormalMatrix = glGetUniformLocation(shaderProgram, "normalMatrix");
 	if (uniformProjectionMatrix == -1){
 		std::cout<<"\nUnable to find uniform for Projection Matrix";
 	}
@@ -296,6 +297,7 @@ void Shader::ExtractUniforms()
 	// Special lights, stars, sun.
 	uniformSunPosition = glGetUniformLocation(shaderProgram, "sunPosition");
 	uniformSunColor = glGetUniformLocation(shaderProgram, "sunColor");
+	uniformSkyColor = glGetUniformLocation(shaderProgram, "skyColor");
 
 	// Light detail uniforms
 	uniformLight.diffuseVec4 = glGetUniformLocation(shaderProgram, "light_diffuse");

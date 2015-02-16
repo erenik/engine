@@ -256,10 +256,21 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 		
 			break;
 		}
+		case RenderTarget::SHADOW_CASTING_ENTITIES:
+		{
+			entitiesToRender = graphicsState.shadowCastingEntities;
+			RenderEntitiesOnlyVertices();
+			break;
+		}
 		case RenderTarget::ENTITIES:
-		case RenderTarget::SOLID_ENTITIES:
 		{
 			entitiesToRender = graphicsState.entities;
+			RenderEntities();
+			break;
+		}
+		case RenderTarget::SOLID_ENTITIES:
+		{
+			entitiesToRender = graphicsState.solidEntities;
 			RenderEntities();
 			// Only entities for now!
 			break;
@@ -491,22 +502,94 @@ bool RenderPass::BindShadowMapFrameBuffer()
 
 void RenderPass::RenderEntities()
 {
-	graphicsState->modelMatrixD.LoadIdentity();
-	graphicsState->modelMatrixF.LoadIdentity();
+	bool optimized = true;
+	// Old here.
+	if (!optimized)
+	{
+		graphicsState->modelMatrixD.LoadIdentity();
+		graphicsState->modelMatrixF.LoadIdentity();
+		Timer timer;
+		timer.Start();
+		// Render all entities listed in the graphicsState!
+		for (int i = 0; i < entitiesToRender.Size(); ++i)
+		{
+			Entity * entity = entitiesToRender[i];
+			entity->Render(*graphicsState);
+		}
+		timer.Stop();
+		FrameStats.renderEntities += timer.GetMs();
+	}
+	// New here!
 	Timer timer;
+//	timer.Start();
+//	entitiesToRender.SortByDistanceToCamera(graphicsState->camera);
+//	timer.Stop();
+//	FrameStats.renderSortEntities += timer.GetMs();
+
 	timer.Start();
+	Texture * diffuseMap, * specularMap, * emissiveMap;
+
+	// Set render state for all.
+	glUniform1i(shader->uniformUseDiffuseMap, 1);
+	glUniform1i(shader->uniformUseSpecularMap, 1);
+	glUniform1i(shader->uniformUseNormalMap, 0);
+
+	Entity * entity;
+	GraphicsProperty * gp;
 	// Render all entities listed in the graphicsState!
 	for (int i = 0; i < entitiesToRender.Size(); ++i)
 	{
-		Entity * entity = entitiesToRender[i];
-		entity->Render(*graphicsState);
+		entity = entitiesToRender[i];
+		gp = entity->graphics;
+		diffuseMap = entity->diffuseMap;
+		specularMap = entity->specularMap;
+		emissiveMap = entity->emissiveMap;
+		// Optimized per-entity render.
+		int error = 0;
+		// To send to the shadar
+		int texturesToApply = 0;
+		// Bind texture if it isn't already bound.
+		glActiveTexture(GL_TEXTURE0 + shader->diffuseMapIndex);		// Select server-side active texture unit
+		// Bind texture
+		glBindTexture(GL_TEXTURE_2D, diffuseMap? diffuseMap->glid : 0);
+		/// Sets glTExParameter for Min/Mag filtering <- this needed every time?
+		diffuseMap->SetSamplingMode();
+		// Specular
+		glActiveTexture(GL_TEXTURE0 + shader->specularMapIndex);		// Select server-side active texture unit
+		glBindTexture(GL_TEXTURE_2D, specularMap? specularMap->glid : 0);
+		if (specularMap)
+		{
+			specularMap->SetSamplingMode();
+		}
+		/// Bind emissive map.
+		glActiveTexture(GL_TEXTURE0 + shader->emissiveMapIndex);		// Select server-side active texture unit
+		glBindTexture(GL_TEXTURE_2D, emissiveMap? emissiveMap->glid : 0);
+		
+		// Just load transform as model matrix straight away.
+		glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, entity->transformationMatrix.getPointer());
+		glUniformMatrix4fv(shader->uniformNormalMatrix, 1, false, entity->normalMatrix.getPointer());
+	
+		// Set multiplicative base color (1,1,1,1) default.
+		glUniform4fv(shader->uniformPrimaryColorVec4, 1, gp->color.v);
+
+		// Render the model
+		entity->model->Render(*graphicsState);
+		++graphicsState->renderedObjects;		// increment rendered objects for debug info
 	}
 	timer.Stop();
 	FrameStats.renderEntities += timer.GetMs();
+	CheckGLError("RenderPass::RenderEntities");
 }
 
-void RenderPass::RenderAlphaEntities()
+/// Used for e.g. shadow-mapping.
+void RenderPass::RenderEntitiesOnlyVertices()
 {
+	bool optimized = true;
+	if (!optimized)
+	{
+		RenderEntities();
+		return;
+	}
 	Timer timer;
 	timer.Start();
 	entitiesToRender.SortByDistanceToCamera(graphicsState->camera);
@@ -514,11 +597,102 @@ void RenderPass::RenderAlphaEntities()
 	FrameStats.renderSortEntities += timer.GetMs();
 
 	timer.Start();
+	Texture * diffuseMap, * specularMap, * emissiveMap;
+
+	// Set render state for all. Nope.
+
+	Entity * entity;
+	GraphicsProperty * gp;
 	// Render all entities listed in the graphicsState!
 	for (int i = 0; i < entitiesToRender.Size(); ++i)
 	{
-		Entity * entity = entitiesToRender[i];
-		entity->Render(*graphicsState);
+		entity = entitiesToRender[i];
+		// Just load transform as model matrix straight away.
+		glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, entity->transformationMatrix.getPointer());	
+		// Render the model
+		entity->model->Render(*graphicsState);
+		++graphicsState->renderedObjects;		// increment rendered objects for debug info
+	}
+	timer.Stop();
+	FrameStats.renderEntities += timer.GetMs();	
+}
+
+void RenderPass::RenderAlphaEntities()
+{
+	bool optimized = true;
+	Timer timer;
+	timer.Start();
+	entitiesToRender.SortByDistanceToCamera(graphicsState->camera);
+	timer.Stop();
+	FrameStats.renderSortEntities += timer.GetMs();
+
+	timer.Start();
+	Texture * diffuseMap, * specularMap, * emissiveMap;
+
+	// Set render state for all.
+	glUniform1i(shader->uniformUseDiffuseMap, 1);
+	glUniform1i(shader->uniformUseSpecularMap, 1);
+	glUniform1i(shader->uniformUseNormalMap, 0);
+
+	/// Set blend modes
+//	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+	// Disable depth write
+	glDepthMask(GL_FALSE);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+	// Disable it if not already done so earlier..?
+//	glDisable(GL_DEPTH_TEST);
+
+	Entity * entity;
+	GraphicsProperty * gp;
+	// Render all entities listed in the graphicsState!
+	for (int i = 0; i < entitiesToRender.Size(); ++i)
+	{
+		entity = entitiesToRender[i];
+		if (!optimized)
+		{
+			entity->Render(*graphicsState);
+			continue;
+		}
+		gp = entity->graphics;
+		diffuseMap = entity->diffuseMap;
+		specularMap = entity->specularMap;
+		emissiveMap = entity->emissiveMap;
+		// Optimized per-entity render.
+		int error = 0;
+		// To send to the shadar
+		int texturesToApply = 0;
+		// Bind texture if it isn't already bound.
+		glActiveTexture(GL_TEXTURE0 + shader->diffuseMapIndex);		// Select server-side active texture unit
+		// Bind texture
+		glBindTexture(GL_TEXTURE_2D, diffuseMap? diffuseMap->glid : 0);
+		/// Sets glTExParameter for Min/Mag filtering <- this needed every time?
+		diffuseMap->SetSamplingMode();
+		// Specular
+		glActiveTexture(GL_TEXTURE0 + shader->specularMapIndex);		// Select server-side active texture unit
+		glBindTexture(GL_TEXTURE_2D, specularMap? specularMap->glid : 0);
+		if (specularMap)
+		{
+			specularMap->SetSamplingMode();
+		}
+		/// Bind emissive map.
+		glActiveTexture(GL_TEXTURE0 + shader->emissiveMapIndex);		// Select server-side active texture unit
+		glBindTexture(GL_TEXTURE_2D, emissiveMap? emissiveMap->glid : 0);
+
+		CheckGLError("Setting texture maps");
+		
+		// Just load transform as model matrix straight away.
+		glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, entity->transformationMatrix.getPointer());
+		glUniformMatrix4fv(shader->uniformNormalMatrix, 1, false, entity->normalMatrix.getPointer());
+	
+		
+		CheckGLError("Matrices");
+
+		// Set multiplicative base color (1,1,1,1) default.
+		glUniform4fv(shader->uniformPrimaryColorVec4, 1, gp->color.v);
+
+		// Render the model
+		entity->model->Render(*graphicsState);
+		++graphicsState->renderedObjects;		// increment rendered objects for debug info
 	}
 	timer.Stop();
 	FrameStats.renderEntities += timer.GetMs();
@@ -562,8 +736,9 @@ void RenderPass::RenderSkyBox()
 					glUniform4fv(shader->uniformSunColor, 1, light->diffuse.v); 
 				}
 			}
+			// Set sky-color.
+			glUniform3fv(shader->uniformSkyColor, 1, graphicsState->lighting->skyColor.v);
 		}
-
 		/// Load it into shader.
 		glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, rotMatrix.getPointer());
 		// Get da box.
@@ -578,187 +753,4 @@ void RenderPass::RenderSkyBox()
 		entity->Render(*graphicsState);
 		return;
 	}
-//	return;
-//	entity->Render(*graphicsState);
-
-	Texture * diffuseMap = entity->GetTexture(DIFFUSE_MAP);
-
-	Model * model = entity->model;
-	GraphicsProperty * graphics = entity->graphics;
-	// If rendering shadows, skip relevant entities.
-	if (graphics)
-	{
-		if (graphicsState->shadowPass && !graphics->castsShadow)
-			return;
-		if (graphics->visible == false)
-			return;
-	}
-	int error = 0;
-
-	// To send to the shadar
-	int texturesToApply = 0;
-	// Bind texture if it isn't already bound.
-	glActiveTexture(GL_TEXTURE0 + shader->diffuseMapIndex);		// Select server-side active texture unit
-	if (diffuseMap && graphicsState->currentTexture == diffuseMap)
-	{
-		texturesToApply |= DIFFUSE_MAP;
-	}
-	else if (diffuseMap && graphicsState->currentTexture != diffuseMap)
-	{
-		texturesToApply |= DIFFUSE_MAP;
-		// Bind texture
-		glBindTexture(GL_TEXTURE_2D, diffuseMap->glid);
-		/// Sets glTExParameter for Min/Mag filtering
-		diffuseMap->SetSamplingMode();
-		graphicsState->currentTexture = diffuseMap;
-	}
-	else if (diffuseMap == NULL){
-		glBindTexture(GL_TEXTURE_2D, NULL);
-		graphicsState->currentTexture = NULL;
-	}
-	// Default
-	glActiveTexture(GL_TEXTURE0);
-
-	if (texturesToApply & DIFFUSE_MAP)
-		glUniform1i(shader->uniformUseDiffuseMap, 1);
-	else
-		glUniform1i(shader->uniformUseDiffuseMap, 0);
-
-	if (texturesToApply & SPECULAR_MAP)
-		glUniform1i(shader->uniformUseSpecularMap, 1);
-	else
-		glUniform1i(shader->uniformUseSpecularMap, 0);
-
-	if (texturesToApply & NORMAL_MAP)
-		glUniform1i(shader->uniformUseNormalMap, 1);
-	else
-		glUniform1i(shader->uniformUseNormalMap, 0);
-
-	CheckGLError("Setting texture maps");
-	// Save old matrix to the stack
-	Matrix4d tmp = graphicsState->modelMatrixD;
-
-	// Use standard matrix.
-	// Apply transformation
-	graphicsState->modelMatrixD.Multiply(entity->transformationMatrix);
-	graphicsState->modelMatrixF = graphicsState->modelMatrixD;		
-	// Set uniform matrix in shader to point to the AppState modelView matrix.
-	glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, graphicsState->modelMatrixF.getPointer());
-
-	// Set uniform matrix in shader to point to the AppState modelView matrix.
-	GLuint uniform = glGetUniformLocation(shader->shaderProgram, "normalMatrix");
-	Vector3f normals = Vector3f(0,1,0);
-	Matrix4f normalMatrix = graphicsState->modelMatrixF.InvertedCopy().TransposedCopy();
-	normals = normalMatrix.Product(normals);
-	if (uniform != -1)
-		glUniformMatrix4fv(uniform, 1, false, normalMatrix.getPointer());
-	CheckGLError("Matrices");
-
-	bool requiresSorting = false;
-	bool render = true;
-
-	// Check for modifiers to apply
-	if (graphics && graphicsState->settings & ENABLE_SPECIFIC_ENTITY_OPTIONS)
-	{
-		if (graphics->flags & RenderFlag::DISABLE_DEPTH_WRITE)
-			glDepthMask(GL_FALSE);
-		if (graphics->flags & RenderFlag::DISABLE_BACKFACE_CULLING)
-			glDisable(GL_CULL_FACE);
-		if (graphics->flags & RenderFlag::REQUIRES_DEPTH_SORTING){
-			bool renderSortedEntities = graphicsState->settings & RENDER_SORTED_ENTITIES;
-			if (!renderSortedEntities)
-				requiresSorting = true;
-		}
-
-	}
-	/// TODO: Add a query if an entity should be sorted and let the render-passes the render pipeline handle them as needed.
-	/// If requries sorting, save it in ze list
-	/*
-	if (requiresSorting)
-	{
-		graphicsState.entitiesRequiringSorting.Add(this);
-		render = false;
-	}
-	*/
-	// Only render if previous states say so.
-	if (render && entity->model)
-	{
-		// Set blend-mode
-		glBlendFunc(graphics->blendModeSource, graphics->blendModeDest);
-		// Set depth test
-		if (graphics->depthTest)
-			glEnable(GL_DEPTH_TEST);
-		else
-			glDisable(GL_DEPTH_TEST);
-		// Set multiplicative base color (1,1,1,1) default.
-		glUniform4f(shader->uniformPrimaryColorVec4, graphics->color[0], graphics->color[1], graphics->color[2], graphics->color[3]);
-
-		// Bind bone-specific buffers as needed.
-		if (graphics->skeletalAnimationEnabled && graphics->shaderBasedSkeletonAnimation)
-		{
-			Mesh * mesh = entity->model->GetTriangulatedMesh();
-			// Bind bone indices!
-			glBindBuffer(GL_ARRAY_BUFFER, mesh->boneIndexBuffer);
-			static const GLint offsetBoneIndices = 4 * sizeof(GLint);
-			glVertexAttribIPointer(shader->attributeBoneIndices, 4, GL_INT, offsetBoneIndices, 0);		// Integers!
-			// Bind bone weights!
-			glBindBuffer(GL_ARRAY_BUFFER, mesh->boneWeightsBuffer);
-			static const GLint offsetBoneWeights = 4 * sizeof(GLfloat);
-			glVertexAttribPointer(shader->attributeBoneWeights, 4, GL_FLOAT, GL_FALSE, offsetBoneWeights, 0);		// Floats!
-			// Find index of the bone skinning matrix map sampler!
-
-			// Update the bone skinning map as needed.. e.e
-		//	model->UpdateSkinningMatrixMap();
-			// Bufferize original positions!
-			mesh->Bufferize(true, false);
-
-			// Set sampler index to use for the skinning matrix map.
-			glActiveTexture(GL_TEXTURE0 + shader->boneSkinningMatrixMapIndex);
-
-			// Bind the texture filled with bone transformation matrix data.
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			glBindTexture(GL_TEXTURE_2D, model->boneSkinningMatrixMap);
-
-			// Set parameters!
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			CheckGLError("lalaalall");
-			
-			// Revert to default texture index after binding is complete.
-			glActiveTexture(GL_TEXTURE0 + 0);
-		//	glBindTexture(GL_TEXTURE_1D, mesh->boneMatrixMap);
-		}
-
-		// Render the model
-		model->Render(*graphicsState);
-		++graphicsState->renderedObjects;		// increment rendered objects for debug info
-
-
-	}
-	// Disable any modifiers now, unless we got a modifier that tells us to apply the previous modifiers to the children as well.
-	if (graphics && graphicsState->settings & ENABLE_SPECIFIC_ENTITY_OPTIONS){
-		if (graphics->flags & RenderFlag::DISABLE_DEPTH_WRITE)
-			glDepthMask(GL_TRUE);
-		if (graphics->flags & RenderFlag::DISABLE_BACKFACE_CULLING)
-			glEnable(GL_CULL_FACE);
-	}
-
-	// Render children if needed
-	// No, children are rendered independently!
-	/*
-	if (child)
-		for (int i = 0; i < children; ++i)
-			child[i]->Render(graphicsState);
-*/
-
-	/*
-	// Get da box.
-	Model * box = ModelMan.GetModel("cube");
-	if (!box)
-		return false;
-	box->Render(graphicsState);
-	*/
 }

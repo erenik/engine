@@ -55,6 +55,17 @@ void GMSetAmbience::Process()
 	lighting->SetAmbient(value);
 }
 
+GMSetSkyColor::GMSetSkyColor(ConstVec3fr value)
+: GraphicsMessage(GM_SET_SKY_COLOR), value(value)
+{
+}
+GMSetSkyColor::~GMSetSkyColor(){}
+void GMSetSkyColor::Process()
+{
+	Lighting * lighting = Graphics.ActiveLighting();
+	lighting->skyColor = value;
+}
+
 
 GMSetLight::GMSetLight(Light * light, int target, ConstVec3fr value)
 : GraphicsMessage(GM_SET_LIGHT), target(target), vec3Value(value), light(light) 

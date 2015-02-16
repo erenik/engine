@@ -25,27 +25,33 @@ bool GraphicsManager::RegisterEntity(Entity * entity)
 	entity->registeredForRendering = true;
 
 	// Check for additional graphics-data
-	GraphicsProperty * graphics = entity->graphics;
-	if (graphics)
+	GraphicsProperty * gp = entity->graphics;
+	if (gp)
 	{
 		// Check for attached graphical properties.
-		for (int i = 0; i < graphics->particleSystems.Size(); ++i)
+		for (int i = 0; i < gp->particleSystems.Size(); ++i)
 		{
-			ParticleSystem * ps = graphics->particleSystems[i];
+			ParticleSystem * ps = gp->particleSystems[i];
 			RegisterParticleSystem(ps, false);
 		}
 	}
 	/// If no graphics property exists. Add it.
 	else 
 	{
-		entity->graphics = new GraphicsProperty(entity);
+		gp = entity->graphics = new GraphicsProperty(entity);
 	}
 
 	/// Add alpha-entities straight to the graphics-state?
-	if (entity->graphics->flags & RenderFlag::ALPHA_ENTITY)
+	if (gp->flags & RenderFlag::ALPHA_ENTITY)
 	{
 		graphicsState->alphaEntities.Add(entity);
 	}
+	else 
+	{
+		graphicsState->solidEntities.Add(entity);
+	}
+	if (gp->castsShadow)
+		graphicsState->shadowCastingEntities.Add(entity);
 
 	// Buffer textures and meshes if needed
 	List<Texture*> textures = entity->GetTextures(0xFFFFFFF);
@@ -84,6 +90,11 @@ bool GraphicsManager::UnregisterEntity(Entity * entity)
 		/// Specific groups.
 		if (gp->flags & RenderFlag::ALPHA_ENTITY)
 			graphicsState->alphaEntities.Remove(entity);
+		else 
+			graphicsState->solidEntities.Remove(entity);
+
+		if (gp->castsShadow)
+			graphicsState->shadowCastingEntities.Remove(entity);
 
 		// Check for attached dynamic lights
 		for (int i = 0; i < gp->dynamicLights.Size(); ++i)

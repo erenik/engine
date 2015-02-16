@@ -122,6 +122,7 @@ public:
 	GLuint uniformViewMatrix;
 	GLuint uniformProjectionMatrix;
 	GLuint uniformViewProjectionMatrix; // Will replace View and Projection matrices?
+	GLuint uniformNormalMatrix;
 
 	GLuint uniformCameraRightWorldSpace;
 	GLuint uniformCameraUpWorldSpace;
@@ -143,6 +144,7 @@ public:
 	/// o.o
 	GLuint uniformSunPosition; // Vec3
 	GLuint uniformSunColor; // Vec4
+	GLuint uniformSkyColor; // Vec3
 	/// GL uniform light identifiers
 	UniformLight uniformLight;
 

@@ -22,6 +22,7 @@ enum graphicsMessages {
 	// Lighting
 	GM_ADD_LIGHT,
 	GM_SET_AMBIENCE,
+	GM_SET_SKY_COLOR,
 	GM_CREATE_LIGHT,
 	GM_DELETE_LIGHT,
 	GM_SET_LIGHT,

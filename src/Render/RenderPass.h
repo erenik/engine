@@ -21,6 +21,7 @@ namespace RenderTarget
 		FINAL_GATHER,	 // Render to final gather texture for the initial lighting pass.
 		// Inputs
 		ENTITIES, // All entities registered for rendering.
+		SHADOW_CASTING_ENTITIES, // Yup.
 		SOLID_ENTITIES, // All non-Alpha entities (most regular ones).
 		ALPHA_ENTITIES, // All entities which some either texture or material transparency.
 		PARTICLE_SYSTEMS, // All particle systems
@@ -46,6 +47,8 @@ public:
 	// Only one shader is used, always, per pass.
 	Shader * shader;
 	String shaderName;
+	// Statistic.
+	int renderTimeMs;
 
 	enum {
 		RENDER_ENTITIES, // Renders all entities.
@@ -95,6 +98,8 @@ private:
 
 	/// o.o
 	void RenderEntities();
+	/// Used for e.g. shadow-mapping.
+	void RenderEntitiesOnlyVertices(); 
 	void RenderAlphaEntities();
 	void RenderSkyBox();
 

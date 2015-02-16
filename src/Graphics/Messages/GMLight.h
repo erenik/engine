@@ -37,6 +37,16 @@ private:
 	Vector3f value;
 };
 
+class GMSetSkyColor : public GraphicsMessage 
+{
+public: 
+	GMSetSkyColor(ConstVec3fr value);
+	virtual ~GMSetSkyColor();
+	virtual void Process();
+private:
+	Vector3f value;
+};
+
 namespace LightTarget
 {
 	enum lightTargets {

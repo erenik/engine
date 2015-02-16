@@ -11,6 +11,7 @@
 #include "Message/Message.h"
 #include "Light.h"
 #include "StateManager.h"
+#include "PhysicsLib/EstimatorVec3f.h"
 
 WeatherSystem::WeatherSystem()
 {
@@ -192,6 +193,37 @@ void WeatherSystem::SetSunTime(float hour)
 	// Set position.
 	GraphicsQueue.Add(new GMSetLight(sunLight, LightTarget::POSITION, smoothedSunPosition));
 	GraphicsQueue.Add(new GMSetLight(sunLight, LightTarget::COLOR, smoothedSunColor));
+	
+	// Get normalized sun position...
+	Vector3f sunPositionNormalized = smoothedSunPosition.NormalizedCopy();
+
+	/// Set ambience
+	float length = smoothedSunColor.Length3();
+	Vector3f ambience = Vector3f(0.1f, 0.1f, 0.12f);		// Always slightly more blue?
+	float firstInterval = 0.2f;
+	Vector3f firstColor;
+	Vector3f secondColor;
+	EstimatorVec3f ambienceSmoother;
+	ambienceSmoother.AddState(Vector3f(0.1,		0.1,	0.12), 0);
+	ambienceSmoother.AddState(Vector3f(0.15,	0.15,	0.19), 1000);
+	ambienceSmoother.AddState(Vector3f(0.225,	0.225,	0.35), 10000);
+	// Base it on Y.
+	ambienceSmoother.variableToPutResultTo = &ambience;
+	ambienceSmoother.Estimate(sunPositionNormalized.y * 10000, false);
+	smoothedAmbience = smoothedAmbience * 0.95f + ambience * 0.05f;
+	/// Adjust the ambient color based on the sun position or color too?
+	GraphicsQueue.Add(new GMSetAmbience(smoothedAmbience));
+
+	// Set sky-color.
+	EstimatorVec3f skyColorSmoother;
+	skyColorSmoother.AddState(Vector3f(0.03,	0.04,	0.055), 0);
+	skyColorSmoother.AddState(Vector3f(0.12,	0.13,	0.25), 2000);
+	skyColorSmoother.AddState(Vector3f(0.78,	0.89,	1), 10000);
+	Vector3f skyColor;
+	skyColorSmoother.variableToPutResultTo = &skyColor;
+	skyColorSmoother.Estimate(sunPositionNormalized.y * 10000, false);
+	GraphicsQueue.Add(new GMSetSkyColor(skyColor));
+
 }
 
 /// Sets global wind velocity, affecting rain, snow, etc.

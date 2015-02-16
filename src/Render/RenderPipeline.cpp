@@ -7,6 +7,7 @@
 #include "RenderPipeline.h"
 #include "RenderPass.h"
 #include "File/File.h"
+#include "Timer/Timer.h"
 
 RenderPipeline::RenderPipeline()
 {
@@ -108,8 +109,13 @@ bool RenderPipeline::Load(String fromFile)
 					rp->input = RenderTarget::ENTITIES;
 				else if (arg == "SolidEntities")
 					rp->input = RenderTarget::SOLID_ENTITIES;
+				else if (arg == "ShadowCastingEntities")
+					rp->input = RenderTarget::SHADOW_CASTING_ENTITIES;
 				else if (arg == "AlphaEntities")
+				{
 					rp->input = RenderTarget::ALPHA_ENTITIES;
+					rp->depthTestEnabled = false;
+				}
 				else if (arg == "DeferredGather")
 					rp->input = RenderTarget::DEFERRED_GATHER;
 				else if (arg == "SkyBox")
@@ -158,10 +164,14 @@ void RenderPipeline::BeginFrame()
 
 void RenderPipeline::Render(GraphicsState & graphics)
 {
+	Timer timer;
 	for (int i = 0; i < renderPasses.Size(); ++i)
 	{
+		timer.Start();
 		RenderPass * rp = renderPasses[i];
 		bool ok = rp->Render(graphics);
+		timer.Stop();
+		rp->renderTimeMs = timer.GetMs();
 		if (!ok)
 			std::cout<<"\nError in render-pass: "<<rp->name;
 	}

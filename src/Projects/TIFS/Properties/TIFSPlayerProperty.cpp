@@ -132,11 +132,10 @@ void TIFSPlayerProperty::UpdateHUDTargetInfo()
 
 	if (!targetCrossHair)
 	{
-		targetCrossHair = EntityMan.CreateEntity("TargetCrossHairEntity", ModelMan.GetModel("Sphere"), TexMan.GetTexture("0x2255AA77"));
+		targetCrossHair = EntityMan.CreateEntity("TargetCrossHairEntity", ModelMan.GetModel("obj/sphere.obj"), TexMan.GetTexture("0x2255AA77"));
 		targetCrossHair->SetPosition(this->lastRaycastTargetPosition);
 		GraphicsProperty * graphics = new GraphicsProperty(targetCrossHair);
 		graphics->blendModeDest = GL_ONE;
-		graphics->depthTest = false;
 		graphics->castsShadow = false;
 		graphics->flags = RenderFlag::ALPHA_ENTITY;
 		// Only add it to graphics?

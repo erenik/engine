@@ -27,10 +27,6 @@ public:
 	/// Default constructor, sets all light pointers and other variables to 0/NULL
 	Lighting();
 	~Lighting();
-	/// Copy constructor ^^
-	Lighting(const Lighting& lighting);
-	/// Assignment operator...
-	const Lighting * operator = (const Lighting & otherLighting);
 
 	/// Returns true if the message had any meaning, adjusting values within the lighting.
 	bool ProcessMessage(Message * message);
@@ -85,11 +81,12 @@ public:
 	void WriteTo(std::fstream & file);
 	/// Reads from file stream.
 	void ReadFrom(std::fstream & file);
+
+	/// wooo
+	Vector3f skyColor;
 private:
 	bool SaveLighting(String toFileName);
 	bool LoadLighting(String fromFileName);
-	/// Used for all copy-constructors.
-	void Copy(const Lighting * fromThisLighting);
 
 	/// Pointer to array of 4 floats (rgba)
 	Vector4f global_ambient;
