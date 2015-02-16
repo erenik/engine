@@ -208,8 +208,10 @@ void FrameBuffer::CreateRenderBuffers()
 
 
 /// Creates just 1 dedicated buffer to receive the depth-data. Preferably in 32-bit floating point to ensure better quality?
-bool FrameBuffer::CreateDepthBuffer(Vector2i size)
+bool FrameBuffer::CreateDepthBuffer(Vector2i depthBufferSize)
 {
+	// Store the size here..?
+	this->size = depthBufferSize;
 	/// OpenGL specific data
 	/// Frame buffer object for deferred shading
 	/// GLuint frameBufferObject;	// Main frame buffer object to use

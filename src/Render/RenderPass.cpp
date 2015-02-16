@@ -111,7 +111,6 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_LIGHTING);
 
-
 	// Store active camera from the graphicsState
 	Camera * oldCamera = graphicsState.camera;
 	switch(camera)
@@ -137,6 +136,7 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 		default:
 			assert(false);
 	}
+
 	// If shadows are to be rendered, look for em in the light.
 	if (shadows)
 	{
@@ -160,6 +160,7 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 			}
 		}
 	}
+
 	// Reset matrices: This may as well be done before rendering is done, since the matrices
 	// will need to be reset all the time depending on the content to be rendered and where ^^
 
@@ -246,6 +247,7 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 		glUniform4f(shader->uniformEyePosition, camera.Position()[0], camera.Position()[1], camera.Position()[2], 1.0f);
 		CheckGLError("RenderPass, eye position");
 	}	
+
 	switch(input)
 	{
 		/// Use previously rendered-to render-buffers associated with this viewport.
@@ -286,6 +288,7 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 		default:
 			assert(false);
 	}
+
 	CheckGLError("RenderPass::Render - rendering");
 	/// Extract the texture data from the buffers to see what it looks like?
 	switch(output)
@@ -337,6 +340,15 @@ bool RenderPass::SetupOutput()
 			// Fetch shadow-map framebuffer for this viewport?
 			BindShadowMapFrameBuffer();
 			graphicsState->shadowPass = true;
+			GLboolean wasEnabled = glIsEnabled(GL_SCISSOR_TEST);
+			// Disable scissor for proper clear?
+			glDisable(GL_SCISSOR_TEST);
+			// Clear depth  and color for our target.
+			glClearColor(0.1f, 0.1f, 0.1f, 0.0f);
+			// Ensure depth-testing etc. is enabled. 
+			glDepthMask(true);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			
 			break;
 		}
 		case RenderTarget::DEFERRED_GATHER:
@@ -349,13 +361,6 @@ bool RenderPass::SetupOutput()
 		default:
 			assert(false);
 	}
-	GLboolean wasEnabled = glIsEnabled(GL_SCISSOR_TEST);
-	// Disable scissor for proper clear?
-	glDisable(GL_SCISSOR_TEST);
-	// Clear depth  and color for our target.
-	glClearColor(0.1f, 0.1f, 0.1f, 0.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 	return true;
 }
 
@@ -462,7 +467,7 @@ bool RenderPass::BindShadowMapFrameBuffer()
 	{
 		viewport->shadowMapDepthBuffer = new FrameBuffer("ShadowMapDepthBuffer");
 	}
-	if (!viewport->shadowMapDepthBuffer->IsGood())
+	if (!viewport->shadowMapDepthBuffer->IsGood() || viewport->shadowMapDepthBuffer->size != (Vector2i(1,1) * shadowMapResolution))
 	{
 		// Try and rebuild it..?
 		if (!viewport->shadowMapDepthBuffer->CreateDepthBuffer(Vector2i(1, 1) * shadowMapResolution))
@@ -536,9 +541,13 @@ void RenderPass::RenderSkyBox()
 		Matrix4f viewMatrix = graphicsState->camera->ViewMatrix4f();
 		Matrix4f rotMatrix = graphicsState->camera->RotationMatrix4f();
 		Matrix4f invView = rotMatrix.InvertedCopy();
+		
+		// Was here.
+
 		// Disable depth test and depth-write.
 		glDisable(GL_DEPTH_TEST);
 		glDepthMask(false);
+
 		if (shader->uniformSunPosition != -1)
 		{
 			// Set it! o.o
