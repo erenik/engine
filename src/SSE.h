@@ -18,6 +18,7 @@ typedef union {
 	struct{
 		float x,y,z,w;
 	};
+	float v[4];
 } SSEVec;
 #endif
 

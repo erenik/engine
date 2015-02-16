@@ -114,13 +114,17 @@ void TIFSTurretProperty::Aim()
 	Angle pitchNeeded(asin(toTargetNormalized.y));
 	lookAt = underBarrel->LookAt();
 	lookAt.y *= -1;
-	Angle currentPitch(asin(lookAt.y));
+	float arcSin = asin(lookAt.y);
+	assert(arcSin == arcSin);
+	Angle currentPitch(arcSin);
 //		currentPitch = Angle(PI/2) - currentPitch;
 	Angle pitchDiff = pitchNeeded - currentPitch;
 	float pitchVel = pitchDiff.Radians();
 	ClampFloat(pitchVel, -pitchPerSecond, pitchPerSecond);
 //		std::cout<<"\nLookAt: "<<lookAt;
-	PhysicsQueue.Add(new PMSetEntity(underBarrel, PT_ANGULAR_VELOCITY, Quaternion(Vector3f(1,0,0), pitchVel)));
+	Quaternion pitchQuat(Vector3f(1,0,0), pitchVel);
+	assert(pitchQuat.x == pitchQuat.x);
+	PhysicsQueue.Add(new PMSetEntity(underBarrel, PT_ANGULAR_VELOCITY, pitchQuat));
 
 	// Barrel look-at?
 	Vector3f barrelLookAt = -barrel->LookAt();
@@ -205,7 +209,10 @@ void TIFSTurretProperty::Shoot()
 	projEntity->position += Vector3f(0,2.f,0);
 	projEntity->RecalculateMatrix(Entity::TRANSLATION_ONLY); // Update the position we just set.
 
-	pp->relativeVelocity = Vector3f(0,0,1) * projectileSpeed;
+	pp->relativeVelocity = Vector3f(0,0,-1) * projectileSpeed;
+	// Derive velocity...
+	pp->currentVelocity = projEntity->rotationMatrix * pp->relativeVelocity;
+
 
 	Vector3f relVelWorldSpaced;
 	if (pp->relativeVelocity.MaxPart())

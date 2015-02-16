@@ -505,10 +505,14 @@ void Entity::RecalculateMatrix(int whichParts/*= true*/, bool recursively /* = f
 
 void Entity::RecalcRotationMatrix()
 {
+	float length;
 #define EXTRACT_VECTORS \
 	lookAt = rotationMatrix * Vector4f(0,0,-1,0);\
 	upVec = rotationMatrix * Vector4f(0,1,0,0);\
 	rightVec = rotationMatrix * Vector4f(1,0,0,0);
+	/// Recalc normal matrix (rotation for all normals) based on the rotation matrix.
+#define UPDATE_NORMAL_MATRIX	\
+	normalMatrix = rotationMatrix.InvertedCopy().TransposedCopy();
 
 	// If no rotation has occured, just multiply in the parent matrix?
 	if (!hasRotated)
@@ -517,6 +521,7 @@ void Entity::RecalcRotationMatrix()
 		{
 			rotationMatrix = parent->rotationMatrix * localRotation;
 			EXTRACT_VECTORS;
+			UPDATE_NORMAL_MATRIX;
 		}
 		// No change? Then vectors should be the same as well.
 		return;
@@ -557,11 +562,9 @@ void Entity::RecalcRotationMatrix()
 	}
 
 	EXTRACT_VECTORS;
+	UPDATE_NORMAL_MATRIX;
 
 	hasRotated = false;
-
-	/// Recalc normal matrix (rotation for all normals) based on the rotation matrix.
-	normalMatrix = rotationMatrix.InvertedCopy().TransposedCopy();
 }
 
 

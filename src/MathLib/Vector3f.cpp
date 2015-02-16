@@ -31,7 +31,7 @@
 Vector3f::Vector3f()
 {
 #ifdef USE_SSE
-	static float arr[4] = {0,0,0,1};
+	float arr[4] = {0,0,0,1};
 	data = _mm_loadu_ps(arr);
 #else
 	x = y = z = 0;

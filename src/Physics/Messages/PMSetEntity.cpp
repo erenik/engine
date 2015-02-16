@@ -368,7 +368,11 @@ void PMSetEntity::Process()
 			case PT_ANGULAR_VELOCITY:
 				ASSERT_ENTITY_NOT_STATIC;
 				if (pp->useQuaternions)
+				{
+					assert(qValue.x == qValue.x);
 					pp->angularVelocityQuaternion = this->qValue;
+					assert(pp->angularVelocityQuaternion.x == pp->angularVelocityQuaternion.x);
+				}
 				else
 					entity->physics->angularVelocity = vec3fValue;
 				break;

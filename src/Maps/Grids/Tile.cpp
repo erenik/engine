@@ -7,16 +7,13 @@
 #include "Script/Script.h"
 #include "Maps/Grids/GridObject.h"
 
-List<Tile*> Tile::tiles;
-
 Tile::Tile()
 : type(NULL), position(-1,-1,-1), event(NULL)
 { 
-	tiles.Add(this); 
 };
 
-Tile::~Tile(){ 
-	tiles.Remove(this); 
+Tile::~Tile()
+{
 };
 
 
@@ -75,6 +72,7 @@ void Tile::ReadFrom(std::fstream & file){
 }
 
 
+/*
 /// Assigns all tiles an index that is related to their type.
 void Tile::EnsureIndices(){
 	for (int i = 0; i < tiles.Size(); ++i){
@@ -97,7 +95,7 @@ void Tile::Reload(){
 		Tile * t = tiles[i];
 		t->type = TileTypes.GetTileTypeByIndex(t->typeIndex);
 	}
-}
+}*/
 
 TileType::TileType()
 : type(NULL), texture(NULL){

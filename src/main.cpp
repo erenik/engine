@@ -301,17 +301,13 @@ int main(int argc, char **argv)
 
 	// Unit tests here if wanted.
 		
-//#define test
+#define test
 #ifdef test
-	String t = "TestForTheRest";
-	String b = t, c = t;
-	b.Replace("For", "A");
-	c.Replace("For", "Gib");
 
-
+	Matrix4f::UnitTest();
 //	Angle::UnitTest();
 
-	return 0;
+//	return 0;
 #endif
 
 

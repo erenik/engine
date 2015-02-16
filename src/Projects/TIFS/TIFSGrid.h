@@ -9,6 +9,8 @@ class TIFSTile : public Tile
 {
 public:
 	TIFSTile();
+	// Called at construction, sets default values to the booleans. Does not change positions.
+	void Initialize();
 	bool isOccupied;
 	bool isGround; // Default false, set ground manually.
 	bool isRoad;

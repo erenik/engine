@@ -616,8 +616,8 @@ void Script::EvaluateLine(String & line)
 		lineFinished = true;
 	}
 	else {
-		std::cout<<"\nUndefined event command: "<<line;
-		std::cout<<"\nPassing it as a custom command to the game states for further processing.";
+//		std::cout<<"\nUndefined event command: "<<line;
+//		std::cout<<"\nPassing it as a custom command to the game states for further processing.";
 		Message * message = new Message(line);
 		/// Set this event as
 		message->event = this;

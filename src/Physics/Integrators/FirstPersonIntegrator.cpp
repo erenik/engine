@@ -120,6 +120,7 @@ void FirstPersonIntegrator::IntegratePosition(List<Entity*> & entities, float ti
 				float angle = to.Radians();
 				Quaternion q(Vector3f(0,1,0), angle);
 				q.Normalize();
+				assert(q.x == q.x);
 				forEntity->physics->orientation = q;
 				forEntity->hasRotated = true;
 		//		forEntity->rotationMatrix = q.Matrix();
@@ -135,9 +136,12 @@ void FirstPersonIntegrator::IntegratePosition(List<Entity*> & entities, float ti
 				rotation.angle *= timeInSeconds;
 				// Recalculate it so that it becomes a unit quaternion again.
 				rotation.RecalculateXYZW();
+				assert(rotation.x == rotation.x);
 				pp->orientation = pp->orientation * rotation;
+				assert(pp->orientation.x == pp->orientation.x);
 				//.. and don't forget to normalize it or it will die.
 				pp->orientation.Normalize();
+				assert(pp->orientation.x == pp->orientation.x);
 				forEntity->hasRotated = true;
 			}
 		}

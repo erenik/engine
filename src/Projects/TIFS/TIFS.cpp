@@ -369,7 +369,7 @@ Random droneRandom;
 /// Randomly!!!! o-=o
 void TIFS::SpawnDrones(int num)
 {
-	MapMan.DeleteEntities(drones);
+//	MapMan.DeleteEntities(drones);
 	drones.Clear();
 
 	int numDronesToSpawn = num;
@@ -410,11 +410,12 @@ void TIFS::SpawnDrone(ConstVec3fr atLocation)
 
 void TIFS::CreateTurrets(int num)
 {
-	MapMan.DeleteEntities(turrets);
+//	MapMan.DeleteEntities(turrets);
 	turrets.Clear();
 
 	Random turretRandom;
 	int turretsToCreate = num;
+	Vector3f lastPos;
 	for (int i = 0; i < turretsToCreate; ++i)
 	{
 		Vector3f position;
@@ -424,6 +425,8 @@ void TIFS::CreateTurrets(int num)
 			std::cout<<"\nOut of positions on the grid.";
 			break;
 		}
+		assert(lastPos != position);
+		lastPos = position;
 //		position.x = turretRandom.Randf(fieldSize) - halfFieldSize;
 //		position.z = turretRandom.Randf(fieldSize) - halfFieldSize;
 		CreateTurret(LARGE, position);

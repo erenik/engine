@@ -188,6 +188,9 @@ public:
 		[ 3] [ 7] [11] [15]*/
 //	Vector4f operator[](const unsigned int index);
 
+	/// Tests all functions. Makes sure they work fine.
+	static void UnitTest();
+
 #ifdef USE_SSE
 	// It's SSE time...!
 	union 

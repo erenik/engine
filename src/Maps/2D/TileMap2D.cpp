@@ -915,7 +915,7 @@ bool TileMap2D::ReadTiles(std::fstream &file){
 	assert(tileTypesAssignedToTiles);
 
 	// Set tiles as blerghphf.
-	Tile::Reload();
+//	Tile::Reload();
 	return true;
 }
 

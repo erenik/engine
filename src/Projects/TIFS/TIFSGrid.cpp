@@ -7,9 +7,17 @@
 #include "Random/Random.h"
 
 TIFSTile::TIFSTile()
-: Tile(), isOccupied(false), isGround(false)
+: Tile()
 {
+	Initialize();
 }
+
+// Called at construction, sets default values to the booleans. Does not change positions.
+void TIFSTile::Initialize()
+{
+	isOccupied = isGround = isRoad = false;
+}
+
 
 
 TIFSGrid::TIFSGrid()
@@ -43,7 +51,7 @@ void TIFSGrid::Resize(Vector3i gridSize, ConstVec3fr mapSize)
 		for (int i = 0; i < tiles.Size(); ++i)
 		{
 			TIFSTile * tile = tiles[i];
-			*tile = TIFSTile();
+			tile->Initialize();
 		}	
 	}
 	// Set their positions.
@@ -60,18 +68,19 @@ void TIFSGrid::Resize(Vector3i gridSize, ConstVec3fr mapSize)
 	}	
 }
 
+Random turretRandom;
+
 /// This may be either on ground or at some strategical point (key buildings?)
 bool TIFSGrid::GetNewTurretPosition(Vector3f & turretPos)
 {
 	// Set their positions.
 	List<TIFSTile*> tiles = grid.GetTiles();
 	// Randomize a few times?
-	Random r;
 	int tries = 0;
 	while (tries < 100)
 	{
 		++tries;
-		int index = r.Randi(tiles.Size() - 1);
+		int index = turretRandom.Randi(tiles.Size() - 1);
 		TIFSTile * tile = tiles[index];
 		if (tile->isOccupied == true)
 			continue;
@@ -88,17 +97,17 @@ bool TIFSGrid::GetNewTurretPosition(Vector3f & turretPos)
 	Size is requested size in meters. Size will be updated to the size the new building can maximally take up.
 	Position is stored in position.
 */
+Random buildingRandom;
 bool TIFSGrid::GetNewBuildingPosition(Vector3f & maxSize, Vector3f & position)
 {
 	// Set their positions.
 	List<TIFSTile*> tiles = grid.GetTiles();
 	// Randomize a few times?
-	Random r;
 	int tries = 0;
 	while (tries < triesPerBuilding)
 	{
 		++tries;
-		int index = r.Randi(tiles.Size()) % tiles.Size();
+		int index = buildingRandom.Randi(tiles.Size()) % tiles.Size();
 		TIFSTile * tile = tiles[index];
 		if (tile->isOccupied == true)
 			continue;
@@ -148,11 +157,11 @@ bool TIFSGrid::GetNewBuildingPosition(Vector3f & maxSize, Vector3f & position)
 }
 
 /// o.o
+Random roadRandom;
 void TIFSGrid::PlaceRoads(int roads)
 {
 	// Set their positions.
 	List<TIFSTile*> tiles = grid.GetTiles();
-	Random roadRand;
 	int attempts = 0;
 	int roadsCreated = 0;
 	bool ok = true;
@@ -160,7 +169,7 @@ void TIFSGrid::PlaceRoads(int roads)
 	{
 		++attempts;
 		/// Choose a random X or Y-path, not along the edges.
-		TIFSTile * startTile = tiles[roadRand.Randi(tiles.Size()) - 1];
+		TIFSTile * startTile = tiles[roadRandom.Randi(tiles.Size()) - 1];
 		if (!startTile->isGround)
 			continue;
 		if (startTile->isOccupied)
@@ -168,7 +177,7 @@ void TIFSGrid::PlaceRoads(int roads)
 
 		List<TIFSTile*> tiles = startTile;
 		// Make sure it's
-		int dir = roadRand.Randi(1000) % 2; // 0 to 1 did not seem to work..
+		int dir = roadRandom.Randi(1000) % 2; // 0 to 1 did not seem to work..
 		for (int i = 0; i < roadWidth; ++i)
 		{
 			if (dir == 0) // Z width for X-roads.

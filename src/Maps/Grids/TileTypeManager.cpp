@@ -79,7 +79,7 @@ bool TileTypeManager::LoadTileTypes(String fromFile){
 		return false;
 
 	/// Set pointers to NULL and save indices!
-	Tile::PrepareForReload();
+//	Tile::PrepareForReload();
 	// Clear existing types!
 	CLEAR_AND_DELETE(tileTypes);
 //	tileTypes.ClearAndDelete();
@@ -243,12 +243,12 @@ bool TileTypeManager::LoadTileTypes(String fromFile){
 
 	if(tileTypes.Size()){
 		std::cout<<"\nTileTypeManager successfully parsed "<<tileTypes.Size()<<" tileTypes!";
-		Tile::Reload();
+//		Tile::Reload();
 		return true;
 	}
 	std::cout<<"\nTileTypeManager unable to parse any tileTypes! Loading defaults again! :<";
 	CreateDefaultTiles();
-	Tile::Reload();
+//	Tile::Reload();
 	return false;
 }
 

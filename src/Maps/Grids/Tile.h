@@ -78,14 +78,6 @@ private:
 
 	/// Position. Only available in-game and not in saved format.
 //	int x,y;
-	/// Assigns all tiles an index that is related to their type.
-	static void EnsureIndices();
-	/// Saves indices for the type and nullifies the pointer.
-	static void PrepareForReload();
-	/// Re-directs the type pointer to the newly loaded tile-types.
-	static void Reload();
-	/// Private list for when tile types are updated/removed. o-o
-	static List<Tile*> tiles;
 };
 
 #endif
