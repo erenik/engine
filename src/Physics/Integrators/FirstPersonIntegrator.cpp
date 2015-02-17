@@ -61,7 +61,6 @@ void FirstPersonIntegrator::IntegrateVelocity(List<Entity*> & entities, float ti
 	__m128 timeSSE = _mm_load1_ps(&timeInSeconds);
 	float zero = 0.f;
 	__m128 defaultSSE = _mm_load1_ps(&zero);
-	Vector3f relVelWorldSpaced;
 #endif
 	for (int i = 0; i < entities.Size(); ++i)
 	{
@@ -83,7 +82,10 @@ void FirstPersonIntegrator::IntegrateVelocity(List<Entity*> & entities, float ti
 			totalAcceleration = _mm_add_ps(totalAcceleration, _mm_mul_ps(gravity.data, sse));
 		// Accelerate in the looking-direction
 		if (pp->acceleration.x || pp->acceleration.y || pp->acceleration.z)
-			totalAcceleration = _mm_add_ps(totalAcceleration, forEntity->rotationMatrix.Product(pp->acceleration).data);
+		{
+			Vector3f localAcceleration = forEntity->rotationMatrix.Product(pp->acceleration);
+			totalAcceleration = _mm_add_ps(totalAcceleration, localAcceleration.data);
+		}
 		/// Multiply by time.
 		pp->velocity.data = _mm_add_ps(pp->velocity.data, _mm_mul_ps(totalAcceleration, timeSSE));
 		// Apply linear damping
@@ -92,6 +94,7 @@ void FirstPersonIntegrator::IntegrateVelocity(List<Entity*> & entities, float ti
 		/// Start updating current velocity.
 		pp->currentVelocity.data = pp->velocity.data;
 		/// Player induced / controlled constant velocity in relative direction?
+		Vector3f relVelWorldSpaced;
 		if (relativeVelocity.x || relativeVelocity.y || relativeVelocity.z)
 		{
 			// Add it.
@@ -132,6 +135,7 @@ void FirstPersonIntegrator::IntegratePosition(List<Entity*> & entities, float ti
 {
 #ifdef USE_SSE
 	__m128 timeSSE = _mm_load1_ps(&timeInSeconds);
+	timeSSE.m128_f32[3] = 0;
 #endif
 	for (int i = 0; i < entities.Size(); ++i)
 	{
