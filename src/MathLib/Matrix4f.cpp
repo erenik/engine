@@ -1,6 +1,11 @@
+/// Emil Hedemalm
+/// 2015-02-17
+/// SSEing
+
 #include "Matrix4f.h"
 #include <cassert>
 #include <cstring>
+#include <iomanip>
 
 // ************************************************************************//
 // Constructors
@@ -45,12 +50,6 @@ Matrix4f::Matrix4f(Matrix3f &base){
 	element[8] = data[6];
 	element[9] = data[7];
 	element[10] = data[8];
-}
-
-Matrix4f::Matrix4f(const Matrix4f& base){
-	for (int i = 0; i < 16; ++i){
-		element[i] = base.element[i];
-	}
 }
 
 Matrix4f::Matrix4f(const Matrix4d& base){
@@ -525,26 +524,85 @@ void Matrix4f::getContents(float * arr){
 /** Direct multiplication
 	Postcondition: Multiplies the provided matrix into the left one and returns a copy of the current one.
 */
-Matrix4f Matrix4f::Multiply(ConstMat4r matrix)
+void Matrix4f::Multiply(ConstMat4r matrix)
 {
-#ifdef USE_SSEeee
-
+#ifdef USE_SSE
 	Matrix4f newMat;
 	// Gather rows from left matrix (this one).
-	
+	SSEVec row[4];
+	GetRow(0, row[0].v);
+	GetRow(1, row[1].v);
+	GetRow(2, row[2].v);
+	GetRow(3, row[3].v);
 
 	// Gather columns from the right matrix (argument).
-	// Already available.
-	
+	// Already available. .. matrix.col
+	matrix.col0;
+	SSEVec result[4];
+//	SSEVec result, result2, result3, result4;
 
+	const SSEVec * col = matrix.cols;
 
-			for(int i = 0; i < 4; i++){
-				tempResult += element[y + i * 4] * matrix.element[i + x * 4];
-			}
-			newArray[y + x * 4] = tempResult;
+#define MOAR
+#ifdef MOAR
 
+	// Multiply first 4 (first column)
+#define MUL(i,j) result[i].data = _mm_mul_ps(row[i].data, col[j].data);
+#define MULTIPLY_ROWS_WITH_COLUMN(c) \
+	MUL(0,c); \
+	MUL(1,c); \
+	MUL(2,c); \
+	MUL(3,c); 
+	// First 4.
+	MULTIPLY_ROWS_WITH_COLUMN(0);
 
-	return newMat;
+	// Sum the products up
+	SSEVec adder1, adder2, adder3, adder4;
+#define LOAD_ADDERS(i) \
+	adder1.v[i] = result[i].x;\
+	adder2.v[i] = result[i].y;\
+	adder3.v[i] = result[i].z;\
+	adder4.v[i] = result[i].w;
+	// Load adders 
+	// Do first 2 additions.
+	// Final addition into column.
+#define SUM_INTO_COLUMN(c) \
+	LOAD_ADDERS(0); \
+	LOAD_ADDERS(1); \
+	LOAD_ADDERS(2); \
+	LOAD_ADDERS(3); \
+	result[0].data = _mm_add_ps(adder1.data, adder2.data); \
+	result[1].data = _mm_add_ps(adder3.data, adder4.data); \
+	newMat.cols[c].data = _mm_add_ps(result[0].data, result[1].data); 
+
+	// First column done.
+	SUM_INTO_COLUMN(0);
+
+	// Second
+	MULTIPLY_ROWS_WITH_COLUMN(1);
+	SUM_INTO_COLUMN(1);
+	MULTIPLY_ROWS_WITH_COLUMN(2);
+	SUM_INTO_COLUMN(2);
+	MULTIPLY_ROWS_WITH_COLUMN(3);
+	SUM_INTO_COLUMN(3);
+	// Hopefully done now.
+
+#else
+	/// Do multiplications? One for each element in the new matrix.
+	for (int i = 0; i < 16; ++i)
+	{
+		result.data = _mm_mul_ps(row[i % 4].data, col[i / 4].data);
+		// Sum it up?
+		newMat.element[i] = result.x + result.y + result.z + result.w;
+	}
+#endif
+
+//	newMat.Print();
+	// Paste over new data to us.
+	col0 = newMat.col0;
+	col1 = newMat.col1;
+	col2 = newMat.col2;
+	col3 = newMat.col3;
 #else
 	float newArray[16];
 	float tempResult;
@@ -590,9 +648,29 @@ Vector4f Matrix4f::Product(const Vector4f & vector) const
 	Vector4f result;
 	float newArray[4];
 	// Col*Row result
-	__m128 result1, result2, result3, result4, finalResult;
-	__m128 matrixCol;
+	SSEVec result1, result2, result3, result4, finalResult;
+	SSEVec matrixCol;
 	
+
+#define TEST_SSE_VEC
+#ifdef TEST_SSE_VEC
+	// Load data.
+	float row[4];
+	GetRow(0, row);
+	matrixCol.data = _mm_loadu_ps(row);
+	// Do multiplication.
+	result1.data = _mm_mul_ps(matrixCol.data, vector.data);
+	// Repeat for other 3 columns
+	GetRow(1, row);
+	matrixCol.data = _mm_loadu_ps(row);
+	result2.data = _mm_mul_ps(matrixCol.data, vector.data);
+	GetRow(2, row);
+	matrixCol.data = _mm_loadu_ps(row);
+	result3.data = _mm_mul_ps(matrixCol.data, vector.data);
+	GetRow(3, row);
+	matrixCol.data = _mm_loadu_ps(row);
+	result4.data = _mm_mul_ps(matrixCol.data, vector.data);
+#else
 	// Load data.
 	float row[4];
 	GetRow(0, row);
@@ -609,9 +687,9 @@ Vector4f Matrix4f::Product(const Vector4f & vector) const
 	GetRow(3, row);
 	matrixCol = _mm_loadu_ps(row);
 	result4 = _mm_mul_ps(matrixCol, vector.data);
-
+#endif
 	// Okay, got the 16 first multiplication results in, now we want to add together each of them individually, if possible...
-	__m128 adder1, adder2, adder3, adder4;
+	SSEVec adder1, adder2, adder3, adder4;
 
 #ifdef TEST_SSE_VEC
 #define LOAD_ADDERS(index, withData) \
@@ -624,7 +702,8 @@ Vector4f Matrix4f::Product(const Vector4f & vector) const
 	LOAD_ADDERS(1, result2);
 	LOAD_ADDERS(2, result3);
 	LOAD_ADDERS(3, result4);
-#endif
+	
+#else
 	adder1.m128_f32[0] = result1.m128_f32[0];
 	adder2.m128_f32[0] = result1.m128_f32[1];
 	adder3.m128_f32[0] = result1.m128_f32[2];
@@ -644,14 +723,20 @@ Vector4f Matrix4f::Product(const Vector4f & vector) const
 	adder2.m128_f32[3] = result4.m128_f32[1];
 	adder3.m128_f32[3] = result4.m128_f32[2];
 	adder4.m128_f32[3] = result4.m128_f32[3];
+#endif
 
 	// Do addition.
+#ifdef TEST_SSE_VEC
+	result1.data = _mm_add_ps(adder1.data, adder2.data);
+	result2.data = _mm_add_ps(adder3.data, adder4.data);
+	/// Final addition.
+	result.data = _mm_add_ps(result1.data, result2.data); 
+#else
 	result1 = _mm_add_ps(adder1, adder2);
 	result2 = _mm_add_ps(adder3, adder4);
-	
-//	result[x] = tempResult.m128_f32[0] + tempResult.m128_f32[1] + tempResult.m128_f32[2] + tempResult.m128_f32[3];
 	/// Final addition.
 	result.data = _mm_add_ps(result1, result2); 
+#endif
 
 	return result;
 #else
@@ -784,6 +869,28 @@ float & Matrix4f::operator[](const unsigned int index)
 }
 
 
+/** Operator overloading for the array-access. Returns specified column as as shown below:
+Col	  0    1    2    3
+	[ 0] [ 4] [ 8] [12]
+	[ 1] [ 5] [ 9] [13]
+	[ 2] [ 6] [10] [14]
+	[ 3] [ 7] [11] [15]*/
+void Matrix4f::Print()
+{
+	std::cout<<"\nMatrix4f::Print:";
+	int row = 0, column = 0;
+	for (int i = 0; i < 16; ++i)
+	{
+		if (i % 4 == 0) 
+			std::cout<<"\n";
+		column = i % 4;
+		row = i / 4;
+		int index = row + column * 4;
+		std::cout<<" "<<std::fixed<<std::setw(10)<<std::setprecision(3)<<element[index];
+	}
+}
+
+
 /// Tests all functions. Makes sure they work fine.
 void Matrix4f::UnitTest()
 {
@@ -805,5 +912,20 @@ void Matrix4f::UnitTest()
 			assert(product.Length3() == 1);
 		}		
 	}
+
+	Matrix4f scalingMatrix = Matrix4f::Scaling(Vector3f(2,2,2));
+	Matrix4f scalingMatrix2 = Matrix4f::Scaling(Vector3f(1.5,3,4.5));
+
+	Matrix4f rot = Matrix4f::InitRotationMatrixX(0.4f);
+	Matrix4f rot2 = Matrix4f::InitRotationMatrixY(0.2f);
+	Matrix4f trans = Matrix4f::Translation(Vector3f(10,2,7));
+	Matrix4f rot3 = Matrix4f::InitRotationMatrixZ(0.1f);
+
+	Matrix4f product = rot.Product(rot2).Product(trans).Product(rot3);
+//	Matrix4f mult = rot.Multiply(rot2).Multiply(trans).Multiply(rot3);
+
+	product.Print();
+//	mult.Print();
+
 }
 

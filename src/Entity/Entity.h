@@ -184,6 +184,7 @@ public:
 	Matrix4f transformationMatrix;
 	/// Transforms as calculated if this were not child of any other entity.
 	Matrix4f localRotation, localTransform;
+	Matrix4f scalingMatrix;
 	Matrix4f normalMatrix;
 
 	/// Material to be used for this Entity.
@@ -248,6 +249,8 @@ public:
 	AABB * aabb;
 
 private:
+	/// If non-identity scale.
+	bool relevantScale;
 	/// Used internally.
 	Matrix4f preTranslateMat;
 	/// Calculated after transform or rotation is done.

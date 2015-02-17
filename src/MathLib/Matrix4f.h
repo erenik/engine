@@ -51,7 +51,7 @@ public:
 	*/
 	Matrix4f(Matrix3f &base);
 	/** Copy constructor */
-	Matrix4f(const Matrix4f& base);
+//	Matrix4f(const Matrix4f& base);
 	/** Conversion constructor from the double-class. */
 	Matrix4f(const Matrix4d& base);
 
@@ -151,7 +151,7 @@ public:
 	/** Direct multiplication
 		Postcondition: Multiplies the provided matrix into the left one and returns a copy of the current one.
 	*/
-	Matrix4f Multiply(ConstMat4r matrix);
+	void Multiply(ConstMat4r matrix);
 
 	/** Product with Matrix
 		Postcondition: Returns the product of the matrices without directly modifying them.
@@ -188,6 +188,14 @@ public:
 		[ 3] [ 7] [11] [15]*/
 //	Vector4f operator[](const unsigned int index);
 
+	/** Operator overloading for the array-access. Returns specified column as as shown below:
+	Col	  0    1    2    3
+		[ 0] [ 4] [ 8] [12]
+		[ 1] [ 5] [ 9] [13]
+		[ 2] [ 6] [10] [14]
+		[ 3] [ 7] [11] [15]*/
+	void Print();
+
 	/// Tests all functions. Makes sure they work fine.
 	static void UnitTest();
 
@@ -200,6 +208,8 @@ public:
 		};
 		/// Array o.o
 		float element[16];
+		// Array of the columns.
+		SSEVec cols[4];
 	};
 #else
 	/** Array of the matrix elements. */

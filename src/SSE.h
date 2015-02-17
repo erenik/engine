@@ -14,10 +14,10 @@
 #ifdef USE_SSE
 // Useful union. Makes it look like a regular vector. :)
 typedef union {
-	__m128 data;
 	struct{
 		float x,y,z,w;
 	};
+	__m128 data;
 	float v[4];
 } SSEVec;
 #endif

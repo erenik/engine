@@ -30,6 +30,13 @@
 
 #include "PhysicsLib/Shapes/AABB.h"
 
+#define UPDATE_SCALING_MATRIX \
+	scalingMatrix.element[0] = scale.x;\
+	scalingMatrix.element[5] = scale.y;\
+	scalingMatrix.element[10] = scale.z;\
+	if (scale.x != 1 || scale.y != 1 || scale.z != 1)\
+		relevantScale = true;
+
 const Material Entity::defaultMaterial = Material();
 
 /// Creates a compact entity out of this Entity object
@@ -87,6 +94,7 @@ void Entity::LoadCompactEntityData(CompactEntity * cEntity)
 
 Entity::Entity(int i_id)
 {
+	relevantScale = false;
 	sharedProperties = false;
 	updateChildrenOnTransform = false;
 	position = Vector3f(0,0,0);
@@ -427,17 +435,21 @@ void Entity::SetScale(ConstVec3fr scale)
 {
 //	assert(scale[0] && scale[1] && scale[2]);
 	this->scale = scale;
+	UPDATE_SCALING_MATRIX
 	RecalculateMatrix();
 }
 /// Scales the Entity
 void Entity::Scale(ConstVec3fr scalerVec)
 {
 	this->scale *= scalerVec;
+	UPDATE_SCALING_MATRIX
 	RecalculateMatrix();
 }
 /// Scales the Entity
-void Entity::Scale(float scaleF){
+void Entity::Scale(float scaleF)
+{
 	this->scale *= scaleF;
+	UPDATE_SCALING_MATRIX
 	RecalculateMatrix();
 }
 /// Translates the Entity
@@ -465,11 +477,19 @@ void Entity::RecalculateMatrix(int whichParts/*= true*/, bool recursively /* = f
 		}
 		
 		localTransform = Matrix4f();
-		localTransform.Multiply(preTranslateMat);
+//		localTransform.Multiply(preTranslateMat);
+#ifdef USE_SSE
+		// Translation should be just pasting in position.. no?
+		localTransform.col3.data = position.data;
+		localTransform.col3.w = 1;
+	//	localTransform.Print();
+#else
 		localTransform.Multiply((Matrix4f::Translation(position)));
+#endif
 		localTransform.Multiply(localRotation);
-		localTransform.Multiply((Matrix4f::Scaling(scale)));
-
+		// No use multiplying if not new scale.
+		if (relevantScale)
+			localTransform.Multiply(scalingMatrix);
 			// Ensure it has a scale..?
 	//	assert(transformationMatrix.HasValidScale());
 	}

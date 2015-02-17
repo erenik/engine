@@ -188,7 +188,7 @@ void TIFSTurretProperty::Shoot()
 
 	Vector3f midPosition = (projEntity->position + target->position) * 0.5f;
 	// Set scale?
-	projEntity->scale = Vector3f(0.25,0.25,15.f);
+	projEntity->Scale(Vector3f(0.25,0.25,15.f));
 	float length = projEntity->scale.z;
 	// Rotate?
 	// Calculate rotations? 
