@@ -497,9 +497,14 @@ void Entity::RecalculateMatrix(int whichParts/*= true*/, bool recursively /* = f
 	else 
 	{
 		// Just update position.
+#ifdef USE_SSE
+		localTransform.col3.data = position.data;
+		localTransform.col3.w = 1;
+#else
 		localTransform[12] = position[0];
 		localTransform[13] = position[1];
 		localTransform[14] = position[2];
+#endif		
 		// Children?
 	}
 	/// Use parent matrix, apply ours on top of it!

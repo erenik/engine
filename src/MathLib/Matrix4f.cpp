@@ -646,9 +646,8 @@ Vector4f Matrix4f::Product(const Vector4f & vector) const
 #ifdef USE_SSE
 	/// Matrix product using SSE instructions...!
 	Vector4f result;
-	float newArray[4];
 	// Col*Row result
-	SSEVec result1, result2, result3, result4, finalResult;
+	SSEVec result1, result2, result3, result4;
 	SSEVec matrixCol;
 	
 
@@ -753,7 +752,65 @@ Vector4f Matrix4f::Product(const Vector4f & vector) const
 #endif
 }
 
-Matrix4f Matrix4f::operator * (ConstMat4r factor) const {
+Matrix4f Matrix4f::operator * (ConstMat4r matrix) const 
+{
+#ifdef USE_SSE
+	Matrix4f newMat;
+	// Gather rows from left matrix (this one).
+	SSEVec row[4];
+	GetRow(0, row[0].v);
+	GetRow(1, row[1].v);
+	GetRow(2, row[2].v);
+	GetRow(3, row[3].v);
+
+	// Gather columns from the right matrix (argument).
+	// Already available. .. matrix.col
+	matrix.col0;
+	SSEVec result[4];
+	const SSEVec * col = matrix.cols;
+
+	// Multiply first 4 (first column)
+#define MUL(i,j) result[i].data = _mm_mul_ps(row[i].data, col[j].data);
+#define MULTIPLY_ROWS_WITH_COLUMN(c) \
+	MUL(0,c); \
+	MUL(1,c); \
+	MUL(2,c); \
+	MUL(3,c); 
+	// First 4.
+	MULTIPLY_ROWS_WITH_COLUMN(0);
+
+	// Sum the products up
+	SSEVec adder1, adder2, adder3, adder4;
+#define LOAD_ADDERS(i) \
+	adder1.v[i] = result[i].x;\
+	adder2.v[i] = result[i].y;\
+	adder3.v[i] = result[i].z;\
+	adder4.v[i] = result[i].w;
+	// Load adders 
+	// Do first 2 additions.
+	// Final addition into column.
+#define SUM_INTO_COLUMN(c) \
+	LOAD_ADDERS(0); \
+	LOAD_ADDERS(1); \
+	LOAD_ADDERS(2); \
+	LOAD_ADDERS(3); \
+	result[0].data = _mm_add_ps(adder1.data, adder2.data); \
+	result[1].data = _mm_add_ps(adder3.data, adder4.data); \
+	newMat.cols[c].data = _mm_add_ps(result[0].data, result[1].data); 
+
+	// First column done.
+	SUM_INTO_COLUMN(0);
+
+	// Second
+	MULTIPLY_ROWS_WITH_COLUMN(1);
+	SUM_INTO_COLUMN(1);
+	MULTIPLY_ROWS_WITH_COLUMN(2);
+	SUM_INTO_COLUMN(2);
+	MULTIPLY_ROWS_WITH_COLUMN(3);
+	SUM_INTO_COLUMN(3);
+	// Hopefully done now.
+	return newMat;
+#else
 	float newArray[16];
 	float tempResult;
 	for (int y = 0; y < 4; y++){	// Rows
@@ -767,6 +824,7 @@ Matrix4f Matrix4f::operator * (ConstMat4r factor) const {
 		}
 	}
 	return Matrix4f(newArray);
+#endif
 }
 
 Vector4f Matrix4f::operator * (const Vector4f & vector) const 
@@ -774,9 +832,8 @@ Vector4f Matrix4f::operator * (const Vector4f & vector) const
 #ifdef USE_SSE
 		/// Matrix product using SSE instructions...!
 	Vector4f result;
-	float newArray[4];
 	// Col*Row result
-	__m128 result1, result2, result3, result4, finalResult;
+	__m128 result1, result2, result3, result4;
 	__m128 matrixCol;
 	
 	// Load data.
