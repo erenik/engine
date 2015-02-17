@@ -273,18 +273,9 @@ List<EntityPair> AABBSweeper::Sweep()
 					{
 						continue;
 					}
-					// Check active collision state?
-					// Require at least 1 dynamic non-resting entity.
-					if (
-							(
-								(node->entity->physics->type == PhysicsType::DYNAMIC && !(node->entity->physics->state & PhysicsState::IN_REST)) ||
-								(entity->physics->type == PhysicsType::DYNAMIC && !(entity->physics->state & PhysicsState::IN_REST)) 
-							) == false)
-						continue;
-                    /// Skip self, but create a pair for the remaining.
+					/// Skip self, but create a pair for the remaining.
                     if (entity == node->entity)
                         continue;
-
 					// Check other axes straight away.
 					AABB * oneab = node->aabb, * twoab = entity->aabb;
 					if (oneab->max.z < twoab->min.z ||
@@ -302,10 +293,17 @@ List<EntityPair> AABBSweeper::Sweep()
           //          std::cout<<"\nAdding pair: "<<ep.one<<" "<<ep.one->position<<" & "<<ep.two<<" "<<ep.two->position;
                     entityPairs.AddItem(ep);
                 }
-                activeEntities.AddItem(node->entity);
+				// Only add Dynamic entities. The remaining are not interesting to have as "active", since
+				// Kinematic and static entities will be paired up with the active (dynamic) ones anyway!
+				// A filter for dynamic ones not interesting in collisions could also be set here instead.
+				if (node->entity->physics->type == PhysicsType::DYNAMIC &&
+					!(node->entity->physics->state & PhysicsState::IN_REST))
+	                activeEntities.AddItem(node->entity);
             }
             /// And if it's a stop node, just remove it from the active entities list!
-            else if (node->type == AABBSweepNode::STOP){
+            else if (node->type == AABBSweepNode::STOP &&
+				node->entity->physics->type == PhysicsType::DYNAMIC)
+			{
                 activeEntities.RemoveItemUnsorted(node->entity);
             }
         }

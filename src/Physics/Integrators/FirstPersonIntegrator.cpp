@@ -19,6 +19,8 @@ void FirstPersonIntegrator::IntegrateDynamicEntities(List<Entity*> & dynamicEnti
 	Timer timer;
 	timer.Start();
 	List<Entity*> & forceBasedEntities = PhysicsMan.forceBasedEntities;
+	Timer timer2;
+	timer2.Start();
 	if (forceBasedEntities.Size())
 	{
 		/// Provides default "scientific" rigid-body based simulation handling of forces, torques, etc.
@@ -26,9 +28,17 @@ void FirstPersonIntegrator::IntegrateDynamicEntities(List<Entity*> & dynamicEnti
 		UpdateMomentum(forceBasedEntities, timeInSeconds);
 		DeriveVelocity(forceBasedEntities);
 	}
+	timer2.Stop();
+	int forcesMomenumVelocity = timer2.GetMs();
 
+	timer2.Start();
 	IntegrateVelocity(dynamicEntities, timeInSeconds);
+	timer2.Stop();
+	int velocityIntegration = timer2.GetMs();
+	timer2.Start();
 	IntegratePosition(dynamicEntities, timeInSeconds);
+	timer2.Stop();
+	int positionIntegration = timer2.GetMs();
 	timer.Stop();
 	this->integrationTimeMs = timer.GetMs();
 };
