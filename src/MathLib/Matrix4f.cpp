@@ -981,7 +981,7 @@ void Matrix4f::UnitTest()
 	Matrix4f product = rot.Product(rot2).Product(trans).Product(rot3);
 //	Matrix4f mult = rot.Multiply(rot2).Multiply(trans).Multiply(rot3);
 
-	product.Print();
+//	product.Print();
 //	mult.Print();
 
 	Vector3f a(1,0,0), b(0,1,0), c(0,0,1);

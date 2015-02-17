@@ -85,7 +85,7 @@ Matrix4f Quaternion::Matrix() const {
 /// Normalize to length/magnitude 1.
 void Quaternion::Normalize()
 {
-#ifdef USE_SSEEE
+#ifdef USE_SSE
 	SSEVec sse;
 	sse.data = _mm_mul_ps(data, data);
 	float size = sse.x + sse.y + sse.z + sse.w;
@@ -139,7 +139,7 @@ void Quaternion::operator *=(const Quaternion & multiplier){
 /// Rotate moar!
 Quaternion Quaternion::Multiply(const Quaternion & q2)
 {
-#ifdef USE_SSEEE
+#ifdef USE_SSE
 	// Some few optimizations, not too much.
 	Vector3f v, v2;
 	v.data = data;
@@ -170,7 +170,7 @@ Quaternion Quaternion::Multiply(const Quaternion & q2)
 
 Quaternion Quaternion::operator * (const Quaternion &q2) const
 {
-#ifdef USE_SSEEE
+#ifdef USE_SSE
 	Quaternion quat;
 	// Some few optimizations, not too much.
 	Vector3f v, v2;
@@ -225,7 +225,7 @@ void Quaternion::RecalculateXYZW()
 	float sinHalfAngle = FastSin(halfAngle);
 	float cosHalfAngle = FastCos(halfAngle);
 
-#ifdef USE_SSEEE
+#ifdef USE_SSE
 	__m128 sse = _mm_load1_ps(&sinHalfAngle);
 	data = _mm_mul_ps(axis.data, sse);
 	w = cosHalfAngle;
