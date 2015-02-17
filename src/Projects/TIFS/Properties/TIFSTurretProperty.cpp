@@ -31,6 +31,7 @@ TIFSTurretProperty::TIFSTurretProperty(Entity * base, Entity * swivel, Entity * 
 	currentHP = 20000;
 
 	pitchPerSecond = yawPerSecond = defaultPitchYawPerSecond;
+	targetLastFrame = NULL;
 }
 
 int TIFSTurretProperty::ID()
@@ -73,6 +74,14 @@ void TIFSTurretProperty::Process(int timeInMs)
 	{
 		Aim();
 	}
+	// If not target, and not issued stop command..
+	else if (target != targetLastFrame)
+	{
+		std::cout<<"\nLost sight of target, stopping.";
+		// Stop rotations if no target is there.
+		PhysicsQueue.Add(new PMSetEntity(base, PT_ANGULAR_VELOCITY, Quaternion()));
+		PhysicsQueue.Add(new PMSetEntity(underBarrel, PT_ANGULAR_VELOCITY, Quaternion()));
+	}
 	if (Reload(timeInMs))
 		shoot = false;
 	
@@ -81,6 +90,8 @@ void TIFSTurretProperty::Process(int timeInMs)
 	{
 		Shoot();
 	}
+
+	targetLastFrame = target;
 };
 
 

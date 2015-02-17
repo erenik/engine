@@ -85,9 +85,10 @@ Matrix4f Quaternion::Matrix() const {
 /// Normalize to length/magnitude 1.
 void Quaternion::Normalize()
 {
-#ifdef USE_SSE
+#ifdef SSE_QUAT
 	SSEVec sse;
-	sse.data = _mm_mul_ps(data, data);
+	__m128 sse2 = data, sse3 = data;
+	sse.data = _mm_mul_ps(sse2, sse3);
 	float size = sse.x + sse.y + sse.z + sse.w;
 	if (size == 0)
 	{
@@ -96,7 +97,8 @@ void Quaternion::Normalize()
 	}
 	float invSize = 1 / sqrt(size);
 	sse.data = _mm_load1_ps(&invSize);
-	data = _mm_mul_ps(data, sse.data);
+	sse3 = _mm_mul_ps(data, sse.data);
+	data = sse3;
 #else
     float size = x*x + y*y + z*z + w*w;
     if (size == 0){
@@ -139,7 +141,7 @@ void Quaternion::operator *=(const Quaternion & multiplier){
 /// Rotate moar!
 Quaternion Quaternion::Multiply(const Quaternion & q2)
 {
-#ifdef USE_SSE
+#ifdef SSE_QUAT
 	// Some few optimizations, not too much.
 	Vector3f v, v2;
 	v.data = data;
@@ -170,7 +172,7 @@ Quaternion Quaternion::Multiply(const Quaternion & q2)
 
 Quaternion Quaternion::operator * (const Quaternion &q2) const
 {
-#ifdef USE_SSE
+#ifdef SSE_QUAT
 	Quaternion quat;
 	// Some few optimizations, not too much.
 	Vector3f v, v2;
@@ -225,7 +227,7 @@ void Quaternion::RecalculateXYZW()
 	float sinHalfAngle = FastSin(halfAngle);
 	float cosHalfAngle = FastCos(halfAngle);
 
-#ifdef USE_SSE
+#ifdef SSE_QUAT
 	__m128 sse = _mm_load1_ps(&sinHalfAngle);
 	data = _mm_mul_ps(axis.data, sse);
 	w = cosHalfAngle;

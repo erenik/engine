@@ -18,7 +18,7 @@ public:
 	static int ID();
 
 	// Might not use
-	Entity * target;
+	Entity * target, * targetLastFrame;
 	// Parts
 	Entity * base, * swivel, * underBarrel, * barrel;
 

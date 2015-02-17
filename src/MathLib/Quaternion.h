@@ -49,6 +49,7 @@ public:
 
     /// Coordinates, expressed in the xi + yj + zk + w format.
 #ifdef USE_SSE
+#define SSE_QUAT
 	union 
 	{
 		struct {
