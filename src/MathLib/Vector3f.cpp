@@ -562,7 +562,7 @@ float Vector3f::ScalarProduct(const Vector3f & otherVector) const {
 // Same thing as scalar product, silly!
 float Vector3f::DotProduct(const Vector3f & otherVector) const 
 {
-#ifdef USE_SSEEE
+#ifdef USE_SSE
 	SSEVec product;
 	product.data = _mm_mul_ps(data, otherVector.data);
 	return product.x + product.y + product.z;
@@ -573,18 +573,29 @@ float Vector3f::DotProduct(const Vector3f & otherVector) const
 
 Vector3f Vector3f::CrossProduct(const Vector3f & otherVector) const 
 {
-#ifdef USE_SSEEE
+#ifdef USE_SSE
 	Vector3f result;
 	__m128 result1, result2, loaded;
 	// First the 2 separate multiplications.
 	float arr[4];
 	// Load data for first one. our XYZ with their YZX
+	/**
+		x * otherVector.y 
+		y * otherVector.z 
+		z * otherVector.x  
+	*/
+
 	arr[0] = otherVector.y;
 	arr[1] = otherVector.z;
 	arr[2] = otherVector.x;
 	loaded = _mm_loadu_ps(arr);
 	result1 = _mm_mul_ps(data, loaded); 
 	// Second one. their XYZ with our YZX
+	/*
+		y * otherVector.x);
+		z * otherVector.y;
+		x * otherVector.z, 
+	*/
 	arr[0] = y;
 	arr[1] = z;
 	arr[2] = x;
@@ -592,7 +603,18 @@ Vector3f Vector3f::CrossProduct(const Vector3f & otherVector) const
 	result2 = _mm_mul_ps(otherVector.data, loaded); 
 	/// 
 	result.data = _mm_sub_ps(result1, result2);
+	// Change order.........................................
+	result.w = result.z;
+	result.z = result.x;
+	result.x = result.y;
+	result.y = result.w;
 	return result;
+	/**
+	Z =	x * otherVector.y - y * otherVector.x);
+	X = y * otherVector.z - z * otherVector.y;
+	Y =	z * otherVector.x - x * otherVector.z, 
+
+	*/
 #else
 	return Vector3f (y * otherVector[2] - z * otherVector[1], 
 		z * otherVector[0] - x * otherVector[2], 

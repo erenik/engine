@@ -311,7 +311,7 @@ void FirstPersonPlayerProperty::UpdateTargetsByCursorPosition()
 	if (activeWindow != MainWindow())
 		return;
 	// Try to get ray.
-	if (!activeWindow->GetRayFromScreenCoordinates(Input.mousePosition, ray))
+		if (!activeWindow->GetRayFromScreenCoordinates(Input.mousePosition, ray))
 		return;
 
 	// Do ray cast within the physics system

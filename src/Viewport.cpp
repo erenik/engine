@@ -203,7 +203,7 @@ bool Viewport::GetRayFromViewportCoordinates(Vector2i coords, Ray & ray)
 	Vector4f nearPlaneRightVec = -camera.LeftVector();
 #define rightVector nearPlaneRightVec
 
-//    std::cout<<"\nCamPosition: "<<camPosition<<" LookingAt: "<<camLookingAt;
+  //  std::cout<<"\nCamPosition: "<<camPosition<<" LookingAt: "<<camLookingAt;
 
 	/// Lower left corner
     Frustum frustum = camera.GetFrustum();

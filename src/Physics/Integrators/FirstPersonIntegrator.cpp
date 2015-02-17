@@ -120,7 +120,7 @@ void FirstPersonIntegrator::IntegratePosition(List<Entity*> & entities, float ti
 		//		forEntity->rotationMatrix = q.Matrix();
 			}
 		}
-		else if (pp->angularVelocityQuaternion.angle != 0)
+		else if (pp->angularVelocityQuaternion.MaxPart())
 		{
 			// Rotate.
 			Quaternion rotation(pp->angularVelocityQuaternion);

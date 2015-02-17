@@ -332,16 +332,24 @@ void Camera::UpdateViewMatrix(bool track /* = true*/)
 void Camera::ExtractData()
 {
 	//	Vector4f camPos, lookingAtVector, upVector;
+	Matrix4f invertedView = viewMatrix.InvertedCopy();
+	Matrix4f invertedRot = rotationMatrix.InvertedCopy();
 	camPos = viewMatrix.InvertedCopy() * Vector4d(0,0,0,1);	// THIS
+	if (name == "3rdPersonCamera")
+	{
+		Vector3f camPosNonVert = viewMatrix * Vector4f();
+//		std::cout<<"\nCamPos: "<<camPos;
+	}
 
 	// Calculate camLook and camUp Vectors
 	Vector4d moveVec = Vector4d(0, 0, -1, 1);
+	
 
 	/// Extract global coordinates
-	Matrix4f invertedRot = rotationMatrix.InvertedCopy();
-	leftVector = invertedRot.Product(Vector4f(-1,0,0,1)).NormalizedCopy();
-	lookingAtVector = invertedRot.Product(Vector4f(0,0,-1,1)).NormalizedCopy();
-	upVector = invertedRot.Product(Vector4f(0,1,0,1)).NormalizedCopy();
+//	Matrix4f invertedRot = rotationMatrix.InvertedCopy();
+	leftVector = invertedRot.Product(Vector4f(-1,0,0,0)).NormalizedCopy();
+	lookingAtVector = invertedRot.Product(Vector4f(0,0,-1,0)).NormalizedCopy();
+	upVector = invertedRot.Product(Vector4f(0,1,0,0)).NormalizedCopy();
 }
 
 

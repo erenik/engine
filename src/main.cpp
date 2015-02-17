@@ -304,7 +304,7 @@ int main(int argc, char **argv)
 #define test
 #ifdef test
 
-//	Matrix4f::UnitTest();
+	Matrix4f::UnitTest();
 //	Angle::UnitTest();
 
 //	return 0;

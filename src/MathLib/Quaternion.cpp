@@ -83,7 +83,21 @@ Matrix4f Quaternion::Matrix() const {
 }
 
 /// Normalize to length/magnitude 1.
-void Quaternion::Normalize(){
+void Quaternion::Normalize()
+{
+#ifdef USE_SSEEE
+	SSEVec sse;
+	sse.data = _mm_mul_ps(data, data);
+	float size = sse.x + sse.y + sse.z + sse.w;
+	if (size == 0)
+	{
+		w = 1;
+		return;
+	}
+	float invSize = 1 / sqrt(size);
+	sse.data = _mm_load1_ps(&invSize);
+	data = _mm_mul_ps(data, sse.data);
+#else
     float size = x*x + y*y + z*z + w*w;
     if (size == 0){
         w = 1;
@@ -94,6 +108,7 @@ void Quaternion::Normalize(){
     y *= invSize;
     z *= invSize;
     w *= invSize;
+#endif
 }
 
 // Unary operator overloading
@@ -122,8 +137,23 @@ void Quaternion::operator *=(const Quaternion & multiplier){
 }
 
 /// Rotate moar!
-Quaternion Quaternion::Multiply(const Quaternion & q2){
+Quaternion Quaternion::Multiply(const Quaternion & q2)
+{
+#ifdef USE_SSEEE
+	// Some few optimizations, not too much.
+	Vector3f v, v2;
+	v.data = data;
+	v2.data = q2.data;
+	/// 3 products are being used below, do them here then.
+	__m128 data1, data2;
 
+    float w2 = w * q2.w - v.DotProduct(v2);
+    Vector3f result;
+	data1 = _mm_load1_ps(&w);
+	data2 = _mm_load1_ps(&q2.w);
+	data = result.data = _mm_add_ps(_mm_add_ps(_mm_mul_ps(data1, v2.data), _mm_mul_ps(data2, v.data)), v.CrossProduct(v2).data);
+	w = w2;
+#else
     Vector3f v(x,y,z), v2(q2.x, q2.y, q2.z);
 
     float w2 = w * q2.w - v.DotProduct(v2);
@@ -134,22 +164,35 @@ Quaternion Quaternion::Multiply(const Quaternion & q2){
     y = result[1];
     z = result[2];
 
+#endif
     return Quaternion(*this);
-
-/*
-    /// First copy ourselves.
-    Quaternion q = *this;
-    w = q[3] * q2[3] - q[0] * q2[0] - q[1] * q2[1] - q[2] * q2[2];
-    x = q[3] * q2[0] + q[0] * q2[3] - q[1] * q2[2] - q[2] * q2[1];
-    y = q[3] * q2[1] - q[0] * q2[2] + q[1] * q2[3] - q[2] * q2[0];
-    z = q[3] * q2[2] + q[0] * q2[1] - q[1] * q2[0] + q[2] * q2[3];
-    */
 }
 
-Quaternion Quaternion::operator * (const Quaternion &multiplier) const{
+Quaternion Quaternion::operator * (const Quaternion &q2) const
+{
+#ifdef USE_SSEEE
+	Quaternion quat;
+	// Some few optimizations, not too much.
+	Vector3f v, v2;
+	v.data = data;
+	v2.data = q2.data;
+	/// 3 products are being used below, do them here then.
+	__m128 data1, data2;
+    float w2 = w * q2.w - v.DotProduct(v2);
+    Vector3f result;
+	data1 = _mm_load1_ps(&w);
+	data2 = _mm_load1_ps(&q2.w);
+	quat.data = result.data = _mm_add_ps(_mm_add_ps(_mm_mul_ps(data1, v2.data), _mm_mul_ps(data2, v.data)), v.CrossProduct(v2).data);
+	quat.w = w2;
+	// Copy remaining stats.
+	quat.axis.data = axis.data;
+	quat.angle = angle;
+	return quat;
+#else
     Quaternion temp = *this;
-    Quaternion q = temp.Multiply(multiplier);
+    Quaternion q = temp.Multiply(q2);
     return q;
+#endif
 }
 
 /// Multiplication with floats
@@ -182,7 +225,7 @@ void Quaternion::RecalculateXYZW()
 	float sinHalfAngle = FastSin(halfAngle);
 	float cosHalfAngle = FastCos(halfAngle);
 
-#ifdef USE_SSE
+#ifdef USE_SSEEE
 	__m128 sse = _mm_load1_ps(&sinHalfAngle);
 	data = _mm_mul_ps(axis.data, sse);
 	w = cosHalfAngle;

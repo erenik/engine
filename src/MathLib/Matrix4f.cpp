@@ -984,5 +984,15 @@ void Matrix4f::UnitTest()
 	product.Print();
 //	mult.Print();
 
+	Vector3f a(1,0,0), b(0,1,0), c(0,0,1);
+	Vector3f cross = b.CrossProduct(c);
+	assert(AbsoluteValue(cross.x) > 0.95f);
+	Vector3f cross2 = a.CrossProduct(b);
+	Vector3f cross3 = c.CrossProduct(a);
+	
+	Vector3f xz(1,0,1), y(0,1,0);
+	Vector3f cross4 = xz.CrossProduct(y);
+	assert(cross4.x < 0 && cross4.z > 0);
+
 }
 
