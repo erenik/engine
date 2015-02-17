@@ -50,7 +50,7 @@ bool FirstPersonCR::ResolveCollision(Collision & c)
 			return true;
 
 		/// Flip normal if dynamic is two.
-		if (dynamic == c.one)
+		if (dynamic == c.two)
 			c.collisionNormal *= -1;
 		// Default plane? reflect velocity upward?
 		if (c.collisionNormal.y > 0.9f)

@@ -254,6 +254,7 @@ List<EntityPair> AABBSweeper::Sweep()
         for (int j = 0; j < axis.Size(); ++j)
 		{
             AABBSweepNode * node = axis[j];
+//			std::cout<<"\nNode "<<j<<": "<<node->entity->name;
             /// If it's a start node, add it to the active list.
             if (node->type == AABBSweepNode::START)
 			{
@@ -264,6 +265,12 @@ List<EntityPair> AABBSweeper::Sweep()
                 for (int k = 0; k < numActiveEntities; ++k)
 				{
                     Entity * entity = activeEntityArray[k];
+
+					/// Since "entity" will be any kind, demand that the node entering now is dynamic. Will filter a bit.
+					if (node->entity->physics->type != PhysicsType::DYNAMIC ||
+						(node->entity->physics->state & PhysicsState::IN_REST))
+						continue;
+
 					// Check collision-filters.
 					if (
 						(
@@ -293,12 +300,7 @@ List<EntityPair> AABBSweeper::Sweep()
           //          std::cout<<"\nAdding pair: "<<ep.one<<" "<<ep.one->position<<" & "<<ep.two<<" "<<ep.two->position;
                     entityPairs.AddItem(ep);
                 }
-				// Only add Dynamic entities. The remaining are not interesting to have as "active", since
-				// Kinematic and static entities will be paired up with the active (dynamic) ones anyway!
-				// A filter for dynamic ones not interesting in collisions could also be set here instead.
-				if (node->entity->physics->type == PhysicsType::DYNAMIC &&
-					!(node->entity->physics->state & PhysicsState::IN_REST))
-	                activeEntities.AddItem(node->entity);
+				activeEntities.AddItem(node->entity);
             }
             /// And if it's a stop node, just remove it from the active entities list!
             else if (node->type == AABBSweepNode::STOP &&

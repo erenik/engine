@@ -42,6 +42,7 @@ struct Collision
 	Collision();
 
 	// The only guaranteed result from a collission. This is always normalized
+	// The normal should go from entity 'two' to entity 'one', so that it may be used straight away if e.g. two is a static floor and one is the dynamic entity.
 	Vector3f collisionNormal;
 	/// Flags for what results are relevant.
 	int results;
