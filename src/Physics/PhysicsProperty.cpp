@@ -13,6 +13,9 @@
 #include "PhysicsLib/Estimator.h"
 
 bool PhysicsProperty::defaultUseQuaternions = true;
+int PhysicsProperty::defaultCollisionCategory = 1;
+int PhysicsProperty::defaultCollisionFilter = 1;
+
 
 PhysicsProperty::PhysicsProperty()
 {
@@ -132,9 +135,9 @@ void PhysicsProperty::Nullify()
 
 	/// For separating categories and filters.
 	/// 0x0000001 by default.
-	collisionCategory = 0x00000001;
+	collisionCategory = defaultCollisionCategory;
 	/// 0x00000001 by default. is binary AND-ed to the opposing entities' category to see if a collision should occur or not.
-	collisionFilter = 0x00000001;
+	collisionFilter = defaultCollisionFilter;
 
 	paused = false;
 }

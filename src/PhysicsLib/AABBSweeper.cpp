@@ -6,6 +6,7 @@
 #include "Entity/Entity.h"
 #include "Physics/PhysicsProperty.h"
 #include <iomanip>
+#include "Timer/Timer.h"
 
 void EntityPair::PrintDetailed()
 {
@@ -116,6 +117,8 @@ int AABBSweeper::Nodes(){
 /// Should be called once per physics frame if in use.
 List<EntityPair> AABBSweeper::Sweep()
 {
+	Timer timer;
+	timer.Start();
     assert(axesToWorkWith == 1 && "Sorry! Support only 1 active axis for the time being!");
     /// Only sort one axis to begin with?
     for (int i = 0; i < axesToWorkWith; ++i){
@@ -124,6 +127,10 @@ List<EntityPair> AABBSweeper::Sweep()
       //  std::cout<<"\nNodes to sort: "<<axis.Size();
         Sort(axis, i);
     }
+	timer.Stop();
+	int sorting = timer.GetMs();
+
+	timer.Start();
 
     /// Sweepty sweep. Static so re-allocation aren't performed in vain every physics-frame.
 	static List<Entity*> activeEntities;
@@ -133,7 +140,7 @@ List<EntityPair> AABBSweeper::Sweep()
 	{
         /// Clear the active entities list.
         activeEntities.Clear();
-        List<AABBSweepNode*> axis = axisNodeList[i];
+        List<AABBSweepNode*> & axis = axisNodeList[i];
         for (int j = 0; j < axis.Size(); ++j)
 		{
             AABBSweepNode * node = axis[j];
@@ -148,6 +155,7 @@ List<EntityPair> AABBSweeper::Sweep()
                     /// Skip self, but create a pair for the remaining.
                     if (entity == node->entity)
                         continue;
+					// Check collision-filters.
 					if (
 						(
 							(entity->physics->collisionCategory & node->entity->physics->collisionFilter) && 
@@ -156,6 +164,16 @@ List<EntityPair> AABBSweeper::Sweep()
 					{
 						continue;
 					}
+					// Check active collision state?
+					// Require at least 1 dynamic non-resting entity.
+					if (
+							(
+								(node->entity->physics->type == PhysicsType::DYNAMIC && !(node->entity->physics->state & PhysicsState::IN_REST)) ||
+								(entity->physics->type == PhysicsType::DYNAMIC && !(entity->physics->state & PhysicsState::IN_REST)) 
+							) == false)
+						continue;
+
+
 					EntityPair ep;
                     /// Sort them by address (hopefully it works)
                     if (entity < node->entity){
@@ -194,7 +212,7 @@ List<EntityPair> AABBSweeper::Sweep()
         {
    //         std::cout<<"\nRemoving pair!";
             /// Removes it!
-            entityPairs.RemoveIndex(i, ListOption::RETAIN_ORDER);
+			entityPairs.RemoveIndex(i);
             /// Decrement i so we don't skip evaluating any of theze pairz!
             --i;
         }
@@ -206,6 +224,10 @@ List<EntityPair> AABBSweeper::Sweep()
         EntityPair ep = entityPairs[i];
   //      std::cout<<"\nPair "<<i<<": "<<ep.one<<" "<<ep.one->position<<" & "<<ep.two<<" "<<ep.two->position;
     }
+
+	timer.Stop();
+	int filtering = timer.GetMs();
+
  //   std::cout<<"\nAA-AABB pairs after examining the remaining two axes: "<<entityPairs.Size();
     return entityPairs;
 }

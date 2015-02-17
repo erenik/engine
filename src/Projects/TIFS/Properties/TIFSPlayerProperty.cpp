@@ -156,7 +156,7 @@ void TIFSPlayerProperty::UpdateHUDTargetInfo()
 		Graphics.QueueMessage(new GMSetUIs("TargetName", GMUI::TEXT, "Unidentified aerial object"));
 		String repairInfo = "HP "+String::ToString(targetDrone->currentHP)+"/"+String::ToString(targetDrone->maxHP);
 		Graphics.QueueMessage(new GMSetUIs("TargetHP", GMUI::TEXT, repairInfo));
-		Graphics.QueueMessage(new GMSetUIs("TargetStatus", GMUI::TEXT, targetDrone->active? "Offline" : "Online"));
+		Graphics.QueueMessage(new GMSetUIs("TargetStatus", GMUI::TEXT, targetDrone->isActive? "Offline" : "Online"));
 	}
 	else if (targetTurret)
 	{

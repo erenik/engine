@@ -15,6 +15,13 @@ class Sphere;
 class Quad;
 class OBB;
 
+/** Tests if a collission should occur between the two objects.
+	If so, it will save the collission data into the data parameter and return true.
+	If no collission should occur, it will return false.
+*/
+bool TestCollision(Entity * one, Entity * two, List<Collision> & collissionList);
+// The below functions are used to perform the actual tests once their types have been determined.
+
 /// For them OBBs.
 bool OBBOBBCollision(OBB * obb1, OBB * obb2, Collision &data);
 

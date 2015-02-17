@@ -46,6 +46,7 @@
 
 #include "Physics/PhysicsManager.h"
 #include "Physics/Messages/PhysicsMessage.h"
+#include "Physics/Messages/CollisionCallback.h"
 
 #include "Random/Random.h"
 
@@ -112,6 +113,10 @@ void TIFS::OnEnter(AppState * previousState)
 		cd = new TIFSCD();
 	if (!cr)
 		cr = new TIFSCR();
+
+	// Set default collision group and filter to environment.
+	PhysicsProperty::defaultCollisionCategory = CC_ENVIRON;
+	PhysicsProperty::defaultCollisionFilter = CC_PLAYER | CC_DRONE;
 
 	weather = new WeatherSystem();
 	weather->Initialize();
@@ -192,6 +197,21 @@ void TIFS::ProcessMessage(Message * message)
 	weather->ProcessMessage(message);
 	switch(message->type)
 	{
+		case MessageType::COLLISSION_CALLBACK:
+		{
+			CollisionCallback * cc = (CollisionCallback*) message;
+			/// o.o
+			Entity * one = cc->one;
+			Entity * two = cc->two;
+			TIFSDroneProperty * droneProp = (TIFSDroneProperty*) one->GetProperty(TIFSDroneProperty::ID());
+			if (!droneProp)
+				droneProp = (TIFSDroneProperty*) two->GetProperty(TIFSDroneProperty::ID());
+			if (droneProp)
+			{
+				droneProp->ProcessMessage(cc);				
+			}
+			break;	
+		}
 		case MessageType::STRING:
 		{
 			if (playerProp)
@@ -399,6 +419,7 @@ void TIFS::SpawnDrone(ConstVec3fr atLocation)
 	pp->gravityMultiplier = 0.f;
 	pp->collisionCategory = CC_DRONE;
 	pp->collisionFilter = CC_LASER | CC_ENVIRON;
+	pp->collissionCallback = true;
 
 	TIFSDroneProperty * droneProp = new TIFSDroneProperty(drone);
 	drone->properties.Add(droneProp);
@@ -595,7 +616,7 @@ void TIFS::CreateField()
 	PhysicsProperty * pp = new PhysicsProperty();
 	plane->physics = pp;
 	pp->shapeType = PhysicsShape::MESH;
-	plane->Scale(fieldSize);
+	plane->Scale(fieldSize * 5); // Make biggar.
 
 	tex = TexMan.GetTexture("0x88");
 	Entity * plane2 = EntityMan.CreateEntity("Plane 2", model, tex);

@@ -72,7 +72,6 @@ public:
 	/// Prints contents in each cubicle
 	void PrintContents();
 
-private:
 	/// To be used via the GraphicsManager's RenderPhysics function ONLY.
 	/// Matrices are assumed to be set up already upon entry
 	bool Render(GraphicsState * graphicsState);
@@ -92,6 +91,8 @@ private:
 	int IsEntityInside(Entity * Entity, Matrix4f & localTransform);
 	/// Checks if the target tri is inside this Octree node, intersecting it or outside.
 	int IsTriangleInside(Triangle * tri);
+
+private:
 
 	/// A center vector to avoid re-calculating it all the time.
 	Vector3f center;

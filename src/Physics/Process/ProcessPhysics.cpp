@@ -125,13 +125,18 @@ void PhysicsManager::ProcessPhysics()
 		sweepTimer.Stop();
 		int sweepDur = sweepTimer.GetMs();
 //		std::cout<<"\nAABB sweep pairs: "<<pairs.Size()<<" with "<<physicalEntities.Size()<<" entities";
+		Timer detectorTimer;
+		detectorTimer.Start();
 		if (collisionDetector)
 		{
 			collisionDetector->DetectCollisions(pairs, collisions);
 		}
+		
 		// Old approach which combined collision-detection and resolution in a big mess...
 		else 
 			DetectCollisions();
+		detectorTimer.Stop();
+		int detectorMs = detectorTimer.GetMs();
 		timer.Stop();
 		int thisFrame = timer.GetMs();
 		FrameStats.physicsCollisionDetection += thisFrame;
@@ -148,7 +153,7 @@ void PhysicsManager::ProcessPhysics()
 		for (int i = 0; i < collisions.Size(); ++i)
 		{
 			Collision & c = collisions[i];
-			if (c.one->physics->collissionCallback && c.two->physics->collissionCallback)
+			if (c.one->physics->collissionCallback || c.two->physics->collissionCallback)
 			{
 				/// Check max callbacks.
 				int & maxCallbacks1 = c.one->physics->maxCallbacks;

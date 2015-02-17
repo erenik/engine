@@ -112,7 +112,7 @@ Entity::Entity(int i_id)
 	/// Owner o-o
 	this->player = NULL;
 
-	aabb = NULL;
+	aabb = new AABB();
 
 	// Default all flags to 0.
 	/// Status, for whether it's part of rendering, physics, etc.
@@ -526,6 +526,9 @@ void Entity::RecalculateMatrix(int whichParts/*= true*/, bool recursively /* = f
 		}
 	}
 	worldPosition = transformationMatrix.Product(Vector4f());
+
+	/// Update AABB accordingly.
+	aabb->Recalculate(this);
 }
 
 void Entity::RecalcRotationMatrix()

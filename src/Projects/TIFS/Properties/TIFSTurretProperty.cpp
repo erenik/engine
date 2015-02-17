@@ -4,6 +4,7 @@
 
 #include "TIFSTurretProperty.h"
 #include "TIFSProjectile.h"
+#include "TIFSDroneProperty.h"
 
 #include "TIFS/TIFS.h"
 
@@ -58,6 +59,9 @@ void TIFSTurretProperty::Process(int timeInMs)
 			for (int i = 0; i < tifs->drones.Size(); ++i)
 			{
 				Entity * drone = tifs->drones[i];
+				TIFSDroneProperty * droneProp = (TIFSDroneProperty * )drone->properties[0];
+				if (!droneProp->isActive)
+					continue;
 				float squaredLen = (drone->position - base->position).LengthSquared();
 				if (squaredLen < minSquaredLen)
 				{

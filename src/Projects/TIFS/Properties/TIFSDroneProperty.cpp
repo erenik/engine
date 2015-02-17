@@ -9,12 +9,16 @@
 
 #include "Random/Random.h"
 
+#include "Entity/EntityPropertyState.h"
+#include "Physics/Messages/CollisionCallback.h"
+#include "StateManager.h"
+
 TIFSDroneProperty::TIFSDroneProperty(Entity * owner)
 : EntityProperty("TIFSDroneProperty", TIFSProperty::DRONE, owner) 
 {
-
 	currentHP = maxHP = 5000;
-	active = true;
+	isActive = true;
+	acceleration = 1.0;
 }
 
 int TIFSDroneProperty::ID()
@@ -39,6 +43,8 @@ Random droneMovement;
 /// Time passed in seconds..!
 void TIFSDroneProperty::Process(int timeInMs)
 {
+	if (!isActive)
+		return;
 	// Eh... walk to nearby turret?
 	// Got a destination?
 	if (!destination.MaxPart())
@@ -50,7 +56,8 @@ void TIFSDroneProperty::Process(int timeInMs)
 	{
 		// Move to it.
 		Vector3f toDestination = destination - owner->position;
-		Physics.QueueMessage(new PMSetEntity(owner, PT_ACCELERATION, toDestination));
+		Vector3f toDestNormed = toDestination.NormalizedCopy();
+		Physics.QueueMessage(new PMSetEntity(owner, PT_ACCELERATION, toDestNormed * acceleration));
 
 		float distance2 = toDestination.LengthSquared();
 		if (distance2 < 10)
@@ -60,6 +67,31 @@ void TIFSDroneProperty::Process(int timeInMs)
 		}
 	}
 }
+
+void TIFSDroneProperty::ProcessMessage(Message * message)
+{
+	switch(message->type)
+	{
+		case MessageType::COLLISSION_CALLBACK:
+		{
+			CollisionCallback * cc = (CollisionCallback * )message;
+			// Take damage.
+			if (isActive)
+			{
+				isActive = false;
+				// Die.
+
+				// Stop acceleration.
+				PhysicsQueue.Add(new PMSetEntity(owner, PT_ACCELERATION, Vector3f()));
+				// Start falling.
+				PhysicsQueue.Add(new PMSetEntity(owner, PT_GRAVITY_MULTIPLIER, 1.0f));
+			}
+			
+			break;
+		}
+	}
+}
+
 
 
 /// o-o

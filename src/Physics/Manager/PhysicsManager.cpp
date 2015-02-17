@@ -60,10 +60,10 @@ PhysicsManager::PhysicsManager()
 	paused = false;
 	ignoreCollisions = false;
 	gravitation[1] = -DEFAULT_GRAVITY; // Sets default gravitation (corresponds to 9.82 m/s^2 in real life, if 1 unit is 1 meter in-game.
-    checkType = OCTREE;
 
 	physicsMessageQueueMutex.Create("physicsMessageQueueMutex");
 	aabbSweeper = new AABBSweeper();
+	checkType = AABB_SWEEP;
 
 	pauseOnCollision = false;
 	linearDamping = 0.5f;
@@ -229,11 +229,28 @@ List<Intersection> PhysicsManager::Raycast(Ray & ray)
 
 void PhysicsManager::RecalculateAABBs()
 {
+	/// Moved to be done in Entity::RecalculateMatrix
+	return;
 	for (int i = 0; i < dynamicEntities.Size(); ++i)
 	{
 		Entity * dynamicEntity = dynamicEntities[i];
 		AABB * aabb = dynamicEntity->GetAABB();
 		aabb->position = dynamicEntity->position;
+		aabb->min = aabb->position - aabb->scale * 0.5f;
+		aabb->max = aabb->position + aabb->scale * 0.5f;
+//		Vector3f minr = aabb->min, maxr = aabb->max;
+//		aabb->Recalculate(dynamicEntity);
+//		if (minr != aabb->min)
+//		{
+//			assert(false);
+	//		std::cout<<"nererer";
+//		}
+    }
+	for (int i = 0; i < kinematicEntities.Size(); ++i)
+	{
+		Entity * kinematicEntities = dynamicEntities[i];
+		AABB * aabb = kinematicEntities->GetAABB();
+		aabb->position = kinematicEntities->position;
 		aabb->min = aabb->position - aabb->scale * 0.5f;
 		aabb->max = aabb->position + aabb->scale * 0.5f;
 //		Vector3f minr = aabb->min, maxr = aabb->max;

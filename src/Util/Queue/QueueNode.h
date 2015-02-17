@@ -20,6 +20,29 @@ private:
 	QueueNode<value_type>* next;
 };
 
-#include "QueueNode.template"
+template <class Item>
+QueueNode<Item>::QueueNode(value_type i_item)
+{
+	data = i_item;
+	next = NULL;
+}
+
+template <class Item>
+Item QueueNode<Item>::getData()
+{
+	return data;
+}
+
+template <class Item>
+QueueNode<Item>* QueueNode<Item>::getNext()
+{
+	return next;
+}
+
+template <class Item>
+void QueueNode<Item>::setNext(QueueNode<Item>* i_next)
+{
+	next = i_next;
+}
 
 #endif

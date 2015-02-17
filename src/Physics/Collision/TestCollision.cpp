@@ -6,14 +6,15 @@
 #include "../PhysicsManager.h"
 #include "Collisions.h"
 #include "PhysicsLib/PhysicsMesh.h"
-#include "Physics/Collision/CollisionShapeOctree.h"
+//#include "Physics/Collision/CollisionShapeOctree.h"
 #include <cstring>
+#include "CollisionShapeOctree.h"
 
 /** Tests if a collission should occur between the two objects and
 	either resolves it straight away or queues the collission to be solved at a later time
 	depending on current settings.
 */
-bool PhysicsManager::TestCollision(Entity * one, Entity * two, List<Collision> & collissionList){
+bool TestCollision(Entity * one, Entity * two, List<Collision> & collissionList){
 
 	Collision data;
 
@@ -88,14 +89,15 @@ bool PhysicsManager::TestCollision(Entity * one, Entity * two, List<Collision> &
 #define USE_COLLISSION_SHAPE_OCTREE true
 
 		// If it's got an optimized octree, use it instead, yo.
-		if (meshEntity->physics->usesCollisionShapeOctree && USE_COLLISSION_SHAPE_OCTREE){
+		if (meshEntity->physics->usesCollisionShapeOctree && USE_COLLISSION_SHAPE_OCTREE)
+		{
 		//	std::cout<<"\nUsing collission shape octree to optimized collission detection.";
 			PhysicsMesh * physicsMesh = meshEntity->physics->physicsMesh;
 			List<Collision> physicsMeshCollisions;
 			int tests = physicsMesh->collisionShapeOctree->FindCollisions(sphereEntity, physicsMeshCollisions, meshEntity->transformationMatrix);
 		//	std::cout<<"\nPhysicsMeshCollisions: "<<physicsMeshCollisions.Size();
 		//	std::cout<<"\nPhysicsMeshChecks: "<<tests<<" out of "<<physicsMesh->triangles.Size()<<" triangles tested";
-			Physics.physicsMeshCollisionChecks += tests;
+			PhysicsMan.physicsMeshCollisionChecks += tests;
 			for (int i = 0; i < physicsMeshCollisions.Size(); ++i){
 				Collision col = physicsMeshCollisions[i];
 				col.one = one;
@@ -173,7 +175,10 @@ bool PhysicsManager::TestCollision(Entity * one, Entity * two, List<Collision> &
 
 	// Check if collission should occur and add it to the list if so.
 	if (shouldCollide)
+	{
 		collissionList.Add(data);
+		return true;
+	}
 
 	return false;
 }

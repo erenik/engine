@@ -35,6 +35,7 @@ namespace PhysicsState {
 		Entities in rest are not applied gravitation. Any collission with other results resets this flag.
 	*/
 	const int IN_REST	= 0x00000001;
+#define AT_REST IN_REST
 	/** Colliding, applied if a collission occurs. This is reset if no collissions occur next iteration. */
 	const int COLLIDING = 0x00000002;
 };
@@ -95,6 +96,10 @@ public:
 	int collisionCategory;
 	/// 0x0000001 by default. is binary AND-ed to the opposing entities' category to see if a collision should occur or not.
 	int collisionFilter;
+	// the defaults, 1 both.
+	static int defaultCollisionCategory;
+	static int defaultCollisionFilter;
+
 
 	/// See state enumerations above. TODO: Consider making the state-variable below private.
 	void SetPhysicsState(int state);

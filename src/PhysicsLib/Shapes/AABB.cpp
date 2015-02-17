@@ -43,6 +43,32 @@ void AABB::Recalculate(Entity * entity)
 {
 	if (!entity->model->mesh->aabb)
 		return;
+	
+	/// Check physics-type.
+	PhysicsProperty * pp = entity->physics;
+	/// Default: mesh?
+	int physicsShape = PhysicsShape::MESH;
+	if (pp)
+		physicsShape = pp->shapeType;
+	switch(physicsShape)
+	{
+		case PhysicsShape::SPHERE:
+		{
+			Vector3f radiusVec = Vector3f(1,1,1) * entity->radius;
+			this->position = entity->position;
+			this->min = position - radiusVec;
+			this->max = position + radiusVec;
+			this->scale = radiusVec * 2;
+			return;
+		}
+		case PhysicsShape::MESH:
+			// Default use below method.
+			break;
+		default:
+			assert(false && "Implement");
+	}
+
+
 	/// Recalculate from scratch if re-scaled or rotated?    
 	lastScale = entity->scale;
 	lastRot = entity->rotation;

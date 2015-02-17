@@ -203,14 +203,6 @@ private:
 	/** Recalculates physical properties for all registered entities. */
 	void RecalculatePhysicsProperties();
 
-    //  Following moved to Collision.h!
-	/// Updates the entity's collission state (colliding, in rest, on plane) using it's current velocities and the collission normal.
-///	void UpdateCollisionState(Entity * entity, Vector3f collisionNormal = Vector3f());
-	/** Tests if a collission should occur between the two objects.
-		If so, it will save the collission data into the data parameter and return true.
-		If no collission should occur, it will return false.
-	*/
-	bool TestCollision(Entity * one, Entity * two, List<Collision> & collissionList);
 	/// Processes queued messages.
 	void ProcessMessages();
 	/// Processes physics for all registered objects

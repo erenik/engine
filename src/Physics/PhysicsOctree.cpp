@@ -277,7 +277,8 @@ static int collissionsTested = 0;
 
 /// Compare each dynamic entity with every other entity in it's current vfcOctree node,
 /// all nodes below it as well the direct parents above it.
-int PhysicsOctree::FindCollisions(Entity * targetEntity, List<Collision> & collissionList, int entrySubdivisionLevel){
+int PhysicsOctree::FindCollisions(Entity * targetEntity, List<Collision> & collissionList, int entrySubdivisionLevel)
+{
 	if (entrySubdivisionLevel == -1)
 		entrySubdivisionLevel = this->subdivision;
 
@@ -286,7 +287,7 @@ int PhysicsOctree::FindCollisions(Entity * targetEntity, List<Collision> & colli
 	for (int i = 0; i < entities.Size(); ++i){
 		Entity * e = entities[i];
 		assert(e && "Nullentity in PhysicsOctree::FindCollisions");
-		Physics.TestCollision(targetEntity, e, collissionList);
+		TestCollision(targetEntity, e, collissionList);
 		++collissionsTested;
 	}
 

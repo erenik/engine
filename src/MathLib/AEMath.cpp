@@ -8,6 +8,17 @@
 
 float oneDivRandMaxFloat = 0;
 
+MathLib mathLib;
+
+MathLib::MathLib()
+{
+	Init();
+}
+MathLib::~MathLib()
+{
+	Free();
+}
+
 // Initializes the various numbers specified above.
 void MathLib::Init()
 {

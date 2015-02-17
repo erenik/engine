@@ -18,12 +18,18 @@ const float ZERO = 0.0000000001f;
 /// To be used together with rand(), if it is wanted (may be faster than any complex Pseudo-generator?)
 extern float oneDivRandMaxFloat;
 
-namespace MathLib 
+/// Let it auto-create on the Stack.
+class MathLib 
 {	
+public:
+	MathLib();
+	~MathLib();
+private:
 	// Initializes the various numbers specified above.
 	void Init();
 	void Free();
 };
+extern MathLib mathLib;
 
 
 #ifndef AbsoluteValue

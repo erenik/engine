@@ -106,7 +106,8 @@
 
 #include "MathLib/Function.h"
 
-void SIMDTest();
+extern bool UnitTests();
+// void SIMDTest();
 
 /// Kept in GraphicsProcessor.
 extern int fatalGraphicsError;
@@ -124,7 +125,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 int main(int argc, char **argv)
 {
 #endif
-	MathLib::Init();
 
 	// Set application-defaults here already?
 	/// Call to set application name, root directories for various features, etc.
@@ -300,16 +300,8 @@ int main(int argc, char **argv)
 #endif // WINDOWS
 
 	// Unit tests here if wanted.
-		
-#define test
-#ifdef test
-
-	Matrix4f::UnitTest();
-//	Angle::UnitTest();
-
-//	return 0;
-#endif
-
+	if (UnitTests())
+		return 0;
 
     // Register window pre-stuffs.
 #ifdef WINDOWS
@@ -681,7 +673,7 @@ int main(int argc, char **argv)
 	
 	// Delete mutexes.
 	DeleteUIMutex();
-	MathLib::Free();
+//	MathLib::Free();
 
 	std::cout<<"\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>";
 	std::cout<<"\n>>>Main finishing.    >>>";

@@ -59,7 +59,7 @@ void FirstPersonIntegrator::IntegrateVelocity(List<Entity*> & entities, float ti
 		Vector3f lookAt = forEntity->LookAt();
 
 		/// Apply gravity
-		if (pp->gravityMultiplier)
+		if (pp->gravityMultiplier && !(pp->state & PhysicsState::AT_REST))
 			pp->velocity += gravity * pp->gravityMultiplier * timeInSeconds;
 
 		// Accelerate in the looking-direction

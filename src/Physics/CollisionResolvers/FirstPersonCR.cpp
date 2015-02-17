@@ -15,6 +15,71 @@ int FirstPersonCR::ResolveCollisions(List<Collision> collisions)
 /// Returns false if the colliding entities are no longer in contact after resolution.
 bool FirstPersonCR::ResolveCollision(Collision & c)
 {
+	Entity * dynamic;
+	Entity * other;
+	if (c.one->physics->type == PhysicsType::DYNAMIC)
+	{
+		dynamic = c.one;
+		other = c.two;
+	}
+	else 
+	{
+		dynamic = c.two;
+		other = c.one;
+	}
+	Entity * dynamic2 = other->physics->type == PhysicsType::DYNAMIC? other : NULL;
+	Entity * staticEntity;
+	Entity * kinematicEntity;
+	if (dynamic == c.one)
+		other = c.two;
+	else
+		other = c.one;
+	if (!dynamic2)
+	{
+		staticEntity = other->physics->type == PhysicsType::STATIC? other : NULL;
+		kinematicEntity = other->physics->type == PhysicsType::KINEMATIC? other : NULL;
+	}
+	std::cout<<"\nCollision: "<<c.one->name<<" "<<c.two->name;
+	// Collision..!
+	// Static-Dynamic collision.
+	if (!dynamic2)
+	{
+		PhysicsProperty * pp = dynamic->physics;
+		// Skip
+		if (kinematicEntity)
+			return true;
+
+		/// Flip normal if dynamic is two.
+		if (dynamic == c.one)
+			c.collisionNormal *= -1;
+		// Default plane? reflect velocity upward?
+		if (c.collisionNormal.y > 0.9f)
+		{
+			dynamic->physics->velocity.y *= -1;
+			/// Apply resitution and stuffs.
+			dynamic->physics->velocity *= pp->restitution;
+			dynamic->position.y += AbsoluteValue(c.distanceIntoEachOther);
+			/// If below threshold, sleep it.
+			if (dynamic->physics->velocity.Length() < 0.1f)
+			{
+				// Sleep eeet.
+				dynamic->physics->state |= PhysicsState::AT_REST;
+				// Nullify velocity.
+				dynamic->physics->velocity = Vector3f();
+			}
+			std::cout<<"\nCollision normal: "<<c.collisionNormal;
+		}	
+	}
+	// Dynamic-dynamic collision.
+	else 
+	{
+	
+	}
+
+
+	// Check collision normal.
+
+
 	return false;
 }
 
