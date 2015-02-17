@@ -18,19 +18,13 @@ void FirstPersonIntegrator::IntegrateDynamicEntities(List<Entity*> & dynamicEnti
 {
 	Timer timer;
 	timer.Start();
-	List<Entity*> forceReqEntities;
-	for (int i = 0; i < dynamicEntities.Size(); ++i)
-	{
-		Entity * entity = dynamicEntities[i];
-		if (entity->physics->useForces)
-			forceReqEntities.Add(entity);
-	}
-	if (forceReqEntities.Size())
+	List<Entity*> & forceBasedEntities = PhysicsMan.forceBasedEntities;
+	if (forceBasedEntities.Size())
 	{
 		/// Provides default "scientific" rigid-body based simulation handling of forces, torques, etc.
-		CalculateForces(forceReqEntities);
-		UpdateMomentum(forceReqEntities, timeInSeconds);
-		DeriveVelocity(forceReqEntities);
+		CalculateForces(forceBasedEntities);
+		UpdateMomentum(forceBasedEntities, timeInSeconds);
+		DeriveVelocity(forceBasedEntities);
 	}
 
 	IntegrateVelocity(dynamicEntities, timeInSeconds);
@@ -73,7 +67,7 @@ void FirstPersonIntegrator::IntegrateVelocity(List<Entity*> & entities, float ti
 		pp->velocity += localAcceleration * timeInSeconds;
 
 		// Apply linear damping
-		pp->velocity *= pow(pp->linearDamping, timeInSeconds);
+		pp->velocity *= pp->linearDampingPerPhysicsFrame; //  pow(pp->linearDamping, timeInSeconds);
 
 		/// Player induced / controlled constant velocity in relative direction?
 		Vector3f relVelWorldSpaced;
@@ -126,24 +120,21 @@ void FirstPersonIntegrator::IntegratePosition(List<Entity*> & entities, float ti
 		//		forEntity->rotationMatrix = q.Matrix();
 			}
 		}
-		else 
+		else if (pp->angularVelocityQuaternion.angle != 0)
 		{
 			// Rotate.
 			Quaternion rotation(pp->angularVelocityQuaternion);
-			if (rotation.w && rotation.MaxPart())
-			{
-				// Multiple the amount to rotate with time.
-				rotation.angle *= timeInSeconds;
-				// Recalculate it so that it becomes a unit quaternion again.
-				rotation.RecalculateXYZW();
-				assert(rotation.x == rotation.x);
-				pp->orientation = pp->orientation * rotation;
-				assert(pp->orientation.x == pp->orientation.x);
-				//.. and don't forget to normalize it or it will die.
-				pp->orientation.Normalize();
-				assert(pp->orientation.x == pp->orientation.x);
-				forEntity->hasRotated = true;
-			}
+			// Multiple the amount to rotate with time.
+			rotation.angle *= timeInSeconds;
+			// Recalculate it so that it becomes a unit quaternion again.
+			rotation.RecalculateXYZW();
+			assert(rotation.x == rotation.x);
+			pp->orientation = pp->orientation * rotation;
+			assert(pp->orientation.x == pp->orientation.x);
+			//.. and don't forget to normalize it or it will die.
+			pp->orientation.Normalize();
+			assert(pp->orientation.x == pp->orientation.x);
+			forEntity->hasRotated = true;
 		}
 	}
 }

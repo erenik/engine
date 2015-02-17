@@ -164,7 +164,8 @@ void Quaternion::Rotate(const Vector3f & vector, float scale){
 }
 
 /// Wosh. Similar to rotate? or no?
-void Quaternion::ApplyAngularVelocity(const Vector3f & velocity, float time){
+void Quaternion::ApplyAngularVelocity(const Vector3f & velocity, float time)
+{
     Quaternion q(velocity[0] * time, velocity[1] * time, velocity[2] * time, 0);
     q *= *this;
 
@@ -180,10 +181,17 @@ void Quaternion::RecalculateXYZW()
 	float halfAngle = angle * 0.5f;
 	float sinHalfAngle = FastSin(halfAngle);
 	float cosHalfAngle = FastCos(halfAngle);
-	x = axis[0] * sinHalfAngle;
-	y = axis[1] * sinHalfAngle;
-	z = axis[2] * sinHalfAngle;
+
+#ifdef USE_SSE
+	__m128 sse = _mm_load1_ps(&sinHalfAngle);
+	data = _mm_mul_ps(axis.data, sse);
 	w = cosHalfAngle;
+#else
+	x = axis.x * sinHalfAngle;
+	y = axis.y * sinHalfAngle;
+	z = axis.z * sinHalfAngle;
+	w = cosHalfAngle;
+#endif
 }
 
 

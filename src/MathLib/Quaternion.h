@@ -48,7 +48,17 @@ public:
     void ApplyAngularVelocity(const Vector3f & velocity, float time);
 
     /// Coordinates, expressed in the xi + yj + zk + w format.
+#ifdef USE_SSE
+	union 
+	{
+		struct {
+			float x,y,z,w;
+		};
+		__m128 data;
+	};
+#else
     float x,y,z,w;
+#endif
 	// Angle in radians
 	float angle;
 	// Axis by which we rotate.

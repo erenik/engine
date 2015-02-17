@@ -560,36 +560,44 @@ float Vector3f::ScalarProduct(const Vector3f & otherVector) const {
 	return x * otherVector[0] + y * otherVector[1] + z * otherVector[2];
 }
 // Same thing as scalar product, silly!
-float Vector3f::DotProduct(const Vector3f & otherVector) const {
+float Vector3f::DotProduct(const Vector3f & otherVector) const 
+{
+#ifdef USE_SSEEE
+	SSEVec product;
+	product.data = _mm_mul_ps(data, otherVector.data);
+	return product.x + product.y + product.z;
+#else
 	return x * otherVector[0] + y * otherVector[1] + z * otherVector[2];
+#endif
 }
 
 Vector3f Vector3f::CrossProduct(const Vector3f & otherVector) const 
 {
-	
-	/*
-#ifdef USE_SSE
-	Vector3f cross;
-	__m128 sse, left, right;
-
-	// x = y * otherVector.z - z * otherVector.y;
-	// y = z * otherVector.x - x * otherVector.z;
-	// z = x * otherVector.y - y * otherVector.x;
-	// y, z, x
+#ifdef USE_SSEEE
+	Vector3f result;
+	__m128 result1, result2, loaded;
+	// First the 2 separate multiplications.
 	float arr[4];
-	arr = {y,z,x,0};
-	left = _mm_load_ps(arr);
-
-	sse = _
-	cross.data
-	;
-	return cross;
+	// Load data for first one. our XYZ with their YZX
+	arr[0] = otherVector.y;
+	arr[1] = otherVector.z;
+	arr[2] = otherVector.x;
+	loaded = _mm_loadu_ps(arr);
+	result1 = _mm_mul_ps(data, loaded); 
+	// Second one. their XYZ with our YZX
+	arr[0] = y;
+	arr[1] = z;
+	arr[2] = x;
+	loaded = _mm_loadu_ps(arr);
+	result2 = _mm_mul_ps(otherVector.data, loaded); 
+	/// 
+	result.data = _mm_sub_ps(result1, result2);
+	return result;
 #else
-	*/
 	return Vector3f (y * otherVector[2] - z * otherVector[1], 
 		z * otherVector[0] - x * otherVector[2], 
 		x * otherVector[1] - y * otherVector[0]);
-// #else
+#endif
 }
 
 /// Multiplies the elements in the two vectors internally, returning the product.

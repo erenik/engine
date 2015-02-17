@@ -164,6 +164,8 @@ public:
 	float physicsMeshCollisionChecks;
 
 	Vector3f GetGravitation() { return gravitation; };
+
+	Entities forceBasedEntities;
 private:
 	/// Casts a ray.
 	List<Intersection> Raycast(Ray & ray);

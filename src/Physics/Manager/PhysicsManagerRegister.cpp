@@ -107,7 +107,9 @@ int PhysicsManager::RegisterEntity(Entity * newEntity)
 				semiDynamicEntities.Add(newEntity); 
 	}
 
-
+	if (pp->useForces)
+		forceBasedEntities.Add(newEntity);
+	
 	Physics.EnsurePhysicsMeshIfNeeded(newEntity);
 
 	entitiesInOctree = entityCollisionOctree->RegisteredEntities();
@@ -172,6 +174,10 @@ int PhysicsManager::UnregisterEntity(Entity * entityToRemove)
 
 	// pp o.o
 	PhysicsProperty * pp = entityToRemove->physics;
+
+	if (pp->useForces)
+		forceBasedEntities.Remove(entityToRemove);
+
 
 	/// Remove from octree/AABB-sweeper
 	if (entityToRemove->physics->collissionsEnabled)
