@@ -471,13 +471,13 @@ void TIFS::CreateTurret(int ofSize, ConstVec3fr atLocation)
 	turretBase->physics = pp;
 	pp->type = PhysicsType::KINEMATIC;
 	pp->fullyDynamic = false;
-	
 
 	/// Add a child-mesh-part to the first turret-part!
 	Model * swivel = ModelMan.GetModel("Turrets/LargeSwivel");
 	Entity * swivelEntity = EntityMan.CreateEntity("TurretSwivel", swivel, diffuseMap);
 	pp = swivelEntity->physics = new PhysicsProperty();
 	pp->fullyDynamic = false;
+	pp->collisionsEnabled = false;
 
 	/// Make the swivel's transformation depend on the base'.
 	GraphicsQueue.Add(new GMSetEntity(swivelEntity, GT_PARENT, turretBase)); 
@@ -492,6 +492,7 @@ void TIFS::CreateTurret(int ofSize, ConstVec3fr atLocation)
 	pp = underBarrelEntity->physics = new PhysicsProperty();
 	pp->type = PhysicsType::KINEMATIC;
 	pp->fullyDynamic = false;
+	pp->collisionsEnabled = false;
 	
 	// Add barrel.
 	Model * barrel = ModelMan.GetModel("Turrets/LargeBarrel");
@@ -505,6 +506,7 @@ void TIFS::CreateTurret(int ofSize, ConstVec3fr atLocation)
 	pp->SetMass(100.0f);
 	pp->useForces = true;
 	pp->fullyDynamic = false;
+	pp->collisionsEnabled = false;
 
 
 	// Create the ... Turret Property.

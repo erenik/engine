@@ -17,7 +17,7 @@ int PhysicsManager::RegisterEntity(Entity * newEntity)
 	int aabbSweeperNodes = aabbSweeper->Nodes();
 	int collidingEntities = 0;
 	for (int i = 0; i < physicalEntities.Size(); ++i){
-        if (physicalEntities[i]->physics->collissionsEnabled){
+        if (physicalEntities[i]->physics->collisionsEnabled){
             ++collidingEntities;
         }
     }
@@ -52,7 +52,7 @@ int PhysicsManager::RegisterEntity(Entity * newEntity)
     newEntity->physics->UpdateProperties(newEntity);
 
 	/// Add only to octree/AABB-list if flagged to enable collissions!!
-	if (newEntity->physics->collissionsEnabled)
+	if (newEntity->physics->collisionsEnabled)
 	{
 		if (checkType == OCTREE)
 		{
@@ -63,7 +63,7 @@ int PhysicsManager::RegisterEntity(Entity * newEntity)
 		{
 			aabbSweeper->RegisterEntity(newEntity);	
 			//	std::cout<<"\nPost register: AABBSweeper nodes: "<<aabbSweeperNodes<<" colliding entities: "<<collidingEntities;
-			assert(aabbSweeperNodes == collidingEntities*2);
+			assert(aabbSweeperNodes == collidingEntities* aabbSweeper->AxesToWorkWith() * 2);
 		}
 	}
 	else {
@@ -117,7 +117,7 @@ int PhysicsManager::RegisterEntity(Entity * newEntity)
 	aabbSweeperNodes = aabbSweeper->Nodes();
 	collidingEntities = 0;
 	for (int i = 0; i < physicalEntities.Size(); ++i){
-        if (physicalEntities[i]->physics->collissionsEnabled){
+        if (physicalEntities[i]->physics->collisionsEnabled){
             ++collidingEntities;
         }
     }
@@ -159,7 +159,7 @@ int PhysicsManager::UnregisterEntity(Entity * entityToRemove)
 	assert(entitiesInOctree <= physicalEntitiesNum);
 	int collidingEntities = 0;
 	for (int i = 0; i < physicalEntities.Size(); ++i){
-        if (physicalEntities[i]->physics->collissionsEnabled){
+        if (physicalEntities[i]->physics->collisionsEnabled){
             ++collidingEntities;
         }
     }
@@ -170,7 +170,7 @@ int PhysicsManager::UnregisterEntity(Entity * entityToRemove)
 		return 1;
 	assert(removedResult && "Trying to unregister entity that has not been previously registered!");
 
- //   std::cout<<"\nCollision enabled for entity? "<<entityToRemove->physics->collissionsEnabled;
+ //   std::cout<<"\nCollision enabled for entity? "<<entityToRemove->physics->collisionsEnabled;
 
 	// pp o.o
 	PhysicsProperty * pp = entityToRemove->physics;
@@ -180,7 +180,7 @@ int PhysicsManager::UnregisterEntity(Entity * entityToRemove)
 
 
 	/// Remove from octree/AABB-sweeper
-	if (entityToRemove->physics->collissionsEnabled)
+	if (entityToRemove->physics->collisionsEnabled)
 	{
 		if (checkType == OCTREE)
 			removedResult = entityCollisionOctree->RemoveEntity(entityToRemove);
@@ -190,7 +190,7 @@ int PhysicsManager::UnregisterEntity(Entity * entityToRemove)
 	}
 	else {
 		while(entityCollisionOctree->Exists(entityToRemove)){
-	//		std::cout<<"\nERROR: Entity "<<entityToRemove->name<<" existed in Collision octree without having the collissionsEnabled flag! What are you doing?!";
+	//		std::cout<<"\nERROR: Entity "<<entityToRemove->name<<" existed in Collision octree without having the collisionsEnabled flag! What are you doing?!";
 			removedResult = entityCollisionOctree->RemoveEntity(entityToRemove);
 		}
 	}
@@ -228,7 +228,7 @@ int PhysicsManager::UnregisterEntity(Entity * entityToRemove)
 	aabbSweeperNodes = aabbSweeper->Nodes();
 	collidingEntities = 0;
 	for (int i = 0; i < physicalEntities.Size(); ++i){
-        if (physicalEntities[i]->physics->collissionsEnabled){
+        if (physicalEntities[i]->physics->collisionsEnabled){
             ++collidingEntities;
         }
     }

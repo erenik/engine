@@ -15,7 +15,7 @@ int SpaceShooterCD::DetectCollisions(List<Entity*> & entities, List<Collision> &
 	for (int i = 0; i < entities.Size(); ++i)
 	{
 		Entity * entity = entities[i];
-		if (!entity->physics->collissionsEnabled)
+		if (!entity->physics->collisionsEnabled)
 			continue;
 		// Must be at least one dynamic entity to get a collision.
 		if (entity->physics->type != PhysicsType::DYNAMIC)
@@ -57,7 +57,7 @@ int SpaceShooterCD::DetectCollisions(List<EntityPair> & pairs, List<Collision> &
 		// Quick opt-out.
 		if (entity == entity2)
 			continue;
-		if (!entity2->physics->collissionsEnabled)
+		if (!entity2->physics->collisionsEnabled)
 			continue;
 
 		float radiiSum = entity->physics->physicalRadius + entity2->physics->physicalRadius;

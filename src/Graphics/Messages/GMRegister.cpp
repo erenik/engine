@@ -13,6 +13,9 @@ GMRegisterEntity::GMRegisterEntity(Entity * i_entity) : GraphicsMessage(GM_REGIS
 
 void GMRegisterEntity::Process()
 {
+	if (!EntityMan.IsGood(entity))
+		return;
+
 	GraphicsManager & manager = GraphicsMan;
 	assert(manager.vfcOctree);
 	///	entity->model->mesh.Bufferize();

@@ -39,7 +39,7 @@ typedef struct CompactPhysics {
 	/// See PhysicsProperty.h
 	int collissionCallback;
 	float collissionCallbackRequirementValue;
-	bool collissionsEnabled;
+	bool collisionsEnabled;
 	bool noCollisionResolutions;
 
 	/// Reads data from file stream

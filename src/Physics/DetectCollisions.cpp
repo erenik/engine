@@ -148,7 +148,7 @@ void PhysicsManager::DetectCollisions()
             //      	std::cout<<"\nVelocity pre: "<<vel;
                 
                 /// Skip entities not interested in collissions.
-                if (!entity->physics->collissionsEnabled)
+                if (!entity->physics->collisionsEnabled)
                     continue;
 
                 if (!entity || !entity->physics || !entity->physics->octreeNode){

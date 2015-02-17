@@ -25,20 +25,23 @@ CompactEntity::~CompactEntity(){
 }
 
 /// Getter functions for total dependencies
-List<String> CompactEntity::GetModelDependencies(){
+List<String> CompactEntity::GetModelDependencies()
+{
 	List<String> dependencies;
+	/*
 	dependencies.Add(model);
 	if (cPhysics){
 		if (cPhysics->physicsMesh){
 			dependencies.Add(cPhysics->physicsMesh);
 		}
 	}
+	*/
 	return dependencies;
 }
 
 List<String> CompactEntity::GetTextureDependencies(){
 	List<String> dependencies;
-	dependencies.Add(diffuseMap);
+//	dependencies.Add(diffuseMap);
 	if (cGraphics){
 		/// TODO: Iterate multiple textures...
 	}

@@ -711,7 +711,7 @@ SIPNotifyPacket::SIPNotifyPacket(String event)
 SIPBadEventPacket::SIPBadEventPacket(SIPPacket * packetToReply)
 : SIPReplyPacket(packetToReply, SIP_BAD_EVENT){
 	body.Clear();
-	body.Add("Invalid event requested. List of event types below.. once implemented.");
+	body.AddItem("Invalid event requested. List of event types below.. once implemented.");
 	bodySet = true;
 //	BuildHeader();
 }

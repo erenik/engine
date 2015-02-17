@@ -8,7 +8,10 @@
 #include "PhysicsLib/Shapes/AABB.h"
 #include "List/List.h"
 
-struct EntityPair {
+struct EntityPair 
+{
+	EntityPair();
+	EntityPair(Entity * one, Entity * two);
     Entity * one;
     Entity * two;
     void PrintDetailed();
@@ -42,6 +45,8 @@ public:
     /// Performs the sweep (including sort) and returns a list of all entity pairs whose AABBs are intersecting.
     /// Should be called once per physics frame if in use.
     List<EntityPair> Sweep();
+
+	int AxesToWorkWith() {return axesToWorkWith;};
 protected:
 
     enum axes {
@@ -56,6 +61,7 @@ protected:
 
     /// Determines which axis to sort. Default is 1, being only the X-axis and lazy comparison for the rest.
     int axesToWorkWith;
+	int nodesToWorkWith; // Axes * 2
     int axesSorted;
     List<AABBSweepNode*> axisNodeList[AXES];
 private:

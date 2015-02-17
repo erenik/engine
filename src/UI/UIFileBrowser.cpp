@@ -127,7 +127,7 @@ void UIFileBrowser::LoadDirectory(bool fromRenderThread)
 	if (currentPath.Length() == 0)
 		currentPath = ".";
 	List<String> dirs, files;
-	dirs.Add("..");
+	dirs.AddItem("..");
 	int result = GetDirectoriesInDirectory(currentPath, dirs);
 	result = GetFilesInDirectory(currentPath, files);
 	UIElement * firstDir = NULL;

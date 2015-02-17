@@ -56,7 +56,7 @@ PhysicsProperty::PhysicsProperty(const PhysicsProperty& other)
 	friction = other.friction;
 	collissionCallback = other.collissionCallback;
 	collissionCallbackRequirementValue = other.collissionCallbackRequirementValue;
-	collissionsEnabled = other.collissionsEnabled;
+	collisionsEnabled = other.collisionsEnabled;
 	noCollisionResolutions = other.noCollisionResolutions;
 	physicsMesh = other.physicsMesh;
 }
@@ -85,7 +85,7 @@ PhysicsProperty::PhysicsProperty(const CompactPhysics * compactPhysics)
 	friction = compactPhysics->friction;
 	collissionCallback = compactPhysics->collissionCallback;
 	collissionCallbackRequirementValue = compactPhysics->collissionCallbackRequirementValue;
-	collissionsEnabled = compactPhysics->collissionsEnabled;
+	collisionsEnabled = compactPhysics->collisionsEnabled;
 	noCollisionResolutions = compactPhysics->noCollisionResolutions;
 }
 
@@ -117,7 +117,7 @@ void PhysicsProperty::Nullify()
 	linearDamping = 0.99f;
 	linearDampingPerPhysicsFrame = 0.9999f;
 	angularDampingPerPhysicsFrame = 0.999f;
-	collissionsEnabled = true;
+	collisionsEnabled = true;
 	noCollisionResolutions = false;
 	physicsMesh = NULL;
 	velocityRetainedWhileRotating = 0.0f;

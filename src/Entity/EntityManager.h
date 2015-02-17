@@ -28,7 +28,9 @@ public:
 	static EntityManager * Instance();
 	static void Deallocate();
 	~EntityManager();
-	
+
+	bool IsGood(Entity * entity);
+
 	/** Creates an entity using specified model and base texture.
 		Should only be callable by other managers.
 	*/

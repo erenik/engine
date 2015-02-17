@@ -27,7 +27,7 @@ void CompactPhysics::Nullify(){
 	/// See PhysicsProperty.h
 	collissionCallback = NULL;
 	collissionCallbackRequirementValue = NULL;
-	collissionsEnabled = NULL;
+	collisionsEnabled = NULL;
 	noCollisionResolutions = NULL;
 }
 
@@ -50,7 +50,7 @@ CompactPhysics::CompactPhysics(PhysicsProperty * physicsProperty)
 	/// See PhysicsProperty.h
 	collissionCallback = physicsProperty->collissionCallback;
 	collissionCallbackRequirementValue = physicsProperty->collissionCallbackRequirementValue;
-	collissionsEnabled = physicsProperty->collissionsEnabled;
+	collisionsEnabled = physicsProperty->collisionsEnabled;
 	noCollisionResolutions = physicsProperty->noCollisionResolutions;
 }
 
@@ -96,14 +96,14 @@ bool CompactPhysics::ReadFrom(std::fstream& file){
 		/// See PhysicsProperty.h
 		file.read((char*) &collissionCallback, sizeof(int));
 		file.read((char*) &collissionCallbackRequirementValue, sizeof(float));
-		file.read((char*) &collissionsEnabled, sizeof(bool));
+		file.read((char*) &collisionsEnabled, sizeof(bool));
 		file.read((char*) &noCollisionResolutions, sizeof(bool));
 	}
 	/// Set appropriate default values to said variables if they were not decalred earlier, since they will have null values for now..!
 	else {
 		collissionCallback = 0;
 		collissionCallbackRequirementValue = 0;
-		collissionsEnabled = true;
+		collisionsEnabled = true;
 		noCollisionResolutions = false;
 	}
     /// Add mass-volume, etc. in version 2!
@@ -147,7 +147,7 @@ bool CompactPhysics::WriteTo(std::fstream& file){
 		/// See PhysicsProperty.h
 		file.write((char*) &collissionCallback, sizeof(int));
 		file.write((char*) &collissionCallbackRequirementValue, sizeof(float));
-		file.write((char*) &collissionsEnabled, sizeof(bool));
+		file.write((char*) &collisionsEnabled, sizeof(bool));
 		file.write((char*) &noCollisionResolutions, sizeof(bool));
 	}
 	else if (version >= CP_VERSION_2){

@@ -523,7 +523,7 @@ void PMSetEntity::Process()
 			case PT_COLLISIONS_ENABLED:
 				/// Best to re-register the entity to make sure that everything works as intended..!
 				Physics.UnregisterEntity(entity);
-				entity->physics->collissionsEnabled = false;
+				entity->physics->collisionsEnabled = false;
 				// 
 				Physics.RegisterEntity(entity);
 			/*	if (bValue == false){

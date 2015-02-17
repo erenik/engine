@@ -8,6 +8,17 @@
 #include <iomanip>
 #include "Timer/Timer.h"
 
+//#define TEST_THREE_AXES
+
+EntityPair::EntityPair()
+{
+}
+EntityPair::EntityPair(Entity * one, Entity * two)
+: one(one), two(two)
+{
+}
+
+
 void EntityPair::PrintDetailed()
 {
     std::cout<<"\nComparing pair: "<<one<<" "<<one->position<<" & "<<two<<" "<<two->position;
@@ -25,14 +36,21 @@ AABBSweepNode::AABBSweepNode(){
 AABBSweeper::AABBSweeper()
 {
     //ctor
+#ifdef TEST_THREE_AXES
+	axesToWorkWith = 1;
+#else
     axesToWorkWith = 1;
+#endif
+	nodesToWorkWith = axesToWorkWith * 2;
     axesSorted = 0;
 }
 
 AABBSweeper::~AABBSweeper()
 {
-	axisNodeList[0].ClearAndDelete();
-	axisNodeList[1].ClearAndDelete();
+	for (int i = 0; i < AXES; ++i)
+	{
+		axisNodeList[i].ClearAndDelete();
+	}
     //dtor
 }
 
@@ -53,10 +71,13 @@ void AABBSweeper::RegisterEntity(Entity * entity)
     assert(entity);
     assert(entity->physics);
     AABB * aabb = entity->aabb;
-    AABBSweepNode * nodes[2];
-    nodes[0] = NULL;
-    nodes[1] = NULL;
-    for (int i = 0; i < 2; ++i)
+	AABBSweepNode * nodes[6];
+	for (int i = 0; i < 6; ++i)
+	{
+		nodes[i] = NULL;
+	}
+	// Create the nodes.
+    for (int i = 0; i < 6; ++i)
 	{
         nodes[i] = new AABBSweepNode();
         nodes[i]->entity = entity;
@@ -65,14 +86,13 @@ void AABBSweeper::RegisterEntity(Entity * entity)
 //        std::cout<<"\nNode type created: "<<nodes[i]->type<<" "<< (nodes[i]->type == AABBSweepNode::START ? "Start" : "Stop") ;
     }
 
-    for (int i = 0; i < axesToWorkWith; ++i)
+
+	for (int i = 0; i < 6; ++i)
 	{
-        axisNodeList[i].Add(nodes[0]);
-        axisNodeList[i].Add(nodes[1]);
-    }
-    /// Save the nodes in the entity for future usage (deletion primarily).
-    entity->physics->aabbSweepNodes[0] = nodes[0];
-    entity->physics->aabbSweepNodes[1] = nodes[1];
+		axisNodeList[i / 2].Add(nodes[i]);    
+	   	/// Save the nodes in the entity for future usage (deletion primarily).
+	    entity->physics->aabbSweepNodes[i] = nodes[i];
+	}
 }
 
 /// Clear registration, lets the list remain sorted..!
@@ -80,7 +100,7 @@ void AABBSweeper::UnregisterEntity(Entity * entity)
 {
   //  std::cout<<"\nUnregistering entity from AABBSweeper: "<<entity->name;
 	int removed = 0;
-    for (int i = 0; i < axesToWorkWith; ++i)
+    for (int i = 0; i < 3; ++i)
 	{
         /// Needed reference & so that it didn't copy the fucking list!
         List<AABBSweepNode*> & axis = axisNodeList[i];
@@ -101,16 +121,15 @@ void AABBSweeper::UnregisterEntity(Entity * entity)
 }
 
 /// Returns the amount of nodes currently registered. Should always be registeredEntities * 2.
-int AABBSweeper::Nodes(){
-    assert(axesToWorkWith == 1 && "Sorry! Support only 1 active axis for the time being!");
+int AABBSweeper::Nodes()
+{
     /// Only sort one axis to begin with?
+	int numNodes = 0;
     for (int i = 0; i < axesToWorkWith; ++i){
         List<AABBSweepNode*> axis = axisNodeList[i];
-    //    std::cout<<"\nNodes to sort: "<<axis.Size();
-        return axis.Size();
+        numNodes += axis.Size();
     }
-    assert(false);
-    return 0;
+    return numNodes;
 }
 
 /// Performs the sweep (including sort) and returns a list of all entity pairs whose AABBs are intersecting.
@@ -119,7 +138,6 @@ List<EntityPair> AABBSweeper::Sweep()
 {
 	Timer timer;
 	timer.Start();
-    assert(axesToWorkWith == 1 && "Sorry! Support only 1 active axis for the time being!");
     /// Only sort one axis to begin with?
     for (int i = 0; i < axesToWorkWith; ++i){
         /// Reference...!
@@ -135,7 +153,99 @@ List<EntityPair> AABBSweeper::Sweep()
     /// Sweepty sweep. Static so re-allocation aren't performed in vain every physics-frame.
 	static List<Entity*> activeEntities;
     static List<EntityPair> entityPairs;
+	activeEntities.Clear();
 	entityPairs.Clear();
+	Timer timer2;
+	timer2.Start();
+
+#ifdef TEST_THREE_AXES
+	/// For amount of nodes in each list.
+	int num = axisNodeList[0].Size();
+    List<AABBSweepNode*> & xAxis = axisNodeList[0];
+    List<AABBSweepNode*> & yAxis = axisNodeList[1];
+    List<AABBSweepNode*> & zAxis = axisNodeList[2];
+	AABBSweepNode * xNode, * yNode, * zNode;
+	List<Entity*> entering;
+	static List<EntityPair> pairs;
+
+	Entity * enterX, * enterY, * enterZ,
+		* exitX, * exitY, * exitZ;
+	for (int i = 0; i < num; ++i)
+	{
+		/// Clear pairs to add.
+		pairs.Clear();
+		/// Check node in each axes list.
+		xNode = xAxis[i];
+		yNode = yAxis[i];
+		zNode = zAxis[i];
+
+		/// Check which are entering
+		enterX = xNode->type == AABBSweepNode::START? xNode->entity : NULL;
+		enterY = yNode->type == AABBSweepNode::START? yNode->entity : NULL;
+		enterZ = zNode->type == AABBSweepNode::START? zNode->entity : NULL;
+
+		/// Remove duplicates pointers early on. Happens for large entities.
+		if (enterX == enterY)
+			enterY = NULL;
+		if (enterY == enterZ)
+			enterZ = NULL;
+		if (enterX == enterZ)
+			enterZ = NULL;
+	
+		/// Produce pairs based on the entering nodes, and the currently active nodes.
+        for (int k = 0; k < activeEntities.Size(); ++k)
+		{
+            Entity * entity = activeEntities[k];
+			/// Create pair with all of the nodes entering.
+			
+			// First check if non-NULL.
+			// Check collision-filters.
+			// Require at least 1 dynamic non-resting entity.
+			// Dismiss matches with self lastly.
+#define ADD_PAIR_IF_GOOD(e) \
+		if (\
+			e && \
+			(\
+				(entity->physics->collisionCategory & e->physics->collisionFilter) && \
+				(entity->physics->collisionFilter & e->physics->collisionCategory)\
+			) && \
+			(\
+				(e->physics->type == PhysicsType::DYNAMIC && !(e->physics->state & PhysicsState::IN_REST)) ||\
+				(entity->physics->type == PhysicsType::DYNAMIC && !(entity->physics->state & PhysicsState::IN_REST)) \
+			) && \
+			e != entity \
+		)\
+			pairs.Add(EntityPair(entity, e));
+			
+			ADD_PAIR_IF_GOOD(enterX);
+			ADD_PAIR_IF_GOOD(enterY);
+			ADD_PAIR_IF_GOOD(enterZ);
+        }
+		// For-loop done, add the entity pairs.
+        entityPairs.Add(pairs);
+
+		// Add the new entities to the list of active entities too.
+#define ADD_IF_NOT_EXIST(e) \
+		if (e && !activeEntities.Exists(e))\
+			activeEntities.AddItem(e);
+
+		ADD_IF_NOT_EXIST(enterX);
+		ADD_IF_NOT_EXIST(enterY);
+		ADD_IF_NOT_EXIST(enterZ);
+
+		/// Remove all exiting scope.
+		exitX = xNode->type == AABBSweepNode::STOP? xNode->entity : NULL;
+		exitY = yNode->type == AABBSweepNode::STOP? yNode->entity : NULL;
+		exitZ = zNode->type == AABBSweepNode::STOP? zNode->entity : NULL;
+		if (exitX)
+			activeEntities.RemoveItemUnsorted(exitX);
+		if (exitY)
+			activeEntities.RemoveItemUnsorted(exitY);
+		if (exitZ)
+			activeEntities.RemoveItemUnsorted(exitZ);	
+	}
+#else
+	/// Old loop.
     for (int i = 0; i < axesToWorkWith; ++i)
 	{
         /// Clear the active entities list.
@@ -149,12 +259,11 @@ List<EntityPair> AABBSweeper::Sweep()
 			{
         //        std::cout<<"\nActive entities: "<<activeEntities.Size()<<". Adding that many pairs (probably?)";
                 /// Also create pairs from it with all other already active entities...!
-                for (int k = 0; k < activeEntities.Size(); ++k)
+				int numActiveEntities = activeEntities.Size();
+				Entity ** activeEntityArray = activeEntities.GetArray();
+                for (int k = 0; k < numActiveEntities; ++k)
 				{
-                    Entity * entity = activeEntities[k];
-                    /// Skip self, but create a pair for the remaining.
-                    if (entity == node->entity)
-                        continue;
+                    Entity * entity = activeEntityArray[k];
 					// Check collision-filters.
 					if (
 						(
@@ -172,62 +281,41 @@ List<EntityPair> AABBSweeper::Sweep()
 								(entity->physics->type == PhysicsType::DYNAMIC && !(entity->physics->state & PhysicsState::IN_REST)) 
 							) == false)
 						continue;
+                    /// Skip self, but create a pair for the remaining.
+                    if (entity == node->entity)
+                        continue;
 
+					// Check other axes straight away.
+					AABB * oneab = node->aabb, * twoab = entity->aabb;
+					if (oneab->max.z < twoab->min.z ||
+						oneab->min.z > twoab->max.z ||
+						oneab->max.y < twoab->min.y ||
+						oneab->min.y > twoab->max.y)
+					{
+						continue;
+					}
 
 					EntityPair ep;
                     /// Sort them by address (hopefully it works)
-                    if (entity < node->entity){
-                        ep.one = entity;
-                        ep.two = node->entity;
-                    }
-                    else {
-                        ep.one = node->entity;
-                        ep.two = entity;
-                    }
+                    ep.one = node->entity;
+                    ep.two = entity;
           //          std::cout<<"\nAdding pair: "<<ep.one<<" "<<ep.one->position<<" & "<<ep.two<<" "<<ep.two->position;
-                    entityPairs.Add(ep);
+                    entityPairs.AddItem(ep);
                 }
-                activeEntities.Add(node->entity);
+                activeEntities.AddItem(node->entity);
             }
             /// And if it's a stop node, just remove it from the active entities list!
             else if (node->type == AABBSweepNode::STOP){
-                activeEntities.Remove(node->entity);
+                activeEntities.RemoveItemUnsorted(node->entity);
             }
         }
     }
+#endif
+	timer2.Stop();
+	int initialFilter = timer2.GetMs();
 //    std::cout<<"\nPairs after sweep: "<<entityPairs.Size();
-
- //   std::cout<<"\nBegin examining Y/Z axes...";
-//    std::cout<<"\nAABB-AABB Pairs after initial axis sweep: "<<entityPairs.Size();
-    for (int i = 0; i < entityPairs.Size(); ++i){
-        /// Assume we've got to examine the Y and Z axes only now!
-        EntityPair ep = entityPairs[i];
-        Entity * one = ep.one, * two = ep.two;
-     //   ep.PrintDetailed();
-        AABB * oneab = one->aabb, * twoab = two->aabb;
-        if (oneab->max[2] < twoab->min[2] ||
-            oneab->min[2] > twoab->max[2] ||
-            oneab->max[1] < twoab->min[1] ||
-            oneab->min[1] > twoab->max[1])
-        {
-   //         std::cout<<"\nRemoving pair!";
-            /// Removes it!
-			entityPairs.RemoveIndex(i);
-            /// Decrement i so we don't skip evaluating any of theze pairz!
-            --i;
-        }
-        else
-            ;//         std::cout<<"\nKeeping pair.";
-    }
-  //  std::cout<<"\nSecondary axises checked, pairs are now as follows:";
-    for (int i = 0; i < entityPairs.Size(); ++i){
-        EntityPair ep = entityPairs[i];
-  //      std::cout<<"\nPair "<<i<<": "<<ep.one<<" "<<ep.one->position<<" & "<<ep.two<<" "<<ep.two->position;
-    }
-
 	timer.Stop();
 	int filtering = timer.GetMs();
-
  //   std::cout<<"\nAA-AABB pairs after examining the remaining two axes: "<<entityPairs.Size();
     return entityPairs;
 }

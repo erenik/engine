@@ -124,7 +124,7 @@ public:
 	bool usesCollisionShapeOctree;
 
 	/// Flaggetiflag o-o;
-	bool collissionsEnabled;
+	bool collisionsEnabled;
 	// Default.. false?
 	bool useQuaternions;
 	static bool defaultUseQuaternions;
@@ -144,7 +144,8 @@ public:
 
     /// Coordinates for axis-aligned bounding box (if used)
     OBB * obb;
-    AABBSweepNode * aabbSweepNodes[2];
+	// 6 nodes. for XYZ start and end each.
+    AABBSweepNode * aabbSweepNodes[6];
 
     /// NOTE: Position, x(t), is defined in the base Entity-class!
 

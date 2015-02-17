@@ -35,6 +35,12 @@ EntityManager::~EntityManager()
 	entities.ClearAndDelete();
 };
 
+bool EntityManager::IsGood(Entity * entity)
+{
+	return entities.Exists(entity);
+}
+
+
 /// Creates entity using specified model and base texture
 Entity * EntityManager::CreateEntity(String name, Model * model, Texture * texture)
 {

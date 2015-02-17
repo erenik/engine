@@ -38,7 +38,7 @@ public:
 	List(const List &otherList);
 	List(const T & initialItem);
 	/// Creates a new list of specific amount of items.
-	List(const T & item, const T & item2) { Nullify(); Add(item); Add(item2); };
+	List(const T & item, const T & item2) { Nullify(); AddItem(item); AddItem(item2); };
 	List(const T & item, const T & item2, const T & item3) { Nullify(); Add(item, item2, item3); };
 	List(const T & item, const T & item2, const T & item3, const T & item4) { Nullify(); Add(item, item2, item3, item4);};
 	void Nullify();
@@ -81,7 +81,7 @@ public:
 	*/
 	bool Insert(const value_type & item, int atIndex);
 	/// Adds an item to the list
-	bool Add(const value_type & item);
+	bool AddItem(const value_type & item);
 	/// Adds an item to the list
 	bool Add(const List<value_type> & item);
 	/// Adds an item to the list at the requested index, pushing along the rest. Used for keeping them sorted or stuff.
@@ -164,7 +164,7 @@ List<B> ConvertList(List<T> tList)
 	List<B> bList;
 	for (int i = 0; i < tList.Size(); ++i)
 	{
-		bList.Add(tList[i]);
+		bList.AddItem(tList[i]);
 	}
 	return bList;
 }
@@ -205,7 +205,7 @@ template <class T>
 List<T>::List(const T & initialItem)
 {
 	Nullify();
-	Add(initialItem);
+	AddItem(initialItem);
 }
 
 template <class T>
@@ -256,13 +256,14 @@ const List<T> & List<T>::operator = (const List &otherList)
 	return *this;
 }
 template <class T>
-const List<T> * List<T>::operator += (const List<T> &otherList) {
+const List<T> * List<T>::operator += (const List<T> &otherList) 
+{
 	/// Check if resizing is needed
 	if (currentItems + otherList.currentItems > arrLength)
 		Resize(currentItems + otherList.currentItems);
 	// Ship over stuff
 	for (int i = 0; i < otherList.currentItems; ++i){
-		Add(otherList.arr[i]);
+		AddItem(otherList.arr[i]);
 	}
 	return this;
 }
@@ -271,7 +272,7 @@ const List<T> List<T>::operator += (const T &newItem)
 {
 	if (currentItems + 1 > arrLength)
 		Resize(currentItems * 2 + 1);
-	Add(newItem);
+	AddItem(newItem);
 	return *this;
 }
 template <class T>
@@ -304,7 +305,7 @@ const List<T> List<T>::operator + (const T &newItem) const
 {
 	List<T> newList;
 	newList += *this;
-	newList.Add(newItem);
+	newList.AddItem(newItem);
 	return newList;
 }
 
@@ -373,7 +374,7 @@ bool List<T>::Insert(const T & item, int atIndex)
 
 /// Adds an item to the list
 template <class T>
-bool List<T>::Add(const T & item) 
+bool List<T>::AddItem(const T & item) 
 {
 	if (currentItems == arrLength)
 	{
@@ -439,7 +440,8 @@ bool List<T>::AddArray(int numItems, T * itemArray)
 
 /// Adds an item to the list
 template <class T>
-bool List<T>::Add(const T & item, int requestedIndex) {
+bool List<T>::Add(const T & item, int requestedIndex) 
+{
 	if (currentItems == arrLength){
 		try {
 			Resize(currentItems * 2 + 1);
@@ -595,7 +597,7 @@ List<T> List<T>::Part(int startIndex, int stopIndex) const
 	List<T> partList;
 	for (int i = startIndex; i <= stopIndex; ++i)
 	{
-		partList.Add(arr[i]);
+		partList.AddItem(arr[i]);
 	}
 	return partList;
 }
