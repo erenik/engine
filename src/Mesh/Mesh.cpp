@@ -145,7 +145,6 @@ void Mesh::DeallocateArrays()
 /// Load from customized compressed data form. Returns true upon success.
 bool Mesh::SaveCompressedTo(String compressedPath)
 {
-	return true;
 	std::fstream file;
 	file.open(compressedPath.c_str(), std::ios_base::out | std::ios_base::binary);
 	if (!file.is_open())
@@ -858,6 +857,9 @@ void Mesh::Center(){
 /// For NormalMapping~
 void Mesh::CalculateUVTangents()
 {
+	bool defaultCalcUVTangents = false;
+	if (!defaultCalcUVTangents)
+		return; 
 	// Not working anyway.. fit it.
 	if (this->uvs.Size() == 0)
 	{

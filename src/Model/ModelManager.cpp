@@ -180,7 +180,7 @@ Model * ModelManager::LoadObj(String source)
 //		std::cout<<"\nCreating mesh.";
 		mesh = new Mesh();
 		bool compressedLoadResult = false;
-		//mesh->LoadCompressedFrom(compressedPath);
+		compressedLoadResult = mesh->LoadCompressedFrom(compressedPath);
 		if (compressedLoadResult)
 			std::cout<<"found compressed version.";
 

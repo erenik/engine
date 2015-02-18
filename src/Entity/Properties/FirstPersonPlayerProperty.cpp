@@ -66,8 +66,13 @@ void FirstPersonPlayerProperty::ProcessMessage(Message * message)
 			// Enable jumping again after impact.
 			if (AbsoluteValue(cc->impactNormal.y) > 0.9f)
 			{
+				/// If was in auto-run, starting running again.
 				if ((now - lastJump).Milliseconds() > jumpCooldownMs)
+				{
 					jumping = false;
+					if (autorun)
+						PhysicsQueue.Add(new PMSetEntity(owner, PT_RELATIVE_ACCELERATION, Vector3f(0, 0, movementSpeed)));
+				}
 			}
 			break;	
 		}
@@ -126,8 +131,7 @@ void FirstPersonPlayerProperty::ToggleAutorun()
 		}
 		PhysicsQueue.Add(new PMSetEntity(owner, PT_FACE_VELOCITY_DIRECTION, false));
 		// Set relative velocity. It will solve the issue of direction by using the current rotation :)
-		Vector3f velocity(0, 0, movementSpeed);
-		PhysicsQueue.Add(new PMSetEntity(owner, PT_RELATIVE_ACCELERATION, velocity));
+		PhysicsQueue.Add(new PMSetEntity(owner, PT_RELATIVE_ACCELERATION, Vector3f(0, 0, movementSpeed)));
 		/// Disable regular velocity.
 		PhysicsQueue.Add(new PMSetEntity(owner, PT_ACCELERATION, Vector3f())); 
 		/// Set damping in case the regular velocity persist somehow... no.
@@ -170,7 +174,6 @@ void FirstPersonPlayerProperty::ProcessInput()
 			jumping = true;
 			PhysicsQueue.Add(new PMSetEntity(owner, PT_ACCELERATION, Vector3f()));
 			/// Cancel auto run as well.
-			autorun = false;
 			PhysicsQueue.Add(new PMSetEntity(owner, PT_RELATIVE_ACCELERATION, Vector3f()));
 		}
 	}
