@@ -193,7 +193,7 @@ void Camera::Nullify()
 	zoom = 0.1f;
 	distanceFromCentreOfMovement = 0.0f;
 	position = Vector3f(-10, 10, 20);
-	rotation = Vector3f(PI*0.25f, PI*0.125f, 0);
+	rotationEuler = rotation = Vector3f(PI*0.25f, PI*0.125f, 0);
 	flySpeed = 1.0f;
 	rotationSpeed = 0.1f;
 	memset(navigationControls, 0, sizeof(bool)*6);

@@ -66,7 +66,7 @@ EditorCameraProperty::EditorCameraProperty(Entity * owner)
 void EditorCameraProperty::Process(int timeInMs)
 {
 	if (inputFocus)
-		ProcessInput();
+		ProcessInput(timeInMs * 0.001f);
 }
 
 
@@ -125,7 +125,7 @@ Camera * EditorCameraProperty::CreateCamera()
 /** Checks states via InputManager. Regular key-bindings should probably still be defined in the main game state 
 	and then passed on as messages to the character with inputFocus turned on.
 */
-void EditorCameraProperty::ProcessInput()
+void EditorCameraProperty::ProcessInput(float timeInSeconds)
 {
 	float forward = 0.f;
 	Vector3f moveVec;
@@ -145,6 +145,25 @@ void EditorCameraProperty::ProcessInput()
 	else if (Input.KeyPressed(KEY::Q))
 		moveVec.y = -1.f;
 
+	/// Adjust speed.
+	bool speedAdjusted = false;
+	if (Input.KeyPressed(KEY::PLUS))
+	{
+		movementSpeed += 0.2f * timeInSeconds;
+		movementSpeed *= pow(2.0f, timeInSeconds);
+		speedAdjusted = true;
+	}
+	else if (Input.KeyPressed(KEY::MINUS))
+	{
+		movementSpeed -= 0.2f * timeInSeconds;
+		movementSpeed /= pow(2.0f, timeInSeconds);
+		speedAdjusted = true;
+	}
+	if (speedAdjusted)
+	{
+		ClampFloat(movementSpeed, 0, 10000.f);
+		std::cout<<"\nMovement speed of EditorCamera set to "<<movementSpeed;
+	}
 	if (Input.KeyPressed(KEY::SPACE))
 	{
 		if (!jumping)
@@ -216,9 +235,9 @@ void EditorCameraProperty::ProcessInput()
 		/// Camera updown
 		float cameraUp = 0.f;
 		if (Input.KeyPressed(KEY::UP))
-			cameraUp += 1.f;
-		if (Input.KeyPressed(KEY::DOWN))
 			cameraUp -= 1.f;
+		if (Input.KeyPressed(KEY::DOWN))
+			cameraUp += 1.f;
 		static float pastCameraUp = 0.f;
 		if (cameraUp != pastCameraUp)
 		{

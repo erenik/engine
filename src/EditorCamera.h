@@ -28,7 +28,7 @@ protected:
 	/** Checks states via InputManager. Regular key-bindings should probably still be defined in the main game state 
 		and then passed on as messages to the character with inputFocus turned on.
 	*/
-	void ProcessInput(); 
+	void ProcessInput(float timeInSeconds); 
 	void UpdateVelocity(ConstVec3fr newVel);
 	// Checks mouse position and casts a ray. Will return all entities along the ray, starting with the closest one.
 	void UpdateTargetsByCursorPosition();
