@@ -102,7 +102,7 @@ public:
 		Their GLSL equivalent are usually in_NameMinusStartingAttribute, e.g. in_VertexPosition for attributeVertexPosition
 	*/
 	/// Attributes for regular entity and UI rendering (older approaches, non-instanced, non-deferred, etc.)
-	GLuint attributePosition, attributeUV, attributeNormal, attributeTangent;
+	GLuint attributePosition, attributeUV, attributeNormal, attributeTangent, attributeBiTangent;
 
 	/// Attributes added with instanced particle rendering. 
 	GLuint attributeVertexPosition, // Vertex XYZ for the model which is instanced.

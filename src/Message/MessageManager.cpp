@@ -16,6 +16,7 @@
 #include "StateManager.h"
 #include "Graphics/GraphicsManager.h"
 #include "Graphics/Messages/GMUI.h"
+#include "Graphics/Messages/GMSetEntity.h"
 #include "Input/InputManager.h"
 #include "Script/Script.h"
 #include "Maps/MapManager.h"
@@ -40,6 +41,10 @@
 
 #include "File/LogFile.h"
 #include "Physics/Messages/PhysicsMessage.h"
+#include "Model/ModelManager.h"
+#include "TextureManager.h"
+
+extern Camera * CreateEditorCamera(Entity ** e = NULL);
 
 MessageManager * MessageManager::messageManager = NULL;
 
@@ -172,9 +177,7 @@ bool MessageManager::QueueMessages(const List<Message*> & messages, UIElement * 
 		return false;
 	}
 	msgQueueMutex.Release();
-
-}
-	
+}	
 
 /// Queues a bunch of string-based messages in the form "Message1&Message2&Message3&..."
 bool MessageManager::QueueMessages(List<String> messages, UIElement * elementThatTriggeredIt)
@@ -326,6 +329,16 @@ void MessageManager::ProcessMessage(Message * message)
 			if (msg.StartsWith("SetLight"))
 			{
 				Light::ProcessMessageStatic(message);
+			}
+			else if (msg == "CreateEditorCamera")
+			{
+				CreateEditorCamera();
+			}
+			else if (msg.Contains("CreateNormalMapTestEntities"))
+			{
+				// Create some entities.
+				Entity * entity = MapMan.CreateEntity("NormalMapSprite", ModelMan.GetModel("sprite.obj"), TexMan.GetTexture("0x77"), Vector3f(0,0,0));
+				GraphicsQueue.Add(new GMSetEntityTexture(entity, NORMAL_MAP, "normalMapTest2"));
 			}
 			if (msg == "AcceptInput:false")
 				Input.acceptInput = false;

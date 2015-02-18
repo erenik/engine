@@ -14,6 +14,8 @@ EntityProperty::EntityProperty(String name, int id, Entity * owner)
 	previousState = NULL;
 	queuedState = NULL;
 	globalState = NULL;
+	inputFocusEnabled = false;
+	inputFocus = false;
 };
 
 EntityProperty::~EntityProperty()

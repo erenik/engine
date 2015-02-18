@@ -20,6 +20,9 @@ enum cameraTargets
 	CT_POSITION,
 	CT_OFFSET_ROTATION,
 
+	// Velocities
+	CT_VELOCITY,
+
 	/** Relative position of the camera compared to the entity. 
 		If the camera is inheriting the entity's rotation, this relative position will be re-calculated using the entity's local orientation axes.
 	*/

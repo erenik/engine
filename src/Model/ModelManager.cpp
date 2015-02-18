@@ -179,7 +179,8 @@ Model * ModelManager::LoadObj(String source)
 	{
 //		std::cout<<"\nCreating mesh.";
 		mesh = new Mesh();
-		bool compressedLoadResult = mesh->LoadCompressedFrom(compressedPath);
+		bool compressedLoadResult = false;
+		//mesh->LoadCompressedFrom(compressedPath);
 		if (compressedLoadResult)
 			std::cout<<"found compressed version.";
 
@@ -256,10 +257,10 @@ Model * ModelManager::LoadObj(String source)
 			if (model->triangulatedMesh->normals.Size() == NULL)
 				model->triangulatedMesh->RecalculateNormals();
 			std::cout<<"\nNormalized";
-//			model->triangulatedMesh->CalculateUVTangents();
+			model->triangulatedMesh->CalculateUVTangents();
 	//		std::cout<<"\nUVd";
 
-			// Save the triangulized mesh in compressed form !
+			// Save the triangulized mesh in compressed form ! 
 			model->triangulatedMesh->SaveCompressedTo(compressedPath);
 		}
 
@@ -357,7 +358,7 @@ Model * ModelManager::LoadCollada(String source)
 	if (model->triangulatedMesh->normals.Size() == NULL)
 		model->triangulatedMesh->RecalculateNormals();
 	std::cout<<"\nNormalized";
-//	model->triangulatedMesh->CalculateUVTangents();
+	model->triangulatedMesh->CalculateUVTangents();
 	std::cout<<"\nUVd";
 	modelList.Add(model);
 	return model;

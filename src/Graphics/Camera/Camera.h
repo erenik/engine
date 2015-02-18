@@ -273,7 +273,8 @@ public:
 
 private:
 	/// cool.
-	Time lastUpdate;
+	Time lastUpdate; // Last time matrices were recalculated.
+	Time lastChange; // Last time an edit was made.
 
 	// Tracks the entity based on given mode.
 	void Track();

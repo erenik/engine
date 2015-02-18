@@ -14,42 +14,46 @@
 #include "Graphics/GraphicsProperty.h"
 #include "Graphics/GraphicsManager.h"
 
-GMSetEntityTexture::GMSetEntityTexture(Entity * entity, Texture * texture)
-	: GraphicsMessage(GM_SET_ENTITY_TEXTURE), entity(entity), t(texture)
+GMSetEntityTexture::GMSetEntityTexture(List<Entity*> entities, Texture * texture)
+	: GraphicsMessage(GM_SET_ENTITY_TEXTURE), entities(entities), t(texture)
 {
 	target = DIFFUSE_MAP | SPECULAR_MAP;
 }
 
 
-GMSetEntityTexture::GMSetEntityTexture(Entity * entity, int target, Texture * texture)
-: GraphicsMessage(GM_SET_ENTITY_TEXTURE), entity(entity), target(target), textureSource(String()), t(texture)
+GMSetEntityTexture::GMSetEntityTexture(List<Entity*> entities, int target, Texture * texture)
+: GraphicsMessage(GM_SET_ENTITY_TEXTURE), entities(entities), target(target), textureSource(String()), t(texture)
 {
 	assert(target >= DIFFUSE_MAP && target <= MAX_TEXTURE_TARGETS);
 }
-GMSetEntityTexture::GMSetEntityTexture(Entity * entity, int target, String texture)
-: GraphicsMessage(GM_SET_ENTITY_TEXTURE), entity(entity), target(target), textureSource(texture), t(NULL)
+GMSetEntityTexture::GMSetEntityTexture(List<Entity*> entities, int target, String texture)
+: GraphicsMessage(GM_SET_ENTITY_TEXTURE), entities(entities), target(target), textureSource(texture), t(NULL)
 {
 	assert(target >= DIFFUSE_MAP && target <= MAX_TEXTURE_TARGETS);
 }
 
 void GMSetEntityTexture::Process()
 {
-	if (entity == 0)
-	{
-		std::cout<<"\nNULL entity in GMSetEntityTexture!";
-		return;
-	}
 	if (t == NULL){
 		t = TexMan.GetTexture(textureSource);
 		if (!t){
-            std::cout<<"\nERROR: No such texture \""<<textureSource<<"\"";
-            return;
-        }
-    }
-	entity->SetTexture(target, t);
-	if (t->glid == -1)
-        TexMan.BufferizeTexture(t);
-	Graphics.renderQueried = true;
+			std::cout<<"\nERROR: No such texture \""<<textureSource<<"\"";
+			return;
+		}
+	}
+	for (int i = 0; i < entities.Size(); ++i)
+	{
+		Entity * entity = entities[i];
+		if (entity == 0)
+		{
+			std::cout<<"\nNULL entity in GMSetEntityTexture!";
+			continue;
+		}
+		entity->SetTexture(target, t);
+		if (t->glid == -1)
+			TexMan.BufferizeTexture(t);
+		Graphics.renderQueried = true;
+	}
 };
 
 /// For general procedures that do stuff..

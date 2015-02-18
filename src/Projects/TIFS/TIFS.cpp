@@ -536,6 +536,9 @@ void TIFS::CreateTurret(int ofSize, ConstVec3fr atLocation)
 	prop->turretSize = ofSize;
 //	prop->yawPerSecond = prop->pitchPerSecond = pow(2.25f, (SIZES - ofSize)) * 0.2f;
 
+	Texture * normalMap = TexMan.GetTexture("img/Turrets/BigTurretNormal.png");
+	GraphicsQueue.Add(new GMSetEntityTexture(turretParts, NORMAL_MAP, normalMap));
+
 	MapMan.AddEntities(turretParts);
 	/// Add turret parts.
 	turrets.Add(turretParts);

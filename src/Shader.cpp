@@ -348,6 +348,7 @@ void Shader::ExtractAttributes()
 	attributeUV = glGetAttribLocation(shaderProgram, "in_UV");
 	attributeNormal = glGetAttribLocation(shaderProgram, "in_Normal");
 	attributeTangent = glGetAttribLocation(shaderProgram, "in_Tangent");
+	attributeBiTangent = glGetAttribLocation(shaderProgram, "in_BiTangent");
 
 	// Attributes added with instanced particle rendering. 
 	attributeVertexPosition = glGetAttribLocation(shaderProgram, "in_VertexPosition");

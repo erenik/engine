@@ -13,6 +13,7 @@
 #include <cstring>
 #include "Window/WindowManager.h"
 #include "Viewport.h"
+#include "Entity/EntityProperty.h"
 
 //#include "../Managers.h"
 #include "OS/OS.h"
@@ -173,6 +174,25 @@ List<int> InputManager::ActiveModifierKeys()
 	}
 	return activeModifierKeys;
 }
+
+/// Sets input focus, which currently just flags a boolean with its properties (if available and set up correctly).
+void InputManager::SetInputFocus(Entity * entity)
+{
+	/// Check if it can take it.
+	bool canTakeInputFocus = false;
+	for (int i = 0; i < entity->properties.Size(); ++i)
+	{
+		EntityProperty * ep = entity->properties[i];
+		if (ep->inputFocusEnabled)
+		{
+			ep->inputFocus = true;
+			canTakeInputFocus = true;
+		}
+	}
+	if (!canTakeInputFocus)
+		return;
+}
+
 
 /** Called by OS-functions to query if the UI wants to process drag-and-drop files. If so the active element where the mouse is hovering may opt to do magic with it.
 	If no magic, or action, is taken, it will return false, at which point the game state should be called to handle general drag-and-drop files.

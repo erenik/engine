@@ -527,7 +527,8 @@ void RenderPass::RenderEntities()
 //	FrameStats.renderSortEntities += timer.GetMs();
 
 	timer.Start();
-	Texture * diffuseMap, * specularMap, * emissiveMap;
+	Texture * diffuseMap, * specularMap, * emissiveMap,
+		* normalMap;
 
 	// Set render state for all.
 	glUniform1i(shader->uniformUseDiffuseMap, 1);
@@ -543,6 +544,7 @@ void RenderPass::RenderEntities()
 		gp = entity->graphics;
 		diffuseMap = entity->diffuseMap;
 		specularMap = entity->specularMap;
+		normalMap = entity->normalMap;
 		emissiveMap = entity->emissiveMap;
 		// Optimized per-entity render.
 		int error = 0;
@@ -561,6 +563,9 @@ void RenderPass::RenderEntities()
 		{
 			specularMap->SetSamplingMode();
 		}
+		// Normal map
+		glActiveTexture(GL_TEXTURE0 + shader->normalMapIndex);		
+		glBindTexture(GL_TEXTURE_2D, normalMap? normalMap->glid : 0);
 		/// Bind emissive map.
 		glActiveTexture(GL_TEXTURE0 + shader->emissiveMapIndex);		// Select server-side active texture unit
 		glBindTexture(GL_TEXTURE_2D, emissiveMap? emissiveMap->glid : 0);

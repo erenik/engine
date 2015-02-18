@@ -16,12 +16,12 @@ class EstimatorFloat;
 class GMSetEntityTexture : public GraphicsMessage {
 public:
 	// Defualt, sets both diffuse and specular map.
-	GMSetEntityTexture(Entity * entity, Texture * texture);
-	GMSetEntityTexture(Entity * entity, int target, Texture * texture);
-	GMSetEntityTexture(Entity * entity, int target, String textureSource);
+	GMSetEntityTexture(List<Entity*> entities, Texture * texture);
+	GMSetEntityTexture(List<Entity*> entities, int target, Texture * texture);
+	GMSetEntityTexture(List<Entity*> entities, int target, String textureSource);
 	void Process();
 private:
-	Entity * entity;
+	List<Entity*> entities;
 	Texture * t;
 	String textureSource;
 	int target;

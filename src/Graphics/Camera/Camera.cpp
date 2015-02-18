@@ -65,7 +65,7 @@ void CameraManager::Process()
 	{
 		Camera * camera = cameras[i];
 		bool moved = camera->ProcessMovement(timeInSeconds);
-		if (moved || camera->entityToTrack)
+		if (camera->entityToTrack || camera->lastUpdate < camera->lastChange)
 			camera->Update();
 	}
 }
@@ -172,6 +172,7 @@ Camera::~Camera()
 /// Resets everything.
 void Camera::Nullify()
 {
+	lastChange = Time::Now();
 	ratioFixed = false;
 	// Tracking vars
 	smoothness = 0.2;
@@ -361,6 +362,7 @@ void Camera::Reset()
 	position = resetCamera->position;
 	rotation = resetCamera->rotation;
 	flySpeed = resetCamera->flySpeed;
+	lastChange = Time::Now();
 }
 
 
@@ -665,6 +667,9 @@ bool Camera::ProcessMovement(float timeInSeconds)
 				Quaternion yaw(Vector3f(0,1,0), rotationEuler[1]);
 				Quaternion roll(Vector3f(0,0,1), rotationEuler[2]);
 
+				// Just update "rotation"?
+				rotation = rotationEuler;
+
 				orientationEuler = yaw * pitch; // * roll;			
 			}
 		}
@@ -681,6 +686,7 @@ bool Camera::ProcessMovement(float timeInSeconds)
 	{
 		distanceFromCenterOfMovement += dfcomSpeed * timeInSeconds;
 	}
+	lastChange = Time::Now();
 	return true;
 }
 

@@ -145,6 +145,7 @@ void Mesh::DeallocateArrays()
 /// Load from customized compressed data form. Returns true upon success.
 bool Mesh::SaveCompressedTo(String compressedPath)
 {
+	return true;
 	std::fstream file;
 	file.open(compressedPath.c_str(), std::ios_base::out | std::ios_base::binary);
 	if (!file.is_open())
@@ -221,7 +222,7 @@ bool Mesh::LoadCompressedFrom(String compressedPath)
 	if (!file.is_open())
 		return false;
 	String about = "Erenik Engine Compressed mesh. Version:";
-	String version = "1.0";
+	String version = "1.0";	/// Version 1, no tangents nor biTangents.
 
 	about.ReadFrom(file);
 	version.ReadFrom(file);
@@ -290,6 +291,9 @@ bool Mesh::LoadCompressedFrom(String compressedPath)
 		mf.ReadFrom(file);
 //		mf.Print();	
 	}
+	
+	this->CalculateUVTangents();
+
 	loadedFromCompactObj = true;
 	return true;
 }
@@ -486,8 +490,13 @@ void Mesh::Render(GraphicsState & graphicsState)
 		// Bind Tangents
 		static const GLint offsetT = 8 * sizeof(GLfloat);		// Buffer already bound once at start!
 		if (shader->attributeTangent != -1)
-			glVertexAttribPointer(shader->attributeTangent, 4, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * floatsPerVertex, (void *)offsetT);		// Tangents
-		
+			glVertexAttribPointer(shader->attributeTangent, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * floatsPerVertex, (void *)offsetT);		// Tangents
+
+		// Bind BiTangents
+		static const GLint offsetB = 11 * sizeof(GLfloat);		// Buffer already bound once at start!
+		if (shader->attributeBiTangent != -1)
+			glVertexAttribPointer(shader->attributeBiTangent, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * floatsPerVertex, (void *)offsetB);		// Tangents
+
 		CheckGLError("Mesh::Render - binding stuff");
 		int numVertices = vertexDataCount;
 
@@ -850,11 +859,13 @@ void Mesh::Center(){
 void Mesh::CalculateUVTangents()
 {
 	// Not working anyway.. fit it.
-	assert(false);
-	/*
-	if (!uvs)
+	if (this->uvs.Size() == 0)
+	{
+		std::cout<<"\nNo UVs found. Skipping.";
 		return;
-	for (int i = 0; i < numFaces; ++i){
+	}
+	for (int i = 0; i < faces.Size(); ++i)
+	{
 		MeshFace * f = &faces[i];
 		if (f->numVertices < 3)
             continue;
@@ -868,55 +879,40 @@ void Mesh::CalculateUVTangents()
 		v2 = vertices[f->vertices[1]];
 		v3 = vertices[f->vertices[2]];
 
-		float v1u, v2u, v3u, v1v, v2v, v3v;
-		v1u = u[f->uvs[0]];
-		v2u = u[f->uvs[1]];
-		v3u = u[f->uvs[2]];
-		v1v = v[f->uvs[0]];
-		v2v = v[f->uvs[1]];
-		v3v = v[f->uvs[2]];
+		Vector2f uv1, uv2, uv3;
+		uv1 = uvs[f->uvs[0]];
+		uv2 = uvs[f->uvs[1]];
+		uv3 = uvs[f->uvs[2]];
 
-		float x1 = v2[0] - v1[0];
-        float x2 = v3[0] - v1[0];
-        float y1 = v2[1] - v1[1];
-        float y2 = v3[1] - v1[1];
-        float z1 = v2[2] - v1[2];
-        float z2 = v3[2] - v1[2];
+		/// Diff-vectors.
+		Vector3f v1ToV2 = v2 - v1,
+			v1ToV3 = v3 - v1;
+		Vector2f uv1ToUV2 = uv2 - uv1,
+			uv1ToUV3 = uv3 - uv1;
 
-        float s1 = v2u - v1u;
-        float s2 = v3u - v1u;
-        float t1 = v2v - v1v;
-        float t2 = v3v - v1v;
+		Vector2f deltaUV1 = uv1ToUV2,
+			deltaUV2 = uv1ToUV3;
+		Vector3f deltaPos1 = v1ToV2;
+		Vector3f deltaPos2 = v1ToV3;
+	  // Edges of the triangle : postion delta
+ 		float r = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x);
+		Vector3f tangent = (deltaPos1 * deltaUV2.y   - deltaPos2 * deltaUV1.y)*r;
+		Vector3f biTangent = (deltaPos2 * deltaUV1.x   - deltaPos1 * deltaUV2.x)*r;
 
-		float r = 1.0F / (s1 * t2 - s2 * t1);
-        Vector3d sdir((t2 * x1 - t1 * x2) * r, (t2 * y1 - t1 * y2) * r,
-                (t2 * z1 - t1 * z2) * r);
-        Vector3d tdir((s1 * x2 - s2 * x1) * r, (s1 * y2 - s2 * y1) * r,
-                (s1 * z2 - s2 * z1) * r);
+		/// Check handed-ness.
+		Vector3f crossProduct =  normals[f->normals[0]].CrossProduct(tangent);
+		float dotProduct = crossProduct.DotProduct(biTangent);
+//		std::cout<<"\nHandednesS: "<<dotProduct > 0;
+		if (dotProduct < 0)
+			tangent *= -1;
 
-		// faces UV "up"- and "right"-tangent respectively.
-		Vector3f tan1f = sdir;
-		Vector3f tan2f = tdir;
+		/// Add the tanget and bitangnet
+		f->uvTangent = tangent;
+		f->uvBiTangent = biTangent;
 
-		for (int j = 0; j < 3 && j < f->numVertices; ++j){
-			// Only check the 3 first numVertices.
-			const Vector3d& n = normals[f->normals[j]];
-			const Vector3d& t = tan1f;
 
-			Vector4d vertexTangent;
-			// Gram-Schmidt orthogonalize
-			vertexTangent = (t - n * n.DotProduct(t));
-			vertexTangent.Normalize3();
-			// Calculate handedness
-			vertexTangent[3] = (n.CrossProduct(t).DotProduct(tan2f) < 0.0F) ? -1.0F : 1.0F;
-
-			/// Lazy first-try!
-			f->uvTangent = vertexTangent;
-			break;
-		}
+		/// Help http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-13-normal-mapping/		
 	}
-	*/
-
 }
 
 /// Will bufferize the mesh. If force is true it will re-done even if it has already been bufferized once.
@@ -974,7 +970,8 @@ void Mesh::Bufferize(bool useOriginalPositions, bool force)
 
 	// Count total vertices/texture point pairs without any further optimization.
 	unsigned int vertexCount = numFaces * 3;
-	floatsPerVertex = 3 + 3 + 2 + 4;  // Pos + Normal + UV + NormalMappingTangent
+	// Pos (3) + Normal (3) + UV (2) + UV-Tangent (3) + UV-Bi-Tangent (3)
+	floatsPerVertex = 3 + 3 + 2 + 3 + 3;  
 	int vertexDataSizeNeeded = vertexCount * floatsPerVertex;
 	if (vertexDataSize != vertexDataSizeNeeded)
 	{
@@ -1058,20 +1055,19 @@ void Mesh::Bufferize(bool useOriginalPositions, bool force)
 				vertexData[vertexDataCounted + 6] =
 				vertexData[vertexDataCounted + 7] = 0.0f;
 			}
-			/// Tangents for NormalMapping
+			/// UV-Tangents
 			if (true) 
 			{
 				vertexData[vertexDataCounted + 8] = face->uvTangent[0];
 				vertexData[vertexDataCounted + 9] = face->uvTangent[1];
-				vertexData[vertexDataCounted + 10] = face->uvTangent[2];
-				vertexData[vertexDataCounted + 11] = face->uvTangent[3];
+				vertexData[vertexDataCounted + 10] = face->uvBiTangent.x;
 			}
-			else 
+			/// UV-Bi-Tangents
+			if (true) 
 			{
-				vertexData[vertexDataCounted + 8] =
-				vertexData[vertexDataCounted + 9] =
-				vertexData[vertexDataCounted + 10] =
-				vertexData[vertexDataCounted + 11] = 0;
+				vertexData[vertexDataCounted + 11] = face->uvBiTangent.x;
+				vertexData[vertexDataCounted + 12] = face->uvBiTangent.y;
+				vertexData[vertexDataCounted + 13] = face->uvBiTangent.z;
 			}
 			vertexDataCounted += floatsPerVertex;
 			++vertexDataCount;

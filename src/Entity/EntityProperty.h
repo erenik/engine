@@ -19,6 +19,7 @@ namespace EntityPropertyID
 	enum entityPropertyIDs
 	{
 		UTILITY_PROPERTIES, // E.g. EntityStateTile2D.
+		EDITOR_CAMERA, // Default 3D editor camera
 
 		CUSTOM_GAME_1 = UTILITY_PROPERTIES + 100,
 		CUSTOM_GAME_2 = CUSTOM_GAME_1 + propertiesPerGame,
@@ -79,6 +80,11 @@ public:
 	Entity * owner;
 	// For properties with multiple owners.
 	List<Entity*> owners;
+
+	// Default false. Enable to steer this entity.
+	bool inputFocus;
+	bool inputFocusEnabled; // If this property would make use of the inputFocus. Default false. Set to true for all properties with steering.
+
 
 protected:
 	/// ID.

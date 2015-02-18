@@ -1378,7 +1378,7 @@ List<String> String::GetLines() const
             token.Remove("\r");
             token.Remove("\n");
        //     token.PrintData();
-            list.Add(token);
+            list.AddItem(token);
 
             // Break will only break the inner loop, make sure to flag the outside for-loop's index too!
 			if (lastOne){

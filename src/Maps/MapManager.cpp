@@ -31,6 +31,7 @@
 #include "PhysicsLib/Shapes/Ray.h"
 
 #include "StateManager.h"
+#include "File/LogFile.h"
 
 // Singleton initialization.
 MapManager * MapManager::mapMan = NULL;
@@ -524,11 +525,18 @@ bool MapManager::AddEntity(Entity * entity)
 		return NULL;
 	}
 
-	// Register it with the graphics manager straight away since it's the active map!
-	GraphicsQueue.Add(new GMRegisterEntity(entity));
-	// Go ahead and add physics too, most entities will have physics, so.
-	if (defaultAddPhysics)
-		PhysicsQueue.Add(new PMRegisterEntity(entity));
+	if (entity->model)
+	{
+		// Register it with the graphics manager straight away since it's the active map!
+		GraphicsQueue.Add(new GMRegisterEntity(entity));
+		// Go ahead and add physics too, most entities will have physics, so.
+		if (defaultAddPhysics)
+			PhysicsQueue.Add(new PMRegisterEntity(entity));
+	}
+	else 
+	{
+		LogMain("Adding entity without model: "+entity->name, INFO);
+	}
 	return true;
 }
 /// Adds target entity to the map, registering it for physics and graphics
