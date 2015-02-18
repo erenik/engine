@@ -108,6 +108,7 @@ void InputManager::Initialize(){
 		this->LoadDefaults();
 	for (int i = 0; i < KEY::TOTAL_KEYS; ++i){
 		this->keyPressed[i] = false;
+		this->keyPressedThisFrame[i] = false;
 	}
 	this->isInTextEnteringMode = false;
 	insertionMode = true;
@@ -135,6 +136,8 @@ int InputManager::ClearInputFlags()
 			++inputsReset;
 			// Flag it as false
 			this->keyPressed[i] = false;
+			// Flag it as false
+			this->keyPressedThisFrame[i] = false;
 			// Execute anything needed when the key press state is lost too, though!
 			this->KeyUp(this->keyPressed[i]);
 		}
@@ -226,6 +229,16 @@ int InputManager::GetNextAvailableInputDevice()
 void InputManager::UpdateDeviceStates(){
 	// See Input/Gamepad/Gamepad.h
 }
+
+/// Clears mainly the keyPressedThisFrame array, used for checking newly pressed keys without specific bindings.
+void InputManager::ClearPreviousFrameStats()
+{
+	for (int i = 0; i < KEY::TOTAL_KEYS; ++i)
+	{
+		keyPressedThisFrame[i] = false;
+	}
+}
+
 
 /** DEPRECATING Enters the text-input mode, using a caret and everything to receive user input.
 	Sends the actionToBeTakenUponCompletion down to the current state's processor
@@ -714,6 +727,7 @@ void InputManager::KeyDown(int keyCode, bool downBefore){
 		return;
 
 	keyPressed[keyCode] = true;
+	keyPressedThisFrame[keyCode] = true;
 	UserInterface * ui = RelevantUI();
 	UIElement * activeElement = NULL;
 	if (ui)
@@ -755,6 +769,22 @@ void InputManager::KeyUp(int keyCode){
 	keyPressed[keyCode] = false;
 	EvaluateKeyReleased(keyCode);
 };
+
+/// Returns state of the selected key
+bool InputManager::KeyPressed(int keyCode) 
+{ 
+#define CHECK_BAD_KEY if (keyCode > KEY::TOTAL_KEYS || keyCode < KEY::NULL_KEY) return false;
+	CHECK_BAD_KEY;
+	return keyPressed[keyCode]; 
+}
+
+/// Returns true if the given key was pressed down this frame.
+bool InputManager::KeyPressedThisFrame(int keyCode)
+{
+	CHECK_BAD_KEY;
+	return keyPressedThisFrame[keyCode];
+}
+
 
 /// Prints input to stdConsole
 void InputManager::PrintBuffer(){

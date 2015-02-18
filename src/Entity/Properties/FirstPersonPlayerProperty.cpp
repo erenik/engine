@@ -121,34 +121,19 @@ void FirstPersonPlayerProperty::ProcessMessage(Message * message)
 /// o-o
 void FirstPersonPlayerProperty::ToggleAutorun()
 {
-	if (jumping)
-		return;
+	// Toggle flag.
 	autorun = !autorun;
-	/// New state.. do stuffelistuff.
+	// Set facing-rotational behaviour
+	PhysicsQueue.Add(new PMSetEntity(owner, PT_FACE_VELOCITY_DIRECTION, !autorun));	
+	// Disable regular walking acc.
 	if (autorun)
 	{
-		if (!owner->physics)
-			return;
-		// Do we have a velocity? If not disable autorun straight away.
-		if (!owner->physics->velocity.MaxPart())
-		{
-			autorun = false;
-			return;
-		}
-		PhysicsQueue.Add(new PMSetEntity(owner, PT_FACE_VELOCITY_DIRECTION, false));
 		// Set relative velocity. It will solve the issue of direction by using the current rotation :)
 		PhysicsQueue.Add(new PMSetEntity(owner, PT_RELATIVE_ACCELERATION, Vector3f(0, 0, movementSpeed)));
-		/// Disable regular velocity.
 		PhysicsQueue.Add(new PMSetEntity(owner, PT_ACCELERATION, Vector3f())); 
-		/// Set damping in case the regular velocity persist somehow... no.
-	//	PhysicsQueue.Add(new PMSetEntity(owner, PT_LINEAR_DAMPING, 0.5f));
 	}
-	// Leaving autorun-mode.
 	else 
-	{
-	//	PhysicsQueue.Add(new PMSetEntity(owner, PT_LINEAR_DAMPING, 0.9f));
 		PhysicsQueue.Add(new PMSetEntity(owner, PT_RELATIVE_ACCELERATION, Vector3f()));
-	}
 }
 
 
@@ -169,6 +154,12 @@ void FirstPersonPlayerProperty::ProcessInput()
 		right -= 1.f;
 	if (Input.KeyPressed(KEY::D))
 		right += 1.f;
+
+	/// o.o
+	if (Input.KeyPressedThisFrame(KEY::R))
+	{
+		ToggleAutorun();
+	}
 
 	if (Input.KeyPressed(KEY::SPACE))
 	{

@@ -73,6 +73,8 @@ public:
 
 	/// Fetches and updates the device states for all external controllers (if any)
 	void UpdateDeviceStates();
+	/// Clears mainly the keyPressedThisFrame array, used for checking newly pressed keys without specific bindings.
+	void ClearPreviousFrameStats();
 
 	/** Returns the flag value for it we're currenty entering text or not. */
 	bool IsInTextEnteringMode() { return this->isInTextEnteringMode; };
@@ -166,7 +168,9 @@ public:
 	void KeyUp(int keyCode);
 
 	/// Returns state of the selected key
-	bool KeyPressed(int keyCode) { if (keyCode > KEY::TOTAL_KEYS || keyCode < KEY::NULL_KEY) return false; return keyPressed[keyCode]; };
+	bool KeyPressed(int keyCode);
+	/// Returns true if the given key was pressed down this frame.
+	bool KeyPressedThisFrame(int keyCode);
 
 	/// Amount of previous input buffers stored for future reference/eased reusability.
 	static const int INPUT_BUFFERS = 20;
@@ -304,6 +308,7 @@ private:
 
 	/// Flags for if the keys are pressed down currently
 	bool keyPressed[KEY::TOTAL_KEYS];
+	bool keyPressedThisFrame[KEY::TOTAL_KEYS];
 
 	/// Current element that the cursor is over. This can be any visible UI element that has any hoverable flag or similar (non-NULL-type)
 //	UIElement * hoverElement;

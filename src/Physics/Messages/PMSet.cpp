@@ -112,6 +112,7 @@ void PMSet::Process()
 			{
 			case VEC3F:
 				Physics.gravitation = vec3fValue;
+				PhysicsMan.physicsIntegrator->gravity = vec3fValue;
 				break;
 			case FLOAT:
 				Physics.gravitation[1] = floatValue;

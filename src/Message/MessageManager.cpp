@@ -330,6 +330,13 @@ void MessageManager::ProcessMessage(Message * message)
 			{
 				Light::ProcessMessageStatic(message);
 			}
+			else if (msg.StartsWith("SetGravity"))
+			{
+				String gravStr = msg.Tokenize("()")[1];
+				Vector3f grav;
+				grav.ReadFrom(gravStr);
+				PhysicsQueue.Add(new PMSet(PT_GRAVITY, grav));
+			}
 			else if (msg == "CreateEditorCamera")
 			{
 				CreateEditorCamera();

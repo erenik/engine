@@ -363,7 +363,7 @@ void TIFS::CreateDefaultBindings()
 	List<Binding*> & bindings = mapping->bindings;
 	bindings.Add(new Binding(Action::FromString("ResetCamera"), KEY::HOME));
 	bindings.Add(new Binding(Action::FromString("NextCamera"), KEY::C));
-	bindings.Add(new Binding(Action::FromString("ToggleAutorun"), KEY::R));
+//	bindings.Add(new Binding(Action::FromString("ToggleAutorun"), KEY::R));
 	bindings.Add(new Binding(Action::FromString("ToggleMainMenu"), KEY::ESC));
 	bindings.Add(new Binding(Action::FromString("Repair"), KEY::F1));
 	bindings.Add(new Binding(Action::FromString("Activate"), KEY::F2));

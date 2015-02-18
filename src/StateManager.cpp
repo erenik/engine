@@ -308,6 +308,8 @@ void * StateManager::StateProcessor(void * vArgs){
 
 					/// Get input from XBox devices if possible
 					Input.UpdateDeviceStates();
+					/// Clear previous frame input before fetching new from the Window system.
+					Input.ClearPreviousFrameStats();
 					// Main message loop for all extra created windows, since they are dependent on the thread they were created in...
 		#ifdef WINDOWS
 					// Get messages and dispatch them to WndProc
