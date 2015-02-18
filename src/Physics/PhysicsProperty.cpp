@@ -92,6 +92,10 @@ PhysicsProperty::PhysicsProperty(const CompactPhysics * compactPhysics)
 /// Set default values.
 void PhysicsProperty::Nullify()
 {
+	requireGroundForLocalAcceleration = false;
+	isOnGroundThresholdMs = 50;
+
+
 	fullyDynamic = true;
 	useForces = false;
 	faceVelocityDirection = false;

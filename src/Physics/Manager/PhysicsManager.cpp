@@ -47,7 +47,7 @@ void PhysicsManager::Deallocate(){
 	physicsManager = NULL;
 }
 
-
+int64 physicsNowMs = 0;
 
 PhysicsManager::PhysicsManager()
 {

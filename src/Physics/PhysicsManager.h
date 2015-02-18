@@ -52,6 +52,10 @@ enum collisionResolvers {
 
 #define MessageQueueP (PhysicsMan.mesManMessages)
 
+/// Current time for this physics-frame. Updated in physics thread.
+/// Set current time in physics for this frame. This time is not the same as real time.
+extern int64 physicsNowMs;
+
 class PhysicsManager
 {
 	friend class GraphicsManager;

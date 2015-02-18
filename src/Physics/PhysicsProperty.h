@@ -218,6 +218,11 @@ public:
 	Vector3f acceleration;
 	/// Relative acceleration in the entity's current right/up/forward vector directions.
 	Vector3f relativeAcceleration;
+	/// Default false. If true, requires a collision with ground for relativeAcceleration to be added.
+	bool requireGroundForLocalAcceleration;
+	/// If requireGroundForLocalAcceleration is true, this specifies the amount of milliseconds within which a ground collision must have been detected.
+	int isOnGroundThresholdMs;
+	int64 lastGroundCollisionMs;
 	/** Relative rotation compared to entity's current direction vectors. 
 		The speed of these rotations will vary with the entity's rate/radius of turns (ROT) (turning rate), current air speed and time.
 		Mainly used for airplanes and similar vehicles.	*/

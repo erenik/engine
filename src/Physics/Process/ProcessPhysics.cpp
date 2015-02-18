@@ -81,6 +81,9 @@ void PhysicsManager::ProcessPhysics()
 			timeInSecondsSinceLastUpdate = totalTimeSinceLastUpdate;
 		totalTimeSinceLastUpdate -= timeInSecondsSinceLastUpdate;
 
+		/// Set current time in physics for this frame. This time is not the same as real time.
+		physicsNowMs += timeInSecondsSinceLastUpdate * 1000;
+			
 		/// Process estimators (if any) within all registered entities?
 		int milliseconds = dt * 1000.f;
 		for (int i = 0 ; i < physicalEntities.Size(); ++i)

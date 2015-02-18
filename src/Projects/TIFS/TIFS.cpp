@@ -481,7 +481,12 @@ void TIFS::CreateTurret(int ofSize, ConstVec3fr atLocation)
 	PhysicsProperty * pp = new PhysicsProperty();
 	turretBase->physics = pp;
 	pp->type = PhysicsType::KINEMATIC;
-	pp->fullyDynamic = false;
+//	pp->fullyDynamic = false;
+	pp->collisionCategory = CC_TURRET;
+	pp->collisionFilter = CC_PLAYER | CC_DRONE;
+	pp->shapeType = ShapeType::SPHERE;
+	// Set larger radius to avoid player going through it
+	pp->physicalRadius = 5.f;
 
 	/// Add a child-mesh-part to the first turret-part!
 	Model * swivel = ModelMan.GetModel("Turrets/LargeSwivel");
@@ -557,7 +562,7 @@ void TIFS::SpawnPlayer()
 	// Attach camera to the player.
 	GraphicsQueue.Add(new GMSetCamera(thirdPersonCamera, CT_ENTITY_TO_TRACK, player));
 	GraphicsQueue.Add(new GMSetCamera(firstPersonCamera, CT_ENTITY_TO_TRACK, player));
-	
+
 	// Set physics stuffs.
 	PhysicsProperty * pp = new PhysicsProperty();
 	player->physics = pp;

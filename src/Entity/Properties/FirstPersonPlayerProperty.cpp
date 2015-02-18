@@ -45,6 +45,12 @@ FirstPersonPlayerProperty::FirstPersonPlayerProperty(String propertyName, int id
 	jumpCooldownMs = 500;
 	jumping = true;
 	lastJump = Time::Now();
+	
+	// Set physics properties by default?
+	if (owner->physics)
+	{
+		owner->physics->requireGroundForLocalAcceleration = true;
+	}
 }
 
 /// Time passed in seconds..! Will steer if inputFocus is true.

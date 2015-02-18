@@ -16,6 +16,7 @@ FirstPersonIntegrator::FirstPersonIntegrator()
 */
 void FirstPersonIntegrator::IntegrateDynamicEntities(List<Entity*> & dynamicEntities, float timeInSeconds)
 {
+
 	Timer timer;
 	timer.Start();
 	List<Entity*> & forceBasedEntities = PhysicsMan.forceBasedEntities;
@@ -80,16 +81,22 @@ void FirstPersonIntegrator::IntegrateVelocity(List<Entity*> & entities, float ti
 		/// Apply gravity.
 		if (pp->gravityMultiplier && !(pp->state & PhysicsState::AT_REST))
 			totalAcceleration = _mm_add_ps(totalAcceleration, _mm_mul_ps(gravity.data, sse));
-		// Accelerate in the looking-direction
-		if (pp->relativeAcceleration.x || pp->relativeAcceleration.y || pp->relativeAcceleration.z)
+		
+		/// Accelerate only if requirements met.
+		if (!pp->requireGroundForLocalAcceleration || (physicsNowMs - pp->lastGroundCollisionMs) < pp->isOnGroundThresholdMs)
 		{
-			Vector3f relAcc = pp->relativeAcceleration;
-			relAcc.z *= -1;
-			Vector3f worldAcceleration = forEntity->rotationMatrix.Product(relAcc);
-			totalAcceleration = _mm_add_ps(totalAcceleration, worldAcceleration.data);
+			// Accelerate in the looking-direction
+			// Require acceleration, but also that the entity be considered on the ground, if needed.
+			if (pp->relativeAcceleration.x || pp->relativeAcceleration.y || pp->relativeAcceleration.z)
+			{
+				Vector3f relAcc = pp->relativeAcceleration;
+				relAcc.z *= -1;
+				Vector3f worldAcceleration = forEntity->rotationMatrix.Product(relAcc);
+				totalAcceleration = _mm_add_ps(totalAcceleration, worldAcceleration.data);
+			}
+			// Regular acceleration.
+			totalAcceleration = _mm_add_ps(totalAcceleration, pp->acceleration.data);
 		}
-		// Regular acceleration.
-		totalAcceleration = _mm_add_ps(totalAcceleration, pp->acceleration.data);
 		/// Multiply by time.
 		pp->velocity.data = _mm_add_ps(pp->velocity.data, _mm_mul_ps(totalAcceleration, timeSSE));
 		// Apply linear damping

@@ -5,6 +5,8 @@
 #include "FirstPersonCR.h"
 #include "Physics/Collision/Collision.h"
 
+#include "Physics/PhysicsManager.h"
+
 /// Resolves collisions.
 int FirstPersonCR::ResolveCollisions(List<Collision> collisions)
 {
@@ -45,13 +47,16 @@ bool FirstPersonCR::ResolveCollision(Collision & c)
 	if (!dynamic2)
 	{
 		PhysicsProperty * pp = dynamic->physics;
-		// Skip
-		if (kinematicEntity)
-			return true;
+		// Skip? No.
+//		if (kinematicEntity)
+//			return true;
 
 		/// Flip normal if dynamic is two.
 		if (dynamic == c.two)
 			c.collisionNormal *= -1;
+
+		if (c.collisionNormal.y > 0.8f)
+			pp->lastGroundCollisionMs = physicsNowMs;
 
 		// Default plane? reflect velocity upward?
 		// Reflect based on the normal.
@@ -68,7 +73,7 @@ bool FirstPersonCR::ResolveCollision(Collision & c)
 
 		dynamic->position += AbsoluteValue(c.distanceIntoEachOther) * c.collisionNormal;
 		/// If below threshold, sleep it.
-		if (dynamic->physics->velocity.Length() < 0.1f)
+		if (dynamic->physics->velocity.Length() < 0.1f && c.collisionNormal.y > 0.8f)
 		{
 			// Sleep eeet.
 			dynamic->physics->state |= PhysicsState::AT_REST;
