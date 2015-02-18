@@ -422,7 +422,7 @@ void TIFS::SpawnDrone(ConstVec3fr atLocation)
 	Texture * diffuseMap = TexMan.GetTexture("img/Drones/DroneDiffuseMap.png");
 //ModelMan.GetModel("Sphere")
 	//TexMan.GetTexture("Cyan")
-	Entity * drone = EntityMan.CreateEntity("Drone", model, diffuseMap);
+	Entity * drone = EntityMan.CreateEntity("Drone "+String(drones.Size()), model, diffuseMap);
 	drone->SetPosition(atLocation);
 	PhysicsProperty * pp = new PhysicsProperty();
 	drone->physics = pp;
@@ -673,7 +673,7 @@ void TIFS::AddBuildings(int numBuildings)
 			break;
 		}
 		/// Create "building" of random size based on the given maxSize :)
-		Entity * buildingEntity = EntityMan.CreateEntity("Building", ModelMan.GetModel("cube.obj"), TexMan.GetTexture("0x82"));
+		Entity * buildingEntity = EntityMan.CreateEntity("Building "+String(i), ModelMan.GetModel("cube.obj"), TexMan.GetTexture("0x82"));
 		PhysicsProperty * pp = new PhysicsProperty();
 		buildingEntity->physics = pp;
 		pp->shapeType = PhysicsShape::AABB;

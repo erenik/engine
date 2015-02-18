@@ -52,32 +52,30 @@ bool FirstPersonCR::ResolveCollision(Collision & c)
 		/// Flip normal if dynamic is two.
 		if (dynamic == c.two)
 			c.collisionNormal *= -1;
+
 		// Default plane? reflect velocity upward?
-		if (c.collisionNormal.y > 0.9f)
+		// Reflect based on the normal.
+		float velDotNormal = pp->velocity.DotProduct(c.collisionNormal);
+		
+		/// This will be used to reflect it.
+		Vector3f velInNormalDir = c.collisionNormal * velDotNormal;
+		Vector3f velInTangent = pp->velocity - velInNormalDir;
+		
+		Vector3f newVel = velInTangent * (1 - pp->friction) + velInNormalDir * (-pp->restitution);
+
+		/// Apply resitution and stuffs.
+		dynamic->physics->velocity = newVel;
+
+		dynamic->position += AbsoluteValue(c.distanceIntoEachOther) * c.collisionNormal;
+		/// If below threshold, sleep it.
+		if (dynamic->physics->velocity.Length() < 0.1f)
 		{
-			// Reflect based on the normal.
-			float velDotNormal = pp->velocity.DotProduct(c.collisionNormal);
-			
-			/// This will be used to reflect it.
-			Vector3f velInNormalDir = c.collisionNormal * velDotNormal;
-			Vector3f velInTangent = pp->velocity - velInNormalDir;
-			
-			Vector3f newVel = velInTangent * (1 - pp->friction) + velInNormalDir * (-pp->restitution);
-
-			/// Apply resitution and stuffs.
-			dynamic->physics->velocity = newVel;
-
-			dynamic->position += AbsoluteValue(c.distanceIntoEachOther) * c.collisionNormal;
-			/// If below threshold, sleep it.
-			if (dynamic->physics->velocity.Length() < 0.1f)
-			{
-				// Sleep eeet.
-				dynamic->physics->state |= PhysicsState::AT_REST;
-				// Nullify velocity.
-				dynamic->physics->velocity = Vector3f();
-			}
+			// Sleep eeet.
+			dynamic->physics->state |= PhysicsState::AT_REST;
+			// Nullify velocity.
+			dynamic->physics->velocity = Vector3f();
+		}
 //			std::cout<<"\nCollision normal: "<<c.collisionNormal;
-		}	
 	}
 	// Dynamic-dynamic collision.
 	else 

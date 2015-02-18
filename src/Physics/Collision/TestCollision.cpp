@@ -67,6 +67,23 @@ bool TestCollision(Entity * one, Entity * two, List<Collision> & collissionList)
 		if (PlaneSphereCollision(planeEntity, sphereEntity, data))
 			shouldCollide = true;
 	}
+	else if (shapeTypes[ShapeType::AABB] && shapeTypes[ShapeType::AABB])
+	{
+		Entity * aabbEntity = NULL,
+			* sphereEntity = NULL;
+		if (one->physics->shapeType == ShapeType::AABB)
+		{
+			aabbEntity = one;
+			sphereEntity = two;
+		}
+		else
+		{
+			aabbEntity = two;
+			sphereEntity = one;
+		}
+		if (AABBSphereCollision(aabbEntity->aabb, sphereEntity, data))
+			shouldCollide = true;
+	}
 	///=================================================================================//
 	///  Mesh-Sphere Intersection
 	///=================================================================================//

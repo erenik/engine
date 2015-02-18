@@ -2,6 +2,9 @@
 /// 2014-08-06
 /// Basic shapes.
 
+#ifndef QUAD_H
+#define QUAD_H
+
 #include "Plane.h"
 
 /// Assumes following point-order: lower-left (min), lower-right, upper-right (max), upper-left.
@@ -17,6 +20,7 @@ public:
 			Vector3f(0.5f,0,0.5f),
 			Vector3f(-0.5f,0,0.5f));
 	};
+	Quad(ConstVec3fr p1, ConstVec3fr p2, ConstVec3fr p3, ConstVec3fr p4);
 	/// Copy constructor
 	Quad(const Quad &quad);
 
@@ -40,3 +44,5 @@ public:
 	/// Fourth point or our quadly quad.
 	Vector3f point4;
 };
+
+#endif

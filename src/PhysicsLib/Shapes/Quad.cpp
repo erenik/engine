@@ -4,6 +4,12 @@
 
 #include "Quad.h"
 
+Quad::Quad(ConstVec3fr p1, ConstVec3fr p2, ConstVec3fr p3, ConstVec3fr p4)
+{
+	Set4Points(p1,p2,p3,p4);
+}
+
+
 /// Copy constructor
 Quad::Quad(const Quad &quad){
 	Set4Points(quad.point1, quad.point2, quad.point3, quad.point4);

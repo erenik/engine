@@ -30,6 +30,8 @@ enum {
 
 	// Debugging stuff.
 	PRINT_SHADOW_MAPS,
+	DEBUG_NEXT, /// Cycles debugging integer for displaying texts or w/e.
+	DEBUG_PREVIOUS,
 
 	/// Display options
 	TOGGLE_FULL_SCREEN,

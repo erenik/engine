@@ -8,6 +8,7 @@
 #include "Model/Model.h"
 #include "Mesh/Mesh.h"
 #include "Physics/PhysicsManager.h"
+#include "PhysicsLib/Location.h"
 
 /// Fucking macros (on windows)
 #undef max
@@ -64,6 +65,11 @@ void AABB::Recalculate(Entity * entity)
 		case PhysicsShape::MESH:
 			// Default use below method.
 			break;
+		case PhysicsShape::AABB:
+		{
+			/// Use default below,.. I guess?
+			break;
+		}
 		default:
 			assert(false && "Implement");
 	}
@@ -135,3 +141,111 @@ void AABB::Recalculate(Entity * entity)
 	if (debugAABB)
 		std::cout<<"\nPosition "<<position<<" Scale "<<scale;
 }
+
+
+/// Returns this AABB in the form of 8 quads.
+List<Quad> AABB::AsQuads()
+{
+	List<Quad> quads;
+	List<Vector3f> points;
+	points.Allocate(8, true);
+
+	/// Z+ is higher, Y+ is upper, X+ is right.
+	points[HITHER_UPPER_RIGHT] = max;
+	points[HITHER_UPPER_LEFT] = max - Vector3f(scale.x,0,0);
+	points[HITHER_LOWER_RIGHT] = max - Vector3f(0, scale.y,0);
+	points[HITHER_LOWER_LEFT] = min + Vector3f(0, 0, scale.z);
+
+	points[FARTHER_LOWER_LEFT] = min;
+	points[FARTHER_LOWER_RIGHT] = min + Vector3f(scale.x,0,0);
+	points[FARTHER_UPPER_LEFT] = min + Vector3f(0, scale.y,0);
+	points[FARTHER_UPPER_RIGHT] = max - Vector3f(0, 0, scale.z);
+
+	/// Right. Create the quads! .. was it clockwise or counter clockwise.
+	bool clockwise = false;
+	if (clockwise)
+	{
+		/// Clockwise order (seen from outside it).
+		quads.Add(
+			/// Hither.
+			Quad(points[HITHER_UPPER_RIGHT], points[HITHER_LOWER_RIGHT], points[HITHER_LOWER_LEFT], points[HITHER_UPPER_LEFT]),
+			/// Farther
+			Quad(points[FARTHER_UPPER_LEFT], points[FARTHER_LOWER_LEFT], points[FARTHER_LOWER_RIGHT], points[FARTHER_UPPER_RIGHT]),
+			/// Left
+			Quad(points[HITHER_UPPER_LEFT], points[HITHER_LOWER_LEFT], points[FARTHER_LOWER_LEFT], points[FARTHER_UPPER_LEFT]),
+			/// Right
+			Quad(points[HITHER_LOWER_RIGHT], points[HITHER_UPPER_RIGHT], points[FARTHER_UPPER_RIGHT], points[FARTHER_LOWER_RIGHT])
+		);
+		quads.Add(
+			/// Up.
+			Quad(points[HITHER_UPPER_RIGHT], points[HITHER_UPPER_LEFT], points[FARTHER_UPPER_LEFT], points[FARTHER_UPPER_RIGHT]),
+			/// Down.
+			Quad(points[HITHER_LOWER_LEFT], points[HITHER_LOWER_RIGHT], points[FARTHER_LOWER_RIGHT], points[FARTHER_LOWER_LEFT])
+		);
+	}
+	else 
+	{
+		/// Counter-clockwise order (seen from outside it).
+		quads.Add(
+			/// Hither, farther
+			Quad(points[HITHER_UPPER_RIGHT], points[HITHER_UPPER_LEFT], points[HITHER_LOWER_LEFT], points[HITHER_LOWER_RIGHT]),
+			Quad(points[FARTHER_UPPER_LEFT], points[FARTHER_UPPER_RIGHT], points[FARTHER_LOWER_RIGHT], points[FARTHER_LOWER_LEFT]),
+			/// Left, right
+			Quad(points[HITHER_UPPER_LEFT], points[FARTHER_UPPER_LEFT], points[FARTHER_LOWER_LEFT], points[HITHER_LOWER_LEFT]),
+			Quad(points[HITHER_LOWER_RIGHT], points[FARTHER_LOWER_RIGHT], points[FARTHER_UPPER_RIGHT], points[HITHER_UPPER_RIGHT])
+		);
+		quads.Add(
+			/// Up n down.
+			Quad(points[HITHER_UPPER_RIGHT], points[FARTHER_UPPER_RIGHT], points[FARTHER_UPPER_LEFT], points[HITHER_UPPER_LEFT]),
+			Quad(points[HITHER_LOWER_LEFT], points[FARTHER_LOWER_LEFT], points[FARTHER_LOWER_RIGHT], points[HITHER_LOWER_RIGHT])
+		);
+	}
+	/// Test it?
+
+	/*
+	Vector3f point = position;
+	for (int i = 0; i < quads.Size(); ++i)
+	{
+		Quad & quad = quads[i];
+		float distance = quad.Distance(point);
+		std::cout<<"\nDist: "<<distance;
+	}*/
+
+
+	return quads;
+}
+
+
+/*
+/// Returns 0 if false, 1 if intersecting, 2 if inside
+int AABB::SphereInside(Vector3f spherePosition, float sphereRadius)
+{
+	/*
+	// Make box test insteeeead
+	for (int i = 0; i < quads.Size(); ++i)
+	{
+		// Check if it's inside.
+		if (entity->position[0] + entity->physics->physicalRadius < right &&
+			entity->position[0] - entity->physics->physicalRadius > left &&
+			entity->position[1] + entity->physics->physicalRadius < top &&
+			entity->position[1] - entity->physics->physicalRadius > bottom &&
+			entity->position[2] + entity->physics->physicalRadius < nearBound &&
+			entity->position[2] - entity->physics->physicalRadius > farBound
+		)
+			// Inside
+			continue;
+		// Or intersecting, just compare with inverted radius
+		else if (entity->position[0] - entity->physics->physicalRadius < right &&
+			entity->position[0] + entity->physics->physicalRadius > left &&
+			entity->position[1] - entity->physics->physicalRadius < top &&
+			entity->position[1] + entity->physics->physicalRadius > bottom &&
+			entity->position[2] - entity->physics->physicalRadius < nearBound &&
+			entity->position[2] + entity->physics->physicalRadius > farBound
+		)
+			// Intersect
+			continue;
+		// It's outside if the previous were false, logical :P
+		return false;
+	}
+}
+*/

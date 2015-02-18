@@ -31,6 +31,7 @@ bool TriangleSphereCollision(Triangle * triangle, Sphere * sphere, Collision &da
 /// For checking between static shapes and entities.
 bool TriangleSphereCollision(Triangle * triangle, Entity * sphere, Collision &data);
 bool QuadSphereCollision(Quad * quad, Entity * sphere, Collision &data);
+bool AABBSphereCollision(AABB * aabb, Entity * sphere, Collision &data);
 
 /// Geometrical collission tests.
 bool EdgeFaceCollision(Edge * edge, Face * face, Collision &data);

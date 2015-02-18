@@ -26,5 +26,7 @@ void CreateDefaultDebuggingBindings()
 	BIND(Action::FromEnum(RECOMPILE_SHADERS), List<int>(KEY::CTRL, KEY::R, KEY::S));
 	BIND(Action::FromString("InputMan.printHoverElement"), List<int>(KEY::P, KEY::H, KEY::E));
 	BIND(Action::FromEnum(PRINT_SHADOW_MAPS), List<int>(KEY::P, KEY::S, KEY::M));
+	BIND(Action::FromEnum(DEBUG_NEXT), KEY::F5);
+	BIND(Action::FromEnum(DEBUG_PREVIOUS), KEY::F6);
 };
 

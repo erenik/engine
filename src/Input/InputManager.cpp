@@ -33,6 +33,7 @@
 
 /// Global inputmanager
 InputManager * InputManager::input = NULL;
+int debug = 0;
 
 /// Allocate
 void InputManager::Allocate(){

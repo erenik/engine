@@ -8,6 +8,8 @@
 #include <iomanip>
 #include "Timer/Timer.h"
 
+extern int debug;
+
 //#define TEST_THREE_AXES
 
 EntityPair::EntityPair()
@@ -254,7 +256,8 @@ List<EntityPair> AABBSweeper::Sweep()
         for (int j = 0; j < axis.Size(); ++j)
 		{
             AABBSweepNode * node = axis[j];
-//			std::cout<<"\nNode "<<j<<": "<<node->entity->name;
+			if (debug == 1)
+				std::cout<<"\nNode "<<j<<": "<<node->entity->name<<" "<<(node->type == AABBSweepNode::START? "START" : "STOP");
             /// If it's a start node, add it to the active list.
             if (node->type == AABBSweepNode::START)
 			{
@@ -262,6 +265,8 @@ List<EntityPair> AABBSweeper::Sweep()
                 /// Also create pairs from it with all other already active entities...!
 				int numActiveEntities = activeEntities.Size();
 				Entity ** activeEntityArray = activeEntities.GetArray();
+				if (debug == 3 && node->entity->name == "Player")
+					std::cout<<"\nActive entities: "<<numActiveEntities;
                 for (int k = 0; k < numActiveEntities; ++k)
 				{
                     Entity * entity = activeEntityArray[k];
@@ -303,8 +308,7 @@ List<EntityPair> AABBSweeper::Sweep()
 				activeEntities.AddItem(node->entity);
             }
             /// And if it's a stop node, just remove it from the active entities list!
-            else if (node->type == AABBSweepNode::STOP &&
-				node->entity->physics->type == PhysicsType::DYNAMIC)
+            else if (node->type == AABBSweepNode::STOP)
 			{
                 activeEntities.RemoveItemUnsorted(node->entity);
             }
@@ -382,4 +386,17 @@ void AABBSweeper::Sort(List<AABBSweepNode*> & listToSort, int axis)
         }
         listArray[emptySlot] = currentNode;
     }
+	if (debug == 2)
+	{
+		std::cout<<"\nSorted nodes in AABBSweeper";
+		for (int i = 0; i < listToSort.Size(); ++i)
+		{
+			AABBSweepNode * node = listToSort[i];
+			std::cout<<"\n "<<i<<": "<<node->entity->name<<" "<<
+				(	(node->type == AABBSweepNode::START)? 
+					("START X: "+String(node->aabb->min.x)) : 
+					("STOP X: "+String(node->aabb->max.x))
+				);
+		}
+	}
 }

@@ -36,6 +36,8 @@
 
 #include "OS/OSUtil.h"
 
+extern int debug;
+
 /// Empty.
 Action::Action()
 {
@@ -94,6 +96,14 @@ void Action::TriggerStart()
 	Viewport * mainViewport = activeWindow->MainViewport();
 	switch(type)
 	{
+		case DEBUG_NEXT:
+			++debug;
+			std::cout<<"\nDebug set to "<<debug;
+			break;
+		case DEBUG_PREVIOUS:
+			--debug;
+			std::cout<<"\nDebug set to "<<debug;
+			break;
 		case QUEUE_STRING_MESSAGE:
 		case QUEUE_STRING_START_STOP:
 			MesMan.QueueMessages(startAction);
