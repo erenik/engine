@@ -248,6 +248,7 @@ List<EntityPair> AABBSweeper::Sweep()
 	}
 #else
 	/// Old loop.
+	int dynamicEntitiesInside = 0;
     for (int i = 0; i < axesToWorkWith; ++i)
 	{
         /// Clear the active entities list.
@@ -267,15 +268,19 @@ List<EntityPair> AABBSweeper::Sweep()
 				Entity ** activeEntityArray = activeEntities.GetArray();
 				if (debug == 3 && node->entity->name == "Player")
 					std::cout<<"\nActive entities: "<<numActiveEntities;
+				/// Since "entity" will be any kind, demand that the node entering now is dynamic. Will filter a bit.
+				if (node->entity->physics->type != PhysicsType::DYNAMIC ||
+					(node->entity->physics->state & PhysicsState::IN_REST))
+					++dynamicEntitiesInside;
+				if (!dynamicEntitiesInside)
+				{
+					// Just add and continue.
+					activeEntities.AddItem(node->entity);
+					continue;
+				}
                 for (int k = 0; k < numActiveEntities; ++k)
 				{
                     Entity * entity = activeEntityArray[k];
-
-					/// Since "entity" will be any kind, demand that the node entering now is dynamic. Will filter a bit.
-					if (node->entity->physics->type != PhysicsType::DYNAMIC ||
-						(node->entity->physics->state & PhysicsState::IN_REST))
-						continue;
-
 					// Check collision-filters.
 					if (
 						(
@@ -311,6 +316,7 @@ List<EntityPair> AABBSweeper::Sweep()
             else if (node->type == AABBSweepNode::STOP)
 			{
                 activeEntities.RemoveItemUnsorted(node->entity);
+				--dynamicEntitiesInside;
             }
         }
     }

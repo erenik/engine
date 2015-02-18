@@ -82,7 +82,15 @@ bool TestCollision(Entity * one, Entity * two, List<Collision> & collissionList)
 			sphereEntity = one;
 		}
 		if (AABBSphereCollision(aabbEntity->aabb, sphereEntity, data))
+		{
 			shouldCollide = true;
+			/// Flip collision normal if needed, always point from one to two.
+			if (aabbEntity == one)
+			{
+				data.collisionNormal *= -1;
+				data.distanceIntoEachOther *= -1;
+			}
+		}
 	}
 	///=================================================================================//
 	///  Mesh-Sphere Intersection
