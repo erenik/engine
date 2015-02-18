@@ -81,11 +81,15 @@ void FirstPersonIntegrator::IntegrateVelocity(List<Entity*> & entities, float ti
 		if (pp->gravityMultiplier && !(pp->state & PhysicsState::AT_REST))
 			totalAcceleration = _mm_add_ps(totalAcceleration, _mm_mul_ps(gravity.data, sse));
 		// Accelerate in the looking-direction
-		if (pp->acceleration.x || pp->acceleration.y || pp->acceleration.z)
+		if (pp->relativeAcceleration.x || pp->relativeAcceleration.y || pp->relativeAcceleration.z)
 		{
-			Vector3f localAcceleration = forEntity->rotationMatrix.Product(pp->acceleration);
-			totalAcceleration = _mm_add_ps(totalAcceleration, localAcceleration.data);
+			Vector3f relAcc = pp->relativeAcceleration;
+			relAcc.z *= -1;
+			Vector3f worldAcceleration = forEntity->rotationMatrix.Product(relAcc);
+			totalAcceleration = _mm_add_ps(totalAcceleration, worldAcceleration.data);
 		}
+		// Regular acceleration.
+		totalAcceleration = _mm_add_ps(totalAcceleration, pp->acceleration.data);
 		/// Multiply by time.
 		pp->velocity.data = _mm_add_ps(pp->velocity.data, _mm_mul_ps(totalAcceleration, timeSSE));
 		// Apply linear damping

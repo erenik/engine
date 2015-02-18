@@ -18,6 +18,11 @@ public:
 	/// Time passed in seconds..! Will steer if inputFocus is true.
 	virtual void Process(int timeInMs);
 
+	static float defaultMovementSpeed;
+	static float defaultFrictionOnStop;
+	static float defaultFrictionOnRun;
+	static float defaultJumpSpeed;
+
 	/// 0 - repair, 1 - activate, 2 - targetting 
 	void SetToolMode(int mode);
 private:

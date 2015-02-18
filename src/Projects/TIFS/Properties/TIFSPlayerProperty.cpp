@@ -24,6 +24,11 @@
 
 Entity * targetCrossHair = NULL;
 
+float TIFSPlayerProperty::defaultMovementSpeed = 5.f;
+float TIFSPlayerProperty::defaultFrictionOnStop = 0.5f;
+float TIFSPlayerProperty::defaultFrictionOnRun = 0.1f;
+float TIFSPlayerProperty::defaultJumpSpeed = 5.f;
+
 TIFSPlayerProperty::TIFSPlayerProperty(Entity * owner)
 : FirstPersonPlayerProperty("TIFSPlayerProperty", TIFSProperty::PLAYER, owner)
 {
@@ -32,6 +37,11 @@ TIFSPlayerProperty::TIFSPlayerProperty(Entity * owner)
 
 	targetDrone = NULL;
 	targetTurret = NULL;
+
+	jumpSpeed = defaultJumpSpeed;
+	frictionOnRun = defaultFrictionOnRun;
+	frictionOnStop = defaultFrictionOnStop;
+	movementSpeed = defaultMovementSpeed;
 }
 
 int TIFSPlayerProperty::ID()

@@ -197,21 +197,6 @@ void TIFS::ProcessMessage(Message * message)
 	weather->ProcessMessage(message);
 	switch(message->type)
 	{
-		case MessageType::COLLISSION_CALLBACK:
-		{
-			CollisionCallback * cc = (CollisionCallback*) message;
-			/// o.o
-			Entity * one = cc->one;
-			Entity * two = cc->two;
-			TIFSDroneProperty * droneProp = (TIFSDroneProperty*) one->GetProperty(TIFSDroneProperty::ID());
-			if (!droneProp)
-				droneProp = (TIFSDroneProperty*) two->GetProperty(TIFSDroneProperty::ID());
-			if (droneProp)
-			{
-				droneProp->ProcessMessage(cc);				
-			}
-			break;	
-		}
 		case MessageType::STRING:
 		{
 			if (playerProp)
@@ -308,6 +293,32 @@ void TIFS::ProcessMessage(Message * message)
 			else if (msg == "NewGame")
 			{
 				NewGame();
+			}
+			else if (msg == "SpawnPlayer")
+				SpawnPlayer();
+			else if (msg.StartsWith("SetPlayer"))
+			{
+				List<String> tokens = msg.Tokenize("(,)");
+				if (tokens.Size() < 3)
+					return;
+				String arg = tokens[1], 
+					value = tokens[2];
+				if (arg == "MovementSpeed")
+					TIFSPlayerProperty::defaultMovementSpeed = value.ParseFloat();
+				if (arg == "FrictionOnStop")
+					TIFSPlayerProperty::defaultFrictionOnStop = value.ParseFloat();
+				if (arg == "FrictionOnRun")
+					TIFSPlayerProperty::defaultFrictionOnRun = value.ParseFloat();
+				if (arg == "JumpSpeed")
+					TIFSPlayerProperty::defaultJumpSpeed = value.ParseFloat();
+			}
+			else if (msg.StartsWith("SetCamera"))
+			{
+				String which = msg.Tokenize("()")[1];
+				if (which == "1stPerson")
+					GraphicsQueue.Add(new GMSetCamera(firstPersonCamera));
+				if (which == "3rdPerson")
+					GraphicsQueue.Add(new GMSetCamera(thirdPersonCamera));
 			}
 			else if (msg == "ToggleMainMenu")
 			{
@@ -548,12 +559,20 @@ void TIFS::SpawnPlayer()
 	PhysicsProperty * pp = new PhysicsProperty();
 	player->physics = pp;
 	pp->type = PhysicsType::DYNAMIC;
-	pp->gravityMultiplier = 0;
+	// collide.
+	pp->collisionCategory = CC_PLAYER;
+	pp->collisionFilter = CC_ENVIRON | CC_TURRET | CC_DRONE;
+	// Wa-wa wee-wa o.o
+	pp->gravityMultiplier = 1.0;
+	pp->friction = 0.1f;
+	pp->restitution = 0.15f;
+	pp->collissionCallback = true;
+	/// Move up a bit so we can fall on ze plane.
+	player->SetPosition(0,2,0);
 
 	// Attach ze propororoty to bind the entity and the player.
 	playerProp = new TIFSPlayerProperty(player);
 	player->properties.Add(playerProp);
-	playerProp->movementSpeed = 15.f;
 	
 	// Enable steering!
 	playerProp->inputFocus = true;
@@ -595,7 +614,7 @@ void TIFS::NewGame()
 //	SpawnDrones();
 
 	// Spawn player
-	SpawnPlayer();
+//	SpawnPlayer();
 
 	// Mothership.
 	Entity * mothership = MapMan.CreateEntity("Mothership", ModelMan.GetModel("obj/Mothership/Mothership.obj"), TexMan.GetTexture("0x77"));

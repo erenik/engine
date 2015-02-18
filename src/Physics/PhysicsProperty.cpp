@@ -219,10 +219,15 @@ void PhysicsProperty::ApplyImpulse(const Vector3f & impulse, const Vector3f & po
 	/// Static objects don't apply anything anyway.
 	if (inverseMass == 0)
 		return;
+	// Remove IN_REST flag.
+	state &= ~PhysicsState::IN_REST;
 	/// Give it an increase to the linear momentum.
 	/// Impulses translate directory into change in linear momentum.
 	Vector3f deltaLinearMomentum = impulse;
 	linearMomentum += deltaLinearMomentum;
+
+	if (!useForces)
+		velocity += impulse;
 
 	/// Give it an increase to the angular momentum.
 	Vector3f centerToPosition = position - obb->position;

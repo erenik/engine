@@ -20,6 +20,7 @@
 #include "Physics/PhysicsProperty.h"
 #include "PhysicsLib/Shapes/Ray.h"
 #include "PhysicsLib/Intersection.h"
+#include "Physics/Messages/CollisionCallback.h"
 
 #include "Graphics/GraphicsManager.h"
 #include "Graphics/Messages/GMCamera.h"
@@ -34,8 +35,16 @@ FirstPersonPlayerProperty::FirstPersonPlayerProperty(String propertyName, int id
 	inputFocus = false;
 	lastRight = 0.f;
 	autorun = false;
-	movementSpeed = 2.f;
 	primaryTarget = NULL;
+	// 2 frictions, one when moving, other when (trying to) stand still.
+	movementSpeed = 7.f;
+	frictionOnStop = 0.5f;
+	frictionOnRun = 0.1f;
+	jumpSpeed = 9.f;
+	// Minimum delay before collision callback messages reset the state.
+	jumpCooldownMs = 500;
+	jumping = true;
+	lastJump = Time::Now();
 }
 
 /// Time passed in seconds..! Will steer if inputFocus is true.
@@ -50,6 +59,19 @@ void FirstPersonPlayerProperty::ProcessMessage(Message * message)
 {
 	switch(message->type)
 	{
+		case MessageType::COLLISSION_CALLBACK:
+		{
+			Time now = Time::Now();
+			CollisionCallback * cc = (CollisionCallback*) message;
+			// Enable jumping again after impact.
+			if (AbsoluteValue(cc->impactNormal.y) > 0.9f)
+			{
+				if ((now - lastJump).Milliseconds() > jumpCooldownMs)
+					jumping = false;
+			}
+			break;	
+		}
+
 		case MessageType::RAYCAST:
 		{
 			Raycast * raycast = (Raycast*) message;
@@ -88,6 +110,8 @@ void FirstPersonPlayerProperty::ProcessMessage(Message * message)
 /// o-o
 void FirstPersonPlayerProperty::ToggleAutorun()
 {
+	if (jumping)
+		return;
 	autorun = !autorun;
 	/// New state.. do stuffelistuff.
 	if (autorun)
@@ -103,17 +127,17 @@ void FirstPersonPlayerProperty::ToggleAutorun()
 		PhysicsQueue.Add(new PMSetEntity(owner, PT_FACE_VELOCITY_DIRECTION, false));
 		// Set relative velocity. It will solve the issue of direction by using the current rotation :)
 		Vector3f velocity(0, 0, movementSpeed);
-		PhysicsQueue.Add(new PMSetEntity(owner, PT_RELATIVE_VELOCITY, velocity));
+		PhysicsQueue.Add(new PMSetEntity(owner, PT_RELATIVE_ACCELERATION, velocity));
 		/// Disable regular velocity.
-		PhysicsQueue.Add(new PMSetEntity(owner, PT_VELOCITY, Vector3f())); 
-		/// Set damping in case the regular velocity persist somehow.
-		PhysicsQueue.Add(new PMSetEntity(owner, PT_LINEAR_DAMPING, 0.5f));
+		PhysicsQueue.Add(new PMSetEntity(owner, PT_ACCELERATION, Vector3f())); 
+		/// Set damping in case the regular velocity persist somehow... no.
+	//	PhysicsQueue.Add(new PMSetEntity(owner, PT_LINEAR_DAMPING, 0.5f));
 	}
 	// Leaving autorun-mode.
 	else 
 	{
-		PhysicsQueue.Add(new PMSetEntity(owner, PT_LINEAR_DAMPING, 0.9f));
-		PhysicsQueue.Add(new PMSetEntity(owner, PT_RELATIVE_VELOCITY, Vector3f()));
+	//	PhysicsQueue.Add(new PMSetEntity(owner, PT_LINEAR_DAMPING, 0.9f));
+		PhysicsQueue.Add(new PMSetEntity(owner, PT_RELATIVE_ACCELERATION, Vector3f()));
 	}
 }
 
@@ -135,6 +159,21 @@ void FirstPersonPlayerProperty::ProcessInput()
 		right -= 1.f;
 	if (Input.KeyPressed(KEY::D))
 		right += 1.f;
+
+	if (Input.KeyPressed(KEY::SPACE))
+	{
+		if (!jumping)
+		{
+			// Jump!
+			PhysicsQueue.Add(new PMApplyImpulse(owner, Vector3f(0,jumpSpeed,0), Vector3f()));
+			lastJump = Time::Now();
+			jumping = true;
+			PhysicsQueue.Add(new PMSetEntity(owner, PT_ACCELERATION, Vector3f()));
+			/// Cancel auto run as well.
+			autorun = false;
+			PhysicsQueue.Add(new PMSetEntity(owner, PT_RELATIVE_ACCELERATION, Vector3f()));
+		}
+	}
 
 	forward *= movementSpeed;
 
@@ -268,6 +307,8 @@ void FirstPersonPlayerProperty::ProcessInput()
 void FirstPersonPlayerProperty::UpdateVelocity(ConstVec3fr newVelocity)
 {
 	static Vector3f lastVelocity;
+	if (jumping)
+		return;
 	if (lastVelocity == newVelocity)
 	{
 		return;
@@ -276,7 +317,12 @@ void FirstPersonPlayerProperty::UpdateVelocity(ConstVec3fr newVelocity)
 	Vector3f normalizedVelocity = newVelocity.NormalizedCopy();
 
 	// And set it!
-	PhysicsQueue.Add(new PMSetEntity(owner, PT_VELOCITY, newVelocity)); 
+	PhysicsQueue.Add(new PMSetEntity(owner, PT_ACCELERATION, newVelocity)); 
+	// Walking?
+	if (newVelocity.LengthSquared())
+		PhysicsQueue.Add(new PMSetEntity(owner, PT_FRICTION, frictionOnRun));
+	else 
+		PhysicsQueue.Add(new PMSetEntity(owner, PT_FRICTION, frictionOnStop));
 	// Depending on camera tracking-mode...	
 	switch(owner->cameraFocus->trackingMode)
 	{

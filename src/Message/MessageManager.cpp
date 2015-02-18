@@ -275,6 +275,16 @@ void MessageManager::ProcessMessage(Message * message)
 
 	switch(message->type)
 	{
+		case MessageType::COLLISSION_CALLBACK:
+		{
+			CollisionCallback * cc = (CollisionCallback*) message;
+			/// o.o
+			Entity * one = cc->one;
+			Entity * two = cc->two;
+			one->ProcessMessage(cc);
+			two->ProcessMessage(cc);
+			break;	
+		}
 		case MessageType::RAYCAST:
 		{
 			Raycast * raycast = (Raycast*) message;

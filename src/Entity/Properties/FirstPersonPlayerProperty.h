@@ -10,8 +10,8 @@
 */
 
 #include "Entity/EntityProperty.h"
-
 #include "MathLib.h"
+#include "Time/Time.h"
 
 class FirstPersonPlayerProperty : public EntityProperty
 {
@@ -29,6 +29,12 @@ public:
 
 	// Set this or it won't be able to move.
 	float movementSpeed;
+	// 2 frictions, one when moving, other when (trying to) stand still.
+	float frictionOnStop;
+	float frictionOnRun;
+	float jumpSpeed;
+	int jumpCooldownMs;
+
 
 protected:
 	/** Checks states via InputManager. Regular key-bindings should probably still be defined in the main game state 
@@ -51,6 +57,10 @@ protected:
 	bool autorun;
 
 	Vector3f lastVelocity;
+	
+	/// o.o
+	bool jumping;
+	Time lastJump;
 };
 
 
