@@ -24,13 +24,15 @@ bool TriangleSphereCollision(Triangle * triangle, Sphere * sphere, Collision &da
 
 	/// Remember to multiply it by it's normal-matrix....
 	Vector3f planeNormal = triangle->normal;
+	Vector3f & spherePosition = sphere->position;
+	float & sphereRadius = sphere->radius;
 	assert(triangle->normal.MaxPart());
 	/// First early-out: distance to the triangle.
 	float distance = triangle->Distance(sphere->position);
 	/// Absolute value needed, since the distance can be negative!
 	if (AbsoluteValue(distance) > sphere->radius)
 		return false;
-
+	
 	// Check for another early out if invalid triangle
 	if (triangle->normal.MaxPart() < ZERO){
 		/** This means that the triangle pretty much lacks a normal,
@@ -48,21 +50,19 @@ bool TriangleSphereCollision(Triangle * triangle, Sphere * sphere, Collision &da
 	planeFrustum[2].Set3Points(triangle->point3, triangle->point1, triangle->point3 + triangle->normal);
 
 	float planeCollisionRadius = sphere->radius;
+	int result = Loc::INSIDE;
 	for (int i = 0; i < PLANE_PLANES; ++i)
 	{
 		// If any of the plane's distance is negative it means we're outside the planeski.
-		// 0 will make it only the triangle and not a perimeter around it.
-		float distanceToPlane = planeFrustum[i].Distance(sphere->position);
-		if (distanceToPlane > planeCollisionRadius)
-		{ 
-			colliding = false;
-			break;
-		}
+		float distanceToPlane = planeFrustum[i].Distance(spherePosition);
+		if (distanceToPlane > sphereRadius)
+			return false;
+		/// If larger than 0, the sphere's center is outside of the quad, and may intersect with its edges or corners, but not the plane itself.
+		else if (distanceToPlane > 0)
+			result = Loc::INTERSECT;
 	}
-	/// TODO: Try changing the collission point to be the sphere's center projected onto the face or something?
-    data.collissionPoint = sphere->position;
-	/// If it's colliding with the inside, then return the result!
-	if (colliding){
+	if (result == Loc::INSIDE)
+	{
 		data.collisionNormal = triangle->normal;
 		data.results = NORMAL_ONLY;
 		data.distanceIntoEachOther = distance - sphere->radius;
@@ -70,7 +70,8 @@ bool TriangleSphereCollision(Triangle * triangle, Sphere * sphere, Collision &da
 		return true;
 	}
 	/// If not, proceed with testing the sphere against each of the triangle's edges.
-	Vector3f edgeStart[3], edgeStop[3], vertexToSphere[3];
+	const int CORNERS = 3;
+	Vector3f edgeStart[CORNERS], edgeStop[CORNERS], vertexToSphere[CORNERS];
 	Vector3f temp, collissionPoint, edgeToSphere;
 	edgeStart[0] = triangle->point1;
 	edgeStart[1] = triangle->point2;
@@ -80,19 +81,22 @@ bool TriangleSphereCollision(Triangle * triangle, Sphere * sphere, Collision &da
 	edgeStop[2] = triangle->point1;
 
 	/// For each vertex (easier to check, yo)
-	for (int i = 0; i < 3; ++i){
-		vertexToSphere[i] = sphere->position - edgeStart[i];
+	for (int i = 0; i < CORNERS; ++i)
+	{
+		vertexToSphere[i] = spherePosition - edgeStart[i];
 		float distanceVertToSphere = vertexToSphere[i].Length();
-		if (distanceVertToSphere < sphere->radius){
+		if (distanceVertToSphere < sphereRadius)
+		{
 			data.collisionNormal = vertexToSphere[i].NormalizedCopy();
-			data.distanceIntoEachOther = vertexToSphere[i].Length() - sphere->radius;
+			data.distanceIntoEachOther = vertexToSphere[i].Length() - sphereRadius;
 			data.results = NORMAL_ONLY | DISTANCE_INTO;
 			return true;
 		}
 	}
 
 	/// For each edge.
-	for (int i = 0; i < 3; ++i){
+	for (int i = 0; i < CORNERS; ++i)
+	{
 		Vector3f edgeVector = edgeStop[i] - edgeStart[i];
 		Vector3f vertexToSphereNormalized = vertexToSphere[i].NormalizedCopy();
 		Vector3f edgeVectorNormalized = edgeVector.NormalizedCopy();
@@ -110,16 +114,16 @@ bool TriangleSphereCollision(Triangle * triangle, Sphere * sphere, Collision &da
 
 		/// Projected point is somewhere along the edge, find it!
 		Vector3f projectedPoint = edgeStart[i] + relativeDistanceAlongEdge * edgeVector;
-		Vector3f projectedPointToSphere = sphere->position - projectedPoint;
+		Vector3f projectedPointToSphere = spherePosition - projectedPoint;
 		float distanceToSphere = projectedPointToSphere.Length();
 
 	//	if (distanceToSphere < 100.0f)
 	//		std::cout<<"\nDistance to sphere,: "<< distanceToSphere ;
-		if (distanceToSphere > sphere->radius)
+		if (distanceToSphere > sphereRadius)
 			continue;
 
 		data.collisionNormal = projectedPointToSphere.NormalizedCopy();
-		data.distanceIntoEachOther = distanceToSphere - sphere->radius;
+		data.distanceIntoEachOther = distanceToSphere - sphereRadius;
 		data.results = NORMAL_ONLY | DISTANCE_INTO;
 		return true;
 	}
