@@ -68,7 +68,7 @@ String Time::ToString(String withFormat)
 			case 'M': TWO_DIGITS(month); break;
 			case 'D': TWO_DIGITS(day); break;
 			case 'H': TWO_DIGITS(hour); break;
-			case 'N': TWO_DIGITS(minute); break;
+			case 'm': TWO_DIGITS(minute); break;
 			case 'S': TWO_DIGITS(second); break;
 			default:
 				newString += c;

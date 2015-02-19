@@ -54,6 +54,8 @@ RenderPass::~RenderPass()
 // Renders this pass. Returns false if some error occured, usually mid-way and aborting the rest of the procedure.
 bool RenderPass::Render(GraphicsState & graphicsState)
 {
+	// Default no vertex buffer.
+	graphicsState.BindVertexArrayBuffer(0);
 	viewport = graphicsState.activeViewport;
 	CheckGLError("Before RenderPass::Render");
 	// Setup output buffers?
@@ -527,8 +529,8 @@ void RenderPass::RenderEntities()
 //	FrameStats.renderSortEntities += timer.GetMs();
 
 	timer.Start();
-	Texture * diffuseMap, * specularMap, * emissiveMap,
-		* normalMap;
+	Texture * diffuseMap = NULL, * specularMap = NULL, * emissiveMap = NULL,
+		* normalMap = NULL;
 
 	// Set render state for all.
 	glUniform1i(shader->uniformUseDiffuseMap, 1);
@@ -542,40 +544,52 @@ void RenderPass::RenderEntities()
 	{
 		entity = entitiesToRender[i];
 		gp = entity->graphics;
-		diffuseMap = entity->diffuseMap;
-		specularMap = entity->specularMap;
-		normalMap = entity->normalMap;
-		emissiveMap = entity->emissiveMap;
-		// Optimized per-entity render.
-		int error = 0;
-		// To send to the shadar
-		int texturesToApply = 0;
-		// Bind texture if it isn't already bound.
-		glActiveTexture(GL_TEXTURE0 + shader->diffuseMapIndex);		// Select server-side active texture unit
-		// Bind texture
-		glBindTexture(GL_TEXTURE_2D, diffuseMap? diffuseMap->glid : 0);
-		/// Sets glTExParameter for Min/Mag filtering <- this needed every time?
-		diffuseMap->SetSamplingMode();
-		// Specular
-		glActiveTexture(GL_TEXTURE0 + shader->specularMapIndex);		// Select server-side active texture unit
-		glBindTexture(GL_TEXTURE_2D, specularMap? specularMap->glid : 0);
-		if (specularMap)
+		if (entity->diffuseMap != diffuseMap)
 		{
-			specularMap->SetSamplingMode();
+			diffuseMap = entity->diffuseMap;
+			// Optimized per-entity render.
+			int error = 0;
+			// To send to the shadar
+			int texturesToApply = 0;
+			// Bind texture if it isn't already bound.
+			glActiveTexture(GL_TEXTURE0 + shader->diffuseMapIndex);		// Select server-side active texture unit
+			// Bind texture
+			glBindTexture(GL_TEXTURE_2D, diffuseMap? diffuseMap->glid : 0);
+			/// Sets glTExParameter for Min/Mag filtering <- this needed every time?
+			diffuseMap->SetSamplingMode();
 		}
-		// Normal map
-		glActiveTexture(GL_TEXTURE0 + shader->normalMapIndex);		
-		glBindTexture(GL_TEXTURE_2D, normalMap? normalMap->glid : 0);
-		/// Bind emissive map.
-		glActiveTexture(GL_TEXTURE0 + shader->emissiveMapIndex);		// Select server-side active texture unit
-		glBindTexture(GL_TEXTURE_2D, emissiveMap? emissiveMap->glid : 0);
-		
-		// Just load transform as model matrix straight away.
+		if (entity->specularMap != specularMap)
+		{
+			specularMap = entity->specularMap;
+			// Specular
+			glActiveTexture(GL_TEXTURE0 + shader->specularMapIndex);		// Select server-side active texture unit
+			glBindTexture(GL_TEXTURE_2D, specularMap? specularMap->glid : 0);
+			if (specularMap)
+			{
+				specularMap->SetSamplingMode();
+			}
+		}
+		if (entity->normalMap != normalMap)
+		{
+			normalMap = entity->normalMap;
+			// Normal map
+			glActiveTexture(GL_TEXTURE0 + shader->normalMapIndex);		
+			glBindTexture(GL_TEXTURE_2D, normalMap? normalMap->glid : 0);
+		}
+		if (entity->emissiveMap != emissiveMap)
+		{
+			emissiveMap = entity->emissiveMap;
+			/// Bind emissive map.
+			glActiveTexture(GL_TEXTURE0 + shader->emissiveMapIndex);		// Select server-side active texture unit
+			glBindTexture(GL_TEXTURE_2D, emissiveMap? emissiveMap->glid : 0);
+		}
+
+		// Set multiplicative base color (1,1,1,1) default.
+//		glUniform4fv(shader->uniformPrimaryColorVec4, 1, gp->color.v);
+
+		// Load transform as model matrix straight away.
 		glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, entity->transformationMatrix.getPointer());
 		glUniformMatrix4fv(shader->uniformNormalMatrix, 1, false, entity->normalMatrix.getPointer());
-	
-		// Set multiplicative base color (1,1,1,1) default.
-		glUniform4fv(shader->uniformPrimaryColorVec4, 1, gp->color.v);
 
 		// Render the model
 		entity->model->Render(*graphicsState);
@@ -596,13 +610,14 @@ void RenderPass::RenderEntitiesOnlyVertices()
 		return;
 	}
 	Timer timer;
+	/*
+	Timer timer;
 	timer.Start();
 	entitiesToRender.SortByDistanceToCamera(graphicsState->camera);
 	timer.Stop();
 	FrameStats.renderSortEntities += timer.GetMs();
-
+*/
 	timer.Start();
-	Texture * diffuseMap, * specularMap, * emissiveMap;
 
 	// Set render state for all. Nope.
 

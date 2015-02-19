@@ -20,13 +20,20 @@
 #endif
 enum 
 {
-	INFO,
-	WARNING,
-	ERROR
+	EXTENSIVE_DEBUG = 0,
+	DEBUG = 1,
+	INFO = 2,
+	WARNING = 3,
+	ERROR = 4,
+	CAUSE_ASSERTION_ERROR = 16
 };
+
+/// Global log- and debugging level, adjustable at start-up.
+extern int logLevel;
 
 /// Logs to file, creates the file (and folders) necessary if it does not already exist. Time stamps will probably also be available.
 void LogToFile(String fileName, String text, int level = INFO);
+void SetLogLevel(String fromString);
 
 
 #endif

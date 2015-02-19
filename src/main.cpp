@@ -103,7 +103,7 @@
 #if defined LINUX | defined OSX
 #endif // POSIX threads
 
-
+#include "File/LogFile.h"
 #include "MathLib/Function.h"
 
 extern bool UnitTests();
@@ -129,6 +129,15 @@ int main(int argc, char **argv)
 	// Set application-defaults here already?
 	/// Call to set application name, root directories for various features, etc.
 	SetApplicationDefaults();
+
+	/// Load base setup
+	List<String> rows = File::GetLines("Setup.txt");
+	for (int i = 0; i < rows.Size(); ++i)
+	{
+		String str = rows[i];
+		if (str.StartsWith("LogLevel"))
+			SetLogLevel(str);
+	}
 
 	/// Allocate allocators.
 	String::InitializeAllocator();

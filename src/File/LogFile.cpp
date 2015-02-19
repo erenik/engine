@@ -14,11 +14,14 @@ List<String> logsStartedThisSession;
 
 // yer.
 bool loggingEnabled = true;
-int logLevel = WARNING;
+int logLevel = INFO;
 
 /// Logs to file, creates the file (and folders) necessary if it does not already exist. Time stamps will probably also be available.
-void LogToFile(String fileName, String logText, int level)
+void LogToFile(String fileName, String logText, int levelFlags)
 {
+	int level = levelFlags % 16;
+	if (logLevel > DEBUG && level <= DEBUG)
+		return;
 	std::cout<<"\n"<<logText;
 	if (level < logLevel)
 		return;
@@ -52,9 +55,27 @@ void LogToFile(String fileName, String logText, int level)
 
 	String text;
 	Time time = Time::Now();
-	String timeString = time.ToString("h:m:s ");
+	String timeString = time.ToString("H:m:S ");
 	text = timeString + logText + "\n";
 
 	file.write((char*) text.c_str(), text.Length());
 	file.close();
+
+	bool causeAssertionError = level & CAUSE_ASSERTION_ERROR;
+	if (causeAssertionError)
+		assert(false && "LogFile-triggered assertion error. See relevant log file for details.");
+}
+
+void SetLogLevel(String fromString)
+{
+	if (fromString.Contains("INFO"))
+		logLevel = INFO;
+	if (fromString.Contains("WARNING"))
+		logLevel = WARNING;
+	if (fromString.Contains("ERROR"))
+		logLevel = ERROR;
+	if (fromString.Contains("DEBUG"))
+		logLevel = DEBUG;
+	if (fromString.Contains("EXTENSIVE_DEBUG"))
+		logLevel = EXTENSIVE_DEBUG;
 }

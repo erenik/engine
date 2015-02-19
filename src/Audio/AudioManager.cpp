@@ -398,7 +398,8 @@ Audio * AudioManager::PlayBGM(String name, float volume /* = 1.f */)
 
 
 // Pause
-void AudioManager::Pause(String name){
+void AudioManager::Pause(String name)
+{
 	// Look if we already have an element with same name
 	Audio * audio;
 	for (int i = 0; i < audioList.Size(); ++i){

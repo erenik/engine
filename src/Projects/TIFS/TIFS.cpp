@@ -303,6 +303,7 @@ void TIFS::ProcessMessage(Message * message)
 				SpawnPlayer();
 			else if (msg.StartsWith("SetPlayer"))
 			{
+				LogMain("TIFS::SetPlayer", DEBUG);
 				List<String> tokens = msg.Tokenize("(,)");
 				if (tokens.Size() < 3)
 					return;
@@ -558,6 +559,7 @@ void TIFS::CreateTurret(int ofSize, ConstVec3fr atLocation)
 // Spawn player
 void TIFS::SpawnPlayer()
 {
+	LogMain("SpawnPlayer", DEBUG);
 	// Add characters..!
 	Model * model;
 //	ModelMan.GetModel("Characters/TestCharacter.obj");
@@ -663,6 +665,7 @@ void TIFS::NewGame()
 
 void TIFS::CreateField()
 {
+	LogMain("TIFS::CreateField", DEBUG);
 	// Create a plane.
 	List<Entity*> entities;
 	Model * model = ModelMan.GetModel("plane");
@@ -688,6 +691,7 @@ void TIFS::CreateField()
 
 void TIFS::AddBuildings(int numBuildings)
 {
+	LogMain("TIFS::AddBuildings - start", DEBUG);
 //	MapMan.DeleteEntities(turrets);
 //	turrets.Clear();
 
@@ -701,6 +705,7 @@ void TIFS::AddBuildings(int numBuildings)
 		if (!ok)
 		{
 			std::cout<<"\nOut of positions on the grid.";
+			LogMain("TIFS::AddBuildings", DEBUG);
 			break;
 		}
 		/// Create "building" of random size based on the given maxSize :)
@@ -744,6 +749,11 @@ void TIFS::AddBuildings(int numBuildings)
 		topModel = ModelMan.GetModel("obj/Buildings/"+topName+".obj");
 		bottomModel = ModelMan.GetModel("obj/Buildings/"+bottomName+".obj");
 		diffuse = TexMan.GetTexture("img/Buildings/"+diffuseName+".png");
+		if (!topModel || !bottomModel || !diffuse)
+		{
+			LogMain("Unable to extract resources for building "+String(type), ERROR | CAUSE_ASSERTION_ERROR);
+			continue;
+		}
 
 		/// Fetch amount of floors based on the height?
 		floors = maxSize.y / floorHeight;
@@ -757,6 +767,7 @@ void TIFS::AddBuildings(int numBuildings)
 				model = topModel;
 			else
 				model = bottomModel;
+//			assert(model);
 			Entity * entity = EntityMan.CreateEntity("Building "+String(i)+" Floor "+String(j), model, diffuse);
 			// Create da building blocksuuu.
 			entity->position = position;
@@ -774,8 +785,8 @@ void TIFS::AddBuildings(int numBuildings)
 		buildingEntity->SetScale(maxSize);
 		// Register the "buildingentity" only for physics.
 		PhysicsQueue.Add(new PMRegisterEntity(buildingEntity));
-
 	}
+	LogMain("TIFS::AddBuildings - done", DEBUG);
 }
 
 void TIFS::HideMainMenu()

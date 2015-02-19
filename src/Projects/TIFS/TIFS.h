@@ -23,6 +23,7 @@
 #include "Physics/PhysicsManager.h"
 #include "Physics/PhysicsProperty.h"
 #include "TIFSGrid.h"
+#include "File/LogFile.h"
 
 class Camera;
 class Message;

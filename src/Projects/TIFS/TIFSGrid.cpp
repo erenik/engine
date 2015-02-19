@@ -5,6 +5,7 @@
 #include "TIFSGrid.h"
 #include "Maps/Grids/TileGrid3D.h"
 #include "Random/Random.h"
+#include "File/LogFile.h"
 
 TIFSTile::TIFSTile()
 : Tile()
@@ -36,6 +37,7 @@ TIFSGrid::~TIFSGrid()
 */
 void TIFSGrid::Resize(Vector3i gridSize, ConstVec3fr mapSize)
 {
+	LogMain("TIFSGrid::Resize - start", DEBUG);
 	// Only re-allocate the grid if necessary.
 	bool clean = true;
 	if (grid.Size() != gridSize)
@@ -66,6 +68,7 @@ void TIFSGrid::Resize(Vector3i gridSize, ConstVec3fr mapSize)
 		if (tile->matrixPosition.y == 0)
 			tile->isGround = true;
 	}	
+	LogMain("TIFSGrid::Resize - finish", DEBUG);
 }
 
 Random playerRandom;
@@ -186,6 +189,7 @@ bool TIFSGrid::GetNewBuildingPosition(Vector3f & maxSize, Vector3f & position)
 Random roadRandom;
 void TIFSGrid::PlaceRoads(int roads)
 {
+	LogMain("TIFS::PlaceRoads", DEBUG);
 	// Set their positions.
 	List<TIFSTile*> tiles = grid.GetTiles();
 	int attempts = 0;

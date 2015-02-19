@@ -35,6 +35,8 @@ GraphicsState::GraphicsState()
 	flags = 0;
 	fogBegin = 500.0f;
 	fogEnd = 2500.0f;
+
+	boundVertexArrayBuffer = 0;
 };
 
 GraphicsState::~GraphicsState()
@@ -69,3 +71,16 @@ void GraphicsState::SetCamera(Camera * camera)
 	projectionMatrixF = projectionMatrixD = camera->ProjectionMatrix4d();
 	viewMatrixF = viewMatrixD = camera->ViewMatrix4d();
 }			
+
+/// Used to reduce amount of calls to GL by not re-binding and setting up all vertex buffer stats if the same buffer is still bound. GL_ARRAY_BUFFER type
+int GraphicsState::BoundVertexArrayBuffer() const 
+{
+	return boundVertexArrayBuffer;
+}
+
+/// Used to reduce amount of calls to GL by not re-binding and setting up all vertex buffer stats if the same buffer is still bound. GL_ARRAY_BUFFER type
+void GraphicsState::BindVertexArrayBuffer(int vertexBufferID)
+{
+	glBindBuffer(GL_ARRAY_BUFFER, vertexBufferID);
+	this->boundVertexArrayBuffer = vertexBufferID;
+}

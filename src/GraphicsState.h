@@ -178,6 +178,14 @@ public:
 	float fogBegin, fogEnd;
 
 
+	/// Used to reduce amount of calls to GL by not re-binding and setting up all vertex buffer stats if the same buffer is still bound. GL_ARRAY_BUFFER type
+	int BoundVertexArrayBuffer() const;
+	/// Used to reduce amount of calls to GL by not re-binding and setting up all vertex buffer stats if the same buffer is still bound. GL_ARRAY_BUFFER type
+	void BindVertexArrayBuffer(int vertexBufferID);
+private:
+	/// Used to reduce amount of calls to GL by not re-binding and setting up all vertex buffer stats if the same buffer is still bound. GL_ARRAY_BUFFER type
+	int boundVertexArrayBuffer;
+
 };
 
 #endif

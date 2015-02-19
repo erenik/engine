@@ -39,7 +39,7 @@ public:
 		M - month in 2 digits
 		D - day in 2 digits
 		H - hours in 2 digits
-		N - minute in 2 digits
+		m - minute in 2 digits
 		S - seconds in 2 digits
 
 		Fetches calender data implicitly on each call.

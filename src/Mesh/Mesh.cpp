@@ -31,6 +31,7 @@
 #include "Model/SkeletalAnimationNode.h"
 #include "TextureManager.h"
 
+#include "File/LogFile.h"
 
 Mesh::Mesh()
 {
@@ -460,61 +461,57 @@ void Mesh::Render(GraphicsState & graphicsState)
 	//	this->Bufferize();
 	}
 
+	LogGraphics("Mesh::Render", EXTENSIVE_DEBUG);
 
-	int error = glGetError();
 	Shader * shader = ActiveShader();
 	// Check for valid buffer before rendering
 	if (vertexBuffer != 0 && vertexBuffer < 3000000)
 	{
+		if (graphicsState.BoundVertexArrayBuffer() != vertexBuffer)
+		{
+			assert(floatsPerVertex >= 8 && "Bad float-count per vertices, ne?!");
 
-		assert(floatsPerVertex >= 8 && "Bad float-count per vertices, ne?!");
+			// Set VBO and render
+			if (logLevel <= DEBUG)
+				CheckGLError("Mesh::Render - before binding stuff");
 
-		// Set VBO and render
-		CheckGLError("Mesh::Render - before binding stuff");
-
-		// Bind numVertices
-		glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-		glVertexAttribPointer(shader->attributePosition, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * floatsPerVertex, 0);		// Position
+			// Bind the vertex buffer.
+			graphicsState.BindVertexArrayBuffer(vertexBuffer);
 		
-		// Bind Normals
-		static const GLint offsetN = 3 * sizeof(GLfloat);		// Buffer already bound once at start!
-		if (shader->attributeNormal != -1)
-			glVertexAttribPointer(shader->attributeNormal, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * floatsPerVertex, (void *)offsetN);		// Normals
-		
-		// Bind UVs
-		static const GLint offsetU = 6 * sizeof(GLfloat);		// Buffer already bound once at start!
-		if (shader->attributeUV != -1)
-			glVertexAttribPointer(shader->attributeUV, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * floatsPerVertex, (void *)offsetU);		// UVs
-		
-		// Bind Tangents
-		static const GLint offsetT = 8 * sizeof(GLfloat);		// Buffer already bound once at start!
-		if (shader->attributeTangent != -1)
-			glVertexAttribPointer(shader->attributeTangent, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * floatsPerVertex, (void *)offsetT);		// Tangents
+			glVertexAttribPointer(shader->attributePosition, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * floatsPerVertex, 0);		// Position
+			
+			// Bind Normals
+			static const GLint offsetN = 3 * sizeof(GLfloat);		// Buffer already bound once at start!
+			if (shader->attributeNormal != -1)
+				glVertexAttribPointer(shader->attributeNormal, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * floatsPerVertex, (void *)offsetN);		// Normals
+			
+			// Bind UVs
+			static const GLint offsetU = 6 * sizeof(GLfloat);		// Buffer already bound once at start!
+			if (shader->attributeUV != -1)
+				glVertexAttribPointer(shader->attributeUV, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * floatsPerVertex, (void *)offsetU);		// UVs
+			
+			// Bind Tangents
+			static const GLint offsetT = 8 * sizeof(GLfloat);		// Buffer already bound once at start!
+			if (shader->attributeTangent != -1)
+				glVertexAttribPointer(shader->attributeTangent, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * floatsPerVertex, (void *)offsetT);		// Tangents
 
-		// Bind BiTangents
-		static const GLint offsetB = 11 * sizeof(GLfloat);		// Buffer already bound once at start!
-		if (shader->attributeBiTangent != -1)
-			glVertexAttribPointer(shader->attributeBiTangent, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * floatsPerVertex, (void *)offsetB);		// Tangents
+			// Bind BiTangents
+			static const GLint offsetB = 11 * sizeof(GLfloat);		// Buffer already bound once at start!
+			if (shader->attributeBiTangent != -1)
+				glVertexAttribPointer(shader->attributeBiTangent, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * floatsPerVertex, (void *)offsetB);		// Tangents
 
-		CheckGLError("Mesh::Render - binding stuff");
-		int numVertices = vertexDataCount;
-
-		// Render normally
-		int glError = glGetError();
-		glDrawArrays(GL_TRIANGLES, 0, vertexDataCount);        // Draw All Of The Triangles At Once
-		glError = glGetError();
-		if (glError != GL_NO_ERROR){
-			std::cout<<"\nGL_ERROR: "<<glError<<" when rendering Mesh: ";
-			if (name)
-				std::cout<<name;
-			else
-				std::cout<<"Unnamed";
-			Sleep(100);
+			if (logLevel <= DEBUG)
+				CheckGLError("Mesh::Render - binding stuff");
 		}
 
-		// Unbind buffer
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		CheckGLError("Mesh::Render - unbinding");
+		int numVertices = vertexDataCount;
+		// Render normally
+		int glError = glGetError();
+//	LogGraphics("Mesh::Render - glDrawArrays pre", DEBUG);
+		glDrawArrays(GL_TRIANGLES, 0, vertexDataCount);        // Draw All Of The Triangles At Once
+//	LogGraphics("Mesh::Render - glDrawArrays post", DEBUG);
+		if (logLevel <= DEBUG)
+			CheckGLError("Mesh::Render - glDrawArrays");
 	}
 	else if (vertexBuffer > 3000000){
 		std::cout<<"\nVBO buffer unreasonably high: "<<vertexBuffer<<" Make sure it was buffered correctly?";

@@ -220,11 +220,12 @@ void Entity::Render(GraphicsState & graphicsState)
 		{
 			Mesh * mesh = model->GetTriangulatedMesh();
 			// Bind bone indices!
-			glBindBuffer(GL_ARRAY_BUFFER, mesh->boneIndexBuffer);
+			assert(false && "Bind via graphicsState");
+	//		glBindBuffer(GL_ARRAY_BUFFER, mesh->boneIndexBuffer);
 			static const GLint offsetBoneIndices = 4 * sizeof(GLint);
 			glVertexAttribIPointer(shader->attributeBoneIndices, 4, GL_INT, offsetBoneIndices, 0);		// Integers!
 			// Bind bone weights!
-			glBindBuffer(GL_ARRAY_BUFFER, mesh->boneWeightsBuffer);
+	//		glBindBuffer(GL_ARRAY_BUFFER, mesh->boneWeightsBuffer);
 			static const GLint offsetBoneWeights = 4 * sizeof(GLfloat);
 			glVertexAttribPointer(shader->attributeBoneWeights, 4, GL_FLOAT, GL_FALSE, offsetBoneWeights, 0);		// Floats!
 			// Find index of the bone skinning matrix map sampler!

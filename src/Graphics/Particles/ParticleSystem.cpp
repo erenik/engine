@@ -16,6 +16,8 @@
 
 #include "Graphics/FrameStatistics.h"
 
+#include "File/LogFile.h"
+
 ParticleSystem::ParticleSystem(String type, bool emitWithEmittersOnly)
 	: type(type), name("Undefined"), emitWithEmittersOnly(emitWithEmittersOnly)
 {
@@ -417,6 +419,7 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 		std::cout<<"\nNo Particle shader available";
 		return;
 	}
+	LogGraphics("ParticleSystem::RenderInstanced", DEBUG);
 	ShadeMan.SetActiveShader(shader);
 	// Set projection and view matrices
 	glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, graphicsState.projectionMatrixF.getPointer());
@@ -470,7 +473,7 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 	{	
 		billboardVertexBuffer = GLBuffers::New();
 		// Buffer vertices once.
-		glBindBuffer(GL_ARRAY_BUFFER, billboardVertexBuffer);
+		graphicsState.BindVertexArrayBuffer(billboardVertexBuffer);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
 	}
  
@@ -478,15 +481,15 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 	if (particlePositionScaleBuffer == -1)
 	{
 		particlePositionScaleBuffer = GLBuffers::New();
-		// Initialize with empty (NULL) buffer : it will be updated later, each frame.
-		glBindBuffer(GL_ARRAY_BUFFER, particlePositionScaleBuffer);
+		// Buffer vertices once.
+		graphicsState.BindVertexArrayBuffer(particlePositionScaleBuffer);
 		glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
 	}
 	if (particleLifeTimeDurationScaleBuffer == -1)
 	{
 		particleLifeTimeDurationScaleBuffer = GLBuffers::New();
 		// Initialize with empty (NULL) buffer : it will be updated later, each frame.
-		glBindBuffer(GL_ARRAY_BUFFER, particleLifeTimeDurationScaleBuffer);
+		graphicsState.BindVertexArrayBuffer(particleLifeTimeDurationScaleBuffer);
 		glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
 	}
 	// The VBO containing the colors of the particles
@@ -494,7 +497,7 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 	{
 		particleColorBuffer = GLBuffers::New();
 		// Initialize with empty (NULL) buffer : it will be updated later, each frame.
-		glBindBuffer(GL_ARRAY_BUFFER, particleColorBuffer);
+		graphicsState.BindVertexArrayBuffer(particleColorBuffer);
 #ifdef SSE_PARTICLES
 		glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
 #else
@@ -509,13 +512,13 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 
 #ifdef SSE_PARTICLES
 	// Buffer the actual data.
-	glBindBuffer(GL_ARRAY_BUFFER, particlePositionScaleBuffer);
+	graphicsState.BindVertexArrayBuffer(particlePositionScaleBuffer);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, aliveParticles * sizeof(GLfloat) * 4, positionsSSE);
  
-	glBindBuffer(GL_ARRAY_BUFFER, particleColorBuffer);
+	graphicsState.BindVertexArrayBuffer(particleColorBuffer);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, aliveParticles * sizeof(GLfloat) * 4, colorsSSE);
 
-	glBindBuffer(GL_ARRAY_BUFFER, particleLifeTimeDurationScaleBuffer);
+	graphicsState.BindVertexArrayBuffer(particleLifeTimeDurationScaleBuffer);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, aliveParticles * sizeof(GLfloat) * 4, ldsSSE);
 
 #else // Not SSE_PARTICLES
@@ -538,7 +541,7 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 	CheckGLError("ParticleSystem::RenderInstanced - buffering the data");
 
 	// 1rst attribute buffer : vertices
-	glBindBuffer(GL_ARRAY_BUFFER, billboardVertexBuffer);
+	graphicsState.BindVertexArrayBuffer(billboardVertexBuffer);
 	glVertexAttribPointer(
 		shader->attributeVertexPosition, // attribute. Must match the layout in the shader.
 		3, // size
@@ -549,7 +552,7 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 	);
  
 	// 2nd attribute buffer : positions of particles' centers
-	glBindBuffer(GL_ARRAY_BUFFER, particlePositionScaleBuffer);
+	graphicsState.BindVertexArrayBuffer(particlePositionScaleBuffer);
 	glVertexAttribPointer(
 		shader->attributeParticlePositionScale, // attribute. Must match the layout in the shader.
 		4, // size : x + y + z + size => 4
@@ -620,8 +623,7 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 	// but faster.
 	glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, aliveParticles);
 
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
+	graphicsState.BindVertexArrayBuffer(0);
 
 	// Reset the instancing/divisor attributes or shading will fail on other shaders after this!
 	glVertexAttribDivisor(shader->attributeVertexPosition, 0); 
