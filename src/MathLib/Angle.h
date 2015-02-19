@@ -7,8 +7,9 @@
 
 #include "Vector2f.h"
 
-struct Angle 
+class Angle 
 {
+	friend class Angle3;
 public:
 	Angle();
 	Angle(float normalizedX, float normalizedY);
@@ -22,6 +23,7 @@ public:
 	float Radians() const;
 	Angle operator + (const Angle & angle) const;
 	Angle operator - (const Angle & angle) const;
+	Angle operator * (const float & ratio) const;
 	const Angle & operator += (const Angle & angle);
 	const Angle & operator -= (const Angle & angle);
 
@@ -45,6 +47,7 @@ private:
 	void Normalize();
 
 };
+
 
 #endif
 

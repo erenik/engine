@@ -7,6 +7,8 @@
 
 #include "Physics/PhysicsManager.h"
 
+#include "Debug.h"
+
 /// Resolves collisions.
 int FirstPersonCR::ResolveCollisions(List<Collision> collisions)
 {
@@ -80,7 +82,10 @@ bool FirstPersonCR::ResolveCollision(Collision & c)
 			// Nullify velocity.
 			dynamic->physics->velocity = Vector3f();
 		}
-//			std::cout<<"\nCollision normal: "<<c.collisionNormal;
+		if (debug == 7)
+		{
+			std::cout<<"\nCollision resolution: "<<(c.one->name+" "+c.two->name+" ")<<c.collisionNormal<<" onePos"<<c.one->position<<" twoPos"<<c.two->position;
+		}
 	}
 	// Dynamic-dynamic collision.
 	else 

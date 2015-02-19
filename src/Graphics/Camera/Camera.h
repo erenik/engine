@@ -11,6 +11,7 @@
 #include <String/AEString.h>
 #include "Time/Time.h"
 #include "PhysicsLib/Shapes/Frustum.h"
+#include "MathLib/Angle3.h"
 
 class Window;
 
@@ -271,6 +272,8 @@ public:
 	float minTrackingDistance;
 	float maxTrackingDistance;
 	
+	// Default 0? From 0 to 1.0
+	float smoothing;
 
 private:
 	/// cool.
@@ -288,7 +291,7 @@ private:
 		a distance from center of movement (as in 3D-modelling programs), 
 		a rotation aroud the same point, and translate the point based on position and relative position summed up.
 	*/
-	static bool CalculateDefaultEditorMatrices(float distanceFromCenterOfMovement, Vector2f rotationXY, const Vector3f & worldSpacePosition,
+	static bool CalculateDefaultEditorMatrices(float distanceFromCenterOfMovement, const Angle3 & rotationXY, const Vector3f & worldSpacePosition,
 		Matrix4d & viewMatrix, Matrix4d & rotationMatrix);
 
 	/// World position, modulated by tracking and follow- functions, before being used in CalculateDefaultEditorMatrices function.
@@ -339,6 +342,11 @@ private:
 	bool useQuaternions;
 	/// o-o 
 	Quaternion orientation;
+
+	/// To be sent into the calculations.
+	Vector3f smoothedPosition;
+	Angle3 smoothedRotation;
+	float smoothedDFCOM;
 };
 
 /// Screen-to-world space functions, defined by input variables.

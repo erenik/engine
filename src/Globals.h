@@ -7,7 +7,7 @@
 #ifndef GLOBALS_H
 #define GLOBALS_H
 
-#include "Debugging.h"
+#include "Debug.h"
 
 #include <cassert>
 #include <sstream>

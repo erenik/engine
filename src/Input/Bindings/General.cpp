@@ -69,6 +69,17 @@ void CreateDefaultGeneralBindings()
 	Bind3(Action::FromEnum(CYCLE_RENDER_PIPELINE), ctrl, KEY::R, KEY::PLUS);
 	Bind3(Action::FromEnum(CYCLE_RENDER_PIPELINE_BACK), ctrl, KEY::R, KEY::MINUS);
 	
+	List<Binding*> & bindings = mapping->bindings;
+#define BIND(a,b) bindings.Add(new Binding(a,b))
+
+	BIND(Action::FromEnum(RELOAD_UI), List<int>(KEY::CTRL, KEY::R, KEY::U));
+	BIND(Action::FromEnum(RECOMPILE_SHADERS), List<int>(KEY::CTRL, KEY::R, KEY::S));
+	BIND(Action::FromString("InputMan.printHoverElement"), List<int>(KEY::P, KEY::H, KEY::E));
+	BIND(Action::FromEnum(PRINT_SHADOW_MAPS), List<int>(KEY::P, KEY::S, KEY::M));
+	BIND(Action::FromEnum(DEBUG_NEXT), KEY::F5);
+	BIND(Action::FromEnum(DEBUG_PREVIOUS), KEY::F6);
+
+
 	/*
 	mapping->CreateBinding(CLOSE_WINDOW, ctrl, KEY::W);
 	mapping->CreateBinding(OPEN_LIGHTING_EDITOR, ctrl, KEY::O, KEY::L);

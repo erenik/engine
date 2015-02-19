@@ -17,7 +17,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "Initializer.h"
-#include "Debugging.h"
+#include "Debug.h"
 #include "Command/CommandLine.h"
 
 /// Unit test includes

@@ -396,6 +396,8 @@ void TIFS::ResetCamera()
 	firstPersonCamera->trackingPositionOffset = Vector3f(0,3.5f,0);
 	thirdPersonCamera->trackingPositionOffset = Vector3f(0,3.5f,0);
 
+	thirdPersonCamera->smoothing = 0.4f;
+
 	thirdPersonCamera->minTrackingDistance = 3.5f;
 	thirdPersonCamera->maxTrackingDistance = 7.5f;
 }
@@ -707,17 +709,12 @@ void TIFS::AddBuildings(int numBuildings)
 			std::cout<<"\nOut of positions on the grid.";
 			LogMain("TIFS::AddBuildings", DEBUG);
 			break;
-		}
-		/// Create "building" of random size based on the given maxSize :)
-		Entity * buildingEntity = EntityMan.CreateEntity("Building "+String(i), ModelMan.GetModel("cube.obj"), TexMan.GetTexture("0x82"));
-		PhysicsProperty * pp = new PhysicsProperty();
-		buildingEntity->physics = pp;
-		pp->shapeType = PhysicsShape::AABB;
-		/// Set Y to be the default height or something?
+		}		
 		float sizeSquared = maxSize.LengthSquared();
+		// Randomize some bonus height!
 		if (maxSize.y == 0)
 			maxSize.y = buildingRandom.Randf(sizeSquared * 0.05f) + sizeSquared * 0.01f + 5.f;
-		
+
 		Model * bottomModel = NULL, * topModel = NULL;
 		String bottomName, topName, diffuseName;
 		int floors = 10;
@@ -757,6 +754,18 @@ void TIFS::AddBuildings(int numBuildings)
 
 		/// Fetch amount of floors based on the height?
 		floors = maxSize.y / floorHeight;
+		if (floors == 0)
+		{
+			LogMain("0 floors, skipping.", INFO);
+			continue;
+		}
+		maxSize.y = floors * floorHeight; // Recalculate maxSize based on the floors we used.
+
+		/// Create "building" of random size based on the given maxSize :)
+		Entity * buildingEntity = EntityMan.CreateEntity("Building "+String(i), ModelMan.GetModel("cube.obj"), TexMan.GetTexture("0x82"));
+		PhysicsProperty * pp = new PhysicsProperty();
+		buildingEntity->physics = pp;
+		pp->shapeType = PhysicsShape::AABB;
 
 		// Try out the iterative approach of 1 level at a time. o.o
 		List<Entity*> buildingFloors;

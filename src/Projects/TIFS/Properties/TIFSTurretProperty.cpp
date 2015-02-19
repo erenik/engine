@@ -11,6 +11,7 @@
 #include "Physics/Messages/PhysicsMessage.h"
 #include "Entity/EntityManager.h"
 #include "StateManager.h"
+#include "MathLib/Angle3.h"
 
 int TIFSTurretProperty::defaultTurretCooldown = 2000;
 float TIFSTurretProperty::defaultPitchYawPerSecond = 0.2f;
@@ -146,6 +147,10 @@ void TIFSTurretProperty::Aim()
 	float dot = barrelLookAt.DotProduct(toTargetNormalized);
 	if (dot > 0.9f)
 		shoot = true;
+
+	/// Test if the new Angle3 class is of any use here.
+	Angle3 toRotate = Angle3::GetRequiredRotation(lookAt, toTarget);
+//	std::cout<<"\nToRotate: "<<toRotate;
 
 
 	// Just turn it. Straight away. (Sounds scary D:)

@@ -63,6 +63,12 @@ Angle Angle::operator - (const Angle & angle) const
 	return Angle(radians - angle.radians);
 }
 
+Angle Angle::operator * (const float & ratio) const
+{
+	return Angle(radians * ratio);
+}
+
+
 const Angle & Angle::operator += (const Angle & angle)
 {
 	radians += angle.radians;

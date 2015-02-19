@@ -173,6 +173,7 @@ Camera::~Camera()
 /// Resets everything.
 void Camera::Nullify()
 {
+	smoothing = 0;
 	lastChange = Time::Now();
 	ratioFixed = false;
 	// Tracking vars
@@ -317,10 +318,15 @@ void Camera::UpdateViewMatrix(bool track /* = true*/)
 	}
 	/// Apply any after-effects here, such as 'shake', etc.
 
-	/// Calculate matrices.
+	/// Smooth out position and rotations no matter what.
+	smoothedPosition = smoothedPosition * smoothing + positionWithOffsets * (1 - smoothing);
+	// Add 20% of the diff.
+	smoothedRotation.SmoothTo(rotation, (1 - smoothing));
+	smoothedDFCOM = smoothedDFCOM * smoothing + distanceFromCenterOfMovement * (1 - smoothing);
+	
 	/// Add a switch case if new/other techniques are requested -> move code from the TrackBehind, etc. to there.
 	Matrix4d v2, r2;
-	bool ok = CalculateDefaultEditorMatrices(distanceFromCenterOfMovement, rotation, positionWithOffsets, v2, r2);
+	bool ok = CalculateDefaultEditorMatrices(distanceFromCenterOfMovement, smoothedRotation, smoothedPosition, v2, r2);
 	viewMatrix = v2;
 	rotationMatrix = r2;
 
@@ -819,7 +825,7 @@ Ray Camera::GetRayFromScreenCoordinates(Window * window, int mouseX, int mouseY)
 	a distance from center of movement (as in 3D-modelling programs), 
 	a rotation aroud the same point, and translate the point based on position and relative position summed up.
 */
-bool Camera::CalculateDefaultEditorMatrices(float distanceFromCenterOfMovement, Vector2f rotationXY, ConstVec3fr worldSpacePosition, 
+bool Camera::CalculateDefaultEditorMatrices(float distanceFromCenterOfMovement, const Angle3 & rotationXY, ConstVec3fr worldSpacePosition, 
 												Matrix4d & viewMatrix, Matrix4d & rotationMatrix)
 {
 	// Move camera before before main scenegraph rendering begins
@@ -827,8 +833,8 @@ bool Camera::CalculateDefaultEditorMatrices(float distanceFromCenterOfMovement, 
 	viewMatrix.Translate(0, 0, -distanceFromCentreOfMovement);
 	/*
 	*/
-	rotationMatrix.Multiply(Matrix4d().InitRotationMatrix(rotationXY[0], 1, 0, 0));
-	rotationMatrix.Multiply(Matrix4d().InitRotationMatrix(rotationXY[1], 0, 1, 0));
+	rotationMatrix.Multiply(Matrix4d().InitRotationMatrix(rotationXY.x.Radians(), 1, 0, 0));
+	rotationMatrix.Multiply(Matrix4d().InitRotationMatrix(rotationXY.y.Radians(), 0, 1, 0));
 
 	/// o.o
 	viewMatrix.Multiply(rotationMatrix);
