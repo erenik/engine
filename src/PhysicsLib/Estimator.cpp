@@ -32,6 +32,8 @@ Estimator::Estimator()
 	loop = false;
 
 	inheritFirstValue = false;
+	maxStates = 100;
+	searchType = SEARCH_ALL;
 }
 
 Estimator::~Estimator()
@@ -42,8 +44,13 @@ Estimator::~Estimator()
 /// Adding a new state.
 void Estimator::AddState(Estimation * state)
 {
-	states.Add(state);
-	
+	states.AddItem(state);
+	if (states.Size() > maxStates)
+	{
+		Estimation * first = states[0];
+		if (states.RemoveIndex(0, ListOption::RETAIN_ORDER))
+			delete first;
+	}
 	++currentIndex;
 
 	int64 timeInMs = state->time;
@@ -70,7 +77,7 @@ void Estimator::InsertState(Estimation * state)
 	// Simple insert if needed.
 	if (!added)
 	{
-		states.Add(state);
+		states.AddItem(state);
 		// Update interval stats.
 		maxMs = maxMs > timeInMs? maxMs : timeInMs;
 		totalIntervalMs = maxMs - minMs;
@@ -82,65 +89,99 @@ void Estimator::InsertState(Estimation * state)
 void Estimator::GetStates(Estimation * & before, Estimation * & after, float & ratioBefore, float & ratioAfter, int64 forGivenTimeInMs)
 {
 	after = before = NULL;
+	if (states.Size() == 0)
+		return;
+	
 	bool loopedTwice = false;
 	int beforeIndex = -1, afterIndex = -1;
 	float timeToBefore = 0;
-	/// First find the two given points in time that are closest behind and before our requested time.
-	for (int i = currentIndex; true; --i)
+	int distToBefore = 1000000;
+	int distToAfter = 1000000;
+	switch(searchType)
 	{
-		if (i < 0)
+		case SEARCH_ALL:
 		{
-			if (cyclic)
-				i = states.Size() - 1;
-			else 
-				break;
-		}
-		Estimation * state = states[i];
-		if (state->time >= forGivenTimeInMs)
-		{
-			// If we already have an after, check which one is closer.
-			if (after)
+			after = before = states[0];
+			distToBefore = distToAfter = AbsoluteValue(after->time - forGivenTimeInMs);
+			for (int i = 0; i < states.Size(); ++i)
 			{
-				if (state->time < after->time)
-					after = state;
-			}
-			else{
-				after = state;
-				afterIndex = i;
-			}
-		}
-		else if (after)
-		{
-			if (before)
-			{
-				if (state->time > before->time)
+				Estimation * state = states[i];
+				int timeDiff = AbsoluteValue(state->time - forGivenTimeInMs);
+				if (state->time < forGivenTimeInMs && timeDiff < distToBefore)
+				{
 					before = state;
+					distToBefore = timeDiff;
+				} 
+				else if (state->time > forGivenTimeInMs && timeDiff < distToAfter)
+				{
+					after = state;
+					distToAfter = timeDiff;
+				}
 			}
-			else {
-				before = state;
-				beforeIndex = i;
-			}
-		}
-		else if (state->time < forGivenTimeInMs)
-		{
-			float timeTo = AbsoluteValue(state->time - forGivenTimeInMs);
-			if (before == NULL || 
-				(before && timeTo < timeToBefore))
-			{
-				timeToBefore = timeTo;			
-				before = state;
-				beforeIndex = i;
-			}
-		}
-		/*
-		else if (state->time < forGivenTimeInMs){
-			before = state;
-			beforeIndex = -1;
 			break;
-		}*/
-		/// Break if we find both wanted values early. 
-//		if (before && after)
-	//		break;
+		}
+		case SOME_OLD_SHIT:
+		{
+			/// First find the two given points in time that are closest behind and before our requested time.
+			for (int i = currentIndex % states.Size(); true; --i)
+			{
+				if (i < 0)
+				{
+					if (cyclic)
+						i = states.Size() - 1;
+					else 
+						break;
+				}
+				Estimation * state = states[i];
+				if (state->time >= forGivenTimeInMs)
+				{
+					// If we already have an after, check which one is closer.
+					if (after)
+					{
+						if (state->time < after->time)
+							after = state;
+					}
+					else{
+						after = state;
+						afterIndex = i;
+					}
+				}
+				else if (after)
+				{
+					if (before)
+					{
+						if (state->time > before->time)
+							before = state;
+					}
+					else {
+						before = state;
+						beforeIndex = i;
+					}
+				}
+				else if (state->time < forGivenTimeInMs)
+				{
+					float timeTo = AbsoluteValue(state->time - forGivenTimeInMs);
+					if (before == NULL || 
+						(before && timeTo < timeToBefore))
+					{
+						timeToBefore = timeTo;			
+						before = state;
+						beforeIndex = i;
+					}
+				}
+				/*
+				else if (state->time < forGivenTimeInMs){
+					before = state;
+					beforeIndex = -1;
+					break;
+				}*/
+				/// Break if we find both wanted values early. 
+		//		if (before && after)
+			//		break;
+			}
+
+			break;
+		}
 	}
 	/// Regular interpolation?
 	if (after && before)

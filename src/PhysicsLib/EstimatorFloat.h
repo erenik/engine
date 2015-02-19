@@ -25,7 +25,7 @@ public:
 	/** Estimates values for given time. If loop is true, the given time will be modulated to be within the interval of applicable time-values.
 		If the estimator's output pointer is set, data for the given estimation will be written there accordingly.
 	*/
-	virtual void Estimate(int64 forGivenTimeInMs, bool loop);
+	virtual void Estimate(const Time & forGivenTime, bool loop);
 	
 	/// Process, i.e. increase recorded duration and evaluate the floating point value at the new time point.
 	virtual void Process(int timeInMs);

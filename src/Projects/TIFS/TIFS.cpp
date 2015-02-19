@@ -423,6 +423,7 @@ void TIFS::SpawnDrone(ConstVec3fr atLocation)
 //ModelMan.GetModel("Sphere")
 	//TexMan.GetTexture("Cyan")
 	Entity * drone = EntityMan.CreateEntity("Drone "+String(drones.Size()), model, diffuseMap);
+	drone->emissiveMap = TexMan.GetTexture("img/Drones/DroneEmissiveMap.png");
 	drone->SetPosition(atLocation);
 	PhysicsProperty * pp = new PhysicsProperty();
 	drone->physics = pp;
@@ -686,11 +687,69 @@ void TIFS::AddBuildings(int numBuildings)
 		float sizeSquared = maxSize.LengthSquared();
 		if (maxSize.y == 0)
 			maxSize.y = buildingRandom.Randf(sizeSquared * 0.05f) + sizeSquared * 0.01f + 5.f;
+		
+		Model * bottomModel = NULL, * topModel = NULL;
+		String bottomName, topName, diffuseName;
+		int floors = 10;
+		float floorHeight = 2.5f;
+		Texture * diffuse = NULL;
+
+		int type = i % 3;
+		switch(type)
+		{
+		case 0:
+			topName = "medium_building_top";
+			bottomName = "medium_building_bottom";
+			diffuseName = "medium_building_diffuse";
+			break;
+		case 1:
+			topName = "small_building_top";
+			bottomName = "small_building_bottom";
+			diffuseName = "small_building_diffuse";
+			break;
+		case 2:
+			topName = "big_building_top";
+			bottomName = "big_building_bottom";
+			diffuseName = "big_building_diffuse";
+			floorHeight = 2.5f;
+			break;
+		default: assert(false);
+		}
+		// Fetch actual resources
+		topModel = ModelMan.GetModel("obj/Buildings/"+topName+".obj");
+		bottomModel = ModelMan.GetModel("obj/Buildings/"+bottomName+".obj");
+		diffuse = TexMan.GetTexture("img/Buildings/"+diffuseName+".png");
+
+		/// Fetch amount of floors based on the height?
+		floors = maxSize.y / floorHeight;
+
+		// Try out the iterative approach of 1 level at a time. o.o
+		List<Entity*> buildingFloors;
+		for (int j = 0; j < floors; ++j)
+		{
+			Model * model;
+			if (j == floors - 1)
+				model = topModel;
+			else
+				model = bottomModel;
+			Entity * entity = EntityMan.CreateEntity("Building "+String(i)+" Floor "+String(j), model, diffuse);
+			// Create da building blocksuuu.
+			entity->position = position;
+			// Increase Y per floor.
+			entity->position.y += j * floorHeight;
+			// Scale it?
+			entity->Scale(floorHeight * Vector3f(1,1,1));
+			buildingFloors.Add(entity);
+		}
+		// Register for rendering.
+		GraphicsQueue.Add(new GMRegisterEntities(buildingFloors));
 		// Adjust Y based on update Y-scale.
 		position.y = position.y + maxSize.y * 0.5; 
 		buildingEntity->position = position;
 		buildingEntity->SetScale(maxSize);
-		MapMan.AddEntity(buildingEntity);
+		// Register the "buildingentity" only for physics.
+		PhysicsQueue.Add(new PMRegisterEntity(buildingEntity));
+
 	}
 }
 

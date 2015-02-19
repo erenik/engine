@@ -209,7 +209,7 @@ void WeatherSystem::SetSunTime(float hour)
 	ambienceSmoother.AddState(Vector3f(0.225,	0.225,	0.35), 10000);
 	// Base it on Y.
 	ambienceSmoother.variableToPutResultTo = &ambience;
-	ambienceSmoother.Estimate(sunPositionNormalized.y * 10000, false);
+	ambienceSmoother.Estimate(Time(TimeType::MILLISECONDS_NO_CALENDER, sunPositionNormalized.y * 10000), false);
 	smoothedAmbience = smoothedAmbience * 0.95f + ambience * 0.05f;
 	/// Adjust the ambient color based on the sun position or color too?
 	GraphicsQueue.Add(new GMSetAmbience(smoothedAmbience));
@@ -221,7 +221,7 @@ void WeatherSystem::SetSunTime(float hour)
 	skyColorSmoother.AddState(Vector3f(0.78,	0.89,	1), 10000);
 	Vector3f skyColor;
 	skyColorSmoother.variableToPutResultTo = &skyColor;
-	skyColorSmoother.Estimate(sunPositionNormalized.y * 10000, false);
+	skyColorSmoother.Estimate(Time(TimeType::MILLISECONDS_NO_CALENDER, sunPositionNormalized.y * 10000), false);
 	GraphicsQueue.Add(new GMSetSkyColor(skyColor));
 
 }

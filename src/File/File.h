@@ -34,8 +34,8 @@ public:
 	/// Assignment operator. Similar to constructor.
 	void operator = (String path);
 
-	/// Last time this file was modified. Returns -1 if the file does not exist and -2 if the function fails.
-	Time LastModified();
+	/// Last time this file was modified. Returns false if the file could not be accessed.
+	bool LastModified(Time & lastModifiedDate);
 	
 	/// Sets path, closing any previously held file streams to the file at the previous path.
 	void SetPath(String filePath);

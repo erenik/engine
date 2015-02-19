@@ -8,6 +8,9 @@
 #include "MathLib.h"
 #include "List/List.h"
 #include "System/DataTypes.h"
+#include "Time/Time.h"
+
+#undef SEARCH_ALL
 
 namespace EstimationMode {
 enum modes {
@@ -42,8 +45,6 @@ public:
 	int type;
 };
 
-
-
 /// Sub-class this to add custom behaviour and actual estimators (see above).
 class Estimator 
 {
@@ -55,7 +56,7 @@ public:
 	/** Estimates values for given time. If loop is true, the given time will be modulated to be within the interval of applicable time-values.
 		If the estimator's output pointer is set, data for the given estimation will be written there accordingly.
 	*/
-	virtual void Estimate(int64 forGivenTimeInMs, bool loop) = 0;
+	virtual void Estimate(const Time & forGivenTime, bool loop) = 0;
 	/// Proceeds a time-step.
 	virtual void Process(int timeInMs) = 0;
 	/// Adding a new state.
@@ -63,6 +64,13 @@ public:
 	/// Attempts to insert the given state at a decent place based on it's time-stamp.
 	virtual void InsertState(Estimation * state);
 
+
+	enum {
+		SEARCH_ALL,
+		SOME_OLD_SHIT
+	};
+	/// Defines how states are search for within the array. Default is SEARCH_ALL. See enum above
+	int searchType;
 	/// When true, the final state has been reached, and there is no longer any use for this estimator to be active or exist anymore (unless more states are added)
 	bool finished;
 
@@ -85,12 +93,17 @@ public:
 	/// If true, the handler of estimators should obtain the correct initial value upon attaching the estimator to said value. Default false.
 	bool inheritFirstValue;
 
+	/// 1k? 100?
+	int maxStates;
 protected:
+
+	List<Estimation*> States() const { return states;};
 	/** Calculates and returns the two states which should be used for calculating the current value in e.g. Estimate
 		Both one and two may be NULL.
 	*/
 	void GetStates(Estimation * & before, Estimation * & after, float & ratioBefore, float & ratioAfter, int64 forGivenTimeInMs);
 
+private:
 	/// Yo.
 	List<Estimation*> states;
 };

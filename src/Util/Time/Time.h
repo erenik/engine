@@ -16,6 +16,7 @@ namespace TimeType
 		WIN32_100NANOSEC_SINCE_JAN1_1601, 
 		// Custom type only used for handling in-game minute/hour/day cycles within e.g. the Weather system.
 		MILLISECONDS_NO_CALENDER,
+		TIME_TYPES
 	};
 };
 
@@ -28,7 +29,7 @@ public:
 	Time();
 	Time(int type);
 	/// Time using a given type and starting-point. 
-	Time(uint64 intervals, int type);
+	Time(int type, uint64 intervals);
 
 	/// Returns current time in default time-type/-format.
 	static Time Now();
@@ -73,8 +74,8 @@ public:
 	void SetMinute(int minute);
 
 	// Current total in micro-seconds since the starting-point.
-	uint64 Microseconds();
-	int64 Milliseconds();
+	uint64 Microseconds() const;
+	int64 Milliseconds() const;
 	/// Total time in seconds.
 	int64 Seconds();
 

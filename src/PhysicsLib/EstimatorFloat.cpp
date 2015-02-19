@@ -29,8 +29,9 @@ EstimatorFloat::EstimatorFloat()
 /** Estimates values for given time. If loop is true, the given time will be modulated to be within the interval of applicable time-values.
 	If the estimator's output pointer is set, data for the given estimation will be written there accordingly.
 */
-void EstimatorFloat::Estimate(int64 forGivenTimeInMs, bool loop)
+void EstimatorFloat::Estimate(const Time & forGivenTime, bool loop)
 {
+	int64 forGivenTimeInMs = forGivenTime.Milliseconds();
 	int64 modulatedTime = forGivenTimeInMs;
 	if (loop)
 		modulatedTime = forGivenTimeInMs % totalIntervalMs + minMs;
@@ -79,7 +80,7 @@ void EstimatorFloat::Process(int timeInMs)
 	this->Estimate(timeElapsedMs, loop);
 
 	/// Mark as finished when applicable.
-	int64 time = states.Last()->time;
+	int64 time = States().Last()->time;
 	if (timeElapsedMs > time)
 		finished = true;
 	
@@ -188,7 +189,7 @@ void EstimatorFloat::AddStatesSeconds(int states, float f1, float timeStamp1, fl
 void EstimatorFloat::AddStateMs(float fValue, int64 timeStampInMs)
 {
 	// Set lastCalculation to the initially added value!
-	if (states.Size() == 0)
+	if (States().Size() == 0)
 		lastCalculation = fValue;
 
 	EstimationFloat * newState = new EstimationFloat(fValue, timeStampInMs);

@@ -67,6 +67,7 @@ void CameraManager::Process()
 		bool moved = camera->ProcessMovement(timeInSeconds);
 		if (camera->entityToTrack || camera->lastUpdate < camera->lastChange)
 			camera->Update();
+//		std::cout<<"\nLast update: "<<camera->lastUpdate.intervals;
 	}
 }
 
@@ -415,9 +416,12 @@ void Camera::EndRotate(int direction){
 }
 
 /// Updates the frustum
-void Camera::Update()
+void Camera::Update(const Time & now, bool force)
 {
-	Time now = Time::Now();
+	// Skip if already done this frame.
+//	if (lastChange == lastUpdate && !entityToTrack && lastUpdate >= now && !force)
+//		return;
+
 	float milliseconds = (now - lastUpdate).Milliseconds();
 	float timeInSeconds = milliseconds * 0.001f;
 	
@@ -431,7 +435,7 @@ void Camera::Update()
 	UpdateViewMatrix();
 
 	/// To avoid unneccessaray updates, idk
-	lastUpdate = now;
+	this->lastUpdate = now;
 }
 
 void Camera::Track()

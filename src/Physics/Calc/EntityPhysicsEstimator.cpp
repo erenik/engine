@@ -24,16 +24,45 @@ EntityPhysicsEstimator::EntityPhysicsEstimator(Entity * owner)
 	/// New from base class.
 void EntityPhysicsEstimator::Process(int timeInMs)
 {
-	assert(false);
 }
 
 /** Estimates values for given time. If loop is true, the given time will be modulated to be within the interval of applicable time-values.
 	If the estimator's output pointer is set, data for the given estimation will be written there accordingly.
 */
-void EntityPhysicsEstimator::Estimate(int64 forGivenTimeInMs, bool loop)
+void EntityPhysicsEstimator::Estimate(const Time & forGivenTime, bool loop)
 {
-	// o.o
-	assert(false);
+	int64 cTime = forGivenTime.Milliseconds();
+	/// Set same estimation mode and estimation delay.
+#define SetDefaults(a) a.mode = estimationMode;\
+	a.synchronizationDelay = estimationDelay;\
+	a.smoothingDuration = smoothingDuration;
+
+	SetDefaults(positionEstimator);
+	SetDefaults(rotationEstimator);
+	SetDefaults(velocityEstimator);
+
+	positionEstimator.variableToPutResultTo =  &owner->position;
+	positionEstimator.Estimate(forGivenTime, loop);
+	/*
+	owner->position = positionEstimator.Calculate(cTime);
+	owner->rotation = rotationEstimator.Calculate(cTime);
+	owner->physics->velocity = velocityEstimator.Calculate(cTime);
+	*/
+	owner->RecalculateMatrix();	
+	
+//	std::cout<<"\nrotation: "<<owner->rotation;
+
+	/// Calculate an average velocity.
+	float divisor = (cTime - lastTime) / 1000.0f;
+	if (divisor == 0)
+		return;
+	Vector3f velocity = (owner->position - lastPosition) / (divisor);
+//	owner->physics->velocity = velocity;
+
+	/// Save variables for calculatiang average velocity next loop.
+	lastPosition = owner->position;
+	lastTime = cTime;	
+//	std::cout<<"\nPosition: "<<(int)owner->position[0]<<" "<<(int)owner->position[1]<<" "<<(int)owner->position[2];
 }
 
 /// Calculates and sets new values for the entity.

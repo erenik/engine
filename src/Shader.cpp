@@ -496,7 +496,8 @@ Time Shader::MostRecentEdit()
 	for (int i = 0; i < shaderParts.Size(); ++i)
 	{
 		ShaderPart * part = shaderParts[i];
-		Time lastModified = part->source.LastModified();
+		Time lastModified;
+		assert(part->source.LastModified(lastModified));
 		if (lastModified > mostRecentEdit)
 			mostRecentEdit = lastModified;
 	}

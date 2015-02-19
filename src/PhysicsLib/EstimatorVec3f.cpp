@@ -37,7 +37,7 @@ EstimatorVec3f::EstimatorVec3f(int sampleDataArraySize, int initialMode /* = NON
 {
 	Nullify();
 //	states = new EstimationVec3f[sampleDataArraySize];
-	states.Allocate(sampleDataArraySize, true);
+//	states.Allocate(sampleDataArraySize, true);
 }
 
 void EstimatorVec3f::Nullify()
@@ -63,8 +63,9 @@ EstimatorVec3f::~EstimatorVec3f()
 /** Estimates values for given time. If loop is true, the given time will be modulated to be within the interval of applicable time-values.
 	If the estimator's output pointer is set, data for the given estimation will be written there accordingly.
 */
-void EstimatorVec3f::Estimate(int64 forGivenTimeInMs, bool loop)
+void EstimatorVec3f::Estimate(const Time & forGivenTime, bool loop)
 {
+	int64 forGivenTimeInMs = forGivenTime.Milliseconds();
 	int64 modulatedTime = forGivenTimeInMs % totalIntervalMs + minMs;
 	
 	Estimation * before, * after;

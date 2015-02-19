@@ -43,12 +43,12 @@ void File::operator = (String assignedPath)
 }
 
 /// Last time this file was modified. Returns -1 if the file does not exist and -2 if the function fails.
-Time File::LastModified()
+bool File::LastModified(Time & lastModifiedTime)
 {
 #ifdef WINDOWS
 	if (!OpenFileHandleIfNeeded())
 	{
-		return -1;
+		return false;
 	}
 
 	FILETIME creationTime, lastAccessTime, lastWriteTime;
@@ -62,9 +62,9 @@ Time File::LastModified()
 	ULARGE_INTEGER uli;
 	uli.HighPart = lastWriteTime.dwHighDateTime;
 	uli.LowPart = lastWriteTime.dwLowDateTime;
-	Time lastModified(uli.QuadPart, TimeType::WIN32_100NANOSEC_SINCE_JAN1_1601);
-	return lastModified;
+	lastModifiedTime = Time(TimeType::WIN32_100NANOSEC_SINCE_JAN1_1601, uli.QuadPart);
 #endif
+	return true;
 }
 
 /// Sets path.
@@ -112,7 +112,8 @@ std::fstream * File::Open()
 String File::GetContents()
 {
 	/// Contains the LastModified time when we last accessed this file.
-	editTimeWhenReadLast = LastModified();
+	editTimeWhenReadLast;
+	assert(LastModified(editTimeWhenReadLast));
 	return GetContents(path);
 }
 
@@ -158,7 +159,7 @@ String File::GetContents(std::fstream & fileStream)
 List<String> File::GetLines()
 {
 	String contents = GetContents(path);
-	editTimeWhenReadLast = LastModified();
+	assert(LastModified(editTimeWhenReadLast));
 	List<String> lines = contents.GetLines();
 	return lines;
 }
@@ -192,7 +193,8 @@ bool File::IsOpen()
 /// Returns true if the last write time has changed compared to the last time that we extracted contents from this file.
 bool File::HasChanged()
 {
-	Time lastEdit = LastModified();
+	Time lastEdit;
+	assert(LastModified(lastEdit));
 	if (lastEdit == editTimeWhenReadLast)
 		return false;
 	return true;

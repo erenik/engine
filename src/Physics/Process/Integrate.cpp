@@ -18,6 +18,17 @@ void PhysicsManager::Integrate(float timeInSecondsSinceLastUpdate)
     assert(timeInSecondsSinceLastUpdate > 0);
 	Timer timer;
 
+	/// Not to be confused with physicsTimeMs;
+	Time now = Time::Now();
+	/// If it uses estimation, process that now.
+	for (int i = 0; i < physicalEntities.Size(); ++i)
+	{
+		Entity * entity = physicalEntities[i];
+		if (entity->physics->estimationEnabled){	
+			entity->physics->estimator->Estimate(now, false);
+		}
+	}
+
 	if (physicsIntegrator)
 	{
 		physicsIntegrator->IsGood();

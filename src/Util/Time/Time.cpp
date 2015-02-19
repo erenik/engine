@@ -21,12 +21,14 @@ Time::Time()
 Time::Time(int type)
 	: type(type)
 {
+	assert(type > TimeType::UNDEFINED && type < TimeType::TIME_TYPES);
 	intervals = 0;
 }
 /// Time using a given type and starting-point. 
-Time::Time(uint64 intervals, int type)
+Time::Time(int type, uint64 intervals)
 	: intervals(intervals), type(type)
 {
+	assert(type > TimeType::UNDEFINED && type < TimeType::TIME_TYPES);
 }
 
 /// Returns current time in default time-type/-format.
@@ -230,13 +232,15 @@ void Time::SetMinute(int minute)
 
 
 // Current total in micro-seconds since the starting-point.
-uint64 Time::Microseconds()
+uint64 Time::Microseconds() const
 {
 	switch(type)
 	{
 		case TimeType::WIN32_100NANOSEC_SINCE_JAN1_1601:
 			/// 100-nano sec to micro second conversion..
 			return intervals / 10;
+		case TimeType::MILLISECONDS_NO_CALENDER:
+			return intervals * 1000;
 		default:
 			std::cout<<"\nFetching milliseconds from time of undefined type. Returning 0.";
 			return 0;
@@ -244,8 +248,13 @@ uint64 Time::Microseconds()
 	return -1;
 }
 
-int64 Time::Milliseconds()
+int64 Time::Milliseconds() const
 {
+	switch(type)
+	{
+		case TimeType::MILLISECONDS_NO_CALENDER:
+			return intervals;
+	}
 	int64 micro = Microseconds();
 	assert(micro >= 0);
 	return micro / 1000;

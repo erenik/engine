@@ -35,6 +35,9 @@ PhysicsProperty::~PhysicsProperty()
 	SAFE_DELETE(obb);
 
 	estimators.ClearAndDelete();
+
+	// kill it.
+	SAFE_DELETE(estimator);
 };
 
 /// Copy constructor

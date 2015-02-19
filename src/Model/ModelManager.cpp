@@ -22,6 +22,7 @@
 #include "SkeletalAnimationNode.h"
 
 #include "PhysicsLib/Shapes/AABB.h"
+#include "File/File.h"
 
 // Static model manager singleton
 ModelManager * ModelManager::modelManager = NULL;
@@ -173,8 +174,16 @@ Model * ModelManager::LoadObj(String source)
 	}
 	bool modelLoaded = false;
 		
+	/// Compare file-times, if .obj is newere, reload it.
+	File objFile(source);
+	File compressedFile(compressedPath);
+	Time lastEdit, cLastEdit;
+	bool objFileExists = objFile.LastModified(lastEdit);
+	bool cObjFileExists = compressedFile.LastModified(cLastEdit);
+	if (lastEdit > cLastEdit)
+		loadCompressed = false;
+
 	Mesh * mesh = NULL;
-	loadCompressed = true;
 	if (loadCompressed)
 	{
 //		std::cout<<"\nCreating mesh.";

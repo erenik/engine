@@ -248,14 +248,6 @@ public:
 	/// Axis-aligned bounding box.
 	AABB * aabb;
 
-private:
-	/// If non-identity scale.
-	bool relevantScale;
-	/// Used internally.
-	Matrix4f preTranslateMat;
-	/// Calculated after transform or rotation is done.
-	Vector3f lookAt, rightVec, upVec;
-	int deletionTimeMs;
 	/// Texture to be used for this Entity. TODO: Rename to DiffuseMap?
 	Texture * diffuseMap;
 	/// Normalmap texture for more surface~
@@ -264,6 +256,16 @@ private:
 	Texture * normalMap;
 	/// For "Glow" effects disregarding lighting conditions.
 	Texture * emissiveMap;
+
+
+private:
+	/// If non-identity scale.
+	bool relevantScale;
+	/// Used internally.
+	Matrix4f preTranslateMat;
+	/// Calculated after transform or rotation is done.
+	Vector3f lookAt, rightVec, upVec;
+	int deletionTimeMs;
 };
 
 template<class T>

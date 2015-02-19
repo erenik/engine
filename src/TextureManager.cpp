@@ -64,7 +64,8 @@ Texture * TextureManager::GetTexture(String nameOrSource)
 		if (tex->source.Length() == 0)
 			tex->SetSource(nameOrSource);
 	}
-	assert(tex->name.Length());
+	if (tex)
+		assert(tex->name.Length());
     return tex;
 }
 
@@ -350,6 +351,7 @@ Texture * TextureManager::LoadTexture(String source, bool noPathAdditions)
 	ok = LoadTextureOpenCV(source, texture);
 	if (!ok)
 	{
+		std::cout<<"\nOpenCV failed to read texture D:";
 		delete texture;
 		return NULL;
 	}

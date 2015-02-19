@@ -42,6 +42,8 @@ TIFSPlayerProperty::TIFSPlayerProperty(Entity * owner)
 	frictionOnRun = defaultFrictionOnRun;
 	frictionOnStop = defaultFrictionOnStop;
 	movementSpeed = defaultMovementSpeed;
+	lastRaycastTargetPosition = Vector3f();
+	targetPositionSmoothed = Vector3f();
 }
 
 int TIFSPlayerProperty::ID()
@@ -142,20 +144,33 @@ void TIFSPlayerProperty::UpdateHUDTargetInfo()
 
 	if (!targetCrossHair)
 	{
+		/*
 		targetCrossHair = EntityMan.CreateEntity("TargetCrossHairEntity", ModelMan.GetModel("obj/sphere.obj"), TexMan.GetTexture("0x2255AA77"));
 		targetCrossHair->SetPosition(this->lastRaycastTargetPosition);
 		GraphicsProperty * graphics = new GraphicsProperty(targetCrossHair);
 		graphics->blendModeDest = GL_ONE;
 		graphics->castsShadow = false;
 		graphics->flags = RenderFlag::ALPHA_ENTITY;
+		PhysicsProperty * pp = new PhysicsProperty();
+		targetCrossHair->physics = pp;
+		pp->fullyDynamic = false;
+		pp->collisionsEnabled = false;
+		pp->type = PhysicsType::KINEMATIC;
 		// Only add it to graphics?
 		GraphicsQueue.Add(new GMRegisterEntity(targetCrossHair));
-
+		/// Smooth out position in physics system...
+		PhysicsQueue.Add(new PMSetEntity(targetCrossHair, PT_ESTIMATION_ENABLED, true));
+		PhysicsQueue.Add(new PMRegisterEntity(targetCrossHair));
+*/
 //		MapMan.AddEntity(targetCrossHair);
 	}
 	// Just set position.
-	targetCrossHair->position = this->lastRaycastTargetPosition;
-	targetCrossHair->RecalculateMatrix(Entity::TRANSLATION_ONLY);
+	/*
+	targetPositionSmoothed = targetPositionSmoothed * 0.8 + lastRaycastTargetPosition * 0.2f;
+	Time tNow = Time::Now();
+	tNow.AddMs(1000);
+	PhysicsQueue.Add(new PMSetEntity(targetCrossHair, PT_POSITION, targetPositionSmoothed, tNow));
+*/
 
 	targetDrone = (TIFSDroneProperty *)primaryTarget->GetProperty(TIFSDroneProperty::ID());
 	targetTurret = (TIFSTurretProperty *)primaryTarget->GetProperty(TIFSTurretProperty::ID());
@@ -184,7 +199,7 @@ void TIFSPlayerProperty::UpdateHUDTargetInfo()
 	{
 		Graphics.QueueMessage(new GMSetUIs("TargetName", GMUI::TEXT, "Mundane environment"));
 	}
-	Vector3f pos = lastRaycastTargetPosition;
+	Vector3f pos = this->lastRaycastTargetPosition;
 	String posString;
 	posString = "x:"+String::ToString(pos.x,1) + " ";
 	posString += "y:"+String::ToString(pos.y,1) + " ";

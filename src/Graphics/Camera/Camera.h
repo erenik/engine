@@ -92,6 +92,9 @@ public:
 	// Prints data, including position, matrices, etc.
 	void PrintData() const;
 
+	/// Updates the camera's Matrices, Frustum, and other variables according to new position/rotation, etc.
+	void Update(const Time & now = Time::Now(), bool force = false);
+
 	/// Recalculates projection matrix only.
 	void UpdateProjectionMatrix();
 	/// Updates all components of the view-matrix. Calls Track() for tracking modes.
@@ -176,8 +179,6 @@ public:
 	void BeginRotate(int direction);
 	/// Stop rotating in the specified direction
 	void EndRotate(int direction);
-	/// Updates the camera's Matrices, Frustum, and other variables according to new position/rotation, etc.
-	void Update();
 
 	/** Sets width/height ratio (commonly known as Aspect ratio). Values should span from 1.0 and upward. */
 	void SetRatioF(float widthRatio, float heightRatio, bool force = false);

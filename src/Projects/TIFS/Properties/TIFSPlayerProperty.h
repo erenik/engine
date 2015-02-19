@@ -30,6 +30,8 @@ private:
 
 	int toolMode;
 
+	Vector3f targetPositionSmoothed;
+
 	ToolParticleEmitter * toolParticleEmitter;
 
 	TIFSDroneProperty * targetDrone;
