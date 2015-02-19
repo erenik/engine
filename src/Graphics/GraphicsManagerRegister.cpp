@@ -7,6 +7,7 @@
 #include "TextureManager.h"
 #include "Particles/ParticleSystem.h"
 #include "GraphicsState.h"
+#include "Graphics/Camera/Camera.h"
 
 /// Adds an Entity to be rendered to the vfcOctree.
 bool GraphicsManager::RegisterEntity(Entity * entity)
@@ -74,7 +75,7 @@ bool GraphicsManager::UnregisterEntity(Entity * entity)
 {
 	bool result = registeredEntities.Remove(entity);
 	if (!result){
-		std::cout<<"\nWARNING: Unable to remove entity, already unregistered?";
+//		std::cout<<"\nWARNING: Unable to remove entity, already unregistered?";
 		return false;
 	}
 	int entitiesBefore = registeredEntities.Size();
@@ -82,6 +83,12 @@ bool GraphicsManager::UnregisterEntity(Entity * entity)
 	if (!entity->registeredForRendering)
 		return true;
 	
+	// Unbind camera as needed.
+	if (entity->cameraFocus && 	entity->cameraFocus->entityToTrack == entity)
+	{
+		entity->cameraFocus->entityToTrack = NULL;
+	}
+
 	// Check for additional graphics-data
 	if (entity->graphics)
 	{

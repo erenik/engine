@@ -31,6 +31,8 @@ public:
 
 
 	/// This may be either on ground or at some strategical point (key buildings?)
+	bool GetNewPlayerPosition(Vector3f & playerPos);
+	/// This may be either on ground or at some strategical point (key buildings?)
 	bool GetNewTurretPosition(Vector3f & turretPos);
 	/** Requested slot-size in meters. List of available slot-sizes can be queried.
 		Size is requested size in meters. Size will be updated to the size the new building can maximally take up.

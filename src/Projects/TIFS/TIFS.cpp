@@ -63,6 +63,9 @@ Camera * freeFlyCamera = NULL;
 
 WeatherSystem * weather = NULL;
 
+/// Lists to clear upon deletion of the map.
+List< List<Entity*> *> entityLists; 
+
 void SetApplicationDefaults()
 {
 	Application::name = "The Invader from Space / VIRTUS";
@@ -106,6 +109,8 @@ TIFSCR * cr = 0;
 /// Function when entering this state, providing a pointer to the previous StateMan.
 void TIFS::OnEnter(AppState * previousState)
 {
+	entityLists.Add(&drones, &turrets, &motherships, &groundEntities, &players);
+
 	// Setup integrator.
 	if (!integrator)
 		integrator = new TIFSIntegrator();
@@ -559,7 +564,12 @@ void TIFS::SpawnPlayer()
 	model = ModelMan.GetModel("sphere.obj");
 //	model = ModelMan.GetModel("dae/TestCharacter.dae");
 
-	Entity * player = MapMan.CreateEntity("Player", model, TexMan.GetTexture("Red"));
+	// Get position.
+	Vector3f position;
+	grid->GetNewPlayerPosition(position);
+	position.y += 3.f;
+
+	Entity * player = MapMan.CreateEntity("Player", model, TexMan.GetTexture("Red"), position);
 	// Attach camera to the player.
 	GraphicsQueue.Add(new GMSetCamera(thirdPersonCamera, CT_ENTITY_TO_TRACK, player));
 	GraphicsQueue.Add(new GMSetCamera(firstPersonCamera, CT_ENTITY_TO_TRACK, player));
@@ -610,6 +620,21 @@ void TIFS::NewGame()
 {
 	// Delete previous entities?
 	MapMan.DeleteAllEntities();
+
+	List<Entity*> allEntities = EntityMan.AllEntities();
+	// Unregister all from physics
+	PhysicsQueue.Add(new PMUnregisterEntities(allEntities));
+	// Unregister all from graphics.
+	GraphicsQueue.Add(new GMUnregisterEntities(allEntities));
+	/// Mark all for deletion.
+	EntityMan.MarkEntitiesForDeletion(allEntities);
+	/// Clear all lists we have.
+	for (int i = 0; i < entityLists.Size(); ++i)
+	{
+		List<Entity*> * list = entityLists[i];
+		list->Clear();
+	}
+
 
 	// Hide the menu
 	HideMainMenu();

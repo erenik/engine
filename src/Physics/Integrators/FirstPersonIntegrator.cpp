@@ -74,13 +74,16 @@ void FirstPersonIntegrator::IntegrateVelocity(List<Entity*> & entities, float ti
 		Vector3f lookAt = forEntity->LookAt();
 
 #ifdef USE_SSE
+		assert(pp->velocity.x == pp->velocity.x);
+
 		// Optimized
 		// First acceleration.
 		__m128 sse = _mm_load1_ps(&pp->gravityMultiplier);
-		__m128 totalAcceleration = defaultSSE;
+		SSEVec totalAcceleration;
+		totalAcceleration.data = defaultSSE;
 		/// Apply gravity.
 		if (pp->gravityMultiplier && !(pp->state & PhysicsState::AT_REST))
-			totalAcceleration = _mm_add_ps(totalAcceleration, _mm_mul_ps(gravity.data, sse));
+			totalAcceleration.data = _mm_add_ps(totalAcceleration.data, _mm_mul_ps(gravity.data, sse));
 		
 		/// Accelerate only if requirements met.
 		if (!pp->requireGroundForLocalAcceleration || (physicsNowMs - pp->lastGroundCollisionMs) < pp->isOnGroundThresholdMs)
@@ -92,13 +95,15 @@ void FirstPersonIntegrator::IntegrateVelocity(List<Entity*> & entities, float ti
 				Vector3f relAcc = pp->relativeAcceleration;
 				relAcc.z *= -1;
 				Vector3f worldAcceleration = forEntity->rotationMatrix.Product(relAcc);
-				totalAcceleration = _mm_add_ps(totalAcceleration, worldAcceleration.data);
+				totalAcceleration.data = _mm_add_ps(totalAcceleration.data, worldAcceleration.data);
+				assert(totalAcceleration.x == totalAcceleration.x);
 			}
 			// Regular acceleration.
-			totalAcceleration = _mm_add_ps(totalAcceleration, pp->acceleration.data);
+			totalAcceleration.data = _mm_add_ps(totalAcceleration.data, pp->acceleration.data);
+			assert(totalAcceleration.x == totalAcceleration.x);
 		}
 		/// Multiply by time.
-		pp->velocity.data = _mm_add_ps(pp->velocity.data, _mm_mul_ps(totalAcceleration, timeSSE));
+		pp->velocity.data = _mm_add_ps(pp->velocity.data, _mm_mul_ps(totalAcceleration.data, timeSSE));
 		// Apply linear damping
 		sse = _mm_load1_ps(&pp->linearDampingPerPhysicsFrame);
 		pp->velocity.data = _mm_mul_ps(pp->velocity.data, sse);

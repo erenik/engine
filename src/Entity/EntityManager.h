@@ -39,6 +39,8 @@ public:
 		Should only be callable by other managers.
 	*/
 	bool DeleteEntity(Entity * entity);
+	/// All active ones not already flagged for deletion.
+	List<Entity*> AllEntities();
 
 	void MarkEntitiesForDeletion(List<Entity*> entities);
 	/** Deletes (resets IDs) of all entities that have been flagged for deletion and are not registered anywhere still. */

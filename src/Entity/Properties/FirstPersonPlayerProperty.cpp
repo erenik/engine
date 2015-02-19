@@ -77,7 +77,10 @@ void FirstPersonPlayerProperty::ProcessMessage(Message * message)
 				{
 					jumping = false;
 					if (autorun)
+					{
+						assert(movementSpeed == movementSpeed);
 						PhysicsQueue.Add(new PMSetEntity(owner, PT_RELATIVE_ACCELERATION, Vector3f(0, 0, movementSpeed)));
+					}
 				}
 			}
 			break;	
@@ -306,7 +309,6 @@ void FirstPersonPlayerProperty::ProcessInput()
 
 void FirstPersonPlayerProperty::UpdateVelocity(ConstVec3fr newVelocity)
 {
-	static Vector3f lastVelocity;
 	if (jumping)
 		return;
 	if (lastVelocity == newVelocity)
@@ -317,6 +319,7 @@ void FirstPersonPlayerProperty::UpdateVelocity(ConstVec3fr newVelocity)
 	Vector3f normalizedVelocity = newVelocity.NormalizedCopy();
 
 	// And set it!
+	assert(newVelocity.x == newVelocity.x);
 	PhysicsQueue.Add(new PMSetEntity(owner, PT_ACCELERATION, newVelocity)); 
 	// Walking?
 	if (newVelocity.LengthSquared())

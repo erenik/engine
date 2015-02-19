@@ -68,6 +68,32 @@ void TIFSGrid::Resize(Vector3i gridSize, ConstVec3fr mapSize)
 	}	
 }
 
+Random playerRandom;
+
+/// This may be either on ground or at some strategical point (key buildings?)
+bool TIFSGrid::GetNewPlayerPosition(Vector3f & playerPos)
+{
+	// Set their positions.
+	List<TIFSTile*> tiles = grid.GetTiles();
+	// Randomize a few times?
+	int tries = 0;
+	while (tries < 1000)
+	{
+		++tries;
+		int index = playerRandom.Randi(tiles.Size() - 1);
+		TIFSTile * tile = tiles[index];
+		if (tile->isOccupied == true)
+			continue;
+		if (!tile->isGround)
+			continue;
+		playerPos = tile->position;
+		tile->isOccupied = true;
+		return true;
+	}
+	return false;
+}
+
+
 Random turretRandom;
 
 /// This may be either on ground or at some strategical point (key buildings?)

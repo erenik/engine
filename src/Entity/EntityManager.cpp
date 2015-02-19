@@ -106,6 +106,12 @@ bool EntityManager::DeleteEntity(Entity * entity)
 	return true;
 }
 
+/// All active ones not already flagged for deletion.
+List<Entity*> EntityManager::AllEntities()
+{
+	return entities;
+}
+
 void EntityManager::MarkEntitiesForDeletion(List<Entity*> entitiesToMark)
 {
 	Time now = Time::Now();
