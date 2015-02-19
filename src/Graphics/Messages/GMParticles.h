@@ -2,6 +2,9 @@
 /// 2014-06-26
 /// Messages related to particles and particle-systems
 
+#ifndef GM_PARTICLES_H
+#define GM_PARTICLES_H
+
 #include "GraphicsMessage.h"
 #include "PhysicsLib/Shapes/Contour.h"
 
@@ -137,4 +140,4 @@ private:
 	void * data;
 };
 
-
+#endif

@@ -2,6 +2,9 @@
 /// 2014-08-06
 /// bl
 
+#ifndef TIFS_CD_H
+#define TIFS_CD_H
+
 #include "Physics/CollisionDetectors/FirstPersonCD.h"
 
 class TIFSCD : public FirstPersonCD
@@ -16,3 +19,4 @@ public:
 
 };
 
+#endif

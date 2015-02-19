@@ -89,7 +89,6 @@ void FirstPersonPlayerProperty::ProcessMessage(Message * message)
 		case MessageType::RAYCAST:
 		{
 			Raycast * raycast = (Raycast*) message;
-			bool done;
 			List<Intersection> contacts = raycast->isecs;
 			targets.Clear();
 
@@ -315,11 +314,15 @@ void FirstPersonPlayerProperty::UpdateVelocity(ConstVec3fr newVelocity)
 	{
 		return;
 	}
+	// If bad, like when new entity/camera and pointers have not had the time to update yet..?
+	if (newVelocity.x != newVelocity.x)
+		return;
+	assert(newVelocity.x == newVelocity.x);
+
 	lastVelocity = newVelocity;
 	Vector3f normalizedVelocity = newVelocity.NormalizedCopy();
 
 	// And set it!
-	assert(newVelocity.x == newVelocity.x);
 	PhysicsQueue.Add(new PMSetEntity(owner, PT_ACCELERATION, newVelocity)); 
 	// Walking?
 	if (newVelocity.LengthSquared())

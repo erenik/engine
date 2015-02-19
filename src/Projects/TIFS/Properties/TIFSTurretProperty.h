@@ -2,6 +2,9 @@
 /// 2014-07-30
 /// Property/Controller class for all turrets, providing aiming- and appropriate rotations for them, as well as handling repair/damage states.
 
+#ifndef TIFS_TURRET_PROPERTY_H
+#define TIFS_TURRET_PROPERTY_H
+
 #include "TIFSProperties.h"
 #include "MathLib/Angle.h"
 #include "MathLib.h"
@@ -59,13 +62,4 @@ private:
 
 };
 
-
-
-
-
-
-
-
-
-
-
+#endif

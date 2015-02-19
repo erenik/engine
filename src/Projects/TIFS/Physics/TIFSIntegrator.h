@@ -2,6 +2,9 @@
 /// 2014-07-30
 /// Custom physics integrator for the TIFS game, since no general integrator exists in this engine (yet). Requires more fine-tuning! 
 
+#ifndef TIFS_INTEGRATOR_H
+#define TIFS_INTEGRATOR_H
+
 #include "Physics/Integrators/FirstPersonIntegrator.h"
 
 class TIFSIntegrator : public FirstPersonIntegrator
@@ -21,3 +24,5 @@ private:
 
 	void IntegrateVelocity(Entity * forEntity, float timeInSeconds);
 };
+
+#endif

@@ -4,6 +4,7 @@
 
 #include "Model/ModelManager.h"
 
+#include "File/LogFile.h"
 #include "Model/Model.h"
 #include "Mesh/Mesh.h"
 
@@ -228,8 +229,8 @@ Model * ModelManager::LoadObj(String source)
 		std::cout<<"\nLoading model from source: "<<source;
 		std::cout<<"\nCalling ObjReader::ReadObj";
 		modelLoaded = ObjReader::ReadObj(source.c_str(), mesh);
-		if (mesh->radius <= 0)
-			mesh->CalculateBounds();
+		
+		mesh->CalculateBounds();
 		assert(mesh->radius > 0);
 	 //   mesh->PrintContents();
 
@@ -240,10 +241,6 @@ Model * ModelManager::LoadObj(String source)
 		Model * model = new Model();
 		model->mesh = mesh;
 		
-		// Calculate bounds, and set bounds since this function assumes static/single mesh-models!
-		if (!mesh->aabb)
-			mesh->CalculateBounds();
-
 		// Centering can be bad to configuring stuff yourself..!
 	//	mesh->Center();
 		model->radius = mesh->radius;
@@ -255,19 +252,21 @@ Model * ModelManager::LoadObj(String source)
 		/// Create the triangulated one straight away~, if needed..!
 		if (!model->mesh->IsTriangulated())
 		{
-			std::cout<<"\nCreating triangulized mesh..";
-			model->triangulatedMesh = new Mesh();
-			model->triangulatedMesh->LoadDataFrom(model->mesh);
-			std::cout<<"\nTriangulized mesh finished o-o.";
-			std::cout<<"\nTriangulate.";
-			model->triangulatedMesh->Triangulate();
-			std::cout<<"\nTriangulated.";
+			LogMain("Triangulating mesh.", INFO);
+			Mesh * triangulatedMesh = model->triangulatedMesh = new Mesh();
+			triangulatedMesh->LoadDataFrom(model->mesh);
+			// Calculate bounds, and set bounds since this function assumes static/single mesh-models!
+			if (!triangulatedMesh->aabb)
+				triangulatedMesh->CalculateBounds();
+			triangulatedMesh->Triangulate();
 			// If no normals? Recalculate 'em.
-			if (model->triangulatedMesh->normals.Size() == NULL)
-				model->triangulatedMesh->RecalculateNormals();
+			LogMain("Recalculating normals.", INFO);
+			if (triangulatedMesh->normals.Size() == NULL)
+				triangulatedMesh->RecalculateNormals();
 			std::cout<<"\nNormalized";
-			model->triangulatedMesh->CalculateUVTangents();
-	//		std::cout<<"\nUVd";
+			triangulatedMesh->CalculateUVTangents();
+	//		std::cout<<"\nUVd";			
+			triangulatedMesh->CalculateBounds();
 
 			// Save the triangulized mesh in compressed form ! 
 			model->triangulatedMesh->SaveCompressedTo(compressedPath);

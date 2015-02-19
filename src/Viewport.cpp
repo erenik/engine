@@ -253,6 +253,10 @@ bool Viewport::GetRayFromViewportCoordinates(Vector2i coords, Ray & ray)
 	result.start = startPoint;
 	result.direction = clickDirection;
 	ray = result;
+	if (debug == 10)
+	{
+		std::cout<<"\nRayFromScreenCoords S: "<<ray.start<<" D: "<<ray.direction;
+	}
 //	std::cout<<"\nRay dir: "<<result.direction<<" start: "<<result.start;
 	return true;
 }

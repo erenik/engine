@@ -142,6 +142,7 @@ void Mesh::DeallocateArrays()
 		float a,b,c;
 	};
 
+#define MESH_CURRENT_VERSION 2
 
 /// Load from customized compressed data form. Returns true upon success.
 bool Mesh::SaveCompressedTo(String compressedPath)
@@ -150,11 +151,11 @@ bool Mesh::SaveCompressedTo(String compressedPath)
 	file.open(compressedPath.c_str(), std::ios_base::out | std::ios_base::binary);
 	if (!file.is_open())
 		return false;
-	String about = "Erenik Engine Compressed mesh. Version:";
-	String version = "1.0";
+	String about = "Erenik Engine Compressed mesh.";
+	int version = MESH_CURRENT_VERSION;
 
 	about.WriteTo(file);
-	version.WriteTo(file);
+	file.write((char*)&version, sizeof(int));
 	this->name.WriteTo(file);
 	this->source.WriteTo(file);
 
@@ -162,6 +163,12 @@ bool Mesh::SaveCompressedTo(String compressedPath)
 	centerOfMesh.WriteTo(file);
 	file.write((char*)&radius, sizeof(float));
 	file.write((char*)&triangulated, sizeof(bool));
+	// Write AABB data so that it is pre-loaded.
+	assert(aabb && "No aabb when trying to save compressed mesh. Calculate it NOW!");
+	if (!aabb)
+		return false;
+	assert(aabb->scale.MaxPart());
+	aabb->WriteTo(file);
 
 	// Write number of each specific array.
 	file.write((char*)&numVertices, sizeof(int));
@@ -221,22 +228,26 @@ bool Mesh::LoadCompressedFrom(String compressedPath)
 	file.open(compressedPath.c_str(), std::ios_base::in | std::ios_base::binary);
 	if (!file.is_open())
 		return false;
-	String about = "Erenik Engine Compressed mesh. Version:";
-	String version = "1.0";	/// Version 1, no tangents nor biTangents.
-
+	String about;
+	int version;
 	about.ReadFrom(file);
-	version.ReadFrom(file);
+	file.read((char*)&version, sizeof(int));
+	if (version != MESH_CURRENT_VERSION)
+		return false;
 	this->name.ReadFrom(file);
 	this->source.ReadFrom(file);
 	
 	assert(source.Length());
 	assert(name.Length());
 
-
 	// Write extra data so that they do not have to be re-calculated.?
 	centerOfMesh.ReadFrom(file);
 	file.read((char*)&radius, sizeof(float));
 	file.read((char*)&triangulated, sizeof(bool));
+	// Write AABB data so that it is pre-loaded.
+	if (!aabb) 
+		aabb = new AABB();
+	aabb->ReadFrom(file);
 	
 	// Write number of each specific array.
 	file.read((char*)&numVertices, sizeof(int));
@@ -247,15 +258,11 @@ bool Mesh::LoadCompressedFrom(String compressedPath)
 	// Allocate arrays.
 	AllocateArrays();
 
-
 	// Then start writing the data of the arrays.
 	int sizeOfVertex = sizeof(Vector3f);
 	int sizeOfUV = sizeof(Vector2f);
 
-
 	// Load 'em.
-
-
 	int sizeOfP1 = sizeof(p1);
 	int sizeOfP2 = sizeof(p2);
 	int sizeOfP3 = sizeof(p3);
@@ -264,25 +271,13 @@ bool Mesh::LoadCompressedFrom(String compressedPath)
 
 	int size = numVertices * sizeOfVertex;
 
-
-
 	// Read data.
-	
 	for (int i = 0; i < numVertices; ++i)
 		vertices[i].ReadFrom(file);
 	for (int i = 0; i < numUVs; ++i)
 		uvs[i].ReadFrom(file);
 	for (int i = 0; i < numNormals; ++i)
 		normals[i].ReadFrom(file);
-
-	/*
-	if (numVertices)
-		file.read((char*)vertices.GetArray(), numVertices * sizeOfVertex);
-	if (numUVs)
-		file.read((char*)uvs.GetArray(), numUVs * sizeOfUV);
-	if (numNormals)
-		file.read((char*)normals.GetArray(), numNormals * sizeOfVertex);
-//*/
 
 	// Load all numFaces.
 	for (int i = 0; i < numFaces; ++i)
@@ -325,7 +320,10 @@ void Mesh::PrintContents()
 bool Mesh::LoadDataFrom(const Mesh * otherMesh, bool nullify /*= false*/)
 {
    // std::cout<<"\nLoadDataFrom mesh constructor begun...";
-
+	if (!aabb)
+		aabb = new AABB();
+	assert(otherMesh->aabb);
+	*aabb = *otherMesh->aabb;
 	// Update update time.
 	lastUpdate = otherMesh->lastUpdate;
 
@@ -792,59 +790,28 @@ void Mesh::CalculateBounds()
 	max = vertices[0];
 	radius = 0;
 	float newRadius = 0;
-	for (int i = 0; i < numVertices; ++i){
+	for (int i = 1; i < numVertices; ++i)
+	{
 		newRadius = vertices[i].LengthSquared();
 		if (newRadius > radius)
 			radius = newRadius;
-
 		// Get min
-		if (vertices[i][0] < min[0])
-			min[0] = vertices[i][0];
-		if (vertices[i][1] < min[1])
-			min[1] = vertices[i][1];
-		if (vertices[i][2] < min[2])
-			min[2] = vertices[i][2];
+		min = Vector3f::Minimum(min, vertices[i]);
 		// Get max
-		if (vertices[i][0] > max[0])
-			max[0] = vertices[i][0];
-		if (vertices[i][1] > max[1])
-			max[1] = vertices[i][1];
-		if (vertices[i][2] > max[2])
-			max[2] = vertices[i][2];
+		max = Vector3f::Maximum(max, vertices[i]);
 	}
-	min.PrepareForSIMD();
-	max.PrepareForSIMD();
+	// Update related values.
 	radius = sqrt(radius);
 	centerOfMesh = (max - min)/2.0f + min;
-
-	// Static radius on load (relative to 0,0,0)
-	// Note that this method will absolutely guarantee a radius that is larger than needed.
-	Vector3f extremePoints(
-		abs(min[0]) > max[0] ? min[0] : max[0],
-		abs(min[1]) > max[1] ? min[1] : max[1],
-		abs(min[2]) > max[2] ? min[2] : max[2]
-	);
-//	radius = extremePoints.Length();
-
-
-	// Below assumes centered mesh. This may not always be the case!
-	/*
-	for (int i = 0; i < numVertices; ++i){
-		// Radius
-		newRadius = (vertices[i] - centerOfMesh).Length();
-		if (newRadius > radius)
-			radius = newRadius;
-	}*/
-
-	/// Create AABB if needed?
-	if (!aabb)
-		aabb = new AABB(min, max);
-
+	// Update more AABB values.
+	aabb->scale = max - min;
+	aabb->position = (max + min) * 0.5;
 }
 
 /** Centerizes the model by pushing all numVertices by the length of the the centerOfMesh vector.
 	Resets centerOfMesh afterward. */
-void Mesh::Center(){
+void Mesh::Center()
+{
 	for (int i = 0; i < numVertices; ++i){
 		vertices[i] -= centerOfMesh;
 	}

@@ -16,14 +16,55 @@
 #include "AppStates/AppState.h"
 
 #include "Maps/MapManager.h"
+
 #include "Model/ModelManager.h"
+#include "Model/Model.h"
+
 #include "TextureManager.h"
 #include "Input/Action.h"
 #include "Graphics/GraphicsProperty.h"
+
+#include "File/LogFile.h"
+#include "StateManager.h"
+
+#include "TIFSBuilding.h"
+#include "TIFSGrid.h"
+#include "TIFSMapEditor.h"
+#include "TIFS/Physics/TIFSIntegrator.h"
+#include "TIFS/Physics/TIFSCD.h"
+#include "TIFS/Physics/TIFSCR.h"
+#include "TIFS/Properties/TIFSPlayerProperty.h"
+#include "TIFS/Properties/TIFSTurretProperty.h"
+#include "TIFS/Properties/TIFSDroneProperty.h"
+#include "TIFS/Graphics/ToolParticles.h"
+
+#include "Graphics/GraphicsManager.h"
+#include "Graphics/Messages/GMParticles.h"
+#include "Graphics/Messages/GMSet.h"
+#include "Graphics/Messages/GMSetEntity.h"
+#include "Graphics/Messages/GMUI.h"
+#include "Graphics/Messages/GMCamera.h"
+#include "Graphics/Camera/Camera.h"
+
+#include "Message/Message.h"
+
+#include "Application/Application.h"
+#include "StateManager.h"
+
+#include "Entity/EntityManager.h"
+#include "Input/InputManager.h"
+
+#include "Physics/PhysicsManager.h"
+#include "Physics/Messages/PhysicsMessage.h"
+#include "Physics/Messages/CollisionCallback.h"
 #include "Physics/PhysicsManager.h"
 #include "Physics/PhysicsProperty.h"
-#include "TIFSGrid.h"
-#include "File/LogFile.h"
+
+#include "Random/Random.h"
+
+#include "Script/ScriptManager.h"
+
+#include "Weather/WeatherSystem.h"
 
 class Camera;
 class Message;

@@ -2,6 +2,9 @@
 /// 2014-05-18
 /// Messages for adjusting parameters for the active camera.
 
+#ifndef GM_CAMERA_H
+#define GM_CAMERA_H
+
 #include "GraphicsMessage.h"
 #include "GraphicsMessages.h"
 #include "../Camera/Camera.h"
@@ -80,3 +83,5 @@ private:
 	Window * window;
 	Entity * entity;
 };
+
+#endif

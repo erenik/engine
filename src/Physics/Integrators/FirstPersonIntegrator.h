@@ -2,6 +2,9 @@
 /// 2014-08-06
 /// An integrator suitable for a first-person game. Works well together with the FirstPersonCD, FirstPersonCR and FirstPersonPlayerProperty.
 
+#ifndef FIRST_PERSON_INTEGRATOR_H
+#define FIRST_PERSON_INTEGRATOR_H
+
 #include "Physics/Integrator.h"
 
 class FirstPersonIntegrator : public Integrator
@@ -26,3 +29,4 @@ private:
 	void RecalcMatrices(List<Entity*> & entities);
 };
 
+#endif

@@ -1,6 +1,9 @@
 // Emil Hedemalm
 // 2013-07-01
 
+#ifndef GM_SET_ENTITY_H
+#define GM_SET_ENTITY_H
+
 #include "GraphicsMessage.h"
 #include "GraphicsMessages.h"
 
@@ -127,3 +130,4 @@ private:
 	Entities entities;
 };
 
+#endif

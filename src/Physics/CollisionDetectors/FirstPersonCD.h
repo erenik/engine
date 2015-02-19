@@ -3,6 +3,9 @@
 /// A collision-detector suitable for a first person game (i.e. a game where the camera follows a single entity). 
 /// Sub class to override behaviour.
 
+#ifndef FIRST_PERSON_CD_H
+#define FIRST_PERSON_CD_H
+
 #include "Physics/CollisionDetector.h"
 
 class FirstPersonCD : public CollisionDetector 
@@ -23,3 +26,4 @@ public:
 
 };
 
+#endif

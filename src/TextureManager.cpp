@@ -9,6 +9,8 @@
 #include <fstream>
 #include <iostream>
 
+#include "File/LogFile.h"
+#include "File/FileUtil.h"
 #include "Graphics/Messages/GraphicsMessage.h"
 #include "Graphics/GraphicsManager.h"
 
@@ -340,6 +342,12 @@ Texture * TextureManager::LoadTexture(String source, bool noPathAdditions)
 
 	std::cout<<"\nLoading texture \""<<source.c_str()<<"\"...";
 
+
+	if (!FileExists(source))
+	{
+		LogMain("TextureManager::LoadTexture: No such file "+source, INFO);
+		return NULL;
+	}
 
 	Texture * texture = new Texture();
 	// resize texture so the comparison gets valid...

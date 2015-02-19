@@ -142,6 +142,31 @@ void AABB::Recalculate(Entity * entity)
 		std::cout<<"\nPosition "<<position<<" Scale "<<scale;
 }
 
+bool AABB::WriteTo(std::fstream & file)
+{
+	// version?
+	int version = 0;
+	file.write((char*)&version, sizeof(int));
+	min.WriteTo(file);
+	max.WriteTo(file);
+	position.WriteTo(file);
+	scale.WriteTo(file);
+	return true;
+}
+bool AABB::ReadFrom(std::fstream & file)
+{
+	int version, currentVersion = 0;
+	file.read((char*)&version, sizeof(int));
+	if (version != currentVersion)
+		return false;
+	min.ReadFrom(file);
+	max.ReadFrom(file);
+	position.ReadFrom(file);
+	scale.ReadFrom(file);
+	return true;
+}
+
+
 
 /// Returns this AABB in the form of 8 quads.
 List<Quad> AABB::AsQuads()

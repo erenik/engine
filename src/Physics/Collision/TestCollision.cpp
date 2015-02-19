@@ -133,6 +133,13 @@ bool TestCollision(Entity * one, Entity * two, List<Collision> & collissionList)
 		else if (MeshSphereCollision(meshEntity, sphereEntity, data)){
 		//	std::cout<<"\nRegular MeshSphere every-tri-vs-sphere collission detection.";
 			shouldCollide = true;
+			/// Swap them to get normal right.
+			/// Flip collision normal if needed, always point from one to two.
+			if (meshEntity == one)
+			{
+				data.collisionNormal *= -1;
+				data.distanceIntoEachOther *= -1;
+			}
 		}
 	}
 	else if (shapeTypes[ShapeType::TRIANGLE] && shapeTypes[ShapeType::SPHERE]){

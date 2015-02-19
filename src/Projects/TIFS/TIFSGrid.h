@@ -2,6 +2,9 @@
 /// 2015-02-15
 /// Grid used for creating maps for the TIFS game.
 
+#ifndef TIFS_GRID_H
+#define TIFS_GRID_H
+
 #include "Maps/Grids/Tile.h"
 #include "Maps/Grids/TileGrid3D.h"
 
@@ -78,3 +81,4 @@ private:
 	int type;
 };
 
+#endif

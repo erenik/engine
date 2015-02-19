@@ -13,6 +13,9 @@
 	Our final release for that first iteration of the project: http://svn.gscept.com/gp13-3/public/Virtus.zip
 */
 
+#ifndef TIFS_MAP_EDITOR_H
+#define TIFS_MAP_EDITOR_H
+
 #include "AppStates/AppState.h"
 
 class Message;
@@ -48,3 +51,4 @@ private:
 	Vector2f groundSize;
 };
 
+#endif

@@ -7,6 +7,7 @@
 #include "Viewport.h"
 #include "UI/UserInterface.h"
 #include "Graphics/GLBuffers.h"
+#include "Debug.h"
 
 #include "DragAndDrop.h"
 

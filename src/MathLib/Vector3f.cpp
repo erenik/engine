@@ -184,15 +184,15 @@ std::ostream& operator <<(std::ostream& os, const Vector3f& vec){
 /// Writes to file stream.
 void Vector3f::WriteTo(std::fstream & file)
 {
-	file.write((char*)&(*this)[0], sizeof(float));
-	file.write((char*)&(*this)[1], sizeof(float));
-	file.write((char*)&(*this)[2], sizeof(float));
+	file.write((char*)&x, sizeof(float));
+	file.write((char*)&y, sizeof(float));
+	file.write((char*)&z, sizeof(float));
 }
 /// Reads from file stream.
 void Vector3f::ReadFrom(std::fstream & file){
-	file.read((char*)&(*this)[0], sizeof(float));
-	file.read((char*)&(*this)[1], sizeof(float));
-	file.read((char*)&(*this)[2], sizeof(float));
+	file.read((char*)&x, sizeof(float));
+	file.read((char*)&y, sizeof(float));
+	file.read((char*)&z, sizeof(float));
 }
 
 /// Reads from String. Expects space-separated values. E.g. 3 8.14 -15

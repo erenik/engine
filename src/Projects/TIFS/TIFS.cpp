@@ -16,43 +16,6 @@
 /// The main/global Application state for the game.
 
 #include "TIFS.h"
-#include "TIFSMapEditor.h"
-
-#include "TIFS/Physics/TIFSIntegrator.h"
-#include "TIFS/Physics/TIFSCD.h"
-#include "TIFS/Physics/TIFSCR.h"
-
-#include "TIFS/Properties/TIFSPlayerProperty.h"
-#include "TIFS/Properties/TIFSTurretProperty.h"
-#include "TIFS/Properties/TIFSDroneProperty.h"
-
-#include "TIFS/Graphics/ToolParticles.h"
-
-#include "Graphics/GraphicsManager.h"
-#include "Graphics/Messages/GMParticles.h"
-#include "Graphics/Messages/GMSet.h"
-#include "Graphics/Messages/GMSetEntity.h"
-#include "Graphics/Messages/GMUI.h"
-#include "Graphics/Messages/GMCamera.h"
-#include "Graphics/Camera/Camera.h"
-
-#include "Message/Message.h"
-
-#include "Application/Application.h"
-#include "StateManager.h"
-
-#include "Entity/EntityManager.h"
-#include "Input/InputManager.h"
-
-#include "Physics/PhysicsManager.h"
-#include "Physics/Messages/PhysicsMessage.h"
-#include "Physics/Messages/CollisionCallback.h"
-
-#include "Random/Random.h"
-
-#include "Script/ScriptManager.h"
-
-#include "Weather/WeatherSystem.h"
 
 TIFS * tifs = NULL;
 TIFSMapEditor * mapEditor = NULL;
@@ -696,6 +659,9 @@ void TIFS::AddBuildings(int numBuildings)
 	LogMain("TIFS::AddBuildings - start", DEBUG);
 //	MapMan.DeleteEntities(turrets);
 //	turrets.Clear();
+	
+	bool ok = TIFSBuilding::LoadTypes();
+	assert(ok);
 
 	Random buildingRandom;
 	int buildingsToCreate = numBuildings;
@@ -710,90 +676,9 @@ void TIFS::AddBuildings(int numBuildings)
 			LogMain("TIFS::AddBuildings", DEBUG);
 			break;
 		}		
-		float sizeSquared = maxSize.LengthSquared();
-		// Randomize some bonus height!
-		if (maxSize.y == 0)
-			maxSize.y = buildingRandom.Randf(sizeSquared * 0.05f) + sizeSquared * 0.01f + 5.f;
-
-		Model * bottomModel = NULL, * topModel = NULL;
-		String bottomName, topName, diffuseName;
-		int floors = 10;
-		float floorHeight = 2.5f;
-		Texture * diffuse = NULL;
-
-		int type = i % 3;
-		switch(type)
-		{
-		case 0:
-			topName = "medium_building_top";
-			bottomName = "medium_building_bottom";
-			diffuseName = "medium_building_diffuse";
-			break;
-		case 1:
-			topName = "small_building_top";
-			bottomName = "small_building_bottom";
-			diffuseName = "small_building_diffuse";
-			break;
-		case 2:
-			topName = "big_building_top";
-			bottomName = "big_building_bottom";
-			diffuseName = "big_building_diffuse";
-			floorHeight = 2.5f;
-			break;
-		default: assert(false);
-		}
-		// Fetch actual resources
-		topModel = ModelMan.GetModel("obj/Buildings/"+topName+".obj");
-		bottomModel = ModelMan.GetModel("obj/Buildings/"+bottomName+".obj");
-		diffuse = TexMan.GetTexture("img/Buildings/"+diffuseName+".png");
-		if (!topModel || !bottomModel || !diffuse)
-		{
-			LogMain("Unable to extract resources for building "+String(type), ERROR | CAUSE_ASSERTION_ERROR);
+		List<Entity*> buildingEntities = TIFSBuilding::CreateNew(position, maxSize);
+		if (!buildingEntities.Size())
 			continue;
-		}
-
-		/// Fetch amount of floors based on the height?
-		floors = maxSize.y / floorHeight;
-		if (floors == 0)
-		{
-			LogMain("0 floors, skipping.", INFO);
-			continue;
-		}
-		maxSize.y = floors * floorHeight; // Recalculate maxSize based on the floors we used.
-
-		/// Create "building" of random size based on the given maxSize :)
-		Entity * buildingEntity = EntityMan.CreateEntity("Building "+String(i), ModelMan.GetModel("cube.obj"), TexMan.GetTexture("0x82"));
-		PhysicsProperty * pp = new PhysicsProperty();
-		buildingEntity->physics = pp;
-		pp->shapeType = PhysicsShape::AABB;
-
-		// Try out the iterative approach of 1 level at a time. o.o
-		List<Entity*> buildingFloors;
-		for (int j = 0; j < floors; ++j)
-		{
-			Model * model;
-			if (j == floors - 1)
-				model = topModel;
-			else
-				model = bottomModel;
-//			assert(model);
-			Entity * entity = EntityMan.CreateEntity("Building "+String(i)+" Floor "+String(j), model, diffuse);
-			// Create da building blocksuuu.
-			entity->position = position;
-			// Increase Y per floor.
-			entity->position.y += j * floorHeight;
-			// Scale it?
-			entity->Scale(floorHeight * Vector3f(1,1,1));
-			buildingFloors.Add(entity);
-		}
-		// Register for rendering.
-		GraphicsQueue.Add(new GMRegisterEntities(buildingFloors));
-		// Adjust Y based on update Y-scale.
-		position.y = position.y + maxSize.y * 0.5; 
-		buildingEntity->position = position;
-		buildingEntity->SetScale(maxSize);
-		// Register the "buildingentity" only for physics.
-		PhysicsQueue.Add(new PMRegisterEntity(buildingEntity));
 	}
 	LogMain("TIFS::AddBuildings - done", DEBUG);
 }

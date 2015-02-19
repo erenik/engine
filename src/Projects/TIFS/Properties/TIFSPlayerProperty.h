@@ -2,6 +2,9 @@
 /// 2014-08-06
 /// Entity property for player controllability and camera control.
 
+#ifndef TIFS_PLAYER_PROPERTY_H
+#define TIFS_PLAYER_PROPERTY_H
+
 #include "Entity/Properties/FirstPersonPlayerProperty.h"
 
 class ToolParticleEmitter;
@@ -38,3 +41,5 @@ private:
 	TIFSTurretProperty * targetTurret;
 	TIFSPlayerProperty * targetPlayer;
 };
+
+#endif

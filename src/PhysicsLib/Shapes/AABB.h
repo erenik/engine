@@ -23,6 +23,8 @@ public:
     bool Intersect(const AABB &aabb2) const;
     /// Recalculate the AABBs constraints based on the given entity's transform and base model AABB.
     void Recalculate(Entity * entity);
+	bool WriteTo(std::fstream & file);
+	bool ReadFrom(std::fstream & file);
 
 	/// Returns this AABB in the form of 8 quads.
 	List<Quad> AsQuads();

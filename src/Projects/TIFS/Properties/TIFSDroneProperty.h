@@ -2,6 +2,9 @@
 /// 2014-07-30
 /// Dronely drone.
 
+#ifndef TIFS_DRONE_PROPERTY_H
+#define TIFS_DRONE_PROPERTY_H
+
 #include "TIFSProperties.h"
 #include "MathLib.h"
 
@@ -30,3 +33,5 @@ private:
 	Vector3f destination;
 
 };
+
+#endif

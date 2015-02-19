@@ -60,6 +60,9 @@ void TIFSPlayerProperty::Process(int timeInMs)
 	// Update info based on what we are looking at.
 	UpdateHUDTargetInfo();
 
+	if (debug == 9 && primaryTarget)
+		std::cout<<"\nprimaryTarget: "<<primaryTarget->name;
+
 	// If LMB or E is pressed, interact with the entity.
 	if (InputMan.lButtonDown || Input.KeyPressed(KEY::E))
 	{
@@ -68,7 +71,7 @@ void TIFSPlayerProperty::Process(int timeInMs)
 		{
 			toolParticleEmitter	= new ToolParticleEmitter();
 			// Attach it to the particle system
-			Graphics.QueueMessage(new GMAttachParticleEmitter(toolParticleEmitter, tifs->toolParticles));
+			GraphicsQueue.Add(new GMAttachParticleEmitter(toolParticleEmitter, tifs->toolParticles));
 		}
 		// Set position.
 		toolParticleEmitter->SetPositionAndTarget(owner->worldPosition + Vector3f(0,1.2f, 0), lastRaycastTargetPosition);
@@ -137,7 +140,7 @@ void TIFSPlayerProperty::UpdateHUDTargetInfo()
 	{
 		// Hide target-UI, or something?
 //		Graphics.QueueMessage(new GMSetUIb("TargetDetailsList", GMUI::VISIBILITY, false));
-		Graphics.QueueMessage(new GMSetUIs("TargetName", GMUI::TEXT, "Mundane environment"));
+		GraphicsQueue.Add(new GMSetUIs("TargetName", GMUI::TEXT, "Mundane environment"));
 		return;
 	}
 //	Graphics.QueueMessage(new GMSetUIb("TargetDetailsList", GMUI::VISIBILITY, true));
@@ -175,29 +178,30 @@ void TIFSPlayerProperty::UpdateHUDTargetInfo()
 	targetDrone = (TIFSDroneProperty *)primaryTarget->GetProperty(TIFSDroneProperty::ID());
 	targetTurret = (TIFSTurretProperty *)primaryTarget->GetProperty(TIFSTurretProperty::ID());
 	targetPlayer = (TIFSPlayerProperty *)primaryTarget->GetProperty(TIFSPlayerProperty::ID());
+//	targetBuilding = 
 	/// Display depending on what's seen.
 	if (targetDrone)
 	{
-		Graphics.QueueMessage(new GMSetUIs("TargetName", GMUI::TEXT, "Unidentified aerial object"));
+		GraphicsQueue.Add(new GMSetUIs("TargetName", GMUI::TEXT, "Unidentified aerial object"));
 		String repairInfo = "HP "+String::ToString(targetDrone->currentHP)+"/"+String::ToString(targetDrone->maxHP);
-		Graphics.QueueMessage(new GMSetUIs("TargetHP", GMUI::TEXT, repairInfo));
-		Graphics.QueueMessage(new GMSetUIs("TargetStatus", GMUI::TEXT, targetDrone->isActive? "Offline" : "Online"));
+		GraphicsQueue.Add(new GMSetUIs("TargetHP", GMUI::TEXT, repairInfo));
+		GraphicsQueue.Add(new GMSetUIs("TargetStatus", GMUI::TEXT, targetDrone->isActive? "Offline" : "Online"));
 	}
 	else if (targetTurret)
 	{
-		Graphics.QueueMessage(new GMSetUIs("TargetName", GMUI::TEXT, "Semi-Automatic Hybrid Defensive turret"));
+		GraphicsQueue.Add(new GMSetUIs("TargetName", GMUI::TEXT, "Semi-Automatic Hybrid Defensive turret"));
 		// Update repair-info in the additional info section.
 		String repairInfo = "HP "+String::ToString(targetTurret->currentHP)+"/"+String::ToString(targetTurret->maxHP);
-		Graphics.QueueMessage(new GMSetUIs("TargetHP", GMUI::TEXT, repairInfo));
-		Graphics.QueueMessage(new GMSetUIs("TargetStatus", GMUI::TEXT, targetTurret->active? "Offline" : "Online"));
+		GraphicsQueue.Add(new GMSetUIs("TargetHP", GMUI::TEXT, repairInfo));
+		GraphicsQueue.Add(new GMSetUIs("TargetStatus", GMUI::TEXT, targetTurret->active? "Offline" : "Online"));
 	}
 	else if (targetPlayer)
 	{
-		Graphics.QueueMessage(new GMSetUIs("TargetName", GMUI::TEXT, "Fellow defender"));
+		GraphicsQueue.Add(new GMSetUIs("TargetName", GMUI::TEXT, "Fellow defender"));
 	}
 	else 
 	{
-		Graphics.QueueMessage(new GMSetUIs("TargetName", GMUI::TEXT, "Mundane environment"));
+		GraphicsQueue.Add(new GMSetUIs("TargetName", GMUI::TEXT, "Mundane environment"));
 	}
 	Vector3f pos = this->lastRaycastTargetPosition;
 	String posString;

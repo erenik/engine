@@ -9,6 +9,9 @@
 	If a game is to potentially give control over an entity, that property should have some subclass of this property attached to it.
 */
 
+#ifndef FIRST_PERSON_PLAYER_PROPERTY_H
+#define FIRST_PERSON_PLAYER_PROPERTY_H
+
 #include "Entity/EntityProperty.h"
 #include "MathLib.h"
 #include "Time/Time.h"
@@ -63,5 +66,4 @@ protected:
 	Time lastJump;
 };
 
-
-
+#endif

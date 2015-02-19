@@ -2,6 +2,9 @@
 /// 2014-08-06
 /// Collision resolver suitable for a first-person game.
 
+#ifndef FIRST_PERSON_CR_H
+#define FIRST_PERSON_CR_H
+
 #include "Physics/CollisionResolver.h"
 
 class FirstPersonCR : public CollisionResolver 
@@ -14,3 +17,4 @@ public:
 
 };
 
+#endif
