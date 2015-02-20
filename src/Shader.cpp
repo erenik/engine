@@ -16,6 +16,14 @@
 
 //#include "Macros.h"
 
+GLSLIdentifier::GLSLIdentifier()
+{
+	isAttribute = false;
+	isUniform = false;
+	defaultEnable = false;
+}
+
+
 /// Ease-of-use function which grabs the active shader via the manager.
 Shader * ActiveShader()
 {
@@ -237,6 +245,8 @@ void Shader::ExtractUniforms()
 	uniformCameraUpWorldSpace = glGetUniformLocation(shaderProgram, "cameraUpWorldSpace");
 	uniformScale = glGetUniformLocation(shaderProgram, "scale");
 
+	uniformInstancingEnabled = glGetUniformLocation(shaderProgram, "instancingEnabled");
+
 	// Get camera uniforms ^^
 	uniformEyePosition = glGetUniformLocation(shaderProgram, "eyePosition");
 	if (uniformEyePosition == -1){
@@ -330,6 +340,7 @@ void Shader::ExtractUniforms()
 			// for i in 0 to count:
 			glGetActiveUniform (shaderProgram, i, bufSize, &length, &size, &type, nameBuf);
 			GLSLIdentifier uniform;
+			uniform.isUniform = true;
 			uniform.name = nameBuf;
 			uniform.location = glGetUniformLocation(shaderProgram, nameBuf);
 			uniform.type = type;
@@ -360,6 +371,11 @@ void Shader::ExtractAttributes()
 	attributeBoneIndices = glGetAttribLocation(shaderProgram, "in_BoneIndices");
 	attributeBoneWeights = glGetAttribLocation(shaderProgram, "in_BoneWeights");
 
+	// Other attributes
+	attributeInstanceModelMatrix = glGetAttribLocation(shaderProgram, "in_InstanceModelMatrix");
+	if (attributeInstanceModelMatrix)
+		instanceAttributes.Add(attributeInstanceModelMatrix);
+
 	/// Get them all enumerated nicely if lists are desired of all active attributes.
 	// Just clear previous list first though.
 	attributes.Clear();
@@ -375,12 +391,20 @@ void Shader::ExtractAttributes()
 			int length;
 			GLenum type;
 			glGetActiveAttrib(shaderProgram, i, bufSize, &length, &size, &type, nameBuf);
+			// Extract
 			GLSLIdentifier attrib;
 			attrib.name = nameBuf;
+			// Default all enabled.
+			attrib.defaultEnable = true;
+			attrib.isAttribute = true;
 			// Get the attribute location.
 			attrib.location = glGetAttribLocation(shaderProgram, nameBuf);
 			attrib.type = type;
 			attrib.size = size;
+			/// IF it matches some of our instance based attributes, though, disable it, as these are often toggled, we want them default disabled.
+			if (instanceAttributes.Exists(attrib.location))
+				attrib.defaultEnable = false;
+
 			attributes.Add(attrib);
 		}
 	}
@@ -393,7 +417,7 @@ void Shader::PrintAttributes()
 	for (int i = 0; i < attributes.Size(); ++i)
 	{
 		GLSLIdentifier & attribute = attributes[i];
-		std::cout<<"\nAttribute "<<i<<": "<<attribute.name<<", type: "<<attribute.type<<" size: "<<attribute.size;
+		std::cout<<"\nAttribute "<<i<<": "<<attribute.name<<", loc: "<<attribute.location<<", type: "<<attribute.type<<" size: "<<attribute.size;
 	}
 }
 void Shader::PrintUniforms()
@@ -413,6 +437,8 @@ void Shader::OnMadeActive()
 	for (int i = 0; i < attributes.Size(); ++i)
 	{
 		GLSLIdentifier & attribute = attributes[i];
+		if (!attribute.defaultEnable)
+			continue;
 		glEnableVertexAttribArray(attribute.location);
 	}
 	CheckGLError("Shader::OnMadeActive -enabling vertex attrib arrays");

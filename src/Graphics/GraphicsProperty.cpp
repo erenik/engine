@@ -20,6 +20,7 @@
 GraphicsProperty::GraphicsProperty(Entity * owner)
 : owner(owner)
 {
+	shadowGroup = NULL;
 	owner->graphics = this;
 	castsShadow = true;
 	flags = 0;
@@ -42,6 +43,9 @@ GraphicsProperty::GraphicsProperty(Entity * owner)
 	skeletalAnimationEnabled = false;
 	shaderBasedSkeletonAnimation = false;
 
+	/// If true, the graphics manager and rendering pipeline should try and gather all similar entities (same model and texture) and render them in a single batch.
+	renderInstanced = false;
+	instancedOptions = false;
 
 	allAnimationsPaused = false;
 }

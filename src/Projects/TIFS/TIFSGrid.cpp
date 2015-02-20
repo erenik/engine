@@ -19,19 +19,30 @@ void TIFSTile::Initialize()
 {
 	isOccupied = isGround = isRoad = false;
 	isBuilding = isTurret = false;
+	entity = NULL;
 }
 
-
+Road::Road()
+{
+	isLonely = true;
+}
 
 TIFSGrid::TIFSGrid()
 {
 	maxTilesPerBuilding = 10;
 	roadWidth = 1;
 	triesPerBuilding = 200;
+	roadTexture = "0x225599FF";
+	roadScale = 1.f;
+	minDistanceBetweenParallelRoads = 2;
+	maxRoadLength = 10;
+	requireRoadConnections = true;
+	parallelDistanceThreshold = 10.f;
 }
 
 TIFSGrid::~TIFSGrid()
 {
+	roads.ClearAndDelete();
 }
 
 /** Resizes to the chosen amount of tiles, centered on Vector3f(0,0,0)
@@ -58,29 +69,44 @@ void TIFSGrid::Resize(Vector3i gridSize, ConstVec3fr mapSize)
 			tile->Initialize();
 		}	
 	}
+	this->mapSize = mapSize;
+	sizePerTile = mapSize / gridSize;
 	// Set their positions.
 	for (int i = 0; i < tiles.Size(); ++i)
 	{
 		TIFSTile * tile = tiles[i];
 		// XZ
-		tile->position = (tile->matrixPosition / gridSize) * mapSize - mapSize * 0.5f;
+		tile->position = (tile->matrixPosition / Vector3f(gridSize)) * mapSize - mapSize * 0.5f;
+		// Add one half tile, to center it all.
+		tile->position += Vector3f(0.5,0,0.5) * sizePerTile;
 		// Y
 		tile->position.y = tile->matrixPosition.y * mapSize.y;
+		if (debug == -2)
+			std::cout<<"\nTile position: "<<tile->position;
 		/// Mark default ground-plane.
 		if (tile->matrixPosition.y == 0)
 			tile->isGround = true;
 	}	
-	this->mapSize = mapSize;
-	sizePerTile = mapSize / gridSize;
 	LogMain("TIFSGrid::Resize - finish", DEBUG);
 }
 
 /// Used for the various algorithms inside.
 void TIFSGrid::SetExpansionFlags(bool x, bool y, bool z)
 {
-	expandX = x;
-	expandY = y;
-	expandZ = z;
+	expandXMinus = expandXPlus = x;
+	expandYMinus = expandYPlus = y;
+	expandZMinus = expandZPlus = z;
+}
+
+/// Used for the various algorithms inside.
+void TIFSGrid::SetExpansionFlags(bool xPlus, bool xMinus, bool yPlus, bool yMinus, bool zPlus, bool zMinus)
+{
+	expandXPlus = xPlus;
+	expandYPlus = yPlus;
+	expandZPlus = zPlus;
+	expandXMinus = xMinus;
+	expandYMinus = yMinus;
+	expandZMinus = zMinus;
 }
 
 
@@ -96,16 +122,18 @@ bool TIFSGrid::GetNewPlayerPosition(Vector3f & playerPos)
 	while (tries < 1000)
 	{
 		++tries;
-		int index = playerRandom.Randi(tiles.Size() - 1);
-		TIFSTile * tile = tiles[index];
-		if (tile->isOccupied == true)
-			continue;
-		if (!tile->isGround)
+		Road * road = roads[playerRandom.Randi(roads.Size()) % roads.Size()];
+		List<TIFSTile*> roadTiles = road->tiles;
+		/// Get a tile.
+		TIFSTile * tile = roadTiles[playerRandom.Randi(roadTiles.Size()) % roadTiles.Size()] ;
+		/// Demand road?
+		if (!tile->isRoad)
 			continue;
 		playerPos = tile->position;
 		tile->isOccupied = true;
 		return true;
 	}
+	/// No roads? D:
 	return false;
 }
 
@@ -127,6 +155,19 @@ bool TIFSGrid::GetNewTurretPosition(Vector3f & turretPos)
 		if (tile->isOccupied == true)
 			continue;
 		if (!tile->isGround)
+			continue;
+		/// Check that the neighbours have at least 1 road-part?
+		List<TIFSTile*> neighbours = grid.GetNeighboursXZ(tile);
+		bool roadNeighbour = false;
+		for (int i = 0; i < neighbours.Size(); ++i)
+		{
+			TIFSTile * neighbour = neighbours[i];
+			if (neighbour->isRoad)
+			{
+				roadNeighbour = true;
+			}
+		}
+		if (!roadNeighbour)
 			continue;
 		turretPos = tile->position;
 		tile->isOccupied = true;
@@ -182,6 +223,13 @@ bool TIFSGrid::GetNewBuildingPosition(Vector3f & maxSize, Vector3f & position, L
 		max = goodMax;
 		/// Mark all query-tiles as occupied, so we get some spacing. -> Do this when actually placing the building.
 		relevantTiles = grid.GetTiles(min,max);
+		for (int i = 0; i < relevantTiles.Size(); ++i)
+		{
+			// Mark the tiles as occupied for now?
+			TIFSTile * tile = relevantTiles[i];
+			tile->isOccupied = true;
+			tile->isBuilding = true;
+		}
 		// Get size?
 		Vector3i maxSizeInMatrix = ((max - min) + Vector3i(1,1,1));
 		maxSize =  maxSizeInMatrix * sizePerTile;
@@ -201,113 +249,186 @@ bool TIFSGrid::GetNewBuildingPosition(Vector3f & maxSize, Vector3f & position, L
 
 /// o.o
 Random roadRandom;
-void TIFSGrid::PlaceRoads(int roads)
+void TIFSGrid::PlaceRoads(int roadsToPlace)
 {
 	List<TIFSTile*> tiles = grid.GetTiles();
-	/// Create the roads
-	for (int i = 0; i < roads; ++i)
+	// Generate road-starting-point.
+	roads.ClearAndDelete();
+	int tries = 0;
+	while(roads.Size() < roadsToPlace)
 	{
-		int tries = 0;
-		// Get random point.
-		Vector3i startingPoint;
-		while(true)
+		++tries;
+		if (tries > roadsToPlace * 10)
+			break;
+		// Get starting point.
+		TIFSTile * tile = NULL;
+		bool randomTile = false;
+		int direction;
+		Vector3i startPosition;
+
+		/// If required connections, base it on an existing road.. unless they be deaderee.
+		if (requireRoadConnections && roads.Size())
 		{
-			++tries;
-			if (tries > 100)
-				return;
-			TIFSTile * tile = tiles[buildingRandom.Randi(10000) % tiles.Size()];
-			if (AllGood(List<TIFSTile*>(tile), IGNORE_ROADS))
+			// Take direction of initial road into account.
+			Road * existing = roads[roadRandom.Randi(100000) % roads.Size()];
+			direction = (existing->direction + 1) % 2;
+			tile = existing->tiles[roadRandom.Randi(100000) % existing->tiles.Size()];
+		//	if (!tile->isEndpoint)
+		//		;
+		}
+		/// No requirements? random starting point.
+		else 
+			randomTile = true;
+		if (randomTile)
+		{
+			tile = tiles[buildingRandom.Randi(tiles.Size()) % tiles.Size()];
+			// Direction.
+			direction = roadRandom.Randi(100) % 2;
+		}
+		startPosition = tile->matrixPosition;
+
+		// Skip tile if it is a road................... no
+//		if (tile->isRoad)
+//			continue;
+
+		bool good = true;
+		for (int i = 0; i < roads.Size(); ++i)
+		{
+			Road * otherRoad = roads[i];
+			if (otherRoad->direction == direction)
 			{
-				startingPoint = tile->matrixPosition;
-				break;
+				float distance;
+				Vector3f dist = startPosition - otherRoad->startPosition;
+				Vector3i compareMin = otherRoad->min,
+					compareMax = otherRoad->max;
+				switch(direction)
+				{
+					case Road::X_ROAD: 
+						distance = dist.z; 
+						compareMin.z = compareMax.z = startPosition.z;
+						compareMin.y = compareMax.y = startPosition.y;
+						break;
+					case Road::Z_ROAD: 
+						distance = dist.x; 
+						compareMin.x = compareMax.x = startPosition.x;
+						compareMin.y = compareMax.y = startPosition.y;
+						break;
+				}
+				if (AbsoluteValue(distance) < minDistanceBetweenParallelRoads + roadWidth * 2)
+				{
+					// Check min-max to other road?
+					float dist1 = (compareMin - startPosition).Length();
+					float dist2 = (compareMax - startPosition).Length();
+					float closest = min(dist1, dist2);
+					if (closest < parallelDistanceThreshold)
+						good = false;
+					break;
+				}
 			}
 		}
-		// Expand size until we can no more?
-		bool expansionOK = true;
-		Vector3i min, max, scale, goodMin, goodMax;
-		Vector3i maxSize = min = max = startingPoint;
-		int expandX = this->roadWidth;
-		int expandZ = 100;
-		if (buildingRandom.Randi(100) % 2 == 0)
+		if (!good)
 		{
-			expandX = 100; 
-			expandZ = roadWidth;
+			continue;
 		}
-		while(expansionOK)
-		{
-			SetExpansionFlags(expandX-- > 0, 0, expandZ-- > 0);
-			// Save from last iteration
-			goodMin = min;
-			goodMax = max;
-			expansionOK = Expand(min, max, IGNORE_ROADS);
-			if (!expansionOK)
-				break;
-			scale = max - min + Vector3i(1,1,1);
-			int numTiles = scale.x * scale.y * scale.z;
-			/// Break if we have consumed enough tiles already. Don't want to exhaust the map?
-			if (numTiles > maxTilesPerBuilding)
-				break;
-		}
-		// Now then, create entities for each?
-		List<TIFSTile *> tiles = grid.GetTiles(min, max);
-		for (int j = 0; j < tiles.Size(); ++j)
-		{
-			TIFSTile * tile = tiles[j];
-			tile->isOccupied = true;
-			tile->isRoad = true;
-			Entity * roadPart = EntityMan.CreateEntity("Road part", ModelMan.GetModel("cube"), TexMan.GetTexture("img/Roads/Ground_AsphaultOld_512_d.png"));
-			roadPart->position = tile->position;
-			roadPart->Scale(Vector3f(1,0,1) * this->sizePerTile + Vector3f(0,1,0));
-			GraphicsQueue.Add(new GMRegisterEntity(roadPart));
-			PhysicsQueue.Add(new PMRegisterEntity(roadPart));
-		}
+		//  Create it.
+		Road * road = new Road();
+		road->startPosition = startPosition;
+		road->direction = direction;
+		CreateRoad(road);
+		roads.AddItem(road);
 	}
-	/*
-	LogMain("TIFS::PlaceRoads", DEBUG);
-	// Set their positions.
-	List<TIFSTile*> tiles = grid.GetTiles();
-	int attempts = 0;
-	int roadsCreated = 0;
-	bool ok = true;
-	while (roadsCreated < roads && attempts < 100)
-	{
-		++attempts;
-		/// Choose a random X or Y-path, not along the edges.
-		TIFSTile * startTile = tiles[roadRandom.Randi(tiles.Size()) - 1];
-		if (!startTile->isGround)
-			continue;
-		if (startTile->isOccupied)
-			continue;
-
-		List<TIFSTile*> tiles = startTile;
-		// Make sure it's
-		int dir = roadRandom.Randi(1000) % 2; // 0 to 1 did not seem to work..
-		for (int i = 0; i < roadWidth; ++i)
-		{
-			if (dir == 0) // Z width for X-roads.
-				ok = Expand(tiles, false, false, true, IGNORE_NULL | IGNORE_ROADS);
-			else  // X-width for Z-roads.
-				ok = Expand(tiles, true, false, false, IGNORE_NULL | IGNORE_ROADS);
-		}
-		// Not wide enough?
-		if (!ok)
-			continue;
-
-		if (dir == 0)
-			while(Expand(tiles, true, false, false, IGNORE_NULL | IGNORE_ROADS));
-		else 
-			while(Expand(tiles, false, false, true, IGNORE_NULL | IGNORE_ROADS));
-		
-		for (int i = 0; i < tiles.Size(); ++i)
-		{
-			TIFSTile * t = tiles[i];
-			t->isOccupied = true;
-			t->isRoad = true;
-		}
-		++roadsCreated;
-	}
-	*/
 }
+
+/// Creates the actual road, filling it with tiles :3
+void TIFSGrid::CreateRoad(Road * road)
+{
+	int tries = 0;
+	// Get random point.
+	Vector3i startingPoint = road->startPosition;
+	// Expand size until we can no more?
+	bool expansionOK = true;
+	Vector3i min, max, scale, goodMin, goodMax;
+	Vector3i maxSize = min = max = startingPoint;
+	int expandX = this->roadWidth;
+	int expandZ = maxRoadLength;
+	if (road->direction == Road::X_ROAD)
+	{
+		expandX = maxRoadLength; 
+		expandZ = roadWidth;
+	}
+	while(expansionOK)
+	{
+		SetExpansionFlags(expandX > 0, expandX > 1, 0, 0, expandZ > 0, expandZ > 1);
+//			SetExpansionFlags(expandX-- > 0, 0, expandZ-- > 0);
+		// Save from last iteration
+		goodMin = min;
+		goodMax = max;
+		Vector3i oldScale = max - min;
+		expansionOK = Expand(min, max, IGNORE_ROADS | IGNORE_NULL);
+		if (!expansionOK)
+			break;
+		// OK? decrease what was expanded.
+		Vector3i newScale = max - min;
+		Vector3i scaleDiff = newScale - oldScale;
+		expandX -= AbsoluteValue(scaleDiff.x);
+		expandZ -= AbsoluteValue(scaleDiff.z);
+		scale = max - min + Vector3i(1,1,1);
+		int numTiles = scale.x * scale.y * scale.z;
+		/// Break if we have consumed enough tiles already. Don't want to exhaust the map?
+//			if (numTiles > maxTilesPerBuilding)
+//				break;
+	}
+	// Now then, create entities for each?
+	List<TIFSTile *> tiles = grid.GetTiles(min, max);
+	road->tiles = tiles;
+	for (int j = 0; j < tiles.Size(); ++j)
+	{
+		TIFSTile * tile = tiles[j];
+		if (tile->entity)
+			continue;
+		tile->isOccupied = true;
+		tile->isRoad = true;
+		Entity * roadPart = EntityMan.CreateEntity("Road part", ModelMan.GetModel("cube"), TexMan.GetTexture("img/Roads/"+roadTexture));
+		tile->entity = roadPart;
+		PhysicsProperty * pp = roadPart->physics = new PhysicsProperty();
+		pp->shapeType = PhysicsShape::AABB;
+		/// Setup instancing if enabled.
+		if (tifsInstancingEnabled)
+		{
+			GraphicsProperty * gp = roadPart->graphics = new GraphicsProperty(roadPart);
+			gp->renderInstanced = true;
+		}
+		roadPart->position = tile->position;
+		/// move it up a bit
+		float roadHeight = 0.15f; // 2 dm high roads?
+		roadPart->position.y += roadHeight * 0.5f;
+		roadPart->Scale(Vector3f(1,0,1) * this->sizePerTile * roadScale + Vector3f(0,roadHeight,0));
+		GraphicsQueue.Add(new GMRegisterEntity(roadPart));
+		PhysicsQueue.Add(new PMRegisterEntity(roadPart));
+	}
+	// Save min max in road.
+	road->min = goodMin;
+	road->max = goodMax;
+}
+
+void TIFSGrid::ConnectLonelyRoads()
+{
+	for (int i = 0; i < roads.Size(); ++i)
+	{
+		Road * road = roads[i];
+		if (!road->isLonely)
+			continue;
+		List<TIFSTile*> tiles = road->tiles;
+		for (int j = 0; j < roads.Size(); ++j)
+		{
+			Road * road2 = roads[i];
+			List<TIFSTile*> tiles2 = road2->tiles;
+			/// Get closest tiles between em?
+//			float leastDiff 
+		}
+	}
+}
+
 
 /// Expands the list with all neighbours.
 bool TIFSGrid::ExpandZ(List<TIFSTile*> & tiles)
@@ -367,12 +488,18 @@ bool TIFSGrid::Expand(List<TIFSTile*> & tiles, bool x, bool y, bool z, int optio
 bool TIFSGrid::Expand(Vector3i & minVec, Vector3i & maxVec, int options /*= NO_OPTION*/)
 {
 	List<Vector3i> additionVectors;
-	if (expandX)
-		additionVectors.Add(Vector3i(1,0,0), Vector3i(-1,0,0));
-	if (expandY)
-		additionVectors.Add(Vector3i(0,1,0), Vector3i(0,-1,0));
-	if (expandZ)
-		additionVectors.Add(Vector3i(0,0,1), Vector3i(0,0,-1));
+	if (expandXPlus)
+		additionVectors.AddItem(Vector3i(1,0,0));
+	if (expandXMinus)
+		additionVectors.AddItem(Vector3i(-1,0,0));
+	if (expandYPlus)
+		additionVectors.AddItem(Vector3i(0,1,0));
+	if (expandYMinus)
+		additionVectors.AddItem(Vector3i(0,-1,0));
+	if (expandZPlus)
+		additionVectors.AddItem(Vector3i(0,0,1));
+	if (expandZMinus)
+		additionVectors.AddItem(Vector3i(0,0,-1));
 
 	Vector3i newMin, newMax, potentialNewMin, potentialNewMax;
 	newMin = potentialNewMin = minVec;
@@ -387,8 +514,12 @@ bool TIFSGrid::Expand(Vector3i & minVec, Vector3i & maxVec, int options /*= NO_O
 		if (!goodArr[i])
 			continue;
 		// Each other expands positive and negative axis.
-		bool max = (i % 2 == 0);
 		Vector3i & expansionVector = additionVectors[i];
+		bool max;
+		if (expansionVector.x > 0 || expansionVector.y > 0 || expansionVector.z > 0)
+			max = true;
+		else 
+			max = false;
 		if (max)
 		{
 			relevantTestVector = potentialNewMax += expansionVector;

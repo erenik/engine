@@ -1043,10 +1043,10 @@ void InputManager::UILeft()
 }
 void InputManager::UIRight()
 {
-	std::cout<<"\nUIRight";
+//	std::cout<<"\nUIRight";
 	UserInterface * ui = RelevantUI();
 	List<UIElement*> relevantElements = UIGetRelevantElements();
-	std::cout<<" Relevant elements: "<<relevantElements.Size();
+//	std::cout<<" Relevant elements: "<<relevantElements.Size();
 	if (!relevantElements.Size())
 		return;
 	UIElement * element = NULL;

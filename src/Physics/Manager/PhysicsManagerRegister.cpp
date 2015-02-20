@@ -7,11 +7,15 @@
 #include "PhysicsLib/Shapes/OBB.h"
 #include "Pathfinding/PathfindingProperty.h"
 
+#include "Entity/EntityManager.h"
+
 /** Registers an Entity to take part in physics calculations. This requires that the Entity has the physics attribute attached.
 	Returns 0 upon success, 1 if it's lacking a physics attribute, 2 if the Entity array has been filled and 3 if the dynamic entity array has been filled.
 */
 int PhysicsManager::RegisterEntity(Entity * newEntity)
 {
+	if (!EntityMan.IsGood(newEntity))
+		return -1;
 	int entitiesInOctree = entityCollisionOctree->RegisteredEntities();
 	int physicalEntitiesNum = physicalEntities.Size();
 	int aabbSweeperNodes = aabbSweeper->Nodes();

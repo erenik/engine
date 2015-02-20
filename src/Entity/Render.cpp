@@ -232,8 +232,10 @@ void Entity::Render(GraphicsState & graphicsState)
 
 			// Update the bone skinning map as needed.. e.e
 		//	model->UpdateSkinningMatrixMap();
-			// Bufferize original positions!
-			mesh->Bufferize(true, false);
+			
+			// Bufferize original positions! hmm..
+			assert(false && "Reimplement. I threw away the first paramter. Preferably make a new function with a similar name.");
+//			mesh->Bufferize(true, false);
 
 			// Set sampler index to use for the skinning matrix map.
 			glActiveTexture(GL_TEXTURE0 + shader->boneSkinningMatrixMapIndex);

@@ -456,7 +456,7 @@ void GraphicsManager::RepositionEntities()
 void GraphicsManager::OnBeginRendering()
 {
     Graphics.enteringMainLoop = true;
-	Graphics.deferredRenderingBox->Bufferize(false, false);
+	Graphics.deferredRenderingBox->Bufferize();
 };
 
 /// Called after the main rendering loop has ended, before general deallcoations of resources is done.
@@ -1030,6 +1030,8 @@ void GraphicsManager::Process()
 			For parenting, make the parent force children to update transform or register them properly via physics. or send a custom GM or PM message to update the matrix!
 		*/
 	}
+	/// Update buffers for all entity groups in the graphicsState.
+	graphicsState->UpdateRenderInstancingGroupBuffers();
 }
 
 

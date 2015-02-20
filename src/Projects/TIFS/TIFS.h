@@ -94,6 +94,9 @@ enum
 	SIZES, // 4?
 };
 
+// Default true?
+extern bool tifsInstancingEnabled;
+
 /// The main/global Application state for the game.
 class TIFS : public AppState 
 {

@@ -10,7 +10,12 @@
 
 struct GLSLIdentifier
 {
+	GLSLIdentifier();
 	String name;
+	/// Used for attributes o.o
+	bool defaultEnable; 
+	bool isAttribute;
+	bool isUniform;
 	/// Contains the GLSL specific ID or location of this identifier. This is then used by various functions for interacting with it.
 	int location;
 	/** The type argument will return a
@@ -114,6 +119,14 @@ public:
 	GLuint attributeBoneIndices;
 	GLuint attributeBoneWeights;
 
+	/// Other instances attributes for when instancing entities that need to be rendered.
+	GLuint attributeInstanceModelMatrix;
+
+	/// All attributes pertaining to instancing. These are not enabled by default when activating the shader.
+	List<GLuint> instanceAttributes;
+
+	/// Used to booleanly switch between instancing and individual rendering in the shader.
+	GLuint uniformInstancingEnabled;
 
 	/// Uniforms related to this specific shader
 	/// ========================================
@@ -205,6 +218,7 @@ public:
 	Time lastCompileAttempt;
 
 protected:
+	List<GLuint> defaultDisabledAttributes;
 };
 
 

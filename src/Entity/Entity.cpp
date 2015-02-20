@@ -9,6 +9,7 @@
 #include "Graphics/GraphicsProperty.h"
 #include "Graphics/CompactGraphics.h"
 
+#include "Texture.h"
 #include "Physics/PhysicsManager.h"
 #include "Physics/CompactPhysics.h"
 #include "Physics/PhysicsProperty.h"
@@ -218,7 +219,15 @@ void Entity::ProcessMessage(Message * message)
 void Entity::Bufferize()
 {
 	if (model)
-		model->GetTriangulizedMesh()->Bufferize(false, false);
+		model->BufferizeIfNeeded();
+	if (diffuseMap)
+		diffuseMap->Bufferize();
+	if (specularMap)
+		specularMap->Bufferize();
+	if (normalMap)
+		normalMap->Bufferize();
+	if (emissiveMap)
+		emissiveMap->Bufferize();
 }
 
 void Entity::RenderOld(GraphicsState & graphicsState)

@@ -121,6 +121,9 @@ void FirstPersonIntegrator::IntegrateVelocity(List<Entity*> & entities, float ti
 		}
 		/// Add it up.
 		pp->currentVelocity.data = _mm_add_ps(pp->currentVelocity.data, relVelWorldSpaced.data);
+		/// De-flag at rest if we got any acceleration or velocity?
+		if (pp->currentVelocity.MaxPart())
+			pp->state &= ~PhysicsState::AT_REST;
 #else
 		/// Apply gravity
 		if (pp->gravityMultiplier && !(pp->state & PhysicsState::AT_REST))

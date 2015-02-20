@@ -52,7 +52,7 @@ void Mesh::Nullify()
 	skeleton = NULL;
 
 	// Standard position/normal/uv/tanget buffer.
-	vertexBuffer = NULL;
+	vertexBuffer = -1;
 	// Bone index/weights buffer.
 	boneIndexBuffer = boneWeightsBuffer = -1;
 
@@ -447,74 +447,59 @@ void Mesh::SetName(String str){
 /// Renders the meshi-mesh :3
 void Mesh::Render(GraphicsState & graphicsState)
 {
-	// Re-bufferize as needed.
-	if (lastBufferization < lastUpdate)
-	{
-		Bufferize(false, true);
-	}
-	else if (vertexBuffer == 0)
-	{
-		Bufferize(false, false);
-		std::cout<<"\nTrying to render mesh "<<name<<" with buffer "<<vertexBuffer<<". Attempting to bufferize it.";
-	//	this->Bufferize();
-	}
-
+	assert(vertexBuffer != -1);
 	LogGraphics("Mesh::Render", EXTENSIVE_DEBUG);
-
 	Shader * shader = ActiveShader();
 	// Check for valid buffer before rendering
-	if (vertexBuffer != 0 && vertexBuffer < 3000000)
+	if (graphicsState.BoundVertexArrayBuffer() != vertexBuffer)
 	{
-		if (graphicsState.BoundVertexArrayBuffer() != vertexBuffer)
-		{
-			assert(floatsPerVertex >= 8 && "Bad float-count per vertices, ne?!");
-
-			// Set VBO and render
-			if (logLevel <= DEBUG)
-				CheckGLError("Mesh::Render - before binding stuff");
-
-			// Bind the vertex buffer.
-			graphicsState.BindVertexArrayBuffer(vertexBuffer);
-		
-			glVertexAttribPointer(shader->attributePosition, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * floatsPerVertex, 0);		// Position
-			
-			// Bind Normals
-			static const GLint offsetN = 3 * sizeof(GLfloat);		// Buffer already bound once at start!
-			if (shader->attributeNormal != -1)
-				glVertexAttribPointer(shader->attributeNormal, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * floatsPerVertex, (void *)offsetN);		// Normals
-			
-			// Bind UVs
-			static const GLint offsetU = 6 * sizeof(GLfloat);		// Buffer already bound once at start!
-			if (shader->attributeUV != -1)
-				glVertexAttribPointer(shader->attributeUV, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * floatsPerVertex, (void *)offsetU);		// UVs
-			
-			// Bind Tangents
-			static const GLint offsetT = 8 * sizeof(GLfloat);		// Buffer already bound once at start!
-			if (shader->attributeTangent != -1)
-				glVertexAttribPointer(shader->attributeTangent, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * floatsPerVertex, (void *)offsetT);		// Tangents
-
-			// Bind BiTangents
-			static const GLint offsetB = 11 * sizeof(GLfloat);		// Buffer already bound once at start!
-			if (shader->attributeBiTangent != -1)
-				glVertexAttribPointer(shader->attributeBiTangent, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * floatsPerVertex, (void *)offsetB);		// Tangents
-
-			if (logLevel <= DEBUG)
-				CheckGLError("Mesh::Render - binding stuff");
-		}
-
-		int numVertices = vertexDataCount;
-		// Render normally
-		int glError = glGetError();
-//	LogGraphics("Mesh::Render - glDrawArrays pre", DEBUG);
-		glDrawArrays(GL_TRIANGLES, 0, vertexDataCount);        // Draw All Of The Triangles At Once
-//	LogGraphics("Mesh::Render - glDrawArrays post", DEBUG);
+		assert(floatsPerVertex >= 8 && "Bad float-count per vertices, ne?!");
+		// Set VBO and render
 		if (logLevel <= DEBUG)
-			CheckGLError("Mesh::Render - glDrawArrays");
+			CheckGLError("Mesh::Render - before binding stuff");
+		BindVertexBuffer();
+		if (logLevel <= DEBUG)
+			CheckGLError("Mesh::Render - binding stuff");
 	}
-	else if (vertexBuffer > 3000000){
-		std::cout<<"\nVBO buffer unreasonably high: "<<vertexBuffer<<" Make sure it was buffered correctly?";
-		assert(false && "VBO buffer unreasonably high");
-	}
+
+	int numVertices = vertexDataCount;
+	// Render normally
+	int glError = glGetError();
+//	LogGraphics("Mesh::Render - glDrawArrays pre", DEBUG);
+	glDrawArrays(GL_TRIANGLES, 0, vertexDataCount);        // Draw All Of The Triangles At Once
+//	LogGraphics("Mesh::Render - glDrawArrays post", DEBUG);
+	if (logLevel <= DEBUG)
+		CheckGLError("Mesh::Render - glDrawArrays");
+}
+
+void Mesh::BindVertexBuffer()
+{
+	LogGraphics("Mesh::BindVertexBuffer", EXTENSIVE_DEBUG);
+	// Bind the vertex buffer.
+	graphicsState->BindVertexArrayBuffer(vertexBuffer);
+	Shader * shader = ActiveShader();
+
+	glVertexAttribPointer(shader->attributePosition, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * floatsPerVertex, 0);		// Position
+	
+	// Bind Normals
+	static const GLint offsetN = 3 * sizeof(GLfloat);		// Buffer already bound once at start!
+	if (shader->attributeNormal != -1)
+		glVertexAttribPointer(shader->attributeNormal, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * floatsPerVertex, (void *)offsetN);		// Normals
+	
+	// Bind UVs
+	static const GLint offsetU = 6 * sizeof(GLfloat);		// Buffer already bound once at start!
+	if (shader->attributeUV != -1)
+		glVertexAttribPointer(shader->attributeUV, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * floatsPerVertex, (void *)offsetU);		// UVs
+	
+	// Bind Tangents
+	static const GLint offsetT = 8 * sizeof(GLfloat);		// Buffer already bound once at start!
+	if (shader->attributeTangent != -1)
+		glVertexAttribPointer(shader->attributeTangent, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * floatsPerVertex, (void *)offsetT);		// Tangents
+
+	// Bind BiTangents
+	static const GLint offsetB = 11 * sizeof(GLfloat);		// Buffer already bound once at start!
+	if (shader->attributeBiTangent != -1)
+		glVertexAttribPointer(shader->attributeBiTangent, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * floatsPerVertex, (void *)offsetB);		// Tangents
 }
 
 /// Re-skins the mesh's vertices to match the current skeletal animation. Every single vertex will be re-calculated and then re-buffered.
@@ -882,16 +867,19 @@ void Mesh::CalculateUVTangents()
 }
 
 /// Will bufferize the mesh. If force is true it will re-done even if it has already been bufferized once.
-void Mesh::Bufferize(bool useOriginalPositions, bool force)
+void Mesh::Bufferize(bool force /* = false */)
 {
 	// Check if already buffered, stupid..
-	if (this->vertexBuffer && !force && originalPositionsBuffered == useOriginalPositions)
+	if (this->vertexBuffer != -1 && !force // && originalPositionsBuffered == useOriginalPositions
+		)
 	{
 //		std::cout<<"\nINFO: Mesh "<<name<<" already buffered, skipping!";
 		return;
 	}
+	LogGraphics("Mesh::Bufferize", EXTENSIVE_DEBUG);
 
-	originalPositionsBuffered = useOriginalPositions;
+	/// Used for skeletal, re-examine later.
+//	originalPositionsBuffered = useOriginalPositions;
 	
 	assert(source.Length());
 	assert(name.Length());
@@ -956,7 +944,7 @@ void Mesh::Bufferize(bool useOriginalPositions, bool force)
 
 	// Generate And bind The Vertex Buffer
 	/// Check that the buffer isn't already generated
-	if (vertexBuffer == 0)
+	if (vertexBuffer == -1)
 	{
 		vertexBuffer = GLBuffers::New();
 	}
@@ -977,10 +965,13 @@ void Mesh::Bufferize(bool useOriginalPositions, bool force)
 
 	List<Vector3f> * vertexPositionData = &vertices;
 	assert(vertexPositionData->Size() == vertices.Size());
+	/// Used for skeletal, re-examine later.
+/*
 	if (useOriginalPositions && originalVertexPositions.Size())
 	{
 		vertexPositionData = &originalVertexPositions;
 	}
+	*/
 	for (int i = 0; i < numFaces; ++i)
 	{
 		MeshFace * face = &faces[i];

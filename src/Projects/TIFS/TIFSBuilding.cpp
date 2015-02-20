@@ -85,6 +85,12 @@ List<Entity*> TIFSBuilding::CreateNew(ConstVec3fr atLocation, ConstVec3fr withGi
 		// Scale it?
 		entity->Scale(type->scale);
 		buildingFloors.Add(entity);
+		/// Setup instancing for rendering.
+		if (tifsInstancingEnabled)
+		{
+			GraphicsProperty * gp = entity->graphics = new GraphicsProperty(entity);
+			gp->renderInstanced = true;
+		}
 	}
 	entities.Add(buildingFloors);
 	// Register floors for rendering.

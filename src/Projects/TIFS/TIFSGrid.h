@@ -19,7 +19,24 @@ public:
 	bool isRoad;
 	bool isBuilding;
 	bool isTurret;
+	Entity * entity; // Base entity associated with this tile. during map creation mainly.
 };
+
+struct Road
+{
+	Road();
+	enum {
+		X_ROAD,
+		Z_ROAD,
+	};
+
+	bool isLonely;
+	int direction;
+	Vector3i startPosition;
+	Vector3i min, max; // Min-max of all tiles within.
+	List<TIFSTile*> tiles;
+};
+
 
 class TIFSGrid 
 {
@@ -36,6 +53,8 @@ public:
 
 	/// Used for the various algorithms inside.
 	void SetExpansionFlags(bool x, bool y, bool z);
+	/// Used for the various algorithms inside.
+	void SetExpansionFlags(bool xPlus, bool xMinus, bool yPlus, bool yMinus, bool zPlus, bool zMinus);
 
 	/// This may be either on ground or at some strategical point (key buildings?)
 	bool GetNewPlayerPosition(Vector3f & playerPos);
@@ -49,20 +68,25 @@ public:
 
 	/// o.o
 	void PlaceRoads(int roads);
-	/** Creates a road along the given lines. Fails if any position there is not vacant or already a road. 
-		Should be called before placing buildings and turrets?
-	*/
-	bool SetRoad(List<Vector3i> positions);
+	/// Creates the actual road, filling it with tiles :3
+	void CreateRoad(Road * road);
+	void ConnectLonelyRoads();
 
 	/// Returns a list of all currently available slot-sizes.
 	List<Vector3i> AvailableSlotSizes();
 
-
+	String roadTexture;
+	float roadScale; // Of maximum, 0 to 1. causes gaps between each tile.
+	int minDistanceBetweenParallelRoads; // in tiles.
 	int maxTilesPerBuilding;
 	int roadWidth;
+	int maxRoadLength;
+	float parallelDistanceThreshold;
 	int triesPerBuilding;
+	bool requireRoadConnections;
 private:
-	bool expandX, expandY, expandZ;
+	bool expandXPlus, expandYPlus, expandZPlus;
+	bool expandXMinus, expandYMinus, expandZMinus;
 	Vector3f mapSize;
 	/// o.o 
 	Vector3f sizePerTile;
@@ -91,6 +115,8 @@ private:
 
 	/// Will become pointer-based in the grid.
 	TileGrid3D<TIFSTile> grid;
+	/// Roads o.o
+	List<Road*> roads;
 
 	int type;
 };

@@ -67,6 +67,14 @@ String Model::RelativePath()
 	return mesh->RelativePath(); 
 }
 
+void Model::BufferizeIfNeeded()
+{
+	Mesh * triangulated = this->GetTriangulatedMesh();
+	if (triangulated->vertexBuffer == -1)
+		triangulated->Bufferize();
+}
+
+
 /// Calls render on the triangulized mesh parts within.
 void Model::Render(GraphicsState & graphisState)
 {

@@ -26,6 +26,8 @@ Camera * freeFlyCamera = NULL;
 
 WeatherSystem * weather = NULL;
 
+bool tifsInstancingEnabled = true;
+
 /// Lists to clear upon deletion of the map.
 List< List<Entity*> *> entityLists; 
 
@@ -47,6 +49,7 @@ void RegisterStates()
 
 TIFS::TIFS()
 {
+	tifsInstancingEnabled = true;
 	toolParticles = NULL;
 	playerProp = NULL;
 	paused = false;
@@ -221,10 +224,24 @@ void TIFS::ProcessMessage(Message * message)
 			{
 				CreateField();
 			}
+			else if (msg.StartsWith("RoadTexture"))
+				grid->roadTexture = msg.Tokenize("()")[1];
 			else if (msg.StartsWith("RoadWidth"))
 			{
 				grid->roadWidth = msg.Tokenize("()")[1].ParseInt();				
 			}
+			else if (msg.StartsWith("MaxRoadLength"))
+				grid->maxRoadLength = msg.Tokenize("()")[1].ParseInt();
+			else if (msg.StartsWith("RoadScale"))
+				grid->roadScale = msg.Tokenize("()")[1].ParseFloat();
+			else if (msg.StartsWith("MinDistanceBetweenParallelRoads"))
+			{
+				grid->minDistanceBetweenParallelRoads = msg.Tokenize("()")[1].ParseFloat();
+			}
+			else if (msg.StartsWith("RequireRoadConnections"))
+				grid->requireRoadConnections = msg.Tokenize("()")[1].ParseBool();
+			else if (msg.StartsWith("ParallelDistanceThreshold"))
+				grid->parallelDistanceThreshold = msg.Tokenize("()")[1].ParseFloat();
 			else if (msg.StartsWith("PlaceRoads"))
 			{
 				grid->PlaceRoads(msg.Tokenize("()")[1].ParseInt());
@@ -443,7 +460,6 @@ void TIFS::CreateTurrets(int num)
 void TIFS::CreateTurret(int ofSize, ConstVec3fr atLocation)
 {
 	Texture * diffuseMap = TexMan.GetTexture("img/Turrets/BigTurretDiffuse.png");
-// TexMan.GetTexture("Green")
 
 	List<Entity*> turretParts;
 
@@ -514,9 +530,18 @@ void TIFS::CreateTurret(int ofSize, ConstVec3fr atLocation)
 	prop->turretSize = ofSize;
 //	prop->yawPerSecond = prop->pitchPerSecond = pow(2.25f, (SIZES - ofSize)) * 0.2f;
 
-	Texture * normalMap = TexMan.GetTexture("img/Turrets/BigTurretNormal.png");
-	GraphicsQueue.Add(new GMSetEntityTexture(turretParts, NORMAL_MAP, normalMap));
-
+	/// Set common properties
+	Texture * specularMap = TexMan.GetTexture("img/Turrets/BigTurretSpecular.png"),
+		* normalMap = TexMan.GetTexture("img/Turrets/BigTurretNormal.png"),
+		* emissiveMap = TexMan.GetTexture("img/Turrets/BigTurretEmissive.png");
+	for (int i = 0; i < turretParts.Size(); ++i)
+	{	
+		Entity * part = turretParts[i];
+		part->specularMap = specularMap;
+		part->normalMap = normalMap;
+		part->emissiveMap = emissiveMap;
+	}
+	
 	MapMan.AddEntities(turretParts);
 	/// Add turret parts.
 	turrets.Add(turretParts);
@@ -640,15 +665,17 @@ void TIFS::CreateField()
 	pp->shapeType = PhysicsShape::MESH;
 	plane->Scale(fieldSize * 5); // Make biggar.
 
-	tex = TexMan.GetTexture("0x88");
-	Entity * plane2 = EntityMan.CreateEntity("Plane 2", model, tex);
-	plane2->physics = pp = new PhysicsProperty();
-	pp->shapeType = PhysicsShape::MESH;
-	plane2->position = Vector3f(1,1,1) * 10;
-	plane2->Scale(20);
+	/*
+		tex = TexMan.GetTexture("0x88");
+		Entity * plane2 = EntityMan.CreateEntity("Plane 2", model, tex);
+		plane2->physics = pp = new PhysicsProperty();
+		pp->shapeType = PhysicsShape::MESH;
+		plane2->position = Vector3f(1,1,1) * 10;
+		plane2->Scale(20);
+	*/
 
 	// Add ze entities.
-	entities.Add(plane, plane2);
+	entities.Add(plane);
 	// Add zem to ze mapp
 	MapMan.AddEntities(entities);
 }

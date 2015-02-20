@@ -5,12 +5,22 @@
 
 #include "Shader.h"
 #include "String/AEString.h"
-
+#include "GraphicsState.h"
 #include "Entity/Entities.h"
+#include "Graphics/Camera/Camera.h"
+#include "Mesh/Mesh.h"
+#include "FrameBuffer.h"
+#include "RenderBuffer.h"
+#include "Viewport.h"
+#include "File/LogFile.h"
+#include "Model/Model.h"
+#include "Model/ModelManager.h"
+#include "RenderInstancingGroup.h"
+#include "Graphics/FrameStatistics.h"
 
 class FrameBuffer;
-class GraphicsState;
 class Viewport;
+class RenderInstancingGroup;
 
 namespace RenderTarget 
 {
@@ -89,8 +99,11 @@ public:
 	bool depthTestEnabled;
 
 private:
+	/// Based on available shader data. Updated each frame.
+	bool instancingEnabled;
 	/// Place 'em here.
 	Entities entitiesToRender;
+	List<RenderInstancingGroup*> entityGroupsToRender;
 
 	// Parts of rendering.
 	bool SetupOutput();

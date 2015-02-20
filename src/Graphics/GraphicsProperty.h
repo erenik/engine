@@ -19,6 +19,7 @@ struct Animation;
 class ParticleSystem;
 class Camera;
 class Estimator;
+class RenderInstancingGroup;
 
 /// Flags for toggling stuff
 namespace RenderFlag {
@@ -40,6 +41,7 @@ struct GraphicsProperty
 	friend class GMPlayAnimation;
 	friend class GMQueueAnimation;
 	friend class Entity;
+	friend class GraphicsState;
 public:
 	
 	GraphicsProperty(Entity * owner);
@@ -103,10 +105,17 @@ public:
 
 	/// Default true.
 	bool castsShadow;
-
+	
+	/// If true, the graphics manager and rendering pipeline should try and gather all similar entities (same model and texture) and render them in a single batch.
+	bool renderInstanced;
+	// See enum in Render/RenderInstancingGroup.h Default 0.
+	bool instancedOptions;
 private:
 	/// Estimators which are currently tweaking various graphic-specific values over time.
 	List<Estimator*> estimators;
+
+	/// Groups it belongs to in the render-system.
+	RenderInstancingGroup * shadowGroup;
 
 	/// Sets current animation. Only called from the GMSetEntity message. If faulty, animation will be nullified.
 	void SetAnimation(String name);

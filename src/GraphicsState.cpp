@@ -4,6 +4,9 @@
 #include "GraphicsState.h"
 #include "Lighting.h"
 #include "Graphics/Camera/Camera.h"
+#include "Graphics/GraphicsProperty.h"
+#include "Entity/Entity.h"
+#include "Render/RenderInstancingGroup.h"
 
 /** Main state for rendering. Contains settings for pretty much everything which is not embedded in other objects.
 	Read only unless you know what you're doing (and are located within a render-thread function).
@@ -43,7 +46,97 @@ GraphicsState::~GraphicsState()
 {
 	if (lighting)
 		delete lighting;
+	/// Delete RenderInstancingGroups
+	shadowCastingEntityGroups.ClearAndDelete();
 }
+
+
+/// Adds an entity to the graphics state, which includes sorting it into proper instancing groups, if flagged for it.
+void GraphicsState::AddEntity(Entity * entity)
+{
+	GraphicsProperty * gp = entity->graphics;
+	/// Add alpha-entities straight to the graphics-state?
+	if (gp->flags & RenderFlag::ALPHA_ENTITY)
+		alphaEntities.Add(entity);
+	else 
+		solidEntities.Add(entity);
+	/// Shadow groups
+	if (gp->castsShadow)
+	{
+		shadowCastingEntities.AddItem(entity);
+		// Add to instancing groups as requested based on the given boolean flags.
+		if (gp->renderInstanced)
+		{
+			RIG * rig = GetGroup(shadowCastingEntityGroups, entity);
+			if (rig)
+				rig->AddEntity(entity);
+			else 
+			{
+				// New shadow group.
+				rig = new RIG(entity);
+				shadowCastingEntityGroups.AddItem(rig);
+			}
+			gp->shadowGroup = rig;
+		}
+		else 
+		{
+			shadowCastingEntitiesNotInstanced.AddItem(entity);
+		}
+	}
+}
+void GraphicsState::RemoveEntity(Entity * entity)
+{
+	GraphicsProperty * gp = entity->graphics;
+	/// Specific groups.
+	if (gp->flags & RenderFlag::ALPHA_ENTITY)
+		graphicsState->alphaEntities.RemoveItemUnsorted(entity);
+	else 
+		graphicsState->solidEntities.RemoveItemUnsorted(entity);
+
+	/// Shadow groups.
+	if (gp->castsShadow)
+	{
+		graphicsState->shadowCastingEntities.RemoveItemUnsorted(entity);
+		if (gp->renderInstanced)
+			gp->shadowGroup->RemoveEntity(entity);
+		else 
+			graphicsState->shadowCastingEntitiesNotInstanced.RemoveItemUnsorted(entity);
+	}
+}
+
+void GraphicsState::UpdateRenderInstancingGroupBuffers()
+{
+	for (int i = 0; i < shadowCastingEntityGroups.Size(); ++i)
+	{
+		RIG * rig = shadowCastingEntityGroups[i];
+		rig->UpdateBuffers();
+	}
+}
+
+
+RenderInstancingGroup * GraphicsState::GetGroup(List<RenderInstancingGroup*> & fromListOfGroups, Entity * entity)
+{
+	for (int i = 0; i < fromListOfGroups.Size(); ++i)
+	{
+		RIG * rig = fromListOfGroups[i];
+		// Compare with reference entity.
+		Entity * reference = rig->reference;
+		if (reference == NULL)
+		{
+			// What arrre ya doing here?! Delete 'em!
+			fromListOfGroups.RemoveItemUnsorted(rig);
+			delete rig;
+			--i;
+			continue;
+		}
+		if (reference->model == entity->model)
+		{
+			return rig;
+		}
+	}
+	return NULL;
+}
+
 
 
 /// Calls glScissor, and updates locally tracked scissor. Appends current viewport x0/y0 co-ordinates automatically to the GL call.

@@ -26,6 +26,9 @@ bool GraphicsManager::RegisterEntity(Entity * entity)
 		vfcOctree->AddEntity(entity);
 	entity->registeredForRendering = true;
 
+	/// Bufferize models and textures?
+	entity->Bufferize();
+
 	// Check for additional graphics-data
 	GraphicsProperty * gp = entity->graphics;
 	if (gp)
@@ -43,17 +46,8 @@ bool GraphicsManager::RegisterEntity(Entity * entity)
 		gp = entity->graphics = new GraphicsProperty(entity);
 	}
 
-	/// Add alpha-entities straight to the graphics-state?
-	if (gp->flags & RenderFlag::ALPHA_ENTITY)
-	{
-		graphicsState->alphaEntities.Add(entity);
-	}
-	else 
-	{
-		graphicsState->solidEntities.Add(entity);
-	}
-	if (gp->castsShadow)
-		graphicsState->shadowCastingEntities.Add(entity);
+	/// Add it to its proper render groups.
+	graphicsState->AddEntity(entity);
 
 	// Buffer textures and meshes if needed
 	List<Texture*> textures = entity->GetTextures(0xFFFFFFF);
@@ -101,15 +95,6 @@ bool GraphicsManager::UnregisterEntity(Entity * entity)
 	{
 		GraphicsProperty * gp = entity->graphics;
 		
-		/// Specific groups.
-		if (gp->flags & RenderFlag::ALPHA_ENTITY)
-			graphicsState->alphaEntities.Remove(entity);
-		else 
-			graphicsState->solidEntities.Remove(entity);
-
-		if (gp->castsShadow)
-			graphicsState->shadowCastingEntities.Remove(entity);
-
 		// Check for attached dynamic lights
 		for (int i = 0; i < gp->dynamicLights.Size(); ++i)
 		{
@@ -125,6 +110,9 @@ bool GraphicsManager::UnregisterEntity(Entity * entity)
 			bool succeeded = particleSystems.Remove(ps);
 		}
 	}
+
+	/// Add it to its proper render groups.
+	graphicsState->RemoveEntity(entity);
 
 	int entitesAfter = registeredEntities.Size();
 	// Remove from optimization structures, if any.

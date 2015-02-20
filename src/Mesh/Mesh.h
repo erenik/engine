@@ -78,8 +78,10 @@ public:
 		Resets centerOfMesh afterward. */
 	void Center();
 	/// Buffers the mesh into graphics memory. Use force to make it re-bufferize already buffered meshes.
-	void Bufferize(bool useOriginalPositions, bool force);
+	void Bufferize(bool force = false);
 
+	/// o,o call before calling glDrawArrays
+	void BindVertexBuffer();
 	/// Renders the meshi-mesh :3
 	void Render(GraphicsState & graphicsState);
 	/// Re-skins the mesh's vertices to match the current skeletal animation. Every single vertex will be re-calculated and then re-buffered.

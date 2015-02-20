@@ -33,6 +33,8 @@ public:
 	T * GetFirstTile(ConstVec3fr atPosition, float maxDistance);
 	T * GetClosestTile(ConstVec3fr atPosition, float maxDistance);
 	T * GetTileByIndex(Vector3i index);
+	/// Fetches neighbours
+	List<T*> GetNeighboursXZ(T * tile);
 
 	/// Writes to file stream.
 //	void WriteTo(std::fstream & file);
@@ -205,6 +207,9 @@ T * TileGrid3D<T>::GetClosestTile(ConstVec3fr atPosition, float maxDistance)
 	return closest;
 }
 
+#define POSITION_OUTSIDE_MATRIX(index) (index.x >= size.x || index.y >= size.y || index.z >= size.z) || (index.x < 0 || index.y < 0 || index.z < 0)
+
+
 template <class T>
 T * TileGrid3D<T>::GetTileByIndex(Vector3i index)
 {
@@ -214,6 +219,22 @@ T * TileGrid3D<T>::GetTileByIndex(Vector3i index)
 		return NULL;
 	T * t = tileMatrix.At(index);
 	return t;
+}
+
+/// Fetches neighbours
+template <class T>
+List<T*> TileGrid3D<T>::GetNeighboursXZ(T * tile)
+{
+	List<T*> tiles;
+	List<Vector3i> positions (Vector3i(1,0,0), Vector3i(-1,0,0), Vector3i(0,0,1), Vector3i(0,0,-1));
+	for (int i = 0; i < positions.Size(); ++i)
+	{
+		Vector3i position = positions[i] + tile->matrixPosition;
+		if (POSITION_OUTSIDE_MATRIX(position))
+			continue;
+		tiles.AddItem(tileMatrix.At(position));
+	}
+	return tiles;
 }
 
 

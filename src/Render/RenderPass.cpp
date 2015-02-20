@@ -3,34 +3,20 @@
 /// Defines one single render pass.
 
 #include "RenderPass.h"
-#include "GraphicsState.h"
 #include "Entity/Entity.h"
 
 #include "Graphics/OpenGL.h"
 #include "Graphics/GraphicsManager.h"
-#include "Graphics/Camera/Camera.h"
 #include "GraphicsState.h"
 #include "Graphics/GraphicsProperty.h"
 
-#include "Physics/PhysicsManager.h"
-#include "PhysicsLib/Shapes/AABB.h"
-
-#include "Mesh/Mesh.h"
-#include "FrameBuffer.h"
-#include "RenderBuffer.h"
-#include "Viewport.h"
-
 #include "Graphics/Particles/ParticleSystem.h"
-#include "Graphics/FrameStatistics.h"
 
 #include "AppStates/AppState.h"
 #include "StateManager.h"
 
-#include "File/LogFile.h"
 #include "String/StringUtil.h"
 
-#include "Model/Model.h"
-#include "Model/ModelManager.h"
 
 RenderPass::RenderPass()
 {
@@ -249,6 +235,11 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 		glUniform4f(shader->uniformEyePosition, camera.Position()[0], camera.Position()[1], camera.Position()[2], 1.0f);
 		CheckGLError("RenderPass, eye position");
 	}	
+	// Check for instancing before we start.
+	instancingEnabled = false;
+	if (shader->uniformInstancingEnabled != -1) // should be more or less guaranteed for any instancing renderer based on models.
+		instancingEnabled = true;
+
 
 	switch(input)
 	{
@@ -260,7 +251,17 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 		}
 		case RenderTarget::SHADOW_CASTING_ENTITIES:
 		{
-			entitiesToRender = graphicsState.shadowCastingEntities;
+			/// If possible, part instanced, part individually.
+			if (instancingEnabled)
+			{
+				entitiesToRender = graphicsState.shadowCastingEntitiesNotInstanced;
+				entityGroupsToRender = graphicsState.shadowCastingEntityGroups;	
+			}
+			/// Default, one at a time.
+			else 
+			{
+				entitiesToRender = graphicsState.shadowCastingEntities;
+			}
 			RenderEntitiesOnlyVertices();
 			break;
 		}
@@ -377,129 +378,6 @@ bool RenderPass::SetupOutput()
 	return true;
 }
 
-bool RenderPass::SetupLightPOVCamera()
-{
-	// Now it becomes tricky..
-	static Camera * camera = NULL;
-	bool anyShadows = false;
-	if (camera == NULL)
-		camera = CameraMan.NewCamera("LightPOVCamera");
-
-	Lighting * lighting = graphicsState->lighting;
-	List<Light*> lights = lighting->GetLights();
-	for (int i = 0; i < lights.Size(); ++i)
-	{
-		Light * light = lights[i];
-		if (!light->castsShadow)
-			continue;
-		if (light->type != LightType::DIRECTIONAL)
-		{
-			std::cout<<"\nLight types beside directional not supported for shadow mappinag at the moment.";
-			continue;
-		}
-		anyShadows = true;
-		
-		Vector3f lightPosition = light->position;
-		Vector3f lpn = lightPosition.NormalizedCopy();
-		// Grab AABB of all relevant entities? Check the AABB-sweeper or other relevant handler?
-		AABB allEntitiesAABB = PhysicsMan.GetAllEntitiesAABB();
-		float mDist = allEntitiesAABB.max.Length();
-		float m2Dist = allEntitiesAABB.min.Length();
-		float maxDist = max(mDist, m2Dist);
-
-		// Distance + some buffer.
-		float farPlane = light->shadowMapFarplane;
-		// Zoom will vary with how wide/long the area is which has to be visible/shadowed.
-		float zoom = light->shadowMapZoom;
-		// Adjust light position based on the gathered data above.
-//		lightPosition = lpn * maxDist;
-		
-//		LogGraphics("Setting sun: farplane "+String(farPlane)+" zoom: "+String(zoom)+" Position: "+VectorString(lightPosition), INFO);
-		
-		camera->projectionType = Camera::ORTHOGONAL;
-		camera->position = lightPosition;
-		
-		// Set rotation based on position?
-		Vector2f xz(lpn.x, lpn.z);
-		float xzLen = xz.Length();
-		xz.Normalize();
-		Angle yaw = Angle(xz);
-		yaw -= Angle(PI/2);
-//		std::cout<<"Yaw: "<<yaw.Degrees();
-		Angle pitch = Angle(xzLen, lpn.y);
-		camera->rotation.y = yaw.Radians();
-		camera->rotation.x = pitch.Radians();
-		camera->zoom = zoom;
-		camera->SetRatioF(1,1);
-		camera->farPlane = farPlane;
-		camera->Update();
-		Vector3f forward = camera->LookingAt();
-		Vector3f up = camera->UpVector();
-		Matrix4f viewProjection = camera->ViewProjectionF();
-		Matrix4f viewProj2 = camera->ViewMatrix4f() * camera->ProjectionMatrix4f();
-		Vector3f pos3 = viewProj2 * Vector4f(0,0,0,1);
-		Vector3f position = viewProjection * Vector4f(0,0,0,1),
-			position2 = viewProjection * Vector4f(10,0,0,1),
-			position3 = viewProjection * Vector4f(0,10,0,1),
-			position4 = viewProjection * Vector4f(0,0,10,1);
-		graphicsState->SetCamera(camera);
-		light->shadowMapIndex = 0;
-		float elements [16] = {	0.5, 0, 0, 0,
-								0, 0.5, 0, 0,
-								0, 0, 0.5, 0,
-								0.5, 0.5, 0.5, 1};
-		Matrix4f biasMatrix(elements);
-		Vector3f vec = biasMatrix * Vector3f(0,0,0);
-		Vector3f vec2 = biasMatrix * Vector3f(0.5f, 0.5f, 0.5f);
-		Matrix4f shadowMappingMatrix = biasMatrix * camera->ViewProjectionF();
-		Vector3f shadowSpace = shadowMappingMatrix * Vector3f(0,0,0);
-		Vector3f s2 = shadowMappingMatrix * Vector3f(10,0,0),
-			s3 = shadowMappingMatrix * Vector3f(0,10,0),
-			s4 = shadowMappingMatrix * Vector3f(0,0,10);
-
-		/// Set up a viewport similar to the shadow-map texture we are going to use!
-		glViewport(0, 0, shadowMapResolution, shadowMapResolution);
-		glDisable(GL_SCISSOR_TEST);
-
-		light->shadowMappingMatrix = shadowMappingMatrix;
-		// Take current shadow map texture we created earlier and make sure the camera is bound to it for usage later.
-		// Save matrix used to render shadows properly later on?
-//			light->inverseTransposeMatrix = ;
-		light->shadowMap = graphicsState->activeViewport->shadowMapDepthBuffer->renderBuffers[0]->texture;
-		assert(light->shadowMap);
-		return true;
-	}
-	return false;
-}
-
-/// Creates it as needed.
-bool RenderPass::BindShadowMapFrameBuffer()
-{
-	CheckGLError("Before RenderPass::BindShadowMapFrameBuffer");
-	if (!viewport->shadowMapDepthBuffer)
-	{
-		viewport->shadowMapDepthBuffer = new FrameBuffer("ShadowMapDepthBuffer");
-	}
-	if (!viewport->shadowMapDepthBuffer->IsGood() || viewport->shadowMapDepthBuffer->size != (Vector2i(1,1) * shadowMapResolution))
-	{
-		// Try and rebuild it..?
-		if (!viewport->shadowMapDepthBuffer->CreateDepthBuffer(Vector2i(1, 1) * shadowMapResolution))
-		{
-			SAFE_DELETE(viewport->shadowMapDepthBuffer);
-			return false;
-		}
-	}
-	int error = glGetError();
-	/// Make frame buffer active
-	viewport->shadowMapDepthBuffer->Bind();
-	// Set viewport size to clear?
-	glViewport(0, 0, viewport->shadowMapDepthBuffer->size.x, viewport->shadowMapDepthBuffer->size.y);
-	// Set buffers to render into (the textures ^^)
-	viewport->shadowMapDepthBuffer->SetDrawBuffers();
-	CheckGLError("RenderPass::BindShadowMapFrameBuffer");
-	return true;
-}
-
 
 
 void RenderPass::RenderEntities()
@@ -600,43 +478,6 @@ void RenderPass::RenderEntities()
 	CheckGLError("RenderPass::RenderEntities");
 }
 
-/// Used for e.g. shadow-mapping.
-void RenderPass::RenderEntitiesOnlyVertices()
-{
-	bool optimized = true;
-	if (!optimized)
-	{
-		RenderEntities();
-		return;
-	}
-	Timer timer;
-	/*
-	Timer timer;
-	timer.Start();
-	entitiesToRender.SortByDistanceToCamera(graphicsState->camera);
-	timer.Stop();
-	FrameStats.renderSortEntities += timer.GetMs();
-*/
-	timer.Start();
-
-	// Set render state for all. Nope.
-
-	Entity * entity;
-	GraphicsProperty * gp;
-	// Render all entities listed in the graphicsState!
-	for (int i = 0; i < entitiesToRender.Size(); ++i)
-	{
-		entity = entitiesToRender[i];
-		// Just load transform as model matrix straight away.
-		glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, entity->transformationMatrix.getPointer());	
-		// Render the model
-		entity->model->Render(*graphicsState);
-		++graphicsState->renderedObjects;		// increment rendered objects for debug info
-	}
-	timer.Stop();
-	FrameStats.renderEntities += timer.GetMs();	
-}
-
 void RenderPass::RenderAlphaEntities()
 {
 	bool optimized = true;
@@ -718,47 +559,3 @@ void RenderPass::RenderAlphaEntities()
 	FrameStats.renderEntities += timer.GetMs();
 }
 
-
-void RenderPass::RenderSkyBox()
-{
-	// Grab an entity for comparison...
-	if (ActiveShader() == 0)
-		return;
-	// Set up camera.
-	// Grab viewmatrix.
-	Matrix4f viewMatrix = graphicsState->camera->ViewMatrix4f();
-	Matrix4f rotMatrix = graphicsState->camera->RotationMatrix4f();
-	Matrix4f invView = rotMatrix.InvertedCopy();
-	
-	// Was here.
-
-	// Disable depth test and depth-write.
-	glDisable(GL_DEPTH_TEST);
-	glDepthMask(false);
-
-	if (shader->uniformSunPosition != -1)
-	{
-		// Set it! o.o
-		List<Light*> lights = graphicsState->lighting->GetLights();
-		for (int i = 0; i < lights.Size(); ++i)
-		{
-			Light * light = lights[i];
-			if (light->isStar)
-			{
-				Vector3f normedPos = light->position.NormalizedCopy();
-				glUniform3fv(shader->uniformSunPosition, 1, normedPos.v); 
-				glUniform4fv(shader->uniformSunColor, 1, light->diffuse.v); 
-			}
-		}
-		// Set sky-color.
-		glUniform3fv(shader->uniformSkyColor, 1, graphicsState->lighting->skyColor.v);
-	}
-	/// Load it into shader.
-	glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, rotMatrix.getPointer());
-	// Get da box.
-	Model * box = ModelMan.GetModel("cube");
-	if (!box)
-		return;
-	box->Render(*graphicsState);
-	return;		
-}
