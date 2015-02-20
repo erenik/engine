@@ -141,6 +141,14 @@ UserInterface::~UserInterface()
 	userInterfaces.Remove(this);
 }
 
+/// checks that it's not actually deleted.
+bool UserInterface::IsGood(UserInterface * ui)
+{
+	return userInterfaces.Exists(ui);
+}
+
+
+
 /** Mouse interactions with the UI, in x and y from 0.0 to 1.0, with 0.0 being in the Upper Left corner. Returns the element currently hovered over.
 	If allUi is specified the current stack order will be ignored to a certain extent, meaning that ui below the current stack top will be made available too.
 	Search is conducted starting at the highest stack element and going down until an element is found that we can hover over.

@@ -39,7 +39,8 @@ class UserInterface
 public:
 	UserInterface();
 	~UserInterface();
-
+	/// checks that it's not actually deleted.
+	static bool IsGood(UserInterface * ui);
 	/// Deletes all UIs that have not already been deleted so far. Called at end of program.
 	static void DeleteAll();
 	/// Sets the bufferized flag. Should only be called before program shutdown. Ensures less assertions will fail.

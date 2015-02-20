@@ -6,6 +6,7 @@
 #include "Maps/Grids/TileGrid3D.h"
 #include "Random/Random.h"
 #include "File/LogFile.h"
+#include "TIFS.h"
 
 TIFSTile::TIFSTile()
 : Tile()
@@ -202,6 +203,65 @@ bool TIFSGrid::GetNewBuildingPosition(Vector3f & maxSize, Vector3f & position, L
 Random roadRandom;
 void TIFSGrid::PlaceRoads(int roads)
 {
+	List<TIFSTile*> tiles = grid.GetTiles();
+	/// Create the roads
+	for (int i = 0; i < roads; ++i)
+	{
+		int tries = 0;
+		// Get random point.
+		Vector3i startingPoint;
+		while(true)
+		{
+			++tries;
+			if (tries > 100)
+				return;
+			TIFSTile * tile = tiles[buildingRandom.Randi(10000) % tiles.Size()];
+			if (AllGood(List<TIFSTile*>(tile), IGNORE_ROADS))
+			{
+				startingPoint = tile->matrixPosition;
+				break;
+			}
+		}
+		// Expand size until we can no more?
+		bool expansionOK = true;
+		Vector3i min, max, scale, goodMin, goodMax;
+		Vector3i maxSize = min = max = startingPoint;
+		int expandX = this->roadWidth;
+		int expandZ = 100;
+		if (buildingRandom.Randi(100) % 2 == 0)
+		{
+			expandX = 100; 
+			expandZ = roadWidth;
+		}
+		while(expansionOK)
+		{
+			SetExpansionFlags(expandX-- > 0, 0, expandZ-- > 0);
+			// Save from last iteration
+			goodMin = min;
+			goodMax = max;
+			expansionOK = Expand(min, max, IGNORE_ROADS);
+			if (!expansionOK)
+				break;
+			scale = max - min + Vector3i(1,1,1);
+			int numTiles = scale.x * scale.y * scale.z;
+			/// Break if we have consumed enough tiles already. Don't want to exhaust the map?
+			if (numTiles > maxTilesPerBuilding)
+				break;
+		}
+		// Now then, create entities for each?
+		List<TIFSTile *> tiles = grid.GetTiles(min, max);
+		for (int j = 0; j < tiles.Size(); ++j)
+		{
+			TIFSTile * tile = tiles[j];
+			tile->isOccupied = true;
+			tile->isRoad = true;
+			Entity * roadPart = EntityMan.CreateEntity("Road part", ModelMan.GetModel("cube"), TexMan.GetTexture("img/Roads/Ground_AsphaultOld_512_d.png"));
+			roadPart->position = tile->position;
+			roadPart->Scale(Vector3f(1,0,1) * this->sizePerTile + Vector3f(0,1,0));
+			GraphicsQueue.Add(new GMRegisterEntity(roadPart));
+			PhysicsQueue.Add(new PMRegisterEntity(roadPart));
+		}
+	}
 	/*
 	LogMain("TIFS::PlaceRoads", DEBUG);
 	// Set their positions.

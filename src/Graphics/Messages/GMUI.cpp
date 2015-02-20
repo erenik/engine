@@ -53,7 +53,12 @@ void GMUI::Nullify()
 bool GMUI::GetUI()
 {
 	if (ui)
-		return true;
+	{
+		// Ensure the UI is good.
+		if (UserInterface::IsGood(ui))
+			return true;
+		return false;
+	}
 	if (!window)
 	{
 		window = WindowMan.MainWindow();
