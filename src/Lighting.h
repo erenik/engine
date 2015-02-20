@@ -16,11 +16,11 @@ class Window;
 	It contains mostly pointers since it is an encapsulating object for passing data between functions.
 */
 __declspec( align( 16 ) ) 
-class Lighting {
+class Lighting 
+{
 	/// Loads selected lighting into the active shader program
 	friend void LoadLighting(Lighting * lighting, Shader * shader);
 	friend class GMAddLight;
-#define GetTime clock
 public:
 	String name;
 
@@ -93,7 +93,7 @@ private:
 	/// Array of [MAX_LIGHTS] lights.
 	List<Light*> lights;
 	/// Last time we changed any of the internal parameters for this current lighting, in ms (Timer::GetCurrentTimeMs())
-	long lastUpdate;
+	Time lastUpdate;
 	/// Currently active light for editing purposes ^^
 	int activeLightIndex;
 

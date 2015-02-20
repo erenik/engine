@@ -22,6 +22,7 @@ WeatherSystem::WeatherSystem()
 	inGameSecondsPerSecond = 1.f;
 	sunHours = 14.f;
 	sunDistance = 50.f;
+	smoothedAmbience = Vector3f(0,0,0);
 }
 WeatherSystem::~WeatherSystem()
 {
@@ -211,6 +212,13 @@ void WeatherSystem::SetSunTime(float hour)
 	ambienceSmoother.variableToPutResultTo = &ambience;
 	ambienceSmoother.Estimate(Time(TimeType::MILLISECONDS_NO_CALENDER, sunPositionNormalized.y * 10000), false);
 	smoothedAmbience = smoothedAmbience * 0.95f + ambience * 0.05f;
+	if (debug == -1)
+	{
+		std::cout<<"\nsmoothed ambience: "<<smoothedAmbience<<" ambience: "<<ambience;
+		assert(smoothedAmbience.x == smoothedAmbience.x);
+	}
+	if (smoothedAmbience.x != smoothedAmbience.x)
+		smoothedAmbience = Vector4f(0,0,0,1);
 	/// Adjust the ambient color based on the sun position or color too?
 	GraphicsQueue.Add(new GMSetAmbience(smoothedAmbience));
 

@@ -47,6 +47,10 @@ void EntityProperty::SetGlobalState(EntityPropertyState * newState){
 	globalState->OnEnter();
 }
 
+/// Upon being unregistered from rendering.
+void EntityProperty::OnUnregistrationFromGraphics()
+{
+}
 
 /// Swaps state straight away, keeping the queued state.
 void EntityProperty::EnterState(EntityPropertyState * newState){

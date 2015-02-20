@@ -27,14 +27,17 @@ Window * Lighting::lightingEditor = NULL;
 
 String lightList = "LightList";
 
+#define UPDATE_LAST_UPDATE_TIME this->lastUpdate = Time::Now();
+
+
 /// Default constructor, sets all light pointers and other variables to 0/NULL
 Lighting::Lighting()
 {
 	global_ambient = Vector4f(1.0f, 1.0f, 1.0f, 0.1f);
-	this->lastUpdate = GetTime();
 	this->activeLight = NULL;
 	this->activeLightIndex = 0;
 	this->lightCounter = 0;
+	UPDATE_LAST_UPDATE_TIME
 }
 Lighting::~Lighting()
 {
@@ -67,6 +70,7 @@ bool Lighting::LoadLighting(String fromFileName)
 	this->OpenEditorWindow();
 	// Make it active.
 //	Graphics.QueueMessage(new GMSetLighting(this));
+	UPDATE_LAST_UPDATE_TIME
 }
 
 /// Returns true if the message had any meaning, adjusting values within the lighting.
@@ -269,14 +273,15 @@ Light * Lighting::Add(Light * newLight)
 	light->currentlyActive = true;
 	activeLight = light;
 	/// Set default values
-	this->lastUpdate = GetTime();
 	lights.Add(light);
+	UPDATE_LAST_UPDATE_TIME
 	return light;
 }
 
 /// Removes target light. Returns false on failure.
 bool Lighting::Remove(Light * toRemove)
 {
+	UPDATE_LAST_UPDATE_TIME
 	return lights.Remove(toRemove);
 }
 
@@ -365,19 +370,24 @@ void Lighting::Overload()
 }
 
 /// Sets ambient using 0-255 values
-void Lighting::SetAmbient(int r, int g, int b, int a){
+void Lighting::SetAmbient(int r, int g, int b, int a)
+{
 	this->global_ambient = Vector4f(r/255.0f, g/255.0f, b/255.0f, a/255.0f);
-	this->lastUpdate = GetTime();
+	UPDATE_LAST_UPDATE_TIME
 }
 /// Sets ambient using floats.
-void Lighting::SetAmbient(float r, float g, float b, float a){
+void Lighting::SetAmbient(float r, float g, float b, float a)
+{
 	this->global_ambient = Vector4f(r,g,b,a);
-	this->lastUpdate = GetTime();
+	this->lastUpdate = Time::Now();
 }
 /// Sets ambient values. Alpha defaults to 0.
-void Lighting::SetAmbient(const Vector3f & values){
+void Lighting::SetAmbient(const Vector3f & values)
+{
 	this->global_ambient = Vector4f(values);
-	this->lastUpdate = GetTime();
+	this->lastUpdate = Time::Now();
+	if (debug == 13)
+		std::cout<<"\nLighting::SetAmbient: "<<global_ambient<<" lastupdate: "<<lastUpdate.Milliseconds();
 }
 
 /// Creates a new light source, adding it to the array. Returns the newly created light's index and sets it as the currently editable light.
@@ -394,7 +404,7 @@ Light * Lighting::CreateLight()
 	String name = "Light " + String::ToString(lightCounter);
 	++this->lightCounter;
 	activeLight->SetName(name);
-	this->lastUpdate = GetTime();
+	UPDATE_LAST_UPDATE_TIME
 	lights.Add(activeLight);
 	return activeLight;
 }
@@ -442,7 +452,7 @@ int Lighting::DeleteAllLights()
 {
 	int lightsDeleted = lights.Size();
 	lights.ClearAndDelete();
-	lastUpdate = clock();
+	UPDATE_LAST_UPDATE_TIME
 	return lightsDeleted;
 }
 
@@ -460,6 +470,7 @@ bool Lighting::LoadFrom(String fileName)
 	file.close();
 	// Update UI if needed.
 	UpdateLightList();
+	UPDATE_LAST_UPDATE_TIME
 	return true;
 }
 
@@ -592,9 +603,7 @@ void LoadLighting(Lighting * lighting, Shader * shader)
 
 		activeLights++;
 	}
-
 //	std::cout<<"\nActive lights: "<<activeLights<<" of "<<lighting->lights.Size();
-
 
 	/// Set all data
 	/// Set Diffuse

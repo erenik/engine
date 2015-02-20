@@ -62,6 +62,14 @@ EditorCameraProperty::EditorCameraProperty(Entity * owner)
 	movementSpeed = 5.f;
 }
 
+/// Upon being unregistered from rendering.
+void EditorCameraProperty::OnUnregistrationFromGraphics()
+{
+	if (editorCamera)
+		GraphicsQueue.Add(new GMDeleteCamera(editorCamera));
+}
+
+
 /// Time passed in seconds..! Will steer if inputFocus is true.
 void EditorCameraProperty::Process(int timeInMs)
 {
@@ -116,7 +124,7 @@ void EditorCameraProperty::ToggleAutorun()
 
 Camera * EditorCameraProperty::CreateCamera()
 {
-	editorCamera = CameraMan.NewCamera("EditorCamera");
+	editorCamera = CameraMan.NewCamera("EditorCamera", true);
 	owner->cameraFocus = editorCamera;
 	// Set defaults? No?
 	return editorCamera;

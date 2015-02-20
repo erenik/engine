@@ -169,10 +169,12 @@ Vector3i operator * (int multiplier, Vector3i& vector){
 	newVec[2] = vector[2] * multiplier;
 	return newVec;
 }
-void Vector3i::operator += (Vector3i addend){
+Vector3i Vector3i::operator += (Vector3i addend)
+{
 	x += addend[0];
 	y += addend[1];
 	z += addend[2];
+	return Vector3i(*this);
 }
 void Vector3i::operator -= (const Vector3i  subtractor){
 	x -= subtractor[0];
@@ -309,3 +311,20 @@ Vector3i Vector3i::Maximum(const Vector3i & vec1, const Vector3i & vec2){
 		vec1[2] > vec2[2] ? vec1[2] : vec2[2]
 	);
 }
+
+void Vector3i::Clamp(Vector3i min, Vector3i max)
+{
+	if (x < min.x)
+		x = min.x;
+	else if (x > max.x)
+		x = max.x;
+	if (y < min.y)
+		y = min.y;
+	else if (y > max.y)
+		y = max.y;
+	if (z < min.z)
+		z = min.z;
+	else if (z > max.z)
+		z = max.z;
+}
+

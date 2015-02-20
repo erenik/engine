@@ -8,6 +8,7 @@
 class Entity;
 class Model;
 class Texture;
+class TIFSTile;
 
 #include "MathLib/Vector3f.h"
 #include "String/AEString.h"
@@ -21,17 +22,22 @@ public:
 	TIFSBuilding(String baseName);
 	void Nullify();
 	/// Creates it.
-	static List<Entity*> CreateNew(ConstVec3fr atLocation, ConstVec3fr withGivenMaxSize);
+	static List<Entity*> CreateNew(ConstVec3fr atLocation, ConstVec3fr withGivenMaxSize, List<TIFSTile*> & tiles);
 	
 	static bool LoadTypes(String fromSource = "data/BuildingTypes.txt");
+	static bool UnloadTypes();
 	static List<TIFSBuilding*> types;
 	static Random buildingRandom;
 
 	String name;
 private:
+
 	static TIFSBuilding * GetType(ConstVec3fr forMaxSize, Vector3f & rotationNeeded);
 	bool FetchResources();
 	
+	/// To regulate it a bit..
+	int minFloors, maxFloors;
+
 	//// o.o
 	String bottomSource, topSource, diffuseSource, specularSource, normalSource;
 	/// o.o

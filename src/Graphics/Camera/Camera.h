@@ -49,7 +49,9 @@ public:
 	static void Allocate();
 	static void Deallocate();
 	static CameraManager * Instance();
-	Camera * NewCamera(String name);
+	/// If reuseExisting is true, it will try and grab one with same name. You should know what you are doing if using this. 
+	/// E.g. the EditorCameraProperty functions using this.
+	Camera * NewCamera(String name, bool reuseExisting = false);
 	// Called from render/physics thread. updates movement/position of all cameras.
 	void Process();
 	
@@ -69,7 +71,9 @@ public:
 	/// Lists all cameras to standard output
 	void ListCameras();
 
-	
+	List<Camera*> ActiveCameras();
+	/// Mark it for deletion -> not accessible just.
+	bool DeleteCamera(Camera * camera);
 private:
 	Camera * defaultCamera;
 	List<Camera*> cameras;
@@ -276,6 +280,8 @@ public:
 	float smoothing;
 
 private:
+	/// Set once "dead".
+	bool inactive;
 	/// cool.
 	Time lastUpdate; // Last time matrices were recalculated.
 	Time lastChange; // Last time an edit was made.

@@ -54,6 +54,8 @@ public:
 	/// Sets global entity state!
 	void SetGlobalState(EntityPropertyState * globalState);
 
+	/// Upon being unregistered from rendering.
+	virtual void OnUnregistrationFromGraphics();
 	/// Swaps state straight away, keeping the queued state.
 	void EnterState(EntityPropertyState * newState);
 	/// Enters queued state. Returns false if no state was queued.

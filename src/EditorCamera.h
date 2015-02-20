@@ -13,9 +13,13 @@ class EditorCameraProperty : public EntityProperty
 public:
 	EditorCameraProperty(Entity * owner = NULL);
 
+	/// Upon being unregistered from rendering. Delete the camera.
+	virtual void OnUnregistrationFromGraphics();
+
 	/// Time passed in seconds..! Will steer if inputFocus is true.
 	virtual void Process(int timeInMs);
 	virtual void ProcessMessage(Message * message);
+
 
 	void ToggleAutorun();
 

@@ -91,6 +91,7 @@ enum graphicsMessages {
 	
     /// Camera control
     GM_RESET_CAMERA,
+	GM_DELETE_CAMERA,
 	GM_TRACK,
 	GM_SET_CAMERA,
 

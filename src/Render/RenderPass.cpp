@@ -54,8 +54,6 @@ RenderPass::~RenderPass()
 // Renders this pass. Returns false if some error occured, usually mid-way and aborting the rest of the procedure.
 bool RenderPass::Render(GraphicsState & graphicsState)
 {
-	// Default no vertex buffer.
-	graphicsState.BindVertexArrayBuffer(0);
 	viewport = graphicsState.activeViewport;
 	CheckGLError("Before RenderPass::Render");
 	// Setup output buffers?
@@ -91,6 +89,8 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 	{
         return false;
     }
+	// Default no vertex buffer.
+	graphicsState.BindVertexArrayBuffer(0);
 
 	graphicsState.settings |= ENABLE_SPECIFIC_ENTITY_OPTIONS;
 

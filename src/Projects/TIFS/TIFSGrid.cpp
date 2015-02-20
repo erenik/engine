@@ -17,6 +17,7 @@ TIFSTile::TIFSTile()
 void TIFSTile::Initialize()
 {
 	isOccupied = isGround = isRoad = false;
+	isBuilding = isTurret = false;
 }
 
 
@@ -68,8 +69,19 @@ void TIFSGrid::Resize(Vector3i gridSize, ConstVec3fr mapSize)
 		if (tile->matrixPosition.y == 0)
 			tile->isGround = true;
 	}	
+	this->mapSize = mapSize;
+	sizePerTile = mapSize / gridSize;
 	LogMain("TIFSGrid::Resize - finish", DEBUG);
 }
+
+/// Used for the various algorithms inside.
+void TIFSGrid::SetExpansionFlags(bool x, bool y, bool z)
+{
+	expandX = x;
+	expandY = y;
+	expandZ = z;
+}
+
 
 Random playerRandom;
 
@@ -127,8 +139,9 @@ bool TIFSGrid::GetNewTurretPosition(Vector3f & turretPos)
 	Position is stored in position.
 */
 Random buildingRandom;
-bool TIFSGrid::GetNewBuildingPosition(Vector3f & maxSize, Vector3f & position)
+bool TIFSGrid::GetNewBuildingPosition(Vector3f & maxSize, Vector3f & position, List<TIFSTile*> & relevantTiles)
 {
+	SetExpansionFlags(true, false, true);
 	// Set their positions.
 	List<TIFSTile*> tiles = grid.GetTiles();
 	// Randomize a few times?
@@ -138,9 +151,8 @@ bool TIFSGrid::GetNewBuildingPosition(Vector3f & maxSize, Vector3f & position)
 		++tries;
 		int index = buildingRandom.Randi(tiles.Size()) % tiles.Size();
 		TIFSTile * tile = tiles[index];
-		if (tile->isOccupied == true)
-			continue;
-		if (!tile->isGround)
+		/// Test the initial tile.
+		if (!AllGood(List<TIFSTile*>(tile), NO_OPTION))
 			continue;
 
 		// Check if surrounding tiles comply to the demand of the size?
@@ -148,38 +160,39 @@ bool TIFSGrid::GetNewBuildingPosition(Vector3f & maxSize, Vector3f & position)
 		List<TIFSTile*> testTiles = tile;
 		// Expand size until we can no more?
 		bool expansionOK = true;
+		Vector3i min, max, scale, goodMin, goodMax;
+		maxSize = min = max = tile->matrixPosition;
 		while(expansionOK)
 		{
-			/// Break if we have consumed enough tiles already. Don't want to exhaust the map?
-			if (affectedTiles.Size() > maxTilesPerBuilding)
+			// Save from last iteration
+			goodMin = min;
+			goodMax = max;
+			expansionOK = Expand(min, max, NO_OPTION);
+			if (!expansionOK)
 				break;
-			affectedTiles = queryTiles;
-			queryTiles = testTiles;
-			expansionOK = ExpandXZ(testTiles);
+			scale = max - min + Vector3i(1,1,1);
+			int numTiles = scale.x * scale.y * scale.z;
+			/// Break if we have consumed enough tiles already. Don't want to exhaust the map?
+			if (numTiles > maxTilesPerBuilding)
+				break;
 		}
-		/// If 0 affected tiles, the expansion failed (e.g. the requirement of roads somehow failed).
-		if (affectedTiles.Size() == 0)
-			continue;
-		position = tile->position;
-		Vector3f minPos(9999,9999,9999), maxPos(-9999,-9999,-9999);
-		for (int i = 0; i < affectedTiles.Size(); ++i)
-		{
-			TIFSTile * at = affectedTiles[i];
-			minPos = Vector3f::Minimum(minPos, at->position);
-			maxPos = Vector3f::Maximum(maxPos, at->position);
-		}
-		/// Mark all query-tiles as occupied, so we get some spacing.
-		for (int i = 0; i < queryTiles.Size(); ++i)
-		{
-			TIFSTile * at = queryTiles[i];
-			at->isOccupied = true;
-		}
+		/// Paste over to min and max from the confirmed good values.
+		min = goodMin;
+		max = goodMax;
+		/// Mark all query-tiles as occupied, so we get some spacing. -> Do this when actually placing the building.
+		relevantTiles = grid.GetTiles(min,max);
 		// Get size?
-		maxSize = maxPos - minPos;
+		Vector3i maxSizeInMatrix = ((max - min) + Vector3i(1,1,1));
+		maxSize =  maxSizeInMatrix * sizePerTile;
 		// Adjust position, if we change the expansion algorithm earlier?
-		position = (maxPos + minPos) * 0.5;
+		position = (max + min) * 0.5;
 		/// Set floor and ground-level, though.
-		position.y = minPos.y;
+		position.y = (float)min.y;
+		/// Multiply by grid-size.
+		position *= sizePerTile;
+		/// Translate so we center on 0,0,0
+		position -= mapSize * 0.5f;
+		position.y = 0;
 		return true;
 	}
 	return false;	
@@ -189,6 +202,7 @@ bool TIFSGrid::GetNewBuildingPosition(Vector3f & maxSize, Vector3f & position)
 Random roadRandom;
 void TIFSGrid::PlaceRoads(int roads)
 {
+	/*
 	LogMain("TIFS::PlaceRoads", DEBUG);
 	// Set their positions.
 	List<TIFSTile*> tiles = grid.GetTiles();
@@ -232,6 +246,7 @@ void TIFSGrid::PlaceRoads(int roads)
 		}
 		++roadsCreated;
 	}
+	*/
 }
 
 /// Expands the list with all neighbours.
@@ -253,7 +268,7 @@ bool TIFSGrid::ExpandXZ(List<TIFSTile*> & tiles)
 }
 
 /// Expands the list with all neighbours. Max size is increased based on the positions of the tiles and the grid.
-bool TIFSGrid::Expand(List<TIFSTile*> & tiles, bool x, bool y, bool z, int option)
+bool TIFSGrid::Expand(List<TIFSTile*> & tiles, bool x, bool y, bool z, int options)
 {
 	List<TIFSTile*> toAdd;
 	for (int i = 0; i < tiles.Size(); ++i)
@@ -262,6 +277,7 @@ bool TIFSGrid::Expand(List<TIFSTile*> & tiles, bool x, bool y, bool z, int optio
 		List<TIFSTile*> toAddNow;
 		if (x)
 		{
+			// Add all in X we can?
 			toAddNow.Add(grid.GetTileByIndex(tile->matrixPosition + Vector3i(1,0,0)));
 			toAddNow.Add(grid.GetTileByIndex(tile->matrixPosition + Vector3i(-1,0,0)));
 		}
@@ -275,36 +291,8 @@ bool TIFSGrid::Expand(List<TIFSTile*> & tiles, bool x, bool y, bool z, int optio
 			toAddNow.Add(grid.GetTileByIndex(tile->matrixPosition + Vector3i(0,1,0)));
 			toAddNow.Add(grid.GetTileByIndex(tile->matrixPosition + Vector3i(0,-1,0)));
 		}
-		// Check if possible now.
-		for (int i = 0; i < toAddNow.Size(); ++i)
-		{
-			bool bad = false;
-			TIFSTile * tile = toAddNow[i];
-			if (tile == NULL)
-			{
-				bad = true;
-				if (option & IGNORE_NULL)
-				{
-					// Just ignore it and check next one.
-					bad = false;
-					toAddNow.RemoveIndex(i);
-					--i;
-					continue;
-				}
-			}
-			else if (tile->isOccupied)
-			{
-				bad = true;
-				if (tile->isRoad && option & IGNORE_ROADS)
-					bad = false;
-			}
-			/// o.o Abort!
-			if (bad)
-			{
-				return false;
-			}
-		}
-		toAdd.Add(toAddNow);
+		if (AllGood(toAddNow, options))
+			toAdd.Add(toAddNow);
 	}
 	toAdd.RemoveUnsorted(tiles);
 	/// Nothing to add? Then return false, we are fully maximized now.
@@ -313,6 +301,113 @@ bool TIFSGrid::Expand(List<TIFSTile*> & tiles, bool x, bool y, bool z, int optio
 	tiles.Add(toAdd);
 	return true;
 }
+
+/// Tries to expand all sides by 1 unit in the grid. The results are stored in the argument references.
+/// Returns false if no expanion could be performed.
+bool TIFSGrid::Expand(Vector3i & minVec, Vector3i & maxVec, int options /*= NO_OPTION*/)
+{
+	List<Vector3i> additionVectors;
+	if (expandX)
+		additionVectors.Add(Vector3i(1,0,0), Vector3i(-1,0,0));
+	if (expandY)
+		additionVectors.Add(Vector3i(0,1,0), Vector3i(0,-1,0));
+	if (expandZ)
+		additionVectors.Add(Vector3i(0,0,1), Vector3i(0,0,-1));
+
+	Vector3i newMin, newMax, potentialNewMin, potentialNewMax;
+	newMin = potentialNewMin = minVec;
+	newMax = potentialNewMax = maxVec;
+	bool goodArr[6];
+	int bads = 0;
+	memset(goodArr, 1, sizeof(bool) * 6);
+	bool success = false;
+	Vector3i relevantTestVector;
+	for (int i = 0; i < additionVectors.Size(); ++i)
+	{
+		if (!goodArr[i])
+			continue;
+		// Each other expands positive and negative axis.
+		bool max = (i % 2 == 0);
+		Vector3i & expansionVector = additionVectors[i];
+		if (max)
+		{
+			relevantTestVector = potentialNewMax += expansionVector;
+			potentialNewMin = newMin; // revert from failure last loop.
+		}
+		else
+		{
+			relevantTestVector = potentialNewMin += expansionVector;
+			potentialNewMax = newMax; // revert from failure last loop.
+		}
+		Vector3i minForTest, maxForTest;
+		minForTest = potentialNewMin;
+		maxForTest = potentialNewMax;
+		if (expansionVector.x)
+			minForTest.x = maxForTest.x = relevantTestVector.x;
+		if (expansionVector.y)
+			minForTest.y = maxForTest.y = relevantTestVector.y;
+		if (expansionVector.z)
+			minForTest.z = maxForTest.z = relevantTestVector.z;
+		// Left..
+		List<TIFSTile*> tiles;
+		if (grid.OKGet(minForTest, maxForTest))
+			tiles = grid.GetTiles(minForTest, maxForTest);
+		bool good = AllGood(tiles, options);
+		if (good)
+		{
+			newMax = potentialNewMax;
+			newMin = potentialNewMin;
+			success = true;
+		}
+		else 
+		{
+			++bads;
+			goodArr[i] = false;
+			if (bads == 6)
+				break;
+		}
+	}
+	minVec = newMin;
+	maxVec = newMax;
+	return success;
+}
+
+/// D:
+bool TIFSGrid::AllGood(List<TIFSTile*> & tiles, int options)
+{
+	if (tiles.Size() == 0)
+		return false;
+	for (int i = 0; i < tiles.Size(); ++i)
+	{
+		TIFSTile * tile = tiles[i];
+		bool bad = false;
+		if (tile == NULL)
+		{
+			bad = true;
+			if (options & IGNORE_NULL)
+			{
+				// Just ignore it and check next one.
+				bad = false;
+				tiles.RemoveIndex(i);
+				--i;
+				continue;
+			}
+		}
+		else if (tile->isOccupied)
+		{
+			bad = true;
+			if (tile->isRoad && options & IGNORE_ROADS)
+				bad = false;
+		}
+		/// o.o Abort!
+		if (bad)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
 
 
 /** Creates a road along the given lines. Fails if any position there is not vacant or already a road. 

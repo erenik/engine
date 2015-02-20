@@ -18,6 +18,8 @@ TIFSBuilding::TIFSBuilding()
 TIFSBuilding::TIFSBuilding(String baseName)
 {
 	Nullify();
+	minFloors = 2;
+	maxFloors = 5;
 	name = baseName;
 #define PREFIX "img/Buildings/"
 	diffuseSource = PREFIX+baseName+"_diffuse.png";
@@ -36,7 +38,7 @@ void TIFSBuilding::Nullify()
 }
 
 /// Creates it.
-List<Entity*> TIFSBuilding::CreateNew(ConstVec3fr atLocation, ConstVec3fr withGivenMaxSize)
+List<Entity*> TIFSBuilding::CreateNew(ConstVec3fr atLocation, ConstVec3fr withGivenMaxSize, List<TIFSTile*> & tiles)
 {
 	List<Entity*> entities;
 	Vector3f position = atLocation;
@@ -58,6 +60,9 @@ List<Entity*> TIFSBuilding::CreateNew(ConstVec3fr atLocation, ConstVec3fr withGi
 	int floors = (int) (maxSize.y / type->floorHeight);
 	if (floors < 2)
 		floors = 2;
+
+	// Randomzie floors according to specification.
+	floors = type->minFloors + buildingRandom.Randi(type->maxFloors - type->minFloors);
 
 	// Try out the iterative approach of 1 level at a time. o.o
 	List<Entity*> buildingFloors;
@@ -121,57 +126,23 @@ List<Entity*> TIFSBuilding::CreateNew(ConstVec3fr atLocation, ConstVec3fr withGi
 	// Add it to be returned.
 	entities.Add(physicsBase, physicsRoof);
 
-	/*
-	Model * bottomModel = NULL, * topModel = NULL;
-	String bottomName, topName, diffuseName;
-	int floors = 10;
-	float floorHeight = 2.5f;
-	Texture * diffuse = NULL;
-
-	int type = i % 3;
-	switch(type)
+	// Mark relevant tiles as occupied, but not more than is needed! o.o
+	AABB * aabb = physicsBase->aabb;
+	for (int i = 0; i < tiles.Size(); ++i)
 	{
-	case 0:
-		topName = "medium_building_top";
-		bottomName = "medium_building_bottom";
-		diffuseName = "medium_building_diffuse";
-		break;
-	case 1:
-		topName = "small_building_top";
-		bottomName = "small_building_bottom";
-		diffuseName = "small_building_diffuse";
-		break;
-	case 2:
-		topName = "big_building_top";
-		bottomName = "big_building_bottom";
-		diffuseName = "big_building_diffuse";
-		floorHeight = 2.5f;
-		break;
-	default: assert(false);
+		TIFSTile * tile = tiles[i];
+		// Check distance to the AABB of the physics mesh.
+		Vector3f toTileFromCenter = tile->position - aabb->position;
+		Vector3f toFile = toTileFromCenter.Abs() - aabb->scale * 0.5;
+		float actualDistance = toFile.Length();
+		// At least 1 meter perimeter?
+		if (actualDistance < 2.f)
+		{
+			tile->isOccupied = true;
+			tile->isBuilding = true;
+		}
 	}
 
-	/// Fetch amount of floors based on the height?
-	floors = maxSize.y / floorHeight;
-	if (floors == 0)
-	{
-		LogMain("0 floors, skipping.", INFO);
-		continue;
-	}
-	maxSize.y = floors * floorHeight; // Recalculate maxSize based on the floors we used.
-
-	/// Create "building" of random size based on the given maxSize :)
-	Entity * buildingEntity = EntityMan.CreateEntity("Building "+String(i), ModelMan.GetModel("cube.obj"), TexMan.GetTexture("0x82"));
-	PhysicsProperty * pp = new PhysicsProperty();
-	buildingEntity->physics = pp;
-	pp->shapeType = PhysicsShape::AABB;
-
-	// Register for rendering.
-	GraphicsQueue.Add(new GMRegisterEntities(buildingFloors));
-	// Adjust Y based on update Y-scale.
-	position.y = position.y + maxSize.y * 0.5; 
-	buildingEntity->position = position;
-	buildingEntity->SetScale(maxSize);
-*/
 	return entities;
 }
 
@@ -198,6 +169,10 @@ bool TIFSBuilding::LoadTypes(String fromSource /*= "data/BuildingTypes.txt" */)
 		}
 		if (!type) 
 			continue;
+		if (line.StartsWith("MinFloors"))
+			type->minFloors = spaceTokens[1].ParseInt();
+		if (line.StartsWith("MaxFloors"))
+			type->maxFloors= spaceTokens[1].ParseInt();
 //		if (line.StartsWith("")
 		//// o.o
 //		string basesource, topsource, diffusesource, specularsource, normalsource;
@@ -222,6 +197,13 @@ bool TIFSBuilding::LoadTypes(String fromSource /*= "data/BuildingTypes.txt" */)
 	return true;
 }
 
+bool TIFSBuilding::UnloadTypes()
+{
+	types.ClearAndDelete();
+	return true;
+}
+	
+
 TIFSBuilding * TIFSBuilding::GetType(ConstVec3fr forMaxSize, Vector3f & rotationNeeded)
 {
 	List<TIFSBuilding*> eligibleTypes;
@@ -236,6 +218,11 @@ TIFSBuilding * TIFSBuilding::GetType(ConstVec3fr forMaxSize, Vector3f & rotation
 		bool isGood = false;
 		if (inGameScale < forMaxSize)
 			isGood = true;
+		if (!isGood)
+		{
+			// Try rotating it?
+			
+		}
 		// o.o
 		if (isGood)
 			eligibleTypes.Add(type);

@@ -25,6 +25,10 @@ public:
 	Vector3i Size();
 
 	List<T*> GetTiles();
+	/// Return true if a fetch on these co-ordinates is OK.
+	bool OKGet(Vector3i min, Vector3i max);
+	/// Fetches all tiles within the designated area (inclusive of borders)
+	List<T*> GetTiles(Vector3i min, Vector3i max);
 	/// Tries to fetch a tile close to target position.
 	T * GetFirstTile(ConstVec3fr atPosition, float maxDistance);
 	T * GetClosestTile(ConstVec3fr atPosition, float maxDistance);
@@ -133,6 +137,35 @@ List<T*> TileGrid3D<T>::GetTiles()
 {
 	List<T*> tiles;
 	tiles.AddArray(tileMatrix.Elements(), tileMatrix.GetArray());
+	return tiles;
+}
+
+/// Return true if a fetch on these co-ordinates is OK.
+template <class T>
+bool TileGrid3D<T>::OKGet(Vector3i min, Vector3i max)
+{
+	if (min.x < 0 || min.y < 0 || min.z < 0)
+		return false;
+	if (max.x >= size.x || max.y >= size.y || max.z >= size.z)
+		return false;
+	return true;
+}
+/// Fetches all tiles within the designated area (inclusive of borders)
+template <class T>
+List<T*> TileGrid3D<T>::GetTiles(Vector3i min, Vector3i max)
+{
+
+	List<T*> tiles;
+	for (int y = min.y; y <= max.y; ++y)
+	{
+		for (int x = min.x; x <= max.x; ++x)
+		{  
+			for (int z = min.z; z <= max.z; ++z)
+			{
+				tiles.AddItem(tileMatrix.At(x,y,z));
+			}
+		}
+	}
 	return tiles;
 }
 

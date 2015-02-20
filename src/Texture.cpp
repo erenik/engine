@@ -8,6 +8,7 @@
 #include "File/FileUtil.h"
 #include "LodePNG/lodepng.h"
 #include <cassert>
+#include "File/LogFile.h"
 
 #include "Libs.h"
 
@@ -538,6 +539,7 @@ bool Texture::Bufferize()
 		std::cout<<"\nNo data to bufferize!";
 		return false;
 	}
+	LogGraphics("Buffering texture "+source, INFO);
 	queueRebufferization = false;
 
 	GLuint error;

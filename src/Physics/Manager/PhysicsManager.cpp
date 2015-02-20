@@ -161,6 +161,17 @@ List<Intersection> PhysicsManager::Raycast(Ray & ray)
 	{
 		Entity * entity = entities[i];
 		PhysicsProperty * pp = entity->physics;
+		/// Do a simple dot-product check first for early out, no matter what physics-shape.
+		Vector3f rayOriginToEntityCenter = entity->aabb->position - ray.start;
+		float rayOriginToEntityCenterProjectedOntoRayDir = ray.direction.DotProduct(rayOriginToEntityCenter);
+		float distAlongRay = rayOriginToEntityCenterProjectedOntoRayDir;
+		float distAlongRaySquared = distAlongRay * distAlongRay;
+		if (distAlongRay < 0)
+		{
+			/// Comparison will be on negative ray axis, since we checked that beforre.
+			if (distAlongRaySquared  > entity->aabb->scale.LengthSquared())
+				continue;
+		}
 		switch(pp->shapeType)
 		{
 			case PhysicsShape::SPHERE:
@@ -180,6 +191,9 @@ List<Intersection> PhysicsManager::Raycast(Ray & ray)
 			}
 			case PhysicsShape::MESH:
 			{
+				// Do an initial Ray-AABB check.
+				if (!ray.Intersect(*entity->aabb, &distance))
+					continue;
 				List<Intersection> iSecs = pp->physicsMesh->Raycast(ray, entity->transformationMatrix);
 				// Mark which entity it was..
 				for (int j = 0; j < iSecs.Size(); ++j)

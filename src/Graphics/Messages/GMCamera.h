@@ -61,6 +61,15 @@ private:
 	Entity * entity;
 };
 
+class GMDeleteCamera : public GraphicsMessage 
+{
+public:
+	GMDeleteCamera(Camera * camera);
+	virtual void Process();
+private:
+	Camera * camera;
+};
+
 class GMSetCamera : public GraphicsMessage 
 {
 public:

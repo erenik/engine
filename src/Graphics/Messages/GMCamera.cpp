@@ -12,6 +12,16 @@ void GMTrack::Process()
 	Graphics.ActiveCamera()->entityToTrack = entity;
 };
 
+GMDeleteCamera::GMDeleteCamera(Camera * camera)
+: GraphicsMessage(GM_DELETE_CAMERA), camera(camera)
+{
+}
+
+void GMDeleteCamera::Process()
+{
+	CameraMan.DeleteCamera(camera);
+}
+
 /// For setting global/main camera to track.
 GMSetCamera::GMSetCamera(Camera * cameraToTrack, Window * inWindow)
 	: GraphicsMessage(GM_SET_CAMERA), camera(cameraToTrack), window(inWindow)

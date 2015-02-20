@@ -149,6 +149,7 @@ void TIFS::Process(int timeInMs)
 void TIFS::OnExit(AppState * nextState)
 {
 	weather->Shutdown();
+	TIFSBuilding::UnloadTypes();
 	GraphicsQueue.Add(new GMUnregisterParticleSystem(toolParticles, true));
 }
 
@@ -533,8 +534,8 @@ void TIFS::SpawnPlayer()
 
 	// Get position.
 	Vector3f position;
-	grid->GetNewPlayerPosition(position);
-	position.y += 3.f;
+	assert(grid->GetNewPlayerPosition(position));
+	position.y += 3.5f;
 
 	Entity * player = MapMan.CreateEntity("Player", model, TexMan.GetTexture("Red"), position);
 	// Attach camera to the player.
@@ -553,8 +554,6 @@ void TIFS::SpawnPlayer()
 	pp->friction = 0.1f;
 	pp->restitution = 0.15f;
 	pp->collissionCallback = true;
-	/// Move up a bit so we can fall on ze plane.
-	player->SetPosition(0,2,0);
 
 	// Attach ze propororoty to bind the entity and the player.
 	playerProp = new TIFSPlayerProperty(player);
@@ -667,16 +666,19 @@ void TIFS::AddBuildings(int numBuildings)
 	int buildingsToCreate = numBuildings;
 	for (int i = 0; i < buildingsToCreate; ++i)
 	{
+		if (i % 10 == 0)
+			std::cout<<"\nCreating building "<<i<<" of "<<buildingsToCreate;
 		Vector3f position;
 		Vector3f maxSize; 
-		bool ok = grid->GetNewBuildingPosition(maxSize, position);
+		List<TIFSTile*> tiles;
+		bool ok = grid->GetNewBuildingPosition(maxSize, position, tiles);
 		if (!ok)
 		{
 			std::cout<<"\nOut of positions on the grid.";
 			LogMain("TIFS::AddBuildings", DEBUG);
 			break;
 		}		
-		List<Entity*> buildingEntities = TIFSBuilding::CreateNew(position, maxSize);
+		List<Entity*> buildingEntities = TIFSBuilding::CreateNew(position, maxSize, tiles);
 		if (!buildingEntities.Size())
 			continue;
 	}

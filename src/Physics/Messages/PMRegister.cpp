@@ -1,5 +1,10 @@
+/// Emil Hedemalm
+/// 2015-02-19
+/// Registering (much older originally)
+
 #include "PhysicsMessage.h"
 #include "../PhysicsManager.h"
+#include "File/LogFile.h"
 
 PMRegisterEntity::PMRegisterEntity(Entity * i_entity): PhysicsMessage(PM_REGISTER_ENTITY) 
 {
@@ -29,10 +34,10 @@ PMRegisterEntities::PMRegisterEntities(List<Entity*> targetEntities): PhysicsMes
 
 void PMRegisterEntities::Process()
 {
-	std::cout<<"\nRegistering selection for Physics.";
+//	std::cout<<"\nRegistering selection for Physics.";
 	int failed = Physics.RegisterEntities(entities);
 	if (!failed){
-		std::cout<<"\n"<<entities.Size()<<" entities registered successfully.";
+		LogPhysics(String(entities.Size())+" entities registered successfully.", EXTENSIVE_DEBUG);
 	}
 	else
 		std::cout<<"\nUnable to register "<<failed<<" of "<<entities.Size()<<" entities. Make sure they all have physicsProperties.";

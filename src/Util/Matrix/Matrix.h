@@ -295,6 +295,10 @@ T Matrix<T>::At(Vector3i pos)
 template <class T>
 T Matrix<T>::At(int x, int y, int z)
 {
+	if (z < 0 || z >= size.z ||
+		x < 0 || z >= size.x ||
+		y < 0 || y >= size.y)
+		return NULL;
 	int index = z * size[0] * size[1] + y * size[0] + x;
 	return arr[index];
 }

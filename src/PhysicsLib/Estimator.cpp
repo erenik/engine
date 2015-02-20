@@ -3,6 +3,7 @@
 /// A class for estimating values using various methods, such as interpolation/extrapolation.
 
 #include "Estimator.h"
+#include "File/LogFile.h"
 
 Estimation::Estimation(int type)
 	: type(type)
@@ -192,6 +193,11 @@ void Estimator::GetStates(Estimation * & before, Estimation * & after, float & r
 		if (timeBetween == 0)
 		{
 			timeBetween = relativeTime;
+		}
+		if (timeBetween == 0)
+		{
+			LogMain("Bad timeBetween in Estimator", ERROR);
+			timeBetween = 1.f;
 		}
 		/// This should give us a value between 0.0 and 1.0
 		float relative = relativeTime / timeBetween;

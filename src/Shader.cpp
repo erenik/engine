@@ -453,20 +453,35 @@ void Shader::SetTextureLocations()
 
 	if (uniformBaseTexture != -1)
 	{
+		glActiveTexture(GL_TEXTURE0 + diffuseMapIndex);
 		glUniform1i(uniformBaseTexture, diffuseMapIndex);
 	}
 	if (uniformSpecularMap != -1)
+	{
+		glActiveTexture(GL_TEXTURE0 + specularMapIndex);
 		glUniform1i(uniformSpecularMap, specularMapIndex);
+	}
 	if (uniformNormalMap != -1)
+	{
+		glActiveTexture(GL_TEXTURE0 + normalMapIndex);
 		glUniform1i(uniformNormalMap, normalMapIndex);
+	}
 	if (uniformEmissiveMap != -1)
+	{
+		glActiveTexture(GL_TEXTURE0 + emissiveMapIndex);
 		glUniform1i(uniformEmissiveMap, emissiveMapIndex);
+	}
 	if (uniformBoneSkinningMatrixMap != -1)
+	{
+		glActiveTexture(GL_TEXTURE0 + boneSkinningMatrixMapIndex);
 		glUniform1i(uniformBoneSkinningMatrixMap, boneSkinningMatrixMapIndex); // Sets sampler to use texture #3 for skinning maps	
+	}
 	// Location 4 and onwards for the shadow maps?
 	if (uniformShadowMap != -1)
+	{
+		glActiveTexture(GL_TEXTURE0 + shadowMapIndex);
 		glUniform1i(uniformShadowMap, shadowMapIndex);
-
+	}
 	// Un-bind all previous texture!
 	for (int i = 0; i < indicesUsed; ++i)
 	{

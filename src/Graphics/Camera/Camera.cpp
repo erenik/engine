@@ -17,7 +17,10 @@
 CameraManager::CameraManager()
 {
 	defaultCamera = NULL;
+	// Pre-allocate array to not get trouble while rendering later.
+	cameras.Allocate(50, false);
 }
+
 CameraManager::~CameraManager()
 {
 	for (int i = 0; i < cameras.Size(); ++i)
@@ -45,11 +48,21 @@ CameraManager * CameraManager::Instance()
 	assert(cameraManager);
 	return cameraManager;
 }
-Camera * CameraManager::NewCamera(String name)
+Camera * CameraManager::NewCamera(String name, bool reuseExisting)
 {
+	if (reuseExisting)
+	{
+		for (int i = 0; i < cameras.Size(); ++i)
+		{
+			Camera * camera = cameras[i];
+			if (camera->name == name)
+				return camera;
+		}
+	}
 	Camera * camera = new Camera();
 	camera->name = name;
 	cameras.Add(camera);
+	assert(cameras.Size() < 50 && "Re-use cameras please, coder moder");
 	return camera;
 }
 // Called from render/physics thread. updates movement/position of all cameras.
@@ -64,6 +77,8 @@ void CameraManager::Process()
 	for (int i = 0; i < cameras.Size(); ++i)
 	{
 		Camera * camera = cameras[i];
+		if (camera->inactive)
+			continue;
 		bool moved = camera->ProcessMovement(timeInSeconds);
 		if (camera->entityToTrack || camera->lastUpdate < camera->lastChange)
 			camera->Update();
@@ -93,20 +108,23 @@ Camera * CameraManager::NextCamera()
 {
 	Camera * current = Graphics.ActiveCamera();
 	int previousIndex = -1;
-	for (int i = 0; i < cameras.Size(); ++i)
+	List<Camera*> activeCameras = ActiveCameras();
+	for (int i = 0; i < activeCameras.Size(); ++i)
 	{
-		Camera * c = cameras[i];
+		Camera * c = activeCameras[i];
 		if (c == current)
+		{
 			previousIndex = i;
+		}
 	}
 	// Set next one.
 	int nextIndex = previousIndex + 1;
-	if (nextIndex >= cameras.Size())
+	if (nextIndex >= activeCameras.Size())
 		nextIndex = 0;
 	if (previousIndex < 0)
 		previousIndex = 0;
-	Graphics.QueueMessage(new GMSetCamera(cameras[nextIndex]));
-	return cameras[nextIndex];
+	Graphics.QueueMessage(new GMSetCamera(activeCameras[nextIndex]));
+	return activeCameras[nextIndex];
 }
 
 /** Makes active the previous camera (compared to the current one) by queueinga message to the graphics-manager.
@@ -116,9 +134,10 @@ Camera * CameraManager::PreviousCamera()
 {
 	Camera * current = Graphics.ActiveCamera();
 	int previousIndex = -1;
-	for (int i = 0; i < cameras.Size(); ++i)
+	List<Camera*> activeCameras = ActiveCameras();
+	for (int i = 0; i < activeCameras.Size(); ++i)
 	{
-		Camera * c = cameras[i];
+		Camera * c = activeCameras[i];
 		if (c == current)
 			previousIndex = i;
 	}
@@ -126,9 +145,9 @@ Camera * CameraManager::PreviousCamera()
 	int nextIndex = previousIndex - 1;
 	Camera * newCam = NULL;
 	if (nextIndex < 0)
-		newCam = cameras.Last();
+		newCam = activeCameras.Last();
 	else 
-		newCam = cameras[nextIndex];
+		newCam = activeCameras[nextIndex];
 	Graphics.QueueMessage(new GMSetCamera(newCam));
 	return newCam;
 }
@@ -153,8 +172,26 @@ void CameraManager::ListCameras()
 	}
 }
 
+List<Camera*> CameraManager::ActiveCameras()
+{
+	List<Camera*> activeCameras;
+	for (int i = 0; i < cameras.Size(); ++i)
+	{
+		Camera * camera = cameras[i];
+		if (camera->inactive)
+			continue;
+		activeCameras.Add(camera);
+	}
+	return activeCameras;
+}
 
 
+/// Mark it for deletion -> not accessible just.
+bool CameraManager::DeleteCamera(Camera * camera)
+{
+	camera->inactive = true;
+	return true;
+}
 
 float Camera::defaultRotationSpeed = 0.09f;
 float Camera::defaultVelocity = 1.0f;
@@ -173,6 +210,7 @@ Camera::~Camera()
 /// Resets everything.
 void Camera::Nullify()
 {
+	inactive = false;
 	smoothing = 0;
 	lastChange = Time::Now();
 	ratioFixed = false;

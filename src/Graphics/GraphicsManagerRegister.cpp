@@ -8,6 +8,7 @@
 #include "Particles/ParticleSystem.h"
 #include "GraphicsState.h"
 #include "Graphics/Camera/Camera.h"
+#include "Entity/EntityProperty.h"
 
 /// Adds an Entity to be rendered to the vfcOctree.
 bool GraphicsManager::RegisterEntity(Entity * entity)
@@ -87,6 +88,12 @@ bool GraphicsManager::UnregisterEntity(Entity * entity)
 	if (entity->cameraFocus && 	entity->cameraFocus->entityToTrack == entity)
 	{
 		entity->cameraFocus->entityToTrack = NULL;
+	}
+
+	for (int i = 0; i < entity->properties.Size(); ++i)
+	{
+		EntityProperty * prop = entity->properties[i];
+		prop->OnUnregistrationFromGraphics();
 	}
 
 	// Check for additional graphics-data

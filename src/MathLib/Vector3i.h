@@ -92,7 +92,7 @@ public:
 	friend Vector3i operator * (int multiplier, Vector3i& vector);
 
 	/// Adds addend to this vector.
-	void operator += (const Vector3i addend);
+	Vector3i operator += (const Vector3i addend);
 	/// Subtracts subtractor from this vector.
 	void operator -= (const Vector3i addend);
 	/// Internal element division
@@ -142,6 +142,7 @@ public:
 	/// Utility functions
 	static Vector3i Minimum(const Vector3i & vec1, const Vector3i & vec2);
 	static Vector3i Maximum(const Vector3i & vec1, const Vector3i & vec2);
+	void Clamp(Vector3i min, Vector3i max);
 
 public:
 	/// x-coordinate
