@@ -57,9 +57,27 @@ void GraphicsState::AddEntity(Entity * entity)
 	GraphicsProperty * gp = entity->graphics;
 	/// Add alpha-entities straight to the graphics-state?
 	if (gp->flags & RenderFlag::ALPHA_ENTITY)
-		alphaEntities.Add(entity);
+	{
+		alphaEntities.AddItem(entity);
+	}
 	else 
-		solidEntities.Add(entity);
+	{
+		solidEntities.AddItem(entity);
+		if (gp->renderInstanced)
+		{
+			RIG * rig = GetGroup(solidEntityGroups, entity);
+			if (rig)
+				rig->AddEntity(entity);
+			else
+			{
+				rig = new RIG(entity);
+				solidEntityGroups.AddItem(rig);
+				entityGroups.AddItem(rig);
+			}
+		}
+		else
+			solidEntitiesNotInstanced.AddItem(entity);
+	}
 	/// Shadow groups
 	if (gp->castsShadow)
 	{
@@ -75,6 +93,7 @@ void GraphicsState::AddEntity(Entity * entity)
 				// New shadow group.
 				rig = new RIG(entity);
 				shadowCastingEntityGroups.AddItem(rig);
+				entityGroups.AddItem(rig);
 			}
 			gp->shadowGroup = rig;
 		}
@@ -106,9 +125,9 @@ void GraphicsState::RemoveEntity(Entity * entity)
 
 void GraphicsState::UpdateRenderInstancingGroupBuffers()
 {
-	for (int i = 0; i < shadowCastingEntityGroups.Size(); ++i)
+	for (int i = 0; i < this->entityGroups.Size(); ++i)
 	{
-		RIG * rig = shadowCastingEntityGroups[i];
+		RIG * rig = entityGroups[i];
 		rig->UpdateBuffers();
 	}
 }

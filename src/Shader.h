@@ -120,7 +120,8 @@ public:
 	GLuint attributeBoneWeights;
 
 	/// Other instances attributes for when instancing entities that need to be rendered.
-	GLuint attributeInstanceModelMatrix;
+	GLuint attributeInstanceModelMatrix,
+		attributeInstanceNormalMatrix;
 
 	/// All attributes pertaining to instancing. These are not enabled by default when activating the shader.
 	List<GLuint> instanceAttributes;

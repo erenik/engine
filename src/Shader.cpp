@@ -56,6 +56,8 @@ Shader::Shader()
 
 	// Foggy fog-some!
 	uniformFogBeginDistance = uniformFogEndDistance = uniformFogColor = -1;
+
+	attributeInstanceModelMatrix = attributeInstanceNormalMatrix = -1;
 }
 
 Shader::~Shader()
@@ -373,8 +375,11 @@ void Shader::ExtractAttributes()
 
 	// Other attributes
 	attributeInstanceModelMatrix = glGetAttribLocation(shaderProgram, "in_InstanceModelMatrix");
-	if (attributeInstanceModelMatrix)
-		instanceAttributes.Add(attributeInstanceModelMatrix);
+	if (attributeInstanceModelMatrix != -1)
+		instanceAttributes.AddItem(attributeInstanceModelMatrix);
+	attributeInstanceNormalMatrix = glGetAttribLocation(shaderProgram, "in_InstanceNormalMatrix");
+	if (attributeInstanceNormalMatrix != -1)
+		instanceAttributes.AddItem(attributeInstanceNormalMatrix);
 
 	/// Get them all enumerated nicely if lists are desired of all active attributes.
 	// Just clear previous list first though.

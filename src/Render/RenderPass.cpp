@@ -273,7 +273,18 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 		}
 		case RenderTarget::SOLID_ENTITIES:
 		{
-			entitiesToRender = graphicsState.solidEntities;
+//			instancingEnabled = false;
+			/// If possible, part instanced, part individually.
+			if (instancingEnabled)
+			{
+				entitiesToRender = graphicsState.solidEntitiesNotInstanced;
+				entityGroupsToRender = graphicsState.solidEntityGroups;	
+			}
+			/// Default, one at a time.
+			else 
+			{
+				entitiesToRender = graphicsState.solidEntities;
+			}
 			RenderEntities();
 			// Only entities for now!
 			break;
@@ -401,10 +412,6 @@ void RenderPass::RenderEntities()
 	}
 	// New here!
 	Timer timer;
-//	timer.Start();
-//	entitiesToRender.SortByDistanceToCamera(graphicsState->camera);
-//	timer.Stop();
-//	FrameStats.renderSortEntities += timer.GetMs();
 
 	timer.Start();
 	Texture * diffuseMap = NULL, * specularMap = NULL, * emissiveMap = NULL,
@@ -415,6 +422,13 @@ void RenderPass::RenderEntities()
 	glUniform1i(shader->uniformUseSpecularMap, 1);
 	glUniform1i(shader->uniformUseNormalMap, 0);
 
+
+	/// Instancing enabled?
+	if (instancingEnabled)
+	{	
+		// Turn it off first, though.
+		glUniform1i(shader->uniformInstancingEnabled, 0);
+	}
 	Entity * entity;
 	GraphicsProperty * gp;
 	// Render all entities listed in the graphicsState!
@@ -472,6 +486,15 @@ void RenderPass::RenderEntities()
 		// Render the model
 		entity->model->Render(*graphicsState);
 		++graphicsState->renderedObjects;		// increment rendered objects for debug info
+	}
+	if (instancingEnabled)
+	{
+		glUniform1i(shader->uniformInstancingEnabled, 1);
+		for (int i = 0; i < entityGroupsToRender.Size(); ++i)
+		{
+			RenderInstancingGroup * group = entityGroupsToRender[i];
+			group->Render();
+		}
 	}
 	timer.Stop();
 	FrameStats.renderEntities += timer.GetMs();

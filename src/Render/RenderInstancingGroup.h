@@ -45,9 +45,11 @@ private:
 	/// Base model and texture on the reference.
 	Entity * reference;
 	/// Necessary buffers?
-	float * matrixData;
+	float * matrixData, 
+		* normalMatrixData;
 	/// Number of entities that fit in the current buffers.
 	int bufferEntityLength;
 	/// For instanced particle rendering. Some buffers.
-	GLuint matrixBuffer;
+	GLuint matrixBuffer,
+		normalMatrixBuffer;
 };

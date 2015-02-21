@@ -83,12 +83,15 @@ public:
 	List<Entity*> entities;
 	/// Those requiring depth-sorting and usually rendered in a separate alpha-pass?
 	Entities alphaEntities;
-	Entities solidEntities; // Non-alphas...
-	Entities shadowCastingEntities;
-	Entities shadowCastingEntitiesNotInstanced;
+	Entities solidEntities,
+		solidEntitiesNotInstanced; // Non-alphas...
+	// Shadows..
+	Entities shadowCastingEntities,
+		shadowCastingEntitiesNotInstanced;
+
 
 	/// Sublist.
-	List<RenderInstancingGroup*> shadowCastingEntityGroups;
+	List<RenderInstancingGroup*> shadowCastingEntityGroups, solidEntityGroups;
 	/// Contains all groups
 	List<RenderInstancingGroup*> entityGroups;
 
