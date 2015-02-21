@@ -103,7 +103,7 @@ public:
 	/// Recalculates projection matrix only.
 	void UpdateProjectionMatrix();
 	/// Updates all components of the view-matrix. Calls Track() for tracking modes.
-	void UpdateViewMatrix(bool track = true);
+	void UpdateViewMatrix(bool track = true, float timeInSeconds = 0);
 	/// Extracts camera position, lookAt, etc. from the current matrices.
 	void ExtractData();
 

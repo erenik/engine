@@ -342,7 +342,7 @@ void Camera::UpdateProjectionMatrix()
 }
 
 /// Updates all components of the view-matrix.
-void Camera::UpdateViewMatrix(bool track /* = true*/)
+void Camera::UpdateViewMatrix(bool track /* = true*/, float timeInSeconds /* = 0 */)
 {
 	/// 3rd Person "static-world-rotation" camera
 	if (track)
@@ -356,11 +356,15 @@ void Camera::UpdateViewMatrix(bool track /* = true*/)
 	}
 	/// Apply any after-effects here, such as 'shake', etc.
 
+
+
 	/// Smooth out position and rotations no matter what.
-	smoothedPosition = smoothedPosition * smoothing + positionWithOffsets * (1 - smoothing);
+	float smoothingRatio = pow(smoothing, timeInSeconds);
+	float aSmoothingRatio = 1 - smoothingRatio;
+	smoothedPosition = smoothedPosition * smoothingRatio + positionWithOffsets * aSmoothingRatio;
 	// Add 20% of the diff.
-	smoothedRotation.SmoothTo(rotation, (1 - smoothing));
-	smoothedDFCOM = smoothedDFCOM * smoothing + distanceFromCenterOfMovement * (1 - smoothing);
+	smoothedRotation.SmoothTo(rotation, aSmoothingRatio);
+	smoothedDFCOM = smoothedDFCOM * smoothingRatio + distanceFromCenterOfMovement * aSmoothingRatio;
 	
 	/// Add a switch case if new/other techniques are requested -> move code from the TrackBehind, etc. to there.
 	Matrix4d v2, r2;
@@ -476,7 +480,7 @@ void Camera::Update(const Time & now, bool force)
 
 	/// Update respective matrices.
 	UpdateProjectionMatrix();
-	UpdateViewMatrix();
+	UpdateViewMatrix(true, timeInSeconds);
 
 	/// To avoid unneccessaray updates, idk
 	this->lastUpdate = now;

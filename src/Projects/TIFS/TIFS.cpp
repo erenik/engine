@@ -28,6 +28,9 @@ WeatherSystem * weather = NULL;
 
 bool tifsInstancingEnabled = true;
 
+float cameraSmoothing = 0.3f;
+
+
 /// Lists to clear upon deletion of the map.
 List< List<Entity*> *> entityLists; 
 
@@ -201,7 +204,13 @@ void TIFS::ProcessMessage(Message * message)
 				TIFSTurretProperty::defaultRecoilSpringConstant = msg.Tokenize("()")[1].ParseFloat();
 			else if (msg.StartsWith("TurretRecoilLinearDamping"))
 				TIFSTurretProperty::defaultRecoilLinearDamping= msg.Tokenize("()")[1].ParseFloat();
-
+			
+			/// Camera?
+			if (msg.StartsWith("CameraSmoothing"))
+			{
+				cameraSmoothing = msg.Tokenize("()")[1].ParseFloat();
+				ResetCamera();
+			}
 			// Map creation.
 			if (msg.StartsWith("SetFieldSize"))
 			{
@@ -377,7 +386,7 @@ void TIFS::ResetCamera()
 	firstPersonCamera->trackingPositionOffset = Vector3f(0,3.5f,0);
 	thirdPersonCamera->trackingPositionOffset = Vector3f(0,3.5f,0);
 
-	thirdPersonCamera->smoothing = 0.4f;
+	thirdPersonCamera->smoothing = cameraSmoothing;
 
 	thirdPersonCamera->minTrackingDistance = 3.5f;
 	thirdPersonCamera->maxTrackingDistance = 7.5f;
