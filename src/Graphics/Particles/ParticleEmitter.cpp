@@ -208,6 +208,8 @@ void ParticleEmitter::Update()
 /// Query how many particles this emitter wants to emit, considering the time that has elapsed.
 int ParticleEmitter::ParticlesToEmit(float timeInSeconds)
 {
+	if (!enabled)
+		return 0;
 	if (instantaneous)
 	{
 		return constantEmission;
@@ -294,6 +296,22 @@ bool ParticleEmitter::GetNewParticle(Vector3f & particlePosition, Vector3f & par
 	return true;
 }
 	
+#ifdef USE_SSE
+bool ParticleEmitter::GetNewParticle(SSEVec & position, SSEVec & velocity, SSEVec & particleColor, SSEVec & lds)
+{
+	Vector3f positionVec3f, velocityVec3f;
+	GetNewParticle(positionVec3f, velocityVec3f);
+	position.data = positionVec3f.data;
+	velocity.data = velocityVec3f.data;
+	particleColor.data = this->color.data;
+	lds.x = particleLifeTime;
+	lds.y = 0;
+	lds.z = scale;
+	lds.w = scale;
+	return true;
+}
+#endif
+
 
 /// Stuff.
 bool ParticleEmitter::GetNewParticle(Vector3f & position, Vector3f & velocity, float & newParticleScale, float & lifeTime, Vector4f & newParticleColor)

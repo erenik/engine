@@ -539,6 +539,9 @@ void TIFS::CreateTurret(int ofSize, ConstVec3fr atLocation)
 	prop->turretSize = ofSize;
 //	prop->yawPerSecond = prop->pitchPerSecond = pow(2.25f, (SIZES - ofSize)) * 0.2f;
 
+	/// Set position for particles of tool to emit correctly?
+	prop->position = atLocation + Vector3f(0,1.f,0);
+
 	/// Set common properties
 	Texture * specularMap = TexMan.GetTexture("img/Turrets/BigTurretSpecular.png"),
 		* normalMap = TexMan.GetTexture("img/Turrets/BigTurretNormal.png"),

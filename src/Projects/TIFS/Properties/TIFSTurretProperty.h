@@ -18,6 +18,7 @@ public:
 	/// Time passed in seconds..!
 	virtual void Process(int timeInMs);
 	
+	void Activate();
 	static int ID();
 
 	// Might not use
@@ -33,6 +34,9 @@ public:
 	static float defaultProjectileSpeed;
 	static float defaultRecoilSpeed;
 	static float defaultCooldown;
+
+	/// Center position as when aiming tool to repair it.
+	Vector3f position;
 
 	/// Determines how fast it may turn?
 	int turretSize;

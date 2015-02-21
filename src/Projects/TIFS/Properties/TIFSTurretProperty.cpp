@@ -47,8 +47,12 @@ void TIFSTurretProperty::Process(int timeInMs)
 {
 	// Do we have a target?
 	target = NULL;
-	// Is target eliminated?
 
+	/// Do nothing if not active?
+	if (!active)
+		return;
+
+	// Is target eliminated?
 	if (!target)
 	{
 		// Get new target
@@ -98,6 +102,12 @@ void TIFSTurretProperty::Process(int timeInMs)
 
 	targetLastFrame = target;
 };
+
+
+void TIFSTurretProperty::Activate()
+{
+	active = true;
+}
 
 
 void TIFSTurretProperty::Aim()

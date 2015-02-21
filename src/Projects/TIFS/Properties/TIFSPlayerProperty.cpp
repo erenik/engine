@@ -74,31 +74,35 @@ void TIFSPlayerProperty::Process(int timeInMs)
 			GraphicsQueue.Add(new GMAttachParticleEmitter(toolParticleEmitter, tifs->toolParticles));
 		}
 		// Set position.
-		toolParticleEmitter->SetPositionAndTarget(owner->worldPosition + Vector3f(0,1.2f, 0), lastRaycastTargetPosition);
+		Vector3f particleDestination = targetTurret? targetTurret->position : lastRaycastTargetPosition;
+		toolParticleEmitter->SetPositionAndTarget(owner->worldPosition + Vector3f(0,1.2f, 0), particleDestination);
 		
 		// Depending on our target and tool-type, do stuff.
 		switch(toolMode)
 		{
 			// Repairing
 			case 0:
-				toolParticleEmitter->particleVelocity = 5.f;
-				toolParticleEmitter->color = Vector4f(1.f, 1.f, 0.05f, 1.f);
-				toolParticleEmitter->particleScale = 0.4f;
+				toolParticleEmitter->emissionVelocity = 5.f;
+				toolParticleEmitter->color = Vector4f(1.f, 1.f, 0.05f, 0.3f);
+				toolParticleEmitter->scale = 0.4f;
 				if (targetTurret)
 				{
 					// Repair it! o-o
-					targetTurret->currentHP = (targetTurret->currentHP + timeInMs) % targetTurret->maxHP;
+					targetTurret->currentHP = (targetTurret->currentHP + timeInMs);
 					if (targetTurret->currentHP > targetTurret->maxHP)
 					{
 						// Play some SFX to notify completion?
+						targetTurret->currentHP = targetTurret->maxHP;
+						/// Activate it.
+						targetTurret->Activate();
 					}
 				}
 				break;
 			// Activate
 			case 1:
-				toolParticleEmitter->particleVelocity = 10.f;
-				toolParticleEmitter->particleScale = 0.2f;
-				toolParticleEmitter->color = Vector4f(0.1f, 1.f, 1.f, 1.f);
+				toolParticleEmitter->emissionVelocity = 10.f;
+				toolParticleEmitter->scale = 0.2f;
+				toolParticleEmitter->color = Vector4f(0.1f, 1.f, 1.f, 0.2f);
 				if (targetTurret)
 				{
 				
@@ -106,9 +110,9 @@ void TIFSPlayerProperty::Process(int timeInMs)
 				break;
 			// Targetting
 			case 2:
-				toolParticleEmitter->particleVelocity = 25.f;
-				toolParticleEmitter->particleScale = 0.1f;
-				toolParticleEmitter->color = Vector4f(1.f, 0.2f, 1.f, 1.f);
+				toolParticleEmitter->emissionVelocity = 25.f;
+				toolParticleEmitter->scale = 0.1f;
+				toolParticleEmitter->color = Vector4f(1.f, 0.2f, 1.f, 0.1f);
 				if (targetDrone)
 				{
 				

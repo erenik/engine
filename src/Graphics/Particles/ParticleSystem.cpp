@@ -153,17 +153,17 @@ void ParticleSystem::Process(float timeInSeconds)
 	ProcessParticles(timeInSeconds);
 	timer.Stop();
 	//	float particleProcessing, particleSpawning, particleBufferUpdate;
-	FrameStats.particleProcessing = timer.GetMs();
-	int timeInMs = timeInSeconds * 1000;
+	FrameStats.particleProcessing = (float)timer.GetMs();
+	int timeInMs = (int) (timeInSeconds * 1000);
 	timer.Start();
 	SpawnNewParticles(timeInMs);
 	timer.Stop();
-	FrameStats.particleSpawning = timer.GetMs();
+	FrameStats.particleSpawning = (float) timer.GetMs();
 	// Update buffers to use when rendering.
 	timer.Start();
 	UpdateBuffers();
 	timer.Stop();
-	FrameStats.particleBufferUpdate = timer.GetMs();
+	FrameStats.particleBufferUpdate = (float) timer.GetMs();
 }
 
 /// Integrates all particles.
@@ -209,8 +209,76 @@ void ParticleSystem::ProcessParticles(float & timeInSeconds)
 /// Spawns new particles depending on which emitters are attached.
 void ParticleSystem::SpawnNewParticles(int & timeInMs)
 {
+	if (emissionPaused)
+		return;
+	float timeInSeconds = (timeInMs % 200) * 0.001f;
+	// Optionally add global emitter as in the PrecipitationSystem?
+//	SpawnNewGlobal(timeInMs);
+
 #ifdef SSE_PARTICLES
-//		positionsSSE[i] = _mm_add_ps(positions[i].data, _mm_mul_ps(sseTime, _mm_add_ps(velocities[i].data, weather->globalWind.data)));
+	__m128 sse;
+//		positionsSSE[i] = _mm_add_ps(positions[i].data, _mm_mul_ps(sseTime, _mm_add_ps(velocities[i].data, weather->globalWind.data)));	
+	/// Spawn new particles as wanted.
+	for (int i = 0; i < emitters.Size(); ++i)
+	{
+		ParticleEmitter * emitter = emitters[i];
+		emitter->elapsedDurationMs += timeInMs;
+		// Spawn for max 0.2 seconds at a time.
+		float timeInSecondsCulled = MinimumFloat(timeInSeconds, 0.2f);
+		int particlesToEmit = emitter->ParticlesToEmit(timeInSeconds);
+		// Update emitters, e.g. if they require any special positions based on other entities.
+		emitter->Update();
+		// Try and emit each particles that the emitter wants to emit.
+		for (int j = 0; j < particlesToEmit; ++j)
+		{
+			// Grab free index.
+			int freeIndex = aliveParticles;
+			// Skip if reaching max.
+			if (freeIndex >= this->maxParticles)
+			{
+				LogGraphics("Emitter unable to spawn particle. Max particles reached.", DEBUG);
+				break;
+			}
+			// o.o
+#ifdef USE_SSE
+			emitter->GetNewParticle(positionsSSE[freeIndex], velocitiesSSE[freeIndex], colorsSSE[freeIndex], ldsSSE[freeIndex]);
+			/// Translate the particle as if the emitter has been emitting throughout the whole duration.
+			float factor = j / (float)particlesToEmit;
+			sse = _mm_load1_ps(&factor);
+			positionsSSE[freeIndex].data = _mm_add_ps(positionsSSE[freeIndex].data, _mm_mul_ps(velocitiesSSE[freeIndex].data, sse));
+#else
+			emitter->GetNewParticle(positions[freeIndex], velocities[freeIndex], scales[freeIndex], lifeTimes[freeIndex], colors[freeIndex]);
+			// Multiply velocity by our multiplier?
+			Vector3f & velocity = velocities[freeIndex];
+			velocity *= this->emissionVelocity;
+			// Reset duration to 0 to signify that it is newly spawned.
+			lifeDurations[freeIndex] = 0;
+#endif
+			// Increment amount of living particles.
+			++aliveParticles;
+		}
+		/// Check if the emitter should be deleted after some time.
+		if ((emitter->deleteAfterMs > 0 && emitter->elapsedDurationMs > emitter->deleteAfterMs) ||
+			emitter->instantaneous)
+		{
+			// If so, delete it then!
+			emitters.Remove(emitter);
+			--i;
+			delete emitter;
+		}
+	}
+	/// If no emitters are present and default emitter is enabled..
+	if (emitters.Size() == 0 && !this->emitWithEmittersOnly)
+	{
+		/// Prepare some data
+		int spawnedThisFrame = 0;
+		int toSpawnThisFrameTotal = (int)floor(emissionsPerSecond * timeInSeconds * emissionRatio+0.5f);
+		int toSpawn = toSpawnThisFrameTotal;
+	
+		for (int i = 0; i < toSpawnThisFrameTotal; ++i)
+		{
+		}
+	}
 	
 #else // Not SSE_PARTICLES
 
@@ -614,7 +682,8 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
     glDisable(GL_COLOR_MATERIAL);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 	
-
+	// Enable depth-test?
+	glEnable(GL_DEPTH_TEST);
  
 	// Draw the particules !
 	// This draws many times a small triangle_strip (which looks like a quad).

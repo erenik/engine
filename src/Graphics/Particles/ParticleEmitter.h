@@ -92,9 +92,11 @@ public:
 	int ParticlesToEmit(float timeInSeconds);
 	/// Default new particle.
 	virtual bool GetNewParticle(Vector3f & position, Vector3f & velocity);
-	/// Extended particle emission.
+	/// Extended particle emission. lds is lifetime (current), duration (max before death), scale (xy, stored in zw).
+#ifdef USE_SSE
+	virtual bool GetNewParticle(SSEVec & position, SSEVec & velocity, SSEVec & color, SSEVec & lds);
+#endif
 	virtual bool GetNewParticle(Vector3f & position, Vector3f & velocity, float & scale, float & lifeTime, Vector4f & color);
-
 	void SetParticleLifeTime(float timeInSeconds);
 	void SetEmissionVelocity(float vel);
 	void SetParticlesPerSecond(int num);
@@ -138,6 +140,16 @@ public:
 	Vector3f positionOffset;
 	/// That it is currently attached to.
 	List<ParticleSystem*> particleSystems;
+
+	// o.o
+	float emissionVelocity;
+	// Particle scale
+	float scale;
+	/// Particle life time in.. seconds?
+	float particleLifeTime;
+	/// Default (1,1,1,1) or the same as the particle system it is used in.
+	Vector4f color;
+
 private:
 
 	// Time we started emitting particles. Used to calculate how many particles we should emit next!
@@ -153,15 +165,9 @@ private:
 	/// Calculate in ParticlesToEmit, decremented each time GetNewParticle is called.
 	int toSpawn;
 
-	// o.o
-	float emissionVelocity;
-	// Particle scale
-	float scale;
 
 	/// Current elapsed duration for the emitter.
 	int elapsedDurationMs;
-	/// Particle life time in.. seconds?
-	float particleLifeTime;
 
     int shapeType;
     Mesh * m;
@@ -169,9 +175,6 @@ private:
 	// See enum above.
 	int type;
 	
-	/// Default (1,1,1,1) or the same as the particle system it is used in.
-	Vector4f color;
-
 	// o.o
 	Random random;
 };

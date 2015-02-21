@@ -13,12 +13,10 @@ class ToolParticleSystem : public ParticleSystem
 public:
 	ToolParticleSystem();
 	virtual ~ToolParticleSystem();
-	/** Processes the particles within the system, moving them wherever they are going or performing whatever transformation they should ungergo.
-		If emitters are attached to this system they may also automatically create or emit new particles.
-	*/
-    virtual void Process(float timeInSeconds);
+	
+	void ProcessParticles(float & timeInSeconds);
 	/// Renders the particles
-	virtual void Render(GraphicsState * graphicsState);
+//	virtual void Render(GraphicsState * graphicsState);
 
 private:
 	/// Easiest check for the particles, set a max distance for them
@@ -40,11 +38,8 @@ public:
 	/// sets positions and updates direction as well as max distance.
 	void SetPositionAndTarget(ConstVec3fr position, ConstVec3fr target);
 
-	// Attributes to set to the new particles to spawn.
-	float particleScale;
-	float particleVelocity;
+//	float particleVelocity;
 	float lifetime;
-	Vector4f color;
 	Vector3f direction;
 	Vector3f position;
 	Vector3f targetPosition;
