@@ -17,7 +17,8 @@ struct EntityPair
     void PrintDetailed();
 };
 
-struct AABBSweepNode {
+struct AABBSweepNode
+{
     AABBSweepNode();
     enum types {
         NULL_TYPE,
@@ -26,7 +27,10 @@ struct AABBSweepNode {
     };
     AABB * aabb;
     Entity * entity;
+	// Pointer to value.
+	float * value;
     int type;
+	bool sortedOnce;
 };
 
 class AABBSweeper {

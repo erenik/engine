@@ -29,10 +29,13 @@ void EntityPair::PrintDetailed()
     std::cout<<"\nTwo min/max: "<<twoab->min<<" "<<twoab->max;
 }
 
-AABBSweepNode::AABBSweepNode(){
+AABBSweepNode::AABBSweepNode()
+{
     aabb = NULL;
     entity = NULL;
     type = NULL_TYPE;
+	sortedOnce = false;
+	value = NULL;
 };
 
 AABBSweeper::AABBSweeper()
@@ -72,6 +75,7 @@ void AABBSweeper::RegisterEntity(Entity * entity)
 {
     assert(entity);
     assert(entity->physics);
+	assert(entity->physics->collisionsEnabled);
     AABB * aabb = entity->aabb;
 	AABBSweepNode * nodes[6];
 	for (int i = 0; i < 6; ++i)
@@ -79,17 +83,18 @@ void AABBSweeper::RegisterEntity(Entity * entity)
 		nodes[i] = NULL;
 	}
 	// Create the nodes.
-    for (int i = 0; i < 6; ++i)
+	for (int i = 0; i < axesToWorkWith * 2; ++i)
 	{
         nodes[i] = new AABBSweepNode();
         nodes[i]->entity = entity;
         nodes[i]->aabb = aabb;
         nodes[i]->type = (i%2 ? AABBSweepNode::START : AABBSweepNode::STOP);
+		nodes[i]->value = &(i%2 ? aabb->min : aabb->max)[i/2];
 //        std::cout<<"\nNode type created: "<<nodes[i]->type<<" "<< (nodes[i]->type == AABBSweepNode::START ? "Start" : "Stop") ;
     }
 
 
-	for (int i = 0; i < 6; ++i)
+	for (int i = 0; i < axesToWorkWith * 2; ++i)
 	{
 		axisNodeList[i / 2].Add(nodes[i]);    
 	   	/// Save the nodes in the entity for future usage (deletion primarily).
@@ -269,8 +274,8 @@ List<EntityPair> AABBSweeper::Sweep()
 				if (debug == 3 && node->entity->name == "Player")
 					std::cout<<"\nActive entities: "<<numActiveEntities;
 				/// Since "entity" will be any kind, demand that the node entering now is dynamic. Will filter a bit.
-				if (node->entity->physics->type != PhysicsType::DYNAMIC ||
-					(node->entity->physics->state & PhysicsState::IN_REST))
+				if (node->entity->physics->type == PhysicsType::DYNAMIC &&
+					!(node->entity->physics->state & PhysicsState::IN_REST))
 					++dynamicEntitiesInside;
 				if (!dynamicEntitiesInside)
 				{
@@ -316,7 +321,9 @@ List<EntityPair> AABBSweeper::Sweep()
             else if (node->type == AABBSweepNode::STOP)
 			{
                 activeEntities.RemoveItemUnsorted(node->entity);
-				--dynamicEntitiesInside;
+				if (node->entity->physics->type == PhysicsType::DYNAMIC &&
+					!(node->entity->physics->state & PhysicsState::IN_REST))
+					--dynamicEntitiesInside;
             }
         }
     }
@@ -349,40 +356,46 @@ void AABBSweeper::Sort(List<AABBSweepNode*> & listToSort, int axis)
     AABBSweepNode * currentNode, * comparisonNode, * tempSwapNode;
     float currentValue, comparisonValue;
     int emptySlot;
+	/// Since we are sorting only one way, optimizations require looking out for movements in the other direction.
+	bool sortedLastIteration = false;
+	bool skip = false;
+	int i, j;
     /// Manual sort, commence!
-    for (int i = 1; i < items; ++i)
+    for (i = 1; i < items; ++i)
 	{
         /// Grab current node, starting from index 0 and moving towards the end.
         currentNode = listArray[i];
-        /// Mark this index as empty for the time being.
+		skip = false;
+		/// If static, Check if initially sorted. No need to look at this more then.
+		if (currentNode->entity->physics->type == PhysicsType::STATIC && currentNode->sortedOnce)
+			skip = true;
+		if (sortedLastIteration)
+			skip = false;
+		if (skip)
+			continue;
+		// Set default.
+		sortedLastIteration = false;
+		// But in the case of dynamic entities, make sure those after check for sorting with it.
+		if (currentNode->entity->physics->type != PhysicsType::STATIC)
+			sortedLastIteration = true;
+
+		/// Mark this index as empty for the time being.
         emptySlot = i;
 		/// Extract current value depending on the node type (start, stop) and axis.
-        if (currentNode->type == AABBSweepNode::START)
-            currentValue = currentNode->aabb->min[axis];
-        else if (currentNode->type == AABBSweepNode::STOP)
-            currentValue = currentNode->aabb->max[axis];
-        else {
-            std::cout<<"\nBad node type: "<<currentNode->type;
-            assert(false && "Bad AABBSweepNode type");
-        }
+		currentValue = *currentNode->value;
 
         /// Assume all previous nodes have already been sorted, and compare only with them (comparing downwards)!
-        for (int j = i-1; j >= 0; --j)
+        for (j = i-1; j >= 0; --j)
 		{
             comparisonNode = listArray[j];
-
             /// Extract comparison value depending on the node type (start, stop) and axis.
-            if (comparisonNode->type == AABBSweepNode::START)
-                comparisonValue = comparisonNode->aabb->min[axis];
-            else if (comparisonNode->type == AABBSweepNode::STOP)
-                comparisonValue = comparisonNode->aabb->max[axis];
-            else
-                assert(false && "Bad AABBSweepNode type");
-
+            comparisonValue = *comparisonNode->value;
             /// If the current value is less, move up the comparer and move down the empty slot index.
-            if (currentValue < comparisonValue){
+            if (currentValue < comparisonValue)
+			{
                 listArray[emptySlot] = listArray[j];
                 --emptySlot;
+				sortedLastIteration = true;
             }
             /// A lesser value was encountered! Stop shuffling around and place the current node in the now empty slot.
             else {
@@ -391,6 +404,8 @@ void AABBSweeper::Sort(List<AABBSweepNode*> & listToSort, int axis)
             }
         }
         listArray[emptySlot] = currentNode;
+		// Mark the sortedOnce flag, so we only sort static entities once upon registration.
+		currentNode->sortedOnce = true;
     }
 	if (debug == 2)
 	{

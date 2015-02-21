@@ -654,9 +654,12 @@ void TIFS::NewGame()
 //	SpawnPlayer();
 
 	// Mothership.
-	Entity * mothership = MapMan.CreateEntity("Mothership", ModelMan.GetModel("obj/Mothership/Mothership.obj"), TexMan.GetTexture("0x77"));
-	PhysicsQueue.Add(new PMSetEntity(mothership, PT_POSITION, Vector3f(0,1000,0)));
-	PhysicsQueue.Add(new PMSetEntity(mothership, PT_SET_SCALE, 3.f));
+	Entity * motherShip = EntityMan.CreateEntity("Mothership", ModelMan.GetModel("obj/Mothership/Mothership.obj"), TexMan.GetTexture("0x77"));
+	motherShip->position = Vector3f(0,1000,0);
+	motherShip->SetScale(Vector3f(1,1,1) * 3.f);
+	PhysicsProperty * pp = motherShip->physics = new PhysicsProperty();
+	pp->type = PhysicsType::STATIC;
+	MapMan.AddEntity(motherShip);
 
 	/// Set 3rd person camera as default.
 	GraphicsQueue.Add(new GMSetCamera(thirdPersonCamera));
