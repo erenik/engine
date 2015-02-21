@@ -21,7 +21,7 @@ bool GraphicsManager::RegisterEntity(Entity * entity)
 		std::cout<<"\nNote: Entity already registered, re-registering";
 		UnregisterEntity(entity);
 	}
-	registeredEntities.Add(entity);
+	registeredEntities.AddItem(entity);
 	if (optimizationStructure == VFC_OCTREE)
 		vfcOctree->AddEntity(entity);
 	entity->registeredForRendering = true;
@@ -68,7 +68,7 @@ int GraphicsManager::RegisterEntities(List<Entity*> & toRegister){
 /// Removes an Entity from the rendering vfcOctree.
 bool GraphicsManager::UnregisterEntity(Entity * entity)
 {
-	bool result = registeredEntities.Remove(entity);
+	bool result = registeredEntities.RemoveItemUnsorted(entity);
 	if (!result){
 //		std::cout<<"\nWARNING: Unable to remove entity, already unregistered?";
 		return false;
@@ -100,14 +100,14 @@ bool GraphicsManager::UnregisterEntity(Entity * entity)
 		{
 			Light * light = gp->dynamicLights[i];
 			List<Light*> & dynamicLights = graphicsState->dynamicLights;
-			bool removed = dynamicLights.Remove(light);
+			bool removed = dynamicLights.RemoveItemUnsorted(light);
 			assert(removed);
 		}
 		List<ParticleSystem*> & entityParticleSystems = gp->particleSystems;
 		for (int i = 0; i < entityParticleSystems.Size(); ++i)
 		{
 			ParticleSystem * ps = entityParticleSystems[i];
-			bool succeeded = particleSystems.Remove(ps);
+			bool succeeded = particleSystems.RemoveItemUnsorted(ps);
 		}
 	}
 

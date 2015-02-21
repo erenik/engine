@@ -39,8 +39,14 @@ public:
 	// Called once per viewport that is rendered.
 	void Render();
 
+	/// Based on reference.
+	String name;
 	/// See enum above. Default 0.
 	int options;
+
+	/// o.o based on initial reference entity.
+	bool isShadowCasting;
+	bool isSolid;
 private:
 	/// Base model and texture on the reference.
 	Entity * reference;

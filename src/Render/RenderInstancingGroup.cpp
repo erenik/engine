@@ -12,6 +12,7 @@
 #include "File/LogFile.h"
 #include "ShaderManager.h"
 #include "Texture.h"
+#include "Graphics/GraphicsProperty.h"
 
 RenderInstancingGroup::RenderInstancingGroup()
 {
@@ -43,7 +44,13 @@ void RIG::AddEntity(Entity * entity)
 {
 	// Claiming a disowned empty group.
 	if (reference == NULL)
+	{
+		name = "RIG-"+entity->name;
+		/// o.o based on initial reference entity.
+		isShadowCasting = entity->graphics->castsShadow;
 		reference = entity;
+		isSolid = !(entity->graphics->flags & RenderFlag::ALPHA_ENTITY);
+	}
 	AddItem(entity);
 }
 /// Removes all occurences of any items in the sublist in this list. Also re-points the reference pointer if needed.
@@ -53,7 +60,10 @@ void RIG::RemoveEntity(Entity * entity)
 	if (entity == reference)
 	{
 		if (currentItems > 0)
+		{
 			reference = arr[0];
+			name = "RIG-"+reference->name;
+		}
 		else
 			reference = NULL;
 	}
@@ -71,10 +81,11 @@ void RenderInstancingGroup::UpdateBuffers(bool force)
 		// Put a minimum.
 		if (bufferEntityLength < 10)
 			bufferEntityLength = 10;
-		SAFE_DELETE(matrixData);
+		SAFE_DELETE_ARR(matrixData);
 		matrixData = new float[bufferEntityLength * 16];
 
 		// Assume normal matrices are wanted.
+		SAFE_DELETE_ARR(normalMatrixData);
 		normalMatrixData = new float[bufferEntityLength * 16];
 	}
 	else 

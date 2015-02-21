@@ -114,9 +114,6 @@ private:
 	/// Estimators which are currently tweaking various graphic-specific values over time.
 	List<Estimator*> estimators;
 
-	/// Groups it belongs to in the render-system.
-	RenderInstancingGroup * shadowGroup;
-
 	/// Sets current animation. Only called from the GMSetEntity message. If faulty, animation will be nullified.
 	void SetAnimation(String name);
 	/// Sets queued animation. Only called from the GMSetEntity message.

@@ -63,19 +63,7 @@ void GraphicsState::AddEntity(Entity * entity)
 	else 
 	{
 		solidEntities.AddItem(entity);
-		if (gp->renderInstanced)
-		{
-			RIG * rig = GetGroup(solidEntityGroups, entity);
-			if (rig)
-				rig->AddEntity(entity);
-			else
-			{
-				rig = new RIG(entity);
-				solidEntityGroups.AddItem(rig);
-				entityGroups.AddItem(rig);
-			}
-		}
-		else
+		if (!gp->renderInstanced)
 			solidEntitiesNotInstanced.AddItem(entity);
 	}
 	/// Shadow groups
@@ -83,43 +71,63 @@ void GraphicsState::AddEntity(Entity * entity)
 	{
 		shadowCastingEntities.AddItem(entity);
 		// Add to instancing groups as requested based on the given boolean flags.
-		if (gp->renderInstanced)
-		{
-			RIG * rig = GetGroup(shadowCastingEntityGroups, entity);
-			if (rig)
-				rig->AddEntity(entity);
-			else 
-			{
-				// New shadow group.
-				rig = new RIG(entity);
-				shadowCastingEntityGroups.AddItem(rig);
-				entityGroups.AddItem(rig);
-			}
-			gp->shadowGroup = rig;
-		}
-		else 
+		if (!gp->renderInstanced)
 		{
 			shadowCastingEntitiesNotInstanced.AddItem(entity);
 		}
 	}
+	/// Setup instance render groups if needed.
+	if (!gp->renderInstanced)
+		return;
+	RIG * rig = GetGroup(entityGroups, entity);
+	if (rig)
+		rig->AddEntity(entity);
+	else
+	{
+		rig = new RIG(entity);
+		entityGroups.AddItem(rig);
+		if (rig->isSolid)
+			solidEntityGroups.AddItem(rig);
+		if (rig->isShadowCasting)
+			shadowCastingEntityGroups.AddItem(rig);
+	}	
 }
+
 void GraphicsState::RemoveEntity(Entity * entity)
 {
 	GraphicsProperty * gp = entity->graphics;
 	/// Specific groups.
 	if (gp->flags & RenderFlag::ALPHA_ENTITY)
 		graphicsState->alphaEntities.RemoveItemUnsorted(entity);
-	else 
-		graphicsState->solidEntities.RemoveItemUnsorted(entity);
-
-	/// Shadow groups.
+	else  
+	{
+		solidEntities.RemoveItemUnsorted(entity);
+		if (!gp->renderInstanced)
+			solidEntitiesNotInstanced.RemoveItemUnsorted(entity);
+	}
 	if (gp->castsShadow)
 	{
 		graphicsState->shadowCastingEntities.RemoveItemUnsorted(entity);
-		if (gp->renderInstanced)
-			gp->shadowGroup->RemoveEntity(entity);
-		else 
+		if (!gp->renderInstanced)
 			graphicsState->shadowCastingEntitiesNotInstanced.RemoveItemUnsorted(entity);
+	}
+
+	/// Remove from instancing groups as needed.
+	if (gp->renderInstanced)
+	{
+		for (int i = 0; i < entityGroups.Size(); ++i)
+		{
+			RIG * rig = entityGroups[i];
+			rig->RemoveEntity(entity);
+			if (rig->reference == 0)
+			{
+				entityGroups.RemoveItemUnsorted(rig);
+				shadowCastingEntityGroups.RemoveItemUnsorted(rig);
+				solidEntityGroups.RemoveItemUnsorted(rig);
+				delete rig;
+				--i;
+			}
+		}
 	}
 }
 
@@ -140,12 +148,9 @@ RenderInstancingGroup * GraphicsState::GetGroup(List<RenderInstancingGroup*> & f
 		RIG * rig = fromListOfGroups[i];
 		// Compare with reference entity.
 		Entity * reference = rig->reference;
-		if (reference == NULL)
+		if (!reference)
 		{
-			// What arrre ya doing here?! Delete 'em!
-			fromListOfGroups.RemoveItemUnsorted(rig);
-			delete rig;
-			--i;
+			// Delete it?
 			continue;
 		}
 		if (reference->model == entity->model)
