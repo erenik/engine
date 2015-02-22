@@ -123,9 +123,9 @@ void EntityManager::MarkEntitiesForDeletion(List<Entity*> entitiesToMark)
 		{
 			entity->flaggedForDeletion = true;
 			entity->deletionTimeMs = 3000;
+			entitiesToDelete.Add(entitiesToMark);
 		}
 	}
-	entitiesToDelete.Add(entitiesToMark);
 }
 
 

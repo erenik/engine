@@ -153,7 +153,9 @@ enum physicsTargets{
 };
 
 // General message class for all messages not requiring additional arguments.
-class PhysicsMessage {
+class PhysicsMessage 
+{
+	friend class PhysicsManager;
 public:
 	PhysicsMessage();
 	/** Explicitly declared destructor to avoid memory leaks.

@@ -115,21 +115,21 @@ void PhysicsManager::Process()
 	/// Process any available physics messages first
 	ProcessMessages();
 	timer.Stop();
-	int ms = timer.GetMs();
+	int64 ms = timer.GetMs();
 	FrameStats.physicsMessages = ms;
 	timer.Start();
 	// Process physics from here in order to avoid graphical issues
 	ProcessPhysics();
 	timer.Stop();
-	int ms2 = timer.GetMs();
-	FrameStats.physicsProcessing = ms2;
+	int64 ms2 = timer.GetMs();
+	FrameStats.physicsProcessing = (float) ms2;
 	if (mesManMessages.Size())
 	{
 		MesMan.QueueMessages(mesManMessages);
 		mesManMessages.Clear();
 	}
 	totalPhysics.Stop();
-	FrameStats.totalPhysics = totalPhysics.GetMs();
+	FrameStats.totalPhysics = (float) totalPhysics.GetMs();
 }
 
 
@@ -150,31 +150,79 @@ void PhysicsManager::InitOctree(float leftBound, float rightBound, float topBoun
 /// Casts a ray.
 List<Intersection> PhysicsManager::Raycast(Ray & ray)
 {
+	Timer timer;
+	timer.Start();
+	Timer timer2;
+	timer2.Start();
 	// Pause physics while at it ? <- lollll
 //	Pause();
-	List<Intersection> intersections;
+	static List<Intersection> intersections;
+	intersections.Clear();
 	// Grab entities.
-	List<Entity*> entities = physicalEntities;
+	static List<Entity*> entities;
+	entities.Clear();
 
-	// Do some initial filtering, as most of the entities will either: not be relevant for the raycast or may be culled quickly using a sphere-ray check.
-	
+	Sphere sphere;
+
+	Vector3f rayOriginToEntityCenter, pointOnRay, pointOnRayToEntity;
+	float rayOriginToEntityCenterProjectedOntoRayDir, distAlongRay, distAlongRaySquared, distSquared, scaleSquared;
+	// Do some initial filtering, as most of the entities will either: not be relevant for the raycast or may be culled quickly using a sphere-ray check.	
+	for (int i = 0; i < physicalEntities.Size(); ++i)
+	{
+		Entity * entity = physicalEntities[i];
+		PhysicsProperty * pp = entity->physics;
+		/// Do a simple dot-product check first for early out, no matter what physics-shape.
+#ifdef USE_SSE
+		SSEVec sse;
+		rayOriginToEntityCenter.data = _mm_sub_ps(entity->aabb->position.data, ray.start.data);
+		sse.data = _mm_mul_ps(ray.direction.data, rayOriginToEntityCenter.data);
+		rayOriginToEntityCenterProjectedOntoRayDir = sse.x + sse.y + sse.z;// ray.direction.DotProduct(rayOriginToEntityCenter);		
+		sse.data = _mm_sub_ps(entity->aabb->max.data, entity->aabb->position.data);
+		sse.data = _mm_mul_ps(sse.data, sse.data);
+		scaleSquared = sse.x + sse.y + sse.z;
+#else
+		rayOriginToEntityCenter = entity->aabb->position - ray.start;
+		rayOriginToEntityCenterProjectedOntoRayDir = ray.direction.DotProduct(rayOriginToEntityCenter);
+#endif
+		distAlongRay = rayOriginToEntityCenterProjectedOntoRayDir;
+		distAlongRaySquared = distAlongRay * distAlongRay;
+		if (distAlongRay < 0)
+		{
+			/// Comparison will be on negative ray axis, since we checked that beforre.
+			if (distAlongRaySquared  > scaleSquared)
+			{
+				continue;
+			}
+		}
+		// Do simple sphere-line projection check too.
+#ifdef USE_SSE
+		sse.data = _mm_load1_ps(&rayOriginToEntityCenterProjectedOntoRayDir);
+		pointOnRay.data = _mm_add_ps(ray.start.data, _mm_mul_ps(ray.direction.data, sse.data));
+		pointOnRayToEntity.data = _mm_sub_ps(entity->aabb->position.data, pointOnRay.data);
+		sse.data = _mm_mul_ps(pointOnRayToEntity.data, pointOnRayToEntity.data);
+		distSquared = sse.x + sse.y + sse.z;
+#else
+		pointOnRay = ray.start + ray.direction * rayOriginToEntityCenterProjectedOntoRayDir;
+		pointOnRayToEntity = entity->aabb->position - pointOnRay;
+		distSquared = pointOnRayToEntity.LengthSquared();
+		scaleSquared = (entity->aabb->max - entity->aabb->position).LengthSquared();
+#endif
+		if (distSquared > scaleSquared)
+		{
+			continue;
+		}
+		entities.Add(entity);
+	}
+	timer2.Stop();
+	int64 initialFilter = timer2.GetMs();
+
+	timer2.Start();
 	// Do brute-force ray-casting. Improve later.
 	float distance;
 	for (int i = 0; i < entities.Size(); ++i)
 	{
 		Entity * entity = entities[i];
 		PhysicsProperty * pp = entity->physics;
-		/// Do a simple dot-product check first for early out, no matter what physics-shape.
-		Vector3f rayOriginToEntityCenter = entity->aabb->position - ray.start;
-		float rayOriginToEntityCenterProjectedOntoRayDir = ray.direction.DotProduct(rayOriginToEntityCenter);
-		float distAlongRay = rayOriginToEntityCenterProjectedOntoRayDir;
-		float distAlongRaySquared = distAlongRay * distAlongRay;
-		if (distAlongRay < 0)
-		{
-			/// Comparison will be on negative ray axis, since we checked that beforre.
-			if (distAlongRaySquared  > entity->aabb->scale.LengthSquared())
-				continue;
-		}
 		switch(pp->shapeType)
 		{
 			case PhysicsShape::SPHERE:
@@ -223,6 +271,9 @@ List<Intersection> PhysicsManager::Raycast(Ray & ray)
 				assert(false);
 		}
 	}
+	timer2.Stop();
+	int64 checks = timer2.GetMs();
+	timer2.Start();
 	// Sort by distance.. No D:?
 	for (int i = 0; i < intersections.Size(); ++i)
 	{
@@ -238,7 +289,11 @@ List<Intersection> PhysicsManager::Raycast(Ray & ray)
 			}
 		}
 	}
+	timer2.Stop();
+	int64 sortByDistance = timer2.GetMs();
 
+	timer.Stop();
+	int64 ms = timer.GetMs();
 	// Resume if paused.
 //	Resume();
 	return intersections;
@@ -592,9 +647,21 @@ void PhysicsManager::ProcessMessages()
 	/// Then start actually processing the messages.
 	Time startTime = Time::Now(),
 		currTime;
+	bool skipHeavy = false;
 	for (int i = 0; i < messages.Size(); ++i)
 	{
 		PhysicsMessage * msg = messages[i];
+		if (skipHeavy)
+		{
+			switch(msg->type)
+			{
+				case PM_RAYCAST:
+				{
+					delete msg;
+					continue;
+				}
+			}
+		}
 		msg->Process();
 		processedMessages.AddItem(msg);
 		
@@ -606,10 +673,10 @@ void PhysicsManager::ProcessMessages()
 			if ((currTime - startTime).Milliseconds() > 100)
 			{
 				// Break and postpone messages.
-				std::cout<<"\nPhysics messages consuming over 100 ms, queueing the rest for next frame.";
-				requeuedMessages = messages.Part(i + 1);
+				std::cout<<"\nPhysics messages consuming over 100 ms, starting to skip time-consuming requests.";
+				skipHeavy = true;
+			//	requeuedMessages = messages.Part(i + 1);
 //				requeuedMessages.ClearAndDelete();
-				break;
 			}
 		}
 		
