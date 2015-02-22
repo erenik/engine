@@ -132,7 +132,6 @@ ToolParticleEmitter::ToolParticleEmitter()
 : ParticleEmitter()
 {
 	emissionVelocity = 5.f;
-	lifetime = 5.f;
 	direction = Vector3f(1,0,0);
 	scale = 1.f;
 	particlesPerSecond = 500;
@@ -147,11 +146,11 @@ bool ToolParticleEmitter::GetNewParticle(Vector3f & newPPos, Vector3f & velocity
 	return false;
 }
 /// Extended particle emission.
-bool ToolParticleEmitter::GetNewParticle(Vector3f & position, Vector3f & velocity, float & newParticleScale, float & particleLifetime, Vector4f & particleColor)
+bool ToolParticleEmitter::GetNewParticle(Vector3f & position, Vector3f & velocity, float & newParticleScale, float & lifetime, Vector4f & particleColor)
 {
 	position = this->position;
 	velocity = emissionVelocity * direction;
-	particleLifetime = lifetime;
+	lifetime = particleLifeTime;
 	particleColor = this->color;
 	newParticleScale = scale;
 	return true;
@@ -180,5 +179,5 @@ void ToolParticleEmitter::SetPositionAndTarget(ConstVec3fr startPosition, ConstV
 	targetPosition = targetPos;
 	direction = (targetPosition - position).NormalizedCopy();
 	float distance = (targetPosition - position).Length();
-	lifetime = distance / emissionVelocity;
+	particleLifeTime = distance / emissionVelocity;
 }

@@ -39,7 +39,6 @@ public:
 	void SetPositionAndTarget(ConstVec3fr position, ConstVec3fr target);
 
 //	float particleVelocity;
-	float lifetime;
 	Vector3f direction;
 	Vector3f position;
 	Vector3f targetPosition;

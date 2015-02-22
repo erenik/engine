@@ -30,6 +30,8 @@ public:
 	// Default false. Enable to steer this entity.
 	bool inputFocus;
 
+	/// Default true. Will raycast mouse position each frame.
+	bool raycast;
 	// Set this or it won't be able to move.
 	float movementSpeed;
 	// 2 frictions, one when moving, other when (trying to) stand still.
@@ -37,7 +39,6 @@ public:
 	float frictionOnRun;
 	float jumpSpeed;
 	int jumpCooldownMs;
-
 
 protected:
 	/** Checks states via InputManager. Regular key-bindings should probably still be defined in the main game state 

@@ -31,8 +31,14 @@ public:
 private:
 	void UpdateHUDTargetInfo();
 
-	int toolMode;
-
+	enum 
+	{
+		REPAIR,
+		ACTIVATE,
+		REDIRECT_FIRE,
+	};
+	int toolMode, previousToolMode;
+	float repairSpeed;
 	Vector3f targetPositionSmoothed;
 
 	ToolParticleEmitter * toolParticleEmitter;
@@ -40,6 +46,16 @@ private:
 	TIFSDroneProperty * targetDrone;
 	TIFSTurretProperty * targetTurret;
 	TIFSPlayerProperty * targetPlayer;
+
+	Entity * previousTarget;
+
+	float repairCapacityConsumption;
+	float capacitorTransferSpeed;
+
+	float capacitorValue;
+	int maxCapacitorValue;
+	float capacitorRegenPerSecond;
+
 };
 
 #endif

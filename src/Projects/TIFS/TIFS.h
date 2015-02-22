@@ -94,6 +94,8 @@ enum
 	SIZES, // 4?
 };
 
+extern float timeDiffS;
+
 // Default true?
 extern bool tifsInstancingEnabled;
 

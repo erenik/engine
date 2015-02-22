@@ -88,11 +88,13 @@ void FirstPersonPlayerProperty::ProcessMessage(Message * message)
 
 		case MessageType::RAYCAST:
 		{
-			Raycast * raycast = (Raycast*) message;
-			List<Intersection> contacts = raycast->isecs;
+			if (!this->raycast)
+				return;
+			Raycast * raycastMessage = (Raycast*) message;
+			List<Intersection> contacts = raycastMessage->isecs;
 			targets.Clear();
 
-			Ray ray = raycast->ray;
+			Ray ray = raycastMessage->ray;
 			if (contacts.Size())
 			{
 				lastRaycastTargetPosition = ray.start + ray.direction * contacts[0].distance;
@@ -209,7 +211,8 @@ void FirstPersonPlayerProperty::ProcessInput()
 	{
 		
 		// Check mouse position.
-		UpdateTargetsByCursorPosition();
+		if (raycast)
+			UpdateTargetsByCursorPosition();
 
 
 		// Free-form running (relative to camera)

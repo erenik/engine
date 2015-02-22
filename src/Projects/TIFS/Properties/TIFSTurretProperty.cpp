@@ -20,6 +20,8 @@ float TIFSTurretProperty::defaultRecoilLinearDamping = 0.125f;
 float TIFSTurretProperty::defaultProjectileSpeed = 1000.f;
 float TIFSTurretProperty::defaultRecoilSpeed = 1.0f;
 
+Random turretSpawnRandom;
+
 TIFSTurretProperty::TIFSTurretProperty(Entity * base, Entity * swivel, Entity * underBarrel, Entity * barrel)
 : EntityProperty("TIFSTurretProperty", TIFSProperty::TURRET, NULL), base(base), swivel(swivel), underBarrel(underBarrel), barrel(barrel)
 {
@@ -30,10 +32,17 @@ TIFSTurretProperty::TIFSTurretProperty(Entity * base, Entity * swivel, Entity * 
 	projectileSpeed = defaultProjectileSpeed;
 	shootCooldown = weaponCooldownMs = defaultTurretCooldown;
 	maxHP = 40000;
-	currentHP = 20000;
+	currentHP = (float) turretSpawnRandom.Randi(maxHP);
+
+	currentCapacitorValue = 0;
+	capacitorDecayPerSecond = 10;
+	capacitorDecayPerShot = 100;
+	maxCapacitorValue = 10000;
 
 	pitchPerSecond = yawPerSecond = defaultPitchYawPerSecond;
 	targetLastFrame = NULL;
+
+	activatable = active = false;
 }
 
 int TIFSTurretProperty::ID()
@@ -47,6 +56,17 @@ void TIFSTurretProperty::Process(int timeInMs)
 {
 	// Do we have a target?
 	target = NULL;
+
+	if (currentCapacitorValue > 0)
+	{
+		DrainCapacitor(capacitorDecayPerSecond * timeDiffS);
+		/// De-activate.
+		if (currentCapacitorValue < 0)
+		{
+			active = false;
+			return;
+		}
+	}
 
 	/// Do nothing if not active?
 	if (!active)
@@ -104,11 +124,46 @@ void TIFSTurretProperty::Process(int timeInMs)
 };
 
 
-void TIFSTurretProperty::Activate()
+void TIFSTurretProperty::Repair(float amount)
 {
-	active = true;
+	currentHP += amount;
+	if (currentHP > maxHP)
+	{
+		// Play some SFX to notify completion?
+		currentHP = (float)maxHP;
+		activatable = true;
+	}
 }
 
+void TIFSTurretProperty::Activate(float capacitorTransfer)
+{
+	if (!activatable)
+		return;
+	currentCapacitorValue += capacitorTransfer;
+	if (!active && currentCapacitorValue > maxCapacitorValue)
+	{
+		active = true;
+	}
+	ClampCapacitorValue();
+}
+
+void TIFSTurretProperty::DrainCapacitor(float amount)
+{
+	currentCapacitorValue -= amount;
+	if (active && currentCapacitorValue < 0)
+	{
+		active = false;
+		// Disable rotational velocities too?
+		PhysicsQueue.Add(new PMSetEntity(base, PT_ANGULAR_VELOCITY, Quaternion()));
+		PhysicsQueue.Add(new PMSetEntity(underBarrel, PT_ANGULAR_VELOCITY, Quaternion()));
+	}
+	ClampCapacitorValue();
+}
+
+void TIFSTurretProperty::ClampCapacitorValue()
+{
+	ClampFloat(currentCapacitorValue, 0, (float)maxCapacitorValue);
+}
 
 void TIFSTurretProperty::Aim()
 {

@@ -1019,7 +1019,7 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 				// Hex detected!
 				if (line.Contains("0x"))
 				{
-					element->textColor = Color::ColorByHexName(NEXT_TOKEN);
+					defaultTextColor = Color::ColorByHexName(NEXT_TOKEN);
 				}
 				else 
 				{

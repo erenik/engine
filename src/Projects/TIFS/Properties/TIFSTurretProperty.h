@@ -18,7 +18,10 @@ public:
 	/// Time passed in seconds..!
 	virtual void Process(int timeInMs);
 	
-	void Activate();
+	void Repair(float repairAmount);
+	void Activate(float capacitorTransfer);
+	void DrainCapacitor(float amount);
+
 	static int ID();
 
 	// Might not use
@@ -45,7 +48,15 @@ public:
 	Angle lastYaw;
 	Angle lastPitch;
 
-	int currentHP, maxHP;
+	float currentCapacitorValue;
+	float capacitorDecayPerSecond;
+	float capacitorDecayPerShot;
+	int maxCapacitorValue;
+
+	bool activatable;
+	float currentHP;
+	int maxCapacity, maxHP;
+
 	bool active;
 	// current cooldown.
 	int shootCooldown;
@@ -56,6 +67,7 @@ private:
 	bool springsCreated;
 
 	bool shoot;
+	void ClampCapacitorValue();
 	void Aim();
 	bool Reload(int timeInMs);
 	void Shoot();

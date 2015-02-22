@@ -30,6 +30,7 @@ bool tifsInstancingEnabled = true;
 
 float cameraSmoothing = 0.3f;
 
+float timeDiffS = 0.001;
 
 /// Lists to clear upon deletion of the map.
 List< List<Entity*> *> entityLists; 
@@ -148,6 +149,7 @@ void TIFS::Process(int timeInMs)
 	if (paused)
 		return;
 	timeInMs %= 100;
+	timeDiffS = timeInMs * 0.001f;
 	weather->Process(timeInMs);
 }
 
@@ -345,6 +347,8 @@ void TIFS::ProcessMessage(Message * message)
 				GraphicsQueue.Add(new GMSetUI(ui));
 				StateMan.QueueState(NULL);
 			}
+			else if (msg == "ShowHUD")
+				ShowHUD();
 			else if (msg == "ResetCamera")
 				ResetCamera();
 			break;	
@@ -361,9 +365,9 @@ void TIFS::CreateDefaultBindings()
 	bindings.Add(new Binding(Action::FromString("NextCamera"), KEY::C));
 //	bindings.Add(new Binding(Action::FromString("ToggleAutorun"), KEY::R));
 	bindings.Add(new Binding(Action::FromString("ToggleMainMenu"), KEY::ESC));
-	bindings.Add(new Binding(Action::FromString("Repair"), KEY::F1));
-	bindings.Add(new Binding(Action::FromString("Activate"), KEY::F2));
-	bindings.Add(new Binding(Action::FromString("RedirectFire"), KEY::F3));
+	bindings.Add(new Binding(Action::FromString("Repair"), KEY::ONE));
+	bindings.Add(new Binding(Action::FromString("Activate"), KEY::TWO));
+	bindings.Add(new Binding(Action::FromString("RedirectFire"), KEY::THREE));
 }
 
 
