@@ -99,6 +99,8 @@ void WeatherSystem::ProcessMessage(Message * message)
 				Model * model = ModelMan.GetModel(arg);
 				GraphicsQueue.AddItem(new GMSetParticleSystem(cloudSystem, GT_PARTICLE_MODEL, model));
 			}
+			else if (msg.StartsWith("CloudScaleVariance"))
+				cloudSystem->scaleVariance = arg.ParseFloat();
 			else if (msg.StartsWith("CloudicleScale"))
 				cloudSystem->scale = arg.ParseFloat() * Vector2f(1,1);
 			else if (msg.StartsWith("CloudEmitterScale"))
@@ -107,6 +109,8 @@ void WeatherSystem::ProcessMessage(Message * message)
 				cloudSystem->particleLifeTime = arg.ParseFloat();
 			else if (msg.StartsWith("CloudAmount"))
 				cloudSystem->cloudAmount = arg.ParseFloat();
+			else if (msg.StartsWith("CloudSpeed"))
+				cloudSystem->cloudSpeed.ReadFrom(arg);
 			else if (msg.StartsWith("CloudColor"))
 				cloudSystem->color.ReadFrom(arg, " ,");
 			else if (msg.Contains("SunDistance"))

@@ -32,7 +32,9 @@ CloudSystem::CloudSystem(WeatherSystem * weatherSystem)
 	this->color = Vector4f(0.9f,0.92f,0.95f,1.f);
 	blendFuncDest = GL_ONE_MINUS_SRC_ALPHA;
 
+	scaleVariance = 0.2f;
 	maxParticles = 500000;
+	cloudSpeed = Vector3f(40,0,0);
 
 	shaderName = "CloudParticles";
 	modelName = "sphere";
@@ -52,7 +54,7 @@ void CloudSystem::ProcessParticles(float & timeInSeconds)
 	__m128 sseTime = _mm_load1_ps(&timeInSeconds);
 #endif
 	/// Move/Process all alive particles
-	const Vector3f wind = weather->globalWind;
+	Vector3f wind = weather->globalWind + cloudSpeed;
 	for (int i = 0; i < aliveParticles; ++i)
 	{
 #ifdef SSE_PARTICLES
@@ -134,8 +136,6 @@ void CloudSystem::SpawnNewGlobal(int timeInMs)
 	float lifeTime;
 	Vector4f pColor;
 
-	lifeTime = particleLifeTime;
-	float floats[4] = {lifeTime , 0, scale.x, scale.y};
 
 	for (int j = 0; j < cloudiclesToEmit; ++j)
 	{
@@ -150,10 +150,15 @@ void CloudSystem::SpawnNewGlobal(int timeInMs)
 		// Position based on the global emitter (default an XZ plane.
 		globalEmitter.Position(position);
 		// Add random from 0 to 1.0 to get some variation in height?
-		position.y += rand()*oneDivRandMaxFloat;
+		position.y += rand()*oneDivRandMaxFloat * scale.x;
 		// Add all offsets, such as altitude, camera position and offset due to wind.
 		position += allPositionOffsets;
 		/// Big rain (5 mm), 9 m/s, drizzle (0.5mm), 2 m/s.
+
+		lifeTime = particleLifeTime;
+		Vector2f cloudScale = scale * (1 + cloudRand.Randf(scaleVariance));
+		float floats[4] = {lifeTime , 0, scale.x, scale.y};
+
 
 		/// Copy over data.
 		positionsSSE[freeIndex].data = position.data;

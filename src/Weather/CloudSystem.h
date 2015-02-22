@@ -24,6 +24,9 @@ public:
 
 //	virtual void Render(GraphicsState & graphicsState);
 
+	/// For high-altitude shits
+	Vector3f cloudSpeed;
+	float scaleVariance;
 	/// Base altitude for the clouds. This would be lower for a coastal region and higher for a mountainous region.
 	float altitude;
 	/// Amount for the global precipitation. Default 0. 1 is 1 rain-drop or snowflake per square-meter (assuming quadratic emitter area).
@@ -38,6 +41,7 @@ private:
 	/// If no cloud-system, spawns globally, based on the given boundaries (.
 	void SpawnNewGlobal(int timeInMs);
 	WeatherSystem * weather;
+	Random cloudRand;
 };
 
 #endif
