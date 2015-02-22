@@ -7,6 +7,7 @@
 class GraphicsState;
 class Entity;
 class Texture;
+class Model;
 
 #include "ParticleEmitter.h"
 #include <String/AEString.h>
@@ -82,6 +83,9 @@ public:
 	/// Applied to all particles.
 	Vector2f scale;
 
+	/// Model used for rendering the particles.
+	String modelName;
+	Model * model;
 	/// Settings
 	bool pointsOnly;
 	Texture * diffuse;
@@ -113,9 +117,15 @@ public:
 	/// If true, will delete attached emitters on deletion. True by default.
 	bool deleteEmittersOnDeletion;
 
+	/// E.g. GL_ONE, GL_ONE_MINUS_SRC_ALPHA
+	int blendFuncDest;
 	// Should be one of GL_FUNC_ADD, GL_FUNC_SUBTRACT and GL_FUNC_REVERSE_SUBTRACT. Defualt is GL_FUNC_ADD.
 	int blendEquation;
 protected:
+	/// For setting specific uniforms after most other properties have been set up.
+	virtual void SetUniforms();
+	/// By default, "ParticleFlatColor"
+	String shaderName;
 	bool initialized;
 	/** Renders using instanced functions such as glDrawArraysInstanced and glVertexAttribDivisor, requiring GL versions
 		3.1 and 3.3 respectively. Ensure these requirements are fulfilled before calling the function or the program will crash.

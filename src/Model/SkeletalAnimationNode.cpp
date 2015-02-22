@@ -48,11 +48,11 @@ void SkeletalAnimationNode::ParseRotation(XMLElement * element)
 	Xarg * arg = element->GetArgument("sid");
 	String rotation = arg->value;
 	if (rotation == "jointOrientZ")
-		jointOrientZ.ReadFrom(element->data);
+		jointOrientZ.ReadFrom(element->data,  " ,");
 	else if (rotation == "jointOrientY")
-		jointOrientY.ReadFrom(element->data);
+		jointOrientY.ReadFrom(element->data, " ,");
 	else if (rotation == "jointOrientX")
-		jointOrientX.ReadFrom(element->data);
+		jointOrientX.ReadFrom(element->data,  " ,");
 }
 
 // Loads animations for this node, by comparing the source ID of this node with animation channel targets in the animation library.

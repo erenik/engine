@@ -64,7 +64,7 @@ public:
 	/// Reads from file stream.
 	void ReadFrom(std::fstream & file);
 	/// Reads from String. Expects space-separated values. E.g. 3 8.14 -15 0.0
-	void ReadFrom(const String & string);
+	void ReadFrom(const String & string, const String & tokenizers);
 	/// Parses from string. Expects in the form of first declaring order "XY", "X Y" or "YX", then parses the space-separated values.
 	void ParseFrom(const String & string);
 

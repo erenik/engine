@@ -322,7 +322,11 @@ void TIFS::ProcessMessage(Message * message)
 			{
 				// check this somehow..
 				UserInterface * ui = ActiveUI();
+				if (!ui)
+					return;
 				UIElement * e = ui->GetElementByName("MainMenu");
+				if (!e)
+					return;
 				bool mainMenuOpen = e->visible;
 				if (mainMenuOpen)
 				{

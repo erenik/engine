@@ -4,17 +4,21 @@
 /// as well as sun-shadow systems.
 
 #include "WeatherSystem.h"
+#include "CloudSystem.h"
 #include "PrecipitationSystem.h"
 #include "Graphics/GraphicsManager.h"
+#include "Graphics/Messages/GraphicsMessages.h"
 #include "Graphics/Messages/GMParticles.h"
 #include "Graphics/Messages/GMLight.h"
 #include "Message/Message.h"
 #include "Light.h"
 #include "StateManager.h"
 #include "PhysicsLib/EstimatorVec3f.h"
+#include "Model/ModelManager.h"
 
 WeatherSystem::WeatherSystem()
 {
+	cloudSystem = NULL;
 	precipitationSystem = NULL;
 	precipitationEmitter = NULL;
 	sun = NULL;
@@ -31,8 +35,11 @@ WeatherSystem::~WeatherSystem()
 /// Allocates resources.
 void WeatherSystem::Initialize()
 {
+	cloudSystem = new CloudSystem(this);
+	GraphicsQueue.Add(new GMRegisterParticleSystem(cloudSystem, true));
 	precipitationSystem = new PrecipitationSystem(this);
 	GraphicsQueue.Add(new GMRegisterParticleSystem(precipitationSystem, true));
+
 	sunLight = new Light("SunLight");
 	sunLight->position = Vector3f(0, 50.f, 0);
 	// Add a light?
@@ -49,6 +56,7 @@ void WeatherSystem::Initialize()
 
 void WeatherSystem::Shutdown()
 {
+	GraphicsQueue.Add(new GMUnregisterParticleSystem(cloudSystem, true));
 	GraphicsQueue.Add(new GMUnregisterParticleSystem(precipitationSystem, true));
 }
 
@@ -69,6 +77,8 @@ void WeatherSystem::ProcessMessage(Message * message)
 	{
 		case MessageType::STRING:
 		{
+			List<String> words = msg.Tokenize("()");
+			String arg = words.Size() > 1? words[1] : "";
 			if (msg.StartsWith("Wind("))
 			{
 				String vecStr = msg.Tokenize("()")[1];
@@ -84,6 +94,21 @@ void WeatherSystem::ProcessMessage(Message * message)
 				String str = msg.Tokenize("()")[1];
 				precipitationSystem->altitude = str.ParseFloat();
 			}
+			else if (msg.StartsWith("CloudParticleModel"))
+			{
+				Model * model = ModelMan.GetModel(arg);
+				GraphicsQueue.AddItem(new GMSetParticleSystem(cloudSystem, GT_PARTICLE_MODEL, model));
+			}
+			else if (msg.StartsWith("CloudicleScale"))
+				cloudSystem->scale = arg.ParseFloat() * Vector2f(1,1);
+			else if (msg.StartsWith("CloudEmitterScale"))
+				cloudSystem->globalEmitter.SetScale(arg.ParseFloat());
+			else if (msg.StartsWith("CloudLifeTime"))
+				cloudSystem->particleLifeTime = arg.ParseFloat();
+			else if (msg.StartsWith("CloudAmount"))
+				cloudSystem->cloudAmount = arg.ParseFloat();
+			else if (msg.StartsWith("CloudColor"))
+				cloudSystem->color.ReadFrom(arg, " ,");
 			else if (msg.Contains("SunDistance"))
 			{
 				sunDistance = msg.Tokenize("() ")[1].ParseFloat();

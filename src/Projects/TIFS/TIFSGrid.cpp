@@ -117,6 +117,11 @@ bool TIFSGrid::GetNewPlayerPosition(Vector3f & playerPos)
 {
 	// Set their positions.
 	List<TIFSTile*> tiles = grid.GetTiles();
+	if (roads.Size() == 0)
+	{
+		playerPos = Vector3f(0,5,0);
+		return true;
+	}
 	// Randomize a few times?
 	int tries = 0;
 	while (tries < 1000)

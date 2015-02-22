@@ -118,9 +118,11 @@ public:
 	GMSetParticleSystem(ParticleSystem * ps, int target, int iValue);
 	GMSetParticleSystem(ParticleSystem * ps, int target, bool bValue);
 	GMSetParticleSystem(ParticleSystem * ps, int target, String sValue);
+	GMSetParticleSystem(ParticleSystem * ps, int target, Model * model);
 	virtual void Process();
 private:
 	ParticleSystem * ps;
+	Model * model;
 	int target;
 	Vector3f vec3Value;
 	float fValue;

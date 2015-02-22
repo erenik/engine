@@ -18,6 +18,10 @@
 
 #include "File/LogFile.h"
 
+#include "Model/Model.h"
+#include "Model/ModelManager.h"
+#include "Mesh/Mesh.h"
+
 ParticleSystem::ParticleSystem(String type, bool emitWithEmittersOnly)
 	: type(type), name("Undefined"), emitWithEmittersOnly(emitWithEmittersOnly)
 {
@@ -40,6 +44,8 @@ ParticleSystem::ParticleSystem(String type, bool emitWithEmittersOnly)
 	particleColorData = NULL;
 #endif
 
+
+	shaderName = "ParticleFlatColor";
 	maxParticles = 100000;
 
     relativeTo = NULL;
@@ -57,6 +63,8 @@ ParticleSystem::ParticleSystem(String type, bool emitWithEmittersOnly)
 	useInstancedRendering = true;
 	deleteEmittersOnDeletion = true;
 
+	model = NULL;
+	blendFuncDest = GL_ONE;
 	// Default? https://www.khronos.org/opengles/sdk/docs/man/xhtml/glBlendEquation[0]ml
 	blendEquation = GL_FUNC_ADD;
 	initialized = false;
@@ -75,6 +83,7 @@ ParticleSystem::ParticleSystem(String type, bool emitWithEmittersOnly)
 	emissionVelocity = 1.0f;
 	aliveParticles = 0;
     color = Vector4f(0.1f, 0.5f, 0.4f, 1.0f);
+	modelName = "sprite";
 }
 
 ParticleSystem::~ParticleSystem()
@@ -112,6 +121,9 @@ void ParticleSystem::Initialize()
 	// Allocate the particle data arrays.
 	AllocateArrays();
 	initialized = true;
+	// Grab model.
+	model = ModelMan.GetModel(modelName);
+	assert(model);
 }
 
 
@@ -169,41 +181,62 @@ void ParticleSystem::Process(float timeInSeconds)
 /// Integrates all particles.
 void ParticleSystem::ProcessParticles(float & timeInSeconds)
 {
+	Timer timer;
+	timer.Start();
+#ifdef USE_SSE
+	__m128 sseTime = _mm_load1_ps(&timeInSeconds);
+#endif
+	/// Move/Process all alive particles
+//	const Vector3f wind = weather->globalWind;
+	for (int i = 0; i < aliveParticles; ++i)
+	{
 #ifdef SSE_PARTICLES
-	/*
-	/// Move/Process all alive particles
-	for (int i = 0; i < aliveParticles; ++i)
-	{
-		positionsSSE[i] = _mm_add_ps(positionsSSE[i], _mm_mul_ps(sseTime, _mm_add_ps(velocitiesSSE[i], weather->globalWind.data)));
-	}
-	*/
+		positionsSSE[i].data = _mm_add_ps(positionsSSE[i].data, _mm_mul_ps(sseTime, velocitiesSSE[i].data));
 #else // Not SSE_PARTICLES
-	float velocityDecay = pow(0.55f, timeInSeconds);
-	/// Move/Process all alive particles
+		assert(false && "Implement");
+#endif // SSE_PARTICLES
+	}
+	timer.Stop();
+	FrameStats.particleProcessingIntegrate += timer.GetMs();
+
+	/// Make them older.
+	timer.Start();
 	for (int i = 0; i < aliveParticles; ++i)
 	{
-		positions[i] += velocities[i] * timeInSeconds;
-		velocities[i] *= velocityDecay;
+#ifdef SSE_PARTICLES
+		ldsSSE[i].y += timeInSeconds;	
+#else // Not SSE_PARTICLES
+		// No velocity decay.
 		lifeDurations[i] += timeInSeconds;
-		// If duration has elapsed life-time..
-		if (lifeDurations[i] > lifeTimes[i])
+#endif // SSE_PARTICLES
+	}
+	timer.Stop();
+	FrameStats.particleProcessingOldify = timer.GetMs();
+
+
+	/// Look for dead particles and move them out of our way.
+	timer.Start();
+	for (int i = 0; i < aliveParticles; ++i)
+	{
+#ifdef SSE_PARTICLES
+		if (ldsSSE[i].y > ldsSSE[i].x)
 		{
 			int lastIndex = aliveParticles - 1;
-			// Kill it, by moving in the last used data to replace it.
-			positions[i] = positions[lastIndex];
-			velocities[i] = velocities[lastIndex];
-			lifeDurations[i] = lifeDurations[lastIndex];
-			colors[i] = colors[lastIndex];
-			lifeTimes[i] = lifeTimes[lastIndex];
-			scales[i] = scales[lastIndex];
-
+			positionsSSE[i] = positionsSSE[lastIndex];
+			velocitiesSSE[i] = velocitiesSSE[lastIndex];
+			colorsSSE[i] = colorsSSE[lastIndex];
+			ldsSSE[i] = ldsSSE[lastIndex];
 			// Decrement i so we don't skip processing of the one we moved back.
 			--i;
 			// Decrement alive particles.
 			--aliveParticles;
-		}
-	}
+		}			
+#else
+		assert(false && "Implement?");
 #endif
+	}
+	timer.Stop();
+	FrameStats.particleProcessingRedead += timer.GetMs();
 }
 
 /// Spawns new particles depending on which emitters are attached.
@@ -281,107 +314,49 @@ void ParticleSystem::SpawnNewParticles(int & timeInMs)
 	}
 	
 #else // Not SSE_PARTICLES
-
-	float timeInSeconds = (timeInMs % 200) * 0.001f;
-	/// Spawn new particles as wanted.
-	for (int i = 0; i < emitters.Size(); ++i)
-	{
-		ParticleEmitter * emitter = emitters[i];
-		emitter->elapsedDurationMs += timeInMs;
-		// Spawn for max 0.2 seconds at a time.
-		float timeInSecondsCulled = MinimumFloat(timeInSeconds, 0.2f);
-		int particlesToEmit = emitter->ParticlesToEmit(timeInSeconds);
-		emitter->Update();
-
-		// Try and emit each particles that the emitter wants to emit.
-		for (int j = 0; j < particlesToEmit; ++j)
-		{
-			// Grab free index.
-			int freeIndex = aliveParticles;
-			// Skip if reaching max.
-			if (freeIndex >= this->maxParticles)
-			{
-//				std::cout<<"\nEmitter unable to spawn particle. Max particles reached.";
-				break;
-			}
-			assert(false && "Fix GetNewParticle so that it supports the new Vector2f scale");
-			//			emitter->GetNewParticle(positions[freeIndex], velocities[freeIndex], scales[freeIndex], lifeTimes[freeIndex], colors[freeIndex]);
-			// Multiply velocity by our multiplier?
-			Vector3f & velocity = velocities[freeIndex];
-			velocity *= this->emissionVelocity;
-			// Reset duration to 0 to signify that it is newly spawned.
-			lifeDurations[freeIndex] = 0;
-			// Increment amount of living particles.
-			++aliveParticles;
-		}
-		/// Check if the emitter should be deleted after some time.
-		if ((emitter->deleteAfterMs > 0 && emitter->elapsedDurationMs > emitter->deleteAfterMs) ||
-			emitter->instantaneous)
-		{
-			// If so, delete it then!
-			emitters.Remove(emitter);
-			--i;
-			delete emitter;
-		}
-	}
-	/// If no emitters are present and default emitter is enabled..
-	if (emitters.Size() == 0 && !this->emitWithEmittersOnly)
-	{
-		/// Prepare some data
-		int spawnedThisFrame = 0;
-		int toSpawnThisFrameTotal = (int)floor(emissionsPerSecond * timeInSeconds * emissionRatio+0.5f);
-		int toSpawn = toSpawnThisFrameTotal;
-	
-		for (int i = 0; i < toSpawnThisFrameTotal; ++i)
-		{
-		}
-	}
 #endif
 }	
 
 /// Update buffers to use when rendering.
 void ParticleSystem::UpdateBuffers()
 {
-#ifdef SSE_PARTICLES
-//		positionsSSE[i] = _mm_add_ps(positions[i].data, _mm_mul_ps(sseTime, _mm_add_ps(velocities[i].data, weather->globalWind.data)));
-	// Should be no update required.
-#else // Not SSE_PARTICLES
-
-#ifdef USE_SSE
-	Vector4f colorMult;
-	float m = 255.f;
-	__m128 mul = _mm_load1_ps(&m);
-#endif
-	for (int i = 0; i < aliveParticles; ++i)
+	// The VBO containing the positions and sizes of the particles
+	if (particlePositionScaleBuffer == -1)
 	{
-		Vector3f & pos = positions[i];
-		int index = i * 4;
-		particlePositionSizeData[index] = pos[0];
-		particlePositionSizeData[index+1] = pos[1];
-		particlePositionSizeData[index+2] = pos[2];
-
-		Vector4f & color = colors[i];
-		// Multiply color?
-#ifdef USE_SSE
-		colorMult.data = _mm_mul_ps(color.data, mul);
-		particleColorData[index] = colorMult.x;
-		particleColorData[index+1] = colorMult.y;
-		particleColorData[index+2] = colorMult.z;
-		particleColorData[index+3] = colorMult.w;		
-#else
-		particleColorData[index] = color[0] * 255;
-		particleColorData[index+1] = color[1] * 255;
-		particleColorData[index+2] = color[2] * 255;
-		particleColorData[index+3] = color[3] * 255;
-#endif
-
-//		int index2 = i * 2;
-		particleLifeTimeDurationScaleData[index] = lifeTimes[i];
-		particleLifeTimeDurationScaleData[index+1] = lifeDurations[i];
-		particleLifeTimeDurationScaleData[index+2] = scales[i].x;
-		particleLifeTimeDurationScaleData[index+3] = scales[i].y;
+		particlePositionScaleBuffer = GLBuffers::New();
+		graphicsState->BindVertexArrayBuffer(particlePositionScaleBuffer);
+		glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
 	}
+	if (particleLifeTimeDurationScaleBuffer == -1)
+	{
+		particleLifeTimeDurationScaleBuffer = GLBuffers::New();
+		graphicsState->BindVertexArrayBuffer(particleLifeTimeDurationScaleBuffer);
+		glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
+	}
+	// The VBO containing the colors of the particles
+	if (particleColorBuffer == -1)
+	{
+		particleColorBuffer = GLBuffers::New();
+		graphicsState->BindVertexArrayBuffer(particleColorBuffer);
+#ifdef SSE_PARTICLES
+		glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
+#else
+		glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLubyte), NULL, GL_STREAM_DRAW);
 #endif
+	}	
+
+#ifdef SSE_PARTICLES
+	// Buffer the actual data.
+	graphicsState->BindVertexArrayBuffer(particlePositionScaleBuffer);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, aliveParticles * sizeof(GLfloat) * 4, positionsSSE);
+ 
+	graphicsState->BindVertexArrayBuffer(particleColorBuffer);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, aliveParticles * sizeof(GLfloat) * 4, colorsSSE);
+
+	graphicsState->BindVertexArrayBuffer(particleLifeTimeDurationScaleBuffer);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, aliveParticles * sizeof(GLfloat) * 4, ldsSSE);
+#endif
+	CheckGLError("ParticleSystem::UpdateBuffers");
 }
 
 
@@ -474,6 +449,27 @@ void ParticleSystem::SetAlphaDecay(int decayType)
 	decayAlphaWithLifeTime = decayType;
 }
 
+/// For setting specific uniforms after most other properties have been set up.
+void ParticleSystem::SetUniforms()
+{
+	Shader * shader = ActiveShader();
+	// Set decay type.
+	if (shader->uniformParticleDecayAlphaWithLifeTime != -1)
+		glUniform1i(shader->uniformParticleDecayAlphaWithLifeTime, decayAlphaWithLifeTime);
+
+	Vector3f right = -graphicsState->camera->LeftVector();
+	if (shader->uniformCameraRightWorldSpace != -1)
+	{
+		glUniform3f(shader->uniformCameraRightWorldSpace, right.x, right.y, right.z);
+		Vector3f up = graphicsState->camera->UpVector();
+		glUniform3f(shader->uniformCameraUpWorldSpace, up.x, up.y, up.z);
+	}
+	if (shader->uniformScale != -1)
+		glUniform2f(shader->uniformScale, scale.x, scale.y);
+
+}
+
+
 
 /** Renders using instanced functions such as glDrawArraysInstanced and glVertexAttribDivisor, requiring GL versions
 	3.1 and 3.3 respectively. Ensure these requirements are fulfilled before calling the function or the program will crash.
@@ -481,29 +477,30 @@ void ParticleSystem::SetAlphaDecay(int decayType)
 void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 {
 	/// Fetch Particle shader.
-	Shader * shader = ShadeMan.GetShader("ParticleFlatColor");
+	Shader * shader = ShadeMan.GetShader(shaderName);
+	if (shaderName != "CloudParticles")
+		return;
 	if (!shader)
 	{
 		std::cout<<"\nNo Particle shader available";
 		return;
 	}
 	LogGraphics("ParticleSystem::RenderInstanced", DEBUG);
-	ShadeMan.SetActiveShader(shader);
+	shader = ShadeMan.SetActiveShader(shader);
+	if (!shader)
+	{
+		LogGraphics("Errerler", ERROR);
+		return;
+	}
 	// Set projection and view matrices
-	glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, graphicsState.projectionMatrixF.getPointer());
-	glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, graphicsState.viewMatrixF.getPointer());
+	Matrix4f viewProjection = graphicsState.camera->ViewProjectionF();
+	glUniformMatrix4fv(shader->uniformViewProjectionMatrix, 1, false, viewProjection.getPointer());
 	Matrix4f modelMatrix;
 	if (shader->uniformModelMatrix != -1)
 		glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, modelMatrix.getPointer());
 
-	Vector3f right = -graphicsState.camera->LeftVector();
-	glUniform3f(shader->uniformCameraRightWorldSpace, right.x, right.y, right.z);
-	Vector3f up = graphicsState.camera->UpVector();
-	glUniform3f(shader->uniformCameraUpWorldSpace, up.x, up.y, up.z);
-	glUniform2f(shader->uniformScale, scale.x, scale.y);
-
-	// Set decay type.
-	glUniform1i(shader->uniformParticleDecayAlphaWithLifeTime, decayAlphaWithLifeTime);
+	// Set uniforms
+	SetUniforms();
 
 	if (false)
 	{
@@ -514,159 +511,54 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 	// Set blend equation
 	glBlendEquation(blendEquation);
 
-	/// Based on the optimization level, will probably be pow(0.5, optimizationLevel);
-    optimizationLevel = pow(0.5f, graphicsState.optimizationLevel);
-    if (optimizationLevel == 0)
-        return;
-    assert(optimizationLevel > 0);
-    /// Calculate particles to process based on the graphicsState's optimization level.
-    particlesToProcess = (int) (optimizationLevel * maxParticles);
-
-
-	// The VBO containing the 4 vertices of the particles.
-	// Thanks to instancing, they will be shared by all particles.
-	static const GLfloat g_vertex_buffer_data[] = {
-		-0.5f, -0.5f, 0.0f,
-		0.5f, -0.5f, 0.0f,
-		-0.5f, 0.5f, 0.0f,
-		0.5f, 0.5f, 0.0f,
-	};
-	
-	/*/// For instanced particle rendering. Some buffers.
-	billboardVertexBuffer = -1;
-	particlePositionScaleBuffer = -1;
-	particleColorBuffer = -1;
-	*/
-	if (billboardVertexBuffer == -1)
-	{	
-		billboardVertexBuffer = GLBuffers::New();
-		// Buffer vertices once.
-		graphicsState.BindVertexArrayBuffer(billboardVertexBuffer);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
-	}
- 
-	// The VBO containing the positions and sizes of the particles
-	if (particlePositionScaleBuffer == -1)
-	{
-		particlePositionScaleBuffer = GLBuffers::New();
-		// Buffer vertices once.
-		graphicsState.BindVertexArrayBuffer(particlePositionScaleBuffer);
-		glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
-	}
-	if (particleLifeTimeDurationScaleBuffer == -1)
-	{
-		particleLifeTimeDurationScaleBuffer = GLBuffers::New();
-		// Initialize with empty (NULL) buffer : it will be updated later, each frame.
-		graphicsState.BindVertexArrayBuffer(particleLifeTimeDurationScaleBuffer);
-		glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
-	}
-	// The VBO containing the colors of the particles
-	if (particleColorBuffer == -1)
-	{
-		particleColorBuffer = GLBuffers::New();
-		// Initialize with empty (NULL) buffer : it will be updated later, each frame.
-		graphicsState.BindVertexArrayBuffer(particleColorBuffer);
-#ifdef SSE_PARTICLES
-		glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
-#else
-		glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLubyte), NULL, GL_STREAM_DRAW);
-#endif
-	}		
-
-	// Update the buffers that OpenGL uses for rendering.
-	// There are much more sophisticated means to stream data from the CPU to the GPU,
-	// but this is outside the scope of this tutorial.
-	// http://www.opengl.org/wiki/Buffer_Object_Streaming
-
-#ifdef SSE_PARTICLES
-	// Buffer the actual data.
-	graphicsState.BindVertexArrayBuffer(particlePositionScaleBuffer);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, aliveParticles * sizeof(GLfloat) * 4, positionsSSE);
- 
-	graphicsState.BindVertexArrayBuffer(particleColorBuffer);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, aliveParticles * sizeof(GLfloat) * 4, colorsSSE);
-
-	graphicsState.BindVertexArrayBuffer(particleLifeTimeDurationScaleBuffer);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, aliveParticles * sizeof(GLfloat) * 4, ldsSSE);
-
-#else // Not SSE_PARTICLES
-	// Buffer the actual data.
-	glBindBuffer(GL_ARRAY_BUFFER, particlePositionScaleBuffer);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, aliveParticles * sizeof(GLfloat) * 4, particlePositionSizeData);
- 
-	glBindBuffer(GL_ARRAY_BUFFER, particleColorBuffer);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, aliveParticles * 4 * sizeof(GLubyte), particleColorData);
-
-	glBindBuffer(GL_ARRAY_BUFFER, particleLifeTimeDurationScaleBuffer);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, aliveParticles * sizeof(GLfloat) * 4, particleLifeTimeDurationScaleData);
-#endif
-
-	// Bind attribute index 0 to vertex positions, attribute index 1 to incoming UV coordinates and index 2 to Normals. 
-//	glBindAttribLocation(shader->shaderProgram, 0, "in_VertexPosition");
-//	glBindAttribLocation(shader->shaderProgram, 1, "in_ParticlePositionScale");
-//	glBindAttribLocation(shader->shaderProgram, 2, "in_Color");
-
-	CheckGLError("ParticleSystem::RenderInstanced - buffering the data");
-
-	// 1rst attribute buffer : vertices
-	graphicsState.BindVertexArrayBuffer(billboardVertexBuffer);
-	glVertexAttribPointer(
-		shader->attributeVertexPosition, // attribute. Must match the layout in the shader.
-		3, // size
-		GL_FLOAT, // type
-		GL_FALSE, // normalized?
-		0, // stride
-		(void*)0 // array buffer offset
-	);
- 
-	// 2nd attribute buffer : positions of particles' centers
-	graphicsState.BindVertexArrayBuffer(particlePositionScaleBuffer);
-	glVertexAttribPointer(
-		shader->attributeParticlePositionScale, // attribute. Must match the layout in the shader.
-		4, // size : x + y + z + size => 4
-		GL_FLOAT, // type
-		GL_FALSE, // normalized?
-		0, // stride
-		(void*)0 // array buffer offset
-	);
-
-	// 3rd attribute buffer : particles' colors
-	glBindBuffer(GL_ARRAY_BUFFER, particleColorBuffer);
-	glVertexAttribPointer(
-		shader->attributeColor, // attribute. Must match the layout in the shader.
-		4, // size : r + g + b + a => 4
-#ifdef SSE_PARTICLES
-		GL_FLOAT, // already in float, from 0 to 1.
-#else
-		GL_UNSIGNED_BYTE, // type
-#endif
-		GL_TRUE, // normalized? *** YES, this means that the unsigned char[4] will be accessible with a vec4 (floats) in the shader ***
-		0, // stride
-		(void*)0 // array buffer offset
-	);
-
-	// 4th attribute buffer : life time and current duration of particles
-	glBindBuffer(GL_ARRAY_BUFFER, particleLifeTimeDurationScaleBuffer);
-	glVertexAttribPointer(
-		shader->attributeParticleLifeTimeDurationScale, // attribute. Must match the layout in the shader.
-		4, // size : x + y + z + size => 4
-		GL_FLOAT, // type
-		GL_FALSE, // normalized?
-		0, // stride
-		(void*)0 // array buffer offset
-	);
-
-
-
+	// Enable the necessary attributes?
+	assert(model);
+	if (!model)
+		return;
+	// Set up model properties first?
+	model->mesh->BindVertexBuffer();
 	// These functions are specific to glDrawArrays*Instanced*.
 	// The first parameter is the attribute buffer we're talking about.
 	// The second parameter is the "rate at which generic vertex attributes advance when rendering multiple instances"
 	// http://www.opengl.org/sdk/docs/man/xhtml/glVertexAttribDivisor[0]ml
-	glVertexAttribDivisor(shader->attributeVertexPosition, 0); // particles vertices : always reuse the same 4 vertices -> 0
-	glVertexAttribDivisor(shader->attributeParticlePositionScale, 1); // positions : one per quad (its center) -> 1
-	glVertexAttribDivisor(shader->attributeColor, 1); // color : one per quad -> 1
-	glVertexAttribDivisor(shader->attributeParticleLifeTimeDurationScale, 1); // color : one per quad -> 1
+	/// Mesh-data, re-use it all.
+	glEnableVertexAttribArray(shader->attributePosition);
+	glVertexAttribDivisor(shader->attributePosition, 0); 
+	if (shader->attributeNormal != -1)
+	{
+		glEnableVertexAttribArray(shader->attributeNormal);
+		glVertexAttribDivisor(shader->attributeNormal, 0); 
+	}
+	if (shader->attributeUV != -1)
+	{
+		glEnableVertexAttribArray(shader->attributeUV);
+		glVertexAttribDivisor(shader->attributeUV, 0); 
+	}
 
+	/// Bind vertex array/attrib pointers.
+	// 1rst attribute buffer : vertices
+	if (shader->attributeParticlePositionScale != -1)
+	{
+		graphicsState.BindVertexArrayBuffer(particlePositionScaleBuffer);
+		glEnableVertexAttribArray(shader->attributeParticlePositionScale);
+		glVertexAttribPointer(shader->attributeParticlePositionScale, 4, GL_FLOAT, GL_FALSE, 0, (void*)0);
+		glVertexAttribDivisor(shader->attributeParticlePositionScale, 1); 
+	}
+	if (shader->attributeColor != -1)
+	{
+		graphicsState.BindVertexArrayBuffer(particleColorBuffer);
+		glEnableVertexAttribArray(shader->attributeColor);
+		glVertexAttribPointer(shader->attributeColor, 4, GL_FLOAT, GL_TRUE, 0, (void*)0);
+		glVertexAttribDivisor(shader->attributeColor, 1);
+	}
+	/// Set up life time, duration and scale (used for rain).
+	if (shader->attributeParticleLifeTimeDurationScale != -1)
+	{
+		graphicsState.BindVertexArrayBuffer(particleLifeTimeDurationScaleBuffer);
+		glEnableVertexAttribArray(shader->attributeParticleLifeTimeDurationScale);
+		glVertexAttribPointer(shader->attributeParticleLifeTimeDurationScale, 4, GL_FLOAT, GL_FALSE, 0, (void*)0);
+		glVertexAttribDivisor(shader->attributeParticleLifeTimeDurationScale, 1); 
+	}
 	// Bind texture!
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glEnable(GL_TEXTURE_2D);
@@ -674,123 +566,43 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 		
 	// Fill-mode!
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
 	
 	// Additive blending
-    glDisable(GL_TEXTURE_2D);
     glDisable(GL_LIGHTING);
     glDisable(GL_COLOR_MATERIAL);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+    glBlendFunc(GL_SRC_ALPHA, blendFuncDest);
 	
 	// Enable depth-test?
 	glEnable(GL_DEPTH_TEST);
  
 	// Draw the particules !
-	// This draws many times a small triangle_strip (which looks like a quad).
-	// This is equivalent to :
-	// for(i in ParticlesCount) : glDrawArrays(GL_TRIANGLE_STRIP, 0, 4),
-	// but faster.
-	glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, aliveParticles);
+	glDrawArraysInstanced(GL_TRIANGLES, 0, model->mesh->vertexDataCount, aliveParticles);
 
 	graphicsState.BindVertexArrayBuffer(0);
+	CheckGLError("ParticleSystem::RenderInstanced");
 
 	// Reset the instancing/divisor attributes or shading will fail on other shaders after this!
-	glVertexAttribDivisor(shader->attributeVertexPosition, 0); 
 	glVertexAttribDivisor(shader->attributeParticlePositionScale, 0); 
 	glVertexAttribDivisor(shader->attributeColor, 0); 
-	glVertexAttribDivisor(shader->attributeParticleLifeTimeDurationScale, 0);
+	// Disable enabled vertex arrays.
+	glDisableVertexAttribArray(shader->attributeParticlePositionScale);
+	glDisableVertexAttribArray(shader->attributeColor);
+	// Same for optional arguments.
+	if (shader->attributeParticleLifeTimeDurationScale != -1)
+	{
+		glVertexAttribDivisor(shader->attributeParticleLifeTimeDurationScale, 0);
+		glDisableVertexAttribArray(shader->attributeParticleLifeTimeDurationScale);
+	}
+	
 
-	CheckGLError("ParticleSystem::RenderInstanced");
+	CheckGLError("ParticleSystem::RenderInstanced - unbind");
 }
 
 void ParticleSystem::RenderOld(GraphicsState & graphicsState)
 {
+	assert(false && "Deprecated.");
 #ifdef SSE_PARTICLES
-//		positionsSSE[i] = _mm_add_ps(positions[i].data, _mm_mul_ps(sseTime, _mm_add_ps(velocities[i].data, weather->globalWind.data)));
-	
 #else // Not SSE_PARTICLES
-	/// Based on the optimization level, will probably be pow(0.5, optimizationLevel);
-    optimizationLevel = pow(0.5f, graphicsState.optimizationLevel);
-    if (optimizationLevel == 0)
-        return;
-    assert(optimizationLevel > 0);
-    /// Calculate particles to process based on the graphicsState's optimization level.
-    particlesToProcess = (int) (optimizationLevel * maxParticles);
-
-
-    ShadeMan.SetActiveShader(0);
-    glMatrixMode(GL_PROJECTION);
-    glLoadMatrixf(graphicsState.projectionMatrixF.getPointer());
-    glMatrixMode(GL_MODELVIEW);
-    Matrix4f viewMatrix = graphicsState.viewMatrixF.getPointer();
-    Matrix4f modelMatrix;
-  //  if (relativeTo)
-  //      modelMatrix = relativeTo->transformationMatrix;
-    Matrix4f modelView = viewMatrix * modelMatrix;
-    glLoadMatrixf(modelView.getPointer());
-    glDisable(GL_TEXTURE_2D);
-    glDisable(GL_LIGHTING);
-    glDisable(GL_COLOR_MATERIAL);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-	// PointsU ONLU!
-	if (pointsOnly)
-	{
-		glBegin(GL_POINTS);
-		for (int i = 0; i < aliveParticles; ++i)
-		{
-			if (lifeDurations[i] >= lifeTimes[i])
-				continue;
-			glColor4f(colors[i][0], colors[i][1], colors[i][2], colors[i][3] * lifeDurations[i] / lifeTimes[i]);
-			Vector3f & p = positions[i];
-			glVertex3f(p[0], p[1], p[2]);
-		}
-		glEnd();
-	}
-	else 
-	{
-		/// Set mipmap level too?
-		int value;
-		glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, &value);
-		// 9987 9729
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, diffuse->glid);
-		Vector3f leftBase, upBase, left, up;
-		leftBase = graphicsState.camera->LeftVector() * particleSize;
-		upBase = graphicsState.camera->UpVector() * particleSize;
-		glBegin(GL_QUADS);
-		float optimizedAlpha = 1 / optimizationLevel + 2.f;
-		for (int i = 0; i < aliveParticles; ++i)
-		{
-			if (lifeDurations[i] >= lifeTimes[i])
-				continue;
-			float alpha = 0.75f * optimizedAlpha * colors[i][3] * 0.8f * pow((1.0f - lifeDurations[i] / lifeTimes[i]), 4);
-			Vector4f & color = colors[i];
-			glColor4f(color[0], color[1], color[2], alpha);
-			// Making size equal throughout the duration, to differentiate it from the Exhaust particle system.
-			float sizeRatio = .5f; // pow(lifeDuration[i]+1.0f, 2.0f);
-		//	if (lifeDuration[i] > 1.0f)
-		//		sizeRatio = pow(5.0f, lifeDuration[i]-1.0f);
-			left = leftBase * sizeRatio;
-			up = upBase * sizeRatio;
-			Vector3f & p = positions[i];
-
-			glTexCoord2f(0.0f, 0.0f);
-			glVertex3f(p[0] + left[0] + up[0], p[1] + left[1] + up[1], p[2] + left[2] + up[2]);
-
-		//	glColor4f(colors[i][0] , colors[i][1] - 1.0f, colors[i][2] - 1.0f, colors[i][3] * lifeDuration[i] / lifeTime);
-
-			glTexCoord2f(1.0f, 0.0f);
-			glVertex3f(p[0] + left[0] - up[0], p[1] + left[1] - up[1], p[2] + left[2] - up[2]);
-
-			glTexCoord2f(1.0f, 1.0f);
-			glVertex3f(p[0] - left[0] - up[0], p[1] - left[1] - up[1], p[2] - left[2] - up[2]);
-
-			glTexCoord2f(0.0f, 1.0f);
-			glVertex3f(p[0] - left[0] + up[0], p[1] - left[1] + up[1], p[2] - left[2] + up[2]);
-		}
-		glEnd();
-	}
 #endif
 }
 

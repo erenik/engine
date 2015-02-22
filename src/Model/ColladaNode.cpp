@@ -111,11 +111,11 @@ void ColladaNode::ParseRotation(XMLElement * element)
 	Xarg * arg = element->GetArgument("sid");
 	String rotation = arg->value;
 	if (rotation == "rotateZ")
-		rotateZ.ReadFrom(element->data);
+		rotateZ.ReadFrom(element->data, " ,");
 	else if (rotation == "rotateY")
-		rotateY.ReadFrom(element->data);
+		rotateY.ReadFrom(element->data, " ,");
 	else if (rotation == "rotateZ")
-		rotateZ.ReadFrom(element->data);
+		rotateZ.ReadFrom(element->data, " ,");
 }
 
 

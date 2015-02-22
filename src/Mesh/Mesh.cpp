@@ -478,6 +478,7 @@ void Mesh::BindVertexBuffer()
 	// Bind the vertex buffer.
 	graphicsState->BindVertexArrayBuffer(vertexBuffer);
 	Shader * shader = ActiveShader();
+	assert(shader);
 
 	glVertexAttribPointer(shader->attributePosition, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * floatsPerVertex, 0);		// Position
 	

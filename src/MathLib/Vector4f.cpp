@@ -98,10 +98,10 @@ Vector4f::Vector4f(const Vector4d & base)
 {
 #ifdef USE_SSE
 	float arr[4];
-	arr[0] = base[0];
-	arr[1] = base[1];
-	arr[2] = base[2];
-	arr[3] = base[3];
+	arr[0] = (float)base[0];
+	arr[1] = (float)base[1];
+	arr[2] = (float)base[2];
+	arr[3] = (float)base[3];
 	data = _mm_loadu_ps(arr);
 #else
 	x = (float)base[0];
@@ -148,9 +148,9 @@ void Vector4f::ReadFrom(std::fstream & file){
 }
 
 /// Reads from String. Expects space-separated values. E.g. 3 8.14 -15 0.0
-void Vector4f::ReadFrom(const String & string)
+void Vector4f::ReadFrom(const String & string, const String & tokenizers /* = " ,"*/)
 {
-	List<String> tokens = string.Tokenize(" ");
+	List<String> tokens = string.Tokenize(tokenizers);
 	x = tokens[0].ParseFloat();
 	y = tokens[1].ParseFloat();
 	z = tokens[2].ParseFloat();
@@ -393,10 +393,10 @@ Vector4f& Vector4f::operator = (const Vector4d &other)
 {
 #ifdef USE_SSE
 	float arr[4];
-	arr[0] = other[0];
-	arr[1] = other[1];
-	arr[2] = other[2];
-	arr[3] = other[3];
+	arr[0] = (float)other[0];
+	arr[1] = (float)other[1];
+	arr[2] = (float)other[2];
+	arr[3] = (float)other[3];
 	data = _mm_loadu_ps(arr);
 #else
 	this->x = (float)other[0];

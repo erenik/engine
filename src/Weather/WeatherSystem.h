@@ -9,6 +9,7 @@
 #include "MathLib.h"
 #include "Time/Time.h"
 
+class CloudSystem;
 class PrecipitationSystem;
 class ParticleEmitter;
 class Message;
@@ -18,6 +19,7 @@ class Entity;
 class WeatherSystem 
 {
 	friend class PrecipitationSystem;
+	friend class CloudSystem;
 public:
 	WeatherSystem();
 	virtual ~WeatherSystem();
@@ -43,6 +45,7 @@ public:
 
 private:
 	/// Rain-snow?
+	CloudSystem * cloudSystem;
 	PrecipitationSystem * precipitationSystem;
 	ParticleEmitter * precipitationEmitter;
 	Vector3f globalWind;

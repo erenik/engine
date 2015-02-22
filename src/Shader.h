@@ -106,7 +106,9 @@ public:
 		Attributes not in use will have the value -1 (or UINT_MAX?)
 		Their GLSL equivalent are usually in_NameMinusStartingAttribute, e.g. in_VertexPosition for attributeVertexPosition
 	*/
-	/// Attributes for regular entity and UI rendering (older approaches, non-instanced, non-deferred, etc.)
+	/** Attributes for regular entity and UI rendering (older approaches, non-instanced, non-deferred, etc.)
+		Respective in-shader names are in_Position, in_UV, in_Normal, etc.
+	*/
 	GLuint attributePosition, attributeUV, attributeNormal, attributeTangent, attributeBiTangent;
 
 	/// Attributes added with instanced particle rendering. 

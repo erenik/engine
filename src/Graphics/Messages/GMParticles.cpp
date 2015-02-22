@@ -9,6 +9,8 @@
 #include "GraphicsMessages.h"
 #include "../GraphicsProperty.h"
 #include "Graphics/Particles/ParticleSystem.h"
+#include "File/LogFile.h"
+#include "Model/Model.h"
 
 #include "TextureManager.h"
 
@@ -256,11 +258,35 @@ GMSetParticleSystem::GMSetParticleSystem(ParticleSystem * ps, int target, String
 	}
 }
 
+GMSetParticleSystem::GMSetParticleSystem(ParticleSystem * ps, int target, Model * model)
+: GraphicsMessage(GM_SET_PARTICLE_SYSTEM), ps(ps), target(target), model(model)
+{
+	switch(target)
+	{
+		case GT_PARTICLE_MODEL:
+			break;
+		default:
+			assert(false);
+	}
+}
+
+
 
 void GMSetParticleSystem::Process()
 {
 	switch(target)
 	{
+		case GT_PARTICLE_MODEL:
+		{
+			if (!model)
+			{
+				LogGraphics("Bad Model!", ERROR);
+				return;
+			}
+			model->BufferizeIfNeeded();
+			ps->model = model;
+			break;	
+		}
 		case GT_EMISSIONS_PER_SECOND:
 		{
 			ps->emissionsPerSecond = iValue;
@@ -297,6 +323,8 @@ void GMSetParticleSystem::Process()
 		case GT_USE_INSTANCED_RENDERING:
 			ps->useInstancedRendering = bValue;
 			break;
+		default:
+			assert(false);
 	}
 }
 
