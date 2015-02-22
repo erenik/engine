@@ -109,8 +109,8 @@ public:
 	/// Clears the list of entries and deletes every single one of them. USE WITH CAUTION!
 	int ClearAndDelete();
 
-	/// Returns a part of this list (sub-list?), including all indices between the range, including the start and stop indices.
-	List<T> Part(int startIndex, int stopIndex) const;
+	/// Returns a part of this list (sub-list?), including all indices between the range, including the start and stop indices. A -1 for stopIndex will be replaced with the length.
+	List<T> Part(int startIndex, int stopIndex = -1) const;
 	/// Removes the part of the list spanning within the designated indices (inclusive of the edge-indices).
 	void RemovePart(int fromIndex, int toIndex);
 					
@@ -240,21 +240,21 @@ void List<T>::SetFull()
 template <class T>
 const List<T> & List<T>::operator = (const List &otherList)
 {
-	Deallocate();
-	arr = NULL;
-	arrLength = 0;
-	currentItems = 0;
-	assert(otherList.arrLength >= otherList.currentItems);
-	if (otherList.arrLength > 0){
-		arrLength = otherList.arrLength;
-		arr = AllocateArray(arrLength);
-		for (int i = 0; i < otherList.currentItems; ++i){
-			arr[i] = otherList.arr[i];
-		}
-		currentItems = otherList.currentItems;
+	// Re-allocate if needed only.
+	if (arrLength < otherList.arrLength)
+	{
+		Resize(otherList.currentItems);
 	}
+	assert(otherList.arrLength >= otherList.currentItems);
+	// Copy the items.
+	for (int i = 0; i < otherList.currentItems; ++i)
+	{
+		arr[i] = otherList.arr[i];
+	}
+	currentItems = otherList.currentItems;
 	return *this;
 }
+
 template <class T>
 const List<T> * List<T>::operator += (const List<T> &otherList) 
 {
@@ -595,6 +595,8 @@ template <class T>
 List<T> List<T>::Part(int startIndex, int stopIndex) const
 {
 	List<T> partList;
+	if (stopIndex == -1)
+		stopIndex = currentItems - 1;
 	for (int i = startIndex; i <= stopIndex; ++i)
 	{
 		partList.AddItem(arr[i]);

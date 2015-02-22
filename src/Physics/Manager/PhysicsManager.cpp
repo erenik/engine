@@ -31,6 +31,8 @@
 
 PhysicsManager * PhysicsManager::physicsManager = NULL;
 
+List<PhysicsMessage*> requeuedMessages;
+
 // static const int MAX_REGISTERED_ENTITIES = 2048;
 /// Allocate
 void PhysicsManager::Allocate(){
@@ -83,6 +85,7 @@ PhysicsManager::~PhysicsManager()
 {
 	// Delete remaining messages.
 	messageQueue.ClearAndDelete();
+	requeuedMessages.ClearAndDelete(); // Also the queued ones.
 
 	SAFE_DELETE(aabbSweeper);
 	SAFE_DELETE(entityCollisionOctree);
@@ -575,18 +578,42 @@ void PhysicsManager::RecalculatePhysicsProperties(){
 void PhysicsManager::ProcessMessages()
 {
 	while(!physicsMessageQueueMutex.Claim(-1));
-	List<PhysicsMessage*> messages;
+
+	static List<PhysicsMessage*> messages, processedMessages;
+	messages.Clear();
+	messages = requeuedMessages;
+	processedMessages.Clear();
     // Process queued messages
-	messages = messageQueue;
+	messages += messageQueue;
 	messageQueue.Clear();
 	physicsMessageQueueMutex.Release();
 	// Release mutex
 
 	/// Then start actually processing the messages.
+	Time startTime = Time::Now(),
+		currTime;
 	for (int i = 0; i < messages.Size(); ++i)
 	{
 		PhysicsMessage * msg = messages[i];
 		msg->Process();
+		processedMessages.AddItem(msg);
+		
+		//
+		if (i % 100 == 0)
+		{
+			// check time taken.
+			currTime = Time::Now();
+			if ((currTime - startTime).Milliseconds() > 100)
+			{
+				// Break and postpone messages.
+				std::cout<<"\nPhysics messages consuming over 100 ms, queueing the rest for next frame.";
+				requeuedMessages = messages.Part(i + 1);
+//				requeuedMessages.ClearAndDelete();
+				break;
+			}
+		}
+		
 	}
-	messages.ClearAndDelete();
+	/// Delete what we had time to process so far.
+	processedMessages.ClearAndDelete();
 }

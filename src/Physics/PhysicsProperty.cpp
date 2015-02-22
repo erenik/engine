@@ -235,6 +235,9 @@ void PhysicsProperty::ApplyImpulse(const Vector3f & impulse, const Vector3f & po
 	if (!useForces)
 		velocity += impulse;
 
+	if (!obb)
+		return;
+	assert(obb); // lol..
 	/// Give it an increase to the angular momentum.
 	Vector3f centerToPosition = position - obb->position;
 	Vector3f crossProduct = -centerToPosition.CrossProduct(impulse);

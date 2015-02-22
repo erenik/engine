@@ -162,8 +162,8 @@ int EntityManager::DeleteUnusedEntities(int timeInMs)
 		}
 		/// Increment amount that was successfully deleted.
 		++deletedEntities;
-		while(entities.Remove(entity));
-		while(entitiesToDelete.Remove(entity));
+		entities.RemoveItemUnsorted(entity);
+		entitiesToDelete.RemoveItemUnsorted(entity);
 		delete entity;
 		--i;
 	}
