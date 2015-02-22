@@ -12,7 +12,8 @@ class Estimator;
 class PhysicsOctree;
 struct CompactPhysics;
 class PhysicsMesh;
-struct AABBSweepNode;
+class AABBSweepNode;
+class AABBSweepAxis;
 struct Contact;
 class Spring;
 class EntityPhysicsEstimator;
@@ -145,7 +146,8 @@ public:
     /// Coordinates for axis-aligned bounding box (if used)
     OBB * obb;
 	// 6 nodes. for XYZ start and end each.
-    AABBSweepNode * aabbSweepNodes[6];
+    List<AABBSweepNode*> aabbSweepNodes;
+	List<AABBSweepAxis*> axes;
 
     /// NOTE: Position, x(t), is defined in the base Entity-class!
 

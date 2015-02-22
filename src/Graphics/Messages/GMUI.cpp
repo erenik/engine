@@ -55,9 +55,7 @@ bool GMUI::GetUI()
 	if (ui)
 	{
 		// Ensure the UI is good.
-		if (UserInterface::IsGood(ui))
-			return true;
-		return false;
+		return UserInterface::IsGood(ui);
 	}
 	if (!window)
 	{
@@ -74,7 +72,7 @@ bool GMUI::GetUI()
         std::cout<<"\nWARNING: No valid UI available for use.";
         return false;
     }
-    return true;
+	return UserInterface::IsGood(ui);
 }
 
 /// Fetches global UI. 

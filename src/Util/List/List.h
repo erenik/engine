@@ -570,8 +570,8 @@ bool List<T>::RemoveIndex(int index, int removeOption)
 
 /// Clears the list of all entries. Returns amount of removed items.
 template <class T>
-int List<T>::Clear(){
-	currentItems = 0;
+int List<T>::Clear()
+{
 	int itemsRemoved = currentItems;
 	currentItems = 0;
 	return itemsRemoved;

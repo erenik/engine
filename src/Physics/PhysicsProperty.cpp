@@ -128,7 +128,6 @@ void PhysicsProperty::Nullify()
 	noCollisionResolutions = false;
 	physicsMesh = NULL;
 	velocityRetainedWhileRotating = 0.0f;
-	aabbSweepNodes[0] = aabbSweepNodes[1] = NULL;
 	owner = NULL;
 	momentOfInertia = 0;
 	boundToNavMesh = false;	

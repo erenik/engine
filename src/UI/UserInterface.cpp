@@ -138,7 +138,7 @@ UserInterface::~UserInterface()
 	if (root != NULL)
 		delete root;
 	root = NULL;
-	userInterfaces.Remove(this);
+	userInterfaces.RemoveItemUnsorted(this);
 }
 
 /// checks that it's not actually deleted.

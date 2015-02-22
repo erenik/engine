@@ -126,7 +126,7 @@ bool OggStream::Open(String path)
 
 	bool openedVideo = false;
 #ifdef THEORA
-	bool openedVideo = OpenTheora();
+	openedVideo = OpenTheora();
 #endif
 
 	bool opened = OpenVorbis();

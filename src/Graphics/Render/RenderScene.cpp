@@ -28,11 +28,7 @@ void GraphicsManager::RenderScene()
 
 	Shader * shader = ShadeMan.SetActiveShader("Phong");
     if (shader == NULL){
-    //    std::cout<<"\nUnable to set Phong shader in GraphicsManager::RenderScene";
-    #ifdef WINDOWS
 		LogGraphics("Unable to set Phong shader.", ERROR);
-        assert(shader && "Unable to set \"Phong\" shader");
-    #endif
         return;
     }
 	graphicsState->settings |= ENABLE_SPECIFIC_ENTITY_OPTIONS;

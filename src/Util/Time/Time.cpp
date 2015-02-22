@@ -21,7 +21,8 @@ Time::Time()
 Time::Time(int type)
 	: type(type)
 {
-	assert(type > TimeType::UNDEFINED && type < TimeType::TIME_TYPES);
+	std::cout<<"\nWARNING: Time of undefined type created.";
+//	assert(type > TimeType::UNDEFINED && type < TimeType::TIME_TYPES);
 	intervals = 0;
 }
 /// Time using a given type and starting-point. 

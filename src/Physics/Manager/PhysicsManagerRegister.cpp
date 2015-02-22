@@ -18,7 +18,7 @@ int PhysicsManager::RegisterEntity(Entity * newEntity)
 		return -1;
 	int entitiesInOctree = entityCollisionOctree->RegisteredEntities();
 	int physicalEntitiesNum = physicalEntities.Size();
-	int aabbSweeperNodes = aabbSweeper->Nodes();
+//	int aabbSweeperNodes = aabbSweeper->Nodes();
 	int collidingEntities = 0;
 	for (int i = 0; i < physicalEntities.Size(); ++i){
         if (physicalEntities[i]->physics->collisionsEnabled){
@@ -67,7 +67,8 @@ int PhysicsManager::RegisterEntity(Entity * newEntity)
 		{
 			aabbSweeper->RegisterEntity(newEntity);	
 			//	std::cout<<"\nPost register: AABBSweeper nodes: "<<aabbSweeperNodes<<" colliding entities: "<<collidingEntities;
-			assert(aabbSweeperNodes == collidingEntities* aabbSweeper->AxesToWorkWith() * 2);
+	//		aabbSweeperNodes = aabbSweeper->Nodes();
+	//		assert(aabbSweeperNodes == collidingEntities* aabbSweeper->AxesToWorkWith() * 2);
 		}
 	}
 	else {
@@ -118,7 +119,7 @@ int PhysicsManager::RegisterEntity(Entity * newEntity)
 
 	entitiesInOctree = entityCollisionOctree->RegisteredEntities();
 	physicalEntitiesNum = physicalEntities.Size();
-	aabbSweeperNodes = aabbSweeper->Nodes();
+//	aabbSweeperNodes = aabbSweeper->Nodes();
 	collidingEntities = 0;
 	for (int i = 0; i < physicalEntities.Size(); ++i){
         if (physicalEntities[i]->physics->collisionsEnabled){
@@ -159,7 +160,7 @@ int PhysicsManager::UnregisterEntity(Entity * entityToRemove)
 	int found = 0;
 	int entitiesInOctree = entityCollisionOctree->RegisteredEntities();
 	int physicalEntitiesNum = physicalEntities.Size();
-	int aabbSweeperNodes = aabbSweeper->Nodes();
+//	int aabbSweeperNodes = aabbSweeper->Nodes();
 	assert(entitiesInOctree <= physicalEntitiesNum);
 	int collidingEntities = 0;
 	for (int i = 0; i < physicalEntities.Size(); ++i){
@@ -229,7 +230,7 @@ int PhysicsManager::UnregisterEntity(Entity * entityToRemove)
 
 	entitiesInOctree = entityCollisionOctree->RegisteredEntities();
 	physicalEntitiesNum = physicalEntities.Size();
-	aabbSweeperNodes = aabbSweeper->Nodes();
+//	aabbSweeperNodes = aabbSweeper->Nodes();
 	collidingEntities = 0;
 	for (int i = 0; i < physicalEntities.Size(); ++i){
         if (physicalEntities[i]->physics->collisionsEnabled){

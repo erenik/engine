@@ -13,6 +13,8 @@
 #include "ShaderManager.h"
 
 #include "Graphics/GraphicsManager.h"
+#include "File/FileUtil.h"
+#include "File/LogFile.h"
 
 //#include "Macros.h"
 
@@ -122,6 +124,11 @@ bool Shader::Compile()
 	{
 		// Check the last edit time of the sources.
 		Time mostRecentEdit = MostRecentEdit();
+		if (mostRecentEdit.Type() == TimeType::UNDEFINED)
+		{
+			LogGraphics("Unable to get last edit time for shader files belong to shader "+name, WARNING);
+			return built;
+		}
 		// Skip compilation if we've already tried with the latest sources.
 		if (mostRecentEdit < lastCompileAttempt)
 		{
@@ -543,6 +550,11 @@ Time Shader::MostRecentEdit()
 	{
 		ShaderPart * part = shaderParts[i];
 		Time lastModified;
+		if (!FileExists(part->source.Path()))
+		{
+			LogGraphics("ERRORRR", ERROR);
+			return Time(TimeType::UNDEFINED);
+		}
 		assert(part->source.LastModified(lastModified));
 		if (lastModified > mostRecentEdit)
 			mostRecentEdit = lastModified;

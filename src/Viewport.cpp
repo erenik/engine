@@ -75,7 +75,8 @@ Viewport::~Viewport()
 {
 	camera = NULL;
 	// Delete UI! o/o
-	delete ui;
+	// Delete old one in graphics thread?
+//	delete ui;
 	ui = NULL;
 	SAFE_DELETE(shadowMapDepthBuffer);
 }

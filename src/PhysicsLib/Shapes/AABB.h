@@ -10,6 +10,15 @@
 #include "PhysicsLib/Shapes/Quad.h"
 class Entity;
 
+struct EntityPair 
+{
+	EntityPair();
+	EntityPair(Entity * one, Entity * two);
+    Entity * one;
+    Entity * two;
+    void PrintDetailed();
+};
+
 //#define AABB AABB
 
 /** By default, all AABBs are re-calculated by the PhysicsManager, but only translation is taken into consideration.

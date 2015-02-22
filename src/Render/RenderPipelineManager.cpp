@@ -83,17 +83,22 @@ RenderPipeline * RenderPipelineManager::Previous()
 
 
 // Loads from render/PipelineConfig.txt 
-void RenderPipelineManager::LoadFromPipelineConfig()
+bool RenderPipelineManager::LoadFromPipelineConfig()
 {
 	// Open file if not already done so.
 	if (!pipelineConfig.Path().Length())
 		pipelineConfig.SetPath("render/PipelineConfig.txt");
 
+	if (!pipelineConfig.Open())
+	{
+		LogGraphics("Unable to find pipeline configuration file.", ERROR);
+		return false;
+	}
 	// Check last read time of the file-handle.
 	if (!pipelineConfig.HasChanged())
 	{
 		std::cout<<"\nPipeline config file not changed, skipping.";
-		return;
+		return true;
 	}
 
 	// Set pipeline

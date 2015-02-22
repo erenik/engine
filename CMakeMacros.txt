@@ -1,5 +1,8 @@
 
-message("Defining file group macro")
+message("Binary dir: ${CMAKE_BINARY_DIR}")
+message("Source dir: ${CMAKE_SOURCE_DIR}")
+
+	message("Defining file group macro")
 #This macro will go through the source dirs and group the files in a nice tree <-- Stolen from Aksel
 macro(create_file_group ROOT_DIR groupname)
 #	message("Creating file group ${groupname}")
@@ -149,8 +152,7 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 	# Enable COMDAT Folding: /OPT:ICF - Remove Redundant COMDATs
 	# Enable Function-Level Linking: (Edit and Continue builds) /Gy
 
-	set(DATA_ROOT ${CMAKE_SOURCE_DIR}/bin)
-	
+
 	message("Adding project: ${ProjectName}")
 	
 	# Collect source and header files
@@ -295,11 +297,17 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 		# OpenCV - Image processing and input/output
 		if (OPENCV)
 			message("Linking with OpenCV")
-			set(DEBUG_LIBS ${DEBUG_LIBS} opencv_core248d.lib opencv_highgui248d.lib 
-				opencv_imgproc248d.lib opencv_video248d.lib
+			set(DEBUG_LIBS ${DEBUG_LIBS} 
+				opencv_core248d.lib 
+				opencv_highgui248d.lib 
+		#		opencv_imgproc248d.lib 
+		#		opencv_video248d.lib
 			)
-			set(RELEASE_LIBS ${RELEASE_LIBS} opencv_core248.lib opencv_highgui248.lib 
-				opencv_imgproc248.lib opencv_video248.lib
+			set(RELEASE_LIBS ${RELEASE_LIBS} 
+				opencv_core248.lib 
+				opencv_highgui248.lib 
+				opencv_imgproc248.lib 
+				opencv_video248.lib
 			)
 		ENDIF(OPENCV)
 
@@ -354,12 +362,13 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 	ENDIF(MSVC)
 
 	# Set working dir 
-	
 	set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 	set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+
+	set(PROJECT_BIN_DIR ${CMAKE_SOURCE_DIR}/bin)
+	message("PROJECT_BIN_DIR: ${PROJECT_BIN_DIR}")
 	
-	set(PROJECT_BIN_DIR "../bin")
 	set(TargetName ${PROJECT_NAME})
 	SET_TARGET_PROPERTIES(${TargetName} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BIN_DIR})
 	SET_TARGET_PROPERTIES(${TargetName} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PROJECT_BIN_DIR})

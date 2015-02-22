@@ -146,8 +146,9 @@ void AppState::CreateUserInterface()
 {
 	std::cout<<"\nState::CreateUserInterface called for "<<name;
 	LogMain("State::CreateUserInterface called for state "+name+". Empty UI is created by default!", INFO);
-	if (ui)
-		delete ui;
+	// Delete old one in graphics thread?
+//	if (ui)
+//		delete ui;
 	ui = NewA(UserInterface);
 	ui->CreateRoot();
 }
@@ -157,14 +158,17 @@ void AppState::CreateUserInterface()
 bool AppState::DeallocateUserInterface()
 {
     std::cout<<"\nCalling DeallocateUserInterface for state: "<<name;
-	if (ui){
-		if (ui->IsBuffered()){
+	if (ui)
+	{
+		if (ui->IsBuffered())
+		{
             Graphics.QueueMessage(new GMDelete(ui));
         }
         else {
             //  Just delete it if it isn't buffered.
             if (ui->IsGeometryCreated())
                 ui->DeleteGeometry();
+	// Delete old one in graphics thread?
             delete ui;
         }
 

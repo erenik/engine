@@ -117,8 +117,9 @@ void TIFSMapEditor::ProcessMessage(Message * message)
 /// Creates the user interface for this state. Is called automatically when re-building the UI with the CTRL+R+U command.
 void TIFSMapEditor::CreateUserInterface()
 {
-	if (ui)
-		delete ui;
+		// Delete old one in graphics thread?
+//	if (ui)
+//		delete ui;
 	ui = new UserInterface();
 	ui->Load("gui/TIFSEditor.gui");
 }

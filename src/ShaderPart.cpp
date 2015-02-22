@@ -5,6 +5,7 @@
 #include "ShaderPart.h"
 
 #include <fstream>
+#include "File/LogFile.h"
 
 /// 
 ShaderPart::ShaderPart(int type)
@@ -28,24 +29,22 @@ void ShaderPart::Delete()
 // Loads from source.
 bool ShaderPart::Load(String fromSource)
 {
-	CreateShaderKernelIfNeeded();
 	source = fromSource;
-	int size = 0, start = 0;
-	String sourceCode;
-	try {
-		// Open file
-		sourceCode = source.GetContents();
-//		sourceCode.PrintData();
-		const char * arr = sourceCode.c_str();
-		// Associate the source code buffers with each handle 
-	//	glShaderSource(shaderKernelPart, 1, (const GLchar **) &(sourceCode.c_str()), 0);
-		glShaderSource(shaderKernelPart, 1, (const GLchar **) &arr, 0);
-	} 
-	catch (...) 
+	if (!source.Open())
 	{
-		std::cout<<"\nFile I/O Error: Failed to read shader source from "<<source.Path();
+		LogGraphics("Unable to open file "+fromSource, ERROR);
 		return false;
 	}
+	CreateShaderKernelIfNeeded();
+	int size = 0, start = 0;
+	String sourceCode;
+	// Open file
+	sourceCode = source.GetContents();
+//		sourceCode.PrintData();
+	const char * arr = sourceCode.c_str();
+	// Associate the source code buffers with each handle 
+//	glShaderSource(shaderKernelPart, 1, (const GLchar **) &(sourceCode.c_str()), 0);
+	glShaderSource(shaderKernelPart, 1, (const GLchar **) &arr, 0);
 	return true;
 }
 

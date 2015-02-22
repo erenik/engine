@@ -8,30 +8,8 @@
 #include "PhysicsLib/Shapes/AABB.h"
 #include "List/List.h"
 
-struct EntityPair 
-{
-	EntityPair();
-	EntityPair(Entity * one, Entity * two);
-    Entity * one;
-    Entity * two;
-    void PrintDetailed();
-};
-
-struct AABBSweepNode
-{
-    AABBSweepNode();
-    enum types {
-        NULL_TYPE,
-        START,
-        STOP,
-    };
-    AABB * aabb;
-    Entity * entity;
-	// Pointer to value.
-	float * value;
-    int type;
-	bool sortedOnce;
-};
+class AABBSweepNode;
+class AABBSweepAxis;
 
 class AABBSweeper {
 public:
@@ -53,12 +31,6 @@ public:
 	int AxesToWorkWith() {return axesToWorkWith;};
 protected:
 
-    enum axes {
-        X_AXIS = 0,
-        Y_AXIS = 1,
-        Z_AXIS = 2,
-        AXES = 3
-    };
 
     /// Sorts the selected axis, using provided list and axis number
     void Sort(List<AABBSweepNode*> & listToSort, int axis);
@@ -67,8 +39,15 @@ protected:
     int axesToWorkWith;
 	int nodesToWorkWith; // Axes * 2
     int axesSorted;
-    List<AABBSweepNode*> axisNodeList[AXES];
+
+
+
+	/// o.o
+    List<AABBSweepAxis*> axes;
 private:
+	List<float> subdivisionLinesZ;
+	/// For updating entities in the various subdivided axes.
+	List<Entity*> movingEntities;
 };
 
 #endif // AABBSWEEPER_H
