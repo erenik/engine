@@ -79,7 +79,7 @@ TIFSCR * cr = 0;
 /// Function when entering this state, providing a pointer to the previous StateMan.
 void TIFS::OnEnter(AppState * previousState)
 {
-	entityLists.Add(&drones, &turrets, &motherships, &groundEntities, &players);
+	entityLists.Add(&drones, &turretEntities, &motherships, &groundEntities, &players);
 
 	// Setup integrator.
 	if (!integrator)
@@ -373,6 +373,7 @@ void TIFS::CreateDefaultBindings()
 	bindings.Add(new Binding(Action::FromString("Repair"), KEY::ONE));
 	bindings.Add(new Binding(Action::FromString("Activate"), KEY::TWO));
 	bindings.Add(new Binding(Action::FromString("RedirectFire"), KEY::THREE));
+	bindings.Add(new Binding(Action::FromString("SpawnDrones(3)"), List<int>(KEY::CTRL, KEY::D)));
 }
 
 
@@ -567,7 +568,8 @@ void TIFS::CreateTurret(int ofSize, ConstVec3fr atLocation)
 	
 	MapMan.AddEntities(turretParts);
 	/// Add turret parts.
-	turrets.Add(turretParts);
+	turretEntities.Add(turretParts);
+	turrets.AddItem(prop);
 }
 
 // Spawn player
@@ -609,9 +611,66 @@ void TIFS::SpawnPlayer()
 	
 	// Enable steering!
 	playerProp->inputFocus = true;
-	
+	players.Add(player);
 	// other stuff.
 	PhysicsQueue.Add(new PMSetEntity(player, PT_FACE_VELOCITY_DIRECTION, true));
+}
+
+Entity * TIFS::GetClosestDefender(ConstVec3fr toPosition)
+{
+	if (players.Size() == 0)
+		return NULL;
+	float minDist = 1000000;
+	Entity * closest = NULL;
+	for (int i = 0; i < players.Size(); ++i)
+	{
+		Entity * entity = players[i];
+		float dist = (entity->position - toPosition).LengthSquared();
+		if (dist < minDist)
+		{
+			minDist = dist;
+			closest = entity;
+		}
+	}
+	return closest;
+}
+
+Turret * TIFS::GetClosestTurret(ConstVec3fr toPosition)
+{
+	Turret * closest = NULL;
+	float closestDist = 1000000;
+	for (int i = 0; i < tifs->turrets.Size(); ++i)
+	{
+		TIFSTurretProperty * turret = tifs->turrets[i];
+		float dist = (turret->position - toPosition).LengthSquared();
+		if (dist < closestDist)
+		{
+			closestDist = dist;
+			closest = turret;
+		}
+	}
+	return closest;
+}
+
+Turret * TIFS::GetClosestActiveTurret(ConstVec3fr toPosition)
+{
+	if (turrets.Size() == 0)
+		return NULL;
+	float minDist = 1000000;
+	Turret * closest = NULL;
+	for (int i = 0; i < turrets.Size(); ++i)
+	{
+		TIFSTurretProperty * turret = turrets[i];
+		if (!turret->active)
+			continue;
+		float dist = (turret->position - toPosition).LengthSquared();
+		if (dist < minDist)
+		{
+			minDist = dist;
+			closest = turret;
+		}
+	}
+	return closest;
 }
 
 void TIFS::TogglePause()
@@ -634,6 +693,7 @@ void TIFS::NewGame()
 {
 	// Delete previous entities?
 	MapMan.DeleteAllEntities();
+	turrets.Clear();
 
 	List<Entity*> allEntities = EntityMan.AllEntities();
 	// Unregister all from physics

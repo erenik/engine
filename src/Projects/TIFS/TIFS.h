@@ -34,6 +34,7 @@
 #include "TIFS/Physics/TIFSCD.h"
 #include "TIFS/Physics/TIFSCR.h"
 #include "TIFS/Properties/TIFSPlayerProperty.h"
+#include "TIFS/Properties/TIFSProjectile.h"
 #include "TIFS/Properties/TIFSTurretProperty.h"
 #include "TIFS/Properties/TIFSDroneProperty.h"
 #include "TIFS/Graphics/ToolParticles.h"
@@ -138,12 +139,18 @@ public:
 	// Spawn player
 	void SpawnPlayer();
 
+	Entity * GetClosestDefender(ConstVec3fr toPosition);
+	Turret * GetClosestTurret(ConstVec3fr toPosition);
+	Turret * GetClosestActiveTurret(ConstVec3fr toPosition);
+
 	/// o-o
 	List<Entity*> players,
-		turrets,
+		turretEntities,
 		drones,
 		motherships,
 		groundEntities;
+
+	List<TIFSTurretProperty*> turrets;
 
 	List<Camera*> cameras;
 

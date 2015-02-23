@@ -78,16 +78,11 @@ void TIFSPlayerProperty::Process(int timeInMs)
 		raycast = false;
 		// Get closest target based on tool-mode?
 		float closestDist = 1000000.f;
-		for (int i = 0; i < tifs->turrets.Size(); ++i)
+		Turret * turret = tifs->GetClosestTurret(owner->position);
+		if (turret)
 		{
-			Entity * turret = tifs->turrets[i];
-			float dist = (turret->position - owner->position).LengthSquared();
-			if (dist < closestDist)
-			{
-				closestDist = dist;
-				primaryTarget = turret;
-				lastRaycastTargetPosition = turret->position;
-			}
+			primaryTarget = turret->base;
+			this->lastRaycastTargetPosition = turret->position;
 		}
 	}
 

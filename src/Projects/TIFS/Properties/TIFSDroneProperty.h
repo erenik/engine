@@ -29,9 +29,21 @@ public:
 
 	// default 1.0?
 	float acceleration;
-private:
-	Vector3f destination;
 
+	enum {
+		RANDOM_ROAM,
+		CHASE_PLAYER,
+		ATTACK_TURRET,
+		DRONE_STATES,
+	};
+	int state;
+private:
+	void SetState(int newState);
+	void UpdateDestination();
+	void UpdateVelocity();
+	Vector3f destination;
+	int timeInStateMs;
+	int timeSinceLastVelUpdate;
 };
 
 #endif

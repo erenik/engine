@@ -12,6 +12,7 @@
 
 class Texture;
 
+#define Turret TIFSTurretProperty
 class TIFSTurretProperty : public EntityProperty
 {
 	friend class TIFS;

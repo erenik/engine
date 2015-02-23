@@ -332,7 +332,7 @@ void TIFSTurretProperty::UpdateEmissiveMap()
 	{
 		// was active earlier?
 		// Set basic activated emissive map?
-		newEmissiveMap = TexMan.GetTexture("0x00FF0022");
+		newEmissiveMap = TexMan.GetTexture("img/Turrets/BigTurretEmissiveActive");
 	}
 	else if (timeNowMs - lastActivateTimeMs < 100)
 	{
@@ -358,11 +358,11 @@ void TIFSTurretProperty::UpdateEmissiveMap()
 			// Add a smoother/interpollator for its amount?
 			EstimatorFloat * estim = new EstimatorFloat();
 			float lowEnd = 0.1f,
-				highEnd = 1.f;
+				highEnd = 0.7f;
 			if (active)
 			{
-				lowEnd = 0.2f;
-				highEnd = 0.3f;
+				lowEnd = 0.8f;
+				highEnd = 1.0f;
 			}
 			estim->AddStatesMs(3,
 				lowEnd, 0,
