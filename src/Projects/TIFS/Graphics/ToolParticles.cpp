@@ -18,33 +18,14 @@ ToolParticleSystem::ToolParticleSystem()
 : ParticleSystem("ToolParticleSystem", true)
 {
 
-    for(int i = 0; i < maxParticles; ++i)
-	{
-    //    velocities[i].x += sideVelocityRange * (rand()%201-100) * 0.01f;
-    //    velocities[i].y += sideVelocityRange * (rand()%201-100) * 0.01f;
-    //    velocities[i].z = primaryVelocity * (rand()%81 + 20) * 0.01f;
-    //    lifeDuration[i] = maxLifeTime;
-//		lifeTime[i] = maxLifeTime;
-  //      colors[i] = color;
-    }
-    color = Vector4f(0.1f, 0.2f, 0.4f, 1.0f);
-
+	shaderName = "ToolParticles";
+	modelName = "obj/Sphere6.obj";
+	color = Vector4f(0.1f, 0.2f, 0.4f, 1.0f);
 	livingParticles = 0;
 }
 
 ToolParticleSystem::~ToolParticleSystem()
 {
-	/*
-	if (maxDistanceSquared)
-		delete[] maxDistanceSquared;
-	maxDistanceSquared = NULL;
-	if (distanceTraveledSquared)
-		delete[] distanceTraveledSquared;
-	distanceTraveledSquared = NULL;
-	if (scale)
-		delete[] scale;
-	scale = NULL;
-	*/
 }
 
 /// Integrates all particles.
@@ -135,12 +116,18 @@ ToolParticleEmitter::ToolParticleEmitter()
 	direction = Vector3f(1,0,0);
 	scale = 1.f;
 	particlesPerSecond = 500;
+	targetPositionEmitter.type = EmitterType::SPHERE;
 }
 
 /// Default new particle.
 bool ToolParticleEmitter::GetNewParticle(Vector3f & newPPos, Vector3f & velocity)
 {
 	// Emit randomly from around our position, toward the target position?
+	// Get position
+	Vector3f targetPosition;
+	targetPositionEmitter.Position(targetPosition);
+	Vector3f direction = targetPosition - position; 
+	direction.Normalize();
 	velocity = direction * emissionVelocity;
 	newPPos = this->position;
 	return false;
@@ -175,8 +162,9 @@ bool ToolParticleEmitter::GetNewParticle(Vector3f & position, Vector3f & velocit
 void ToolParticleEmitter::SetPositionAndTarget(ConstVec3fr startPosition, ConstVec3fr targetPos)
 {
 	position = startPosition;
-	// Set target to be the target we're aiming at.
 	targetPosition = targetPos;
+	// Set target to be the target we're aiming at.
+	targetPositionEmitter.offset = targetPos;
 	direction = (targetPosition - position).NormalizedCopy();
 	float distance = (targetPosition - position).Length();
 	particleLifeTime = distance / emissionVelocity;

@@ -147,6 +147,9 @@ void FirstPersonPlayerProperty::ToggleAutorun()
 */
 void FirstPersonPlayerProperty::ProcessInput()
 {
+	// Skip if CTLR is pressed, should be some other binding then.
+	if (Input.KeyPressed(KEY::CTRL) || Input.KeyPressed(KEY::ALT))
+		return;
 	float forward = 0.f;
 	// Should probably check some lexicon of key-bindings here too. or?
 	if (Input.KeyPressed(KEY::W))

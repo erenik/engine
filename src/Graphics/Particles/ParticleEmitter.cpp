@@ -7,6 +7,7 @@
 #include "Random/Random.h"
 
 #include "Entity/Entity.h"
+#include "MathLib/Angle3.h"
 
 Emitter::Emitter()
 {
@@ -44,6 +45,15 @@ void Emitter::Position(Vector3f & positionVec)
 {
 	switch(type)
 	{
+		case EmitterType::SPHERE:
+		{
+			// Randomize yaw and pitch.
+			float pitch = rand() * oneDivRandMaxFloat * PI * 0.5;
+			float yaw = rand() * oneDivRandMaxFloat * TwoPI;
+			Vector3d dir = Angle3::VectorFromPitchYawForwardZMinus(pitch,yaw);
+			positionVec = -dir.x * left + dir.y * up + dir.z * forward;
+			break;	
+		}
 		case EmitterType::POINT:
 			positionVec = vec;
 			break;
@@ -82,6 +92,7 @@ void Emitter::Position(Vector3f & positionVec)
 		default:
 			assert(false);
 	}
+	positionVec += offset;
 }
 
 void Emitter::Velocity(Vector3f & vec)

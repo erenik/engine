@@ -18,6 +18,8 @@
 #include "Message/MessageManager.h"
 #include "Window/WindowManager.h"
 
+#include "File/LogFile.h"
+
 /// Default constructor, will target active global UI.
 GMUI::GMUI(int messageType)
 : GraphicsMessage(messageType)
@@ -325,8 +327,9 @@ void GMSetUIv3f::Process()
 	if (!name.Length())
 		return;
 	UIElement * e = ui->GetElementByName(name);
-	if (!e){
-		std::cout<<"\nINFO: No element found with specified name \""<<name<<"\"";
+	if (!e)
+	{
+		LogGraphics("INFO: No element found with specified name \""+name+"\"", DEBUG);
 		return;
 	}
     switch(target){
@@ -374,8 +377,9 @@ void GMSetUIv4f::Process()
 	if (!name.Length())
 		return;
 	UIElement * e = ui->GetElementByName(name);
-	if (!e){
-		std::cout<<"\nINFO: No element found with specified name \""<<name<<"\"";
+	if (!e)
+	{
+		LogGraphics("INFO: No element found with specified name \""+name+"\"", DEBUG);
 		return;
 	}
     switch(target){
@@ -437,7 +441,7 @@ void GMSetUIf::Process()
 		return;
 	element = ui->GetElementByName(name);
 	if (!element){
-		std::cout<<"\nINFO: No element found with specified name \""<<name<<"\"";
+		LogGraphics("INFO: No element found with specified name \""+name+"\"", DEBUG);
 		return;
 	}
 	switch(target)
@@ -519,7 +523,7 @@ void GMSetUIb::Process()
 		return;
 	UIElement * e = ui->GetElementByName(name);
 	if (!e){
-		std::cout<<"\nINFO: No element found with specified name \""<<name<<"\"";
+		LogGraphics("INFO: No element found with specified name \""+name+"\"", DEBUG);
 		return;
 	}
 	switch(target){
@@ -622,7 +626,7 @@ void GMSetUIs::Process()
         return;
 	UIElement * e = ui->GetElementByName(uiName);
 	if (!e){
-		// std::cout<<"\nNo UIElement with given name could be found: "<<uiName;
+		LogGraphics("INFO: No element found with specified name \""+uiName+"\"", DEBUG);
 		return;
 	}
 	switch(target){
@@ -685,7 +689,7 @@ void GMClearUI::Process(){
         return;
 	UIElement * e = ui->GetElementByName(uiName);
 	if (!e){
-		std::cout<<"\nNo UIElement with given name could be found: "<<uiName;
+		LogGraphics("INFO: No element found with specified name \""+uiName+"\"", DEBUG);
 		return;
 	}
 	e->Clear();
@@ -702,7 +706,7 @@ void GMScrollUI::Process(){
         return;
     UIElement * e = ui->GetElementByName(uiName);
     if (e == NULL){
-        std::cout<<"\nERROR: Unable to find element by given name \""<<uiName<<"\" in GMScrollUI";
+		LogGraphics("INFO: No element found with specified name \""+uiName+"\"", DEBUG);
         return;
     }
     switch(e->type){

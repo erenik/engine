@@ -14,6 +14,7 @@
 PrecipitationSystem::PrecipitationSystem(WeatherSystem * weatherSystem)
 : ParticleSystem("PrecipitationSystem", false), weather(weatherSystem)
 {
+	shaderName = "PrecipitationParticles";
 	globalEmitter.type = EmitterType::PLANE_XZ;
 	globalEmitter.SetScale(150.f); // Create a 500 wide and long plane to spawn along.
 

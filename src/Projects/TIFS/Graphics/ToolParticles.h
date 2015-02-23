@@ -38,6 +38,7 @@ public:
 	/// sets positions and updates direction as well as max distance.
 	void SetPositionAndTarget(ConstVec3fr position, ConstVec3fr target);
 
+	Emitter targetPositionEmitter;
 //	float particleVelocity;
 	Vector3f direction;
 	Vector3f position;

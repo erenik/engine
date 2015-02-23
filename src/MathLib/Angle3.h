@@ -27,6 +27,7 @@ public:
 	
 	/// Fetches a set of angles based on a required rotation between two vectors.
 	static Angle3 GetRequiredRotation(ConstVec3fr fromVector, ConstVec3fr toVector);
+	static Vector3f VectorFromPitchYawForwardZMinus(float pitch, float yaw);
 
 	/// Printing out data
 	friend std::ostream& operator <<(std::ostream& os, const Angle3 & vec);

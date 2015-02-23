@@ -88,6 +88,21 @@ Angle3 Angle3::GetRequiredRotation(ConstVec3fr fromVector, ConstVec3fr toVector)
 	return required;
 }
 
+Vector3f Angle3::VectorFromPitchYawForwardZMinus(float pitch, float yaw)
+{
+	Vector3f vec;
+	float y = sin(pitch);
+	vec.y = y;
+	float xzLen = cos(pitch);
+	float modulatedYaw = PI - yaw;
+	float x = sin(modulatedYaw) * xzLen;
+	float z = cos(modulatedYaw) * xzLen;
+	vec.x = x;
+	vec.z = z;
+	return vec;
+}
+
+
 /// Printing out data
 std::ostream& operator <<(std::ostream& os, const Angle3& ang3)
 {

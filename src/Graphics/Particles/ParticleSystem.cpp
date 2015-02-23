@@ -123,6 +123,8 @@ void ParticleSystem::Initialize()
 	initialized = true;
 	// Grab model.
 	model = ModelMan.GetModel(modelName);
+	// Bufferize model if needed.
+	model->BufferizeIfNeeded();
 	assert(model);
 }
 
@@ -476,10 +478,10 @@ void ParticleSystem::SetUniforms()
 */
 void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 {
+#define LogParticleSystem(text, errorLevel) LogGraphics(name+": "+text, errorLevel);
+#define CheckGLErrorParticle(text) CheckGLError(type+": "+text);
 	/// Fetch Particle shader.
 	Shader * shader = ShadeMan.GetShader(shaderName);
-	if (shaderName != "CloudParticles")
-		return;
 	if (!shader)
 	{
 		std::cout<<"\nNo Particle shader available";
@@ -493,8 +495,11 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 		return;
 	}
 	// Set projection and view matrices
-	Matrix4f viewProjection = graphicsState.camera->ViewProjectionF();
-	glUniformMatrix4fv(shader->uniformViewProjectionMatrix, 1, false, viewProjection.getPointer());
+	if (shader->uniformViewProjectionMatrix != -1)
+	{
+		Matrix4f viewProjection = graphicsState.camera->ViewProjectionF();
+		glUniformMatrix4fv(shader->uniformViewProjectionMatrix, 1, false, viewProjection.getPointer());
+	}
 	Matrix4f modelMatrix;
 	if (shader->uniformModelMatrix != -1)
 		glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, modelMatrix.getPointer());
@@ -507,6 +512,7 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 		shader->PrintAttributes();
 		shader->PrintUniforms();
 	}
+	CheckGLErrorParticle("ParticleSystem::RenderInstanced - uniforms");
 
 	// Set blend equation
 	glBlendEquation(blendEquation);
@@ -514,7 +520,10 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 	// Enable the necessary attributes?
 	assert(model);
 	if (!model)
+	{
+		LogGraphics("Lacking valid model in ParticleSystem::RenderInstanced", ERROR);
 		return;
+	}
 	// Set up model properties first?
 	model->mesh->BindVertexBuffer();
 	// These functions are specific to glDrawArrays*Instanced*.
@@ -559,6 +568,8 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 		glVertexAttribPointer(shader->attributeParticleLifeTimeDurationScale, 4, GL_FLOAT, GL_FALSE, 0, (void*)0);
 		glVertexAttribDivisor(shader->attributeParticleLifeTimeDurationScale, 1); 
 	}
+	CheckGLErrorParticle("ParticleSystem::RenderInstanced - bound attribs");
+
 	// Bind texture!
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glEnable(GL_TEXTURE_2D);
@@ -575,18 +586,24 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 	// Enable depth-test?
 	glEnable(GL_DEPTH_TEST);
  
+	assert(model->mesh->vertexDataCount < 300000);
 	// Draw the particules !
 	glDrawArraysInstanced(GL_TRIANGLES, 0, model->mesh->vertexDataCount, aliveParticles);
 
 	graphicsState.BindVertexArrayBuffer(0);
-	CheckGLError("ParticleSystem::RenderInstanced");
+	CheckGLErrorParticle("ParticleSystem::RenderInstanced - post draw");
 
 	// Reset the instancing/divisor attributes or shading will fail on other shaders after this!
-	glVertexAttribDivisor(shader->attributeParticlePositionScale, 0); 
-	glVertexAttribDivisor(shader->attributeColor, 0); 
-	// Disable enabled vertex arrays.
-	glDisableVertexAttribArray(shader->attributeParticlePositionScale);
-	glDisableVertexAttribArray(shader->attributeColor);
+	if (shader->attributeParticlePositionScale != -1)
+	{
+		glVertexAttribDivisor(shader->attributeParticlePositionScale, 0); 
+		glDisableVertexAttribArray(shader->attributeParticlePositionScale);
+	}
+	if (shader->attributeColor != -1)
+	{
+		glVertexAttribDivisor(shader->attributeColor, 0); 
+		glDisableVertexAttribArray(shader->attributeColor);
+	}
 	// Same for optional arguments.
 	if (shader->attributeParticleLifeTimeDurationScale != -1)
 	{
@@ -594,8 +611,7 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 		glDisableVertexAttribArray(shader->attributeParticleLifeTimeDurationScale);
 	}
 	
-
-	CheckGLError("ParticleSystem::RenderInstanced - unbind");
+	CheckGLErrorParticle("ParticleSystem::RenderInstanced - unbind");
 }
 
 void ParticleSystem::RenderOld(GraphicsState & graphicsState)
