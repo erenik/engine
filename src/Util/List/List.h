@@ -131,6 +131,8 @@ public:
 	bool Exists(const value_type & item) const;
 	/// Polls the existance/copy of all items in target list within this list. Returns false if any items are missing.
 	bool Exists(const List<value_type> & subList) const;
+	/// Polls the existance of any item from the sub list within this list. 
+	bool ExistsAny(const List<T> & subList) const;
 	/// Checks occurances of target item in the list.
 	int Occurances(const value_type & item) const;
 	/// Checks for duplicates in the list.
@@ -646,6 +648,19 @@ bool List<T>::Exists(const T & item) const {
 	}
 	return false;
 }
+
+/// Polls the existance of any item from the sub list within this list. 
+template <class T>
+bool List<T>::ExistsAny(const List<T> & subList) const
+{
+	for (int i = 0; i < currentItems; ++i)
+	{
+		if (subList.Exists(arr[i]))
+			return true;
+	}
+	return false;
+}
+
 
 /// Checks occurances of target item in the list.
 template <class T>

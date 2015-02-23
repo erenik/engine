@@ -95,6 +95,7 @@ enum
 };
 
 extern float timeDiffS;
+extern int64 timeNowMs;
 
 // Default true?
 extern bool tifsInstancingEnabled;

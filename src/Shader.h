@@ -196,6 +196,9 @@ public:
 	int boneSkinningMatrixMapIndex;
 	int shadowMapIndex;
 	
+	// Texture factors
+	GLuint uniformEmissiveMapFactor;
+
 
 	GLuint uniformUseDiffuseMap, 
 		uniformUseSpecularMap, 

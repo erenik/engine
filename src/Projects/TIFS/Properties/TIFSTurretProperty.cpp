@@ -12,6 +12,7 @@
 #include "Entity/EntityManager.h"
 #include "StateManager.h"
 #include "MathLib/Angle3.h"
+#include "PhysicsLib/EstimatorFloat.h"
 
 int TIFSTurretProperty::defaultTurretCooldown = 2000;
 float TIFSTurretProperty::defaultPitchYawPerSecond = 0.2f;
@@ -64,9 +65,11 @@ void TIFSTurretProperty::Process(int timeInMs)
 		if (currentCapacitorValue < 0)
 		{
 			active = false;
+			UpdateEmissiveMap();
 			return;
 		}
 	}
+	UpdateEmissiveMap();
 
 	/// Do nothing if not active?
 	if (!active)
@@ -133,6 +136,8 @@ void TIFSTurretProperty::Repair(float amount)
 		currentHP = (float)maxHP;
 		activatable = true;
 	}
+	lastRepairTimeMs = timeNowMs;
+	UpdateEmissiveMap();
 }
 
 void TIFSTurretProperty::Activate(float capacitorTransfer)
@@ -144,7 +149,9 @@ void TIFSTurretProperty::Activate(float capacitorTransfer)
 	{
 		active = true;
 	}
+	lastActivateTimeMs = timeNowMs;
 	ClampCapacitorValue();
+	UpdateEmissiveMap();
 }
 
 void TIFSTurretProperty::DrainCapacitor(float amount)
@@ -318,5 +325,53 @@ void TIFSTurretProperty::Shoot()
 
 
 
+void TIFSTurretProperty::UpdateEmissiveMap()
+{
+	Texture * newEmissiveMap;
+	if (this->active)
+	{
+		// was active earlier?
+		// Set basic activated emissive map?
+		newEmissiveMap = TexMan.GetTexture("0x00FF0022");
+	}
+	else if (timeNowMs - lastActivateTimeMs < 100)
+	{
+		// Set emissive map as if being activated.
+		newEmissiveMap = TexMan.GetTexture("0x00FFFF55");
+	}
+	else if (timeNowMs - lastRepairTimeMs < 100)
+	{
+		// Set emissive map as if being repaired.
+		newEmissiveMap = TexMan.GetTexture("0xFFFF0055");
+	}
+	else 
+	{
+		newEmissiveMap = NULL;
+	}
+	// Requires update?
+	if (newEmissiveMap != oldEmissiveMap )
+	{
+		oldEmissiveMap = newEmissiveMap;
+		GraphicsQueue.Add(new GMSetEntityTexture(turretParts, EMISSIVE_MAP, newEmissiveMap));
+		if (newEmissiveMap)
+		{
+			// Add a smoother/interpollator for its amount?
+			EstimatorFloat * estim = new EstimatorFloat();
+			float lowEnd = 0.1f,
+				highEnd = 1.f;
+			if (active)
+			{
+				lowEnd = 0.2f;
+				highEnd = 0.3f;
+			}
+			estim->AddStatesMs(3,
+				lowEnd, 0,
+				highEnd, 1000,
+				lowEnd, 2000);
+			estim->loop = true;
+			GraphicsQueue.Add(new GMSlideEntityf(turretParts, GT_EMISSIVE_MAP_FACTOR, estim));
+		}
+	}
+}
 
 

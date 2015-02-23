@@ -29,8 +29,8 @@ WeatherSystem * weather = NULL;
 bool tifsInstancingEnabled = true;
 
 float cameraSmoothing = 0.3f;
-
 float timeDiffS = 0.001;
+int64 timeNowMs = 0;
 
 /// Lists to clear upon deletion of the map.
 List< List<Entity*> *> entityLists; 
@@ -149,6 +149,7 @@ void TIFS::Process(int timeInMs)
 	if (paused)
 		return;
 	timeInMs %= 100;
+	timeNowMs += timeInMs;
 	timeDiffS = timeInMs * 0.001f;
 	weather->Process(timeInMs);
 }
@@ -545,6 +546,7 @@ void TIFS::CreateTurret(int ofSize, ConstVec3fr atLocation)
 	underBarrelEntity->sharedProperties = true;
 	barrelEntity->sharedProperties = true;
 
+	prop->turretParts = turretParts;
 	prop->turretSize = ofSize;
 //	prop->yawPerSecond = prop->pitchPerSecond = pow(2.25f, (SIZES - ofSize)) * 0.2f;
 

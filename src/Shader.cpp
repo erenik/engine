@@ -281,6 +281,12 @@ void Shader::ExtractUniforms()
 	uniformShadowMap = glGetUniformLocation(shaderProgram, "shadowMap");
 	uniformShadowMapMatrix = glGetUniformLocation(shaderProgram, "shadowMapMatrix");
 
+	/// Factors
+	uniformEmissiveMapFactor = glGetUniformLocation(shaderProgram, "emissiveMapFactor");
+	if (uniformEmissiveMap != -1 && uniformEmissiveMapFactor == -1)
+	{
+		LogGraphics("emissiveMapFactor uniform missing from shader "+name+". This does not comply with engine standards.", WARNING);
+	}
 
 	/// Extract textures boolean uniforms.
 	uniformUseDiffuseMap = glGetUniformLocation(shaderProgram, "useDiffuseMap");

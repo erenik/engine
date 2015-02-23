@@ -99,6 +99,8 @@ public:
 	/// If true, will try to render the skinned animation using shaders. If false, all vertices will be re-calculated in the CPU.
 	bool shaderBasedSkeletonAnimation;
 
+	/// Default 1.0
+	float emissiveMapFactor;
 
 	/// Pauses general automations but also things such as bone/skinning-updates o.o
 	bool allAnimationsPaused;

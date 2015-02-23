@@ -33,6 +33,7 @@ enum estimTypes {
 	NULL_TYPE,
 	FLOAT,
 	VEC3F,
+	ENTITY_PHYSICS, // For syncing over network? smooth interpolations of position, velocity, etc. all included?
 };};
 
 /// A state to be entered into the estimator.
@@ -50,7 +51,7 @@ class Estimator
 {
 public:
 	/// Sets finished to false.
-	Estimator();
+	Estimator(int estimatorType);
 	virtual ~Estimator();
 
 	/** Estimates values for given time. If loop is true, the given time will be modulated to be within the interval of applicable time-values.
@@ -64,6 +65,8 @@ public:
 	/// Attempts to insert the given state at a decent place based on it's time-stamp.
 	virtual void InsertState(Estimation * state);
 
+	/// See types above?
+	int type;
 
 	enum {
 		SEARCH_ALL,

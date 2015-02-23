@@ -3,6 +3,7 @@
 /// o.o
 
 #include "EstimatorFloat.h"
+#include "Debug.h"
 
 /// Size of states-array from which we sample.
 #define arraySize states.Size()
@@ -20,6 +21,7 @@ EstimationFloat::EstimationFloat(float fValue, int64 timeStamp)
 
 /// Constructor which sets this estimator up to write to a specific.
 EstimatorFloat::EstimatorFloat()
+: Estimator(EstimatorType::FLOAT)
 {
 	variableToPutResultTo = NULL;
 	currentIndex = -1;
@@ -34,8 +36,11 @@ void EstimatorFloat::Estimate(const Time & forGivenTime, bool loop)
 	int64 forGivenTimeInMs = forGivenTime.Milliseconds();
 	int64 modulatedTime = forGivenTimeInMs;
 	if (loop)
+	{
 		modulatedTime = forGivenTimeInMs % totalIntervalMs + minMs;
-	
+		if (debug == -15)
+			std::cout<<"\nModulated time: "<<modulatedTime<<" forGivenTimeMs: "<<forGivenTimeInMs;
+	}
 	Estimation * before, * after;
 	float ratioBefore, ratioAfter;
 	this->GetStates(before, after, ratioBefore, ratioAfter, modulatedTime);
@@ -61,6 +66,13 @@ void EstimatorFloat::Estimate(const Time & forGivenTime, bool loop)
 
 	if (variableToPutResultTo)
 		*variableToPutResultTo = finalValue;
+	else if (variablesToPutResultTo.Size())
+	{
+		for (int i = 0; i < variablesToPutResultTo.Size(); ++i)
+		{
+			*variablesToPutResultTo[i] = finalValue;
+		}
+	}
 	else {
 		std::cout<<"\nEstimating with no output result placement.";
 	}
@@ -77,13 +89,15 @@ void EstimatorFloat::Process(int timeInMs)
 	timeElapsedMs += timeInMs;
 
 	// Estimate value! Final value will be written as necessary straight from the Estimate function.
-	this->Estimate(timeElapsedMs, loop);
+	this->Estimate(Time(TimeType::MILLISECONDS_NO_CALENDER, timeElapsedMs), loop);
 
 	/// Mark as finished when applicable.
-	int64 time = States().Last()->time;
-	if (timeElapsedMs > time)
-		finished = true;
-	
+	if (!loop) // Though not applicable for looping estimators.
+	{
+		int64 time = States().Last()->time;
+		if (timeElapsedMs > time)
+			finished = true;
+	}
 	/*
 
 	float value;

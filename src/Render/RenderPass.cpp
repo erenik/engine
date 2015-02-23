@@ -468,12 +468,14 @@ void RenderPass::RenderEntities()
 			glActiveTexture(GL_TEXTURE0 + shader->normalMapIndex);		
 			glBindTexture(GL_TEXTURE_2D, normalMap? normalMap->glid : 0);
 		}
-		if (entity->emissiveMap != emissiveMap)
+		if (shader->uniformEmissiveMap != -1 && entity->emissiveMap != emissiveMap)
 		{
 			emissiveMap = entity->emissiveMap;
 			/// Bind emissive map.
 			glActiveTexture(GL_TEXTURE0 + shader->emissiveMapIndex);		// Select server-side active texture unit
 			glBindTexture(GL_TEXTURE_2D, emissiveMap? emissiveMap->glid : 0);
+			// Setup emissive factor
+			glUniform1f(shader->uniformEmissiveMapFactor, gp->emissiveMapFactor);
 		}
 
 		// Set multiplicative base color (1,1,1,1) default.

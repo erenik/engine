@@ -27,13 +27,14 @@ EstimationVec3f::EstimationVec3f(const Vector3f & value, int64 timeStampInMs)
 
 /// Empty constructor for variable-lengthed data which is edited as time goes.
 EstimatorVec3f::EstimatorVec3f()
+: Estimator(EstimatorType::FLOAT)
 {
 	Nullify();
 }
 
 /// Constructor. First argument sets array for which the estimation will be used.
 EstimatorVec3f::EstimatorVec3f(int sampleDataArraySize, int initialMode /* = NONE */)
-:  mode(initialMode) 
+: Estimator(EstimatorType::FLOAT), mode(initialMode) 
 {
 	Nullify();
 //	states = new EstimationVec3f[sampleDataArraySize];

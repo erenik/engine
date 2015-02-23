@@ -42,6 +42,7 @@ public:
 
 	/// o.o
 	float * variableToPutResultTo;
+	List<float*> variablesToPutResultTo;
 	
 private:
 	/// Fetches index compared to the last added one.

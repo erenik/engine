@@ -209,6 +209,7 @@ enum graphicsTargets
 	// Added with GraphicsEffects.
 	GT_GRAPHIC_EFFECTS_TARGETS = GT_SET_ENTITY_TARGETS + 100,
 	GT_ALPHA,
+	GT_EMISSIVE_MAP_FACTOR, // Ratio at which emissive map should be added in the shader.
 	GT_RELATIVE_SCALE,
 	GT_MODEL,
 	GT_ANIMATION_SET, // Should maybe use other enum?

@@ -20,7 +20,8 @@ Estimation::~Estimation()
 }
 
 /// Sets finished to false.
-Estimator::Estimator()
+Estimator::Estimator(int estimatorType)
+: type(estimatorType)
 {
 	currentIndex = -1;
 	finished = false;
@@ -103,7 +104,6 @@ void Estimator::GetStates(Estimation * & before, Estimation * & after, float & r
 		case SEARCH_ALL:
 		{
 			after = before = states[0];
-			distToBefore = distToAfter = AbsoluteValue(after->time - forGivenTimeInMs);
 			for (int i = 0; i < states.Size(); ++i)
 			{
 				Estimation * state = states[i];

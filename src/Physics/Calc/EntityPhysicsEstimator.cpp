@@ -8,7 +8,7 @@
 #include "Physics/PhysicsProperty.h"
 
 EntityPhysicsEstimator::EntityPhysicsEstimator(Entity * owner)
-: owner(owner), positionEstimator(1000), rotationEstimator(1000), velocityEstimator(1000)
+:  Estimator(EstimatorType::ENTITY_PHYSICS), owner(owner), positionEstimator(1000), rotationEstimator(1000), velocityEstimator(1000)
 {
 	/// 100 delay + some ms to compensate?
 	estimationDelay = 100;

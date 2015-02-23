@@ -20,6 +20,8 @@
 GraphicsProperty::GraphicsProperty(Entity * owner)
 : owner(owner)
 {
+	emissiveMapFactor = 1.f;
+
 	owner->graphics = this;
 	castsShadow = true;
 	flags = 0;

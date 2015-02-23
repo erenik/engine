@@ -34,7 +34,8 @@ GMSetEntityTexture::GMSetEntityTexture(List<Entity*> entities, int target, Strin
 
 void GMSetEntityTexture::Process()
 {
-	if (t == NULL){
+	if (t == NULL && textureSource.Length())
+	{
 		t = TexMan.GetTexture(textureSource);
 		if (!t){
 			std::cout<<"\nERROR: No such texture \""<<textureSource<<"\"";
@@ -50,7 +51,7 @@ void GMSetEntityTexture::Process()
 			continue;
 		}
 		entity->SetTexture(target, t);
-		if (t->glid == -1)
+		if (t && t->glid == -1)
 			TexMan.BufferizeTexture(t);
 		Graphics.renderQueried = true;
 	}
@@ -383,6 +384,7 @@ GMSlideEntityf::GMSlideEntityf(Entities entities, int target, EstimatorFloat * u
 	switch(target)
 	{
 		case GT_ALPHA:
+		case GT_EMISSIVE_MAP_FACTOR:
 			break;
 		default:
 			assert(false);
@@ -426,12 +428,34 @@ void GMSlideEntityf::Process()
 		switch(target)
 		{
 			case GT_ALPHA:
-				estimatorFloat->variableToPutResultTo = &graphics->color[3];
+				estimatorFloat->variablesToPutResultTo.Add(&graphics->color[3]);
+				break;
+			case GT_EMISSIVE_MAP_FACTOR:
+				estimatorFloat->variablesToPutResultTo.Add(&graphics->emissiveMapFactor);
 				break;
 			default:
 				assert(false);
 		}
-		graphics->estimators.Add(estimatorFloat);
+		// Add it to the first entity only, even if shared.
+		if (i == 0)
+		{
+			/// Look for pre-existing estimators with similar variablesToPutResultTo, and remove them if so!
+			for (int j = 0; j < graphics->estimators.Size(); ++j)
+			{
+				Estimator * estimator = graphics->estimators[j];
+				if (estimator->type == EstimatorType::FLOAT)
+				{
+					EstimatorFloat * floatEstim = (EstimatorFloat*) estimator;
+					if (floatEstim->variablesToPutResultTo.ExistsAny(estimatorFloat->variablesToPutResultTo))
+					{
+						graphics->estimators.RemoveItemUnsorted(floatEstim);
+						delete floatEstim;
+						--j;
+					}
+				}
+			}
+			graphics->estimators.Add(estimatorFloat);
+		}
 	}
 }
 

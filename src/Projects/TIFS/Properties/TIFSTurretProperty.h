@@ -8,9 +8,13 @@
 #include "TIFSProperties.h"
 #include "MathLib/Angle.h"
 #include "MathLib.h"
+//#include "Time/Time.h"
+
+class Texture;
 
 class TIFSTurretProperty : public EntityProperty
 {
+	friend class TIFS;
 public:
 	// The base will become the owner... I think. Or all of them.. ? o.O
 	TIFSTurretProperty(Entity * base, Entity * swivel, Entity * underBarrel, Entity * barrel);
@@ -64,6 +68,7 @@ public:
 	int weaponCooldownMs;
 	float projectileSpeed;
 private:
+	List<Entity*> turretParts;
 	bool springsCreated;
 
 	bool shoot;
@@ -76,6 +81,11 @@ private:
 	float distanceToTarget;
 	Vector3f toTargetNormalized;
 
+	void UpdateEmissiveMap();
+	int64 lastRepairTimeMs;
+	int64 lastActivateTimeMs;
+
+	Texture * oldEmissiveMap;
 };
 
 #endif
