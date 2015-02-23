@@ -593,35 +593,19 @@ int main(int argc, char **argv)
 	double timeStart = clock();
 	double timeTaken;
 
-
-#ifdef WINDOWS
-	extern uintptr_t deallocatorThread;
+	extern THREAD_HANDLE deallocatorThread;
 	while(deallocatorThread)
 		Sleep(5);
-#elif defined LINUX | defined OSX
-    /// Start it if it isnt already!
-    extern pthread_t deallocatorThread;
-    while (deallocatorThread)
-        Sleep(5);
     /// Wait for initializer to complete!
     std::cout<<"\nWaiting for DeallocatorThread...";
-    pthread_join(deallocatorThread, NULL);
-#endif
+
 	timeTaken = clock() - timeStart;
 	std::cout<<"\nWaiting for deallocatorThread total time: "<<timeTaken / CLOCKS_PER_SEC<<" seconds";
 
-
     std::cout<<"\nWaiting for state processing thread...";
-#ifdef WINDOWS
-	// Wait for the state processing thead too.
-	extern uintptr_t stateProcessingThread;
+	extern THREAD_HANDLE stateProcessingThread;
 	while(stateProcessingThread)
 		Sleep(5);
-#elif defined LINUX | defined OSX
-	extern pthread_t stateProcessingThread;
-	while(stateProcessingThread)
-		Sleep(5);
-#endif
 
     /// Wait until graphics thread has ended before going on to deallocation!
     while(graphicsThread)
@@ -631,10 +615,8 @@ int main(int argc, char **argv)
     }
 	std::cout<<"\nState processor thread ended.";
 	
-	std::cout<<"\nDestroy window.";
-	
 	// Delete ALL windows o-o
-	WindowMan.DeleteWindows();
+//	WindowMan.DeleteWindows();
 	
 	std::cout<<"\nDeallocating all managers.";
 	timeStart = clock();
@@ -688,26 +670,19 @@ int main(int argc, char **argv)
 	std::cout<<"\n>>>Main finishing.    >>>";
     std::cout<<"\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>";
 
-#ifdef WINDOWS
-
-	// De-allocate COM stuffs
-	// http://msdn.microsoft.com/en-us/library/windows/desktop/ms688715%28v=vs.85%29.aspx
-//	CoUninitialize();
-
-	/// Post debug to output window.
-//	_CrtSetReportMode( _CRT_ERROR, _CRTDBG_MODE_DEBUG );
-	/// Post memory leaks
-//	_CrtDumpMemoryLeaks();
 	Sleep(100);
 	if (errorCode > 0)
 	{
-		std::cout<<"\nApplication ending. Error code: "<<errorCode<<". See log files in /log/ for more info.";
+		if (errorCode == -1)
+		{
+			extern String errorMessage;
+			std::cout<<"\nFatal Error: "<<errorMessage;
+		}
+		else
+			std::cout<<"\nApplication ending. Error code: "<<errorCode<<". See log files in /log/ for more info.";
 		Sleep(3000);
 	}
 	return (int) errorCode;
-#elif defined LINUX | defined OSX
-    return 0;
-#endif
 }
 
 

@@ -10,32 +10,20 @@
 #include "File/File.h"
 #include "Application/Application.h"
 
-#ifdef WINDOWS
-#include <process.h>
-uintptr_t initializerThread = NULL;
-uintptr_t deallocatorThread = NULL;
-uintptr_t graphicsThread = NULL;
-uintptr_t stateProcessingThread = NULL;
-#define RETURN_NULL	return;
-#elif defined LINUX | defined OSX
-pthread_t initializerThread = NULL;
-pthread_t deallocatorThread = NULL;
-pthread_t graphicsThread = NULL;
-pthread_t stateProcessingThread = NULL;
-#define RETURN_NULL	return NULL;
-#endif
+#include "OS/Thread.h"
+
+THREAD_HANDLE initializerThread = NULL;
+THREAD_HANDLE deallocatorThread = NULL;
+THREAD_HANDLE graphicsThread = NULL;
+THREAD_HANDLE audioThread = NULL;
+THREAD_HANDLE stateProcessingThread = NULL;
 
 int initializers = 0;
 
-
-
 // Initialize function to be run with the thread
-#ifdef WINDOWS
-void Initialize(void * vArgs){
-#elif defined LINUX | defined OSX
-void * Initialize(void * vArgs){
-#endif
 
+THREAD_START(Initialize)
+{
     initializers++;
     assert(initializers == 1);
 
@@ -47,7 +35,6 @@ void * Initialize(void * vArgs){
 	StateMan.Initialize();	// Registers all states to be used
 
 	ModelMan.Initialize(); // Loads useful models
-	Graphics.Initialize();	// Load settings and OS/Hardwave defaults
 	Physics.Initialize();
 	Input.Initialize();		// Loadinput-bindings
 	NetworkMan.Initialize();
@@ -55,22 +42,14 @@ void * Initialize(void * vArgs){
 	Ftp.Initialize();
 #endif
 	WaypointMan.Initialize();
-	AudioMan.Initialize();
 
 	// Begin threads for rendering, etc.
-#ifdef WINDOWS
-	graphicsThread = _beginthread(GraphicsManager::Processor, NULL, NULL);
-#elif defined LINUX | defined OSX
-    int iret1 = pthread_create(&graphicsThread, NULL, GraphicsManager::Processor, NULL);
-#endif
-
+	CREATE_AND_START_THREAD(GraphicsManager::Processor, graphicsThread);
+	// Begin audio thread.
+	CREATE_AND_START_THREAD(AudioManager::Processor, audioThread);
+	
 	// Initialize the mapManager, thereby loading the default map
 	MapMan.Initialize();
-
-	// Allocate all UIs
-	// All UI should be created only when necessary! Set it up manually in each App-state as wanted.
-	// Begin loading heavier things after we've set up the rendering thread.
-//	StateMan.CreateUserInterfaces();
 
 	// Check that all managers have been initialized before we continue..
 
@@ -86,16 +65,9 @@ void * Initialize(void * vArgs){
 		}
 	}
 
-	// TexMan.loadTextures(GAME_STATE_INITIALIZATION);
-	// TexMan.loadTextures(GAME_STATE_MAIN_MENU);
-
 	// Post message to the message manager that all managers have been initialized properly.
 	/// Start the state-processing thread!
-#ifdef WINDOWS
-	stateProcessingThread = _beginthread(StateManager::StateProcessor, NULL, NULL);
-#elif defined LINUX | defined OSX
-	int iret2 = pthread_create(&stateProcessingThread, NULL, StateManager::StateProcessor, NULL);
-#endif
+	CREATE_AND_START_THREAD(StateManager::StateProcessor, stateProcessingThread);
 
 	// Now begin accepting input!
 	Input.acceptInput = true;
@@ -107,28 +79,16 @@ void * Initialize(void * vArgs){
 	/// Everything should be setup, so evaluate any command-line arguments now!
 	CommandLine::Evaluate();
 
-/// Skip some stuff if linux until rendering works, please.
-#ifdef WINDOWS
-#endif // LINUX_TEST
-
-#ifdef WINDOWS
-	initializerThread = NULL;
-	// May not be needed, and hinders destructors from being called.
-//	_endthread();
-#endif
+	/// Inform that the thread has ended.
+	RETURN_NULL(initializerThread);
 }
 
 
 int deallocatorThreadStartCount = 0;
-
 /// Signifies that the application is currently exiting.
 bool quittingApplication = false;
 
-#ifdef WINDOWS
-void Deallocate(void *vArgs)
-#elif defined LINUX | defined OSX
-void * Deallocate(void *vArgs)
-#endif
+THREAD_START(Deallocate)
 {
 	quittingApplication = true;
     std::cout<<"\nDeallocatorThread started.";
@@ -156,12 +116,16 @@ void * Deallocate(void *vArgs)
 	// Stop the state loop	
 	double timeStart = clock();
 	double timeTaken;
-	
-#ifdef WINDOWS
-	while(graphicsThread)
-		Sleep(10);
-#endif
 
+	// Wait for graphics thread to end.
+	while(graphicsThread)
+	{
+		Sleep(10);
+	}
+	while(audioThread)
+	{
+		Sleep(10);
+	}
 	// Notify the message manager and game states to deallocate their windows.
 	MesMan.QueueMessages("DeleteWindows");
 	
@@ -180,12 +144,9 @@ void * Deallocate(void *vArgs)
 
     std::cout<<"\nWaiting for state processing thread to end..";
 
-#ifdef WINDOWS
+
 	while(stateProcessingThread)
 		Sleep(10);
-#elif defined LINUX | defined OSX
-    pthread_join(stateProcessingThread, NULL);
-#endif
 
 	// Wait until the graphics thread has ended before deallocating more.
 	while(!Graphics.finished)
@@ -196,13 +157,6 @@ void * Deallocate(void *vArgs)
 	/// Set the application's live to false so that the main loop will exit.
 	Application::live = false;
 
-	/// Deallocation thread quitting!
-#ifdef WINDOWS
-	deallocatorThread = NULL;
-	// May not be needed, and hinders destructors from being called.
-//	_endthread();
-	/// Inform that we're done here.
-#elif defined LINUX | defined OSX
-    deallocatorThread = NULL;
-#endif
+	/// Inform that the thread has ended.
+	RETURN_NULL(deallocatorThread);
 }

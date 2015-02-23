@@ -28,6 +28,9 @@ void AudioMessage::Process()
 		case AM_STOP_ALL:
 			AudioMan.StopAndRemoveAll();
 			break;
+		case AM_TOGGLE_MUTE:
+			AudioMan.ToggleMute();
+			break;
 		default:
 			assert(false);
 	}

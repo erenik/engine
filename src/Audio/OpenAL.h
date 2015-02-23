@@ -11,13 +11,15 @@
 // Includes Libs generated file which specifies which audio libraries we are to link to.
 #include "Libs.h"
 
+class String;
+
 #ifdef OPENAL
 	#include <AL/al.h>
 	#include <AL/alc.h>
 	// #include <AL/alut.h>
 
-	int CheckALError();
-	int AssertALError();
+	int CheckALError(const String & errorLocation);
+	int AssertALError(const String & errorLocation);
 
 	// Open AL device and context, similar to OpenGL device and context!
 	extern ALCdevice * alcDevice;		// Device

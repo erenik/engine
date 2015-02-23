@@ -4,6 +4,7 @@
 
 
 #include "AudioBuffer.h"
+#include "String/AEString.h"
 
 List<AudioBuffer*> AudioBuffer::buffers;
 
@@ -56,7 +57,7 @@ void AudioBuffer::FreeAll()
 		assert(!buffer->attached);
 		alDeleteBuffers(1, &buffer->alBuffer);
 		buffers.RemoveIndex(0);
-		int error = CheckALError();
+		int error = CheckALError("AudioBuffer::FreeAll");
 		if (error = AL_NO_ERROR)
 			++freed;
 		// Actually delete it too, yo.
@@ -78,7 +79,7 @@ bool AudioBuffer::AttachTo(unsigned int alSource)
 #ifdef OPENAL
 	assert(attached == false);
 	alSourceQueueBuffers(alSource, 1, &alBuffer);
-	int error = CheckALError();
+	int error = CheckALError("AudioBuffer::AttachTo");
 	if (error == AL_NO_ERROR)
 	{
 		attached = true;
@@ -93,7 +94,7 @@ bool AudioBuffer::DetachFrom(unsigned int alSource)
 #ifdef OPENAL
 	assert(attached);
 	alSourceUnqueueBuffers(alSource, 1, &alBuffer);
-	int error = AssertALError();
+	int error = AssertALError("AudioBuffer::DetachFrom");
 	if (error == AL_NO_ERROR)
 	{
 		attached = false;

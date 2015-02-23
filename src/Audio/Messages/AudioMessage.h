@@ -18,6 +18,7 @@ enum audioMessageTypes
 	AM_PAUSE,
 	AM_STOP,
 	AM_STOP_ALL,
+	AM_TOGGLE_MUTE,
 };
 
 enum audioTargets 

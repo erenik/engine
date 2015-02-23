@@ -25,6 +25,7 @@ enum
 	INFO = 2,
 	WARNING = 3,
 	ERROR = 4,
+	FATAL = 5,
 	CAUSE_ASSERTION_ERROR = 16
 };
 

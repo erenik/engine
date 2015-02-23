@@ -2,7 +2,6 @@
 // 2013-03-22
 
 #include "Audio.h"
-#include "ALDebug.h"
 #include "AudioManager.h"
 
 #include "Multimedia/MultimediaStream.h"
@@ -114,11 +113,11 @@ Audio::~Audio()
 	/// Deallocate al IDs.
     if (alSource != 0)
 	{
+		Stop(false);
 		// Stop!
         alSourceStop(alSource);
 		// set 0 buffer so that they may be deleted. <- wat...
 //		alSourcei(alSource, AL_BUFFER, 0);
-		AssertALError();
 			
 		// Unqueue and delete all audio buffers buffers.
 		while(audioBuffers.Size())
@@ -129,13 +128,11 @@ Audio::~Audio()
 				UnqueueBuffer(audioBuffer);
 			// Free the buffers.
 			audioBuffer->Free();
-			AssertALError();
 			audioBuffers.Remove(audioBuffer);
 //			delete audioBuffer;
 		}
 
 		ALSource::Free(alSource);
-		AssertALError();
 	}
 #endif
 	
@@ -219,7 +216,10 @@ bool Audio::Load()
 	else {
         assert(false && "Unsupported audio-format I'm afraid!");
 	}
-	audioStream->loop = repeat;
+	if (audioStream)
+	{
+		audioStream->loop = repeat;
+	}
 	lastAudioInfo = "Audio::Load for path: "+path; 
     return loaded;
 }
@@ -440,7 +440,7 @@ void Audio::Update()
 			// Check playback time
 		//	std::cout<<"\nAudio stopped! Maybe it ran out of data to play back? Playing it again unless stream we depend on has ended!";
 			alSourcePlay(alSource);
-			CheckALError();
+			CheckALError("Audio::Update - alSourcePlay");
 		}
 	}
 
@@ -522,7 +522,6 @@ void Audio::UpdateVolume(float masterVolume)
 //	std::cout<<"\nUpdating volume: "<<absoluteVolume<<" for source "<<alSource;
 	/// Set volume in AL.
 //	std::cout<<"\nVolume updated: "<<absoluteVolume;
-	
 #ifdef OPENAL
 	assert(alSource != 0);
 	alSourcef(alSource, AL_GAIN, absoluteVolume);
@@ -664,7 +663,6 @@ void Audio::BufferData(MultimediaStream * fromStream, AudioBuffer * intoBuffer)
 				break;
 			default:
 				std::cout<<"\nError buffering AL Data";
-				PrintALError(error);
 				intoBuffer->buffered = false;
 				break;
 		}

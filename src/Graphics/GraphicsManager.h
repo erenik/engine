@@ -5,6 +5,7 @@
 #define GRAPHICSMANAGER_H
 
 #include "OS/OS.h"
+#include "OS/Thread.h"
 #ifdef WINDOWS
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -125,12 +126,8 @@ public:
 	/// Reumes the rendering immediately.
 	void ResumeRendering();
 
-	/// Main graphics manager processing thread
-#ifdef WINDOWS
-	static void Processor(void * vArgs);
-#elif defined LINUX | defined OSX
-	static void * Processor(void * vArgs);
-#endif
+	/// Declares the main graphics processing thread. See OS/Thread.h for details.
+	PROCESSOR_THREAD_DEC;
 
 	/// Lists active camera data in the console.
 	void ListCameras();

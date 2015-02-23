@@ -51,6 +51,7 @@
 
 #include "Application/Application.h"
 #include "StateManager.h"
+#include "Audio/Messages/AudioMessage.h"
 
 #include "Entity/EntityManager.h"
 #include "Input/InputManager.h"

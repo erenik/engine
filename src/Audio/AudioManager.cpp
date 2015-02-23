@@ -32,14 +32,15 @@ Mutex audioMessageQueueMutex;
 String lastAudioInfo;
 
 // Default constructor
-AudioManager::AudioManager(){
-
+AudioManager::AudioManager()
+{
 	// Set the global audio to this upon finishing construction.
 	initialized = false;
 	pauseUpdates = false;
 	audioEnabled = true;
-
+	mute = false;
 	masterVolume = 0.1f;
+	shouldLive = true;
 }
 
 AudioManager::~AudioManager()
@@ -58,50 +59,46 @@ bool AudioManager::AudioProcessingActive()
 }
 
 
-void AudioManager::Initialize()
+bool AudioManager::Initialize()
 {
-	std::cout<<"\nStarting AudioManager...";
+	LogAudio("Starting AudioManager...", INFO);
 
 	// Create mutex for handling race-conditions/threading
 	audioMessageQueueMutex.Create("audioMessageQueueMutex");
 
 #ifdef OPENAL
 //	std::cout<<"\nInitializing OpenAL Utilities...";
-	std::cout<<"\nChecking for available audio devices...";
+	LogAudio("Checking for available audio devices...", INFO);
 	if (alcIsExtensionPresent(NULL, "ALC_ENUMERATION_EXT") == AL_TRUE)
 	{
 	//	std::cout<<"\nEnumeration extension found.";
 		const char * deviceSpecifier = alcGetString(NULL, ALC_DEVICE_SPECIFIER);
 		const char * defaultDevice = alcGetString(NULL, ALC_DEFAULT_DEVICE_SPECIFIER);
-		std::cout<<"\nDevice specifier: "<<deviceSpecifier<<"\nDefault device: "<<defaultDevice;
+		LogAudio("Device specifier: "+String(deviceSpecifier)+"\nDefault device: "+String(defaultDevice), INFO);
 	}
 	else
-		std::cout<<" Enumeration extension not available!";
+		LogAudio("Enumeration extension not available!", WARNING);
 
 	// TODO: Proper initialization
 	alcDevice = alcOpenDevice(NULL); // Open default alcDevice
-	if (alcDevice == 0){
-		std::cout<<"\nERROR: Unable to open AL device.";
+	if (alcDevice == 0)
+	{
+		LogAudio("ERROR: Unable to open AL device.", FATAL);
 		//	assert(alcDevice && "Unable to open AL device in AudioManager::Initialize");
 		//audio = this;
-		return;
+		return false;
 	}
 	alcContext = alcCreateContext(alcDevice, NULL);
 	int result = alcMakeContextCurrent(alcContext);
-	if (result == ALC_FALSE){
-		std::cout<<"\nERROR: Unable to make AL context active.";
-		assert(alcDevice && "Unable to make AL context active in AudioManager::Initialize");
-		return;
+	if (result == ALC_FALSE)
+	{
+		LogAudio("ERROR: Unable to make AL context active.", FATAL);
+		return false;
 	}
 
 	/// Set initial values, like the listener position?
 
 //	std::cout<<"Queueing initial playback";
-
-	// If something went wrong, throw an error.
-	if (false){
-		throw std::runtime_error("AudioManager failed to initialize!");
-	}
 	// Set initialized to true after all initialization has been completed correctly.
 	initialized = true;
 	std::cout<<"\nOpenAL initialized successfully.";
@@ -126,8 +123,7 @@ void AudioManager::Initialize()
 		system->loadBankFile("filename", 0, &bank);
 		system->update();
 		system->playSound(sound, channelGroup, false, &channel);
-	}
-	
+	}	
 /*	if (result != FMOD_OK)
 	{
 		printf("FMOD error! (%d) %s\n", result, FMOD_ErrorString(result));
@@ -143,6 +139,7 @@ void AudioManager::Initialize()
 		categoryVolumes.Add(1.f);
 	}
 	initialized = true;
+	return true;
 }
 
 /// Called once in the deallocator thread when stop procedures have begun but before deallocation occurs.
@@ -150,26 +147,7 @@ void AudioManager::Shutdown()
 {
 	if (!initialized)
 		return;
-	/// Shut down all remaining music.
-	AudioMan.StopAndRemoveAll();
-	/// Deallocate audio stufs, since that loop is here still..
-	AudioBuffer::FreeAll();
-
-#ifdef OPENAL
-	ALSource::FreeAll();
-
-	if (alcContext)
-	{
-		alcMakeContextCurrent( NULL );
-		alcDestroyContext( alcContext );
-		alcCloseDevice( alcDevice );
-
-		alcContext = NULL;
-		alcDevice = NULL;
-	}
-//	alutExit();
-#endif
-	initialized = false;
+	shouldLive = false;
 }
 
 void AudioManager::Allocate(){
@@ -236,6 +214,13 @@ void AudioManager::StopAllOfType(char type)
 		}
 	}
 }
+
+void AudioManager::ToggleMute()
+{
+	this->mute = !mute;
+	this->UpdateVolume();
+}
+
 
 /** Attempts to play audio from given source. Optional arguments control loop-mode and relative volume.
 	Returns the relevant Audio object upon success.
@@ -480,8 +465,6 @@ void AudioManager::Update()
 		return;
 	}
 	lastAudioInfo = "AudioManager::Update";
-	/// Get context, always
-	GRAB_AL_CONTEXT
 
 	// Process messages.
 	lastAudioInfo = "AudioManager::ProcessAudioMessages";
@@ -492,7 +475,7 @@ void AudioManager::Update()
 	for (int i = 0; i < audioList.Size(); ++i)
 	{
 		Audio * audio = audioList[i];
-		audio->UpdateVolume(masterVolume);
+		audio->UpdateVolume(mute? 0: masterVolume);
 		audio->Update();
 		// See if it ended.
 		if (audio->playbackEnded)
@@ -540,9 +523,15 @@ void AudioManager::StopAndRemoveAll()
 }
 
 /// Calls update volume for all audio
-void AudioManager::UpdateVolume(){
-	for (int i = 0; i < audioList.Size(); ++i){
-		audioList[i]->UpdateVolume(masterVolume);
+void AudioManager::UpdateVolume()
+{
+	for (int i = 0; i < audioList.Size(); ++i)
+	{
+		Audio * audio = audioList[i];
+		if (mute)
+			audio->UpdateVolume(0.f);
+		else
+			audio->UpdateVolume(masterVolume);
 	}
 }
 
@@ -581,3 +570,46 @@ void AudioManager::ProcessAudioMessages()
 	messagesToProcess.ClearAndDelete();
 }
 
+
+extern THREAD_HANDLE audioThread;
+
+PROCESSOR_THREAD_START(AudioManager)
+{
+	/// Create AL Context, etc.
+	if (!AudioMan.Initialize())
+	{
+		QuitApplicationFatalError("AudioManager failed to initialize. See /log/AudioLog.txt");
+		RETURN_NULL(audioThread);
+	}
+	/// Get context
+	GRAB_AL_CONTEXT
+	// Do stuff o.o
+	while(AudioMan.shouldLive)
+	{	
+		/// Sleep 50 ms each frame?
+		Sleep(50);
+		AudioMan.Update();
+	}
+	/// Free all OpenAL resources.
+	AL_FREE_ALL
+
+	/// Shut down all remaining music.
+	AudioMan.StopAndRemoveAll();
+	/// Deallocate audio stufs, since that loop is here still..
+	AudioBuffer::FreeAll();
+
+#ifdef OPENAL
+	ALSource::FreeAll();
+	if (alcContext)
+	{
+		alcMakeContextCurrent( NULL );
+		alcDestroyContext( alcContext );
+		alcCloseDevice( alcDevice );
+
+		alcContext = NULL;
+		alcDevice = NULL;
+	}
+#endif
+	/// Inform that the thread has ended.
+	RETURN_NULL(audioThread);
+}

@@ -6,6 +6,7 @@
 
 #define AUDIO	1
 
+#include "OS/Thread.h"
 #include <stdexcept>
 #include <Util.h>
 #include "AudioTypes.h"
@@ -41,11 +42,19 @@ private:
 public:
 	~AudioManager();
 	static AudioManager * Instance() { return audioManager; };
+	
+	/// Controls the main audio processing thread.
+	bool shouldLive;
+	/// Main audio processing thread
+	PROCESSOR_THREAD_DEC;
+
 	/// If true, you may queue messages.
 	static bool AudioProcessingActive();
 
-	/// Called once in the initializer thread after allocation but before the engine gets started.
-	void Initialize();
+	/** Called once in the initializer thread after allocation but before the engine gets started. 
+		If false, audio was failed to set up, and program should be quit.
+	*/
+	bool Initialize();
 	/// Called once in the deallocator thread when stop procedures have begun but before deallocation occurs.
 	void Shutdown();
 	static void Allocate();
@@ -72,6 +81,7 @@ public:
 	void StopAndRemoveAll();
 
 private:
+	void ToggleMute();
 	/** Attempts to play audio from given source. Optional arguments control loop-mode and relative volume.
 		Returns the relevant Audio object upon success.
 	*/
@@ -131,6 +141,8 @@ private:
 
 	/// Value applied to all audio.
 	float masterVolume;
+	// Default false.
+	bool mute;
 	/// To toggle it in run-time.
 	bool audioEnabled;
 	/// Pauses target audio.

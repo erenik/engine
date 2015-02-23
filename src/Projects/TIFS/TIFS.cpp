@@ -29,7 +29,7 @@ WeatherSystem * weather = NULL;
 bool tifsInstancingEnabled = true;
 
 float cameraSmoothing = 0.3f;
-float timeDiffS = 0.001;
+float timeDiffS = 0.001f;
 int64 timeNowMs = 0;
 
 /// Lists to clear upon deletion of the map.
@@ -138,7 +138,9 @@ void TIFS::OnEnter(AppState * previousState)
 
 	// Run OnEnter script.
 	ScriptMan.PlayScript("OnEnter.txt");
-
+	
+	// Play music p.o
+	AudioQueue.Add(new AMPlayBGM("music/2015-02-07_Unknown.ogg"));
 }
 
 /// Main processing function, using provided time since last frame.
@@ -196,7 +198,7 @@ void TIFS::ProcessMessage(Message * message)
 			}
 			/// Turret stats.
 			if (msg.StartsWith("TurretCooldown"))
-				TIFSTurretProperty::defaultTurretCooldown = msg.Tokenize("()")[1].ParseFloat();
+				TIFSTurretProperty::defaultTurretCooldown = (int) msg.Tokenize("()")[1].ParseFloat();
 			else if (msg.StartsWith("TurretPitchYawPerSecond"))
 				TIFSTurretProperty::defaultPitchYawPerSecond = msg.Tokenize("()")[1].ParseFloat();
 			else if (msg.StartsWith("TurretProjectileSpeed"))
@@ -218,7 +220,7 @@ void TIFS::ProcessMessage(Message * message)
 			if (msg.StartsWith("SetFieldSize"))
 			{
 				fieldSize = msg.Tokenize("()")[1].ParseFloat();
-				halfFieldSize = fieldSize * 0.5;
+				halfFieldSize = fieldSize * 0.5f;
 				// Resize.
 				grid->Resize(gridSize, Vector3f(fieldSize, 100.f, fieldSize));
 			}
@@ -248,7 +250,7 @@ void TIFS::ProcessMessage(Message * message)
 				grid->roadScale = msg.Tokenize("()")[1].ParseFloat();
 			else if (msg.StartsWith("MinDistanceBetweenParallelRoads"))
 			{
-				grid->minDistanceBetweenParallelRoads = msg.Tokenize("()")[1].ParseFloat();
+				grid->minDistanceBetweenParallelRoads = (int) msg.Tokenize("()")[1].ParseFloat();
 			}
 			else if (msg.StartsWith("RequireRoadConnections"))
 				grid->requireRoadConnections = msg.Tokenize("()")[1].ParseBool();
@@ -272,11 +274,11 @@ void TIFS::ProcessMessage(Message * message)
 			}
 			else if (msg.StartsWith("CreateTurrets"))
 			{
-				CreateTurrets(msg.Tokenize("()")[1].ParseFloat());
+				CreateTurrets(msg.Tokenize("()")[1].ParseInt());
 			}
 			else if (msg.StartsWith("SpawnDrones"))
 			{
-				SpawnDrones(msg.Tokenize("()")[1].ParseFloat());
+				SpawnDrones(msg.Tokenize("()")[1].ParseInt());
 			}
 			if (msg.Contains("Pause/Break"))
 			{
@@ -347,6 +349,11 @@ void TIFS::ProcessMessage(Message * message)
 				// Go there?
 				StateMan.QueueState(mapEditor);
 			}
+			else if (msg == "ToggleMute")
+			{
+				// Mute?
+				AudioQueue.Add(new AudioMessage(AM_TOGGLE_MUTE));
+			}
 			else if (msg == "OpenMainMenu")
 			{
 				GraphicsQueue.Add(new GMSetUI(ui));
@@ -374,6 +381,8 @@ void TIFS::CreateDefaultBindings()
 	bindings.Add(new Binding(Action::FromString("Activate"), KEY::TWO));
 	bindings.Add(new Binding(Action::FromString("RedirectFire"), KEY::THREE));
 	bindings.Add(new Binding(Action::FromString("SpawnDrones(3)"), List<int>(KEY::CTRL, KEY::D)));
+#define BIND(a,b) bindings.AddItem(new Binding(a,b));
+	BIND(Action::FromString("ToggleMute"), KEY::M);
 }
 
 
@@ -410,8 +419,6 @@ Random droneRandom;
 void TIFS::SpawnDrones(int num)
 {
 //	MapMan.DeleteEntities(drones);
-	drones.Clear();
-
 	int numDronesToSpawn = num;
 	for (int i = 0; i < numDronesToSpawn; ++i)
 	{
@@ -694,6 +701,8 @@ void TIFS::NewGame()
 	// Delete previous entities?
 	MapMan.DeleteAllEntities();
 	turrets.Clear();
+	drones.Clear();
+
 
 	List<Entity*> allEntities = EntityMan.AllEntities();
 	// Unregister all from physics

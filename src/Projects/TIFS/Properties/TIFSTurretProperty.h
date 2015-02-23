@@ -81,6 +81,8 @@ private:
 	Vector3f toTarget;
 	float distanceToTarget;
 	Vector3f toTargetNormalized;
+	/// Place where bullet will emit from.
+	Vector3f aimPosition;
 
 	void UpdateEmissiveMap();
 	int64 lastRepairTimeMs;

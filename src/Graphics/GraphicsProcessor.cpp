@@ -18,25 +18,17 @@
 #include <cstdio>
 #include <cstring>
 
-#include "Audio/AudioManager.h"
-#include "Audio/OpenAL.h"
 #include "Globals.h"
 
 #include "File/LogFile.h"
 
+extern THREAD_HANDLE graphicsThread;
+
 /// Windows includes and globals
 #ifdef WINDOWS
-#include <windows.h>
-#include <process.h>
-extern uintptr_t graphicsThread;	// Graphics thread pointer from Initializer.cpp
-//extern HWND hWnd;			// Window handle
-//extern HDC	hdc;			// Device context
-//HGLRC		hRC = NULL;		// GL rendering context
-
 /// Linux includes and globals
 #elif defined USE_X11
 // Global variables
-extern pthread_t graphicsThread;
 #include <GL/glx.h>     // connect X server with OpenGL
 extern GLXContext       context; // OpenGL context
 extern Display*         display; // connection to X server
@@ -56,11 +48,9 @@ int fatalGraphicsError = 0;
 String graphicsThreadDetails;
 
 /// Main graphics manager processing thread
-#ifdef WINDOWS
-void GraphicsManager::Processor(void * vArgs){
-#elif defined LINUX | defined OSX
-void * GraphicsManager::Processor(void * vArgs){
-#endif
+PROCESSOR_THREAD_START(GraphicsManager)
+{
+	Graphics.Initialize();	// Load settings and OS/Hardwave defaults
 
     std::cout<<"\n=======================================================";
     std::cout<<"\nGraphicsProcessor begun!";
@@ -277,14 +267,12 @@ void * GraphicsManager::Processor(void * vArgs){
 
 			graphicsThreadDetails = "Multimedia start";
 			Timer multimedia;
-			multimedia.Start();
-			
-			// Process Active Multimedia-streams if available.
-			MultimediaMan.Update();
 
+			multimedia.Start();			
+			// Process Active Multimedia-streams if available. <- do this in audio-thread..?
+			MultimediaMan.Update();
 			// Process audio
 			graphicsThreadDetails = "AudioMan.Update";
-			AudioMan.Update();
 			multimedia.Stop();
 			FrameStats.multimedia = multimedia.GetMs();
 
@@ -389,16 +377,11 @@ void * GraphicsManager::Processor(void * vArgs){
 		{
 	
 			String details;
-			if (graphicsThreadDetails.Contains("AudioMan"))
-				details = lastAudioInfo;
 			LogGraphics("An unexpected error occurred in GraphicsProcessor thread.\m- Location: "+graphicsThreadDetails+" \n- Details: "+details, ERROR);
 			std::cout<<"\nAn unexpected error occurred";
 		}
 	}
 	LogGraphics("Ending main rendering/physics/multimedia loop", INFO);
-
-	/// Delete AL context.
-	AudioMan.Shutdown();
 
 //	std::cout<<"\nExiting rendering loop. Beginning deallocating graphical resources.";
 
@@ -429,7 +412,6 @@ void * GraphicsManager::Processor(void * vArgs){
 		windows[i]->DeleteGLContext();
 	}
 
-
     /// Delete rendering context
     time_t timeTaken, timeStart = clock();
 #ifdef WINDOWS
@@ -446,12 +428,7 @@ void * GraphicsManager::Processor(void * vArgs){
 	std::cout<<"\nGraphicsThread ending...";
 	/// Mark as ready for window-destruction!
 	Graphics.finished = true;
-#ifdef WINDOWS
-	graphicsThread = NULL;
-	// May not be needed, and hinders destructors from being called.
-//	_endthread();
-#elif defined LINUX
-    graphicsThread = NULL;
-    return 0;
-#endif
+
+	/// Inform that the thread has ended.
+	RETURN_NULL(graphicsThread);
 }

@@ -13,6 +13,7 @@
 #include "Entity/EntityManager.h"
 #include "Graphics/GraphicsManager.h"
 #include "Physics/PhysicsManager.h"
+#include "Audio/AudioManager.h"
 
 #include "File/LogFile.h"
 
@@ -52,6 +53,25 @@ StateManager::~StateManager()
 {
 	DeleteStates();
 };
+
+void StateManager::PostMessagesToOtherManagers()
+{
+	if (graphicsQueue.Size())
+	{
+		GraphicsMan.QueueMessages(graphicsQueue);
+		graphicsQueue.Clear();
+	}
+	if (physicsQueue.Size())
+	{
+		PhysicsMan.QueueMessages(physicsQueue);
+		physicsQueue.Clear();
+	}
+	if (audioQueue.Size())
+	{
+		AudioMan.QueueMessage(audioQueue);
+		audioQueue.Clear();
+	}
+}
 
 /// Deletes all application states (global and current/active ones).
 void StateManager::DeleteStates()
@@ -332,13 +352,7 @@ void * StateManager::StateProcessor(void * vArgs){
 				MesMan.ProcessMessages();
 
 				// Post messages, if any.
-				if (StateMan.graphicsQueue.Size())
-					GraphicsMan.QueueMessages(StateMan.graphicsQueue);
-				StateMan.graphicsQueue.Clear();
-				if (StateMan.physicsQueue.Size())
-					PhysicsMan.QueueMessages(StateMan.physicsQueue);
-				StateMan.physicsQueue.Clear();
-
+				StateMan.PostMessagesToOtherManagers();
 				/// Release mutex at the end of the frame.
 				StateMan.stateProcessingMutex.Release();
 

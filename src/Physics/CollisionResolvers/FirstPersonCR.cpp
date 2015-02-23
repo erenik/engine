@@ -31,6 +31,8 @@ bool FirstPersonCR::ResolveCollision(Collision & c)
 		dynamic = c.two;
 		other = c.one;
 	}
+	if (c.one->physics->noCollisionResolutions || c.two->physics->noCollisionResolutions)
+		return false;
 	Entity * dynamic2 = other->physics->type == PhysicsType::DYNAMIC? other : NULL;
 	Entity * staticEntity;
 	Entity * kinematicEntity;

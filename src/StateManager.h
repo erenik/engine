@@ -13,6 +13,7 @@
 class AppState;
 class PhysicsMessage;
 class GraphicsMessage;
+class AudioMessage;
 
 #define StateMan		(*StateManager::Instance())
 
@@ -34,6 +35,7 @@ void RegisterStates();
 
 #define PhysicsQueue (StateMan.physicsQueue)
 #define GraphicsQueue (StateMan.graphicsQueue)
+#define AudioQueue (StateMan.audioQueue)
 
 /// Handles switches between game states, re-linking of key bindings, etc.
 class StateManager{
@@ -47,10 +49,12 @@ public:
 	static void Deallocate();
 	~StateManager();
 
+	void PostMessagesToOtherManagers();
 
 	/// Queues used to queue messages to be sent in batches to the other thread(s)
 	List<PhysicsMessage*> physicsQueue;
 	List<GraphicsMessage*> graphicsQueue;
+	List<AudioMessage*> audioQueue;
 
 	/// Deletes all application states (global and current/active ones).
 	void DeleteStates();

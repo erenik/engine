@@ -91,6 +91,11 @@ void TIFSTurretProperty::Process(int timeInMs)
 				if (!droneProp->isActive)
 					continue;
 				float squaredLen = (drone->position - base->position).LengthSquared();
+				float minTargetDistance = 100.f;
+				if (squaredLen < minTargetDistance)
+				{
+					continue;
+				}
 				if (squaredLen < minSquaredLen)
 				{
 					closest = drone;
@@ -174,7 +179,8 @@ void TIFSTurretProperty::ClampCapacitorValue()
 
 void TIFSTurretProperty::Aim()
 {
-	toTarget = target->position - barrel->worldPosition;
+	aimPosition = barrel->worldPosition + barrel->transformationMatrix * Vector4f(0,1,0,0);
+	toTarget = target->position - aimPosition;
 	distanceToTarget = toTarget.Length();
 	toTargetNormalized = toTarget.NormalizedCopy();
 	Vector2f toTargetXZ(toTarget.x, toTarget.z);
@@ -297,13 +303,14 @@ void TIFSTurretProperty::Shoot()
 	// Using the updated transform of the actual projectile, derive position for it...
 	Vector3f vectorDir = projEntity->rotationMatrix * Vector4f(0,0,-1,0);
 	toTargetNormalized = vectorDir.NormalizedCopy();
-	projEntity->position = this->barrel->transformationMatrix * Vector4f(0,0,0,1) + toTargetNormalized * length;
-	projEntity->position += Vector3f(0,2.f,0);
+	projEntity->position = aimPosition + toTargetNormalized * length;
+//	projEntity->position += Vector3f(0,2.f,0);
 	projEntity->RecalculateMatrix(Entity::TRANSLATION_ONLY); // Update the position we just set.
 
 	pp->relativeVelocity = Vector3f(0,0,-1) * projectileSpeed;
 	// Derive velocity...
 	pp->currentVelocity = projEntity->rotationMatrix * pp->relativeVelocity;
+	pp->noCollisionResolutions = true;
 
 
 	Vector3f relVelWorldSpaced;

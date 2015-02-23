@@ -3,6 +3,8 @@
 /// Handler for alSources and alBuffers, since they act strange after a while on windows if creating new ones all the time
 
 #include "OpenAL.h"
+#include "String/AEString.h"
+#include "File/LogFile.h"
 
 #ifdef OPENAL
 
@@ -10,36 +12,34 @@
 ALCdevice * alcDevice = 0;		// Device
 ALCcontext * alcContext = 0;	// Rendering audio context
 
-int CheckALError()
+int CheckALError(const String & errorLocation)
 {
 	int error = alGetError();
+	String errorMsg;
 	switch(error)
 	{
 		case AL_ILLEGAL_COMMAND:
 	//	case AL_INVALID_OPERATION:
-			std::cout<<"\nIllegal operation/command."; 
+			errorMsg = "Illegal operation/command."; 
 			assert(false);
 			break;
 		case AL_NO_ERROR:
 			return error;
-		case AL_INVALID_NAME:
-			std::cout<<"\nAL invalid name."; break;
-		case AL_INVALID_VALUE:
-			std::cout<<"\nAL invalid value."; break;
-		case AL_INVALID_ENUM:
-			std::cout<<"\nAL Invalid enum."; break;
-		case AL_OUT_OF_MEMORY:
-			std::cout<<"\nAL out of memory!"; assert(false); break;
+		case AL_INVALID_NAME: errorMsg = "AL invalid name."; break;
+		case AL_INVALID_VALUE: errorMsg = "AL invalid value."; break;
+		case AL_INVALID_ENUM: errorMsg = "AL Invalid enum."; break;
+		case AL_OUT_OF_MEMORY: errorMsg = "AL out of memory!"; assert(false); break;
 		default:
 			assert(false && "Unidentified al error D:");
 			break;
 	}
+	std::cout<<"\n"<<errorLocation<<" AL error "<<errorMsg;
 	return error;
 }
 
-int AssertALError()
+int AssertALError(const String & errorLocation)
 {
-	int error = CheckALError();
+	int error = CheckALError(errorLocation);
 	assert(error == AL_NO_ERROR);
 	return error;
 }		
@@ -60,8 +60,19 @@ unsigned int ALSource::New()
 		oldSource->inUse = true;
 		return oldSource->alSource;
 	}
+	ALuint alSource;
+	alGenSources(1, &alSource);
+	if (alSource == 0)
+	{
+		int error = CheckALError("Error generating source in ALSource::New, function alGenSources");
+		if (error != AL_NO_ERROR)
+		{
+			LogAudio("alGenSources call failed, returned 0.", ERROR);
+			return 0;
+		}
+	}
 	ALSource * newSource = new ALSource();
-	alGenSources(1, &newSource->alSource);
+	newSource->alSource = alSource;
 	newSource->inUse = true;
 	sources.Add(newSource);
 	return newSource->alSource;
