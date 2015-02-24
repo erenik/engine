@@ -68,7 +68,7 @@ void StateManager::PostMessagesToOtherManagers()
 	}
 	if (audioQueue.Size())
 	{
-		AudioMan.QueueMessage(audioQueue);
+		AudioMan.QueueMessages(audioQueue);
 		audioQueue.Clear();
 	}
 }
@@ -269,8 +269,9 @@ extern bool quittingApplication;
 #ifdef WINDOWS
 void StateManager::StateProcessor(void * vArgs)
 {
+	int result = S_OK;
 	// http://msdn.microsoft.com/en-us/library/windows/desktop/ms695279%28v=vs.85%29.aspx
-	int result = OleInitialize(NULL);
+//	int result = OleInitialize(NULL);
 //	int result = CoInitializeEx(NULL, COINIT_MULTITHREADED);
 	assert(result == S_OK);
 

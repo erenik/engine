@@ -8,6 +8,14 @@
 #include "TIFSProperties.h"
 #include "MathLib.h"
 
+enum 
+{
+	FLYING_DRONE,
+	HOVER_DRONE,
+};
+
+#define Drone TIFSDroneProperty
+
 class TIFSDroneProperty : public EntityProperty
 {
 public:
@@ -17,9 +25,16 @@ public:
 	void OnSpawn();
 	/// Time passed in seconds..!
 	virtual void Process(int timeInMs);
+	virtual void ProcessHoverDrone(int timeInMs);
+	virtual void ProcessFlyingDrone(int timeInMs);
+
 	virtual void ProcessMessage(Message * message);
 
 	static int ID();
+	
+	void Damage(int amount);
+	/// Default HOVER_DRONE
+	int type;
 	/// o-o
 	Entity * target;
 
@@ -31,6 +46,7 @@ public:
 	float acceleration;
 
 	enum {
+		DESCENDING_ONTO_CITY,
 		RANDOM_ROAM,
 		CHASE_PLAYER,
 		ATTACK_TURRET,

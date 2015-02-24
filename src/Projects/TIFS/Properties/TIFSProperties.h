@@ -12,6 +12,7 @@ namespace TIFSProperty {
 		TURRET = EntityPropertyID::CUSTOM_GAME_1,
 		DRONE,
 		PLAYER,
+		MOTHERSHIP,
 	};
 };
 

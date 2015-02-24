@@ -25,6 +25,15 @@ class Message;
 class Audio;
 class MultimediaStream;
 
+namespace AudioDriver {
+	enum 
+	{
+		BAD_DRIVER,
+		OpenAL,
+		WindowsCoreAudio
+	};
+};
+
 /** A general utility manager for handling sounds and music pieces with varying degrees of complexity.
 	It is designed to be able to work with OpenAL mainly.
 */
@@ -67,6 +76,7 @@ public:
 
 	/// Yer.
 	void QueueMessage(AudioMessage* message);
+	void QueueMessages(const List<AudioMessage*> & messageList);
 
 	/// Updates the streams and volumes, also processes any queued messages ^^
 	void Update();
@@ -81,6 +91,10 @@ public:
 	void StopAndRemoveAll();
 
 private:
+	/// See enum above.
+	int audioDriver;
+
+	Audio * GetAudioByName(String name);
 	void ToggleMute();
 	/** Attempts to play audio from given source. Optional arguments control loop-mode and relative volume.
 		Returns the relevant Audio object upon success.
@@ -96,7 +110,6 @@ private:
 	// Halting playback
 	void Pause(String name);
 	void Stop(String name);
-	void Stop(int index);
 
 	/// Creates an audio stream which will continually try and update by grabbing PCM data from the stream.
 	Audio * CreateAudioStream(MultimediaStream * stream);

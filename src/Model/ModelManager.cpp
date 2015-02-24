@@ -181,8 +181,11 @@ Model * ModelManager::LoadObj(String source)
 	Time lastEdit, cLastEdit;
 	bool objFileExists = objFile.LastModified(lastEdit);
 	bool cObjFileExists = compressedFile.LastModified(cLastEdit);
-	if (lastEdit > cLastEdit)
+	if (!cObjFileExists)
 		loadCompressed = false;
+	if (loadCompressed)
+		if (lastEdit > cLastEdit)
+			loadCompressed = false;
 
 	Mesh * mesh = NULL;
 	if (loadCompressed)

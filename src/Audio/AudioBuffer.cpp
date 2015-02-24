@@ -45,18 +45,15 @@ void AudioBuffer::Free()
 void AudioBuffer::FreeAll()
 {
 #ifdef OPENAL
-	// Fetch context if needed.
-	ALCboolean result = alcMakeContextCurrent(alcContext);
-	assert(result && "Unable to make alc context current");
 	int freed = 0;
 	while(buffers.Size())
 	{
 
 		AudioBuffer * buffer = buffers[0];
+		buffers.RemoveItemUnsorted(buffer);
 		/// Ensure that the buffer is not attached to anything!
 		assert(!buffer->attached);
 		alDeleteBuffers(1, &buffer->alBuffer);
-		buffers.RemoveIndex(0);
 		int error = CheckALError("AudioBuffer::FreeAll");
 		if (error = AL_NO_ERROR)
 			++freed;

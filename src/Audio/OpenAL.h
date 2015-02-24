@@ -12,6 +12,10 @@
 #include "Libs.h"
 
 class String;
+extern bool openALInitialized;
+
+/// Make it similar to GL.
+#define AL_BAD_SOURCE -1
 
 #ifdef OPENAL
 	#include <AL/al.h>
@@ -25,8 +29,11 @@ class String;
 	extern ALCdevice * alcDevice;		// Device
 	extern ALCcontext * alcContext;	// Rendering audio context
 
-#define GRAB_AL_CONTEXT {ALCboolean result = alcMakeContextCurrent(alcContext); assert(result && "Unable to make alc context current");}
-
+namespace OpenAL
+{
+	bool Initialize();
+	bool Deallocate();
+};
 
 #define AL_FREE_ALL {ALSource::FreeAll();}
 

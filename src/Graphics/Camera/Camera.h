@@ -23,6 +23,7 @@ enum trackingMode {
 	FROM_BEHIND, 
 	FIRST_PERSON,
 	THIRD_PERSON,
+	THIRD_PERSON_AIRCRAFT, // Quaternion based which follows/uses similar orientation as the entity it follows.
 	FOLLOW_AND_LOOK_AT, // Should be smooth. MMORPG-style.
 	ADD_POSITION, // Adds position onto camera position.. only.
 };};
@@ -292,6 +293,8 @@ private:
 	void ThirdPersonLookAt();
 	/// Moves adjusts position relative to the target.
 	void ThirdPersonDistance();
+	/// o.o
+	void ThirdPersonAircraft();
 
 	/** Calculates a view transform based on the notion of having 
 		a distance from center of movement (as in 3D-modelling programs), 

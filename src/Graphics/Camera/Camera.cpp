@@ -212,7 +212,7 @@ void Camera::Nullify()
 {
 	inactive = false;
 	smoothing = 0;
-	lastChange = Time::Now();
+	lastUpdate = lastChange = Time::Now();
 	ratioFixed = false;
 	// Tracking vars
 	smoothness = 0.2;
@@ -498,6 +498,11 @@ void Camera::Track()
 
 			break;
 		}
+		case TrackingMode::THIRD_PERSON_AIRCRAFT:
+		{
+			ThirdPersonAircraft();
+			break;
+		}
 		case TrackingMode::FROM_BEHIND:
 		case TrackingMode::FIRST_PERSON:
 		{
@@ -514,6 +519,8 @@ void Camera::Track()
 			positionWithOffsets += entityToTrack->position;
 			break;
 		}
+		default:
+			assert(false && "implement");
 	}
 }
 
@@ -602,6 +609,22 @@ void Camera::ThirdPersonDistance()
 	positionWithOffsets = position + trackingPositionOffset * (scaleOffsetWithDistanceToCenterOfMovement > 0? (distanceFromCenterOfMovement * (scaleOffsetWithDistanceToCenterOfMovement) + 1.f) : 1.f);
 
 }
+
+void Camera::ThirdPersonAircraft()
+{
+	// o.o
+	// entittyyyy
+	
+	
+	// Inherit position.
+	Vector3f entityPos = entityToTrack->position;
+	// Offset a bit back and up, based on its matrix.
+	Vector3f offset = entityToTrack->rotationMatrix * Vector4f(0,1,2,0) * entityToTrack->radius;
+	position = entityPos + offset;
+	// Look at it?
+	ThirdPersonLookAt();
+}
+
 
 
 

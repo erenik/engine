@@ -70,6 +70,7 @@ void Audio::Nullify()
 /// Generate audio source if not existing.
 bool Audio::CreateALObjects()
 {
+	CheckALError("ALSource::CreateALObjects - before");
 	lastAudioInfo = "Audio::CreateALObjects";
 #ifdef OPENAL
 	/// Skip is source is valid already.
@@ -80,7 +81,7 @@ bool Audio::CreateALObjects()
 	}
 	alSource = ALSource::New();
 	// Throw an error if we can't generate a source.
-	if (alSource == 0)		
+	if (alSource == AL_BAD_SOURCE)		
 	{
 		LogAudio("Unable to create ALSource for audio: "+this->path, ERROR);
 		return false;
@@ -156,26 +157,8 @@ Audio::Audio(char i_type, String source, bool i_repeat, float audioVolume)
 {
     Nullify();
 	type = i_type;
-	name = source;
-	
+	name = source;	
 	path = source;
-	/*
-		if (!path.Contains(Audio::audioDirectory))
-		{
-			String newPath;
-			newPath = "sound";
-			switch(type){
-				case AudioType::BGM: newPath += "/bgm/"; break;
-				case AudioType::BGS: newPath += "/bgs/"; break;
-				case AudioType::SFX: newPath += "/sfx/"; break;
-				case AudioType::UIS: newPath += "/uis/"; break;
-				case AudioType::SPEECH: newPath += "/spc/"; break;
-			}
-			newPath += name;
-			path = newPath;
-		}
-	}
-	*/
 	// Check that the file exists maybe?
 	state = AudioState::AUDIO_ERROR;
 	repeat = i_repeat;
@@ -198,7 +181,7 @@ bool Audio::Load()
 	if (name.Contains(".ogg") ||
 		name.Contains(".opus"))
 	{
-//        std::cout<<"\nFile deemed of type Ogg Vorbis, trying to load.";
+		LogAudio("File deemed of type Ogg Vorbis, trying to load.", DEBUG);
 #ifdef BUILD_OGG
 		audioStream = new OggStream();
 		loaded = audioStream->Open(path.c_str());

@@ -208,7 +208,7 @@ Shader * ShaderManager::SetActiveShader(Shader * shader)
 		if (!shader->built)
 		{
 			Time mostRecentEdit = shader->MostRecentEdit();
-			if (shader->lastCompileAttempt < mostRecentEdit)
+			if (mostRecentEdit.Type() == TimeType::UNDEFINED || shader->lastCompileAttempt < mostRecentEdit)
 				shader->Compile();
 		}
 	}

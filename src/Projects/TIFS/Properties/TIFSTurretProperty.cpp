@@ -153,6 +153,7 @@ void TIFSTurretProperty::Activate(float capacitorTransfer)
 	if (!active && currentCapacitorValue > maxCapacitorValue)
 	{
 		active = true;
+		++tifs->turretsActive;
 	}
 	lastActivateTimeMs = timeNowMs;
 	ClampCapacitorValue();
@@ -168,6 +169,7 @@ void TIFSTurretProperty::DrainCapacitor(float amount)
 		// Disable rotational velocities too?
 		PhysicsQueue.Add(new PMSetEntity(base, PT_ANGULAR_VELOCITY, Quaternion()));
 		PhysicsQueue.Add(new PMSetEntity(underBarrel, PT_ANGULAR_VELOCITY, Quaternion()));
+		--tifs->turretsActive;
 	}
 	ClampCapacitorValue();
 }

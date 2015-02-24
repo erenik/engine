@@ -82,7 +82,7 @@ int64 Timer::GetMs()
 // Returns elapsed time in microseconds.
 int64 Timer::GetMicros()
 {
-	if (stop.Type() == TimeType::UNDEFINED)
+	if (stop.intervals == 0)
 		stop = Time::Now();
 	return (stop - start).Microseconds();
 	/*

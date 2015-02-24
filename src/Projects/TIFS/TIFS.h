@@ -34,6 +34,7 @@
 #include "TIFS/Physics/TIFSCD.h"
 #include "TIFS/Physics/TIFSCR.h"
 #include "TIFS/Properties/TIFSPlayerProperty.h"
+#include "TIFS/Properties/TIFSMothership.h"
 #include "TIFS/Properties/TIFSProjectile.h"
 #include "TIFS/Properties/TIFSTurretProperty.h"
 #include "TIFS/Properties/TIFSDroneProperty.h"
@@ -98,6 +99,7 @@ enum
 
 extern float timeDiffS;
 extern int64 timeNowMs;
+extern int timeInMs;
 
 // Default true?
 extern bool tifsInstancingEnabled;
@@ -109,6 +111,47 @@ class TIFS : public AppState
 public:
 	TIFS();
 	virtual ~TIFS();
+	
+	// Game states
+	enum{
+		NOT_STARTED = 0,
+		GAME_STARTED = 1,		
+	};
+	int timeInGameStateMs;
+	int gameState;
+	
+	enum 
+	{
+		SPAWNING_DRONES = 1,
+		SPAWNING_FLYING_DRONES = 2,
+	};
+	// See enum above.
+	void ProcessMapState();
+	int mapState;
+	Time mapTime;
+	// o.o 
+	int dronesPerSpawn;
+	int flyingDronesPerSpawn;
+	int droneSpawnIntervalS, flyingDroneSpawnIntervalS;
+	Time lastDroneSpawn, lastFlyingDroneSpawn;
+
+	enum {
+		// Events
+		FIRST_TURRET_REPAIRED,
+		FIRST_TURRET_DESTROYED_AGAIN,
+		FIRST_DRONES_ARRIVE,
+		FIRST_DRONES_DESTROYED,
+		FIRST_FLYING_DRONES_ARRIVES,
+		FIRST_FLYING_DRONES_DESTROYED,
+		MAX_EVENTS
+	};
+	/// Which of the above have occured so far!
+	List<int> eventsOccurred, eventsYetToPass;
+	void CheckEventsOccurring();
+	int turretsActive, turretsRepaired;
+	int dronesAlive, dronesArrived, dronesDestroyed;
+	int flyingDronesArrived, flyingDronesDestroyed;
+
 	/// Function when entering this state, providing a pointer to the previous StateMan.
 	virtual void OnEnter(AppState * previousState);
 	/// Main processing function, using provided time since last frame.
@@ -131,6 +174,8 @@ public:
 	/// Randomly!!!! o-=o
 	void SpawnDrones(int num);
 	void SpawnDrone(ConstVec3fr atLocation);
+	void SpawnFlyingDrones(int num);
+	void SpawnFlyingDrone(ConstVec3fr atLocation);
 
 	/// Randomly!!!! o-=o
 	void CreateTurrets(int num);
@@ -148,9 +193,11 @@ public:
 	List<Entity*> players,
 		turretEntities,
 		drones,
+		flyingDrones,
 		motherships,
 		groundEntities;
 
+	TIFSMothershipProperty * mothership;
 	List<TIFSTurretProperty*> turrets;
 
 	List<Camera*> cameras;
@@ -172,6 +219,7 @@ private:
 	void ShowTitle();
 	void ShowHUD();
 	void HideHUD();
+	void OpenOptionsMenu();
 
 	/// o-o
 	ToolParticleSystem * toolParticles;

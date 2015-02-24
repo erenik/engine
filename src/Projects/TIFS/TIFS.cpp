@@ -23,6 +23,7 @@ TIFSMapEditor * mapEditor = NULL;
 Camera * firstPersonCamera = NULL;
 Camera * thirdPersonCamera = NULL;
 Camera * freeFlyCamera = NULL;
+Camera * flyingDroneCamera = NULL;
 
 WeatherSystem * weather = NULL;
 
@@ -31,14 +32,18 @@ bool tifsInstancingEnabled = true;
 float cameraSmoothing = 0.3f;
 float timeDiffS = 0.001f;
 int64 timeNowMs = 0;
+int timeInMs = 0;
 
 /// Lists to clear upon deletion of the map.
 List< List<Entity*> *> entityLists; 
+
+#define PlayBGM(s) QueueAudio(new AMPlayBGM(s))
 
 void SetApplicationDefaults()
 {
 	Application::name = "The Invader from Space / VIRTUS";
 	TextFont::defaultFontSource = "font3";
+	Time::defaultType = TimeType::MILLISECONDS_NO_CALENDER;
 }
 
 void RegisterStates()
@@ -53,6 +58,7 @@ void RegisterStates()
 
 TIFS::TIFS()
 {
+	mothership = NULL;
 	tifsInstancingEnabled = true;
 	toolParticles = NULL;
 	playerProp = NULL;
@@ -61,6 +67,9 @@ TIFS::TIFS()
 	halfFieldSize = 25.f;
 	grid = new TIFSGrid();
 	gridSize = Vector3i(5,5,5);
+	gameState = NOT_STARTED;
+	mapState = 0;
+	mapTime = Time(TimeType::MILLISECONDS_NO_CALENDER);
 //	Vector3f mapSize(fieldSize, 100.0f, fieldSize);
 	// No need to resize here, do that later.
 //	grid->Resize(gridSize, mapSize);
@@ -80,6 +89,7 @@ TIFSCR * cr = 0;
 void TIFS::OnEnter(AppState * previousState)
 {
 	entityLists.Add(&drones, &turretEntities, &motherships, &groundEntities, &players);
+	entityLists.AddItem(&flyingDrones);
 
 	// Setup integrator.
 	if (!integrator)
@@ -110,6 +120,9 @@ void TIFS::OnEnter(AppState * previousState)
 	thirdPersonCamera->trackingMode = TrackingMode::THIRD_PERSON;
 	cameras.Add(freeFlyCamera, firstPersonCamera);
 
+	flyingDroneCamera = CameraMan.NewCamera("FlyingDroneCamera");
+	flyingDroneCamera->trackingMode = TrackingMode::THIRD_PERSON_AIRCRAFT;
+
 	// Set free form camera as active.
 	GraphicsQueue.Add(new GMSetCamera(freeFlyCamera));
 	ResetCamera();
@@ -125,7 +138,6 @@ void TIFS::OnEnter(AppState * previousState)
 	// Remove shit.
 	
 	// Do shit.
-
 	if (!ui)
 		CreateUserInterface();
 	// Set ui as active?
@@ -140,20 +152,29 @@ void TIFS::OnEnter(AppState * previousState)
 	ScriptMan.PlayScript("OnEnter.txt");
 	
 	// Play music p.o
-	AudioQueue.Add(new AMPlayBGM("music/2015-02-07_Unknown.ogg"));
+	PlayBGM("music/2015-02-07_Impending.ogg");
+//	AudioQueue.Add(new AMPlayBGM("music/2015-02-07_Unknown.ogg"));
 }
 
 /// Main processing function, using provided time since last frame.
-void TIFS::Process(int timeInMs)
+void TIFS::Process(int timeInMsss)
 {
 	// Sleep.
 	Sleep(50);
 	if (paused)
 		return;
-	timeInMs %= 100;
+	timeInMs = timeInMsss % 100;
 	timeNowMs += timeInMs;
 	timeDiffS = timeInMs * 0.001f;
+	
+	// Process weather..
 	weather->Process(timeInMs);
+	/// Check for occuring events.
+	if (gameState == GAME_STARTED)
+	{
+		ProcessMapState();
+		CheckEventsOccurring();
+	}
 }
 
 /// Function when leaving this state, providing a pointer to the next StateMan.
@@ -162,6 +183,129 @@ void TIFS::OnExit(AppState * nextState)
 	weather->Shutdown();
 	TIFSBuilding::UnloadTypes();
 	GraphicsQueue.Add(new GMUnregisterParticleSystem(toolParticles, true));
+}
+
+void TIFS::ProcessMapState()
+{
+	/// o.o
+	mapTime += Time(TimeType::MILLISECONDS_NO_CALENDER, timeInMs);
+	/// Under 1k seconds.
+	int minutes = mapTime.Minutes();
+	// Under 1000 seconds.
+	if (minutes < 10)
+	{
+		mapState |= SPAWNING_DRONES;
+		// 3 drones at first spawn, increasing every minute until we reach, is it.. 33 drones per minute. o.o'
+		dronesPerSpawn = mapTime.Seconds() / 30 + 3;
+		droneSpawnIntervalS = 35;
+	}
+	else if (minutes < 20)
+	{
+		mapState = SPAWNING_DRONES | SPAWNING_FLYING_DRONES;
+		dronesPerSpawn = 30 - (minutes - 10) * 3;
+		droneSpawnIntervalS = 30;
+		flyingDronesPerSpawn = minutes / 5 + 6;
+		flyingDroneSpawnIntervalS = 77 - mapTime.Minutes();
+	}
+	else if (minutes < 30)
+	{
+		// Evently vent
+		/// !
+		/// Deploy anti-turret turrets.
+		/// Deploy more nasty stuff.
+	}
+	// Deploy nasty
+	else if (minutes < 40)
+	{
+	
+	}
+	/// Deploy life-extractors
+	else if (minutes < 50)
+	{
+		
+	}
+	/// Swarm. Prepare end-game.
+	else 
+	{
+	
+	}
+	/// Spawning drones.
+	if (mapState & SPAWNING_DRONES && (mapTime - lastDroneSpawn).Seconds() > droneSpawnIntervalS)
+	{
+		lastDroneSpawn = mapTime;
+		SpawnDrones(dronesPerSpawn);
+	}
+	/// Spawning flying drones.
+	if (mapState & SPAWNING_FLYING_DRONES && (mapTime - lastFlyingDroneSpawn).Seconds() > flyingDroneSpawnIntervalS)
+	{
+		lastFlyingDroneSpawn = mapTime;
+		assert(false);
+		SpawnFlyingDrones(flyingDronesPerSpawn);
+	}
+}
+
+void TIFS::CheckEventsOccurring()
+{
+	for (int i = 0; i < eventsYetToPass.Size(); ++i)
+	{
+		int eventID = eventsYetToPass[i];
+		bool eventOccurred = false;
+		switch(eventID)
+		{
+			case FIRST_TURRET_REPAIRED:
+			{
+				if (turretsRepaired >= 1)
+				{
+					eventOccurred = true;
+					// Play a SFX or voice-thingy?
+//					PlayBGM("");
+				}			
+				break;		
+			}
+			case FIRST_DRONES_ARRIVE:
+			{
+				if (dronesArrived > 10)
+				{
+					eventOccurred = true;
+					PlayBGM("music/2015-02-23_D-dribble.ogg");
+				}
+				break;
+			}
+			case FIRST_DRONES_DESTROYED:
+			{
+				if (dronesDestroyed > 5)
+				{
+					eventOccurred = true;
+					PlayBGM("music/2015-02-11_Fight_the_power_2.ogg");
+				}
+				break;
+			}
+			case FIRST_FLYING_DRONES_DESTROYED:
+			{
+				if (flyingDronesDestroyed > 5)
+				{
+					eventOccurred = true;
+					PlayBGM("music/2015-02-11_Fight_the_power_2.ogg");
+				}								
+				break;
+			}
+			case FIRST_FLYING_DRONES_ARRIVES:
+			{
+				if (flyingDronesArrived > 5)
+				{
+					eventOccurred = true;
+					PlayBGM("music/2015-02-07_Swarm.ogg");
+				}
+				break;
+			}
+		}
+		if (eventOccurred)
+		{
+			eventsYetToPass.RemoveIndex(i);
+			--i;
+			eventsOccurred.AddItem(i);
+		}
+	}
 }
 
 /// Callback function that will be triggered via the MessageManager when messages are processed.
@@ -361,8 +505,23 @@ void TIFS::ProcessMessage(Message * message)
 			}
 			else if (msg == "ShowHUD")
 				ShowHUD();
+			else if (msg == "Options")
+				OpenOptionsMenu();
 			else if (msg == "ResetCamera")
 				ResetCamera();
+			else if (msg == "TestFlyingDrone")
+			{
+				SpawnFlyingDrone(Vector3f(0,2000,0));
+				Input.SetInputFocus(flyingDrones[0]);
+				// Setup camera for it
+				QueueGraphics(new GMSetCamera(flyingDroneCamera));
+
+			}
+			else if (msg == "NextMinute")
+			{
+				mapTime.SetMinute(mapTime.Minute() + 1);
+				std::cout<<"\nMap time set to minute: "<<mapTime.Minute();
+			}
 			break;	
 		}
 	}
@@ -383,6 +542,8 @@ void TIFS::CreateDefaultBindings()
 	bindings.Add(new Binding(Action::FromString("SpawnDrones(3)"), List<int>(KEY::CTRL, KEY::D)));
 #define BIND(a,b) bindings.AddItem(new Binding(a,b));
 	BIND(Action::FromString("ToggleMute"), KEY::M);
+	BIND(Action::FromString("NextMinute"), KEY::N);
+	BIND(Action::FromString("TestFlyingDrone"), List<int>(KEY::T, KEY::F));
 }
 
 
@@ -418,7 +579,6 @@ Random droneRandom;
 /// Randomly!!!! o-=o
 void TIFS::SpawnDrones(int num)
 {
-//	MapMan.DeleteEntities(drones);
 	int numDronesToSpawn = num;
 	for (int i = 0; i < numDronesToSpawn; ++i)
 	{
@@ -426,8 +586,22 @@ void TIFS::SpawnDrones(int num)
 		pos.x = droneRandom.Randf(fieldSize) - halfFieldSize;
 		pos.z = droneRandom.Randf(fieldSize) - halfFieldSize;
 		pos.y = droneRandom.Randf(fieldSize);
-	
+		pos += mothership->owner->position;
 		SpawnDrone(pos);
+	}
+}
+
+void TIFS::SpawnFlyingDrones(int num)
+{
+	int numDronesToSpawn = num;
+	for (int i = 0; i < numDronesToSpawn; ++i)
+	{
+		Vector3f pos;
+		pos.x = droneRandom.Randf(fieldSize) - halfFieldSize;
+		pos.z = droneRandom.Randf(fieldSize) - halfFieldSize;
+		pos.y = droneRandom.Randf(fieldSize);	
+		pos += mothership->owner->position;
+		SpawnFlyingDrone(pos);
 	}
 }
 
@@ -441,20 +615,34 @@ void TIFS::SpawnDrone(ConstVec3fr atLocation)
 	Entity * drone = EntityMan.CreateEntity("Drone "+String(drones.Size()), model, diffuseMap);
 	drone->emissiveMap = TexMan.GetTexture("img/Drones/DroneEmissiveMap.png");
 	drone->SetPosition(atLocation);
-	PhysicsProperty * pp = new PhysicsProperty();
-	drone->physics = pp;
-	pp->type = PhysicsType::DYNAMIC;
-	pp->gravityMultiplier = 0.f;
-	pp->collisionCategory = CC_DRONE;
-	pp->collisionFilter = CC_LASER | CC_ENVIRON;
-	pp->collissionCallback = true;
-
 	TIFSDroneProperty * droneProp = new TIFSDroneProperty(drone);
 	drone->properties.Add(droneProp);
 	drones.Add(drone);
 	MapMan.AddEntity(drone);
 	// Setup physics and other stuff.
 	droneProp->OnSpawn();
+	++dronesAlive;
+}
+
+void TIFS::SpawnFlyingDrone(ConstVec3fr atLocation)
+{
+
+	Model * model = ModelMan.GetModel("obj/Drones/FlyingDrone.obj");
+	Texture * diffuseMap = TexMan.GetTexture("img/Drones/FlyingDrone_Diffuse.png");
+//ModelMan.GetModel("Sphere")
+	//TexMan.GetTexture("Cyan")
+	Entity * drone = EntityMan.CreateEntity("Drone "+String(drones.Size()), model, diffuseMap);
+	drone->emissiveMap = TexMan.GetTexture("img/Drones/FlyingDrone_Emissive.png");
+	drone->specularMap = TexMan.GetTexture("img/Drones/FlyingDrone_Specular.png");
+	drone->SetPosition(atLocation);
+	TIFSDroneProperty * droneProp = new TIFSDroneProperty(drone);
+	droneProp->type = FLYING_DRONE;
+	drone->properties.Add(droneProp);
+	flyingDrones.AddItem(drone);
+	MapMan.AddEntity(drone);
+	// Setup physics and other stuff.
+	droneProp->OnSpawn();
+	++dronesAlive;
 }
 
 void TIFS::CreateTurrets(int num)
@@ -703,6 +891,20 @@ void TIFS::NewGame()
 	turrets.Clear();
 	drones.Clear();
 
+	mapState = 0;
+
+	turretsActive = turretsRepaired = 0;
+	dronesAlive = dronesArrived = dronesDestroyed = 0;
+	flyingDronesArrived = flyingDronesDestroyed = 0;
+
+	mapTime = Time();
+	lastDroneSpawn = Time();
+
+	eventsOccurred.Clear();
+	for (int i = 0; i < MAX_EVENTS; ++i)
+	{
+		eventsYetToPass.AddItem(i);
+	}
 
 	List<Entity*> allEntities = EntityMan.AllEntities();
 	// Unregister all from physics
@@ -724,19 +926,16 @@ void TIFS::NewGame()
 	HideTitle();
 	ShowHUD();
 
-	// Spawn turrets
-//	CreateTurrets();
-
-	// Spawn drones
-//	SpawnDrones();
-
-	// Spawn player
-//	SpawnPlayer();
 
 	// Mothership.
 	Entity * motherShip = EntityMan.CreateEntity("Mothership", ModelMan.GetModel("obj/Mothership/Mothership.obj"), TexMan.GetTexture("0x77"));
-	motherShip->position = Vector3f(0,1000,0);
+	Vector3f position = Vector3f(0,1000,0);
+	motherShip->position = position;
 	motherShip->SetScale(Vector3f(1,1,1) * 3.f);
+	Mothership * ms = new Mothership(motherShip);
+	motherShip->properties.AddItem(ms);
+	mothership = ms;
+	ms->position = position;
 	PhysicsProperty * pp = motherShip->physics = new PhysicsProperty();
 	pp->type = PhysicsType::STATIC;
 	MapMan.AddEntity(motherShip);
@@ -744,7 +943,11 @@ void TIFS::NewGame()
 	/// Set 3rd person camera as default.
 	GraphicsQueue.Add(new GMSetCamera(thirdPersonCamera));
 
+	PlayBGM("music/2015-02-07_Unknown.ogg");
+
 	ScriptMan.PlayScript("scripts/NewGame.txt");
+	
+	gameState = GAME_STARTED;
 }
 
 void TIFS::CreateField()
@@ -850,6 +1053,32 @@ void TIFS::ShowHUD()
 		// Just make it visible.
 		GraphicsQueue.Add(new GMSetUIb("HUD", GMUI::VISIBILITY, true, ui));
 	}
+}
+
+void TIFS::OpenOptionsMenu()
+{
+	// Create if needed.
+	UserInterface * ui = ActiveUI();
+	if (!ui)
+		return;
+	UIElement * element = NULL;
+	String optionsMenu = "gui/Options.gui";
+	/// Check if it's a source file, if so try and load that first.
+	element = ui->GetElementBySource(optionsMenu);
+	if (!element)
+	{
+		// For each player, add it to his screen.. just 1 screen now tho.
+		UIElement * element = UserInterface::LoadUIAsElement(optionsMenu);
+		assert(element);
+		GraphicsQueue.Add(new GMAddUI(element));
+	}
+	else 
+	{
+		// Just make it visible.
+		GraphicsQueue.Add(new GMSetUIb("Options", GMUI::VISIBILITY, true, ui));
+	}	
+	// Push it.
+	GraphicsQueue.Add(new GMPushUI("Options", ui));
 }
 
 void TIFS::HideHUD()

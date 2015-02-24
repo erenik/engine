@@ -16,6 +16,9 @@
 #include "File/LogFile.h"
 
 #include <iostream>
+
+#include "Windows/WindowsCoreAudio.h"
+
 #ifdef USE_FMOD
 #include <fmod_studio.hpp>
 #include <fmod_studio_common.h>
@@ -41,6 +44,7 @@ AudioManager::AudioManager()
 	mute = false;
 	masterVolume = 0.1f;
 	shouldLive = true;
+	audioDriver = AudioDriver::BAD_DRIVER;
 }
 
 AudioManager::~AudioManager()
@@ -48,6 +52,7 @@ AudioManager::~AudioManager()
 	audioList.ClearAndDelete();
 	// Shutdown if not already done so!
 	Shutdown();
+	messageQueue.ClearAndDelete();
 }
 
 #include "Graphics/GraphicsManager.h"
@@ -63,48 +68,40 @@ bool AudioManager::Initialize()
 {
 	LogAudio("Starting AudioManager...", INFO);
 
+	/// Fill the category thingy with volumes
+	categoryVolumes.Clear();
+	for (int i = 0; i < AudioType::NUM_TYPES; ++i)
+	{
+		categoryVolumes.Add(1.f);
+	}
 	// Create mutex for handling race-conditions/threading
 	audioMessageQueueMutex.Create("audioMessageQueueMutex");
-
+	bool ok;
+#undef OPENAL
 #ifdef OPENAL
-//	std::cout<<"\nInitializing OpenAL Utilities...";
-	LogAudio("Checking for available audio devices...", INFO);
-	if (alcIsExtensionPresent(NULL, "ALC_ENUMERATION_EXT") == AL_TRUE)
+	ok = OpenAL::Initialize();
+	if (ok)
 	{
-	//	std::cout<<"\nEnumeration extension found.";
-		const char * deviceSpecifier = alcGetString(NULL, ALC_DEVICE_SPECIFIER);
-		const char * defaultDevice = alcGetString(NULL, ALC_DEFAULT_DEVICE_SPECIFIER);
-		LogAudio("Device specifier: "+String(deviceSpecifier)+"\nDefault device: "+String(defaultDevice), INFO);
+		initialized = true;
+		audioDriver = AudioDriver::OpenAL;
+		return true;
 	}
-	else
-		LogAudio("Enumeration extension not available!", WARNING);
-
-	// TODO: Proper initialization
-	alcDevice = alcOpenDevice(NULL); // Open default alcDevice
-	if (alcDevice == 0)
-	{
-		LogAudio("ERROR: Unable to open AL device.", FATAL);
-		//	assert(alcDevice && "Unable to open AL device in AudioManager::Initialize");
-		//audio = this;
-		return false;
-	}
-	alcContext = alcCreateContext(alcDevice, NULL);
-	int result = alcMakeContextCurrent(alcContext);
-	if (result == ALC_FALSE)
-	{
-		LogAudio("ERROR: Unable to make AL context active.", FATAL);
-		return false;
-	}
-
-	/// Set initial values, like the listener position?
-
-//	std::cout<<"Queueing initial playback";
-	// Set initialized to true after all initialization has been completed correctly.
-	initialized = true;
-	std::cout<<"\nOpenAL initialized successfully.";
 #else
 	std::cout<<"\nINTO: Open AL is currently disabled. Enable it in AudioSettings.h and recompile!";
 #endif // USE_OPEN_AL
+
+#ifdef WINDOWS
+	// Try windows
+	ok = WMMDevice::Initialize();
+	if (ok)
+	{
+		initialized = true;
+		audioDriver = AudioDriver::WindowsCoreAudio;
+		LogAudio("Audio initialized using Windows MMDevice API.", INFO);
+		return true;
+	}
+#endif
+	
 
 #ifdef USE_FMOD
 	// Initialize FMOD
@@ -132,14 +129,9 @@ bool AudioManager::Initialize()
 	*/
 #endif
 
-	/// Fill the category thingy with volumes
-	categoryVolumes.Clear();
-	for (int i = 0; i < AudioType::NUM_TYPES; ++i)
-	{
-		categoryVolumes.Add(1.f);
-	}
-	initialized = true;
-	return true;
+	initialized = false;
+	CheckALError("AudioMan - failed to initialize.");
+	return false;
 }
 
 /// Called once in the deallocator thread when stop procedures have begun but before deallocation occurs.
@@ -148,6 +140,40 @@ void AudioManager::Shutdown()
 	if (!initialized)
 		return;
 	shouldLive = false;
+
+	/// Open AL cleanup.
+	if (audioDriver == AudioDriver::OpenAL)
+	{
+		/// Free all OpenAL resources.
+		AL_FREE_ALL
+		/// Deallocate audio stufs, since that loop is here still..
+		AudioBuffer::FreeAll();
+	}
+
+#ifdef WINDOWS
+	// Try windows
+	bool ok = WMMDevice::Deallocate();
+	assert(ok);
+#endif
+	
+
+#ifdef OPENAL
+	ALSource::FreeAll();
+	if (alcContext)
+	{
+		alGetError();		// Clear previous errors first.
+		alcMakeContextCurrent( NULL );
+		alcDestroyContext( alcContext );
+		CheckALError("alcDestroyContext");
+		alcContext = NULL;
+	}
+	if (alcDevice)
+	{
+		ALCboolean result = alcCloseDevice( alcDevice );
+		assert(result == ALC_TRUE);
+		alcDevice = NULL;
+	}
+#endif
 }
 
 void AudioManager::Allocate(){
@@ -190,8 +216,6 @@ void AudioManager::PauseAllOfType(char type)
 {
 	if (!initialized)
 		return;
-	
-	GRAB_AL_CONTEXT
 
 	Audio * audio;
 	for (int i = 0; i < audioList.Size(); ++i){
@@ -246,8 +270,6 @@ Audio * AudioManager::PlayFromSource(char type, String fromSource, bool repeat /
 	// Does what?
 	pauseUpdates = true;
 
-	GRAB_AL_CONTEXT
-
 	// Create audio
 	std::cout<<"\nAudio not found, tryng to create and load it.";
 	Audio * audio = new Audio(fromSource);
@@ -297,7 +319,7 @@ Audio * AudioManager::Play(char type, String name, bool repeat, float volume)
    // assert(initialized);
 
 	pauseUpdates = true;
-	GRAB_AL_CONTEXT
+
 	// Look if we already have an element with same name
 	Audio * audio;
 	for (int i = 0; i < audioList.Size(); ++i){
@@ -317,6 +339,8 @@ Audio * AudioManager::Play(char type, String name, bool repeat, float volume)
 	std::cout<<"\nAudio not found, tryng to create and load it.";
 	audio = new Audio(type, name, repeat, volume);
 	bool loadResult = audio->Load();
+	CheckALError("AudioManager::Play");
+
 	std::cout<<"\nLoad result: "<<loadResult;
 //	assert(loadResult && "Could not load audio data?");
 	if (loadResult == false){
@@ -351,8 +375,6 @@ void AudioManager::PlaySFX(String name, float volume /*= 1.f*/)
 	CHECK_AUDIO_ENABLED
 
 	pauseUpdates = true;
-
-	GRAB_AL_CONTEXT
 
 	// Create audio
 //	std::cout<<"\nAudio not found, tryng to create and load it.";
@@ -397,34 +419,30 @@ void AudioManager::Pause(String name)
 	}
 }
 
-void AudioManager::Pause(Audio * audio){
+void AudioManager::Pause(Audio * audio)
+{
 	if (!initialized)
 		return;
-	GRAB_AL_CONTEXT
 	audio->Pause();
 }
 
 void AudioManager::Stop(String name)
 {
-	GRAB_AL_CONTEXT
 	// Look if we already have an element with same name
-	Audio * audio;
-	for (int i = 0; i < audioList.Size(); ++i){
-		audio = audioList[i];
-		// If we find a similar audio already in the array: Pause it
-		if (name == audio->name){
-			Stop(i);
-			return;
-		}
-	}
+	Audio * audio = GetAudioByName(name);
+	if (audio)
+		audio->Stop(false);
 }
 
-void AudioManager::Stop(int index)
+Audio * AudioManager::GetAudioByName(String name)
 {
-	GRAB_AL_CONTEXT
-	audioList[index]->Stop(true);
-	delete audioList[index];
-	audioList[index] = NULL;
+	for (int i = 0; i < audioList.Size(); ++i)
+	{
+		Audio * audio = audioList[i];
+		if (audio->name == name)
+			return audio;
+	}
+	return NULL;
 }
 
 /// Creates an audio stream which will continually try and update by grabbing PCM data from the stream.
@@ -540,11 +558,18 @@ void AudioManager::QueueMessage(AudioMessage * am)
 	/// Claim mutex.
 	while(!audioMessageQueueMutex.Claim(-1))
 		;
-	messageQueue.Add(am);
+	messageQueue.AddItem(am);
 	// Release mutex
 	audioMessageQueueMutex.Release();
-
 }
+
+void AudioManager::QueueMessages(const List<AudioMessage*> & messageList)
+{
+	while(!audioMessageQueueMutex.Claim(-1));
+	messageQueue.Add(messageList);
+	audioMessageQueueMutex.Release();
+}
+
 
 // yer.
 void AudioManager::ProcessAudioMessages()
@@ -575,14 +600,15 @@ extern THREAD_HANDLE audioThread;
 
 PROCESSOR_THREAD_START(AudioManager)
 {
+	LogAudio("Audio thread starting", INFO);
 	/// Create AL Context, etc.
 	if (!AudioMan.Initialize())
 	{
 		QuitApplicationFatalError("AudioManager failed to initialize. See /log/AudioLog.txt");
-		RETURN_NULL(audioThread);
+		goto audioThreadEnd;
+//		RETURN_NULL(audioThread);
 	}
-	/// Get context
-	GRAB_AL_CONTEXT
+
 	// Do stuff o.o
 	while(AudioMan.shouldLive)
 	{	
@@ -590,26 +616,14 @@ PROCESSOR_THREAD_START(AudioManager)
 		Sleep(50);
 		AudioMan.Update();
 	}
-	/// Free all OpenAL resources.
-	AL_FREE_ALL
+audioThreadEnd:
 
 	/// Shut down all remaining music.
 	AudioMan.StopAndRemoveAll();
-	/// Deallocate audio stufs, since that loop is here still..
-	AudioBuffer::FreeAll();
 
-#ifdef OPENAL
-	ALSource::FreeAll();
-	if (alcContext)
-	{
-		alcMakeContextCurrent( NULL );
-		alcDestroyContext( alcContext );
-		alcCloseDevice( alcDevice );
+	// Cleanup
+	AudioMan.Deallocate();
 
-		alcContext = NULL;
-		alcDevice = NULL;
-	}
-#endif
 	/// Inform that the thread has ended.
 	RETURN_NULL(audioThread);
 }

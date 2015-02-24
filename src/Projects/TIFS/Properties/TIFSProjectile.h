@@ -15,6 +15,8 @@ public:
 	static int ID();
 	/// o.o
 	int lifeTimeMs;
+	// default 100?
+	int damage;
 private:
 	int livedMs;
 	bool sleeping;
