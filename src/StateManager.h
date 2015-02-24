@@ -33,6 +33,10 @@ class AudioMessage;
 */
 void RegisterStates();
 
+#define QueuePhysics(m) PhysicsQueue.AddItem(m)
+#define QueueGraphics(m) GraphicsQueue.AddItem(m)
+#define QueueAudio(m) AudioQueue.AddItem(m)
+
 #define PhysicsQueue (StateMan.physicsQueue)
 #define GraphicsQueue (StateMan.graphicsQueue)
 #define AudioQueue (StateMan.audioQueue)

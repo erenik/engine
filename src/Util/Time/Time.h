@@ -33,6 +33,8 @@ public:
 
 	/// Returns current time in default time-type/-format.
 	static Time Now();
+	/// Dicates default type of created Time objects. Default is TimeType::UNDEFINED
+	static int defaultType;
 
 	/** Valid format, where the following characters will be replaced as follows:
 		Y - year in 4 digits
@@ -78,6 +80,7 @@ public:
 	int64 Milliseconds() const;
 	/// Total time in seconds.
 	int64 Seconds();
+	int64 Minutes();
 
 	/// Calender/watch-type Accessors.
 	int Second();

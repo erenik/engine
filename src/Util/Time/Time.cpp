@@ -11,17 +11,21 @@
 #include "OS/WindowsIncludes.h"
 #endif
 
+/// Dicates default type of created Time objects. Default is TimeType::UNDEFINED
+int Time::defaultType = TimeType::UNDEFINED;
+
 /// Current time.
 Time::Time()
 {
 	intervals = 0;
-	type = 0;
+	type = defaultType;
 }
 /// Undefined time.
 Time::Time(int type)
 	: type(type)
 {
-	std::cout<<"\nWARNING: Time of undefined type created.";
+	if (type == TimeType::UNDEFINED)
+		std::cout<<"\nWARNING: Time of undefined type created.";
 //	assert(type > TimeType::UNDEFINED && type < TimeType::TIME_TYPES);
 	intervals = 0;
 }
@@ -148,10 +152,14 @@ bool Time::operator == (const Time & otherTime)
 	if (type != otherTime.type)
 	{
 		if (type == TimeType::UNDEFINED ||
-			otherTime.type == TimeType::UNDEFINED)
+			otherTime.type == TimeType::UNDEFINED ||
+			type == TimeType::MILLISECONDS_NO_CALENDER ||
+			otherTime.type == TimeType::MILLISECONDS_NO_CALENDER)
+		{
 			// Any bad type? Not equal then.
+			std::cout<<"\nComparng incomparable time-types.";
 			return false;
-
+		}
 		//
 		assert(false && "Convert as necessary.");
 
@@ -270,6 +278,10 @@ int64 Time::Seconds()
 	return micro / 1000000;
 }
 
+int64 Time::Minutes()
+{
+	return Seconds() / 60;
+}
 
 int Time::Minute()
 {

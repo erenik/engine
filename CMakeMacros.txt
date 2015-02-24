@@ -252,6 +252,11 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 			ws2_32.lib
 		)
 
+		# Windows Core Audio
+#		set(DEBUG_LIBS ${DEBUG_LIBS} Audioses.dll Mmdevapi.dll)
+#		set(RELEASE_LIBS ${DEBUG_LIBS} Audioses.dll Mmdevapi.dll)
+		
+		# Open AL
 		if (OPENAL)
 			set(DEBUG_LIBS ${DEBUG_LIBS} OpenAL32.lib)
 			set(RELEASE_LIBS ${RELEASE_LIBS} OpenAL32.lib)

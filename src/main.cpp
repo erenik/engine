@@ -111,6 +111,7 @@ extern bool UnitTests();
 
 /// Kept in GraphicsProcessor.
 extern int fatalGraphicsError;
+extern int errorCode;
 
 
 /// Le main! (^o-o^);
@@ -534,7 +535,6 @@ int main(int argc, char **argv)
 
 	/// Wait until the render thread has been set up properly?
 	int spams = 0;
-	int errorCode = 0;
     while(!Graphics.enteringMainLoop){
 		++spams;
 		if (spams > 300){
@@ -671,7 +671,7 @@ int main(int argc, char **argv)
     std::cout<<"\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>";
 
 	Sleep(100);
-	if (errorCode > 0)
+	if (errorCode != 0)
 	{
 		if (errorCode == -1)
 		{

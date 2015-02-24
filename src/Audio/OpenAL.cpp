@@ -18,8 +18,8 @@ int CheckALError(const String & errorLocation)
 	String errorMsg;
 	switch(error)
 	{
-		case AL_ILLEGAL_COMMAND:
-	//	case AL_INVALID_OPERATION:
+	//	case AL_ILLEGAL_COMMAND:
+		case AL_INVALID_OPERATION:
 			errorMsg = "Illegal operation/command."; 
 			assert(false);
 			break;
@@ -44,6 +44,69 @@ int AssertALError(const String & errorLocation)
 	return error;
 }		
 
+bool OpenAL::Initialize()
+{
+//	std::cout<<"\nInitializing OpenAL Utilities...";
+	LogAudio("Checking for available audio devices...", INFO);
+	// Just remove initial error blerhp?
+	alGetError();
+	if (alcIsExtensionPresent(NULL, "ALC_ENUMERATION_EXT") == AL_TRUE)
+	{
+	//	std::cout<<"\nEnumeration extension found.";
+		const char * deviceSpecifier = alcGetString(NULL, ALC_DEVICE_SPECIFIER);
+		const char * defaultDevice = alcGetString(NULL, ALC_DEFAULT_DEVICE_SPECIFIER);
+		LogAudio("Device specifier: "+String(deviceSpecifier)+"\nDefault device: "+String(defaultDevice), INFO);
+	}
+	else
+		LogAudio("Enumeration extension not available!", WARNING);
+
+	// TODO: Proper initialization
+	alcDevice = alcOpenDevice(NULL); // Open default alcDevice
+	if (alcDevice == 0)
+	{
+		LogAudio("ERROR: Unable to open AL device.", FATAL);
+		//	assert(alcDevice && "Unable to open AL device in AudioManager::Initialize");
+		//audio = this;
+		return false;
+	}
+	int tries = 0;
+	while(alcContext == NULL)
+	{
+		alcContext = alcCreateContext(alcDevice, NULL);
+		if (alcContext == NULL)
+		{
+			if (tries > 5)
+			{
+				LogAudio("Unablet to create alc context.", FATAL);
+				return false;
+			}
+			LogAudio("Unable to create alc context, waiting and trying again.", ERROR);
+			++tries;
+		}
+	}
+	int result = alcMakeContextCurrent(alcContext);
+	if (result == ALC_FALSE)
+	{
+		LogAudio("ERROR: Unable to make AL context active.", FATAL);
+		return false;
+	}
+	CheckALError("AudioMan - making context current.");
+
+	/// Set initial values, like the listener position?
+
+//	std::cout<<"Queueing initial playback";
+	// Set initialized to true after all initialization has been completed correctly.
+	std::cout<<"\nOpenAL initialized successfully.";
+	return true;
+}
+bool OpenAL::Deallocate()
+{
+	
+	assert(false);
+	return false;
+}
+
+
 List<ALSource*> ALSource::sources;
 
 ALSource::ALSource()
@@ -61,14 +124,15 @@ unsigned int ALSource::New()
 		return oldSource->alSource;
 	}
 	ALuint alSource;
+	CheckALError("ALSource::New");
 	alGenSources(1, &alSource);
-	if (alSource == 0)
+	int error;
+	if (error = CheckALError("Error generating source in ALSource::New, function alGenSources"))
 	{
-		int error = CheckALError("Error generating source in ALSource::New, function alGenSources");
 		if (error != AL_NO_ERROR)
 		{
 			LogAudio("alGenSources call failed, returned 0.", ERROR);
-			return 0;
+			return AL_BAD_SOURCE;
 		}
 	}
 	ALSource * newSource = new ALSource();

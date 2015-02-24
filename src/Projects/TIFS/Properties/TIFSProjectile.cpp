@@ -11,6 +11,7 @@ TIFSProjectile::TIFSProjectile(Entity * owner)
 	livedMs = 0;
 	lifeTimeMs = 2000;
 	sleeping = false;
+	damage = 300;
 }
 
 int TIFSProjectile::ID()

@@ -68,6 +68,8 @@ void LogToFile(String fileName, String logText, int levelFlags)
 
 void SetLogLevel(String fromString)
 {
+	if (fromString.Contains("FATAL"))
+		logLevel = FATAL;
 	if (fromString.Contains("INFO"))
 		logLevel = INFO;
 	if (fromString.Contains("WARNING"))

@@ -142,7 +142,8 @@ bool OggStream::OpenVorbis()
 	lastAudioInfo = "OggStream::OpenVorbis";
 	/// Grab any available OggVorbis data!
 	bool result = ov_fopen(path.c_str(), &oggVorbisFile);
-	if (result == 0){
+	if (result == 0)
+	{
 		// Success!
 		hasAudio = true;
 		hasVorbis = true;

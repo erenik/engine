@@ -13,15 +13,12 @@
 #include "Physics/Messages/CollisionCallback.h"
 #include "StateManager.h"
 
+#include "Physics/PhysicsProperty.h"
+
 TIFSDroneProperty::TIFSDroneProperty(Entity * owner)
 : EntityProperty("TIFSDroneProperty", TIFSProperty::DRONE, owner) 
 {
-	currentHP = maxHP = 5000;
-	isActive = true;
-	acceleration = 1.0;
-	state = RANDOM_ROAM;
-	timeInStateMs = 0;
-	timeSinceLastVelUpdate = 0;
+	type = HOVER_DRONE;
 }
 
 int TIFSDroneProperty::ID()
@@ -33,12 +30,33 @@ int TIFSDroneProperty::ID()
 /// Setup physics here.
 void TIFSDroneProperty::OnSpawn()
 {
-	Physics.QueueMessage(new PMSetEntity(owner, PT_PHYSICS_TYPE, PhysicsType::DYNAMIC));
-	// Ignore gravity until it's destroyed or something.
-	Physics.QueueMessage(new PMSetEntity(owner, PT_GRAVITY_MULTIPLIER, 0));
+	PhysicsProperty * pp = new PhysicsProperty();
+	owner->physics = pp;
+	pp->type = PhysicsType::DYNAMIC;
+	pp->collisionCategory = CC_DRONE;
+	pp->collisionFilter = CC_LASER | CC_ENVIRON;
+	pp->collissionCallback = true;
 
-	// Setup linear damping for smoother movement.
-	Physics.QueueMessage(new PMSetEntity(owner, PT_LINEAR_DAMPING, 0.9f));
+	isActive = true;
+	acceleration = 1.0;
+	state = DESCENDING_ONTO_CITY;
+	timeInStateMs = 0;
+	timeSinceLastVelUpdate = 0;
+
+	// Setup initial linear damping for the free-fall - nearly none.
+	pp->SetLinearDamping(0.98f);
+
+	switch(type)
+	{
+		case HOVER_DRONE:
+			currentHP = maxHP = 100;
+			break;
+		case FLYING_DRONE: 
+			pp->faceVelocityDirection = true;
+			currentHP = maxHP = 700;
+			break;
+	}
+
 }
 
 Random droneMovement;
@@ -49,19 +67,108 @@ void TIFSDroneProperty::Process(int timeInMs)
 	if (!isActive)
 		return;
 	timeInStateMs += timeInMs;
-	if (timeInStateMs > 10000)
+
+	switch(type)
 	{
-		SetState((state + 1) % DRONE_STATES);
+	case HOVER_DRONE:
+		ProcessHoverDrone(timeInMs);
+		break;
+	case FLYING_DRONE:
+		ProcessFlyingDrone(timeInMs);
+		break;
+	}
+	timeSinceLastVelUpdate += timeInMs;
+	if (timeSinceLastVelUpdate > 200)
+		UpdateVelocity();
+	if (destination.MaxPart() == 0)
+		UpdateDestination();
+}
+
+void Drone::ProcessHoverDrone(int timeInMs)
+{
+	switch(state)
+	{
+	case DESCENDING_ONTO_CITY:
+	{
+		// Change state once we approach ground.
+		if (owner->position.y < 300.f)
+		{
+			// Setup linear damping to break our fall.
+			QueuePhysics(new PMSetEntity(owner, PT_LINEAR_DAMPING, 0.5f));
+			QueuePhysics(new PMSetEntity(owner, PT_GRAVITY_MULTIPLIER, 0.5f));
+			if (owner->position.y < 150.f)
+			{
+				state = RANDOM_ROAM;
+				++tifs->dronesArrived;
+				QueuePhysics(new PMSetEntity(owner, PT_LINEAR_DAMPING, 0.3f));
+				QueuePhysics(new PMSetEntity(owner, PT_GRAVITY_MULTIPLIER, 0.f));
+			}
+		}
+		break;
+	}
+	case RANDOM_ROAM:
+		if (timeInStateMs > 10000)
+		{
+			SetState(CHASE_PLAYER);
+		}
+		break;
+	case ATTACK_TURRET:
+	{
+		/// Not dead yet? Move along.
+		if (timeInStateMs > 20000)
+		{
+			SetState(RANDOM_ROAM);
+		}
+		break;
+	}
+	case CHASE_PLAYER:
+		if (timeInStateMs > 10000)
+		{
+			SetState(RANDOM_ROAM);
+		}
+		break;
+	default:
+		if (timeInStateMs > 10000)
+		{
+			SetState((state + 1) % DRONE_STATES);
+		}
+		break;
+	}	
+}
+
+void TIFSDroneProperty::ProcessFlyingDrone(int timeInMs)
+{
+	// Start flying.
+}
+
+
+void TIFSDroneProperty::Damage(int amount)
+{
+	currentHP -= amount;
+	if (currentHP < 0)
+	{
+		// Die.
+		// Stop acceleration.
+		PhysicsQueue.Add(new PMSetEntity(owner, PT_ACCELERATION, Vector3f()));
+		// Start falling.
+		PhysicsQueue.Add(new PMSetEntity(owner, PT_GRAVITY_MULTIPLIER, 1.0f));
+		isActive = false;
+		switch(type)
+		{
+		case HOVER_DRONE:
+			++tifs->dronesDestroyed;
+			break;
+		case FLYING_DRONE:
+			++tifs->flyingDronesDestroyed;
+			break;
+		}
 	}
 	else 
 	{
-		timeSinceLastVelUpdate += timeInMs;
-		if (timeSinceLastVelUpdate > 200)
-			UpdateVelocity();
-		if (destination.MaxPart() == 0)
-			UpdateDestination();
+		// Change state to chase whatever hurt it?
 	}
 }
+
 
 void TIFSDroneProperty::UpdateDestination()
 {
@@ -69,6 +176,12 @@ void TIFSDroneProperty::UpdateDestination()
 	Vector3f targetPosition;
 	switch(state)
 	{
+		case DESCENDING_ONTO_CITY:
+		{
+			// Descend to around 100 units above ground, then change state.
+			destination = owner->position * Vector3f(1,0,1) + Vector3f(0,100,0);
+			break;
+		}
 		case RANDOM_ROAM:
 			// Get one!
 			destination = owner->position + Vector3f(droneMovement.Randf(50.f)-25.f, 0, droneMovement.Randf(50.f)-25.f);
@@ -175,13 +288,8 @@ void TIFSDroneProperty::ProcessMessage(Message * message)
 				}
 				TIFSProjectile * proj = (TIFSProjectile*)other->GetProperty(TIFSProjectile::ID());
 				if (proj)
-				{
-					// Die.
-					// Stop acceleration.
-					PhysicsQueue.Add(new PMSetEntity(owner, PT_ACCELERATION, Vector3f()));
-					// Start falling.
-					PhysicsQueue.Add(new PMSetEntity(owner, PT_GRAVITY_MULTIPLIER, 1.0f));
-					isActive = false;
+				{	
+					Damage(100000);
 				}
 				// Take some collision damage only?
 			

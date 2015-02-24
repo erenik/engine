@@ -124,13 +124,7 @@ bool Shader::Compile()
 	{
 		// Check the last edit time of the sources.
 		Time mostRecentEdit = MostRecentEdit();
-		if (mostRecentEdit.Type() == TimeType::UNDEFINED)
-		{
-			LogGraphics("Unable to get last edit time for shader files belong to shader "+name, WARNING);
-			return built;
-		}
-		// Skip compilation if we've already tried with the latest sources.
-		if (mostRecentEdit < lastCompileAttempt)
+		if (mostRecentEdit.Type() != TimeType::UNDEFINED && mostRecentEdit < lastCompileAttempt)
 		{
 			std::cout<<"\nShader \'"<<name<<"\' up to date. Compile status: "<< (built ? "OK" : "Errors, see log files");
 			/// Return last built state.
