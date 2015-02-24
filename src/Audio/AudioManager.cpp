@@ -77,7 +77,7 @@ bool AudioManager::Initialize()
 	// Create mutex for handling race-conditions/threading
 	audioMessageQueueMutex.Create("audioMessageQueueMutex");
 	bool ok;
-#undef OPENAL
+//#undef OPENAL
 #ifdef OPENAL
 	ok = OpenAL::Initialize();
 	if (ok)
@@ -630,8 +630,9 @@ audioThreadEnd:
 	/// Shut down all remaining music.
 	AudioMan.StopAndRemoveAll();
 
+	AudioMan.Shutdown();
 	// Cleanup
-	AudioMan.Deallocate();
+//	AudioMan.Deallocate();
 
 	/// Inform that the thread has ended.
 	RETURN_NULL(audioThread);
