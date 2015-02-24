@@ -33,6 +33,7 @@ float cameraSmoothing = 0.3f;
 float timeDiffS = 0.001f;
 int64 timeNowMs = 0;
 int timeInMs = 0;
+float relativeDroneSpawnRate = 1.f;
 
 /// Lists to clear upon deletion of the map.
 List< List<Entity*> *> entityLists; 
@@ -233,7 +234,7 @@ void TIFS::ProcessMapState()
 	if (mapState & SPAWNING_DRONES && (mapTime - lastDroneSpawn).Seconds() > droneSpawnIntervalS)
 	{
 		lastDroneSpawn = mapTime;
-		SpawnDrones(dronesPerSpawn);
+		SpawnDrones(dronesPerSpawn * relativeDroneSpawnRate);
 	}
 	/// Spawning flying drones.
 	if (mapState & SPAWNING_FLYING_DRONES && (mapTime - lastFlyingDroneSpawn).Seconds() > flyingDroneSpawnIntervalS)
@@ -509,12 +510,19 @@ void TIFS::ProcessMessage(Message * message)
 				OpenOptionsMenu();
 			else if (msg == "ResetCamera")
 				ResetCamera();
+			else if (msg.StartsWith("RelativeDroneSpawnRate"))
+			{
+				relativeDroneSpawnRate = msg.Tokenize("()")[1].ParseFloat();
+			}
 			else if (msg == "TestFlyingDrone")
 			{
-				SpawnFlyingDrone(Vector3f(0,2000,0));
-				Input.SetInputFocus(flyingDrones[0]);
+				Entity * drone = SpawnFlyingDrone(Vector3f(0,2000,0));
+				std::cout<<"\nTesting flying drone: "<<drone->name;
+				Input.SetInputFocus(drone);
 				// Setup camera for it
 				QueueGraphics(new GMSetCamera(flyingDroneCamera));
+				// Set camera focus to this drone.
+				QueueGraphics(new GMSetCamera(flyingDroneCamera, CT_ENTITY_TO_TRACK, drone));
 
 			}
 			else if (msg == "NextMinute")
@@ -624,14 +632,14 @@ void TIFS::SpawnDrone(ConstVec3fr atLocation)
 	++dronesAlive;
 }
 
-void TIFS::SpawnFlyingDrone(ConstVec3fr atLocation)
+Entity * TIFS::SpawnFlyingDrone(ConstVec3fr atLocation)
 {
 
 	Model * model = ModelMan.GetModel("obj/Drones/FlyingDrone.obj");
 	Texture * diffuseMap = TexMan.GetTexture("img/Drones/FlyingDrone_Diffuse.png");
 //ModelMan.GetModel("Sphere")
 	//TexMan.GetTexture("Cyan")
-	Entity * drone = EntityMan.CreateEntity("Drone "+String(drones.Size()), model, diffuseMap);
+	Entity * drone = EntityMan.CreateEntity("FlyingDrone "+String(flyingDrones.Size()), model, diffuseMap);
 	drone->emissiveMap = TexMan.GetTexture("img/Drones/FlyingDrone_Emissive.png");
 	drone->specularMap = TexMan.GetTexture("img/Drones/FlyingDrone_Specular.png");
 	drone->SetPosition(atLocation);
@@ -643,6 +651,7 @@ void TIFS::SpawnFlyingDrone(ConstVec3fr atLocation)
 	// Setup physics and other stuff.
 	droneProp->OnSpawn();
 	++dronesAlive;
+	return drone;
 }
 
 void TIFS::CreateTurrets(int num)

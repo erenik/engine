@@ -38,7 +38,6 @@ void TIFSDroneProperty::OnSpawn()
 	pp->collissionCallback = true;
 
 	isActive = true;
-	acceleration = 1.0;
 	state = DESCENDING_ONTO_CITY;
 	timeInStateMs = 0;
 	timeSinceLastVelUpdate = 0;
@@ -50,10 +49,17 @@ void TIFSDroneProperty::OnSpawn()
 	{
 		case HOVER_DRONE:
 			currentHP = maxHP = 100;
+			acceleration = 1.0;
 			break;
 		case FLYING_DRONE: 
-			pp->faceVelocityDirection = true;
+			inputFocusEnabled = true;
+//			pp->faceVelocityDirection = true;
 			currentHP = maxHP = 700;
+			/// A bit faster, yes.
+			acceleration = 70.0;
+			pp->gravityMultiplier = 0.5f; // Fall slowly instead of adding a positive velocity due to wing-stuffs..? hmm..
+			pp->SetLinearDamping(0.9f);
+			pp->velocityRetainedWhileRotating = 0.2f;
 			break;
 	}
 
@@ -66,22 +72,31 @@ void TIFSDroneProperty::Process(int timeInMs)
 {
 	if (!isActive)
 		return;
+
 	timeInStateMs += timeInMs;
 
-	switch(type)
+	/// For steering it yourself.
+	if (inputFocus)
 	{
-	case HOVER_DRONE:
-		ProcessHoverDrone(timeInMs);
-		break;
-	case FLYING_DRONE:
-		ProcessFlyingDrone(timeInMs);
-		break;
+		ProcessInput();
+	}
+	// AIs
+	else {
+		switch(type)
+		{
+		case HOVER_DRONE:
+			ProcessHoverDrone(timeInMs);
+			break;
+		case FLYING_DRONE:
+			ProcessFlyingDrone(timeInMs);
+			break;
+		}
+		if (destination.MaxPart() == 0)
+			UpdateDestination();
 	}
 	timeSinceLastVelUpdate += timeInMs;
 	if (timeSinceLastVelUpdate > 200)
 		UpdateVelocity();
-	if (destination.MaxPart() == 0)
-		UpdateDestination();
 }
 
 void Drone::ProcessHoverDrone(int timeInMs)
@@ -264,6 +279,50 @@ void TIFSDroneProperty::UpdateVelocity()
 			/// Just add some more damping.
 			PhysicsQueue.Add(new PMSetEntity(owner, PT_LINEAR_DAMPING, 0.4f));
 		}
+	}
+}
+
+// For steering 
+void TIFSDroneProperty::ProcessInput()
+{
+	float pitch = 0, yaw = 0, roll = 0;
+	float forward = 0.f;
+	if (Input.KeyPressed(KEY::W))
+		forward += 1.f;
+	if (Input.KeyPressed(KEY::S))
+		forward -= 1.f;
+	// Set destination?
+	destination = Vector3f();
+	// Set rel vel?
+	// Set acceleration
+	Vector3f relAcc(0,0,forward);
+	static Vector3f lastAcc;
+	if (relAcc != lastAcc)
+	{
+		lastAcc = relAcc;
+		QueuePhysics(new PMSetEntity(owner, PT_RELATIVE_ACCELERATION, relAcc * acceleration));
+	}
+
+	if (Input.KeyPressed(KEY::UP))
+		pitch -= 1.f;
+	if (Input.KeyPressed(KEY::DOWN))
+		pitch += 1.f;
+	if (Input.KeyPressed(KEY::RIGHT))
+		roll += 1.f;
+	if (Input.KeyPressed(KEY::LEFT))
+		roll -= 1.f;
+	if (Input.KeyPressed(KEY::A))
+		yaw -= 1.f;
+	if (Input.KeyPressed(KEY::D))
+		yaw += 1.f;
+	Vector3f rot(pitch, yaw, roll);
+	static Vector3f lastRot;
+	if (lastRot != rot)
+	{
+		// Set relative rotation
+		lastRot = rot;
+		QueuePhysics(new PMSetEntity(owner, PT_RELATIVE_ROTATIONAL_VELOCITY, lastRot));
+		std::cout<<"\n"<<owner->name<<" rotating";
 	}
 }
 

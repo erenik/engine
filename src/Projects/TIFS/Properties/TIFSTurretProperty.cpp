@@ -44,6 +44,8 @@ TIFSTurretProperty::TIFSTurretProperty(Entity * base, Entity * swivel, Entity * 
 	targetLastFrame = NULL;
 
 	activatable = active = false;
+
+	inputFocusEnabled = true;
 }
 
 int TIFSTurretProperty::ID()

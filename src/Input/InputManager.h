@@ -270,6 +270,7 @@ public:
 */
 
 private:
+	List<Entity*> inputFocusEntities;
 	// To disable the current ui from e.g. cutscene-scripts.
 	bool activeUIEnabled;
 

@@ -124,6 +124,42 @@ void FirstPersonIntegrator::IntegrateVelocity(List<Entity*> & entities, float ti
 		/// De-flag at rest if we got any acceleration or velocity?
 		if (pp->currentVelocity.MaxPart())
 			pp->state &= ~PhysicsState::AT_REST;
+
+		/*
+		if (pp->angularAcceleration.MaxPart())
+		{
+			std::cout<<"\nDo the drone dance.";
+			// Add rotational velocity around local forward, up and right vectors.
+			Vector3f rightVec = forEntity->RightVec();
+			Vector3f upVec = forEntity->UpVec();
+			Vector3f lookAt = forEntity->LookAt();
+			Quaternion pitch(forEntity->RightVec(), pp->angularAcceleration.x);
+			Quaternion yaw(forEntity->UpVec(), pp->angularAcceleration.y);
+			Quaternion roll(forEntity->LookAt(), pp->angularAcceleration.z);
+
+			if (pitch.angle)
+			{
+				pp->angularVelocityQuaternion = pp->angularVelocityQuaternion * pitch;
+				pp->angularVelocityQuaternion.Normalize();
+			}
+			if (yaw.angle)
+			{
+				pp->angularVelocityQuaternion = pp->angularVelocityQuaternion * yaw;
+				pp->angularVelocityQuaternion.Normalize();
+			}
+			if (roll.angle)
+			{
+				pp->angularVelocityQuaternion = pp->angularVelocityQuaternion * roll;
+				pp->angularVelocityQuaternion.Normalize();
+			}
+			forEntity->RecalculateMatrix();
+
+			// Fetch forward-vector again. 
+			// Re-align the old velocity to the new forward vector!
+	//		Vector3f newForward = -forEntity->rotationMatrix.GetColumn(2);
+			std::cout<<"\nAngular velocity quaternion: "<<pp->angularVelocityQuaternion;
+		}*/
+
 #else
 		/// Apply gravity
 		if (pp->gravityMultiplier && !(pp->state & PhysicsState::AT_REST))
@@ -206,6 +242,46 @@ void FirstPersonIntegrator::IntegratePosition(List<Entity*> & entities, float ti
 			pp->orientation.Normalize();
 			assert(pp->orientation.x == pp->orientation.x);
 			forEntity->hasRotated = true;
+		}
+		else if (pp->relativeRotationalVelocity.MaxPart())
+		{
+			// o.o
+			Vector3f up = forEntity->rotationMatrix.GetColumn(1);
+			Vector3f forward = -forEntity->rotationMatrix.GetColumn(2);
+			Vector3f right = forEntity->rotationMatrix.GetColumn(0);
+
+			Vector3f rotation = pp->relativeRotationalVelocity * timeInSeconds;
+			rotation.x *= -1;
+			rotation.z *= -1;
+
+			// Alright. So now we have rotations along the 3 main local axises...
+			// Now we need to find the 3 quaternions which would apply these rotations (looking from a global perspective)
+			Quaternion pitch(right, rotation[0]);
+			Quaternion yaw(up, rotation[1]);
+			Quaternion roll(forward, rotation[2]);
+
+			// Now multiply these three with the current orientation quaternion one at a time... should be simple enouhg.. maybe :P
+			Quaternion & orientation = pp->orientation;
+			//
+			orientation = orientation * pitch;
+			orientation = orientation * yaw;
+			orientation = orientation * roll;
+			forEntity->hasRotated = true;
+			forEntity->RecalculateMatrix();
+			// Recalculate velocity o.o'
+			Vector3f newForward = -forEntity->rotationMatrix.GetColumn(2);
+			float velDotForward = pp->velocity.DotProduct(forward);
+			Vector3f localZPart = velDotForward * forward;
+			float localZPartLen = localZPart.Length() * (velDotForward > 0? 1 : -1);
+			Vector3f otherPart = pp->velocity - localZPart;
+			Vector3f oldVel = pp->velocity;
+			float factor = pow(pp->velocityRetainedWhileRotating, timeInSeconds);
+			pp->velocity =  localZPartLen * factor * newForward + 
+				(1 - factor) * 0.8f * localZPartLen * forward +
+				otherPart;
+			float dot = oldVel.NormalizedCopy().DotProduct(pp->velocity.NormalizedCopy());
+			if (debug == -27)
+				std::cout<<"\nVelcity "<<oldVel<<" -> "<<pp->velocity<<" dot: "<<dot;
 		}
 	}
 }

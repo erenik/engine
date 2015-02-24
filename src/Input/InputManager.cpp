@@ -190,9 +190,24 @@ void InputManager::SetInputFocus(Entity * entity)
 		if (ep->inputFocusEnabled)
 		{
 			ep->inputFocus = true;
-			canTakeInputFocus = true;
 		}
 	}
+	for (int i = 0; i < inputFocusEntities.Size(); ++i)
+	{
+		Entity * oldEntity = inputFocusEntities[i];
+		for (int i = 0; i < oldEntity->properties.Size(); ++i)
+		{
+			EntityProperty * ep = oldEntity->properties[i];
+			if (ep->inputFocusEnabled)
+			{
+				ep->inputFocus = false;
+			}
+		}
+	}
+	// clear old
+	inputFocusEntities.Clear();
+	// Add it.
+	inputFocusEntities.AddItem(entity);
 	if (!canTakeInputFocus)
 		return;
 }

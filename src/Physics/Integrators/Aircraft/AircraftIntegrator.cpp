@@ -64,7 +64,7 @@ void AircraftIntegrator::IntegrateVelocity(Entity * forEntity, float timeInSecon
 	forEntity->RecalculateMatrix();
 
 
-	if (pp->relativeRotation.MaxPart())
+	if (pp->relativeRotationalVelocity.MaxPart())
 	{
 
 		/// Rotate it as needed.
@@ -90,7 +90,7 @@ void AircraftIntegrator::IntegrateVelocity(Entity * forEntity, float timeInSecon
 
 		// Turn it!
 		// ..
-		Vector3f rotation = pp->relativeRotation * degreesToTurn;
+		Vector3f rotation = pp->relativeRotationalVelocity * degreesToTurn;
 		
 		rotation = rotation.ElementDivision(Vector3f(200.f, 200.f, 200.f));
 

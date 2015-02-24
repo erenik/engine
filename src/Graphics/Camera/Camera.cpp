@@ -9,6 +9,7 @@
 #include "Viewport.h"
 #include <cstring>
 
+#include "Debug.h"
 #include "Graphics/GraphicsManager.h"
 #include "Graphics/Messages/GMCamera.h"
 
@@ -70,7 +71,7 @@ void CameraManager::Process()
 {
 	static int64 lastUpdate = 0;
 	int64 cTime = Timer::GetCurrentTimeMs();
-	int timeDiff = cTime - lastUpdate;
+	int timeDiff = (int) (cTime - lastUpdate);
 	timeDiff = timeDiff % 200;
 	lastUpdate = cTime;
 	float timeInSeconds = timeDiff * 0.001f;
@@ -210,12 +211,13 @@ Camera::~Camera()
 /// Resets everything.
 void Camera::Nullify()
 {
+	matrixUpdateType = DEFAULT_EDITOR_MATRICES;
 	inactive = false;
 	smoothing = 0;
 	lastUpdate = lastChange = Time::Now();
 	ratioFixed = false;
 	// Tracking vars
-	smoothness = 0.2;
+	smoothness = 0.2f;
 	scaleOffsetWithDistanceToCenterOfMovement = 0.1f;
 	trackingRotationalSmoothness = 0.7f;
 	minTrackingDistance = 1.5f;
@@ -358,20 +360,30 @@ void Camera::UpdateViewMatrix(bool track /* = true*/, float timeInSeconds /* = 0
 
 
 
-	/// Smooth out position and rotations no matter what.
-	float smoothingRatio = pow(smoothing, timeInSeconds);
-	float aSmoothingRatio = 1 - smoothingRatio;
-	smoothedPosition = smoothedPosition * smoothingRatio + positionWithOffsets * aSmoothingRatio;
-	// Add 20% of the diff.
-	smoothedRotation.SmoothTo(rotation, aSmoothingRatio);
-	smoothedDFCOM = smoothedDFCOM * smoothingRatio + distanceFromCenterOfMovement * aSmoothingRatio;
-	
-	/// Add a switch case if new/other techniques are requested -> move code from the TrackBehind, etc. to there.
-	Matrix4d v2, r2;
-	bool ok = CalculateDefaultEditorMatrices(distanceFromCenterOfMovement, smoothedRotation, smoothedPosition, v2, r2);
-	viewMatrix = v2;
-	rotationMatrix = r2;
+	switch(matrixUpdateType)
+	{
+		case DEFAULT_EDITOR_MATRICES:
+		{
+			/// Smooth out position and rotations no matter what.
+			float smoothingRatio = pow(smoothing, timeInSeconds);
+			float aSmoothingRatio = 1 - smoothingRatio;
+			smoothedPosition = smoothedPosition * smoothingRatio + positionWithOffsets * aSmoothingRatio;
+			// Add 20% of the diff.
+			smoothedRotation.SmoothTo(rotation, aSmoothingRatio);
+			smoothedDFCOM = smoothedDFCOM * smoothingRatio + distanceFromCenterOfMovement * aSmoothingRatio;
+			
+			/// Add a switch case if new/other techniques are requested -> move code from the TrackBehind, etc. to there.
+			Matrix4d v2, r2;
+			bool ok = CalculateDefaultEditorMatrices(distanceFromCenterOfMovement, smoothedRotation, smoothedPosition, v2, r2);
+			viewMatrix = v2;
+			rotationMatrix = r2;
+			break;
+		}
+		default:
+			// Let tracking solve it?
+			break;
 
+	}
 	/// Extract data.
 	ExtractData();
 	// Update frustum
@@ -470,7 +482,7 @@ void Camera::Update(const Time & now, bool force)
 //	if (lastChange == lastUpdate && !entityToTrack && lastUpdate >= now && !force)
 //		return;
 
-	float milliseconds = (now - lastUpdate).Milliseconds();
+	float milliseconds = (float)(now - lastUpdate).Milliseconds();
 	float timeInSeconds = milliseconds * 0.001f;
 	
 	/// Load identity matrices before we re-calculate them... hmm
@@ -614,7 +626,7 @@ void Camera::ThirdPersonAircraft()
 {
 	// o.o
 	// entittyyyy
-	
+	matrixUpdateType = LET_TRACKING_SOLVE_IT;
 	
 	// Inherit position.
 	Vector3f entityPos = entityToTrack->position;
@@ -622,7 +634,28 @@ void Camera::ThirdPersonAircraft()
 	Vector3f offset = entityToTrack->rotationMatrix * Vector4f(0,1,2,0) * entityToTrack->radius;
 	position = entityPos + offset;
 	// Look at it?
-	ThirdPersonLookAt();
+	if (false)
+		ThirdPersonLookAt();
+
+	// Inherit rotation matrix? Possibly inverse transpose of it?
+	if (debug == -22)
+		this->rotationMatrix = entityToTrack->rotationMatrix;
+	this->rotationMatrix = entityToTrack->rotationMatrix.InvertedCopy();
+
+	// o.o
+	viewMatrix.LoadIdentity();
+	// Move camera before before main scenegraph rendering begins
+	// First translate the camera relative to the viewing rotation-"origo"
+	viewMatrix.Translate(0, 0, -distanceFromCentreOfMovement);
+	/// o.o
+	viewMatrix.Multiply(rotationMatrix);
+	// Then translate the camera to it's position. (i.e. translate the world until camera is at a good position).
+	Matrix4d translationMatrix = Matrix4d().Translate(-position);
+	viewMatrix.Multiply(translationMatrix);
+
+	Vector3f cameraSpace = viewMatrix * Vector4d(0,0,0,1),
+		cameraSpace2 = viewMatrix * Vector4d(10,10,10,1);
+
 }
 
 

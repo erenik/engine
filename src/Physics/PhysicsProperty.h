@@ -228,7 +228,7 @@ public:
 	/** Relative rotation compared to entity's current direction vectors. 
 		The speed of these rotations will vary with the entity's rate/radius of turns (ROT) (turning rate), current air speed and time.
 		Mainly used for airplanes and similar vehicles.	*/
-	Vector3f relativeRotation;
+	Vector3f relativeRotationalVelocity;
 	/// Angular velocity, ω(t), see Physically Based Modelling - David Baraff
 	/// ω(t) = I(t)^-1 * L(t)   (inverse inertia tensor times angular momentum)
     /// Direction gives the axis about which the body is spinning,

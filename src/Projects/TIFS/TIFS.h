@@ -175,7 +175,7 @@ public:
 	void SpawnDrones(int num);
 	void SpawnDrone(ConstVec3fr atLocation);
 	void SpawnFlyingDrones(int num);
-	void SpawnFlyingDrone(ConstVec3fr atLocation);
+	Entity * SpawnFlyingDrone(ConstVec3fr atLocation);
 
 	/// Randomly!!!! o-=o
 	void CreateTurrets(int num);

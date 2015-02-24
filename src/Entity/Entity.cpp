@@ -131,6 +131,9 @@ Entity::Entity(int i_id)
 	parent = NULL;
 	cameraFocus = NULL;
 	hasRotated = false;
+
+	/// Calculate look-at vectors, etc...
+	RecalculateMatrix(ALL_PARTS);
 }
 
 /// Default constructor...
@@ -557,10 +560,11 @@ void Entity::RecalcRotationMatrix()
 		if (parent)
 		{
 			rotationMatrix = parent->rotationMatrix * localRotation;
-			EXTRACT_VECTORS;
+//			EXTRACT_VECTORS;
 			UPDATE_NORMAL_MATRIX;
 		}
 		// No change? Then vectors should be the same as well.
+		EXTRACT_VECTORS
 		return;
 	}
 	localRotation = Matrix4d();

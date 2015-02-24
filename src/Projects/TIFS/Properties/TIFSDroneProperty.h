@@ -57,6 +57,9 @@ private:
 	void SetState(int newState);
 	void UpdateDestination();
 	void UpdateVelocity();
+	// For steering 
+	void ProcessInput();
+
 	Vector3f destination;
 	int timeInStateMs;
 	int timeSinceLastVelUpdate;

@@ -170,6 +170,14 @@ public:
 	};
 	int projectionType;
 
+	enum 
+	{
+		DEFAULT_EDITOR_MATRICES,
+		LET_TRACKING_SOLVE_IT, // Used for aircraft and quaternion based camera systems.
+	};
+	/// Dictates how matrices and variables are used to calculate the final view matrix.
+	int matrixUpdateType;
+
 	// Active camera variables
 	/** Multiplied to all edges in the projectionMatrix, the zoom regulates how much content will be visible. 
 		A value of 1 is default, while a lower value will zoom in on smaller details, and higher values will allow more content to be visible.

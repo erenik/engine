@@ -510,9 +510,9 @@ void PMSetEntity::Process()
 				ASSERT_ENTITY_NOT_STATIC;
 				entity->physics->relativeAcceleration = vec3fValue;
 				break;
-			case PT_RELATIVE_ROTATION:
+			case PT_RELATIVE_ROTATIONAL_VELOCITY: // earlier PT_RELATIVE_ROTATION
 				ASSERT_ENTITY_NOT_STATIC;
-				entity->physics->relativeRotation = vec3fValue;
+				entity->physics->relativeRotationalVelocity = vec3fValue;
 				break;
 			case PT_FRICTION:
 				entity->physics->friction = fValue;

@@ -42,6 +42,8 @@ bool debugAABB = false;
 /// Recalculate the AABBs constraints based on the given entity using it.
 void AABB::Recalculate(Entity * entity)
 {
+	if (!entity->model)
+		return;
 	if (!entity->model->mesh->aabb)
 		return;
 	

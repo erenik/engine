@@ -86,10 +86,10 @@ public:
 	bool Add(const List<value_type> & item);
 	/// Adds an item to the list at the requested index, pushing along the rest. Used for keeping them sorted or stuff.
 	bool Add(const value_type & item, int requestedIndex);
-	void Add(const T & item, const T & item2) { Add(item); Add(item2);};
-	void Add(const T & item, const T & item2, const T & item3) { Add(item); Add(item2); Add(item3);};
-	void Add(const T & item, const T & item2, const T & item3, const T & item4) { Add(item); Add(item2); Add(item3); Add(item4); };
-	void Add(const T & item, const T & item2, const T & item3, const T & item4, const T & item5) { Add(item); Add(item2); Add(item3); Add(item4); Add(item5); };
+	void Add(const T & item, const T & item2) { AddItem(item); AddItem(item2);};
+	void Add(const T & item, const T & item2, const T & item3) { AddItem(item); AddItem(item2); AddItem(item3);};
+	void Add(const T & item, const T & item2, const T & item3, const T & item4) { AddItem(item); AddItem(item2); AddItem(item3); AddItem(item4); };
+	void Add(const T & item, const T & item2, const T & item3, const T & item4, const T & item5) { AddItem(item); AddItem(item2); AddItem(item3); AddItem(item4); AddItem(item5); };
 	/// Adds multiple items to the list
 	bool AddArray(int numItems, T * itemArray);
 	/// Removes, not caring for internal order. Quicker.

@@ -105,7 +105,7 @@ enum physicsTargets{
 	// Relative rotation compared to entity's current direction vectors. 
 	// The speed of these rotations will vary with the entity's rate/radius of turns (ROT) (turning rate), current air speed and time.
 	// Mainly used for airplanes and similar vehicles.
-	PT_RELATIVE_ROTATION,
+	PT_RELATIVE_ROTATIONAL_VELOCITY, PT_RELATIVE_ROTATION = PT_RELATIVE_ROTATIONAL_VELOCITY,
 
 	PT_RESET_ROTATION, // Non-argument message, resets angle/quaternion for rotation.
 	PT_ANGULAR_VELOCITY, 	PT_ROTATIONAL_VELOCITY = PT_ANGULAR_VELOCITY,
