@@ -513,17 +513,18 @@ void Audio::Update()
 		int samplesToBuffer = device->SamplesToBuffer();
 		int shortsToBuffer = samplesToBuffer;
 		int shortsToBufferInChars = shortsToBuffer * 2;
-		int floatsToBuffer = samplesToBuffer;
-		int floatsToBufferInChars = floatsToBuffer * 4;
 		uchar * buf = new uchar[shortsToBufferInChars];
 		int bytesBuffered = audioStream->BufferAudio((char*)buf, shortsToBufferInChars, this->repeat);
+		int samplesBuffered = bytesBuffered / 2;
+		int floatsToBuffer = samplesBuffered;
+		int floatsToBufferInChars = floatsToBuffer * 4;
 		uchar * floatBuf = new uchar[floatsToBufferInChars];
 		// Set 0 so we avoid some noise?
 		memset(floatBuf, 0, floatsToBufferInChars);
 		int floatsProcessed = 0;
 		float * floatP = (float*) floatBuf;
 		// Each 16 bit sample -> 32 bit floating point sample.
-		for (int i = 0; i < shortsToBufferInChars - 1; i += 2)
+		for (int i = 0; i < bytesBuffered - 1; i += 2)
 		{
 			// Made it positive.
 			int sample1 = (uchar)buf[i];

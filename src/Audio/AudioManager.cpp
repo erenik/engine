@@ -161,11 +161,15 @@ void AudioManager::Shutdown()
 	ALSource::FreeAll();
 	if (alcContext)
 	{
-		alGetError();		// Clear previous errors first.
-		alcMakeContextCurrent( NULL );
+		ALCboolean result = alcMakeContextCurrent( NULL );
+		assert(result == ALC_TRUE);
 		alcDestroyContext( alcContext );
-		CheckALError("alcDestroyContext");
 		alcContext = NULL;
+		int error = alcGetError(alcDevice);
+		if (error != ALC_NO_ERROR)
+		{
+			LogAudio("ALC error"+String(error), ERROR);
+		}
 	}
 	if (alcDevice)
 	{
