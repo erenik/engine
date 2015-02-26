@@ -546,7 +546,9 @@ void Shader::SetupFog(GraphicsState & graphicsState)
 Time Shader::MostRecentEdit()
 {
 	Time mostRecentEdit;
-	for (int i = 0; i < shaderParts.Size(); ++i)
+	/// Get first edit date.
+	shaderParts[0]->source.LastModified(mostRecentEdit);
+	for (int i = 1; i < shaderParts.Size(); ++i)
 	{
 		ShaderPart * part = shaderParts[i];
 		Time lastModified;

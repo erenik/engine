@@ -18,7 +18,12 @@
 TIFSDroneProperty::TIFSDroneProperty(Entity * owner)
 : EntityProperty("TIFSDroneProperty", TIFSProperty::DRONE, owner) 
 {
+	target = NULL;
 	type = HOVER_DRONE;
+	laserEntity = NULL;
+	timeSinceLastFireMs = 0; 
+	weaponCooldownMs = 3000;
+	laserWidth = .5f;
 }
 
 int TIFSDroneProperty::ID()
@@ -82,6 +87,8 @@ void TIFSDroneProperty::Process(int timeInMs)
 	}
 	// AIs
 	else {
+		// Reset target, in-case it died earlier?
+//		target = NULL;
 		switch(type)
 		{
 		case HOVER_DRONE:
@@ -93,6 +100,8 @@ void TIFSDroneProperty::Process(int timeInMs)
 		}
 		if (destination.MaxPart() == 0)
 			UpdateDestination();
+		/// Shoot if target in sight.
+		Shoot();
 	}
 	timeSinceLastVelUpdate += timeInMs;
 	if (timeSinceLastVelUpdate > 200)
@@ -177,6 +186,13 @@ void TIFSDroneProperty::Damage(int amount)
 			++tifs->flyingDronesDestroyed;
 			break;
 		}
+		// Remove laser if created
+		if (laserEntity)
+		{
+			QueueGraphics(new GMUnregisterEntity(laserEntity));
+			// Flag it for deletion
+			EntityMan.MarkEntitiesForDeletion(laserEntity);
+		}
 	}
 	else 
 	{
@@ -204,7 +220,7 @@ void TIFSDroneProperty::UpdateDestination()
 		case CHASE_PLAYER:
 		{
 			// Get closest player.
-			Entity * target = tifs->GetClosestDefender(owner->position);
+			target = tifs->GetClosestDefender(owner->position);
 			if (target)
 			{
 				destination = target->position + Vector3f(0,5,0);
@@ -220,9 +236,10 @@ void TIFSDroneProperty::UpdateDestination()
 		case TIFSDroneProperty::ATTACK_TURRET:
 		{
 			// Get closest player.
-			Turret * target = tifs->GetClosestActiveTurret(owner->position);
-			if (target)
+			Turret * targetTurret = tifs->GetClosestActiveTurret(owner->position);
+			if (targetTurret)
 			{
+				target = targetTurret->base;
 				targetPosition = target->position;
 				circleTarget = true;
 			}
@@ -251,36 +268,112 @@ void TIFSDroneProperty::UpdateDestination()
 void TIFSDroneProperty::UpdateVelocity()
 {
 	timeSinceLastVelUpdate = 0;
-	// Got a destination?
-	if (destination.MaxPart())
-	{
-		// Move to it.
-		Vector3f toDestination = destination - owner->position;
-		Vector3f toDestNormed = toDestination.NormalizedCopy();
+	switch(type)
+	{ 
+		case HOVER_DRONE:
+		{
+			// Got a destination?
+			if (destination.MaxPart())
+			{
+				// Move to it.
+				Vector3f toDestination = destination - owner->position;
+				Vector3f toDestNormed = toDestination.NormalizedCopy();
 
-		float distance2 = toDestination.LengthSquared();
-		/// Close enough? Break.
-		if (distance2 > 100)
-		{
-			PhysicsQueue.Add(new PMSetEntity(owner, PT_ACCELERATION, toDestNormed * acceleration));
-			// Set linear damping?
-			PhysicsQueue.Add(new PMSetEntity(owner, PT_LINEAR_DAMPING, 0.1f));
+				float distance2 = toDestination.LengthSquared();
+				/// Close enough? Break.
+				if (distance2 > 100)
+				{
+					PhysicsQueue.Add(new PMSetEntity(owner, PT_ACCELERATION, toDestNormed * acceleration));
+					// Set linear damping?
+					PhysicsQueue.Add(new PMSetEntity(owner, PT_LINEAR_DAMPING, 0.1f));
+				}
+				else if (distance2 > 10)
+				{
+					PhysicsQueue.Add(new PMSetEntity(owner, PT_ACCELERATION, toDestNormed * acceleration));			
+					/// Just add some more damping.
+					PhysicsQueue.Add(new PMSetEntity(owner, PT_LINEAR_DAMPING, 0.2f));
+				}
+				else 
+				{
+					destination = Vector3f();
+					PhysicsQueue.Add(new PMSetEntity(owner, PT_ACCELERATION, Vector3f()));
+					/// Just add some more damping.
+					PhysicsQueue.Add(new PMSetEntity(owner, PT_LINEAR_DAMPING, 0.4f));
+				}
+			}
+			break;
 		}
-		else if (distance2 > 10)
+		case FLYING_DRONE:
 		{
-			PhysicsQueue.Add(new PMSetEntity(owner, PT_ACCELERATION, toDestNormed * acceleration));			
-			/// Just add some more damping.
-			PhysicsQueue.Add(new PMSetEntity(owner, PT_LINEAR_DAMPING, 0.2f));
-		}
-		else 
-		{
-			destination = Vector3f();
-			PhysicsQueue.Add(new PMSetEntity(owner, PT_ACCELERATION, Vector3f()));
-			/// Just add some more damping.
-			PhysicsQueue.Add(new PMSetEntity(owner, PT_LINEAR_DAMPING, 0.4f));
+
+			break;
 		}
 	}
 }
+
+// Main weapon processor.
+void Drone::Shoot()
+{
+	if (!target)
+		return;
+
+	timeSinceLastFireMs += timeInMs;
+	if (timeSinceLastFireMs < weaponCooldownMs)
+		return;
+	// Check distance
+	if ((target->position - owner->position).LengthSquared() > 10000)
+		return;
+	timeSinceLastFireMs = 0;
+	switch(type)
+	{
+		case HOVER_DRONE:
+			ShootLaser();
+			break;
+	}
+}
+
+// For hover-drone lasers
+void Drone::ShootLaser()
+{
+	/// Initial set-up
+	if (!laserEntity)
+	{
+		laserEntity = EntityMan.CreateEntity(name+" Laser", ModelMan.GetModel("obj/CylinderLowPoly.obj"), TexMan.GetTexture("0x44"));
+		// Set emissive map.
+		laserEntity->emissiveMap = TexMan.GetTexture("0xFF0000FF");
+		GraphicsProperty * gp = laserEntity->graphics = new GraphicsProperty(laserEntity);
+		gp->castsShadow = false;
+		gp->flags |= RenderFlag::ALPHA_ENTITY;
+		// Remove diffuse
+		laserEntity->diffuseMap = NULL;
+		// Register for graphics?
+		QueueGraphics(new GMRegisterEntity(laserEntity));
+	}
+	/// Update position and estimator.
+	EstimatorFloat * floatEstim = new EstimatorFloat();
+	floatEstim->AddStateMs(0, 0);
+	floatEstim->AddStateMs(1.f, 500);
+	floatEstim->AddStateMs(0, 1000);
+	floatEstim->loop = false;
+	QueueGraphics(new GMSlideEntityf(laserEntity, GT_EMISSIVE_MAP_FACTOR, floatEstim));
+	// Set position.
+	QueuePhysics(new PMSetEntity(laserEntity, PT_SET_POSITION, (target->position + owner->position) * 0.5));
+	// Rotate it accordingly too.
+	Vector3f toTarget = target->position - owner->position;
+	float dist = toTarget.Length();
+	toTarget.Normalize();
+	Angle3 angles = Angle3::GetRequiredRotation(Vector3f(0,0,-1), toTarget);
+	/// Update position by hand each frame? Move to graphics thread later?
+	QueuePhysics(new PMSetEntity(laserEntity, PT_SET_SCALE, Vector3f(laserWidth, laserWidth, dist)));
+	QueuePhysics(new PMSetEntity(laserEntity, PT_SET_ROTATION, Vector3f(angles.x.Radians(), angles.y.Radians(), 0)));
+}
+
+// For flying-drone bombs
+void Drone::DropBomb()
+{
+
+}
+
 
 // For steering 
 void TIFSDroneProperty::ProcessInput()
@@ -348,12 +441,10 @@ void TIFSDroneProperty::ProcessMessage(Message * message)
 				TIFSProjectile * proj = (TIFSProjectile*)other->GetProperty(TIFSProjectile::ID());
 				if (proj)
 				{	
-					Damage(100000);
+					Damage(proj->damage);
 				}
-				// Take some collision damage only?
-			
+				// Take some collision damage only?	
 			}
-			
 			break;
 		}
 	}

@@ -237,6 +237,7 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 	}	
 	// Check for instancing before we start.
 	instancingEnabled = false;
+	assert(shader);
 	if (shader->uniformInstancingEnabled != -1) // should be more or less guaranteed for any instancing renderer based on models.
 		instancingEnabled = true;
 
@@ -448,7 +449,8 @@ void RenderPass::RenderEntities()
 			// Bind texture
 			glBindTexture(GL_TEXTURE_2D, diffuseMap? diffuseMap->glid : 0);
 			/// Sets glTExParameter for Min/Mag filtering <- this needed every time?
-			diffuseMap->SetSamplingMode();
+			if (diffuseMap)
+				diffuseMap->SetSamplingMode();
 		}
 		if (entity->specularMap != specularMap)
 		{
@@ -474,7 +476,10 @@ void RenderPass::RenderEntities()
 			/// Bind emissive map.
 			glActiveTexture(GL_TEXTURE0 + shader->emissiveMapIndex);		// Select server-side active texture unit
 			glBindTexture(GL_TEXTURE_2D, emissiveMap? emissiveMap->glid : 0);
-			// Setup emissive factor
+		}
+		if (entity->emissiveMap && shader->uniformEmissiveMapFactor != -1)
+		{
+			// Setup emissive factor for those entities requiring varying values of it.
 			glUniform1f(shader->uniformEmissiveMapFactor, gp->emissiveMapFactor);
 		}
 
@@ -525,6 +530,7 @@ void RenderPass::RenderAlphaEntities()
 	// Disable depth write
 	glDepthMask(GL_FALSE);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+	glEnable(GL_DEPTH_TEST); // Don't just ignore depth..
 	// Disable it if not already done so earlier..?
 //	glDisable(GL_DEPTH_TEST);
 
@@ -552,23 +558,31 @@ void RenderPass::RenderAlphaEntities()
 		// Bind texture
 		glBindTexture(GL_TEXTURE_2D, diffuseMap? diffuseMap->glid : 0);
 		/// Sets glTExParameter for Min/Mag filtering <- this needed every time?
-		diffuseMap->SetSamplingMode();
+		if (diffuseMap)
+			diffuseMap->SetSamplingMode();
 		// Specular
-		glActiveTexture(GL_TEXTURE0 + shader->specularMapIndex);		// Select server-side active texture unit
-		glBindTexture(GL_TEXTURE_2D, specularMap? specularMap->glid : 0);
-		if (specularMap)
+		if (shader->uniformSpecularMap != -1)
 		{
-			specularMap->SetSamplingMode();
+			glActiveTexture(GL_TEXTURE0 + shader->specularMapIndex);		// Select server-side active texture unit
+			glBindTexture(GL_TEXTURE_2D, specularMap? specularMap->glid : 0);
+			if (specularMap)
+			{
+				specularMap->SetSamplingMode();
+			}
 		}
 		/// Bind emissive map.
-		glActiveTexture(GL_TEXTURE0 + shader->emissiveMapIndex);		// Select server-side active texture unit
-		glBindTexture(GL_TEXTURE_2D, emissiveMap? emissiveMap->glid : 0);
-
+		if (shader->uniformEmissiveMap != -1)
+		{
+			glActiveTexture(GL_TEXTURE0 + shader->emissiveMapIndex);		// Select server-side active texture unit
+			glBindTexture(GL_TEXTURE_2D, emissiveMap? emissiveMap->glid : 0);
+			glUniform1f(shader->uniformEmissiveMapFactor, gp->emissiveMapFactor);
+		}
 		CheckGLError("Setting texture maps");
 		
 		// Just load transform as model matrix straight away.
 		glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, entity->transformationMatrix.getPointer());
-		glUniformMatrix4fv(shader->uniformNormalMatrix, 1, false, entity->normalMatrix.getPointer());
+		if (shader->uniformNormalMatrix != -1)
+			glUniformMatrix4fv(shader->uniformNormalMatrix, 1, false, entity->normalMatrix.getPointer());
 	
 		
 		CheckGLError("Matrices");

@@ -530,15 +530,25 @@ void Audio::Update()
 			int sample1 = (uchar)buf[i];
 			int sample2 = (uchar)buf[i+1];
 			int sample =  sample1 | (sample2 << 8);
+			// Remove sample value based on given volume?
+//			sample -= 65536 * (1 - absoluteVolume);
+			// Clamp to minimum
+//			if (sample < -32767)
+//				sample = -32767;
 			// Make it centered on 0 again.
 		//	sample -= 32767;
 			float f;
+			/// 0 to 32767 is the same, over that and we go negative. -> simulate going from int to short.
+			int overHalf = (sample & (1 << 15)) ? 1 : 0;
+			int iSample = (sample % 32768) - 32768 * overHalf;
 			short shortSample = sample;
-			f = ((float) shortSample) / (float) 32768;
+			f = ((float) iSample) / (float) 32768;
 			if( f > 1) 
 				f = 1;
 			if( f < -1 ) 
 				f = -1;
+			// Multiply by volume
+			f *= absoluteVolume;
 			floatP[floatsProcessed] = f;
 			if (debug == -17)
 				std::cout<<"\n"<<floatP[floatsProcessed]<<" sample: "<<sample<<" sample1/2: "<<sample1<<"/"<<sample2;

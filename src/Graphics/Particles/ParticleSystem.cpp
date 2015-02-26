@@ -585,6 +585,7 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 	
 	// Enable depth-test?
 	glEnable(GL_DEPTH_TEST);
+	glDepthMask(GL_FALSE); // Disable depth-write though, or other alpha-effects afterwards will fail.
  
 	assert(model->mesh->vertexDataCount < 300000);
 	// Draw the particules !

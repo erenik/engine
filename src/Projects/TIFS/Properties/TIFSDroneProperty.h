@@ -44,6 +44,7 @@ public:
 
 	// default 1.0?
 	float acceleration;
+	float laserWidth;
 
 	enum {
 		DESCENDING_ONTO_CITY,
@@ -57,8 +58,20 @@ private:
 	void SetState(int newState);
 	void UpdateDestination();
 	void UpdateVelocity();
+	
+	// Main weapon processor.
+	void Shoot();
+	void ShootLaser(); // For hover-drone lasers
+	void DropBomb(); // For flying-drone bombs
 	// For steering 
 	void ProcessInput();
+
+	/// o.o
+	int timeSinceLastFireMs;
+	int weaponCooldownMs;
+
+	/// Graphical one
+	Entity * laserEntity;
 
 	Vector3f destination;
 	int timeInStateMs;

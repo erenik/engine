@@ -923,7 +923,8 @@ bool Texture::SaveOpenCV(String toPath)
 {
 #ifdef OPENCV
 	cv::Mat mat;
-	int cvFormat = CV_8UC3;
+	int cvMatChannels = channels;
+	int cvFormat = CV_8UC(cvMatChannels);
 	mat.create(cv::Size(width, height), cvFormat);
 	int bytesPerChannel = 3;
 	int non1s = 0;
@@ -933,7 +934,7 @@ bool Texture::SaveOpenCV(String toPath)
 		for (int x = 0; x < mat.cols; ++x)
 		{
 			/// Pixel start index.
-			int psi = (mat.step * y) + (x * channels) * bytesPerChannel;
+			int psiMat = (mat.step * y) + (x * cvMatChannels);
 			int psiTex = ((height - y - 1) * width + x) * bpp;
 			int psiTex2 = ((height - y - 1) * width + x);
 			/// Depending on the step count...
@@ -965,17 +966,27 @@ bool Texture::SaveOpenCV(String toPath)
 //							float positivized = shrunk + 1.f;
 							value = squared * 255.f;
 						}
-						mat.data[psi+0] = mat.data[psi+1] = mat.data[psi+2] = value;
+//						mat.data[psiMat+0] = mat.data[psiMat+1] = mat.data[psiMat+2] = value;
+						mat.data[psiMat] = value;
 					}
 					else if (cData)
-						mat.data[psi+0] = mat.data[psi+1] = mat.data[psi+2] = cData[psiTex2];
+						mat.data[psiMat] = cData[psiTex2];
+//						mat.data[psiMat+0] = mat.data[psiMat+1] = mat.data[psiMat+2] = cData[psiTex2];
 					break;
 				}
 				/// RGB! or such.
 				case 3:
-					mat.data[psi+0] = data[psiTex+2];
-					mat.data[psi+1] = data[psiTex+1];
-					mat.data[psi+2] = data[psiTex+0];
+					mat.data[psiMat+0] = data[psiTex+2];
+					mat.data[psiMat+1] = data[psiTex+1];
+					mat.data[psiMat+2] = data[psiTex+0];
+					break;
+				/// RGBA
+				case 4:
+					mat.data[psiMat+0] = data[psiTex+2];
+					mat.data[psiMat+1] = data[psiTex+1];
+					mat.data[psiMat+2] = data[psiTex+0];
+					mat.data[psiMat+3] = data[psiTex+3];
+					/// Ignore alpha when saving to texture?
 					break;
 				// Default gray scale?
 				default:

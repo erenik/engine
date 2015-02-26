@@ -274,7 +274,7 @@ void TIFS::CheckEventsOccurring()
 			}
 			case FIRST_DRONES_DESTROYED:
 			{
-				if (dronesDestroyed > 5)
+				if (dronesDestroyed > 10)
 				{
 					eventOccurred = true;
 					PlayBGM("music/2015-02-11_Fight_the_power_2.ogg");
@@ -590,6 +590,9 @@ void TIFS::SpawnDrones(int num)
 	int numDronesToSpawn = num;
 	for (int i = 0; i < numDronesToSpawn; ++i)
 	{
+		/// Put a hard cap on it.
+		if (drones.Size() > 100)
+			return;
 		Vector3f pos;
 		pos.x = droneRandom.Randf(fieldSize) - halfFieldSize;
 		pos.z = droneRandom.Randf(fieldSize) - halfFieldSize;
@@ -895,6 +898,7 @@ void TIFS::TogglePause()
 // Creates a new game with standard stuff.
 void TIFS::NewGame()
 {
+	InputMan.SetInputFocus(NULL);
 	// Delete previous entities?
 	MapMan.DeleteAllEntities();
 	turrets.Clear();

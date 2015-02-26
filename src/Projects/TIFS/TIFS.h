@@ -62,6 +62,7 @@
 #include "Physics/Messages/CollisionCallback.h"
 #include "Physics/PhysicsManager.h"
 #include "Physics/PhysicsProperty.h"
+#include "PhysicsLib/EstimatorFloat.h"
 
 #include "Random/Random.h"
 

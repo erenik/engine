@@ -373,6 +373,7 @@ void Entity::RotateGlobal(const Quaternion & withQuaternion)
 		result2 = withQuaternion * physics->orientation;
 		physics->orientation = result1;
 		physics->orientation.Normalize();
+		hasRotated = true;
 	}
 	RecalculateMatrix();
 }
@@ -391,6 +392,7 @@ void Entity::Rotate(ConstVec3fr rotation)
 		result2 = rotationQuaternion * physics->orientation;
 		physics->orientation = result1;
 		physics->orientation.Normalize();
+		hasRotated = true;
 	}
 	RecalculateMatrix();
 }
@@ -410,6 +412,7 @@ void Entity::SetRotation(const Quaternion & quat)
 		result2 = quat * physics->orientation;
 		physics->orientation = result1;
 		physics->orientation.Normalize();
+		hasRotated = true;
 	}
 	RecalculateMatrix();
 }
@@ -422,7 +425,7 @@ void Entity::SetRotation(ConstVec3fr rotation)
 	if (physics && physics->useQuaternions)
 	{
 		/// This assumes Euler angles, so construct an euler angle now!
-		Quaternion pitch(Vector3f(1,0,0), rotation[0]), 
+		Quaternion pitch(Vector3f(1,0,0), -rotation[0]), 
 			yaw(Vector3f(0,1,0), rotation[1]),
 			roll(Vector3f(0,0,1), rotation[2]);
 		
@@ -432,6 +435,7 @@ void Entity::SetRotation(ConstVec3fr rotation)
 		Quaternion newOrientation = pitch * yaw * roll;
 		physics->orientation = newOrientation;
 		physics->orientation.Normalize();
+		hasRotated = true;
 
 		//physics->orientation = Quaternion();
 		//Quaternion rotationQuaternion = Quaternion(rotation, 1.0f);
