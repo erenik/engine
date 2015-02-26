@@ -318,6 +318,7 @@ void TIFS::ProcessPacket(Packet * packet)
 void TIFS::ProcessMessage(Message * message)
 {	
 	String msg = message->msg;
+	grid->ProcessMessage(message);
 	// o.o
 	weather->ProcessMessage(message);
 	switch(message->type)
@@ -382,36 +383,6 @@ void TIFS::ProcessMessage(Message * message)
 			else if (msg.StartsWith("CreateField"))
 			{
 				CreateField();
-			}
-			else if (msg.StartsWith("RoadTexture"))
-				grid->roadTexture = msg.Tokenize("()")[1];
-			else if (msg.StartsWith("RoadWidth"))
-			{
-				grid->roadWidth = msg.Tokenize("()")[1].ParseInt();				
-			}
-			else if (msg.StartsWith("MaxRoadLength"))
-				grid->maxRoadLength = msg.Tokenize("()")[1].ParseInt();
-			else if (msg.StartsWith("RoadScale"))
-				grid->roadScale = msg.Tokenize("()")[1].ParseFloat();
-			else if (msg.StartsWith("MinDistanceBetweenParallelRoads"))
-			{
-				grid->minDistanceBetweenParallelRoads = (int) msg.Tokenize("()")[1].ParseFloat();
-			}
-			else if (msg.StartsWith("RequireRoadConnections"))
-				grid->requireRoadConnections = msg.Tokenize("()")[1].ParseBool();
-			else if (msg.StartsWith("ParallelDistanceThreshold"))
-				grid->parallelDistanceThreshold = msg.Tokenize("()")[1].ParseFloat();
-			else if (msg.StartsWith("PlaceRoads"))
-			{
-				grid->PlaceRoads(msg.Tokenize("()")[1].ParseInt());
-			}
-			else if (msg.StartsWith("TriesPerBuilding"))
-			{
-				grid->triesPerBuilding = msg.Tokenize("()")[1].ParseInt();
-			}
-			else if (msg.StartsWith("MaxTilesPerBuilding"))
-			{
-				grid->maxTilesPerBuilding = msg.Tokenize("()")[1].ParseInt();
 			}
 			else if (msg.StartsWith("AddBuildings"))
 			{

@@ -90,6 +90,36 @@ void TIFSGrid::Resize(Vector3i gridSize, ConstVec3fr mapSize)
 	LogMain("TIFSGrid::Resize - finish", DEBUG);
 }
 
+void TIFSGrid::ProcessMessage(Message * message)
+{
+	String msg = message->msg;
+	switch(message->type)
+	{
+		case MessageType::STRING:
+		{
+			String arg;
+			List<String> tokens = msg.Tokenize("()");
+			if (tokens.Size() > 1)
+				arg = tokens[1];
+			
+			if (msg.StartsWith("BasePlateTexture"))	basePlateTexture = arg;
+			else if (msg.StartsWith("BasePlates"))	BasePlates();
+			else if (msg.StartsWith("RoadTexture"))	roadTexture = arg;
+			else if (msg.StartsWith("RoadWidth"))	roadWidth = arg.ParseInt();				
+			else if (msg.StartsWith("MaxRoadLength"))	maxRoadLength = arg.ParseInt();
+			else if (msg.StartsWith("RoadScale"))	roadScale = arg.ParseFloat();
+			else if (msg.StartsWith("MinDistanceBetweenParallelRoads"))	minDistanceBetweenParallelRoads = (int) arg.ParseFloat();
+			else if (msg.StartsWith("RequireRoadConnections"))	requireRoadConnections = arg.ParseBool();
+			else if (msg.StartsWith("ParallelDistanceThreshold"))	parallelDistanceThreshold = arg.ParseFloat();
+			else if (msg.StartsWith("PlaceRoads")) PlaceRoads(arg.ParseInt());
+			else if (msg.StartsWith("TriesPerBuilding"))	triesPerBuilding = arg.ParseInt();
+			else if (msg.StartsWith("MaxTilesPerBuilding"))	maxTilesPerBuilding = arg.ParseInt();
+		}
+		break;
+	}
+}	
+
+
 /// Used for the various algorithms inside.
 void TIFSGrid::SetExpansionFlags(bool x, bool y, bool z)
 {
@@ -250,6 +280,39 @@ bool TIFSGrid::GetNewBuildingPosition(Vector3f & maxSize, Vector3f & position, L
 		return true;
 	}
 	return false;	
+}
+
+void TIFSGrid::BasePlates()
+{
+	List<TIFSTile*> tiles = grid.GetTiles();
+	// Generate road-starting-point.
+	roads.ClearAndDelete();
+	int tries = 0;
+	for (int i = 0; i < tiles.Size(); i += 10)
+	{
+		// Row?
+		int row = i / grid.Size().x;
+		if (row % 10 != 0)
+			continue;
+		// Get starting point.
+		TIFSTile * tile = tiles[i];
+		bool randomTile = false;
+		int direction;
+		Entity * basePlate = EntityMan.CreateEntity("Base plate", ModelMan.GetModel("cube"), TexMan.GetTexture("img/Roads/"+basePlateTexture));
+		PhysicsProperty * pp = basePlate->physics = new PhysicsProperty();
+		pp->shapeType = PhysicsShape::AABB;
+		/// Setup instancing if enabled.
+		GraphicsProperty * gp = basePlate->graphics = new GraphicsProperty(basePlate);
+		gp->renderInstanced = true;
+		basePlate->position = tile->position;
+		/// move it up a bit
+		float roadHeight = 0.15f; // 2 dm high roads?
+		basePlate->position.y += roadHeight * 0.5f;
+		Vector3f sizePerGroundTile = sizePerTile * 10.f;
+		basePlate->Scale(Vector3f(1,0,1) * sizePerGroundTile * 0.975 + Vector3f(0,roadHeight,0));
+		GraphicsQueue.Add(new GMRegisterEntity(basePlate));
+//		PhysicsQueue.Add(new PMRegisterEntity(basePlate));
+	}
 }
 
 /// o.o

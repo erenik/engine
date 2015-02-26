@@ -74,7 +74,7 @@ Entity * EntityManager::CreateEntity(String name, Model * model, Texture * textu
 	if (!newEntity)
 	{
 		newEntity = new Entity(idCounter++);
-		entities.Add(newEntity);
+		entities.AddItem(newEntity);
 	}
 	if (newEntity == NULL)
 	{

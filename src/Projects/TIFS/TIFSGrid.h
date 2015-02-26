@@ -37,6 +37,7 @@ struct Road
 	List<TIFSTile*> tiles;
 };
 
+class Message;
 
 class TIFSGrid 
 {
@@ -50,6 +51,8 @@ public:
 		MapSize will dictate the distance between each tile, rounded to the nearest integer.
 	*/
 	void Resize(Vector3i gridSize, ConstVec3fr mapSize);
+
+	void ProcessMessage(Message * message);
 
 	/// Used for the various algorithms inside.
 	void SetExpansionFlags(bool x, bool y, bool z);
@@ -66,6 +69,8 @@ public:
 	*/
 	bool GetNewBuildingPosition(Vector3f & maxSize, Vector3f & position, List<TIFSTile*> & relevantTiles);
 
+	/// All the grid.
+	void BasePlates();
 	/// o.o
 	void PlaceRoads(int roads);
 	/// Creates the actual road, filling it with tiles :3
@@ -75,6 +80,7 @@ public:
 	/// Returns a list of all currently available slot-sizes.
 	List<Vector3i> AvailableSlotSizes();
 
+	String basePlateTexture; // For plates covering the whole map. o.o
 	String roadTexture;
 	float roadScale; // Of maximum, 0 to 1. causes gaps between each tile.
 	int minDistanceBetweenParallelRoads; // in tiles.
