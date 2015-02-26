@@ -28,7 +28,7 @@
 AudioManager * AudioManager::audioManager = NULL;
 Mutex audioMessageQueueMutex;
 int audioDriver;
-
+int defaultAudioDriver = AudioDriver::BAD_DRIVER;
 // Short stringstream for debugging using dlog();
 // extern stringstream debugs;
 
@@ -63,6 +63,13 @@ bool AudioManager::AudioProcessingActive()
 	return GraphicsManager::GraphicsProcessingActive();
 }
 
+void AudioManager::SetDefaultAudioDriver(String fromString)
+{
+	String driverName = fromString.Tokenize(" \t")[1];
+	if (driverName.Contains("WindowsCoreAudio"))
+		defaultAudioDriver = AudioDriver::WindowsCoreAudio;
+}
+
 
 bool AudioManager::Initialize()
 {
@@ -76,33 +83,38 @@ bool AudioManager::Initialize()
 	}
 	// Create mutex for handling race-conditions/threading
 	audioMessageQueueMutex.Create("audioMessageQueueMutex");
-	bool ok;
-//#undef OPENAL
-#ifdef OPENAL
-	ok = OpenAL::Initialize();
-	if (ok)
-	{
-		initialized = true;
-		audioDriver = AudioDriver::OpenAL;
-		return true;
-	}
-#else
-	std::cout<<"\nINTO: Open AL is currently disabled. Enable it in AudioSettings.h and recompile!";
-#endif // USE_OPEN_AL
-
-#ifdef WINDOWS
-	// Try windows
-	ok = WMMDevice::Initialize();
-	if (ok)
-	{
-		initialized = true;
-		audioDriver = AudioDriver::WindowsCoreAudio;
-		LogAudio("Audio initialized using Windows MMDevice API.", INFO);
-		return true;
-	}
-#endif
 	
+	if (defaultAudioDriver != AudioDriver::BAD_DRIVER)
+	{
+		if (InitializeDriver(defaultAudioDriver))
+		{
+			initialized = true;
+			return true;
+		}
+	}
+	// Try the other drivers?
+	for (int i = 0; i < AudioDriver::DRIVERS; ++i)
+	{
+		bool ok = InitializeDriver(i);
+		if (ok)
+		{
+			initialized = true;
+			return true;
+		}
+	}
 
+	initialized = false;
+	CheckALError("AudioMan - failed to initialize.");
+	return false;
+}
+
+bool AudioManager::InitializeDriver(int driverID)
+{
+	switch(driverID)
+	{
+		case AudioDriver::OpenAL: return OpenAL::Initialize(); break;
+		case AudioDriver::WindowsCoreAudio: WMMDevice::Initialize(); break;
+	}	
 #ifdef USE_FMOD
 	// Initialize FMOD
 	result = 0;
@@ -110,29 +122,17 @@ bool AudioManager::Initialize()
 	result = FMOD::Studio::System::create(&system); // Create the Studio System object.
 	if (result == FMOD_OK)
 	{
-		// Initialize FMOD Studio, which will also initialize FMOD Low Level
 		result = system->initialize(512, FMOD_STUDIO_INIT_NORMAL, FMOD_INIT_NORMAL, 0);
-		assert(result == FMOD_OK);
 	}
-
 	while(true)
 	{
 		system->loadBankFile("filename", 0, &bank);
 		system->update();
 		system->playSound(sound, channelGroup, false, &channel);
 	}	
-/*	if (result != FMOD_OK)
-	{
-		printf("FMOD error! (%d) %s\n", result, FMOD_ErrorString(result));
-		exit(-1);
-	}
-	*/
-#endif
-
-	initialized = false;
-	CheckALError("AudioMan - failed to initialize.");
-	return false;
+#endif	
 }
+
 
 /// Called once in the deallocator thread when stop procedures have begun but before deallocation occurs.
 void AudioManager::Shutdown()

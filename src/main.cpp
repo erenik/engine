@@ -138,6 +138,8 @@ int main(int argc, char **argv)
 		String str = rows[i];
 		if (str.StartsWith("LogLevel"))
 			SetLogLevel(str);
+		if (str.StartsWith("DefaultAudioDriver"))
+			AudioManager::SetDefaultAudioDriver(str);
 	}
 
 	/// Allocate allocators.

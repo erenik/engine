@@ -28,9 +28,10 @@ class MultimediaStream;
 namespace AudioDriver {
 	enum 
 	{
-		BAD_DRIVER,
+		BAD_DRIVER = -1,
 		OpenAL,
-		WindowsCoreAudio
+		WindowsCoreAudio,
+		DRIVERS,
 	};
 };
 
@@ -63,10 +64,13 @@ public:
 	/// If true, you may queue messages.
 	static bool AudioProcessingActive();
 
+	static void SetDefaultAudioDriver(String fromString);
+
 	/** Called once in the initializer thread after allocation but before the engine gets started. 
 		If false, audio was failed to set up, and program should be quit.
 	*/
 	bool Initialize();
+	bool InitializeDriver(int driverID);
 	/// Called once in the deallocator thread when stop procedures have begun but before deallocation occurs.
 	void Shutdown();
 	static void Allocate();
