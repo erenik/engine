@@ -168,4 +168,6 @@ void ToolParticleEmitter::SetPositionAndTarget(ConstVec3fr startPosition, ConstV
 	direction = (targetPosition - position).NormalizedCopy();
 	float distance = (targetPosition - position).Length();
 	particleLifeTime = distance / emissionVelocity;
+	// Max 5 second particles?
+	ClampFloat(particleLifeTime, 0, 5.f);
 }

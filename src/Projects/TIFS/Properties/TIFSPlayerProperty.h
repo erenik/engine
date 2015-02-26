@@ -19,6 +19,7 @@ class TIFSPlayerProperty : public FirstPersonPlayerProperty
 	friend class TIFS;
 public:
 	TIFSPlayerProperty(Entity * owner);
+	virtual ~TIFSPlayerProperty();
 	static int ID();
 
 	/// Time passed in seconds..! Will steer if inputFocus is true.
@@ -34,6 +35,8 @@ public:
 	/// 0 - repair, 1 - activate, 2 - targetting 
 	void SetToolMode(int mode);
 private:
+	/// processing/activation for the tool.
+	void Tool();
 	void Damage(int amount);
 	void UpdateHUDTargetInfo();
 

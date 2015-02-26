@@ -58,7 +58,22 @@ TIFSPlayerProperty::TIFSPlayerProperty(Entity * owner)
 	/// 100 HP. Life is dangerous.
 	currentHP = maxHP = 100;
 	regen = 0.0001f;
+
+	// beam!
+	if (!toolParticleEmitter)
+	{
+		toolParticleEmitter	= new ToolParticleEmitter();
+		toolParticleEmitter->enabled = false; // Default disabled, we'll activate it below after setting correct color.
+		// Attach it to the particle system
+		QueueGraphics(new GMAttachParticleEmitter(toolParticleEmitter, tifs->toolParticles));
+	}
 }
+
+TIFSPlayerProperty::~TIFSPlayerProperty()
+{
+	QueueGraphics(new GMDetachParticleEmitter(toolParticleEmitter));
+}
+
 
 int TIFSPlayerProperty::ID()
 {
@@ -107,61 +122,7 @@ void TIFSPlayerProperty::Process(int timeInMs)
 	// If LMB or E is pressed, interact with the entity.
 	if (InputMan.lButtonDown || Input.KeyPressed(KEY::E))
 	{
-		// beam!
-		if (!toolParticleEmitter)
-		{
-			toolParticleEmitter	= new ToolParticleEmitter();
-			toolParticleEmitter->enabled = false; // Default disabled, we'll activate it below after setting correct color.
-			// Attach it to the particle system
-			QueueGraphics(new GMAttachParticleEmitter(toolParticleEmitter, tifs->toolParticles));
-		}
-		// Set position.
-		Vector3f particleDestination = targetTurret? targetTurret->position : lastRaycastTargetPosition;
-		toolParticleEmitter->SetPositionAndTarget(owner->worldPosition + Vector3f(0,1.2f, 0), particleDestination);
-		
-		// Depending on our target and tool-type, do stuff.
-		switch(toolMode)
-		{
-			// Repairing
-			case REPAIR:
-				toolParticleEmitter->emissionVelocity = 11.f;
-				toolParticleEmitter->color = Vector4f(1.f, 1.f, 0.05f, 0.3f);
-				toolParticleEmitter->scale = 0.25f;
-				if (targetTurret)
-				{
-					// Repair it! o-o
-					float amount = timeDiffS * repairSpeed;
-					targetTurret->Repair(amount);
-					capacitorValue -= repairCapacityConsumption * timeDiffS;
-				}
-				break;
-			// Activate
-			case ACTIVATE:
-				toolParticleEmitter->emissionVelocity = 17.f;
-				toolParticleEmitter->scale = 0.16f;
-				toolParticleEmitter->color = Vector4f(0.1f, 1.f, 1.f, 0.2f);
-				if (targetTurret)
-				{
-					// Activate it?
-					float amount = timeDiffS * capacitorTransferSpeed;
-					ClampFloat(amount, 0, capacitorValue);
-					capacitorValue -= amount;
-					targetTurret->Activate(amount);
-				}
-				break;
-			// Targetting
-			case REDIRECT_FIRE:
-				toolParticleEmitter->emissionVelocity = 32.f;
-				toolParticleEmitter->scale = 0.14f;
-				toolParticleEmitter->color = Vector4f(0.9f, 0.1f, 0.5f, 0.35f);
-				if (targetDrone)
-				{
-				
-				}
-				break;
-		}
-		// Set enabled after all parameters and colors have been set!
-		toolParticleEmitter->enabled = true;
+		Tool();
 	}
 	else if (toolParticleEmitter)
 	{
@@ -194,6 +155,76 @@ void TIFSPlayerProperty::ProcessMessage(Message * message)
 			break;
 		}
 	}
+}
+
+void TPP::Tool()
+{
+#define RETURN_DISABLE_TOOL {if (toolParticleEmitter) \
+	toolParticleEmitter->enabled = false; \
+	QueueGraphics(new GMSetUIs("TargetRange", GMUI::TEXT, "Outside allowed range")); \
+	return;}
+
+	// Set position.
+	Vector3f particleDestination = targetTurret? targetTurret->position : lastRaycastTargetPosition;
+	// Check distance.
+	Vector3f toDest = particleDestination - owner->position;
+	/// Max interaction distance?
+	float toDestLen = toDest.Length();
+
+	// Depending on our target and tool-type, do stuff.
+	switch(toolMode)
+	{
+		// Repairing
+		case REPAIR:
+			if (toDestLen > 20.f)
+				RETURN_DISABLE_TOOL;
+			toolParticleEmitter->emissionVelocity = 11.f;
+			toolParticleEmitter->color = Vector4f(1.f, 1.f, 0.05f, 0.3f);
+			toolParticleEmitter->scale = 0.25f;
+			if (targetTurret)
+			{
+				// Repair it! o-o
+				float amount = timeDiffS * repairSpeed;
+				targetTurret->Repair(amount);
+				capacitorValue -= repairCapacityConsumption * timeDiffS;
+			}
+			break;
+		// Activate
+		case ACTIVATE:
+			if (toDestLen > 10.f)
+				RETURN_DISABLE_TOOL;
+			toolParticleEmitter->emissionVelocity = 17.f;
+			toolParticleEmitter->scale = 0.16f;
+			toolParticleEmitter->color = Vector4f(0.1f, 1.f, 1.f, 0.2f);
+			if (targetTurret)
+			{
+				// Activate it?
+				float amount = timeDiffS * capacitorTransferSpeed;
+				ClampFloat(amount, 0, capacitorValue);
+				capacitorValue -= amount;
+				targetTurret->Activate(amount);
+			}
+			break;
+		// Targetting
+		case REDIRECT_FIRE:
+			if (toDestLen > 100.f)
+				RETURN_DISABLE_TOOL;
+			toolParticleEmitter->emissionVelocity = 32.f;
+			toolParticleEmitter->scale = 0.14f;
+			toolParticleEmitter->color = Vector4f(0.9f, 0.1f, 0.5f, 0.35f);
+			if (targetDrone)
+			{
+			
+			}
+			break;
+	}
+
+	QueueGraphics(new GMSetUIs("TargetRange", GMUI::TEXT, String(toDestLen, 1)+" meters"));
+
+	toolParticleEmitter->SetPositionAndTarget(owner->worldPosition + Vector3f(0,1.2f, 0), particleDestination);
+	
+	// Set enabled after all parameters and colors have been set!
+	toolParticleEmitter->enabled = true;
 }
 
 /// 0 - repair, 1 - activate, 2 - targetting 

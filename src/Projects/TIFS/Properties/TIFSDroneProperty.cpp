@@ -322,7 +322,7 @@ void Drone::Shoot()
 	if (timeSinceLastFireMs < weaponCooldownMs)
 		return;
 	// Check distance
-	if ((target->position - owner->position).LengthSquared() > 10000)
+	if ((target->position - owner->position).LengthSquared() > 400)
 		return;
 	timeSinceLastFireMs = 0;
 	switch(type)
