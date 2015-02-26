@@ -72,7 +72,8 @@ TIFSPlayerProperty::TIFSPlayerProperty(Entity * owner)
 
 TIFSPlayerProperty::~TIFSPlayerProperty()
 {
-	QueueGraphics(new GMDetachParticleEmitter(toolParticleEmitter));
+	if (StateManager::Instance())
+		QueueGraphics(new GMDetachParticleEmitter(toolParticleEmitter));
 }
 
 

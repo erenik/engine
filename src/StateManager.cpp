@@ -29,7 +29,7 @@ void StateManager::Allocate()
 	stateMan = new StateManager();
 }
 StateManager * StateManager::Instance(){
-	assert(stateMan && "StateManager not initialized");
+//	assert(stateMan && "StateManager not initialized");
 	return stateMan;
 }
 void StateManager::Deallocate()
