@@ -8,6 +8,7 @@
 
 #include "OpenAL.h"
 
+#include "AudioMixer.h"
 #include "Audio.h"
 #include "Mutex/Mutex.h"
 
@@ -45,6 +46,7 @@ AudioManager::AudioManager()
 	masterVolume = 0.1f;
 	shouldLive = true;
 	audioDriver = AudioDriver::BAD_DRIVER;
+	AudioMixer::Allocate();
 }
 
 AudioManager::~AudioManager()
@@ -53,6 +55,7 @@ AudioManager::~AudioManager()
 	// Shutdown if not already done so!
 	Shutdown();
 	messageQueue.ClearAndDelete();
+	AudioMixer::Deallocate();
 }
 
 #include "Graphics/GraphicsManager.h"
@@ -88,6 +91,7 @@ bool AudioManager::Initialize()
 	{
 		if (InitializeDriver(defaultAudioDriver))
 		{
+			audioDriver = defaultAudioDriver;
 			initialized = true;
 			return true;
 		}
@@ -98,6 +102,7 @@ bool AudioManager::Initialize()
 		bool ok = InitializeDriver(i);
 		if (ok)
 		{
+			audioDriver = i;
 			initialized = true;
 			return true;
 		}
@@ -113,7 +118,7 @@ bool AudioManager::InitializeDriver(int driverID)
 	switch(driverID)
 	{
 		case AudioDriver::OpenAL: return OpenAL::Initialize(); break;
-		case AudioDriver::WindowsCoreAudio: WMMDevice::Initialize(); break;
+		case AudioDriver::WindowsCoreAudio: return WMMDevice::Initialize(); break;
 	}	
 #ifdef USE_FMOD
 	// Initialize FMOD

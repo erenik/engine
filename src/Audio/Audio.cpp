@@ -4,6 +4,7 @@
 #include "Audio.h"
 #include "AudioManager.h"
 
+#include "AudioMixer.h"
 #include "Multimedia/MultimediaStream.h"
 #include "Multimedia/MultimediaTypes.h"
 #include "Multimedia/Ogg/OggStream.h"
@@ -506,11 +507,12 @@ void Audio::Update()
 	// Windows core driver?
 	if (audioDriver == AudioDriver::WindowsCoreAudio)
 	{
-		WMMDevice * device = WMMDevice::MainOutput();
+//		WMMDevice * device = WMMDevice::MainOutput();
 		/// 1 mb?
-#define BUF_SIZE (1024 * 64)
-		int bytesToBuffer = device->BytesToBuffer();
-		int samplesToBuffer = device->SamplesToBuffer();
+	#define BUF_SIZE (1024 * 64)
+	//	int bytesToBuffer = device->BytesToBuffer();
+	//	int samplesToBuffer = device->SamplesToBuffer();
+		int samplesToBuffer = mixer->SamplesToBuffer(this);
 		int shortsToBuffer = samplesToBuffer;
 		int shortsToBufferInChars = shortsToBuffer * 2;
 		uchar * buf = new uchar[shortsToBufferInChars];
@@ -518,52 +520,80 @@ void Audio::Update()
 		int samplesBuffered = bytesBuffered / 2;
 		int floatsToBuffer = samplesBuffered;
 		int floatsToBufferInChars = floatsToBuffer * 4;
-		uchar * floatBuf = new uchar[floatsToBufferInChars];
-		// Set 0 so we avoid some noise?
-		memset(floatBuf, 0, floatsToBufferInChars);
-		int floatsProcessed = 0;
-		float * floatP = (float*) floatBuf;
-		// Each 16 bit sample -> 32 bit floating point sample.
-		for (int i = 0; i < bytesBuffered - 1; i += 2)
-		{
-			// Made it positive.
-			int sample1 = (uchar)buf[i];
-			int sample2 = (uchar)buf[i+1];
-			int sample =  sample1 | (sample2 << 8);
-			// Remove sample value based on given volume?
-//			sample -= 65536 * (1 - absoluteVolume);
-			// Clamp to minimum
-//			if (sample < -32767)
-//				sample = -32767;
-			// Make it centered on 0 again.
-		//	sample -= 32767;
-			float f;
-			/// 0 to 32767 is the same, over that and we go negative. -> simulate going from int to short.
-			int overHalf = (sample & (1 << 15)) ? 1 : 0;
-			int iSample = (sample % 32768) - 32768 * overHalf;
-			short shortSample = sample;
-			f = ((float) iSample) / (float) 32768;
-			if( f > 1) 
-				f = 1;
-			if( f < -1 ) 
-				f = -1;
-			// Multiply by volume
-			f *= absoluteVolume;
-			floatP[floatsProcessed] = f;
-			if (debug == -17)
-				std::cout<<"\n"<<floatP[floatsProcessed]<<" sample: "<<sample<<" sample1/2: "<<sample1<<"/"<<sample2;
-			++floatsProcessed;
-	//		++floatsProcessed;
-		}
-		if (debug == -18)
-			std::cout<<"\nBuffering: "<<bytesBuffered;
-		int floatBytesToBuffer = floatsProcessed * 4;
-		device->BufferData((char*)floatBuf, floatsToBufferInChars);
+		// Send to mixer.
+		mixer->BufferPCMShort(this, (short*)buf, samplesBuffered, audioStream->AudioChannels(), absoluteVolume);
 		delete[] buf;
-		delete[] floatBuf;
+//		BufferWCAOld();
 	}
     return;
 }
+
+/*
+void Audio::BufferWCAOld()
+{
+	WMMDevice * device = WMMDevice::MainOutput();
+	/// 1 mb?
+#define BUF_SIZE (1024 * 64)
+	int bytesToBuffer = device->BytesToBuffer();
+	int samplesToBuffer = device->SamplesToBuffer();
+	int shortsToBuffer = samplesToBuffer;
+	int shortsToBufferInChars = shortsToBuffer * 2;
+	uchar * buf = new uchar[shortsToBufferInChars];
+	int bytesBuffered = audioStream->BufferAudio((char*)buf, shortsToBufferInChars, this->repeat);
+	int samplesBuffered = bytesBuffered / 2;
+	int floatsToBuffer = samplesBuffered;
+	int floatsToBufferInChars = floatsToBuffer * 4;
+#define USE_MIXER
+#ifdef USE_MIXER
+	/// o.o test..
+	mixer->BufferPCMShort(this, (short*)buf, samplesBuffered, audioStream->AudioChannels(), absoluteVolume);
+#else
+	uchar * floatBuf = new uchar[floatsToBufferInChars];
+	// Set 0 so we avoid some noise?
+	memset(floatBuf, 0, floatsToBufferInChars);
+	int floatsProcessed = 0;
+	float * floatP = (float*) floatBuf;
+	// Each 16 bit sample -> 32 bit floating point sample.
+	for (int i = 0; i < bytesBuffered - 1; i += 2)
+	{
+		// Made it positive.
+		int sample1 = (uchar)buf[i];
+		int sample2 = (uchar)buf[i+1];
+		int sample =  sample1 | (sample2 << 8);
+		// Remove sample value based on given volume?
+//			sample -= 65536 * (1 - absoluteVolume);
+		// Clamp to minimum
+//			if (sample < -32767)
+//				sample = -32767;
+		// Make it centered on 0 again.
+	//	sample -= 32767;
+		float f;
+		/// 0 to 32767 is the same, over that and we go negative. -> simulate going from int to short.
+		int overHalf = (sample & (1 << 15)) ? 1 : 0;
+		int iSample = (sample % 32768) - 32768 * overHalf;
+		short shortSample = sample;
+		f = ((float) iSample) / (float) 32768;
+		if( f > 1) 
+			f = 1;
+		if( f < -1 ) 
+			f = -1;
+		// Multiply by volume
+		f *= absoluteVolume;
+		floatP[floatsProcessed] = f;
+		if (debug == -17)
+			std::cout<<"\n"<<floatP[floatsProcessed]<<" sample: "<<sample<<" sample1/2: "<<sample1<<"/"<<sample2;
+		++floatsProcessed;
+//		++floatsProcessed;
+	}
+	if (debug == -18)
+		std::cout<<"\nBuffering: "<<bytesBuffered;
+	int floatBytesToBuffer = floatsProcessed * 4;
+	device->BufferData((char*)floatBuf, floatsToBufferInChars);
+	delete[] floatBuf;
+#endif
+	delete[] buf;
+}
+*/
 
 /// Playback time in milliseconds.
 long long Audio::PlaybackTimeMs()
