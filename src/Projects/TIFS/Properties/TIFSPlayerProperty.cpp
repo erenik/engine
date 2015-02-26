@@ -58,6 +58,7 @@ TIFSPlayerProperty::TIFSPlayerProperty(Entity * owner)
 	/// 100 HP. Life is dangerous.
 	currentHP = maxHP = 100;
 	regen = 0.0001f;
+	autoTool = false;
 
 	// beam!
 	if (!toolParticleEmitter)
@@ -85,10 +86,13 @@ void TIFSPlayerProperty::Process(int timeInMs)
 {
 	// Process movemant and camera stuff.
 	FirstPersonPlayerProperty::Process(timeInMs);
-
+	
 	// Dead? no process.
 	if (currentHP <= 0)
 		return;
+	if (forward || right)
+		autoTool = false;
+
 	/// o.o
 	currentHP += regen * timeInMs;
 	if (currentHP > maxHP)
@@ -120,7 +124,15 @@ void TIFSPlayerProperty::Process(int timeInMs)
 		std::cout<<"\nprimaryTarget: "<<primaryTarget->name;
 
 	// If LMB or E is pressed, interact with the entity.
+	bool tool;
+	tool = autoTool;
 	if (InputMan.lButtonDown || Input.KeyPressed(KEY::E))
+	{
+		tool = true;
+		if (Input.KeyPressedThisFrame(KEY::E))
+			autoTool = !autoTool;
+	}
+	if (tool)
 	{
 		Tool();
 	}

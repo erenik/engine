@@ -42,7 +42,8 @@ private:
 
 	int maxHP;
 	float currentHP, regen;
-
+	/// Works only when standing still.
+	bool autoTool;
 	enum 
 	{
 		REPAIR,

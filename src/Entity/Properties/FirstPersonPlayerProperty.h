@@ -60,6 +60,8 @@ protected:
 	float lastRight;
 	bool autorun;
 
+
+	float forward, right;
 	Vector3f lastVelocity;
 	
 	/// o.o
