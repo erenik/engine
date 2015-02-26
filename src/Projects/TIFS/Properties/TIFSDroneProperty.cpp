@@ -24,6 +24,7 @@ TIFSDroneProperty::TIFSDroneProperty(Entity * owner)
 	timeSinceLastFireMs = 0; 
 	weaponCooldownMs = 3000;
 	laserWidth = .5f;
+	laserDamage = 10;
 }
 
 int TIFSDroneProperty::ID()
@@ -366,6 +367,9 @@ void Drone::ShootLaser()
 	/// Update position by hand each frame? Move to graphics thread later?
 	QueuePhysics(new PMSetEntity(laserEntity, PT_SET_SCALE, Vector3f(laserWidth, laserWidth, dist)));
 	QueuePhysics(new PMSetEntity(laserEntity, PT_SET_ROTATION, Vector3f(angles.x.Radians(), angles.y.Radians(), 0)));
+	// Damage
+	IntegerMessage damage("Damage", laserDamage);
+	target->ProcessMessage(&damage);
 }
 
 // For flying-drone bombs

@@ -54,6 +54,10 @@ TIFSPlayerProperty::TIFSPlayerProperty(Entity * owner)
 	capacitorValue = 1000;
 	maxCapacitorValue = 5000;
 	capacitorRegenPerSecond = 600.f;
+
+	/// 100 HP. Life is dangerous.
+	currentHP = maxHP = 100;
+	regen = 0.0001f;
 }
 
 int TIFSPlayerProperty::ID()
@@ -66,6 +70,14 @@ void TIFSPlayerProperty::Process(int timeInMs)
 {
 	// Process movemant and camera stuff.
 	FirstPersonPlayerProperty::Process(timeInMs);
+
+	// Dead? no process.
+	if (currentHP <= 0)
+		return;
+	/// o.o
+	currentHP += regen * timeInMs;
+	if (currentHP > maxHP)
+		currentHP = (float) maxHP;
 
 	/// Regen.
 	capacitorValue += capacitorRegenPerSecond * timeInMs * 0.001f;
@@ -99,8 +111,9 @@ void TIFSPlayerProperty::Process(int timeInMs)
 		if (!toolParticleEmitter)
 		{
 			toolParticleEmitter	= new ToolParticleEmitter();
+			toolParticleEmitter->enabled = false; // Default disabled, we'll activate it below after setting correct color.
 			// Attach it to the particle system
-			GraphicsQueue.Add(new GMAttachParticleEmitter(toolParticleEmitter, tifs->toolParticles));
+			QueueGraphics(new GMAttachParticleEmitter(toolParticleEmitter, tifs->toolParticles));
 		}
 		// Set position.
 		Vector3f particleDestination = targetTurret? targetTurret->position : lastRaycastTargetPosition;
@@ -159,8 +172,28 @@ void TIFSPlayerProperty::Process(int timeInMs)
 	// Update capacitor value
 	Vector3f capacitorColor;
 	capacitorColor = Vector3f(0,1,1) * capacitorValue / (float)maxCapacitorValue + Vector3f(1,0,0) * (1 - capacitorValue / (float)maxCapacitorValue);
-	GraphicsQueue.Add(new GMSetUIv3f("CapacitorValue", GMUI::TEXT_COLOR, capacitorColor));
-	GraphicsQueue.Add(new GMSetUIs("CapacitorValue", GMUI::TEXT, String((int)capacitorValue)));
+	QueueGraphics(new GMSetUIv3f("CapacitorValue", GMUI::TEXT_COLOR, capacitorColor));
+	QueueGraphics(new GMSetUIs("CapacitorValue", GMUI::TEXT, String((int)capacitorValue)));
+}
+
+void TIFSPlayerProperty::ProcessMessage(Message * message)
+{
+	// Base-class handling of physics n stuff.
+	FirstPersonPlayerProperty::ProcessMessage(message);
+
+	switch(message->type)
+	{
+		case MessageType::INTEGER_MESSAGE:
+		{
+			IntegerMessage * im = (IntegerMessage*)message;
+			String msg = message->msg;
+			if (msg == "Damage")
+			{
+				Damage(im->value);
+			}
+			break;
+		}
+	}
 }
 
 /// 0 - repair, 1 - activate, 2 - targetting 
@@ -169,10 +202,26 @@ void TIFSPlayerProperty::SetToolMode(int mode)
 	toolMode = mode % 3;
 }
 
+void TIFSPlayerProperty::Damage(int amount)
+{
+	if (currentHP <= 0)
+		return; // Already dead.
+	currentHP -= amount;
+	if (currentHP < 0)
+	{
+		// Stop tool?
+		// Stop movement?
+		// Disable input?
 
+		// Died now
+		tifs->OnPlayerDead(this);
+	}
+}
 
 void TIFSPlayerProperty::UpdateHUDTargetInfo()
 {
+	if (!inputFocus)
+		return;
 	targetDrone = NULL;
 	targetTurret = NULL;
 	if (primaryTarget == NULL)
@@ -327,5 +376,7 @@ void TIFSPlayerProperty::UpdateHUDTargetInfo()
 	posString = "x:"+String::ToString(pos.x,1) + " ";
 	posString += "y:"+String::ToString(pos.y,1) + " ";
 	posString += "z:"+String::ToString(pos.z,1);
-	Graphics.QueueMessage(new GMSetUIs("TargetPosition", GMUI::TEXT, posString));
+	QueueGraphics(new GMSetUIs("TargetPosition", GMUI::TEXT, posString));
+	// HP
+	QueueGraphics(new GMSetUIs("PlayerHP", GMUI::TEXT, "Player HP: "+String(currentHP)));
 }

@@ -337,6 +337,11 @@ void MessageManager::ProcessMessage(Message * message)
 				grav.ReadFrom(gravStr);
 				PhysicsQueue.Add(new PMSet(PT_GRAVITY, grav));
 			}
+			else if (msg.StartsWith("AdjustMasterVolume("))
+			{
+				float diff = msg.Tokenize("()")[1].ParseFloat();
+				QueueAudio(new AMSet(AT_MASTER_VOLUME, AudioMan.MasterVolume() + diff));
+			}
 			else if (msg == "CreateEditorCamera")
 			{
 				CreateEditorCamera();

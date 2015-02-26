@@ -89,7 +89,7 @@ TIFSCR * cr = 0;
 /// Function when entering this state, providing a pointer to the previous StateMan.
 void TIFS::OnEnter(AppState * previousState)
 {
-	entityLists.Add(&drones, &turretEntities, &motherships, &groundEntities, &players);
+	entityLists.Add(&drones, &turretEntities, &motherships, &groundEntities, &playersEntities);
 	entityLists.AddItem(&flyingDrones);
 
 	// Setup integrator.
@@ -552,6 +552,8 @@ void TIFS::CreateDefaultBindings()
 	BIND(Action::FromString("ToggleMute"), KEY::M);
 	BIND(Action::FromString("NextMinute"), KEY::N);
 	BIND(Action::FromString("TestFlyingDrone"), List<int>(KEY::T, KEY::F));
+	BIND(Action::FromString("AdjustMasterVolume(0.05)"), List<int>(KEY::CTRL, KEY::V, KEY::PLUS));
+	BIND(Action::FromString("AdjustMasterVolume(-0.05)"), List<int>(KEY::CTRL, KEY::V, KEY::MINUS));
 }
 
 
@@ -579,6 +581,21 @@ void TIFS::ResetCamera()
 
 	thirdPersonCamera->minTrackingDistance = 3.5f;
 	thirdPersonCamera->maxTrackingDistance = 7.5f;
+}
+
+// D:
+void TIFS::OnPlayerDead(TIFSPlayerProperty * playerProp)
+{
+	// check alive players.
+	for (int i = 0; i < players.Size(); ++i)
+	{
+		TIFSPlayerProperty * tpp = players[i];
+		if (tpp->currentHP > 0)
+			return;
+	}
+	// GAME OVER
+	// Run new game?
+	ScriptMan.PlayScript("scripts/GameOver.txt");
 }
 
 
@@ -818,7 +835,8 @@ void TIFS::SpawnPlayer()
 	
 	// Enable steering!
 	playerProp->inputFocus = true;
-	players.Add(player);
+	players.AddItem(playerProp);
+	playersEntities.Add(player);
 	// other stuff.
 	PhysicsQueue.Add(new PMSetEntity(player, PT_FACE_VELOCITY_DIRECTION, true));
 }
@@ -831,7 +849,7 @@ Entity * TIFS::GetClosestDefender(ConstVec3fr toPosition)
 	Entity * closest = NULL;
 	for (int i = 0; i < players.Size(); ++i)
 	{
-		Entity * entity = players[i];
+		Entity * entity = players[i]->owner;
 		float dist = (entity->position - toPosition).LengthSquared();
 		if (dist < minDist)
 		{
@@ -903,6 +921,7 @@ void TIFS::NewGame()
 	MapMan.DeleteAllEntities();
 	turrets.Clear();
 	drones.Clear();
+	players.Clear();
 
 	mapState = 0;
 

@@ -21,11 +21,12 @@ enum audioMessageTypes
 	AM_TOGGLE_MUTE,
 };
 
+// All prefixed AT_
 enum audioTargets 
 {
-	MASTER_VOLUME,
-	CATEGORY_VOLUME,
-	VOLUME,
+	AT_MASTER_VOLUME,
+	AT_CATEGORY_VOLUME,
+	AT_VOLUME,
 };
 
 class AudioMessage 

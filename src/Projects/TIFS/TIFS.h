@@ -57,6 +57,8 @@
 #include "Entity/EntityManager.h"
 #include "Input/InputManager.h"
 
+#include "Message/MathMessage.h"
+
 #include "Physics/PhysicsManager.h"
 #include "Physics/Messages/PhysicsMessage.h"
 #include "Physics/Messages/CollisionCallback.h"
@@ -172,6 +174,9 @@ public:
 
 	void ResetCamera();
 
+	// D:
+	void OnPlayerDead(TIFSPlayerProperty * playerProp);
+
 	/// Randomly!!!! o-=o
 	void SpawnDrones(int num);
 	void SpawnDrone(ConstVec3fr atLocation);
@@ -191,13 +196,15 @@ public:
 	Turret * GetClosestActiveTurret(ConstVec3fr toPosition);
 
 	/// o-o
-	List<Entity*> players,
+	List<Entity*> playersEntities,
 		turretEntities,
 		drones,
 		flyingDrones,
 		motherships,
 		groundEntities;
 
+	/// o.o
+	List<TIFSPlayerProperty*> players;
 	TIFSMothershipProperty * mothership;
 	List<TIFSTurretProperty*> turrets;
 

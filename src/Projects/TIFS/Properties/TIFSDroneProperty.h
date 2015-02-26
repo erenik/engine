@@ -45,6 +45,7 @@ public:
 	// default 1.0?
 	float acceleration;
 	float laserWidth;
+	int laserDamage;
 
 	enum {
 		DESCENDING_ONTO_CITY,
