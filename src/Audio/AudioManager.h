@@ -37,6 +37,8 @@ namespace AudioDriver {
 
 /// See enum above.
 extern int audioDriver;
+/// Updated each audio-loop.
+extern int64 audioNowMs;
 
 /** A general utility manager for handling sounds and music pieces with varying degrees of complexity.
 	It is designed to be able to work with OpenAL mainly.
@@ -90,6 +92,8 @@ public:
 	
 	/// Getters
 	float MasterVolume(){ return masterVolume; };
+	/// Based on master and mute.
+	float ActiveMasterVolume(){ if(mute) return 0; return masterVolume;};
 	/// Returns the current volume for target category (0.0 to 1.0)
 	float CategoryVolume(int category);
 	
@@ -129,6 +133,7 @@ private:
 	/// Pause o.O
 	void PauseAllOfType(char type);
 	void StopAllOfType(char type);
+	void FadeOutAllOfType(char type, float seconds);
 
 	/// Sets master volume, from 0.0 to 1.0
 	void SetMasterVolume(float level);

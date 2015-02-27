@@ -52,6 +52,7 @@ public:
 	void Resume();			// Resumes ONLY if the audio was currently paused.
 	void Pause();			// Pause at current time
 	void Stop(bool andSeekToStart);			// Stops and brings currentTime to 0.
+	void FadeOut(float seconds);
 	// Buffers new data from underlying streams and pushes it into AL for playback.
 	void Update();			
 
@@ -82,9 +83,15 @@ public:
 	/// Default directory from where audio is assumed to be stored. This to help build paths to find audio straight away?
 	static String audioDirectory;
 private:
+	/// Updates playback volume. 
+	void UpdateVolume();
 
+#ifdef OPENAL
+	void AudioPlayAL();
+	void UpdateOpenAL();
 	void QueueBuffer(AudioBuffer * buf);
 	void UnqueueBuffer(AudioBuffer * buf);
+#endif
 
 	/// Bad boolean, should go away after audio is re-worked with an own messaging system.
 	bool firstBufferDone;
@@ -99,8 +106,6 @@ private:
 	/// Flag for a workaround.
 	bool playbackEnded;
 	int state;			// Playing, paused, stopped, error, etc.
-	/// Updates playback volume. 
-	void UpdateVolume(float masterVolume);
 
 	/// Total volume as calculated with UpdateVolume. 
 	float absoluteVolume;
@@ -115,6 +120,11 @@ private:
 	List<AudioBuffer*> audioBuffers;
 	/// Queued buffers. Order in which they are queued is relevant!
 	List<AudioBuffer*> queuedBuffers;
+
+	int fadeStartMs;
+	int fadeEndMs;
+	float fadeStartVolume, fadeEndVolume; 
+	bool fading;
 };
 
 #endif

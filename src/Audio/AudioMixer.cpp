@@ -132,7 +132,7 @@ void AudioMixer::SendToDriver(int driverID)
 	WMMDevice * device = WMMDevice::MainOutput();
 	//	int bytesToBuffer = device->BytesToBuffer();
 	/// Always send a constant amount of samples, based on the mixer's buffer-size?
-	int defaultSamplesToSend = queueSampleTotal * 0.5;
+	int defaultSamplesToSend = queueSampleTotal * 0.1;
 	/// Check availability in driver.
 	int driverSamplesToBuffer = device->SamplesToBuffer();
 	// Use the lower value.
@@ -141,6 +141,11 @@ void AudioMixer::SendToDriver(int driverID)
 	{
 		Sleep(5);
 		return;
+	}
+	/// Apply master volume RIGHT before sending to device! o.o
+	for (int i = 0; i < samplesToSend; ++i)
+	{
+		pcmQueueF[i] *= AudioMan.ActiveMasterVolume();
 	}
 	int bytesBuffered = device->BufferData((char*)pcmQueueF, samplesToSend * sizeof(float));
 	int bytesPerSample = sizeof(float);

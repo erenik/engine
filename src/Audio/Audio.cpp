@@ -49,6 +49,7 @@ Audio::Audio()
 
 void Audio::Nullify()
 {
+	fading = false;
 	volume = 1.0f;
     loaded = false;
 	type = AudioType::NONE;
@@ -224,14 +225,13 @@ void Audio::Play()
 	if (!audioEnabled)
 		return;
 
+	// Default volume.
+	volume = 1.f;
+
 	/// Generate buffers, sources, etc. if not already done so!
 	if (audioDriver == AudioDriver::OpenAL)
 	{
-		if (alSource == 0){
-			bool ok = CreateALObjects();
-			if (!ok)
-				return;
-		}
+		AudioPlayAL();
 	}
 
 //    std::cout<<"\nPlaying audio "<<name;
@@ -243,7 +243,10 @@ void Audio::Play()
 		case AudioType::BGS: 
 		{
 			// Pause all others.
-	//		AudioMan.StopAllOfType(this->type);
+			AudioMan.FadeOutAllOfType(this->type, 1.f);
+			// Don't fade outselves though..
+			fading = false;
+//			AudioMan.StopAllOfType(this->type);
 			break;
 		}
 		default:
@@ -264,7 +267,7 @@ void Audio::Play()
 	//	assert(audioStream->source > 0);
 
 		/// Set volume..?
-		UpdateVolume(AudioMan.MasterVolume());
+	//	UpdateVolume(AudioMan.MasterVolume());
 		/// Play it!
 		alSourcePlay(alSource);
 		int error = alGetError();
@@ -291,7 +294,7 @@ bool Audio::IsPlaying()
 void Audio::Resume()
 {
 	/// Set volume..?
-	UpdateVolume(AudioMan.MasterVolume());
+//	UpdateVolume(AudioMan.MasterVolume());
 #ifdef OPENAL
 	if (audioDriver == AudioDriver::OpenAL)
 	{
@@ -341,6 +344,15 @@ void Audio::Stop(bool andSeekToStart)
 	state = AudioState::READY;
 }
 
+void Audio::FadeOut(float seconds)
+{
+	fadeStartMs = audioNowMs;
+	fadeEndMs = audioNowMs + seconds * 1000;
+	fadeStartVolume = volume;
+	fadeEndVolume = 0.f;
+	fading = true;
+}
+
 void Audio::QueueBuffer(AudioBuffer * buf)
 {
 	assert(!buf->attached);
@@ -364,154 +376,13 @@ void Audio::Update()
 {
 	if (!audioEnabled)
 		return;
-
-#ifdef OPENAL
-	if (audioDriver == AudioDriver::OpenAL)
-	{
-		// If ending, just wait until the al State reaches STOPPED.
-		if (state == AudioState::ENDING)
-		{
-			ALint alSourceState = 0;
-			alGetSourcei(alSource, AL_SOURCE_STATE, &alSourceState);
-			switch(alSourceState){
-				case AL_INITIAL: 
-				case AL_PLAYING: 
-					return;
-				case AL_PAUSED:
-				case AL_STOPPED:
-				{
-					state = AudioState::ENDED;
-					playbackEnded = true;
-					return;
-				}
-			}
-		}
-
-		// Check if playing?
-		if (state != AudioState::PLAYING)
-			return;
-
-		// Check if first buffering is done yet.
-		if (!firstBufferDone)
-		{
-			for (int i = 0; i < audioBuffers.Size(); ++i)
-			{
-				AudioBuffer * audioBuffer = audioBuffers[i];
-				BufferData(audioStream, audioBuffer);
-				if (audioBuffer->buffered)
-				{
-					// Queue it.
-					QueueBuffer(audioBuffer);
-	//				alSourceQueueBuffers(alSource, 1, &audioBuffer->alBuffer);
-				}
-			}
-			firstBufferDone = true;
-			// Play it!
-			alSourcePlay(alSource);
-			return;
-		}
-
-		// Update time.
-		playbackTime;
-		float currentBufferTime;
-		alGetSourcef(alSource, AL_SEC_OFFSET, &currentBufferTime);
-		static float maxBufferTime = 0;
-		if (maxBufferTime < currentBufferTime)
-			maxBufferTime = currentBufferTime;
-		playbackTime = buffersPassed * bufferDuration + currentBufferTime;
-		
-	//	playbackTime = audioStream->AudioTime() + currentBufferTime;
-	//	playbackTime = totalDurationBuffered;
-
-		ALint processed = 0, queued = 0;
-		bool success = true;
-
-		ALint alSourceState = 0;
-		alGetSourcei(alSource, AL_SOURCE_STATE, &alSourceState);
-		switch(alSourceState){
-			case AL_INITIAL: break;
-			case AL_PLAYING: break;
-			case AL_PAUSED:
-				/// Set state to paused?
-				state = AudioState::PAUSED;
-				return;
-			case AL_STOPPED:
-			{
-				/// It has played decently before, so its at the end now.
-				if (playbackEnded){
-					state = AudioState::ENDED;
-					alSourceStop(alSource);
-					return;
-				}
-
-				// Check playback time
-			//	std::cout<<"\nAudio stopped! Maybe it ran out of data to play back? Playing it again unless stream we depend on has ended!";
-				alSourcePlay(alSource);
-				CheckALError("Audio::Update - alSourcePlay");
-			}
-		}
-
-		/// Set volume
-	//	alSourcef(alSource, AL_GAIN, 1.0f);
-
-		/// Check queued buffers
-		alGetSourcei(alSource, AL_BUFFERS_QUEUED, &queued);
-		CheckALError("Error getting source statistics for alSource: " + String::ToString((int)alSource)+ " and queued: "+String::ToString(queued));
-		/// Check processed buffers.
-		alGetSourcei(alSource, AL_BUFFERS_PROCESSED, &processed);
-		CheckALError("Error getting source statistics for alSource: " + String::ToString((int)alSource)+ " and processed: "+String::ToString(processed));
-	//	assert(queuedBuffers.Size() >= processed + queued);
-			
-		/// For each processed buffer, unqueue it
-		while(processed)
-		{
-			assert(queuedBuffers.Size());
-			// Fetch the index 0 buffer, should be the one.
-			AudioBuffer * buf = queuedBuffers[0];
-			UnqueueBuffer(buf);
-			/*
-			ALuint alBuffer;
-			/// Check if buffer is still queued?
-	//		alGetBufferi(alBuffer, AL_BUFFER_
-
-			alSourceUnqueueBuffers(alSource, 1, &alBuffer);
-		//	std::cout<<"\nBuffer unqueued: "<<alBuffer;
-			CheckALError("Error Unquequeing bufferrs");
-			for (int i = 0; i < this->queuedBuffers.Size(); ++i){
-				AudioBuffer * queuedBuffer = queuedBuffers[i];
-				if (alBuffer == queuedBuffer->alBuffer){
-					// Unqueue it
-					queuedBuffers.Remove(queuedBuffer);
-					queuedBuffer->buffered = false;
-				}
-			}*/
-			--processed;
-			/// Increment known buffers passed so we know how far we have played the track.
-			buffersPassed++;
-		}
-		/// For each unqueued buffer, stream more data and queue it.
-		List<AudioBuffer*> unqueuedBuffers = audioBuffers - queuedBuffers;
-		for (int i = 0; i < unqueuedBuffers.Size(); ++i)
-		{
-			AudioBuffer * audioBuffer = unqueuedBuffers[i];
-			BufferData(audioStream, audioBuffer);
-
-			// Don't queue the buffer if streaming failed, since it's old data, yo.
-			if (audioBuffer->buffered)
-			{
-				QueueBuffer(audioBuffer);
-			}
-		}
-	}
-#endif
+	UpdateVolume();
+	UpdateOpenAL();
 	// Windows core driver?
 	if (audioDriver == AudioDriver::WindowsCoreAudio)
 	{
-//		WMMDevice * device = WMMDevice::MainOutput();
 		/// 1 mb?
 	#define BUF_SIZE (1024 * 64)
-	//	int bytesToBuffer = device->BytesToBuffer();
-	//	int samplesToBuffer = device->SamplesToBuffer();
 		int samplesToBuffer = mixer->SamplesToBuffer(this);
 		int shortsToBuffer = samplesToBuffer;
 		int shortsToBufferInChars = shortsToBuffer * 2;
@@ -523,77 +394,9 @@ void Audio::Update()
 		// Send to mixer.
 		mixer->BufferPCMShort(this, (short*)buf, samplesBuffered, audioStream->AudioChannels(), absoluteVolume);
 		delete[] buf;
-//		BufferWCAOld();
 	}
     return;
 }
-
-/*
-void Audio::BufferWCAOld()
-{
-	WMMDevice * device = WMMDevice::MainOutput();
-	/// 1 mb?
-#define BUF_SIZE (1024 * 64)
-	int bytesToBuffer = device->BytesToBuffer();
-	int samplesToBuffer = device->SamplesToBuffer();
-	int shortsToBuffer = samplesToBuffer;
-	int shortsToBufferInChars = shortsToBuffer * 2;
-	uchar * buf = new uchar[shortsToBufferInChars];
-	int bytesBuffered = audioStream->BufferAudio((char*)buf, shortsToBufferInChars, this->repeat);
-	int samplesBuffered = bytesBuffered / 2;
-	int floatsToBuffer = samplesBuffered;
-	int floatsToBufferInChars = floatsToBuffer * 4;
-#define USE_MIXER
-#ifdef USE_MIXER
-	/// o.o test..
-	mixer->BufferPCMShort(this, (short*)buf, samplesBuffered, audioStream->AudioChannels(), absoluteVolume);
-#else
-	uchar * floatBuf = new uchar[floatsToBufferInChars];
-	// Set 0 so we avoid some noise?
-	memset(floatBuf, 0, floatsToBufferInChars);
-	int floatsProcessed = 0;
-	float * floatP = (float*) floatBuf;
-	// Each 16 bit sample -> 32 bit floating point sample.
-	for (int i = 0; i < bytesBuffered - 1; i += 2)
-	{
-		// Made it positive.
-		int sample1 = (uchar)buf[i];
-		int sample2 = (uchar)buf[i+1];
-		int sample =  sample1 | (sample2 << 8);
-		// Remove sample value based on given volume?
-//			sample -= 65536 * (1 - absoluteVolume);
-		// Clamp to minimum
-//			if (sample < -32767)
-//				sample = -32767;
-		// Make it centered on 0 again.
-	//	sample -= 32767;
-		float f;
-		/// 0 to 32767 is the same, over that and we go negative. -> simulate going from int to short.
-		int overHalf = (sample & (1 << 15)) ? 1 : 0;
-		int iSample = (sample % 32768) - 32768 * overHalf;
-		short shortSample = sample;
-		f = ((float) iSample) / (float) 32768;
-		if( f > 1) 
-			f = 1;
-		if( f < -1 ) 
-			f = -1;
-		// Multiply by volume
-		f *= absoluteVolume;
-		floatP[floatsProcessed] = f;
-		if (debug == -17)
-			std::cout<<"\n"<<floatP[floatsProcessed]<<" sample: "<<sample<<" sample1/2: "<<sample1<<"/"<<sample2;
-		++floatsProcessed;
-//		++floatsProcessed;
-	}
-	if (debug == -18)
-		std::cout<<"\nBuffering: "<<bytesBuffered;
-	int floatBytesToBuffer = floatsProcessed * 4;
-	device->BufferData((char*)floatBuf, floatsToBufferInChars);
-	delete[] floatBuf;
-#endif
-	delete[] buf;
-}
-*/
 
 /// Playback time in milliseconds.
 long long Audio::PlaybackTimeMs()
@@ -612,9 +415,31 @@ void Audio::UnqueueBuffers()
 }
 
 /// Updates playback volume.
-void Audio::UpdateVolume(float masterVolume)
+void Audio::UpdateVolume()
 {
-	absoluteVolume = this->volume * masterVolume;
+	/// Adjust volume 
+	// If fading.
+	if (fading)
+	{
+		// Check time.
+		if (audioNowMs > fadeEndMs)
+		{
+			fading = false;
+			volume = fadeEndVolume;
+			// Stop us?
+			Pause();
+		}
+		else if (audioNowMs > fadeStartMs)
+		{
+			int msInto = audioNowMs - fadeStartMs;
+			int duration = fadeEndMs - fadeStartMs;
+			float ratio = msInto / (float) duration;
+			volume = ratio * fadeEndVolume + (1 - ratio) * fadeStartVolume;
+		}
+	}
+
+	/// Update absolute volume.
+	absoluteVolume = this->volume;
 //	std::cout<<"\nUpdating volume: "<<absoluteVolume<<" for source "<<alSource;
 	/// Set volume in AL.
 //	std::cout<<"\nVolume updated: "<<absoluteVolume;
@@ -772,3 +597,224 @@ void Audio::BufferData(MultimediaStream * fromStream, AudioBuffer * intoBuffer)
 		return;
 	}
 }
+
+
+#ifdef OPENAL
+
+void Audio::AudioPlayAL()
+{
+	if (alSource == 0){
+		bool ok = CreateALObjects();
+		if (!ok)
+			return;
+	}
+}
+
+void Audio::UpdateOpenAL()
+{
+	if (audioDriver == AudioDriver::OpenAL)
+	{
+		// If ending, just wait until the al State reaches STOPPED.
+		if (state == AudioState::ENDING)
+		{
+			ALint alSourceState = 0;
+			alGetSourcei(alSource, AL_SOURCE_STATE, &alSourceState);
+			switch(alSourceState){
+				case AL_INITIAL: 
+				case AL_PLAYING: 
+					return;
+				case AL_PAUSED:
+				case AL_STOPPED:
+				{
+					state = AudioState::ENDED;
+					playbackEnded = true;
+					return;
+				}
+			}
+		}
+
+		// Check if playing?
+		if (state != AudioState::PLAYING)
+			return;
+
+		// Check if first buffering is done yet.
+		if (!firstBufferDone)
+		{
+			for (int i = 0; i < audioBuffers.Size(); ++i)
+			{
+				AudioBuffer * audioBuffer = audioBuffers[i];
+				BufferData(audioStream, audioBuffer);
+				if (audioBuffer->buffered)
+				{
+					// Queue it.
+					QueueBuffer(audioBuffer);
+	//				alSourceQueueBuffers(alSource, 1, &audioBuffer->alBuffer);
+				}
+			}
+			firstBufferDone = true;
+			// Play it!
+			alSourcePlay(alSource);
+			return;
+		}
+
+		// Update time.
+		playbackTime;
+		float currentBufferTime;
+		alGetSourcef(alSource, AL_SEC_OFFSET, &currentBufferTime);
+		static float maxBufferTime = 0;
+		if (maxBufferTime < currentBufferTime)
+			maxBufferTime = currentBufferTime;
+		playbackTime = buffersPassed * bufferDuration + currentBufferTime;
+		
+	//	playbackTime = audioStream->AudioTime() + currentBufferTime;
+	//	playbackTime = totalDurationBuffered;
+
+		ALint processed = 0, queued = 0;
+		bool success = true;
+
+		ALint alSourceState = 0;
+		alGetSourcei(alSource, AL_SOURCE_STATE, &alSourceState);
+		switch(alSourceState){
+			case AL_INITIAL: break;
+			case AL_PLAYING: break;
+			case AL_PAUSED:
+				/// Set state to paused?
+				state = AudioState::PAUSED;
+				return;
+			case AL_STOPPED:
+			{
+				/// It has played decently before, so its at the end now.
+				if (playbackEnded){
+					state = AudioState::ENDED;
+					alSourceStop(alSource);
+					return;
+				}
+
+				// Check playback time
+			//	std::cout<<"\nAudio stopped! Maybe it ran out of data to play back? Playing it again unless stream we depend on has ended!";
+				alSourcePlay(alSource);
+				CheckALError("Audio::Update - alSourcePlay");
+			}
+		}
+
+		/// Set volume
+	//	alSourcef(alSource, AL_GAIN, 1.0f);
+
+		/// Check queued buffers
+		alGetSourcei(alSource, AL_BUFFERS_QUEUED, &queued);
+		CheckALError("Error getting source statistics for alSource: " + String::ToString((int)alSource)+ " and queued: "+String::ToString(queued));
+		/// Check processed buffers.
+		alGetSourcei(alSource, AL_BUFFERS_PROCESSED, &processed);
+		CheckALError("Error getting source statistics for alSource: " + String::ToString((int)alSource)+ " and processed: "+String::ToString(processed));
+	//	assert(queuedBuffers.Size() >= processed + queued);
+			
+		/// For each processed buffer, unqueue it
+		while(processed)
+		{
+			assert(queuedBuffers.Size());
+			// Fetch the index 0 buffer, should be the one.
+			AudioBuffer * buf = queuedBuffers[0];
+			UnqueueBuffer(buf);
+			/*
+			ALuint alBuffer;
+			/// Check if buffer is still queued?
+	//		alGetBufferi(alBuffer, AL_BUFFER_
+
+			alSourceUnqueueBuffers(alSource, 1, &alBuffer);
+		//	std::cout<<"\nBuffer unqueued: "<<alBuffer;
+			CheckALError("Error Unquequeing bufferrs");
+			for (int i = 0; i < this->queuedBuffers.Size(); ++i){
+				AudioBuffer * queuedBuffer = queuedBuffers[i];
+				if (alBuffer == queuedBuffer->alBuffer){
+					// Unqueue it
+					queuedBuffers.Remove(queuedBuffer);
+					queuedBuffer->buffered = false;
+				}
+			}*/
+			--processed;
+			/// Increment known buffers passed so we know how far we have played the track.
+			buffersPassed++;
+		}
+		/// For each unqueued buffer, stream more data and queue it.
+		List<AudioBuffer*> unqueuedBuffers = audioBuffers - queuedBuffers;
+		for (int i = 0; i < unqueuedBuffers.Size(); ++i)
+		{
+			AudioBuffer * audioBuffer = unqueuedBuffers[i];
+			BufferData(audioStream, audioBuffer);
+
+			// Don't queue the buffer if streaming failed, since it's old data, yo.
+			if (audioBuffer->buffered)
+			{
+				QueueBuffer(audioBuffer);
+			}
+		}
+	}
+#endif
+}
+
+/*
+void Audio::BufferWCAOld()
+{
+	WMMDevice * device = WMMDevice::MainOutput();
+	/// 1 mb?
+#define BUF_SIZE (1024 * 64)
+	int bytesToBuffer = device->BytesToBuffer();
+	int samplesToBuffer = device->SamplesToBuffer();
+	int shortsToBuffer = samplesToBuffer;
+	int shortsToBufferInChars = shortsToBuffer * 2;
+	uchar * buf = new uchar[shortsToBufferInChars];
+	int bytesBuffered = audioStream->BufferAudio((char*)buf, shortsToBufferInChars, this->repeat);
+	int samplesBuffered = bytesBuffered / 2;
+	int floatsToBuffer = samplesBuffered;
+	int floatsToBufferInChars = floatsToBuffer * 4;
+#define USE_MIXER
+#ifdef USE_MIXER
+	/// o.o test..
+	mixer->BufferPCMShort(this, (short*)buf, samplesBuffered, audioStream->AudioChannels(), absoluteVolume);
+#else
+	uchar * floatBuf = new uchar[floatsToBufferInChars];
+	// Set 0 so we avoid some noise?
+	memset(floatBuf, 0, floatsToBufferInChars);
+	int floatsProcessed = 0;
+	float * floatP = (float*) floatBuf;
+	// Each 16 bit sample -> 32 bit floating point sample.
+	for (int i = 0; i < bytesBuffered - 1; i += 2)
+	{
+		// Made it positive.
+		int sample1 = (uchar)buf[i];
+		int sample2 = (uchar)buf[i+1];
+		int sample =  sample1 | (sample2 << 8);
+		// Remove sample value based on given volume?
+//			sample -= 65536 * (1 - absoluteVolume);
+		// Clamp to minimum
+//			if (sample < -32767)
+//				sample = -32767;
+		// Make it centered on 0 again.
+	//	sample -= 32767;
+		float f;
+		/// 0 to 32767 is the same, over that and we go negative. -> simulate going from int to short.
+		int overHalf = (sample & (1 << 15)) ? 1 : 0;
+		int iSample = (sample % 32768) - 32768 * overHalf;
+		short shortSample = sample;
+		f = ((float) iSample) / (float) 32768;
+		if( f > 1) 
+			f = 1;
+		if( f < -1 ) 
+			f = -1;
+		// Multiply by volume
+		f *= absoluteVolume;
+		floatP[floatsProcessed] = f;
+		if (debug == -17)
+			std::cout<<"\n"<<floatP[floatsProcessed]<<" sample: "<<sample<<" sample1/2: "<<sample1<<"/"<<sample2;
+		++floatsProcessed;
+//		++floatsProcessed;
+	}
+	if (debug == -18)
+		std::cout<<"\nBuffering: "<<bytesBuffered;
+	int floatBytesToBuffer = floatsProcessed * 4;
+	device->BufferData((char*)floatBuf, floatsToBufferInChars);
+	delete[] floatBuf;
+#endif
+	delete[] buf;
+}
+*/

@@ -26,6 +26,7 @@
 #endif
 //#include <fmod.hpp>
 
+int64 audioNowMs = 0;
 AudioManager * AudioManager::audioManager = NULL;
 Mutex audioMessageQueueMutex;
 int audioDriver;
@@ -250,6 +251,19 @@ void AudioManager::StopAllOfType(char type)
 	}
 }
 
+void AudioManager::FadeOutAllOfType(char type, float seconds)
+{
+	Audio * audio;
+	for (int i = 0; i < audioList.Size(); ++i)
+	{
+		audio = audioList[i];
+		if (audio->type == type && audio->type)
+		{
+			audio->FadeOut(seconds);
+		}
+	}
+}
+
 void AudioManager::ToggleMute()
 {
 	this->mute = !mute;
@@ -312,7 +326,7 @@ Audio * AudioManager::PlayFromSource(char type, String fromSource, bool repeat /
 		delete audio;
 		return NULL;
 	}
-	audio->UpdateVolume(masterVolume);
+//	audio->UpdateVolume(masterVolume);
 	audio->Play();
 	pauseUpdates = false;
 	audioList.Add(audio);
@@ -341,7 +355,7 @@ Audio * AudioManager::Play(char type, String name, bool repeat, float volume)
 			audio->Play();
 			audio->volume = volume;
 			// Update volume
-			audio->UpdateVolume(masterVolume);
+//			audio->UpdateVolume(masterVolume);
 			return audio;
 		}
 	}
@@ -368,7 +382,7 @@ Audio * AudioManager::Play(char type, String name, bool repeat, float volume)
 			return NULL;	
 		}
 	}
-	audio->UpdateVolume(masterVolume);
+//	audio->UpdateVolume(masterVolume);
 //	assert(audio->audioStream->source > 0);
 	audioList.Add(audio);
 	audio->Play();
@@ -403,7 +417,7 @@ void AudioManager::PlaySFX(String name, float volume /*= 1.f*/)
 	/// Generate audio source if not existing.
 	if (audioDriver == AudioDriver::OpenAL)
 		audio->CreateALObjects();
-	audio->UpdateVolume(masterVolume);
+//	audio->UpdateVolume(masterVolume);
 	audio->deleteOnEnd = true;
 //	assert(audio->audioStream->source > 0);
 	audioList.Add(audio);
@@ -491,6 +505,8 @@ void AudioManager::DisableAudio()
 
 void AudioManager::Update()
 {
+	audioNowMs = Time::Now().Milliseconds();
+
 	if (!initialized)
 	{
 		std::cout<<"\nAudio manager not initialized. Skipping da beat.";
@@ -502,8 +518,6 @@ void AudioManager::Update()
 	lastAudioInfo = "AudioManager::ProcessAudioMessages";
 	ProcessAudioMessages();
 
-	Sleep(100);
-
 	// Then update volumes and buffer stuff.
 	lastAudioInfo = "AudioManager::Update - volumes and buffering";
 	for (int i = 0; i < audioList.Size(); ++i)
@@ -511,7 +525,7 @@ void AudioManager::Update()
 		Audio * audio = audioList[i];
 		if (audio->state != AudioState::PLAYING)
 			continue;
-		audio->UpdateVolume(mute? 0: masterVolume);
+//		audio->UpdateVolume(mute? 0: masterVolume);
 		audio->Update();
 		// See if it ended.
 		if (audio->playbackEnded)
@@ -563,6 +577,7 @@ void AudioManager::StopAndRemoveAll()
 /// Calls update volume for all audio
 void AudioManager::UpdateVolume()
 {
+	/*
 	for (int i = 0; i < audioList.Size(); ++i)
 	{
 		Audio * audio = audioList[i];
@@ -571,6 +586,7 @@ void AudioManager::UpdateVolume()
 		else
 			audio->UpdateVolume(masterVolume);
 	}
+	*/
 }
 
 void AudioManager::QueueMessage(AudioMessage * am)
@@ -633,7 +649,7 @@ PROCESSOR_THREAD_START(AudioManager)
 	while(AudioMan.shouldLive)
 	{	
 		/// Sleep 50 ms each frame?
-		Sleep(50);
+		Sleep(10);
 		AudioMan.Update();
 	}
 audioThreadEnd:
