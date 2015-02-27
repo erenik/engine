@@ -43,7 +43,9 @@ WMMDevice::WMMDevice()
 	audioClient = NULL;
 	renderClient = NULL;
 	pwfx = NULL;
-	bufferFrameCount = REFTIMES_PER_SEC;
+	// Default buffer of 1 second is a bit long, causing volume changes to appear laggy, better let AudioMixer have bigger size.
+	// 50 ms buffer size should provide more than enough leeway (20 updates per second?).
+	bufferFrameCount = REFTIMES_PER_SEC * 0.05; 
 	waveFormat = WaveFormat::BAD_TYPE;
 }
 
@@ -141,7 +143,8 @@ bool WMMDevice::Initialize()
 
 bool WMMDevice::SetupForOutput()
 {
-	REFERENCE_TIME hnsRequestedDuration = REFTIMES_PER_SEC;
+	// Set request duration to what was specified in the constructor.
+	REFERENCE_TIME hnsRequestedDuration = bufferFrameCount;
 	audioClient = NULL;
     DWORD flags = 0;
 
