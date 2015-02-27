@@ -6,6 +6,7 @@
 #include "Globals.h"
 #include "DataTypes.h"
 #include "Windows/WindowsCoreAudio.h"
+#include "AudioManager.h"
 
 extern AudioMixer * mixer = NULL;
 
@@ -52,8 +53,15 @@ void AudioMixer::BufferPCMShort(Audio * audio, short * buffer, int samples, int 
 		abm->pcmQueueIndex = 0;
 		markers.Add(abm);
 	}
-	abm->pcmQueueIndex = 0;
-	memset(pcmQueueF, 0, queueSampleTotal * sizeof(float));
+	/// Check possible samples to buffer.
+	int possibleSamples = queueSampleTotal - abm->pcmQueueIndex;
+	assert(samples < possibleSamples);
+
+	if (debug == -22)
+		PrintQueue("At end of marker position before filling it", abm->pcmQueueIndex - 5, abm->pcmQueueIndex + 10 - 5);
+
+//	abm->pcmQueueIndex = 0;
+//	memset(pcmQueueF, 0, queueSampleTotal * sizeof(float));
 	// For each sample they want to buffer...
 	for (int i = 0; i < samples; ++i)
 	{
@@ -91,31 +99,17 @@ void AudioMixer::BufferPCMShort(Audio * audio, short * buffer, int samples, int 
 //		++floatsProcessed;
 	}
 	/// Increase index?
-
-	/// Buffer it?
-	WMMDevice * device = WMMDevice::MainOutput();
-	//	int bytesToBuffer = device->BytesToBuffer();
-	int samplesLeft = samples;
-	int samplesSent = 0;
-	while(samplesLeft > 0)
-	{
-		int samplesToBuffer = device->SamplesToBuffer();
-		if (samplesToBuffer <= 0)
-		{
-			Sleep(5);
-			continue;
-		}
-		device->BufferData(((char*)pcmQueueF)+ samplesSent * sizeof(float), samples * sizeof(float));
-		samplesLeft -= samplesToBuffer;
-		samplesSent += samplesToBuffer;
-	}
-
+	if (debug == -22)
+		PrintQueue("Start of where we filled data (-5,+5), should have values for all 10", abm->pcmQueueIndex - 5, abm->pcmQueueIndex + 5);
+	abm->pcmQueueIndex += samples;
+	if (debug == -22)
+		PrintQueue("End of marker position after filling it", abm->pcmQueueIndex -5, abm->pcmQueueIndex + 10 - 5);
 }
 
 /// Sends update to driver, moves back data and updates marker locations.
 void AudioMixer::Update()
 {
-
+	SendToDriver(audioDriver);
 }
 
 /// Depends on current marker in buffer.
@@ -132,7 +126,44 @@ int AudioMixer::SamplesToBuffer(Audio * forAudio)
 /// Sends current buffer to audio driver.
 void AudioMixer::SendToDriver(int driverID)
 {
+	if (driverID != AudioDriver::WindowsCoreAudio)
+		return;
+	/// Buffer it?
+	WMMDevice * device = WMMDevice::MainOutput();
+	//	int bytesToBuffer = device->BytesToBuffer();
+	/// Always send a constant amount of samples, based on the mixer's buffer-size?
+	int defaultSamplesToSend = queueSampleTotal * 0.5;
+	/// Check availability in driver.
+	int driverSamplesToBuffer = device->SamplesToBuffer();
+	// Use the lower value.
+	int samplesToSend = min(defaultSamplesToSend, driverSamplesToBuffer);
+	if (samplesToSend <= 0)
+	{
+		Sleep(5);
+		return;
+	}
+	int bytesBuffered = device->BufferData((char*)pcmQueueF, samplesToSend * sizeof(float));
+	int bytesPerSample = sizeof(float);
+	int samplesBuffered = bytesBuffered / bytesPerSample;
 
+	/// Move back existing data.
+	int samplesRemainingInQueue = queueSampleTotal - samplesBuffered;
+	if (debug == -22)
+		PrintQueue("End of samples buffered, this part should be moved back to 0", samplesBuffered, samplesBuffered + 10);
+	memmove(pcmQueueF, pcmQueueF + samplesBuffered, samplesRemainingInQueue * bytesPerSample);
+	if (debug == -22)
+		PrintQueue("From 0, post movement, should be the same as the above", 0, 10);
+	// Nullify the newly added end part of the buffer
+	memset(pcmQueueF + samplesRemainingInQueue, 0, samplesBuffered * bytesPerSample);
+	if (debug == -22)
+		PrintQueue("From after samplesBuffered, should be 0s", samplesBuffered, samplesBuffered + 10);
+
+	// Move back all markers too.
+	for (int i = 0; i < markers.Size(); ++i)
+	{
+		ABM * abm = markers[i];
+		abm->pcmQueueIndex -= samplesBuffered;
+	}
 }
 
 
@@ -147,4 +178,14 @@ AudioBufferMarker * AudioMixer::GetMarker(Audio * forAudio)
 			return abm;
 	}
 	return NULL;
+}
+
+
+void AudioMixer::PrintQueue(String text, int fromIndex, int toIndex)
+{
+	std::cout<<"\n"<<text;
+	for (int i = fromIndex; i < toIndex; ++i)
+	{
+		std::cout<<"\nAQ "<<i<<": "<<pcmQueueF[i];
+	}
 }

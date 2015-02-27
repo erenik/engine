@@ -55,6 +55,9 @@ public:
 	int BufferData(char * data, int maxData);
 
 private:
+
+	int BytesPerFrame();
+
 	// ID and handle.
 	String name;
 	IMMDevice * device;

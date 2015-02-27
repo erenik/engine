@@ -243,7 +243,7 @@ void Audio::Play()
 		case AudioType::BGS: 
 		{
 			// Pause all others.
-			AudioMan.StopAllOfType(this->type);
+	//		AudioMan.StopAllOfType(this->type);
 			break;
 		}
 		default:

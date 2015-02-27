@@ -526,6 +526,8 @@ void AudioManager::Update()
 			}
 		}
 	}
+	/// Send mixed audio to driver, if custom mixer enabled/driver requiring it
+	mixer->Update();
 }
 
 

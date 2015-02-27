@@ -6,6 +6,7 @@
 #define AUDIO_MIXER_H
 
 #include "List/List.h"
+#include "String/AEString.h"
 
 class Audio;
 
@@ -14,11 +15,12 @@ class Audio;
 struct AudioBufferMarker 
 {
 	Audio * audio;
-	int pcmQueueIndex; // index in the queue it was last buffered to.
+	int pcmQueueIndex; // index in the queue it was last buffered to in samples
 };
 
 class AudioMixer 
 {
+	friend class AudioManager;
 	AudioMixer();
 	~AudioMixer();
 public:
@@ -41,6 +43,7 @@ private:
 	void SendToDriver(int driverID);
 	AudioBufferMarker * GetMarker(Audio * forAudio);
 
+	void PrintQueue(String text, int fromIndex, int toIndex);
 	/// 
 //	char * pcmQueueC;
 	

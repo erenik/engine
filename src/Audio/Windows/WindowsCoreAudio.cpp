@@ -273,7 +273,8 @@ int WMMDevice::BufferData(char * data, int maxBytes)
 		assert(hr == S_OK);
 		CANCEL_ON_ERROR;
 		playing = true;
-		return true;
+//		int bytesWritten = numFramesWritten * BytesPerFrame();
+		return bytesToBuffer;
 	}
 	// See how much buffer space is available.
     hr = audioClient->GetCurrentPadding(&numFramesPadding);
@@ -333,8 +334,15 @@ int WMMDevice::BufferData(char * data, int maxBytes)
 	hr = renderClient->ReleaseBuffer(numFramesWritten, 0);
 	assert(hr == S_OK);
 	CANCEL_ON_ERROR;
-	return true;
+	int bytesWritten = numFramesWritten * BytesPerFrame();
+	return bytesWritten;
 }
+
+int WMMDevice::BytesPerFrame()
+{
+	return this->pwfx->nChannels * this->pwfx->wBitsPerSample / 8;
+}
+
 
 
 bool WMMDevice::Deallocate()
