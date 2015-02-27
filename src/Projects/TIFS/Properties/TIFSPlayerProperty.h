@@ -6,6 +6,7 @@
 #define TIFS_PLAYER_PROPERTY_H
 
 #include "Entity/Properties/FirstPersonPlayerProperty.h"
+class Audio;
 
 class ToolParticleEmitter;
 
@@ -37,6 +38,7 @@ public:
 private:
 	/// processing/activation for the tool.
 	void Tool();
+	void StopTool();
 	void Damage(int amount);
 	void UpdateHUDTargetInfo();
 
@@ -51,9 +53,11 @@ private:
 		REDIRECT_FIRE,
 	};
 	int toolMode, previousToolMode;
+	bool toolActive;
 	float repairSpeed;
 	Vector3f targetPositionSmoothed;
 
+	Audio * toolSfx;
 	ToolParticleEmitter * toolParticleEmitter;
 
 	TIFSDroneProperty * targetDrone;

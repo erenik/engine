@@ -15,7 +15,9 @@
 #include <cmath>
 
 #include "OpenAL.h"
+#include "PCMStream.h"
 
+#include "Entity/Entity.h"
 #include "File/LogFile.h"
 
 //#include "../globals.h"
@@ -49,9 +51,18 @@ Audio::Audio()
 
 void Audio::Nullify()
 {
+	bytesBufferedTotal = 0;
+	registeredForRendering = false;
+#define BUF_SIZE (1024 * 64)
+	entity = NULL;
+	positional = false;
+	bufSize = BUF_SIZE;
+	buf = new uchar[bufSize];
 	fading = false;
+	pauseOnMuted = true;
 	volume = 1.0f;
     loaded = false;
+	repeat = false;
 	type = AudioType::NONE;
 	state = AudioState::NOT_INITIALIZED;
 	audioStream = NULL;
@@ -116,6 +127,8 @@ bool Audio::CreateALObjects()
 /// Destructor that deletes AL resources as well as other thingies!
 Audio::~Audio()
 {
+	delete[] buf;
+
 #ifdef OPENAL
 	int error = 0;
 	if (audioDriver == AudioDriver::OpenAL)
@@ -175,6 +188,13 @@ Audio::Audio(char i_type, String source, bool i_repeat, float audioVolume)
 	volume = audioVolume;
 }
 
+void Audio::SetPosition(ConstVec3fr iposition)
+{
+	positional = true;
+	this->position = iposition;
+}
+
+
 bool Audio::Load()
 {
     assert(!loaded);
@@ -183,8 +203,15 @@ bool Audio::Load()
 
 	if (!FileExists(path))
 	{
-		std::cout<<"\nERROR: File does not exist. Returning.";    
+		LogAudio("Audio::Load: File \'"+path+"\' does not exist. Returning.", ERROR);    
 		return false;
+	}
+	
+	if (PCMStream::Exists(path))
+	{
+		audioStream = PCMStream::New(path);
+		loaded = true;
+		return true;
 	}
 
     // Stream
@@ -224,9 +251,14 @@ void Audio::Play()
 {
 	if (!audioEnabled)
 		return;
-
+	// "Load", or create stream if needed.
+	if (!loaded)
+	{
+		if (!Load())
+			return;
+	}
 	// Default volume.
-	volume = 1.f;
+//	volume = 1.f;
 
 	/// Generate buffers, sources, etc. if not already done so!
 	if (audioDriver == AudioDriver::OpenAL)
@@ -353,6 +385,15 @@ void Audio::FadeOut(float seconds)
 	fading = true;
 }
 
+void Audio::FadeTo(float toVolume, float seconds)
+{
+	fadeStartMs = audioNowMs;
+	fadeEndMs = audioNowMs + seconds * 1000;
+	fadeStartVolume = volume;
+	fadeEndVolume = toVolume;
+	fading = true;
+}	
+
 void Audio::QueueBuffer(AudioBuffer * buf)
 {
 	assert(!buf->attached);
@@ -376,26 +417,46 @@ void Audio::Update()
 {
 	if (!audioEnabled)
 		return;
+	UpdatePosition();
 	UpdateVolume();
 	UpdateOpenAL();
 	// Windows core driver?
 	if (audioDriver == AudioDriver::WindowsCoreAudio)
 	{
-		/// 1 mb?
-	#define BUF_SIZE (1024 * 64)
+		/// Calc requested buffer sizes
 		int samplesToBuffer = mixer->SamplesToBuffer(this);
 		int shortsToBuffer = samplesToBuffer;
 		int shortsToBufferInChars = shortsToBuffer * 2;
-		uchar * buf = new uchar[shortsToBufferInChars];
-		int bytesBuffered = audioStream->BufferAudio((char*)buf, shortsToBufferInChars, this->repeat);
+		int bytesToBuffer = min(bufSize, shortsToBufferInChars);	// Clamp it
+
+		// Buffer from stream.
+		int bytesBuffered = audioStream->BufferAudio((char*)buf, bytesToBuffer, this->repeat);
+		this->bytesBufferedTotal += bytesBuffered;
+		if (bytesBuffered <= 0)
+		{
+			// End of stream.
+			if (state == AudioState::PLAYING)
+			{
+				this->state = AudioState::ENDING;
+				std::cout<<"\nStream ending. Bytes buffered: "<<bytesBufferedTotal;
+			}
+			return;
+		}
+
+		/// See how much we actually buffered
 		int samplesBuffered = bytesBuffered / 2;
 		int floatsToBuffer = samplesBuffered;
 		int floatsToBufferInChars = floatsToBuffer * 4;
 		// Send to mixer.
 		mixer->BufferPCMShort(this, (short*)buf, samplesBuffered, audioStream->AudioChannels(), absoluteVolume);
-		delete[] buf;
 	}
     return;
+}
+
+void Audio::BindTo(Entity * bindEntity)
+{
+	this->entity = bindEntity;
+	positional = true;
 }
 
 /// Playback time in milliseconds.
@@ -414,6 +475,17 @@ void Audio::UnqueueBuffers()
 	}
 }
 
+
+void Audio::UpdatePosition()
+{
+	if (!positional)
+		return;
+	if (entity)
+	{
+		position = entity->worldPosition;
+	}
+}
+
 /// Updates playback volume.
 void Audio::UpdateVolume()
 {
@@ -427,7 +499,8 @@ void Audio::UpdateVolume()
 			fading = false;
 			volume = fadeEndVolume;
 			// Stop us?
-			Pause();
+			if (volume <= 0 && pauseOnMuted)
+				Pause();
 		}
 		else if (audioNowMs > fadeStartMs)
 		{
@@ -437,9 +510,16 @@ void Audio::UpdateVolume()
 			volume = ratio * fadeEndVolume + (1 - ratio) * fadeStartVolume;
 		}
 	}
+	float distanceCompensatedVolume = volume;
+	if (positional)
+	{
+		Vector3f toListener = AudioMan.ListenerPosition() - position;
+		distanceCompensatedVolume *= 1 / toListener.LengthSquared();
+	}
 
 	/// Update absolute volume.
-	absoluteVolume = this->volume;
+	absoluteVolume = distanceCompensatedVolume;
+
 //	std::cout<<"\nUpdating volume: "<<absoluteVolume<<" for source "<<alSource;
 	/// Set volume in AL.
 //	std::cout<<"\nVolume updated: "<<absoluteVolume;

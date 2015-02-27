@@ -13,7 +13,7 @@ extern AudioMixer * mixer = NULL;
 AudioMixer::AudioMixer()
 {
 	// Default? 100k samples
-	queueSampleTotal = 100000;
+	queueSampleTotal = 1024 * 16;
 	pcmQueueF = new float[queueSampleTotal];
 	
 	/// Initialize buffah.
@@ -55,7 +55,7 @@ void AudioMixer::BufferPCMShort(Audio * audio, short * buffer, int samples, int 
 	}
 	/// Check possible samples to buffer.
 	int possibleSamples = queueSampleTotal - abm->pcmQueueIndex;
-	assert(samples < possibleSamples);
+	assert(samples <= possibleSamples);
 
 	if (debug == -22)
 		PrintQueue("At end of marker position before filling it", abm->pcmQueueIndex - 5, abm->pcmQueueIndex + 10 - 5);
@@ -130,6 +130,8 @@ void AudioMixer::SendToDriver(int driverID)
 		return;
 	/// Buffer it?
 	WMMDevice * device = WMMDevice::MainOutput();
+	if (!device)
+		return;
 	//	int bytesToBuffer = device->BytesToBuffer();
 	/// Always send a constant amount of samples, based on the mixer's buffer-size?
 	int defaultSamplesToSend = queueSampleTotal * 0.1;
@@ -168,6 +170,12 @@ void AudioMixer::SendToDriver(int driverID)
 	{
 		ABM * abm = markers[i];
 		abm->pcmQueueIndex -= samplesBuffered;
+		if (abm->pcmQueueIndex < 0)
+		{
+			markers.RemoveIndex(i);
+			--i;
+			delete abm;
+		}
 	}
 }
 

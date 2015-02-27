@@ -8,6 +8,7 @@
 
 #include "OpenAL.h"
 
+#include "Graphics/Camera/Camera.h"
 #include "AudioMixer.h"
 #include "Audio.h"
 #include "Mutex/Mutex.h"
@@ -40,6 +41,7 @@ String lastAudioInfo;
 AudioManager::AudioManager()
 {
 	// Set the global audio to this upon finishing construction.
+	listener = NULL;
 	initialized = false;
 	pauseUpdates = false;
 	audioEnabled = true;
@@ -503,6 +505,15 @@ void AudioManager::DisableAudio()
 	}
 }
 
+/// o.o
+void AudioManager::RegisterAudio(Audio * audio)
+{
+	assert(audio->registeredForRendering == false);
+	audioList.AddItem(audio);
+	audio->registeredForRendering = true;
+}
+
+
 void AudioManager::Update()
 {
 	audioNowMs = Time::Now().Milliseconds();
@@ -518,31 +529,54 @@ void AudioManager::Update()
 	lastAudioInfo = "AudioManager::ProcessAudioMessages";
 	ProcessAudioMessages();
 
+	// Update listener position
+	if (listener)
+		listenerPosition = listener->Position();
+
 	// Then update volumes and buffer stuff.
 	lastAudioInfo = "AudioManager::Update - volumes and buffering";
 	for (int i = 0; i < audioList.Size(); ++i)
 	{
 		Audio * audio = audioList[i];
-		if (audio->state != AudioState::PLAYING)
-			continue;
 //		audio->UpdateVolume(mute? 0: masterVolume);
-		audio->Update();
 		// See if it ended.
-		if (audio->playbackEnded)
+		switch(audio->state)
 		{
-			// See if it should be deleted.
-			if (audio->deleteOnEnd)
+			case AudioState::ENDED:
 			{
-				audioList.Remove(audio);
-				delete audio;
-				--i;
-				continue;
+				// Remove it?
+				if (audio->deleteOnEnd)
+				{
+					audioList.Remove(audio);
+					delete audio;
+					--i;
+					continue;
+				}
+				break;
 			}
+			case AudioState::ENDING:
+			{
+				// Flag as ended after the audio marker in the mixer has been removed.
+				ABM * abm = mixer->GetMarker(audio);
+				if (!abm || abm->pcmQueueIndex <= 0)
+					audio->state = AudioState::ENDED;
+				break;
+			}
+			case AudioState::READY:
+			case AudioState::PAUSED:
+				continue;
 		}
+		audio->Update();
 	}
 	/// Send mixed audio to driver, if custom mixer enabled/driver requiring it
 	mixer->Update();
 }
+
+Vector3f AudioManager::ListenerPosition()
+{
+	return listenerPosition;
+}
+
 
 
 /// Sets master volume, from 0.0 to 1.0

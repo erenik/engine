@@ -80,11 +80,13 @@ Action * Action::FromEnum(int id)
 }
 
 /// Default action based on a single start trigger string.
-Action * Action::FromString(String str)
+Action * Action::FromString(String str, int flags)
 {
 	Action * action = new Action();
 	action->type = QUEUE_STRING_MESSAGE;
 	action->startAction = str;
+	if (flags & ACTIVATE_ON_REPEAT)
+		action->activateOnRepeat = true;
 	return action;
 }
 

@@ -14,6 +14,7 @@
 
 // For memcpy and stuff
 #include <cstring>
+#include "File/LogFile.h"
 
 /// Theora required maybe?
 #include <sys/timeb.h>
@@ -104,8 +105,7 @@ static int dump_comments(th_comment *_tc){
 /// Attempts to open target file. Returns false upon failure.
 bool OggStream::Open(String path)
 {
-	lastAudioInfo = "OggStream::Open: "+path;
-	std::cout<<lastAudioInfo;
+	LogAudio("OggStream::Open: "+path, INFO);
 
 	// Save path we're streaming from.
 	this->path = path;

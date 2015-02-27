@@ -32,6 +32,7 @@ float TIFSPlayerProperty::defaultJumpSpeed = 5.f;
 TIFSPlayerProperty::TIFSPlayerProperty(Entity * owner)
 : FirstPersonPlayerProperty("TIFSPlayerProperty", TIFSProperty::PLAYER, owner)
 {
+	toolSfx = NULL;
 	toolParticleEmitter = NULL;
 	toolMode = 0;
 
@@ -137,9 +138,9 @@ void TIFSPlayerProperty::Process(int timeInMs)
 	{
 		Tool();
 	}
-	else if (toolParticleEmitter)
+	else 
 	{
-		toolParticleEmitter->enabled = false;
+		StopTool();
 	}
 	// Clamp value before display?
 	ClampFloat(capacitorValue, 0, (float)maxCapacitorValue);
@@ -172,9 +173,9 @@ void TIFSPlayerProperty::ProcessMessage(Message * message)
 
 void TPP::Tool()
 {
-#define RETURN_DISABLE_TOOL {if (toolParticleEmitter) \
-	toolParticleEmitter->enabled = false; \
-	QueueGraphics(new GMSetUIs("TargetRange", GMUI::TEXT, "Outside allowed range")); \
+#define RETURN_DISABLE_TOOL {\
+	QueueGraphics(new GMSetUIs("TargetRange", GMUI::TEXT, "Outside allowed range"));\
+	StopTool();\
 	return;}
 
 	// Set position.
@@ -231,6 +232,22 @@ void TPP::Tool()
 			}
 			break;
 	}
+	// Audio o.o
+	if (!toolSfx)
+	{
+		toolSfx = new Audio("sfx/2013-04-17 URATT_2015.ogg");
+		toolSfx->Loop(true);
+		toolSfx->BindTo(owner);
+		// Register for rendering.
+		QueueAudio(new AMRegister(toolSfx));
+	}
+	// Set volumes n stuff?
+	if (!toolActive)
+	{
+		toolActive = true;
+		QueueAudio(new AMPlay(toolSfx));
+		QueueAudio(new AMFade(toolSfx, 20.f, 0.1f));
+	}
 
 	QueueGraphics(new GMSetUIs("TargetRange", GMUI::TEXT, String(toDestLen, 1)+" meters"));
 
@@ -239,6 +256,18 @@ void TPP::Tool()
 	// Set enabled after all parameters and colors have been set!
 	toolParticleEmitter->enabled = true;
 }
+
+void TIFSPlayerProperty::StopTool()
+{
+	if (!toolActive)
+		return;
+	toolActive = false;
+	if (toolParticleEmitter)
+		toolParticleEmitter->enabled = false;
+	if (toolSfx)
+		QueueAudio(new AMFade(toolSfx, 0.f, 1.f));
+}
+
 
 /// 0 - repair, 1 - activate, 2 - targetting 
 void TIFSPlayerProperty::SetToolMode(int mode)

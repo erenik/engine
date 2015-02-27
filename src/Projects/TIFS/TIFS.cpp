@@ -240,8 +240,8 @@ void TIFS::ProcessMapState()
 	if (mapState & SPAWNING_FLYING_DRONES && (mapTime - lastFlyingDroneSpawn).Seconds() > flyingDroneSpawnIntervalS)
 	{
 		lastFlyingDroneSpawn = mapTime;
-		assert(false);
-		SpawnFlyingDrones(flyingDronesPerSpawn);
+//		assert(false);
+//		SpawnFlyingDrones(flyingDronesPerSpawn);
 	}
 }
 
@@ -433,9 +433,15 @@ void TIFS::ProcessMessage(Message * message)
 			{
 				String which = msg.Tokenize("()")[1];
 				if (which == "1stPerson")
+				{
 					GraphicsQueue.Add(new GMSetCamera(firstPersonCamera));
+					QueueAudio(new AMSet(AT_LISTENER, firstPersonCamera));
+				}
 				if (which == "3rdPerson")
+				{
 					GraphicsQueue.Add(new GMSetCamera(thirdPersonCamera));
+					QueueAudio(new AMSet(AT_LISTENER, thirdPersonCamera));
+				}
 			}
 			else if (msg == "ToggleMainMenu")
 			{
@@ -523,8 +529,8 @@ void TIFS::CreateDefaultBindings()
 	BIND(Action::FromString("ToggleMute"), KEY::M);
 	BIND(Action::FromString("NextMinute"), KEY::N);
 	BIND(Action::FromString("TestFlyingDrone"), List<int>(KEY::T, KEY::F));
-	BIND(Action::FromString("AdjustMasterVolume(0.05)"), List<int>(KEY::CTRL, KEY::V, KEY::PLUS));
-	BIND(Action::FromString("AdjustMasterVolume(-0.05)"), List<int>(KEY::CTRL, KEY::V, KEY::MINUS));
+	BIND(Action::FromString("AdjustMasterVolume(0.05)", ACTIVATE_ON_REPEAT), List<int>(KEY::CTRL, KEY::V, KEY::PLUS));
+	BIND(Action::FromString("AdjustMasterVolume(-0.05)", ACTIVATE_ON_REPEAT), List<int>(KEY::CTRL, KEY::V, KEY::MINUS));
 }
 
 

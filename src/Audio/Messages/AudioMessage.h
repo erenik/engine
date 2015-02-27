@@ -7,13 +7,17 @@
 #define AUDIO_MESSAGE_H
 
 #include "String/AEString.h"
+#include "MathLib/Vector3f.h"
 
 enum audioMessageTypes
 {
 	AM_SHUTDOWN,
+	AM_REGISTER,
 	AM_DISABLE_AUDIO,
 	AM_SET, // general setter.
+	AM_SET_AUDIO, // audio setter
 	AM_PLAY,
+	AM_FADE,
 	AM_QUEUE,
 	AM_PAUSE,
 	AM_STOP,
@@ -25,9 +29,13 @@ enum audioMessageTypes
 enum audioTargets 
 {
 	AT_MASTER_VOLUME,
+	AT_LISTENER, // For setting the camera or entity which si the listener for calculating positional audio volumes.
 	AT_CATEGORY_VOLUME,
 	AT_VOLUME,
 };
+
+class Audio;
+class Camera;
 
 class AudioMessage 
 {
@@ -45,21 +53,59 @@ class AMSet : public AudioMessage
 public:
 	/// E.g. MASTER_VOLUME, and the volume.
 	AMSet(int target, float fValue);
+	AMSet(int target, Camera * listener);
 	/// E.g. setting categpry volumes, specify CATEGORY, the id of the category (e.g. AudioType::BGM), and then the volume.
 	AMSet(int target, int id, float fValue);
 	virtual void Process();
 private:
 	int target;
+	Camera * listener;
 	int id;
 	float fValue;
+};
+
+class AMSetAudio : public AudioMessage 
+{
+public:
+	AMSetAudio(Audio * audio, int target, float fValue);
+	virtual void Process();
+private:
+	Audio * audio;
+	int target;
+	float fValue;
+};
+
+class AMFade : public AudioMessage 
+{
+public:
+	AMFade(Audio * audio, float targetVolume, float fadeTime);
+	virtual void Process();
+private:
+	Audio * audio;
+	float volume;
+	float fadeTime;
+};
+
+/// Registers and audio to be rendered, but does not actually play it yet.
+class AMRegister : public AudioMessage 
+{
+public:
+	AMRegister(Audio * audio);
+	virtual void Process();
+protected:
+	Audio * audio;
 };
 
 class AMPlay : public AudioMessage 
 {
 public: 
+	AMPlay(Audio * existingAudio);
 	AMPlay(int audioType, String nameOrSource, float volume);
 	virtual void Process();
 protected:
+	bool positional;
+	Vector3f position;
+	Audio * audio;
 	int audioType;
 	String nameOrSource;
 	float volume;
@@ -68,7 +114,10 @@ protected:
 class AMPlaySFX : public AMPlay
 {
 public:
+	/// Non positional
 	AMPlaySFX(String nameOrSource, float volume = 1.f);
+	// Positional
+	AMPlaySFX(String nameOrSource, float volume, ConstVec3fr position);
 private:
 };
 
@@ -77,6 +126,15 @@ class AMPlayBGM : public AMPlay
 public:
 	AMPlayBGM(String nameOrSource, float volume = 1.f);
 private:
+};
+
+class AMPause : public AudioMessage 
+{
+public:
+	AMPause(Audio * audio);
+	virtual void Process();
+private:
+	Audio * audio;
 };
 
 class AMStop : public AudioMessage 

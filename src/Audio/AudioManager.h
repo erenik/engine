@@ -11,6 +11,7 @@
 #include <Util.h>
 #include "AudioTypes.h"
 #include "Messages/AudioMessage.h"
+#include "MathLib/Vector3f.h"
 
 /// Macro for accessing the audio manager singleton!
 #define AudioMan (*AudioManager::Instance())
@@ -21,6 +22,7 @@ typedef struct ALCcontext_struct ALCcontext;
 
 extern String lastAudioInfo;
 
+class Camera;
 class Message;
 class Audio;
 class MultimediaStream;
@@ -65,7 +67,6 @@ public:
 
 	/// If true, you may queue messages.
 	static bool AudioProcessingActive();
-
 	static void SetDefaultAudioDriver(String fromString);
 
 	/** Called once in the initializer thread after allocation but before the engine gets started. 
@@ -87,8 +88,12 @@ public:
 	void QueueMessage(AudioMessage* message);
 	void QueueMessages(const List<AudioMessage*> & messageList);
 
+	/// o.o
+	void RegisterAudio(Audio * audio);
+
 	/// Updates the streams and volumes, also processes any queued messages ^^
 	void Update();
+	Vector3f ListenerPosition();
 	
 	/// Getters
 	float MasterVolume(){ return masterVolume; };
@@ -162,6 +167,9 @@ private:
 	/// Volumes for the various audio categories (BGM, SFX, etc.)
 	List<float> categoryVolumes;
 
+	/// listener o.o
+	Camera * listener;
+	Vector3f listenerPosition;
 	/// Value applied to all audio.
 	float masterVolume;
 	// Default false.

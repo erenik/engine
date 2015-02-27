@@ -69,7 +69,12 @@ enum {
 	CLOSE_WINDOW,	// When pressing CTRL+W, like when closing tabs. Closes external windows or queries shutdown.
 	INTERPRET_CONSOLE_COMMAND,
 
+};
 
+// Settings.
+enum 
+{
+	ACTIVATE_ON_REPEAT = 1,
 };
 
 class Action 
@@ -89,7 +94,7 @@ public:
 	/// See enum at the top of Action.h. Pre-programmed engine functionality, mostly.
 	static Action * FromEnum(int id);
 	/// Default action based on a single start trigger string.
-	static Action * FromString(String str);
+	static Action * FromString(String str, int flags = 0);
 
 	/// Called when the action is to be triggered.
 	virtual void TriggerStart();

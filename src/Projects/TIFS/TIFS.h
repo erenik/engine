@@ -20,6 +20,9 @@
 #include "Model/ModelManager.h"
 #include "Model/Model.h"
 
+#include "Audio/Audio.h"
+#include "Audio/AudioManager.h"
+
 #include "TextureManager.h"
 #include "Input/Action.h"
 #include "Graphics/GraphicsProperty.h"

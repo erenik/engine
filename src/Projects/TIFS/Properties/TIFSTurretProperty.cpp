@@ -156,6 +156,16 @@ void TIFSTurretProperty::Activate(float capacitorTransfer)
 	{
 		active = true;
 		++tifs->turretsActive;
+		Audio * audio = new Audio("sfx/2015-02-27_TurretActivated.ogg");
+		audio->SetPosition(position);
+		audio->volume = 35.f;
+		audio->deleteOnEnd = true;
+		QueueAudio(new AMPlay(audio));
+		
+		audio = new Audio("sfx/2015-02-27_TurretActivated_Message.ogg");
+		audio->volume = 2.f;
+		audio->deleteOnEnd = true;
+		QueueAudio(new AMPlay(audio));
 	}
 	lastActivateTimeMs = timeNowMs;
 	ClampCapacitorValue();
@@ -259,6 +269,14 @@ bool TIFSTurretProperty::Reload(int timeInMs)
 
 void TIFSTurretProperty::Shoot()
 {
+	// Play sfx
+	Audio * shot = new Audio("sfx/2015-02-27_TurretFire.ogg");
+	shot->SetPosition(position);
+	shot->volume = 125.f;
+	shot->deleteOnEnd = true;
+//	shot->Loop(true);
+	QueueAudio(new AMPlay(shot));
+
 	shootCooldown = weaponCooldownMs;
 	if (!springsCreated)
 	{

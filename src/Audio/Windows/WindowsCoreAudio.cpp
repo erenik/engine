@@ -362,7 +362,9 @@ bool WMMDevice::Deallocate()
 
 WMMDevice * WMMDevice::MainOutput()
 {
-	return devices[0];
+	if (devices.Size())
+		return devices[0];
+	return NULL;
 }
 
 
