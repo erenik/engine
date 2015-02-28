@@ -135,6 +135,9 @@ public:
 	/// Relative to parent window.
 	void SetRequestedRelativePosition(Vector2i pos);
 
+	// Render settings
+	void RenderGrid(bool renderIt);
+
 	int MemLeakTest();
 	bool CreateGLContext();
 	bool MakeGLContextCurrent();

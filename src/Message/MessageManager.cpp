@@ -381,6 +381,15 @@ void MessageManager::ProcessMessage(Message * message)
 				int sleepTime = msg.Tokenize("()")[1].ParseInt();
 				GraphicsMan.QueueMessage(new GMSeti(GM_SET_OUT_OF_FOCUS_SLEEP_TIME, sleepTime));
 			}
+			else if (msg.StartsWith("RenderGrid"))
+			{
+				// Disable it, everywhere?
+				for (int i = 0; i < WindowMan.GetWindows().Size(); ++i)
+				{
+					Window * w = WindowMan.GetWindows()[i];
+					w->RenderGrid(false);
+				}
+			}
 			else if (msg.Contains("PrintHttpOutput("))
 			{
 				bool value = msg.Tokenize("()")[1].ParseBool();

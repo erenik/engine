@@ -23,6 +23,7 @@ AudioMixer::AudioMixer()
 AudioMixer::~AudioMixer()
 {
 	SAFE_DELETE_ARR(pcmQueueF);
+	markers.ClearAndDelete();
 }
 
 void AudioMixer::Allocate()

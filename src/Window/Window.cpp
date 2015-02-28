@@ -646,6 +646,15 @@ void Window::SetRequestedRelativePosition(Vector2i pos)
 	requestedRelativePosition = pos;
 }
 
+void Window::RenderGrid(bool renderIt)
+{
+	for (int j = 0; j < viewports.Size(); ++j)
+	{
+		Viewport * vp = viewports[j];
+		vp->renderGrid = renderIt;
+	}
+}
+
 int Window::MemLeakTest()
 {
 #define MEMLEAKTEST

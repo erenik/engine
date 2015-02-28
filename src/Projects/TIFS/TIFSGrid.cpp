@@ -193,17 +193,21 @@ bool TIFSGrid::GetNewTurretPosition(Vector3f & turretPos)
 			continue;
 		/// Check that the neighbours have at least 1 road-part?
 		List<TIFSTile*> neighbours = grid.GetNeighboursXZ(tile);
-		bool roadNeighbour = false;
-		for (int i = 0; i < neighbours.Size(); ++i)
+		// If road neighbours are required..
+		if(false)
 		{
-			TIFSTile * neighbour = neighbours[i];
-			if (neighbour->isRoad)
+			bool roadNeighbour = false;
+			for (int i = 0; i < neighbours.Size(); ++i)
 			{
-				roadNeighbour = true;
+				TIFSTile * neighbour = neighbours[i];
+				if (neighbour->isRoad)
+				{
+					roadNeighbour = true;
+				}
 			}
+			if (!roadNeighbour)
+				continue;
 		}
-		if (!roadNeighbour)
-			continue;
 		turretPos = tile->position;
 		tile->isOccupied = true;
 		return true;

@@ -46,6 +46,8 @@ TIFSTurretProperty::TIFSTurretProperty(Entity * base, Entity * swivel, Entity * 
 	activatable = active = false;
 
 	inputFocusEnabled = true;
+
+	lastActivateTimeMs = lastRepairTimeMs = timeNowMs;
 }
 
 int TIFSTurretProperty::ID()
@@ -357,6 +359,7 @@ void TIFSTurretProperty::Shoot()
 void TIFSTurretProperty::UpdateEmissiveMap()
 {
 	Texture * newEmissiveMap;
+//	std::cout<<"\nTimenowMS: "<<timeNowMs<<" lastACt: "<<lastActivateTimeMs<<" lastRep"<<lastRepairTimeMs;
 	if (this->active)
 	{
 		// was active earlier?

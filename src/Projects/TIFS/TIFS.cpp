@@ -758,7 +758,7 @@ void TIFS::CreateTurret(int ofSize, ConstVec3fr atLocation)
 	/// Set common properties
 	Texture * specularMap = TexMan.GetTexture("img/Turrets/BigTurretSpecular.png"),
 		* normalMap = TexMan.GetTexture("img/Turrets/BigTurretNormal.png"),
-		* emissiveMap = TexMan.GetTexture("img/Turrets/BigTurretEmissive.png");
+		* emissiveMap = NULL; //TexMan.GetTexture("img/Turrets/BigTurretEmissive.png");
 	for (int i = 0; i < turretParts.Size(); ++i)
 	{	
 		Entity * part = turretParts[i];
@@ -965,7 +965,7 @@ void TIFS::CreateField()
 	// Create a plane.
 	List<Entity*> entities;
 	Model * model = ModelMan.GetModel("plane");
-	Texture * tex = TexMan.GetTexture("0x77");
+	Texture * tex = TexMan.GetTexture("0x22");
 	Entity * plane = EntityMan.CreateEntity("Plane", model, tex);
 	PhysicsProperty * pp = new PhysicsProperty();
 	plane->physics = pp;
