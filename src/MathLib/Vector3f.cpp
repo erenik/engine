@@ -231,6 +231,8 @@ void Vector3f::ParseFrom(const String & str)
 		String part = parts[i];
 		if (!part.IsNumber())
 			continue;
+		if (numbersParsed >= order.Size())
+			break;
 		float number = part.ParseFloat();
 		float * ptr = order[numbersParsed];
 		*ptr = number;

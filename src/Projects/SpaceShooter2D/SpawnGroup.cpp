@@ -15,6 +15,7 @@ String Formation::GetName(int forFormationType)
 	{
 		case LINE_X: return "LINE_X";
 		case LINE_Y: return "LINE_Y";
+		case LINE_XY: return "LINE_XY";
 		case V_X: return "V_X";
 		case V_Y: return "V_Y";
 		default:
@@ -38,16 +39,17 @@ void SpawnGroup::Spawn()
 	{
 		case Formation::LINE_X:
 			size.y = 0; // Nullify if bad.
-			offsetPerSpawn = size / (float)offsetNum;
+			break;
+		case Formation::LINE_XY:
 			break;
 		case Formation::LINE_Y:
 			size.x = 0; // Nullify if bad.
-			offsetPerSpawn = size / (float)offsetNum;
 			break;
 		case Formation::V_X:
-			offsetPerSpawn = size / (float)offsetNum;
+		case Formation::V_Y:
 			break;
 	}
+	offsetPerSpawn = size / (float) offsetNum;
 	
 	/// Check formation to specify vectors for all
 	List<Vector3f> positions;
@@ -126,7 +128,7 @@ void SpawnGroup::ParseFormation(String fromString)
 	for (int i = 0; i < Formation::FORMATIONS; ++i)
 	{
 		String name = Formation::GetName(i);
-		if (fromString.Contains(name))
+		if (fromString == name)
 		{
 			formation = i;
 			return;

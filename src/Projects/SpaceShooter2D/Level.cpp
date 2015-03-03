@@ -95,7 +95,7 @@ bool Level::Load(String fromSource)
 				// Copy last one.
 				group = new SpawnGroup(*lastGroup);
 				if (arg.Length())
-					group->spawnTime.ParseFrom(arg);
+					group->spawnTime.ParseFrom(parenthesisContents);
 			}
 			if (var == "SpawnTime")
 				group->spawnTime.ParseFrom(arg);
@@ -108,7 +108,7 @@ bool Level::Load(String fromSource)
 			if (var == "Number" || var == "Amount")
 				group->number = arg.ParseInt();
 			if (var == "Size")
-				group->size = Vector3f(arg.ParseFloat(), arg2.ParseFloat(), 0);
+				group->size.ParseFrom(parenthesisContents);
 			continue;
 		}
 		if (line.StartsWith("MillisecondsPerPixel"))
