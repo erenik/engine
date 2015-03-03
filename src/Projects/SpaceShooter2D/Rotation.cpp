@@ -62,7 +62,7 @@ void Rotation::OnEnter(Ship * forShip)
 			MoveDir();
 			break;
 		case Rotation::SPINNING:
-			PhysicsMan.QueueMessage(new PMSetEntity(entity, PT_ROTATIONAL_VELOCITY, Vector3f(0,spinSpeed,0)));
+			QueuePhysics(new PMSetEntity(entity, PT_ROTATIONAL_VELOCITY, Vector3f(0,spinSpeed,0)));
 			break;
 	}
 }
@@ -112,7 +112,7 @@ void Rotation::MoveDir()
 	Angle correctedAngle = angleToLook - Angle(PI/2);
 	// Rotate to it.
 	Vector3f rot(PI/2,correctedAngle.Radians(),0);
-	PhysicsMan.QueueMessage(new PMSetEntity(entity, PT_SET_ROTATION, rot));
+	QueuePhysics(new PMSetEntity(entity, PT_SET_ROTATION, rot));
 }	
 
 void Rotation::RotateToFace(const Vector3f & position)
@@ -136,7 +136,7 @@ void Rotation::RotateToFaceDirection(const Vector3f & direction)
 	ClampFloat(radialVel, -minMax, minMax);
 	// Set rotational velocity, yo. lol.
 	Vector3f rot(0,radialVel,0);
-	PhysicsMan.QueueMessage(new PMSetEntity(entity, PT_ROTATIONAL_VELOCITY, rot));		
+	QueuePhysics(new PMSetEntity(entity, PT_ROTATIONAL_VELOCITY, rot));		
 }
 
 

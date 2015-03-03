@@ -127,7 +127,7 @@ void SpaceShooter2D::OnEnter(AppState * previousState)
 	Graphics.QueueMessage(new GMRegisterParticleSystem(stars, true));
 	
 	/// Add emitter
-	starEmitter = new ParticleEmitter();
+	starEmitter = new StarEmitter(Vector3f());
 	Graphics.QueueMessage(new GMAttachParticleEmitter(starEmitter, stars));
 
 
@@ -159,6 +159,9 @@ void SpaceShooter2D::OnEnter(AppState * previousState)
 	Script * script = new Script();
 	script->Load("OnEnter.ini");
 	ScriptMan.PlayScript(script);
+
+	// Remove initial cover screen.
+	QueueGraphics(new GMSetOverlay(NULL));
 }
 
 
@@ -774,7 +777,7 @@ void SpaceShooter2D::LoadLevel(String fromSource)
 		levelEntity = EntityMan.CreateEntity("LevelEntity", NULL, NULL);
 		levelEntity->position = initialPosition;
 		PhysicsProperty * pp = levelEntity->physics = new PhysicsProperty();
-		pp->collissionsEnabled = false;
+		pp->collisionsEnabled = false;
 		pp->type = PhysicsType::KINEMATIC;
 		/// Add blackness to track the level entity.
 		for (int i = 0; i < 4; ++i)

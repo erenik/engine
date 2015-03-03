@@ -12,6 +12,7 @@
 Emitter::Emitter()
 {
 	DefaultVectors();
+	type = EmitterType::SPHERE;
 }
 
 // Sets default up/left/forward vectors.

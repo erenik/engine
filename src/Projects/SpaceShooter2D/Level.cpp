@@ -3,6 +3,7 @@
 /// Level.
 
 #include "SpaceShooter2D.h"
+#include "SpawnGroup.h"
 
 Camera * levelCamera = NULL;
 
@@ -12,21 +13,48 @@ float removeInvuln = 0;
 float spawnPositionRight = 0;
 float despawnPositionLeft = 0;
 
+Level * activeLevel = NULL;
+
+Time levelTime;
+
+Level::Level()
+{
+	height = 20.f;
+}
+
+Level::~Level()
+{
+	spawnGroups.ClearAndDelete();
+	ships.ClearAndDelete();
+}
+
 bool Level::Load(String fromSource)
 {
 	source = fromSource;
 
 	/// Clear old stuff.
-	ships.Clear();
+	ships.ClearAndDelete();
 	millisecondsPerPixel = 250;
+	levelTime = Time(TimeType::MILLISECONDS_NO_CALENDER, 0); // reset lvl time.
 
 	String sourceTxt = source + ".txt";
 	String sourcePng = source + ".png";
 	music = source+".ogg";
 	Vector3i goalColor;
+	
+	// Clear old
+	spawnGroups.ClearAndDelete();
+	SpawnGroup * group = NULL;
 
 	List<ShipColorCoding> colorCodings;
 	List<String> lines = File::GetLines(sourceTxt);
+	enum {
+		PARSE_MODE_INIT,
+		PARSE_MODE_FORMATIONS,
+	};
+	int parseMode = 0;
+	SpawnGroup * lastGroup = NULL;
+#define	ADD_GROUP_IF_NEEDED {if (group) { lastGroup = group; spawnGroups.Add(group);} group = NULL;}
 	for (int i = 0; i < lines.Size(); ++i)
 	{
 		String line = lines[i];
@@ -36,6 +64,53 @@ bool Level::Load(String fromSource)
 			break;
 		if (line.StartsWith("//"))
 			continue;
+		if (line.StartsWith("SpawnGroup"))
+		{
+			ADD_GROUP_IF_NEEDED;
+			group = new SpawnGroup();
+			// Parse time.
+			String timeStr = line.Tokenize(" \t")[1];
+			group->spawnTime.ParseFrom(timeStr);
+			group->name = timeStr;
+			parseMode = PARSE_MODE_FORMATIONS;
+		}
+		if (parseMode == PARSE_MODE_FORMATIONS)
+		{
+			// Formation specific parsing.
+			List<String> tokens = line.Tokenize(" ()\t");
+			if (tokens.Size() == 0)
+				continue;
+			String var = tokens[0], arg, arg2, parenthesisContents;
+			if (tokens.Size() > 1)
+				arg = tokens[1];
+			if (tokens.Size() > 2)
+				arg2 = tokens[2];
+			// Grab parenthesis
+			tokens = line.Tokenize("()");
+			if (tokens.Size() > 1)
+				parenthesisContents = tokens[1];
+			if (var == "CopyGroup")
+			{
+				ADD_GROUP_IF_NEEDED;
+				// Copy last one.
+				group = new SpawnGroup(*lastGroup);
+				if (arg.Length())
+					group->spawnTime.ParseFrom(arg);
+			}
+			if (var == "SpawnTime")
+				group->spawnTime.ParseFrom(arg);
+			if (var == "Position")
+				group->groupPosition.ParseFrom(parenthesisContents);
+			if (var == "ShipType")
+				group->shipType = arg;
+			if (var == "Formation")
+				group->ParseFormation(arg);
+			if (var == "Number" || var == "Amount")
+				group->number = arg.ParseInt();
+			if (var == "Size")
+				group->size = Vector3f(arg.ParseFloat(), arg2.ParseFloat(), 0);
+			continue;
+		}
 		if (line.StartsWith("MillisecondsPerPixel"))
 		{
 			List<String> tokens = line.Tokenize(" ");
@@ -82,9 +157,16 @@ bool Level::Load(String fromSource)
 			starColor.ParseFrom(vector);
 		}
 	}
+	// Add last group, if needed.
+	if (group)
+		spawnGroups.AddItem(group);
 
-	List<String> files ;
-	GetFilesInDirectory("Levels/Stage 1", files);  
+	/// Sort groups based on spawn-time?
+
+
+//	List<String> files ;
+//	GetFilesInDirectory("Levels/Stage 1", files);  
+	/*
 	Texture * tex = TexMan.LoadTexture(sourcePng, true);
 	if (!tex)
 		return false;
@@ -120,7 +202,7 @@ bool Level::Load(String fromSource)
 					newShip.position[0] = (float) x;
 					newShip.position[1] = (float) 20 - (topY - y);
 					// Create ship.
-					ships.Add(newShip);
+					ships.AddItem(newShip);
 					found = true;
 				}
 			}
@@ -134,6 +216,7 @@ bool Level::Load(String fromSource)
 		std::cout<<"\nError: No Ships in level.";
 		return false;
 	}
+	*/
 
 	// No gravity
 	PhysicsMan.QueueMessage(new PMSet(PT_GRAVITY, Vector3f(0,0,0)));
@@ -178,9 +261,10 @@ void Level::AddPlayer(Ship * playerShip)
 	entity->position = Vector3f(-50.f, 10.f, 0);
 	// Rotate ship with the nose from Z- to Y+
 	float radians = PI / 2;
-	entity->rotation[0] = radians;
-	entity->rotation[1] = -radians;
-	entity->RecalculateMatrix();
+//	entity->rotation[0] = radians;
+//	entity->rotation[1] = -radians;
+	entity->SetRotation(Vector3f(radians, -radians, 0));
+//	entity->RecalculateMatrix();
 	pp->velocity = BaseVelocity();
 	// Register player for rendering.
 	MapMan.AddEntity(entity);
@@ -189,7 +273,7 @@ void Level::AddPlayer(Ship * playerShip)
 void Level::SetupCamera()
 {
 	if (!levelCamera)
-		levelCamera = CameraMan.NewCamera();
+		levelCamera = CameraMan.NewCamera("LevelCamera");
 	// offset to the level entity, just 10 in Z.
 	levelCamera->position = Vector3f(0,0,10);
 	levelCamera->rotation = Vector3f(0,0,0);
@@ -203,6 +287,8 @@ void Level::SetupCamera()
 
 void Level::Process(int timeInMs)
 {
+	activeLevel = this;
+
 	removeInvuln = levelEntity->position[0] + playingFieldHalfSize[0] + playingFieldPadding + 1.f;
 	spawnPositionRight = removeInvuln + 15.f;
 	despawnPositionLeft = levelEntity->position[0] - playingFieldHalfSize[0] - 1.f;
@@ -216,15 +302,32 @@ void Level::Process(int timeInMs)
 	}
 
 	/// Clearing the level
-	if (playerShip.entity->position[0] > goalPosition)
+	if (LevelCleared())
 	{
 		spaceShooter->LevelCleared();
+		return; // No more processing if cleared?
 	}
 	else 
 	{
 		/// PRocess the player ship.
 		Process(playerShip);
+		levelTime.AddMs(timeInMs);
 	}
+
+	/// Check spawn-groups.
+	if (spawnGroups.Size())
+	{
+		SpawnGroup * sg = spawnGroups[0];
+		if (sg->spawnTime < levelTime)
+		{
+			sg->Spawn();
+			// Retain sorting.
+			spawnGroups.RemoveItem(sg);
+			delete sg;
+		}
+	}
+
+	/*
 	// Check if we want to spawn any enemy ships.
 	// Add all enemy ships too?
 	for (int i = 0; i < ships.Size(); ++i)
@@ -239,7 +342,7 @@ void Level::Process(int timeInMs)
 				if (ship.entity->position[0] < removeInvuln)
 				{
 					// Change color.
-					GraphicsMan.QueueMessage(new GMSetEntityTexture(ship.entity, DIFFUSE_MAP | SPECULAR_MAP, TexMan.GetTextureByColor(Color(255,255,255,255))));
+					QueueGraphics(new GMSetEntityTexture(ship.entity, DIFFUSE_MAP | SPECULAR_MAP, TexMan.GetTextureByColor(Color(255,255,255,255))));
 					ship.spawnInvulnerability = false;
 					continue;				
 				}
@@ -255,8 +358,9 @@ void Level::Process(int timeInMs)
 		Entity * entity = EntityMan.CreateEntity(ship.type, ship.GetModel(), TexMan.GetTextureByColor(Color(0,255,0,255)));
 		entity->position = ship.position;
 		float radians = PI / 2;
-		entity->rotation[0] = radians; // Rotate up from Z- to Y+
-		entity->rotation[1] = radians; // Rorate from Y+ to X-
+//		entity->rotation[0] = radians; // Rotate up from Z- to Y+
+//		entity->rotation[1] = radians; // Rorate from Y+ to X-
+		entity->SetRotation(Vector3f(radians, radians, 0));
 		entity->RecalculateMatrix();
 		
 		PhysicsProperty * pp = new PhysicsProperty();
@@ -276,7 +380,7 @@ void Level::Process(int timeInMs)
 		MapMan.AddEntity(entity);
 		ship.StartMovement();
 	}
-
+*/
 }
 
 /// Process target ship.
@@ -291,4 +395,16 @@ void Level::Process(Ship & ship)
 		if (ship.allied)
 			spaceShooter->UpdateUIPlayerShield();
 	}
+}
+
+// Check spawn groups.
+bool Level::LevelCleared()
+{
+	if (levelTime.Seconds() < 3)
+		return false;
+	if (spawnGroups.Size())
+		return false;
+	if (shipEntities.Size())
+		return false;
+	return true;
 }

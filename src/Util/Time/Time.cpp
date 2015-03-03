@@ -239,6 +239,13 @@ void Time::SetMinute(int minute)
 	intervals += (minute - currentMinute) * intervalsPerMinute;
 }
 
+void Time::SetSecond(int second)
+{
+	int currentSecond = Second();
+	int intervalsPerSecond = IntervalsPerSecond();
+	intervals += (second - currentSecond) * intervalsPerSecond;
+}
+
 
 // Current total in micro-seconds since the starting-point.
 uint64 Time::Microseconds() const
@@ -283,6 +290,11 @@ int64 Time::Minutes()
 	return Seconds() / 60;
 }
 
+int Time::Second()
+{
+	FetchCalenderData();
+	return second;
+}
 int Time::Minute()
 {
 	FetchCalenderData();
@@ -324,7 +336,19 @@ int Time::IntervalsPerMinute()
 	return intervalsPerMinute;
 }
 
-	
+int Time::IntervalsPerSecond()
+{
+	int intervalsPerSecond;
+	switch(type)
+	{
+		case TimeType::MILLISECONDS_NO_CALENDER:
+			intervalsPerSecond = 1000;
+			break;
+		default:
+			assert(false);
+	}
+	return intervalsPerSecond;
+}	
 
 /// File I/O
 bool Time::WriteTo(std::fstream & stream)
@@ -348,7 +372,20 @@ bool Time::ReadFrom(std::fstream & stream)
 	return true;
 }
 
-
+/// String I/O
+bool Time::ParseFrom(const String & string)
+{
+	/// Any formatting?
+	List<String> tokens = string.Tokenize(":");
+	if (tokens.Size() == 2)
+	{
+		// Minute-second, by default?
+		this->SetMinute(tokens[0].ParseInt());
+		this->SetSecond(tokens[1].ParseInt());
+		return true;
+	}
+	return false;
+}
 
 /// Fetches calender data given the intervals and type defined now.
 void Time::FetchCalenderData()

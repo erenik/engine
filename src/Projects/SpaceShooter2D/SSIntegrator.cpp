@@ -28,7 +28,7 @@ void SSIntegrator::IntegrateDynamicEntities(List<Entity*> & dynamicEntities, flo
 		/// Check if player
 		ShipProperty * sp = (ShipProperty*) dynamicEntity->GetProperty(shipID);
 		// If so, limit to inside the radiusiusius
-		if (sp && sp->ship->allied)
+		if (sp && sp->IsAllied())
 		{
 	//		std::cout<<"\nShip property: "<<sp<<" ID "<<sp->GetID()<<" allied: "<<sp->ship->allied;
 			Vector3f & position = dynamicEntity->position;
@@ -37,12 +37,12 @@ void SSIntegrator::IntegrateDynamicEntities(List<Entity*> & dynamicEntities, flo
 		}
 	}
 	timer.Stop();
-	integrationTimeMs = timer.GetMs();
+	integrationTimeMs = (int) timer.GetMs();
 	
 	timer.Start();
 	RecalculateMatrices(dynamicEntities);
 	timer.Stop();
-	entityMatrixRecalcMs = timer.GetMs();
+	entityMatrixRecalcMs = (int)timer.GetMs();
 }
 
 

@@ -884,7 +884,12 @@ void GMPopUI::Process()
     if (success)
 	{
 		/// Check if the element has any onPop messages.
-		if (e->onPop)
+		if (force)
+		{
+			if (e->onForcePop.Length())
+				MesMan.QueueMessages(e->onForcePop);
+		}
+		else if (e->onPop.Length())
 			MesMan.QueueMessages(e->onPop);
 		/// If the element wants to keep track of the navigate UI state, then reload it. If not, don't as it will set it to false by default if so.
 		if (e->navigateUIOnPush)

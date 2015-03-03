@@ -46,14 +46,12 @@ bool StarEmitter::GetNewParticle(Vector3f & position, Vector3f & velocity, float
 Stars::Stars(bool emitWithEmittersOnly)
 : ParticleSystem("Stars", emitWithEmittersOnly)
 {
-	InitStars();
 }
 	
 /// Creates a particle system which will be attached to a specific entity.
 Stars::Stars(Entity * reference, bool emitWithEmittersOnly)
 : ParticleSystem("Sparks", emitWithEmittersOnly)
 {
-	InitStars();
 	/// Set link to entity.
 	relativeTo = reference;
 }
@@ -63,9 +61,9 @@ Stars::~Stars()
     std::cout<<"\nStars Destructor.....";
 }
 
-void Stars::InitStars()
+void Stars::Initialize()
 {
-	Initialize();
+	ParticleSystem::Initialize();
 	SetAlphaDecay(DecayType::NONE);
 }
 

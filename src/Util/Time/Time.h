@@ -74,6 +74,7 @@ public:
 	void SetHour(int hour);
 	/// Sets the hour in current hour by adding or removing diff amount of intervals.
 	void SetMinute(int minute);
+	void SetSecond(int second);
 
 	// Current total in micro-seconds since the starting-point.
 	uint64 Microseconds() const;
@@ -97,12 +98,15 @@ public:
 	/// File I/O
 	bool WriteTo(std::fstream & stream);
 	bool ReadFrom(std::fstream & stream);
+	/// String I/O
+	bool ParseFrom(const String & string);
 
 	/// o-o
 	int Type(){ return type;};
 
 	int IntervalsPerHour();
 	int IntervalsPerMinute();
+	int IntervalsPerSecond();
 private:
 	/// Fetches calender data given the intervals and type defined now.
 	void FetchCalenderData();

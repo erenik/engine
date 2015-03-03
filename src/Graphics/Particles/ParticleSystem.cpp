@@ -491,7 +491,7 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 	shader = ShadeMan.SetActiveShader(shader);
 	if (!shader)
 	{
-		LogGraphics("Errerler", ERROR);
+		LogGraphics("Bad shader "+shaderName, ERROR);
 		return;
 	}
 	// Set projection and view matrices
@@ -531,6 +531,11 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 	// The second parameter is the "rate at which generic vertex attributes advance when rendering multiple instances"
 	// http://www.opengl.org/sdk/docs/man/xhtml/glVertexAttribDivisor[0]ml
 	/// Mesh-data, re-use it all.
+	if (shader->attributePosition == -1)
+	{
+		LogGraphics("Particle system shader "+shader->name+" lacking position attribute, yo?", ERROR);
+		return;
+	}
 	glEnableVertexAttribArray(shader->attributePosition);
 	glVertexAttribDivisor(shader->attributePosition, 0); 
 	if (shader->attributeNormal != -1)
@@ -587,9 +592,10 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_FALSE); // Disable depth-write though, or other alpha-effects afterwards will fail.
  
-	assert(model->mesh->vertexDataCount < 300000);
+	Mesh * mesh = model->GetTriangulatedMesh();
+	assert(mesh->vertexDataCount < 300000);
 	// Draw the particules !
-	glDrawArraysInstanced(GL_TRIANGLES, 0, model->mesh->vertexDataCount, aliveParticles);
+	glDrawArraysInstanced(GL_TRIANGLES, 0, mesh->vertexDataCount, aliveParticles);
 
 	graphicsState.BindVertexArrayBuffer(0);
 	CheckGLErrorParticle("ParticleSystem::RenderInstanced - post draw");

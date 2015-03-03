@@ -422,6 +422,7 @@ void Entity::SetRotation(ConstVec3fr rotation)
 {
 //	assert(false);
 	this->rotation = rotation;
+	hasRotated = true;
 	if (physics && physics->useQuaternions)
 	{
 		/// This assumes Euler angles, so construct an euler angle now!
@@ -435,7 +436,6 @@ void Entity::SetRotation(ConstVec3fr rotation)
 		Quaternion newOrientation = pitch * yaw * roll;
 		physics->orientation = newOrientation;
 		physics->orientation.Normalize();
-		hasRotated = true;
 
 		//physics->orientation = Quaternion();
 		//Quaternion rotationQuaternion = Quaternion(rotation, 1.0f);
@@ -489,7 +489,7 @@ void Entity::RecalculateMatrix(int whichParts/*= true*/, bool recursively /* = f
 	{
 		if (whichParts == ALL_PARTS || hasRotated)
 		{
-			RecalcRotationMatrix();
+			RecalcRotationMatrix(true);
 		}
 		
 		localTransform = Matrix4f();
@@ -547,7 +547,7 @@ void Entity::RecalculateMatrix(int whichParts/*= true*/, bool recursively /* = f
 	aabb->Recalculate(this);
 }
 
-void Entity::RecalcRotationMatrix()
+void Entity::RecalcRotationMatrix(bool force /* = false*/)
 {
 	float length;
 #define EXTRACT_VECTORS \
@@ -559,7 +559,7 @@ void Entity::RecalcRotationMatrix()
 	normalMatrix = rotationMatrix.InvertedCopy().TransposedCopy();
 
 	// If no rotation has occured, just multiply in the parent matrix?
-	if (!hasRotated)
+	if (!hasRotated && !force)
 	{
 		if (parent)
 		{

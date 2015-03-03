@@ -26,6 +26,8 @@ ShipProperty::ShipProperty(Ship * ship, Entity * owner)
 : EntityProperty("ShipProperty", ID(), owner), ship(ship)
 {
 	sleeping = false;
+	spawnInvulnerability = true;
+//	LoadDataFrom(ship);
 }
 
 int ShipProperty::ID()
@@ -57,8 +59,17 @@ void ShipProperty::Process(int timeInMs)
 	if (paused)
 		return;
 
+	/// o.o
+	if (spawnInvulnerability)
+	{
+		if (owner->position.x < removeInvuln)
+		{
+			// Change color.
+			QueueGraphics(new GMSetEntityTexture(owner, DIFFUSE_MAP | SPECULAR_MAP, TexMan.GetTextureByColor(Color(255,255,255,255))));
+			spawnInvulnerability = false;
+		}
+	}
 	// Move?
-	Entity * shipEntity = ship->entity;
 	// Don't process inactive ships..
 	if (ship->ai == true)
 	{
@@ -198,3 +209,9 @@ void ShipProperty::OnCollision(Entity * withEntity)
 		pp->Destroy();
 	}
 }
+
+bool ShipProperty::IsAllied()
+{
+	return ship->allied;
+}
+

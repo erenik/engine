@@ -24,15 +24,15 @@ void SpaceShooter2D::Cleanup()
 	/// Clean ships.
 	for (int i = 0; i < level.ships.Size(); ++i)
 	{
-		Ship & ship = level.ships[i];
-		if (!ship.entity)
+		Ship * ship = level.ships[i];
+		if (!ship->entity)
 			continue;
 		// Check if it should de-spawn.
-		if (ship.entity->position[0] < despawnPositionLeft)
+		if (ship->entity->position[0] < despawnPositionLeft)
 		{
-			MapMan.DeleteEntity(ship.entity);
-			shipEntities.Remove(ship.entity);
-			ship.entity = NULL;
+			MapMan.DeleteEntity(ship->entity);
+			shipEntities.Remove(ship->entity);
+			ship->entity = NULL;
 		}
 	}
 }

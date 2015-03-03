@@ -150,7 +150,8 @@ public:
 	/// Recalculates the transformation matrix. All parts by default. If recursively, will update children (or parents?) recursively upon update.
 	/// 0 = Just translation adjustment, 1 = ALL, 2 = Re-build all but rotation. 
 	void RecalculateMatrix(int whichParts = ALL_PARTS, bool recursively = false);
-	void RecalcRotationMatrix();
+	/// If force, recalculates no matter wat.
+	void RecalcRotationMatrix(bool force = false);
 
 	/// Recalculates a transformation matrix using argument vectors for position, rotation and translation.
 	static Matrix4f RecalculateMatrix(const Vector3f & position, const Vector3f & rotation, const Vector3f & scale);

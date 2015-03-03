@@ -18,7 +18,7 @@ public:
     Sparks(Entity * reference, bool emitWithEmittersOnly);
 	virtual ~Sparks();
 
-	void InitSparks();
+	virtual void Initialize();
 	/// Update buffers to use when rendering.
 	virtual void UpdateBuffers();
 

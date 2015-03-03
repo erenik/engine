@@ -25,6 +25,7 @@ RenderPass::RenderPass()
 	depthTestEnabled = true;
 	type = RENDER_ENTITIES;
 	camera = DEFAULT_CAMERA;
+	output = RenderTarget::DEFAULT;
 
 	lights = PRIMARY_LIGHT;
 	shadowMapping = false;

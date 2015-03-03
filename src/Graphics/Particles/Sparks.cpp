@@ -16,14 +16,12 @@
 Sparks::Sparks(bool emitWithEmittersOnly)
 : ParticleSystem("Sparks", emitWithEmittersOnly)
 {
-	InitSparks();
 }
 	
 /// Creates a particle system which will be attached to a specific entity.
 Sparks::Sparks(Entity * reference, bool emitWithEmittersOnly)
 : ParticleSystem("Sparks", emitWithEmittersOnly)
 {
-	InitSparks();
 	/// Set link to entity.
 	relativeTo = reference;
 }
@@ -33,9 +31,9 @@ Sparks::~Sparks()
     std::cout<<"\nSparks Destructor.....";
 }
 
-void Sparks::InitSparks()
+void Sparks::Initialize()
 {
-	Initialize();
+	ParticleSystem::Initialize();
 	SetAlphaDecay(DecayType::CUBIC);
 }
 

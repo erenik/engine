@@ -31,7 +31,8 @@ public:
     Stars(Entity * reference, bool emitWithEmittersOnly);
 	virtual ~Stars();
 	
-	void InitStars(); 
+	// o.o
+	virtual void Initialize();
 		/// Integrates all particles.
 	virtual void ProcessParticles(float & timeInSeconds);
 	/// Update buffers to use when rendering.

@@ -1260,10 +1260,6 @@ void InputManager::PushToStack(UIElement * element, UserInterface * ui)
 	if (result == UserInterface::NULL_ELEMENT)
 		return;
 	UIElement * firstActivatable = element->GetElementByFlag(UIFlag::HOVERABLE | UIFlag::ACTIVATABLE);
-	if (!firstActivatable){
-		std::cout<<"\nERROR: No activatable UI in the one pushed to stack just now?";
-		return;
-	}
 //	std::cout<<"\nHovering to element \""<<firstActivatable->name<<"\" with text \""<<firstActivatable->text<<"\"";
 	ui->SetHoverElement(firstActivatable);
 
@@ -1301,18 +1297,15 @@ UIElement * InputManager::PopFromStack(UIElement * element, UserInterface * ui, 
 	}
 
 	// Set new navigation cyclicity.
-	cyclicY = ui->GetStackTop()->cyclicY;
+	UIElement * stackTop = ui->GetStackTop();
+	cyclicY = stackTop->cyclicY;
 
-	UIElement * currentHover = ui->GetStackTop()->GetElementByState(UIState::HOVER);
+	UIElement * currentHover = stackTop->GetElementByState(UIState::HOVER);
 	if (currentHover){
 		ui->SetHoverElement(currentHover);
 		return element;
 	}
-	UIElement * firstActivatable = element->GetElementByFlag(UIFlag::HOVERABLE | UIFlag::ACTIVATABLE);
-	if (!firstActivatable){
-		std::cout<<"\nERROR: No activatable UI in the one pushed to stack just now?";
-		return element;
-	}
+	UIElement * firstActivatable = stackTop->GetElementByFlag(UIFlag::HOVERABLE | UIFlag::ACTIVATABLE);
 //	std::cout<<"\nHovering to element \""<<firstActivatable->name<<"\" with text \""<<firstActivatable->text<<"\"";
 	ui->SetHoverElement(firstActivatable);
 

@@ -171,7 +171,8 @@ public:
 	/// Message sent when hovering over an element.
 	String onHover;
 	String onTrigger; // For "triggering" the element, e.g. pressing Enter for input fields
-	String onPop;
+	String onPop; // Called when hitting "Back" or pressing Escape, usually
+	String onForcePop; // Called no matter how the UI is popped, rarer usage?
 
 	/// Called upon hovering on an element. By default queues the string set in onHover to be processed by the message manager and game state.
 	virtual void OnHover();

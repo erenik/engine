@@ -31,18 +31,25 @@ public:
 	virtual void OnCollision(Entity * withEntity);
 
 	// Since enemies go from right to left..
-
+	bool IsAllied();
 	/// When deaded...
 	bool sleeping;
+
+	/// o.o
+//	void LoadDataFrom(Ship * ship);
+
 
 	// False by default. If true will use default behaviour of following the mouse.
 	bool useMouseInput;
 
 	/// o.o
-	Ship * ship;
+//	Ship * ship;
 
 private:
+	
+	Ship * ship;
 
+	bool spawnInvulnerability; // Default true at start.
 	void ProcessAI(int timeInMs);
 	long millisecondsPassedSinceLastFire;	
 };
