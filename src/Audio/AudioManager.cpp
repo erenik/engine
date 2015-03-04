@@ -49,7 +49,7 @@ AudioManager::AudioManager()
 	masterVolume = 0.1f;
 	shouldLive = true;
 	audioDriver = AudioDriver::BAD_DRIVER;
-	AudioMixer::Allocate();
+	AudioMixer::AllocateMaster();
 }
 
 AudioManager::~AudioManager()
@@ -58,7 +58,7 @@ AudioManager::~AudioManager()
 	// Shutdown if not already done so!
 	Shutdown();
 	messageQueue.ClearAndDelete();
-	AudioMixer::Deallocate();
+	AudioMixer::DeallocateMaster();
 }
 
 #include "Graphics/GraphicsManager.h"
@@ -269,6 +269,8 @@ void AudioManager::FadeOutAllOfType(char type, float seconds)
 void AudioManager::ToggleMute()
 {
 	this->mute = !mute;
+	/// Set master mixer mute status?
+	masterMixer->muted = mute;
 	this->UpdateVolume();
 }
 
@@ -557,7 +559,7 @@ void AudioManager::Update()
 			case AudioState::ENDING:
 			{
 				// Flag as ended after the audio marker in the mixer has been removed.
-				ABM * abm = mixer->GetMarker(audio);
+				ABM * abm = masterMixer->GetMarker(audio);
 				if (!abm || abm->pcmQueueIndex <= 0)
 					audio->state = AudioState::ENDED;
 				break;
@@ -569,7 +571,7 @@ void AudioManager::Update()
 		audio->Update();
 	}
 	/// Send mixed audio to driver, if custom mixer enabled/driver requiring it
-	mixer->Update();
+	masterMixer->Update();
 }
 
 Vector3f AudioManager::ListenerPosition()
@@ -582,7 +584,9 @@ Vector3f AudioManager::ListenerPosition()
 /// Sets master volume, from 0.0 to 1.0
 void AudioManager::SetMasterVolume(float level)
 {
+	ClampFloat(level, 0, 1.f);
 	masterVolume = level;
+	masterMixer->volume = level;
 	this->UpdateVolume();
 }
 

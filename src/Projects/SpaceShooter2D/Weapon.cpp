@@ -20,15 +20,15 @@ Weapon::Weapon()
 	aim = false;
 	estimatePosition = false;
 	projectilePath = STRAIGHT;
-	lastShotMs = 0;
-	cooldownMs = 1000;
+	burstStart = lastShot = Time(TimeType::MILLISECONDS_NO_CALENDER, 0);
+	cooldown = Time(TimeType::MILLISECONDS_NO_CALENDER, 1000);
 	damage = 5;
 	angle = 0;
 	projectileSpeed = 5.f;
 
 	burstRounds = 3;
 	burstRoundsShot = 0;
-	burstRoundDelayMs = 50;
+	burstRoundDelay = Time(TimeType::MILLISECONDS_NO_CALENDER, 50);
 }
 
 bool Weapon::Get(String byName, Weapon & weapon)
@@ -175,9 +175,9 @@ void Weapon::Aim(Ship * ship)
 void Weapon::Shoot(Ship * ship)
 {
 	/// Initialize the weapon as if it had just been fired.
-	if (lastShotMs == 0)
+	if (lastShot.Milliseconds() == 0)
 	{
-		lastShotMs = nowMs - cooldownMs + 1000 + shootRand.Randf(cooldownMs);
+		lastShot = levelTime - cooldown + Time(TimeType::MILLISECONDS_NO_CALENDER, 1000 + shootRand.Randf(cooldown.Milliseconds()));
 		return;
 	}
 	/// For burst..
@@ -186,24 +186,24 @@ void Weapon::Shoot(Ship * ship)
 		if (burstRoundsShot < burstRounds)
 		{
 			// Check time between burst rounds.
-			int timeDiff = nowMs - lastShotMs;
-			if (timeDiff < burstRoundDelayMs)
+			Time diff = levelTime - lastShot;
+			if (diff < burstRoundDelay)
 				return;
 			++burstRoundsShot;
 		}
 		else {
-			int timeDiff = nowMs - burstStartMs;
-			if (timeDiff < cooldownMs)
+			Time diff = levelTime - burstStart;
+			if (diff < cooldown)
 				return;
-			burstStartMs = nowMs;
+			burstStart = levelTime;
 			burstRoundsShot = 0;
 			++burstRoundsShot;
 		}
 	}
 	// Regular fire
 	else {
-		int timeDiff = nowMs - lastShotMs;
-		if (timeDiff < cooldownMs)
+		Time diff = levelTime - lastShot;
+		if (diff < cooldown)
 			return;
 	}
 
@@ -220,7 +220,7 @@ void Weapon::Shoot(Ship * ship)
 	projectileEntity->properties.Add(projProp);
 	// Set scale and position.
 	projectileEntity->position = shipEntity->position;
-	projectileEntity->scale *= 0.1f;
+	projectileEntity->SetScale(Vector3f(1,1,1) * 0.1f);
 	projProp->color = color;
 	projectileEntity->RecalculateMatrix();
 	// pew
@@ -256,5 +256,5 @@ void Weapon::Shoot(Ship * ship)
 	// Add to map.
 	MapMan.AddEntity(projectileEntity);
 	projectileEntities.Add(projectileEntity);
-	lastShotMs = nowMs;
+	lastShot = levelTime;
 }

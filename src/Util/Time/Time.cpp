@@ -82,21 +82,30 @@ String Time::ToString(String withFormat)
 	return newString;
 }
 
-	
+
+#define ASSERT_SAME_TYPE if (type != otherTime.type)\
+{ 		\
+	std::cout<<"\nTime - otherTime with different types. Undefined behaviour, setting intervals to 0."; newTime.intervals = 0;\
+	return newTime;\
+}
+
 
 /// Arithmetic operations
 Time Time::operator - (const Time & otherTime) const 
 {
 	Time newTime;
-	if (type != otherTime.type)
-	{
-		// Undefined behaviour.
-		std::cout<<"\nTime - otherTime with different types. Undefined behaviour, setting intervals to 0.";
-		newTime.intervals = 0;
-		return newTime;
-	}
+	ASSERT_SAME_TYPE;
 	assert(type == otherTime.type);
 	newTime.intervals = intervals - otherTime.intervals;
+	newTime.type = type;
+	return newTime;
+}
+
+Time Time::operator + (const Time & otherTime) const
+{
+	Time newTime;
+	ASSERT_SAME_TYPE;
+	newTime.intervals = intervals + otherTime.intervals;
 	newTime.type = type;
 	return newTime;
 }

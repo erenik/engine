@@ -6,6 +6,7 @@
 #define GEAR_H
 
 #include "String/AEString.h"
+#include "Time/Time.h"
 
 class Gear 
 {
@@ -21,10 +22,10 @@ public:
 	int type;
 	// Weapon stats?
 	int damage;
-	int reloadTimeMs;
+	Time reloadTime;
 	// Shield stats.
 	int maxShield;
-	int shieldRegen;
+	float shieldRegen;
 	// Armor stats
 	int maxHP;
 	int toughness;

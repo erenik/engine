@@ -80,7 +80,7 @@ class GameVariable;
 
 /// Time in current level, from 0 when starting. Measured in milliseconds.
 extern Time levelTime;
-extern int64 nowMs;
+// extern int64 nowMs;
 extern int timeElapsedMs;
 /// Particle system for sparks/explosion-ish effects.
 extern Sparks * sparks;

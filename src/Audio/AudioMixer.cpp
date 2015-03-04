@@ -8,7 +8,7 @@
 #include "Windows/WindowsCoreAudio.h"
 #include "AudioManager.h"
 
-extern AudioMixer * mixer = NULL;
+extern AudioMixer * masterMixer = NULL;
 
 AudioMixer::AudioMixer()
 {
@@ -18,6 +18,8 @@ AudioMixer::AudioMixer()
 	
 	/// Initialize buffah.
 	memset(pcmQueueF, 0, queueSampleTotal * sizeof(pcmQueueF));
+	muted = false;
+	volume = 1.f;
 }
 
 AudioMixer::~AudioMixer()
@@ -26,14 +28,14 @@ AudioMixer::~AudioMixer()
 	markers.ClearAndDelete();
 }
 
-void AudioMixer::Allocate()
+void AudioMixer::AllocateMaster()
 {
-	assert(mixer == NULL);
-	mixer = new AudioMixer();
+	assert(masterMixer == NULL);
+	masterMixer = new AudioMixer();
 }
-void AudioMixer::Deallocate()
+void AudioMixer::DeallocateMaster()
 {
-	SAFE_DELETE(mixer);
+	SAFE_DELETE(masterMixer);
 }
 
 /// Buffers floating point [-1,1]-based PCM data.
@@ -145,10 +147,14 @@ void AudioMixer::SendToDriver(int driverID)
 		Sleep(5);
 		return;
 	}
+	// Calc volume.
+	float currentVolume = volume;
+	if (muted)
+		currentVolume = 0.f;
 	/// Apply master volume RIGHT before sending to device! o.o
 	for (int i = 0; i < samplesToSend; ++i)
 	{
-		pcmQueueF[i] *= AudioMan.ActiveMasterVolume();
+		pcmQueueF[i] *= currentVolume;
 	}
 	int bytesBuffered = device->BufferData((char*)pcmQueueF, samplesToSend * sizeof(float));
 	int bytesPerSample = sizeof(float);

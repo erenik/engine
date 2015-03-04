@@ -16,6 +16,7 @@ Gear::Gear()
 	price = -1;
 	maxHP = -1;
 	maxShield = -1;
+	reloadTime = Time(TimeType::MILLISECONDS_NO_CALENDER, 0);
 }
 
 /// o.o
@@ -66,7 +67,7 @@ bool Gear::Load(String fromFile)
 			else if (column == "Damage")
 				gear.damage = value.ParseInt();
 			else if (column == "Reload time")
-				gear.reloadTimeMs = value.ParseInt();
+				gear.reloadTime.intervals = value.ParseInt();
 			else if (column == "Max Shield")
 				gear.maxShield = value.ParseInt();
 			else if (column == "Shield Regen")

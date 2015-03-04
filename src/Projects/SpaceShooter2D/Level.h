@@ -15,6 +15,19 @@ struct ShipColorCoding
 };
 
 
+struct LevelMessage 
+{
+	LevelMessage();
+	// UI
+	void Display();
+	void Hide();
+
+	bool displayed;
+	Time startTime;
+	Time stopTime;
+	int textID;
+};
+
 class SpawnGroup;
 class Camera;
 class Level;
@@ -52,6 +65,8 @@ public:
 
 	/// New spawn style.
 	List<SpawnGroup*> spawnGroups;
+	/// o.o
+	List<LevelMessage*> messages;
 
 	/// To determine when things spawn and the duration of the entire "track".
 	int millisecondsPerPixel;

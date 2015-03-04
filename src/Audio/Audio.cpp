@@ -424,7 +424,7 @@ void Audio::Update()
 	if (audioDriver == AudioDriver::WindowsCoreAudio)
 	{
 		/// Calc requested buffer sizes
-		int samplesToBuffer = mixer->SamplesToBuffer(this);
+		int samplesToBuffer = masterMixer->SamplesToBuffer(this);
 		int shortsToBuffer = samplesToBuffer;
 		int shortsToBufferInChars = shortsToBuffer * 2;
 		int bytesToBuffer = min(bufSize, shortsToBufferInChars);	// Clamp it
@@ -448,7 +448,7 @@ void Audio::Update()
 		int floatsToBuffer = samplesBuffered;
 		int floatsToBufferInChars = floatsToBuffer * 4;
 		// Send to mixer.
-		mixer->BufferPCMShort(this, (short*)buf, samplesBuffered, audioStream->AudioChannels(), absoluteVolume);
+		masterMixer->BufferPCMShort(this, (short*)buf, samplesBuffered, audioStream->AudioChannels(), absoluteVolume);
 	}
     return;
 }
@@ -527,6 +527,8 @@ void Audio::UpdateVolume()
 	if (audioDriver == AudioDriver::OpenAL)
 	{
 		assert(alSource != 0);
+		// Multiply absolute volume with manager master volume
+		absoluteVolume = distanceCompensatedVolume * AudioMan.ActiveMasterVolume();
 		alSourcef(alSource, AL_GAIN, absoluteVolume);
 		int error = alGetError();
 		switch(error){

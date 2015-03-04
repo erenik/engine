@@ -17,6 +17,29 @@ Level * activeLevel = NULL;
 
 Time levelTime;
 
+
+LevelMessage::LevelMessage()
+{
+	displayed = false;
+	startTime = stopTime = Time(TimeType::MILLISECONDS_NO_CALENDER, 0);
+}
+
+// UI
+void LevelMessage::Display()
+{
+	// o.o uiiii
+	QueueGraphics(new GMSetUIs("LevelMessage", GMUI::TEXT, String(textID)));
+	QueueGraphics(new GMSetUIb("LevelMessage", GMUI::VISIBILITY, true));
+	displayed = true;
+}
+
+void LevelMessage::Hide()
+{
+	QueueGraphics(new GMSetUIb("LevelMessage", GMUI::VISIBILITY, false));
+	displayed = false;
+}
+
+
 Level::Level()
 {
 	height = 20.f;
@@ -26,6 +49,7 @@ Level::~Level()
 {
 	spawnGroups.ClearAndDelete();
 	ships.ClearAndDelete();
+	messages.ClearAndDelete();
 }
 
 bool Level::Load(String fromSource)
@@ -34,6 +58,10 @@ bool Level::Load(String fromSource)
 
 	/// Clear old stuff.
 	ships.ClearAndDelete();
+	spawnGroups.ClearAndDelete();
+	SpawnGroup * group = NULL;
+	messages.ClearAndDelete();
+
 	millisecondsPerPixel = 250;
 	levelTime = Time(TimeType::MILLISECONDS_NO_CALENDER, 0); // reset lvl time.
 
@@ -42,23 +70,34 @@ bool Level::Load(String fromSource)
 	music = source+".ogg";
 	Vector3i goalColor;
 	
-	// Clear old
-	spawnGroups.ClearAndDelete();
-	SpawnGroup * group = NULL;
 
 	List<ShipColorCoding> colorCodings;
 	List<String> lines = File::GetLines(sourceTxt);
 	enum {
 		PARSE_MODE_INIT,
 		PARSE_MODE_FORMATIONS,
+		PARSE_MODE_MESSAGES,
 	};
 	int parseMode = 0;
 	SpawnGroup * lastGroup = NULL;
+	LevelMessage * message = NULL;
 #define	ADD_GROUP_IF_NEEDED {if (group) { lastGroup = group; spawnGroups.Add(group);} group = NULL;}
+#define	ADD_MESSAGE_IF_NEEDED {if (message) { messages.Add(message);} message = NULL;}
 	for (int i = 0; i < lines.Size(); ++i)
 	{
 		String line = lines[i];
 		line.SetComparisonMode(String::NOT_CASE_SENSITIVE);
+		// Formation specific parsing.
+		List<String> tokens = line.Tokenize(" ()\t");
+		if (tokens.Size() == 0)
+			continue;
+		String var, arg, arg2, parenthesisContents;
+		if (tokens.Size() > 0)
+			 var = tokens[0];
+		if (tokens.Size() > 1)
+			arg = tokens[1];
+		if (tokens.Size() > 2)
+			arg2 = tokens[2];
 		// o.o
 		if (line.StartsWith("StopLoading"))
 			break;
@@ -74,17 +113,21 @@ bool Level::Load(String fromSource)
 			group->name = timeStr;
 			parseMode = PARSE_MODE_FORMATIONS;
 		}
+		if (line.StartsWith("Message"))
+		{
+			ADD_MESSAGE_IF_NEEDED;
+			message = new LevelMessage();
+			message->startTime.ParseFrom(arg);
+			message->stopTime = message->startTime + Time(TimeType::MILLISECONDS_NO_CALENDER, 5000); // Default 5 seconds?
+			parseMode = PARSE_MODE_MESSAGES;
+		}
+		if (parseMode == PARSE_MODE_MESSAGES)
+		{
+			if (var == "TextID")
+				message->textID = arg.ParseInt();
+		}
 		if (parseMode == PARSE_MODE_FORMATIONS)
 		{
-			// Formation specific parsing.
-			List<String> tokens = line.Tokenize(" ()\t");
-			if (tokens.Size() == 0)
-				continue;
-			String var = tokens[0], arg, arg2, parenthesisContents;
-			if (tokens.Size() > 1)
-				arg = tokens[1];
-			if (tokens.Size() > 2)
-				arg2 = tokens[2];
 			// Grab parenthesis
 			tokens = line.Tokenize("()");
 			if (tokens.Size() > 1)
@@ -158,70 +201,17 @@ bool Level::Load(String fromSource)
 		}
 	}
 	// Add last group, if needed.
-	if (group)
-		spawnGroups.AddItem(group);
+	ADD_GROUP_IF_NEEDED;
+	ADD_MESSAGE_IF_NEEDED;
 
 	/// Sort groups based on spawn-time?
 
-
-//	List<String> files ;
-//	GetFilesInDirectory("Levels/Stage 1", files);  
-	/*
-	Texture * tex = TexMan.LoadTexture(sourcePng, true);
-	if (!tex)
-		return false;
-	tex->releaseOnBufferization = false;
-	assert(tex);
-	// Parse it.
-	for (int x = 0; x < tex->width; ++x)
-	{
-		// Get top.
-		int topY = tex->height - 1;
-		for (int y = topY; y > topY - 20; --y)
-		{
-			Vector3i color = tex->GetPixelVec4i(x,y);
-			// Skip if white.
-			if (color[0] == 255 && color[1] == 255 && color[2] == 255)
-				continue;
-			if (color[0] == 0 && color[1] == 0 && color[2] == 0)
-				continue;
-			if (color == goalColor)
-			{
-				// o.o
-				// Set goal position
-				goalPosition = x;
-				continue;
-			}
-			bool found = false;
-			for (int i = 0; i < colorCodings.Size(); ++i)
-			{
-				ShipColorCoding & coding = colorCodings[i];
-				if (coding.color == color)
-				{
-					Ship newShip = Ship::New(coding.ship);
-					newShip.position[0] = (float) x;
-					newShip.position[1] = (float) 20 - (topY - y);
-					// Create ship.
-					ships.AddItem(newShip);
-					found = true;
-				}
-			}
-			if (!found)
-				std::cout<<"\nUnable to find ship for coded color: "<<color;
-
-		}
-	}
-	if (ships.Size() == 0)
-	{	
-		std::cout<<"\nError: No Ships in level.";
-		return false;
-	}
-	*/
+	// Sort messages based on time?
 
 	// No gravity
 	PhysicsMan.QueueMessage(new PMSet(PT_GRAVITY, Vector3f(0,0,0)));
 
-	// Add player?
+	// Add player? - Done later via script
 	return true;
 }
 
@@ -314,6 +304,23 @@ void Level::Process(int timeInMs)
 		levelTime.AddMs(timeInMs);
 	}
 
+	/// Check messages.
+	if (messages.Size())
+	{
+		LevelMessage * lm = messages[0];
+		if (lm->startTime < levelTime && !lm->displayed)
+		{
+			lm->Display();
+		}
+		else if (lm->stopTime < levelTime)
+		{
+			// Retain sorting.
+			lm->Hide();
+			messages.RemoveItem(lm);
+			delete lm;
+		}
+	}
+
 	/// Check spawn-groups.
 	if (spawnGroups.Size())
 	{
@@ -389,7 +396,7 @@ void Level::Process(Ship & ship)
 	if (ship.hasShield)
 	{
 		// Repair shield
-		ship.shieldValue += timeElapsedMs * ship.shieldRegenRate;
+		ship.shieldValue += timeElapsedMs * 0.001 * ship.shieldRegenRate;
 		if (ship.shieldValue > ship.maxShieldValue)
 			ship.shieldValue = ship.maxShieldValue;
 		if (ship.allied)

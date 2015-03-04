@@ -24,8 +24,8 @@ class AudioMixer
 	AudioMixer();
 	~AudioMixer();
 public:
-	static void Allocate();
-	static void Deallocate();
+	static void AllocateMaster();
+	static void DeallocateMaster();
 
 	/// Buffers floating point [-1,1]-based PCM data.
 	void BufferPCMFloat(Audio * audio, float * buffer, int samples, int channels);
@@ -39,6 +39,10 @@ public:
 	int SamplesToBuffer(Audio * forAudio);
 
 private:
+	/// 0 to 1, preferably (might go over though, if amplifying).
+	float volume;
+	/// o.o
+	bool muted;
 	/// Sends current buffer to audio driver.
 	void SendToDriver(int driverID);
 	AudioBufferMarker * GetMarker(Audio * forAudio);
@@ -56,6 +60,6 @@ private:
 };
 
 /// 1 mixer.
-extern AudioMixer * mixer;
+extern AudioMixer * masterMixer;
 
 #endif

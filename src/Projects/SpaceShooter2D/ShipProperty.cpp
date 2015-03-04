@@ -164,16 +164,17 @@ void ShipProperty::OnCollision(Entity * withEntity)
 //		std::cout<<"\nCollision with ship! o.o";
 		if (sspp->sleeping)
 			return;
-		// 5 times per second atm.
-		if (ship->lastShipCollisionMs < nowMs - 100)
+		// Check collision damage cooldown for if we should apply damage.
+		if (ship->lastShipCollision < levelTime - ship->collisionDamageCooldown)
 		{
 			ship->Damage(sspp->ship->collideDamage, true);
-			ship->lastShipCollisionMs = nowMs;
+			ship->lastShipCollision = levelTime;
 		}
-		if (sspp->ship->lastShipCollisionMs < nowMs - 100)
+		// Same for the other ship.
+		if (sspp->ship->lastShipCollision < levelTime - sspp->ship->collisionDamageCooldown)
 		{
 			sspp->ship->Damage(ship->collideDamage, false);
-			sspp->ship->lastShipCollisionMs = nowMs;
+			sspp->ship->lastShipCollision = levelTime;
 		}
 
 		// Add a temporary emitter to the particle system to add some sparks to the collision

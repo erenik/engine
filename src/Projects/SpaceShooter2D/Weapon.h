@@ -7,6 +7,7 @@
 
 #include "String/AEString.h"
 #include "MathLib.h"
+#include "Time/Time.h"
 
 class Ship;
 
@@ -23,8 +24,8 @@ public:
 	String name;
 	/// -1 = Infinite, >= 0 = Finite
 	int ammunition;
-	/// Cooldown in milliseconds.
-	int cooldownMs;
+	/// Cooldown.
+	Time cooldown;
 	enum {
 		STRAIGHT,
 		SPINNING_OUTWARD,
@@ -44,15 +45,15 @@ public:
 	// Burst stuff.
 	bool burst;
 	// Start time of last/active burst.
-	int burstStartMs;
+	Time burstStart;
 	/// Delay between each round within the burst.
-	int burstRoundDelayMs;
+	Time burstRoundDelay;
 	/// For burst.
 	int burstRounds;
 	// Restarts
 	int burstRoundsShot; 
 	/// Last show, format Time::Now().Milliseconds()
-	int lastShotMs;
+	Time lastShot;
 	static List<Weapon> types;
 
 	/// For aiming weapons, mainly. Normalized vector.

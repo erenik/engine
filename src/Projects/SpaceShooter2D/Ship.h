@@ -52,7 +52,8 @@ public:
 	bool hasShield;
 
 	/// In order to not take damage allllll the time (depending on processor speed, etc. too.)
-	int64 lastShipCollisionMs;
+	Time lastShipCollision;
+	Time collisionDamageCooldown; // default 100 ms.
 
 	/// Mooovemeeeeeeent
 	List<Movement> movementPatterns;

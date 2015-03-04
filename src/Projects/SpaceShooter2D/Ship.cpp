@@ -13,6 +13,9 @@
 
 Ship::Ship()
 {
+	collisionDamageCooldown = Time(TimeType::MILLISECONDS_NO_CALENDER, 100);
+	lastShipCollision = Time(TimeType::MILLISECONDS_NO_CALENDER, 0);
+
 	spawned = false;
 	entity = NULL;
 	ai = true;
@@ -32,8 +35,7 @@ Ship::Ship()
 	timeInCurrentRotation = 0;
 
 	collideDamage = 1;
-	lastShipCollisionMs = 0;
-
+	
 	graphicModel = "obj/Ships/Ship.obj";
 
 	maxRadiansPerSecond = PI / 12;
@@ -234,8 +236,8 @@ bool Ship::LoadTypes(String file)
 					List<String> toks = value.Tokenize("(),");
 					weapon.burst = true;
 					weapon.burstRounds = toks[1].ParseInt();
-					weapon.burstRoundDelayMs = (int) (toks[2].ParseFloat() * 1000);
-					weapon.cooldownMs = (int) (toks[3].ParseFloat() * 1000);
+					weapon.burstRoundDelay.intervals = (int) (toks[2].ParseFloat() * 1000);
+					weapon.cooldown.intervals = (int) (toks[3].ParseFloat() * 1000);
 				}
 				else 
 				{
@@ -249,7 +251,7 @@ bool Ship::LoadTypes(String file)
 					for (int i = 0; i < ship.weapons.Size(); ++i)
 					{
 						Weapon & weapon = ship.weapons[i];
-						weapon.cooldownMs = (int) (cooldowns[i].ParseFloat() * 1000);
+						weapon.cooldown.intervals = (int) (cooldowns[i].ParseFloat() * 1000);
 						int p = i;
 					}
 				}
@@ -558,12 +560,15 @@ Vector3f Ship::WeaponTargetDir()
 void Ship::UpdateStatsFromGear()
 {
 	hp = this->maxHP = armor.maxHP;
-	shieldValue = this->maxShieldValue = shield.maxShield;
+	shieldValue = (float) (this->maxShieldValue = shield.maxShield);
 	this->shieldRegenRate = shield.shieldRegen;
 	// Set weapon stats.
-	Weapon & mainWeapon = weapons[0];
-	mainWeapon.cooldownMs = weapon.reloadTimeMs;
-	mainWeapon.damage = weapon.damage;
+	if (weapons.Size())
+	{
+		Weapon & mainWeapon = weapons[0];
+		mainWeapon.cooldown = weapon.reloadTime;
+		mainWeapon.damage = weapon.damage;
+	}
 }
 
 

@@ -471,11 +471,6 @@ void TIFS::ProcessMessage(Message * message)
 				// Go there?
 				StateMan.QueueState(mapEditor);
 			}
-			else if (msg == "ToggleMute")
-			{
-				// Mute?
-				AudioQueue.Add(new AudioMessage(AM_TOGGLE_MUTE));
-			}
 			else if (msg == "OpenMainMenu")
 			{
 				GraphicsQueue.Add(new GMSetUI(ui));

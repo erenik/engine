@@ -330,6 +330,11 @@ void MessageManager::ProcessMessage(Message * message)
 			{
 				Light::ProcessMessageStatic(message);
 			}
+			else if (msg == "ToggleMute")
+			{
+				// Mute?
+				QueueAudio(new AudioMessage(AM_TOGGLE_MUTE));
+			}
 			else if (msg.StartsWith("SetGravity"))
 			{
 				String gravStr = msg.Tokenize("()")[1];

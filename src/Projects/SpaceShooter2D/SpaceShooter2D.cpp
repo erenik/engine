@@ -8,9 +8,6 @@
 #include "Application/Application.h"
 #include "StateManager.h"
 
-#include "Input/InputManager.h"
-#include "Input/Action.h"
-
 #include "Physics/Messages/CollisionCallback.h"
 #include "Window/Window.h"
 #include "Viewport.h"
@@ -23,6 +20,8 @@
 
 #include "Message/MathMessage.h"
 #include "Gear.h"
+
+#include "Input/InputManager.h"
 
 /// Particle system for sparks/explosion-ish effects.
 Sparks * sparks = NULL;
@@ -166,7 +165,7 @@ void SpaceShooter2D::OnEnter(AppState * previousState)
 
 
 Time now;
-int64 nowMs;
+// int64 nowMs;
 int timeElapsedMs;
 
 /// Main processing function, using provided time since last frame.
@@ -177,8 +176,6 @@ void SpaceShooter2D::Process(int timeInMs)
 //	if (playerShip) std::cout<<"\nPlayer position: "<<playerShip.position;
 
 	now = Time::Now();
-	nowMs = now.Milliseconds();
-	assert(nowMs >= 0);
 	timeElapsedMs = timeInMs;
 	
 	Cleanup();
@@ -241,6 +238,10 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 			else if (msg == "SetDifficulty")
 			{
 				difficulty->iValue = im->value;
+			}
+			else if (msg == "SetMasterVolume")
+			{
+				QueueAudio(new AMSet(AT_MASTER_VOLUME, im->value * 0.01f));
 			}
 			break;
 		}
@@ -524,26 +525,6 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 	}
 }
 
-
-/// Creates default key-bindings for the state.
-void SpaceShooter2D::CreateDefaultBindings()
-{
-	List<Binding*> & bindings = this->inputMapping.bindings;
-#define BINDING(a,b) bindings.Add(new Binding(a,b));
-	BINDING(Action::CreateStartStopAction("MoveShipUp"), KEY::W);
-	BINDING(Action::CreateStartStopAction("MoveShipDown"), KEY::S);
-	BINDING(Action::CreateStartStopAction("MoveShipLeft"), KEY::A);
-	BINDING(Action::CreateStartStopAction("MoveShipRight"), KEY::D);
-	BINDING(Action::FromString("ResetCamera"), KEY::HOME);
-	BINDING(Action::FromString("NewGame"), List<int>(KEY::N, KEY::G));
-	BINDING(Action::FromString("ClearLevel"), List<int>(KEY::C, KEY::L));
-	BINDING(Action::FromString("ListEntitiesAndRegistrations"), List<int>(KEY::L, KEY::E));
-	BINDING(Action::FromString("ToggleBlackness"), List<int>(KEY::T, KEY::B));
-	BINDING(Action::FromString("NextLevel"), List<int>(KEY::N, KEY::L));
-	BINDING(Action::FromString("PreviousLevel"), List<int>(KEY::P, KEY::L));
-	BINDING(Action::FromString("ToggleMenu"), KEY::ESCAPE);
-}
-
 /// Called from the render-thread for every viewport/window, after the main rendering-pipeline has done its job.
 void SpaceShooter2D::Render(GraphicsState * graphicsState)
 {
@@ -662,7 +643,7 @@ void SpaceShooter2D::NewPlayer()
 			std::cout<<"\nAdding default weapon.";
 			Weapon weapon;
 			weapon.damage = 24;
-			weapon.cooldownMs = 200;
+			weapon.cooldown.intervals = 200;
 			weapon.projectileSpeed = 24.f;
 			playerShip.weapons.Add(weapon);
 			playerShip.maxHP = 500;
@@ -712,6 +693,9 @@ void SpaceShooter2D::LoadLevel(String fromSource)
 	// Reset stats for this specific level.
 	LevelKills()->iValue = 0;
 	LevelScore()->iValue = 0;
+
+	QueueGraphics(new GMSetUIb("LevelMessage", GMUI::VISIBILITY, false));
+
 
 	showLevelStats = false;
 	inGameMenuOpened = false;
