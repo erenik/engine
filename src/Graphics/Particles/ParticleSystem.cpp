@@ -118,14 +118,19 @@ ParticleSystem::~ParticleSystem()
 /// Sets default values. Calls AllocateArrays.
 void ParticleSystem::Initialize()
 {
-	// Allocate the particle data arrays.
-	AllocateArrays();
-	initialized = true;
 	// Grab model.
 	model = ModelMan.GetModel(modelName);
+	if (!model)
+	{
+		LogGraphics("Unable to initialize ParticleSystem. Bad model.", ERROR);
+		return;
+	}
 	// Bufferize model if needed.
 	model->BufferizeIfNeeded();
 	assert(model);
+	// Allocate the particle data arrays.
+	AllocateArrays();
+	initialized = true;
 }
 
 
@@ -162,6 +167,7 @@ void ParticleSystem::Process(float timeInSeconds)
 {
 	if (!initialized)
 		Initialize();
+	assert(initialized);
 	Timer timer;
 	timer.Start();
 	ProcessParticles(timeInSeconds);

@@ -10,6 +10,7 @@ class Entity;
 class EntityPropertyState;
 class Message;
 struct Collision;
+class CollisionCallback;
 
 /// Just some stuff.
 const int propertiesPerGame = 100;
@@ -63,8 +64,10 @@ public:
 	/// Enters the previous state again.
 	void RevertToPreviousState();
 
-	/// If reacting to collisions...
+	/// If reacting to collisions... in physics thread
 	virtual void OnCollision(Collision & data);
+	/// If reacting to collisions... in main thread
+	virtual void OnCollisionCallback(CollisionCallback * cc);
 
 	/// Returns the ID of this specific property (used when identifying it within an entity later on).
 	int GetID();

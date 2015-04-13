@@ -96,6 +96,11 @@ void EntityProperty::OnCollision(Collision & data)
 {
 }
 
+/// If reacting to collisions... in main thread
+void EntityProperty::OnCollisionCallback(CollisionCallback * cc)
+{
+}
+
 /// Returns the ID of this specific property (used when identifying it within an entity later on).
 int EntityProperty::GetID()
 {

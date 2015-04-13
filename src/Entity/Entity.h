@@ -23,6 +23,7 @@ class Triangle;
 class EntityProperty;
 class Camera;
 class Message;
+class CollisionCallback;
 /*
 #include "GL/glew.h"
 #include "Mesh/Mesh.h"
@@ -50,8 +51,10 @@ public:
 	/// Default destructor
 	~Entity();
 
-	/// If reacting to collisions,.. pokes all properties about it too.
+	/// If reacting to collisions within the physics thread.,.. pokes all properties about it too.
 	virtual void OnCollision(Collision & data);
+	/// If reacting to collisions within the main state thread (callbacks).
+	virtual void OnCollisionCallback(CollisionCallback * cc);
 
 	/// Fetches an AABB encapsulating this entity, including any children?
 	AABB * GetAABB();
@@ -131,11 +134,11 @@ public:
 	void SetRotation(const Quaternion & quat);
 	/// Rotation from the default (looking into -Z
 	void SetRotation(const Vector3f & rotationFromZMinus1);
-	/** Sets scale of the entity */
+	/// Sets scale of the entity, updates transform.
 	void SetScale(const Vector3f & scale);
-	/** Scales the Entity */
+	/// Scales the Entity, updates transform.
 	void Scale(const Vector3f & scale);
-	/** Scales the Entity */
+	/// Scales the Entity, updates transform.
 	void Scale(float scale);
 	/** Translates the Entity */
 	void Translate(float x, float y, float z);

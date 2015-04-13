@@ -165,6 +165,16 @@ void Entity::OnCollision(Collision & data)
 	}
 }
 
+void Entity::OnCollisionCallback(CollisionCallback *cc)
+{
+	for (int i = 0; i < properties.Size(); ++i)
+	{
+		EntityProperty * prop = properties[i];
+		prop->OnCollisionCallback(cc);
+	}
+}
+
+
 /// Fetches an AABB encapsulating this entity, including any children?
 AABB * Entity::GetAABB()
 {

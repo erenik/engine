@@ -10,10 +10,10 @@
 
 #include "ThreadSetup.h"
 
-#define LogPhysics(s,i) LogToFile(PHYSICS_THREAD, s, i)
-#define LogMain(s,i) LogToFile(MAIN_THREAD, s, i)
-#define LogAudio(s,i) LogToFile(AUDIO_THREAD, s,i)
-#define LogGraphics(s,i) LogToFile(GRAPHICS_THREAD, s, i)
+#define LogPhysics(text, level) LogToFile(PHYSICS_THREAD, text, level)
+#define LogMain(text, level) LogToFile(MAIN_THREAD, text, level)
+#define LogAudio(text, level) LogToFile(AUDIO_THREAD, text, level)
+#define LogGraphics(text, level) LogToFile(GRAPHICS_THREAD, text, level)
 
 #ifdef ERROR
 #undef ERROR
