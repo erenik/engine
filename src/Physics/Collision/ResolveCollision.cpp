@@ -87,6 +87,10 @@ bool ResolveCollision(Collision &data)
 			MesMan.QueueMessage((Message*)msg);
 		}
 	}
+	if (one->physics->onCollision)
+		one->OnCollision(data);
+	if (two->physics->onCollision)
+		two->OnCollision(data);
 
 	// Return straight away if no collission should be resolved, yo?
 	if (one->physics->noCollisionResolutions || two->physics->noCollisionResolutions){

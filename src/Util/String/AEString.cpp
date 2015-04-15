@@ -822,12 +822,18 @@ int String::Find(const String & subString) const
 {
 	if (type == NULL_TYPE)
 		return -1;
-
+	// If any of them is wide-char...
 	if (type == WIDE_CHAR)
 	{
 		String cVersion = this;
 		cVersion.ConvertToChar();
 		return cVersion.Find(subString);
+	}
+	else if (subString.type == WIDE_CHAR)
+	{
+		String subStringC = subString;
+		subStringC.ConvertToChar();
+		return Find(subStringC);
 	}
 	if (subString.Length() == 0)
 		return -1;

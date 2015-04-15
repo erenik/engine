@@ -33,7 +33,7 @@ public:
 	/// Easy access
 	int frames;
 	/// In Milliseconds, total of the all frame-durations.
-	int totalDuration;
+	int totalDurationMs;
 };
 
 #endif

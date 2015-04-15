@@ -55,6 +55,8 @@ bool AnimationSet::Load(String fromFolder)
 			continue;
 		String key = tokens[0];
 		String value = tokens[1];
+		if (key == "AnimationSet")
+			name = value;
 		if (key == "animation")
 		{
 			animation = GetAnimation(value);
@@ -66,9 +68,9 @@ bool AnimationSet::Load(String fromFolder)
 		{
 			animation->repeatable = value.ParseBool();
 		}
-		else if (key == "duration")
+		else if (key == "duration" || key == "totalDurationMs")
 		{
-			animation->totalDuration = value.ParseInt();
+			animation->totalDurationMs = value.ParseInt();
 		}
 	}
 	// Look for a "timing.txt" or similar file.
@@ -146,10 +148,10 @@ Animation * AnimationSet::LoadAnimationFromFolder(String fromFolder)
 
 	anim->frames = anim->frameSources.Size();
 	// Calculate frame-times.
-	anim->totalDuration = 1000;
+	anim->totalDurationMs = 1000;
 	anim->frameDurations.Clear();
 	for (int i = 0; i < anim->frames; ++i){
-		anim->frameDurations.Add(anim->totalDuration / anim->frames);
+		anim->frameDurations.Add(anim->totalDurationMs / anim->frames);
 	}
 	return anim;
 }

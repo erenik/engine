@@ -97,8 +97,9 @@ void PhysicsProperty::Nullify()
 {
 	requireGroundForLocalAcceleration = false;
 	isOnGroundThresholdMs = 50;
+	onCollision = false;
 
-
+	recalculatePhysicalRadius = true;
 	fullyDynamic = true;
 	useForces = false;
 	faceVelocityDirection = false;
@@ -266,7 +267,8 @@ void PhysicsProperty::UpdateProperties(Entity * entity)
 	if (entity->model)
 	{
 	//	assert(entity->model->radius > 0);
-		physicalRadius = entity->model->radius * entity->scale.MaxPart();
+		if (recalculatePhysicalRadius)
+			physicalRadius = entity->model->radius * entity->scale.MaxPart();
 		if (obb)
 			obb->Recalculate(entity);
 	}

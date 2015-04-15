@@ -30,5 +30,8 @@ void SideScroller::CreateDefaultBindings()
 	BIND(Action::FromString("AdjustMasterVolume(-0.05)", ACTIVATE_ON_REPEAT), List<int>(KEY::CTRL, KEY::V, KEY::MINUS));
 	BIND(Action::FromString("NewGame"), KEY::N);
 	BIND(Action::FromString("Jump"), KEY::SPACEBAR);
+	
+	BIND(Action::FromString("CycleCamera"), KEY::C);
+
 }
 

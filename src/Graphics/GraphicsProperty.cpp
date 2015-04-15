@@ -67,6 +67,7 @@ GraphicsProperty::~GraphicsProperty()
 	dynamicLights.ClearAndDelete();
 	staticLights.ClearAndDelete();
 }
+#include "GraphicsState.h"
 
 /// Processes estimators related to this entity.
 void GraphicsProperty::Process(int timeInMs)
@@ -74,6 +75,19 @@ void GraphicsProperty::Process(int timeInMs)
 	if (allAnimationsPaused)
 		return;
 		
+	// Sprite-animation
+	if (animationSet)
+	{
+		owner->diffuseMap = GetTextureForCurrentFrame(graphicsState->frametimeStartMs);
+		assert(owner->diffuseMap);
+		if (owner->diffuseMap->glid == -1)
+		{
+			/// Bufferize it
+			TexMan.BufferizeTexture(owner->diffuseMap);
+		}
+	}
+
+	/// Tweaking of various graphical-based values, e.g. Alpha.
 	for (int i = 0; i < estimators.Size(); ++i)
 	{
 		Estimator * estimator = estimators[i];
@@ -169,16 +183,16 @@ Texture * GraphicsProperty::GetTextureForCurrentFrame(int64 & frameTime)
 
 	/// Calculate animation-time.
 	int64 animTime = frameTime - animStartTime;
-	if (animTime > currentAnimation->totalDuration && currentAnimation->repeatable)
+	if (animTime > currentAnimation->totalDurationMs && currentAnimation->repeatable)
 	{
-		animTime = animTime % currentAnimation->totalDuration;
+		animTime = animTime % currentAnimation->totalDurationMs;
 	}
 
 	/// Get right frame
 	Texture * texture = currentAnimation->GetTexture(animTime);
 
 	// If not repeatable, halt it once it exceeds its duration.
-	if (animTime > currentAnimation->totalDuration && !currentAnimation->repeatable)
+	if (animTime > currentAnimation->totalDurationMs && !currentAnimation->repeatable)
 	{
 		currentAnimation = NULL;	
 	}

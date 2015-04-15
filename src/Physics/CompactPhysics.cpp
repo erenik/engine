@@ -51,7 +51,7 @@ CompactPhysics::CompactPhysics(PhysicsProperty * physicsProperty)
 	collissionCallback = physicsProperty->collissionCallback;
 	collissionCallbackRequirementValue = physicsProperty->collissionCallbackRequirementValue;
 	collisionsEnabled = physicsProperty->collisionsEnabled;
-	noCollisionResolutions = physicsProperty->noCollisionResolutions;
+	noCollisionResolutions = !physicsProperty->noCollisionResolutions;
 }
 
 /// Compact Physics versions

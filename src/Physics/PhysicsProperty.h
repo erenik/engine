@@ -87,7 +87,12 @@ public:
 
 	/// Basic physics type, defined where? STATIC DYNAMIC KINEMATIC anyway.
 	int type;
-	/// Collision detection shape type
+	/** Collision detection shape type.
+		Different types infer using various methods of storage for the actual shape type (non-transformed).
+		AABB uses the entity's raw AABB (no transforms necessary?).
+		SPHERE uses the physical radius and entity position.
+
+	*/
 	int shapeType;
 	/// Pointer to the mesh of type defined in physicsShape. (e.g. Plane, Sphere, Mesh, etc.)
 	void * shape;
@@ -130,6 +135,8 @@ public:
 	bool useQuaternions;
 	static bool defaultUseQuaternions;
 
+	/// Default true. Set to false if giving entity's custom radii which should not change dynamically.
+	bool recalculatePhysicalRadius;
 	// Current physical properties, affected by a number of properties elsewhere in Entity.
 	float physicalRadius;
 
@@ -272,8 +279,9 @@ public:
 	/// Set to any value as defined in Collision.h's enum "collissionCallbackRequirements"
 	/// Paused o-o
 	bool paused;
-	/// Boolean.
-	bool collissionCallback;
+	/// Booleans.
+	bool onCollision; // if OnCollision should be processed for this entity.
+	bool collissionCallback; // If a CollisionCallback message should be generated.
 	/// If non-negative, defiens max callbacks. Useful for things as projectiles which should only collide once (optimization). Default unlimited (-1) 
 	int maxCallbacks;
 	float collissionCallbackRequirementValue;

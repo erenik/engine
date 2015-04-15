@@ -112,6 +112,15 @@ public:
 	bool renderInstanced;
 	// See enum in Render/RenderInstancingGroup.h Default 0.
 	bool instancedOptions;
+
+	/// Set of animations, usually belong to one model/character.
+	AnimationSet * animationSet;
+	/// Animation, a series of textures that make up an animation, with times in between, flags for repeatability etc.
+	Animation * currentAnimation;
+	/// Wooo
+	Animation * queuedAnimation;
+	/// Time that the current animation started.
+	long long animStartTime;
 private:
 	/// Estimators which are currently tweaking various graphic-specific values over time.
 	List<Estimator*> estimators;
@@ -125,15 +134,6 @@ private:
 	void SetSkeletalAnimation(String name);
 	/// Sets queued animation. Only called from the GMSetEntity message.
 	void SetQueuedSkeletalAnimation(String name);
-
-	/// Set of animations, usually belong to one model/character.
-	AnimationSet * animationSet;
-	/// Animation, a series of textures that make up an animation, with times in between, flags for repeatability etc.
-	Animation * currentAnimation;
-	/// Wooo
-	Animation * queuedAnimation;
-	/// Time that the current animation started.
-	long long animStartTime;
 	
 	// Filter to enable per-viewport disabled rendering.
 	List<Camera*> cameraFilter;

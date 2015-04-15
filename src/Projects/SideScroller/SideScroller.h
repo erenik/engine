@@ -191,8 +191,16 @@ private:
 	void BreatherBlock();
 	/// Creates a 20+ meters level-part.
 	void AddLevelPart();
-	/// Starts at 0, increments after calling BreatherBlock and AddLevelPart
-	float levelLength;
+	void CleanupOldBlocks();
+
+	/// Defaults.
+//	void Block(); // Appends a block. Default size 2.
+//	void Hole(); // Appends a hole, default side 2.
+
+	/// Various parts o.o
+	void FlatPart(); // Just flat, 10 pieces.
+	void LinearHoles(int numHoles); // With a number of holes at varying positions, always with 1 block in between. Max 5 holes.
+	void AddDBLPart(); // Difficulty-By-Length, randomly generated. Used in initial test
 
 	/// For display.
 	String lastError;

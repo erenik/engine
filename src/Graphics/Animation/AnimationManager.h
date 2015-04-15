@@ -23,7 +23,14 @@ public:
 	static AnimationManager * Instance();
 	static void Allocate();
 	static void Deallocate();
-	/// Attempts to oetketretjet
+	/** Attempts to load all available animation sets from target directory.
+		E.g. calling from a dir 'anim' the following structure is expected:
+		/anim/.
+		/anim/AnimSet1/
+		/anim/AnimSet2/ etc.
+
+		Where each AnimSet# folder contains sub-folders for each animation, and an optional configuration file.
+	*/
 	bool LoadFromDirectory(String dir);
 	/// Wooo.
 	AnimationSet * GetAnimationSet(String byName);

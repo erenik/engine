@@ -12,6 +12,7 @@
 #include "Window/Window.h"
 #include "Viewport.h"
 
+#include "Entity/EntityProperty.h"
 #include "OS/OSUtil.h"
 #include "File/SaveFile.h"
 
@@ -26,6 +27,8 @@
 #include "Physics/CollisionDetectors/FirstPersonCD.h"
 #include "Physics/CollisionResolvers/FirstPersonCR.h"
 
+#include "Graphics/Messages/GMAnimate.h"
+
 /// Particle system for sparks/explosion-ish effects.
 Sparks * sparks = NULL;
 Stars * stars = NULL;
@@ -34,6 +37,9 @@ ParticleEmitter * starEmitter = NULL;
 
 bool paused = false;
 float breatherBlockSize = 5.f;
+Random levelRand;
+/// Starts at 0, increments after calling BreatherBlock and AddLevelPart
+float levelLength;
 
 /// 4 entities constitude the blackness.
 List<Entity*> blacknessEntities;
@@ -64,6 +70,117 @@ bool showLevelStats = false;
 /// Main level camera, following player.
 Camera * levelCamera = NULL;
 Entity * playerEntity = NULL;
+// Dynamically created ones, to be cleaned up as we go.
+Entities levelEntities;
+
+#define CC_ENVIRONMENT	1
+#define CC_PLAYER		(1 << 1)
+#define CC_PESO			(1 << 2)
+#define CC_OBSTACLE		(1 << 3)
+
+#define EP_PESO 0
+#define EP_LUCHA 1
+
+int munny = 0;
+enum 
+{
+	PERSP_CAMERA,
+	ORTHO_CAMERA,
+	CAMERA_TYPES,
+};
+int camera = ORTHO_CAMERA;
+
+void CycleCamera(int toWhich = -1)
+{
+	if (toWhich > -1)
+		camera = toWhich % CAMERA_TYPES;
+	if (!levelCamera)
+		levelCamera = CameraMan.NewCamera("Level Camera");
+	// General properties.
+	levelCamera->trackingMode = TrackingMode::ADD_POSITION;
+	levelCamera->entityToTrack = playerEntity;
+	levelCamera->position = Vector3f(0,0,0);
+	levelCamera->distanceFromCenterOfMovement = 10.f;
+	switch(camera)
+	{
+		case PERSP_CAMERA:
+			levelCamera->projectionType = Camera::PROJECTION_3D;
+			levelCamera->zoom = 0.1f;
+			levelCamera->rotation = Vector3f(PI*0.25f, PI*0.125f, 0);
+			break;
+		case ORTHO_CAMERA:
+			levelCamera->projectionType = Camera::ORTHOGONAL;
+			levelCamera->zoom = 10.f;
+			levelCamera->rotation = Vector3f();
+			break;
+	}
+	// Set camera
+	QueueGraphics(new GMSetCamera(levelCamera));
+}
+
+
+class PesoProperty : public EntityProperty 
+{
+public:
+	PesoProperty(Entity * owner)
+		: EntityProperty("PesoProp", EP_PESO, owner)
+	{
+		value = 1;
+		sleeping = false;
+	};
+	virtual void OnCollisionCallback(CollisionCallback * cc)
+	{
+		if (sleeping)
+			return;
+		sleeping = true;
+		munny += value;
+		MapMan.DeleteEntity(owner); // Remove self.
+	}
+	bool sleeping;
+	int value;
+};
+
+class LuchadorProperty : public EntityProperty 
+{
+public:
+	LuchadorProperty(Entity * owner)
+		: EntityProperty("LuchaProp", EP_LUCHA, owner){}
+	virtual void OnCollision(Collision & data)
+	{
+		Entity * other = NULL;
+		if (data.one == owner)
+			other = data.two;
+		else
+			other = data.one;
+		if (other->physics->collisionCategory == CC_ENVIRONMENT)
+		{
+			// o.o
+			if (AbsoluteValue(data.collisionNormal.y) > 0.8f)
+			{
+				GMPlayAnimation anim("Run", owner);
+				anim.Process(); // Process straight away, no use queueing it up.
+			}
+		}
+	}
+	virtual void OnCollisionCallback(CollisionCallback * cc)
+	{
+		Entity * other = NULL;
+		if (cc->one == owner)
+			other = cc->two;
+		else
+			other = cc->one;
+		if (other->physics->collisionCategory == CC_ENVIRONMENT)
+		{
+			// o.o
+			if (cc->impactNormal.y > 0.8f)
+			{
+				GMPlayAnimation anim("Run", owner);
+				anim.Process(); // Process straight away, no use queueing it up.
+			}
+		}
+	}
+};
+
 
 void RegisterStates()
 {
@@ -193,11 +310,13 @@ void SideScroller::Process(int timeInMs)
 
 void SideScroller::ProcessLevel(int timeInMs)
 {
-	if (playerEntity->position.x > levelLength - 5.f)
+	if (playerEntity->position.x > levelLength - 25.f)
 	{
 		// Create moar!
 		BreatherBlock();
 		AddLevelPart();
+		// Clean-up past level-parts
+		CleanupOldBlocks();
 	}
 	else if (playerEntity->position.y < -2.f)
 	{
@@ -279,14 +398,18 @@ void SideScroller::ProcessMessage(Message * message)
 			int types[5] = {0,0,0,0,0};
 			++types[oneType];
 			++types[twoType];
-		//	std::cout<<"\nCollision between "<<one->name<<" and "<<two->name;
-			if (oneType == PLAYER)
+			
+			switch(one->physics->collisionCategory)
 			{
-				one->OnCollisionCallback(cc);
+				case CC_PESO:
+				case CC_PLAYER:
+					one->OnCollisionCallback(cc);
 			}
-			else if (twoType == PLAYER)
+			switch(two->physics->collisionCategory)
 			{
-				two->OnCollisionCallback(cc);
+				case CC_PESO:
+				case CC_PLAYER:
+					two->OnCollisionCallback(cc);
 			}
 			break;
 		}
@@ -300,6 +423,8 @@ void SideScroller::ProcessMessage(Message * message)
 				NewGame();
 			else if (msg == "Jump")
 				Jump();
+			else if (msg == "CycleCamera")
+				CycleCamera(camera+1);
 			else if (msg.Contains("AutoSave"))
 			{
 				bool silent = msg.Contains("(silent)");
@@ -564,18 +689,29 @@ GameVariable * SideScroller::LevelKills(int stage, int level)
 	return gv;
 }
 
+Entity * sky = NULL;
+#include "Graphics/Animation/AnimationManager.h"
 
 /// Starts a new game. Calls LoadLevel
 void SideScroller::NewGame()
 {	
+	AnimationMan.LoadFromDirectory("anim");
+
 	/// Clear all pre-existing shit as needed.
 	if (playerEntity)
 	{
 		MapMan.DeleteAllEntities();
+		levelEntities.Clear();
 		playerEntity = NULL;
 	}
 
 	levelLength = - breatherBlockSize * 0.5f;
+
+	// Create sky - again. All entities are cleared on new game.
+	sky = EntityMan.CreateEntity("Sky", ModelMan.GetModel("sprite.obj"), TexMan.GetTexture("0x44AAFF"));
+	sky->position = Vector3f(0, 20, -2);
+	sky->SetScale(Vector3f(1000, 40, 1));
+	MapMan.AddEntity(sky);
 
 	// Create player.
 	NewPlayer();
@@ -590,14 +726,10 @@ void SideScroller::NewGame()
 	ScriptMan.PlayScript("scripts/NewGame.txt");
 
 	// Attach camera?
-	if (!levelCamera)
-		levelCamera = CameraMan.NewCamera("Level player-tracking camera");
-	levelCamera->trackingMode = TrackingMode::ADD_POSITION;
-	levelCamera->entityToTrack = playerEntity;
-	levelCamera->position = Vector3f(0,0,0);
-	levelCamera->distanceFromCenterOfMovement = 10.f;
-	// Set camera
-	QueueGraphics(new GMSetCamera(levelCamera));
+	CycleCamera();
+
+	// Set sun on top?
+//	MesMan.QueueMessages("SetSunTime(12:00)");
 
 	// Resume physics/graphics if paused.
 	Resume();
@@ -616,19 +748,41 @@ void SideScroller::Jump()
 		return;
 	lastJump = now;
 	QueuePhysics(new PMSetEntity(playerEntity, PT_VELOCITY, playerEntity->Velocity() + Vector3f(0,5.f,0)));
+	// Set jump animation! o.o
+	QueueGraphics(new GMPlayAnimation("Jump", playerEntity));
 }
 
+#include "Graphics/GraphicsProperty.h"
+#include "Sphere.h"
+#include "Graphics/Animation/AnimationSet.h"
 
 /// o.o
 void SideScroller::NewPlayer()
 {
 	// Add the player!
-	playerEntity = EntityMan.CreateEntity("Player", ModelMan.GetModel("Sphere.obj"), TexMan.GetTexture("0xFF"));
+	playerEntity = EntityMan.CreateEntity("Player", ModelMan.GetModel("sprite.obj"), TexMan.GetTexture("0xFF"));
 	playerEntity->position.y = 3.f;
-	playerEntity->Scale(0.5f);
+//	playerEntity->Scale(0.5f);
 	// Set up physics.
 	PhysicsProperty * pp = playerEntity->physics = new PhysicsProperty();
 	pp->requireGroundForLocalAcceleration = true;
+	// Manually set up physics for it.
+	pp->shapeType = ShapeType::SPHERE;
+	pp->physicalRadius = 0.5f;
+	pp->recalculatePhysicalRadius = false;
+	pp->onCollision = true;
+	pp->collisionFilter = CC_PESO | CC_ENVIRONMENT;
+	pp->collisionCategory = CC_PLAYER;
+
+	playerEntity->properties.AddItem(new LuchadorProperty(playerEntity));
+
+	// Set up sprite-animation o.o'
+	AnimationSet * set = AnimationMan.GetAnimationSet("Luchador");
+	GraphicsProperty * gp = playerEntity->graphics = new GraphicsProperty(playerEntity);
+	gp->animationSet = set;
+	gp->animStartTime = 0;
+	gp->currentAnimation = set->GetAnimation("Run");
+
 
 	MapMan.AddEntity(playerEntity);
 }
@@ -664,22 +818,103 @@ void SideScroller::OnPauseStateUpdated()
 	}
 }
 
+/// In the current sub-level
+List<Entity*> blocksAdded;
+float blockSize = 2.f;
+
+void Block(float size = -1) // Appends a block. Default size 2.
+{
+	if (size <= 0)
+		size = blockSize;
+	Entity * block = EntityMan.CreateEntity("LevelPart-block", ModelMan.GetModel("cube.obj"), TexMan.GetTexture("0x55"));
+	Vector3f position;
+	position.x += levelLength;
+	position.x += size * 0.5f;
+	block->position = position;
+	block->Scale(Vector3f(size, 1, 1));
+	PhysicsProperty * pp = block->physics = new PhysicsProperty();
+	pp->shapeType = ShapeType::AABB;
+	pp->collisionCategory = CC_ENVIRONMENT;
+	pp->collisionFilter = CC_PLAYER;
+	MapMan.AddEntity(block);
+	levelEntities.AddItem(block);
+	levelLength += size;
+	blocksAdded.AddItem(block);
+}
+
+void Hole() // Appends a hole, default side 2.
+{
+	levelLength += blockSize;
+}
+
+void SideScroller::FlatPart() // Just flat, 10 pieces.
+{
+	for (int i = 0; i < 10; ++i)
+	{
+		Block();
+	}
+}
+
+void SideScroller::LinearHoles(int numHoles) // With a number of holes at varying positions, always with 1 block in between. Max 5 holes.
+{
+	for (int i = 0; i < 10; ++i)
+	{
+		if (i % 2 == 0 || numHoles < 0)
+			Block();
+		else 
+		{
+			Hole();
+			--numHoles;
+		}
+	}
+}
 
 void SideScroller::BreatherBlock()
 {
+	Block(5.f);
+	/*
 	Entity * block = EntityMan.CreateEntity("Block", ModelMan.GetModel("cube.obj"), TexMan.GetTexture("0x55"));
 	PhysicsProperty * pp = block->physics = new PhysicsProperty();
 	pp->shapeType = ShapeType::AABB;
+	pp->collisionCategory = CC_ENVIRONMENT;
 	block->position.x = levelLength + breatherBlockSize * 0.5f;
 	block->SetScale(Vector3f(breatherBlockSize, 1, 1));
 	levelLength += breatherBlockSize;
 	MapMan.AddEntity(block);
+	*/
 }
 
-Random levelRand;
+
+// Add some pesos!
+void AddPesos()
+{
+	// o.o
+	for (int i = 0; i < blocksAdded.Size(); ++i)
+	{
+		Entity * peso = EntityMan.CreateEntity("Peso", ModelMan.GetModel("sphere"), TexMan.GetTexture("0xFFFF00"));
+		peso->properties.Add(new PesoProperty(peso));
+		peso->Scale(0.2f);
+		peso->SetPosition(blocksAdded[i]->position + Vector3f(0,2,0));
+		PhysicsProperty * pp = peso->physics = new PhysicsProperty();
+		pp->noCollisionResolutions = true;
+		pp->collissionCallback = true;
+		pp->collisionCategory = CC_PESO;
+		pp->collisionFilter = CC_PLAYER;
+		MapMan.AddEntity(peso);
+	}
+}
 
 /// Creates a 20+ meters level-part.
 void SideScroller::AddLevelPart()
+{
+	blocksAdded.Clear();
+	// Depending on level.. or possibly random chance.
+	LinearHoles(levelRand.Randi(6));
+	// Add some pesos!
+	AddPesos();
+}
+
+void AddDBLPart() // Difficulty-By-Length, randomly generated. Used in initial test
 {
 	float partLength = 20.f;
 	// Fetch start and end bounds.
@@ -690,23 +925,38 @@ void SideScroller::AddLevelPart()
 	float blockSize = 2.f;
 	int blocks = partLength / blockSize;
 	
-	float ratioBlocks = 0.7f;
-	int blocksToCreate = blocks * ratioBlocks;
+	int blocksToCreate = blocks;
+	/// Decrease chance of blocks spawning based on distance traveled.
+	float ratioBlocks = 0.9f - levelLength * 0.001f;
 	for (int i = 0; i < blocksToCreate; ++i)
 	{
-		Entity * block = EntityMan.CreateEntity("LevelPart-block", ModelMan.GetModel("cube.obj"), TexMan.GetTexture("0x55"));
-		Vector3f position;
-		position.x = levelRand.Randf(partLength);
-		position.x += levelLength;
-		position.x += blockSize * 0.5f;
-		block->position = position;
-		block->Scale(Vector3f(blockSize, 1, 1));
-		PhysicsProperty * pp = block->physics = new PhysicsProperty();
-		pp->shapeType = ShapeType::AABB;
-		MapMan.AddEntity(block);
+		/// Check if should place here.
+		if (levelRand.Randf(1.f) > ratioBlocks)
+		{
+			Hole();
+			continue;
+		}
+		Block();
 	}
-	levelLength += partLength;
 }
+
+// Clean-up past level-parts
+void SideScroller::CleanupOldBlocks()
+{
+	// Check all entities?
+	for (int i = 0; i < levelEntities.Size(); ++i)
+	{
+		Entity * entity = levelEntities[i];
+		if (entity->position.x < playerEntity->position.x - 20.f)
+		{
+//			std::cout<<"\nDeleting "<<entity->name<<" at "<<entity->position;
+			MapMan.DeleteEntity(entity);
+			levelEntities.RemoveItem(entity);
+			--i;
+		}
+	}
+}
+
 
 /// Loads target level. The source and separate .txt description have the same name, just different file-endings, e.g. "Level 1.png" and "Level 1.txt"
 void SideScroller::LoadLevel(String fromSource)

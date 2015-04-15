@@ -624,7 +624,8 @@ void PhysicsManager::RecalculatePhysicsProperties(){
 	//	physics->physicalPosition = entity->position;
 	//	physics->physicalPosition += entity->model->centerOfModel.ElementMultiplication(entity->scale);
 		// Recalculate radius
-		physics->physicalRadius = entity->model->radius * entity->scale.MaxPart();
+		if (physics->recalculatePhysicalRadius)
+			physics->physicalRadius = entity->model->radius * entity->scale.MaxPart();
 		entity->aabb->Recalculate(entity);
 	}
 }

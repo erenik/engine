@@ -125,7 +125,8 @@ void PhysicsManager::Integrate(float timeInSecondsSinceLastUpdate)
 		PhysicsProperty * pp = dynamicEntity->physics;
         Vector3f vel = dynamicEntity->physics->velocity;
 		/// Re-calculate physical radius.
-		pp->physicalRadius = dynamicEntity->radius * dynamicEntity->scale.MaxPart();
+		if (pp->recalculatePhysicalRadius)
+			pp->physicalRadius = dynamicEntity->radius * dynamicEntity->scale.MaxPart();
     //    std::cout<<"\nPost-positioning Velocity: "<<dynamicEntity->physics->velocity;
         /// Ensure that the movement didn't adjust the velocity...
         assert(vel[0] == dynamicEntity->physics->velocity[0]);

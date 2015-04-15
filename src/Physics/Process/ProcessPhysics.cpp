@@ -156,6 +156,10 @@ void PhysicsManager::ProcessPhysics()
 		for (int i = 0; i < collisions.Size(); ++i)
 		{
 			Collision & c = collisions[i];
+			if (c.one->physics->onCollision)
+				c.one->OnCollision(c);
+			if (c.two->physics->onCollision)
+				c.two->OnCollision(c);
 			if (c.one->physics->collissionCallback || c.two->physics->collissionCallback)
 			{
 				/// Check max callbacks.

@@ -648,7 +648,7 @@ void Entity::RecalculateRadius()
 	float newRadius = model->radius * scale.MaxPart();
 	this->radius = newRadius;
 	/// Recalculate physical radius too.
-	if (physics)
+	if (physics && physics->recalculatePhysicalRadius)
 		physics->physicalRadius = radius;
 }
 

@@ -32,8 +32,9 @@ AnimationSet * AnimationManager::GetAnimationSet(String name)
 {
 	for (int i = 0; i < animationSets.Size(); ++i)
 	{
-		if (animationSets[i]->name == name)
-			return animationSets[i];
+		AnimationSet * as = animationSets[i];
+		if (as->name == name)
+			return as;
 	}
 	// Try to load it.
 	AnimationSet * anim = this->LoadAnimationSet(name);
@@ -50,11 +51,22 @@ bool AnimationManager::LoadFromDirectory(String dir)
 		return false;
 	}
 	// Load animation set from each dir!
-	for (int i = 0; i < dirs.Size(); ++i){
+	for (int i = 0; i < dirs.Size(); ++i)
+	{
 		String fullPathToDir = dir + "/" + dirs[i];
+		bool skip = false;
+		for (int i = 0; i < animationSets.Size(); ++i)
+		{
+			AnimationSet * as = animationSets[i];
+			if (as->sourceFolder == fullPathToDir)
+			{
+				skip = true;
+				break;
+			}
+		}
+		if (skip)
+			continue;
 		AnimationSet * newSet = LoadAnimationSet(fullPathToDir);
-		if (newSet)
-			animationSets.Add(newSet);
 	}
 	return true;
 }
