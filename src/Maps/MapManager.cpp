@@ -510,7 +510,7 @@ Entity * MapManager::CreateEntity(String name, Model * model, Texture * texture,
 }
 
 /// Adds target entity to the map, registering it for physics and graphicsState->
-bool MapManager::AddEntity(Entity * entity)
+bool MapManager::AddEntity(Entity * entity, bool registerForGraphics, bool registerForPhysics)
 {
 	if (!activeMap)
 	{
@@ -528,9 +528,10 @@ bool MapManager::AddEntity(Entity * entity)
 	if (entity->model)
 	{
 		// Register it with the graphics manager straight away since it's the active map!
-		GraphicsQueue.Add(new GMRegisterEntity(entity));
+		if (registerForGraphics)
+			GraphicsQueue.Add(new GMRegisterEntity(entity));
 		// Go ahead and add physics too, most entities will have physics, so.
-		if (defaultAddPhysics)
+		if (defaultAddPhysics && registerForPhysics)
 			PhysicsQueue.Add(new PMRegisterEntity(entity));
 	}
 	else 

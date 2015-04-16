@@ -782,6 +782,7 @@ void SideScroller::NewPlayer()
 	gp->animationSet = set;
 	gp->animStartTime = 0;
 	gp->currentAnimation = set->GetAnimation("Run");
+	gp->flags = RenderFlag::ALPHA_ENTITY;
 
 
 	MapMan.AddEntity(playerEntity);
@@ -826,7 +827,9 @@ void Block(float size = -1) // Appends a block. Default size 2.
 {
 	if (size <= 0)
 		size = blockSize;
-	Entity * block = EntityMan.CreateEntity("LevelPart-block", ModelMan.GetModel("cube.obj"), TexMan.GetTexture("0x55"));
+	String colorStr = "0xb19d7c";
+//	"0x55"
+	Entity * block = EntityMan.CreateEntity("LevelPart-block", ModelMan.GetModel("cube.obj"), TexMan.GetTexture(colorStr));
 	Vector3f position;
 	position.x += levelLength;
 	position.x += size * 0.5f;
@@ -904,6 +907,47 @@ void AddPesos()
 	}
 }
 
+void LongCactus(Entity * aboveBlock)
+{
+	Entity * cactus = EntityMan.CreateEntity("Cactus", ModelMan.GetModel("sprite"), TexMan.GetTexture("img/Outdoor - Mexican town/Big_fucking_cactus.png"));
+	float cactusSize = 1.5f + levelRand.Randf(1.f);
+	cactus->position.x = aboveBlock->position.x;
+	cactus->position.y = aboveBlock->position.y + aboveBlock->scale.y * 0.5f + cactusSize * 0.5f;
+	cactus->position.z = -0.1f;
+	cactus->Scale(Vector3f(1,cactusSize,1));
+	MapMan.AddEntity(cactus, true, false);
+}
+void ShortCactus(Entity * aboveBlock)
+{
+	// Randomize amount?
+	int cactii = levelRand.Randi(5) + 1;
+	int initialSign = levelRand.Randi(10) > 5? 1 : -1;
+	float initialSize = 0.5f + levelRand.Randf(0.5f);
+	for (int i = 0; i < cactii; ++i)
+	{
+		Entity * cactus = EntityMan.CreateEntity("Cactus", ModelMan.GetModel("sprite"), TexMan.GetTexture("img/Outdoor - Mexican town/Barrel_cactus.png"));
+		cactus->position.x = aboveBlock->position.x;
+		float scale = (1.f - i * 0.2f) * initialSize;
+		cactus->scale = Vector3f(1,1,1) * scale; // scale down steadily
+		// If non-1 cactii, offset X-position a bit.
+		if (i > 0)
+		{
+			float offset = (i+1) / 2 * 0.5f;
+			if (i % 2 == 0)
+				offset *= -1;
+ 			cactus->position.x += offset * initialSign * initialSize;
+		}
+		cactus->position.y = aboveBlock->position.y + aboveBlock->scale.y * 0.5f + scale * 0.5f;
+		cactus->position.z = -0.1f + i * 0.01f; // move steadily forward.
+		cactus->hasRescaled = true;
+		cactus->RecalculateMatrix();
+		// depth-sort when rendering.
+		GraphicsProperty * gp = cactus->graphics = new GraphicsProperty(cactus);
+		gp->flags = RenderFlag::ALPHA_ENTITY;
+		MapMan.AddEntity(cactus, true, false);
+	}
+}
+
 /// Creates a 20+ meters level-part.
 void SideScroller::AddLevelPart()
 {
@@ -912,6 +956,22 @@ void SideScroller::AddLevelPart()
 	LinearHoles(levelRand.Randi(6));
 	// Add some pesos!
 	AddPesos();
+
+	// Add some cacti.
+	for (int i = 0; i < blocksAdded.Size(); ++i)
+	{
+		// Random chance.
+		float r = levelRand.Randf(1.f);
+		if (r < 0.6f)
+			continue;
+		Entity * block = blocksAdded[i];
+		r = levelRand.Randf(1.f);
+		if (r > 0.5f) // 0.9 to 1.0
+			LongCactus(block);
+		else // from 0.7 to 0.9
+			ShortCactus(block);
+	}
+
 }
 
 void AddDBLPart() // Difficulty-By-Length, randomly generated. Used in initial test

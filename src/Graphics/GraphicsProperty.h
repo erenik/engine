@@ -25,8 +25,8 @@ class RenderInstancingGroup;
 namespace RenderFlag {
 	const int DISABLE_DEPTH_WRITE		=	0x00000001;
 	const int DISABLE_BACKFACE_CULLING	=	0x00000002;
-	const int REQUIRES_DEPTH_SORTING	=	0x00000004; // For alpha effects, these usually require depth-sorting!
-	const int ALPHA_ENTITY				=	0x00000008;
+//	const int REQUIRES_DEPTH_SORTING	=	0x00000004; // For alpha effects, these usually require depth-sorting!
+	const int ALPHA_ENTITY				=	0x00000008; // These specifically require depth-sorting to render correctly. Should be same effect as REQUIRES_DEPTH_SORTING..
 };
 
 #define ADD_GRAPHICS_PROPERTY_IF_NEEDED(entity) {if (!entity->graphics) entity->graphics = new GraphicsProperty(entity);}

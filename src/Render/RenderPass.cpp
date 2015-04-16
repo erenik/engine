@@ -530,7 +530,8 @@ void RenderPass::RenderAlphaEntities()
 //	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 	// Disable depth write
 	glDepthMask(GL_FALSE);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+//	glBlendFunc(GL_SRC_ALPHA, GL_ONE); // Default, additive
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // Standard rendering, also used for sprites.
 	glEnable(GL_DEPTH_TEST); // Don't just ignore depth..
 	// Disable it if not already done so earlier..?
 //	glDisable(GL_DEPTH_TEST);

@@ -186,11 +186,14 @@ void Entity::Render(GraphicsState & graphicsState)
 			glDepthMask(GL_FALSE);
 		if (graphics->flags & RenderFlag::DISABLE_BACKFACE_CULLING)
 			glDisable(GL_CULL_FACE);
+		assert(false && "REQUIRES_DEPTH_SORTING removed, replaced with ALPHA_ENTITY");
+		/*
 		if (graphics->flags & RenderFlag::REQUIRES_DEPTH_SORTING){
 			bool renderSortedEntities = graphicsState.settings & RENDER_SORTED_ENTITIES;
 			if (!renderSortedEntities)
 				requiresSorting = true;
 		}
+		*/
 
 	}
 	/// TODO: Add a query if an entity should be sorted and let the render-passes the render pipeline handle them as needed.

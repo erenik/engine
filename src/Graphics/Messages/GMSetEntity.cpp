@@ -220,10 +220,13 @@ void GMSetEntityb::Process()
 				entity->graphics->visible = bValue;
 				break;
 			case GT_REQUIRE_DEPTH_SORTING:
+				assert(false && "REQUIRES_DEPTH_SORTING removed, replaced with ALPHA_ENTITY");
+	/*
 				if (bValue)
 					entity->graphics->flags |= RenderFlag::REQUIRES_DEPTH_SORTING;
 				else 
 					entity->graphics->flags &= ~RenderFlag::REQUIRES_DEPTH_SORTING;
+					*/
 				break;
 			case GT_ANIMATE_SKIN_USING_SHADERS:
 				entity->graphics->shaderBasedSkeletonAnimation = bValue;
