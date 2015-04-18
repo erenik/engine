@@ -27,8 +27,8 @@ static int doubleBufferAttributes[]  = {GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLE
 /// Program start-up variables!
 XEvent                  event;
 GLXContext              context; // OpenGL context
-Display *                display; // connection to X server
-XVisualInfo*            visual_info;
+Display *               xDisplay; // connection to X server
+XVisualInfo *           xVisualInfo;
 Window                  window;
 XSetWindowAttributes    window_attributes;
 Colormap                colormap;
@@ -55,11 +55,11 @@ bool XWindowSystem::InitThreadSupport()
 // Connects to the X server (WindowSystem) using XOpenDisplay.
 bool XWindowSystem::Initialize()
 {
-	display = XOpenDisplay(NULL);
-	return (display != NULL);
+	xDisplay = XOpenDisplay(NULL);
+	return (xDisplay != NULL);
 
 	int dummy;
-    if(!glXQueryExtension(display, &dummy, &dummy))
+    if(!glXQueryExtension(xDisplay, &dummy, &dummy))
     {
         std::cout<<"\nERROR: XServer has no GLX extension!";
         return -2;
@@ -67,12 +67,12 @@ bool XWindowSystem::Initialize()
     }
 
     /// Find OpenGL-capable RGB visual with depth buffer (device context?)
-    visual_info = glXChooseVisual(display, DefaultScreen(display), doubleBufferAttributes);
-    if (visual_info == NULL){
+    xVisualInfo = glXChooseVisual(xDisplay, DefaultScreen(xDisplay), doubleBufferAttributes);
+    if (xVisualInfo == NULL){
         std::cout << "No double buffer" << std::endl;
 
-        visual_info = glXChooseVisual(display, DefaultScreen(display), singleBufferAttributes);
-        if (visual_info == NULL){
+        xVisualInfo = glXChooseVisual(xDisplay, DefaultScreen(xDisplay), singleBufferAttributes);
+        if (xVisualInfo == NULL){
             assert(false && "no depth buffer");
         }
     }
@@ -82,27 +82,33 @@ bool XWindowSystem::Initialize()
 
     /// Set Error handler!
     XSetErrorHandler(ErrorHandler);
-
 }
+
+/// Closes connection to the X server.
+bool XWindowSystem::Shutdown()
+{    
+    XCloseDisplay(xDisplay);
+}
+
 
 
 /// Number of attached screens.
 List<DeviceScreen> XWindowSystem::Screens()
 {
-    int screen_count = XScreenCount(display);
+    int screen_count = XScreenCount(xDisplay);
     List<DeviceScreen> screens;
     // go through all screens and show the info in the console
     for(int scr = 0; scr < screen_count; scr++)
     {
         DeviceScreen screen;
-        int screen_height = XDisplayHeight(display, scr);
+        int screen_height = XDisplayHeight(xDisplay, scr);
         screen.size.y = screen_height;
-        int screen_width = XDisplayWidth(display, scr);
+        int screen_width = XDisplayWidth(xDisplay, scr);
         screen.size.x = screen_width;
         
-        int screen_cells = XDisplayCells(display, scr); // number of entries in the default colormap
-        int screen_planes = XDisplayPlanes(display, scr); // depth of the root AppWindow of the specified screen
-        char* screen_string = XDisplayString(display); // string when the current display was opened
+        int screen_cells = XDisplayCells(xDisplay, scr); // number of entries in the default colormap
+        int screen_planes = XDisplayPlanes(xDisplay, scr); // depth of the root AppWindow of the specified screen
+        char* screen_string = XDisplayString(xDisplay); // string when the current xDisplay was opened
 
 
         std::cout << "Screen " << scr << std::endl;
@@ -120,7 +126,7 @@ void XWindowSystem::SetupDefaultWindowProperties()
 {
     // Each X AppWindow always has an associated colormap that provides a level of indirection between pixel values
     // and colors displayed on the screen. The X protocol defines colors using values in the RGB color space.
-    colormap = XCreateColormap(display, RootWindow(display, visual_info->screen), visual_info->visual, AllocNone);
+    colormap = XCreateColormap(xDisplay, RootWindow(xDisplay, xVisualInfo->screen), xVisualInfo->visual, AllocNone);
 
     // update AppWindow attributes
     window_attributes.colormap = colormap;
@@ -139,58 +145,71 @@ void XWindowSystem::SetupDefaultWindowProperties()
         ButtonPressMask | ButtonReleaseMask |
         ExposureMask | ButtonPressMask | StructureNotifyMask |
         PointerMotionMask;
-    //  XSelectInput (display, AppWindow, KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask);
+    //  XSelectInput (xDisplay, AppWindow, KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask);
 }
 
 
 void XWindowSystem::CreateDefaultWindow()
 {
-    window = XCreateWindow(display,
-                           RootWindow(display, visual_info->screen),
+    window = XCreateWindow(xDisplay,
+                           RootWindow(xDisplay, xVisualInfo->screen),
                            0, 0,            /// Position
                            800, 600,   /// Size
                            0,
-                           visual_info->depth,
+                           xVisualInfo->depth,
                            InputOutput,
-                           visual_info->visual,
+                           xVisualInfo->visual,
                            CWBorderPixel | CWColormap | CWEventMask,
                            &window_attributes);
     // set AppWindow properties
-    XSetStandardProperties(display, window, "main", None, None, NULL, 0, NULL);
+    XSetStandardProperties(xDisplay, window, "main", None, None, NULL, 0, NULL);
     // Should be replaced with XSetWMProperties, according to the specification..
 
 /*
     // bind the rendering context to the AppWindow
-    bool bound = glXMakeContextCurrent(display, AppWindow, AppWindow, context);
+    bool bound = glXMakeContextCurrent(xDisplay, AppWindow, AppWindow, context);
     if (bound == false)
     {
         assert(false && "Failed to bind context");
     }
 */
-    // display X AppWindow on screen
-    XMapWindow(display, window);
+    // xDisplay X AppWindow on screen
+    XMapWindow(xDisplay, window);
 }
 
 void XWindowSystem::SetupProtocols()
 {
     /// Fix so we can intercept AppWindow-Management messages (like pressing the Close-button, ALT+F4, etc!)
     // Ref: http://www.opengl.org/discussion_boards/showthread.php/157469-Properly-destroying-a-AppWindow
-    Atom wm_protocol = XInternAtom (display, "WM_PROTOCOLS", False);
-    Atom wm_close = XInternAtom (display, "WM_DELETE_WINDOW", False);
+    Atom wm_protocol = XInternAtom (xDisplay, "WM_PROTOCOLS", False);
+    Atom wm_close = XInternAtom (xDisplay, "WM_DELETE_WINDOW", False);
     // Next we elect to receive the 'close' event from the WM:
-    XSetWMProtocols (display, window, &wm_close, 1);
+    XSetWMProtocols (xDisplay, window, &wm_close, 1);
 }
 
 void XWindowSystem::Resize(AppWindow * window, Vector2i newSize)
 {
     // Fetch the XWindow equivalent?
-    XResizeWindow(display, window->xWindowHandle, newSize.x, newSize.y);
+    XResizeWindow(xDisplay, window->xWindowHandle, newSize.x, newSize.y);
 }
 
 void XWindowSystem::ToggleFullScreen(AppWindow * window)
 {
     assert(false && "Implement");
-//    XResizeWindow(display, xWindowHandle, Graphics.ScreenWidth(), Graphics.ScreenHeight());
+//    XResizeWindow(xDisplay, xWindowHandle, Graphics.ScreenWidth(), Graphics.ScreenHeight());
+}
+
+bool XWindowSystem::CreateGLContext(AppWindow * forWindow)
+{
+
+    return true;
+}
+
+bool XWindowSystem::DestroyGLContext(AppWindow * forWindow)
+{
+    glXMakeContextCurrent(xDisplay, None, None, NULL); // Release context.
+    glXDestroyContext(xDisplay, context);
+    return true;
 }
 
 #include "StateManager.h"
@@ -201,17 +220,17 @@ void XWindowSystem::ToggleFullScreen(AppWindow * window)
 void XWindowSystem::MainLoop()
 {
     std::cout<<"\nBeginning listening to events...";
-   // XNoOp(display);
+   // XNoOp(xDisplay);
     int messagesReceived = 0;
     while(StateMan.ActiveStateID() != GameStateID::GAME_STATE_EXITING){
         // Check for queued messages.
-        int events = XPending(display);
-        /// XEventsQueued(display, QueuedAfterReading);
+        int events = XPending(xDisplay);
+        /// XEventsQueued(xDisplay, QueuedAfterReading);
       //  if (events > 0)
         //    std::cout<<"\nQueued events: "<<events;
         if (events){
             // XNextEvent may block until an event appears, which might not be wanted, to check beforehand how many events are available!
-            XNextEvent(display, &event);
+            XNextEvent(xDisplay, &event);
             if (XProc(event) != NULL)
                 break;
         }
@@ -275,7 +294,7 @@ void testRender(){
     while(true)
     {
             // XNextEvent is required to get the OS to do anything at all... ish? o-o
-       //     XNextEvent(display, &event);
+       //     XNextEvent(xDisplay, &event);
             SleepThread(10);
 
 
@@ -299,7 +318,7 @@ void testRender(){
 
             if(swapBuffers)
             {
-                glXSwapBuffers( display, window );
+                glXSwapBuffers( xDisplay, window );
             }
             else
             {
@@ -315,7 +334,7 @@ void testRender(){
 
 #ifdef LINUX
 
-extern Display*                display; // connection to X server
+extern Display*                xDisplay; // connection to X server
 
 xWindow::xWindow(int width, int height, int argc, char **argv)
 : singleBufferAttributes {GLX_RGBA, GLX_DEPTH_SIZE, 24, None},
@@ -333,8 +352,8 @@ xWindow::xWindow(int width, int height, int argc, char **argv)
 
 void xWindow::Connect(char* display_name)
 {
-    display = XOpenDisplay( display_name ); // defaults to the value of the DISPLAY environment variable.
-    if ( display == NULL )
+    xDisplay = XOpenDisplay( display_name ); // defaults to the value of the DISPLAY environment variable.
+    if ( xDisplay == NULL )
     {
         assert(false && "Cant connect to X server");
     }
@@ -343,18 +362,18 @@ void xWindow::Visual()
 {
     // check GLX extension, needed for connecting X server to OpenGL
     int dummy;
-    if(!glXQueryExtension(display, &dummy, &dummy))
+    if(!glXQueryExtension(xDisplay, &dummy, &dummy))
     {
         assert(false && "X server has no OpenGL GLX extension");
     }
 
     // find OpenGL-capable RGB visual with depth buffer
-    visual_info = glXChooseVisual(display, DefaultScreen(display), doubleBufferAttributes);
+    visual_info = glXChooseVisual(xDisplay, DefaultScreen(xDisplay), doubleBufferAttributes);
     if (visual_info == NULL)
     {
         std::cout << "No double buffer" << std::endl;
 
-        visual_info = glXChooseVisual(display, DefaultScreen(display), singleBufferAttributes);
+        visual_info = glXChooseVisual(xDisplay, DefaultScreen(xDisplay), singleBufferAttributes);
         if (visual_info == NULL)
         {
             assert(false && "no depth buffer");
@@ -369,7 +388,7 @@ void xWindow::CreateWindow()
 {
    // Each X AppWindow always has an associated colormap that provides a level of indirection between pixel values
     // and colors displayed on the screen. The X protocol defines colors using values in the RGB color space.
-    colormap = XCreateColormap(display, RootWindow(display, visual_info->screen), visual_info->visual, AllocNone);
+    colormap = XCreateColormap(xDisplay, RootWindow(xDisplay, visual_info->screen), visual_info->visual, AllocNone);
 
     // update AppWindow attributes
     window_attributes_set.colormap = colormap;
@@ -377,17 +396,17 @@ void xWindow::CreateWindow()
     window_attributes_set.event_mask = KeyPressMask | ExposureMask | ButtonPressMask | StructureNotifyMask | ResizeRedirectMask;
 
     // create the AppWindow
-    AppWindow = XCreateWindow(display, RootWindow(display, visual_info->screen), x, y, width, height, 0,
+    AppWindow = XCreateWindow(xDisplay, RootWindow(xDisplay, visual_info->screen), x, y, width, height, 0,
                            visual_info->depth, InputOutput, visual_info->visual,
                            CWBorderPixel | CWColormap | CWEventMask, &window_attributes_set);
 
     // set AppWindow properties
-    XSetStandardProperties(display, AppWindow, "main", None, None, argv, argc, NULL);
+    XSetStandardProperties(xDisplay, AppWindow, "main", None, None, argv, argc, NULL);
 
 }
 void xWindow::Context()
 {
-    context = glXCreateContext(display, visual_info, None, true);
+    context = glXCreateContext(xDisplay, visual_info, None, true);
     if (context == NULL)
     {
         assert(false && "could not create rendering context");
@@ -395,7 +414,7 @@ void xWindow::Context()
 
 
     // bind the rendering context to the AppWindow
-    bool bound = glXMakeContextCurrent(display, AppWindow, AppWindow, context);
+    bool bound = glXMakeContextCurrent(xDisplay, AppWindow, AppWindow, context);
     if (bound == false)
     {
         assert(false && "Failed to bind context");
@@ -404,7 +423,7 @@ void xWindow::Context()
 
 int xWindow::show()
 {
-    // open a connection to the X server that controls the display
+    // open a connection to the X server that controls the xDisplay
     Connect( NULL );
 
     // find OpenGL-capable RGB visual with depth buffer
@@ -416,8 +435,8 @@ int xWindow::show()
     // bind the rendering context to AppWindow
     Context();
 
-    // display X AppWindow on screen
-    XMapWindow(display, AppWindow);
+    // xDisplay X AppWindow on screen
+    XMapWindow(xDisplay, AppWindow);
 
     Info();
 
@@ -426,10 +445,10 @@ int xWindow::show()
 void xWindow::EventHandling()
 {
     // XNextEvent is required to get the OS to do anything at all... ish? o-o
-    XNextEvent(display, &event);
+    XNextEvent(xDisplay, &event);
     if(event.type == Expose)
     {
-        XGetWindowAttributes(display, AppWindow, &window_attributes);
+        XGetWindowAttributes(xDisplay, AppWindow, &window_attributes);
         setupGL(window_attributes.width, window_attributes.height);
         render();
     }
@@ -472,7 +491,7 @@ void xWindow::render()
 
             if(swapBuffers)
             {
-                glXSwapBuffers( display, AppWindow );
+                glXSwapBuffers( xDisplay, AppWindow );
             }
             else
             {
@@ -486,7 +505,7 @@ void xWindow::update()
 {
     while(true)
     {
-        while(XPending(display) > 0)
+        while(XPending(xDisplay) > 0)
         {
             // handles event
             EventHandling();
@@ -503,17 +522,17 @@ void xWindow::update()
 
 /// Saves in the argument parameters
 bool xWindow::GetScreenSize(int &x, int &y){
-    int screen_count = XScreenCount(display);
+    int screen_count = XScreenCount(xDisplay);
     // go through all screens and show the info in the console
     for(int scr = 0; scr < screen_count; scr++)
     {
-        int screen_height = XDisplayHeight(display, scr);
+        int screen_height = XDisplayHeight(xDisplay, scr);
         y = screen_height;
-        int screen_width = XDisplayWidth(display, scr);
+        int screen_width = XDisplayWidth(xDisplay, scr);
         x = screen_width;
-        int screen_cells = XDisplayCells(display, scr); // number of entries in the default colormap
-        int screen_planes = XDisplayPlanes(display, scr); // depth of the root AppWindow of the specified screen
-        char* screen_string = XDisplayString(display); // string when the current display was opened
+        int screen_cells = XDisplayCells(xDisplay, scr); // number of entries in the default colormap
+        int screen_planes = XDisplayPlanes(xDisplay, scr); // depth of the root AppWindow of the specified screen
+        char* screen_string = XDisplayString(xDisplay); // string when the current xDisplay was opened
 
         std::cout << "Screen " << scr << std::endl;
         std::cout << "\t " << screen_string << std::endl;
@@ -525,16 +544,16 @@ bool xWindow::GetScreenSize(int &x, int &y){
 
 void xWindow::Info()
 {
-    int screen_count = XScreenCount(display);
+    int screen_count = XScreenCount(xDisplay);
 
     // go through all screens and show the info in the console
     for(int scr = 0; scr < screen_count; scr++)
     {
-        int screen_height = XDisplayHeight(display, scr);
-        int screen_width = XDisplayWidth(display, scr);
-        int screen_cells = XDisplayCells(display, scr); // number of entries in the default colormap
-        int screen_planes = XDisplayPlanes(display, scr); // depth of the root AppWindow of the specified screen
-        char* screen_string = XDisplayString(display); // string when the current display was opened
+        int screen_height = XDisplayHeight(xDisplay, scr);
+        int screen_width = XDisplayWidth(xDisplay, scr);
+        int screen_cells = XDisplayCells(xDisplay, scr); // number of entries in the default colormap
+        int screen_planes = XDisplayPlanes(xDisplay, scr); // depth of the root AppWindow of the specified screen
+        char* screen_string = XDisplayString(xDisplay); // string when the current xDisplay was opened
 
         std::cout << "Screen " << scr << std::endl;
         std::cout << "\t " << screen_string << std::endl;
@@ -545,7 +564,7 @@ void xWindow::Info()
 
     int major_version, minor_version;
     // retrive version
-    if(!glXQueryVersion(display, &major_version, &minor_version))
+    if(!glXQueryVersion(xDisplay, &major_version, &minor_version))
     {
         assert(false && "No GLX version present");
     }

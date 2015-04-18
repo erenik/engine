@@ -15,6 +15,8 @@ namespace XWindowSystem
 	bool InitThreadSupport();
 	// Connects to the X server (WindowSystem) using XOpenDisplay.
 	bool Initialize();
+	/// Closes connection to the X server.
+	bool Shutdown();
 	/// Number of attached screens.
 	List<DeviceScreen> Screens();
 
@@ -24,6 +26,9 @@ namespace XWindowSystem
 
 	void Resize(AppWindow * window, Vector2i newSize);
 	void ToggleFullScreen(AppWindow * window);
+
+	bool CreateGLContext(AppWindow * forWindow);
+	bool DestroyGLContext(AppWindow * forWindow);
 
 	// For testing-purposes.
 	void MainLoop();

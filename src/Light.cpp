@@ -89,14 +89,14 @@ String lightEditorName = "LightEditor";
 void Light::OpenEditorWindow()
 {
 	// Look for an existing lighting-editor AppWindow.
-	AppWindow * AppWindow = WindowMan.GetWindowByName(lightEditorName);
-	if (AppWindow)
+	AppWindow * window = WindowMan.GetWindowByName(lightEditorName);
+	if (window)
 	{
 	
 	}
 	// Create it if not existing.
 	else {
-		AppWindow = WindowMan.NewWindow(lightEditorName, "Light editor");
+		window = WindowMan.NewWindow(lightEditorName, "Light editor");
 		UserInterface * ui = window->CreateUI();
 		ui->Load("gui/LightEditor.gui");
 		window->DisableAllRenders();
@@ -117,8 +117,8 @@ void Light::OpenEditorWindow()
 void Light::CloseEditorWindow()
 {
 	// Look for an existing lighting-editor AppWindow.
-	AppWindow * AppWindow = WindowMan.GetWindowByName(lightEditorName);
-	if (!AppWindow)
+	AppWindow * window = WindowMan.GetWindowByName(lightEditorName);
+	if (!window)
 		return;
 	window->Hide();
 }
@@ -219,8 +219,8 @@ void Light::ProcessMessageStatic(Message * message)
 // Updates UI as necessary
 void Light::OnPropertiesUpdated()
 {
-	AppWindow * AppWindow = WindowMan.GetWindowByName(lightEditorName);
-	if (!AppWindow)
+	AppWindow * window = WindowMan.GetWindowByName(lightEditorName);
+	if (!window)
 		return;
 	UserInterface * ui = window->ui;
 	if (!ui)

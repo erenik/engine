@@ -11,7 +11,16 @@
 
 #include "DragAndDrop.h"
 
+#include "WindowSystem.h"
+#include "Graphics/OpenGL.h"
+#undef Time
+
+#ifdef USE_X11
 #include "XWindowSystem.h"
+#include <GL/glx.h>
+extern Display * xDisplay; // main X-server communication line.
+extern XVisualInfo * xVisualInfo;
+#endif
 
 /// List of active monitors.
 List<Monitor> monitors;
@@ -124,8 +133,7 @@ AppWindow::~AppWindow()
 	if (dragAndDrop)
 		delete dragAndDrop;	
 #elif defined USE_X11
-    XDestroyWindow(display, AppWindow);
-    XCloseDisplay(display);
+    XDestroyWindow(xDisplay, xWindowHandle);
 #endif
 
 	/// Probably dynamically allocated, yeah.
@@ -410,7 +418,7 @@ bool AppWindow::Create()
 
 	// Create a standard viewport at least. Always good to have one.
 	Viewport * vp = NewA(Viewport);
-	vp->AppWindow = this;
+	vp->window = this;
 	viewports.Add(vp);
 
 	created = true;
@@ -731,7 +739,7 @@ bool AppWindow::CreateGLContext()
 #elif defined USE_X11
 	/// Create GL context! ^^
     std::cout<<"\nCreating GLX context...";
-    context = glXCreateContext(display, visual_info, None, true);
+    context = glXCreateContext(xDisplay, xVisualInfo, None, true);
     if (context == NULL){
         std::cout<<"\n=======================================================";
         std::cout<<"ERROR: Could not create rendering context!";
@@ -749,6 +757,7 @@ bool AppWindow::MakeGLContextCurrent()
 {
 	if (!created)
 		return false;
+#ifdef WINDOWS
 	// If a new AppWindow..
 	if (hglrc == 0)
 	{
@@ -766,10 +775,9 @@ bool AppWindow::MakeGLContextCurrent()
 		std::cout<<"\nCreated new GL context and linked it to the main AppWindow.";
 	}
 	// Make it current
-#ifdef WINDOWS
 	bool result = wglMakeCurrent(hdc, hglrc);	
 #elif defined USE_X11
-    bool result = glXMakeContextCurrent(display, AppWindow, AppWindow, context);
+    bool result = glXMakeContextCurrent(xDisplay, xWindowHandle, xWindowHandle, xGLContext);
 #endif
 	return result;
 }
@@ -834,7 +842,7 @@ bool AppWindow::DeleteGLContext()
 		}
 	}
 #elif defined USE_X11
-	glXDestroyContext(display, context);
+	int result = XWindowSystem::DestroyGLContext(this);
 #endif // OS-specific code
 	return result;
 }
@@ -858,7 +866,7 @@ Viewport * AppWindow::MainViewport()
 	{
 		// Create default viewport if none exist.
 		Viewport * viewport = new Viewport();
-		viewport->AppWindow = this;
+		viewport->window = this;
 		viewports.Add(viewport);
 		return viewport;
 	}
