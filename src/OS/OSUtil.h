@@ -4,13 +4,15 @@
 
 #include "OS.h"
 
-#ifdef WINDOWS
-
-#include <Windows.h>
-#include <shellapi.h>
 #include "String/AEString.h"
 
+// Windows-specifics
+#ifdef WINDOWS
+#include <Windows.h>
+#include <shellapi.h>
+
 List<String> GetFilesFromHDrop(HDROP hDrop);
+#endif // WINDOWS
 
 namespace OSUtil 
 {
@@ -18,6 +20,4 @@ namespace OSUtil
 	void Paste();
 	String GetHomeDirectory();
 };
-
-#endif
 

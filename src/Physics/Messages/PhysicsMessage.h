@@ -258,12 +258,12 @@ class Integrator;
 class CollisionResolver;
 class CollisionDetector;
 
-class PMSet : public PhysicsMessage {
+class PMSet : public PhysicsMessage 
+{
 public:
 	PMSet(int target, const Vector3f & value);
 	PMSet(int target, float value);
 	PMSet(int target, bool bValue);
-	PMSet(int target, int iValue);
 	PMSet(Integrator * integrator);
 	PMSet(CollisionResolver * cr);
 	PMSet(CollisionDetector * cd);
@@ -277,7 +277,6 @@ private:
 	};
 	int target;
 	int dataType;
-	int iValue;
 	float floatValue;
 	bool bValue;
 	Vector3f vec3fValue;
@@ -285,6 +284,17 @@ private:
 	CollisionResolver * cr;
 	CollisionDetector * cd;
 };
+
+class PMSeti : public PhysicsMessage 
+{
+public:
+	PMSeti(int target, int iValue);
+	virtual void Process();
+private:
+	int target;
+	int iValue;
+};
+
 
 class PMSetWaypoint : public PhysicsMessage {
 public:

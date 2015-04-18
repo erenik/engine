@@ -32,6 +32,8 @@
 #include "PongPlayerProperty.h"
 #include "PongBallProperty.h"
 
+#include "OS/Sleep.h"
+
 Pong::Pong()
 	: Game2D("SpaceShooter")
 {
@@ -65,10 +67,10 @@ Pong::Pong()
 Pong::~Pong()
 {
 	// Reset integrator and stuff before we delete any entities, or wat?
-	Physics.QueueMessage(new PMSet(PT_PHYSICS_INTEGRATOR, NULL));
-	Physics.QueueMessage(new PMSet(PT_COLLISION_DETECTOR, NULL));
-	Physics.QueueMessage(new PMSet(PT_COLLISION_RESOLVER, NULL));
-	Sleep(50);
+	Physics.QueueMessage(new PMSeti(PT_PHYSICS_INTEGRATOR, NULL));
+	Physics.QueueMessage(new PMSeti(PT_COLLISION_DETECTOR, NULL));
+	Physics.QueueMessage(new PMSeti(PT_COLLISION_RESOLVER, NULL));
+	SleepThread(50);
 	ballProperties.Clear();
 	MapMan.DeleteEntities(GetEntities());
 	// Unregister particle system!

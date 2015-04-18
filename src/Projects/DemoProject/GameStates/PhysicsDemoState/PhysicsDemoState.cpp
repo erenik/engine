@@ -143,7 +143,7 @@ String ToString(Vector3f vec){
 
 void PhysicsDemoState::Process(float time){
 	/// Process key input for navigating the 3D - Space
-	Sleep(20);
+	SleepThread(20);
 
 	// Calculate time since last update
 	clock_t newTime = Timer::GetCurrentTimeMs();
@@ -425,7 +425,7 @@ void PhysicsDemoState::ProcessMessage(Message * message){
 			}
 			else if (string.Contains("set_entity_pos")){
 				std::cout<<"set_entity_posx";
-				Sleep(50);
+				SleepThread(50);
 				// If no argument provided, use active input
 				String input = Input.GetInputBuffer();
 				float f;
@@ -663,7 +663,7 @@ void PhysicsDemoState::LoadMap(String fromFile){
 	}
 	Graphics.QueueMessage(new GMSet(OVERLAY_TEXTURE, TexMan.GetTexture("img/loading_map.png")));
 	std::cout<<"\nLoadMap called for file: "<<fromFile;
-	Sleep(100);
+	SleepThread(100);
 	String filename = fromFile;
 	Map * loadedMap = MapMan.LoadMap(filename.c_str());
 	// Set map to be active!

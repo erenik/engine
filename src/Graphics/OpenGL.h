@@ -36,4 +36,11 @@ int CheckGLError(String inFunction);
 /// Similar to CheckGLError but will assert if there is an error. Returns the error code if any.
 int AssertGLError(String inFunction);
 
+namespace OpenGL {
+	/// Creates the GL context to be used, no matter what OS? Start with linux. 
+	void CreateContext();
+	void DestroyContext();
+
+};
+
 #endif

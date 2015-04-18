@@ -59,25 +59,25 @@ private:
 class GMSetGlobalUI : public GraphicsMessage 
 {
 public:
-	GMSetGlobalUI(UserInterface * ui, Window * forWindow = NULL);
+	GMSetGlobalUI(UserInterface * ui, AppWindow * forWindow = NULL);
 	void Process();
 private:
 	UserInterface * ui;
-	Window * window;
+	AppWindow * window;
 };
 
 /// For setting UI to be rendered.
 class GMSetUI : public GraphicsMessage {
 public:
-	/// Regular UI setter for the main window (Assumes 1 main window)
+	/// Regular UI setter for the main AppWindow (Assumes 1 main AppWindow)
 	GMSetUI(UserInterface * ui);
-	// Regular UI setter per window.
-	GMSetUI(UserInterface * ui, Window * forWindow);
+	// Regular UI setter per AppWindow.
+	GMSetUI(UserInterface * ui, AppWindow * forWindow);
 	// For setting viewport-specific windows (e.g. old localhost multiplayer games).
 	GMSetUI(UserInterface * ui, Viewport * viewport);
 	void Process();
 private:
-	Window * window;
+	AppWindow * window;
 	Viewport * viewport;
 	UserInterface * ui;
 };

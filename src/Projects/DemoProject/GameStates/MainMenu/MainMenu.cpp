@@ -51,7 +51,7 @@ void MainMenu::OnEnter(GameState * previousState){
 
 	// Load initial texture and set it to render over everything else
 //	Graphics.SetOverlayTexture("img/loadingData.png");
-//	Sleep(100);
+//	SleepThread(100);
 	Graphics.EnableAllDebugRenders(false);
 
 	Physics.QueueMessage(new PMSet(GRAVITY, 0.f));
@@ -134,7 +134,7 @@ void MainMenu::OnExit(GameState *nextState){
 
 
 	Physics.QueueMessage(new PMSet(GRAVITY, -250.f));
-//	Sleep(5000);
+//	SleepThread(5000);
 	// Verify data o-o
 	MapMan.GetLighting().VerifyData();
 }
@@ -143,7 +143,7 @@ void MainMenu::OnExit(GameState *nextState){
 #include "../Graphics/Messages/GMUI.h"
 
 void MainMenu::Process(float time){
-	Sleep(50);
+	SleepThread(50);
 	/// Updated in the global state from now on.
 	/*
 #ifdef USE_AUDIO

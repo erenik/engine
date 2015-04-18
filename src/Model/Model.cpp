@@ -6,6 +6,7 @@
 #include "Mesh/Mesh.h"
 
 #include <cstdlib>
+#include <cstring>
 
 #include "PhysicsLib/Shapes/AABB.h"
 #include "PhysicsLib/Shapes/Triangle.h"

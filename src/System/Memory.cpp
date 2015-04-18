@@ -54,3 +54,21 @@ int MemoryLoad()
 	GetMemoryStatus();
 	return memoryStatus.memoryLoad;
 }
+
+
+/// Allocates numBytes, using alignment of specified bytes. Returns pointer to allocated memory.
+/// If ok is specified as non-null, the success of the operation will be stored there.
+void * AllocateAligned(int numBytes, int alignment, bool * ok = NULL)
+{
+	void * memory = NULL;
+#ifdef WINDOWS
+	memory = _aligned_malloc(numBytes, alignment);
+#elif defined LINUX
+	int result = posix_memalign(memory, alignment, numBytes);
+	if (ok)
+	{
+		*ok = (result == 0);
+	}
+#endif	
+	return memory;
+}

@@ -25,8 +25,8 @@
 #include "Audio/AudioManager.h"
 
 #include "Graphics/Particles/ParticleEmitter.h"
-#include "OS/Sleep.h"
 
+#include "OS/Sleep.h"
 
 PongBallProperty::PongBallProperty(Pong * game, Entity * owner, float defaultMinHorizontalVel)
 	: EntityProperty("PongBallProperty", ID(), owner), defaultMinHorizontalVel(defaultMinHorizontalVel), game(game)
@@ -47,7 +47,7 @@ PongBallProperty::PongBallProperty(Pong * game, Entity * owner, float defaultMin
 PongBallProperty::~PongBallProperty()
 {
 	Graphics.QueueMessage(new GMDetachParticleEmitter(pe));
-	Wait(10);
+	SleepThread(10);
 	delete pe;
 }
 
@@ -133,7 +133,7 @@ void PongBallProperty::OnCollision(Collision & data)
 	if (other->name.Contains("Goal"))
 	{	
 		// Sleep! So we don't get double messages!
-		Sleep();
+		this->Sleep();
 		// SFX!
 		PlaySFX("PongGoal.ogg");
 		// Goal!

@@ -23,8 +23,8 @@ Initialization::Initialization(){
 void Initialization::OnEnter(AppState * previousState){
 	std::cout<<"\nEntering Initialization StateMan.";
 #ifdef WINDOWS
-	// Get last window position
-	// Update window size
+	// Get last AppWindow position
+	// Update AppWindow size
 	//	SetWindowPos(hWnd, HWND_TOP, 0, 0, 800, 600, SWP_NOMOVE/*SWP_HIDEWINDOW*/);
 //	MoveWindow(hWnd, 0, 0, 800, 600, true);
 #endif
@@ -33,7 +33,7 @@ void Initialization::OnEnter(AppState * previousState){
 
 void Initialization::Process(int timeInMs)
 { // DO stuff?
-	Sleep(20);
+	SleepThread(20);
 	Graphics.renderQueried = true;
 }
 

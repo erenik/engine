@@ -22,7 +22,7 @@ public:
 	virtual void OnCollision(Collision & data);
 
 	// Fall asleep.. unregistering it from physics, graphics, etc.
-	void Sleep();
+	void SleepThread();
 
 	/// Time passed in seconds..!
 	virtual void Process(int timeInMs);

@@ -8,12 +8,12 @@
 #include "String/AEString.h"
 #include "File/FileUtil.h"
 #include "TextureManager.h"
-#include "Window/Window.h"
+#include "Window/AppWindow.h"
 #include "System/Memory.h"
 
 void GraphicsManager::RenderCapture()
 {
-	Window * window = graphicsState->activeWindow;
+	AppWindow * window = graphicsState->activeWindow;
 	Vector2i windowSize = window->WorkingArea();
 	if (window->saveScreenshot)
 	{

@@ -9,7 +9,7 @@
 #include "StateManager.h"
 
 #include "Physics/Messages/CollisionCallback.h"
-#include "Window/Window.h"
+#include "Window/AppWindow.h"
 #include "Viewport.h"
 
 #include "OS/OSUtil.h"
@@ -99,7 +99,7 @@ void SpaceShooter2D::OnEnter(AppState * previousState)
 	gameStartDate = GameVars.CreateTime("gameStartDate");
 	difficulty = GameVars.CreateInt("difficulty", 1);
 
-	Window * w = MainWindow();
+	AppWindow * w = MainWindow();
 	assert(w);
 	Viewport * vp = w->MainViewport();
 	assert(vp);
@@ -171,7 +171,7 @@ int timeElapsedMs;
 /// Main processing function, using provided time since last frame.
 void SpaceShooter2D::Process(int timeInMs)
 {
-	Sleep(10);
+	SleepThread(10);
 //	std::cout<<"\nSS2D entities: "<<shipEntities.Size() + projectileEntities.Size() + 1;
 //	if (playerShip) std::cout<<"\nPlayer position: "<<playerShip.position;
 
@@ -195,12 +195,12 @@ void SpaceShooter2D::Process(int timeInMs)
 void SpaceShooter2D::OnExit(AppState * nextState)
 {
 	levelEntity = NULL;
-	Sleep(50);
+	SleepThread(50);
 	// Register it for rendering.
 	Graphics.QueueMessage(new GMUnregisterParticleSystem(sparks, true));
 	Graphics.QueueMessage(new GMUnregisterParticleSystem(stars, true));
 	MapMan.DeleteAllEntities();
-	Sleep(100);
+	SleepThread(100);
 }
 
 
@@ -525,7 +525,7 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 	}
 }
 
-/// Called from the render-thread for every viewport/window, after the main rendering-pipeline has done its job.
+/// Called from the render-thread for every viewport/AppWindow, after the main rendering-pipeline has done its job.
 void SpaceShooter2D::Render(GraphicsState * graphicsState)
 {
 	switch(mode)

@@ -9,7 +9,7 @@ class GraphicsState;
 class Camera;
 class UserInterface;
 
-/** A struct to properly divide window screen-space.
+/** A struct to properly divide AppWindow screen-space.
 	Can include settings/options that act on a per-viewport basis.
 */
 class RenderViewport : public Viewport 
@@ -32,7 +32,7 @@ public:
 	/// For distinguation and later alteration
 	String viewportName;
 private:
-	/** If the provided sizes to x/y/width/height should be relative to window size (instead of absolute).
+	/** If the provided sizes to x/y/width/height should be relative to AppWindow size (instead of absolute).
 		This may require more updates to keep correct!
 	*/
 	bool relative;
@@ -46,7 +46,7 @@ private:
 	String uiSource;
 	int renderOptions;
 
-	/// Absolute-values of the window.
+	/// Absolute-values of the AppWindow.
 	Vector2i absMin, absMax;
 };
 

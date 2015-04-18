@@ -11,7 +11,7 @@
 
 class Camera;
 class RuneBattler;
-class Window;
+class AppWindow;
 class NavMesh;
 class TileGrid2D;
 class Waypoint;
@@ -71,7 +71,7 @@ private:
 	void ToggleLogVisibility(bool * newState = NULL);
 	bool logVisibility;
 
-	Window * battleTestWindow;
+	AppWindow * battleTestWindow;
 
 	// Randomize starting initiative.
 	void ResetInitiative();
@@ -157,7 +157,7 @@ private:
     List<RuneBattler *> targetBattlers;
 	RuneBattler * activePlayerBattler;
 
-	/// For editing and debugging in the dedicated battle-test window.
+	/// For editing and debugging in the dedicated battle-test AppWindow.
 	String activeEditBattlerName;
 
 	/** List of all active players! (human-controlled, either locally or via network).

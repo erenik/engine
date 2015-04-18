@@ -9,11 +9,10 @@
 #include "StateManager.h"
 
 #include "Physics/Messages/CollisionCallback.h"
-#include "Window/Window.h"
+#include "Window/AppWindow.h"
 #include "Viewport.h"
 
 #include "Entity/EntityProperty.h"
-#include "OS/OSUtil.h"
 #include "File/SaveFile.h"
 
 #include "Graphics/Messages/GMRenderPass.h"
@@ -28,6 +27,9 @@
 #include "Physics/CollisionResolvers/FirstPersonCR.h"
 
 #include "Graphics/Messages/GMAnimate.h"
+
+#include "OS/OSUtil.h"
+#include "OS/Sleep.h"
 
 /// Particle system for sparks/explosion-ish effects.
 Sparks * sparks = NULL;
@@ -219,7 +221,7 @@ void SideScroller::OnEnter(AppState * previousState)
 	gameStartDate = GameVars.CreateTime("gameStartDate");
 	difficulty = GameVars.CreateInt("difficulty", 1);
 
-	Window * w = MainWindow();
+	AppWindow * w = MainWindow();
 	assert(w);
 	Viewport * vp = w->MainViewport();
 	assert(vp);
@@ -284,11 +286,12 @@ void SideScroller::OnEnter(AppState * previousState)
 Time now;
 // int64 nowMs;
 int timeElapsedMs;
+#include "OS/Sleep.h"
 
 /// Main processing function, using provided time since last frame.
 void SideScroller::Process(int timeInMs)
 {
-	Sleep(10);
+	SleepThread(10);
 //	std::cout<<"\nSS2D entities: "<<shipEntities.Size() + projectileEntities.Size() + 1;
 //	if (playerShip) std::cout<<"\nPlayer position: "<<playerShip.position;
 
@@ -329,14 +332,14 @@ void SideScroller::ProcessLevel(int timeInMs)
 void SideScroller::OnExit(AppState * nextState)
 {
 	levelEntity = NULL;
-	Sleep(50);
+	SleepThread(50);
 	// Register it for rendering.
 	if (sparks)
 		Graphics.QueueMessage(new GMUnregisterParticleSystem(sparks, true));
 	if (stars)
 		Graphics.QueueMessage(new GMUnregisterParticleSystem(stars, true));
 	MapMan.DeleteAllEntities();
-	Sleep(100);
+	SleepThread(100);
 }
 
 
@@ -652,7 +655,7 @@ void SideScroller::ProcessMessage(Message * message)
 	}
 }
 
-/// Called from the render-thread for every viewport/window, after the main rendering-pipeline has done its job.
+/// Called from the render-thread for every viewport/AppWindow, after the main rendering-pipeline has done its job.
 void SideScroller::Render(GraphicsState * graphicsState)
 {
 	switch(state)

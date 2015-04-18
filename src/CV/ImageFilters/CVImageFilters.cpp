@@ -1144,7 +1144,7 @@ CVRenderRegionOfInterest::CVRenderRegionOfInterest()
 	topLeftCorner = new CVFilterSetting("Top left", Vector3f());
 	bottomRightCorner = new CVFilterSetting("Bottom right", Vector3f());
 	settings.Add(2, topLeftCorner, bottomRightCorner);
-	about = "Left click in the main window to set top-left corner.\nRight-click for bottom-right corner";
+	about = "Left click in the main AppWindow to set top-left corner.\nRight-click for bottom-right corner";
 }
 int CVRenderRegionOfInterest::Process(CVPipeline * pipe)
 {

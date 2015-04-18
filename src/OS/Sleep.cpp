@@ -1,9 +1,21 @@
-#include "Sleep.h"
+/// Emil Hedemalm
+/// 2015-04-18
+// l
 
-#ifdef WINDOWS
+#include "Sleep.h"
+#include "OS.h"
+
+#ifdef WIDNOWS
 #include <Windows.h>
-void Wait(int milliseconds)
-{
-	Sleep(milliseconds);
-}
+#elif defined LINUX
+#include <unistd.h>
 #endif
+
+void SleepThread(int milliseconds)
+{
+#ifdef WINDOWS
+	SleepThread(milliseconds);
+#elif defined LINUX
+	uSleepThread(ms*1000);
+#endif	
+}

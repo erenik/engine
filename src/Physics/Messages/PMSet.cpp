@@ -53,25 +53,6 @@ PMSet::PMSet(int target, bool bValue)
 	}
 }
 
-PMSet::PMSet(int target, int iValue)
-: PhysicsMessage(PM_SET), target(target), iValue(iValue)
-{
-	switch(target){
-		case PT_INTEGRATOR_TYPE:
-			break;
-		case PT_PHYSICS_INTEGRATOR:
-			i = NULL;
-			break;
-		case PT_COLLISION_DETECTOR:
-			cd = NULL;
-			break;
-		case PT_COLLISION_RESOLVER:
-			cr = NULL;
-			break;
-		default:
-			assert(false && "Invalid target in PMSet");
-	}
-}
 
 PMSet::PMSet(Integrator * newPhysicsIntegrator)
 	: PhysicsMessage(PM_SET), target(PT_PHYSICS_INTEGRATOR), i(newPhysicsIntegrator)
@@ -122,9 +103,6 @@ void PMSet::Process()
 		case PT_PAUSE_ON_COLLISSION:
 			Physics.pauseOnCollision = bValue;
 			break;
-		case PT_INTEGRATOR_TYPE:
-			Physics.integratorType = iValue;
-			break;
 		case PT_PHYSICS_INTEGRATOR: 
 		{
 			PhysicsManager & physics = PhysicsMan;
@@ -167,3 +145,67 @@ void PMSet::Process()
 	}
 	return;
 }
+
+PMSeti::PMSeti(int target, int iValue)
+: PhysicsMessage(PM_SET), target(target), iValue(iValue)
+{
+	switch(target){
+		case PT_INTEGRATOR_TYPE:
+			break;
+		case PT_PHYSICS_INTEGRATOR:
+		case PT_COLLISION_DETECTOR:
+		case PT_COLLISION_RESOLVER:
+			assert(iValue == 0);
+			break;
+		default:
+			assert(false && "Invalid target in PMSet");
+	}
+}
+
+void PMSeti::Process()
+{
+	PhysicsManager & physics = PhysicsMan;
+	switch(target)
+	{
+		case PT_INTEGRATOR_TYPE:
+			Physics.integratorType = iValue;
+			break;
+		case PT_PHYSICS_INTEGRATOR: 
+		{
+			// Same. Skip.
+			if (physics.physicsIntegrator == NULL)
+				break;
+			// Delete theo ld one?
+			if (physics.physicsIntegrator)
+			{
+				delete physics.physicsIntegrator;
+				physics.physicsIntegrator = NULL;
+			}
+			LogPhysics("Setting new integrator", INFO);
+			physics.physicsIntegrator = NULL;
+			break;
+		}
+		case PT_COLLISION_RESOLVER:	
+		{
+			if (physics.collisionResolver == NULL)
+				break;
+			// Delete theo ld one?
+			if (physics.collisionResolver)
+				delete physics.collisionResolver;
+			LogPhysics("Setting new collision resolver", INFO);
+			physics.collisionResolver = NULL;
+			break;
+		}
+		case PT_COLLISION_DETECTOR:	
+		{
+			if (physics.collisionDetector == 0)
+				break;
+			if (physics.collisionDetector)
+				delete physics.collisionDetector;
+			LogPhysics("Setting new collision detector", INFO);
+			physics.collisionDetector = NULL;
+			break;
+		}
+	}	
+}
+

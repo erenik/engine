@@ -12,10 +12,10 @@
 class FrameBuffer;
 class Camera;
 class UserInterface;
-class Window;
+class AppWindow;
 class Ray;
 
-/** A struct to properly divide window screen-space.
+/** A struct to properly divide AppWindow screen-space.
 	Can include settings/options that act on a per-viewport basis.
 */
 class Viewport 
@@ -35,7 +35,7 @@ public:
 	void SetCameraToTrack(Camera * camera);
 	/// Calls glViewport with the location and the size of this viewport.
 	void SetGLViewport();
-	/// Update size based on window it resides in.
+	/// Update size based on AppWindow it resides in.
 	void UpdateSize();
 	UserInterface * GetUI();
 
@@ -48,12 +48,12 @@ public:
 
 	/// For distinguation and later alteration
 	String name;
-	/// Parent window it resides in.
-	Window * window;
+	/// Parent AppWindow it resides in.
+	AppWindow * window;
 
 
 
-	/** If the provided sizes to x/y/width/height should be relative to window size (instead of absolute).
+	/** If the provided sizes to x/y/width/height should be relative to AppWindow size (instead of absolute).
 		This may require more updates to keep correct!
 	*/
 	bool relative;
@@ -67,7 +67,7 @@ public:
 	String uiSource;
 	int renderOptions;
 
-	/// Absolute-values of the window. Calculated when size is updated. (pretty much just min/max of it).
+	/// Absolute-values of the AppWindow. Calculated when size is updated. (pretty much just min/max of it).
 	Vector2i absMin, absMax;
 
 
@@ -101,7 +101,7 @@ public:
 
 	bool printShadowMaps;
 
-	/// Fetches ray using viewport-based co-ordinates (not to be confused with the window/screen-space co-ordinates!)
+	/// Fetches ray using viewport-based co-ordinates (not to be confused with the Window/screen-space co-ordinates!)
 	bool GetRayFromViewportCoordinates(Vector2i viewportCoords, Ray & ray);
 
 	// o.o 

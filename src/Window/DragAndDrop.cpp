@@ -15,7 +15,7 @@
 #include "Message/Message.h"
 #include "Message/FileEvent.h"
 
-#include "Window/WindowManager.h"
+#include "Window/AppWindowManager.h"
 
 #include "Input/InputManager.h"
 
@@ -83,8 +83,8 @@ HRESULT STDMETHODCALLTYPE DragAndDrop::DragOver(
 	/// Check if the application supports dropping at the location.
 	SetPdwEffect(pt, pdwEffect);
 
-	/// Fetch window co-ordinates from screen co-ordinates, yo..
-	Window * hoverWindow = HoverWindow();
+	/// Fetch AppWindow co-ordinates from screen co-ordinates, yo..
+	AppWindow * hoverWindow = HoverWindow();
 	if (hoverWindow)
 	{
 		/// Create own mouse-move effects to see that it works.
@@ -182,8 +182,8 @@ int DragAndDrop::GetObject(IDataObject * pDataObj)
 		{
 			std::cout<<"\nGet the stuffs D:";
 			
-			/// Fetch window co-ordinates from screen co-ordinates, yo..
-			Window * hoverWindow = HoverWindow();
+			/// Fetch AppWindow co-ordinates from screen co-ordinates, yo..
+			AppWindow * hoverWindow = HoverWindow();
 
 			switch(format.cfFormat)
 			{

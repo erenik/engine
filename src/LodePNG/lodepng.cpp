@@ -1442,7 +1442,7 @@ LZ77-encode the data. Return value is error code. The input are raw bytes, the o
 is in the form of unsigned integers with codes representing for example literal bytes, or
 length/distance pairs.
 It uses a hash table technique to let it encode faster. When doing LZ77 encoding, a
-sliding window (of windowSize) is used, and all past bytes in that window can be used as
+sliding AppWindow (of windowSize) is used, and all past bytes in that AppWindow can be used as
 the "dictionary". A brute force search through all possible distances would be slow, and
 this hash technique is one out of several ways to speed this up.
 */
@@ -2054,7 +2054,7 @@ unsigned LodePNG_zlib_decompress(unsigned char** out, size_t* outsize, const uns
 
   if(CM != 8 || CINFO > 7)
   {
-    /*error: only compression method 8: inflate with sliding window of 32k is supported by the PNG spec*/
+    /*error: only compression method 8: inflate with sliding AppWindow of 32k is supported by the PNG spec*/
     return 25;
   }
   if(FDICT != 0)
@@ -2096,7 +2096,7 @@ unsigned LodePNG_zlib_compress(unsigned char** out, size_t* outsize, const unsig
 
   unsigned ADLER32;
   /*zlib data: 1 byte CMF (CM+CINFO), 1 byte FLG, deflate data, 4 byte ADLER32 checksum of the Decompressed data*/
-  unsigned CMF = 120; /*0b01111000: CM 8, CINFO 7. With CINFO 7, any window size up to 32768 can be used.*/
+  unsigned CMF = 120; /*0b01111000: CM 8, CINFO 7. With CINFO 7, any AppWindow size up to 32768 can be used.*/
   unsigned FLEVEL = 0;
   unsigned FDICT = 0;
   unsigned CMFFLG = 256 * CMF + FDICT * 32 + FLEVEL * 64;
@@ -6236,7 +6236,7 @@ const char* LodePNG_error_text(unsigned code)
     case 57: return "invalid CRC encountered (checking CRC can be disabled)";
     case 58: return "invalid ADLER32 encountered (checking ADLER32 can be disabled)";
     case 59: return "requested color conversion not supported";
-    case 60: return "invalid window size given in the settings of the encoder (must be 0-32768)";
+    case 60: return "invalid AppWindow size given in the settings of the encoder (must be 0-32768)";
     case 61: return "invalid BTYPE given in the settings of the encoder (only 0, 1 and 2 are allowed)";
     /*LodePNG leaves the choice of RGB to greyscale conversion formula to the user.*/
     case 62: return "conversion from color to greyscale not supported";

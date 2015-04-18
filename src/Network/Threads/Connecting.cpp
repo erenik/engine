@@ -32,7 +32,7 @@ void * NetworkManager::Connecting(void *vArgs)
 	while(Network.connectingActive)
 	{
 		// Let the other threads start a little
-		Sleep(200);
+		SleepThread(200);
 
 		// Check if we connected
 		if(Network.info.yourClientIndex != -1)

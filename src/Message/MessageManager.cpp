@@ -32,7 +32,7 @@
 #include "UI/UIVideo.h"
 
 #include "Network/NetworkManager.h"
-#include "Window/WindowManager.h"
+#include "Window/AppWindowManager.h"
 #include "Audio/AudioManager.h"
 #include "Multimedia/MultimediaManager.h"
 
@@ -381,7 +381,7 @@ void MessageManager::ProcessMessage(Message * message)
 			{
 				Graphics.QueueMessage(new GraphicsMessage(GM_PRINT_SCREENSHOT));
 			}
-			else if (msg.Contains("SetOutOfFocusSleep("))
+			else if (msg.Contains("SetOutOfFocusSleepThread("))
 			{
 				int sleepTime = msg.Tokenize("()")[1].ParseInt();
 				GraphicsMan.QueueMessage(new GMSeti(GM_SET_OUT_OF_FOCUS_SLEEP_TIME, sleepTime));
@@ -391,7 +391,7 @@ void MessageManager::ProcessMessage(Message * message)
 				// Disable it, everywhere?
 				for (int i = 0; i < WindowMan.GetWindows().Size(); ++i)
 				{
-					Window * w = WindowMan.GetWindows()[i];
+					AppWindow * w = WindowMan.GetWindows()[i];
 					w->RenderGrid(false);
 				}
 			}
@@ -449,10 +449,10 @@ void MessageManager::ProcessMessage(Message * message)
 			}
 			else if (msg == "CreateMainWindow")
 			{	
-				// Creates the main application window. A message is sent upon startup from the initializer thread for this.
+				// Creates the main application AppWindow. A message is sent upon startup from the initializer thread for this.
 				if (!WindowMan.MainWindow())
 				{
-					Window * mainWindow = WindowMan.CreateMainWindow();
+					AppWindow * mainWindow = WindowMan.CreateMainWindow();
 					// Optionally set more user-related stuff to the options before creating it.
 			
 					// Then create it!
@@ -462,7 +462,7 @@ void MessageManager::ProcessMessage(Message * message)
 					mainWindow->CreateGlobalUI();
 					mainWindow->backgroundColor = Vector4f(1,0,0,1);
 				}
-				// Reveal the main window to the user now that all managers are allocated.
+				// Reveal the main AppWindow to the user now that all managers are allocated.
 				WindowMan.MainWindow()->Show();
 			}
 			else if (msg == "HideWindows")
@@ -478,7 +478,7 @@ void MessageManager::ProcessMessage(Message * message)
 			{
 				if (WindowMan.MainWindow())
 				{
-					Window * mainWindow = WindowMan.MainWindow();
+					AppWindow * mainWindow = WindowMan.MainWindow();
 					mainWindow->Hide();
 					mainWindow->Destroy();
 				}
@@ -486,7 +486,7 @@ void MessageManager::ProcessMessage(Message * message)
 			else if (msg.Contains("MaximizeWindow("))
 			{
 				String windowName = msg.Tokenize("()")[1];
-				Window * window = WindowMan.GetWindowByName(windowName);
+				AppWindow * window = WindowMan.GetWindowByName(windowName);
 				if (window)
 				{
 					if (!window->IsFullScreen())

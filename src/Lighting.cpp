@@ -14,7 +14,7 @@
 #include "Graphics/Messages/GMUI.h"
 #include "Graphics/Messages/GraphicsMessages.h"
 
-#include "Window/WindowManager.h"
+#include "Window/AppWindowManager.h"
 
 #include "UI/UserInterface.h"
 #include "UI/UIButtons.h"
@@ -23,7 +23,7 @@
 #include "Message/MathMessage.h"
 #include "Message/FileEvent.h"
 
-Window * Lighting::lightingEditor = NULL;
+AppWindow * Lighting::lightingEditor = NULL;
 
 String lightList = "LightList";
 
@@ -193,10 +193,10 @@ bool Lighting::ProcessMessage(Message * message)
 }
 
 
-/// Creates an editor-window for this lighting, assuming the existance of LightingMenu and LightEditor GUI files.
-Window * Lighting::OpenEditorWindow()
+/// Creates an editor-AppWindow for this lighting, assuming the existance of LightingMenu and LightEditor GUI files.
+AppWindow * Lighting::OpenEditorWindow()
 {
-	// Look for an existing lighting-editor window.
+	// Look for an existing lighting-editor AppWindow.
 	if (lightingEditor)
 	{
 	
@@ -228,9 +228,9 @@ Window * Lighting::OpenEditorWindow()
 }
 
 /// Updates UI for all lights in this lighting.
-void Lighting::UpdateLightList(Window * inWindow)
+void Lighting::UpdateLightList(AppWindow * inWindow)
 {
-	Window * window = inWindow;
+	AppWindow * window = inWindow;
 	if (!window)
 		window = lightingEditor;
 	if (!window)

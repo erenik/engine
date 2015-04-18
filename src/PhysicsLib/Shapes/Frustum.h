@@ -22,7 +22,7 @@ enum planeSideEnum{
 http://www.lighthouse3d.com/tutorials/view-frustum-culling/geometric-approach-implementation/
 */
 #ifdef USE_SSE
-__declspec( align( 16 ) ) 
+Align(16)
 #endif
 class Frustum {
 private:

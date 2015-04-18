@@ -97,7 +97,7 @@ public:
 	void QueueGlobalState(AppState * state);
 
 	/// Sets a global state, that can process global messages and packets
-	void SetGlobalState(int id);
+	void SetGlobalStateByID(int id);
 	/// Sets a global state, that can process global messages and packets
 	void SetGlobalState(AppState * newGlobalState);
 	/// Sets active/current state.

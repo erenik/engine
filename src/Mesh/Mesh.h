@@ -140,7 +140,7 @@ public:
 	/// Contains max weights per vertex for this mesh. May vary depending on the DCC tool used to generate it.
 	int maxWeightsPerVertex;
 	/// Weights for each vertex. Each vertex will have a list of weights.
-	List<List<VertexWeight>> vertexWeights;
+	List<List<VertexWeight> > vertexWeights;
 	/// Inverse bind pose matrices for all bones/joints.
 	List<Matrix4f> invBindPoseMatrices;
 	// Bind-shape matrix (relationship between skeleton and skin when it was bound/defined)

@@ -18,7 +18,7 @@
 #include "Graphics/Messages/GraphicsMessage.h"
 
 #include "Input/InputManager.h"
-#include "Window/WindowManager.h"
+#include "Window/AppWindowManager.h"
 
 #include "SpaceShooter2D.h"
 

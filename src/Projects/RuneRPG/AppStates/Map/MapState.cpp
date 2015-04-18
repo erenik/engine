@@ -41,7 +41,7 @@
 #include "Entity/EntityFlags.h"
 #include "../../RuneDirectories.h"
 #include "../RuneGameStatesEnum.h"
-#include "Window/WindowManager.h"
+#include "Window/AppWindowManager.h"
 
 #include "TextureManager.h"
 #include "Maps/MapManager.h"
@@ -121,7 +121,7 @@ void MapState::OnEnter(AppState * previousState)
 		mapTestWindow->Show();
 
 
-	Sleep(100);
+	SleepThread(100);
 	// Begin loading textures here for the UI
 	Graphics.QueueMessage(new GMSetUI(ui));
 	/// Depending on previous state, modify menu.
@@ -241,7 +241,7 @@ void MapState::OnExit(AppState *nextState)
 
 void MapState::Process(int timeInMs)
 {
-	Sleep(10);
+	SleepThread(10);
 
 	/// Fetch playersss
 	List<RRPlayer*> players = GetPlayers();
@@ -676,7 +676,7 @@ void MapState::ProcessMessage(Message * message)
 			/*
 				String name = msg.Tokenize(":")[1];
 				RuneItem * item = activeShop->GetItem(name);
-				// Update active purchase info in the purchase-window.
+				// Update active purchase info in the purchase-AppWindow.
 				Graphics.QueueMessage(new GMSetUIs("ItemToBuy", GMUI::TEXT, item->name));
 				Graphics.QueueMessage(new GMPushUI("PurchaseWindow", ui));
 				*/

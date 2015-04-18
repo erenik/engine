@@ -59,7 +59,7 @@ void RenderBuffer::CreateBuffer()
 			assert(false);
 	}
 	// Set storage.
-	glRenderbufferStorage(GL_RENDERBUFFER, glStorageType, size[0], size[1]); // Set the render buffer storage to be a depth component, with a width and height of the window
+	glRenderbufferStorage(GL_RENDERBUFFER, glStorageType, size[0], size[1]); // Set the render buffer storage to be a depth component, with a width and height of the AppWindow
 	AssertGLError("RenderBuffer::CreateBuffer");
 	// And bind it to the current frame-buffer.
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, glType, GL_RENDERBUFFER, renderBuffer);	// Attach the depth buffer fbo_depth to our frame buffer
@@ -116,7 +116,7 @@ void RenderBuffer::CreateTexture()
 			texture->format = Texture::SINGLE_32F;
 			break;
 	}
-	// Create a standard texture with the width and height of our window
+	// Create a standard texture with the width and height of our AppWindow
 	assert(size.x > 0 && size.y > 0);
 	glTexImage2D(GL_TEXTURE_2D, 0, glStorageType, size.x, size.y, 0, glPixelDataFormat, glPixelDataType, NULL); 
 	AssertGLError("RenderBuffer::CreateTexture");

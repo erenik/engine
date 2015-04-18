@@ -72,7 +72,7 @@ THREAD_START(Initialize)
 	// Now begin accepting input!
 	Input.acceptInput = true;
 
-	StateMan.SetGlobalState(GameStateID::GAME_STATE_GLOBAL);
+	StateMan.SetGlobalStateByID(GameStateID::GAME_STATE_GLOBAL);
 	std::cout<<"\nInitialization done! Entering main menu...";
 	StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_MAIN_MENU));
 
@@ -103,7 +103,7 @@ THREAD_START(Deallocate)
 	GraphicsMan.QueueMessage(new GraphicsMessage(GM_UNREGISTER_ALL_ENTITIES));
 	PhysicsMan.QueueMessage(new PhysicsMessage(PM_UNREGISTER_ALL_ENTITIES));
 	AudioMan.QueueMessage(new AudioMessage(AM_STOP_ALL));
-	Sleep(50);
+	SleepThread(50);
 
 	MesMan.QueueMessages("SetActiveState:NULL");
 	MesMan.QueueMessages("SetGlobalState:NULL");
@@ -120,11 +120,11 @@ THREAD_START(Deallocate)
 	// Wait for graphics thread to end.
 	while(graphicsThread)
 	{
-		Sleep(10);
+		SleepThread(10);
 	}
 	while(audioThread)
 	{
-		Sleep(10);
+		SleepThread(10);
 	}
 	// Notify the message manager and game states to deallocate their windows.
 	MesMan.QueueMessages("DeleteWindows");
@@ -146,11 +146,11 @@ THREAD_START(Deallocate)
 
 
 	while(stateProcessingThread)
-		Sleep(10);
+		SleepThread(10);
 
 	// Wait until the graphics thread has ended before deallocating more.
 	while(!Graphics.finished)
-		Sleep(10);
+		SleepThread(10);
 
 	std::cout<<"\n>>>DeallocatorThread ending...";
 

@@ -91,7 +91,7 @@ void Tetris::OnEnter(AppState * previousState)
 	timeStepMs = 1000;
 	score = 0;
 	rowsCompletedTotal = 0;
-	Sleep(1000);
+	SleepThread(1000);
 }
 
 /// Main processing function, using provided time since last frame.
@@ -512,7 +512,7 @@ void Tetris::EvaluateRows()
 
 	// Animation...! o.o ?
 	
-	Sleep(1000);
+	SleepThread(1000);
 
 	// Move down shit! o.o
 	// Begin with upper most row which was completed.

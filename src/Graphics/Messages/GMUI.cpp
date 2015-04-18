@@ -16,7 +16,7 @@
 #include "Input/InputManager.h"
 #include "StateManager.h"
 #include "Message/MessageManager.h"
-#include "Window/WindowManager.h"
+#include "Window/AppWindowManager.h"
 
 #include "File/LogFile.h"
 
@@ -95,7 +95,7 @@ bool GMUI::GetGlobalUI()
 		ui = Graphics.GetGlobalUI();
 		// Root not created automatically..? Create it now then.
 		ui->CreateRoot();
-		// Adjust to window straight away! o.o
+		// Adjust to AppWindow straight away! o.o
 		ui->AdjustToWindow(Graphics.Width(), Graphics.Height());
 		return true;
 	}
@@ -504,7 +504,7 @@ void GMSetUIb::AssertTarget()
 
 
 /// For setting floating point values, like relative sizes/positions, scales etc. of elements in the system-global UI.
-GMSetGlobalUIf::GMSetGlobalUIf(String uiName, int target, float value, Window * window)
+GMSetGlobalUIf::GMSetGlobalUIf(String uiName, int target, float value, AppWindow * window)
 : GMSetUIf(uiName, target, value)
 {
 	if (!window)
@@ -668,7 +668,7 @@ void GMSetUIs::Process()
 	Graphics.renderQueried = true;
 }
 
-GMSetGlobalUIs::GMSetGlobalUIs(String uiName, int target, Text text, bool force, Window * window)
+GMSetGlobalUIs::GMSetGlobalUIs(String uiName, int target, Text text, bool force, AppWindow * window)
 : GMSetUIs(uiName, target, text)
 {
 	if (!window)
@@ -842,13 +842,13 @@ void DeleteUI(UIElement * element, UserInterface * inUI){
 	Input.acceptInput = false;
 	Input.OnElementDeleted(element);
 #define SLEEP_TIME	10
-	Sleep(SLEEP_TIME);
+	SleepThread(SLEEP_TIME);
 	bool result = inUI->Delete(element);
 	if (!result){
 		std::cout<<"\nUnable to delete element: "<<element;
 		std::cout<<"\nUnable to delete element: "<<element->name;
 	}
-	Sleep(SLEEP_TIME);
+	SleepThread(SLEEP_TIME);
 	Input.acceptInput = true;
 }
 

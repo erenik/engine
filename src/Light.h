@@ -23,6 +23,7 @@ enum LightTypes {
 class Entity;
 class Message;
 class Texture;
+class Lighting;
 
 /** Struct for handling a single light source. */
 class Light
@@ -37,7 +38,7 @@ public:
 	static void FreeAll();
 	void Nullify();
 
-	/// Opens a dedicated editor window for this light. Assumes a valid LightEditor.gui is available in the UI directory.
+	/// Opens a dedicated editor AppWindow for this light. Assumes a valid LightEditor.gui is available in the UI directory.
 	void OpenEditorWindow();
 	void CloseEditorWindow();
 	// For interaction with UI as well as scripting.

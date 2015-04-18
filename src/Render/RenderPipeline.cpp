@@ -1,7 +1,7 @@
 /// Emil Hedemalm
 /// 2014-07-09
 /** Render configuration, containing selection of shaders to use, 
-	which passes to render and at what resolution (with respective to the active window)
+	which passes to render and at what resolution (with respective to the active AppWindow)
 */
 
 #include "RenderPipeline.h"

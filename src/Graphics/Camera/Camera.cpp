@@ -5,7 +5,7 @@
 #include "Graphics/Camera/Camera.h"
 #include "Entity/Entity.h"
 #include "Physics/PhysicsProperty.h"
-#include "Window/Window.h"
+#include "Window/AppWindow.h"
 #include "Viewport.h"
 #include <cstring>
 
@@ -87,13 +87,13 @@ void CameraManager::Process()
 	}
 }
 
-/// Returns the currently active camera. This assumes a main camera being used in the main window.
+/// Returns the currently active camera. This assumes a main camera being used in the main AppWindow.
 Camera * CameraManager::ActiveCamera()
 {
 	Camera * renderingCamera = GraphicsMan.ActiveCamera();
 	if (renderingCamera)
 		return renderingCamera;
-	Window * window = MainWindow();
+	AppWindow * window = MainWindow();
 	if (!window)
 		return NULL;
 	Viewport * vp = window->MainViewport();
@@ -103,7 +103,7 @@ Camera * CameraManager::ActiveCamera()
 }
 
 /** Makes active the next camera (compared to the current one) by queueinga message to the graphics-manager.
-	Assumes only 1 active camera is being used for 1 main viewport or window.
+	Assumes only 1 active camera is being used for 1 main viewport or AppWindow.
 */
 Camera * CameraManager::NextCamera()
 {
@@ -129,7 +129,7 @@ Camera * CameraManager::NextCamera()
 }
 
 /** Makes active the previous camera (compared to the current one) by queueinga message to the graphics-manager.
-	Assumes only 1 active camera is being used for 1 main viewport or window.
+	Assumes only 1 active camera is being used for 1 main viewport or AppWindow.
 */
 Camera * CameraManager::PreviousCamera()
 {
@@ -445,7 +445,7 @@ void Camera::OnGainCameraFocus()
 	To map each pixel in the screen to one unit in-game.
 	Regular projection matrices use width and height ratios based on > 1.0f, e.g. 1.666 and 1.0
 */
-void Camera::AdjustProjectionMatrixToWindow(Window * window)
+void Camera::AdjustProjectionMatrixToWindow(AppWindow * window)
 {
 	adjustProjectionMatrixToWindow = true;
 	windowToTrack = window;
@@ -854,7 +854,7 @@ float Camera::Height() const {
 /** Returns a ray in 3D space using the given mouse and camera data.
 	Mouse coordinates are assumed to be in screen-pixel space (i.e. 0.0 to 800.0 or similar)
 */
-Ray Camera::GetRayFromScreenCoordinates(Window * window, int mouseX, int mouseY) const
+Ray Camera::GetRayFromScreenCoordinates(AppWindow * window, int mouseX, int mouseY) const
 {
 //	std::cout<<"\nGetRayFromScreenCoordinates\n===============================";
 //	std::cout<<"\nMouseX: "<<mouseX<<" MouseY: "<<mouseY;

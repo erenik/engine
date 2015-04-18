@@ -4,7 +4,7 @@
 
 #include "GMCamera.h"
 #include "Graphics/GraphicsManager.h"
-#include "Window/WindowManager.h"
+#include "Window/AppWindowManager.h"
 #include "Viewport.h"
 
 void GMTrack::Process()
@@ -23,7 +23,7 @@ void GMDeleteCamera::Process()
 }
 
 /// For setting global/main camera to track.
-GMSetCamera::GMSetCamera(Camera * cameraToTrack, Window * inWindow)
+GMSetCamera::GMSetCamera(Camera * cameraToTrack, AppWindow * inWindow)
 	: GraphicsMessage(GM_SET_CAMERA), camera(cameraToTrack), window(inWindow)
 {
 	target = CT_CAMERA_TO_TRACK;

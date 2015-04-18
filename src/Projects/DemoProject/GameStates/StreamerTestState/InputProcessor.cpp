@@ -429,7 +429,7 @@ void StreamerTestState::InputProcessor(int action, int inputDevice/* = 0*/){
 						entity = MapMan.CreateEntity(model, texture);
 						entity->position((float)posX, (float)posY, (float)posZ);
 						balls.Add(entity);
-						Sleep(1000 / BALLS);
+						SleepThread(1000 / BALLS);
 					}
 					/// SEt all balls' physics type to dynamic
 					Physics.QueueMessage(new PMSetPhysicsType(balls, PhysicsType::DYNAMIC));
@@ -466,7 +466,7 @@ void StreamerTestState::InputProcessor(int action, int inputDevice/* = 0*/){
 			bool physicsWasPaused = Physics.IsPaused();
 			Physics.Pause();
 			std::cout<<"\nInput>>SAVE_MAP";
-			Sleep(100);
+			SleepThread(100);
 			String filename = Input.GetInputBuffer();
 			if (!filename.Contains("racing/"))
 				filename = "racing/" + filename;
@@ -485,7 +485,7 @@ void StreamerTestState::InputProcessor(int action, int inputDevice/* = 0*/){
 		case LOAD_MODEL:
 			std::cout<<"\nInput>>LOAD_MODEL";
 			std::cout<<"\nIMPLEMENT";
-			Sleep(10000);
+			SleepThread(10000);
 			break;
 		case LIST_MODELS:
 			ModelMan.ListObjects();

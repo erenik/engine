@@ -703,25 +703,25 @@ Vector4f Matrix4f::Product(const Vector4f & vector) const
 	LOAD_ADDERS(3, result4);
 	
 #else
-	adder1.m128_f32[0] = result1.m128_f32[0];
-	adder2.m128_f32[0] = result1.m128_f32[1];
-	adder3.m128_f32[0] = result1.m128_f32[2];
-	adder4.m128_f32[0] = result1.m128_f32[3];
+	adder1.v[0] = result1.v[0];
+	adder2.v[0] = result1.v[1];
+	adder3.v[0] = result1.v[2];
+	adder4.v[0] = result1.v[3];
 
-	adder1.m128_f32[1] = result2.m128_f32[0];
-	adder2.m128_f32[1] = result2.m128_f32[1];
-	adder3.m128_f32[1] = result2.m128_f32[2];
-	adder4.m128_f32[1] = result2.m128_f32[3];
+	adder1.v[1] = result2.v[0];
+	adder2.v[1] = result2.v[1];
+	adder3.v[1] = result2.v[2];
+	adder4.v[1] = result2.v[3];
 
-	adder1.m128_f32[2] = result3.m128_f32[0];
-	adder2.m128_f32[2] = result3.m128_f32[1];
-	adder3.m128_f32[2] = result3.m128_f32[2];
-	adder4.m128_f32[2] = result3.m128_f32[3];
+	adder1.v[2] = result3.v[0];
+	adder2.v[2] = result3.v[1];
+	adder3.v[2] = result3.v[2];
+	adder4.v[2] = result3.v[3];
 
-	adder1.m128_f32[3] = result4.m128_f32[0];
-	adder2.m128_f32[3] = result4.m128_f32[1];
-	adder3.m128_f32[3] = result4.m128_f32[2];
-	adder4.m128_f32[3] = result4.m128_f32[3];
+	adder1.v[3] = result4.v[0];
+	adder2.v[3] = result4.v[1];
+	adder3.v[3] = result4.v[2];
+	adder4.v[3] = result4.v[3];
 #endif
 
 	// Do addition.
@@ -833,55 +833,55 @@ Vector4f Matrix4f::operator * (const Vector4f & vector) const
 		/// Matrix product using SSE instructions...!
 	Vector4f result;
 	// Col*Row result
-	__m128 result1, result2, result3, result4;
-	__m128 matrixCol;
+	SSEVec result1, result2, result3, result4;
+	SSEVec matrixCol;
 	
 	// Load data.
 	float row[4];
 	GetRow(0, row);
-	matrixCol = _mm_loadu_ps(row);
+	matrixCol.data = _mm_loadu_ps(row);
 	// Do multiplication.
-	result1 = _mm_mul_ps(matrixCol, vector.data);
+	result1.data = _mm_mul_ps(matrixCol.data, vector.data);
 	// Repeat for other 3 columns
 	GetRow(1, row);
-	matrixCol = _mm_loadu_ps(row);
-	result2 = _mm_mul_ps(matrixCol, vector.data);
+	matrixCol.data = _mm_loadu_ps(row);
+	result2.data = _mm_mul_ps(matrixCol.data, vector.data);
 	GetRow(2, row);
-	matrixCol = _mm_loadu_ps(row);
-	result3 = _mm_mul_ps(matrixCol, vector.data);
+	matrixCol.data = _mm_loadu_ps(row);
+	result3.data = _mm_mul_ps(matrixCol.data, vector.data);
 	GetRow(3, row);
-	matrixCol = _mm_loadu_ps(row);
-	result4 = _mm_mul_ps(matrixCol, vector.data);
+	matrixCol.data = _mm_loadu_ps(row);
+	result4.data = _mm_mul_ps(matrixCol.data, vector.data);
 
 	// Okay, got the 16 first multiplication results in, now we want to add together each of them individually, if possible...
-	__m128 adder1, adder2, adder3, adder4;
-	adder1.m128_f32[0] = result1.m128_f32[0];
-	adder2.m128_f32[0] = result1.m128_f32[1];
-	adder3.m128_f32[0] = result1.m128_f32[2];
-	adder4.m128_f32[0] = result1.m128_f32[3];
+	SSEVec adder1, adder2, adder3, adder4;
+	adder1.v[0] = result1.v[0];
+	adder2.v[0] = result1.v[1];
+	adder3.v[0] = result1.v[2];
+	adder4.v[0] = result1.v[3];
 
-	adder1.m128_f32[1] = result2.m128_f32[0];
-	adder2.m128_f32[1] = result2.m128_f32[1];
-	adder3.m128_f32[1] = result2.m128_f32[2];
-	adder4.m128_f32[1] = result2.m128_f32[3];
+	adder1.v[1] = result2.v[0];
+	adder2.v[1] = result2.v[1];
+	adder3.v[1] = result2.v[2];
+	adder4.v[1] = result2.v[3];
 
-	adder1.m128_f32[2] = result3.m128_f32[0];
-	adder2.m128_f32[2] = result3.m128_f32[1];
-	adder3.m128_f32[2] = result3.m128_f32[2];
-	adder4.m128_f32[2] = result3.m128_f32[3];
+	adder1.v[2] = result3.v[0];
+	adder2.v[2] = result3.v[1];
+	adder3.v[2] = result3.v[2];
+	adder4.v[2] = result3.v[3];
 
-	adder1.m128_f32[3] = result4.m128_f32[0];
-	adder2.m128_f32[3] = result4.m128_f32[1];
-	adder3.m128_f32[3] = result4.m128_f32[2];
-	adder4.m128_f32[3] = result4.m128_f32[3];
+	adder1.v[3] = result4.v[0];
+	adder2.v[3] = result4.v[1];
+	adder3.v[3] = result4.v[2];
+	adder4.v[3] = result4.v[3];
 
 	// Do addition.
-	result1 = _mm_add_ps(adder1, adder2);
-	result2 = _mm_add_ps(adder3, adder4);
+	result1.data = _mm_add_ps(adder1.data, adder2.data);
+	result2.data = _mm_add_ps(adder3.data, adder4.data);
 	
-//	result[x] = tempResult.m128_f32[0] + tempResult.m128_f32[1] + tempResult.m128_f32[2] + tempResult.m128_f32[3];
+//	result[x] = tempResult.v[0] + tempResult.v[1] + tempResult.v[2] + tempResult.v[3];
 	/// Final addition.
-	result.data = _mm_add_ps(result1, result2); 
+	result.data = _mm_add_ps(result1.data, result2.data); 
 
 	return result;
 #else

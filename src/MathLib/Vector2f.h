@@ -120,6 +120,9 @@ public:
 	/// Internal element division.
 	Vector2f operator / (const float &f) const;
 
+	/// Multiplication with floats
+	friend Vector2f operator * (float multiplier, const Vector2f & vector);
+
 	/// Per element division.
 	Vector2f operator / (const Vector2f &v) const;
 

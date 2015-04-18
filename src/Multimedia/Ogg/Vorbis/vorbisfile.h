@@ -2080,7 +2080,7 @@ static void _ov_splice(float **pcm,float **lappcm,
       d[i]=d[i]*wd + s[i]*ws;
     }
   }
-  /* window from zero */
+  /* AppWindow from zero */
   for(;j<ch2;j++){
     float *d=pcm[j];
     for(i=0;i<n;i++){
@@ -2235,10 +2235,10 @@ static int _ov_64_seek_lap(OggVorbis_File *vf,ogg_int64_t pos,
 
   ch1=vi->channels;
   n1=vorbis_info_blocksize(vi,0)>>(1+hs);
-  w1=vorbis_window(&vf->vd,0);  /* window arrays from libvorbis are
+  w1=vorbis_window(&vf->vd,0);  /* AppWindow arrays from libvorbis are
                                    persistent; even if the decode state
                                    from this link gets dumped, this
-                                   window array continues to exist */
+                                   AppWindow array continues to exist */
 
   lappcm=alloca(sizeof(*lappcm)*ch1);
   for(i=0;i<ch1;i++)
@@ -2296,10 +2296,10 @@ static int _ov_d_seek_lap(OggVorbis_File *vf,double pos,
 
   ch1=vi->channels;
   n1=vorbis_info_blocksize(vi,0)>>(1+hs);
-  w1=vorbis_window(&vf->vd,0);  /* window arrays from libvorbis are
+  w1=vorbis_window(&vf->vd,0);  /* AppWindow arrays from libvorbis are
                                    persistent; even if the decode state
                                    from this link gets dumped, this
-                                   window array continues to exist */
+                                   AppWindow array continues to exist */
 
   lappcm=alloca(sizeof(*lappcm)*ch1);
   for(i=0;i<ch1;i++)

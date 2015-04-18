@@ -161,7 +161,7 @@ bool WMMDevice::SetupForOutput()
 	while(hr != S_OK)
 	{
 		std::cout<<"\nWas unable to initialize audio cient with request duration, trying again.";
-		Sleep(5);
+		SleepThread(5);
 		hr = audioClient->Initialize(AUDCLNT_SHAREMODE_SHARED, 0, hnsRequestedDuration, 0, pwfx, NULL);
 	}
 	assert(hr == S_OK);
@@ -206,7 +206,7 @@ bool WMMDevice::SetupForOutput()
 	for (int i = 0; i < 10000; ++i)
 	{
 		BufferData(NULL, 1000000);
-		Sleep(500);
+		SleepThread(500);
 	}
 */
 	return true;

@@ -8,7 +8,7 @@
 #include "Graphics/Messages/GMSet.h"
 #include "Graphics/Messages/GMUI.h"
 #include "UI/UIImage.h"
-#include "Window/WindowManager.h"
+#include "Window/AppWindowManager.h"
 
 WaitScript::WaitScript(String line, Script * parent)
 : Script(line, parent)

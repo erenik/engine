@@ -5,7 +5,7 @@
 #include "Light.h"
 #include <fstream>
 
-#include "Window/WindowManager.h"
+#include "Window/AppWindowManager.h"
 
 #include "UI/UserInterface.h"
 #include "UI/UIButtons.h"
@@ -85,18 +85,18 @@ void Light::FreeAll()
 String lightEditorName = "LightEditor";
 	
 
-/// Opens a dedicated editor window for this light. Assumes a valid LightEditor.gui is available in the UI directory.
+/// Opens a dedicated editor AppWindow for this light. Assumes a valid LightEditor.gui is available in the UI directory.
 void Light::OpenEditorWindow()
 {
-	// Look for an existing lighting-editor window.
-	Window * window = WindowMan.GetWindowByName(lightEditorName);
-	if (window)
+	// Look for an existing lighting-editor AppWindow.
+	AppWindow * AppWindow = WindowMan.GetWindowByName(lightEditorName);
+	if (AppWindow)
 	{
 	
 	}
 	// Create it if not existing.
 	else {
-		window = WindowMan.NewWindow(lightEditorName, "Light editor");
+		AppWindow = WindowMan.NewWindow(lightEditorName, "Light editor");
 		UserInterface * ui = window->CreateUI();
 		ui->Load("gui/LightEditor.gui");
 		window->DisableAllRenders();
@@ -110,15 +110,15 @@ void Light::OpenEditorWindow()
 	window->Show();
 	// Bring it to the top if needed.
 	window->BringToTop();
-	// Update stats within the window.
+	// Update stats within the AppWindow.
 	OnPropertiesUpdated();
 }
 
 void Light::CloseEditorWindow()
 {
-	// Look for an existing lighting-editor window.
-	Window * window = WindowMan.GetWindowByName(lightEditorName);
-	if (!window)
+	// Look for an existing lighting-editor AppWindow.
+	AppWindow * AppWindow = WindowMan.GetWindowByName(lightEditorName);
+	if (!AppWindow)
 		return;
 	window->Hide();
 }
@@ -219,8 +219,8 @@ void Light::ProcessMessageStatic(Message * message)
 // Updates UI as necessary
 void Light::OnPropertiesUpdated()
 {
-	Window * window = WindowMan.GetWindowByName(lightEditorName);
-	if (!window)
+	AppWindow * AppWindow = WindowMan.GetWindowByName(lightEditorName);
+	if (!AppWindow)
 		return;
 	UserInterface * ui = window->ui;
 	if (!ui)

@@ -206,8 +206,6 @@ Vector2f Vector2f::operator * (const Vector2f elementMultiplier) const
 	return newVec;
 }
 
-
-
 /// Multiplication with float
 Vector2f operator * (float multiplier, Vector2f& vector){
 	Vector2f  newVec;
@@ -215,6 +213,16 @@ Vector2f operator * (float multiplier, Vector2f& vector){
 	newVec[1] = vector[1] * multiplier;
 	return newVec;
 }
+
+/// Multiplication with floats
+Vector2f operator * (float multiplier, const Vector2f & vec)
+{
+	Vector2f newVec;
+	newVec.x = vec.x * multiplier;
+	newVec.y = vec.y * multiplier;
+	return newVec;
+}
+
 
 
 void Vector2f::operator += (Vector2f addend){

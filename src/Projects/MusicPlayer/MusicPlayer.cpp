@@ -108,10 +108,10 @@ void MusicPlayer::OnEnter(GameState * previousState)
 void MusicPlayer::Process(float time)
 {
 //	std::cout<<"\nHello music player.";
-	Sleep(100);
+	SleepThread(100);
 	/// Sleep more if not really active.
 	if (!WindowMan.InFocus())
-		Sleep(400);
+		SleepThread(400);
 	long long cTime = Timer::GetCurrentTimeMs();
 	// Fade-out.
 	if (fadeOutStartTime > 0)

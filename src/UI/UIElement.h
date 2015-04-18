@@ -242,7 +242,7 @@ public:
 	/// Rendering
 	virtual void Render(GraphicsState & graphicsState);
 
-	/// Adjusts the UI element size and position relative to new window size
+	/// Adjusts the UI element size and position relative to new AppWindow size
 	void AdjustToWindow(int left, int right, int bottom, int top);
 	/// Calls AdjustToWindow for parent's bounds. Will assert if no parent is available.
 	void AdjustToParent();
@@ -261,10 +261,10 @@ public:
 	/// Alignment relative to parent. If this is set all other alignment* variables will be ignored.
 	char alignment;
 
-	/// Allow scaling depending on parent or window size?
+	/// Allow scaling depending on parent or AppWindow size?
 	bool scalable;
 
-	/// Defines default scalabilty with window adjustments.
+	/// Defines default scalabilty with AppWindow adjustments.
 	static const bool DEFAULT_SCALABILITY = true;
 
 	/// Ratio of the texture and UI-size
@@ -338,7 +338,7 @@ public:
 	Text text;
 	// Size of text in pixels
 	float textSize;
-	/// Relative text size to window size
+	/// Relative text size to AppWindow size
 	float textSizeRatio;
 
 

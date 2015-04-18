@@ -41,7 +41,7 @@ Breakout::Breakout()
 Breakout::~Breakout()
 {
 	// Reset integrator and stuff before we delete any entities, or wat?
-//	Sleep(50);
+//	SleepThread(50);
 	ballProperties.Clear();
 	MapMan.DeleteEntities(GetEntities());
 }
@@ -418,6 +418,7 @@ void Breakout::OnScoreUpdated()
 {	
 	// Check if game over, and update score if not!
 	bool gameOver = true;
+	bool levelComplete = true;
 	for (int i = 0; i < balls.Size(); ++i)
 	{
 		Entity * ball = balls[i];
@@ -434,7 +435,6 @@ void Breakout::OnScoreUpdated()
 	}
 
 	// Check if level completed.
-	bool levelComplete = true;
 	for (int i = 0; i < bricks.Size(); ++i)
 	{
 		Entity * brick = bricks[i];

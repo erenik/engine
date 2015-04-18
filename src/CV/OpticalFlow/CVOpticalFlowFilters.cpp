@@ -23,7 +23,7 @@ CVOpticalFlowFarneback::CVOpticalFlowFarneback()
 
 	pyramidScale = new CVFilterSetting("Pyramid scale", 0.5f);
 	pyramidLayers = new CVFilterSetting("Pyramid layers", 1);
-	averagingWindowSize = new CVFilterSetting("Averaging window size", 3);
+	averagingWindowSize = new CVFilterSetting("Averaging AppWindow size", 3);
 	iterations = new CVFilterSetting("Iterations", 1);
 	polynomialNeighbourhoodSize = new CVFilterSetting("Poly Neighbourhood size", 5);
 	polynomialSmoothingSigma = new CVFilterSetting("Poly Smoothing sigma", 1.1f);
@@ -183,7 +183,7 @@ int CVOpticalFlowFarneback::Process(CVPipeline * pipe)
 CVOpticalFlowLucasKanade::CVOpticalFlowLucasKanade()
 	: CVDataFilter(CVFilterID::OPTICAL_FLOW_LUCAS_KANADE)
 {
-	searchWindowSize = new CVFilterSetting("Search window size", 21);
+	searchWindowSize = new CVFilterSetting("Search AppWindow size", 21);
 	maxLevel = new CVFilterSetting("Max pyr level", 0);
 	minEigenThreshold = new CVFilterSetting("Min eigen threshold", 1e-4f);
 	maxIterations = new CVFilterSetting("Criteria - Max iterations", 30);
@@ -277,7 +277,7 @@ int CVOpticalFlowLucasKanade::Process(CVPipeline * pipe)
 			maxLevel->GetInt(),
 			criteria, 
 			// OPTFLOW_USE_INITIAL_FLOW uses initial estimations, stored in nextPts; if the flag is not set, then prevPts is copied to nextPts and is considered the initial estimate.
-			// OPTFLOW_LK_GET_MIN_EIGENVALS use minimum eigen values as an error measure (see minEigThreshold description); if the flag is not set, then L1 distance between patches around the original and a moved point, divided by number of pixels in a window, is used as a error measure.
+			// OPTFLOW_LK_GET_MIN_EIGENVALS use minimum eigen values as an error measure (see minEigThreshold description); if the flag is not set, then L1 distance between patches around the original and a moved point, divided by number of pixels in a AppWindow, is used as a error measure.
 			cv::OPTFLOW_LK_GET_MIN_EIGENVALS,
 			minEigenThreshold->GetFloat()
 			);
@@ -425,7 +425,7 @@ void CVOpticalFlowLucasKanade::PaintOFPoints(cv::Mat & mat, CVPipeline * pipe)
 CVOpticalFlowLKSubdivided::CVOpticalFlowLKSubdivided()
 	: CVDataFilter(CVFilterID::OPTICAL_FLOW_LK_SUBDIVIDED)
 {
-	searchWindowSize = new CVFilterSetting("Search window size", 21);
+	searchWindowSize = new CVFilterSetting("Search AppWindow size", 21);
 	maxLevel = new CVFilterSetting("Max pyr level", 0);
 	minEigenThreshold = new CVFilterSetting("Min eigen threshold", 1e-4f);
 	maxIterations = new CVFilterSetting("Criteria - Max iterations", 30);
@@ -517,7 +517,7 @@ int CVOpticalFlowLKSubdivided::Process(CVPipeline * pipe)
 			maxLevel->GetInt(),
 			criteria, 
 			// OPTFLOW_USE_INITIAL_FLOW uses initial estimations, stored in nextPts; if the flag is not set, then prevPts is copied to nextPts and is considered the initial estimate.
-			// OPTFLOW_LK_GET_MIN_EIGENVALS use minimum eigen values as an error measure (see minEigThreshold description); if the flag is not set, then L1 distance between patches around the original and a moved point, divided by number of pixels in a window, is used as a error measure.
+			// OPTFLOW_LK_GET_MIN_EIGENVALS use minimum eigen values as an error measure (see minEigThreshold description); if the flag is not set, then L1 distance between patches around the original and a moved point, divided by number of pixels in a AppWindow, is used as a error measure.
 			0,
 			minEigenThreshold->GetFloat()
 			);

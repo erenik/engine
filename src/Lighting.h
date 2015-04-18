@@ -8,14 +8,14 @@ class GraphicsState;
 class Light;
 class Shader;
 class Message;
-class Window;
+class AppWindow;
 
 #define MAX_LIGHTS 128
 
 /** A structure for keeping track of currently active lights in a scene
 	It contains mostly pointers since it is an encapsulating object for passing data between functions.
 */
-__declspec( align( 16 ) ) 
+Align(16)
 class Lighting 
 {
 	/// Loads selected lighting into the active shader program
@@ -30,10 +30,10 @@ public:
 
 	/// Returns true if the message had any meaning, adjusting values within the lighting.
 	bool ProcessMessage(Message * message);
-	/// Opens up an editor-window for this lighting, assuming the existance of LightingMenu and LightEditor GUI files.
-	Window * OpenEditorWindow();
-	/// Updates UI for all lights in this lighting. If window is not specified, the default window will be requested.
-	void UpdateLightList(Window * inWindow = NULL);
+	/// Opens up an editor-AppWindow for this lighting, assuming the existance of LightingMenu and LightEditor GUI files.
+	AppWindow * OpenEditorWindow();
+	/// Updates UI for all lights in this lighting. If AppWindow is not specified, the default AppWindow will be requested.
+	void UpdateLightList(AppWindow * inWindow = NULL);
 
 	/// Creates a new light to this setup.
 	Light * NewLight(String name);
@@ -105,7 +105,7 @@ private:
 
 
 	/// o.o
-	static Window * lightingEditor;
+	static AppWindow * lightingEditor;
 };
 
 /// Loads selected lighting into the active shader program

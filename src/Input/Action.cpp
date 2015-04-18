@@ -12,6 +12,8 @@
 
 #include "Action.h"
 
+#include "OS/OSUtil.h"
+
 #include "Application/Application.h"
 
 #include "Message/MessageManager.h"
@@ -20,8 +22,8 @@
 #include "Graphics/Messages/GraphicsMessages.h"
 #include "Graphics/FrameStatistics.h"
 
-#include "Window/Window.h"
-#include "Window/WindowManager.h"
+#include "Window/AppWindow.h"
+#include "Window/AppWindowManager.h"
 #include "Viewport.h"
 
 #include "Multimedia/MultimediaManager.h"
@@ -34,7 +36,6 @@
 
 #include "Model/ModelManager.h"
 
-#include "OS/OSUtil.h"
 
 extern int debug;
 
@@ -94,7 +95,7 @@ Action * Action::FromString(String str, int flags)
 /// Called when the action is to be triggered.
 void Action::TriggerStart()
 {
-	Window * activeWindow = ActiveWindow();
+	AppWindow * activeWindow = ActiveWindow();
 	Viewport * mainViewport = activeWindow->MainViewport();
 	switch(type)
 	{

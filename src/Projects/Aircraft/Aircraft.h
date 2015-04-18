@@ -31,18 +31,18 @@ public:
 		Argument true indicate that the button was pressed, while false indicates that it was just released.
 		Default arguments for x and y indicate that they should not be refreshed.
 	*/
-	virtual void MouseClick(Window * window, bool down, int x = -1, int y = -1, UIElement * elementClicked = NULL);
+	virtual void MouseClick(AppWindow * AppWindow, bool down, int x = -1, int y = -1, UIElement * elementClicked = NULL);
 	/** Handles a mouse click.
 		Argument true indicate that the button was pressed, while false indicates that it was just released.
 		Default arguments for x and y indicate that they should not be refreshed.
 	*/
-	virtual void MouseRightClick(Window * window, bool down, int x = -1, int y = -1, UIElement * elementClicked = NULL);
+	virtual void MouseRightClick(AppWindow * AppWindow, bool down, int x = -1, int y = -1, UIElement * elementClicked = NULL);
 	/// Interprets a mouse-move message to target position.
-	virtual void MouseMove(Window * window, int x, int y, bool lDown = false, bool rDown = false, UIElement * elementOver = NULL);
+	virtual void MouseMove(AppWindow * AppWindow, int x, int y, bool lDown = false, bool rDown = false, UIElement * elementOver = NULL);
 	/** Handles mouse wheel input.
 		Positive delta signifies scrolling upward or away from the user, negative being toward the user.
 	*/
-	virtual void MouseWheel(Window * window, float delta);
+	virtual void MouseWheel(AppWindow * AppWindow, float delta);
 	/// Callback from the Input-manager, query it for additional information as needed.
 	virtual void KeyPressed(int keyCode, bool downBefore);
 

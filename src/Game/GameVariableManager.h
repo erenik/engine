@@ -46,7 +46,7 @@ public:
 
 	/// Creators, returns the varible. If it exists, the existing variable will be returned.
 	GameVar * CreateInt(String name, int initialValue = 0);
-	GameVar * CreateInt64(String name, long long initialValue = 0);
+	GameVar * CreateInt64(String name, int64 initialValue = 0);
 	GameVar * CreateString(String name, String initialValue = "");
 	GameVar * CreateTime(String name, Time initialValue = Time::Now());
 	

@@ -4,7 +4,7 @@
 
 #include "PrecipitationSystem.h"
 #include "WeatherSystem.h"
-#include "Window/Window.h"
+#include "Window/AppWindow.h"
 #include "Viewport.h"
 #include "Graphics/Camera/Camera.h"
 
@@ -137,7 +137,7 @@ void PrecipitationSystem::SpawnNewGlobal(int timeInMs)
 
 	/// Assume 1 primary global camera.
 	Vector3f cameraPosition;
-	Window * window = MainWindow();
+	AppWindow * window = MainWindow();
 	if (window)
 	{
 		Camera * camera = window->MainViewport()->camera;

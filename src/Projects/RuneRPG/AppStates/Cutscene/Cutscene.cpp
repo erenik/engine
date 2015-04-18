@@ -76,7 +76,7 @@ void CutsceneState::OnExit(AppState *nextState)
 
 void CutsceneState::Process(int timeInMs)
 {
-	Sleep(25);
+	SleepThread(25);
 #ifdef USE_AUDIO
 	AudioMan.Update();
 #endif

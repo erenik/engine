@@ -17,7 +17,7 @@
 #include "TextureManager.h"
 #include "Multimedia/MultimediaManager.h"
 #include "Application/Application.h"
-#include "Window/WindowManager.h"
+#include "Window/AppWindowManager.h"
 #include "Viewport.h"
 
 #include "Message/FileEvent.h"
@@ -33,15 +33,15 @@ enum generalActions
 
 
 /// Linux
+/*
 #if defined LINUX
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>  // contains visual information masks and CVisualInfo structure
 #include <X11/Xatom.h>
-extern Window window;
+extern AppWindow AppWindow;
 extern Display * display;
 #endif
-
-
+*/
 
 /// Creates bindings that are used for debugging purposes only
 void CreateDefaultGeneralBindings()

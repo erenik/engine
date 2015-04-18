@@ -61,19 +61,5 @@ private:
 
 };
 
-/// Template functions.
-/// o.o
-template <class T>
-T * Peer::GetSessionData()
-{
-	for (int i = 0; i < sessionData.Size(); ++i)
-	{
-		SessionData * sd = sessionData[i];
-		if (sd->type == T::Type())
-			return (T*)sd;
-	}
-	return NULL;
-}
-
 
 #endif

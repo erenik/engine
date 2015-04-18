@@ -4,7 +4,7 @@
 
 #include "CVHandFilters.h"
 #include "CV/CVPipeline.h"
-#include "Window/WindowManager.h"
+#include "Window/AppWindowManager.h"
 
 #include "Graphics/GraphicsManager.h"
 #include "Graphics/Messages/GMUI.h"

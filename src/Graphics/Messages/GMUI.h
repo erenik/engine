@@ -62,7 +62,7 @@ protected:
 	/// Fetches global UI. 
 	bool GetGlobalUI();
 	Viewport * viewport;
-	Window * window;
+	AppWindow * window;
 	UserInterface * ui;
 	/// If targeting the global UI.
 	bool global;
@@ -175,7 +175,7 @@ private:
 class GMSetGlobalUIf : public GMSetUIf 
 {
 public:
-	GMSetGlobalUIf(String uiName, int target, float value, Window * window = NULL);
+	GMSetGlobalUIf(String uiName, int target, float value, AppWindow * window = NULL);
 };
 
 
@@ -220,7 +220,7 @@ class GMSetGlobalUIs : public GMSetUIs
 {
 public:
 	/// Force default should be false.
-	GMSetGlobalUIs(String uiName, int target, Text text, bool force = false, Window * window = NULL);
+	GMSetGlobalUIs(String uiName, int target, Text text, bool force = false, AppWindow * window = NULL);
 };
 
 

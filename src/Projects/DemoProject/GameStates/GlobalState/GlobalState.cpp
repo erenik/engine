@@ -1,3 +1,4 @@
+
 /// Emil Hedemalm
 /// 2013-10-20
 
@@ -191,7 +192,7 @@ void DemoProjectGlobalState::OnChatMessageReceived(ChatMessage * cm){
 */
 
 void DemoProjectGlobalState::Process(float time){
-	Sleep(10);
+	SleepThread(10);
 // std::cout<<"\nGLOBAL STATE.";
 	// Calculate time since last update
 	clock_t newTime = clock();

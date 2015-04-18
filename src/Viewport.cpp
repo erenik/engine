@@ -10,7 +10,7 @@
 
 #include "Entity/Entity.h"
 #include "UI/UserInterface.h"
-#include "Window/Window.h"
+#include "Window/AppWindow.h"
 
 #include "Render/RenderBuffer.h"
 
@@ -47,7 +47,7 @@ void Viewport::Initialize()
 	printShadowMaps = false;
 //	camera = new Camera()
 	camera = NULL;
-	// Default to relative size of window.
+	// Default to relative size of AppWindow.
 	relative = true;
 	relativeSize = Vector2f(1,1);
 	ui = NULL;
@@ -107,7 +107,7 @@ void Viewport::SetGLViewport()
 	glViewport(bottomLeftCorner.x, bottomLeftCorner.y, size.x, size.y);
 }
 
-/// Update size based on window it resides in.
+/// Update size based on AppWindow it resides in.
 void Viewport::UpdateSize()
 {
 	assert(window);
@@ -123,7 +123,7 @@ void Viewport::UpdateSize()
 		assert(size.MaxPart());
 	}
 
-	/// Absolute-values of the window... meaning?
+	/// Absolute-values of the AppWindow... meaning?
 	absMin = bottomLeftCorner;
 	absMax = bottomLeftCorner + size;
 }

@@ -9,7 +9,7 @@
 #include "../RenderSettings.h"
 #include "Input/InputManager.h"
 #include "TextureManager.h"
-#include "Window/WindowManager.h"
+#include "Window/AppWindowManager.h"
 #include "Viewport.h"
 
 GMSets::GMSets(int t, String s): GraphicsMessage(GM_SET_STRING) {
@@ -185,7 +185,7 @@ void GMSets::Process(){
 }
 
 
-GMSetGlobalUI::GMSetGlobalUI(UserInterface *ui, Window * window)
+GMSetGlobalUI::GMSetGlobalUI(UserInterface *ui, AppWindow * window)
 : GraphicsMessage(GM_SET_GLOBAL_UI), ui(ui), window(window)
 {
 }
@@ -215,13 +215,13 @@ void GMSetGlobalUI::Process()
 		ui->OnEnterScope();
 }
 
-/// Regular UI setter for the main window (Assumes 1 main window)
+/// Regular UI setter for the main AppWindow (Assumes 1 main AppWindow)
 GMSetUI::GMSetUI(UserInterface * ui)
 : GraphicsMessage(GM_SET_UI), ui(ui), window(WindowMan.MainWindow()), viewport(0)
 {
 }
-// Regular UI setter per window.
-GMSetUI::GMSetUI(UserInterface * ui, Window * forWindow /*= NULL*/)
+// Regular UI setter per AppWindow.
+GMSetUI::GMSetUI(UserInterface * ui, AppWindow * forWindow /*= NULL*/)
 : GraphicsMessage(GM_SET_UI), ui(ui), window(forWindow), viewport(0)
 {
 }
@@ -242,7 +242,7 @@ void GMSetUI::Process()
 	{
 		oldUI = viewport->ui;
 	}
-	// Default. Assume ui of main window?
+	// Default. Assume ui of main AppWindow?
 	else {
 		window = WindowMan.MainWindow();
 		oldUI = window->GetUI();

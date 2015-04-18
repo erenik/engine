@@ -7,7 +7,7 @@
 #include "Graphics/Camera/Camera.h"
 #include "Mutex/Mutex.h"
 #include "CV/CVPipeline.h"
-#include "Window/Window.h"
+#include "Window/AppWindow.h"
 
 #include "opencv2/opencv.hpp"
 
@@ -211,7 +211,7 @@ private:
 
 	/// Dedicated camera for the main editor.
 	Camera * cviCamera;
-	/// Dedicated camera for the window where the projection content is going to go!
+	/// Dedicated camera for the AppWindow where the projection content is going to go!
 	Camera * projectionCamera;
 
 	/// Entity to display the texture in 3D-space
@@ -221,8 +221,8 @@ private:
 	Texture * imageTexture;
 	Texture * cvPipelineOutputTexture;
 
-	/// Dedicated output window to be used with a projector
-	Window * projectionWindow;
+	/// Dedicated output AppWindow to be used with a projector
+	AppWindow * projectionWindow;
 
 	/// Class for handling the Infra-red camera provided by IDS.
 	IDSCamera * idsCamera;

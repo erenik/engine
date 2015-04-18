@@ -13,7 +13,7 @@
 #include "OS/OS.h"
 #include "Window/WindowSystem.h"
 #include "OS/Sleep.h"
-#include "Window/WindowManager.h"
+#include "Window/AppWindowManager.h"
 #include "Graphics/Camera/Camera.h"
 #include <cstdio>
 #include <cstring>
@@ -26,16 +26,19 @@ extern THREAD_HANDLE graphicsThread;
 
 /// Windows includes and globals
 #ifdef WINDOWS
+
+
 /// Linux includes and globals
 #elif defined USE_X11
+/*
 // Global variables
 #include <GL/glx.h>     // connect X server with OpenGL
 extern GLXContext       context; // OpenGL context
 extern Display*         display; // connection to X server
 extern XVisualInfo*     visual_info;
-extern Window           window;
+extern AppWindow           AppWindow;
 extern void testRender();
-
+*/
 // OSX!
 #elif defined OSX & 0
 #include <AGL/AGL.h>
@@ -64,18 +67,20 @@ PROCESSOR_THREAD_START(GraphicsManager)
     int result;
 #ifdef WINDOWS
 
-	/// Wait until we have a valid window we can render onto.
+	/// Wait until we have a valid AppWindow we can render onto.
 	while(WindowMan.NumWindows() == 0)
 	{
 		LogGraphics("Waiting for windows", INFO);
-		Sleep(50);
+		SleepThread(50);
 	}
 	LogGraphics("Creating GL context", INFO);
-	Window * mainWindow = WindowMan.GetWindow(0);
+	AppWindow * mainWindow = WindowMan.GetWindow(0);
 	mainWindow->CreateGLContext();
 	mainWindow->MakeGLContextCurrent();
 
 #elif defined USE_X11
+	OpenGL::CreateContext();
+/* Old code, moved to OpenGL::CreateContext 	
     /// Create GL context! ^^
     std::cout<<"\n=======================================================";
     std::cout<<"\nCreating GLX context...";
@@ -88,8 +93,8 @@ PROCESSOR_THREAD_START(GraphicsManager)
     }
     std::cout<<"\n=======================================================";
     std::cout<<"\nGLX context created!";
-      // bind the rendering context to the window
-    bool bound = glXMakeContextCurrent(display, window, window, context);
+      // bind the rendering context to the AppWindow
+    bool bound = glXMakeContextCurrent(display, AppWindow, AppWindow, context);
     if (bound == false)
     {
         std::cout<<"ERROR: Could not create rendering context!";
@@ -98,6 +103,7 @@ PROCESSOR_THREAD_START(GraphicsManager)
     }
     std::cout<<"\n=======================================================";
     std::cout<<"\nGLX context made current!";
+*/
 
 // OSX gl initialization.
 #elif defined OSX & 0
@@ -134,18 +140,20 @@ PROCESSOR_THREAD_START(GraphicsManager)
 	while(result != GLEW_OK)
 	{
 		result = glewInit();
-		if (result != GLEW_OK){
+		if (result != GLEW_OK)
+		{
 			/* Problem: glewInit failed, something is seriously wrong. */
 			LogGraphics("GL Error: "+String((char*)glewGetErrorString(result))+"\n", ERROR);
 			++attempts;
 			LogGraphics("\nWaiting and trying to initialize GLEW again.", INFO);
-			Sleep(50);
+			SleepThread(50);
 			if (attempts > 20)
 			{
 				LogGraphics("Fatal error: Could not initialize GLEW. (OpenGL Extension Wrangler)", ERROR);
 				fatalGraphicsError = true;
 				MesMan.QueueMessages("QuitApplication");
-				return;
+				/// Inform that the thread has ended.
+				RETURN_NULL(graphicsThread);
 			}
 		}
 	}
@@ -217,7 +225,7 @@ PROCESSOR_THREAD_START(GraphicsManager)
 	// Load shaders!
 	ShadeMan.CreateDefaultShaders();
 
-	// Display the window ^^
+	// Display the AppWindow ^^
 #ifdef WINDOWS
 	/*ShowWindow(hWnd, 1);
 	UpdateWindow(hWnd);*/
@@ -252,10 +260,10 @@ PROCESSOR_THREAD_START(GraphicsManager)
 			sleepTimer.Start();
 			/// Sleep at least a bit...
 			int sleepTime = Graphics.sleepTime;
-			Sleep(sleepTime);
+			SleepThread(sleepTime);
 			/// Sleep more when not in focus.
 			if (!WindowMan.InFocus())
-				Sleep(Graphics.outOfFocusSleepTime);
+				SleepThread(Graphics.outOfFocusSleepTime);
 			sleepTimer.Stop();
 			int slept = sleepTimer.GetMs();
 	//		std::cout<<"\nSlept for "<<sleepTimer.GetMs()<<" ms";
@@ -406,7 +414,7 @@ PROCESSOR_THREAD_START(GraphicsManager)
 	glBindTexture(GL_TEXTURE_2D, 0);
 	GLTextures::FreeAll();
 
-	List<Window*> windows = WindowMan.GetWindows();
+	List<AppWindow*> windows = WindowMan.GetWindows();
 	for (int i = 0; i < windows.Size(); ++i)
 	{
 		windows[i]->DeleteGLContext();
@@ -415,9 +423,9 @@ PROCESSOR_THREAD_START(GraphicsManager)
     /// Delete rendering context
     time_t timeTaken, timeStart = clock();
 #ifdef WINDOWS
-	// Moved to Window::DeleteGLContext()
+	// Moved to AppWindow::DeleteGLContext()
 #elif defined USE_X11
-    glXDestroyContext(display, context);
+    OpenGL::DestroyContext();
 #elif defined OSX & 0
     result = aglDestroyContext(context);
     assert(false);
@@ -426,7 +434,7 @@ PROCESSOR_THREAD_START(GraphicsManager)
 	std::cout<<"\nDeleting rendering context... "<<timeTaken / CLOCKS_PER_SEC<<" seconds";
 
 	std::cout<<"\nGraphicsThread ending...";
-	/// Mark as ready for window-destruction!
+	/// Mark as ready for AppWindow-destruction!
 	Graphics.finished = true;
 
 	/// Inform that the thread has ended.

@@ -6,7 +6,7 @@
 
 #include "UI/UserInterface.h"
 #include "Texture.h"
-#include "Window/Window.h"
+#include "Window/AppWindow.h"
 
 void GraphicsManager::RenderUI(UserInterface * ui)
 {
@@ -20,7 +20,7 @@ void GraphicsManager::RenderUI(UserInterface * ui)
 		return;
     }
 
-	Window * window = graphicsState->activeWindow;
+	AppWindow * window = graphicsState->activeWindow;
 	Vector2i windowWorkingArea = window->WorkingArea();
 	glViewport(0, 0, windowWorkingArea[0], windowWorkingArea[1]);
 

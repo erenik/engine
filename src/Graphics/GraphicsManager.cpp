@@ -16,7 +16,7 @@
 // All the includes!
 #include "Mesh/Square.h"
 #include "Fonts/TextFont.h"
-#include "Window/Window.h"
+#include "Window/AppWindow.h"
 
 #include "UI/UserInterface.h"
 #include "Graphics/Messages/GMUI.h"
@@ -39,20 +39,8 @@
 //#include "Texture/Texture.h"
 //#include "Texture/TextureManager.h"
 
-/// OS-dependent Window management + threads externed variables, probably from main.cpp
-#ifdef WINDOWS
-	extern uintptr_t graphicsThread;	// Graphics thread pointer from Initializer.cpp
-//	extern HWND		hWnd;			// Window handle
-//	extern HDC		hdc;			// Device context
-//	extern HGLRC	hRC;		// GL rendering context
-
-#elif defined LINUX
-    // Render-thread pointer.
-	extern pthread_t graphicsThread;
-	// Externed from main.cpp
-    extern Display*                display; // connection to X server
-    extern Window                  window;
-#endif
+// Graphics thread.
+extern THREAD_HANDLE graphicsThread;
 
 /// Singleton initialization to null. Require manual allocation of it!
 GraphicsManager * GraphicsManager::graphicsManager = NULL;
@@ -80,7 +68,7 @@ void GraphicsManager::Deallocate()
             std::cout<<"\nWaiting for GraphicsThread to end before deallocating manager...";
             waitTime -= 1000;
         }
-        Sleep(10);
+        SleepThread(10);
         waitTime += 10;
     }
 
@@ -129,7 +117,9 @@ GraphicsManager::GraphicsManager()
 //	this->defaultLighting.CreateDefaultSetup();
 	frustum = new Frustum();
 	// Biggar frustuuum default plz
+#ifdef VFC_OCTREE
 	vfcOctree = new VFCOctree(50000, *frustum);
+#endif
 	// Default camera values
 	defaultCamera = NULL;
 	cameraToTrack = NULL;
@@ -225,7 +215,7 @@ GraphicsManager::~GraphicsManager()
 	/// Wait for the thread in-case it's slow
 	int waits = 0;
 	while (!finished){
-        Sleep(10);
+        SleepThread(10);
         ++waits;
         if (waits > 100){
             std::cout<<"\nWaiting for render-thread to end..";
@@ -256,8 +246,9 @@ GraphicsManager::~GraphicsManager()
 
 	SAFE_DELETE(graphicsState);
 	SAFE_DELETE(frustum);
+#ifdef VFC_OCTREE
 	SAFE_DELETE(vfcOctree);
-
+#endif
 	std::cout<<"\n>>> GraphicsManager deallocated successfully.";
 
 }
@@ -273,20 +264,16 @@ int GraphicsManager::RegisteredEntities()
 	return this->registeredEntities.Size();
 }
 
+#include "Device/Screen.h"
 
 void GraphicsManager::Initialize()
 {
 	/// Create cameras post-allocation.
 	defaultCamera = CameraMan.DefaultCamera();
 	cameraToTrack = defaultCamera;
-	
 
-#ifdef WINDOWS
-	scrWidth = GetSystemMetrics(SM_CXSCREEN);
-	scrHeight = GetSystemMetrics(SM_CYSCREEN);
-#elif defined LINUX
-    xWindow::GetScreenSize(scrWidth, scrHeight);
-#endif
+	Vector2f screenSize = GetScreenSize();	
+
 	/// Update camera projection for the first time!
 	graphicsState->camera = this->defaultCamera;
 	Texture * tex = TexMan.GetTextureBySource("img/initializing.png");
@@ -320,7 +307,7 @@ void GraphicsManager::PauseRendering()
 {
 	GraphicsMan.QueueMessage(new GraphicsMessage(GM_PAUSE_RENDERING));
 	while (Graphics.renderingEnabled)
-		Sleep(5);
+		SleepThread(5);
 	/// Catch the mutex?
 }
 
@@ -441,6 +428,7 @@ void GraphicsManager::SetOverlayTexture(Texture * texture, int fadeInTime /* = 0
 void GraphicsManager::RepositionEntities()
 {
 	graphicsThreadDetails = "GraphicsManager::RepositionEntities";
+#ifdef VFC_OCTREE
 	if (optimizationStructure == VFC_OCTREE)
 	{
 		List<Entity*> dynamicEntities = Physics.GetDynamicEntities();
@@ -450,6 +438,7 @@ void GraphicsManager::RepositionEntities()
 			vfcOctree->RepositionEntity(dynamicEntities[i]);
 		}
 	}
+#endif
 }
 
 /// Called before the main rendering loop is begun, after initial GL allocations
@@ -463,7 +452,7 @@ void GraphicsManager::OnBeginRendering()
 void GraphicsManager::OnEndRendering()
 {
 	/// Wait a short while before processing final messages, so that everything is done before exiting.
-	Sleep(100);
+	SleepThread(100);
 	/// Process final messages?
 	ProcessMessages();
 
@@ -500,11 +489,11 @@ void GraphicsManager::UpdateProjection(float relativeWidth /* = 1.0f */, float r
 	float widthRatio = 1.0f, heightRatio = 1.0f;
 	float requestedWidth = relativeWidth;
 	float requestedHeight = relativeHeight;
-	/// If ratios provided are big numbers, assume they are absolute-values for the window.
+	/// If ratios provided are big numbers, assume they are absolute-values for the AppWindow.
 	if (requestedWidth > 1 && requestedHeight > 1){
 
 	}
-	/// If ratios provided were around 1, multiply by window size
+	/// If ratios provided were around 1, multiply by AppWindow size
 	else {
 		requestedWidth = Graphics.Width() * relativeWidth;
 		requestedHeight = Graphics.Height() * relativeHeight;
@@ -622,7 +611,7 @@ void GraphicsManager::ProcessMessages()
 	graphicsMessages.ClearAndDelete();
 }
 
-void GraphicsManager::ToggleFullScreen(Window * window)
+void GraphicsManager::ToggleFullScreen(AppWindow * window)
 {
 	window->ToggleFullScreen();
 }
@@ -705,7 +694,7 @@ void GraphicsManager::InitFrameBuffer()
 	if (error == 1282){
 		std::cout<<"\nGL_ERROR: 1282 GL_INVALID_OPERATION: renderbuffer is not zero or the name of a renderbuffer previously returned from a call to glGenRenderbuffers.";
 	}
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24,textureWidth, textureHeight); // Set the render buffer storage to be a depth component, with a width and height of the window
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24,textureWidth, textureHeight); // Set the render buffer storage to be a depth component, with a width and height of the AppWindow
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);	// Attach the depth buffer fbo_depth to our frame buffer
 	PrintGLError("GLError");
 	glBindRenderbuffer(GL_RENDERBUFFER, diffuseBuffer);
@@ -713,7 +702,7 @@ void GraphicsManager::InitFrameBuffer()
 	if (error == 1282){
 		std::cout<<"\nGL_ERROR: 1282 GL_INVALID_OPERATION: renderbuffer is not zero or the name of a renderbuffer previously returned from a call to glGenRenderbuffers.";
 	}
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA,textureWidth, textureHeight); // Set the render buffer storage to be a depth component, with a width and height of the window
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA,textureWidth, textureHeight); // Set the render buffer storage to be a depth component, with a width and height of the AppWindow
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, diffuseBuffer);	// Attach the depth buffer fbo_depth to our frame buffer
 	PrintGLError("GLError");
 	glBindRenderbuffer(GL_RENDERBUFFER, normalBuffer);
@@ -721,7 +710,7 @@ void GraphicsManager::InitFrameBuffer()
 	if (error == 1282){
 		std::cout<<"\nGL_ERROR: 1282 GL_INVALID_OPERATION: renderbuffer is not zero or the name of a renderbuffer previously returned from a call to glGenRenderbuffers.";
 	}
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB16F,textureWidth, textureHeight); // Set the render buffer storage to be a depth component, with a width and height of the window
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB16F,textureWidth, textureHeight); // Set the render buffer storage to be a depth component, with a width and height of the AppWindow
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_RENDERBUFFER, normalBuffer);	// Attach the depth buffer fbo_depth to our frame buffer
 	PrintGLError("GLError");
 	glBindRenderbuffer(GL_RENDERBUFFER, positionBuffer);
@@ -729,7 +718,7 @@ void GraphicsManager::InitFrameBuffer()
 	if (error == 1282){
 		std::cout<<"\nGL_ERROR: 1282 GL_INVALID_OPERATION: renderbuffer is not zero or the name of a renderbuffer previously returned from a call to glGenRenderbuffers.";
 	}
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB32F,textureWidth, textureHeight); // Set the render buffer storage to be a depth component, with a width and height of the window
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB32F,textureWidth, textureHeight); // Set the render buffer storage to be a depth component, with a width and height of the AppWindow
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_RENDERBUFFER, positionBuffer);	// Attach the depth buffer fbo_depth to our frame buffer
 	PrintGLError("GLError");
 
@@ -738,7 +727,7 @@ void GraphicsManager::InitFrameBuffer()
 	if (error == 1282){
 		std::cout<<"\nGL_ERROR: 1282 GL_INVALID_OPERATION: renderbuffer is not zero or the name of a renderbuffer previously returned from a call to glGenRenderbuffers.";
 	}
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA,textureWidth, textureHeight); // Set the render buffer storage to be a depth component, with a width and height of the window
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA,textureWidth, textureHeight); // Set the render buffer storage to be a depth component, with a width and height of the AppWindow
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_RENDERBUFFER, specularBuffer);	// Attach the depth buffer fbo_depth to our frame buffer
 	PrintGLError("GLError");
 
@@ -747,7 +736,7 @@ void GraphicsManager::InitFrameBuffer()
 	if (error == 1282){
 		std::cout<<"\nGL_ERROR: 1282 GL_INVALID_OPERATION: renderbuffer is not zero or the name of a renderbuffer previously returned from a call to glGenRenderbuffers.";
 	}
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB32F,textureWidth, textureHeight); // Set the render buffer storage to be a depth component, with a width and height of the window
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB32F,textureWidth, textureHeight); // Set the render buffer storage to be a depth component, with a width and height of the AppWindow
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_RENDERBUFFER, tangentBuffer);	// Attach the depth buffer fbo_depth to our frame buffer
 	PrintGLError("GLError");
 
@@ -756,7 +745,7 @@ void GraphicsManager::InitFrameBuffer()
 	if (error == 1282){
 		std::cout<<"\nGL_ERROR: 1282 GL_INVALID_OPERATION: renderbuffer is not zero or the name of a renderbuffer previously returned from a call to glGenRenderbuffers.";
 	}
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB32F,textureWidth, textureHeight); // Set the render buffer storage to be a depth component, with a width and height of the window
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB32F,textureWidth, textureHeight); // Set the render buffer storage to be a depth component, with a width and height of the AppWindow
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT5, GL_RENDERBUFFER, normalMapBuffer);	// Attach the depth buffer fbo_depth to our frame buffer
 	PrintGLError("GLError");
 
@@ -765,7 +754,7 @@ void GraphicsManager::InitFrameBuffer()
 	if (error == 1282){
 		std::cout<<"\nGL_ERROR: 1282 GL_INVALID_OPERATION: renderbuffer is not zero or the name of a renderbuffer previously returned from a call to glGenRenderbuffers.";
 	}
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB32F,textureWidth, textureHeight); // Set the render buffer storage to be a depth component, with a width and height of the window
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB32F,textureWidth, textureHeight); // Set the render buffer storage to be a depth component, with a width and height of the AppWindow
 	PrintGLError("glRenderbufferStorage");
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT6, GL_RENDERBUFFER, pickingBuffer);	// Attach the depth buffer fbo_depth to our frame buffer
 	PrintGLError("glFramebufferRenderbuffer");
@@ -775,7 +764,7 @@ void GraphicsManager::InitFrameBuffer()
 	if (!diffuseTexture)
 		glGenTextures(1, &diffuseTexture); // Generate one texture
 	glBindTexture(GL_TEXTURE_2D, diffuseTexture); // Bind the texture fbo_texture
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textureWidth, textureHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL); // Create a standard texture with the width and height of our window
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textureWidth, textureHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL); // Create a standard texture with the width and height of our AppWindow
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);  // Setup the basic texture parameters
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -784,7 +773,7 @@ void GraphicsManager::InitFrameBuffer()
 	if (!normalTexture)
 		glGenTextures(1, &normalTexture); // Generate one texture
 	glBindTexture(GL_TEXTURE_2D, normalTexture); // Bind the texture fbo_texture
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, textureWidth, textureHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL); // Create a standard texture with the width and height of our window
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, textureWidth, textureHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL); // Create a standard texture with the width and height of our AppWindow
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);  // Setup the basic texture parameters
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -794,7 +783,7 @@ void GraphicsManager::InitFrameBuffer()
 	if (!positionTexture)
 		glGenTextures(1, &positionTexture); // Generate one texture
 	glBindTexture(GL_TEXTURE_2D, positionTexture); // Bind the texture fbo_texture
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, textureWidth, textureHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL); // Create a standard texture with the width and height of our window
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, textureWidth, textureHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL); // Create a standard texture with the width and height of our AppWindow
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);  // Setup the basic texture parameters
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -805,7 +794,7 @@ void GraphicsManager::InitFrameBuffer()
 	if (!depthTexture)
 		glGenTextures(1, &depthTexture); // Generate one texture
 	glBindTexture(GL_TEXTURE_2D, depthTexture); // Bind the texture fbo_texture
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, textureWidth, textureHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL); // Create a standard texture with the width and height of our window
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, textureWidth, textureHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL); // Create a standard texture with the width and height of our AppWindow
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);  // Setup the basic texture parameters
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -817,7 +806,7 @@ void GraphicsManager::InitFrameBuffer()
 	if (!specularTexture)
 		glGenTextures(1, &specularTexture); // Generate one texture
 	glBindTexture(GL_TEXTURE_2D, specularTexture); // Bind the texture fbo_texture
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, textureWidth, textureHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL); // Create a standard texture with the width and height of our window
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, textureWidth, textureHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL); // Create a standard texture with the width and height of our AppWindow
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);  // Setup the basic texture parameters
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -827,7 +816,7 @@ void GraphicsManager::InitFrameBuffer()
 	if (!tangentTexture)
 		glGenTextures(1, &tangentTexture); // Generate one texture
 	glBindTexture(GL_TEXTURE_2D, tangentTexture); // Bind the texture fbo_texture
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, textureWidth, textureHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL); // Create a standard texture with the width and height of our window
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, textureWidth, textureHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL); // Create a standard texture with the width and height of our AppWindow
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);  // Setup the basic texture parameters
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -837,7 +826,7 @@ void GraphicsManager::InitFrameBuffer()
 	if (!normalMapTexture)
 		glGenTextures(1, &normalMapTexture); // Generate one texture
 	glBindTexture(GL_TEXTURE_2D, normalMapTexture); // Bind the texture fbo_texture
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, textureWidth, textureHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL); // Create a standard texture with the width and height of our window
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, textureWidth, textureHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL); // Create a standard texture with the width and height of our AppWindow
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);  // Setup the basic texture parameters
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -847,7 +836,7 @@ void GraphicsManager::InitFrameBuffer()
 	if (!pickingTexture)
 		glGenTextures(1, &pickingTexture); // Generate one texture
 	glBindTexture(GL_TEXTURE_2D, pickingTexture); // Bind the texture fbo_texture
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, textureWidth, textureHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL); // Create a standard texture with the width and height of our window
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, textureWidth, textureHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL); // Create a standard texture with the width and height of our AppWindow
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);  // Setup the basic texture parameters
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -919,7 +908,7 @@ void GraphicsManager::InitFrameBuffer()
 	if (result != GL_FRAMEBUFFER_COMPLETE){
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, NULL);
 		std::cout<<"\nINFO: FrameBuffer not ready to be used.";
-		Sleep(10);
+		SleepThread(10);
 	}
 
 	/// Only have frame buffer parameters in OpenGL 4.3 core and above...

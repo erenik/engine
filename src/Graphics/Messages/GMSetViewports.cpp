@@ -6,9 +6,9 @@
 #include "Viewport.h"
 #include "GraphicsMessages.h"
 #include "UI/UserInterface.h"
-#include "Window/Window.h"
+#include "Window/AppWindow.h"
 
-GMSetViewports::GMSetViewports(List<Viewport*> i_viewports, Window * inWindow)
+GMSetViewports::GMSetViewports(List<Viewport*> i_viewports, AppWindow * inWindow)
 : GraphicsMessage(GM_SET_VIEWPORTS), viewports(i_viewports), window(inWindow)
 {
 	bool viewportFound = false;

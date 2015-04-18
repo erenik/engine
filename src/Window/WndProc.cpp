@@ -14,7 +14,7 @@
 #include "Graphics/GraphicsManager.h"
 #include "StateManager.h"
 #include "Message/MessageManager.h"
-#include "Window/WindowManager.h"
+#include "Window/AppWindowManager.h"
 #include "Application/Application.h"
 
 /// Returns KeyCode depending on the Virtual Key provided by Win32
@@ -79,9 +79,9 @@ int GetKeyCodeFromVK(int wParam)
 //
 //  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)
 //
-//  PURPOSE:  Processes messages for the main window.
+//  PURPOSE:  Processes messages for the main AppWindow.
 //
-//  WM_PAINT    - Paint the main window
+//  WM_PAINT    - Paint the main AppWindow
 //  WM_DESTROY  - post a quit message and return
 //
 //
@@ -94,7 +94,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	delete[] p;
 */
 
-	Window * window = WindowMan.GetWindowByHWND(hWnd);
+	AppWindow * AppWindow = WindowMan.GetWindowByHWND(hWnd);
 
     switch (message)
     {
@@ -122,7 +122,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		return 0;
 	case WM_INPUT_DEVICE_CHANGE:
 		return 0;
-	case WM_COMMAND:	// Sent when the user selects a command item from a menu, when a control sends a notification message to its parent window, or when an accelerator keystroke is translated.
+	case WM_COMMAND:	// Sent when the user selects a command item from a menu, when a control sends a notification message to its parent AppWindow, or when an accelerator keystroke is translated.
 		return 0;	// If an application processes this message, it should return zero.
 	case WM_INITMENUPOPUP:	// Sent when a drop-down menu or submenu is about to become active. This allows an application to modify the menu before it is displayed, without changing the entire menu.
 		return 0;	// If an application processes this message, it should return zero.
@@ -132,7 +132,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		HDROP hDrop = (HDROP) wParam;
 		
 		int numFiles = DragQueryFile(hDrop, 0xFFFFFFFF, NULL, NULL);
-		std::cout<<"\nWM_DROPFILES: "<<numFiles<<" files dropped onto window.";
+		std::cout<<"\nWM_DROPFILES: "<<numFiles<<" files dropped onto AppWindow.";
 		List<String> files;
 		for (int i = 0; i < numFiles; ++i){
 			wchar_t file[1024];
@@ -166,19 +166,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 		return 0;				  
 	}
-	case WM_KILLFOCUS:{	// Sent to a window immediately before it loses the keyboard focus.
+	case WM_KILLFOCUS:{	// Sent to a AppWindow immediately before it loses the keyboard focus.
 //		std::cout<<"\nWM_KILLFOCUS message received. wParam: "<<wParam<<" lParam: "<<lParam;
 //		std::cout<<"\nResetting input flags!";
 		Input.ClearInputFlags();
 		return 0;// An application should return zero if it processes this message.
 	}
-	case WM_SETFOCUS: {	// Sent to a window after it has gained the keyboard focus.
+	case WM_SETFOCUS: {	// Sent to a AppWindow after it has gained the keyboard focus.
 //		std::cout<<"\nWM_SETFOCUS message received. wParam: "<<wParam<<" lParam: "<<lParam;
 //		std::cout<<"\nResetting input flags!";
 		Input.ClearInputFlags();
 		return 0;	// An application should return zero if it processes this message.
 	}
-	case WM_NCCALCSIZE: {	// Sent when the size and position of a window's client area must be calculated. By processing this message, an application can control the content of the window's client area when the size or position of the window changes.
+	case WM_NCCALCSIZE: {	// Sent when the size and position of a AppWindow's client area must be calculated. By processing this message, an application can control the content of the AppWindow's client area when the size or position of the AppWindow changes.
 		if (wParam) {
 			// If wParam is TRUE, it specifies that the application should indicate
 			// which part of the client area contains valid information. The system
@@ -204,8 +204,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 		if (wParam == false){
 			/// If wParam is FALSE, lParam points to a RECT structure. On entry, the
-			// structure contains the proposed window rectangle for the window. On exit,
-			// the structure should contain the screen coordinates of the corresponding window client area.
+			// structure contains the proposed AppWindow rectangle for the AppWindow. On exit,
+			// the structure should contain the screen coordinates of the corresponding AppWindow client area.
 			RECT * proposedWRect = (RECT*)lParam;
 		//	proposedWRect->left += 2;
 		//	proposedWRect->bottom += 2;
@@ -220,20 +220,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 	}
 	case WM_SIZE: 
-	{		// Sent to a window after its size has changed.
+	{		// Sent to a AppWindow after its size has changed.
 		switch(wParam){
-		case SIZE_MAXHIDE:	// Message is sent to all pop-up windows when some other window is maximized.
+		case SIZE_MAXHIDE:	// Message is sent to all pop-up windows when some other AppWindow is maximized.
 			break;
-		case SIZE_MAXIMIZED: // Message is sent to all pop-up windows when some other window is maximized.
+		case SIZE_MAXIMIZED: // Message is sent to all pop-up windows when some other AppWindow is maximized.
 			break;
-		case SIZE_MAXSHOW:	// Message is sent to all pop-up windows when some other window has been restored to its former size.
+		case SIZE_MAXSHOW:	// Message is sent to all pop-up windows when some other AppWindow has been restored to its former size.
 			break;
 		case SIZE_MINIMIZED:
-			// The window has been minimized. Just return.
+			// The AppWindow has been minimized. Just return.
 			window->visible = false;
 			return 0;
 			break;
-		case SIZE_RESTORED: // The window has been resized, but neither the SIZE_MINIMIZED nor SIZE_MAXIMIZED value applies.
+		case SIZE_RESTORED: // The AppWindow has been resized, but neither the SIZE_MINIMIZED nor SIZE_MAXIMIZED value applies.
 			std::cout<<"RESTORE";
 			window->visible = true;
 			break;
@@ -245,14 +245,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 		window->clientAreaSize = Vector2i(width, height);
 		std::cout<<"\nWindow "<<window->name<<" new size: "<<width<<"x"<<height;
-		// Recalculate OS window size.
+		// Recalculate OS AppWindow size.
 		window->osWindowSize = window->OSWindowSize();
 
 		// If an application processes this message, it should return zero.
 		return 0;
 		break;
 	}
-	case WM_CHAR: {	// Posted to the window with the keyboard focus when a WM_KEYDOWN message is translated by the TranslateMessage function. // The WM_CHAR message contains the character code of the key that was pressed.
+	case WM_CHAR: {	// Posted to the AppWindow with the keyboard focus when a WM_KEYDOWN message is translated by the TranslateMessage function. // The WM_CHAR message contains the character code of the key that was pressed.
 #ifdef LOG_KEYS
 		std::cout<<"\nWM_CHAR received: keyCode: "<<wParam<<" ascii: "<<(char)wParam;
 #endif
@@ -262,17 +262,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	}
 	case WM_SYSCOMMAND: {
 		switch(wParam){
-		case SC_CLOSE:		// Closes the window.
+		case SC_CLOSE:		// Closes the AppWindow.
 
 			break;
-		case SC_HOTKEY:		// Activates the window associated with the application-specified hot key. The lParam parameter identifies the window to activate.
+		case SC_HOTKEY:		// Activates the AppWindow associated with the application-specified hot key. The lParam parameter identifies the AppWindow to activate.
 			break;
-		case SC_KEYMENU:	// Retrieves the window menu as a result of a keystroke. For more information, see the Remarks section.
+		case SC_KEYMENU:	// Retrieves the AppWindow menu as a result of a keystroke. For more information, see the Remarks section.
 		//	std::cout<<"\nSC_KEYMENU (Alt) received.";
 		//	Input.KeyDown(KEY::ALT);
 			return 0;
 			break;
-		case SC_MOVE:		// Moves the window.
+		case SC_MOVE:		// Moves the AppWindow.
 			break;
 		};
 		break;
@@ -351,7 +351,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		SetCapture(hWnd);
 		int xPos = GET_X_LPARAM(lParam);
 		int yPos = GET_Y_LPARAM(lParam);
-		Input.MouseClick(window, true, XtoWindow(xPos), YtoWindow(yPos));
+		Input.MouseClick(AppWindow, true, XtoWindow(xPos), YtoWindow(yPos));
 		return 0; // If an application processes this message, it should return zero.
 		break;
 	}
@@ -360,7 +360,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		SetCapture(hWnd);
 		int xPos = GET_X_LPARAM(lParam);
 		int yPos = GET_Y_LPARAM(lParam);
-		Input.MouseRightClick(window, true, XtoWindow(xPos), YtoWindow(yPos));
+		Input.MouseRightClick(AppWindow, true, XtoWindow(xPos), YtoWindow(yPos));
 		return 0; // If an application processes this message, it should return zero.
 		break;
 	}
@@ -369,7 +369,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		ReleaseCapture();
 		int xPos = GET_X_LPARAM(lParam);
 		int yPos = GET_Y_LPARAM(lParam);
-		Input.MouseClick(window, false, XtoWindow(xPos), YtoWindow(yPos));
+		Input.MouseClick(AppWindow, false, XtoWindow(xPos), YtoWindow(yPos));
 		return 0; // If an application processes this message, it should return zero.
 		break;
 	}
@@ -378,12 +378,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		ReleaseCapture();
 		int xPos = GET_X_LPARAM(lParam);
 		int yPos = GET_Y_LPARAM(lParam);
-		Input.MouseRightClick(window, false, XtoWindow(xPos), YtoWindow(yPos));
+		Input.MouseRightClick(AppWindow, false, XtoWindow(xPos), YtoWindow(yPos));
 		return 0; // If an application processes this message, it should return zero.
 		break;
 	}
-	/// Posted when the user releases the left mouse button while the cursor is within the nonclient area of a window. 
-	/// This message is posted to the window that contains the cursor. If a window has captured the mouse, this message is not posted.
+	/// Posted when the user releases the left mouse button while the cursor is within the nonclient area of a AppWindow. 
+	/// This message is posted to the AppWindow that contains the cursor. If a AppWindow has captured the mouse, this message is not posted.
 	case WM_NCLBUTTONUP: {
 		std::cout<<"\nWM_NCLBUTTONUP message received.";
 		return 0;					 
@@ -411,8 +411,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		int xPos = GET_X_LPARAM(lParam);
 		int yPos = GET_Y_LPARAM(lParam);
 //		std::cout<<"\nMouse move: "<<xPos<<" "<<yPos;
-		Input.MouseMove(window, Vector2i(XtoWindow(xPos), YtoWindow(yPos)));
-		WindowMan.hoverWindow = window;
+		Input.MouseMove(AppWindow, Vector2i(XtoWindow(xPos), YtoWindow(yPos)));
+		WindowMan.hoverWindow = AppWindow;
 		return 0; // If an application processes this message, it should return zero.
 		break;
 	}
@@ -425,7 +425,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		zDelta /= WHEEL_DELTA;
 		zDelta /= 10.f;
 	//	std::cout<<" post: "<<zDelta;
-		Input.MouseWheel(window, zDelta);
+		Input.MouseWheel(AppWindow, zDelta);
 		return 0; // If an application processes this message, it should return zero.
 		break;
 	}
@@ -447,7 +447,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_PAINT:
 		Graphics.QueryRender();
         break;
-	// Sent to a window to query it's destruction. Ref: http://msdn.microsoft.com/en-us/library/windows/desktop/ms632617%28v=vs.85%29.aspx
+	// Sent to a AppWindow to query it's destruction. Ref: http://msdn.microsoft.com/en-us/library/windows/desktop/ms632617%28v=vs.85%29.aspx
 	case WM_CLOSE:
 		if (window->main)
 		{
@@ -460,7 +460,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			window->Hide();
 		}
 		return 0;
-	// Sent when the window is already being destroyed: Ref: http://msdn.microsoft.com/en-us/library/windows/desktop/ms632620%28v=vs.85%29.aspx
+	// Sent when the AppWindow is already being destroyed: Ref: http://msdn.microsoft.com/en-us/library/windows/desktop/ms632620%28v=vs.85%29.aspx
     case WM_DESTROY:
 		std::cout<<"\nWM_DESTROY received";
 	//	assert(false);
@@ -484,7 +484,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
        // return DefWindowProc(hWnd, message, wParam, lParam);
         break;
     }
-	// Do default window processing if the above functions didn't already process the message and return a value!
+	// Do default AppWindow processing if the above functions didn't already process the message and return a value!
 	return DefWindowProc(hWnd, message, wParam, lParam);
 
     return 0;

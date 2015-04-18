@@ -154,7 +154,7 @@ enum graphicsTargets
 	// General stuff
 	GT_GENERAL_TARGETS = GT_PARENTING_TARGETS + 100,
 	GT_MAIN_CAMERA,	// To use when rendering scenes.
-    GT_CLEAR_COLOR,    // Color to clear screen/window with.
+    GT_CLEAR_COLOR,    // Color to clear screen/AppWindow with.
 	GT_FOG_BEGIN,		// Foggy fog-some. Fog color is defined be the GT_CLEAR_COLOR by default.
 	GT_FOG_END,
 

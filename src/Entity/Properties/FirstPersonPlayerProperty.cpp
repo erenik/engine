@@ -27,7 +27,7 @@
 
 #include "Model/Model.h"
 
-#include "Window/Window.h"
+#include "Window/AppWindow.h"
 
 FirstPersonPlayerProperty::FirstPersonPlayerProperty(String propertyName, int id, Entity * owner)
 : EntityProperty(propertyName, id, owner)
@@ -365,7 +365,7 @@ void FirstPersonPlayerProperty::UpdateVelocity(ConstVec3fr newVelocity)
 void FirstPersonPlayerProperty::UpdateTargetsByCursorPosition()
 {
 	Ray ray;
-	Window * activeWindow = ActiveWindow();
+	AppWindow * activeWindow = ActiveWindow();
 	if (activeWindow != MainWindow())
 		return;
 	// Try to get ray.

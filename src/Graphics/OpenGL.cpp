@@ -51,4 +51,15 @@ int AssertGLError(String inFunction)
 	return error;
 }
 
+#include "Window/WindowSystem.h"
+
+/// Linux includes and globals
+#ifdef USE_X11
+#include <GL/glx.h>     // connect X server with OpenGL
+extern GLXContext       context; // OpenGL context
+extern Display*         display; // connection to X server
+extern XVisualInfo*     visual_info;
+extern Window           window;
+extern void testRender();
+#endif
 

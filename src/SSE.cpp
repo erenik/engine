@@ -9,7 +9,7 @@
 #include <exception> // for std::bad_alloc
 
 // Visual C++ fix of operator new
-
+#ifdef WINDOWS
 void* operator new (size_t size)
 {
 	void *p = _aligned_malloc(size, 16); 
@@ -35,11 +35,12 @@ void operator delete[](void *p) throw()
 {
 	_aligned_free(p);
 }
+#endif
 
 #include <new>
 
 #include <xmmintrin.h>
-#include <intrin.h>
+//#include <intrin.h>
 
 #include <iostream>
 
@@ -149,6 +150,8 @@ void SIMDTest()
     bool    bLBRVisualization = false;
     bool    bFP128 = false;
     bool    bMOVOptimization = false;
+
+#ifdef WINDOWS
 
 	// __cpuid with an InfoType argument of 0 returns the number of
     // valid Ids in CPUInfo[0] and the CPU identification string in
@@ -547,5 +550,6 @@ void SIMDTest()
 	timer.Stop();
 	int ms2 = timer.GetMs();
 	std::cout<<"\nVector addition, standard: "<<ms<<" SSE: "<<ms2;
+#endif // WINDOWS
 }
 

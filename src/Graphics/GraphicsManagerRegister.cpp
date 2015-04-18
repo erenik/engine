@@ -22,8 +22,10 @@ bool GraphicsManager::RegisterEntity(Entity * entity)
 		UnregisterEntity(entity);
 	}
 	registeredEntities.AddItem(entity);
+#ifdef VFC_OCTREE
 	if (optimizationStructure == VFC_OCTREE)
 		vfcOctree->AddEntity(entity);
+#endif
 	entity->registeredForRendering = true;
 
 	/// Bufferize models and textures?
@@ -74,7 +76,9 @@ bool GraphicsManager::UnregisterEntity(Entity * entity)
 		return false;
 	}
 	int entitiesBefore = registeredEntities.Size();
+#ifdef VFC_OCTREE
 	int octreeEntitiesBeforeRemoval = vfcOctree->RegisteredEntities();
+#endif
 	if (!entity->registeredForRendering)
 		return true;
 	
@@ -116,6 +120,7 @@ bool GraphicsManager::UnregisterEntity(Entity * entity)
 
 	int entitesAfter = registeredEntities.Size();
 	// Remove from optimization structures, if any.
+#ifdef VFC_OCTREE
 	if (optimizationStructure == VFC_OCTREE)
 	{
 		assert(entitiesBefore == octreeEntitiesBeforeRemoval);
@@ -124,6 +129,7 @@ bool GraphicsManager::UnregisterEntity(Entity * entity)
 		assert(octreeEntities < octreeEntitiesBeforeRemoval);
 		assert(registeredEntities.Size() == vfcOctree->RegisteredEntities());
 	}
+#endif
 	entity->registeredForRendering = false;
 	return true;
 };

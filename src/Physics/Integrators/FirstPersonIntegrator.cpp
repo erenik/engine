@@ -59,7 +59,8 @@ void FirstPersonIntegrator::IntegrateVelocity(List<Entity*> & entities, float ti
 {
 	
 #ifdef USE_SSE
-	__m128 timeSSE = _mm_load1_ps(&timeInSeconds);
+	SSEVec timeSSE;
+	timeSSE.data = _mm_load1_ps(&timeInSeconds);
 	float zero = 0.f;
 	__m128 defaultSSE = _mm_load1_ps(&zero);
 #endif
@@ -103,7 +104,7 @@ void FirstPersonIntegrator::IntegrateVelocity(List<Entity*> & entities, float ti
 			assert(totalAcceleration.x == totalAcceleration.x);
 		}
 		/// Multiply by time.
-		pp->velocity.data = _mm_add_ps(pp->velocity.data, _mm_mul_ps(totalAcceleration.data, timeSSE));
+		pp->velocity.data = _mm_add_ps(pp->velocity.data, _mm_mul_ps(totalAcceleration.data, timeSSE.data));
 		// Apply linear damping
 		sse = _mm_load1_ps(&pp->linearDampingPerPhysicsFrame);
 		pp->velocity.data = _mm_mul_ps(pp->velocity.data, sse);
@@ -189,8 +190,9 @@ void FirstPersonIntegrator::IntegrateVelocity(List<Entity*> & entities, float ti
 void FirstPersonIntegrator::IntegratePosition(List<Entity*> & entities, float timeInSeconds)
 {
 #ifdef USE_SSE
-	__m128 timeSSE = _mm_load1_ps(&timeInSeconds);
-	timeSSE.m128_f32[3] = 0;
+	SSEVec timeSSE;
+	timeSSE.data = _mm_load1_ps(&timeInSeconds);
+	timeSSE.v[3] = 0;
 #endif
 	for (int i = 0; i < entities.Size(); ++i)
 	{
@@ -198,7 +200,7 @@ void FirstPersonIntegrator::IntegratePosition(List<Entity*> & entities, float ti
 		PhysicsProperty * pp = forEntity->physics;
 		Vector3f & position = forEntity->position;
 #ifdef USE_SSE
-		position.data = _mm_add_ps(position.data, _mm_mul_ps(pp->currentVelocity.data, timeSSE));
+		position.data = _mm_add_ps(position.data, _mm_mul_ps(pp->currentVelocity.data, timeSSE.data));
 #else
 		/// First position. Simple enough.
 		Vector3f distanceTraveled = pp->currentVelocity * timeInSeconds;

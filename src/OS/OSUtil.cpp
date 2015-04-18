@@ -63,12 +63,12 @@ List<String> GetFilesFromHDrop(HDROP hDrop)
 
 
 #include "Window/DragAndDrop.h"
-#include "Window/WindowManager.h"
+#include "Window/AppWindowManager.h"
 
 void OSUtil::Copy()
 {
 #ifdef WINDOWS
-	Window * window = WindowMan.GetCurrentlyActiveWindow();
+	AppWindow * AppWindow = WindowMan.GetCurrentlyActiveWindow();
 	// Open the clipboard, and empty it.
 	if (!OpenClipboard(window->hWnd)) {
 		std::cout<<"Unable to open clipboard!";
@@ -164,7 +164,7 @@ void OSUtil::Paste()
     std::cout<<"\nPasting!";
     int result;
 //    XInternAtom();
-    result = XSetSelectionOwner(display, XA_PRIMARY, window, CurrentTime);
+    result = XSetSelectionOwner(display, XA_PRIMARY, AppWindow, CurrentTime);
     if (result == BadAtom){
         std::cout<<"\nBadAtom!";
     }
@@ -188,7 +188,7 @@ void OSUtil::Paste()
         owner = result;
 
     std::cout<<"\nconvertSelection: ";
-    XConvertSelection(display, XA_PRIMARY, XA_STRING, 7030, window, CurrentTime);
+    XConvertSelection(display, XA_PRIMARY, XA_STRING, 7030, AppWindow, CurrentTime);
     if (result == BadAtom){
         std::cout<<"\nBadAtom!";
     }
@@ -196,14 +196,14 @@ void OSUtil::Paste()
         std::cout<<"\nBadWindow!";
     }
 
-/*          result = XSetSelectionOwner(display, XA_SECONDARY, window, CurrentTime);
+/*          result = XSetSelectionOwner(display, XA_SECONDARY, AppWindow, CurrentTime);
     if (result == BadAtom){
         std::cout<<"\nBadAtom!";
     }
     else if (result == BadWindow){
         std::cout<<"\nBadWindow!";
     }
-    result = XSetSelectionOwner(display, XA_CUT_BUFFER0, window, CurrentTime);
+    result = XSetSelectionOwner(display, XA_CUT_BUFFER0, AppWindow, CurrentTime);
     if (result == BadAtom){
         std::cout<<"\nBadAtom!";
     }
@@ -217,7 +217,7 @@ void OSUtil::Paste()
 
 #ifdef WINDOWS
 
-	Window * window = WindowMan.GetCurrentlyActiveWindow();
+	AppWindow * AppWindow = WindowMan.GetCurrentlyActiveWindow();
 //	pbox = hwndSelected == NULL ? NULL :
 //		(PLABELBOX) GetWindowLong(hwndSelected, 0);
 
@@ -288,7 +288,7 @@ void OSUtil::Paste()
 				{
 					// Call the application-defined ReplaceSelection
 					// function to insert the text and repaint the
-					// window.
+					// AppWindow.
 					String text = lpstr;
 					std::cout<<"\nPaste text intercepted: "<<text;
 					PasteMessage * pasteMessage = new PasteMessage();

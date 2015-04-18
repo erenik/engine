@@ -42,7 +42,7 @@ extern UserInterface * ui[GameStateID::MAX_GAME_STATES];
 #include "RuneRPG/Battle.h"
 #include "RuneRPG/Item/RuneItem.h"
 
-#include "Window/WindowManager.h"
+#include "Window/AppWindowManager.h"
 
 RuneGlobalState::RuneGlobalState()
 {
@@ -319,7 +319,7 @@ void RuneGlobalState::NetworkLog(String message)
 
 void RuneGlobalState::Process(int timeInMs)
 {
-	Sleep(10);
+	SleepThread(10);
 }
 
 void RuneGlobalState::CreateUserInterface()

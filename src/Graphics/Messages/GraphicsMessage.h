@@ -15,7 +15,7 @@ class Texture;
 class Model;
 class Ray;
 class Renderable;
-class Window;
+class AppWindow;
 
 
 /// Default message class
@@ -37,10 +37,10 @@ protected:
 class GMRecordVideo : public GraphicsMessage
 {
 public:
-	GMRecordVideo(Window * fromWindow);
+	GMRecordVideo(AppWindow * fromWindow);
 	virtual void Process();
 private:
-	Window * window;
+	AppWindow * window;
 };
 
 struct RenderOptions;
@@ -62,10 +62,10 @@ private:
 /// Resizes screen, updating relevant matrices
 class GMResize : public GraphicsMessage {
 public:
-	GMResize(Window * window, short width, short height);
+	GMResize(AppWindow * window, short width, short height);
 	void Process();
 private:
-	Window * window;
+	AppWindow * window;
 	short width;
 	short height;
 };
@@ -170,12 +170,12 @@ private:
 class GMSetViewports : public GraphicsMessage {
 public:
 	/// ALWAYS send at least 1 Viewport.
-	GMSetViewports(List<Viewport *> viewports, Window * inWindow);
+	GMSetViewports(List<Viewport *> viewports, AppWindow * inWindow);
 	~GMSetViewports();
 	void Process();
 private:
 	List<Viewport*> viewports;
-	Window * window;
+	AppWindow * window;
 };
 
 class GMDeleteVBOs : public GraphicsMessage {

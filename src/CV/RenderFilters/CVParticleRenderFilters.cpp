@@ -215,7 +215,7 @@ int CVContourParticles::Process(CVPipeline * pipe)
 	}
 
 	Vector3f position = contour.centerOfMass;
-	// half window space?
+	// half AppWindow space?
 	position = pipe->InputSpaceToWorldSpace(position);
 //	position.x -= pipe->initialInput->cols * 0.5;
 //	position.y = pipe->initialInput->rows * 0.5 - position.y;

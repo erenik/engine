@@ -76,7 +76,7 @@ void UIElement::Nullify()
 	zDepth = 0;
 
 	alignment = NULL_ALIGNMENT;	// Alignment relative to parent
-	scalable = DEFAULT_SCALABILITY;		// Allow scaling depending on window size?
+	scalable = DEFAULT_SCALABILITY;		// Allow scaling depending on AppWindow size?
 	ratio = 1.0;
 	keepRatio = true;
 
@@ -156,7 +156,7 @@ UIElement::UIElement(const UIElement & ref){
 	Nullify();
 	zDepth = ref.zDepth;
 	alignment = ref.alignment;	// Alignment relative to parent
-	scalable = ref.scalable;		// Allow scaling depending on window size?
+	scalable = ref.scalable;		// Allow scaling depending on AppWindow size?
 	ratio = ref.ratio;
 	keepRatio = ref.keepRatio;
 	alignmentX = ref.alignmentX;
@@ -1670,7 +1670,7 @@ void UIElement::RenderChildren(GraphicsState & graphicsState)
 }
 
 
-/// Adjusts the UI element size and position relative to new window size
+/// Adjusts the UI element size and position relative to new AppWindow size
 void UIElement::AdjustToWindow(int w_left, int w_right, int w_bottom, int w_top)
 {
     /// Reset text-variables so that they are re-calculated before rendering again.

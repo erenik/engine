@@ -772,14 +772,16 @@ void List<T>::Resize(int newSize)
 	arrLength = newSize;
 }
 
+#include "System/Memory.h"
 
 template <class T>
 T * List<T>::AllocateArray(int num)
 {
 #ifdef USE_SSE
-	T * newArr = (T*) _aligned_malloc(newSize * sizeof(T), 16);
+	T * newArr = (T*) AllocateAligned(num * sizeof(T), 16);
+//	T * newArr = (T*) _aligned_malloc(num * sizeof(T), 16);
 	// Run constructor on the new objects?
-	for (int i = 0; i < newSize; ++i)
+	for (int i = 0; i < num; ++i)
 		new((void*)&newArr[i]) T();
 	return newArr;
 #else

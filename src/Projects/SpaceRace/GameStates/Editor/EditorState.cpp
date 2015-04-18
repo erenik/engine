@@ -161,7 +161,7 @@ void EditorState::Process(float time){
 	}
 	*/
 
-	// Update for previously entered commands to the log window
+	// Update for previously entered commands to the log AppWindow
 	/*
 	{
 		List<String> inputs;
@@ -1221,7 +1221,7 @@ void EditorState::SetScaleActiveEntities(Vector3f scale){
 void EditorState::ScaleActiveEntities(Vector3f scale){
 	Physics.QueueMessage(new PMSetEntity(SCALE, editorSelection, scale));
 	ConsoleLog("Scaling "+String::ToString(editorSelection.Size())+" entities by scale: "+VectorString(scale));
-	Sleep(100);
+	SleepThread(100);
 	// Update UI accordingly.
 	OnSelectionUpdated();
 }

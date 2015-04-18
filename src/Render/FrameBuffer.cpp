@@ -4,11 +4,12 @@
 
 #include "FrameBuffer.h"
 #include "Viewport.h"
-#include "Window/Window.h"
+#include "Window/AppWindow.h"
 #include "Graphics/GLBuffers.h"
 #include "Graphics/OpenGL.h"
 #include "TextureManager.h"
 #include "File/LogFile.h"
+#include "OS/Sleep.h"
 
 bool CheckFrameBufferStatus(int status, String name);
 
@@ -51,7 +52,7 @@ void FrameBuffer::DumpTexturesToFile()
 			tex->Save(viewport->window->name+" "+viewport->name+" "+rb->name+".png", true);
 		else 
 			tex->Save(name+"_"+rb->name+".png", true);
-//		Sleep(50);
+//		SleepThread(50);
 	}
 }
 
@@ -184,7 +185,7 @@ void FrameBuffer::CreateRenderBuffers()
 	{
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, NULL);
 		std::cout<<"\nINFO: FrameBuffer not ready to be used.";
-		Sleep(10);
+		SleepThread(10);
 		return;
 	}
 
@@ -307,7 +308,7 @@ bool CheckFrameBufferStatus(int status, String frameBufferName)
 	if (status != GL_FRAMEBUFFER_COMPLETE)
 	{
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, NULL);
-		Sleep(10);
+		SleepThread(10);
 		return false;
 	}
 	return true;

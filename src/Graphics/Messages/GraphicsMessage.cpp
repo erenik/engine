@@ -14,12 +14,12 @@
 #include "OS/Sleep.h"
 #include "Message/MessageManager.h"
 #include "GraphicsState.h"
-#include "Window/Window.h"
+#include "Window/AppWindow.h"
 
 #include "Render/RenderPipelineManager.h"
 #include "Render/RenderPipeline.h"
 
-#include "Window/WindowManager.h"
+#include "Window/AppWindowManager.h"
 #include "Render/FrameBuffer.h"
 
 
@@ -35,7 +35,7 @@ void GraphicsMessage::Process()
 	{
 		case GM_DUMP_FRAMEBUFFER_TEXTURES:
 		{
-			List<Window*> windows = WindowMan.GetWindows();
+			List<AppWindow*> windows = WindowMan.GetWindows();
 			for (int i = 0; i < windows.Size(); ++i)
 			{
 				List<Viewport*> viewports = windows[i]->viewports;
@@ -84,7 +84,7 @@ void GraphicsMessage::Process()
 		}
 		case GM_PRINT_SCREENSHOT:
 		{
-			Window * activeWindow = ActiveWindow();
+			AppWindow * activeWindow = ActiveWindow();
 			activeWindow->saveScreenshot = true;
 	//		graphicsState->promptScreenshot = true;
 			break;
@@ -115,7 +115,7 @@ void GraphicsMessage::Process()
 		case GM_RELOAD_UI: 
 		{
 			Input.acceptInput = false;
-			Sleep(10);
+			SleepThread(10);
 			
 			/// Pause execution of the main thread, so that it doesn't try to access any dying UI elements while reloading.
 			StateMan.Pause();
@@ -137,7 +137,7 @@ void GraphicsMessage::Process()
 			break;
 		case GM_CLEAR_UI:
 		{
-			Window * window = MainWindow();
+			AppWindow * window = MainWindow();
 			UserInterface * ui = window->ui;
 			if (ui)
 			{
@@ -154,7 +154,7 @@ void GraphicsMessage::Process()
 	}
 }
 
-GMRecordVideo::GMRecordVideo(Window * fromWindow)
+GMRecordVideo::GMRecordVideo(AppWindow * fromWindow)
 : GraphicsMessage(GM_RECORD_VIDEO), window(fromWindow)
 {
 }

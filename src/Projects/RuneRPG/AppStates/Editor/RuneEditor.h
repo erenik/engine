@@ -13,7 +13,7 @@ class Script;
 class Light;
 struct TileType;
 class GraphicsState;
-class Window;
+class AppWindow;
 
 namespace EditMode {
 enum editModes{
@@ -46,10 +46,10 @@ public:
 	void OnSelectionUpdated();
 
 	/// Input functions for the various states
-	void MouseClick(Window * window, bool down, int x = -1, int y = -1, UIElement * elementClicked = NULL);
-	void MouseRightClick(Window * window, bool down, int x = -1, int y = -1, UIElement * elementClicked = NULL);
-	void MouseMove(Window * window, int x, int y, bool lDown = false, bool rDown = false, UIElement * elementOver = NULL);
-	void MouseWheel(Window * window, float delta);
+	void MouseClick(AppWindow * AppWindow, bool down, int x = -1, int y = -1, UIElement * elementClicked = NULL);
+	void MouseRightClick(AppWindow * AppWindow, bool down, int x = -1, int y = -1, UIElement * elementClicked = NULL);
+	void MouseMove(AppWindow * AppWindow, int x, int y, bool lDown = false, bool rDown = false, UIElement * elementOver = NULL);
+	void MouseWheel(AppWindow * AppWindow, float delta);
 	/// Callback from the Input-manager, query it for additional information as needed.
 	void KeyPressed(int keyCode, bool downBefore);
 
@@ -65,7 +65,7 @@ public:
 	void SetBrushSize(int size);
 
 private:
-	/// Opens the brush editor window.
+	/// Opens the brush editor AppWindow.
 	void OpenSizeEditor();
 	void OpenBrushEditor();
 	void OpenTileSelector();
@@ -180,14 +180,14 @@ private:
 
 
 	/// For setting brush type and size. Used for painting tiles and terrain, but later on maybe objects as well?
-	Window * sizeEditor;
-	Window * brushEditor;
-	Window * tileSelector;
-	Window * terrainSelector;
-	Window * objectSelector;
-	Window * lightingEditor;
+	AppWindow * sizeEditor;
+	AppWindow * brushEditor;
+	AppWindow * tileSelector;
+	AppWindow * terrainSelector;
+	AppWindow * objectSelector;
+	AppWindow * lightingEditor;
 	/// List of all windows, for eased manipulation.
-	List<Window*> editorWindows;
+	List<AppWindow*> editorWindows;
 
 	enum mouseCameraStates {
 		NULL_STATE,

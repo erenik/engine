@@ -73,7 +73,7 @@ int CVInteractivePlate::Process(CVPipeline * pipe)
 	Time now = Time::Now();
 	if ((now - lastInteraction).Seconds() > sleepTime->GetInt())
 	{
-		SetSleep(true);
+		SetSleepThread(true);
 	}
 
 	// Paint optical flow!
@@ -112,7 +112,7 @@ int CVInteractivePlate::Process(CVPipeline * pipe)
 	if (pipe->swipeState == SwipeState::SWIPE_ENDED)
 	{
 		// Wake up if needed.
-		SetSleep(false);
+		SetSleepThread(false);
 
 		lastInteraction = Time::Now();
 		/// Check direction.
@@ -422,7 +422,7 @@ void CVInteractivePlate::PostToPi()
 }
 
 
-void CVInteractivePlate::SetSleep(bool sleepState)
+void CVInteractivePlate::SetSleepThread(bool sleepState)
 {
 	// Already sleeping?
 	if (sleepState == sleeping)

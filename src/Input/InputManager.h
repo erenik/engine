@@ -138,18 +138,18 @@ public:
 		Argument true indicate that the button was pressed, while false indicates that it was just released.
 		Default arguments for x and y indicate that they should not be refreshed.
 	*/
-	void MouseClick(Window * window, bool down, int x, int y);
+	void MouseClick(AppWindow * AppWindow, bool down, int x, int y);
 	/** Handles a mouse click.
 		Argument true indicate that the button was pressed, while false indicates that it was just released.
 		Default arguments for x and y indicate that they should not be refreshed.
 	*/
-	void MouseRightClick(Window * window, bool down, int x, int y);
+	void MouseRightClick(AppWindow * AppWindow, bool down, int x, int y);
 	/// Interprets a mouse-move message to target position.
-	void MouseMove(Window * window, Vector2i activeWindowAreaCoords);
+	void MouseMove(AppWindow * AppWindow, Vector2i activeWindowAreaCoords);
 	/** Handles mouse wheel input.
 		Positive delta signifies scrolling upward or away from the user, negative being toward the user.
 	*/
-	void MouseWheel(Window * window, float delta);
+	void MouseWheel(AppWindow * AppWindow, float delta);
 
 	Vector2i GetMousePosition();
 
@@ -339,7 +339,7 @@ private:
 	String actionToBeTakenUponCompletion;
 
 	/// Used to make user-experience more fluid.
-	Window * lastMouseMoveWindow;
+	AppWindow * lastMouseMoveWindow;
 };
 
 

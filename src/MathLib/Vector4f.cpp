@@ -116,7 +116,7 @@ Vector4f::Vector4f(const Vector3f  & base, float iw)
 {
 #ifdef USE_SSE
 	data = base.data;
-	data.m128_f32[3] = iw;
+	w = iw;
 #else
 	x = base[0];
 	y = base[1];
@@ -426,7 +426,7 @@ Vector4f& Vector4f::operator = (const Vector4f &other)
 float& Vector4f::operator[](const unsigned int index)
 {
 #ifdef USE_SSE
-	return data.m128_f32[index];
+	return v[index];
 #else
 	switch(index){
 		case 0:
@@ -447,7 +447,7 @@ float& Vector4f::operator[](const unsigned int index)
 const float& Vector4f::operator[] (const unsigned int index) const
 {
 #ifdef USE_SSE
-	return data.m128_f32[index];
+	return v[index];
 #else
 	switch(index){
 		case 0:
@@ -496,8 +496,10 @@ float Vector4f::Length3() const
 {
 #ifdef USE_SSE
 	float sum;
-	__m128 sse = _mm_mul_ps(data,data);
-	sum = sqrt(sse.m128_f32[0] + sse.m128_f32[1] + sse.m128_f32[2]);
+	SSEVec sse;
+	sse.data = _mm_mul_ps(data, data);
+	sum = sqrt(sse.v[0] + sse.v[1] + sse.v[2]);
+//	sum = sqrt(sse.m128_f32[0] + sse.m128_f32[1] + sse.m128_f32[2]); // Old
 	return sum;
 #else
 	return sqrt(pow((float)x, 2) + pow((float)y, 2)+ pow((float)z, 2));

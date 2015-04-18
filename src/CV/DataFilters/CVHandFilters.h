@@ -4,7 +4,7 @@
 
 #include "CVDataFilters.h"
 
-class Window;
+class AppWindow;
 
 class CVHandEmulator : public CVDataFilter 
 {

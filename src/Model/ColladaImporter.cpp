@@ -396,7 +396,8 @@ Mesh * ColladaImporter::CreateMesh(String name)
 		invBindMatrixSource.Remove("#");
 		Xelement * invBindMatrix = skin->GetElement("source", "id", invBindMatrixSource);
 		int numMatrices = invBindMatrix->GetElement("accessor")->GetArgument("count")->value.ParseInt();
-		List<float> bindPosesFloats = StringListToFloatList(invBindMatrix->GetElement("float_array")->data.Tokenize(" \n\t"));
+		List<String> floatStrings = invBindMatrix->GetElement("float_array")->data.Tokenize(" \n\t");
+		List<float> bindPosesFloats = StringListToFloatList(floatStrings);
 		/// o.o Create matrices!
 		List<Matrix4f> invBindPoseMatrices = Matrix4f::FromFloatList(bindPosesFloats, numMatrices, true);
 		/// o.o
@@ -405,7 +406,8 @@ Mesh * ColladaImporter::CreateMesh(String name)
 		String weightsSourceStr, jointNamesStr;
 
 		// Fetch bind-shape matrix (relationship between skeleton and skin)
-		mesh->bindShapeMatrix = Matrix4f::FromFloatList(StringListToFloatList(skin->GetElement("bind_shape_matrix")->data.Tokenize(" \t\n")), 1, true);
+		floatStrings = skin->GetElement("bind_shape_matrix")->data.Tokenize(" \t\n");
+		mesh->bindShapeMatrix = Matrix4f::FromFloatList(StringListToFloatList(floatStrings), 1, true);
 
 		// Fetch input semantics. Ensure that we are parsing the right way.
 		List<Xelement*> vwInputs = vertexWeightsElement->GetElements("input");
@@ -436,7 +438,8 @@ Mesh * ColladaImporter::CreateMesh(String name)
 
 		/// Fetch weights.
 		Xelement * weightsSource = skin->GetElement("source", "id", weightsSourceStr);		
-		List<float> vertexWeights = StringListToFloatList(weightsSource->GetElement("float_array")->data.Tokenize(" \n\t"));
+		floatStrings = weightsSource->GetElement("float_array")->data.Tokenize(" \n\t");
+		List<float> vertexWeights = StringListToFloatList(floatStrings);
 	
 		// For each vertex..
 		int vertexJointWeightIndex = 0;

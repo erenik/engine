@@ -23,7 +23,7 @@
 #include "UI/Buttons/UIRadioButtons.h"
 
 #include "Graphics/Fonts/TextFont.h"
-#include "Window/WindowManager.h"
+#include "Window/AppWindowManager.h"
 #include "Viewport.h"
 #include "Color.h"
 
@@ -43,22 +43,22 @@ void DeleteUIMutex()
 }
 
 
-/// Fetches the global UI, taking into consideration active window.
+/// Fetches the global UI, taking into consideration active AppWindow.
 UserInterface * GlobalUI()
 {
-	Window * activeWindow = WindowMan.GetCurrentlyActiveWindow();
+	AppWindow * activeWindow = WindowMan.GetCurrentlyActiveWindow();
 	if (!activeWindow)
 		return NULL;
 	return activeWindow->GetGlobalUI();
 }
 
-/// Fetches active/current UI, taking into consideration active window.
+/// Fetches active/current UI, taking into consideration active AppWindow.
 UserInterface * ActiveUI()
 {
-	Window * activeWindow = WindowMan.GetCurrentlyActiveWindow();
+	AppWindow * activeWindow = WindowMan.GetCurrentlyActiveWindow();
 	if (!activeWindow)
 	{
-		LogMain("ActiveUI(): No active window!", WARNING);
+		LogMain("ActiveUI(): No active AppWindow!", WARNING);
 		return NULL;
 	}
 	return activeWindow->GetUI();
@@ -66,29 +66,29 @@ UserInterface * ActiveUI()
 
 UserInterface * MainUI()
 {
-	Window * mainWindow = MainWindow();
+	AppWindow * mainWindow = MainWindow();
 	if (!mainWindow)
 	{
-		LogMain("MainUI(): No main window!", WARNING);
+		LogMain("MainUI(): No main AppWindow!", WARNING);
 		return NULL;
 	}
 	return mainWindow->GetUI();
 }
 
-/// UI which the mouse is currently hovering over, which may be any window.
+/// UI which the mouse is currently hovering over, which may be any AppWindow.
 UserInterface * HoverUI()
 {
-	Window * hoverWindow = WindowMan.HoverWindow();
+	AppWindow * hoverWindow = WindowMan.HoverWindow();
 	if (!hoverWindow)
 		return NULL;
 	return hoverWindow->GetUI();
 }
 
 
-/// Fetches either the Global or Active UI, taking into consideration both active window and if there exist any valid content in the Global UI.
+/// Fetches either the Global or Active UI, taking into consideration both active AppWindow and if there exist any valid content in the Global UI.
 UserInterface * RelevantUI()
 {
-	Window * window = WindowMan.GetCurrentlyActiveWindow();
+	AppWindow * window = WindowMan.GetCurrentlyActiveWindow();
 	if (!window)
 		return NULL;
 	UserInterface * globalUI = window->GetGlobalUI();
@@ -98,7 +98,7 @@ UserInterface * RelevantUI()
 	return window->GetUI();
 }
 
-UserInterface * GetRelevantUIForWindow(Window * window)
+UserInterface * GetRelevantUIForWindow(AppWindow * window)
 {
 	if (!window)
 		return NULL;

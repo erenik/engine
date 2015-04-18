@@ -427,7 +427,7 @@ void Audio::Update()
 		int samplesToBuffer = masterMixer->SamplesToBuffer(this);
 		int shortsToBuffer = samplesToBuffer;
 		int shortsToBufferInChars = shortsToBuffer * 2;
-		int bytesToBuffer = min(bufSize, shortsToBufferInChars);	// Clamp it
+		int bytesToBuffer = (bufSize < shortsToBufferInChars? bufSize : shortsToBufferInChars);	// Clamp it
 
 		// Buffer from stream.
 		int bytesBuffered = audioStream->BufferAudio((char*)buf, bytesToBuffer, this->repeat);
@@ -645,6 +645,7 @@ void Audio::BufferData(MultimediaStream * fromStream, AudioBuffer * intoBuffer)
 		bool sine = false;
 		short * shortBuf = (short*) buf;
 		static int sines = 0;
+		/*
 		if (sine)
 		{
 			for (int i = 0; i < samples; i += channels)
@@ -656,7 +657,7 @@ void Audio::BufferData(MultimediaStream * fromStream, AudioBuffer * intoBuffer)
 	//			shortBuf[i+1] = sinV2;
 //				std::cout<<"\nSin value: "<<sinV;
 			}
-		}
+		}*/
 #ifdef OPENAL
 		CheckALError("Before buffering");
 //		frequency *= 0.5f;

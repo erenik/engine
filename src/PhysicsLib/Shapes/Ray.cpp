@@ -206,6 +206,9 @@ bool Ray::Intersect(AABB & aabb, float * distance)
 	Vector3f dir = this->direction;
 	Vector3f coord;
 
+#define TRUE 1
+#define FALSE 0 
+
 	char inside = TRUE;
 	char quadrant[NUMDIM];
 	register int i;

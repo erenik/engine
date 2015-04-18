@@ -8,7 +8,7 @@
 #include "Windows/WindowsCoreAudio.h"
 #include "AudioManager.h"
 
-extern AudioMixer * masterMixer = NULL;
+extern AudioMixer * masterMixer;
 
 AudioMixer::AudioMixer()
 {
@@ -131,6 +131,7 @@ void AudioMixer::SendToDriver(int driverID)
 {
 	if (driverID != AudioDriver::WindowsCoreAudio)
 		return;
+#ifdef WINDOWS
 	/// Buffer it?
 	WMMDevice * device = WMMDevice::MainOutput();
 	if (!device)
@@ -144,7 +145,7 @@ void AudioMixer::SendToDriver(int driverID)
 	int samplesToSend = min(defaultSamplesToSend, driverSamplesToBuffer);
 	if (samplesToSend <= 0)
 	{
-		Sleep(5);
+		SleepThread(5);
 		return;
 	}
 	// Calc volume.
@@ -184,9 +185,8 @@ void AudioMixer::SendToDriver(int driverID)
 			delete abm;
 		}
 	}
+#endif
 }
-
-
 
 
 AudioBufferMarker * AudioMixer::GetMarker(Audio * forAudio)
@@ -199,7 +199,6 @@ AudioBufferMarker * AudioMixer::GetMarker(Audio * forAudio)
 	}
 	return NULL;
 }
-
 
 void AudioMixer::PrintQueue(String text, int fromIndex, int toIndex)
 {

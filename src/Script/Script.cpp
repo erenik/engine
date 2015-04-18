@@ -121,7 +121,7 @@ bool Script::Load()
 bool Script::Load(String fromFile)
 {
 	std::cout<<"\nScript::Load fromFile: "<<fromFile;
-//	Sleep(1000);
+//	SleepThread(1000);
 	/// Already loaded, reset and re-load!
 	if (loaded){
 		std::cout<<"\nAlready loaded, resetting.";
@@ -141,10 +141,10 @@ bool Script::Load(String fromFile)
 	int loadingType = 0;
 	bool midComment = false;
 	std::cout<<"\nFetching lines.";
-//	Sleep(1000);
+//	SleepThread(1000);
 	List<String> sourceLines = 	File::GetLines(source);
 	std::cout<<"\nLines: "<<sourceLines.Size();
-//	Sleep(1000);
+//	SleepThread(1000);
 	for (int i = 0; i < sourceLines.Size(); ++i)
 	{
 		String & line = sourceLines[i];
@@ -187,7 +187,7 @@ bool Script::Load(String fromFile)
 	this->source = fromFile;
 	loaded = true;
 	std::cout<<"\nScript loaded.";
-//	Sleep(100);
+//	SleepThread(100);
 	return true;
 }
 

@@ -11,6 +11,7 @@
 
 class Mesh;
 class Entity;
+class ParticleSystem;
 
 /// Pre-calculated
 extern float oneDivRandMaxFloat;

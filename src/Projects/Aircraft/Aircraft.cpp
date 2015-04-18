@@ -23,7 +23,7 @@
 #include "Input/InputManager.h"
 #include "Input/Keys.h"
 
-#include "Window/WindowManager.h"
+#include "Window/AppWindowManager.h"
 
 #include "Viewport.h"
 
@@ -156,7 +156,7 @@ void AircraftState::OnChatMessageReceived(ChatMessage * cm)
 	Argument true indicate that the button was pressed, while false indicates that it was just released.
 	Default arguments for x and y indicate that they should not be refreshed.
 */
-void AircraftState::MouseClick(Window * window, bool down, int x, int y, UIElement * elementClicked)
+void AircraftState::MouseClick(AppWindow * AppWindow, bool down, int x, int y, UIElement * elementClicked)
 {
 
 }
@@ -165,13 +165,13 @@ void AircraftState::MouseClick(Window * window, bool down, int x, int y, UIEleme
 	Argument true indicate that the button was pressed, while false indicates that it was just released.
 	Default arguments for x and y indicate that they should not be refreshed.
 */
-void AircraftState::MouseRightClick(Window * window, bool down, int x, int y, UIElement * elementClicked)
+void AircraftState::MouseRightClick(AppWindow * AppWindow, bool down, int x, int y, UIElement * elementClicked)
 {
 
 }
 
 /// Interprets a mouse-move message to target position.
-void AircraftState::MouseMove(Window * window, int x, int y, bool lDown, bool rDown, UIElement * elementOver)
+void AircraftState::MouseMove(AppWindow * AppWindow, int x, int y, bool lDown, bool rDown, UIElement * elementOver)
 {
 
 }
@@ -179,7 +179,7 @@ void AircraftState::MouseMove(Window * window, int x, int y, bool lDown, bool rD
 /** Handles mouse wheel input.
 	Positive delta signifies scrolling upward or away from the user, negative being toward the user.
 */
-void AircraftState::MouseWheel(Window * window, float delta)
+void AircraftState::MouseWheel(AppWindow * AppWindow, float delta)
 {
 
 }
@@ -382,7 +382,7 @@ void AircraftState::NextCamera()
 {
 	// Check active camera.
 	int activeCameraIndex = -1;
-	Window * mainWindow = WindowMan.MainWindow();
+	AppWindow * mainWindow = WindowMan.MainWindow();
 	Camera * currentCamera = 0;
 	if (mainWindow)
 	{

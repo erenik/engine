@@ -39,7 +39,7 @@ bool RenderPass::SetupLightPOVCamera()
 		AABB allEntitiesAABB = PhysicsMan.GetAllEntitiesAABB();
 		float mDist = allEntitiesAABB.max.Length();
 		float m2Dist = allEntitiesAABB.min.Length();
-		float maxDist = max(mDist, m2Dist);
+		float maxDist = MaximumFloat(mDist, m2Dist);
 
 		// Distance + some buffer.
 		float farPlane = light->shadowMapFarplane;

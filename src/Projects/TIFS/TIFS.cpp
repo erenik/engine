@@ -161,7 +161,7 @@ void TIFS::OnEnter(AppState * previousState)
 void TIFS::Process(int timeInMsss)
 {
 	// Sleep.
-	Sleep(50);
+	SleepThread(50);
 	if (paused)
 		return;
 	timeInMs = timeInMsss % 100;

@@ -7,6 +7,7 @@
 #include "MathLib.h"
 #include "Game/Game2D.h"
 #include "Random/Random.h"
+#include "OS/Sleep.h"
 
 class PongPlayerProperty;
 class PongBallProperty;

@@ -687,7 +687,7 @@ void LodePNG_Decoder_inspect(LodePNG_Decoder* decoder, const unsigned char* in, 
 /*Settings for the encoder.*/
 typedef struct LodePNG_EncodeSettings
 {
-  LodePNG_CompressSettings zlibsettings; /*settings for the zlib encoder, such as window size, ...*/
+  LodePNG_CompressSettings zlibsettings; /*settings for the zlib encoder, such as AppWindow size, ...*/
 
   /*Brute-force-search PNG filters by compressing each filter for each scanline.
   This gives better compression, at the cost of being super slow.
@@ -1344,7 +1344,7 @@ the RGB information of fully transparent pixels.
 *) btype: the block type for LZ77.
    0 = uncompressed, 1 = fixed huffman tree, 2 = dynamic huffman tree (best compression)
 *) useLZ77: whether or not to use LZ77 for compressed block types
-*) windowSize: the window size used by the LZ77 encoder (1 - 32768)
+*) windowSize: the AppWindow size used by the LZ77 encoder (1 - 32768)
 *) force_palette: if colorType is 2 or 6, you can make the encoder write a PLTE
    chunk if force_palette is true. This can used as suggested palette to convert
    to by viewers that don't support more than 256 colors (if those still exist)

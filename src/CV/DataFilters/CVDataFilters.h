@@ -14,10 +14,10 @@
 #include "PhysicsLib/Shapes/Quad.h"
 #include "PhysicsLib/Shapes/Line.h"
 
-class Window;
+class AppWindow;
 class Texture;
 
-/// A dedicated texture used for painting contour-segment specific data onto (which is then displayed in a dedicated window)
+/// A dedicated texture used for painting contour-segment specific data onto (which is then displayed in a dedicated AppWindow)
 extern Texture * contourSegmentRelativeAngleDistanceTexture;
 
 // Render functions, since they are shared by multiple filter sub-classes
@@ -331,7 +331,7 @@ public:
 private:
 	// Relative to the frame's circumference.
 	CVFilterSetting * maximumEdgeLength, * showOutputWindow;
-	Window * handDataWindow;
+	AppWindow * handDataWindow;
 
 };
 

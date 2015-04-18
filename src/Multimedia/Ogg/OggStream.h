@@ -19,12 +19,17 @@
 
 /// Include all necessary files for Ogg container playback. Or.. subclass it? Not sure D:
 #include <ogg/ogg.h>
+#ifdef VORBIS
 /// Vorbis for audio.
 #include <codec.h>
-#include <vorbisenc.h>
-#include <vorbisfile.h>
+#include <vorbis/vorbisenc.h>
+#include <vorbis/vorbisfile.h>
+#endif
+#ifdef OPUS
 /// Also Opus for audio http://www.opus-codec.org/ :D
-#include <opusfile.h>
+#include <opus/opusfile.h>
+#endif
+
 /// Theora for video.
 #include <theora/theoradec.h>
 #ifdef WINDOWS
@@ -114,27 +119,32 @@ private:
 	FILE*           oggFile;       // File handle
 
 	/// Theora
+#ifdef THEORA
 	bool hasTheora;
 	int theoraPackets;
 	th_info	theoraInfo;
 	th_comment theoraComment;
 	th_setup_info * theoraSetupInfo;
 	th_dec_ctx * theoraDecoderContext;
-
+#endif
+	
 	/// Vorbis
+#ifdef VORBIS
 	bool hasVorbis;
 	OggVorbis_File  oggVorbisFile;     // Stream handle
 	vorbis_info*    vorbisInfo;    // Some formatting data
 	vorbis_comment* vorbisComment; // User comments
 	double oggVorbisTime;
+#endif
 
 	/// Opus
+#ifdef OPUS
 	bool hasOpus;
 	OggOpusFile * oggOpusFile;
 	const OpusHead * opusHead;
 	const OpusTags * opusTags;
 	OpusFileCallbacks opusFileCallbacks;
-
+#endif
 };
 
 #endif

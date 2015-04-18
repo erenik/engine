@@ -20,7 +20,7 @@ class String;
 /** A four-dimensional vector class using floats.
 */
 #ifdef USE_SSE
-__declspec( align( 16 ) ) 
+Align(16)
 #endif
 class Vector4f {
 

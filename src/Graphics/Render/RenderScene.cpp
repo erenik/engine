@@ -216,6 +216,7 @@ void GraphicsManager::RenderScene()
 	error = glGetError();
 
 	// Render vfcOctree with regular objects
+#ifdef VFC_OCTREE
 	if (vfcOctree){
 		//vfcOctree->Render(); // Old
 		vfcOctree->SetCullingFrustum(camera.GetFrustum());
@@ -225,9 +226,8 @@ void GraphicsManager::RenderScene()
         // Render without culling
 		vfcOctree->Render(*graphicsState);
 	}
-	else {
-	}
-
+#endif
+	
 	// If we have entities that specifically need alpha-blending
 	// (windows, water, special effects, etc.)
 	// Render these now straight after regular rendering,
@@ -347,7 +347,7 @@ uniform sampler2D positionMap;*/
 		// Render!
 		error = glGetError();
 
-		// Render square for the window
+		// Render square for the AppWindow
 		deferredRenderingBox->name = "DeferredLighting";
 		deferredRenderingBox->Render(*graphicsState);
 

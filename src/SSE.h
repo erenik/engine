@@ -22,8 +22,10 @@ typedef union {
 } SSEVec;
 #endif
 
-/// Allocates aligned memory. E.g. Window * window = AllocAligned(Window);
-#define AllocAligned(a) (a*) _aligned_malloc(1 * sizeof(a), 16)
+/// Allocates aligned memory. E.g. AppWindow * AppWindow = AllocAligned(AppWindow);
+//#define AllocAligned(a) (a*) _aligned_malloc(1 * sizeof(a), 16)
+#include "System/Memory.h"
+
 /// Runs given constructor on the newly allocated memory.
 #define Construct(a,b) new ((void*)a) b
 /// Runs AllocAligned and then Construct using given constructor.

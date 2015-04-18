@@ -3,7 +3,7 @@
 /// Contains the abstraction for rendering to multiple windows.
 
 #include "Graphics/GraphicsManager.h"
-#include "Window/WindowManager.h"
+#include "Window/AppWindowManager.h"
 #include "GraphicsState.h"
 
 #include "Graphics/FrameStatistics.h"
@@ -11,14 +11,14 @@
 void GraphicsManager::RenderWindows()
 {
 	graphicsThreadDetails = "GraphicsManager::RenderWindows";
-	List<Window*> windows = WindowMan.GetWindows();
+	List<AppWindow*> windows = WindowMan.GetWindows();
 
 	int times = 0;
 
 	for (int i = 0; i < windows.Size(); ++i)
 	{
 	renderWindowStart:
-		Window * window = windows[i];
+		AppWindow * window = windows[i];
 		// Only render visible windows?
 		if (!window->IsVisible())
 			continue;
@@ -27,7 +27,7 @@ void GraphicsManager::RenderWindows()
 		graphicsState->windowWidth = window->WorkingArea()[0];
 		graphicsState->windowHeight = window->WorkingArea()[1];
 
-		// Reset shader. Force window to explicitly set an own one, so that attributes are bound correctly.
+		// Reset shader. Force AppWindow to explicitly set an own one, so that attributes are bound correctly.
 		ShadeMan.SetActiveShader(0);
 
 		// Render all that is needed
@@ -37,7 +37,7 @@ void GraphicsManager::RenderWindows()
 		swapBufferTimer.Start();
 		// Swap buffers to screen once we're finished.
 #ifdef WINDOWS
-		// SwapBuffers should preferably be called on a per-window basis?
+		// SwapBuffers should preferably be called on a per-AppWindow basis?
 		bool result = SwapBuffers(window->hdc);
 		if (!result)
 		{

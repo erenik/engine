@@ -18,7 +18,7 @@ extern UserInterface * ui[GameStateID::MAX_GAME_STATES];
 #include "System/PreferencesManager.h"
 #include "Chat/ChatManager.h"
 #include "UI/UIList.h"
-#include "Window/WindowManager.h"
+#include "Window/AppWindowManager.h"
 
 MainMenu::MainMenu()
 {
@@ -68,7 +68,7 @@ void MainMenu::OnEnter(AppState * previousState)
 	if (!enteredOnce)
 		OnFirstEnter();
 
-	Window * mainWindow = MainWindow();
+	AppWindow * mainWindow = MainWindow();
 	float intensity = 0.1f;
 	mainWindow->backgroundColor = Vector4f(intensity,intensity,intensity,1);
 	mainWindow->renderState = false;
@@ -91,7 +91,7 @@ void MainMenu::OnExit(AppState *nextState)
 
 void MainMenu::Process(int timeInMs)
 {
-	Sleep(25);
+	SleepThread(25);
 #ifdef USE_AUDIO
 	AudioMan.Update();
 #endif

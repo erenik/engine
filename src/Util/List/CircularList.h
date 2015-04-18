@@ -44,16 +44,16 @@ template <class T>
 T& CircularList<T>::operator[](int index) 
 {
 	while(index < 0)
-		index += currentItems;
-	return arr[index % currentItems];
+		index += this->currentItems;
+	return this->arr[index % this->currentItems];
 }
 
 template <class T>
 const T& CircularList<T>::operator[](int index) const 
 {
 	while(index < 0)
-		index += currentItems;
-	return arr[index % currentItems];
+		index += this->currentItems;
+	return this->arr[index % this->currentItems];
 }
 
 

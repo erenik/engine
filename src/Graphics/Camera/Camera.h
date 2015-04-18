@@ -13,7 +13,7 @@
 #include "PhysicsLib/Shapes/Frustum.h"
 #include "MathLib/Angle3.h"
 
-class Window;
+class AppWindow;
 
 /// Definitions for eased access in navigation for all states.
 #define PAN_SPEED_MULTIPLIER (abs(camera->distanceFromCentreOfMovement)/2.0f + 1)
@@ -56,15 +56,15 @@ public:
 	// Called from render/physics thread. updates movement/position of all cameras.
 	void Process();
 	
-	/// Returns the currently active camera. This assumes a main camera being used in the main window.
+	/// Returns the currently active camera. This assumes a main camera being used in the main AppWindow.
 	Camera * ActiveCamera();
 
 	/** Makes active the next camera (compared to the current one) by queueinga message to the graphics-manager.
-		Assumes only 1 active camera is being used for 1 main viewport or window.
+		Assumes only 1 active camera is being used for 1 main viewport or AppWindow.
 	*/
 	Camera * NextCamera();
 	/** Makes active the previous camera (compared to the current one) by queueinga message to the graphics-manager.
-		Assumes only 1 active camera is being used for 1 main viewport or window.
+		Assumes only 1 active camera is being used for 1 main viewport or AppWindow.
 	*/
 	Camera * PreviousCamera();
 	Camera * DefaultCamera();
@@ -121,7 +121,7 @@ public:
 		To map each pixel in the screen to one unit in-game.
 		Regular projection matrices use width and height ratios based on > 1.0f, e.g. 1.666 and 1.0
 	*/
-	void AdjustProjectionMatrixToWindow(Window * window);
+	void AdjustProjectionMatrixToWindow(AppWindow * AppWindow);
 
 	/// Name of the camera, can be nice to know.
 	String name;
@@ -261,7 +261,7 @@ public:
 	/** Returns a ray in 3D space using the given mouse and camera data.
 		Mouse coordinates are assumed to be in screen-pixel space (i.e. 0 to 799 or similar)
 	*/
-	Ray GetRayFromScreenCoordinates(Window * window, int mouseX, int mouseY) const;
+	Ray GetRayFromScreenCoordinates(AppWindow * AppWindow, int mouseX, int mouseY) const;
 
 	/// When tracking entities, may add this to the position of the entity (E.g. making it track the head of a character).
 	Vector3f trackingPositionOffset;
@@ -319,7 +319,7 @@ private:
 
 	/// See the function with same name.
 	bool adjustProjectionMatrixToWindow;
-	Window * windowToTrack;
+	AppWindow * windowToTrack;
 
 	/// Ratio of the display device/context. Both should be at least 1.0, with the other scaling up as needed.
 	float widthRatio, heightRatio;

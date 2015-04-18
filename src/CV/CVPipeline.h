@@ -19,7 +19,7 @@
 
 #include "PhysicsLib/Shapes/Line.h"
 
-class Window;
+class AppWindow;
 
 #define PIPELINE_CONFIG_FILE_ENDING ".pcfg"
 
@@ -29,8 +29,8 @@ public:
 	CVPipeline();
 	virtual ~CVPipeline();
 
-	/// Opens up an editor-window for this CVPipeline, assuming the existance of PipelineEditor GUI file. (gui/PipelineEditor.gui)
-	Window * OpenEditorWindow();
+	/// Opens up an editor-AppWindow for this CVPipeline, assuming the existance of PipelineEditor GUI file. (gui/PipelineEditor.gui)
+	AppWindow * OpenEditorWindow();
 	/// Call every time after changing the pipeline. Updates the UI in the dedicated winodw.
 	void OnPipelineUpdated();
 	void OpenFilterSelectionMenu();
@@ -219,8 +219,8 @@ private:
 	/// Set when selecting a feature and pushing its ui to the stack for editing.
 	CVFilter * currentEditFilter;
 
-	/// If we got a window, store it here!
-	Window * editorWindow;
+	/// If we got a AppWindow, store it here!
+	AppWindow * editorWindow;
 	// Int, 0 - Image, 1 - Data, 2 - Render
 	int filterSelectionFilter;
 

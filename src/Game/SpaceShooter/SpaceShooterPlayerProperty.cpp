@@ -23,7 +23,7 @@
 #include "Graphics/Messages/GraphicsMessage.h"
 
 #include "Input/InputManager.h"
-#include "Window/WindowManager.h"
+#include "Window/AppWindowManager.h"
 
 SpaceShooterPlayerProperty::SpaceShooterPlayerProperty(SpaceShooter * game, Entity * owner)
 	: EntityProperty("SpaceShooterPlayerProperty", ID(), owner), game(game), weaponType(SpaceShooterWeaponType::RAILGUN)
@@ -105,9 +105,9 @@ void SpaceShooterPlayerProperty::Process(int timeInMs)
 		// Grab mouse co-odinates.
 		Vector2i mousePos = Input.GetMousePosition();
 
-		// Project them onto the relevant window.
+		// Project them onto the relevant AppWindow.
 		Ray ray;
-		Window * window = HoverWindow();
+		AppWindow * window = HoverWindow();
 		bool good = false;
 		if (window)
 			good = window->GetRayFromScreenCoordinates(mousePos, ray);

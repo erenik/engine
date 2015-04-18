@@ -73,8 +73,8 @@ private:
 class GMSetCamera : public GraphicsMessage 
 {
 public:
-	/// For setting global/main camera to track. If window is NULL the main window will be selected.
-	GMSetCamera(Camera * cameraToTrack, Window * inWindow = NULL);
+	/// For setting global/main camera to track. If AppWindow is NULL the main AppWindow will be selected.
+	GMSetCamera(Camera * cameraToTrack, AppWindow * inWindow = NULL);
 	GMSetCamera(Camera * camera, int target, const Vector3f & vec3fValue);
 	GMSetCamera(Camera * camera, int target, int iValue);
 	GMSetCamera(Camera * camera, int target, float fValue);
@@ -89,7 +89,7 @@ private:
 	bool bValue;
 	Vector3f vec3fValue;
 	Camera * camera;
-	Window * window;
+	AppWindow * window;
 	Entity * entity;
 };
 

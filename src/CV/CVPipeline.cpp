@@ -18,7 +18,7 @@
 #include "UI/UIButtons.h"
 #include "UI/UIFileBrowser.h"
 
-#include "Window/WindowManager.h"
+#include "Window/AppWindowManager.h"
 
 #include "Message/MessageTypes.h"
 #include "Message/Message.h"
@@ -40,10 +40,10 @@ CVPipeline::~CVPipeline()
 	filters.ClearAndDelete();
 }
 
-/// Opens up an editor-window for this CVPipeline, assuming the existance of PipelineEditor GUI file. (gui/PipelineEditor.gui)
-Window * CVPipeline::OpenEditorWindow()
+/// Opens up an editor-AppWindow for this CVPipeline, assuming the existance of PipelineEditor GUI file. (gui/PipelineEditor.gui)
+AppWindow * CVPipeline::OpenEditorWindow()
 {
-	// Look for an existing lighting-editor window.
+	// Look for an existing lighting-editor AppWindow.
 	// Create it if not existing.
 	if (!editorWindow)
 	{
@@ -68,7 +68,7 @@ Window * CVPipeline::OpenEditorWindow()
 
 //	Graphics.QueueMessage(new GMSetUIv3f("GlobalAmbient", GMUI::VECTOR_INPUT, GetAmbient(), ui));
 
-//	UpdateLightList(window);
+//	UpdateLightList(AppWindow);
 
 	// Update it straight away.
 	OnPipelineUpdated();

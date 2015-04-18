@@ -14,8 +14,9 @@
 #include "../RenderSettings.h"
 #include "Graphics/Camera/Camera.h"
 #include "Texture.h"
-#include "Window/Window.h"
+#include "Window/AppWindow.h"
 
+/*
 /// Win32 includes!
 #ifdef WINDOWS
 #include <windows.h>
@@ -23,15 +24,16 @@
 #elif defined USE_X11
 #include <GL/glx.h>     // connect X server with OpenGL
 #include <X11/Xlib.h>
-extern Window                  window;
+extern AppWindow                  AppWindow;
 extern Display*                display; // connection to X server
 #endif
+*/
 
 /// Renders the active scene, including UI, etc.
 void GraphicsManager::RenderWindow()
 {
 
-	Window * window = graphicsState->activeWindow;
+	AppWindow * window = graphicsState->activeWindow;
 	Vector2i windowSize = graphicsState->activeWindow->WorkingArea();
 	Timer timer;
 	timer.Start();

@@ -23,7 +23,7 @@
 #include "Network/Session/SessionTypes.h"
 #include "Network/SIP/SIPSession.h"
 
-#include "Window/WindowManager.h"
+#include "Window/AppWindowManager.h"
 
 #include "Message/Message.h"
 #include "Message/MessageManager.h"
@@ -232,8 +232,8 @@ int CVInteractiveSphere::Process(CVPipeline * pipe)
 	if (whiteBackground->HasChanged())
 	{
 		WindowMan.ListWindows();
-		Window * window = WindowMan.GetWindowByName("ProjectionWindow");
-		if (!window)
+		AppWindow * AppWindow = WindowMan.GetWindowByName("ProjectionWindow");
+		if (!AppWindow)
 			return CVReturnType::RENDER;
 		bool white = whiteBackground->GetBool();
 		// Grab background-color

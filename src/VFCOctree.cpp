@@ -1,5 +1,11 @@
+// Emil Hedemalm
+// 2013-07-20
+// Old structure, based on an octree which was used for view frustum culling
 
 #include "VFCOctree.h"
+
+#ifdef VFC_OCTREE
+
 #include "Entity/Entity.h"
 
 /// Define the static values
@@ -354,3 +360,6 @@ int VFCOctree::IsEntityInside(Entity * entity){
 	// It's outside if the previous were false, logical :P
 	return OUTSIDE;
 }
+
+#endif
+

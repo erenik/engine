@@ -20,7 +20,7 @@
 
 class RenderPipeline;
 class Waypoint;
-class Window;
+class AppWindow;
 class Viewport;
 class Shader;
 class Texture;
@@ -73,10 +73,10 @@ public:
 	void SetCamera(Camera * camera);
 	/// What pipeline is currently being used.
 	RenderPipeline * renderPipe;
-	/// Window we are currently rendering to.
-	Window * activeWindow; 
+	/// AppWindow we are currently rendering to.
+	AppWindow * activeWindow; 
 	Viewport * activeViewport;
-	/// Current width and height of the active window.
+	/// Current width and height of the active AppWindow.
 	int windowWidth, windowHeight;
 
 	/// All entities to render?

@@ -21,8 +21,8 @@ namespace TimeType
 };
 
 /// There can only be one time.
-#undef Time
-class Time 
+#define Time AETime
+class AETime 
 {
 public:
 	/// 0 time.

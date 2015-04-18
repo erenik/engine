@@ -520,7 +520,7 @@ Vector3f Vector3f::operator / (const float &f) const
 float & Vector3f::operator [](int index)
 {
 #ifdef USE_SSE
-	return data.m128_f32[index];
+	return v[index];
 #else
 	switch(index){
 		case 0:
@@ -539,7 +539,7 @@ float & Vector3f::operator [](int index)
 const float & Vector3f::operator [](int index) const
 {
 #ifdef USE_SSE
-	return data.m128_f32[index];
+	return v[index];
 #else
 	switch(index){
 		case 0:
@@ -637,8 +637,9 @@ Vector3f Vector3f::ElementDivision(const Vector3f & otherVector) const
 float Vector3f::Length() const 
 {
 #ifdef USE_SSE
-	__m128 sse = _mm_mul_ps(data, data);
-	float sum = sse.m128_f32[0] + sse.m128_f32[1] + sse.m128_f32[2];
+	SSEVec sse;
+	sse.data = _mm_mul_ps(data, data);
+	float sum = sse.v[0] + sse.v[1] + sse.v[2];
 #else
 	float sum = x * x + y * y + z * z;
 #endif
@@ -651,8 +652,9 @@ float Vector3f::Length() const
 float Vector3f::LengthSquared() const 
 {
 #ifdef USE_SSE
-	__m128 sse = _mm_mul_ps(data, data);
-	float sum = sse.m128_f32[0] + sse.m128_f32[1] + sse.m128_f32[2];
+	SSEVec sse;
+	sse.data = _mm_mul_ps(data, data);
+	float sum = sse.v[0] + sse.v[1] + sse.v[2];
 	return sum;
 #else
 	return x * x + y * y + z * z;

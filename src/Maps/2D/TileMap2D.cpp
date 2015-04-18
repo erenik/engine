@@ -1155,7 +1155,7 @@ void TileMap2D::DeleteLevel(TileMapLevel * level){
 	if (Graphics.RenderingEnabled()){
 		render = false;
 		while(Graphics.RenderingEnabled())
-			Sleep(5);
+			SleepThread(5);
 	}
 	delete level;
 	render = true;

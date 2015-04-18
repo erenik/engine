@@ -9,7 +9,7 @@
 #include "AppStates/AppStates.h"
 #include "Entity/Entities.h"
 
-class Window;
+class AppWindow;
 class RuneEntity;
 class RRPlayer;
 class RREntityState;
@@ -62,7 +62,7 @@ private:
 	void PlayerPositionUpdated(Vector3i position);
 
 	/// For reloading maps, looking at coordinates, etc.
-	Window * mapTestWindow;
+	AppWindow * mapTestWindow;
 
 	/// Returns the entities the players are walking around with on the map.
 	List<Entity*> GetPlayerEntities();

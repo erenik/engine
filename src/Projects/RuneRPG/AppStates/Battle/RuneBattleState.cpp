@@ -41,8 +41,8 @@
 
 #include "Entity/EntityProperty.h"
 #include "Player/PlayerManager.h"
-#include "Window/WindowManager.h"
-#include "Window/WindowManager.h"
+#include "Window/AppWindowManager.h"
+#include "Window/AppWindowManager.h"
 
 #include "Maps/MapManager.h"
 #include "Maps/Grids/TileGrid.h"
@@ -142,7 +142,7 @@ void RuneBattleState::OnEnter(AppState * previousState)
  	/// Notify the input-manager to use menu-navigation.
 	Input.ForceNavigateUI(true);
 
-	// Open window with extra UI for tweaking stuff in real-time on the battle?
+	// Open AppWindow with extra UI for tweaking stuff in real-time on the battle?
 	if (!battleTestWindow)
 	{
 		battleTestWindow = WindowMan.NewWindow("BattleTest");
@@ -220,7 +220,7 @@ void RuneBattleState::OnExit(AppState *nextState)
 	// Load initial texture and set it to render over everything else
 	Graphics.QueueMessage(new GMSetOverlay(TexMan.GetTexture("img/loadingData.png")));
 
-	Sleep(100);
+	SleepThread(100);
 	// Begin loading textures here for the UI
 	Graphics.QueueMessage(new GraphicsMessage(GM_CLEAR_UI));
 	Graphics.QueueMessage(new GMSetCamera(camera, CT_ENTITY_TO_TRACK, NULL));
@@ -397,7 +397,7 @@ RuneBattler * RuneBattleState::GetIdlePlayer()
 void RuneBattleState::Process(int timeInMs)
 {
 	/// Process key input <- ?
-	Sleep(10);
+	SleepThread(10);
  
 	if (paused)
 		return;
@@ -419,7 +419,7 @@ void RuneBattleState::Process(int timeInMs)
 			Graphics.QueueMessage(new GMSetUIs("Narrator", GMUI::TEXT, bs.log));
 	}
 
-	/// Check if commands window is opened.
+	/// Check if commands AppWindow is opened.
 	if (!commandsMenuOpen)
 	{
 		List<RuneBattler*> playerBattlers = GetPlayerBattlers();

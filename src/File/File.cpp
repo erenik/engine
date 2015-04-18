@@ -5,6 +5,7 @@
 #include "File.h"
 #include "FileUtil.h"
 #include "Timer/Timer.h"
+#include <cstring>
 
 // o.o
 File::File()
@@ -22,17 +23,15 @@ File::File(String cPath)
 // Resets file handles etc.
 void File::Nullify()
 {
+#ifdef WINDOWS
 	fileHandle = 0;
+#endif
 	open = false;
 }
 
 File::~File()
 {
-	if (fileHandle)
-		CloseHandle(fileHandle);
-	fileHandle = 0;
-	if (fileStream.is_open())
-		fileStream.close();
+	Close();
 }
 
 /// Assignment operator. Similar to constructor.
@@ -175,17 +174,22 @@ List<String> File::GetLines(String fromFile)
 
 void File::Close()
 {
+#ifdef WINDOWS
 	if (fileHandle)
 		CloseHandle(fileHandle);
 	fileHandle = NULL;
-	fileStream.close();
+#endif
+	if (fileStream.is_open())
+		fileStream.close();
 }
 
 bool File::IsOpen()
 {
+#ifdef WINDOWS
 	if (fileHandle)
 		return true;
-	else if (fileStream.is_open())
+#endif
+	if (fileStream.is_open())
 		return true;
 	return false;
 }

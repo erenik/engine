@@ -11,7 +11,7 @@
 #include "../UI/UserInterface.h"
 #include "DefaultBindings.h"
 #include <cstring>
-#include "Window/WindowManager.h"
+#include "Window/AppWindowManager.h"
 #include "Viewport.h"
 #include "Entity/EntityProperty.h"
 
@@ -361,7 +361,7 @@ void InputManager::EnableActiveUI()
 	Argument true indicate that the button was pressed, while false indicates that it was just released.
 	Default arguments for x and y indicate that they should not be refreshed.
 */
-void InputManager::MouseClick(Window * window, bool down, int x, int y)
+void InputManager::MouseClick(AppWindow * AppWindow, bool down, int x, int y)
 {
 	if (!acceptInput)
 		return;
@@ -406,13 +406,13 @@ void InputManager::MouseClick(Window * window, bool down, int x, int y)
 		}
 	}
 	/// Inform the active state of the interaction
-	StateMan.ActiveState()->MouseClick(window, down, x, y, activeElement);
+	StateMan.ActiveState()->MouseClick(AppWindow, down, x, y, activeElement);
 }
 /** Handles a mouse click.
 	Argument true indicate that the button was pressed, while false indicates that it was just released.
 	Default arguments for x and y indicate that they should not be refreshed.
 */
-void InputManager::MouseRightClick(Window * window, bool down, int x, int y)
+void InputManager::MouseRightClick(AppWindow * AppWindow, bool down, int x, int y)
 {
 	if (!acceptInput)
 		return;
@@ -445,12 +445,12 @@ void InputManager::MouseRightClick(Window * window, bool down, int x, int y)
 	}
 
 	/// Inform the active state of the interaction
-	StateMan.ActiveState()->MouseRightClick(window, down, x, y, element);
+	StateMan.ActiveState()->MouseRightClick(AppWindow, down, x, y, element);
 
 }
 
 /// Interprets a mouse-move message to target position.
-void InputManager::MouseMove(Window * window, Vector2i activeWindowAreaCoords)
+void InputManager::MouseMove(AppWindow * AppWindow, Vector2i activeWindowAreaCoords)
 {	
 	int x = activeWindowAreaCoords[0];
 	int y = activeWindowAreaCoords[1];
@@ -462,13 +462,13 @@ void InputManager::MouseMove(Window * window, Vector2i activeWindowAreaCoords)
 	if (mouseLocked)
 		return;
 
-	lastMouseMoveWindow = window;
+	lastMouseMoveWindow = AppWindow;
 
 	/// Save coordinates
 	mousePosition = Vector2i(x,y);
 
 	/// If we have a global UI (system ui), process it first.
-	UserInterface * userInterface = GetRelevantUIForWindow(window);
+	UserInterface * userInterface = GetRelevantUIForWindow(AppWindow);
 	UIElement * element = NULL;
 	if (userInterface)
 	{
@@ -498,7 +498,7 @@ void InputManager::MouseMove(Window * window, Vector2i activeWindowAreaCoords)
 	AppState * currentState = StateMan.ActiveState();
 	if (currentState)
 	{
-		currentState->MouseMove(window, x, y, lButtonDown, rButtonDown, element);
+		currentState->MouseMove(AppWindow, x, y, lButtonDown, rButtonDown, element);
 	}
 	Graphics.QueryRender();
 }
@@ -506,18 +506,18 @@ void InputManager::MouseMove(Window * window, Vector2i activeWindowAreaCoords)
 /** Handles mouse wheel input.
 	Positive delta signifies scrolling upward or away from the user, negative being toward the user.
 */
-void InputManager::MouseWheel(Window * window, float delta)
+void InputManager::MouseWheel(AppWindow * AppWindow, float delta)
 {
-	/// Use the window last passed to the MouseMove function, as the Mouse Wheel message (at least in windows) was not the same as the one hovering over.
+	/// Use the AppWindow last passed to the MouseMove function, as the Mouse Wheel message (at least in windows) was not the same as the one hovering over.
 #ifdef WINDOWS
-	window = lastMouseMoveWindow;
+	AppWindow = lastMouseMoveWindow;
 #endif
 	if (!acceptInput)
 		return;
 	if (ignoreMouse)
 		return;
 //	std::cout<<"\nMouseWheel: "<<delta;
-	UserInterface * ui = GetRelevantUIForWindow(window);
+	UserInterface * ui = GetRelevantUIForWindow(AppWindow);
 	if (ui)
 	{
 		UIElement * element = ui->GetHoverElement();
@@ -537,7 +537,7 @@ void InputManager::MouseWheel(Window * window, float delta)
 		}
 	}
 	/// If no UI has been selected/animated, pass the message on to the stateManager
-	StateMan.ActiveState()->MouseWheel(window, delta);
+	StateMan.ActiveState()->MouseWheel(AppWindow, delta);
 	
 	/// Call to render if needed.
 	Graphics.QueryRender();
@@ -625,8 +625,8 @@ void InputManager::EvaluateKeyPressed(int activeKeyCode, bool downBefore, UIElem
 					// Nothing relevant?
 					if (!didSomething)
 					{
-						Window * activeWindow = ActiveWindow();
-						// Are we in the main window? If not, make it active? (maybe should add a Window-stack..? lol)
+						AppWindow * activeWindow = ActiveWindow();
+						// Are we in the main AppWindow? If not, make it active? (maybe should add a AppWindow-stack..? lol)
 						if (activeWindow != MainWindow())
 						{
 							/// This should make it active.

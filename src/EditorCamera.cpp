@@ -22,7 +22,7 @@
 
 #include "Model/Model.h"
 
-#include "Window/Window.h"
+#include "Window/AppWindow.h"
 
 #include "Entity/EntityManager.h"
 #include "Maps/MapManager.h"
@@ -309,7 +309,7 @@ void EditorCameraProperty::UpdateVelocity(ConstVec3fr newVelocity)
 void EditorCameraProperty::UpdateTargetsByCursorPosition()
 {
 	Ray ray;
-	Window * activeWindow = ActiveWindow();
+	AppWindow * activeWindow = ActiveWindow();
 	if (activeWindow != MainWindow())
 		return;
 	// Try to get ray.

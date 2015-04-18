@@ -53,33 +53,13 @@
 
 /// Linux-specifics!
 #elif defined USE_X11
-    #include <GL/glew.h>
-    #include <X11/Xlib.h>
-    #include <X11/Xutil.h>  // contains visual information masks and CVisualInfo structure
-    #include <GL/glx.h>     // connect X server with OpenGL
-    #include "XProc.h"      // XWindow Event Processor
-    int ErrorHandler(Display * d, XErrorEvent * e);
-    // single buffer attributes
-    static int singleBufferAttributes[] = {GLX_RGBA, GLX_DEPTH_SIZE, 24, None};
-    // doubble buffer attributes
-    static int doubleBufferAttributes[]  = {GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None};
-    /// Program start-up variables!
-        XEvent                  event;
-        GLXContext              context; // OpenGL context
-        Display*                display; // connection to X server
-        XVisualInfo*            visual_info;
-        Window                  window;
-        XSetWindowAttributes    window_attributes;
-        Colormap                colormap;
-        bool                    swapBuffers;
-    void testRender();
 // Apple OSX specifics!
 #elif defined OSX
     /*
     #include <AppKit/NSWindow.h>
     #include <AppKit/AppKit.h>
     //#include <X11/Xlib.h>
-    NSWindow * window = NULL;
+    NSWindow * AppWindow = NULL;
     */
 #endif // OS-specifics
 
@@ -126,11 +106,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 int main(int argc, char **argv)
 {
 #endif
-
 	// Set application-defaults here already?
 	/// Call to set application name, root directories for various features, etc.
 	SetApplicationDefaults();
-
 	/// Load base setup
 	List<String> rows = File::GetLines("Setup.txt");
 	for (int i = 0; i < rows.Size(); ++i)
@@ -141,10 +119,8 @@ int main(int argc, char **argv)
 		if (str.StartsWith("DefaultAudioDriver"))
 			AudioManager::SetDefaultAudioDriver(str);
 	}
-
 	/// Allocate allocators.
 	String::InitializeAllocator();
-
 	/// Initialize math lib
 	Expression::InitializeConstants();
 
@@ -191,7 +167,6 @@ int main(int argc, char **argv)
         std::cout<<"\ncmd: "<<s;
         CommandLine::args.Add(s);
     }
-
 #endif
 
 //#define DEBUG_MALLOC_ERROR_BREAK
@@ -244,21 +219,12 @@ int main(int argc, char **argv)
 
 /// Set C-runtime flags and threading options
 #ifdef WINDOWS
-#ifdef MSVC
-	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-	_CrtSetReportMode(_CRT_WARN , _CRTDBG_MODE_FILE);
-	_CrtSetReportFile(_CRT_WARN, _CRTDBG_FILE_STDOUT);
-#endif
+    #ifdef MSVC
+    	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+    	_CrtSetReportMode(_CRT_WARN , _CRTDBG_MODE_FILE);
+    	_CrtSetReportFile(_CRT_WARN, _CRTDBG_FILE_STDOUT);
+    #endif
 #elif defined USE_X11
-    /// Initialize support for multi-threaded usage of Xlib
-    int status = XInitThreads();
-    if (status){
-        std::cout<<"\n*nix thread-support initialized.";
-    }
-    else {
-        std::cout<<"\nXInitThreads failed.";
-        return 0;
-    }
 #endif
 
 
@@ -315,16 +281,14 @@ int main(int argc, char **argv)
 	if (UnitTests())
 		return 0;
 
-    // Register window pre-stuffs.
+    // Register AppWindow pre-stuffs.
 #ifdef WINDOWS
 	// For COM-interaction, drag-n-drop, http://msdn.microsoft.com/en-us/library/windows/desktop/ms690134%28v=vs.85%29.aspx
 	// http://msdn.microsoft.com/en-us/library/windows/desktop/ms695279%28v=vs.85%29.aspx
 //	int result = CoInitializeEx(NULL, COINIT_MULTITHREADED);
 //	int result = OleInitialize(NULL);
 //	assert(result == S_OK);
-
-
-	// Create the window manager.
+	// Create the AppWindow manager.
 	WindowManager::Allocate();
 	// Save to global application instance variables.
     hInstance = hInstance;
@@ -332,36 +296,6 @@ int main(int argc, char **argv)
 	WindowMan.CreateDefaultWindowClass();
 /// Open XServer?
 #elif defined USE_X11
-    std::cout<<"Starting up XWindowSystem application...";
-    display = XOpenDisplay(NULL);
-    if (!display){
-        std::cout<<"\nERROR: Unable to open connection to XServer!";
-        return -1;
-    }
-    int dummy;
-    if(!glXQueryExtension(display, &dummy, &dummy))
-    {
-        std::cout<<"\nERROR: XServer has no GLX extension!";
-        return -2;
-        assert(false && "X server has no OpenGL GLX extension");
-    }
-
-    /// Find OpenGL-capable RGB visual with depth buffer (device context?)
-    visual_info = glXChooseVisual(display, DefaultScreen(display), doubleBufferAttributes);
-    if (visual_info == NULL){
-        std::cout << "No double buffer" << std::endl;
-
-        visual_info = glXChooseVisual(display, DefaultScreen(display), singleBufferAttributes);
-        if (visual_info == NULL){
-            assert(false && "no depth buffer");
-        }
-    }
-    else {
-        swapBuffers = true;
-    }
-
-    /// Set Error handler!
-    XSetErrorHandler(ErrorHandler);
 /*
     /// Create GL context! ^^
     context = glXCreateContext(display, visual_info, None, true);
@@ -372,72 +306,21 @@ int main(int argc, char **argv)
 */
 #endif
 
-
-
-// Set window options
+// Set AppWindow options
 #ifdef WINDOWS
 	// Do that later, actually..
-/// Set linux Window options!
+/// Set linux AppWindow options!
 #elif defined USE_X11
-    // Each X window always has an associated colormap that provides a level of indirection between pixel values
-    // and colors displayed on the screen. The X protocol defines colors using values in the RGB color space.
-    colormap = XCreateColormap(display, RootWindow(display, visual_info->screen), visual_info->visual, AllocNone);
-
-    // update window attributes
-    window_attributes.colormap = colormap;
-    window_attributes.border_pixel = 0;
-    window_attributes.event_mask =
-
-    /// Testing to  get clipboard to work...
-        EnterWindowMask | LeaveWindowMask | KeymapStateMask |
-        VisibilityChangeMask /*| ResizeRedirectMask*/ | SubstructureNotifyMask |
-        SubstructureRedirectMask | FocusChangeMask | PropertyChangeMask | ColormapChangeMask |
-        OwnerGrabButtonMask |
-
-       // AnyEventMask;
-       /// Old stuff
-        KeyPressMask | KeyReleaseMask |
-        ButtonPressMask | ButtonReleaseMask |
-        ExposureMask | ButtonPressMask | StructureNotifyMask |
-        PointerMotionMask;
-
-    //  XSelectInput (display, window, KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask);
 #endif
 
-
-	/// Create window
+/// Create AppWindow .. done elsewhere/later, or perhaps not at all.
 #ifdef WINDOWS
 	
 
-/// Create the window, linux-style!
+/// Create the AppWindow, linux-style!
 #elif defined USE_X11
-    window = XCreateWindow(display,
-                           RootWindow(display, visual_info->screen),
-                           0, 0,            /// Position
-                           WINDOW_WIDTH, WINDOW_HEIGHT,   /// Size
-                           0,
-                           visual_info->depth,
-                           InputOutput,
-                           visual_info->visual,
-                           CWBorderPixel | CWColormap | CWEventMask,
-                           &window_attributes);
-    // set window properties
-    XSetStandardProperties(display, window, "main", None, None, argv, argc, NULL);
-
-/*
-    // bind the rendering context to the window
-    bool bound = glXMakeContextCurrent(display, window, window, context);
-    if (bound == false)
-    {
-        assert(false && "Failed to bind context");
-    }
-*/
-    // display X window on screen
-    XMapWindow(display, window);
-
-/// OSX Window creation!
+/// OSX AppWindow creation!
 #elif defined OSX & 0
-
     std::cout<<"\nSetting up NS Applicaiton.";
     [NSApplication sharedApplication];
 
@@ -445,7 +328,7 @@ int main(int argc, char **argv)
     unsigned int windowMask = NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask;
     NSRect mainDisplayRect = NSMakeRect(100, 100, 200, 200);
     //[[NSScreen mainScreen] frame];
-    NSWindow * window = [[NSWindow alloc]
+    NSWindow * AppWindow = [[NSWindow alloc]
                          initWithContentRect: mainDisplayRect
                          styleMask: windowMask
                          backing: NSBackingStoreBuffered
@@ -460,23 +343,16 @@ int main(int argc, char **argv)
                                      initWithFrame:mainDisplayRect
                                      pixelFormat:pixelFormat
                                      ];
-    [window setAutodisplay:true];
-    [window setContentView:fullScreenView];
+    [AppWindow setAutodisplay:true];
+    [AppWindow setContentView:fullScreenView];
 
-    [window makeKeyAndOrderFront: window];
+    [AppWindow makeKeyAndOrderFront: AppWindow];
     std::cout<<"\nWindow should now.. .maybe be visible?";
-#endif // Setting up window
+#endif // Setting up AppWindow
 
 
-    /// Set up Window-management details
+    /// Set up AppWindow-management details
 #ifdef LINUX
-    /// Fix so we can intercept Window-Management messages (like pressing the Close-button, ALT+F4, etc!)
-    // Ref: http://www.opengl.org/discussion_boards/showthread.php/157469-Properly-destroying-a-window
-    Atom wm_protocol = XInternAtom (display, "WM_PROTOCOLS", False);
-    Atom wm_close = XInternAtom (display, "WM_DELETE_WINDOW", False);
-    // Next we elect to receive the 'close' event from the WM:
-    XSetWMProtocols (display, window, &wm_close, 1);
-
 #endif
 	
 	// Create mutexes.
@@ -515,16 +391,17 @@ int main(int argc, char **argv)
 //#define TEST_RENDER
 
 	// Start the initializer thread
+    CREATE_AND_START_THREAD(Initialize, initializerThread);
+    /*
 #ifdef WINDOWS
 	initializerThread = _beginthread(Initialize, NULL, NULL);
-
-	// Reveal the main window to the user now that all managers are allocated.
+	// Reveal the main AppWindow to the user now that all managers are allocated.
 //	mainWindow->Show();
 
 #elif defined LINUX | defined OSX
 #ifndef TEST_RENDER
     int iret1 = pthread_create(&initializerThread, NULL, Initialize, NULL);
-    Sleep(50);
+    SleepThread(50);
     assert(iret1 == 0);
     /// Wait for initializer to complete!
     std::cout<<"\nInitializer thread started!";
@@ -534,7 +411,7 @@ int main(int argc, char **argv)
     std::cout<<"\nInitializer thread joined.";
 #endif // TEST_RENDER
 #endif // LINUX
-
+*/
 	/// Wait until the render thread has been set up properly?
 	int spams = 0;
     while(!Graphics.enteringMainLoop){
@@ -548,42 +425,16 @@ int main(int argc, char **argv)
 				break;
 			}
 		}
-        Sleep(10);
+        SleepThread(10);
     }
 // Main wait loop. Does nothing but wait for the game to finish.
-#ifdef WINDOWS
 	while(Application::live)
 	{
 		// Sleep a bit? No?
-		Sleep(500);
+		SleepThread(1000);
 	}
 
-/// X11 message loop!
-#elif defined USE_X11
-    std::cout<<"\nBeginning listening to events...";
-   // XNoOp(display);
-    int messagesReceived = 0;
-    while(StateMan.ActiveStateID() != GAME_STATE_EXITING){
-        // Check for queued messages.
-        int events = XPending(display);
-        /// XEventsQueued(display, QueuedAfterReading);
-      //  if (events > 0)
-        //    std::cout<<"\nQueued events: "<<events;
-        if (events){
-            // XNextEvent may block until an event appears, which might not be wanted, to check beforehand how many events are available!
-            XNextEvent(display, &event);
-            if (XProc(event) != NULL)
-                break;
-        }
-        else {
-            // If no messages, allow some sleep?
-            Sleep(10);
-         //   std::cout<<"\nSleeping";
-        }
-    }
-#endif
-
-	/// Unlink windows processor from our game window, since we're not interested in more messages.
+	/// Unlink windows processor from our game AppWindow, since we're not interested in more messages.
 	
 
 	// Start deallocator thread here instead?
@@ -597,7 +448,7 @@ int main(int argc, char **argv)
 
 	extern THREAD_HANDLE deallocatorThread;
 	while(deallocatorThread)
-		Sleep(5);
+		SleepThread(5);
     /// Wait for initializer to complete!
     std::cout<<"\nWaiting for DeallocatorThread...";
 
@@ -607,12 +458,12 @@ int main(int argc, char **argv)
     std::cout<<"\nWaiting for state processing thread...";
 	extern THREAD_HANDLE stateProcessingThread;
 	while(stateProcessingThread)
-		Sleep(5);
+		SleepThread(5);
 
     /// Wait until graphics thread has ended before going on to deallocation!
     while(graphicsThread)
     {
-        Sleep(5);
+        SleepThread(5);
         std::cout<<"Waiting for graphics thread to end before deallocating managers.";
     }
 	std::cout<<"\nState processor thread ended.";
@@ -672,7 +523,7 @@ int main(int argc, char **argv)
 	std::cout<<"\n>>>Main finishing.    >>>";
     std::cout<<"\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>";
 
-	Sleep(100);
+	SleepThread(100);
 	if (errorCode != 0)
 	{
 		if (errorCode == -1)
@@ -682,98 +533,9 @@ int main(int argc, char **argv)
 		}
 		else
 			std::cout<<"\nApplication ending. Error code: "<<errorCode<<". See log files in /log/ for more info.";
-		Sleep(3000);
+		SleepThread(3000);
 	}
 	return (int) errorCode;
 }
 
-
-#ifdef USE_X11
-
-/// Error handler
-int ErrorHandler(Display * d, XErrorEvent * e){
-    std::cout<<"\nXErrorEvent ";
-    switch(e->type){
-        case BadAccess:      std::cout<<"BadAccess"; break;
-        case BadAlloc:      std::cout<<"BadAlloc"; break;
-        case BadAtom:      std::cout<<"BadAtom"; break;
-        case BadColor:      std::cout<<"BadColor"; break;
-        case BadCursor:      std::cout<<"BadCursor"; break;
-        case BadDrawable:      std::cout<<"BadDrawable"; break;
-        case BadFont:      std::cout<<"BadFont"; break;
-        case BadGC:      std::cout<<"BadGC"; break;
-        case BadIDChoice:      std::cout<<"BadIDChoice"; break;
-        case BadImplementation:      std::cout<<"BadImplementation"; break;
-        case BadLength:      std::cout<<"BadLength"; break;
-        case BadMatch:      std::cout<<"BadMatch"; break;
-        case BadName:      std::cout<<"BadName"; break;
-        case BadPixmap:      std::cout<<"BadPixmap"; break;
-        case BadRequest:      std::cout<<"BadRequest"; break;
-        case BadValue:      std::cout<<"BadValue"; break;
-        case BadWindow:      std::cout<<"BadWindow"; break;
-        //case GLXBadContext:      std::cout<<""; break;
-
-        default:      std::cout<<"Unknown/default"; break;
-    }
-    static const int size = 20;
-    char buf[size];
-   // XGetErrorText(d, e->type, buf, size);
-   // std::cout<<": "<<buf;
-
-    return 0;
-}
-
-/// For testing linux gl
-void testRender(){
-// Setup rendering
-    glEnable(GL_DEPTH_TEST); // enable depth buffering
-    glDepthFunc(GL_LESS);    // pedantic, GL_LESS is the default
-    glClearDepth(1.0);       // pedantic, 1.0 is the default
-    glClearColor(0.0, 0.0, 0.0, 0.0);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glFrustum(-1.0, 1.0, -1.0, 1.0, 1.0, 1000.0);
-    glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
-
-
-    float x_rot = 0.0;
-
-    // Rendering
-    while(true)
-    {
-            // XNextEvent is required to get the OS to do anything at all... ish? o-o
-       //     XNextEvent(display, &event);
-            Sleep(10);
-
-
-            glMatrixMode(GL_MODELVIEW);
-            glLoadIdentity();
-
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            glRotatef(x_rot, 0.0, 1.0, 0.0);
-            glBegin(GL_TRIANGLES);
-                glColor3f (  1.0,  0.0,  0.0 ); // red
-                glVertex3f(  0.0,  0.5, -1.0 );
-
-                glColor3f (  0.0,  1.0,  0.0 ); // green
-                glVertex3f( -0.5, -0.5, -1.0 );
-
-                glColor3f (  0.0,  0.0,  1.0 ); // blue
-                glVertex3f(  0.5, -0.5, -1.0 );
-            glEnd();
-            x_rot += 0.1;
-          //  std::cout << x_rot << std::endl;
-
-            if(swapBuffers)
-            {
-                glXSwapBuffers( display, window );
-            }
-            else
-            {
-                glFlush();
-            }
-    }
-};
-
-#endif // LINUX
 

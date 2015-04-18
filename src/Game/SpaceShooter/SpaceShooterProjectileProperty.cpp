@@ -47,7 +47,7 @@ void SpaceShooterProjectileProperty::OnCollision(Collision & data)
 		other = data.one;
 
 	// Add some explosive effects?
-	this->Sleep();
+	this->SleepThread();
 
 	// Explode
 	Entity * explosionEntity = game->NewExplosion(owner->position, ExplosionType::PROJECTILE);
@@ -56,7 +56,7 @@ void SpaceShooterProjectileProperty::OnCollision(Collision & data)
 }
 
 
-void SpaceShooterProjectileProperty::Sleep()
+void SpaceShooterProjectileProperty::SleepThread()
 {
 	if (sleeping)
 		return;
@@ -83,7 +83,7 @@ void SpaceShooterProjectileProperty::Process(int timeInMs)
 		(owner->position[0] < game->left  && owner->Velocity()[0] < 0) ||
 		(owner->position[0] > game->right && owner->Velocity()[0] > 0) )
 	{
-		Sleep();
+		SleepThread();
 	}
 }
 

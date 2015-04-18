@@ -21,6 +21,8 @@
 
 #include "Windows/WindowsCoreAudio.h"
 
+#include "OS/Sleep.h"
+
 #ifdef USE_FMOD
 #include <fmod_studio.hpp>
 #include <fmod_studio_common.h>
@@ -121,7 +123,9 @@ bool AudioManager::InitializeDriver(int driverID)
 	switch(driverID)
 	{
 		case AudioDriver::OpenAL: return OpenAL::Initialize(); break;
+	#ifdef WINDOWS
 		case AudioDriver::WindowsCoreAudio: return WMMDevice::Initialize(); break;
+	#endif
 	}	
 #ifdef USE_FMOD
 	// Initialize FMOD
@@ -687,7 +691,7 @@ PROCESSOR_THREAD_START(AudioManager)
 	while(AudioMan.shouldLive)
 	{	
 		/// Sleep 50 ms each frame?
-		Sleep(10);
+		SleepThread(10);
 		AudioMan.Update();
 	}
 audioThreadEnd:

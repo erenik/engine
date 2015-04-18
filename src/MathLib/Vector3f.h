@@ -13,6 +13,7 @@
 #include "List/List.h"
 #include "Vector4f.h"
 #include "Vertex3f.h"
+#include "System/Memory.h"
 
 class Vector2i;
 class Vector2f;
@@ -30,7 +31,7 @@ class String;
 /** A three-dimensional vector class using floats.
 */
 #ifdef USE_SSE
-__declspec( align( 16 ) ) 
+Align(16)
 #endif
 class Vector3f {
 public:

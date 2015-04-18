@@ -13,8 +13,6 @@
 
 #if defined LINUX | defined OSX
 #define USE_X11
-#define XWindowSystem
-#define WINDOW_SYSTEM XWindowSystem
 #endif
 
 

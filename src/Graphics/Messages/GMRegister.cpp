@@ -17,7 +17,9 @@ void GMRegisterEntity::Process()
 		return;
 
 	GraphicsManager & manager = GraphicsMan;
+#ifdef VFC_OCTREE
 	assert(manager.vfcOctree);
+#endif
 	///	entity->model->mesh.Bufferize();
 	Graphics.RegisterEntity(entity);
 }

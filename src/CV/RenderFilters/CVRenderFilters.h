@@ -217,7 +217,7 @@ private:
 
 	void PostToPi();
 
-	void SetSleep(bool sleepState);
+	void SetSleepThread(bool sleepState);
 
 	void GrabFoodImages();
 	void UpdateScale();

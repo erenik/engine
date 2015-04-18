@@ -39,7 +39,7 @@
 #include "Input/Keys.h"
 #include "Input/InputManager.h"
 #include <fstream>
-#include "Window/WindowManager.h"
+#include "Window/AppWindowManager.h"
 #include "Viewport.h"
 #include "File/File.h"
 #include "Script/ScriptManager.h"
@@ -140,7 +140,7 @@ void IPMState::OnEnter(GameState * previousState)
 	Graphics.QueueMessage(new GraphicsMessage(GM_CLEAR_OVERLAY_TEXTURE));
 	Graphics.QueueMessage(new GMSetUI(ui));
 
-	Window * window = MainWindow();
+	AppWindow * AppWindow = MainWindow();
 	window->backgroundColor = Vector4f(0.1f,0.1f,0.1f,1.f);
 
 	// Enter test mode on start-up.
@@ -229,7 +229,7 @@ bool Same(cv::Mat & one, cv::Mat & two)
 /// Main processing function, using provided time since last frame.
 void IPMState::Process(int timeInMs)
 {
-	/// If projection window is up, print debug stats of it and its rendering onto the sync page
+	/// If projection AppWindow is up, print debug stats of it and its rendering onto the sync page
 	if (projectionWindow)
 	{
 		Graphics.QueueMessage(new GMSetUIv2i("WindowResolution", GMUI::VECTOR_INPUT, projectionWindow->WorkingArea()));
@@ -245,10 +245,10 @@ void IPMState::Process(int timeInMs)
 	switch(inputMode)
 	{
 		case CVInput::TEXTURE:
-			Sleep(100);
+			SleepThread(100);
 			return;
 		default:
-			Sleep(10);
+			SleepThread(10);
 			if (paused)
 				return;
 	}
@@ -272,7 +272,7 @@ void IPMState::Process(int timeInMs)
 				cap.open(0);
 				if (!cap.isOpened()){
 					Log("Unable to open camera for reading.");
-					Sleep(100);
+					SleepThread(100);
 					return;
 				}
 				else {
@@ -608,7 +608,7 @@ void IPMState::ProcessMessage(Message * message)
 			{
 				paused = !paused;
 			}
-			// Window management
+			// AppWindow management
 			else if (msg.Contains("CreateDedicatedOutputWindow"))
 			{
 				CreateProjectionWindow();
@@ -1120,8 +1120,8 @@ void IPMState::CreateCameraBindings()
 /// Call this in the ProcessMessage() if you want the base state to handle camera movement! Returns true if the message was indeed a camera-related message.
 bool IPMState::HandleCameraMessages(String message)
 {
-	Window * window = WindowMan.GetCurrentlyActiveWindow();
-	if (!window)
+	AppWindow * AppWindow = WindowMan.GetCurrentlyActiveWindow();
+	if (!AppWindow)
 		return false;
 	Camera * camera = window->MainViewport()->camera;
 	if (!camera)
@@ -1596,7 +1596,7 @@ int IPMState::ProcessPipeline()
 			{
 				Log("No filters in pipeline, displaying raw data/last texture.");
 				OnCVImageUpdated();
-				Sleep(100);
+				SleepThread(100);
 				return output;
 			}
 			Log(pipeline->GetLastError());
@@ -2044,7 +2044,7 @@ void IPMState::ProjectSynchronizationImage(String type)
 }
 void IPMState::ExtractProjectionOutputFrame(String usingPipeline)
 {
-	// Get contents out of the projection window.
+	// Get contents out of the projection AppWindow.
 //	Texture frame;
 	/// Fills contents of frame into target texture.
 //	projectionWindow->GetFrameContents(&frame);
@@ -2094,7 +2094,7 @@ void IPMState::ExtractProjectionOutputFrame(String usingPipeline)
 			if (p.y > max.y)
 				max.y = p.y;
 		}
-		// Convert to screen-space window co-ordinates now? Just deduct half of the texture size?
+		// Convert to screen-space AppWindow co-ordinates now? Just deduct half of the texture size?
 		min.x -= input.cols / 2;
 		max.x -= input.cols / 2;
 		min.y -= input.rows / 2;
@@ -2131,9 +2131,9 @@ void IPMState::AdjustProjectionCameraToFrame()
 {
 	// Set stuff in the buff.
 
-	/// Distance from the center of the entire window (initial setup) to the center of the detected projection frame.
+	/// Distance from the center of the entire AppWindow (initial setup) to the center of the detected projection frame.
 	Vector2i workingArea = projectionWindow->WorkingArea();
-	// Window center is 0,0.
+	// AppWindow center is 0,0.
 	Vector2i windowCenter;
 	Vector2i centerToCenter = projectionFrameCenter - windowCenter;
 	projectionFrameCenter = projectionFrameCenter;

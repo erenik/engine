@@ -41,7 +41,7 @@
 #include "ModelManager.h"
 #include "Graphics/Messages/GMLight.h"
 #include "Script/Script.h"
-#include "Window/WindowManager.h"
+#include "Window/AppWindowManager.h"
 
 #include <iomanip>
 /// Flum Microsoft function...
@@ -232,7 +232,7 @@ void RuneEditor::OnExit(AppState *nextState)
 clock_t lastTime = 0;
 void RuneEditor::Process(int timeInMs){
 	/// Process key input for navigating the 3D - Space
-	Sleep(20);
+	SleepThread(20);
 
     time_t currentTime = Timer::GetCurrentTimeMs();
 
@@ -560,12 +560,12 @@ void RuneEditor::OnSelectionUpdated(){
 }
 
 /// Input functions for the various states
-void RuneEditor::MouseClick(Window * window, bool down, int x, int y, UIElement * elementClicked)
+void RuneEditor::MouseClick(AppWindow * AppWindow, bool down, int x, int y, UIElement * elementClicked)
 {
 	/// Don't do anything if we're over a UI-element, yo.
 	if (elementClicked)
 		return;
-	if (window != MainWindow())
+	if (AppWindow != MainWindow())
 		return;
 
 	// If left mouse button was just clicked down...
@@ -636,11 +636,11 @@ void RuneEditor::MouseClick(Window * window, bool down, int x, int y, UIElement 
 	mouseY = y;
 	lButtonDown = down;
 }
-void RuneEditor::MouseRightClick(Window * window, bool down, int x, int y, UIElement * elementClicked){
+void RuneEditor::MouseRightClick(AppWindow * AppWindow, bool down, int x, int y, UIElement * elementClicked){
 	/// Don't do anything if we're over a UI-element, yo.
 	if (elementClicked)
 		return;
-	if (window != MainWindow())
+	if (AppWindow != MainWindow())
 		return;
 
 	switch(editMode){
@@ -668,12 +668,12 @@ void RuneEditor::MouseRightClick(Window * window, bool down, int x, int y, UIEle
 }
 
 #define PAN_SPEED_MULTIPLIER (abs(camera->distanceFromCentreOfMovement)/2.0f + 1)
-void RuneEditor::MouseMove(Window * window, int x, int y, bool lDown, bool rDown, UIElement * elementOver)
+void RuneEditor::MouseMove(AppWindow * AppWindow, int x, int y, bool lDown, bool rDown, UIElement * elementOver)
 {
 	/// Don't do anything if we're over a UI-element, yo.
 	if (elementOver)
 		return;
-	if (window != MainWindow())
+	if (AppWindow != MainWindow())
 		return;
 
 	Camera * camera = Graphics.cameraToTrack;
@@ -782,9 +782,9 @@ void RuneEditor::MouseMove(Window * window, int x, int y, bool lDown, bool rDown
 	mouseY = y;
 }
 
-void RuneEditor::MouseWheel(Window * window, float delta)
+void RuneEditor::MouseWheel(AppWindow * AppWindow, float delta)
 {
-	if (MainWindow() != window)
+	if (MainWindow() != AppWindow)
 		return;
 
 	/// Camera if CTRL is held
@@ -1069,7 +1069,7 @@ void RuneEditor::OpenSizeEditor()
 {
 	if (!sizeEditor)
 	{
-		Window * newWindow = WindowMan.NewWindow("Size editor");
+		AppWindow * newWindow = WindowMan.NewWindow("Size editor");
 		newWindow->CreateUI();
 		newWindow->CreateGlobalUI();
 		newWindow->ui->Load("gui/Editor/SizeMenu.gui");
@@ -1085,12 +1085,12 @@ void RuneEditor::OpenSizeEditor()
 	sizeEditor->Show();
 }
 
-/// Opens the brush editor window.
+/// Opens the brush editor AppWindow.
 void RuneEditor::OpenBrushEditor()
 {
 	if (!brushEditor)
 	{
-		Window * newWindow = WindowMan.NewWindow("Brush editor");
+		AppWindow * newWindow = WindowMan.NewWindow("Brush editor");
 		newWindow->CreateUI();
 		newWindow->CreateGlobalUI();
 		newWindow->ui->Load("gui/Editor/BrushEditor.gui");
@@ -1110,13 +1110,13 @@ void RuneEditor::OpenTileSelector()
 {
 	if (!tileSelector)
 	{
-		Window * newWindow = WindowMan.NewWindow("Tile selector");
+		AppWindow * newWindow = WindowMan.NewWindow("Tile selector");
 		newWindow->CreateUI();
 		newWindow->CreateGlobalUI();
 		newWindow->ui->Load("gui/Editor/TilesMenu.gui");
 		Vector2i windowSize(300, 600);
-		// Set it to the right side of the main window?
-		Window * mainWindow = MainWindow();
+		// Set it to the right side of the main AppWindow?
+		AppWindow * mainWindow = MainWindow();
 		int mainWindowWidth = mainWindow->OSWindowSize().x;
 		newWindow->SetRequestedSize(windowSize);
 		newWindow->SetRequestedRelativePosition(Vector2i(mainWindowWidth, 0));
@@ -1133,13 +1133,13 @@ void RuneEditor::OpenTerrainSelector()
 {
 	if (!terrainSelector)
 	{
-		Window * newWindow = WindowMan.NewWindow("Terrain selector");
+		AppWindow * newWindow = WindowMan.NewWindow("Terrain selector");
 		newWindow->CreateUI();
 		newWindow->CreateGlobalUI();
 		newWindow->ui->Load("gui/Editor/TerrainSelector.gui");
 		Vector2i windowSize(300, 600);
-		// Set it to the right side of the main window?
-		Window * mainWindow = MainWindow();
+		// Set it to the right side of the main AppWindow?
+		AppWindow * mainWindow = MainWindow();
 		int mainWindowWidth = mainWindow->OSWindowSize().x;
 		newWindow->SetRequestedSize(windowSize);
 		newWindow->SetRequestedRelativePosition(Vector2i(mainWindowWidth, 0));
@@ -1156,13 +1156,13 @@ void RuneEditor::OpenObjectSelector()
 {
 	if (!objectSelector)
 	{
-		Window * newWindow = WindowMan.NewWindow("Object selector");
+		AppWindow * newWindow = WindowMan.NewWindow("Object selector");
 		newWindow->CreateUI();
 		newWindow->CreateGlobalUI();
 		newWindow->ui->Load("gui/Editor/ObjectsMenu.gui");
 		Vector2i windowSize(300, 600);
-		// Set it to the right side of the main window?
-		Window * mainWindow = MainWindow();
+		// Set it to the right side of the main AppWindow?
+		AppWindow * mainWindow = MainWindow();
 		int mainWindowWidth = mainWindow->OSWindowSize().x;
 		newWindow->SetRequestedSize(windowSize);
 		newWindow->SetRequestedRelativePosition(Vector2i(mainWindowWidth, 0));
@@ -1179,13 +1179,13 @@ void RuneEditor::OpenLightingEditor()
 {
 	if (!lightingEditor)
 	{
-		Window * newWindow = WindowMan.NewWindow("Lighting selector");
+		AppWindow * newWindow = WindowMan.NewWindow("Lighting selector");
 		newWindow->CreateUI();
 		newWindow->CreateGlobalUI();
 		newWindow->ui->Load("gui/Editor/LightingMenu.gui");
 		Vector2i windowSize(300, 600);
-		// Set it to the right side of the main window?
-		Window * mainWindow = MainWindow();
+		// Set it to the right side of the main AppWindow?
+		AppWindow * mainWindow = MainWindow();
 		int mainWindowWidth = mainWindow->OSWindowSize().x;
 		newWindow->SetRequestedSize(windowSize);
 		newWindow->SetRequestedRelativePosition(Vector2i(mainWindowWidth, 0));
@@ -1203,7 +1203,7 @@ void RuneEditor::HideEditorWindows()
 {
 	for (int i = 0; i < editorWindows.Size(); ++i)
 	{
-		Window * window = editorWindows[i];
+		AppWindow * AppWindow = editorWindows[i];
 		window->Hide();
 	}
 }

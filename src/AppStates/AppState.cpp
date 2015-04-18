@@ -87,20 +87,20 @@ void AppState::OnChatMessageReceived(ChatMessage * cm){
 	Argument true indicate that the button was pressed, while false indicates that it was just released.
 	Default arguments for x and y indicate that they should not be refreshed.
 */
-void AppState::MouseClick(Window * window, bool down, int x, int y, UIElement * elementClicked){
+void AppState::MouseClick(AppWindow * AppWindow, bool down, int x, int y, UIElement * elementClicked){
 	std::cout<<"\nDefault AppState::MouseClick activated.";
 }
 /** Handles a mouse click.
 	Argument true indicate that the button was pressed, while false indicates that it was just released.
 	Default arguments for x and y indicate that they should not be refreshed.
 */
-void AppState::MouseRightClick(Window * window, bool down, int x, int y, UIElement * elementClicked){
+void AppState::MouseRightClick(AppWindow * AppWindow, bool down, int x, int y, UIElement * elementClicked){
 #ifdef _DEFAULT_STATE_DEBUG
 	std::cout<<"\nDefault AppState::MouseRightClick activated.";
 #endif
 }
 /// Interprets a mouse-move message to target position.
-void AppState::MouseMove(Window * window, int x, int y, bool lDown, bool rDown, UIElement * elementOver){
+void AppState::MouseMove(AppWindow * AppWindow, int x, int y, bool lDown, bool rDown, UIElement * elementOver){
 #ifdef _DEFAULT_STATE_DEBUG
 	std::cout<<"\nDefault AppState::MouseMove activated.";
 #endif
@@ -108,7 +108,7 @@ void AppState::MouseMove(Window * window, int x, int y, bool lDown, bool rDown, 
 /** Handles mouse wheel input.
 	Positive delta signifies scrolling upward or away from the user, negative being toward the user.
 */
-void AppState::MouseWheel(Window * window, float delta)
+void AppState::MouseWheel(AppWindow * AppWindow, float delta)
 {
 #ifdef _DEFAULT_STATE_DEBUG
 	std::cout<<"\nDefault AppState::MouseWheel activated.";
@@ -186,7 +186,7 @@ void AppState::HandleDADFiles(List<String> & files){
 /// What happens.. when we rendar?!
 void AppState::Render(GraphicsState * graphgics)
 {
-//	std::cout<<"\nDefault AppState::Render called. Overloading failed or window got state rendering enabled in vain.";
+//	std::cout<<"\nDefault AppState::Render called. Overloading failed or AppWindow got state rendering enabled in vain.";
 }
 
 #include "../Initializer.h"

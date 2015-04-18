@@ -31,7 +31,7 @@ class Camera;
 class UserInterface;
 class ParticleSystem;
 class RenderRay;
-class Window;
+class AppWindow;
 class RenderPipeline;
 
 #define MAX_TEXTURES	250
@@ -147,7 +147,7 @@ public:
 	void ProcessMessages();
 
 
-	void ToggleFullScreen(Window * forWindow);
+	void ToggleFullScreen(AppWindow * forWindow);
 	
 
 //	int DeviceWidth() const { return scrWidth; };
@@ -268,7 +268,7 @@ private:
 	void SetOverlayTexture(String source, int fadeInTime = 0);
 
 
-	/// Box to be used for rendering deferred shading onto the window, placed here for eased usage.
+	/// Box to be used for rendering deferred shading onto the AppWindow, placed here for eased usage.
 	Square * deferredRenderingBox;
 
 	/// Active camera to be used when rendering the 3D-scenes!
@@ -290,7 +290,7 @@ private:
 	List<RenderRay*> rays;
 
 
-	/// To properly render to each window.
+	/// To properly render to each AppWindow.
 	void RenderWindows();
 	void RenderWindow();
 	/// Renders contents in target viewport.
@@ -360,7 +360,9 @@ private:
 	void UpdateLighting();
 
 	// Octree vfcOctree
+#ifdef VFC_OCTREE
 	VFCOctree * vfcOctree;
+#endif
 	// Main frustum pointer for VFC. This should be updated to correspond to the active camera at all times.
 	Frustum * frustum;
 

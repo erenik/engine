@@ -110,4 +110,19 @@ protected:
 	/// Extra data variables
 };
 
+
+#include "Entity.h"
+template<class T>
+T * Entity::GetProperty()
+{
+	EntityProperty * prop = NULL;
+	for (int i = 0; i < properties.Size(); ++i)
+	{
+		prop = properties[i];
+		if (prop->GetID() == T::ID())
+			return (T *) prop;
+	}
+	return (T *) prop;
+}
+
 #endif

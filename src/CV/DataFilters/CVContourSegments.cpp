@@ -6,7 +6,7 @@
 #include "CV/CVPipeline.h"
 #include "TextureManager.h"
 
-#include "Window/WindowManager.h"
+#include "Window/AppWindowManager.h"
 
 #include "Graphics/GraphicsManager.h"
 #include "Graphics/Messages/GMUI.h"
@@ -72,7 +72,7 @@ CVContourSegmenter::CVContourSegmenter()
 
 	// Relative to the frame's circumference.
 	maximumEdgeLength = new CVFilterSetting("Max edge length", 0.25f);
-	showOutputWindow = new CVFilterSetting("Show output window", true);
+	showOutputWindow = new CVFilterSetting("Show output AppWindow", true);
 	settings.Add(2, maximumEdgeLength, showOutputWindow);
 
 }
@@ -149,7 +149,7 @@ int CVContourSegmenter::Process(CVPipeline * pipe)
 	else if (handDataWindow->IsVisible() && !showOutputWindow->GetBool())
 		handDataWindow->Hide();
 	
-	// Pass output to the texture in the hand-data window
+	// Pass output to the texture in the hand-data AppWindow
 	Graphics.QueueMessage(new GMSetUIp("HandData", GMUI::TEXTURE, contourSegmentRelativeAngleDistanceTexture, handDataWindow->ui));
 	Graphics.QueueMessage(new GMBufferTexture(contourSegmentRelativeAngleDistanceTexture));		
 

@@ -6,9 +6,9 @@
 #include "Viewport.h"
 #include "GraphicsMessages.h"
 #include "UI/UserInterface.h"
-#include "Window/Window.h"
+#include "Window/AppWindow.h"
 
-GMResize::GMResize(Window * window, short width, short height) 
+GMResize::GMResize(AppWindow * window, short width, short height) 
 : GraphicsMessage(GM_RESIZE), height(height), width(width), window(window) 
 {
 };

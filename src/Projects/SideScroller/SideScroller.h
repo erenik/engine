@@ -91,7 +91,7 @@ public:
 	/// Creates default key-bindings for the state.
 	virtual void CreateDefaultBindings();
 
-	/// Called from the render-thread for every viewport/window, after the main rendering-pipeline has done its job.
+	/// Called from the render-thread for every viewport/AppWindow, after the main rendering-pipeline has done its job.
 	virtual void Render(GraphicsState * graphicsState);
 
 	/// UI stuffs. All implemented in UIHandling.cpp

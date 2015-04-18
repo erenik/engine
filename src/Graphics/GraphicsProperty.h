@@ -20,6 +20,7 @@ class ParticleSystem;
 class Camera;
 class Estimator;
 class RenderInstancingGroup;
+class Entity;
 
 /// Flags for toggling stuff
 namespace RenderFlag {

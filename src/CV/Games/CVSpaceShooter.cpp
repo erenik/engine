@@ -43,7 +43,7 @@ int CVSpaceShooter::Process(CVPipeline * pipe)
 {
 
 	/// This game literally spams messages, so sleep a bit. <- No. Messages were just being processed too slowly elsewhere! o.o
-//	Sleep(50);
+//	SleepThread(50);
 	if (aiSpeed->HasChanged())
 	{
 	

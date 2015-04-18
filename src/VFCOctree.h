@@ -1,8 +1,13 @@
 // Emil Hedemalm
 // 2013-07-20
+// Old structure, based on an octree which was used for view frustum culling
 
 #ifndef VFC_OCTREE_H
 #define VFC_OCTREE_H
+
+// #define VFC_OCTREE 
+
+#ifdef VFC_OCTREE
 
 #include "PhysicsLib/Location.h"
 #include "List/List.h"
@@ -112,5 +117,6 @@ private:
 	VFCOctree * child[MAX_CHILD_NODES];
 };
 
+#endif // VFC_OCTREE
 
 #endif
