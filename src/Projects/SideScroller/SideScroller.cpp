@@ -425,6 +425,10 @@ void SideScroller::ProcessMessage(Message * message)
 				Jump();
 			else if (msg == "CycleCamera")
 				CycleCamera(camera+1);
+			else if (msg == "OnReloadUI")
+			{
+				UpdateUI();
+			}
 			else if (msg.Contains("AutoSave"))
 			{
 				bool silent = msg.Contains("(silent)");
@@ -917,6 +921,7 @@ void LongCactus(Entity * aboveBlock)
 	cactus->Scale(Vector3f(1,cactusSize,1));
 	MapMan.AddEntity(cactus, true, false);
 }
+
 void ShortCactus(Entity * aboveBlock)
 {
 	// Randomize amount?

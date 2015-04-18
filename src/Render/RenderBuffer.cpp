@@ -120,9 +120,9 @@ void RenderBuffer::CreateTexture()
 	assert(size.x > 0 && size.y > 0);
 	glTexImage2D(GL_TEXTURE_2D, 0, glStorageType, size.x, size.y, 0, glPixelDataFormat, glPixelDataType, NULL); 
 	AssertGLError("RenderBuffer::CreateTexture");
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);  // Setup the basic texture parameters
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);  // Sampling outside (0,0), (1,1)
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // Mip-mapping and oversampling
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glBindTexture(GL_TEXTURE_2D, 0);	// Unbind the texture
 	AssertGLError("RenderBuffer::CreateTexture");
