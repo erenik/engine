@@ -8,7 +8,7 @@
 
 #include "OS/OS.h"
 
-#include <glew.h>
+#include <GL/glew.h>
 
 #ifdef OSX
     #include <OpenGL/gl.h>

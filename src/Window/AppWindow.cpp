@@ -13,6 +13,7 @@
 
 #include "WindowSystem.h"
 #include "Graphics/OpenGL.h"
+#include "File/LogFile.h"
 #undef Time
 
 #ifdef USE_X11
@@ -114,8 +115,10 @@ AppWindow::AppWindow(String name, String displayName)
 	dragAndDrop = NULL;
 #elif defined LINUX
 	xWindowHandle = 0;
+	xGLContext = 0;
 #endif
 
+	created = false;
 	saveScreenshot = false;
 	/// 50 ms, 20 fps recording speed.
 	isRecording = false;
@@ -422,8 +425,8 @@ bool AppWindow::Create()
 	vp->window = this;
 	viewports.Add(vp);
 
-	created = true;
 #elif defined LINUX
+    std::cout<<"\nXCreateWindow: "<<xWindowHandle;
 	xWindowHandle = XCreateWindow(xDisplay,
                            RootWindow(xDisplay, xVisualInfo->screen),
                            0, 0,            /// Position
@@ -437,7 +440,6 @@ bool AppWindow::Create()
     // set AppWindow properties
     XSetStandardProperties(xDisplay, xWindowHandle, "main", None, None, NULL, 0, NULL);
     // Should be replaced with XSetWMProperties, according to the specification..
-
 /*
     // bind the rendering context to the AppWindow
     bool bound = glXMakeContextCurrent(xDisplay, AppWindow, AppWindow, context);
@@ -455,7 +457,9 @@ bool AppWindow::Create()
     Atom wm_close = XInternAtom (xDisplay, "WM_DELETE_WINDOW", False);
     // Next we elect to receive the 'close' event from the WM:
     XSetWMProtocols (xDisplay, xWindowHandle, &wm_close, 1);
+    std::cout<<"\nXCreateWindow: "<<xWindowHandle;
 #endif
+	created = true;
 	return true;
 }
 
@@ -772,16 +776,17 @@ bool AppWindow::CreateGLContext()
 #elif defined USE_X11
 	/// Create GL context! ^^
     std::cout<<"\nCreating GLX context...";
+    assert(xDisplay);
+    assert(xVisualInfo);
     /// third parameter should be the shared context (if available)
     xGLContext = glXCreateContext(xDisplay, xVisualInfo, None, true);
-    if (xGLContext == NULL){
-        std::cout<<"\n=======================================================";
-        std::cout<<"ERROR: Could not create rendering context!";
+    if (xGLContext == NULL)
+    {
+   		LogGraphics("ERROR: Could not create rendering context!", ERROR);
         return false;
     }
     bool result = true;
-    std::cout<<"\n=======================================================";
-    std::cout<<"\nGLX context created!";
+  	LogGraphics("GLX context created!", INFO);
 #endif // OS-dependent code.
     // Set as created successfully.
     created = true;
@@ -790,6 +795,7 @@ bool AppWindow::CreateGLContext()
 
 bool AppWindow::MakeGLContextCurrent()
 {
+	std::cout<<"\nCreated? "<<created; 
 	if (!created)
 		return false;
 #ifdef WINDOWS
@@ -812,6 +818,10 @@ bool AppWindow::MakeGLContextCurrent()
 	// Make it current
 	bool result = wglMakeCurrent(hdc, hglrc);	
 #elif defined USE_X11
+	assert(xDisplay);
+	assert(xWindowHandle);
+	assert(xGLContext);
+	std::cout<<"\nxDisplay: "<<xDisplay;
     bool result = glXMakeContextCurrent(xDisplay, xWindowHandle, xWindowHandle, (GLXContext) xGLContext);
 #endif
 	return result;

@@ -115,7 +115,7 @@ int GetDirectoriesInDirectory(String directory, List<String> & dirs){
 //	std::cout<<"\nlen: "<<len;
 //	char * c = directory.c_str();
 //	directory.PrintData();
-	std::cout<<"\nTryin to open dir: "<<directory;
+//	std::cout<<"\nTryin to open dir: "<<directory;
 //	std::cout<<"\nTryin to open dir: "<<directory;
 //	std::cout<<"\nGet directories in dir: "<<directory;
 	dp = opendir(directory.c_str());

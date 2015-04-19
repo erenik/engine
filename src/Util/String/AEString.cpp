@@ -566,8 +566,8 @@ std::ostream& operator <<(std::ostream& os, const String& str){
 */
 String String::Part(int fromIndex /*= 0*/, int toIndex /*= -1*/) const
 {
-	std::cout<<"\nString::Part("<<fromIndex<<", "<<toIndex<<")"
-		<<" of : "<<arr<<", length: "<<Length()<<" arrlen: "<<arraySize;
+//	std::cout<<"\nString::Part("<<fromIndex<<", "<<toIndex<<")"
+//		<<" of : "<<arr<<", length: "<<Length()<<" arrlen: "<<arraySize;
 	String newString;
 	if (toIndex <= -1)
 		toIndex = arraySize;

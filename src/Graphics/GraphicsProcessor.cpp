@@ -133,7 +133,6 @@ PROCESSOR_THREAD_START(GraphicsManager)
 #endif // OSX
 
 	// Initialize glew
-    std::cout<<"\nInitializing GLEW...";
 	LogGraphics("Initializing GLEW", INFO);
 
 //	glewExperimental = GL_TRUE;

@@ -5,7 +5,7 @@
 #ifndef UIELEMENT_H
 #define UIELEMENT_H
 
-#include <glew.h>
+#include "Graphics/OpenGL.h"
 
 #include <cstdlib>
 #include <ctime>
