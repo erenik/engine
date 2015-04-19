@@ -52,6 +52,9 @@ AudioManager::AudioManager()
 	shouldLive = true;
 	audioDriver = AudioDriver::BAD_DRIVER;
 	AudioMixer::AllocateMaster();
+
+	// Create mutex for handling race-conditions/threading
+	audioMessageQueueMutex.Create("audioMessageQueueMutex");
 }
 
 AudioManager::~AudioManager()
@@ -89,8 +92,6 @@ bool AudioManager::Initialize()
 	{
 		categoryVolumes.Add(1.f);
 	}
-	// Create mutex for handling race-conditions/threading
-	audioMessageQueueMutex.Create("audioMessageQueueMutex");
 	
 	if (defaultAudioDriver != AudioDriver::BAD_DRIVER)
 	{

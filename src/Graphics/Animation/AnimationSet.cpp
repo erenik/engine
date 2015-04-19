@@ -131,6 +131,7 @@ Animation * AnimationSet::LoadAnimationFromFolder(String fromFolder)
 		for (int i = 0; i < unsortedSources.Size(); ++i)
 		{
 			String & source = unsortedSources[i];
+		//	std::cout<<"\nSource found: "<<source;
 			int value = source.ParseInt();
 			if (value < leastValue)
 			{
@@ -144,6 +145,7 @@ Animation * AnimationSet::LoadAnimationFromFolder(String fromFolder)
 			String source = unsortedSources[leastIndex];
 			sortedSources.Add(source);
 			unsortedSources.RemoveIndex(leastIndex);
+		//	std::cout<<"\nSorted: "<<source;
 		}
 		else 
 			break;

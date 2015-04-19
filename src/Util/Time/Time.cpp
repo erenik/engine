@@ -275,6 +275,8 @@ uint64 Time::Microseconds() const
 			return intervals / 10;
 		case TimeType::MILLISECONDS_NO_CALENDER:
 			return intervals * 1000;
+		case TimeType::LINUX_MICROSEC_SINCE_JAN1_1970:
+			return intervals;
 		default:
 			std::cout<<"\nFetching milliseconds from time of undefined type. Returning 0.";
 			return 0;
@@ -456,7 +458,7 @@ void Time::FetchCalenderData()
 			day = (days + 5) % 30;
 			month = (days / 29 - 2) % 12;
 			year = years + 1970;
-			std::cout<<"\nCurrent time: "<<year<<"-"<<month<<"-"<<day<<" "<<hour<<":"<<minute<<":"<<second;
+		//	std::cout<<"\nCurrent time: "<<year<<"-"<<month<<"-"<<day<<" "<<hour<<":"<<minute<<":"<<second;
 			break;
 		}
 		case TimeType::MILLISECONDS_NO_CALENDER:

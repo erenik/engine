@@ -426,7 +426,6 @@ bool AppWindow::Create()
 	viewports.Add(vp);
 
 #elif defined LINUX
-    std::cout<<"\nXCreateWindow: "<<xWindowHandle;
 	xWindowHandle = XCreateWindow(xDisplay,
                            RootWindow(xDisplay, xVisualInfo->screen),
                            0, 0,            /// Position
@@ -437,7 +436,11 @@ bool AppWindow::Create()
                            xVisualInfo->visual,
                            CWBorderPixel | CWColormap | CWEventMask,
                            &xWindowAttributes);
-    // set AppWindow properties
+	if (xWindowHandle)
+	    std::cout<<"\nXCreateWindow created window "<<xWindowHandle<<" successfully";
+	else
+		std::cout<<"\nXCreateWindow failed.";
+	// set AppWindow properties
     XSetStandardProperties(xDisplay, xWindowHandle, "main", None, None, NULL, 0, NULL);
     // Should be replaced with XSetWMProperties, according to the specification..
 /*
@@ -758,6 +761,8 @@ int AppWindow::MemLeakTest()
 
 bool AppWindow::CreateGLContext()
 {
+	std::cout<<"\nCreateGLContext for window "<<name;
+	assert(created);
 	if (!created)
 		return false;
 #ifdef WINDOWS
@@ -787,6 +792,8 @@ bool AppWindow::CreateGLContext()
     }
     bool result = true;
   	LogGraphics("GLX context created!", INFO);
+#else
+  	fel
 #endif // OS-dependent code.
     // Set as created successfully.
     created = true;
@@ -795,7 +802,7 @@ bool AppWindow::CreateGLContext()
 
 bool AppWindow::MakeGLContextCurrent()
 {
-	std::cout<<"\nCreated? "<<created; 
+	assert(created);
 	if (!created)
 		return false;
 #ifdef WINDOWS

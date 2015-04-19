@@ -75,8 +75,11 @@ PROCESSOR_THREAD_START(GraphicsManager)
 
 	LogGraphics("Creating GL context", INFO);
 	AppWindow * mainWindow = WindowMan.GetWindow(0);
-	mainWindow->CreateGLContext();
-	mainWindow->MakeGLContextCurrent();
+	while (!mainWindow->created)
+		SleepThread(50);
+	
+	assert(mainWindow->CreateGLContext());
+	assert(mainWindow->MakeGLContextCurrent());
 
 #ifdef WINDOWS
 

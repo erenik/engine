@@ -1146,26 +1146,28 @@ bool String::ParseBool(){
 	comparisonMode = oldComparisonMode;
 	return result;
 }
-int String::ParseInt()
+int String::ParseInt() const
 {
+	String copy = *this;
 	//assert(this->type == CHAR && "Implement for wide char or convert first..!");
-	if (this->type == WIDE_CHAR){
-		if (arr)
-			delete[] arr;
-		arr = new char[arraySize];
-		wcstombs(arr,warr, arraySize);
+	if (copy.type == WIDE_CHAR){
+		copy.ConvertToWideChar();
+/*		if (copy->arr)
+			delete[] copy->arr;
+		copy->arr = new char[arraySize];
+		wcstombs(arr,warr, arraySize);*/
 	}
-	else if (this->type == NULL_TYPE)
+	else if (copy.type == NULL_TYPE)
 		return 0;
-	for (int i = 0; i < arraySize; ++i)
+	for (int i = 0; i < copy.arraySize; ++i)
 	{
-		if (arr[i] == 0)
+		if (copy.arr[i] == 0)
 			break;
-		if (isdigit(arr[i]) || arr[i] == '-')
+		if (isdigit(copy.arr[i]) || copy.arr[i] == '-')
 			continue;
-		arr[i] = ' ';
+		copy.arr[i] = ' ';
 	}
-	return atoi(arr);
+	return atoi(copy.arr);
 }
 
 /// Tries to parse hexadecimal values in the form of "0xAABBCCDD" or "0xAABBCC"

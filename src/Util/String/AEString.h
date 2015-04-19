@@ -125,7 +125,7 @@ public:
 
 	// Extract data o-o
 	bool ParseBool();
-	int ParseInt();
+	int ParseInt() const;
 	/// Tries to parse hexadecimal values in the form of "0xAABBCCDD" or "0xAABBCC"
 	uint64 ParseHex();
 	float ParseFloat();

@@ -47,6 +47,8 @@ StateManager::StateManager()
 	queuedGlobalState = NULL;
 	shouldLive = true;
 	paused = false;
+	// o.o
+	stateProcessingMutex.Create("StateProcessingMutex");
 };
 
 StateManager::~StateManager()
@@ -88,9 +90,6 @@ void StateManager::Initialize()
 	QueueState(initState);
 	RegisterStates();
 	RegisterState(new Exit());
-
-	// o.o
-	stateProcessingMutex.Create("StateProcessingMutex");
 };
 
 /// Queries all states to create their own input-bindings.

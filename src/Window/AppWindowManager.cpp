@@ -15,7 +15,10 @@
 #include "Window/WindowSystem.h"
 
 #ifdef USE_X11
-#include "XWindowSystem.h"
+	#undef Time
+	#include "XWindowSystem.h"
+	#include <X11/Xlib.h>
+	extern Display * xDisplay; // connection to X server
 #endif
 
 WindowManager * WindowManager::windowManager = 0;
@@ -262,7 +265,12 @@ bool WindowManager::InFocus()
 #ifdef WINDOWS
 	// http://msdn.microsoft.com/en-us/library/windows/desktop/ms633505%28v=vs.85%29.aspx
 	HWND activeWindow = GetForegroundWindow();
-#endif // WINDOWS
+#elif defined USE_X11
+	assert(xDisplay);
+	Window focused;
+	int revert_to;
+	XGetInputFocus(xDisplay, &focused, &revert_to);
+#endif // OS-specific preparation
 
 	for (int i = 0; i < windows.Size(); ++i)
 	{
@@ -270,14 +278,10 @@ bool WindowManager::InFocus()
 		
 #ifdef WINDOWS
 		if (window->hWnd == activeWindow)
-		{
-			erer
-			
 #elif defined USE_X11
-		if (true)
-		{
-			assert(false && "Implement");
+		if (window->xWindowHandle == focused)
 #endif
+		{
 			lastActiveWindow = window;
 			return true;
 		}
