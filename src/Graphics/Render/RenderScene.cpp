@@ -16,15 +16,10 @@
 
 // Renders the scene normally using the active camera using frustum culling.
 void GraphicsManager::RenderScene()
-{
+{	
+	CheckGLError("RenderScene before");
 	
-
-
 	glBlendFunc(GL_ONE, GL_ZERO);
-	GLuint error = glGetError();
-	if (error != GL_NO_ERROR){
-		std::cout<<"\nGLError in RenderScene "<<error;
-	}
 
 	Shader * shader = ShadeMan.SetActiveShader("Phong");
     if (shader == NULL){
@@ -70,17 +65,16 @@ void GraphicsManager::RenderScene()
 
 	// Load in the model and view matrices
 //	shader->uniformViewMatrix = glGetUniformLocation(shader->shaderProgram, "viewMatrix");
-	glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, graphicsState->viewMatrixF.getPointer());
-	error = glGetError();
+	glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, graphicsState->viewMatrixF.getPointer());	
 //	shader->uniformModelMatrix = glGetUniformLocation(shader->shaderProgram, "modelMatrix");
 	glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, graphicsState->modelMatrixF.getPointer());
-	error = glGetError();
+
 	// Set later! ALSO: glProgramUniform is in a later GL version compared to glUniform!
 /*	if (shader && shader->uniformEyePosition != -1)
 		if (glProgramUniform4f != NULL)
 		glProgramUniform4f(shader->shaderProgram, shader->uniformEyePosition, camera.Position()[0], camera.Position()[1], camera.Position()[2], 1.0f);
 */
-	error = glGetError();
+
 
 	rendering = true;
 
@@ -145,10 +139,10 @@ void GraphicsManager::RenderScene()
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
 	/// Deferred rendering, check GL version too! Need > 3.0 for FBOs (Frame Buffer Objects)
-	else if (useDeferred){
-		/// Clear errors
-		error = glGetError();
-		/// Use Deferred-shader to store all data correctly!
+	else if (useDeferred)
+	{
+		CheckGLError("Before deferred start");
+	/// Use Deferred-shader to store all data correctly!
 		if (ShadeMan.SetActiveShader("Deferred") == NULL){
 			std::cout<<"\nUnable to set Deferred Shader. Breaking rendering.";
 		//	assert(false && "Unable to set Deferred Shader. Breaking rendering.");
@@ -159,10 +153,8 @@ void GraphicsManager::RenderScene()
 		PrintGLError("Error setting Deferred shader as active shading program");
 		/// Generate frame buffer
 		InitFrameBuffer();
-		error = glGetError();
 		/// Make frame buffer active
 		glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObject);
-		error = glGetError();
 		int result = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 		if (result == 0){
 			std::cout<<"\nFramebuffer states bad!";
@@ -186,7 +178,6 @@ void GraphicsManager::RenderScene()
 		glDrawBuffers(7, buffers);
 
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		error = glGetError();
 	}
 	/// Only set shader properties if we're using modern GL!
 	else {
@@ -213,8 +204,6 @@ void GraphicsManager::RenderScene()
 	if (shader && shader->uniformEyePosition != -1)
 		glUniform4f(shader->uniformEyePosition, camera.Position()[0], camera.Position()[1], camera.Position()[2], 1.0f);
 
-	error = glGetError();
-
 	// Render vfcOctree with regular objects
 #ifdef VFC_OCTREE
 	if (vfcOctree){
@@ -235,13 +224,11 @@ void GraphicsManager::RenderScene()
 
 	/// If we're using deferred, we'll now have written all necessary date to the framebuffer to begin
 	/// computing lighting!
-	if (useDeferred){
+	if (useDeferred)
+	{
 
 		// Unbind the frame buffer from usage
 		glBindFramebuffer(GL_FRAMEBUFFER, NULL);
-
-		/// Enter light-data as uniforms or alternatively render in a for-loop....
-		error = glGetError();
 		/// Set shader program
 		Shader * shader = ShadeMan.SetActiveShader("Lighting");
 
@@ -320,7 +307,6 @@ uniform sampler2D positionMap;*/
 		// When rendering an objectwith this program.
 		glActiveTexture(GL_TEXTURE0 + 0);
 		glBindTexture(GL_TEXTURE_2D, diffuseTexture);
-		error = glGetError();
 		glActiveTexture(GL_TEXTURE0 + 1);
 		glBindTexture(GL_TEXTURE_2D, depthTexture);
 		glActiveTexture(GL_TEXTURE0 + 2);
@@ -344,9 +330,6 @@ uniform sampler2D positionMap;*/
 */
 		graphicsState->currentTexture = 0;
 
-		// Render!
-		error = glGetError();
-
 		// Render square for the AppWindow
 		deferredRenderingBox->name = "DeferredLighting";
 		deferredRenderingBox->Render(*graphicsState);
@@ -366,11 +349,7 @@ uniform sampler2D positionMap;*/
 		ShadeMan.SetActiveShader(0);	// Set default program, matrices should still be correct
 	//	for (int i = 0; i <
 
-		error = glGetError();
 	}
 
-	error = glGetError();
-	if (error != GL_NO_ERROR){
-		std::cout<<"\nGLError in RenderScene "<<error;
-	}
+	CheckGLError("RenderScene final");
 }

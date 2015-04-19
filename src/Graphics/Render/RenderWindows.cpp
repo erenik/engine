@@ -8,6 +8,8 @@
 
 #include "Graphics/FrameStatistics.h"
 
+int framesSkipped = 0;
+
 void GraphicsManager::RenderWindows()
 {
 	graphicsThreadDetails = "GraphicsManager::RenderWindows";
@@ -21,7 +23,10 @@ void GraphicsManager::RenderWindows()
 		AppWindow * window = windows[i];
 		// Only render visible windows?
 		if (!window->IsVisible())
+		{
 			continue;
+		}
+		framesSkipped = 0;
 		bool ok = window->MakeGLContextCurrent();
 		graphicsState->activeWindow = window;
 		graphicsState->windowWidth = window->WorkingArea()[0];
@@ -56,5 +61,11 @@ void GraphicsManager::RenderWindows()
 		}
 		else
 			goto renderWindowStart;
+	}
+	++framesSkipped;
+	if (framesSkipped > 1000)
+	{
+		std::cout<<"\nWindow not visible. Rendering paused.";
+		framesSkipped = 0;
 	}
 }

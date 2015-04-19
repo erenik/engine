@@ -25,7 +25,7 @@ static int singleBufferAttributes[] = {GLX_RGBA, GLX_DEPTH_SIZE, 24, None};
 static int doubleBufferAttributes[]  = {GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None};
 
 /// Program start-up variables!
-XEvent                  event;
+XEvent event;
 GLXContext              context; // OpenGL context
 Display *               xDisplay = NULL; // connection to X server
 XVisualInfo *           xVisualInfo = NULL;
@@ -242,7 +242,7 @@ void XWindowSystem::MainLoop()
         if (events){
             // XNextEvent may block until an event appears, which might not be wanted, to check beforehand how many events are available!
             XNextEvent(xDisplay, &event);
-            if (XProc(event) != NULL)
+            if (XProc() != NULL)
                 break;
         }
         else {

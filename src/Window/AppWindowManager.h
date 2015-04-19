@@ -41,6 +41,9 @@ public:
 	/// For handling AppWindow-specific messages (instead of having everything the in the MessageManager)
 	void ProcessMessage(Message * message);
 
+	/// Fetches incoming messages from the OS.
+	void ProcessMessages();
+
 #ifdef WINDOWS
 	WNDCLASSEXW defaultWcx;
 #endif

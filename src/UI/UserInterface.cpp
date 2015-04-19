@@ -351,6 +351,8 @@ bool UserInterface::AdjustToWindow(Vector2i size)
 /// Creates/updates VBOs for all UI elements.
 void UserInterface::Bufferize()
 {
+	if (isBuffered)
+		return;
 	// Allow multiple bufferizations, since they do not necessarily generate new memory usage, like textures?
 //	assert(!isBuffered);
 	assert(this->isGeometryCreated);

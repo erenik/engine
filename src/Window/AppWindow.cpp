@@ -487,10 +487,7 @@ bool AppWindow::Destroy()
 
 bool AppWindow::IsVisible()
 {
-#ifdef WINDOWS
 	return visible;
-//	return IsWindowVisible(hWnd);
-#endif
 }
 
 
@@ -828,8 +825,9 @@ bool AppWindow::MakeGLContextCurrent()
 	assert(xDisplay);
 	assert(xWindowHandle);
 	assert(xGLContext);
-	std::cout<<"\nxDisplay: "<<xDisplay;
+//	std::cout<<"\nxDisplay: "<<xDisplay;
     bool result = glXMakeContextCurrent(xDisplay, xWindowHandle, xWindowHandle, (GLXContext) xGLContext);
+    assert(result);
 #endif
 	return result;
 }

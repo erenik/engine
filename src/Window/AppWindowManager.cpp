@@ -13,12 +13,15 @@
 #include <cassert>
 
 #include "Window/WindowSystem.h"
+#include "StateManager.h"
 
 #ifdef USE_X11
 	#undef Time
 	#include "XWindowSystem.h"
 	#include <X11/Xlib.h>
+	#include "Window/XProc.h"
 	extern Display * xDisplay; // connection to X server
+	extern XEvent event;
 #endif
 
 WindowManager * WindowManager::windowManager = 0;
@@ -98,6 +101,33 @@ void WindowManager::ProcessMessage(Message * message)
 			break;	
 		}
 	}
+}
+
+/// Fetches incoming messages from the OS.
+void WindowManager::ProcessMessages()
+{
+	// Main message loop for all extra created windows, since they are dependent on the thread they were created in...
+#ifdef WINDOWS
+	// Get messages and dispatch them to WndProc
+	MSG msg;
+	// http://msdn.microsoft.com/en-us/library/windows/desktop/ms644943%28v=vs.85%29.aspx
+	while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) && StateMan.ActiveStateID() != GameStateID::GAME_STATE_EXITING)
+	{
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+	
+#elif defined USE_X11
+	// TODO: Add linux version in an elif for more created windows?
+	int events = 0;
+	while(events = XPending(xDisplay) && StateMan.ActiveStateID() != GameStateID::GAME_STATE_EXITING)
+	{	
+        // XNextEvent may block until an event appears, which might not be wanted, to check beforehand how many events are available!
+        XNextEvent(xDisplay, &event);
+        if (XProc() != NULL)
+            break;
+    }
+#endif // OS-specific message processing.
 }
 
 

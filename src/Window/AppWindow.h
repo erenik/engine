@@ -70,6 +70,8 @@ class AppWindow
 	friend class GraphicsManager;
 #ifdef WINDOWS
 	friend LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+#elif defined USE_X11
+	friend void * XProc();
 #endif
 	friend class WindowManager;
 	/// Default constructor, one name.

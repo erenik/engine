@@ -13,8 +13,8 @@
 extern THREAD_HANDLE stateProcessingThread;
 
 #ifdef WINDOWS
-#include <process.h>
-#include <Ole2.h>
+	#include <process.h>
+	#include <Ole2.h>
 #endif
 
 
@@ -90,18 +90,9 @@ void * StateManager::StateProcessor(void * vArgs){
 					Input.UpdateDeviceStates();
 					/// Clear previous frame input before fetching new from the AppWindow system.
 					Input.ClearPreviousFrameStats();
-					// Main message loop for all extra created windows, since they are dependent on the thread they were created in...
-		#ifdef WINDOWS
-					// Get messages and dispatch them to WndProc
-					MSG msg;
-					// http://msdn.microsoft.com/en-us/library/windows/desktop/ms644943%28v=vs.85%29.aspx
-					while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) && StateMan.ActiveStateID() != GameStateID::GAME_STATE_EXITING)
-					{
-						TranslateMessage(&msg);
-						DispatchMessage(&msg);
-					}
-					// TODO: Add linux version in an elif for more created windows?
-		#endif
+
+					/// Process messages received to our windows from the OS/Window-system.
+					WindowMan.ProcessMessages();
 					/// Process network packets if applicable
 					MesMan.ProcessPackets();
 				

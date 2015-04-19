@@ -5,6 +5,18 @@
 
 #ifdef USE_X11
 
+#include "Input/InputManager.h"
+#include "Graphics/GraphicsManager.h"
+#include "Message/MessageManager.h"
+
+#include "AppWindow.h"
+#include "AppWindowManager.h"
+#undef Time
+
+#include <GL/glew.h>
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>  // contains visual information masks and CVisualInfo structure
+#include <GL/glx.h>     // connect X server with OpenGL
 
 // Keyboard encoding: xlib.pdf page 253
 #include <X11/keysymdef.h>  // Whole symbol list
@@ -22,12 +34,7 @@ extern    XSetWindowAttributes    window_attributes;
 extern    Colormap                colormap;
 extern    bool                    swapBuffers;
 
-#include "Input/InputManager.h"
-#include "Graphics/GraphicsManager.h"
-#include "Message/MessageManager.h"
-
-#include "AppWindow.h"
-#include "AppWindowManager.h"
+extern XEvent event;
 
 int GetCharFromXK(int xKey){
     // XKeys are supposed to be mapped to ASCII for the first 200ish!
@@ -101,9 +108,8 @@ int GetKeyCodeFromXK(int xk){
 	return 0;
 }
 
-
 /// XWindow Script Processor, return NULL for basic actions, integer numbers for exit codes.
-void * XProc(XEvent & event)
+void * XProc()
 {
     // Check which window it came from.
     XAnyEvent & anyEvent = (XAnyEvent&) event;
@@ -131,21 +137,11 @@ void * XProc(XEvent & event)
 
         // Events ref: http://tronche.com/gui/x/xlib/events/structures.html
 
-/*
+
     case Expose: {
-        XExposeEvent & e = (XExposeEvent &) event;
-        int x, y, width, height;
-        width = e.width;
-        height = e.height;
-        std::cout<<"\nExpose! New size: "<<width<<" "<<height;
-        Graphics.SetResolution(width, height);
-        return NULL;
-     //   XGetWindowAttributes(display, AppWindow, &window_attributes);
-     //   setupGL(window_attributes.width, window_attributes.height);
-     //   render();
+        appWindow->visible = true;
         break;
     }
-*/
 /*
     case ResizeRequest: {
         XResizeRequestEvent& e = (XResizeRequestEvent &) event;
@@ -229,13 +225,16 @@ void * XProc(XEvent & event)
         std::cout<<"\n "<<p<<" input flags cleared.";
         break;   
     }
-    case ConfigureNotify: {
+    case ConfigureNotify: 
+    {
+        std::cout<<"\nConfigureNotify received. New info received.";
         XConfigureEvent& e = (XConfigureEvent &) event;
         int x, y, width, height;
         width = e.width;
         height = e.height;
+        appWindow->clientAreaSize = appWindow->osWindowSize = Vector2i(width, height);        
    //     std::cout<<"\nExpose! New size: "<<width<<" "<<height;
-        Graphics.SetResolution(width, height);
+//        Graphics.SetResolution(width, height);
 //        XResizeWindow(display, AppWindow, width, height);
         return NULL;
      //   XGetWindowAttributes(display, AppWindow, &window_attributes);

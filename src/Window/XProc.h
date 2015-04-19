@@ -9,14 +9,8 @@
 
 #ifdef USE_X11
 
-#include <GL/glew.h>
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>  // contains visual information masks and CVisualInfo structure
-#include <GL/glx.h>     // connect X server with OpenGL
-
-
 /// XWindow Script Processor, return NULL for basic actions, integer numbers for exit codes.
-void * XProc(XEvent & event);
+void * XProc();
 
 #endif // LINUX
 

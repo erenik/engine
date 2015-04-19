@@ -13,6 +13,8 @@
 
 void GraphicsManager::RenderViewport(Viewport * vp)
 {
+	CheckGLError("GraphicsManager::RenderViewport - before");
+
 	Timer timer;
 	timer.Start();
 
