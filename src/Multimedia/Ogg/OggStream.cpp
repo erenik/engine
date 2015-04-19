@@ -51,11 +51,15 @@ OggStream::OggStream()
 	frameTexture = NULL;
 	rowBufferSize = 0;
 
+#ifdef VORBIS
 	vorbisInfo = 0;
 	vorbisComment = 0;
+#endif
 
+#ifdef OPUS
 	hasOpus = false;
 	oggOpusFile = NULL;
+#endif
 
 	oggSyncStateUsed = false;
 }
@@ -458,21 +462,23 @@ void OggStream::Close()
 	/// Close the main Ogg/Theora file-stream too.
 	if (file.is_open())
 		file.close();
+#ifdef VORBIS
 	// Close it too..
 	ov_clear(&oggVorbisFile);
+#endif
 	// Clear sync state of any allocated data.
 	if (oggSyncStateUsed)
 	{
 		ogg_sync_clear(&oggSyncState);
 	}
+#ifdef OPUS
 	// Close Opus file stream.
 	if (oggOpusFile)
 	{
-#ifdef OPUS
 		op_free(oggOpusFile);
 		oggOpusFile = NULL;
-#endif
 	}
+#endif
 	return;
 }
 
@@ -491,13 +497,14 @@ bool OggStream::Seek(int toTime)
 {
 	/// Seek for audio!
 	double toTimeDouble = toTime / 1000.f;
+#ifdef OPUS
 	if (hasOpus)
 	{
-#ifdef OPUS
 		ogg_int64_t samplesIn48kHz = toTime * 48000;
 		op_pcm_seek(oggOpusFile, samplesIn48kHz);
-#endif
 	}
+#endif
+#ifdef VORBIS
 	if (hasVorbis)
 	{
 		if (toTime == 0)
@@ -507,6 +514,7 @@ bool OggStream::Seek(int toTime)
 			std::cout<<"some error";
 		}
 	}
+#endif
 	return true;
 }
 
@@ -719,9 +727,9 @@ int OggStream::BufferAudio(char * buf, int maxBytes, bool loop)
 	/// Read until we can read no more!
 	while(true)
 	{
+#ifdef OPUS
 		if (hasOpus)
 		{
-#ifdef OPUS
 			// Since opus works in 16-bits (shorts), read the incoming buffer as one.
 			int samplesToRead = bytesToRead * 0.5f;
 		//	samplesToRead = 4;
@@ -740,9 +748,10 @@ int OggStream::BufferAudio(char * buf, int maxBytes, bool loop)
 				std::cout<<"\n Samples read not even compared to given audio channels. Assuming at end of stream.";
 			}
 			bytesReadThisLoop = samplesRead * bytesPerSample * audioChannels;
-#endif // OPUS
 		}
-		else if (hasVorbis)
+#endif // OPUS
+#ifdef VORBIS
+		if (hasVorbis)
 		{
 			bytesReadThisLoop = ov_read(&oggVorbisFile, buf + bytesRead, bytesToRead, 0, 2, 1, &bitstream);
 		}
@@ -758,6 +767,7 @@ int OggStream::BufferAudio(char * buf, int maxBytes, bool loop)
 			}
 			break;
 		}
+#endif // VORBIS
 		bytesRead += bytesReadThisLoop;
 		bytesToRead = maxBytes - bytesRead;
 		// Break if we are approaching the end?
@@ -770,6 +780,7 @@ int OggStream::BufferAudio(char * buf, int maxBytes, bool loop)
 	// Read time.
 	if (hasVorbis)
 		audioTime = oggVorbisTime = ov_time_tell(&oggVorbisFile);
+#ifdef OPUS
 	else if (hasOpus)
 	{
 	//	OpusFileCallbacks callbacks;
@@ -777,6 +788,7 @@ int OggStream::BufferAudio(char * buf, int maxBytes, bool loop)
 //		int64 time = op_tell_func(oggOpusFile);
 	//	audioTime = time;
 	}
+#endif
 	return bytesRead;
 }
 

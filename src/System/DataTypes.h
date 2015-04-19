@@ -19,10 +19,18 @@
 	#include <inttypes.h>
 	typedef	int64_t	int64;
 	typedef uint64_t uint64;
-	typedef	int	int32;
-	typedef unsigned int uint32;
+	typedef	int32_t	int32;
+	typedef uint32_t uint32;
 	typedef unsigned char uchar;
 	typedef unsigned short ushort;
 #endif // OSs
+
+
+/// And some max/min values if not defined elsewhere.
+#ifdef LINUX
+	// available via stdint.h .. although in C++11 version onry
+	#define UINT32_MAX 4294967295
+#endif
+
 
 #endif

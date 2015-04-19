@@ -6,7 +6,10 @@
 
 #include "CURLManager.h"
 
+#ifdef LIBCURL
 #include <curl/curl.h>
+#endif
+
 #include "DataStream/DataStream.h"
 
 #include "Message/MessageManager.h"

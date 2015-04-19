@@ -17,6 +17,8 @@ public:
 	int subType;
 };
 
+#include "Network/Peer.h"
+
 /// Template functions.
 /// o.o
 template <class T>

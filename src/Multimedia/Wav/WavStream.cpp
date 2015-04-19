@@ -6,6 +6,7 @@
 #include "WavStream.h"
 
 #include "../MultimediaTypes.h"
+#include <cstring>
 
 // Default constructor, See types in MultimediaTypes.h
 WavStream::WavStream()

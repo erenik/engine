@@ -16,6 +16,6 @@ void SleepThread(int milliseconds)
 #ifdef WINDOWS
 	SleepThread(milliseconds);
 #elif defined LINUX
-	uSleepThread(ms*1000);
+	usleep(milliseconds*1000);
 #endif	
 }

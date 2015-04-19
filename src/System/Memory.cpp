@@ -11,10 +11,12 @@ struct MemoryStatus
 	int64 freeBytes;
 	// Percentage.
 	int memoryLoad;
+	int totalSystemMemory;
 } memoryStatus;
 
 #ifdef LINUX
 	#include <unistd.h>
+	#include <stdlib.h>
 #elif defined WINDOWS
 	#include <windows.h>
 	MEMORYSTATUSEX memoryStatusWin32;
@@ -29,7 +31,10 @@ void GetMemoryStatus()
 #ifdef LINUX
     long pages = sysconf(_SC_PHYS_PAGES);
     long page_size = sysconf(_SC_PAGE_SIZE);
-    return pages * page_size;
+    memoryStatus.totalSystemMemory = pages * page_size;
+    /// To get available memory one mighjt need to actually
+    /// Find the system files and parse in run-time for physically available memory!
+ //   memoryStatus.freeBytes;
 #elif defined WINDOWS
     memoryStatusWin32.dwLength = sizeof(memoryStatusWin32);
     GlobalMemoryStatusEx(&memoryStatusWin32);
@@ -58,13 +63,13 @@ int MemoryLoad()
 
 /// Allocates numBytes, using alignment of specified bytes. Returns pointer to allocated memory.
 /// If ok is specified as non-null, the success of the operation will be stored there.
-void * AllocateAligned(int numBytes, int alignment, bool * ok = NULL)
+void * AllocateAligned(int numBytes, int alignment, bool * ok /*= NULL*/)
 {
 	void * memory = NULL;
 #ifdef WINDOWS
 	memory = _aligned_malloc(numBytes, alignment);
 #elif defined LINUX
-	int result = posix_memalign(memory, alignment, numBytes);
+	int result = posix_memalign(&memory, alignment, numBytes);
 	if (ok)
 	{
 		*ok = (result == 0);

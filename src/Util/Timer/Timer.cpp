@@ -4,7 +4,7 @@
 // Adjustment/machineTime differentiation added 2014-02-10 by Emil
 
 #include "Timer.h"
-#include "Time/Time.h"
+// #include "Time/Time.h"
 #include <iostream>
 
 long long Timer::adjustment = 0;
@@ -164,10 +164,12 @@ time_t Timer::GetCurrentTimeMicro()
 
 
 /// Sets time adjustment that will be added to every call of GetCurrentTimeMs() unless specifically told otherwise.
-void Timer::SetAdjustment(long long newAdjustment){
+void Timer::SetAdjustment(int64 newAdjustment)
+{
 	adjustment = newAdjustment;
 }
 
-long long Timer::GetAdjustment(){
+int64 Timer::GetAdjustment(){
 	return adjustment;
 }
+

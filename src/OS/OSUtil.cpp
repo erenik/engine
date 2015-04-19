@@ -161,10 +161,13 @@ void OSUtil::Copy()
 void OSUtil::Paste()
 {
 #ifdef LINUX
+	assert(false && "Implement later..");
+
+#ifdef PALL
     std::cout<<"\nPasting!";
     int result;
 //    XInternAtom();
-    result = XSetSelectionOwner(display, XA_PRIMARY, AppWindow, CurrentTime);
+    result = XSetSelectionOwner(xDisplay, XA_PRIMARY, AppWindow, CurrentTime);
     if (result == BadAtom){
         std::cout<<"\nBadAtom!";
     }
@@ -172,11 +175,11 @@ void OSUtil::Paste()
         std::cout<<"\nBadWindow!";
     }
 
-    int atom = XInternAtom(display, "Woshi", true);
+    int atom = XInternAtom(xDisplay, "Woshi", true);
     std::cout<<"\nAtom: "<<atom;
 
     int owner;
-    result = XGetSelectionOwner(display, XA_PRIMARY);
+    result = XGetSelectionOwner(xDisplay, XA_PRIMARY);
     std::cout<<"\nSelection owner: "<<result;
     if (result == BadAtom){
         std::cout<<"\nBadAtom!";
@@ -188,7 +191,7 @@ void OSUtil::Paste()
         owner = result;
 
     std::cout<<"\nconvertSelection: ";
-    XConvertSelection(display, XA_PRIMARY, XA_STRING, 7030, AppWindow, CurrentTime);
+    XConvertSelection(xDisplay, XA_PRIMARY, XA_STRING, 7030, AppWindow, CurrentTime);
     if (result == BadAtom){
         std::cout<<"\nBadAtom!";
     }
@@ -212,7 +215,8 @@ void OSUtil::Paste()
     }
 */
     Atom a = XInternAtom(display, "", true);
-#endif
+#endif // PALL
+#endif // LINUX
 
 
 #ifdef WINDOWS

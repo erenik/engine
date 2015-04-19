@@ -26,13 +26,13 @@
 #elif PLATFORM == PLATFORM_MAC || PLATFORM == PLATFORM_UNIX
 	// Only for MAC and Unix
 
-// Windows to linux compability defines
-#define GetLastError() (1)
-#define WSAGetLastError() GetLastError()
-#define closesocket(b)  close(b)
+	// Windows to linux compability defines
+	#define GetLastError() (1)
+	#define WSAGetLastError() GetLastError()
+	#define closesocket(b)  close(b)
 
     /// To set non-blocking for sockets. http://stackoverflow.com/questions/1543466/how-do-i-change-a-tcp-socket-to-be-non-blocking
-    #import <fcntl.h>
+    #include <fcntl.h>
     /// Used for big byte transfer operations like memcpy
     #include <cstring>
 

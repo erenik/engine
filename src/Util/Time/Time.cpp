@@ -403,6 +403,7 @@ void Time::FetchCalenderData()
 	{
 		case TimeType::WIN32_100NANOSEC_SINCE_JAN1_1601:
 		{
+#ifdef WINDOWS
 			// First to larger integer..
 			ULARGE_INTEGER uli;
 			uli.QuadPart = intervals;
@@ -425,7 +426,9 @@ void Time::FetchCalenderData()
 			hour = sysTime.wHour;
 			minute = sysTime.wMinute;
 			second = sysTime.wSecond;
-
+#else 	// Non-Windows? Convert it.
+			assert(false);
+#endif // WINDOWS
 			break;
 		}
 		case TimeType::MILLISECONDS_NO_CALENDER:

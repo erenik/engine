@@ -18,9 +18,9 @@ public:
 	/// Returns a random value between 0.0f and 1.0f
 	float Randf(float max = 1.f);
 	/// Returns a random value between 0 and max (inclusive)
-	int Randi(int max);
+	uint32 Randi(uint32 max);
 	/// Returns a random vlaue between 0 and max (inclusive)
-	int64 Rand64(int64 max);
+	uint64 Rand64(uint64 max);
 private:
 	/// First approach
 	unsigned int x, y, z, w;

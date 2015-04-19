@@ -131,7 +131,7 @@ int Socket::Read(char * intoBuffer, int maxBytesToRead)
 		std::cout<<"\nError receiving/reading socket, errorCode: "<<error<<" Setting delete flag.";
 		switch(error)
 		{
-			case WSAECONNABORTED:
+			case 10053:// WSAECONNABORTED:
 			{
 				std::cout<<"\nInternal software error? D:";
 				break;

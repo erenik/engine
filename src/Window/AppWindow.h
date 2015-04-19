@@ -179,7 +179,7 @@ public:
 
 #elif defined LINUX
 	int32 xWindowHandle; // Handle in XWindowSystem, 32-bit.
-	int32 xGLContext;
+	void * xGLContext;
 #endif
 	
 	Vector4f backgroundColor;

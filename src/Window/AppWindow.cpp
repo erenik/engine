@@ -681,6 +681,7 @@ int AppWindow::MemLeakTest()
 {
 #define MEMLEAKTEST
 #ifdef MEMLEAKTEST
+#ifdef WINDOWS
 	while(true)
 	{
 		HDC hDC = GetDC(hWnd);
@@ -715,7 +716,8 @@ int AppWindow::MemLeakTest()
 		wglDeleteContext(hGLContext);
 		ReleaseDC(hWnd,hDC);
 	}
-#endif
+#endif // WINDOWS
+#endif // MEMLEAKTEST
 	return 0;
 }
 
@@ -739,12 +741,14 @@ bool AppWindow::CreateGLContext()
 #elif defined USE_X11
 	/// Create GL context! ^^
     std::cout<<"\nCreating GLX context...";
-    context = glXCreateContext(xDisplay, xVisualInfo, None, true);
-    if (context == NULL){
+    /// third parameter should be the shared context (if available)
+    xGLContext = glXCreateContext(xDisplay, xVisualInfo, None, true);
+    if (xGLContext == NULL){
         std::cout<<"\n=======================================================";
         std::cout<<"ERROR: Could not create rendering context!";
         return false;
     }
+    bool result = true;
     std::cout<<"\n=======================================================";
     std::cout<<"\nGLX context created!";
 #endif // OS-dependent code.
@@ -777,7 +781,7 @@ bool AppWindow::MakeGLContextCurrent()
 	// Make it current
 	bool result = wglMakeCurrent(hdc, hglrc);	
 #elif defined USE_X11
-    bool result = glXMakeContextCurrent(xDisplay, xWindowHandle, xWindowHandle, xGLContext);
+    bool result = glXMakeContextCurrent(xDisplay, xWindowHandle, xWindowHandle, (GLXContext) xGLContext);
 #endif
 	return result;
 }

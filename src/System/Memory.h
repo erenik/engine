@@ -20,6 +20,10 @@ int MemoryLoad();
 	#define Align(bytes) //
 #endif
 
+#ifndef NULL
+#define NULL 0
+#endif
+
 /// For aligned memory allocation, OS-specific
 /// Allocates numBytes, using alignment of specified bytes. Returns pointer to allocated memory.
 /// If ok is specified as non-null, the success of the operation will be stored there.
