@@ -497,9 +497,14 @@ List<String> String::RemoveComments(List<String> lines,
 }
 
 /// Removing
-String String::operator - (const String & otherString){
+String String::operator - (const String & otherString)
+{
 	if (Contains(otherString))
-		Remove(otherString);
+	{
+		String copy = *this;
+		copy.Remove(otherString);
+		return copy;
+	}
 	return String(this);
 }
 String String::operator - (const char * otherString)
@@ -510,22 +515,29 @@ String String::operator - (const char * otherString)
 }
 
 /// Concatenating
-String String::operator + (const String & otherString) {
+String String::operator + (const String & otherString) 
+{
 	String newString = String(this);
 	newString.Add(otherString);
 	return newString;
 }
-String String::operator + (const char * otherString){
+String String::operator + (const char * otherString)
+{
+//	std::cout<<"\nIn the powr o.o";
 	String string(this);
+//	std::cout<<"\nResult: "<<string;	
 	string.Add(otherString);
+//	std::cout<<"\nResult: "<<string;
 	return string;
 }
 
-String String::operator + (const char c){
+String String::operator + (const char c)
+{
 	String string(this);
 	string.Add(c);
 	return string;
 }
+
 String String::operator + (const int value){
 	String string(this);
 	string.Add(String::ToString(value));
@@ -554,8 +566,12 @@ std::ostream& operator <<(std::ostream& os, const String& str){
 */
 String String::Part(int fromIndex /*= 0*/, int toIndex /*= -1*/) const
 {
+	std::cout<<"\nString::Part("<<fromIndex<<", "<<toIndex<<")"
+		<<" of : "<<arr<<", length: "<<Length()<<" arrlen: "<<arraySize;
 	String newString;
 	if (toIndex <= -1)
+		toIndex = arraySize;
+	if (toIndex > arraySize) // Don't go beyond the ending NULL-sign...
 		toIndex = arraySize;
 	int partSize = toIndex - fromIndex;
 	if (partSize <= 0)
@@ -566,7 +582,8 @@ String String::Part(int fromIndex /*= 0*/, int toIndex /*= -1*/) const
 	// +1 for including the end index.
 	newString.Reallocate(partSize+1);
 	int charsWritten = 0;
-	switch(type){
+	switch(type)
+	{
 		case CHAR:
 			assert(arr);
 			assert(newString.arr);
@@ -982,7 +999,8 @@ void String::Add(const String & otherString)
 	if (this->Length() == 0 && otherString.Length() == 0)
 		return;
 	this->Reallocate(Length() + otherString.Length() + 1);
-	switch(this->type){
+	switch(this->type)
+	{
 		case CHAR:
 			assert(arr);
 			// If wide-char merge
@@ -1019,11 +1037,17 @@ void String::Add(const String & otherString)
 		}
 	}
 }
-void String::Add(const char * otherString){
-	switch(this->type){
+void String::Add(const char * otherString)
+{
+//	std::cout<<"\nAdd o.o";
+//	std::cout<<"\nThis: "<<arr<<" and other string: "<<otherString;
+	switch(this->type)
+	{
 		case CHAR:
 			this->Reallocate(strlen(arr) + strlen(otherString)+1);
+//			std::cout<<"\nThis: "<<arr<<" and other string: "<<otherString;
 			strcat(this->arr, otherString);
+//			std::cout<<"\nThis: "<<arr<<" and other string: "<<otherString;
 			break;
 		case WIDE_CHAR: {
 			int length = 1;
@@ -1513,8 +1537,10 @@ void String::ConvertToChar(){
 }
 
 /// Amount of characters (not counting ending NULL-character)
-int String::Length() const {
-	switch(type){
+int String::Length() const 
+{
+	switch(type)
+	{
 		case CHAR:
 			if (!arr)
 				return 0;
@@ -1729,10 +1755,12 @@ int String::Size(const wchar_t * wc_str){
 }
 
 /// Sets all pointers to NULL and all sizes to 0.
-void String::Nullify(){
+void String::Nullify()
+{
 	arr = NULL;
 	warr = NULL;
 	arraySize = 0;
+	numNonNullCharacters = 0;
 	type = NULL_TYPE;
 	comparisonMode = CASE_SENSITIVE;
   //  testbuff = new char[10];
@@ -1771,36 +1799,19 @@ void String::Reallocate(int size)
 			if (arr && arraySize > 0)
 			{
 				/// Allocate temp array for holding stuffs if need be
-#ifdef USE_BLOCK_ALLOCATOR
-				char * tmp = stringAllocator.AllocateNewArray<char>(arraySize);
-#else
 				char * tmp = new char[arraySize];
-#endif
 				int copySize = size < arraySize? size : arraySize;
 				strncpy(tmp, arr, copySize);
 				/// And delete the previous array too, yo.
-#ifdef USE_BLOCK_ALLOCATOR
-				stringAllocator.Deallocate(arr);
-				arr = stringAllocator.AllocateNewArray<char>(arraySize);
-#else
 				delete[] arr;
 				arr = new char [size];
-#endif
 				memset(arr, 0, size);
 				strncpy(arr, tmp, copySize);
 				/// Delete it too, yo.
-#ifdef USE_BLOCK_ALLOCATOR
-				stringAllocator.Deallocate(tmp);
-#else
 				delete[] tmp;
-#endif
 			}
 			else if (arr == 0){
-#ifdef USE_BLOCK_ALLOCATOR
-				arr = stringAllocator.AllocateNewArray<char>(size);
-#else
 				arr = new char [size];
-#endif
 				memset(arr, 0, size);
 				strcpy(arr, "");
 			}
@@ -1838,18 +1849,10 @@ void String::Reallocate(int size)
 		default: {
 			// Allocate both
 			if (arr)
-#ifdef USE_BLOCK_ALLOCATOR
-				stringAllocator.Deallocate(arr);
-#else
 				delete[] arr;
-#endif
 			if (warr)
 				delete[] warr;
-#ifdef USE_BLOCK_ALLOCATOR
-			arr = stringAllocator.AllocateNewArray<char>(size);
-#else
 			arr = new char[size];
-#endif
 			warr = new wchar_t[size];
 			strcpy(arr, "");
 			wcscpy(warr, L"");

@@ -65,7 +65,6 @@ PROCESSOR_THREAD_START(GraphicsManager)
 	}
 	LogGraphics("Graphics processing thread started", INFO);
     int result;
-#ifdef WINDOWS
 
 	/// Wait until we have a valid AppWindow we can render onto.
 	while(WindowMan.NumWindows() == 0)
@@ -73,13 +72,16 @@ PROCESSOR_THREAD_START(GraphicsManager)
 		LogGraphics("Waiting for windows", INFO);
 		SleepThread(50);
 	}
+
 	LogGraphics("Creating GL context", INFO);
 	AppWindow * mainWindow = WindowMan.GetWindow(0);
 	mainWindow->CreateGLContext();
 	mainWindow->MakeGLContextCurrent();
 
+#ifdef WINDOWS
+
 #elif defined USE_X11
-	OpenGL::CreateContext();
+//	OpenGL::CreateContext();
 /* Old code, moved to OpenGL::CreateContext 	
     /// Create GL context! ^^
     std::cout<<"\n=======================================================";
@@ -139,6 +141,7 @@ PROCESSOR_THREAD_START(GraphicsManager)
 	int attempts = 0;
 	while(result != GLEW_OK)
 	{
+		std::cout<<"\ncalling glewInit()...";
 		result = glewInit();
 		if (result != GLEW_OK)
 		{
@@ -157,6 +160,8 @@ PROCESSOR_THREAD_START(GraphicsManager)
 			}
 		}
 	}
+	std::cout<<"\nglewInit called successfully.";
+
 	/// Check GL version
 	const GLubyte * data;
 	data = glGetString(GL_VERSION);
@@ -425,7 +430,8 @@ PROCESSOR_THREAD_START(GraphicsManager)
 #ifdef WINDOWS
 	// Moved to AppWindow::DeleteGLContext()
 #elif defined USE_X11
-    OpenGL::DestroyContext();
+    // Destroy any gained contexts?
+    OpenGL::DestroyContexts();
 #elif defined OSX & 0
     result = aglDestroyContext(context);
     assert(false);

@@ -24,7 +24,8 @@ DeviceScreen PrimaryScreen()
 		DeviceScreen & screen = screens[i];
 		return screen;
 	}
-	assert(false &&  "Bad screen");
+	std::cout<<"\nWARNING: Bad screen returned as PrimaryScreen";
+//	std::coassert(false &&  "Bad screen");
 	return DeviceScreen();
 }
 

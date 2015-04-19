@@ -38,8 +38,8 @@ int AssertGLError(String inFunction);
 
 namespace OpenGL {
 	/// Creates the GL context to be used, no matter what OS? Start with linux. 
-	void CreateContext();
-	void DestroyContext();
+//	void CreateContext();
+	void DestroyContexts();
 
 };
 

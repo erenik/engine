@@ -124,6 +124,8 @@ int main(int argc, char **argv)
 	/// Initialize math lib
 	Expression::InitializeConstants();
 
+	// test shit iwth Strings.
+
 	/*
 	Function func;
 	bool ok = func.LoadFunction("distance = PI * (0.1 * a)");
@@ -282,20 +284,21 @@ int main(int argc, char **argv)
 		return 0;
 
     // Register AppWindow pre-stuffs.
+	// Create the AppWindow manager.
+	WindowManager::Allocate();
 #ifdef WINDOWS
 	// For COM-interaction, drag-n-drop, http://msdn.microsoft.com/en-us/library/windows/desktop/ms690134%28v=vs.85%29.aspx
 	// http://msdn.microsoft.com/en-us/library/windows/desktop/ms695279%28v=vs.85%29.aspx
 //	int result = CoInitializeEx(NULL, COINIT_MULTITHREADED);
 //	int result = OleInitialize(NULL);
 //	assert(result == S_OK);
-	// Create the AppWindow manager.
-	WindowManager::Allocate();
 	// Save to global application instance variables.
     hInstance = hInstance;
 	std::cout<<"Starting up Win32 application...";
 	WindowMan.CreateDefaultWindowClass();
 /// Open XServer?
 #elif defined USE_X11
+//	XWindowSystem::
 /*
     /// Create GL context! ^^
     context = glXCreateContext(display, visual_info, None, true);
@@ -358,6 +361,8 @@ int main(int argc, char **argv)
 	// Create mutexes.
 	CreateUIMutex();
 
+	std::cout<<"\nAllocating managers...";
+
 	// Initialize all managers
 	CameraManager::Allocate();
 	PreferencesManager::Allocate();
@@ -389,6 +394,9 @@ int main(int argc, char **argv)
 	GridObjectTypeManager::Allocate();
 
 //#define TEST_RENDER
+
+	std::cout<<"\nStarting initializer thread...";
+
 
 	// Start the initializer thread
     CREATE_AND_START_THREAD(Initialize, initializerThread);
@@ -427,7 +435,8 @@ int main(int argc, char **argv)
 		}
         SleepThread(10);
     }
-// Main wait loop. Does nothing but wait for the game to finish.
+    std::cout<<"\nEntering main wait-loop.";
+	// Main wait loop. Does nothing but wait for the game to finish.
 	while(Application::live)
 	{
 		// Sleep a bit? No?

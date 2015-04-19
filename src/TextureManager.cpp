@@ -403,11 +403,16 @@ bool TextureManager::SupportedImageFileType(String fileName)
 {
 	/// Supported via OpenCV: http://docs.opencv.org/modules/highgui/doc/reading_and_writing_images_and_video.html?highlight=imread#imread
 //	List<String> extensions;
+	List<String> extensions;
+	extensions.Add(".png", ".bmp", ".jpg");
+	extensions.Add(".jpeg", ".tif", ".tiff");
+	/*
 	char * extensions [7] = {
 		".png", ".bmp", ".dib", 
 		".tif", ".tiff", ".jpg", 
 		".jpeg"
 	};
+	*/
 //	extensions.Add(7, cExtentions);
 	for (int i = 0; i < 7; ++i)
 	{

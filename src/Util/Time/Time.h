@@ -14,6 +14,8 @@ namespace TimeType
 		UNDEFINED,
 		// http://msdn.microsoft.com/en-us/library/windows/desktop/ms724284%28v=vs.85%29.aspx
 		WIN32_100NANOSEC_SINCE_JAN1_1601, 
+		// Default linux time and gettimeofday function return value. See linux.die.net/man/2/time and linux.die.net/man/2/gettimeofday
+		LINUX_MICROSEC_SINCE_JAN1_1970,
 		// Custom type only used for handling in-game minute/hour/day cycles within e.g. the Weather system.
 		MILLISECONDS_NO_CALENDER,
 		TIME_TYPES

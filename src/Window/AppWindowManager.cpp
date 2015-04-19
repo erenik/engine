@@ -12,6 +12,8 @@
 #include "WindowSystem.h"
 #include <cassert>
 
+#include "Window/WindowSystem.h"
+
 #ifdef USE_X11
 #include "XWindowSystem.h"
 #endif
@@ -58,8 +60,8 @@ void WindowManager::Initialize()
 	assert(XWindowSystem::InitThreadSupport());
     assert(XWindowSystem::Initialize());
     XWindowSystem::SetupDefaultWindowProperties();
-    XWindowSystem::CreateDefaultWindow();
-    XWindowSystem::SetupProtocols();
+//    XWindowSystem::CreateDefaultWindow();
+ //   XWindowSystem::SetupProtocols();
 #endif
 }
 

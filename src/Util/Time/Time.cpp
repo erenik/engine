@@ -8,7 +8,9 @@
 #include <fstream>
 
 #ifdef WINDOWS
-#include "OS/WindowsIncludes.h"
+	#include "OS/WindowsIncludes.h"
+#elif defined LINUX
+	#include <sys/time.h>
 #endif
 
 /// Dicates default type of created Time objects. Default is TimeType::UNDEFINED
@@ -51,6 +53,13 @@ Time Time::Now()
 	uli.LowPart = fileTime.dwLowDateTime;
 	uli.HighPart = fileTime.dwHighDateTime;
 	newTime.intervals = uli.QuadPart;
+#elif defined LINUX
+	timeval t1;
+    gettimeofday(&t1, NULL);
+    newTime.type = TimeType::LINUX_MICROSEC_SINCE_JAN1_1970;
+    // seconds + micro seconds
+    newTime.intervals = t1.tv_sec * 1000000 + t1.tv_usec;
+    // End result: microseconds since Epoch.
 #endif
 	return newTime;
 }
@@ -429,6 +438,25 @@ void Time::FetchCalenderData()
 #else 	// Non-Windows? Convert it.
 			assert(false);
 #endif // WINDOWS
+			break;
+		}
+		case TimeType::LINUX_MICROSEC_SINCE_JAN1_1970:
+		{
+			year = month = day = hour = minute = second = 0;
+//			strftime(buf, sizeof(buf), "");
+			int64 seconds = intervals / 1000000;
+			int minutes = seconds / 60;
+			int hours = minutes / 60;
+			int days = hours / 24;
+			int years = days / 365.25;
+
+			second = seconds % 60;
+			minute = minutes % 60;
+			hour = hours % 24;
+			day = (days + 5) % 30;
+			month = (days / 29 - 2) % 12;
+			year = years + 1970;
+			std::cout<<"\nCurrent time: "<<year<<"-"<<month<<"-"<<day<<" "<<hour<<":"<<minute<<":"<<second;
 			break;
 		}
 		case TimeType::MILLISECONDS_NO_CALENDER:

@@ -61,11 +61,15 @@ ModelManager::~ModelManager()
 /// Loads required models (either hard-coded or from file)
 void ModelManager::Initialize()
 {
+	std::cout<<"\nPre-loading default models...";
 	LoadObj("sphere.obj");
 	LoadObj("cube.obj");
 	LoadObj("plane.obj");
 	LoadObj("Sphere6.obj");
+	std::cout<<"\nAllocating managers...";
 	LoadObj("Awesome haus_uv.obj");
+	std::cout<<"\nAllocating managers...";
+
 };
 
 /// Creates a new model that may be dynamically manipulated and re-buffered as editing proceeds.
@@ -132,7 +136,9 @@ int ModelManager::LoadModels(List<String> modelSourceList){
 Model * ModelManager::LoadObj(String source)
 {
 	assert(source && "Null source sent into ModelManager::LoadObj!");
+	std::cout<<"\nModelMan::LoadObj("<<source<<")";
 	source = FilePath::MakeRelative(source);
+//	std::cout<<"\nModelMan::LoadObj("<<source<<")...";
 	// Check if it pre-exists
 	for (int i = 0; i < modelList.Size(); ++i)
 	{
@@ -155,18 +161,26 @@ Model * ModelManager::LoadObj(String source)
 		source += ".obj";
 	}
 
+// std::cout<<"\nModelMan::LoadObj("<<source<<")...2";
 	// Check if a compressed version exists.
 	String compressedPath = source;
 	compressedPath.Remove("obj/");
 	compressedPath = "CompressedObj/" + compressedPath;
+//	std::cout<<"\nModelMan::LoadObj("<<source<<")...3";
 	// Ensure folders exist for the path.
 	List<String> pathFolders = compressedPath.Tokenize("/");
+//	std::cout<<"\nModelMan::LoadObj("<<source<<")...3.1";
 	pathFolders.RemoveIndex(pathFolders.Size() - 1);
+//	std::cout<<"\nModelMan::LoadObj("<<source<<")...3.2";
 	String compressedFolderPath = MergeLines(pathFolders, "/");
+//	std::cout<<"\nModelMan::LoadObj("<<source<<")...3.3";
 	CreateDirectoriesForPath(compressedFolderPath);
+//	std::cout<<"\nModelMan::LoadObj("<<source<<")...3.4";
 	compressedPath.Remove(".obj");
+//	std::cout<<"\nModelMan::LoadObj("<<source<<")...3.5";
 	compressedPath += ".cobj";
 
+// std::cout<<"\nModelMan::LoadObj("<<source<<")...4";
 	std::cout<<"\nLoading model "<<source<<"... ";
 	bool loadCompressed = true;
 	if (!FileExists(compressedPath))
@@ -174,6 +188,7 @@ Model * ModelManager::LoadObj(String source)
 		loadCompressed = false;
 	}
 	bool modelLoaded = false;
+//	std::cout<<"\nModelMan::LoadObj("<<source<<")...5";
 		
 	/// Compare file-times, if .obj is newere, reload it.
 	File objFile(source);
@@ -193,7 +208,9 @@ Model * ModelManager::LoadObj(String source)
 //		std::cout<<"\nCreating mesh.";
 		mesh = new Mesh();
 		bool compressedLoadResult = false;
+//		std::cout<<"\nModelMan::LoadObj("<<source<<")...6";
 		compressedLoadResult = mesh->LoadCompressedFrom(compressedPath);
+//		std::cout<<"\nModelMan::LoadObj("<<source<<")...7";
 		if (compressedLoadResult)
 			std::cout<<"found compressed version.";
 

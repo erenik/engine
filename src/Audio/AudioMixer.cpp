@@ -8,7 +8,7 @@
 #include "Windows/WindowsCoreAudio.h"
 #include "AudioManager.h"
 
-extern AudioMixer * masterMixer;
+AudioMixer * masterMixer = NULL;
 
 AudioMixer::AudioMixer()
 {
@@ -17,7 +17,7 @@ AudioMixer::AudioMixer()
 	pcmQueueF = new float[queueSampleTotal];
 	
 	/// Initialize buffah.
-	memset(pcmQueueF, 0, queueSampleTotal * sizeof(pcmQueueF));
+	memset(pcmQueueF, 0, queueSampleTotal * sizeof(float));
 	muted = false;
 	volume = 1.f;
 }

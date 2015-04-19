@@ -63,3 +63,8 @@ extern Window           window;
 extern void testRender();
 #endif
 
+
+void OpenGL::DestroyContexts()
+{
+	assert(false);
+}

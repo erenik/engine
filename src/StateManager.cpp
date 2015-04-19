@@ -89,7 +89,6 @@ void StateManager::Initialize()
 	RegisterStates();
 	RegisterState(new Exit());
 
-
 	// o.o
 	stateProcessingMutex.Create("StateProcessingMutex");
 };
@@ -186,10 +185,12 @@ void StateManager::EnterQueuedGlobalState()
 
 void StateManager::SetGlobalStateByID(int id)
 {
-	AppState *newGlobalState = NULL;
+	AppState * newGlobalState = NULL;
 	// Try to find the requested state
-	for (int i = 0; i < stateList.Size(); ++i){
-		if (stateList[i]->id == id){
+	for (int i = 0; i < stateList.Size(); ++i)
+	{
+		if (stateList[i]->id == id)
+		{
 			newGlobalState = stateList[i];
 			break;
 		}

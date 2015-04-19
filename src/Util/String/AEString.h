@@ -212,6 +212,8 @@ protected:
 //	int size;
 	/// Current max array size
 	int arraySize;
+	/// Number of non-Null characters. Effectively determines the length of the strings.
+	int numNonNullCharacters;
 	/// If the string is now multibyte (any adding operation that adds a wchar_t), or otherwise
 	int type;
 	/// Mode used for == operations

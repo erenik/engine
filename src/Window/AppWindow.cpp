@@ -16,10 +16,11 @@
 #undef Time
 
 #ifdef USE_X11
-#include "XWindowSystem.h"
-#include <GL/glx.h>
-extern Display * xDisplay; // main X-server communication line.
-extern XVisualInfo * xVisualInfo;
+	#include "XWindowSystem.h"
+	#include <GL/glx.h>
+	extern Display * xDisplay; // main X-server communication line.
+	extern XVisualInfo * xVisualInfo;
+	extern XSetWindowAttributes    xWindowAttributes;
 #endif
 
 /// List of active monitors.
@@ -423,7 +424,37 @@ bool AppWindow::Create()
 
 	created = true;
 #elif defined LINUX
-	assert(false && "Implement via XWindowSystem");
+	xWindowHandle = XCreateWindow(xDisplay,
+                           RootWindow(xDisplay, xVisualInfo->screen),
+                           0, 0,            /// Position
+                           800, 600,   /// Size
+                           0,
+                           xVisualInfo->depth,
+                           InputOutput,
+                           xVisualInfo->visual,
+                           CWBorderPixel | CWColormap | CWEventMask,
+                           &xWindowAttributes);
+    // set AppWindow properties
+    XSetStandardProperties(xDisplay, xWindowHandle, "main", None, None, NULL, 0, NULL);
+    // Should be replaced with XSetWMProperties, according to the specification..
+
+/*
+    // bind the rendering context to the AppWindow
+    bool bound = glXMakeContextCurrent(xDisplay, AppWindow, AppWindow, context);
+    if (bound == false)
+    {
+        assert(false && "Failed to bind context");
+    }
+*/
+    // xDisplay X AppWindow on screen
+    XMapWindow(xDisplay, xWindowHandle);
+
+    /// Fix so we can intercept AppWindow-Management messages (like pressing the Close-button, ALT+F4, etc!)
+    // Ref: http://www.opengl.org/discussion_boards/showthread.php/157469-Properly-destroying-a-AppWindow
+    Atom wm_protocol = XInternAtom (xDisplay, "WM_PROTOCOLS", False);
+    Atom wm_close = XInternAtom (xDisplay, "WM_DELETE_WINDOW", False);
+    // Next we elect to receive the 'close' event from the WM:
+    XSetWMProtocols (xDisplay, xWindowHandle, &wm_close, 1);
 #endif
 	return true;
 }

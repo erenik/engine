@@ -15,8 +15,8 @@
 /// Program start-up variables!
 extern    XEvent                  event;
 extern    GLXContext              context; // OpenGL context
-extern    Display*                display; // connection to X server
-extern    XVisualInfo*            visual_info;
+extern    Display*                xDisplay; // connection to X server
+extern    XVisualInfo*            xVisualInfo;
 extern    Window                  window;
 extern    XSetWindowAttributes    window_attributes;
 extern    Colormap                colormap;
@@ -342,8 +342,8 @@ void * XProc(XEvent & event)
     // Special messages! 
     case ClientMessage:
     {
-        Atom wm_protocol = XInternAtom (display, "WM_PROTOCOLS", False);
-        Atom wm_delete_window = XInternAtom (display, "WM_DELETE_WINDOW", False);
+        Atom wm_protocol = XInternAtom (xDisplay, "WM_PROTOCOLS", False);
+        Atom wm_delete_window = XInternAtom (xDisplay, "WM_DELETE_WINDOW", False);
         // In our case primarily requests to close the AppWindow! Ref: http://www.opengl.org/discussion_boards/showthread.php/157469-Properly-destroying-a-AppWindow
         if ((event.xclient.message_type == wm_protocol) // OK, it's comming from the WM
         && ((Atom)event.xclient.data.l[0] == wm_delete_window)) // This is a close event // wm_delete

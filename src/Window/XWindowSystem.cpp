@@ -27,10 +27,10 @@ static int doubleBufferAttributes[]  = {GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLE
 /// Program start-up variables!
 XEvent                  event;
 GLXContext              context; // OpenGL context
-Display *               xDisplay; // connection to X server
-XVisualInfo *           xVisualInfo;
+Display *               xDisplay = NULL; // connection to X server
+XVisualInfo *           xVisualInfo = NULL;
 Window                  window;
-XSetWindowAttributes    window_attributes;
+XSetWindowAttributes    xWindowAttributes;
 Colormap                colormap;
 bool                    swapBuffers;
 
@@ -41,6 +41,7 @@ List<Window> xWindowHandles;
 
 bool XWindowSystem::InitThreadSupport()
 {
+    std::cout<<"\nXWindowSystem::InitThreadSupport";
     /// Initialize support for multi-threaded usage of Xlib
     int status = XInitThreads();
     if (status){
@@ -55,8 +56,10 @@ bool XWindowSystem::InitThreadSupport()
 // Connects to the X server (WindowSystem) using XOpenDisplay.
 bool XWindowSystem::Initialize()
 {
+    std::cout<<"\nXWindowSystem::Initialize";
 	xDisplay = XOpenDisplay(NULL);
-	return (xDisplay != NULL);
+    if (xDisplay == NULL)
+    	return false;
 
 	int dummy;
     if(!glXQueryExtension(xDisplay, &dummy, &dummy))
@@ -95,8 +98,10 @@ bool XWindowSystem::Shutdown()
 /// Number of attached screens.
 List<DeviceScreen> XWindowSystem::Screens()
 {
-    int screen_count = XScreenCount(xDisplay);
     List<DeviceScreen> screens;
+    if (xDisplay == 0)
+        return screens;
+    int screen_count = XScreenCount(xDisplay);
     // go through all screens and show the info in the console
     for(int scr = 0; scr < screen_count; scr++)
     {
@@ -129,9 +134,9 @@ void XWindowSystem::SetupDefaultWindowProperties()
     colormap = XCreateColormap(xDisplay, RootWindow(xDisplay, xVisualInfo->screen), xVisualInfo->visual, AllocNone);
 
     // update AppWindow attributes
-    window_attributes.colormap = colormap;
-    window_attributes.border_pixel = 0;
-    window_attributes.event_mask =
+    xWindowAttributes.colormap = colormap;
+    xWindowAttributes.border_pixel = 0;
+    xWindowAttributes.event_mask =
 
     /// Testing to  get clipboard to work...
         EnterWindowMask | LeaveWindowMask | KeymapStateMask |
@@ -151,6 +156,8 @@ void XWindowSystem::SetupDefaultWindowProperties()
 
 void XWindowSystem::CreateDefaultWindow()
 {
+    assert(false);
+    /*
     window = XCreateWindow(xDisplay,
                            RootWindow(xDisplay, xVisualInfo->screen),
                            0, 0,            /// Position
@@ -174,17 +181,21 @@ void XWindowSystem::CreateDefaultWindow()
     }
 */
     // xDisplay X AppWindow on screen
-    XMapWindow(xDisplay, window);
+   // XMapWindow(xDisplay, window);
+
 }
 
 void XWindowSystem::SetupProtocols()
 {
+    assert(false);
+    /*
     /// Fix so we can intercept AppWindow-Management messages (like pressing the Close-button, ALT+F4, etc!)
     // Ref: http://www.opengl.org/discussion_boards/showthread.php/157469-Properly-destroying-a-AppWindow
     Atom wm_protocol = XInternAtom (xDisplay, "WM_PROTOCOLS", False);
     Atom wm_close = XInternAtom (xDisplay, "WM_DELETE_WINDOW", False);
     // Next we elect to receive the 'close' event from the WM:
     XSetWMProtocols (xDisplay, window, &wm_close, 1);
+    */
 }
 
 void XWindowSystem::Resize(AppWindow * window, Vector2i newSize)

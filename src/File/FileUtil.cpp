@@ -25,15 +25,18 @@ int FourSwap (int i){
 
 
 /// Returns true if given path exists, false if not. This is mainly intended to be used with folder and directories.
-bool PathExists(String path){
+bool PathExists(String path)
+{
 	List<String> result;
 	int exists = GetDirectoriesInDirectory(path, result);
+//	std::cout<<"\nPath exists: "<<(exists? "Yes" : "No");
 	return exists > 0;
 }
 
 
 /// Returns true if given path exists, false if not.
-bool FileExists(String path){
+bool FileExists(String path)
+{
 	std::fstream f;
 	f.open(path.c_str(), std::ios_base::in);
 	bool fileExists = false;
@@ -106,14 +109,28 @@ int GetDirectoriesInDirectory(String directory, List<String> & dirs){
 #elif defined LINUX | defined OSX
 	DIR *dp;
 	struct dirent *dirp;
-	std::cout<<"\nDirectory: "<<directory;
-	if ((dp = opendir(directory.c_str())) == NULL){
-		std::cout<<"Error";
+//	std::cout<<"\nTryin to open dir: "<<directory;
+//	std::cout<<"\nTryin to open dir: "<<directory;
+	int len = directory.Length();
+//	std::cout<<"\nlen: "<<len;
+//	char * c = directory.c_str();
+//	directory.PrintData();
+	std::cout<<"\nTryin to open dir: "<<directory;
+//	std::cout<<"\nTryin to open dir: "<<directory;
+//	std::cout<<"\nGet directories in dir: "<<directory;
+	dp = opendir(directory.c_str());
+//	std::cout<<"\nlalll o.o: "<<directory;
+//	std::cout<<"\nlalll: "<<directory;
+	if (dp == NULL)
+	{
+//		std::cout<<"Error";
 		return 0;
-	}
+	}	
+//	std::cout<<"\nCould open dir.";
 	struct stat fileInfo;
-	while((dirp = readdir(dp)) != NULL){
-		std::cout<<"\nFilename? "<<dirp->d_name;
+	while((dirp = readdir(dp)) != NULL)
+	{
+//		std::cout<<"\nFilename? "<<dirp->d_name;
 		String file = dirp->d_name;
 		String fullPath = directory + "/" + dirp->d_name;
 		// Check if the "file" is a directory or not.
@@ -125,9 +142,11 @@ int GetDirectoriesInDirectory(String directory, List<String> & dirs){
 		// Skip special dirs (beginning with dot)
 		if (file.c_str()[0] == '.')
 		    continue;
+	//	std::cout<<"\nFound dir: "<<file;
 		dirs.Add(file);
 	}
 	closedir(dp);
+//	std::cout<<"\nGetDirectoriesInDirectory ending.";
 	return 1;
 #endif
 }
@@ -242,26 +261,33 @@ bool CreateFolder(String withPath)
 /// Creates directories until the entire path is valid.
 bool CreateDirectoriesForPath(String dirPath, bool skipLast)
 {
+	std::cout<<"\nCreateDirectoriesForPath: "<<dirPath;
 	List<String> directories = dirPath.Tokenize("/");
 	String entirePath;
 	for (int i = 0; i < directories.Size(); ++i)
 	{
+		std::cout<<"\ni "<<i;
 		// p=p
 		if (skipLast && i == directories.Size() - 1)
 			return true;
 		String dir = directories[i];
+//		std::cout<<"\ndir "<<dir;
 		entirePath += dir+"/";
 		/// Check if it contains a colon, if so skip it since it isn't really a folder.
+//		std::cout<<"\ncontains :? ";
 		if (dir.Contains(":"))
 			continue;
+//		std::cout<<"\nExists? "<<entirePath;
 		if (PathExists(entirePath))
 			continue;
 		// Create subfolder!
+//		std::cout<<"\nCreating subfolder "<<entirePath;
 		bool result = CreateFolder(entirePath);
 		if (!result)
 			return false;
 
 	}
+	std::cout<<"\nCreateDirectoriesForPath: "<<dirPath<<" done.";
 	return true;
 }
 

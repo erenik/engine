@@ -31,9 +31,9 @@ THREAD_START(Initialize)
 
 	MesMan.QueueMessages("CreateMainWindow");
 
+	std::cout<<"\nInitializing managers...";
 	// Call Initialize for all managers to properly initialize them
 	StateMan.Initialize();	// Registers all states to be used
-
 	ModelMan.Initialize(); // Loads useful models
 	Physics.Initialize();
 	Input.Initialize();		// Loadinput-bindings
@@ -43,6 +43,7 @@ THREAD_START(Initialize)
 #endif
 	WaypointMan.Initialize();
 
+	std::cout<<"\nStarting Graphics and Audio processor threads...";
 	// Begin threads for rendering, etc.
 	CREATE_AND_START_THREAD(GraphicsManager::Processor, graphicsThread);
 	// Begin audio thread.
@@ -55,6 +56,7 @@ THREAD_START(Initialize)
 
 	// Run startup.ini if it is available, running all its arguments through the message manager, one line at a time.
 	{
+		std::cout<<"\nQueueing up startup.ini lines, if any...";
 		List<String> lines = File::GetLines("startup.ini");
 		for (int i = 0; i < lines.Size(); ++i)
 		{
@@ -66,15 +68,17 @@ THREAD_START(Initialize)
 	}
 
 	// Post message to the message manager that all managers have been initialized properly.
+	std::cout<<"\nStarting the main state-processor thread...";
 	/// Start the state-processing thread!
 	CREATE_AND_START_THREAD(StateManager::StateProcessor, stateProcessingThread);
 
 	// Now begin accepting input!
 	Input.acceptInput = true;
 
-	StateMan.SetGlobalStateByID(GameStateID::GAME_STATE_GLOBAL);
-	std::cout<<"\nInitialization done! Entering main menu...";
-	StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_MAIN_MENU));
+	std::cout<<"\nInitialization done! Entering main menu... or..";
+	
+//	StateMan.SetGlobalStateByID(GameStateID::GAME_STATE_GLOBAL);
+//	StateMan.QueueState(StateMan.GetStateByID(GameStateID::GAME_STATE_MAIN_MENU));
 
 	/// Everything should be setup, so evaluate any command-line arguments now!
 	CommandLine::Evaluate();

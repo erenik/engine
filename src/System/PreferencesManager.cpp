@@ -57,9 +57,10 @@ void PreferencesManager::EnsurePreferencesFolderExists()
 	String dirPath = homePath;
 	dirPath.Add("/.config/");
 	dirPath.Add(Application::name);
-//	std::wcout << "Dir: "<<dirPath;
+	std::wcout << "\nEnsure preferences folder exists: "<<dirPath;
 	if (!PathExists(dirPath))
 	{
+		std::cout<<"\nCreating preferences directory.";
 		/// Creates directories until the entire path is valid.
 		CreateDirectoriesForPath(dirPath);	
 	}
