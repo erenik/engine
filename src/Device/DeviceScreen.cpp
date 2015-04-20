@@ -9,6 +9,10 @@
 #include "Window/WindowSystem.h"
 #include "Window/XWindowSystem.h"
 
+#ifdef WINDOWS
+	#include <Windows.h>
+#endif
+
 /// Returns size in XY of active or primary screen (no distinction)
 Vector2i GetScreenSize()
 {		

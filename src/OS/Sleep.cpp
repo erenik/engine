@@ -5,16 +5,16 @@
 #include "Sleep.h"
 #include "OS.h"
 
-#ifdef WIDNOWS
-#include <Windows.h>
+#ifdef WINDOWS
+	#include <Windows.h>
 #elif defined LINUX
-#include <unistd.h>
+	#include <unistd.h>
 #endif
 
 void SleepThread(int milliseconds)
 {
 #ifdef WINDOWS
-	SleepThread(milliseconds);
+	Sleep(milliseconds);
 #elif defined LINUX
 	usleep(milliseconds*1000);
 #endif	

@@ -151,7 +151,7 @@ void SIMDTest()
     bool    bFP128 = false;
     bool    bMOVOptimization = false;
 
-#ifdef WINDOWS
+#ifdef WEWEWINDOWS & 0
 
 	// __cpuid with an InfoType argument of 0 returns the number of
     // valid Ids in CPUInfo[0] and the CPU identification string in

@@ -96,6 +96,9 @@ public:
 
 	/// UI stuffs. All implemented in UIHandling.cpp
 	void UpdateUI();
+	void UpdateMunny();
+	void UpdateAttempts();
+	void UpdateDistance();
 	void UpdateGearList();
 	/// Update UI parts
 //	void UpdateUIPlayerHP();

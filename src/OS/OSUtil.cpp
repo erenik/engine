@@ -8,15 +8,17 @@
 
 /// Declaring stuff before the actual functions.
 #ifdef WINDOWS
-#define UNICODE
-#include <Windows.h>
-#include <shellapi.h>
-//PLABELBOX pbox;
-LPTSTR	lptstr;
-LPTSTR  lptstrCopy;
-HGLOBAL hglb;
-HGLOBAL hglbCopy;		// Global copy-something
-int ich1, ich2, cch;
+	#ifndef UNICODE
+	#define UNICODE
+	#endif
+	#include <Windows.h>
+	#include <shellapi.h>
+	//PLABELBOX pbox;
+	LPTSTR	lptstr;
+	LPTSTR  lptstrCopy;
+	HGLOBAL hglb;
+	HGLOBAL hglbCopy;		// Global copy-something
+	int ich1, ich2, cch;
 #endif
 
 
@@ -68,7 +70,7 @@ List<String> GetFilesFromHDrop(HDROP hDrop)
 void OSUtil::Copy()
 {
 #ifdef WINDOWS
-	AppWindow * AppWindow = WindowMan.GetCurrentlyActiveWindow();
+	AppWindow * window = WindowMan.GetCurrentlyActiveWindow();
 	// Open the clipboard, and empty it.
 	if (!OpenClipboard(window->hWnd)) {
 		std::cout<<"Unable to open clipboard!";
@@ -221,7 +223,7 @@ void OSUtil::Paste()
 
 #ifdef WINDOWS
 
-	AppWindow * AppWindow = WindowMan.GetCurrentlyActiveWindow();
+	AppWindow * window = WindowMan.GetCurrentlyActiveWindow();
 //	pbox = hwndSelected == NULL ? NULL :
 //		(PLABELBOX) GetWindowLong(hwndSelected, 0);
 

@@ -239,7 +239,7 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 		set(DEBUG_LIBS 
 			# For Microsoft game pads via DX SDK.
 		#	xinput.lib
-			glew32_MTd.lib
+			glew32s.lib
 		#	glu32.lib
 		#	opengl32.lib
 			ws2_32.lib

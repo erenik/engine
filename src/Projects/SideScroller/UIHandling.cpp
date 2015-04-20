@@ -12,6 +12,10 @@ void LoadOptions();
 
 extern bool inGameMenuOpened;
 
+extern int munny;
+extern int attempts;
+extern float distance;
+
 /// Updates ui depending on state.
 void SideScroller::UpdateUI()
 {
@@ -42,7 +46,11 @@ void SideScroller::UpdateUI()
 	{
 		case NEW_GAME:  LoadDefaultName(); break;
 		case EDITING_OPTIONS: LoadOptions(); break;
-		case PLAYING_LEVEL: 
+		case PLAYING_LEVEL:
+			// Update all stats.
+			UpdateMunny();
+			UpdateAttempts();
+			UpdateDistance();
 //			UpdateUIPlayerHP(); 
 //			UpdateUIPlayerShield();
 			if (inGameMenuOpened)
@@ -55,6 +63,25 @@ void SideScroller::UpdateUI()
 		case SHOWING_LEVEL_STATS: ShowLevelStats(); break;
 	};
 }
+
+void SideScroller::UpdateMunny()
+{
+	QueueGraphics(new GMSetUIs("Pesos", GMUI::TEXT, String(munny)));
+}
+void SideScroller::UpdateAttempts()
+{
+	QueueGraphics(new GMSetUIs("Attempts", GMUI::TEXT, String(attempts)));
+}
+void SideScroller::UpdateDistance()
+{
+	static int lastDistance = 0;
+	if ((int)distance != lastDistance)
+	{
+		QueueGraphics(new GMSetUIs("DistanceTraveled", GMUI::TEXT, String((int)distance)));
+		lastDistance = (int)distance;
+	}
+}
+
 
 void LoadOptions()
 {

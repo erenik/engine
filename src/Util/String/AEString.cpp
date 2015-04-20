@@ -1151,7 +1151,7 @@ int String::ParseInt() const
 	String copy = *this;
 	//assert(this->type == CHAR && "Implement for wide char or convert first..!");
 	if (copy.type == WIDE_CHAR){
-		copy.ConvertToWideChar();
+		copy.ConvertToChar();
 /*		if (copy->arr)
 			delete[] copy->arr;
 		copy->arr = new char[arraySize];

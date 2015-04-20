@@ -764,9 +764,6 @@ bool AppWindow::CreateGLContext()
 		return false;
 #ifdef WINDOWS
 	assert(hdc == 0);
-	/// Wait until we have a valid AppWindow to draw in.
-	while(hWnd == NULL)
-		SleepThread(5);
 	hdc = GetDC(hWnd);
 	assert(hdc);
 	bool result = SetupPixelFormat(hdc);

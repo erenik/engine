@@ -7,6 +7,7 @@
 #include "DataTypes.h"
 #include "Windows/WindowsCoreAudio.h"
 #include "AudioManager.h"
+#include "OS/Sleep.h"
 
 AudioMixer * masterMixer = NULL;
 

@@ -84,6 +84,9 @@ Entities levelEntities;
 #define EP_LUCHA 1
 
 int munny = 0;
+int attempts = 0;
+float distance = 0;
+
 enum 
 {
 	PERSP_CAMERA,
@@ -136,6 +139,7 @@ public:
 			return;
 		sleeping = true;
 		munny += value;
+		sideScroller->UpdateMunny();
 		MapMan.DeleteEntity(owner); // Remove self.
 	}
 	bool sleeping;
@@ -146,7 +150,10 @@ class LuchadorProperty : public EntityProperty
 {
 public:
 	LuchadorProperty(Entity * owner)
-		: EntityProperty("LuchaProp", EP_LUCHA, owner){}
+		: EntityProperty("LuchaProp", EP_LUCHA, owner)
+	{
+		sleeping = false;
+	}
 	virtual void OnCollision(Collision & data)
 	{
 		Entity * other = NULL;
@@ -162,6 +169,22 @@ public:
 				GMPlayAnimation anim("Run", owner);
 				anim.Process(); // Process straight away, no use queueing it up.
 			}
+		}
+	}
+	virtual void Process(int timeInMs)
+	{
+		if (sleeping) 
+			return;
+		distance = owner->position.x;
+		sideScroller->UpdateDistance();
+		if (owner->position.y < -2.f)
+		{
+			// Deaded.
+			QueuePhysics(new PMSetEntity(playerEntity, PT_PHYSICS_TYPE, PhysicsType::STATIC));
+			++attempts;
+			sideScroller->UpdateAttempts();
+			sleeping = true;
+			QueueGraphics(new GMPlayAnimation("Idle", owner));
 		}
 	}
 	virtual void OnCollisionCallback(CollisionCallback * cc)
@@ -181,6 +204,7 @@ public:
 			}
 		}
 	}
+	bool sleeping;
 };
 
 
@@ -320,11 +344,6 @@ void SideScroller::ProcessLevel(int timeInMs)
 		AddLevelPart();
 		// Clean-up past level-parts
 		CleanupOldBlocks();
-	}
-	else if (playerEntity->position.y < -2.f)
-	{
-		// Deaded.
-		QueuePhysics(new PMSetEntity(playerEntity, PT_PHYSICS_TYPE, PhysicsType::STATIC));
 	}
 }
 
@@ -743,7 +762,9 @@ void SideScroller::NewGame()
 
 	state = PLAYING_LEVEL;
 	// Start movin'!
+	munny = 0;
 	UpdatePlayerVelocity();
+	UpdateUI();
 }
 
 Time lastJump = Time::Now();

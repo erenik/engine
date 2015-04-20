@@ -42,16 +42,19 @@ OggStream::OggStream()
 : MultimediaStream(MultimediaType::OGG)
 {
 	this->oggFile = 0;
-	
+
+#ifdef THEORA
 	hasTheora = false;
-	hasVorbis = false;
 	theoraSetupInfo = NULL;
 	theoraDecoderContext = NULL;
+#endif
+
 	rowBufferData = NULL;
 	frameTexture = NULL;
 	rowBufferSize = 0;
 
 #ifdef VORBIS
+	hasVorbis = false;
 	vorbisInfo = 0;
 	vorbisComment = 0;
 #endif
@@ -212,16 +215,18 @@ bool OggStream::OpenOpus()
 /// Attemps to open Theora playback from the file-stream.
 bool OggStream::OpenTheora()
 {
+#ifndef THEORA
+	return false;
+#else // ifdef THEORA
+
 	lastAudioInfo = "OggStream::OpenTheora";
 	/// Initialize Ogg synchronization state. Always returns 0.
 	ogg_sync_init(&oggSyncState);
 	oggSyncStateUsed = true;
 
 	/// Initialize Theora structures needed.
-#ifdef THEORA
 	th_info_init(&theoraInfo);
 	th_comment_init(&theoraComment);
-#endif
 
 	/// Temporary stream state used when parsing.
 	ogg_stream_state tempStreamState;
@@ -276,7 +281,6 @@ bool OggStream::OpenTheora()
 			// Peek at the packet to see its contents.
 			// http://xiph.org/ogg/doc/libogg/ogg_stream_packetpeek.html
 			result = ogg_stream_packetpeek(&tempStreamState, &oggPacket);
-#ifdef THEORA
 			// Check the codec of the stream. Is it theora? Should be called until it returns 0?
 			// If we haven't already found a Theora packet, check that
 			if (result == 1 && !hasTheora)
@@ -319,7 +323,6 @@ bool OggStream::OpenTheora()
 				/// Packet we dont care about for now.
 				ogg_stream_clear(&tempStreamState);
 			}
-#endif
 			/// Check for vorbis packets?
 			/// TODO: Use regular ov_open and stuff? Seems much easier than Theora o.O
 		}
@@ -332,7 +335,6 @@ bool OggStream::OpenTheora()
 
 //	ogg_stream_clear(&tempStreamState);
 
-#ifdef THEORA
 	/// Alrighty. We seem to have initial packets and pages handled, now check for additional pages
 	int processingTheoraHeaders = 1;
 	while(hasTheora && processingTheoraHeaders)
@@ -420,12 +422,10 @@ bool OggStream::OpenTheora()
 
 	/*Either way, we're done with the codec setup data.*/
 	th_setup_free(theoraSetupInfo);
-#endif
 
 	// In the example they set up additional options for a callback function, namely decoder th_stripe_callback
 
 	/// Print some more shit.
-#ifdef USE_THEORA
 	static const char *CHROMA_TYPES[4]={"420jpeg","Cpbarn","422","444"};
 	if(theoraInfo.pixel_fmt >= 4 || theoraInfo.pixel_fmt == TH_PF_RSVD)
 	{
@@ -437,7 +437,6 @@ bool OggStream::OpenTheora()
 		std::cout<<"\nYUV4MPEG2 C "<<CHROMA_TYPES[theoraInfo.pixel_fmt]<<" A"<<theoraInfo.aspect_numerator<<":"<<theoraInfo.aspect_denominator<<" H%d F%d:%d I%c A%d:%d\n";
 		std::cout<<"\nTheora video should now be available for streaming to target texture object.";
 	}
-#endif
 //	, theoraInfo.frame_width, theoraInfo.frame_height, theoraInfo.fps_numerator,theoraInfo.fps_denominator,'p',
 //	theoraInfo.aspect_numerator,theoraInfo.aspect_denominator);
 
@@ -453,6 +452,7 @@ bool OggStream::OpenTheora()
 		streamState = StreamState::READY;
 	}
 	return hasTheora;
+#endif // THEORA
 }
 
 
