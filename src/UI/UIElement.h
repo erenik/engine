@@ -78,6 +78,10 @@ public:
 	/// Sets text, queueing recalculation of the rendered variant. If not force, will ignore for active ui input elements.
 	virtual void SetText(Text newText, bool force = false);
 
+	/** Fetches texture, assuming the textureSource has been set already. Binds and bufferizes, so call only from graphics thread. 
+		Returns false if no texture could be find, bind or bufferized. */
+	virtual bool FetchBindAndBufferizeTexture();
+
 	/// Public variablessss
 	String name;
 	/// For when loading from .gui file into ui element.
@@ -410,6 +414,11 @@ public:
 	bool IsBuffered() const { return isBuffered;};
 	bool IsGeometryCreated() const { return isGeometryCreated; };
 
+	// Creates the Square mesh used for rendering the UIElement and calls SetDimensions with it's given values.
+	virtual void CreateGeometry();
+	virtual void ResizeGeometry();
+	void DeleteGeometry();
+
 // Some inherited for UI subclasses
 protected:
 	// Offset used for internal elements. Mainly used by lists.
@@ -430,11 +439,6 @@ protected:
     /// Splitting up the rendering.
     virtual void RenderSelf(GraphicsState & graphicsState);
     virtual void RenderChildren(GraphicsState & graphicsState);
-
-	// Creates the Square mesh used for rendering the UIElement and calls SetDimensions with it's given values.
-	void CreateGeometry();
-	void ResizeGeometry();
-	void DeleteGeometry();
 
 	// Works recursively.
 	void RemoveFlags(int flag);

@@ -91,8 +91,6 @@ void GraphicsManager::RenderUI(UserInterface * ui)
 	graphicsState->modelMatrixF = graphicsState->modelMatrixD.LoadIdentity();
 
 	/// Render
-	if (ui == NULL)
-		return;
 	try {
 		ui->Render(*graphicsState);
 	} catch(...){

@@ -176,25 +176,7 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 	FOREACH(projectSubFolder ${projectFolders})
 		RemoveDir(${projectSubFolder} ${projectFoldersToNotExclude})
 	ENDFOREACH()
-
-	
-	# Add dependency-folders on linux too?
-	# Recusive addition of all dependencies in the Dependencies folder, 
-	# finding files in each's separate include/lib-dir.
-	set(depDir ${CMAKE_SOURCE_DIR}/Dependencies)
-	FILE(GLOB dependencies RELATIVE "${depDir}" "${depDir}/*")
-	FOREACH(dependency ${dependencies})			
-		include_directories(${CMAKE_SOURCE_DIR}/Dependencies)
-		# For each folder, include their lib/include folders
-		IF(IS_DIRECTORY ${depDir}/${dependency})
-			link_directories("${depDir}/${dependency}/lib")
-			set(includeDir ${depDir}/${dependency}) 
-			message("${includeDir}")
-			include_directories("${includeDir}")
-		ENDIF()
-	ENDFOREACH()	
-	
-	
+		
 	# LINUX library linking
 	IF(UNIX)
 		message("Configuring for UNIX OS")

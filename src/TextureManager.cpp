@@ -22,7 +22,7 @@
 #include "Color.h"
 
 #ifdef OPENCV
-#include "opencv2/opencv.hpp"
+	#include "opencv2/opencv.hpp"
 #endif
 
 #include "Time/Time.h"

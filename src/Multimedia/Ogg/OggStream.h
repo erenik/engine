@@ -21,7 +21,7 @@
 #include <ogg/ogg.h>
 #ifdef VORBIS
 /// Vorbis for audio.
-#include <codec.h>
+#include <vorbis/codec.h>
 #include <vorbis/vorbisenc.h>
 #include <vorbis/vorbisfile.h>
 #endif
@@ -33,7 +33,7 @@
 /// Theora for video.
 #include <theora/theoradec.h>
 #ifdef WINDOWS
-#include <theora/decint.h>
+	//#include <theora/decint.h>
 #endif
 
 class OggStream : public MultimediaStream {

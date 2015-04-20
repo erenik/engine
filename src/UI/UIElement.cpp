@@ -223,6 +223,49 @@ void UIElement::SetText(Text newText, bool force)
 	currentTextSizeRatio = -1.0f;
 }
 
+/** Fetches texture, assuming the textureSource has been set already. Binds and bufferizes, so call only from graphics thread. 
+	Returns false if no texture could be find, bind or bufferized. */
+bool UIElement::FetchBindAndBufferizeTexture()
+{
+	// When rendering an objectwith this program.
+	glActiveTexture(GL_TEXTURE0 + 0);	
+	/// Grab texture?
+	bool validTexture = false;
+	// Set texture
+	if (texture && texture->glid){
+		glBindTexture(GL_TEXTURE_2D, texture->glid);
+	}
+	else if (texture) {
+		TexMan.BufferizeTexture(texture);
+	}
+	else if (textureSource){
+		texture = TexMan.GetTexture(textureSource);
+		if (!texture)
+            texture = TexMan.GetTextureByName(textureSource);
+		/// Unable to fetch target-texture, so skip it.
+		if (!texture){
+            glBindTexture(GL_TEXTURE_2D, NULL);
+            validTexture = false;
+		}
+		else {
+            if (texture->glid == -1)
+                TexMan.BufferizeTexture(texture);
+            glBindTexture(GL_TEXTURE_2D, texture->glid);
+		}
+	}
+	// No texture at all? Flag it and avoid rendering this element.
+	else  {
+		// Use standard black texture if so, won't matter much anyway.
+		texture = TexMan.GetTexture("NULL");
+		glBindTexture(GL_TEXTURE_2D, texture->glid);
+		validTexture = false;
+		return false;
+	}
+	if (texture != NULL && texture->glid == -1){
+		TexMan.BufferizeTexture(texture);
+	}
+	return true;
+}
 
 void UIElement::DeleteElement(int targetID){
 	UIElement* target = NULL;
@@ -1390,41 +1433,9 @@ void UIElement::RenderSelf(GraphicsState & graphicsState)
 
 	bool validTexture = true;
 	
-	// When rendering an objectwith this program.
-	glActiveTexture(GL_TEXTURE0 + 0);	
 
-	// Set texture
-	if (texture && texture->glid){
-		glBindTexture(GL_TEXTURE_2D, texture->glid);
-	}
-	else if (texture) {
-		TexMan.BufferizeTexture(texture);
-	}
-	else if (textureSource){
-		texture = TexMan.GetTexture(textureSource);
-		if (!texture)
-            texture = TexMan.GetTextureByName(textureSource);
-		/// Unable to fetch target-texture, so skip it.
-		if (!texture){
-            glBindTexture(GL_TEXTURE_2D, NULL);
-            validTexture = false;
-		}
-		else {
-            if (texture->glid == -1)
-                TexMan.BufferizeTexture(texture);
-            glBindTexture(GL_TEXTURE_2D, texture->glid);
-		}
-	}
-	// No texture at all? Flag it and avoid rendering this element.
-	else  {
-		// Use standard black texture if so, won't matter much anyway.
-		texture = TexMan.GetTexture("NULL");
-		glBindTexture(GL_TEXTURE_2D, texture->glid);
-		validTexture = false;
-	}
-	if (texture != NULL && texture->glid == -1){
-		TexMan.BufferizeTexture(texture);
-	}
+	FetchBindAndBufferizeTexture();
+
 
 
 	/// Set mip-map filtering to closest

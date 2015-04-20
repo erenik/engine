@@ -4,41 +4,25 @@
 /// For the Karl-Emil SpaceShooter project, mainly 2014-2015/
 
 #include "AppStates/AppState.h"
-
 #include "Entity/EntityManager.h"
-
 #include "Physics/PhysicsManager.h"
 #include "Physics/Messages/PhysicsMessage.h"
-
 #include "Model/Model.h"
-
 #include "Texture.h"
 #include "TextureManager.h"
-
 #include "Model/ModelManager.h"
-
 #include "StateManager.h"
-
 #include "UI/UserInterface.h"
-
 #include "String/StringUtil.h"
-
 #include "Message/MessageManager.h"
 #include "Message/Message.h"
-
 #include "File/File.h"
 #include "File/FileUtil.h"
-
 #include "Maps/MapManager.h"
-
-#include "Network/NetworkManager.h"
-
 #include "Script/Script.h"
 #include "Script/ScriptManager.h"
-
 #include "Audio/AudioManager.h"
 #include "Audio/Messages/AudioMessage.h"
-
 #include "Graphics/GraphicsManager.h"
 #include "Graphics/Messages/GMSet.h"
 #include "Graphics/Messages/GMUI.h"
@@ -46,13 +30,51 @@
 #include "Graphics/Messages/GMParticles.h"
 #include "Graphics/Messages/GMSetEntity.h"
 #include "Graphics/Camera/Camera.h"
-#include "Graphics/Particles/Sparks.h"
-#include "Graphics/Particles/Stars.h"
-#include "Graphics/Particles/SparksEmitter.h"
-
 #include "Game/SpaceShooter/SpaceShooterCD.h"
 #include "Game/SpaceShooter/SpaceShooterCR.h"
 #include "Game/GameVariableManager.h"
+
+#include "Application/Application.h"
+#include "StateManager.h"
+
+#include "Random/Random.h"
+
+#include "Physics/Messages/CollisionCallback.h"
+
+#include "Window/AppWindow.h"
+
+#include "Viewport.h"
+
+#include "Entity/EntityProperty.h"
+
+#include "File/SaveFile.h"
+
+#include "Graphics/Messages/GMRenderPass.h"
+
+#include "Render/RenderPass.h"
+
+#include "Message/MathMessage.h"
+
+#include "Input/InputManager.h"
+
+#include "Physics/Integrators/FirstPersonIntegrator.h"
+#include "Physics/CollisionDetectors/FirstPersonCD.h"
+#include "Physics/CollisionResolvers/FirstPersonCR.h"
+
+#include "Graphics/Messages/GMAnimate.h"
+
+#include "OS/OSUtil.h"
+#include "OS/Sleep.h"
+
+#include "Luchador.h"
+
+#define CC_ENVIRONMENT	1
+#define CC_PLAYER		(1 << 1)
+#define CC_PESO			(1 << 2)
+#define CC_OBSTACLE		(1 << 3)
+
+#define EP_PESO 0
+#define EP_LUCHA 1
 
 class GameVariable;
 
@@ -60,6 +82,10 @@ class GameVariable;
 extern Time levelTime;
 // extern int64 nowMs;
 extern int timeElapsedMs;
+
+extern float distance;
+extern int attempts;
+extern Time now;
 
 /// Particle system for sparks/explosion-ish effects.
 //extern Sparks * sparks;

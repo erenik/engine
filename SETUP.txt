@@ -1,0 +1,95 @@
+// Emil Hedemalm
+// 2015-04-20
+// Setup guide for starting to develop using the (erenik/Aeonic) C++ engine.
+// 
+// DO NOTE
+// This guide is just starting up. Some dependencies may require building the binaries yourself if you are to work on // Windows and MSVC (ogg, vorbis, theora, opencv). Further instructions will come later.
+
+Table of Contents
+=================
+1. General Info
+2. 3rd Party libraries/dependencies
+3. Building
+4. Running
+
+===============
+1. GENERAL INFO
+===============
+This engine relies on some public and open source packages for proper function. Some may be skipped depending on what you are aiming to develop. Note that the options for the same packages should correspond to the same packages that you mark for inclusion when generating the make-files via CMake.
+
+On Windows, the main development environment has been MSVC 2008, 2010 and 2012. For building libraries it is imperative that all are compiled with the same C runtime library. In this case the preferred choises are Multi-threaded debug (/MTd) and Multi-threaded (/MT), which is usually set in [Project -> Properties -> Configuration Properties -> C/C++ -> Code Generation -> Runtime Library].
+
+
+2. 3rd Party libraries/dependencies
+===================================
+Some short info about them and their relation to the project as a whole.
+
+OpenAL
+
+OpenCV - Used for image input/output. Also used for Computer vision calculations with a live-feed or static textures if the optional 'CV' folder is included in the project (not by default). 
+
+
+2.1. WINDOWS (MSVC):
+====================
+- Download binaries and include files for the following packages
+	- OpenAL: http://kcat.strangesoft.net/openal.html
+	- OpenCV: http://opencv.org/downloads.html
+
+- Add all /include/ directories to your compiler include directories
+- Do the same for /lib/ dirs
+
+A full list of properly included /include/ dirs could look like the following:
+	D:\libs\glew-1.12.0\include
+	D:\libs\libogg-1.3.1\include
+	D:\libs\libtheora-1.1.1\include
+	D:\libs\libvorbis-1.3.4\include
+	D:\libs\openal-soft-1.16.0-bin\include
+	D:\libs\opencv\build\include
+
+A full list of properly included lib dirs could look like the following:
+	D:\libs\glew-1.12.0\lib\Release\Win32
+	D:\libs\openal-soft-1.16.0-bin\libs\Win32
+	D:\libs\libvorbis-1.3.4\win32\VS2008\Win32\Debug
+	D:\libs\opencv\out\lib\Debug
+	D:\libs\opencv\out\lib\Release
+
+2.2. LINUX:
+===========
+- Install the same packages as above, using your tools of choice (Synaptic package manager, apt-get install, etc.):
+	- opencv-dev
+	- libglew-dev
+	- libogg-dev
+	- libvorbis-dev
+	- libtheora-dev
+	- libopus-dev
+
+Both binary and development packages will probably be needed (with and without '-dev' suffix)
+
+3. Building
+===========
+WINDOWS
+- Run CMake, using the root dir as source dir (/engine/.), and an /out/ dir to produce the build files (/engine/out/)
+- Open created project/solution files somewhere within, build debug/release as pleased.
+
+LINUX
+- Run Build.sh, or BuildSilent.sh to suppress CMake messages.
+	
+4. Running
+==========
+Make sure you have a copy of the necessary extra files for running your binary. This includes:
+- .dlls on Windows
+- Render pipeline files
+- Shader files
+- Textures
+- Etc.
+
+Sample folder with accompanying files can be seen when downloading a game made with the engine. E.g: 
+- http://svn.gscept.com/ip14/ip08/public/MS3/SpaceRace_TCNS_MS3.zip
+
+WINDOWS
+- Within project properties, change debug/working directory when debugging to where you have the other necessary files.
+
+LINUX
+- Edit 'Run.sh' to propery use your specified directory of accompanying files.
+
+

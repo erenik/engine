@@ -351,8 +351,8 @@ bool UserInterface::AdjustToWindow(Vector2i size)
 /// Creates/updates VBOs for all UI elements.
 void UserInterface::Bufferize()
 {
-	if (isBuffered)
-		return;
+//	if (isBuffered)
+//		return;
 	// Allow multiple bufferizations, since they do not necessarily generate new memory usage, like textures?
 //	assert(!isBuffered);
 	assert(this->isGeometryCreated);
@@ -1212,6 +1212,8 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 				UIImage * image = new UIImage(firstQuote, secondQuote);
 				element = image;
 				SET_DEFAULTS
+				if (secondQuote.Length())
+					image->textureSource = secondQuote;
 			}
 			else if (token == "Video"){
 				ADD_PREVIOUS_TO_UI_IF_NEEDED

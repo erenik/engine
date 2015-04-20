@@ -11,6 +11,10 @@ public:
 	virtual ~UIImage();
 	/// Subclassing in order to control rendering.
 	virtual void RenderSelf(GraphicsState & graphicsState);
+	/// Subclassed in order to change geometry based on image-dimensions (in addition to element size) and stretch conditions.
+	virtual void CreateGeometry();
+	virtual void ResizeGeometry();
+
 
 	Texture * GetTexture();
 	String GetTextureSource();

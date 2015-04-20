@@ -5,38 +5,7 @@
 
 #include "SideScroller.h"
 
-#include "Application/Application.h"
-#include "StateManager.h"
-
-#include "Physics/Messages/CollisionCallback.h"
-#include "Window/AppWindow.h"
-#include "Viewport.h"
-
-#include "Entity/EntityProperty.h"
-#include "File/SaveFile.h"
-
-#include "Graphics/Messages/GMRenderPass.h"
-#include "Render/RenderPass.h"
-
-#include "Message/MathMessage.h"
-
-#include "Input/InputManager.h"
-
-#include "Physics/Integrators/FirstPersonIntegrator.h"
-#include "Physics/CollisionDetectors/FirstPersonCD.h"
-#include "Physics/CollisionResolvers/FirstPersonCR.h"
-
-#include "Graphics/Messages/GMAnimate.h"
-
-#include "OS/OSUtil.h"
-#include "OS/Sleep.h"
-
 /// Particle system for sparks/explosion-ish effects.
-Sparks * sparks = NULL;
-Stars * stars = NULL;
-
-ParticleEmitter * starEmitter = NULL;
-
 bool paused = false;
 float breatherBlockSize = 5.f;
 Random levelRand;
@@ -74,14 +43,6 @@ Camera * levelCamera = NULL;
 Entity * playerEntity = NULL;
 // Dynamically created ones, to be cleaned up as we go.
 Entities levelEntities;
-
-#define CC_ENVIRONMENT	1
-#define CC_PLAYER		(1 << 1)
-#define CC_PESO			(1 << 2)
-#define CC_OBSTACLE		(1 << 3)
-
-#define EP_PESO 0
-#define EP_LUCHA 1
 
 int munny = 0;
 int attempts = 0;
@@ -144,67 +105,6 @@ public:
 	}
 	bool sleeping;
 	int value;
-};
-
-class LuchadorProperty : public EntityProperty 
-{
-public:
-	LuchadorProperty(Entity * owner)
-		: EntityProperty("LuchaProp", EP_LUCHA, owner)
-	{
-		sleeping = false;
-	}
-	virtual void OnCollision(Collision & data)
-	{
-		Entity * other = NULL;
-		if (data.one == owner)
-			other = data.two;
-		else
-			other = data.one;
-		if (other->physics->collisionCategory == CC_ENVIRONMENT)
-		{
-			// o.o
-			if (AbsoluteValue(data.collisionNormal.y) > 0.8f)
-			{
-				GMPlayAnimation anim("Run", owner);
-				anim.Process(); // Process straight away, no use queueing it up.
-			}
-		}
-	}
-	virtual void Process(int timeInMs)
-	{
-		if (sleeping) 
-			return;
-		distance = owner->position.x;
-		sideScroller->UpdateDistance();
-		if (owner->position.y < -2.f)
-		{
-			// Deaded.
-			QueuePhysics(new PMSetEntity(playerEntity, PT_PHYSICS_TYPE, PhysicsType::STATIC));
-			++attempts;
-			sideScroller->UpdateAttempts();
-			sleeping = true;
-			QueueGraphics(new GMPlayAnimation("Idle", owner));
-		}
-	}
-	virtual void OnCollisionCallback(CollisionCallback * cc)
-	{
-		Entity * other = NULL;
-		if (cc->one == owner)
-			other = cc->two;
-		else
-			other = cc->one;
-		if (other->physics->collisionCategory == CC_ENVIRONMENT)
-		{
-			// o.o
-			if (cc->impactNormal.y > 0.8f)
-			{
-				GMPlayAnimation anim("Run", owner);
-				anim.Process(); // Process straight away, no use queueing it up.
-			}
-		}
-	}
-	bool sleeping;
 };
 
 
@@ -353,10 +253,6 @@ void SideScroller::OnExit(AppState * nextState)
 	levelEntity = NULL;
 	SleepThread(50);
 	// Register it for rendering.
-	if (sparks)
-		Graphics.QueueMessage(new GMUnregisterParticleSystem(sparks, true));
-	if (stars)
-		Graphics.QueueMessage(new GMUnregisterParticleSystem(stars, true));
 	MapMan.DeleteAllEntities();
 	SleepThread(100);
 }
@@ -735,8 +631,8 @@ void SideScroller::NewGame()
 
 	// Create sky - again. All entities are cleared on new game.
 	sky = EntityMan.CreateEntity("Sky", ModelMan.GetModel("sprite.obj"), TexMan.GetTexture("0x44AAFF"));
-	sky->position = Vector3f(0, 20, -2);
-	sky->SetScale(Vector3f(1000, 40, 1));
+	sky->position = Vector3f(500, 20, -2);
+	sky->SetScale(Vector3f(2000, 40, 1));
 	MapMan.AddEntity(sky);
 
 	// Create player.
@@ -767,17 +663,10 @@ void SideScroller::NewGame()
 	UpdateUI();
 }
 
-Time lastJump = Time::Now();
-
 void SideScroller::Jump()
 {
-	int jumpCooldownMs = 500;
-	if ((now - lastJump).Milliseconds() < jumpCooldownMs)
-		return;
-	lastJump = now;
-	QueuePhysics(new PMSetEntity(playerEntity, PT_VELOCITY, playerEntity->Velocity() + Vector3f(0,5.f,0)));
-	// Set jump animation! o.o
-	QueueGraphics(new GMPlayAnimation("Jump", playerEntity));
+	Message jump("Jump");
+	playerEntity->ProcessMessage(&jump);
 }
 
 #include "Graphics/GraphicsProperty.h"
@@ -850,19 +739,24 @@ void SideScroller::OnPauseStateUpdated()
 /// In the current sub-level
 List<Entity*> blocksAdded;
 float blockSize = 2.f;
+String colorStr = "0xb19d7c";
 
 void Block(float size = -1) // Appends a block. Default size 2.
 {
 	if (size <= 0)
 		size = blockSize;
-	String colorStr = "0xb19d7c";
 //	"0x55"
 	Entity * block = EntityMan.CreateEntity("LevelPart-block", ModelMan.GetModel("cube.obj"), TexMan.GetTexture(colorStr));
 	Vector3f position;
 	position.x += levelLength;
 	position.x += size * 0.5f;
+
+	/// Scale up ground-tiles.
+	float scaleY = 25.f;
+	position.y -= scaleY * 0.5f - 0.5f;
+
 	block->position = position;
-	block->Scale(Vector3f(size, 1, 1));
+	block->Scale(Vector3f(size, scaleY, 1));
 	PhysicsProperty * pp = block->physics = new PhysicsProperty();
 	pp->shapeType = ShapeType::AABB;
 	pp->collisionCategory = CC_ENVIRONMENT;
@@ -873,9 +767,28 @@ void Block(float size = -1) // Appends a block. Default size 2.
 	blocksAdded.AddItem(block);
 }
 
-void Hole() // Appends a hole, default side 2.
+void Hole(float holeSize) // Appends a hole, default side 2.
 {
-	levelLength += blockSize;
+	/// Add graphical-only blocks where regular blocks are missing.
+	Entity * block = EntityMan.CreateEntity("LevelPart-block", ModelMan.GetModel("cube.obj"), TexMan.GetTexture(colorStr));
+	Vector3f position;
+	position.x += levelLength;
+	position.x += holeSize * 0.5f;
+
+	/// Scale up ground-tiles.
+	float scaleY = 25.f;
+	position.y -= scaleY * 0.5f - 0.5f; 
+	position.y -= 3.0f; // 2 down additionally to simulate hole.
+
+	block->position = position;
+	block->Scale(Vector3f(holeSize, scaleY, 1));
+
+	MapMan.AddEntity(block, true, false);
+	levelEntities.AddItem(block);
+//	blocksAdded.AddItem(block);
+
+	// Increment level-length.
+	levelLength += holeSize;
 }
 
 void SideScroller::FlatPart() // Just flat, 10 pieces.
@@ -894,7 +807,7 @@ void SideScroller::LinearHoles(int numHoles) // With a number of holes at varyin
 			Block();
 		else 
 		{
-			Hole();
+			Hole(blockSize);
 			--numHoles;
 		}
 	}
@@ -922,10 +835,11 @@ void AddPesos()
 	// o.o
 	for (int i = 0; i < blocksAdded.Size(); ++i)
 	{
+		Entity * block = blocksAdded[i];
 		Entity * peso = EntityMan.CreateEntity("Peso", ModelMan.GetModel("sphere"), TexMan.GetTexture("0xFFFF00"));
 		peso->properties.Add(new PesoProperty(peso));
 		peso->Scale(0.2f);
-		peso->SetPosition(blocksAdded[i]->position + Vector3f(0,2,0));
+		peso->SetPosition(block->position + Vector3f(0,2,0));
 		PhysicsProperty * pp = peso->physics = new PhysicsProperty();
 		pp->noCollisionResolutions = true;
 		pp->collissionCallback = true;
@@ -1022,7 +936,7 @@ void AddDBLPart() // Difficulty-By-Length, randomly generated. Used in initial t
 		/// Check if should place here.
 		if (levelRand.Randf(1.f) > ratioBlocks)
 		{
-			Hole();
+			Hole(blockSize);
 			continue;
 		}
 		Block();

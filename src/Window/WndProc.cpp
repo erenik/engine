@@ -16,6 +16,7 @@
 #include "Message/MessageManager.h"
 #include "Window/AppWindowManager.h"
 #include "Application/Application.h"
+#include "Message/WindowMessage.h"
 
 /// Returns KeyCode depending on the Virtual Key provided by Win32
 int GetKeyCodeFromVK(int wParam)
@@ -247,6 +248,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		std::cout<<"\nWindow "<<window->name<<" new size: "<<width<<"x"<<height;
 		// Recalculate OS window size.
 		window->osWindowSize = window->OSWindowSize();
+
+		/// Inform that the window's position has changed?
+		WindowMessage * mes = new WindowMessage(WMes::SIZE_UPDATED);
+		mes->size = window->clientAreaSize;
+		MesMan.QueueMessage(mes);
 
 		// If an application processes this message, it should return zero.
 		return 0;
