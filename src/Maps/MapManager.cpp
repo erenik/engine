@@ -541,11 +541,11 @@ bool MapManager::AddEntity(Entity * entity, bool registerForGraphics, bool regis
 	return true;
 }
 /// Adds target entity to the map, registering it for physics and graphics
-bool MapManager::AddEntities(List<Entity *> entities)
+bool MapManager::AddEntities(List<Entity *> entities, bool registerForGraphics, bool registerForPhysics)
 {
 	for (int i = 0; i < entities.Size(); ++i)
 	{
-		AddEntity(entities[i]);
+		AddEntity(entities[i], registerForGraphics, registerForPhysics);
 	}
 	return true;
 }

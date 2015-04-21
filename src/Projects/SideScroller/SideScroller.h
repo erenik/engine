@@ -4,38 +4,33 @@
 /// For the Karl-Emil SpaceShooter project, mainly 2014-2015/
 
 #include "AppStates/AppState.h"
-#include "Entity/EntityManager.h"
-#include "Physics/PhysicsManager.h"
-#include "Physics/Messages/PhysicsMessage.h"
-#include "Model/Model.h"
+
 #include "Texture.h"
 #include "TextureManager.h"
+
+#include "Model/Model.h"
 #include "Model/ModelManager.h"
-#include "StateManager.h"
+
 #include "UI/UserInterface.h"
+
 #include "String/StringUtil.h"
-#include "Message/MessageManager.h"
-#include "Message/Message.h"
+
 #include "File/File.h"
 #include "File/FileUtil.h"
+
 #include "Maps/MapManager.h"
+
 #include "Script/Script.h"
 #include "Script/ScriptManager.h"
+
 #include "Audio/AudioManager.h"
 #include "Audio/Messages/AudioMessage.h"
-#include "Graphics/GraphicsManager.h"
-#include "Graphics/Messages/GMSet.h"
-#include "Graphics/Messages/GMUI.h"
-#include "Graphics/Messages/GMCamera.h"
-#include "Graphics/Messages/GMParticles.h"
-#include "Graphics/Messages/GMSetEntity.h"
-#include "Graphics/Camera/Camera.h"
+
 #include "Game/SpaceShooter/SpaceShooterCD.h"
 #include "Game/SpaceShooter/SpaceShooterCR.h"
 #include "Game/GameVariableManager.h"
 
 #include "Application/Application.h"
-#include "StateManager.h"
 
 #include "Random/Random.h"
 
@@ -43,28 +38,43 @@
 
 #include "Window/AppWindow.h"
 
-#include "Viewport.h"
-
 #include "Entity/EntityProperty.h"
+#include "Entity/EntityManager.h"
 
 #include "File/SaveFile.h"
 
+#include "Graphics/Messages/GMAnimate.h"
 #include "Graphics/Messages/GMRenderPass.h"
+#include "Graphics/GraphicsProperty.h"
+#include "Graphics/Animation/AnimationSet.h"
+#include "Graphics/GraphicsManager.h"
+#include "Graphics/Messages/GMSet.h"
+#include "Graphics/Messages/GMUI.h"
+#include "Graphics/Messages/GMCamera.h"
+#include "Graphics/Messages/GMParticles.h"
+#include "Graphics/Messages/GMSetEntity.h"
+#include "Graphics/Camera/Camera.h"
 
 #include "Render/RenderPass.h"
 
 #include "Message/MathMessage.h"
+#include "Message/MessageManager.h"
+#include "Message/Message.h"
 
 #include "Input/InputManager.h"
 
 #include "Physics/Integrators/FirstPersonIntegrator.h"
 #include "Physics/CollisionDetectors/FirstPersonCD.h"
 #include "Physics/CollisionResolvers/FirstPersonCR.h"
-
-#include "Graphics/Messages/GMAnimate.h"
+#include "Physics/PhysicsManager.h"
+#include "Physics/Messages/PhysicsMessage.h"
 
 #include "OS/OSUtil.h"
 #include "OS/Sleep.h"
+
+#include "Sphere.h"
+#include "StateManager.h"
+#include "Viewport.h"
 
 #include "Luchador.h"
 
@@ -105,6 +115,8 @@ public:
 	/// Main processing function, using provided time since last frame.
 	void Process(int timeInMs);
 	void ProcessLevel(int timeInMs); // o.o
+	/// Returns true if it should create more. So use with while(CreateNextLevelParts());
+	bool CreateNextLevelParts();
 	/// Function when leaving this state, providing a pointer to the next StateMan.
 	void OnExit(AppState * nextState);
 
@@ -216,8 +228,10 @@ private:
 //	void Cleanup();
 	void OnPauseStateUpdated();
 
+	/// Place da man!
+	void PacoTaco();
 	/// Creates the 5 meter wide 'breather'-block. Increments the level-length.
-	void BreatherBlock();
+	void BreatherBlock(float width = 5.f);
 	/// Creates a 20+ meters level-part.
 	void AddLevelPart();
 	void CleanupOldBlocks();

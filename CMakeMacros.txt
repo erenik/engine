@@ -268,8 +268,8 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 				libvorbisfile_static_MTd.lib
 			)
 			set(RELEASE_LIBS ${RELEASE_LIBS} 
-				libvorbis_static_release.lib
-				libvorbisfile_static_release.lib
+				libvorbis_static.lib
+				libvorbisfile_static.lib
 			)
 		ENDIF(VORBIS)
 
@@ -300,10 +300,10 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 		#		opencv_video248d.lib
 			)
 			set(RELEASE_LIBS ${RELEASE_LIBS} 
-				opencv_core248.lib 
-				opencv_highgui248.lib 
-				opencv_imgproc248.lib 
-				opencv_video248.lib
+				opencv_core2410.lib 
+				opencv_highgui2410.lib 
+#				opencv_imgproc248.lib 
+#				opencv_video248.lib
 			)
 		ENDIF(OPENCV)
 

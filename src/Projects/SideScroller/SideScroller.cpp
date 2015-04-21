@@ -41,12 +41,16 @@ bool showLevelStats = false;
 /// Main level camera, following player.
 Camera * levelCamera = NULL;
 Entity * playerEntity = NULL;
+Entity * paco = NULL, * taco = NULL;
 // Dynamically created ones, to be cleaned up as we go.
 Entities levelEntities;
 
 int munny = 0;
 int attempts = 0;
 float distance = 0;
+
+/// Toggled when skipping parts. Defaulf true. When false no block should be created as to speed up processing.
+bool blockCreationEnabled = true; 
 
 enum 
 {
@@ -115,6 +119,31 @@ void RegisterStates()
 	StateMan.QueueState(sideScroller);
 }
 
+Model * sprite = NULL;
+
+void SetAlphaBlending(Entity * entity)
+{
+	if (!entity->graphics)
+	{
+		entity->graphics = new GraphicsProperty(entity);
+	}
+	entity->graphics->flags |= RenderFlag::ALPHA_ENTITY;
+}
+
+/// Creates a new sprite featuring alpha-blending (as should be). Using the default sprite.obj, which is a 1x1 XY plane centered on 0,0 (0.5 in each direction).
+Entity * CreateSprite(String textureSource)
+{
+	Entity * entity = EntityMan.CreateEntity("Sprite", sprite, TexMan.GetTexture(textureSource));
+	SetAlphaBlending(entity);
+	return entity;
+}
+
+void SetOnGround(Entity * entity)
+{
+	/// Default ground-level.
+	entity->position.y = entity->scale.y * 0.5f + 0.5f;
+}
+
 SideScroller::SideScroller()
 {
 	levelCamera = NULL;
@@ -123,6 +152,7 @@ SideScroller::SideScroller()
 	playingFieldPadding = 1.f;
 	gearCategory = 0;
 	previousState = state = 0;
+	sprite = ModelMan.GetModel("sprite.obj");
 }
 
 SideScroller::~SideScroller()
@@ -237,7 +267,37 @@ void SideScroller::Process(int timeInMs)
 
 void SideScroller::ProcessLevel(int timeInMs)
 {
-	if (playerEntity->position.x > levelLength - 25.f)
+	// Extend arena as necessary.
+	while(CreateNextLevelParts())
+		;
+
+}
+
+/// Creates the next level parts.
+bool SideScroller::CreateNextLevelParts()
+{
+	float distToEdge = distToEdge = levelLength - playerEntity->position.x;
+	/// If skipping level, just move past some blocks without actually creating them (since creation/destruction lags).
+	if (distToEdge < -55)
+	{
+		blockCreationEnabled = false;
+	}
+	else if (distToEdge < 25.f)
+	{
+		blockCreationEnabled = true;
+	}
+	else
+		return false;
+
+	/// If approaching a 1k mark.
+	int modK = (int)levelLength % 1000;
+	if (modK > 975)
+	{
+		// 20 breather-blocks.
+		BreatherBlock();
+		PacoTaco();
+	}
+	else 
 	{
 		// Create moar!
 		BreatherBlock();
@@ -245,6 +305,8 @@ void SideScroller::ProcessLevel(int timeInMs)
 		// Clean-up past level-parts
 		CleanupOldBlocks();
 	}
+//	distToEdge = levelLength - playerEntity->position.x;
+	return true;
 }
 
 /// Function when leaving this state, providing a pointer to the next StateMan.
@@ -337,7 +399,7 @@ void SideScroller::ProcessMessage(Message * message)
 			int found = msg.Find("//");
 			if (found > 0)
 				msg = msg.Part(0,found);
-			if (msg == "NewGame")
+			if (msg == "NewGame" || msg == "Retry")
 				NewGame();
 			else if (msg == "Jump")
 				Jump();
@@ -346,6 +408,16 @@ void SideScroller::ProcessMessage(Message * message)
 			else if (msg == "OnReloadUI")
 			{
 				UpdateUI();
+			}
+			else if (msg == "NextK")
+			{
+				// Move the player to the next K mark (1k, 2k, etc.)
+				// Move player up in the air a bit, as needed.
+				int posKX = playerEntity->position.x;
+				posKX /= 1000;
+				QueuePhysics(new PMSetEntity(playerEntity, PT_POSITION_X, posKX * 1000 + 1000));
+				QueuePhysics(new PMSetEntity(playerEntity, PT_POSITION_Y, 3.f));
+				QueuePhysics(new PMSetEntity(playerEntity, PT_VELOCITY, Vector3f()));
 			}
 			else if (msg.Contains("AutoSave"))
 			{
@@ -632,8 +704,8 @@ void SideScroller::NewGame()
 	// Create sky - again. All entities are cleared on new game.
 	sky = EntityMan.CreateEntity("Sky", ModelMan.GetModel("sprite.obj"), TexMan.GetTexture("0x44AAFF"));
 	sky->position = Vector3f(500, 20, -2);
-	sky->SetScale(Vector3f(2000, 40, 1));
-	MapMan.AddEntity(sky);
+	sky->SetScale(Vector3f(200000, 40, 1));
+	MapMan.AddEntity(sky, true, false);
 
 	// Create player.
 	NewPlayer();
@@ -661,6 +733,9 @@ void SideScroller::NewGame()
 	munny = 0;
 	UpdatePlayerVelocity();
 	UpdateUI();
+
+	MesMan.QueueMessages("PopUI(GameOver)");
+	paco = taco = NULL;
 }
 
 void SideScroller::Jump()
@@ -668,10 +743,6 @@ void SideScroller::Jump()
 	Message jump("Jump");
 	playerEntity->ProcessMessage(&jump);
 }
-
-#include "Graphics/GraphicsProperty.h"
-#include "Sphere.h"
-#include "Graphics/Animation/AnimationSet.h"
 
 /// o.o
 void SideScroller::NewPlayer()
@@ -699,6 +770,7 @@ void SideScroller::NewPlayer()
 	gp->animationSet = set;
 	gp->animStartTime = 0;
 	gp->currentAnimation = set->GetAnimation("Run");
+	
 	gp->flags = RenderFlag::ALPHA_ENTITY;
 
 
@@ -746,47 +818,52 @@ void Block(float size = -1) // Appends a block. Default size 2.
 	if (size <= 0)
 		size = blockSize;
 //	"0x55"
-	Entity * block = EntityMan.CreateEntity("LevelPart-block", ModelMan.GetModel("cube.obj"), TexMan.GetTexture(colorStr));
-	Vector3f position;
-	position.x += levelLength;
-	position.x += size * 0.5f;
+	if (blockCreationEnabled)
+	{
+		Entity * block = EntityMan.CreateEntity("LevelPart-block", ModelMan.GetModel("cube.obj"), TexMan.GetTexture(colorStr));
+		Vector3f position;
+		position.x += levelLength;
+		position.x += size * 0.5f;
 
-	/// Scale up ground-tiles.
-	float scaleY = 25.f;
-	position.y -= scaleY * 0.5f - 0.5f;
+		/// Scale up ground-tiles.
+		float scaleY = 25.f;
+		position.y -= scaleY * 0.5f - 0.5f;
 
-	block->position = position;
-	block->Scale(Vector3f(size, scaleY, 1));
-	PhysicsProperty * pp = block->physics = new PhysicsProperty();
-	pp->shapeType = ShapeType::AABB;
-	pp->collisionCategory = CC_ENVIRONMENT;
-	pp->collisionFilter = CC_PLAYER;
-	MapMan.AddEntity(block);
-	levelEntities.AddItem(block);
+		block->position = position;
+		block->Scale(Vector3f(size, scaleY, 1));
+		PhysicsProperty * pp = block->physics = new PhysicsProperty();
+		pp->shapeType = ShapeType::AABB;
+		pp->collisionCategory = CC_ENVIRONMENT;
+		pp->collisionFilter = CC_PLAYER;
+		MapMan.AddEntity(block);
+		levelEntities.AddItem(block);
+		blocksAdded.AddItem(block);
+	}
 	levelLength += size;
-	blocksAdded.AddItem(block);
 }
 
 void Hole(float holeSize) // Appends a hole, default side 2.
 {
-	/// Add graphical-only blocks where regular blocks are missing.
-	Entity * block = EntityMan.CreateEntity("LevelPart-block", ModelMan.GetModel("cube.obj"), TexMan.GetTexture(colorStr));
-	Vector3f position;
-	position.x += levelLength;
-	position.x += holeSize * 0.5f;
+	if (blockCreationEnabled)
+	{
+		/// Add graphical-only blocks where regular blocks are missing.
+		Entity * block = EntityMan.CreateEntity("LevelPart-block", ModelMan.GetModel("cube.obj"), TexMan.GetTexture(colorStr));
+		Vector3f position;
+		position.x += levelLength;
+		position.x += holeSize * 0.5f;
 
-	/// Scale up ground-tiles.
-	float scaleY = 25.f;
-	position.y -= scaleY * 0.5f - 0.5f; 
-	position.y -= 3.0f; // 2 down additionally to simulate hole.
+		/// Scale up ground-tiles.
+		float scaleY = 25.f;
+		position.y -= scaleY * 0.5f - 0.5f; 
+		position.y -= 3.0f; // 2 down additionally to simulate hole.
 
-	block->position = position;
-	block->Scale(Vector3f(holeSize, scaleY, 1));
+		block->position = position;
+		block->Scale(Vector3f(holeSize, scaleY, 1));
 
-	MapMan.AddEntity(block, true, false);
-	levelEntities.AddItem(block);
+		MapMan.AddEntity(block, true, false);
+		levelEntities.AddItem(block);
+	}
 //	blocksAdded.AddItem(block);
-
 	// Increment level-length.
 	levelLength += holeSize;
 }
@@ -813,19 +890,40 @@ void SideScroller::LinearHoles(int numHoles) // With a number of holes at varyin
 	}
 }
 
-void SideScroller::BreatherBlock()
+void SideScroller::BreatherBlock(float width /* = 5.f*/)
 {
-	Block(5.f);
-	/*
-	Entity * block = EntityMan.CreateEntity("Block", ModelMan.GetModel("cube.obj"), TexMan.GetTexture("0x55"));
-	PhysicsProperty * pp = block->physics = new PhysicsProperty();
-	pp->shapeType = ShapeType::AABB;
-	pp->collisionCategory = CC_ENVIRONMENT;
-	block->position.x = levelLength + breatherBlockSize * 0.5f;
-	block->SetScale(Vector3f(breatherBlockSize, 1, 1));
-	levelLength += breatherBlockSize;
-	MapMan.AddEntity(block);
-	*/
+	Block(width);
+}
+
+void SideScroller::PacoTaco()
+{
+	if (!paco)
+	{
+		paco = CreateSprite("img/Outdoor - Mexican town/Taco_guy.png");
+		Texture * tex = paco->diffuseMap;
+		paco->position.z = -0.01f;
+		paco->SetScale(Vector3f(tex->size * 0.005f, 1));
+		SetOnGround(paco);
+		
+		// Set scale accordingly.
+		taco = CreateSprite("img/Outdoor - Mexican town/Taco_stand.png");
+		taco->position.z = -0.02f;
+		taco->SetScale(Vector3f(taco->diffuseMap->size * 0.005f, 1));
+		SetOnGround(taco);
+		// Add to map.
+		MapMan.AddEntity(paco, true, false);
+		MapMan.AddEntity(taco, true, false);
+	}
+	// Set position if far away.
+	float dist = AbsoluteValue(paco->position.x - levelLength);
+	if (dist > 100)
+	{
+		// Get closest K.
+		int k = (levelLength + 500) / 1000;
+		float posX = k * 1000;
+		QueuePhysics(new PMSetEntity(paco, PT_POSITION_X, posX));
+		QueuePhysics(new PMSetEntity(taco, PT_POSITION_X, posX + 2.0f));
+	} 
 }
 
 
@@ -839,7 +937,7 @@ void AddPesos()
 		Entity * peso = EntityMan.CreateEntity("Peso", ModelMan.GetModel("sphere"), TexMan.GetTexture("0xFFFF00"));
 		peso->properties.Add(new PesoProperty(peso));
 		peso->Scale(0.2f);
-		peso->SetPosition(block->position + Vector3f(0,2,0));
+		peso->SetPosition(block->position + Vector3f(0, block->scale.y * 0.5f + 2,0));
 		PhysicsProperty * pp = peso->physics = new PhysicsProperty();
 		pp->noCollisionResolutions = true;
 		pp->collissionCallback = true;
@@ -851,7 +949,7 @@ void AddPesos()
 
 void LongCactus(Entity * aboveBlock)
 {
-	Entity * cactus = EntityMan.CreateEntity("Cactus", ModelMan.GetModel("sprite"), TexMan.GetTexture("img/Outdoor - Mexican town/Big_fucking_cactus.png"));
+	Entity * cactus = CreateSprite("img/Outdoor - Mexican town/Big_fucking_cactus.png");
 	float cactusSize = 1.5f + levelRand.Randf(1.f);
 	cactus->position.x = aboveBlock->position.x;
 	cactus->position.y = aboveBlock->position.y + aboveBlock->scale.y * 0.5f + cactusSize * 0.5f;
@@ -868,7 +966,7 @@ void ShortCactus(Entity * aboveBlock)
 	float initialSize = 0.5f + levelRand.Randf(0.5f);
 	for (int i = 0; i < cactii; ++i)
 	{
-		Entity * cactus = EntityMan.CreateEntity("Cactus", ModelMan.GetModel("sprite"), TexMan.GetTexture("img/Outdoor - Mexican town/Barrel_cactus.png"));
+		Entity * cactus = CreateSprite("img/Outdoor - Mexican town/Barrel_cactus.png");
 		cactus->position.x = aboveBlock->position.x;
 		float scale = (1.f - i * 0.2f) * initialSize;
 		cactus->scale = Vector3f(1,1,1) * scale; // scale down steadily

@@ -188,6 +188,7 @@ PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, int value)
 		case PT_COLLISION_CATEGORY:
 		case PT_COLLISION_FILTER:
 		case PT_SET_SCALE:
+		case PT_POSITION_X:
 			break;
 		default:
 			assert(false && "Mismatched target and value in PMSetEntity!");
@@ -404,7 +405,15 @@ void PMSetEntity::Process()
 				entity->RecalculateMatrix();
 				break;
 			case PT_POSITION_X:
-				entity->position[0] = fValue;
+				switch(dataType)
+				{
+					case DataType::FLOAT:
+						entity->position.x = fValue;
+						break;
+					case DataType::INTEGER:
+						entity->position.x = iValue;
+						break;						
+				}
 				entity->RecalculateMatrix();
 				break;
 			case PT_POSITION_Z:

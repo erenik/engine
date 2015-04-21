@@ -61,7 +61,7 @@ public:
 	/// Adds target entity to the map, registering it for physics and graphics
 	bool AddEntity(Entity * entity, bool registerForGraphics = true, bool registerForPhysics = true);
 	/// Adds target entity to the map, registering it for physics and graphics
-	bool AddEntities(List<Entity *> entities);
+	bool AddEntities(List<Entity *> entities, bool registerForGraphics = true, bool registerForPhysics = true);
 
 	/** Adds an event ~ */
 	bool AddEvent(Script * eventScript);
