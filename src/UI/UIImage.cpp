@@ -15,7 +15,7 @@ UIImage::UIImage(String nameAndTextureSource)
 : UIElement()
 {
 	type = UIType::IMAGE;
-	this->textureSource = textureSource;
+	this->textureSource = nameAndTextureSource;
 	name = FilePath::GetFileName(textureSource);
 	color = Vector4f(1,1,1,1);
 
@@ -64,6 +64,7 @@ void UIImage::RenderSelf(GraphicsState & graphicsState)
 
 	/// Render our pictuuure.
 	FetchBindAndBufferizeTexture();
+	UpdateHighlightColor();
 
 	Shader * shader = ActiveShader();
 

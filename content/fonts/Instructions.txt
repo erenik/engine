@@ -1,0 +1,13 @@
+INSTRUCTIONS for GENERATING custom fONTS to the engine ^^
+-- Emil
+
+1. Install GIMP
+2. Add the directory with the LayerMerger script so that it becomes available in GIMP http://docs.gimp.org/en/install-script-fu.html
+3. Refresh available scripts [Filters -> Script-Fu -> Refresh Scripts]
+4. New menu should now be available 'Script-Fu' with 'Layer Magic' -> 'Layer Merger'
+5. 'Create new image' and 'Flatten layers' should probably be checked. 'Save to file' may be unwise as you want to verify the results first.
+6. Click somewhere in the resulting image, as the image is usually not graphically updated straight away (may seem like an empty image at first).
+
+More info: http://docs.gimp.org/en/gimp-scripting.html
+
+

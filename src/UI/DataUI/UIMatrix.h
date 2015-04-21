@@ -18,6 +18,13 @@ public:
 	/// Stuff.
 	virtual void SetText(Text newText, bool force = false);
 
+	/// Adds x children. Subclassed in e.g. Matrix-class in order to setup contents properly.
+	virtual bool SetContents(List<UIElement*> children);
+	/// Re-arranges internal elements based on pre-configured or newly set options. Does not create or delete anything.
+	virtual void FormatContents();
+	/// Call before deleting or creating contents.
+	virtual void DeleteContents();
+
 	/// Sets new column and row sizes
 	virtual void SetSize(Vector2i newSize);
 	/// Sets data!

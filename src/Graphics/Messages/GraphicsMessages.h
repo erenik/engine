@@ -122,6 +122,7 @@ enum graphicsMessages {
 	GM_SCROLL_UI, // For lists
 	GM_ADD_UI, // For adding children.
 	GM_REMOVE_UI,
+	GM_SET_UI_CONTENTS, // Setting custom UI element contents in e.g. Matrices (Tables)
 
 	// For stack-operations
 	GM_PUSH_UI,

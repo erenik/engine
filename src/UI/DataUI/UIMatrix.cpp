@@ -28,25 +28,28 @@ UIMatrix::~UIMatrix()
 /// Splitting up the rendering.
 void UIMatrix::RenderSelf(GraphicsState & graphicsState)
 {
-	if (rebuildMatrix)
+
+/*	if (rebuildMatrix)
 	{
 		CreateMatrix();
 		rebuildMatrix = false;
 	}
-
+	*/
+	/// TODO: Add re-formatting code in-case the size changes? Or place that in an over-loaded resize-function instead?
 	UIElement::RenderSelf(graphicsState);
 }
 
 
 void UIMatrix::CreateChildren()
 {
+	/*
 	/// Create a label
 	label = new UILabel();
 	label->text = name;
 	label->sizeRatioY = 0.1f;
 	label->alignmentY = 0.95f;
 	AddChild(label);
-
+*/
 	/// Booyakacha!
 	CreateMatrix();
 }
@@ -103,6 +106,65 @@ void UIMatrix::SetText(Text newText, bool force)
 {
 	Graphics.QueueMessage(new GMSetUIs(label->name, GMUI::TEXT, newText));
 }
+
+/// Adds x children. Subclassed in e.g. Matrix-class in order to setup contents properly.
+bool UIMatrix::SetContents(List<UIElement*> children)
+{
+	DeleteContents();	
+	matrixElements = children;	
+	FormatContents();
+	return true;
+}
+
+/// Re-arranges internal elements based on pre-configured or newly set options. Does not create or delete anything.
+void UIMatrix::FormatContents()
+{
+	float labelHeightY = 0.0f;
+//	if (label)
+//		labelHeightY = label->sizeRatioY;
+	float elementWidth = 1.0f / columns;
+	float elementHeight = (1.0f - labelHeightY) / rows;
+
+	/// Create 'em.
+	int formattedElements = 0;
+	for (int y = 0; y < rows; ++y)
+	{
+		for (int x = 0; x < columns; ++x)
+		{
+			UIElement * element = matrixElements[formattedElements];
+			// Remove it first, if already there.
+			RemoveChild(element);
+
+			/// Give new alignments and size-ratios based on the matrix cell size.
+			element->alignmentX = (x+0.5f) * elementWidth;
+			element->alignmentY = 1.0f - (y + 0.5f) * elementHeight - labelHeightY;
+			element->sizeRatioX = elementWidth;
+			element->sizeRatioY = elementHeight;
+			/// And add it!
+			AddChild(element);
+			// Make sure that the element is re-built next frame?
+			++formattedElements;
+			if (formattedElements >= matrixElements.Size())
+				goto done;
+		}
+	}
+done:
+	;
+}
+
+/// Call before deleting or creating contents.
+void UIMatrix::DeleteContents()
+{
+	/// If existing, delete matrix.
+	while(matrixElements.Size())
+	{
+		UIElement * element = matrixElements[0];
+		matrixElements.Remove(element);
+		bool success = this->Delete(element);
+		assert(success);
+	}	
+}
+
 
 /// Sets new column and row sizes. Only to be called when doing initial parse or from the render-thread!
 void UIMatrix::SetSize(Vector2i newSize)

@@ -7,6 +7,30 @@
 
 #include "Entity/EntityProperty.h"
 
+class Mask 
+{
+public:
+	Mask()
+		: name ("No name"), price(10000)
+	{
+	}
+	Mask(String name, String textureSource, int price, int speedBonus = 0, Vector2i jumpBonus = Vector2i())
+		: name(name), textureSource(textureSource), price(price), speedBonus(speedBonus), jumpBonus(jumpBonus)
+	{
+	}
+	String name;
+	String textureSource;
+	int price;
+	bool purchased;
+
+	// A bonus of sorts to passive running speed acceleration.
+	int speedBonus;
+	// A bonus in X- and Y-velocity on jumps?
+	Vector2i jumpBonus;
+//	int additionalJumps;
+};
+extern List<Mask> masks;
+
 class Entity;
 struct Collision;
 class Message;

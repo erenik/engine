@@ -306,4 +306,15 @@ private:
 };
 
 
+/// Used to set contents in e.g. a UIMatrix element.
+class GMSetUIContents : public GMUI 
+{
+public:
+	GMSetUIContents(List<UIElement*> elements, String uiName);
+	void Process();
+private:
+	String uiName;
+	List<UIElement*> elements;
+};
+
 #endif

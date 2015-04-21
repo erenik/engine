@@ -137,7 +137,10 @@ public:
 	void UpdateMunny();
 	void UpdateAttempts();
 	void UpdateDistance();
-	void UpdateGearList();
+	void UpdateShopMasks();
+	void UpdateSelectedMask(String maskName);
+
+//	void UpdateGearList();
 	/// Update UI parts
 //	void UpdateUIPlayerHP();
 //	void UpdateUIPlayerShield();
@@ -187,7 +190,7 @@ public:
 		EDITING_OPTIONS,
 		NEW_GAME,
 		IN_LOBBY,
-		IN_WORKSHOP,
+		IN_SHOP,
 		BUYING_GEAR,
 		LOAD_SAVES,
 		PLAYING_LEVEL,

@@ -264,8 +264,58 @@ bool UIElement::FetchBindAndBufferizeTexture()
 	if (texture != NULL && texture->glid == -1){
 		TexMan.BufferizeTexture(texture);
 	}
+	if (!texture)
+		return false;
 	return true;
 }
+
+/// Recalculates and sets highlighting factors used when rendering the UI (dedicated shader settings)
+void UIElement::UpdateHighlightColor()
+{
+	Vector3f baseColor = color;
+	// If greyed out: activatable but not currently selectable/toggleable, grey it out.
+	if (this->IsDisabled()){
+		baseColor *= 0.5f;
+	}
+	/// Set color if highlighted!
+	Vector3f highlightColor(1,1,1);
+	if (this->state & UIState::ACTIVE && highlightOnActive)
+		highlightColor *= 0.4f;
+	else if (this->state & UIState::HOVER && highlightOnHover){
+	//	std::cout<<"\nHoverElement: "<<name;
+		highlightColor *= 0.3f;
+	}
+	else {
+		highlightColor *= 0.f;
+		// Default color
+	}
+	if (this->toggled){
+		float toggledFloat = 0.30f;
+		highlightColor += Vector3f(toggledFloat, toggledFloat, toggledFloat);
+	}
+	// Duller colors for temporarily disabled buttons.
+	if (this->IsDisabled())
+	{
+		highlightColor *= 0.75f;
+	}
+	Shader * shader = ActiveShader();
+
+//	assert(activeShader->uniformPrimaryColorVec4 != -1);
+	if (shader->uniformPrimaryColorVec4 == -1)
+	{
+		std::cout<<"\nUI shader lacking primary color?";
+	}
+	glUniform4f(shader->uniformPrimaryColorVec4,
+		baseColor[0], baseColor[1], baseColor[2], color[3]);
+	if (shader->uniformHighlightColorVec4 == -1)
+	{
+		std::cout<<"\nUI shader lacking highlight color?";
+	}
+	//assert(activeShader->uniformHighlightColorVec4 != -1);
+	glUniform4f(shader->uniformHighlightColorVec4,
+		highlightColor[0], highlightColor[1], highlightColor[2], 0.0f);
+}
+
 
 void UIElement::DeleteElement(int targetID){
 	UIElement* target = NULL;
@@ -1184,6 +1234,17 @@ const UIElement * UIElement::GetChild(int index){
 	return children[index];
 }
 
+/// Adds x children. Subclassed in e.g. Matrix-class in order to setup contents properly.
+bool UIElement::AddChildren(List<UIElement*> children)
+{
+	// No options? Just add children.. even tho it will look like crap.
+	for (int i = 0; i < children.Size(); ++i)
+	{
+		AddChild(children[i]);
+	}
+	return true;
+}
+
 // Structurization
 bool UIElement::AddChild(UIElement *in_child)
 {
@@ -1207,6 +1268,17 @@ bool UIElement::AddChild(UIElement *in_child)
 	in_child->parent = this;
 	in_child->ui = ui;
 	return true;
+}
+
+/// Attempts to remove said child from this element. Returns false if it was not a valid child. (thus action unnecessary).
+bool UIElement::RemoveChild(UIElement * element)
+{
+	if (children.RemoveItemUnsorted(element))
+	{
+		element->parent = NULL;
+		return true;
+	}
+	return false;
 }
 
 
@@ -1447,50 +1519,10 @@ void UIElement::RenderSelf(GraphicsState & graphicsState)
 
 	// Check for valid buffer before rendering,
 	// Also check for valid texture...!
-	if (vboBuffer && validTexture){
-
-		Vector3f baseColor = color;
-		// If greyed out: activatable but not currently selectable/toggleable, grey it out.
-		if (this->IsDisabled()){
-			baseColor *= 0.5f;
-		}
-		/// Set color if highlighted!
-		Vector3f highlightColor(1,1,1);
-		if (this->state & UIState::ACTIVE && highlightOnActive)
-			highlightColor *= 0.4f;
-		else if (this->state & UIState::HOVER && highlightOnHover){
-		//	std::cout<<"\nHoverElement: "<<name;
-			highlightColor *= 0.3f;
-		}
-		else {
-			highlightColor *= 0.f;
-			// Default color
-		}
-		if (this->toggled){
-			float toggledFloat = 0.30f;
-			highlightColor += Vector3f(toggledFloat, toggledFloat, toggledFloat);
-		}
-		// Duller colors for temporarily disabled buttons.
-		if (this->IsDisabled())
-		{
-			highlightColor *= 0.75f;
-		}
+	if (vboBuffer && validTexture)
+	{
 		Shader * shader = ActiveShader();
-
-	//	assert(activeShader->uniformPrimaryColorVec4 != -1);
-		if (shader->uniformPrimaryColorVec4 == -1)
-		{
-			std::cout<<"\nUI shader lacking primary color?";
-		}
-		glUniform4f(shader->uniformPrimaryColorVec4,
-			baseColor[0], baseColor[1], baseColor[2], color[3]);
-		if (shader->uniformHighlightColorVec4 == -1)
-		{
-			std::cout<<"\nUI shader lacking highlight color?";
-		}
-		//assert(activeShader->uniformHighlightColorVec4 != -1);
-		glUniform4f(shader->uniformHighlightColorVec4,
-			highlightColor[0], highlightColor[1], highlightColor[2], 0.0f);
+		UpdateHighlightColor();
 
 		// Set material?	-	Not needed for UI!?
 		// Just set a light-parameter to be multiplied to the texture?

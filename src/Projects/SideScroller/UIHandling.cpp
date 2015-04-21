@@ -7,6 +7,7 @@
 #include "Application/Application.h"
 
 #include "UI/UIList.h"
+#include "UI/UIImage.h"
 
 void LoadOptions();
 
@@ -23,15 +24,17 @@ void SideScroller::UpdateUI()
 	// Reveal specifics?
 	switch(state)
 	{
+		case PLAYING_LEVEL:	toPush = "gui/HUD.gui"; break;
+		case IN_SHOP: toPush = "gui/Shop.gui"; break;
+
+			// old below?
 		case MAIN_MENU: toPush = "gui/MainMenu.gui"; break;
 		case EDITING_OPTIONS: toPush = "gui/Options.gui"; break;
 		case NEW_GAME: toPush = "gui/NewGame.gui"; break;
 		case LOAD_SAVES: toPush = "gui/LoadScreen.gui"; break;
 		case GAME_OVER: 
-		case PLAYING_LEVEL:	toPush = "gui/HUD.gui"; break;
 		case LEVEL_CLEARED: toPush = "gui/LevelStats.gui"; break;
 		case IN_LOBBY: toPush = "gui/Lobby.gui"; break;
-		case IN_WORKSHOP: toPush = "gui/Workshop.gui"; break;
 		case BUYING_GEAR: toPush = "gui/Shop.gui"; break;
 		case SHOWING_LEVEL_STATS: toPush = "gui/LevelStats.gui"; break;
 		default:
@@ -58,8 +61,11 @@ void SideScroller::UpdateUI()
 			else
 				MesMan.ProcessMessage("PopUI(gui/InGameMenu.gui)");
 			break;
+		case IN_SHOP:
+			UpdateShopMasks();
+			break;
 		case LOAD_SAVES: OpenLoadScreen(); break;
-		case BUYING_GEAR: UpdateGearList(); break;
+	//	case BUYING_GEAR: UpdateGearList(); break;
 		case SHOWING_LEVEL_STATS: ShowLevelStats(); break;
 	};
 }
@@ -79,6 +85,51 @@ void SideScroller::UpdateDistance()
 	{
 		QueueGraphics(new GMSetUIs("DistanceTraveled", GMUI::TEXT, String((int)distance)));
 		lastDistance = (int)distance;
+	}
+}
+
+List<Mask> masks;
+
+void SideScroller::UpdateShopMasks()
+{
+	// Default masks.
+	if (masks.Size() == 0)
+	{
+		masks.AddItem(Mask("Grey", "img/Masks/Gray_mask.png", 100, 1));
+		masks.AddItem(Mask("Red", "img/Masks/Red_mask.png", 500, 2));
+		masks.AddItem(Mask("Yellow", "img/Masks/Yellow_mask.png", 1000, 3));
+	}
+
+	/// Create buttons/image previews of all masks in the grid and send them to the grid!
+	List<UIElement*> maskPreviewButtons;
+	for (int i = 0; i < masks.Size(); ++i)
+	{	
+		Mask & mask = masks[i];
+		UIImage * image = new UIImage(mask.textureSource);
+		image->hoverable = true;
+		image->onHover = "ShopMaskHover: "+mask.name;
+		image->highlightOnHover = true;
+		maskPreviewButtons.AddItem(image);
+	}
+	QueueGraphics(new GMSetUIContents(maskPreviewButtons, "MaskMatrix"));
+}
+
+void SideScroller::UpdateSelectedMask(String maskName)
+{
+	static String lastMask;
+	if (maskName == lastMask)
+		return;
+	lastMask = maskName;
+
+	for (int i = 0; i < masks.Size(); ++i)
+	{
+		Mask & mask = masks[i];
+		if (mask.name != maskName)
+			continue;
+		/// Update UI!
+		QueueGraphics(new GMSetUIs("MaskName", GMUI::TEXT, mask.name));
+		QueueGraphics(new GMSetUIs("MaskPreview", GMUI::TEXTURE_SOURCE, mask.textureSource));
+		QueueGraphics(new GMSetUIs("Price", GMUI::TEXT, String(mask.price)));
 	}
 }
 
@@ -160,10 +211,6 @@ void SideScroller::OpenLoadScreen()
 	{
 		GraphicsMan.QueueMessage(new GMSetHoverUI("Back"));
 	}
-}
-
-void SideScroller::UpdateGearList()
-{
 }
 
 

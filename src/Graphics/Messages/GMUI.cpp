@@ -933,3 +933,32 @@ void GMRemoveUI::Process(){
 		return;
 	DeleteUI(element, ui);
 }
+
+GMSetUIContents::GMSetUIContents(List<UIElement*> elements, String uiName)
+: GMUI(GM_SET_UI_CONTENTS), elements(elements), uiName(uiName)
+{
+}
+void GMSetUIContents::Process()
+{
+	GetUI();
+	if (!ui){
+		std::cout<<"\nGMPopUI: Invalid UI.";
+		return;
+	}
+	UIElement * e = NULL;
+	e = ui->GetElementByName(uiName);
+	// Fetch by source if possible.
+	if (!e)
+		e = ui->GetElementBySource(uiName);
+	if (!e){
+		std::cout<<"\nGMPopUI: Invalid UIElement: "<<uiName;
+		return;
+	}
+	switch(e->type)
+	{
+		case UIType::MATRIX:
+			((UIMatrix*)e)->SetContents(elements);
+			break;
+	}
+}
+

@@ -346,12 +346,7 @@ void SideScroller::ProcessMessage(Message * message)
 		case MessageType::INTEGER_MESSAGE:
 		{
 			IntegerMessage * im = (IntegerMessage*) message;
-			if (msg == "SetGearCategory")
-			{
-				gearCategory = im->value;
-				UpdateGearList();
-			}
-			else if (msg == "SetDifficulty")
+			if (msg == "SetDifficulty")
 			{
 				difficulty->iValue = im->value;
 			}
@@ -409,8 +404,21 @@ void SideScroller::ProcessMessage(Message * message)
 			{
 				UpdateUI();
 			}
+			else if (msg == "Shop")
+			{
+				MesMan.QueueMessages("PushUI(gui/Shop.gui");
+				state = IN_SHOP;
+				UpdateUI();
+			}
+			else if (msg.StartsWith("ShopMaskHover:"))
+			{
+				String maskName = msg - "ShopMaskHover: ";
+				UpdateSelectedMask(maskName);
+			}
 			else if (msg == "NextK")
 			{
+				if (state != PLAYING_LEVEL)
+					return;
 				// Move the player to the next K mark (1k, 2k, etc.)
 				// Move player up in the air a bit, as needed.
 				int posKX = playerEntity->position.x;
@@ -748,7 +756,7 @@ void SideScroller::Jump()
 void SideScroller::NewPlayer()
 {
 	// Add the player!
-	playerEntity = EntityMan.CreateEntity("Player", ModelMan.GetModel("sprite.obj"), TexMan.GetTexture("0xFF"));
+	playerEntity = CreateSprite("0xFF");
 	playerEntity->position.y = 3.f;
 //	playerEntity->Scale(0.5f);
 	// Set up physics.
@@ -766,7 +774,7 @@ void SideScroller::NewPlayer()
 
 	// Set up sprite-animation o.o'
 	AnimationSet * set = AnimationMan.GetAnimationSet("Luchador");
-	GraphicsProperty * gp = playerEntity->graphics = new GraphicsProperty(playerEntity);
+	GraphicsProperty * gp = playerEntity->graphics; 
 	gp->animationSet = set;
 	gp->animStartTime = 0;
 	gp->currentAnimation = set->GetAnimation("Run");
@@ -983,8 +991,6 @@ void ShortCactus(Entity * aboveBlock)
 		cactus->hasRescaled = true;
 		cactus->RecalculateMatrix();
 		// depth-sort when rendering.
-		GraphicsProperty * gp = cactus->graphics = new GraphicsProperty(cactus);
-		gp->flags = RenderFlag::ALPHA_ENTITY;
 		MapMan.AddEntity(cactus, true, false);
 	}
 }

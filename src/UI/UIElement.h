@@ -78,6 +78,8 @@ public:
 	/// Sets text, queueing recalculation of the rendered variant. If not force, will ignore for active ui input elements.
 	virtual void SetText(Text newText, bool force = false);
 
+	/// Recalculates and sets highlighting factors used when rendering the UI (dedicated shader settings)
+	void UpdateHighlightColor();
 	/** Fetches texture, assuming the textureSource has been set already. Binds and bufferizes, so call only from graphics thread. 
 		Returns false if no texture could be find, bind or bufferized. */
 	virtual bool FetchBindAndBufferizeTexture();
@@ -228,10 +230,14 @@ public:
 
     /// Returns false if it could nottur.
     bool AddToParent(String parentName, UIElement * child);
+	void SetParent(UIElement *in_parent);
 
 	// Adjust hierarchy
+	/// Adds x children. Subclassed in e.g. Matrix-class in order to setup contents properly.
+	virtual bool AddChildren(List<UIElement*> children);
 	virtual bool AddChild(UIElement* child); // Sets child pointer to child UI element, NULL if non
-	void SetParent(UIElement *in_parent);
+	/// Attempts to remove said child from this element. Returns false if it was not a valid child (thus action unnecessary). Does NOT delete anything!
+	bool RemoveChild(UIElement * element);
 
 	/// Checks if the target element is somehow a part of this list. If it is, the function will return the index of the child it is or belongs to. Otherwise -1 will be returned.
 	int BelongsToChildIndex(UIElement * ele);
