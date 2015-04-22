@@ -13,10 +13,16 @@ public:
 	Mask()
 		: name ("No name"), price(10000)
 	{
+		Nullify();
 	}
 	Mask(String name, String textureSource, int price, int speedBonus = 0, Vector2i jumpBonus = Vector2i())
 		: name(name), textureSource(textureSource), price(price), speedBonus(speedBonus), jumpBonus(jumpBonus)
 	{
+		Nullify();
+	}
+	void Nullify()
+	{
+		purchased = false;	
 	}
 	String name;
 	String textureSource;

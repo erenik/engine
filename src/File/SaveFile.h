@@ -50,14 +50,14 @@ public:
 	String lastError;
 	/// Header data, as loaded when calling OpenLoadFileStream.
 	SaveFileHeader headerData;
-private:
+	/// Builds path to the save-file.
 	void BuildPath();
+private:
 
 	String gameName;
 	String saveName;
 	// Current file handle state.
 	bool open;
-	String path;
 };
 
 

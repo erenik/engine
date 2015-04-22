@@ -6,6 +6,7 @@
 #include "FileUtil.h"
 #include "Timer/Timer.h"
 #include <cstring>
+#include <ios>
 
 // o.o
 File::File()
@@ -51,7 +52,7 @@ bool File::LastModified(Time & lastModifiedTime)
 	}
 
 	FILETIME creationTime, lastAccessTime, lastWriteTime;
-	bool result = GetFileTime(fileHandle, &creationTime, &lastAccessTime, &lastWriteTime);
+	BOOL result = GetFileTime(fileHandle, &creationTime, &lastAccessTime, &lastWriteTime);
 	if (!result)
 	{
 		int error = GetLastError();
@@ -170,6 +171,36 @@ List<String> File::GetLines(String fromFile)
 	String fileContents = GetContents(fromFile);
 	List<String> lines = fileContents.GetLines();
 	return lines;
+}
+
+/// Reads through the entire file to the end, printing every character along the way in std::cout
+void File::PrintData()
+{
+	/// If not opened, open it.
+	if (!fileStream.is_open())
+	{
+		Open();
+	}
+	while(true)
+	{
+		char c;
+		int charSize = sizeof(char);
+		assert(charSize == 1);
+		fileStream.read((char*)&c, sizeof(char));
+		std::cout<<"\nchar "<<fileStream.tellg()<<": (int) "<<(int)c<<" (char) "<<c;
+		std::ios_base::iostate rdstate = fileStream.rdstate();
+		std::ios_base::iostate state = fileStream.rdstate();
+		if (fileStream.eof())
+		{
+			std::cout<<"\nAt end of file.";
+			break;
+		}
+		else if (fileStream.fail() || fileStream.bad())
+		{
+			std::cout<<"\nOther bad bit flagged.";
+			break;
+		}
+	}
 }
 
 void File::Close()

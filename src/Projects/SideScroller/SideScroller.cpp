@@ -45,8 +45,12 @@ Entity * paco = NULL, * taco = NULL;
 // Dynamically created ones, to be cleaned up as we go.
 Entities levelEntities;
 
+Mask * equippedMask = NULL;
 int munny = 0;
-int attempts = 0;
+GameVar * totalMunny = 0; // Total munny from all attempts. Summed up upon death? And auto-saved then?
+GameVar * purchasedMasks = 0;
+GameVar * equippedMaskName = 0;
+GameVar * attempts = 0;
 float distance = 0;
 
 /// Toggled when skipping parts. Defaulf true. When false no block should be created as to speed up processing.
@@ -153,6 +157,27 @@ SideScroller::SideScroller()
 	gearCategory = 0;
 	previousState = state = 0;
 	sprite = ModelMan.GetModel("sprite.obj");
+	
+	// Game/Save-vars
+	totalMunny = GameVars.CreateInt("TotalMunny", 0);
+	attempts = GameVars.CreateInt("Attempts", 0);
+	equippedMaskName = GameVars.CreateString("EquippedMaskName", "");
+	purchasedMasks = GameVars.CreateString("PurchasedMasks", "");
+
+	/// Load masks data.
+//	LoadMasks();
+	// Default masks.
+	if (masks.Size() == 0)
+	{
+		masks.AddItem(Mask("Grey", "img/Masks/Gray_mask.png", 100, 1));
+		masks.AddItem(Mask("Red", "img/Masks/Red_mask.png", 500, 2));
+		masks.AddItem(Mask("Yellow", "img/Masks/Yellow_mask.png", 1000, 3));
+	}
+
+
+	/// Load game if existing.
+	AutoLoad();
+
 }
 
 SideScroller::~SideScroller()
@@ -166,14 +191,8 @@ void SideScroller::OnEnter(AppState * previousState)
 	Input.ForceNavigateUI(true);
 
 	/// Create game variables.
-	currentLevel = GameVars.CreateInt("currentLevel", 1);
-	currentStage = GameVars.CreateInt("currentStage", 1);
-	playerName = GameVars.CreateString("playerName", "Cytine");
-	score = GameVars.CreateInt("score", 0);
-	money = GameVars.CreateInt("money", 0);
 	playTime = GameVars.CreateInt("playTime", 0);
 	gameStartDate = GameVars.CreateTime("gameStartDate");
-	difficulty = GameVars.CreateInt("difficulty", 1);
 
 	AppWindow * w = MainWindow();
 	assert(w);
@@ -185,11 +204,6 @@ void SideScroller::OnEnter(AppState * previousState)
 	RenderPass * rs = new RenderPass();
 	rs->type = RenderPass::RENDER_APP_STATE;
 	GraphicsMan.QueueMessage(new GMAddRenderPass(rs));
-
-	// Set folder to use for saves.
-	String homeFolder = OSUtil::GetHomeDirectory();
-	homeFolder.Replace('\\', '/');
-	SaveFile::saveFolder = homeFolder;
 
 	// Create.. the sparks! o.o
 	// New global sparks system.
@@ -418,6 +432,56 @@ void SideScroller::ProcessMessage(Message * message)
 				MesMan.QueueMessages("PushUI(gui/Shop.gui");
 				state = IN_SHOP;
 				UpdateUI();
+			}
+			else if (msg.StartsWith("ShopMask: "))
+			{
+				String maskName = msg.Tokenize(": ")[1];
+				for (int i = 0; i < masks.Size(); ++i)
+				{
+					Mask & mask = masks[i];
+					if (mask.name != maskName)
+						continue;
+					bool warrantsSaving = false;
+					bool warrantsUIUpdate = false;
+					if (mask.purchased)
+					{
+						// Equip.
+						if (equippedMask == &mask)
+						{
+							// Already equipped? Lucha!
+							MesMan.QueueMessages("NewGame");
+							return;
+						}
+						equippedMask = &mask;
+						equippedMaskName->strValue = mask.name;
+						warrantsSaving = true;
+						warrantsUIUpdate = true;
+					}
+					else 
+					{
+						// Try buy it.
+						if (mask.price < totalMunny->iValue)
+						{
+							mask.purchased = true;
+							purchasedMasks->strValue += ";" + mask.name;
+							totalMunny->iValue -= mask.price;
+							// Autosave?
+							warrantsSaving = true;
+							warrantsUIUpdate = true;
+						}
+						// Error sound of insufficient pesos?
+					}
+					// Autosave
+					if (warrantsSaving)
+						AutoSave();
+					// Update UI.
+					if (warrantsUIUpdate)
+					{
+						UpdateUI();
+						// Hover to same element as we were on earlier.
+						QueueGraphics(new GMSetHoverUI(message->element->name));
+					}
+				}
 			}
 			else if (msg == "NextK")
 			{
@@ -743,6 +807,7 @@ void SideScroller::NewGame()
 	UpdateUI();
 
 	MesMan.QueueMessages("PopUI(GameOver)");
+	MesMan.QueueMessages("PopUI(Shop)");
 	paco = taco = NULL;
 }
 
@@ -898,6 +963,35 @@ void SideScroller::LinearHoles(int numHoles) // With a number of holes at varyin
 	}
 }
 
+void SideScroller::DoubleHoles(int numHoles) // With a number of holes at verying positions, always 1 block in between. Max ... 3 holes? 2 + 1 + 2 + 1 + 2
+{
+	for (int i = 0; i < 10; ++i)
+	{
+		if (i%3 == 0 || numHoles < 0)
+			Block();
+		else
+		{
+			Hole(blockSize);
+			--numHoles;
+		}
+	}
+}
+	
+void SideScroller::TripleHoles(int numHoles) // With a number of holes at varying positions, always 1 block in between. Max 2 holes. 3 + 2 + 3
+{
+	for (int i = 0; i < 10; ++i)
+	{
+		if (i % 4 == 0 || numHoles < 0)
+			Block();
+		else
+		{
+			Hole(blockSize);
+			--numHoles;
+		}
+	}	
+}
+
+
 void SideScroller::BreatherBlock(float width /* = 5.f*/)
 {
 	Block(width);
@@ -1000,7 +1094,31 @@ void SideScroller::AddLevelPart()
 {
 	blocksAdded.Clear();
 	// Depending on level.. or possibly random chance.
-	LinearHoles(levelRand.Randi(6));
+	int k = levelLength / 1000;
+	float r = levelRand.Randf();
+	switch(k)
+	{
+		case 0: /// 0 to 1000 meters.
+			LinearHoles(levelRand.Randi(6)); break;
+		case 1: /// 1k to 2k - introduce the double-holes..!
+			if (r > 0.5f)
+				LinearHoles(levelRand.Randi(6));
+			else
+				DoubleHoles(levelRand.Randi(5));
+			break;
+		case 2: /// 2k to 3k - introduce triple-holes..!
+			if (r > 0.7f)
+				LinearHoles(levelRand.Randi(6));
+			else if (r > 0.5f)
+				DoubleHoles(levelRand.Randi(5));
+			else
+				TripleHoles(levelRand.Randi(4));
+			break;
+		case 3:
+			/// hmm..
+		default:
+			LinearHoles(levelRand.Randi(6));
+	}
 	// Add some pesos!
 	AddPesos();
 
@@ -1152,6 +1270,59 @@ void SideScroller::OpenInGameMenu()
 	UpdateUI();
 }
 
+/// Auto-saves.
+bool SideScroller::AutoSave()
+{
+	SaveFile save(Application::name, "AutoSave");
+	String customHeaderData = "None";
+	bool ok = save.OpenSaveFileStream(customHeaderData, true);
+	if (!ok)
+	{
+		assert(false);
+		return false;
+	}
+	std::fstream & stream = save.GetStream();	
+	ok = GameVars.WriteTo(stream);
+	if (ok)
+	{
+		std::cout<<"\nAuto-saved successfully.";
+		return true;
+	}
+	LogMain("Auto-save failed", ERROR);
+	return false;
+}
+
+bool SideScroller::AutoLoad()
+{
+	SaveFile save(Application::name, "AutoSave");
+	bool ok = save.OpenLoadFileStream();
+	if (!ok)
+	{
+		assert(false);
+		return false;
+	}
+	std::fstream & stream = save.GetStream();	
+	ok = GameVars.ReadFrom(stream);
+
+	/// Flags masks as purchased as based on the save-file.
+	List<String> maskNames = purchasedMasks->strValue.Tokenize(";");
+	for (int j = 0; j < maskNames.Size(); ++j)
+	{
+		for (int i = 0; i < masks.Size(); ++i)
+		{
+			Mask & mask = masks[i];
+			// Equipped?
+			if (equippedMaskName->strValue == mask.name)
+				equippedMask = &mask;
+			String name = maskNames[j];
+			if (mask.name == name)
+				mask.purchased = true;
+		}
+	}
+	return ok;
+}
+
+
 /// Saves current progress.
 bool SideScroller::SaveGame()
 {
@@ -1218,6 +1389,8 @@ void SideScroller::UpdatePlayerVelocity()
 	totalVec = Vector3f(1,0,0);
 	/// o.o
 	float playerSpeed = 15.f;
+	if (equippedMask)
+		playerSpeed += equippedMask->speedBonus;
 	totalVec *= playerSpeed;
 	bool moving = true;
 	// Set acceleration?

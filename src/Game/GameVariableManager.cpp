@@ -169,6 +169,8 @@ bool GameVariableManager::ReadFrom(std::fstream & stream)
 		return false;
 	int num;
 	// Readn umber of vars.
+	int sizeofInt = sizeof(int);
+	assert(sizeofInt == 4);
 	stream.read((char*)&num, sizeof(int));
 	for (int i = 0; i < num; ++i)
 	{

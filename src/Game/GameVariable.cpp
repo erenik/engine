@@ -39,6 +39,18 @@ String GameVariable::ToString()
 	return String("Bad");
 }
 
+/// Converts to int as needed.
+int GameVariable::GetInt()
+{
+	switch(type)
+	{
+		case INTEGER: return iValue;
+		case INT64: return i64Value;
+	}
+	return -1;
+}
+
+
 bool GameVariable::WriteTo(std::fstream & stream)
 {
 	int version = 0;

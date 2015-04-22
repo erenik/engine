@@ -33,6 +33,8 @@ public:
 	int Type() const { return type; };
 	void PrintType();
 	String ToString();
+	/// Converts to int as needed.
+	int GetInt();
 	bool WriteTo(std::fstream & stream);
 	bool ReadFrom(std::fstream & stream);
 	// Data.

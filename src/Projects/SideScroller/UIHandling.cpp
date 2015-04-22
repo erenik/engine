@@ -14,10 +14,6 @@ void LoadOptions();
 
 extern bool inGameMenuOpened;
 
-extern int munny;
-extern int attempts;
-extern float distance;
-
 /// Updates ui depending on state.
 void SideScroller::UpdateUI()
 {
@@ -77,7 +73,7 @@ void SideScroller::UpdateMunny()
 }
 void SideScroller::UpdateAttempts()
 {
-	QueueGraphics(new GMSetUIs("Attempts", GMUI::TEXT, String(attempts)));
+	QueueGraphics(new GMSetUIs("Attempts", GMUI::TEXT, String(attempts->iValue)));
 }
 void SideScroller::UpdateDistance()
 {
@@ -93,20 +89,14 @@ List<Mask> masks;
 
 void SideScroller::UpdateShopMasks()
 {
-	// Default masks.
-	if (masks.Size() == 0)
-	{
-		masks.AddItem(Mask("Grey", "img/Masks/Gray_mask.png", 100, 1));
-		masks.AddItem(Mask("Red", "img/Masks/Red_mask.png", 500, 2));
-		masks.AddItem(Mask("Yellow", "img/Masks/Yellow_mask.png", 1000, 3));
-	}
+	int masksOwned = 0;
 
 	/// Create buttons/image previews of all masks in the grid and send them to the grid!
 	List<UIElement*> maskPreviewButtons;
 	for (int i = 0; i < masks.Size(); ++i)
 	{	
 		Mask & mask = masks[i];
-		UIButton * maskButton = new UIButton("ShopMask: mask.name");
+		UIButton * maskButton = new UIButton("ShopMask: "+mask.name);
 		maskButton->textureSource = "0x55AA";
 		maskButton->onHover = "ShopMaskHover: "+mask.name;
 		maskButton->text = "";
@@ -115,18 +105,50 @@ void SideScroller::UpdateShopMasks()
 //		image->hoverable = true;
 //		image->highlightOnHover = true;
 
+		if (mask.purchased)
+		{
+			if (equippedMask == &mask)
+			{
+				// Highlight background of the image of equipped one.
+				maskButton->textureSource = "0x99AA";
+			}
+			else 
+			{
+				// Highlight background of the image of owned ones. NO.
+//				maskButton->textureSource = "0x77AA";		
+			}
+			masksOwned++;
+		}
+		else if (mask.price <= totalMunny->iValue)
+		{
+			// Slightly greyed-out - possible purchases
+			image->color.z = 0.75f;
+		}
+		/// Grey out masks that have not yet been purchased!
+		else 
+		{
+//			float greyed = 0.8f, alpha = 1.f;
+			float greyed = 1.f, alpha = 0.5;
+			image->color = Vector4f(greyed, greyed, greyed, alpha);
+
+		}
+
 		maskButton->AddChild(image);
 		maskPreviewButtons.AddItem(maskButton);
 	}
 	QueueGraphics(new GMSetUIContents(maskPreviewButtons, "MaskMatrix"));
+
+	/// Update player munny and owned masks.
+	QueueGraphics(new GMSetUIs("ShopPesos", GMUI::TEXT, String(totalMunny->iValue)));
+	QueueGraphics(new GMSetUIs("MasksOwned", GMUI::TEXT, String(masksOwned)+"/"+String(masks.Size())));
 }
 
 void SideScroller::UpdateSelectedMask(String maskName)
 {
-	static String lastMask;
-	if (maskName == lastMask)
-		return;
-	lastMask = maskName;
+//	static String lastMask;
+//	if (maskName == lastMask)
+//		return;
+//	lastMask = maskName;
 
 	for (int i = 0; i < masks.Size(); ++i)
 	{
@@ -136,7 +158,42 @@ void SideScroller::UpdateSelectedMask(String maskName)
 		/// Update UI!
 		QueueGraphics(new GMSetUIs("MaskName", GMUI::TEXT, mask.name));
 		QueueGraphics(new GMSetUIs("MaskPreview", GMUI::TEXTURE_SOURCE, mask.textureSource));
-		QueueGraphics(new GMSetUIs("Price", GMUI::TEXT, String(mask.price)));
+		QueueGraphics(new GMSetUIs("lPrice", GMUI::TEXT, "Price"));
+		// Affordable?
+		// If price is too high..
+		if (mask.purchased)
+		{
+			if (&mask == equippedMask)
+			{
+				QueueGraphics(new GMSetUIs("lPrice", GMUI::TEXT, "Lucha!"));
+				QueueGraphics(new GMSetUIs("Price", GMUI::TEXT, "Venga!"));
+				QueueGraphics(new GMSetUIv4f("Price", GMUI::TEXT_COLOR, Vector4f(1,1,1,1)));
+				QueueGraphics(new GMSetUIs("clPrice", GMUI::TEXTURE_SOURCE, "0xFFFF77AA"));	
+			}
+			else 
+			{
+				QueueGraphics(new GMSetUIs("Price", GMUI::TEXT, "Owned ("+String(mask.price)+")"));						
+				QueueGraphics(new GMSetUIv4f("Price", GMUI::TEXT_COLOR, Vector4f(1,1,1,1)));
+				QueueGraphics(new GMSetUIs("clPrice", GMUI::TEXTURE_SOURCE, "0xAA77"));
+			}
+		}
+		else 
+		{
+			// Display price.
+			QueueGraphics(new GMSetUIs("Price", GMUI::TEXT, String(mask.price)));
+			if (mask.price > totalMunny->GetInt())
+			{
+				float nonRed = 0.1f;
+				QueueGraphics(new GMSetUIv4f("Price", GMUI::TEXT_COLOR, Vector4f(1,nonRed,nonRed,1)));
+				QueueGraphics(new GMSetUIs("clPrice", GMUI::TEXTURE_SOURCE, "0x4477"));
+			}
+			else 
+			{
+				QueueGraphics(new GMSetUIv4f("Price", GMUI::TEXT_COLOR, Vector4f(1,1,1,1)));
+				// Affordable?
+				QueueGraphics(new GMSetUIs("clPrice", GMUI::TEXTURE_SOURCE, "0xAAFFAA77"));
+			}
+		}
 	}
 }
 

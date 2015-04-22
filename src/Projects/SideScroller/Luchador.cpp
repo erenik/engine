@@ -38,8 +38,12 @@ void LuchadorProperty::Process(int timeInMs)
 	{
 		// Deaded.
 		QueuePhysics(new PMSetEntity(owner, PT_PHYSICS_TYPE, PhysicsType::STATIC));
-		++attempts;
+		attempts->iValue += 1;
 		sideScroller->UpdateAttempts();
+		// Add up total munny.
+		totalMunny->iValue += munny;
+		// Auto-save?
+		sideScroller->AutoSave();
 		sleeping = true;
 		QueueGraphics(new GMPlayAnimation("Idle", owner));
 		ScriptMan.PlayScript("scripts/OnDeath.txt");

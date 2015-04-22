@@ -24,6 +24,11 @@ SaveFileHeader header;
 
 void SaveFile::BuildPath()
 {
+	// Set folder to use for saves.
+	String homeFolder = OSUtil::GetHomeDirectory();
+	homeFolder.Replace('\\', '/');
+	SaveFile::saveFolder = homeFolder;
+
 	// Ensure folder exists.
 	String folderPath = String(saveFolder) + "/" + gameName + "/";
 	EnsureFoldersExistForPath(folderPath);

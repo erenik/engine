@@ -27,7 +27,7 @@ public:
 	/// Constructor
 	File(String path);
 	/// Frees file handles.
-	~File();
+	virtual ~File();
 	// Resets file handles etc.
 	void Nullify();
 
@@ -56,6 +56,9 @@ public:
 	/// Static function to fetch all lines of text from a given file by name. 
 	static List<String> GetLines(String fromFile);
 	
+	/// Reads through the entire file to the end, printing every character along the way in std::cout
+	void PrintData();
+
 	/// Contains the LastModified time when we last accessed this file.
 	Time editTimeWhenReadLast;
 

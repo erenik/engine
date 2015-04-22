@@ -88,13 +88,19 @@
 
 class GameVariable;
 
+extern Mask * equippedMask;
+
 /// Time in current level, from 0 when starting. Measured in milliseconds.
 extern Time levelTime;
 // extern int64 nowMs;
 extern int timeElapsedMs;
 
 extern float distance;
-extern int attempts;
+extern int munny; // munny gained in current level.
+extern GameVar * totalMunny; // total munny
+extern GameVar * purchasedMasks; // Semi-colon separated string with all purchased masks. Possibly change to ID-based system later on.
+extern GameVar * equippedMaskName; // Name of it.
+extern GameVar * attempts; // Integer.
 extern Time now;
 
 /// Particle system for sparks/explosion-ish effects.
@@ -175,7 +181,11 @@ public:
 	void OpenLoadScreen();
 	// Bring up the in-game menu.
 	void OpenInGameMenu();
-	
+
+	/// Auto-saves.
+	bool AutoSave();
+	bool AutoLoad();
+
 	
 	/// Saves current progress.
 	bool SaveGame();
@@ -246,6 +256,8 @@ private:
 	/// Various parts o.o
 	void FlatPart(); // Just flat, 10 pieces.
 	void LinearHoles(int numHoles); // With a number of holes at varying positions, always with 1 block in between. Max 5 holes.
+	void DoubleHoles(int numHoles); // With a number of holes at varying positions, always 1 block in between. Max ... 3 holes? 2 + 1 + 2 + 1 + 2
+	void TripleHoles(int numHoles); // With a number of holes at varying positions, always 1 block in between. Max 2 holes. 3 + 2 + 3
 	void AddDBLPart(); // Difficulty-By-Length, randomly generated. Used in initial test
 
 	/// For display.
