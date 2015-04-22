@@ -235,7 +235,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			return 0;
 			break;
 		case SIZE_RESTORED: // The window has been resized, but neither the SIZE_MINIMIZED nor SIZE_MAXIMIZED value applies.
-			std::cout<<"RESTORE";
+//			std::cout<<"RESTORE";
 			window->visible = true;
 			break;
 		default:
@@ -245,7 +245,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		DWORD height = (lParam >> 16);
 
 		window->clientAreaSize = Vector2i(width, height);
-		std::cout<<"\nWindow "<<window->name<<" new size: "<<width<<"x"<<height;
+//		std::cout<<"\nWindow "<<window->name<<" new size: "<<width<<"x"<<height;
 		// Recalculate OS window size.
 		window->osWindowSize = window->OSWindowSize();
 

@@ -8,6 +8,7 @@
 
 #include "UI/UIList.h"
 #include "UI/UIImage.h"
+#include "UI/UIButtons.h"
 
 void LoadOptions();
 
@@ -105,11 +106,17 @@ void SideScroller::UpdateShopMasks()
 	for (int i = 0; i < masks.Size(); ++i)
 	{	
 		Mask & mask = masks[i];
+		UIButton * maskButton = new UIButton("ShopMask: mask.name");
+		maskButton->textureSource = "0x55AA";
+		maskButton->onHover = "ShopMaskHover: "+mask.name;
+		maskButton->text = "";
+
 		UIImage * image = new UIImage(mask.textureSource);
-		image->hoverable = true;
-		image->onHover = "ShopMaskHover: "+mask.name;
-		image->highlightOnHover = true;
-		maskPreviewButtons.AddItem(image);
+//		image->hoverable = true;
+//		image->highlightOnHover = true;
+
+		maskButton->AddChild(image);
+		maskPreviewButtons.AddItem(maskButton);
 	}
 	QueueGraphics(new GMSetUIContents(maskPreviewButtons, "MaskMatrix"));
 }

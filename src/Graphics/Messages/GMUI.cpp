@@ -639,8 +639,11 @@ void GMSetUIs::Process()
 			break;
 		}
 		case GMUI::TEXTURE_SOURCE:
+			if (e->textureSource == text)
+				break;
 			e->textureSource = text;
-			e->texture = 0;
+			e->texture = NULL; // Force it to be re-fetched!
+			e->FetchBindAndBufferizeTexture();
 			break;
 		case GMUI::STRING_INPUT_TEXT:
 		{

@@ -74,8 +74,11 @@ public:
 	const List operator - (const T &itemToRemove) const;
 */
 
+	/// Query before using set/gets
+	bool ValidPosition(Vector2i position);
 	T At(int x, int y = 0, int z = 0);
 	T At(Vector3i pos);
+	T GetItem(Vector2i atPosition);
 	void Set(Vector3i pos, T toT);
 
 	/// Puts item into element at target location.
@@ -290,6 +293,25 @@ T Matrix<T>::At(Vector3i pos)
 {	
 	int index = pos[2] * size[0] * size[1] + pos[1] * size[0] + pos[0];
 	return arr[index];
+}
+
+template <class T>
+T Matrix<T>::GetItem(Vector2i atPosition)
+{
+	int index = atPosition.y * size.x + atPosition.x;
+	return arr[index];
+}
+
+/// Query before using set/gets
+template <class T>
+bool Matrix<T>::ValidPosition(Vector2i position)
+{
+	int index = position.y * size.x + position.x;	
+	if (index >= arrLength)
+		return false;
+	if (index < 0)
+		return false;
+	return true;
 }
 
 template <class T>

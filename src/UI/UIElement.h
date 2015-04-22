@@ -83,6 +83,8 @@ public:
 	/** Fetches texture, assuming the textureSource has been set already. Binds and bufferizes, so call only from graphics thread. 
 		Returns false if no texture could be find, bind or bufferized. */
 	virtual bool FetchBindAndBufferizeTexture();
+	/// Called after FetchBindAndBufferizeTexture is called successfully. (may also be called other times). Only called from the graphics thread.
+	virtual void OnTextureUpdated();
 
 	/// Public variablessss
 	String name;

@@ -358,7 +358,7 @@ void UserInterface::Bufferize()
 	assert(this->isGeometryCreated);
 	root->Bufferize();
 	isBuffered = true;
-	std::cout<<"\nUI "<<this->source<<" bufferized.";
+//	std::cout<<"\nUI "<<this->source<<" bufferized.";
 }
 
 /// Releases GL resources

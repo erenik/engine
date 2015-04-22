@@ -337,6 +337,15 @@ void SideScroller::ProcessMessage(Message * message)
 	String msg = message->msg;
 	switch(message->type)
 	{
+		case MessageType::ON_UI_ELEMENT_HOVER:
+		{
+			if (msg.StartsWith("ShopMaskHover:"))
+			{
+				String maskName = msg - "ShopMaskHover: ";
+				UpdateSelectedMask(maskName);
+			}
+			break;
+		}
 		case MessageType::SET_STRING:
 		{
 			SetStringMessage * strMes = (SetStringMessage *) message;
@@ -409,11 +418,6 @@ void SideScroller::ProcessMessage(Message * message)
 				MesMan.QueueMessages("PushUI(gui/Shop.gui");
 				state = IN_SHOP;
 				UpdateUI();
-			}
-			else if (msg.StartsWith("ShopMaskHover:"))
-			{
-				String maskName = msg - "ShopMaskHover: ";
-				UpdateSelectedMask(maskName);
 			}
 			else if (msg == "NextK")
 			{
@@ -613,10 +617,6 @@ void SideScroller::ProcessMessage(Message * message)
 			}
 			else if (msg == "ClearCenterText")
 				GraphicsMan.QueueMessage(new GMSetUIs("CenterText", GMUI::TEXT, Text()));
-			else if (msg == "OnReloadUI")
-			{
-				UpdateUI();
-			}
 			else if (msg == "ResetCamera")
 			{
 				ResetCamera();

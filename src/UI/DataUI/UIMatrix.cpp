@@ -9,6 +9,7 @@
 #include "Graphics/Messages/GMUI.h"
 #include "Message/MessageManager.h"
 #include "Message/Message.h"
+#include "Matrix/Matrix.h"
 
 UIMatrix::UIMatrix(String name)
 {
@@ -125,6 +126,10 @@ void UIMatrix::FormatContents()
 	float elementWidth = 1.0f / columns;
 	float elementHeight = (1.0f - labelHeightY) / rows;
 
+	Matrix<UIElement*> layoutMatrix; // Going downward in Y for each step.
+	layoutMatrix.SetDefaultValue(NULL);
+	layoutMatrix.SetSize(Vector2i(columns, rows));
+
 	/// Create 'em.
 	int formattedElements = 0;
 	for (int y = 0; y < rows; ++y)
@@ -132,6 +137,7 @@ void UIMatrix::FormatContents()
 		for (int x = 0; x < columns; ++x)
 		{
 			UIElement * element = matrixElements[formattedElements];
+			layoutMatrix.Set(Vector2i(x, y), element);
 			// Remove it first, if already there.
 			RemoveChild(element);
 
@@ -145,10 +151,30 @@ void UIMatrix::FormatContents()
 			// Make sure that the element is re-built next frame?
 			++formattedElements;
 			if (formattedElements >= matrixElements.Size())
-				goto done;
+				goto initialFormattingDone;
 		}
 	}
-done:
+initialFormattingDone:
+	/// After filling the matrix, set neighbour-elements accordingly.
+	for (int i = 0; i < layoutMatrix.Elements(); ++i)
+	{
+		UIElement * element = layoutMatrix.Element(i);
+		if (!element)
+			continue;
+		Vector2i matrixPos = layoutMatrix.GetLocationOf(element);
+		/// Fetch right-left first.
+		Vector2i leftPos = matrixPos + Vector2i(-1,0);
+		if (layoutMatrix.ValidPosition(leftPos))
+		{
+			UIElement * left = layoutMatrix.GetItem(leftPos);
+			if (left)
+			{
+				element->leftNeighbourName = left->name;
+				left->rightNeighbourName = element->name;
+			}
+		}
+	}
+
 	;
 }
 

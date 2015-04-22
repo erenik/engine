@@ -52,13 +52,11 @@ void UIImage::RenderSelf(GraphicsState & graphicsState)
 	if (!isGeometryCreated)
 	{
 		AdjustToParent();
-		CreateGeometry();
+		ResizeGeometry();
 	}
 	if (!isBuffered)
 	{
 		// Re-adjust to parent.
-		AdjustToParent();
-		ResizeGeometry();
 		Bufferize();
 	}
 
@@ -97,7 +95,6 @@ void UIImage::RenderSelf(GraphicsState & graphicsState)
 
 	/// Load in ze model matrix
 	glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, graphicsState.modelMatrixF.getPointer());
-
     CheckGLError("GLError glUniformMatrix in UIElement");
 	// Render normally
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -108,98 +105,10 @@ void UIImage::RenderSelf(GraphicsState & graphicsState)
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	checkGLError();
 
-
 /*
-
 	/// Set mip-map filtering to closest
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	/// NEW CODE
-
-	/// Save old shader!
-	Shader * oldShader = ActiveShader();
-
-	// Enable textures if it wasn't already
-	glEnable(GL_TEXTURE_2D);
-	/// Set fill mode!
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-	/// Rebuffer the texture as needed.
-	if (!texture)
-	{
-		texture = TexMan.GetTexture(textureSource);
-		if (!texture)
-			return;
-	}
-	if (texture->glid == -1)
-		texture->Bufferize();
-
-	ShadeMan.SetActiveShader(0);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glLoadMatrixf(graphicsState.projectionMatrixF.getPointer());
-	Matrix4f modelView = graphicsState.viewMatrixF * graphicsState.modelMatrixF;
-	glMatrixMode(GL_MODELVIEW);
-	glLoadMatrixf(modelView.getPointer());
-	glColor4f(color[0], color[1], color[2], color[3]);
-	glEnable(GL_BLEND);
-	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	/// Bind it again after switching program.
-	glBindTexture(GL_TEXTURE_2D, texture->glid);
-
-	/// Disable depth, test, since I'm lazy.
-	glDisable(GL_DEPTH_TEST);
-
-	float imageWidth = texture->width;
-	float imageHeight = texture->height;
-
-	float aspectRatio = imageWidth / imageHeight;
-	float videoLeft, videoRight, videoTop, videoBottom;
-
-	float uiElementAspectRatio = ((float)sizeX) / sizeY;
-
-	float centerX = (right + left) / 2.0f;
-	float centerY = (top + bottom) / 2.0f;
-	float halfSizeX = sizeX / 2.0f;
-	float halfSizeY = sizeY / 2.0f;
-
-	float ratioDiff = aspectRatio / uiElementAspectRatio;
-	if (ratioDiff > 1.0f)
-	{
-		halfSizeY /= ratioDiff;
-	}
-	else if (ratioDiff < 1.0f) {
-		halfSizeX *= ratioDiff;
-	}
-
-
-	/// Render a quad.
-	float x1 = centerX - halfSizeX,
-		x2 = centerX + halfSizeX,
-		y1 = centerY + halfSizeY,
-		y2 = centerY - halfSizeY;
-
-	float texCoordX1 = 0, texCoordX2 = 1,
-		texCoordY1 = 1, texCoordY2 = 0;
-
-	glBegin(GL_QUADS);
-		glTexCoord2f(texCoordX1, texCoordY1);
-		glVertex3f(x1, y1, 0);
-		glTexCoord2f(texCoordX2, texCoordY1);
-		glVertex3f(x2, y1, 0);
-		glTexCoord2f(texCoordX2, texCoordY2);
-		glVertex3f(x2, y2, 0);
-		glTexCoord2f(texCoordX1, texCoordY2);
-		glVertex3f(x1, y2, 0);
-	glEnd();
-
-	glUseProgram(oldShader->shaderProgram);
-
-
-	ShadeMan
-	shader = oldShader;
 	*/
 }
 
@@ -253,7 +162,16 @@ void UIImage::ResizeGeometry()
 	for (int i = 0; i < children.Size(); ++i){
 		children[i]->ResizeGeometry();
 	}
+	// Mark as not buffered to refresh it properly
+	isBuffered = false;
 }
+
+/// Called after FetchBindAndBufferizeTexture is called successfully. (may also be called other times).
+void UIImage::OnTextureUpdated()
+{
+	ResizeGeometry();
+}
+
 
 
 Texture * UIImage::GetTexture()

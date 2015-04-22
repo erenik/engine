@@ -15,6 +15,8 @@ public:
 	virtual void CreateGeometry();
 	virtual void ResizeGeometry();
 
+	/// Called after FetchBindAndBufferizeTexture is called successfully. (may also be called other times). Only called from the graphics thread.
+	virtual void OnTextureUpdated();
 
 	Texture * GetTexture();
 	String GetTextureSource();

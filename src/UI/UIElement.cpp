@@ -266,7 +266,13 @@ bool UIElement::FetchBindAndBufferizeTexture()
 	}
 	if (!texture)
 		return false;
+	OnTextureUpdated();
 	return true;
+}
+
+/// Called after FetchBindAndBufferizeTexture is called successfully. (may also be called other times).
+void UIElement::OnTextureUpdated()
+{
 }
 
 /// Recalculates and sets highlighting factors used when rendering the UI (dedicated shader settings)
@@ -385,8 +391,8 @@ UIElement* UIElement::Hover(int mouseX, int mouseY)
 	//	if(child != NULL)
 		return NULL;
 	}
-	if (onHover.Length())
-		MesMan.QueueMessages(onHover);
+	/// Process stuff that should happen when hovering on this element!
+	OnHover();
 
 	// Check axiomaticness
 	if (axiomatic){
@@ -1837,6 +1843,7 @@ void UIElement::AdjustToParent()
 	if (!parent)
 		return;
 	AdjustToWindow(parent->left, parent->right, parent->bottom, parent->top);
+
 }
 
 int UIElement::GetAlignment(String byName){
@@ -1897,6 +1904,8 @@ void UIElement::ResizeGeometry()
 	for (int i = 0; i < children.Size(); ++i){
 		children[i]->ResizeGeometry();
 	}
+	// Mark as not buffered to refresh it properly
+	isBuffered = false;
 }
 void UIElement::DeleteGeometry()
 {
