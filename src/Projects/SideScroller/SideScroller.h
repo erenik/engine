@@ -258,6 +258,9 @@ private:
 	void LinearHoles(int numHoles); // With a number of holes at varying positions, always with 1 block in between. Max 5 holes.
 	void DoubleHoles(int numHoles); // With a number of holes at varying positions, always 1 block in between. Max ... 3 holes? 2 + 1 + 2 + 1 + 2
 	void TripleHoles(int numHoles); // With a number of holes at varying positions, always 1 block in between. Max 2 holes. 3 + 2 + 3
+	/// A big hole, with a platform before it.
+	void BigHole(float holeSize);
+
 	void AddDBLPart(); // Difficulty-By-Length, randomly generated. Used in initial test
 
 	/// For display.

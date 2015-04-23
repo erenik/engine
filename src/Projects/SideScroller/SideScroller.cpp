@@ -42,8 +42,11 @@ bool showLevelStats = false;
 Camera * levelCamera = NULL;
 Entity * playerEntity = NULL;
 Entity * paco = NULL, * taco = NULL;
-// Dynamically created ones, to be cleaned up as we go.
+/** Dynamically created ones, to be cleaned up as we go.
+	Blocks, pesos, clouds all fit therein?
+*/
 Entities levelEntities;
+Entities pesos, clouds;
 
 Mask * equippedMask = NULL;
 int munny = 0;
@@ -109,6 +112,7 @@ public:
 		sleeping = true;
 		munny += value;
 		sideScroller->UpdateMunny();
+		pesos.RemoveItemUnsorted(owner); // Remove self from clean-up procedure.
 		MapMan.DeleteEntity(owner); // Remove self.
 	}
 	bool sleeping;
@@ -768,6 +772,8 @@ void SideScroller::NewGame()
 	{
 		MapMan.DeleteAllEntities();
 		levelEntities.Clear();
+		pesos.Clear();
+		clouds.Clear();
 		playerEntity = NULL;
 	}
 
@@ -886,7 +892,8 @@ List<Entity*> blocksAdded;
 float blockSize = 2.f;
 String colorStr = "0xb19d7c";
 
-void Block(float size = -1) // Appends a block. Default size 2.
+// Appends a block. Default size 2 (blockSize?).
+void Block(float size = 2) 
 {
 	if (size <= 0)
 		size = blockSize;
@@ -913,6 +920,76 @@ void Block(float size = -1) // Appends a block. Default size 2.
 		blocksAdded.AddItem(block);
 	}
 	levelLength += size;
+}
+
+/// Creates the framework for a custom block.
+Entity * RampUpBlock(float width = 2.f, float height = 2.f)
+{
+	String rampColor = "0x55FF";
+	Texture * rampTex = TexMan.GetTexture(rampColor);
+	Entity * block = EntityMan.CreateEntity("LevelPart-block", 
+		ModelMan.GetModel("rampUp1x1.obj"), 
+		rampTex);
+	Vector3f position;
+	position.x += levelLength;
+	position.x += width * 0.5f;
+
+	/// Scale up ground-tiles.
+	float scaleY = height;
+	position.y -= scaleY * 0.5f - 0.5f;
+
+	block->position = position;
+	block->position.y += height;
+	block->Scale(Vector3f(width, height, 1));
+	PhysicsProperty * pp = block->physics = new PhysicsProperty();
+	
+	pp->shapeType = ShapeType::MESH;
+	pp->friction = 0.f; // no friction.
+	pp->restitution = 1.f; // Maximum bounce.
+	
+	pp->collisionCategory = CC_ENVIRONMENT;
+	pp->collisionFilter = CC_PLAYER;
+	MapMan.AddEntity(block);
+	levelEntities.AddItem(block);
+//	blocksAdded.AddItem(block);
+	
+	// Add extension-block beneath it?
+	block = EntityMan.CreateEntity("UnderRamp",
+		ModelMan.GetModel("cube.obj"),
+		rampTex);
+	position.y -= 5.f;
+	block->SetScale(Vector3f(width, 5.f, 1.f));
+	MapMan.AddEntity(block, true, true);
+	levelEntities.AddItem(block);
+
+	return block;
+}
+
+/// Creates the framework for a custom block.
+Entity * CustomBlock(float width = 2.f, float height = 0.f)
+{
+	Entity * block = EntityMan.CreateEntity("LevelPart-block", 
+		ModelMan.GetModel("cube.obj"), 
+		TexMan.GetTexture(colorStr));
+	Vector3f position;
+	position.x += levelLength;
+	position.x += width * 0.5f;
+
+	/// Scale up ground-tiles.
+	float scaleY = 25.f;
+	position.y -= scaleY * 0.5f - 0.5f;
+
+	block->position = position;
+	block->position.y += height;
+	block->Scale(Vector3f(width, scaleY, 1));
+	PhysicsProperty * pp = block->physics = new PhysicsProperty();
+	pp->shapeType = ShapeType::AABB;
+	pp->collisionCategory = CC_ENVIRONMENT;
+	pp->collisionFilter = CC_PLAYER;
+	MapMan.AddEntity(block);
+	levelEntities.AddItem(block);
+	blocksAdded.AddItem(block);
+	return block;
 }
 
 void Hole(float holeSize) // Appends a hole, default side 2.
@@ -991,6 +1068,13 @@ void SideScroller::TripleHoles(int numHoles) // With a number of holes at varyin
 	}	
 }
 
+/// A big hole, with a platform before it.
+void SideScroller::BigHole(float holeSize)
+{
+	RampUpBlock(2, 1.f);
+//	CustomBlock(2, 2.f);
+	Hole(holeSize);
+}
 
 void SideScroller::BreatherBlock(float width /* = 5.f*/)
 {
@@ -1046,6 +1130,39 @@ void AddPesos()
 		pp->collisionCategory = CC_PESO;
 		pp->collisionFilter = CC_PLAYER;
 		MapMan.AddEntity(peso);
+
+		pesos.AddItem(peso); // Add so it is cleaned up later on as we go.
+	//	LogMain("Creating peso "+String(((int)peso)%1000)+" at "+String(peso->position.x), INFO);
+		assert(pesos.Duplicates() == 0);
+	}
+}
+
+void AddClouds()
+{
+	List<String> cloudTextures;
+	cloudTextures.Add("img/Clouds/Cloud1.png",
+		"img/Clouds/Cloud2.png");
+
+	// Add some random amount of clouds. Give them some speed.
+	int numC = levelRand.Randi(5);
+	for (int i = 0; i < numC; ++i)
+	{
+		int whichCloud = levelRand.Randi(cloudTextures.Size() + 1) % cloudTextures.Size();
+		Texture * tex = TexMan.GetTexture(cloudTextures[whichCloud]);
+		Entity * cloud = CreateSprite("0xFFAA");
+		cloud->diffuseMap = tex;
+		cloud->position.x = levelLength + levelRand.Randi(50.f);
+		cloud->position.y = levelRand.Randi(25) + 5.f;
+		cloud->position.z = -0.9f;
+		cloud->SetScale(Vector3f(tex->size, 1) * 0.02f);
+		/// No collisions! But some speed o-o
+		PhysicsProperty * pp = cloud->physics = new PhysicsProperty();
+		pp->collisionsEnabled = false;
+		pp->currentVelocity = pp->velocity = Vector3f(-(1 + levelRand.Randf()) * 0.2f,0,0);
+		pp->type = PhysicsType::KINEMATIC;
+
+		MapMan.AddEntity(cloud, true, true);
+		levelEntities.AddItem(cloud);
 	}
 }
 
@@ -1114,13 +1231,18 @@ void SideScroller::AddLevelPart()
 			else
 				TripleHoles(levelRand.Randi(4));
 			break;
-		case 3:
-			/// hmm..
+		case 3: /// 3k to 4k - Big holes!
+			if (r > 0.5f)
+				BigHole(levelRand.Randi(10.f));
+			else
+				LinearHoles(levelRand.Randi(4));
+			break;
 		default:
 			LinearHoles(levelRand.Randi(6));
 	}
 	// Add some pesos!
 	AddPesos();
+	AddClouds();
 
 	// Add some cacti.
 	for (int i = 0; i < blocksAdded.Size(); ++i)
@@ -1168,18 +1290,37 @@ void AddDBLPart() // Difficulty-By-Length, randomly generated. Used in initial t
 // Clean-up past level-parts
 void SideScroller::CleanupOldBlocks()
 {
+	assert(levelEntities.Duplicates() == 0);
+	assert(pesos.Duplicates() == 0);
+
+	float cleanupX = playerEntity->position.x - 20.f;
 	// Check all entities?
 	for (int i = 0; i < levelEntities.Size(); ++i)
 	{
 		Entity * entity = levelEntities[i];
-		if (entity->position.x < playerEntity->position.x - 20.f)
+		if (entity->position.x < cleanupX)
 		{
+			levelEntities.RemoveItem(entity);
 //			std::cout<<"\nDeleting "<<entity->name<<" at "<<entity->position;
 			MapMan.DeleteEntity(entity);
-			levelEntities.RemoveItem(entity);
 			--i;
 		}
 	}
+	
+	// Clean up pesos?
+	for (int i = 0; i < pesos.Size(); ++i)
+	{	
+		Entity * peso = pesos[i];
+		if (peso->position.x < cleanupX)
+		{
+			LogMain("Deleting peso "+String(((int)peso)%1000)+" at "+String(peso->position.x), INFO);		
+//			std::cout<<"\nDeleting peso "<<peso<<" at "<<peso->position.x;
+			pesos.RemoveItemUnsorted(peso);
+			MapMan.DeleteEntity(peso);
+			--i;
+		}
+	}
+
 }
 
 

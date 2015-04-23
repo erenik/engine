@@ -71,18 +71,24 @@ void PhysicsManager::ProcessPhysics()
 
 
 	/// Do one process for each 10 ms we've gotten stored up
-	while (totalTimeSinceLastUpdate > ZERO)
-	{
-		/// Get sub-time to calculate.
-		float dt = 0.010f * simulationSpeed;
-#define timeDiff    dt
-#define timeInSecondsSinceLastUpdate dt
-		if (totalTimeSinceLastUpdate < timeInSecondsSinceLastUpdate)
-			timeInSecondsSinceLastUpdate = totalTimeSinceLastUpdate;
-		totalTimeSinceLastUpdate -= timeInSecondsSinceLastUpdate;
+	/// Get sub-time to calculate.
+	float dt = 0.010f * simulationSpeed;
+	float timeDiff = dt;
+	float timeInSecondsSinceLastUpdate = dt;
 
+	static float timeRemainingFromLastIteration = 0.f;
+	/// Add time from last iteration that wasn't spent (since only evaluating one physics step at a time, 10 ms default).
+	float timeToIterate = totalTimeSinceLastUpdate + timeRemainingFromLastIteration;
+	float stepSize = 0.010f;
+	int steps = timeToIterate / stepSize;
+	float timeLeft = timeToIterate - steps * stepSize;
+	/// Store time we won't simulate now.
+	timeRemainingFromLastIteration = timeLeft;
+
+	for(int i = 0; i < steps; ++i)
+	{
 		/// Set current time in physics for this frame. This time is not the same as real time.
-		physicsNowMs += timeInSecondsSinceLastUpdate * 1000;
+		physicsNowMs += stepSize * 1000;
 			
 		/// Process estimators (if any) within all registered entities?
 		int milliseconds = dt * 1000.f;
@@ -106,7 +112,7 @@ void PhysicsManager::ProcessPhysics()
 		}
 
 		/// Awesome.
-		Integrate(timeInSecondsSinceLastUpdate);
+		Integrate(stepSize);
 		
 		/// Apply external constraints
 	//	ApplyContraints();		
