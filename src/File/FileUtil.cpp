@@ -208,12 +208,14 @@ int GetFilesInDirectory(String directory, List<String> & files)
 	DIR *dp;
 	struct dirent *dirp;
 	std::cout<<"\nDirectory: "<<directory;
-	if ((dp = opendir(directory.c_str())) == NULL){
+	if ((dp = opendir(directory.c_str())) == NULL)
+	{
 		std::cout<<"Error";
 		return 0;
 	}
 	struct stat fileInfo;
-	while((dirp = readdir(dp)) != NULL){
+	while((dirp = readdir(dp)) != NULL)
+	{
 		String file = dirp->d_name;
 		// Checks for dir, see http://linux.die.net/man/2/lstat
 		String fullPath = directory + "/" + dirp->d_name;
@@ -254,6 +256,9 @@ bool CreateFolder(String withPath)
 				break;
 		}
 	}
+#else 
+	
+	assert(false);
 #endif
 	return true;	
 }
@@ -293,7 +298,8 @@ bool CreateDirectoriesForPath(String dirPath, bool skipLast)
 
 
 /// Builds a path of folders so that the given path can be used. Returns false if it fails to meet the path-required.
-bool EnsureFoldersExistForPath(String path){
+bool EnsureFoldersExistForPath(String path)
+{
 	List<String> folders = path.Tokenize("/");
 	/// Remove the last one, assume it's a file at the end.... No.
 	// folders.RemoveIndex(folders.Size()-1);
@@ -334,7 +340,13 @@ bool EnsureFoldersExistForPath(String path){
 	}
 	return true;
 #elif defined LINUX | defined OSX
-	assert(false);
+	bool exists = PathExists(path);
+	if (!exists)
+	{
+		std::cout<<"\nPath "<<path<<" not valid. Creating it.";
+		exists = CreateDirectoriesForPath(path);
+	}
+	return exists;
 #endif
 }
 

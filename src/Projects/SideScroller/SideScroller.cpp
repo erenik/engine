@@ -1313,7 +1313,7 @@ void SideScroller::CleanupOldBlocks()
 		Entity * peso = pesos[i];
 		if (peso->position.x < cleanupX)
 		{
-			LogMain("Deleting peso "+String(((int)peso)%1000)+" at "+String(peso->position.x), INFO);		
+//			LogMain("Deleting peso "+String(((int)peso)%1000)+" at "+String(peso->position.x), INFO);		
 //			std::cout<<"\nDeleting peso "<<peso<<" at "<<peso->position.x;
 			pesos.RemoveItemUnsorted(peso);
 			MapMan.DeleteEntity(peso);
