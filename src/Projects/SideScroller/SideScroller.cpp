@@ -1439,7 +1439,7 @@ bool SideScroller::AutoLoad()
 	bool ok = save.OpenLoadFileStream();
 	if (!ok)
 	{
-		assert(false);
+		LogMain("Failed to open stream to AutoSave ("+save.Path()+"). New game it is.", INFO);
 		return false;
 	}
 	std::fstream & stream = save.GetStream();	

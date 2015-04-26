@@ -257,8 +257,13 @@ bool CreateFolder(String withPath)
 		}
 	}
 #else 
-	
-	assert(false);
+	int result = mkdir(withPath.c_str(), 0);
+	if (result != 0)
+	{
+		std::cout<<"\nUnable to create directory: "<<withPath;
+		return false;
+	}
+
 #endif
 	return true;	
 }

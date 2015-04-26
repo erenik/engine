@@ -36,6 +36,8 @@
 #include "GraphicsManager.h"
 #include "GraphicsProperty.h"
 
+#include "File/LogFile.h"
+
 //#include "Texture/Texture.h"
 //#include "Texture/TextureManager.h"
 
@@ -63,7 +65,7 @@ GraphicsManager * GraphicsManager::Instance()
 void GraphicsManager::Deallocate()
 {
     int waitTime = 0;
-    while(!graphicsManager->finished){
+    while(graphicsThread){
         if (waitTime > 1000){
             std::cout<<"\nWaiting for GraphicsThread to end before deallocating manager...";
             waitTime -= 1000;
@@ -214,7 +216,8 @@ GraphicsManager::~GraphicsManager()
 	shouldLive = false;
 	/// Wait for the thread in-case it's slow
 	int waits = 0;
-	while (!finished){
+	while (graphicsThread)
+	{
         SleepThread(10);
         ++waits;
         if (waits > 100){
@@ -444,6 +447,7 @@ void GraphicsManager::RepositionEntities()
 /// Called before the main rendering loop is begun, after initial GL allocations
 void GraphicsManager::OnBeginRendering()
 {
+	LogGraphics("OnBeginRendering - Entering main rendering/physics loop.", INFO);
     Graphics.enteringMainLoop = true;
 	Graphics.deferredRenderingBox->Bufferize();
 };

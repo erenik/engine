@@ -114,7 +114,6 @@ void * XProc()
     // Check which window it came from.
     XAnyEvent & anyEvent = (XAnyEvent&) event;
     int type = anyEvent.type;
-    std::cout<<"\nXEvent received: "<<type;
     Window xWindow = anyEvent.window;
     AppWindow * appWindow;
     List<AppWindow*> windows = WindowMan.GetWindows();
@@ -365,6 +364,7 @@ void * XProc()
         break;
     }
     default:
+        std::cout<<"\nXEvent received: "<<type;
         std::cout<<"\nNOTE: Undefined message received in XProc! typeID: "<<event.type;
         break;
     }

@@ -110,7 +110,7 @@ bool OpenAL::Deallocate()
 List<ALSource*> ALSource::sources;
 
 ALSource::ALSource()
-	: alSource(NULL), inUse(false)
+	: alSource(0), inUse(false)
 {
 };
 

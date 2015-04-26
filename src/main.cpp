@@ -75,9 +75,12 @@
 #elif defined USE_X11
     /// Render/Physics/Multimedia-thread.
     extern pthread_t graphicsThread;
-    // Global variables
-    extern pthread_t initializerThread;
 #endif // OSXx
+
+// Global variables
+extern THREAD_HANDLE initializerThread;
+extern THREAD_HANDLE deallocatorThread;
+
 
 // POSIX threads
 #if defined LINUX | defined OSX
@@ -420,28 +423,18 @@ int main(int argc, char **argv)
 #endif // TEST_RENDER
 #endif // LINUX
 */
-	/// Wait until the render thread has been set up properly?
-	int spams = 0;
-    while(!Graphics.enteringMainLoop){
-		++spams;
-		if (spams > 300){
-			std::cout<<"\nWaiting for GraphicsProcessor to enter main rendering-loop.";
-			spams = 0;
-			if (fatalGraphicsError > 0)
-			{
-				errorCode = fatalGraphicsError;
-				break;
-			}
-		}
-        SleepThread(10);
-    }
-    std::cout<<"\nEntering main wait-loop.";
+
+    LogMain("Entering main wait-loop.", INFO);
 	// Main wait loop. Does nothing but wait for the game to finish.
 	while(Application::live)
 	{
 		// Sleep a bit? No?
 		SleepThread(1000);
 	}
+    LogMain("Exiting main wait-loop.", INFO);
+
+	// Start the initializer thread
+//    CREATE_AND_START_THREAD(Deallocate, deallocatorThread);
 
 	/// Unlink windows processor from our game AppWindow, since we're not interested in more messages.
 	
@@ -457,22 +450,27 @@ int main(int argc, char **argv)
 
 	extern THREAD_HANDLE deallocatorThread;
 	while(deallocatorThread)
-		SleepThread(5);
+	{
+		SleepThread(500);
+		std::cout<<"\nWaiting for deallocatorThread to end...";
+    }
     /// Wait for initializer to complete!
     std::cout<<"\nWaiting for DeallocatorThread...";
 
 	timeTaken = clock() - timeStart;
 	std::cout<<"\nWaiting for deallocatorThread total time: "<<timeTaken / CLOCKS_PER_SEC<<" seconds";
 
-    std::cout<<"\nWaiting for state processing thread...";
-	extern THREAD_HANDLE stateProcessingThread;
+    extern THREAD_HANDLE stateProcessingThread;
 	while(stateProcessingThread)
-		SleepThread(5);
-
+	{	
+		SleepThread(500);
+		std::cout<<"\nWaiting for state processing thread...";
+	}
+	
     /// Wait until graphics thread has ended before going on to deallocation!
     while(graphicsThread)
     {
-        SleepThread(5);
+        SleepThread(500);
         std::cout<<"Waiting for graphics thread to end before deallocating managers.";
     }
 	std::cout<<"\nState processor thread ended.";

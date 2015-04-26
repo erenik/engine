@@ -21,6 +21,7 @@
 #include "Globals.h"
 
 #include "File/LogFile.h"
+#include "Application/Application.h"
 
 extern THREAD_HANDLE graphicsThread;
 
@@ -143,20 +144,23 @@ PROCESSOR_THREAD_START(GraphicsManager)
 	int attempts = 0;
 	while(result != GLEW_OK)
 	{
-		std::cout<<"\ncalling glewInit()...";
+		LogGraphics("Calling glewInit()...", INFO);
 		result = glewInit();
+
 		if (result != GLEW_OK)
 		{
 			/* Problem: glewInit failed, something is seriously wrong. */
 			LogGraphics("GL Error: "+String((char*)glewGetErrorString(result))+"\n", ERROR);
 			++attempts;
-			LogGraphics("\nWaiting and trying to initialize GLEW again.", INFO);
+			LogGraphics("Waiting and trying to initialize GLEW again.", INFO);
 			SleepThread(50);
 			if (attempts > 20)
 			{
 				LogGraphics("Fatal error: Could not initialize GLEW. (OpenGL Extension Wrangler)", ERROR);
 				fatalGraphicsError = true;
 				MesMan.QueueMessages("QuitApplication");
+				/// Mark application for destruction if not done so already?
+				Application::live = false;
 				/// Inform that the thread has ended.
 				RETURN_NULL(graphicsThread);
 			}

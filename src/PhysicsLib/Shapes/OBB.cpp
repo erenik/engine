@@ -146,14 +146,14 @@ void OBB::Recalculate(Entity * entity)
 	localSize = max - min;
 	localHalfSize = localSize * 0.5f;
 
-    corners[0] = Vector3f(min[0], min[1], min[2]);
-    corners[1] = Vector3f(max[0], min[1], min[2]);
-    corners[2] = Vector3f(max[0], max[1], min[2]);
-    corners[3] = Vector3f(min[0], max[1], min[2]);
-    corners[4] = Vector3f(min[0], min[1], max[2]);
-    corners[5] = Vector3f(max[0], min[1], max[2]);
-    corners[6] = Vector3f(max[0], max[1], max[2]);
-    corners[7] = Vector3f(min[0], max[1], max[2]);
+    corners[0] = Vector3f(min.x, min.y, min.z);
+    corners[1] = Vector3f(max.x, min.y, min.z);
+    corners[2] = Vector3f(max.x, max.y, min.z);
+    corners[3] = Vector3f(min.x, max.y, min.z);
+    corners[4] = Vector3f(min.x, min.y, max.z);
+    corners[5] = Vector3f(max.x, min.y, max.z);
+    corners[6] = Vector3f(max.x, max.y, max.z);
+    corners[7] = Vector3f(min.x, max.y, max.z);
 
 	localUp = entity->rotationMatrix.Product(Vector3f(0,1,0));
 	localForward = entity->rotationMatrix.Product(Vector3f(0,0,-1));

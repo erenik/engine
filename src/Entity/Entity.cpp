@@ -142,7 +142,9 @@ Entity::~Entity()
 	/// Delete safe stuff.
 	Delete();
 	/// Delete those things that should have been deleted elsewhere too.
+#ifndef SAFE_DELETE
 #define SAFE_DELETE(p) {if(p) delete p; p = NULL; }
+#endif
 	SAFE_DELETE(graphics);
 	SAFE_DELETE(physics);
 	SAFE_DELETE(scripts);
@@ -265,9 +267,10 @@ void Entity::RenderOld(GraphicsState & graphicsState)
 		glEnable(GL_TEXTURE_2D);
 		glColor4f(1,1,1,1);
 	}
-	else if (diffuseMap == NULL){
-		glBindTexture(GL_TEXTURE_2D, NULL);
-		graphicsState.currentTexture = NULL;
+	else if (diffuseMap == 0)
+	{
+		glBindTexture(GL_TEXTURE_2D, 0);
+		graphicsState.currentTexture = 0;
 	}
 
 	error = glGetError();
@@ -436,9 +439,9 @@ void Entity::SetRotation(ConstVec3fr rotation)
 	if (physics && physics->useQuaternions)
 	{
 		/// This assumes Euler angles, so construct an euler angle now!
-		Quaternion pitch(Vector3f(1,0,0), -rotation[0]), 
-			yaw(Vector3f(0,1,0), rotation[1]),
-			roll(Vector3f(0,0,1), rotation[2]);
+		Quaternion pitch(Vector3f(1,0,0), -rotation.x), 
+			yaw(Vector3f(0,1,0), rotation.y),
+			roll(Vector3f(0,0,1), rotation.z);
 		
 		Quaternion pitchYaw = pitch * yaw;
 		pitchYaw.Normalize();
@@ -630,9 +633,9 @@ Matrix4f Entity::RecalculateMatrix(ConstVec3fr position, ConstVec3fr rotation, C
 {
 	Matrix4d rotationMatrix;		
 
-	rotationMatrix.Multiply(Matrix4d::GetRotationMatrixX(rotation[0]));
-	rotationMatrix.Multiply(Matrix4d::GetRotationMatrixY(rotation[1]));
-	rotationMatrix.Multiply(Matrix4d::GetRotationMatrixZ(rotation[2]));
+	rotationMatrix.Multiply(Matrix4d::GetRotationMatrixX(rotation.x));
+	rotationMatrix.Multiply(Matrix4d::GetRotationMatrixY(rotation.y));
+	rotationMatrix.Multiply(Matrix4d::GetRotationMatrixZ(rotation.z));
 	Matrix4d matrix = Matrix4d();
 
 	matrix.Multiply((Matrix4d().Translate(Vector3d(position))));

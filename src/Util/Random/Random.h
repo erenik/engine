@@ -32,5 +32,5 @@ private:
 
 };
 
-#endif RANDOM_H
+#endif // RANDOM_H
 

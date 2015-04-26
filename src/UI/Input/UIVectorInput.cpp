@@ -140,7 +140,8 @@ void UIVectorInput::SetValue2f(Vector2f vec)
 
 void UIVectorInput::SetValue3f(const Vector3f & vec)
 {
-	for (int i = 0; i < inputs.Size() && i < 3; ++i){
+	for (int i = 0; i < inputs.Size() && i < 3; ++i)
+	{
 		String s = String::ToString(vec[i], maxDecimals);
 		inputs[i]->SetText(s);
 	}

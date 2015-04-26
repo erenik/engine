@@ -192,10 +192,9 @@ void AppState::Render(GraphicsState * graphgics)
 #include "../Initializer.h"
 #ifdef WINDOWS
 #include <process.h>
-extern uintptr_t deallocatorThread;
-#elif defined LINUX | defined OSX
-extern pthread_t deallocatorThread;
 #endif
+
+extern THREAD_HANDLE deallocatorThread;
 
 Exit::Exit()
 {
@@ -211,13 +210,8 @@ void Exit::OnEnter(AppState * previousState)
     }
 	assert(previousState != this);
 	std::cout<<"\nEntering Exit state. Calling Deallocate with thread.";
-#ifdef WINDOWS
-	// Call the deallocator thread!
-	assert(deallocatorThread == NULL);
-	deallocatorThread = _beginthread(Deallocate, NULL, NULL);
-#elif defined LINUX | defined OSX
-    int iret1 = pthread_create(&deallocatorThread , NULL, Deallocate, NULL);
-#endif
+
+    CREATE_AND_START_THREAD(Deallocate, deallocatorThread);
 }
 
 void Exit::Process(int timeInMs)

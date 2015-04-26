@@ -29,7 +29,7 @@ void QuitApplicationFatalError(const String & errorMessage);
 	#define PROCESSOR_THREAD_DEC static void Processor(void * vArgs);
 	#define PROCESSOR_THREAD_START(managerName) void managerName::Processor(void * vArgs)
 	#define THREAD_HANDLE uintptr_t 
-	#define RETURN_NULL(threadHandle) threadHandle = NULL; 	return;
+	#define RETURN_NULL(threadHandle) threadHandle = 0; 	return;
 #elif defined LINUX | defined OSX
 	// Linux/OS X
 	#define CREATE_AND_START_THREAD(classAndFunctionName, threadHandle)     pthread_create(&threadHandle, NULL, classAndFunctionName, NULL);
@@ -37,7 +37,7 @@ void QuitApplicationFatalError(const String & errorMessage);
 	#define PROCESSOR_THREAD_DEC static void * Processor(void * vArgs);
 	#define PROCESSOR_THREAD_START(managerName) void * managerName::Processor(void * vArgs)
 	#define THREAD_HANDLE pthread_t
-	#define RETURN_NULL(threadHandle) threadHandle = NULL; return NULL;
+	#define RETURN_NULL(threadHandle) threadHandle = 0; return 0;
 #endif
 
 #endif // OS_THREAD_H

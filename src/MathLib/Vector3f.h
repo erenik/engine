@@ -164,9 +164,9 @@ public:
 	Vector3f operator / (const float &f) const;
 
 	/// Operator overloading for the array-access operator []
-	inline float & operator [](int index);
+	float & operator [](int index);
 	/// Operator overloading for the array-access operator []
-	inline const float & operator [](int index) const;
+	const float & operator [](int index) const;
 
 	// Vector products
 	/** Scalar product

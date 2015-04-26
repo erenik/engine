@@ -25,13 +25,14 @@ AABB::AABB(const Vector3f & min, const Vector3f & max)
     position = (max + min) * 0.5f;
 }
 
-bool AABB::Intersect(const AABB &aabb2) const {
-    if (min[0] > aabb2.max[0] ||
-        min[1] > aabb2.max[1] ||
-        min[2] > aabb2.max[2] ||
-        max[0] < aabb2.min[0] ||
-        max[1] < aabb2.min[1] ||
-        max[2] < aabb2.min[2]
+bool AABB::Intersect(const AABB &aabb2) const 
+{
+    if (min.x > aabb2.max.x ||
+        min.y > aabb2.max.y ||
+        min.z > aabb2.max.z ||
+        max.x < aabb2.min.x ||
+        max.y < aabb2.min.y ||
+        max.z < aabb2.min.z
         )
         return false;
     return true;

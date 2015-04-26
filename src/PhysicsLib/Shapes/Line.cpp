@@ -20,19 +20,25 @@ Line::Line(const Vector3f & start, const Vector3f & stop)
 // Returns ze area using showlace formulae http://en.wikipedia.org/wiki/Shoelace_formula
 int Area(const Vector3f & p1, const Vector3f & p2, const Vector3f & p3)
 {
-	return (p1[0] * p2[1] + p2[0] * p3[1] + p3[0] * p1[1] - p2[0] * p1[1] - p3[0] * p2[1] - p1[0] * p3[1]) * 0.5;
+	assert(false);
+	return 0;
+//	return (p1[0] * p2[1] + p2[0] * p3[1] + p3[0] * p1[1] - p2[0] * p1[1] - p3[0] * p2[1] - p1[0] * p3[1]) * 0.5;
 }
 
 /// Returns true if the points are provided in clockwise order. http://stackoverflow.com/questions/1165647/how-to-determine-if-a-list-of-polygon-points-are-in-clockwise-order
 bool Clockwise(Vector2i p1, Vector2i p2, Vector2i p3)
 {
-	return (p1[0] * p2[1] + p2[0] * p3[1] + p3[0] * p1[1] - p2[0] * p1[1] - p3[0] * p2[1] - p1[0] * p3[1]) > 0;
+	assert(false);
+	return 0;
+//	return (p1[0] * p2[1] + p2[0] * p3[1] + p3[0] * p1[1] - p2[0] * p1[1] - p3[0] * p2[1] - p1[0] * p3[1]) > 0;
 }
 
 /// Returns true if the points are provided in clockwise order. http://stackoverflow.com/questions/1165647/how-to-determine-if-a-list-of-polygon-points-are-in-clockwise-order
 bool CounterClockwise(Vector2i p1, Vector2i p2, Vector2i p3)
 {
-	return (p1[0] * p2[1] + p2[0] * p3[1] + p3[0] * p1[1] - p2[0] * p1[1] - p3[0] * p2[1] - p1[0] * p3[1]) < 0;
+	assert(false);
+	return 0;
+//	return (p1[0] * p2[1] + p2[0] * p3[1] + p3[0] * p1[1] - p2[0] * p1[1] - p3[0] * p2[1] - p1[0] * p3[1]) < 0;
 }
 
 /// Yields an orientation.
@@ -57,10 +63,9 @@ int Orientation(Vector2i p1, Vector2i p2, Vector2i p3)
 // point q lies on line segment 'pr'
 bool PointOnSegment(const Vector3f & lineStart, const Vector3f & lineStop, const Vector3f & point)
 {
-	if (point[0] <= MaximumFloat(lineStart[0], lineStop[0]) && point[0] >= MaximumFloat(lineStart[0], lineStop[0]) &&
-        point[1] <= MaximumFloat(lineStart[1], lineStop[1]) && point[1] >= MaximumFloat(lineStart[1], lineStop[1]))
+	if (point.x <= MaximumFloat(lineStart.x, lineStop.x) && point.x >= MaximumFloat(lineStart.x, lineStop.x) &&
+        point.y <= MaximumFloat(lineStart.y, lineStop.y) && point.y >= MaximumFloat(lineStart.y, lineStop.y))
        return true;
- 
     return false;
 }
 

@@ -88,9 +88,10 @@ void Entity::Render(GraphicsState & graphicsState)
 		diffuseMap->SetSamplingMode();
 		graphicsState.currentTexture = diffuseMap;
 	}
-	else if (diffuseMap == NULL){
-		glBindTexture(GL_TEXTURE_2D, NULL);
-		graphicsState.currentTexture = NULL;
+	else if (diffuseMap == 0)
+	{
+		glBindTexture(GL_TEXTURE_2D, 0);
+		graphicsState.currentTexture = 0;
 	}
 
 	/// Bind specular if it isn't already o-o
@@ -103,7 +104,7 @@ void Entity::Render(GraphicsState & graphicsState)
 		graphicsState.currentSpecularMap = specularMap;
 	}
 	else {
-		glBindTexture(GL_TEXTURE_2D, NULL);
+		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 	/// Bind emissive map.
 	glActiveTexture(GL_TEXTURE0 + shader->emissiveMapIndex);		// Select server-side active texture unit
@@ -112,7 +113,7 @@ void Entity::Render(GraphicsState & graphicsState)
 		if (emissiveMap)
 			glBindTexture(GL_TEXTURE_2D, emissiveMap->glid);
 		else
-			glBindTexture(GL_TEXTURE_2D, NULL);
+			glBindTexture(GL_TEXTURE_2D, 0);
 	}
 	
 	// Bind normalMap too if it isn't already!
@@ -125,7 +126,7 @@ void Entity::Render(GraphicsState & graphicsState)
 		graphicsState.currentNormalMap = normalMap;
 	}
 	else {
-		glBindTexture(GL_TEXTURE_2D, NULL);
+		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 	// Default
 	glActiveTexture(GL_TEXTURE0);

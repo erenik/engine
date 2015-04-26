@@ -96,7 +96,7 @@ Action * Action::FromString(String str, int flags)
 void Action::TriggerStart()
 {
 	AppWindow * activeWindow = ActiveWindow();
-	Viewport * mainViewport = activeWindow->MainViewport();
+	Viewport * mainViewport = activeWindow ? activeWindow->MainViewport() : 0;
 	switch(type)
 	{
 		case DEBUG_NEXT:

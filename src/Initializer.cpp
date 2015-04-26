@@ -11,12 +11,13 @@
 #include "Application/Application.h"
 
 #include "OS/Thread.h"
+#include "File/LogFile.h"
 
-THREAD_HANDLE initializerThread = NULL;
-THREAD_HANDLE deallocatorThread = NULL;
-THREAD_HANDLE graphicsThread = NULL;
-THREAD_HANDLE audioThread = NULL;
-THREAD_HANDLE stateProcessingThread = NULL;
+THREAD_HANDLE initializerThread = 0;
+THREAD_HANDLE deallocatorThread = 0;
+THREAD_HANDLE graphicsThread = 0;
+THREAD_HANDLE audioThread = 0;
+THREAD_HANDLE stateProcessingThread = 0;
 
 int initializers = 0;
 
@@ -94,11 +95,11 @@ bool quittingApplication = false;
 
 THREAD_START(Deallocate)
 {
+	LogMain("DeallocatorThread started.", INFO);
+
 	quittingApplication = true;
-    std::cout<<"\nDeallocatorThread started.";
 	assert(deallocatorThreadStartCount < 1);
 	++deallocatorThreadStartCount;
-
 
 	/// Stop input.
 	MesMan.QueueMessages("AcceptInput:false");
@@ -124,10 +125,12 @@ THREAD_START(Deallocate)
 	// Wait for graphics thread to end.
 	while(graphicsThread)
 	{
+		std::cout<<"\nWaiting for graphicsThread to end...";
 		SleepThread(10);
 	}
 	while(audioThread)
 	{
+		std::cout<<"\nWaiting for audioThread to end...";
 		SleepThread(10);
 	}
 	// Notify the message manager and game states to deallocate their windows.
@@ -148,13 +151,12 @@ THREAD_START(Deallocate)
 
     std::cout<<"\nWaiting for state processing thread to end..";
 
-
+    /// o.o
 	while(stateProcessingThread)
+	{
+		std::cout<<"\nWaiting for stateProcessingThread to end...";
 		SleepThread(10);
-
-	// Wait until the graphics thread has ended before deallocating more.
-	while(!Graphics.finished)
-		SleepThread(10);
+	}
 
 	std::cout<<"\n>>>DeallocatorThread ending...";
 

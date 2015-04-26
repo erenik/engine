@@ -17,7 +17,6 @@ extern THREAD_HANDLE stateProcessingThread;
 	#include <Ole2.h>
 #endif
 
-
 /// Signifies that the application is currently exiting.
 extern bool quittingApplication;
 
@@ -128,12 +127,10 @@ void * StateManager::StateProcessor(void * vArgs){
 	// http://msdn.microsoft.com/en-us/library/windows/desktop/ms688715%28v=vs.85%29.aspx
 	// CoUninitialize();
 	OleUninitialize();
-
-
-	stateProcessingThread = NULL;
+	stateProcessingThread = 0;
 	_endthread();
 #elif defined LINUX | defined OSX
-    stateProcessingThread = NULL;
+    stateProcessingThread = 0;
 #endif
 
 }
