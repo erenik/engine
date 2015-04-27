@@ -259,7 +259,7 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 		# OGG Container for Vorbis, Opus, Theora, etc.
 		if ((VORBIS OR OPUS) OR THEORA)
 			message("Linking with OGG")
-			set(DEBUG_LIBS ${DEBUG_LIBS} libogg_static_MTd.lib)
+			set(DEBUG_LIBS ${DEBUG_LIBS} libogg_static.lib)
 			set(RELEASE_LIBS ${RELEASE_LIBS} libogg_static_release.lib)
 		ENDIF((VORBIS OR OPUS) OR THEORA)
 			

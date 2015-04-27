@@ -776,8 +776,8 @@ void MessageManager::ProcessMessage(Message * message)
 						}
 						/// If we load here, reset elementName since uiName since it probably changed.
 						uiName = element->name;
-						/// Make sure it is exitable.
-						element->exitable = true;
+						/// Make sure it is exitable. No.
+			//			element->exitable = true;
 						Graphics.QueueMessage(new GMAddUI(element));
 					}
 				}

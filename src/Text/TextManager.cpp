@@ -64,7 +64,6 @@ void TextManager::SetLanguage(int newLanguageID)
 
 Text TextManager::GetText(int forTextID)
 {
-
 	return Text("BadText");
 }
 

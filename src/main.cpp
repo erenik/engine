@@ -33,7 +33,7 @@
     #include <crtdbg.h>
 #ifdef _DEBUG
 	// Visual leak detector, o.o, http://vld.codeplex.com/
-	#include <vld.h> 
+//	#include <vld.h> 
 #endif
 #endif 
 //    #include "config.h"

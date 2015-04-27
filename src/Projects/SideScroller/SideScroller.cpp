@@ -159,7 +159,7 @@ SideScroller::SideScroller()
 	levelEntity = NULL;
 	playingFieldPadding = 1.f;
 	gearCategory = 0;
-	previousState = state = 0;
+	previousState = state = -1;
 	sprite = ModelMan.GetModel("sprite.obj");
 	
 	// Game/Save-vars
@@ -421,8 +421,25 @@ void SideScroller::ProcessMessage(Message * message)
 			int found = msg.Find("//");
 			if (found > 0)
 				msg = msg.Part(0,found);
+			if (msg == "MainMenu")
+			{	
+				SetState(MAIN_MENU, true);
+			}
 			if (msg == "NewGame" || msg == "Retry")
 				NewGame();
+			else if (msg == "ReturnToPreviousState")
+			{
+				switch(previousState)
+				{
+					case PLAYING_LEVEL:
+					case GAME_OVER:
+						NewGame();
+						break;
+					case MAIN_MENU:
+						SetState(previousState, true);
+						break;
+				}
+			}
 			else if (msg == "Jump")
 				Jump();
 			else if (msg == "CycleCamera")
@@ -433,9 +450,7 @@ void SideScroller::ProcessMessage(Message * message)
 			}
 			else if (msg == "Shop")
 			{
-				MesMan.QueueMessages("PushUI(gui/Shop.gui");
-				state = IN_SHOP;
-				UpdateUI();
+				SetState(IN_SHOP, true);
 			}
 			else if (msg.StartsWith("ShopMask: "))
 			{
@@ -806,12 +821,11 @@ void SideScroller::NewGame()
 	// Resume physics/graphics if paused.
 	Resume();
 
-	state = PLAYING_LEVEL;
+	/// Update state, update gui
+	SetState(PLAYING_LEVEL, true);
 	// Start movin'!
 	munny = 0;
 	UpdatePlayerVelocity();
-	UpdateUI();
-
 	MesMan.QueueMessages("PopUI(GameOver)");
 	MesMan.QueueMessages("PopUI(Shop)");
 	paco = taco = NULL;
@@ -1120,11 +1134,14 @@ void AddPesos()
 	for (int i = 0; i < blocksAdded.Size(); ++i)
 	{
 		Entity * block = blocksAdded[i];
-		Entity * peso = EntityMan.CreateEntity("Peso", ModelMan.GetModel("sphere"), TexMan.GetTexture("0xFFFF00"));
+		Entity * peso = CreateSprite("img/Pesos/Peso_Mexicano_1921_dos_cont.png");
 		peso->properties.Add(new PesoProperty(peso));
-		peso->Scale(0.2f);
+		peso->Scale(0.6f);
 		peso->SetPosition(block->position + Vector3f(0, block->scale.y * 0.5f + 2,0));
 		PhysicsProperty * pp = peso->physics = new PhysicsProperty();
+		pp->shapeType = ShapeType::SPHERE;
+		pp->recalculatePhysicalRadius = false;
+		pp->physicalRadius = 0.5f;
 		pp->noCollisionResolutions = true;
 		pp->collissionCallback = true;
 		pp->collisionCategory = CC_PESO;
@@ -1556,13 +1573,17 @@ void SideScroller::SetPlayingFieldSize(Vector2f newSize)
 }
 
 /// Saves previousState
-void SideScroller::SetState(int newstate, bool updateUI)
+void SideScroller::SetState(int newState, bool updateUI)
 {
-	if (previousState != state)
-		previousState = state;
-	state = newstate;
-	// Update UI automagically?
-	if (updateUI)
-		UpdateUI();
+	if (newState != state)
+	{
+		// New previous-state?
+		if (previousState != state)
+			previousState = state;
+		state = newState;
+		// Update UI automagically?
+		if (updateUI)
+			UpdateUI();
+	}
 }
 

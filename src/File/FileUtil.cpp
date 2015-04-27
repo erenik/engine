@@ -314,7 +314,8 @@ bool EnsureFoldersExistForPath(String path)
 	String cDir(buf);
 	std::cout<<"\nCdir: "<<cDir;
 	String previousUrl;
-	for (int i = 0; i < folders.Size(); ++i){
+	for (int i = 0; i < folders.Size(); ++i)
+	{
 		String f = folders[i];
 		previousUrl += f;
 		std::cout<<"\nChecking if "<<previousUrl<<" exists.";
@@ -331,6 +332,10 @@ bool EnsureFoldersExistForPath(String path)
 					failed = true;
 					std::cout<<"\nERROR_PATH_NOT_FOUND";
 					break;
+				case ERROR_ACCESS_DENIED:
+					/// No rights here? Is it a root device identifier?
+					if (previousUrl.Length() < 3 && previousUrl.Contains(":"))
+						break;
 				default:
 					std::cout<<"\nUnknown error: "<<error;
 					failed = true;

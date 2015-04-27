@@ -17,15 +17,25 @@ extern bool inGameMenuOpened;
 /// Updates ui depending on state.
 void SideScroller::UpdateUI()
 {
-	String toPush;	
+	String toPush;
+
+	List<String> stateSpecificUI;
+	stateSpecificUI.Add("gui/MainMenu.gui", "gui/HUD.gui", "gui/Shop.gui");
+	for (int i = 0; i < stateSpecificUI.Size(); ++i)
+	{
+		// Pop 'em.
+		String ui = stateSpecificUI[i];
+		MesMan.ProcessMessage("PopUI("+ui+")");
+	}
+
 	// Reveal specifics?
 	switch(state)
 	{
+		case MAIN_MENU: toPush = "gui/MainMenu.gui"; break;
 		case PLAYING_LEVEL:	toPush = "gui/HUD.gui"; break;
 		case IN_SHOP: toPush = "gui/Shop.gui"; break;
 
 			// old below?
-		case MAIN_MENU: toPush = "gui/MainMenu.gui"; break;
 		case EDITING_OPTIONS: toPush = "gui/Options.gui"; break;
 		case NEW_GAME: toPush = "gui/NewGame.gui"; break;
 		case LOAD_SAVES: toPush = "gui/LoadScreen.gui"; break;

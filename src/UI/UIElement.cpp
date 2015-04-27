@@ -42,6 +42,9 @@ void UIElement::OnEnterScope(){
 /// Called once this element is no longer visible for any reason. E.g. switching game states to display another UI.
 void UIElement::OnExitScope()
 {
+	/// Skip those which have already exited scope.
+	if (!this->visible)
+		return;
 	// Do nothing in general.
 	for (int i = 0; i < children.Size(); ++i)
 		children[i]->OnExitScope();

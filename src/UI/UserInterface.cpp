@@ -1323,7 +1323,8 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 			}
 			else if (token == "texture"){
 				ENSURE_NEXT_TOKEN
-				String param = tokens[1];
+				String param = firstQuote;
+//				param.Remove("\"", true);
 				param.SetComparisonMode(String::NOT_CASE_SENSITIVE);
 				if (element->type == UIType::RADIO_BUTTONS)
 				{
@@ -1333,7 +1334,7 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
                 if (param == "NULL")
                     element->textureSource = String();
                 else
-                    element->textureSource = defaultRootFolder + NEXT_TOKEN;
+                    element->textureSource = defaultRootFolder + param;
 			}
 			else if (token == "text")
 			{
