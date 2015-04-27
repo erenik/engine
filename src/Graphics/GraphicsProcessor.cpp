@@ -51,6 +51,16 @@ int fatalGraphicsError = 0;
 
 String graphicsThreadDetails;
 
+/// Mark application for destruction if not done so already?
+/// Inform that the thread has ended.
+#define END_GRAPHICS_THREAD_ERROR(s) \
+	LogGraphics("Fatal error: "+String(s), ERROR); \
+	fatalGraphicsError = true; \
+	MesMan.QueueMessages("QuitApplication"); \
+	Application::live = false; \
+	RETURN_NULL(graphicsThread);
+
+
 /// Main graphics manager processing thread
 PROCESSOR_THREAD_START(GraphicsManager)
 {
@@ -73,47 +83,26 @@ PROCESSOR_THREAD_START(GraphicsManager)
 		LogGraphics("Waiting for windows", INFO);
 		SleepThread(50);
 	}
-
-	LogGraphics("Creating GL context", INFO);
 	AppWindow * mainWindow = WindowMan.GetWindow(0);
 	while (!mainWindow->created)
+	{
 		SleepThread(50);
-	
-	assert(mainWindow->CreateGLContext());
-	assert(mainWindow->MakeGLContextCurrent());
+		std::cout<<"\nWaiting on a viable window..";
 
+	}
+	LogGraphics("Creating GL context", INFO);
+	if (!mainWindow->CreateGLContext())
+	{
+		END_GRAPHICS_THREAD_ERROR("Unable to create GL context.");
+	}
+	LogGraphics("Making GL context current/active.", INFO);
+	if(!mainWindow->MakeGLContextCurrent())
+	{
+		END_GRAPHICS_THREAD_ERROR("Unable to make GL context current.");
+	}
 #ifdef WINDOWS
-
-#elif defined USE_X11
-//	OpenGL::CreateContext();
-/* Old code, moved to OpenGL::CreateContext 	
-    /// Create GL context! ^^
-    std::cout<<"\n=======================================================";
-    std::cout<<"\nCreating GLX context...";
-    context = glXCreateContext(display, visual_info, None, true);
-    if (context == NULL){
-        std::cout<<"\n=======================================================";
-        std::cout<<"ERROR: Could not create rendering context!";
-        return NULL;
-        assert(false && "could not create rendering context");
-    }
-    std::cout<<"\n=======================================================";
-    std::cout<<"\nGLX context created!";
-      // bind the rendering context to the AppWindow
-    bool bound = glXMakeContextCurrent(display, AppWindow, AppWindow, context);
-    if (bound == false)
-    {
-        std::cout<<"ERROR: Could not create rendering context!";
-        return NULL;
-        assert(false && "Failed to bind context");
-    }
-    std::cout<<"\n=======================================================";
-    std::cout<<"\nGLX context made current!";
-*/
-
 // OSX gl initialization.
 #elif defined OSX & 0
-
     CGDirectDisplayID displayID = CGMainDisplayID();
     CGOpenGLDisplayMask openGLDisplayMask = CGDisplayIDToOpenGLDisplayMask(displayID);
     AGLPixelFormat pixelFormat = NULL;
@@ -137,24 +126,25 @@ PROCESSOR_THREAD_START(GraphicsManager)
 #endif // OSX
 
 	// Initialize glew
-	LogGraphics("Initializing GLEW", INFO);
-
-//	glewExperimental = GL_TRUE;
+	LogGraphics("Initializing OpenGL", INFO);
 	result = -1;
 	int attempts = 0;
+
 	while(result != GLEW_OK)
 	{
 		LogGraphics("Calling glewInit()...", INFO);
+		// Experimental needed..?
+		glewExperimental = false;
 		result = glewInit();
 
 		if (result != GLEW_OK)
 		{
-			/* Problem: glewInit failed, something is seriously wrong. */
+			// Problem: glewInit failed, something is seriously wrong. 
 			LogGraphics("GL Error: "+String((char*)glewGetErrorString(result))+"\n", ERROR);
 			++attempts;
 			LogGraphics("Waiting and trying to initialize GLEW again.", INFO);
 			SleepThread(50);
-			if (attempts > 20)
+			if (attempts > 3)
 			{
 				LogGraphics("Fatal error: Could not initialize GLEW. (OpenGL Extension Wrangler)", ERROR);
 				fatalGraphicsError = true;
@@ -396,7 +386,7 @@ PROCESSOR_THREAD_START(GraphicsManager)
 		{
 	
 			String details;
-			LogGraphics("An unexpected error occurred in GraphicsProcessor thread.\m- Location: "+graphicsThreadDetails+" \n- Details: "+details, ERROR);
+			LogGraphics("An unexpected error occurred in GraphicsProcessor thread.\n- Location: "+graphicsThreadDetails+" \n- Details: "+details, ERROR);
 			std::cout<<"\nAn unexpected error occurred";
 		}
 	}

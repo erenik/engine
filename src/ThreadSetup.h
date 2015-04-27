@@ -12,7 +12,7 @@
 /// Set up some variables (macro-definitions) depending on what threading setup we want to use.
 #ifdef GRAPHICS_PHYSICS_MM_AUDIO_THREAD
 	// Some standard files used for logging.
-	#define GRAPHICS_THREAD PHYSICS_THREAD
+	#define GRAPHICS_THREAD "log/GraphicsThread.txt"
 	#define PHYSICS_THREAD "log/PhysicsLog.txt"
 	#define AUDIO_THREAD "log/AudioLog.txt"
 	#define MAIN_THREAD	"log/MainThreadLog.txt"

@@ -75,11 +75,11 @@ void Texture::Deallocate()
 // Reallocate based on new size and format.
 void Texture::Reallocate()
 {
-	if (!data == NULL)
+	if (!data == 0)
 	{
 		Deallocate();
 	}
-	assert(data == NULL);
+	assert(data == 0);
 	
 	// Allocate.
 	int areaInPixels = size[0] * size[1];

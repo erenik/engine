@@ -85,7 +85,7 @@ public:
 	/// Adds an item to the list
 	bool Add(const List<value_type> & item);
 	/// Adds an item to the list at the requested index, pushing along the rest. Used for keeping them sorted or stuff.
-	bool Add(const value_type & item, int requestedIndex);
+//	bool Add(const value_type & item, int requestedIndex);
 	void Add(const T & item, const T & item2) { AddItem(item); AddItem(item2);};
 	void Add(const T & item, const T & item2, const T & item3) { AddItem(item); AddItem(item2); AddItem(item3);};
 	void Add(const T & item, const T & item2, const T & item3, const T & item4) { AddItem(item); AddItem(item2); AddItem(item3); AddItem(item4); };
@@ -440,9 +440,10 @@ bool List<T>::AddArray(int numItems, T * itemArray)
 	return true;
 }
 
+/*
 /// Adds an item to the list
 template <class T>
-bool List<T>::Add(const T & item, int requestedIndex) 
+bool List<T>::AddAtIndex(const T & item, int requestedIndex) 
 {
 	if (currentItems == arrLength){
 		try {
@@ -462,6 +463,7 @@ bool List<T>::Add(const T & item, int requestedIndex)
 	++currentItems;
 	return true;
 }
+*/
 
 /// Remove target item or index
 template <class T>

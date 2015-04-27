@@ -63,7 +63,6 @@ WindowManager * WindowManager::Instance()
 void WindowManager::Initialize()
 {
 #ifdef USE_X11
-	assert(XWindowSystem::InitThreadSupport());
     assert(XWindowSystem::Initialize());
     XWindowSystem::SetupDefaultWindowProperties();
 //    XWindowSystem::CreateDefaultWindow();

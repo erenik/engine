@@ -782,7 +782,6 @@ GMPushUI::GMPushUI(String uiName, UserInterface * ontoUI)
 : GMUI(GM_PUSH_UI, viewport), uiName(uiName), element(NULL)
 {
 	ui = ontoUI;
-	assert(ui);
 };
 
 GMPushUI::GMPushUI(UIElement * element, UserInterface * ontoUI)
@@ -790,7 +789,6 @@ GMPushUI::GMPushUI(UIElement * element, UserInterface * ontoUI)
 {
 	assert(element);
 	ui = ontoUI;
-	assert(ui);
 };
 
 void GMPushUI::Process()

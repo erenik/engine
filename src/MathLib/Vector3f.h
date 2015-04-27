@@ -160,7 +160,7 @@ public:
 
 	/// Internal element multiplication
 	Vector3f operator * (const float &f) const;
-	/// Internal element division.
+/// Internal element division.
 	Vector3f operator / (const float &f) const;
 
 	/// Operator overloading for the array-access operator []

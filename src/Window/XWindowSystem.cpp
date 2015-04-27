@@ -18,10 +18,12 @@
 #include <GL/glx.h>     // connect X server with OpenGL
 #include "XProc.h"      // XWindow Event Processor
 
+#include "File/LogFile.h"
+
 int ErrorHandler(Display * d, XErrorEvent * e);
 // single buffer attributes
 static int singleBufferAttributes[] = {GLX_RGBA, GLX_DEPTH_SIZE, 24, None};
-// doubble buffer attributes
+// doubble buffer window_attributes
 static int doubleBufferAttributes[]  = {GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None};
 
 /// Program start-up variables!
@@ -45,9 +47,11 @@ bool XWindowSystem::InitThreadSupport()
     /// Initialize support for multi-threaded usage of Xlib
     int status = XInitThreads();
     if (status){
+        LogMain("XInitThreads - multi-threading enabled.", INFO);
         std::cout<<"\n*nix thread-support initialized.";
     }
     else {
+        assert(false);
         std::cout<<"\nXInitThreads failed.";
     }
     return status != 0;
@@ -56,7 +60,9 @@ bool XWindowSystem::InitThreadSupport()
 // Connects to the X server (WindowSystem) using XOpenDisplay.
 bool XWindowSystem::Initialize()
 {
-    std::cout<<"\nXWindowSystem::Initialize";
+    LogMain("Initializiting XWindowSystem", INFO);
+    assert(XWindowSystem::InitThreadSupport());
+    LogMain("XOpenDisplay", INFO);
 	xDisplay = XOpenDisplay(NULL);
     if (xDisplay == NULL)
     	return false;
@@ -70,6 +76,7 @@ bool XWindowSystem::Initialize()
     }
 
     /// Find OpenGL-capable RGB visual with depth buffer (device context?)
+    LogMain("glXChooseVisual", INFO);
     xVisualInfo = glXChooseVisual(xDisplay, DefaultScreen(xDisplay), doubleBufferAttributes);
     if (xVisualInfo == NULL){
         std::cout << "No double buffer" << std::endl;
@@ -91,6 +98,9 @@ bool XWindowSystem::Initialize()
 bool XWindowSystem::Shutdown()
 {    
     XCloseDisplay(xDisplay);
+    /// Free allocated resources.
+    if (xVisualInfo)
+        XFree(xVisualInfo);
 }
 
 

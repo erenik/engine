@@ -126,12 +126,12 @@ THREAD_START(Deallocate)
 	while(graphicsThread)
 	{
 		std::cout<<"\nWaiting for graphicsThread to end...";
-		SleepThread(10);
+		SleepThread(1000);
 	}
 	while(audioThread)
 	{
 		std::cout<<"\nWaiting for audioThread to end...";
-		SleepThread(10);
+		SleepThread(1000);
 	}
 	// Notify the message manager and game states to deallocate their windows.
 	MesMan.QueueMessages("DeleteWindows");

@@ -121,6 +121,9 @@ void * StateManager::StateProcessor(void * vArgs){
 	}
 	LogMain("State processing thread ending", INFO);
 
+	/// Mark application for destruction if not done so already?
+//	Application::live = false;
+
 	std::cout<<"\n>>> StateProcessingThread ending...";
 #ifdef WINDOWS
 	// De-allocate COM stuffs

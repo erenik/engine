@@ -455,16 +455,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
 	// Sent to a window to query it's destruction. Ref: http://msdn.microsoft.com/en-us/library/windows/desktop/ms632617%28v=vs.85%29.aspx
 	case WM_CLOSE:
-		if (window->main)
-		{
-			if (Application::queryOnQuit)
-				MesMan.QueueMessages("Query(QuitApplication)");
-			else 
-				MesMan.QueueMessages("QuitApplication");
-		}
-		else {
-			window->Hide();
-		}
+		/// Hide or destroy the window, depends on what kind of window it is and application settings.
+		window->Close();
 		return 0;
 	// Sent when the window is already being destroyed: Ref: http://msdn.microsoft.com/en-us/library/windows/desktop/ms632620%28v=vs.85%29.aspx
     case WM_DESTROY:

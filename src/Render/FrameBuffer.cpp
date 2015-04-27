@@ -183,7 +183,7 @@ void FrameBuffer::CreateRenderBuffers()
 	}
 	if (result != GL_FRAMEBUFFER_COMPLETE)
 	{
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, NULL);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 		std::cout<<"\nINFO: FrameBuffer not ready to be used.";
 		SleepThread(10);
 		return;
@@ -307,7 +307,7 @@ bool CheckFrameBufferStatus(int status, String frameBufferName)
 	}
 	if (status != GL_FRAMEBUFFER_COMPLETE)
 	{
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, NULL);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 		SleepThread(10);
 		return false;
 	}

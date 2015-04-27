@@ -299,17 +299,8 @@ int main(int argc, char **argv)
     hInstance = hInstance;
 	std::cout<<"Starting up Win32 application...";
 	WindowMan.CreateDefaultWindowClass();
-/// Open XServer?
+/// Open XServer? - Done in Initializer via WindowManager::Initialize
 #elif defined USE_X11
-//	XWindowSystem::
-/*
-    /// Create GL context! ^^
-    context = glXCreateContext(display, visual_info, None, true);
-    if (context == NULL)
-    {
-        assert(false && "could not create rendering context");
-    }
-*/
 #endif
 
 // Set AppWindow options

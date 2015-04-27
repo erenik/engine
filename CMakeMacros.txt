@@ -180,6 +180,9 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 	# LINUX library linking
 	IF(UNIX)
 		message("Configuring for UNIX OS")
+		add_definitions(
+			-DGLEW_BUILD # For glew to link properly..?
+		)
 		set(custom_libraries libGL.so  libGLU.so "-lGLEW")
 		# AL
 		set(custom_libraries ${custom_libraries} "-lalut -lopenal")

@@ -462,7 +462,7 @@ void GraphicsManager::OnEndRendering()
 
 	std::cout<<"\nGraphicsManager::OnEndRendering";
 	glDeleteBuffers(1, &deferredRenderingBox->vertexBuffer);
-	deferredRenderingBox->vertexBuffer = NULL;
+	deferredRenderingBox->vertexBuffer = 0;
 
 	/// Delete the frame-buffer after we're done with it...
 	clock_t timeStart = clock();

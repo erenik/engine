@@ -99,6 +99,9 @@ public:
 	void SetDefaults();
 	/// Creates the actual AppWindow. Returns true upon success.
 	bool Create();
+
+	/// Queries to close this window. It will either be hidden or destroyed, based on app settings. If main window, app will terminate.
+	void Close();
 	/// Must be called from the same thread that created it (on Windows).
 	bool Destroy();
 	bool IsVisible();
@@ -182,6 +185,7 @@ public:
 #elif defined LINUX
 	int32 xWindowHandle; // Handle in XWindowSystem, 32-bit.
 	void * xGLContext;
+	int32 xGLWindow;
 #endif
 	
 	Vector4f backgroundColor;

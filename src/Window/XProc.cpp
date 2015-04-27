@@ -135,116 +135,72 @@ void * XProc()
     {
 
         // Events ref: http://tronche.com/gui/x/xlib/events/structures.html
-
-
+    case GraphicsExpose:
+    {
+        std::cout<<"\nXGraphicsExpose";
+        break;
+    }
+    case NoExpose:
+        std::cout<<"\nXNoExpose";
+        break;
+    case VisibilityNotify:
+        std::cout<<"\nXVisibilityNotify";
+        break;
     case Expose: {
+        std::cout<<"\nXExposeEvent";
         appWindow->visible = true;
         break;
     }
-/*
-    case ResizeRequest: {
-        XResizeRequestEvent& e = (XResizeRequestEvent &) event;
-        int x, y, width, height;
-        width = e.width;
-        height = e.height;
-        std::cout<<"\nResize! New size: "<<width<<" "<<height;
-        Graphics.SetResolution(width, height);
-
-        XWindowAttributes window_attributes_return;
-        XGetWindowAttributes(display, AppWindow, &window_attributes_return);
-        std::cout << "\n" << window_attributes_return[0]
-                  << "\n" << window_attributes_return[1]
-                  << "\n" << window_attributes_return.width
-                  << "\n" << window_attributes_return.height
-                  << std::endl;
-
-/*
-        XWindowChanges values;
-        values[0] = window_attributes_return[0];
-        values[1] = window_attributes_return[1];
-        values.width = window_attributes_return.width;
-        values.height = window_attributes_return.height;
-        values.border_width = window_attributes_return.border_width;
-
-
-//        XConfigureWindow(display, AppWindow, window_attributes_return.your_event_mask, &values);
-/*
-        std::cout << "\n" <<e.send_event << std::endl;
-
-
-        // hide AppWindow
-        XUnmapWindow(display, AppWindow);
-
-        // destroy AppWindow
-        XDestroyWindow(display, AppWindow);
-
-        // create a new AppWindow
-        AppWindow = XCreateWindow(display,
-                           RootWindow(display, visual_info->screen),
-                           0, 0,            /// Position
-                           width, height,   /// Size
-                           0,
-                           visual_info->depth,
-                           InputOutput,
-                           visual_info->visual,
-                           CWBorderPixel | CWColormap | CWEventMask,
-                           &window_attributes);
-/*
-        XMapWindow(display, AppWindow);
-
-        glXMakeCurrent(display, AppWindow, context);
-
-        if( window_attributes_return.width != width )
-        {
-            XResizeWindow(display, AppWindow, width, height);
-        }
-
-
-        return NULL;
-     //   setupGL(window_attributes.width, window_attributes.height);
-     //   render();
+    /// This event is generated when a window is created. X.SubstructureNotifyMask must be selected on the parent of the new window to receive this event. 
+    case CreateNotify: 
+    {
+        std::cout<<"\nXCreateNotify";
+        appWindow->created = true; // Mark as created.
         break;
     }
-*/
     /// Sent after destroying my AppWindow? D:
     case DestroyNotify: {
-        std::cout<<"\nDestroyNotify ;__;";
+        std::cout<<"\nXDestroyNotify";
         break;
     }
+    case UnmapNotify:
+        std::cout<<"\nXUnmapNotify";
+        break;
+    case MapNotify:
+        std::cout<<"\nXMapNotify";
+        break;
+    case MapRequest:
+        std::cout<<"\nXMapRequest";
+        break;
     /// When the AppWindow loses/receives input-focus?
     // http://tronche.com/gui/x/xlib/events/input-focus/#XFocusChangeEvent
     case FocusIn: {
-        std::cout<<"\nLall! Focus change, in!";
+        std::cout<<"\nXFocusIn";
         break;
     }
     case FocusOut: {
-        std::cout<<"\nLall! Focus change, out!";
+        std::cout<<"\nXFocusOut";
         /// Clears flags for all input keys. Returns amount of keys that were in need of resetting.
         int p = Input.ClearInputFlags();
-        std::cout<<"\n "<<p<<" input flags cleared.";
+//        std::cout<<"\n "<<p<<" input flags cleared.";
         break;   
     }
     case ConfigureNotify: 
     {
-        std::cout<<"\nConfigureNotify received. New info received.";
+        std::cout<<"\nXConfigureNotify received. New info received.";
         XConfigureEvent& e = (XConfigureEvent &) event;
         int x, y, width, height;
         width = e.width;
         height = e.height;
         appWindow->clientAreaSize = appWindow->osWindowSize = Vector2i(width, height);        
-   //     std::cout<<"\nExpose! New size: "<<width<<" "<<height;
-//        Graphics.SetResolution(width, height);
-//        XResizeWindow(display, AppWindow, width, height);
         return NULL;
-     //   XGetWindowAttributes(display, AppWindow, &window_attributes);
-     //   setupGL(window_attributes.width, window_attributes.height);
-     //   render();
         break;
 
     }
 
 	case KeyPress: 
 	{
+        std::cout<<"\nXKeyPress";
 		bool upperCase = Input.KeyPressed(KEY::SHIFT);
 		xKey = (int) XLookupKeysym(&event.xkey, 0);
 		//        std::cout << "\nXLookupKeysym "<<(int)xKey<<" "<<(char)xKey;
@@ -261,24 +217,12 @@ void * XProc()
 		//     std::cout<<"\nGetCharFromXK: "<<c<<" "<<(char)c;
 		if (c)
 		    Input.Char(c);
-		return NULL;
 		break;
 	}
-    case KeyRelease: {
+    case KeyRelease: 
+    {
+        std::cout<<"\nXKeyRelease";
         unsigned short is_retriggered = 0;
-/*
-        if (!Input.IsInTextEnteringMode()){
-            if (XEventsQueued(display, QueuedAfterReading)){
-                XEvent nextevnt;
-                XPeekEvent(display, &nextevnt);
-                if (nextevnt.type == KeyPress && nextevnt[0]key.time == event[0]key.time && nextevnt[0]key.keycode == event[0]key.keycode){
-                    // delete retriggered KeyPress event
-                    XNextEvent (display, &event);
-                    is_retriggered = 1;
-                }
-            }
-        }
-*/
         if (!is_retriggered){
        //     std::cout << "\nKey Release: ";
             xKey = (int) XLookupKeysym(&event.xkey, 0);
@@ -287,19 +231,26 @@ void * XProc()
             if (keyCode)
                 Input.KeyUp(keyCode);
         }
-        return NULL;
         break;
     }
-    case MotionNotify: {
-      //  std::cout<<"\nMotion notify";
+    case KeymapNotify:
+    {
+        std::cout<<"\nXKeymapNotify";
+        break;
+    }
+    case MotionNotify: 
+    {
+        std::cout<<"\nXMotionNotify";
         x = event.xbutton.x;
 #define Y_UP_0_AT_BOTTOM(iny) (appWindow->ClientAreaSize().y - iny)
         y = Y_UP_0_AT_BOTTOM(event.xbutton.y);
       //  PRINT << " " << event[0]button[0] << "," << event[0]button[1];
         Input.MouseMove(appWindow, Vector2i(x,y));
-        return NULL;
+        break;
     }
     case ButtonPress:
+    {
+        std::cout<<"\nXButtonPress";
    //     std::cout << "ButtonPress: ";
         x = event.xbutton.x;
         y = Y_UP_0_AT_BOTTOM(event.xbutton.y);
@@ -317,8 +268,8 @@ void * XProc()
             Input.MouseWheel(appWindow, 1);
         else if (button == Button5)
             Input.MouseWheel(appWindow, -1);
-        return NULL;
         break;
+    }
     case ButtonRelease:
         x = event.xbutton.x;
         y = Y_UP_0_AT_BOTTOM(event.xbutton.y);
@@ -329,31 +280,39 @@ void * XProc()
             Input.MouseClick(appWindow, false, x, y);
         if (button == Button3)
             Input.MouseRightClick(appWindow, false, x, y);
-        return NULL;
         break;
     case EnterNotify:
-        std::cout << "\nMouse enter";
+        std::cout << "\nXEnterNotify";
         break;
     case LeaveNotify:
-        std::cout << "\nMouse left";
+        std::cout << "\nXLeaveNotify";
         break;
     // Special messages! 
     case ClientMessage:
     {
+        std::cout<<"\nXClientMessage";
         Atom wm_protocol = XInternAtom (xDisplay, "WM_PROTOCOLS", False);
         Atom wm_delete_window = XInternAtom (xDisplay, "WM_DELETE_WINDOW", False);
         // In our case primarily requests to close the AppWindow! Ref: http://www.opengl.org/discussion_boards/showthread.php/157469-Properly-destroying-a-AppWindow
-        if ((event.xclient.message_type == wm_protocol) // OK, it's comming from the WM
-        && ((Atom)event.xclient.data.l[0] == wm_delete_window)) // This is a close event // wm_delete
+        if (event.xclient.message_type == wm_protocol)
         {
-            MesMan.QueueMessages("Query(QuitApplication)");
+            std::cout<<"\nWindowManager protocol (wm_protocol)";
+            // Delete window event?
+            if ((Atom)event.xclient.data.l[0] == wm_delete_window)
+            {
+                /// Hide or destroy the window, depends on what kind of window it is and application settings.
+                appWindow->Close();
+            }
         }
         break;
     }
     case SelectionRequest:
-        std::cout<<"\nSelectionREQUEST o-o;";
+        std::cout<<"\nXSelectionRequest";
         break;
-    case SelectionNotify: {
+    case SelectionNotify: 
+    {
+        std::cout<<"\nXSelectionNotify";
+
         XSelectionEvent & selectionEvent =(XSelectionEvent &)event;
         std::cout<<"\nSelectionNotify! :)";
         std::cout<<"send_event:"<<selectionEvent.send_event
@@ -364,8 +323,8 @@ void * XProc()
         break;
     }
     default:
-        std::cout<<"\nXEvent received: "<<type;
-        std::cout<<"\nNOTE: Undefined message received in XProc! typeID: "<<event.type;
+        std::cout<<"\nUnknown/untracked XEvent received: "<<type;
+    //    std::cout<<"\nNOTE: Undefined message received in XProc! typeID: "<<event.type;
         break;
     }
  //   PRINT << "\n";

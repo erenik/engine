@@ -16,7 +16,7 @@
 	#include <Windows.h>
     #include <GL/gl.h>
 #elif defined LINUX
-    #include <GL/gl.h>
+//    #include <GL/gl.h>
 #endif // OSs
 
 

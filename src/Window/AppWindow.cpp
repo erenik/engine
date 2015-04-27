@@ -24,6 +24,8 @@
 	extern XSetWindowAttributes    xWindowAttributes;
 #endif
 
+#include "Message/MessageManager.h"
+
 /// List of active monitors.
 List<Monitor> monitors;
 
@@ -116,6 +118,7 @@ AppWindow::AppWindow(String name, String displayName)
 #elif defined LINUX
 	xWindowHandle = 0;
 	xGLContext = 0;
+	xGLWindow = 0;
 #endif
 
 	created = false;
@@ -454,6 +457,9 @@ bool AppWindow::Create()
     // xDisplay X AppWindow on screen
     XMapWindow(xDisplay, xWindowHandle);
 
+    // Set title text
+    XStoreName(xDisplay, xWindowHandle, Application::name.c_str());
+
     /// Fix so we can intercept AppWindow-Management messages (like pressing the Close-button, ALT+F4, etc!)
     // Ref: http://www.opengl.org/discussion_boards/showthread.php/157469-Properly-destroying-a-AppWindow
     Atom wm_protocol = XInternAtom (xDisplay, "WM_PROTOCOLS", False);
@@ -465,6 +471,21 @@ bool AppWindow::Create()
 	created = true;
 	return true;
 }
+
+void AppWindow::Close()
+{
+	if (this->main)
+	{
+		if (Application::queryOnQuit)
+			MesMan.QueueMessages("Query(QuitApplication)");
+		else 
+			MesMan.QueueMessages("QuitApplication");
+	}
+	else {
+		this->Hide();
+	}
+}
+
 
 /// Must be called from the same thread that created it (on Windows).
 bool AppWindow::Destroy()
@@ -756,12 +777,32 @@ int AppWindow::MemLeakTest()
 	return 0;
 }
 
+#ifdef LINUX
+void PrintGLXFBConfig(GLXFBConfig * glxfbConfig, int numSettings, int max = 5)
+{
+  	String conf;
+  	std::cout<<"\nNone: "<<None<<" GLX_FBCONFIG_ID: "<<GLX_FBCONFIG_ID;
+  	for (int i = 0; i < numSettings && i < max; ++i)
+  	{
+
+  		int value = (int64)glxfbConfig[i];
+  		conf += "\nValue "+String(i)+": "+String(value);
+  		if (value == GLX_FBCONFIG_ID)
+  			conf += "GLX_FBCONFIG_ID";
+  	}
+  	LogGraphics("glxfbConfig details: "+conf, INFO);
+}
+#endif
+
 bool AppWindow::CreateGLContext()
 {
 	std::cout<<"\nCreateGLContext for window "<<name;
 	assert(created);
 	if (!created)
+	{
+		LogGraphics("Window not created yet.", ERROR);	
 		return false;
+	}
 #ifdef WINDOWS
 	assert(hdc == 0);
 	hdc = GetDC(hWnd);
@@ -770,35 +811,101 @@ bool AppWindow::CreateGLContext()
 	assert(result);
 	hglrc = wglCreateContext(hdc);		// Create rendering context
 	assert(hglrc);
-
+	return result;
 // Linux XWindow system
 #elif defined USE_X11
 	/// Create GL context! ^^
     std::cout<<"\nCreating GLX context...";
     assert(xDisplay);
     assert(xVisualInfo);
-    /// third parameter should be the shared context (if available)
-    xGLContext = glXCreateContext(xDisplay, xVisualInfo, None, true);
-    if (xGLContext == NULL)
-    {
-   		LogGraphics("ERROR: Could not create rendering context!", ERROR);
-        return false;
-    }
-    bool result = true;
-  	LogGraphics("GLX context created!", INFO);
+
+    int major, minor;
+	glXQueryVersion(xDisplay, &major, &minor);
+	LogGraphics("GLX version: "+String(major)+"."+String(minor), INFO);
+
+	void * shareContext = 0;
+	bool directRender = true;
+	assert(xGLContext == 0);
+	xGLContext = glXCreateContext(xDisplay, xVisualInfo, (GLXContext)shareContext, directRender);
+	assert(xGLContext);
+//   	bool result;
+//   	/// Look into this..
+//   	int screenNumber = 0;
+//   	int defaultScreen = XDefaultScreen(xDisplay);
+//   	screenNumber = defaultScreen;
+//   	LogGraphics("Default Screen: "+String(defaultScreen), INFO);
+//   	int numReturned;
+//   	// https://www.opengl.org/sdk/docs/man2/xhtml/glXChooseFBConfig.xml
+//   	GLXFBConfig * glxfbConfig = glXChooseFBConfig(xDisplay, screenNumber, 0, &numReturned);
+//   	LogGraphics("glxfbConfig generated: "+String((int64)glxfbConfig)+" num elements: "+String(numReturned), INFO);
+//   	PrintGLXFBConfig(glxfbConfig, numReturned);
+//   	int suggested = (int64) glxfbConfig[0];
+//   	XFree(glxfbConfig);
+
+//   	// https://www.opengl.org/sdk/docs/man2/xhtml/glXChooseFBConfig.xml
+//   	// Fetch a default set-up?
+//   	List<int> attribList;
+// 	  	attribList.Add(GLX_RENDER_TYPE, GLX_RGBA_BIT);
+// 	  	attribList.Add(GLX_DRAWABLE_TYPE, 
+// 	  		GLX_WINDOW_BIT //  For windows
+// 	  //		 | GLX_PBUFFER_BIT // Needed for pixel buffers
+// 	  		);
+// 	  	attribList.Add(GLX_X_RENDERABLE, True);
+// 	  	attribList.AddItem(None);
+//   	numReturned = 0;
+
+//   	for (int i = 0; i < attribList.Size(); ++i)
+//   	{
+//   		LogGraphics("Attrib "+String(i)+": "+String(attribList[i]), INFO);
+//   	}
+
+//   	glxfbConfig = glXChooseFBConfig(xDisplay, screenNumber, attribList.GetArray(), &numReturned);
+//   	LogGraphics("glxfbConfig generated: "+String((int64)glxfbConfig)+" num elements: "+String(numReturned), INFO);
+//   	PrintGLXFBConfig(glxfbConfig, numReturned);
+//   	assert(glxfbConfig);
+
+
+//   	// Create the on-screen rendering area from an existing X window.
+//   	// https://www.opengl.org/sdk/docs/man2/xhtml/glXCreateWindow.xml
+//   	// xGLWindow = glXCreateWindow(xDisplay, *glxfbConfig, xWindowHandle, 0);
+//   	// LogGraphics("xGLWindow created: "+String(xGLWindow), INFO);
+//   	// assert(xGLWindow != 0);
+
+//   	// Attach GLX context to the window?
+// //  	LogGraphics("Attaching GLXContext ("+String((int64)xGLContext)+")to GLXWindow ("+String((int64)xGLWindow)+")", INFO);
+
+//   	// // Create pixel-buffer.?
+//   	// attribList.Clear();
+//   	// attribList.Add(GLX_PBUFFER_WIDTH, 800);
+//   	// attribList.Add(GLX_PBUFFER_HEIGHT, 600);
+//   	// attribList.Add(GLX_PRESERVED_CONTENTS, True);
+//   	// attribList.Add(GLX_LARGEST_PBUFFER, False);
+//   	// attribList.AddItem(None);
+// //  	LogGraphics("glXCreatePbuffer", INFO);
+//  // 	GLXPbuffer pBufferId = glXCreatePbuffer(xDisplay, glxfbConfig[0], attribList.GetArray());
+
+//   	/// Create context based on previously set parameters.
+//   	LogGraphics("glXGetVisualFromFBConfig", INFO);
+//   	XVisualInfo * visInfo = glXGetVisualFromFBConfig(xDisplay, glxfbConfig[0]);
+
+//   	LogGraphics("glXCreateContext", INFO);
+// 	xGLContext = glXCreateContext(xDisplay, visInfo, NULL, True );
+//   	LogGraphics("glXCreateContext - done", INFO);
+  	/// Free the memory we got returned earlier.
+//  	XFree(glxfbConfig);
+  	return true;
 #else
   	fel
 #endif // OS-dependent code.
-    // Set as created successfully.
-    created = true;
-	return result;
 }
 
 bool AppWindow::MakeGLContextCurrent()
 {
-	assert(created);
 	if (!created)
+	{
+		LogGraphics("Trying to make GL context current on a non-created window", ERROR);
 		return false;
+	}
 #ifdef WINDOWS
 	// If a new AppWindow..
 	if (hglrc == 0)
@@ -819,12 +926,28 @@ bool AppWindow::MakeGLContextCurrent()
 	// Make it current
 	bool result = wglMakeCurrent(hdc, hglrc);	
 #elif defined USE_X11
-	assert(xDisplay);
-	assert(xWindowHandle);
-	assert(xGLContext);
-//	std::cout<<"\nxDisplay: "<<xDisplay;
-    bool result = glXMakeContextCurrent(xDisplay, xWindowHandle, xWindowHandle, (GLXContext) xGLContext);
-    assert(result);
+	if (xDisplay == 0)
+		LogGraphics("xDisplay null", ERROR);
+	if (xWindowHandle == 0)
+		LogGraphics("xWindowHandle null", ERROR);
+	if (xGLContext == 0)
+		LogGraphics("xGLContext null", ERROR);
+
+    LogGraphics("glXMakeCurrent ", INFO);
+	bool result = glXMakeCurrent(xDisplay, xWindowHandle, (GLXContext) xGLContext);
+
+
+//     LogGraphics("True: "+String(True)+" False: "+String(False), INFO);
+// 	LogGraphics("Calling glXMakeContextCurrent with args "+
+// 		String((int64)xDisplay)+" "+
+// 		String((int)xGLWindow)+" "+
+// 		String((int64)xGLContext), INFO);
+// //	std::cout<<"\nxDisplay: "<<xDisplay;
+//     bool result = glXMakeContextCurrent(xDisplay, 
+//     	xGLWindow, 
+//     	xGLWindow, 
+//     	(GLXContext) xGLContext);
+// 	LogGraphics("Called glXMakeContextCurrent result "+String(result), INFO);
 #endif
 	return result;
 }

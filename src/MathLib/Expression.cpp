@@ -408,7 +408,7 @@ bool Expression::TryEvaluate()
 				// Save the result and replace the function and arguments with the new symbol o.o
 				evaluationSymbols.RemovePart(i-1, i);
 				Symbol resultSymbol(result.text, Symbol::CONSTANT);
-				evaluationSymbols.Add(resultSymbol, i-1);
+				evaluationSymbols.Insert(resultSymbol, i-1);
 //				PrintSymbols(evaluationSymbols);
 				break;
 			}
