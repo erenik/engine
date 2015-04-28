@@ -84,7 +84,7 @@ macro(RemoveDir dir dirsToIgnore)
 	SET(filesRemoved 0)
 	remove_dir(${dir} "${source_files}" source_files ${filesRemoved} ${dirsToIgnore}) 
 	remove_dir(${dir} "${header_files}" header_files ${filesRemoved} ${dirsToIgnore})
-	message("RemoveDir with dir: ${dir}. Files removed: ${filesRemoved}")
+#	message("RemoveDir with dir: ${dir}. Files removed: ${filesRemoved}")
 endmacro(RemoveDir)
 	
 # Defines the list of project sub-folders that a basic project should NOT include.
@@ -94,6 +94,15 @@ set(projectFolders
 	"CV"
 	"Projects"
 )
+
+macro(UnpackLibZip name)
+	message("Unpacking ${name} ...")
+	execute_process(
+		COMMAND ${CMAKE_COMMAND} -E tar xvf "${name}" 
+		WORKING_DIRECTORY ${LIBS_DIR}
+		OUTPUT_QUIET
+	)	
+endmacro(UnpackLibZip)
 
 macro(InstallDependencies)
 	message("Checking for downloaded dependencies.")
@@ -140,12 +149,43 @@ macro(InstallDependencies)
 		)
 	endif()
 
+	message("Unpacking archives...")
+	# Change working dir
+
+	UnpackLibZip(${OpenALZipPath})
+	UnpackLibZip(${libglewPath})
+	UnpackLibZip(${liboggPath})
+	UnpackLibZip(${libvorbisPath})
+	
+#	execute_process(
+#		COMMAND ${CMAKE_COMMAND} -E tar xvf "${OpenALZipPath}" 
+#		WORKING_DIRECTORY ${LIBS_DIR}
+#		OUTPUT_QUIET
+#	)
+
+#	add_custom_command(
+#		TARGET run
+#		COMMAND ${CMAKE_COMMAND} -E tar xvf "${OpenALZipPath}"
+#		WORKING_DIRECTORY ${LIBS_DIR}
+#	)
+#	add_dependencies(run)
+	
+#	execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf "${OpenALZipPath}" -C ${LIBS_DIR})
+	
+#	
+#	add_custom_command(
+#		OUTPUT ${LIBS_DIR}/
+#		COMMAND 
+#			unzip -o ${OpenALZipPath}
+#		DEPENDS
+#			${OpenALZipPath}
+#	)
 	
 endmacro(InstallDependencies)
 
 # Macro to read in a .txt file with 1 include directory per line (for dependencies)
 macro(AddIncludeDirs fromFile)
-	message("AddIncludeDirs")
+#	message("AddIncludeDirs")
 	FILE(READ "${CMAKE_SOURCE_DIR}/${fromFile}" contents)
 	# Convert file contents into a CMake list (where each element in the list
 	# is one line of the file)
@@ -158,7 +198,7 @@ endmacro(AddIncludeDirs)
 
 # Macro to read in a .txt file with 1 include directory per line (for dependencies)
 macro(AddLibraryDirs fromFile)
-	message("AddLibraryDirs")
+#	message("AddLibraryDirs")
 	FILE(READ "${CMAKE_SOURCE_DIR}/${fromFile}" contents)
 	# Convert file contents into a CMake list (where each element in the list
 	# is one line of the file)
@@ -179,31 +219,31 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 	SET(libs "// Auto-generated header file based on CMake build options. -- Emil")
 		IF (LIBCURL)
 			SET(libs ${libs} "\n#define LIBCURL")
-			Message("Linking to LIBCURL")
+#			Message("Linking to LIBCURL")
 		ENDIF(LIBCURL)
 		IF (OPENCV)
 			SET(libs ${libs} "\n#define OPENCV")
-			Message("Linking to OPENCV")
+#			Message("Linking to OPENCV")
 		ENDIF(OPENCV)
 		IF (OPENAL)
 			SET(libs ${libs} "\n#define OPENAL")
-			Message("Linking to OPENAL")
+#			Message("Linking to OPENAL")
 		ENDIF(OPENAL)
 		IF (OPUS OR VORBIS OR THEORA)
 			SET(libs ${libs} "\n#define BUILD_OGG")
-			Message("Linking to OGG (BUILD_OGG)")
+#			Message("Linking to OGG (BUILD_OGG)")
 		ENDIF (OPUS OR VORBIS OR THEORA)
 		IF (OPUS)
 			SET(libs ${libs} "\n#define OPUS")
-			Message("Linking to OPUS")
+#			Message("Linking to OPUS")
 		ENDIF(OPUS)
 		IF (VORBIS)
 			SET(libs ${libs} "\n#define VORBIS")
-			Message("Linking to VORBIS")
+#			Message("Linking to VORBIS")
 		ENDIF(VORBIS)
 		IF (THEORA)
 			SET(libs ${libs} "\n#define THEORA")
-			Message("Linking to THEORA")
+#			Message("Linking to THEORA")
 		ENDIF(THEORA)
 	file(WRITE "${CMAKE_SOURCE_DIR}/src/Libs.h" ${libs})
 	
@@ -229,18 +269,15 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 	
 	# For enabling/disabling Debug-assertions (among other things)
 	# http://msdn.microsoft.com/en-us/library/abx4dbyh%28v=vs.80%29.aspx
-	message("Release flags: ${CMAKE_CXX_FLAGS_RELEASE}")
 	set(CMAKE_CXX_FLAGS_RELEASE        "/O2 /Oi /MP /GL /FD /EHsc /MT /Gy /W3 /nologo /c /Zi /TP /errorReport:prompt")
-	message("Release flags: ${CMAKE_CXX_FLAGS_RELEASE}")
+#	message("Release flags: ${CMAKE_CXX_FLAGS_RELEASE}")
 
-	message("Debug flags: ${CMAKE_CXX_FLAGS_DEBUG}")
-	set(CMAKE_CXX_FLAGS_DEBUG        "/Od /MP /EHsc /RTC1 /MTd /W3 /nologo /c /ZI /TP /errorReport:prompt")
-	message("Debug flags: ${CMAKE_CXX_FLAGS_DEBUG}")
+#	set(CMAKE_CXX_FLAGS_DEBUG        "/Od /MP /EHsc /RTC1 /MTd /W3 /nologo /c /ZI /TP /errorReport:prompt")
+#	message("Debug flags: ${CMAKE_CXX_FLAGS_DEBUG}")
 
 	# References: /OPT:REF - Eliminate Unreferenced Data
 	# Enable COMDAT Folding: /OPT:ICF - Remove Redundant COMDATs
 	# Enable Function-Level Linking: (Edit and Continue builds) /Gy
-
 
 	message("Adding project: ${ProjectName}")
 	
@@ -340,14 +377,14 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 			
 		# OGG Container for Vorbis, Opus, Theora, etc.
 		if ((VORBIS OR OPUS) OR THEORA)
-			message("Linking with OGG")
+#			message("Linking with OGG")
 			set(DEBUG_LIBS ${DEBUG_LIBS} libogg_static.lib)
 			set(RELEASE_LIBS ${RELEASE_LIBS} libogg_static_release.lib)
 		ENDIF((VORBIS OR OPUS) OR THEORA)
 			
 		# VORBIS Audio codec
 		if (VORBIS)
-			message("Linking with VORBIS")
+#			message("Linking with VORBIS")
 			set(DEBUG_LIBS ${DEBUG_LIBS} 
 				libvorbis_static_MTd.lib
 				libvorbisfile_static_MTd.lib
@@ -377,7 +414,7 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 		
 		# OpenCV - Image processing and input/output
 		if (OPENCV)
-			message("Linking with OpenCV")
+#			message("Linking with OpenCV")
 			set(DEBUG_LIBS ${DEBUG_LIBS} 
 				opencv_core248d.lib 
 				opencv_highgui248d.lib 
@@ -394,7 +431,7 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 
 		# Curl - HTTP and other internet stuffs
 		if (LIBCURL)
-			message("Linking with libcurl.")
+#			message("Linking with libcurl.")
 			#message("Libs: " ${RELEASE_LIBS})
 			set(DEBUG_LIBS ${DEBUG_LIBS}
 				libcurld_static.lib
