@@ -2,7 +2,7 @@
 message("Binary dir: ${CMAKE_BINARY_DIR}")
 message("Source dir: ${CMAKE_SOURCE_DIR}")
 
-	message("Defining file group macro")
+message("Defining file group macro")
 #This macro will go through the source dirs and group the files in a nice tree <-- Stolen from Aksel
 macro(create_file_group ROOT_DIR groupname)
 #	message("Creating file group ${groupname}")
@@ -95,6 +95,80 @@ set(projectFolders
 	"Projects"
 )
 
+macro(InstallDependencies)
+	message("Checking for downloaded dependencies.")
+	set(OpenALZipPath ${LIBS_DIR}/libopenal.zip)
+	set(libglewPath ${LIBS_DIR}/libglew.zip)
+	set(liboggPath ${LIBS_DIR}/libogg.zip)
+	if(EXISTS "${OpenALZipPath}")
+	else()
+		message("Downloading OpenAL soft")
+		file(DOWNLOAD "http://kcat.strangesoft.net/openal-soft-1.16.0-bin.zip" ${OpenALZipPath} 
+			LOG ${LIBS_DIR}/downloadlog.txt SHOW_PROGRESS
+		)
+	endif()
+	if (EXISTS "${libglewPath}")
+	else()
+		message("Downloading glew (OpenGL Extension Wrangler)")
+		file(DOWNLOAD "http://downloads.sourceforge.net/project/glew/glew/1.12.0/glew-1.12.0-win32.zip" ${libglewPath} 
+			LOG ${LIBS_DIR}/downloadlog.txt SHOW_PROGRESS
+		)
+	endif()
+	if (EXISTS "${liboggPath}")
+	else()
+		message("Downloading libogg (Xiph.org)")
+		file(DOWNLOAD "http://downloads.xiph.org/releases/ogg/libogg-1.3.2.zip" ${liboggPath} 
+			LOG ${LIBS_DIR}/downloadlog.txt SHOW_PROGRESS
+		)
+	endif()
+	
+	set(libvorbisPath ${LIBS_DIR}/libvorbis.zip)
+	if (EXISTS "${libvorbisPath}")
+	else()
+		message("Downloading libvorbis (Xiph.org)")
+		file(DOWNLOAD "http://downloads.xiph.org/releases/vorbis/libvorbis-1.3.5.zip" ${libvorbisPath} 
+			LOG ${LIBS_DIR}/downloadlog.txt SHOW_PROGRESS
+		)
+	endif()
+	
+	set(opencvPath ${LIBS_DIR}/opencv.exe)
+	if (EXISTS "${opencvPath}")
+	else()
+		message("Downloading OpenCV")
+		file(DOWNLOAD "http://downloads.sourceforge.net/project/opencvlibrary/opencv-win/2.4.10/opencv-2.4.10.exe" ${opencvPath} 
+			LOG ${LIBS_DIR}/downloadlog.txt SHOW_PROGRESS
+		)
+	endif()
+
+	
+endmacro(InstallDependencies)
+
+# Macro to read in a .txt file with 1 include directory per line (for dependencies)
+macro(AddIncludeDirs fromFile)
+	message("AddIncludeDirs")
+	FILE(READ "${CMAKE_SOURCE_DIR}/${fromFile}" contents)
+	# Convert file contents into a CMake list (where each element in the list
+	# is one line of the file)
+	#
+	STRING(REGEX REPLACE ";" "\\\\;" contents "${contents}")
+	STRING(REGEX REPLACE "\n" ";" contents "${contents}")
+	set(lib_include_dirs ${contents} )
+	message("lib_include_dirs: ${lib_include_dirs}")
+endmacro(AddIncludeDirs)
+
+# Macro to read in a .txt file with 1 include directory per line (for dependencies)
+macro(AddLibraryDirs fromFile)
+	message("AddLibraryDirs")
+	FILE(READ "${CMAKE_SOURCE_DIR}/${fromFile}" contents)
+	# Convert file contents into a CMake list (where each element in the list
+	# is one line of the file)
+	#
+	STRING(REGEX REPLACE ";" "\\\\;" contents "${contents}")
+	STRING(REGEX REPLACE "\n" ";" contents "${contents}")
+	set(lib_library_dirs ${contents} )
+	message("lib_library_dirs: ${lib_library_dirs}")
+endmacro(AddLibraryDirs)
+
 
 # Macro to add a project for this game-engine!
 macro (addProject ProjectName projectFoldersToNotExclude)
@@ -135,6 +209,14 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 	
 	# Win32 MSVC++
 	IF(MSVC)
+		# Download and install dependencies if marked.
+		IF (INSTALL_DEPENDENCIES)
+			InstallDependencies()
+		ENDIF(INSTALL_DEPENDENCIES)
+		# Add include dirs
+		AddIncludeDirs("Win32_IncludeDirs.txt")
+		AddLibraryDirs("Win32_LibraryDirs.txt")
+		
 		# In order to retain edit-and-continue build mode, must specify SAFESEH:NO in newer VS version.
 		#IF(${_MACHINE_ARCH_FLAG} MATCHES X86)
 		message("MSVC detected, trying to set /SAFESEH:NO to enable Edit and Continue builds.")
@@ -328,15 +410,20 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 
 	message("Setting include directories")
 
-	#Additional include directories specified here (?)
+	# Additional include directories specified here (?)
 	include_directories(
-		${include_directories}
+		${lib_include_dirs}
 		${source_dir}
 		${source_dir}/Util
 		${source_dir}/OS
 		${source_dir}/Projects
 	)
-			
+	# Lib dirs.
+	link_directories(
+		${lib_library_dirs}
+	)
+
+	
 	# Set binaries to build.
 	message("Adding executable")
 	add_executable(

@@ -9,6 +9,8 @@ set(OPENAL "ON" CACHE BOOL "Whether to compile and link with OpenAL soft. Requir
 set(OPUS "ON" CACHE BOOL "Whether to compile and link with (Ogg/)Opus. Required for certain sound playback.")
 set(VORBIS "ON" CACHE BOOL "Whether to compile and link with (Ogg/)Vorbis. Required for certain sound playback.")
 set(THEORA "ON" CACHE BOOL "Whether to compile and link with (Ogg/)Theora. Required for certain video playback.")
+set(LIBS_DIR "C:/libs" CACHE STRING "Root directory for additional dependencies (OpenGL, CV, AL, etc.)")
+set(INSTALL_DEPENDENCIES "OFF" CACHE BOOL "Whether to automatically download and try set up dependencies or not.")
 
 
 set(PROJECT_NAME "Engine")
