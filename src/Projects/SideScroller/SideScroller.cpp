@@ -780,6 +780,9 @@ Entity * sky = NULL;
 /// Starts a new game. Calls LoadLevel
 void SideScroller::NewGame()
 {	
+	/// Play SFX
+	QueueAudio(new AMPlaySFX("sfx/Venga.wav"));
+
 	AnimationMan.LoadFromDirectory("anim");
 
 	/// Clear all pre-existing shit as needed.
@@ -834,7 +837,8 @@ void SideScroller::NewGame()
 void SideScroller::Jump()
 {
 	Message jump("Jump");
-	playerEntity->ProcessMessage(&jump);
+	if (playerEntity)
+		playerEntity->ProcessMessage(&jump);
 }
 
 /// o.o
@@ -1584,6 +1588,18 @@ void SideScroller::SetState(int newState, bool updateUI)
 		// Update UI automagically?
 		if (updateUI)
 			UpdateUI();
+		
+		// Play music?
+		switch(newState)
+		{
+			case MAIN_MENU:
+				QueueAudio(new AMPlayBGM("bgm/2015-04-13_mexican.ogg"));
+				break;
+			case PLAYING_LEVEL:
+				QueueAudio(new AMPlayBGM("bgm/2015-04-28_Mariachi.ogg"));
+				break;
+		}
+
 	}
 }
 

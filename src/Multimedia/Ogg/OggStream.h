@@ -20,18 +20,21 @@
 /// Include all necessary files for Ogg container playback. Or.. subclass it? Not sure D:
 #include <ogg/ogg.h>
 #ifdef VORBIS
-/// Vorbis for audio.
-#include <vorbis/codec.h>
-#include <vorbis/vorbisenc.h>
-#include <vorbis/vorbisfile.h>
+	/// Vorbis for audio.
+	#include <vorbis/codec.h>
+	#include <vorbis/vorbisenc.h>
+	#include <vorbis/vorbisfile.h>
 #endif
 #ifdef OPUS
-/// Also Opus for audio http://www.opus-codec.org/ :D
-#include <opus/opusfile.h>
+	/// Also Opus for audio http://www.opus-codec.org/ :D
+	#include <opus/opusfile.h>
 #endif
 
 /// Theora for video.
-#include <theora/theoradec.h>
+#ifdef THEORA
+	#include <theora/theoradec.h>
+#endif
+
 #ifdef WINDOWS
 	//#include <theora/decint.h>
 #endif

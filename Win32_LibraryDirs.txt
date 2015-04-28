@@ -1,8 +1,9 @@
-C:\libs\glew-1.12.0\lib\Release\Win32
-C:\libs\openal-soft-1.16.0-bin\libs\Win32
-C:\libs\libogg-1.3.2\lib
-C:\libs\libvorbis-1.3.5\win32\VS2008\Win32\Debug
-C:\libs\libvorbis-1.3.5\win32\VS2008\Win32\Release
-C:\libs\libtheora-1.1.1\win32\VS2008\Win32\Debug
-C:\libs\opencv\out\lib\Debug
-C:\libs\opencv\out\lib\Release
+D:\libs\glew-1.12.0\lib\Release\Win32
+D:\libs\openal-soft-1.16.0-bin\libs\Win32
+D:\libs\libogg-1.3.2\win32\VS2008\Win32\Debug
+D:\libs\libogg-1.3.2\win32\VS2008\Win32\Release
+D:\libs\libvorbis-1.3.5\win32\VS2008\Win32\Debug
+D:\libs\libvorbis-1.3.5\win32\VS2008\Win32\Release
+D:\libs\libtheora-1.1.1\win32\VS2008\Win32\Debug
+D:\libs\opencv\out\lib\Debug
+D:\libs\opencv\out\lib\Release

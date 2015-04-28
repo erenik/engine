@@ -89,6 +89,7 @@ int ReadOggData(std::fstream & fromFile, ogg_sync_state * intoOss)
 	return bytesWritten;
 }
 
+#ifdef THEORA
 
 /* dump the theora comment header */
 static int dump_comments(th_comment *_tc){
@@ -108,6 +109,9 @@ static int dump_comments(th_comment *_tc){
   }
   return 0;
 }
+
+#endif
+
 
 /// Attempts to open target file. Returns false upon failure.
 bool OggStream::Open(String path)
