@@ -933,9 +933,12 @@ bool AppWindow::MakeGLContextCurrent()
 	if (xGLContext == 0)
 		LogGraphics("xGLContext null", ERROR);
 
-    LogGraphics("glXMakeCurrent ", INFO);
-	bool result = glXMakeCurrent(xDisplay, xWindowHandle, (GLXContext) xGLContext);
-
+    LogGraphics("glXMakeCurrent... ", INFO);
+    // Lock it.
+    XLockDisplay(xDisplay);
+	bool result = glXMakeCurrent(xDisplay, xWindowHandle, (GLXContext)	 xGLContext);
+	XUnlockDisplay(xDisplay);
+	LogGraphics("glXMakeCurrent - done", INFO);
 
 //     LogGraphics("True: "+String(True)+" False: "+String(False), INFO);
 // 	LogGraphics("Calling glXMakeContextCurrent with args "+

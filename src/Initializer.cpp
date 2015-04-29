@@ -33,6 +33,9 @@ THREAD_START(Initialize)
 	MesMan.QueueMessages("CreateMainWindow");
 
 	std::cout<<"\nInitializing managers...";
+	// Initialize AppWindow-manager, Linux requires some specifics - wat.
+	WindowMan.Initialize();
+
 	// Call Initialize for all managers to properly initialize them
 	StateMan.Initialize();	// Registers all states to be used
 	ModelMan.Initialize(); // Loads useful models
