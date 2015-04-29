@@ -1,7 +1,10 @@
 /// Emil Hedemalm
-/// 2015-01-20
-/// Space shooter.
-/// For the Karl-Emil SpaceShooter project, mainly 2014-2015/
+/// 2015-04-29
+/// Side-scroller.
+/// For the Luchador Andreas-Emil project, mainly 2015
+
+#ifndef SIDE_SCROLLER_H
+#define SIDE_SCROLLER_H
 
 #include "AppStates/AppState.h"
 
@@ -77,6 +80,7 @@
 #include "Viewport.h"
 
 #include "Luchador.h"
+#include "Mask.h"
 
 #define CC_ENVIRONMENT	1
 #define CC_PLAYER		(1 << 1)
@@ -267,5 +271,6 @@ private:
 	String lastError;
 };
 
-
 extern SideScroller * sideScroller;
+
+#endif

@@ -21,6 +21,8 @@
 #include "Globals.h"
 #include "Render/FrameBuffer.h"
 
+bool Viewport::defaultRenderGrid = true;
+
 Viewport::Viewport()
 {
 	Initialize();
@@ -55,7 +57,7 @@ void Viewport::Initialize()
 	id = idEnumerator++;
 	
 	// Render Booleans
-	renderGrid = true;
+	renderGrid = defaultRenderGrid;
 	renderPhysics = false;
 	renderCollisionTriangles = false;
 	renderSeparatingAxes = false;

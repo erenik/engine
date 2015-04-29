@@ -85,6 +85,9 @@ public:
 	/// Flag for this viewport.
 	bool renderNavMesh;
 
+	/// For newly created viewports. Default true.
+	static bool defaultRenderGrid;
+
 	/// Dragged from GraphicsManager
 	/// Booleans for extra rendering tools
 	bool renderPhysics;

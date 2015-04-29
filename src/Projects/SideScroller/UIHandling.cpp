@@ -168,7 +168,7 @@ void SideScroller::UpdateSelectedMask(String maskName)
 		/// Update UI!
 		QueueGraphics(new GMSetUIs("MaskName", GMUI::TEXT, mask.name));
 		QueueGraphics(new GMSetUIs("MaskPreview", GMUI::TEXTURE_SOURCE, mask.textureSource));
-		QueueGraphics(new GMSetUIs("lPrice", GMUI::TEXT, "Price"));
+		QueueGraphics(new GMSetUIs("lPrice", GMUI::TEXT, "Precio"));
 		// Affordable?
 		// If price is too high..
 		if (mask.purchased)

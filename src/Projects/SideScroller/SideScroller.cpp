@@ -22,6 +22,7 @@ void SetApplicationDefaults()
 	Application::quitOnHide = false;
 	TextFont::defaultFontSource = "img/fonts/font3.png";
 	PhysicsProperty::defaultUseQuaternions = false;
+	Viewport::defaultRenderGrid = false;
 }
 
 // Global variables.
@@ -171,7 +172,7 @@ SideScroller::SideScroller()
 	purchasedMasks = GameVars.CreateString("PurchasedMasks", "");
 
 	/// Load masks data.
-//	LoadMasks();
+	Mask::LoadFromCSV("data/Masks.csv");
 	// Default masks.
 	if (masks.Size() == 0)
 	{
@@ -180,10 +181,8 @@ SideScroller::SideScroller()
 		masks.AddItem(Mask("Yellow", "img/Masks/Yellow_mask.png", 1000, 3));
 	}
 
-
 	/// Load game if existing.
 	AutoLoad();
-
 }
 
 SideScroller::~SideScroller()
@@ -475,70 +474,70 @@ void SideScroller::ProcessMessage(Message * message)
 			}
 			else if (msg.StartsWith("ShopMask: "))
 			{
-				String maskName = msg.Tokenize(": ")[1];
-				for (int i = 0; i < masks.Size(); ++i)
+				String maskName = msg - "ShopMask: ";
+				Mask * mask = Mask::GetByName(maskName);
+				if (!mask)
 				{
-					Mask & mask = masks[i];
-					if (mask.name != maskName)
-						continue;
-					bool warrantsSaving = false;
-					bool warrantsUIUpdate = false;
-					if (mask.purchased)
+					assert(false && "No such mask");
+					return;
+				}				
+				bool warrantsSaving = false;
+				bool warrantsUIUpdate = false;
+				if (mask->purchased)
+				{
+					// Lucha?.
+					if (equippedMask == mask)
 					{
-						// Lucha?.
-						if (equippedMask == &mask)
-						{
-							// Already equipped? Lucha!
-							MesMan.QueueMessages("NewGame");
-							return;
-						}
-						/// Equip!
-						float r = sfxRand.Randf();
-						if (r > 0.5f)
-							QueueAudio(new AMPlaySFX("sfx/Buena eleccion.wav"));
-						else 
-							QueueAudio(new AMPlaySFX("sfx/Sabia decision.wav"));
-						equippedMask = &mask;
-						equippedMaskName->strValue = mask.name;
+						// Already equipped? Lucha!
+						MesMan.QueueMessages("NewGame");
+						return;
+					}
+					/// Equip!
+					float r = sfxRand.Randf();
+					if (r > 0.5f)
+						QueueAudio(new AMPlaySFX("sfx/Buena eleccion.wav"));
+					else 
+						QueueAudio(new AMPlaySFX("sfx/Sabia decision.wav"));
+					equippedMask = mask;
+					equippedMaskName->strValue = mask->name;
+					warrantsSaving = true;
+					warrantsUIUpdate = true;
+				}
+				else 
+				{
+					// Try buy it.
+					if (mask->price < totalMunny->iValue)
+					{
+						mask->purchased = true;
+						purchasedMasks->strValue += ";" + mask->name;
+						totalMunny->iValue -= mask->price;
+						QueueAudio(new AMPlaySFX("sfx/Buena compra.wav"));
+						// Autosave?
 						warrantsSaving = true;
 						warrantsUIUpdate = true;
 					}
+					// Error sound of insufficient pesos?
 					else 
 					{
-						// Try buy it.
-						if (mask.price < totalMunny->iValue)
-						{
-							mask.purchased = true;
-							purchasedMasks->strValue += ";" + mask.name;
-							totalMunny->iValue -= mask.price;
-							QueueAudio(new AMPlaySFX("sfx/Buena compra.wav"));
-							// Autosave?
-							warrantsSaving = true;
-							warrantsUIUpdate = true;
-						}
-						// Error sound of insufficient pesos?
-						else 
-						{
-							// Play sfx
-							float r = sfxRand.Randf();
-							if (r > 0.7f)
-								QueueAudio(new AMPlaySFX("sfx/Caro.wav"));
-							else if (r > 0.4f)
-								QueueAudio(new AMPlaySFX("sfx/Tan caro.wav"));
-							else
-								QueueAudio(new AMPlaySFX("sfx/Demasiado caro.wav"));
-						}
+						// Play sfx
+						float r = sfxRand.Randf();
+						if (r > 0.7f)
+							QueueAudio(new AMPlaySFX("sfx/Caro.wav"));
+						else if (r > 0.4f)
+							QueueAudio(new AMPlaySFX("sfx/Tan caro.wav"));
+						else
+							QueueAudio(new AMPlaySFX("sfx/Demasiado caro.wav"));
 					}
-					// Autosave
-					if (warrantsSaving)
-						AutoSave();
-					// Update UI.
-					if (warrantsUIUpdate)
-					{
-						UpdateUI();
-						// Hover to same element as we were on earlier.
-						QueueGraphics(new GMSetHoverUI(message->element->name));
-					}
+				}
+				// Autosave
+				if (warrantsSaving)
+					AutoSave();
+				// Update UI.
+				if (warrantsUIUpdate)
+				{
+					UpdateUI();
+					// Hover to same element as we were on earlier.
+					QueueGraphics(new GMSetHoverUI(message->element->name));
 				}
 			}
 			else if (msg == "NextK")

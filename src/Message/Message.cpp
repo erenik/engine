@@ -10,7 +10,6 @@ Message::Message(){
 */
 Message::Message(const String & i_string)
 {
-	timeToProcess = 0;
 	msg = i_string;
 	type = MessageType::STRING;
 	data = NULL;
@@ -18,7 +17,6 @@ Message::Message(const String & i_string)
 
 Message::Message(int i_type)
 {
-	timeToProcess = 0;
 	data = NULL;
 	type = i_type;
 };

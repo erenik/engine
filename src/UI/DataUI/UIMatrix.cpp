@@ -173,6 +173,17 @@ initialFormattingDone:
 				left->rightNeighbourName = element->name;
 			}
 		}
+		// Bottom-top neighbours
+		Vector2i bottomPos = matrixPos + Vector2i(0, 1);
+		if (layoutMatrix.ValidPosition(bottomPos))
+		{
+			UIElement * bottom = layoutMatrix.GetItem(bottomPos);
+			if (bottom)
+			{
+				element->downNeighbourName = bottom->name;
+				bottom->upNeighbourName = element->name;
+			}
+		}
 	}
 
 	;
