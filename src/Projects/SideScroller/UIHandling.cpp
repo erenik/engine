@@ -101,6 +101,17 @@ void SideScroller::UpdateShopMasks()
 {
 	int masksOwned = 0;
 
+	/// Update matrix size first.
+	int num = masks.Size();
+	Vector2i size(1,1);
+	while(size.GeometricSum() < num)
+	{
+		size.x += 1;
+		size.y += 1;
+	}
+	QueueGraphics(new GMSetUIv2i("MaskMatrix", GMUI::MATRIX_SIZE, size));
+
+
 	/// Create buttons/image previews of all masks in the grid and send them to the grid!
 	List<UIElement*> maskPreviewButtons;
 	for (int i = 0; i < masks.Size(); ++i)
