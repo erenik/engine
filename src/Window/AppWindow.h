@@ -105,6 +105,8 @@ public:
 	/// Must be called from the same thread that created it (on Windows).
 	bool Destroy();
 	bool IsVisible();
+	/// Main focus window in OS if true.
+	bool InFocus() {return inFocus; };
 	bool IsFullScreen() { return isFullScreen; };
 	void MoveToMonitor(int monitorIndex);
 

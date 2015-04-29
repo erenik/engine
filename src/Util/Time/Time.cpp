@@ -38,6 +38,15 @@ Time::Time(int type, uint64 intervals)
 	assert(type > TimeType::UNDEFINED && type < TimeType::TIME_TYPES);
 }
 
+/// o.o
+Time Time::Milliseconds(int amount)
+{
+	Time time;
+	time.type = TimeType::MILLISECONDS_NO_CALENDER;
+	time.intervals = amount;
+	return time;
+}
+
 /// Returns current time in default time-type/-format.
 Time Time::Now()
 {
@@ -95,6 +104,7 @@ String Time::ToString(String withFormat)
 #define ASSERT_SAME_TYPE if (type != otherTime.type)\
 { 		\
 	std::cout<<"\nTime - otherTime with different types. Undefined behaviour, setting intervals to 0."; newTime.intervals = 0;\
+	assert(false && "Bad types.");\
 	return newTime;\
 }
 
@@ -113,6 +123,22 @@ Time Time::operator - (const Time & otherTime) const
 Time Time::operator + (const Time & otherTime) const
 {
 	Time newTime;
+	if (type != otherTime.type)
+	{
+		// Try convert.
+		int types[TimeType::TIME_TYPES];
+		types[type]++;
+		types[otherTime.type]++;
+		// If one is windows - convert to it.
+		if (types[TimeType::WIN32_100NANOSEC_SINCE_JAN1_1601])
+		{
+			Time t1 = *this, t2 = otherTime;
+			t1.ConvertTo(TimeType::WIN32_100NANOSEC_SINCE_JAN1_1601);
+			t2.ConvertTo(TimeType::WIN32_100NANOSEC_SINCE_JAN1_1601);
+			return t1 + t2;
+		}
+		return newTime;
+	}
 	ASSERT_SAME_TYPE;
 	newTime.intervals = intervals + otherTime.intervals;
 	newTime.type = type;
@@ -208,6 +234,15 @@ void Time::ConvertTo(int toType)
 		case TimeType::UNDEFINED:
 			intervals = 0;
 			break;
+		case TimeType::MILLISECONDS_NO_CALENDER:
+		{
+			/// From millisec to microsec -> 1000x, microsec to 100 nanosec -> 10x
+			if (toType == TimeType::WIN32_100NANOSEC_SINCE_JAN1_1601)
+				intervals *= 10 * 1000;
+			else 
+				assert(false);
+			break;
+		}
 		default:
 			switch(toType)
 			{

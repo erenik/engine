@@ -8,7 +8,7 @@ namespace Application {
 
 	bool queryOnQuit;
 	String name;
-
+	bool quitOnHide;
 	bool live = true;
 	// OS-specifics below
 #ifdef WINDOWS

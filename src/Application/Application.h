@@ -26,6 +26,7 @@ namespace Application
 	/// Defines if the application quits straight away when pressing the X or hitting e.g. ALT+F4, or open a query dialogue about it.
 	extern bool queryOnQuit;
 	extern String name;
+	extern bool quitOnHide; // If true, application will quit when all windows have been hidden from the user. Default .. false/true..?
 
 	/// Controls the main loop of the program. Set to false from within the Deallocator-thread.
 	extern bool live;

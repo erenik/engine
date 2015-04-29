@@ -29,8 +29,8 @@ public:
 	Script * event;
 	/// Triggered element. for (this)-applications.
 	UIElement * element;
-	/// Time to process this message. If 0 process straight away (default).
-	long long timeToProcess;
+	/// Time when this message should be processed.
+	Time timeToProcess;
 };
 
 class PasteMessage : public Message

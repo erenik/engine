@@ -53,6 +53,7 @@ public:
 
 	void Play();			// Begins/resumes playback
 	bool IsPlaying();
+	bool IsPaused(); 
 	void Resume();			// Resumes ONLY if the audio was currently paused.
 	void Pause();			// Pause at current time
 	void Stop(bool andSeekToStart);			// Stops and brings currentTime to 0.

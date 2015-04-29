@@ -51,6 +51,7 @@ class AudioManager
 	friend class MultimediaStream;
 	friend class AMPlay;
 	friend class AMSet;
+	friend class AMSetb;
 	friend class AMStop;
 	friend class Audio;
 private:
@@ -135,7 +136,9 @@ private:
 	/// Disables audio and pauses all current playback indefinitely.
 	void DisableAudio();
 
+	List<Audio*> AllOfType(char type);
 	/// Pause o.O
+	void ResumeAllOfType(char type);
 	void PauseAllOfType(char type);
 	void StopAllOfType(char type);
 	void FadeOutAllOfType(char type, float seconds);
@@ -182,6 +185,9 @@ private:
 	List<Audio*> audioList;
 
 	bool initialized;	// Consider using other relevant variables to test if initialization succeeded.
+
+	/// D:
+	bool bgmEnabled;
 };
 
 #endif

@@ -105,10 +105,12 @@ void MessageManager::ProcessMessages()
 		messageQueue.Clear();
 	}
 	/// Fetch all delayed messages too.
-	long long cTime = Timer::GetCurrentTimeMs();
-	for (int i = 0; i < delayedMessages.Size(); ++i){
+	Time now = Time::Now();
+	for (int i = 0; i < delayedMessages.Size(); ++i)
+	{
 		Message * mes = delayedMessages[i];
-		if (mes->timeToProcess < cTime){
+		if (mes->timeToProcess < now)
+		{
 			delayedMessages.Remove(mes);
 			messagesToProcess.Add(mes);
 			--i;
@@ -278,6 +280,15 @@ void MessageManager::ProcessMessage(Message * message)
 
 	switch(message->type)
 	{
+		case MessageType::BOOL_MESSAGE:
+		{
+			BoolMessage * bm = (BoolMessage*) message;
+			if (msg == "BGMEnabled")
+			{
+				QueueAudio(new AMSetb(AT_BGM_ENABLED, bm->value));
+			}
+			break;
+		}
 		case MessageType::COLLISSION_CALLBACK:
 		{
 			CollisionCallback * cc = (CollisionCallback*) message;

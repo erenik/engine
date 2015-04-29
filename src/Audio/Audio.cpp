@@ -322,6 +322,12 @@ bool Audio::IsPlaying()
 	return state == AudioState::PLAYING;
 }
 
+bool Audio::IsPaused()
+{
+	return state == AudioState::PAUSED;
+}
+
+
 // Resumes ONLY if the audio was currently paused.
 void Audio::Resume()
 {

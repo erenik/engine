@@ -12,9 +12,12 @@
 enum audioMessageTypes
 {
 	AM_SHUTDOWN,
+	
+	// 
 	AM_REGISTER,
 	AM_DISABLE_AUDIO,
 	AM_SET, // general setter.
+	AM_SET_BOOLEAN,
 	AM_SET_AUDIO, // audio setter
 	AM_PLAY,
 	AM_FADE,
@@ -32,6 +35,8 @@ enum audioTargets
 	AT_LISTENER, // For setting the camera or entity which si the listener for calculating positional audio volumes.
 	AT_CATEGORY_VOLUME,
 	AT_VOLUME,
+	// Overlaying settings.
+	AT_BGM_ENABLED, 
 };
 
 class Audio;
@@ -62,6 +67,16 @@ private:
 	Camera * listener;
 	int id;
 	float fValue;
+};
+
+class AMSetb : public AudioMessage 
+{
+public:
+	AMSetb(int target, bool bValue);
+	virtual void Process();
+private:
+	int target;
+	bool value;
 };
 
 class AMSetAudio : public AudioMessage 

@@ -39,6 +39,8 @@ int defaultAudioDriver = AudioDriver::BAD_DRIVER;
 
 String lastAudioInfo;
 
+bool usingMasterMixer = false;
+
 // Default constructor
 AudioManager::AudioManager()
 {
@@ -52,6 +54,7 @@ AudioManager::AudioManager()
 	shouldLive = true;
 	audioDriver = AudioDriver::BAD_DRIVER;
 	AudioMixer::AllocateMaster();
+	bgmEnabled = true;
 
 	// Create mutex for handling race-conditions/threading
 	audioMessageQueueMutex.Create("audioMessageQueueMutex");
@@ -125,7 +128,14 @@ bool AudioManager::InitializeDriver(int driverID)
 	{
 		case AudioDriver::OpenAL: return OpenAL::Initialize(); break;
 	#ifdef WINDOWS
-		case AudioDriver::WindowsCoreAudio: return WMMDevice::Initialize(); break;
+		case AudioDriver::WindowsCoreAudio:
+			if (WMMDevice::Initialize())
+			{
+				usingMasterMixer = true;
+				return true;
+			} 
+			return false;
+			break;
 	#endif
 	}	
 #ifdef USE_FMOD
@@ -229,6 +239,31 @@ void AudioManager::SavePreferences()
 {
 	Preferences.SetFloat("MasterVolume", masterVolume);
 	Preferences.SetBool("AudioEnabled", audioEnabled);
+}
+
+List<Audio*> AudioManager::AllOfType(char type)
+{
+	List<Audio*> result;
+	Audio * audio;
+	for (int i = 0; i < audioList.Size(); ++i){
+		audio = audioList[i];
+		if (audio->type == type)
+		{
+			result.AddItem(audio);
+		}
+	}
+	return result;
+}
+
+void AudioManager::ResumeAllOfType(char type)
+{
+	List<Audio*> all = AllOfType(type);	
+	for (int i = 0; i < all.Size(); ++i)
+	{
+		Audio * audio = all[i];
+		if (audio->IsPaused())
+			audio->Resume();
+	}
 }
 
 void AudioManager::PauseAllOfType(char type)
@@ -412,15 +447,18 @@ void AudioManager::PlaySFX(String name, float volume /*= 1.f*/)
 
 	pauseUpdates = true;
 
+	LogAudio("PlaySFX: "+name, INFO);
+
 	// Create audio
 //	std::cout<<"\nAudio not found, tryng to create and load it.";
 	Audio * audio = new Audio(AudioType::SFX, name, false, volume);
 	bool loadResult = audio->Load();
 //	std::cout<<"\nLoad result: "<<loadResult;
 //	assert(loadResult && "Could not load audio data?");
-	if (loadResult == false){
+	if (loadResult == false)
+	{
         delete audio;
-        std::cout<<"\nERROR: Unable to load audio \""<<name<<"\". Aborting playback.";
+		LogAudio("ERROR: Unable to load audio \""+name+"\". Aborting playback.", ERROR);
         return;
 	}
 	/// Generate audio source if not existing.
@@ -437,6 +475,8 @@ void AudioManager::PlaySFX(String name, float volume /*= 1.f*/)
 /// Plays target BGM, pausing all others. Default sets to repeat.
 Audio * AudioManager::PlayBGM(String name, float volume /* = 1.f */)
 {
+	if (!bgmEnabled)
+		return NULL;
 	return Play(AudioType::BGM, name, true, volume);
 }
 
@@ -542,6 +582,7 @@ void AudioManager::Update()
 
 	// Then update volumes and buffer stuff.
 	lastAudioInfo = "AudioManager::Update - volumes and buffering";
+	int playingAudio = 0;
 	for (int i = 0; i < audioList.Size(); ++i)
 	{
 		Audio * audio = audioList[i];
@@ -564,19 +605,33 @@ void AudioManager::Update()
 			case AudioState::ENDING:
 			{
 				// Flag as ended after the audio marker in the mixer has been removed.
-				ABM * abm = masterMixer->GetMarker(audio);
-				if (!abm || abm->pcmQueueIndex <= 0)
-					audio->state = AudioState::ENDED;
+				if (usingMasterMixer)
+				{
+					ABM * abm = masterMixer->GetMarker(audio);
+					if (!abm || abm->pcmQueueIndex <= 0)
+						audio->state = AudioState::ENDED;
+				}
+				playingAudio++;
 				break;
 			}
+			case AudioState::PLAYING:
+				playingAudio++;
+				break;
 			case AudioState::READY:
 			case AudioState::PAUSED:
 				continue;
 		}
 		audio->Update();
 	}
+	// No audio playing? Sleep moar.
+	if (playingAudio <= 0)
+	{
+		Sleep(20);
+		return;
+	}
 	/// Send mixed audio to driver, if custom mixer enabled/driver requiring it
-	masterMixer->Update();
+	if (usingMasterMixer)
+		masterMixer->Update();
 }
 
 Vector3f AudioManager::ListenerPosition()

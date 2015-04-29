@@ -315,6 +315,7 @@ bool WindowManager::InFocus()
 			return true;
 		}
 	}
+	return false;
 }
 
 /// To see if the application should quit?
@@ -328,8 +329,9 @@ void WindowManager::OnWindowHidden(AppWindow * w)
 			return;
 		}
 	}
-	/// Shutdown if no windows were visible.
-	MesMan.QueueMessages("QuitApplication");
+	/// Shutdown if no windows were visible... eh.
+	if (Application::quitOnHide)
+		MesMan.QueueMessages("QuitApplication");
 }
 
 

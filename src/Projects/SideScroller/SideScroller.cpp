@@ -9,6 +9,7 @@
 bool paused = false;
 float breatherBlockSize = 5.f;
 Random levelRand;
+Random sfxRand;
 /// Starts at 0, increments after calling BreatherBlock and AddLevelPart
 float levelLength;
 
@@ -18,6 +19,7 @@ List<Entity*> blacknessEntities;
 void SetApplicationDefaults()
 {
 	Application::name = "SideScroller";
+	Application::quitOnHide = false;
 	TextFont::defaultFontSource = "img/fonts/font3.png";
 	PhysicsProperty::defaultUseQuaternions = false;
 }
@@ -223,7 +225,6 @@ void SideScroller::OnEnter(AppState * previousState)
 //	starEmitter = new StarEmitter(Vector3f());
 //	Graphics.QueueMessage(new GMAttachParticleEmitter(starEmitter, stars));
 
-
 	// Remove overlay.
 	// Set up ui.
 //	if (!ui)
@@ -254,7 +255,6 @@ void SideScroller::OnEnter(AppState * previousState)
 	QueueGraphics(new GMSetOverlay(NULL));
 }
 
-
 Time now;
 // int64 nowMs;
 int timeElapsedMs;
@@ -264,6 +264,12 @@ int timeElapsedMs;
 void SideScroller::Process(int timeInMs)
 {
 	SleepThread(10);
+	if (!MainWindow()->InFocus())
+		SleepThread(40);
+	else 
+	{
+//		std::cout<<"\nIn focus o.op";
+	}
 //	std::cout<<"\nSS2D entities: "<<shipEntities.Size() + projectileEntities.Size() + 1;
 //	if (playerShip) std::cout<<"\nPlayer position: "<<playerShip.position;
 
@@ -427,6 +433,21 @@ void SideScroller::ProcessMessage(Message * message)
 			}
 			if (msg == "NewGame" || msg == "Retry")
 				NewGame();
+			else if (msg == "QuitGame")
+			{
+				float r = sfxRand.Randf();
+				if (r > 0.5f)
+					QueueAudio(new AMPlaySFX("sfx/Adios.wav"));
+				else 
+					QueueAudio(new AMPlaySFX("sfx/Adios amigo.wav"));
+				// Stop music?
+				QueueAudio(new AMStopBGM());
+				Message * msg = new Message("QuitApplication");
+				msg->timeToProcess = Time::Now() + Time::Milliseconds(2000);
+				MesMan.QueueDelayedMessage(msg);
+				// Hide the main window straight away - so it doesn't interrupt the user if they are rushed?
+				MainWindow()->Hide();
+			}
 			else if (msg == "ReturnToPreviousState")
 			{
 				switch(previousState)
@@ -464,13 +485,19 @@ void SideScroller::ProcessMessage(Message * message)
 					bool warrantsUIUpdate = false;
 					if (mask.purchased)
 					{
-						// Equip.
+						// Lucha?.
 						if (equippedMask == &mask)
 						{
 							// Already equipped? Lucha!
 							MesMan.QueueMessages("NewGame");
 							return;
 						}
+						/// Equip!
+						float r = sfxRand.Randf();
+						if (r > 0.5f)
+							QueueAudio(new AMPlaySFX("sfx/Buena eleccion.wav"));
+						else 
+							QueueAudio(new AMPlaySFX("sfx/Sabia decision.wav"));
 						equippedMask = &mask;
 						equippedMaskName->strValue = mask.name;
 						warrantsSaving = true;
@@ -484,11 +511,23 @@ void SideScroller::ProcessMessage(Message * message)
 							mask.purchased = true;
 							purchasedMasks->strValue += ";" + mask.name;
 							totalMunny->iValue -= mask.price;
+							QueueAudio(new AMPlaySFX("sfx/Buena compra.wav"));
 							// Autosave?
 							warrantsSaving = true;
 							warrantsUIUpdate = true;
 						}
 						// Error sound of insufficient pesos?
+						else 
+						{
+							// Play sfx
+							float r = sfxRand.Randf();
+							if (r > 0.7f)
+								QueueAudio(new AMPlaySFX("sfx/Caro.wav"));
+							else if (r > 0.4f)
+								QueueAudio(new AMPlaySFX("sfx/Tan caro.wav"));
+							else
+								QueueAudio(new AMPlaySFX("sfx/Demasiado caro.wav"));
+						}
 					}
 					// Autosave
 					if (warrantsSaving)
@@ -781,7 +820,17 @@ Entity * sky = NULL;
 void SideScroller::NewGame()
 {	
 	/// Play SFX
-	QueueAudio(new AMPlaySFX("sfx/Venga.wav"));
+	float r = sfxRand.Randf();
+	if (r > 0.8f)
+		QueueAudio(new AMPlaySFX("sfx/Venga.wav"));
+	else if (r > 0.6f)
+		QueueAudio(new AMPlaySFX("sfx/Venga 2.wav"));
+	else if (r > 0.4f)
+		QueueAudio(new AMPlaySFX("sfx/Lucha.wav"));
+	else if (r > 0.2f)
+		QueueAudio(new AMPlaySFX("sfx/Venga lucha.wav"));
+	else
+		QueueAudio(new AMPlaySFX("sfx/Muchacho venga.wav"));
 
 	AnimationMan.LoadFromDirectory("anim");
 
@@ -1592,6 +1641,9 @@ void SideScroller::SetState(int newState, bool updateUI)
 		// Play music?
 		switch(newState)
 		{
+			case IN_SHOP:
+				QueueAudio(new AMPlaySFX("sfx/Bienvenido al mercado.wav"));
+				break;
 			case MAIN_MENU:
 				QueueAudio(new AMPlayBGM("bgm/2015-04-13_mexican.ogg"));
 				break;

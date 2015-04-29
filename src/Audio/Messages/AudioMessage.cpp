@@ -87,6 +87,39 @@ void AMSet::Process()
 	}
 }
 
+AMSetb::AMSetb(int target, bool bValue)
+: AudioMessage(AM_SET_BOOLEAN), target(target), value(bValue)
+{
+	switch(target)
+	{
+		case AT_BGM_ENABLED:
+			break;
+		default:
+			assert(false && "Bad target");
+	}
+}
+void AMSetb::Process()
+{
+	switch(target)
+	{
+		case AT_BGM_ENABLED:
+		{
+			// Resume any paused ones?
+			if (value)
+			{
+				AudioMan.ResumeAllOfType(AudioType::BGM);
+			}
+			// Pause all BGMs and prevent new ones from playing?
+			else {
+				AudioMan.PauseAllOfType(AudioType::BGM);
+			}
+			AudioMan.bgmEnabled = value;
+		}
+		
+	}
+}
+
+
 AMSetAudio::AMSetAudio(Audio * audio, int target, float fValue)
 : AudioMessage(AM_SET_AUDIO), audio(audio), target(target), fValue(fValue)
 {

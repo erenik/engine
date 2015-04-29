@@ -32,7 +32,8 @@ public:
 	Time(int type);
 	/// Time using a given type and starting-point. 
 	Time(int type, uint64 intervals);
-
+	/// o.o
+	static Time Milliseconds(int amount);
 	/// Returns current time in default time-type/-format.
 	static Time Now();
 	/// Dicates default type of created Time objects. Default is TimeType::UNDEFINED
