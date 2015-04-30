@@ -117,6 +117,9 @@ void WindowManager::ProcessMessages()
 	}
 	
 #elif defined USE_X11
+	return;
+	/// Lock display while polling events?
+//	XLockDisplay(xDisplay);
 	// TODO: Add linux version in an elif for more created windows?
 	int events = 0;
 	while(events = XPending(xDisplay) && StateMan.ActiveStateID() != GameStateID::GAME_STATE_EXITING)
@@ -126,6 +129,7 @@ void WindowManager::ProcessMessages()
         if (XProc() != NULL)
             break;
     }
+  //  XUnlockDisplay(xDisplay);
 #endif // OS-specific message processing.
 }
 

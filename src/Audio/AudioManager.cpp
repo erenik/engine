@@ -626,7 +626,7 @@ void AudioManager::Update()
 	// No audio playing? Sleep moar.
 	if (playingAudio <= 0)
 	{
-		Sleep(20);
+		SleepThread(20);
 		return;
 	}
 	/// Send mixed audio to driver, if custom mixer enabled/driver requiring it

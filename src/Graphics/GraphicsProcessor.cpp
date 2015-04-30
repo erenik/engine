@@ -81,7 +81,7 @@ PROCESSOR_THREAD_START(GraphicsManager)
 	while(WindowMan.NumWindows() == 0)
 	{
 		LogGraphics("Waiting for windows", INFO);
-		SleepThread(50);
+		SleepThread(500);
 	}
 	AppWindow * mainWindow = WindowMan.GetWindow(0);
 	while (!mainWindow->created)

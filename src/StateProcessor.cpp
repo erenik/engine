@@ -38,9 +38,6 @@ void * StateManager::StateProcessor(void * vArgs){
     std::cout<<"\n===========================================______________________-----";
 	long long time = Timer::GetCurrentTimeMs();
 	long long newTime = Timer::GetCurrentTimeMs();
-
-	// Initialize AppWindow-manager, Linux requires some specifics
-	WindowMan.Initialize();
 	
 	LogMain("State processor starting", INFO);
 	while(StateMan.shouldLive)
