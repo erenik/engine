@@ -253,6 +253,9 @@ public:
 	void FreeBuffers();
 	/// Rendering
 	virtual void Render(GraphicsState & graphicsState);
+	virtual void RenderText();
+	/// Called after resize of UI before RenderText.
+	virtual void FormatText(); 
 
 	/// Adjusts the UI element size and position relative to new AppWindow size
 	void AdjustToWindow(int left, int right, int bottom, int top);

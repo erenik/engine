@@ -112,6 +112,8 @@ int main(int argc, char **argv)
 	// Set application-defaults here already?
 	/// Call to set application name, root directories for various features, etc.
 	SetApplicationDefaults();
+	/// Set timer resolution. 1 ms
+	SetTimerResolution(1);
 	/// Load base setup
 	List<String> rows = File::GetLines("Setup.txt");
 	for (int i = 0; i < rows.Size(); ++i)
@@ -520,6 +522,9 @@ int main(int argc, char **argv)
 	std::cout<<"\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>";
 	std::cout<<"\n>>>Main finishing.    >>>";
     std::cout<<"\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>";
+	
+	/// To avoid over-CPU consumption, etc.
+	ResetTimerResolution();
 
 	SleepThread(100);
 	if (errorCode != 0)

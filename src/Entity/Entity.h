@@ -156,6 +156,10 @@ public:
 	/// If force, recalculates no matter wat.
 	void RecalcRotationMatrix(bool force = false);
 
+	/// Recalculates the matrix this entity should have, using given position.
+	void RecalculateMatrix(Matrix4f & matrix, Vector3f * position);	
+//	static void RecalculateMatrix(Matrix4f & givenMatrix, Vector3f * position, );
+
 	/// Recalculates a transformation matrix using argument vectors for position, rotation and translation.
 	static Matrix4f RecalculateMatrix(const Vector3f & position, const Vector3f & rotation, const Vector3f & scale);
 
@@ -186,6 +190,10 @@ public:
 	Matrix4f rotationMatrix;
 	/// The transformation matrix that is applied when rendering. Do note that RecalculateMatrix has to be called to update this.
 	Matrix4f transformationMatrix;
+	/** Transform matrix used to render this entity. For default entities it will point to the transformationMatrix above, but for all entities featuring a GraphicsProperty
+		it will point to its 'transform' matrix, in order to combat temporal aliasing.
+	*/
+	Matrix4f * renderTransform;
 	/// Transforms as calculated if this were not child of any other entity.
 	Matrix4f localRotation, localTransform;
 	Matrix4f scalingMatrix;

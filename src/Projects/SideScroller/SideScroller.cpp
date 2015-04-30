@@ -20,7 +20,7 @@ void SetApplicationDefaults()
 {
 	Application::name = "SideScroller";
 	Application::quitOnHide = false;
-	TextFont::defaultFontSource = "img/fonts/font3.png";
+	TextFont::defaultFontSource = "img/fonts/Font_Mexicano.png";
 	PhysicsProperty::defaultUseQuaternions = false;
 	Viewport::defaultRenderGrid = false;
 }
@@ -79,7 +79,7 @@ void CycleCamera(int toWhich = -1)
 	// General properties.
 	levelCamera->trackingMode = TrackingMode::ADD_POSITION;
 	levelCamera->entityToTrack = playerEntity;
-	levelCamera->position = Vector3f(0,0,0);
+	levelCamera->position = Vector3f(5,0,0);
 	levelCamera->distanceFromCenterOfMovement = 10.f;
 	switch(camera)
 	{
@@ -865,6 +865,10 @@ void SideScroller::NewGame()
 
 	// Attach camera?
 	CycleCamera();
+	/// Move camera to the player - disable or increase the smoothing parameter for an instant.
+	QueueGraphics(new GMSetCamera(levelCamera, CT_SMOOTHING, 0.05f));
+	/// Force render 1 frame to move the camera?
+	QueueGraphics(new GMSetCamera(levelCamera, CT_SMOOTHED_POSITION, Vector3f(0,0,0)));
 
 	// Set sun on top?
 //	MesMan.QueueMessages("SetSunTime(12:00)");
@@ -915,7 +919,7 @@ void SideScroller::NewPlayer()
 	gp->animationSet = set;
 	gp->animStartTime = 0;
 	gp->currentAnimation = set->GetAnimation("Run");
-	
+	gp->temporalAliasingEnabled = true; // Smooth!
 	gp->flags = RenderFlag::ALPHA_ENTITY;
 
 

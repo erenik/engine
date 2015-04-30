@@ -20,6 +20,7 @@
 GraphicsProperty::GraphicsProperty(Entity * owner)
 : owner(owner)
 {
+	temporalAliasingEnabled = false;
 	emissiveMapFactor = 1.f;
 
 	owner->graphics = this;
@@ -67,11 +68,30 @@ GraphicsProperty::~GraphicsProperty()
 	dynamicLights.ClearAndDelete();
 	staticLights.ClearAndDelete();
 }
+
+/// Called when registered to Graphics Manager for rendering. Extracts initial position, etc.
+void GraphicsProperty::OnRegister()
+{
+	position = owner->position;
+	// Re-point the owner's render matrix usage as needed.
+	if (temporalAliasingEnabled)
+		owner->renderTransform = &transform;	
+}
+
+
 #include "GraphicsState.h"
 
 /// Processes estimators related to this entity.
 void GraphicsProperty::Process(int timeInMs)
 {
+	/// Update smoothed position and matrices.
+	if (temporalAliasingEnabled)
+	{
+		position = position * graphicsState->perFrameSmoothness + owner->position * (1 - graphicsState->perFrameSmoothness);
+		owner->RecalculateMatrix(transform, &position);
+		// TODO: Add a flag for temporal Anti-Alisasin so that not ALL static entities too have their shit recalculated each frame... ?
+	}
+
 	if (allAnimationsPaused)
 		return;
 		

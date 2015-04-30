@@ -47,7 +47,8 @@ public:
 	
 	GraphicsProperty(Entity * owner);
 	~GraphicsProperty();
-
+	/// Called when registered to Graphics Manager for rendering. Extracts initial position, etc.
+	void OnRegister();
 	/// Processes estimators related to this entity. Possibly particle effects too?
 	virtual void Process(int timeInMs);
 
@@ -55,6 +56,15 @@ public:
 	bool LoadDataFrom(const CompactGraphics * cGraphics);
 	/// Fetches relevant texture for current frame time. This assumes that the element has an active animation playing.
 	Texture * GetTextureForCurrentFrame(int64 & frameTime);
+
+	/** Contrary to Entity-position, which stores the simulated position from the physics system, this position will hold the averaged or smoothed value which is to be used when rendering the entity.
+	*/
+	Vector3f position;
+	/// Graphical transform, similar to position, it is used to abstract rendering from physics in order to deal with temporal alisasing issues (stuttering effects).
+	Matrix4f transform;
+	/// Linked to the 2 above. Use for dynamic entities in fast-paced games.
+	bool temporalAliasingEnabled;
+
 	/// Meaning: text-based animation. If true then the GetTextureForCurrentFrame should work as intended!
 	bool hasAnimation;
 	/// For flags, see above: example DISABLE_DEPTH_WRITING (for this model only)

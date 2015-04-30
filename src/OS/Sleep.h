@@ -5,6 +5,10 @@
 #ifndef AEONIC_SLEEP_H
 #define AEONIC_SLEEP_H
 
+/// Required on Win32 to get better timed sleeps.
+void SetTimerResolution(int milliseconds);
+/// Resets to default value. Call on exit.
+void ResetTimerResolution(); 
 
 void SleepThread(int milliseconds);
 

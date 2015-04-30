@@ -15,7 +15,7 @@ class GraphicsState;
 /** Returns false for all signs which are not rendered (or interacted with) per say. 
 	I.e. \n, \r, \0, etc. will return false. \t and space (0x20) are both considered characters and will return true.
 */
-bool IsCharacter(char c);
+bool IsCharacter(uchar c);
 
 class TextFont {
 public:
@@ -60,9 +60,9 @@ private:
 	/// Renders the caret.
 	void RenderCaret();
 	// Renders character at current position.
-	void RenderChar(char c);
+	void RenderChar(uchar c);
 	/// For rendering a quad on top over the character's which are selected, pretty much.
-	void RenderSelection(char currentChar);
+	void RenderSelection(uchar currentChar);
 	/// Re-instates old shader as needed.
 	void OnEndRender(GraphicsState & graphicsState);
 

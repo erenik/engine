@@ -1579,118 +1579,134 @@ void UIElement::RenderSelf(GraphicsState & graphicsState)
 		checkGLError();
 
 	}
+	RenderText();
+}
+
+void UIElement::RenderText()
+{
 	/// Bind correct font if applicable.
 	if (this->text.Length()){
 		if (this->font){
-			graphicsState.currentFont = this->font;
+			graphicsState->currentFont = this->font;
 		}
 		else if (this->fontSource && !this->font){
 			this->font = Graphics.GetFont(this->fontSource);
 			if (this->font)
-				graphicsState.currentFont = this->font;
+				graphicsState->currentFont = this->font;
 		}
 		// If still no font, use default font.
 		if (!font)
 		{
-			graphicsState.currentFont = Graphics.GetFont(TextFont::defaultFontSource);
+			graphicsState->currentFont = Graphics.GetFont(TextFont::defaultFontSource);
 		}
 	}
 	// Render text if applicable!
 	if ((this->text.Length() || text.caretPosition > -1) 
-		&& graphicsState.currentFont)
+		&& graphicsState->currentFont)
 	{
-		TextFont * currentFont = graphicsState.currentFont;
-		Matrix4d tmp = graphicsState.modelMatrixD;
-		graphicsState.modelMatrixD.Translate(this->left, this->top,(this->zDepth+0.05));
-		float pixels = sizeY * textSizeRatio; // Graphics.Height();
-	//	pixels *= this->sizeRatioY;
-
-        if (currentTextSizeRatio <= 0)
-		{
-			textToRender = text;
-			/// Rows available
-			int rowsAvailable = (int)(1 / textSizeRatio);
-			currentTextSizeRatio = 1.0f;
-			/// Returns the size required by a call to RenderText if it were to be done now. In... pixels? or units
-			Vector2f size = currentFont->CalculateRenderSizeUnits(text);
-            Vector2f pixelsRequired = size * pixels;
-			float xRatio = 1.f, yRatio = 1.f;
-			if (pixelsRequired.x > rowsAvailable * sizeX){
-				// assert(false && "Too much text!");
-//				std::cout<<"\nNOTE: Too much text for given space and size, scaling down text to fit!";
-				xRatio = sizeX / pixelsRequired.x;
-				// Scale it down, yes.
-			}
-			if (pixelsRequired.y > sizeY)
-			{
-				// D: Divide moar?
-				yRatio = sizeY / pixelsRequired.y;
-			}
-			if (xRatio < yRatio)
-				currentTextSizeRatio = xRatio;
-			else
-				currentTextSizeRatio = yRatio;
-			/*
-			if (pixelsRequired.x > sizeX)
-			{
-			//	assert(false && "Add thingy to enter new-lines automagically.");
-			//	std::cout<<"\nINFO: Length exceeding size, calculating and inserting newlines as possible.";
-			//	std::cout<<"\nTokenizing text: "<<text;
-				/// Tokenize into words based on spaces.
-				List<String> words = text.Tokenize(" ");
-			//	std::cout<<"\nWords: "<<words.Size();
-				textToRender = String();
-				String line = String(), line2 = String();
-				for (int i = 0; i < words.Size(); ++i)
-				{
-					/// Assume word fits?
-					String word = words[i];
-				//	std::cout<<"\nBlubb ";
-					float lengthRequiredWord = currentFont->CalculateRenderSizeUnits(word)[0] * pixels;
-				//	std::cout<<"\nBlubb ";
-				//	std::cout<<"\nLengthRequiredWord: "<<lengthRequiredWord<<" sizeX: "<<sizeX;
-					if (lengthRequiredWord >= sizeX && i == 0){
-				//		std::cout<<"\nWord too long to split into multiple rows.. scaling down text as a last resort :(";
-						float divider = sizeX / lengthRequiredWord;
-						pixels *= divider;
-					}
-				//	std::cout<<"\nBlubb ";
-					float lengthRequiredLine = currentFont->CalculateRenderSizeUnits(line)[0] * pixels;
-				//	std::cout<<"\nBlubb ";
-					/// Check if catenated line will exceed bounds.
-					line2 = line + " " + word;
-					float lengthRequiredLine2 = currentFont->CalculateRenderSizeUnits(line2)[0] * pixels;
-				//	std::cout<<"\nBlubb ";
-					if (lengthRequiredLine2 > sizeX){
-						/// Add first line to textToRender + new line
-						textToRender += line + "\n";
-						line = String();
-					}
-				//	std::cout<<"\nBlubb ";
-					line += word + " ";
-				}
-
-				/// Add the final line to the text to render here
-				textToRender += line;
-			//	std::cout<<"\nTextToRender: "<<textToRender;
-			}
-			*/
-        }
-
-		pixels *= currentTextSizeRatio; //this->textSizeRatio;
-//		std::cout<<"\nTextToRender size in pixels: "<<pixels;
-		graphicsState.modelMatrixD.Scale(pixels);	//Graphics.Height()
-		graphicsState.modelMatrixF = graphicsState.modelMatrixD;
-		Vector4f textColorToRender = this->textColor;
-		// If disabled, dull the color! o.o
-		if (this->IsDisabled())
-			textColorToRender *= 0.55f;
-	//	color[3] *= 0.5f;
-		graphicsState.currentFont->SetColor(textColorToRender);
-//		std::cout<<"\nTextToRender: "<<textToRender;
-		graphicsState.currentFont->RenderText(this->textToRender, graphicsState);
-		graphicsState.modelMatrixF = graphicsState.modelMatrixD = tmp;
 	}
+	else
+		return;
+
+	TextFont * currentFont = graphicsState->currentFont;
+	Matrix4d tmp = graphicsState->modelMatrixD;
+	graphicsState->modelMatrixD.Translate(this->left, this->top,(this->zDepth+0.05));
+	float pixels = sizeY * textSizeRatio; // Graphics.Height();
+
+    if (currentTextSizeRatio <= 0)
+	{
+		FormatText();
+    }
+
+	pixels *= currentTextSizeRatio; //this->textSizeRatio;
+//		std::cout<<"\nTextToRender size in pixels: "<<pixels;
+	graphicsState->modelMatrixD.Scale(pixels);	//Graphics.Height()
+	graphicsState->modelMatrixF = graphicsState->modelMatrixD;
+	Vector4f textColorToRender = this->textColor;
+	// If disabled, dull the color! o.o
+	if (this->IsDisabled())
+		textColorToRender *= 0.55f;
+	if (this->state & UIState::HOVER && highlightOnHover)
+		textColorToRender += Vector4f(1,1,1,1) * 0.1f;
+//	color[3] *= 0.5f;
+	graphicsState->currentFont->SetColor(textColorToRender);
+//		std::cout<<"\nTextToRender: "<<textToRender;
+	graphicsState->currentFont->RenderText(this->textToRender, *graphicsState);
+	graphicsState->modelMatrixF = graphicsState->modelMatrixD = tmp;
+}
+
+void UIElement::FormatText()
+{
+	TextFont * currentFont = graphicsState->currentFont;
+	textToRender = text;
+	/// Rows available
+	int rowsAvailable = (int)(1 / textSizeRatio);
+	currentTextSizeRatio = 1.0f;
+	/// Returns the size required by a call to RenderText if it were to be done now. In... pixels? or units
+	Vector2f size = currentFont->CalculateRenderSizeUnits(text);
+	float pixels = sizeY * textSizeRatio; // Graphics.Height();
+	Vector2f pixelsRequired = size * pixels;
+	float xRatio = 1.f, yRatio = 1.f;
+	if (pixelsRequired.x > rowsAvailable * sizeX){
+		// assert(false && "Too much text!");
+//				std::cout<<"\nNOTE: Too much text for given space and size, scaling down text to fit!";
+		xRatio = sizeX / pixelsRequired.x;
+		// Scale it down, yes.
+	}
+	if (pixelsRequired.y > sizeY)
+	{
+		// D: Divide moar?
+		yRatio = sizeY / pixelsRequired.y;
+	}
+	if (xRatio < yRatio)
+		currentTextSizeRatio = xRatio;
+	else
+		currentTextSizeRatio = yRatio;
+	/*
+	if (pixelsRequired.x > sizeX)
+	{
+	//	assert(false && "Add thingy to enter new-lines automagically.");
+	//	std::cout<<"\nINFO: Length exceeding size, calculating and inserting newlines as possible.";
+	//	std::cout<<"\nTokenizing text: "<<text;
+		/// Tokenize into words based on spaces.
+		List<String> words = text.Tokenize(" ");
+	//	std::cout<<"\nWords: "<<words.Size();
+		textToRender = String();
+		String line = String(), line2 = String();
+		for (int i = 0; i < words.Size(); ++i)
+		{
+			/// Assume word fits?
+			String word = words[i];
+		//	std::cout<<"\nBlubb ";
+			float lengthRequiredWord = currentFont->CalculateRenderSizeUnits(word)[0] * pixels;
+		//	std::cout<<"\nBlubb ";
+		//	std::cout<<"\nLengthRequiredWord: "<<lengthRequiredWord<<" sizeX: "<<sizeX;
+			if (lengthRequiredWord >= sizeX && i == 0){
+		//		std::cout<<"\nWord too long to split into multiple rows.. scaling down text as a last resort :(";
+				float divider = sizeX / lengthRequiredWord;
+				pixels *= divider;
+			}
+		//	std::cout<<"\nBlubb ";
+			float lengthRequiredLine = currentFont->CalculateRenderSizeUnits(line)[0] * pixels;
+		//	std::cout<<"\nBlubb ";
+			/// Check if catenated line will exceed bounds.
+			line2 = line + " " + word;
+			float lengthRequiredLine2 = currentFont->CalculateRenderSizeUnits(line2)[0] * pixels;
+		//	std::cout<<"\nBlubb ";
+			if (lengthRequiredLine2 > sizeX){
+				/// Add first line to textToRender + new line
+				textToRender += line + "\n";
+				line = String();
+			}
+		//	std::cout<<"\nBlubb ";
+			line += word + " ";
+		}
+
+		/// Add the final line to the text to render here
+		textToRender += line;
+	//	std::cout<<"\nTextToRender: "<<textToRender;
+	}
+	*/
 }
 
 void UIElement::RenderChildren(GraphicsState & graphicsState)

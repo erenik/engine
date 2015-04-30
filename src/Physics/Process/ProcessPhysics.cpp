@@ -81,9 +81,12 @@ void PhysicsManager::ProcessPhysics()
 	float timeToIterate = totalTimeSinceLastUpdate + timeRemainingFromLastIteration;
 	float stepSize = 0.010f;
 	int steps = timeToIterate / stepSize;
+//	if (steps < 1) // At least 1 physics simulation per frame, yo. Otherwise you get a 'stuttering' effect when some frames have movement and some don't.
+//		steps = 1;
 	float timeLeft = timeToIterate - steps * stepSize;
 	/// Store time we won't simulate now.
 	timeRemainingFromLastIteration = timeLeft;
+//	std::cout<<"\nSteps: "<<steps;
 
 	for(int i = 0; i < steps; ++i)
 	{

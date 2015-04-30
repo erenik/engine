@@ -488,7 +488,7 @@ void RenderPass::RenderEntities()
 //		glUniform4fv(shader->uniformPrimaryColorVec4, 1, gp->color.v);
 
 		// Load transform as model matrix straight away.
-		glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, entity->transformationMatrix.getPointer());
+		glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, entity->renderTransform->getPointer());
 		glUniformMatrix4fv(shader->uniformNormalMatrix, 1, false, entity->normalMatrix.getPointer());
 
 		// Render the model
@@ -582,7 +582,7 @@ void RenderPass::RenderAlphaEntities()
 		CheckGLError("Setting texture maps");
 		
 		// Just load transform as model matrix straight away.
-		glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, entity->transformationMatrix.getPointer());
+		glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, entity->renderTransform->getPointer());
 		if (shader->uniformNormalMatrix != -1)
 			glUniformMatrix4fv(shader->uniformNormalMatrix, 1, false, entity->normalMatrix.getPointer());
 	

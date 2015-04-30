@@ -244,6 +244,7 @@ PROCESSOR_THREAD_START(GraphicsManager)
 	long long timeNotRendered = lastOptimization;
 
 	LogGraphics("Beginning main rendering/physics/multimedia loop", INFO);
+	Time frameStart = Time::Now();
 	// Then begin the main rendering loop
 	while(Graphics.shouldLive)
 	{
@@ -257,16 +258,31 @@ PROCESSOR_THREAD_START(GraphicsManager)
 			now = Timer::GetCurrentTimeMs();
 			graphicsState->frametimeStartMs = now;
 
-			Timer sleepTimer;
-			sleepTimer.Start();
 			/// Sleep at least a bit...
 			int sleepTime = Graphics.sleepTime;
 			SleepThread(sleepTime);
 			/// Sleep more when not in focus.
 			if (!WindowMan.InFocus())
 				SleepThread(Graphics.outOfFocusSleepTime);
-			sleepTimer.Stop();
-			int slept = sleepTimer.GetMs();
+	
+			Time now = Time::Now();
+			int millisSince = (now - frameStart).Milliseconds();
+			bool slept = false;
+			/// Less than 16 ms since last frame? Sleep a bit. Aim for 60 Hz.
+			if (millisSince < 16)
+			{
+				int millisToSleep = 16 - millisSince;
+				SleepThread(millisToSleep);
+//				std::cout<<"\nTo sleep: "<<millisToSleep;
+				slept = true;
+			}
+			frameStart = Time::Now();
+			if (slept)
+			{
+				int millisSlept = (frameStart - now).Milliseconds();
+//				std::cout<<" Slept: "<<millisSlept;
+			}
+
 	//		std::cout<<"\nSlept for "<<sleepTimer.GetMs()<<" ms";
 
 		//	std::cout<<"\nProcessing physics messages... ";
@@ -338,11 +354,12 @@ PROCESSOR_THREAD_START(GraphicsManager)
 				}
 			
 				else {
-					if (now > timeNotRendered + 1000)
+/*					if (now > timeNotRendered + 1000)
 					{
 		//				std::cout<<"\nPrint if rendering is disabled?";
 						timeNotRendered = now;
 					}
+					*/
 				}
 				graphicsTotal.Stop();
 				FrameStats.totalGraphics = graphicsTotal.GetMs();
@@ -368,19 +385,21 @@ PROCESSOR_THREAD_START(GraphicsManager)
 			graphicsState->frameTime = Graphics.frameTime * 0.001;
 
 			/// Enable the below via some option maybe, it just distracts atm.
+			/*
 			if (graphicsState->optimizationLevel < 5 && fps < 20 && now > lastOptimization + 100)
 			{
 				graphicsState->optimizationLevel++;
 				lastOptimization = now;
 			//	std::cout<<"\nFPS low, increasing graphics optimization level to: "<<graphicsState->optimizationLevel;
-			}
+			}*/
 			
-			else if (graphicsState->optimizationLevel > 0 && fps > 40 && now > lastOptimization + 500)
+/*			else if (graphicsState->optimizationLevel > 0 && fps > 40 && now > lastOptimization + 500)
 			{
 				graphicsState->optimizationLevel--;
 				lastOptimization = now;
 			//	std::cout<<"\nFPS high again, decreasing graphics optimization level to: "<<graphicsState->optimizationLevel;
 			}
+			*/
 		}
 		catch(...)
 		{

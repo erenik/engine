@@ -20,6 +20,8 @@
 
 #include "ShaderManager.h"
 
+#include "File/LogFile.h"
+
 String TextFont::defaultFontSource; // = "font3.png";
 
 /// Prints the values of the error code in decimal as well as hex and the literal meaning of it.
@@ -29,7 +31,7 @@ extern void PrintGLError(const char * text);
 /** Returns false for all signs which are not rendered (or interacted with) per say. 
 	I.e. \n, \r, \0, etc. will return false. \t and space (0x20) are both considered characters and will return true.
 */
-bool IsCharacter(char c)
+bool IsCharacter(uchar c)
 {
 	switch(c)
 	{
@@ -252,6 +254,11 @@ void TextFont::ParseTextureData(){
 		// Character evaluated.
 		charWidth[i] = (right - left) / float(fontWidth);
 		charHeight[i] = (bottom - top) / float(fontHeight);
+		if (charHeight[i] == 0)
+		{
+			LogGraphics("Font char "+String(i)+" height 0. Bottom: "+String(bottom)+" Top: "+String(top)+". Setting default height of 1.0", WARNING);
+			charHeight[i] = 1.0f;
+		}
 		assert(charHeight[i] != 0);
 		assert(charWidth[i] != 0);
 		std::cout<<"\nCharacter "<<i<<": "<<(char)i<<" evaluated with width: "<<charWidth[i]<<" and height "<<charHeight[i];
@@ -535,7 +542,7 @@ void TextFont::PrepareForRender(GraphicsState & graphicsState)
 }
 
 // Renders character at current position.
-void TextFont::RenderChar(char c)
+void TextFont::RenderChar(uchar c)
 {
 	int characterX = c % 16;
 	int characterY = c / 16;
@@ -559,7 +566,7 @@ void TextFont::RenderChar(char c)
 }
 
 /// Render the character as selected.
-void TextFont::RenderSelection(char c)
+void TextFont::RenderSelection(uchar c)
 {
 	// Stop the quads.
 	glEnd();

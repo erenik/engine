@@ -95,6 +95,10 @@ public:
 	/// Contains all groups
 	List<RenderInstancingGroup*> entityGroups;
 
+	/** Used to smooth out positions and quaternions of entitys to solve issue of temporal aliasing  (http://gafferongames.com/game-physics/fix-your-timestep/)
+		Default 0.5?
+	*/
+	float perFrameSmoothness;
 	/// Active frustum to be compared with.
 	Frustum viewFrustum;
 	/// Rendered amount of objects for this frame.

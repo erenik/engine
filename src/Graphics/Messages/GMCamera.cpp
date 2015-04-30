@@ -35,6 +35,7 @@ GMSetCamera::GMSetCamera(Camera * camera, int target, ConstVec3fr vec3fValue)
 	assert(camera);
 	switch(target)
 	{
+		case CT_SMOOTHED_POSITION:
 		case CT_POSITION:
 		case CT_ROTATION:
 		case CT_RELATIVE_POSITION:
@@ -71,6 +72,7 @@ GMSetCamera::GMSetCamera(Camera * camera, int target, float fValue)
 {
 	switch(target)
 	{
+		case CT_SMOOTHING:
 		case CT_RELATIVE_POSITION_Y:
 		case CT_DISTANCE_FROM_CENTER_OF_MOVEMENT:
 		case CT_ROTATION_SPEED_YAW:
@@ -119,11 +121,17 @@ void GMSetCamera::Process()
 //			camera = Graphics.ActiveCamera();
 	switch(target)
 	{
+		case CT_SMOOTHING:
+			camera->smoothing = fValue;
+			break;
 		case CT_TRACKING_MODE:
 		{
 			camera->trackingMode = iValue;
 			break;
 		}
+		case CT_SMOOTHED_POSITION:
+			camera->smoothedPosition = vec3fValue;
+			break;
 		case CT_ENTITY_TO_TRACK:
 		{
 			// Ensure it will actually try and follow it too..?

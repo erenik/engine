@@ -134,6 +134,9 @@ Entity::Entity(int i_id)
 
 	/// Calculate look-at vectors, etc...
 	RecalculateMatrix(ALL_PARTS);
+
+	/// Default render transform..
+	renderTransform = &transformationMatrix;
 }
 
 /// Default constructor...
@@ -504,14 +507,11 @@ void Entity::RecalculateMatrix(int whichParts/*= true*/, bool recursively /* = f
 		{
 			RecalcRotationMatrix(true);
 		}
-		
 		localTransform = Matrix4f();
-//		localTransform.Multiply(preTranslateMat);
 #ifdef USE_SSE
 		// Translation should be just pasting in position.. no?
 		localTransform.col3.data = position.data;
 		localTransform.col3.w = 1;
-	//	localTransform.Print();
 #else
 		localTransform.Multiply((Matrix4f::Translation(position)));
 #endif
@@ -628,9 +628,85 @@ void Entity::RecalcRotationMatrix(bool force /* = false*/)
 }
 
 
+/// Recalculates the matrix this entity should have, using given position.
+void Entity::RecalculateMatrix(Matrix4f & matrix, Vector3f * givenPosition)
+{
+	Matrix4f localTransform;
+	if (true)
+	{	
+		// Only recalc rot if it has rotated, this is usually already recalcualted since the phyusics frame.
+		if (hasRotated)
+		{
+			RecalcRotationMatrix(true);
+		}
+		localTransform = Matrix4f();
+#ifdef USE_SSE
+		// Translation should be just pasting in position.. no?
+		localTransform.col3.data = givenPosition->data;
+		localTransform.col3.w = 1;
+#else
+		localTransform.Multiply((Matrix4f::Translation(position)));
+#endif
+		localTransform.Multiply(localRotation);
+		// No use multiplying if not new scale.
+		if (hasRescaled)
+			UPDATE_SCALING_MATRIX
+		if (relevantScale)
+			localTransform.Multiply(scalingMatrix);
+			// Ensure it has a scale..?
+	//	assert(localTransform.HasValidScale());
+	}
+	// No rotation? -> 
+	else 
+	{
+		// Just update position.
+#ifdef USE_SSE
+		matrix.col3.data = givenPosition->data;
+		matrix.col3.w = 1;
+#else
+		matrix[12] = position[0];
+		matrix[13] = position[1];
+		matrix[14] = position[2];
+#endif		
+		// Children?
+	}
+	/// Use parent matrix, apply ours on top of it!
+	if (parent)
+	{
+		/// Transforms as calculated if this were not child of any other entity.
+		matrix = parent->transformationMatrix * localTransform;
+	}
+	else 
+	{
+		matrix = localTransform;
+	}
+	// Don't recalculate for children, since this is just for graphics smoothing...(?)
+	/*
+	// Since we updated something, we should inform our children as well, if any, or they will be lagging behind...
+	if (recursively && children.Size())
+	{
+		for (int i = 0; i < children.Size(); ++i)
+		{
+			children[i]->RecalculateMatrix(ALL_PARTS, true);
+		}
+	}*/
+	// Don't extract anything here. Just used for rendering.
+//	worldPosition = transformationMatrix.Product(Vector4f());
+
+	/// Update AABB accordingly.
+//	aabb->Recalculate(this);
+}
+
+/*
+void Entity::RecalculateMatrix(Matrix4f & givenMatrix, Vector3f * position)
+{
+}*/
+
 /// Recalculates a transformation matrix using argument vectors for position, rotation and translation.
 Matrix4f Entity::RecalculateMatrix(ConstVec3fr position, ConstVec3fr rotation, ConstVec3fr scale)
 {
+	assert(false && "Will be replaced?");
+	/*
 	Matrix4d rotationMatrix;		
 
 	rotationMatrix.Multiply(Matrix4d::GetRotationMatrixX(rotation.x));
@@ -645,6 +721,8 @@ Matrix4f Entity::RecalculateMatrix(ConstVec3fr position, ConstVec3fr rotation, C
 	// Ensure it has a scale..?
 	assert(matrix.HasValidScale());
 	return matrix;
+	*/
+	return Matrix4f();
 }
 
 /// Recalculates the radius of the entity, both in the upper level radius as well as the physics-property variable one if applicable.

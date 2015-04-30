@@ -17,6 +17,10 @@ enum cameraTargets
 	// How to handle all variables provided.
 	CT_TRACKING_MODE,
 
+	// Float
+	CT_SMOOTHING,
+	CT_SMOOTHED_POSITION, // The averaged position. Use to reset.
+
 	// Setting global camera
 	// Setting camera position and orientation.
 	CT_ROTATION,

@@ -47,6 +47,8 @@ bool GraphicsManager::RegisterEntity(Entity * entity)
 	{
 		gp = entity->graphics = new GraphicsProperty(entity);
 	}
+	/// Extract initial (smoothing) values to avoid artifacts.
+	gp->OnRegister();
 
 	/// Add it to its proper render groups.
 	graphicsState->AddEntity(entity);
