@@ -137,6 +137,7 @@ Entity::Entity(int i_id)
 
 	/// Default render transform..
 	renderTransform = &transformationMatrix;
+	renderPosition = &position;
 }
 
 /// Default constructor...

@@ -12,6 +12,7 @@ Random levelRand;
 Random sfxRand;
 /// Starts at 0, increments after calling BreatherBlock and AddLevelPart
 float levelLength;
+int pacoTacoX = 0;
 
 /// 4 entities constitude the blackness.
 List<Entity*> blacknessEntities;
@@ -48,7 +49,21 @@ Entity * paco = NULL, * taco = NULL;
 /** Dynamically created ones, to be cleaned up as we go.
 	Blocks, pesos, clouds all fit therein?
 */
-Entities levelEntities;
+List<Entity*> levelEntities;
+
+void AddForCleanup(Entity * entity)
+{
+	if (levelEntities.Exists(entity))
+	{
+		assert(false && "Trying to re-add");
+		return;
+	}
+	levelEntities.AddItem(entity);
+	int dupAfter = levelEntities.Duplicates();
+	if (dupAfter)
+		LogMain("Duplicates found..", WARNING);
+}
+
 Entities pesos, clouds;
 
 Mask * equippedMask = NULL;
@@ -115,8 +130,9 @@ public:
 		sleeping = true;
 		munny += value;
 		sideScroller->UpdateMunny();
-		pesos.RemoveItemUnsorted(owner); // Remove self from clean-up procedure.
-		MapMan.DeleteEntity(owner); // Remove self.
+		// Remove from physics and graphics?
+		QueuePhysics(new PMUnregisterEntity(owner));
+		QueueGraphics(new GMUnregisterEntity(owner));
 	}
 	bool sleeping;
 	int value;
@@ -818,6 +834,7 @@ Entity * sky = NULL;
 /// Starts a new game. Calls LoadLevel
 void SideScroller::NewGame()
 {	
+	pacoTacoX = 0;
 	/// Play SFX
 	float r = sfxRand.Randf();
 	if (r > 0.8f)
@@ -836,8 +853,8 @@ void SideScroller::NewGame()
 	/// Clear all pre-existing shit as needed.
 	if (playerEntity)
 	{
-		MapMan.DeleteAllEntities();
 		levelEntities.Clear();
+		MapMan.DeleteAllEntities();
 		pesos.Clear();
 		clouds.Clear();
 		playerEntity = NULL;
@@ -986,7 +1003,7 @@ void Block(float size = 2)
 		pp->collisionCategory = CC_ENVIRONMENT;
 		pp->collisionFilter = CC_PLAYER;
 		MapMan.AddEntity(block);
-		levelEntities.AddItem(block);
+		AddForCleanup(block);
 		blocksAdded.AddItem(block);
 	}
 	levelLength += size;
@@ -1020,7 +1037,7 @@ Entity * RampUpBlock(float width = 2.f, float height = 2.f)
 	pp->collisionCategory = CC_ENVIRONMENT;
 	pp->collisionFilter = CC_PLAYER;
 	MapMan.AddEntity(block);
-	levelEntities.AddItem(block);
+	AddForCleanup(block);
 //	blocksAdded.AddItem(block);
 	
 	// Add extension-block beneath it?
@@ -1030,7 +1047,7 @@ Entity * RampUpBlock(float width = 2.f, float height = 2.f)
 	position.y -= 5.f;
 	block->SetScale(Vector3f(width, 5.f, 1.f));
 	MapMan.AddEntity(block, true, true);
-	levelEntities.AddItem(block);
+	AddForCleanup(block);
 
 	return block;
 }
@@ -1057,7 +1074,7 @@ Entity * CustomBlock(float width = 2.f, float height = 0.f)
 	pp->collisionCategory = CC_ENVIRONMENT;
 	pp->collisionFilter = CC_PLAYER;
 	MapMan.AddEntity(block);
-	levelEntities.AddItem(block);
+	AddForCleanup(block);
 	blocksAdded.AddItem(block);
 	return block;
 }
@@ -1081,7 +1098,7 @@ void Hole(float holeSize) // Appends a hole, default side 2.
 		block->Scale(Vector3f(holeSize, scaleY, 1));
 
 		MapMan.AddEntity(block, true, false);
-		levelEntities.AddItem(block);
+		AddForCleanup(block);
 	}
 //	blocksAdded.AddItem(block);
 	// Increment level-length.
@@ -1153,6 +1170,7 @@ void SideScroller::BreatherBlock(float width /* = 5.f*/)
 
 void SideScroller::PacoTaco()
 {
+	bool didStuff = false;
 	if (!paco)
 	{
 		paco = CreateSprite("img/Outdoor - Mexican town/Taco_guy.png");
@@ -1171,7 +1189,7 @@ void SideScroller::PacoTaco()
 		MapMan.AddEntity(taco, true, false);
 	}
 	// Set position if far away.
-	float dist = AbsoluteValue(paco->position.x - levelLength);
+	float dist = AbsoluteValue(pacoTacoX - levelLength);
 	if (dist > 100)
 	{
 		// Get closest K.
@@ -1179,7 +1197,16 @@ void SideScroller::PacoTaco()
 		float posX = k * 1000;
 		QueuePhysics(new PMSetEntity(paco, PT_POSITION_X, posX));
 		QueuePhysics(new PMSetEntity(taco, PT_POSITION_X, posX + 2.0f));
+		didStuff = true;
+		pacoTacoX = posX;
 	} 
+	if (didStuff)
+	{
+		List<String> tacos;
+		tacos.Add("sfx/Tacos.wav", "sfx/Tacos frescos.wav", "sfx/Pacos tacos.wav");
+		int i = sfxRand.Randi(tacos.Size()+1) % tacos.Size();
+		QueueAudio(new AMPlaySFX(tacos[i]));
+	}
 }
 
 
@@ -1203,10 +1230,11 @@ void AddPesos()
 		pp->collisionCategory = CC_PESO;
 		pp->collisionFilter = CC_PLAYER;
 		MapMan.AddEntity(peso);
+		AddForCleanup(peso);
 
-		pesos.AddItem(peso); // Add so it is cleaned up later on as we go.
+//		pesos.AddItem(peso); // Add so it is cleaned up later on as we go.
 	//	LogMain("Creating peso "+String(((int)peso)%1000)+" at "+String(peso->position.x), INFO);
-		assert(pesos.Duplicates() == 0);
+//		assert(pesos.Duplicates() == 0);
 	}
 }
 
@@ -1235,7 +1263,7 @@ void AddClouds()
 		pp->type = PhysicsType::KINEMATIC;
 
 		MapMan.AddEntity(cloud, true, true);
-		levelEntities.AddItem(cloud);
+		AddForCleanup(cloud);
 	}
 }
 
@@ -1248,6 +1276,7 @@ void LongCactus(Entity * aboveBlock)
 	cactus->position.z = -0.1f;
 	cactus->Scale(Vector3f(1,cactusSize,1));
 	MapMan.AddEntity(cactus, true, false);
+	AddForCleanup(cactus);
 }
 
 void ShortCactus(Entity * aboveBlock)
@@ -1276,6 +1305,7 @@ void ShortCactus(Entity * aboveBlock)
 		cactus->RecalculateMatrix();
 		// depth-sort when rendering.
 		MapMan.AddEntity(cactus, true, false);
+		AddForCleanup(cactus);
 	}
 }
 
@@ -1363,23 +1393,28 @@ void AddDBLPart() // Difficulty-By-Length, randomly generated. Used in initial t
 // Clean-up past level-parts
 void SideScroller::CleanupOldBlocks()
 {
-	assert(levelEntities.Duplicates() == 0);
-	assert(pesos.Duplicates() == 0);
-
-	float cleanupX = playerEntity->position.x - 20.f;
+	float cleanupX = levelLength - 100.f;
 	// Check all entities?
 	for (int i = 0; i < levelEntities.Size(); ++i)
 	{
 		Entity * entity = levelEntities[i];
 		if (entity->position.x < cleanupX)
 		{
-			levelEntities.RemoveItem(entity);
+			List<Entity*> subList = levelEntities;
+			int duplicates = levelEntities.Duplicates();
+			// Remove duplicates at the same time..
+			levelEntities.RemoveItemUnsorted(entity);
+			int after = levelEntities.Duplicates();
+			assert(duplicates == after);
+
+			assert(subList.Exists(levelEntities));
+
 //			std::cout<<"\nDeleting "<<entity->name<<" at "<<entity->position;
 			MapMan.DeleteEntity(entity);
 			--i;
 		}
 	}
-	
+
 	// Clean up pesos?
 	for (int i = 0; i < pesos.Size(); ++i)
 	{	

@@ -75,7 +75,10 @@ void GraphicsProperty::OnRegister()
 	position = owner->position;
 	// Re-point the owner's render matrix usage as needed.
 	if (temporalAliasingEnabled)
+	{
 		owner->renderTransform = &transform;	
+		owner->renderPosition = &position;
+	}
 }
 
 

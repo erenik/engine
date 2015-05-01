@@ -194,6 +194,8 @@ public:
 		it will point to its 'transform' matrix, in order to combat temporal aliasing.
 	*/
 	Matrix4f * renderTransform;
+	/// Similar to above, used for when temporal aliasing is an issue. Works in combination with camera n stuff.
+	Vector3f * renderPosition;
 	/// Transforms as calculated if this were not child of any other entity.
 	Matrix4f localRotation, localTransform;
 	Matrix4f scalingMatrix;

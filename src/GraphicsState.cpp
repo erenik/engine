@@ -15,7 +15,7 @@ GraphicsState * graphicsState = NULL;
 
 GraphicsState::GraphicsState()
 {
-	perFrameSmoothness = 0.5f;
+	perFrameSmoothness = 0.7f;
 	shadowPass = false;
 	activeWindow = NULL;
 	activeViewport = NULL;

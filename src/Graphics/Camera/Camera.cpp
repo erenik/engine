@@ -528,7 +528,7 @@ void Camera::Track()
 		case TrackingMode::ADD_POSITION:
 		{
 			positionWithOffsets = this->position;
-			positionWithOffsets += entityToTrack->position;
+			positionWithOffsets += *entityToTrack->renderPosition;
 			break;
 		}
 		default:
