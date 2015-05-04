@@ -208,7 +208,7 @@ void TileMap2D::Render(GraphicsState & graphicsState)
 				// Texture enabled.
 				glBindTexture(GL_TEXTURE_2D, previewTexture->glid);
 				// Render it.			
-				model->Render(graphicsState);
+				model->Render();
 				/// Reset transformation matrix.
 				graphicsState.modelMatrixF = graphicsState.modelMatrixD = Matrix4d();
 
@@ -247,7 +247,7 @@ void TileMap2D::Render(GraphicsState & graphicsState)
 					glBindTexture(GL_TEXTURE_2D, tex->glid);
 				}
 				/// Set position.
-				model->Render(graphicsState);
+				model->Render();
 			}
 		}
 
@@ -296,7 +296,7 @@ void TileMap2D::Render(GraphicsState & graphicsState)
 			}
 			/// Disable depth test.. should not be needed.
 			/// Render
-			model->Render(graphicsState);
+			model->Render();
 		}
 		/// Render (active) entities!
 		for (int i = 0; i < entities.Size(); ++i)
@@ -348,7 +348,7 @@ void TileMap2D::Render(GraphicsState & graphicsState)
 			}
 			/// Disable depth test.. should not be needed.
 			/// Render
-			model->Render(graphicsState);
+			model->Render();
 		}
 
 	}

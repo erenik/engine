@@ -62,6 +62,6 @@ void AlphaModelEffect::Render(GraphicsState & graphicsState)
 //	std::cout<<"\nAlpha: "<<primaryColor[3];
 
 	// Render stuffs.
-	model->Render(graphicsState);
+	model->Render();
 
 }

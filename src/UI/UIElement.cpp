@@ -308,6 +308,8 @@ void UIElement::UpdateHighlightColor()
 		highlightColor *= 0.75f;
 	}
 	Shader * shader = ActiveShader();
+	if (!shader)
+		return;
 
 //	assert(activeShader->uniformPrimaryColorVec4 != -1);
 	if (shader->uniformPrimaryColorVec4 == -1)
@@ -1531,6 +1533,8 @@ void UIElement::RenderSelf(GraphicsState & graphicsState)
 	if (vboBuffer && validTexture)
 	{
 		Shader * shader = ActiveShader();
+		if (!shader)
+			return;
 		UpdateHighlightColor();
 
 		// Set material?	-	Not needed for UI!?
@@ -1539,7 +1543,7 @@ void UIElement::RenderSelf(GraphicsState & graphicsState)
 
 		// Set VBO and render
 		// Bind vertices
-		glBindBuffer(GL_ARRAY_BUFFER, vboBuffer);
+		graphicsState.BindVertexArrayBuffer(vboBuffer);
 		glVertexAttribPointer(shader->attributePosition, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 8, 0);		// Position
 		
 		// Bind UVs

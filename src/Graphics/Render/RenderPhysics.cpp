@@ -129,7 +129,7 @@ void GraphicsManager::RenderPhysics()
 
             glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, aabbMatrix.getPointer());
             Model * cube = ModelMan.GetModel("cube.obj");
-            cube->Render(*graphicsState);
+            cube->Render();
       //  }
 
         glUniform1f(glGetUniformLocation(shader->shaderProgram, "rainbowXYZFactor"), rainbowXYZFactor);
@@ -309,7 +309,7 @@ rerer
 		glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, transform.getPointer());
 		// Render if we got a model ^^
 		if (model)
-			model->Render(*graphicsState);
+			model->Render();
 
 	}
 
@@ -439,11 +439,11 @@ rerer
 			Model * model = c.one->model;
 			glUniform4f(shader->uniformPrimaryColorVec4, 15.0f, 0.0f, 0.0f, 0.1f);
 			glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, cr.onePreResolution.getPointer());
-			model->Render(*graphicsState);
+			model->Render();
 			
 			model = c.two->model;
 			glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, cr.twoPreResolution.getPointer());
-			model->Render(*graphicsState);
+			model->Render();
 		}
 	}
 	else {

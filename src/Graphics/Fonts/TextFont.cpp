@@ -22,11 +22,13 @@
 
 #include "File/LogFile.h"
 
+#include "Model/Model.h"
+#include "Model/ModelManager.h"
+
 String TextFont::defaultFontSource; // = "font3.png";
 
 /// Prints the values of the error code in decimal as well as hex and the literal meaning of it.
 extern void PrintGLError(const char * text);
-
 
 /** Returns false for all signs which are not rendered (or interacted with) per say. 
 	I.e. \n, \r, \0, etc. will return false. \t and space (0x20) are both considered characters and will return true.
@@ -43,7 +45,8 @@ bool IsCharacter(uchar c)
 	return true;
 }
 
-TextFont::TextFont(){
+TextFont::TextFont()
+{
 	texture = NULL;
 	color = Vector4f(1.0f, 1.0f, 1.0f, 1.0f);
 	for (int i = 0; i < MAX_CHARS; ++i){
@@ -56,7 +59,10 @@ TextFont::TextFont(){
 	charWidth[9] = 1.0f;	// Tab
 	whitened = false;
 	useFramePadding = true;
+	shaderBased = true;
+	model = NULL;
 };
+
 TextFont::~TextFont(){
 };
 
@@ -420,8 +426,9 @@ void TextFont::RenderText(Text & text, GraphicsState & graphicsState)
 
 	/// Save old shader!
 	Shader * oldShader = ActiveShader();
-	// Start rendering.
-	PrepareForRender(graphicsState);
+	// Load shader, set default uniform values, etc.
+	if (!PrepareForRender())
+		return;
 
 	/// Sort the carets in order to render selected text properly.
 	int min, max;
@@ -475,99 +482,155 @@ void TextFont::RenderText(Text & text, GraphicsState & graphicsState)
 
 
 
-void TextFont::PrepareForRender(GraphicsState & graphicsState)
+bool TextFont::PrepareForRender()
 {
 	if (!texture){
 		std::cout<<"\nERROR: Texture not allocated in Font::RenderText";
-		return;
+		return false;
 	}
-	if (!whitened){
+	if (!whitened && false){ // Change so whitening process is executed only for those fonts which need it.
 		MakeTextureWhite();
 	}
-
-	// Enable textures if it wasn't already
-	glEnable(GL_TEXTURE_2D);
-	PrintGLError("Font.h: glEnable(GL_TEXTURE_2D) error");
-	/// Set fill mode!
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-	ShadeMan.SetActiveShader(0);
-
-	glEnable(GL_TEXTURE_2D);
-//	glEnable(GL_LIGHTING);
-	glDisable(GL_COLOR_MATERIAL);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glLoadMatrixf(graphicsState.projectionMatrixF.getPointer());
-	Matrix4f modelView = graphicsState.viewMatrixF * graphicsState.modelMatrixF;
-	glMatrixMode(GL_MODELVIEW);
-	glLoadMatrixf(modelView.getPointer());
-	glColor4f(color[0], color[1], color[2], color[3]);
-	glEnable(GL_BLEND);
-	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	glDisable(GL_LIGHTING);
-
-
-	// Disable depth test.. lol no?
-//	glDisable(GL_DEPTH_TEST);
-	glDepthMask(GL_FALSE);
-
+	/// Bufferize texture as needed.
 	if (texture->glid == -1)
 	{
 		texture->releaseOnBufferization = false;
 		TexMan.BufferizeTexture(texture);
 	}
-	glBindTexture(GL_TEXTURE_2D, texture->glid);
 
-	// when texture area is small, bilinear filter the closest mipmap
-	// when texture area is large, bilinear filter the original
-	bool linear = false;
-	if (linear){
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	/// Prepare shader.
+	if (shaderBased)
+	{
+		// Load shader.
+		shader = ShadeMan.SetActiveShader("Font");
+		if (!shader)
+			return false;
+		// Enable texture
+		glEnable(GL_TEXTURE_2D);
+		// Set matrices.
+		shader->SetProjectionMatrix(graphicsState->projectionMatrixF);
+		shader->SetViewMatrix(graphicsState->viewMatrixF);
+		shader->SetModelMatrix(graphicsState->modelMatrixF);
+		// Set text color
+		glUniform4f(shader->uniformPrimaryColorVec4, color.x, color.y, color.z, color.w);
+		// Set some color.. hmm.
+		// 		glColor4f(color[0], color[1], color[2], color[3]);
+				glEnable(GL_BLEND);
+		glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		// Don't write depth to depth buffer.
+		glDepthMask(GL_FALSE);
+		glDisable(GL_DEPTH_TEST);
+
+		// Set texture in shader? hm.
+		glBindTexture(GL_TEXTURE_2D, texture->glid);
+
+		// Fetch and bufferizes model.
+		if (!model)
+			model = ModelMan.GetModel("sprite.obj");
+		model->BufferizeIfNeeded();
 	}
-	else {
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	else 
+	{
+		// Enable textures if it wasn't already
+		glEnable(GL_TEXTURE_2D);
+		PrintGLError("Font.h: glEnable(GL_TEXTURE_2D) error");
+		/// Set fill mode!
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+		ShadeMan.SetActiveShader(0);
+
+		glEnable(GL_TEXTURE_2D);
+	//	glEnable(GL_LIGHTING);
+		glDisable(GL_COLOR_MATERIAL);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		glLoadMatrixf(graphicsState->projectionMatrixF.getPointer());
+		Matrix4f modelView = graphicsState->viewMatrixF * graphicsState->modelMatrixF;
+		glMatrixMode(GL_MODELVIEW);
+		glLoadMatrixf(modelView.getPointer());
+		glColor4f(color[0], color[1], color[2], color[3]);
+		glEnable(GL_BLEND);
+		glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		glDisable(GL_LIGHTING);
+
+		// Disable depth test.. lol no?
+	//	glDisable(GL_DEPTH_TEST);
+		glDepthMask(GL_FALSE);
+
+		glBindTexture(GL_TEXTURE_2D, texture->glid);
+
+				// when texture area is small, bilinear filter the closest mipmap
+		// when texture area is large, bilinear filter the original
+		bool linear = false;
+		if (linear){
+			glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		}
+		else {
+			glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+			glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		}
+
+
+	//	glUseProgram(shader->shaderProgram);
+		/// Begin the QUADS!
+		glBegin(GL_QUADS);
 	}
 
-//	glUseProgram(shader->shaderProgram);
-
-	/// Begin the QUADS!
-	glBegin(GL_QUADS);
-
+	return true;
 }
 
 // Renders character at current position.
 void TextFont::RenderChar(uchar c)
 {
-	int characterX = c % 16;
-	int characterY = c / 16;
-	/// Texture co-ordinates.
-	float x1,x2,y1,y2;
-	x1 = characterX / 16.0f;
-	x2 = (characterX+1) / 16.0f;
-	y1 = (16 - characterY) / 16.0f;
-	y2 = (16 - characterY - 1) / 16.0f;
 	float & xStart = pivotPoint[0];
 	float & yStart = pivotPoint[1];
-	// And actual rendering.
-	glTexCoord2f(x1, y2);
-	glVertex3f(-halfScale[0] + xStart, -halfScale[1] + yStart, 0);
-	glTexCoord2f(x2, y2);
-	glVertex3f(halfScale[0] + xStart, -halfScale[1] + yStart, 0);
-	glTexCoord2f(x2, y1);
-	glVertex3f(halfScale[0] + xStart, halfScale[1] + yStart, 0);
-	glTexCoord2f(x1, y1);
-	glVertex3f(-halfScale[0] + xStart, halfScale[1] + yStart, 0);
+
+	// Render an actual character.
+	if (shaderBased)
+	{
+		// Set location via uniform?
+		int character = c;
+		glUniform1i(shader->uniformCharacter, character);
+		glUniform2f(shader->uniformPivot, xStart, yStart); 
+		// Render it.
+		model->Render();
+	}
+	/// Old render
+	else 
+	{
+		int characterX = c % 16;
+		int characterY = c / 16;
+		/// Texture co-ordinates.
+		float x1,x2,y1,y2;
+		x1 = characterX / 16.0f;
+		x2 = (characterX+1) / 16.0f;
+		y1 = (16 - characterY) / 16.0f;
+		y2 = (16 - characterY - 1) / 16.0f;
+		// And actual rendering.
+		glTexCoord2f(x1, y2);
+		glVertex3f(-halfScale[0] + xStart, -halfScale[1] + yStart, 0);
+		glTexCoord2f(x2, y2);
+		glVertex3f(halfScale[0] + xStart, -halfScale[1] + yStart, 0);
+		glTexCoord2f(x2, y1);
+		glVertex3f(halfScale[0] + xStart, halfScale[1] + yStart, 0);
+		glTexCoord2f(x1, y1);
+		glVertex3f(-halfScale[0] + xStart, halfScale[1] + yStart, 0);
+	}
 }
 
 /// Render the character as selected.
 void TextFont::RenderSelection(uchar c)
 {
+	/// No good solution for this... yet.
+	if (shaderBased)
+	{
+		return;
+	}
+
 	// Stop the quads.
 	glEnd();
 
@@ -632,8 +695,15 @@ void TextFont::RenderSelection(uchar c)
 /// Re-instates old shader as needed.
 void TextFont::OnEndRender(GraphicsState & graphicsState)
 {
-	glEnd();
-	
+	if (shaderBased)
+	{
+		// Bind 0?
+	}
+	else 
+	{
+		glEnd();
+	}
+	/// enable writing to depth-buffer again.4
 	glDepthMask(GL_TRUE);
 
 	PrintGLError("Font.h: Error after rendering error");

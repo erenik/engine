@@ -83,7 +83,7 @@ public:
 	/// o,o call before calling glDrawArrays
 	void BindVertexBuffer();
 	/// Renders the meshi-mesh :3
-	void Render(GraphicsState & graphicsState);
+	void Render();
 	/// Re-skins the mesh's vertices to match the current skeletal animation. Every single vertex will be re-calculated and then re-buffered.
 	void SkinToCurrentSkeletalAnimation();
 	/// Updates the skinning matrix map to be used for skinning using shaders.

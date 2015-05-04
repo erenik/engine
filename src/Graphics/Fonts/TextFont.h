@@ -7,6 +7,8 @@
 
 class Texture;
 class GraphicsState;
+class Model;
+class Shader;
 
 #include "Util.h"
 #include "MathLib.h"
@@ -56,7 +58,7 @@ public:
 private:
 
 	/// Sets up text-shader and font texture.
-	void PrepareForRender(GraphicsState & graphicsState);
+	bool PrepareForRender();
 	/// Renders the caret.
 	void RenderCaret();
 	// Renders character at current position.
@@ -86,6 +88,12 @@ private:
 	void NewLine();
 	/// Called when encountering the NULL-character.
 	void EndText();
+
+	
+	/// Render options
+	bool shaderBased; /// If true, use new shader-based rendering, instead of old glVertex, etc. Default true.
+	Model * model; // Sprite XY model used to render the text.
+	Shader * shader; // Current shader. Extraced in PrepareForRender
 
 	/// Current text.
 	Text currentText;
@@ -129,6 +137,8 @@ private:
 
 	/// Color to be used when rendering the text.
 	Vector4f color;
+	Vector4f secondaryColor;
+
 	/// Texture to be used when rendering.
 	Texture * texture;
 	/// Texture source o-o

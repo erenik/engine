@@ -256,6 +256,9 @@ void Shader::ExtractUniforms()
 		std::cout<<"\nUnable to find uniform for Eye Position";
 	}
 
+	uniformCharacter = glGetUniformLocation(shaderProgram, "character");
+	uniformPivot = glGetUniformLocation(shaderProgram, "pivot");
+
 	// Get textures
 	// First diffuse
 	uniformBaseTexture = glGetUniformLocation(shaderProgram, "baseImage");
@@ -466,6 +469,25 @@ void Shader::OnMadeInactive()
 		glDisableVertexAttribArray(attribute.location);
 	}
 }
+
+/// Setters, added for laziness, but may be useful if going non-GL later, I guess?
+void Shader::SetProjectionMatrix(const Matrix4f & mat)
+{
+	glUniformMatrix4fv(uniformProjectionMatrix, 1 , false, mat.getConstPointer());
+}
+
+/// Setters, added for laziness, but may be useful if going non-GL later, I guess?
+void Shader::SetViewMatrix(const Matrix4f & mat)
+{
+	glUniformMatrix4fv(uniformViewMatrix, 1 , false, mat.getConstPointer());
+}
+
+/// Setters, added for laziness, but may be useful if going non-GL later, I guess?
+void Shader::SetModelMatrix(const Matrix4f & mat)
+{
+	glUniformMatrix4fv(uniformModelMatrix, 1 , false, mat.getConstPointer());
+}
+	
 
 
 /** Sets the texture indices to the default values, so that binding is done correctly afterwards. 

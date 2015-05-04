@@ -65,6 +65,8 @@ void UIImage::RenderSelf(GraphicsState & graphicsState)
 	UpdateHighlightColor();
 
 	Shader * shader = ActiveShader();
+	if (!shader)
+		return;
 
 	// Bind vertices
 	glBindBuffer(GL_ARRAY_BUFFER, vboBuffer);

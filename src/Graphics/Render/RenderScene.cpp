@@ -332,7 +332,7 @@ uniform sampler2D positionMap;*/
 
 		// Render square for the AppWindow
 		deferredRenderingBox->name = "DeferredLighting";
-		deferredRenderingBox->Render(*graphicsState);
+		deferredRenderingBox->Render();
 
 		//glDeleteBuffers(1, &box.vboBuffer);
 		//box.vboBuffer = NULL;

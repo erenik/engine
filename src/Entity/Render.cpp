@@ -262,7 +262,7 @@ void Entity::Render(GraphicsState & graphicsState)
 		}
 
 		// Render the model
-		model->Render(graphicsState);
+		model->Render();
 		++graphicsState.renderedObjects;		// increment rendered objects for debug info
 
 

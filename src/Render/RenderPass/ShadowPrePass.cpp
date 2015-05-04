@@ -163,7 +163,7 @@ void RenderPass::RenderEntitiesOnlyVertices()
 		// Just load transform as model matrix straight away.
 		glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, entity->transformationMatrix.getPointer());	
 		// Render the model
-		entity->model->Render(*graphicsState);
+		entity->model->Render();
 		++graphicsState->renderedObjects;		// increment rendered objects for debug info
 	}
 	if (instancingEnabled)

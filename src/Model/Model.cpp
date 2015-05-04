@@ -77,7 +77,7 @@ void Model::BufferizeIfNeeded()
 
 
 /// Calls render on the triangulized mesh parts within.
-void Model::Render(GraphicsState & graphisState)
+void Model::Render()
 {
 	// IF we have a triangulated mesh, ensure it is up to date.
 	if (triangulatedMesh)
@@ -99,7 +99,7 @@ render:
 		std::cout<<"\nUnable to render model: "<<name;
 		return;
 	}
-	triangulatedMesh->Render(graphisState);
+	triangulatedMesh->Render();
 }
 
 void Model::SetName(String i_name){

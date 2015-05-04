@@ -8,6 +8,8 @@
 #include "Uniform.h"
 #include "ShaderPart.h"
 
+class Matrix4f;
+
 struct GLSLIdentifier
 {
 	GLSLIdentifier();
@@ -71,6 +73,12 @@ public:
 	void OnMadeActive();
 	/// Disables the respective vertex attribute pointers.
 	void OnMadeInactive();
+	
+	/// Setters, added for laziness, but may be useful if going non-GL later, I guess?
+	void SetProjectionMatrix(const Matrix4f & mat);
+	/// Setters, added for laziness, but may be useful if going non-GL later, I guess?
+	void SetViewMatrix(const Matrix4f & mat);
+	void SetModelMatrix(const Matrix4f & mat);
 
 	/** Sets the texture indices to the default values, so that binding is done correctly afterwards. 
 		The equivalent texture unit is glActiveTexture(GL_TEXTURE0 + value). Default values are as follows:
@@ -142,6 +150,17 @@ public:
 
 	GLuint uniformCameraRightWorldSpace;
 	GLuint uniformCameraUpWorldSpace;
+
+	/// Used for Font-shaders.
+	GLuint uniformCharacter; // Integer of character, 0 to 255 in a 16x16 grid.
+	GLuint uniformPivot; // XY-coordinate.. relative to UI or something.
+	/** See shaders/Font.frag for details concerning implementation. Also TextFont and Text classes are relevant.
+		0 - Default. Pass through.
+		1 - Simple White font - apply primaryColorVec4 multiplicatively
+		2 - Replacer. Replaces a set amount of colors in the font for other designated colors (primarily primaryColorVec4 and se)
+	*/
+	GLuint uniformColorEquation;
+
 
 	/// Used to apply a scale to all, in addition to per-particle scale/stuffs.
 	GLuint uniformScale;

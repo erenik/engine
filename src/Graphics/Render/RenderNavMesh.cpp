@@ -180,7 +180,7 @@ void GraphicsManager::RenderPath()
 		/// Set uniform matrix in shader to point to the AppState modelView matrix.
  		glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, transform.getPointer());
 		// Render if we got a model ^^
-		model->Render(*graphicsState);
+		model->Render();
 	}
 	/// Draw a line-strip too, using default renderer!
 	waypointRendered = 0;

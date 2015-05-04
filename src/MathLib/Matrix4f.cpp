@@ -510,6 +510,19 @@ bool Matrix4f::HasValidScale()
 // ************************************************************************//
 // Content access
 // ************************************************************************//
+
+/** Returns a pointer to the start of the matrix element array. */
+float * Matrix4f::getPointer()
+{
+	return element; 
+}
+
+const float * Matrix4f::getConstPointer() const 
+{
+	return element;
+}
+	
+
 /** Fills an array to the pointed location with a copy of the matrix's current contents. */
 void Matrix4f::getContents(float * arr){
 	for (int i = 0; i < 16; ++i){

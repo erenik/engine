@@ -144,7 +144,8 @@ public:
 
 	// Content access
 	/** Returns a pointer to the start of the matrix element array. */
-	float * getPointer() {return element; };
+	float * getPointer();
+	const float * getConstPointer() const;
 	/** Fills an array to the pointed location with a copy of the matrix's current contents. Writes the data column-wise. */
 	void getContents(float * arr);
 

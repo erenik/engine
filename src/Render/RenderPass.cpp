@@ -492,7 +492,7 @@ void RenderPass::RenderEntities()
 		glUniformMatrix4fv(shader->uniformNormalMatrix, 1, false, entity->normalMatrix.getPointer());
 
 		// Render the model
-		entity->model->Render(*graphicsState);
+		entity->model->Render();
 		++graphicsState->renderedObjects;		// increment rendered objects for debug info
 	}
 	if (instancingEnabled)
@@ -593,7 +593,7 @@ void RenderPass::RenderAlphaEntities()
 		glUniform4fv(shader->uniformPrimaryColorVec4, 1, gp->color.v);
 
 		// Render the model
-		entity->model->Render(*graphicsState);
+		entity->model->Render();
 		++graphicsState->renderedObjects;		// increment rendered objects for debug info
 	}
 	timer.Stop();

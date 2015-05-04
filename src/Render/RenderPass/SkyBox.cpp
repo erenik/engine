@@ -47,6 +47,6 @@ void RenderPass::RenderSkyBox()
 	if (!box)
 		return;
 	box->BufferizeIfNeeded();
-	box->Render(*graphicsState);
+	box->Render();
 	return;		
 }

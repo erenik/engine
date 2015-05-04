@@ -8,7 +8,8 @@
 
 // An extension of the String class, made for handling and displaying input, colors, bold, etc.
 
-class Text : public String {
+class Text : public String 
+{
 public:
 	Text();
 	virtual ~Text();
@@ -43,6 +44,13 @@ public:
 	int caretPosition;
 	int previousCaretPosition;
 private:
+
+
+	/** Default 0 - pass through.
+		1 - Simple White font - apply primaryColorVec4 multiplicatively
+		2 - Replacer. Replaces a set amount of colors in the font for other designated colors (primarily primaryColorVec4 and se)
+	*/
+	int colorEquation;
 
 };
 

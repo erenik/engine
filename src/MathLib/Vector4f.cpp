@@ -75,22 +75,6 @@ Vector4f::Vector4f(float arr[])
 	w = arr[3];
 }
 
-Vector4f::Vector4f(const Vector4f & base)
-{
-#ifdef USE_SSE
-	data = base.data;
-	x = base[0];
-	y = base[1];
-	z = base[2];
-	w = base[3];
-#else
-	x = base[0];
-	y = base[1];
-	z = base[2];
-	w = base[3];
-#endif
-}
-
 /**	Copy Conversion Constructor
 	Postcondition: Initializes a 4D vector to have same values as the referenced vector.
 */

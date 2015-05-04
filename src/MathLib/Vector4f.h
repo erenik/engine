@@ -43,10 +43,6 @@ public:
 		Postcondition: Initializes a 4D vector to specified array values.
 	*/
 	Vector4f(float arr[]);
-	/**	Copy Constructor
-		Postcondition: Initializes a 4D vector to have same values as the referenced vector.
-	*/
-	Vector4f(const Vector4f & base);
 	/**	Copy Conversion Constructor
 		Postcondition: Initializes a 4D vector to have same values as the referenced vector.
 	*/
