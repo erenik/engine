@@ -47,6 +47,9 @@ bool IsCharacter(uchar c)
 
 TextFont::TextFont()
 {
+	hoveredOver = false;
+	active = false;
+
 	texture = NULL;
 	color = Vector4f(1.0f, 1.0f, 1.0f, 1.0f);
 	for (int i = 0; i < MAX_CHARS; ++i){
@@ -513,6 +516,10 @@ bool TextFont::PrepareForRender()
 		shader->SetModelMatrix(graphicsState->modelMatrixF);
 		// Set text color
 		glUniform4f(shader->uniformPrimaryColorVec4, color.x, color.y, color.z, color.w);
+		
+		// set hover state
+		glUniform1i(shader->uniformHoveredOver, hoveredOver? 1 : 0);
+
 		// Set some color.. hmm.
 		// 		glColor4f(color[0], color[1], color[2], color[3]);
 				glEnable(GL_BLEND);

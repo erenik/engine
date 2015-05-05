@@ -58,7 +58,6 @@ GMSet::GMSet(int t, void * data)
 
 void GMSet::Process()
 {
-	GraphicsState * graphicsState = graphicsState;
 	switch(target)
 	{
 		case GT_MAIN_CAMERA:
@@ -153,7 +152,6 @@ GMSetf::GMSetf(int target, float value): GraphicsMessage(GM_SET_FLOAT) {
 
 void GMSetf::Process()
 {	
-	GraphicsState * graphicsState = graphicsState;
 	switch (target){
 		case GT_GRID_SPACING: {
 			graphicsState->gridSpacing = floatValue;

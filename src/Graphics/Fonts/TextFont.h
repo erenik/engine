@@ -55,6 +55,10 @@ public:
 	String source;
 
 	static String defaultFontSource;
+
+	/// For extra colors or effects.
+	bool hoveredOver;
+	bool active;
 private:
 
 	/// Sets up text-shader and font texture.

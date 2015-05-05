@@ -1631,6 +1631,10 @@ void UIElement::RenderText()
 	if (this->IsDisabled())
 		textColorToRender *= 0.55f;
 	if (this->state & UIState::HOVER && highlightOnHover)
+		currentFont->hoveredOver = true;
+	else
+		currentFont->hoveredOver = false;
+	if (this->state & UIState::ACTIVE && highlightOnActive)
 		textColorToRender += Vector4f(1,1,1,1) * 0.1f;
 //	color[3] *= 0.5f;
 	graphicsState->currentFont->SetColor(textColorToRender);

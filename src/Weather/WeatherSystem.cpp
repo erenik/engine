@@ -234,9 +234,9 @@ void WeatherSystem::SetSunTime(float hour)
 	Vector3f firstColor;
 	Vector3f secondColor;
 	EstimatorVec3f ambienceSmoother;
-	ambienceSmoother.AddState(Vector3f(0.1,		0.1,	0.12), 0);
-	ambienceSmoother.AddState(Vector3f(0.15,	0.15,	0.19), 1000);
-	ambienceSmoother.AddState(Vector3f(0.225,	0.225,	0.35), 10000);
+	ambienceSmoother.AddState(Vector3f(0.1f,		0.1f,	0.12f), 0);
+	ambienceSmoother.AddState(Vector3f(0.15f,	0.15f,	0.19f), 1000);
+	ambienceSmoother.AddState(Vector3f(0.225f,	0.225f,	0.35f), 10000);
 	// Base it on Y.
 	ambienceSmoother.variableToPutResultTo = &ambience;
 	ambienceSmoother.Estimate(Time(TimeType::MILLISECONDS_NO_CALENDER, sunPositionNormalized.y * 10000), false);
@@ -253,9 +253,9 @@ void WeatherSystem::SetSunTime(float hour)
 
 	// Set sky-color.
 	EstimatorVec3f skyColorSmoother;
-	skyColorSmoother.AddState(Vector3f(0.03,	0.04,	0.055), 0);
-	skyColorSmoother.AddState(Vector3f(0.12,	0.13,	0.25), 2000);
-	skyColorSmoother.AddState(Vector3f(0.78,	0.89,	1), 10000);
+	skyColorSmoother.AddState(Vector3f(0.03f,	0.04f,	0.055f), 0);
+	skyColorSmoother.AddState(Vector3f(0.12f,	0.13f,	0.25f), 2000);
+	skyColorSmoother.AddState(Vector3f(0.78f,	0.89f,	1.f), 10000);
 	Vector3f skyColor;
 	skyColorSmoother.variableToPutResultTo = &skyColor;
 	skyColorSmoother.Estimate(Time(TimeType::MILLISECONDS_NO_CALENDER, sunPositionNormalized.y * 10000), false);

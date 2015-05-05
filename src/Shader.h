@@ -172,6 +172,8 @@ public:
 	GLuint uniformPrimaryColorVec4;
 	/// Linearly added color, primarily used for UI highlighting.
 	GLuint uniformHighlightColorVec4;
+	// Boolean, for highlighting text.
+	GLuint uniformHoveredOver; 
 
 	/// GL uniform material ID
 	UniformMaterial uniformMaterial;

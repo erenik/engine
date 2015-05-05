@@ -21,7 +21,7 @@ void SetApplicationDefaults()
 {
 	Application::name = "SideScroller";
 	Application::quitOnHide = false;
-	TextFont::defaultFontSource = "img/fonts/Font_Mexicano_outlined.png";
+	TextFont::defaultFontSource = "img/fonts/Font_Mexicano.png";
 	PhysicsProperty::defaultUseQuaternions = false;
 	Viewport::defaultRenderGrid = false;
 }

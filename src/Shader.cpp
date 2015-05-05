@@ -296,6 +296,7 @@ void Shader::ExtractUniforms()
 		std::cout<<"\nUniform \"primaryColorVec4\" could not be located and set.";
 	// Highlight color. Mainly used for UI.
 	uniformHighlightColorVec4 = glGetUniformLocation(shaderProgram, "highlightColorVec4");
+	uniformHoveredOver = glGetUniformLocation(shaderProgram, "hoveredOver");
 
 	// Foggy fog-some!
 	uniformFogBeginDistance = glGetUniformLocation(shaderProgram, "fogBegin");
