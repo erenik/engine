@@ -31,6 +31,8 @@ void SideScroller::CreateDefaultBindings()
 	BIND(Action::FromString("NewGame"), KEY::N);
 	BIND(Action::FromString("NextK"), KEY::RIGHT);
 	BIND(Action::FromString("Jump"), KEY::SPACEBAR);
+
+	BIND(Action::FromString("RecreateLevelParts"), KEY::R);
 	
 	BIND(Action::FromString("CycleCamera"), KEY::C);
 

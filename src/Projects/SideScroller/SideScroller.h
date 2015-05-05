@@ -164,6 +164,8 @@ public:
 	/// Level score. If -1, returns current.
 	GameVariable * LevelKills(int stage = -1, int level = -1);
 
+
+	void RecreateLevelParts();
 // private:
 
 	/// Starts a new game. Calls LoadLevel
@@ -270,6 +272,9 @@ private:
 	/// For display.
 	String lastError;
 };
+
+/// Creates a new sprite featuring alpha-blending (as should be). Using the default sprite.obj, which is a 1x1 XY plane centered on 0,0 (0.5 in each direction).
+Entity * CreateSprite(String textureSource);
 
 extern SideScroller * sideScroller;
 

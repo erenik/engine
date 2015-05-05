@@ -77,6 +77,146 @@ float distance = 0;
 /// Toggled when skipping parts. Defaulf true. When false no block should be created as to speed up processing.
 bool blockCreationEnabled = true; 
 
+
+/// For the tiling efforts.
+namespace BlockType
+{
+	enum {
+		BLOCK, /// A filled block, 2 units wide usually.
+		HOLE, // A standard death hole, 2 units wide, 2-4 units deep,
+	};
+};
+/// For tiling-eases tiling effors!
+int lastBlockType = BlockType::HOLE;
+int nextLastBlockType = BlockType::HOLE; // The previous one. Need last, next last and current one in order to properly set up the tiled sprites for the level.
+int currentType = BlockType::HOLE;
+Entity * lastBlock;
+Entity * nextLastBlock;
+Entity * currentBlock;
+String tilesetPath = "img/Tileset/";
+
+void Tile(Entity * newBlock, int newBlockType)
+{
+	List<Entity*> newTileSprites;
+	// Push back the old values first.
+	nextLastBlock = lastBlock;
+	lastBlock = currentBlock;
+	nextLastBlockType = lastBlockType;
+	lastBlockType = currentType;
+	// Assign new ones.
+	currentBlock = newBlock;
+	currentType = newBlockType;
+
+	// Check neighbor types to determine texture.
+	bool isColumn = false;
+	bool isLeftStart = false;
+	bool isRightEnd = false;
+	bool isSimpleGround = true;
+	if (nextLastBlockType == BlockType::HOLE)
+	{		
+		if (currentType == BlockType::HOLE)
+			isColumn = true;
+		else
+			isLeftStart = true;
+	}
+	else if (currentType == BlockType::HOLE)
+		isRightEnd = true;
+
+	if (isColumn || isLeftStart || isRightEnd)
+		isSimpleGround = false;
+
+	float holeDepth = 3.f;
+	float groundZ = 2.f;
+	float groundY = 0.f;
+	float scaleX = lastBlock? lastBlock->scale.x : 2.f;
+	float posX = lastBlock? lastBlock->position.x : 0.f;
+#define SET_DEFAULT_TILE_VALUES(e) \
+	e->position.x = posX; \
+	e->scale.x = scaleX; \
+	e->position.z = groundZ;
+
+	/// Stuff.
+	String texture = tilesetPath+"horizontal_ground"; // Default.
+	if (isColumn)
+	{
+		texture = tilesetPath + "pillar_top";
+	}
+	else if (isLeftStart)
+	{
+		texture = tilesetPath + "upper_corner_left";
+	}
+	else if (isRightEnd)
+	{
+		texture = tilesetPath + "upper_corner_right";
+	}
+
+	/// Create tiling for the last block.
+	if (lastBlockType == BlockType::HOLE)
+		groundY = -3.f; //return; // No tiling for holes. ... or yes! o.o
+
+	// Add ground bit.
+	Entity * entity = CreateSprite(texture);
+	// Set its location.. in the sky.
+	entity->position.y = groundY;
+	SET_DEFAULT_TILE_VALUES(entity);
+	entity->RecalculateMatrix();
+	newTileSprites.AddItem(entity);
+
+	/// Add 'empty' ground underneath.
+	entity = CreateSprite(tilesetPath+"Empty");
+	if (isSimpleGround)
+		entity->position.y = groundY - 1.f;
+	else 
+	{
+		// Bit lower.
+		entity->position.y = groundY - 4.f;
+	}
+	SET_DEFAULT_TILE_VALUES(entity);
+	entity->RecalculateMatrix();
+	newTileSprites.AddItem(entity);
+
+	/// More edge-specific shit.
+	if (!isSimpleGround)
+	{
+		String bottomTexture, middleTexture;
+		if (isColumn)
+		{
+			bottomTexture = tilesetPath + "pillar_bottom";
+			middleTexture = tilesetPath + "pillar_middle";
+		}
+		else if (isLeftStart)
+		{
+			middleTexture = tilesetPath + "vertical_right";
+			bottomTexture = tilesetPath + "lower_corner_right";
+		}
+		else if (isRightEnd)
+		{
+			bottomTexture = tilesetPath + "lower_corner_left";
+			middleTexture = tilesetPath + "vertical_left";
+		}
+		/// Create middle.
+		entity = CreateSprite(middleTexture);
+		entity->position.y = groundY - holeDepth * 0.5f; 
+		entity->scale.y = holeDepth - 1.f;
+		SET_DEFAULT_TILE_VALUES(entity);
+		entity->RecalculateMatrix();
+		newTileSprites.AddItem(entity);
+
+		/// Create bottom.
+		entity = CreateSprite(bottomTexture);
+		entity->position.y = groundY - holeDepth; 
+		SET_DEFAULT_TILE_VALUES(entity);
+		entity->RecalculateMatrix();
+		newTileSprites.AddItem(entity);
+	}
+
+	levelEntities.Add(newTileSprites);
+	MapMan.AddEntities(newTileSprites, true, false);
+
+};
+
+
+
 enum 
 {
 	PERSP_CAMERA,
@@ -423,8 +563,8 @@ bool SideScroller::CreateNextLevelParts()
 	else 
 	{
 		// Create moar!
-		BreatherBlock();
-		AddLevelPart();
+		BreatherBlock(); //
+		AddLevelPart(); // Must end and start with horizontal tiling
 		// Clean-up past level-parts
 		CleanupOldBlocks();
 	}
@@ -532,6 +672,10 @@ void SideScroller::ProcessMessage(Message * message)
 			}
 			if (msg == "NewGame" || msg == "Retry")
 				NewGame();
+			else if (msg == "RecreateLevelParts")
+			{
+				RecreateLevelParts();
+			}
 			else if (msg == "QuitGame")
 			{
 				float r = sfxRand.Randf();
@@ -988,6 +1132,14 @@ void SideScroller::NewGame()
 	paco = taco = NULL;
 }
 
+void SideScroller::RecreateLevelParts()
+{
+	MapMan.DeleteEntities(levelEntities);
+	levelEntities.Clear();
+	// reset created level distance and it should hopefully recreate itself.. lol
+	levelLength = 0;
+}
+
 void SideScroller::Jump()
 {
 	Message jump("Jump");
@@ -1090,6 +1242,9 @@ void Block(float size = 2)
 		MapMan.AddEntity(block);
 		AddForCleanup(block);
 		blocksAdded.AddItem(block);
+
+		/// Sprite it up
+		Tile(block, BlockType::BLOCK);
 	}
 	levelLength += size;
 }
@@ -1184,7 +1339,11 @@ void Hole(float holeSize) // Appends a hole, default side 2.
 
 		MapMan.AddEntity(block, true, false);
 		AddForCleanup(block);
+
+		// Notify sprite-tiler of the hole
+		Tile(block, BlockType::HOLE);
 	}
+
 //	blocksAdded.AddItem(block);
 	// Increment level-length.
 	levelLength += holeSize;
