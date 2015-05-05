@@ -171,7 +171,7 @@ void Tile(Entity * newBlock, int newBlockType)
 		// Bit lower.
 		entity->position.y = groundY - 4.f;
 	}
-	entity->scale.y = 10.f;
+	entity->scale.y = 20.f;
 	entity->position.y -= (entity->scale.y - 1) * 0.5f;
 	SET_DEFAULT_TILE_VALUES(entity);
 	entity->RecalculateMatrix();

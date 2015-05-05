@@ -518,7 +518,7 @@ void Entity::RecalculateMatrix(int whichParts/*= true*/, bool recursively /* = f
 #endif
 		localTransform.Multiply(localRotation);
 		// No use multiplying if not new scale.
-		if (hasRescaled)
+		if (hasRescaled || whichParts)
 			UPDATE_SCALING_MATRIX
 		if (relevantScale)
 			localTransform.Multiply(scalingMatrix);
