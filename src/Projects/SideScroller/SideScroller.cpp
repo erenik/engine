@@ -85,6 +85,70 @@ enum
 };
 int camera = ORTHO_CAMERA;
 
+
+class BGM 
+{
+public:
+	BGM()
+	{
+		startDistance = stopDistance = -1;
+	};
+	void Play()
+	{
+		QueueAudio(new AMPlayBGM(source));
+	};
+	String name, source;
+	int startDistance; // in K, -1 if not used.
+	int stopDistance;
+};
+List<BGM*> bgms;
+BGM * currentBGM = NULL;
+
+void LoadBGMList()
+{
+	bgms.Clear();
+	List<String> lines = File::GetLines("bgm/BGMList.txt");
+	BGM * bgm = NULL;
+	for (int i = 0; i < lines.Size(); ++i)
+	{
+		String line = lines[i];
+		if (line.StartsWith("BGM"))
+		{
+			/// Add previous one.
+			if (bgm)
+				bgms.AddItem(bgm);
+			bgm = new BGM();
+			bgm->name = line - "BGM ";
+		}
+		if (!bgm)
+			continue;
+		if (line.StartsWith("Source"))
+		{
+			assert(bgm);
+			bgm->source = line - "Source ";
+		}
+		else if (line.StartsWith("StartDistance"))
+		{
+			assert(bgm);
+			bgm->startDistance = (line - "StartDistance ").ParseInt();
+		}
+	}
+	// Add final one.
+	if (bgm)
+		bgms.AddItem(bgm);
+	// go through all, calc stop X
+	BGM * previous = NULL;
+	for (int i = 0; i < bgms.Size(); ++i)
+	{
+		BGM * current = bgms[i];
+		if (previous)
+			previous->stopDistance = current->startDistance - 1;
+		previous = current;
+	}
+}
+
+
+
 void CycleCamera(int toWhich = -1)
 {
 	if (toWhich > -1)
@@ -203,6 +267,7 @@ SideScroller::SideScroller()
 
 SideScroller::~SideScroller()
 {
+	bgms.ClearAndDelete();
 }
 
 /// Function when entering this state, providing a pointer to the previous StateMan.
@@ -261,6 +326,9 @@ void SideScroller::OnEnter(AppState * previousState)
 	/// Enter main menu
 //	OpenMainMenu();
 
+	/// Load BGM list
+	LoadBGMList();
+
 	// Run OnEnter.ini start script if such a file exists.
 	Script * script = new Script();
 	script->Load("OnEnter.ini");
@@ -310,6 +378,22 @@ void SideScroller::ProcessLevel(int timeInMs)
 	while(CreateNextLevelParts())
 		;
 
+	/// Check if we should switch bgm?
+	float playerX = playerEntity->position.x;
+	float bgmX = 0, bgmStopX = 0;
+	if (currentBGM)
+	{
+		bgmX = currentBGM->startDistance;
+		bgmStopX = currentBGM->stopDistance; // Calculated when loading.
+	}
+	if (playerX > bgmStopX && bgmStopX != -1)
+	{
+		// Next one.
+		int index = bgms.GetIndexOf(currentBGM);
+		BGM * next = bgms[index + 1];
+		next->Play();
+		currentBGM = next;
+	}
 }
 
 /// Creates the next level parts.
@@ -835,6 +919,7 @@ Entity * sky = NULL;
 void SideScroller::NewGame()
 {	
 	pacoTacoX = 0;
+	currentBGM = NULL;
 	/// Play SFX
 	float r = sfxRand.Randf();
 	if (r > 0.8f)
@@ -1492,7 +1577,7 @@ void SideScroller::GameOver()
 	{
 		SetState(GAME_OVER);
 		// Play script for animation or whatever.
-		ScriptMan.PlayScript("scripts/GameOver.txt");
+		ScriptMan.PlayScript("scripts/OnDeath.txt");
 		// End script by going back to menu or playing a new game.
 	}
 }

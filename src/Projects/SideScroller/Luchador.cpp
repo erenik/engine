@@ -46,7 +46,8 @@ void LuchadorProperty::Process(int timeInMs)
 		sideScroller->AutoSave();
 		sleeping = true;
 		QueueGraphics(new GMPlayAnimation("Idle", owner));
-		ScriptMan.PlayScript("scripts/OnDeath.txt");
+		sideScroller->GameOver();
+//		ScriptMan.PlayScript("scripts/OnDeath.txt");
 	}
 }
 
