@@ -171,6 +171,8 @@ void Tile(Entity * newBlock, int newBlockType)
 		// Bit lower.
 		entity->position.y = groundY - 4.f;
 	}
+	entity->scale.y = 10.f;
+	entity->position.y -= (entity->scale.y - 1) * 0.5f;
 	SET_DEFAULT_TILE_VALUES(entity);
 	entity->RecalculateMatrix();
 	newTileSprites.AddItem(entity);
@@ -1409,7 +1411,18 @@ void SideScroller::BigHole(float holeSize)
 
 void SideScroller::BreatherBlock(float width /* = 5.f*/)
 {
-	Block(width);
+	if (width > 2.f)
+	{
+		while(width > 0)
+		{
+			float bW = width;
+			if (bW > 2.f)
+				bW = 2.f;
+			Block(bW);
+			width -= bW;
+		}
+	}
+//	Block(width);
 }
 
 void SideScroller::PacoTaco()
