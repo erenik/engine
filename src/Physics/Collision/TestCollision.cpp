@@ -23,8 +23,8 @@ bool TestCollision(Entity * one, Entity * two, List<Collision> & collissionList)
 		return false;
 
 	/// Skip if both objects are in rest next to each other ^.^
-	if (one->physics->state & PhysicsState::IN_REST &&
-		two->physics->state & PhysicsState::IN_REST)
+	if (one->physics->state & CollisionState::IN_REST &&
+		two->physics->state & CollisionState::IN_REST)
 		return false;
 
 	// Save away one and two straight away!

@@ -542,7 +542,7 @@ void PMSetEntity::Process()
 				*/
 				break;
 			case PT_COLLISSION_CALLBACK:
-				entity->physics->collissionCallback = bValue;
+				entity->physics->collisionCallback = bValue;
 				break;
 			case PT_NO_COLLISSION_RESOLUTION:
 				entity->physics->noCollisionResolutions = bValue;

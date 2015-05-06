@@ -90,12 +90,12 @@ int PhysicsManager::RegisterEntity(Entity * newEntity)
 		{
 			assert(!kinematicEntities.Exists(newEntity) && "Entity already registered for dynamic calculations!");
 			kinematicEntities.Add(newEntity);
-			newEntity->physics->state |= PhysicsState::IN_REST;
+			newEntity->physics->state |= CollisionState::IN_REST;
 			break;
 		}
 		case PhysicsType::STATIC:
 		{
-			newEntity->physics->state |= PhysicsState::IN_REST;
+			newEntity->physics->state |= CollisionState::IN_REST;
 			// If static, set NULL inertia matrices.
 			newEntity->physics->inertiaTensorInverted = Matrix3f(0,0,0,0,0,0,0,0,0);
 			newEntity->physics->inverseMass = 0.0f;

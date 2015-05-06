@@ -46,8 +46,8 @@ void PhysicsManager::DetectCollisions()
                 ep.two->physics->collissionState = AABB_INTERSECTING;
 
 				// If both are in rest/static, skip them.
-				if ((one->physics->state & PhysicsState::IN_REST || one->physics->type == PhysicsType::STATIC) && 
-					(two->physics->state & PhysicsState::IN_REST || two->physics->type == PhysicsType::STATIC))
+				if ((one->physics->state & CollisionState::IN_REST || one->physics->type == PhysicsType::STATIC) && 
+					(two->physics->state & CollisionState::IN_REST || two->physics->type == PhysicsType::STATIC))
 					continue;
 
 				/// TODO: Do Narrow-phase!

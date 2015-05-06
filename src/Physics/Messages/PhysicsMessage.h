@@ -19,6 +19,8 @@ class EstimatorFloat;
 
 enum physicsMessages {
 	PM_NULL,
+	PM_PAUSE_SIMULATION,
+	PM_RESUME_SIMULATION,
 	PM_RAYCAST,
 	PM_RECALCULATE_PHYSICS_PROPERTIES, // Recalculates physics properties for ALL registered entities.
 	PM_SET_GRAVITY,			// Sets gravity vector

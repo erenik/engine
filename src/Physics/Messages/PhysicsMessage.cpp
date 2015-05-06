@@ -5,20 +5,32 @@
 #include "PhysicsMessage.h"
 #include "../PhysicsManager.h"
 #include "Physics/Springs/Spring.h"
+#include "PhysicsState.h"
 
-PhysicsMessage::PhysicsMessage(){
+PhysicsMessage::PhysicsMessage()
+{
 	type = PM_NULL;
 }
 
-PhysicsMessage::PhysicsMessage(int messageType){
+PhysicsMessage::PhysicsMessage(int messageType)
+{
 	type = messageType;
 }
 
-PhysicsMessage::~PhysicsMessage(){
+PhysicsMessage::~PhysicsMessage()
+{
 }
 
-void PhysicsMessage::Process(){
-	switch(type){
+void PhysicsMessage::Process()
+{
+	switch(type)
+	{
+		case PM_PAUSE_SIMULATION:
+			physicsState->simulationPaused = true;
+			break;
+		case PM_RESUME_SIMULATION:
+			physicsState->simulationPaused = false;
+			break;
 		case PM_RECALCULATE_PHYSICS_PROPERTIES: 
 			Physics.RecalculatePhysicsProperties();
 			break;

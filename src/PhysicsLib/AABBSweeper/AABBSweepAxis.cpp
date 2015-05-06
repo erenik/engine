@@ -271,7 +271,7 @@ bool AABBSweepAxis::FindPairsLinearPlusSearch(List<EntityPair> & entityPairs)
 				std::cout<<"\nActive entities: "<<numActiveEntities;
 			/// Since "entity" will be any kind, demand that the node entering now is dynamic. Will filter a bit.
 			if (node->entity->physics->type == PhysicsType::DYNAMIC &&
-				!(node->entity->physics->state & PhysicsState::IN_REST))
+				!(node->entity->physics->state & CollisionState::IN_REST))
 				++dynamicEntitiesInside;
 			if (!dynamicEntitiesInside)
 			{
@@ -318,7 +318,7 @@ bool AABBSweepAxis::FindPairsLinearPlusSearch(List<EntityPair> & entityPairs)
 		{
             activeEntities.RemoveItemUnsorted(node->entity);
 			if (node->entity->physics->type == PhysicsType::DYNAMIC &&
-				!(node->entity->physics->state & PhysicsState::IN_REST))
+				!(node->entity->physics->state & CollisionState::IN_REST))
 				--dynamicEntitiesInside;
         }
     }
@@ -342,7 +342,7 @@ bool AABBSweepAxis::FindPairsLinearPlusSearch(List<EntityPair> & entityPairs)
 	for (i = 0; i < relevantEntities.Size(); ++i)
 	{
 		entity = relevantEntities[i];
-		if (entity->physics->type != PhysicsType::DYNAMIC || entity->physics->state & PhysicsState::IN_REST)
+		if (entity->physics->type != PhysicsType::DYNAMIC || entity->physics->state & CollisionState::IN_REST)
 			continue;
 		toAdd.Clear();
 		processedDynamicEntities.Add(entity);

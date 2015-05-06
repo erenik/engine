@@ -10,12 +10,12 @@ void UpdateCollisionState(Entity * entity, Vector3f & collisionNormal){
     if (entity->physics->velocity.Length() < 0.001f &&
 		entity->physics->acceleration.Length() < ZERO &&
 		collisionNormal[1] > 0.90f){
-		entity->physics->state &= ~PhysicsState::COLLIDING;	// De-flag COLLIDING
-		entity->physics->state |= PhysicsState::IN_REST;	// Flag IN_REST
+		entity->physics->state &= ~CollisionState::COLLIDING;	// De-flag COLLIDING
+		entity->physics->state |= CollisionState::IN_REST;	// Flag IN_REST
 		entity->physics->velocity = Vector3f();
 	}
 	else {
-		entity->physics->state &= ~PhysicsState::IN_REST;	// De-flag IN_REST
-		entity->physics->state |= PhysicsState::COLLIDING;	// Flag COLLIDING
+		entity->physics->state &= ~CollisionState::IN_REST;	// De-flag IN_REST
+		entity->physics->state |= CollisionState::COLLIDING;	// Flag COLLIDING
 	}
 }

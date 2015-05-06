@@ -59,7 +59,7 @@ void LuchadorProperty::Process(int timeInMs)
 
 	distance = owner->position.x;
 	sideScroller->UpdateDistance();
-	if (owner->position.y < -2.f)
+	if (owner->position.y < -2.f && false)
 	{
 		// Deaded.
 		QueuePhysics(new PMSetEntity(owner, PT_PHYSICS_TYPE, PhysicsType::STATIC));
@@ -116,6 +116,22 @@ void LuchadorProperty::OnCollisionCallback(CollisionCallback * cc)
 		other = cc->two;
 	else
 		other = cc->one;
+	if (other->name.Contains("Hole"))
+	{
+		// Deaded.
+		QueuePhysics(new PMSetEntity(owner, PT_PHYSICS_TYPE, PhysicsType::STATIC));
+		attempts->iValue += 1;
+		sideScroller->UpdateAttempts();
+		// Add up total munny.
+		totalMunny->iValue += munny;
+		// Auto-save?
+		sideScroller->AutoSave();
+		sleeping = true;
+		QueueGraphics(new GMPlayAnimation("Idle", owner));
+		sideScroller->GameOver();
+//		ScriptMan.PlayScript("scripts/OnDeath.txt");
+		return;
+	}
 	if (other->physics->collisionCategory == CC_ENVIRONMENT)
 	{
 		// o.o

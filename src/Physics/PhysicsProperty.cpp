@@ -57,8 +57,8 @@ PhysicsProperty::PhysicsProperty(const PhysicsProperty& other)
 //	physicalRadius = 0;
 	restitution = other.restitution;
 	friction = other.friction;
-	collissionCallback = other.collissionCallback;
-	collissionCallbackRequirementValue = other.collissionCallbackRequirementValue;
+	collisionCallback = other.collisionCallback;
+	collisionCallbackRequirementValue = other.collisionCallbackRequirementValue;
 	collisionsEnabled = other.collisionsEnabled;
 	noCollisionResolutions = other.noCollisionResolutions;
 	physicsMesh = other.physicsMesh;
@@ -86,8 +86,8 @@ PhysicsProperty::PhysicsProperty(const CompactPhysics * compactPhysics)
 //	octreeNode = NULL; // Node will assigned after being registered.
 	restitution = compactPhysics->restitution;
 	friction = compactPhysics->friction;
-	collissionCallback = compactPhysics->collissionCallback;
-	collissionCallbackRequirementValue = compactPhysics->collissionCallbackRequirementValue;
+	collisionCallback = compactPhysics->collisionCallback;
+	collisionCallbackRequirementValue = compactPhysics->collisionCallbackRequirementValue;
 	collisionsEnabled = compactPhysics->collisionsEnabled;
 	noCollisionResolutions = compactPhysics->noCollisionResolutions;
 }
@@ -119,9 +119,9 @@ void PhysicsProperty::Nullify()
 	state = 0;
 	restitution = 0.15f;
 	friction = 0.01f;
-	collissionCallback = false;
+	collisionCallback = false;
 	maxCallbacks = -1;
-	collissionCallbackRequirementValue = 1.0f;
+	collisionCallbackRequirementValue = 1.0f;
 	linearDamping = 0.99f;
 	linearDampingPerPhysicsFrame = 0.9999f;
 	angularDampingPerPhysicsFrame = 0.999f;
@@ -227,7 +227,7 @@ void PhysicsProperty::ApplyImpulse(const Vector3f & impulse, const Vector3f & po
 	if (inverseMass == 0)
 		return;
 	// Remove IN_REST flag.
-	state &= ~PhysicsState::IN_REST;
+	state &= ~CollisionState::IN_REST;
 	/// Give it an increase to the linear momentum.
 	/// Impulses translate directory into change in linear momentum.
 	Vector3f deltaLinearMomentum = impulse;
@@ -285,11 +285,11 @@ void PhysicsProperty::SetLinearDamping(float newD)
 /// See state enumerations above. TODO: Consider making the state-variable below private.
 void PhysicsProperty::SetPhysicsState(int state){
 	switch(state){
-		case PhysicsState::IN_REST:
+		case CollisionState::IN_REST:
 
 			break;
-		case PhysicsState::COLLIDING:
-			state &= ~PhysicsState::IN_REST;
+		case CollisionState::COLLIDING:
+			state &= ~CollisionState::IN_REST;
 			/// If static object, don't remove the resting contacts with the other entities.
 			if (type == PhysicsType::STATIC)
 				return;

@@ -25,8 +25,8 @@ void CompactPhysics::Nullify(){
 	restitution = NULL;
 	friction = NULL;
 	/// See PhysicsProperty.h
-	collissionCallback = NULL;
-	collissionCallbackRequirementValue = NULL;
+	collisionCallback = NULL;
+	collisionCallbackRequirementValue = NULL;
 	collisionsEnabled = NULL;
 	noCollisionResolutions = NULL;
 }
@@ -48,8 +48,8 @@ CompactPhysics::CompactPhysics(PhysicsProperty * physicsProperty)
 	restitution = physicsProperty->restitution;
 	friction = physicsProperty->friction;
 	/// See PhysicsProperty.h
-	collissionCallback = physicsProperty->collissionCallback;
-	collissionCallbackRequirementValue = physicsProperty->collissionCallbackRequirementValue;
+	collisionCallback = physicsProperty->collisionCallback;
+	collisionCallbackRequirementValue = physicsProperty->collisionCallbackRequirementValue;
 	collisionsEnabled = physicsProperty->collisionsEnabled;
 	noCollisionResolutions = !physicsProperty->noCollisionResolutions;
 }
@@ -94,15 +94,15 @@ bool CompactPhysics::ReadFrom(std::fstream& file){
 	/// In version 1, we added three new variables!
 	if (version >= CP_VERSION_1){
 		/// See PhysicsProperty.h
-		file.read((char*) &collissionCallback, sizeof(int));
-		file.read((char*) &collissionCallbackRequirementValue, sizeof(float));
+		file.read((char*) &collisionCallback, sizeof(int));
+		file.read((char*) &collisionCallbackRequirementValue, sizeof(float));
 		file.read((char*) &collisionsEnabled, sizeof(bool));
 		file.read((char*) &noCollisionResolutions, sizeof(bool));
 	}
 	/// Set appropriate default values to said variables if they were not decalred earlier, since they will have null values for now..!
 	else {
-		collissionCallback = 0;
-		collissionCallbackRequirementValue = 0;
+		collisionCallback = 0;
+		collisionCallbackRequirementValue = 0;
 		collisionsEnabled = true;
 		noCollisionResolutions = false;
 	}
@@ -145,8 +145,8 @@ bool CompactPhysics::WriteTo(std::fstream& file){
 	/// In version 1, we added four new variables!
 	if (version >= CP_VERSION_1){
 		/// See PhysicsProperty.h
-		file.write((char*) &collissionCallback, sizeof(int));
-		file.write((char*) &collissionCallbackRequirementValue, sizeof(float));
+		file.write((char*) &collisionCallback, sizeof(int));
+		file.write((char*) &collisionCallbackRequirementValue, sizeof(float));
 		file.write((char*) &collisionsEnabled, sizeof(bool));
 		file.write((char*) &noCollisionResolutions, sizeof(bool));
 	}
