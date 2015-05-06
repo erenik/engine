@@ -87,6 +87,7 @@ void LuchadorProperty::ProcessMessage(Message * message)
 	{
 		autoRun = false;
 		state = STOPPED;
+		QueuePhysics(new PMSetEntity(owner, PT_VELOCITY, Vector3f()));
 		QueuePhysics(new PMSetEntity(owner, PT_ACCELERATION, Vector3f()));
 		QueueGraphics(new GMPlayAnimation("Idle", owner));
 	}
