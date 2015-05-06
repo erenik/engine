@@ -30,7 +30,7 @@ enum collissionStates {
 };
 
 ///	Flags for various states
-namespace PhysicsState {
+namespace CollisionState {
 	/** In rest, applied after collissions if the resultant velocity is close to 0, acceleration is 0,
 		and the collission normal was close to or exactly (0,-1,0) (only gravitation affecting).
 		Entities in rest are not applied gravitation. Any collission with other results resets this flag.
@@ -276,16 +276,16 @@ public:
 	// Rotational
 	// Quaternion + Matrices
 
-	/// Set to any value as defined in Collision.h's enum "collissionCallbackRequirements"
+	/// Set to any value as defined in Collision.h's enum "collisionCallbackRequirements"
 	/// Paused o-o
 	bool paused;
 	/// Booleans.
 	bool onCollision; // if OnCollision should be processed for this entity.
-	bool collissionCallback; // If a CollisionCallback message should be generated.
+	bool collisionCallback; // If a CollisionCallback message should be generated.
 	/// If non-negative, defiens max callbacks. Useful for things as projectiles which should only collide once (optimization). Default unlimited (-1) 
 	int maxCallbacks;
-	float collissionCallbackRequirementValue;
-	/// Flagging this will make all collissions resolve as if there had been no collission at all. Should be coupled with the collissionCallback variable.
+	float collisionCallbackRequirementValue;
+	/// Flagging this will make all collissions resolve as if there had been no collission at all. Should be coupled with the collisionCallback variable.
 	bool noCollisionResolutions;
 	/// For enabling custom (probably network-)based estimation. The Estimator* will then be checked and should be non-NULL.
 	bool estimationEnabled;

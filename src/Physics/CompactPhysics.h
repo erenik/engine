@@ -37,8 +37,8 @@ typedef struct CompactPhysics {
 	float friction;
 
 	/// See PhysicsProperty.h
-	int collissionCallback;
-	float collissionCallbackRequirementValue;
+	int collisionCallback;
+	float collisionCallbackRequirementValue;
 	bool collisionsEnabled;
 	bool noCollisionResolutions;
 

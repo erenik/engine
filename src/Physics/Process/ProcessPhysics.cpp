@@ -4,6 +4,7 @@
 
 #include "Message/Message.h"
 
+#include "PhysicsState.h"
 #include "Physics/PhysicsManager.h"
 #include "Physics/PhysicsProperty.h"
 #include "Physics/CollisionResolver.h"
@@ -16,6 +17,7 @@
 #include "PhysicsLib/Estimator.h"
 #include "Message/MessageManager.h"
 
+#include "File/LogFile.h"
 #include "Graphics/FrameStatistics.h"
 // #include "Graphics/GraphicsManager.h"
 //#include "Entity/Entity.h"
@@ -26,6 +28,8 @@ static Timer recalc, moving;
 /// Processes physics for all registered objects
 void PhysicsManager::ProcessPhysics()
 {
+	if (physicsState->simulationPaused)
+		return;
 	/// Returns straight away if paused.
 	if (paused)
 		return;
@@ -80,10 +84,25 @@ void PhysicsManager::ProcessPhysics()
 	/// Add time from last iteration that wasn't spent (since only evaluating one physics step at a time, 10 ms default).
 	float timeToIterate = totalTimeSinceLastUpdate + timeRemainingFromLastIteration;
 	float stepSize = 0.010f;
-	int steps = timeToIterate / stepSize;
+	int steps = timeToIterate / stepSize + 0.5f;
+
+	/// Use a new step size based on the amount of steps. This will hopefully vary between 5.0 and 15.0 then.
+	float newStepSize = timeToIterate / steps;
+	int newStepSizeMs = newStepSize * 1000;
+	newStepSize = newStepSizeMs * 0.001f;
+	if (newStepSize < 0.005f || newStepSize > 0.015f)
+	{
+		LogPhysics("Step size out of good range: "+String(newStepSize), WARNING);
+		if (newStepSize < 0.f)
+			return;
+//		assert(False)
+	}
+//	assert(newStepSize > 0.005f && newStepSize < 0.015f);
+	
+
 //	if (steps < 1) // At least 1 physics simulation per frame, yo. Otherwise you get a 'stuttering' effect when some frames have movement and some don't.
 //		steps = 1;
-	float timeLeft = timeToIterate - steps * stepSize;
+	float timeLeft = timeToIterate - steps * newStepSizeMs * 0.001f;
 	/// Store time we won't simulate now.
 	timeRemainingFromLastIteration = timeLeft;
 //	std::cout<<"\nSteps: "<<steps;
@@ -91,10 +110,10 @@ void PhysicsManager::ProcessPhysics()
 	for(int i = 0; i < steps; ++i)
 	{
 		/// Set current time in physics for this frame. This time is not the same as real time.
-		physicsNowMs += stepSize * 1000;
+		physicsNowMs += newStepSizeMs;
 			
 		/// Process estimators (if any) within all registered entities?
-		int milliseconds = dt * 1000.f;
+		int milliseconds = newStepSizeMs;
 		for (int i = 0 ; i < physicalEntities.Size(); ++i)
 		{
 			Entity * entity = physicalEntities[i];
@@ -115,7 +134,7 @@ void PhysicsManager::ProcessPhysics()
 		}
 
 		/// Awesome.
-		Integrate(stepSize);
+		Integrate(newStepSize);
 		
 		/// Apply external constraints
 	//	ApplyContraints();		
@@ -169,7 +188,7 @@ void PhysicsManager::ProcessPhysics()
 				c.one->OnCollision(c);
 			if (c.two->physics->onCollision)
 				c.two->OnCollision(c);
-			if (c.one->physics->collissionCallback || c.two->physics->collissionCallback)
+			if (c.one->physics->collisionCallback || c.two->physics->collisionCallback)
 			{
 				/// Check max callbacks.
 				int & maxCallbacks1 = c.one->physics->maxCallbacks;

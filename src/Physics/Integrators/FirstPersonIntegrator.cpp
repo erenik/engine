@@ -83,7 +83,7 @@ void FirstPersonIntegrator::IntegrateVelocity(List<Entity*> & entities, float ti
 		SSEVec totalAcceleration;
 		totalAcceleration.data = defaultSSE;
 		/// Apply gravity.
-		if (pp->gravityMultiplier && !(pp->state & PhysicsState::AT_REST))
+		if (pp->gravityMultiplier && !(pp->state & CollisionState::IN_REST))
 			totalAcceleration.data = _mm_add_ps(totalAcceleration.data, _mm_mul_ps(gravity.data, sse));
 		
 		/// Accelerate only if requirements met.
@@ -124,7 +124,7 @@ void FirstPersonIntegrator::IntegrateVelocity(List<Entity*> & entities, float ti
 		pp->currentVelocity.data = _mm_add_ps(pp->currentVelocity.data, relVelWorldSpaced.data);
 		/// De-flag at rest if we got any acceleration or velocity?
 		if (pp->currentVelocity.MaxPart())
-			pp->state &= ~PhysicsState::AT_REST;
+			pp->state &= ~CollisionState::IN_REST;
 
 		/*
 		if (pp->angularAcceleration.MaxPart())
@@ -163,7 +163,7 @@ void FirstPersonIntegrator::IntegrateVelocity(List<Entity*> & entities, float ti
 
 #else
 		/// Apply gravity
-		if (pp->gravityMultiplier && !(pp->state & PhysicsState::AT_REST))
+		if (pp->gravityMultiplier && !(pp->state & CollisionState::IN_REST))
 			pp->velocity += gravity * pp->gravityMultiplier * timeInSeconds;
 
 		// Accelerate in the looking-direction

@@ -26,8 +26,8 @@ void Contact::Disconnect(){
 	/// 
 	switch(type){
 		case RESTING_CONTACT:
-			one->physics->state &= ~PhysicsState::IN_REST;
-			two->physics->state &= ~PhysicsState::IN_REST;
+			one->physics->state &= ~CollisionState::IN_REST;
+			two->physics->state &= ~CollisionState::IN_REST;
 			break;
 	}
 	

@@ -549,18 +549,28 @@ void SideScroller::ProcessLevel(int timeInMs)
 /// Creates the next level parts.
 bool SideScroller::CreateNextLevelParts()
 {
-	float distToEdge = distToEdge = levelLength - playerEntity->position.x;
+	float distToEdge = levelLength - playerEntity->position.x;
+	// Pause physics until creation is done?
+	if (distToEdge < -1000)
+		levelLength += 1000; // Just skip 1K of creation then.
+
 	/// If skipping level, just move past some blocks without actually creating them (since creation/destruction lags).
 	if (distToEdge < -55)
 	{
 		blockCreationEnabled = false;
+		// Pause physics since we got a ways to go apparently.
+		PhysicsMan.QueueMessage(new PhysicsMessage(PM_PAUSE_SIMULATION));
 	}
 	else if (distToEdge < 25.f)
 	{
 		blockCreationEnabled = true;
 	}
-	else
+	else 
+	{
+		// Done. Resume physics if it was paused.
+		QueuePhysics(new PhysicsMessage(PM_RESUME_SIMULATION));
 		return false;
+	}
 
 	/// If approaching a 1k mark.
 	int modK = (int)levelLength % 1000;
@@ -826,9 +836,14 @@ void SideScroller::ProcessMessage(Message * message)
 				// Move player up in the air a bit, as needed.
 				int posKX = playerEntity->position.x;
 				posKX /= 1000;
-				QueuePhysics(new PMSetEntity(playerEntity, PT_POSITION_X, posKX * 1000 + 1000));
+				int newX = posKX * 1000 + 1000;
+				buyTaco = newX;
+				QueuePhysics(new PMSetEntity(playerEntity, PT_POSITION_X, newX));
 				QueuePhysics(new PMSetEntity(playerEntity, PT_POSITION_Y, 3.f));
 				QueuePhysics(new PMSetEntity(playerEntity, PT_VELOCITY, Vector3f()));
+				/// Move camera position.
+				QueueGraphics(new GMSetCamera(levelCamera, CT_SMOOTHED_POSITION, Vector3f(newX,0,0)));
+
 			}
 			else if (msg.Contains("AutoSave"))
 			{
@@ -1187,7 +1202,7 @@ void SideScroller::NewPlayer()
 	gp->animationSet = set;
 	gp->animStartTime = 0;
 	gp->currentAnimation = set->GetAnimation("Run");
-	gp->temporalAliasingEnabled = true; // Smooth!
+//	gp->temporalAliasingEnabled = true; // Smooth!
 	gp->flags = RenderFlag::ALPHA_ENTITY;
 
 
@@ -1231,7 +1246,7 @@ float blockSize = 2.f;
 String colorStr = "0xb19d7c";
 
 // Appends a block. Default size 2 (blockSize?).
-void Block(float size = 2) 
+void Block(float size = 2, bool addToVegetization = true) 
 {
 	if (size <= 0)
 		size = blockSize;
@@ -1255,7 +1270,8 @@ void Block(float size = 2)
 		pp->collisionFilter = CC_PLAYER;
 		MapMan.AddEntity(block);
 		AddForCleanup(block);
-		blocksAdded.AddItem(block);
+		if (addToVegetization)
+			blocksAdded.AddItem(block);
 
 		/// Sprite it up
 		Tile(block, BlockType::BLOCK);
@@ -1263,9 +1279,12 @@ void Block(float size = 2)
 	levelLength += size;
 }
 
-/// Creates the framework for a custom block.
 Entity * RampUpBlock(float width = 2.f, float height = 2.f)
 {
+	/// Add a regular block underneath.
+	Block(width, false);
+ 
+	/// Then add the ramp on top of it.
 	String rampColor = "0x55FF";
 	Texture * rampTex = TexMan.GetTexture(rampColor);
 	Entity * block = EntityMan.CreateEntity("LevelPart-block", 
@@ -1281,13 +1300,17 @@ Entity * RampUpBlock(float width = 2.f, float height = 2.f)
 
 	block->position = position;
 	block->position.y += height;
+	block->position.x -= width; // Move ramp on top of the block added at the start of the func.
 	block->Scale(Vector3f(width, height, 1));
-	PhysicsProperty * pp = block->physics = new PhysicsProperty();
 	
+	RampProp * prop = new RampProp(block);
+	block->properties.AddItem(prop);
+
+	PhysicsProperty * pp = block->physics = new PhysicsProperty();
 	pp->shapeType = ShapeType::MESH;
 	pp->friction = 0.f; // no friction.
 	pp->restitution = 1.f; // Maximum bounce.
-	
+	pp->onCollision = true; // Apply speed bonus in physics-thread!
 	pp->collisionCategory = CC_ENVIRONMENT;
 	pp->collisionFilter = CC_PLAYER;
 	MapMan.AddEntity(block);
@@ -1338,7 +1361,7 @@ void Hole(float holeSize) // Appends a hole, default side 2.
 	if (blockCreationEnabled)
 	{
 		/// Add graphical-only blocks where regular blocks are missing.
-		Entity * block = EntityMan.CreateEntity("LevelPart-block", ModelMan.GetModel("cube.obj"), TexMan.GetTexture(colorStr));
+		Entity * block = EntityMan.CreateEntity("Hole block", ModelMan.GetModel("cube.obj"), TexMan.GetTexture(colorStr));
 		Vector3f position;
 		position.x += levelLength;
 		position.x += holeSize * 0.5f;
@@ -1351,7 +1374,13 @@ void Hole(float holeSize) // Appends a hole, default side 2.
 		block->position = position;
 		block->Scale(Vector3f(holeSize, scaleY, 1));
 
-		MapMan.AddEntity(block, true, false);
+		PhysicsProperty * pp = block->physics = new PhysicsProperty();
+		pp->shapeType = ShapeType::AABB;
+		pp->collisionCategory = CC_ENVIRONMENT;
+		pp->collisionFilter = CC_PLAYER;
+		pp->collisionCallback = true;
+
+		MapMan.AddEntity(block, true, true);
 		AddForCleanup(block);
 
 		// Notify sprite-tiler of the hole
@@ -1459,17 +1488,20 @@ void SideScroller::PacoTaco()
 	}
 	// Set position if far away.
 	float dist = AbsoluteValue(pacoTacoX - levelLength);
+	bool playSFX = true;
 	if (dist > 100)
 	{
 		// Get closest K.
 		int k = (levelLength + 500) / 1000;
 		float posX = k * 1000;
+		if (buyTaco >= posX)
+			playSFX = false;
 		QueuePhysics(new PMSetEntity(paco, PT_POSITION_X, posX));
 		QueuePhysics(new PMSetEntity(taco, PT_POSITION_X, posX + 2.0f));
 		didStuff = true;
 		pacoTacoX = posX;
 	} 
-	if (didStuff)
+	if (didStuff && playSFX)
 	{
 		List<String> tacos;
 		tacos.Add("sfx/Tacos.wav", "sfx/Tacos frescos.wav", "sfx/Pacos tacos.wav");
@@ -1495,7 +1527,7 @@ void AddPesos()
 		pp->recalculatePhysicalRadius = false;
 		pp->physicalRadius = 0.5f;
 		pp->noCollisionResolutions = true;
-		pp->collissionCallback = true;
+		pp->collisionCallback = true;
 		pp->collisionCategory = CC_PESO;
 		pp->collisionFilter = CC_PLAYER;
 		MapMan.AddEntity(peso);
@@ -1603,11 +1635,28 @@ void SideScroller::AddLevelPart()
 			else
 				TripleHoles(levelRand.Randi(4));
 			break;
+		/// The Holy night.
 		case 3: /// 3k to 4k - Big holes!
 			if (r > 0.5f)
-				BigHole(levelRand.Randi(10.f));
+				BigHole(levelRand.Randi(8.f) + 2.f);
 			else
 				LinearHoles(levelRand.Randi(4));
+			break;
+		case 4: // 4K, Bigger holes!
+			if (r > 0.4f)
+				BigHole(levelRand.Randi(12.f) + 2.f);
+			else if (r > 0.2f)
+				DoubleHoles(levelRand.Randi(5));
+			else
+				LinearHoles(levelRand.Randi(6 + 1));
+			break;
+		case 5: // 5K, Biggestest Holes!
+			if (r > 0.8f)
+				BigHole(levelRand.Randi(16.f) + 4);
+			if (r > 0.3f)
+				BigHole(levelRand.Randi(12.f) + 3.f);
+			else
+				TripleHoles(levelRand.Randi(4));
 			break;
 		default:
 			LinearHoles(levelRand.Randi(6));

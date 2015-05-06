@@ -249,6 +249,9 @@ bool Audio::Load()
 */
 void Audio::Play()
 {
+	if (state == AudioState::PLAYING)
+		return;
+
 	if (!audioEnabled)
 		return;
 	// "Load", or create stream if needed.

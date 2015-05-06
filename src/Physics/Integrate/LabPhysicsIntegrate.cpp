@@ -71,7 +71,7 @@ void PhysicsManager::LabPhysicsIntegrate(Entity * dynamicEntity, float timeSince
 
 	/// Check if the total force is above a pre-defined value, and skip applying it if the object is in rest?
 	bool inRest = false;
-	if (physics->state & PhysicsState::IN_REST){
+	if (physics->state & CollisionState::IN_REST){
 		if (physics->totalForce.MaxPart() < 1.0f && 
 			physics->totalTorque.MaxPart() < 1.0f && 
 			physics->velocity.MaxPart() < 0.05f &&
@@ -81,7 +81,7 @@ void PhysicsManager::LabPhysicsIntegrate(Entity * dynamicEntity, float timeSince
 		}
 		else {
 			// Disable the rest-thingy, maybe.
-			physics->state &= ~PhysicsState::IN_REST;
+			physics->state &= ~CollisionState::IN_REST;
 		}
 	}
 

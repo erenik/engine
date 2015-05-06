@@ -15,8 +15,8 @@ void PhysicsManager::ApproximateIntegrate(Entity * entity, float timeSinceLastUp
     if (currentVelocity > 0.0001f)
 	{
 		entity->position += physics->velocity * timeSinceLastUpdate;
-        physics->state |= PhysicsState::COLLIDING;
-        physics->state &= ~PhysicsState::IN_REST;
+        physics->state |= CollisionState::COLLIDING;
+        physics->state &= ~CollisionState::IN_REST;
 
 		/// Only apply this if we're exceeding stuffs
         /** http://en.wikipedia.org/wiki/Drag_%28physics%29
@@ -66,7 +66,7 @@ void PhysicsManager::ApproximateIntegrate(Entity * entity, float timeSinceLastUp
 #endif
 
     // Add gravitation and acceleration to velocities
-    if (!(physics->state & PhysicsState::IN_REST))
+    if (!(physics->state & CollisionState::IN_REST))
 	{
 //                dynamicEntity->physics->velocity += this->gravitation * timeSinceLastUpdate;
 		physics->linearMomentum += this->gravitation * physics->mass * timeSinceLastUpdate * physics->gravityMultiplier;
@@ -83,8 +83,8 @@ void PhysicsManager::ApproximateIntegrate(Entity * entity, float timeSinceLastUp
 		physics->linearMomentum += momentumIncrease;
 //                std::cout<<"Accelerating  velocityIncrease: "<<velocityIncrease<<" newVel: "<<dynamicEntity->physics->velocity;
         
-        physics->state |= PhysicsState::COLLIDING;
-        physics->state &= ~PhysicsState::IN_REST;
+        physics->state |= CollisionState::COLLIDING;
+        physics->state &= ~CollisionState::IN_REST;
     }
 	
 	/// Apply angular velocities
@@ -144,16 +144,16 @@ void PhysicsManager::ApproximateIntegrate(Entity * entity, float timeSinceLastUp
         
         // Decrease the velocity as if we've got some air in the way too?
         physics->angularVelocity *= pow(angularDamping, timeSinceLastUpdate);
-        physics->state |= PhysicsState::COLLIDING;
-        physics->state &= ~PhysicsState::IN_REST;
+        physics->state |= CollisionState::COLLIDING;
+        physics->state &= ~CollisionState::IN_REST;
     }
 	// Apply angular acceleration
     if (physics->angularAcceleration.MaxPart() > ZERO){
         // Screw the quaternions and stuff for now... do it all in local space
         Vector3f angularVelocityIncrease = physics->angularAcceleration * timeSinceLastUpdate;
         physics->angularVelocity += angularVelocityIncrease;
-        physics->state |= PhysicsState::COLLIDING;
-        physics->state &= ~PhysicsState::IN_REST;
+        physics->state |= CollisionState::COLLIDING;
+        physics->state &= ~CollisionState::IN_REST;
     }
 
 	// Apply linear damping

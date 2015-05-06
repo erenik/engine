@@ -49,14 +49,14 @@ bool ResolveCollision(Collision &data)
 	data.cr.twoPreResolution = two->transformationMatrix;
 
 	// If toggled, notify of the collission
-	int collissionCallback = one->physics->collissionCallback || two->physics->collissionCallback;
-	if (collissionCallback){
+	int collisionCallback = one->physics->collisionCallback || two->physics->collisionCallback;
+	if (collisionCallback){
 		// Assume (hope) one holds necessary data :3
-		assert(one->physics->collissionCallback != DISABLED);
+		assert(one->physics->collisionCallback != DISABLED);
 		bool shouldSendMessage = true;
 		float impactVelocity = 0.0f;
 		// Wush
-		switch(one->physics->collissionCallback){
+		switch(one->physics->collisionCallback){
 			case NO_REQUIREMENT:
 				break;
 			case IMPACT_VELOCITY: {
@@ -65,8 +65,8 @@ bool ResolveCollision(Collision &data)
 				// Each physics simulation is roughly 10ms long
 				impactVelocity = AbsoluteValue(impactVelocity);
 				// Check exact length
-				if (impactVelocity < one->physics->collissionCallbackRequirementValue ||
-					impactVelocity < two->physics->collissionCallbackRequirementValue)
+				if (impactVelocity < one->physics->collisionCallbackRequirementValue ||
+					impactVelocity < two->physics->collisionCallbackRequirementValue)
 					shouldSendMessage = false;
 				break;
 								  }
@@ -274,8 +274,8 @@ bool ResolveCollision(Collision &data)
 				two->physics->angularMomentum.MaxPart() < two->physics->mass * 10.0f){
 				++requirements;
 			}
-			if ((one->physics->state & PhysicsState::IN_REST || one->physics->type == PhysicsType::STATIC)|| 
-				(two->physics->state & PhysicsState::IN_REST || two->physics->type == PhysicsType::STATIC))
+			if ((one->physics->state & CollisionState::IN_REST || one->physics->type == PhysicsType::STATIC)|| 
+				(two->physics->state & CollisionState::IN_REST || two->physics->type == PhysicsType::STATIC))
 				++requirements;
 			/// Set the entity to be in rest if the momentum and sum of all external forces is below a certain value.
 			if (requirements >= 3 &&
@@ -287,16 +287,16 @@ bool ResolveCollision(Collision &data)
 				two->physics->contacts.Add(ct);
 				Physics.contacts.Add(ct);
 				
-				one->physics->state |= PhysicsState::IN_REST;
-				two->physics->state |= PhysicsState::IN_REST;
+				one->physics->state |= CollisionState::IN_REST;
+				two->physics->state |= CollisionState::IN_REST;
 				// Remove the colliding flag..?
 				inRest = true;
 			}
 		}
 		/// Flag both as not in rest after collission if not deemed otherwise (see above)
 		if (!inRest){
-			one->physics->SetPhysicsState(PhysicsState::COLLIDING);
-			two->physics->SetPhysicsState(PhysicsState::COLLIDING);
+			one->physics->SetPhysicsState(CollisionState::COLLIDING);
+			two->physics->SetPhysicsState(CollisionState::COLLIDING);
 		}
 
 		/// Ensure that the movement didn't adjust the velocity...

@@ -80,7 +80,7 @@ bool FirstPersonCR::ResolveCollision(Collision & c)
 		if (dynamic->physics->velocity.Length() < 0.1f && c.collisionNormal.y > 0.8f)
 		{
 			// Sleep eeet.
-			dynamic->physics->state |= PhysicsState::AT_REST;
+			dynamic->physics->state |= CollisionState::IN_REST;
 			// Nullify velocity.
 			dynamic->physics->velocity = Vector3f();
 		}

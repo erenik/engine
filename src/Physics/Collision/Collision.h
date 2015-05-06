@@ -13,7 +13,7 @@
 #define RESOLVED						0x00000020
 
 /// Trigger events, for setting up the entity's physics properties accordingly.
-enum collissionCallbackRequirements{
+enum collisionCallbackRequirements{
 	DISABLED,
 	NO_REQUIREMENT, // Will spam every single collission as a message!
 	IMPACT_VELOCITY, // Requires certain velocity into impact normal
