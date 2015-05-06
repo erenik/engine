@@ -45,6 +45,7 @@ bool showLevelStats = false;
 /// Main level camera, following player.
 Camera * levelCamera = NULL;
 Entity * playerEntity = NULL;
+LuchadorProperty * player = NULL;
 Entity * paco = NULL, * taco = NULL;
 /** Dynamically created ones, to be cleaned up as we go.
 	Blocks, pesos, clouds all fit therein?
@@ -112,16 +113,19 @@ void Tile(Entity * newBlock, int newBlockType)
 	bool isLeftStart = false;
 	bool isRightEnd = false;
 	bool isSimpleGround = true;
-	if (nextLastBlockType == BlockType::HOLE)
-	{		
-		if (currentType == BlockType::HOLE)
-			isColumn = true;
-		else
-			isLeftStart = true;
+	// Check Block type
+	if (lastBlockType == BlockType::BLOCK)
+	{
+		if (nextLastBlockType == BlockType::HOLE)
+		{		
+			if (currentType == BlockType::HOLE)
+				isColumn = true;
+			else
+				isLeftStart = true;
+		}
+		else if (currentType == BlockType::HOLE)
+			isRightEnd = true;
 	}
-	else if (currentType == BlockType::HOLE)
-		isRightEnd = true;
-
 	if (isColumn || isLeftStart || isRightEnd)
 		isSimpleGround = false;
 
@@ -166,11 +170,11 @@ void Tile(Entity * newBlock, int newBlockType)
 	entity = CreateSprite(tilesetPath+"Empty");
 	if (isSimpleGround)
 		entity->position.y = groundY - 1.f;
+	else if (lastBlockType == BlockType::HOLE)
+		entity->position.y = groundY - 1.f;
 	else 
-	{
-		// Bit lower.
-		entity->position.y = groundY - 4.f;
-	}
+		entity->position.y = groundY - 4.f; // Bit lower.
+
 	entity->scale.y = 20.f;
 	entity->position.y -= (entity->scale.y - 1) * 0.5f;
 	SET_DEFAULT_TILE_VALUES(entity);
@@ -178,7 +182,8 @@ void Tile(Entity * newBlock, int newBlockType)
 	newTileSprites.AddItem(entity);
 
 	/// More edge-specific shit.
-	if (!isSimpleGround)
+	/// If hole, skip the corner pieces etc.
+	if (!isSimpleGround && lastBlockType != BlockType::HOLE)
 	{
 		String bottomTexture, middleTexture;
 		if (isColumn)
@@ -377,6 +382,9 @@ void SetOnGround(Entity * entity)
 	entity->position.y = entity->scale.y * 0.5f + 0.5f;
 }
 
+/// Last time we got offered to buy tacos.
+int buyTaco = 0;
+
 SideScroller::SideScroller()
 {
 	levelCamera = NULL;
@@ -570,6 +578,20 @@ bool SideScroller::CreateNextLevelParts()
 		// Clean-up past level-parts
 		CleanupOldBlocks();
 	}
+
+	// Force player to eat tacos.
+	if (playerEntity->position.x - buyTaco > 990.f)
+	{
+		state = TACO_TIME;
+		// Force-feed. First stop.
+		Message stop("Stop");
+		playerEntity->ProcessMessage(&stop);
+		// Push UI.
+		MesMan.QueueMessages("PushUI(gui/BuyTaco.gui)");
+		// Update buyTaco variable.
+		buyTaco += 1000;
+	}
+
 //	distToEdge = levelLength - playerEntity->position.x;
 	return true;
 }
@@ -674,6 +696,16 @@ void SideScroller::ProcessMessage(Message * message)
 			}
 			if (msg == "NewGame" || msg == "Retry")
 				NewGame();
+			if (msg == "BuyTaco")
+			{
+				// o.o
+				player->BuyTaco();
+			}
+			if (msg == "Run")
+			{
+				state = PLAYING_LEVEL;
+				playerEntity->ProcessMessage(message);
+			}
 			else if (msg == "RecreateLevelParts")
 			{
 				RecreateLevelParts();
@@ -988,30 +1020,6 @@ void SideScroller::ProcessMessage(Message * message)
 			{
 				ResetCamera();
 			}
-			if (msg.Contains("StartMoveShip"))
-			{
-				String dirStr = msg - "StartMoveShip";
-				int dir = Direction::Get(dirStr);
-				movementDirections.Add(dir);
-				UpdatePlayerVelocity();
-			}
-			else if (msg.Contains("StopMoveShip"))
-			{
-				String dirStr = msg - "StopMoveShip";
-				int dir = Direction::Get(dirStr);
-				while(movementDirections.Remove(dir));
-				UpdatePlayerVelocity();
-			}
-			else if (msg == "ToggleBlackness")
-			{
-				if (blacknessEntities.Size())
-				{
-					bool visible = blacknessEntities[0]->IsVisible();
-					GraphicsMan.QueueMessage(new GMSetEntityb(blacknessEntities, GT_VISIBILITY, !visible));
-					Viewport * viewport = MainWindow()->MainViewport();
-					viewport->renderGrid = visible;
-				}
-			}
 			break;
 		}
 	}
@@ -1064,6 +1072,7 @@ Entity * sky = NULL;
 /// Starts a new game. Calls LoadLevel
 void SideScroller::NewGame()
 {	
+	buyTaco = 0;
 	pacoTacoX = 0;
 	currentBGM = NULL;
 	/// Play SFX
@@ -1128,7 +1137,9 @@ void SideScroller::NewGame()
 	SetState(PLAYING_LEVEL, true);
 	// Start movin'!
 	munny = 0;
-	UpdatePlayerVelocity();
+	
+	player->Run();
+
 	MesMan.QueueMessages("PopUI(GameOver)");
 	MesMan.QueueMessages("PopUI(Shop)");
 	paco = taco = NULL;
@@ -1167,7 +1178,8 @@ void SideScroller::NewPlayer()
 	pp->collisionFilter = CC_PESO | CC_ENVIRONMENT;
 	pp->collisionCategory = CC_PLAYER;
 
-	playerEntity->properties.AddItem(new LuchadorProperty(playerEntity));
+	player = new LuchadorProperty(playerEntity);
+	playerEntity->properties.AddItem(player);
 
 	// Set up sprite-animation o.o'
 	AnimationSet * set = AnimationMan.GetAnimationSet("Luchador");
@@ -1884,28 +1896,8 @@ bool SideScroller::LoadGame(String saveName)
 void SideScroller::UpdatePlayerVelocity()
 {
 	assert(playerEntity);
-	Vector3f totalVec;
-	for (int i = 0; i < movementDirections.Size(); ++i)
-	{
-		Vector3f vec = Direction::GetVector(movementDirections[i]);
-		totalVec += vec;
-	}
-	totalVec.Normalize();
-
-	totalVec = Vector3f(1,0,0);
-	/// o.o
-	float playerSpeed = 15.f;
-	if (equippedMask)
-		playerSpeed += equippedMask->speedBonus;
-	totalVec *= playerSpeed;
-	bool moving = true;
-	// Set acceleration?
-	if (moving)
-	{
-		QueuePhysics(new PMSetEntity(playerEntity, PT_ACCELERATION, totalVec));
-	}
-	else 
-		QueuePhysics(new PMSetEntity(playerEntity, PT_ACCELERATION, Vector3f()));
+	Message upVel("UpdateVelocity");
+	playerEntity->ProcessMessage(&upVel);
 }
 
 void SideScroller::ResetCamera()

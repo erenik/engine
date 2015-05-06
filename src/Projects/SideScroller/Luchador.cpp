@@ -10,7 +10,12 @@ LuchadorProperty::LuchadorProperty(Entity * owner)
 {
 	sleeping = false;
 	lastJump = Time::Now();
+	autoRun = false;
+	timeSinceLastTaco = Time(TimeType::MILLISECONDS_NO_CALENDER, 0);
+	timeSinceLastTaco.AddMs(1000 * 60); // 1 minute since last taco. Is OK.
+	speedBonusDueToTacos = 1.0f;
 }
+
 void LuchadorProperty::OnCollision(Collision & data)
 {
 	Entity * other = NULL;
@@ -23,8 +28,12 @@ void LuchadorProperty::OnCollision(Collision & data)
 		// o.o
 		if (AbsoluteValue(data.collisionNormal.y) > 0.8f)
 		{
-			GMPlayAnimation anim("Run", owner);
-			anim.Process(); // Process straight away, no use queueing it up.
+			/// If autorun disabled, stop tis animation.
+			if (autoRun)
+			{
+				GMPlayAnimation anim("Run", owner);
+				anim.Process(); // Process straight away, no use queueing it up.
+			}
 		}
 	}
 }
@@ -32,6 +41,22 @@ void LuchadorProperty::Process(int timeInMs)
 {
 	if (sleeping) 
 		return;
+
+	/// Taco son muy importante.
+	timeSinceLastTaco.AddMs(timeInMs);
+	int minutes = timeSinceLastTaco.Minutes();
+	int seconds = timeSinceLastTaco.Seconds();
+	if (seconds < 5)
+		SetSpeedBonusDueToTacos(1.2f);
+	else if (seconds < 15)
+		SetSpeedBonusDueToTacos(0.5f); // Very full!!
+	else if (seconds < 30)
+		SetSpeedBonusDueToTacos(0.8f); // Very full!!
+	else if (minutes < 5)
+		SetSpeedBonusDueToTacos(1.f);
+	else 
+		SetSpeedBonusDueToTacos(0.8f);
+
 	distance = owner->position.x;
 	sideScroller->UpdateDistance();
 	if (owner->position.y < -2.f)
@@ -54,7 +79,18 @@ void LuchadorProperty::Process(int timeInMs)
 void LuchadorProperty::ProcessMessage(Message * message)
 {
 	String & msg = message->msg;
-	if (msg == "Jump")
+	if (msg == "Run")
+	{
+		Run();
+	}
+	else if (msg == "Stop")
+	{
+		autoRun = false;
+		state = STOPPED;
+		QueuePhysics(new PMSetEntity(owner, PT_ACCELERATION, Vector3f()));
+		QueueGraphics(new GMPlayAnimation("Idle", owner));
+	}
+	else if (msg == "Jump")
 	{
 		if (sleeping)
 			return;
@@ -65,6 +101,10 @@ void LuchadorProperty::ProcessMessage(Message * message)
 		QueuePhysics(new PMSetEntity(owner, PT_VELOCITY, owner->Velocity() + Vector3f(0,5.f,0)));
 		// Set jump animation! o.o
 		QueueGraphics(new GMPlayAnimation("Jump", owner));
+	}
+	else if (msg == "UpdateVelocity")
+	{
+		UpdateVelocity();
 	}
 }
 
@@ -80,9 +120,53 @@ void LuchadorProperty::OnCollisionCallback(CollisionCallback * cc)
 		// o.o
 		if (cc->impactNormal.y > 0.8f)
 		{
-			GMPlayAnimation anim("Run", owner);
-			anim.Process(); // Process straight away, no use queueing it up.
+			if (autoRun)
+			{
+				GMPlayAnimation anim("Run", owner);
+				anim.Process(); // Process straight away, no use queueing it up.
+			}
 		}
 	}
 }
 
+void LuchadorProperty::Run()
+{
+	autoRun = true;
+	UpdateVelocity();
+}
+
+void LuchadorProperty::BuyTaco()
+{
+	timeSinceLastTaco = Time(TimeType::MILLISECONDS_NO_CALENDER, 0);
+}
+
+void LuchadorProperty::UpdateVelocity()
+{
+	Vector3f totalVec;
+	totalVec = Vector3f(1,0,0);
+	/// o.o
+	float playerSpeed = 15.f;
+	if (equippedMask)
+		playerSpeed += equippedMask->speedBonus;
+	// Food modifier.
+	playerSpeed *= speedBonusDueToTacos;
+	totalVec *= playerSpeed;
+	bool moving = autoRun;
+	// Set acceleration?
+	if (moving)
+	{
+		QueuePhysics(new PMSetEntity(owner, PT_ACCELERATION, totalVec));
+	}
+	else 
+		QueuePhysics(new PMSetEntity(owner, PT_ACCELERATION, Vector3f()));
+}
+
+
+void LuchadorProperty::SetSpeedBonusDueToTacos(float newBonus)
+{
+	if (speedBonusDueToTacos == newBonus)
+		return;
+	speedBonusDueToTacos = newBonus;
+	// Update vel.
+	UpdateVelocity();
+}
