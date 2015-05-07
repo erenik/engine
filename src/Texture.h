@@ -91,6 +91,9 @@ public:
 	/// Gets color data from specified pixel in RGBA
 	Vector4i GetPixelVec4i(int x, int y);
 
+	/// Samples color from given location, using a weighted average from the neighbouring pixels, based on X and Y co-ordinates.
+	Vector4f Sample(float x, float y);
+
 	/// Sets color of target pixel. Pixel size in pixels x pixels.
 	void SetPixel(Vector2i location, const Vector4f & color, int pixelSize = 1);
 	/// Sets color of target pixel. 

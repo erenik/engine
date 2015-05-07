@@ -544,6 +544,27 @@ void SideScroller::ProcessLevel(int timeInMs)
 		next->Play();
 		currentBGM = next;
 	}
+	
+	/// Adjust ambient color as we go.
+	static Vector3f previousAmbient;
+	Vector3f ambient(1,1,1);
+
+	float hours = playerX / 3000.f * 12.f;
+	float hour = hours;
+	hour += 6;
+	while(hour > 24)
+		hour -= 24;
+	
+	Texture * ambientMap = TexMan.GetTexture("img/Sky_colors.png");
+	float day = hour / 24.f;
+	Vector3f sample = ambientMap->Sample(day * ambientMap->width, 0);
+	ambient = sample;
+	if (ambient != previousAmbient)
+	{
+		previousAmbient = ambient;
+		QueueGraphics(new GMSetAmbience(ambient));
+	}
+
 }
 
 /// Creates the next level parts.
@@ -561,7 +582,7 @@ bool SideScroller::CreateNextLevelParts()
 		// Pause physics since we got a ways to go apparently.
 		PhysicsMan.QueueMessage(new PhysicsMessage(PM_PAUSE_SIMULATION));
 	}
-	else if (distToEdge < 25.f)
+	else if (distToEdge < 55.f)
 	{
 		blockCreationEnabled = true;
 	}

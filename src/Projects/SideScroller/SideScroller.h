@@ -82,6 +82,7 @@
 #include "Luchador.h"
 #include "Mask.h"
 #include "Ramp.h"
+#include "Graphics/Messages/GMLight.h"
 
 #define CC_ENVIRONMENT	1
 #define CC_PLAYER		(1 << 1)

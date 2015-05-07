@@ -658,6 +658,7 @@ Vector4f Texture::GetPixel(int index){
 	color[3] = buf[psi+3] / 255.0f;
 	return color;
 }
+
 /// Gets color data from specified pixel in RGBA
 Vector4f Texture::GetPixel(int x, int y){
 	assert(bpp == 4 && format == Texture::RGBA);
@@ -687,6 +688,40 @@ Vector4i Texture::GetPixelVec4i(int x, int y)
 	return color;
 }
 
+/// Samples color from given location, using a weighted average from the neighbouring pixels, based on X and Y co-ordinates.
+Vector4f Texture::Sample(float x, float y)
+{
+	float remainderX = x - (int)x, 
+		remainderY = y - (int)y;
+	Vector4f base = GetPixel(x,y),
+		plusX = GetPixel(x+1,y),
+		plusY = GetPixel(x,y+1),
+		plusXY = GetPixel(x+1,y+1);
+
+	float ratioBaseX = 1 - remainderX,
+		ratioBaseY = 1 - remainderY;
+	
+
+	Vector4f sample;
+	if (ratioBaseX == ratioBaseY && ratioBaseX == 1)
+		return base;
+	if (ratioBaseX == 1.f)
+	{
+		// Just sampel Y..
+		assert(false && "Implement");
+	}
+	else if (ratioBaseY == 1.f)
+	{
+		// Sample in X.
+		sample = base * ratioBaseX + plusX * remainderX;
+	}
+	/// Quad-sampling...
+	else 
+	{
+		assert(false && "implement");
+	}
+	return sample;
+}
 
 /// Sets color of target pixel. 
 void Texture::SetPixel(Vector2i location, const Vector4f & toColor, int pixelSize)
