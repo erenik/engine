@@ -99,7 +99,7 @@ extern Random levelRand, sfxRand;
 class GameVariable;
 
 extern Mask * equippedMask;
-
+extern int lastK;
 /// Time in current level, from 0 when starting. Measured in milliseconds.
 extern Time levelTime;
 // extern int64 nowMs;
@@ -229,12 +229,12 @@ public:
 		IN_LOBBY,
 		IN_SHOP,
 		TACO_TIME,
+		LEVEL_CLEARED,
 
 		// Old shit below?
 		BUYING_GEAR,
 		EDITING_OPTIONS,
 		LOAD_SAVES,
-		LEVEL_CLEARED,
 		SHOWING_LEVEL_STATS,
 	};
 	int state;

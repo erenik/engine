@@ -218,7 +218,14 @@ AMPlaySFX::AMPlaySFX(String nameOrSource, float volume, ConstVec3fr atPosition)
 AMPlayBGM::AMPlayBGM(String nameOrSource, float volume)
 	: AMPlay(AudioType::BGM, nameOrSource, volume)
 {
+	resumePaused = false;
 }
+
+void AMPlayBGM::Process()
+{
+	AudioMan.PlayBGM(nameOrSource, volume);	
+}
+
 
 AMPause::AMPause(Audio * audio)
 : AudioMessage(AM_PAUSE), audio(audio)

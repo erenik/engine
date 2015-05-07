@@ -483,6 +483,7 @@ void SideScroller::AddLevelPart()
 	// Depending on level.. or possibly random chance.
 	int k = levelLength / 1000;
 	float r = levelRand.Randf();
+	bool addPesos = true;
 	switch(k)
 	{
 		case 0: /// 0 to 1000 meters.
@@ -525,10 +526,15 @@ void SideScroller::AddLevelPart()
 				TripleHoles(levelRand.Randi(4));
 			break;
 		default:
-			LinearHoles(levelRand.Randi(6));
+			// Winner?!
+			BreatherBlock(10.f);
+			lastK = k;
+			addPesos = false;
+			break;
 	}
 	// Add some pesos!
-	AddPesos();
+	if (addPesos)
+		AddPesos();
 	AddClouds();
 
 	// Add some cacti.

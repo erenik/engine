@@ -136,10 +136,13 @@ public:
 private:
 };
 
+/// By default tries to play a BGM from start. Flag boolean 'resumePaused' if you want them to resume a paused BGM (default pauses before switching).
 class AMPlayBGM : public AMPlay 
 {
 public:
 	AMPlayBGM(String nameOrSource, float volume = 1.f);
+	virtual void Process();
+	bool resumePaused;
 private:
 };
 

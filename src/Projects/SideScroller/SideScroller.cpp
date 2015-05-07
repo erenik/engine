@@ -15,6 +15,7 @@ Random levelRand, sfxRand;
 float levelLength;
 int pacoTacoX = 0;
 int pacoTacoAnnouncementX = 0;
+int lastK = 0;
 
 /// 4 entities constitude the blackness.
 List<Entity*> blacknessEntities;
@@ -104,12 +105,27 @@ public:
 	{
 		QueueAudio(new AMPlayBGM(source));
 	};
+	static bool Play(String byName);
 	String name, source;
 	int startDistance; // in K, -1 if not used.
 	int stopDistance;
 };
 List<BGM*> bgms;
 BGM * currentBGM = NULL;
+
+bool BGM::Play(String byName)
+{
+	for (int i = 0; i < bgms.Size(); ++i)
+	{
+		BGM * bgm = bgms[i];
+		if (bgm->name == byName)
+		{
+			bgm->Play();
+			return true;
+		}
+	}	
+	return false;
+}
 
 void LoadBGMList()
 {
@@ -376,12 +392,28 @@ void SideScroller::Process(int timeInMs)
 
 void SideScroller::ProcessLevel(int timeInMs)
 {
+	// Won?
+	
+
 	// Extend arena as necessary.
 	while(CreateNextLevelParts())
 		;
 
-	/// Check if we should switch bgm?
 	float playerX = playerEntity->position.x;
+	if (lastK != 0 && playerX > lastK * 1000)
+	{
+		// Won.
+		player->Stop();
+		// Switch state for display of UI.
+		this->SetState(LEVEL_CLEARED);
+		
+		// Play winner BGM!
+		BGM::Play("Winner");
+		return;
+	}
+	
+	/// Check if we should switch bgm?
+	
 	float bgmX = 0, bgmStopX = 0;
 	if (currentBGM)
 	{

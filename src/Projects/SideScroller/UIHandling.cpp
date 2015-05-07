@@ -21,7 +21,7 @@ void SideScroller::UpdateUI()
 
 	List<String> stateSpecificUI;
 	stateSpecificUI.Add("gui/MainMenu.gui", "gui/HUD.gui", "gui/Shop.gui");
-	stateSpecificUI.Add("gui/GameOver.gui", "gui/BuyTaco.gui");
+	stateSpecificUI.Add("gui/GameOver.gui", "gui/BuyTaco.gui", "gui/LevelCleared.gui");
 	for (int i = 0; i < stateSpecificUI.Size(); ++i)
 	{
 		// Pop 'em.
@@ -37,12 +37,12 @@ void SideScroller::UpdateUI()
 		case IN_SHOP: toPush = "gui/Shop.gui"; break;
 		case GAME_OVER: toPush = "gui/GameOver.gui"; break;
 		case TACO_TIME: toPush = "gui/BuyTaco.gui"; break;
-
+		case LEVEL_CLEARED: toPush = "gui/LevelCleared.gui"; break;
+		
 			// old below?
 		case EDITING_OPTIONS: toPush = "gui/Options.gui"; break;
 		case NEW_GAME: toPush = "gui/NewGame.gui"; break;
 		case LOAD_SAVES: toPush = "gui/LoadScreen.gui"; break;
-		case LEVEL_CLEARED: toPush = "gui/LevelStats.gui"; break;
 		case IN_LOBBY: toPush = "gui/Lobby.gui"; break;
 		case BUYING_GEAR: toPush = "gui/Shop.gui"; break;
 		case SHOWING_LEVEL_STATS: toPush = "gui/LevelStats.gui"; break;

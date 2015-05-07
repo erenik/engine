@@ -391,10 +391,13 @@ Audio * AudioManager::Play(char type, String name, bool repeat, float volume)
 
 	// Look if we already have an element with same name
 	Audio * audio;
-	for (int i = 0; i < audioList.Size(); ++i){
+	for (int i = 0; i < audioList.Size(); ++i)
+	{
 		audio = audioList[i];
 		// If we find a similar audio already in the array: Play it
-		if (name == audio->name){
+		if (name == audio->name)
+		{
+			audio->Stop(true);
 			/// Update the audio o-o
 			audio->Play();
 			audio->volume = volume;

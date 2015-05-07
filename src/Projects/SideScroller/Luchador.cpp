@@ -61,6 +61,7 @@ void LuchadorProperty::Process(int timeInMs)
 	sideScroller->UpdateDistance();
 	if (owner->position.y < -2.f && false)
 	{
+		assert(false);
 		// Deaded.
 		QueuePhysics(new PMSetEntity(owner, PT_PHYSICS_TYPE, PhysicsType::STATIC));
 		attempts->iValue += 1;
@@ -85,11 +86,7 @@ void LuchadorProperty::ProcessMessage(Message * message)
 	}
 	else if (msg == "Stop")
 	{
-		autoRun = false;
-		state = STOPPED;
-		QueuePhysics(new PMSetEntity(owner, PT_VELOCITY, Vector3f()));
-		QueuePhysics(new PMSetEntity(owner, PT_ACCELERATION, Vector3f()));
-		QueueGraphics(new GMPlayAnimation("Idle", owner));
+		Stop();
 	}
 	else if (msg == "Jump")
 	{
@@ -118,17 +115,20 @@ void LuchadorProperty::OnCollisionCallback(CollisionCallback * cc)
 		other = cc->one;
 	if (other->name.Contains("Hole"))
 	{
-		// Deaded.
-		QueuePhysics(new PMSetEntity(owner, PT_PHYSICS_TYPE, PhysicsType::STATIC));
-		attempts->iValue += 1;
-		sideScroller->UpdateAttempts();
-		// Add up total munny.
-		totalMunny->iValue += munny;
-		// Auto-save?
-		sideScroller->AutoSave();
-		sleeping = true;
-		QueueGraphics(new GMPlayAnimation("Idle", owner));
-		sideScroller->GameOver();
+		if (sideScroller->state != SideScroller::GAME_OVER)
+		{
+			// Deaded.
+			QueuePhysics(new PMSetEntity(owner, PT_PHYSICS_TYPE, PhysicsType::STATIC));
+			attempts->iValue += 1;
+			sideScroller->UpdateAttempts();
+			// Add up total munny.
+			totalMunny->iValue += munny;
+			// Auto-save?
+			sideScroller->AutoSave();
+			sleeping = true;
+			QueueGraphics(new GMPlayAnimation("Idle", owner));
+			sideScroller->GameOver();
+		}
 //		ScriptMan.PlayScript("scripts/OnDeath.txt");
 		return;
 	}
@@ -151,6 +151,17 @@ void LuchadorProperty::Run()
 	autoRun = true;
 	UpdateVelocity();
 }
+
+/// Stops velocity and acceleration.
+void LuchadorProperty::Stop()
+{
+	autoRun = false;
+	state = STOPPED;
+	QueuePhysics(new PMSetEntity(owner, PT_VELOCITY, Vector3f()));
+	QueuePhysics(new PMSetEntity(owner, PT_ACCELERATION, Vector3f()));
+	QueueGraphics(new GMPlayAnimation("Idle", owner));
+}
+
 
 void LuchadorProperty::BuyTaco()
 {

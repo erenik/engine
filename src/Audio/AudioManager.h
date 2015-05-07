@@ -50,6 +50,7 @@ class AudioManager
 	friend class AudioMessage;
 	friend class MultimediaStream;
 	friend class AMPlay;
+	friend class AMPlayBGM;
 	friend class AMSet;
 	friend class AMSetb;
 	friend class AMStop;

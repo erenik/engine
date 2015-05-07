@@ -22,6 +22,8 @@ public:
 	virtual void OnCollisionCallback(CollisionCallback * cc);
 
 	void Run();
+	/// Stops velocity and acceleration.
+	void Stop();
 	void BuyTaco();
 protected:
 	
