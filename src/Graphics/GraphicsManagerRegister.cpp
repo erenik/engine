@@ -13,6 +13,9 @@
 /// Adds an Entity to be rendered to the vfcOctree.
 bool GraphicsManager::RegisterEntity(Entity * entity)
 {
+	/// So it can be avoided when creating them and positioning manually in main code...
+	entity->RecalculateMatrix();
+
 	/// Already registered, returning.
 	if (entity->registeredForRendering)
 		return true;

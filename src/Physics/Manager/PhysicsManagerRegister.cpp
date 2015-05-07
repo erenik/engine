@@ -14,6 +14,9 @@
 */
 int PhysicsManager::RegisterEntity(Entity * newEntity)
 {
+	/// So it can be avoided when creating them and positioning manually in main code...
+	newEntity->RecalculateMatrix();
+
 	if (!EntityMan.IsGood(newEntity))
 		return -1;
 	int entitiesInOctree = entityCollisionOctree->RegisteredEntities();

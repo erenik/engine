@@ -232,6 +232,8 @@ void PMSetEntity::Process()
 	for (int i = 0; i < entities.Size(); ++i)
 	{
 		Entity * entity = entities[i];
+		if (!entity)
+			continue;
 		// Create if not there.
 		if (!entity->physics)
 			entity->physics = new PhysicsProperty();

@@ -57,6 +57,7 @@
 #include "Graphics/Messages/GMParticles.h"
 #include "Graphics/Messages/GMSetEntity.h"
 #include "Graphics/Camera/Camera.h"
+#include "Graphics/Messages/GMLight.h"
 
 #include "Render/RenderPass.h"
 
@@ -82,7 +83,8 @@
 #include "Luchador.h"
 #include "Mask.h"
 #include "Ramp.h"
-#include "Graphics/Messages/GMLight.h"
+#include "EventProperty.h"
+#include "PesoProperty.h"
 
 #define CC_ENVIRONMENT	1
 #define CC_PLAYER		(1 << 1)
@@ -91,6 +93,8 @@
 
 #define EP_PESO 0
 #define EP_LUCHA 1
+
+extern Random levelRand, sfxRand;
 
 class GameVariable;
 
@@ -108,6 +112,14 @@ extern GameVar * purchasedMasks; // Semi-colon separated string with all purchas
 extern GameVar * equippedMaskName; // Name of it.
 extern GameVar * attempts; // Integer.
 extern Time now;
+
+/// Starts at 0, increments after calling BreatherBlock and AddLevelPart
+extern float levelLength;
+extern Entity * playerEntity, * paco, * taco;
+extern int pacoTacoX;
+extern int pacoTacoAnnouncementX;
+/// Last time we got offered to buy tacos.
+extern int buyTaco;
 
 /// Particle system for sparks/explosion-ish effects.
 //extern Sparks * sparks;
@@ -132,6 +144,9 @@ public:
 	/// Function when leaving this state, providing a pointer to the next StateMan.
 	void OnExit(AppState * nextState);
 
+	/// Callback from the Input-manager, query it for additional information as needed.
+	virtual void KeyPressed(int keyCode, bool downBefore);
+
 	/// Creates the user interface for this state
 	virtual void CreateUserInterface();
 
@@ -143,6 +158,9 @@ public:
 
 	/// Called from the render-thread for every viewport/AppWindow, after the main rendering-pipeline has done its job.
 	virtual void Render(GraphicsState * graphicsState);
+
+	/// o.o
+	void JumpTo(int x);
 
 	/// UI stuffs. All implemented in UIHandling.cpp
 	void UpdateUI();
@@ -280,6 +298,10 @@ private:
 
 /// Creates a new sprite featuring alpha-blending (as should be). Using the default sprite.obj, which is a 1x1 XY plane centered on 0,0 (0.5 in each direction).
 Entity * CreateSprite(String textureSource);
+void AddForCleanup(List<Entity*> entityList);
+/// Performs spriting operations. Call after adding a block or hole.
+void Tile(Entity * newBlock, int newBlockType);
+void SetOnGround(Entity * entity);
 
 extern SideScroller * sideScroller;
 
