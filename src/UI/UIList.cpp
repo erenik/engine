@@ -1,6 +1,7 @@
 // Emil Hedemalm
 // 2013-07-10
 
+#include "InputState.h"
 #include "UITypes.h"
 #include "UIList.h"
 #include "Graphics/Messages/GMUI.h"
@@ -152,7 +153,7 @@ UIElement * UIScrollBar::Hover(int mouseX, int mouseY)
 	// OnActivate()?
 	// Update scroll position!
 	UIElement * element = UIElement::Hover(mouseX, mouseY);
-	if (element == this && Input.lButtonDown)
+	if (element == this && inputState->lButtonDown)
 		OnMouseY(mouseY - bottom);
 	return element;
 }
@@ -461,7 +462,8 @@ UIElement * UIList::Hover(int mouseX, int mouseY)
     if (e == NULL)
 	{
         e = this;
-		this->AddState(UIState::HOVER);
+		if (!AddState(UIState::HOVER))
+			return NULL;
 	}
 	else 
 	{

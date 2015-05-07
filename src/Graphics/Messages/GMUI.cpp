@@ -1,6 +1,8 @@
 // Emil Hedemalm
 // 2013-07-14
 
+#include "InputState.h"
+#include "UI/UI.h"
 #include "GMUI.h"
 #include "../../UI/UserInterface.h"
 #include "Graphics/GraphicsManager.h"
@@ -825,32 +827,31 @@ void GMPushUI::Process()
 		return;
 	}
 	/// Push to stack, the InputManager will also try and hover on the first primary element.
-	Input.PushToStack(e, ui);
+	InputMan.PushToStack(e, ui);
 
 	/// Enable navigate ui if element wants it.
 	if (e->navigateUIOnPush){
-		e->previousNavigateUIState = Input.NavigateUIState();
+		e->previousNavigateUIState = InputMan.NavigateUIState();
 		if (e->forceNavigateUI)
-			Input.ForceNavigateUI(true);
+			InputMan.ForceNavigateUI(true);
 		else
-			Input.NavigateUI(true);
+			InputMan.NavigateUI(true);
 	}
 }
 
 
 /// Function that deletes a UI, notifying relevant parties beforehand.
-void DeleteUI(UIElement * element, UserInterface * inUI){
-	Input.acceptInput = false;
-	Input.OnElementDeleted(element);
-#define SLEEP_TIME	10
-	SleepThread(SLEEP_TIME);
+void DeleteUI(UIElement * element, UserInterface * inUI)
+{
+	// Pause main thread.
+	PrepareForUIRemoval();
+	InputMan.OnElementDeleted(element);
 	bool result = inUI->Delete(element);
 	if (!result){
 		std::cout<<"\nUnable to delete element: "<<element;
 		std::cout<<"\nUnable to delete element: "<<element->name;
 	}
-	SleepThread(SLEEP_TIME);
-	Input.acceptInput = true;
+	OnUIRemovalFinished();
 }
 
 GMPopUI::GMPopUI(String uiName, UserInterface * targetUI, bool force, Viewport * viewport)
@@ -879,7 +880,7 @@ void GMPopUI::Process()
 		return;
 	}
 	/// Push to stack, the InputManager will also try and hover on the first primary element.
-	bool success = Input.PopFromStack(e, ui, force);
+	bool success = InputMan.PopFromStack(e, ui, force);
 
     /// Post onExit message if it was popped.
     if (success)
@@ -894,7 +895,7 @@ void GMPopUI::Process()
 			MesMan.QueueMessages(e->onPop);
 		/// If the element wants to keep track of the navigate UI state, then reload it. If not, don't as it will set it to false by default if so.
 		if (e->navigateUIOnPush)
-			Input.LoadNavigateUIState(e->previousNavigateUIState);
+			InputMan.LoadNavigateUIState(e->previousNavigateUIState);
 
 		/// If specified, remove the element too upon a successful pop-operation.
 		if (e->removeOnPop){

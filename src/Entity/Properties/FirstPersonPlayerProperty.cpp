@@ -7,6 +7,7 @@
 	Inspiration may also be taken to create your own tailored variant.
 */
 
+#include "InputState.h"
 #include "FirstPersonPlayerProperty.h"
 
 #include "Input/InputManager.h"
@@ -148,27 +149,27 @@ void FirstPersonPlayerProperty::ToggleAutorun()
 void FirstPersonPlayerProperty::ProcessInput()
 {
 	// Skip if CTLR is pressed, should be some other binding then.
-	if (Input.KeyPressed(KEY::CTRL) || Input.KeyPressed(KEY::ALT))
+	if (InputMan.KeyPressed(KEY::CTRL) || InputMan.KeyPressed(KEY::ALT))
 		return;
 	forward = 0.f;
 	// Should probably check some lexicon of key-bindings here too. or?
-	if (Input.KeyPressed(KEY::W))
+	if (InputMan.KeyPressed(KEY::W))
 		forward -= 1.f;
-	if (Input.KeyPressed(KEY::S))
+	if (InputMan.KeyPressed(KEY::S))
 		forward += 1.f;
 	right = 0.f;
-	if (Input.KeyPressed(KEY::A))
+	if (InputMan.KeyPressed(KEY::A))
 		right -= 1.f;
-	if (Input.KeyPressed(KEY::D))
+	if (InputMan.KeyPressed(KEY::D))
 		right += 1.f;
 
 	/// o.o
-	if (Input.KeyPressedThisFrame(KEY::R))
+	if (InputMan.KeyPressedThisFrame(KEY::R))
 	{
 		ToggleAutorun();
 	}
 
-	if (Input.KeyPressed(KEY::SPACE))
+	if (InputMan.KeyPressed(KEY::SPACE))
 	{
 		if (!jumping)
 		{
@@ -249,9 +250,9 @@ void FirstPersonPlayerProperty::ProcessInput()
 		}
 		/// Camera Control, Booyakasha!
 		float cameraRight = 0.f;
-		if (Input.KeyPressed(KEY::LEFT))
+		if (InputMan.KeyPressed(KEY::LEFT))
 			cameraRight += 1.f;
-		if (Input.KeyPressed(KEY::RIGHT))
+		if (InputMan.KeyPressed(KEY::RIGHT))
 			cameraRight -= 1.f;
 
 		// Set it! :D
@@ -264,9 +265,9 @@ void FirstPersonPlayerProperty::ProcessInput()
 
 		/// Camera updown
 		float cameraUp = 0.f;
-		if (Input.KeyPressed(KEY::UP))
+		if (InputMan.KeyPressed(KEY::UP))
 			cameraUp += 1.f;
-		if (Input.KeyPressed(KEY::DOWN))
+		if (InputMan.KeyPressed(KEY::DOWN))
 			cameraUp -= 1.f;
 		static float pastCameraUp = 0.f;
 		if (cameraUp != pastCameraUp)
@@ -280,12 +281,12 @@ void FirstPersonPlayerProperty::ProcessInput()
 		float cameraZoomMultiplier = 1.00f;
 #define CONSTANT_ZOOM_SPEED 2.2f
 #define ZOOM_MULTIPLIER_SPEED 1.5f
-		if (Input.KeyPressed(KEY::PG_DOWN))
+		if (InputMan.KeyPressed(KEY::PG_DOWN))
 		{
 			cameraZoomMultiplier *= ZOOM_MULTIPLIER_SPEED;
 			cameraZoom = CONSTANT_ZOOM_SPEED;
 		}
-		if (Input.KeyPressed(KEY::PG_UP))
+		if (InputMan.KeyPressed(KEY::PG_UP))
 		{
 			cameraZoomMultiplier /= ZOOM_MULTIPLIER_SPEED;
 			cameraZoom = - CONSTANT_ZOOM_SPEED;
@@ -298,9 +299,9 @@ void FirstPersonPlayerProperty::ProcessInput()
 			pastCameraZoom = cameraZoom;
 		}
 		float cameraTurn = 0.f;
-		if (Input.KeyPressed(KEY::LEFT))
+		if (InputMan.KeyPressed(KEY::LEFT))
 			cameraTurn += 1.f;
-		if (Input.KeyPressed(KEY::RIGHT))
+		if (InputMan.KeyPressed(KEY::RIGHT))
 			cameraTurn += -1;
 		static float pastCameraTurn = 0.f;
 		if (cameraTurn != pastCameraTurn)
@@ -369,7 +370,7 @@ void FirstPersonPlayerProperty::UpdateTargetsByCursorPosition()
 	if (activeWindow != MainWindow())
 		return;
 	// Try to get ray.
-		if (!activeWindow->GetRayFromScreenCoordinates(Input.mousePosition, ray))
+	if (!activeWindow->GetRayFromScreenCoordinates(inputState->mousePosition, ray))
 		return;
 
 	// Do ray cast within the physics system

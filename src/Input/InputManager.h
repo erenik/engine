@@ -20,7 +20,6 @@
 struct Gamepad;
 
 #define InputMan (*InputManager::Instance())
-#define Input		(*InputManager::Instance())
 
 /// Disable this for disabling debug commands like reloading UI/shaders
 #define DEBUG_INPUT_ENABLED
@@ -186,8 +185,6 @@ public:
 	int startMouseX, startMouseY;
 	/// Previous mouse position
 	int prevMouseX, prevMouseY;
-	/// Current mouse position
-	Vector2i mousePosition;
 //	int mouseX, mouseY;
 	enum mouseCameraStates {
 		NULL_STATE,
@@ -197,9 +194,6 @@ public:
 	int mouseCameraState;
 	/// Default false. Toggleable with CTRL+I+M. When true, all mouse input is disabled.
 	bool ignoreMouse;
-
-	/// Global flag for if input should be processed whatsoever.
-	bool acceptInput;
 	
 	/// When set, will make certain keys only navigate the UI, by default arrow-keys, ENTER and Escape for PC.
 	void NavigateUI(bool mode);

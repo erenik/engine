@@ -14,3 +14,9 @@ namespace UI
 	extern bool defaultAcceptMathematicalExpressions;
 };
 
+
+/// Pauses execution in main thread. Disables input for the time being.
+void PrepareForUIRemoval();
+/// Resumes execution of the main thread. Enables input again.
+void OnUIRemovalFinished();
+

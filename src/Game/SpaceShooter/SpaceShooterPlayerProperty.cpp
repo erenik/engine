@@ -3,6 +3,7 @@
 /// Player properties for a space-shooter game.
 /// Applicable to both human and "enemy"/AI-players.
 
+#include "InputState.h"
 #include "SpaceShooterPlayerProperty.h"
 #include "SpaceShooterExplosionProperty.h"
 
@@ -103,7 +104,7 @@ void SpaceShooterPlayerProperty::Process(int timeInMs)
 	if (useMouseInput)
 	{
 		// Grab mouse co-odinates.
-		Vector2i mousePos = Input.GetMousePosition();
+		Vector2i mousePos = inputState->mousePosition;
 
 		// Project them onto the relevant AppWindow.
 		Ray ray;

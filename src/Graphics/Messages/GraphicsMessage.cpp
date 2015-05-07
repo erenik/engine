@@ -1,6 +1,8 @@
 // Emil Hedemalm
 // 2013-07-14
 
+#include "InputState.h"
+#include "UI/UI.h"
 #include "GraphicsMessage.h"
 #include "Graphics/GraphicsManager.h"
 #include "StateManager.h"
@@ -114,20 +116,10 @@ void GraphicsMessage::Process()
 			break;
 		case GM_RELOAD_UI: 
 		{
-			Input.acceptInput = false;
-			SleepThread(10);
-			
-			/// Pause execution of the main thread, so that it doesn't try to access any dying UI elements while reloading.
-			StateMan.Pause();
-
-			/// Reloads 'em all.
+			PrepareForUIRemoval();
+			/// Reload 'em all.
 			UserInterface::ReloadAll();
-
-			StateMan.Resume();
-
-			Input.acceptInput = true;
-			Graphics.renderQueried = true;
-
+			OnUIRemovalFinished();
 			/// Inform game-states etc. that a reload has completed.
 			MesMan.QueueMessages("OnReloadUI");
 			break;

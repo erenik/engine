@@ -385,8 +385,10 @@ public:
 
 	/// For example UIFlag::HOVERABLE, not to be confused with State! State = current, Flags = possibilities
 	void SetFlags(int flag);
-	/// For example UIState::HOVER, not to be confused with flags! State = current, Flags = possibilities
-	void AddState(int state);
+	/** For example UIState::HOVER, not to be confused with flags! State = current, Flags = possibilities
+		For operations controlling the HOVER flag, certain criteria may need to be met in order for the adder to succeed.
+	*/
+	bool AddState(int state);
 	/// For example UIState::HOVER, if recursive will apply to all children.
 	virtual void RemoveState(int state, bool recursive = false);
 

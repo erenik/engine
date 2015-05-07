@@ -3,6 +3,7 @@
 /// User interface class.
 
 #include "UserInterface.h"
+#include "InputState.h"
 #include "../Globals.h"
 
 #include "../StateManager.h"
@@ -158,6 +159,14 @@ UIElement * UserInterface::Hover(int x, int y, bool allUi)
 	UIElement * stackTop = GetStackTop();
 	if (!stackTop)
 		return NULL;
+	UIElement * previousHoverElement = NULL;
+	if (!previousHoverElement)
+	{			
+		previousHoverElement = stackTop->GetElementByState(UIState::HOVER);
+//		std::cout<<"\nPrevious hover element: "<<previousHoverElement;
+//		if (previousHoverElement)
+//			std::cout<<previousHoverElement->name;
+	}
 	UIElement * result = NULL;
 	/// Search taking into consideration the stack but searching until an element is found.
 	if(allUi)
@@ -192,8 +201,27 @@ UIElement * UserInterface::Hover(int x, int y, bool allUi)
 			hoverElement = stackTop->Hover(previous->posX, previous->posY);
 		}
 	}
+
+	if (inputState->demandHoverElement && result == NULL)
+	{
+		/// Try reverting to previous element?
+		if (previousHoverElement)
+		{
+			result = previousHoverElement;
+			result->state |= UIState::HOVER;
+		}
+		if (result == NULL)
+		{
+//			std::cout<<"\nProblema.";
+		}
+	}
 	return result;
 }
+UIElement * UserInterface::Hover(Vector2i xy, bool allUi)
+{
+	return Hover(xy.x, xy.y, allUi);
+}
+
 /// If allUi is specified, the action will try, similar to hover, and go through the entire stack from the top down until it processes an element.
 UIElement * UserInterface::Click(int x, int y, bool allUi){
 	UIElement * elementClicked = NULL;

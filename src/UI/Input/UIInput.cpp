@@ -2,6 +2,7 @@
 /// 2014-01-14
 /// Multi-purpose input element.
 
+#include "InputState.h"
 #include "UIInput.h"
 #include "UI/UI.h"
 #include "UI/UITypes.h"
@@ -260,7 +261,7 @@ int UIInput::OnKeyDown(int keyCode, bool downBefore)
 	// If was trying to move.. 
 	if (moveCommand /*&& oldCaretPosition != editText.caretPosition*/)
 	{
-		if (!Input.KeyPressed(KEY::SHIFT))
+		if (!InputMan.KeyPressed(KEY::SHIFT))
 		{
 			// Reset the "previous caret"!
 			editText.previousCaretPosition = -1;
@@ -300,7 +301,7 @@ int UIInput::OnChar(int asciiCode)
 		return 0;
 	}
 	/// If control is held, only evaluate it as a special command.
-	if (Input.KeyPressed(KEY::CTRL))
+	if (InputMan.KeyPressed(KEY::CTRL))
 	{
 		switch(asciiCode)
 		{

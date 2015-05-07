@@ -14,6 +14,7 @@
 #include "Window/AppWindowManager.h"
 #include "Viewport.h"
 #include "Entity/EntityProperty.h"
+#include "InputState.h"
 
 //#include "../Managers.h"
 #include "OS/OS.h"
@@ -64,7 +65,6 @@ InputManager::InputManager()
 	lButtonDown = rButtonDown = false;
 	ignoreMouse = false;
 	mouseCameraState = NULL_STATE;
-	acceptInput = false;
 	mouseLocked = false;
 	selectedInputBuffer = 0;
 //	activeUIInputElement = NULL;
@@ -363,7 +363,7 @@ void InputManager::EnableActiveUI()
 */
 void InputManager::MouseClick(AppWindow * AppWindow, bool down, int x, int y)
 {
-	if (!acceptInput)
+	if (!inputState->acceptInput)
 		return;
 	if (ignoreMouse)
 		return;
@@ -414,7 +414,7 @@ void InputManager::MouseClick(AppWindow * AppWindow, bool down, int x, int y)
 */
 void InputManager::MouseRightClick(AppWindow * AppWindow, bool down, int x, int y)
 {
-	if (!acceptInput)
+	if (!inputState->acceptInput)
 		return;
 	if (ignoreMouse)
 		return;
@@ -454,7 +454,7 @@ void InputManager::MouseMove(AppWindow * AppWindow, Vector2i activeWindowAreaCoo
 {	
 	int x = activeWindowAreaCoords[0];
 	int y = activeWindowAreaCoords[1];
-	if (!acceptInput)
+	if (!inputState->acceptInput)
 		return;
 	if (ignoreMouse)
 		return;
@@ -465,7 +465,7 @@ void InputManager::MouseMove(AppWindow * AppWindow, Vector2i activeWindowAreaCoo
 	lastMouseMoveWindow = AppWindow;
 
 	/// Save coordinates
-	mousePosition = Vector2i(x,y);
+	inputState->mousePosition = Vector2i(x,y);
 
 	/// If we have a global UI (system ui), process it first.
 	UserInterface * userInterface = GetRelevantUIForWindow(AppWindow);
@@ -512,7 +512,7 @@ void InputManager::MouseWheel(AppWindow * AppWindow, float delta)
 #ifdef WINDOWS
 	AppWindow = lastMouseMoveWindow;
 #endif
-	if (!acceptInput)
+	if (!inputState->acceptInput)
 		return;
 	if (ignoreMouse)
 		return;
@@ -533,7 +533,7 @@ void InputManager::MouseWheel(AppWindow * AppWindow, float delta)
 				;
 			
 			// Do a mouse hover/move too!
-			ui->Hover(mousePosition[0], mousePosition[1]);
+			ui->Hover(inputState->mousePosition);
 		}
 	}
 	/// If no UI has been selected/animated, pass the message on to the stateManager
@@ -545,7 +545,7 @@ void InputManager::MouseWheel(AppWindow * AppWindow, float delta)
 
 Vector2i InputManager::GetMousePosition()
 {
-	return mousePosition;
+	return inputState->mousePosition;
 }
 
 //=======================================================//
@@ -687,7 +687,7 @@ endKeyPressed:
 
 /// Evaluates if the active key generates any new events by looking at the relevant key bindings
 void InputManager::EvaluateKeyReleased(int activeKeyCode){
-	if (!acceptInput)
+	if (!inputState->acceptInput)
 		return;
 	/// Evaluate relevant key-bindings!
 	int action = 0;
@@ -722,7 +722,7 @@ void InputManager::EvaluateKeyReleased(int activeKeyCode){
 
 /// Processes char-code messages, primarily for writing, secondly for key-bindings.
 void InputManager::Char(unsigned char asciiCode){
-	if (!acceptInput)
+	if (!inputState->acceptInput)
 		return;
 
 	UserInterface * ui = RelevantUI();
@@ -740,7 +740,7 @@ void InputManager::Char(unsigned char asciiCode){
 
 /// Processes key-presses of commanding-nature (CTRL, ALT, SHIFT, etc.)
 void InputManager::KeyDown(int keyCode, bool downBefore){
-	if (!acceptInput)
+	if (!inputState->acceptInput)
 		return;
 	if (!StateMan.ActiveState())
 		return;
@@ -783,7 +783,7 @@ void InputManager::OnStopActiveInput(){
 
 /// Processes key-releases of commanding-nature (CTRL, ALT, SHIFT, etc.)
 void InputManager::KeyUp(int keyCode){
-	if (!acceptInput)
+	if (!inputState->acceptInput)
 		return;
 	keyPressed[keyCode] = false;
 	EvaluateKeyReleased(keyCode);

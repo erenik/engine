@@ -5,6 +5,7 @@
 
 #include "SideScroller.h"
 #include "Input/Keys.h"
+#include "InputState.h"
 
 /// Particle system for sparks/explosion-ish effects.
 bool paused = false;
@@ -25,6 +26,9 @@ void SetApplicationDefaults()
 	TextFont::defaultFontSource = "img/fonts/Font_Mexicano.png";
 	PhysicsProperty::defaultUseQuaternions = false;
 	Viewport::defaultRenderGrid = false;
+	inputState->demandActivatableForHoverElements = true; // Force elements to be activatable before UI elements are highlighted/steal focus.
+	inputState->demandHighlightOnHoverForHoverElements = true;
+	inputState->demandHoverElement = true;
 }
 
 // Global variables.
@@ -257,7 +261,7 @@ SideScroller::~SideScroller()
 void SideScroller::OnEnter(AppState * previousState)
 {
 	/// Enable Input-UI navigation via arrow-keys and Enter/Esc.
-	Input.ForceNavigateUI(true);
+	InputMan.ForceNavigateUI(true);
 
 	/// Create game variables.
 	playTime = GameVars.CreateInt("playTime", 0);

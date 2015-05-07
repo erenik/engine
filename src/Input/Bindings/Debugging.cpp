@@ -19,7 +19,6 @@ void debuggingInputProcessor(int action, int inputDevice){
 /// Creates bindings that are used for debugging purposes only
 void CreateDefaultDebuggingBindings()
 {
-	List<Binding*> & bindings = Input.debug.bindings;
 
 };
 

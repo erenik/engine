@@ -149,7 +149,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		// When finishing up!
 		DragFinish(hDrop);
 		/// Call UI to handle it.
-		bool handled = Input.HandleDADFiles(files);
+		bool handled = InputMan.HandleDADFiles(files);
 		/// Call stateManager to handle Drag and Drop files varying on active context
 		if (!handled)
 			StateMan.HandleDADFiles(files);
@@ -170,13 +170,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_KILLFOCUS:{	// Sent to a window immediately before it loses the keyboard focus.
 //		std::cout<<"\nWM_KILLFOCUS message received. wParam: "<<wParam<<" lParam: "<<lParam;
 //		std::cout<<"\nResetting input flags!";
-		Input.ClearInputFlags();
+		InputMan.ClearInputFlags();
 		return 0;// An application should return zero if it processes this message.
 	}
 	case WM_SETFOCUS: {	// Sent to a window after it has gained the keyboard focus.
 //		std::cout<<"\nWM_SETFOCUS message received. wParam: "<<wParam<<" lParam: "<<lParam;
 //		std::cout<<"\nResetting input flags!";
-		Input.ClearInputFlags();
+		InputMan.ClearInputFlags();
 		return 0;	// An application should return zero if it processes this message.
 	}
 	case WM_NCCALCSIZE: {	// Sent when the size and position of a AppWindow's client area must be calculated. By processing this message, an application can control the content of the AppWindow's client area when the size or position of the window changes.
@@ -262,7 +262,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 #ifdef LOG_KEYS
 		std::cout<<"\nWM_CHAR received: keyCode: "<<wParam<<" ascii: "<<(char)wParam;
 #endif
-		Input.Char(wParam);
+		InputMan.Char(wParam);
 		return 0;	// An application should return zero if it processes this message.
 		break;
 	}
@@ -294,7 +294,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		// Pass keycode to input manager if applicable
 		if (keyCode)
 		{
-			Input.KeyDown(keyCode, downBefore > 0);
+			InputMan.KeyDown(keyCode, downBefore > 0);
 		}
 		return 0;	// An application should return zero if it processes this message.
 		break;
@@ -308,7 +308,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		// Pass keycode to input manager if applicable
 		if (keyCode)
 		{
-			Input.KeyUp(keyCode);
+			InputMan.KeyUp(keyCode);
 		}
 		return 0;	// An application should return zero if it processes this message.
 		break;
@@ -324,7 +324,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		// Pass keycode to input manager if applicable
 		if (keyCode)
 		{
-			Input.KeyDown(keyCode, downBefore > 0);
+			InputMan.KeyDown(keyCode, downBefore > 0);
 		}
 		return 0;	// An application should return zero if it processes this message.
 		break;
@@ -339,12 +339,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		switch(keyCode)
 		{
 		case KEY::PRINT_SCREEN:
-			Input.KeyDown(keyCode, false);
+			InputMan.KeyDown(keyCode, false);
 			break;
 		}
 		// Pass keycode to input manager if applicable
 		if (keyCode)
-			Input.KeyUp(keyCode);
+			InputMan.KeyUp(keyCode);
 		return 0;	// An application should return zero if it processes this message.
 		break;
 	}
@@ -357,7 +357,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		SetCapture(hWnd);
 		int xPos = GET_X_LPARAM(lParam);
 		int yPos = GET_Y_LPARAM(lParam);
-		Input.MouseClick(window, true, XtoWindow(xPos), YtoWindow(yPos));
+		InputMan.MouseClick(window, true, XtoWindow(xPos), YtoWindow(yPos));
 		return 0; // If an application processes this message, it should return zero.
 		break;
 	}
@@ -366,7 +366,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		SetCapture(hWnd);
 		int xPos = GET_X_LPARAM(lParam);
 		int yPos = GET_Y_LPARAM(lParam);
-		Input.MouseRightClick(window, true, XtoWindow(xPos), YtoWindow(yPos));
+		InputMan.MouseRightClick(window, true, XtoWindow(xPos), YtoWindow(yPos));
 		return 0; // If an application processes this message, it should return zero.
 		break;
 	}
@@ -375,7 +375,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		ReleaseCapture();
 		int xPos = GET_X_LPARAM(lParam);
 		int yPos = GET_Y_LPARAM(lParam);
-		Input.MouseClick(window, false, XtoWindow(xPos), YtoWindow(yPos));
+		InputMan.MouseClick(window, false, XtoWindow(xPos), YtoWindow(yPos));
 		return 0; // If an application processes this message, it should return zero.
 		break;
 	}
@@ -384,7 +384,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		ReleaseCapture();
 		int xPos = GET_X_LPARAM(lParam);
 		int yPos = GET_Y_LPARAM(lParam);
-		Input.MouseRightClick(window, false, XtoWindow(xPos), YtoWindow(yPos));
+		InputMan.MouseRightClick(window, false, XtoWindow(xPos), YtoWindow(yPos));
 		return 0; // If an application processes this message, it should return zero.
 		break;
 	}
@@ -397,7 +397,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_MOUSEMOVE: 
 	{
 		// Disable movements for it?
-		if (Input.MouseLocked()){
+		if (InputMan.MouseLocked()){
 			assert(false && "Fix");
 
 		////	BlockInput(true);
@@ -417,7 +417,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		int xPos = GET_X_LPARAM(lParam);
 		int yPos = GET_Y_LPARAM(lParam);
 //		std::cout<<"\nMouse move: "<<xPos<<" "<<yPos;
-		Input.MouseMove(window, Vector2i(XtoWindow(xPos), YtoWindow(yPos)));
+		InputMan.MouseMove(window, Vector2i(XtoWindow(xPos), YtoWindow(yPos)));
 		WindowMan.hoverWindow = window;
 		return 0; // If an application processes this message, it should return zero.
 		break;
@@ -431,7 +431,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		zDelta /= WHEEL_DELTA;
 		zDelta /= 10.f;
 	//	std::cout<<" post: "<<zDelta;
-		Input.MouseWheel(window, zDelta);
+		InputMan.MouseWheel(window, zDelta);
 		return 0; // If an application processes this message, it should return zero.
 		break;
 	}

@@ -47,7 +47,7 @@ extern Display * display;
 void CreateDefaultGeneralBindings()
 {
 
-	InputMapping * mapping = &Input.general;
+	InputMapping * mapping = &InputMan.general;
 
 	
 	int ctrl = KEY::CTRL;

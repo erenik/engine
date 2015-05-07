@@ -4,6 +4,7 @@
 
 #include "EditorCamera.h"
 
+#include "InputState.h"
 #include "Input/InputManager.h"
 
 #include "StateManager.h"
@@ -43,7 +44,7 @@ Camera * CreateEditorCamera(Entity ** entityPointer /*= NULL*/)
 	MapMan.AddEntity(entity);
 
 	/// o.o
-	Input.SetInputFocus(entity);
+	InputMan.SetInputFocus(entity);
 
 	// Return data.
 	if (entityPointer)
@@ -138,30 +139,30 @@ void EditorCameraProperty::ProcessInput(float timeInSeconds)
 	float forward = 0.f;
 	Vector3f moveVec;
 	// Should probably check some lexicon of key-bindings here too. or?
-	if (Input.KeyPressed(KEY::W))
+	if (InputMan.KeyPressed(KEY::W))
 		moveVec.z -= 1.f;
-	if (Input.KeyPressed(KEY::S))
+	if (InputMan.KeyPressed(KEY::S))
 		moveVec.z += 1.f;
 	float right = 0.f;
-	if (Input.KeyPressed(KEY::A))
+	if (InputMan.KeyPressed(KEY::A))
 		moveVec.x -= 1.f;
-	if (Input.KeyPressed(KEY::D))
+	if (InputMan.KeyPressed(KEY::D))
 		moveVec.x += 1.f;
 	float up = 0.f;
-	if (Input.KeyPressed(KEY::E))
+	if (InputMan.KeyPressed(KEY::E))
 		moveVec.y = 1.f;
-	else if (Input.KeyPressed(KEY::Q))
+	else if (InputMan.KeyPressed(KEY::Q))
 		moveVec.y = -1.f;
 
 	/// Adjust speed.
 	bool speedAdjusted = false;
-	if (Input.KeyPressed(KEY::PLUS))
+	if (InputMan.KeyPressed(KEY::PLUS))
 	{
 		movementSpeed += 0.2f * timeInSeconds;
 		movementSpeed *= pow(2.0f, timeInSeconds);
 		speedAdjusted = true;
 	}
-	else if (Input.KeyPressed(KEY::MINUS))
+	else if (InputMan.KeyPressed(KEY::MINUS))
 	{
 		movementSpeed -= 0.2f * timeInSeconds;
 		movementSpeed /= pow(2.0f, timeInSeconds);
@@ -172,7 +173,7 @@ void EditorCameraProperty::ProcessInput(float timeInSeconds)
 		ClampFloat(movementSpeed, 0, 10000.f);
 		std::cout<<"\nMovement speed of EditorCamera set to "<<movementSpeed;
 	}
-	if (Input.KeyPressed(KEY::SPACE))
+	if (InputMan.KeyPressed(KEY::SPACE))
 	{
 		if (!jumping)
 		{
@@ -227,9 +228,9 @@ void EditorCameraProperty::ProcessInput(float timeInSeconds)
 		}
 		/// Camera Control, Booyakasha!
 		float cameraRight = 0.f;
-		if (Input.KeyPressed(KEY::LEFT))
+		if (InputMan.KeyPressed(KEY::LEFT))
 			cameraRight -= 1.f;
-		if (Input.KeyPressed(KEY::RIGHT))
+		if (InputMan.KeyPressed(KEY::RIGHT))
 			cameraRight += 1.f;
 
 		// Set it! :D
@@ -242,9 +243,9 @@ void EditorCameraProperty::ProcessInput(float timeInSeconds)
 
 		/// Camera updown
 		float cameraUp = 0.f;
-		if (Input.KeyPressed(KEY::UP))
+		if (InputMan.KeyPressed(KEY::UP))
 			cameraUp -= 1.f;
-		if (Input.KeyPressed(KEY::DOWN))
+		if (InputMan.KeyPressed(KEY::DOWN))
 			cameraUp += 1.f;
 		static float pastCameraUp = 0.f;
 		if (cameraUp != pastCameraUp)
@@ -258,12 +259,12 @@ void EditorCameraProperty::ProcessInput(float timeInSeconds)
 		float cameraZoomMultiplier = 1.00f;
 #define CONSTANT_ZOOM_SPEED 2.2f
 #define ZOOM_MULTIPLIER_SPEED 1.5f
-		if (Input.KeyPressed(KEY::PG_DOWN))
+		if (InputMan.KeyPressed(KEY::PG_DOWN))
 		{
 			cameraZoomMultiplier *= ZOOM_MULTIPLIER_SPEED;
 			cameraZoom = CONSTANT_ZOOM_SPEED;
 		}
-		if (Input.KeyPressed(KEY::PG_UP))
+		if (InputMan.KeyPressed(KEY::PG_UP))
 		{
 			cameraZoomMultiplier /= ZOOM_MULTIPLIER_SPEED;
 			cameraZoom = - CONSTANT_ZOOM_SPEED;
@@ -276,9 +277,9 @@ void EditorCameraProperty::ProcessInput(float timeInSeconds)
 			pastCameraZoom = cameraZoom;
 		}
 		float cameraTurn = 0.f;
-		if (Input.KeyPressed(KEY::LEFT))
+		if (InputMan.KeyPressed(KEY::LEFT))
 			cameraTurn += 1.f;
-		if (Input.KeyPressed(KEY::RIGHT))
+		if (InputMan.KeyPressed(KEY::RIGHT))
 			cameraTurn += -1;
 		static float pastCameraTurn = 0.f;
 		if (cameraTurn != pastCameraTurn)
@@ -313,7 +314,7 @@ void EditorCameraProperty::UpdateTargetsByCursorPosition()
 	if (activeWindow != MainWindow())
 		return;
 	// Try to get ray.
-		if (!activeWindow->GetRayFromScreenCoordinates(Input.mousePosition, ray))
+	if (!activeWindow->GetRayFromScreenCoordinates(inputState->mousePosition, ray))
 		return;
 
 	// Do ray cast within the physics system

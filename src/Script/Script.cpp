@@ -249,7 +249,7 @@ void Script::OnEnd()
 	if (inCutscene)
 		EndCutscene();
 	if (uiDisabled)
-		Input.EnableActiveUI();
+		InputMan.EnableActiveUI();
 
 	if (repeatable)
 	{
@@ -348,13 +348,13 @@ void Script::EvaluateLine(String & line)
 	}
 	else if (line == "DisableActiveUI")
 	{
-		Input.DisableActiveUI();
+		InputMan.DisableActiveUI();
 		lineFinished = true;
 		uiDisabled = true;
 	}
 	else if (line == "EnableActiveUI")
 	{
-		Input.EnableActiveUI();
+		InputMan.EnableActiveUI();
 		lineFinished = true;
 	}
 	else if (line.Contains("PreloadTexturesInDirectory("))

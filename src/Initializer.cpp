@@ -1,6 +1,7 @@
 // Emil Hedemalm
 // 2013-03-17
 
+#include "InputState.h"
 #include "Initializer.h"
 #include "Globals.h"
 #include "Command/CommandLine.h"
@@ -40,7 +41,7 @@ THREAD_START(Initialize)
 	StateMan.Initialize();	// Registers all states to be used
 	ModelMan.Initialize(); // Loads useful models
 	Physics.Initialize();
-	Input.Initialize();		// Loadinput-bindings
+	InputMan.Initialize();		// Loadinput-bindings
 	NetworkMan.Initialize();
 #ifdef USE_FTP
 	Ftp.Initialize();
@@ -77,7 +78,7 @@ THREAD_START(Initialize)
 	CREATE_AND_START_THREAD(StateManager::StateProcessor, stateProcessingThread);
 
 	// Now begin accepting input!
-	Input.acceptInput = true;
+	inputState->acceptInput = true;
 
 	std::cout<<"\nInitialization done! Entering main menu... or..";
 	

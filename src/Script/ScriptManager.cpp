@@ -139,11 +139,11 @@ void ScriptManager::Process(int timeInMs)
 			continue;
 		}
 		if (activeScripts.Size() == 0){
-			Input.NavigateUI(false);
+			InputMan.NavigateUI(false);
 		}
 		else
 			/// Most events assume UI-interaction, yes?
-			Input.NavigateUI(true);
+			InputMan.NavigateUI(true);
 	}
 }
 

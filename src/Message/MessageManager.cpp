@@ -4,6 +4,8 @@
 
 #include "Message/MessageManager.h"
 
+#include "InputState.h"
+
 //#include "IO.h"
 #include "MathLib/Expression.h"
 #include "Physics/Messages/CollisionCallback.h"
@@ -369,9 +371,9 @@ void MessageManager::ProcessMessage(Message * message)
 				GraphicsQueue.Add(new GMSetEntityTexture(entity, NORMAL_MAP, "normalMapTest2"));
 			}
 			if (msg == "AcceptInput:false")
-				Input.acceptInput = false;
+				inputState->acceptInput = false;
 			else if (msg.Contains("InputMan.printHoverElement"))
-				Input.printHoverElement = !Input.printHoverElement;
+				InputMan.printHoverElement = !InputMan.printHoverElement;
 			else if (msg == "SetGlobalState:NULL")
 				StateMan.SetGlobalState(NULL);
 			else if (msg == "SetActiveState:NULL")
@@ -427,7 +429,7 @@ void MessageManager::ProcessMessage(Message * message)
 			}
 			else if (msg.Contains("NavigateUI(")){
 				bool toggle = msg.Tokenize("()")[1].ParseBool();
-				Input.NavigateUI(toggle);
+				InputMan.NavigateUI(toggle);
 				return;
 			}
 			else if (msg == "IgnoreMouseInput")
@@ -638,7 +640,7 @@ void MessageManager::ProcessMessage(Message * message)
 				return;
 			}
 			else if (msg.Contains("CyclicUIY(")){
-				Input.cyclicY = msg.Tokenize("()")[1].ParseBool();
+				InputMan.cyclicY = msg.Tokenize("()")[1].ParseBool();
 				return;
 			}
 			else if (msg.Contains("Query(")){

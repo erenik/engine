@@ -3,6 +3,7 @@
 
 #include <Graphics/OpenGL.h>
 
+#include "InputState.h"
 #include "UIElement.h"
 #include "UITypes.h"
 #include "Message/Message.h"
@@ -446,7 +447,8 @@ UIElement* UIElement::Hover(int mouseX, int mouseY)
 	// The mouse is inside this element,
 	// and our children (if any) were not the active Entity.
 	// This means that this element must be the active Entity!
-	state |= UIState::HOVER;
+	if (!AddState(UIState::HOVER))
+		return NULL;
 	
 //	std::cout<<"\nElelelelement "<<name<<" is hover.";
 	/*if(parent){
@@ -991,7 +993,8 @@ bool UIElement::GetElementsByState(int stateFlags, List<UIElement*> & listToFill
 }
 
 /// Checks for visibility, activateability, etc. Also works bit-wise!
-UIElement * UIElement::GetElementByFlag(int uiFlags){
+UIElement * UIElement::GetElementByFlag(int uiFlags)
+{
 	// Check stuff
 	if (ConformsToFlags(uiFlags))
 		return this;
@@ -1022,7 +1025,8 @@ bool UIElement::GetElementsByFlags(int uiFlags, List<UIElement*> & listToFill){
 }
 
 /// Checks if all flags are true. See UIFlag namespace. Flags can be binary &-ed.
-bool UIElement::ConformsToFlags(int uiFlags){
+bool UIElement::ConformsToFlags(int uiFlags)
+{
 	bool isThisOne = true;
 	if (uiFlags & UIFlag::VISIBLE)
 		isThisOne = isThisOne & visible;
@@ -1947,12 +1951,20 @@ void UIElement::DeleteGeometry()
 }
 
 /// For example UIState::HOVER, not to be confused with flags! State = current, Flags = possibilities
-void UIElement::AddState(int i_state)
+bool UIElement::AddState(int i_state)
 {
 	// Return if trying to add invalid state.
 	if (!hoverable && i_state & UIState::HOVER)
-		return;
+		return false;
+	if (i_state == UIState::HOVER)
+	{
+		if (inputState->demandActivatableForHoverElements && !activateable)
+			return false;
+		if (inputState->demandHighlightOnHoverForHoverElements && !highlightOnHover)
+			return false;
+	}
 	state |= i_state;
+	return true;
 }
 
 /// For example UIState::HOVER, if recursive will apply to all children.

@@ -83,9 +83,9 @@ void * StateManager::StateProcessor(void * vArgs){
 					NetworkMan.ProcessNetwork();
 
 					/// Get input from XBox devices if possible
-					Input.UpdateDeviceStates();
+					InputMan.UpdateDeviceStates();
 					/// Clear previous frame input before fetching new from the AppWindow system.
-					Input.ClearPreviousFrameStats();
+					InputMan.ClearPreviousFrameStats();
 
 					/// Process messages received to our windows from the OS/Window-system.
 					WindowMan.ProcessMessages();

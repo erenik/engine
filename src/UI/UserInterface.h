@@ -72,6 +72,7 @@ public:
 		Search is conducted starting at the highest stack element and going down until an element is found that we can hover over.
 	*/
 	UIElement * Hover(int x, int y, bool allUi = false);
+	UIElement * Hover(Vector2i xy, bool allUi = false);
 	/// If allUi is specified, the action will try, similar to hover, and go through the entire stack from the top down until it processes an element.
 	UIElement * Click(int x, int y, bool allUi = false);
 	UIElement * Activate();
