@@ -908,23 +908,33 @@ List<UIElement*> InputManager::UIGetRelevantElements()
 	return elements;
 }
 
+bool IsNavigatable(UIElement * element)
+{
+	if (!element)
+		return false;
+	if (!element->IsVisible())
+		return false;
+	if (!element->activateable)
+		return false;
+	return true;
+}
+
 void InputManager::UIUp()
 {
-//	std::cout<<"\nUIUp";
+//	std::cout<<"\nUIDown";
 	UserInterface * ui = RelevantUI();
 	List<UIElement*> relevantElements = UIGetRelevantElements();
-//	std::cout<<" Relevant elements: "<<relevantElements.Size();
 	if (!relevantElements.Size())
 		return;
 	UIElement * element = NULL;
 	UIElement * hoverElement = ui->GetHoverElement();
-	if (hoverElement == NULL){
-	//	std::cout<<"\nHoverElement null";
+	if (hoverElement == NULL)
+	{
 		element = relevantElements[0];
 		/// Grab element furtherst down
 		for (int i = 1; i < relevantElements.Size(); ++i){
 			UIElement * e = relevantElements[i];
-			if (e->posY < element->posY)
+			if (e->posY > element->posY)
 				element = e;
 		}
 	}
@@ -934,64 +944,16 @@ void InputManager::UIUp()
 		if (!element){
 			bool searchChildrenOnly = false;
 			UIElement * desiredElement = hoverElement->GetUpNeighbour(NULL, searchChildrenOnly);
-			if (desiredElement)
+			if (IsNavigatable(desiredElement))
+			{
 				element = desiredElement;
-		}
-		/*
-		// If no preferred could be found, grab the closest UI within a 90 degree arc updwars relative to the active ne?
-		if (!element){
-			float minDist = 100000000;
-			for (int i = 0; i < relevantElements.Size(); ++i){
-				UIElement * e = relevantElements[i];
-				Vector3f distVec = e->position - hoverElement->position;
-			//	std::cout<<"\nDistVec: "<<distVec;
-				Vector3f eToHoverNormalized = distVec.NormalizedCopy();
-				float dotProduct = eToHoverNormalized.DotProduct(Vector3f(0,1,0));
-				if (dotProduct < 0.5f)
-					continue;
-				float dist = distVec.Length();
-			//	std::cout<<"\n element["<<i<<"], posY: "<<e->posY<<" dist: "<<dist<<" dotProduct: "<<dotProduct;
-				if (dist > 0 &&  dist < minDist){
-					element = e;
-					minDist = dist;
-				}
-			}
-			if (!element){
-				if (cyclicY){
-					// Remove the hover flag from the active element and re-do.
-					hoverElement->RemoveState(UIState::HOVER);
-					UIUp();
-				}
-				return;
 			}
 		}
-		*/
 	}
-	/// Make sure the element is hoverable too.
-	if (element && !element->hoverable){
-		/// If not hoverable, check if the element has any children that are hoverable.
-		std::cout<<"\nElement "<<element->name<<" lacking hoverable property, checking for any valid children.";
-		List<UIElement*> hoverables;
-        element->GetElementsByFlags(UIFlag::HOVERABLE, hoverables);
-        /// Check sibling elements to the left
-        if (hoverables.Size()){
-            element = hoverables[0];
-            /// Continue until a valid element is found. If none exist, perhaps check with the parent?
-            while(element && !element->hoverable){
-                if (element)
-					element = ui->GetElementByName(element->upNeighbourName);
-            }
-            if (!element)
-                return;
-        }
-        if (!element || !element->hoverable){
-            std::cout<<"\nUnable to find any valid children.";
-            return;
-        }
-	}
-	ui->SetHoverElement(element);
-//	hoverElement = ui->Hover(element->posX, element->posY);
-}
+	/// Skip if no valid elements were returned, keep the old one.
+	if (!element)
+		return;
+	ui->SetHoverElement(element);}
 
 void InputManager::UIDown()
 {
@@ -1017,7 +979,7 @@ void InputManager::UIDown()
 		if (!element){
 			bool searchChildrenOnly = false;
 			UIElement * desiredElement = hoverElement->GetDownNeighbour(NULL, searchChildrenOnly);
-			if (desiredElement)
+			if (IsNavigatable(desiredElement))
 				element = desiredElement;
 		}
 	}
@@ -1051,7 +1013,7 @@ void InputManager::UILeft()
 		if (!element){
 			bool searchChildrenOnly = false;
 			UIElement * desiredElement = hoverElement->GetLeftNeighbour(NULL, searchChildrenOnly);
-			if (desiredElement)
+			if (IsNavigatable(desiredElement))
 				element = desiredElement;
 		}
 	}
@@ -1085,7 +1047,7 @@ void InputManager::UIRight()
 		if (!element){
 			bool searchChildrenOnly = false;
 			UIElement * desiredElement = hoverElement->GetRightNeighbour(NULL, searchChildrenOnly);
-			if (desiredElement)
+			if (IsNavigatable(desiredElement))
 				element = desiredElement;
 		}
 	}
