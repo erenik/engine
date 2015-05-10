@@ -9,6 +9,7 @@
 #include "UI/UIList.h"
 #include "UI/UIImage.h"
 #include "UI/UIButtons.h"
+#include "UI/UIUtil.h"
 
 void LoadOptions();
 
@@ -22,6 +23,7 @@ void SideScroller::UpdateUI()
 	List<String> stateSpecificUI;
 	stateSpecificUI.Add("gui/MainMenu.gui", "gui/HUD.gui", "gui/Shop.gui");
 	stateSpecificUI.Add("gui/GameOver.gui", "gui/BuyTaco.gui", "gui/LevelCleared.gui");
+	stateSpecificUI.AddItem("gui/LevelSelector.gui");
 	for (int i = 0; i < stateSpecificUI.Size(); ++i)
 	{
 		// Pop 'em.
@@ -33,6 +35,7 @@ void SideScroller::UpdateUI()
 	switch(state)
 	{
 		case MAIN_MENU: toPush = "gui/MainMenu.gui"; break;
+		case SELECT_STARTING_POSITION: toPush = "gui/LevelSelector.gui"; break;
 		case PLAYING_LEVEL:	toPush = "gui/HUD.gui"; break;
 		case IN_SHOP: toPush = "gui/Shop.gui"; break;
 		case GAME_OVER: toPush = "gui/GameOver.gui"; break;
@@ -57,6 +60,9 @@ void SideScroller::UpdateUI()
 	switch(state)
 	{
 		case NEW_GAME:  LoadDefaultName(); break;
+		case SELECT_STARTING_POSITION: 	
+			UpdateLevelSelector(); // Update options
+			break;
 		case EDITING_OPTIONS: LoadOptions(); break;
 		case PLAYING_LEVEL:
 			// Update all stats.
@@ -302,3 +308,29 @@ void SideScroller::OpenLoadScreen()
 
 
 
+void SideScroller::UpdateLevelSelector()
+{
+//	PushUI("gui/LevelSelector.gui");
+	int KsComplete = completedX->GetInt() / 1000;
+	// Clear previous entries.
+	QueueGraphics(new GMClearUI("lStartXs"));
+	UIElement * lastButton = NULL;
+	List<UIElement*> elementsToAdd;
+	for (int i = 0; i <=  KsComplete; ++i)
+	{
+		// Add an element. to the list.
+		String numbered = String(i * 1000);
+		UIButton * button = new UIButton(numbered);
+		button->sizeRatioY = 0.333f;
+		button->activationMessage = "SetStartX:"+numbered+"&&StartGame";
+		lastButton = button;
+		elementsToAdd.AddItem(button);
+	}
+	/// Hover to the latest added one?
+	if (lastButton)
+	{
+		// If needed, first clear HOVER flags of all existing elements in the newly pushed UI.
+		lastButton->AddState(UIState::HOVER);
+	}
+	QueueGraphics(new GMAddUI(elementsToAdd, "lStartXs"));
+}

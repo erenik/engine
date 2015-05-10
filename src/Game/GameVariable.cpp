@@ -50,6 +50,19 @@ int GameVariable::GetInt()
 	return -1;
 }
 
+/// Sets value using integer input.
+void GameVariable::SetInt(int newIValue)
+{
+	switch(type)
+	{
+		case INTEGER: iValue = newIValue; break;
+		default:
+			assert(false);
+	}
+	return;
+}
+
+
 
 bool GameVariable::WriteTo(std::fstream & stream)
 {

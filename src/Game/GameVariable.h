@@ -35,6 +35,8 @@ public:
 	String ToString();
 	/// Converts to int as needed.
 	int GetInt();
+	/// Sets value using integer input.
+	void SetInt(int iValue);
 	bool WriteTo(std::fstream & stream);
 	bool ReadFrom(std::fstream & stream);
 	// Data.

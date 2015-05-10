@@ -430,6 +430,13 @@ bool UIList::AddChild(UIElement* child)
    //     bottomElement->downNeighbourName = child->name;
 	//	child->upNeighbourName = bottomElement->name;
     }
+	
+	// If adding a child with hover state, assume it should be in focus.
+	if (child->state & UIState::HOVER)
+	{
+		child->EnsureVisibility();
+	}
+
 	return true;
 }
 

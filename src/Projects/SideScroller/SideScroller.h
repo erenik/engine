@@ -85,14 +85,17 @@
 #include "Ramp.h"
 #include "EventProperty.h"
 #include "PesoProperty.h"
+#include "BirdProperty.h"
 
 #define CC_ENVIRONMENT	1
 #define CC_PLAYER		(1 << 1)
 #define CC_PESO			(1 << 2)
-#define CC_OBSTACLE		(1 << 3)
+#define CC_BIRD			(1 << 3)
+#define CC_OBSTACLE		(1 << 4) // wat.?
 
 #define EP_PESO 0
 #define EP_LUCHA 1
+#define EP_BIRD	2
 
 extern Random levelRand, sfxRand;
 
@@ -105,12 +108,14 @@ extern Time levelTime;
 // extern int64 nowMs;
 extern int timeElapsedMs;
 
+extern int startX; // Defines where the player starts when hitting new game or retry. Is set via an additional (optional?) menu.
 extern float distance;
 extern int munny; // munny gained in current level.
 extern GameVar * totalMunny; // total munny
 extern GameVar * purchasedMasks; // Semi-colon separated string with all purchased masks. Possibly change to ID-based system later on.
 extern GameVar * equippedMaskName; // Name of it.
 extern GameVar * attempts; // Integer.
+extern GameVar * completedX; // Integer. Current maximum record. Defines how far in the player may start playing on new game.
 extern Time now;
 
 /// Starts at 0, increments after calling BreatherBlock and AddLevelPart
@@ -169,6 +174,7 @@ public:
 	void UpdateDistance();
 	void UpdateShopMasks();
 	void UpdateSelectedMask(String maskName);
+	void UpdateLevelSelector();
 
 //	void UpdateGearList();
 	/// Update UI parts
@@ -223,6 +229,7 @@ public:
 
 	enum {
 		MAIN_MENU,
+		SELECT_STARTING_POSITION,
 		PLAYING_LEVEL,
 		GAME_OVER,
 		NEW_GAME,

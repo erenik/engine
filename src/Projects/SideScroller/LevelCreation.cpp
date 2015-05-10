@@ -21,11 +21,12 @@ Entity * currentBlock;
 String tilesetPath = "img/Tileset/";
 
 /// In the current sub-level
-List<Entity*> blocksAdded;
+List<Entity*> blocksAdded, holesAdded;
 float blockSize = 2.f;
 String colorStr = "0xb19d7c";
 /// Toggled when skipping parts. Defaulf true. When false no block should be created as to speed up processing.
 bool blockCreationEnabled = true; 
+float flightOfThePilgrim = 0.f;
 
 /// Creates the next level parts.
 bool SideScroller::CreateNextLevelParts()
@@ -69,6 +70,8 @@ bool SideScroller::CreateNextLevelParts()
 			BreatherBlock(blockWidth);
 		}
 	}
+//	else if (modK < 5.f)
+//		BreatherBlock(5.f);
 	/// Default level-parts.
 	else 
 	{
@@ -197,7 +200,7 @@ void Hole(float holeSize) // Appends a hole, default side 2.
 {
 	if (blockCreationEnabled)
 	{
-		/// Add graphical-only blocks where regular blocks are missing.
+		/// Add the bottom piece of the block (physical part).
 		Entity * block = EntityMan.CreateEntity("Hole block", ModelMan.GetModel("cube.obj"), TexMan.GetTexture(colorStr));
 		Vector3f position;
 		position.x += levelLength;
@@ -219,6 +222,7 @@ void Hole(float holeSize) // Appends a hole, default side 2.
 
 		MapMan.AddEntity(block, true, true);
 		AddForCleanup(block);
+		holesAdded.AddItem(block);
 
 		// Notify sprite-tiler of the hole
 		Tile(block, BlockType::HOLE);
@@ -428,6 +432,31 @@ void AddClouds()
 	}
 }
 
+void AddPilgrims()
+{
+	for (int i = 0; i < holesAdded.Size(); ++i)
+	{
+		Entity * hole = holesAdded[i];
+		
+		float r = levelRand.Randf(1.f);
+		if (r > flightOfThePilgrim)
+			continue;
+
+		Entity * pilgrim = CreateSprite("0xFF");
+		pilgrim->position.x = hole->position.x;
+		pilgrim->position.y = 3.f;
+
+		// Pilgrimize.
+		BirdProperty * bird = new BirdProperty(pilgrim);
+		pilgrim->properties.AddItem(bird);
+		bird->SetupForFlight();
+
+		MapMan.AddEntity(pilgrim);
+		AddForCleanup(pilgrim);
+	}
+}
+
+
 void LongCactus(Entity * aboveBlock)
 {
 	Entity * cactus = CreateSprite("img/Outdoor - Mexican town/Big_fucking_cactus.png");
@@ -480,10 +509,12 @@ void SideScroller::AddLevelPart()
 		return;
 	}
 	blocksAdded.Clear();
+	holesAdded.Clear();
 	// Depending on level.. or possibly random chance.
 	int k = levelLength / 1000;
 	float r = levelRand.Randf();
 	bool addPesos = true;
+	flightOfThePilgrim = 0.f;
 	switch(k)
 	{
 		case 0: /// 0 to 1000 meters.
@@ -525,6 +556,33 @@ void SideScroller::AddLevelPart()
 			else
 				TripleHoles(levelRand.Randi(4));
 			break;
+		case 6: // 6K, introduce the bats of doom. I mean the Peregrine. Also just bigger holes.
+			flightOfThePilgrim = 0.2f;
+			if (r > 0.5f)
+				DoubleHoles(levelRand.Randi(5));
+			else
+				TripleHoles(levelRand.Randi(4));
+			break;
+		case 7: // 7K, larger holes, more peregrines to interrupt.
+			flightOfThePilgrim = 0.3f;
+			if (r > 0.6f)
+				DoubleHoles(levelRand.Randi(6));
+			else if (r > 0.3f)
+				TripleHoles(levelRand.Randi(5));
+			else
+				BigHole(levelRand.Randi(8.f) + 5.f);
+			break;
+		case 8: // 8K, bigger holes again, peregrinnnnnes.
+			flightOfThePilgrim = 0.4f;
+			if (r > 0.8f)
+				DoubleHoles(levelRand.Randi(7));
+			else if (r > 0.6f)
+				TripleHoles(levelRand.Randi(6));
+			else if (r > 0.4f)
+				BigHole(levelRand.Randi(11.f) + 6.f);
+			else 
+				BigHole(levelRand.Randi(13.f) + 8.f);
+			break;
 		default:
 			// Winner?!
 			BreatherBlock(10.f);
@@ -536,6 +594,7 @@ void SideScroller::AddLevelPart()
 	if (addPesos)
 		AddPesos();
 	AddClouds();
+	AddPilgrims();
 
 	// Add some cacti.
 	for (int i = 0; i < blocksAdded.Size(); ++i)

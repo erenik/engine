@@ -593,8 +593,8 @@ int MapManager::DeleteAllEntities()
 	int deleted = 0;
 	List<Entity*> mapEntities = activeMap->GetEntities();
 	activeMap->RemoveEntities(mapEntities);
-	GraphicsQueue.Add(new GMUnregisterEntities(mapEntities));
-	PhysicsQueue.Add(new PMUnregisterEntities(mapEntities));
+	QueueGraphics(new GMUnregisterEntities(mapEntities));
+	QueuePhysics(new PMUnregisterEntities(mapEntities));
 	EntityMan.MarkEntitiesForDeletion(mapEntities);
 	return deleted;
 }
@@ -622,9 +622,9 @@ bool MapManager::DeleteEntity(Entity * entity)
 //	std::cout<<"\nEntity flagged for deletion. ";
 	// Unregister no matter what. If it wasn't already unregisterd, nothing will hurt of it.
 	if (GraphicsManager::Instance())
-		GraphicsQueue.Add(new GMUnregisterEntity(entity));
+		QueueGraphics(new GMUnregisterEntity(entity));
 	if (PhysicsManager::Instance())
-		PhysicsQueue.Add(new PMUnregisterEntity(entity));
+		QueuePhysics(new PMUnregisterEntity(entity));
 	// Remove entity from the map too...!
 	activeMap->RemoveEntity(entity);
 	EntityMan.MarkEntitiesForDeletion(entity);
@@ -635,7 +635,8 @@ bool MapManager::DeleteEntity(Entity * entity)
 	This function will then check relevant variables and if fully unregistered will mark it as
 	unused and queue it's deletion in the EntityManager.
 */
-void MapManager::EntityUnregistered(Entity * entity){
+void MapManager::EntityUnregistered(Entity * entity)
+{
 	if(entity->flaggedForDeletion){
 		if (entity->registeredForPhysics)
 			return;

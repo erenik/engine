@@ -28,6 +28,7 @@ void LuchadorProperty::OnCollision(Collision & data)
 		// o.o
 		if (AbsoluteValue(data.collisionNormal.y) > 0.8f)
 		{
+			inAir = false;
 			/// If autorun disabled, stop tis animation.
 			if (autoRun)
 			{
@@ -62,19 +63,16 @@ void LuchadorProperty::Process(int timeInMs)
 	if (owner->position.y < -2.f && false)
 	{
 		assert(false);
-		// Deaded.
-		QueuePhysics(new PMSetEntity(owner, PT_PHYSICS_TYPE, PhysicsType::STATIC));
-		attempts->iValue += 1;
-		sideScroller->UpdateAttempts();
-		// Add up total munny.
-		totalMunny->iValue += munny;
-		// Auto-save?
-		sideScroller->AutoSave();
-		sleeping = true;
-		QueueGraphics(new GMPlayAnimation("Idle", owner));
-		sideScroller->GameOver();
-//		ScriptMan.PlayScript("scripts/OnDeath.txt");
 	}
+
+	// IF falling or 'jumping' by ramp power
+	if (owner->physics->lastGroundCollisionMs + 300 < physicsNowMs)
+	{
+		// Set jump animation! o.o
+		if (!inAir)
+			QueueGraphics(new GMPlayAnimation("Jump", owner));
+		inAir = true;
+	} 
 }
 
 void LuchadorProperty::ProcessMessage(Message * message)
@@ -95,6 +93,7 @@ void LuchadorProperty::ProcessMessage(Message * message)
 		int jumpCooldownMs = 500;
 		if ((now - lastJump).Milliseconds() < jumpCooldownMs)
 			return;
+		inAir = true;
 		lastJump = now;
 		QueuePhysics(new PMSetEntity(owner, PT_VELOCITY, owner->Velocity() + Vector3f(0,5.f,0)));
 		// Set jump animation! o.o
@@ -123,6 +122,15 @@ void LuchadorProperty::OnCollisionCallback(CollisionCallback * cc)
 			sideScroller->UpdateAttempts();
 			// Add up total munny.
 			totalMunny->iValue += munny;
+			// Update completed X if the player has traverse farther than earlier.
+			int playerX = playerEntity->position.x;
+			if (playerX > completedX->GetInt())
+			{
+				completedX->SetInt(playerX);
+			}
+			/// Update start X for retries.
+			while(playerX > startX + 1000)
+				startX += 1000;
 			// Auto-save?
 			sideScroller->AutoSave();
 			sleeping = true;

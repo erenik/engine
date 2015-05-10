@@ -6,6 +6,7 @@
 #include "SideScroller.h"
 #include "Input/Keys.h"
 #include "InputState.h"
+#include "UI/UIUtil.h"
 
 /// Particle system for sparks/explosion-ish effects.
 bool paused = false;
@@ -16,6 +17,7 @@ float levelLength;
 int pacoTacoX = 0;
 int pacoTacoAnnouncementX = 0;
 int lastK = 0;
+int startX = 0; // Defines where the player starts when hitting new game or retry. Is set via an additional (optional?) menu.
 
 /// 4 entities constitude the blackness.
 List<Entity*> blacknessEntities;
@@ -83,6 +85,7 @@ GameVar * totalMunny = 0; // Total munny from all attempts. Summed up upon death
 GameVar * purchasedMasks = 0;
 GameVar * equippedMaskName = 0;
 GameVar * attempts = 0;
+GameVar * completedX = 0;
 float distance = 0;
 
 enum 
@@ -253,6 +256,7 @@ SideScroller::SideScroller()
 	attempts = GameVars.CreateInt("Attempts", 0);
 	equippedMaskName = GameVars.CreateString("EquippedMaskName", "");
 	purchasedMasks = GameVars.CreateString("PurchasedMasks", "");
+	completedX = GameVars.CreateInt("CompletedX", 0);
 
 	/// Load masks data.
 	Mask::LoadFromCSV("data/Masks.csv");
@@ -570,7 +574,24 @@ void SideScroller::ProcessMessage(Message * message)
 			{	
 				SetState(MAIN_MENU, true);
 			}
-			if (msg == "NewGame" || msg == "Retry")
+			if (msg == "NewGame")
+			{
+				if (completedX->GetInt() <= 1000)
+					NewGame();
+				else 
+				{
+					SetState(SELECT_STARTING_POSITION, true);
+				}
+			} 
+			// Start game with given vars.
+			else if (msg == "StartGame")
+				NewGame();
+			else if (msg.StartsWith("SetStartX"))
+			{
+				startX = msg.Tokenize(":")[1].ParseInt();
+			}
+			// Just call new game again with old startX value.
+			else if (msg == "Retry")
 				NewGame();
 			if (msg == "BuyTaco")
 			{
@@ -612,7 +633,8 @@ void SideScroller::ProcessMessage(Message * message)
 				// Hide the main window straight away - so it doesn't interrupt the user if they are rushed?
 				MainWindow()->Hide();
 			}
-			else if (msg == "ReturnToPreviousState")
+			else if (msg == "ReturnToPreviousState" ||
+				msg == "GoToPreviousState")
 			{
 				switch(previousState)
 				{
@@ -621,6 +643,7 @@ void SideScroller::ProcessMessage(Message * message)
 						NewGame();
 						break;
 					case MAIN_MENU:
+					default:
 						SetState(previousState, true);
 						break;
 				}
@@ -654,6 +677,7 @@ void SideScroller::ProcessMessage(Message * message)
 					if (equippedMask == mask)
 					{
 						// Already equipped? Lucha!
+						PopUI("gui/Shop.gui");
 						MesMan.QueueMessages("NewGame");
 						return;
 					}
@@ -764,10 +788,6 @@ void SideScroller::ProcessMessage(Message * message)
 			else if (msg == "LoadDefaultName")
 			{
 				LoadDefaultName();
-			}
-			else if (msg == "GoToPreviousstate")
-			{
-				SetState(previousState);
 			}
 			else if (msg == "OpenOptionsScreen")
 			{
@@ -1043,7 +1063,7 @@ void SideScroller::NewGame()
 	/// Move camera to the player - disable or increase the smoothing parameter for an instant.
 	QueueGraphics(new GMSetCamera(levelCamera, CT_SMOOTHING, 0.05f));
 	/// Force render 1 frame to move the camera?
-	QueueGraphics(new GMSetCamera(levelCamera, CT_SMOOTHED_POSITION, Vector3f(0,0,0)));
+	QueueGraphics(new GMSetCamera(levelCamera, CT_SMOOTHED_POSITION, Vector3f(startX,0,0)));
 
 	// Set sun on top?
 //	MesMan.QueueMessages("SetSunTime(12:00)");
@@ -1057,7 +1077,7 @@ void SideScroller::NewGame()
 	munny = 0;
 	
 	/// Let algorithm sort level-creation.
-	JumpTo(0);
+	JumpTo(startX);
 	player->Run();
 
 	MesMan.QueueMessages("PopUI(GameOver)");
@@ -1095,7 +1115,8 @@ void SideScroller::NewPlayer()
 	pp->physicalRadius = 0.5f;
 	pp->recalculatePhysicalRadius = false;
 	pp->onCollision = true;
-	pp->collisionFilter = CC_PESO | CC_ENVIRONMENT;
+	/// Collide with all?
+	pp->collisionFilter = CC_PESO | CC_ENVIRONMENT | CC_BIRD;
 	pp->collisionCategory = CC_PLAYER;
 
 	player = new LuchadorProperty(playerEntity);

@@ -17,7 +17,7 @@ void SideScroller::CreateDefaultBindings()
 	BINDING(Action::CreateStartStopAction("MoveShipLeft"), KEY::A);
 	BINDING(Action::CreateStartStopAction("MoveShipRight"), KEY::D);
 	BINDING(Action::FromString("ResetCamera"), KEY::HOME);
-	BINDING(Action::FromString("NewGame"), List<int>(KEY::N, KEY::G));
+	BINDING(Action::FromString("StartGame"), List<int>(KEY::N, KEY::G));
 	BINDING(Action::FromString("ClearLevel"), List<int>(KEY::C, KEY::L));
 	BINDING(Action::FromString("ListEntitiesAndRegistrations"), List<int>(KEY::L, KEY::E));
 	BINDING(Action::FromString("ToggleBlackness"), List<int>(KEY::T, KEY::B));

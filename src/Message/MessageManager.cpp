@@ -27,6 +27,7 @@
 #include "Network/Http.h"
 #include "Network/CURLManager.h"
 
+#include "UI/UIUtil.h"
 #include "UI/UIInputs.h"
 #include "UI/UITypes.h"
 #include "UI/UIFileBrowser.h"
@@ -762,45 +763,7 @@ void MessageManager::ProcessMessage(Message * message)
 					LogMain("Bad arguments in message: "+msg, ERROR);
 					return;
 				}
-				/// The user might want to enter either an element or a whole new UI here, so investigate it!
-				String uiName = params[1];
-				String uiSrc = uiName;
-				/// Check if the element exists...!
-				UserInterface * ui = ActiveUI();
-				if (!ui)
-					ui = MainUI();
-				if (!ui)
-				{
-					LogMain("No UI to interact with in message: "+msg, ERROR);
-					return;
-				}
-				UIElement * element = NULL;
-				/// Check if it's a source file, if so try and load that first.
-				if (uiName.Contains(".gui"))
-				{
-					element = ui->GetElementBySource(uiName);
-					if (!element){
-						// Load it.
-						element = UserInterface::LoadUIAsElement(uiSrc);
-						/// Return if we fail to load.
-						if (!element){
-							std::cout<<"\nUnable to load ui: "<<uiName;
-							return;
-						}
-						/// If we load here, reset elementName since uiName since it probably changed.
-						uiName = element->name;
-						/// Make sure it is exitable. No.
-			//			element->exitable = true;
-						Graphics.QueueMessage(new GMAddUI(element));
-					}
-				}
-				/// Regular name
-				else {
-					element = ui->GetElementByName(uiName);		
-				}
-				/// Push it to stack if not.
-				if (element)
-					Graphics.QueueMessage(new GMPushUI(element->name, ui));
+				PushUI(params[1]);
 				return;
 			}
 			else if (msg.Contains("PopFromStack(") || msg.Contains("PopUI("))
@@ -816,8 +779,7 @@ void MessageManager::ProcessMessage(Message * message)
 				String uiName = params[1];
 				if (uiName == "this")
 					uiName = message->element->name;
-				/// Force pop it?
-				Graphics.QueueMessage(new GMPopUI(uiName, RelevantUI(), true));
+				PopUI(uiName);
 				return;
 			}
 			else if (msg == "Back")

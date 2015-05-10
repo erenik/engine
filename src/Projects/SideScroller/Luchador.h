@@ -39,6 +39,7 @@ protected:
 
 	/// o.o after fall/run?
 	bool autoRun;
+	bool inAir;
 	int state;
 	enum {
 		STOPPED,
