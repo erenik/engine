@@ -43,6 +43,9 @@ public:
 	*/
 	int caretPosition;
 	int previousCaretPosition;
+
+	/// Offset in pixels to render this text. Default 0. Used for aligning.
+	float offsetX;
 private:
 
 

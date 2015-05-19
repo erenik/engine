@@ -37,6 +37,8 @@ THREAD_START(Initialize)
 	// Initialize AppWindow-manager, Linux requires some specifics - wat.
 	WindowMan.Initialize();
 
+	TextMan.Initialize();
+
 	// Call Initialize for all managers to properly initialize them
 	StateMan.Initialize();	// Registers all states to be used
 	ModelMan.Initialize(); // Loads useful models

@@ -812,6 +812,7 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 	String defaultRootFolder = "";
 	bool defaultScalability = true;
 	bool defaultVisibility = true;
+	bool defaultExitability = true;
 	Vector4f defaultTextColor = Vector4f(0,0,0,1);
 	float defaultSizeRatioY	= 1.0f;
 	float defaultSizeRatioX	= 1.0f;
@@ -819,6 +820,7 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 	float defaultTextSize = 1.0f;
 	String defaultOnTrigger = "";
 	Vector2f defaultDivider = Vector2f(0.5f,0.5f);
+	int defaultTextAlignment = UIElement::LEFT;
 
 #define ENSURE_NEXT_TOKEN if(tokens.Size() < 2){ assert(false && "argument token missing"); continue; };
 #define NEXT_TOKEN	(tokens[1])
@@ -834,6 +836,8 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 	element->fontSource = TextFont::defaultFontSource;\
 	element->visible = defaultVisibility;\
 	element->divider = defaultDivider;\
+	element->textAlignment = defaultTextAlignment;\
+	element->exitable = defaultExitability; \
 	}
 #define ADD_PREVIOUS_TO_UI_IF_NEEDED {\
 	if (element && element != root){\
@@ -939,6 +943,10 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 	//	List<String> tokens = line.Tokenize(" \n\r\t\v\f");
 		if (tokens.Size() < 1)
 			continue;
+
+		String value;
+		if (tokens.Size() > 1)
+			value = tokens[1];
 /*
 		/// If we've got quotation marks on the line, try and parse them straight away into the second token.
 		if (line.Contains("\"")){
@@ -1005,6 +1013,10 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 			else if (token == "defaultScalability"){
 				ENSURE_NEXT_TOKEN
 				defaultScalability = NEXT_TOKEN.ParseBool();
+			}
+			else if (token == "defaultExitability")
+			{
+				defaultExitability = value.ParseBool();
 			}
 			else if (token == "defaultDividerX")
 			{
@@ -1438,6 +1450,10 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 			else if (token == "textSizeRatio" || token == "textSize"){
 				ENSURE_NEXT_TOKEN
 				element->textSizeRatio = NEXT_TOKEN.ParseFloat();
+			}
+			else if (token == "textAlignment")
+			{
+				element->textAlignment = value == "Center"? UIElement::CENTER : UIElement::LEFT;
 			}
 			else if (token == "origin"){
 				ENSURE_NEXT_TOKEN

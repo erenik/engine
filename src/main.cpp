@@ -372,6 +372,7 @@ int main(int argc, char **argv)
 	FtpManager::Allocate();
 #endif // USE_FTP
 	StateManager::Allocate();
+	TextManager::Allocate();
 	MapManager::Allocate();
 	PhysicsManager::Allocate();
 	InputManager::Allocate();
@@ -491,6 +492,7 @@ int main(int argc, char **argv)
 #ifdef USE_FTP
 	FtpManager::Deallocate();
 #endif // USE_FTP
+	TextManager::Deallocate();
 	StateManager::Deallocate();
 	MapManager::Deallocate();
 	// Delete all entities, yo! wtf

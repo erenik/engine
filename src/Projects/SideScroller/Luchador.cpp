@@ -37,7 +37,11 @@ void LuchadorProperty::OnCollision(Collision & data)
 			}
 		}
 	}
+	/// Just ensure we're not moving in Z.
+	owner->physics->velocity.z = 0;
+	owner->position.z = 0;
 }
+
 void LuchadorProperty::Process(int timeInMs)
 {
 	if (sleeping) 
@@ -88,6 +92,8 @@ void LuchadorProperty::ProcessMessage(Message * message)
 	}
 	else if (msg == "Jump")
 	{
+		if (PhysicsMan.IsPaused())
+			return;
 		if (sleeping)
 			return;
 		int jumpCooldownMs = 500;
@@ -116,6 +122,12 @@ void LuchadorProperty::OnCollisionCallback(CollisionCallback * cc)
 	{
 		if (sideScroller->state != SideScroller::GAME_OVER)
 		{
+			// Play SFX
+			List<String> deadSfx;
+			deadSfx.Add("sfx/Noooo.wav", "sfx/Muy malo.wav", "sfx/Demasiado malo.wav");
+			deadSfx.AddItem("sfx/Lastima.wav");
+			QueueAudio(new AMPlaySFX(deadSfx[sfxRand.Randi(100) % deadSfx.Size()]));
+
 			// Deaded.
 			QueuePhysics(new PMSetEntity(owner, PT_PHYSICS_TYPE, PhysicsType::STATIC));
 			attempts->iValue += 1;

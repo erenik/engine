@@ -21,7 +21,8 @@ public:
 
 private:
 	bool collided;
-
+	float velocity; // travel speed.
+	float constantVelocityReduction; // impact player speed constant modifier 
 };
 
 #endif

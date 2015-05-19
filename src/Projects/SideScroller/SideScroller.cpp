@@ -250,7 +250,12 @@ SideScroller::SideScroller()
 	gearCategory = 0;
 	previousState = state = -1;
 	sprite = ModelMan.GetModel("sprite.obj");
-	
+
+	// Default spanish or english?
+	TextMan.SetLanguage("Español");
+	TextMan.SetSubtitleLanguage("English");
+	TextMan.SetHelpTextLanguage("English");
+
 	// Game/Save-vars
 	totalMunny = GameVars.CreateInt("TotalMunny", 0);
 	attempts = GameVars.CreateInt("Attempts", 0);
@@ -501,6 +506,11 @@ void SideScroller::CreateUserInterface()
 /// Callback function that will be triggered via the MessageManager when messages are processed.
 void SideScroller::ProcessMessage(Message * message)
 {
+	if (state == PACO_TACO)
+	{
+		ProcessMessagePacoTaco(message);
+//		return;
+	}
 	String msg = message->msg;
 	switch(message->type)
 	{
@@ -593,10 +603,18 @@ void SideScroller::ProcessMessage(Message * message)
 			// Just call new game again with old startX value.
 			else if (msg == "Retry")
 				NewGame();
+			else if (msg == "PilgrimTerror")
+			{
+				PilgrimTerror();
+			}
 			if (msg == "BuyTaco")
 			{
 				// o.o
 				player->BuyTaco();
+			}
+			if (msg == "PacoTaco")
+			{
+				InitiatePacoTaco();
 			}
 			if (msg == "OfferTacos")
 			{
@@ -701,6 +719,12 @@ void SideScroller::ProcessMessage(Message * message)
 						purchasedMasks->strValue += ";" + mask->name;
 						totalMunny->iValue -= mask->price;
 						QueueAudio(new AMPlaySFX("sfx/Buena compra.wav"));
+
+						List<String> coinSFX;
+						coinSFX.Add("sfx/Coins on bench.wav", "sfx/Coins on bench 2.wav");
+						QueueAudio(new AMPlaySFX(coinSFX[sfxRand.Randi(100) % coinSFX.Size()]));
+
+
 						// Autosave?
 						warrantsSaving = true;
 						warrantsUIUpdate = true;
@@ -1010,6 +1034,7 @@ Entity * sky = NULL;
 /// Starts a new game. Calls LoadLevel
 void SideScroller::NewGame()
 {	
+	birdsAdded = 0;
 	buyTaco = 0;
 	pacoTacoX = 0;
 	currentBGM = NULL;
@@ -1169,7 +1194,7 @@ void SideScroller::OnPauseStateUpdated()
 // Clean-up past level-parts
 void SideScroller::CleanupOldBlocks()
 {
-	float cleanupX = levelLength - 100.f;
+	float cleanupX = playerEntity->position.x - 100.f;
 	// Check all entities?
 	for (int i = 0; i < levelEntities.Size(); ++i)
 	{

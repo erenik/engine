@@ -23,7 +23,7 @@ void SideScroller::UpdateUI()
 	List<String> stateSpecificUI;
 	stateSpecificUI.Add("gui/MainMenu.gui", "gui/HUD.gui", "gui/Shop.gui");
 	stateSpecificUI.Add("gui/GameOver.gui", "gui/BuyTaco.gui", "gui/LevelCleared.gui");
-	stateSpecificUI.AddItem("gui/LevelSelector.gui");
+	stateSpecificUI.Add("gui/LevelSelector.gui", "gui/PacoTaco.gui");
 	for (int i = 0; i < stateSpecificUI.Size(); ++i)
 	{
 		// Pop 'em.
@@ -41,6 +41,7 @@ void SideScroller::UpdateUI()
 		case GAME_OVER: toPush = "gui/GameOver.gui"; break;
 		case TACO_TIME: toPush = "gui/BuyTaco.gui"; break;
 		case LEVEL_CLEARED: toPush = "gui/LevelCleared.gui"; break;
+		case PACO_TACO: toPush = "gui/PacoTaco.gui"; break;
 		
 			// old below?
 		case EDITING_OPTIONS: toPush = "gui/Options.gui"; break;
@@ -82,6 +83,7 @@ void SideScroller::UpdateUI()
 		case LOAD_SAVES: OpenLoadScreen(); break;
 	//	case BUYING_GEAR: UpdateGearList(); break;
 		case SHOWING_LEVEL_STATS: ShowLevelStats(); break;
+		case PACO_TACO: UpdatePacoTacoUI(); break;
 	};
 }
 

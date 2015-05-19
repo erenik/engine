@@ -6,6 +6,7 @@
 #define MANAGERS_H
 
 // First includes for all managers
+#include "Text/TextManager.h"
 #include "Message/MessageManager.h"
 #include "ShaderManager.h"
 #include "Graphics/GraphicsManager.h"

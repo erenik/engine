@@ -79,6 +79,7 @@ void UIElement::Nullify()
 	vboVertexCount = 0;
 	zDepth = 0;
 
+	previousTextSizeRatio = 1.f;
 	alignment = NULL_ALIGNMENT;	// Alignment relative to parent
 	scalable = DEFAULT_SCALABILITY;		// Allow scaling depending on AppWindow size?
 	ratio = 1.0;
@@ -1618,7 +1619,7 @@ void UIElement::RenderText()
 
 	TextFont * currentFont = graphicsState->currentFont;
 	Matrix4d tmp = graphicsState->modelMatrixD;
-	graphicsState->modelMatrixD.Translate(this->left, this->top,(this->zDepth+0.05));
+	graphicsState->modelMatrixD.Translate(this->left + textToRender.offsetX, this->top,(this->zDepth+0.05));
 	float pixels = sizeY * textSizeRatio; // Graphics.Height();
 
     if (currentTextSizeRatio <= 0)
@@ -1649,15 +1650,21 @@ void UIElement::RenderText()
 
 void UIElement::FormatText()
 {
+	/// Resize to fit.
 	TextFont * currentFont = graphicsState->currentFont;
 	textToRender = text;
 	/// Rows available
-	int rowsAvailable = (int)(1 / textSizeRatio);
+	int rowsAvailable = 1;
 	currentTextSizeRatio = 1.0f;
 	/// Returns the size required by a call to RenderText if it were to be done now. In... pixels? or units
 	Vector2f size = currentFont->CalculateRenderSizeUnits(text);
+	/// Pixels per unit, defined by the relative Y size the text should have.
 	float pixels = sizeY * textSizeRatio; // Graphics.Height();
-	Vector2f pixelsRequired = size * pixels;
+	float pixelsPerUnit = sizeY * textSizeRatio;
+	/// Total pixels required if rendering right now.
+	Vector2f pixelsRequired = size * pixelsPerUnit;
+	/// Check how much X is available, if we need to center it, etc.
+	int xAvailable = sizeX - pixelsRequired.x;
 	float xRatio = 1.f, yRatio = 1.f;
 	if (pixelsRequired.x > rowsAvailable * sizeX){
 		// assert(false && "Too much text!");
@@ -1674,51 +1681,22 @@ void UIElement::FormatText()
 		currentTextSizeRatio = xRatio;
 	else
 		currentTextSizeRatio = yRatio;
-	/*
-	if (pixelsRequired.x > sizeX)
-	{
-	//	assert(false && "Add thingy to enter new-lines automagically.");
-	//	std::cout<<"\nINFO: Length exceeding size, calculating and inserting newlines as possible.";
-	//	std::cout<<"\nTokenizing text: "<<text;
-		/// Tokenize into words based on spaces.
-		List<String> words = text.Tokenize(" ");
-	//	std::cout<<"\nWords: "<<words.Size();
-		textToRender = String();
-		String line = String(), line2 = String();
-		for (int i = 0; i < words.Size(); ++i)
-		{
-			/// Assume word fits?
-			String word = words[i];
-		//	std::cout<<"\nBlubb ";
-			float lengthRequiredWord = currentFont->CalculateRenderSizeUnits(word)[0] * pixels;
-		//	std::cout<<"\nBlubb ";
-		//	std::cout<<"\nLengthRequiredWord: "<<lengthRequiredWord<<" sizeX: "<<sizeX;
-			if (lengthRequiredWord >= sizeX && i == 0){
-		//		std::cout<<"\nWord too long to split into multiple rows.. scaling down text as a last resort :(";
-				float divider = sizeX / lengthRequiredWord;
-				pixels *= divider;
-			}
-		//	std::cout<<"\nBlubb ";
-			float lengthRequiredLine = currentFont->CalculateRenderSizeUnits(line)[0] * pixels;
-		//	std::cout<<"\nBlubb ";
-			/// Check if catenated line will exceed bounds.
-			line2 = line + " " + word;
-			float lengthRequiredLine2 = currentFont->CalculateRenderSizeUnits(line2)[0] * pixels;
-		//	std::cout<<"\nBlubb ";
-			if (lengthRequiredLine2 > sizeX){
-				/// Add first line to textToRender + new line
-				textToRender += line + "\n";
-				line = String();
-			}
-		//	std::cout<<"\nBlubb ";
-			line += word + " ";
-		}
 
-		/// Add the final line to the text to render here
-		textToRender += line;
-	//	std::cout<<"\nTextToRender: "<<textToRender;
+	/// Check previous ratio. Use lower one.
+	if (previousTextSizeRatio < currentTextSizeRatio)
+		currentTextSizeRatio = previousTextSizeRatio;
+
+	previousTextSizeRatio = currentTextSizeRatio;
+	
+	/// Re-align.
+	if (textAlignment == UIElement::CENTER)
+	{
+		pixelsPerUnit = currentTextSizeRatio * sizeY;
+		pixelsRequired = size * pixelsPerUnit;
+		int offsetX = sizeX * 0.5f - pixelsRequired.x * 0.5f;
+		textToRender.offsetX = offsetX;
 	}
-	*/
+
 }
 
 void UIElement::RenderChildren(GraphicsState & graphicsState)
@@ -1874,7 +1852,7 @@ void UIElement::AdjustToParent()
 	if (!parent)
 		return;
 	AdjustToWindow(parent->left, parent->right, parent->bottom, parent->top);
-
+	previousTextSizeRatio = 1.f; // Reset to allow larger text if we are using the minimum criteria for rapdily changing text-slots ( such as distance).
 }
 
 int UIElement::GetAlignment(String byName){
@@ -1937,6 +1915,7 @@ void UIElement::ResizeGeometry()
 	}
 	// Mark as not buffered to refresh it properly
 	isBuffered = false;
+	previousTextSizeRatio = 1.f; // Reset to allow larger text if we are using the minimum criteria for rapdily changing text-slots ( such as distance).
 }
 void UIElement::DeleteGeometry()
 {

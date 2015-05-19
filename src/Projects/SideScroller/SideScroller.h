@@ -15,6 +15,7 @@
 #include "Model/ModelManager.h"
 
 #include "UI/UserInterface.h"
+#include "UI/UIUtil.h"
 
 #include "String/StringUtil.h"
 
@@ -76,6 +77,8 @@
 #include "OS/OSUtil.h"
 #include "OS/Sleep.h"
 
+#include "Text/TextManager.h"
+
 #include "Sphere.h"
 #include "StateManager.h"
 #include "Viewport.h"
@@ -108,6 +111,7 @@ extern Time levelTime;
 // extern int64 nowMs;
 extern int timeElapsedMs;
 
+extern int birdsAdded; // o.o D:
 extern int startX; // Defines where the player starts when hitting new game or retry. Is set via an additional (optional?) menu.
 extern float distance;
 extern int munny; // munny gained in current level.
@@ -144,6 +148,7 @@ public:
 	/// Main processing function, using provided time since last frame.
 	void Process(int timeInMs);
 	void ProcessLevel(int timeInMs); // o.o
+	void ProcessPacoTaco(int timeInMs);
 	/// Returns true if it should create more. So use with while(CreateNextLevelParts());
 	bool CreateNextLevelParts();
 	/// Function when leaving this state, providing a pointer to the next StateMan.
@@ -151,12 +156,18 @@ public:
 
 	/// Callback from the Input-manager, query it for additional information as needed.
 	virtual void KeyPressed(int keyCode, bool downBefore);
+	/// Callback from the Input-manager, query it for additional information as needed.
+	void KeyPressedPacoTaco(int keyCode, bool downBefore);
 
 	/// Creates the user interface for this state
 	virtual void CreateUserInterface();
 
 	/// Callback function that will be triggered via the MessageManager when messages are processed.
 	virtual void ProcessMessage(Message * message);
+	void ProcessMessagePacoTaco(Message * message);
+
+	virtual void InitiatePacoTaco();
+	virtual void EndPacoTaco();
 
 	/// Creates default key-bindings for the state.
 	virtual void CreateDefaultBindings();
@@ -175,6 +186,7 @@ public:
 	void UpdateShopMasks();
 	void UpdateSelectedMask(String maskName);
 	void UpdateLevelSelector();
+	void UpdatePacoTacoUI();
 
 //	void UpdateGearList();
 	/// Update UI parts
@@ -237,6 +249,7 @@ public:
 		IN_SHOP,
 		TACO_TIME,
 		LEVEL_CLEARED,
+		PACO_TACO, // Mini-game o.o'
 
 		// Old shit below?
 		BUYING_GEAR,
@@ -309,6 +322,7 @@ void AddForCleanup(List<Entity*> entityList);
 /// Performs spriting operations. Call after adding a block or hole.
 void Tile(Entity * newBlock, int newBlockType);
 void SetOnGround(Entity * entity);
+void PilgrimTerror();
 
 extern SideScroller * sideScroller;
 

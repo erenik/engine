@@ -15,6 +15,7 @@
 #include "Network/Packet/Packet.h"
 #include <Mutex/Mutex.h>
 
+#include "Physics/PhysicsManager.h"
 #include "StateManager.h"
 #include "Graphics/GraphicsManager.h"
 #include "Graphics/Messages/GMUI.h"
@@ -422,6 +423,10 @@ void MessageManager::ProcessMessage(Message * message)
 			{
 				String url = msg - "HttpGet:";
 				HttpGet(url);
+			}
+			else if (msg == "ResumePhysics")
+			{
+ 				PhysicsMan.Resume();
 			}
 			else if (msg.Contains("PlayBGM:"))
 			{

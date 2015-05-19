@@ -275,6 +275,8 @@ public:
 
 	/// Alignment relative to parent. If this is set all other alignment* variables will be ignored.
 	char alignment;
+	/// Text contents alignment relative to current size/etc. Defautlt left.
+	char textAlignment; 
 
 	/// Allow scaling depending on parent or AppWindow size?
 	bool scalable;
@@ -447,7 +449,7 @@ protected:
 	// Text-variable that will contain the version of the text adapted for rendering (inserted newlines, for example).
 	Text textToRender;
     /// Re-calculated depending on active UI size and stuff. Reset this to 0 or below in order to re-calculate it.
-    float currentTextSizeRatio;
+    float currentTextSizeRatio, previousTextSizeRatio;
 
     /// Splitting up the rendering.
     virtual void RenderSelf(GraphicsState & graphicsState);

@@ -53,6 +53,9 @@ bool PushUI(String nameOrSource)
 	/// Push it to stack if not.
 	if (element)
 		QueueGraphics(new GMPushUI(element->name, ui));
+	/// Just try pushing it.
+	else 
+		QueueGraphics(new GMPushUI(uiName, ui));
 	return true;
 }
 

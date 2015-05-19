@@ -23,6 +23,7 @@ String tilesetPath = "img/Tileset/";
 /// In the current sub-level
 List<Entity*> blocksAdded, holesAdded;
 float blockSize = 2.f;
+int birdsAdded = 0;
 String colorStr = "0xb19d7c";
 /// Toggled when skipping parts. Defaulf true. When false no block should be created as to speed up processing.
 bool blockCreationEnabled = true; 
@@ -432,8 +433,26 @@ void AddClouds()
 	}
 }
 
+// Creates a pilgrim. Adds for cleanup. Does not put into map.
+Entity * CreatePilgrim(float atX)
+{
+	Entity * pilgrim = CreateSprite("img/Falcon_sprite.png");
+	pilgrim->scale.x *= pilgrim->diffuseMap->size.x / (float) pilgrim->diffuseMap->size.y;
+	pilgrim->position.x = atX;
+	pilgrim->position.y = 3.f;
+
+	// Pilgrimize.
+	BirdProperty * bird = new BirdProperty(pilgrim);
+	pilgrim->properties.AddItem(bird);
+	bird->SetupForFlight();
+	AddForCleanup(pilgrim);
+	return pilgrim;
+}
+
 void AddPilgrims()
 {
+	bool birdsAddedThisFrame = false;
+	List<Entity*> pilgrimsAddedThisFrame;
 	for (int i = 0; i < holesAdded.Size(); ++i)
 	{
 		Entity * hole = holesAdded[i];
@@ -442,17 +461,24 @@ void AddPilgrims()
 		if (r > flightOfThePilgrim)
 			continue;
 
-		Entity * pilgrim = CreateSprite("0xFF");
-		pilgrim->position.x = hole->position.x;
-		pilgrim->position.y = 3.f;
-
-		// Pilgrimize.
-		BirdProperty * bird = new BirdProperty(pilgrim);
-		pilgrim->properties.AddItem(bird);
-		bird->SetupForFlight();
-
+		++birdsAdded;
+		birdsAddedThisFrame = true;
+		Entity * pilgrim = CreatePilgrim(hole->position.x);
 		MapMan.AddEntity(pilgrim);
-		AddForCleanup(pilgrim);
+		pilgrimsAddedThisFrame.AddItem(pilgrim);
+
+		/// Every.. 10th hole? and first 1!
+		r = levelRand.Randf(5.f);
+		if (r < flightOfThePilgrim + 0.25f || birdsAdded == 1)
+		{
+			// Add an event entity which triggers falco over the hole?
+			Entity * eventEntity = NULL;
+			EventProperty * eventProp = NULL;
+			CreateEventEntity(&eventEntity, &eventProp);
+			eventProp->message = "PilgrimTerror";
+			eventEntity->position.x = hole->position.x;
+			MapMan.AddEntity(eventEntity);
+		}
 	}
 }
 
@@ -766,3 +792,34 @@ void Tile(Entity * newBlock, int newBlockType)
 
 };
 
+
+void PilgrimTerror()
+{
+	// Pause physics
+	PhysicsMan.Pause();
+
+	PushUI("gui/PilgrimTerror.gui");
+	Message * delayed = new Message("PopUI(\"gui/PilgrimTerror.gui\")");
+	delayed->timeToProcess = Time::Now() + Time::Milliseconds(2000);
+	MesMan.QueueDelayedMessage(delayed);
+	Message * delayedResume = new Message("ResumePhysics");
+	delayedResume->timeToProcess = delayed->timeToProcess;
+	MesMan.QueueDelayedMessage(delayedResume);
+
+	List<String> pilgrimSfx;
+	pilgrimSfx.Add("sfx/El falco peregrino.wav", "sfx/El falco.wav");
+	int i = sfxRand.Randi(100) % pilgrimSfx.Size();
+	QueueAudio(new AMPlaySFX(pilgrimSfx[i]));
+
+	// Give them speed boost?
+	Message boost("Boost:2.5");
+	/// Create extra pilgrims ahead?
+	int amount = levelRand.Randf(flightOfThePilgrim) * 10.f + 2;
+	for (int i = 0; i < amount; ++i)
+	{
+		Entity * pilgrim = CreatePilgrim(playerEntity->position.x + 50.f + i * 3.f);
+		pilgrim->position.y += i - amount * 0.5f;
+		MapMan.AddEntity(pilgrim);
+		pilgrim->ProcessMessage(&boost);
+	}
+}

@@ -9,6 +9,8 @@ BirdProperty::BirdProperty(Entity * owner)
  : EntityProperty("BirdProp", EP_BIRD, owner)
 {
 	collided = false;
+	constantVelocityReduction = 3.f;
+	velocity = 3.f;
 }
 
 void BirdProperty::OnCollision(Collision & data)
@@ -19,7 +21,7 @@ void BirdProperty::OnCollision(Collision & data)
 	// o.o
 	Entity * other = data.one == owner? data.two : data.one;
 	float & velX = owner->physics->velocity.x;
-	other->physics->velocity.x -= velX;
+	other->physics->velocity.x -= constantVelocityReduction;
 	velX *= 0.5f;
 	/// In addition to that, reduce player speed by, say, 25%?
 	other->physics->velocity.x *= 0.55f;
@@ -33,7 +35,14 @@ void BirdProperty::Process(int timeInMs)
 
 void BirdProperty::ProcessMessage(Message * message)
 {
-
+	String msg = message->msg;
+	if (msg.StartsWith("Boost"))
+	{
+		float factor = msg.Tokenize(":")[1].ParseFloat();
+		constantVelocityReduction *= factor;
+		velocity *= factor;
+		QueuePhysics(new PMSetEntity(owner, PT_VELOCITY, Vector3f(-velocity, 0, 0)));
+	}
 }
 void BirdProperty::OnCollisionCallback(CollisionCallback * cc)
 {
@@ -48,7 +57,6 @@ void BirdProperty::SetupForFlight()
 		owner->physics = new PhysicsProperty();
 	pp = owner->physics;
 	
-	
 	pp->type = PhysicsType::DYNAMIC;
 	pp->gravityMultiplier = 0.f;
 	pp->shapeType = PhysicsShape::SPHERE;
@@ -57,6 +65,5 @@ void BirdProperty::SetupForFlight()
 	pp->onCollision = true;
 
 	/// Give some default X vel
-	QueuePhysics(new PMSetEntity(owner, PT_VELOCITY, Vector3f(-3.f, 0,0)));
-
+	QueuePhysics(new PMSetEntity(owner, PT_VELOCITY, Vector3f(-velocity, 0,0)));
 }

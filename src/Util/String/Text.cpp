@@ -15,9 +15,11 @@ Text::~Text()
 }
 
 // Sets default caret positions etc. from copy constructors.
-void Text::Nullify(){
+void Text::Nullify()
+{
 	caretPosition = -1;
 	previousCaretPosition = -1;
+	offsetX = 0;
 }
 /// Copy constructor and..
 Text::Text(const String & string)
