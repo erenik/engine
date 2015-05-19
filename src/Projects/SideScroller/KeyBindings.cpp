@@ -12,10 +12,6 @@ void SideScroller::CreateDefaultBindings()
 {
 	List<Binding*> & bindings = this->inputMapping.bindings;
 #define BINDING(a,b) bindings.Add(new Binding(a,b));
-	BINDING(Action::CreateStartStopAction("MoveShipUp"), KEY::W);
-	BINDING(Action::CreateStartStopAction("MoveShipDown"), KEY::S);
-	BINDING(Action::CreateStartStopAction("MoveShipLeft"), KEY::A);
-	BINDING(Action::CreateStartStopAction("MoveShipRight"), KEY::D);
 	BINDING(Action::FromString("ResetCamera"), KEY::HOME);
 	BINDING(Action::FromString("StartGame"), List<int>(KEY::N, KEY::G));
 	BINDING(Action::FromString("ClearLevel"), List<int>(KEY::C, KEY::L));
@@ -28,9 +24,10 @@ void SideScroller::CreateDefaultBindings()
 #define BIND BINDING
 	BIND(Action::FromString("AdjustMasterVolume(0.05)", ACTIVATE_ON_REPEAT), List<int>(KEY::CTRL, KEY::V, KEY::PLUS));
 	BIND(Action::FromString("AdjustMasterVolume(-0.05)", ACTIVATE_ON_REPEAT), List<int>(KEY::CTRL, KEY::V, KEY::MINUS));
-	BIND(Action::FromString("NewGame"), KEY::N);
+	BIND(Action::FromString("NewGame"), List<int>(KEY::CTRL, KEY::N));
 	BIND(Action::FromString("NextK"), KEY::RIGHT);
 	BIND(Action::FromString("Jump"), KEY::SPACEBAR);
+	BIND(Action::FromString("PacoTaco"), List<int>(KEY::CTRL, KEY::P));
 
 	BIND(Action::FromString("RecreateLevelParts"), KEY::R);
 	

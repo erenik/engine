@@ -16,6 +16,7 @@
 
 #include "UI/UserInterface.h"
 #include "UI/UIUtil.h"
+#include "UI/UIImage.h"
 
 #include "String/StringUtil.h"
 
@@ -278,6 +279,7 @@ public:
 	
 	/// Saves previousMode
 	void SetState(int newState, bool updateUI = true);
+	void ReturnToPreviousState();
 	/// o.o
 	int previousState;
 	/// 0 by default.

@@ -12,9 +12,9 @@ bool initialized = false;
 void InitializeKeyStrings(){
     for (int i = 0; i < KEY::TOTAL_KEYS; ++i){
         if (i >= KEY::A && i <= KEY::Z)
-            keyStrings[i] = 'A' + i - KEY::A;
+            keyStrings[i] = (char) ('A' + i - KEY::A);
         else if (i >= KEY::ZERO && i <= KEY::NINE)
-            keyStrings[i] = '0' + i - KEY::ZERO;
+            keyStrings[i] = (char) ('0' + i - KEY::ZERO);
         else if (i >= KEY::F1 && i <= KEY::F12)
             keyStrings[i] = "F" + String::ToString(i - KEY::F1 + 1);
         else
@@ -36,6 +36,11 @@ void InitializeKeyStrings(){
     keyStrings[KEY::DECIMAL] = "Decimal";
     keyStrings[KEY::ESCAPE] = "Escape";
     initialized = true;
+
+	for (int i = 0; i < KEY::TOTAL_KEYS; ++i)
+	{
+		std::cout<<"\nKeyString "<<i<<": "<<keyStrings[i];
+	}
 }
 
 

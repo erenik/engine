@@ -378,6 +378,9 @@ void SideScroller::Process(int timeInMs)
 
 	switch(state)
 	{
+		case PACO_TACO:
+			ProcessPacoTaco(timeInMs);
+			break;
 		case PLAYING_LEVEL:
 		{
 			if (paused)
@@ -476,6 +479,9 @@ void SideScroller::KeyPressed(int keyCode, bool downBefore)
 {
 	switch(state)
 	{
+		case PACO_TACO:
+			KeyPressedPacoTaco(keyCode, downBefore);
+			break;
 		case PLAYING_LEVEL:
 		{
 			/// Numbers to jump to a certain place.
@@ -614,6 +620,8 @@ void SideScroller::ProcessMessage(Message * message)
 			}
 			if (msg == "PacoTaco")
 			{
+				if (state == PACO_TACO)
+					SetState(MAIN_MENU, true);
 				InitiatePacoTaco();
 			}
 			if (msg == "OfferTacos")
@@ -654,17 +662,7 @@ void SideScroller::ProcessMessage(Message * message)
 			else if (msg == "ReturnToPreviousState" ||
 				msg == "GoToPreviousState")
 			{
-				switch(previousState)
-				{
-					case PLAYING_LEVEL:
-					case GAME_OVER:
-						NewGame();
-						break;
-					case MAIN_MENU:
-					default:
-						SetState(previousState, true);
-						break;
-				}
+				ReturnToPreviousState();
 			}
 			else if (msg == "Jump")
 				Jump();
@@ -1474,3 +1472,17 @@ void SideScroller::SetState(int newState, bool updateUI)
 	}
 }
 
+void SideScroller::ReturnToPreviousState()
+{
+	switch(previousState)
+	{
+		case PLAYING_LEVEL:
+		case GAME_OVER:
+			NewGame();
+			break;
+		case MAIN_MENU:
+		default:
+			SetState(previousState, true);
+			break;
+	}
+}

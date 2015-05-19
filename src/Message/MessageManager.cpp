@@ -773,7 +773,7 @@ void MessageManager::ProcessMessage(Message * message)
 			}
 			else if (msg.Contains("PopFromStack(") || msg.Contains("PopUI("))
 			{
-				std::cout<<"\nPopFromStack/PopUI received.";
+//				std::cout<<"\nPopFromStack/PopUI received.";
 				// Fetch target.
 				List<String> params = msg.Tokenize("(),");
 				assert(params.Size() >= 2 && "Invalid amount of arguments to PopFromStack UI command!");

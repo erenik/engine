@@ -990,6 +990,11 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 				ENSURE_NEXT_TOKEN
 				defaultAlignment = UIElement::GetAlignment(NEXT_TOKEN);
 			}
+			else if (token == "defaultTextAlignment")
+			{
+				ENSURE_NEXT_TOKEN
+				defaultTextAlignment = UIElement::GetAlignment(value);
+			}
 			else if (token == "defaultTexture"){
 				ENSURE_NEXT_TOKEN
 				String param = tokens[1];
@@ -1453,7 +1458,11 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 			}
 			else if (token == "textAlignment")
 			{
-				element->textAlignment = value == "Center"? UIElement::CENTER : UIElement::LEFT;
+				value.SetComparisonMode(String::NOT_CASE_SENSITIVE);
+				if (value == "Center")
+				{
+					element->textAlignment = UIElement::CENTER;
+				}
 			}
 			else if (token == "origin"){
 				ENSURE_NEXT_TOKEN

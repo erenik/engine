@@ -2,6 +2,9 @@
 /// 2014-02-25
 /// UI class to show images, often with restrictions if they should scale, tile, etc.
 
+#ifndef UI_IMAGE_H
+#define UI_IMAGE_H
+
 #include "UIElement.h"
 
 class UIImage : public UIElement {
@@ -28,3 +31,5 @@ private:
 	bool editable;
 
 };
+
+#endif

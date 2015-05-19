@@ -875,8 +875,9 @@ void GMPopUI::Process()
 	// Fetch by source if possible.
 	if (!e)
 		e = ui->GetElementBySource(uiName);
-	if (!e){
-		std::cout<<"\nGMPopUI: Invalid UIElement: "<<uiName;
+	if (!e)
+	{
+		LogGraphics("GMPopUI: Invalid UIElement: "+uiName, DEBUG);
 		return;
 	}
 	/// Push to stack, the InputManager will also try and hover on the first primary element.

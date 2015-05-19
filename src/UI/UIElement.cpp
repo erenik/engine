@@ -361,8 +361,16 @@ bool UIElement::Delete(UIElement * element){
 }
 
 /// Deletes all children and content inside.
-void UIElement::Clear() {
-	assert(false && "This should only be accessed inside those subclasses that actually use it, like UIList!");
+void UIElement::Clear() 
+{
+	// Unbufferize first?
+	if (isBuffered)
+		for (int i = 0; i < children.Size(); ++i)
+		{
+			UIElement * child = children[i];
+			child->FreeBuffers();
+		}
+	children.ClearAndDelete();
 };
 
 //******************************************************************************//
@@ -1694,6 +1702,8 @@ void UIElement::FormatText()
 		pixelsPerUnit = currentTextSizeRatio * sizeY;
 		pixelsRequired = size * pixelsPerUnit;
 		int offsetX = sizeX * 0.5f - pixelsRequired.x * 0.5f;
+		if (offsetX < 0)
+			offsetX = 0;
 		textToRender.offsetX = offsetX;
 	}
 
@@ -1855,7 +1865,9 @@ void UIElement::AdjustToParent()
 	previousTextSizeRatio = 1.f; // Reset to allow larger text if we are using the minimum criteria for rapdily changing text-slots ( such as distance).
 }
 
-int UIElement::GetAlignment(String byName){
+int UIElement::GetAlignment(String byName)
+{
+	byName.SetComparisonMode(String::NOT_CASE_SENSITIVE);
 	if (byName == "NULL_ALIGNMENT")
 		return UIElement::NULL_ALIGNMENT;
 	else if (byName.Contains("MAXIMIZE"))
