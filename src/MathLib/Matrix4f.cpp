@@ -631,7 +631,7 @@ void Matrix4f::Multiply(ConstMat4r matrix)
 	}
 	for (int i = 0; i < 16; ++i)
 		element[i] = newArray[i];
-	return Matrix4f(element);
+//	*this = Matrix4f(element);
 #endif
 }
 
@@ -831,7 +831,7 @@ Matrix4f Matrix4f::operator * (ConstMat4r matrix) const
 			tempResult = 0;
 
 			for(int i = 0; i < 4; i++){
-				tempResult += element[y + i * 4] * factor.element[i + x * 4];
+				tempResult += element[y + i * 4] * matrix.element[i + x * 4];
 			}
 			newArray[y + x * 4] = tempResult;
 		}

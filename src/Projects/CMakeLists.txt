@@ -13,6 +13,6 @@ include(../../CMakeMacros.txt)
 #add_subdirectory(MORPG)
 #add_subdirectory(SpaceShooter2D)
 add_subdirectory(SideScroller)
-add_subdirectory(RoomBuilder)
+#add_subdirectory(RoomBuilder)
 
 

@@ -5,7 +5,10 @@
 #ifndef SSE_MACROS_H
 #define SSE_MACROS_H
 
+#ifdef WINDOWS
 #define USE_SSE
+#endif
+
 #ifdef USE_SSE
 #include <xmmintrin.h>
 #endif
@@ -18,6 +21,14 @@ typedef union {
 		float x,y,z,w;
 	};
 	__m128 data;
+	float v[4];
+} SSEVec;
+#else 
+// Same name, but without the SSE-specific types.
+typedef union {
+	struct{
+		float x,y,z,w;
+	};
 	float v[4];
 } SSEVec;
 #endif

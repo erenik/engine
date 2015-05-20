@@ -477,9 +477,9 @@ void Vector3f::operator *= (const Vector3f & vec)
 #ifdef USE_SSE
 	data = _mm_mul_ps(data, vec.data);
 #else
-	x *= f[0];
-	y *= f[1];
-	z *= f[2];
+	x *= vec.x;
+	y *= vec.y;
+	z *= vec.z;
 #endif
 }
 	
@@ -500,7 +500,7 @@ Vector3f Vector3f::operator * (const float &f) const
 	__m128 sse = _mm_load1_ps(&f);
 	newVec.data = _mm_mul_ps(data, sse);
 #else
-	vec = Vector3f(x * f, y * f, z * f);
+	newVec = Vector3f(x * f, y * f, z * f);
 #endif
 	return newVec;
 }

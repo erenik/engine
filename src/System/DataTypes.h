@@ -31,7 +31,9 @@
 	#define UINT32_MAX 4294967295
 #elif defined LINUX
 	// available via stdint.h .. although in C++11 version onry
+	#ifndef UINT32_MAX
 	#define UINT32_MAX 4294967295
+	#endif
 #endif
 
 
