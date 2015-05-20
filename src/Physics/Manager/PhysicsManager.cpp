@@ -355,8 +355,8 @@ AABB PhysicsManager::GetAllEntitiesAABB()
 		aabb.max.data = _mm_max_ps(aabb.max.data, entity->aabb->max.data);
 		aabb.min.data = _mm_min_ps(aabb.min.data, entity->aabb->min.data);
 #else
-		aabb.max = Vector3f::Maximum(aabb->max, entity->aabb->max);
-		aabb.min = Vector3f::Minimum(aabb->min, entity->aabb->min);
+		aabb.max = Vector3f::Maximum(aabb.max, entity->aabb->max);
+		aabb.min = Vector3f::Minimum(aabb.min, entity->aabb->min);
 #endif
 	}
 	return aabb;

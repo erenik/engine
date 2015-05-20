@@ -140,7 +140,7 @@ protected:
     float optimizationLevel;
     /// Based on maxParticles and the current optimization level.
     int particlesToProcess;
-
+#ifdef USE_SSE
 #define SSE_PARTICLES
 #ifdef SSE_PARTICLES
 	SSEVec * positionsSSE,
@@ -148,7 +148,8 @@ protected:
 		* colorsSSE,
 		* ldsSSE // Lifetime, duration, scale.
 		;
-#else
+#endif // SSE_PARTICLES
+#else // USE_SSE
 	/// Raw data
     float * lifeDurations, * lifeTimes;
     Vector3f * positions;
