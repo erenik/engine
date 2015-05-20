@@ -201,7 +201,7 @@ void PrecipitationSystem::SpawnNewGlobal(int timeInMs)
 		Vector4f & pColor = colors[freeIndex];
 
 		// Position based on the global emitter (default an XZ plane.
-		global.Position(position);
+		globalEmitter.Position(position);
 		// Add random from 0 to 1.0 to get some variation in height?
 		position.y += rand()*oneDivRandMaxFloat;
 		// Move up position?

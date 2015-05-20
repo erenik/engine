@@ -165,14 +165,13 @@ public:
 		float v[4];
 	};
 #else
-	/// x-coordinate
-	float x;
-	/// y-coordinate
-	float y;
-	/// z-coordinate
-	float z;
-	/// w-coordinate
-	float w;
+	union {
+		struct 
+		{
+			float x, y, z, w;
+		};
+		float v[4];
+	};
 #endif
 
 };

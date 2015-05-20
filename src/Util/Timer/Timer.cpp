@@ -113,7 +113,7 @@ int64 Timer::GetCurrentTime()
 
 
 // Returns the current time. If true, returns machineTime, if false will return synchronized time as set with SetAdjustment.
-time_t Timer::GetCurrentTimeMs(bool machineTime /* = true */)
+int64 Timer::GetCurrentTimeMs(bool machineTime /* = true */)
 {
 #ifdef WINDOWS
 	FILETIME ft_now;
@@ -138,7 +138,7 @@ time_t Timer::GetCurrentTimeMs(bool machineTime /* = true */)
 }
 
 // Returns current time in microseconds.
-time_t Timer::GetCurrentTimeMicro()
+int64 Timer::GetCurrentTimeMicro()
 {
 #ifdef WINDOWS
 	FILETIME ft_now;

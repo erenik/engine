@@ -226,12 +226,15 @@ public:
 //	__m128 data;
 	// If using SSE, don't use the standard XYX, use only the internal floats of the __m128 struct, preferably using the array index operator []
 #else
-	/// x-coordinate
-	float x;
-	/// y-coordinate
-	float y;
-	/// z-coordinate
-	float z;
+	union 
+	{
+
+		struct 
+		{
+			float x,y,z;
+		};
+		float v[3];
+	};
 #endif
 };
 
