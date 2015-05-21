@@ -18,7 +18,7 @@ struct TextError
 	int times;
 };
 
-/// o.o
-void Output(String text);
+/// Prints every 10th and later 100th time (and initial one). Returns false if it doesn't print.
+bool Output(String text);
 
 #endif

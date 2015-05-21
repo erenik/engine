@@ -240,7 +240,7 @@ Model * ModelManager::LoadObj(String source)
 		{
 			if (mesh)
 				delete mesh;
-			return false;
+			return NULL;
 		}
 		if (!mesh)
 			mesh = new Mesh();
@@ -281,7 +281,7 @@ Model * ModelManager::LoadObj(String source)
 			triangulatedMesh->Triangulate();
 			// If no normals? Recalculate 'em.
 			LogMain("Recalculating normals.", INFO);
-			if (triangulatedMesh->normals.Size() == NULL)
+			if (triangulatedMesh->normals.Size() == 0)
 				triangulatedMesh->RecalculateNormals();
 			std::cout<<"\nNormalized";
 			triangulatedMesh->CalculateUVTangents();
@@ -383,7 +383,7 @@ Model * ModelManager::LoadCollada(String source)
 	std::cout<<"\nTriangulate.";
 	model->triangulatedMesh->Triangulate();
 	std::cout<<"\nTriangulated.";
-	if (model->triangulatedMesh->normals.Size() == NULL)
+	if (model->triangulatedMesh->normals.Size() == 0)
 		model->triangulatedMesh->RecalculateNormals();
 	std::cout<<"\nNormalized";
 	model->triangulatedMesh->CalculateUVTangents();

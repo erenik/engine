@@ -37,6 +37,7 @@ List<String> TokenizeIgnore(String string, String tokenizers, String ignoreParts
 
 #include "MathLib.h"
 String VectorString(const Vector3f & v);
+String VectorString(const Vector2i & v);
 
 /// Conversion.
 List<float> StringListToFloatList(List<String> & stringList);

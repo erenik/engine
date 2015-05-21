@@ -15,6 +15,7 @@
 
 
 #include "File/LogFile.h"
+#include "Output.h"
 
 #include <GL/glew.h>
 #include <X11/Xlib.h>
@@ -213,12 +214,17 @@ void * XProc()
         int x, y, width, height;
         width = e.width;
         height = e.height;
-
+   
+        Vector2i windowSize(width, height);
+        bool changed = (appWindow->osWindowSize - windowSize).Length() > 0;
+        // Update only when it changes
+        if (changed || appWindow->previousSize.x == 0)
+            appWindow->previousSize = appWindow->osWindowSize;
+    
           // Fetch window area..
         // This might just reflect the area of the window that requires most updates.
-        Vector2i windowSize(width, height);
         appWindow->osWindowSize = appWindow->clientAreaSize = windowSize;
-      
+     
         return NULL;
         break;
 
@@ -266,7 +272,7 @@ void * XProc()
     }
     case MotionNotify: 
     {
-        LogMain("XMotionNotify", EXTENSIVE_DEBUG);
+        Output("XMotionNotify");
         x = event.xbutton.x;
 #define Y_UP_0_AT_BOTTOM(iny) (appWindow->ClientAreaSize().y - iny)
         y = Y_UP_0_AT_BOTTOM(event.xbutton.y);

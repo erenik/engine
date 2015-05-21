@@ -25,6 +25,7 @@
 #include "Window/AppWindow.h"
 #include "Window/AppWindowManager.h"
 #include "Viewport.h"
+#include "File/LogFile.h"
 
 #include "Multimedia/MultimediaManager.h"
 
@@ -229,7 +230,10 @@ void Action::TriggerStart()
         }
 		case TOGGLE_FULL_SCREEN: 
 		{
-			Graphics.ToggleFullScreen(WindowMan.GetCurrentlyActiveWindow());
+			LogMain("TOGGLE_FULL_SCREEN", INFO);
+			AppWindow * window = WindowMan.GetCurrentlyActiveWindow();
+			if (window)
+				window->ToggleFullScreen();
 			break;
 		}
 		default:

@@ -214,18 +214,6 @@ void XWindowSystem::SetupProtocols()
     */
 }
 
-void XWindowSystem::Resize(AppWindow * window, Vector2i newSize)
-{
-    // Fetch the XWindow equivalent?
-    XResizeWindow(xDisplay, window->xWindowHandle, newSize.x, newSize.y);
-}
-
-void XWindowSystem::ToggleFullScreen(AppWindow * window)
-{
-    assert(false && "Implement");
-//    XResizeWindow(xDisplay, xWindowHandle, Graphics.ScreenWidth(), Graphics.ScreenHeight());
-}
-
 bool XWindowSystem::CreateGLContext(AppWindow * forWindow)
 {
 

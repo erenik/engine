@@ -144,11 +144,7 @@ public:
 	*/
 	void ProcessMessage(GraphicsMessage * msg);
 	// Processes queued messages
-	void ProcessMessages();
-
-
-	void ToggleFullScreen(AppWindow * forWindow);
-	
+	void ProcessMessages();	
 
 //	int DeviceWidth() const { return scrWidth; };
 //	int DeviceHeight() const { return scrHeight; };
@@ -188,10 +184,10 @@ public:
 	bool renderLookAtVectors;
 
 	/// Current full-screen flag
-	bool isFullScreen;
+//	bool isFullScreen;
 	/// Sizes pre-fullscreen
-	int oldWidth;
-	int oldHeight;
+//	int oldWidth;
+//	int oldHeight;
 	/// Bool for the main graphicsManager loop
 	bool shouldLive;
 	bool enteringMainLoop; // Flagged once entering main render-loop!

@@ -347,7 +347,7 @@ Mesh * ColladaImporter::CreateMesh(String name)
 			++facesParsed;
 			face->numVertices = faceVertexCounts[i].ParseInt();
 			assert(face->numVertices > 0 && face->numVertices < 20);
-			assert(face->vertices.Size() == NULL);
+			assert(face->vertices.Size() == 0);
 			face->AllocateArrays();
 			for (int i = 0; i < face->numVertices; ++i)
 			{

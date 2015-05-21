@@ -129,8 +129,6 @@ GraphicsManager::GraphicsManager()
 	overlayTexture = NULL;
 	queuedOverlayTexture = NULL;
 	mapToRender = NULL;
-	/// Current full-screen flag
-	isFullScreen = false;
 	/// Sizes pre-fullscreen
 	shouldLive = true;
 	finished = false;
@@ -613,11 +611,6 @@ void GraphicsManager::ProcessMessages()
 	uiMutex.Release();
 	// Clear and delete all at once...
 	graphicsMessages.ClearAndDelete();
-}
-
-void GraphicsManager::ToggleFullScreen(AppWindow * window)
-{
-	window->ToggleFullScreen();
 }
 
 /// Wooo. Font-handlin'

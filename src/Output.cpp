@@ -7,7 +7,7 @@
 List<TextError> previousTextErrors;
 
 /// o.o
-void Output(String text)
+bool Output(String text)
 {
 	TextError newErr(text);
 	bool wasThere = false;
@@ -34,5 +34,7 @@ void Output(String text)
 		std::cout<<"\n"<<text;
 		if (times > 10)
 			std::cout<<" "<<times<<"th occurance";
+		return true;
 	}
+	return false;
 }

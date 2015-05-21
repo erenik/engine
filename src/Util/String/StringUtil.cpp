@@ -51,6 +51,10 @@ String VectorString(const Vector3f & v)
 {
 	return String::ToString(v[0]) + " " + String::ToString(v[1]) + " " + String::ToString(v[2]);
 };
+String VectorString(const Vector2i & v)
+{
+	return String(v.x) +" "+String(v.y);
+}
 
 
 /// o.o prepends the names of all variables in the list.

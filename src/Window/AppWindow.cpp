@@ -11,6 +11,7 @@
 #include "Debug.h"
 
 #include "DragAndDrop.h"
+#include "String/StringUtil.h"
 
 #include "WindowSystem.h"
 #include "Graphics/OpenGL.h"
@@ -215,9 +216,11 @@ void AppWindow::EnsureUIIsCreated()
 /// Toggles full-screen for this AppWindow.
 void AppWindow::ToggleFullScreen()
 {
-		std::cout<<"\nGraphicsManager::ToggleFullScreen";
 	// Check full-screen state
-	if (isFullScreen){
+	if (isFullScreen)
+	{
+	    LogMain("Setting previous window size: "+VectorString(previousSize), DEBUG);
+
 	    /// If was full-screen, go back to previous-size!
 #ifdef WINDOWS
 		/// Set AppWindow style
@@ -256,29 +259,17 @@ void AppWindow::ToggleFullScreen()
 		// And move it.
 		MoveWindow(hWnd, previousPosition[0], previousPosition[1], previousSize[0], previousSize[1], true);
 #elif defined LINUX
-		XWindowSystem::Resize(this, previousSize);
-//        XResizeWindow(display, AppWindow, Graphics.oldWidth, Graphics.oldHeight);
+	    // Fetch the XWindow equivalent?
+	    XMoveResizeWindow(xDisplay, xWindowHandle, 50, 50, previousSize.x, previousSize.y);
+       // assert(false);
 #endif
         isFullScreen = false;
 	}
 	else {
+		LogMain("Full-screening window..", DEBUG);
 		/// Save away old sizes		
 #ifdef WINDOWS
-/*
-		// Set device mode for full-screen?
-		DEVMODE dmScreenSettings;
-		memset(&dmScreenSettings, 0, sizeof(dmScreenSettings));
-		dmScreenSettings.dmSize=sizeof(dmScreenSettings);       // Size Of The Devmode Structure
-		dmScreenSettings.dmPelsWidth    = width;            // Selected Screen Width
-		dmScreenSettings.dmPelsHeight   = height;           // Selected Screen Height
-		dmScreenSettings.dmBitsPerPel   = 32;             // Selected Bits Per Pixel
-		dmScreenSettings.dmFields=DM_BITSPERPEL|DM_PELSWIDTH|DM_PELSHEIGHT;
-		// Try To Set Selected Mode And Get Results.  NOTE: CDS_FULLSCREEN Gets Rid Of Start Bar.
-		bool result = ChangeDisplaySettings(&dmScreenSettings, CDS_FULLSCREEN);
-*/
-
 		Vector2i newMin, newSize;
-
 		// Extract old AppWindow-coordinates first?
 		RECT rect;
 		bool success = GetWindowRect(hWnd, &rect);
@@ -317,7 +308,10 @@ void AppWindow::ToggleFullScreen()
 			WS_CLIPSIBLINGS | WS_VISIBLE);
 		MoveWindow(hWnd, newMin[0], newMin[1], newSize[0], newSize[1], true);
 #elif defined LINUX
-		XWindowSystem::ToggleFullScreen(this);
+		// Get screen size?
+		Vector2i newSize = PrimaryScreen().size;
+	//	newSize = previousSize + Vector2i(200,200);
+		XMoveResizeWindow(xDisplay, xWindowHandle, 0, 0, newSize.x, newSize.y);
 #endif
 		isFullScreen = true;
 	}

@@ -24,9 +24,6 @@ namespace XWindowSystem
 	void CreateDefaultWindow();
 	void SetupProtocols();
 
-	void Resize(AppWindow * window, Vector2i newSize);
-	void ToggleFullScreen(AppWindow * window);
-
 	bool CreateGLContext(AppWindow * forWindow);
 	bool DestroyGLContext(AppWindow * forWindow);
 

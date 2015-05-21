@@ -24,7 +24,9 @@ void LogToFile(String fileName, String logText, int levelFlags)
 	int level = levelFlags % 16;
 	if (logLevel > DEBUG && level <= DEBUG)
 		return;
-	Output(logText);
+	bool printed = Output(logText);
+//	if (!printed)
+//		return;
 	if (level < logLevel)
 		return;
 	if (fileName == PHYSICS_THREAD ||

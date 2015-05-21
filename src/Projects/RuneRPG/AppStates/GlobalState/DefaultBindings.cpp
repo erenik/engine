@@ -16,7 +16,7 @@ void RuneGlobalState::CreateDefaultBindings(){
 
 	/// C = Create, L = List
 
-	mapping->CreateBinding(TOGGLE_FULL_SCREEN, KEY::ALT, KEY::ENTER);
+//	mapping->CreateBinding(TOGGLE_FULL_SCREEN, KEY::ALT, KEY::ENTER);
 	mapping->CreateBinding(RELOAD_BATTLERS, KEY::CTRL, KEY::R, KEY::B, "Reload battles");
 	mapping->SetBlockingKeys(mapping->CreateBinding(OPEN_CONSOLE, KEY::CTRL, KEY::ENTER, "CTRL + ENTER : Open Console"), KEY::ALT);
 
