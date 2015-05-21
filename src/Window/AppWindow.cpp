@@ -457,21 +457,10 @@ bool AppWindow::Create()
  
 	// set AppWindow properties
     XSetStandardProperties(xDisplay, xWindowHandle, "main", None, None, NULL, 0, NULL);
-    // Should be replaced with XSetWMProperties, according to the specification..
-/*
-    // bind the rendering context to the AppWindow
-    bool bound = glXMakeContextCurrent(xDisplay, AppWindow, AppWindow, context);
-    if (bound == false)
-    {
-        assert(false && "Failed to bind context");
-    }
-*/
     // xDisplay X AppWindow on screen
     XMapWindow(xDisplay, xWindowHandle);
-
     // Set title text
     XStoreName(xDisplay, xWindowHandle, Application::name.c_str());
-
     /// Fix so we can intercept AppWindow-Management messages (like pressing the Close-button, ALT+F4, etc!)
     // Ref: http://www.opengl.org/discussion_boards/showthread.php/157469-Properly-destroying-a-AppWindow
     Atom wm_protocol = XInternAtom (xDisplay, "WM_PROTOCOLS", False);

@@ -109,6 +109,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 int main(int argc, char **argv)
 {
 #endif
+
+	// Unit test
+//	Time::Test();
+
 	// Set application-defaults here already?
 	/// Call to set application name, root directories for various features, etc.
 	SetApplicationDefaults();

@@ -32,6 +32,8 @@ public:
 	Time(int type);
 	/// Time using a given type and starting-point. 
 	Time(int type, uint64 intervals);
+	/// Unit test.
+	static void Test();
 	/// o.o
 	static Time Milliseconds(int amount);
 	/// Returns current time in default time-type/-format.

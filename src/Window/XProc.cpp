@@ -13,6 +13,9 @@
 #include "AppWindowManager.h"
 #undef Time
 
+
+#include "File/LogFile.h"
+
 #include <GL/glew.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>  // contains visual information masks and CVisualInfo structure
@@ -153,10 +156,11 @@ void * XProc()
         appWindow->visible = true;
 
         XExposeEvent * expose = (XExposeEvent*)&event;
-        appWindow->clientAreaSize = Vector2i(expose->width, expose->height);
+        /*
         std::cout<<"\nNew size: "<<appWindow->clientAreaSize;
         appWindow->osWindowSize = appWindow->OSWindowSize();
         appWindow->OnSizeUpdated();
+        */
         break;
     }
     /// This event is generated when a window is created. X.SubstructureNotifyMask must be selected on the parent of the new window to receive this event. 
@@ -166,10 +170,10 @@ void * XProc()
         appWindow->created = true; // Mark as created.
 
         XCreateWindowEvent * expose = (XCreateWindowEvent*)&event;
-        appWindow->clientAreaSize = Vector2i(expose->width, expose->height);
-        std::cout<<"\nNew size: "<<appWindow->clientAreaSize;
-        appWindow->osWindowSize = appWindow->OSWindowSize();
-        appWindow->OnSizeUpdated();
+      //  appWindow->clientAreaSize = Vector2i(expose->width, expose->height);
+     //   std::cout<<"\nNew size: "<<appWindow->clientAreaSize;
+    //    appWindow->osWindowSize = appWindow->OSWindowSize();
+   //     appWindow->OnSizeUpdated();
 
         break;
     }
@@ -209,6 +213,12 @@ void * XProc()
         int x, y, width, height;
         width = e.width;
         height = e.height;
+
+          // Fetch window area..
+        // This might just reflect the area of the window that requires most updates.
+        Vector2i windowSize(width, height);
+        appWindow->osWindowSize = appWindow->clientAreaSize = windowSize;
+      
         return NULL;
         break;
 
@@ -256,7 +266,7 @@ void * XProc()
     }
     case MotionNotify: 
     {
-        std::cout<<"\nXMotionNotify";
+        LogMain("XMotionNotify", EXTENSIVE_DEBUG);
         x = event.xbutton.x;
 #define Y_UP_0_AT_BOTTOM(iny) (appWindow->ClientAreaSize().y - iny)
         y = Y_UP_0_AT_BOTTOM(event.xbutton.y);

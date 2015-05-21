@@ -7,6 +7,8 @@
 #include <cassert>
 #include <fstream>
 
+#include "OS/Sleep.h"
+
 #ifdef WINDOWS
 	#include "OS/WindowsIncludes.h"
 #elif defined LINUX
@@ -38,6 +40,19 @@ Time::Time(int type, uint64 intervals)
 	assert(type > TimeType::UNDEFINED && type < TimeType::TIME_TYPES);
 }
 
+/// Unit test.
+void Time::Test()
+{
+	int sleepTime = 10;
+	while(true)
+	{
+		SleepThread(sleepTime);
+		Time now = Time::Now();
+		std::cout<<"\n"+now.ToString("Y-M-D H:m:S");
+		++sleepTime;
+	}
+}
+
 /// o.o
 Time Time::Milliseconds(int amount)
 {
@@ -63,12 +78,31 @@ Time Time::Now()
 	uli.HighPart = fileTime.dwHighDateTime;
 	newTime.intervals = uli.QuadPart;
 #elif defined LINUX
+	// Old version, marked as deprecated in POSIX 2008: http://man7.org/linux/man-pages/man2/settimeofday.2.html
+	/*
 	timeval t1;
     gettimeofday(&t1, NULL);
     newTime.type = TimeType::LINUX_MICROSEC_SINCE_JAN1_1970;
     // seconds + micro seconds
     newTime.intervals = t1.tv_sec * 1000000 + t1.tv_usec;
+    std::cout<<"\ngtod secs: "<<t1.tv_sec;
+    */
     // End result: microseconds since Epoch.
+
+    // New version: http://man7.org/linux/man-pages/man2/clock_gettime.2.html
+    timespec resolution, time;
+    clock_getres(CLOCK_REALTIME, &resolution);
+  //  std::cout<<"\nResolution seconds:"<<resolution.tv_sec<<" nanosec: "<<resolution.tv_nsec;
+    clock_gettime(CLOCK_REALTIME, &time);
+  //  std::cout<<"\nTime: seconds:"<<time.tv_sec<<" nsec"<<time.tv_nsec;
+  //  std::cout<<"\n Realtime: "<<CLOCK_REALTIME;
+
+    newTime.intervals = time.tv_sec;
+    newTime.intervals *= 1000000;
+    newTime.intervals += time.tv_nsec / 1000;
+	newTime.type = TimeType::LINUX_MICROSEC_SINCE_JAN1_1970;
+    
+//	std::cout<<"\nIntervals: "<<newTime.intervals;
 #endif
 	return newTime;
 }
@@ -81,12 +115,23 @@ String Time::ToString(String withFormat)
 	FetchCalenderData();
 
 	String newString;
+	int negater = 1;
 	for (int i = 0; i < withFormat.Length(); ++i)
 	{
 		char c = withFormat.c_str()[i];
 		switch(c)
 		{
-#define TWO_DIGITS(x) if (x < 10) newString += "0" + String(x); else newString += String(x);
+#define TWO_DIGITS(x) \
+			negater = 1;\
+			if (x < 0){\
+				newString += "-"; negater = -1;\
+			}\
+			if (x < 10) \
+				newString += "0" + String(negater * x); \
+			else if (x == 0)\
+				newString = "00";\
+			else \
+				newString += String(x * negater);
 			case 'Y': newString += String(year);	break;
 			case 'M': TWO_DIGITS(month); break;
 			case 'D': TWO_DIGITS(day); break;
@@ -479,9 +524,28 @@ void Time::FetchCalenderData()
 		}
 		case TimeType::LINUX_MICROSEC_SINCE_JAN1_1970:
 		{
-			year = month = day = hour = minute = second = 0;
+			year = month = day = hour = minute = second = -1;
 //			strftime(buf, sizeof(buf), "");
+			// Use Date function for simplicity...
+			// Ref: http://man7.org/linux/man-pages/man1/date.1.html
+//			year = 
+
+			
+	//		std::cout<<"\nIntervals: "<<intervals;
 			int64 seconds = intervals / 1000000;
+	//		std::cout<<"\nSeconds: "<<seconds;
+			time_t tt = seconds;
+			tm t;
+			tm * reuslt = localtime_r(&tt, &t);
+			second = seconds % 60;
+			second = t.tm_sec;
+			minute = t.tm_min;
+			hour = t.tm_hour;
+			day = t.tm_mday;
+			month =  t.tm_mon + 1; // Months since january
+			year = t.tm_year + 1900; // Years since 1900
+
+	/*		int64 seconds = intervals / 1000000;
 			int minutes = seconds / 60;
 			int hours = minutes / 60;
 			int days = hours / 24;
@@ -493,6 +557,7 @@ void Time::FetchCalenderData()
 			day = (days + 5) % 30;
 			month = (days / 29 - 2) % 12;
 			year = years + 1970;
+			*/
 		//	std::cout<<"\nCurrent time: "<<year<<"-"<<month<<"-"<<day<<" "<<hour<<":"<<minute<<":"<<second;
 			break;
 		}

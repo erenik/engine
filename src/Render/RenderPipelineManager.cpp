@@ -85,6 +85,7 @@ RenderPipeline * RenderPipelineManager::Previous()
 // Loads from render/PipelineConfig.txt 
 bool RenderPipelineManager::LoadFromPipelineConfig()
 {
+	LogMain("LoadFromPipelineConfig", INFO);
 	// Open file if not already done so.
 	if (!pipelineConfig.Path().Length())
 		pipelineConfig.SetPath("render/PipelineConfig.txt");
@@ -95,11 +96,12 @@ bool RenderPipelineManager::LoadFromPipelineConfig()
 		return false;
 	}
 	// Check last read time of the file-handle.
+	/*
 	if (!pipelineConfig.HasChanged())
 	{
 		std::cout<<"\nPipeline config file not changed, skipping.";
 		return true;
-	}
+	}*/
 
 	// Set pipeline
 	graphicsState->renderPipe = NULL;
@@ -108,9 +110,11 @@ bool RenderPipelineManager::LoadFromPipelineConfig()
 
 
 	List<String> lines = pipelineConfig.GetLines();
+	LogMain("Lines "+lines.Size(), INFO);
 	for (int i = 0; i < lines.Size(); ++i)
 	{
 		String line = lines[i];
+		std::cout<<"\nLine: "<<line;
 		List<String> tokens = line.Tokenize(" \t");
 		if (!tokens.Size())
 			continue;
@@ -148,6 +152,7 @@ bool RenderPipelineManager::LoadFromPipelineConfig()
 		assert(false && "No active render pipelines to use");
 	}
 	graphicsState->renderPipe = activePipeline;
+//	assert(false);
 }
 
 

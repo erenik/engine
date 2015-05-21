@@ -16,6 +16,8 @@
 #include "Entity/EntityProperty.h"
 #include "InputState.h"
 
+#include "File/LogFile.h"
+
 //#include "../Managers.h"
 #include "OS/OS.h"
 
@@ -371,40 +373,46 @@ void InputManager::MouseClick(AppWindow * AppWindow, bool down, int x, int y)
 	if (mouseLocked)
 		return;
     lButtonDown = down;
-#ifdef MOUSE_COORD_DEBUG
-	std::cout<<"\nMouseClick: "<<x<<" "<<y;
+    LogMain("MouseClick x: "+String(x)+" y: "+String(y)+" down: "+down, EXTENSIVE_DEBUG);
+/*	std::cout<<"\nMouseClick: "<<x<<" "<<y;
 	if (down)
 		std::cout<<" CLICK!";
 	else
-		std::cout<<" UP!";
-#endif
+		std::cout<<" UP!";*/
 
 
 	UIElement * activeElement = NULL;
 	UserInterface * userInterface = RelevantUI();	
 	if (userInterface)
 	{
-
+	    LogMain("UI: "+userInterface->name, EXTENSIVE_DEBUG);
 		// Fetch hover-element from earlier, yo?
 		activeElement = userInterface->GetActiveElement();
+		LogMain("Active element: "+(activeElement? activeElement->name : String("NULL")), EXTENSIVE_DEBUG);
 		// Down!
 		if (down)
 		{
 			// Remove the ACTIVE flag from the previous active element, if any.
 			if (activeElement)
+			{ 
 				activeElement->RemoveState(UIState::ACTIVE);
+			}
+			LogMain("Before click ", EXTENSIVE_DEBUG);
 			UIElement * clicked = userInterface->Click(x,y,true);
-			std::cout<<"\nClicked: "<<clicked? clicked->name : "NULL";
+			LogMain("Clicked: "+(clicked? clicked->name : String("NULL")), EXTENSIVE_DEBUG);
 		}
 		// Up!
 		else if (!down && activeElement)
 		{
+			LogMain("Up o.o", EXTENSIVE_DEBUG);
 			activeElement->Activate();	
 			// Hover afterwards.
 			UIElement * hoverElement = userInterface->Hover(x,y, true);
 			userInterface->SetHoverElement(hoverElement);
 		}
 	}
+	LogMain("lall ", EXTENSIVE_DEBUG);
+	
 	/// Inform the active state of the interaction
 	StateMan.ActiveState()->MouseClick(AppWindow, down, x, y, activeElement);
 }

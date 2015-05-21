@@ -1,8 +1,11 @@
+/// Emil Hedemalm
+/// 2015-05-21
 
 #include "EntityManager.h"
 #include "Model/Model.h"
 #include "Texture.h"
 #include "Graphics/GraphicsManager.h"
+#include "File/LogFile.h"
 extern GraphicsManager graphics;
 
 int EntityManager::idCounter = 1;
@@ -137,7 +140,11 @@ int EntityManager::DeleteUnusedEntities(int timeInMs)
 	if (!entitiesToDelete.Size())
 		return 0;
 	int64 nowMs = Time::Now().Milliseconds();
-	assert(nowMs >= 0);
+	if (nowMs < 0)
+	{
+		LogMain("NowMs: "+String(nowMs), DEBUG);
+		assert(nowMs >= 0);
+	}
 	int deletedEntities = 0;
 	assert(entitiesToDelete.Duplicates() == 0);
 

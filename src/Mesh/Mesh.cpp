@@ -448,7 +448,7 @@ void Mesh::SetName(String str){
 void Mesh::Render()
 {
 	assert(vertexBuffer != -1);
-	LogGraphics("Mesh::Render", EXTENSIVE_DEBUG);
+//	LogGraphics("Mesh::Render", EXTENSIVE_DEBUG);
 	Shader * shader = ActiveShader();
 	// Check for valid buffer before rendering
 	if (graphicsState->BoundVertexArrayBuffer() != vertexBuffer)
@@ -474,7 +474,7 @@ void Mesh::Render()
 
 void Mesh::BindVertexBuffer()
 {
-	LogGraphics("Mesh::BindVertexBuffer", EXTENSIVE_DEBUG);
+//	LogGraphics("Mesh::BindVertexBuffer", EXTENSIVE_DEBUG);
 	// Bind the vertex buffer.
 	graphicsState->BindVertexArrayBuffer(vertexBuffer);
 	Shader * shader = ActiveShader();
