@@ -22,8 +22,6 @@
 #include <X11/keysymdef.h>  // Whole symbol list
 #include <X11/keysym.h>     // Less comprehensive list (Latin1-4 + greek + misc.)
 
-#include <iostream>
-
 /// Program start-up variables!
 extern    XEvent                  event;
 extern    GLXContext              context; // OpenGL context
@@ -181,7 +179,7 @@ void * XProc()
     case FocusOut: {
         std::cout<<"\nXFocusOut";
         /// Clears flags for all input keys. Returns amount of keys that were in need of resetting.
-        int p = Input.ClearInputFlags();
+        int p = InputMan.ClearInputFlags();
 //        std::cout<<"\n "<<p<<" input flags cleared.";
         break;   
     }
@@ -201,22 +199,22 @@ void * XProc()
 	case KeyPress: 
 	{
         std::cout<<"\nXKeyPress";
-		bool upperCase = Input.KeyPressed(KEY::SHIFT);
+		bool upperCase = InputMan.KeyPressed(KEY::SHIFT);
 		xKey = (int) XLookupKeysym(&event.xkey, 0);
 		//        std::cout << "\nXLookupKeysym "<<(int)xKey<<" "<<(char)xKey;
 		keyCode = GetKeyCodeFromXK(xKey);
 		if (keyCode)
-		    Input.KeyDown(keyCode, false);
+		    InputMan.KeyDown(keyCode, false);
 		/// Send down the Keysym straight away for chars..!
 		int modifier = 0;
-		if (Input.KeyPressed(KEY::SHIFT))
+		if (InputMan.KeyPressed(KEY::SHIFT))
 		    ++modifier;
 		int xKey = (int) XLookupKeysym(&event.xkey, modifier);
 		//     std::cout << "\nXLookupKeysym "<<(int)xKey<<" "<<(char)xKey;
 		int c = GetCharFromXK(xKey);
 		//     std::cout<<"\nGetCharFromXK: "<<c<<" "<<(char)c;
 		if (c)
-		    Input.Char(c);
+		    InputMan.Char(c);
 		break;
 	}
     case KeyRelease: 
@@ -229,7 +227,7 @@ void * XProc()
         //    std::cout << "key " << xKey << " was released.";
             keyCode = GetKeyCodeFromXK(xKey);
             if (keyCode)
-                Input.KeyUp(keyCode);
+                InputMan.KeyUp(keyCode);
         }
         break;
     }
@@ -245,7 +243,7 @@ void * XProc()
 #define Y_UP_0_AT_BOTTOM(iny) (appWindow->ClientAreaSize().y - iny)
         y = Y_UP_0_AT_BOTTOM(event.xbutton.y);
       //  PRINT << " " << event[0]button[0] << "," << event[0]button[1];
-        Input.MouseMove(appWindow, Vector2i(x,y));
+        InputMan.MouseMove(appWindow, Vector2i(x,y));
         break;
     }
     case ButtonPress:
@@ -259,15 +257,15 @@ void * XProc()
    //     PRINT << event[0]button.button << " " << event[0]button[0] << "," << event[0]button[1] << ", "<< state <<std::endl;
         /// Left clickur
         if (button == Button1)
-            Input.MouseClick(appWindow, true, x, y);
+            InputMan.MouseClick(appWindow, true, x, y);
         /// Right clickur
         if (button == Button3)
-            Input.MouseRightClick(appWindow, true, x, y);
+            InputMan.MouseRightClick(appWindow, true, x, y);
         /// Scrollur
         if (button == Button4)
-            Input.MouseWheel(appWindow, 1);
+            InputMan.MouseWheel(appWindow, 1);
         else if (button == Button5)
-            Input.MouseWheel(appWindow, -1);
+            InputMan.MouseWheel(appWindow, -1);
         break;
     }
     case ButtonRelease:
@@ -277,9 +275,9 @@ void * XProc()
  //       std::cout << "ButtonRelease: ";
  //       PRINT << event[0]button.button << " " << event[0]button[0] << "," << event[0]button[1] << std::endl;
         if (button == Button1)
-            Input.MouseClick(appWindow, false, x, y);
+            InputMan.MouseClick(appWindow, false, x, y);
         if (button == Button3)
-            Input.MouseRightClick(appWindow, false, x, y);
+            InputMan.MouseRightClick(appWindow, false, x, y);
         break;
     case EnterNotify:
         std::cout << "\nXEnterNotify";

@@ -4,44 +4,10 @@
 #include "Input/InputManager.h"
 #include "Input/Action.h"
 
-/*
-#include "OS/Sleep.h"
-#include "Player/PlayerManager.h"
-#include "Graphics/Messages/GraphicsMessages.h"
-
-#include "Graphics/GraphicsManager.h"
-#include "StateManager.h"
-#include "Physics/PhysicsManager.h"
-#include "Graphics/FrameStatistics.h"
-#include "Model/ModelManager.h"
-#include "TextureManager.h"
-#include "Multimedia/MultimediaManager.h"
-#include "Application/Application.h"
-#include "Window/AppWindowManager.h"
-#include "Viewport.h"
-
-#include "Message/FileEvent.h"
-#include "Message/MessageManager.h"
-#include "Window/DragAndDrop.h"
-*/
 enum generalActions
 {
 	NULL_ACTION,
-
-
 };
-
-
-/// Linux
-/*
-#if defined LINUX
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>  // contains visual information masks and CVisualInfo structure
-#include <X11/Xatom.h>
-extern AppWindow AppWindow;
-extern Display * display;
-#endif
-*/
 
 /// Creates bindings that are used for debugging purposes only
 void CreateDefaultGeneralBindings()
@@ -79,36 +45,7 @@ void CreateDefaultGeneralBindings()
 	BIND(Action::FromEnum(DEBUG_NEXT), KEY::F5);
 	BIND(Action::FromEnum(DEBUG_PREVIOUS), KEY::F6);
 
+	BIND(Action::FromEnum(LIGHTEN_BACKGROUND), List<int>(KEY::L, KEY::B));
+	BIND(Action::FromEnum(DARKEN_BACKGROUND), List<int>(KEY::D, KEY::B));
 
-	/*
-	mapping->CreateBinding(CLOSE_WINDOW, ctrl, KEY::W);
-	mapping->CreateBinding(OPEN_LIGHTING_EDITOR, ctrl, KEY::O, KEY::L);
-	mapping->CreateBinding(TOGGLE_RENDER_PHYSICS, ctrl, KEY::R, KEY::P);
-	mapping->CreateBinding(TOGGLE_RENDER_LIGHTS, ctrl, KEY::R, KEY::L);
-	mapping->CreateBinding(TOGGLE_RENDER_WAYPOINTS, ctrl, KEY::R, KEY::W);
-	mapping->CreateBinding(CYCLE_RENDER_PIPELINE, ctrl, KEY::R, KEY::PLUS);
-	mapping->CreateBinding(CYCLE_RENDER_PIPELINE_BACK, ctrl, KEY::R, KEY::MINUS);
-
-	Input.general.CreateBinding(RECORD_VIDEO, KEY::CTRL, KEY::R, KEY::V);
-	Input.general.CreateBinding("PrintScreenshot", KEY::PRINT_SCREEN);
-    Input.general.CreateBinding(PRINT_FRAME_TIME, KEY::CTRL, KEY::T);
-
-	Input.general.CreateBinding(QUIT_APPLICATION, KEY::ALT, KEY::F4);
-	//Input.general.CreateBinding(QUIT_APPLICATION, KEY::ALT, KEY::F4);
-	Input.general.CreateBinding(PASTE, KEY::CTRL, KEY::V);
-	Input.general.CreateBinding(COPY, KEY::CTRL, KEY::C);
-	Input.general.CreateBinding(GO_TO_MAIN_MENU, KEY::CTRL, KEY::G, KEY::M);
-	
-	Input.general.CreateBinding(PRINT_TO_FILE, KEY::CTRL, KEY::P, KEY::F);
-
-	Input.general.CreateBinding(RELOAD_MODELS, KEY::CTRL, KEY::R, KEY::M, "CTRL+R+M : Reload models");
-	Input.general.CreateBinding(GO_TO_EDITOR, KEY::CTRL, KEY::G, KEY::E);
-
-	Input.general.CreateBinding(PRINT_PLAYER_INPUT_DEVICES, KEY::L, KEY::I);
-    Input.general.CreateBinding(LIST_TEXTURES, KEY::L, KEY::T);
-    Input.general.CreateBinding(LIST_CAMERAS, KEY::L, KEY::C);
-    Binding * binding = Input.general.CreateBinding(LIST_MODELS, KEY::L, KEY::M);
-	Input.general.SetBlockingKeys(binding, KEY::CTRL);
-    Input.general.CreateBinding(PRINT_UI_TREE, KEY::L, KEY::U);
-	*/
 };

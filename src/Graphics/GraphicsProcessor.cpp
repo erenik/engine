@@ -31,15 +31,6 @@ extern THREAD_HANDLE graphicsThread;
 
 /// Linux includes and globals
 #elif defined USE_X11
-/*
-// Global variables
-#include <GL/glx.h>     // connect X server with OpenGL
-extern GLXContext       context; // OpenGL context
-extern Display*         display; // connection to X server
-extern XVisualInfo*     visual_info;
-extern AppWindow           AppWindow;
-extern void testRender();
-*/
 // OSX!
 #elif defined OSX & 0
 #include <AGL/AGL.h>

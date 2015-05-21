@@ -6,7 +6,14 @@
 #include "Window/AppWindowManager.h"
 #include "GraphicsState.h"
 
+#include "Window/WindowSystem.h"
 #include "Graphics/FrameStatistics.h"
+
+#ifdef USE_X11
+	#include "Window/XWindowSystem.h"
+	#include "Window/XIncludes.h"
+	extern Display * xDisplay;
+#endif
 
 int framesSkipped = 0;
 
@@ -21,6 +28,12 @@ void GraphicsManager::RenderWindows()
 	{
 	renderWindowStart:
 		AppWindow * window = windows[i];
+
+		/// Tester functions.
+		SetupViewProjectionGL(400, 400);
+		RenderTestTriangle();
+
+
 		// Only render visible windows?
 		if (!window->IsVisible())
 		{
@@ -49,7 +62,7 @@ void GraphicsManager::RenderWindows()
 			std::cout<<"\nError in SwapBuffers(window->hdc)";
 		}
 #elif defined USE_X11
-		glXSwapBuffers(display, window);
+		glXSwapBuffers(xDisplay, window->xWindowHandle);
 #endif
 		int64 swapBufferFrameTime = swapBufferTimer.GetMs();	
 		FrameStats.swapBuffers += swapBufferTimer.GetMs();

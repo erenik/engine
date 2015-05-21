@@ -16,19 +16,6 @@
 #include "Texture.h"
 #include "Window/AppWindow.h"
 
-/*
-/// Win32 includes!
-#ifdef WINDOWS
-#include <windows.h>
-/// Linux includes!
-#elif defined USE_X11
-#include <GL/glx.h>     // connect X server with OpenGL
-#include <X11/Xlib.h>
-extern AppWindow                  AppWindow;
-extern Display*                display; // connection to X server
-#endif
-*/
-
 /// Renders the active scene, including UI, etc.
 void GraphicsManager::RenderWindow()
 {
@@ -42,34 +29,14 @@ void GraphicsManager::RenderWindow()
 	
 	PrintTime("\nFrame start!");
 
-	/*
-    Timer preRenderTimer;
-    preRenderTimer.Start();
-
-    // Set some standard rendering options.
-    glEnable(GL_DEPTH_TEST);
-
-	// Backface culling
-	if (backfaceCullingEnabled){
-		glEnable(GL_CULL_FACE);
-		glCullFace(GL_BACK);
-		glFrontFace(GL_CCW);
-	}
-	else
-		glDisable(GL_CULL_FACE);
-
-	PrintTime("\nCullface: ");
-
-
-    // Clears the color and depth buffers
-   // glClearColor(0.1f, 0.1f, 0.15f, 0.5f);
-//    glClearColor(renderSettings->clearColor[0], renderSettings->clearColor[1], renderSettings->clearColor[2], 1.0f);
-    PrintTime("\nglClearColor: ");
-	*/
 	Vector4f color = window->backgroundColor; 
 	color = Vector4f(0.2f, 0.2f, 0.2f, 1.f);
-	glClearColor(color[0], color[1], color[2], color[3]);
+
+	extern float backgroundFactor;
+	Vector4f bgColor = color + Vector4f(1,1,1,1) * backgroundFactor;
+	glClearColor(bgColor.x, bgColor.y, bgColor.z, bgColor.w);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
 	/*
 	/// Testing...
 //	return;

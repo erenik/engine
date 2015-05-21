@@ -94,7 +94,7 @@ void Shader::DeleteShader()
 		glGetProgramiv(shaderProgram, GL_DELETE_STATUS, &deleteStatus);
 		if (deleteStatus == GL_FALSE)
     		glDeleteProgram(shaderProgram);
-		shaderProgram = NULL;
+		shaderProgram = 0;
 	}
 	vertexShader = fragmentShader = 0;
 }

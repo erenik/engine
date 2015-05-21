@@ -43,4 +43,9 @@ namespace OpenGL {
 
 };
 
+/// Tester functions.
+void SetupViewProjectionGL(int width, int height);
+void RenderTestTriangle();
+void RenderTestTriangle(float rot);
+
 #endif

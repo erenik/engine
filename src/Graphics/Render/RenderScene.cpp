@@ -228,7 +228,7 @@ void GraphicsManager::RenderScene()
 	{
 
 		// Unbind the frame buffer from usage
-		glBindFramebuffer(GL_FRAMEBUFFER, NULL);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		/// Set shader program
 		Shader * shader = ShadeMan.SetActiveShader("Lighting");
 

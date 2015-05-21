@@ -312,8 +312,10 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 			-DGLEW_BUILD # For glew to link properly..?
 		)
 		set(custom_libraries libGL.so  libGLU.so "-lGLEW")
+		# Link to X11
+		set(custom_libraries ${custom_libraries} "-lX11 -lpthread")
 		# AL
-		set(custom_libraries ${custom_libraries} "-lalut -lopenal")
+		set(custom_libraries ${custom_libraries} "-lopenal")
 		# Ogg Vorbis
 		set(custom_libraries ${custom_libraries} "-logg" "-lvorbis" "-lvorbisfile")
 		# Theora

@@ -99,6 +99,15 @@ void Action::TriggerStart()
 	Viewport * mainViewport = activeWindow ? activeWindow->MainViewport() : 0;
 	switch(type)
 	{
+		case LIGHTEN_BACKGROUND:
+			extern float backgroundFactor;
+			backgroundFactor += 0.05f;
+			std::cout<<"\nBackground factor: "<<backgroundFactor;
+			break;
+		case DARKEN_BACKGROUND:
+			backgroundFactor -= 0.05f;
+			std::cout<<"\nBackground factor: "<<backgroundFactor;
+			break;
 		case DEBUG_NEXT:
 			++debug;
 			std::cout<<"\nDebug set to "<<debug;
@@ -223,7 +232,8 @@ void Action::TriggerStart()
 			Graphics.ToggleFullScreen(WindowMan.GetCurrentlyActiveWindow());
 			break;
 		}
-
+		default:
+			assert(false && "Implement");
 	}
 }
 

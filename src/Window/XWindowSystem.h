@@ -32,6 +32,9 @@ namespace XWindowSystem
 
 	// For testing-purposes.
 	void MainLoop();
+
+	// if double buffering is enabled for created windows.
+	extern bool swapBuffers;
 };
 
 #endif

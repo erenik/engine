@@ -513,7 +513,7 @@ const char MSG_BUTTON_CANCEL	= 0x02;
 const char MSG_INPUTFIELD		= 0x04;
 
 // Creation functions
-UIElement* createUIMessageBox(char * title = NULL, char * body = NULL, int settings = NULL);
+UIElement* createUIMessageBox(char * title = 0, char * body = 0, int settings = 0);
 // Stuff
 void appendTextToMessagebox(const char * i_message);
 

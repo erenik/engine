@@ -11,7 +11,9 @@ EVertex::EVertex()
 
 const EVertex & EVertex::operator = (const Vector3f & assign)
 {
-	data = assign.data;
+	x = assign.x;
+	y = assign.y;
+	z = assign.z;
 	return *this;
 }
 	

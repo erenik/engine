@@ -249,7 +249,7 @@ bool UIElement::FetchBindAndBufferizeTexture()
             texture = TexMan.GetTextureByName(textureSource);
 		/// Unable to fetch target-texture, so skip it.
 		if (!texture){
-            glBindTexture(GL_TEXTURE_2D, NULL);
+            glBindTexture(GL_TEXTURE_2D, 0);
             validTexture = false;
 		}
 		else {
@@ -485,7 +485,7 @@ UIElement* UIElement::Click(int mouseX, int mouseY)
 			// since we haven't found the selected element.
 			state = UIState::IDLE;
 			//	if(child != NULL)
-			return NULL;
+			return 0;
 	}
 
 	// Check axiomaticness (direct-activation without further processing)
@@ -494,7 +494,7 @@ UIElement* UIElement::Click(int mouseX, int mouseY)
 			state |= UIState::ACTIVE;
 			return this;
 		}
-		return NULL;
+		return 0;
 	}
 
 	// Alright, the mouse is inside this element!
@@ -594,7 +594,7 @@ UIElement * UIElement::GetElement(float & mouseX, float & mouseY){
     UIElement* result = 0;
 	// Don't process invisible UIElements, please.
 	if (visible == false)
-		return false;
+		return 0;
 
 	// Check if the mouse is outside the element's boundaries.
 	if (mouseX > right || mouseX < left ||
@@ -927,16 +927,16 @@ void UIElement::DeselectAll(){
 
 UIElement* UIElement::GetElementByPos(int i_posX, int i_posY){
 
-	UIElement* result = NULL;
+	UIElement* result = 0;
 	// Don't process invisible UIElements, please.
 	if (visible == false)
-		return false;
+		return 0;
 	// Check if the mouse is outside the element's boundaries.
 	if (i_posX < posX || i_posX > posX + sizeX ||
 		i_posY < posY || i_posY > posY + sizeY){
 		// Return false if we are outside of the boundaries,
 		// since we haven't found the selected element.
-		return NULL;
+		return 0;
 	}
 
 	// Alright, the mouse is inside this element!
@@ -944,7 +944,7 @@ UIElement* UIElement::GetElementByPos(int i_posX, int i_posY){
 	for (int i = 0; i < children.Size(); ++i){
 		result = children[i]->GetElementByPos((int)(i_posX - posX), (int)(i_posY - posY));
 		// If so, check if they are the active element.
-		if (result != NULL){
+		if (result != 0){
 			// The active element has been found further down the tree,
 			// so we can return true.
 			return result;
@@ -959,13 +959,13 @@ UIElement* UIElement::GetElementByPos(int i_posX, int i_posY){
 UIElement* UIElement::GetActiveElement(){
 	if (state & UIState::ACTIVE)
 		return this;
-	UIElement * result = NULL;
+	UIElement * result = 0;
 	for (int i = 0; i < children.Size(); ++i){
 		result = children[i]->GetActiveElement();
 		if (result)
 			return result;
 	}
-	return NULL;
+	return 0;
 }
 
 /// Getter for element by state, where the stateFlag will be bitwise anded (&) to fetch the correct element.
@@ -2023,8 +2023,8 @@ UISliderHandle::~UISliderHandle()
 UISlider::UISlider()
 : UIElement()
 {
-	type= UIType::SLIDER_BAR;
-	progress = NULL;
+	type = UIType::SLIDER_BAR;
+	progress = 0;
 };
 
 UISlider::~UISlider()

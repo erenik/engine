@@ -1,6 +1,7 @@
-// Fredrik Larsson && Emil Hedemalm
-// 2013-07-03 Linuxifixation!
+// Emil Hedemalm && Fredrik Larsson
+// 2015-05-20 (2013-07-03)
 
+#include "OS/Sleep.h"
 #include "AppWindow.h"
 #include "Application/Application.h"
 #include "AppWindowManager.h"
@@ -104,6 +105,7 @@ AppWindow::AppWindow(String name, String displayName)
 	renderState = true;
 	renderScene = true;
 	renderUI = true;
+	swapBuffers = false;
 
 	backgroundColor = Vector4f(0.5f,.5f,.5f,1);
 
@@ -443,6 +445,16 @@ bool AppWindow::Create()
 	    std::cout<<"\nXCreateWindow created window "<<xWindowHandle<<" successfully";
 	else
 		std::cout<<"\nXCreateWindow failed.";
+
+	/// Create graphical context... o.o
+    XFontStruct * fontinfo = XLoadQueryFont(xDisplay, "10x20");
+    XGCValues gr_values;
+    gr_values.font = fontinfo->fid;
+    gr_values.foreground = XBlackPixel(xDisplay, 0);
+
+    GC graphical_context;
+    graphical_context = XCreateGC(xDisplay, xWindowHandle, GCFont+GCForeground, &gr_values);
+ 
 	// set AppWindow properties
     XSetStandardProperties(xDisplay, xWindowHandle, "main", None, None, NULL, 0, NULL);
     // Should be replaced with XSetWMProperties, according to the specification..
@@ -826,73 +838,13 @@ bool AppWindow::CreateGLContext()
 	void * shareContext = 0;
 	bool directRender = true;
 	assert(xGLContext == 0);
-	xGLContext = glXCreateContext(xDisplay, xVisualInfo, (GLXContext)shareContext, directRender);
+//	xGLContext = glXCreateContext(xDisplay, xVisualInfo, (GLXContext)shareContext, directRender);
+	xGLContext = glXCreateContext(xDisplay, xVisualInfo, None, true);
+
+	// Test render..?
+//	TestRender();
+
 	assert(xGLContext);
-//   	bool result;
-//   	/// Look into this..
-//   	int screenNumber = 0;
-//   	int defaultScreen = XDefaultScreen(xDisplay);
-//   	screenNumber = defaultScreen;
-//   	LogGraphics("Default Screen: "+String(defaultScreen), INFO);
-//   	int numReturned;
-//   	// https://www.opengl.org/sdk/docs/man2/xhtml/glXChooseFBConfig.xml
-//   	GLXFBConfig * glxfbConfig = glXChooseFBConfig(xDisplay, screenNumber, 0, &numReturned);
-//   	LogGraphics("glxfbConfig generated: "+String((int64)glxfbConfig)+" num elements: "+String(numReturned), INFO);
-//   	PrintGLXFBConfig(glxfbConfig, numReturned);
-//   	int suggested = (int64) glxfbConfig[0];
-//   	XFree(glxfbConfig);
-
-//   	// https://www.opengl.org/sdk/docs/man2/xhtml/glXChooseFBConfig.xml
-//   	// Fetch a default set-up?
-//   	List<int> attribList;
-// 	  	attribList.Add(GLX_RENDER_TYPE, GLX_RGBA_BIT);
-// 	  	attribList.Add(GLX_DRAWABLE_TYPE, 
-// 	  		GLX_WINDOW_BIT //  For windows
-// 	  //		 | GLX_PBUFFER_BIT // Needed for pixel buffers
-// 	  		);
-// 	  	attribList.Add(GLX_X_RENDERABLE, True);
-// 	  	attribList.AddItem(None);
-//   	numReturned = 0;
-
-//   	for (int i = 0; i < attribList.Size(); ++i)
-//   	{
-//   		LogGraphics("Attrib "+String(i)+": "+String(attribList[i]), INFO);
-//   	}
-
-//   	glxfbConfig = glXChooseFBConfig(xDisplay, screenNumber, attribList.GetArray(), &numReturned);
-//   	LogGraphics("glxfbConfig generated: "+String((int64)glxfbConfig)+" num elements: "+String(numReturned), INFO);
-//   	PrintGLXFBConfig(glxfbConfig, numReturned);
-//   	assert(glxfbConfig);
-
-
-//   	// Create the on-screen rendering area from an existing X window.
-//   	// https://www.opengl.org/sdk/docs/man2/xhtml/glXCreateWindow.xml
-//   	// xGLWindow = glXCreateWindow(xDisplay, *glxfbConfig, xWindowHandle, 0);
-//   	// LogGraphics("xGLWindow created: "+String(xGLWindow), INFO);
-//   	// assert(xGLWindow != 0);
-
-//   	// Attach GLX context to the window?
-// //  	LogGraphics("Attaching GLXContext ("+String((int64)xGLContext)+")to GLXWindow ("+String((int64)xGLWindow)+")", INFO);
-
-//   	// // Create pixel-buffer.?
-//   	// attribList.Clear();
-//   	// attribList.Add(GLX_PBUFFER_WIDTH, 800);
-//   	// attribList.Add(GLX_PBUFFER_HEIGHT, 600);
-//   	// attribList.Add(GLX_PRESERVED_CONTENTS, True);
-//   	// attribList.Add(GLX_LARGEST_PBUFFER, False);
-//   	// attribList.AddItem(None);
-// //  	LogGraphics("glXCreatePbuffer", INFO);
-//  // 	GLXPbuffer pBufferId = glXCreatePbuffer(xDisplay, glxfbConfig[0], attribList.GetArray());
-
-//   	/// Create context based on previously set parameters.
-//   	LogGraphics("glXGetVisualFromFBConfig", INFO);
-//   	XVisualInfo * visInfo = glXGetVisualFromFBConfig(xDisplay, glxfbConfig[0]);
-
-//   	LogGraphics("glXCreateContext", INFO);
-// 	xGLContext = glXCreateContext(xDisplay, visInfo, NULL, True );
-//   	LogGraphics("glXCreateContext - done", INFO);
-  	/// Free the memory we got returned earlier.
-//  	XFree(glxfbConfig);
   	return true;
 #else
   	fel
@@ -926,33 +878,39 @@ bool AppWindow::MakeGLContextCurrent()
 	// Make it current
 	bool result = wglMakeCurrent(hdc, hglrc);	
 #elif defined USE_X11
-	if (xDisplay == 0)
-		LogGraphics("xDisplay null", ERROR);
-	if (xWindowHandle == 0)
-		LogGraphics("xWindowHandle null", ERROR);
-	if (xGLContext == 0)
-		LogGraphics("xGLContext null", ERROR);
-
-    LogGraphics("glXMakeCurrent... ", INFO);
     // Lock it.
     XLockDisplay(xDisplay);
 	bool result = glXMakeCurrent(xDisplay, xWindowHandle, (GLXContext)	 xGLContext);
 	XUnlockDisplay(xDisplay);
-	LogGraphics("glXMakeCurrent - done", INFO);
-
-//     LogGraphics("True: "+String(True)+" False: "+String(False), INFO);
-// 	LogGraphics("Calling glXMakeContextCurrent with args "+
-// 		String((int64)xDisplay)+" "+
-// 		String((int)xGLWindow)+" "+
-// 		String((int64)xGLContext), INFO);
-// //	std::cout<<"\nxDisplay: "<<xDisplay;
-//     bool result = glXMakeContextCurrent(xDisplay, 
-//     	xGLWindow, 
-//     	xGLWindow, 
-//     	(GLXContext) xGLContext);
-// 	LogGraphics("Called glXMakeContextCurrent result "+String(result), INFO);
 #endif
 	return result;
+}
+
+void AppWindow::TestRender()
+{
+	MakeGLContextCurrent();
+//	glXMakeContextCurrent(xDisplay, xWindowHandle, xWindowHandle, (GLXContext)xGLContext);
+	float triangleRot = 0.f;
+	XWindowAttributes 		window_attributes;
+	while(true)
+	{
+		// Spawn a thread for each?
+		// bind the rendering context to the window
+		XGetWindowAttributes(xDisplay, xWindowHandle, &window_attributes);
+		SetupViewProjectionGL(window_attributes.width, window_attributes.height);
+		RenderTestTriangle(triangleRot);
+		triangleRot += 0.1f;
+		if(XWindowSystem::swapBuffers)
+		{
+			glXSwapBuffers(xDisplay, xWindowHandle);
+		}
+		else
+		{
+			glFlush();
+		}
+		SleepThread(10);
+		
+	}
 }
 
 bool AppWindow::DeleteGLContext()

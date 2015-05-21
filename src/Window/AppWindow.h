@@ -148,6 +148,7 @@ public:
 	int MemLeakTest();
 	bool CreateGLContext();
 	bool MakeGLContextCurrent();
+	void TestRender();
 	bool DeleteGLContext();
 	
 	// Reference name used when coding/working with the AppWindow.
@@ -237,6 +238,7 @@ public:
 		True by default.
 	*/
 	bool hideOnEsc;
+	bool swapBuffers;
 private:
 
 	

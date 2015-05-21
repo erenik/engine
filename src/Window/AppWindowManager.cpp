@@ -117,7 +117,6 @@ void WindowManager::ProcessMessages()
 	}
 	
 #elif defined USE_X11
-	return;
 	/// Lock display while polling events?
 //	XLockDisplay(xDisplay);
 	// TODO: Add linux version in an elif for more created windows?

@@ -24,6 +24,10 @@ enum {
 	/// Application state
 	QUIT_APPLICATION,
 
+	// For testing graphics
+	LIGHTEN_BACKGROUND,
+	DARKEN_BACKGROUND,
+
 	// Reloading stuff.
 	RELOAD_UI,
 	RECOMPILE_SHADERS,

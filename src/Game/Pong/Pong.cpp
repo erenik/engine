@@ -67,9 +67,9 @@ Pong::Pong()
 Pong::~Pong()
 {
 	// Reset integrator and stuff before we delete any entities, or wat?
-	Physics.QueueMessage(new PMSeti(PT_PHYSICS_INTEGRATOR, NULL));
-	Physics.QueueMessage(new PMSeti(PT_COLLISION_DETECTOR, NULL));
-	Physics.QueueMessage(new PMSeti(PT_COLLISION_RESOLVER, NULL));
+	Physics.QueueMessage(new PMSeti(PT_PHYSICS_INTEGRATOR, 0));
+	Physics.QueueMessage(new PMSeti(PT_COLLISION_DETECTOR, 0));
+	Physics.QueueMessage(new PMSeti(PT_COLLISION_RESOLVER, 0));
 	SleepThread(50);
 	ballProperties.Clear();
 	MapMan.DeleteEntities(GetEntities());

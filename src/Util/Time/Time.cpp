@@ -327,7 +327,7 @@ int64 Time::Milliseconds() const
 			return intervals;
 	}
 	int64 micro = Microseconds();
-	assert(micro >= 0);
+//	assert(micro >= 0);
 	return micro / 1000;
 }	
 
