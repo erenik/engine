@@ -109,6 +109,7 @@ public:
 	bool InFocus() {return inFocus; };
 	bool IsFullScreen() { return isFullScreen; };
 	void MoveToMonitor(int monitorIndex);
+	void OnSizeUpdated();
 
 	/// Returns the area available for application-specific rendering. 
 #define WorkingArea ClientAreaSize

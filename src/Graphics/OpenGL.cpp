@@ -9,17 +9,8 @@
 int GL_VERSION_MAJOR = 0;
 int GL_VERSION_MINOR = 0;
 
+#include "Output.h"
 
-struct TextError
-{
-	TextError(){};
-	TextError(String str) : text(str)
-	{
-		times = 0;
-	};
-	String text;
-	int times;
-};
 List<TextError> interceptedErrors;
 
 /// Uses switch-case to print out relevant informatoin to the console. Returns the error code if any.

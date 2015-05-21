@@ -249,10 +249,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		// Recalculate OS window size.
 		window->osWindowSize = window->OSWindowSize();
 
-		/// Inform that the window's position has changed?
-		WindowMessage * mes = new WindowMessage(WMes::SIZE_UPDATED);
-		mes->size = window->clientAreaSize;
-		MesMan.QueueMessage(mes);
+		window->OnSizeUpdated();
 
 		// If an application processes this message, it should return zero.
 		return 0;

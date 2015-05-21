@@ -9,6 +9,8 @@
 #include "Time/Time.h"
 #include <fstream>
 
+#include "Output.h"
+
 /// o=-o
 List<String> logsStartedThisSession;
 
@@ -22,7 +24,7 @@ void LogToFile(String fileName, String logText, int levelFlags)
 	int level = levelFlags % 16;
 	if (logLevel > DEBUG && level <= DEBUG)
 		return;
-	std::cout<<"\n"<<logText;
+	Output(logText);
 	if (level < logLevel)
 		return;
 	if (fileName == PHYSICS_THREAD ||

@@ -23,6 +23,7 @@ void GraphicsManager::RenderViewport(Viewport * vp)
 	vp->UpdateSize();
 	/// Viewport.. so width and height are based on the viewport.
 	int width = vp->size[0], height = vp->size[1];
+//	std::cout<<"\nViewport size: "<<width<<"x"<<height;
 	
 	/// Absolute coordinates
 	graphicsState->activeViewport->SetGLViewport();

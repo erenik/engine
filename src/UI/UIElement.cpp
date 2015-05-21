@@ -1356,9 +1356,7 @@ void UIElement::Bufferize()
 		/// Create VAO
 
 		// Check for errors before we proceed.
-		GLuint err2 = glGetError();
-		if (err2 != GL_NO_ERROR)
-			std::cout<<"\nINFO: Old GLError in UIElement::Bufferize";
+		CheckGLError("UIElement::Bufferize");
 
 		if (GL_VERSION_MAJOR >= 3){
 		// Generate VAO and bind it straight away if we're above GLEW 3.0

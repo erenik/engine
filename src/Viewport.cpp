@@ -112,6 +112,7 @@ void Viewport::SetGLViewport()
 /// Update size based on AppWindow it resides in.
 void Viewport::UpdateSize()
 {
+//	std::cout<<"\nViewport::UpdateSize relative:"<<relative;
 	assert(window);
 	if (relative)
 	{
@@ -119,6 +120,7 @@ void Viewport::UpdateSize()
 		Vector2i windowWorkingArea = window->ClientAreaSize();
 		size = relativeSize.ElementMultiplication(windowWorkingArea);
 		bottomLeftCorner = relativeOffset.ElementMultiplication(windowWorkingArea);
+	//	std::cout<<"\nRO: "<<relativeOffset<<" wwa: "<<windowWorkingArea;
 	}
 	else 
 	{

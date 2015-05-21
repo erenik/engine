@@ -540,6 +540,10 @@ Vector2i AppWindow::OSWindowSize()
 	RECT rect;
 	GetWindowRect(hWnd, &rect);
 	return Vector2i(rect.right - rect.left, rect.bottom - rect.top);
+#elif defined USE_X11
+	return clientAreaSize;
+#else
+	blooo
 #endif
 }
 
@@ -578,6 +582,10 @@ Vector2i AppWindow::ClientAreaSize()
 	RECT rect;
 	GetClientRect(hWnd, &rect);
 	return Vector2i(rect.right - rect.left, rect.bottom - rect.top);
+#elif defined USE_X11
+	return clientAreaSize;
+#else
+	assert(false);
 #endif
 }
 
@@ -587,6 +595,8 @@ Vector2i AppWindow::GetTopLeftCorner()
 	RECT rect;
 	GetWindowRect(hWnd, &rect);
 	return Vector2i(rect.left, rect.top);
+#else
+	assert(false);
 #endif
 }
 
@@ -597,6 +607,8 @@ int AppWindow::GetRight()
 	RECT rect;
 	GetWindowRect(hWnd, &rect);
 	return rect.right;
+#else
+	assert(false);
 #endif
 }
 
@@ -610,6 +622,8 @@ void AppWindow::MoveCenterTo(Vector2i position)
 	Vector2i halfSize = size * 0.5f;
 	Vector2i newTopLeft = position - halfSize;
 	MoveWindow(hWnd, newTopLeft[0], newTopLeft[1], size[0], size[1], true);
+#else
+	assert(false);
 #endif
 }
 
@@ -643,7 +657,8 @@ void AppWindow::Show()
 			std::cout<<"Invalid MEM";
 			break;
 	}
-
+#else
+	XMapWindow(xDisplay, xWindowHandle);
 #endif
 }
 
@@ -652,6 +667,8 @@ void AppWindow::Hide()
 {
 #ifdef WINDOWS
 	ShowWindow(hWnd, SW_HIDE);
+#else
+	assert(false);
 #endif
 	WindowMan.OnWindowHidden(this);
 }
@@ -660,6 +677,8 @@ void AppWindow::BringToTop()
 {
 #ifdef WINDOWS
 	BringWindowToTop(hWnd);
+#else
+	assert(false);
 #endif
 }
 
@@ -1047,3 +1066,12 @@ bool AppWindow::SetupPixelFormat(HDC hDC)
 }
 #endif
 
+#include "Message/WindowMessage.h"
+
+void AppWindow::OnSizeUpdated()
+{
+    /// Inform that the window's position has changed?
+    WindowMessage * mes = new WindowMessage(WMes::SIZE_UPDATED);
+    mes->size = this->clientAreaSize;
+    MesMan.QueueMessage(mes);	
+}

@@ -101,6 +101,10 @@ int GetKeyCodeFromXK(int xk){
         case XK_Alt_L: case XK_Alt_R: return KEY::ALT;
         case XK_space: return KEY::SPACE;
 
+        /// Numpad plus/-
+        case XK_KP_Add: return KEY::PLUS;
+        case XK_KP_Subtract: return KEY::MINUS;
+
 	}
     std::cout<<"\nUndefined Xkey code "<<xk;
 	return 0;
@@ -147,6 +151,12 @@ void * XProc()
     case Expose: {
         std::cout<<"\nXExposeEvent";
         appWindow->visible = true;
+
+        XExposeEvent * expose = (XExposeEvent*)&event;
+        appWindow->clientAreaSize = Vector2i(expose->width, expose->height);
+        std::cout<<"\nNew size: "<<appWindow->clientAreaSize;
+        appWindow->osWindowSize = appWindow->OSWindowSize();
+        appWindow->OnSizeUpdated();
         break;
     }
     /// This event is generated when a window is created. X.SubstructureNotifyMask must be selected on the parent of the new window to receive this event. 
@@ -154,6 +164,13 @@ void * XProc()
     {
         std::cout<<"\nXCreateNotify";
         appWindow->created = true; // Mark as created.
+
+        XCreateWindowEvent * expose = (XCreateWindowEvent*)&event;
+        appWindow->clientAreaSize = Vector2i(expose->width, expose->height);
+        std::cout<<"\nNew size: "<<appWindow->clientAreaSize;
+        appWindow->osWindowSize = appWindow->OSWindowSize();
+        appWindow->OnSizeUpdated();
+
         break;
     }
     /// Sent after destroying my AppWindow? D:
@@ -174,10 +191,12 @@ void * XProc()
     // http://tronche.com/gui/x/xlib/events/input-focus/#XFocusChangeEvent
     case FocusIn: {
         std::cout<<"\nXFocusIn";
+        appWindow->inFocus = true;
         break;
     }
     case FocusOut: {
         std::cout<<"\nXFocusOut";
+        appWindow->inFocus = false;
         /// Clears flags for all input keys. Returns amount of keys that were in need of resetting.
         int p = InputMan.ClearInputFlags();
 //        std::cout<<"\n "<<p<<" input flags cleared.";
@@ -190,7 +209,6 @@ void * XProc()
         int x, y, width, height;
         width = e.width;
         height = e.height;
-        appWindow->clientAreaSize = appWindow->osWindowSize = Vector2i(width, height);        
         return NULL;
         break;
 

@@ -339,8 +339,7 @@ Texture * TextureManager::LoadTexture(String source, bool noPathAdditions)
         std::cout<<": "<<source;
     }
 
-
-	std::cout<<"\nLoading texture \""<<source.c_str()<<"\"...";
+	LogMain("Loading texture \""+source+"\"...", DEBUG);
 
 
 	if (!FileExists(source))

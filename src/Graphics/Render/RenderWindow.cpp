@@ -19,7 +19,6 @@
 /// Renders the active scene, including UI, etc.
 void GraphicsManager::RenderWindow()
 {
-
 	AppWindow * window = graphicsState->activeWindow;
 	Vector2i windowSize = graphicsState->activeWindow->WorkingArea();
 	Timer timer;
@@ -29,6 +28,8 @@ void GraphicsManager::RenderWindow()
 	
 	PrintTime("\nFrame start!");
 
+//	std::cout<<"\nWindow size: "<<window->clientAreaSize;
+
 	Vector4f color = window->backgroundColor; 
 	color = Vector4f(0.2f, 0.2f, 0.2f, 1.f);
 
@@ -36,41 +37,6 @@ void GraphicsManager::RenderWindow()
 	Vector4f bgColor = color + Vector4f(1,1,1,1) * backgroundFactor;
 	glClearColor(bgColor.x, bgColor.y, bgColor.z, bgColor.w);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    
-	/*
-	/// Testing...
-//	return;
-
-	PrintTime("\nglClear: ");
-
-	// Reset matrices (needed?)
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	graphicsState->modelMatrixD.LoadIdentity();
-	graphicsState->modelMatrixF.LoadIdentity();
-
-	// Reset settings to default
-	graphicsState->renderedObjects = 0;
-	graphicsState->settings |= RENDER_LIGHT_POSITION;	// Enable light-rendering.
-	
-	// Reset scissor-variables
-	graphicsState->viewportX0 = graphicsState->viewportY0 = 0;
-
-	// OK til here.
-
-	// Set default shader program
-	Shader * shader = ShadeMan.SetActiveShader("Flat");
-//	assert(shader && "Unable to set \"Flat\" shader");
-
-    
-    preRenderFrameTime = preRenderTimer.GetMs();
-
-	PrintTime("\nPre-render stuff: ");
-
-
-	
-//	this->cameraToTrack->ProcessMovement(graphicsState->frameTime);
-*/
 	
 	/// Render all viewports..
 	Timer viewportsTimer, viewportTimer;

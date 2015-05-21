@@ -265,6 +265,15 @@ AppWindow * WindowManager::GetWindowByHWND(HWND hWnd)
 
 AppWindow * WindowManager::GetCurrentlyActiveWindow()
 {
+	for (int i = 0; i < windows.Size(); ++i)
+	{
+		AppWindow * window = windows[i];
+		if (window->inFocus)
+		{
+			return window;
+		}
+	}
+/*
 #ifdef WINDOWS
 	// http://msdn.microsoft.com/en-us/library/windows/desktop/ms633505%28v=vs.85%29.aspx
 	HWND activeWindow = GetForegroundWindow();
@@ -282,7 +291,12 @@ AppWindow * WindowManager::GetCurrentlyActiveWindow()
 	// Not the current one?
 	// Check the last one that we recorded user-interaction on then?
 	return lastActiveWindow;
+#elif defined USE_X11
+	return NULL;
+#else
+	assert(false);
 #endif
+*/
 	return NULL;
 }
 	

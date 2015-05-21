@@ -450,7 +450,7 @@ void InputManager::MouseRightClick(AppWindow * AppWindow, bool down, int x, int 
 }
 
 /// Interprets a mouse-move message to target position.
-void InputManager::MouseMove(AppWindow * AppWindow, Vector2i activeWindowAreaCoords)
+void InputManager::MouseMove(AppWindow * appWindow, Vector2i activeWindowAreaCoords)
 {	
 	int x = activeWindowAreaCoords[0];
 	int y = activeWindowAreaCoords[1];
@@ -462,13 +462,13 @@ void InputManager::MouseMove(AppWindow * AppWindow, Vector2i activeWindowAreaCoo
 	if (mouseLocked)
 		return;
 
-	lastMouseMoveWindow = AppWindow;
+	lastMouseMoveWindow = appWindow;
 
 	/// Save coordinates
 	inputState->mousePosition = Vector2i(x,y);
 
 	/// If we have a global UI (system ui), process it first.
-	UserInterface * userInterface = GetRelevantUIForWindow(AppWindow);
+	UserInterface * userInterface = GetRelevantUIForWindow(appWindow);
 	UIElement * element = NULL;
 	if (userInterface)
 	{
@@ -498,7 +498,7 @@ void InputManager::MouseMove(AppWindow * AppWindow, Vector2i activeWindowAreaCoo
 	AppState * currentState = StateMan.ActiveState();
 	if (currentState)
 	{
-		currentState->MouseMove(AppWindow, x, y, lButtonDown, rButtonDown, element);
+		currentState->MouseMove(appWindow, x, y, lButtonDown, rButtonDown, element);
 	}
 	Graphics.QueryRender();
 }
@@ -614,6 +614,7 @@ void InputManager::EvaluateKeyPressed(int activeKeyCode, bool downBefore, UIElem
 		// UI-navigation if no element is active. Active elements have the responsibility to let go of their activity at the user's behest.
 		if (navigateUI && !activeElement)
 		{
+		
 			bool uiCommand = true;
 			switch(activeKeyCode)
 			{
