@@ -20,14 +20,16 @@ bool AABBSphereCollision(AABB * aabb, Entity * sphereEntity, Collision &data)
 	Collision deepestCollision;
 	float deepestCollisionDistance = 100000.0f;
 
+	/// First opt-out?
+// #ifndef USE_SSE
+//	if (!aabb->SphereInside(sphereEntity->position, sphereEntity->radius))
+//		return false;
+//#endif
+
 	/// Build the quads of the aabb.
 	List<Quad> quads = aabb->AsQuads();
 
 	bool colliding = false;
-	/// First opt-out?
-//	if (!aabb->SphereInside(sphereEntity->position, sphereEntity->radius))
-//		return false; 
-
 	/// Proceed with checking every quad
 	for (int i = 0; i < quads.Size(); ++i)
 	{

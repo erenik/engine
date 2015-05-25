@@ -66,21 +66,35 @@ A full list of properly included lib dirs could look like the following:
 	- libtheora-dev
 	- libopus-dev
 
-Both binary and development packages will probably be needed (with and without '-dev' suffix)
+Both binary and development packages will probably be needed (with and without '-dev' suffix).
 
-3. Building
+3. BUILDING
 ===========
-WINDOWS
+The default route of building is running cmake to generate build-files, then building via IDE or make command.
+
+3.1. WINDOWS
+============
 - Run CMake, using the root dir as source dir (/engine/.), and an /out/ dir to produce the build files (/engine/out/)
 - Open created project/solution files somewhere within, build debug/release as pleased.
 
-LINUX
+3.2. LINUX
+==========
+- Run CMake. Usually route is as follows:
+	- go to the root folder containing the root CMakeFiles.txt and CMakeMacros.txt (/engine/)
+	- mkdir out 
+	- cmake ..
 - Run Build.sh, or BuildSilent.sh to suppress CMake messages.
+
+For IDE/generator-specific builds, replace the last row as shown http://www.cmake.org/Wiki/CMake_Generator_Specific_Information#Code::Blocks_Generator
+	- E.g: cmake .. -G "CodeBlocks - Unix Makefiles" 
+	or the following if making separate build/release build dirs: cmake .. -G "CodeBlocks - Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug/Release (choose either one at the end there)
+	(more info: http://stackoverflow.com/questions/7724569/debug-vs-release-in-cmake)
+	- Build as usual
 	
 4. Running
 ==========
 Make sure you have a copy of the necessary extra files for running your binary. This includes:
-- .dlls on Windows
+- .dlls on Windows, installing binary packages on linux-based systems
 - Render pipeline files
 - Shader files
 - Textures

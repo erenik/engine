@@ -5,6 +5,8 @@
 #include "Collisions.h"
 #include "../PhysicsProperty.h"
 #include "PhysicsLib/Shapes/Quad.h"
+#include "String/StringUtil.h"
+#include "File/LogFile.h"
 
 extern int debug;
 
@@ -22,13 +24,15 @@ bool QuadSphereCollision(Quad * quad, Entity * sphereEntity, Collision &data)
 	if (debug == 5)
 		std::cout<<"\nSphere entity position "<<sphereEntity->position;
 	float radius = sphereEntity->physics->physicalRadius;
-	float distance = abs(quad->Distance(sphereEntity->position));
+	float distance = quad->Distance(sphereEntity->position);
 	Vector3f spherePosition = sphereEntity->position;
 	/// Collision?!
-	if (distance > radius)
+	if (AbsoluteValue(distance) > radius)
 		return false;
 
-	/// Check that the collissionpoint is within the plane too, by comparing the center 
+ //   LogPhysics("Distance: "+String(distance)+" Sphere pos"+VectorString(sphereEntity->position )+" Quad n"+VectorString(quad->normal)+" p" + VectorString(quad->position), INFO);
+
+	/// Check that the collissionpoint is within the plane too, by comparing the center
 	// of the sphere with the planes set up by the plane and it's normal
 	const int PLANE_PLANES = 4;
 	Plane planeFrustum[PLANE_PLANES];
@@ -56,7 +60,7 @@ bool QuadSphereCollision(Quad * quad, Entity * sphereEntity, Collision &data)
 		return true;
 	}
 	// Add handling for the edges and corners?
-	
+
 	/// If not, proceed with testing the sphere against each of the triangle's edges.
 	const int CORNERS = 4;
 	Vector3f edgeStart[CORNERS], edgeStop[CORNERS], vertexToSphere[CORNERS];

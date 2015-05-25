@@ -2,7 +2,7 @@
 /// 2014-06-13
 /// AppWindow class for handling arbitrary windows in both Win32 and Linux.
 /** The general procedure of creating a new AppWindow looks like the following:
-	
+
 	AppWindow * AppWindow = WindowMan.NewWindow();
 	window->CreateUI();
 	window->CreateGlobalUI();
@@ -21,7 +21,7 @@
 #ifndef WINDOW_H
 #define WINDOW_H
 
-#include "OS.h"
+#include "OS/OS.h"
 #include "String/AEString.h"
 #include "MathLib.h"
 #include "Time/Time.h"
@@ -42,7 +42,7 @@ class Texture;
 class Ray;
 class DragAndDrop;
 
-struct Monitor 
+struct Monitor
 {
 	Monitor();
 	/// Center position of this monitor.
@@ -77,13 +77,13 @@ class AppWindow
 	/// Default constructor, one name.
 	AppWindow(String name, String displayName);
 public:
-	~AppWindow();	
+	~AppWindow();
 
 	bool IsMain() {return main;};
 
 	/// o-o
 	Vector2i GetWindowCoordsFromScreenCoords(Vector2i screenPos);
-	
+
 	/// Updates positions, using parent as relative (if specified)
 	void UpdatePosition();
 
@@ -111,7 +111,7 @@ public:
 	void MoveToMonitor(int monitorIndex);
 	void OnSizeUpdated();
 
-	/// Returns the area available for application-specific rendering. 
+	/// Returns the area available for application-specific rendering.
 #define WorkingArea ClientAreaSize
 	Vector2i ClientAreaSize();
 	Vector2i GetTopLeftCorner();
@@ -151,13 +151,13 @@ public:
 	bool MakeGLContextCurrent();
 	void TestRender();
 	bool DeleteGLContext();
-	
+
 	// Reference name used when coding/working with the AppWindow.
 	String name;
 	// Title that should be rendered by the OS.
 	String displayName;
 
-	
+
 	/// Disables all render-flags below
 	void DisableAllRenders();
 
@@ -180,9 +180,9 @@ public:
 	DWORD dwExStyle;
 	// For painting/rendering.
 	/// Device context
-	HDC		hdc;			
+	HDC		hdc;
 	/// GL rendering context
-	HGLRC	hglrc;		
+	HGLRC	hglrc;
 	/// For drag-n-drop operatrions. See http://msdn.microsoft.com/en-us/library/windows/desktop/ms678405%28v=vs.85%29.aspx
 	DragAndDrop * dragAndDrop;
 
@@ -191,7 +191,7 @@ public:
 	void * xGLContext;
 	int32 xGLWindow;
 #endif
-	
+
 	Vector4f backgroundColor;
 
 	/// p-=p
@@ -206,10 +206,10 @@ public:
 	Vector2i requestedRelativePosition;
 
 
-	/** Should NOT be confused with the working/client area of the AppWindow! 
+	/** Should NOT be confused with the working/client area of the AppWindow!
 	*/
 	Vector2i OSWindowSize();
-	
+
 	/// Fetches ray using viewport-based co-ordinates (not to be confused with the Window/screen-space co-ordinates!)
 #define GetRayFromWindowCoordinates GetRayFromScreenCoordinates
 	bool GetRayFromScreenCoordinates(int mouseX, int mouseY, Ray & ray);
@@ -234,7 +234,7 @@ public:
 	bool getNextFrame;
 	Texture * frameTexture;
 
-	/** For child windows, if true, will hide it when the user press Esc if no elements are present in the UI stack. 
+	/** For child windows, if true, will hide it when the user press Esc if no elements are present in the UI stack.
 		If not, only focus will shift to the main AppWindow.
 		True by default.
 	*/
@@ -242,7 +242,7 @@ public:
 	bool swapBuffers;
 private:
 
-	
+
 	/// If this AppWindow is currently the top one being viewed by the user.
 	bool inFocus;
 	/// Don't render to non-created windows..
@@ -259,7 +259,7 @@ private:
 	Vector2i previousSize;
 	/// Size of the client AppWindow area
 	Vector2i clientAreaSize;
-	// Top-left corner in windows... 
+	// Top-left corner in windows...
 	Vector2i position;
 	Vector2i previousPosition;
 
