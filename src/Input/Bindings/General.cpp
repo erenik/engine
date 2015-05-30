@@ -40,6 +40,7 @@ void CreateDefaultGeneralBindings()
 
 	BIND(Action::FromEnum(RELOAD_UI), List<int>(KEY::CTRL, KEY::R, KEY::U));
 	BIND(Action::FromEnum(RECOMPILE_SHADERS), List<int>(KEY::CTRL, KEY::R, KEY::S));
+	BIND(Action::FromEnum(RELOAD_TEXTURES), List<int>(KEY::CTRL, KEY::ALT, KEY::T));
 	BIND(Action::FromString("InputMan.printHoverElement"), List<int>(KEY::P, KEY::H, KEY::E));
 	BIND(Action::FromEnum(PRINT_SHADOW_MAPS), List<int>(KEY::P, KEY::S, KEY::M));
 	BIND(Action::FromEnum(DEBUG_NEXT), KEY::F5);

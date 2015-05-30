@@ -135,6 +135,9 @@ void Action::TriggerStart()
 			std::cout<<"\nInput>>RECOMPILE_SHADERS";
 			GraphicsMan.QueueMessage(new GraphicsMessage(GM_RECOMPILE_SHADERS));
 			break;
+		case RELOAD_TEXTURES:
+			GraphicsMan.QueueMessage(new GraphicsMessage(GM_RELOAD_TEXTURES));
+			break;
 		case QUIT_APPLICATION:
 			if (Application::queryOnQuit)
 				MesMan.QueueMessages("Query(QuitApplication)");

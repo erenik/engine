@@ -31,6 +31,7 @@ enum {
 	// Reloading stuff.
 	RELOAD_UI,
 	RECOMPILE_SHADERS,
+	RELOAD_TEXTURES,
 
 	// Debugging stuff.
 	PRINT_SHADOW_MAPS,

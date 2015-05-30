@@ -2,7 +2,8 @@
 /// 2015-05-29
 /// o.o Loads pngggggg irrespective of library.
 
-#include "Image.h"
+#include "ImageLoaders.h"
+
 #ifdef LIBPNG
 	#include <png.h>
 #endif
@@ -14,9 +15,25 @@
 
 #define MEGABYTE 1048576 // 1024 * 1024
 
+int PaethPredictor(int left, int above, int upperLeft)
+{
+	int p = left + above - upperLeft;
+	int pa = AbsoluteValue(p - left);
+	int pb = AbsoluteValue(p - above);
+	int pc = AbsoluteValue(p - upperLeft);
+	/// Return nearest of abc, breaking ties in alphabetical order.
+	if (pa <= pb && pa <= pc)
+		return left;
+	else if (pb <= pc)
+		return above;
+	return upperLeft;
+}
+
 /// Loads into texture.
 bool LoadPNG(String fromFile, Texture * intoTexture)
 {
+	Timer timer;
+	timer.Start();
 	DataStream stream, outputStream;
 	/// Should move allocation to after image size has been discovered... TODO
 	stream.Allocate(MEGABYTE);
@@ -25,7 +42,7 @@ bool LoadPNG(String fromFile, Texture * intoTexture)
 	outputStream.SetMaxBytes(MEGABYTE * 100);
 	File file;
 	file.SetPath(fromFile);
-	file.Open();
+	file.OpenForReading();
 	bool readOK = file.ReadBytes(stream, 8);
 	if (!readOK)
 		return false;
@@ -60,7 +77,7 @@ bool LoadPNG(String fromFile, Texture * intoTexture)
 	strm.opaque = Z_NULL;
 	strm.avail_in = 0;
 	strm.next_in = Z_NULL;
-#define CHUNK 16384
+#define CHUNK 65536 // 16384
 	int ret, flush;
     unsigned have;
     unsigned char in[CHUNK];
@@ -70,6 +87,13 @@ bool LoadPNG(String fromFile, Texture * intoTexture)
 	if (ret != Z_OK)
 		return false;
 	
+	timer.Stop();
+	int inflateMs, initMs = timer.GetMs();
+	timer.Start();
+
+	// Read entire file.
+	file.ReadAllBytes();
+
 	// Read chunks.
 	while(true)
 	{
@@ -115,6 +139,8 @@ bool LoadPNG(String fromFile, Texture * intoTexture)
 			// Image data
 			std::cout<<"\nDataaaaaaa";
 			// Inflate it,
+			Timer timer2;
+			timer2.Start();
 			// decompress until deflate stream ends or end of file 
 			do {
 				int bytesPopped = stream.PopBytesToBuffer(in, CHUNK);
@@ -145,6 +171,8 @@ bool LoadPNG(String fromFile, Texture * intoTexture)
 		    } while (ret != Z_STREAM_END);
 			/* clean up and return */
 			(void)inflateEnd(&strm);
+			timer2.Stop();
+			inflateMs = timer2.GetMs();
 			if (ret == Z_STREAM_END)
 				break;
 			/// Error, broken stream.?
@@ -161,6 +189,11 @@ bool LoadPNG(String fromFile, Texture * intoTexture)
 		// Read CRC ending the chunk.
 		file.ReadBytes(stream, 4);
 	}
+
+	timer.Stop();
+	int readingInflatingMs = timer.GetMs();
+	timer.Start();
+
 	/// Alright, data should be there, sizes too, now create texture from it? perhaps copy over the pre-allocated array already? D:
 	Texture * texture = intoTexture;
 	texture->Resize(Vector2i(width, height));
@@ -168,66 +201,131 @@ bool LoadPNG(String fromFile, Texture * intoTexture)
 
 	std::cout<<"\nSuccess o.o";
 	uchar * idata = outputStream.GetData();
-	List<int> encountered;
 	int channelsPerPixel = (colorType == PNG_RGB? 3 : colorType == PNG_RGBA? 4 : 1);
 	int bytesPerPixel = channelsPerPixel * bitDepth / 8;
 	int pixelsLoaded = 0;
 	int filter = 0;
-	
-	List<Vector3i> filters;
 
-	/// Grab the scanline thingies first.
-	/*
-	if (i < width)
+	uchar * scanLineFilters = data = outputStream.GetData();
+	int outStreamBytes = outputStream.Bytes();
+	for (int i = 0; i < outStreamBytes && i < 100; ++i)
 	{
-		for (int j = i; j < i + bytesPerPixel; ++j)
-		{
-			filters.AddItem(idata[i]);
-			filters.AddItem(idata[i]);
-			filters.AddItem(idata[i]);			
-		}
-		continue;
-	}*/
-
-	int outStreamBytes = outputStream.Bytes()
-	for (int i = 0; i < outStreamBytes; i += bytesPerPixel)
-	{
-
-
-
-		if (pixelsLoaded % width == 0)
-		{
-			// check scanline byte first.
-			filter = idata[i];
-//			std::cout<<"\nFilter: "<<filter;
-	//		++i;
-		}
-
-		uchar r, g, b, a;
-		int value = idata[i];
-		r = idata[i];
-		g = idata[i+1];
-		b = idata[i+2];
-		a = channelsPerPixel == 4? idata[i+3] : 255;
-
-
-		/// pixel start index. 
-		int psi = pixelsLoaded * 4;
-		/// Alright, try ship it into the texture? RGBA style.
-		texData[psi+0] = r;
-		texData[psi+1] = g;
-		texData[psi+2] = b;
-		texData[psi+3] = a;
-
-		++pixelsLoaded;
-
-		// Some debug couts.
-		/*
-		if (encountered.Exists(value))
-			continue;
-		std::cout<<"\ndata "<<i<<": "<<(int) idata[i];
-		encountered.AddItem(value);*/
+		int iVal = data[i];
+//		std::cout<<"\n"<<i<<": "<<(int)data[i];
 	}
+
+	/// Perform filtering.
+	int bytesInLineFiltered = -1;
+	int filterType = -1; 
+	enum 
+	{
+		NONE,
+		SUB,
+		UP,
+		AVERAGE,
+		PAETH,
+	};
+	uchar r,g,b,a;
+	int bytesPerLine = width * bytesPerPixel;
+	int byteInScanline = 0;
+	int numPass = 0, numPrev = 0, numUp = 0, numAver = 0, numPaeth = 0;
+	int pixelByteNum = 0;
+	uchar pixelData[4]; // Default rgba 1 byte each.
+	bool print = false;
+	for (int i = 0; i < outStreamBytes; ++i)
+	{
+		if (bytesInLineFiltered == bytesPerLine)
+		{
+			bytesInLineFiltered = -1;
+			filterType = -1;
+			byteInScanline = 0;
+		}
+		++bytesInLineFiltered;
+		
+		if (filterType == -1)
+		{
+			int iVal = data[i];
+			filterType = iVal;
+			assert(filterType < 6);
+			if (print) std::cout<<"\nFilter type: "<<filterType;
+			continue;
+		}
+		/// o.o
+#define LEFT(x) (byteInScanline - bytesPerPixel >= 0? data[x - bytesPerPixel] : 0)
+#define UP(x) (x > bytesPerLine? data[x - bytesPerLine - 1] : 0)
+#define UP_LEFT(x) (byteInScanline - bytesPerPixel >= 0 && x > bytesPerLine?  data[x - bytesPerLine - 1 - bytesPerPixel] : 0)
+		if (print) std::cout<<"\ndata pre: "<<(int)data[i];
+		int left = LEFT(i),
+			up = UP(i),
+			upLeft = UP_LEFT(i);
+		uchar originalData = data[i];
+		switch(filterType)
+		{
+			case NONE:
+				// Pass through.
+				++numPass;
+				break;
+			case SUB:
+				// decoded last pixel's value?
+				++numPrev;
+				data[i] = data[i] + LEFT(i);
+				if (print) std::cout<<" sub ";
+				break;
+			case UP:
+				++numUp;
+				data[i] = data[i] + UP(i);
+				if (print) std::cout<<" up ";
+				break;
+			case AVERAGE:
+				++numAver;
+				if (print) std::cout<<" aver ";
+				data[i] = data[i] + floor(((int)LEFT(i) + (int)UP(i)) * 0.5f);
+				break;
+			case PAETH:
+				++numPaeth;
+				data[i] = data[i] + PaethPredictor((int)LEFT(i), (int)UP(i), (int)UP_LEFT(i));
+				if (print) std::cout<<" Paeth ";
+				break;
+		}
+		if (print) std::cout<<" post: "<<(int)data[i];
+		++byteInScanline;
+
+		pixelData[pixelByteNum] = data[i];
+		++pixelByteNum;
+		if (pixelByteNum == bytesPerPixel)
+		{
+			pixelByteNum = 0;
+			// Input final pixel into texture.
+			r = pixelData[0] + 0;
+			g = pixelData[1];
+			b = pixelData[2];
+			a = bytesPerPixel == 4? pixelData[3] : 255;
+
+			/// pixel start index. 
+			int pixelX = pixelsLoaded % width;
+			int mirroredPixelX = (width-1) - pixelX;
+			int psi = (pixelsLoaded) * 4;
+			int offsetAdjustment = (mirroredPixelX - pixelX) * 4;
+			psi += offsetAdjustment;
+			psi = (texture->dataBufferSize - psi - 4);
+			/// Alright, try ship it into the texture? RGBA style.
+			texData[psi+0] = r;
+			texData[psi+1] = g;
+			texData[psi+2] = b;
+			texData[psi+3] = a;
+			++pixelsLoaded;
+			if (print) std::cout<<"\nPixel done: "<<(int)r<<" "<<(int)g<<" "<<(int)b<<" "<<(int)a;
+			if (print) std::cout<<"";
+		}
+	}
+	std::cout<<"\nNumPass: "<<numPass<<" numUp: "<<numUp<<" numPrev: "<<numPrev<<" numAver: "<<numAver<<" numPaeth: "<<numPaeth;
+	std::cout<<"";
+
+	timer.Stop();
+	int defilteringMs = timer.GetMs();
+	std::cout<<"\nInit MS: "<<initMs<<" readingInflating: "<<readingInflatingMs<<" inflating: "<<inflateMs<<" defiltering: "<<defilteringMs<<" for source: "<<fromFile; 
+
+	
 	/// Set texture stats?
 	texture->bytesPerChannel = 1;
 	return true;

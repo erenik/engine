@@ -31,7 +31,10 @@ public:
 	virtual ~File();
 	// Resets file handles etc.
 	void Nullify();
-
+	/// In bytes.
+	int FileSize();
+	/// o,o
+	bool ReadAllBytes(DataStream & intostream);
 	/// Reads x bytes into the file, continuing from previous location (or start if newly opened).
 	bool ReadBytes(DataStream & intoStream, int numBytes);
 	/// Static version which reads x bytes.
@@ -47,6 +50,7 @@ public:
 	void SetPath(String filePath);
 
 	std::fstream * Open();
+	bool OpenForReading();
 	void Close();
 	bool IsOpen();
 

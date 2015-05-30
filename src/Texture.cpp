@@ -16,6 +16,8 @@
 #include "opencv2/opencv.hpp"
 #endif
 
+#include "Image/ImageLoaders.h"
+
 #include "Graphics/GraphicsManager.h"
 
 int Texture::IDenumerator = 0;
@@ -52,7 +54,9 @@ Texture::Texture()
 	isDepthTexture = false;
 	channels = 4;
 	bytesPerChannel = 1;
+	bufferized = false;
 }
+
 Texture::~Texture()
 {
 	// Deallocate the glid's here!
@@ -135,6 +139,29 @@ bool Texture::Resize(Vector2i newSize)
 	size = newSize;
 	lastUpdate = Timer::GetCurrentTimeMs();
 	return true;
+}
+
+/// Loads from file. Can call to reload data even if already loaded once.
+bool Texture::LoadFromFile()
+{
+	// Prefer OpenCV since it's faster.
+	bool ok;
+	ok = LoadOpenCV(source, this);
+	if (!ok)
+	{
+		std::cout<<"\nOpenCV failed to read texture D:";
+	}
+	if (!ok)
+		ok = LoadPNG(source, this);
+	if (!ok)
+		ok = LoadLodePNG(source, this);
+	if (!ok)
+	{
+		return false;
+	}
+	bufferized = false; // Flag that bufferization may by needed?
+	// Set it as newly loaded if successful.
+	return ok;
 }
 
 // Flips along Y axis?
@@ -518,12 +545,12 @@ bool Texture::MakeRed(){
 
 
 /// Bufferizes into GL. Should only be called from the render-thread!
-bool Texture::Bufferize()
+bool Texture::Bufferize(bool force /* = false*/)
 {	
 	assert(source.Length());
 	assert(name.Length());
 	/// Don't bufferize multiple times if not special texture, pew!
-	if (glid != -1 && !dynamic){
+	if (glid != -1 && !dynamic && !force){
 //		std::cout<<"\nTexture \""<<source<<"\" already bufferized! Skipping.";
 		return false;
 	}
@@ -632,6 +659,7 @@ bool Texture::Bufferize()
 	/// Notice again.
 	if (!dynamic)
 		std::cout<<"\nTexture "<<name<<" bufferized.";
+	bufferized = true;
 }
 
 void Texture::SetSource(String str)

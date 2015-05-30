@@ -20,6 +20,7 @@
 
 #include "Render/RenderPipelineManager.h"
 #include "Render/RenderPipeline.h"
+#include "TextureManager.h"
 
 #include "Window/AppWindowManager.h"
 #include "Render/FrameBuffer.h"
@@ -124,6 +125,10 @@ void GraphicsMessage::Process()
 			MesMan.QueueMessages("OnReloadUI");
 			break;
 		}
+		case GM_RELOAD_TEXTURES: 
+			TexMan.ReloadTextures();
+			TexMan.RebufferizeTextures();
+			break;
 		case GM_UNREGISTER_ALL_ENTITIES:
 			Graphics.UnregisterAll();
 			break;

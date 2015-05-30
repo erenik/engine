@@ -14,11 +14,9 @@
 #include "Graphics/Messages/GraphicsMessage.h"
 #include "Graphics/GraphicsManager.h"
 
-#include "Image/Image.h"
 #include "OS/Sleep.h"
 
 #include <vector>
-#include "LodePNG/lodepng.h"
 #include "Globals.h"
 #include "Color.h"
 
@@ -240,6 +238,26 @@ void TextureManager::ListTextures(){
 	}
 }
 
+/// Reloads all textures.
+void TextureManager::ReloadTextures()
+{
+	for (int i = 0; i < textures.Size(); ++i)
+	{
+		Texture * tex = textures[i];
+		tex->LoadFromFile();
+	}
+}
+/// Rebufferizes all textures. Call only from Render-thread.
+void TextureManager::RebufferizeTextures()
+{
+	for (int i = 0; i < textures.Size(); ++i)
+	{
+		Texture * tex = textures[i];
+		if (!tex->bufferized)
+			tex->Bufferize(true);
+	}
+}
+
 /// Loads all textures from the provided source/name list.
 int TextureManager::LoadTextures(List<String> & texturesToLoad){
 	int failed = texturesToLoad.Size();
@@ -354,22 +372,8 @@ Texture * TextureManager::LoadTexture(String source, bool noPathAdditions)
 	Timer timer;
 	timer.Start();
 
-	// Prefer OpenCV since it's faster.
-	bool ok;
-	ok = LoadTextureOpenCV(source, texture);
-	if (!ok)
-	{
-		std::cout<<"\nOpenCV failed to read texture D:";
-	}
-	if (!ok)
-		ok = LoadPNG(source, texture);
-	if (!ok)
-		ok = LoadTextureLodePNG(source, texture);
-	if (!ok)
-	{
-		delete texture;
-		return NULL;
-	}
+	texture->source = source;
+	texture->LoadFromFile();
 
 	/*
 
@@ -426,283 +430,6 @@ bool TextureManager::SupportedImageFileType(String fileName)
 	}
 	return false;
 }		
-
-/// Attempts to load a texture using OpenCV imread.
-bool TextureManager::LoadTextureOpenCV(String source, Texture * texture)
-{
-#ifdef OPENCV
-	/// Supported via OpenCV: http://docs.opencv.org/modules/highgui/doc/reading_and_writing_images_and_video.html?highlight=imread#imread
-	cv::Mat mat;
-	// http://stackoverflow.com/questions/7417637/imread-not-working-in-opencv
-	mat = cvLoadImage(source.c_str(), CV_LOAD_IMAGE_UNCHANGED);
-//	mat = cv::imread(source.c_str(), CV_LOAD_IMAGE_UNCHANGED);
-	if (!mat.cols || !mat.rows)
-	{	
-		// Bad data? 
-		return false;
-	}
-	/// First update size of our texture depending on the given one.
-	if (texture->width != mat.cols || texture->height != mat.rows)
-	{
-		texture->Resize(Vector2i(mat.cols, mat.rows));
-	}
-	
-//	std::cout<<"\nMat step: "<<mat->step;
-	int channels = mat.channels();
-	/// Depending on the depth, parse differently below.
-	int channelDepth = mat.depth();
-	int bytesPerChannel = 1;
-	switch(channelDepth)
-	{
-		case CV_8U: case CV_8S: 
-			bytesPerChannel = 1;
-			break;
-		case CV_16U: case CV_16S: 
-			// Convert to single-channel if needed...
-			mat.convertTo(mat, CV_8UC3);
-			bytesPerChannel = 1;
-			break;
-		case CV_32S: case CV_32F: 
-			bytesPerChannel = 4;
-			break;
-		default:
-			assert(false);
-			return false;
-	}
-	texture->bytesPerChannel = bytesPerChannel;
-
-	/// Fetch data pointer now that any needed conversions are done.
-	unsigned char * data = (unsigned char*) (mat.data);
-	unsigned char * texData = texture->data;
-	float minFloat = 0, maxFloat = 0;	
-
-	for (int y = 0; y < mat.rows; ++y)
-	{
-		for (int x = 0; x < mat.cols; ++x)
-		{
-			unsigned char b,g,r,a = 255;
-			/// Pixel start index.
-			int psi = (mat.step * y) + (x * channels) * bytesPerChannel;
-			/// Depending on the step count...
-			switch(channels)
-			{			
-				case 1:
-				{
-					if (bytesPerChannel == 1)
-						b = g = r = data[psi];
-					else if (bytesPerChannel == 4)
-					{
-						float * fPtr = (float*)&data[psi];
-						float fValue = *fPtr;
-						if (fValue > maxFloat)
-							maxFloat = fValue;
-						if (fValue < minFloat)
-							minFloat = fValue;
-						unsigned char cValue = (unsigned char) fValue;
-						b = g = r = cValue;
-					}
-					break;
-					
-				}
-				/// RGB!
-				case 3:
-					b = data[psi+0];
-					g = data[psi+1];
-					r = data[psi+2];
-					break;
-				case 4:
-				{
-					b = data[psi+0];
-					g = data[psi+1];
-					r = data[psi+2];
-					a = data[psi+3];
-					break;
-				}
-				// Default gray scale?
-				default:
-					b = g = r = data[psi];
-					break;
-			}
-			// Always rgba!
-			int texPsi = ((texture->width * (texture->height - y - 1)) + x) * texture->bpp;
-			texData[texPsi+0] = r;
-			texData[texPsi+1] = g;
-			texData[texPsi+2] = b;
-			texData[texPsi+3] = a;
-//			texture->SetPixel(x, mat.rows - y - 1, Vector4f(r / 255.f,g / 255.f,b / 255.f,1));
-		}
-	}
-	/// Send a message so that the texture is re-buffered... wat.
-//	Graphics.QueueMessage(new GMBufferTexture(texture));
-	return true;
-#endif
-	return false;
-}
-
-
-bool TextureManager::LoadTextureLodePNG(String source, Texture * texture)
-{
-	/// Obsoleted
-	std::vector<unsigned char> buffer, image;
-
-	/// Check that the file exists
-	try {
-		std::ifstream file;
-		std::cout<<"\nOpening input-file stream.";
-		file.open(source.c_str());
-		if (!file.good()){
-			// Clear any error flags set!
-			file.clear();
-			std::cout<<"\nUnable to open file.";
-			file.close();
-	//		std::cout<<"\nERROR: File "<<source.c_str()<<" does not exist!";
-	//		assert("TextureManager::LoadTexture: ERROR: File <<source<< does not exist!");
-			return NULL;
-		}
-		std::cout<<"\nFile exists";
-	}
-	catch(...)
-	{
-		std::cout<<"\nErrrrorrrrr"<<std::flush;
-		return NULL;
-	}
-	try {
-		LodePNG::loadFile(buffer, source.c_str()); //load the image file with given filename
-		std::cout<<"\nFile loaded.";
-	} catch(...)
-	{
-		std::cout<<"\nError loading file "<<source.c_str()<<"!";
-	}
-
-	LodePNG::Decoder decoder;
-	decoder.decode(image, buffer); //decode the png
-
-
-	// Check if the decoder got an error
-	if(decoder.hasError())
-	{	// Move to next texture.
-		std::cout<<"\nError decoding "<<source.c_str();
-		//MessageBox(NULL, filename, "Error reading texture file", MB_OK | MB_ICONEXCLAMATION);
-		return NULL;
-	}
-
-	// Set Texture to RGBA since we will assign Alpha-values by default anyway
-	texture->format = Texture::RGBA;
-
-	// Get width, height and pixels
-	int width = decoder.getWidth(), height =  decoder.getHeight();
-	int bytesPerPixel = decoder.getBpp()/8;
-	texture->bpp = bytesPerPixel;
-
-	// Make sure the texture data array isn't already allocated.
-	assert(texture->data== NULL);
-
-/// Flipping while loading texture or not...?
-#define INDEX_REGULAR	4 * y * width + 4 * x
-#define INDEX_REGULAR_S	4 * (y * width + x)
-#define INDEX_SWAP_X	4 * y * width + width * 4 - 4 * x - 4
-#define INDEX_SWAP_X_S	4 * (y * width + width - x - 1)
-#define INDEX_SWAP_Y	width * height * 4 - 4 * y * width + 4 * x - 4 * width
-#define INDEX_SWAP_Y_S	4 * (width * height - y * width + x - width)
-#define SOURCE_INDEX	INDEX_REGULAR_S
-#define TARGET_INDEX	INDEX_SWAP_Y_S
-
-	/// Onry 1 byte per pixchsel?!
-	if (bytesPerPixel == 1)
-	{
-		// Allocate texture data array.
-		texture->dataBufferSize = width*height*4;
-		texture->data = new unsigned char [texture->dataBufferSize];
-		memset(texture->data, '0', texture->dataBufferSize);
-		// And save the width and height.
-		texture->width = width;
-		texture->height = height;
-		// Go through the whole image.
-		for(int j = 0; j < height; j++){
-		//	int y = height - j - 1;
-			int y = j;
-			for(int x = 0; x < width; x++){
-
-				//get RGBA components
-				unsigned char r,g,b,a;
-				r = g = b = image[SOURCE_INDEX + 0]; //red
-				a = 255;
-				// Set them into the texture data array.
-				texture->data[TARGET_INDEX + 0] = r;
-				texture->data[TARGET_INDEX + 1] = g;
-				texture->data[TARGET_INDEX + 2] = b;
-				texture->data[TARGET_INDEX + 3] = a;
-			}
-		}
-
-	}
-	else if (bytesPerPixel == 4){
-		// Allocate texture data array.
-		texture->dataBufferSize = width*height*bytesPerPixel;
-		texture->data = new unsigned char [texture->dataBufferSize];
-		// And save the width and height.
-		texture->width = width;
-		texture->height = height;
-		// Go through the whole image.
-		for(int j = 0; j < height; j++){
-		//	int y = height - j - 1;
-			int y = j;
-			for(int x = 0; x < width; x++){
-
-				//get RGBA components
-				unsigned char r = image[SOURCE_INDEX + 0]; //red
-				unsigned char g = image[SOURCE_INDEX + 1]; //green
-				unsigned char b = image[SOURCE_INDEX + 2]; //blue
-				unsigned char a = image[SOURCE_INDEX + 3]; //alpha
-				// Set them into the texture data array.
-				texture->data[TARGET_INDEX + 0] = r;
-				texture->data[TARGET_INDEX + 1] = g;
-				texture->data[TARGET_INDEX + 2] = b;
-				texture->data[TARGET_INDEX + 3] = a;
-			}
-		}
-	}
-	else if (bytesPerPixel == 3){
-		// Allocate texture data array.
-		texture->data = new unsigned char [width*height*4];
-		// And save the width and height.
-		texture->width = width;
-		texture->height = height;
-		// Go through the whole image.
-		for(int j = 0; j < height; j++){
-		//	int y = height - j - 1;
-			int y = j;
-			for(int x = 0; x < width; x++){
-				//get RGBA components
-				unsigned char r = image[SOURCE_INDEX + 0]; //red
-				unsigned char g = image[SOURCE_INDEX + 1]; //green
-				unsigned char b = image[SOURCE_INDEX + 2]; //blue
-				unsigned char a = 255; //alpha
-				// Set them into the texture data array.
-				int targetIndex = TARGET_INDEX;
-				if (targetIndex < 0)
-					std::cout<<"\n ;_;";
-				else if (targetIndex > width * height * 4)
-					std::cout<<"\n ;_;";
-				texture->data[TARGET_INDEX + 0] = r;
-				texture->data[TARGET_INDEX + 1] = g;
-				texture->data[TARGET_INDEX + 2] = b;
-				texture->data[TARGET_INDEX + 3] = a;
-			}
-		}
-	}
-	else {
-#ifdef WINDOWS
-        MessageBox(NULL, L"Needs to be 32.", L"Bytes per pixel invalid", MB_OK | MB_ICONEXCLAMATION);
-		PostQuitMessage(3);
-#endif
-		return NULL;
-	}
-
-	/// Since we converted the image to RGBA above, fix the BitsPerPixel again!
-	texture->bpp = 4;
-	return true;
-}
 
 void TextureManager::BufferizeTexture(int index){
 	if (index >= 0 && index < textures.Size()){

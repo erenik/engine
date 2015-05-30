@@ -31,6 +31,32 @@ void File::Nullify()
 	open = false;
 }
 
+/// In bytes.
+int File::FileSize()
+{
+	if (!this->IsOpen())
+		return false;
+	fileStream.seekg(0, std::ios_base::end);
+	int length = fileStream.tellg();
+	return length;
+}
+
+
+bool File::ReadAllBytes(DataStream & intoStream)
+{
+	if (!this->IsOpen())
+		return false;
+	/// Check required size.
+	int fileSize = FileSize();
+	/// Allocated stream to required size.
+	intoStream.Allocate(fileSize);
+	///
+	uchar * bytes = intoStream.GetData();
+	this->fileStream.read((char*)bytes, fileSize);
+	intoStream.SetBytesUsed(fileSize);
+	return true;
+}
+
 /// Reads x bytes into the file, continuing from previous location (or start if newly opened).
 bool File::ReadBytes(DataStream & intoStream, int numBytes)
 {
@@ -132,6 +158,18 @@ std::fstream * File::Open()
 		return NULL;
 	}	
 	return &fileStream;
+}
+
+bool File::OpenForReading()
+{
+	/// Add /save/ unless it already exists in the path.
+	fileStream.open(path.c_str(), std::ios_base::in | std::ios_base::binary);
+	bool success = fileStream.is_open();
+	if (!success){
+		/// Try another path?
+		return false;
+	}	
+	return true;
 }
 
 /// Fetches contents of this file.

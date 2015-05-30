@@ -72,6 +72,7 @@ enum graphicsMessages {
 	GM_RELOAD_UI,			// Reloads the active state's UI and re-bufferizes it
 	GM_RELOAD_MODELS,		// Needed in order to clear any active model bindings and gl indices before everything is reloaded!
 	GM_RECOMPILE_SHADERS,	// Recompiles all shaders and reloads the render configuration. Made for debugging
+	GM_RELOAD_TEXTURES,		// Re-loads and re-bufferizes all textures.
 
 	GM_REGISTER_ENTITY,		// Registers an entity for rendering
 	GM_REGISTER_ENTITIES,	// Registers entities in the selection for rendering.

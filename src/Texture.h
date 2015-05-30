@@ -52,6 +52,9 @@ public:
 	/// Resets width, height and creates a new data buffer after deleting the old one. Returns false if it failed (due to lacking memory).
 	bool Resize(Vector2i newSize);
 
+	/// Loads from file. Can call to reload data even if already loaded once.
+	bool LoadFromFile();
+
 	// Flips along Y axis?
 	void FlipY();
 	// Flips along both X and Y axis.
@@ -77,7 +80,7 @@ public:
 	/// For debugging.
 	bool MakeRed();
 	/// Bufferizes into GL. Should only be called from the render-thread!
-	bool Bufferize();
+	bool Bufferize(bool force = false);
 
 	/// Sets source of the texture.
 	void SetSource(String str);
@@ -227,6 +230,8 @@ private:
 	int id;
 	static int IDenumerator;
 
+	/// Flaged after re-loading from some source.
+	bool bufferized;
 	// Consider including other relevant info if using this class for image manipulation, mipmapping or whatever.
 };
 

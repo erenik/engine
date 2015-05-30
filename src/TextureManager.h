@@ -33,6 +33,12 @@ public:
 	/// Prints a list of all textures to console, starting with their ID
 	void ListTextures();
 
+	/// Reloads all textures.
+	void ReloadTextures();
+	/// Rebufferizes all textures. Call only from Render-thread.
+	void RebufferizeTextures();
+
+
 	/** Loads all textures from the provided source/name list.
 		Returns amount of failed loadings.
 	*/
