@@ -16,6 +16,13 @@ public:
 	DataStream();
 	virtual ~DataStream();
 
+	/** If true, will automatically push back data, preparing for the loading of new data. 
+		If false, will use an extra integer to keep track of current read location,
+		reducing amount of movement of data. (e.g. when reading entire file into stream
+		and then just analyzing the contents).
+	*/
+	void SetPopAutomaticPushback(bool set);
+
 	/// Allocates, Deletes and creates new array. Use only upon initialization!
 	void Allocate(int maxBytes);
 	/// If manipulating contents from outside, set this to number of read/manipulated bytes?
@@ -34,7 +41,9 @@ public:
 	int PopBytesToBuffer(uchar * buffer, int maxBytesToPop);
 	/// Sets used bytes to 0.
 	void PopAll();
-	/// Returns pointer to the data. May not be NULL-terminated.
+	/// Returns the read pointer for the data, which updates when popping data or when it is re-allocated (safer pointer than GetData())
+	uchar ** GetReadPointer();
+	/// Returns pointer to the data. The contents may or may not be NULL-terminated. Pointer may become invalid.
 	uchar * GetData();
 	/// Returns the current data as a string. Do note that this will fail if there are binary 0s within the stream. Returns false if something.. happens.
 	bool GetDataAsString(String & string);
@@ -47,6 +56,12 @@ public:
 	/// Default 1 MB. Override here.
 	void SetMaxBytes(int newMax);
 protected:
+	/// Default true.
+	bool automaticPushback;
+	/// Read offset if not using pushback.
+	int readOffset;
+	/// A pointer to read the data. Used and updated if using the read offset.
+	uchar * readPointer;
 	/// Max bytes. Pushing will do nothing if exceeding this limit. 1 MB may be a good limit.
 	int maxBytes;
 	/// The actual data.

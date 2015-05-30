@@ -35,6 +35,7 @@ bool LoadPNG(String fromFile, Texture * intoTexture)
 	Timer timer;
 	timer.Start();
 	DataStream stream, outputStream;
+	stream.SetPopAutomaticPushback(false);
 	/// Should move allocation to after image size has been discovered... TODO
 	stream.Allocate(MEGABYTE);
 	outputStream.Allocate(MEGABYTE);
@@ -43,18 +44,25 @@ bool LoadPNG(String fromFile, Texture * intoTexture)
 	File file;
 	file.SetPath(fromFile);
 	file.OpenForReading();
-	bool readOK = file.ReadBytes(stream, 8);
-	if (!readOK)
+	// Read entire file.
+	bool ok = file.ReadAllBytes(stream);
+	if (!ok)
 		return false;
+//	bool readOK = file.ReadBytes(stream, 8);
+//	if (!readOK)
+//		return false;
 	/// Check first 8 bytes.
 	// http://en.wikipedia.org/wiki/Portable_Network_Graphics#Technical_details
-	uchar * data = stream.GetData();
-	if (data[0] == 0x89 && data[1] == 0x50 && data[2] == 0x4E && data[3] == 0x47)
+	uchar ** dataPtrPtr = stream.GetReadPointer();
+#define dataPtr (*dataPtrPtr)
+	if (dataPtr[0] == 0x89 && dataPtr[1] == 0x50 && dataPtr[2] == 0x4E && dataPtr[3] == 0x47)
 		// good
 		;
 	else {
 		return false;
 	}
+	stream.PopBytes(8); // Pop 8 first info bytes.
+
 	enum // http://www.libpng.org/pub/png/spec/1.2/PNG-Chunks.html#C.IHDR
 	{
 		PNG_GRAYSCALE, // 1,2,4,8,16 bit depths allowed
@@ -77,46 +85,48 @@ bool LoadPNG(String fromFile, Texture * intoTexture)
 	strm.opaque = Z_NULL;
 	strm.avail_in = 0;
 	strm.next_in = Z_NULL;
-#define CHUNK 65536 // 16384
 	int ret, flush;
     unsigned have;
-    unsigned char in[CHUNK];
-    unsigned char out[CHUNK];
 
-	ret = inflateInit(&strm);
-	if (ret != Z_OK)
-		return false;
+#define RETURN_ERROR() {delete[] in; delete[] out; return false;}
+#define CHUNK 4194304 // 8388608 // 4194304 // 2097152 // 1048576 // 524288 // 262144 // 65536 // 16384
+    unsigned char * in = new uchar[CHUNK];
+    unsigned char * out = new uchar[CHUNK];
 	
+	ret = inflateInit2(&strm, 15); // 15 default
+//	ret = inflateInit(&strm);
+	if (ret != Z_OK)
+		RETURN_ERROR();
+	
+	bool streamEndedCorrectly = false;
 	timer.Stop();
-	int inflateMs, initMs = timer.GetMs();
+	int inflateMs = 0, initMs = timer.GetMs();
 	timer.Start();
-
-	// Read entire file.
-	file.ReadAllBytes();
 
 	// Read chunks.
 	while(true)
 	{
-		file.ReadBytes(stream, 8);
-#define GetInt(index) ((data[index+0] << 24) + (data[index+1] << 16) + (data[index+2] << 8) + data[index+3])
+//		file.ReadBytes(stream, 8);
+#define GetInt(index) ((dataPtr[index+0] << 24) + (dataPtr[index+1] << 16) + (dataPtr[index+2] << 8) + dataPtr[index+3])
 		int chunkLength = GetInt(0);
-		String chunkType((char*)data+4, (char*)data+8);
-		std::cout<<"\nChunk type: "<<chunkType;
+		String chunkType((char*)dataPtr+4, (char*)dataPtr+8);
+//		std::cout<<"\nChunk type: "<<chunkType;
+		stream.PopBytes(8);
 		/// Read the actual data.
 //		assert(chunkLength < stream.Bytes());
-		file.ReadBytes(stream, chunkLength);
+//		file.ReadBytes(stream, chunkLength);
 		if (chunkType == "IHDR")
 		{
 			// Image height, width, depth, etc., http://www.libpng.org/pub/png/spec/1.2/PNG-Chunks.html#C.IHDR
 			width = GetInt(0);
 			height = GetInt(4);
-			bitDepth = data[8];
-			colorType = data[9];
-			compressionMethod = data[10]; // Default deflate/inflate with 'sliding window' at most 32768 bytes.
+			bitDepth = dataPtr[8];
+			colorType = dataPtr[9];
+			compressionMethod = dataPtr[10]; // Default deflate/inflate with 'sliding window' at most 32768 bytes.
 			assert(compressionMethod == 0);
-			filterMethod = data[11];
+			filterMethod = dataPtr[11];
 			assert(filterMethod == 0);
-			interlaceMethod = data[12];
+			interlaceMethod = dataPtr[12];
 
 		}
 		else if (chunkType == "pHYs")
@@ -131,19 +141,33 @@ bool LoadPNG(String fromFile, Texture * intoTexture)
 		else if (chunkType == "PLTE")
 		{
 			// Palette of colors.
-			std::cout<<"\nplaataaaaaaa";
+	//		std::cout<<"\nplaataaaaaaa";
 
 		}
-		else if (chunkType == "IDAT")
+		else if (chunkType == "IEND")
+		{
+			// End.
+			break;
+		}
+		/// IF-else, for else to pop default given bytes.
+		if (chunkType == "IDAT")
 		{
 			// Image data
-			std::cout<<"\nDataaaaaaa";
+		//	std::cout<<"\nDataaaaaaa";
 			// Inflate it,
 			Timer timer2;
 			timer2.Start();
+			int bytesBufferedToInflate = 0;
 			// decompress until deflate stream ends or end of file 
 			do {
-				int bytesPopped = stream.PopBytesToBuffer(in, CHUNK);
+				int bytesLeft = chunkLength - bytesBufferedToInflate;
+				int bytesToPush = CHUNK;
+				if (bytesToPush > bytesLeft)
+					bytesToPush = bytesLeft;
+				if (bytesToPush <= 0)
+					break;
+				int bytesPopped = stream.PopBytesToBuffer(in, bytesToPush);
+				bytesBufferedToInflate += bytesPopped;
 				strm.avail_in = bytesPopped; // fread(in, 1, CHUNK, source);
 				if (strm.avail_in == 0)
 					break;
@@ -161,7 +185,7 @@ bool LoadPNG(String fromFile, Texture * intoTexture)
 						case Z_DATA_ERROR:
 						case Z_MEM_ERROR:
 							(void)inflateEnd(&strm);
-							return ret;
+							RETURN_ERROR();
 					}
 					have = CHUNK - strm.avail_out;
 					/// Push decoded/inflated image data to output-stream.
@@ -169,26 +193,33 @@ bool LoadPNG(String fromFile, Texture * intoTexture)
 				} while (strm.avail_out == 0);
 			 /* done when inflate() says it's done */
 		    } while (ret != Z_STREAM_END);
-			/* clean up and return */
-			(void)inflateEnd(&strm);
 			timer2.Stop();
-			inflateMs = timer2.GetMs();
+			inflateMs += timer2.GetMs();
 			if (ret == Z_STREAM_END)
+			{
+				streamEndedCorrectly = true;
 				break;
-			/// Error, broken stream.?
-			else {
-				std::cout<<"\nBroken stream when inflating png data. D:";
-				return false;
 			}
 		}
-		else if (chunkType == "IEND")
+		else 
 		{
-			// End.
-			break;
+			stream.PopBytes(chunkLength);
 		}
+
 		// Read CRC ending the chunk.
-		file.ReadBytes(stream, 4);
+		stream.PopBytes(4);
+//		file.ReadBytes(stream, 4);
 	}
+	/* clean up and return */
+	(void)inflateEnd(&strm);
+	/// Error, broken stream.?
+	if (!streamEndedCorrectly)
+	{
+		std::cout<<"\nBroken stream when inflating png data. D:";
+		RETURN_ERROR();
+	}
+
+
 
 	timer.Stop();
 	int readingInflatingMs = timer.GetMs();
@@ -199,18 +230,18 @@ bool LoadPNG(String fromFile, Texture * intoTexture)
 	texture->Resize(Vector2i(width, height));
 	uchar * texData = texture->data;
 
-	std::cout<<"\nSuccess o.o";
+//	std::cout<<"\nSuccess o.o";
 	uchar * idata = outputStream.GetData();
 	int channelsPerPixel = (colorType == PNG_RGB? 3 : colorType == PNG_RGBA? 4 : 1);
 	int bytesPerPixel = channelsPerPixel * bitDepth / 8;
 	int pixelsLoaded = 0;
 	int filter = 0;
 
-	uchar * scanLineFilters = data = outputStream.GetData();
+	uchar * scanLineFilters = dataPtr = outputStream.GetData();
 	int outStreamBytes = outputStream.Bytes();
 	for (int i = 0; i < outStreamBytes && i < 100; ++i)
 	{
-		int iVal = data[i];
+		int iVal = dataPtr[i];
 //		std::cout<<"\n"<<i<<": "<<(int)data[i];
 	}
 
@@ -244,21 +275,22 @@ bool LoadPNG(String fromFile, Texture * intoTexture)
 		
 		if (filterType == -1)
 		{
-			int iVal = data[i];
+			int iVal = dataPtr[i];
 			filterType = iVal;
 			assert(filterType < 6);
 			if (print) std::cout<<"\nFilter type: "<<filterType;
 			continue;
 		}
 		/// o.o
-#define LEFT(x) (byteInScanline - bytesPerPixel >= 0? data[x - bytesPerPixel] : 0)
-#define UP(x) (x > bytesPerLine? data[x - bytesPerLine - 1] : 0)
-#define UP_LEFT(x) (byteInScanline - bytesPerPixel >= 0 && x > bytesPerLine?  data[x - bytesPerLine - 1 - bytesPerPixel] : 0)
-		if (print) std::cout<<"\ndata pre: "<<(int)data[i];
+#define LEFT(x) (byteInScanline - bytesPerPixel >= 0? dataPtr[x - bytesPerPixel] : 0)
+#define UP(x) (x > bytesPerLine? dataPtr[x - bytesPerLine - 1] : 0)
+#define UP_LEFT(x) (byteInScanline - bytesPerPixel >= 0 && x > bytesPerLine?  dataPtr[x - bytesPerLine - 1 - bytesPerPixel] : 0)
+		if (print) std::cout<<"\ndata pre: "<<(int)dataPtr[i];
 		int left = LEFT(i),
 			up = UP(i),
 			upLeft = UP_LEFT(i);
-		uchar originalData = data[i];
+		uchar originalData = dataPtr[i];
+		uchar & byte = dataPtr[i];
 		switch(filterType)
 		{
 			case NONE:
@@ -268,29 +300,29 @@ bool LoadPNG(String fromFile, Texture * intoTexture)
 			case SUB:
 				// decoded last pixel's value?
 				++numPrev;
-				data[i] = data[i] + LEFT(i);
+				byte = byte + LEFT(i);
 				if (print) std::cout<<" sub ";
 				break;
 			case UP:
 				++numUp;
-				data[i] = data[i] + UP(i);
+				byte = byte + UP(i);
 				if (print) std::cout<<" up ";
 				break;
 			case AVERAGE:
 				++numAver;
 				if (print) std::cout<<" aver ";
-				data[i] = data[i] + floor(((int)LEFT(i) + (int)UP(i)) * 0.5f);
+				byte = byte + floor(((int)LEFT(i) + (int)UP(i)) * 0.5f);
 				break;
 			case PAETH:
 				++numPaeth;
-				data[i] = data[i] + PaethPredictor((int)LEFT(i), (int)UP(i), (int)UP_LEFT(i));
+				byte = byte + PaethPredictor((int)LEFT(i), (int)UP(i), (int)UP_LEFT(i));
 				if (print) std::cout<<" Paeth ";
 				break;
 		}
-		if (print) std::cout<<" post: "<<(int)data[i];
+		if (print) std::cout<<" post: "<<(int)byte;
 		++byteInScanline;
 
-		pixelData[pixelByteNum] = data[i];
+		pixelData[pixelByteNum] = byte;
 		++pixelByteNum;
 		if (pixelByteNum == bytesPerPixel)
 		{
@@ -324,7 +356,10 @@ bool LoadPNG(String fromFile, Texture * intoTexture)
 	timer.Stop();
 	int defilteringMs = timer.GetMs();
 	std::cout<<"\nInit MS: "<<initMs<<" readingInflating: "<<readingInflatingMs<<" inflating: "<<inflateMs<<" defiltering: "<<defilteringMs<<" for source: "<<fromFile; 
-
+	
+	/// Delete allocated buffers.
+	delete[] in;
+	delete[] out;
 	
 	/// Set texture stats?
 	texture->bytesPerChannel = 1;

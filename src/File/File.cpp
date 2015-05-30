@@ -38,6 +38,7 @@ int File::FileSize()
 		return false;
 	fileStream.seekg(0, std::ios_base::end);
 	int length = fileStream.tellg();
+	fileStream.seekg(0, std::ios_base::beg);
 	return length;
 }
 

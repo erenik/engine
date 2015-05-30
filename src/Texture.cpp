@@ -153,8 +153,8 @@ bool Texture::LoadFromFile()
 	}
 	if (!ok)
 		ok = LoadPNG(source, this);
-	if (!ok)
-		ok = LoadLodePNG(source, this);
+//	if (!ok)
+//		ok = LoadLodePNG(source, this);
 	if (!ok)
 	{
 		return false;

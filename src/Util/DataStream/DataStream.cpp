@@ -17,6 +17,8 @@ DataStream::DataStream()
 	dataLength = 0;
 	bytesUsed = 0;
 	maxBytes = 1024 * 1024;
+	automaticPushback = true;
+	readOffset = 0;
 }
 
 DataStream::~DataStream()
@@ -26,11 +28,21 @@ DataStream::~DataStream()
 	data = NULL;
 }
 
+/** If true, will automatically push back data, preparing for the loading of new data. 
+	If false, will use an extra integer to keep track of current read location,
+	reducing amount of movement of data. (e.g. when reading entire file into stream
+	and then just analyzing the contents).
+*/
+void DataStream::SetPopAutomaticPushback(bool set)
+{
+	automaticPushback = set;
+}
+
 void DataStream::Allocate(int newMax)
 {
 	if (data)
 		delete[] data;
-	data = new uchar[newMax];
+	readPointer = data = new uchar[newMax];
 	dataLength = newMax;
 	bytesUsed = 0;
 }
@@ -104,16 +116,21 @@ void DataStream::PopBytes(int numberOfBytes)
 	assert(numberOfBytes <= bytesUsed);
 	bytesUsed -= numberOfBytes;
 	/// Move back the bytes in the stream.
-	memmove(data, data + numberOfBytes, bytesUsed);
+	if (automaticPushback)
+		memmove(data, data + numberOfBytes, bytesUsed);
+	else { 
+		readPointer += numberOfBytes;
+		readOffset += numberOfBytes;
+	}
 }
 
 /// Attempts to pop designated bytes from this stream, placing them into target buffer instead. Returns amount of bytes popped this way.
 int DataStream::PopBytesToBuffer(uchar * buffer, int maxBytesToPop)
 {
-	memmove(buffer, data, maxBytesToPop);
 	int bytesMoved = maxBytesToPop;
 	if (bytesMoved > bytesUsed)
 		bytesMoved = bytesUsed;
+	memmove(buffer, readPointer, bytesMoved);
 	PopBytes(bytesMoved);
 	return bytesMoved;
 }
@@ -123,6 +140,12 @@ void DataStream::PopAll()
 {
 	bytesUsed = 0;
 }	
+
+/// Returns the read pointer for the data, which updates when popping data or when it is re-allocated (safer pointer than GetData())
+uchar ** DataStream::GetReadPointer()
+{
+	return &readPointer;
+}
 
 /// Returns pointer to the data. May not be NULL-terminated.
 uchar * DataStream::GetData()
