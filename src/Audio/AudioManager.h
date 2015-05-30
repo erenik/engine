@@ -99,11 +99,18 @@ public:
 	
 	/// Getters
 	float MasterVolume(){ return masterVolume; };
+	float BGMVolume(){ return bgmVolume; };
+	float SFXVolume(){ return sfxVolume; };
 	/// Based on master and mute.
 	float ActiveMasterVolume(){ if(mute) return 0; return masterVolume;};
-	/// Returns the current volume for target category (0.0 to 1.0)
+	/// Returns the current volume for target category (0.0 to 1.0) - Deprecated/To be implemented later on?
 	float CategoryVolume(int category);
+	/// o.o BGM, SFX.
+	float GetVolume(int forAudioType);
 	
+	bool BGMEnabled(){return bgmEnabled;};
+	/// Getter/checker
+	bool AudioEnabled() { return audioEnabled; };
 
 	// Yup.
 	void StopAndRemoveAll();
@@ -130,8 +137,6 @@ private:
 	/// Creates an audio stream which will continually try and update by grabbing PCM data from the stream.
 	Audio * CreateAudioStream(MultimediaStream * stream);
 
-	/// Getter/checker
-	bool AudioEnabled() { return audioEnabled; };
 	/// Enables audio and unpauses all paused media.
 	void EnableAudio();
 	/// Disables audio and pauses all current playback indefinitely.
@@ -176,6 +181,7 @@ private:
 	Vector3f listenerPosition;
 	/// Value applied to all audio.
 	float masterVolume;
+	float bgmVolume, sfxVolume; // categorical.
 	// Default false.
 	bool mute;
 	/// To toggle it in run-time.

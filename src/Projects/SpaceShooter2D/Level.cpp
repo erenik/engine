@@ -242,7 +242,7 @@ void Level::AddPlayer(Ship * playerShip)
 	// Shortcut..
 	Entity * entity = playerShip->entity;
 	pp = entity->physics;
-	pp->collissionCallback = true;				
+	pp->collisionCallback = true;				
 	pp->collisionCategory = CC_PLAYER;
 	pp->collisionFilter = CC_ENEMY | CC_ENEMY_PROJ;
 	pp->velocity = BaseVelocity();

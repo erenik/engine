@@ -109,7 +109,7 @@ Entity * SpawnGroup::SpawnShip(ConstVec3fr atPosition)
 	pp->type = PhysicsType::DYNAMIC;
 	pp->collisionCategory = CC_ENEMY;
 	pp->collisionFilter = CC_PLAYER | CC_PLAYER_PROJ;
-	pp->collissionCallback = true;
+	pp->collisionCallback = true;
 	// By default, set invulerability on spawn.
 	ship->spawnInvulnerability = true;
 	ShipProperty * sp = new ShipProperty(ship, entity);

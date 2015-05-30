@@ -44,6 +44,8 @@ AMSet::AMSet(int target, float fValue)
 	switch(target)
 	{
 		case AT_MASTER_VOLUME:
+		case AT_BGM_VOLUME:
+		case AT_SFX_VOLUME:
 			break;
 		default:
 			assert(false);
@@ -78,6 +80,14 @@ void AMSet::Process()
 	{
 		case AT_MASTER_VOLUME:
 			AudioMan.SetMasterVolume(fValue);
+			break;
+		case AT_BGM_VOLUME:
+			AudioMan.bgmVolume = fValue;
+			AudioMan.UpdateVolume();
+			break;
+		case AT_SFX_VOLUME:
+			AudioMan.sfxVolume = fValue;
+			AudioMan.UpdateVolume();
 			break;
 		case AT_LISTENER:
 			AudioMan.listener = listener;

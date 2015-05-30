@@ -50,7 +50,9 @@ AudioManager::AudioManager()
 	pauseUpdates = false;
 	audioEnabled = true;
 	mute = false;
-	masterVolume = 0.1f;
+	masterVolume = 1.0f;
+	bgmVolume = 0.8f;
+	sfxVolume = 1.0f;
 	shouldLive = true;
 	audioDriver = AudioDriver::BAD_DRIVER;
 	AudioMixer::AllocateMaster();
@@ -118,7 +120,6 @@ bool AudioManager::Initialize()
 	}
 
 	initialized = false;
-	CheckALError("AudioMan - failed to initialize.");
 	return false;
 }
 
@@ -126,7 +127,11 @@ bool AudioManager::InitializeDriver(int driverID)
 {
 	switch(driverID)
 	{
-		case AudioDriver::OpenAL: return OpenAL::Initialize(); break;
+		case AudioDriver::OpenAL: 
+#ifdef OPENAL
+			return OpenAL::Initialize(); 
+#endif
+			return false;
 	#ifdef WINDOWS
 		case AudioDriver::WindowsCoreAudio:
 			if (WMMDevice::Initialize())
@@ -320,7 +325,8 @@ void AudioManager::ToggleMute()
 */
 Audio * AudioManager::PlayFromSource(char type, String fromSource, bool repeat /*= false*/, float volume /*= 1.0f*/)
 {
-	switch(type){
+	switch(type)
+	{
 		case AudioType::BGM:
 		{
 			PauseAllOfType(type);
@@ -450,7 +456,7 @@ void AudioManager::PlaySFX(String name, float volume /*= 1.f*/)
 
 	pauseUpdates = true;
 
-	LogAudio("PlaySFX: "+name, INFO);
+	LogAudio("PlaySFX: "+name, DEBUG);
 
 	// Create audio
 //	std::cout<<"\nAudio not found, tryng to create and load it.";
@@ -480,6 +486,7 @@ Audio * AudioManager::PlayBGM(String name, float volume /* = 1.f */)
 {
 	if (!bgmEnabled)
 		return NULL;
+	LogAudio("PlayBGM", INFO);
 	return Play(AudioType::BGM, name, true, volume);
 }
 
@@ -663,6 +670,21 @@ float AudioManager::CategoryVolume(int category)
 	return categoryVolumes[category];
 
 }
+
+float AudioManager::GetVolume(int forAudioType)
+{
+	switch(forAudioType)
+	{
+		case AudioType::BGM:
+			return bgmVolume;
+		case AudioType::SFX:
+			return sfxVolume;
+		default:
+			std::cout<<"\nDefault -1 volume.";
+	}
+	return -1;
+}
+
 
 void AudioManager::StopAndRemoveAll()
 {

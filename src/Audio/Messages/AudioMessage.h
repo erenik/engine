@@ -32,6 +32,8 @@ enum audioMessageTypes
 enum audioTargets 
 {
 	AT_MASTER_VOLUME,
+	AT_BGM_VOLUME,
+	AT_SFX_VOLUME,
 	AT_LISTENER, // For setting the camera or entity which si the listener for calculating positional audio volumes.
 	AT_CATEGORY_VOLUME,
 	AT_VOLUME,

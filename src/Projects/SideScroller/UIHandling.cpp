@@ -87,6 +87,15 @@ void SideScroller::UpdateUI()
 	};
 }
 
+void SideScroller::UpdateAudioMenu()
+{
+	QueueGraphics(new GMSetUIi("MasterVolume", GMUI::INTEGER_INPUT, AudioMan.MasterVolume() * 100));
+	QueueGraphics(new GMSetUIi("BGMVolume", GMUI::INTEGER_INPUT, AudioMan.BGMVolume() * 100));
+	QueueGraphics(new GMSetUIi("SFXVolume", GMUI::INTEGER_INPUT, AudioMan.SFXVolume() * 100));
+	QueueGraphics(new GMSetUIb("BGMEnabled", GMUI::TOGGLED, AudioMan.BGMEnabled()));
+	QueueGraphics(new GMSetUIb("AudioEnabled", GMUI::TOGGLED, AudioMan.AudioEnabled()));
+}
+
 void SideScroller::UpdateMunny()
 {
 	QueueGraphics(new GMSetUIs("Pesos", GMUI::TEXT, String(munny)));

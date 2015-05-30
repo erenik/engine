@@ -622,8 +622,8 @@ UIElement * UIList::GetUpNeighbour(UIElement * referenceElement, bool & searchCh
 				// Set to only search children now!
 				searchChildrenOnly = true;
 				UIElement * neighbour = child->GetUpNeighbour(referenceElement, searchChildrenOnly);
-				if (neighbour == child)
-					continue;
+			//	if (neighbour == child)
+			//		continue;
 				if (neighbour)
 					return neighbour;
 			}
@@ -672,10 +672,9 @@ UIElement * UIList::GetDownNeighbour(UIElement * referenceElement, bool & search
 					return child;
 				// Set to only search children now!
 				searchChildrenOnly = true;
-				UIElement * neighbour = child->GetElementClosestTo(referenceElement->position);
-				if (neighbour == child)
-					continue;
-					
+				UIElement * neighbour = child->GetElementClosestTo(referenceElement->position, true);
+		//		if (neighbour == child)
+		//			continue;		
 //					child->GetDownNeighbour(referenceElement, searchChildrenOnly);
 				if (neighbour)
 					return neighbour;

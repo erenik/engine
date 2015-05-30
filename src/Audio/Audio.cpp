@@ -88,9 +88,9 @@ void Audio::Nullify()
 /// Generate audio source if not existing.
 bool Audio::CreateALObjects()
 {
+#ifdef OPENAL
 	CheckALError("ALSource::CreateALObjects - before");
 	lastAudioInfo = "Audio::CreateALObjects";
-#ifdef OPENAL
 	/// Skip is source is valid already.
 	if (alSource)
 	{
@@ -527,7 +527,9 @@ void Audio::UpdateVolume()
 	}
 
 	/// Update absolute volume.
-	absoluteVolume = distanceCompensatedVolume;
+	float masterVol = AudioMan.MasterVolume();
+	float audioTypeVol = AudioMan.GetVolume(type);
+	absoluteVolume = distanceCompensatedVolume * audioTypeVol * masterVol;
 
 //	std::cout<<"\nUpdating volume: "<<absoluteVolume<<" for source "<<alSource;
 	/// Set volume in AL.
@@ -537,7 +539,7 @@ void Audio::UpdateVolume()
 	{
 		assert(alSource != 0);
 		// Multiply absolute volume with manager master volume
-		absoluteVolume = distanceCompensatedVolume * AudioMan.ActiveMasterVolume();
+	//	absoluteVolume = distanceCompensatedVolume * AudioMan.ActiveMasterVolume();
 		alSourcef(alSource, AL_GAIN, absoluteVolume);
 		int error = alGetError();
 		switch(error){
@@ -691,19 +693,21 @@ void Audio::BufferData(MultimediaStream * fromStream, AudioBuffer * intoBuffer)
 }
 
 
-#ifdef OPENAL
 
 void Audio::AudioPlayAL()
 {
+#ifdef OPENAL
 	if (alSource == 0){
 		bool ok = CreateALObjects();
 		if (!ok)
 			return;
 	}
+#endif
 }
 
 void Audio::UpdateOpenAL()
 {
+#ifdef OPENAL
 	if (audioDriver == AudioDriver::OpenAL)
 	{
 		// If ending, just wait until the al State reaches STOPPED.

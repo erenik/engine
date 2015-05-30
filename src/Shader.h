@@ -120,8 +120,7 @@ public:
 	GLuint attributePosition, attributeUV, attributeNormal, attributeTangent, attributeBiTangent;
 
 	/// Attributes added with instanced particle rendering. 
-	GLuint attributeVertexPosition, // Vertex XYZ for the model which is instanced.
-		attributeParticlePositionScale, /// World position XYZ and scale stored in the W component 
+	GLuint attributeParticlePositionScale, /// World position XYZ and scale stored in the W component 
 		attributeColor, /// Color XYZW for tweaking each individual instance/particle.
 		attributeParticleLifeTimeDurationScale; // Life time (total), duration (current), as well as scale in X and Y.
  

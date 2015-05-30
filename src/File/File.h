@@ -16,6 +16,7 @@
 	#include "OS/WindowsIncludes.h"
 #endif
 
+class DataStream;
 
 /// General file-class?
 class File 
@@ -31,6 +32,11 @@ public:
 	// Resets file handles etc.
 	void Nullify();
 
+	/// Reads x bytes into the file, continuing from previous location (or start if newly opened).
+	bool ReadBytes(DataStream & intoStream, int numBytes);
+	/// Static version which reads x bytes.
+	static bool ReadBytes(String fromFile, DataStream & intoStream, int numBytes);
+
 	/// Assignment operator. Similar to constructor.
 	void operator = (String path);
 
@@ -43,6 +49,8 @@ public:
 	std::fstream * Open();
 	void Close();
 	bool IsOpen();
+
+	std::fstream & GetStream() {return fileStream;};
 
 	/// Returns true if the last write time has changed compared to the last time that we extracted contents from this file.
 	bool HasChanged();

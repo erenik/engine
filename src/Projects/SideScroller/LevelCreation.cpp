@@ -477,7 +477,7 @@ void AddPilgrims()
 			CreateEventEntity(&eventEntity, &eventProp);
 			eventProp->message = "PilgrimTerror";
 			eventEntity->position.x = hole->position.x;
-			MapMan.AddEntity(eventEntity);
+			MapMan.AddEntity(eventEntity, false, true);
 		}
 	}
 }

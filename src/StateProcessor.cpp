@@ -123,10 +123,12 @@ void * StateManager::StateProcessor(void * vArgs){
 
 	std::cout<<"\n>>> StateProcessingThread ending...";
 #ifdef WINDOWS
+#ifdef USE_OLE
 	// De-allocate COM stuffs
 	// http://msdn.microsoft.com/en-us/library/windows/desktop/ms688715%28v=vs.85%29.aspx
 	// CoUninitialize();
 	OleUninitialize();
+#endif
 	stateProcessingThread = 0;
 	_endthread();
 #elif defined LINUX | defined OSX

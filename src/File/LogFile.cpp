@@ -22,8 +22,11 @@ int logLevel = INFO;
 void LogToFile(String fileName, String logText, int levelFlags)
 {
 	int level = levelFlags % 16;
-	if (logLevel > DEBUG && level <= DEBUG)
+	// What does this even do..?
+	if (level < logLevel)
 		return;
+//	if (logLevel > DEBUG && level <= DEBUG)
+	//	return;
 	bool printed = Output(logText);
 //	if (!printed)
 //		return;

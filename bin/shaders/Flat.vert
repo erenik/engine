@@ -1,5 +1,6 @@
-// Author: Emil Hedemalm
-// Date: 2012-10-29
+/// Author: Emil Hedemalm
+/// Date: 2012-10-29
+/// Only Diffuse + Emissive (if any)
 #version 120
 
 // Uniforms

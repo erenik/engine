@@ -14,6 +14,7 @@
 #include "Graphics/Messages/GraphicsMessage.h"
 #include "Graphics/GraphicsManager.h"
 
+#include "Image/Image.h"
 #include "OS/Sleep.h"
 
 #include <vector>
@@ -359,17 +360,19 @@ Texture * TextureManager::LoadTexture(String source, bool noPathAdditions)
 	if (!ok)
 	{
 		std::cout<<"\nOpenCV failed to read texture D:";
-		delete texture;
-		return NULL;
 	}
-
-	/*
-	bool ok = LoadTextureLodePNG(source, texture);
+	if (!ok)
+		ok = LoadPNG(source, texture);
+	if (!ok)
+		ok = LoadTextureLodePNG(source, texture);
 	if (!ok)
 	{
 		delete texture;
 		return NULL;
 	}
+
+	/*
+
 	int64 first = timer.GetMicro();	
 
 	// resize texture so the comparison gets valid...
@@ -389,6 +392,9 @@ Texture * TextureManager::LoadTexture(String source, bool noPathAdditions)
 	std::cout<<" done.";
 
 	textures.Add(texture);
+
+	LogMain("Loading texture \""+source+"\"... done", EXTENSIVE_DEBUG);
+
 	/// Queue the texture for bufferization. This may want to be adjusted somewhere else maybe.
 	/// If queueing from within the manager we will thread-deadlock. Better buffer it right before rendering..!
 ///	Graphics.QueueMessage(new GMBufferTexture(texture));
@@ -425,16 +431,16 @@ bool TextureManager::SupportedImageFileType(String fileName)
 bool TextureManager::LoadTextureOpenCV(String source, Texture * texture)
 {
 #ifdef OPENCV
-
 	/// Supported via OpenCV: http://docs.opencv.org/modules/highgui/doc/reading_and_writing_images_and_video.html?highlight=imread#imread
 	cv::Mat mat;
-	mat = cv::imread(source.c_str(), CV_LOAD_IMAGE_UNCHANGED);
+	// http://stackoverflow.com/questions/7417637/imread-not-working-in-opencv
+	mat = cvLoadImage(source.c_str(), CV_LOAD_IMAGE_UNCHANGED);
+//	mat = cv::imread(source.c_str(), CV_LOAD_IMAGE_UNCHANGED);
 	if (!mat.cols || !mat.rows)
+	{	
+		// Bad data? 
 		return false;
-
-	texture->source = source;
-	texture->name = source;
-
+	}
 	/// First update size of our texture depending on the given one.
 	if (texture->width != mat.cols || texture->height != mat.rows)
 	{
@@ -528,16 +534,15 @@ bool TextureManager::LoadTextureOpenCV(String source, Texture * texture)
 	}
 	/// Send a message so that the texture is re-buffered... wat.
 //	Graphics.QueueMessage(new GMBufferTexture(texture));
-#endif
 	return true;
+#endif
+	return false;
 }
 
 
 bool TextureManager::LoadTextureLodePNG(String source, Texture * texture)
 {
-	/// Obsoleted?
-	/*
-
+	/// Obsoleted
 	std::vector<unsigned char> buffer, image;
 
 	/// Check that the file exists
@@ -696,7 +701,6 @@ bool TextureManager::LoadTextureLodePNG(String source, Texture * texture)
 
 	/// Since we converted the image to RGBA above, fix the BitsPerPixel again!
 	texture->bpp = 4;
-	*/
 	return true;
 }
 

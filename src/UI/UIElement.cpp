@@ -729,8 +729,7 @@ UIElement * UIElement::GetUpNeighbour(UIElement * referenceElement, bool & searc
 	// Nothing found? Then set ourselves to be this sought after element!
 	if (!element)
 	{
-		// Or any of our children.. might be better.
-		element = GetElementClosestTo(referenceElement->position);
+		element = GetElementClosestTo(referenceElement->position, true);
 	}
 	return element;
 }
@@ -780,9 +779,7 @@ UIElement * UIElement::GetRightNeighbour(UIElement * referenceElement, bool & se
 	// Nothing found? Then set ourselves to be this sought after element!
 	if (!element)
 	{
-		return NULL;
-		// Or any of our children.. might be better.
-	//	element = GetElementClosestTo(referenceElement->position);
+		element = GetElementClosestTo(referenceElement->position, true);
 	}
 	return element;
 }
@@ -832,9 +829,7 @@ UIElement * UIElement::GetDownNeighbour(UIElement * referenceElement, bool & sea
 	// Nothing found? Then set ourselves to be this sought after element!
 	if (!element)
 	{
-		return NULL;
-		// Or any of our children.. might be better.
-	//	element = GetElementClosestTo(referenceElement->position);
+		element = GetElementClosestTo(referenceElement->position, true);
 	}
 	return element;
 
@@ -885,21 +880,21 @@ UIElement * UIElement::GetLeftNeighbour(UIElement * referenceElement, bool & sea
 	// Nothing found? Then set ourselves to be this sought after element!
 	if (!element)
 	{
-		return NULL;
-		// Or any of our children.. might be better.
-	//	element = GetElementClosestTo(referenceElement->position);
+		element = GetElementClosestTo(referenceElement->position, true);
 	}
 	return element;
 }
 
 /// Works recursively.
-UIElement * UIElement::GetElementClosestTo(Vector3f & position)
+UIElement * UIElement::GetElementClosestTo(Vector3f & position, bool mustBeActivatable /*= false*/)
 {
 	UIElement * closest = NULL;
 	float closestDistance = 1000000.f;
 	for (int i = 0; i < children.Size(); ++i)
 	{
 		UIElement * child = children[i];
+		if (mustBeActivatable && !child->activateable)
+			continue;
 		float dist = (child->position - position).Length();
 		if (dist < closestDistance)
 		{
@@ -909,7 +904,7 @@ UIElement * UIElement::GetElementClosestTo(Vector3f & position)
 	}
 	// Recurse on the closest one.
 	if (closest)
-		closest = closest->GetElementClosestTo(position);
+		closest = closest->GetElementClosestTo(position, true);
 	// Fetch self if no neighbour close enough.
 	if (!closest)
 		return this;

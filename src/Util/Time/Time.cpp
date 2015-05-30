@@ -524,6 +524,7 @@ void Time::FetchCalenderData()
 		}
 		case TimeType::LINUX_MICROSEC_SINCE_JAN1_1970:
 		{
+#ifdef LINUX
 			year = month = day = hour = minute = second = -1;
 //			strftime(buf, sizeof(buf), "");
 			// Use Date function for simplicity...
@@ -544,7 +545,9 @@ void Time::FetchCalenderData()
 			day = t.tm_mday;
 			month =  t.tm_mon + 1; // Months since january
 			year = t.tm_year + 1900; // Years since 1900
-
+#else
+			assert(false);
+#endif
 	/*		int64 seconds = intervals / 1000000;
 			int minutes = seconds / 60;
 			int hours = minutes / 60;

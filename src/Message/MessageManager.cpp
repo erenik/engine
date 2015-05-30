@@ -293,6 +293,23 @@ void MessageManager::ProcessMessage(Message * message)
 			}
 			break;
 		}
+		case MessageType::INTEGER_MESSAGE:
+		{
+			IntegerMessage * im = (IntegerMessage*) message;
+			if (msg == "SetMasterVolume")
+			{
+				QueueAudio(new AMSet(AT_MASTER_VOLUME, im->value * 0.01f));
+			}
+			else if (msg == "SetBGMVolume")
+			{
+				QueueAudio(new AMSet(AT_BGM_VOLUME, im->value * 0.01f));
+			}
+			else if (msg == "SetSFXVolume")
+			{
+				QueueAudio(new AMSet(AT_SFX_VOLUME, im->value * 0.01f));
+			}
+			break;
+		}
 		case MessageType::COLLISSION_CALLBACK:
 		{
 			CollisionCallback * cc = (CollisionCallback*) message;

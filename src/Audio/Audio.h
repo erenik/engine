@@ -109,12 +109,10 @@ private:
 	int bufSize;
 	int bytesBufferedTotal; // statistic
 
-#ifdef OPENAL
 	void AudioPlayAL();
 	void UpdateOpenAL();
 	void QueueBuffer(AudioBuffer * buf);
 	void UnqueueBuffer(AudioBuffer * buf);
-#endif
 
 	/// Bad boolean, should go away after audio is re-worked with an own messaging system.
 	bool firstBufferDone;

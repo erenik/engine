@@ -165,7 +165,7 @@ public:
 	virtual UIElement * GetLeftNeighbour(UIElement * referenceElement, bool & searchChildrenOnly);
 	
 	/// Works recursively.
-	UIElement * GetElementClosestTo(Vector3f & position);
+	UIElement * GetElementClosestTo(Vector3f & position, bool mustBeActivatable);
 
 	// Sets the selected flag to false for the element and all beneath it.
 	void DeselectAll();

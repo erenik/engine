@@ -94,17 +94,19 @@ void GraphicsManager::RenderViewport(Viewport * vp)
 
 	FrameStats.sceneTime += sceneTimer.GetMs();
 
+	CheckGLError("Pre alpha entities GraphicsManager::RenderViewport");
 	// Render alpha entities!
 	alphaEntitiesTimer.Start();
 	Graphics.RenderAlphaEntities();
 	FrameStats.alphaTime += alphaEntitiesTimer.GetMs();
 
+	CheckGLError("Pre effects GraphicsManager::RenderViewport");
 	// Render effects!
 	effectsTimer.Start();
 	Graphics.RenderEffects();
 	FrameStats.effectsTime += effectsTimer.GetMs();
 
-
+	CheckGLError("Pre skeletons GraphicsManager::RenderViewport");
 	Graphics.RenderSkeletons();
 
 	/// Wosh.

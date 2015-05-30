@@ -26,6 +26,22 @@ DataStream::~DataStream()
 	data = NULL;
 }
 
+void DataStream::Allocate(int newMax)
+{
+	if (data)
+		delete[] data;
+	data = new uchar[newMax];
+	dataLength = newMax;
+	bytesUsed = 0;
+}
+
+/// If manipulating contents from outside, set this to number of read/manipulated bytes?
+void DataStream::SetBytesUsed(int newBytesUsed)
+{
+	bytesUsed = newBytesUsed;
+}
+
+
 /// Pushes the text into the stream, including ending NULL-sign.
 void DataStream::Push(String text)
 {
@@ -85,10 +101,21 @@ void DataStream::PopToPointer(uchar * point)
 /// Removes the X first number of bytes from the stream.
 void DataStream::PopBytes(int numberOfBytes)
 {
-	assert(numberOfBytes < bytesUsed);
+	assert(numberOfBytes <= bytesUsed);
 	bytesUsed -= numberOfBytes;
 	/// Move back the bytes in the stream.
 	memmove(data, data + numberOfBytes, bytesUsed);
+}
+
+/// Attempts to pop designated bytes from this stream, placing them into target buffer instead. Returns amount of bytes popped this way.
+int DataStream::PopBytesToBuffer(uchar * buffer, int maxBytesToPop)
+{
+	memmove(buffer, data, maxBytesToPop);
+	int bytesMoved = maxBytesToPop;
+	if (bytesMoved > bytesUsed)
+		bytesMoved = bytesUsed;
+	PopBytes(bytesMoved);
+	return bytesMoved;
 }
 
 /// Sets used bytes to 0.
@@ -96,6 +123,12 @@ void DataStream::PopAll()
 {
 	bytesUsed = 0;
 }	
+
+/// Returns pointer to the data. May not be NULL-terminated.
+uchar * DataStream::GetData()
+{	
+	return data; 
+}
 
 /// Returns the current data as a string. Do note that this will fail if there are binary 0s within the stream.
 bool DataStream::GetDataAsString(String & string)
@@ -125,3 +158,10 @@ int DataStream::FreeBytes()
 {
 	return dataLength - bytesUsed;
 }
+
+/// Default 1 MB. Override here.
+void DataStream::SetMaxBytes(int newMax)
+{
+	maxBytes = newMax;
+}
+

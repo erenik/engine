@@ -375,7 +375,6 @@ void Shader::ExtractAttributes()
 	attributeBiTangent = glGetAttribLocation(shaderProgram, "in_BiTangent");
 
 	// Attributes added with instanced particle rendering. 
-	attributeVertexPosition = glGetAttribLocation(shaderProgram, "in_VertexPosition");
 	attributeParticlePositionScale = glGetAttribLocation(shaderProgram, "in_ParticlePositionScale");
 	attributeParticleLifeTimeDurationScale = glGetAttribLocation(shaderProgram, "in_ParticleLifeTimeDurationScale");
 	attributeColor = glGetAttribLocation(shaderProgram, "in_Color");

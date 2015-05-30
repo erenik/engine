@@ -361,7 +361,6 @@ int jumpPlacement = 0;
 /// Main processing function, using provided time since last frame.
 void SideScroller::Process(int timeInMs)
 {
-	SleepThread(10);
 	if (!MainWindow()->InFocus())
 		SleepThread(40);
 	else 
@@ -379,10 +378,12 @@ void SideScroller::Process(int timeInMs)
 	switch(state)
 	{
 		case PACO_TACO:
+			SleepThread(2); // Allow more leeway during mini-game for timing.
 			ProcessPacoTaco(timeInMs);
 			break;
 		case PLAYING_LEVEL:
 		{
+			SleepThread(5);
 			if (paused)
 				return;
 			ProcessLevel(timeInMs);
@@ -542,10 +543,6 @@ void SideScroller::ProcessMessage(Message * message)
 			{
 				difficulty->iValue = im->value;
 			}
-			else if (msg == "SetMasterVolume")
-			{
-				QueueAudio(new AMSet(AT_MASTER_VOLUME, im->value * 0.01f));
-			}
 			break;
 		}
 		case MessageType::COLLISSION_CALLBACK:
@@ -671,6 +668,10 @@ void SideScroller::ProcessMessage(Message * message)
 			else if (msg == "OnReloadUI")
 			{
 				UpdateUI();
+			}
+			else if (msg == "OnAudioMenuOpened")
+			{
+				UpdateAudioMenu();
 			}
 			else if (msg == "Shop")
 			{

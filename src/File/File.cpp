@@ -7,6 +7,7 @@
 #include "Timer/Timer.h"
 #include <cstring>
 #include <ios>
+#include "DataStream/DataStream.h"
 
 // o.o
 File::File()
@@ -28,6 +29,31 @@ void File::Nullify()
 	fileHandle = 0;
 #endif
 	open = false;
+}
+
+/// Reads x bytes into the file, continuing from previous location (or start if newly opened).
+bool File::ReadBytes(DataStream & intoStream, int numBytes)
+{
+	if (!this->IsOpen())
+		return false;
+	if (numBytes <= 0)
+		return false;
+	uchar * bytes = intoStream.GetData();
+	this->fileStream.read((char*)bytes, numBytes);
+	intoStream.SetBytesUsed(numBytes);
+	return true;
+}
+
+
+/// Static version which reads x bytes.
+bool File::ReadBytes(String fromFile, DataStream & intoStream, int numBytes)
+{
+	File f;
+	f.path = fromFile;
+	bool ok = f.Open();
+	if (!ok)
+		return false;
+	return f.ReadBytes(intoStream, numBytes);
 }
 
 File::~File()

@@ -1,5 +1,6 @@
 D:\libs\glew-1.12.0\lib\Release\Win32
 D:\libs\openal-soft-1.16.0-bin\libs\Win32
-D:\libs\libtheora-1.1.1\win32\VS2008\Win32\Debug
 D:\libs\opencv\out\lib\Debug
 D:\libs\opencv\out\lib\Release
+D:\libs\libpng\lib
+

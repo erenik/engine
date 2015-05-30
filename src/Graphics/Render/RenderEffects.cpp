@@ -6,7 +6,9 @@
 #include "GraphicsState.h"
 
 /// Renders nicelish graphical effectslies! :#
-void GraphicsManager::RenderEffects(){
+void GraphicsManager::RenderEffects()
+{
+	CheckGLError("Before GraphicsManager::RenderEffects");
 	
 	/// Set blend modes
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
@@ -29,6 +31,7 @@ void GraphicsManager::RenderEffects(){
 	{
 		graphicsState->graphicEffectsToBeRendered[i]->Render(*graphicsState);
 	}
+	CheckGLError("Post entity-effects GraphicsManager::RenderEffects");
 
     for (int i = 0; i < graphicsState->particleEffectsToBeRendered.Size(); ++i)
 	{

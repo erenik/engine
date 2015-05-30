@@ -181,6 +181,7 @@ public:
 
 	/// UI stuffs. All implemented in UIHandling.cpp
 	void UpdateUI();
+	void UpdateAudioMenu();
 	void UpdateMunny();
 	void UpdateAttempts();
 	void UpdateDistance();

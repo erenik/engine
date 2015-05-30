@@ -11,6 +11,7 @@
 #include <Util.h>
 #include "DataTypes.h"
 #include "MathLib.h"
+#include "Time/Time.h"
 
 class Script;
 class UIElement;
@@ -30,7 +31,7 @@ public:
 	/// Triggered element. for (this)-applications.
 	UIElement * element;
 	/// Time when this message should be processed.
-	Time timeToProcess;
+	AETime timeToProcess;
 };
 
 class PasteMessage : public Message

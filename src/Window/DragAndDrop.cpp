@@ -228,7 +228,9 @@ int DragAndDrop::GetObject(IDataObject * pDataObj)
 	// Do we have to de-allocate it?
 	if (medium.pUnkForRelease == 0)
 	{
+#ifdef USE_OLE
 		ReleaseStgMedium(&medium);
+#endif
 	}
 }
 

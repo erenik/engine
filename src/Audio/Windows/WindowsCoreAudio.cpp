@@ -6,6 +6,10 @@
 
 #ifdef WINDOWS
 
+// #define USE_OLE
+#ifdef USE_OLE
+#endif
+
 #include "File/LogFile.h"
 #include <Functiondiscoverykeys_devpkey.h>
 // #include <Audiopolicy.h>
@@ -61,6 +65,7 @@ WMMDevice::~WMMDevice()
 
 bool WMMDevice::Initialize()
 {
+#ifdef USE_OLE
 	pwszID = NULL;
 	const CLSID CLSID_MMDeviceEnumerator = __uuidof(MMDeviceEnumerator);
 	const IID IID_IMMDeviceEnumerator = __uuidof(IMMDeviceEnumerator);
@@ -139,6 +144,8 @@ bool WMMDevice::Initialize()
 	// Do stuff.
 	initialized = true;
 	return true;
+#endif
+	return false;
 }
 
 
@@ -351,6 +358,7 @@ int WMMDevice::BytesPerFrame()
 
 bool WMMDevice::Deallocate()
 {
+#ifdef USE_OLE
 	devices.ClearAndDelete();
 
 	CoTaskMemFree(pwszID);
@@ -358,6 +366,7 @@ bool WMMDevice::Deallocate()
 	SAFE_RELEASE(collection);
     SAFE_RELEASE(properties);
     SAFE_RELEASE(endpoint);
+#endif
 	return true;
 }
 

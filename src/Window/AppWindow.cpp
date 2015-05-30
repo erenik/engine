@@ -45,7 +45,7 @@ int CALLBACK MonitorEnumProc(HMONITOR hMonitor, HDC hdc, LPRECT lpRect, LPARAM l
 	Monitor monitor;
 	monitor.hMonitor = hMonitor;
 
-	bool result = GetMonitorInfoW(hMonitor, &monitor.monitorInfo);
+	BOOL result = GetMonitorInfoW(hMonitor, &monitor.monitorInfo);
 	assert(result);
 	MONITORINFOEX & info = monitor.monitorInfo;
 	monitor.topLeftCorner = Vector2i(info.rcMonitor.left, info.rcMonitor.top);
@@ -174,7 +174,7 @@ void AppWindow::UpdatePosition()
 	if (requestedRelativePosition[0] || requestedRelativePosition[1] )
 	{	
 		RECT parentRect;
-		bool success = GetWindowRect(MainWindow()->hWnd, &parentRect);
+		BOOL success = GetWindowRect(MainWindow()->hWnd, &parentRect);
 		position = Vector2i(requestedRelativePosition);
 		position[0] += parentRect.left;
 		position[1] += parentRect.top;
@@ -272,7 +272,7 @@ void AppWindow::ToggleFullScreen()
 		Vector2i newMin, newSize;
 		// Extract old AppWindow-coordinates first?
 		RECT rect;
-		bool success = GetWindowRect(hWnd, &rect);
+		BOOL success = GetWindowRect(hWnd, &rect);
 		if (success)
 		{
 			previousPosition = Vector2i(rect.left, rect.top);
@@ -379,7 +379,7 @@ bool AppWindow::Create()
 	if (requestedRelativePosition[0] || requestedRelativePosition[1] )
 	{	
 		RECT parentRect;
-		bool success = GetWindowRect(parent, &parentRect);
+		BOOL success = GetWindowRect(parent, &parentRect);
 		position = Vector2i(requestedRelativePosition);
 		position[0] += parentRect.left;
 		position[1] += parentRect.top;
@@ -485,20 +485,22 @@ void AppWindow::Close()
 /// Must be called from the same thread that created it (on Windows).
 bool AppWindow::Destroy()
 {
-	bool result;
 #ifdef WINDOWS
 	// http://msdn.microsoft.com/en-us/library/windows/desktop/ms632682%28v=vs.85%29.aspx
 	// If the specified AppWindow is a parent or owner AppWindow, DestroyWindow automatically destroys the associated 
 	// child or owned windows when it destroys the parent or owner AppWindow. The function first destroys child or 
 	// owned windows, and then it destroys the parent or owner AppWindow.
 	// A thread cannot use DestroyWindow to destroy a AppWindow created by a different thread. 
-	if (main)
-	{
-		result = DestroyWindow(hWnd);
+//	if (main)
+//	{
+		BOOL result = DestroyWindow(hWnd);
 		assert(result);
-	}
+//	}
+//	return result;
+#else
+	assert(false);
 #endif
-	return result;
+	return true;
 }
 
 bool AppWindow::IsVisible()
@@ -627,6 +629,7 @@ void AppWindow::Show()
 	if (!dragAndDrop)
 		dragAndDrop = new DragAndDrop();
 	/// Enable Drag-n-drop for the AppWindow for non-File types too.
+#ifdef USE_OLE
 	int result = RegisterDragDrop(hWnd, dragAndDrop);
 	switch(result)
 	{
@@ -640,6 +643,7 @@ void AppWindow::Show()
 			std::cout<<"Invalid MEM";
 			break;
 	}
+#endif
 #else
 	XMapWindow(xDisplay, xWindowHandle);
 #endif
@@ -872,26 +876,28 @@ bool AppWindow::MakeGLContextCurrent()
 		bool share = true;
 		if (share)
 		{
-			bool result = wglShareLists(mainWindow->hglrc, hglrc);
+			BOOL result = wglShareLists(mainWindow->hglrc, hglrc);
 			assert(result);
 		}
 		std::cout<<"\nCreated new GL context and linked it to the main AppWindow.";
 	}
 	// Make it current
-	bool result = wglMakeCurrent(hdc, hglrc);	
+	BOOL result = wglMakeCurrent(hdc, hglrc);	
+	return result == TRUE;
 #elif defined USE_X11
     // Lock it.
     XLockDisplay(xDisplay);
 	bool result = glXMakeCurrent(xDisplay, xWindowHandle, (GLXContext)	 xGLContext);
 	XUnlockDisplay(xDisplay);
-#endif
 	return result;
+#endif
 }
 
 void AppWindow::TestRender()
 {
 	MakeGLContextCurrent();
-//	glXMakeContextCurrent(xDisplay, xWindowHandle, xWindowHandle, (GLXContext)xGLContext);
+#ifdef USE_X11
+	//	glXMakeContextCurrent(xDisplay, xWindowHandle, xWindowHandle, (GLXContext)xGLContext);
 	float triangleRot = 0.f;
 	XWindowAttributes 		window_attributes;
 	while(true)
@@ -913,13 +919,14 @@ void AppWindow::TestRender()
 		SleepThread(10);
 		
 	}
+#endif
 }
 
 bool AppWindow::DeleteGLContext()
 {
 #ifdef WINDOWS
 	// Deselect rendering context
-	int result = wglMakeCurrent(hdc, NULL);		
+	BOOL result = wglMakeCurrent(hdc, NULL);		
 	if (!result)
 	{
 		int error = GetLastError();
@@ -974,10 +981,11 @@ bool AppWindow::DeleteGLContext()
 				assert(result == TRUE);
 		}
 	}
+	return result == TRUE;
 #elif defined USE_X11
 	int result = XWindowSystem::DestroyGLContext(this);
-#endif // OS-specific code
 	return result;
+#endif // OS-specific code
 }
 
 /// Disables all render-flags below
@@ -1044,8 +1052,8 @@ bool AppWindow::SetupPixelFormat(HDC hDC)
     nPixelFormat = ChoosePixelFormat(hDC, &pfd);
 
     /*      Set the pixel format to the device context*/
-    bool result = SetPixelFormat(hDC, nPixelFormat, &pfd);
-	return result;
+    BOOL result = SetPixelFormat(hDC, nPixelFormat, &pfd);
+	return result == TRUE;
 }
 #endif
 

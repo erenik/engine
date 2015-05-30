@@ -388,14 +388,16 @@ bool ParticleSystem::FetchTextures()
 
 void ParticleSystem::Render(GraphicsState & graphicsState)
 {
+	CheckGLError("Before ParticleSystem::Render");
    	if (!FetchTextures())
 		return;
 	if (useInstancedRendering && GL_VERSION_3_3_OR_HIGHER)
 		RenderInstanced(graphicsState);
 	else
 		RenderOld(graphicsState);
-
+	CheckGLError("After ParticleSystem::Render");
 }
+
 void ParticleSystem::PrintData(){
     assert(false);
 }
@@ -493,7 +495,7 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 		std::cout<<"\nNo Particle shader available";
 		return;
 	}
-	LogGraphics("ParticleSystem::RenderInstanced", DEBUG);
+	LogGraphics("ParticleSystem::RenderInstanced", EXTENSIVE_DEBUG);
 	shader = ShadeMan.SetActiveShader(shader);
 	if (!shader)
 	{
@@ -512,6 +514,8 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 
 	// Set uniforms
 	SetUniforms();
+	CheckGLError("ParticleSystem::RenderInstanced - set uniforms");
+
 
 	if (false)
 	{
@@ -537,6 +541,9 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 	// The second parameter is the "rate at which generic vertex attributes advance when rendering multiple instances"
 	// http://www.opengl.org/sdk/docs/man/xhtml/glVertexAttribDivisor[0]ml
 	/// Mesh-data, re-use it all.
+
+
+
 	if (shader->attributePosition == -1)
 	{
 		LogGraphics("Particle system shader "+shader->name+" lacking position attribute, yo?", ERROR);
@@ -557,27 +564,37 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 
 	/// Bind vertex array/attrib pointers.
 	// 1rst attribute buffer : vertices
-	if (shader->attributeParticlePositionScale != -1)
+	if (shader->attributeParticlePositionScale != -1 && particlePositionScaleBuffer != -1)
 	{
 		graphicsState.BindVertexArrayBuffer(particlePositionScaleBuffer);
 		glEnableVertexAttribArray(shader->attributeParticlePositionScale);
 		glVertexAttribPointer(shader->attributeParticlePositionScale, 4, GL_FLOAT, GL_FALSE, 0, (void*)0);
 		glVertexAttribDivisor(shader->attributeParticlePositionScale, 1); 
 	}
-	if (shader->attributeColor != -1)
+	else {
+		glDisableVertexAttribArray(shader->attributeParticlePositionScale);
+	}
+	if (shader->attributeColor != -1 && particleColorBuffer != -1)
 	{
 		graphicsState.BindVertexArrayBuffer(particleColorBuffer);
 		glEnableVertexAttribArray(shader->attributeColor);
 		glVertexAttribPointer(shader->attributeColor, 4, GL_FLOAT, GL_TRUE, 0, (void*)0);
 		glVertexAttribDivisor(shader->attributeColor, 1);
 	}
+	else {	
+		glDisableVertexAttribArray(shader->attributeColor);
+	}
+
 	/// Set up life time, duration and scale (used for rain).
-	if (shader->attributeParticleLifeTimeDurationScale != -1)
+	if (shader->attributeParticleLifeTimeDurationScale != -1 && particleLifeTimeDurationScaleBuffer != -1)
 	{
 		graphicsState.BindVertexArrayBuffer(particleLifeTimeDurationScaleBuffer);
 		glEnableVertexAttribArray(shader->attributeParticleLifeTimeDurationScale);
 		glVertexAttribPointer(shader->attributeParticleLifeTimeDurationScale, 4, GL_FLOAT, GL_FALSE, 0, (void*)0);
 		glVertexAttribDivisor(shader->attributeParticleLifeTimeDurationScale, 1); 
+	}
+	else {
+		glDisableVertexAttribArray(shader->attributeParticleLifeTimeDurationScale);
 	}
 	CheckGLErrorParticle("ParticleSystem::RenderInstanced - bound attribs");
 
@@ -600,6 +617,9 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
  
 	Mesh * mesh = model->GetTriangulatedMesh();
 	assert(mesh->vertexDataCount < 300000);
+
+	CheckGLError("ParticleSystem::RenderInstanced - before draw arrays");
+
 	// Draw the particules !
 	glDrawArraysInstanced(GL_TRIANGLES, 0, mesh->vertexDataCount, aliveParticles);
 

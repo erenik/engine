@@ -20,18 +20,17 @@ void SideScroller::CreateDefaultBindings()
 	BINDING(Action::FromString("NextLevel"), List<int>(KEY::N, KEY::L));
 	BINDING(Action::FromString("PreviousLevel"), List<int>(KEY::P, KEY::L));
 	BINDING(Action::FromString("ToggleMenu"), KEY::ESCAPE);
-	BINDING(Action::FromString("ToggleMute"), KEY::M);
+	BINDING(Action::FromString("ToggleMute"), List<int>(KEY::CTRL, KEY::M));
 #define BIND BINDING
 	BIND(Action::FromString("AdjustMasterVolume(0.05)", ACTIVATE_ON_REPEAT), List<int>(KEY::CTRL, KEY::V, KEY::PLUS));
 	BIND(Action::FromString("AdjustMasterVolume(-0.05)", ACTIVATE_ON_REPEAT), List<int>(KEY::CTRL, KEY::V, KEY::MINUS));
 	BIND(Action::FromString("NewGame"), List<int>(KEY::CTRL, KEY::N));
-	BIND(Action::FromString("NextK"), KEY::RIGHT);
+	BIND(Action::FromString("NextK"), List<int>(KEY::CTRL, KEY::RIGHT));
 	BIND(Action::FromString("Jump"), KEY::SPACEBAR);
 	BIND(Action::FromString("PacoTaco"), List<int>(KEY::CTRL, KEY::P));
 
-	BIND(Action::FromString("RecreateLevelParts"), KEY::R);
-	
-	BIND(Action::FromString("CycleCamera"), KEY::C);
+	BIND(Action::FromString("RecreateLevelParts"), List<int>(KEY::CTRL, KEY::R, KEY::L));
+	BIND(Action::FromString("CycleCamera"), List<int>(KEY::CTRL, KEY::C));
 
 }
 

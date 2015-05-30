@@ -114,6 +114,9 @@ void UIFloatInput::CreateChildren()
 	input = new UIInput();
 	/// Set them to only accept floats?
 	input->name = name + "Input";
+	input->textureSource = this->textureSource;
+	/// Inherit texture from parent by default, so highlighting works accordingly? Or highlight without any texture base...?
+	/// ...
 	/// Any mathematical expression?
 	if (acceptMathematicalExpressions)
 		input->mathematicalExpressionsOnly = true;

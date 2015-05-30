@@ -13,6 +13,7 @@
 #include "Viewport.h"
 
 #include "OS/OSUtil.h"
+#include "OS/Sleep.h"
 #include "File/SaveFile.h"
 
 #include "Graphics/Messages/GMRenderPass.h"
@@ -87,7 +88,7 @@ SpaceShooter2D::~SpaceShooter2D()
 void SpaceShooter2D::OnEnter(AppState * previousState)
 {
 	/// Enable Input-UI navigation via arrow-keys and Enter/Esc.
-	Input.ForceNavigateUI(true);
+	InputMan.ForceNavigateUI(true);
 
 	/// Create game variables.
 	currentLevel = GameVars.CreateInt("currentLevel", 1);

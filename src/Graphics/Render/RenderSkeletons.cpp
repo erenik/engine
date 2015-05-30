@@ -16,6 +16,8 @@
 /// Re-renders the current scene, but this time illustrating Skeleton/Animation data.
 void GraphicsManager::RenderSkeletons()
 {
+	CheckGLError("Before GraphicsManager::RenderSkeletons");
+
 	ShadeMan.SetActiveShader(0);
 //	rer
 	// Load projection matrix.

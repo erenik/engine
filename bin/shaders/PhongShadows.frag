@@ -42,6 +42,8 @@ uniform sampler2D specularMap;
 uniform sampler2D normalMap;
 uniform sampler2D emissiveMap;
 
+uniform float emissiveMapFactor = 1.0;
+
 /// Shadow-mapping o.o
 uniform sampler2D shadowMap;
 uniform mat4 shadowMapMatrix;
@@ -60,13 +62,14 @@ varying vec3 v_normal;		// Interpolated coordinates that have been transformed t
 varying vec2 UV_Coord;	// Just passed on
 varying vec3 position;	// World coordinates of the fragment
 varying vec3 vecToEye;	// Vector from vertex to eye
-varying vec4 v_Tangent;	// Tangent!
+varying vec4 v_Tangent;	// Tangent XY in XY and CoTangent XY in ZW?
 
 void main()
 {
 	// For testing shit
 	vec3 constantColor = vec3(0,0,0);
 
+//	constantColor.x = 1;
 
 	// Set depth first..
 	float depth = gl_FragCoord.z;
@@ -129,7 +132,6 @@ void main()
 	//		lightSpecular.xyz = vec3(1,1,1);
 			// Directional lighting ^^
 			if (light_type[i] == 2){
-			
 			
 				// Diffuse
 				vec3 lightDirection = normalize(light_position[i].xyz);
@@ -298,10 +300,8 @@ void main()
 	}
 
 	// Final illumination done, multiply with diffuse ^^
-	gl_FragColor.xyz += texel.xyz * diffuseLuminosity * materialDiffuse.xyz;
-	
+	vec3 diffuseTotal = texel.xyz * diffuseLuminosity * materialDiffuse.xyz;
 	vec3 specularTotal = vec3(0,0,0);
-	
 	/// Check if using specular map.
 	if (useSpecularMap)
 	{
@@ -312,26 +312,28 @@ void main()
 	else
 		specularTotal.xyz += texel.xyz * specularLuminosity * materialSpecular.xyz;
 	
-//	constantColor.xyz = specularTotal;
-
-
 	// Sample emissive map?
-	vec3 emissive = texture2D(emissiveMap, UV_Coord).xyz;
-	gl_FragColor.xyz += emissive;
-	
-	gl_FragColor.xyz += specularTotal;
-	
+	vec3 emissive = texture2D(emissiveMap, UV_Coord).xyz * emissiveMapFactor;
+
 	/// Add global ambient ^^
-	gl_FragColor.xyz += texel.xyz * light_ambient.xyz; // * materialAmbient.xyz;
-
+	vec3 diffuseFactor = clamp(diffuseTotal.xyz, 0, 1);
+	vec3 specularFactor = clamp(specularTotal, 0, 1);
+	vec3 emissiveFactor = clamp(emissive, 0, 1);
+	vec3 ambientFactor = clamp(texel.xyz * light_ambient.xyz, 0, 1);
+	
+	gl_FragColor.xyz = diffuseFactor + specularFactor + emissiveFactor + ambientFactor;
+	
 	// Additional multiplier.
-	gl_FragColor *= primaryColorVec4; 
-//*/
+	gl_FragColor *= clamp(primaryColorVec4, 0.01, 1.0); 
 
+//	constantColor.xyz = light_ambient.xyz;
+	
+	if (gl_FragColor.x < 0)
+	{
+//		constantColor.x = 0.1;
+	}
+	/// Debugging color.
 	if (constantColor.x > 0 || constantColor.y > 0 || constantColor.z  > 0)
 		gl_FragColor.xyz = constantColor;
-//	gl_FragColor.xyz = v_normal;
-
-//	gl_FragColor.xyz = normal.xyz;	
 }
 
