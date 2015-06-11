@@ -1,5 +1,14 @@
+/// Emil Hedemalm
+/// 2015-06-11
+/// OpenCV-based PNG (or rather, image) loader.
 
 #include "ImageLoaders.h"
+
+#include "Libs.h"
+
+#ifdef OPENCV
+	#include "opencv2/opencv.hpp"
+#endif
 
 /// Attempts to load a texture using OpenCV imread.
 bool LoadOpenCV(String source, Texture * texture)

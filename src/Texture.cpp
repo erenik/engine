@@ -13,7 +13,7 @@
 #include "Libs.h"
 
 #ifdef OPENCV
-#include "opencv2/opencv.hpp"
+	#include "opencv2/opencv.hpp"
 #endif
 
 #include "Image/ImageLoaders.h"
@@ -145,12 +145,14 @@ bool Texture::Resize(Vector2i newSize)
 bool Texture::LoadFromFile()
 {
 	// Prefer OpenCV since it's faster.
-	bool ok;
+	bool ok = false;
+#ifdef OPENCV
 	ok = LoadOpenCV(source, this);
 	if (!ok)
 	{
 		std::cout<<"\nOpenCV failed to read texture D:";
 	}
+#endif
 	if (!ok)
 		ok = LoadPNG(source, this);
 //	if (!ok)

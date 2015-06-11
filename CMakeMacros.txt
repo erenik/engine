@@ -91,8 +91,8 @@ endmacro(RemoveDir)
 # All new projects should add their own folder to this list so that they are excluded correctly from other builds.
 set(projectFolders 
 	# Folders of classes based on frameworks which could be a hassle to set up could also be listed here, if you are lazy about getting appropriate libs or just do not want to include certain parts.
-	"CV"
-	"Projects"
+	"/CV/"
+	"/Projects/"
 )
 
 macro(UnpackLibZip name)
@@ -325,6 +325,8 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 		set(custom_libraries ${custom_libraries} "-ltheora" "-ltheoradec")
 		# Open CV
 		set(custom_libraries ${custom_libraries} "-lopencv_core -lopencv_highgui -lopencv_imgproc")
+		# zlib
+		set(custom_libraries ${custom_libraries} "-lz")
 	ENDIF(UNIX)
 
 	# Win32 MSVC++
