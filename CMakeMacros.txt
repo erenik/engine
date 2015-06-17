@@ -363,6 +363,7 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 		#	glu32.lib
 		#	opengl32.lib
 			ws2_32.lib
+			${LIBS_DIR}/zlib/out/Debug/zlibstaticd.lib
 		)
 		# FMOD Studio, Audio
 	#	set(DEBUG_LIBS ${DEBUG_LIBS} fmod_vc.lib)
@@ -380,6 +381,7 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 			glu32.lib
 			opengl32.lib
 			ws2_32.lib
+			${LIBS_DIR}/zlib/out/Release/zlibstatic.lib
 		)
 
 		# Windows Core Audio

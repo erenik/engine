@@ -167,6 +167,11 @@ void ParticleSystem::Process(float timeInSeconds)
 {
 	if (!initialized)
 		Initialize();
+	if (!initialized)
+	{
+		LogGraphics("Particle system failed to initialize", ERROR);
+		return;
+	}
 	assert(initialized);
 	Timer timer;
 	timer.Start();

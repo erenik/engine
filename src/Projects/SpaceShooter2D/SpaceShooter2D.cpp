@@ -15,7 +15,9 @@
 #include "OS/OSUtil.h"
 #include "OS/Sleep.h"
 #include "File/SaveFile.h"
+#include "UI/UIUtil.h"
 
+#include "Text/TextManager.h"
 #include "Graphics/Messages/GMRenderPass.h"
 #include "Render/RenderPass.h"
 
@@ -37,6 +39,9 @@ List<Ship> Ship::types;
 
 /// 4 entities constitude the blackness.
 List<Entity*> blacknessEntities;
+
+/// If true, queues up messages so the player automatically starts a new game with the default name and difficulty.
+bool introTest = true;
 
 void SetApplicationDefaults()
 {
@@ -580,6 +585,8 @@ GameVariable * SpaceShooter2D::LevelKills(int stage, int level)
 /// Starts a new game. Calls LoadLevel
 void SpaceShooter2D::NewGame()
 {
+	PopUI("NewGame");
+	PopUI("MainMenu");
 	/// Fetch file which dictates where to load weapons and ships from.
 	List<String> lines = File::GetLines("ToLoad.txt");
 	enum {
@@ -620,14 +627,17 @@ void SpaceShooter2D::NewGame()
 		}
 	}
 	// Set stage n level
-	currentStage->iValue = 1;
-	currentLevel->iValue = 1;
+	currentStage->iValue = 0;
+	currentLevel->iValue = 0;
 	// And load it.
 	LoadLevel();
 	// Play script for animation or whatever.
 	ScriptMan.PlayScript("scripts/NewGame.txt");
 	// Resume physics/graphics if paused.
 	Resume();
+
+	TextMan.LoadFromDir();
+	TextMan.SetLanguage("English");
 }
 
 /// o.o
@@ -704,6 +714,8 @@ void SpaceShooter2D::LoadLevel(String fromSource)
 	{
 		fromSource = "Levels/Stage "+currentStage->ToString()+"/Level "+currentStage->ToString()+"-"+currentLevel->ToString();
 	}		
+	if (currentStage->GetInt() == 0)
+		fromSource = "Levels/Tutorial";
 	this->levelSource = fromSource;
 	// Delete all entities.
 	MapMan.DeleteAllEntities();
@@ -845,6 +857,11 @@ void SpaceShooter2D::LevelCleared()
 void SpaceShooter2D::OpenMainMenu()
 {
 	SetMode(MAIN_MENU);
+	/// Proceed straight away if test.
+	if (introTest)
+	{
+		NewGame();
+	}
 }
 
 /// Where the ship will be re-fitted and new gear bought.

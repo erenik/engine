@@ -4,6 +4,7 @@
 
 #include "SpaceShooter2D.h"
 #include "SpawnGroup.h"
+#include "Text/TextManager.h"
 
 Camera * levelCamera = NULL;
 
@@ -28,7 +29,7 @@ LevelMessage::LevelMessage()
 void LevelMessage::Display()
 {
 	// o.o uiiii
-	QueueGraphics(new GMSetUIs("LevelMessage", GMUI::TEXT, String(textID)));
+	QueueGraphics(new GMSetUIs("LevelMessage", GMUI::TEXT, TextMan.GetText(textID)));
 	QueueGraphics(new GMSetUIb("LevelMessage", GMUI::VISIBILITY, true));
 	displayed = true;
 }
@@ -65,8 +66,7 @@ bool Level::Load(String fromSource)
 	millisecondsPerPixel = 250;
 	levelTime = Time(TimeType::MILLISECONDS_NO_CALENDER, 0); // reset lvl time.
 
-	String sourceTxt = source + ".txt";
-	String sourcePng = source + ".png";
+	String sourceTxt = source + ".srl";
 	music = source+".ogg";
 	Vector3i goalColor;
 	
