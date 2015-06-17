@@ -81,8 +81,11 @@ void ShipProperty::Process(int timeInMs)
 
 void ShipProperty::ProcessWeapons(int timeInMs)
 {
+	if (!ship->canShoot)
+		return;
+
 	// Fire stuff?
-	if (ship->canShoot)
+	if (ship->ai)
 	{
 		// Do stuff.
 		for (int i = 0; i < ship->weapons.Size(); ++i)
@@ -95,6 +98,16 @@ void ShipProperty::ProcessWeapons(int timeInMs)
 				continue;
 			weapon.Shoot(ship);
 		}
+	}
+	else 
+	{
+		if (!ship->shoot)
+			return;
+		if (ship->activeWeapon == 0)
+			ship->activeWeapon = &ship->weapons[0];
+		// Shoot with current weapon for player.
+		if (ship->activeWeapon)
+			ship->activeWeapon->Shoot(ship);
 	}
 }
 	

@@ -28,5 +28,14 @@ void SpaceShooter2D::CreateDefaultBindings()
 #define BIND BINDING
 	BIND(Action::FromString("AdjustMasterVolume(0.05)", ACTIVATE_ON_REPEAT), List<int>(KEY::CTRL, KEY::V, KEY::PLUS));
 	BIND(Action::FromString("AdjustMasterVolume(-0.05)", ACTIVATE_ON_REPEAT), List<int>(KEY::CTRL, KEY::V, KEY::MINUS));
+
+	BIND(Action::FromString("Weapon:1"), KEY::ONE);
+	BIND(Action::FromString("Weapon:2"), KEY::TWO);
+	BIND(Action::FromString("Weapon:3"), KEY::THREE);
+	BIND(Action::FromString("Weapon:4"), KEY::FOUR);
+	BIND(Action::FromString("Weapon:5"), KEY::FIVE);
+
+	BIND(Action::CreateStartStopAction("Shooting"), KEY::SPACE);
+
 }
 

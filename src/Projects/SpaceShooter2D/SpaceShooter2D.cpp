@@ -289,6 +289,19 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 				msg = msg.Part(0,found);
 			if (msg == "NewGame")
 				NewGame();
+			else if (msg.StartsWith("Weapon:"))
+			{
+				int weaponIndex = msg.Tokenize(":")[1].ParseInt();
+				playerShip.SwitchToWeapon(weaponIndex);
+			}
+			else if (msg == "StartShooting")
+			{
+				playerShip.shoot = true;
+			}
+			else if (msg == "StopShooting")
+			{
+				playerShip.shoot = false;
+			}
 			else if (msg.Contains("AutoSave"))
 			{
 				bool silent = msg.Contains("(silent)");

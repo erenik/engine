@@ -16,6 +16,8 @@ Ship::Ship()
 	collisionDamageCooldown = Time(TimeType::MILLISECONDS_NO_CALENDER, 100);
 	lastShipCollision = Time(TimeType::MILLISECONDS_NO_CALENDER, 0);
 
+	shoot = false;
+	activeWeapon = 0;
 	spawned = false;
 	entity = NULL;
 	ai = true;
@@ -571,6 +573,27 @@ void Ship::UpdateStatsFromGear()
 	}
 }
 
+bool Ship::SwitchToWeapon(int index)
+{
+	if (!this->ai && weapons.Size() == 1)
+	{
+		// Fill with default weapons for testing purposes.
+		Weapon weap = weapons[0];
+		weap.cooldown = Time(TimeType::MILLISECONDS_NO_CALENDER, weap.cooldown.Milliseconds() * 0.5);
+		weapons.Add(weap);
+		weap.cooldown = Time(TimeType::MILLISECONDS_NO_CALENDER, weap.cooldown.Milliseconds() * 0.5);
+		weapons.Add(weap);
+		weap.cooldown = Time(TimeType::MILLISECONDS_NO_CALENDER, weap.cooldown.Milliseconds() * 0.5);
+		weapons.Add(weap);
+		weap.cooldown = Time(TimeType::MILLISECONDS_NO_CALENDER, weap.cooldown.Milliseconds() * 0.5);
+		weapons.Add(weap);
+	}
+	if (index < 0 || index >= weapons.Size())
+		return false;
+	activeWeapon = &weapons[index];
+	UpdateStatsFromGear();
+	return true;
+}
 
 /// Calls OnEnter for the initial movement pattern.
 void Ship::StartMovement()

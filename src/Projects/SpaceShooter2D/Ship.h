@@ -39,6 +39,7 @@ public:
 
 	/// If using Armor and Shield gear (Player mainly).
 	void UpdateStatsFromGear();
+	bool SwitchToWeapon(int index);
 
 	/// Calls OnEnter for the initial movement pattern.
 	void StartMovement();
@@ -50,6 +51,7 @@ public:
 	bool canMove;
 	bool canShoot;
 	bool hasShield;
+	bool shoot; // if shooting is requested.
 
 	/// In order to not take damage allllll the time (depending on processor speed, etc. too.)
 	Time lastShipCollision;
@@ -79,6 +81,7 @@ public:
 	String other;
 
 	List<Weapon> weapons;
+	Weapon * activeWeapon; // One active weapon at a time.. for the player at least.
 
 	/// o.o 
 	bool allied;
