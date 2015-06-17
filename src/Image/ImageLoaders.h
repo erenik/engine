@@ -9,7 +9,7 @@
 
 /// Loads into texture.
 bool LoadPNG(String fromFile, Texture * intoTexture);
-bool LoadOpenCV(String source, Texture * texture);
 bool LoadLodePNG(String source, Texture * texture);
+bool LoadOpenCV(String source, Texture * texture);
 
-#endif
+#endif // AE_PNG_H
