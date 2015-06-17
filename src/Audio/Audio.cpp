@@ -527,7 +527,7 @@ void Audio::UpdateVolume()
 	}
 
 	/// Update absolute volume.
-	float masterVol = AudioMan.MasterVolume();
+	float masterVol = AudioMan.ActiveMasterVolume();
 	float audioTypeVol = AudioMan.GetVolume(type);
 	absoluteVolume = distanceCompensatedVolume * audioTypeVol * masterVol;
 

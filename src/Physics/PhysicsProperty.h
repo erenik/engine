@@ -85,6 +85,14 @@ public:
 	*/
 	bool fullyDynamic;
 
+	/** Minimum amount of time between one collision being resolved to the next. Added as an alternative to sorting 
+		collisions, and will also help with applying friction over time (maybe). Hmm.. Default.. 5 ms?
+	*/
+	int minCollisionIntervalMs;
+	static int defaultMinCollisionIntervalMs; // Default setting. Default 5. Override in Application::SetApplicationDefaults?
+	/// Used to help the above.
+	int64 lastCollisionMs;
+
 	/// Basic physics type, defined where? STATIC DYNAMIC KINEMATIC anyway.
 	int type;
 	/** Collision detection shape type.

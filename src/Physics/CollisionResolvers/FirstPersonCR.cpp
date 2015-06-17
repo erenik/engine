@@ -33,6 +33,12 @@ bool FirstPersonCR::ResolveCollision(Collision & c)
 	}
 	if (c.one->physics->noCollisionResolutions || c.two->physics->noCollisionResolutions)
 		return false;
+
+	if (dynamic->physics->lastCollisionMs + dynamic->physics->minCollisionIntervalMs > physicsNowMs)
+		return false;
+
+	dynamic->physics->lastCollisionMs = physicsNowMs;
+
 	Entity * dynamic2 = other->physics->type == PhysicsType::DYNAMIC? other : NULL;
 	Entity * staticEntity;
 	Entity * kinematicEntity;

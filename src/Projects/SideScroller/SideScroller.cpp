@@ -28,6 +28,7 @@ void SetApplicationDefaults()
 	Application::quitOnHide = false;
 	TextFont::defaultFontSource = "img/fonts/Font_Mexicano.png";
 	PhysicsProperty::defaultUseQuaternions = false;
+	PhysicsProperty::defaultMinCollisionIntervalMs = 5; // 5 ms between each collision, gives max 200 collisions per second, hm..
 	Viewport::defaultRenderGrid = false;
 	inputState->demandActivatableForHoverElements = true; // Force elements to be activatable before UI elements are highlighted/steal focus.
 	inputState->demandHighlightOnHoverForHoverElements = true;

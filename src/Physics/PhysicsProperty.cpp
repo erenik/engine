@@ -15,7 +15,7 @@
 bool PhysicsProperty::defaultUseQuaternions = true;
 int PhysicsProperty::defaultCollisionCategory = 1;
 int PhysicsProperty::defaultCollisionFilter = 1;
-
+int PhysicsProperty::defaultMinCollisionIntervalMs = 5;
 
 PhysicsProperty::PhysicsProperty()
 {
@@ -95,6 +95,9 @@ PhysicsProperty::PhysicsProperty(const CompactPhysics * compactPhysics)
 /// Set default values.
 void PhysicsProperty::Nullify()
 {
+	minCollisionIntervalMs = defaultMinCollisionIntervalMs;
+	lastCollisionMs = 0;
+
 	requireGroundForLocalAcceleration = false;
 	isOnGroundThresholdMs = 50;
 	onCollision = false;

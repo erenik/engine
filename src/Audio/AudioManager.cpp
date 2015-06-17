@@ -700,16 +700,14 @@ void AudioManager::StopAndRemoveAll()
 /// Calls update volume for all audio
 void AudioManager::UpdateVolume()
 {
-	/*
 	for (int i = 0; i < audioList.Size(); ++i)
 	{
 		Audio * audio = audioList[i];
 		if (mute)
-			audio->UpdateVolume(0.f);
+			audio->UpdateVolume();
 		else
-			audio->UpdateVolume(masterVolume);
+			audio->UpdateVolume();
 	}
-	*/
 }
 
 void AudioManager::QueueMessage(AudioMessage * am)
