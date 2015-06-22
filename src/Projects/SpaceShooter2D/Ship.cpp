@@ -70,7 +70,7 @@ void Ship::Damage(int amount, bool ignoreShield)
 	if (spawnInvulnerability)
 	{
 	//	std::cout<<"\nInvulnnnn!";
-		return;
+	//	return;
 	}
 	if (hasShield && !ignoreShield)
 	{
@@ -571,26 +571,49 @@ void Ship::UpdateStatsFromGear()
 		mainWeapon.cooldown = weapon.reloadTime;
 		mainWeapon.damage = weapon.damage;
 	}
+
+
+	// Fill with default weapons for testing purposes.
+	if (!this->ai && weapons.Size() == 1)
+	{
+		Weapon weap = weapons[0];
+		weapons.Clear(); // clear default weapon.
+
+		weap.name = "Machine gun";
+		weap.cooldown = Time::Milliseconds(100);
+		weap.damage = 5;
+		weap.projectileSpeed = 35.f;
+		weapons.Add(weap);
+
+		weap = Weapon();
+		weap.damage = 23;
+		weap.projectileSpeed = 25.f;
+		weap.name = "Small rockets";
+		weap.cooldown = Time::Milliseconds(2500);
+		weap.burst = true;
+		weap.burstRoundDelay = Time::Milliseconds(200);
+		weap.burstRounds = 8;
+		weapons.Add(weap);
+
+		weap = Weapon();
+		weap.projectileSpeed = 10.f;
+		weap.damage = 150;
+		weap.name = "Large rockets";
+		weap.cooldown = Time::Milliseconds(3500);
+		weapons.Add(weap);
+	}
+
 }
 
 bool Ship::SwitchToWeapon(int index)
 {
-	if (!this->ai && weapons.Size() == 1)
-	{
-		// Fill with default weapons for testing purposes.
-		Weapon weap = weapons[0];
-		weap.cooldown = Time(TimeType::MILLISECONDS_NO_CALENDER, weap.cooldown.Milliseconds() * 0.5);
-		weapons.Add(weap);
-		weap.cooldown = Time(TimeType::MILLISECONDS_NO_CALENDER, weap.cooldown.Milliseconds() * 0.5);
-		weapons.Add(weap);
-		weap.cooldown = Time(TimeType::MILLISECONDS_NO_CALENDER, weap.cooldown.Milliseconds() * 0.5);
-		weapons.Add(weap);
-		weap.cooldown = Time(TimeType::MILLISECONDS_NO_CALENDER, weap.cooldown.Milliseconds() * 0.5);
-		weapons.Add(weap);
-	}
 	if (index < 0 || index >= weapons.Size())
+	{
+		std::cout<<"\nSwitchToWeapon bad index";
 		return false;
+	}
 	activeWeapon = &weapons[index];
+	std::cout<<"\nSwitched to weapon: "<<activeWeapon->name;
 	UpdateStatsFromGear();
 	return true;
 }

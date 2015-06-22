@@ -932,7 +932,10 @@ bool String::StartsWith(const String & subString)
 }
 
 /// Removes string subpart, returns true if it found and successfully removed it, false if not. Works recursively if all is true.
-bool String::Remove(const String & subString, bool all /*= false*/){
+bool String::Remove(const String & subString, bool all /*= false*/)
+{
+	if (this->arraySize == 0)
+		return false;
     switch(type){
 		case NULL_TYPE: default:
 			assert(false && "Bad type");

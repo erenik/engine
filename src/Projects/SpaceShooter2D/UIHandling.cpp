@@ -6,7 +6,9 @@
 #include "File/SaveFile.h"
 #include "Application/Application.h"
 
+#include "Window/AppWindow.h"
 #include "UI/UIList.h"
+#include "UI/UIUtil.h"
 
 void LoadOptions();
 
@@ -15,6 +17,12 @@ extern bool inGameMenuOpened;
 /// Updates ui depending on mode.
 void SpaceShooter2D::UpdateUI()
 {
+	/// Pop stuff.
+	List<String> uis("gui/MainMenu.gui", "gui/HUD.gui", "gui/Hangar.gui");
+	for (int i = 0; i < uis.Size(); ++i)
+	{
+		PopUI(uis[i]);
+	}
 	String toPush;	
 	// Reveal specifics?
 	switch(mode)
@@ -27,6 +35,7 @@ void SpaceShooter2D::UpdateUI()
 		case PLAYING_LEVEL:	toPush = "gui/HUD.gui"; break;
 		case LEVEL_CLEARED: toPush = "gui/LevelStats.gui"; break;
 		case IN_LOBBY: toPush = "gui/Lobby.gui"; break;
+		case IN_HANGAR: toPush = "gui/Hangar.gui"; break;
 		case IN_WORKSHOP: toPush = "gui/Workshop.gui"; break;
 		case BUYING_GEAR: toPush = "gui/Shop.gui"; break;
 		case SHOWING_LEVEL_STATS: toPush = "gui/LevelStats.gui"; break;
@@ -43,6 +52,7 @@ void SpaceShooter2D::UpdateUI()
 		case NEW_GAME:  LoadDefaultName(); break;
 		case EDITING_OPTIONS: LoadOptions(); break;
 		case PLAYING_LEVEL: 
+			UpdateHUDGearedWeapons();
 			UpdateUIPlayerHP(); 
 			UpdateUIPlayerShield();
 			if (inGameMenuOpened)
@@ -61,14 +71,57 @@ void LoadOptions()
 	// Load settings.
 }
 
+void RequeueHUDUpdate()
+{
+	/// Queue an update for later?
+	Message * msg = new Message("UpdateHUDGearedWeapons");
+	msg->timeToProcess = Time::Now() + Time::Milliseconds(1000);
+	MesMan.QueueDelayedMessage(msg);
+}
+
 /// Update UI
+void SpaceShooter2D::UpdateHUDGearedWeapons()
+{
+	// Fetch the names of the checkboxes.
+	UserInterface * ui = MainWindow()->ui;
+	if (!ui)
+	{
+		RequeueHUDUpdate();
+		return;
+	}
+	UIElement * activeWeapon = ui->GetElementByName("ActiveWeapon");
+	if (!activeWeapon)
+	{
+		RequeueHUDUpdate();
+		return;
+	}
+	// Fetch children.
+	assert(activeWeapon);
+	List<UIElement*> children = activeWeapon->GetChildren();
+	List<Weapon> & weapons = playerShip.weapons;
+	for (int i = 0; i < children.Size(); ++i)
+	{
+		UIElement * child = children[i];
+		if (i >= weapons.Size())
+		{
+			QueueGraphics(new GMSetUIs(child->name, GMUI::TEXT, "."));
+			QueueGraphics(new GMSetUIb(child->name, GMUI::ACTIVATABLE, false));
+			QueueGraphics(new GMSetUIb(child->name, GMUI::HOVERABLE, false));
+			continue;
+		}
+		Weapon & weapon = weapons[i];
+		QueueGraphics(new GMSetUIs(child->name, GMUI::TEXT, weapon.name));
+		QueueGraphics(new GMSetUIb(child->name, GMUI::ACTIVATABLE, true));
+		QueueGraphics(new GMSetUIb(child->name, GMUI::HOVERABLE, true));
+	}
+}
 void SpaceShooter2D::UpdateUIPlayerHP()
 {
-	GraphicsMan.QueueMessage(new GMSetUIs("HP", GMUI::TEXT, String(playerShip.hp)));	
+	GraphicsMan.QueueMessage(new GMSetUIi("HP", GMUI::INTEGER_INPUT, playerShip.hp));	
 }
 void SpaceShooter2D::UpdateUIPlayerShield()
 {
-	GraphicsMan.QueueMessage(new GMSetUIs("Shield", GMUI::TEXT, String((int)playerShip.shieldValue)));
+	GraphicsMan.QueueMessage(new GMSetUIi("Shield", GMUI::INTEGER_INPUT, (int)playerShip.shieldValue));
 }
 
 void SpaceShooter2D::LoadDefaultName()

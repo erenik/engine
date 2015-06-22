@@ -369,6 +369,8 @@ void Shader::ExtractAttributes()
 	
 	// Attributes for regular entity and UI rendering (older approaches, non-instanced, non-deferred, etc.)
 	attributePosition = glGetAttribLocation(shaderProgram, "in_Position");
+	if (attributePosition == -1)
+		attributePosition = glGetAttribLocation(shaderProgram, "in_VertexPosition");
 	attributeUV = glGetAttribLocation(shaderProgram, "in_UV");
 	attributeNormal = glGetAttribLocation(shaderProgram, "in_Normal");
 	attributeTangent = glGetAttribLocation(shaderProgram, "in_Tangent");

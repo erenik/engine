@@ -8,7 +8,8 @@
 #include "UI/UIElement.h"
 
 /// Class for 1 Integer inputs.
-class UIIntegerInput : public UIElement {
+class UIIntegerInput : public UIElement 
+{
 public:
 	UIIntegerInput(String name, String onTrigger);
 	virtual ~UIIntegerInput();
@@ -37,6 +38,8 @@ public:
 	int maxDecimals;
 	/// Should not be set from outside graphics thread (after it is made visible and rendering).
 	UIInput * input;
+	/// If true, input is disabled from the gui. Default false.
+	bool guiInputDisabled; 
 
 	/// If true, will accept and interpret any input as a mathematical expression, evaluating it as such.
 	bool acceptMathematicalExpressions;

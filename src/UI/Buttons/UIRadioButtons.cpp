@@ -31,14 +31,18 @@ void UIRadioButtons::CreateChildren()
 	float labelSize;
 	labelSize = divider.x;
 	elements = numButtons;
-	spaceLeft = (1.0f - divider.x) - padding * elements;
+	if (noLabel)
+		labelSize = 0;
+	spaceLeft = (1.0f - labelSize) - padding * elements;
 	spacePerElement = spaceLeft / elements;
 	// Add label!
-	UILabel * label = new UILabel(text);
-	label->sizeRatioX = labelSize;
-	label->text = displayText;
-	AddChild(label);
-
+	if (!noLabel)
+	{
+		UILabel * label = new UILabel(text);
+		label->sizeRatioX = labelSize;
+		label->text = displayText;
+		AddChild(label);
+	}
 	for (int i = 0; i < numButtons; ++i)
 	{
 		/// Create 3 children
@@ -47,6 +51,7 @@ void UIRadioButtons::CreateChildren()
 		button->name = name + "Input";
 		button->text = names.Size() > i ? names[i] : "NoName";
 		button->sizeRatioX = spacePerElement;
+		button->textureSource = this->textureSource;
 		/// Pre-select first one always.
 		if (i == 0)
 			button->toggled = true;

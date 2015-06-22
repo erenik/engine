@@ -23,15 +23,24 @@ LevelMessage::LevelMessage()
 {
 	displayed = false;
 	startTime = stopTime = Time(TimeType::MILLISECONDS_NO_CALENDER, 0);
+	type = TEXT_MESSAGE;
 }
 
 // UI
 void LevelMessage::Display()
 {
-	// o.o uiiii
-	QueueGraphics(new GMSetUIs("LevelMessage", GMUI::TEXT, TextMan.GetText(textID)));
-	QueueGraphics(new GMSetUIb("LevelMessage", GMUI::VISIBILITY, true));
-	displayed = true;
+	if (type == LevelMessage::TEXT_MESSAGE)
+	{
+		// o.o uiiii
+		QueueGraphics(new GMSetUIs("LevelMessage", GMUI::TEXT, TextMan.GetText(textID)));
+		QueueGraphics(new GMSetUIb("LevelMessage", GMUI::VISIBILITY, true));
+		displayed = true;
+	}
+	else if (type == LevelMessage::EVENT)
+	{
+		MesMan.QueueMessages(string);
+		displayed = true;
+	}
 }
 
 void LevelMessage::Hide()
@@ -44,6 +53,8 @@ void LevelMessage::Hide()
 Level::Level()
 {
 	height = 20.f;
+	endCriteria = NO_MORE_ENEMIES;
+	levelCleared = false;
 }
 
 Level::~Level()
@@ -121,10 +132,21 @@ bool Level::Load(String fromSource)
 			message->stopTime = message->startTime + Time(TimeType::MILLISECONDS_NO_CALENDER, 5000); // Default 5 seconds?
 			parseMode = PARSE_MODE_MESSAGES;
 		}
+		else if (line.StartsWith("Event"))
+		{
+			ADD_MESSAGE_IF_NEEDED;
+			message = new LevelMessage();
+			message->type = LevelMessage::EVENT;
+			message->startTime.ParseFrom(arg);
+			message->stopTime = message->startTime + Time(TimeType::MILLISECONDS_NO_CALENDER, 5000); // Default 5 seconds?
+			parseMode = PARSE_MODE_MESSAGES;
+		}
 		if (parseMode == PARSE_MODE_MESSAGES)
 		{
 			if (var == "TextID")
 				message->textID = arg.ParseInt();
+			if (var == "String")
+				message->string = arg;
 		}
 		if (parseMode == PARSE_MODE_FORMATIONS)
 		{
@@ -294,7 +316,7 @@ void Level::Process(int timeInMs)
 	/// Clearing the level
 	if (LevelCleared())
 	{
-		spaceShooter->LevelCleared();
+		spaceShooter->OnLevelCleared();
 		return; // No more processing if cleared?
 	}
 	else 
@@ -390,6 +412,22 @@ void Level::Process(int timeInMs)
 */
 }
 
+void Level::ProcessMessage(Message * message)
+{
+	String & msg = message->msg;
+	switch(message->type)
+	{
+		case MessageType::STRING:
+		{
+			if (msg == "EndLevel")
+			{
+				levelCleared = true;
+			}
+			break;		
+		}
+	}
+}
+
 /// Process target ship.
 void Level::Process(Ship & ship)
 {
@@ -407,11 +445,18 @@ void Level::Process(Ship & ship)
 // Check spawn groups.
 bool Level::LevelCleared()
 {
-	if (levelTime.Seconds() < 3)
-		return false;
-	if (spawnGroups.Size())
-		return false;
-	if (shipEntities.Size())
-		return false;
+	if (endCriteria == NO_MORE_ENEMIES)
+	{
+		if (levelTime.Seconds() < 3)
+			return false;
+		if (spawnGroups.Size())
+			return false;
+		if (shipEntities.Size())
+			return false;
+		if (messages.Size())
+			return false;
+	}
+	else if (endCriteria == EVENT_TRIGGERED)
+		return levelCleared;
 	return true;
 }

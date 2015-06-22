@@ -17,7 +17,7 @@ public:
 	virtual ~UIRadioButtons();
 
 	/// Creates the actual buttons.
-	void CreateChildren();
+	virtual void CreateChildren();
 	/// Sets the texts of the children.
 	void SetTexts(List<String> texts);
 	// Set texture for all elements.

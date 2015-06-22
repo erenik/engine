@@ -105,6 +105,8 @@ public:
 	*/
 	virtual bool HandleDADFiles(List<String> files);
 
+	/// For aggregate types. Creates children elements. Called upon attaching to ui tree so that all settings may be set after initial construction but before contents are finalized.
+	virtual void CreateChildren();
 	/// Set default values.
 	void Nullify();
 	/** Deletes element of target ID and all it's children.
@@ -278,6 +280,8 @@ public:
 	/// Text contents alignment relative to current size/etc. Defautlt left.
 	char textAlignment; 
 
+	/// For aggregate types such as UIRadioButtons, etc., set this to true to skip the label before the actual value part. Default false.
+	bool noLabel;
 	/// Allow scaling depending on parent or AppWindow size?
 	bool scalable;
 

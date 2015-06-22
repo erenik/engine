@@ -26,6 +26,7 @@ UIIntegerInput::UIIntegerInput(String name, String onTrigger)
 	this->name = name;
 	input = NULL;
 	label = NULL;
+	guiInputDisabled = false;
 }
 UIIntegerInput::~UIIntegerInput()
 {
@@ -140,6 +141,11 @@ void UIIntegerInput::CreateChildren()
 		input->numbersOnly = true;
 	input->text = "0";
 	input->sizeRatioX = spacePerElement;
+	if (guiInputDisabled)
+	{
+		input->activateable = false;
+		input->highlightOnHover = false;
+	}
 //	input->onTrigger = "UIIntegerInput("+name+")";
 	box->AddChild(input);
 }

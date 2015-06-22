@@ -117,7 +117,8 @@ public:
 	/** Attributes for regular entity and UI rendering (older approaches, non-instanced, non-deferred, etc.)
 		Respective in-shader names are in_Position, in_UV, in_Normal, etc.
 	*/
-	GLuint attributePosition, attributeUV, attributeNormal, attributeTangent, attributeBiTangent;
+	GLuint attributePosition, // the same as attributeVertexPosition, not positions of instances.
+		attributeUV, attributeNormal, attributeTangent, attributeBiTangent;
 
 	/// Attributes added with instanced particle rendering. 
 	GLuint attributeParticlePositionScale, /// World position XYZ and scale stored in the W component 

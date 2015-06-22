@@ -21,7 +21,13 @@ struct LevelMessage
 	// UI
 	void Display();
 	void Hide();
-
+	
+	enum {
+		TEXT_MESSAGE,
+		EVENT,
+	};
+	String string;
+	int type; 
 	bool displayed;
 	Time startTime;
 	Time stopTime;
@@ -53,6 +59,7 @@ public:
 	void SetupCamera();
 	/// o.o
 	void Process(int timeInMs);
+	void ProcessMessage(Message * message);
 	/// Process target ship.
 	void Process(Ship & ship);
 
@@ -77,6 +84,15 @@ public:
 
 	Vector3f starSpeed;
 	Color starColor;
+
+	/// Default 0.
+	int endCriteria;
+	enum 
+	{
+		NO_MORE_ENEMIES,
+		EVENT_TRIGGERED,
+	};
+	bool levelCleared;
 private:
 	// Check spawn groups.
 	bool LevelCleared();

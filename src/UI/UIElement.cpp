@@ -78,6 +78,7 @@ void UIElement::Nullify()
 	vboBuffer = -1;
 	vboVertexCount = 0;
 	zDepth = 0;
+	noLabel = false;
 
 	previousTextSizeRatio = 1.f;
 	alignment = NULL_ALIGNMENT;	// Alignment relative to parent
@@ -155,6 +156,8 @@ void UIElement::Nullify()
 UIElement::UIElement(){
 	Nullify();
 }
+
+void UIElement::CreateChildren(){}
 
 /// Copy-cosntructor.
 UIElement::UIElement(const UIElement & ref){

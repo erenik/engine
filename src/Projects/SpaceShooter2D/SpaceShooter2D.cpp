@@ -225,6 +225,7 @@ void SpaceShooter2D::CreateUserInterface()
 void SpaceShooter2D::ProcessMessage(Message * message)
 {
 	String msg = message->msg;
+	level.ProcessMessage(message);
 	switch(message->type)
 	{
 		case MessageType::SET_STRING:
@@ -248,6 +249,10 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 			else if (msg == "SetMasterVolume")
 			{
 				QueueAudio(new AMSet(AT_MASTER_VOLUME, im->value * 0.01f));
+			}
+			else if (msg == "SetActiveWeapon")
+			{
+				playerShip.SwitchToWeapon(im->value);
 			}
 			break;
 		}
@@ -289,9 +294,22 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 				msg = msg.Part(0,found);
 			if (msg == "NewGame")
 				NewGame();
+			if (msg == "GoToHangar")
+			{
+				SetMode(IN_HANGAR);
+			}
+			if (msg == "GoToWorkshop")
+			{
+				SetMode(IN_WORKSHOP);
+			}
+			if (msg == "UpdateHUDGearedWeapons")
+				UpdateHUDGearedWeapons();
 			else if (msg.StartsWith("Weapon:"))
 			{
 				int weaponIndex = msg.Tokenize(":")[1].ParseInt();
+				weaponIndex -= 1;
+				if (weaponIndex < 0)
+					weaponIndex = 9;
 				playerShip.SwitchToWeapon(weaponIndex);
 			}
 			else if (msg == "StartShooting")
@@ -857,7 +875,7 @@ void SpaceShooter2D::GameOver()
 	}
 }
 
-void SpaceShooter2D::LevelCleared()
+void SpaceShooter2D::OnLevelCleared()
 {
 	if (mode != LEVEL_CLEARED)
 	{

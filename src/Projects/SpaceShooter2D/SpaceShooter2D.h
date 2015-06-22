@@ -128,6 +128,7 @@ public:
 	void UpdateUI();
 	void UpdateGearList();
 	/// Update UI parts
+	void UpdateHUDGearedWeapons();
 	void UpdateUIPlayerHP();
 	void UpdateUIPlayerShield();
 	/// Update ui
@@ -154,7 +155,7 @@ public:
 	/// Loads target level. The source and separate .txt description have the same name, just different file-endings, e.g. "Level 1.png" and "Level 1.txt"
 	void LoadLevel(String levelSource = "CurrentStageLevel");
 	void GameOver();
-	void LevelCleared();
+	void OnLevelCleared();
 
 	/// Opens main menu.
 	void OpenMainMenu();
@@ -179,6 +180,7 @@ public:
 		EDITING_OPTIONS,
 		NEW_GAME,
 		IN_LOBBY,
+		IN_HANGAR,
 		IN_WORKSHOP,
 		BUYING_GEAR,
 		LOAD_SAVES,

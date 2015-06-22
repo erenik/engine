@@ -844,7 +844,9 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 		bool addedOK = root->AddToParent(defaultParent, element);\
 		if (!addedOK)\
 			delete element;\
-	}\
+		else\
+			element->CreateChildren();\
+		}\
 	element = NULL;\
 	}
 
@@ -1203,6 +1205,15 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 				SET_DEFAULTS
 				ii->CreateChildren();
 			}
+			else if (token == "IntegerLabel") // Creates an Integer-display which is not interactable via GUI, just for display.
+			{
+				ADD_PREVIOUS_TO_UI_IF_NEEDED
+				UIIntegerInput * ii = new UIIntegerInput(firstQuote, "Set"+firstQuote);
+				element = ii;
+				SET_DEFAULTS
+				ii->guiInputDisabled = true;
+				ii->CreateChildren();				
+			}
 			else if (token == "FloatInput"){
 				ADD_PREVIOUS_TO_UI_IF_NEEDED
 				UIFloatInput * fi = new UIFloatInput(firstQuote, "Set"+firstQuote);
@@ -1243,13 +1254,14 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 				{
 					displayText = newTokens[3];
 				}
+				else
+					displayText = name;
 				String action = "Set"+name;
 				UIRadioButtons * rb = new UIRadioButtons(numItems, name, action);
 				element = rb;
 				displayText.Remove('\"', true);
 				rb->displayText = displayText;
 				SET_DEFAULTS
-				rb->CreateChildren();
 			}
 			else if (token == "Image")
 			{
@@ -1274,6 +1286,10 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 			else if (token == "disabled")
 			{
 				element->Disable();
+			}
+			else if (token == "NoLabel")
+			{
+				element->noLabel = true;
 			}
 			/// All expressions requiring arguments below!
 			else if (token.Length() <= 2)
