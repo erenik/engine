@@ -61,7 +61,7 @@ public:
 	void Process(int timeInMs);
 	void ProcessMessage(Message * message);
 	/// Process target ship.
-	void Process(Ship & ship);
+	void Process(Ship * ship);
 
 	String source;
 	/// Ships within.
@@ -93,6 +93,9 @@ public:
 		EVENT_TRIGGERED,
 	};
 	bool levelCleared;
+
+	/// Displayed ones, that is.
+	LevelMessage * activeLevelMessage;
 private:
 	// Check spawn groups.
 	bool LevelCleared();

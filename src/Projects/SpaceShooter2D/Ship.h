@@ -14,6 +14,14 @@
 class Entity;
 class Model;
 
+enum 
+{
+	NO_SKILL,
+	ATTACK_FRENZY,
+	SPEED_BOOST,
+	POWER_SHIELD,
+};
+
 class Ship 
 {
 public:
@@ -21,7 +29,8 @@ public:
 	~Ship();
 	/// Prepends the source with '/obj/Ships/' and appends '.obj'. Uses default 'Ship.obj' if needed.
 	Model * GetModel();
-
+	/// o.o
+	void DisableMovement();
 	void Damage(int amount, bool ignoreShield);
 	void Destroy();
 	// Load ship-types.
@@ -32,7 +41,7 @@ public:
 	void ParseRotation(String fromString);
 
 	/// Creates new ship of specified type.
-	static Ship New(String shipByName);
+	static Ship * New(String shipByName);
 	
 	/// Checks weapon's latest aim dir.
 	Vector3f WeaponTargetDir();
@@ -43,15 +52,24 @@ public:
 
 	/// Calls OnEnter for the initial movement pattern.
 	void StartMovement();
+
+	/// For player ship.
+	void SetWeaponLevel(int weaponType, int level);
+	Weapon * GetWeapon(int ofType);
+
 	// Name or type. 
 	String name;
 	// Faction.
 	String type;
 	// Bools
 	bool canMove;
+	bool movementDisabled; // temporarily.
 	bool canShoot;
 	bool hasShield;
 	bool shoot; // if shooting is requested.
+	bool weaponScriptActive; // Default false.
+	int skill; // Default 0, see above.
+	String skillName;
 
 	/// In order to not take damage allllll the time (depending on processor speed, etc. too.)
 	Time lastShipCollision;
@@ -80,7 +98,7 @@ public:
 	String graphicModel;
 	String other;
 
-	List<Weapon> weapons;
+	List<Weapon*> weapons;
 	Weapon * activeWeapon; // One active weapon at a time.. for the player at least.
 
 	/// o.o 
@@ -97,7 +115,7 @@ public:
 	// Spawn position.
 	Vector3f position;
 	/// As loaded.
-	static List<Ship> types;
+	static List<Ship*>  types;
 
 	/// Used by player, mainly.
 	Gear weapon, shield, armor;

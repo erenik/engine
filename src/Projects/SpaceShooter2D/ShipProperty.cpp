@@ -90,13 +90,13 @@ void ShipProperty::ProcessWeapons(int timeInMs)
 		// Do stuff.
 		for (int i = 0; i < ship->weapons.Size(); ++i)
 		{
-			Weapon & weapon = ship->weapons[i];
+			Weapon * weapon = ship->weapons[i];
 			// Aim.
-			weapon.Aim(ship);
+			weapon->Aim(ship);
 			// Dude..
 			if (projectileEntities.Size() > 1000)
 				continue;
-			weapon.Shoot(ship);
+			weapon->Shoot(ship);
 		}
 	}
 	else 
@@ -104,7 +104,7 @@ void ShipProperty::ProcessWeapons(int timeInMs)
 		if (!ship->shoot)
 			return;
 		if (ship->activeWeapon == 0)
-			ship->activeWeapon = &ship->weapons[0];
+			ship->activeWeapon = ship->weapons.Size()? ship->weapons[0] : 0;
 		// Shoot with current weapon for player.
 		if (ship->activeWeapon)
 			ship->activeWeapon->Shoot(ship);

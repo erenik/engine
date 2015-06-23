@@ -88,7 +88,7 @@ extern Sparks * sparks;
 /// These will hopefully always be in AABB axes.
 extern Vector3f frustumMin, frustumMax;
 
-extern Ship playerShip;
+extern Ship * playerShip;
 /// The level entity, around which the playing field and camera are based upon.
 extern Entity * levelEntity;
 extern Vector2f playingFieldSize;
@@ -131,6 +131,7 @@ public:
 	void UpdateHUDGearedWeapons();
 	void UpdateUIPlayerHP();
 	void UpdateUIPlayerShield();
+	void UpdateHUDSkill();
 	/// Update ui
 	void OnScoreUpdated();
 	void ShowLevelStats();

@@ -92,7 +92,7 @@ void SpawnGroup::Spawn()
 	// ?!
 Entity * SpawnGroup::SpawnShip(ConstVec3fr atPosition)
 {
-	Ship * ship = new Ship(Ship::New(shipType));
+	Ship * ship = Ship::New(shipType);
 	activeLevel->ships.AddItem(ship);
 
 	Entity * entity = EntityMan.CreateEntity(ship->type, ship->GetModel(), TexMan.GetTextureByColor(Color(0,255,0,255)));

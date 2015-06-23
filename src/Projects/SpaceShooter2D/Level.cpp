@@ -45,8 +45,11 @@ void LevelMessage::Display()
 
 void LevelMessage::Hide()
 {
-	QueueGraphics(new GMSetUIb("LevelMessage", GMUI::VISIBILITY, false));
-	displayed = false;
+	if (type == LevelMessage::TEXT_MESSAGE)
+	{
+		QueueGraphics(new GMSetUIb("LevelMessage", GMUI::VISIBILITY, false));
+		displayed = false;
+	}
 }
 
 
@@ -55,6 +58,7 @@ Level::Level()
 	height = 20.f;
 	endCriteria = NO_MORE_ENEMIES;
 	levelCleared = false;
+	activeLevelMessage = 0;
 }
 
 Level::~Level()
@@ -138,7 +142,7 @@ bool Level::Load(String fromSource)
 			message = new LevelMessage();
 			message->type = LevelMessage::EVENT;
 			message->startTime.ParseFrom(arg);
-			message->stopTime = message->startTime + Time(TimeType::MILLISECONDS_NO_CALENDER, 5000); // Default 5 seconds?
+			message->stopTime = Time::Milliseconds(0); // Default instant.
 			parseMode = PARSE_MODE_MESSAGES;
 		}
 		if (parseMode == PARSE_MODE_MESSAGES)
@@ -306,7 +310,7 @@ void Level::Process(int timeInMs)
 	despawnPositionLeft = levelEntity->position[0] - playingFieldHalfSize[0] - 1.f;
 
 	// Check for game over.
-	if (playerShip.hp <= 0)
+	if (playerShip->hp <= 0)
 	{
 		// Game OVER!
 		spaceShooter->GameOver();
@@ -333,12 +337,15 @@ void Level::Process(int timeInMs)
 		if (lm->startTime < levelTime && !lm->displayed)
 		{
 			lm->Display();
+			activeLevelMessage = lm;
 		}
-		else if (lm->stopTime < levelTime)
+		if (lm->displayed && lm->stopTime < levelTime)
 		{
 			// Retain sorting.
 			lm->Hide();
 			messages.RemoveItem(lm);
+			if (activeLevelMessage == lm)
+				activeLevelMessage = 0;
 			delete lm;
 		}
 	}
@@ -429,15 +436,15 @@ void Level::ProcessMessage(Message * message)
 }
 
 /// Process target ship.
-void Level::Process(Ship & ship)
+void Level::Process(Ship * ship)
 {
-	if (ship.hasShield)
+	if (ship->hasShield)
 	{
 		// Repair shield
-		ship.shieldValue += timeElapsedMs * 0.001 * ship.shieldRegenRate;
-		if (ship.shieldValue > ship.maxShieldValue)
-			ship.shieldValue = ship.maxShieldValue;
-		if (ship.allied)
+		ship->shieldValue += timeElapsedMs * 0.001 * ship->shieldRegenRate;
+		if (ship->shieldValue > ship->maxShieldValue)
+			ship->shieldValue = ship->maxShieldValue;
+		if (ship->allied)
 			spaceShooter->UpdateUIPlayerShield();
 	}
 }

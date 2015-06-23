@@ -219,9 +219,9 @@ void Movement::MoveToLocation()
 			isPosition = true;
 			break;
 		case Location::PLAYER:
-			if (playerShip.entity)
+			if (playerShip->entity)
 			{
-				pos = playerShip.entity->position;
+				pos = playerShip->entity->position;
 				isPosition = true;
 			}
 			else {
@@ -242,7 +242,7 @@ void Movement::MoveToLocation()
 void Movement::Circle()
 {
 	// Go towards target.
-	Entity * target = playerShip.entity;
+	Entity * target = playerShip->entity;
 	if (!target)
 	{
 		SET_DIRECTION(Vector3f());

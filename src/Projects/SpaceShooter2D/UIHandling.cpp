@@ -98,7 +98,7 @@ void SpaceShooter2D::UpdateHUDGearedWeapons()
 	// Fetch children.
 	assert(activeWeapon);
 	List<UIElement*> children = activeWeapon->GetChildren();
-	List<Weapon> & weapons = playerShip.weapons;
+	List<Weapon*> & weapons = playerShip->weapons;
 	for (int i = 0; i < children.Size(); ++i)
 	{
 		UIElement * child = children[i];
@@ -109,19 +109,24 @@ void SpaceShooter2D::UpdateHUDGearedWeapons()
 			QueueGraphics(new GMSetUIb(child->name, GMUI::HOVERABLE, false));
 			continue;
 		}
-		Weapon & weapon = weapons[i];
-		QueueGraphics(new GMSetUIs(child->name, GMUI::TEXT, weapon.name));
+		Weapon * weapon = weapons[i];
+		QueueGraphics(new GMSetUIs(child->name, GMUI::TEXT, weapon->name));
 		QueueGraphics(new GMSetUIb(child->name, GMUI::ACTIVATABLE, true));
 		QueueGraphics(new GMSetUIb(child->name, GMUI::HOVERABLE, true));
 	}
 }
 void SpaceShooter2D::UpdateUIPlayerHP()
 {
-	GraphicsMan.QueueMessage(new GMSetUIi("HP", GMUI::INTEGER_INPUT, playerShip.hp));	
+	GraphicsMan.QueueMessage(new GMSetUIi("HP", GMUI::INTEGER_INPUT, playerShip->hp));	
 }
 void SpaceShooter2D::UpdateUIPlayerShield()
 {
-	GraphicsMan.QueueMessage(new GMSetUIi("Shield", GMUI::INTEGER_INPUT, (int)playerShip.shieldValue));
+	GraphicsMan.QueueMessage(new GMSetUIi("Shield", GMUI::INTEGER_INPUT, (int)playerShip->shieldValue));
+}
+
+void SpaceShooter2D::UpdateHUDSkill()
+{
+	QueueGraphics(new GMSetUIs("Skill", GMUI::TEXT, playerShip->skillName));
 }
 
 void SpaceShooter2D::LoadDefaultName()

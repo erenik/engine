@@ -41,11 +41,13 @@ Ship::Ship()
 	graphicModel = "obj/Ships/Ship.obj";
 
 	maxRadiansPerSecond = PI / 12;
+	movementDisabled = false;
+	weaponScriptActive = false;
 }
 
 Ship::~Ship()
 {
-	
+	weapons.ClearAndDelete();
 }
 
 /// Prepends the source with '/obj/Ships/' and appends '.obj'. Uses default 'Ship.obj' if needed.
@@ -63,6 +65,11 @@ Model * Ship::GetModel()
 			model = ModelMan.GetModel(folder + "Ship");
 	}
 	return model;
+}
+
+void Ship::DisableMovement()
+{
+	movementDisabled = true;
 }
 
 void Ship::Damage(int amount, bool ignoreShield)
@@ -167,7 +174,7 @@ bool Ship::LoadTypes(String file)
 		}
 		// If not, now loop through the words, parsing them according to the column name.
 		// First create the new spell to load the data into!
-		Ship ship;
+		Ship * ship = new Ship();
 		for (int k = 0; k < values.Size(); ++k)
 		{
 			String column;
@@ -182,14 +189,14 @@ bool Ship::LoadTypes(String file)
 			if (column == "Name")
 			{
 				value.RemoveSurroundingWhitespaces();
-				ship.name = value;
+				ship->name = value;
 			}
 			else if (column == "Type")
-				ship.type = value;
+				ship->type = value;
 			else if (column == "Can Move")
-				ship.canMove = value.ParseBool();
+				ship->canMove = value.ParseBool();
 			else if (column == "Can Shoot")
-				ship.canShoot = value.ParseBool();
+				ship->canShoot = value.ParseBool();
 			else if (column == "Weapon Name")
 			{
 				List<String> weaponNames = value.Tokenize(",");
@@ -199,34 +206,34 @@ bool Ship::LoadTypes(String file)
 					String name = weaponNames[i];
 					name.RemoveInitialWhitespaces();
 					name.RemoveTrailingWhitespaces();
-					Weapon weapon; 
+					Weapon * weapon = new Weapon(); 
 					bool ok = Weapon::Get(name, weapon);
 					if (ok)
-						ship.weapons.Add(weapon);
+						ship->weapons.Add(weapon);
 					else 
-						LogShip("Unable to find weapon by name \'"+name+"\' when parsing ship \'"+ship.name+"\'");
+						LogShip("Unable to find weapon by name \'"+name+"\' when parsing ship \'"+ship->name+"\'");
 				}
 			}
 			else if (column == "Weapon Ammunition")
 			{
 				List<String> ammos = value.Tokenize(",");
-				if (ammos.Size() != ship.weapons.Size())
+				if (ammos.Size() != ship->weapons.Size())
 				{
-					LogShip("ERROR: Trying to assign "+String(ammos.Size())+" ammunitions to "+String(ship.weapons.Size())+" weapons when parsing ship \'"+ship.name+"\'");
+					LogShip("ERROR: Trying to assign "+String(ammos.Size())+" ammunitions to "+String(ship->weapons.Size())+" weapons when parsing ship \'"+ship->name+"\'");
 					continue;
 				}
 				for (int i = 0; i < ammos.Size(); ++i)
 				{
-					Weapon & weapon = ship.weapons[i];
+					Weapon * weapon = ship->weapons[i];
 					String ammo = ammos[i];
 					if (ammo == "inf")
-						weapon.ammunition = -1;
-					weapon.ammunition = ammo.ParseInt();
+						weapon->ammunition = -1;
+					weapon->ammunition = ammo.ParseInt();
 				}
 			}
 			else if (column == "Weapon Cooldown")
 			{
-				if (ship.weapons.Size() == 0)
+				if (ship->weapons.Size() == 0)
 				{
 					LogShip("ERROR: when trying to assign weapon cooldown, no valid weapon.");
 					continue;
@@ -234,58 +241,58 @@ bool Ship::LoadTypes(String file)
 				if (value.Contains("Burst"))
 				{
 					// PArse burst> Burst(rounds, delayBetweenShots, cooldown)
-					Weapon & weapon = ship.weapons[0];
+					Weapon * weapon = ship->weapons[0];
 					List<String> toks = value.Tokenize("(),");
-					weapon.burst = true;
-					weapon.burstRounds = toks[1].ParseInt();
-					weapon.burstRoundDelay.intervals = (int) (toks[2].ParseFloat() * 1000);
-					weapon.cooldown.intervals = (int) (toks[3].ParseFloat() * 1000);
+					weapon->burst = true;
+					weapon->burstRounds = toks[1].ParseInt();
+					weapon->burstRoundDelay.intervals = (int) (toks[2].ParseFloat() * 1000);
+					weapon->cooldown.intervals = (int) (toks[3].ParseFloat() * 1000);
 				}
 				else 
 				{
 					List<String> cooldowns = value.Tokenize(",");
-					if (cooldowns.Size() != ship.weapons.Size())
+					if (cooldowns.Size() != ship->weapons.Size())
 					{
 						// Print error message
-						LogShip("Trying to assign "+String(cooldowns.Size())+" weapon cooldowns to "+String(ship.weapons.Size())+" weapons when parsing ship \'"+ship.name+"\'");
+						LogShip("Trying to assign "+String(cooldowns.Size())+" weapon cooldowns to "+String(ship->weapons.Size())+" weapons when parsing ship \'"+ship->name+"\'");
 						continue;
 					}
-					for (int i = 0; i < ship.weapons.Size(); ++i)
+					for (int i = 0; i < ship->weapons.Size(); ++i)
 					{
-						Weapon & weapon = ship.weapons[i];
-						weapon.cooldown.intervals = (int) (cooldowns[i].ParseFloat() * 1000);
+						Weapon * weapon = ship->weapons[i];
+						weapon->cooldown.intervals = (int) (cooldowns[i].ParseFloat() * 1000);
 						int p = i;
 					}
 				}
 			}
 			else if (column == "Movement pattern")
 			{
-				ship.ParseMovement(value);
-				ship.movementPatterns.Size();
+				ship->ParseMovement(value);
+				ship->movementPatterns.Size();
 			}
 			else if (column == "Rotation pattern")
 			{
-				ship.ParseRotation(value);
-				ship.rotationPatterns.Size();
+				ship->ParseRotation(value);
+				ship->rotationPatterns.Size();
 			}
 			else if (column == "Score")
-				ship.score = value.ParseInt();
+				ship->score = value.ParseInt();
 			else if (column == "Speed")
-				ship.speed = value.ParseFloat() * 0.2f;
+				ship->speed = value.ParseFloat() * 0.2f;
 			else if (column == "Has Shield")
-				ship.hasShield = value.ParseBool();
+				ship->hasShield = value.ParseBool();
 			else if (column == "Shield Value")
-				ship.shieldValue = ship.maxShieldValue = (float) value.ParseInt();
+				ship->shieldValue = ship->maxShieldValue = (float) value.ParseInt();
 			else if (column == "Shield Regen Rate")
-				ship.shieldRegenRate = value.ParseInt() / 1000.f;
+				ship->shieldRegenRate = value.ParseInt() / 1000.f;
 			else if (column == "Hit points")
-				ship.maxHP = ship.hp = value.ParseInt();
+				ship->maxHP = ship->hp = value.ParseInt();
 			else if (column == "Collide damage")
-				ship.collideDamage = value.ParseInt();
+				ship->collideDamage = value.ParseInt();
 			else if (column == "Max rotation per second" || column == "Rotation Speed")
-				ship.maxRadiansPerSecond = DEGREES_TO_RADIANS(value.ParseInt());
+				ship->maxRadiansPerSecond = DEGREES_TO_RADIANS(value.ParseInt());
 			else if (column == "Graphic model")
-				ship.graphicModel = value;
+				ship->graphicModel = value;
 			else 
 			{
 				LogShip("Unrecognized column name \'"+column+"\'.");
@@ -294,14 +301,14 @@ bool Ship::LoadTypes(String file)
 		// Check for pre-existing ship of same name, remove it if so.
 		for (int i = 0; i < types.Size(); ++i)
 		{
-			Ship & type = types[i];
-			if (type.name == ship.name)
+			Ship * type = types[i];
+			if (type->name == ship->name)
 			{
 				types.RemoveIndex(i);
 				--i;
 			}
 		}
-		types.Add(ship);
+		types.AddItem(ship);
 	}
 	return true;
 }
@@ -527,23 +534,26 @@ void Ship::ParseRotation(String fromString)
 }
 
 /// Creates new ship of specified type.
-Ship Ship::New(String shipByName)
+Ship * Ship::New(String shipByName)
 {
 	shipByName.Replace('_', ' ');
 	shipByName.RemoveSurroundingWhitespaces();
 	List<String> typesNames;
 	for (int i = 0; i < types.Size(); ++i)
 	{
-		Ship & type = types[i];
-		if (type.name == shipByName)
-			return type;
-		typesNames.Add(type.name);
+		Ship * type = types[i];
+		if (type->name == shipByName)
+		{
+			Ship * newShip = new Ship(*type);
+			return newShip;
+		}
+		typesNames.Add(type->name);
 	}
 	String shipTypesStr = MergeLines(typesNames, ", ");
 	// For now, just add a default one.
 	LogToFile("LevelCreationErrors.txt", "ERROR: Couldn't find ship by name \'"+shipByName+"\'. Available ships types as follows:\n\t" + shipTypesStr, ERROR);
 	std::cout<<"\nERROR: Couldn't find ship by name \'"<<shipByName<<"\'";
-	return Ship();
+	return 0;
 }
 
 /// Checks weapon's latest aim dir.
@@ -551,9 +561,9 @@ Vector3f Ship::WeaponTargetDir()
 {
 	for (int i = 0; i < weapons.Size(); ++i)
 	{
-		Weapon & weapon = weapons[i];
-		if (weapon.aim)
-			return weapon.currentAim;
+		Weapon * weapon = weapons[i];
+		if (weapon->aim)
+			return weapon->currentAim;
 	}
 	return Vector3f();
 }
@@ -564,45 +574,6 @@ void Ship::UpdateStatsFromGear()
 	hp = this->maxHP = armor.maxHP;
 	shieldValue = (float) (this->maxShieldValue = shield.maxShield);
 	this->shieldRegenRate = shield.shieldRegen;
-	// Set weapon stats.
-	if (weapons.Size())
-	{
-		Weapon & mainWeapon = weapons[0];
-		mainWeapon.cooldown = weapon.reloadTime;
-		mainWeapon.damage = weapon.damage;
-	}
-
-
-	// Fill with default weapons for testing purposes.
-	if (!this->ai && weapons.Size() == 1)
-	{
-		Weapon weap = weapons[0];
-		weapons.Clear(); // clear default weapon.
-
-		weap.name = "Machine gun";
-		weap.cooldown = Time::Milliseconds(100);
-		weap.damage = 5;
-		weap.projectileSpeed = 35.f;
-		weapons.Add(weap);
-
-		weap = Weapon();
-		weap.damage = 23;
-		weap.projectileSpeed = 25.f;
-		weap.name = "Small rockets";
-		weap.cooldown = Time::Milliseconds(2500);
-		weap.burst = true;
-		weap.burstRoundDelay = Time::Milliseconds(200);
-		weap.burstRounds = 8;
-		weapons.Add(weap);
-
-		weap = Weapon();
-		weap.projectileSpeed = 10.f;
-		weap.damage = 150;
-		weap.name = "Large rockets";
-		weap.cooldown = Time::Milliseconds(3500);
-		weapons.Add(weap);
-	}
-
 }
 
 bool Ship::SwitchToWeapon(int index)
@@ -612,9 +583,14 @@ bool Ship::SwitchToWeapon(int index)
 		std::cout<<"\nSwitchToWeapon bad index";
 		return false;
 	}
-	activeWeapon = &weapons[index];
+	activeWeapon = weapons[index];
 	std::cout<<"\nSwitched to weapon: "<<activeWeapon->name;
 	UpdateStatsFromGear();
+	// Update ui
+	if (!ai)
+	{
+		QueueGraphics(new GMSetUIi("ActiveWeapon", GMUI::INTEGER_INPUT, index));
+	}
 	return true;
 }
 
@@ -626,3 +602,27 @@ void Ship::StartMovement()
 	if (movementPatterns.Size())
 		movementPatterns[0].OnEnter(this);
 }
+
+/// For player ship.
+void Ship::SetWeaponLevel(int weaponType, int level)
+{
+	Weapon * weapon = GetWeapon(weaponType);
+	*weapon = Weapon::Get(weaponType, level);
+}
+
+Weapon * Ship::GetWeapon(int ofType)
+{
+	for (int i = 0; i < weapons.Size(); ++i)
+	{
+		Weapon * weapon = weapons[i];
+		if (weapon->type == ofType)
+			return weapon;
+	}
+	Weapon * newWeapon = new Weapon();
+	newWeapon->type = ofType;
+	newWeapon->level = 0;
+	weapons.AddItem(newWeapon);
+	return newWeapon;
+}
+
+

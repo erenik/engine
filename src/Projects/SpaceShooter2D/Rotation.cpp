@@ -82,7 +82,7 @@ void Rotation::OnFrame(int timeInMs)
 			target.SetComparisonMode(String::NOT_CASE_SENSITIVE);
 			if (target == "Player")
 			{
-				targetEntity = playerShip.entity;
+				targetEntity = playerShip->entity;
 				if (targetEntity)
 					RotateToFace(targetEntity->position);
 			}

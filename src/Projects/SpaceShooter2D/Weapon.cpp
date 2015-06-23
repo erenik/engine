@@ -31,18 +31,32 @@ Weapon::Weapon()
 	burstRoundDelay = Time(TimeType::MILLISECONDS_NO_CALENDER, 50);
 }
 
-bool Weapon::Get(String byName, Weapon & weapon)
+bool Weapon::Get(String byName, Weapon * weapon)
 {
 	for (int i = 0; i < types.Size(); ++i)
 	{
 		Weapon & weap = types[i];
 		if (weap.name == byName)
 		{
-			weapon = weap;
+			*weapon = weap;
 			return true;
 		}
 	}
 	return false;
+}
+
+Weapon Weapon::Get(int type, int level)
+{
+	for (int i = 0; i < types.Size(); ++i)
+	{
+		Weapon & weap = types[i];
+		if (weap.type == type && weap.level == level)
+		{
+			return weap;
+		}
+	}
+	assert(false);
+	return Weapon();
 }
 
 
@@ -57,14 +71,14 @@ bool Weapon::LoadTypes(String fromFile)
 	List<String> columns;
 	String firstLine = lines[0];
 	// Keep empty strings or all will break.
-	columns = TokenizeCSV(firstLine);
+	columns = TokenizeCSV(firstLine, ';');
 
 	// For each line after the first one, parse data.
 	for (int j = 1; j < lines.Size(); ++j)
 	{
 		String & line = lines[j];
 		// Keep empty strings or all will break.
-		List<String> values = TokenizeCSV(line);
+		List<String> values = TokenizeCSV(line, ';');
 		// If not, now loop through the words, parsing them according to the column name.
 		// First create the new spell to load the data into!
 		Weapon weapon;
@@ -79,6 +93,23 @@ bool Weapon::LoadTypes(String fromFile)
 			column.SetComparisonMode(String::NOT_CASE_SENSITIVE);
 			if (column == "Weapon Name")
 				weapon.name = value;
+			else if (column == "Type")
+				weapon.type = value.ParseInt();
+			else if (column == "Level")
+				weapon.level = value.ParseInt();
+			else if (column == "Cooldown")
+				weapon.cooldown = Time::Milliseconds(value.ParseFloat());
+			else if (column == "Burst")
+				weapon.burst = value.ParseBool();
+			else if (column == "Burst details")
+			{
+				List<String> tokens = value.Tokenize(",");
+				if (tokens.Size() >= 2)
+				{
+					weapon.burstRoundDelay = Time::Milliseconds(tokens[0].ParseInt());
+					weapon.burstRounds = tokens[1].ParseInt();
+				}
+			}
 			else if (column == "Angle")
 			{
 				if (value.Contains("Aim"))
@@ -95,7 +126,7 @@ bool Weapon::LoadTypes(String fromFile)
 					weapon.projectilePath = SPINNING_OUTWARD;
 			}
 			else if (column == "Projectile speed")
-				weapon.projectileSpeed = value.ParseFloat() * 0.2f;
+				weapon.projectileSpeed = value.ParseFloat();
 			else if (column == "Damage")
 				weapon.damage = value.ParseInt();
 			else if (column == "Abilities")
@@ -149,7 +180,7 @@ void Weapon::Aim(Ship * ship)
 	}
 	else 
 	{
-		target = playerShip.entity;
+		target = playerShip->entity;
 	}
 	if (target == NULL)
 		return;

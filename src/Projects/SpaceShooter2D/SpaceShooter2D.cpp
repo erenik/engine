@@ -35,7 +35,7 @@ ParticleEmitter * starEmitter = NULL;
 bool paused = false;
 
 List<Weapon> Weapon::types;
-List<Ship> Ship::types;
+List<Ship*> Ship::types;
 
 /// 4 entities constitude the blackness.
 List<Entity*> blacknessEntities;
@@ -51,8 +51,8 @@ void SetApplicationDefaults()
 }
 
 // Global variables.
-SpaceShooter2D * spaceShooter = NULL;
-Ship playerShip;
+SpaceShooter2D * spaceShooter = 0;
+Ship * playerShip = 0;
 /// The level entity, around which the playing field and camera are based upon.
 Entity * levelEntity = NULL;
 Vector2f playingFieldSize;
@@ -77,6 +77,7 @@ void RegisterStates()
 
 SpaceShooter2D::SpaceShooter2D()
 {
+	playerShip = new Ship();
 	levelCamera = NULL;
 	SetPlayingFieldSize(Vector2f(30,20));
 	levelEntity = NULL;
@@ -87,6 +88,8 @@ SpaceShooter2D::SpaceShooter2D()
 
 SpaceShooter2D::~SpaceShooter2D()
 {
+	Ship::types.ClearAndDelete();
+	delete playerShip;
 }
 
 /// Function when entering this state, providing a pointer to the previous StateMan.
@@ -179,7 +182,7 @@ void SpaceShooter2D::Process(int timeInMs)
 {
 	SleepThread(10);
 //	std::cout<<"\nSS2D entities: "<<shipEntities.Size() + projectileEntities.Size() + 1;
-//	if (playerShip) std::cout<<"\nPlayer position: "<<playerShip.position;
+//	if (playerShip) std::cout<<"\nPlayer position: "<<playerShip->position;
 
 	now = Time::Now();
 	timeElapsedMs = timeInMs;
@@ -252,7 +255,7 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 			}
 			else if (msg == "SetActiveWeapon")
 			{
-				playerShip.SwitchToWeapon(im->value);
+				playerShip->SwitchToWeapon(im->value);
 			}
 			break;
 		}
@@ -268,8 +271,8 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 
 			Entity * shipEntity1 = NULL;
 			Entity * other = NULL;
-			int oneType = (one == playerShip.entity || shipEntities.Exists(one)) ? SHIP : PROJ;
-			int twoType = (two == playerShip.entity || shipEntities.Exists(two)) ? SHIP : PROJ;
+			int oneType = (one == playerShip->entity || shipEntities.Exists(one)) ? SHIP : PROJ;
+			int twoType = (two == playerShip->entity || shipEntities.Exists(two)) ? SHIP : PROJ;
 			int types[5] = {0,0,0,0,0};
 			++types[oneType];
 			++types[twoType];
@@ -302,6 +305,58 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 			{
 				SetMode(IN_WORKSHOP);
 			}
+//			std::cout<<"\n"<<msg;
+			if (msg == "TutorialBaseGun")
+			{
+				playerShip->weapons.ClearAndDelete(); // Clear old wepaons.
+				playerShip->SetWeaponLevel(WeaponType::TYPE_0, 1);
+				playerShip->activeWeapon = playerShip->weapons[0];
+				UpdateHUDGearedWeapons();
+			}
+			if (msg == "TutorialLevel1Weapons")
+			{
+				playerShip->SetWeaponLevel(WeaponType::TYPE_0, 1);
+				playerShip->SetWeaponLevel(WeaponType::TYPE_1, 1);
+				playerShip->SetWeaponLevel(WeaponType::TYPE_2, 1);
+				UpdateHUDGearedWeapons();
+			}
+			if (msg == "TutorialLevel3Weapons")
+			{
+				playerShip->SetWeaponLevel(WeaponType::TYPE_0, 3);
+				playerShip->SetWeaponLevel(WeaponType::TYPE_1, 3);
+				playerShip->SetWeaponLevel(WeaponType::TYPE_2, 3);			
+				UpdateHUDGearedWeapons();
+			}
+			if (msg == "ActivateWeaponScript")
+			{
+				playerShip->weaponScriptActive = true;
+			}
+			if (msg == "DeactivateWeaponScript")
+			{
+				playerShip->weaponScriptActive = false;
+			}
+			if (msg.StartsWith("SetSkill"))
+			{
+				String skill = msg.Tokenize(":")[1];
+				if (skill == "AttackFrenzy")
+					playerShip->skill = ATTACK_FRENZY;
+				if (skill == "SpeedBoost")
+					playerShip->skill = SPEED_BOOST;
+				if (skill == "PowerShield")
+					playerShip->skill = POWER_SHIELD;
+				playerShip->skillName = skill;
+				UpdateHUDSkill();
+			}
+			if (msg == "DisablePlayerMovement")
+			{
+				playerShip->movementDisabled = true;
+				UpdatePlayerVelocity();
+			}
+			if (msg == "EnablePlayerMovement")
+			{
+				playerShip->movementDisabled = false;
+				UpdatePlayerVelocity();
+			}
 			if (msg == "UpdateHUDGearedWeapons")
 				UpdateHUDGearedWeapons();
 			else if (msg.StartsWith("Weapon:"))
@@ -310,15 +365,15 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 				weaponIndex -= 1;
 				if (weaponIndex < 0)
 					weaponIndex = 9;
-				playerShip.SwitchToWeapon(weaponIndex);
+				playerShip->SwitchToWeapon(weaponIndex);
 			}
 			else if (msg == "StartShooting")
 			{
-				playerShip.shoot = true;
+				playerShip->shoot = true;
 			}
 			else if (msg == "StopShooting")
 			{
-				playerShip.shoot = false;
+				playerShip->shoot = false;
 			}
 			else if (msg.Contains("AutoSave"))
 			{
@@ -460,7 +515,7 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 			}
 			else if (msg == "ClearLevel")
 			{
-				level.ships.Clear();
+				level.ships.ClearAndDelete();
 				MapMan.DeleteEntities(shipEntities);
 				// Move the level-entity, the player will follow.
 				PhysicsMan.QueueMessage(new PMSetEntity(levelEntity, PT_POSITION, Vector3f(level.goalPosition - 5.f, 10, 0)));
@@ -490,14 +545,14 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 				switch(gear.type)
 				{
 					case Gear::SHIELD_GENERATOR:
-						playerShip.shield = gear;
+						playerShip->shield = gear;
 						break;
 					case Gear::ARMOR:
-						playerShip.armor = gear;
+						playerShip->armor = gear;
 						break;
 				}
 				// Update stats.
-				playerShip.UpdateStatsFromGear();
+				playerShip->UpdateStatsFromGear();
 				/// Reduce munny
 				money->iValue -= gear.price;
 				/// Update UI to reflect reduced funds.
@@ -675,26 +730,16 @@ void SpaceShooter2D::NewGame()
 void SpaceShooter2D::NewPlayer()
 {
 	// Reset player-ship.
-	if (playerShip.name.Length() == 0)
+	if (playerShip->name.Length() == 0)
 	{
 		playerShip = Ship::New("Default");
-		playerShip.ai = false;
-		playerShip.allied = true;
-		if (playerShip.weapons.Size() == 0)
-		{
-			std::cout<<"\nAdding default weapon.";
-			Weapon weapon;
-			weapon.damage = 24;
-			weapon.cooldown.intervals = 200;
-			weapon.projectileSpeed = 24.f;
-			playerShip.weapons.Add(weapon);
-			playerShip.maxHP = 500;
-		}
+		playerShip->ai = false;
+		playerShip->allied = true;
 	}
-	playerShip.weapon = Gear::StartingWeapon();
-	playerShip.armor = Gear::StartingArmor();
-	playerShip.shield = Gear::StartingShield();
-	playerShip.UpdateStatsFromGear();
+	playerShip->weapon = Gear::StartingWeapon();
+	playerShip->armor = Gear::StartingArmor();
+	playerShip->shield = Gear::StartingShield();
+	playerShip->UpdateStatsFromGear();
 }
 
 
@@ -758,10 +803,10 @@ void SpaceShooter2D::LoadLevel(String fromSource)
 
 	level.Load(fromSource);
 	level.SetupCamera();
-	level.AddPlayer(&playerShip);
+	level.AddPlayer(playerShip);
 	// Reset player stats.
-	playerShip.hp = playerShip.maxHP;
-	playerShip.shieldValue = playerShip.maxShieldValue;
+	playerShip->hp = playerShip->maxHP;
+	playerShip->shieldValue = playerShip->maxShieldValue;
 
 
 	/// Add emitter for stars at player start.
@@ -834,9 +879,9 @@ void SpaceShooter2D::LoadLevel(String fromSource)
 		GraphicsMan.QueueMessage(new GMSetCamera(levelCamera, CT_ENTITY_TO_TRACK, levelEntity));
 	}
 	// Track ... level with effects.
-	starEmitter->entityToTrack = playerShip.entity;
+	starEmitter->entityToTrack = playerShip->entity;
 	starEmitter->positionOffset = Vector3f(70.f,0,0);
-//	GraphicsMan.QueueMessage(new GMSetParticleEmitter(starEmitter, GT_EMITTER_ENTITY_TO_TRACK, playerShip.entity));
+//	GraphicsMan.QueueMessage(new GMSetParticleEmitter(starEmitter, GT_EMITTER_ENTITY_TO_TRACK, playerShip->entity));
 //	GraphicsMan.QueueMessage(new GMSetParticleEmitter(starEmitter, GT_EMITTER_POSITION_OFFSET, Vector3f(70.f, 0, 0)));
 	// Reset position of level entity if already created.
 	levelEntity->position = initialPosition;
@@ -845,8 +890,8 @@ void SpaceShooter2D::LoadLevel(String fromSource)
 	// Set velocity of the game.
 //	PhysicsMan.QueueMessage(new PMSetEntity(levelEntity, PT_VELOCITY, level.BaseVelocity()));
 	// Reset position of player!
-	playerShip.entity->position = initialPosition + Vector3f(-50,0,0);
-//	PhysicsMan.QueueMessage(new PMSetEntity(playerShip.entity, PT_POSITION, initialPosition));
+	playerShip->entity->position = initialPosition + Vector3f(-50,0,0);
+//	PhysicsMan.QueueMessage(new PMSetEntity(playerShip->entity, PT_POSITION, initialPosition));
 
 	GraphicsMan.ResumeRendering();
 	PhysicsMan.Resume();
@@ -969,13 +1014,14 @@ void SpaceShooter2D::UpdatePlayerVelocity()
 		totalVec += vec;
 	}
 	totalVec.Normalize();
-	totalVec *= playerShip.speed;
+	totalVec *= playerShip->speed;
+	totalVec *= playerShip->movementDisabled? 0 : 1;
 	totalVec += level.BaseVelocity();
 
 	// Set player speed.
-	if (playerShip.entity)
+	if (playerShip->entity)
 	{
-		PhysicsMan.QueueMessage(new PMSetEntity(playerShip.entity, PT_VELOCITY, totalVec));
+		PhysicsMan.QueueMessage(new PMSetEntity(playerShip->entity, PT_VELOCITY, totalVec));
 	}
 }
 
