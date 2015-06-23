@@ -325,8 +325,6 @@ void Level::Process(int timeInMs)
 	}
 	else 
 	{
-		/// PRocess the player ship.
-		Process(playerShip);
 		levelTime.AddMs(timeInMs);
 	}
 
@@ -432,20 +430,6 @@ void Level::ProcessMessage(Message * message)
 			}
 			break;		
 		}
-	}
-}
-
-/// Process target ship.
-void Level::Process(Ship * ship)
-{
-	if (ship->hasShield)
-	{
-		// Repair shield
-		ship->shieldValue += timeElapsedMs * 0.001 * ship->shieldRegenRate;
-		if (ship->shieldValue > ship->maxShieldValue)
-			ship->shieldValue = ship->maxShieldValue;
-		if (ship->allied)
-			spaceShooter->UpdateUIPlayerShield();
 	}
 }
 

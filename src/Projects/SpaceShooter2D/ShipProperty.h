@@ -23,7 +23,6 @@ public:
 	void OnSpawn();
 	
 	virtual void Process(int timeInMs);
-	virtual void ProcessWeapons(int timeInMs);
 	/// If reacting to collisions...
 	virtual void OnCollision(Collision & data);
 
@@ -50,7 +49,6 @@ private:
 	Ship * ship;
 
 	bool spawnInvulnerability; // Default true at start.
-	void ProcessAI(int timeInMs);
 	long millisecondsPassedSinceLastFire;	
 };
 

@@ -60,9 +60,7 @@ public:
 	/// o.o
 	void Process(int timeInMs);
 	void ProcessMessage(Message * message);
-	/// Process target ship.
-	void Process(Ship * ship);
-
+	
 	String source;
 	/// Ships within.
 	List<Ship*> ships;

@@ -305,6 +305,10 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 			{
 				SetMode(IN_WORKSHOP);
 			}
+			if (msg == "ActivateSkill")
+			{
+				playerShip->ActivateSkill();
+			}
 //			std::cout<<"\n"<<msg;
 			if (msg == "TutorialBaseGun")
 			{
@@ -330,10 +334,19 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 			if (msg == "ActivateWeaponScript")
 			{
 				playerShip->weaponScriptActive = true;
+				if (playerShip->weaponScript == 0)
+				{
+					WeaponScript * weaponScript = playerShip->weaponScript = new WeaponScript();
+					weaponScript->actions.AddItem(ScriptAction::SwitchWeapon(0, 1000));
+					weaponScript->actions.AddItem(ScriptAction::SwitchWeapon(1, 1000));
+					weaponScript->actions.AddItem(ScriptAction::SwitchWeapon(2, 100));
+				}
 			}
 			if (msg == "DeactivateWeaponScript")
 			{
 				playerShip->weaponScriptActive = false;
+				if (!InputMan.KeyPressed(KEY::SPACE))
+					playerShip->shoot = false;
 			}
 			if (msg.StartsWith("SetSkill"))
 			{
@@ -346,6 +359,10 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 					playerShip->skill = POWER_SHIELD;
 				playerShip->skillName = skill;
 				UpdateHUDSkill();
+			}
+			if (msg == "TutorialSkillCooldowns")
+			{
+				playerShip->skillCooldownMultiplier = 0.1f;
 			}
 			if (msg == "DisablePlayerMovement")
 			{
@@ -1014,7 +1031,7 @@ void SpaceShooter2D::UpdatePlayerVelocity()
 		totalVec += vec;
 	}
 	totalVec.Normalize();
-	totalVec *= playerShip->speed;
+	totalVec *= playerShip->Speed();
 	totalVec *= playerShip->movementDisabled? 0 : 1;
 	totalVec += level.BaseVelocity();
 

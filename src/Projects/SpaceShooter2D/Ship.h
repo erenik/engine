@@ -14,6 +14,31 @@
 class Entity;
 class Model;
 
+class ScriptAction 
+{
+public:
+	static ScriptAction SwitchWeapon(int toWeaponIndex, int durationToHoldMs);
+	void OnEnter(Ship * forShip);
+	enum {
+		SWITCH_TO_WEAPON,
+	};
+	int type;
+	int weaponIndex;
+	int durationMs;
+	Time startTime;
+};
+
+class WeaponScript
+{
+public:
+	WeaponScript();
+	void Process(Ship * forShip, int timeInMs);
+	int timeInCurrentActionMs;
+	List<ScriptAction> actions;
+private:
+	int currentAction;
+};
+
 enum 
 {
 	NO_SKILL,
@@ -27,6 +52,11 @@ class Ship
 public:
 	Ship();
 	~Ship();
+
+	void Process(int timeInMs);
+	void ProcessAI(int timeInMs);
+	void ProcessWeapons(int timeInMs);
+
 	/// Prepends the source with '/obj/Ships/' and appends '.obj'. Uses default 'Ship.obj' if needed.
 	Model * GetModel();
 	/// o.o
@@ -43,6 +73,11 @@ public:
 	/// Creates new ship of specified type.
 	static Ship * New(String shipByName);
 	
+	/// Returns speed, accounting for active skills, weights, etc.
+	float Speed();
+	/// Accounting for boosting skills.
+	float MaxShield();
+
 	/// Checks weapon's latest aim dir.
 	Vector3f WeaponTargetDir();
 
@@ -56,6 +91,7 @@ public:
 	/// For player ship.
 	void SetWeaponLevel(int weaponType, int level);
 	Weapon * GetWeapon(int ofType);
+	void ActivateSkill();
 
 	// Name or type. 
 	String name;
@@ -70,6 +106,11 @@ public:
 	bool weaponScriptActive; // Default false.
 	int skill; // Default 0, see above.
 	String skillName;
+	int timeSinceLastSkillUseMs;
+	int skillCooldownMs;
+	int activeSkill;
+	int skillDurationMs;
+	float skillCooldownMultiplier; // default 1, lower in situations or tutorial
 
 	/// In order to not take damage allllll the time (depending on processor speed, etc. too.)
 	Time lastShipCollision;
@@ -119,6 +160,9 @@ public:
 
 	/// Used by player, mainly.
 	Gear weapon, shield, armor;
+
+	WeaponScript * weaponScript;
+
 private:
 };
 

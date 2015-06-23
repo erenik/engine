@@ -70,82 +70,9 @@ void ShipProperty::Process(int timeInMs)
 		}
 	}
 	// Move?
-	// Don't process inactive ships..
-	if (ship->ai == true)
-	{
-		// Mainly for movement and stuff
-		ProcessAI(timeInMs);
-	}
-	ProcessWeapons(timeInMs);
-}
-
-void ShipProperty::ProcessWeapons(int timeInMs)
-{
-	if (!ship->canShoot)
-		return;
-
-	// Fire stuff?
-	if (ship->ai)
-	{
-		// Do stuff.
-		for (int i = 0; i < ship->weapons.Size(); ++i)
-		{
-			Weapon * weapon = ship->weapons[i];
-			// Aim.
-			weapon->Aim(ship);
-			// Dude..
-			if (projectileEntities.Size() > 1000)
-				continue;
-			weapon->Shoot(ship);
-		}
-	}
-	else 
-	{
-		if (!ship->shoot)
-			return;
-		if (ship->activeWeapon == 0)
-			ship->activeWeapon = ship->weapons.Size()? ship->weapons[0] : 0;
-		// Shoot with current weapon for player.
-		if (ship->activeWeapon)
-			ship->activeWeapon->Shoot(ship);
-	}
+	ship->Process(timeInMs);
 }
 	
-
-void ShipProperty::ProcessAI(int timeInMs)
-{
-	if (ship->rotationPatterns.Size() == 0)
-		return;
-	// Rotate accordingly.
-	Rotation & rota = ship->rotationPatterns[ship->currentRotation];
-	rota.OnFrame(timeInMs);
-	// Increase time spent in this state accordingly.
-	ship->timeInCurrentRotation += timeInMs;
-	if (ship->timeInCurrentRotation > rota.durationMs && rota.durationMs > 0)
-	{
-		ship->currentRotation = (ship->currentRotation + 1) % ship->rotationPatterns.Size();
-		ship->timeInCurrentRotation = 0;
-		Rotation & rota2 = ship->rotationPatterns[ship->currentRotation];
-		rota2.OnEnter(ship);
-	}
-	if (!ship->canMove)
-		return;
-	// Move?
-	Entity * shipEntity = ship->entity;
-	Movement & move = ship->movementPatterns[ship->currentMovement];
-	move.OnFrame(timeInMs);
-	// Increase time spent in this state accordingly.
-	ship->timeInCurrentMovement += timeInMs;
-	if (ship->timeInCurrentMovement > move.durationMs && move.durationMs > 0)
-	{
-		ship->currentMovement = (ship->currentMovement + 1) % ship->movementPatterns.Size();
-		ship->timeInCurrentMovement = 0;
-		Movement & newMove = ship->movementPatterns[ship->currentMovement];
-		newMove.OnEnter(ship);
-	}
-}
-
-
 /// If reacting to collisions...
 void ShipProperty::OnCollision(Collision & data)
 {

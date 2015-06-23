@@ -205,8 +205,9 @@ void Weapon::Aim(Ship * ship)
 /// Shoots using previously calculated aim.
 void Weapon::Shoot(Ship * ship)
 {
-	/// Initialize the weapon as if it had just been fired.
-	if (lastShot.Milliseconds() == 0)
+	float firingSpeedDivisor = ship->activeSkill == ATTACK_FRENZY? 0.4f : 1.f; 
+	/// Initialize the weapon as if it had just been fired at a random time (AI only)
+	if (lastShot.Milliseconds() == 0 && ship->ai)
 	{
 		lastShot = levelTime - cooldown + Time(TimeType::MILLISECONDS_NO_CALENDER, 1000 + shootRand.Randf(cooldown.Milliseconds()));
 		return;
@@ -218,13 +219,13 @@ void Weapon::Shoot(Ship * ship)
 		{
 			// Check time between burst rounds.
 			Time diff = levelTime - lastShot;
-			if (diff < burstRoundDelay)
+			if (diff < burstRoundDelay * firingSpeedDivisor)
 				return;
 			++burstRoundsShot;
 		}
 		else {
 			Time diff = levelTime - burstStart;
-			if (diff < cooldown)
+			if (diff < cooldown * firingSpeedDivisor)
 				return;
 			burstStart = levelTime;
 			burstRoundsShot = 0;
@@ -234,7 +235,7 @@ void Weapon::Shoot(Ship * ship)
 	// Regular fire
 	else {
 		Time diff = levelTime - lastShot;
-		if (diff < cooldown)
+		if (diff < cooldown * firingSpeedDivisor)
 			return;
 	}
 
@@ -275,6 +276,20 @@ void Weapon::Shoot(Ship * ship)
 		dir[0] = cos(worldAngle);
 		dir[1] = sin(worldAngle);
 	}
+	/// Change initial direction based on stability of the weapon?
+	float stability = 0.99f;
+	if (ship->activeSkill == ATTACK_FRENZY)
+		stability *= 0.75f;
+	// Get orthogonal direction.
+	Vector3f dirRight = dir.CrossProduct(Vector3f(0,0,1));
+	if (stability < 1.f)
+	{
+		float amplitude = 1 - stability;
+		float randomEffect = shootRand.Randf(amplitude * 2.f) - amplitude;
+		dir = dir + dirRight * randomEffect;
+		dir.Normalize();
+	}
+
 	Vector3f vel = dir * projectileSpeed;
 	PhysicsProperty * pp = projectileEntity->physics = new PhysicsProperty();
 	pp->type = PhysicsType::DYNAMIC;

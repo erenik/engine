@@ -11,6 +11,45 @@
 #include "File/LogFile.h"
 #include "Game/GameVariable.h"
 
+ScriptAction ScriptAction::SwitchWeapon(int toWeaponIndex, int durationToHoldMs)
+{
+	ScriptAction sa;
+	sa.type = SWITCH_TO_WEAPON;
+	sa.weaponIndex = toWeaponIndex;
+	sa.durationMs = durationToHoldMs;
+	return sa;
+}
+
+void ScriptAction::OnEnter(Ship * forShip)
+{
+	if (type == SWITCH_TO_WEAPON)
+	{
+		forShip->activeWeapon = forShip->weapons[weaponIndex];
+		forShip->shoot = true;
+	}
+}
+
+WeaponScript::WeaponScript()
+{
+	timeInCurrentActionMs = 0;
+	currentAction = 0;
+}
+
+void WeaponScript::Process(Ship * forShip, int timeInMs)
+{
+	assert(actions.Size());
+	timeInCurrentActionMs += timeInMs;
+	ScriptAction & current = actions[currentAction];
+	if (timeInCurrentActionMs > current.durationMs)
+	{
+		currentAction = (currentAction + 1) % actions.Size();
+		// When entering a new one, do stuff.
+		ScriptAction & newOne = actions[currentAction];
+		newOne.OnEnter(forShip);
+		timeInCurrentActionMs = 0;
+	}
+}
+
 Ship::Ship()
 {
 	collisionDamageCooldown = Time(TimeType::MILLISECONDS_NO_CALENDER, 100);
@@ -40,14 +79,124 @@ Ship::Ship()
 	
 	graphicModel = "obj/Ships/Ship.obj";
 
+	timeSinceLastSkillUseMs = 0;
 	maxRadiansPerSecond = PI / 12;
 	movementDisabled = false;
 	weaponScriptActive = false;
+	weaponScript = 0;
+	activeSkill = NO_SKILL;
+	skill = NO_SKILL;
+	skillCooldownMultiplier = 1.f;
 }
 
 Ship::~Ship()
 {
 	weapons.ClearAndDelete();
+}
+
+void Ship::Process(int timeInMs)
+{
+	// Skill cooldown.
+	if (timeSinceLastSkillUseMs >= 0)
+	{
+		timeSinceLastSkillUseMs += timeInMs;
+		if (timeSinceLastSkillUseMs > skillDurationMs)
+		{
+			activeSkill = NO_SKILL;
+			spaceShooter->UpdateHUDSkill();
+			if (timeSinceLastSkillUseMs > skillCooldownMs)
+				timeSinceLastSkillUseMs = -1; // Ready to use.
+		}
+	}
+	// AI
+	ProcessAI(timeInMs);
+	// Weapon systems.
+	ProcessWeapons(timeInMs);
+	// Shield
+	if (hasShield)
+	{
+		// Repair shield
+		shieldValue += timeInMs * shieldRegenRate * (activeSkill == POWER_SHIELD? 10.f : 0.001);
+		if (shieldValue > MaxShield())
+			shieldValue = MaxShield();
+		if (allied)
+			spaceShooter->UpdateUIPlayerShield();
+	}
+
+}
+
+void Ship::ProcessAI(int timeInMs)
+{
+	// Don't process inactive ships..
+	if (!ai)
+		return;
+	if (rotationPatterns.Size() == 0)
+		return;
+	// Rotate accordingly.
+	Rotation & rota = rotationPatterns[currentRotation];
+	rota.OnFrame(timeInMs);
+	// Increase time spent in this state accordingly.
+	timeInCurrentRotation += timeInMs;
+	if (timeInCurrentRotation > rota.durationMs && rota.durationMs > 0)
+	{
+		currentRotation = (currentRotation + 1) % rotationPatterns.Size();
+		timeInCurrentRotation = 0;
+		Rotation & rota2 = rotationPatterns[currentRotation];
+		rota2.OnEnter(this);
+	}
+	if (!canMove)
+		return;
+	// Move?
+	Entity * shipEntity = entity;
+	Movement & move = movementPatterns[currentMovement];
+	move.OnFrame(timeInMs);
+	// Increase time spent in this state accordingly.
+	timeInCurrentMovement += timeInMs;
+	if (timeInCurrentMovement > move.durationMs && move.durationMs > 0)
+	{
+		currentMovement = (currentMovement + 1) % movementPatterns.Size();
+		timeInCurrentMovement = 0;
+		Movement & newMove = movementPatterns[currentMovement];
+		newMove.OnEnter(this);
+	}
+}
+
+
+void Ship::ProcessWeapons(int timeInMs)
+{
+	if (!canShoot)
+		return;
+
+	if (weaponScriptActive && weaponScript)
+	{
+		weaponScript->Process(this, timeInMs);
+	}
+
+	// AI fire all weapons simultaneously for the time being.
+	if (ai)
+	{
+		// Do stuff.
+		for (int i = 0; i < weapons.Size(); ++i)
+		{
+			Weapon * weapon = weapons[i];
+			// Aim.
+			weapon->Aim(this);
+			// Dude..
+			if (projectileEntities.Size() > 1000)
+				continue;
+			weapon->Shoot(this);
+		}
+	}
+	else 
+	{
+		if (!shoot)
+			return;
+		if (activeWeapon == 0)
+			activeWeapon = weapons.Size()? weapons[0] : 0;
+		// Shoot with current weapon for player.
+		if (activeWeapon)
+			activeWeapon->Shoot(this);
+	}
 }
 
 /// Prepends the source with '/obj/Ships/' and appends '.obj'. Uses default 'Ship.obj' if needed.
@@ -556,6 +705,22 @@ Ship * Ship::New(String shipByName)
 	return 0;
 }
 
+/// Returns speed, accounting for active skills, weights, etc.
+float Ship::Speed()
+{
+	if (activeSkill == SPEED_BOOST)
+		return speed * 1.75f;
+	return speed;
+}
+
+/// Accounting for boosting skills.
+float Ship::MaxShield()
+{
+	if (activeSkill == POWER_SHIELD)
+		return maxShieldValue + 10000;
+	return maxShieldValue;
+}
+
 /// Checks weapon's latest aim dir.
 Vector3f Ship::WeaponTargetDir()
 {
@@ -625,4 +790,29 @@ Weapon * Ship::GetWeapon(int ofType)
 	return newWeapon;
 }
 
-
+void Ship::ActivateSkill()
+{
+	// Check cooldown?
+	if (timeSinceLastSkillUseMs != -1)
+		return;
+	activeSkill = skill;
+	timeSinceLastSkillUseMs = 0;
+	skillDurationMs = 5000;
+	switch(skill)
+	{
+		case POWER_SHIELD:	
+			skillCooldownMs = 25000; 
+			break;
+		case SPEED_BOOST: 	
+			skillCooldownMs = 20000;
+			break;
+		case ATTACK_FRENZY: 
+			skillCooldownMs = 30000; 
+			break;
+		default:
+			skillCooldownMs = skillDurationMs = 100;
+	}
+	skillCooldownMs *= skillCooldownMultiplier;
+	// Reflect activation in HUD?
+	spaceShooter->UpdateHUDSkill();
+}

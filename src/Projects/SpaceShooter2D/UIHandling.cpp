@@ -127,6 +127,7 @@ void SpaceShooter2D::UpdateUIPlayerShield()
 void SpaceShooter2D::UpdateHUDSkill()
 {
 	QueueGraphics(new GMSetUIs("Skill", GMUI::TEXT, playerShip->skillName));
+	QueueGraphics(new GMSetUIs("Skill", GMUI::TEXTURE_SOURCE, playerShip->activeSkill != NO_SKILL? "0x00FF00FF" : "0x44AA"));		
 }
 
 void SpaceShooter2D::LoadDefaultName()

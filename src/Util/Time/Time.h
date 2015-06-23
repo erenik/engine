@@ -56,6 +56,7 @@ public:
 	/// Arithmetic operations
 	Time operator - (const Time & otherTime) const;
 	Time operator + (const Time & otherTime) const;
+	Time operator * (const float & f) const;
 	/// Arithmetic operations
 	Time operator -= (const Time & otherTime);
 	Time operator += (const Time & otherTime);

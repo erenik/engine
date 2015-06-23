@@ -190,6 +190,16 @@ Time Time::operator + (const Time & otherTime) const
 	return newTime;
 }
 
+/// Arithmetics.
+Time Time::operator * (const float & f) const
+{
+	assert(type == TimeType::MILLISECONDS_NO_CALENDER);
+	Time newTime = *this;
+	newTime.intervals *= f;
+	return newTime;
+}
+
+
 /// Arithmetic operations
 Time Time::operator -= (const Time & otherTime)
 {
