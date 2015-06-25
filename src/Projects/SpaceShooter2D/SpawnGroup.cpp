@@ -26,10 +26,12 @@ String Formation::GetName(int forFormationType)
 SpawnGroup::SpawnGroup()
 {
 	spawnTime = Time(TimeType::MILLISECONDS_NO_CALENDER);
+	spawned = false;
 }
 
 void SpawnGroup::Spawn()
 {
+	spawned = true;
 	/// Fetch amount.
 	Vector3f offsetPerSpawn;
 	int offsetNum = max(1,number - 1);
@@ -92,8 +94,9 @@ void SpawnGroup::Spawn()
 	// ?!
 Entity * SpawnGroup::SpawnShip(ConstVec3fr atPosition)
 {
-	Ship * ship = Ship::New(shipType);
-	activeLevel->ships.AddItem(ship);
+	Ship * newShip = Ship::New(shipType);
+	activeLevel->ships.AddItem(newShip);
+	Ship * ship = newShip;
 
 	Entity * entity = EntityMan.CreateEntity(ship->type, ship->GetModel(), TexMan.GetTextureByColor(Color(0,255,0,255)));
 	entity->position = atPosition;

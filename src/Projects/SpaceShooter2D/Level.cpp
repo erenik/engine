@@ -21,10 +21,12 @@ Time levelTime;
 
 LevelMessage::LevelMessage()
 {
-	displayed = false;
+	displayed = hidden = false;
 	startTime = stopTime = Time(TimeType::MILLISECONDS_NO_CALENDER, 0);
 	type = TEXT_MESSAGE;
 }
+
+int activeLevelDisplayMessages = 0;
 
 // UI
 void LevelMessage::Display()
@@ -35,10 +37,11 @@ void LevelMessage::Display()
 		QueueGraphics(new GMSetUIs("LevelMessage", GMUI::TEXT, TextMan.GetText(textID)));
 		QueueGraphics(new GMSetUIb("LevelMessage", GMUI::VISIBILITY, true));
 		displayed = true;
+		++activeLevelDisplayMessages;
 	}
 	else if (type == LevelMessage::EVENT)
 	{
-		MesMan.QueueMessages(string);
+		MesMan.QueueMessages(strings);
 		displayed = true;
 	}
 }
@@ -47,9 +50,14 @@ void LevelMessage::Hide()
 {
 	if (type == LevelMessage::TEXT_MESSAGE)
 	{
-		QueueGraphics(new GMSetUIb("LevelMessage", GMUI::VISIBILITY, false));
-		displayed = false;
+		--activeLevelDisplayMessages;
+		if (activeLevelDisplayMessages <= 0)
+		{
+			QueueGraphics(new GMSetUIb("LevelMessage", GMUI::VISIBILITY, false));
+		}
+		displayed = true;
 	}
+	hidden = true;
 }
 
 
@@ -64,8 +72,8 @@ Level::Level()
 Level::~Level()
 {
 	spawnGroups.ClearAndDelete();
-	ships.ClearAndDelete();
 	messages.ClearAndDelete();
+	ships.ClearAndDelete();
 }
 
 bool Level::Load(String fromSource)
@@ -150,7 +158,11 @@ bool Level::Load(String fromSource)
 			if (var == "TextID")
 				message->textID = arg.ParseInt();
 			if (var == "String")
-				message->string = arg;
+			{
+				String strArg = line - "String";
+				strArg.RemoveSurroundingWhitespaces();
+				message->strings.AddItem(strArg);
+			}
 		}
 		if (parseMode == PARSE_MODE_FORMATIONS)
 		{
@@ -247,8 +259,10 @@ Vector3f Level::BaseVelocity()
 	return Vector3f(1,0,0) * (1000.f / millisecondsPerPixel);
 }
 
-void Level::AddPlayer(Ship * playerShip)
-{
+/// Creates player entity within this level. (used for spawning)
+Entity * Level::AddPlayer(Ship * playerShip, ConstVec3fr atPosition)
+{	
+	playerShip->movementDisabled = false;
 	if (playerShip->entity)
 	{
 		MapMan.DeleteEntity(playerShip->entity);
@@ -274,7 +288,7 @@ void Level::AddPlayer(Ship * playerShip)
 	pp->velocity = BaseVelocity();
 	pp->type = PhysicsType::DYNAMIC;
 	// Set player to mid position.
-	entity->position = Vector3f(-50.f, 10.f, 0);
+	entity->position = atPosition;
 	// Rotate ship with the nose from Z- to Y+
 	float radians = PI / 2;
 //	entity->rotation[0] = radians;
@@ -284,6 +298,7 @@ void Level::AddPlayer(Ship * playerShip)
 	pp->velocity = BaseVelocity();
 	// Register player for rendering.
 	MapMan.AddEntity(entity);
+	return entity;
 }
 
 void Level::SetupCamera()
@@ -313,7 +328,19 @@ void Level::Process(int timeInMs)
 	if (playerShip->hp <= 0)
 	{
 		// Game OVER!
-		spaceShooter->GameOver();
+		if (onDeath.Length() == 0)
+			spaceShooter->GameOver();
+		else if (onDeath.StartsWith("RespawnAt"))
+		{
+			playerShip->hp = playerShip->maxHP;
+			this->AddPlayer(playerShip, Vector3f(levelEntity->position.x, 10.f, 0));
+			// Reset level-time.
+			String timeStr = onDeath.Tokenize("()")[1];
+			levelTime.ParseFrom(timeStr);
+			OnLevelTimeAdjusted();
+		}
+		else 
+			std::cout<<"\nBad Game over (onDeath) critera.";
 		return;
 	}
 
@@ -331,33 +358,39 @@ void Level::Process(int timeInMs)
 	/// Check messages.
 	if (messages.Size())
 	{
-		LevelMessage * lm = messages[0];
-		if (lm->startTime < levelTime && !lm->displayed)
+		for (int i = 0; i < messages.Size(); ++i)
 		{
-			lm->Display();
-			activeLevelMessage = lm;
-		}
-		if (lm->displayed && lm->stopTime < levelTime)
-		{
-			// Retain sorting.
-			lm->Hide();
-			messages.RemoveItem(lm);
-			if (activeLevelMessage == lm)
-				activeLevelMessage = 0;
-			delete lm;
+			LevelMessage * lm = messages[i];
+			if (lm->hidden)
+				continue;
+			if (lm->startTime < levelTime && !lm->displayed)
+			{
+				lm->Display();
+				activeLevelMessage = lm;
+			}
+			if (lm->displayed && lm->stopTime < levelTime)
+			{
+				// Retain sorting.
+				lm->Hide();
+				if (activeLevelMessage == lm)
+					activeLevelMessage = 0;
+			}
 		}
 	}
 
 	/// Check spawn-groups.
 	if (spawnGroups.Size())
 	{
-		SpawnGroup * sg = spawnGroups[0];
-		if (sg->spawnTime < levelTime)
+		for (int i = 0; i < spawnGroups.Size(); ++i)
 		{
-			sg->Spawn();
-			// Retain sorting.
-			spawnGroups.RemoveItem(sg);
-			delete sg;
+			SpawnGroup * sg = spawnGroups[i];
+			if (sg->spawned)
+				continue;
+			int msToSpawn = (sg->spawnTime - levelTime).Milliseconds();
+			if (msToSpawn < 0 && msToSpawn > -2000) // Don't spawn things that shouldn't have spawned more than a few seconds ago.
+			{
+				sg->Spawn();
+			}
 		}
 	}
 
@@ -432,6 +465,32 @@ void Level::ProcessMessage(Message * message)
 		}
 	}
 }
+
+void Level::SetTime(Time newTime)
+{
+	Time oldTime;
+	levelTime = newTime;
+	OnLevelTimeAdjusted();
+}
+/// enable respawing on shit again.
+void Level::OnLevelTimeAdjusted()
+{
+	for (int i = 0; i < spawnGroups.Size(); ++i)
+	{
+		SpawnGroup * sg = spawnGroups[i];
+		if (sg->spawnTime > levelTime)
+			spawnGroups[i]->spawned = false;
+	}
+	for (int i = 0; i < messages.Size(); ++i)
+	{
+		LevelMessage * lm = messages[i];
+		if (lm->startTime > levelTime)
+		{
+			lm->displayed = lm->hidden = false;
+		}
+	}
+}
+
 
 // Check spawn groups.
 bool Level::LevelCleared()

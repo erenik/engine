@@ -30,6 +30,7 @@ public:
 	/// o.o
 	String name;
 	String shipType;
+	bool spawned;
 	Time spawnTime;
 	Vector3f groupPosition;
 	/// Number along the formation bounds.

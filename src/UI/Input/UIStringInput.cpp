@@ -32,6 +32,9 @@ void UIStringInput::OnInputUpdated(UIInput * inputElement)
 	// Post a SetString message accordingly.
 	SetStringMessage * m = new SetStringMessage(action, GetValue());
 	MesMan.QueueMessage(m);
+	/// Queue onTrigger messages too, if any.
+	if (onTrigger.Length())
+		MesMan.QueueMessages(onTrigger);
 	return;
 
 }

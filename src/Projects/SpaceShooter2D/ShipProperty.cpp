@@ -82,8 +82,6 @@ void ShipProperty::OnCollision(Collision & data)
 		other = data.two;
 	else if (data.two == owner)
 		other = data.one;
-
-	// Here you may generate some graphics effects if you want, but other than that.. don't do anything that has to do with gameplay logic.
 }	
 
 /// If reacting to collisions...
@@ -101,6 +99,30 @@ void ShipProperty::OnCollision(Entity * withEntity)
 	// Player-player collision? Sleep 'em both.
 	if (sspp)
 	{
+		// Here you may generate some graphics effects if you want, but other than that.. don't do anything that has to do with gameplay logic.
+		if (ship->onCollision.Length())
+		{
+			List<String> stuff = ship->onCollision.Tokenize("&");
+			for (int i = 0; i < stuff.Size(); ++i)
+			{
+				String s = stuff[i];
+				if (s == "RemoveThis")
+				{
+					ship->entity = NULL;
+					ship->destroyed = true;
+		//			spaceShooter->level.ships.RemoveItem(ship);
+					MapMan.DeleteEntity(owner);
+					return;
+				}
+				else 
+				{
+					MesMan.QueueMessages(s);
+				}
+			}
+		}
+
+
+
 //		std::cout<<"\nCollision with ship! o.o";
 		if (sspp->sleeping)
 			return;

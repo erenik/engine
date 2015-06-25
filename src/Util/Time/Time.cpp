@@ -152,6 +152,7 @@ String Time::ToString(String withFormat)
 	assert(false && "Bad types.");\
 	return newTime;\
 }
+#define ASSERT_SAME_TYPE //
 
 
 /// Arithmetic operations
@@ -159,6 +160,8 @@ Time Time::operator - (const Time & otherTime) const
 {
 	Time newTime;
 	ASSERT_SAME_TYPE;
+	if (type != otherTime.type)
+		std::cout<<"\nNot same type D:";
 	assert(type == otherTime.type);
 	newTime.intervals = intervals - otherTime.intervals;
 	newTime.type = type;

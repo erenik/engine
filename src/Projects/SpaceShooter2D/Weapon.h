@@ -10,6 +10,16 @@
 #include "Time/Time.h"
 
 class Ship;
+class Weapon;
+
+class WeaponSet : public List<Weapon*> 
+{
+public:
+	/// Handles dynamic allocation of the weapons, both adding and clearing.
+	WeaponSet();
+	virtual ~WeaponSet();
+	WeaponSet(WeaponSet & otherWeaponSet);
+};
 
 namespace WeaponType
 {

@@ -99,6 +99,7 @@ extern List<Entity*> shipEntities;
 extern List<Entity*> projectileEntities;
 extern String playerName;
 extern bool paused;
+extern String onDeath; // What happens when the player dies?
 
 class SpaceShooter2D : public AppState 
 {
@@ -117,6 +118,8 @@ public:
 
 	/// Callback function that will be triggered via the MessageManager when messages are processed.
 	virtual void ProcessMessage(Message * message);
+	/// Callback from the Input-manager, query it for additional information as needed.
+	virtual void KeyPressed(int keyCode, bool downBefore);
 
 	/// Creates default key-bindings for the state.
 	virtual void CreateDefaultBindings();
@@ -132,6 +135,7 @@ public:
 	void UpdateUIPlayerHP();
 	void UpdateUIPlayerShield();
 	void UpdateHUDSkill();
+	void OpenJumpDialog();
 	/// Update ui
 	void OnScoreUpdated();
 	void ShowLevelStats();
@@ -228,6 +232,10 @@ private:
 
 	/// For display.
 	String lastError;
+
+	/// For jumping in time... o.o
+	Time lastTimeInput;
+	Time targetTime;
 };
 
 

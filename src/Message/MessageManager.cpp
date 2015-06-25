@@ -571,6 +571,8 @@ void MessageManager::ProcessMessage(Message * message)
 			{
 				String name = msg.Tokenize("()")[1];
 				UserInterface * ui = RelevantUI();
+				if (!ui)
+					return;
 				UIElement * e = ui->GetElementByName(name);
 				if (e->type != UIType::STRING_INPUT)
 					return;

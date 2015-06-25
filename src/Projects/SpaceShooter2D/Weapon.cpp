@@ -14,6 +14,24 @@
 #include "Entity/EntityManager.h"
 #include "Entity/Entity.h"
 
+WeaponSet::WeaponSet()
+{
+
+}
+WeaponSet::~WeaponSet()
+{
+	ClearAndDelete();
+}
+WeaponSet::WeaponSet(WeaponSet & otherWeaponSet)
+{
+	// Create duplicates of all weapons!
+	for (int i = 0; i < otherWeaponSet.Size(); ++i)
+	{
+		Weapon * weap = new Weapon(*otherWeaponSet[i]);
+		AddItem(weap);
+	}
+}
+
 Weapon::Weapon()
 {
 	burst = false;

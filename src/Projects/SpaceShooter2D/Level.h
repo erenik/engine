@@ -26,9 +26,9 @@ struct LevelMessage
 		TEXT_MESSAGE,
 		EVENT,
 	};
-	String string;
+	List<String> strings;
 	int type; 
-	bool displayed;
+	bool displayed, hidden;
 	Time startTime;
 	Time stopTime;
 	int textID;
@@ -55,11 +55,15 @@ public:
 	bool Load(String fromSource);
 	// Used for player and camera. Based on millisecondsPerPixel.
 	Vector3f BaseVelocity();
-	void AddPlayer(Ship * playerShip);
+	/// Creates player entity within this level. (used for spawning)
+	Entity * AddPlayer(Ship * playerShip, ConstVec3fr atPosition = Vector3f(-50.f, 10.f, 0));
 	void SetupCamera();
 	/// o.o
 	void Process(int timeInMs);
 	void ProcessMessage(Message * message);
+	void SetTime(Time newTime);
+	/// enable respawing on shit again.
+	void OnLevelTimeAdjusted();
 	
 	String source;
 	/// Ships within.

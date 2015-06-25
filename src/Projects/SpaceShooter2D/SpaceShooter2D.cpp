@@ -66,6 +66,7 @@ String playerName;
 Time startDate;
 bool inGameMenuOpened = false;
 bool showLevelStats = false;
+String onDeath; // What happens when the player dies?
 
 
 void RegisterStates()
@@ -234,7 +235,17 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 		case MessageType::SET_STRING:
 		{
 			SetStringMessage * strMes = (SetStringMessage *) message;
-			playerName->strValue = strMes->value;
+			if (msg == "lall")
+			{
+				playerName->strValue = strMes->value;
+			}
+			if (msg == "JumpToTime")
+			{
+				// Jump to target level-time. Adjust position if needed.
+				levelTime.ParseFrom(strMes->value);
+				level.OnLevelTimeAdjusted();
+			}
+
 			break;
 		}
 		case MessageType::INTEGER_MESSAGE:
@@ -280,12 +291,14 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 			if (oneType == SHIP)
 			{
 				ShipProperty * shipProp = (ShipProperty*)one->GetProperty(ShipProperty::ID());
-				shipProp->OnCollision(two);
+				if (shipProp)
+					shipProp->OnCollision(two);
 			}
 			else if (twoType == SHIP)
 			{
 				ShipProperty * shipProp = (ShipProperty*)two->GetProperty(ShipProperty::ID());
-				shipProp->OnCollision(one);
+				if (shipProp)
+					shipProp->OnCollision(one);
 			}
 			break;
 		}
@@ -312,7 +325,7 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 //			std::cout<<"\n"<<msg;
 			if (msg == "TutorialBaseGun")
 			{
-				playerShip->weapons.ClearAndDelete(); // Clear old wepaons.
+				playerShip->weapons.Clear(); // Clear old wepaons.
 				playerShip->SetWeaponLevel(WeaponType::TYPE_0, 1);
 				playerShip->activeWeapon = playerShip->weapons[0];
 				UpdateHUDGearedWeapons();
@@ -373,6 +386,44 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 			{
 				playerShip->movementDisabled = false;
 				UpdatePlayerVelocity();
+			}
+			if (msg.StartsWith("SetOnDeath:"))
+			{
+				onDeath = msg - "SetOnDeath:";
+			}
+			if (msg == "OpenJumpDialog")
+			{
+				OpenJumpDialog();
+			}
+			if (msg == "SpawnTutorialBomb")
+			{
+				// Shoot.
+				Color color = Vector4f(0.8f,0.7f,0.1f,1.f);
+				Texture * tex = TexMan.GetTextureByColor(color);
+				Entity * projectileEntity = EntityMan.CreateEntity(name + " Projectile", ModelMan.GetModel("sphere.obj"), tex);
+				Weapon weapon;
+				weapon.damage = 750;
+				ProjectileProperty * projProp = new ProjectileProperty(weapon, projectileEntity);
+				projectileEntity->properties.Add(projProp);
+				// Set scale and position.
+				projectileEntity->position = playerShip->entity->position + Vector3f(30,0,0);
+				projectileEntity->SetScale(Vector3f(1,1,1) * 0.5f);
+				projProp->color = color;
+				projectileEntity->RecalculateMatrix();
+				// pew
+				Vector3f dir(-1.f,0,0);
+				Vector3f vel = dir * 5.f;
+				PhysicsProperty * pp = projectileEntity->physics = new PhysicsProperty();
+				pp->type = PhysicsType::DYNAMIC;
+				pp->velocity = vel;
+				pp->collisionCallback = true;	
+				pp->maxCallbacks = 1;
+				// Set collision category and filter.
+				pp->collisionCategory = CC_ENEMY_PROJ;
+				pp->collisionFilter = CC_PLAYER;
+				// Add to map.
+				MapMan.AddEntity(projectileEntity);
+				projectileEntities.Add(projectileEntity);
 			}
 			if (msg == "UpdateHUDGearedWeapons")
 				UpdateHUDGearedWeapons();
@@ -532,7 +583,11 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 			}
 			else if (msg == "ClearLevel")
 			{
-				level.ships.ClearAndDelete();
+				for (int i = 0; i < level.ships.Size(); ++i)
+				{
+					level.ships[i]->spawned = true;
+					level.ships[i]->destroyed = true;
+				}
 				MapMan.DeleteEntities(shipEntities);
 				// Move the level-entity, the player will follow.
 				PhysicsMan.QueueMessage(new PMSetEntity(levelEntity, PT_POSITION, Vector3f(level.goalPosition - 5.f, 10, 0)));
@@ -633,6 +688,13 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 		}
 	}
 }
+
+/// Callback from the Input-manager, query it for additional information as needed.
+void SpaceShooter2D::KeyPressed(int keyCode, bool downBefore)
+{
+
+}
+
 
 /// Called from the render-thread for every viewport/AppWindow, after the main rendering-pipeline has done its job.
 void SpaceShooter2D::Render(GraphicsState * graphicsState)
@@ -746,8 +808,9 @@ void SpaceShooter2D::NewGame()
 /// o.o
 void SpaceShooter2D::NewPlayer()
 {
+	SAFE_DELETE(playerShip);
 	// Reset player-ship.
-	if (playerShip->name.Length() == 0)
+	if (playerShip == 0)
 	{
 		playerShip = Ship::New("Default");
 		playerShip->ai = false;

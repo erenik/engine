@@ -25,6 +25,10 @@ void SpaceShooter2D::Cleanup()
 	for (int i = 0; i < level.ships.Size(); ++i)
 	{
 		Ship * ship = level.ships[i];
+		if (ship->destroyed)
+			continue;
+		if (!ship->spawned)
+			continue;
 		if (!ship->entity)
 			continue;
 		// Check if it should de-spawn.

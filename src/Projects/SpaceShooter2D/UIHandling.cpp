@@ -9,6 +9,7 @@
 #include "Window/AppWindow.h"
 #include "UI/UIList.h"
 #include "UI/UIUtil.h"
+#include "UI/UIInputs.h"
 
 void LoadOptions();
 
@@ -306,4 +307,25 @@ void SpaceShooter2D::UpdateGearList()
 }
 
 
-
+void SpaceShooter2D::OpenJumpDialog()
+{
+	// Create a string-input.
+	static UIStringInput * jumpDialog = 0;
+	if (!jumpDialog)
+	{
+		jumpDialog = new UIStringInput("JumpTo", "JumpToTime");
+		jumpDialog->textureSource = "0x44AA";
+		jumpDialog->onTrigger += "PopUI(JumpTo)";
+		jumpDialog->sizeRatioX = 0.5;
+		jumpDialog->sizeRatioY = 0.1;
+		jumpDialog->CreateChildren();
+		jumpDialog->input->BeginInput(); // Make its input active straight away.
+		// Add it to the main UI.
+		QueueGraphics(new GMAddUI(jumpDialog, "root"));
+	}
+	else {
+		jumpDialog->input->BeginInput(); // Make its input active straight away.
+		QueueGraphics(new GMPushUI(jumpDialog, MainWindow()->ui));
+	}
+		// Close it afterwards.
+}

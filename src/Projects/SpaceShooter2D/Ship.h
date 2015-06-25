@@ -111,6 +111,9 @@ public:
 	int activeSkill;
 	int skillDurationMs;
 	float skillCooldownMultiplier; // default 1, lower in situations or tutorial
+	String onCollision;
+	bool spawned;
+	bool destroyed;
 
 	/// In order to not take damage allllll the time (depending on processor speed, etc. too.)
 	Time lastShipCollision;
@@ -131,7 +134,8 @@ public:
 	float shieldValue, maxShieldValue;
 	/// Regen per millisecond
 	float shieldRegenRate;
-	int hp;
+	float hp;
+	float armorRegenRate;
 	int maxHP;
 	int collideDamage;
 	List<String> abilities;
@@ -139,7 +143,7 @@ public:
 	String graphicModel;
 	String other;
 
-	List<Weapon*> weapons;
+	WeaponSet weapons;
 	Weapon * activeWeapon; // One active weapon at a time.. for the player at least.
 
 	/// o.o 
@@ -150,7 +154,6 @@ public:
 	int score; 
 
 	// Default false
-	bool spawned;
 	Entity * entity;
 	// Data details.
 	// Spawn position.

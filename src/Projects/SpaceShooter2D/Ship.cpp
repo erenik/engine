@@ -71,11 +71,14 @@ Ship::Ship()
 	timeInCurrentMovement = 0;
 	speed = 0.f;
 	score = 10;
+	destroyed = false;
+	spawned = false;
 
 	currentRotation = 0;
 	timeInCurrentRotation = 0;
 
 	collideDamage = 1;
+	armorRegenRate = 2;
 	
 	graphicModel = "obj/Ships/Ship.obj";
 
@@ -91,7 +94,6 @@ Ship::Ship()
 
 Ship::~Ship()
 {
-	weapons.ClearAndDelete();
 }
 
 void Ship::Process(int timeInMs)
@@ -122,7 +124,13 @@ void Ship::Process(int timeInMs)
 		if (allied)
 			spaceShooter->UpdateUIPlayerShield();
 	}
-
+	if (allied)
+	{
+		hp += timeInMs * armorRegenRate * 0.001f;
+		if (hp > maxHP)
+			hp = maxHP;
+		spaceShooter->UpdateUIPlayerHP();
+	}
 }
 
 void Ship::ProcessAI(int timeInMs)
@@ -277,6 +285,7 @@ void Ship::Destroy()
 		MapMan.DeleteEntity(entity);
 		shipEntities.Remove(entity);
 		entity = NULL;
+		destroyed = true;
 		// Explosion?
 		// Increase score and kills.
 		if (!allied)
@@ -342,6 +351,8 @@ bool Ship::LoadTypes(String file)
 			}
 			else if (column == "Type")
 				ship->type = value;
+			else if (column == "OnCollision")
+				ship->onCollision = value;
 			else if (column == "Can Move")
 				ship->canMove = value.ParseBool();
 			else if (column == "Can Shoot")
@@ -359,8 +370,10 @@ bool Ship::LoadTypes(String file)
 					bool ok = Weapon::Get(name, weapon);
 					if (ok)
 						ship->weapons.Add(weapon);
-					else 
+					else {
 						LogShip("Unable to find weapon by name \'"+name+"\' when parsing ship \'"+ship->name+"\'");
+						delete weapon;
+					}	
 				}
 			}
 			else if (column == "Weapon Ammunition")
@@ -694,6 +707,9 @@ Ship * Ship::New(String shipByName)
 		if (type->name == shipByName)
 		{
 			Ship * newShip = new Ship(*type);
+			// Create copies of the weapons.
+			newShip->weapons.Clear();
+			
 			return newShip;
 		}
 		typesNames.Add(type->name);
@@ -787,7 +803,7 @@ Weapon * Ship::GetWeapon(int ofType)
 	newWeapon->type = ofType;
 	newWeapon->level = 0;
 	weapons.AddItem(newWeapon);
-	return newWeapon;
+	return weapons.Last();
 }
 
 void Ship::ActivateSkill()
