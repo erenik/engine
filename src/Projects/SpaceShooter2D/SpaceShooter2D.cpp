@@ -393,6 +393,7 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 			}
 			if (msg == "OpenJumpDialog")
 			{
+				Pause();
 				OpenJumpDialog();
 			}
 			if (msg == "SpawnTutorialBomb")
@@ -536,10 +537,12 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 				showLevelStats = false;
 				UpdateUI();
 			}
-			else if (msg == "Pause/Break")
+			else if (msg == "Pause/Break" || msg == "TogglePause")
 			{
 				TogglePause();
 			}
+			else if (msg == "ResumeGame")
+				Resume();
 			else if (msg == "ListEntitiesAndRegistrations")
 			{
 				std::cout<<"\nGraphics entities "<<GraphicsMan.RegisteredEntities()<<" physics "<<PhysicsMan.RegisteredEntities()

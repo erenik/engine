@@ -315,7 +315,7 @@ void SpaceShooter2D::OpenJumpDialog()
 	{
 		jumpDialog = new UIStringInput("JumpTo", "JumpToTime");
 		jumpDialog->textureSource = "0x44AA";
-		jumpDialog->onTrigger += "PopUI(JumpTo)";
+		jumpDialog->onTrigger += "PopUI(JumpTo)&ResumeGame";
 		jumpDialog->sizeRatioX = 0.5;
 		jumpDialog->sizeRatioY = 0.1;
 		jumpDialog->CreateChildren();
