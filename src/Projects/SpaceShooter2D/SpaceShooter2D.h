@@ -8,7 +8,7 @@
 #include "Ship.h"
 #include "ShipProperty.h"
 #include "Weapon.h"
-#include "Level.h"
+#include "Level/Level.h"
 #include "SSIntegrator.h"
 
 #include "Entity/EntityManager.h"
@@ -79,7 +79,7 @@ class SpaceShooterCD;
 class GameVariable;
 
 /// Time in current level, from 0 when starting. Measured in milliseconds.
-extern Time levelTime;
+extern Time levelTime, flyTime;
 // extern int64 nowMs;
 extern int timeElapsedMs;
 /// Particle system for sparks/explosion-ish effects.

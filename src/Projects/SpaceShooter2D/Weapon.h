@@ -59,6 +59,7 @@ public:
 	};
 	int projectilePath;
 	float projectileSpeed;
+	float homingFactor; // For heat-seaking/auto-aiming missiles.
 	String projectileShape;
 	// Damage inflicted.
 	int damage;

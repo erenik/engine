@@ -8,6 +8,10 @@
 #include "Ship.h"
 #include "Color.h"
 
+extern bool gameTimePaused;
+extern bool defeatedAllEnemies;
+extern bool failedToSurvive;
+
 struct ShipColorCoding 
 {
 	String ship;
@@ -15,28 +19,10 @@ struct ShipColorCoding
 };
 
 
-struct LevelMessage 
-{
-	LevelMessage();
-	// UI
-	void Display();
-	void Hide();
-	
-	enum {
-		TEXT_MESSAGE,
-		EVENT,
-	};
-	List<String> strings;
-	int type; 
-	bool displayed, hidden;
-	Time startTime;
-	Time stopTime;
-	int textID;
-};
-
 class SpawnGroup;
 class Camera;
 class Level;
+class LevelMessage;
 
 extern Camera * levelCamera;
 // Right hand boundary when ships remove initial invulnerability.
@@ -61,9 +47,11 @@ public:
 	/// o.o
 	void Process(int timeInMs);
 	void ProcessMessage(Message * message);
+	void ProceedMessage();
 	void SetTime(Time newTime);
 	/// enable respawing on shit again.
 	void OnLevelTimeAdjusted();
+	Entity * ClosestTarget(bool ally, ConstVec3fr position);
 	
 	String source;
 	/// Ships within.

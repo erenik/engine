@@ -42,6 +42,7 @@ Weapon::Weapon()
 	cooldown = Time(TimeType::MILLISECONDS_NO_CALENDER, 1000);
 	damage = 5;
 	angle = 0;
+	homingFactor = 0;
 	projectileSpeed = 5.f;
 
 	burstRounds = 3;
@@ -128,6 +129,8 @@ bool Weapon::LoadTypes(String fromFile)
 					weapon.burstRounds = tokens[1].ParseInt();
 				}
 			}
+			else if (column == "HomingFactor")
+				weapon.homingFactor = value.ParseFloat();
 			else if (column == "Angle")
 			{
 				if (value.Contains("Aim"))
@@ -227,7 +230,7 @@ void Weapon::Shoot(Ship * ship)
 	/// Initialize the weapon as if it had just been fired at a random time (AI only)
 	if (lastShot.Milliseconds() == 0 && ship->ai)
 	{
-		lastShot = levelTime - cooldown + Time(TimeType::MILLISECONDS_NO_CALENDER, 1000 + shootRand.Randf(cooldown.Milliseconds()));
+		lastShot = flyTime - cooldown + Time(TimeType::MILLISECONDS_NO_CALENDER, 1000 + shootRand.Randf(cooldown.Milliseconds()));
 		return;
 	}
 	/// For burst..
@@ -236,23 +239,23 @@ void Weapon::Shoot(Ship * ship)
 		if (burstRoundsShot < burstRounds)
 		{
 			// Check time between burst rounds.
-			Time diff = levelTime - lastShot;
+			Time diff = flyTime - lastShot;
 			if (diff < burstRoundDelay * firingSpeedDivisor)
 				return;
 			++burstRoundsShot;
 		}
 		else {
-			Time diff = levelTime - burstStart;
+			Time diff = flyTime - burstStart;
 			if (diff < cooldown * firingSpeedDivisor)
 				return;
-			burstStart = levelTime;
+			burstStart = flyTime;
 			burstRoundsShot = 0;
 			++burstRoundsShot;
 		}
 	}
 	// Regular fire
 	else {
-		Time diff = levelTime - lastShot;
+		Time diff = flyTime - lastShot;
 		if (diff < cooldown * firingSpeedDivisor)
 			return;
 	}
@@ -307,6 +310,7 @@ void Weapon::Shoot(Ship * ship)
 		dir = dir + dirRight * randomEffect;
 		dir.Normalize();
 	}
+	projProp->direction = dir; // For autoaim initial direction.
 
 	Vector3f vel = dir * projectileSpeed;
 	PhysicsProperty * pp = projectileEntity->physics = new PhysicsProperty();
@@ -320,5 +324,5 @@ void Weapon::Shoot(Ship * ship)
 	// Add to map.
 	MapMan.AddEntity(projectileEntity);
 	projectileEntities.Add(projectileEntity);
-	lastShot = levelTime;
+	lastShot = flyTime;
 }

@@ -23,9 +23,11 @@ public:
 
 	// Fall asleep.. unregistering it from physics, graphics, etc.
 	void SleepThread();
+	void UpdateVelocity();
 
 	/// Time passed in seconds..!
 	virtual void Process(int timeInMs);
+	virtual void ProcessMessage(Message * message);
 
 	/// Resets sleep-flag, among other things
 	void OnSpawn();
@@ -41,6 +43,8 @@ public:
 
 	int timeAliveMs;
 	Vector4f color;
+	String onCollisionMessage;
+	Vector3f direction;
 };
 
 #endif

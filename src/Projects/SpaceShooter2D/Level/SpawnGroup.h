@@ -5,7 +5,7 @@
 #ifndef SPAWN_GROUP_H
 #define SPAWN_GROUP_H
 
-#include "Ship.h"
+#include "../Ship.h"
 #include "Time/Time.h"
 
 /// Types. Default LINE_X?
@@ -25,12 +25,15 @@ class SpawnGroup
 {
 public:
 	SpawnGroup();
+	void Reset();
 	/// Spawns ze entities.
 	void Spawn();
+	void OnShipDestroyed(Ship * ship);
+	void OnShipDespawned(Ship * ship);
 	/// o.o
 	String name;
 	String shipType;
-	bool spawned;
+	bool spawned, defeated, survived;
 	Time spawnTime;
 	Vector3f groupPosition;
 	/// Number along the formation bounds.
@@ -40,6 +43,11 @@ public:
 	void ParseFormation(String fromString);
 	/// Usually just 1 or 2 sizes are used (X,Y)
 	Vector3f size;
+
+	/// If true, pauses game time, until all ships of the group have either been destroyed or despawned by exiting the screen.
+	bool pausesGameTime;
+	int shipsDefeatedOrDespawned;
+	int shipsDespawned, shipsDefeated;
 private:
 	// ?!
 	Entity * SpawnShip(ConstVec3fr atPosition);

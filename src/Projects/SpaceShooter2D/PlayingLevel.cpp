@@ -34,9 +34,7 @@ void SpaceShooter2D::Cleanup()
 		// Check if it should de-spawn.
 		if (ship->entity->position[0] < despawnPositionLeft)
 		{
-			MapMan.DeleteEntity(ship->entity);
-			shipEntities.Remove(ship->entity);
-			ship->entity = NULL;
+			ship->Despawn();
 		}
 	}
 }

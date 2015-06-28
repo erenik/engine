@@ -10,6 +10,7 @@
 
 #include "File/LogFile.h"
 #include "Game/GameVariable.h"
+#include "Level/SpawnGroup.h"
 
 ScriptAction ScriptAction::SwitchWeapon(int toWeaponIndex, int durationToHoldMs)
 {
@@ -55,6 +56,7 @@ Ship::Ship()
 	collisionDamageCooldown = Time(TimeType::MILLISECONDS_NO_CALENDER, 100);
 	lastShipCollision = Time(TimeType::MILLISECONDS_NO_CALENDER, 0);
 
+	spawnGroup = 0;
 	shoot = false;
 	activeWeapon = 0;
 	spawned = false;
@@ -94,6 +96,20 @@ Ship::Ship()
 
 Ship::~Ship()
 {
+}
+
+void Ship::Despawn()
+{
+	if (spawnGroup)
+	{
+		if (hp <= 0)
+			spawnGroup->OnShipDestroyed(this);
+		else
+			spawnGroup->OnShipDespawned(this);
+	}
+	MapMan.DeleteEntity(entity);
+	shipEntities.Remove(entity);
+	entity = NULL;
 }
 
 void Ship::Process(int timeInMs)
@@ -268,6 +284,10 @@ void Ship::Destroy()
 {
 	if (entity)
 	{
+		if (spawnGroup)
+		{
+			spawnGroup->OnShipDestroyed(this);
+		}
 		ShipProperty * sp = entity->GetProperty<ShipProperty>();
 		if (sp)
 			sp->sleeping = true;
@@ -293,6 +313,8 @@ void Ship::Destroy()
 			spaceShooter->LevelScore()->iValue += this->score;
 			spaceShooter->LevelKills()->iValue++;
 		}
+		else 
+			failedToSurvive = true;
 	}
 }
 

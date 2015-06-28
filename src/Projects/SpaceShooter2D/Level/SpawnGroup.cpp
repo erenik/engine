@@ -2,12 +2,13 @@
 /// 2015-03-03
 /// Spawn group, yo.
 
-#include "SpaceShooter2D.h"
+#include "../SpaceShooter2D.h"
 #include "SpawnGroup.h"
 #include "Level.h"
 #include "Entity/EntityManager.h"
 #include "TextureManager.h"
 #include "Model/ModelManager.h"
+#include "File/LogFile.h"
 
 String Formation::GetName(int forFormationType)
 {
@@ -26,11 +27,23 @@ String Formation::GetName(int forFormationType)
 SpawnGroup::SpawnGroup()
 {
 	spawnTime = Time(TimeType::MILLISECONDS_NO_CALENDER);
+	pausesGameTime = false;
+	Reset();
+}
+
+void SpawnGroup::Reset()
+{
 	spawned = false;
+	defeated = false;
+	survived = false;
+	shipsDefeatedOrDespawned = 0;
+	shipsDespawned = shipsDefeated = 0;
 }
 
 void SpawnGroup::Spawn()
 {
+	LogMain("Spawning spawn group at time: "+String(spawnTime.Seconds()), INFO);
+
 	spawned = true;
 	/// Fetch amount.
 	Vector3f offsetPerSpawn;
@@ -97,6 +110,7 @@ Entity * SpawnGroup::SpawnShip(ConstVec3fr atPosition)
 	Ship * newShip = Ship::New(shipType);
 	activeLevel->ships.AddItem(newShip);
 	Ship * ship = newShip;
+	ship->spawnGroup = this;
 
 	Entity * entity = EntityMan.CreateEntity(ship->type, ship->GetModel(), TexMan.GetTextureByColor(Color(0,255,0,255)));
 	entity->position = atPosition;
@@ -125,6 +139,32 @@ Entity * SpawnGroup::SpawnShip(ConstVec3fr atPosition)
 	return entity;
 }
 
+void SpawnGroup::OnShipDestroyed(Ship * ship)
+{
+	++shipsDefeated;
+	++shipsDefeatedOrDespawned;
+	if (shipsDefeated >= number)
+	{
+		defeatedAllEnemies = true;
+		defeated = true;
+		survived = true;
+		if (pausesGameTime)
+			gameTimePaused = false;
+	}
+}
+
+void SpawnGroup::OnShipDespawned(Ship * ship)
+{
+	++shipsDespawned;
+	++shipsDefeatedOrDespawned;
+	if (shipsDefeatedOrDespawned >= number)
+	{
+		defeatedAllEnemies = false;
+		survived = true;
+		if (pausesGameTime)
+			gameTimePaused = false;
+	}
+}
 
 void SpawnGroup::ParseFormation(String fromString)
 {

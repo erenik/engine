@@ -60,6 +60,25 @@ void ProjectileProperty::Destroy()
 /// Time passed in seconds..!
 void ProjectileProperty::Process(int timeInMs)
 {
+	if (weapon.homingFactor > 0)
+	{
+		// Seek closest enemy.
+		// Adjust velocity towards it by the given factor, per second.
+		// 1.0 will change velocity entirely to look at the enemy.
+		// Values above 1.0 will try and compensate for target velocity and not just current position?
+		Entity * closestTarget = spaceShooter->level.ClosestTarget(player, owner->position);
+		if (!closestTarget)
+			return;
+		Vector3f toTarget = closestTarget->position - owner->position;
+		toTarget.Normalize();
+		// Get current direction.
+		float timeFactor = timeInMs * 0.001f;
+		float factor = timeFactor * weapon.homingFactor;
+		direction = direction * (1 - factor) + toTarget * factor;
+		direction.Normalize();
+		// Go t'ward it!
+		UpdateVelocity();
+	}
 	// .. 
 	if (weapon.projectilePath == Weapon::HOMING)
 	{
@@ -73,3 +92,23 @@ void ProjectileProperty::Process(int timeInMs)
 		// assert(false);
 	}
 }
+
+void ProjectileProperty::UpdateVelocity()
+{
+	QueuePhysics(new PMSetEntity(owner, PT_VELOCITY, direction * weapon.projectileSpeed));
+}
+
+
+void ProjectileProperty::ProcessMessage(Message * message)
+{
+	switch(message->type)
+	{
+		case MessageType::COLLISSION_CALLBACK:
+		{
+			if (onCollisionMessage.Length())
+				MesMan.QueueMessages(onCollisionMessage);
+			break;
+		}
+	}
+}
+

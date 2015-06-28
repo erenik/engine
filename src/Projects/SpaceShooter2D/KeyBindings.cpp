@@ -38,6 +38,7 @@ void SpaceShooter2D::CreateDefaultBindings()
 
 	BIND(Action::CreateStartStopAction("Shooting"), KEY::SPACE);
 	BIND(Action::FromString("OpenJumpDialog"), List<int>(KEY::CTRL, KEY::G));
+	BIND(Action::FromString("ProceedMessage"), KEY::ENTER);
 
 }
 

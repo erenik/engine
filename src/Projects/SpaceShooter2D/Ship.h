@@ -13,6 +13,7 @@
 
 class Entity;
 class Model;
+class SpawnGroup;
 
 class ScriptAction 
 {
@@ -52,6 +53,8 @@ class Ship
 public:
 	Ship();
 	~Ship();
+
+	void Despawn();
 
 	void Process(int timeInMs);
 	void ProcessAI(int timeInMs);
@@ -97,6 +100,7 @@ public:
 	String name;
 	// Faction.
 	String type;
+	SpawnGroup * spawnGroup;
 	// Bools
 	bool canMove;
 	bool movementDisabled; // temporarily.

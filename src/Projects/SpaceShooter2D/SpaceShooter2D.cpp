@@ -308,6 +308,10 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 			int found = msg.Find("//");
 			if (found > 0)
 				msg = msg.Part(0,found);
+			if (msg == "ProceedMessage")
+			{
+				level.ProceedMessage();
+			}
 			if (msg == "NewGame")
 				NewGame();
 			if (msg == "GoToHangar")
@@ -411,6 +415,7 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 				projectileEntity->SetScale(Vector3f(1,1,1) * 0.5f);
 				projProp->color = color;
 				projectileEntity->RecalculateMatrix();
+				projProp->onCollisionMessage = "ResumeGameTime";
 				// pew
 				Vector3f dir(-1.f,0,0);
 				Vector3f vel = dir * 5.f;
