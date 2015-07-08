@@ -314,6 +314,35 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 			}
 			if (msg == "NewGame")
 				NewGame();
+			if (msg == "Continue")
+			{
+				// Set stage n level
+				if (currentStage->iValue == 0)
+				{
+					currentStage->iValue = 1; 
+					currentLevel->iValue = 1;
+				}
+				else {
+					currentLevel->iValue += 1;
+					if (currentLevel->iValue == 4)
+					{
+						currentStage->iValue += 1;
+						currentLevel->iValue = 1;
+					}
+				}
+				// Load weapons?
+				
+				// And load it.
+				LoadLevel();
+				// Play script for animation or whatever.
+				ScriptMan.PlayScript("scripts/NewGame.txt");
+				// Resume physics/graphics if paused.
+				Resume();
+
+				TextMan.LoadFromDir();
+				TextMan.SetLanguage("English");
+
+			}
 			if (msg == "GoToHangar")
 			{
 				SetMode(IN_HANGAR);

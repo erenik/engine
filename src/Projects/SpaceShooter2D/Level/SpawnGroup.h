@@ -16,6 +16,7 @@ enum {
 	LINE_XY,
 	V_X, /// Typical V-bird-formation, flying X-wise.
 	V_Y, /// Typical V-bird-formation, flying Y-wise.
+	SWARM_BOX_XY, /// Random-based swarm with some minimum threshold distance between each ship, skipping ships if area is not large enough.
 	FORMATIONS,
 };
 	String GetName(int forFormationType);

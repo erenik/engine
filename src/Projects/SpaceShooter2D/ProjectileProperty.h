@@ -29,6 +29,8 @@ public:
 	virtual void Process(int timeInMs);
 	virtual void ProcessMessage(Message * message);
 
+	bool ShouldDamage(Ship * ship);
+
 	/// Resets sleep-flag, among other things
 	void OnSpawn();
 
@@ -38,6 +40,7 @@ public:
 
 	Weapon weapon;
 
+	List<Ship*> penetratedTargets;
 	/// If not currently active (available for re-use).
 	bool sleeping;
 

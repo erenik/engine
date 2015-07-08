@@ -60,6 +60,8 @@ void ProjectileProperty::Destroy()
 /// Time passed in seconds..!
 void ProjectileProperty::Process(int timeInMs)
 {
+	if (sleeping)
+		return;
 	if (weapon.homingFactor > 0)
 	{
 		// Seek closest enemy.
@@ -112,3 +114,9 @@ void ProjectileProperty::ProcessMessage(Message * message)
 	}
 }
 
+bool ProjectileProperty::ShouldDamage(Ship * ship)
+{
+	if (penetratedTargets.Exists(ship))
+		return false;
+	return true;
+}

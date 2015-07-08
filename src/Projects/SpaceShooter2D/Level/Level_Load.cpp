@@ -43,6 +43,7 @@ bool Level::Load(String fromSource)
 	LevelMessage * message = NULL;
 #define	ADD_GROUP_IF_NEEDED {if (group) { lastGroup = group; spawnGroups.Add(group);} group = NULL;}
 #define	ADD_MESSAGE_IF_NEEDED {if (message) { messages.Add(message);} message = NULL;}
+#define SET_GROUP_DEFAULTS { group->pausesGameTime = spawnGroupsPauseGameTime; }
 	for (int i = 0; i < lines.Size(); ++i)
 	{
 		String line = lines[i];
@@ -69,7 +70,7 @@ bool Level::Load(String fromSource)
 		{
 			ADD_GROUP_IF_NEEDED;
 			group = new SpawnGroup();
-			group->pausesGameTime = spawnGroupsPauseGameTime;
+			SET_GROUP_DEFAULTS;
 			// Parse time.
 			String timeStr = line.Tokenize(" \t")[1];
 			group->spawnTime.ParseFrom(timeStr);
@@ -141,8 +142,12 @@ bool Level::Load(String fromSource)
 				ADD_GROUP_IF_NEEDED;
 				// Copy last one.
 				group = new SpawnGroup(*lastGroup);
-				if (arg.Length())
-					group->spawnTime.ParseFrom(parenthesisContents);
+				SET_GROUP_DEFAULTS;
+				// Parse time.
+				String timeStr = line.Tokenize(" \t")[1];
+				group->spawnTime.ParseFrom(timeStr);
+				group->name = timeStr;
+				parseMode = PARSE_MODE_FORMATIONS;
 			}
 			if (var == "SpawnTime")
 				group->spawnTime.ParseFrom(arg);

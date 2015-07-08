@@ -34,6 +34,7 @@ WeaponSet::WeaponSet(WeaponSet & otherWeaponSet)
 
 Weapon::Weapon()
 {
+	penetration = 0;
 	burst = false;
 	aim = false;
 	estimatePosition = false;
@@ -118,6 +119,8 @@ bool Weapon::LoadTypes(String fromFile)
 				weapon.level = value.ParseInt();
 			else if (column == "Cooldown")
 				weapon.cooldown = Time::Milliseconds(value.ParseFloat());
+			else if (column == "Penetration")
+				weapon.penetration = value.ParseFloat();
 			else if (column == "Burst")
 				weapon.burst = value.ParseBool();
 			else if (column == "Burst details")
@@ -268,12 +271,17 @@ void Weapon::Shoot(Ship * ship)
 	else
 		color = Vector4f(0.8f,0.7f,0.1f,1.f);
 	Texture * tex = TexMan.GetTextureByColor(color);
-	Entity * projectileEntity = EntityMan.CreateEntity(name + " Projectile", ModelMan.GetModel("sphere.obj"), tex);
+	// Grab model.
+	Model * model = ModelMan.GetModel("obj/Proj/"+projectileShape);
+	if (!model)
+		model = ModelMan.GetModel("sphere.obj");
+
+	Entity * projectileEntity = EntityMan.CreateEntity(name + " Projectile", model, tex);
 	ProjectileProperty * projProp = new ProjectileProperty(*this, projectileEntity);
 	projectileEntity->properties.Add(projProp);
 	// Set scale and position.
 	projectileEntity->position = shipEntity->position;
-	projectileEntity->SetScale(Vector3f(1,1,1) * 0.1f);
+	projectileEntity->SetScale(Vector3f(1,1,1));
 	projProp->color = color;
 	projectileEntity->RecalculateMatrix();
 	// pew
@@ -317,7 +325,8 @@ void Weapon::Shoot(Ship * ship)
 	pp->type = PhysicsType::DYNAMIC;
 	pp->velocity = vel;
 	pp->collisionCallback = true;	
-	pp->maxCallbacks = 1;
+	pp->maxCallbacks = -1; // unlimited callbacks or penetrating projs won't work
+	pp->faceVelocityDirection = true;
 	// Set collision category and filter.
 	pp->collisionCategory = ship->allied? CC_PLAYER_PROJ : CC_ENEMY_PROJ;
 	pp->collisionFilter = ship->allied? CC_ENEMY : CC_PLAYER;

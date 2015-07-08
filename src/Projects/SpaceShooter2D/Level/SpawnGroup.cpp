@@ -19,6 +19,7 @@ String Formation::GetName(int forFormationType)
 		case LINE_XY: return "LINE_XY";
 		case V_X: return "V_X";
 		case V_Y: return "V_Y";
+		case SWARM_BOX_XY: return "SWARM_BOX_XY";
 		default:
 			assert(false);
 	}
@@ -40,10 +41,11 @@ void SpawnGroup::Reset()
 	shipsDespawned = shipsDefeated = 0;
 }
 
+
+Random spawnGroupRand;
 void SpawnGroup::Spawn()
 {
 	LogMain("Spawning spawn group at time: "+String(spawnTime.Seconds()), INFO);
-
 	spawned = true;
 	/// Fetch amount.
 	Vector3f offsetPerSpawn;
@@ -63,9 +65,20 @@ void SpawnGroup::Spawn()
 		case Formation::V_X:
 		case Formation::V_Y:
 			break;
+		case Formation::SWARM_BOX_XY:
+			break;
+		default:
+			;//std::cout<<"\nImplement";
 	}
 	offsetPerSpawn = size / (float) offsetNum;
 	
+	switch(formation)
+	{
+		case Formation::SWARM_BOX_XY:
+			offsetPerSpawn.y = 0; // Spawn erratically in Y only. Have some X offset each spawn?
+			break;
+	}
+
 	/// Check formation to specify vectors for all
 	List<Vector3f> positions;
 	for (int i = 0; i < number; ++i)
@@ -80,6 +93,8 @@ void SpawnGroup::Spawn()
 			case Formation::V_Y:
 				offsetIndex = (i + 1)/ 2;
 				break;
+			default:
+				;// std::cout<<"\nImplement";
 		}	
 		position += offsetPerSpawn * (float)offsetIndex;
 		// Flip accordingly
@@ -92,13 +107,17 @@ void SpawnGroup::Spawn()
 			case Formation::V_Y:
 				if ((i + 1) % 2 == 0)
 					position.x *= -1;
+				break;
+			case Formation::SWARM_BOX_XY:
+				position.y += spawnGroupRand.Randf(size.y) - size.y * 0.5;
+				break;
+			default:
+				;//std::cout<<"\nImplement";
 		}
-
 		/// Add current position offset to it.
 		position += Vector3f(spawnPositionRight, activeLevel->height * 0.5f, 0); 
 		/// Add group position offset (if any)
 		position += this->groupPosition;
-		
 		/// Create entity
 		SpawnShip(position);
 	}

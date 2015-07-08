@@ -84,6 +84,7 @@ void ShipProperty::OnCollision(Collision & data)
 		other = data.one;
 }	
 
+Random penetrationRand;
 /// If reacting to collisions...
 void ShipProperty::OnCollision(Entity * withEntity)
 {
@@ -165,9 +166,26 @@ void ShipProperty::OnCollision(Entity * withEntity)
 	ProjectileProperty * pp = (ProjectileProperty *) other->GetProperty(ProjectileProperty::ID());
 	if (pp && !pp->sleeping)
 	{
-		// Take damage? D:
-		ship->Damage(pp->weapon.damage, false);
-		pp->Destroy();
+		if (pp->ShouldDamage(ship))
+		{
+			// Take damage? D:
+			if (pp->penetratedTargets.Size())
+				std::cout<<"\nPenetrator damaing again: "<<pp->penetratedTargets.Size();
+			ship->Damage(pp->weapon.damage, false);
+			// Check penetration rate.
+			if (penetrationRand.Randf() > pp->weapon.penetration)
+			{
+				pp->Destroy();
+			}
+			else {
+				pp->penetratedTargets.AddItem(ship);
+			//	std::cout<<"\nPenetrated targets: "<<pp->penetratedTargets.Size();
+			}
+		}
+		else 
+		{
+	//		std::cout<<"\nShould not! o.o";
+		}
 	}
 }
 

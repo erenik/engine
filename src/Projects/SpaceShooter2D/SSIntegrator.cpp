@@ -68,6 +68,7 @@ void SSIntegrator::IntegrateVelocity(Entity * forEntity, float timeInSeconds)
 		return;
 	Vector3f & position = forEntity->position;
 	Vector3f & velocity = pp->velocity;
+	pp->currentVelocity = velocity;
 	forEntity->position += forEntity->physics->velocity * timeInSeconds;
 	if (pp->relativeVelocity.MaxPart())
 	{
@@ -84,5 +85,25 @@ void SSIntegrator::IntegrateVelocity(Entity * forEntity, float timeInSeconds)
 	{
 		forEntity->position[2] = constantZ;
 		forEntity->physics->velocity[2] = 0;
+	}
+
+	// Force rot to follow vel.
+	if (pp->faceVelocityDirection)
+	{
+		if ((pp->currentVelocity.MaxPart() == 0))
+			return;
+		// 
+		Vector3f & cVel = pp->currentVelocity;
+		// Check Z is 0.
+		assert(cVel.z == 0);
+		Matrix4f & rot = forEntity->rotationMatrix;
+		Vector2f up(0,1);
+		Angle ang(up);
+		Vector2f normVel = cVel.NormalizedCopy();
+		Angle look(normVel);
+		Angle toLook = look - ang;
+		forEntity->rotation.x = PI / 2;
+		forEntity->rotation.y = toLook.Radians();
+		forEntity->hasRotated = true;
 	}
 }

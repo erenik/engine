@@ -63,6 +63,8 @@ public:
 	String projectileShape;
 	// Damage inflicted.
 	int damage;
+	// Penetration rate.
+	float penetration;
 	// If true, auto-aims at the player.
 	bool aim;
 	/// Not just looking, thinking.
