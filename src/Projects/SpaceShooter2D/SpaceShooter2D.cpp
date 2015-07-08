@@ -926,38 +926,40 @@ void SpaceShooter2D::LoadLevel(String fromSource)
 	playerShip->shieldValue = playerShip->maxShieldValue;
 
 
-	/// Add emitter for stars at player start.
+	/// Clear old stars?
+	QueueGraphics(new GMClearParticles(stars));
 
+	/// Add emitter for stars at player start.
 	float emissionSpeed = level.starSpeed.Length();
 	Vector3f starDir = level.starSpeed.NormalizedCopy();
+	float starScale = 0.2f;
 
 	ParticleEmitter * startEmitter = new ParticleEmitter();
 	startEmitter->newType = true;
 	startEmitter->instantaneous = true;
 	startEmitter->constantEmission = 1400;
 	startEmitter->positionEmitter.type = EmitterType::PLANE_XY;
-	startEmitter->positionEmitter.SetScale(200.f);
+	startEmitter->positionEmitter.SetScale(100.f);
 	startEmitter->velocityEmitter.type = EmitterType::VECTOR;
 	startEmitter->velocityEmitter.vec = starDir;
 	startEmitter->SetEmissionVelocity(emissionSpeed);
-	startEmitter->SetParticleLifeTime(20.f);
-	startEmitter->SetScale(0.3f);
+	startEmitter->SetParticleLifeTime(60.f);
+	startEmitter->SetScale(starScale);
 	startEmitter->SetColor(level.starColor);
-	Graphics.QueueMessage(new GMAttachParticleEmitter(startEmitter, stars));
+	QueueGraphics(new GMAttachParticleEmitter(startEmitter, stars));
 
-
+	/// Update base emitter emitting all the time.
 	starEmitter->newType = true;
 	starEmitter->direction = starDir;
 	starEmitter->SetEmissionVelocity(emissionSpeed);
-	starEmitter->SetParticlesPerSecond(10);
+	starEmitter->SetParticlesPerSecond(40);
 	starEmitter->positionEmitter.type = EmitterType::PLANE_XY;
-	starEmitter->positionEmitter.SetScale(40.f);
+	starEmitter->positionEmitter.SetScale(30.f);
 	starEmitter->velocityEmitter.type = EmitterType::VECTOR;
 	starEmitter->velocityEmitter.vec = starDir;
-	starEmitter->SetEmissionVelocity(emissionSpeed);
 	starEmitter->SetParticleLifeTime(60.f);
 	starEmitter->SetColor(level.starColor);
-	starEmitter->SetScale(0.3f);
+	starEmitter->SetScale(starScale);
 
 
 	/// Add entity to track for both the camera, blackness and player playing field.
@@ -996,8 +998,8 @@ void SpaceShooter2D::LoadLevel(String fromSource)
 		GraphicsMan.QueueMessage(new GMSetCamera(levelCamera, CT_ENTITY_TO_TRACK, levelEntity));
 	}
 	// Track ... level with effects.
-	starEmitter->entityToTrack = playerShip->entity;
-	starEmitter->positionOffset = Vector3f(70.f,0,0);
+	starEmitter->entityToTrack = levelEntity;
+	starEmitter->positionOffset = Vector3f(playingFieldSize.x + 10.f,0,0);
 //	GraphicsMan.QueueMessage(new GMSetParticleEmitter(starEmitter, GT_EMITTER_ENTITY_TO_TRACK, playerShip->entity));
 //	GraphicsMan.QueueMessage(new GMSetParticleEmitter(starEmitter, GT_EMITTER_POSITION_OFFSET, Vector3f(70.f, 0, 0)));
 	// Reset position of level entity if already created.

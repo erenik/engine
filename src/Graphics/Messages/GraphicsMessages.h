@@ -106,6 +106,7 @@ enum graphicsMessages {
 	GM_SET_PARTICLE_EMITTER,
 	GM_GENERATE_PARTICLES,
 	GM_SET_PARTICLE_SYSTEM,
+	GM_CLEAR_PARTICLES, // Clears all particles in a system.
 
 	// UI messages
 	GM_SET_HOVER_UI,

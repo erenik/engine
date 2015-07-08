@@ -48,6 +48,8 @@ public:
 	virtual void SpawnNewParticles(int & timeInMs);
 	/// Update buffers to use when rendering.
 	virtual void UpdateBuffers();
+	/// Clears all existing particles.
+	virtual void ClearParticles(); 
 
 	/** Fetches textures required for rendering. Should only be called from Render() or elsewhere in the render thread.
 		Returns false if it failed to fetch any textures, meaning they may still be NULL.

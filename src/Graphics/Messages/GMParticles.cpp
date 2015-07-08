@@ -86,6 +86,16 @@ void GMDetachParticleEmitter::Process()
 }
 
 
+GMClearParticles::GMClearParticles(ParticleSystem * inSystem)
+	: GraphicsMessage(GM_CLEAR_PARTICLES), ps(inSystem)
+{
+}
+void GMClearParticles::Process()
+{
+	ps->ClearParticles();
+}
+
+
 
 GMPauseEmission::GMPauseEmission(Entity * entity) 
 : GraphicsMessage(GM_PAUSE_EMISSION), entity(entity)

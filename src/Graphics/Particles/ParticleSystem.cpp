@@ -292,6 +292,7 @@ void ParticleSystem::SpawnNewParticles(int & timeInMs)
 			float factor = j / (float)particlesToEmit;
 			sse = _mm_load1_ps(&factor);
 			positionsSSE[freeIndex].data = _mm_add_ps(positionsSSE[freeIndex].data, _mm_mul_ps(velocitiesSSE[freeIndex].data, sse));
+//			std::cout<<"\nNew particle at position: "<<positionsSSE[freeIndex].x<<" "<<positionsSSE[freeIndex].y;
 #else
 			emitter->GetNewParticle(positions[freeIndex], velocities[freeIndex], scales[freeIndex], lifeTimes[freeIndex], colors[freeIndex]);
 			// Multiply velocity by our multiplier?
@@ -370,6 +371,12 @@ void ParticleSystem::UpdateBuffers()
 	glBufferSubData(GL_ARRAY_BUFFER, 0, aliveParticles * sizeof(GLfloat) * 4, ldsSSE);
 #endif
 	CheckGLError("ParticleSystem::UpdateBuffers");
+}
+
+/// Clears all existing particles.
+void ParticleSystem::ClearParticles()
+{
+	this->aliveParticles = 0;
 }
 
 
@@ -512,6 +519,12 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 	{
 		Matrix4f viewProjection = graphicsState.camera->ViewProjectionF();
 		glUniformMatrix4fv(shader->uniformViewProjectionMatrix, 1, false, viewProjection.getPointer());
+	}
+	/// Obsolete, but may still want this to work for a while..
+	else 
+	{
+		glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, graphicsState.camera->ViewMatrix4f().getPointer());	
+		glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, graphicsState.camera->ProjectionMatrix4f().getPointer());	
 	}
 	Matrix4f modelMatrix;
 	if (shader->uniformModelMatrix != -1)

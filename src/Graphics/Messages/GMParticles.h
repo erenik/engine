@@ -67,6 +67,15 @@ private:
 	ParticleEmitter * pe;
 };
 
+class GMClearParticles : public GraphicsMessage 
+{
+public:
+	GMClearParticles(ParticleSystem * inSystem);
+	virtual void Process();
+private:
+	ParticleSystem * ps;
+};
+
 class GMPauseEmission : public GraphicsMessage 
 {
 public:

@@ -1,6 +1,6 @@
 /// Emil Hedemalm
 /// 2015-01-22
-/// Stars, as if gliding through space. Could also be just any arbitrary particles.
+/// Stars, as if gliding through space. Could also be just any arbitrary particles. 2D XY-based.
 
 #include "Stars.h"
 #include "Graphics/OpenGL.h"
@@ -71,6 +71,8 @@ void Stars::Initialize()
 void Stars::ProcessParticles(float & timeInSeconds)
 {
 #ifdef SSE_PARTICLES
+	// Use old one for the time being...
+	ParticleSystem::ProcessParticles(timeInSeconds);
 //		positionsSSE[i] = _mm_add_ps(positions[i].data, _mm_mul_ps(sseTime, _mm_add_ps(velocities[i].data, weather->globalWind.data)));
 	
 #else // Not SSE_PARTICLES
@@ -104,6 +106,7 @@ void Stars::ProcessParticles(float & timeInSeconds)
 /// Update buffers to use when rendering.
 void Stars::UpdateBuffers()
 {
+	ParticleSystem::UpdateBuffers();
 #ifdef SSE_PARTICLES
 //		positionsSSE[i] = _mm_add_ps(positions[i].data, _mm_mul_ps(sseTime, _mm_add_ps(velocities[i].data, weather->globalWind.data)));
 	
