@@ -114,6 +114,14 @@ void SpaceShooter2D::UpdateHUDGearedWeapons()
 		QueueGraphics(new GMSetUIs(child->name, GMUI::TEXT, weapon->name));
 		QueueGraphics(new GMSetUIb(child->name, GMUI::ACTIVATABLE, true));
 		QueueGraphics(new GMSetUIb(child->name, GMUI::HOVERABLE, true));
+
+		/// Clear and add associated picture and cooldown-overlay on top.
+
+		QueueGraphics(new GMClearUI(child->name));
+		UIElement * cooldownOverlay = new UIElement();
+		cooldownOverlay->name = "WeaponCooldownOverlay"+String(i);
+		cooldownOverlay->textureSource = "img/ui/Cooldown_37.png";
+		QueueGraphics(new GMAddUI(cooldownOverlay, child->name));
 	}
 }
 void SpaceShooter2D::UpdateUIPlayerHP()
@@ -123,6 +131,33 @@ void SpaceShooter2D::UpdateUIPlayerHP()
 void SpaceShooter2D::UpdateUIPlayerShield()
 {
 	GraphicsMan.QueueMessage(new GMSetUIi("Shield", GMUI::INTEGER_INPUT, (int)playerShip->shieldValue));
+}
+
+void SpaceShooter2D::UpdateCooldowns()
+{
+	List<Weapon*> & weapons = playerShip->weapons;
+	for (int i = 0; i < weapons.Size(); ++i)
+	{
+		// Check cooldown.
+		Weapon * weapon = weapons[i];
+		float timeTilNextShotMs = (flyTime - weapon->lastShot).Milliseconds();
+		if (weapon->burst)
+			timeTilNextShotMs = (flyTime - weapon->burstStart).Milliseconds();
+		float maxCooldown = weapon->cooldown.Milliseconds();
+		float ratioReady = timeTilNextShotMs / maxCooldown * 100.f;
+		// Change texture accordingly.
+		List<int> avail(0, 12, 25, 37);
+		avail.Add(50, 62, 75, 87, 100);
+		int good = 0;
+		for (int j = 0; j < avail.Size(); ++j)
+		{
+			int av = avail[j];
+			if (ratioReady < av)
+				break;
+			good = av;
+		}
+		QueueGraphics(new GMSetUIs("WeaponCooldownOverlay"+String(i), GMUI::TEXTURE_SOURCE, "img/ui/Cooldown_"+String(good)+".png"));
+	}
 }
 
 void SpaceShooter2D::UpdateHUDSkill()

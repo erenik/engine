@@ -197,6 +197,7 @@ void SpaceShooter2D::Process(int timeInMs)
 			if (paused)
 				return;
 			level.Process(timeInMs);
+			UpdateCooldowns();
 		}
 	}
 }

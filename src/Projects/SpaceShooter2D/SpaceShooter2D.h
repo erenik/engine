@@ -135,6 +135,7 @@ public:
 	void UpdateUIPlayerHP();
 	void UpdateUIPlayerShield();
 	void UpdateHUDSkill();
+	void UpdateCooldowns();
 	void OpenJumpDialog();
 	/// Update ui
 	void OnScoreUpdated();
