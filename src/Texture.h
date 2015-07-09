@@ -65,6 +65,8 @@ public:
 
 	/// Retrieves a sample color from the texture, using given amount of samples. Works in squares, meaning values 1, 4, 16, 64, etc. should be used.
 	Vector4f GetSampleColor(int samples = 4);
+	/// Pre-calculated when loading texture. Uses 1 or a few samples.
+	Vector4f averageColor;
 
 	/// 0 - Unsigned char, 1 - Int, 2 - Float
 	int DataType();

@@ -5,6 +5,7 @@
 #include "SpaceShooter2D.h"
 
 #include "File/File.h"
+#include "File/LogFile.h"
 #include "String/StringUtil.h"
 
 #include "TextureManager.h"
@@ -93,6 +94,7 @@ bool Weapon::LoadTypes(String fromFile)
 	String firstLine = lines[0];
 	// Keep empty strings or all will break.
 	columns = TokenizeCSV(firstLine, ';');
+	LogMain("Loading weapons from file: "+fromFile, INFO);
 
 	// For each line after the first one, parse data.
 	for (int j = 1; j < lines.Size(); ++j)
@@ -185,6 +187,7 @@ bool Weapon::LoadTypes(String fromFile)
 				--i;
 			}
 		}
+		LogMain("Weapon loaded: "+weapon.name, INFO);
 		types.Add(weapon);
 	}
 	return true;

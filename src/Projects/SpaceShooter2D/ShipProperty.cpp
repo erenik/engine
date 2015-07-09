@@ -153,10 +153,11 @@ void ShipProperty::OnCollision(Entity * withEntity)
 		tmpEmitter->SetRatioRandomVelocity(1.0f);
 		float velocity = (owner->Velocity().Length() + other->Velocity().Length()) * 0.5f;
 		velocity += 1.f;
+		velocity *= 0.5f;
 		tmpEmitter->SetEmissionVelocity(velocity);
 		tmpEmitter->constantEmission = 50;
 		tmpEmitter->instantaneous = true;
-		tmpEmitter->SetScale(0.15f);
+		tmpEmitter->SetScale(0.05f);
 		tmpEmitter->SetParticleLifeTime(1.5f);
 		tmpEmitter->SetColor(Vector4f(1.f, 0.5f, 0.1f, 1.f));
 		Graphics.QueueMessage(new GMAttachParticleEmitter(tmpEmitter, sparks));

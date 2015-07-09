@@ -649,6 +649,9 @@ bool Texture::Bufferize(bool force /* = false*/)
 	}
 	queueRebufferization = false;
 
+	/// Save an average in case it is released.
+	averageColor = GetSampleColor();
+
 	/// Release the kraken! o.o
 	if (releaseOnBufferization && !dynamic)
 	{

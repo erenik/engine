@@ -290,6 +290,7 @@ void ParticleSystem::SpawnNewParticles(int & timeInMs)
 			emitter->GetNewParticle(positionsSSE[freeIndex], velocitiesSSE[freeIndex], colorsSSE[freeIndex], ldsSSE[freeIndex]);
 			/// Translate the particle as if the emitter has been emitting throughout the whole duration.
 			float factor = j / (float)particlesToEmit;
+			factor *= timeInSeconds; // Apply time in seconds or spawn will appear as if a whole second has passed during this creation-step..
 			sse = _mm_load1_ps(&factor);
 			positionsSSE[freeIndex].data = _mm_add_ps(positionsSSE[freeIndex].data, _mm_mul_ps(velocitiesSSE[freeIndex].data, sse));
 //			std::cout<<"\nNew particle at position: "<<positionsSSE[freeIndex].x<<" "<<positionsSSE[freeIndex].y;

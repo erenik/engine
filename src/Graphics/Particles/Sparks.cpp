@@ -41,29 +41,7 @@ void Sparks::Initialize()
 /// Update buffers to use when rendering.
 void Sparks::UpdateBuffers()
 {
-#ifdef SSE_PARTICLES
-//		positionsSSE[i] = _mm_add_ps(positions[i].data, _mm_mul_ps(sseTime, _mm_add_ps(velocities[i].data, weather->globalWind.data)));
-	
-#else // Not SSE_PARTICLES
 	ParticleSystem::UpdateBuffers();
-	return;
-	for (int i = 0; i < aliveParticles; ++i)
-	{
-		Vector3f & pos = positions[i];
-		int index = i * 4;
-		particlePositionSizeData[index] = pos[0];
-		particlePositionSizeData[index+1] = pos[1];
-		particlePositionSizeData[index+2] = pos[2];
-
-		Vector4f & color = colors[i];
-		particleColorData[index] = color[0] * 255;
-		particleColorData[index+1] = color[1] * 255;
-		particleColorData[index+2] = color[2] * 255;
-		particleColorData[index+3] = ((1.f - lifeDurations[i] / lifeTimes[i])) * 255;
-		i = i;
-
-	}
-#endif
 }
 
 

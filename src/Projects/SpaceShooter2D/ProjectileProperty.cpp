@@ -41,21 +41,36 @@ void ProjectileProperty::Destroy()
 //	if (distanceModifierToVolume > 1.f)
 //		distanceModifierToVolume = 1.f;
 
-	// Add a temporary emitter to the particle system to add some sparks to the collision
-	SparksEmitter * tmpEmitter = new SparksEmitter(owner->position);
-	tmpEmitter->SetEmissionVelocity(3.f);
-	tmpEmitter->constantEmission = 40;
-	tmpEmitter->instantaneous = true;
-	tmpEmitter->SetParticleLifeTime(2.5f);
-	tmpEmitter->SetScale(0.1f);
-	tmpEmitter->SetColor(color);
-	tmpEmitter->SetRatioRandomVelocity(1.f);
-	Graphics.QueueMessage(new GMAttachParticleEmitter(tmpEmitter, sparks));
 
 	// Check if an explosion should be spawned in its place.
 	if (weapon.explosionRadius > 0)
 	{
 		activeLevel->Explode(weapon, owner->position);
+		float lifeTime = weapon.explosionRadius / 10.f;
+		ClampFloat(lifeTime, 2.5f, 10.f);
+		// Explosion emitter o-o should prob. have its own system later on.
+		SparksEmitter * tmpEmitter = new SparksEmitter(owner->position);
+		tmpEmitter->SetEmissionVelocity(3.f);
+		tmpEmitter->constantEmission = 40 + weapon.damage * weapon.explosionRadius;
+		tmpEmitter->instantaneous = true;
+		tmpEmitter->SetParticleLifeTime(2.5f);
+		tmpEmitter->SetScale(0.15f);
+		tmpEmitter->SetColor(color);
+		tmpEmitter->SetRatioRandomVelocity(1.f);
+		Graphics.QueueMessage(new GMAttachParticleEmitter(tmpEmitter, sparks));
+	}
+	else /// Sparks for all physically based projectiles with friction against targets.
+	{	
+		// Add a temporary emitter to the particle system to add some sparks to the collision
+		SparksEmitter * tmpEmitter = new SparksEmitter(owner->position);
+		tmpEmitter->SetEmissionVelocity(3.f);
+		tmpEmitter->constantEmission = 40;
+		tmpEmitter->instantaneous = true;
+		tmpEmitter->SetParticleLifeTime(2.5f);
+		tmpEmitter->SetScale(0.1f);
+		tmpEmitter->SetColor(color);
+		tmpEmitter->SetRatioRandomVelocity(1.f);
+		Graphics.QueueMessage(new GMAttachParticleEmitter(tmpEmitter, sparks));
 	}
 
 //	float volume = distanceModifierToVolume * explosionSFXVolume;

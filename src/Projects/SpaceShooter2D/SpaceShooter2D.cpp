@@ -1013,6 +1013,8 @@ void SpaceShooter2D::LoadLevel(String fromSource)
 	playerShip->entity->position = initialPosition + Vector3f(-50,0,0);
 //	PhysicsMan.QueueMessage(new PMSetEntity(playerShip->entity, PT_POSITION, initialPosition));
 
+	sparks->SetAlphaDecay(DecayType::QUADRATIC);
+
 	GraphicsMan.ResumeRendering();
 	PhysicsMan.Resume();
 	// Set mode! UI updated from within.
