@@ -52,6 +52,12 @@ void ProjectileProperty::Destroy()
 	tmpEmitter->SetRatioRandomVelocity(1.f);
 	Graphics.QueueMessage(new GMAttachParticleEmitter(tmpEmitter, sparks));
 
+	// Check if an explosion should be spawned in its place.
+	if (weapon.explosionRadius > 0)
+	{
+		activeLevel->Explode(weapon, owner->position);
+	}
+
 //	float volume = distanceModifierToVolume * explosionSFXVolume;
 	// Play SFX!
 //	AudioMan.QueueMessage(new AMPlaySFX("SpaceShooter/235968__tommccann__explosion-01.wav", volume));

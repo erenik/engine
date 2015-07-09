@@ -18,7 +18,7 @@ struct ShipColorCoding
 	Vector3i color;
 };
 
-
+class Explosion;
 class SpawnGroup;
 class Camera;
 class Level;
@@ -52,7 +52,11 @@ public:
 	/// enable respawing on shit again.
 	void OnLevelTimeAdjusted();
 	Entity * ClosestTarget(bool ally, ConstVec3fr position);
-	
+	/// o.o'
+	void Explode(Weapon & weapon, ConstVec3fr position);
+	/// Returns ships close enough to given point. Returns distance to them too. Checks only to center of ship, not edges.
+	List<Ship*> GetShipsAtPoint(ConstVec3fr position, float maxRadius, List<float> & distances); 
+
 	String source;
 	/// Ships within.
 	List<Ship*> ships;
@@ -64,6 +68,8 @@ public:
 	List<SpawnGroup*> spawnGroups;
 	/// o.o
 	List<LevelMessage*> messages;
+
+	List<Explosion*> explosions;
 
 	/// To determine when things spawn and the duration of the entire "track".
 	int millisecondsPerPixel;

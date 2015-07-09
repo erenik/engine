@@ -6,9 +6,9 @@
 #include "SpawnGroup.h"
 #include "Text/TextManager.h"
 #include "LevelMessage.h"
+#include "Explosion.h"
 
 Camera * levelCamera = NULL;
-
 
 // See header file. Position boundaries.
 float removeInvuln = 0;
@@ -142,6 +142,46 @@ void Level::Process(int timeInMs)
 	else
 	{
 		levelTime.AddMs(timeInMs);
+	}
+
+	/// Process active explosions.
+	for (int i = 0; i < explosions.Size(); ++i)
+	{
+		Explosion * exp = explosions[i];
+		float detonationVelocity = 10.f;
+		exp->currentRadius += timeInMs * 0.001f * detonationVelocity;
+		bool finalTurn = false;
+		if (exp->currentRadius > exp->weapon.explosionRadius)
+		{
+			exp->currentRadius = exp->weapon.explosionRadius;
+			finalTurn = true;
+		}
+		/// Apply damage to nearby ships (if any)
+		List<float> distances;
+		List<Ship*> relShips = GetShipsAtPoint(exp->position, exp->currentRadius, distances);
+		for (int j = 0; j < relShips.Size(); ++j)
+		{
+			Ship * ship = relShips[j];
+			if (exp->affectedShips.Exists(ship))
+				continue;
+			float amount = exp->weapon.damage;
+			/// Decrease damage linearly with distance to center of explosion?
+			float dist = distances[j];
+			float relDist = dist / exp->weapon.explosionRadius;
+			float relDmg = 1 - relDist;
+			float finalDmg = relDmg * amount;
+			exp->totalDamageInflicted += finalDmg;
+			ship->Damage(finalDmg, false);
+			exp->affectedShips.AddItem(ship); // Ensure no double-triggering.
+			std::cout<<"\nAffected ships: "<<exp->affectedShips.Size()<<" total dmg inflicted: "<<exp->totalDamageInflicted;
+		}
+
+		if (finalTurn)
+		{
+			explosions.RemoveItem(exp);
+			delete exp;
+			--i;
+		}
 	}
 
 	/// Check messages.
@@ -297,5 +337,37 @@ Entity * Level::ClosestTarget(bool ally, ConstVec3fr position)
 		}
 	}
 	return closest;
+}
+
+/// o.o'
+void Level::Explode(Weapon & weapon, ConstVec3fr position)
+{
+	Explosion * explosion = new Explosion();
+	explosion->weapon = weapon;
+	explosion->position = position;
+	explosions.AddItem(explosion);
+}
+
+List<Ship*> Level::GetShipsAtPoint(ConstVec3fr position, float maxRadius, List<float> & distances)
+{
+	List<Ship*> relevantShips;
+	distances.Clear();
+	float maxDist = maxRadius;
+	for (int i = 0; i < ships.Size(); ++i)
+	{
+		Ship * ship = ships[i];
+		if (ship->destroyed || !ship->spawned)
+			continue;
+		if (ship->entity == 0)
+			continue;
+		float dist = (ship->entity->position - position).Length();
+		float radius = ship->entity->radius;
+		float distMinRadius = dist - radius;
+		if (distMinRadius > maxDist)
+			continue;
+		relevantShips.AddItem(ship);
+		distances.AddItem(distMinRadius);
+	}
+	return relevantShips;
 }
 

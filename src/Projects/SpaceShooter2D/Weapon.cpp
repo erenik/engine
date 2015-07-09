@@ -34,6 +34,7 @@ WeaponSet::WeaponSet(WeaponSet & otherWeaponSet)
 
 Weapon::Weapon()
 {
+	explosionRadius = 0;
 	penetration = 0;
 	burst = false;
 	aim = false;
@@ -117,6 +118,8 @@ bool Weapon::LoadTypes(String fromFile)
 				weapon.type = value.ParseInt();
 			else if (column == "Level")
 				weapon.level = value.ParseInt();
+			else if (column == "Explosion Radius")
+				weapon.explosionRadius = value.ParseFloat();
 			else if (column == "Cooldown")
 				weapon.cooldown = Time::Milliseconds(value.ParseFloat());
 			else if (column == "Penetration")
