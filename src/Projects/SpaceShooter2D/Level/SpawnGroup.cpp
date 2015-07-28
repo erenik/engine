@@ -15,6 +15,7 @@ String Formation::GetName(int forFormationType)
 	switch(forFormationType)
 	{
 		case LINE_X: return "LINE_X";
+		case DOUBLE_LINE_X: return "DOUBLE_LINE_X";
 		case LINE_Y: return "LINE_Y";
 		case LINE_XY: return "LINE_XY";
 		case V_X: return "V_X";
@@ -54,13 +55,7 @@ void SpawnGroup::Spawn()
 	size.z = 0;
 	switch(formation)
 	{
-		case Formation::LINE_X:
-			size.y = 0; // Nullify if bad.
-			break;
 		case Formation::LINE_XY:
-			break;
-		case Formation::LINE_Y:
-			size.x = 0; // Nullify if bad.
 			break;
 		case Formation::V_X:
 		case Formation::V_Y:
@@ -76,6 +71,13 @@ void SpawnGroup::Spawn()
 	{
 		case Formation::SWARM_BOX_XY:
 			offsetPerSpawn.y = 0; // Spawn erratically in Y only. Have some X offset each spawn?
+			break;
+		case Formation::LINE_X:
+		case Formation::DOUBLE_LINE_X:
+			offsetPerSpawn.y = 0;
+			break;
+		case Formation::LINE_Y:
+			offsetPerSpawn.x = 0;
 			break;
 	}
 
@@ -120,10 +122,14 @@ void SpawnGroup::Spawn()
 		position += this->groupPosition;
 		/// Create entity
 		SpawnShip(position);
+		if (formation == Formation::DOUBLE_LINE_X)
+		{
+			SpawnShip(position + Vector3f(0, size.y, 0));
+		}
 	}
 }
 
-	// ?!
+// ?!
 Entity * SpawnGroup::SpawnShip(ConstVec3fr atPosition)
 {
 	Ship * newShip = Ship::New(shipType);

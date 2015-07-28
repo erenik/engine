@@ -70,7 +70,8 @@ public:
 	Vector3f startPos;
 
 private:
-
+	/// Sets movement speed to target normalized direction.
+	void SetDirection(Vector2f dir);
 	void MoveToLocation();
 	void Circle();
 

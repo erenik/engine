@@ -12,6 +12,7 @@
 namespace Formation {
 enum {
 	LINE_X,
+	DOUBLE_LINE_X,
 	LINE_Y,
 	LINE_XY,
 	V_X, /// Typical V-bird-formation, flying X-wise.

@@ -49,9 +49,6 @@ String Movement::Name(int type)
 	return String();
 }
 
-#define SET_DIRECTION(d) 	Physics.QueueMessage(new PMSetEntity(shipEntity, PT_VELOCITY, d * ship->speed))
-
-
 // Upon entering this movement pattern.
 void Movement::OnEnter(Ship * ship)
 {
@@ -65,23 +62,23 @@ void Movement::OnEnter(Ship * ship)
 	switch(type)
 	{
 		case Movement::NONE:
-			SET_DIRECTION(Vector3f());
+			SetDirection(Vector3f());
 			break;
 		case Movement::STRAIGHT:
 			// Begin forward!
-			SET_DIRECTION(Vector3f(-1,0,0));
+			SetDirection(Vector2f(-1,0));
 			break;
 		case Movement::ZAG:
 		{
 			// Begin zag.
-			SET_DIRECTION(vec);
+			SetDirection(vec);
 			break;
 		}
 		case Movement::MOVE_TO:
 			MoveToLocation();
 			break;
 		case Movement::MOVE_DIR:
-			SET_DIRECTION(vec);
+			SetDirection(vec);
 			break;
 		case Movement::CIRCLE:
 		{
@@ -90,7 +87,7 @@ void Movement::OnEnter(Ship * ship)
 		}
 		case Movement::UP_N_DOWN:
 			// Start up.
-			SET_DIRECTION(Vector3f(0,1,0));
+			SetDirection(Vector3f(0,1,0));
 			startPos = shipEntity->position;
 			break;
 		case Movement::LOOK_AT:
@@ -125,7 +122,7 @@ void Movement::OnFrame(int timeInMs)
 				Vector3f dir = vec;
 				if (state == 1)
 					dir[1] *= -1;
-				SET_DIRECTION(dir);
+				SetDirection(dir);
 				timeSinceLastUpdate = 0;
 			}
 			break;
@@ -139,9 +136,9 @@ void Movement::OnFrame(int timeInMs)
 		case Movement::UP_N_DOWN:
 		{
 			if (shipEntity->position[1] > startPos[1] + distance)
-				SET_DIRECTION(Vector3f(0,-1,0));
+				SetDirection(Vector3f(0,-1,0));
 			else if (shipEntity->position[1] < startPos[1] - distance)
-				SET_DIRECTION(Vector3f(0,1,0));
+				SetDirection(Vector3f(0,1,0));
 			break;
 		}
 		default:
@@ -171,6 +168,13 @@ void Movement::OnEnd()
 	}
 }
 
+/// Sets movement speed to target normalized direction.
+void Movement::SetDirection(Vector2f dir)
+{
+	// #define SET_DIRECTION(d) 	
+	Vector2f speed = dir * ship->speed;
+	QueuePhysics(new PMSetEntity(shipEntity, PT_VELOCITY, speed));
+}
 
 void Movement::MoveToLocation()
 {
@@ -190,12 +194,12 @@ void Movement::MoveToLocation()
 		{
 			if (state == 0)
 			{
-				SET_DIRECTION(Vector3f(0,1,0));
+				SetDirection(Vector3f(0,1,0));
 				++state;
 			}
 			else if (shipEntity->position[1] > 20.f && state == 1)
 			{
-				PhysicsMan.QueueMessage(new PMSetEntity(shipEntity, PT_VELOCITY, Vector3f()));
+				SetDirection(Vector2f());
 				++state;
 			}
 			break;
@@ -204,12 +208,12 @@ void Movement::MoveToLocation()
 		{
 			if (state == 0)
 			{
-				SET_DIRECTION(Vector3f(0,-1,0));
+				SetDirection(Vector3f(0,-1,0));
 				++state;
 			}
 			if (shipEntity->position[1] < 0.f && state == 1)
 			{
-				PhysicsMan.QueueMessage(new PMSetEntity(shipEntity, PT_VELOCITY, Vector3f()));
+				SetDirection(Vector2f());
 				++state;
 			}
 			break;
@@ -225,7 +229,7 @@ void Movement::MoveToLocation()
 				isPosition = true;
 			}
 			else {
-				SET_DIRECTION(Vector3f());
+				SetDirection(Vector3f());
 				return;
 			}
 			break;
@@ -233,8 +237,9 @@ void Movement::MoveToLocation()
 	if (isPosition)
 	{
 		Vector3f toPos = pos - shipEntity->position;
-		toPos.Normalize();
-		SET_DIRECTION(toPos);
+		if (toPos.LengthSquared() > 1)
+			toPos.Normalize();
+		SetDirection(toPos);
 	}
 }
 
@@ -245,7 +250,7 @@ void Movement::Circle()
 	Entity * target = playerShip->entity;
 	if (!target)
 	{
-		SET_DIRECTION(Vector3f());
+		SetDirection(Vector3f());
 		return;
 	}
 	Vector3f pos = target->position;
@@ -260,5 +265,5 @@ void Movement::Circle()
 	Vector3f position = target->position + targetDir * radius;
 	Vector3f toPosForreal = position - shipEntity->position;
 	toPosForreal.Normalize();
-	SET_DIRECTION(toPosForreal);
+	SetDirection(toPosForreal);
 }

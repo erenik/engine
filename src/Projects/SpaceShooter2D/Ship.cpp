@@ -213,7 +213,10 @@ void Ship::ProcessWeapons(int timeInMs)
 			weapon->Aim(this);
 			// Dude..
 			shoot = true;
+			// Shoot all weapons by default.
+			weapon->Shoot(this); 
 		}
+		return;
 	}
 	if (!shoot)
 		return;

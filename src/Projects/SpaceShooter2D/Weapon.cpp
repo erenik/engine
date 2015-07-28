@@ -168,6 +168,8 @@ bool Weapon::LoadTypes(String fromFile)
 			}
 			else if (column == "Projectile Shape")
 				weapon.projectileShape = value;
+			else if (column == "Projectile Scale")
+				weapon.projectileScale = value.ParseFloat();
 			else 
 			{
 		//		std::cout<<"\nUnknown column D:";
@@ -287,7 +289,7 @@ void Weapon::Shoot(Ship * ship)
 	projectileEntity->properties.Add(projProp);
 	// Set scale and position.
 	projectileEntity->position = shipEntity->position;
-	projectileEntity->SetScale(Vector3f(1,1,1));
+	projectileEntity->SetScale(Vector3f(1,1,1) * projectileScale);
 	projProp->color = color;
 	projectileEntity->RecalculateMatrix();
 	// pew

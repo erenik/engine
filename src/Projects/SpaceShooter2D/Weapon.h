@@ -61,6 +61,7 @@ public:
 	float projectileSpeed;
 	float homingFactor; // For heat-seaking/auto-aiming missiles.
 	String projectileShape;
+	float projectileScale;
 	// Damage inflicted.
 	int damage;
 	float explosionRadius; // o.o' More damage closer to the center of impact.

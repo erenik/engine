@@ -6,6 +6,7 @@
 #include "SpawnGroup.h"
 #include "Text/TextManager.h"
 #include "LevelMessage.h"
+#include "File/LogFile.h"
 
 bool Level::Load(String fromSource)
 {
@@ -149,6 +150,44 @@ bool Level::Load(String fromSource)
 				group->name = timeStr;
 				parseMode = PARSE_MODE_FORMATIONS;
 			}
+			if (var == "CopyNamedGroup")
+			{
+				ADD_GROUP_IF_NEEDED;
+				// Copy last one.
+				SpawnGroup * named = 0;
+				List<String> tokens = line.Tokenize(" \t");
+				assert(tokens.Size() >= 3);
+				if (tokens.Size() < 3)
+				{
+					LogMain("Lacking arguments in CopyNamedGroup at line "+String(i)+" in file "+fromSource, ERROR);
+					continue;
+				}
+				String name = tokens[1];
+				for (int j = 0; j < spawnGroups.Size(); ++j)
+				{
+					SpawnGroup * sg = spawnGroups[j];
+					if (sg->name == name)
+					{
+						named = sg;
+						break;
+					}
+				}
+				assert(named);
+				if (!named)
+				{
+					LogMain("Unable to find group by name "+name+" for CopyNamedGroup at line "+String(i)+" in file "+fromSource, ERROR);
+					continue;
+				}
+				group = new SpawnGroup(*named);
+				SET_GROUP_DEFAULTS;
+				// Parse time.
+				String timeStr = tokens[2];
+				group->spawnTime.ParseFrom(timeStr);
+				group->name = timeStr;
+				parseMode = PARSE_MODE_FORMATIONS;
+			}
+			if (var == "Name")
+				group->name = arg;
 			if (var == "SpawnTime")
 				group->spawnTime.ParseFrom(arg);
 			if (var == "Position")
