@@ -42,6 +42,7 @@ void * StateManager::StateProcessor(void * vArgs){
 	LogMain("State processor starting", INFO);
 	while(StateMan.shouldLive)
 	{
+		int errorLocation = 0;
 		// For catching them errors.
 		try 
 		{
@@ -57,20 +58,20 @@ void * StateManager::StateProcessor(void * vArgs){
 				/// Enter new state if queued.
 				if (!quittingApplication)
 				{
-					StateMan.EnterQueuedGlobalState();
-					StateMan.EnterQueuedState();
-					ScriptMan.Process(timeDiffInMs);
+					StateMan.EnterQueuedGlobalState(); 					errorLocation = 1;
+					StateMan.EnterQueuedState(); errorLocation = 2;
+					ScriptMan.Process(timeDiffInMs); errorLocation = 3;
 					/// Wosh.
 					if (!StateMan.IsPaused()){
 						/// Process the active StateMan.
 						if (StateMan.GlobalState())
-							StateMan.GlobalState()->Process(timeDiffInMs);
+							StateMan.GlobalState()->Process(timeDiffInMs); errorLocation = 4;
 						if (StateMan.ActiveState())
-							StateMan.ActiveState()->Process(timeDiffInMs);
+							StateMan.ActiveState()->Process(timeDiffInMs); errorLocation = 5;
 						if (MapMan.ActiveMap())
-							MapMan.ActiveMap()->Process(timeDiffInMs);
+							MapMan.ActiveMap()->Process(timeDiffInMs); errorLocation = 6;
 						// Clean-up.
-						EntityMan.DeleteUnusedEntities(timeDiffInMs);
+						EntityMan.DeleteUnusedEntities(timeDiffInMs); errorLocation = 7;
 					}
 					/// If not in any state, sleep a bit, yo.
 					else
@@ -80,7 +81,7 @@ void * StateManager::StateProcessor(void * vArgs){
 				//		SleepThread(5);
 
 					/// Process network, sending packets and receiving packets
-					NetworkMan.ProcessNetwork();
+					NetworkMan.ProcessNetwork(); errorLocation = 8;
 
 					/// Get input from XBox devices if possible
 					InputMan.UpdateDeviceStates();
@@ -111,7 +112,7 @@ void * StateManager::StateProcessor(void * vArgs){
 		}
 		catch (...)
 		{
-			LogMain("An unexpected error occurred in the main processing thread (StateManager::StateProcessor).", ERROR);
+			LogMain("An unexpected error occurred in the main processing thread (StateManager::StateProcessor). Error location: "+String(errorLocation), ERROR);
 			std::cout<<"An unexpected error occurred.";
 			SleepThread(100);
 		}

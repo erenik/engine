@@ -110,14 +110,25 @@ void WavStream::Close()
 	file.close();
 }
 
+
+#define FOURKB		4096
+#define BUFFER_SIZE (FOURKB * 256)
+char wavStreamBuffer[BUFFER_SIZE];
+
 /** Buffers audio data into buf, up to maximum of maxBytes. Returns amount of bytes buffered. 
 	Amount of bytes may reach 0 even if the media has not ended. Returns -1 on error. Returns -2 if the stream is paused.
 	If loop is set to true it will try to automatically seek to the beginning when it reaches the end of the file.
 */
-int WavStream::BufferAudio(char * buf, int maxBytes, bool loop)
+int WavStream::BufferAudio(char * finalBuffer, int maxBytes, bool loop)
 {
 	if (!file.is_open())
 		return -1;
+
+	/// Buffer double as many bytes for float since it will shrink later on.
+	if (formatCode == WavFormats::WAVE_FORMAT_IEEE_FLOAT)
+	{
+		maxBytes *= 2;
+	}
 
 	int bytesBuffered = 0;
 	// Assume we have a chunk already, as it should have been loaded on first opening of the file.
@@ -126,10 +137,10 @@ int WavStream::BufferAudio(char * buf, int maxBytes, bool loop)
 	int bytesFirstStream = bytesAvailable > maxBytes? maxBytes : bytesAvailable;
 	int bytesToBuffer = maxBytes;
 
-	assert(formatCode == WavFormats::WAVE_FORMAT_PCM);
+//	assert(formatCode == WavFormats::WAVE_FORMAT_PCM);
 
 	// Copy first batch.
-	memcpy(buf, dataBuffer + bytesBufferedInCurrentChunk, bytesFirstStream);
+	memcpy(wavStreamBuffer, dataBuffer + bytesBufferedInCurrentChunk, bytesFirstStream);
 	bytesBufferedInCurrentChunk += bytesFirstStream;
 	bytesToBuffer -= bytesFirstStream;
 	bytesBuffered += bytesFirstStream;
@@ -143,16 +154,39 @@ int WavStream::BufferAudio(char * buf, int maxBytes, bool loop)
 		if (!ok)
 		{
 			// No new chunk? End of stream!
-			return bytesBuffered;
+			goto endOfStream;
+//			return bytesBuffered;
 		}
 		// Re-evaluate the bytes available.
 		bytesAvailable = dataBufferSize - bytesBufferedInCurrentChunk;
 		// Stream again.
 		int bytesNStream = bytesAvailable > bytesToBuffer? bytesToBuffer : bytesAvailable;
-		memcpy(buf + bytesBuffered, dataBuffer + bytesBufferedInCurrentChunk, bytesNStream);
+		memcpy(wavStreamBuffer + bytesBuffered, dataBuffer + bytesBufferedInCurrentChunk, bytesNStream);
 		bytesBufferedInCurrentChunk += bytesNStream;
 		bytesToBuffer -= bytesNStream;
 		bytesBuffered += bytesNStream;
+	}
+
+endOfStream:
+
+	/// Convert as needed, or copy data to final buffer.
+	if (formatCode == WavFormats::WAVE_FORMAT_PCM)
+		memcpy(finalBuffer, wavStreamBuffer, bytesBuffered);
+	else if (formatCode == WavFormats::WAVE_FORMAT_IEEE_FLOAT)
+	{
+		// Convert each float to a short in the final buffer.
+		int floats = bytesBuffered /= 4;
+		float * src = (float*)wavStreamBuffer;
+		signed short * dest = (signed short*) finalBuffer;
+		for (int i = 0; i < floats; ++i)
+		{
+			short samp = (short) (*src * (32767.0f));
+			*dest = samp;
+		
+			src += 1;
+			dest += 1;
+		}
+		bytesBuffered /= 2;
 	}
 	return bytesBuffered;
 }

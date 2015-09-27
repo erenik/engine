@@ -54,8 +54,8 @@ void SpaceShooter2D::UpdateUI()
 		case EDITING_OPTIONS: LoadOptions(); break;
 		case PLAYING_LEVEL: 
 			UpdateHUDGearedWeapons();
-			UpdateUIPlayerHP(); 
-			UpdateUIPlayerShield();
+			UpdateUIPlayerHP(true); 
+			UpdateUIPlayerShield(true);
 			if (inGameMenuOpened)
 				MesMan.ProcessMessage("PushUI(gui/InGameMenu.gui)");
 			else
@@ -124,12 +124,20 @@ void SpaceShooter2D::UpdateHUDGearedWeapons()
 		QueueGraphics(new GMAddUI(cooldownOverlay, child->name));
 	}
 }
-void SpaceShooter2D::UpdateUIPlayerHP()
+void SpaceShooter2D::UpdateUIPlayerHP(bool force)
 {
-	GraphicsMan.QueueMessage(new GMSetUIi("HP", GMUI::INTEGER_INPUT, playerShip->hp));	
+	static int lastHP;
+	if (lastHP == playerShip->hp && !force)
+		return;
+	lastHP = playerShip->hp;
+	GraphicsMan.QueueMessage(new GMSetUIi("HP", GMUI::INTEGER_INPUT, (int)playerShip->hp));	
 }
-void SpaceShooter2D::UpdateUIPlayerShield()
+void SpaceShooter2D::UpdateUIPlayerShield(bool force)
 {
+	static int lastShield;
+	if (lastShield == playerShip->shieldValue && !force)
+		return;
+	lastShield = playerShip->shieldValue;
 	GraphicsMan.QueueMessage(new GMSetUIi("Shield", GMUI::INTEGER_INPUT, (int)playerShip->shieldValue));
 }
 

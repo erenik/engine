@@ -69,7 +69,10 @@ void SSIntegrator::IntegrateVelocity(Entity * forEntity, float timeInSeconds)
 	Vector3f & position = forEntity->position;
 	Vector3f & velocity = pp->velocity;
 	pp->currentVelocity = velocity;
-	forEntity->position += forEntity->physics->velocity * timeInSeconds;
+	float smoothingFactor = pow(pp->velocitySmoothing, timeInSeconds);
+	pp->smoothedVelocity = pp->smoothedVelocity * smoothingFactor + pp->currentVelocity * (1 - smoothingFactor);
+//	forEntity->position += forEntity->physics->velocity * timeInSeconds;
+	forEntity->position += pp->smoothedVelocity * timeInSeconds;
 	if (pp->relativeVelocity.MaxPart())
 	{
 		Vector3f velocity = forEntity->rotationMatrix * pp->relativeVelocity;

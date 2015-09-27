@@ -54,6 +54,8 @@ public:
 	Ship();
 	~Ship();
 
+	/// Call on spawning.
+	void RandomizeWeaponCooldowns();
 	void Despawn();
 
 	void Process(int timeInMs);

@@ -135,6 +135,7 @@ Entity * SpawnGroup::SpawnShip(ConstVec3fr atPosition)
 	Ship * newShip = Ship::New(shipType);
 	activeLevel->ships.AddItem(newShip);
 	Ship * ship = newShip;
+	ship->RandomizeWeaponCooldowns();
 	ship->spawnGroup = this;
 
 	Entity * entity = EntityMan.CreateEntity(ship->type, ship->GetModel(), TexMan.GetTextureByColor(Color(0,255,0,255)));

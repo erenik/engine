@@ -303,6 +303,10 @@ public:
 
 	/// Dynamically created estimators. Delete when finished processing?
 	List<Estimator*> estimators;
+	/// Smoothing multiplier applied each frame (per second). Default defaultVelocitySmoothing.
+	float velocitySmoothing;
+	static float defaultVelocitySmoothing; // Default 0.2
+	Vector3f smoothedVelocity;
 
 };
 

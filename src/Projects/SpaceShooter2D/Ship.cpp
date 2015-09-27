@@ -99,6 +99,18 @@ Ship::~Ship()
 	weapons.ClearAndDelete();
 }
 
+Random cooldownRand;
+void Ship::RandomizeWeaponCooldowns()
+{
+	if (!ai)
+		return;
+	for (int i = 0; i < weapons.Size(); ++i)
+	{
+		Weapon * weap = weapons[i];
+		weap->lastShot = flyTime + Time::Milliseconds(weap->cooldown.Milliseconds() * cooldownRand.Randf());
+	}
+}
+
 void Ship::Despawn()
 {
 	if (spawnGroup)
@@ -139,14 +151,14 @@ void Ship::Process(int timeInMs)
 		if (shieldValue > MaxShield())
 			shieldValue = MaxShield();
 		if (allied)
-			spaceShooter->UpdateUIPlayerShield();
+			spaceShooter->UpdateUIPlayerShield(false);
 	}
 	if (allied)
 	{
 		hp += timeInMs * armorRegenRate * 0.001f;
 		if (hp > maxHP)
 			hp = maxHP;
-		spaceShooter->UpdateUIPlayerHP();
+		spaceShooter->UpdateUIPlayerHP(false);
 	}
 }
 
@@ -263,7 +275,7 @@ void Ship::Damage(int amount, bool ignoreShield)
 		if (shieldValue < 0 )
 			shieldValue = 0;
 		if (this->allied)
-			spaceShooter->UpdateUIPlayerShield();
+			spaceShooter->UpdateUIPlayerShield(true);
 		if (amount < 0)
 			return;
 		shieldValue = 0;
@@ -278,8 +290,10 @@ void Ship::Damage(int amount, bool ignoreShield)
 	amount = (int)(amount / (activeToughness / 10.f));
 
 	hp -= amount;
+	if (hp < 0)
+		hp = 0;
 	if (this->allied)
-		spaceShooter->UpdateUIPlayerHP();
+		spaceShooter->UpdateUIPlayerHP(false);
 	if (hp <= 0)
 		Destroy();
 }
@@ -321,6 +335,8 @@ void Ship::Destroy()
 		}
 		else 
 			failedToSurvive = true;
+		/// SFX
+		QueueAudio(new AMPlaySFX("sfx/Ship Death.wav"));
 	}
 }
 
@@ -403,7 +419,7 @@ bool Ship::SwitchToWeapon(int index)
 	}
 	activeWeapon = weapons[index];
 	std::cout<<"\nSwitched to weapon: "<<activeWeapon->name;
-	UpdateStatsFromGear();
+//	UpdateStatsFromGear();
 	// Update ui
 	if (!ai)
 	{

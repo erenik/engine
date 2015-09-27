@@ -74,7 +74,6 @@ void ProjectileProperty::Destroy()
 	}
 
 //	float volume = distanceModifierToVolume * explosionSFXVolume;
-	// Play SFX!
 //	AudioMan.QueueMessage(new AMPlaySFX("SpaceShooter/235968__tommccann__explosion-01.wav", volume));
 }
 

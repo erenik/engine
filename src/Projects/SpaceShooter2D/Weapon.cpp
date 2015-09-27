@@ -118,6 +118,10 @@ bool Weapon::LoadTypes(String fromFile)
 				weapon.name = value;
 			else if (column == "Type")
 				weapon.type = value.ParseInt();
+			else if (column == "ShootSFX")
+				weapon.shootSFX = value;
+			else if (column == "HitSFX")
+				weapon.hitSFX = value;
 			else if (column == "Level")
 				weapon.level = value.ParseInt();
 			else if (column == "Explosion Radius")
@@ -238,26 +242,18 @@ void Weapon::Aim(Ship * ship)
 void Weapon::Shoot(Ship * ship)
 {
 	float firingSpeedDivisor = ship->activeSkill == ATTACK_FRENZY? 0.4f : 1.f; 
-	/// Initialize the weapon as if it had just been fired at a random time (AI only)
-	if (lastShot.Milliseconds() == 0 && ship->ai)
-	{
-		lastShot = flyTime - cooldown + Time(TimeType::MILLISECONDS_NO_CALENDER, 1000 + shootRand.Randf(cooldown.Milliseconds()));
-		return;
-	}
 	/// For burst..
 	if (burst)
 	{
 		if (burstRoundsShot < burstRounds)
 		{
 			// Check time between burst rounds.
-			Time diff = flyTime - lastShot;
-			if (diff < burstRoundDelay * firingSpeedDivisor)
+			if (flyTime < burstRoundDelay * firingSpeedDivisor + lastShot)
 				return;
 			++burstRoundsShot;
 		}
 		else {
-			Time diff = flyTime - burstStart;
-			if (diff < cooldown * firingSpeedDivisor)
+			if (flyTime < cooldown * firingSpeedDivisor + burstStart)
 				return;
 			burstStart = flyTime;
 			burstRoundsShot = 0;
@@ -266,8 +262,7 @@ void Weapon::Shoot(Ship * ship)
 	}
 	// Regular fire
 	else {
-		Time diff = flyTime - lastShot;
-		if (diff < cooldown * firingSpeedDivisor)
+		if (flyTime < cooldown * firingSpeedDivisor + lastShot)
 			return;
 	}
 
@@ -342,4 +337,7 @@ void Weapon::Shoot(Ship * ship)
 	MapMan.AddEntity(projectileEntity);
 	projectileEntities.Add(projectileEntity);
 	lastShot = flyTime;
+
+	// Play sfx
+	QueueAudio(new AMPlaySFX("sfx/"+shootSFX+".wav", 1.f));
 }

@@ -182,6 +182,8 @@ void ShipProperty::OnCollision(Entity * withEntity)
 				pp->penetratedTargets.AddItem(ship);
 			//	std::cout<<"\nPenetrated targets: "<<pp->penetratedTargets.Size();
 			}
+			// Play SFX!
+			QueueAudio(new AMPlaySFX("sfx/"+pp->weapon.hitSFX+".wav", 1.f));
 		}
 		else 
 		{

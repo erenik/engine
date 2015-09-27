@@ -132,8 +132,8 @@ public:
 	void UpdateGearList();
 	/// Update UI parts
 	void UpdateHUDGearedWeapons();
-	void UpdateUIPlayerHP();
-	void UpdateUIPlayerShield();
+	void UpdateUIPlayerHP(bool force);
+	void UpdateUIPlayerShield(bool force);
 	void UpdateHUDSkill();
 	void UpdateCooldowns();
 	void OpenJumpDialog();

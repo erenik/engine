@@ -16,6 +16,7 @@ bool PhysicsProperty::defaultUseQuaternions = true;
 int PhysicsProperty::defaultCollisionCategory = 1;
 int PhysicsProperty::defaultCollisionFilter = 1;
 int PhysicsProperty::defaultMinCollisionIntervalMs = 5;
+float PhysicsProperty::defaultVelocitySmoothing = 0.2f;
 
 PhysicsProperty::PhysicsProperty()
 {
@@ -95,6 +96,8 @@ PhysicsProperty::PhysicsProperty(const CompactPhysics * compactPhysics)
 /// Set default values.
 void PhysicsProperty::Nullify()
 {
+	velocitySmoothing = defaultVelocitySmoothing; 
+
 	minCollisionIntervalMs = defaultMinCollisionIntervalMs;
 	lastCollisionMs = 0;
 

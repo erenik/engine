@@ -206,7 +206,7 @@ void GMSetUIi::Process()
 		return;
 	UIElement * e = ui->GetElementByName(uiName);
 	if (!e){
-		std::cout<<"\nINFO: No element found with specified name \""<<uiName<<"\"";
+		LogGraphics("INFO: No element found with specified name \""+uiName+"\" in GMSetUIi", INFO);
 		return;
 	}
 	switch(target)
@@ -274,8 +274,9 @@ void GMSetUIv2i::Process()
 	if (!name.Length())
 		return;
 	UIElement * e = ui->GetElementByName(name);
-	if (!e){
-		std::cout<<"\nINFO: No element found with specified name \""<<name<<"\"";
+	if (!e)
+	{
+		LogGraphics("INFO: No element found with specified name \""+name+"\" in GMSetUIv2i", INFO);
 		return;
 	}
     switch(target){

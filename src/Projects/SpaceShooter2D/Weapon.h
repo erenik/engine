@@ -86,6 +86,8 @@ public:
 	/// Last show, format Time::Now().Milliseconds()
 	Time lastShot;
 	static List<Weapon> types;
+	/// Sound effects (SFX)
+	String shootSFX, hitSFX;
 
 	/// For aiming weapons, mainly. Normalized vector.
 	Vector3f currentAim;
