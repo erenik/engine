@@ -85,6 +85,8 @@ SpaceShooter2D::SpaceShooter2D()
 	playingFieldPadding = 1.f;
 	gearCategory = 0;
 	previousMode = mode = 0;
+	// Default vel smoothing.
+	PhysicsProperty::defaultVelocitySmoothing = 0.02f;
 }
 
 SpaceShooter2D::~SpaceShooter2D()
@@ -377,6 +379,14 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 				playerShip->SetWeaponLevel(WeaponType::TYPE_1, 3);
 				playerShip->SetWeaponLevel(WeaponType::TYPE_2, 3);			
 				UpdateHUDGearedWeapons();
+			}
+			else if (msg == "AllTheWeapons")
+			{
+				for (int i = 0; i < WeaponType::MAX_TYPES; ++i)
+				{
+					playerShip->SetWeaponLevel(i, 1);
+					UpdateHUDGearedWeapons();
+				}
 			}
 			if (msg == "ActivateWeaponScript")
 			{

@@ -209,6 +209,10 @@ void Ship::ProcessWeapons(int timeInMs)
 		weaponScript->Process(this, timeInMs);
 	}
 
+	/// Process ze weapons.
+	for (int i = 0; i < weapons.Size(); ++i)
+		weapons[i]->Process(this);
+
 	// AI fire all weapons simultaneously for the time being.
 	if (ai)
 	{

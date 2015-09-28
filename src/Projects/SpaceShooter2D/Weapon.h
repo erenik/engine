@@ -11,6 +11,7 @@
 
 class Ship;
 class Weapon;
+class Entity;
 
 class WeaponSet : public List<Weapon*> 
 {
@@ -30,7 +31,29 @@ namespace WeaponType
 		TYPE_1,
 		TYPE_2,
 		TYPE_3, // etc.
+		MAX_TYPES,
 	};
+};
+
+#define BULLETS WeaponType::TYPE_0
+#define SMALL_ROCKETS WeaponType::TYPE_1
+#define BIG_ROCKETS WeaponType::TYPE_2
+#define LIGHTNING WeaponType::TYPE_3
+
+class LightningArc
+{
+public:
+	LightningArc();
+	int damage;
+	Vector3f position;
+	Entity * graphicalEntity;
+	Entity * targetEntity;
+	bool struckEntity;
+	bool arcFinished; // When time expires or range has been reached.
+	float maxRange;
+	int maxBounces;
+	Time arcTime;
+	LightningArc * child;
 };
 
 class Weapon 
@@ -45,6 +68,17 @@ public:
 	void Aim(Ship * ship);
 	/// Shoots using previously calculated aim.
 	void Shoot(Ship * ship);
+	/// Called to update the various states of the weapon, such as reload time, making lightning arcs jump, etc.
+	void Process(Ship * ship);
+	void ProcessLightning(Ship * ship, bool initial = false);
+
+	List<LightningArc*> arcs;
+	List<Ship*> shipsStruckThisArc; /// For skipping
+
+	/// Delay in milliseconds between bounces for lightning
+	int arcDelay;
+	int maxBounces; /// Used to make lightning end prematurely.
+
 	String name;
 	int type; // mainly for player-based weapons.
 	int level; // Also mainly for player-based weapons.
@@ -62,6 +96,7 @@ public:
 	float homingFactor; // For heat-seaking/auto-aiming missiles.
 	String projectileShape;
 	float projectileScale;
+	float maxRange; // Used for Lightning among other things
 	// Damage inflicted.
 	int damage;
 	float explosionRadius; // o.o' More damage closer to the center of impact.

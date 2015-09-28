@@ -47,6 +47,7 @@ Weapon::Weapon()
 	angle = 0;
 	homingFactor = 0;
 	projectileSpeed = 5.f;
+	arcDelay = 1000;
 
 	burstRounds = 3;
 	burstRoundsShot = 0;
@@ -93,7 +94,8 @@ bool Weapon::LoadTypes(String fromFile)
 	List<String> columns;
 	String firstLine = lines[0];
 	// Keep empty strings or all will break.
-	columns = TokenizeCSV(firstLine, ';');
+	char tokenizer = '\t';
+	columns = TokenizeCSV(firstLine, tokenizer);
 	LogMain("Loading weapons from file: "+fromFile, INFO);
 
 	// For each line after the first one, parse data.
@@ -101,7 +103,7 @@ bool Weapon::LoadTypes(String fromFile)
 	{
 		String & line = lines[j];
 		// Keep empty strings or all will break.
-		List<String> values = TokenizeCSV(line, ';');
+		List<String> values = TokenizeCSV(line, tokenizer);
 		// If not, now loop through the words, parsing them according to the column name.
 		// First create the new spell to load the data into!
 		Weapon weapon;
@@ -174,6 +176,12 @@ bool Weapon::LoadTypes(String fromFile)
 				weapon.projectileShape = value;
 			else if (column == "Projectile Scale")
 				weapon.projectileScale = value.ParseFloat();
+			else if (column == "Max Range")
+				weapon.maxRange = value.ParseFloat();
+			else if (column == "Arc Delay")
+				weapon.arcDelay = value.ParseFloat();
+			else if (column == "Max Bounces")
+				weapon.maxBounces = value.ParseFloat();
 			else 
 			{
 		//		std::cout<<"\nUnknown column D:";
@@ -265,9 +273,16 @@ void Weapon::Shoot(Ship * ship)
 		if (flyTime < cooldown * firingSpeedDivisor + lastShot)
 			return;
 	}
+	// Shoot!
+	if (type ==	LIGHTNING)
+	{
+		/// Create a lightning storm...!
+		ProcessLightning(ship, true);
+		lastShot = flyTime;
+		return;
+	}
 
 	Entity * shipEntity = ship->entity;
-	// Shoot.
 	Color color;
 	if (ship->allied)
 		color = Vector4f(1.f, 0.5f, .1f, 1.f);
@@ -340,4 +355,114 @@ void Weapon::Shoot(Ship * ship)
 
 	// Play sfx
 	QueueAudio(new AMPlaySFX("sfx/"+shootSFX+".wav", 1.f));
+}
+
+/// Called to update the various states of the weapon, such as reload time, making lightning arcs jump, etc.
+void Weapon::Process(Ship * ship)
+{
+	if (type == LIGHTNING && arcs.Size())
+	{
+		ProcessLightning(ship);
+	}
+}
+
+LightningArc::LightningArc()
+{
+	graphicalEntity = 0;
+	arcFinished = false;
+	child = 0;
+	damage = -1;
+	maxBounces = -1;
+}
+
+void Weapon::ProcessLightning(Ship * owner, bool initial /* = true*/)
+{
+	if (initial)
+	{
+		// Create a dummy arc?
+		LightningArc * arc = new LightningArc();
+		arc->position = owner->entity->position;
+		arc->maxRange = maxRange;
+		arc->damage = damage;
+		arc->arcTime = flyTime;
+		arc->maxBounces = maxBounces;
+		arcs.AddItem(arc);
+		shipsStruckThisArc.Clear();
+	}
+	// Proceed all arcs which have already begun.
+	bool arced = false;
+	bool arcingAllDone = true;
+	for (int i = 0; i < arcs.Size(); ++i)
+	{
+		// Create arc to target entity.
+		LightningArc * arc = arcs[i];
+		if (arc->arcFinished)
+			continue;
+		arcingAllDone = false;
+		if ((flyTime - arc->arcTime).Milliseconds() < arcDelay)
+			continue;
+
+		// Find next entity.
+		List<float> distances;
+		List<Ship*> possibleTargets = spaceShooter->level.GetShipsAtPoint(arc->position, maxRange, distances);
+		std::cout<<"\nPossible targets: "<<possibleTargets.Size();
+		possibleTargets.RemoveUnsorted(shipsStruckThisArc);
+		std::cout<<" - shipsAlreadyStruck("<<shipsStruckThisArc.Size()<<") = "<<possibleTargets.Size();
+		if (possibleTargets.Size() == 0)
+		{
+			/// Unable to Arc, set the child to a bad number?
+			arc->arcFinished = true;
+			continue;
+		}
+		// Grab first one which hasn't already been struck?
+		Ship * target = possibleTargets[0];
+		// Recalculate distance since list was unsorted earlier...
+		float distance = (target->entity->position - arc->position).Length();
+		if (distance > arc->maxRange)
+		{
+			arc->arcFinished = true;
+			continue;
+		}
+
+		LightningArc * newArc = new LightningArc();
+		newArc->position = target->entity->position;
+		newArc->maxRange = arc->maxRange - distance;
+		newArc->damage = arc->damage * 0.8;
+		newArc->maxBounces = arc->maxBounces - 1;
+		if (newArc->maxBounces <= 0)
+			newArc->arcFinished = true;
+		arc->child = newArc;
+		arc->arcFinished = true;
+		newArc->arcTime = flyTime;
+		arcs.AddItem(newArc);
+		// Pew-pew it!
+		shipsStruckThisArc.AddItem(target);
+		assert(shipsStruckThisArc.Duplicates() == 0);
+		std::cout<<"\nThunderstruck! "<<target->entity->position;
+		target->Damage(arc->damage, false);
+		/// Span up a nice graphical entity to represent the bolt
+		Entity * entity = EntityMan.CreateEntity("BoldPart", ModelMan.GetModel("cube.obj"), TexMan.GetTexture("0x00FFFF"));
+		entity->position = (arc->position + newArc->position) * 0.5f;
+		/// Rotate it accordingly.
+		Vector3f direction = newArc->position - arc->position;
+		direction.Normalize();
+		entity->rotation.z = Angle(direction.x, direction.y).Radians();
+		/// Scale it.
+		entity->scale = Vector3f(distance, 0.1f, 0);
+		entity->RecalculateMatrix();
+		MapMan.AddEntity(entity, true, false);
+		newArc->graphicalEntity = entity;
+	}
+	// Clean-up if it's done?
+	if (arcingAllDone)
+	{
+		std::cout<<"\nLightning Clean-up";
+		for (int i = 0; i < arcs.Size(); ++i)
+		{
+			LightningArc * arc = arcs[i];
+			if (arc->graphicalEntity)
+				MapMan.DeleteEntity(arc->graphicalEntity);
+		}
+		arcs.ClearAndDelete();
+	}
 }

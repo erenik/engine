@@ -60,6 +60,8 @@ void SSIntegrator::IntegrateKinematicEntities(List<Entity*> & kinematicEntities,
 	RecalculateMatrices(kinematicEntities);
 }
 	
+float velocitySmoothingLast = 0.f;
+float smoothingFactor = 0.f;
 
 void SSIntegrator::IntegrateVelocity(Entity * forEntity, float timeInSeconds)
 {
@@ -69,7 +71,11 @@ void SSIntegrator::IntegrateVelocity(Entity * forEntity, float timeInSeconds)
 	Vector3f & position = forEntity->position;
 	Vector3f & velocity = pp->velocity;
 	pp->currentVelocity = velocity;
-	float smoothingFactor = pow(pp->velocitySmoothing, timeInSeconds);
+	if (velocitySmoothingLast != pp->velocitySmoothing)
+	{
+		smoothingFactor = pow(pp->velocitySmoothing, timeInSeconds);
+		velocitySmoothingLast = pp->velocitySmoothing;
+	}
 	pp->smoothedVelocity = pp->smoothedVelocity * smoothingFactor + pp->currentVelocity * (1 - smoothingFactor);
 //	forEntity->position += forEntity->physics->velocity * timeInSeconds;
 	forEntity->position += pp->smoothedVelocity * timeInSeconds;
