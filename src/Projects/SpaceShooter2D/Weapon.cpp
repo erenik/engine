@@ -418,6 +418,17 @@ void Weapon::ProcessLightning(Ship * owner, bool initial /* = true*/)
 		Ship * target = possibleTargets[0];
 		// Recalculate distance since list was unsorted earlier...
 		float distance = (target->entity->position - arc->position).Length();
+		/// Grab closest one.
+		for (int j = 1; j < possibleTargets.Size(); ++j)
+		{
+			Ship * t2 = possibleTargets[j];
+			float d2 = (t2->entity->position - arc->position).Length();
+			if (d2 < distance)
+			{
+				target = t2;
+				distance = d2;
+			}
+		}
 		if (distance > arc->maxRange)
 		{
 			arc->arcFinished = true;
@@ -453,16 +464,17 @@ void Weapon::ProcessLightning(Ship * owner, bool initial /* = true*/)
 		MapMan.AddEntity(entity, true, false);
 		newArc->graphicalEntity = entity;
 	}
-	// Clean-up if it's done?
-	if (arcingAllDone)
+	//	std::cout<<"\nLightning Clean-up";
+	for (int i = 0; i < arcs.Size(); ++i)
 	{
-		std::cout<<"\nLightning Clean-up";
-		for (int i = 0; i < arcs.Size(); ++i)
+		LightningArc * arc = arcs[i];
+		if ((flyTime - arc->arcTime).Milliseconds() > arcDelay * 2)
 		{
-			LightningArc * arc = arcs[i];
 			if (arc->graphicalEntity)
 				MapMan.DeleteEntity(arc->graphicalEntity);
+			arcs.RemoveItem(arc);
+			--i;
+			delete arc;
 		}
-		arcs.ClearAndDelete();
 	}
 }
