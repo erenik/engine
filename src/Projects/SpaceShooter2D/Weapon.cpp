@@ -78,7 +78,8 @@ Weapon Weapon::Get(int type, int level)
 			return weap;
 		}
 	}
-	assert(false);
+	LogMain("UNABLWE TO GRAB WEAPON "+String(type)+" of level "+String(level), ERROR);
+//	assert(false);
 	return Weapon();
 }
 
@@ -329,7 +330,7 @@ void Weapon::Shoot(Ship * ship)
 		stability *= 0.75f;
 	// Get orthogonal direction.
 	Vector3f dirRight = dir.CrossProduct(Vector3f(0,0,1));
-	if (stability < 1.f)
+	if (stability < 1.f && type != LASER_BEAM)
 	{
 		float amplitude = 1 - stability;
 		float randomEffect = shootRand.Randf(amplitude * 2.f) - amplitude;
@@ -345,6 +346,7 @@ void Weapon::Shoot(Ship * ship)
 	pp->collisionCallback = true;	
 	pp->maxCallbacks = -1; // unlimited callbacks or penetrating projs won't work
 	pp->faceVelocityDirection = true;
+	pp->velocitySmoothing = 0.f;
 	// Set collision category and filter.
 	pp->collisionCategory = ship->allied? CC_PLAYER_PROJ : CC_ENEMY_PROJ;
 	pp->collisionFilter = ship->allied? CC_ENEMY : CC_PLAYER;

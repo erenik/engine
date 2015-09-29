@@ -31,6 +31,11 @@ namespace WeaponType
 		TYPE_1,
 		TYPE_2,
 		TYPE_3, // etc.
+		TYPE_4,
+		TYPE_5,
+		TYPE_6,
+		TYPE_7,
+		TYPE_8,
 		MAX_TYPES,
 	};
 };
@@ -39,6 +44,10 @@ namespace WeaponType
 #define SMALL_ROCKETS WeaponType::TYPE_1
 #define BIG_ROCKETS WeaponType::TYPE_2
 #define LIGHTNING WeaponType::TYPE_3
+#define LASER_BEAM WeaponType::TYPE_4
+#define LASER_BURST WeaponType::TYPE_5
+#define HEAT_WAVE WeaponType::TYPE_6
+
 
 class LightningArc
 {
