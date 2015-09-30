@@ -308,15 +308,6 @@ private:
 	void * pValue;
 };
 
-class PMSetVelocity : public PhysicsMessage {
-public:
-	PMSetVelocity(Entity * entity, const Vector3f & newVelocity);
-	void Process();
-private:
-	Entity * entity;
-	Vector3f newVelocity;
-};
-
 class PMRegisterEntity : public PhysicsMessage {
 public:
 	PMRegisterEntity(Entity * entity);

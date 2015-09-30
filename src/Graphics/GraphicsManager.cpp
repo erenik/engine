@@ -307,8 +307,9 @@ Lighting * GraphicsManager::ActiveLighting()
 void GraphicsManager::PauseRendering()
 {
 	GraphicsMan.QueueMessage(new GraphicsMessage(GM_PAUSE_RENDERING));
-	while (Graphics.renderingEnabled)
-		SleepThread(5);
+	/// Move sleep elsewhere, causing deadlock at the moment...
+//	while (Graphics.renderingEnabled)
+	//	SleepThread(5);
 	/// Catch the mutex?
 }
 

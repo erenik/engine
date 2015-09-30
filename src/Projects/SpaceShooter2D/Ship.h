@@ -66,7 +66,8 @@ public:
 	Model * GetModel();
 	/// o.o
 	void DisableMovement();
-	void Damage(int amount, bool ignoreShield);
+	void Damage(Weapon & usingWeapon);
+	void Damage(float amount, bool ignoreShield);
 	void Destroy();
 	// Load ship-types.
 	static bool LoadTypes(String file);
@@ -144,6 +145,7 @@ public:
 	float armorRegenRate;
 	int maxHP;
 	int collideDamage;
+	float heatDamageTaken;
 	List<String> abilities;
 	List<float> abilityCooldown;
 	String graphicModel;

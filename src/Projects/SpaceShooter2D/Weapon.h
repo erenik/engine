@@ -47,6 +47,7 @@ namespace WeaponType
 #define LASER_BEAM WeaponType::TYPE_4
 #define LASER_BURST WeaponType::TYPE_5
 #define HEAT_WAVE WeaponType::TYPE_6
+#define ION_FLAK WeaponType::TYPE_7
 
 
 class LightningArc
@@ -107,7 +108,8 @@ public:
 	float projectileScale;
 	float maxRange; // Used for Lightning among other things
 	// Damage inflicted.
-	int damage;
+	float damage;
+	float relativeStrength; /// Used to apply distance attentuation to damage, etc. (e.g. Heat-wave) default 1.0
 	float explosionRadius; // o.o' More damage closer to the center of impact.
 	// Penetration rate.
 	float penetration;

@@ -9,6 +9,8 @@ ProjectileProperty::ProjectileProperty(const Weapon & weaponThatSpawnedIt, Entit
 : EntityProperty("ProjProp", ID(), owner), weapon(weaponThatSpawnedIt)
 {
 	sleeping = false;
+	timeAliveMs = 0;
+	nextWobbleMs = 0;
 }
 
 // Static version.
@@ -77,11 +79,49 @@ void ProjectileProperty::Destroy()
 //	AudioMan.QueueMessage(new AMPlaySFX("SpaceShooter/235968__tommccann__explosion-01.wav", volume));
 }
 
+Random wobbleRand;
+
 /// Time passed in seconds..!
 void ProjectileProperty::Process(int timeInMs)
 {
 	if (sleeping)
 		return;
+	if (paused)
+		return;
+	timeAliveMs += timeInMs;
+	if (weapon.type == LASER_BURST)
+	{
+		if (nextWobbleMs == 0 || nextWobbleMs < timeAliveMs)
+		{
+			bool wasRight = nextWobbleMs & 0x1;
+			up = Vector3f(0,1,0);
+			// Apply some pulse to the projectile.
+			Vector3f velocityImpulse = up * (wasRight? -1 : 1) * timeAliveMs * 0.05f + Vector3f(1,0,0);
+			float prevVel = owner->physics->velocity.Length();
+			Vector3f newVel = (owner->physics->velocity + velocityImpulse).NormalizedCopy() * prevVel;
+			QueuePhysics(new PMSetEntity(owner, PT_VELOCITY, newVel));
+			nextWobbleMs += wobbleRand.Randi(30)+timeInMs;
+			/// Set 1-bit accordinly so side-chaining changes each pulse.
+			if (wasRight)
+				nextWobbleMs = nextWobbleMs & ~(0x0001);
+			else
+				nextWobbleMs = nextWobbleMs | 0x00001;
+		}
+	}
+	else if (weapon.type == HEAT_WAVE)
+	{
+		// Decay over distance / time.
+		distanceTraveled = timeAliveMs * weapon.projectileSpeed * 0.001f;
+		float alpha = weapon.relativeStrength = (weapon.maxRange - distanceTraveled) / weapon.maxRange;
+		/// Update alpha?
+		QueueGraphics(new GMSetEntityf(owner, GT_ALPHA, alpha));
+		if (distanceTraveled > weapon.maxRange)
+		{
+			// Clean-up.
+			sleeping = true;
+			return;
+		}
+	}
 	if (weapon.homingFactor > 0)
 	{
 		// Seek closest enemy.

@@ -9,7 +9,7 @@
 #include "String/StringUtil.h"
 
 #include "TextureManager.h"
-
+#include "Graphics/GraphicsProperty.h"
 #include "Model/ModelManager.h"
 
 #include "Entity/EntityManager.h"
@@ -35,6 +35,7 @@ WeaponSet::WeaponSet(WeaponSet & otherWeaponSet)
 
 Weapon::Weapon()
 {
+	relativeStrength = 1.f;
 	explosionRadius = 0;
 	penetration = 0;
 	burst = false;
@@ -164,7 +165,7 @@ bool Weapon::LoadTypes(String fromFile)
 			else if (column == "Projectile speed")
 				weapon.projectileSpeed = value.ParseFloat();
 			else if (column == "Damage")
-				weapon.damage = value.ParseInt();
+				weapon.damage = value.ParseFloat();
 			else if (column == "Abilities")
 			{
 				// la...
@@ -350,6 +351,10 @@ void Weapon::Shoot(Ship * ship)
 	// Set collision category and filter.
 	pp->collisionCategory = ship->allied? CC_PLAYER_PROJ : CC_ENEMY_PROJ;
 	pp->collisionFilter = ship->allied? CC_ENEMY : CC_PLAYER;
+
+	GraphicsProperty * gp = projectileEntity->graphics = new GraphicsProperty(projectileEntity);
+	gp->flags |= RenderFlag::ALPHA_ENTITY;
+
 	// Add to map.
 	MapMan.AddEntity(projectileEntity);
 	projectileEntities.Add(projectileEntity);

@@ -56,6 +56,7 @@ Ship::Ship()
 	collisionDamageCooldown = Time(TimeType::MILLISECONDS_NO_CALENDER, 100);
 	lastShipCollision = Time(TimeType::MILLISECONDS_NO_CALENDER, 0);
 
+	heatDamageTaken = 0;
 	spawnGroup = 0;
 	shoot = false;
 	activeWeapon = 0;
@@ -265,7 +266,19 @@ void Ship::DisableMovement()
 	movementDisabled = true;
 }
 
-void Ship::Damage(int amount, bool ignoreShield)
+void Ship::Damage(Weapon & weapon)
+{
+	float damage = weapon.damage * weapon.relativeStrength;
+	bool ignoreShield = false;
+	if (weapon.type == HEAT_WAVE)
+	{
+		heatDamageTaken += damage;
+		damage += heatDamageTaken;
+	}
+	Damage(damage, ignoreShield);
+}
+
+void Ship::Damage(float amount, bool ignoreShield)
 {
 	if (spawnInvulnerability)
 	{
@@ -275,7 +288,7 @@ void Ship::Damage(int amount, bool ignoreShield)
 	if (hasShield && !ignoreShield)
 	{
 		shieldValue -= amount;
-		amount = (int) -shieldValue;
+		amount = -shieldValue;
 		if (shieldValue < 0 )
 			shieldValue = 0;
 		if (this->allied)
@@ -291,7 +304,7 @@ void Ship::Damage(int amount, bool ignoreShield)
 	{
 		activeToughness += armor.reactivity;
 	}
-	amount = (int)(amount / (activeToughness / 10.f));
+	amount = (amount / (activeToughness / 10.f));
 
 	hp -= amount;
 	if (hp < 0)

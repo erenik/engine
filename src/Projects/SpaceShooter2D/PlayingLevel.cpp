@@ -10,10 +10,14 @@ void SpaceShooter2D::Cleanup()
 	for (int i = 0; i < projectileEntities.Size(); ++i)
 	{
 		Entity * proj = projectileEntities[i];
-		if (proj->position[0] < despawnPositionLeft ||
-			proj->position[0] > spawnPositionRight ||
-			proj->position[1] < -1.f ||
-			proj->position[1] > playingFieldSize[1] + 2.f)
+		ProjectileProperty * pp = (ProjectileProperty*) proj->GetProperty(ProjectileProperty::ID());
+		if (pp->sleeping || 
+				(proj->position[0] < despawnPositionLeft ||
+				proj->position[0] > spawnPositionRight ||
+				proj->position[1] < -1.f ||
+				proj->position[1] > playingFieldSize[1] + 2.f
+				)
+			)
 		{
 			MapMan.DeleteEntity(proj);
 			projectileEntities.Remove(proj);
@@ -41,7 +45,7 @@ void SpaceShooter2D::Cleanup()
 
 void SpaceShooter2D::RenderInLevel(GraphicsState * graphicsState)
 {
-		// Load default shader?
+	// Load default shader?
 	ShadeMan.SetActiveShader(NULL);
 	glMatrixMode(GL_PROJECTION);
 	glLoadMatrixd(graphicsState->projectionMatrixD.getPointer());

@@ -32,6 +32,7 @@ Stars * stars = NULL;
 
 ParticleEmitter * starEmitter = NULL;
 
+/// Global pause, used for pause/Break, etc. Most calculations should stop/halt while paused.
 bool paused = false;
 
 List<Weapon> Weapon::types;
@@ -927,6 +928,7 @@ void SpaceShooter2D::LoadLevel(String fromSource)
 	projectileEntities.Clear();
 	
 	GraphicsMan.PauseRendering();
+	SleepThread(50);
 	PhysicsMan.Pause();
 
 	level.Load(fromSource);

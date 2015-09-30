@@ -39,15 +39,19 @@ public:
 	bool enemy;
 
 	Weapon weapon;
+	float distanceTraveled;
 
 	List<Ship*> penetratedTargets;
 	/// If not currently active (available for re-use).
 	bool sleeping;
 
+	/// Used for various effects, such as laser burst wobbling, fading damage/removal for heat-wave/ion flak, etc.
 	int timeAliveMs;
 	Vector4f color;
 	String onCollisionMessage;
 	Vector3f direction;
+	Vector3f up; // Set upon launch, used to change direction of laser burst projectiles
+	int nextWobbleMs; // Next time in timeAliveMs that it should change direction.
 };
 
 #endif

@@ -171,8 +171,8 @@ void ShipProperty::OnCollision(Entity * withEntity)
 		{
 			// Take damage? D:
 			if (pp->penetratedTargets.Size())
-				std::cout<<"\nPenetrator damaing again: "<<pp->penetratedTargets.Size();
-			ship->Damage(pp->weapon.damage, false);
+				; // std::cout<<"\nPenetrator damaing again: "<<pp->penetratedTargets.Size();
+			ship->Damage(pp->weapon);
 			// Check penetration rate.
 			if (penetrationRand.Randf() > pp->weapon.penetration)
 			{
