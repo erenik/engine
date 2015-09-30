@@ -46,6 +46,9 @@ public:
 	/// Usually just 1 or 2 sizes are used (X,Y)
 	Vector3f size;
 
+	/// o-o relative to 5.0 for max.
+	float relativeSpeed;
+	bool shoot;
 	/// If true, pauses game time, until all ships of the group have either been destroyed or despawned by exiting the screen.
 	bool pausesGameTime;
 	int shipsDefeatedOrDespawned;

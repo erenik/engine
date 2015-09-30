@@ -138,6 +138,7 @@ String Time::ToString(String withFormat)
 			case 'H': TWO_DIGITS(hour); break;
 			case 'm': TWO_DIGITS(minute); break;
 			case 'S': TWO_DIGITS(second); break;
+			case 'n': TWO_DIGITS(millisecond); break;
 			default:
 				newString += c;
 		}
@@ -357,6 +358,12 @@ void Time::SetSecond(int second)
 	intervals += (second - currentSecond) * intervalsPerSecond;
 }
 
+void Time::SetMillisecond(int newM)
+{
+	int currentMilli = Millisecond();
+	int intervalsPerMillisecond = IntervalsPerMillisecond();
+	intervals += (newM - currentMilli) * intervalsPerMillisecond;
+}
 
 // Current total in micro-seconds since the starting-point.
 uint64 Time::Microseconds() const
@@ -403,6 +410,11 @@ int64 Time::Minutes()
 	return Seconds() / 60;
 }
 
+int Time::Millisecond() // 0 to 999
+{
+	FetchCalenderData();
+	return millisecond;
+}	
 int Time::Second()
 {
 	FetchCalenderData();
@@ -463,6 +475,20 @@ int Time::IntervalsPerSecond()
 	return intervalsPerSecond;
 }	
 
+int Time::IntervalsPerMillisecond()
+{
+	int intervalsPerMs;
+	switch(type)
+	{
+		case TimeType::MILLISECONDS_NO_CALENDER:
+			intervalsPerMs = 1;
+			break;
+		default:
+			assert(false);
+	}
+	return intervalsPerMs;	
+}
+
 /// File I/O
 bool Time::WriteTo(std::fstream & stream)
 {
@@ -489,12 +515,29 @@ bool Time::ReadFrom(std::fstream & stream)
 bool Time::ParseFrom(const String & string)
 {
 	/// Any formatting?
-	List<String> tokens = string.Tokenize(":");
+	List<String> tokens = string.Tokenize(":.");
 	if (tokens.Size() == 2)
 	{
 		// Minute-second, by default?
+		if (string.Contains(":"))
+		{
+			this->SetMinute(tokens[0].ParseInt());
+			this->SetSecond(tokens[1].ParseInt());
+		}
+		else if (string.Contains("."))
+		{
+			this->SetSecond(tokens[0].ParseInt());
+			String milliStr = (tokens[1] + "0000").Part(0,3);
+			this->SetMillisecond(milliStr.ParseInt());		
+		}
+		return true;
+	}
+	else if (tokens.Size() == 3)
+	{
 		this->SetMinute(tokens[0].ParseInt());
 		this->SetSecond(tokens[1].ParseInt());
+		String milliStr = (tokens[2] + "0000").Part(0,3);
+		this->SetMillisecond(milliStr.ParseInt());		
 		return true;
 	}
 	return false;
@@ -530,6 +573,7 @@ void Time::FetchCalenderData()
 			hour = sysTime.wHour;
 			minute = sysTime.wMinute;
 			second = sysTime.wSecond;
+			millisecond = sysTime.wMilliseconds;
 #else 	// Non-Windows? Convert it.
 			assert(false);
 #endif // WINDOWS
@@ -579,6 +623,7 @@ void Time::FetchCalenderData()
 		}
 		case TimeType::MILLISECONDS_NO_CALENDER:
 		{
+			millisecond = intervals % 1000;
 			second = (intervals / 1000) % 60;
 			minute = (intervals / (1000 * 60)) % 60;
 			hour = (intervals / (1000 * 3600)) % 24;

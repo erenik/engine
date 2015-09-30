@@ -70,6 +70,10 @@ void SSIntegrator::IntegrateVelocity(Entity * forEntity, float timeInSeconds)
 		return;
 	Vector3f & position = forEntity->position;
 	Vector3f & velocity = pp->velocity;
+	/// For linear damping.
+	float linearDamp = pow(pp->linearDamping, timeInSeconds);
+	velocity *= linearDamp;
+
 	pp->currentVelocity = velocity;
 	if (velocitySmoothingLast != pp->velocitySmoothing)
 	{

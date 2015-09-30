@@ -35,6 +35,9 @@ WeaponSet::WeaponSet(WeaponSet & otherWeaponSet)
 
 Weapon::Weapon()
 {
+	linearDamping = 1.f;
+	stability = 1.f;
+	numberOfProjectiles = 1;
 	relativeStrength = 1.f;
 	explosionRadius = 0;
 	penetration = 0;
@@ -49,7 +52,7 @@ Weapon::Weapon()
 	homingFactor = 0;
 	projectileSpeed = 5.f;
 	arcDelay = 1000;
-
+	distribution = CONE;
 	burstRounds = 3;
 	burstRoundsShot = 0;
 	burstRoundDelay = Time(TimeType::MILLISECONDS_NO_CALENDER, 50);
@@ -97,6 +100,10 @@ bool Weapon::LoadTypes(String fromFile)
 	String firstLine = lines[0];
 	// Keep empty strings or all will break.
 	char tokenizer = '\t';
+	int numTabs = firstLine.Count('\t');
+	int numSemiColons = firstLine.Count(';');
+	if (numSemiColons > numTabs)
+		tokenizer = ';';
 	columns = TokenizeCSV(firstLine, tokenizer);
 	LogMain("Loading weapons from file: "+fromFile, INFO);
 
@@ -145,6 +152,15 @@ bool Weapon::LoadTypes(String fromFile)
 					weapon.burstRounds = tokens[1].ParseInt();
 				}
 			}
+			else if (column == "Number of Projectiles")
+				weapon.numberOfProjectiles = value.ParseInt();
+			else if (column == "Stability")
+			{
+				weapon.stability = value.ParseFloat();
+				LogMain("Weapon "+weapon.name+" stability: "+String(weapon.stability), INFO);
+			}
+			else if (column == "Linear Damping")
+				weapon.linearDamping = value.ParseFloat();
 			else if (column == "HomingFactor")
 				weapon.homingFactor = value.ParseFloat();
 			else if (column == "Angle")
@@ -284,84 +300,95 @@ void Weapon::Shoot(Ship * ship)
 		return;
 	}
 
-	Entity * shipEntity = ship->entity;
-	Color color;
-	if (ship->allied)
-		color = Vector4f(1.f, 0.5f, .1f, 1.f);
-	else
-		color = Vector4f(0.8f,0.7f,0.1f,1.f);
-	Texture * tex = TexMan.GetTextureByColor(color);
-	// Grab model.
-	Model * model = ModelMan.GetModel("obj/Proj/"+projectileShape);
-	if (!model)
-		model = ModelMan.GetModel("sphere.obj");
-
-	Entity * projectileEntity = EntityMan.CreateEntity(name + " Projectile", model, tex);
-	ProjectileProperty * projProp = new ProjectileProperty(*this, projectileEntity);
-	projectileEntity->properties.Add(projProp);
-	// Set scale and position.
-	projectileEntity->position = shipEntity->position;
-	projectileEntity->SetScale(Vector3f(1,1,1) * projectileScale);
-	projProp->color = color;
-	projectileEntity->RecalculateMatrix();
-	// pew
-	Vector3f dir(-1.f,0,0);
-	// For defaults of forward, invert for player
-	if (ship->allied)
-		dir *= -1.f;
-	if (aim)
+	for (int i = 0; i < numberOfProjectiles; ++i)
 	{
-		dir = currentAim;
+		Entity * shipEntity = ship->entity;
+		Color color;
+		if (ship->allied)
+			color = Vector4f(1.f, 0.5f, .1f, 1.f);
+		else
+			color = Vector4f(0.8f,0.7f,0.1f,1.f);
+		Texture * tex = TexMan.GetTextureByColor(color);
+		// Grab model.
+		Model * model = ModelMan.GetModel("obj/Proj/"+projectileShape);
+		if (!model)
+			model = ModelMan.GetModel("sphere.obj");
+
+		float flakMultiplier = 1.f, flakDividendMultiplier = 1.f;
+		if (type == ION_FLAK)
+		{
+			flakMultiplier = shootRand.Randf(1.f) + 1.f;
+			flakDividendMultiplier = 1 / flakMultiplier;
+		}
+		Entity * projectileEntity = EntityMan.CreateEntity(name + " Projectile", model, tex);
+		ProjectileProperty * projProp = new ProjectileProperty(*this, projectileEntity);
+		projProp->weapon.damage *= flakMultiplier;
+		projectileEntity->properties.Add(projProp);
+		// Set scale and position.
+		projectileEntity->position = shipEntity->position;
+		projectileEntity->SetScale(Vector3f(1,1,1) * projectileScale * flakMultiplier);
+		projProp->color = color;
+		projectileEntity->RecalculateMatrix();
+		// pew
+		Vector3f dir(-1.f,0,0);
+		// For defaults of forward, invert for player
+		if (ship->allied)
+			dir *= -1.f;
+		if (aim)
+		{
+			dir = currentAim;
+		}
+		// Angle, +180
+		else if (angle)
+		{
+			/// Grab current forward-vector.
+			Vector3f forwardDir = shipEntity->transformationMatrix.Product(Vector4f(0,0,-1,1)).NormalizedCopy();
+			/// Get angles from current dir.
+			float angleDegrees = GetAngled(forwardDir.x, forwardDir.y);
+
+			float worldAngle = DEGREES_TO_RADIANS((float)angleDegrees + 180 + angle);
+			dir[0] = cos(worldAngle);
+			dir[1] = sin(worldAngle);
+		}
+		/// Change initial direction based on stability of the weapon?
+		float currStab = stability;
+		if (ship->activeSkill == ATTACK_FRENZY)
+			currStab *= 0.75f;
+		// Get orthogonal direction.
+		Vector3f dirRight = dir.CrossProduct(Vector3f(0,0,1));
+		if (currStab < 1.f && type != LASER_BEAM)
+		{
+			float amplitude = 1 - currStab;
+			float randomEffect = shootRand.Randf(amplitude * 2.f) - amplitude;
+			dir = dir + dirRight * randomEffect;
+			dir.Normalize();
+		}
+		projProp->direction = dir; // For autoaim initial direction.
+
+		Vector3f vel = dir * projectileSpeed * flakDividendMultiplier;
+		PhysicsProperty * pp = projectileEntity->physics = new PhysicsProperty();
+		pp->type = PhysicsType::DYNAMIC;
+		pp->velocity = vel;
+		pp->collisionCallback = true;
+		pp->maxCallbacks = -1; // unlimited callbacks or penetrating projs won't work
+		pp->faceVelocityDirection = true;
+		pp->velocitySmoothing = 0.f;
+		// Set collision category and filter.
+		pp->collisionCategory = ship->allied? CC_PLAYER_PROJ : CC_ENEMY_PROJ;
+		pp->collisionFilter = ship->allied? CC_ENEMY : CC_PLAYER;
+		pp->linearDamping = linearDamping;
+
+		GraphicsProperty * gp = projectileEntity->graphics = new GraphicsProperty(projectileEntity);
+		gp->flags |= RenderFlag::ALPHA_ENTITY;
+
+		// Add to map.
+		MapMan.AddEntity(projectileEntity);
+		projectileEntities.Add(projectileEntity);
+		lastShot = flyTime;
+
 	}
-	// Angle, +180
-	else if (angle)
-	{
-		/// Grab current forward-vector.
-		Vector3f forwardDir = shipEntity->transformationMatrix.Product(Vector4f(0,0,-1,1)).NormalizedCopy();
-		/// Get angles from current dir.
-		float angleDegrees = GetAngled(forwardDir.x, forwardDir.y);
-
-		float worldAngle = DEGREES_TO_RADIANS((float)angleDegrees + 180 + angle);
-		dir[0] = cos(worldAngle);
-		dir[1] = sin(worldAngle);
-	}
-	/// Change initial direction based on stability of the weapon?
-	float stability = 0.99f;
-	if (ship->activeSkill == ATTACK_FRENZY)
-		stability *= 0.75f;
-	// Get orthogonal direction.
-	Vector3f dirRight = dir.CrossProduct(Vector3f(0,0,1));
-	if (stability < 1.f && type != LASER_BEAM)
-	{
-		float amplitude = 1 - stability;
-		float randomEffect = shootRand.Randf(amplitude * 2.f) - amplitude;
-		dir = dir + dirRight * randomEffect;
-		dir.Normalize();
-	}
-	projProp->direction = dir; // For autoaim initial direction.
-
-	Vector3f vel = dir * projectileSpeed;
-	PhysicsProperty * pp = projectileEntity->physics = new PhysicsProperty();
-	pp->type = PhysicsType::DYNAMIC;
-	pp->velocity = vel;
-	pp->collisionCallback = true;	
-	pp->maxCallbacks = -1; // unlimited callbacks or penetrating projs won't work
-	pp->faceVelocityDirection = true;
-	pp->velocitySmoothing = 0.f;
-	// Set collision category and filter.
-	pp->collisionCategory = ship->allied? CC_PLAYER_PROJ : CC_ENEMY_PROJ;
-	pp->collisionFilter = ship->allied? CC_ENEMY : CC_PLAYER;
-
-	GraphicsProperty * gp = projectileEntity->graphics = new GraphicsProperty(projectileEntity);
-	gp->flags |= RenderFlag::ALPHA_ENTITY;
-
-	// Add to map.
-	MapMan.AddEntity(projectileEntity);
-	projectileEntities.Add(projectileEntity);
-	lastShot = flyTime;
-
 	// Play sfx
-	QueueAudio(new AMPlaySFX("sfx/"+shootSFX+".wav", 1.f));
+	QueueAudio(new AMPlaySFX("sfx/"+shootSFX+".wav", 1.f + numberOfProjectiles * 0.01f));
 }
 
 /// Called to update the various states of the weapon, such as reload time, making lightning arcs jump, etc.

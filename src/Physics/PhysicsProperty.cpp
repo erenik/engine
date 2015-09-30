@@ -17,6 +17,7 @@ int PhysicsProperty::defaultCollisionCategory = 1;
 int PhysicsProperty::defaultCollisionFilter = 1;
 int PhysicsProperty::defaultMinCollisionIntervalMs = 5;
 float PhysicsProperty::defaultVelocitySmoothing = 0.2f;
+float PhysicsProperty::defaultLinearDamping = 0.99f;
 
 PhysicsProperty::PhysicsProperty()
 {
@@ -128,7 +129,7 @@ void PhysicsProperty::Nullify()
 	collisionCallback = false;
 	maxCallbacks = -1;
 	collisionCallbackRequirementValue = 1.0f;
-	linearDamping = 0.99f;
+	linearDamping = defaultLinearDamping;
 	linearDampingPerPhysicsFrame = 0.9999f;
 	angularDampingPerPhysicsFrame = 0.999f;
 	collisionsEnabled = true;

@@ -88,6 +88,7 @@ SpaceShooter2D::SpaceShooter2D()
 	previousMode = mode = 0;
 	// Default vel smoothing.
 	PhysicsProperty::defaultVelocitySmoothing = 0.02f;
+	PhysicsProperty::defaultLinearDamping = 1.f;
 }
 
 SpaceShooter2D::~SpaceShooter2D()
@@ -594,9 +595,16 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 				std::cout<<"\nGraphics entities "<<GraphicsMan.RegisteredEntities()<<" physics "<<PhysicsMan.RegisteredEntities()
 					<<" projectiles "<<projectileEntities.Size()<<" ships "<<shipEntities.Size();
 			}
+			else if (msg.StartsWith("LoadLevel:"))
+			{
+				String source = msg;
+				source.Remove("LoadLevel:");
+				source.RemoveSurroundingWhitespaces();
+				LoadLevel(source);
+			}
 			else if (msg == "ReloadLevel")
 			{
-				LoadLevel();
+				LoadLevel(level.source);
 			}
 			else if (msg == "NextLevel")
 			{
@@ -906,6 +914,14 @@ void SpaceShooter2D::OnPauseStateUpdated()
 /// Loads target level. The source and separate .txt description have the same name, just different file-endings, e.g. "Level 1.png" and "Level 1.txt"
 void SpaceShooter2D::LoadLevel(String fromSource)
 {
+	levelTime = flyTime = Time(TimeType::MILLISECONDS_NO_CALENDER);
+	bool nonStandardLevel = false;
+	if (fromSource != "CurrentStageLevel")
+	{
+		nonStandardLevel = true;
+		currentStage->SetInt(999);
+		currentLevel->SetInt(0);
+	}
 	// Reset stats for this specific level.
 	LevelKills()->iValue = 0;
 	LevelScore()->iValue = 0;

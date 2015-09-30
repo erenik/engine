@@ -122,6 +122,11 @@ void ProjectileProperty::Process(int timeInMs)
 			return;
 		}
 	}
+	else if (weapon.linearDamping < 1.f)
+	{
+		if (owner->Velocity().LengthSquared() < 1.f)
+			sleeping = true;
+	}
 	if (weapon.homingFactor > 0)
 	{
 		// Seek closest enemy.

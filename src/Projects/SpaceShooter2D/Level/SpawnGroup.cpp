@@ -35,6 +35,8 @@ SpawnGroup::SpawnGroup()
 
 void SpawnGroup::Reset()
 {
+	relativeSpeed = 5.f;
+	shoot = true;
 	spawned = false;
 	defeated = false;
 	survived = false;
@@ -46,7 +48,7 @@ void SpawnGroup::Reset()
 Random spawnGroupRand;
 void SpawnGroup::Spawn()
 {
-	LogMain("Spawning spawn group at time: "+String(spawnTime.Seconds()), INFO);
+	LogMain("Spawning spawn group at time: "+String(spawnTime.ToString("m:S.n")), INFO);
 	spawned = true;
 	/// Fetch amount.
 	Vector3f offsetPerSpawn;
@@ -111,7 +113,7 @@ void SpawnGroup::Spawn()
 					position.x *= -1;
 				break;
 			case Formation::SWARM_BOX_XY:
-				position.y += spawnGroupRand.Randf(size.y) - size.y * 0.5;
+				position.y += spawnGroupRand.Randf(size.y);
 				break;
 			default:
 				;//std::cout<<"\nImplement";
@@ -137,6 +139,10 @@ Entity * SpawnGroup::SpawnShip(ConstVec3fr atPosition)
 	Ship * ship = newShip;
 	ship->RandomizeWeaponCooldowns();
 	ship->spawnGroup = this;
+
+	/// Apply spawn group properties.
+	ship->shoot &= shoot;
+	ship->speed *= relativeSpeed;
 
 	Entity * entity = EntityMan.CreateEntity(ship->type, ship->GetModel(), TexMan.GetTextureByColor(Color(0,255,0,255)));
 	entity->position = atPosition;

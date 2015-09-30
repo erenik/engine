@@ -89,11 +89,18 @@ public:
 	int arcDelay;
 	int maxBounces; /// Used to make lightning end prematurely.
 
+	float stability;
 	String name;
 	int type; // mainly for player-based weapons.
 	int level; // Also mainly for player-based weapons.
 	/// -1 = Infinite, >= 0 = Finite
 	int ammunition;
+	int numberOfProjectiles; // Per 'firing'
+	int distribution; // Default CONE?
+	float linearDamping; // Applied for slowing bullets (Ion Flak).
+	enum {
+		CONE,
+	};
 	/// Cooldown.
 	Time cooldown;
 	enum {

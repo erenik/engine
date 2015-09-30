@@ -47,6 +47,8 @@ Vector3f Level::BaseVelocity()
 /// Creates player entity within this level. (used for spawning)
 Entity * Level::AddPlayer(Ship * playerShip, ConstVec3fr atPosition)
 {	
+	/// Refresh cooldowns for all weapons.
+	playerShip->RandomizeWeaponCooldowns();
 	playerShip->movementDisabled = false;
 	if (playerShip->entity)
 	{

@@ -48,7 +48,7 @@ public:
 		H - hours in 2 digits
 		m - minute in 2 digits
 		S - seconds in 2 digits
-
+		n - millisecond in 3 digits
 		Fetches calender data implicitly on each call.
 	*/
 	String ToString(String withFormat);
@@ -82,7 +82,7 @@ public:
 	/// Sets the hour in current hour by adding or removing diff amount of intervals.
 	void SetMinute(int minute);
 	void SetSecond(int second);
-
+	void SetMillisecond(int newMilli);
 	// Current total in micro-seconds since the starting-point.
 	uint64 Microseconds() const;
 	int64 Milliseconds() const;
@@ -91,10 +91,11 @@ public:
 	int64 Minutes();
 
 	/// Calender/watch-type Accessors.
-	int Second();
-	int Minute();
-	int Hour();
-	int Day();
+	int Millisecond(); // 0 to 999
+	int Second(); // 0 to 59
+	int Minute(); // 0 to 59
+	int Hour(); // 0 to 23?
+	int Day(); // 1 to 30? Depends on calender D:
 	int Week();
 	int Month();
 	int Year();
@@ -114,10 +115,12 @@ public:
 	int IntervalsPerHour();
 	int IntervalsPerMinute();
 	int IntervalsPerSecond();
+	int IntervalsPerMillisecond();
 private:
 	/// Fetches calender data given the intervals and type defined now.
 	void FetchCalenderData();
 
+	int millisecond;
 	int second;
 	int minute;
 	int hour;

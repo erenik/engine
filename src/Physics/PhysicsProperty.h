@@ -149,7 +149,10 @@ public:
 	float physicalRadius;
 
 	/// Damping applied on a per-second basis for this entity only.
-	float linearDamping, linearDampingPerPhysicsFrame;
+	float linearDamping,  
+		linearDampingPerPhysicsFrame;
+	// Default usually 0.99, change to 1.0 for games which have stricter controls/custom integrators.
+	static float defaultLinearDamping; 
 	float angularDampingPerPhysicsFrame;
 
 	/** Obsolete! All positional updates should use the entity's own position vector.
