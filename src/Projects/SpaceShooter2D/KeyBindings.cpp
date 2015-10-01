@@ -34,6 +34,7 @@ void SpaceShooter2D::CreateDefaultBindings()
 	{
 		BIND(Action::FromString("Weapon:"+String(i+1)), KEY::ONE + i);
 	}
+	BIND(Action::FromString("Reload OnEnter"), List<int>(KEY::CTRL, KEY::O, KEY::E));
 	/*
 	BIND(Action::FromString("Weapon:1"), KEY::ONE);
 	BIND(Action::FromString("Weapon:2"), KEY::TWO);

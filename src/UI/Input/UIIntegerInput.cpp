@@ -113,7 +113,9 @@ void UIIntegerInput::OnInputUpdated(UIInput * inputElement)
 /// Creates the label and input.
 void UIIntegerInput::CreateChildren()
 {
-/// Use a column-list to automatically get links between the elements, etc.
+	if (childrenCreated)
+		return;
+	/// Use a column-list to automatically get links between the elements, etc.
 	UIColumnList * box = new UIColumnList();
 	box->padding = this->padding;
 	AddChild(box);
@@ -148,6 +150,7 @@ void UIIntegerInput::CreateChildren()
 	}
 //	input->onTrigger = "UIIntegerInput("+name+")";
 	box->AddChild(input);
+	childrenCreated = true;
 }
 
 /// Getter/setter for the input element.

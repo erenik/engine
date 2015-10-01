@@ -119,6 +119,7 @@ private:
 
 	Audio * GetAudioByName(String name);
 	void ToggleMute();
+	void ToggleMute(int forAudioType);
 	/** Attempts to play audio from given source. Optional arguments control loop-mode and relative volume.
 		Returns the relevant Audio object upon success.
 	*/
@@ -184,6 +185,7 @@ private:
 	float bgmVolume, sfxVolume; // categorical.
 	// Default false.
 	bool mute;
+	bool muteType[AudioType::NUM_TYPES];
 	/// To toggle it in run-time.
 	bool audioEnabled;
 	/// Pauses target audio.

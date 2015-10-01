@@ -10,6 +10,8 @@
 #include "UI/UIList.h"
 #include "UI/UIUtil.h"
 #include "UI/UIInputs.h"
+#include "UI/UIButtons.h"
+#include "Text/TextManager.h"
 
 void LoadOptions();
 
@@ -61,9 +63,18 @@ void SpaceShooter2D::UpdateUI()
 			else
 				MesMan.ProcessMessage("PopUI(gui/InGameMenu.gui)");
 			break;
-		case LOAD_SAVES: OpenLoadScreen(); break;
-		case BUYING_GEAR: UpdateGearList(); break;
-		case SHOWING_LEVEL_STATS: ShowLevelStats(); break;
+		case LOAD_SAVES: 
+			OpenLoadScreen(); 
+			break;
+		case BUYING_GEAR: 
+			UpdateGearList(); 
+			break;
+		case SHOWING_LEVEL_STATS: 
+			ShowLevelStats(); 
+			break;
+		case IN_WORKSHOP:
+			UpdateUpgradesLists();
+			break;
 	};
 }
 
@@ -83,6 +94,9 @@ void RequeueHUDUpdate()
 /// Update UI
 void SpaceShooter2D::UpdateHUDGearedWeapons()
 {
+	if (this->mode != PLAYING_LEVEL)
+		return;
+	MutexHandle mh(uiMutex);
 	// Fetch the names of the checkboxes.
 	UserInterface * ui = MainWindow()->ui;
 	if (!ui)
@@ -124,6 +138,7 @@ void SpaceShooter2D::UpdateHUDGearedWeapons()
 		QueueGraphics(new GMAddUI(cooldownOverlay, child->name));
 	}
 }
+
 void SpaceShooter2D::UpdateUIPlayerHP(bool force)
 {
 	static int lastHP;
@@ -187,6 +202,229 @@ void SpaceShooter2D::ShowLevelStats()
 	GraphicsMan.QueueMessage(new GMSetUIs("LevelKills", GMUI::TEXT, LevelKills()->ToString()));
 	GraphicsMan.QueueMessage(new GMSetUIs("LevelScore", GMUI::TEXT, LevelScore()->ToString()));
 	GraphicsMan.QueueMessage(new GMSetUIs("ScoreTotal", GMUI::TEXT, score->ToString()));
+}
+
+void SpaceShooter2D::UpdateUpgradesLists()
+{
+	QueueGraphics(new GMClearUI("lWeaponCategories"));
+	/// Fill with column lists for each weapon.
+	List<UIElement*> cls;
+	for (int i = 0; i < WeaponType::MAX_TYPES; ++i)
+	{
+		UIColumnList * cl = new UIColumnList("Weapon"+String(i)+"UpgradeCL");
+		cl->sizeRatioY = 0.1f;
+		cl->padding = 0.01f;
+		cls.AddItem(cl);
+		UILabel * label = new UILabel(TextMan.GetText(i+10));
+		label->sizeRatioX = 0.4f;
+		cl->AddChild(label);
+
+		for (int j = 0; j < 10; ++j)
+		{
+			Weapon * weapon = Weapon::Get(i, j);
+			if (!weapon && j != 0)
+				continue;
+
+			UIButton * bn = new UIButton(WeaponTypeLevelToString(i,j));
+			bn->text = "";
+			bn->hoverable = true;
+			bn->onHover = "SetHoverUpgrade:"+bn->name;
+			bn->activationMessage = "ActiveUpgrade:"+bn->name;
+			bn->sizeRatioY = 0.6f;
+			if (playerShip->weapons[i]->level > j)
+				bn->textureSource = "0x00FF00AA";
+			else
+				bn->textureSource = "0x44AA";
+			bn->sizeRatioX = 0.05f;
+			cl->AddChild(bn);
+		}
+	}
+	QueueGraphics(new GMAddUI(cls, "lWeaponCategories"));
+	UpdateUpgradeStatesInList();
+}
+
+void SpaceShooter2D::UpdateUpgradesMoney()
+{
+	QueueGraphics(new GMSetUIi("WorkshopMoney", GMUI::INTEGER_INPUT, money->GetInt()));
+}
+
+void SpaceShooter2D::UpdateUpgradeStatesInList()
+{
+	// Does not create, merely modifies.
+	for (int i = 0; i < WeaponType::MAX_TYPES; ++i)
+	{
+		for (int j = 0; j < 10; ++j)
+		{
+			String buttonName = WeaponTypeLevelToString(i,j);
+			String textureSource;
+			Vector4f color(1,1,1,1);
+			textureSource = "ui/SpaceShooterUpgrade_White";//textureSource = "0xFFFF00AA";
+			if (j == 0)
+			{
+				if (playerShip->weapons[i]->level > 0)
+				{
+	//				textureSource = "ui/SpaceShooterUpgrade_White";//textureSource = "0xFFFF00AA";
+					color = Vector4f(1,1,0,1);
+				}
+				else 
+				{
+					color = Vector4f(1,0,0,1);
+//					textureSource = "0xFF0000AA";
+//				textureSource = "0x44AA";
+				}
+			}
+			else 
+			{
+				if (playerShip->weapons[i]->level >= j)
+//					color = Vector4f(0,1,0,1);
+					color = Color(102, 255, 0, 255);
+				//	textureSource = "ui/SpaceShooterGreenUpgrade.png";
+					//textureSource = "0x00FF00AA";
+				else
+					color = Vector4f(1,1,1,1) * 0.25f;
+//					textureSource = "0x44AA";
+			}
+			QueueGraphics(new GMSetUIv4f(buttonName, GMUI::COLOR, color));
+			QueueGraphics(new GMSetUIs(buttonName, GMUI::TEXTURE_SOURCE, textureSource));
+		}
+	}
+}
+
+
+
+List<UIElement*> tmpElements;
+
+UILabel * BasicLabel(String text)
+{
+	UILabel * l = new UILabel(text);
+	l->sizeRatioY = 0.2f;
+	return l;
+}
+
+UILabel * BasicLabel(int textID)
+{
+	return BasicLabel(TextMan.GetText(textID));
+}
+
+void FillBasicInfo(String upgrade, String inElement)
+{
+	QueueGraphics(new GMClearUI(inElement));
+	// Show basic info
+	Vector2i tl = WeaponTypeLevelFromString(upgrade);
+	int type = tl.x, level = tl.y;
+	// Fetch type.
+	Weapon * weapon = Weapon::Get(type, level);
+
+	List<UIElement*> elements;
+	UIList * l1 = new UIList(), * l2 = new UIList();
+	elements.Add(l1, l2);
+	l1->sizeRatioX = l2->sizeRatioX = 0.5f;
+	l2->alignmentX = 0.75f;
+	l1->alignmentX = 0.25f;
+	/// o.o lvl 0?
+	if (!weapon)
+	{
+		if (playerShip->weapons[type]->level > 0)
+			tmpElements.AddItem(BasicLabel("Unequip?"));
+		else
+			tmpElements.AddItem(BasicLabel("Level 0."));
+		l1->AddChildren(tmpElements);
+		tmpElements.Clear();
+	}
+	else // Weapon exists.
+	{
+		tmpElements.AddItem(BasicLabel("Name: "+weapon->name));
+		tmpElements.AddItem(BasicLabel("Price: "+String(weapon->cost)));
+		tmpElements.AddItem(BasicLabel("Cooldown: "+String(weapon->cooldown.Milliseconds())));
+		tmpElements.AddItem(BasicLabel("Damage: "+String(weapon->damage, 1)));
+		l1->AddChildren(tmpElements);
+		tmpElements.Clear();
+		// Depending on type, add extra statistics too that might be interesting? ^^
+		switch(type)
+		{
+			case BULLETS:
+				tmpElements.AddItem(BasicLabel("Penetration: "+String(weapon->penetration,2)));
+				tmpElements.AddItem(BasicLabel("Stability: "+String(weapon->stability,2)));
+				break;
+			case SMALL_ROCKETS:
+				tmpElements.AddItem(BasicLabel("Burst: "+String(weapon->burstRounds)+"/"+String(weapon->burstRoundDelay.Milliseconds())));
+				tmpElements.AddItem(BasicLabel("Homing: "+String(weapon->homingFactor, 2)));
+				tmpElements.AddItem(BasicLabel("Explosion radius: "+String(weapon->explosionRadius, 1)));
+				break;
+			case BIG_ROCKETS:
+				tmpElements.AddItem(BasicLabel("Homing: "+String(weapon->homingFactor, 2)));
+				tmpElements.AddItem(BasicLabel("Explosion radius: "+String(weapon->explosionRadius, 1)));
+				break;	
+			case LIGHTNING:
+				tmpElements.AddItem(BasicLabel("Max range: "+String(weapon->maxRange)));
+				tmpElements.AddItem(BasicLabel("Max bounces: "+String(weapon->maxBounces)));
+				break;	
+			case LASER_BEAM:
+			case LASER_BURST:
+				break;
+			case HEAT_WAVE:
+				tmpElements.AddItem(BasicLabel("Max range: "+String(weapon->maxRange)));
+				break;
+			case ION_FLAK:
+				tmpElements.AddItem(BasicLabel("Num Projectiles/Salvo: "+String(weapon->numberOfProjectiles)));
+				tmpElements.AddItem(BasicLabel("Stability: "+String(weapon->stability,2)));
+				break;			
+		};
+		l2->AddChildren(tmpElements);
+		tmpElements.Clear();
+	}
+	QueueGraphics(new GMAddUI(elements, inElement));
+//	QueueGraphics(new GMSetUIs(inElement, GMUI::TEXT, upgrade));
+}
+
+void MoreStats(String upgrade, String inElement)
+{
+	QueueGraphics(new GMClearUI(inElement));
+	// Show basic info
+	Vector2i tl = WeaponTypeLevelFromString(upgrade);
+	int type = tl.x, level = tl.y;
+	// Fetch type.
+//	Weapon * weapon = Weapon::Get(type, level);
+	int playerLevel = playerShip->weapons[type]->level;
+	// Diff in money upon purchase
+	int cost = DiffCost(upgrade);
+	String str;
+	if (cost != 0)
+	{
+		str = (cost > 0? "Cost: " : "Sell value: ")+String(AbsoluteValue(cost));
+		int lvlDiff = level - playerLevel;
+		if (AbsoluteValue(lvlDiff) > 1)
+			str += " ("+String(AbsoluteValue(lvlDiff))+" lvls)";
+	}
+	else if (playerLevel > 0)
+		str = "Equipped. Current level.";
+	UILabel * label = BasicLabel(str);
+	if (cost > 0)
+		label->textColor = Vector4f(1,1,0,1);
+	else if (cost < 0)
+		label->textColor = Vector4f(0,1,1,1);
+	else if (cost == 0)
+		label->textColor = Vector4f(0,1,0,1);
+	tmpElements.AddItem(label);
+	QueueGraphics(new GMAddUI(tmpElements, inElement));
+	tmpElements.Clear();
+}
+
+
+String hoverUpgrade;
+
+void SpaceShooter2D::UpdateHoverUpgrade(String upgrade, bool force)
+{
+	if (hoverUpgrade == upgrade && !force)
+		return; // Already set.
+	hoverUpgrade = upgrade;
+	FillBasicInfo(hoverUpgrade, "SelectedStats");
+	MoreStats(hoverUpgrade, "MoreStats");
+//	OnHoverActiveUpdated(true, false);
+}
+
+void SpaceShooter2D::UpdateActiveUpgrade(String upgrade)
+{
 }
 
 /// Returns a list of save-files.

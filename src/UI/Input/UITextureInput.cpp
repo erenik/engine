@@ -54,6 +54,9 @@ bool UITextureInput::HandleDADFiles(List<String> files){
 /// Creates the label and input.
 void UITextureInput::CreateChildren()
 {
+	if (childrenCreated)
+		return;
+
 	/// Use a column-list to automatically get links between the elements, etc.
 	UIColumnList * box = new UIColumnList();
 	box->padding = this->padding;
@@ -81,6 +84,7 @@ void UITextureInput::CreateChildren()
 	uiImage = new UIImage("Black");
 	uiImage->sizeRatioX = 0.1f;
 	box->AddChild(uiImage);
+	childrenCreated = true;
 }
 
 /// Getter/setter for the input element.

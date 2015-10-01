@@ -483,6 +483,10 @@ void MessageManager::ProcessMessage(Message * message)
 				AudioMan.QueueMessage(new AudioMessage(AM_DISABLE_AUDIO));
 		//		AudioMan.DisableAudio();
 			}
+			else if (msg == "muteSFX")
+			{
+				AudioMan.QueueMessage(new AudioMessage(AM_MUTE_SFX));
+			}
 			else if (msg == "CreateMainWindow")
 			{	
 				// Creates the main application AppWindow. A message is sent upon startup from the initializer thread for this.

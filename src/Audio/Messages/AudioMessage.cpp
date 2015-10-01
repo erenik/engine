@@ -32,6 +32,11 @@ void AudioMessage::Process()
 		case AM_TOGGLE_MUTE:
 			AudioMan.ToggleMute();
 			break;
+		case AM_MUTE_SFX:
+			AudioMan.muteType[AudioType::SFX] = true;
+			AudioMan.UpdateVolume();
+		//	AudioMan.ToggleMute(AudioType::SFX);
+			break;
 		default:
 			assert(false);
 	}

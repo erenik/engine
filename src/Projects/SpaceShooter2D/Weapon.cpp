@@ -72,19 +72,21 @@ bool Weapon::Get(String byName, Weapon * weapon)
 	return false;
 }
 
-Weapon Weapon::Get(int type, int level)
+/** For player-based, returns pointer, but should be used as reference only (*-dereference straight away). 
+	Returns 0 if it doesn't exist. */
+Weapon * Weapon::Get(int type, int level)
 {
 	for (int i = 0; i < types.Size(); ++i)
 	{
 		Weapon & weap = types[i];
 		if (weap.type == type && weap.level == level)
 		{
-			return weap;
+			return & weap;
 		}
 	}
 	LogMain("UNABLWE TO GRAB WEAPON "+String(type)+" of level "+String(level), ERROR);
 //	assert(false);
-	return Weapon();
+	return 0;
 }
 
 
@@ -127,6 +129,8 @@ bool Weapon::LoadTypes(String fromFile)
 			column.SetComparisonMode(String::NOT_CASE_SENSITIVE);
 			if (column == "Weapon Name")
 				weapon.name = value;
+			else if (column == "Cost")
+				weapon.cost = value.ParseInt();
 			else if (column == "Type")
 				weapon.type = value.ParseInt();
 			else if (column == "ShootSFX")

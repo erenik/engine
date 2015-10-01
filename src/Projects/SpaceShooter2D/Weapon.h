@@ -72,7 +72,9 @@ public:
 	Weapon();
 	// Sets
 	static bool Get(String byName, Weapon * weapon);
-	static Weapon Get(int type, int level); // for player-based
+	/** For player-based, returns pointer, but should be used as reference only (*-dereference straight away). 
+		Returns 0 if it doesn't exist. */
+	static Weapon * Get(int type, int level); 
 	static bool LoadTypes(String fromFile);
 	/// Moves the aim of this weapon turrent.
 	void Aim(Ship * ship);
@@ -91,6 +93,7 @@ public:
 
 	float stability;
 	String name;
+	int cost; // o-o
 	int type; // mainly for player-based weapons.
 	int level; // Also mainly for player-based weapons.
 	/// -1 = Infinite, >= 0 = Finite

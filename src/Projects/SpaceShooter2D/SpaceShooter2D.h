@@ -101,6 +101,10 @@ extern String playerName;
 extern bool paused;
 extern String onDeath; // What happens when the player dies?
 
+Vector2i WeaponTypeLevelFromString(String str); // For shop/UI-interaction.
+String WeaponTypeLevelToString(int type, int level);
+int DiffCost(String toUpgrade);
+
 class SpaceShooter2D : public AppState 
 {
 public:
@@ -127,6 +131,8 @@ public:
 	/// Called from the render-thread for every viewport/AppWindow, after the main rendering-pipeline has done its job.
 	virtual void Render(GraphicsState * graphicsState);
 
+	/// Loads .csv's and data so as to know default gear and ships.
+	void LoadShipData();
 	/// UI stuffs. All implemented in UIHandling.cpp
 	void UpdateUI();
 	void UpdateGearList();
@@ -136,6 +142,15 @@ public:
 	void UpdateUIPlayerShield(bool force);
 	void UpdateHUDSkill();
 	void UpdateCooldowns();
+	void UpdateUpgradesLists();
+	void UpdateUpgradeStatesInList(); // Updates colors n stuff based on level
+	void UpdateHoverUpgrade(String upgrade, bool force = false);
+	void UpdateActiveUpgrade(String upgrade);
+	void UpdateUpgradesMoney();
+
+	/// Shop handling...
+	void BuySellToUpgrade(String upgrade);
+
 	void OpenJumpDialog();
 	/// Update ui
 	void OnScoreUpdated();

@@ -7,6 +7,7 @@
 #include "Text/TextManager.h"
 #include "LevelMessage.h"
 #include "Explosion.h"
+#include "File/LogFile.h"
 
 Camera * levelCamera = NULL;
 
@@ -50,6 +51,7 @@ Entity * Level::AddPlayer(Ship * playerShip, ConstVec3fr atPosition)
 	/// Refresh cooldowns for all weapons.
 	playerShip->RandomizeWeaponCooldowns();
 	playerShip->movementDisabled = false;
+	playerShip->ai = false;
 	if (playerShip->entity)
 	{
 		MapMan.DeleteEntity(playerShip->entity);
@@ -114,6 +116,7 @@ void Level::Process(int timeInMs)
 	// Check for game over.
 	if (playerShip->hp <= 0)
 	{
+		LogMain("Game over! Player HP 0", INFO);
 		// Game OVER!
 		if (onDeath.Length() == 0)
 			spaceShooter->GameOver();

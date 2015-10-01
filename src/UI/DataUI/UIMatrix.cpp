@@ -43,6 +43,9 @@ void UIMatrix::RenderSelf(GraphicsState & graphicsState)
 
 void UIMatrix::CreateChildren()
 {
+	if (childrenCreated)
+		return;
+
 	/*
 	/// Create a label
 	label = new UILabel();
@@ -53,6 +56,7 @@ void UIMatrix::CreateChildren()
 */
 	/// Booyakacha!
 	CreateMatrix();
+	childrenCreated = true;
 }
 
 /// Oy.

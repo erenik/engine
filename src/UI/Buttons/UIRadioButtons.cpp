@@ -24,6 +24,9 @@ UIRadioButtons::~UIRadioButtons()
 /// Creates the actual buttons.
 void UIRadioButtons::CreateChildren()
 {
+	if (childrenCreated)
+		return;
+
 	assert(children.Size() == 0);
 	int elements; 
 	float spaceLeft;
@@ -59,6 +62,7 @@ void UIRadioButtons::CreateChildren()
 		AddChild(button);
 		buttons.Add(button);
 	}
+	childrenCreated = true;
 }
 
 

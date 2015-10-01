@@ -56,7 +56,11 @@ UIQueryDialogue::~UIQueryDialogue()
 }
 
 /// Creates the relevant children. Separate function in order to not have everything allocated in the constructor.
-void UIQueryDialogue::CreateChildren(){
+void UIQueryDialogue::CreateChildren()
+{
+	if (childrenCreated)
+		return;
+
 	/// Clear any children if we had any first.
 	if (children.Size())
 		children.ClearAndDelete();
@@ -106,7 +110,7 @@ void UIQueryDialogue::CreateChildren(){
 	cList->AddChild(button);
 	okButton = button;
 
-
+	childrenCreated = true;
 }
 
 
@@ -158,7 +162,11 @@ UIStringDialogue::~UIStringDialogue()
 }
 
 /// Creates the relevant children. Separate function in order to not have everything allocated in the constructor.
-void UIStringDialogue::CreateChildren(){
+void UIStringDialogue::CreateChildren()
+{
+	if (childrenCreated)
+		return;
+
 	/// Clear any children if we had any first.
 	if (children.Size())
 		children.ClearAndDelete();
@@ -197,6 +205,7 @@ void UIStringDialogue::CreateChildren(){
 	okButton->sizeRatioX = 0.4f;
 	okButton->alignmentX = 0.2f;
 	box->AddChild(okButton);
+	childrenCreated = true;
 }
 
 /// Callback from the input-system. Will submit a SetString message and remove this Dialogue.

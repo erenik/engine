@@ -58,6 +58,9 @@ UIFileBrowser::~UIFileBrowser()
 /// Creates ze children!
 void UIFileBrowser::CreateChildren()
 {
+	if (childrenCreated)
+		return;
+
 	assert(this->children.Size()==0);
 	
 	// Create a title

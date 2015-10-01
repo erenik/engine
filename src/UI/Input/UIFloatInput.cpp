@@ -95,6 +95,8 @@ void UIFloatInput::OnInputUpdated(UIInput * inputElement)
 /// Creates the label and input.
 void UIFloatInput::CreateChildren()
 {
+	if (childrenCreated)
+		return;
 	/// Use a column-list to automatically get links between the elements, etc.
 	UIColumnList * box = new UIColumnList();
 	box->padding = this->padding;
@@ -127,6 +129,7 @@ void UIFloatInput::CreateChildren()
 	input->sizeRatioX = spacePerElement;
 //	input->onTrigger = "UIFloatInput("+name+")";
 	box->AddChild(input);
+	childrenCreated = true;
 }
 
 /// Getter/setter for the input element.

@@ -364,6 +364,7 @@ GMSetUIv4f::GMSetUIv4f(String UIname, int target, const Vector4f & v, Viewport *
 void GMSetUIv4f::AssertTarget()
 {
 	switch(target){
+		case GMUI::COLOR:
 		case GMUI::VECTOR_INPUT:
 	    case GMUI::TEXT_COLOR:
 			break;
@@ -386,6 +387,9 @@ void GMSetUIv4f::Process()
 		return;
 	}
     switch(target){
+		case GMUI::COLOR:
+			e->color = value;
+			break;
         case GMUI::TEXT_COLOR:
             e->textColor = value;
             break;
@@ -690,7 +694,8 @@ GMClearUI::GMClearUI(String uiName, UserInterface * inUI)
 GMClearUI::GMClearUI(String uiName, Viewport * viewport)
 : GMUI(GM_CLEAR_UI, viewport), uiName(uiName){}
 
-void GMClearUI::Process(){
+void GMClearUI::Process()
+{
 	if (!GetUI())
         return;
 	UIElement * e = ui->GetElementByName(uiName);

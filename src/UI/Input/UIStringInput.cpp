@@ -42,6 +42,9 @@ void UIStringInput::OnInputUpdated(UIInput * inputElement)
 /// Creates the label and input.
 void UIStringInput::CreateChildren()
 {
+	if (childrenCreated)
+		return;
+
 	/// Use a column-list to automatically get links between the elements, etc.
 	UIColumnList * box = new UIColumnList();
 	box->padding = this->padding;
@@ -62,6 +65,7 @@ void UIStringInput::CreateChildren()
 	input->sizeRatioX = 1.0f - divider.x;
 	input->onTrigger = "UIStringInput("+name+")";
 	box->AddChild(input);
+	childrenCreated = true;
 }
 /// Getter/setter for the input element.
 String UIStringInput::GetValue()

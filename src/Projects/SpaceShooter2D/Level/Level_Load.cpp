@@ -14,9 +14,9 @@ namespace LevelLoader
 {
 	bool messagesPauseGameTime = true;
 	bool spawnGroupsPauseGameTime = true;
-	SpawnGroup * group = (SpawnGroup*)0xFFFFFFFF;
-	Level * loadLevel = (Level*)0xFFFFFFFF;
-	SpawnGroup * lastGroup = (SpawnGroup*)0xFFFFFFFF;
+	SpawnGroup * group = (SpawnGroup*)0;
+	Level * loadLevel = (Level*)0;
+	SpawnGroup * lastGroup = (SpawnGroup*)0;
 	/// Additional spawn times for duplicates of the same group (times specified at start)
 	List<Time> spawnTimes;
 

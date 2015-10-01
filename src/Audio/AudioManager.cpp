@@ -50,6 +50,11 @@ AudioManager::AudioManager()
 	pauseUpdates = false;
 	audioEnabled = true;
 	mute = false;
+	for (int i = 0; i < AudioType::NUM_TYPES; ++i)
+	{
+		muteType[i] = false;
+	}
+
 	masterVolume = 1.0f;
 	bgmVolume = 0.8f;
 	sfxVolume = 1.0f;
@@ -318,6 +323,12 @@ void AudioManager::ToggleMute()
 	masterMixer->muted = mute;
 	this->UpdateVolume();
 }
+void AudioManager::ToggleMute(int forAudioType)
+{
+	this->muteType[forAudioType] = !muteType[forAudioType];
+	this->UpdateVolume();
+}
+
 
 
 /** Attempts to play audio from given source. Optional arguments control loop-mode and relative volume.
@@ -676,9 +687,9 @@ float AudioManager::GetVolume(int forAudioType)
 	switch(forAudioType)
 	{
 		case AudioType::BGM:
-			return bgmVolume;
+			return bgmVolume * (muteType[AudioType::BGM]? 0 : 1);
 		case AudioType::SFX:
-			return sfxVolume;
+			return sfxVolume * (muteType[AudioType::SFX]? 0 : 1);
 		default:
 			std::cout<<"\nDefault -1 volume.";
 	}

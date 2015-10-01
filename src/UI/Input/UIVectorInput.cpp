@@ -60,6 +60,9 @@ void UIVectorInput::OnInputUpdated(UIInput * inputElement)
 /// Creates ze children!
 void UIVectorInput::CreateChildren()
 {
+	if (childrenCreated)
+		return;
+
 	/// Use a column-list to automatically get links between the elements, etc.
 	UIColumnList * box = new UIColumnList();
 	box->padding = this->padding;
@@ -88,6 +91,7 @@ void UIVectorInput::CreateChildren()
 		box->AddChild(input);
 		inputs.Add(input);
 	}
+	childrenCreated = true;
 }	
 /// Getters
 Vector2i UIVectorInput::GetValue2i()

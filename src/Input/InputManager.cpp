@@ -476,6 +476,7 @@ void InputManager::MouseMove(AppWindow * appWindow, Vector2i activeWindowAreaCoo
 	inputState->mousePosition = Vector2i(x,y);
 
 	/// If we have a global UI (system ui), process it first.
+	uiMutex.Claim();
 	UserInterface * userInterface = GetRelevantUIForWindow(appWindow);
 	UIElement * element = NULL;
 	if (userInterface)
@@ -501,6 +502,8 @@ void InputManager::MouseMove(AppWindow * appWindow, Vector2i activeWindowAreaCoo
 //		if ((element && !element->highlightOnHover) || !element)
 //			element = hoverElement;
 	}
+	uiMutex.Release();
+
 
 	/// If no active gamestate, return...
 	AppState * currentState = StateMan.ActiveState();

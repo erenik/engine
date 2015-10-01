@@ -280,6 +280,8 @@ void Ship::Damage(Weapon & weapon)
 
 void Ship::Damage(float amount, bool ignoreShield)
 {
+	if (!ai)
+		LogMain("Player took "+String((int)amount)+" damage!", INFO);
 	if (spawnInvulnerability)
 	{
 	//	std::cout<<"\nInvulnnnn!";
@@ -377,7 +379,7 @@ Ship * Ship::New(String shipByName)
 			{
 				Weapon * refWeap = type->weapons[j];
 				Weapon * newWeap = new Weapon();
-				*newWeap = Weapon::Get(refWeap->type, refWeap->level);
+				*newWeap = *Weapon::Get(refWeap->type, refWeap->level);
 				newShip->weapons.AddItem(newWeap);
 			}
 			return newShip;
@@ -458,7 +460,23 @@ void Ship::StartMovement()
 void Ship::SetWeaponLevel(int weaponType, int level)
 {
 	Weapon * weapon = GetWeapon(weaponType);
-	*weapon = Weapon::Get(weaponType, level);
+	Weapon * targetWeapon = Weapon::Get(weaponType, level);
+	if (!targetWeapon)
+	{
+		if (level == 0)
+		{
+			targetWeapon = Weapon::Get(weaponType, 1);
+			if (targetWeapon)
+			{
+				*weapon = *targetWeapon;
+				weapon->level = 0;
+				weapon->name = "";
+				weapon->cooldown = Time(TimeType::MILLISECONDS_NO_CALENDER, 4000000);
+			}
+		}
+		return;
+	}
+	*weapon = *targetWeapon;
 }
 
 Weapon * Ship::GetWeapon(int ofType)

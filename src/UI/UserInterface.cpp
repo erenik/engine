@@ -1413,8 +1413,10 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 				else
 					text = Text();
 		        /// Check special cases like dedicated label child elements.
-				if (element->label){
+				if (element->label)
+				{
 					element->label->text = text;
+					element->text = "";
 					break;
 				}
 				element->text = text;

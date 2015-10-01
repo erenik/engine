@@ -41,8 +41,10 @@ List<Ship*> Ship::types;
 /// 4 entities constitude the blackness.
 List<Entity*> blacknessEntities;
 
+bool shipDataLoaded = false;
+
 /// If true, queues up messages so the player automatically starts a new game with the default name and difficulty.
-bool introTest = true;
+bool introTest = false;
 
 void SetApplicationDefaults()
 {
@@ -68,7 +70,8 @@ Time startDate;
 bool inGameMenuOpened = false;
 bool showLevelStats = false;
 String onDeath; // What happens when the player dies?
-
+String levelToLoad;
+String previousActiveUpgrade;
 
 void RegisterStates()
 {
@@ -79,7 +82,7 @@ void RegisterStates()
 
 SpaceShooter2D::SpaceShooter2D()
 {
-	playerShip = new Ship();
+//	playerShip = new Ship();
 	levelCamera = NULL;
 	SetPlayingFieldSize(Vector2f(30,20));
 	levelEntity = NULL;
@@ -108,7 +111,7 @@ void SpaceShooter2D::OnEnter(AppState * previousState)
 	currentStage = GameVars.CreateInt("currentStage", 1);
 	playerName = GameVars.CreateString("playerName", "Cytine");
 	score = GameVars.CreateInt("score", 0);
-	money = GameVars.CreateInt("money", 0);
+	money = GameVars.CreateInt("money", 200);
 	playTime = GameVars.CreateInt("playTime", 0);
 	gameStartDate = GameVars.CreateTime("gameStartDate");
 	difficulty = GameVars.CreateInt("difficulty", 1);
@@ -167,6 +170,11 @@ void SpaceShooter2D::OnEnter(AppState * previousState)
 
 	/// Enter main menu
 //	OpenMainMenu();
+
+	TextMan.LoadFromDir();
+	TextMan.SetLanguage("English");
+
+	NewPlayer();
 
 	// Run OnEnter.ini start script if such a file exists.
 	Script * script = new Script();
@@ -307,6 +315,15 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 			}
 			break;
 		}
+		case MessageType::ON_UI_ELEMENT_HOVER:
+		{
+			if (msg.StartsWith("SetHoverUpgrade:"))
+			{
+				String upgrade = msg.Tokenize(":")[1];
+				UpdateHoverUpgrade(upgrade);
+			}
+			break;
+		}
 		case MessageType::STRING:
 		{
 			msg.RemoveSurroundingWhitespaces();
@@ -321,6 +338,11 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 				NewGame();
 			if (msg == "Continue")
 			{
+				if (levelToLoad.Length())
+				{
+					LoadLevel(levelToLoad);
+					return;
+				}
 				// Set stage n level
 				if (currentStage->iValue == 0)
 				{
@@ -343,10 +365,6 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 				ScriptMan.PlayScript("scripts/NewGame.txt");
 				// Resume physics/graphics if paused.
 				Resume();
-
-				TextMan.LoadFromDir();
-				TextMan.SetLanguage("English");
-
 			}
 			if (msg == "GoToHangar")
 			{
@@ -386,7 +404,8 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 			{
 				for (int i = 0; i < WeaponType::MAX_TYPES; ++i)
 				{
-					playerShip->SetWeaponLevel(i, 1);
+					if (playerShip->weapons[i]->level <= 0)
+						playerShip->SetWeaponLevel(i, 1);
 					UpdateHUDGearedWeapons();
 				}
 			}
@@ -437,6 +456,15 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 			{
 				onDeath = msg - "SetOnDeath:";
 			}
+			if (msg.StartsWith("ActiveUpgrade:"))
+			{
+				String upgrade = msg.Tokenize(":")[1];
+			//	if (previousActiveUpgrade == upgrade)
+				BuySellToUpgrade(upgrade);
+				UpdateHoverUpgrade(upgrade, true);
+			//	UpdateActiveUpgrade(upgrade);
+				previousActiveUpgrade = upgrade;
+			}
 			if (msg == "OpenJumpDialog")
 			{
 				Pause();
@@ -486,6 +514,13 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 			else if (msg == "StartShooting")
 			{
 				playerShip->shoot = true;
+			}
+			else if (msg == "Reload OnEnter")
+			{
+				// Run OnEnter.ini start script if such a file exists.
+				Script * script = new Script();
+				script->Load("OnEnter.ini");
+				ScriptMan.PlayScript(script);
 			}
 			else if (msg == "StopShooting")
 			{
@@ -594,6 +629,13 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 			{
 				std::cout<<"\nGraphics entities "<<GraphicsMan.RegisteredEntities()<<" physics "<<PhysicsMan.RegisteredEntities()
 					<<" projectiles "<<projectileEntities.Size()<<" ships "<<shipEntities.Size();
+			}
+			else if (msg.StartsWith("LevelToLoad:"))
+			{
+				String source = msg;
+				source.Remove("LevelToLoad:");
+				source.RemoveSurroundingWhitespaces();
+				levelToLoad = source;
 			}
 			else if (msg.StartsWith("LoadLevel:"))
 			{
@@ -803,12 +845,9 @@ GameVariable * SpaceShooter2D::LevelKills(int stage, int level)
 	return gv;
 }
 
-
-/// Starts a new game. Calls LoadLevel
-void SpaceShooter2D::NewGame()
+void SpaceShooter2D::LoadShipData()
 {
-	PopUI("NewGame");
-	PopUI("MainMenu");
+
 	/// Fetch file which dictates where to load weapons and ships from.
 	List<String> lines = File::GetLines("ToLoad.txt");
 	enum {
@@ -833,7 +872,16 @@ void SpaceShooter2D::NewGame()
 	Gear::Load("data/ShopWeapons.csv");
 	Gear::Load("data/ShopArmors.csv");
 	Gear::Load("data/ShopShields.csv");
-	
+	shipDataLoaded = true;
+}
+
+
+/// Starts a new game. Calls LoadLevel
+void SpaceShooter2D::NewGame()
+{
+	PopUI("NewGame");
+	PopUI("MainMenu");
+		
 	// Create player.
 	NewPlayer();
 	startDate = Time::Now();
@@ -865,6 +913,9 @@ void SpaceShooter2D::NewGame()
 /// o.o
 void SpaceShooter2D::NewPlayer()
 {
+	if (!shipDataLoaded)
+		LoadShipData();
+
 	SAFE_DELETE(playerShip);
 	// Reset player-ship.
 	if (playerShip == 0)
@@ -877,6 +928,11 @@ void SpaceShooter2D::NewPlayer()
 	playerShip->armor = Gear::StartingArmor();
 	playerShip->shield = Gear::StartingShield();
 	playerShip->UpdateStatsFromGear();
+
+	for (int i = 0; i < WeaponType::MAX_TYPES; ++i)
+	{
+		playerShip->SetWeaponLevel(i, 0);
+	}
 }
 
 
@@ -949,6 +1005,8 @@ void SpaceShooter2D::LoadLevel(String fromSource)
 
 	level.Load(fromSource);
 	level.SetupCamera();
+	if (!playerShip)
+		NewPlayer();
 	level.AddPlayer(playerShip);
 	// Reset player stats.
 	playerShip->hp = playerShip->maxHP;

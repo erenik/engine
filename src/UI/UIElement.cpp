@@ -66,6 +66,7 @@ bool UIElement::HandleDADFiles(List<String> files)
 /// Set default values.
 void UIElement::Nullify()
 {
+	childrenCreated = false;
 	/// ID
 	id = idEnumerator++;
 	/// Hierarchy
@@ -373,7 +374,10 @@ void UIElement::Clear()
 			UIElement * child = children[i];
 			child->FreeBuffers();
 		}
+	// Grab mutex first?
+	uiMutex.Claim();
 	children.ClearAndDelete();
+	uiMutex.Release();
 };
 
 //******************************************************************************//

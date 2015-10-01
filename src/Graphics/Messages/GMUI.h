@@ -29,6 +29,7 @@ public:
 		/// Lists of booleans
 		MATRIX_DATA,
 		// Vectors
+		COLOR,
 		TEXT_COLOR,
 		VECTOR_INPUT, // Whole input for UIVectorInput class.
 		/// Vector2i

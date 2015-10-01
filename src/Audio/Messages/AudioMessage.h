@@ -16,6 +16,7 @@ enum audioMessageTypes
 	// 
 	AM_REGISTER,
 	AM_DISABLE_AUDIO,
+	AM_MUTE_SFX,
 	AM_SET, // general setter.
 	AM_SET_BOOLEAN,
 	AM_SET_AUDIO, // audio setter

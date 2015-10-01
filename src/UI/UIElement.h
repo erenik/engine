@@ -472,6 +472,7 @@ protected:
 	// Hierarchal pointers
 	UIElement * parent;					// Pointer to parent UI element
 	List<UIElement*> children;					// Pointer-array to a child.
+	bool childrenCreated; // For complex types, set to true once created (false by default).
 
 	/// Id stuff
 	int id;								// ID of the UI, used for changing properties in the element.
