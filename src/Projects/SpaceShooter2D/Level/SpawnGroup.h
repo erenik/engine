@@ -5,7 +5,7 @@
 #ifndef SPAWN_GROUP_H
 #define SPAWN_GROUP_H
 
-#include "../Ship.h"
+#include "SpaceShooter2D/Base/Ship.h"
 #include "Time/Time.h"
 
 /// Types. Default LINE_X?

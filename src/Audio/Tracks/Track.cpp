@@ -36,11 +36,11 @@ bool Track::IsPlaying()
 	return false;
 }
 
-void Track::Pause()
+void Track::Pause(bool pauseLocally)
 {
 	if (!audio)
 		return;
-	audio->Pause();
+	audio->Pause(true);
 }
 void Track::Resume()
 {

@@ -3,7 +3,8 @@
 /// Space shooter.
 /// For the Karl-Emil SpaceShooter project, mainly 2014-2015/
 
-#include "SpaceShooter2D.h"
+#include "SpaceShooter2D/SpaceShooter2D.h"
+#include "Base/WeaponScript.h"
 
 #include "Application/Application.h"
 #include "StateManager.h"
@@ -22,7 +23,7 @@
 #include "Render/RenderPass.h"
 
 #include "Message/MathMessage.h"
-#include "Gear.h"
+#include "SpaceShooter2D/Base/Gear.h"
 
 #include "Input/InputManager.h"
 
@@ -51,6 +52,7 @@ void SetApplicationDefaults()
 	Application::name = "SpaceShooter2D";
 	TextFont::defaultFontSource = "img/fonts/font3.png";
 	PhysicsProperty::defaultUseQuaternions = false;
+	UIElement::defaultTextureSource = "0x22AA";
 }
 
 // Global variables.
@@ -242,6 +244,8 @@ void SpaceShooter2D::CreateUserInterface()
 void SpaceShooter2D::ProcessMessage(Message * message)
 {
 	String msg = message->msg;
+	if (mode == SpaceShooter2D::EDIT_WEAPON_SWITCH_SCRIPTS)
+		ProcessMessageWSS(message);
 	level.ProcessMessage(message);
 	switch(message->type)
 	{
@@ -369,6 +373,10 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 			if (msg == "GoToHangar")
 			{
 				SetMode(IN_HANGAR);
+			}
+			if (msg == "GoToEditWeaponSwitchScripts")
+			{
+				SetMode(EDIT_WEAPON_SWITCH_SCRIPTS);
 			}
 			if (msg == "GoToWorkshop")
 			{
@@ -959,10 +967,12 @@ void SpaceShooter2D::OnPauseStateUpdated()
 	{
 		GraphicsMan.QueueMessage(new GraphicsMessage(GM_PAUSE_PROCESSING));
 		PhysicsMan.Pause();
+		QueueAudio(new AudioMessage(AM_PAUSE_PLAYBACK));
 	}
 	else {
 		GraphicsMan.QueueMessage(new GraphicsMessage(GM_RESUME_PROCESSING));
 		PhysicsMan.Resume();
+		QueueAudio(new AudioMessage(AM_RESUME_PLAYBACK));
 	}
 }
 
@@ -1245,11 +1255,15 @@ void SpaceShooter2D::SetPlayingFieldSize(Vector2f newSize)
 	playingFieldHalfSize = newSize * .5f;
 }
 
+List<int> previousModes;
 /// Saves previousMode
 void SpaceShooter2D::SetMode(int newMode, bool updateUI)
 {
 	if (previousMode != mode)
+	{
 		previousMode = mode;
+		previousModes.AddItem(mode); // List of modes for backing much?
+	}
 	mode = newMode;
 	// Update UI automagically?
 	if (updateUI)

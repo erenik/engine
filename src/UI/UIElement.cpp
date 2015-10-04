@@ -850,15 +850,19 @@ UIElement * UIElement::GetLeftNeighbour(UIElement * referenceElement, bool & sea
 		referenceElement = this;
 	}
 	/// If we have a pointer, just use it!
-	if (leftNeighbour){
+	if (leftNeighbour && leftNeighbour->activateable)
+	{
 		element = leftNeighbour;
 	}
 	/// If not, fetch it if possible.
 	else {
 		/// Check if we got a preferred neighbour.
 		if (leftNeighbourName.Length())
+		{
 			element = this->GetRoot()->GetElementByName(leftNeighbourName);
-
+			if (element && !element->activateable)
+				element = NULL;
+		}
 		/// If still haven't found a decent one, consult our parent. Unless we're in the stack of course, upon which it means we have found no decent new neighbour.
 		if (!element && !searchChildrenOnly && !inStack)
 		{

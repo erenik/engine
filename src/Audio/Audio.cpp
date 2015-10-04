@@ -51,6 +51,7 @@ Audio::Audio()
 
 void Audio::Nullify()
 {
+	pausedLocally = false;
 	bytesBufferedTotal = 0;
 	registeredForRendering = false;
 #define BUF_SIZE (1024 * 64)
@@ -263,6 +264,8 @@ void Audio::Play()
 	// Default volume.
 //	volume = 1.f;
 
+	pausedLocally = false;
+
 	/// Generate buffers, sources, etc. if not already done so!
 	if (audioDriver == AudioDriver::OpenAL)
 	{
@@ -334,6 +337,7 @@ bool Audio::IsPaused()
 // Resumes ONLY if the audio was currently paused.
 void Audio::Resume()
 {
+	pausedLocally = false;
 	/// Set volume..?
 //	UpdateVolume(AudioMan.MasterVolume());
 #ifdef OPENAL
@@ -355,8 +359,12 @@ void Audio::Resume()
 	playbackEnded = false;
 }
 
-void Audio::Pause()
+void Audio::Pause(bool localPause)
 {
+	if (localPause)
+		pausedLocally = true;
+	else
+		pausedLocally = false;
 #ifdef OPENAL
 	alSourcePause(alSource);
 #endif
@@ -509,7 +517,7 @@ void Audio::UpdateVolume()
 			volume = fadeEndVolume;
 			// Stop us?
 			if (volume <= 0 && pauseOnMuted)
-				Pause();
+				Pause(true);
 		}
 		else if (audioNowMs > fadeStartMs)
 		{

@@ -688,22 +688,35 @@ GMSetGlobalUIs::GMSetGlobalUIs(String uiName, int target, Text text, bool force,
 	global = true;
 }
 
+GMClearUI::GMClearUI(List<String> uiNames)
+: GMUI(GM_CLEAR_UI), uiNames(uiNames) {}
+
 GMClearUI::GMClearUI(String uiName, UserInterface * inUI)
-: GMUI(GM_CLEAR_UI, inUI), uiName(uiName){}
+: GMUI(GM_CLEAR_UI, inUI)
+{
+	uiNames.AddItem(uiName);
+}
 
 GMClearUI::GMClearUI(String uiName, Viewport * viewport)
-: GMUI(GM_CLEAR_UI, viewport), uiName(uiName){}
+: GMUI(GM_CLEAR_UI, viewport)
+{
+	uiNames.AddItem(uiName);
+}
 
 void GMClearUI::Process()
 {
 	if (!GetUI())
         return;
-	UIElement * e = ui->GetElementByName(uiName);
-	if (!e){
-		LogGraphics("INFO: No element found with specified name \""+uiName+"\"", DEBUG);
-		return;
+	for (int i = 0; i < uiNames.Size(); ++i)
+	{
+		String uiName = uiNames[i];
+		UIElement * e = ui->GetElementByName(uiName);
+		if (!e){
+			LogGraphics("INFO: No element found with specified name \""+uiName+"\"", DEBUG);
+			return;
+		}
+		e->Clear();
 	}
-	e->Clear();
 	Graphics.renderQueried = true;
 }
 

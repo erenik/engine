@@ -2,7 +2,7 @@
 /// 2015-07-09
 /// Loader for Ship, separate file due to length.
 
-#include "../Ship.h"
+#include "SpaceShooter2D/Base/Ship.h"
 #include "File/File.h"
 #include "String/StringUtil.h"
 #include "File/LogFile.h"

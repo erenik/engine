@@ -228,11 +228,12 @@ public:
 // Deletes contents (children) of specified UI element. Primarily used on UILists.
 class GMClearUI : public GMUI{
 public:
+	GMClearUI(List<String> uiNames);
 	GMClearUI(String uiName, UserInterface * inUI);
 	GMClearUI(String uiName, Viewport * viewport = NULL);
 	void Process();
 private:
-	String uiName;
+	List<String> uiNames;
 };
 
 class GMScrollUI : public GMUI{

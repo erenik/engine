@@ -16,7 +16,7 @@ class Track {
 public:
 	void Play();
 	bool IsPlaying();
-	void Pause();
+	void Pause(bool pauseLocally = true);
 	void Resume();
 	void Stop();
 	/// Sets the track to start/stop looping.

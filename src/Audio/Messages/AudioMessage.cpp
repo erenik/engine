@@ -23,6 +23,12 @@ void AudioMessage::Process()
 		case AM_SHUTDOWN:
 			AudioMan.Shutdown();
 			break;
+		case AM_PAUSE_PLAYBACK:
+			AudioMan.GlobalPause(true);
+			break;
+		case AM_RESUME_PLAYBACK:
+			AudioMan.GlobalPause(false);
+			break;
 		case AM_DISABLE_AUDIO:
 			AudioMan.DisableAudio();
 			break;
@@ -242,13 +248,13 @@ void AMPlayBGM::Process()
 }
 
 
-AMPause::AMPause(Audio * audio)
-: AudioMessage(AM_PAUSE), audio(audio)
+AMPause::AMPause(Audio * audio, bool pauseLocally)
+: AudioMessage(AM_PAUSE), audio(audio), pauseLocally(pauseLocally)
 {
 }
 void AMPause::Process()
 {
-	audio->Pause();
+	audio->Pause(pauseLocally);
 }
 
 

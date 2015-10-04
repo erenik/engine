@@ -284,8 +284,9 @@ void AudioManager::PauseAllOfType(char type)
 	Audio * audio;
 	for (int i = 0; i < audioList.Size(); ++i){
 		audio = audioList[i];
-		if (audio->type == type){
-			Pause(audio);
+		if (audio->type == type)
+		{
+			audio->Pause(false);
 		}
 	}
 }
@@ -501,7 +502,15 @@ Audio * AudioManager::PlayBGM(String name, float volume /* = 1.f */)
 	return Play(AudioType::BGM, name, true, volume);
 }
 
+/// Pauses playback of all audio.
+void AudioManager::GlobalPause(bool newPauseState)
+{
+	globalPause = newPauseState;
+	// Update all?
+	UpdatePauseState();
+}
 
+/*
 // Pause
 void AudioManager::Pause(String name)
 {
@@ -516,13 +525,7 @@ void AudioManager::Pause(String name)
 		}
 	}
 }
-
-void AudioManager::Pause(Audio * audio)
-{
-	if (!initialized)
-		return;
-	audio->Pause();
-}
+*/
 
 void AudioManager::Stop(String name)
 {
@@ -569,7 +572,7 @@ void AudioManager::DisableAudio()
 	audioEnabled = false;
 	for (int i = 0; i < audioList.Size(); ++i){
 		Audio * audio = audioList[i];
-		audio->Pause();
+		audio->Pause(false);
 	}
 }
 
@@ -654,6 +657,20 @@ void AudioManager::Update()
 	if (usingMasterMixer)
 		masterMixer->Update();
 }
+
+/// Pauses/resumes all depending on state change.
+void AudioManager::UpdatePauseState()
+{
+	for (int i = 0; i < audioList.Size(); ++i)
+	{
+		Audio * au = audioList[i];
+		if (globalPause)
+			au->Pause(false);
+		else if (!globalPause && !au->pausedLocally)
+			au->Resume();
+	}
+}
+
 
 Vector3f AudioManager::ListenerPosition()
 {

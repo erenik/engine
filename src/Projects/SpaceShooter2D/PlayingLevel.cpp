@@ -2,7 +2,7 @@
 /// 2015-02-07
 /// All code pertaining to playing of the actual level.
 
-#include "SpaceShooter2D.h"
+#include "SpaceShooter2D/SpaceShooter2D.h"
 
 void SpaceShooter2D::Cleanup()
 {

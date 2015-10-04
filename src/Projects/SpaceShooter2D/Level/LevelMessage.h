@@ -5,7 +5,7 @@
 #ifndef LEVEL_MSG_H
 #define LEVEL_MSG_H
 
-#include "../Ship.h"
+#include "SpaceShooter2D/Base/Ship.h"
 #include "Color.h"
 
 struct LevelMessage 

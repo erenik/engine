@@ -55,7 +55,11 @@ public:
 	bool IsPlaying();
 	bool IsPaused(); 
 	void Resume();			// Resumes ONLY if the audio was currently paused.
-	void Pause();			// Pause at current time
+	/** Pause at current time. If true, pause operation is local (this audio only/specifically)
+		If false, pause operation is global. The pausedLocally variable is set depending on how this is used.
+	*/
+	void Pause(bool localPause);			
+	bool pausedLocally;
 	void Stop(bool andSeekToStart);			// Stops and brings currentTime to 0.
 	void FadeOut(float seconds);
 	void FadeTo(float volume, float seconds);

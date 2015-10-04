@@ -95,6 +95,8 @@ public:
 
 	/// Updates the streams and volumes, also processes any queued messages ^^
 	void Update();
+	/// Pauses/resumes all depending on state change.
+	void UpdatePauseState();
 	Vector3f ListenerPosition();
 	
 	/// Getters
@@ -131,8 +133,10 @@ private:
 	/// Plays target BGM, pausing all others. Default sets to repeat.
 	Audio * PlayBGM(String name, float volume = 1.f);
 
+	/// Pauses playback of all audio.
+	void GlobalPause(bool newPauseState);
 	// Halting playback
-	void Pause(String name);
+//	void Pause(String name);
 	void Stop(String name);
 
 	/// Creates an audio stream which will continually try and update by grabbing PCM data from the stream.
@@ -158,7 +162,9 @@ private:
 	/// Flag if we should pause updates
 	bool pauseUpdates;	
 	/// If we're currently udpating
-	bool updating;		
+	bool updating;	
+	/// If all playbacks should be paused.
+	bool globalPause;
 	
 
 	/// For processing general messages.
@@ -189,7 +195,7 @@ private:
 	/// To toggle it in run-time.
 	bool audioEnabled;
 	/// Pauses target audio.
-	void Pause(Audio * audio);
+//	void Pause(Audio * audio);
 	/// List of active audio
 	List<Audio*> audioList;
 

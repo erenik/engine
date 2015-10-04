@@ -5,11 +5,11 @@
 
 #include "AppStates/AppState.h"
 
-#include "Ship.h"
-#include "ShipProperty.h"
-#include "Weapon.h"
+#include "Base/Ship.h"
+#include "Base/Weapon.h"
+#include "Properties/ShipProperty.h"
 #include "Level/Level.h"
-#include "SSIntegrator.h"
+#include "Physics/SSIntegrator.h"
 
 #include "Entity/EntityManager.h"
 
@@ -56,12 +56,12 @@
 #include "Graphics/Particles/Stars.h"
 #include "Graphics/Particles/SparksEmitter.h"
 
-#include "Game/SpaceShooter/SpaceShooterCD.h"
-#include "Game/SpaceShooter/SpaceShooterCR.h"
+#include "Physics/SpaceShooterCD.h"
+#include "Physics/SpaceShooterCR.h"
 #include "Game/GameVariableManager.h"
 
-#include "ShipProperty.h"
-#include "ProjectileProperty.h"
+#include "SpaceShooter2D/Properties/ShipProperty.h"
+#include "SpaceShooter2D/Properties/ProjectileProperty.h"
 
 // Collision categories.
 #define CC_PLAYER		1 
@@ -104,6 +104,9 @@ extern String onDeath; // What happens when the player dies?
 Vector2i WeaponTypeLevelFromString(String str); // For shop/UI-interaction.
 String WeaponTypeLevelToString(int type, int level);
 int DiffCost(String toUpgrade);
+
+/// In WeaponScriptEditing.cpp
+void ProcessMessageWSS(Message * message);
 
 class SpaceShooter2D : public AppState 
 {
@@ -203,6 +206,7 @@ public:
 		IN_LOBBY,
 		IN_HANGAR,
 		IN_WORKSHOP,
+		EDIT_WEAPON_SWITCH_SCRIPTS,
 		BUYING_GEAR,
 		LOAD_SAVES,
 		PLAYING_LEVEL,

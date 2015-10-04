@@ -5,7 +5,7 @@
 #ifndef LEVEL_H
 #define LEVEL_H
 
-#include "Ship.h"
+#include "../Base/Ship.h"
 #include "Color.h"
 
 extern bool gameTimePaused;

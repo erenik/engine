@@ -2,7 +2,7 @@
 /// 2015-02-07
 /// All code pertaining to updating UI... to separate it from the rest.
 
-#include "SpaceShooter2D.h"
+#include "SpaceShooter2D/SpaceShooter2D.h"
 #include "File/SaveFile.h"
 #include "Application/Application.h"
 
@@ -17,11 +17,14 @@ void LoadOptions();
 
 extern bool inGameMenuOpened;
 
+void UpdateWeaponScriptUI();
+
 /// Updates ui depending on mode.
 void SpaceShooter2D::UpdateUI()
 {
 	/// Pop stuff.
-	List<String> uis("gui/MainMenu.gui", "gui/HUD.gui", "gui/Hangar.gui");
+	List<String> uis("gui/MainMenu.gui", "gui/HUD.gui", "gui/Hangar.gui", "gui/Workshop.gui");
+	uis.AddItem("gui/WeaponScripts.gui");
 	for (int i = 0; i < uis.Size(); ++i)
 	{
 		PopUI(uis[i]);
@@ -40,6 +43,7 @@ void SpaceShooter2D::UpdateUI()
 		case IN_LOBBY: toPush = "gui/Lobby.gui"; break;
 		case IN_HANGAR: toPush = "gui/Hangar.gui"; break;
 		case IN_WORKSHOP: toPush = "gui/Workshop.gui"; break;
+		case EDIT_WEAPON_SWITCH_SCRIPTS: toPush = "gui/WeaponScripts.gui"; break;
 		case BUYING_GEAR: toPush = "gui/Shop.gui"; break;
 		case SHOWING_LEVEL_STATS: toPush = "gui/LevelStats.gui"; break;
 		default:
@@ -74,6 +78,9 @@ void SpaceShooter2D::UpdateUI()
 			break;
 		case IN_WORKSHOP:
 			UpdateUpgradesLists();
+			break;
+		case EDIT_WEAPON_SWITCH_SCRIPTS:
+			UpdateWeaponScriptUI();
 			break;
 	};
 }

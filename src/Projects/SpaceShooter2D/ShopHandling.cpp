@@ -2,7 +2,7 @@
 /// 2015-10-01
 /// Handling of shop-purchase-selling code
 
-#include "SpaceShooter2D.h"
+#include "SpaceShooter2D/SpaceShooter2D.h"
 
 // For shop/UI-interaction.
 Vector2i WeaponTypeLevelFromString(String str)

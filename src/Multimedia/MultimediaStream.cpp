@@ -71,12 +71,12 @@ bool MultimediaStream::Play()
 	return false;
 }
 /// Pauses the stream.
-bool MultimediaStream::Pause()
+bool MultimediaStream::Pause(bool pauseLocally)
 {
 	if (streamState == StreamState::PLAYING){
 		streamState = StreamState::PAUSED;
 		if (audio)
-			audio->Pause();
+			audio->Pause(pauseLocally);
 		return true;
 	}
 	return false;

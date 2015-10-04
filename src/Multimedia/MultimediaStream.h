@@ -55,7 +55,7 @@ public:
 	virtual bool Play();
 	virtual bool IsPlaying() { return streamState == StreamState::PLAYING; };
 	/// Sets pause state.
-	virtual bool Pause();    
+	virtual bool Pause(bool pauseLocally = true);    
 	virtual bool IsPaused() { return streamState == StreamState::PAUSED; };
 	virtual bool HasEnded() { return streamState == StreamState::ENDED; };
 	/// Seeks to target time in milliseconds.

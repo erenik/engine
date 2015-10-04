@@ -13,6 +13,8 @@ enum audioMessageTypes
 {
 	AM_SHUTDOWN,
 	
+	AM_PAUSE_PLAYBACK,
+	AM_RESUME_PLAYBACK,
 	// 
 	AM_REGISTER,
 	AM_DISABLE_AUDIO,
@@ -152,10 +154,11 @@ private:
 class AMPause : public AudioMessage 
 {
 public:
-	AMPause(Audio * audio);
+	AMPause(Audio * audio, bool pauseLocally = true);
 	virtual void Process();
 private:
 	Audio * audio;
+	bool pauseLocally;
 };
 
 class AMStop : public AudioMessage 
