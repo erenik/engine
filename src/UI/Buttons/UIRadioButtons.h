@@ -5,7 +5,7 @@
 #ifndef UI_RADIO_BUTTONS_H
 #define UI_RADIO_BUTTONS_H
 
-#include "UI/UIList.h"
+#include "UI/Lists/UIColumnList.h"
 #include "UI/UIButtons.h"
 
 /// Aggregate input class which handles a number of buttons

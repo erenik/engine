@@ -56,6 +56,7 @@ void ScriptAction::OnEnter(Ship * forShip)
 	}
 }
 
+WeaponScript * lastEdited = 0;
 
 WeaponScript::WeaponScript()
 {
@@ -63,6 +64,16 @@ WeaponScript::WeaponScript()
 	currentAction = 0;
 	static int numScripts = 0;
 	name = "Weapon script "+String(numScripts++);
+	lastEdited = this;
+}
+
+void WeaponScript::CreateDefault()
+{
+	WeaponScript * weaponScript = new WeaponScript();
+	weaponScript->actions.AddItem(ScriptAction::SwitchWeapon(0, 1000));
+	weaponScript->actions.AddItem(ScriptAction::SwitchWeapon(1, 1000));
+	weaponScript->actions.AddItem(ScriptAction::SwitchWeapon(2, 100));
+	weaponScripts.AddItem(weaponScript);
 }
 
 void WeaponScript::Process(Ship * forShip, int timeInMs)
@@ -78,4 +89,9 @@ void WeaponScript::Process(Ship * forShip, int timeInMs)
 		newOne.OnEnter(forShip);
 		timeInCurrentActionMs = 0;
 	}
+}
+
+WeaponScript * WeaponScript::LastEdited()
+{
+	return lastEdited;
 }

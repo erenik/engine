@@ -6,7 +6,7 @@
 #include "UI/UI.h"
 #include "UI/UITypes.h"
 #include "UIInput.h"
-#include "UI/UIList.h"
+#include "UI/Lists/UIColumnList.h"
 
 #include "Message/MathMessage.h"
 #include "Message/MessageManager.h"

@@ -622,6 +622,32 @@ UIElement * UIElement::GetElement(float & mouseX, float & mouseY){
 	return this;
 }
 
+/// Returns all children recursively.
+List<UIElement*> UIElement::AllChildrenR()
+{
+	List<UIElement*> allChildren;
+	allChildren = children;
+	for (int i = 0; i < children.Size(); ++i)
+	{
+		UIElement * child = children[i];
+		allChildren += child->AllChildrenR();
+	}
+	return allChildren;
+}
+
+bool UIElement::HasActivatables()
+{
+	for (int i = 0; i < children.Size(); ++i)
+	{
+		UIElement * child = children[i];
+		if (child->activateable)
+			return true;
+		if (child->HasActivatables())
+			return true;
+	}
+	return false;
+}
+
 UIElement * UIElement::GetElement(String byName, int andType)
 {
 	if (type == andType)
@@ -750,7 +776,7 @@ UIElement * UIElement::GetRightNeighbour(UIElement * referenceElement, bool & se
 		referenceElement = this;
 	}
 	/// If we have a pointer, just use it!
-	if (rightNeighbour)
+	if (rightNeighbour && rightNeighbour->activateable)
 	{
 		element = rightNeighbour;
 	}
@@ -758,7 +784,11 @@ UIElement * UIElement::GetRightNeighbour(UIElement * referenceElement, bool & se
 	else {
 		/// Check if we got a preferred neighbour.
 		if (rightNeighbourName.Length())
+		{
 			element = this->GetRoot()->GetElementByName(rightNeighbourName);
+			if (element && !element->activateable)
+				element = NULL;
+		}
 		/// If still haven't found a decent one, consult our parent. Unless we're in the stack of course, upon which it means we have found no decent new neighbour.
 		if (!element && !searchChildrenOnly && !inStack)
 		{
@@ -899,11 +929,12 @@ UIElement * UIElement::GetLeftNeighbour(UIElement * referenceElement, bool & sea
 /// Works recursively.
 UIElement * UIElement::GetElementClosestTo(Vector3f & position, bool mustBeActivatable /*= false*/)
 {
+	List<UIElement*> allChildren = this->AllChildrenR();
 	UIElement * closest = NULL;
 	float closestDistance = 1000000.f;
-	for (int i = 0; i < children.Size(); ++i)
+	for (int i = 0; i < allChildren.Size(); ++i)
 	{
-		UIElement * child = children[i];
+		UIElement * child = allChildren[i];
 		if (mustBeActivatable && !child->activateable)
 			continue;
 		float dist = (child->position - position).Length();
@@ -913,15 +944,62 @@ UIElement * UIElement::GetElementClosestTo(Vector3f & position, bool mustBeActiv
 			closestDistance = dist;
 		}
 	}
-	// Recurse on the closest one.
-	if (closest)
-		closest = closest->GetElementClosestTo(position, true);
 	// Fetch self if no neighbour close enough.
-	if (!closest)
-		return this;
 	return closest;
 }
 
+UIElement * UIElement::GetElementClosestToInX(Vector3f & position, bool mustBeActivatable)
+{
+	List<UIElement*> allChildren = this->AllChildrenR();
+	UIElement * closest = NULL;
+	float closestDistance = 1000000.f;
+	for (int i = 0; i < allChildren.Size(); ++i)
+	{
+		UIElement * child = allChildren[i];
+		if (mustBeActivatable && !child->activateable)
+			continue;
+		float dist = AbsoluteValue(child->position.x - position.x);
+		if (dist < closestDistance)
+		{
+			closest = child;
+			closestDistance = dist;
+		}
+		if (dist == closestDistance)
+		{
+			// Same x? Check closer y.
+			if (AbsoluteValue(child->position.y - position.y) < AbsoluteValue(closest->position.y - position.y))
+				closest = child; // Same distance in X, so don't adjust the closestDistance.
+		}
+	}
+	// Fetch self if no neighbour close enough.
+	return closest;
+}
+UIElement * UIElement::GetElementClosestToInY(Vector3f & position, bool mustBeActivatable)
+{
+	List<UIElement*> allChildren = this->AllChildrenR();
+	UIElement * closest = NULL;
+	float closestDistance = 1000000.f;
+	for (int i = 0; i < allChildren.Size(); ++i)
+	{
+		UIElement * child = allChildren[i];
+		if (mustBeActivatable && !child->activateable)
+			continue;
+		float dist = AbsoluteValue(child->position.y - position.y);
+		if (dist < closestDistance)
+		{
+			closest = child;
+			closestDistance = dist;
+		}
+		if (dist == closestDistance)
+		{
+			// Same y? Check closer x.
+			if (AbsoluteValue(child->position.x - position.x) < AbsoluteValue(closest->position.x - position.x))
+				closest = child; // Same distance in y, so don't adjust the closestDistance.
+		}
+	}
+	// Fetch self if no neighbour close enough.
+	return closest;
+}
 
 // Sets the selected flag to false for all children.
 void UIElement::DeselectAll(){

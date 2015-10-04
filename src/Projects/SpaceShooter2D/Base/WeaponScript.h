@@ -35,10 +35,13 @@ class WeaponScript
 {
 public:
 	WeaponScript();
+	static void CreateDefault();
 	void Process(Ship * forShip, int timeInMs);
+	static WeaponScript * LastEdited();
 	int timeInCurrentActionMs;
 	String name;
 	List<ScriptAction> actions;
+	Time lastEdit;
 private:
 	int currentAction;
 };

@@ -8,7 +8,7 @@
 #include "Graphics/Messages/GMUI.h"
 #include "Message/MessageManager.h"
 #include "Message/Message.h"
-#include "UI/UIList.h"
+#include "UI/UILists.h"
 #include "Game/GameVariableManager.h"
 #include <cstring>
 #include "ScriptManager.h"

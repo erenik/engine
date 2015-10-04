@@ -66,12 +66,12 @@ Ship::~Ship()
 Random cooldownRand;
 void Ship::RandomizeWeaponCooldowns()
 {
-	if (!ai)
-		return;
+//	if (!ai)
+//		return;
 	for (int i = 0; i < weapons.Size(); ++i)
 	{
 		Weapon * weap = weapons[i];
-		weap->lastShot = flyTime + Time::Milliseconds(weap->cooldown.Milliseconds() * cooldownRand.Randf());
+		weap->lastShot = /*flyTime +*/ Time::Milliseconds(weap->cooldown.Milliseconds() * cooldownRand.Randf());
 	}
 }
 

@@ -8,7 +8,7 @@
 
 #include "UI/UITypes.h"
 #include "UI/UI.h"
-#include "UI/UIList.h"
+#include "UI/UILists.h"
 #include "UIInput.h"
 
 #include "Input/Keys.h"
@@ -135,6 +135,7 @@ void UIIntegerInput::CreateChildren()
 	input->textureSource = textureSource;
 	/// Set them to only accept floats?
 	input->name = name + "Input";
+	input->textureSource = UIElement::defaultTextureSource;
 	/// Any mathematical expression?
 	if (acceptMathematicalExpressions)
 		input->mathematicalExpressionsOnly = true;

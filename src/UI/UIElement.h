@@ -130,6 +130,9 @@ public:
 	/// GEtttererrr
 	virtual UIElement * GetElement(float & mouseX, float & mouseY);
 
+	/// Returns all children recursively.
+	List<UIElement*> AllChildrenR();
+	bool HasActivatables();
 	UIElement * GetElement(String byName, int andType);
 
 	/// Used by e.g. ScrollBarHandle's in order to slide its content according to mouse movement, even when the mouse extends beyond the scope of the element.
@@ -168,6 +171,8 @@ public:
 	
 	/// Works recursively.
 	UIElement * GetElementClosestTo(Vector3f & position, bool mustBeActivatable);
+	UIElement * GetElementClosestToInX(Vector3f & position, bool mustBeActivatable);
+	UIElement * GetElementClosestToInY(Vector3f & position, bool mustBeActivatable);
 
 	// Sets the selected flag to false for the element and all beneath it.
 	void DeselectAll();

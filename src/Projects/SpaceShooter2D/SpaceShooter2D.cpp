@@ -105,6 +105,8 @@ SpaceShooter2D::~SpaceShooter2D()
 /// Function when entering this state, providing a pointer to the previous StateMan.
 void SpaceShooter2D::OnEnter(AppState * previousState)
 {
+
+	WeaponScript::CreateDefault();
 	/// Enable Input-UI navigation via arrow-keys and Enter/Esc.
 	InputMan.ForceNavigateUI(true);
 
@@ -417,16 +419,17 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 					UpdateHUDGearedWeapons();
 				}
 			}
+			if (msg == "ToggleWeaponScript")
+			{
+				if (playerShip->weaponScript == 0)
+					playerShip->weaponScript = WeaponScript::LastEdited();
+				playerShip->weaponScriptActive = !playerShip->weaponScriptActive;
+			}
 			if (msg == "ActivateWeaponScript")
 			{
 				playerShip->weaponScriptActive = true;
 				if (playerShip->weaponScript == 0)
-				{
-					WeaponScript * weaponScript = playerShip->weaponScript = new WeaponScript();
-					weaponScript->actions.AddItem(ScriptAction::SwitchWeapon(0, 1000));
-					weaponScript->actions.AddItem(ScriptAction::SwitchWeapon(1, 1000));
-					weaponScript->actions.AddItem(ScriptAction::SwitchWeapon(2, 100));
-				}
+					playerShip->weaponScript = WeaponScript::LastEdited();
 			}
 			if (msg == "DeactivateWeaponScript")
 			{
