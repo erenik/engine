@@ -6,6 +6,7 @@
 #define UIELEMENT_H
 
 #include "Graphics/OpenGL.h"
+#include "UIAction.h"
 
 #include <cstdlib>
 #include <ctime>
@@ -57,6 +58,7 @@ class UIElement
 	friend class GMSetUIs;
 	friend class GMBufferUI;
 	friend class GMSetUIp;
+	friend class UIAction;
 public:
 	// UI it belongs to. Usually only need to set this for the root-element for automatic resizing etc.
 	UserInterface * ui;
@@ -183,6 +185,8 @@ public:
 	*/
 //	int (*onActivate)(UIElement * );
 	String activationMessage;
+	// Action(s) to be performed upon activation. These will be done entirely/only on the Graphics-thread.
+	List<UIAction> activationActions; 
 	/// Message sent when hovering over an element.
 	String onHover;
 	String onTrigger; // For "triggering" the element, e.g. pressing Enter for input fields

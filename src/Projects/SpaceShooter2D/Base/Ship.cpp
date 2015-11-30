@@ -241,8 +241,12 @@ void Ship::Damage(Weapon & weapon)
 	Damage(damage, ignoreShield);
 }
 
+extern bool playerInvulnerability;
+
 void Ship::Damage(float amount, bool ignoreShield)
 {
+	if (allied && playerInvulnerability)
+		return;
 	if (!ai)
 		LogMain("Player took "+String((int)amount)+" damage!", INFO);
 	if (spawnInvulnerability)

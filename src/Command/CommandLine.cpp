@@ -18,7 +18,7 @@ void CommandLine::Evaluate()
 		String arg = args[i];
 		if (arg == "mute")
 		{
-			AudioMan.QueueMessage(new AudioMessage(AM_DISABLE_AUDIO));
+			AudioMan.QueueMessage(new AMGlobal(AM_DISABLE_AUDIO));
 //			AudioMan.DisableAudio();
 		}
 		else if (arg == "host"){

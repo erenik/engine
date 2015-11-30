@@ -241,6 +241,11 @@ void SpaceShooter2D::CreateUserInterface()
 //	ui->Load("gui/MainMenu.gui");
 }
 
+bool playerInvulnerability = false;
+void OnPlayerInvulnerabilityUpdated()
+{
+	
+}
 
 /// Callback function that will be triggered via the MessageManager when messages are processed.
 void SpaceShooter2D::ProcessMessage(Message * message)
@@ -342,6 +347,11 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 			}
 			if (msg == "NewGame")
 				NewGame();
+			if (msg == "TogglePlayerInvulnerability")
+			{
+				playerInvulnerability = !playerInvulnerability;
+				OnPlayerInvulnerabilityUpdated();
+			}
 			if (msg == "Continue")
 			{
 				if (levelToLoad.Length())
@@ -970,12 +980,12 @@ void SpaceShooter2D::OnPauseStateUpdated()
 	{
 		GraphicsMan.QueueMessage(new GraphicsMessage(GM_PAUSE_PROCESSING));
 		PhysicsMan.Pause();
-		QueueAudio(new AudioMessage(AM_PAUSE_PLAYBACK));
+		QueueAudio(new AMGlobal(AM_PAUSE_PLAYBACK));
 	}
 	else {
 		GraphicsMan.QueueMessage(new GraphicsMessage(GM_RESUME_PROCESSING));
 		PhysicsMan.Resume();
-		QueueAudio(new AudioMessage(AM_RESUME_PLAYBACK));
+		QueueAudio(new AMGlobal(AM_RESUME_PLAYBACK));
 	}
 }
 

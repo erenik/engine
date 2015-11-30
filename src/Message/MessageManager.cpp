@@ -28,6 +28,7 @@
 #include "Network/Http.h"
 #include "Network/CURLManager.h"
 
+#include "UI/UI.h"
 #include "UI/UIUtil.h"
 #include "UI/UIInputs.h"
 #include "UI/UITypes.h"
@@ -281,6 +282,7 @@ void MessageManager::ProcessMessage(Message * message)
 	}
 			
 	WindowMan.ProcessMessage(message);
+	UI::ProcessMessage(message);
 
 	switch(message->type)
 	{
@@ -365,7 +367,7 @@ void MessageManager::ProcessMessage(Message * message)
 			else if (msg == "ToggleMute")
 			{
 				// Mute?
-				QueueAudio(new AudioMessage(AM_TOGGLE_MUTE));
+				QueueAudio(new AMGlobal(AM_TOGGLE_MUTE));
 			}
 			else if (msg.StartsWith("SetGravity"))
 			{
@@ -406,7 +408,7 @@ void MessageManager::ProcessMessage(Message * message)
 			else if (msg == "MultimediaMan.Shutdown")
 				MultimediaMan.Shutdown();
 			else if (msg == "AudioMan.Shutdown")
-				AudioMan.QueueMessage(new AudioMessage(AM_SHUTDOWN));
+				AudioMan.QueueMessage(new AMGlobal(AM_SHUTDOWN));
 			else if (msg == "GraphicsMan.Shutdown")
 				Graphics.QueueMessage(new GraphicsMessage(GM_SHUTDOWN));
 			else if (msg == "PrintScreenshot")
@@ -480,12 +482,12 @@ void MessageManager::ProcessMessage(Message * message)
 			}
 			else if (msg == "mute")
 			{
-				AudioMan.QueueMessage(new AudioMessage(AM_DISABLE_AUDIO));
+				AudioMan.QueueMessage(new AMGlobal(AM_DISABLE_AUDIO));
 		//		AudioMan.DisableAudio();
 			}
 			else if (msg == "muteSFX")
 			{
-				AudioMan.QueueMessage(new AudioMessage(AM_MUTE_SFX));
+				AudioMan.QueueMessage(new AMGlobal(AM_MUTE_SFX));
 			}
 			else if (msg == "CreateMainWindow")
 			{	

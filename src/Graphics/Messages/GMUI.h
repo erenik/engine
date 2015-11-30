@@ -67,6 +67,7 @@ protected:
 	UserInterface * ui;
 	/// If targeting the global UI.
 	bool global;
+	bool retryOnFailure;
 };
 
 class GMSetHoverUI : public GMUI 
@@ -312,10 +313,15 @@ private:
 class GMSetUIContents : public GMUI 
 {
 public:
+	/// Used for setting String-list in Drop-down menus
+	GMSetUIContents(String uiName, List<String> contents);
+	GMSetUIContents(UserInterface * ui, String uiName, List<String> contents);
+	/// Used for setting elements in Matrix.
 	GMSetUIContents(List<UIElement*> elements, String uiName);
 	void Process();
 private:
 	String uiName;
+	List<String> contents;
 	List<UIElement*> elements;
 };
 

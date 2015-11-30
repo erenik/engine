@@ -52,10 +52,18 @@ class AudioMessage
 public:
 	AudioMessage(int type);
 	virtual ~AudioMessage();
+	virtual void Process() = 0;
+protected:
+	int type;
+};
+
+class AMGlobal : public AudioMessage 
+{
+public:
+	AMGlobal(int type);
+	virtual ~AMGlobal();
 	virtual void Process();
 private:
-	int type;
-	float fValue;
 };
 
 class AMSet : public AudioMessage 

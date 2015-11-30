@@ -37,5 +37,7 @@ namespace UIType
 		VIDEO,		// Element integrating MultimediaStream playback into another texture which it renders within with proper aspect ratio, etc.
 		IMAGE, // UIImage
 		MATRIX,	// For data-manipulation.
+		DROP_DOWN_MENU,	DROP_DOWN_LIST = DROP_DOWN_MENU,
+
 	};
 };

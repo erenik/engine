@@ -1162,6 +1162,14 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 				}
 				SET_DEFAULTS
 			}
+			else if (token == "DropDownMenu")
+			{
+				ADD_PREVIOUS_TO_UI_IF_NEEDED;
+				UIDropDownMenu * ddm = new UIDropDownMenu(firstQuote);
+				element = ddm;
+				SET_DEFAULTS;
+				ddm->CreateChildren();
+			}
 			else if (token == "Matrix")
 			{
 				ADD_PREVIOUS_TO_UI_IF_NEEDED;

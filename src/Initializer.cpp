@@ -113,7 +113,7 @@ THREAD_START(Deallocate)
 	// Unregister all entities.
 	GraphicsMan.QueueMessage(new GraphicsMessage(GM_UNREGISTER_ALL_ENTITIES));
 	PhysicsMan.QueueMessage(new PhysicsMessage(PM_UNREGISTER_ALL_ENTITIES));
-	AudioMan.QueueMessage(new AudioMessage(AM_STOP_ALL));
+	AudioMan.QueueMessage(new AMGlobal(AM_STOP_ALL));
 	SleepThread(50);
 
 	MesMan.QueueMessages("SetActiveState:NULL");

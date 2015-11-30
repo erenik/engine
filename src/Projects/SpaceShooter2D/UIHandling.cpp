@@ -13,10 +13,15 @@
 #include "UI/UIButtons.h"
 #include "Text/TextManager.h"
 
+#include "Window/AppWindowManager.h"
+
 void LoadOptions();
 
 extern bool inGameMenuOpened;
 
+
+void OpenSpawnWindow();
+void CloseSpawnWindow();
 void UpdateWeaponScriptUI();
 
 /// Updates ui depending on mode.
@@ -83,6 +88,10 @@ void SpaceShooter2D::UpdateUI()
 			UpdateWeaponScriptUI();
 			break;
 	};
+	if (mode == PLAYING_LEVEL)
+		OpenSpawnWindow();
+	else
+		CloseSpawnWindow();
 }
 
 void LoadOptions()
@@ -617,3 +626,38 @@ void SpaceShooter2D::OpenJumpDialog()
 	}
 		// Close it afterwards.
 }
+
+
+
+AppWindow * spawnWindow = 0;
+UserInterface * spawnUI = 0;
+
+void OpenSpawnWindow()
+{
+	if (!spawnWindow)
+	{
+		spawnWindow = WindowMan.NewWindow("SpawnWindow", "Spawn Window");
+		spawnWindow->SetRequestedSize(Vector2i(400,300));
+		spawnWindow->Create();
+		UserInterface * ui = spawnUI = spawnWindow->CreateUI();
+		ui->Load("gui/SpawnWindow.gui");
+	}
+	spawnWindow->Show();
+	/// Update lists inside.
+	List<String> shipTypes;
+	for (int i = 0; i < Ship::types.Size(); ++i)
+	{
+		Ship * type = Ship::types[i];
+		if (type->allied)
+			continue;
+		shipTypes.AddItem(type->name);
+	}
+	QueueGraphics(new GMSetUIContents(spawnUI, "ShipTypeToSpawn", shipTypes));
+}
+
+void CloseSpawnWindow()
+{
+	if (spawnWindow)
+		spawnWindow->Close();
+}
+

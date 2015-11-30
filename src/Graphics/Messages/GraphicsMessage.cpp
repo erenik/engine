@@ -25,9 +25,14 @@
 #include "Window/AppWindowManager.h"
 #include "Render/FrameBuffer.h"
 
+int GraphicsMessage::defaultMaxRetryAttempts = 3;
 
-GraphicsMessage::GraphicsMessage(int i_type){
+GraphicsMessage::GraphicsMessage(int i_type)
+{
 	type = i_type;
+	retry = false;
+	maxRetryAttempts = GraphicsMessage::defaultMaxRetryAttempts;
+	retryTimeout = Time::Milliseconds(1000);
 }
 GraphicsMessage::~GraphicsMessage(){
 }

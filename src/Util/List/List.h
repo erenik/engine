@@ -536,7 +536,8 @@ int List<T>::Remove(const List<T> & subListToRemove)
 		    for (int j = i+1; j < currentItems; ++j){
                 arr[j-1] = arr[j];
 		    }
-			currentItems--;
+			--currentItems;
+			--i;
 			++removed;
 		}
 	}

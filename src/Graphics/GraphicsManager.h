@@ -135,6 +135,7 @@ public:
 	/// Updates the Projection matrices of the GraphicsState relative to the active camera and ratio to device resolution.
 	void UpdateProjection(float relativeWidth = 1.0f, float relativeHeight = 1.0f);
 
+	void QueueDelayedMessages(List<GraphicsMessage*> msgs);
 	// Enters a message into the message queue
 	void QueueMessage(GraphicsMessage * msg);
 	// Enters a message into the message queue
@@ -363,7 +364,7 @@ private:
 	Frustum * frustum;
 
 	// Queue for messages to be processed between renders
-	List<GraphicsMessage*> messageQueue;
+	List<GraphicsMessage*> messageQueue, delayedMessages;
 
 	/// Number of registered entities
 	List<Entity*> registeredEntities;

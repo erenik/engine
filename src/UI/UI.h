@@ -2,6 +2,10 @@
 /// 2014-08-25
 /// Some constants and variables relating to UI-handling in general.
 
+#ifndef UI_H
+#define UI_H
+
+class Message;
 
 namespace UI 
 {
@@ -12,6 +16,10 @@ namespace UI
 		constants and other variables by name.
 	*/
 	extern bool defaultAcceptMathematicalExpressions;
+
+	/// Processor for UI messages instead of having them all in MessageManager.cpp
+	void ProcessMessage(Message * message);
+
 };
 
 
@@ -20,3 +28,5 @@ void PrepareForUIRemoval();
 /// Resumes execution of the main thread. Enables input again.
 void OnUIRemovalFinished();
 
+
+#endif

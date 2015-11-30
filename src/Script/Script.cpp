@@ -324,6 +324,16 @@ void Script::EvaluateLine(String & line)
 		wait->SetDeleteOnEnd(true);
 		ScriptMan.PlayScript(wait);
 	}
+	else if (line.StartsWith("Key:"))
+	{
+		String keyStr = line.Tokenize(":")[1];
+		keyStr.RemoveSurroundingWhitespaces();
+		int keyCode = GetKeyForString(keyStr);
+		assert(keyCode != 0);
+		InputMan.KeyDown(keyCode, false);
+		InputMan.KeyUp(keyCode);
+		lineFinished = true;
+	}
 	else if (line.Contains("PlayScript("))
 	{
 		List<String> tokens = line.Tokenize("(),");

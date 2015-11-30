@@ -28,6 +28,17 @@ public:
 	virtual ~GraphicsMessage();
 	virtual void Process();
 	int GetType() const { return type; };
+
+	/// The retry flag. Default false. If true, message is assumed to have failed processing and will be requeued using retryTimeout to be attempted again at a later time.
+	bool retry;
+	int maxRetryAttempts; // Default 3.
+	/// If the processing is to be attempted again, this is the timeout when re-queueing the message for processing it again. Default 1 second.
+	Time retryTimeout;
+	/// Actual time the message will be processed when re-queued.
+	Time timeToProcess;
+
+	/// Default 3. Adjust if you are using it much for UI updates.
+	static int defaultMaxRetryAttempts;
 protected:
 	/// Type of message, if relevant
 	int type;

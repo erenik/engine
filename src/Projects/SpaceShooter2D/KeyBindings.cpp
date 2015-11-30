@@ -12,6 +12,7 @@ void SpaceShooter2D::CreateDefaultBindings()
 {
 	List<Binding*> & bindings = this->inputMapping.bindings;
 #define BINDING(a,b) bindings.Add(new Binding(a,b));
+	BINDING(Action::FromString("TogglePlayerInvulnerability"), KEY::I);
 	BINDING(Action::CreateStartStopAction("MoveShipUp"), KEY::W);
 	BINDING(Action::CreateStartStopAction("MoveShipDown"), KEY::S);
 	BINDING(Action::CreateStartStopAction("MoveShipLeft"), KEY::A);

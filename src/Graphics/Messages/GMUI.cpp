@@ -51,8 +51,8 @@ void GMUI::Nullify()
 	viewport = NULL;
 	window = NULL;
 	global = false;
+	retryOnFailure = false;
 }
-
 
 bool GMUI::GetUI()
 {
@@ -74,6 +74,8 @@ bool GMUI::GetUI()
 	}
     if (ui == NULL){
         std::cout<<"\nWARNING: No valid UI available for use.";
+		if (retryOnFailure)
+			retry = true;
         return false;
     }
 	return UserInterface::IsGood(ui);
@@ -198,17 +200,26 @@ GMSetUIi::GMSetUIi(String uiName, int target, int value, UserInterface * ui)
 			assert(false && "Bad target in GMSetUIi");
 	}
 }
+#define GetElement(t) UIElement * e = ui->GetElementByName(uiName); \
+	if (!e){\
+		LogGraphics("INFO: No element found with specified name \""+uiName+"\" in "+String(t), INFO);\
+		retry = true;\
+		return;\
+	}
+
 void GMSetUIi::Process()
 {
 	if (!GetUI())
         return;
 	if (!uiName.Length())
 		return;
-	UIElement * e = ui->GetElementByName(uiName);
+	GetElement("GMSetUIi");
+/*	UIElement * e = ui->GetElementByName(uiName);
 	if (!e){
 		LogGraphics("INFO: No element found with specified name \""+uiName+"\" in GMSetUIi", INFO);
 		return;
 	}
+	*/
 	switch(target)
 	{
 		case GMUI::INTEGER_INPUT:
@@ -631,11 +642,15 @@ void GMSetUIs::Process()
 {
 	if (!GetUI())
         return;
+	GetElement("GMSetUIs");
+	/*
 	UIElement * e = ui->GetElementByName(uiName);
 	if (!e){
 		LogGraphics("INFO: No element found with specified name \""+uiName+"\"", DEBUG);
+		retry = true;
 		return;
 	}
+	*/
 	switch(target){
 		case GMUI::TEXTURE_INPUT_SOURCE:
 		{
@@ -955,7 +970,13 @@ void GMRemoveUI::Process(){
 		return;
 	DeleteUI(element, ui);
 }
-
+/// Used for setting String-list in Drop-down menus
+GMSetUIContents::GMSetUIContents(String uiName, List<String> contents)
+: GMUI(GM_SET_UI_CONTENTS), contents(contents), uiName(uiName)
+{}
+GMSetUIContents::GMSetUIContents(UserInterface * ui, String uiName, List<String> contents)
+: GMUI(GM_SET_UI_CONTENTS, ui), contents(contents), uiName(uiName)
+{}
 GMSetUIContents::GMSetUIContents(List<UIElement*> elements, String uiName)
 : GMUI(GM_SET_UI_CONTENTS), elements(elements), uiName(uiName)
 {
@@ -971,7 +992,9 @@ void GMSetUIContents::Process()
 	e = ui->GetElementByName(uiName);
 	// Fetch by source if possible.
 	if (!e)
+	{
 		e = ui->GetElementBySource(uiName);
+	}
 	if (!e){
 		std::cout<<"\nGMPopUI: Invalid UIElement: "<<uiName;
 		return;
@@ -981,6 +1004,8 @@ void GMSetUIContents::Process()
 		case UIType::MATRIX:
 			((UIMatrix*)e)->SetContents(elements);
 			break;
+		case UIType::DROP_DOWN_LIST:
+			((UIDropDownList*)e)->SetContents(contents);
 	}
 }
 

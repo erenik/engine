@@ -35,5 +35,7 @@ namespace KEY {
 
 /// For displaying ^^
 String GetKeyString(int keyCode);
+/// Returns 0 on error.
+int GetKeyForString(String keyStr);
 
 #endif

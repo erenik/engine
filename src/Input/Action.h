@@ -112,7 +112,7 @@ public:
 	bool activateOnRepeat;
 	/// If cursor is over a UI.
 	bool activateOverUI;
-private:
+protected:
 	/// See enum above.
 	int type;
 	String startAction;

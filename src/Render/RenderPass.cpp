@@ -52,6 +52,8 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 		case RENDER_APP_STATE:
 		{
 			AppState * state = StateMan.ActiveState();
+			if (!state)
+				return false;
 			state->Render(&graphicsState);
 			return true;
 		}

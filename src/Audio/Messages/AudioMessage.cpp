@@ -6,6 +6,7 @@
 #include "AudioMessage.h"
 #include "Audio/AudioManager.h"
 #include "Audio/Audio.h"
+#include "File/LogFile.h"
 
 AudioMessage::AudioMessage(int type)
 	: type(type)
@@ -16,7 +17,29 @@ AudioMessage::~AudioMessage()
 {
 }
 
-void AudioMessage::Process()
+AMGlobal::AMGlobal(int type)
+	: AudioMessage(type)
+{
+	switch (type)
+	{
+		case AM_SHUTDOWN:
+		case AM_PAUSE_PLAYBACK:
+		case AM_RESUME_PLAYBACK:
+		case AM_DISABLE_AUDIO:
+		case AM_STOP_ALL:
+		case AM_TOGGLE_MUTE:
+		case AM_MUTE_SFX:
+			break;
+		default:
+			LogMain("Unknown audio message: "+String(type), DEBUG);
+			assert(false && "See audio log file");
+	}
+}
+AMGlobal::~AMGlobal()
+{
+}
+
+void AMGlobal::Process()
 {
 	switch(type)
 	{
@@ -47,6 +70,7 @@ void AudioMessage::Process()
 			assert(false);
 	}
 }
+
 
 /// E.g. MASTER_VOLUME, and the volume.
 AMSet::AMSet(int target, float fValue)

@@ -51,6 +51,19 @@ String GetKeyString(int keyCode){
     return keyStrings[keyCode];
 }
 
+int GetKeyForString(String keyStr)
+{
+	if (!initialized)
+		InitializeKeyStrings();
+	for (int i = 0; i < KEY::TOTAL_KEYS; ++i)
+	{
+		if (keyStrings[i] == keyStr)
+			return i;
+	}
+	return 0;
+}
+
+
 /*
 namespace KEY {
 	enum KEY{

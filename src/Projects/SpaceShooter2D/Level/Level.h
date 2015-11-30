@@ -57,12 +57,22 @@ public:
 	/// Returns ships close enough to given point. Returns distance to them too. Checks only to center of ship, not edges.
 	List<Ship*> GetShipsAtPoint(ConstVec3fr position, float maxRadius, List<float> & distances); 
 
+	void RemoveRemainingSpawnGroups();
+	void RemoveExistingEnemies();
+
+
 	String source;
 	/// Ships within.
 	List<Ship*> ships;
 
 	/// Default.. 20.0. Dictates movable region in Y, at least.
 	float height;
+	enum 
+	{
+		NEVER,
+		SURVIVE_ALL_SPAWN_GROUPS,
+	};
+	int winCriteria;
 
 	/// New spawn style.
 	List<SpawnGroup*> spawnGroups;

@@ -577,6 +577,15 @@ void GraphicsManager::ProcessMessage(GraphicsMessage * msg)
 	graphicsMessageQueueMutex.Release();
 }
 
+/// For them delayed messages that require special treatment.. :P
+void GraphicsManager::QueueDelayedMessages(List<GraphicsMessage*> messages)
+{
+	graphicsMessageQueueMutex.Claim(-1);
+	delayedMessages.Add(messages);
+	graphicsMessageQueueMutex.Release();
+}
+
+
 // Processes queued messages
 void GraphicsManager::ProcessMessages()
 {
@@ -585,31 +594,53 @@ void GraphicsManager::ProcessMessages()
 	while(!graphicsMessageQueueMutex.Claim(-1));
 	/// Spend only max 10 ms of time processing messages each frame!
 	long long messageProcessStartTime = Timer::GetCurrentTimeMs();
-	long long now;
 	List<GraphicsMessage*> graphicsMessages;
 	// Copy messages
 	graphicsMessages = messageQueue;
 	messageQueue.Clear();
+	/// Process each message.
+	Time now = Time::Now();
+	/// Process delayed messages too.
+	for (int i = 0; i < delayedMessages.Size(); ++i)
+	{
+		GraphicsMessage * mes = delayedMessages[i];
+		if (mes->timeToProcess < now)
+		{
+			assert(delayedMessages.Remove(mes));
+			graphicsMessages.Add(mes);
+			--i;
+			continue;
+		}
+	}
 	// Release mutex
 	graphicsMessageQueueMutex.Release();
 
-	/// Process each message.
 	int numMessages = graphicsMessages.Size();
 	if (numMessages > 1000)
 	{
 		std::cout<<"\n"<<numMessages<<" messages to process.";
 	}
 	// Claim ui Mutex while processing the messages.
+	List<GraphicsMessage*> toRequeue;
 	uiMutex.Claim();
 	for (int i = 0; i < numMessages; ++i)
 	{
 		GraphicsMessage * gm = graphicsMessages[i];
 		gm->Process();
+		if (gm->retry && gm->maxRetryAttempts > 0)
+		{
+			--gm->maxRetryAttempts;
+			gm->timeToProcess = now + gm->retryTimeout; 
+			toRequeue.AddItem(gm);
+		}
 		/// Only process 10 ms of messages each frame!
 		if (i % 1000 == 0 && i > 0)
 			std::cout<<"\n"<<numMessages - i<<" of "<<numMessages<<" messages to process in GraphicsManager::ProcessMessages...";
 	}
 	uiMutex.Release();
+	/// Requeue messages for retry.
+	graphicsMessages.Remove(toRequeue);
+	QueueDelayedMessages(toRequeue);
 	// Clear and delete all at once...
 	graphicsMessages.ClearAndDelete();
 }

@@ -47,7 +47,7 @@ extern int64 audioNowMs;
 */
 class AudioManager 
 {
-	friend class AudioMessage;
+	friend class AMGlobal;
 	friend class MultimediaStream;
 	friend class AMPlay;
 	friend class AMPlayBGM;

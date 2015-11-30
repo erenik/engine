@@ -7,6 +7,9 @@
 #include "OS/Sleep.h"
 #include "StateManager.h"
 #include "Graphics/GraphicsManager.h"
+#include "Message/MessageManager.h"
+#include "Message/Message.h"
+#include "StateManager.h"
 
 /** Default true. Change in ApplicationDefaults() as needed. 
 	Will make all inputs based on numbers accept arbitrary mathematical expressions.
@@ -31,4 +34,25 @@ void OnUIRemovalFinished()
 	StateMan.Resume();
 	Graphics.renderQueried = true;
 	inputState->acceptInput = true;
+}
+
+
+/// Processor for UI messages instead of having them all in MessageManager.cpp
+void UI::ProcessMessage(Message * message)
+{
+	String & msg = message->msg;
+	switch(message->type)
+	{
+		case MessageType::STRING:
+		{
+			/*
+			if (msg.StartsWith("OpenDropDownMenu:"))
+			{
+				String name = msg.Tokenize(":")[1];
+				QueueGraphics(new GMUI(name, "Open"));
+			}
+			*/
+			break;
+		}
+	}
 }

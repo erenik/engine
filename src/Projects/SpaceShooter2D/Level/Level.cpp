@@ -23,9 +23,12 @@ Time flyTime; // The actual player-felt time.
 bool gameTimePaused = false;
 bool defeatedAllEnemies = true;
 bool failedToSurvive = false;
+SpawnGroup testGroup;
 
 Level::Level()
 {
+	testGroup.number = 1;
+
 	height = 20.f;
 	endCriteria = NO_MORE_ENEMIES;
 	levelCleared = false;
@@ -254,6 +257,14 @@ void Level::ProcessMessage(Message * message)
 	String & msg = message->msg;
 	switch(message->type)
 	{
+		case MessageType::SET_STRING:
+		{
+			if (msg == "DropDownMenuSelection:ShipTypeToSpawn")
+			{
+				testGroup.shipType = ((SetStringMessage*)message)->value;
+			}
+			break;
+		}
 		case MessageType::STRING:
 		{
 			if (msg == "EndLevel")
@@ -266,6 +277,19 @@ void Level::ProcessMessage(Message * message)
 				gameTimePaused = false;
 			if (msg == "ResetFailedToSurvive")
 				failedToSurvive = false;
+
+			else if (msg == "SetupForTesting")
+			{
+				// Disable game-over/dying/winning
+				this->winCriteria = Level::NEVER;
+				this->RemoveRemainingSpawnGroups();
+				this->RemoveExistingEnemies();
+			}
+
+			if (msg == "SpawnTestEnemies")
+			{
+				testGroup.Spawn();
+			}
 			break;		
 		}
 	}
@@ -376,3 +400,22 @@ List<Ship*> Level::GetShipsAtPoint(ConstVec3fr position, float maxRadius, List<f
 	return relevantShips;
 }
 
+void Level::RemoveRemainingSpawnGroups()
+{
+	for (int i = 0; i < spawnGroups.Size(); ++i)
+	{
+		SpawnGroup * sg = spawnGroups[i];
+		sg->spawned = true;
+	}
+}
+
+void Level::RemoveExistingEnemies()
+{
+	for (int i = 0; i < ships.Size(); ++i)
+	{
+		Ship * ship = ships[i];
+		ship->Despawn();
+	}
+	Sleep(50);
+	ships.ClearAndDelete();
+}
