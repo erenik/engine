@@ -90,4 +90,24 @@ Vector3f VectorMessage::GetVector3f()
 	}
 	return vec;
 }
+
+Vector2f VectorMessage::GetVector2f()
+{
+	Vector2f vec(0,0);
+	switch(vectorType)
+	{
+		case VECTOR_2I:
+			return vec2i;
+		case VECTOR_2F:
+			return vec2f;
+		case VECTOR_3F:
+			return vec3f;
+		case VECTOR_4F:
+			return Vector2f(vec4f.x, vec4f.y);
+		default:
+			assert(false);
+	}
+	return vec;	
+}
+
 	

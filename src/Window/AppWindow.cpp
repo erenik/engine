@@ -952,6 +952,7 @@ bool AppWindow::DeleteGLContext()
 			hglrc = 0;
 			return false;
 		}
+		hglrc = 0;
 		int error = GetLastError();
 		if (error)
 			std::cout<<"\nError: "<<error;

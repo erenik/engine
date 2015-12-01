@@ -36,6 +36,7 @@ public:
 	Vector4f GetVector4f();
 	// Returns the values embedded within in the Vector4f format, converting as necessary.
 	Vector3f GetVector3f();
+	Vector2f GetVector2f();
 	enum vectorTypes {
 		VECTOR_2I,
 		VECTOR_2F,

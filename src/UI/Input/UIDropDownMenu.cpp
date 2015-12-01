@@ -90,12 +90,16 @@ void UIDropDownMenu::Open()
 	if (!selectionList)
 	{
 		selectionList = new UIList();
+		selectionList->visible = false;
 		selectionList->textureSource = "0x22FF";
 		PopulateList();
 	}
-	selectionList->visible = true;
-	ui->Root()->AddChild(selectionList);
-	this->ui->PushToStack(selectionList);
+	if (!selectionList->visible)
+	{
+		selectionList->visible = true;
+		ui->Root()->AddChild(selectionList);
+		this->ui->PushToStack(selectionList);
+	}
 }
 
 void UIDropDownMenu::PopulateList()

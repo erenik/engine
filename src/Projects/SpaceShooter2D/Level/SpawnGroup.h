@@ -11,16 +11,23 @@
 /// Types. Default LINE_X?
 namespace Formation {
 enum {
+	BAD_FORMATION = 0,
 	LINE_X,
 	DOUBLE_LINE_X,
 	LINE_Y,
 	LINE_XY,
+	X, 
+	SQUARE,
+	CIRCLE,
+	HALF_CIRCLE_LEFT,
+	HALF_CIRCLE_RIGHT,
 	V_X, /// Typical V-bird-formation, flying X-wise.
 	V_Y, /// Typical V-bird-formation, flying Y-wise.
 	SWARM_BOX_XY, /// Random-based swarm with some minimum threshold distance between each ship, skipping ships if area is not large enough.
 	FORMATIONS,
 };
 	String GetName(int forFormationType);
+	int GetByName(String name);
 };
 
 class SpawnGroup 
@@ -28,8 +35,8 @@ class SpawnGroup
 public:
 	SpawnGroup();
 	void Reset();
-	/// Spawns ze entities.
-	void Spawn();
+	/// Spawns ze entities. True if spawning sub-part of an aggregate formation-type.
+	void Spawn(bool subAggregate = false);
 	void OnShipDestroyed(Ship * ship);
 	void OnShipDespawned(Ship * ship);
 	/// o.o

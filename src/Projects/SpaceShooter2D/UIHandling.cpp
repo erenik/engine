@@ -628,7 +628,7 @@ void SpaceShooter2D::OpenJumpDialog()
 }
 
 
-
+#include "SpaceShooter2D/Level/SpawnGroup.h"
 AppWindow * spawnWindow = 0;
 UserInterface * spawnUI = 0;
 
@@ -653,6 +653,12 @@ void OpenSpawnWindow()
 		shipTypes.AddItem(type->name);
 	}
 	QueueGraphics(new GMSetUIContents(spawnUI, "ShipTypeToSpawn", shipTypes));
+	List<String> spawnFormations;
+	for (int i = 0; i < Formation::FORMATIONS; ++i)
+	{
+		spawnFormations.AddItem(Formation::GetName(i));
+	}
+	QueueGraphics(new GMSetUIContents(spawnUI, "SpawnFormation", spawnFormations));
 }
 
 void CloseSpawnWindow()

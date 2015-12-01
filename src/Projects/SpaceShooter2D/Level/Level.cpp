@@ -8,6 +8,7 @@
 #include "LevelMessage.h"
 #include "Explosion.h"
 #include "File/LogFile.h"
+#include "Message/MathMessage.h"
 
 Camera * levelCamera = NULL;
 
@@ -259,11 +260,38 @@ void Level::ProcessMessage(Message * message)
 	{
 		case MessageType::SET_STRING:
 		{
+			String value = ((SetStringMessage*)message)->value;
 			if (msg == "DropDownMenuSelection:ShipTypeToSpawn")
 			{
-				testGroup.shipType = ((SetStringMessage*)message)->value;
+				testGroup.shipType = value;
+			}
+			else if (msg == "DropDownMenuSelection:SpawnFormation")
+			{
+				testGroup.formation = Formation::GetByName(value);
 			}
 			break;
+		}
+		case MessageType::INTEGER_MESSAGE:
+		{
+			IntegerMessage * im = (IntegerMessage*) message;
+			if (msg == "SetTestEnemiesAmount")
+			{
+				testGroup.number = im->value;
+			}
+			break;	
+		}
+		case MessageType::VECTOR_MESSAGE:
+		{
+			VectorMessage * vm = (VectorMessage*)message;
+			if (msg == "SetFormationSize")
+			{
+				testGroup.size = vm->GetVector2f();
+			}
+			else if (msg == "SetSpawnLocation")
+			{
+				testGroup.groupPosition = vm->GetVector3f();
+			}
+			break;	
 		}
 		case MessageType::STRING:
 		{
@@ -285,7 +313,6 @@ void Level::ProcessMessage(Message * message)
 				this->RemoveRemainingSpawnGroups();
 				this->RemoveExistingEnemies();
 			}
-
 			if (msg == "SpawnTestEnemies")
 			{
 				testGroup.Spawn();

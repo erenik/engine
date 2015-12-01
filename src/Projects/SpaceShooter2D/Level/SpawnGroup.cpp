@@ -14,10 +14,16 @@ String Formation::GetName(int forFormationType)
 {
 	switch(forFormationType)
 	{
+		case BAD_FORMATION: return "BAD_FORMATION";
 		case LINE_X: return "LINE_X";
 		case DOUBLE_LINE_X: return "DOUBLE_LINE_X";
 		case LINE_Y: return "LINE_Y";
 		case LINE_XY: return "LINE_XY";
+		case X: return "X";
+		case SQUARE: return "SQUARE";
+		case CIRCLE: return "CIRCLE";
+		case HALF_CIRCLE_LEFT: return "HALF_CIRCLE_LEFT";
+		case HALF_CIRCLE_RIGHT: return "HALF_CIRCLE_RIGHT";
 		case V_X: return "V_X";
 		case V_Y: return "V_Y";
 		case SWARM_BOX_XY: return "SWARM_BOX_XY";
@@ -25,6 +31,18 @@ String Formation::GetName(int forFormationType)
 			assert(false);
 	}
 }
+
+int Formation::GetByName(String name)
+{
+	for (int i = 0; i < Formation::FORMATIONS; ++i)
+	{
+		String n = GetName(i);
+		if (n == name)
+			return i;
+	}
+	return 0;
+}
+
 
 SpawnGroup::SpawnGroup()
 {
@@ -46,10 +64,40 @@ void SpawnGroup::Reset()
 
 
 Random spawnGroupRand;
-void SpawnGroup::Spawn()
+void SpawnGroup::Spawn(bool subAggregate)
 {
-	LogMain("Spawning spawn group at time: "+String(spawnTime.ToString("m:S.n")), INFO);
+	if (!subAggregate)
+		LogMain("Spawning spawn group at time: "+String(spawnTime.ToString("m:S.n")), INFO);
+
 	spawned = true;
+	std::cout<<"\nSpawning formation: "<<Formation::GetName(formation);
+
+	switch(formation)
+	{
+		case Formation::SQUARE:
+			/// Number will be the amount of ships per side?
+			SpawnGroup copy = *this;
+			int num = number;
+			Vector2f spacing = size / (num - 1);
+			Vector2f lineSize = spacing * (num - 2);
+			// Bottom
+			copy.formation = Formation::LINE_X;
+			copy.number = num - 1;
+			copy.groupPosition = groupPosition + Vector2f(-size.x * 0.5f, size.y * 0.5f);
+			copy.size = Vector2f(lineSize.x, 0); 
+			copy.Spawn(true);
+			copy.groupPosition = groupPosition + Vector2f(-size.x * 0.5f + spacing.x, - size.y * 0.5f);
+			copy.Spawn(true);
+			copy.groupPosition = groupPosition + Vector2f(size.x * 0.5f, spacing.y * 0.5f);
+			copy.formation = Formation::LINE_Y;
+			copy.size = Vector2f(0, -lineSize.y);
+			copy.Spawn(true);
+			copy.groupPosition = groupPosition + Vector2f(-size.x * 0.5f, - spacing.y * 0.5f);
+			copy.size = Vector2f(0, lineSize.y);
+			copy.Spawn(true);
+			return;
+	}
+
 	/// Fetch amount.
 	Vector3f offsetPerSpawn;
 	int offsetNum = max(1,number - 1);
@@ -68,9 +116,24 @@ void SpawnGroup::Spawn()
 			;//std::cout<<"\nImplement";
 	}
 	offsetPerSpawn = size / (float) offsetNum;
-	
+
+	/// Adjust offsetPerSpawn accordingly
 	switch(formation)
 	{
+		case Formation::V_X:
+			offsetPerSpawn.x = size.x / (floor((number) / 2.0 + 0.5) - 1);
+			break;
+		case Formation::V_Y:
+			offsetPerSpawn.y = size.y / (floor((number) / 2.0 + 0.5) - 1);
+			break;
+		case Formation::X:
+		{
+			int steps = floor((number - 1) / 4.0);
+			if (steps < 1)
+				return;
+			offsetPerSpawn = size * 0.5f / steps;
+			break;
+		}
 		case Formation::SWARM_BOX_XY:
 			offsetPerSpawn.y = 0; // Spawn erratically in Y only. Have some X offset each spawn?
 			break;
@@ -87,6 +150,7 @@ void SpawnGroup::Spawn()
 	List<Vector3f> positions;
 	for (int i = 0; i < number; ++i)
 	{
+
 		Vector3f position;
 		int offsetIndex = i;
 		// Just add offset?
@@ -97,11 +161,27 @@ void SpawnGroup::Spawn()
 			case Formation::V_Y:
 				offsetIndex = (i + 1)/ 2;
 				break;
+			case Formation::X:
+				offsetIndex = (i + 3) / 4;
+				break;
+			case Formation::LINE_X:
+//				position.y += size.y * 0.5f;
+				break;
+			case Formation::LINE_XY:
+			case Formation::LINE_Y:
+			case Formation::SWARM_BOX_XY:
+			case Formation::DOUBLE_LINE_X:
+				position.y -= size.y * 0.5f; // Center it.
+				break;
 			default:
 				;// std::cout<<"\nImplement";
 		}	
 		position += offsetPerSpawn * (float)offsetIndex;
-		// Flip accordingly
+		bool angles = false;
+		float degrees = 0;
+		float startDegree = 0;
+		Vector2f radialMultiplier(1,1);
+		// Flip/randomize accordingly, 
 		switch(formation)
 		{
 			case Formation::V_X:
@@ -112,16 +192,57 @@ void SpawnGroup::Spawn()
 				if ((i + 1) % 2 == 0)
 					position.x *= -1;
 				break;
+			case Formation::X:
+				/// If .. stuff
+				if ((i + 1) % 4 < 2)
+					position.x *= -1;
+				if ((i + 1) % 2 == 0)
+					position.y *= -1;
+				break;
 			case Formation::SWARM_BOX_XY:
 				position.y += spawnGroupRand.Randf(size.y);
 				break;
+			case Formation::DOUBLE_LINE_X:
+				break;
 			default:
-				;//std::cout<<"\nImplement";
+				break;//std::cout<<"\nImplement";
+			case Formation::CIRCLE:
+				angles = true;
+				degrees = 360.0 / number;
+				startDegree = 180;
+				break;
+			case Formation::HALF_CIRCLE_LEFT:
+				angles = true;
+				degrees = 180.0 / (number - 1);
+				startDegree = 90;
+				radialMultiplier.x = 2;
+				break;
+			case Formation::HALF_CIRCLE_RIGHT:
+				angles = true;
+				degrees = 180.0 / (number - 1);
+				startDegree = -90;
+				radialMultiplier.x = 2;
+				break;
 		}
-		/// Add current position offset to it.
-		position += Vector3f(spawnPositionRight, activeLevel->height * 0.5f, 0); 
+		/// Radial spawning.
+		if (angles)
+		{
+			position = Vector3f();
+			Angle ang = Angle::FromDegrees(degrees * i + startDegree);
+			Vector2f angXY = ang.ToVector2f();
+			position += angXY * size * 0.5f * radialMultiplier;
+		}
+
+		/// Center it - wat?
+//		position.y -= size.y * 0.5f;
+
 		/// Add group position offset (if any)
 		position += this->groupPosition;
+
+		std::cout<<"\nSpawning ship @ x"<<position.x<<" y"<<position.y;
+
+		/// Add current position offset to it.
+		position += Vector3f(spawnPositionRight, activeLevel->height * 0.5f, 0); 
 		/// Create entity
 		SpawnShip(position);
 		if (formation == Formation::DOUBLE_LINE_X)
