@@ -15,6 +15,7 @@
 #include "Physics/PhysicsManager.h"
 #include "Audio/AudioManager.h"
 
+#include "Message/FileEvent.h"
 #include "File/LogFile.h"
 
 /// Global statemanager.
@@ -247,11 +248,16 @@ int StateManager::ActiveStateID(){
 }
 
 // For handling drag-n-drog files.
-void StateManager::HandleDADFiles(List<String> & files){
+void StateManager::HandleDADFiles(List<String> & files)
+{
 	if (globalState)
 		globalState->HandleDADFiles(files);
 	if (activeState)
 		activeState->HandleDADFiles(files);
+	FileEvent * fe = new FileEvent();
+	fe->files = files;
+	fe->msg = "DND";
+	MesMan.QueueMessage(fe);
 }
 
 /** For pausing entity-state and game state updates while paused.

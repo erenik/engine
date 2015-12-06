@@ -39,12 +39,14 @@ public:
 	void Spawn(bool subAggregate = false);
 	void OnShipDestroyed(Ship * ship);
 	void OnShipDespawned(Ship * ship);
+	/// Creates string (sequence of lines) required to create this specific SpawnGroup in e.g. a level file.
+	String GetLevelCreationString(Time t);
 	/// o.o
 	String name;
 	String shipType;
 	bool spawned, defeated, survived;
 	Time spawnTime;
-	Vector3f groupPosition;
+	Vector3f position;
 	/// Number along the formation bounds.
 	int number;
 	// See enum above.

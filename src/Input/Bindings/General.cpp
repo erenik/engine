@@ -12,9 +12,7 @@ enum generalActions
 /// Creates bindings that are used for debugging purposes only
 void CreateDefaultGeneralBindings()
 {
-
 	InputMapping * mapping = &InputMan.general;
-
 	
 	int ctrl = KEY::CTRL;
 
@@ -35,6 +33,9 @@ void CreateDefaultGeneralBindings()
 	Bind3(Action::FromEnum(CYCLE_RENDER_PIPELINE), ctrl, KEY::R, KEY::PLUS);
 	Bind3(Action::FromEnum(CYCLE_RENDER_PIPELINE_BACK), ctrl, KEY::R, KEY::MINUS);
 	
+	Bind2(Action::FromEnum(PASTE), ctrl, KEY::V);
+	Bind2(Action::FromEnum(COPY), ctrl, KEY::C);
+
 	List<Binding*> & bindings = mapping->bindings;
 #define BIND(a,b) bindings.Add(new Binding(a,b))
 

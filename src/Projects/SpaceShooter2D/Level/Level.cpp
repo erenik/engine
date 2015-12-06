@@ -9,6 +9,9 @@
 #include "Explosion.h"
 #include "File/LogFile.h"
 #include "Message/MathMessage.h"
+#include "StateManager.h"
+
+#define SPAWNED_ENEMIES_LOG "SpawnedEnemies.srl"
 
 Camera * levelCamera = NULL;
 
@@ -25,6 +28,7 @@ bool gameTimePaused = false;
 bool defeatedAllEnemies = true;
 bool failedToSurvive = false;
 SpawnGroup testGroup;
+List<SpawnGroup> storedTestGroups;
 
 Level::Level()
 {
@@ -289,7 +293,7 @@ void Level::ProcessMessage(Message * message)
 			}
 			else if (msg == "SetSpawnLocation")
 			{
-				testGroup.groupPosition = vm->GetVector3f();
+				testGroup.position = vm->GetVector3f();
 			}
 			break;	
 		}
@@ -308,14 +312,29 @@ void Level::ProcessMessage(Message * message)
 
 			else if (msg == "SetupForTesting")
 			{
+				File::ClearFile(SPAWNED_ENEMIES_LOG);
 				// Disable game-over/dying/winning
-				this->winCriteria = Level::NEVER;
-				this->RemoveRemainingSpawnGroups();
-				this->RemoveExistingEnemies();
+				Clear();
+				levelTime.intervals = 0;
 			}
-			if (msg == "SpawnTestEnemies")
+			else if (msg == "StoreTestEnemies")
 			{
-				testGroup.Spawn();
+				storedTestGroups.AddItem(testGroup);
+	//			QueueGraphics(new GMSetUIs("StoreTestEnemies", GMUI::TEXT, "Store for spawning ("+String(storedTestGroups.Size())+")"));
+			}
+			else if (msg == "SpawnTestEnemies")
+			{
+				storedTestGroups.AddItem(testGroup);
+//				QueueGraphics(new GMSetUIs("StoreTestEnemies", GMUI::TEXT, "Store for spawning", ));
+				for (int i = 0; i < storedTestGroups.Size(); ++i)
+				{
+					SpawnGroup sg = storedTestGroups[i];
+					String str = sg.GetLevelCreationString(flyTime);
+					File::AppendToFile(SPAWNED_ENEMIES_LOG, str);
+					LogMain(str, INFO);
+					sg.Spawn();
+				}
+				storedTestGroups.Clear();
 			}
 			break;		
 		}

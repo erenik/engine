@@ -3,6 +3,8 @@
 /// Space shooter.
 /// For the Karl-Emil SpaceShooter project, mainly 2014-2015/
 
+#include "Message/FileEvent.h"
+
 #include "SpaceShooter2D/SpaceShooter2D.h"
 #include "Base/WeaponScript.h"
 
@@ -256,6 +258,23 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 	level.ProcessMessage(message);
 	switch(message->type)
 	{
+		case MessageType::FILE_EVENT:
+		{
+			FileEvent * fv = (FileEvent *) message;
+			for (int i = 0; i < fv->files.Size(); ++i)
+			{
+				String file = fv->files[i];
+				if (file.Contains(".srl"))
+				{
+					level.Load(file);
+				}
+				if (file.Contains(".csv"))
+				{
+					// Load stuff?
+				}
+			}
+			break;
+		}
 		case MessageType::SET_STRING:
 		{
 			SetStringMessage * strMes = (SetStringMessage *) message;
@@ -663,6 +682,10 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 				String source = msg;
 				source.Remove("LoadLevel:");
 				source.RemoveSurroundingWhitespaces();
+				if (!source.Contains("Levels"))
+					source = "Levels/" + source;
+				if (!source.Contains(".srl"))
+					source += ".srl";
 				LoadLevel(source);
 			}
 			else if (msg == "ReloadLevel")

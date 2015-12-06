@@ -28,7 +28,7 @@ int CheckALError(const String & errorLocation)
 		case AL_INVALID_NAME: errorMsg = "AL invalid name."; break;
 		case AL_INVALID_VALUE: errorMsg = "AL invalid value."; break;
 		case AL_INVALID_ENUM: errorMsg = "AL Invalid enum."; break;
-		case AL_OUT_OF_MEMORY: errorMsg = "AL out of memory!"; assert(false); break;
+		case AL_OUT_OF_MEMORY: errorMsg = "AL out of memory!"; break;
 		default:
 			assert(false && "Unidentified al error D:");
 			break;

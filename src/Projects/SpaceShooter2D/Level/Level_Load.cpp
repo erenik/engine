@@ -89,8 +89,28 @@ using namespace LevelLoader;
 	}
 */
 
+/// Deletes all ships, spawngroups, resets variables to defaults.
+void Level::Clear()
+{
+	this->winCriteria = Level::NEVER;
+	this->RemoveRemainingSpawnGroups();
+	this->RemoveExistingEnemies();
+	// Reset player cooldowns if needed.
+	if (playerShip)
+		playerShip->RandomizeWeaponCooldowns();
+}
+
 bool Level::Load(String fromSource)
 {
+	Clear();
+	// Clear old stuff
+	this->winCriteria = Level::NEVER;
+	this->RemoveRemainingSpawnGroups();
+	this->RemoveExistingEnemies();
+	levelTime.intervals = 0;
+
+
+
 	LevelLoader::loadLevel = this;
 	group = NULL;
 	lastGroup = NULL;
@@ -109,10 +129,6 @@ bool Level::Load(String fromSource)
 	flyTime = levelTime = Time(TimeType::MILLISECONDS_NO_CALENDER, 0); // reset lvl time.
 
 	String sourceTxt = source;
-	if (!sourceTxt.Contains("Levels"))
-		sourceTxt = "Levels/" + sourceTxt;
-	if (!source.Contains(".srl"))
-		sourceTxt += ".srl";
 	music = source+".ogg";
 	Vector3i goalColor;
 	
@@ -295,7 +311,7 @@ bool Level::Load(String fromSource)
 			if (var == "SpawnTime")
 				group->spawnTime.ParseFrom(arg);
 			if (var == "Position")
-				group->groupPosition.ParseFrom(parenthesisContents);
+				group->position.ParseFrom(line - "Position");
 			if (var == "ShipType")
 				group->shipType = arg;
 			if (var == "Formation")
@@ -303,7 +319,7 @@ bool Level::Load(String fromSource)
 			if (var == "Number" || var == "Amount")
 				group->number = arg.ParseInt();
 			if (var == "Size")
-				group->size.ParseFrom(parenthesisContents);
+				group->size.ParseFrom((line - "Size"));
 			continue;
 		}
 		if (line.StartsWith("MillisecondsPerPixel"))

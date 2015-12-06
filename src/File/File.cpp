@@ -238,6 +238,32 @@ List<String> File::GetLines(String fromFile)
 	return lines;
 }
 
+/// Clears a file if it exists. 
+bool File::ClearFile(String filename)
+{
+	if (!FileExists(filename))
+		return false;
+	std::fstream file(filename.c_str(), std::ios_base::out);
+	if (file.is_open())
+	{
+		file.close();
+		return true;
+	}
+	return false;
+}
+
+/// Returns false upon failure. Tries to append, may create new file.
+bool File::AppendToFile(String filename, String text)
+{
+	std::fstream file(filename.c_str(), std::ios_base::out | std::ios_base::app);
+	if (!file.is_open())
+		return false;
+	file.write(text.c_str(), text.Length());
+	file.close();
+	return true;
+}
+
+
 /// Reads through the entire file to the end, printing every character along the way in std::cout
 void File::PrintData()
 {

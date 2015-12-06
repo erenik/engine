@@ -67,6 +67,10 @@ public:
 	List<String> GetLines();
 	/// Static function to fetch all lines of text from a given file by name. 
 	static List<String> GetLines(String fromFile);
+	/// Clears a file if it exists. Returns true if file didn't exist or if clearing was successful. 
+	static bool ClearFile(String filename);
+	/// Returns false upon failure. Tries to append, may create new file.
+	static bool AppendToFile(String filename, String text);
 	
 	/// Reads through the entire file to the end, printing every character along the way in std::cout
 	void PrintData();

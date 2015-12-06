@@ -84,7 +84,7 @@ Weapon * Weapon::Get(int type, int level)
 			return & weap;
 		}
 	}
-	LogMain("UNABLWE TO GRAB WEAPON "+String(type)+" of level "+String(level), ERROR);
+	LogMain("Unable to grab weapon "+String(type)+" of level "+String(level), ERROR);
 //	assert(false);
 	return 0;
 }
@@ -161,7 +161,7 @@ bool Weapon::LoadTypes(String fromFile)
 			else if (column == "Stability")
 			{
 				weapon.stability = value.ParseFloat();
-				LogMain("Weapon "+weapon.name+" stability: "+String(weapon.stability), INFO);
+//				LogMain("Weapon "+weapon.name+" stability: "+String(weapon.stability), INFO);
 			}
 			else if (column == "Linear Damping")
 				weapon.linearDamping = value.ParseFloat();

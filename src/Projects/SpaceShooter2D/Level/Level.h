@@ -38,6 +38,8 @@ class Level
 public:
 	Level();
 	virtual ~Level();
+	/// Deletes all ships, spawngroups, resets variables to defaults.
+	void Clear();
 	bool Load(String fromSource);
 	// Used for player and camera. Based on millisecondsPerPixel.
 	Vector3f BaseVelocity();

@@ -83,16 +83,16 @@ void SpawnGroup::Spawn(bool subAggregate)
 			// Bottom
 			copy.formation = Formation::LINE_X;
 			copy.number = num - 1;
-			copy.groupPosition = groupPosition + Vector2f(-size.x * 0.5f, size.y * 0.5f);
+			copy.position = position + Vector2f(-size.x * 0.5f, size.y * 0.5f);
 			copy.size = Vector2f(lineSize.x, 0); 
 			copy.Spawn(true);
-			copy.groupPosition = groupPosition + Vector2f(-size.x * 0.5f + spacing.x, - size.y * 0.5f);
+			copy.position = position + Vector2f(-size.x * 0.5f + spacing.x, - size.y * 0.5f);
 			copy.Spawn(true);
-			copy.groupPosition = groupPosition + Vector2f(size.x * 0.5f, spacing.y * 0.5f);
+			copy.position = position + Vector2f(size.x * 0.5f, spacing.y * 0.5f);
 			copy.formation = Formation::LINE_Y;
 			copy.size = Vector2f(0, -lineSize.y);
 			copy.Spawn(true);
-			copy.groupPosition = groupPosition + Vector2f(-size.x * 0.5f, - spacing.y * 0.5f);
+			copy.position = position + Vector2f(-size.x * 0.5f, - spacing.y * 0.5f);
 			copy.size = Vector2f(0, lineSize.y);
 			copy.Spawn(true);
 			return;
@@ -237,7 +237,7 @@ void SpawnGroup::Spawn(bool subAggregate)
 //		position.y -= size.y * 0.5f;
 
 		/// Add group position offset (if any)
-		position += this->groupPosition;
+		position += this->position;
 
 		std::cout<<"\nSpawning ship @ x"<<position.x<<" y"<<position.y;
 
@@ -317,6 +317,20 @@ void SpawnGroup::OnShipDespawned(Ship * ship)
 		if (pausesGameTime)
 			gameTimePaused = false;
 	}
+}
+
+String SpawnGroup::GetLevelCreationString(Time t)
+{
+	String str;
+	str = "\nSpawnGroup "+String(t.Minute())+":"+String(t.Second())+"."+String(t.Millisecond());
+	str += "\nName "+name;
+	str += "\nShipType "+shipType;
+	str += "\nFormation "+Formation::GetName(formation);
+	str += "\nNumber "+String(number);
+	str += "\nSize xy "+String(size.x)+" "+String(size.y);
+	str += "\nPosition xy "+String(position.x)+" "+String(position.y);
+
+	return str;
 }
 
 void SpawnGroup::ParseFormation(String fromString)

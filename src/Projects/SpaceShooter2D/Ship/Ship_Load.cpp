@@ -13,6 +13,7 @@ int row = 0;
 // Load ship-types.
 bool Ship::LoadTypes(String file)
 {
+	LogMain("Loading ships from file: \""+file+"\"", INFO);
 	whenParsingFile = file;
 	List<String> lines = File::GetLines(file);
 	if (lines.Size() == 0)
@@ -118,6 +119,7 @@ bool Ship::LoadTypes(String file)
 				LogMain("Unrecognized column name \'"+column+"\'.", INFO);
 			}
 		}
+		LogMain("Ship loaded: "+ship->name+", weapons: "+ship->weapons.Size(), INFO);
 		// Check for pre-existing ship of same name, remove it if so.
 		for (int i = 0; i < types.Size(); ++i)
 		{

@@ -456,7 +456,7 @@ Audio * AudioManager::Play(char type, String name, bool repeat, float volume)
 }
 
 #define CHECK_INITIALIZED {if (!initialized){std::cout<<"\nAudio manager not initialized. Returning"; return;}}
-#define CHECK_AUDIO_ENABLED {if (!audioEnabled){std::cout<<"\nAudio disabled. Returning"; return;}}
+#define CHECK_AUDIO_ENABLED {if (!audioEnabled){ LogAudio("Audio disabled. Returning", INFO); return;}}
 
 /// Name is should correspond to filename or path, expected locatoin in ./sound/sfx/
 void AudioManager::PlaySFX(String name, float volume /*= 1.f*/)
