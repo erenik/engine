@@ -61,7 +61,7 @@ class PhysicsManager
 	friend class GraphicsManager;
 	friend class PhysicsOctree;
 	friend class PhysicsMessage;
-	friend class PMSet;
+	friend class PMSet; friend class PMSeti;
 	friend class PMRegisterEntity;
 	friend class PMRegisterEntities;
 	friend class PMUnregisterEntity;

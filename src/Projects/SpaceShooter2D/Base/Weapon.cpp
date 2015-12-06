@@ -35,6 +35,9 @@ WeaponSet::WeaponSet(WeaponSet & otherWeaponSet)
 
 Weapon::Weapon()
 {
+	circleSpam = false;
+	linearScaling = 1;
+	currCooldownMs = 0;
 	linearDamping = 1.f;
 	stability = 1.f;
 	numberOfProjectiles = 1;
@@ -45,7 +48,7 @@ Weapon::Weapon()
 	aim = false;
 	estimatePosition = false;
 	projectilePath = STRAIGHT;
-	burstStart = lastShot = Time(TimeType::MILLISECONDS_NO_CALENDER, 0);
+	burstStart = Time(TimeType::MILLISECONDS_NO_CALENDER, 0);
 	cooldown = Time(TimeType::MILLISECONDS_NO_CALENDER, 1000);
 	damage = 5;
 	angle = 0;
@@ -141,6 +144,8 @@ bool Weapon::LoadTypes(String fromFile)
 				weapon.level = value.ParseInt();
 			else if (column == "Explosion Radius")
 				weapon.explosionRadius = value.ParseFloat();
+			else if (column == "Linear Scaling")
+				weapon.linearScaling = value.ParseFloat();
 			else if (column == "Cooldown")
 				weapon.cooldown = Time::Milliseconds(value.ParseFloat());
 			else if (column == "Penetration")
@@ -173,6 +178,8 @@ bool Weapon::LoadTypes(String fromFile)
 					weapon.aim = true;
 				else if (value.Contains("Predict"))
 					weapon.estimatePosition = true;
+				else if (value.Contains("Circle"))
+					weapon.circleSpam = true;
 				weapon.angle = value.ParseInt();
 			}
 			else if (column == "Projectile path")
@@ -252,8 +259,8 @@ void Weapon::Aim(Ship * ship)
 		return;
 	Entity * shipEntity = ship->entity;
 	// Estimate position upon impact?
-	Vector3f targetPos = target->position;
-	Vector3f toTarget = targetPos - shipEntity->position;
+	Vector3f targetPos = target->worldPosition;
+	Vector3f toTarget = targetPos - shipEntity->worldPosition;
 	if (estimatePosition)
 	{
 		float dist = toTarget.Length();
@@ -262,7 +269,7 @@ void Weapon::Aim(Ship * ship)
 		// Estimated position upon impact... wat.
 		float seconds = dist / projectileSpeed;
 		Vector3f estimatedPosition = targetPos + vel * seconds;
-		toTarget = estimatedPosition - shipEntity->position;
+		toTarget = estimatedPosition - shipEntity->worldPosition;
 	}
 	// Aim at the player.
 	currentAim = toTarget.NormalizedCopy();
@@ -272,35 +279,36 @@ void Weapon::Aim(Ship * ship)
 void Weapon::Shoot(Ship * ship)
 {
 	float firingSpeedDivisor = ship->activeSkill == ATTACK_FRENZY? 0.4f : 1.f; 
-	/// For burst..
+	if (currCooldownMs > 0)
+		return;
+
 	if (burst)
 	{
+		/// Mid-burst?
 		if (burstRoundsShot < burstRounds)
 		{
 			// Check time between burst rounds.
-			if (flyTime < burstRoundDelay * firingSpeedDivisor + lastShot)
-				return;
 			++burstRoundsShot;
+			// Set next cooldown to be the burst delay.
+			currCooldownMs = burstRoundDelay.Milliseconds();
 		}
+		/// End of burst.
 		else {
-			if (flyTime < cooldown * firingSpeedDivisor + burstStart)
-				return;
 			burstStart = flyTime;
-			burstRoundsShot = 0;
 			++burstRoundsShot;
+			currCooldownMs = cooldown.Milliseconds();
+			burstRoundsShot = 0;
 		}
 	}
-	// Regular fire
-	else {
-		if (flyTime < cooldown * firingSpeedDivisor + lastShot)
-			return;
-	}
+	else
+		currCooldownMs = cooldown.Milliseconds();
+
 	// Shoot!
 	if (type ==	LIGHTNING)
 	{
 		/// Create a lightning storm...!
 		ProcessLightning(ship, true);
-		lastShot = flyTime;
+//		lastShot = flyTime;
 		return;
 	}
 
@@ -329,7 +337,7 @@ void Weapon::Shoot(Ship * ship)
 		projProp->weapon.damage *= flakMultiplier;
 		projectileEntity->properties.Add(projProp);
 		// Set scale and position.
-		projectileEntity->position = shipEntity->position;
+		projectileEntity->localPosition = shipEntity->worldPosition;
 		projectileEntity->SetScale(Vector3f(1,1,1) * projectileScale * flakMultiplier);
 		projProp->color = color;
 		projectileEntity->RecalculateMatrix();
@@ -388,19 +396,27 @@ void Weapon::Shoot(Ship * ship)
 		// Add to map.
 		MapMan.AddEntity(projectileEntity);
 		projectileEntities.Add(projectileEntity);
-		lastShot = flyTime;
-
+	//	lastShot = flyTime;
 	}
 	// Play sfx
 	QueueAudio(new AMPlaySFX("sfx/"+shootSFX+".wav", 1.f + numberOfProjectiles * 0.01f));
 }
 
 /// Called to update the various states of the weapon, such as reload time, making lightning arcs jump, etc.
-void Weapon::Process(Ship * ship)
+void Weapon::Process(Ship * ship, int timeInMs)
 {
-	if (type == LIGHTNING && arcs.Size())
+	currCooldownMs -= timeInMs;
+	if (currCooldownMs < 0)
+		currCooldownMs = 0;
+	switch(type)
 	{
-		ProcessLightning(ship);
+		case LIGHTNING:
+			if (arcs.Size())
+				ProcessLightning(ship);
+			break;
+		case HEAT_WAVE:
+//			ProcessHeatwave();
+			break;
 	}
 }
 
@@ -419,7 +435,7 @@ void Weapon::ProcessLightning(Ship * owner, bool initial /* = true*/)
 	{
 		// Create a dummy arc?
 		LightningArc * arc = new LightningArc();
-		arc->position = owner->entity->position;
+		arc->position = owner->entity->worldPosition;
 		arc->maxRange = maxRange;
 		arc->damage = damage;
 		arc->arcTime = flyTime;
@@ -455,12 +471,12 @@ void Weapon::ProcessLightning(Ship * owner, bool initial /* = true*/)
 		// Grab first one which hasn't already been struck?
 		Ship * target = possibleTargets[0];
 		// Recalculate distance since list was unsorted earlier...
-		float distance = (target->entity->position - arc->position).Length();
+		float distance = (target->entity->worldPosition - arc->position).Length();
 		/// Grab closest one.
 		for (int j = 1; j < possibleTargets.Size(); ++j)
 		{
 			Ship * t2 = possibleTargets[j];
-			float d2 = (t2->entity->position - arc->position).Length();
+			float d2 = (t2->entity->worldPosition - arc->position).Length();
 			if (d2 < distance)
 			{
 				target = t2;
@@ -474,7 +490,7 @@ void Weapon::ProcessLightning(Ship * owner, bool initial /* = true*/)
 		}
 
 		LightningArc * newArc = new LightningArc();
-		newArc->position = target->entity->position;
+		newArc->position = target->entity->worldPosition;
 		newArc->maxRange = arc->maxRange - distance;
 		newArc->damage = arc->damage * 0.8;
 		newArc->maxBounces = arc->maxBounces - 1;
@@ -487,11 +503,11 @@ void Weapon::ProcessLightning(Ship * owner, bool initial /* = true*/)
 		// Pew-pew it!
 		shipsStruckThisArc.AddItem(target);
 		assert(shipsStruckThisArc.Duplicates() == 0);
-		std::cout<<"\nThunderstruck! "<<target->entity->position;
+		std::cout<<"\nThunderstruck! "<<target->entity->worldPosition;
 		target->Damage(arc->damage, false);
 		/// Span up a nice graphical entity to represent the bolt
 		Entity * entity = EntityMan.CreateEntity("BoldPart", ModelMan.GetModel("cube.obj"), TexMan.GetTexture("0x00FFFF"));
-		entity->position = (arc->position + newArc->position) * 0.5f;
+		entity->localPosition = (arc->position + newArc->position) * 0.5f;
 		/// Rotate it accordingly.
 		Vector3f direction = newArc->position - arc->position;
 		direction.Normalize();

@@ -47,11 +47,11 @@ void ProjectileProperty::Destroy()
 	// Check if an explosion should be spawned in its place.
 	if (weapon.explosionRadius > 0)
 	{
-		activeLevel->Explode(weapon, owner->position);
+		activeLevel->Explode(weapon, owner->worldPosition);
 		float lifeTime = weapon.explosionRadius / 10.f;
 		ClampFloat(lifeTime, 2.5f, 10.f);
 		// Explosion emitter o-o should prob. have its own system later on.
-		SparksEmitter * tmpEmitter = new SparksEmitter(owner->position);
+		SparksEmitter * tmpEmitter = new SparksEmitter(owner->worldPosition);
 		tmpEmitter->SetEmissionVelocity(3.f);
 		tmpEmitter->constantEmission = 40 + weapon.damage * weapon.explosionRadius;
 		tmpEmitter->instantaneous = true;
@@ -64,7 +64,7 @@ void ProjectileProperty::Destroy()
 	else /// Sparks for all physically based projectiles with friction against targets.
 	{	
 		// Add a temporary emitter to the particle system to add some sparks to the collision
-		SparksEmitter * tmpEmitter = new SparksEmitter(owner->position);
+		SparksEmitter * tmpEmitter = new SparksEmitter(owner->worldPosition);
 		tmpEmitter->SetEmissionVelocity(3.f);
 		tmpEmitter->constantEmission = 40;
 		tmpEmitter->instantaneous = true;
@@ -115,6 +115,10 @@ void ProjectileProperty::Process(int timeInMs)
 		float alpha = weapon.relativeStrength = (weapon.maxRange - distanceTraveled) / weapon.maxRange;
 		/// Update alpha?
 		QueueGraphics(new GMSetEntityf(owner, GT_ALPHA, alpha));
+		/// Adjust scale over time?
+		float scale = owner->scale.x;
+		scale = 1 + (1 - alpha) * weapon.linearScaling;
+		QueuePhysics(new PMSetEntity(owner, PT_SET_SCALE, scale));
 		if (distanceTraveled > weapon.maxRange)
 		{
 			// Clean-up.
@@ -133,10 +137,10 @@ void ProjectileProperty::Process(int timeInMs)
 		// Adjust velocity towards it by the given factor, per second.
 		// 1.0 will change velocity entirely to look at the enemy.
 		// Values above 1.0 will try and compensate for target velocity and not just current position?
-		Entity * closestTarget = spaceShooter->level.ClosestTarget(player, owner->position);
+		Entity * closestTarget = spaceShooter->level.ClosestTarget(player, owner->worldPosition);
 		if (!closestTarget)
 			return;
-		Vector3f toTarget = closestTarget->position - owner->position;
+		Vector3f toTarget = closestTarget->worldPosition - owner->worldPosition;
 		toTarget.Normalize();
 		// Get current direction.
 		float timeFactor = timeInMs * 0.001f;

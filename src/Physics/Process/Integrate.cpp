@@ -24,7 +24,8 @@ void PhysicsManager::Integrate(float timeInSecondsSinceLastUpdate)
 	for (int i = 0; i < physicalEntities.Size(); ++i)
 	{
 		Entity * entity = physicalEntities[i];
-		if (entity->physics->estimationEnabled){	
+		if (entity->physics->estimationEnabled)
+		{
 			entity->physics->estimator->Estimate(now, false);
 		}
 	}
@@ -71,7 +72,7 @@ void PhysicsManager::Integrate(float timeInSecondsSinceLastUpdate)
 				if (physics->velocity.MaxPart()){
 				//    std::cout<<"\nVelocity: "<<physics->velocity;
 				}
-				dynamicEntity->position += physics->velocity * timeSinceLastUpdate;
+				dynamicEntity->localPosition += physics->velocity * timeSinceLastUpdate;
 				dynamicEntity->RecalculateMatrix();
 			}
 			/// Physics as calculated with strict Rigid body physics

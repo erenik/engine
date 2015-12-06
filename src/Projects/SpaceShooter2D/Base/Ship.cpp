@@ -71,12 +71,122 @@ void Ship::RandomizeWeaponCooldowns()
 	for (int i = 0; i < weapons.Size(); ++i)
 	{
 		Weapon * weap = weapons[i];
-		weap->lastShot = /*flyTime +*/ Time::Milliseconds(weap->cooldown.Milliseconds() * cooldownRand.Randf());
+		weap->currCooldownMs = weap->cooldown.Milliseconds() * cooldownRand.Randf();
+//		weap->lastShot = /*flyTime +*/ Time::Milliseconds(weap->cooldown.Milliseconds() * cooldownRand.Randf());
 	}
+}
+
+List<Entity*> Ship::Spawn(ConstVec3fr atPosition, Ship * in_parent)
+{
+	parent = in_parent;
+	if (parent)
+	{
+		parent->children.AddItem(this);
+	}
+
+	Entity * entity = EntityMan.CreateEntity(name, GetModel(), TexMan.GetTextureByColor(Color(0,255,0,255)));
+	entity->localPosition = atPosition;
+	float radians = PI / 2;
+//		entity->rotation[0] = radians; // Rotate up from Z- to Y+
+//		entity->rotation[1] = radians; // Rorate from Y+ to X-
+	/// No default rotation.
+	if (!parent)
+		entity->SetRotation(Vector3f(radians, radians, 0));
+	
+	PhysicsProperty * pp = new PhysicsProperty();
+	entity->physics = pp;
+	// Setup physics.
+	pp->type = PhysicsType::DYNAMIC;
+	pp->collisionCategory = CC_ENEMY;
+	pp->collisionFilter = CC_PLAYER | CC_PLAYER_PROJ;
+	pp->collisionCallback = true;
+	pp->shapeType = PhysicsShape::AABB;
+	// By default, set invulerability on spawn.
+	this->spawnInvulnerability = true;
+	ShipProperty * sp = new ShipProperty(this, entity);
+	entity->properties.Add(sp);
+	this->entity = entity;
+	this->spawned = true;
+	this->StartMovement();
+
+	/// Spawn children if applicable.
+	List<Entity*> children = SpawnChildren();
+	/// Set up parenting.
+	if (parent)
+	{
+		parent->entity->children.AddItem(this->entity);
+		this->entity->parent = parent->entity;
+//		QueuePhysics(new PMSetEntity(entity, PT_PARENT, parent->entity));
+	}
+	/// IF final aprent, register for rendering, etc.
+	else 
+	{
+		List<Entity*> all = children + entity;
+		shipEntities.Add(all);
+		MapMan.AddEntities(all);
+		/// Recalculate matrix and all children matrices.
+		entity->RecalculateMatrix(Entity::ALL_PARTS, true);
+	}
+	return entity;
+}
+
+/// Handles spawning of children as needed.
+List<Entity*> Ship::SpawnChildren()
+{
+	/// Translate strings.
+	List<String> childStrings;
+	for (int i = 0; i < childrenStrings.Size(); ++i)
+	{
+		String str = childrenStrings[i];
+		if (str.EndsWith('*'))
+		{
+			String strWoStar = str - "*";
+			/// Grab all starting with it.
+			for (int j = 0; j < Ship::types.Size(); ++j)
+			{
+				Ship * type = Ship::types[j];
+				if (type->name.Contains(strWoStar))
+					childStrings.AddItem(type->name);
+			}
+		}
+	}
+	List<Entity*> childrenSpawned;
+	for (int i = 0; i < childStrings.Size(); ++i)
+	{
+		String str = childStrings[i];
+		Ship * newShip = Ship::New(str);
+		if (!newShip)
+		{
+			LogMain("Ship::SpawnChildren: Unable to create ship of type: "+str, ERROR | CAUSE_ASSERTION_ERROR);
+			continue;
+		}
+		activeLevel->ships.AddItem(newShip);
+		Ship * ship = newShip;
+		ship->RandomizeWeaponCooldowns();
+		ship->spawnGroup = this->spawnGroup;
+		ship->Spawn(Vector3f(), this);
+		childrenSpawned.AddItem(ship->entity);
+		/// Apply spawn group properties.
+//		ship->shoot &= shoot;
+//		ship->speed *= relativeSpeed;
+	}
+	return childrenSpawned;
 }
 
 void Ship::Despawn()
 {
+	LogMain("Despawning ship "+name, INFO);
+	/// Notify parent if child.
+	if (parent)
+	{
+		parent->children.RemoveItem(this);
+		parent = 0;
+	}
+	for (int i = 0; i < children.Size(); ++i)
+	{
+		Ship * child = children[i];
+		child->Despawn();
+	}
 	if (spawnGroup)
 	{
 		if (hp <= 0)
@@ -175,7 +285,7 @@ void Ship::ProcessWeapons(int timeInMs)
 
 	/// Process ze weapons.
 	for (int i = 0; i < weapons.Size(); ++i)
-		weapons[i]->Process(this);
+		weapons[i]->Process(this, timeInMs);
 
 	// AI fire all weapons simultaneously for the time being.
 	if (ai)
@@ -210,16 +320,16 @@ void Ship::ProcessWeapons(int timeInMs)
 /// Prepends the source with '/obj/Ships/' and appends '.obj'. Uses default 'Ship.obj' if needed.
 Model * Ship::GetModel()
 {
-	String folder = "obj/Ships/";
-	Model * model = ModelMan.GetModel(folder + graphicModel);
+	String folder = "obj/";//Ships/";
+	Model * model = ModelMan.GetModel(graphicModel);
 	if (!model)
 	{
 		std::cout<<"\nUnable to find ship model with name \'"<<graphicModel<<"\', using default model.";
 		graphicModel.SetComparisonMode(String::NOT_CASE_SENSITIVE);
 		if (graphicModel.Contains("turret"))
-			model = ModelMan.GetModel(folder + "Turret");
+			model = ModelMan.GetModel("obj/Ships/Turret");
 		else
-			model = ModelMan.GetModel(folder + "Ship");
+			model = ModelMan.GetModel("obj/Ships/Ship");
 	}
 	return model;
 }
@@ -296,7 +406,7 @@ void Ship::Destroy()
 		if (sp)
 			sp->sleeping = true;
 		// Add a temporary emitter to the particle system to add some sparks to the collision
-		SparksEmitter * tmpEmitter = new SparksEmitter(entity->position);
+		SparksEmitter * tmpEmitter = new SparksEmitter(entity->worldPosition);
 		tmpEmitter->SetRatioRandomVelocity(1.0f);
 		tmpEmitter->SetEmissionVelocity(2.5f);
 		tmpEmitter->constantEmission = 750;
@@ -331,8 +441,8 @@ void Ship::Destroy()
 /// Creates new ship of specified type.
 Ship * Ship::New(String shipByName)
 {
-	shipByName.Replace('_', ' ');
-	shipByName.RemoveSurroundingWhitespaces();
+//	shipByName.Replace('_', ' '); // Move this elsewhere?
+	shipByName.RemoveSurroundingWhitespaces(); // Move this elsewhere?
 	List<String> typesNames;
 	for (int i = 0; i < types.Size(); ++i)
 	{

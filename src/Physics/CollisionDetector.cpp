@@ -44,8 +44,9 @@ int CollisionDetector::DetectCollisions(Entity * one, Entity * two, List<Collisi
 	///=================================================================================//
 	///  Sphere-Sphere Intersection
 	///=================================================================================//
-	if(shapeTypes[ShapeType::SPHERE] == 2){
-		if (!SpheresColliding(one->position, two->position, one->physics->physicalRadius + two->physics->physicalRadius))
+	if(shapeTypes[ShapeType::SPHERE] == 2)
+	{
+		if (!SpheresColliding(one->worldPosition, two->worldPosition, one->physics->physicalRadius + two->physics->physicalRadius))
 			return false;
 		if(SphereSphereCollision(one, two, data)){
 			shouldCollide = true;
@@ -84,7 +85,7 @@ int CollisionDetector::DetectCollisions(Entity * one, Entity * two, List<Collisi
 			sphereEntity = one;
 		}
 		// Perform a quick opting sphere-sphere out before evaluating further!
-		if (!SpheresColliding(one->position, two->position, one->physics->physicalRadius + two->physics->physicalRadius)){
+		if (!SpheresColliding(one->worldPosition, two->worldPosition, one->physics->physicalRadius + two->physics->physicalRadius)){
 			return false;
 		}
 
@@ -163,7 +164,7 @@ int CollisionDetector::DetectCollisions(Entity * one, Entity * two, List<Collisi
 		}
 		//
 		// Perform a quick opting sphere-sphere out before evaluating further!
-		if (!SpheresColliding(one->position, two->position, one->physics->physicalRadius + two->physics->physicalRadius)){
+		if (!SpheresColliding(one->worldPosition, two->worldPosition, one->physics->physicalRadius + two->physics->physicalRadius)){
 			return false;
 		}
 	//	std::cout<<"\nTesting collission for: "<<cube->name;
@@ -173,9 +174,9 @@ int CollisionDetector::DetectCollisions(Entity * one, Entity * two, List<Collisi
 	else if (shapeTypes[ShapeType::MESH] >= 2)
 	{
 		// Mesh-mesh collision...
-		if (!SpheresColliding(one->position, two->position, one->physics->physicalRadius + two->physics->physicalRadius))
+		if (!SpheresColliding(one->worldPosition, two->worldPosition, one->physics->physicalRadius + two->physics->physicalRadius))
 			return false;
-		data.collisionNormal = (one->position - two->position).NormalizedCopy();
+		data.collisionNormal = (one->worldPosition - two->worldPosition).NormalizedCopy();
 		/// CBA serious collision, just do it as if they are spheres for now?
 		shouldCollide = true;
 	}

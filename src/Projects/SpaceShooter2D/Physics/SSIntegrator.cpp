@@ -15,8 +15,8 @@ void SSIntegrator::IntegrateDynamicEntities(List<Entity*> & dynamicEntities, flo
 {
 	if (levelEntity)
 	{
-		frameMin = levelEntity->position - playingFieldHalfSize;
-		frameMax = levelEntity->position + playingFieldHalfSize;
+		frameMin = levelEntity->worldPosition - playingFieldHalfSize;
+		frameMax = levelEntity->worldPosition + playingFieldHalfSize;
 	}
 	static int shipID = ShipProperty::ID();
 	Timer timer;
@@ -31,7 +31,9 @@ void SSIntegrator::IntegrateDynamicEntities(List<Entity*> & dynamicEntities, flo
 		if (sp && sp->IsAllied())
 		{
 	//		std::cout<<"\nShip property: "<<sp<<" ID "<<sp->GetID()<<" allied: "<<sp->ship->allied;
-			Vector3f & position = dynamicEntity->position;
+			/// Adjusting local position may not help ensuring entity is within bounds for child entities.
+			assert(dynamicEntity->parent == 0);
+			Vector3f & position = dynamicEntity->localPosition;
 			ClampFloat(position[0], frameMin[0], frameMax[0]);
 			ClampFloat(position[1], frameMin[1], frameMax[1]);		
 		}
@@ -68,7 +70,7 @@ void SSIntegrator::IntegrateVelocity(Entity * forEntity, float timeInSeconds)
 	PhysicsProperty * pp = forEntity->physics;
 	if (pp->paused)
 		return;
-	Vector3f & position = forEntity->position;
+	Vector3f & localPosition = forEntity->localPosition;
 	Vector3f & velocity = pp->velocity;
 	/// For linear damping.
 	float linearDamp = pow(pp->linearDamping, timeInSeconds);
@@ -82,11 +84,11 @@ void SSIntegrator::IntegrateVelocity(Entity * forEntity, float timeInSeconds)
 	}
 	pp->smoothedVelocity = pp->smoothedVelocity * smoothingFactor + pp->currentVelocity * (1 - smoothingFactor);
 //	forEntity->position += forEntity->physics->velocity * timeInSeconds;
-	forEntity->position += pp->smoothedVelocity * timeInSeconds;
+	localPosition += pp->smoothedVelocity * timeInSeconds;
 	if (pp->relativeVelocity.MaxPart())
 	{
 		Vector3f velocity = forEntity->rotationMatrix * pp->relativeVelocity;
-		forEntity->position += velocity * timeInSeconds;
+		localPosition += velocity * timeInSeconds;
 	}
 	if (pp->angularVelocity.MaxPart())
 	{
@@ -96,7 +98,7 @@ void SSIntegrator::IntegrateVelocity(Entity * forEntity, float timeInSeconds)
 
 	if (constantZ)
 	{
-		forEntity->position[2] = constantZ;
+		localPosition[2] = constantZ;
 		forEntity->physics->velocity[2] = 0;
 	}
 

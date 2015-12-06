@@ -62,7 +62,7 @@ void ShipProperty::Process(int timeInMs)
 	/// o.o
 	if (spawnInvulnerability)
 	{
-		if (owner->position.x < removeInvuln)
+		if (owner->worldPosition.x < removeInvuln)
 		{
 			// Change color.
 			QueueGraphics(new GMSetEntityTexture(owner, DIFFUSE_MAP | SPECULAR_MAP, TexMan.GetTextureByColor(Color(255,255,255,255))));
@@ -139,14 +139,14 @@ void ShipProperty::OnCollision(Entity * withEntity)
 		}
 
 		// Add a temporary emitter to the particle system to add some sparks to the collision
-		Vector3f position = (owner->position + other->position) * 0.5f;
+		Vector3f position = (owner->worldPosition + other->worldPosition) * 0.5f;
 		SparksEmitter * tmpEmitter = new SparksEmitter();
 		tmpEmitter->newType = true;
 		tmpEmitter->positionEmitter.type = EmitterType::POINT;
 		tmpEmitter->positionEmitter.vec = position;
 		// Set up velocity emitter direction.
 		tmpEmitter->velocityEmitter.type = EmitterType::LINE_BOX;
-		Vector3f vec1 = (owner->position - other->position).NormalizedCopy().CrossProduct(Vector3f(0,0,1)).NormalizedCopy();
+		Vector3f vec1 = (owner->worldPosition - other->worldPosition).NormalizedCopy().CrossProduct(Vector3f(0,0,1)).NormalizedCopy();
 		tmpEmitter->velocityEmitter.vec = vec1;
 		tmpEmitter->velocityEmitter.vec2 = vec1.CrossProduct(Vector3f(0,0,1)).NormalizedCopy() * 0.2f;
 		

@@ -72,12 +72,12 @@ GraphicsProperty::~GraphicsProperty()
 /// Called when registered to Graphics Manager for rendering. Extracts initial position, etc.
 void GraphicsProperty::OnRegister()
 {
-	position = owner->position;
+	smoothedPosition = owner->worldPosition;
 	// Re-point the owner's render matrix usage as needed.
 	if (temporalAliasingEnabled)
 	{
 		owner->renderTransform = &transform;	
-		owner->renderPosition = &position;
+		owner->renderPosition = &smoothedPosition;
 	}
 }
 
@@ -90,8 +90,8 @@ void GraphicsProperty::Process(int timeInMs)
 	/// Update smoothed position and matrices.
 	if (temporalAliasingEnabled)
 	{
-		position = position * graphicsState->perFrameSmoothness + owner->position * (1 - graphicsState->perFrameSmoothness);
-		owner->RecalculateMatrix(transform, &position);
+		smoothedPosition = smoothedPosition * graphicsState->perFrameSmoothness + owner->worldPosition * (1 - graphicsState->perFrameSmoothness);
+		owner->RecalculateMatrix(transform, &smoothedPosition);
 		// TODO: Add a flag for temporal Anti-Alisasin so that not ALL static entities too have their shit recalculated each frame... ?
 	}
 

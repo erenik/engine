@@ -69,10 +69,13 @@ public:
 
 	/// Default.. 20.0. Dictates movable region in Y, at least.
 	float height;
+	/// Default 0.
+#define endCriteria winCriteria
 	enum 
 	{
 		NEVER,
-		SURVIVE_ALL_SPAWN_GROUPS,
+		SURVIVE_ALL_SPAWN_GROUPS, NO_MORE_ENEMIES = SURVIVE_ALL_SPAWN_GROUPS,
+		EVENT_TRIGGERED,
 	};
 	int winCriteria;
 
@@ -93,13 +96,6 @@ public:
 	Vector3f starSpeed;
 	Color starColor;
 
-	/// Default 0.
-	int endCriteria;
-	enum 
-	{
-		NO_MORE_ENEMIES,
-		EVENT_TRIGGERED,
-	};
 	bool levelCleared;
 
 	/// Displayed ones, that is.

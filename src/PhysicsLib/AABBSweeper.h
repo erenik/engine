@@ -29,8 +29,13 @@ public:
     List<EntityPair> Sweep();
 
 	int AxesToWorkWith() {return axesToWorkWith;};
-protected:
 
+	/// Creates the sorting axes and delimiters.
+	void CreateAxes();
+	/// Default 8 for TIFS, 1 for SpaceShooter. Used to separate and have several axes to reduce sorting burden.
+	int divisions; 
+
+protected:
 
     /// Sorts the selected axis, using provided list and axis number
     void Sort(List<AABBSweepNode*> & listToSort, int axis);

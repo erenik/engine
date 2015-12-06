@@ -24,14 +24,18 @@ void PMUnregisterEntities::Process()
 }
 
 
-PMUnregisterEntity::PMUnregisterEntity(Entity * i_entity)
-: PhysicsMessage(PM_UNREGISTER_ENTITY)
+PMUnregisterEntity::PMUnregisterEntity(Entity * i_entity, bool prepareForDeletion /*= false */ )
+	: PhysicsMessage(PM_UNREGISTER_ENTITY), prepareForDeletion(prepareForDeletion)
 {
 	entity = i_entity;
 }
 
 void PMUnregisterEntity::Process()
 {
+	if (prepareForDeletion)
+	{
+		entity->RemoveLinks();
+	}
 //	std::cout<<"\nUnregistering selection for Physics.";
 	if (!entity->registeredForPhysics)
 		return;

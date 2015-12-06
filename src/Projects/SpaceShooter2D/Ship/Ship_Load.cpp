@@ -100,6 +100,8 @@ bool Ship::LoadTypes(String file)
 				ship->score = value.ParseInt();
 			else if (column == "Speed")
 				ship->speed = value.ParseFloat() * 0.2f;
+			else if (column == "Children")
+				ship->childrenStrings = value.Tokenize(",");
 			else if (column == "Has Shield")
 				ship->hasShield = value.ParseBool();
 			else if (column == "Shield Value")
@@ -265,7 +267,7 @@ void Ship::ParseMovement(String fromString)
 	}
 	if (movementPatterns.Size() == 0)
 	{
-		movementPatterns.Add(Movement(Movement::NONE));
+		movementPatterns.Add(Movement(Movement::STRAIGHT));
 	}
 	assert(movementPatterns.Size());
 }

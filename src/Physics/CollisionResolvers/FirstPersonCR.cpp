@@ -80,8 +80,9 @@ bool FirstPersonCR::ResolveCollision(Collision & c)
 
 		/// Apply resitution and stuffs.
 		dynamic->physics->velocity = newVel;
-
-		dynamic->position += AbsoluteValue(c.distanceIntoEachOther) * c.collisionNormal;
+		assert(dynamic->parent == 0); 
+		/// Adjusting local position may not help if child entity.
+		dynamic->localPosition += AbsoluteValue(c.distanceIntoEachOther) * c.collisionNormal;
 		/// If below threshold, sleep it.
 		if (dynamic->physics->velocity.Length() < 0.1f && c.collisionNormal.y > 0.8f)
 		{
@@ -92,7 +93,7 @@ bool FirstPersonCR::ResolveCollision(Collision & c)
 		}
 		if (debug == 7)
 		{
-			std::cout<<"\nCollision resolution: "<<(c.one->name+" "+c.two->name+" ")<<c.collisionNormal<<" onePos"<<c.one->position<<" twoPos"<<c.two->position;
+			std::cout<<"\nCollision resolution: "<<(c.one->name+" "+c.two->name+" ")<<c.collisionNormal<<" onePos"<<c.one->worldPosition<<" twoPos"<<c.two->worldPosition;
 		}
 	}
 	// Dynamic-dynamic collision.

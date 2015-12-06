@@ -37,10 +37,10 @@ void AircraftIntegrator::IntegrateKinematicEntities(List<Entity*> kinematicEntit
 void AircraftIntegrator::IntegrateVelocity(Entity * forEntity, float timeInSeconds)
 {
 	PhysicsProperty * pp = forEntity->physics;
-	Vector3f & position = forEntity->position;
+	Vector3f & position = forEntity->localPosition;
 	Vector3f & velocity = pp->velocity;
 	Vector3f distanceTraveled = forEntity->physics->velocity  * timeInSeconds;
-	forEntity->position += distanceTraveled;
+	forEntity->localPosition += distanceTraveled;
 
 
 	// Fetch relative vectors.

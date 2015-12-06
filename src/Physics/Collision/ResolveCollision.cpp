@@ -144,8 +144,8 @@ bool ResolveCollision(Collision &data)
 
 
 		/// New fresh start... lol.
-		Vector3f relativeContactPosition = data.collissionPoint - one->position;
-		Vector3f relativeContactPosition2 = data.collissionPoint - two->position;
+		Vector3f relativeContactPosition = data.collissionPoint - one->worldPosition;
+		Vector3f relativeContactPosition2 = data.collissionPoint - two->worldPosition;
 		
 		/// Add Calculate relative velocities for the contact point.
 		Vector3f relVel1 = -one->physics->angularVelocity.CrossProduct(relativeContactPosition) + one->physics->velocity;
@@ -166,11 +166,11 @@ bool ResolveCollision(Collision &data)
 		data.distanceIntoEachOther = AbsoluteValue(data.distanceIntoEachOther);
 		if (dynamicEntity){
 			float sign = dynamicEntity == one? -1.0f : 1.0f;
-			dynamicEntity->position += data.collisionNormal * data.distanceIntoEachOther * 1.1f * sign;
+			dynamicEntity->worldPosition += data.collisionNormal * data.distanceIntoEachOther * 1.1f * sign;
 		}
 		else {
-			one->position -= data.collisionNormal * data.distanceIntoEachOther * 0.55f;
-			two->position += data.collisionNormal * data.distanceIntoEachOther * 0.55f;
+			one->worldPosition -= data.collisionNormal * data.distanceIntoEachOther * 0.55f;
+			two->worldPosition += data.collisionNormal * data.distanceIntoEachOther * 0.55f;
 		}
 		
 		/// Calculate requested change in contact velocity.
@@ -381,7 +381,8 @@ bool ResolveCollision(Collision &data)
 //				std::cout<<"\nVelDecrease: "<<velDecrease;
 
             /// Move back the dynamic entity along the collission normal until it's outside.
-            dynamicEntity->position += distanceIntoEachOther * collisionNormal * 1.05f; // * +1% to avoid glitchies
+			assert(dynamicEntity->parent == 0); // Just pushing local position doesn't work for child entities. 
+            dynamicEntity->localPosition += distanceIntoEachOther * collisionNormal * 1.05f; // * +1% to avoid glitchies
 			
             /// Update entity collission state
             UpdateCollisionState(dynamicEntity, collisionNormal);
@@ -430,10 +431,12 @@ bool ResolveCollision(Collision &data)
             two->physics->angularVelocity *= 1 - friction;
 
             /// Move back both entities along their normals half the distance
-            Vector3f awayFromTwo = (one->position - two->position).NormalizedCopy();
-            Vector3f awayFromOne = (two->position - one->position).NormalizedCopy();
-            one->position += distanceIntoEachOther * awayFromTwo * 0.55f; // * +2% to avoid glitchies
-            two->position += distanceIntoEachOther * awayFromOne * 0.55f;	// * +2% to avoid glitchies
+            Vector3f awayFromTwo = (one->worldPosition - two->worldPosition).NormalizedCopy();
+            Vector3f awayFromOne = (two->worldPosition - one->worldPosition).NormalizedCopy();
+			assert(one->parent == 0 && two->parent == 0); 
+			// Just adjusting local position won't work for child entities.
+            one->localPosition += distanceIntoEachOther * awayFromTwo * 0.55f; // * +2% to avoid glitchies
+            two->localPosition += distanceIntoEachOther * awayFromOne * 0.55f;	// * +2% to avoid glitchies
 
             /// Update collission states for both entities!
             UpdateCollisionState(two, collisionNormal);

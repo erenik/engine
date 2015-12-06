@@ -340,7 +340,7 @@ void MapManager::ListEntities(){
 	for (int i = 0; i < activeMap->entities.Size(); ++i){
 		std::cout<<"\n"<<i<<". "
 			<<activeMap->entities[i]->name
-			<<" Pos: "<<activeMap->entities[i]->position;
+			<<" Pos: "<<activeMap->entities[i]->worldPosition;
 	}
 }
 /** Fills the provided selection with all available entities in the active map. */
@@ -383,7 +383,7 @@ Entity * MapManager::GetFirstEntity(Ray & selectionRay, Vector3f & intersectionP
 
         /// First discard those entities which are behind the ray's origin.
         float entityRadius = entity->scale.MaxPart() * entity->radius;
-        float distanceEntityToRayStart = (entity->position - selectionRay.start).Length() - entityRadius;
+        float distanceEntityToRayStart = (entity->worldPosition - selectionRay.start).Length() - entityRadius;
 
         /// Check if it's anywhere near as close as the closest-distance, if not discard it now.
         if (closest && distanceEntityToRayStart - entityRadius > closestDistance + closestRadius){
@@ -391,7 +391,7 @@ Entity * MapManager::GetFirstEntity(Ray & selectionRay, Vector3f & intersectionP
             continue;
         }
 
-        Vector3f rayStartToEntity = entity->position - selectionRay.start;
+        Vector3f rayStartToEntity = entity->worldPosition - selectionRay.start;
         if (rayStartToEntity.DotProduct(selectionRay.direction) < 0 && distanceEntityToRayStart > entity->radius * entity->scale.MaxPart()){
             entitiesBehind.Add(entity);
             continue;
@@ -400,7 +400,7 @@ Entity * MapManager::GetFirstEntity(Ray & selectionRay, Vector3f & intersectionP
         /// Then do a radial check to dismiss unrelated ones.
         float distanceProjectedOntoClickRay = selectionRay.direction.DotProduct(rayStartToEntity);
         Vector3f projectedPointOnVector = selectionRay.start + distanceProjectedOntoClickRay * selectionRay.direction;
-        float distanceEntityToRay = (entity->position - projectedPointOnVector).Length();
+        float distanceEntityToRay = (entity->worldPosition - projectedPointOnVector).Length();
         /// Skip entities that aren't even close to the ray. (sphere not touching the ray).
         if (distanceEntityToRay > entity->radius * entity->scale.MaxPart()){
             continue;
@@ -466,7 +466,7 @@ Entity * MapManager::CreateEntity(Entity * referenceEntity)
 	entity->physics = new PhysicsProperty(*referenceEntity->physics);
 	entity->scale = referenceEntity->scale;
 	entity->rotation = referenceEntity->rotation;
-	entity->position = referenceEntity->position;
+	entity->localPosition = referenceEntity->localPosition;
 	entity->RecalculateMatrix();
 	// Register it with the graphics manager straight away since it's the active map!
 	Graphics.QueueMessage(new GMRegisterEntity(entity));
@@ -500,7 +500,7 @@ Entity * MapManager::CreateEntity(String name, Model * model, Texture * texture,
 
 
 
-	entity->position = position;
+	entity->localPosition = position;
 	entity->RecalculateMatrix();
 
 	AddEntity(entity);
@@ -624,7 +624,9 @@ bool MapManager::DeleteEntity(Entity * entity)
 	if (GraphicsManager::Instance())
 		QueueGraphics(new GMUnregisterEntity(entity));
 	if (PhysicsManager::Instance())
-		QueuePhysics(new PMUnregisterEntity(entity));
+	{
+		QueuePhysics(new PMUnregisterEntity(entity, true));
+	}
 	// Remove entity from the map too...!
 	activeMap->RemoveEntity(entity);
 	EntityMan.MarkEntitiesForDeletion(entity);

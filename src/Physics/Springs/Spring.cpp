@@ -28,11 +28,11 @@ Vector3f Spring::GetForce(Entity * subject)
 	{
 		assert(subject == one || subject == two);
 		Entity * other = one == subject? two : one;
-		toOther = other->position - subject->position;
+		toOther = other->worldPosition - subject->worldPosition;
 	}
 	else 
 	{
-		toOther = position - one->position;
+		toOther = position - one->worldPosition;
 	}
 	float distance = toOther.Length();
 	float distDiff = distance - equilibriumLength;

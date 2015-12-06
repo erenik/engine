@@ -27,7 +27,7 @@ void SyncPacket::UpdateData()
 	for (int i = 0; i < entities.Size(); ++i)
 	{
 		if (propertiesToSync.Contains("position"))
-			ss << entities[i]->position;
+			ss << entities[i]->worldPosition;
 	}
 	String text = ss.str().c_str();
 	data.Push(text);

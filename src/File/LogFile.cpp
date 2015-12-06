@@ -68,7 +68,7 @@ void LogToFile(String fileName, String logText, int levelFlags)
 	file.write((char*) text.c_str(), text.Length());
 	file.close();
 
-	bool causeAssertionError = level & CAUSE_ASSERTION_ERROR;
+	bool causeAssertionError = levelFlags & CAUSE_ASSERTION_ERROR;
 	if (causeAssertionError)
 		assert(false && "LogFile-triggered assertion error. See relevant log file for details.");
 }

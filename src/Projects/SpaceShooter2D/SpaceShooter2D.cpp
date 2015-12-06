@@ -108,6 +108,8 @@ SpaceShooter2D::~SpaceShooter2D()
 void SpaceShooter2D::OnEnter(AppState * previousState)
 {
 
+	QueuePhysics(new PMSeti(PT_AABB_SWEEPER_DIVISIONS, 1));// subdivisionsZ
+
 	WeaponScript::CreateDefault();
 	/// Enable Input-UI navigation via arrow-keys and Enter/Esc.
 	InputMan.ForceNavigateUI(true);
@@ -439,6 +441,24 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 				playerShip->SetWeaponLevel(WeaponType::TYPE_2, 3);			
 				UpdateHUDGearedWeapons();
 			}
+			if (msg.StartsWith("DecreaseWeaponLevel:"))
+			{
+				List<String> parts = msg.Tokenize(":");
+				int weaponIndex = parts[1].ParseInt();
+				Weapon * weap = playerShip->GetWeapon(WeaponType::TYPE_0 + weaponIndex);
+				int currLevel = weap->level;
+				playerShip->SetWeaponLevel(WeaponType::TYPE_0 + weaponIndex, currLevel-1);				
+				std::cout<<"\nWeapon "<<weap->type<<" set to level "<<weap->level<<": "<<weap->name;
+			}
+			if (msg.StartsWith("IncreaseWeaponLevel:"))
+			{
+				List<String> parts = msg.Tokenize(":");
+				int weaponIndex = parts[1].ParseInt();
+				Weapon * weap = playerShip->GetWeapon(WeaponType::TYPE_0 + weaponIndex);
+				int currLevel = weap->level;
+				playerShip->SetWeaponLevel(WeaponType::TYPE_0 + weaponIndex, currLevel+1);
+				std::cout<<"\nWeapon "<<weap->type<<" set to level "<<weap->level<<": "<<weap->name;
+			}
 			else if (msg == "AllTheWeapons")
 			{
 				for (int i = 0; i < WeaponType::MAX_TYPES; ++i)
@@ -521,7 +541,7 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 				ProjectileProperty * projProp = new ProjectileProperty(weapon, projectileEntity);
 				projectileEntity->properties.Add(projProp);
 				// Set scale and position.
-				projectileEntity->position = playerShip->entity->position + Vector3f(30,0,0);
+				projectileEntity->localPosition = playerShip->entity->worldPosition + Vector3f(30,0,0);
 				projectileEntity->SetScale(Vector3f(1,1,1) * 0.5f);
 				projProp->color = color;
 				projectileEntity->RecalculateMatrix();
@@ -1100,7 +1120,7 @@ void SpaceShooter2D::LoadLevel(String fromSource)
 	if (!levelEntity)
 	{
 		levelEntity = EntityMan.CreateEntity("LevelEntity", NULL, NULL);
-		levelEntity->position = initialPosition;
+		levelEntity->localPosition = initialPosition;
 		PhysicsProperty * pp = levelEntity->physics = new PhysicsProperty();
 		pp->collisionsEnabled = false;
 		pp->type = PhysicsType::KINEMATIC;
@@ -1120,7 +1140,7 @@ void SpaceShooter2D::LoadLevel(String fromSource)
 				case 2: position[1] += playingFieldHalfSize[1] + halfScale + playingFieldPadding; break;
 				case 3: position[1] -= playingFieldHalfSize[1] + halfScale + playingFieldPadding; break;
 			}
-			blackness->position = position;
+			blackness->localPosition = position;
 			levelEntity->AddChild(blackness);
 			blacknessEntities.Add(blackness);
 		}
@@ -1136,13 +1156,13 @@ void SpaceShooter2D::LoadLevel(String fromSource)
 //	GraphicsMan.QueueMessage(new GMSetParticleEmitter(starEmitter, GT_EMITTER_ENTITY_TO_TRACK, playerShip->entity));
 //	GraphicsMan.QueueMessage(new GMSetParticleEmitter(starEmitter, GT_EMITTER_POSITION_OFFSET, Vector3f(70.f, 0, 0)));
 	// Reset position of level entity if already created.
-	levelEntity->position = initialPosition;
+	levelEntity->localPosition = initialPosition;
 	levelEntity->physics->velocity = level.BaseVelocity();
 //	PhysicsMan.QueueMessage(new PMSetEntity(levelEntity, PT_POSITION, initialPosition));
 	// Set velocity of the game.
 //	PhysicsMan.QueueMessage(new PMSetEntity(levelEntity, PT_VELOCITY, level.BaseVelocity()));
 	// Reset position of player!
-	playerShip->entity->position = initialPosition + Vector3f(-50,0,0);
+	playerShip->entity->localPosition = initialPosition + Vector3f(-50,0,0);
 //	PhysicsMan.QueueMessage(new PMSetEntity(playerShip->entity, PT_POSITION, initialPosition));
 
 	sparks->SetAlphaDecay(DecayType::QUADRATIC);

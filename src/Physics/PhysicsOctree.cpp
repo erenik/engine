@@ -335,21 +335,21 @@ int PhysicsOctree::IsEntityInside(Entity * entity){
 	// Make box test insteeeead
 
 	// Check if it's inside.
-	if (entity->position[0] + entity->physics->physicalRadius < right &&
-		entity->position[0] - entity->physics->physicalRadius > left &&
-		entity->position[1] + entity->physics->physicalRadius < top &&
-		entity->position[1] - entity->physics->physicalRadius > bottom &&
-		entity->position[2] + entity->physics->physicalRadius < nearBound &&
-		entity->position[2] - entity->physics->physicalRadius > farBound
+	if (entity->worldPosition[0] + entity->physics->physicalRadius < right &&
+		entity->worldPosition[0] - entity->physics->physicalRadius > left &&
+		entity->worldPosition[1] + entity->physics->physicalRadius < top &&
+		entity->worldPosition[1] - entity->physics->physicalRadius > bottom &&
+		entity->worldPosition[2] + entity->physics->physicalRadius < nearBound &&
+		entity->worldPosition[2] - entity->physics->physicalRadius > farBound
 	)
 		return INSIDE;
 	// Or intersecting, just compare with inverted radius
-	else if (entity->position[0] - entity->physics->physicalRadius < right &&
-		entity->position[0] + entity->physics->physicalRadius > left &&
-		entity->position[1] - entity->physics->physicalRadius < top &&
-		entity->position[1] + entity->physics->physicalRadius > bottom &&
-		entity->position[2] - entity->physics->physicalRadius < nearBound &&
-		entity->position[2] + entity->physics->physicalRadius > farBound
+	else if (entity->worldPosition[0] - entity->physics->physicalRadius < right &&
+		entity->worldPosition[0] + entity->physics->physicalRadius > left &&
+		entity->worldPosition[1] - entity->physics->physicalRadius < top &&
+		entity->worldPosition[1] + entity->physics->physicalRadius > bottom &&
+		entity->worldPosition[2] - entity->physics->physicalRadius < nearBound &&
+		entity->worldPosition[2] + entity->physics->physicalRadius > farBound
 	)
 		return INTERSECT;
 	// It's outside if the previous were false, logical :P

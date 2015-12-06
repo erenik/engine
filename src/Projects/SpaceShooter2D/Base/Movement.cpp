@@ -88,7 +88,7 @@ void Movement::OnEnter(Ship * ship)
 		case Movement::UP_N_DOWN:
 			// Start up.
 			SetDirection(Vector3f(0,1,0));
-			startPos = shipEntity->position;
+			startPos = shipEntity->worldPosition;
 			break;
 		case Movement::LOOK_AT:
 			// Flag ship to travel in the direction it is facing, let the integrator solve all problems within.
@@ -135,9 +135,9 @@ void Movement::OnFrame(int timeInMs)
 			break;
 		case Movement::UP_N_DOWN:
 		{
-			if (shipEntity->position[1] > startPos[1] + distance)
+			if (shipEntity->worldPosition[1] > startPos[1] + distance)
 				SetDirection(Vector3f(0,-1,0));
-			else if (shipEntity->position[1] < startPos[1] - distance)
+			else if (shipEntity->worldPosition[1] < startPos[1] - distance)
 				SetDirection(Vector3f(0,1,0));
 			break;
 		}
@@ -186,7 +186,7 @@ void Movement::MoveToLocation()
 		case Location::VECTOR:
 		{
 			// Adjust movement vector?
-			pos = levelEntity->position + vec;
+			pos = levelEntity->worldPosition + vec;
 			isPosition = true;
 			break;
 		}
@@ -197,7 +197,7 @@ void Movement::MoveToLocation()
 				SetDirection(Vector3f(0,1,0));
 				++state;
 			}
-			else if (shipEntity->position[1] > 20.f && state == 1)
+			else if (shipEntity->worldPosition[1] > 20.f && state == 1)
 			{
 				SetDirection(Vector2f());
 				++state;
@@ -211,7 +211,7 @@ void Movement::MoveToLocation()
 				SetDirection(Vector3f(0,-1,0));
 				++state;
 			}
-			if (shipEntity->position[1] < 0.f && state == 1)
+			if (shipEntity->worldPosition[1] < 0.f && state == 1)
 			{
 				SetDirection(Vector2f());
 				++state;
@@ -219,13 +219,13 @@ void Movement::MoveToLocation()
 			break;
 		}
 		case Location::CENTER: 
-			pos = levelEntity->position;
+			pos = levelEntity->worldPosition;
 			isPosition = true;
 			break;
 		case Location::PLAYER:
 			if (playerShip->entity)
 			{
-				pos = playerShip->entity->position;
+				pos = playerShip->entity->worldPosition;
 				isPosition = true;
 			}
 			else {
@@ -236,7 +236,7 @@ void Movement::MoveToLocation()
 	}
 	if (isPosition)
 	{
-		Vector3f toPos = pos - shipEntity->position;
+		Vector3f toPos = pos - shipEntity->worldPosition;
 		if (toPos.LengthSquared() > 1)
 			toPos.Normalize();
 		SetDirection(toPos);
@@ -253,8 +253,8 @@ void Movement::Circle()
 		SetDirection(Vector3f());
 		return;
 	}
-	Vector3f pos = target->position;
-	Vector3f targetToShip = shipEntity->position - pos;
+	Vector3f pos = target->worldPosition;
+	Vector3f targetToShip = shipEntity->worldPosition - pos;
 	targetToShip.Normalize();
 	// Calculate our current angle in relation to the target.
 	float radians = GetAngler(targetToShip[0], targetToShip[1]);
@@ -262,8 +262,8 @@ void Movement::Circle()
 	// Select spot a bit along the radian path.
 	radians += clockwise? -0.10f : 0.10f;
 	Vector2f targetDir(cos(radians), sin(radians));
-	Vector3f position = target->position + targetDir * radius;
-	Vector3f toPosForreal = position - shipEntity->position;
+	Vector3f position = target->worldPosition + targetDir * radius;
+	Vector3f toPosForreal = position - shipEntity->worldPosition;
 	toPosForreal.Normalize();
 	SetDirection(toPosForreal);
 }

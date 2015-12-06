@@ -57,9 +57,8 @@ public:
 	/// Fetches relevant texture for current frame time. This assumes that the element has an active animation playing.
 	Texture * GetTextureForCurrentFrame(int64 & frameTime);
 
-	/** Contrary to Entity-position, which stores the simulated position from the physics system, this position will hold the averaged or smoothed value which is to be used when rendering the entity.
-	*/
-	Vector3f position;
+	/** Contrary to Entity-position, which stores the simulated position from the physics system, this position will hold the averaged or smoothed value which is to be used when rendering the entity. */
+	Vector3f smoothedPosition;
 	/// Graphical transform, similar to position, it is used to abstract rendering from physics in order to deal with temporal alisasing issues (stuttering effects).
 	Matrix4f transform;
 	/// Linked to the 2 above. Use for dynamic entities in fast-paced games.

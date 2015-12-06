@@ -3,6 +3,7 @@
 
 #include "Mesh/Mesh.h"
 
+#include "File/LogFile.h"
 #include "../Material.h"
 #include "Model/Model.h"
 #include "Entity.h"
@@ -41,7 +42,8 @@
 const Material Entity::defaultMaterial = Material();
 
 /// Creates a compact entity out of this Entity object
-void Entity::CreateCompactEntity(CompactEntity * cEntity){
+void Entity::CreateCompactEntity(CompactEntity * cEntity)
+{
 	assert(cEntity);
 	strcpy(cEntity->name, name.c_str());
 	strcpy(cEntity->model, model->RelativePath().c_str());
@@ -51,7 +53,7 @@ void Entity::CreateCompactEntity(CompactEntity * cEntity){
 		strcpy(cEntity->specularMap, specularMap->RelativePath().c_str());
 	if (normalMap)
 		strcpy(cEntity->normalMap, normalMap->RelativePath().c_str());
-	cEntity->position = position;
+	cEntity->position = localPosition;
 	cEntity->scale = scale;
 	cEntity->rotation = rotation;
 	if (physics){
@@ -71,7 +73,7 @@ void Entity::LoadCompactEntityData(CompactEntity * cEntity)
 {
 	/// Model and texture is extracted elsewhere, but we can copy name, and other details here..
 	name = cEntity->name;
-	position = cEntity->position;
+	localPosition = cEntity->position;
 	scale = cEntity->scale;
 	rotation = cEntity->rotation;
 	if (cEntity->cPhysics){
@@ -98,7 +100,7 @@ Entity::Entity(int i_id)
 	relevantScale = false;
 	sharedProperties = false;
 	updateChildrenOnTransform = false;
-	position = Vector3f(0,0,0);
+	localPosition = Vector3f(0,0,0);
 	scale = Vector3f(1,1,1);
 	rotation = Vector3f(0,0,0);
 	flags = 0;
@@ -137,12 +139,15 @@ Entity::Entity(int i_id)
 
 	/// Default render transform..
 	renderTransform = &transformationMatrix;
-	renderPosition = &position;
+	renderPosition = &worldPosition;
 }
 
 /// Default constructor...
 Entity::~Entity()
 {
+	if (name.Contains("Boss1_"))
+		int lall=5;
+	LogMain("Deleting entity "+name+".", INFO);
 	/// Delete safe stuff.
 	Delete();
 	/// Delete those things that should have been deleted elsewhere too.
@@ -159,6 +164,20 @@ Entity::~Entity()
 	material = NULL;
 	// Models and textures will be deallocated by their respectice managers!
 	SAFE_DELETE(aabb);
+}
+
+/// Removes links to parents/children as needed, prepares for deletion. Take care to call from render/physics thread.
+void Entity::RemoveLinks()
+{
+	if (parent)
+		parent->children.RemoveItem(this);
+	for (int i = 0; i < children.Size(); ++i)
+	{
+		Entity * child = children[i];
+		child->parent = 0;
+	}
+	children.Clear();
+	parent = 0;
 }
 
 /// If reacting to collisions,.. pokes all properties about it too.
@@ -366,13 +385,13 @@ bool Entity::IsVisible()
 /// Sets position
 void Entity::SetPosition(ConstVec3fr position)
 {
-	this->position = position;
+	this->localPosition = position;
 	RecalculateMatrix();
 }
 /// Sets position
 void Entity::SetPosition(float x, float y, float z)
 {
-	this->position = Vector3f(x,y,z);
+	this->localPosition = Vector3f(x,y,z);
 	RecalculateMatrix();
 }
 
@@ -486,16 +505,18 @@ void Entity::Scale(float scaleF)
 	RecalculateMatrix();
 }
 /// Translates the Entity
-void Entity::Translate(float x, float y, float z){
+void Entity::Translate(float x, float y, float z)
+{
+	assert(false && "old");/*
 	this->position[0] += x;
 	this->position[1] += y;
 	this->position[2] += z;
-	RecalculateMatrix();
+	RecalculateMatrix();*/
 }
 /// Translates the Entity
 void Entity::Translate(ConstVec3fr translation)
 {
-	this->position =  this->position + translation;
+	this->localPosition += translation;
 	RecalculateMatrix();
 }
 
@@ -511,7 +532,7 @@ void Entity::RecalculateMatrix(int whichParts/*= true*/, bool recursively /* = f
 		localTransform = Matrix4f();
 #ifdef USE_SSE
 		// Translation should be just pasting in position.. no?
-		localTransform.col3.data = position.data;
+		localTransform.col3.data = localPosition.data;
 		localTransform.col3.w = 1;
 #else
 		localTransform.Multiply((Matrix4f::Translation(position)));
@@ -530,7 +551,7 @@ void Entity::RecalculateMatrix(int whichParts/*= true*/, bool recursively /* = f
 	{
 		// Just update position.
 #ifdef USE_SSE
-		localTransform.col3.data = position.data;
+		localTransform.col3.data = localPosition.data;
 		localTransform.col3.w = 1;
 #else
 		localTransform[12] = position[0];
@@ -589,7 +610,8 @@ void Entity::RecalcRotationMatrix(bool force /* = false*/)
 	}
 	localRotation = Matrix4d();
 	// Quaternions for those entities wanting to use it.
-	if (physics && physics->useQuaternions){
+	if (physics && physics->useQuaternions)
+	{
 		Quaternion q = physics->orientation;
 	 //   std::cout<<"\nQ preN: "<<q;
 		q.Normalize();
@@ -849,7 +871,7 @@ List<Triangle> Entity::GetTris()
 		tri.Transform(transformationMatrix);
 		Vector3f newPos = triangles[i].position;
 		/// Seems to be working! :)
-		if (position.LengthSquared() > 1.0f || scale.LengthSquared() > 1.0f)
+//		if (position.LengthSquared() > 1.0f || scale.LengthSquared() > 1.0f)
 			;//assert(prevPos[0] != newPos[0]);
 	}
 	return triangles;
@@ -861,7 +883,7 @@ Vector3f Entity::CenterOfGravityWorldSpace()
 {
 	// Fetch the model or something.
 	if (!model)
-		return position;
+		return worldPosition;
 	Vector4f center = model->centerOfModel;
 	// Multiply co-ordinates of model center with our matrix.
 	Vector4f centerWorldSpace = transformationMatrix.Product(center);

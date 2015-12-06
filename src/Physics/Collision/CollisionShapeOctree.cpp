@@ -448,7 +448,7 @@ int CollisionShapeOctree::FindCollisions(Entity * targetEntity, List<Collision> 
 			case ShapeType::SPHERE: 
 			{
 				Sphere sphere; // = (Sphere*)targetEntity->physics->shape;
-				sphere.position = targetEntity->position;
+				sphere.position = targetEntity->worldPosition;
 				sphere.radius = targetEntity->physics->physicalRadius;
 				if (TriangleSphereCollision(&tri, &sphere, col))
 				{
@@ -555,7 +555,7 @@ int CollisionShapeOctree::IsEntityInside(Entity * entity, Matrix4f & localTransf
 	for(int i=0; i < 6; i++) 
 	{
 		Plane * plane = &planes[i];
-		distance = plane->Distance(entity->position);
+		distance = plane->Distance(entity->worldPosition);
 		if (distance < -radius)
 			return Loc::OUTSIDE;
 		else if (distance < radius)

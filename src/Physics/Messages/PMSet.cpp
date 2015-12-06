@@ -149,7 +149,10 @@ void PMSet::Process()
 PMSeti::PMSeti(int target, int iValue)
 : PhysicsMessage(PM_SET), target(target), iValue(iValue)
 {
-	switch(target){
+	switch(target)
+	{
+		case PT_AABB_SWEEPER_DIVISIONS:
+			break;
 		case PT_INTEGRATOR_TYPE:
 			break;
 		case PT_PHYSICS_INTEGRATOR:
@@ -167,6 +170,10 @@ void PMSeti::Process()
 	PhysicsManager & physics = PhysicsMan;
 	switch(target)
 	{
+		case PT_AABB_SWEEPER_DIVISIONS:
+			physics.aabbSweeper->divisions = iValue;
+			physics.aabbSweeper->CreateAxes();
+			break;
 		case PT_INTEGRATOR_TYPE:
 			Physics.integratorType = iValue;
 			break;

@@ -59,8 +59,11 @@ enum physicsTargets{
 	// Global stuff
 	PT_SIMULATION_SPEED,
 
+	/// Main collision-detector setups
+	PT_AABB_SWEEPER_DIVISIONS,
+
 	// Parenting
-	PT_SET_PARENT,
+	PT_SET_PARENT, PT_PARENT = PT_SET_PARENT,
 
 	// Custom types.
 	PT_PHYSICS_INTEGRATOR,
@@ -326,9 +329,11 @@ private:
 
 class PMUnregisterEntity : public PhysicsMessage {
 public:
-	PMUnregisterEntity(Entity * entity);
+	/// If prepareForDeletion is true, remove links to parent if there are any (affects rendering and matrix transformations mostly).
+	PMUnregisterEntity(Entity * entity, bool prepareForDeletion = false);
 	void Process();
 private:
+	bool prepareForDeletion;
 	Entity * entity;
 };
 

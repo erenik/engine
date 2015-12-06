@@ -223,10 +223,11 @@ void GraphicsManager::RenderPhysics()
 				// First render sphere!, then normal mesh.
 				// Multiply by entity
 				Matrix4f oldTransform = transformationMatrix;
+				/*
 				transformationMatrix = Matrix4f::Translation(entity->position);
 				transformationMatrix.Multiply((Matrix4d().Scale(entity->physics->physicalRadius)));
 				transformationMatrix.Multiply(entity->rotationMatrix);
-
+				*/
 #ifdef RENDER_MESH_BOUNDING_SPHERE
 
 rerer
@@ -354,13 +355,14 @@ rerer
 		&& Physics.IsPaused()
 		&& c.one && c.two
 		&& c.one->physics && c.two->physics
-		){
+		)
+	{
 
 		glBlendFunc(GL_ALPHA, GL_ALPHA); // GL_ONE_MINUS_SRC_ALPHA
 			
 
 		ShadeMan.SetActiveShader(NULL);
-		Vector3f pos1 = c.one->position, pos2 = c.two->position;
+		Vector3f pos1 = c.one->worldPosition, pos2 = c.two->worldPosition;
 
 		// Render collission point.
 		Vector3f origin = c.collissionPoint;
@@ -410,11 +412,11 @@ rerer
 #define PREV_VEL_HIGHLIGHT	Vector4f(0.3f, 0.0f, 0.3f, 0.5f)
 #define PREV_ANG_VEL_HIGHLIGHT	Vector4f(0.2f, 0.2f, 0.2f, 0.5f)
 		/// Linear
-			RenderFadingLine(c.one->position, c.one->position + c.one->physics->previousVelocity, PREVIOUS_VEL, PREV_VEL_HIGHLIGHT);
-			RenderFadingLine(c.two->position, c.two->position + c.two->physics->previousVelocity, PREVIOUS_VEL, PREV_VEL_HIGHLIGHT);
+			RenderFadingLine(c.one->worldPosition, c.one->worldPosition + c.one->physics->previousVelocity, PREVIOUS_VEL, PREV_VEL_HIGHLIGHT);
+			RenderFadingLine(c.two->worldPosition, c.two->worldPosition + c.two->physics->previousVelocity, PREVIOUS_VEL, PREV_VEL_HIGHLIGHT);
 		/// Angular
-			RenderFadingLine(c.one->position, c.one->position + c.one->physics->previousAngularVelocity, PREVIOUS_ANG_VEL, PREV_ANG_VEL_HIGHLIGHT);
-			RenderFadingLine(c.two->position, c.two->position + c.two->physics->previousAngularVelocity, PREVIOUS_ANG_VEL, PREV_ANG_VEL_HIGHLIGHT);
+			RenderFadingLine(c.one->worldPosition, c.one->worldPosition + c.one->physics->previousAngularVelocity, PREVIOUS_ANG_VEL, PREV_ANG_VEL_HIGHLIGHT);
+			RenderFadingLine(c.two->worldPosition, c.two->worldPosition + c.two->physics->previousAngularVelocity, PREVIOUS_ANG_VEL, PREV_ANG_VEL_HIGHLIGHT);
 			
 		glLineWidth(1.0f);
 
@@ -459,8 +461,8 @@ rerer
 		PhysicsProperty * p = e->physics;
 		if (!p)
 			continue;
-		RenderFadingLine(e->position, e->position + p->velocity, Vector3f(0.2f,0.6f,0.2f), Vector3f(0,0.8f,0));
-		RenderFadingLine(e->position, e->position + p->angularVelocity, Vector3f(0.2f,0.2f,0.6f), Vector3f(0,0,0.8f));
+		RenderFadingLine(e->worldPosition, e->worldPosition + p->velocity, Vector3f(0.2f,0.6f,0.2f), Vector3f(0,0.8f,0));
+		RenderFadingLine(e->worldPosition, e->worldPosition + p->angularVelocity, Vector3f(0.2f,0.2f,0.6f), Vector3f(0,0,0.8f));
 	}
 	glLineWidth(1.0f);
 
@@ -468,7 +470,7 @@ rerer
 	glLineWidth(2.0f);
 	for (int i = 0; i < Physics.springs.Size(); ++i){
 		Spring * spring = Physics.springs[i];
-		RenderLine(spring->one->position, spring->two->position, Vector4f(1,1,1,0.2f));
+		RenderLine(spring->one->worldPosition, spring->two->worldPosition, Vector4f(1,1,1,0.2f));
 	}
 	glLineWidth(1.0f);
 

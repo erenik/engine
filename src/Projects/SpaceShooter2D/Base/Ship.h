@@ -32,6 +32,10 @@ public:
 
 	/// Call on spawning.
 	void RandomizeWeaponCooldowns();
+	/// Spawns, creating entities, registering for movement, etc. Returns it and all children spawned with it.
+	List<Entity*> Spawn(ConstVec3fr atPosition, Ship * parent);
+	/// Handles spawning of children as needed.
+	List<Entity*> SpawnChildren();
 	void Despawn();
 
 	void Process(int timeInMs);
@@ -75,11 +79,16 @@ public:
 	Weapon * GetWeapon(int ofType);
 	void ActivateSkill();
 
+	/// Names of children to spawn along side it.
+	List<String> childrenStrings;
+
 	// Name or type. 
 	String name;
 	// Faction.
 	String type;
 	SpawnGroup * spawnGroup;
+	Ship * parent;
+	List<Ship*> children;
 	// Bools
 	bool canMove;
 	bool movementDisabled; // temporarily.

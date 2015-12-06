@@ -22,10 +22,10 @@ bool QuadSphereCollision(Entity * quadEntity, Entity * sphere, Collision &data)
 bool QuadSphereCollision(Quad * quad, Entity * sphereEntity, Collision &data)
 {
 	if (debug == 5)
-		std::cout<<"\nSphere entity position "<<sphereEntity->position;
+		std::cout<<"\nSphere entity position "<<sphereEntity->worldPosition;
 	float radius = sphereEntity->physics->physicalRadius;
-	float distance = quad->Distance(sphereEntity->position);
-	Vector3f spherePosition = sphereEntity->position;
+	float distance = quad->Distance(sphereEntity->worldPosition);
+	Vector3f spherePosition = sphereEntity->worldPosition;
 	/// Collision?!
 	if (AbsoluteValue(distance) > radius)
 		return false;
@@ -44,7 +44,7 @@ bool QuadSphereCollision(Quad * quad, Entity * sphereEntity, Collision &data)
 	for (int i = 0; i < PLANE_PLANES; ++i)
 	{
 		// If any of the plane's distance is negative it means we're outside the planeski.
-		float distanceToPlane = planeFrustum[i].Distance(sphereEntity->position);
+		float distanceToPlane = planeFrustum[i].Distance(sphereEntity->worldPosition);
 		if (distanceToPlane > radius)
 			return false;
 		/// If larger than 0, the sphere's center is outside of the quad, and may intersect with its edges or corners, but not the plane itself.

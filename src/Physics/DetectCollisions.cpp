@@ -101,7 +101,7 @@ void PhysicsManager::DetectCollisions()
 								std::cout<<"\n UGUUUUUUUUUUUUUUUUUUUUUU";
 								std::cout<<"\n UGUUUUUUUUUUUUUUUUUUUUUU";
 								*/
-								std::cout<<"\nWARNING: Entities at "<<ep.one->position<<" and "<<ep.two->position<<" are still colliding after collission resolution! Distance: "<<tempData.distanceIntoEachOther;
+								std::cout<<"\nWARNING: Entities at "<<ep.one->worldPosition<<" and "<<ep.two->worldPosition<<" are still colliding after collission resolution! Distance: "<<tempData.distanceIntoEachOther;
 								// Move them apart as needed.
 							/*	Entity * staticEntity = NULL;
 								if (one->physics->type == PhysicsType::STATIC)

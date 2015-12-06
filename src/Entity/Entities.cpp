@@ -60,13 +60,15 @@ Entities::Entities(Entity * entity)
 
 
 /// Removes all entities that are outside the frustum.
-Entities Entities::CullByCamera(Camera * camera) const{
+Entities Entities::CullByCamera(Camera * camera) const
+{
 	Entities culled;
 	int found = 0;
-	for (int i = 0; i < this->currentItems; ++i){
+	for (int i = 0; i < this->currentItems; ++i)
+	{
 		if (arr[i] == NULL)
 			continue;
-		if (camera->GetFrustum().SphereInFrustum(arr[i]->position, arr[i]->radius))
+		if (camera->GetFrustum().SphereInFrustum(arr[i]->worldPosition, arr[i]->radius))
 			culled.Add(arr[i]);
 		++found;
 		if (found >= currentItems)
@@ -80,9 +82,10 @@ void Entities::SortByDistance(ConstVec3fr position)
 {
 	float distance[MAX_SELECTED];
 	memset(distance, 0, sizeof(float) * MAX_SELECTED);
-	for (int i = 0; i < currentItems; ++i){
+	for (int i = 0; i < currentItems; ++i)
+	{
 		/// Calculate distance
-		distance[i] = (position - arr[i]->position).Length();
+		distance[i] = (position - arr[i]->worldPosition).Length();
 		/// Insertion sort for now, all previous entities have already gotten
 		/// a distance and can thus be compared.
 		for (int j = 0; j < i; ++j){
@@ -118,7 +121,7 @@ void Entities::SortByDistanceToCamera(Camera * camera)
 	{
 		// Calculate distances as we go.
 		entity = arr[i];
-		entity->graphics->zDepth = -plane.Distance(entity->position);
+		entity->graphics->zDepth = -plane.Distance(entity->worldPosition);
 		tmp = entity;
 		// Compare with previous items.
 		for (int j = i - 1; j >= 0; --j)
@@ -145,13 +148,15 @@ void Entities::SortByDistanceToCamera(Camera * camera)
 
 
 /// Prints a simple list with entity names n stuff
-void Entities::ListEntities(){
+void Entities::ListEntities()
+{
 	std::cout<<"\nList selection: ";
-	for (int i = 0; i < currentItems; ++i){
+	for (int i = 0; i < currentItems; ++i)
+	{
 		std::cout<<"\n"<<i<<". ";
 		if (arr[i]->name)
 			std::cout<<arr[i]->name;
-		std::cout<<" Pos: "<<arr[i]->position;
+		std::cout<<" Pos: "<<arr[i]->worldPosition;
 	}
 }
 

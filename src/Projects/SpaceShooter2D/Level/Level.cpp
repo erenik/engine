@@ -85,7 +85,7 @@ Entity * Level::AddPlayer(Ship * playerShip, ConstVec3fr atPosition)
 	pp->velocity = BaseVelocity();
 	pp->type = PhysicsType::DYNAMIC;
 	// Set player to mid position.
-	entity->position = atPosition;
+	entity->localPosition = atPosition;
 	// Rotate ship with the nose from Z- to Y+
 	float radians = PI / 2;
 //	entity->rotation[0] = radians;
@@ -117,9 +117,9 @@ void Level::Process(int timeInMs)
 {
 	activeLevel = this;
 
-	removeInvuln = levelEntity->position[0] + playingFieldHalfSize[0] + playingFieldPadding + 1.f;
+	removeInvuln = levelEntity->worldPosition[0] + playingFieldHalfSize[0] + playingFieldPadding + 1.f;
 	spawnPositionRight = removeInvuln + 15.f;
-	despawnPositionLeft = levelEntity->position[0] - playingFieldHalfSize[0] - 1.f;
+	despawnPositionLeft = levelEntity->worldPosition[0] - playingFieldHalfSize[0] - 1.f;
 
 	// Check for game over.
 	if (playerShip->hp <= 0)
@@ -131,7 +131,7 @@ void Level::Process(int timeInMs)
 		else if (onDeath.StartsWith("RespawnAt"))
 		{
 			playerShip->hp = playerShip->maxHP;
-			this->AddPlayer(playerShip, Vector3f(levelEntity->position.x, 10.f, 0));
+			this->AddPlayer(playerShip, Vector3f(levelEntity->worldPosition.x, 10.f, 0));
 			// Reset level-time.
 			String timeStr = onDeath.Tokenize("()")[1];
 			levelTime.ParseFrom(timeStr);
@@ -317,6 +317,10 @@ void Level::ProcessMessage(Message * message)
 				Clear();
 				levelTime.intervals = 0;
 			}
+			else if (msg.StartsWith("ShipTypeToSpawn:"))
+			{
+				testGroup.shipType = msg.Tokenize(":")[1];
+			}
 			else if (msg == "StoreTestEnemies")
 			{
 				storedTestGroups.AddItem(testGroup);
@@ -377,20 +381,27 @@ void Level::OnLevelTimeAdjusted()
 // Check spawn groups.
 bool Level::LevelCleared()
 {
-	if (endCriteria == NO_MORE_ENEMIES)
+//	ferewr
+	switch(endCriteria)
 	{
-		if (levelTime.Seconds() < 3)
+		case NEVER:
 			return false;
-		if (spawnGroups.Size())
-			return false;
-		if (shipEntities.Size())
-			return false;
-		if (messages.Size())
+		case NO_MORE_ENEMIES:
+			if (levelTime.Seconds() < 3)
+				return false;
+			if (spawnGroups.Size())
+				return false;
+			if (shipEntities.Size())
+				return false;
+			if (messages.Size())
+				return false;
+			break;
+		case EVENT_TRIGGERED:
+			return levelCleared;
+		default:
 			return false;
 	}
-	else if (endCriteria == EVENT_TRIGGERED)
-		return levelCleared;
-	return true;
+	return false;
 }
 
 Entity * Level::ClosestTarget(bool ally, ConstVec3fr position)
@@ -404,7 +415,7 @@ Entity * Level::ClosestTarget(bool ally, ConstVec3fr position)
 	for (int i = 0; i < shipEntities.Size(); ++i)
 	{
 		Entity * e = shipEntities[i];
-		float dist = (e->position - position).LengthSquared();
+		float dist = (e->worldPosition - position).LengthSquared();
 		if (dist < closestDist)
 		{
 			closest = e;
@@ -435,7 +446,7 @@ List<Ship*> Level::GetShipsAtPoint(ConstVec3fr position, float maxRadius, List<f
 			continue;
 		if (ship->entity == 0)
 			continue;
-		float dist = (ship->entity->position - position).Length();
+		float dist = (ship->entity->worldPosition - position).Length();
 		float radius = ship->entity->radius;
 		float distMinRadius = dist - radius;
 		if (distMinRadius > maxDist)

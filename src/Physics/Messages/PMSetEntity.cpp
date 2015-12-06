@@ -389,8 +389,8 @@ void PMSetEntity::Process()
 				switch(dataType)
 				{
 					case VECTOR2F:
-						entity->position[0] = vec2fValue[0];
-						entity->position[1] = vec2fValue[1];
+						entity->localPosition[0] = vec2fValue[0];
+						entity->localPosition[1] = vec2fValue[1];
 						entity->RecalculateMatrix();
 						break;
 					case VECTOR3F:
@@ -403,23 +403,23 @@ void PMSetEntity::Process()
 				break;
 			}
 			case PT_POSITION_Y:
-				entity->position[1] = fValue;
+				entity->localPosition[1] = fValue;
 				entity->RecalculateMatrix();
 				break;
 			case PT_POSITION_X:
 				switch(dataType)
 				{
 					case DataType::FLOAT:
-						entity->position.x = fValue;
+						entity->localPosition.x = fValue;
 						break;
 					case DataType::INTEGER:
-						entity->position.x = iValue;
+						entity->localPosition.x = iValue;
 						break;						
 				}
 				entity->RecalculateMatrix();
 				break;
 			case PT_POSITION_Z:
-				entity->position[2] = fValue;
+				entity->localPosition[2] = fValue;
 				entity->RecalculateMatrix();
 				break;
 			case PT_TRANSLATE:

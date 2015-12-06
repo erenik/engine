@@ -14,7 +14,7 @@ void PhysicsManager::ApproximateIntegrate(Entity * entity, float timeSinceLastUp
     float velocitySquared = currentVelocity * currentVelocity;
     if (currentVelocity > 0.0001f)
 	{
-		entity->position += physics->velocity * timeSinceLastUpdate;
+		entity->localPosition += physics->velocity * timeSinceLastUpdate;
         physics->state |= CollisionState::COLLIDING;
         physics->state &= ~CollisionState::IN_REST;
 
@@ -163,7 +163,7 @@ void PhysicsManager::ApproximateIntegrate(Entity * entity, float timeSinceLastUp
 	if (physics->inverseMass == 0)
 		physics->inverseMass = 1 / physics->mass;
 	physics->velocity = physics->linearMomentum * physics->inverseMass;
-	entity->position += physics->velocity * timeSinceLastUpdate;
+	entity->localPosition += physics->velocity * timeSinceLastUpdate;
 
 	// Move position
 

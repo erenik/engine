@@ -41,7 +41,7 @@ void EntityPhysicsEstimator::Estimate(const Time & forGivenTime, bool loop)
 	SetDefaults(rotationEstimator);
 	SetDefaults(velocityEstimator);
 
-	positionEstimator.variableToPutResultTo =  &owner->position;
+	positionEstimator.variableToPutResultTo =  &owner->worldPosition;
 	positionEstimator.Estimate(forGivenTime, loop);
 	/*
 	owner->position = positionEstimator.Calculate(cTime);
@@ -56,11 +56,11 @@ void EntityPhysicsEstimator::Estimate(const Time & forGivenTime, bool loop)
 	float divisor = (cTime - lastTime) / 1000.0f;
 	if (divisor == 0)
 		return;
-	Vector3f velocity = (owner->position - lastPosition) / (divisor);
+	Vector3f velocity = (owner->worldPosition - lastPosition) / (divisor);
 //	owner->physics->velocity = velocity;
 
 	/// Save variables for calculatiang average velocity next loop.
-	lastPosition = owner->position;
+	lastPosition = owner->worldPosition;
 	lastTime = cTime;	
 //	std::cout<<"\nPosition: "<<(int)owner->position[0]<<" "<<(int)owner->position[1]<<" "<<(int)owner->position[2];
 }
@@ -93,11 +93,11 @@ void EntityPhysicsEstimator::Process(){
 	float divisor = (cTime - lastTime) / 1000.0f;
 	if (divisor == 0)
 		return;
-	Vector3f velocity = (owner->position - lastPosition) / (divisor);
+	Vector3f velocity = (owner->worldPosition - lastPosition) / (divisor);
 //	owner->physics->velocity = velocity;
 
 	/// Save variables for calculatiang average velocity next loop.
-	lastPosition = owner->position;
+	lastPosition = owner->worldPosition;
 	lastTime = cTime;
 	
 //	std::cout<<"\nPosition: "<<(int)owner->position[0]<<" "<<(int)owner->position[1]<<" "<<(int)owner->position[2];

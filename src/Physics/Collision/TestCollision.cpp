@@ -43,8 +43,9 @@ bool TestCollision(Entity * one, Entity * two, List<Collision> & collissionList)
 	///=================================================================================//
 	///  Sphere-Sphere Intersection
 	///=================================================================================//
-	if(shapeTypes[ShapeType::SPHERE] == 2){
-		if (!SpheresColliding(one->position, two->position, one->physics->physicalRadius + two->physics->physicalRadius))
+	if(shapeTypes[ShapeType::SPHERE] == 2)
+	{
+		if (!SpheresColliding(one->worldPosition, two->worldPosition, one->physics->physicalRadius + two->physics->physicalRadius))
 			return false;
 		if(SphereSphereCollision(one, two, data)){
 			shouldCollide = true;
@@ -107,7 +108,7 @@ bool TestCollision(Entity * one, Entity * two, List<Collision> & collissionList)
 			sphereEntity = one;
 		}
 		// Perform a quick opting sphere-sphere out before evaluating further!
-		if (!SpheresColliding(one->position, two->position, one->physics->physicalRadius + two->physics->physicalRadius)){
+		if (!SpheresColliding(one->worldPosition, two->worldPosition, one->physics->physicalRadius + two->physics->physicalRadius)){
 			return false;
 		}
 
@@ -193,7 +194,7 @@ bool TestCollision(Entity * one, Entity * two, List<Collision> & collissionList)
 		}
 		//
 		// Perform a quick opting sphere-sphere out before evaluating further!
-		if (!SpheresColliding(one->position, two->position, one->physics->physicalRadius + two->physics->physicalRadius)){
+		if (!SpheresColliding(one->worldPosition, two->worldPosition, one->physics->physicalRadius + two->physics->physicalRadius)){
 			return false;
 		}
 	//	std::cout<<"\nTesting collission for: "<<cube->name;

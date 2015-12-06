@@ -233,7 +233,7 @@ void FirstPersonIntegrator::IntegratePosition(List<Entity*> & entities, float ti
 	{
 		Entity * forEntity = entities[i];
 		PhysicsProperty * pp = forEntity->physics;
-		Vector3f & position = forEntity->position;
+		Vector3f & position = forEntity->localPosition;
 #ifdef USE_SSE
 		position.data = _mm_add_ps(position.data, _mm_mul_ps(pp->currentVelocity.data, timeSSE.data));
 #else

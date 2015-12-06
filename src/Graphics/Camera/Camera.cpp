@@ -519,7 +519,7 @@ void Camera::Track()
 		case TrackingMode::FIRST_PERSON:
 		{
 			// Get data
-			Vector3f entityPosition = entityToTrack->position;
+			Vector3f entityPosition = entityToTrack->worldPosition;
 			position = entityPosition;
 			rotation = entityToTrack->rotation;
 			positionWithOffsets = position;
@@ -540,7 +540,7 @@ void Camera::Track()
 void Camera::ThirdPersonLookAt()
 {
 	// Get data
-	Vector3f entityPosition = entityToTrack->position;
+	Vector3f entityPosition = entityToTrack->worldPosition;
 	
 	/// The actual position of the camera at the moment.
 	Vector3f currentCamPosition = camPos;
@@ -574,7 +574,7 @@ void Camera::ThirdPersonLookAt()
 void Camera::ThirdPersonDistance()
 {
 	// Get data
-	Vector3f entityPosition = entityToTrack->position;
+	Vector3f entityPosition = entityToTrack->worldPosition;
 	
 	/// The actual position of the camera at the moment.
 	Vector3f currentCamPosition = position;
@@ -629,7 +629,7 @@ void Camera::ThirdPersonAircraft()
 	matrixUpdateType = LET_TRACKING_SOLVE_IT;
 	
 	// Inherit position.
-	Vector3f entityPos = entityToTrack->position;
+	Vector3f entityPos = entityToTrack->worldPosition;
 	// Offset a bit back and up, based on its matrix.
 	Vector3f offset = entityToTrack->rotationMatrix * Vector4f(0,1,2,0) * entityToTrack->radius;
 	position = entityPos + offset;
@@ -747,7 +747,7 @@ bool Camera::ProcessMovement(float timeInSeconds)
 			case TrackingMode::THIRD_PERSON:
 			{
 				// check current diff.
-				Vector3f toTarget = entityToTrack->position - position;
+				Vector3f toTarget = entityToTrack->worldPosition - position;
 				Vector3f normed = toTarget.NormalizedCopy();
 				// Yaw only for now?
 				Vector2f xz(normed.x, normed.z);
@@ -759,7 +759,7 @@ bool Camera::ProcessMovement(float timeInSeconds)
 				Vector2f vec = yaw.ToVector2f();
 				Vector3f vec3(vec.x, 0, vec.y);
 				vec3 *= dist;
-				Vector3f newPos = entityToTrack->position - vec3;
+				Vector3f newPos = entityToTrack->worldPosition - vec3;
 				/// Retain old Y.
 				newPos.y = position.y;
 				position = newPos;

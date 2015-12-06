@@ -84,7 +84,7 @@ void Rotation::OnFrame(int timeInMs)
 			{
 				targetEntity = playerShip->entity;
 				if (targetEntity)
-					RotateToFace(targetEntity->position);
+					RotateToFace(targetEntity->worldPosition);
 			}
 			else
 				return;
@@ -117,7 +117,7 @@ void Rotation::MoveDir()
 
 void Rotation::RotateToFace(const Vector3f & position)
 {
-	Vector3f toTarget = position - entity->position;
+	Vector3f toTarget = position - entity->worldPosition;
 	// Grab angle of current movement dir.
 	RotateToFaceDirection(toTarget);
 }

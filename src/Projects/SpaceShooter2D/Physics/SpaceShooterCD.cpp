@@ -61,7 +61,7 @@ int SpaceShooterCD::DetectCollisions(List<EntityPair> & pairs, List<Collision> &
 			continue;
 
 		float radiiSum = entity->physics->physicalRadius + entity2->physics->physicalRadius;
-		Vector3f distance = entity->position - entity2->position;
+		Vector3f distance = entity->worldPosition - entity2->worldPosition;
 		if (abs(distance[0]) > radiiSum)
 			continue;
 		if (abs(distance[1]) > radiiSum)
@@ -76,7 +76,7 @@ int SpaceShooterCD::DetectCollisions(List<EntityPair> & pairs, List<Collision> &
 		Collision c;
 		c.one = entity;
 		c.two = entity2;
-		c.collisionNormal = (entity2->position - entity->position).NormalizedCopy();
+		c.collisionNormal = (entity2->worldPosition - entity->worldPosition).NormalizedCopy();
 		collisions.Add(c);
 		numCol += 1;
 	}	
@@ -88,12 +88,12 @@ int SpaceShooterCD::DetectCollisions(List<EntityPair> & pairs, List<Collision> &
 /// Detects collisions between two entities. Method used is based on physics-shape. Sub-class to override it.
 int SpaceShooterCD::DetectCollisions(Entity * one, Entity * two, List<Collision> & collisions)
 {
-	if (SpheresColliding(one->position, two->position, one->physics->physicalRadius + two->physics->physicalRadius))
+	if (SpheresColliding(one->worldPosition, two->worldPosition, one->physics->physicalRadius + two->physics->physicalRadius))
 	{
 		Collision c;
 		c.one = one;
 		c.two = two;
-		c.collisionNormal = (two->position - one->position).NormalizedCopy();
+		c.collisionNormal = (two->worldPosition - one->worldPosition).NormalizedCopy();
 		collisions.Add(c);
 		return true;
 	}

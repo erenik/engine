@@ -205,7 +205,7 @@ void PhysicsManager::LabPhysicsIntegrate(Entity * dynamicEntity, float timeSince
 
 		}
 		else
-			dynamicEntity->position += physics->velocity * timeSinceLastUpdate;
+			dynamicEntity->localPosition += physics->velocity * timeSinceLastUpdate;
 		//  entity->rotation += physics->angularVelocity * timeSinceLastUpdate;
 
 		/// Recalculate matrix after all movement is done.

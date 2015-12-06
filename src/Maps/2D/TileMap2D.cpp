@@ -304,7 +304,7 @@ void TileMap2D::Render(GraphicsState & graphicsState)
 			// Let's just hope it's sorted.. lol
 			Entity * entity = entities[i];
 			/// Fetch it's position and texture, assume the anchor point is correct and just paint it.
-			Vector3f position = entity->position;
+			Vector3f position = entity->worldPosition;
 			/// Skip all out of sight?
 			if (position[0] < min[0] || position[0] > max[0] ||
 				position[1] < min[1] || position[1] > max[1])
@@ -1204,7 +1204,7 @@ bool TileMap2D::MoveEntity(Entity * entity, Vector3i position){
 	EntityStateTile2D * entityTile2D = GetEntity2DByEntity(entity);
 	assert(entity && "Not registered, yo.");
 	entityTile2D->position = position;
-	entity->position = Vector3f(position);
+	entity->localPosition = Vector3f(position);
 	entity->RecalculateMatrix();
 	/// Re-calculate matrix straight away, hm?
 	return true;
@@ -1258,7 +1258,7 @@ bool TileMap2D::AddEntity(Entity * entity)
 		return true;
 	}	
 	// Place it on ze grid too!
-	Vector3i position = entity->position;
+	Vector3i position = entity->worldPosition;
 	/// Make sure it's a valid tile, if not abort the addition (and creation).
 	while (GetEntityByPosition(position)){
 //		assert(false && "Bad location to place entity! Already occupied! Fetch a position first with GetWalkableTile()");

@@ -54,12 +54,13 @@ void AABB::Recalculate(Entity * entity)
 	int physicsShape = PhysicsShape::MESH;
 	if (pp)
 		physicsShape = pp->shapeType;
+	Vector3f entityWorldPosition = entity->worldPosition;
 	switch(physicsShape)
 	{
 		case PhysicsShape::SPHERE:
 		{
 			Vector3f radiusVec = Vector3f(1,1,1) * entity->radius;
-			this->position = entity->position;
+			this->position = entityWorldPosition;
 			this->min = position - radiusVec;
 			this->max = position + radiusVec;
 			this->scale = radiusVec * 2;

@@ -24,7 +24,7 @@ EntityPair::EntityPair(Entity * one, Entity * two)
 
 void EntityPair::PrintDetailed()
 {
-    std::cout<<"\nComparing pair: "<<one<<" "<<one->position<<" & "<<two<<" "<<two->position;
+    std::cout<<"\nComparing pair: "<<one<<" "<<one->worldPosition<<" & "<<two<<" "<<two->worldPosition;
     AABB * oneab = one->aabb, * twoab = two->aabb;
     std::cout<<"\nOne min/max: "<<oneab->min<<" "<<oneab->max;
     std::cout<<"\nTwo min/max: "<<twoab->min<<" "<<twoab->max;
@@ -32,27 +32,15 @@ void EntityPair::PrintDetailed()
 
 AABBSweeper::AABBSweeper()
 {
+//	int subdivisionsZ = 8; // 8 used in the TIFS project. 1 for SpaceShooter
+	divisions = 8;
 	// Create a given amount of subdivisions in Z, that we later on sort in X. :)
 	subdivisionLinesZ.AddItem(0.f);
 
 	// Create 4 axes for the subdivision of XZ+, XZ-, X+Z-, and X-Z+
 #define LARGE 1000000.f
 
-	
-	float minZ = -400, maxZ = 400;
-	float range = maxZ - minZ;
-	int subdivisionsZ = 8;
-	float rangePerSubdivision = range / subdivisionsZ;
-	for (int i = 0; i < subdivisionsZ; ++i)
-	{
-		axes.AddItem(
-			// Z+
-			new AABBSweepAxis(X_AXIS, Vector3f(-LARGE,-LARGE, minZ + rangePerSubdivision * i), Vector3f(LARGE,LARGE, minZ + rangePerSubdivision * (i + 1)))
-			// Z-
-	//		new AABBSweepAxis(X_AXIS, Vector3f(-LARGE,-LARGE,-LARGE), Vector3f(LARGE,LARGE,0))
-		);
-	}
-	
+	CreateAxes();	
 }
 
 AABBSweeper::~AABBSweeper()
@@ -60,6 +48,20 @@ AABBSweeper::~AABBSweeper()
 	axes.ClearAndDelete();
 	// Clear any remaining nodes.
 	AABBSweepNode::FreeAll();
+}
+
+void AABBSweeper::CreateAxes()
+{
+	axes.ClearAndDelete();
+	float minZ = -400, maxZ = 400;
+	float range = maxZ - minZ;
+	float rangePerSubdivision = range / divisions;
+	for (int i = 0; i < divisions; ++i)
+	{
+		axes.AddItem(
+			new AABBSweepAxis(X_AXIS, Vector3f(-LARGE,-LARGE, minZ + rangePerSubdivision * i), Vector3f(LARGE,LARGE, minZ + rangePerSubdivision * (i + 1)))
+		);
+	}
 }
 
 void AABBSweeper::PrintSortedList()

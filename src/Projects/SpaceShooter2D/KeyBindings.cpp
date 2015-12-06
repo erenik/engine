@@ -34,8 +34,14 @@ void SpaceShooter2D::CreateDefaultBindings()
 
 	for (int i = 0; i < WeaponType::MAX_TYPES; ++i)
 	{
+		/// Debug bindings for adjusting weapon levels mid-flight.
+		BIND(Action::FromString("IncreaseWeaponLevel:"+String(i)), List<int>(KEY::PLUS, KEY::ONE+i));
+		BIND(Action::FromString("DecreaseWeaponLevel:"+String(i)), List<int>(KEY::MINUS, KEY::ONE+i));
+		BIND(Action::FromString("IncreaseWeaponLevel:"+String(i)), List<int>(KEY::ONE+i, KEY::PLUS));
+		BIND(Action::FromString("DecreaseWeaponLevel:"+String(i)), List<int>(KEY::ONE+i, KEY::MINUS));
 		BIND(Action::FromString("Weapon:"+String(i+1)), KEY::ONE + i);
 	}
+
 	BIND(Action::FromString("Reload OnEnter"), List<int>(KEY::CTRL, KEY::O, KEY::E));
 	/*
 	BIND(Action::FromString("Weapon:1"), KEY::ONE);

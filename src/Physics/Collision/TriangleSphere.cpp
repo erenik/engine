@@ -130,9 +130,10 @@ bool TriangleSphereCollision(Triangle * triangle, Sphere * sphere, Collision &da
 	return false;
 }
 
-bool TriangleSphereCollision(Triangle * triangle, Entity * sphereEntity, Collision &data){
+bool TriangleSphereCollision(Triangle * triangle, Entity * sphereEntity, Collision &data)
+{
 	static Sphere sphere; // = (Sphere*)sphereEntity->physics->shape;
-	sphere.position = sphereEntity->position;
+	sphere.position = sphereEntity->worldPosition;
 	sphere.radius = sphereEntity->physics->physicalRadius;
 	return TriangleSphereCollision(triangle, &sphere, data);
 /*

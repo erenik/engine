@@ -6,7 +6,7 @@
 
 #include "PhysicsLib/Shapes/OBB.h"
 #include "Pathfinding/PathfindingProperty.h"
-
+#include "File/LogFile.h"
 #include "Entity/EntityManager.h"
 
 /** Registers an Entity to take part in physics calculations. This requires that the Entity has the physics attribute attached.
@@ -14,6 +14,7 @@
 */
 int PhysicsManager::RegisterEntity(Entity * newEntity)
 {
+//	std::cout<<"\nRegistering entity for physics "<<newEntity->name;
 	/// So it can be avoided when creating them and positioning manually in main code...
 	newEntity->RecalculateMatrix();
 
@@ -160,6 +161,7 @@ int PhysicsManager::RegisterEntities(List<Entity*> & targetEntities){
 /// Unregisters an Entity from the physics calculations. Returns 0 if it found the Entity and successfully removed it, 1 if not.
 int PhysicsManager::UnregisterEntity(Entity * entityToRemove)
 {
+//	LogPhysics("Unregistering entity for physics "+entityToRemove->name, DEBUG);
 	int found = 0;
 	int entitiesInOctree = entityCollisionOctree->RegisteredEntities();
 	int physicalEntitiesNum = physicalEntities.Size();

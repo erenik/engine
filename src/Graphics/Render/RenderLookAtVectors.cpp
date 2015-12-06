@@ -33,12 +33,13 @@ void GraphicsManager::RenderEntityVectors(){
 	glBegin(GL_LINES);
 
 	/// Render all lights provided in the shiberiwa!
-	for (int i = 0; i < registeredEntities.Size(); ++i){
+	for (int i = 0; i < registeredEntities.Size(); ++i)
+	{
 		// Reset view/proj matrices
 
 		// Now just render a single line first.
 		Entity * e = registeredEntities[i];
-		Vector3f position = e->position;
+		Vector3f position = e->worldPosition;
 		Vector3f lookAt = e->rotationMatrix * Vector4d(0,0,1,0);
 		Vector3f upVec = e->rotationMatrix * Vector4d(0,1,0,0);
 

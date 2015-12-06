@@ -16,7 +16,7 @@ bool MeshSphereCollision(Entity * meshEntity, Entity * sphereEntity, Collision &
 
 //	std::cout<<"\nCollision check with "<<meshEntity->name;
 	/// If Mesh-Mesh comparison, begin with a spherical or AABB check before we use the costly checks.
-	Vector3f distanceVector = meshEntity->position - sphereEntity->position;
+	Vector3f distanceVector = meshEntity->worldPosition - sphereEntity->worldPosition;
 	/// Real distance between them, please....
 	float distance = distanceVector.Length();
 	distance -= meshEntity->physics->physicalRadius + sphereEntity->physics->physicalRadius;

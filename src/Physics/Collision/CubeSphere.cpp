@@ -64,9 +64,11 @@ bool CubeSphereCollision(Entity * cubeEntity, Entity * sphereEntity, Collision &
 	float distance;
 	int result = Loc::INSIDE;
 
-	for(int i=0; i < 6; i++) {
-		distance = frustumPlane[i].Distance(sphereEntity->position);
-		if (distance < -sphereEntity->physics->physicalRadius){
+	for(int i=0; i < 6; i++) 
+	{
+		distance = frustumPlane[i].Distance(sphereEntity->worldPosition);
+		if (distance < -sphereEntity->physics->physicalRadius)
+		{
 			return false;
 		//	return Loc::OUTSIDE;
 		}
@@ -75,7 +77,7 @@ bool CubeSphereCollision(Entity * cubeEntity, Entity * sphereEntity, Collision &
 	}
 //	std::cout<<"\nCube-Sphere collission!";
 
-	data.collisionNormal = (cubeEntity->position - sphereEntity->position).NormalizedCopy();
+	data.collisionNormal = (cubeEntity->worldPosition - sphereEntity->worldPosition).NormalizedCopy();
 	data.distanceIntoEachOther = distance;
 	data.results |= DISTANCE_INTO;
 	return true;

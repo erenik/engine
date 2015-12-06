@@ -39,20 +39,20 @@ void PhysicsManager::ApplyPathfinding(){
 		Waypoint *& currentWaypoint = pathProp->currentWaypoint;
 		Waypoint *& targetWaypoint = pathProp->targetWaypoint;
 		Vector3f & desiredVelocity = pathProp->desiredVelocity;
-		Vector3f & position = entity->position;
+		Vector3f & position = entity->worldPosition;
 
 		
 		/// If we got a target waypoint, move to it.	
 		if (targetWaypoint){
 			Vector3f velocity = physics->velocity;
 		//	std::cout<<"\nMoving to target waypoint with velocity: "<<velocity;
-			Vector3f entityToTargetWaypoint = targetWaypoint->position - entity->position;
+			Vector3f entityToTargetWaypoint = targetWaypoint->position - entity->worldPosition;
 			float velocityDotVectorToWaypoint = velocity.DotProduct(entityToTargetWaypoint);
 			// Check if we've passed the waypoint (considering current velocity)
 			if (velocityDotVectorToWaypoint < 0){
 				std::cout<<"\nTarget waypoint behind us! Halting,.. hopefully.";
 				// Not aligned, mening that we have passed it somehow, so place us at it!
-				entity->position = targetWaypoint->position;
+				entity->localPosition = targetWaypoint->position;
 				currentWaypoint->entities.Remove(entity);
 				currentWaypoint = targetWaypoint;
 				targetWaypoint = NULL;
@@ -93,7 +93,7 @@ void PhysicsManager::ApplyPathfinding(){
 		    	else {
 			    	Waypoint * first = path->GetWaypoint(0);
 				    /// Teleport to the first waypoint?
-				    entity->position 	= first->position;
+				    entity->localPosition = first->position;
 				    pathProp->currentWaypoint = first;
 				    newTargetWaypoint = path->GetNext(first);
 		    	}

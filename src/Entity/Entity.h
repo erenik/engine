@@ -51,6 +51,8 @@ public:
 	/// Default destructor
 	~Entity();
 
+	/// Removes links to parents/children as needed, prepares for deletion. Take care to call from render/physics thread.
+	void RemoveLinks();
 	/// If reacting to collisions within the physics thread.,.. pokes all properties about it too.
 	virtual void OnCollision(Collision & data);
 	/// If reacting to collisions within the main state thread (callbacks).
@@ -177,10 +179,10 @@ public:
 	/// If true, updates all children once this entity is transformed. Default true.
 	bool updateChildrenOnTransform;
 	/// Recalculated in RecalculateMatrix. Used to get child positions correctly.
-	Vector4f worldPosition;
+	Vector3f worldPosition;
 
-	/// Relative world coordinate position
-	Vector3f position;
+	/// Local position. If no parent, world-positions. If has parent, see worldPosition.
+	Vector3f localPosition;
 	/// Scale in x,y,z
 	Vector3f scale;
 	/// Rotation in pitch, yaw, roll (x,y,z)
@@ -205,7 +207,7 @@ public:
 	Material * material;
 
 	/// Bounding volumes, spherical for now!
-	Vector3f absolutePosition;
+//	Vector3f absolutePosition;
 	/// Radius of the bounding sphere.
 	float radius;
 

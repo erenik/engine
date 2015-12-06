@@ -214,7 +214,7 @@ void ParticleEmitter::AttachTo(ParticleSystem * targetPS)
 void ParticleEmitter::Update()
 {
 	if (entityToTrack)
-		position = entityToTrack->position + positionOffset;
+		position = entityToTrack->worldPosition + positionOffset;
 }
 
 /// Query how many particles this emitter wants to emit, considering the time that has elapsed.

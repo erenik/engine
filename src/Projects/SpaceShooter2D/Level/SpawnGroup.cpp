@@ -78,8 +78,8 @@ void SpawnGroup::Spawn(bool subAggregate)
 			/// Number will be the amount of ships per side?
 			SpawnGroup copy = *this;
 			int num = number;
-			Vector2f spacing = size / (num - 1);
-			Vector2f lineSize = spacing * (num - 2);
+			Vector2f spacing = size / (float)(num - 1);
+			Vector2f lineSize = spacing * (float)(num - 2);
 			// Bottom
 			copy.formation = Formation::LINE_X;
 			copy.number = num - 1;
@@ -121,17 +121,17 @@ void SpawnGroup::Spawn(bool subAggregate)
 	switch(formation)
 	{
 		case Formation::V_X:
-			offsetPerSpawn.x = size.x / (floor((number) / 2.0 + 0.5) - 1);
+			offsetPerSpawn.x = size.x / ((float)floor((number) / 2.0 + 0.5) - 1);
 			break;
 		case Formation::V_Y:
-			offsetPerSpawn.y = size.y / (floor((number) / 2.0 + 0.5) - 1);
+			offsetPerSpawn.y = size.y / ((float)floor((number) / 2.0 + 0.5) - 1);
 			break;
 		case Formation::X:
 		{
-			int steps = floor((number - 1) / 4.0);
+			int steps = (int)floor((number - 1) / 4.0);
 			if (steps < 1)
 				return;
-			offsetPerSpawn = size * 0.5f / steps;
+			offsetPerSpawn = size * 0.5f / (float)steps;
 			break;
 		}
 		case Formation::SWARM_BOX_XY:
@@ -256,6 +256,11 @@ void SpawnGroup::Spawn(bool subAggregate)
 Entity * SpawnGroup::SpawnShip(ConstVec3fr atPosition)
 {
 	Ship * newShip = Ship::New(shipType);
+	if (!newShip)
+	{
+		LogMain("SpawnGroup::SpawnShip: Unable to create ship of type: "+shipType, ERROR | CAUSE_ASSERTION_ERROR);
+		return NULL;
+	}
 	activeLevel->ships.AddItem(newShip);
 	Ship * ship = newShip;
 	ship->RandomizeWeaponCooldowns();
@@ -264,31 +269,8 @@ Entity * SpawnGroup::SpawnShip(ConstVec3fr atPosition)
 	/// Apply spawn group properties.
 	ship->shoot &= shoot;
 	ship->speed *= relativeSpeed;
-
-	Entity * entity = EntityMan.CreateEntity(ship->type, ship->GetModel(), TexMan.GetTextureByColor(Color(0,255,0,255)));
-	entity->position = atPosition;
-	float radians = PI / 2;
-//		entity->rotation[0] = radians; // Rotate up from Z- to Y+
-//		entity->rotation[1] = radians; // Rorate from Y+ to X-
-	entity->SetRotation(Vector3f(radians, radians, 0));
-	entity->RecalculateMatrix();
-	
-	PhysicsProperty * pp = new PhysicsProperty();
-	entity->physics = pp;
-	// Setup physics.
-	pp->type = PhysicsType::DYNAMIC;
-	pp->collisionCategory = CC_ENEMY;
-	pp->collisionFilter = CC_PLAYER | CC_PLAYER_PROJ;
-	pp->collisionCallback = true;
-	// By default, set invulerability on spawn.
-	ship->spawnInvulnerability = true;
-	ShipProperty * sp = new ShipProperty(ship, entity);
-	entity->properties.Add(sp);
-	ship->entity = entity;
-	ship->spawned = true;
-	shipEntities.Add(entity);
-	MapMan.AddEntity(entity);
-	ship->StartMovement();
+	/// Spawn it.
+	Entity * entity = ship->Spawn(atPosition, NULL);
 	return entity;
 }
 

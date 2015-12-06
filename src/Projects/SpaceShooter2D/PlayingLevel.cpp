@@ -12,10 +12,10 @@ void SpaceShooter2D::Cleanup()
 		Entity * proj = projectileEntities[i];
 		ProjectileProperty * pp = (ProjectileProperty*) proj->GetProperty(ProjectileProperty::ID());
 		if (pp->sleeping || 
-				(proj->position[0] < despawnPositionLeft ||
-				proj->position[0] > spawnPositionRight ||
-				proj->position[1] < -1.f ||
-				proj->position[1] > playingFieldSize[1] + 2.f
+				(proj->worldPosition[0] < despawnPositionLeft ||
+				proj->worldPosition[0] > spawnPositionRight ||
+				proj->worldPosition[1] < -1.f ||
+				proj->worldPosition[1] > playingFieldSize[1] + 2.f
 				)
 			)
 		{
@@ -36,7 +36,7 @@ void SpaceShooter2D::Cleanup()
 		if (!ship->entity)
 			continue;
 		// Check if it should de-spawn.
-		if (ship->entity->position[0] < despawnPositionLeft)
+		if (ship->entity->worldPosition[0] < despawnPositionLeft && ship->parent == NULL)
 		{
 			ship->Despawn();
 		}
@@ -68,15 +68,15 @@ void SpaceShooter2D::RenderInLevel(GraphicsState * graphicsState)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-	Vector2f minField = levelEntity->position - playingFieldHalfSize - Vector2f(1,1);
-	Vector2f maxField = levelEntity->position + playingFieldHalfSize + Vector2f(1,1);
+	Vector2f minField = levelEntity->worldPosition - playingFieldHalfSize - Vector2f(1,1);
+	Vector2f maxField = levelEntity->worldPosition + playingFieldHalfSize + Vector2f(1,1);
 
 	/// o.o
 	for (int i = 0; i < shipEntities.Size(); ++i)
 	{	
 		// Grab the position
 		Entity * e = shipEntities[i];
-		Vector2f pos = e->position;
+		Vector2f pos = e->worldPosition;
 		// Check if outside boundary.
 		if (pos > minField && pos < maxField)
 		{
@@ -86,7 +86,7 @@ void SpaceShooter2D::RenderInLevel(GraphicsState * graphicsState)
 		pos.Clamp(minField, maxField);
 
 		// Check direction from this position to the entity's actual position.
-		Vector3f to = (e->position - pos);
+		Vector3f to = (e->worldPosition - pos);
 		float dist = to.Length();
 		Vector3f dir = to.NormalizedCopy();
 		Vector3f a,b,c;

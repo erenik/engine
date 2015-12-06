@@ -10,10 +10,11 @@
 #include "../PhysicsProperty.h"
 
 /// Checks and resolves a collission between target two spheres.
-bool SphereSphereCollision(Entity * one, Entity * two, Collision &data){
+bool SphereSphereCollision(Entity * one, Entity * two, Collision &data)
+{
 	assert(one->physics->shapeType == ShapeType::SPHERE &&
 		two->physics->shapeType == ShapeType::SPHERE);
-	Vector3f distanceVector = one->position - two->position;
+	Vector3f distanceVector = one->worldPosition - two->worldPosition;
 	/// Real distance between them, please....
 	float distance = distanceVector.Length();
 	distance -= one->physics->physicalRadius + two->physics->physicalRadius;

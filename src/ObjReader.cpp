@@ -252,7 +252,8 @@ bool ObjReader::ReadObj(const char * filename, Mesh * mesh)
 
             } // End of parsing this faces.
             // If we didn't have any numNormals, generate them now!
-            if (!hadNormals){
+            if (!hadNormals)
+			{
                 MeshFace * f = &mesh->faces[facesRead];
                 Vector3f side1, side2;
                 side1 = mesh->vertices[f->vertices[1]] - mesh->vertices[f->vertices[0]];

@@ -153,10 +153,12 @@ void Entity::Render(GraphicsState & graphicsState)
 	/// If we have any offsets, apply them and re-calculate the transform matrix if so.
 	if (graphics && graphics->renderOffset.MaxPart())
 	{
+		assert(false);
+/*		// Commented out due to expected obsolescence.
 		Vector3f offsetPosition = position + graphics->renderOffset;
 		Matrix4d transMat = RecalculateMatrix(offsetPosition, rotation, scale); 
 		graphicsState.modelMatrixD.Multiply(transMat);
-		graphicsState.modelMatrixF = graphicsState.modelMatrixD;		
+		graphicsState.modelMatrixF = graphicsState.modelMatrixD;		*/
 	}
 	// Use standard matrix.
 	else
@@ -311,7 +313,7 @@ void Entity::Render(GraphicsState & graphicsState)
 			modelMatrix = Matrix4f();
 
 
-			modelMatrix.Multiply((Matrix4d().Translate(Vector3d(position))));
+			modelMatrix.Multiply((Matrix4d().Translate(Vector3d(worldPosition))));
 			modelMatrix.Multiply(rotationMatrix);
 			modelMatrix.Multiply((Matrix4d().Scale(Vector3d(scale * graphics->textSizeRatio))));
 
@@ -327,7 +329,7 @@ void Entity::Render(GraphicsState & graphicsState)
 			// Recalculate the matrix to center the text on the entity.
 			modelMatrix = Matrix4d();
 			Vector3f centeringOffset(- textRenderSize[0] * 0.5f, textRenderSize[1], 0);
-			modelMatrix.Multiply((Matrix4d().Translate(Vector3d(position + centeringOffset))));
+			modelMatrix.Multiply((Matrix4d().Translate(Vector3d(worldPosition + centeringOffset))));
 			modelMatrix.Multiply(rotationMatrix);
 			modelMatrix.Multiply((Matrix4d().Scale(Vector3d(scale * graphics->textSizeRatio))));
 

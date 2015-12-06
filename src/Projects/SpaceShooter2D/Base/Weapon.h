@@ -66,7 +66,7 @@ public:
 	LightningArc * child;
 };
 
-class Weapon 
+class Weapon
 {
 public:
 	Weapon();
@@ -81,7 +81,7 @@ public:
 	/// Shoots using previously calculated aim.
 	void Shoot(Ship * ship);
 	/// Called to update the various states of the weapon, such as reload time, making lightning arcs jump, etc.
-	void Process(Ship * ship);
+	void Process(Ship * ship, int timeInMs);
 	void ProcessLightning(Ship * ship, bool initial = false);
 
 	List<LightningArc*> arcs;
@@ -90,7 +90,7 @@ public:
 	/// Delay in milliseconds between bounces for lightning
 	int arcDelay;
 	int maxBounces; /// Used to make lightning end prematurely.
-
+	int currCooldownMs; /// Used instead of flyTime.
 	float stability;
 	String name;
 	int cost; // o-o
@@ -111,6 +111,8 @@ public:
 		SPINNING_OUTWARD,
 		HOMING,
 	};
+	/// For boss-spam stuff.
+	bool circleSpam;
 	int projectilePath;
 	float projectileSpeed;
 	float homingFactor; // For heat-seaking/auto-aiming missiles.
@@ -138,9 +140,11 @@ public:
 	/// For burst.
 	int burstRounds;
 	// Restarts
-	int burstRoundsShot; 
+	int burstRoundsShot;
+	/// Linear scaling over time (multiplied with initial scale?) 
+	float linearScaling;
 	/// Last show, format Time::Now().Milliseconds()
-	Time lastShot;
+//	Time lastShot;
 	static List<Weapon> types;
 	/// Sound effects (SFX)
 	String shootSFX, hitSFX;

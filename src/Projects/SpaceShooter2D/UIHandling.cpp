@@ -179,11 +179,11 @@ void SpaceShooter2D::UpdateCooldowns()
 	{
 		// Check cooldown.
 		Weapon * weapon = weapons[i];
-		float timeTilNextShotMs = (flyTime - weapon->lastShot).Milliseconds();
-		if (weapon->burst)
-			timeTilNextShotMs = (flyTime - weapon->burstStart).Milliseconds();
+		float timeTilNextShotMs = weapon->currCooldownMs;
+//		if (weapon->burst)
+	//		timeTilNextShotMs = (flyTime - weapon->burstStart).Milliseconds();
 		float maxCooldown = weapon->cooldown.Milliseconds();
-		float ratioReady = timeTilNextShotMs / maxCooldown * 100.f;
+		float ratioReady = (1 - timeTilNextShotMs / maxCooldown) * 100.f;
 		// Change texture accordingly.
 		List<int> avail(0, 12, 25, 37);
 		avail.Add(50, 62, 75, 87, 100);
