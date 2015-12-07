@@ -55,6 +55,17 @@ private:
 	int target;
 };
 
+/** For setting arbirary data to be rendered, in order to ensure safe setting and adjustment 
+	for rendering in e.g. State-specific render functions.. */
+class GMSetData : public GraphicsMessage 
+{
+public:
+	GMSetData(List<Vector3f> * targetList, List<Vector3f> newData);
+	void Process();
+private:
+	List<Vector3f> * targetList, newData;
+};
+
 /// For setting system-global UI. 
 class GMSetGlobalUI : public GraphicsMessage 
 {

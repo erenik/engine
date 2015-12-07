@@ -83,8 +83,6 @@ int SpaceShooterCD::DetectCollisions(List<EntityPair> & pairs, List<Collision> &
 	return numCol;
 }
 
-
-
 /// Detects collisions between two entities. Method used is based on physics-shape. Sub-class to override it.
 int SpaceShooterCD::DetectCollisions(Entity * one, Entity * two, List<Collision> & collisions)
 {

@@ -10,6 +10,9 @@ enum graphicsMessages {
 	GM_CYCLE_RENDER_PIPELINE,
 	GM_CYCLE_RENDER_PIPELINE_BACK,
 
+	// UI interactions.
+	GM_MOUSE,
+
 	// Render-pass configuration
 	GM_ADD_RENDER_PASS,
 
@@ -44,6 +47,7 @@ enum graphicsMessages {
 	GM_SET_FLOAT,
 	GM_SET_TEXTURE,
 	GM_SET_STRING,
+	GM_SET_DATA,
 	GM_SET_UI,
 	GM_SET_GLOBAL_UI,
 	GM_SET_VIEWPORTS,

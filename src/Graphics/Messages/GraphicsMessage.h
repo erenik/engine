@@ -44,6 +44,29 @@ protected:
 	int type;
 };
 
+class GMMouse : public GraphicsMessage
+{
+public:
+	GMMouse(int interaction, AppWindow * window, Vector2i coords);
+	static GMMouse * Move(AppWindow * window, Vector2i coords);
+	static GMMouse * LDown(AppWindow * window, Vector2i coords);
+	static GMMouse * RDown(AppWindow * window, Vector2i coords);
+	static GMMouse * LUp(AppWindow * window, Vector2i coords);
+	static GMMouse * RUp(AppWindow * window, Vector2i coords);
+	virtual void Process();
+	enum interactions 
+	{
+		MOVE,
+		LDOWN,
+		RDOWN,
+		LUP,
+		RUP,
+	};
+	int interaction;
+	AppWindow * window;
+	Vector2i coords;
+};
+
 /// Query start to record video.
 class GMRecordVideo : public GraphicsMessage
 {

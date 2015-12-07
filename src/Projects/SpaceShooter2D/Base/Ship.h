@@ -11,6 +11,7 @@
 #include "Rotation.h"
 #include "SpaceShooter2D/Base/Gear.h"
 
+class Script;
 class Entity;
 class Model;
 class SpawnGroup;
@@ -37,15 +38,19 @@ public:
 	/// Handles spawning of children as needed.
 	List<Entity*> SpawnChildren();
 	void Despawn();
-
+	/// Checks current movement. Will only return true if movement is target based and destination is within threshold.
+	bool ArrivedAtDestination();
 	void Process(int timeInMs);
 	void ProcessAI(int timeInMs);
 	void ProcessWeapons(int timeInMs);
 
+	/// Disables weapon in this and children ships.
+	void DisableWeapon(String weaponName);
 	/// Prepends the source with '/obj/Ships/' and appends '.obj'. Uses default 'Ship.obj' if needed.
 	Model * GetModel();
 	/// o.o
 	void DisableMovement();
+	void OnSpeedUpdated();
 	void Damage(Weapon & usingWeapon);
 	void Damage(float amount, bool ignoreShield);
 	void Destroy();
@@ -55,10 +60,19 @@ public:
 	void ParseMovement(String fromString);
 	/// E.g. "DoveDir(3), RotateToFace(player, 5)"
 	void ParseRotation(String fromString);
-
+	/// Sets movement. Clears any other existing movements.
+	void SetMovement(Movement & movement);
+	void SetSpeed(float speed);
 	/// Creates new ship of specified type.
 	static Ship * New(String shipByName);
+
+	/// Main script to play.
+	String scriptSource;
+	Script * script;
 	
+	/// Unique ID.
+	const int ID() {return shipID;}; 
+
 	/// Returns speed, accounting for active skills, weights, etc.
 	float Speed();
 	/// Accounting for boosting skills.
@@ -84,6 +98,8 @@ public:
 
 	// Name or type. 
 	String name;
+	/// Flag false for bosses.
+	bool despawnOutsideFrame;
 	// Faction.
 	String type;
 	SpawnGroup * spawnGroup;
@@ -160,6 +176,8 @@ public:
 	WeaponScript * weaponScript;
 
 private:
+	int shipID;
+	static int shipIDEnumerator;
 };
 
 #endif

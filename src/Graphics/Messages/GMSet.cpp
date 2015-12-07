@@ -182,6 +182,15 @@ void GMSets::Process(){
 
 }
 
+GMSetData::GMSetData(List<Vector3f> * targetList, List<Vector3f> newData)
+	: GraphicsMessage(GM_SET_DATA), targetList(targetList), newData(newData)
+{
+}
+void GMSetData::Process()
+{
+	*targetList = newData;
+}
+
 
 GMSetGlobalUI::GMSetGlobalUI(UserInterface *ui, AppWindow * window)
 : GraphicsMessage(GM_SET_GLOBAL_UI), ui(ui), window(window)

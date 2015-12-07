@@ -450,6 +450,7 @@ void MessageManager::ProcessMessage(Message * message)
 			else if (msg.Contains("PlayBGM:"))
 			{
 				String source = msg - "PlayBGM:";
+				source.RemoveSurroundingWhitespaces();
 				AudioMan.QueueMessage(new AMPlayBGM(source, 1.f));
 			}
 			else if (msg.Contains("NavigateUI(")){

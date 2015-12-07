@@ -218,6 +218,7 @@ void SpaceShooter2D::Process(int timeInMs)
 				return;
 			level.Process(timeInMs);
 			UpdateCooldowns();
+			UpdateRenderArrows();
 		}
 	}
 }
@@ -234,6 +235,28 @@ void SpaceShooter2D::OnExit(AppState * nextState)
 	SleepThread(100);
 }
 
+/// Searches among actively spawned ships.
+Ship * SpaceShooter2D::GetShip(Entity * forEntity)
+{
+	for (int i = 0; i < level.ships.Size(); ++i)
+	{
+		Ship * ship = level.ships[i];
+		if (ship->entity == forEntity)
+			return ship;
+	}
+	return 0;
+}
+
+Ship * SpaceShooter2D::GetShipByID(int id)
+{
+	for (int i = 0; i < level.ships.Size(); ++i)
+	{
+		Ship * ship = level.ships[i];
+		if (ship->ID() == id)
+			return ship;
+	}
+	return 0;
+}
 
 /// Creates the user interface for this state
 void SpaceShooter2D::CreateUserInterface()

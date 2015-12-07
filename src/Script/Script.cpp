@@ -17,6 +17,7 @@
 #include "Input/InputManager.h"
 #include "File/FileUtil.h"
 #include "TextureManager.h"
+#include "MathLib/Expression.h"
 
 /// Compact saveable version of the event
 //struct CompactEvent{};
@@ -59,6 +60,7 @@ Script::Script(String name, Script * parent /* = NULL */ )
 
 void Script::Nullify()
 {
+	entity = 0;
 	allowMultipleInstances = true;
 	parentScript = NULL;
 	timePassed = 0; // Should be added each process-frame.
@@ -210,6 +212,10 @@ void Script::Process(int timeInMs)
 		return;
 	}
 	String line = lines[currentLine];
+	int p = 2;
+	if (p == 3)
+		for (int i = 0; i < lines.Size(); ++i){std::cout<<"\nLines "<<i<<": "<<lines[i];}
+	line.RemoveSurroundingWhitespaces();
 	// Skip one-line comments if any remain.
 	if (line.StartsWith("//"))
 	{
@@ -224,7 +230,6 @@ void Script::Process(int timeInMs)
 		/// Evaluate the current line, look if we have to check for line-finishing conditions or not.
 		lineFinished = false;
 		EvaluateLine(lines[currentLine]);
-		lineProcessed = true;
 	}
 
 	/// Check if the current line is finished? If not, wait until it is finished.
@@ -312,6 +317,9 @@ void Script::EndCutscene(bool endingPrematurely /*= false*/)
 
 void Script::EvaluateLine(String & line)
 {
+	/// Default line processed once?
+	lineProcessed = true;
+
 	line.SetComparisonMode(String::NOT_CASE_SENSITIVE);
 	// "80Gray50Alpha.png"
 #define DEFAULT_TEXTURE_SOURCE	"black50Alpha.png"
@@ -469,7 +477,7 @@ void Script::EvaluateLine(String & line)
 			// Send it tot he state too, to attach to the appropriate thingymajig.
 			Message * message = new Message(line);
 			/// Set this event as
-			message->event = this;
+			message->scriptOrigin = this;
 			MesMan.QueueMessage(message);
 			/// Instant thingies.
 			lineFinished = true;
@@ -569,19 +577,40 @@ void Script::EvaluateLine(String & line)
 	}
 	else if (line.Contains("if(") || line.Contains("if ("))
 	{
-		ifProcessed = false;
+		// Add to stack.
+		stack.AddItem(ScriptLevel(ScriptLevel::IF_CLAUSE, currentLine));
 		HandleConditional(line);
 	}
 	else if (line.Contains("else"))
 	{
-		if (ifProcessed)
+//		if (ifProcessed)
 			JumpToEndif();
 		lineFinished = true;
 		return;
 	}
-	else if (line.Contains("endif")){
+	else if (line.Contains("endif"))
+	{
+		ScriptLevel sl = stack.Last();
+		assert(sl.type == ScriptLevel::IF_CLAUSE);
+		stack.RemoveLast();
 		lineFinished = true;
-		ifProcessed = false;
+	}
+	else if (line.Contains("endwhile"))
+	{
+		// Go to start!
+		ScriptLevel sl = stack.Last();
+		assert(sl.type == ScriptLevel::WHILE_LOOP);
+		currentLine = sl.evaluatedAtLine;
+		String startLine = lines[currentLine];
+		HandleConditional(startLine);
+//		lineFinished = true;
+		// Evaluate?
+//		stack.RemoveLast();
+	}
+	else if (line.Contains("while"))
+	{
+		stack.AddItem(ScriptLevel(ScriptLevel::WHILE_LOOP, currentLine));
+		HandleConditional(line);
 	}
 	else if (line.Contains("CreateInt")){
 		List<String> tokens = line.Tokenize(" \t");
@@ -590,7 +619,7 @@ void Script::EvaluateLine(String & line)
 		if (tokens.Size() >= 3)
 			initialValue = tokens[2].ParseInt();
 		if (!GameVars.Get(varName)){
-			GameVars.CreateInt(varName,initialValue);
+			GameVars.CreateInt(varName, initialValue);
 		}
 		lineFinished = true;
 	}
@@ -620,7 +649,7 @@ void Script::EvaluateLine(String & line)
 	{
 		Message * message = new Message(line);
 		/// Set this event as
-		message->event = this;
+		message->scriptOrigin = this;
 		MesMan.QueueMessage(message);
 		/// Instant thingies.
 		lineFinished = true;
@@ -629,8 +658,8 @@ void Script::EvaluateLine(String & line)
 //		std::cout<<"\nUndefined event command: "<<line;
 //		std::cout<<"\nPassing it as a custom command to the game states for further processing.";
 		Message * message = new Message(line);
-		/// Set this event as
-		message->event = this;
+		/// Set this event as source of it.
+		message->scriptOrigin = this;
 		MesMan.QueueMessage(message);
 		lineFinished = true;
 	//	assert(false && "Undefined event command!");
@@ -706,86 +735,64 @@ void Script::SetDeleteOnEnd(bool value){
 /// For if- and elsif- statements.
 void Script::HandleConditional(String line)
 {
-	if (ifProcessed)
+	// Remove first part until (
+	int index = line.Find('(');
+	line = line.Part(index);
+	/// Use expressions from the MathLib. First parse for functions to provide their values? Or...
+	Expression exp;
+	List<Variable> allVars = GameVars.GetAllExpressionVariables() + variables;
+	exp.functionEvaluators = functionEvaluators; // Set evaluators.
+	bool parseOK = exp.ParseExpression(line);
+	if (!parseOK)
 	{
-		// Continue to the Endif
-		JumpToEndif();
+		std::cout<<"\nParse error in expression "<<line;
 		return;
 	}
-
-	/// Evaluate if-clauses!
-	List<String> tokens = line.Tokenize(" ()");
-	String varName = tokens[1];
-	String comparisonOperator = tokens[2];
-	String comparisonValue = tokens[3];
-	GameVariable * gv = GameVars.Get(varName);
-	/// If not defined, assume it auto-fails the check
-	if (!gv)
-	{
-		JumpToNextConditional();
-		return;
-	}
-	assert(gv && "No game variable with given name?");
-	int intValue, intComparisonValue;
-	bool statementTrue = false;;
-	switch(gv->Type())
-	{
-		case GameVariable::INTEGER:
-			intValue = gv->iValue;
-			intComparisonValue = comparisonValue.ParseInt();
-			if (comparisonOperator == ">"){
-				if (intValue > intComparisonValue)
-					statementTrue = true;
-			}
-			else if (comparisonOperator == "<"){
-				if (intValue < intComparisonValue)
-					statementTrue = true;
-			}
-			else if (comparisonOperator == "=="){
-				if (intValue == intComparisonValue)
-					statementTrue = true;
-			}
-			else {
-				assert(false && "Invalid comparison operator! D:");
-				lineFinished = true;
-				return;
-			}
-			break;
-		default:
-			assert(false && "Implement other GameVariable checks, prugrumur!");
-			break;
-	}
+	ExpressionResult res = exp.Evaluate(allVars);
+	bool statementTrue = res.GetBool();
 	/// If statement is true, sign this row as finished.
-	if (statementTrue){
+	if (statementTrue)
+	{
 		// Set line finished to true so the actual content will be processed.
 		lineFinished = true;
 		// Set if-Processed to true so that no elsif- or else- clause will be handled.
-		ifProcessed = true;
+		ScriptLevel & latest = stack.Last();
+		latest.evaluatedAtLine = currentLine;
 	}
-	else {
+	else 
+	{
+		// Check stuff.
+		ScriptLevel & sl = stack.Last();
+		int newRow = -1;
 		// If the statement is not true, find an else or endif block..!
-		for (int i = currentLine+1; i < lines.Size(); ++i){
+		for (int i = currentLine+1; i < lines.Size(); ++i)
+		{
 			String l = lines[i];
-			if (l.Contains("elsif"))
+			if (sl.type == ScriptLevel::WHILE_LOOP)
 			{
-				currentLine = i;
-				// Call this function again?
-				EvaluateLine(lines[i]);
-				return;
+				if (l.Contains("endwhile"))
+				{
+					// Jump to next after, as regular stopping on endwhile will reboot the loop
+					newRow = i + 1;
+					stack.RemoveLast();
+					break; 
+				}
 			}
-			else if (l.Contains("else"))
+			if (sl.type == ScriptLevel::IF_CLAUSE)
 			{
-				/// Jump to this row ^^
-				currentLine = i;
-				lineFinished = true;
-				return;
-			}
-			else if (l.Contains("endif")){
-				currentLine = i;
-				lineFinished = true;
-				return;
+				if (l.Contains("elsif") || l.Contains("else") || l.Contains("endif"))
+				{
+					newRow = i; break;
+				}
 			}
 		}
+		assert(newRow > 0);
+		// Process it next iteration.
+		currentLine = newRow;
+		lineProcessed = false;
+		lineFinished = false;
+		return;
+
 	}
 	if (lineFinished == false)
 		assert(false && "Line not finished? Something is missing in the if/else/endif block!");	

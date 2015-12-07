@@ -24,6 +24,29 @@ void GameVariableManager::Clear()
 	vectors.Clear();
 }
 
+List<GameVar*> GameVariableManager::All()
+{
+	return gameVariables;
+}
+
+List<Variable> GameVariableManager::GetAllExpressionVariables()
+{
+	List<Variable> vars;
+	for (int i = 0; i < gameVariables.Size(); ++i)
+	{
+		GameVariable * gv = gameVariables[i];
+		switch(gv->Type())
+		{
+		case GameVariable::INTEGER:
+			Variable var(gv->name, gv->GetInt());
+			vars.AddItem(var);
+			break;
+		}
+	}
+	return vars;
+}
+
+
 /// General getter for any variable.
 GameVar * GameVariableManager::Get(String name){
 	for (int i = 0; i < gameVariables.Size(); ++i){

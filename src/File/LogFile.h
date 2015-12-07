@@ -10,10 +10,13 @@
 
 #include "ThreadSetup.h"
 
-#define LogPhysics(text, level) LogToFile(PHYSICS_THREAD, text, level)
-#define LogMain(text, level) LogToFile(MAIN_THREAD, text, level)
-#define LogAudio(text, level) LogToFile(AUDIO_THREAD, text, level)
-#define LogGraphics(text, level) LogToFile(GRAPHICS_THREAD, text, level)
+#include "Output.h"
+extern List<TextError> gErrors, pErrors, aErrors, mErrors;
+
+#define LogPhysics(text, level) LogToFile(PHYSICS_THREAD, text, level, &pErrors)
+#define LogMain(text, level) LogToFile(MAIN_THREAD, text, level, &mErrors)
+#define LogAudio(text, level) LogToFile(AUDIO_THREAD, text, level, &aErrors)
+#define LogGraphics(text, level) LogToFile(GRAPHICS_THREAD, text, level, &gErrors)
 
 #ifdef ERROR
 #undef ERROR
@@ -33,7 +36,7 @@ enum
 extern int logLevel;
 
 /// Logs to file, creates the file (and folders) necessary if it does not already exist. Time stamps will probably also be available.
-void LogToFile(String fileName, String text, int level = INFO);
+void LogToFile(String fileName, String text, int level, List<TextError> * previousErrors = 0);
 void SetLogLevel(String fromString);
 
 

@@ -6,18 +6,37 @@
 
 #include <String/AEString.h>
 #include "MathLib/Vector3f.h"
+#include "MathLib/Variable.h"
 
 /// Compact saveable version of the event
 struct CompactEvent{};
 class AppState;
+class Entity;
+class FunctionEvaluator;
 
 // Script flags
 #define DELETE_WHEN_ENDED	0x00000001
 
 #define Script Script
 
+class ScriptLevel 
+{
+public:
+	ScriptLevel(){};
+	ScriptLevel(int type, int startLine) : type(type), startLine(startLine), endLine(0){};
+	enum{
+		IF_CLAUSE,
+		WHILE_LOOP,
+	};
+	int type;
+	int startLine;
+	int evaluatedAtLine; /// For if-elseif-else clauses, will indicate line at which it was evaluate (or 0 at init)
+	int endLine;
+};
+
 /// An arbitrary script-sequence.
-class Script {
+class Script 
+{
 public:
 	Script(const Script & base);
 	Script(String name = "Script", Script * parentScript = NULL);
@@ -42,7 +61,12 @@ public:
 	virtual void OnBegin();
 	virtual void Process(int timeInMs);
 	virtual void OnEnd();
-	void EvaluateLine(String & line);
+
+	/// Sub-class for handling game-specific blocking script-lines.
+	virtual void EvaluateLine(String & line);
+
+//	virtual void EvaluateFunction(String function, List<String> arguments);
+
 	/// Resets the event so that it can be re-played again!
 	void Reset();
 
@@ -80,6 +104,7 @@ public:
 	
 	/// To keep track of things.
 	Script * parent;
+	Entity * entity; // Owner, depeneding on application.
 	List<Script*> childScripts;
 
 	/// Wosh?
@@ -105,6 +130,9 @@ public:
 	*/
 	Script * parentScript;
 
+	/// Variables to be used when evaluating expressions/conditions in the script. May be script-independant (e.g. self referring to the ship ID of the owner who started this script).
+	List<Variable> variables;
+	List<FunctionEvaluator*> functionEvaluators;
 
 	void BeginCutscene();
 	void EndCutscene(bool endingPrematurely = false);
@@ -133,6 +161,8 @@ public:
 	/// Defaults to... false? If true, any script that is called to play with the same source or name will be ignored and discarded then? 
 	bool allowMultipleInstances;
 private:
+	/// Stack, e.g. an IF_CLAUSE in a WHILE_LOOP., While_LOOP will be index 0.
+	List<ScriptLevel> stack;
 
 	/// For if- and elsif- statements.
 	void HandleConditional(String line);
@@ -140,7 +170,7 @@ private:
 	void JumpToEndif();
 
 	/// Flag to true once it processes any if-case-thingy?
-	bool ifProcessed;
+//	bool ifProcessed;
 
 	bool paused;
 	/// For handling stuff...

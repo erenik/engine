@@ -607,7 +607,8 @@ void Audio::BufferData(MultimediaStream * fromStream, AudioBuffer * intoBuffer)
 		int bytesPerSample = 2;
 		int divisible = bytesPerSample * channels;
 		int rest = bytesBuffered % divisible;
-		assert(rest == 0);
+		LogAudio("Remainder 2 when buffering audio", ERROR);
+//		assert(rest == 0);
 
 	/*			// If unable to buffer data, assume we are at the end of the file. If so, check if we can re-start the file (assuming looping is enabled)
 		if (bytesBuffered <= 0 && repeat){

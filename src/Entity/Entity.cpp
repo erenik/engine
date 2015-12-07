@@ -171,6 +171,7 @@ void Entity::RemoveLinks()
 {
 	if (parent)
 		parent->children.RemoveItem(this);
+
 	for (int i = 0; i < children.Size(); ++i)
 	{
 		Entity * child = children[i];

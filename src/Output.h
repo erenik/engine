@@ -19,6 +19,6 @@ struct TextError
 };
 
 /// Prints every 10th and later 100th time (and initial one). Returns false if it doesn't print.
-bool Output(String text);
+bool Output(String text, List<TextError> * previousErrors = 0);
 
 #endif

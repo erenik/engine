@@ -101,6 +101,10 @@ extern String playerName;
 extern bool paused;
 extern String onDeath; // What happens when the player dies?
 
+// Macros
+#define leftEdge (levelEntity->worldPosition.x - playingFieldHalfSize.x)
+#define rightEdge (levelEntity->worldPosition.x + playingFieldHalfSize.x)
+
 Vector2i WeaponTypeLevelFromString(String str); // For shop/UI-interaction.
 String WeaponTypeLevelToString(int type, int level);
 int DiffCost(String toUpgrade);
@@ -119,6 +123,10 @@ public:
 	void Process(int timeInMs);
 	/// Function when leaving this state, providing a pointer to the next StateMan.
 	void OnExit(AppState * nextState);
+	
+	/// Searches among actively spawned ships.
+	Ship * GetShip(Entity * forEntity);
+	Ship * GetShipByID(int id);
 
 	/// Creates the user interface for this state
 	virtual void CreateUserInterface();
@@ -131,6 +139,8 @@ public:
 	/// Creates default key-bindings for the state.
 	virtual void CreateDefaultBindings();
 
+	/// Yerrr.
+	virtual void UpdateRenderArrows();
 	/// Called from the render-thread for every viewport/AppWindow, after the main rendering-pipeline has done its job.
 	virtual void Render(GraphicsState * graphicsState);
 

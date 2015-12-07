@@ -7,6 +7,7 @@
 #ifndef GAME_VARIABLES_H
 #define GAME_VARIABLES_H
 
+#include "MathLib/Variable.h"
 #include "GameVariable.h"
 
 #define GameVars (*GameVariableManager::Instance())
@@ -33,6 +34,9 @@ public:
 
 	/// Deletes all current game variables. Make sure you save your file before calling this! Should be called upon New game, as all scripts use (or should use) these game vars.
 	void Clear();
+	
+	List<GameVar*> All();
+	List<Variable> GetAllExpressionVariables();
 
 	/// General getter for any variable.
 	GameVar * Get(String name);

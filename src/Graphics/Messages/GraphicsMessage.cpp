@@ -23,7 +23,9 @@
 #include "TextureManager.h"
 
 #include "Window/AppWindowManager.h"
+#include "Window/AppWindow.h"
 #include "Render/FrameBuffer.h"
+#include "Message/Message.h"
 
 int GraphicsMessage::defaultMaxRetryAttempts = 3;
 
@@ -153,6 +155,65 @@ void GraphicsMessage::Process()
 			std::cout<<"\nERROR: Unhandled message in GraphicsMessage::Process with ID/type: "<<type;
 //			assert(false && "Unhandled message in GraphicsMessage::Process");
 			break;
+	}
+}
+
+GMMouse::GMMouse(int interaction, AppWindow * window, Vector2i coords)
+	: GraphicsMessage(GM_MOUSE), window(window), coords(coords), interaction(interaction)
+{}
+GMMouse * GMMouse::Move(AppWindow * window, Vector2i coords)
+{
+	return new GMMouse(MOVE, window, coords);
+}
+GMMouse * GMMouse::LDown(AppWindow * window, Vector2i coords)
+{
+	return new GMMouse(LDOWN, window, coords);
+}
+GMMouse * GMMouse::RDown(AppWindow * window, Vector2i coords)
+{
+	return new GMMouse(RDOWN, window, coords);
+}
+GMMouse * GMMouse::LUp(AppWindow * window, Vector2i coords)
+{
+	return new GMMouse(LUP, window, coords);
+}
+GMMouse * GMMouse::RUp(AppWindow * window, Vector2i coords)
+{
+	return new GMMouse(RUP, window, coords);
+}
+void GMMouse::Process()
+{
+	UserInterface * userInterface = GetRelevantUIForWindow(window);
+	UIElement * element = NULL;
+	if (userInterface)
+	{
+		switch(type)
+		{
+		case MOVE:
+			// If we had any active element since earlier, notify it of our mouse move.
+			UIElement * activeElement = userInterface->GetActiveElement();
+			if (activeElement)
+				activeElement->OnMouseMove(coords);
+			// If we have an active element, don't hover, to retain focus on the active element (e.g. the scroll-bar).
+			else 
+			{
+				// Save old hover element...? wat
+				UIElement * hoverElement = userInterface->Hover(coords.x, coords.y, true);
+/*				if (printHoverElement)
+				{
+					std::cout<<"\nHoverElement: "<<(hoverElement? hoverElement->name.c_str() : "NULL");
+				}*/
+			}
+			/// Inform app state of the movement perhaps?
+			MesMan.QueueMessage(new MouseMessage(MOVE, window, coords));
+//				AppState * currentState = StateMan.ActiveState();
+	//		if (currentState)
+		//	{
+			//	currentState->MouseMove(appWindow, x, y, lButtonDown, rButtonDown, element);
+		//	}
+
+			break;
+		}
 	}
 }
 

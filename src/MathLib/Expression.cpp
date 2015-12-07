@@ -17,6 +17,28 @@ ExpressionResult::ExpressionResult(int type)
 {
 }
 
+ExpressionResult ExpressionResult::Boolean(bool value)
+{
+	ExpressionResult exp(DataType::BOOLEAN);
+	exp.iResult = value;
+	exp.text = String(value);
+	return exp;
+}
+ExpressionResult ExpressionResult::Integral(int value)
+{
+	ExpressionResult exp(DataType::INTEGER);
+	exp.iResult = value;
+	exp.text = String(value);
+	return exp;
+}
+ExpressionResult ExpressionResult::Float(float value)
+{
+	ExpressionResult exp(DataType::FLOAT);
+	exp.fResult = value;
+	exp.text = String(value);
+	return exp;
+}
+
 /// Returns the result as a float.
 float ExpressionResult::GetFloat()
 {
@@ -29,6 +51,12 @@ float ExpressionResult::GetFloat()
 	}
 	return 0;
 }
+/// Returns the result as a bool. Non-0 will be converted to true, 0 false, if non-boolean.
+bool ExpressionResult::GetBool()
+{
+	return GetFloat() != 0;
+}
+
 
 
 Expression::Expression()
@@ -72,6 +100,10 @@ bool Expression::ParseExpression(String exp)
 	for (int i = 0; i < exp.Length(); ++i)
 	{
 		char c = exp.c_str()[i];
+		char c2;
+		if (i < exp.Length() - 1)
+			c2 = exp.c_str()[i+1];
+		String c12 = String(c) + c2;
 		
 		/// Alphabetics.
 		if (isalpha(c))
@@ -80,8 +112,8 @@ bool Expression::ParseExpression(String exp)
 		}
 		else if (alpha.Length())
 		{
-			// It should be a variable then!
-			symbols.Add(Symbol(alpha, Symbol::VARIABLE));
+			// It should be a variable then!... or function name!
+			symbols.Add(Symbol(alpha, IsFunction(alpha)? Symbol::FUNCTION_NAME : Symbol::VARIABLE));
 			// Reset string
 			alpha = String();
 		}
@@ -106,6 +138,31 @@ bool Expression::ParseExpression(String exp)
 			case '%':
 				symbols.Add(Symbol(c, Symbol::OPERATOR));
 				break;
+			case '<':
+			case '>':
+				if (c2 == '=')
+				{
+					symbols.Add(Symbol(c12, Symbol::OPERATOR));
+					++i;
+				}
+				else
+					symbols.Add(Symbol(c, Symbol::OPERATOR));		
+				break;
+			case '|':
+				if (c2 == '|')
+				{
+					symbols.Add(Symbol(c12, Symbol::OPERATOR));
+					++i;
+				}
+				break;
+			case '!':
+			case '=':
+				if (c2 == '=')
+				{
+					symbols.Add(Symbol(c12, Symbol::OPERATOR));
+					++i;
+				}
+				break;
 			case '(':
 				symbols.Add(Symbol(c, Symbol::BEGIN_PARENTHESIS));
 				break;
@@ -116,6 +173,7 @@ bool Expression::ParseExpression(String exp)
 				symbols.Add(Symbol(c, Symbol::ARGUMENT_ENUMERATOR));
 				break;
 		};
+
 	}
 	/// Add final stuff if any was not added.
 	if (alpha.Length())
@@ -151,7 +209,18 @@ ExpressionResult Expression::Evaluate(List<Variable> variables)
 	TryEvaluate();
 	return result;
 }
-	
+
+bool Expression::IsFunction(String symbolName)
+{
+	for (int i = 0; i < functionEvaluators.Size(); ++i)
+	{
+		FunctionEvaluator * fe = functionEvaluators[i];
+		if (fe->IsFunction(symbolName))
+			return true;
+	}
+	return false;
+}
+
 /** Returns a list of names of all variables which are required to evaluate the expression.
 	No distinction is made as to what type the variables may have. This should be up to the user.
 */
@@ -198,8 +267,10 @@ bool Expression::EvaluateVariable(String & inputOutputString)
 /// Tries to evaluate the expression.
 bool Expression::TryEvaluate()
 {
+	if (symbols.Size() == 0)
+		return true;
 	/// Make a copy of the original expression, as we will modify it.
-	List<Symbol> evaluationSymbols = symbols;
+	evaluationSymbols = symbols;
 	List<Expression> parenthesisExpressions;
 	
 	/// Search for parenthesis.
@@ -211,7 +282,7 @@ bool Expression::TryEvaluate()
 	if (printExpressionSymbols)
 		PrintSymbolsInALine(evaluationSymbols);
 //	PrintSymbols(evaluationSymbols);
-
+	/// Evaluate functions and parenthesis recursively (checking all parenthesis and separating argument operators ',')
 	for (int i = 0; i < evaluationSymbols.Size(); ++i)
 	{
 		Symbol & evalSymbol = evaluationSymbols[i];
@@ -342,6 +413,7 @@ bool Expression::TryEvaluate()
 					/// Non-function evaluation of the contents of a parenthesis!
 					else {
 						Expression pe(evaluationSymbols.Part(parenthesisStart + 1, i - 1));
+						pe.functionEvaluators = this->functionEvaluators;
 						// Transfer the known variables too.
 						pe.knownVariables = knownVariables;
 						bool ok = pe.TryEvaluate();
@@ -350,21 +422,40 @@ bool Expression::TryEvaluate()
 							this->result.text = pe.result.text;
 							return false;
 						}
-
-						// Remove all the evaluation symbols that were part of the parenthesis and replace them with the result.
-	//					PrintSymbols(evaluationSymbols);
-						evaluationSymbols.RemovePart(parenthesisStart, i);
-	//					PrintSymbols(evaluationSymbols);
-						
-						// Insert the new parenthesis-result-symbol. where the parenthesis was.
-						Symbol sym(pe.result.text, Symbol::CONSTANT);
-						evaluationSymbols.Insert(sym, parenthesisStart);
-//						PrintSymbolsInALine(evaluationSymbols);
-
-						// Move back i so that parsing will work out as intended for the next parenthesis.
-						// This since we removed several symbols. We need to adjust i to remain in the same relative location to the parenthesis we just evaluated.
-						int symbolsRemoved = i - parenthesisStart + 1;
-						i -= symbolsRemoved;
+						/// Evaluation good, now check if the text before the parenthesis was a function or not.
+						Symbol beforeParenthesis;
+						if (parenthesisStart > 0)
+							beforeParenthesis = evaluationSymbols[parenthesisStart - 1];
+						if (beforeParenthesis.type == Symbol::FUNCTION_NAME)
+						{
+							/// Evaluate the function too.
+							std::cout<<"\nVery function: "<<beforeParenthesis.text<<" arg: "<<pe.result.text;
+							ExpressionResult functionResult;
+							functionResult = EvaluateFunction(beforeParenthesis.text, pe.result.text);
+							assert(functionResult.type != DataType::NO_TYPE);
+							// Remove all the evaluation symbols that were part of the parenthesis and replace them with the result.
+							evaluationSymbols.RemovePart(parenthesisStart - 1, i);
+							// Insert the new parenthesis-result-symbol. where the parenthesis was.
+							Symbol sym(functionResult.text, Symbol::CONSTANT);
+							evaluationSymbols.Insert(sym, parenthesisStart - 1);						
+							// Move back i so that parsing will work out as intended for the next parenthesis.
+							// This since we removed several symbols. We need to adjust i to remain in the same relative location to the parenthesis we just evaluated.
+							int symbolsRemoved = i - parenthesisStart + 2;
+							i -= symbolsRemoved;
+						}
+						/// Not a function before, so just replace the parenthesis with the result then.
+						else 
+						{
+							// Remove all the evaluation symbols that were part of the parenthesis and replace them with the result.
+							evaluationSymbols.RemovePart(parenthesisStart, i);
+							// Insert the new parenthesis-result-symbol. where the parenthesis was.
+							Symbol sym(pe.result.text, Symbol::CONSTANT);
+							evaluationSymbols.Insert(sym, parenthesisStart);						
+							// Move back i so that parsing will work out as intended for the next parenthesis.
+							// This since we removed several symbols. We need to adjust i to remain in the same relative location to the parenthesis we just evaluated.
+							int symbolsRemoved = i - parenthesisStart + 1;
+							i -= symbolsRemoved;
+						}
 					}
 				}
 				else if (argumentEnumerating)
@@ -432,11 +523,46 @@ bool Expression::TryEvaluate()
 			}
 		}
 	}
+
+	bool ok = true;
+	if (evaluationSymbols.Size() > 1)
+		ok = EvaluateOperation();
+	
+	/// Final evaluation to result.
+	/// Ensure we end up with just 1 final symbol.
+	assert(evaluationSymbols.Size() == 1);
+	Symbol sym = evaluationSymbols[0];
+	// Store text from the latest var2 as the final answer in the expression!
+	result.text = sym.text;
+	switch(sym.type)
+	{
+		case Symbol::CONSTANT:
+			if (sym.text.Contains("."))
+			{
+				result.type = DataType::FLOAT;
+				result.fResult = result.text.ParseFloat();
+			}
+			else {
+				result.type = DataType::INTEGER;
+				result.iResult = result.text.ParseInt();
+			}
+			break;
+		default:
+			assert(false);
+	}
+	return ok;
+}
+
+/// Evaluates operation between 1-2 symbols and 1 operator.
+bool Expression::EvaluateOperation()
+{
 	/// Evaluate the operators, starting with those of highest priority.
 	int priority = 5;
-	/** 0	+ -
-		1	/ * %
-		2	^
+	/** 
+		0	==, !=, >=, >, <, <=, ||
+		1	+ -
+		2	/ * %
+		3	^
 	*/
 	while (priority >= 0)
 	{
@@ -458,6 +584,21 @@ bool Expression::TryEvaluate()
 			switch(priority)
 			{
 				case 0:
+				{
+					String str = opSym.text;
+					if (str == "||" || str == "&&")
+						correctPrioLevel = true;
+					break;
+				}
+				case 1: 
+				{
+					String str = opSym.text;
+					if (str == "==" || str == ">=" || str == "<=" || str == "!=" ||
+						str == "<" || str == ">")
+						correctPrioLevel = true;
+					break;
+				}
+				case 2:
 					switch(cop)
 					{
 						case '-':
@@ -466,7 +607,7 @@ bool Expression::TryEvaluate()
 							break;
 					}
 					break;
-				case 1:
+				case 3:
 					switch(cop)
 					{
 						case '*':
@@ -476,7 +617,7 @@ bool Expression::TryEvaluate()
 							break;
 					}
 					break;
-				case 2:
+				case 4:
 					switch(cop)
 					{
 						case '^':
@@ -518,34 +659,34 @@ bool Expression::TryEvaluate()
 		}
 		--priority;
 	}
-
-	/// Ensure we end up with just 1 final symbol.
-	assert(evaluationSymbols.Size() == 1);
-
-	Symbol sym = evaluationSymbols[0];
-	// Store text from the latest var2 as the final answer in the expression!
-	result.text = sym.text;
-	switch(sym.type)
-	{
-		case Symbol::CONSTANT:
-			if (sym.text.Contains("."))
-			{
-				result.type = DataType::FLOAT;
-				result.fResult = result.text.ParseFloat();
-			}
-			else {
-				result.type = DataType::INTEGER;
-				result.iResult = result.text.ParseInt();
-			}
-			break;
-	}
 	return true;
 }
+
+/// Evaluates function if possible.
+ExpressionResult Expression::EvaluateFunction(String functionName, List<String> arguments)
+{
+	ExpressionResult result; 
+	for (int i = 0; i < functionEvaluators.Size(); ++i)
+	{
+		FunctionEvaluator * fe = functionEvaluators[i];
+		bool ok = fe->EvaluateFunction(functionName, arguments, result);
+		if (ok)
+			return result;
+	}
+	result.text = "Unable to evaluate function by name "+functionName;
+	result.type = DataType::NO_TYPE;
+	return result;
+}
+
 
 /// Evaluates a binary expression-part of the following format:  sym1 op sym2
 Symbol Expression::Evaluate(Symbol * sym1, Symbol * sym2, Symbol op)
 {
+	std::cout<<"\nEvaluating: "<<(sym1? sym1->text : "") <<" "<<op.text<<" "<<(sym2? sym2->text : "");
 	char cop = op.text.c_str()[0];
+	char c2 = -1;
+	if (op.text.Length() > 1)
+		c2 = op.text.c_str()[1];
 	
 	// Special case unary operators affecting only sym2.
 	if (sym1 == NULL)
@@ -598,6 +739,34 @@ Symbol Expression::Evaluate(Symbol * sym1, Symbol * sym2, Symbol op)
 				case '*':	ires = i1 * i2;	break;
 				case '^':	ires = pow((float)i1, (float)i2); break;
 				case '%':	ires = i1 % i2; break;
+				case '>': // Boolean operators.
+					if (c2 == '=')
+						ires = i1 >= i2;
+					else
+						ires = i1 > i2; 
+					break;
+				case '<':
+					if (c2 == '=')
+						ires = i1 <= i2;
+					else
+						ires = i1 < i2;
+					break;
+				case '=':
+					if (c2 == '=')
+						ires = (i1 == i2);
+					break;
+				case '!':
+					if (c2 == '=')
+						ires = (i1 != i2);
+					break;
+				case '|':
+					if (c2 == '|')
+						ires = i1 || i2;
+					break;
+				case '&':
+					if (c2 == '&&')
+						ires = i1 && i2;
+					break;
 				default:
 					assert(false);
 			}

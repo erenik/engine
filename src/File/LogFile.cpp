@@ -11,6 +11,8 @@
 
 #include "Output.h"
 
+List<TextError> gErrors, pErrors, aErrors, mErrors;
+
 /// o=-o
 List<String> logsStartedThisSession;
 
@@ -19,7 +21,7 @@ bool loggingEnabled = true;
 int logLevel = INFO;
 
 /// Logs to file, creates the file (and folders) necessary if it does not already exist. Time stamps will probably also be available.
-void LogToFile(String fileName, String logText, int levelFlags)
+void LogToFile(String fileName, String logText, int levelFlags, List<TextError> * previousErrors /* = 0*/)
 {
 	int level = levelFlags % 16;
 	// What does this even do..?
@@ -27,7 +29,7 @@ void LogToFile(String fileName, String logText, int levelFlags)
 		return;
 //	if (logLevel > DEBUG && level <= DEBUG)
 	//	return;
-	bool printed = Output(logText);
+	bool printed = Output(logText, previousErrors);
 //	if (!printed)
 //		return;
 	if (level < logLevel)

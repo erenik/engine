@@ -93,6 +93,7 @@ public:
 	int currCooldownMs; /// Used instead of flyTime.
 	float stability;
 	String name;
+	bool enabled; // default true.
 	int cost; // o-o
 	int type; // mainly for player-based weapons.
 	int level; // Also mainly for player-based weapons.

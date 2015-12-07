@@ -27,6 +27,12 @@ Message::~Message(){
 }
 
 
+MouseMessage::MouseMessage(int interaction, AppWindow * window, Vector2i coords)
+	: Message(MessageType::MOUSE_MESSAGE), interaction(interaction), window(window), coords(coords)
+{
+
+}
+
 PasteMessage::PasteMessage()
 	: Message(MessageType::PASTE)
 {

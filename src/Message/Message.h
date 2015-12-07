@@ -27,11 +27,30 @@ public:
 	int type;
 	char * data;
 	/// Script that spawned this message! Can be nice.
-	Script * event;
+	Script * scriptOrigin;
 	/// Triggered element. for (this)-applications.
 	UIElement * element;
 	/// Time when this message should be processed.
 	AETime timeToProcess;
+};
+
+class AppWindow;
+/// Sent from graphics-manager after having being processed in the UI there.
+class MouseMessage : public Message 
+{
+public:
+	MouseMessage(int interaction, AppWindow * window, Vector2i coords);
+	enum interactions 
+	{
+		MOVE,
+		LDOWN,
+		RDOWN,
+		LUP,
+		RUP,
+	};
+	AppWindow * window;
+	Vector2i coords;
+	int interaction;
 };
 
 class PasteMessage : public Message

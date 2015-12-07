@@ -474,43 +474,9 @@ void InputManager::MouseMove(AppWindow * appWindow, Vector2i activeWindowAreaCoo
 
 	/// Save coordinates
 	inputState->mousePosition = Vector2i(x,y);
-
 	/// If we have a global UI (system ui), process it first.
-	uiMutex.Claim();
-	UserInterface * userInterface = GetRelevantUIForWindow(appWindow);
-	UIElement * element = NULL;
-	if (userInterface)
-	{
-		// If we had any active element since earlier, notify it of our mouse move.
-		UIElement * activeElement = userInterface->GetActiveElement();
-		if (activeElement)
-			activeElement->OnMouseMove(activeWindowAreaCoords);
-		// If we have an active element, don't hover, to retain focus on the active element (e.g. the scroll-bar).
-		else 
-		{
-			// Save old hover element...? wat
-			UIElement * hoverElement = userInterface->Hover(x, y, true);
-			if (printHoverElement)
-			{
-				std::cout<<"\nHoverElement: "<<(hoverElement? hoverElement->name.c_str() : "NULL");
-			}
-		}
-
-	//	element = userInterface->Hover(x, y, true);
-	//	userInterface->SetHoverElement(element);		
-		// This should fix so that the mouse cannot move the cursor if the underlying UI cannot later be activated.. ish.
-//		if ((element && !element->highlightOnHover) || !element)
-//			element = hoverElement;
-	}
-	uiMutex.Release();
-
-
+	QueueGraphics(GMMouse::Move(appWindow, activeWindowAreaCoords));
 	/// If no active gamestate, return...
-	AppState * currentState = StateMan.ActiveState();
-	if (currentState)
-	{
-		currentState->MouseMove(appWindow, x, y, lButtonDown, rButtonDown, element);
-	}
 	Graphics.QueryRender();
 }
 

@@ -4,25 +4,26 @@
 
 #include "Output.h"
 
-List<TextError> previousTextErrors;
-
 /// o.o
-bool Output(String text)
+bool Output(String text, List<TextError> * previousErrors)
 {
 	TextError newErr(text);
 	bool wasThere = false;
 	int times = 0;
-	for (int i = 0; i < previousTextErrors.Size(); ++i)
+	if (previousErrors)
 	{
-		TextError & err = previousTextErrors[i];
-		if (err.text == newErr.text)
+		for (int i = 0; i < previousErrors->Size(); ++i)
 		{
-			times = err.times++;
-			wasThere = true;
+			TextError & err = (*previousErrors)[i];
+			if (err.text == newErr.text)
+			{
+				times = err.times++;
+				wasThere = true;
+			}
 		}
+		if (!wasThere)
+			previousErrors->AddItem(newErr);
 	}
-	if (!wasThere)
-		previousTextErrors.AddItem(newErr);
 	int skipFactor = 10;
 	if (times > 100)
 	{

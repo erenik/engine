@@ -16,6 +16,12 @@
 	#define PHYSICS_THREAD "log/PhysicsLog.txt"
 	#define AUDIO_THREAD "log/AudioLog.txt"
 	#define MAIN_THREAD	"log/MainThreadLog.txt"
+
+	#define GERRORS gErrors
+	#define PERRORS pErrors
+	#define AERRORS aErrors
+	#define MERRORS mErrors
+
 #endif // GRAPHICS_PHYSICS_MM_AUDIO_THREAD
 
 

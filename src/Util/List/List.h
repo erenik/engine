@@ -74,6 +74,8 @@ public:
 	virtual const T& operator[](int index) const;
 	/// Get last one.
 	T& Last();
+	/// Returns true on success, assuming something exists there. Does not actually delete anything, so it is unsuitable for pointer-filled objects. (or use Last() and delete manually)
+	bool RemoveLast();
 
 	/** Inserts an item into the list at target index. All items beyond this index will be pushed back by 1 unit. 
 		E.g. placing it at index 0 will add it at the beginning of the list.
@@ -345,6 +347,18 @@ template <class T>
 T& List<T>::Last() {
 	return arr[currentItems-1];
 }
+
+template <class T>
+bool List<T>::RemoveLast()
+{
+	if (currentItems > 0)
+	{
+		--currentItems;
+		return true;
+	}
+	return false;
+}
+
 
 /** Inserts an item into the list at target index. All items beyond this index will be pushed back by 1 unit. 
 	E.g. placing it at index 0 will add it at the beginning of the list.

@@ -27,6 +27,7 @@ public:
 		BAD_TYPE = -1,
 		CONSTANT, // 3.14
 		VARIABLE, // AnyVariableWrittenWithOneWord
+		FUNCTION_NAME, // AnyFunctionNameWrittenWithOneWord - cross-checked with supplied lists in Function::Class or something.
 		OPERATOR, // * + - / ^ &
 		BEGIN_PARENTHESIS, // (
 		END_PARENTHESIS, // )

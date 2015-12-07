@@ -25,13 +25,13 @@ void PrepareForUIRemoval()
 	inputState->acceptInput = false;
 	SleepThread(10);
 	/// Pause execution of the main thread, so that it doesn't try to access any dying UI elements while reloading.
-	StateMan.Pause();
+//	StateMan.Pause();
 }
 
 /// Resumes execution of the main thread. Enables input again.
 void OnUIRemovalFinished()
 {
-	StateMan.Resume();
+//	StateMan.Resume();
 	Graphics.renderQueried = true;
 	inputState->acceptInput = true;
 }

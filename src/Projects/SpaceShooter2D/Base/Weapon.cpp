@@ -35,6 +35,7 @@ WeaponSet::WeaponSet(WeaponSet & otherWeaponSet)
 
 Weapon::Weapon()
 {
+	enabled = true;
 	circleSpam = false;
 	linearScaling = 1;
 	currCooldownMs = 0;
@@ -405,6 +406,8 @@ void Weapon::Shoot(Ship * ship)
 /// Called to update the various states of the weapon, such as reload time, making lightning arcs jump, etc.
 void Weapon::Process(Ship * ship, int timeInMs)
 {
+	if (!enabled)
+		return;
 	currCooldownMs -= timeInMs;
 	if (currCooldownMs < 0)
 		currCooldownMs = 0;

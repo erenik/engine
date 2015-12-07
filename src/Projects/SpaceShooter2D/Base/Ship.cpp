@@ -12,10 +12,17 @@
 #include "Game/GameVariable.h"
 #include "SpaceShooter2D/Level/SpawnGroup.h"
 #include "WeaponScript.h"
+#include "SpaceShooter2D/SpaceShooterScript.h"
 
+int Ship::shipIDEnumerator = 0;
+
+extern SpaceShooterEvaluator spaceShooterEvaluator;
 
 Ship::Ship()
 {
+	shipID = ++shipIDEnumerator;
+	despawnOutsideFrame = true;
+	script = 0;
 	collisionDamageCooldown = Time(TimeType::MILLISECONDS_NO_CALENDER, 100);
 	lastShipCollision = Time(TimeType::MILLISECONDS_NO_CALENDER, 0);
 
@@ -78,6 +85,9 @@ void Ship::RandomizeWeaponCooldowns()
 
 List<Entity*> Ship::Spawn(ConstVec3fr atPosition, Ship * in_parent)
 {
+	name.SetComparisonMode(String::NOT_CASE_SENSITIVE);
+	if (name.Contains("boss"))
+		despawnOutsideFrame = false;
 	parent = in_parent;
 	if (parent)
 	{
@@ -127,6 +137,19 @@ List<Entity*> Ship::Spawn(ConstVec3fr atPosition, Ship * in_parent)
 		/// Recalculate matrix and all children matrices.
 		entity->RecalculateMatrix(Entity::ALL_PARTS, true);
 	}
+	/// Load script if applicable.
+	if (scriptSource.Length())
+	{
+		script = new SpaceShooterScript();
+		script->Load(scriptSource);
+		script->entity = entity;
+		/// Add custom variables based on who started the script.
+		script->variables.AddItem(Variable("self", shipID));
+		script->variables.AddItem(Variable("player", playerShip->shipID));
+		script->functionEvaluators.AddItem(&spaceShooterEvaluator);
+		script->OnBegin();
+	}
+
 	return entity;
 }
 
@@ -162,6 +185,7 @@ List<Entity*> Ship::SpawnChildren()
 		}
 		activeLevel->ships.AddItem(newShip);
 		Ship * ship = newShip;
+		ship->allied = this->allied;
 		ship->RandomizeWeaponCooldowns();
 		ship->spawnGroup = this->spawnGroup;
 		ship->Spawn(Vector3f(), this);
@@ -199,6 +223,13 @@ void Ship::Despawn()
 	entity = NULL;
 }
 
+/// Checks current movement. Will only return true if movement is target based and destination is within threshold.
+bool Ship::ArrivedAtDestination()
+{
+//	LogMain("Update maybe", INFO);
+	return false;
+}
+
 void Ship::Process(int timeInMs)
 {
 	// Skill cooldown.
@@ -213,6 +244,12 @@ void Ship::Process(int timeInMs)
 				timeSinceLastSkillUseMs = -1; // Ready to use.
 		}
 	}
+	/// Process scripts (pretty much AI and other stuff?)
+	if (script)
+		script->Process(timeInMs);
+	// Increment time in movement if applicable.
+	if (movementPatterns.Size())
+		movementPatterns[currentMovement].OnFrame(timeInMs);
 	// AI
 	ProcessAI(timeInMs);
 	// Weapon systems.
@@ -317,6 +354,22 @@ void Ship::ProcessWeapons(int timeInMs)
 		activeWeapon->Shoot(this);
 }
 
+/// Disables weapon in this and children ships.
+void Ship::DisableWeapon(String weaponName)
+{
+	for (int i = 0; i < weapons.Size(); ++i)
+	{
+		Weapon * weap = weapons[i];
+		if (weap->name == weaponName)
+			weap->enabled = false;
+	}
+	for (int i = 0; i < children.Size(); ++i)
+	{
+		children[i]->DisableWeapon(weaponName);
+	}
+}
+
+
 /// Prepends the source with '/obj/Ships/' and appends '.obj'. Uses default 'Ship.obj' if needed.
 Model * Ship::GetModel()
 {
@@ -338,6 +391,13 @@ void Ship::DisableMovement()
 {
 	movementDisabled = true;
 }
+void Ship::OnSpeedUpdated()
+{
+	/// Update based on current movement?
+	if (movementPatterns.Size())
+		movementPatterns[currentMovement].OnSpeedUpdated();
+}
+
 
 void Ship::Damage(Weapon & weapon)
 {
@@ -437,6 +497,20 @@ void Ship::Destroy()
 }
 
 
+void Ship::SetMovement(Movement & movement)
+{
+	this->movementPatterns.Clear();
+//		move.vec = Vector2f(-10.f, targetEntity->worldPosition.y); 
+	this->movementPatterns.AddItem(movement);
+	movementPatterns[0].OnEnter(this);
+//	.OnEnter(ship);
+}
+
+void Ship::SetSpeed(float newSpeed)
+{
+	this->speed = newSpeed;
+	this->OnSpeedUpdated();
+}
 
 /// Creates new ship of specified type.
 Ship * Ship::New(String shipByName)

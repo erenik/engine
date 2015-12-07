@@ -11,15 +11,21 @@
 #include "DataTypes.h"
 
 class Expression;
+class FunctionEvaluator;
 
 class ExpressionResult 
 {
 public:
 	// Bad typ defualt constructor.
 	ExpressionResult(int type = -1);
+	static ExpressionResult Boolean(bool value);
+	static ExpressionResult Integral(int value);
+	static ExpressionResult Float(float value);
 	/// Returns the result as a float.
 	float GetFloat();
-	/// Will be any of the defined enumerated constants in DataTypes.h
+	/// Returns the result as a bool. Non-0 will be converted to true, 0 false, if non-boolean.
+	bool GetBool();
+	/// Will be any of the defined enumerated constants in DataTypes.h, DataType namespace
 	int type;
 	/// The result in text-form.
 	String text;
@@ -45,13 +51,18 @@ public:
 	*/
 	bool ParseExpression(String exp);
 
+	/// Evaluates a single operation of 1-2 variables and 1 operator.
+	bool EvaluateOperation();
+	/// Evaluates function if possible.
+	ExpressionResult EvaluateFunction(String functionName, List<String> variables);
 	/// Evaluating without any arguments
 	ExpressionResult Evaluate();
 	/** Evaluating when variable states are required to be known. 
 		Variables required may be queried with RequiredVariables().
 	*/
 	ExpressionResult Evaluate(List<Variable> variables);
-	
+	bool IsFunction(String symbolName);
+
 	/** Returns a list of names of all variables which are required to evaluate the expression.
 		No distinction is made as to what type the variables may have. This should be up to the user.
 	*/
@@ -59,6 +70,8 @@ public:
 
 	/// An expression is basically just a bunch of symbols.
 	List<Symbol> symbols;
+	/// Supplied function evaluators for custom-defined functions.
+	List<FunctionEvaluator*> functionEvaluators;
 
 	/// For debugging, may be set using PrintExpressionSymbols in OnEnter.ini or similar files which are loaded upon start-up.
 	static bool printExpressionSymbols;
@@ -87,6 +100,17 @@ private:
 		Upon finishing evaluation the result will be stored in the symbol as well as the returned ExpressionResult.
 	*/
 	Symbol * resultSymbol;
+private:
+	/// Symbols for evaluation. May be translated between the function. Copy of the symbols list initially.
+	List<Symbol> evaluationSymbols;
+};
+
+/// Sub-class to handle things.
+class FunctionEvaluator
+{
+public:
+	virtual bool EvaluateFunction(String byName, List<String> arguments, ExpressionResult & result) = 0;
+	virtual bool IsFunction(String name) = 0;
 };
 
 #endif

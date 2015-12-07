@@ -36,13 +36,39 @@ void SpaceShooter2D::Cleanup()
 		if (!ship->entity)
 			continue;
 		// Check if it should de-spawn.
-		if (ship->entity->worldPosition[0] < despawnPositionLeft && ship->parent == NULL)
+		if (ship->despawnOutsideFrame && ship->entity->worldPosition[0] < despawnPositionLeft && ship->parent == NULL)
 		{
 			ship->Despawn();
 		}
 	}
 }
 
+/// Each other being original position, clamped position, orig, clamp, orig3, clamp3, etc.
+List<Vector3f> renderPositions;
+void SpaceShooter2D::UpdateRenderArrows()
+{
+	List<Vector3f> newPositions;
+	Vector2f minField = levelEntity->worldPosition - playingFieldHalfSize - Vector2f(1,1);
+	Vector2f maxField = levelEntity->worldPosition + playingFieldHalfSize + Vector2f(1,1);
+	for (int i = 0; i < shipEntities.Size(); ++i)
+	{	
+		// Grab the position
+		Entity * e = shipEntities[i];
+		Vector2f pos = e->worldPosition;
+		// Check if outside boundary.
+		if (pos > minField && pos < maxField)
+		{
+			continue; // Skip already visible ships.
+		}
+		newPositions.AddItem(pos);
+		// Clamp the position.
+		pos.Clamp(minField, maxField);
+		newPositions.AddItem(pos);
+	}
+	QueueGraphics(new GMSetData(&renderPositions, newPositions)); 
+}
+
+//// Renders data updated via Render-thread.
 void SpaceShooter2D::RenderInLevel(GraphicsState * graphicsState)
 {
 	// Load default shader?
@@ -68,32 +94,19 @@ void SpaceShooter2D::RenderInLevel(GraphicsState * graphicsState)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-	Vector2f minField = levelEntity->worldPosition - playingFieldHalfSize - Vector2f(1,1);
-	Vector2f maxField = levelEntity->worldPosition + playingFieldHalfSize + Vector2f(1,1);
-
 	/// o.o
-	for (int i = 0; i < shipEntities.Size(); ++i)
+	for (int i = 0; i < renderPositions.Size(); i += 2)
 	{	
-		// Grab the position
-		Entity * e = shipEntities[i];
-		Vector2f pos = e->worldPosition;
-		// Check if outside boundary.
-		if (pos > minField && pos < maxField)
-		{
-			continue; // Skip already visible ships.
-		}
-		// Clamp the position.
-		pos.Clamp(minField, maxField);
-
+		Vector3f shipPos = renderPositions[i];
+		Vector3f clampedPos = renderPositions[i+1];
 		// Check direction from this position to the entity's actual position.
-		Vector3f to = (e->worldPosition - pos);
+		Vector3f to = (shipPos - clampedPos);
 		float dist = to.Length();
 		Vector3f dir = to.NormalizedCopy();
 		Vector3f a,b,c;
 		// Move the position a bit out...?
-		Vector3f center = pos;
+		Vector3f center = clampedPos;
 		center.z = 7.f;
-
 		// Center.
 		a = b = c = center;
 		// Move A away from the dir.
@@ -116,7 +129,6 @@ void SpaceShooter2D::RenderInLevel(GraphicsState * graphicsState)
 			DRAW(c);
 		glEnd();
 	}
-
 	glEnable(GL_DEPTH_TEST);
 	CheckGLError("SpaceShooter2D::Render");
 }

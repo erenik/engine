@@ -15,6 +15,8 @@ class Entity;
 namespace Location {
 	enum {
 		VECTOR,
+		LEFT_EDGE,
+		RIGHT_EDGE,
 		UPPER_EDGE,
 		LOWER_EDGE,
 		CENTER,
@@ -32,6 +34,8 @@ public:
 
 	// Upon entering this movement pattern.
 	void OnEnter(Ship * ship);
+	/// Called on scripted updates or otherwise when adjusted.
+	void OnSpeedUpdated();
 	// Called every frame.
 	void OnFrame(int timeInMs);
 	// Upon exiting this movement pattern.
@@ -39,6 +43,8 @@ public:
 
 	static String Name(int type);
 
+	/// Adds level speed and sets ship speed accordingly.
+	void SetWindowSpeed(Vector2f desiredAppearedSpeed);
 	enum {
 		NONE, // Staying still.
 		STRAIGHT, // Plain X-
@@ -56,6 +62,8 @@ public:
 	int location;
 	/// Duration in milliseconds.
 	int durationMs;
+	/// Reset when entering it!
+	int timeInCurrentMovement;
 	String target; // Name, used for circling.
 	Vector2f vec;
 	int zagTimeMs;

@@ -52,6 +52,7 @@ String Movement::Name(int type)
 // Upon entering this movement pattern.
 void Movement::OnEnter(Ship * ship)
 {
+	timeInCurrentMovement = 0;
 	// Reset stuff.
 	state = 0;
 	timeSinceLastUpdate = 0;
@@ -100,10 +101,21 @@ void Movement::OnEnter(Ship * ship)
 	}
 }
 
+/// Called on scripted updates or otherwise when adjusted.
+void Movement::OnSpeedUpdated()
+{
+	// Do stuff..
+	// Just call Start for now?
+	if (ship)
+		OnEnter(ship);
+	else
+		assert(false);
+}
 
 // Called every frame.
 void Movement::OnFrame(int timeInMs)
 {
+	timeInCurrentMovement += timeInMs;
 	switch(type)
 	{
 		// No updates per frame.
@@ -173,7 +185,13 @@ void Movement::SetDirection(Vector2f dir)
 {
 	// #define SET_DIRECTION(d) 	
 	Vector2f speed = dir * ship->speed;
-	QueuePhysics(new PMSetEntity(shipEntity, PT_VELOCITY, speed));
+	SetWindowSpeed(speed);
+}
+
+void Movement::SetWindowSpeed(Vector2f desiredAppearedSpeed)
+{
+	Vector2f totalSpeed = spaceShooter->level.BaseVelocity() + desiredAppearedSpeed;
+	QueuePhysics(new PMSetEntity(shipEntity, PT_VELOCITY, totalSpeed));
 }
 
 void Movement::MoveToLocation()
@@ -190,6 +208,32 @@ void Movement::MoveToLocation()
 			isPosition = true;
 			break;
 		}
+		case Location::LEFT_EDGE:
+		{
+			if (state == 0)
+			{
+				SetDirection(Vector3f(-1,0,0));
+				++state;
+			}
+			else if (shipEntity->worldPosition.x < leftEdge && state == 1)
+			{
+				SetDirection(Vector2f());
+				++state;
+			}
+			break;
+		}
+		case Location::RIGHT_EDGE:
+			if (state == 0)
+			{
+				SetDirection(Vector3f(1,0,0));
+				++state;
+			}
+			else if (shipEntity->worldPosition.x > rightEdge && state == 1)
+			{
+				SetDirection(Vector2f());
+				++state;
+			}
+			break;
 		case Location::UPPER_EDGE:
 		{
 			if (state == 0)
@@ -233,6 +277,8 @@ void Movement::MoveToLocation()
 				return;
 			}
 			break;
+		default:
+			assert(false && "Movement unidentified");
 	}
 	if (isPosition)
 	{

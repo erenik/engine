@@ -12,6 +12,7 @@ enum messageTypes{
 	STRING,
 	WINDOW_MESSAGE, // OS-based window messages, sent either from WndProc or XProc, to update UI, etc.
 	DRAG_AND_DROP,
+	MOUSE_MESSAGE,
 	PASTE, // Copy-paste.
 	CONSOLE_COMMAND, // Supposed to be entered from any input or maybe console for more complex usage.
 	/// Messages sent from the UI system

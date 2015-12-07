@@ -112,6 +112,8 @@ bool Ship::LoadTypes(String file)
 				ship->maxHP = ship->hp = value.ParseInt();
 			else if (column == "Collide damage")
 				ship->collideDamage = value.ParseInt();
+			else if (column == "Script")
+				ship->scriptSource = value;
 			else if (column == "Max rotation per second" || column == "Rotation Speed")
 				ship->maxRadiansPerSecond = DEGREES_TO_RADIANS(value.ParseInt());
 			else if (column == "Graphic model")
