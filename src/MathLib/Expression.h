@@ -19,6 +19,7 @@ public:
 	// Bad typ defualt constructor.
 	ExpressionResult(int type = -1);
 	static ExpressionResult Boolean(bool value);
+	static ExpressionResult Error(String text);
 	static ExpressionResult Integral(int value);
 	static ExpressionResult Float(float value);
 	/// Returns the result as a float.

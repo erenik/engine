@@ -255,6 +255,8 @@ Ship * SpaceShooter2D::GetShipByID(int id)
 		if (ship->ID() == id)
 			return ship;
 	}
+	if (id == playerShip->ID())
+		return playerShip;
 	return 0;
 }
 

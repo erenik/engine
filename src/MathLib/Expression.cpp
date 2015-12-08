@@ -24,6 +24,13 @@ ExpressionResult ExpressionResult::Boolean(bool value)
 	exp.text = String(value);
 	return exp;
 }
+ExpressionResult ExpressionResult::Error(String text)
+{
+	ExpressionResult exp(DataType::NO_TYPE);
+	exp.text = text;
+	exp.iResult = 0;
+	return exp;
+}
 ExpressionResult ExpressionResult::Integral(int value)
 {
 	ExpressionResult exp(DataType::INTEGER);
@@ -97,9 +104,16 @@ bool Expression::ParseExpression(String exp)
 {
 	/// Easiest parsing is probably a step-char-wise parse...
 	String alpha, numeric;
+	bool lastWasOperator = false;
 	for (int i = 0; i < exp.Length(); ++i)
 	{
 		char c = exp.c_str()[i];
+		switch(c)
+		{
+			case ' ':
+			case '\t':
+				continue;
+		}
 		char c2;
 		if (i < exp.Length() - 1)
 			c2 = exp.c_str()[i+1];
@@ -125,33 +139,45 @@ bool Expression::ParseExpression(String exp)
 		else if (numeric.Length())
 		{
 			symbols.Add(Symbol(numeric, Symbol::CONSTANT));
+			lastWasOperator = false;
 			numeric = String();
 		}
 		/// Single-character stuffs.
 		switch(c)
 		{
 			case '-':
+			case '+':
+				if (lastWasOperator && isdigit(c2))
+				{
+					// Catenate as if alphabetical
+					numeric += c;
+					break;
+				}
 			case '/':
 			case '*':
-			case '+':
 			case '^':
 			case '%':
 				symbols.Add(Symbol(c, Symbol::OPERATOR));
+				lastWasOperator = true;
 				break;
 			case '<':
 			case '>':
 				if (c2 == '=')
 				{
 					symbols.Add(Symbol(c12, Symbol::OPERATOR));
+					lastWasOperator = true;
 					++i;
 				}
-				else
-					symbols.Add(Symbol(c, Symbol::OPERATOR));		
+				else {
+					symbols.Add(Symbol(c, Symbol::OPERATOR));
+					lastWasOperator = true;
+				}
 				break;
 			case '|':
 				if (c2 == '|')
 				{
 					symbols.Add(Symbol(c12, Symbol::OPERATOR));
+					lastWasOperator = true;
 					++i;
 				}
 				break;
@@ -160,17 +186,20 @@ bool Expression::ParseExpression(String exp)
 				if (c2 == '=')
 				{
 					symbols.Add(Symbol(c12, Symbol::OPERATOR));
+					lastWasOperator = true;
 					++i;
 				}
 				break;
 			case '(':
 				symbols.Add(Symbol(c, Symbol::BEGIN_PARENTHESIS));
+				lastWasOperator = true;
 				break;
 			case ')':
 				symbols.Add(Symbol(c, Symbol::END_PARENTHESIS));
 				break;
 			case ',':
 				symbols.Add(Symbol(c, Symbol::ARGUMENT_ENUMERATOR));
+				lastWasOperator = true;
 				break;
 		};
 
@@ -432,6 +461,11 @@ bool Expression::TryEvaluate()
 							std::cout<<"\nVery function: "<<beforeParenthesis.text<<" arg: "<<pe.result.text;
 							ExpressionResult functionResult;
 							functionResult = EvaluateFunction(beforeParenthesis.text, pe.result.text);
+							if (functionResult.type == DataType::NO_TYPE)
+							{
+								std::cout<<"\n Bad result from function ";
+								return false;
+							}
 							assert(functionResult.type != DataType::NO_TYPE);
 							// Remove all the evaluation symbols that were part of the parenthesis and replace them with the result.
 							evaluationSymbols.RemovePart(parenthesisStart - 1, i);
@@ -564,6 +598,7 @@ bool Expression::EvaluateOperation()
 		2	/ * %
 		3	^
 	*/
+	PrintSymbols(evaluationSymbols);
 	while (priority >= 0)
 	{
 		int opSymIndex = -1;
@@ -634,6 +669,7 @@ bool Expression::EvaluateOperation()
 			assert(i >= 0);
 
 			Symbol * pre, * post;
+			/// Probably a minus or plus should be embedded to the number.
 			if (evaluationSymbols.Size() >= 3)
 			{
 				pre = &evaluationSymbols[i-1];

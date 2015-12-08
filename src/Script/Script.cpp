@@ -150,6 +150,7 @@ bool Script::Load(String fromFile)
 	for (int i = 0; i < sourceLines.Size(); ++i)
 	{
 		String & line = sourceLines[i];
+		line.RemoveSurroundingWhitespaces();
 		// Try load the battler from the relative directory.
 		if (line.StartsWith("//"))
 			continue;
@@ -211,7 +212,7 @@ void Script::Process(int timeInMs)
 		scriptState = ENDED;
 		return;
 	}
-	String line = lines[currentLine];
+	String & line = lines[currentLine];
 	int p = 2;
 	if (p == 3)
 		for (int i = 0; i < lines.Size(); ++i){std::cout<<"\nLines "<<i<<": "<<lines[i];}
@@ -229,7 +230,7 @@ void Script::Process(int timeInMs)
 	{
 		/// Evaluate the current line, look if we have to check for line-finishing conditions or not.
 		lineFinished = false;
-		EvaluateLine(lines[currentLine]);
+		EvaluateLine(line);
 	}
 
 	/// Check if the current line is finished? If not, wait until it is finished.
@@ -584,7 +585,8 @@ void Script::EvaluateLine(String & line)
 	else if (line.Contains("else"))
 	{
 //		if (ifProcessed)
-			JumpToEndif();
+		//	JumpToEndif();
+		ScriptLevel sl = stack.Last();
 		lineFinished = true;
 		return;
 	}
@@ -764,6 +766,7 @@ void Script::HandleConditional(String line)
 		// Check stuff.
 		ScriptLevel & sl = stack.Last();
 		int newRow = -1;
+		int ifStack = 0;
 		// If the statement is not true, find an else or endif block..!
 		for (int i = currentLine+1; i < lines.Size(); ++i)
 		{
@@ -782,8 +785,16 @@ void Script::HandleConditional(String line)
 			{
 				if (l.Contains("elsif") || l.Contains("else") || l.Contains("endif"))
 				{
-					newRow = i; break;
+					if (ifStack == 0)
+					{
+						newRow = i; 
+						break;
+					}
+					if (l.Contains("endif"))
+						--ifStack;
 				}
+				else if (l.Contains("if"))
+					++ifStack;
 			}
 		}
 		assert(newRow > 0);

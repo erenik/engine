@@ -72,7 +72,8 @@ void SpaceShooterScript::EvaluateLine(String & line)
 			return;
 		
 		/// Update speed based on progression.
-		float distance = ((levelEntity->worldPosition.x + playingFieldHalfSize.x) - targetEntity->worldPosition.x) / playingFieldSize.x;
+		float targetX = playingFieldHalfSize.x - 5.f;
+		float distance = ((levelEntity->worldPosition.x + targetX) - targetEntity->worldPosition.x) / playingFieldSize.x;
 	//	std::cout<<"\nDistance "<<distance;
 //		ClampFloat(distance, -1.f, 1.f);
 		Ship * ship = spaceShooter->GetShip(targetEntity);
@@ -82,12 +83,13 @@ void SpaceShooterScript::EvaluateLine(String & line)
 			ship->speed = args[2].ParseFloat();
 			/// Enter charging movement if not already there.
 			Movement move(Movement::MOVE_TO);
-			move.location = Location::RIGHT_EDGE; 
+			move.location = Location::VECTOR;
+			move.vec = Vector2f(targetX, 0); // Compared to center 0,0 of screen.
 			ship->SetMovement(move);
 			sssState = 1;
 		}		
 		// Mark as complete when we are at the left side.
-		if (distance < 0)
+		if (distance < 0.05f)
 		{
 			lineProcessed = true;
 			lineFinished = true;
@@ -97,14 +99,51 @@ void SpaceShooterScript::EvaluateLine(String & line)
 	}
 	else if (line.StartsWith("SetMovementPattern"))
 	{
-		String loin = line - "SetMovementPattern");
+		String loin = line - "SetMovementPattern";
 		loin = loin.Part(1, loin.Length() - 1);
 		/// FUCK YEAH
-		List<String> args = line.Tokenize(",");
-		String target = args[1];
-		String pattern = args[2];
-		String dir = args[3]; // e.g. x y 0 Rand(-1,1) Dir will be normalized
+		List<String> args = loin.Tokenize(",");
+		String target = args[0]; target.RemoveSurroundingWhitespaces();
+		int id = target.ParseInt();
+		Ship * ship = spaceShooter->GetShipByID(id);
+		if (target == "self")
+			ship = spaceShooter->GetShip(this->entity);
+		std::cout<<"\nLine: "<<line<<" y: "<<ship->entity->worldPosition.y;
+		String pattern = args[1]; pattern.RemoveSurroundingWhitespaces();
+		String dir = args[2]; // e.g. x y 0 Rand(-1,1) Dir will be normalized
+		List<String> dirParts = dir.Tokenize(" ");
+		static Random movementRand;
+		for (int i = 0; i < dirParts.Size(); ++i)
+		{
+			String & dirPart = dirParts[i];
+			if (dirPart.Contains("Random"))
+			{
+				List<String> randArgs = dirPart.Tokenize("(:)");
+				float min = randArgs[1].ParseFloat(),
+					max = randArgs[2].ParseFloat();
+				float value = movementRand.Randf(max - min) + min;
+				dirPart = String(value);
+			}
+		}
 //		Entity * target = ;
+		Movement move(Movement::MOVE_DIR);
+		move.vec = Vector2f(dirParts[0].ParseFloat(), dirParts[1].ParseFloat());
+		move.vec.Normalize();
+		ship->SetMovement(move);
+		lineFinished = true;
+	}
+	else if (line.StartsWith("SetSpeed"))
+	{
+		/// FUCK YEAH
+		List<String> args = line.Tokenize(",()");
+		String target = args[1]; target.RemoveSurroundingWhitespaces();
+		int id = target.ParseInt();
+		Ship * ship = spaceShooter->GetShipByID(id);
+		if (target == "self")
+			ship = spaceShooter->GetShip(this->entity);
+		float speed = args[2].ParseFloat();
+		ship->SetSpeed(speed);
+		lineFinished = true;
 	}
 	else if (line.StartsWith("DisableWeapon"))
 	{
@@ -150,13 +189,31 @@ bool SpaceShooterEvaluator::EvaluateFunction(String byName, List<String> argumen
 		result = ExpressionResult::Integral(ship->movementPatterns[ship->currentMovement].timeInCurrentMovement);
 		return true;
 	}
+	else if (name == "PositionY")
+	{
+		int id = arguments[0].ParseInt();
+		std::cout<<"\nid "<<id;
+		Ship * ship = spaceShooter->GetShipByID(id);
+		if (!ship)
+			result = ExpressionResult::Error("Bad ship id");
+		else
+			result = ExpressionResult::Integral(ship->entity->worldPosition.y - levelEntity->worldPosition.y);
+		return true;
+	}
+	else if (name == "abs")
+	{
+		// Except 1 argument.
+		result = ExpressionResult::Float(AbsoluteValue(arguments[0].ParseFloat()));
+		return true;
+	}
 //	exp.text = "Unable to find function";
 	return false;
 }
 
 bool SpaceShooterEvaluator::IsFunction(String name)
 {
-	if (name == "ArrivedAtDestination" || name == "TimeInCurrentMovement")
+	if (name == "ArrivedAtDestination" || name == "TimeInCurrentMovement" ||
+		name == "PositionY" || name == "abs")
 		return true;
 	return false;
 }
