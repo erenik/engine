@@ -6,6 +6,9 @@
 #include "SpaceShooter2D.h"
 #include "Entity/Entity.h"
 #include "Base/Ship.h"
+#include "File/LogFile.h"
+#include "Game/GameVariableManager.h"
+#include "Game/GameVariable.h"
 
 SpaceShooterScript::SpaceShooterScript()
 {
@@ -97,41 +100,6 @@ void SpaceShooterScript::EvaluateLine(String & line)
 			ship->SetSpeed(0);
 		}
 	}
-	else if (line.StartsWith("SetMovementPattern"))
-	{
-		String loin = line - "SetMovementPattern";
-		loin = loin.Part(1, loin.Length() - 1);
-		/// FUCK YEAH
-		List<String> args = loin.Tokenize(",");
-		String target = args[0]; target.RemoveSurroundingWhitespaces();
-		int id = target.ParseInt();
-		Ship * ship = spaceShooter->GetShipByID(id);
-		if (target == "self")
-			ship = spaceShooter->GetShip(this->entity);
-		std::cout<<"\nLine: "<<line<<" y: "<<ship->entity->worldPosition.y;
-		String pattern = args[1]; pattern.RemoveSurroundingWhitespaces();
-		String dir = args[2]; // e.g. x y 0 Rand(-1,1) Dir will be normalized
-		List<String> dirParts = dir.Tokenize(" ");
-		static Random movementRand;
-		for (int i = 0; i < dirParts.Size(); ++i)
-		{
-			String & dirPart = dirParts[i];
-			if (dirPart.Contains("Random"))
-			{
-				List<String> randArgs = dirPart.Tokenize("(:)");
-				float min = randArgs[1].ParseFloat(),
-					max = randArgs[2].ParseFloat();
-				float value = movementRand.Randf(max - min) + min;
-				dirPart = String(value);
-			}
-		}
-//		Entity * target = ;
-		Movement move(Movement::MOVE_DIR);
-		move.vec = Vector2f(dirParts[0].ParseFloat(), dirParts[1].ParseFloat());
-		move.vec.Normalize();
-		ship->SetMovement(move);
-		lineFinished = true;
-	}
 	else if (line.StartsWith("SetSpeed"))
 	{
 		/// FUCK YEAH
@@ -145,7 +113,7 @@ void SpaceShooterScript::EvaluateLine(String & line)
 		ship->SetSpeed(speed);
 		lineFinished = true;
 	}
-	else if (line.StartsWith("DisableWeapon"))
+/*	else if (line.StartsWith("DisableWeapon"))
 	{
 		List<String> args = line.Tokenize(",()");
 		// Do charge until done.
@@ -160,6 +128,7 @@ void SpaceShooterScript::EvaluateLine(String & line)
 		ship->DisableWeapon(weaponName);
 		lineProcessed = lineFinished = true;
 	}
+	*/
 	else 
 	{
 		Script::EvaluateLine(line);
@@ -174,36 +143,137 @@ SpaceShooterEvaluator spaceShooterEvaluator;
 bool SpaceShooterEvaluator::EvaluateFunction(String byName, List<String> arguments, ExpressionResult & result)
 {
 	String name = byName;
+	#define GRAB_SHIP int id = arguments[0].ParseInt();\
+		Ship * ship = spaceShooter->GetShipByID(id);\
+		if (!ship){\
+			result = ExpressionResult::Integral(0);\
+			result.text = "Unable to find ship with id "+String(id);\
+			return true;\
+		}
 	if (name == "ArrivedAtDestination")
 	{
-		// Get ship by ID
-		int id = arguments[0].ParseInt();
-		Ship * ship = spaceShooter->GetShipByID(id);
+		GRAB_SHIP
 		result = ExpressionResult::Boolean(ship->ArrivedAtDestination());
 		return true;
 	}
 	else if (name == "TimeInCurrentMovement")
 	{
-		int id = arguments[0].ParseInt();
-		Ship * ship = spaceShooter->GetShipByID(id);	
+		GRAB_SHIP
 		result = ExpressionResult::Integral(ship->movementPatterns[ship->currentMovement].timeInCurrentMovement);
 		return true;
 	}
 	else if (name == "PositionY")
 	{
-		int id = arguments[0].ParseInt();
-		std::cout<<"\nid "<<id;
-		Ship * ship = spaceShooter->GetShipByID(id);
+		GRAB_SHIP
 		if (!ship)
 			result = ExpressionResult::Error("Bad ship id");
 		else
 			result = ExpressionResult::Integral(ship->entity->worldPosition.y - levelEntity->worldPosition.y);
 		return true;
 	}
-	else if (name == "abs")
+	else if (name == "PositionX")
 	{
-		// Except 1 argument.
-		result = ExpressionResult::Float(AbsoluteValue(arguments[0].ParseFloat()));
+		GRAB_SHIP
+		if (!ship)
+			result = ExpressionResult::Error("Bad ship id");
+		else
+			result = ExpressionResult::Integral(ship->entity->worldPosition.x - levelEntity->worldPosition.x);
+		return true;
+	}
+	else if (name == "DisableWeapon")
+	{
+		GRAB_SHIP
+		ship->DisableWeaponsByID(arguments[1].ParseInt());
+		result = ExpressionResult::Boolean(true);
+		return true;
+	}
+	else if (name == "SetMovementPattern")
+	{
+		GRAB_SHIP
+		int pattern = arguments[1].ParseInt();
+		Movement move(pattern);
+		move.vec = Vector2f(arguments[2].ParseFloat(), arguments[3].ParseFloat());
+		move.vec.Normalize();
+		ship->SetMovement(move);
+		result = ExpressionResult::Boolean(true);
+		return true;
+	}
+	else if (name == "HPPercent")
+	{
+		GRAB_SHIP
+		float percent = ship->hp / (float)ship->maxHP * 100;
+//		std::cout<<"\nperc "<<percent;
+		result = ExpressionResult::Integral(percent);
+		return true;	
+	}
+	else if (name == "PartsDestroyed")
+	{
+		GRAB_SHIP
+		result = ExpressionResult::Integral(ship->childrenDestroyed);
+		return true;
+	}
+	else if (name == "SetProjectileSpeedBonus")
+	{
+		GRAB_SHIP;
+		ship->SetProjectileSpeedBonus(arguments[1].ParseFloat()); 
+		result = ExpressionResult::Boolean(true);
+		return true;
+	}
+	else if (name == "CreateTimer")
+	{
+		// Store current TimeMs as a variable with that name?
+		GameVars.CreateTime(arguments[0], levelTime);
+		result = ExpressionResult::Boolean(true);
+		return true;
+	}
+	else if (name == "TimeElapsedMs")
+	{
+		GameVar * var = GameVars.GetTime(arguments[0]);
+		if (!var)
+			result = ExpressionResult::Boolean(false);
+		result = ExpressionResult::Integral((levelTime - var->timeValue).Milliseconds());
+		return true;
+	}
+	else if (name == "ResetTimer")
+	{
+		GameVar * var = GameVars.GetTime(arguments[0]);
+		if (!var)
+			result = ExpressionResult::Boolean(false);
+		var->timeValue = levelTime;
+		result = ExpressionResult::Boolean(true);
+		return true;		
+	}
+	else if (name == "Log")
+	{
+		std::cout<<"\n"<<arguments[0];
+//		LogMain(arguments[0], INFO);
+		result = ExpressionResult::Boolean(true);
+		return true;
+	}
+	else if (name == "CreateFloat")
+	{
+		GameVars.CreateFloat(arguments[0], arguments[1].ParseFloat());
+		result = ExpressionResult::Boolean(true);
+		return true;
+	}
+	else if (name == "SetFloat")
+	{
+		GameVar * var = GameVars.GetFloat(arguments[0]);
+		var->fValue = arguments[1].ParseFloat();
+		result = ExpressionResult::Boolean(true);
+		return true;
+	}
+	else if (name == "CreateInt")
+	{
+		GameVars.CreateInt(arguments[0], arguments[1].ParseFloat());
+		result = ExpressionResult::Boolean(true);
+		return true;
+	}
+	else if (name == "SetInt")
+	{
+		GameVar * var = GameVars.GetInt(arguments[0]);
+		var->iValue = arguments[1].ParseInt();
+		result = ExpressionResult::Boolean(true);
 		return true;
 	}
 //	exp.text = "Unable to find function";
@@ -213,7 +283,10 @@ bool SpaceShooterEvaluator::EvaluateFunction(String byName, List<String> argumen
 bool SpaceShooterEvaluator::IsFunction(String name)
 {
 	if (name == "ArrivedAtDestination" || name == "TimeInCurrentMovement" ||
-		name == "PositionY" || name == "abs")
+		name == "PositionY" || name == "PositionX" || name == "DisableWeapon" || name == "SetMovementPattern" ||
+		name == "HPPercent" || name == "PartsDestroyed" || name == "SetProjectileSpeedBonus" ||
+		name == "CreateTimer" || name == "TimeElapsedMs" || name == "ResetTimer" || name == "Log" ||
+		name == "CreateInt" || name == "SetInt" || name == "CreateFloat" || name == "SetFloat")
 		return true;
 	return false;
 }

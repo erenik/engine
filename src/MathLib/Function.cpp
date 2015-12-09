@@ -177,5 +177,3 @@ ExpressionResult Function::Evaluate(String functionName, List<Symbol> arguments,
 	}
 	return result;
 }
-
-

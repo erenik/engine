@@ -81,13 +81,13 @@
 extern THREAD_HANDLE initializerThread;
 extern THREAD_HANDLE deallocatorThread;
 
+#include "MathLib/Expression.h"
 
 // POSIX threads
 #if defined LINUX | defined OSX
 #endif // POSIX threads
 
 #include "File/LogFile.h"
-#include "MathLib/Function.h"
 
 extern bool UnitTests();
 // void SIMDTest();

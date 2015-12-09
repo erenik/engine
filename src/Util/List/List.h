@@ -113,8 +113,8 @@ public:
 
 	/// Returns a part of this list (sub-list?), including all indices between the range, including the start and stop indices. A -1 for stopIndex will be replaced with the length.
 	List<T> Part(int startIndex, int stopIndex = -1) const;
-	/// Removes the part of the list spanning within the designated indices (inclusive of the edge-indices).
-	void RemovePart(int fromIndex, int toIndex);
+	/// Removes the part of the list spanning within the designated indices (inclusive of the edge-indices). Returns amount of indices removed.
+	int RemovePart(int fromIndex, int toIndex);
 					
 
 	/// Swaps items at given indices.
@@ -623,9 +623,9 @@ List<T> List<T>::Part(int startIndex, int stopIndex) const
 	return partList;
 }
 
-/// Removes the part of the list spanning within the designated indices (inclusive of the edge-indices).
+/// Removes the part of the list spanning within the designated indices (inclusive of the edge-indices). Returns amount of indices removed.
 template <class T>
-void List<T>::RemovePart(int fromIndex, int toIndex)
+int List<T>::RemovePart(int fromIndex, int toIndex)
 {
 	/// Move down the list, retaining order by default.
 	int itemsRemoved = toIndex - fromIndex + 1;
@@ -635,6 +635,7 @@ void List<T>::RemovePart(int fromIndex, int toIndex)
 		arr[j] = arr[j + itemsRemoved];
 	}
 	currentItems -= itemsRemoved;
+	return itemsRemoved;
 }	
 
 /// Swaps items at given indices.

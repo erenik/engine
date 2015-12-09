@@ -8,6 +8,7 @@
 #include <cmath>
 #include "String/StringUtil.h"
 #include "Function.h"
+#include "FunctionEvaluator.h"
 
 bool Expression::printExpressionSymbols = false;
 
@@ -103,24 +104,41 @@ void Expression::InitializeConstants()
 bool Expression::ParseExpression(String exp)
 {
 	/// Easiest parsing is probably a step-char-wise parse...
-	String alpha, numeric;
+	String alpha, numeric, quote;
 	bool lastWasOperator = false;
+	bool inQuote = false;
 	for (int i = 0; i < exp.Length(); ++i)
 	{
 		char c = exp.c_str()[i];
+		if (inQuote)
+		{
+			if (c == '\"')
+			{
+				symbols.AddItem(Symbol(quote, Symbol::STRING));
+				quote = "";
+				inQuote = false;
+				continue;
+			}
+			quote += c;
+			continue;
+		}
 		switch(c)
 		{
 			case ' ':
 			case '\t':
 				continue;
+			case '\"':
+				inQuote = true;
+				continue;
 		}
+
 		char c2;
 		if (i < exp.Length() - 1)
 			c2 = exp.c_str()[i+1];
 		String c12 = String(c) + c2;
 		
 		/// Alphabetics.
-		if (isalpha(c))
+		if (isalpha(c) || c == '_')
 		{
 			alpha += c;
 		}
@@ -181,6 +199,13 @@ bool Expression::ParseExpression(String exp)
 					++i;
 				}
 				break;
+			case '&':
+				if (c2 == '&')
+				{
+					symbols.AddItem(Symbol(c12, Symbol::OPERATOR));
+					lastWasOperator = true;
+					++i;
+				}
 			case '!':
 			case '=':
 				if (c2 == '=')
@@ -311,17 +336,33 @@ bool Expression::TryEvaluate()
 	if (printExpressionSymbols)
 		PrintSymbolsInALine(evaluationSymbols);
 //	PrintSymbols(evaluationSymbols);
+
+	/// All arguments to current function being evaluated on parenthesis-level 0.
+	List<List<Symbol>> argumentExpressions; // Each argument can be a list of symbol (e.g. 3 arguments all of which calling functions or having regular mathematical expressions).
+	String functionName;
+	bool inFunction = false;
 	/// Evaluate functions and parenthesis recursively (checking all parenthesis and separating argument operators ',')
 	for (int i = 0; i < evaluationSymbols.Size(); ++i)
 	{
 		Symbol & evalSymbol = evaluationSymbols[i];
 		switch(evalSymbol.type)
 		{
+			case Symbol::FUNCTION_NAME:
+			{
+				/// Only check for function name on base-level.
+				if (parenthesis == 0)
+				{
+					inFunction = true;
+					functionName = evalSymbol.text;
+				}
+				break;
+			}
 			case Symbol::BEGIN_PARENTHESIS:
 				++parenthesis;
 				// Store start of the parenthesis.
 				if (parenthesis == 1)
 				{
+					argumentExpressions.Clear(); // Delete old arguments.
 					parenthesisStart = i;
 					argumentStart = i;
 				}
@@ -334,36 +375,17 @@ bool Expression::TryEvaluate()
 					result.text = "Unexpected argument enumerator ',' outside a parenthesis";
 					return false;
 				}
-				/// Only evaluate 1 level up?
+				/// Only evaluate 1 level up? (inside the parenthesis, yes)
 				if (parenthesis == 1)
 				{
-					// Comma encountered? Then we are definitely enumerating arguments.
-					argumentEnumerating = true;
-					/// Store the first part within a first parenthesis, and evaluate it!
-					Expression pe(evaluationSymbols.Part(argumentStart + 1, i - 1));
-					// Transfer the known variables too.
-					pe.knownVariables = knownVariables;
-					bool ok = pe.TryEvaluate();
-					if (!ok)
+					/// Check that we are parsing function arguments (name should have been identified)
+					if (!inFunction)
 					{
-						this->result.text = pe.result.text;
+						result.text = "Unexpected arguments outside function.";
 						return false;
 					}
-
-//					PrintSymbols(evaluationSymbols);
-					// Remove all the evaluation symbols that were part of the parenthesis and replace them with the result.
-					evaluationSymbols.RemovePart(argumentStart + 1, i - 1);
-//					PrintSymbols(evaluationSymbols);
-					
-					// Insert the new parenthesis-result-symbol. where the parenthesis was.
-					Symbol sym(pe.result.text, Symbol::CONSTANT);
-					/// Place it back right after the argument start token was (the first parenthesis or comma)
-					evaluationSymbols.Insert(sym, argumentStart + 1);
-
-//					PrintSymbolsInALine(evaluationSymbols);
-						
-					/// Move back i so that parsing will work out as intended?
-					i -= pe.symbols.Size() - 1;
+					/// Add symbols in current argument to the list of arguments!
+					argumentExpressions.AddItem(evaluationSymbols.Part(argumentStart + 1, i - 1));
 					/// Store the current position as argument start again for the next argument's parse to work out well.
 					argumentStart = i;
 				}
@@ -371,72 +393,49 @@ bool Expression::TryEvaluate()
 			}
 			case Symbol::END_PARENTHESIS:
 				--parenthesis;
-				// If at "ground"-level, store the symbols within as a parenthesis expression to be evaluated first.
 				if (parenthesis == 0)
 				{
 					/// Remove and store the parenthesis as an argument-list instead of evaluating it as an expression.
-					if (argumentEnumerating)
+					if (inFunction)
 					{
-						/// Non-function evaluation of the contents of a parenthesis!
-						Expression pe(evaluationSymbols.Part(parenthesisStart, i));
-
-					// Remove all the evaluation symbols that were part of the parenthesis and replace them with the result.
-//						PrintSymbols(evaluationSymbols);
-						evaluationSymbols.RemovePart(parenthesisStart, i);
-//						PrintSymbols(evaluationSymbols);
-						List<Symbol> argSymbols;
-						Symbol argSymbol;
-
-						/// Evaluated arguments.
-						List<Symbol> args;
-
-						/// Evaluate the symbols detected within the parenthesis before merging them into a Function-Arguments symbol.
-						int parenthesisCounter2 = 0;
-						for (int j = 0; j < pe.symbols.Size(); ++j)
+						// If at "ground"-level, store the symbols within as a parenthesis expression to be evaluated first.
+						argumentExpressions.AddItem(evaluationSymbols.Part(argumentStart + 1, i - 1));
+						/// Evaluate each argument (list of symbols) separately.
+						List<String> finalArgs;
+						for (int j = 0; j < argumentExpressions.Size(); ++j)
 						{
-							Symbol & argSym = pe.symbols[j];
-							switch(argSym.type)
+							List<Symbol> argExp = argumentExpressions[j];
+						//	PrintSymbols(argExp);
+							// Evaluate the symbols.
+							Expression argumentExp(argExp);
+							argumentExp.functionEvaluators = functionEvaluators;
+							argumentExp.knownVariables = knownVariables;
+							result = argumentExp.Evaluate();
+							if (result.type == DataType::NO_TYPE)
 							{
-								case Symbol::BEGIN_PARENTHESIS:
-									if (parenthesisCounter2 > 0)
-										argSymbols.Add(argSym);
-									parenthesisCounter2++;
-									break;
-								case Symbol::END_PARENTHESIS:
-									parenthesisCounter2--;		
-									if (parenthesisCounter2 > 0)
-										argSymbols.Add(argSym);
-									if (parenthesisCounter2 != 0)
-										break;
-								case Symbol::ARGUMENT_ENUMERATOR:
-								{
-									// Evaluate the symbols.
-									Expression argumentExp(argSymbols);
-									ExpressionResult expRes = argumentExp.Evaluate(knownVariables);
-									expRes.type != -1;
-									argSymbol = expRes;
-
-									args.Add(argSymbol);
-									argSymbols.Clear();
-									break;
-								}
-								default:
-									argSymbols.Add(argSym);
-									break;
+								return false;
 							}
+							finalArgs.AddItem(result.text);
+						}
+						/// Call the function.
+						result = EvaluateFunction(functionName, finalArgs);
+						if (result.type == DataType::NO_TYPE)
+						{ // Result already logged in function call if bad.
+					//		result.text = "Bad data-type in result when calling function "+functionName;
+							return false;
 						}
 
-						Symbol sym(args, Symbol::FUNCTION_ARGUMENTS);
-						sym.text = "Args: "+String(args.Size());
-						// Insert the new parenthesis-result-symbol. where the parenthesis was.
-						evaluationSymbols.Insert(sym, parenthesisStart);
-				//		PrintSymbols(evaluationSymbols);
+						/// Already, function done, replace all symbols used thus far with the resulting constant.
+						int symbolsRemoved = evaluationSymbols.RemovePart(parenthesisStart - 1, i);
+						Symbol newSym(result);
+						evaluationSymbols.Insert(newSym, parenthesisStart - 1);
+					//	PrintSymbols(evaluationSymbols);
 
 						/// Move back i so that parsing will work out as intended?
-						i -= pe.symbols.Size() - 1;
+						i -= symbolsRemoved - 1;
 						/// Store the current position as argument start again for the next argument's parse to work out well.
 						argumentStart = i;
-
+						inFunction = false;
 						break;
 					}
 					/// Non-function evaluation of the contents of a parenthesis!
@@ -455,41 +454,16 @@ bool Expression::TryEvaluate()
 						Symbol beforeParenthesis;
 						if (parenthesisStart > 0)
 							beforeParenthesis = evaluationSymbols[parenthesisStart - 1];
-						if (beforeParenthesis.type == Symbol::FUNCTION_NAME)
-						{
-							/// Evaluate the function too.
-							std::cout<<"\nVery function: "<<beforeParenthesis.text<<" arg: "<<pe.result.text;
-							ExpressionResult functionResult;
-							functionResult = EvaluateFunction(beforeParenthesis.text, pe.result.text);
-							if (functionResult.type == DataType::NO_TYPE)
-							{
-								std::cout<<"\n Bad result from function ";
-								return false;
-							}
-							assert(functionResult.type != DataType::NO_TYPE);
-							// Remove all the evaluation symbols that were part of the parenthesis and replace them with the result.
-							evaluationSymbols.RemovePart(parenthesisStart - 1, i);
-							// Insert the new parenthesis-result-symbol. where the parenthesis was.
-							Symbol sym(functionResult.text, Symbol::CONSTANT);
-							evaluationSymbols.Insert(sym, parenthesisStart - 1);						
-							// Move back i so that parsing will work out as intended for the next parenthesis.
-							// This since we removed several symbols. We need to adjust i to remain in the same relative location to the parenthesis we just evaluated.
-							int symbolsRemoved = i - parenthesisStart + 2;
-							i -= symbolsRemoved;
-						}
 						/// Not a function before, so just replace the parenthesis with the result then.
-						else 
-						{
-							// Remove all the evaluation symbols that were part of the parenthesis and replace them with the result.
-							evaluationSymbols.RemovePart(parenthesisStart, i);
-							// Insert the new parenthesis-result-symbol. where the parenthesis was.
-							Symbol sym(pe.result.text, Symbol::CONSTANT);
-							evaluationSymbols.Insert(sym, parenthesisStart);						
-							// Move back i so that parsing will work out as intended for the next parenthesis.
-							// This since we removed several symbols. We need to adjust i to remain in the same relative location to the parenthesis we just evaluated.
-							int symbolsRemoved = i - parenthesisStart + 1;
-							i -= symbolsRemoved;
-						}
+						// Remove all the evaluation symbols that were part of the parenthesis and replace them with the result.
+						evaluationSymbols.RemovePart(parenthesisStart, i);
+						// Insert the new parenthesis-result-symbol. where the parenthesis was.
+						Symbol sym(pe.result.text, Symbol::CONSTANT);
+						evaluationSymbols.Insert(sym, parenthesisStart);						
+						// Move back i so that parsing will work out as intended for the next parenthesis.
+						// This since we removed several symbols. We need to adjust i to remain in the same relative location to the parenthesis we just evaluated.
+						int symbolsRemoved = i - parenthesisStart + 1;
+						i -= symbolsRemoved;
 					}
 				}
 				else if (argumentEnumerating)
@@ -501,44 +475,6 @@ bool Expression::TryEvaluate()
 	}
 	// All parenthesis should have been evaluated recursively above.
 	
-	/// Evaluate any functions which are present.
-		/// Go from right to left, to make it easier to handle + and - signs?
-	for (int i = evaluationSymbols.Size() - 1; i >= 0; --i)
-	{
-		Symbol & sym = evaluationSymbols[i];
-		switch(sym.type)
-		{
-			case Symbol::FUNCTION_ARGUMENTS:
-			{
-				/// Check if function name is available before?
-				if (i == 0)
-				{
-					result.text = "Function argument list requires preceding function name.";
-					return false;
-				}
-				Symbol & preceding = evaluationSymbols[i-1];
-				if (preceding.type != Symbol::VARIABLE)
-				{
-					result.text = "Function argument list requires preceding function name. Encountered \'"+preceding.text+"\'";
-					return false;
-				}
-				/// Get function with that name then!
-				ExpressionResult result = Function::Evaluate(preceding.text, sym.symbols, knownVariables);
-				if (result.type == -1)
-				{
-					this->result.text = result.text;
-					return false;
-				}
-//				PrintSymbols(evaluationSymbols);
-				// Save the result and replace the function and arguments with the new symbol o.o
-				evaluationSymbols.RemovePart(i-1, i);
-				Symbol resultSymbol(result.text, Symbol::CONSTANT);
-				evaluationSymbols.Insert(resultSymbol, i-1);
-//				PrintSymbols(evaluationSymbols);
-				break;
-			}
-		}
-	}
 	/// Now we should only have constants left...
 	// Convert variables to constants.
 	for (int i = 0; i < evaluationSymbols.Size(); ++i)
@@ -565,6 +501,9 @@ bool Expression::TryEvaluate()
 	/// Final evaluation to result.
 	/// Ensure we end up with just 1 final symbol.
 	assert(evaluationSymbols.Size() == 1);
+	if (evaluationSymbols.Size() > 1)
+		PrintSymbols(evaluationSymbols);
+
 	Symbol sym = evaluationSymbols[0];
 	// Store text from the latest var2 as the final answer in the expression!
 	result.text = sym.text;
@@ -580,6 +519,9 @@ bool Expression::TryEvaluate()
 				result.type = DataType::INTEGER;
 				result.iResult = result.text.ParseInt();
 			}
+			break;
+		case Symbol::STRING:
+			result.type = sym.type;
 			break;
 		default:
 			assert(false);
@@ -598,7 +540,7 @@ bool Expression::EvaluateOperation()
 		2	/ * %
 		3	^
 	*/
-	PrintSymbols(evaluationSymbols);
+//	PrintSymbols(evaluationSymbols);
 	while (priority >= 0)
 	{
 		int opSymIndex = -1;
@@ -718,7 +660,7 @@ ExpressionResult Expression::EvaluateFunction(String functionName, List<String> 
 /// Evaluates a binary expression-part of the following format:  sym1 op sym2
 Symbol Expression::Evaluate(Symbol * sym1, Symbol * sym2, Symbol op)
 {
-	std::cout<<"\nEvaluating: "<<(sym1? sym1->text : "") <<" "<<op.text<<" "<<(sym2? sym2->text : "");
+//	std::cout<<"\nEvaluating: "<<(sym1? sym1->text : "") <<" "<<op.text<<" "<<(sym2? sym2->text : "");
 	char cop = op.text.c_str()[0];
 	char c2 = -1;
 	if (op.text.Length() > 1)
@@ -800,7 +742,7 @@ Symbol Expression::Evaluate(Symbol * sym1, Symbol * sym2, Symbol op)
 						ires = i1 || i2;
 					break;
 				case '&':
-					if (c2 == '&&')
+					if (c2 == '&')
 						ires = i1 && i2;
 					break;
 				default:

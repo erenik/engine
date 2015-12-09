@@ -32,15 +32,28 @@ List<GameVar*> GameVariableManager::All()
 List<Variable> GameVariableManager::GetAllExpressionVariables()
 {
 	List<Variable> vars;
+	Variable var;
 	for (int i = 0; i < gameVariables.Size(); ++i)
 	{
 		GameVariable * gv = gameVariables[i];
 		switch(gv->Type())
 		{
-		case GameVariable::INTEGER:
-			Variable var(gv->name, gv->GetInt());
-			vars.AddItem(var);
-			break;
+			case GameVariable::INTEGER:
+				var = Variable(gv->name, gv->GetInt());
+				vars.AddItem(var);
+				break;
+			case GameVariable::FLOAT:
+				var = Variable(gv->name, gv->fValue);
+				vars.AddItem(var);
+				break;
+			case GameVariable::VECTOR:
+			case GameVariable::VECTOR_4F:
+			case GameVariable::VECTOR_3F:
+			case GameVariable::STRING:
+			case GameVariable::TIME:
+				break;
+			default:
+				assert(false && "Fix for all data types..");
 		}
 	}
 	return vars;
@@ -69,17 +82,44 @@ GameVar * GameVariableManager::GetString(String stringName){
 }
 
 /// Specific getters.
-int GameVariableManager::GetInt(String name)
+GameVar * GameVariableManager::GetInt(String name)
 {
 	for (int i = 0; i < integers.Size(); ++i){
-		if (integers[i]->name == name){
-			return integers[i]->iValue;
+		if (integers[i]->name == name)
+		{
+			return integers[i];
+//			return integers[i]->iValue;
 		}
 	}
 	std::cout<<"\nERROR: No such integer with given name!";
 	assert(false && "No such integer with given name!");
-	return -1;
+	return 0;
 }
+GameVar * GameVariableManager::GetFloat(String name)
+{
+	for (int i = 0; i < floats.Size(); ++i)
+	{
+		if (floats[i]->name == name)
+		{
+			return floats[i];
+		}
+	}
+	return 0;
+}
+
+
+GameVar * GameVariableManager::GetTime(String byName)
+{
+	for (int i = 0; i < timeVars.Size(); ++i)
+	{
+		GameVar * v = timeVars[i];
+		if (v->name == byName)
+			return v;
+	}
+	return 0;
+}
+
+
 // SEttetrrrrr
 void GameVariableManager::SetInt(String name, int intValue)
 {
@@ -112,6 +152,23 @@ GameVar * GameVariableManager::CreateInt(String name, int initialValue)
 	gameVariables.Add(integer);
 	return integer;
 }
+
+GameVar * GameVariableManager::CreateFloat(String name, float initialValue /*= 0*/)
+{
+	GameVariable * exists = Get(name);
+	if (exists)
+	{
+		if (exists->Type() == GameVariable::FLOAT)
+			return exists;
+		assert(false);
+		return NULL;
+	}
+	GameVar * floatr = new GameVar(name, GameVariable::FLOAT);
+	floatr->fValue = initialValue;
+	floats.Add(floatr);
+	gameVariables.Add(floatr);
+	return floatr;
+}	
 
 GameVar * GameVariableManager::CreateInt64(String name, int64 initialValue /*= 0*/)
 {

@@ -32,6 +32,16 @@ void Movement::Nullify()
 	ship = NULL;
 }
 
+List<Variable> Movement::GetTypesAsVariables()
+{
+	List<Variable> var;
+	for (int i = 0; i < TYPES; ++i)
+	{
+		var.AddItem(Variable(Name(i), i));
+	}
+	return var;
+}
+
 
 String Movement::Name(int type)
 {

@@ -18,7 +18,7 @@ private:
 	int sssState; // space shooter script state. - whatever that means :D
 };
 
-#include "MathLib/Expression.h"
+#include "MathLib/FunctionEvaluator.h"
 class SpaceShooterEvaluator : public FunctionEvaluator 
 {
 public:

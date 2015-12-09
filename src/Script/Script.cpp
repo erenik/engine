@@ -23,6 +23,7 @@
 //struct CompactEvent{};
 
 const char * Script::rootEventDir = "data/scripts/";
+List<FunctionEvaluator*> Script::defaultFunctionEvaluators;
 
 Script::Script(const Script & base)
 {
@@ -56,6 +57,7 @@ Script::Script(String name, Script * parent /* = NULL */ )
 	{
 		parent->childScripts.Add(this);
 	}
+	functionEvaluators = defaultFunctionEvaluators;
 };
 
 void Script::Nullify()
@@ -574,6 +576,16 @@ void Script::EvaluateLine(String & line)
 	}
 	else if (line.Contains("elsif") || line.Contains("elseif") || line.Contains("else if"))
 	{
+		/// Should be in an if-stack, check if we already evaluated.
+		ScriptLevel sl = stack.Last();
+		assert(sl.type == ScriptLevel::IF_CLAUSE);
+		if (sl.evaluatedAtLine > 0)
+		{
+//			std::cout<<"do stuff";
+			// Jump to endif.
+			JumpToEndif();
+			return;
+		}
 		HandleConditional(line);
 	}
 	else if (line.Contains("if(") || line.Contains("if ("))
@@ -587,6 +599,12 @@ void Script::EvaluateLine(String & line)
 //		if (ifProcessed)
 		//	JumpToEndif();
 		ScriptLevel sl = stack.Last();
+		assert(sl.type == ScriptLevel::IF_CLAUSE);
+		if (sl.evaluatedAtLine > 0)
+		{
+			JumpToEndif();
+			return;
+		}
 		lineFinished = true;
 		return;
 	}
@@ -614,7 +632,7 @@ void Script::EvaluateLine(String & line)
 		stack.AddItem(ScriptLevel(ScriptLevel::WHILE_LOOP, currentLine));
 		HandleConditional(line);
 	}
-	else if (line.Contains("CreateInt")){
+/*	else if (line.Contains("CreateInt")){
 		List<String> tokens = line.Tokenize(" \t");
 		String varName = tokens[1];
 		int initialValue = 0;
@@ -625,13 +643,14 @@ void Script::EvaluateLine(String & line)
 		}
 		lineFinished = true;
 	}
+	/*
 	else if (line.Contains("SetInt ")){
 		List<String> tokens = line.Tokenize(" \t");
 		String varName = tokens[1];
 		int value = tokens[2].ParseInt();
 		GameVars.SetInt(varName, value);
 		lineFinished = true;
-	}
+	}*/
 	else if (line.Contains("Repeatable")){
 		/// Flag the event as repeatable.
 		repeatable = true;
@@ -657,6 +676,28 @@ void Script::EvaluateLine(String & line)
 		lineFinished = true;
 	}
 	else {
+		/// Try evaluate it as an expression.
+		Expression exp;
+		List<Variable> allVars = GameVars.GetAllExpressionVariables() + variables;
+		exp.functionEvaluators = functionEvaluators; // Set evaluators.
+		bool parseOK = exp.ParseExpression(line);
+		if (line.Contains("SetMovementPattern"))
+			int p = 4;;
+		if (parseOK)
+		{
+			ExpressionResult res = exp.Evaluate(allVars);
+			/// Continue until it returns true! o.o
+			if (res.type != DataType::NO_TYPE)
+			{
+				if (res.GetBool() == true)
+				{
+					lineFinished = true;
+					return;
+				}
+			}
+		}
+
+
 //		std::cout<<"\nUndefined event command: "<<line;
 //		std::cout<<"\nPassing it as a custom command to the game states for further processing.";
 		Message * message = new Message(line);
@@ -840,11 +881,14 @@ void Script::JumpToNextConditional()
 void Script::JumpToEndif()
 {
 	// If the statement is not true, find an else or endif block..!
-	for (int i = currentLine; i < lines.Size(); ++i){
+	for (int i = currentLine; i < lines.Size(); ++i)
+	{
 		String l = lines[i];
-		if (l.Contains("endif")){
+		if (l.Contains("endif"))
+		{
 			currentLine = i;
-			lineFinished = true;
+			lineProcessed = false;
+	//		lineFinished = true;
 			return;
 		}
 	}

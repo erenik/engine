@@ -7,8 +7,19 @@
 
 extern bool TrigonometryTests();
 
+#include "MathLib/Function.h"
+#include "MathLib/FunctionEvaluator.h"
+
 bool UnitTests()
 {
+	/*
+	Expression exp;
+	exp.functionEvaluators.AddItem(&defMatFuncEval);
+	exp.ParseExpression("abs(abs(-7) * Random(-4,-1)) * 4");
+	ExpressionResult expr = exp.Evaluate();
+	String text = expr.text;
+	return false;
+	*/
 
 	if (TrigonometryTests())
 		return true;

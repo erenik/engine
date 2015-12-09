@@ -26,6 +26,7 @@ public:
 	enum {
 		BAD_TYPE = -1,
 		CONSTANT, // 3.14
+		STRING, // For commenting, perhaps string manipulation much much later...
 		VARIABLE, // AnyVariableWrittenWithOneWord
 		FUNCTION_NAME, // AnyFunctionNameWrittenWithOneWord - cross-checked with supplied lists in Function::Class or something.
 		OPERATOR, // * + - / ^ &

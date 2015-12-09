@@ -106,14 +106,6 @@ private:
 	List<Symbol> evaluationSymbols;
 };
 
-/// Sub-class to handle things.
-class FunctionEvaluator
-{
-public:
-	virtual bool EvaluateFunction(String byName, List<String> arguments, ExpressionResult & result) = 0;
-	virtual bool IsFunction(String name) = 0;
-};
-
 #endif
 
 

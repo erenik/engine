@@ -4,9 +4,13 @@
 #include "Script.h"
 #include "ScriptManager.h"
 #include "Input/InputManager.h"
+#include "MathLib/FunctionEvaluator.h"
 
-ScriptManager::ScriptManager(){
+ScriptManager::ScriptManager()
+{
 	// Wosh.
+	// Register default function handlers for scripts/expressions.
+	Script::defaultFunctionEvaluators.AddItem(&defMatFuncEval);
 }
 ScriptManager::~ScriptManager()
 {

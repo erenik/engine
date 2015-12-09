@@ -31,6 +31,7 @@ Symbol::Symbol(const ExpressionResult & result)
 	{
 		case DataType::FLOAT:
 		case DataType::INTEGER:
+		case DataType::BOOLEAN: // Can be used as integral.
 			type = Symbol::CONSTANT;
 			text = result.text;
 			break;

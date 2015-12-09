@@ -378,7 +378,7 @@ void Weapon::Shoot(Ship * ship)
 		}
 		projProp->direction = dir; // For autoaim initial direction.
 
-		Vector3f vel = dir * projectileSpeed * flakDividendMultiplier;
+		Vector3f vel = dir * (projectileSpeed + ship->projectileSpeedBonus) * flakDividendMultiplier;
 		PhysicsProperty * pp = projectileEntity->physics = new PhysicsProperty();
 		pp->type = PhysicsType::DYNAMIC;
 		pp->velocity = vel;

@@ -43,7 +43,9 @@ public:
 	/// Gette for strings
 	GameVar * GetString(String stringName);
 	/// Specific getters.
-	int GetInt(String name);
+	GameVar * GetInt(String name);
+	GameVar * GetFloat(String name);
+	GameVar * GetTime(String byName);
 	
 	// SEttetrrrrr
 	void SetInt(String name, int intValue);
@@ -51,6 +53,7 @@ public:
 	/// Creators, returns the varible. If it exists, the existing variable will be returned.
 	GameVar * CreateInt(String name, int initialValue = 0);
 	GameVar * CreateInt64(String name, int64 initialValue = 0);
+	GameVar * CreateFloat(String name, float initialValue = 0);
 	GameVar * CreateString(String name, String initialValue = "");
 	GameVar * CreateTime(String name, Time initialValue = Time::Now());
 	

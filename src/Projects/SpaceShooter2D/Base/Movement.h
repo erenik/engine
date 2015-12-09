@@ -10,7 +10,7 @@ class Entity;
 
 #include "String/AEString.h"
 #include "MathLib.h"
-
+#include "MathLib/Variable.h"
 
 namespace Location {
 	enum {
@@ -31,7 +31,8 @@ public:
 	Movement();
 	Movement(int type);
 	void Nullify();
-
+	/// For scripting.
+	static List<Variable> GetTypesAsVariables();
 	// Upon entering this movement pattern.
 	void OnEnter(Ship * ship);
 	/// Called on scripted updates or otherwise when adjusted.
@@ -46,7 +47,7 @@ public:
 	/// Adds level speed and sets ship speed accordingly.
 	void SetWindowSpeed(Vector2f desiredAppearedSpeed);
 	enum {
-		NONE, // Staying still.
+		NONE = -1, // Staying still.
 		STRAIGHT, // Plain X-
 		ZAG,
 		MOVE_TO,

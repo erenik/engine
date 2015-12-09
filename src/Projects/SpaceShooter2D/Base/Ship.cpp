@@ -20,6 +20,8 @@ extern SpaceShooterEvaluator spaceShooterEvaluator;
 
 Ship::Ship()
 {
+	childrenDestroyed = 0;
+	projectileSpeedBonus = 0;
 	shipID = ++shipIDEnumerator;
 	despawnOutsideFrame = true;
 	script = 0;
@@ -146,6 +148,7 @@ List<Entity*> Ship::Spawn(ConstVec3fr atPosition, Ship * in_parent)
 		/// Add custom variables based on who started the script.
 		script->variables.AddItem(Variable("self", shipID));
 		script->variables.AddItem(Variable("player", playerShip->shipID));
+		script->variables.Add(Movement::GetTypesAsVariables());
 		script->functionEvaluators.AddItem(&spaceShooterEvaluator);
 		script->OnBegin();
 	}
@@ -200,9 +203,13 @@ List<Entity*> Ship::SpawnChildren()
 void Ship::Despawn()
 {
 	LogMain("Despawning ship "+name, INFO);
+	if (!spawned)
+		return;
+	spawned = false;
 	/// Notify parent if child.
 	if (parent)
 	{
+		++parent->childrenDestroyed;
 		parent->children.RemoveItem(this);
 		parent = 0;
 	}
@@ -211,6 +218,7 @@ void Ship::Despawn()
 		Ship * child = children[i];
 		child->Despawn();
 	}
+	children.Clear();
 	if (spawnGroup)
 	{
 		if (hp <= 0)
@@ -218,9 +226,10 @@ void Ship::Despawn()
 		else
 			spawnGroup->OnShipDespawned(this);
 	}
-	MapMan.DeleteEntity(entity);
-	shipEntities.Remove(entity);
-	entity = NULL;
+	Entity * tmp = entity;
+	entity = 0;
+	MapMan.DeleteEntity(tmp);
+	shipEntities.Remove(tmp);
 }
 
 /// Checks current movement. Will only return true if movement is target based and destination is within threshold.
@@ -353,6 +362,11 @@ void Ship::ProcessWeapons(int timeInMs)
 	if (activeWeapon)
 		activeWeapon->Shoot(this);
 }
+// Sets new bonus, updates weapons if needed.
+void Ship::SetProjectileSpeedBonus(float newBonus)
+{
+	projectileSpeedBonus = newBonus;
+} 
 
 /// Disables weapon in this and children ships.
 void Ship::DisableWeapon(String weaponName)
@@ -478,10 +492,6 @@ void Ship::Destroy()
 		tmpEmitter->SetColor(color);
 		Graphics.QueueMessage(new GMAttachParticleEmitter(tmpEmitter, sparks));
 
-		MapMan.DeleteEntity(entity);
-		shipEntities.Remove(entity);
-		entity = NULL;
-		destroyed = true;
 		// Explosion?
 		// Increase score and kills.
 		if (!allied)
@@ -493,7 +503,23 @@ void Ship::Destroy()
 			failedToSurvive = true;
 		/// SFX
 		QueueAudio(new AMPlaySFX("sfx/Ship Death.wav"));
+		/// Despawn.
+		Despawn();
 	}
+}
+
+
+bool Ship::DisableWeaponsByID(int id)
+{
+	for (int i = 0; i < weapons.Size(); ++i)
+	{
+		Weapon * weap = weapons[i];
+		if (weap->type == id)
+			weap->enabled = false;
+	}
+	for (int i = 0; i < children.Size(); ++i)
+		children[i]->DisableWeaponsByID(id);
+	return true;
 }
 
 

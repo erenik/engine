@@ -46,11 +46,13 @@ public:
 
 	/// Disables weapon in this and children ships.
 	void DisableWeapon(String weaponName);
+	bool DisableWeaponsByID(int id);
 	/// Prepends the source with '/obj/Ships/' and appends '.obj'. Uses default 'Ship.obj' if needed.
 	Model * GetModel();
 	/// o.o
 	void DisableMovement();
 	void OnSpeedUpdated();
+	void SetProjectileSpeedBonus(float newBonus); // Sets new bonus, updates weapons if needed.
 	void Damage(Weapon & usingWeapon);
 	void Damage(float amount, bool ignoreShield);
 	void Destroy();
@@ -98,6 +100,7 @@ public:
 
 	// Name or type. 
 	String name;
+	int childrenDestroyed; // 0 initially
 	/// Flag false for bosses.
 	bool despawnOutsideFrame;
 	// Faction.
@@ -126,7 +129,8 @@ public:
 	/// In order to not take damage allllll the time (depending on processor speed, etc. too.)
 	Time lastShipCollision;
 	Time collisionDamageCooldown; // default 100 ms.
-
+	// Default 0. Scriptable.
+	float projectileSpeedBonus;
 	/// Mooovemeeeeeeent
 	List<Movement> movementPatterns;
 	int currentMovement; // Index of which pattern is active at the moment.

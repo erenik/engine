@@ -160,6 +160,8 @@ public:
 
 	/// Defaults to... false? If true, any script that is called to play with the same source or name will be ignored and discarded then? 
 	bool allowMultipleInstances;
+	/// Used by default for all scripts. By default only the defMatFuncEval (MathLib/Function.h) is loaded.
+	static List<FunctionEvaluator*> defaultFunctionEvaluators;
 private:
 	/// Stack, e.g. an IF_CLAUSE in a WHILE_LOOP., While_LOOP will be index 0.
 	List<ScriptLevel> stack;
