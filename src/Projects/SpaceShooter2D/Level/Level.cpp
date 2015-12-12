@@ -10,6 +10,7 @@
 #include "File/LogFile.h"
 #include "Message/MathMessage.h"
 #include "StateManager.h"
+#include "../Properties/ExplosionProperty.h"
 
 #define SPAWNED_ENEMIES_LOG "SpawnedEnemies.srl"
 
@@ -81,7 +82,7 @@ Entity * Level::AddPlayer(Ship * playerShip, ConstVec3fr atPosition)
 	pp = entity->physics;
 	pp->collisionCallback = true;				
 	pp->collisionCategory = CC_PLAYER;
-	pp->collisionFilter = CC_ENEMY | CC_ENEMY_PROJ;
+	pp->collisionFilter = CC_ALL_ENEMY;
 	pp->velocity = BaseVelocity();
 	pp->type = PhysicsType::DYNAMIC;
 	// Set player to mid position.
@@ -157,7 +158,8 @@ void Level::Process(int timeInMs)
 		levelTime.AddMs(timeInMs);
 	}
 
-	/// Process active explosions.
+	/// Process active explosions. No.
+	/*
 	for (int i = 0; i < explosions.Size(); ++i)
 	{
 		Explosion * exp = explosions[i];
@@ -196,6 +198,7 @@ void Level::Process(int timeInMs)
 			--i;
 		}
 	}
+	*/
 
 	/// Check messages.
 	if (messages.Size())
@@ -299,6 +302,19 @@ void Level::ProcessMessage(Message * message)
 		}
 		case MessageType::STRING:
 		{
+			if (msg == "ListPhysicalEntities")
+			{
+				Entities entities = PhysicsMan.GetEntities();
+				for (int i = 0; i < entities.Size(); ++i)
+				{
+					std::cout<<"\nPhysical entities: "<<entities[i]->name<<" "<<entities[i]->worldPosition;
+				}
+/*				GraphicsMan.Re
+				for (int i = 0; i < entities.Size(); ++i)
+				{
+					std::cout<<"\nPhysical entities: "<<entities[i]->name;
+				}*/
+			}
 			if (msg == "EndLevel")
 			{
 				levelCleared = true;
@@ -425,13 +441,40 @@ Entity * Level::ClosestTarget(bool ally, ConstVec3fr position)
 	return closest;
 }
 
+#include "PhysicsLib/EstimatorFloat.h"
+
 /// o.o'
-void Level::Explode(Weapon & weapon, ConstVec3fr position)
+void Level::Explode(Weapon & weapon, Entity * causingEntity, bool enemy)
 {
-	Explosion * explosion = new Explosion();
-	explosion->weapon = weapon;
-	explosion->position = position;
-	explosions.AddItem(explosion);
+	Entity * explosionEntity = EntityMan.CreateEntity("ExplosionEntity", ModelMan.GetModel("Sphere"), 0 /*TexMan.GetTexture("0xFFFF")*/);
+	ExplosionProperty * explosionProperty = new ExplosionProperty(weapon, explosionEntity);
+	explosionEntity->properties.AddItem(explosionProperty);
+	explosionProperty->weapon = weapon;
+	explosionProperty->enemy = enemy;
+	explosionProperty->player = !enemy;
+	explosionProperty->duration = 1000; // MS.
+
+	PhysicsProperty * prop = new PhysicsProperty();
+	prop->collisionCategory = enemy? CC_ENEMY_EXPL : CC_PLAYER_EXPL;
+	prop->collisionFilter = enemy? CC_ALL_PLAYER : CC_ALL_ENEMY;
+	prop->collisionCallback = true;
+	prop->physicalRadius = 5.f;
+	prop->velocity = causingEntity->Velocity() * 0.5f;
+	prop->type = PhysicsType::DYNAMIC;
+	prop->noCollisionResolutions = true;
+	explosionEntity->physics = prop;
+
+	explosionEntity->localPosition = causingEntity->worldPosition;
+	explosionEntity->RecalculateMatrix();
+
+	/// Add physics thingy straight away.
+	EstimatorFloat * estimator = new EstimatorFloat();
+	estimator->variablesToPutResultTo.Add(&explosionEntity->scale.x, &explosionEntity->scale.y, &explosionEntity->scale.z);
+	estimator->AddStateMs(0.1, 0);
+	estimator->AddStateMs(weapon.explosionRadius, explosionProperty->duration);
+	prop->estimationEnabled = true;
+	prop->estimators.AddItem(estimator);
+	MapMan.AddEntity(explosionEntity, false, true);
 }
 
 List<Ship*> Level::GetShipsAtPoint(ConstVec3fr position, float maxRadius, List<float> & distances)

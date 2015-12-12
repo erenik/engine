@@ -22,6 +22,7 @@ Movement::Movement(int withType)
 
 void Movement::Nullify()
 {
+	timeInCurrentMovement = 0;
 	type = Movement::STRAIGHT;
 	durationMs = -1;
 	zagTimeMs = 0;

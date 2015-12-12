@@ -261,7 +261,7 @@ void Weapon::Aim(Ship * ship)
 	Entity * shipEntity = ship->entity;
 	// Estimate position upon impact?
 	Vector3f targetPos = target->worldPosition;
-	Vector3f toTarget = targetPos - shipEntity->worldPosition;
+	Vector3f toTarget = targetPos - weaponWorldPosition;
 	if (estimatePosition)
 	{
 		float dist = toTarget.Length();
@@ -270,17 +270,28 @@ void Weapon::Aim(Ship * ship)
 		// Estimated position upon impact... wat.
 		float seconds = dist / projectileSpeed;
 		Vector3f estimatedPosition = targetPos + vel * seconds;
-		toTarget = estimatedPosition - shipEntity->worldPosition;
+		toTarget = estimatedPosition - weaponWorldPosition;
 	}
 	// Aim at the player.
 	currentAim = toTarget.NormalizedCopy();
 }
 
+/// Based on ship.
+Vector3f Weapon::WorldPosition(Entity * basedOnShipEntity)
+{
+	Vector3f worldPos = basedOnShipEntity->transformationMatrix * location;
+	worldPos.z = 0;
+	Vector3f ref = basedOnShipEntity->worldPosition;
+	return worldPos;
+}
+
 /// Shoots using previously calculated aim.
 void Weapon::Shoot(Ship * ship)
 {
+	if (!enabled)
+		return;
 	float firingSpeedDivisor = ship->activeSkill == ATTACK_FRENZY? 0.4f : 1.f; 
-	if (currCooldownMs > 0)
+	if (currCooldownMs - ship->weaponCooldownBonus > 0)
 		return;
 
 	if (burst)
@@ -334,11 +345,11 @@ void Weapon::Shoot(Ship * ship)
 			flakDividendMultiplier = 1 / flakMultiplier;
 		}
 		Entity * projectileEntity = EntityMan.CreateEntity(name + " Projectile", model, tex);
-		ProjectileProperty * projProp = new ProjectileProperty(*this, projectileEntity);
+		ProjectileProperty * projProp = new ProjectileProperty(*this, projectileEntity, ship->ai);
 		projProp->weapon.damage *= flakMultiplier;
 		projectileEntity->properties.Add(projProp);
 		// Set scale and position.
-		projectileEntity->localPosition = shipEntity->worldPosition;
+		projectileEntity->localPosition = weaponWorldPosition;
 		projectileEntity->SetScale(Vector3f(1,1,1) * projectileScale * flakMultiplier);
 		projProp->color = color;
 		projectileEntity->RecalculateMatrix();
@@ -379,6 +390,7 @@ void Weapon::Shoot(Ship * ship)
 		projProp->direction = dir; // For autoaim initial direction.
 
 		Vector3f vel = dir * (projectileSpeed + ship->projectileSpeedBonus) * flakDividendMultiplier;
+		vel.z = 0;
 		PhysicsProperty * pp = projectileEntity->physics = new PhysicsProperty();
 		pp->type = PhysicsType::DYNAMIC;
 		pp->velocity = vel;
@@ -408,6 +420,8 @@ void Weapon::Process(Ship * ship, int timeInMs)
 {
 	if (!enabled)
 		return;
+	weaponWorldPosition = WorldPosition(ship->entity);
+
 	currCooldownMs -= timeInMs;
 	if (currCooldownMs < 0)
 		currCooldownMs = 0;

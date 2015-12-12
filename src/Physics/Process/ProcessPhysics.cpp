@@ -122,8 +122,12 @@ void PhysicsManager::ProcessPhysics()
 			{
 				Estimator * estimator = estimators[j];
 				estimator->Process(milliseconds);
+				if (entity->name == "ExplosionEntity")
+					int lp = 5;
+				// Recalculate other stuff too.
+				entity->physics->UpdateProperties(entity);
 				// Re-calculate transform matrix, as it was probably affected..?
-				entity->RecalculateMatrix();
+				entity->RecalculateMatrix(Entity::ALL_PARTS);
 				if (estimator->finished)
 				{
 					estimators.RemoveIndex(j, ListOption::RETAIN_ORDER);
@@ -188,6 +192,10 @@ void PhysicsManager::ProcessPhysics()
 				c.one->OnCollision(c);
 			if (c.two->physics->onCollision)
 				c.two->OnCollision(c);
+			if (c.one->name == "ExplosionEntity" || c.two->name == "ExplosionEntity")
+			{
+				int p = 14;
+			}
 			if (c.one->physics->collisionCallback || c.two->physics->collisionCallback)
 			{
 				/// Check max callbacks.

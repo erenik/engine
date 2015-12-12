@@ -563,7 +563,7 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 				Entity * projectileEntity = EntityMan.CreateEntity(name + " Projectile", ModelMan.GetModel("sphere.obj"), tex);
 				Weapon weapon;
 				weapon.damage = 750;
-				ProjectileProperty * projProp = new ProjectileProperty(weapon, projectileEntity);
+				ProjectileProperty * projProp = new ProjectileProperty(weapon, projectileEntity, true);
 				projectileEntity->properties.Add(projProp);
 				// Set scale and position.
 				projectileEntity->localPosition = playerShip->entity->worldPosition + Vector3f(30,0,0);

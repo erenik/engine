@@ -1,26 +1,24 @@
 /// Emil Hedemalm
-/// 2015-01-21
-/// Projectile.
+/// 2015-12-12
+/// For explosions, simulated in physics.
 
-#ifndef PROJ_PROP_H
-#define PROJ_PROP_H
+#ifndef EXPLOSION_PROPERTY_H
+#define EXPLOSION_PROPERTY_H
 
-#include "SpaceShooter2D/Base/Weapon.h"
 #include "Entity/EntityProperty.h"
-#include "Time/Time.h"
 
-class ProjectileProperty : public EntityProperty 
+class ExplosionProperty : public EntityProperty 
 {
 public:
-	ProjectileProperty(const Weapon & weaponThatSpawnedIt, Entity * owner, bool enemy);
+	ExplosionProperty(const Weapon & weaponThatSpawnedIt, Entity * owner);
 	// Static version.
 	static int ID();
-
+	/// Based on radius
+	float CurrentDamage();
 	/// If reacting to collisions...
 	virtual void OnCollision(Collision & data);
-
-	void Destroy();
-
+	/// Despawning/deleting
+	void Remove();
 	// Fall asleep.. unregistering it from physics, graphics, etc.
 	void SleepThread();
 	void UpdateVelocity();
@@ -34,13 +32,22 @@ public:
 	/// Resets sleep-flag, among other things
 	void OnSpawn();
 
+	/// in ms
+	int duration; 
+	/// PASTED
+	int totalDamageInflicted;
+	Weapon weapon;
+	Vector3f position;
+	float currentRadius;
+	List<Ship*> affectedShips; // Only affect a ship once.
+	Time startTime;
+
+
 	// Whose side the projectile belongs to. Determines who it will react to/damage.
+	bool player;
 	bool enemy;
 
-	Weapon weapon;
-	float distanceTraveled;
-
-	List<Ship*> penetratedTargets;
+	List<Ship*> damagedTargets;
 	/// If not currently active (available for re-use).
 	bool sleeping;
 
@@ -48,9 +55,6 @@ public:
 	int timeAliveMs;
 	Vector4f color;
 	String onCollisionMessage;
-	Vector3f direction;
-	Vector3f up; // Set upon launch, used to change direction of laser burst projectiles
-	int nextWobbleMs; // Next time in timeAliveMs that it should change direction.
 };
 
 #endif

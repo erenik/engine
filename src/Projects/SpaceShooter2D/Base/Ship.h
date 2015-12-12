@@ -47,12 +47,16 @@ public:
 	/// Disables weapon in this and children ships.
 	void DisableWeapon(String weaponName);
 	bool DisableWeaponsByID(int id);
+	bool DisableAllWeapons();
+	bool EnableWeaponsByID(int id);
+	void SetWeaponCooldownByID(int id, int newcooldown);
 	/// Prepends the source with '/obj/Ships/' and appends '.obj'. Uses default 'Ship.obj' if needed.
 	Model * GetModel();
 	/// o.o
 	void DisableMovement();
 	void OnSpeedUpdated();
 	void SetProjectileSpeedBonus(float newBonus); // Sets new bonus, updates weapons if needed.
+	void SetWeaponCooldownBonus(float newBonus); // Sets new bonus, updates weapons if needed.
 	void Damage(Weapon & usingWeapon);
 	void Damage(float amount, bool ignoreShield);
 	void Destroy();
@@ -105,6 +109,8 @@ public:
 	bool despawnOutsideFrame;
 	// Faction.
 	String type;
+	String physicsModel;
+
 	SpawnGroup * spawnGroup;
 	Ship * parent;
 	List<Ship*> children;
@@ -131,6 +137,7 @@ public:
 	Time collisionDamageCooldown; // default 100 ms.
 	// Default 0. Scriptable.
 	float projectileSpeedBonus;
+	float weaponCooldownBonus;
 	/// Mooovemeeeeeeent
 	List<Movement> movementPatterns;
 	int currentMovement; // Index of which pattern is active at the moment.

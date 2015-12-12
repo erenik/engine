@@ -3,6 +3,7 @@
 /// Ship property
 
 #include "SpaceShooter2D/Properties/ShipProperty.h"
+#include "ExplosionProperty.h"
 #include "Entity/Entity.h"
 
 #include "Physics/PhysicsManager.h"
@@ -188,6 +189,15 @@ void ShipProperty::OnCollision(Entity * withEntity)
 		else 
 		{
 	//		std::cout<<"\nShould not! o.o";
+		}
+	}
+	ExplosionProperty * exp = (ExplosionProperty*) other->GetProperty(ExplosionProperty::ID());
+	if (exp && !exp->sleeping)
+	{
+		if (exp->ShouldDamage(ship))
+		{
+			ship->Damage(exp->CurrentDamage(), false);
+			exp->damagedTargets.AddItem(ship);
 		}
 	}
 }

@@ -85,6 +85,24 @@ bool Ship::LoadTypes(String file)
 				if (ship->weapons.Size())
 					ship->canShoot = true;
 			}
+			else if (column == "Weapon Locations")
+			{
+				List<String> locations = value.Tokenize(",");
+				int numLocations = locations.Size();
+				int numWeaps = ship->weapons.Size();
+				if (numLocations != numWeaps)
+				{
+					LogMain("Bad number of locations for weapons, "+String(numLocations)+" locations for "+String(numWeaps)+" weapons", INFO);
+					continue;
+				}
+				for (int i = 0; i < ship->weapons.Size(); ++i)
+				{
+					Weapon * weapon = ship->weapons[i];
+					String locStr = locations[i];
+					weapon->location.ParseFrom(locStr);
+					std::cout<<"\nWeap "<<weapon->name<<" pos"<<weapon->location;
+				}
+			}
 			else if (column == "Movement pattern")
 			{
 				ship->ParseMovement(value);
@@ -118,6 +136,8 @@ bool Ship::LoadTypes(String file)
 				ship->maxRadiansPerSecond = DEGREES_TO_RADIANS(value.ParseInt());
 			else if (column == "Graphic model")
 				ship->graphicModel = value;
+			else if (column == "Physics Model")
+				ship->physicsModel = value;
 			else 
 			{
 				LogMain("Unrecognized column name \'"+column+"\'.", INFO);

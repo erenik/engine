@@ -55,7 +55,7 @@ public:
 	void OnLevelTimeAdjusted();
 	Entity * ClosestTarget(bool ally, ConstVec3fr position);
 	/// o.o'
-	void Explode(Weapon & weapon, ConstVec3fr position);
+	void Explode(Weapon & weapon, Entity * causingEntity, bool enemy);
 	/// Returns ships close enough to given point. Returns distance to them too. Checks only to center of ship, not edges.
 	List<Ship*> GetShipsAtPoint(ConstVec3fr position, float maxRadius, List<float> & distances); 
 

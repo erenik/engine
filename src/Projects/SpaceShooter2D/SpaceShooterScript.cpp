@@ -187,6 +187,20 @@ bool SpaceShooterEvaluator::EvaluateFunction(String byName, List<String> argumen
 		result = ExpressionResult::Boolean(true);
 		return true;
 	}
+	else if (name == "DisableAllWeapons")
+	{
+		GRAB_SHIP
+		ship->DisableAllWeapons();
+		result = ExpressionResult::Boolean(true);
+		return true;
+	}
+	else if (name == "EnableWeapon")
+	{
+		GRAB_SHIP
+		ship->EnableWeaponsByID(arguments[1].ParseInt());
+		result = ExpressionResult::Boolean(true);
+		return true;
+	}
 	else if (name == "SetMovementPattern")
 	{
 		GRAB_SHIP
@@ -216,6 +230,20 @@ bool SpaceShooterEvaluator::EvaluateFunction(String byName, List<String> argumen
 	{
 		GRAB_SHIP;
 		ship->SetProjectileSpeedBonus(arguments[1].ParseFloat()); 
+		result = ExpressionResult::Boolean(true);
+		return true;
+	}
+	else if (name == "SetWeaponCooldownBonus")
+	{
+		GRAB_SHIP;
+		ship->SetWeaponCooldownBonus(arguments[1].ParseFloat()); 
+		result = ExpressionResult::Boolean(true);
+		return true;
+	}
+	else if (name == "SetWeaponCooldown")
+	{
+		GRAB_SHIP;
+		ship->SetWeaponCooldownByID(arguments[1].ParseInt(), arguments[2].ParseFloat());
 		result = ExpressionResult::Boolean(true);
 		return true;
 	}
@@ -286,7 +314,9 @@ bool SpaceShooterEvaluator::IsFunction(String name)
 		name == "PositionY" || name == "PositionX" || name == "DisableWeapon" || name == "SetMovementPattern" ||
 		name == "HPPercent" || name == "PartsDestroyed" || name == "SetProjectileSpeedBonus" ||
 		name == "CreateTimer" || name == "TimeElapsedMs" || name == "ResetTimer" || name == "Log" ||
-		name == "CreateInt" || name == "SetInt" || name == "CreateFloat" || name == "SetFloat")
+		name == "CreateInt" || name == "SetInt" || name == "CreateFloat" || name == "SetFloat" ||
+		name == "SetWeaponCooldownBonus" || name == "EnableWeapon" || name == "DisableAllWeapons" ||
+		name == "SetWeaponCooldown")
 		return true;
 	return false;
 }

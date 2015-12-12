@@ -20,6 +20,7 @@ extern SpaceShooterEvaluator spaceShooterEvaluator;
 
 Ship::Ship()
 {
+	weaponCooldownBonus = 0;
 	childrenDestroyed = 0;
 	projectileSpeedBonus = 0;
 	shipID = ++shipIDEnumerator;
@@ -110,9 +111,18 @@ List<Entity*> Ship::Spawn(ConstVec3fr atPosition, Ship * in_parent)
 	// Setup physics.
 	pp->type = PhysicsType::DYNAMIC;
 	pp->collisionCategory = CC_ENEMY;
-	pp->collisionFilter = CC_PLAYER | CC_PLAYER_PROJ;
+	pp->collisionFilter = CC_ALL_PLAYER;
 	pp->collisionCallback = true;
 	pp->shapeType = PhysicsShape::AABB;
+	/// Adjust physics model as needed.
+	if (this->physicsModel.Length())
+	{
+		if (this->physicsModel == "GraphicModel")
+		{
+			// Same model as in graphics.
+			pp->shapeType = PhysicsShape::MESH;
+		}
+	}
 	// By default, set invulerability on spawn.
 	this->spawnInvulnerability = true;
 	ShipProperty * sp = new ShipProperty(this, entity);
@@ -367,7 +377,27 @@ void Ship::SetProjectileSpeedBonus(float newBonus)
 {
 	projectileSpeedBonus = newBonus;
 } 
+	
+// Sets new bonus, updates weapons if needed.
+void Ship::SetWeaponCooldownBonus(float newBonus)
+{
+	weaponCooldownBonus = newBonus;
+} 
 
+
+void Ship::SetWeaponCooldownByID(int id, int newcooldown)
+{
+	for (int i = 0; i < weapons.Size(); ++i)
+	{
+		Weapon * weap = weapons[i];
+		if (weap->type == id)
+			weap->cooldown = newcooldown;
+	}
+	for (int i = 0; i < children.Size(); ++i)
+	{
+		children[i]->SetWeaponCooldownByID(id, newcooldown);
+	}
+}
 /// Disables weapon in this and children ships.
 void Ship::DisableWeapon(String weaponName)
 {
@@ -522,6 +552,33 @@ bool Ship::DisableWeaponsByID(int id)
 	return true;
 }
 
+#define FOR_ALL_WEAPONS \
+	for (int i = 0; i < weapons.Size(); ++i)\
+	{\
+		Weapon * weap = weapons[i];
+bool Ship::EnableWeaponsByID(int id)
+{
+	FOR_ALL_WEAPONS
+		if (weap->type == id)
+			weap->enabled = true;
+	}
+	for (int i = 0; i < children.Size(); ++i)
+		children[i]->EnableWeaponsByID(id);
+	return true;
+}
+
+bool Ship::DisableAllWeapons()
+{
+	for (int i = 0; i < weapons.Size(); ++i)
+	{
+		Weapon * weap = weapons[i];
+		weap->enabled = false;
+	}
+	for (int i = 0; i < children.Size(); ++i)
+		children[i]->DisableAllWeapons();
+	return true;
+}
+
 
 void Ship::SetMovement(Movement & movement)
 {
@@ -556,7 +613,7 @@ Ship * Ship::New(String shipByName)
 			{
 				Weapon * refWeap = type->weapons[j];
 				Weapon * newWeap = new Weapon();
-				*newWeap = *Weapon::Get(refWeap->type, refWeap->level);
+				*newWeap = *refWeap; // Weapon::Get(refWeap->type, refWeap->level);
 				newShip->weapons.AddItem(newWeap);
 			}
 			return newShip;

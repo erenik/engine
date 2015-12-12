@@ -20,6 +20,8 @@ void PhysicsManager::Integrate(float timeInSecondsSinceLastUpdate)
 
 	/// Not to be confused with physicsTimeMs;
 	Time now = Time::Now();
+	// Already estimated elsewhere...
+	/*
 	/// If it uses estimation, process that now.
 	for (int i = 0; i < physicalEntities.Size(); ++i)
 	{
@@ -28,7 +30,7 @@ void PhysicsManager::Integrate(float timeInSecondsSinceLastUpdate)
 		{
 			entity->physics->estimator->Estimate(now, false);
 		}
-	}
+	}*/
 
 	if (physicsIntegrator)
 	{

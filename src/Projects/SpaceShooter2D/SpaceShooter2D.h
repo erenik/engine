@@ -68,10 +68,16 @@
 #define CC_ENEMY		2
 #define CC_PLAYER_PROJ	4
 #define CC_ENEMY_PROJ	8
+#define CC_PLAYER_EXPL	16
+#define CC_ENEMY_EXPL	32
+
+#define CC_ALL_PLAYER (CC_PLAYER | CC_PLAYER_PROJ | CC_PLAYER_EXPL)
+#define CC_ALL_ENEMY (CC_ENEMY | CC_ENEMY_PROJ | CC_ENEMY_EXPL)
 
 enum {
 	SHIP_PROP,
 	PROJ_PROP,
+	EXPL_PROP,
 };
 
 class SpaceShooterCR;

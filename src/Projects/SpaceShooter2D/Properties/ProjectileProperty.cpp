@@ -5,8 +5,8 @@
 #include "SpaceShooter2D/SpaceShooter2D.h"
 #include "SpaceShooter2D/Properties/ProjectileProperty.h"
 
-ProjectileProperty::ProjectileProperty(const Weapon & weaponThatSpawnedIt, Entity * owner)
-: EntityProperty("ProjProp", ID(), owner), weapon(weaponThatSpawnedIt)
+ProjectileProperty::ProjectileProperty(const Weapon & weaponThatSpawnedIt, Entity * owner, bool enemy)
+: EntityProperty("ProjProp", ID(), owner), weapon(weaponThatSpawnedIt), enemy(enemy)
 {
 	sleeping = false;
 	timeAliveMs = 0;
@@ -45,9 +45,9 @@ void ProjectileProperty::Destroy()
 
 
 	// Check if an explosion should be spawned in its place.
-	if (weapon.explosionRadius > 0)
+	if (weapon.explosionRadius > 0.001)
 	{
-		activeLevel->Explode(weapon, owner->worldPosition);
+		activeLevel->Explode(weapon, owner, enemy);
 		float lifeTime = weapon.explosionRadius / 10.f;
 		ClampFloat(lifeTime, 2.5f, 10.f);
 		// Explosion emitter o-o should prob. have its own system later on.
@@ -137,7 +137,7 @@ void ProjectileProperty::Process(int timeInMs)
 		// Adjust velocity towards it by the given factor, per second.
 		// 1.0 will change velocity entirely to look at the enemy.
 		// Values above 1.0 will try and compensate for target velocity and not just current position?
-		Entity * closestTarget = spaceShooter->level.ClosestTarget(player, owner->worldPosition);
+		Entity * closestTarget = spaceShooter->level.ClosestTarget(!enemy, owner->worldPosition);
 		if (!closestTarget)
 			return;
 		Vector3f toTarget = closestTarget->worldPosition - owner->worldPosition;
