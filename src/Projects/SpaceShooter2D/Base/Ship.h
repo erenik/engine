@@ -16,6 +16,7 @@ class Entity;
 class Model;
 class SpawnGroup;
 class WeaponScript;
+class ShipProperty;
 
 enum 
 {
@@ -113,6 +114,7 @@ public:
 
 	SpawnGroup * spawnGroup;
 	Ship * parent;
+	ShipProperty * shipProperty;
 	List<Ship*> children;
 	// Bools
 	bool canMove;

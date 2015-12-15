@@ -148,7 +148,8 @@ int PhysicsManager::RegisterEntity(Entity * newEntity)
 /** Registers a selection of entities to take part in physics calculations. This requires that the entities have physics attributes attached.
 	Returns 0 upon success or a positive number equal to the amount of entities that it failed to register.
 */
-int PhysicsManager::RegisterEntities(List<Entity*> & targetEntities){
+int PhysicsManager::RegisterEntities(List<Entity*> & targetEntities)
+{
 	int failedRegistrations = 0;
 	for (int i = 0; i < targetEntities.Size(); ++i){
 		if (RegisterEntity(targetEntities[i]) != 0)
@@ -161,8 +162,10 @@ int PhysicsManager::RegisterEntities(List<Entity*> & targetEntities){
 /// Unregisters an Entity from the physics calculations. Returns 0 if it found the Entity and successfully removed it, 1 if not.
 int PhysicsManager::UnregisterEntity(Entity * entityToRemove)
 {
-	/// If have kids, unbind.
+	/// If have kids/parent, unbind.
 	entityToRemove->RemoveLinks();
+	if (entityToRemove->name.Contains("Boss1"))
+		std::cout<<"\nUnregistering "<<entityToRemove->name;
 //	LogPhysics("Unregistering entity for physics "+entityToRemove->name, DEBUG);
 	int found = 0;
 	int entitiesInOctree = entityCollisionOctree->RegisteredEntities();

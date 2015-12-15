@@ -592,6 +592,12 @@ int MapManager::DeleteAllEntities()
 	assert(activeMap);
 	int deleted = 0;
 	List<Entity*> mapEntities = activeMap->GetEntities();
+	String lg;
+	for (int i = 0; i < mapEntities.Size(); ++i)
+	{
+		lg += mapEntities[i]->name+" ";
+	}
+	LogMain("Deleting entities "+lg, INFO);
 	activeMap->RemoveEntities(mapEntities);
 	QueueGraphics(new GMUnregisterEntities(mapEntities));
 	QueuePhysics(new PMUnregisterEntities(mapEntities));
@@ -616,7 +622,9 @@ bool MapManager::DeleteEntity(Entity * entity)
 	if (!entity)
 		return false;
 	// Check that it isn't already flagged for deletion
-	if (!entity && !entity->flaggedForDeletion){
+	if (entity->flaggedForDeletion)
+	{
+		std::cout<<"\nEntity "<<entity->name<<" already flagged for deletion.";
 		return false;
 	}
 //	std::cout<<"\nEntity flagged for deletion. ";

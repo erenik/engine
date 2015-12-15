@@ -273,7 +273,12 @@ bool SpaceShooterEvaluator::EvaluateFunction(String byName, List<String> argumen
 	}
 	else if (name == "Log")
 	{
-		std::cout<<"\n"<<arguments[0];
+		String catenated;
+		for (int i = 0; i < arguments.Size(); ++i)
+		{
+			catenated += arguments[i];
+		}
+		std::cout<<"\n"<<catenated;
 //		LogMain(arguments[0], INFO);
 		result = ExpressionResult::Boolean(true);
 		return true;

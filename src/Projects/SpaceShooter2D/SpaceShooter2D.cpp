@@ -294,6 +294,7 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 				if (file.Contains(".srl"))
 				{
 					level.Load(file);
+					level.OnEnter();
 				}
 				if (file.Contains(".csv"))
 				{
@@ -1196,11 +1197,7 @@ void SpaceShooter2D::LoadLevel(String fromSource)
 	PhysicsMan.Resume();
 	// Set mode! UI updated from within.
 	SetMode(PLAYING_LEVEL);
-	// Play music?
-	if (level.music.Length())
-	{
-		AudioMan.QueueMessage(new AMPlay(AudioType::BGM, level.music, 1.f));
-	}
+	level.OnEnter();
 	// Run start script.
 	ScriptMan.PlayScript("scripts/OnLevelStart.txt");
 

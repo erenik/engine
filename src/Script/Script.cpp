@@ -25,6 +25,25 @@
 const char * Script::rootEventDir = "data/scripts/";
 List<FunctionEvaluator*> Script::defaultFunctionEvaluators;
 
+ScriptLevel::ScriptLevel()
+{
+	Nullify();
+}
+ScriptLevel::ScriptLevel(int i_type, int i_startLine) 
+{
+	Nullify();
+	type = i_type;
+	startLine = i_startLine;
+	endLine = 0;
+};
+
+void ScriptLevel::Nullify()
+{
+	evaluatedAtLine = 0;
+	endLine = 0;
+	type = -1;
+}
+
 Script::Script(const Script & base)
 {
 	Nullify();
@@ -579,13 +598,14 @@ void Script::EvaluateLine(String & line)
 		/// Should be in an if-stack, check if we already evaluated.
 		ScriptLevel sl = stack.Last();
 		assert(sl.type == ScriptLevel::IF_CLAUSE);
+		/// If already evaluated, jump to endif.
 		if (sl.evaluatedAtLine > 0)
 		{
-//			std::cout<<"do stuff";
 			// Jump to endif.
 			JumpToEndif();
 			return;
 		}
+		/// If not, handle the conditional first.
 		HandleConditional(line);
 	}
 	else if (line.Contains("if(") || line.Contains("if ("))
@@ -857,6 +877,7 @@ void Script::JumpToNextConditional()
 		String l = lines[i];
 		if (l.Contains("elsif"))
 		{
+			std::cout<<"\nJumpToNextConditional: "<<l;
 			currentLine = i;
 			// Call this function again?
 			EvaluateLine(lines[i]);
@@ -886,6 +907,7 @@ void Script::JumpToEndif()
 		String l = lines[i];
 		if (l.Contains("endif"))
 		{
+			std::cout<<"\nJumpToEndif: "+l+" from: "+lines[currentLine];
 			currentLine = i;
 			lineProcessed = false;
 	//		lineFinished = true;

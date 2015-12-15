@@ -22,8 +22,9 @@ class FunctionEvaluator;
 class ScriptLevel 
 {
 public:
-	ScriptLevel(){};
-	ScriptLevel(int type, int startLine) : type(type), startLine(startLine), endLine(0){};
+	ScriptLevel();
+	ScriptLevel(int type, int startLine);
+	void Nullify();
 	enum{
 		IF_CLAUSE,
 		WHILE_LOOP,

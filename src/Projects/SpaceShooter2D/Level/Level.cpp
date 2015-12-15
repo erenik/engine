@@ -48,6 +48,16 @@ Level::~Level()
 	ships.ClearAndDelete();
 }
 
+/// Starts BGM, starts clocks/timers if any, etc.
+void Level::OnEnter()
+{
+	// Play music?
+	if (music.Length())
+	{
+		AudioMan.QueueMessage(new AMPlay(AudioType::BGM, music, 1.f));
+	}
+}
+
 // Used for player and camera. Based on millisecondsPerPixel.
 Vector3f Level::BaseVelocity()
 {
@@ -511,11 +521,15 @@ void Level::RemoveRemainingSpawnGroups()
 
 void Level::RemoveExistingEnemies()
 {
+	String lg;
 	for (int i = 0; i < ships.Size(); ++i)
 	{
 		Ship * ship = ships[i];
+		lg += ship->name+" ";
 		ship->Despawn();
 	}
+	LogMain("Deleting entities "+lg, INFO);
+
 	Sleep(50);
 	ships.ClearAndDelete();
 }

@@ -102,11 +102,9 @@ void Level::Clear()
 
 bool Level::Load(String fromSource)
 {
-	Clear();
 	// Clear old stuff
 	this->winCriteria = Level::NEVER;
-	this->RemoveRemainingSpawnGroups();
-	this->RemoveExistingEnemies();
+	Clear();
 	levelTime.intervals = 0;
 
 

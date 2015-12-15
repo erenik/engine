@@ -41,6 +41,8 @@ public:
 	/// Deletes all ships, spawngroups, resets variables to defaults.
 	void Clear();
 	bool Load(String fromSource);
+	/// Starts BGM, starts clocks/timers if any, etc.
+	void OnEnter();
 	// Used for player and camera. Based on millisecondsPerPixel.
 	Vector3f BaseVelocity();
 	/// Creates player entity within this level. (used for spawning)

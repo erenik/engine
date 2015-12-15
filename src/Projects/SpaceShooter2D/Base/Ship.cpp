@@ -13,6 +13,7 @@
 #include "SpaceShooter2D/Level/SpawnGroup.h"
 #include "WeaponScript.h"
 #include "SpaceShooter2D/SpaceShooterScript.h"
+#include "../Properties/ShipProperty.h"
 
 int Ship::shipIDEnumerator = 0;
 
@@ -20,6 +21,7 @@ extern SpaceShooterEvaluator spaceShooterEvaluator;
 
 Ship::Ship()
 {
+	shipProperty = 0;
 	weaponCooldownBonus = 0;
 	childrenDestroyed = 0;
 	projectileSpeedBonus = 0;
@@ -126,6 +128,7 @@ List<Entity*> Ship::Spawn(ConstVec3fr atPosition, Ship * in_parent)
 	// By default, set invulerability on spawn.
 	this->spawnInvulnerability = true;
 	ShipProperty * sp = new ShipProperty(this, entity);
+	shipProperty = sp;
 	entity->properties.Add(sp);
 	this->entity = entity;
 	this->spawned = true;
@@ -210,24 +213,40 @@ List<Entity*> Ship::SpawnChildren()
 	return childrenSpawned;
 }
 
+/// Despawns children. Does not resolve parent-pointers.
 void Ship::Despawn()
 {
-	LogMain("Despawning ship "+name, INFO);
 	if (!spawned)
 		return;
+	for (int i = 0; i < children.Size(); ++i)
+	{
+		Ship * child = children[i];
+		child->parent = 0;
+		child->Despawn();
+	}
+//	LogMain("Despawning ship "+name+" with children "+childrrr, INFO);
 	spawned = false;
-	/// Notify parent if child.
+
+	// Delete entity first.
+	Entity * tmp = entity;
+	entity = 0;
+	std::cout<<"\nDeleting entity "+tmp->name;
+	MapMan.DeleteEntity(tmp);
+	/// Waaaat.
+	shipEntities.Remove(tmp);
+
+	/// Unbind link from property to this ship.
+	shipProperty->sleeping = true; // Set sleeping so it shouldn't process anything anymore.
+	shipProperty->ship = 0;
+
+	/// Notify parent if child?
 	if (parent)
 	{
 		++parent->childrenDestroyed;
 		parent->children.RemoveItem(this);
 		parent = 0;
 	}
-	for (int i = 0; i < children.Size(); ++i)
-	{
-		Ship * child = children[i];
-		child->Despawn();
-	}
+
 	children.Clear();
 	if (spawnGroup)
 	{
@@ -236,10 +255,6 @@ void Ship::Despawn()
 		else
 			spawnGroup->OnShipDespawned(this);
 	}
-	Entity * tmp = entity;
-	entity = 0;
-	MapMan.DeleteEntity(tmp);
-	shipEntities.Remove(tmp);
 }
 
 /// Checks current movement. Will only return true if movement is target based and destination is within threshold.

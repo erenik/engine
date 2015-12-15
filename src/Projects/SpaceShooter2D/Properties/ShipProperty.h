@@ -12,6 +12,7 @@
 
 class ShipProperty : public EntityProperty
 {
+	friend class Ship;
 public:
 	/// Reference to the game and this property's owner.
 	ShipProperty(Ship * ship, Entity * owner);

@@ -5,6 +5,8 @@
 #include "SSIntegrator.h"
 #include "SpaceShooter2D/SpaceShooter2D.h"
 
+extern Entity * playerEntity;
+
 SSIntegrator::SSIntegrator(float zPlane)
 {
 	constantZ = zPlane;
@@ -25,14 +27,20 @@ void SSIntegrator::IntegrateDynamicEntities(List<Entity*> & dynamicEntities, flo
 	{
 		Entity * dynamicEntity = dynamicEntities[i];
 		IntegrateVelocity(dynamicEntity, timeInSeconds);
+		/// Apply bounding for player in other manner...
 		/// Check if player
-		ShipProperty * sp = (ShipProperty*) dynamicEntity->GetProperty(shipID);
+//		ShipProperty * sp = (ShipProperty*) dynamicEntity->GetProperty(shipID);
 		// If so, limit to inside the radiusiusius
-		if (sp && sp->IsAllied())
+		if (dynamicEntity == playerShip->entity)
 		{
 	//		std::cout<<"\nShip property: "<<sp<<" ID "<<sp->GetID()<<" allied: "<<sp->ship->allied;
 			/// Adjusting local position may not help ensuring entity is within bounds for child entities.
-			assert(dynamicEntity->parent == 0);
+//			assert(dynamicEntity->parent == 0);
+			if (dynamicEntity->parent != 0)
+			{
+				std::cout<<"\nDE: "<<dynamicEntity->name;
+				return;
+			}
 			Vector3f & position = dynamicEntity->localPosition;
 			ClampFloat(position[0], frameMin[0], frameMax[0]);
 			ClampFloat(position[1], frameMin[1], frameMax[1]);		
