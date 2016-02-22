@@ -25,6 +25,10 @@ String GetSection(String inString, char withStartToken, char andEndToken);
 /// o.o prepends of all the strings in a list.
 void PrependStrings(List<String> & list, String withString);
 
+/// Finds appropriate CSV delimiter in given string. Usually highest occurrance of the following ('\t;,')
+char FindCSVDelimiter(String csvString);
+/// For loading CSV files, automatically looks for and tokenizes by appropriate delimiter (',\t ;'), and abserves quotation marks for any occurences of delimiter within the actual data.
+List<String> TokenizeCSVAuto(String csvString);
 /// For loading CSV files, looks for the delimiter (usually comma ','), and abserves quotation marks for any occurences of commas within the actual data.
 List<String> TokenizeCSV(String csvString, int delimiter = ',');
 /** Used to tokenize with some characters used to start and stop the tokenization procedure temporarily.

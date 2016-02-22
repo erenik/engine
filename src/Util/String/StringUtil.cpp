@@ -66,6 +66,32 @@ void PrependStrings(List<String> & list, String withString)
 	}
 }
 
+
+/// Finds appropriate CSV delimiter in given string. Usually highest occurrance of the following ('\t;,')
+char FindCSVDelimiter(String csvString)
+{
+	String tokens(";,\t");
+	int maxDelim = 0, maxCount = 0;
+	for (int i = 0; i < tokens.Length(); ++i)
+	{
+		char delim = tokens.CharAt(i);
+		int count = csvString.Count(delim);
+		if (count > maxCount)
+		{
+			maxCount = count;
+			maxDelim = delim;
+		}
+	}
+	return maxDelim;
+}
+
+/// For loading CSV files, automatically looks for and tokenizes by appropriate delimiter (',\t ;'), and abserves quotation marks for any occurences of delimiter within the actual data.
+List<String> TokenizeCSVAuto(String csvString)
+{
+	char delimiter = FindCSVDelimiter(csvString);
+	return TokenizeCSV(csvString, delimiter);
+}
+
 /// For loading CSV files, looks for the delimiter (usually comma ','), and abserves quotation marks for any occurences of commas within the actual data.
 List<String> TokenizeCSV(String csvString, int delimiter)
 {

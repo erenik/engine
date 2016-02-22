@@ -18,17 +18,14 @@ bool Ship::LoadTypes(String file)
 	List<String> lines = File::GetLines(file);
 	if (lines.Size() == 0)
 		return false;
-	
+
 	file.SetComparisonMode(String::NOT_CASE_SENSITIVE);
 	bool isBoss = file.Contains("boss");
-
 	String separator;
 	/// Column-names. Parse from the first line.
 	List<String> columns;
 	String firstLine = lines[0];
-	int commas = firstLine.Count(',');
-	int semiColons = firstLine.Count(';');
-	int delimiter = semiColons > commas? ';' : ',';
+	char delimiter = FindCSVDelimiter(firstLine);;
 	// Keep empty strings or all will break.
 	columns = TokenizeCSV(firstLine, delimiter);
 
@@ -66,7 +63,7 @@ bool Ship::LoadTypes(String file)
 			else if (column == "Type")
 				ship->type = value;
 			else if (column == "Difficulty")
-				ship->difficulty = value.ParseInt();
+				ship->difficulty = value.ParseInt();			
 			else if (column == "OnCollision")
 				ship->onCollision = value;
 			else if (column == "Weapons")
@@ -149,8 +146,7 @@ bool Ship::LoadTypes(String file)
 			}
 		}
 
-		ship->boss = isBoss;
-		LogMain("Ship loaded: "+ship->name+", weapons: "+ship->weapons.Size(), INFO);
+		ship->boss = isBoss;		LogMain("Ship loaded: "+ship->name+", weapons: "+ship->weapons.Size(), INFO);
 		// Check for pre-existing ship of same name, remove it if so.
 		for (int i = 0; i < types.Size(); ++i)
 		{
