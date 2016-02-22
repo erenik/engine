@@ -12,6 +12,8 @@ extern bool gameTimePaused;
 extern bool defeatedAllEnemies;
 extern bool failedToSurvive;
 
+void GenerateLevel (String arguments);
+
 struct ShipColorCoding 
 {
 	String ship;
@@ -23,6 +25,7 @@ class SpawnGroup;
 class Camera;
 class Level;
 class LevelMessage;
+class Message;
 
 extern Camera * levelCamera;
 // Right hand boundary when ships remove initial invulnerability.

@@ -123,8 +123,10 @@ public:
 	bool hasShield;
 	bool shoot; // if shooting is requested.
 	bool weaponScriptActive; // Default false.
+	bool boss; //is it a boss?
 	int skill; // Default 0, see above.
 	String skillName;
+	int difficulty;
 	int timeSinceLastSkillUseMs;
 	int skillCooldownMs;
 	int activeSkill;

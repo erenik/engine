@@ -312,6 +312,10 @@ void Level::ProcessMessage(Message * message)
 		}
 		case MessageType::STRING:
 		{
+ 			if (msg.StartsWith("GenerateLevel"))
+			{
+				GenerateLevel(msg);
+			}
 			if (msg == "ListPhysicalEntities")
 			{
 				Entities entities = PhysicsMan.GetEntities();
