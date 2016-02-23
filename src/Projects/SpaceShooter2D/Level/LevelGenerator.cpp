@@ -42,22 +42,37 @@ void GenerateLevel (String arguments)
 	
 
 	Random selector;
+	
+	CreateFolder("GeneratedLevels");
 
-	//Create spawns in order
+	File::ClearFile("Generatedlevel.srl");
+	// Create spawns in order
 	AETime spawnTime(TimeType::MILLISECONDS_NO_CALENDER);
 	while(spawnTime.Seconds() <= levelDuration.Seconds())
 	{
-
+		
 		SpawnGroup * sg = new SpawnGroup();
+		// Cooldown between spawns
 		spawnTime.AddMs(3000);
+		// When it spawns
 		sg->spawnTime = spawnTime;
+		// Pick a ship
 		sg->shipType = relevantShips[selector.Randi(relevantShips.Size())];
 		level.spawnGroups.AddItem(sg);
+		// Pick a formation
 		sg->formation = Formation::LINE_Y;
+		// Pick a number of ships
 		sg->number = selector.Randi(9)+1;
+		// Pick a formation size
 		sg->size = Vector2f(5, 5);
-
+		
+		String str = sg->GetLevelCreationString(sg->spawnTime);
+		File::AppendToFile("Generatedlevel.srl", str);
+		
 	}
-
+	AETime time = AETime::Now(); 
+	String timestr = time.ToString("Y-M-D-H-m");
+	String contents = File::GetContents("Generatedlevel.srl");
+	File::AppendToFile("./GeneratedLevels/Generatedlevel"+timestr+".srl", contents);
 
 };
