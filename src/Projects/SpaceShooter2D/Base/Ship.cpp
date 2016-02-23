@@ -37,9 +37,10 @@ Ship::Ship()
 	activeWeapon = 0;
 	spawned = false;
 	entity = NULL;
-	ai = true;
+	enemy = true;
 	allied = false;
-	maxHP = hp = 10;
+	maxHP = 10;
+	hp = 10.f;
 	canMove = false;
 	canShoot = false;
 	spawnInvulnerability = false;
@@ -83,13 +84,18 @@ void Ship::RandomizeWeaponCooldowns()
 	for (int i = 0; i < weapons.Size(); ++i)
 	{
 		Weapon * weap = weapons[i];
-		weap->currCooldownMs = weap->cooldown.Milliseconds() * cooldownRand.Randf();
+		weap->currCooldownMs = (int) (weap->cooldown.Milliseconds() * cooldownRand.Randf());
 //		weap->lastShot = /*flyTime +*/ Time::Milliseconds(weap->cooldown.Milliseconds() * cooldownRand.Randf());
 	}
 }
 
 List<Entity*> Ship::Spawn(ConstVec3fr atPosition, Ship * in_parent)
 {
+	/// Reset stuffs if not already done so.
+	movementDisabled = false;
+	RandomizeWeaponCooldowns();
+
+	/// Stuff.
 	name.SetComparisonMode(String::NOT_CASE_SENSITIVE);
 	if (name.Contains("boss"))
 		despawnOutsideFrame = false;
@@ -101,19 +107,29 @@ List<Entity*> Ship::Spawn(ConstVec3fr atPosition, Ship * in_parent)
 
 	Entity * entity = EntityMan.CreateEntity(name, GetModel(), TexMan.GetTextureByColor(Color(0,255,0,255)));
 	entity->localPosition = atPosition;
-	float radians = PI / 2;
-//		entity->rotation[0] = radians; // Rotate up from Z- to Y+
-//		entity->rotation[1] = radians; // Rorate from Y+ to X-
-	/// No default rotation.
-	if (!parent)
-		entity->SetRotation(Vector3f(radians, radians, 0));
 	
 	PhysicsProperty * pp = new PhysicsProperty();
 	entity->physics = pp;
 	// Setup physics.
 	pp->type = PhysicsType::DYNAMIC;
-	pp->collisionCategory = CC_ENEMY;
-	pp->collisionFilter = CC_ALL_PLAYER;
+	float radians = PI / 2;
+	if (enemy)
+	{
+		pp->collisionCategory = CC_ENEMY;
+		pp->collisionFilter = CC_ALL_PLAYER;
+		/// Turn to face left -X
+		if (!parent)
+			entity->SetRotation(Vector3f(radians, radians, 0));
+	}
+	/// Allied
+	else 
+	{
+		pp->velocity = spaceShooter->level.BaseVelocity();
+		pp->collisionCategory = CC_PLAYER;
+		pp->collisionFilter = CC_ALL_ENEMY;
+		/// Turn to face X+
+		entity->SetRotation(Vector3f(radians, -radians, 0));
+	}
 	pp->collisionCallback = true;
 	pp->shapeType = PhysicsShape::AABB;
 	/// Adjust physics model as needed.
@@ -214,15 +230,17 @@ List<Entity*> Ship::SpawnChildren()
 }
 
 /// Despawns children. Does not resolve parent-pointers.
-void Ship::Despawn()
+void Ship::Despawn(bool doExplodeEffectsForChildren)
 {
 	if (!spawned)
 		return;
 	for (int i = 0; i < children.Size(); ++i)
 	{
 		Ship * child = children[i];
+		if (doExplodeEffectsForChildren)
+			child->ExplodeEffects();
 		child->parent = 0;
-		child->Despawn();
+		child->Despawn(doExplodeEffectsForChildren);
 	}
 //	LogMain("Despawning ship "+name+" with children "+childrrr, INFO);
 	spawned = false;
@@ -292,7 +310,7 @@ void Ship::Process(int timeInMs)
 	if (hasShield)
 	{
 		// Repair shield
-		shieldValue += timeInMs * shieldRegenRate * (activeSkill == POWER_SHIELD? 10.f : 0.001);
+		shieldValue += timeInMs * shieldRegenRate * (activeSkill == POWER_SHIELD? 10.f : 0.001f);
 		if (shieldValue > MaxShield())
 			shieldValue = MaxShield();
 		if (allied)
@@ -302,7 +320,7 @@ void Ship::Process(int timeInMs)
 	{
 		hp += timeInMs * armorRegenRate * 0.001f;
 		if (hp > maxHP)
-			hp = maxHP;
+			hp = (float) maxHP;
 		spaceShooter->UpdateUIPlayerHP(false);
 	}
 }
@@ -310,7 +328,7 @@ void Ship::Process(int timeInMs)
 void Ship::ProcessAI(int timeInMs)
 {
 	// Don't process inactive ships..
-	if (!ai)
+	if (!enemy)
 		return;
 	if (rotationPatterns.Size() == 0)
 		return;
@@ -358,8 +376,8 @@ void Ship::ProcessWeapons(int timeInMs)
 	for (int i = 0; i < weapons.Size(); ++i)
 		weapons[i]->Process(this, timeInMs);
 
-	// AI fire all weapons simultaneously for the time being.
-	if (ai)
+	// enemy AI fire all weapons simultaneously for the time being.
+	if (enemy)
 	{
 		shoot = false;
 		if (weapons.Size() == 0)
@@ -472,11 +490,12 @@ void Ship::Damage(Weapon & weapon)
 
 extern bool playerInvulnerability;
 
-void Ship::Damage(float amount, bool ignoreShield)
+/// Returns true if destroyed -> shouldn't touch any more.
+bool Ship::Damage(float amount, bool ignoreShield)
 {
 	if (allied && playerInvulnerability)
-		return;
-	if (!ai)
+		return false;
+	if (!enemy)
 		LogMain("Player took "+String((int)amount)+" damage!", INFO);
 	if (spawnInvulnerability)
 	{
@@ -492,7 +511,7 @@ void Ship::Damage(float amount, bool ignoreShield)
 		if (this->allied)
 			spaceShooter->UpdateUIPlayerShield(true);
 		if (amount < 0)
-			return;
+			return false;
 		shieldValue = 0;
 	}
 	// Modulate amount depending on armor toughness and reactivity.
@@ -510,7 +529,11 @@ void Ship::Damage(float amount, bool ignoreShield)
 	if (this->allied)
 		spaceShooter->UpdateUIPlayerHP(false);
 	if (hp <= 0)
+	{
 		Destroy();
+		return true;
+	}
+	return false;
 }
 
 void Ship::Destroy()
@@ -524,33 +547,61 @@ void Ship::Destroy()
 		ShipProperty * sp = entity->GetProperty<ShipProperty>();
 		if (sp)
 			sp->sleeping = true;
-		// Add a temporary emitter to the particle system to add some sparks to the collision
-		SparksEmitter * tmpEmitter = new SparksEmitter(entity->worldPosition);
-		tmpEmitter->SetRatioRandomVelocity(1.0f);
-		tmpEmitter->SetEmissionVelocity(2.5f);
-		tmpEmitter->constantEmission = 750;
-		tmpEmitter->instantaneous = true;
-		tmpEmitter->SetScale(0.1f);
-		tmpEmitter->SetParticleLifeTime(2.5f);
-		Vector4f color =  Vector4f(1,0.5,0.1,1.f);// entity->diffuseMap->averageColor;
-		color.w *= 0.5f;
-		tmpEmitter->SetColor(color);
-		Graphics.QueueMessage(new GMAttachParticleEmitter(tmpEmitter, sparks));
+
 
 		// Explosion?
+		ExplodeEffects();
 		// Increase score and kills.
 		if (!allied)
 		{
 			spaceShooter->LevelScore()->iValue += this->score;
 			spaceShooter->LevelKills()->iValue++;
+			spaceShooter->OnScoreUpdated();
 		}
 		else 
 			failedToSurvive = true;
-		/// SFX
-		QueueAudio(new AMPlaySFX("sfx/Ship Death.wav"));
 		/// Despawn.
-		Despawn();
+		Despawn(true);
 	}
+}
+
+/// GFX and SFX
+void Ship::ExplodeEffects()
+{
+	// Add a temporary emitter to the particle system to add some sparks to the collision
+	SparksEmitter * tmpEmitter;
+
+	/// Make cool emitter that emits from vertices or faces of the model?
+	if (boss)
+	{
+		std::cout<<"\nExploding @ "<<this->entity->worldPosition;
+		List<Triangle> tris = entity->GetTris();
+		tmpEmitter = new SparksEmitter(tris);
+		tmpEmitter->newType = true;
+		/// Set emitters?
+		tmpEmitter->positionEmitter.type = EmitterType::TRIANGLES;
+		tmpEmitter->velocityEmitter.type = EmitterType::PLANE_XY; // Random XY
+		tmpEmitter->constantEmission = 3000;
+		tmpEmitter->SetParticleLifeTime(3.5f);
+		tmpEmitter->SetEmissionVelocity(3.5f);
+	}
+	else 
+	{
+		tmpEmitter = new SparksEmitter(entity->worldPosition);
+		tmpEmitter->SetParticleLifeTime(2.5f);
+		tmpEmitter->constantEmission = 750;
+		tmpEmitter->SetEmissionVelocity(2.5f);
+	}
+
+	tmpEmitter->SetRatioRandomVelocity(1.0f);
+	tmpEmitter->instantaneous = true;
+	tmpEmitter->SetScale(0.1f);
+	Vector4f color =  Vector4f(1,0.5f,0.1f,1.f);// entity->diffuseMap->averageColor;
+	color.w *= 0.5f;
+	tmpEmitter->SetColor(color);
+	GraphicsMan.QueueMessage(new GMAttachParticleEmitter(tmpEmitter, sparks));
+	/// SFX
+	QueueAudio(new AMPlaySFX("sfx/Ship Death.wav"));
 }
 
 
@@ -673,8 +724,9 @@ Vector3f Ship::WeaponTargetDir()
 /// If using Armor and Shield gear (Player mainly).
 void Ship::UpdateStatsFromGear()
 {
-	hp = this->maxHP = armor.maxHP;
-	shieldValue = (float) (this->maxShieldValue = shield.maxShield);
+	this->maxHP = armor.maxHP;
+	hp = (float) maxHP;
+	shieldValue = (float) (this->maxShieldValue = (float)shield.maxShield);
 	this->shieldRegenRate = shield.shieldRegen;
 }
 
@@ -689,7 +741,7 @@ bool Ship::SwitchToWeapon(int index)
 	std::cout<<"\nSwitched to weapon: "<<activeWeapon->name;
 //	UpdateStatsFromGear();
 	// Update ui
-	if (!ai)
+	if (!enemy)
 	{
 		QueueGraphics(new GMSetUIi("ActiveWeapon", GMUI::INTEGER_INPUT, index));
 	}

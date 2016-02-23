@@ -38,7 +38,8 @@ public:
 	List<Entity*> Spawn(ConstVec3fr atPosition, Ship * parent);
 	/// Handles spawning of children as needed.
 	List<Entity*> SpawnChildren();
-	void Despawn();
+	void Despawn(bool doExplodeEffectsForChildren);
+	void ExplodeEffects();
 	/// Checks current movement. Will only return true if movement is target based and destination is within threshold.
 	bool ArrivedAtDestination();
 	void Process(int timeInMs);
@@ -59,7 +60,8 @@ public:
 	void SetProjectileSpeedBonus(float newBonus); // Sets new bonus, updates weapons if needed.
 	void SetWeaponCooldownBonus(float newBonus); // Sets new bonus, updates weapons if needed.
 	void Damage(Weapon & usingWeapon);
-	void Damage(float amount, bool ignoreShield);
+	/// Returns true if destroyed -> shouldn't touch any more.
+	bool Damage(float amount, bool ignoreShield);
 	void Destroy();
 	// Load ship-types.
 	static bool LoadTypes(String file);
@@ -170,9 +172,10 @@ public:
 	WeaponSet weapons;
 	Weapon * activeWeapon; // One active weapon at a time.. for the player at least.
 
-	/// o.o 
+	/// If allied or player, false for enemies.
 	bool allied;
-	bool ai;
+	/// If the ship.. is enemy ai? Should be renamed
+	bool enemy;
 	bool spawnInvulnerability;
 	/// Yielded when slaying it.
 	int score; 

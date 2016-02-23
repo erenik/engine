@@ -305,7 +305,8 @@ String SpawnGroup::GetLevelCreationString(Time t)
 {
 	String str;
 	str = "\nSpawnGroup "+String(t.Minute())+":"+String(t.Second())+"."+String(t.Millisecond());
-	str += "\nName "+name;
+	if (name.Length())
+		str += "\nName "+name;
 	str += "\nShipType "+shipType;
 	str += "\nFormation "+Formation::GetName(formation);
 	str += "\nNumber "+String(number);

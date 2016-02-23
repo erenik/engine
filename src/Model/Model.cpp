@@ -42,6 +42,8 @@ Model::~Model()
 	}
 	triangleList = NULL;
 	
+	if (triangulatedMesh == mesh)
+		triangulatedMesh = 0;
 	if (mesh)
 		delete mesh;
 	if (triangulatedMesh)
@@ -109,10 +111,12 @@ void Model::SetName(String i_name){
 
 
 /// Returns all triangles in this model.
-List<Triangle> Model::GetTris(){
+List<Triangle> Model::GetTris()
+{
 	List<Triangle> triangleList;
-
-	if (triangulatedMesh){
+	triangulatedMesh = GetTriangulatedMesh();
+	if (triangulatedMesh)
+	{
 		List<Triangle> triMeshTris = triangulatedMesh->GetTris();
 		triangleList += triMeshTris;
 	}

@@ -255,7 +255,7 @@ bool File::ClearFile(String filename)
 /// Returns false upon failure. Tries to append, may create new file.
 bool File::AppendToFile(String filename, String text)
 {
-	std::fstream file(filename.c_str(), std::ios_base::out | std::ios_base::app);
+	std::fstream file(filename.c_str(), std::ios_base::out | std::ios_base::app | std::ios_base::binary);
 	if (!file.is_open())
 		return false;
 	file.write(text.c_str(), text.Length());

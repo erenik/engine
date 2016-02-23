@@ -149,6 +149,8 @@ bool SpaceShooterEvaluator::EvaluateFunction(String byName, List<String> argumen
 			result = ExpressionResult::Integral(0);\
 			result.text = "Unable to find ship with id "+String(id);\
 			return true;\
+		if (ship->entity == 0)\
+			return false;\
 		}
 	if (name == "ArrivedAtDestination")
 	{
@@ -165,6 +167,8 @@ bool SpaceShooterEvaluator::EvaluateFunction(String byName, List<String> argumen
 	else if (name == "PositionY")
 	{
 		GRAB_SHIP
+		if (ship->entity == 0)
+			return false;
 		if (!ship)
 			result = ExpressionResult::Error("Bad ship id");
 		else

@@ -1409,10 +1409,10 @@ List<String> String::GetLines() const
             stringStart = stringEnd+1;
 
             String token(buf);
-      //      token.PrintData();
-            token.Remove("\r");
-            token.Remove("\n");
-       //     token.PrintData();
+//            token.PrintData();
+            token.Remove("\r", true);
+            token.Remove("\n", true);
+  //          token.PrintData();
             list.AddItem(token);
 
             // Break will only break the inner loop, make sure to flag the outside for-loop's index too!

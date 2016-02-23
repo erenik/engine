@@ -13,6 +13,7 @@ Emitter::Emitter()
 {
 	DefaultVectors();
 	type = EmitterType::SPHERE;
+	triangles = 0;
 }
 
 // Sets default up/left/forward vectors.
@@ -39,7 +40,6 @@ void Emitter::SetScale(float scale)
 	left *= scale;
 	forward *= scale;
 }
-
 
 /// Randomizes acordingly.
 void Emitter::Position(Vector3f & positionVec)
@@ -90,6 +90,21 @@ void Emitter::Position(Vector3f & positionVec)
 		case EmitterType::VECTOR:
 			positionVec = vec;
 			break;
+		case EmitterType::TRIANGLES: 
+		{
+			/// Grab triangle.
+			Triangle & tri = (*triangles)[rand() % triangles->Size()];
+			/// Get random within.
+			float x = r.Randf();
+			float y = r.Randf(1-x);
+			float z = 1-x-y;
+			Vector3f parts(x, y, z);
+//			std::cout<<"\nparts "<<parts;
+			positionVec = tri.point1 * parts.x + tri.point2 * parts.y + tri.point3 * parts.z;
+//			std::cout<<" pos "<<positionVec;
+	//		std::cout<<"\ntri1 "<<tri.point1<<" 2: "<<tri.point2<<" 3: "<<tri.point3;
+			break;
+		}
 		default:
 			assert(false);
 	}
@@ -136,6 +151,13 @@ ParticleEmitter::ParticleEmitter(const Vector3f & point, const Vector3f & direct
 {
 	Initialize();
 	this->direction.Normalize();
+}
+
+/// Triangle-list-based emitter
+ParticleEmitter::ParticleEmitter(List<Triangle> tris) 
+	: tris(tris), type(EmitterType::TRIANGLES)
+{
+	Initialize();
 }
 
 ParticleEmitter::ParticleEmitter(int type)	
@@ -298,6 +320,11 @@ bool ParticleEmitter::GetNewParticle(Vector3f & particlePosition, Vector3f & par
 			float x = cos(angle);
 			float y = sin(angle);
 			particleVelocity = Vector3f(x,y,0);
+			break;
+		}
+		case EmitterType::TRIANGLES:
+		{
+
 			break;
 		}
 		default:

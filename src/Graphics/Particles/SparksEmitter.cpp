@@ -12,12 +12,17 @@ SparksEmitter::SparksEmitter()
 {
 }
 
+SparksEmitter::SparksEmitter(List<Triangle> triangles)
+	: ParticleEmitter(triangles)
+{
+	Nullify();
+	velocityEmitter.triangles = positionEmitter.triangles = &this->tris;
+}
 
 SparksEmitter::SparksEmitter(const Vector3f & point)
 : ParticleEmitter(point)
 {
-	velRandPart = 0.8f;
-	velConstPart = 0.2f;
+	Nullify();
 }
 
 SparksEmitter::~SparksEmitter()
@@ -25,6 +30,12 @@ SparksEmitter::~SparksEmitter()
 
 }
 
+/// Set default stats for Sparks
+void SparksEmitter::Nullify()
+{
+	velRandPart = 0.8f;
+	velConstPart = 0.2f;
+}
 
 /// Default new particle.
 bool SparksEmitter::GetNewParticle(Vector3f & position, Vector3f & velocity)

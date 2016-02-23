@@ -111,7 +111,7 @@ void ShipProperty::OnCollision(Entity * withEntity)
 				if (s == "RemoveThis")
 				{
 					ship->hp = 0;
-					ship->Despawn();
+					ship->Despawn(false);
 					return;
 				}
 				else 
@@ -129,14 +129,14 @@ void ShipProperty::OnCollision(Entity * withEntity)
 		// Check collision damage cooldown for if we should apply damage.
 		if (ship->lastShipCollision < flyTime - ship->collisionDamageCooldown)
 		{
-			ship->Damage(sspp->ship->collideDamage, true);
-			ship->lastShipCollision = flyTime;
+			if (!ship->Damage(sspp->ship->collideDamage, true))
+				ship->lastShipCollision = flyTime;
 		}
 		// Same for the other ship.
-		if (sspp->ship->lastShipCollision < flyTime - sspp->ship->collisionDamageCooldown)
+		if (ship && sspp->ship->lastShipCollision < flyTime - sspp->ship->collisionDamageCooldown)
 		{
-			sspp->ship->Damage(ship->collideDamage, false);
-			sspp->ship->lastShipCollision = flyTime;
+			if (!sspp->ship->Damage(ship->collideDamage, false))
+				sspp->ship->lastShipCollision = flyTime;
 		}
 
 		// Add a temporary emitter to the particle system to add some sparks to the collision

@@ -345,7 +345,7 @@ void Weapon::Shoot(Ship * ship)
 			flakDividendMultiplier = 1 / flakMultiplier;
 		}
 		Entity * projectileEntity = EntityMan.CreateEntity(name + " Projectile", model, tex);
-		ProjectileProperty * projProp = new ProjectileProperty(*this, projectileEntity, ship->ai);
+		ProjectileProperty * projProp = new ProjectileProperty(*this, projectileEntity, ship->enemy);
 		projProp->weapon.damage *= flakMultiplier;
 		projectileEntity->properties.Add(projProp);
 		// Set scale and position.

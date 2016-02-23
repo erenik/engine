@@ -3,7 +3,7 @@
 #include "../SpaceShooter2D.h"
 #include "SpawnGroup.h"
 
-int difficulty;
+int difficulty = 1;
 AETime levelDuration(TimeType::MILLISECONDS_NO_CALENDER);
 
 
@@ -18,6 +18,8 @@ void GenerateLevel (String arguments)
 		levelDuration.ParseFrom(timeString);
 		difficulty = diffString.ParseInt();
 	}
+	if (levelDuration.Seconds() == 0)
+		levelDuration.AddMs(1000 * 30);
 	
 	std::cout<<"\nYo what up in da hooooood. Level generator on da waaaaay!!";
 	std::cout<<"\nYou have given "<<levelDuration.Seconds()<<" as time total, and "<<difficulty<<" as difficulty! Woopdeedoo!";
@@ -73,6 +75,7 @@ void GenerateLevel (String arguments)
 	AETime time = AETime::Now(); 
 	String timestr = time.ToString("Y-M-D-H-m");
 	String contents = File::GetContents("Generatedlevel.srl");
+	contents.PrintData();
 	File::AppendToFile("./GeneratedLevels/Generatedlevel"+timestr+".srl", contents);
 
 };

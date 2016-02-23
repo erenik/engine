@@ -67,45 +67,7 @@ Vector3f Level::BaseVelocity()
 /// Creates player entity within this level. (used for spawning)
 Entity * Level::AddPlayer(Ship * playerShip, ConstVec3fr atPosition)
 {	
-	/// Refresh cooldowns for all weapons.
-	playerShip->RandomizeWeaponCooldowns();
-	playerShip->movementDisabled = false;
-	playerShip->ai = false;
-	if (playerShip->entity)
-	{
-		MapMan.DeleteEntity(playerShip->entity);
-		playerShip->entity = NULL;
-	}
-	PhysicsProperty * pp = NULL;
-	if (!playerShip->entity)
-	{
-		Model * model = playerShip->GetModel();
-		assert(model);
-		playerShip->entity = EntityMan.CreateEntity("Player ship", model, TexMan.GetTextureByColor(Color(255,0,0,255)));
-		ShipProperty * sp = new ShipProperty(playerShip, playerShip->entity);
-		playerShip->entity->properties.Add(sp);
-		pp = new PhysicsProperty();
-		playerShip->entity->physics = pp;
-	}
-	// Shortcut..
-	Entity * entity = playerShip->entity;
-	pp = entity->physics;
-	pp->collisionCallback = true;				
-	pp->collisionCategory = CC_PLAYER;
-	pp->collisionFilter = CC_ALL_ENEMY;
-	pp->velocity = BaseVelocity();
-	pp->type = PhysicsType::DYNAMIC;
-	// Set player to mid position.
-	entity->localPosition = atPosition;
-	// Rotate ship with the nose from Z- to Y+
-	float radians = PI / 2;
-//	entity->rotation[0] = radians;
-//	entity->rotation[1] = -radians;
-	entity->SetRotation(Vector3f(radians, -radians, 0));
-//	entity->RecalculateMatrix();
-	pp->velocity = BaseVelocity();
-	// Register player for rendering.
-	MapMan.AddEntity(entity);
+	Entity * entity = playerShip->Spawn(atPosition, 0);
 	return entity;
 }
 
@@ -530,7 +492,7 @@ void Level::RemoveExistingEnemies()
 	{
 		Ship * ship = ships[i];
 		lg += ship->name+" ";
-		ship->Despawn();
+		ship->Despawn(false);
 	}
 	LogMain("Deleting entities "+lg, INFO);
 

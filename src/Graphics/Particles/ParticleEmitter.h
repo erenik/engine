@@ -8,6 +8,7 @@
 #include "PhysicsLib/Shapes/Contour.h"
 #include "MathLib.h"
 #include "Random/Random.h"
+#include "PhysicsLib/Shapes/Triangle.h"
 
 class Mesh;
 class Entity;
@@ -27,6 +28,7 @@ namespace EmitterType {
 
 		/// New types using the Emitter sub-system.
 		SPHERE,
+		TRIANGLES,
 		POINT, // Using vec-vector for position.
 		LINE, // Using the vec-vector.
 		LINE_BOX, // Uses vec- and vec2-vectors to create a box or parralellogram distribution. If both vectors are equal in size a rhomb or quad is formed. Rectangle or parralellogram if one is longer than the other.
@@ -65,6 +67,8 @@ public:
 	Vector3f vec, vec2;
 	/// Added after randomization.
 	Vector3f offset;
+	List<Triangle> * triangles;
+	Random r;
 };
 
 
@@ -84,6 +88,8 @@ public:
 	ParticleEmitter(const Vector3f & point, const Vector3f & direction);
 	/// Point-based circular emitter
 	ParticleEmitter(const Vector3f & point);
+	/// Triangle-list-based emitter
+	ParticleEmitter(List<Triangle> tris);
 	/// Initializes and allocates stuff.
 	virtual void Initialize();
 
@@ -154,7 +160,7 @@ public:
 	/// Default (1,1,1,1) or the same as the particle system it is used in.
 	Vector4f color;
 
-private:
+protected:
 
 	// Time we started emitting particles. Used to calculate how many particles we should emit next!
 	float secondsEmitted;
@@ -178,6 +184,8 @@ private:
 	Contour contour;
 	// See enum above.
 	int type;
+	/// o.o
+	List<Triangle> tris;
 	
 	// o.o
 	Random random;

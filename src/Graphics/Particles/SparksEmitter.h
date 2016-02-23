@@ -8,8 +8,11 @@ class SparksEmitter : public ParticleEmitter
 {
 public:
 	SparksEmitter();
+	SparksEmitter(List<Triangle> triangles);
 	SparksEmitter(const Vector3f & point);
 	virtual ~SparksEmitter();
+	/// Set default stats for Sparks
+	void Nullify();
 
 	/// Default new particle.
 	virtual bool GetNewParticle(Vector3f & position, Vector3f & velocity);

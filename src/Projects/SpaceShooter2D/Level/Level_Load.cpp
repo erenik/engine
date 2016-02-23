@@ -313,7 +313,10 @@ bool Level::Load(String fromSource)
 			if (var == "ShipType")
 				group->shipType = arg;
 			if (var == "Formation")
+			{
+				arg.PrintData();
 				group->ParseFormation(arg);
+			}
 			if (var == "Number" || var == "Amount")
 				group->number = arg.ParseInt();
 			if (var == "Size")

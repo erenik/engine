@@ -1011,7 +1011,7 @@ void SpaceShooter2D::NewPlayer()
 	if (playerShip == 0)
 	{
 		playerShip = Ship::New("Default");
-		playerShip->ai = false;
+		playerShip->enemy = false;
 		playerShip->allied = true;
 	}
 	playerShip->weapon = Gear::StartingWeapon();

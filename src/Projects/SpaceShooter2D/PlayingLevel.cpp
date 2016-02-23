@@ -38,7 +38,7 @@ void SpaceShooter2D::Cleanup()
 		// Check if it should de-spawn.
 		if (ship->despawnOutsideFrame && ship->entity->worldPosition[0] < despawnPositionLeft && ship->parent == NULL)
 		{
-			ship->Despawn();
+			ship->Despawn(false);
 		}
 	}
 }
