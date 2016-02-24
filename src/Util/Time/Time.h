@@ -108,7 +108,8 @@ public:
 	bool ReadFrom(std::fstream & stream);
 	/// String I/O
 	bool ParseFrom(const String & string);
-
+	/// Prints type, intervals, and relevant unit
+	void PrintData();
 	/// o-o
 	int Type(){ return type;};
 

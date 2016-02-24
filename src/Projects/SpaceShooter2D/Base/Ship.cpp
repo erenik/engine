@@ -89,11 +89,15 @@ void Ship::RandomizeWeaponCooldowns()
 	}
 }
 
-List<Entity*> Ship::Spawn(ConstVec3fr atPosition, Ship * in_parent)
+List<Entity*> Ship::Spawn(ConstVec3fr atLocalPosition, Ship * in_parent)
 {
 	/// Reset stuffs if not already done so.
 	movementDisabled = false;
 	RandomizeWeaponCooldowns();
+
+	Vector3f atPosition = atLocalPosition + levelEntity->worldPosition;
+	atPosition.z = 0;
+//	atPosition.y += levelEntity->worldPosition
 
 	/// Stuff.
 	name.SetComparisonMode(String::NOT_CASE_SENSITIVE);

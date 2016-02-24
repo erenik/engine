@@ -48,11 +48,16 @@ SpawnGroup::SpawnGroup()
 {
 	spawnTime = Time(TimeType::MILLISECONDS_NO_CALENDER);
 	pausesGameTime = false;
+	spawnIntervalMsBetweenEachShipInFormation = 0;
 	Reset();
+	lastSpawn = AETime(TimeType::MILLISECONDS_NO_CALENDER, 0);
 }
 
 void SpawnGroup::Reset()
 {
+	pausesGameTime = false;
+	finishedSpawning = false;
+	preparedForSpawning = false;
 	relativeSpeed = 5.f;
 	shoot = true;
 	spawned = false;
@@ -60,16 +65,69 @@ void SpawnGroup::Reset()
 	survived = false;
 	shipsDefeatedOrDespawned = 0;
 	shipsDespawned = shipsDefeated = 0;
+	spawnTime = Time(TimeType::MILLISECONDS_NO_CALENDER);
 }
 
 
 Random spawnGroupRand;
-void SpawnGroup::Spawn(bool subAggregate)
+/** Spawns ze entities. 
+	True if spawning sub-part of an aggregate formation-type. 
+	Returns true if it has finished spawning. 
+	Call again until it returns true each iteration (required for some formations).
+*/
+bool SpawnGroup::Spawn()
 {
-	if (!subAggregate)
+	/// Prepare spawning.
+	if (!preparedForSpawning)
+		PrepareForSpawning();
+
+	// Spawn all?
+	if (spawnIntervalMsBetweenEachShipInFormation == 0)
+	{
+		for (int i = 0; i < ships.Size(); ++i)
+		{
+			Ship * ship = ships[i];
+			ship->Spawn(ship->position, 0);
+			activeLevel->ships.AddItem(ship);
+			++spawned;
+		}
+		finishedSpawning = true;
+		return true;
+	}
+	/// Spawn one at a time?
+	else
+	{
+		if (lastSpawn.Seconds() == 0 || (levelTime - lastSpawn).Milliseconds() > spawnIntervalMsBetweenEachShipInFormation)
+		{
+			Ship * ship = ships[0];
+			ship->Spawn(ship->position, 0);
+			activeLevel->ships.AddItem(ship);
+			ships.RemoveIndex(0, ListOption::RETAIN_ORDER);
+			lastSpawn = levelTime;
+		}
+		// Spawn one ata  time.
+		if (ships.Size() == 0)
+		{
+			finishedSpawning = true;
+			return true;
+		}
+	}
+	/// o.o
+	return false;
+}
+
+/// To avoid spawning later.
+void SpawnGroup::SetFinishedSpawning()
+{
+	finishedSpawning = true;
+}
+
+/// Gathers all ships internally for spawning.
+void SpawnGroup::PrepareForSpawning(SpawnGroup * parent)
+{
+	if (!parent)
 		LogMain("Spawning spawn group at time: "+String(spawnTime.ToString("m:S.n")), INFO);
 
-	spawned = true;
 	std::cout<<"\nSpawning formation: "<<Formation::GetName(formation);
 
 	switch(formation)
@@ -85,16 +143,16 @@ void SpawnGroup::Spawn(bool subAggregate)
 			copy.number = num - 1;
 			copy.position = position + Vector2f(-size.x * 0.5f, size.y * 0.5f);
 			copy.size = Vector2f(lineSize.x, 0); 
-			copy.Spawn(true);
+			copy.PrepareForSpawning(this);
 			copy.position = position + Vector2f(-size.x * 0.5f + spacing.x, - size.y * 0.5f);
-			copy.Spawn(true);
+			copy.PrepareForSpawning(this);
 			copy.position = position + Vector2f(size.x * 0.5f, spacing.y * 0.5f);
 			copy.formation = Formation::LINE_Y;
 			copy.size = Vector2f(0, -lineSize.y);
-			copy.Spawn(true);
+			copy.PrepareForSpawning(this);
 			copy.position = position + Vector2f(-size.x * 0.5f, - spacing.y * 0.5f);
 			copy.size = Vector2f(0, lineSize.y);
-			copy.Spawn(true);
+			copy.PrepareForSpawning(this);
 			return;
 	}
 
@@ -242,37 +300,44 @@ void SpawnGroup::Spawn(bool subAggregate)
 		std::cout<<"\nSpawning ship @ x"<<position.x<<" y"<<position.y;
 
 		/// Add current position offset to it.
-		position += Vector3f(spawnPositionRight, activeLevel->height * 0.5f, 0); 
+//		position += Vector3f(spawnPositionRight, activeLevel->height * 0.5f, 0); 
 		/// Create entity
-		SpawnShip(position);
+		AddShipAtPosition(position);
 		if (formation == Formation::DOUBLE_LINE_X)
 		{
-			SpawnShip(position + Vector3f(0, size.y, 0));
+			AddShipAtPosition(position + Vector3f(0, size.y, 0));
 		}
 	}
+	preparedForSpawning = true;
+	/// Add all ships to parent if subAggregate
+	if (parent)
+		parent->ships.Add(ships);
 }
 
-// ?!
-Entity * SpawnGroup::SpawnShip(ConstVec3fr atPosition)
+void SpawnGroup::AddShipAtPosition(ConstVec3fr position)
 {
 	Ship * newShip = Ship::New(shipType);
 	if (!newShip)
 	{
 		LogMain("SpawnGroup::SpawnShip: Unable to create ship of type: "+shipType, ERROR | CAUSE_ASSERTION_ERROR);
-		return NULL;
+		return;
 	}
-	activeLevel->ships.AddItem(newShip);
 	Ship * ship = newShip;
 	ship->RandomizeWeaponCooldowns();
 	ship->spawnGroup = this;
-
 	/// Apply spawn group properties.
 	ship->shoot &= shoot;
 	ship->speed *= relativeSpeed;
-	/// Spawn it.
-	Entity * entity = ship->Spawn(atPosition, NULL);
-	return entity;
+	ship->position = position;
+	/// ....
+	ships.AddItem(ship);
 }
+
+
+// ?!
+/*Entity * SpawnGroup::SpawnShip(ConstVec3fr atPosition)
+{
+}*/
 
 void SpawnGroup::OnShipDestroyed(Ship * ship)
 {
@@ -312,6 +377,8 @@ String SpawnGroup::GetLevelCreationString(Time t)
 	str += "\nNumber "+String(number);
 	str += "\nSize xy "+String(size.x)+" "+String(size.y);
 	str += "\nPosition xy "+String(position.x)+" "+String(position.y);
+	if (spawnIntervalMsBetweenEachShipInFormation > 0)
+		str += "\nTimeBetweenShipSpawnsMs "+String(this->spawnIntervalMsBetweenEachShipInFormation);
 
 	return str;
 }

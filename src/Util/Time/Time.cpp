@@ -543,6 +543,13 @@ bool Time::ParseFrom(const String & string)
 	return false;
 }
 
+/// Prints type, intervals, and relevant unit
+void Time::PrintData()
+{
+//	FetchCalenderData();
+	std::cout<<"\nType: "<<type<<" intervals: "<<intervals<<" seconds: "<<Seconds();
+}
+
 /// Fetches calender data given the intervals and type defined now.
 void Time::FetchCalenderData()
 {

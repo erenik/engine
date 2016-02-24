@@ -34,8 +34,8 @@ public:
 
 	/// Call on spawning.
 	void RandomizeWeaponCooldowns();
-	/// Spawns, creating entities, registering for movement, etc. Returns it and all children spawned with it.
-	List<Entity*> Spawn(ConstVec3fr atPosition, Ship * parent);
+	/// Spawns at local position according to window/player area, creating entities, registering for movement, etc. Returns it and all children spawned with it.
+	List<Entity*> Spawn(ConstVec3fr atLocalPosition, Ship * parent);
 	/// Handles spawning of children as needed.
 	List<Entity*> SpawnChildren();
 	void Despawn(bool doExplodeEffectsForChildren);

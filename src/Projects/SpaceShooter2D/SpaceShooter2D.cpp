@@ -1099,10 +1099,6 @@ void SpaceShooter2D::LoadLevel(String fromSource)
 	level.SetupCamera();
 	if (!playerShip)
 		NewPlayer();
-	level.AddPlayer(playerShip);
-	// Reset player stats.
-	playerShip->hp = playerShip->maxHP;
-	playerShip->shieldValue = playerShip->maxShieldValue;
 
 
 	/// Clear old stars?
@@ -1188,8 +1184,14 @@ void SpaceShooter2D::LoadLevel(String fromSource)
 	// Set velocity of the game.
 //	PhysicsMan.QueueMessage(new PMSetEntity(levelEntity, PT_VELOCITY, level.BaseVelocity()));
 	// Reset position of player!
-	playerShip->entity->localPosition = initialPosition + Vector3f(-50,0,0);
 //	PhysicsMan.QueueMessage(new PMSetEntity(playerShip->entity, PT_POSITION, initialPosition));
+
+	level.AddPlayer(playerShip);
+	// Reset player stats.
+	playerShip->hp = playerShip->maxHP;
+	playerShip->shieldValue = playerShip->maxShieldValue;
+	playerShip->entity->localPosition = initialPosition + Vector3f(-50,0,0);
+
 
 	sparks->SetAlphaDecay(DecayType::QUADRATIC);
 

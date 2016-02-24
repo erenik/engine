@@ -205,23 +205,18 @@ void Level::Process(int timeInMs)
 		for (int i = 0; i < spawnGroups.Size(); ++i)
 		{
 			SpawnGroup * sg = spawnGroups[i];
-			if (sg->defeated)
-			{
-				continue;
-			}
-			if (sg->spawned)
+			if (sg->FinishedSpawning())
 			{
 				// Check if it's defeated?
-				if (sg->shipsDefeatedOrDespawned > sg->number)
+				if (sg->shipsDefeatedOrDespawned >= sg->number)
 				{
-					sg->defeated = true;
 					if (sg->pausesGameTime)
 						gameTimePaused = false;
 				}
 				continue;
 			}
 			int msToSpawn = (sg->spawnTime - levelTime).Milliseconds();
-			if (msToSpawn < 0 && msToSpawn > -2000) // Don't spawn things that shouldn't have spawned more than a few seconds ago.
+			if (msToSpawn < 0) 
 			{
 				defeatedAllEnemies = false;
 				sg->Spawn();
@@ -481,7 +476,7 @@ void Level::RemoveRemainingSpawnGroups()
 	for (int i = 0; i < spawnGroups.Size(); ++i)
 	{
 		SpawnGroup * sg = spawnGroups[i];
-		sg->spawned = true;
+		sg->SetFinishedSpawning();
 	}
 }
 

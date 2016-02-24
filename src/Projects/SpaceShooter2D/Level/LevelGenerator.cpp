@@ -9,7 +9,12 @@ AETime levelDuration(TimeType::MILLISECONDS_NO_CALENDER);
 
 void GenerateLevel (String arguments)
 {
+	Level & level = spaceShooter -> level;
+	level.Clear();
+	
 	List<String> args = arguments.Tokenize(" ,");
+	/// Reset level-time?
+	levelTime = AETime(TimeType::MILLISECONDS_NO_CALENDER, 0);
 	
 	if(args.Size() > 1)
 	{
@@ -24,8 +29,6 @@ void GenerateLevel (String arguments)
 	std::cout<<"\nYo what up in da hooooood. Level generator on da waaaaay!!";
 	std::cout<<"\nYou have given "<<levelDuration.Seconds()<<" as time total, and "<<difficulty<<" as difficulty! Woopdeedoo!";
 	
-	Level & level = spaceShooter -> level;
-	level.Clear();
 	
 	//Filter wanted ships, difficulty and alien type mainlyyyyyy
 	List<String> relevantShips;
@@ -67,7 +70,12 @@ void GenerateLevel (String arguments)
 		sg->number = selector.Randi(9)+1;
 		// Pick a formation size
 		sg->size = Vector2f(5, 5);
+		/// Default spawn on right side of field.
+		sg->position = Vector2f(playingFieldHalfSize.x+5.f, 0);
 		
+		/// Time between spawns for moar flexibility
+		sg->spawnIntervalMsBetweenEachShipInFormation = 200;
+
 		String str = sg->GetLevelCreationString(sg->spawnTime);
 		File::AppendToFile("Generatedlevel.srl", str);
 		
@@ -76,6 +84,10 @@ void GenerateLevel (String arguments)
 	String timestr = time.ToString("Y-M-D-H-m");
 	String contents = File::GetContents("Generatedlevel.srl");
 	contents.PrintData();
-	File::AppendToFile("./GeneratedLevels/Generatedlevel"+timestr+".srl", contents);
+	String outputFile = "./GeneratedLevels/Generatedlevel"+timestr+".srl";
+	File::AppendToFile(outputFile, contents);
+
+	/// Set current level's source to be the generated file's, so that it is reloaded upon death automatically.
+	level.source = outputFile;
 
 };

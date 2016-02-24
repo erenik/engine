@@ -12,8 +12,8 @@
 
 namespace LevelLoader 
 {
-	bool messagesPauseGameTime = true;
-	bool spawnGroupsPauseGameTime = true;
+	bool messagesPauseGameTime = false;
+	bool spawnGroupsPauseGameTime = false;
 	SpawnGroup * group = (SpawnGroup*)0;
 	Level * loadLevel = (Level*)0;
 	SpawnGroup * lastGroup = (SpawnGroup*)0;
@@ -184,6 +184,7 @@ bool Level::Load(String fromSource)
 			// Parse time.
 			ParseTimeStringsFromLine(line);
 			group->spawnTime = spawnTimes[0];
+			group->spawnTime.PrintData();
 //			String timeStr = line.Tokenize(" \t")[1];
 //			group->spawnTime.ParseFrom(timeStr);
 			parseMode = PARSE_MODE_FORMATIONS;
@@ -312,6 +313,8 @@ bool Level::Load(String fromSource)
 				group->position.ParseFrom(line - "Position");
 			if (var == "ShipType")
 				group->shipType = arg;
+			if (var == "TimeBetweenShipSpawnsMs")
+				group->spawnIntervalMsBetweenEachShipInFormation = arg.ParseInt();
 			if (var == "Formation")
 			{
 				arg.PrintData();
