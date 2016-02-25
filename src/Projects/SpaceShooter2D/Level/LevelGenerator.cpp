@@ -2,8 +2,12 @@
 #include "Level.h"
 #include "../SpaceShooter2D.h"
 #include "SpawnGroup.h"
+#include "../MovementPattern.h"
 
 int difficulty = 1;
+int defaultDelay = 0;
+bool isSling = false;
+
 AETime levelDuration(TimeType::MILLISECONDS_NO_CALENDER);
 
 
@@ -24,7 +28,7 @@ void GenerateLevel (String arguments)
 		difficulty = diffString.ParseInt();
 	}
 	if (levelDuration.Seconds() == 0)
-		levelDuration.AddMs(1000 * 30);
+		levelDuration.AddMs(1000 * 180);
 	
 	std::cout<<"\nYo what up in da hooooood. Level generator on da waaaaay!!";
 	std::cout<<"\nYou have given "<<levelDuration.Seconds()<<" as time total, and "<<difficulty<<" as difficulty! Woopdeedoo!";
@@ -55,26 +59,62 @@ void GenerateLevel (String arguments)
 	AETime spawnTime(TimeType::MILLISECONDS_NO_CALENDER);
 	while(spawnTime.Seconds() <= levelDuration.Seconds())
 	{
-		
 		SpawnGroup * sg = new SpawnGroup();
-		// Cooldown between spawns
-		spawnTime.AddMs(3000);
+		Movement movement;
+
+		//Formation identity
+		isSling = selector.Randi(100)>33;
+		
+		/// Time between individual spawns
+		sg->spawnIntervalMsBetweenEachShipInFormation = defaultDelay;
+		if(isSling==true)
+		{
+			sg->spawnIntervalMsBetweenEachShipInFormation = (selector.Randi(16) + 4)*50;
+		}
+
+		//Select movement pattern
+		MovementPattern mp = MovementPattern::movementPatterns[selector.Randi(MovementPattern::movementPatterns.Size())];
+		sg->movements = mp.movements;
+		std::cout<<std::endl<<mp.name;
+		
+		//Select Rotation pattern
+		sg->rotations = mp.rotations;
 		// When it spawns
 		sg->spawnTime = spawnTime;
 		// Pick a ship
 		sg->shipType = relevantShips[selector.Randi(relevantShips.Size())];
 		level.spawnGroups.AddItem(sg);
 		// Pick a formation
-		sg->formation = Formation::LINE_Y;
+		/*
+		if(isSling)
+		{
+			sg->formation = Formation::LINE_X;
+			/*
+			movement.type = Movement::ZAG;
+			movement.zagTimeMs = 2000;
+			movement.vec = Vector2f(-2, 10).NormalizedCopy();
+			sg->movements.AddItem(movement);*/
+	/*	}
+		else
+		{
+			sg->formation = Formation::LINE_Y;
+		}*/
+		sg->formation = selector.Randi(Formation::FORMATIONS - 2) + 1;
 		// Pick a number of ships
 		sg->number = selector.Randi(9)+1;
 		// Pick a formation size
-		sg->size = Vector2f(5, 5);
-		/// Default spawn on right side of field.
-		sg->position = Vector2f(playingFieldHalfSize.x+5.f, 0);
+		sg->size = Vector2f(sg->number, sg->number);
 		
-		/// Time between spawns for moar flexibility
-		sg->spawnIntervalMsBetweenEachShipInFormation = 200;
+		/// Default spawn on right side of field, and spawn location.
+		// Randomize Y
+		float randomAmountY = playingFieldSize.y - sg->size.y;
+		sg->position = Vector2f(playingFieldHalfSize.x+5.f, selector.Randf(randomAmountY) - randomAmountY * 0.5f);
+		/// Add to position offsets if requested by the movement pattern
+		sg->position += mp.spawnOffset;
+
+
+		// Cooldown between formation spawns
+		spawnTime.AddMs(3000);
 
 		String str = sg->GetLevelCreationString(sg->spawnTime);
 		File::AppendToFile("Generatedlevel.srl", str);
@@ -83,7 +123,7 @@ void GenerateLevel (String arguments)
 	AETime time = AETime::Now(); 
 	String timestr = time.ToString("Y-M-D-H-m");
 	String contents = File::GetContents("Generatedlevel.srl");
-	contents.PrintData();
+	//contents.PrintData();
 	String outputFile = "./GeneratedLevels/Generatedlevel"+timestr+".srl";
 	File::AppendToFile(outputFile, contents);
 

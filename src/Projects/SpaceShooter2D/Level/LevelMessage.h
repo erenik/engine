@@ -8,8 +8,9 @@
 #include "SpaceShooter2D/Base/Ship.h"
 #include "Color.h"
 
-struct LevelMessage 
+class LevelMessage 
 {
+public:
 	LevelMessage();
 	void PrintAll(); // debug
 	// UI Returns true if it was displayed, false if skipped (condition false).

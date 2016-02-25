@@ -145,10 +145,10 @@ public:
 	float projectileSpeedBonus;
 	float weaponCooldownBonus;
 	/// Mooovemeeeeeeent
-	List<Movement> movementPatterns;
+	List<Movement> movements;
 	int currentMovement; // Index of which pattern is active at the moment.
 	int timeInCurrentMovement; // Also milliseconds.
-	List<Rotation> rotationPatterns;
+	List<Rotation> rotations;
 	int currentRotation;
 	int timeInCurrentRotation;
 	/// Maximum amount of radians the ship may rotate per second.

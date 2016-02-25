@@ -25,7 +25,9 @@ public:
 	Rotation(int type);
 	void Nullify();
 
+	String ToString();
 	static String Name(int type);
+	static List<Rotation> ParseFrom(String);
 
 	void OnEnter(Ship * ship);
 	void OnFrame(int timeInMs);

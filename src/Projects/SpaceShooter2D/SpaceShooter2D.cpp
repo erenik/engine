@@ -4,6 +4,7 @@
 /// For the Karl-Emil SpaceShooter project, mainly 2014-2015/
 
 #include "Message/FileEvent.h"
+#include "MovementPattern.h"
 
 #include "SpaceShooter2D/SpaceShooter2D.h"
 #include "Base/WeaponScript.h"
@@ -108,6 +109,7 @@ SpaceShooter2D::~SpaceShooter2D()
 void SpaceShooter2D::OnEnter(AppState * previousState)
 {
 
+	MovementPattern::Load();
 	QueuePhysics(new PMSeti(PT_AABB_SWEEPER_DIVISIONS, 1));// subdivisionsZ
 
 	WeaponScript::CreateDefault();

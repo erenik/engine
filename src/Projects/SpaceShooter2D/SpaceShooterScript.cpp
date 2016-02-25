@@ -161,7 +161,7 @@ bool SpaceShooterEvaluator::EvaluateFunction(String byName, List<String> argumen
 	else if (name == "TimeInCurrentMovement")
 	{
 		GRAB_SHIP
-		result = ExpressionResult::Integral(ship->movementPatterns[ship->currentMovement].timeInCurrentMovement);
+		result = ExpressionResult::Integral(ship->movements[ship->currentMovement].timeInCurrentMovement);
 		return true;
 	}
 	else if (name == "PositionY")

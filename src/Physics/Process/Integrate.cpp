@@ -132,7 +132,14 @@ void PhysicsManager::Integrate(float timeInSecondsSinceLastUpdate)
 			pp->physicalRadius = dynamicEntity->radius * dynamicEntity->scale.MaxPart();
     //    std::cout<<"\nPost-positioning Velocity: "<<dynamicEntity->physics->velocity;
         /// Ensure that the movement didn't adjust the velocity...
-        assert(vel[0] == dynamicEntity->physics->velocity[0]);
+		if (vel[0] != dynamicEntity->physics->velocity[0])
+		{
+//        assert(vel[0] == dynamicEntity->physics->velocity[0]);
+			// Unregister from physics.
+			std::cout<<"\nEntity velocity indefinite - not a number - unregistering until further notice.";
+			PhysicsMan.QueueMessage(new PMUnregisterEntity(dynamicEntity));
+			return;
+		}
 	}
 	timer.Stop();
 	ms = timer.GetMs();

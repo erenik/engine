@@ -103,7 +103,7 @@ void Level::Process(int timeInMs)
 			spaceShooter->GameOver();
 		else if (onDeath.StartsWith("RespawnAt"))
 		{
-			playerShip->hp = playerShip->maxHP;
+			playerShip->hp = (float)playerShip->maxHP;
 			this->AddPlayer(playerShip, Vector3f(levelEntity->worldPosition.x, 10.f, 0));
 			// Reset level-time.
 			String timeStr = onDeath.Tokenize("()")[1];
@@ -208,7 +208,7 @@ void Level::Process(int timeInMs)
 			if (sg->FinishedSpawning())
 			{
 				// Check if it's defeated?
-				if (sg->shipsDefeatedOrDespawned >= sg->number)
+				if (sg->DefeatedOrDespawned())
 				{
 					if (sg->pausesGameTime)
 						gameTimePaused = false;

@@ -90,6 +90,7 @@ bool SpawnGroup::Spawn()
 			ship->Spawn(ship->position, 0);
 			activeLevel->ships.AddItem(ship);
 			++spawned;
+			ships.RemoveItem(ship);
 		}
 		finishedSpawning = true;
 		return true;
@@ -125,16 +126,27 @@ void SpawnGroup::SetFinishedSpawning()
 /// Gathers all ships internally for spawning.
 void SpawnGroup::PrepareForSpawning(SpawnGroup * parent)
 {
+	List<Vector3f> positions;
+	Vector3f offsetPerSpawn;
+	assert(ships.Size() == 0);
+	ships.Clear();
 	if (!parent)
 		LogMain("Spawning spawn group at time: "+String(spawnTime.ToString("m:S.n")), INFO);
 
 	std::cout<<"\nSpawning formation: "<<Formation::GetName(formation);
 
+	/// Initial adjustments, or sub-group spawning.
 	switch(formation)
 	{
+		case Formation::X:
+			if (number < 5)
+				number = 5;
+			break;
 		case Formation::SQUARE:
 			/// Number will be the amount of ships per side?
 			SpawnGroup copy = *this;
+			if (number < 3)
+				number = 3;
 			int num = number;
 			Vector2f spacing = size / (float)(num - 1);
 			Vector2f lineSize = spacing * (float)(num - 2);
@@ -142,23 +154,26 @@ void SpawnGroup::PrepareForSpawning(SpawnGroup * parent)
 			copy.formation = Formation::LINE_X;
 			copy.number = num - 1;
 			copy.position = position + Vector2f(-size.x * 0.5f, size.y * 0.5f);
-			copy.size = Vector2f(lineSize.x, 0); 
+			copy.size = Vector2f(lineSize.x, 0);
+			copy.ships.Clear();
 			copy.PrepareForSpawning(this);
 			copy.position = position + Vector2f(-size.x * 0.5f + spacing.x, - size.y * 0.5f);
+			copy.ships.Clear();
 			copy.PrepareForSpawning(this);
 			copy.position = position + Vector2f(size.x * 0.5f, spacing.y * 0.5f);
 			copy.formation = Formation::LINE_Y;
 			copy.size = Vector2f(0, -lineSize.y);
+			copy.ships.Clear();
 			copy.PrepareForSpawning(this);
 			copy.position = position + Vector2f(-size.x * 0.5f, - spacing.y * 0.5f);
 			copy.size = Vector2f(0, lineSize.y);
+			copy.ships.Clear();
 			copy.PrepareForSpawning(this);
-			return;
+			goto end;
 	}
 
 	/// Fetch amount.
-	Vector3f offsetPerSpawn;
-	int offsetNum = max(1,number - 1);
+	int offsetNum = max(1, number - 1);
 	// Always nullify Z.
 	size.z = 0;
 	switch(formation)
@@ -187,8 +202,6 @@ void SpawnGroup::PrepareForSpawning(SpawnGroup * parent)
 		case Formation::X:
 		{
 			int steps = (int)floor((number - 1) / 4.0);
-			if (steps < 1)
-				return;
 			offsetPerSpawn = size * 0.5f / (float)steps;
 			break;
 		}
@@ -205,7 +218,6 @@ void SpawnGroup::PrepareForSpawning(SpawnGroup * parent)
 	}
 
 	/// Check formation to specify vectors for all
-	List<Vector3f> positions;
 	for (int i = 0; i < number; ++i)
 	{
 
@@ -271,13 +283,13 @@ void SpawnGroup::PrepareForSpawning(SpawnGroup * parent)
 				break;
 			case Formation::HALF_CIRCLE_LEFT:
 				angles = true;
-				degrees = 180.0 / (number - 1);
+				degrees = 180.0 / max((number - 1), 1);
 				startDegree = 90;
 				radialMultiplier.x = 2;
 				break;
 			case Formation::HALF_CIRCLE_RIGHT:
 				angles = true;
-				degrees = 180.0 / (number - 1);
+				degrees = 180.0 / max((number - 1), 1);
 				startDegree = -90;
 				radialMultiplier.x = 2;
 				break;
@@ -308,10 +320,13 @@ void SpawnGroup::PrepareForSpawning(SpawnGroup * parent)
 			AddShipAtPosition(position + Vector3f(0, size.y, 0));
 		}
 	}
+
+end:
 	preparedForSpawning = true;
 	/// Add all ships to parent if subAggregate
 	if (parent)
 		parent->ships.Add(ships);
+	assert(ships.Size());
 }
 
 void SpawnGroup::AddShipAtPosition(ConstVec3fr position)
@@ -330,6 +345,14 @@ void SpawnGroup::AddShipAtPosition(ConstVec3fr position)
 	ship->speed *= relativeSpeed;
 	ship->position = position;
 	/// ....
+	if(movements.Size())
+	{
+		ship->movements = movements;
+	}
+	if(rotations.Size())
+	{
+		ship->rotations = rotations;
+	}
 	ships.AddItem(ship);
 }
 
@@ -338,6 +361,12 @@ void SpawnGroup::AddShipAtPosition(ConstVec3fr position)
 /*Entity * SpawnGroup::SpawnShip(ConstVec3fr atPosition)
 {
 }*/
+
+/// Query, compares active ships vs. spawned amount
+bool SpawnGroup::DefeatedOrDespawned()
+{
+	return shipsDefeatedOrDespawned >= spawned;
+}
 
 void SpawnGroup::OnShipDestroyed(Ship * ship)
 {

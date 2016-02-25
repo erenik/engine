@@ -45,6 +45,7 @@ namespace LevelLoader
 	}
 	void ParseTimeStringsFromLine(String line)
 	{
+		spawnTimes.Clear();
 		List<String> timeStrs = line.Tokenize(" \t,");
 		timeStrs.RemoveIndex(0, ListOption::RETAIN_ORDER);
 		for (int i = 0; i < timeStrs.Size(); ++i)
@@ -64,14 +65,15 @@ namespace LevelLoader
 			bool ok = t.ParseFrom(timeStr);
 			if (!ok)
 				continue;
-			if (t.Milliseconds() == 0)
-				continue;
+/*			if (t.Milliseconds() == 0) /// Spawning at 0:0.0 should be possible - used in generator.
+				continue;*/
 			if (timeStr.StartsWith("+"))
 			{
 				t = t + spawnTimes.Last(); // Catenate to previous time ^^	
 			}
 			spawnTimes.AddItem(t);
 		}
+		assert(spawnTimes.Size());
 	}
 };
 

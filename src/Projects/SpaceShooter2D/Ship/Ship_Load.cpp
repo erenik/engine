@@ -108,13 +108,13 @@ bool Ship::LoadTypes(String file)
 			else if (column == "Movement pattern")
 			{
 				ship->ParseMovement(value);
-				ship->movementPatterns.Size();
+				ship->movements.Size();
 				ship->canMove = true;
 			}
 			else if (column == "Rotation pattern")
 			{
 				ship->ParseRotation(value);
-				ship->rotationPatterns.Size();
+				ship->rotations.Size();
 			}
 			else if (column == "Score")
 				ship->score = value.ParseInt();
@@ -165,7 +165,7 @@ bool Ship::LoadTypes(String file)
 /// E.g. "Straight(10), MoveTo(X Y 5 20, 5)"
 void Ship::ParseMovement(String fromString)
 {
-	movementPatterns.Clear();
+	movements.Clear();
 	/// Tokenize.
 	List<String> parts = TokenizeIgnore(fromString, ",", "()");
 	for (int i = 0; i < parts.Size(); ++i)
@@ -205,7 +205,7 @@ void Ship::ParseMovement(String fromString)
 		// Add it and continue.
 		if (move.type == Movement::NONE)
 		{
-			movementPatterns.Add(move);
+			movements.Add(move);
 			continue;
 		}
 		// Demand arguments depending on type?
@@ -288,20 +288,20 @@ void Ship::ParseMovement(String fromString)
 			}
 		}
 		move.vec.Normalize();
-		movementPatterns.Add(move);
+		movements.Add(move);
 	}
-	if (movementPatterns.Size() == 0)
+	if (movements.Size() == 0)
 	{
-		movementPatterns.Add(Movement(Movement::STRAIGHT));
+		movements.Add(Movement(Movement::STRAIGHT));
 	}
-	assert(movementPatterns.Size());
+	assert(movements.Size());
 }
 
 
 /// E.g. "DoveDir(3), RotateToFace(player, 5)"
 void Ship::ParseRotation(String fromString)
 {
-	rotationPatterns.Clear();
+	rotations.Clear();
 	/// Tokenize.
 	List<String> parts = TokenizeIgnore(fromString, ",", "()");
 	for (int i = 0; i < parts.Size(); ++i)
@@ -336,7 +336,7 @@ void Ship::ParseRotation(String fromString)
 		// Add it and continue.
 		if (rota.type == Rotation::NONE)
 		{
-			rotationPatterns.Add(rota);
+			rotations.Add(rota);
 			continue;
 		}
 		// Demand arguments depending on type?
@@ -373,12 +373,12 @@ void Ship::ParseRotation(String fromString)
 				GET_DURATION(1);
 				break;
 		}
-		rotationPatterns.Add(rota);
+		rotations.Add(rota);
 	}
-	if (rotationPatterns.Size() == 0)
+	if (rotations.Size() == 0)
 	{
-		rotationPatterns.Add(Rotation(Rotation::NONE));
+		rotations.Add(Rotation(Rotation::NONE));
 	}
-	assert(rotationPatterns.Size());
+	assert(rotations.Size());
 }
 

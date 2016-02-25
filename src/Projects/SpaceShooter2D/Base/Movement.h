@@ -42,6 +42,9 @@ public:
 	// Upon exiting this movement pattern.
 	void OnEnd();
 
+	String ToString();
+
+	static List<Movement> ParseFrom(String);
 	static String Name(int type);
 
 	/// Adds level speed and sets ship speed accordingly.

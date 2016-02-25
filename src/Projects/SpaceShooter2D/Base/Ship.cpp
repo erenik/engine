@@ -91,6 +91,19 @@ void Ship::RandomizeWeaponCooldowns()
 
 List<Entity*> Ship::Spawn(ConstVec3fr atLocalPosition, Ship * in_parent)
 {
+	if(movements.Size()>0)
+	{
+	std::cout<<"\nNow spawning with movement "<<movements[0].ToString();
+	}
+	if(rotations.Size()>0)
+	{
+		std::cout<<" and rotation "<<rotations[0].ToString()<<".";
+		if(rotations[0].type != Rotation::NONE)
+		{
+			std::cout<<"\nJÄVLA HELVETE";
+		}
+	}
+	
 	/// Reset stuffs if not already done so.
 	movementDisabled = false;
 	RandomizeWeaponCooldowns();
@@ -288,6 +301,9 @@ bool Ship::ArrivedAtDestination()
 
 void Ship::Process(int timeInMs)
 {
+	/// If destroyed from elsewhere..?
+	if (entity == 0)
+		return;
 	// Skill cooldown.
 	if (timeSinceLastSkillUseMs >= 0)
 	{
@@ -304,8 +320,8 @@ void Ship::Process(int timeInMs)
 	if (script)
 		script->Process(timeInMs);
 	// Increment time in movement if applicable.
-	if (movementPatterns.Size())
-		movementPatterns[currentMovement].OnFrame(timeInMs);
+	if (movements.Size())
+		movements[currentMovement].OnFrame(timeInMs);
 	// AI
 	ProcessAI(timeInMs);
 	// Weapon systems.
@@ -334,33 +350,33 @@ void Ship::ProcessAI(int timeInMs)
 	// Don't process inactive ships..
 	if (!enemy)
 		return;
-	if (rotationPatterns.Size() == 0)
+	if (rotations.Size() == 0)
 		return;
 	// Rotate accordingly.
-	Rotation & rota = rotationPatterns[currentRotation];
+	Rotation & rota = rotations[currentRotation];
 	rota.OnFrame(timeInMs);
 	// Increase time spent in this state accordingly.
 	timeInCurrentRotation += timeInMs;
 	if (timeInCurrentRotation > rota.durationMs && rota.durationMs > 0)
 	{
-		currentRotation = (currentRotation + 1) % rotationPatterns.Size();
+		currentRotation = (currentRotation + 1) % rotations.Size();
 		timeInCurrentRotation = 0;
-		Rotation & rota2 = rotationPatterns[currentRotation];
+		Rotation & rota2 = rotations[currentRotation];
 		rota2.OnEnter(this);
 	}
 	if (!canMove)
 		return;
 	// Move?
 	Entity * shipEntity = entity;
-	Movement & move = movementPatterns[currentMovement];
+	Movement & move = movements[currentMovement];
 	move.OnFrame(timeInMs);
 	// Increase time spent in this state accordingly.
 	timeInCurrentMovement += timeInMs;
 	if (timeInCurrentMovement > move.durationMs && move.durationMs > 0)
 	{
-		currentMovement = (currentMovement + 1) % movementPatterns.Size();
+		currentMovement = (currentMovement + 1) % movements.Size();
 		timeInCurrentMovement = 0;
-		Movement & newMove = movementPatterns[currentMovement];
+		Movement & newMove = movements[currentMovement];
 		newMove.OnEnter(this);
 	}
 }
@@ -475,8 +491,8 @@ void Ship::DisableMovement()
 void Ship::OnSpeedUpdated()
 {
 	/// Update based on current movement?
-	if (movementPatterns.Size())
-		movementPatterns[currentMovement].OnSpeedUpdated();
+	if (movements.Size())
+		movements[currentMovement].OnSpeedUpdated();
 }
 
 
@@ -652,10 +668,10 @@ bool Ship::DisableAllWeapons()
 
 void Ship::SetMovement(Movement & movement)
 {
-	this->movementPatterns.Clear();
+	this->movements.Clear();
 //		move.vec = Vector2f(-10.f, targetEntity->worldPosition.y); 
-	this->movementPatterns.AddItem(movement);
-	movementPatterns[0].OnEnter(this);
+	this->movements.AddItem(movement);
+	movements[0].OnEnter(this);
 //	.OnEnter(ship);
 }
 
@@ -755,10 +771,10 @@ bool Ship::SwitchToWeapon(int index)
 /// Calls OnEnter for the initial movement pattern.
 void Ship::StartMovement()
 {
-	if (rotationPatterns.Size())
-		rotationPatterns[0].OnEnter(this);
-	if (movementPatterns.Size())
-		movementPatterns[0].OnEnter(this);
+	if (rotations.Size())
+		rotations[0].OnEnter(this);
+	if (movements.Size())
+		movements[0].OnEnter(this);
 }
 
 /// For player ship.

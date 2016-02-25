@@ -7,6 +7,10 @@
 #include "SpaceShooter2D/SpaceShooter2D.h"
 #include "File/LogFile.h"
 
+String Rotation::ToString()
+{
+	return Name(type);
+}
 
 Rotation::Rotation()
 {
@@ -25,6 +29,86 @@ void Rotation::Nullify()
 	spinSpeed = 0.5f;
 }
 
+List<Rotation> Rotation::ParseFrom(String fromString)
+{
+	List<Rotation> rotationPatterns;
+	/// Tokenize.
+	List<String> parts = TokenizeIgnore(fromString, ",", "()");
+	for (int i = 0; i < parts.Size(); ++i)
+	{
+		String part = parts[i];
+		List<String> broken = part.Tokenize("()");
+		if (broken.Size() == 0)
+		{
+			LogMain("Empty movement pattern when parsing ship \'"+fromString+"\'.", INFO);
+			continue;
+		}
+		String partPreParenthesis = broken[0];
+		partPreParenthesis.RemoveSurroundingWhitespaces();
+		Rotation rota;
+		rota.type = -1;
+		String name = partPreParenthesis;
+		if (name == "MoveDir")
+			rota.type = Rotation::MOVE_DIR;
+		else if (name == "RotateTo" || name == "RotationTo" || name == "RotateToFace")
+			rota.type = Rotation::ROTATE_TO_FACE;
+		else if (name == "WeaponTarget")
+			rota.type = Rotation::WEAPON_TARGET;
+		else if (name == "None" || name == "n/a")
+			rota.type = Rotation::NONE;
+		else if (name == "Spinning")
+			rota.type = Rotation::SPINNING;
+		if (rota.type == -1)
+		{
+			LogMain("Unrecognized movement pattern \'"+fromString+"\' when parsing ship \'"+name+"\'. Available types are as follows: \n\
+																						   MoveDir(duration)\
+																						   RotateToFace(location, duration)", INFO);
+			continue;
+		}
+		// Add it and continue.
+		if (rota.type == Rotation::NONE)
+		{
+			//rotationPatterns.Add(rota);
+			continue;
+		}
+		// Demand arguments depending on type?
+		if (broken.Size() < 2)
+		{
+			LogMain("Lacking arguments for movement pattern \'"+partPreParenthesis+"\' when parsing data for ship \'"+name+"\'.", INFO);
+			continue;
+		}
+		List<String> args = broken[1].Tokenize(",");
+#undef DEMAND_ARGS
+#define DEMAND_ARGS(a) if (args.Size() < a){ \
+	LogMain("Expected "+String(a)+" arguments for movement type \'"+\
+	Rotation::Name(rota.type)+"\', encountered "+String(args.Size())+".", INFO); \
+	continue;}
+#undef GET_DURATION
+#define GET_DURATION(a) if (args[a].Contains("inf")) rota.durationMs = -1; else rota.durationMs = args[a].ParseInt();
+		switch(rota.type)
+		{
+			case Rotation::NONE:
+				break;
+			case Rotation::MOVE_DIR:
+			case Rotation::WEAPON_TARGET: 
+				DEMAND_ARGS(1);				// Just durations here.
+				GET_DURATION(0);
+				break;	
+			case Rotation::ROTATE_TO_FACE:
+				DEMAND_ARGS(2);
+				rota.target = args[0];
+				GET_DURATION(1);
+				break;
+			case Rotation::SPINNING:
+				DEMAND_ARGS(2);
+				rota.spinSpeed = args[0].ParseFloat();
+				GET_DURATION(1);
+				break;
+		}
+		rotationPatterns.Add(rota);
+	}
+	return rotationPatterns;
+};
 
 String Rotation::Name(int type)
 {

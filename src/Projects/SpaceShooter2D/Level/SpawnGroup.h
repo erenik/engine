@@ -48,7 +48,8 @@ public:
 	/// Gathers all ships internally for spawning. Returns lsit of all ships (used internally)
 	void PrepareForSpawning(SpawnGroup * parent = 0);
 
-
+	/// Query, compares active ships vs. spawned amount
+	bool DefeatedOrDespawned();
 	void OnShipDestroyed(Ship * ship);
 	void OnShipDespawned(Ship * ship);
 	/// Creates string (sequence of lines) required to create this specific SpawnGroup in e.g. a level file.
@@ -59,10 +60,12 @@ public:
 	bool survived; // player survived the way?
 	Time spawnTime;
 	Vector3f position;
-	/// Number along the formation bounds.
+	/// Number along the formation bounds. Before PrepareForSpawning is called, this is an arbitrary argument, which may or may not be the same after preparing for spawning (e.g. it may multiply for generating a SQUARE formation).
 	int number;
 	// See enum above.
 	int formation;
+	List<Movement> movements;
+	List<Rotation> rotations;
 	void ParseFormation(String fromString);
 	/// Usually just 1 or 2 sizes are used (X,Y)
 	Vector3f size;
