@@ -186,7 +186,7 @@ bool Level::Load(String fromSource)
 			// Parse time.
 			ParseTimeStringsFromLine(line);
 			group->spawnTime = spawnTimes[0];
-			group->spawnTime.PrintData();
+	//		group->spawnTime.PrintData();
 //			String timeStr = line.Tokenize(" \t")[1];
 //			group->spawnTime.ParseFrom(timeStr);
 			parseMode = PARSE_MODE_FORMATIONS;
@@ -319,7 +319,7 @@ bool Level::Load(String fromSource)
 				group->spawnIntervalMsBetweenEachShipInFormation = arg.ParseInt();
 			if (var == "Formation")
 			{
-				arg.PrintData();
+//				arg.PrintData();
 				group->ParseFormation(arg);
 			}
 			if (var == "Number" || var == "Amount")

@@ -118,12 +118,12 @@ void SSIntegrator::IntegrateVelocity(Entity * forEntity, float timeInSeconds)
 		// 
 		Vector3f & cVel = pp->currentVelocity;
 		// Check Z is 0.
-		assert(cVel.z == 0);
 		if (cVel.z != 0)
 		{	
 			/// Unregister
 			std::cout<<"\nBAD VEL";
 			PhysicsMan.QueueMessage(new PMUnregisterEntity(forEntity));
+//		assert(cVel.z == 0);
 			return;
 		}
 		Matrix4f & rot = forEntity->rotationMatrix;

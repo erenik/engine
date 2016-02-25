@@ -90,20 +90,7 @@ void Ship::RandomizeWeaponCooldowns()
 }
 
 List<Entity*> Ship::Spawn(ConstVec3fr atLocalPosition, Ship * in_parent)
-{
-	if(movements.Size()>0)
-	{
-	std::cout<<"\nNow spawning with movement "<<movements[0].ToString();
-	}
-	if(rotations.Size()>0)
-	{
-		std::cout<<" and rotation "<<rotations[0].ToString()<<".";
-		if(rotations[0].type != Rotation::NONE)
-		{
-			std::cout<<"\nJÄVLA HELVETE";
-		}
-	}
-	
+{	
 	/// Reset stuffs if not already done so.
 	movementDisabled = false;
 	RandomizeWeaponCooldowns();
