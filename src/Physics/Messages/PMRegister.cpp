@@ -28,7 +28,8 @@ void PMRegisterEntity::Process()
 }
 
 
-PMRegisterEntities::PMRegisterEntities(List<Entity*> targetEntities): PhysicsMessage(PM_REGISTER_ENTITIES) {
+PMRegisterEntities::PMRegisterEntities(List<Entity*> targetEntities): PhysicsMessage(PM_REGISTER_ENTITIES) 
+{
 	entities = targetEntities;
 }
 

@@ -4,45 +4,6 @@
 
 #include "SpaceShooter2D/SpaceShooter2D.h"
 
-void SpaceShooter2D::Cleanup()
-{
-	/// Remove projectiles which have been passed by.
-	for (int i = 0; i < projectileEntities.Size(); ++i)
-	{
-		Entity * proj = projectileEntities[i];
-		ProjectileProperty * pp = (ProjectileProperty*) proj->GetProperty(ProjectileProperty::ID());
-		if (pp->sleeping || 
-				(proj->worldPosition[0] < despawnPositionLeft ||
-				proj->worldPosition[0] > spawnPositionRight ||
-				proj->worldPosition[1] < -1.f ||
-				proj->worldPosition[1] > playingFieldSize[1] + 2.f
-				)
-			)
-		{
-			MapMan.DeleteEntity(proj);
-			projectileEntities.Remove(proj);
-			--i;
-		}
-	}
-
-	/// Clean ships.
-	for (int i = 0; i < level.ships.Size(); ++i)
-	{
-		Ship * ship = level.ships[i];
-		if (ship->destroyed)
-			continue;
-		if (!ship->spawned)
-			continue;
-		if (!ship->entity)
-			continue;
-		// Check if it should de-spawn.
-		if (ship->despawnOutsideFrame && ship->entity->worldPosition[0] < despawnPositionLeft && ship->parent == NULL)
-		{
-			ship->Despawn(false);
-		}
-	}
-}
-
 /// Each other being original position, clamped position, orig, clamp, orig3, clamp3, etc.
 List<Vector3f> renderPositions;
 void SpaceShooter2D::UpdateRenderArrows()

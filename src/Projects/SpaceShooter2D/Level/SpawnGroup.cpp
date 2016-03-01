@@ -53,6 +53,16 @@ SpawnGroup::SpawnGroup()
 	lastSpawn = AETime(TimeType::MILLISECONDS_NO_CALENDER, 0);
 }
 
+SpawnGroup::~SpawnGroup()
+{
+//	ships.ClearAndDelete();
+	for (int i = 0; i < ships.Size(); ++i)
+	{
+		Ship * s = ships[i];
+		s->spawnGroup = 0;
+	}
+}
+
 void SpawnGroup::Reset()
 {
 	pausesGameTime = false;
@@ -366,6 +376,19 @@ void SpawnGroup::AddShipAtPosition(ConstVec3fr position)
 bool SpawnGroup::DefeatedOrDespawned()
 {
 	return shipsDefeatedOrDespawned >= spawned;
+}
+
+void SpawnGroup::SetDefeated()
+{
+	SetFinishedSpawning();
+	shipsDefeatedOrDespawned = shipsDefeated = spawned;
+	for (int i = 0; i < ships.Size(); ++i)
+	{
+		Ship * s = ships[i];
+		s->spawnGroup = 0;
+	}
+	// Destroy ships!
+	ships.ClearAndDelete();
 }
 
 void SpawnGroup::OnShipDestroyed(Ship * ship)

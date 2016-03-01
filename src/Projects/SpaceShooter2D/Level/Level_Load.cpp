@@ -94,7 +94,7 @@ using namespace LevelLoader;
 /// Deletes all ships, spawngroups, resets variables to defaults.
 void Level::Clear()
 {
-	this->winCriteria = Level::NEVER;
+	this->endCriteria = Level::NEVER;
 	this->RemoveRemainingSpawnGroups();
 	this->RemoveExistingEnemies();
 	// Reset player cooldowns if needed.
@@ -102,20 +102,31 @@ void Level::Clear()
 		playerShip->RandomizeWeaponCooldowns();
 }
 
+bool Level::FinishedSpawning()
+{
+	for (int i = 0; i < spawnGroups.Size(); ++i)
+	{
+		SpawnGroup * sg = spawnGroups[i];
+		if (!sg->FinishedSpawning())
+			return false;
+	}
+	return true;
+}
+
 bool Level::Load(String fromSource)
 {
 	// Clear old stuff
-	this->winCriteria = Level::NEVER;
 	Clear();
 	levelTime.intervals = 0;
-
-
-
 	LevelLoader::loadLevel = this;
 	group = NULL;
 	lastGroup = NULL;
 	
 	source = fromSource;
+
+	// Reset level stats.
+	spaceShooter->ResetLevelStats();
+
 
 	failedToSurvive = false;
 	defeatedAllEnemies = true;
@@ -124,6 +135,9 @@ bool Level::Load(String fromSource)
 	ships.ClearAndDelete();
 	spawnGroups.ClearAndDelete();
 	messages.ClearAndDelete();
+
+	/// Set end criteria..
+	endCriteria = Level::NO_MORE_ENEMIES;
 
 	millisecondsPerPixel = 250;
 	flyTime = levelTime = Time(TimeType::MILLISECONDS_NO_CALENDER, 0); // reset lvl time.

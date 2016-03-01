@@ -148,7 +148,7 @@ bool Weapon::LoadTypes(String fromFile)
 			else if (column == "Linear Scaling")
 				weapon.linearScaling = value.ParseFloat();
 			else if (column == "Cooldown")
-				weapon.cooldown = Time::Milliseconds(value.ParseFloat());
+				weapon.cooldown = Time::Milliseconds((int) value.ParseFloat());
 			else if (column == "Penetration")
 				weapon.penetration = value.ParseFloat();
 			else if (column == "Burst")
@@ -209,9 +209,9 @@ bool Weapon::LoadTypes(String fromFile)
 			else if (column == "Max Range")
 				weapon.maxRange = value.ParseFloat();
 			else if (column == "Arc Delay")
-				weapon.arcDelay = value.ParseFloat();
+				weapon.arcDelay = (int) value.ParseFloat();
 			else if (column == "Max Bounces")
-				weapon.maxBounces = value.ParseFloat();
+				weapon.maxBounces = (int) value.ParseFloat();
 			else 
 			{
 		//		std::cout<<"\nUnknown column D:";
@@ -302,18 +302,18 @@ void Weapon::Shoot(Ship * ship)
 			// Check time between burst rounds.
 			++burstRoundsShot;
 			// Set next cooldown to be the burst delay.
-			currCooldownMs = burstRoundDelay.Milliseconds();
+			currCooldownMs = (int) burstRoundDelay.Milliseconds();
 		}
 		/// End of burst.
 		else {
 			burstStart = flyTime;
 			++burstRoundsShot;
-			currCooldownMs = cooldown.Milliseconds();
+			currCooldownMs = (int) cooldown.Milliseconds();
 			burstRoundsShot = 0;
 		}
 	}
 	else
-		currCooldownMs = cooldown.Milliseconds();
+		currCooldownMs = (int) cooldown.Milliseconds();
 
 	// Shoot!
 	if (type ==	LIGHTNING)
@@ -454,7 +454,7 @@ void Weapon::ProcessLightning(Ship * owner, bool initial /* = true*/)
 		LightningArc * arc = new LightningArc();
 		arc->position = owner->entity->worldPosition;
 		arc->maxRange = maxRange;
-		arc->damage = damage;
+		arc->damage = (int) damage;
 		arc->arcTime = flyTime;
 		arc->maxBounces = maxBounces;
 		arcs.AddItem(arc);
@@ -509,7 +509,7 @@ void Weapon::ProcessLightning(Ship * owner, bool initial /* = true*/)
 		LightningArc * newArc = new LightningArc();
 		newArc->position = target->entity->worldPosition;
 		newArc->maxRange = arc->maxRange - distance;
-		newArc->damage = arc->damage * 0.8;
+		newArc->damage = (int) (arc->damage * 0.8);
 		newArc->maxBounces = arc->maxBounces - 1;
 		if (newArc->maxBounces <= 0)
 			newArc->arcFinished = true;
@@ -521,7 +521,7 @@ void Weapon::ProcessLightning(Ship * owner, bool initial /* = true*/)
 		shipsStruckThisArc.AddItem(target);
 		assert(shipsStruckThisArc.Duplicates() == 0);
 		std::cout<<"\nThunderstruck! "<<target->entity->worldPosition;
-		target->Damage(arc->damage, false);
+		target->Damage((int)arc->damage, false);
 		/// Span up a nice graphical entity to represent the bolt
 		Entity * entity = EntityMan.CreateEntity("BoldPart", ModelMan.GetModel("cube.obj"), TexMan.GetTexture("0x00FFFF"));
 		entity->localPosition = (arc->position + newArc->position) * 0.5f;

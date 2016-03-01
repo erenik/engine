@@ -178,11 +178,16 @@ public:
 	/// o.o
 	Entity * OnShipDestroyed(Ship * ship);
 
-	/// Level score. If -1, returns current.
-	GameVariable * LevelScore(int stage = -1, int level = -1);
-	/// Level score. If -1, returns current.
-	GameVariable * LevelKills(int stage = -1, int level = -1);
 
+	String GetLevelVarName(String level, String name);
+	/// Level score.
+	GameVariable * LevelScore(String level = "current");
+	/// Level kills. If -1, returns current.
+	GameVariable * LevelKills(String level = "current");
+	/// Level max kills possible.
+	GameVariable * LevelPossibleKills(String level = "current");
+	/// Resets all the above.
+	void ResetLevelStats();
 // private:
 
 	/// Starts a new game. Calls LoadLevel
@@ -263,7 +268,7 @@ private:
 	void RenderInLevel(GraphicsState * graphicsState);
 
 	/// Called each app frame to remove projectiles and ships outside the relevant area.
-	void Cleanup();
+//	void Cleanup();
 	void OnPauseStateUpdated();
 
 	/// For display.

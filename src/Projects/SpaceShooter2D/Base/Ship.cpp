@@ -74,6 +74,17 @@ Ship::Ship()
 Ship::~Ship()
 {
 	weapons.ClearAndDelete();
+	if (spawnGroup)
+	{
+		assert(false);
+	}
+	if (entity)
+	{
+		this->shipProperty->shouldDelete = true;
+		this->shipProperty->sleeping = 0;
+		this->shipProperty->ship = 0;
+		shipProperty = 0;
+	}
 }
 
 Random cooldownRand;
@@ -91,6 +102,9 @@ void Ship::RandomizeWeaponCooldowns()
 
 List<Entity*> Ship::Spawn(ConstVec3fr atLocalPosition, Ship * in_parent)
 {	
+
+	std::cout<<"\nPossible kills: "<<++spaceShooter->LevelPossibleKills()->iValue;
+
 	/// Reset stuffs if not already done so.
 	movementDisabled = false;
 	RandomizeWeaponCooldowns();
@@ -219,7 +233,12 @@ List<Entity*> Ship::SpawnChildren()
 			LogMain("Ship::SpawnChildren: Unable to create ship of type: "+str, ERROR | CAUSE_ASSERTION_ERROR);
 			continue;
 		}
+		if (enemy)
+			activeLevel->enemyShips.AddItem(newShip);
+		else 
+			activeLevel->alliedShips.AddItem(newShip);
 		activeLevel->ships.AddItem(newShip);
+
 		Ship * ship = newShip;
 		ship->allied = this->allied;
 		ship->RandomizeWeaponCooldowns();
@@ -544,7 +563,10 @@ bool Ship::Damage(float amount, bool ignoreShield)
 }
 
 void Ship::Destroy()
-{
+{	
+	if (destroyed)
+		return;
+	destroyed = 0;
 	if (entity)
 	{
 		if (spawnGroup)
@@ -562,7 +584,7 @@ void Ship::Destroy()
 		if (!allied)
 		{
 			spaceShooter->LevelScore()->iValue += this->score;
-			spaceShooter->LevelKills()->iValue++;
+			std::cout<<"\nKills: "<<spaceShooter->LevelKills()->iValue++;
 			spaceShooter->OnScoreUpdated();
 		}
 		else 

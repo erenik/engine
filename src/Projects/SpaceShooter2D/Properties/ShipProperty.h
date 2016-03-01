@@ -34,6 +34,8 @@ public:
 	bool IsAllied();
 	/// When deaded...
 	bool sleeping;
+	/// hm..
+	bool shouldDelete;
 
 	/// o.o
 //	void LoadDataFrom(Ship * ship);

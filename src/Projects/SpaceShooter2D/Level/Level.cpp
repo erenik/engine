@@ -45,7 +45,8 @@ Level::~Level()
 {
 	spawnGroups.ClearAndDelete();
 	messages.ClearAndDelete();
-	ships.ClearAndDelete();
+	enemyShips.ClearAndDelete();
+	alliedShips.ClearAndDelete();
 }
 
 /// Starts BGM, starts clocks/timers if any, etc.
@@ -85,6 +86,46 @@ void Level::SetupCamera()
 	GraphicsMan.QueueMessage(new GMSetCamera(levelCamera));
 }
 
+
+void Level::Cleanup()
+{
+	/// Remove projectiles which have been passed by.
+	for (int i = 0; i < projectileEntities.Size(); ++i)
+	{
+		Entity * proj = projectileEntities[i];
+		ProjectileProperty * pp = (ProjectileProperty*) proj->GetProperty(ProjectileProperty::ID());
+		if (pp->sleeping || 
+				(proj->worldPosition[0] < despawnPositionLeft ||
+				proj->worldPosition[0] > spawnPositionRight ||
+				proj->worldPosition[1] < -1.f ||
+				proj->worldPosition[1] > playingFieldSize[1] + 2.f
+				)
+			)
+		{
+			MapMan.DeleteEntity(proj);
+			projectileEntities.Remove(proj);
+			--i;
+		}
+	}
+
+	/// Clean ships.
+	for (int i = 0; i < ships.Size(); ++i)
+	{
+		Ship * ship = ships[i];
+		if (ship->destroyed)
+			continue;
+		if (!ship->spawned)
+			continue;
+		if (!ship->entity)
+			continue;
+		// Check if it should de-spawn.
+		if (ship->despawnOutsideFrame && ship->entity->worldPosition[0] < despawnPositionLeft && ship->parent == NULL)
+		{
+			ship->Despawn(false);
+		}
+	}
+
+}
 
 void Level::Process(int timeInMs)
 {
@@ -215,7 +256,7 @@ void Level::Process(int timeInMs)
 				}
 				continue;
 			}
-			int msToSpawn = (sg->spawnTime - levelTime).Milliseconds();
+			int msToSpawn = (int) (sg->spawnTime - levelTime).Milliseconds();
 			if (msToSpawn < 0) 
 			{
 				defeatedAllEnemies = false;
@@ -376,13 +417,13 @@ bool Level::LevelCleared()
 		case NO_MORE_ENEMIES:
 			if (levelTime.Seconds() < 3)
 				return false;
-			if (spawnGroups.Size())
+			if (shipEntities.Size() > this->PlayerShips().Size())
 				return false;
-			if (shipEntities.Size())
+			if (!FinishedSpawning())
 				return false;
 			if (messages.Size())
 				return false;
-			break;
+			return true;
 		case EVENT_TRIGGERED:
 			return levelCleared;
 		default:
@@ -492,5 +533,33 @@ void Level::RemoveExistingEnemies()
 	LogMain("Deleting entities "+lg, INFO);
 
 	Sleep(50);
+	for (int i = 0; i < ships.Size(); ++i)
+	{
+		Ship * s = ships[i];
+		s->spawnGroup = 0;
+	}
 	ships.ClearAndDelete();
+}
+
+void Level::JumpToTime(String timeString)
+{
+	// Jump to target level-time. Adjust position if needed.
+	levelTime.ParseFrom(timeString);
+	for (int i = 0; i < spawnGroups.Size(); ++i)
+	{
+		SpawnGroup * sg = spawnGroups[i];
+		if (sg->spawnTime < levelTime)
+		{
+			sg->SetFinishedSpawning();
+			sg->SetDefeated();
+		}
+	}
+	OnLevelTimeAdjusted();
+}
+
+List<Ship*> Level::PlayerShips()
+{
+	List<Ship*> playerShips;
+	playerShips.AddItem(playerShip);
+	return playerShips;
 }

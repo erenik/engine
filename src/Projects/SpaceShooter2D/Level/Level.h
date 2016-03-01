@@ -41,8 +41,11 @@ class Level
 public:
 	Level();
 	virtual ~Level();
+	/// Called regularly to despawn superfluous stuffs.
+	void Cleanup();
 	/// Deletes all ships, spawngroups, resets variables to defaults.
 	void Clear();
+	bool FinishedSpawning();
 	bool Load(String fromSource);
 	/// Starts BGM, starts clocks/timers if any, etc.
 	void OnEnter();
@@ -67,22 +70,28 @@ public:
 	void RemoveRemainingSpawnGroups();
 	void RemoveExistingEnemies();
 
+	/// Yes.
+	List<Ship*> PlayerShips();
+
+	/// In format mm:ss.ms
+	void JumpToTime(String timeString);
 
 	String source;
-	/// Ships within.
-	List<Ship*> ships;
+
+	/// Enemy ships within.
+	List<Ship*> enemyShips, alliedShips, ships;
 
 	/// Default.. 20.0. Dictates movable region in Y, at least.
 	float height;
 	/// Default 0.
-#define endCriteria winCriteria
 	enum 
 	{
 		NEVER,
 		SURVIVE_ALL_SPAWN_GROUPS, NO_MORE_ENEMIES = SURVIVE_ALL_SPAWN_GROUPS,
 		EVENT_TRIGGERED,
 	};
-	int winCriteria;
+	int endCriteria;
+
 
 	/// New spawn style.
 	List<SpawnGroup*> spawnGroups;

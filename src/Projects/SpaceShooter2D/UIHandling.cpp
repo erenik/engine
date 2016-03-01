@@ -214,8 +214,10 @@ void SpaceShooter2D::LoadDefaultName()
 
 void SpaceShooter2D::ShowLevelStats()
 {
+	std::cout<<"\n Kills : "<<LevelKills()->ToString()<<" of possible: "<<LevelPossibleKills()->ToString();
 	mode = SHOWING_LEVEL_STATS;
 	GraphicsMan.QueueMessage(new GMSetUIs("LevelKills", GMUI::TEXT, LevelKills()->ToString()));
+	QueueGraphics(new GMSetUIs("TotalKillsPossible", GMUI::TEXT, LevelPossibleKills()->ToString()));
 	GraphicsMan.QueueMessage(new GMSetUIs("LevelScore", GMUI::TEXT, LevelScore()->ToString()));
 	GraphicsMan.QueueMessage(new GMSetUIs("ScoreTotal", GMUI::TEXT, score->ToString()));
 }

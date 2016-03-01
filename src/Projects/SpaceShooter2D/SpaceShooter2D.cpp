@@ -210,7 +210,7 @@ void SpaceShooter2D::Process(int timeInMs)
 	now = Time::Now();
 	timeElapsedMs = timeInMs;
 	
-	Cleanup();
+	level.Cleanup();
 
 	switch(mode)
 	{
@@ -314,9 +314,7 @@ void SpaceShooter2D::ProcessMessage(Message * message)
 			}
 			if (msg == "JumpToTime")
 			{
-				// Jump to target level-time. Adjust position if needed.
-				levelTime.ParseFrom(strMes->value);
-				level.OnLevelTimeAdjusted();
+				level.JumpToTime(strMes->value);
 			}
 
 			break;
@@ -917,25 +915,45 @@ Entity * SpaceShooter2D::OnShipDestroyed(Ship * ship)
 	return NULL;
 }
 
-/// Level score. If -1, returns current.
-GameVariable * SpaceShooter2D::LevelScore(int stage, int level)
+String SpaceShooter2D::GetLevelVarName(String levelPath, String name)
 {
-	String name = "Level "+String(stage)+"-"+String(level)+" score";
-	GameVar * gv = GameVars.Get(name);
-	if (!gv)
-		gv = GameVars.CreateInt(name, 0);
-	return gv;
+	if (levelPath == "current")
+		levelPath = level.source;
+	return "Level_"+ levelPath +"_"+ name;
+}
+
+#define GetVar(varName)\
+	String name = GetLevelVarName(level, varName);\
+	GameVar * gv = GameVars.Get(name);\
+	if (!gv)\
+		gv = GameVars.CreateInt(name, 0);\
+	return gv;\
+
+/// Level score. If -1, returns current.
+GameVariable * SpaceShooter2D::LevelScore(String level)
+{
+	GetVar("score");
 }
 
 /// Level score. If -1, returns current.
-GameVariable * SpaceShooter2D::LevelKills(int stage, int level)
+GameVariable * SpaceShooter2D::LevelKills(String level)
 {
-	String name = "Level "+String(stage)+"-"+String(level)+" kills";
-	GameVar * gv = GameVars.Get(name);
-	if (!gv)
-		gv = GameVars.CreateInt(name, 0);
-	return gv;
+	GetVar("kills");
 }
+
+GameVariable * SpaceShooter2D::LevelPossibleKills(String level)
+{
+	GetVar("possibleKills");
+}
+
+/// Resets all the above.
+void SpaceShooter2D::ResetLevelStats()
+{
+	LevelScore()->iValue = 0;
+	LevelKills()->iValue = 0;
+	LevelPossibleKills()->iValue = 0;
+}
+
 
 void SpaceShooter2D::LoadShipData()
 {
@@ -980,14 +998,6 @@ void SpaceShooter2D::NewGame()
 
 	// Reset scores.
 	score->iValue = 0;
-	for (int i = 0; i < 8; ++i)
-	{
-		for (int j = 0; j < 4; ++j)
-		{
-			LevelKills(i+1,j+1)->iValue = 0;
-			LevelScore(i+1,j+1)->iValue = 0;
-		}
-	}
 	// Set stage n level
 	currentStage->iValue = 0;
 	currentLevel->iValue = 0;

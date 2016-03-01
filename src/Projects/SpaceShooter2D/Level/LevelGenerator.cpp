@@ -15,7 +15,9 @@ void GenerateLevel (String arguments)
 {
 	Level & level = spaceShooter -> level;
 	level.Clear();
-	
+
+	level.endCriteria = Level::NO_MORE_ENEMIES;
+
 	List<String> args = arguments.Tokenize(" ,");
 	/// Reset level-time?
 	levelTime = AETime(TimeType::MILLISECONDS_NO_CALENDER, 0);
@@ -103,7 +105,7 @@ void GenerateLevel (String arguments)
 		// Pick a number of ships
 		sg->number = selector.Randi(9)+1;
 		// Pick a formation size
-		sg->size = Vector2f(sg->number, sg->number);
+		sg->size = Vector2f((float) sg->number, (float) sg->number);
 		
 		/// Default spawn on right side of field, and spawn location.
 		// Randomize Y

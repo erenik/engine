@@ -26,6 +26,7 @@
 ShipProperty::ShipProperty(Ship * ship, Entity * owner)
 : EntityProperty("ShipProperty", ID(), owner), ship(ship)
 {
+	shouldDelete = false;
 	sleeping = false;
 	spawnInvulnerability = true;
 //	LoadDataFrom(ship);

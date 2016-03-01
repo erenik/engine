@@ -34,6 +34,7 @@ class SpawnGroup
 {
 public:
 	SpawnGroup();
+	virtual ~SpawnGroup();
 	void Reset();
 	/** Spawns ze entities. 
 		True if spawning sub-part of an aggregate formation-type. 
@@ -43,11 +44,14 @@ public:
 	bool Spawn();
 	/// To avoid spawning later.
 	void SetFinishedSpawning();
+	void SetDefeated();
 	bool FinishedSpawning() { return finishedSpawning;};
 
 	/// Gathers all ships internally for spawning. Returns lsit of all ships (used internally)
 	void PrepareForSpawning(SpawnGroup * parent = 0);
 
+	/// Living ships
+	List<Ship*> LivingShips() { return ships; };
 	/// Query, compares active ships vs. spawned amount
 	bool DefeatedOrDespawned();
 	void OnShipDestroyed(Ship * ship);
