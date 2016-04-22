@@ -274,7 +274,7 @@ void Ship::Despawn(bool doExplodeEffectsForChildren)
 	std::cout<<"\nDeleting entity "+tmp->name;
 	MapMan.DeleteEntity(tmp);
 	/// Waaaat.
-	shipEntities.Remove(tmp);
+	shipEntities.RemoveItem(tmp);
 
 	/// Unbind link from property to this ship.
 	shipProperty->sleeping = true; // Set sleeping so it shouldn't process anything anymore.

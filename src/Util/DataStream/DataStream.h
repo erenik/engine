@@ -29,10 +29,20 @@ public:
 	void SetBytesUsed(int bytesUsed);
 	/// Pushes the text into the stream, including ending NULL-sign.
 	void Push(String text);
+	/// Pushes raw text, without including NULL or ending '\n' signs.
+	void PushRawText(String text);
 	/// Pushes the text into the stream, replacing ending NULL-sign with '\n'.
 	void PushLine(String text);
+	/// Pushes an integer, or 4 bytes.
+	void PushInt(int integer);
+	/// Pushes 2 bytes, 16 bits of data.
+	void PushInt16(short shorterInteger);
+	/// Pushes 1 bytes, 8 bits of data.
+	void PushInt8(char c);
 	/// Pushes bytes to the end of the array.
 	void PushBytes(uchar * fromArray, int numberOfBytes);
+	/// o-o
+	void PadBytes(char c, int num);
 	// Pops all bytes up to the specified point in the array.
 	void PopToPointer(uchar * point);
 	/// Removes the X first number of bytes from the stream.

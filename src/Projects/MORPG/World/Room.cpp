@@ -26,10 +26,9 @@ Room * Room::NewEntrance(Vector3i position, Vector3i direction)
 {
 	// Later on, add so it can load from pre-loaded room types.
 	Room * room = new Room();
-	room->entryPoints.Add(2, 
-		EntryPoint("Entrance entry point", direction, position),
+	room->entryPoints.Add(EntryPoint("Entrance entry point", direction, position),
 		EntryPoint("Entrance entry point", -direction, position));
-	room->points.Add(Vector3i(0,0,0));
+	room->points.AddItem(Vector3i(0,0,0));
 	return room;
 }
 

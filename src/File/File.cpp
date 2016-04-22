@@ -173,6 +173,18 @@ bool File::OpenForReading()
 	return true;
 }
 
+bool File::OpenForWriting()
+{
+	/// Add /save/ unless it already exists in the path.
+	fileStream.open(path.c_str(), std::ios_base::out | std::ios_base::binary);
+	bool success = fileStream.is_open();
+	if (!success){
+		/// Try another path?
+		return false;
+	}	
+	return true;
+}
+
 /// Fetches contents of this file.
 String File::GetContents()
 {

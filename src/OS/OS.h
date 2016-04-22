@@ -23,6 +23,7 @@
 
 // Perform windows-specific includes straight-away!
 #if defined WINDOWS
+	#define _WINSOCKAPI_ // Don't use Winsock1, use 2.
 // #include "WindowsIncludes.h"
 	// Set target windows platform to Windows Vista and later (0x0600)
 //	#undef _WIN32_WINNT

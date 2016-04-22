@@ -93,7 +93,7 @@ void WorldMap::UpdateSettlements()
 		// Invert Y, as it got.. not sure.
 		pos.z = world.size.y - pos.y;
 		pos.y = settlement->elevation;
-		entity->position = pos;
+		entity->worldPosition = pos;
 		entity->scale = Vector3f(1,1,1) * 0.1f;
 		entity->RecalculateMatrix();
 	}
@@ -106,7 +106,7 @@ void WorldMap::UpdateCamera()
 {
 	if (!worldMapCamera)
 	{
-		worldMapCamera = CameraMan.NewCamera();
+		worldMapCamera = CameraMan.NewCamera("WorldMapCamera", true);
 		worldMapCamera->movementType = CAMERA_MOVEMENT_ABSOLUTE;
 		worldMapCamera->absForward = Vector3f(0,0,-1);
 		worldMapCamera->absRight = Vector3f(1,0,0);
@@ -114,7 +114,7 @@ void WorldMap::UpdateCamera()
 		CenterCamera();
 
 		// Create the default camera-position too.
-		Camera * worldMapResetCamera = CameraMan.NewCamera();
+		Camera * worldMapResetCamera = CameraMan.NewCamera("WorldMapResetCamera");
 		worldMapCamera->resetCamera = worldMapResetCamera;
 	}
 	// If the world changed much, adjust position, if not, don't really touch it?

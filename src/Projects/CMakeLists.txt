@@ -11,8 +11,11 @@ include(../../CMakeMacros.txt)
 #add_subdirectory(TIFS)
 #add_subdirectory(Tetris)
 #add_subdirectory(MORPG)
-add_subdirectory(SpaceShooter2D)
+#add_subdirectory(SpaceShooter2D)
 #add_subdirectory(SideScroller)
 #add_subdirectory(RoomBuilder)
 
+
+message("${PROJ_SPEC_DIR}")
+add_subdirectory(${PROJ_SPEC_DIR})
 

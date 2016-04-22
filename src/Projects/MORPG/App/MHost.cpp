@@ -177,7 +177,7 @@ void MHost::ProcessMessage(Message * message)
 				{
 					if (mode == SETTLEMENT_EDITOR)
 					{
-						if (Input.KeyPressed(KEY::SHIFT))
+						if (InputMan.KeyPressed(KEY::SHIFT))
 						{
 							--settlementIndex;
 							if (settlementIndex < 0)

@@ -49,7 +49,7 @@ public:
 	/// Getters.
 	Nation * GetNationByID(int id);
 	Zone * GetZoneByName(String name);
-	Zone * GetZoneByPosition(Vector3f pos);
+	Zone * GetZoneByPosition(ConstVec3fr pos);
 
 	void ReconnectZones();
 	/// Like a navmesh..

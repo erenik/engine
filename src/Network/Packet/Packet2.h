@@ -2,7 +2,7 @@
 #ifndef NETWORKPACKETS_H
 #define NETWORKPACKETS_H
 
-#include "NetworkSettings.h"
+#include "../NetworkSettings.h"
 
 #ifdef USE_NETWORK
 

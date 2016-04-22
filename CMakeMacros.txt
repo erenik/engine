@@ -201,7 +201,7 @@ macro(AddIncludeDirs fromFile)
 	#
 	STRING(REGEX REPLACE ";" "\\\\;" contents "${contents}")
 	STRING(REGEX REPLACE "\n" ";" contents "${contents}")
-	set(lib_include_dirs ${contents} )
+	set(lib_include_dirs ${lib_include_dirs} ${contents} )
 	message("lib_include_dirs: ${lib_include_dirs}")
 endmacro(AddIncludeDirs)
 
@@ -250,7 +250,11 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 		IF(LIBPNG)
 			SET(libs ${libs} "\n#define LIBPNG")
 		ENDIF(LIBPNG)
-	file(WRITE "${CMAKE_SOURCE_DIR}/src/Libs.h" ${libs})
+#	Write to BINARY dir instead of SOURCE dir to make it project/CMake independent.
+	file(WRITE "${CMAKE_BINARY_DIR}/Libs.h" ${libs})
+	# Include it too.
+	set(lib_include_dirs ${lib_include_dirs} ${CMAKE_BINARY_DIR} )
+
 	
 	# Win32 MSVC++
 	IF(MSVC)

@@ -101,9 +101,9 @@ void MORPG::OnEnter(AppState * previousState)
 	Physics.QueueMessage(new PMSet(new MORPGCR()));
 
 	if (!mapPreviewCamera)
-		mapPreviewCamera = CameraMan.NewCamera();
+		mapPreviewCamera = CameraMan.NewCamera("MapPreviewCamera", true);
 	if (!firstPersonCamera)
-		firstPersonCamera = CameraMan.NewCamera();
+		firstPersonCamera = CameraMan.NewCamera("FirstPersonCamera", true);
 	cameras.Add(mapPreviewCamera);
 	cameras.Add(firstPersonCamera);
 
@@ -115,7 +115,7 @@ void MORPG::OnEnter(AppState * previousState)
 	session = new MORPGSession();
 	NetworkMan.AddSession(session);
 
-	Input.ForceNavigateUI(true);
+	InputMan.ForceNavigateUI(true);
 
 	/// World map... 
 //	worldMapEntity = MapMan.CreateEntity("World map entity", NULL, NULL);

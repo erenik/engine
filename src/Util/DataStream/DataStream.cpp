@@ -60,12 +60,45 @@ void DataStream::Push(String text)
 	PushBytes((uchar*)text.c_str(), text.Length() + 1);
 }
 
+/// Pushes raw text, without including NULL or ending '\n' signs.
+void DataStream::PushRawText(String text)
+{
+	PushBytes((uchar*)text.c_str(), text.Length());
+}
+
 /// Pushes the text into the stream, replacing ending NULL-sign with '\n'.
 void DataStream::PushLine(String text)
 {
 	PushBytes((uchar*)text.c_str(), text.Length());
 	char end = '\n';
 	PushBytes((uchar*) &end, 1);
+}
+
+/// Pushes an integer, or 4 bytes.
+void DataStream::PushInt(int integer)
+{
+	PushBytes((uchar*)&integer, 4);
+}
+
+/// Pushes 2 bytes, 16 bits of data.
+void DataStream::PushInt16(short shorterInteger)
+{
+	PushBytes((uchar*)&shorterInteger, 2);
+}
+
+/// Pushes 1 bytes, 8 bits of data.
+void DataStream::PushInt8(char c)
+{
+	PushBytes((uchar*)&c, 1);	
+}
+
+/// o-o
+void DataStream::PadBytes(char c, int num)
+{
+	for (int i = 0; i < num; ++i)
+	{
+		PushBytes((uchar*)&c, 1);
+	}
 }
 
 /// Pushes bytes to the end of the array.

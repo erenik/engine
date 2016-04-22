@@ -187,7 +187,7 @@ void GMMouse::Process()
 	UIElement * element = NULL;
 	if (userInterface)
 	{
-		switch(type)
+		switch(interaction)
 		{
 		case MOVE:
 			// If we had any active element since earlier, notify it of our mouse move.
@@ -211,7 +211,6 @@ void GMMouse::Process()
 		//	{
 			//	currentState->MouseMove(appWindow, x, y, lButtonDown, rButtonDown, element);
 		//	}
-
 			break;
 		}
 	}

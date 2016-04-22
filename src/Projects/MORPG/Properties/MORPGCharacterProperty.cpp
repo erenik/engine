@@ -75,14 +75,14 @@ void MORPGCharacterProperty::ProcessInput()
 {
 	float forward = 0.f;
 	// Should probably check some lexicon of key-bindings here too. or?
-	if (Input.KeyPressed(KEY::W))
+	if (InputMan.KeyPressed(KEY::W))
 		forward -= 1.f;
-	if (Input.KeyPressed(KEY::S))
+	if (InputMan.KeyPressed(KEY::S))
 		forward += 1.f;
 	float right = 0.f;
-	if (Input.KeyPressed(KEY::A))
+	if (InputMan.KeyPressed(KEY::A))
 		right -= 1.f;
-	if (Input.KeyPressed(KEY::D))
+	if (InputMan.KeyPressed(KEY::D))
 		right += 1.f;
 
 	float movementSpeed = 2.f;
@@ -158,9 +158,9 @@ void MORPGCharacterProperty::ProcessInput()
 		}
 		/// Camera Control, Booyakasha!
 		float cameraRight = 0.f;
-		if (Input.KeyPressed(KEY::LEFT))
+		if (InputMan.KeyPressed(KEY::LEFT))
 			cameraRight += 1.f;
-		if (Input.KeyPressed(KEY::RIGHT))
+		if (InputMan.KeyPressed(KEY::RIGHT))
 			cameraRight -= 1.f;
 
 		// Set it! :D
@@ -173,9 +173,9 @@ void MORPGCharacterProperty::ProcessInput()
 
 		/// Camera updown
 		float cameraUp = 0.f;
-		if (Input.KeyPressed(KEY::UP))
+		if (InputMan.KeyPressed(KEY::UP))
 			cameraUp += 1.f;
-		if (Input.KeyPressed(KEY::DOWN))
+		if (InputMan.KeyPressed(KEY::DOWN))
 			cameraUp -= 1.f;
 		static float pastCameraUp = 0.f;
 		if (cameraUp != pastCameraUp)
@@ -189,12 +189,12 @@ void MORPGCharacterProperty::ProcessInput()
 		float cameraZoomMultiplier = 1.f;
 #define CONSTANT_ZOOM_SPEED 1.f
 #define ZOOM_MULTIPLIER_SPEED 1.3f
-		if (Input.KeyPressed(KEY::PG_DOWN))
+		if (InputMan.KeyPressed(KEY::PG_DOWN))
 		{
 			cameraZoomMultiplier *= ZOOM_MULTIPLIER_SPEED;
 			cameraZoom = CONSTANT_ZOOM_SPEED;
 		}
-		if (Input.KeyPressed(KEY::PG_UP))
+		if (InputMan.KeyPressed(KEY::PG_UP))
 		{
 			cameraZoomMultiplier /= ZOOM_MULTIPLIER_SPEED;
 			cameraZoom = - CONSTANT_ZOOM_SPEED;

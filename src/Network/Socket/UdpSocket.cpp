@@ -2,9 +2,8 @@
 /// 2014-01-24
 /// Udp socket class inspired by Qt Socket classes
 
-#include "UdpSocket.h"
-
 #include "Network/NetworkIncludes.h"
+#include "UdpSocket.h"
 
 UdpSocket::UdpSocket()
 : Socket(SocketType::UDP)

@@ -943,7 +943,13 @@ bool Texture::Save(String toFile, bool overwrite /* = false */)
 	if (FileExists(toFile) && !overwrite)
 		return false;
 
-	return SaveOpenCV(toFile);
+	/// Default, lazy bmp save?
+
+	return SaveBMP(toFile, this);
+
+
+	return SavePNG(toFile);
+//	return SaveOpenCV(toFile);
 	
 
 	/*
@@ -1086,6 +1092,8 @@ bool Texture::SaveOpenCV(String toPath)
 	// Quick save!
 	compression_params.push_back(3);
 	cv::imwrite(toPath.c_str(), mat, compression_params);
+#else
+	assert(false && "OpenCV disabled");
 #endif
 	return true;
 }
@@ -1101,8 +1109,6 @@ bool Texture::SavePNG(String toPath)
 	file.open(toPath.c_str(), std::ios_base::out);
 	if (!file.is_open())
 		return false;
-
-
 
 
 

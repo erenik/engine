@@ -2,8 +2,8 @@
 /// 2014-01-24
 /// General socket class inspired by Qt Socket classes
 
-#include "TcpSocket.h"
 #include "Network/NetworkIncludes.h"
+#include "TcpSocket.h"
 
 TcpSocket::TcpSocket()
 : Socket(SocketType::TCP)

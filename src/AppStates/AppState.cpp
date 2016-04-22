@@ -15,8 +15,6 @@
 
 #include "File/LogFile.h"
 
-//#include <windows.h>
-
 void EmptyFunction(){
 	std::cout<<"Empty function";
 };

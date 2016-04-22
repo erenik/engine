@@ -18,6 +18,7 @@ void MORPGIntegrator::IntegrateDynamicEntities(List<Entity*> & dynamicEntities, 
 
 	}
 };
+
 /** All entities sent here should be fully kinematic! 
 	If not subclassed, the standard IntegrateEntities is called.
 */
@@ -31,7 +32,7 @@ void MORPGIntegrator::IntegrateVelocity(Entity * forEntity, float timeInSeconds)
 {
 
 	PhysicsProperty * pp = forEntity->physics;
-	Vector3f & position = forEntity->position;
+	Vector3f & position = forEntity->worldPosition;
 
 	// Add regular velocity (from physics and effects)
 	Vector3f velocity = pp->velocity;
@@ -45,7 +46,7 @@ void MORPGIntegrator::IntegrateVelocity(Entity * forEntity, float timeInSeconds)
 	{
 		//... and travel!
 		distanceTraveled = velocity  * timeInSeconds;
-		forEntity->position += distanceTraveled;
+		position += distanceTraveled;
 	}	
 	// Accelerate in the looking-direction
 	Vector3f localAcceleration = forEntity->rotationMatrix.Product(pp->acceleration);

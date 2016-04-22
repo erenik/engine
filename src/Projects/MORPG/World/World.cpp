@@ -112,7 +112,7 @@ Texture * World::GeneratePreviewTexture()
 	texture->name = "World Preview texture";
 	texture->source = "World::GeneratePreviewTexture";
 	// Resize it.
-	texture->Resize(size);
+	texture->Resize(Vector2i(size.x, size.z));
 
 	texture->SetColor(Vector4f(0.2f,0.2f,0.2f,1));
 
@@ -121,7 +121,7 @@ Texture * World::GeneratePreviewTexture()
 	{
 		Zone * zone = zones[i];
 		Vector4f color = zone->GetColor();
-		texture->SetPixel(zone->position, color);
+		texture->SetPixel(zone->position.x, zone->position.z, color);
 	}
 	return texture;
 }
@@ -205,7 +205,7 @@ Zone * World::GetZoneByName(String name)
 	return NULL;
 }
 
-Zone * World::GetZoneByPosition(Vector3f pos)
+Zone * World::GetZoneByPosition(ConstVec3fr pos)
 {
 	Zone * closest = NULL;
 	float closestDist = 1000000.f;

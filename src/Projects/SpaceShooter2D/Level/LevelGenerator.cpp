@@ -15,7 +15,7 @@ void GenerateLevel (String arguments)
 {
 	Level & level = spaceShooter -> level;
 	level.Clear();
-
+	
 	level.endCriteria = Level::NO_MORE_ENEMIES;
 
 	List<String> args = arguments.Tokenize(" ,");
@@ -51,7 +51,7 @@ void GenerateLevel (String arguments)
 		relevantShips.AddItem(shipType -> name);
 	}
 	
-
+	// Randomizer
 	Random selector;
 	
 	CreateFolder("GeneratedLevels");
@@ -59,6 +59,9 @@ void GenerateLevel (String arguments)
 	File::ClearFile("Generatedlevel.srl");
 	// Create spawns in order
 	AETime spawnTime(TimeType::MILLISECONDS_NO_CALENDER);
+	
+	//Slight delay to make loading more fair
+	spawnTime.AddMs(3000);
 	while(spawnTime.Seconds() <= levelDuration.Seconds())
 	{
 		SpawnGroup * sg = new SpawnGroup();
@@ -87,25 +90,19 @@ void GenerateLevel (String arguments)
 		sg->shipType = relevantShips[selector.Randi(relevantShips.Size())];
 		level.spawnGroups.AddItem(sg);
 		// Pick a formation
-		/*
-		if(isSling)
-		{
-			sg->formation = Formation::LINE_X;
-			/*
-			movement.type = Movement::ZAG;
-			movement.zagTimeMs = 2000;
-			movement.vec = Vector2f(-2, 10).NormalizedCopy();
-			sg->movements.AddItem(movement);*/
-	/*	}
-		else
-		{
-			sg->formation = Formation::LINE_Y;
-		}*/
 		sg->formation = selector.Randi(Formation::FORMATIONS - 2) + 1;
+		
+		
 		// Pick a number of ships
-		sg->number = selector.Randi(9)+1;
+		sg->number = selector.Randi(5)+1;
 		// Pick a formation size
 		sg->size = Vector2f((float) sg->number, (float) sg->number);
+		//make sure SQUARE formation doesn't create unallowed ships
+		
+		while(sg->number < 5 && sg->formation == Formation::SQUARE)
+		{
+			sg->formation = selector.Randi(Formation::FORMATIONS - 2) + 1;
+		}
 		
 		/// Default spawn on right side of field, and spawn location.
 		// Randomize Y
@@ -116,7 +113,8 @@ void GenerateLevel (String arguments)
 
 
 		// Cooldown between formation spawns
-		spawnTime.AddMs(3000);
+		
+		spawnTime.AddMs((selector.Randi(5)+4)*500);
 
 		String str = sg->GetLevelCreationString(sg->spawnTime);
 		File::AppendToFile("Generatedlevel.srl", str);

@@ -6,11 +6,13 @@
 
 /// Each other being original position, clamped position, orig, clamp, orig3, clamp3, etc.
 List<Vector3f> renderPositions;
+
 void SpaceShooter2D::UpdateRenderArrows()
 {
-	List<Vector3f> newPositions;
 	Vector2f minField = levelEntity->worldPosition - playingFieldHalfSize - Vector2f(1,1);
 	Vector2f maxField = levelEntity->worldPosition + playingFieldHalfSize + Vector2f(1,1);
+
+	List<Vector3f> newPositions;
 	for (int i = 0; i < shipEntities.Size(); ++i)
 	{	
 		// Grab the position
@@ -32,6 +34,9 @@ void SpaceShooter2D::UpdateRenderArrows()
 //// Renders data updated via Render-thread.
 void SpaceShooter2D::RenderInLevel(GraphicsState * graphicsState)
 {
+	Vector2f minField = levelEntity->worldPosition - playingFieldHalfSize - Vector2f(1,1);
+	Vector2f maxField = levelEntity->worldPosition + playingFieldHalfSize + Vector2f(1,1);
+
 	// Load default shader?
 	ShadeMan.SetActiveShader(NULL);
 	glMatrixMode(GL_PROJECTION);
@@ -60,6 +65,10 @@ void SpaceShooter2D::RenderInLevel(GraphicsState * graphicsState)
 	{	
 		Vector3f shipPos = renderPositions[i];
 		Vector3f clampedPos = renderPositions[i+1];
+
+		// wat.
+		clampedPos.Clamp(minField, maxField);
+
 		// Check direction from this position to the entity's actual position.
 		Vector3f to = (shipPos - clampedPos);
 		float dist = to.Length();

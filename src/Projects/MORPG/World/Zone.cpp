@@ -56,7 +56,7 @@ Entity * Zone::CreateWorldMapRepresentation()
 	    std::cout<<"\nERROR: MapManager::CreateEntity:Unable to create entity, returning.";
         return NULL;
 	}
-	entity->position = position;
+	entity->worldPosition = position;
 	entity->RecalculateMatrix();
 	return entity;
 }
@@ -99,14 +99,14 @@ void Zone::MakeActive()
 	GraphicsMan.QueueMessage(new GraphicsMessage(GM_UNREGISTER_ALL_ENTITIES));
 	// Create camera if needed.
 	if (!camera){
-		camera = CameraMan.NewCamera();
+		camera = CameraMan.NewCamera("ZoneCamera", true);
 		// One-time setup of camera.
 		camera->movementType = CAMERA_MOVEMENT_ABSOLUTE;
 		camera->absForward = Vector3f(0,0,-1);
 		camera->absRight = Vector3f(1,0,0);
 		camera->absUp = Vector3f(0,1,0);
 		// Create the default camera-position too.
-		Camera * resetCamera = CameraMan.NewCamera();
+		Camera * resetCamera = CameraMan.NewCamera("ResetCamera", true);
 		camera->resetCamera = resetCamera;
 	}
 	GraphicsMan.QueueMessage(new GMSetCamera(camera));
@@ -137,13 +137,14 @@ void Zone::CreateEntities()
 		{
 			Entity * entity = EntityMan.CreateEntity("Room", room->model, TexMan.GenerateTexture(Vector4f(1,1,1,1)));
 			Vector3f worldPos = FromWorldToWorldMap(room->position);
-			entity->position = worldPos * roomGridSize;
+			entity->worldPosition = worldPos * roomGridSize;
 			entity->scale = FromWorldToWorldMap(room->scale);
 			entity->RecalculateMatrix();
 			entities.Add(entity);
 		}
 		else 
 		{
+			/*
 			// Default, just create a bunch of planes.
 			List<Vector3i> points = room->GetAbsPoints();
 			for (int j = 0; j < points.Size(); ++j)
@@ -154,11 +155,12 @@ void Zone::CreateEntities()
 				entity->position = worldPos * roomGridSize + Vector3f(0.5f,0,0.5f); // Offset so that it is inside the grid correctly.
 				entity->RecalculateMatrix();
 				entities.Add(entity);
-			}
+			}*/
 		}
 		// Visualize the room's entry-points.
 		for (int j = 0; j < room->entryPoints.Size(); ++j)
 		{
+			/*
 			EntryPoint & point = room->entryPoints[j];
 			Vector3f dir = point.direction;
 			Texture * tex = TexMan.GenerateTexture(Vector4f(dir.Abs(), 1.f));
@@ -166,21 +168,23 @@ void Zone::CreateEntities()
 			Vector3f worldPos = FromWorldToWorldMap(point.position);
 			// Plus some offset.
 			Vector3f offset = FromWorldToWorldMap(point.direction) * 0.2f;
-			entry->position = worldPos + offset + Vector3f(0.5f,0.5f,0.5f);
+			entry->worldPosition = worldPos + offset + Vector3f(0.5f,0.5f,0.5f);
 			entry->scale = Vector3f(1,1,1) * 0.2f;
 			entry->RecalculateMatrix();
 			entities.Add(entry);
+			*/
 		}
 		// Visualize building-slots
 		for (int j = 0; j < room->buildingSlots.Size(); ++j)
 		{
+			/*
 			BuildingSlot * bs = room->buildingSlots[j];
 			Entity * bse = EntityMan.CreateEntity("Building slot", ModelMan.GetModel("plane.obj"), TexMan.GenerateTexture(Vector4f(0.2f,0.5f,1,1.f)));
 			bse->scale = FromWorldToWorldMap(bs->size);
 			bse->scale.y = 1.f;
 			bse->position = FromWorldToWorldMap(bs->position) + Vector3f(0,1,0);
 			bse->RecalculateMatrix();
-			entities.Add(bse);
+			entities.Add(bse);*/
 		}
 	}
 	// Deletes and re-creates entities as needed.

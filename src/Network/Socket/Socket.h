@@ -5,8 +5,8 @@
 #ifndef SOCKET_H
 #define SOCKET_H
 
-#include <String/AEString.h>
 #include "Network/NetworkIncludes.h"
+#include <String/AEString.h>
 
 class Peer;
 

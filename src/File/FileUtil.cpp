@@ -5,10 +5,10 @@
 #include "OS/OS.h"
 
 #ifdef WINDOWS
-#include <windows.h>
+	#include <windows.h>
 #elif defined LINUX | defined OSX
-#include <dirent.h>
-#include <sys/stat.h>
+	#include <dirent.h>
+	#include <sys/stat.h>
 #endif
 
 #include <fstream>
