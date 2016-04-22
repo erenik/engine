@@ -49,7 +49,7 @@ bool OpenAL::Initialize()
 //	std::cout<<"\nInitializing OpenAL Utilities...";
 	LogAudio("Checking for available audio devices...", INFO);
 	// Just remove initial error blerhp?
-	alGetError();
+	int error = alGetError();
 	if (alcIsExtensionPresent(NULL, "ALC_ENUMERATION_EXT") == AL_TRUE)
 	{
 	//	std::cout<<"\nEnumeration extension found.";

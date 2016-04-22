@@ -136,7 +136,7 @@ void PhysicsManager::Integrate(float timeInSecondsSinceLastUpdate)
 		{
 //        assert(vel[0] == dynamicEntity->physics->velocity[0]);
 			// Unregister from physics.
-			std::cout<<"\nEntity velocity indefinite - not a number - unregistering until further notice.";
+			std::cout<<"\nEntity "<<dynamicEntity->name<<"velocity indefinite - not a number - unregistering until further notice.";
 			PhysicsMan.QueueMessage(new PMUnregisterEntity(dynamicEntity));
 			return;
 		}

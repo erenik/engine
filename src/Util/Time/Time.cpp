@@ -397,7 +397,7 @@ int64 Time::Milliseconds() const
 }	
 
 /// Total time in seconds.
-int64 Time::Seconds()
+int64 Time::Seconds() const
 {
 	int64 micro = Microseconds();
 	assert(micro >= 0);
@@ -405,7 +405,7 @@ int64 Time::Seconds()
 	return micro / 1000000;
 }
 
-int64 Time::Minutes()
+int64 Time::Minutes() const
 {
 	return Seconds() / 60;
 }

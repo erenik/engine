@@ -147,7 +147,7 @@ Entity::~Entity()
 {
 	if (name.Contains("Boss1_"))
 		int lall=5;
-	LogMain("Deleting entity "+name+".", INFO);
+	LogMain("Deleting entity "+name+".", EXTENSIVE_DEBUG);
 	/// Delete safe stuff.
 	Delete();
 	/// Delete those things that should have been deleted elsewhere too.

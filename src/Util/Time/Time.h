@@ -87,8 +87,8 @@ public:
 	uint64 Microseconds() const;
 	int64 Milliseconds() const;
 	/// Total time in seconds.
-	int64 Seconds();
-	int64 Minutes();
+	int64 Seconds() const;
+	int64 Minutes() const;
 
 	/// Calender/watch-type Accessors.
 	int Millisecond(); // 0 to 999

@@ -12,6 +12,7 @@
 #include "AudioMixer.h"
 #include "Audio.h"
 #include "Mutex/Mutex.h"
+#include "File/LogFile.h"
 
 #include "Multimedia/Ogg/OggStream.h"
 
@@ -789,7 +790,13 @@ PROCESSOR_THREAD_START(AudioManager)
 	/// Create AL Context, etc.
 	if (!AudioMan.Initialize())
 	{
-		QuitApplicationFatalError("AudioManager failed to initialize. See /log/AudioLog.txt");
+		bool audioRequired = false;
+		if (audioRequired == true)
+		{
+			QuitApplicationFatalError("AudioManager failed to initialize. See /log/AudioLog.txt");
+			goto audioThreadEnd;
+		}
+		LogAudio("Audio not initialized properly. Ending audio thread.", ERROR);
 		goto audioThreadEnd;
 //		RETURN_NULL(audioThread);
 	}

@@ -19,28 +19,11 @@ set(PROJECT_NAME "Engine")
 #set(tetrisFolders "Projects/Tetris")
 #addProject("Tetris" tetrisFolders)
 
-add_subdirectory(src)
-
 #set(runeRPGFolders "Projects/RuneRPG")
-#addProject("RuneRPG" runeRPGFolders)
-# set(musicPlayerFolders "Projects/MusicPlayer")
-# addProject("MusicPlayer" musicPlayerFolders)
-# set (sideScrollerFolders "Projects/SideScroller")
-# addProject("SideScroller" sideScrollerFolders)
-# set(spaceRaceFolders "Projects/SpaceRace")
-# addProject("SpaceRace" spaceRaceFolders)
 
-# set(horrorFolders "Projects/Horror")
-# addProject("Horror" horrorFolders)
-# set(aircraftFolders "Projects/Aircraft")
-# addProject("Aircraft" aircraftFolders)
+# Include functions.
+include(CMakeMacros.txt)
+# Create project using specified project dir(s).
+message("${PROJ_SPEC_DIR}")
+add_subdirectory(${PROJ_SPEC_DIR} ${PROJ_SPEC_DIR}/out/)
 
-# set(MORPGFolders "Projects/MORPG")
-# addProject("MORPG" MORPGFolders)
-
-# set(TIFSFolders "Projects/TIFS")
-# addProject("TIFS" TIFSFolders)
-
-# # Create our projects
-# set(ipmFolders "Projects/IPM" "CV")
-# addProject("IPM" ipmFolders)

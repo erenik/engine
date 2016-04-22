@@ -43,10 +43,27 @@ bool EntityManager::IsGood(Entity * entity)
 	return entities.Exists(entity);
 }
 
+List<std::pair<String, int>> nameOccurances;
 
 /// Creates entity using specified model and base texture
 Entity * EntityManager::CreateEntity(String name, Model * model, Texture * texture)
 {
+	bool found = false;
+	int occurances = 0;
+	for (int i = 0; i < nameOccurances.Size(); ++i)
+	{
+		if (nameOccurances[i].first == name)
+		{
+			occurances = ++nameOccurances[i].second;
+			found = true;
+			break;
+		}
+	}
+	if (!found)
+		nameOccurances.AddItem(std::pair<String, int>(name, 1));
+	if (occurances > 1)
+		name = name +"_"+ String(occurances);
+
 	Entity * newEntity = NULL;
 	/// Check for model
 /*	if (model == NULL || (model && !model->Name())){

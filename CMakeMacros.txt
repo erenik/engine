@@ -3,7 +3,8 @@ message("Binary dir: ${CMAKE_BINARY_DIR}")
 message("Source dir: ${CMAKE_SOURCE_DIR}")
 
 message("Defining file group macro")
-#This macro will go through the source dirs and group the files in a nice tree <-- Stolen from Aksel
+
+# This macro will go through the source dirs and group the files in a nice tree
 macro(create_file_group ROOT_DIR groupname)
 #	message("Creating file group ${groupname}")
 	FILE(GLOB thing RELATIVE ${ROOT_DIR} ${ROOT_DIR}/*)
@@ -56,13 +57,6 @@ macro(remove_dir dir fromList listName filesR dirsToIgnore)
 		if (${f} MATCHES ${dir})
 		#	message(${dir})
 			SET(ignore "No")
-			# check if specifically requested to keep this
-			FOREACH(dirToIgnore ${${dirsToIgnore}})
-#				message(DirToIgnore: ${dirToIgnore})
-				if (${f} MATCHES ${dirToIgnore})
-					SET(ignore "Yes")
-				endif()
-			ENDFOREACH()
 			
 		#	message("F: ${f} MATCHES ${dir}")
 		#	message("found stuff ${f}")
@@ -220,7 +214,7 @@ endmacro(AddLibraryDirs)
 
 
 # Macro to add a project for this game-engine!
-macro (addProject ProjectName projectFoldersToNotExclude)
+macro (addProject ProjectName projectFoldersToInclude)
 	project(${ProjectName})
 	set(project_name ${ProjectName})
 
@@ -312,12 +306,23 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 	# Gather all .cpp and .h source files recursively.
 	FILE(GLOB_RECURSE source_files "${source_dir}/*.cpp")
 	FILE(GLOB_RECURSE header_files "${source_dir}/*.h")		
-		
-	# Remove all project subfolders with the exception of those specified in the second argument!		
+	
+	# Remove all project subfolders with the exception of those specified in the 	second argument!		
 	FOREACH(projectSubFolder ${projectFolders})
-		RemoveDir(${projectSubFolder} ${projectFoldersToNotExclude})
+		RemoveDir(${projectSubFolder} ${projectFoldersToInclude})
 	ENDFOREACH()
-		
+	
+	FOREACH(projectFolder ${projectFoldersToInclude})
+		Message("    checking " ${projectFolder})
+		FILE(GLOB_RECURSE more_source_files "${projectFolder}/*.cpp")
+		FILE(GLOB_RECURSE more_header_files "${projectFolder}/*.h")
+		list(LENGTH more_source_files numFiles)
+		list(LENGTH more_header_files numFiles2)
+		list(APPEND source_files ${more_source_files})
+		list(APPEND header_files ${more_header_files})
+		Message(" amount of files found: " ${numFiles}+${numFiles2})
+	ENDFOREACH()
+	
 	# LINUX library linking
 	IF(UNIX)
 		message("Configuring for UNIX OS")
@@ -473,7 +478,8 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 		ENDIF(LIBCURL)
 					
 		# Group files into the same structure as they appear in the file directories.
-		create_file_group(${source_dir} "/")
+		create_file_group(${source_dir} "engine/")
+		create_file_group(${PROJ_SPEC_DIR} "/")
 	ENDIF(MSVC)
 
 	message("Setting include directories")
@@ -481,6 +487,7 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 	# Additional include directories specified here (?)
 	include_directories(
 		${lib_include_dirs}
+		${PROJ_SPEC_DIR}
 		${source_dir}
 		${source_dir}/Util
 		${source_dir}/OS
@@ -539,19 +546,3 @@ macro (addProject ProjectName projectFoldersToNotExclude)
 endmacro(addProject)
 
 
-# Macro for adding all folders in current directory as individual projects (just calling add_subdirectory on all)
-macro (addAllSubdirectoriesAsProjects)
-	# Add dependency-folders on linux too?
-	# Recusive addition of all dependencies in the Dependencies folder, 
-	# finding files in each's separate include/lib-dir.
-	set(projectDir ${CMAKE_CURRENT_SOURCE_DIR})
-	FILE(GLOB projectDirs RELATIVE "${projectDir}" "${projectDir}/*")
-
-	FOREACH(projectDirectory ${projectDirs})
-		message("Proejct dir: ${projectDirectory}, ${projectDir}/${projectDirectory}")
-		# For each folder, include their lib/include folders
-		IF(IS_DIRECTORY ${projectDir}/${projectDirectory})
-			add_subdirectory(${projectDirectory})
-		ENDIF()
-	ENDFOREACH()	
-endmacro(addAllSubdirectoriesAsProjects)
