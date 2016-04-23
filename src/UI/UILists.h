@@ -6,5 +6,6 @@
 
 #include "Lists/UIList.h"
 #include "Lists/UIColumnList.h"
+#include "UILog.h"
 
 #endif

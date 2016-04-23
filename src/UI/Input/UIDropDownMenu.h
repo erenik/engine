@@ -19,7 +19,7 @@ public:
 
 	void CreateChildren();
 	/// Sets text, queueing recalculation of the rendered variant. If not force, will ignore for active ui input elements.
-	virtual void SetText(Text newText, bool force = false);
+	virtual void SetText(CTextr newText, bool force = false);
 	virtual void RenderText();
 	/// Call from graphics thread only. Or set via GMSetUIContents
 	virtual void SetContents(List<String> contents);

@@ -5,8 +5,11 @@
 #define AE_TEXT_H
 
 #include "AEString.h"
+#include "Color.h"
 
 // An extension of the String class, made for handling and displaying input, colors, bold, etc.
+#define CTextr const Text & 
+
 
 class Text : public String 
 {
@@ -19,6 +22,8 @@ public:
 	Text(const String & string);
 	Text(const char * string);
 	Text(const wchar_t * string);
+	/// String and color in hex.
+	Text(String str, int colorHex);
 
 	/// Pastes text into this text. How it will behave depends on the caret positions.
 	void Paste(String text);
@@ -46,6 +51,9 @@ public:
 
 	/// Offset in pixels to render this text. Default 0. Used for aligning.
 	float offsetX;
+
+	/// Primary/starting text color
+	Color color;
 private:
 
 

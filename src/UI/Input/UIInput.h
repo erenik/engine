@@ -31,7 +31,7 @@ public:
 	virtual void ProcessMessage(Message * message);
 
 	/// Calls UIElement::SetText in addition to setting the editText to the same value if force is true.
-	virtual void SetText(Text newText, bool force = false);
+	virtual void SetText(CTextr newText, bool force = false);
 
 	/// Called once this element is no longer visible for any reason. E.g. switching game states to display another UI, or when this or a parent has been popped from the ui.
 	virtual void OnExitScope();

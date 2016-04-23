@@ -18,6 +18,9 @@ public:
 class UILog : public UIList 
 {
 public:
+	UILog();
+	/// For simple logging of just text
+	void Append(CTextr text);
 	/// Sets all messages to filter/display.
 	void SetLogMessages(List<LogMessage> messages);
 

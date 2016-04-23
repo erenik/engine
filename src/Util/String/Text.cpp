@@ -20,6 +20,7 @@ void Text::Nullify()
 	caretPosition = -1;
 	previousCaretPosition = -1;
 	offsetX = 0;
+	color = Vector4f(1,1,1,1.0f);
 }
 /// Copy constructor and..
 Text::Text(const String & string)
@@ -36,6 +37,14 @@ Text::Text(const wchar_t * string)
 : String(string)
 {
 	Nullify();
+}
+
+/// String and color in hex.
+Text::Text(String str, int colorHex)
+	: String(str)
+{
+	Nullify();
+	color = Color::ColorByHex32(colorHex);
 }
 
 /// Pastes text into this text. How it will behave depends on the caret positions.

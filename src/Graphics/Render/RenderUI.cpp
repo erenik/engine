@@ -88,7 +88,7 @@ void GraphicsManager::RenderUI(UserInterface * ui)
 
 	graphicsState->projectionMatrixF = graphicsState->projectionMatrixD = projection;
 	graphicsState->viewMatrixF = graphicsState->viewMatrixD.LoadIdentity();
-	graphicsState->modelMatrixF = graphicsState->modelMatrixD.LoadIdentity();
+	graphicsState->modelMatrixF.LoadIdentity();
 
 	/// Render
 	try {

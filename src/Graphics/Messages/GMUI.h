@@ -6,7 +6,7 @@
 
 #include "GraphicsMessage.h"
 #include "GraphicsMessages.h"
-#include <String/Text.h>
+#include "String/Text.h"
 
 class Viewport;
 class UserInterface;
@@ -42,6 +42,7 @@ public:
 		TEXT_SIZE_RATIO, // Yup.
 		ALPHA, // Assuming color only varies by alpha...
 		TEXT_ALPHA,
+		CHILD_SIZE_RATIO_Y, // For adjusting children sizes.
 		// Bools
 		VISIBILITY,
 		CHILD_VISIBILITY, // Used to specify the visibility of all children via GMSetUIb instead of having an own message-class.
@@ -52,6 +53,7 @@ public:
 		ENABLED, // For temporarily enabling/disabling things like buttons.
 		// Strings
 		TEXT,
+		LOG_APPEND, // For UILog
 		TEXTURE_SOURCE,
 		STRING_INPUT_TEXT, // For UIStringInput
 		INTEGER_INPUT_TEXT, // For UIIntegerInput
@@ -195,15 +197,16 @@ private:
 	bool value;
 };
 
+/// For raw strings.
 class GMSetUIs: public GMUI 
 {
 public:
 	// Targets the main windows ui.
-	GMSetUIs(String uiName, int target, Text text);
-	GMSetUIs(String uiName, int target, Text text, UserInterface * inUI);
-	GMSetUIs(String uiName, int target, Text text, bool force, UserInterface * inUI);
-	GMSetUIs(String uiName, int target, Text text, Viewport * viewport);
-	GMSetUIs(String uiName, int target, Text text, bool force, Viewport * viewport = NULL);
+	GMSetUIs(String uiName, int target, String s);
+	GMSetUIs(String uiName, int target, String s, UserInterface * inUI);
+	GMSetUIs(String uiName, int target, String s, bool force, UserInterface * inUI);
+	GMSetUIs(String uiName, int target, String s, Viewport * viewport);
+	GMSetUIs(String uiName, int target, String s, bool force, Viewport * viewport = NULL);
 	/** Explicitly declared constructor to avoid memory leaks.
 		No explicit constructor may skip subclassed variable deallocation!
 	*/
@@ -213,8 +216,26 @@ private:
 	void AssertTarget();
 	int target;
 	String uiName;
-	Text text;
+	String text;
 	bool force;
+};
+
+// Setting formatted texts.
+class GMSetUIt : public GMUI 
+{
+public:
+	GMSetUIt(String uiName, int target, CTextr tex);
+	/** Explicitly declared constructor to avoid memory leaks.
+		No explicit constructor may skip subclassed variable deallocation!
+	*/
+	~GMSetUIt();
+	void Process();
+private:
+	void AssertTarget();
+	Text text;
+	String uiName;
+	int target;
+
 };
 
 // System-global version for setting strings of ui.
@@ -222,7 +243,7 @@ class GMSetGlobalUIs : public GMSetUIs
 {
 public:
 	/// Force default should be false.
-	GMSetGlobalUIs(String uiName, int target, Text text, bool force = false, AppWindow * window = NULL);
+	GMSetGlobalUIs(String uiName, int target, String text, bool force = false, AppWindow * window = NULL);
 };
 
 

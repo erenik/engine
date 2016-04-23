@@ -87,7 +87,7 @@ void UIImage::RenderSelf(GraphicsState & graphicsState)
 		///
 		if (shader->uniformModelMatrix != -1){
 			/// TRanslatem power !
-			Matrix4d * model = &graphicsState.modelMatrixD;
+			Matrix4f * model = &graphicsState.modelMatrixD;
 			float transX = alignmentX * parent->sizeX;
 			float transY = alignmentY * parent->sizeY;
 			model->Translate(transX,transY,0);

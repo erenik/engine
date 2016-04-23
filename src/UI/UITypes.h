@@ -38,6 +38,7 @@ namespace UIType
 		IMAGE, // UIImage
 		MATRIX,	// For data-manipulation.
 		DROP_DOWN_MENU,	DROP_DOWN_LIST = DROP_DOWN_MENU,
+		LOG, // For lists of texts that update/scroll dynamically, may have filtering functions, etc.
 
 	};
 };

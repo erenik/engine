@@ -15,6 +15,8 @@ class Color : public Vector4f
 public:
 	// o.o
 	Color();
+	/// Full alpha
+	Color(ConstVec3fr fromVector);
 	Color(const Vector4f & fromVector);
 	/// Filled with 4 unsigned bytes.
 	Color(uchar r, uchar g, uchar b, uchar a);

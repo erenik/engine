@@ -96,7 +96,7 @@ void UIMatrix::CreateMatrix()
 			element->name = name+"Element" + element->text;
 			matrixElements.Add(element);
 			element->textureSource = textureSource;
-			element->textColor = textColor;
+			element->text.color = text.color;
 			element->alignmentX = (x+0.5f) * elementWidth;
 			element->alignmentY = 1.0f - (y + 0.5f) * elementHeight - labelHeightY;
 			element->sizeRatioX = elementWidth;
@@ -107,7 +107,7 @@ void UIMatrix::CreateMatrix()
 }
 
 /// Stuff.
-void UIMatrix::SetText(Text newText, bool force)
+void UIMatrix::SetText(CTextr newText, bool force)
 {
 	Graphics.QueueMessage(new GMSetUIs(label->name, GMUI::TEXT, newText));
 }

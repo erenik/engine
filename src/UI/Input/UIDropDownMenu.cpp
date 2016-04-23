@@ -52,7 +52,7 @@ void UIDropDownMenu::CreateChildren()
 }
 
 /// Sets text, queueing recalculation of the rendered variant. If not force, will ignore for active ui input elements.
-void UIDropDownMenu::SetText(Text newText, bool force /*= false*/)
+void UIDropDownMenu::SetText(CTextr newText, bool force /*= false*/)
 {
 	label->SetText(newText, force);
 }

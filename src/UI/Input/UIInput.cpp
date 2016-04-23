@@ -22,9 +22,7 @@ UIInput::UIInput(String name /*= ""*/)
 	type = UIType::INPUT_FIELD;
 	selectable = hoverable = activateable = true;
 	activationMessage = "BEGIN_INPUT(this)";
-	this->textureSource = defaultTextureSource;
-	textColor = defaultTextColor;
-
+	
 	/// When true, re-directs all (or most) keyboard input to the target element for internal processing. Must be subclass of UIInput as extra functions there are used for this.
 	demandInputFocus = true;
 	caretPosition = 0;
@@ -128,7 +126,7 @@ void UIInput::ProcessMessage(Message * message)
 }
 
 /// Calls UIElement::SetText in addition to setting the editText to the same value if force is true.
-void UIInput::SetText(Text newText, bool force /*= false*/)
+void UIInput::SetText(CTextr newText, bool force /*= false*/)
 {
 	UIElement::SetText(newText, force);
 	if (force)

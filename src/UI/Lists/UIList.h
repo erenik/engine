@@ -46,7 +46,7 @@ public:
 	// No co-ordinates are required since we will instead require the element to already
 	// be highlighted/hovered above.
 	virtual UIElement * Click(int mouseX, int mouseY);
-	// Does something..
+	// Updates to contents with given size in relative units.
     void Update(float newSize);
     
 	/** Move the scrollbar, capping it depending on it's size (will never exceed the 0.0 - 1.0 limits)
@@ -77,8 +77,10 @@ public:
 	UIList();
 	virtual ~UIList();
 
+	void RescaleChildrenY(float f);
 	/// Deletes all children and content inside.
 	void Clear();
+	void CreateScrollBarIfNeeded(); // Called internally.
 	// Adjusts hierarchy besides the regular addition
 	virtual bool AddChild(UIElement* child); // Sets child pointer to child UI element, NULL if non
 

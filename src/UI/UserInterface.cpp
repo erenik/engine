@@ -827,7 +827,7 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 #define SET_DEFAULTS {element->alignment = defaultAlignment;\
 	element->textureSource = defaultTexture;\
 	element->scalable = defaultScalability;\
-	element->textColor = defaultTextColor;\
+	element->text.color = defaultTextColor;\
 	element->sizeRatioY	= defaultSizeRatioY;\
 	element->sizeRatioX	= defaultSizeRatioX;\
 	element->padding = defaultPadding;\
@@ -1456,21 +1456,21 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 				// Hex detected!
 				if (line.Contains("0x"))
 				{
-					element->textColor = Color::ColorByHexName(NEXT_TOKEN);
+					element->text.color = Color::ColorByHexName(NEXT_TOKEN);
 				}
 				else 
 				{
 					switch(tokens.Size()-1)
 					{
 						case 1: // Assume it's alpha and keep the other colors as usual
-							element->textColor[3] = NEXT_TOKEN.ParseFloat();
+							element->text.color[3] = NEXT_TOKEN.ParseFloat();
 							break;
 						case 4: case 5: case 6: case 7: case 8: case 9: case 10: case 11: case 12:
-							element->textColor[3] = tokens[4].ParseFloat();
+							element->text.color[3] = tokens[4].ParseFloat();
 						case 3: // Assume it's RGB
-							element->textColor[0] = tokens[1].ParseFloat();
-							element->textColor[1] = tokens[2].ParseFloat();
-							element->textColor[2] = tokens[3].ParseFloat();
+							element->text.color[0] = tokens[1].ParseFloat();
+							element->text.color[1] = tokens[2].ParseFloat();
+							element->text.color[2] = tokens[3].ParseFloat();
 							break;
 						case 2: case 0:
 							assert(false && "Irregular amount of tokens following \"textColor\"; 1 for alpha, 3 for RGB and 4 for RGBA.");
@@ -1501,6 +1501,11 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 			else if (token == "formatX"){
                 ENSURE_NEXT_TOKEN
                 element->formatX = NEXT_TOKEN.ParseBool();
+			}
+			else if (token == "lineSizeRatio")
+			{
+				ENSURE_NEXT_TOKEN
+				element->lineSizeRatio = NEXT_TOKEN.ParseFloat();
 			}
 			else if (token == "sizeRatioX"){
 				ENSURE_NEXT_TOKEN

@@ -16,7 +16,7 @@ public:
 	int MatrixType(){ return matrixType;};
 	
 	/// Stuff.
-	virtual void SetText(Text newText, bool force = false);
+	virtual void SetText(CTextr newText, bool force = false);
 
 	/// Adds x children. Subclassed in e.g. Matrix-class in order to setup contents properly.
 	virtual bool SetContents(List<UIElement*> children);

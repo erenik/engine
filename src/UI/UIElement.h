@@ -78,7 +78,7 @@ public:
 	virtual void ProcessMessage(Message * message);
 
 	/// Sets text, queueing recalculation of the rendered variant. If not force, will ignore for active ui input elements.
-	virtual void SetText(Text newText, bool force = false);
+	virtual void SetText(CTextr newText, bool force = false);
 
 	/// Recalculates and sets highlighting factors used when rendering the UI (dedicated shader settings)
 	void UpdateHighlightColor();
@@ -289,6 +289,11 @@ public:
 	/// Text contents alignment relative to current size/etc. Defautlt left.
 	char textAlignment; 
 
+	/// Used by UILog, could be used by UIList also to over-ride child Y-ratio. If negative, does not override.
+	float lineSizeRatio; 
+	/// Children of content. - does not include scrollbars. - Used by UIList, may also be used by UILog etc.
+	List<UIElement*> contentChildren;
+
 	/// For aggregate types such as UIRadioButtons, etc., set this to true to skip the label before the actual value part. Default false.
 	bool noLabel;
 	/// Allow scaling depending on parent or AppWindow size?
@@ -375,7 +380,6 @@ public:
 	/// Colors for the element.
 	Vector4f color;
 	/// Colors for the text
-	Vector4f textColor;
 	static Vector4f defaultTextColor;
 
 	// Image ID

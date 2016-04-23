@@ -282,7 +282,7 @@ void TextFont::SetColor(const Vector4f & textColor){
 	texts easier to understand, using an iterative state-machine approach.
 */
 /// Sets current text and clears old data. Prepares for a new parse or render.
-void TextFont::NewText(Text text)
+void TextFont::NewText(Text & text)
 {
 	this->currentText = text;
 	rowSizes.Clear();
@@ -379,7 +379,7 @@ void TextFont::EndText()
 
 
 /// Returns the size required by a call to RenderText if it were to be done now.
-Vector2f TextFont::CalculateRenderSizeUnits(Text text)
+Vector2f TextFont::CalculateRenderSizeUnits(Text & text)
 {
 	if (text.Length() < 1)
 	{
@@ -410,7 +410,7 @@ Vector2f TextFont::CalculateRenderSizeUnits(Text text)
 }
 
 /// Calculates the render size in pixels if the text were to be rendered now.
-Vector2f TextFont::CalculateRenderSizeWorldSpace(Text text, GraphicsState & graphics)
+Vector2f TextFont::CalculateRenderSizeWorldSpace(Text & text, GraphicsState & graphics)
 {
 	// Just grab required render size and multiply with the model-matrix?
 	Vector2f renderSize = CalculateRenderSizeUnits(text);
@@ -427,6 +427,9 @@ void TextFont::RenderText(Text & text, GraphicsState & graphicsState)
 	// Set starting variables.
 	NewText(text);
 
+	/// One color for all text?
+	this->SetColor(text.color);
+	
 	/// Save old shader!
 	Shader * oldShader = ActiveShader();
 	// Load shader, set default uniform values, etc.

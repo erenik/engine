@@ -61,6 +61,7 @@ float Random::Randf(float max)
 	uint64 value = ( s[ p ] = s0 ^ s1 ) * 18446744073709551615;
 
 	float res = value / (double) 18446744073709551615;
+	assert(res == res);
 	return res * max;
 
 	/*
@@ -77,7 +78,9 @@ float Random::Randf(float max)
 /// Returns a random value between 0 and max (inclusive)
 uint32 Random::Randi(uint32 max)
 {
-	return Randf(max);
+	uint32 lall = Randf(max);
+	assert(lall <= max);
+	return lall;
 }
 
 /// Returns a random vlaue between 0 and max (inclusive)

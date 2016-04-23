@@ -10,6 +10,11 @@ Color::Color()
 {
 }
 
+/// Full alpha
+Color::Color(ConstVec3fr fromVector)
+	: Vector4f(fromVector, 1)
+{
+}
 
 Color::Color(const Vector4f & fromVector)
 : Vector4f(fromVector)

@@ -66,6 +66,7 @@ bool UIElement::HandleDADFiles(List<String> files)
 /// Set default values.
 void UIElement::Nullify()
 {
+	lineSizeRatio = -1.f;
 	childrenCreated = false;
 	/// ID
 	id = idEnumerator++;
@@ -134,9 +135,10 @@ void UIElement::Nullify()
 	textSizeRatio = 1.0f;
 	currentTextSizeRatio = -1.0f;
 
+	this->textureSource = defaultTextureSource;
 	fontSource = TextFont::defaultFontSource;
 	font = NULL;
-	textColor = defaultTextColor;
+	text.color = defaultTextColor;
 
 	/** Will enable/disable cyclicity of input navigation when this element is pushed. When popped, the next element in the stack will determine cyclicity. */
 	cyclicY = true;
@@ -221,7 +223,7 @@ void UIElement::ProcessMessage(Message * message)
 }
 
 /// Sets text, queueing recalculation of the rendered variant.
-void UIElement::SetText(Text newText, bool force)
+void UIElement::SetText(CTextr newText, bool force)
 {
 	/// Check that it's not currently being edited. If so cancel this setting.
 	if (this->demandInputFocus && state & UIState::ACTIVE && !force){
@@ -1666,7 +1668,7 @@ void UIElement::RenderSelf(GraphicsState & graphicsState)
 			///
 			if (shader->uniformModelMatrix != -1){
 				/// TRanslatem power !
-				Matrix4d * model = &graphicsState.modelMatrixD;
+				Matrix4f * model = &graphicsState.modelMatrixD;
 				float transX = alignmentX * parent->sizeX;
 				float transY = alignmentY * parent->sizeY;
 				model->Translate(transX,transY,0);
@@ -1731,18 +1733,16 @@ void UIElement::RenderText()
 //		std::cout<<"\nTextToRender size in pixels: "<<pixels;
 	graphicsState->modelMatrixD.Scale(pixels);	//Graphics.Height()
 	graphicsState->modelMatrixF = graphicsState->modelMatrixD;
-	Vector4f textColorToRender = this->textColor;
 	// If disabled, dull the color! o.o
 	if (this->IsDisabled())
-		textColorToRender *= 0.55f;
+		currentFont->disabled = true;
+	else
+		currentFont->disabled = false;
 	if (this->state & UIState::HOVER && highlightOnHover)
 		currentFont->hoveredOver = true;
 	else
 		currentFont->hoveredOver = false;
-	if (this->state & UIState::ACTIVE && highlightOnActive)
-		textColorToRender += Vector4f(1,1,1,1) * 0.1f;
 //	color[3] *= 0.5f;
-	graphicsState->currentFont->SetColor(textColorToRender);
 //		std::cout<<"\nTextToRender: "<<textToRender;
 	graphicsState->currentFont->RenderText(this->textToRender, *graphicsState);
 	graphicsState->modelMatrixF = graphicsState->modelMatrixD = tmp;
@@ -2092,7 +2092,7 @@ UILabel::UILabel(String name /*= ""*/)
 	highlightOnHover = false;
 	selectable = activateable = false;
 	/// Set text-color at least for labels!
-	textColor = defaultTextColor;
+	text.color = defaultTextColor;
 };
 
 UILabel::~UILabel()

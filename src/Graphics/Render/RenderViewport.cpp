@@ -52,7 +52,7 @@ void GraphicsManager::RenderViewport(Viewport * vp)
 
 	// Copy over the matrices to float
 	graphicsState->viewMatrixF = graphicsState->viewMatrixD = camera->ViewMatrix4d();
-	graphicsState->modelMatrixF = graphicsState->modelMatrixD.LoadIdentity();
+	graphicsState->modelMatrix.LoadIdentity();
 	graphicsState->projectionMatrixF = graphicsState->projectionMatrixD = camera->ProjectionMatrix4d();
 
 	// Clear lists so that the render-passes are performed as requested.

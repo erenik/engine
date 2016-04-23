@@ -123,6 +123,7 @@ enum graphicsMessages {
 	GM_SET_UI_VEC3F,
 	GM_SET_UI_VEC4F,
 	GM_SET_UI_BOOLEAN,
+	GM_SET_UI_STRING,
 	GM_SET_UI_TEXT,
 	GM_CLEAR_UI, // Deleting contents
 	GM_SCROLL_UI, // For lists

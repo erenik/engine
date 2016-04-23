@@ -27,9 +27,9 @@ public:
 		In 'character width units'. Multiply this value with the model matrix and you 
 		should get the rendered size (in world-space coordinates).
 	*/
-	Vector2f CalculateRenderSizeUnits(Text text);
+	Vector2f CalculateRenderSizeUnits(Text & text);
 	/// Calculates the render size in pixels if the text were to be rendered now.
-	Vector2f CalculateRenderSizeWorldSpace(Text text, GraphicsState & graphics);
+	Vector2f CalculateRenderSizeWorldSpace(Text & text, GraphicsState & graphics);
 
 	/// Renders text using matrices in the graphicsState, but with the default GL shader.
 	void RenderText(Text & text, GraphicsState & graphics);
@@ -59,6 +59,7 @@ public:
 	/// For extra colors or effects.
 	bool hoveredOver;
 	bool active;
+	bool disabled; // For buttons currently disabled.
 private:
 
 	/// Sets up text-shader and font texture.
@@ -81,7 +82,7 @@ private:
 		RenderChar may be omitted, in which case only the size of the text will be calculated.
 	*/
 	/// Sets current text and clears old data. Prepares for a new parse or render.
-	void NewText(Text text);
+	void NewText(Text & text);
 	/// Evaluates current char. IF true, should skip processing hte current char in the rest of the procedure.
 	bool EvaluateSpecialChar();
 	// Moves variables to prepare for rendering this char.

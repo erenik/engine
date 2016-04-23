@@ -142,7 +142,7 @@ void UIFileBrowser::LoadDirectory(bool fromRenderThread)
 		dirButton->text = dirs[i]+"/";
 #define LOW	0.5f
 #define MID	0.7f
-		dirButton->textColor = Vector3f(LOW,MID,2.0f);
+		dirButton->text.color = Color(Vector3f(LOW,MID,2.0f));
 		dirButton->activationMessage = "UpdateFileBrowserDirectory("+this->name+","+dirs[i]+")";
 		dirList->AddChild(dirButton);
 		// Save first directory so we may hover to it.
@@ -159,7 +159,7 @@ void UIFileBrowser::LoadDirectory(bool fromRenderThread)
 		UIButton * fileButton = new UIButton();
 		fileButton->sizeRatioY = 0.1f;
 		fileButton->text = files[i];
-		fileButton->textColor = Vector3f(LOW,2.0f,LOW);
+		fileButton->text.color = Color(Vector3f(LOW,2.0f,LOW));
 		fileButton->activationMessage = "SetFileBrowserFile("+this->name+","+files[i]+")";
 		dirList->AddChild(fileButton);
 	}

@@ -348,7 +348,7 @@ void GMSetUIv3f::Process()
 	}
     switch(target){
         case GMUI::TEXT_COLOR:
-            e->textColor = value;
+			e->text.color = Vector4f(value);
             break;
         case GMUI::VECTOR_INPUT:
             if (e->type != UIType::VECTOR_INPUT)
@@ -402,7 +402,7 @@ void GMSetUIv4f::Process()
 			e->color = value;
 			break;
         case GMUI::TEXT_COLOR:
-            e->textColor = value;
+            e->text.color = value;
             break;
         case GMUI::VECTOR_INPUT:
             if (e->type != UIType::VECTOR_INPUT)
@@ -444,6 +444,7 @@ void GMSetUIf::AssertTarget()
 		case GMUI::TEXT_SIZE_RATIO:
 		case GMUI::ALPHA:
 		case GMUI::TEXT_ALPHA:
+		case GMUI::CHILD_SIZE_RATIO_Y:
 			break;
 		default:
 			assert(false && "Invalid target in GMSetUIf");
@@ -475,11 +476,17 @@ void GMSetUIf::Process()
 			element->color[3] = value;
 			break;
 		case GMUI::TEXT_ALPHA:
-			element->textColor[3] = value;
+			element->text.color[3] = value;
 			break;
 		case GMUI::TEXT_SIZE_RATIO:
 			element->textSizeRatio = value;
 			break;
+		case GMUI::CHILD_SIZE_RATIO_Y:
+		{
+			UIList * l = (UIList*)element;
+			l->RescaleChildrenY(value);
+			break;
+		}
 		case GMUI::FLOAT_INPUT:
 			if (element->type != UIType::FLOAT_INPUT)
 				return;
@@ -588,32 +595,32 @@ void GMSetUIb::Process()
 };
 
 // Targets the main windows ui.
-GMSetUIs::GMSetUIs(String uiName, int target, Text text)
-: GMUI (GM_SET_UI_TEXT), uiName(uiName), target(target), text(text), force(false)
+GMSetUIs::GMSetUIs(String uiName, int target, String text)
+: GMUI (GM_SET_UI_STRING), uiName(uiName), target(target), text(text), force(false)
 {
 	AssertTarget();
 }
 
-GMSetUIs::GMSetUIs(String uiName, int target, Text text, UserInterface * inUI)
-: GMUI (GM_SET_UI_TEXT, inUI), uiName(uiName), target(target), text(text), force(false)
+GMSetUIs::GMSetUIs(String uiName, int target, String text, UserInterface * inUI)
+: GMUI (GM_SET_UI_STRING, inUI), uiName(uiName), target(target), text(text), force(false)
 {
 	AssertTarget();
 }
 
-GMSetUIs::GMSetUIs(String uiName, int target, Text text, bool force, UserInterface * inUI)
-: GMUI (GM_SET_UI_TEXT, inUI), uiName(uiName), target(target), text(text), force(force)
+GMSetUIs::GMSetUIs(String uiName, int target, String text, bool force, UserInterface * inUI)
+: GMUI (GM_SET_UI_STRING, inUI), uiName(uiName), target(target), text(text), force(force)
 {
 	AssertTarget();
 }
 
-GMSetUIs::GMSetUIs(String uiName, int target, Text text, Viewport * viewport)
-: GMUI (GM_SET_UI_TEXT, viewport), uiName(uiName), target(target), text(text), force(false)
+GMSetUIs::GMSetUIs(String uiName, int target, String text, Viewport * viewport)
+: GMUI (GM_SET_UI_STRING, viewport), uiName(uiName), target(target), text(text), force(false)
 {
 	AssertTarget();
 };
 
-GMSetUIs::GMSetUIs(String uiName, int target, Text text, bool force, Viewport * viewport)
-: GMUI (GM_SET_UI_TEXT, viewport), uiName(uiName), target(target), text(text), force(force)
+GMSetUIs::GMSetUIs(String uiName, int target, String text, bool force, Viewport * viewport)
+: GMUI (GM_SET_UI_STRING, viewport), uiName(uiName), target(target), text(text), force(force)
 {
 	AssertTarget();
 };
@@ -693,7 +700,54 @@ void GMSetUIs::Process()
 	Graphics.renderQueried = true;
 }
 
-GMSetGlobalUIs::GMSetGlobalUIs(String uiName, int target, Text text, bool force, AppWindow * window)
+GMSetUIt::GMSetUIt(String uiName, int target, CTextr tex)
+: GMUI (GM_SET_UI_TEXT), uiName(uiName), target(target), text(tex)
+{
+	AssertTarget();
+}
+/** Explicitly declared constructor to avoid memory leaks.
+	No explicit constructor may skip subclassed variable deallocation!
+*/
+GMSetUIt::~GMSetUIt()
+{
+
+}
+void GMSetUIt::AssertTarget()
+{
+	switch(target){
+		case GMUI::LOG_APPEND:
+			break;
+		default:
+		{
+			assert(false && "Invalid target provided in GMSetUIs");
+			break;
+		}
+	}
+}
+
+void GMSetUIt::Process()
+{
+	if (!GetUI())
+        return;
+	GetElement("GMSetUIt");
+	switch(target){
+		case GMUI::LOG_APPEND:
+		{
+			if (e->type != UIType::LOG)
+				break;
+			UILog * l = (UILog*) e;
+			l->Append(text);
+			break;
+		}
+		default:
+			assert(false && "ERROR: Invalid target in GMSetUIt.");
+			break;
+	};
+	Graphics.renderQueried = true;
+}
+
+
+GMSetGlobalUIs::GMSetGlobalUIs(String uiName, int target, String text, bool force, AppWindow * window)
 : GMSetUIs(uiName, target, text)
 {
 	if (!window)

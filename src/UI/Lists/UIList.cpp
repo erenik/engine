@@ -35,6 +35,18 @@ UIList::~UIList()
 //	std::cout<<"\nUIList destructor.";
 }
 
+void UIList::RescaleChildrenY(float f)
+{
+	for (int i = 0; i < children.Size(); ++i)
+	{
+		UIElement * c = children[i];
+		if (c->isSysElement)
+			continue;
+		c->sizeRatioY = f;
+		c->isBuffered = false;
+	}
+}
+
 /// Deletes all children and content inside.
 void UIList::Clear()
 {
@@ -61,6 +73,21 @@ void UIList::Clear()
     scrollBarX = scrollBarY = NULL;
 }
 
+void UIList::CreateScrollBarIfNeeded()
+{
+	if (!scrollBarY)
+	{
+	    UIScrollBar * scroll = new UIScrollBar();
+		scroll->CreateHandle();
+		scroll->Update(1.0f - contentChildren.Last()->posY);
+		scroll->sizeRatioX = 0.1f;
+		scroll->alignmentX = 0.95f;
+		scroll->textureSource = "img/80Gray50Alpha.png";
+	    scrollBarY = scroll;
+	    UIElement::AddChild(scrollBarY);
+	}
+}
+
 // Adjusts hierarchy besides the regular addition
 bool UIList::AddChild(UIElement* child)
 {
@@ -68,6 +95,7 @@ bool UIList::AddChild(UIElement* child)
 	if (child->name.Length() < 1)
 		child->name = this->name + "Element"+String::ToString(children.Size());
 
+	contentChildren.AddItem(child);
     /// Inherit neighbours.
 	child->InheritNeighbours(this);
 
@@ -104,31 +132,12 @@ bool UIList::AddChild(UIElement* child)
 	needScrollBarY &= createScrollBarsAutomatically;
 	if (needScrollBarY)
 	{
-	    if (scrollBarY)
-		{
-	        children.Remove(scrollBarY);
-	   //     std::cout<<"\nTrying to delete stuff?";
-			if (scrollBarY->vboBuffer != -1)
-				scrollBarY->FreeBuffers();
-	        if (scrollBarY->mesh)
-                scrollBarY->DeleteGeometry();
-			UIElement * scrollBar = scrollBarY;
-			scrollBarY = NULL;
-			delete scrollBar;
-	      //  scrollBarY->Update(bottom + child->sizeRatioY);
-          //  scrollBarY->visible = true;
-          //  FormatElements();
-          //  return;
-        }
-        UIScrollBar * scroll = new UIScrollBar();
-        scroll->CreateHandle();
-        scroll->Update(1.0f - (bottom - child->sizeRatioY));
-        scroll->sizeRatioX = 0.1f;
-        scroll->alignmentX = 0.95f;
-        scroll->textureSource = "img/80Gray50Alpha.png";
+		// Create if needed.
+		CreateScrollBarIfNeeded();
+		/// Update scroll-bar.
+		UIElement * lastChild = contentChildren.Last();
+		scrollBarY->Update(1.0f - lastChild->alignmentY + lastChild->sizeRatioY);
    //     scroll->text = "Neeeeej";
-        scrollBarY = scroll;
-        UIElement::AddChild(scrollBarY);
         FormatElements();
 	//	assert(false && "Implement automatic scrollbars for your lists, yo!");
 	}
@@ -490,9 +499,9 @@ void UIList::FormatElements(){
                 e->alignmentX = e->alignmentX + (newSizeRatioX - e->sizeRatioX) * 0.5f;
                 e->sizeRatioX = newSizeRatioX;
             }
+			/// Re-queue bufferization of all elements that are formated!
+			e->isBuffered = false;
         }
-		/// Re-queue bufferization of all elements that are formated!
-		e->isBuffered = false;
     }
 }
 
@@ -523,14 +532,16 @@ void UIList::RenderChildren(GraphicsState & graphicsState)
 	graphicsState.SetGLScissor(uiScissor);
    
 
+	float pageBeginY = 0.f, pageBeginYPixels = 0;
     /// If we got a scrollbar, apply a model matrix to make us render at the proper location.
     if (scrollBarY && scrollBarY->visible)
 	{
-        float pageBeginY = scrollBarY->GetStart();
-        pageBeginY *= sizeY;
-        translatedModelMatrix *= Matrix4d::Translation(0, pageBeginY, 0);
-		this->pageBegin[1] = pageBeginY;
+        pageBeginY = scrollBarY->GetStart();
+        pageBeginYPixels = pageBeginY * sizeY;
+        translatedModelMatrix *= Matrix4d::Translation(0, pageBeginYPixels, 0);
+		this->pageBegin[1] = pageBeginYPixels;
     }
+	float pageMiddleY = pageBeginY - 0.5f;
 
     /// Render all children
 	for (int i = 0; i < children.Size(); ++i)
@@ -542,11 +553,14 @@ void UIList::RenderChildren(GraphicsState & graphicsState)
         /// Set model matrix depending on child-type.
         if (child->isSysElement){
         //    std::cout<<"\nChild: "<<child->name<<" is sys element.";
-            graphicsState.modelMatrixF = graphicsState.modelMatrixD = modelMatrix;
+            graphicsState.modelMatrixF = modelMatrix;
         }
-        else
-            graphicsState.modelMatrixF = graphicsState.modelMatrixD = translatedModelMatrix;
-
+		else {
+			/// Skip if outside of screen.
+			if (AbsoluteValue(child->alignmentY + pageMiddleY) > 0.8f)
+				continue;
+            graphicsState.modelMatrixF = translatedModelMatrix;
+		}
 		// Render
         child->Render(graphicsState);
         
@@ -555,6 +569,8 @@ void UIList::RenderChildren(GraphicsState & graphicsState)
 	}
 	// Reset scissor to how it was before.
 	graphicsState.SetGLScissor(previousScissor);
+	// Reset model-matrix to original one.
+	graphicsState.modelMatrixF = graphicsState.modelMatrixD = modelMatrix;
 }
 
 

@@ -117,9 +117,11 @@ public:
 	Entities entitiesRequiringSorting;
 
 	/// The current model matrix in floats.
-	Matrix4f modelMatrixF;
+#define modelMatrixF modelMatrix
+#define modelMatrixD modelMatrix
+	Matrix4f modelMatrix;
 	/// The current model matrix in doubles.
-	Matrix4d modelMatrixD;
+//	Matrix4d modelMatrixD;
 
 	/// The current view matrix in floats.
 	Matrix4f viewMatrixF;

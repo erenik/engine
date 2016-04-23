@@ -23,7 +23,8 @@ void UIScrollBar::CreateHandle()
 {
     assert(handle == NULL);
     handle = new UIScrollBarHandle();
-    handle->textureSource = "Gray";
+    handle->textureSource = "0xAAFF";
+	handle->sizeRatioX = 0.9f;
  //   handle->text = "Joooooo";
     AddChild(handle);
     previousSize = 1.0f;
@@ -109,7 +110,7 @@ UIElement * UIScrollBar::Click(int mouseX, int mouseY)
 	return NULL;
 }
 
-
+// Updates to contents with given size in relative units.
 void UIScrollBar::Update(float newSize)
 {
 //    std::cout<<"\nUIScrollBar::Update New size: "<<newSize;
@@ -121,10 +122,17 @@ void UIScrollBar::Update(float newSize)
         visible = false;
     }
     else {
+		/*
+		if (vboBuffer != -1)
+			FreeBuffers();
+	    if (mesh)
+            DeleteGeometry();
+			*/
         float top = handle->alignmentY + handle->sizeRatioY * 0.5f;
         handle->sizeRatioY = 1.0f / newSize;
      //   std::cout<<"\nHandle sizeRatioY: "<<handle->sizeRatioY;
         handle->alignmentY = top - handle->sizeRatioY * 0.5f;
+		handle->ResizeGeometry();
      //   std::cout<<"\nHandle alignmentY: "<<handle->alignmentY;
         visible = true;
     }
