@@ -61,6 +61,7 @@ void InputManager::Deallocate()
 
 InputManager::InputManager()
 {
+	keyBindingsEnabled = true;
 	printHoverElement = 0;
 	/// Default mouse data
 	prevMouseX = prevMouseY = startMouseX = startMouseY = 0;
@@ -104,6 +105,15 @@ InputManager::~InputManager(){
 #endif
 }
 
+void InputManager::DisableKeyBindings()
+{
+	keyBindingsEnabled = false;
+}
+void InputManager::EnableKeyBindings()
+{
+	keyBindingsEnabled = true;
+}
+
 /// Initializes the manager by loading mappings, generating to defaults if needed.
 void InputManager::Initialize(){
 	if (!this->LoadMappings())
@@ -141,7 +151,7 @@ int InputManager::ClearInputFlags()
 			// Flag it as false
 			this->keyPressedThisFrame[i] = false;
 			// Execute anything needed when the key press state is lost too, though!
-			this->KeyUp(this->keyPressed[i]);
+			this->KeyUp(MainWindow(), this->keyPressed[i]);
 		}
 	}
 	return inputsReset;
@@ -363,7 +373,7 @@ void InputManager::EnableActiveUI()
 	Argument true indicate that the button was pressed, while false indicates that it was just released.
 	Default arguments for x and y indicate that they should not be refreshed.
 */
-void InputManager::MouseClick(AppWindow * AppWindow, bool down, int x, int y)
+void InputManager::MouseClick(AppWindow * appWindow, bool down, int x, int y)
 {
 	if (!inputState->acceptInput)
 		return;
@@ -380,7 +390,10 @@ void InputManager::MouseClick(AppWindow * AppWindow, bool down, int x, int y)
 	else
 		std::cout<<" UP!";*/
 
+	/// Move to graphics thread.
+	QueueGraphics(new GMMouse(down? GMMouse::LDOWN : GMMouse::LUP, appWindow, Vector2i(x,y)));
 
+	/*
 	UIElement * activeElement = NULL;
 	UserInterface * userInterface = RelevantUI();	
 	if (userInterface)
@@ -412,9 +425,9 @@ void InputManager::MouseClick(AppWindow * AppWindow, bool down, int x, int y)
 		}
 	}
 	LogMain("lall ", EXTENSIVE_DEBUG);
-	
+	*/
 	/// Inform the active state of the interaction
-	StateMan.ActiveState()->MouseClick(AppWindow, down, x, y, activeElement);
+	StateMan.ActiveState()->MouseClick(appWindow, down, x, y, 0);
 }
 /** Handles a mouse click.
 	Argument true indicate that the button was pressed, while false indicates that it was just released.
@@ -699,10 +712,14 @@ void InputManager::EvaluateKeyReleased(int activeKeyCode){
 }
 
 /// Processes char-code messages, primarily for writing, secondly for key-bindings.
-void InputManager::Char(unsigned char asciiCode){
+void InputManager::Char(AppWindow * window, unsigned char asciiCode)
+{
 	if (!inputState->acceptInput)
 		return;
 
+	QueueGraphics(new GMChar(window, asciiCode));
+
+	/*
 	UserInterface * ui = RelevantUI();
 	if (ui)
 	{
@@ -713,42 +730,32 @@ void InputManager::Char(unsigned char asciiCode){
 			int result = inputFocusElement->OnChar(asciiCode);
 			return;
 		}
-	}
+	}*/
 };
 
 /// Processes key-presses of commanding-nature (CTRL, ALT, SHIFT, etc.)
-void InputManager::KeyDown(int keyCode, bool downBefore){
+void InputManager::KeyDown(AppWindow * window, int keyCode, bool downBefore)
+{
 	if (!inputState->acceptInput)
 		return;
 	if (!StateMan.ActiveState())
 		return;
 
+//	std::cout<<"\nKeydown: "<<keyCode;
+	QueueGraphics(GMKey::Down(window, keyCode, downBefore));
+
+	if (!keyBindingsEnabled)
+		return;
 	keyPressed[keyCode] = true;
 	keyPressedThisFrame[keyCode] = true;
-	UserInterface * ui = RelevantUI();
-	UIElement * activeElement = NULL;
-	if (ui)
-	{
-		UIElement * inputFocusElement = RelevantUI()->ActiveInputFocusElement();
-		// Catch the codes there that don't get caught in WM_CHAR?
-		if (inputFocusElement)
-		{
-			activeElement = inputFocusElement;
-			/// Use the result somehow to determine if other actions can be triggered, too.
-			int result = inputFocusElement->OnKeyDown(keyCode, downBefore);
-			Graphics.QueryRender();
-		}
-	}
-
-	keyPressed[keyCode] = true;
 //	std::cout<<"\nKeyDown ^^";
-	EvaluateKeyPressed(keyCode, downBefore, activeElement);
+	EvaluateKeyPressed(keyCode, downBefore, 0);
 };
 
-void InputManager::OnStopActiveInput(){
+void InputManager::OnStopActiveInput()
+{
 	/// Will be moved to the UIInput class for internal handling.
 	assert(false);
-
 	this->isInTextEnteringMode = false;
 	SetActiveUIInputElement(NULL);
 	UIElement * input = StateMan.ActiveState()->GetUI()->GetActiveElement();
@@ -760,8 +767,11 @@ void InputManager::OnStopActiveInput(){
 
 
 /// Processes key-releases of commanding-nature (CTRL, ALT, SHIFT, etc.)
-void InputManager::KeyUp(int keyCode){
+void InputManager::KeyUp(AppWindow * window, int keyCode)
+{
 	if (!inputState->acceptInput)
+		return;
+	if (!keyBindingsEnabled)
 		return;
 	keyPressed[keyCode] = false;
 	EvaluateKeyReleased(keyCode);

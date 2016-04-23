@@ -1192,7 +1192,8 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 				UIStringInput * si = new UIStringInput(firstQuote, "Set"+firstQuote);
 				element = si;
 				SET_DEFAULTS;
-				si->CreateChildren();
+				// Can craete it later..?
+//				si->CreateChildren();
 			}
 			else if (token == "StringValue")
 			{
@@ -1373,6 +1374,11 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 				ENSURE_NEXT_TOKEN;
 				element->hoverable = NEXT_TOKEN.ParseBool();
 			}
+			else if (token == "LabelText")
+			{
+				ENSURE_NEXT_TOKEN
+				element->labelText = firstQuote;
+			}
 			else if (token == "visible" || token == "visibility")
 			{
 				ENSURE_NEXT_TOKEN
@@ -1489,6 +1495,11 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 				{
 					element->textAlignment = UIElement::CENTER;
 				}
+			}
+			else if (token == "dividerX")
+			{
+				ENSURE_NEXT_TOKEN
+				element->divider.x = NEXT_TOKEN.ParseFloat(); 
 			}
 			else if (token == "origin"){
 				ENSURE_NEXT_TOKEN

@@ -59,12 +59,12 @@ bool UIInput::HandleDADFiles(List<String> files)
 	return true;
 }
 
-// When clicking/Enter pressed on keyboard.
+// When clicking/Enter pressed on keyboard... no?
 UIElement * UIInput::Click(int mouseX, int mouseY)
 {
 	UIElement * e = UIElement::Click(mouseX, mouseY);
 	if (e == this){
-		BeginInput();
+		// BeginInput();
 	}
 	return e;
 }
@@ -129,8 +129,6 @@ void UIInput::ProcessMessage(Message * message)
 void UIInput::SetText(CTextr newText, bool force /*= false*/)
 {
 	UIElement::SetText(newText, force);
-	if (force)
-		editText = newText;
 }
 
 
@@ -344,7 +342,7 @@ int UIInput::OnChar(int asciiCode)
 				return 0;
 			default:
 				#ifdef _DEBUG_ASCII
-				std::cout<<"\nAsciiCode: "<<(int)asciiCode<<" "<<(unsigned char)asciiCode;
+		//		std::cout<<"\nAsciiCode: "<<(int)asciiCode<<" "<<(unsigned char)asciiCode;
 				#endif
 				break;
 		}
@@ -439,6 +437,7 @@ void UIInput::BeginInput()
 	// sends message to update the ui with new caret and stuff.
 	OnTextUpdated();
 	previousText = editText;
+	InputMan.DisableKeyBindings();
 }
 
 /// Halts input and removes Active state.
@@ -450,6 +449,7 @@ void UIInput::StopInput()
 	OnTextUpdated();
 	// o.o
 	UIElement::RemoveState(UIState::ACTIVE);
+	InputMan.EnableKeyBindings();
 }
 
 // sends message to update the ui with new caret and stuff.
@@ -457,11 +457,11 @@ void UIInput::OnTextUpdated()
 {
 	if (!ui)
 		ui = this->GetRoot()->ui;
-	Graphics.Pause();
+//	Graphics.Pause();
 	SetText(editText, true);
 //	assert(ui);
 //	Graphics.QueueMessage(new GMSetUIs(name, GMUI::TEXT, editText, true, this->ui));
-	Graphics.Resume();
+//	Graphics.Resume();
 }
 
 

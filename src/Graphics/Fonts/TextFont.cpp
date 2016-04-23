@@ -450,7 +450,9 @@ void TextFont::RenderText(Text & text, GraphicsState & graphicsState)
 	}
 
 	bool shouldRenderCaret = Timer::GetCurrentTimeMs() % 1000 > 500;
-	for (i = 0; i < text.Length()+1; ++i)
+	if (text.Length() == 0 && shouldRenderCaret)
+		RenderChar('|');
+	for (i = 0; i < text.Length(); ++i)
 	{
 		if (text.caretPosition == i && shouldRenderCaret)
 		{

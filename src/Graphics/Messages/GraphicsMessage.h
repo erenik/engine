@@ -67,6 +67,32 @@ public:
 	Vector2i coords;
 };
 
+/// For translated key-codes of alphabetical nature.
+class GMChar : public GraphicsMessage 
+{
+public:
+	GMChar(AppWindow * window, char c);
+	virtual void Process();
+private:
+	AppWindow * window;
+	char c;
+};
+/// For keys of system nature (enter, backspace, arrow-keys, etc.)
+class GMKey : public GraphicsMessage 
+{
+public:
+	GMKey(AppWindow * window, int keyCode, bool down, bool downBefore);
+	static GMKey * Down(AppWindow * window, int keyCode, bool downBefore);
+	static GMKey * Up(AppWindow * window, int keyCode);
+	virtual void Process();
+private:
+	bool down;
+	bool up;
+	bool downBefore;
+	int keyCode;
+	AppWindow * window;
+};
+
 /// Query start to record video.
 class GMRecordVideo : public GraphicsMessage
 {

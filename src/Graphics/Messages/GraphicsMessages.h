@@ -12,6 +12,8 @@ enum graphicsMessages {
 
 	// UI interactions.
 	GM_MOUSE,
+	GM_CHAR,
+	GM_KEY,
 
 	// Render-pass configuration
 	GM_ADD_RENDER_PASS,

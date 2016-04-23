@@ -19,6 +19,7 @@ UIStringInput::UIStringInput(String name, String onTrigger)
 	this->name = name;
 	input = NULL;
 	label = NULL;
+	labelText = name;
 }
 UIStringInput::~UIStringInput()
 {
@@ -27,6 +28,7 @@ UIStringInput::~UIStringInput()
 /// Sent by UIInput elements upon pressing Enter and thus confirmign the new input, in case extra actions are warranted. (e.g. UITextureInput to update the texture provided as reference).
 void UIStringInput::OnInputUpdated(UIInput * inputElement)
 {
+	std::cout<<"\nOnInputUpdated..."<<inputElement;
 	// Only logical thing should be our input calling us straight away.
 	assert(inputElement == input);
 	// Post a SetString message accordingly.
@@ -52,7 +54,7 @@ void UIStringInput::CreateChildren()
 
 	/// Create a label
 	label = new UILabel();
-	label->text = name;
+	label->text = labelText;
 	label->sizeRatioX = divider.x;
 	box->AddChild(label);
 

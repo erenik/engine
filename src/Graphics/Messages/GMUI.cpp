@@ -521,6 +521,7 @@ void GMSetUIb::AssertTarget()
 		case GMUI::ENABLED:
 		case GMUI::CHILD_TOGGLED:
 		case GMUI::CHILD_VISIBILITY:
+		case GMUI::ACTIVE:
             break;
         default:
             assert(false && "bad target");
@@ -585,6 +586,9 @@ void GMSetUIb::Process()
 				e->RemoveState(UIState::DISABLED);
 			else
 				e->AddState(UIState::DISABLED);
+			break;
+		case GMUI::ACTIVE:
+			e->Activate();
 			break;
 		default:
 			std::cout<<"\nERROR: Invalid target provided in GMSetUIb";

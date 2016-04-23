@@ -259,7 +259,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 #ifdef LOG_KEYS
 		std::cout<<"\nWM_CHAR received: keyCode: "<<wParam<<" ascii: "<<(char)wParam;
 #endif
-		InputMan.Char(wParam);
+		InputMan.Char(window, wParam);
 		return 0;	// An application should return zero if it processes this message.
 		break;
 	}
@@ -291,7 +291,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		// Pass keycode to input manager if applicable
 		if (keyCode)
 		{
-			InputMan.KeyDown(keyCode, downBefore > 0);
+			InputMan.KeyDown(window, keyCode, downBefore > 0);
 		}
 		return 0;	// An application should return zero if it processes this message.
 		break;
@@ -305,7 +305,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		// Pass keycode to input manager if applicable
 		if (keyCode)
 		{
-			InputMan.KeyUp(keyCode);
+			InputMan.KeyUp(window, keyCode);
 		}
 		return 0;	// An application should return zero if it processes this message.
 		break;
@@ -321,7 +321,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		// Pass keycode to input manager if applicable
 		if (keyCode)
 		{
-			InputMan.KeyDown(keyCode, downBefore > 0);
+			InputMan.KeyDown(window, keyCode, downBefore > 0);
 		}
 		return 0;	// An application should return zero if it processes this message.
 		break;
@@ -336,12 +336,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		switch(keyCode)
 		{
 		case KEY::PRINT_SCREEN:
-			InputMan.KeyDown(keyCode, false);
+			InputMan.KeyDown(window, keyCode, false);
 			break;
 		}
 		// Pass keycode to input manager if applicable
 		if (keyCode)
-			InputMan.KeyUp(keyCode);
+			InputMan.KeyUp(window, keyCode);
 		return 0;	// An application should return zero if it processes this message.
 		break;
 	}

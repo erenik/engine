@@ -18,6 +18,7 @@
 #include "File/FileUtil.h"
 #include "TextureManager.h"
 #include "MathLib/Expression.h"
+#include "Window/AppWindowManager.h"
 
 /// Compact saveable version of the event
 //struct CompactEvent{};
@@ -360,8 +361,8 @@ void Script::EvaluateLine(String & line)
 		keyStr.RemoveSurroundingWhitespaces();
 		int keyCode = GetKeyForString(keyStr);
 		assert(keyCode != 0);
-		InputMan.KeyDown(keyCode, false);
-		InputMan.KeyUp(keyCode);
+		InputMan.KeyDown(MainWindow(), keyCode, false);
+		InputMan.KeyUp(MainWindow(), keyCode);
 		lineFinished = true;
 	}
 	else if (line.Contains("PlayScript("))

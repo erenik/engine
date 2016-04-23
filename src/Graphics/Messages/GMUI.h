@@ -44,6 +44,7 @@ public:
 		TEXT_ALPHA,
 		CHILD_SIZE_RATIO_Y, // For adjusting children sizes.
 		// Bools
+		ACTIVE, // Sets active, same as calling Activate() on it.
 		VISIBILITY,
 		CHILD_VISIBILITY, // Used to specify the visibility of all children via GMSetUIb instead of having an own message-class.
 		ACTIVATABLE,

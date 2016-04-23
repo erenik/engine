@@ -47,6 +47,9 @@ public:
 	/// For debugging.
 	bool printHoverElement;
 
+	void DisableKeyBindings();
+	void EnableKeyBindings();
+
 	/// Initializes the manager by loading mappings, generating to defaults if needed.
 	void Initialize();
 	/// Clears flags for all input keys. Returns amount of keys that were in need of resetting.
@@ -156,15 +159,15 @@ public:
 	/// Keyboard input
 	//=======================================================//
 	/// Processes char-code messages, primarily for writing!
-	void Char(unsigned char asciiCode);
+	void Char(AppWindow * window, unsigned char asciiCode);
 	/** Processes key-presses of commanding-nature (CTRL, ALT, SHIFT, etc.)
 		Parameters:
 			- keyCode		The engine defined key code, e.g: KEY::W, KEY::CONTROL, KEY::SHIFT
 			- downBefore	Specifies if the key was down before, only relevant on key presses.
 	*/
-	void KeyDown(int keyCode, bool downBefore);
+	void KeyDown(AppWindow * window, int keyCode, bool downBefore);
 	/// Processes key-releases of commanding-nature (CTRL, ALT, SHIFT, etc.)
-	void KeyUp(int keyCode);
+	void KeyUp(AppWindow * window, int keyCode);
 
 	/// Returns state of the selected key
 	bool KeyPressed(int keyCode);
@@ -276,6 +279,8 @@ private:
 	/// When toggled will force the UI to be on until disabled.
 	bool forceNavigateUI;
 
+	/// Default true. sets to false when an GUI input is currently active (may cause unwanted behaviour otherwise).
+	bool keyBindingsEnabled;
 	/// For disabling/enabling mouse-input!
 	bool mouseLocked;
 

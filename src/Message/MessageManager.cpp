@@ -576,6 +576,8 @@ void MessageManager::ProcessMessage(Message * message)
 			}
 			else if (msg.Contains("UIStringInput("))
 			{
+				/// Obsolete?
+				/*
 				String name = msg.Tokenize("()")[1];
 				UserInterface * ui = RelevantUI();
 				if (!ui)
@@ -586,6 +588,7 @@ void MessageManager::ProcessMessage(Message * message)
 				UIStringInput * si = (UIStringInput*)e;
 				SetStringMessage * m = new SetStringMessage(si->action, si->GetValue());
 				MesMan.QueueMessage(m);
+				*/
 				return;
 			}
 			else if (msg.Contains("UIFloatInput("))

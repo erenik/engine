@@ -189,6 +189,30 @@ void GMMouse::Process()
 	{
 		switch(interaction)
 		{
+		case LUP:
+		{
+			UIElement * activeElement = NULL;
+			activeElement = userInterface->GetActiveElement();
+			if (activeElement)
+			{ 
+//				activeElement->RemoveState(UIState::ACTIVE);
+				activeElement->Activate();	
+			}
+			UIElement * hoverElement = userInterface->Hover(coords.x, coords.y, true);
+			userInterface->SetHoverElement(hoverElement);
+			break;
+		}
+		case LDOWN:
+		{
+			UIElement * activeElement = NULL;
+			activeElement = userInterface->GetActiveElement();
+			userInterface->Click(coords.x, coords.y);
+			if (activeElement)
+			{ 
+				activeElement->RemoveState(UIState::ACTIVE);
+			}
+			break;
+		}
 		case MOVE:
 			// If we had any active element since earlier, notify it of our mouse move.
 			UIElement * activeElement = userInterface->GetActiveElement();
@@ -215,6 +239,65 @@ void GMMouse::Process()
 		}
 	}
 }
+
+GMChar::GMChar(AppWindow * window, char c)
+	: GraphicsMessage(GM_CHAR), window(window), c(c)
+{
+}
+void GMChar::Process()
+{
+	UserInterface * ui = GetRelevantUIForWindow(window);
+	UIElement * element = NULL;
+	if (ui)
+	{
+		UIElement * inputFocusElement = ui->ActiveInputFocusElement();
+		// Catch the codes there that don't get caught in WM_CHAR?
+		if (inputFocusElement)
+		{
+			/// Use the result somehow to determine if other actions can be triggered, too.
+			int result = inputFocusElement->OnChar(c);
+			return;
+		}
+	}
+}
+
+GMKey::GMKey(AppWindow * window, int keyCode, bool down, bool downBefore)
+	: GraphicsMessage(GM_KEY), window(window), keyCode(keyCode), down(down), up(!down), downBefore(downBefore)
+{
+}
+
+GMKey * GMKey::Down(AppWindow * window, int keyCode, bool downBefore)
+{
+	return new GMKey(window, keyCode, true, downBefore);
+}
+GMKey * GMKey::Up(AppWindow * window, int keyCode)
+{
+	return new GMKey(window, keyCode, false, false);
+}
+
+void GMKey::Process()
+{
+	/// Key down.
+	if (down)
+	{
+		UserInterface * ui = RelevantUI();
+		UIElement * activeElement = NULL;
+		if (ui)
+		{
+			UIElement * inputFocusElement = RelevantUI()->ActiveInputFocusElement();
+			// Catch the codes there that don't get caught in WM_CHAR?
+			if (inputFocusElement)
+			{
+				activeElement = inputFocusElement;
+				/// Use the result somehow to determine if other actions can be triggered, too.
+				int result = inputFocusElement->OnKeyDown(keyCode, false);
+				Graphics.QueryRender();
+			}
+		}
+	}
+	/// Key up.
+}
+
 
 GMRecordVideo::GMRecordVideo(AppWindow * fromWindow)
 : GraphicsMessage(GM_RECORD_VIDEO), window(fromWindow)
