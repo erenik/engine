@@ -53,10 +53,10 @@ Binding::~Binding()
 }
 
 /// Returns self to chain settings.
-Binding & Binding::SetActivateOnRepeat(bool repeat)
+Binding * Binding::SetActivateOnRepeat(bool repeat)
 {
 	action->activateOnRepeat = repeat;
-	return *this;
+	return this;
 }
 
 /** If true (default), will activate even while mouse/cursor is over an activatable/interactable UI element.

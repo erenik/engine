@@ -80,7 +80,7 @@ void Frustum::SetCamPos(const Vector3f & position, const Vector3f & lookAt, cons
 	frustumPlane[LEFT_PLANE].Set3Points(hitherTopLeft, hitherBottomLeft, fartherBottomLeft);
 	frustumPlane[RIGHT_PLANE].Set3Points(hitherTopRight, fartherTopRight, fartherBottomRight);
 	frustumPlane[BOTTOM_PLANE].Set3Points(fartherBottomRight, fartherBottomLeft, hitherBottomLeft);
-	frustumPlane[TOP_PLANE].Set3Points(fartherTopRight, hitherTopRight, hitherTopLeft);
+	frustumPlane[TOP_PLANE].Set3Points(hitherTopLeft, fartherTopLeft, fartherTopRight);
 	frustumPlane[NEAR_PLANE].Set3Points(hitherBottomLeft, hitherTopLeft, hitherTopRight);
 	frustumPlane[FAR_PLANE].Set3Points(fartherBottomLeft, fartherBottomRight, fartherTopRight);
 }
@@ -89,8 +89,10 @@ int Frustum::PointInFrustum(Vector3f &point) const {
 
 	int result = Loc::INSIDE;
 
-	for(int i=0; i < 6; i++) {
-		if (frustumPlane[i].Distance(point) < 0)
+	for(int i=0; i < 6; i++) 
+	{
+		float distance = frustumPlane[i].Distance(point);
+		if (distance < 0)
 			return Loc::OUTSIDE;
 	}
 	return(result);

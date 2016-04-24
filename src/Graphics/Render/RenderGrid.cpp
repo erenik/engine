@@ -13,6 +13,7 @@ void GraphicsManager::RenderGrid(){
 		glMatrixMode(GL_PROJECTION);
 		glLoadMatrixd(graphicsState->projectionMatrixD.getPointer());
 		glMatrixMode(GL_MODELVIEW);
+		graphicsState->modelMatrix.LoadIdentity(); // Don't inherit model from entities....
 		Matrix4d modelView = graphicsState->viewMatrixD * graphicsState->modelMatrixD;
 		glLoadMatrixd(modelView.getPointer());
 		// Enable blending

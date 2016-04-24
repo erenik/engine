@@ -21,7 +21,7 @@ struct Binding
 	~Binding();
 
 	/// Returns self to chain settings.
-	Binding & SetActivateOnRepeat(bool repeat);
+	Binding * SetActivateOnRepeat(bool repeat);
 	/** If true (default), will activate even while mouse/cursor is over an activatable/interactable UI element.
 		Set false to make it be ignored when the user is hovering over some UI (to enable default UI-interaction bindings).
 	*/

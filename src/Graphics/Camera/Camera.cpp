@@ -219,7 +219,7 @@ void Camera::Nullify()
 	// Tracking vars
 	smoothness = 0.2f;
 	scaleOffsetWithDistanceToCenterOfMovement = 0.1f;
-	trackingRotationalSmoothness = 0.7f;
+	rotationalSmoothness = 0.7f;
 	minTrackingDistance = 1.5f;
 	maxTrackingDistance = 4.5f;
 	trackingDistanceMultiplier = 1.f; // Multiplied on all.
@@ -366,10 +366,13 @@ void Camera::UpdateViewMatrix(bool track /* = true*/, float timeInSeconds /* = 0
 		{
 			/// Smooth out position and rotations no matter what.
 			float smoothingRatio = pow(smoothing, timeInSeconds);
+			/// Rotational smoothing
+			float rotationalSmoothingRatio = pow(this->rotationalSmoothness, timeInSeconds);
+			float sRotSmoothRatio = 1 - rotationalSmoothingRatio;
 			float aSmoothingRatio = 1 - smoothingRatio;
 			smoothedPosition = smoothedPosition * smoothingRatio + positionWithOffsets * aSmoothingRatio;
 			// Add 20% of the diff.
-			smoothedRotation.SmoothTo(rotation, aSmoothingRatio);
+			smoothedRotation.SmoothTo(rotation, sRotSmoothRatio);
 			smoothedDFCOM = smoothedDFCOM * smoothingRatio + distanceFromCenterOfMovement * aSmoothingRatio;
 			
 			/// Add a switch case if new/other techniques are requested -> move code from the TrackBehind, etc. to there.
@@ -503,11 +506,14 @@ void Camera::Track()
 	switch(trackingMode)
 	{
 		case TrackingMode::THIRD_PERSON:
-		case TrackingMode::FOLLOW_AND_LOOK_AT:
 		{
 			ThirdPersonLookAt();
 			ThirdPersonDistance();
-
+			break;
+		}
+		case TrackingMode::FOLLOW_AND_LOOK_AT: // MMORPG style
+		{
+			FollowAndLookAt();
 			break;
 		}
 		case TrackingMode::THIRD_PERSON_AIRCRAFT:
@@ -559,10 +565,10 @@ void Camera::ThirdPersonLookAt()
 
 	Angle currentPitch = rotation.x;
 	Angle currentYaw = rotation.y;
-	Angle toYaw = Angle(pitchNeeded) - currentPitch;
-	toYaw *= 1 - trackingRotationalSmoothness;
+	Angle toYaw = Angle(pitchNeeded) - currentPitch; // Already smoothed later on.
+//	toYaw *= 1 - trackingRotationalSmoothness;
 	Angle toPitch = Angle(yawNeeded) - currentYaw;
-	toPitch *= 1 - trackingRotationalSmoothness;
+//	toPitch *= 1 - trackingRotationalSmoothness;
 	Angle smoothedPitch(currentPitch + toYaw);
 	Angle smoothedYaw(currentYaw + toPitch);
 	// Set rotations accordingly.
@@ -621,6 +627,7 @@ void Camera::ThirdPersonDistance()
 	positionWithOffsets = position + trackingPositionOffset * (scaleOffsetWithDistanceToCenterOfMovement > 0? (distanceFromCenterOfMovement * (scaleOffsetWithDistanceToCenterOfMovement) + 1.f) : 1.f);
 
 }
+
 
 void Camera::ThirdPersonAircraft()
 {
@@ -765,6 +772,11 @@ bool Camera::ProcessMovement(float timeInSeconds)
 				position = newPos;
 				/// Update matrix once to extract data needed to track again later?
 				UpdateViewMatrix(true);
+				break;	
+			}
+			case TrackingMode::FOLLOW_AND_LOOK_AT: 
+			{
+				ProcessFollowAndLookAtMovement(timeInSeconds);
 				break;	
 			}
 			default:

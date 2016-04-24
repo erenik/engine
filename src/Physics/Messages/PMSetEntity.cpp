@@ -22,6 +22,7 @@ PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target)
 	switch(target)
 	{
 		case PT_RESET_ROTATION:
+		case PT_INHERIT_POSITION_ONLY:
 			break;
 		default:
 			assert(false && "Bad target in PMSetEntity");
@@ -242,6 +243,11 @@ void PMSetEntity::Process()
 		PathfindingProperty * pathProp = entity->pathfindingProperty;
 		switch(target)
 		{
+			case PT_INHERIT_POSITION_ONLY:
+			{
+				entity->inheritPositionOnly = true;
+				break;
+			}
 			case PT_FACE_VELOCITY_DIRECTION:
 			{
 				pp->faceVelocityDirection = bValue;
@@ -259,8 +265,12 @@ void PMSetEntity::Process()
 			// Parenting
 			case PT_SET_PARENT:
 			{
-				entity->parent = referenceEntity;
-				referenceEntity->children.Add(entity);
+				// If already has parent, decouble.
+				if (entity->parent)
+					entity->parent->children.RemoveItem(entity);
+				entity->parent = referenceEntity; // Set new one.
+				if (referenceEntity)
+					referenceEntity->children.Add(entity);
 				// Update transform straight away?
 				entity->RecalculateMatrix();
 				break;

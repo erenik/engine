@@ -64,6 +64,7 @@ enum physicsTargets{
 
 	// Parenting
 	PT_SET_PARENT, PT_PARENT = PT_SET_PARENT,
+	PT_INHERIT_POSITION_ONLY, // Makes parenting only affect relative position - side-calculation.
 
 	// Custom types.
 	PT_PHYSICS_INTEGRATOR,

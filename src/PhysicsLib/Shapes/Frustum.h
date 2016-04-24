@@ -53,7 +53,7 @@ public:
 	void SetCamInternals(float left = -1, float right = 1, float bottom = -1, float top = 1, float near = -1, float far = -10);
 	/// Set camera orientation
 	void SetCamPos(const Vector3f & position, const Vector3f & lookingAtVector, const Vector3f & upVector);
-	/// Checks if a point is within the frustum
+	/// Checks if a point is within the frustum. Returns Loc::INSIDE or Loc::OUTSIDE
 	int PointInFrustum(Vector3f &position) const;
 	/// Checks if a sphere is within the frustum
 	int SphereInFrustum(Vector3f &position, float radius) const;

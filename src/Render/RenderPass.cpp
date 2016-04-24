@@ -439,6 +439,8 @@ void RenderPass::RenderEntities()
 	for (int i = 0; i < entitiesToRender.Size(); ++i)
 	{
 		entity = entitiesToRender[i];
+		if (!entity->IsVisible())
+			continue;
 		gp = entity->graphics;
 		if (entity->diffuseMap != diffuseMap)
 		{

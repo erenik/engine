@@ -97,6 +97,7 @@ void Entity::LoadCompactEntityData(CompactEntity * cEntity)
 
 Entity::Entity(int i_id)
 {
+	inheritPositionOnly = false;
 	relevantScale = false;
 	sharedProperties = false;
 	updateChildrenOnTransform = false;
@@ -564,8 +565,15 @@ void Entity::RecalculateMatrix(int whichParts/*= true*/, bool recursively /* = f
 	/// Use parent matrix, apply ours on top of it!
 	if (parent)
 	{
-		/// Transforms as calculated if this were not child of any other entity.
-		transformationMatrix = parent->transformationMatrix * localTransform;
+		if (inheritPositionOnly)
+		{
+			transformationMatrix = Matrix4f::Translation(parent->worldPosition) * localTransform;
+		}
+		else 
+		{
+			/// Transforms as calculated if this were not child of any other entity.
+			transformationMatrix = parent->transformationMatrix * localTransform;
+		}
 	}
 	else 
 	{

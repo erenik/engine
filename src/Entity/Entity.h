@@ -220,6 +220,7 @@ public:
 	List<Entity*> children;
 	/// Parent entity. Helps dictate how the transformation-matrix will be calculated.
 	Entity * parent;
+	bool inheritPositionOnly; // Default false.
 
 	/// Status, for whether it's part of rendering, physics, etc.
 	bool registeredForRendering;

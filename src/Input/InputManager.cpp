@@ -1134,6 +1134,9 @@ void InputManager::UINext()
 }
 void InputManager::UIPrevious()
 {
+	// Move to graphics thread.
+	std::cout<<"\nMove to graphics thread.";
+	/*
 	UserInterface * ui = RelevantUI();
 	UIElement * element;
 	UIElement * hoverElement = ui->GetHoverElement();
@@ -1153,7 +1156,7 @@ void InputManager::UIPrevious()
 		else
 			element = uiList[index];
 		hoverElement = ui->Hover(element->posX, element->posY);
-	}
+	}*/
 }
 
 /// Returns the element that the cursor is currently hovering over.

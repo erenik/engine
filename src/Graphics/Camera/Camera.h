@@ -158,6 +158,9 @@ public:
 	/// The quaternion as built up by the 3 rotations as specified by rotationEuler.
 	Quaternion orientationEuler;
 
+	/// For ensuring a minimum desired diff between target and camera when performing manual rotations.
+	Vector3f minimumDiff;
+
 	/// To get a "speedy" effect when following entities.
 	bool scaleDistanceWithVelocity;
 	/// For faster scrolling when zoomed out e.g. in editors.
@@ -277,7 +280,6 @@ public:
 	float trackingDistanceBase; 
 	/// Distance possible to retreat and exceed the base.
 	float trackingDistanceLeeway;
-	float trackingRotationalSmoothness;
 	/// Default true. Used mostly for specific tracking-movements.
 	float scaleOffsetWithDistanceToCenterOfMovement;
 
@@ -285,7 +287,9 @@ public:
 	float minTrackingDistance;
 	float maxTrackingDistance;
 	
-	// Default 0? From 0 to 1.0
+	/// Rotational smoothing. Separate from normal smoothing (position).
+	float rotationalSmoothness;
+	/// Smoothing of position.
 	float smoothing;
 
 private:
@@ -301,6 +305,11 @@ private:
 	void ThirdPersonLookAt();
 	/// Moves adjusts position relative to the target.
 	void ThirdPersonDistance();
+	/// MMORPG style tracking and following.
+	void FollowAndLookAt();
+	void Follow(); // Follows target, mainly position updates.
+	void LookAt(bool ignoreSmoothing); // Looks at target, mainly rotational updates.
+	void ProcessFollowAndLookAtMovement(float timeInSeconds); // Processes input (rotation, zoom, etc) for FollowAndLookAt cameras.
 	/// o.o
 	void ThirdPersonAircraft();
 

@@ -72,6 +72,7 @@ GMSetCamera::GMSetCamera(Camera * camera, int target, float fValue)
 {
 	switch(target)
 	{
+		case CT_DESIRED_MINIMUM_Y_DIFF:
 		case CT_SMOOTHING:
 		case CT_RELATIVE_POSITION_Y:
 		case CT_DISTANCE_FROM_CENTER_OF_MOVEMENT:
@@ -80,6 +81,7 @@ GMSetCamera::GMSetCamera(Camera * camera, int target, float fValue)
 		case CT_ZOOM_SPEED:
 		case CT_DISTANCE_FROM_CENTER_OF_MOVEMENT_SPEED:
 		case CT_DISTANCE_FROM_CENTER_OF_MOVEMENT_SPEED_MULTIPLIER:
+		case CT_ROTATIONAL_SMOOTHNESS:
 			break;
 		default:
 			assert(false);
@@ -170,6 +172,12 @@ void GMSetCamera::Process()
 		}
 		case CT_TRACKING_POSITION_OFFSET:
 			camera->trackingPositionOffset = vec3fValue;
+			break;
+		case CT_DESIRED_MINIMUM_Y_DIFF:
+			camera->minimumDiff.y = fValue;
+			break;
+		case CT_ROTATIONAL_SMOOTHNESS:
+			camera->rotationalSmoothness = fValue;
 			break;
 		case CT_ROTATION:
 		{
