@@ -10,21 +10,32 @@ Later on during spring/summer of 2014 it was used again as the basis for my [the
 
 Active projects
 ---------------
+*	[SpaceShooter2D](https://github.com/erenik/SpaceShooter2D), a project that has been active for 1~2 years now.
+*	[MORPG](https://github.com/erenik/MORPG), a Multi-player RPG project idea that has been itching in the back of my head for some time now.
 
 To be updated.
 
+Older projects
+--------------
+Besides those mentioned above (SpaceRace for networking, IPM for interactive projection mapping), I played around with making a music-player, worked on a side-scroller-jumping game which never really took off, a Tetris game, and a re-work of an old school project called TIFS (The invader from space). 
+
+I just recently began branching of the old projects into own git repos and updating the CMake code so that it is easy to work on several projects simultaneously, so I might post more updates shortly.
 
 Usage
 -----
-
-Free for educational and private purposes, assuming you have informed me first.
-Usage for commercial purposes can be negotiated.
-
+Free for educational and private purposes. Usage for commercial purposes can be negotiated. If you have anything to contribute, send me a PM.
 
 Building
 --------
-Steps for building it and making available binary files needed and external libraries will be tended to shortly.
+- Clone this git. Clone or create a project-specific directory of code.
+- Run CMake with the /engine/ dir as source, /projectName-out/ as binary dir. E.g. D:/git/engine and D:/git/engine/morpg-out 
+	- In LIBS_DIR, specify directory to headers and binaries for external depdendencies. E.g. D:/libs. If you need the dependencies installed, you can try marking the INSTALL_DEPENDENCIES and CMake may try to download and unpack some of them, but you may need to compile them yourself or download binaries as needed.
+	- Choose which dependencies you want. Many can be omitted as they were mostly experimental.
+	- in PROJ_SPEC_DIR enter the path to the source code for your project. E.g. D:/git/engine-games/MORPG 
 
+Dependencies
+------------
+More info on dependencies later.
 
 
 
