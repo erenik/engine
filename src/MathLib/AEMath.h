@@ -38,6 +38,7 @@ extern MathLib mathLib;
 
 #ifndef ClampFloat
 #define ClampFloat(a, min, max) if(a < min) a = min; else if(a > max) a = max;
+#define ClampInt ClampFloat
 #endif
 
 #ifndef ClampedFloat

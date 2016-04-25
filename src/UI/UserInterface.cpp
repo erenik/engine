@@ -1098,6 +1098,8 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 			}
 			else if (token == "root"){
 				element = root;
+				if (tokens.Size() > 1)
+					element->name = firstQuote;
 			}
 			else if (token == "element" || token == "div"){
 				ADD_PREVIOUS_TO_UI_IF_NEEDED

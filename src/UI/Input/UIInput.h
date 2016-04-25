@@ -32,6 +32,8 @@ public:
 
 	/// Calls UIElement::SetText in addition to setting the editText to the same value if force is true.
 	virtual void SetText(CTextr newText, bool force = false);
+	/// Sets edit text. Resets text size so that it should be visible straight away.
+	virtual void SetEditText(CTextr newText);
 
 	/// Called once this element is no longer visible for any reason. E.g. switching game states to display another UI, or when this or a parent has been popped from the ui.
 	virtual void OnExitScope();
@@ -51,6 +53,8 @@ public:
 	bool mathematicalExpressionsOnly;
 	/// If this is a password-type thingy, this will convert so that the characters are always rendered as e.g. stars.
 	bool concealCharacters;
+	// Default false.
+	bool rememberPreviousInputs; 
 
 protected:
 	/// For handling text-input

@@ -41,5 +41,13 @@ scroll:
 	this->Scroll(position - 1.f);
 }
 
+void UILog::Fill(List<Text> texts)
+{
+	for (int i = 0; i < texts.Size(); ++i)
+	{
+		Append(texts[i]);
+	}
+}
+
 
 

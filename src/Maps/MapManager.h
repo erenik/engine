@@ -58,10 +58,15 @@ public:
 	Entity * CreateEntity(Entity * entity);
 	/** Creates an entity with target model and texture and places it into the active map. */
 	Entity * CreateEntity(String name, Model * model, Texture * texture, const Vector3f & position = Vector3f());
+	
+	/// Adds entity to the map. If the map is currently registered for rendering, it should be registered for rendering automatically. The same applies for physics.
+	bool AddEntity(Entity * entity, Map * toMap);
 	/// Adds target entity to the map, registering it for physics and graphics
 	bool AddEntity(Entity * entity, bool registerForGraphics = true, bool registerForPhysics = true);
 	/// Adds target entity to the map, registering it for physics and graphics
 	bool AddEntities(List<Entity *> entities, bool registerForGraphics = true, bool registerForPhysics = true);
+	/// Removes from its map.
+	bool RemoveEntity(Entity * entity);
 
 	/** Adds an event ~ */
 	bool AddEvent(Script * eventScript);
@@ -101,6 +106,8 @@ public:
 	/** Creates a map with specified name. Returns NULL upon failure.
 	*/
 	TileMap2D * CreateMap2D(String mapName);
+	/// o-o
+	bool DeleteMap(Map * map);
 
 	/** Makes target map active, queueing it's bufferization into the graphicsManager, physicsManager, etc.
 		all depending on the provided entities belonging to it.
@@ -123,6 +130,8 @@ public:
 		Returns false upon failure.
 	*/
 	bool MakeActive(Map * map);
+	/// Makes target map inactive, unregistering it from both physics and graphics.
+	bool MakeInactive(Map * map);
 
 	/// Lists the loaded maps to console
 	void ListMaps();

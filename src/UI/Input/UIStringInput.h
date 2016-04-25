@@ -15,6 +15,7 @@ public:
 
 	/// Sent by UIInput elements upon pressing Enter and thus confirmign the new input, in case extra actions are warranted. (e.g. UITextureInput to update the texture provided as reference).
 	virtual void OnInputUpdated(UIInput * inputElement);
+	virtual int OnKeyDown(int keyCode, bool downBefore); // For managing old texts.
 
 	/// Creates the label and input.
 	void CreateChildren();
@@ -25,7 +26,10 @@ public:
 	/// Same as onTrigger, set to all inputs.
 	String action;
 	UIInput * input;
+	bool rememberPreviousInputs; // Default true.
 private:
+	/// For when cycling old inputs.
+	int index;
 };
 
 #endif

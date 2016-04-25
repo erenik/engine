@@ -482,9 +482,7 @@ void InputManager::MouseMove(AppWindow * appWindow, Vector2i activeWindowAreaCoo
 	/// If mouse is le locked, return
 	if (mouseLocked)
 		return;
-
 	lastMouseMoveWindow = appWindow;
-
 	/// Save coordinates
 	inputState->mousePosition = Vector2i(x,y);
 	/// If we have a global UI (system ui), process it first.

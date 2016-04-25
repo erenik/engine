@@ -23,6 +23,7 @@ class Triangle;
 class EntityProperty;
 class Camera;
 class Message;
+class Map;
 class CollisionCallback;
 /*
 #include "GL/glew.h"
@@ -70,6 +71,9 @@ public:
 	int id;
 	/// Wosh.
 	int flags;
+
+	/// For new control method of simulating/rendering entities per map.
+	Map * map;
 
 	/// Getter.
 	template<class T>

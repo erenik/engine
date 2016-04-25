@@ -21,6 +21,7 @@ public:
 	UILog();
 	/// For simple logging of just text
 	void Append(CTextr text);
+	void Fill(List<Text> texts);
 	/// Sets all messages to filter/display.
 	void SetLogMessages(List<LogMessage> messages);
 

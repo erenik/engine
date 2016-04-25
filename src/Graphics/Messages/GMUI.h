@@ -55,6 +55,7 @@ public:
 		// Strings
 		TEXT,
 		LOG_APPEND, // For UILog
+		LOG_FILL, 
 		TEXTURE_SOURCE,
 		STRING_INPUT_TEXT, // For UIStringInput
 		INTEGER_INPUT_TEXT, // For UIIntegerInput
@@ -226,6 +227,7 @@ class GMSetUIt : public GMUI
 {
 public:
 	GMSetUIt(String uiName, int target, CTextr tex);
+	GMSetUIt(String uiName, int target, List<Text> texts);
 	/** Explicitly declared constructor to avoid memory leaks.
 		No explicit constructor may skip subclassed variable deallocation!
 	*/
@@ -234,6 +236,7 @@ public:
 private:
 	void AssertTarget();
 	Text text;
+	List<Text> texts;
 	String uiName;
 	int target;
 
@@ -292,8 +295,11 @@ private:
 	String parentName;
 };
 
+class AppWindow;
+
 class GMPushUI : public GMUI{
 public:
+	GMPushUI(String sourceName, AppWindow * window = 0); // If 0, grabs main window.
 	GMPushUI(String elementName, UserInterface * ontoUI);
 	GMPushUI(UIElement * element, UserInterface * ontoUI);
 	void Process();
@@ -304,8 +310,8 @@ private:
 
 class GMPopUI : public GMUI{
 public:
-	/// If force is specified, it will pop the UI no matter what it's exitable property says.
-	GMPopUI(String uiName, UserInterface * ui, bool force = false, Viewport * viewport = NULL);
+	/// If force is specified, it will pop the UI no matter what it's exitable property says. If UI is 0, default ui in main window is chosen.
+	GMPopUI(String uiName, UserInterface * ui = 0, bool force = false, Viewport * viewport = NULL);
 	void Process();
 private:
 	UIElement * element;

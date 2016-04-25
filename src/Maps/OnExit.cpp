@@ -12,4 +12,6 @@ void Map::OnExit()
 {
 //	MapMan.ClearEventSpawnedEntities();
 //	MapMan.ClearPlayerEntities();
+	//	Yo. Wat.
+	std::cout<<"\nExitingggg";
 };

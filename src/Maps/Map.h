@@ -111,6 +111,12 @@ public:
 
 	/// Fetches last error string, resetting it upon use.
 	String GetLastErrorString();
+
+	String Name() const {return name;};
+
+	/// For new control method of simulating/rendering entities per map.
+	bool registeredForRendering;
+	bool registeredForPhysics;
 protected:
 
 	/// Deletes all entities within the map and re-loads/re-creates them. The entities however are NOT queued to be rendered or participate in physics straight away.

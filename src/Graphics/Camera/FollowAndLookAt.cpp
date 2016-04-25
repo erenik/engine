@@ -118,6 +118,11 @@ void Camera::LookAt(bool ignoreSmoothing)
 // Processes input (rotation, zoom, etc) for FollowAndLookAt cameras.
 void Camera::ProcessFollowAndLookAtMovement(float timeInSeconds)
 {
+	if (entityToTrack == 0)
+	{
+		// Add some error message if lacking entity?
+		return;
+	}
 	Vector3f radiansToTurn = rotationalVelocityEuler * timeInSeconds;
 	if (radiansToTurn.y != 0)
 	{

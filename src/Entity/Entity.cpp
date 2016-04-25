@@ -97,6 +97,7 @@ void Entity::LoadCompactEntityData(CompactEntity * cEntity)
 
 Entity::Entity(int i_id)
 {
+	map = 0;
 	inheritPositionOnly = false;
 	relevantScale = false;
 	sharedProperties = false;

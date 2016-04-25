@@ -18,6 +18,7 @@
 UIInput::UIInput(String name /*= ""*/)
 : UIElement()
 {
+	rememberPreviousInputs = false;
 	this->name = name;
 	type = UIType::INPUT_FIELD;
 	selectable = hoverable = activateable = true;
@@ -130,18 +131,22 @@ void UIInput::SetText(CTextr newText, bool force /*= false*/)
 {
 	UIElement::SetText(newText, force);
 }
-
+/// Sets edit text. Resets text size so that it should be visible straight away.
+void UIInput::SetEditText(CTextr newText)
+{
+	editText = newText;
+	textSize = -1;
+}
 
 /// Called once this element is no longer visible for any reason. E.g. switching game states to display another UI, or when this or a parent has been popped from the ui.
 void UIInput::OnExitScope()
 {
 	/// Call it for children too.
 	UIElement::OnExitScope();
-	/// stop input here then!
-	inputActive = false;
-	this->RemoveState(UIState::ACTIVE);
-	/// Remove caret
-	editText.caretPosition = -1;
+	if (inputActive)
+	{
+		StopInput();
+	}
 }
 
 /// Used by input-captuing elements. Should not be called for any base UI elements(?)
@@ -216,10 +221,12 @@ int UIInput::OnKeyDown(int keyCode, bool downBefore)
 			break;
 		case KEY::UP: 
 		{
+			parent->OnKeyDown(keyCode, downBefore);
 			break;
 		}
 		case KEY::DOWN: 
 		{
+			parent->OnKeyDown(keyCode, downBefore);
 			break;
 		}
 		case KEY::LEFT:
@@ -443,13 +450,16 @@ void UIInput::BeginInput()
 /// Halts input and removes Active state.
 void UIInput::StopInput()
 {
-	inputActive = false;
-	/// Remove caret
-	editText.caretPosition = -1;
-	OnTextUpdated();
-	// o.o
-	UIElement::RemoveState(UIState::ACTIVE);
-	InputMan.EnableKeyBindings();
+	if (inputActive)
+	{
+		inputActive = false;
+		/// Remove caret
+		editText.caretPosition = -1;
+		OnTextUpdated();
+		// o.o
+		UIElement::RemoveState(UIState::ACTIVE);
+		InputMan.EnableKeyBindings();
+	}
 }
 
 // sends message to update the ui with new caret and stuff.

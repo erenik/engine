@@ -9,6 +9,7 @@
 #include "Viewport.h"
 #include "OS/Sleep.h"
 
+#include "Window/AppWindow.h"
 #include "UI/UITypes.h"
 #include "UI/UILists.h"
 #include "UI/UIInputs.h"
@@ -588,6 +589,11 @@ void GMSetUIb::Process()
 				e->AddState(UIState::DISABLED);
 			break;
 		case GMUI::ACTIVE:
+			/// Ensure it is visible first..?
+			if (!e->IsVisible())
+			{
+				return;
+			}
 			e->Activate();
 			break;
 		default:
@@ -709,6 +715,12 @@ GMSetUIt::GMSetUIt(String uiName, int target, CTextr tex)
 {
 	AssertTarget();
 }
+GMSetUIt::GMSetUIt(String uiName, int target, List<Text> texts)
+: GMUI(GM_SET_UI_TEXT), uiName(uiName), target(target), texts(texts)
+{
+	AssertTarget();
+}
+
 /** Explicitly declared constructor to avoid memory leaks.
 	No explicit constructor may skip subclassed variable deallocation!
 */
@@ -720,6 +732,7 @@ void GMSetUIt::AssertTarget()
 {
 	switch(target){
 		case GMUI::LOG_APPEND:
+		case GMUI::LOG_FILL:
 			break;
 		default:
 		{
@@ -741,6 +754,14 @@ void GMSetUIt::Process()
 				break;
 			UILog * l = (UILog*) e;
 			l->Append(text);
+			break;
+		}
+		case GMUI::LOG_FILL:
+		{
+			if (e->type != UIType::LOG)
+				break;
+			UILog * l = (UILog*) e;
+			l->Fill(texts);
 			break;
 		}
 		default:
@@ -870,6 +891,13 @@ void GMAddUI::Process()
 		e->AddChild(elements[i]);
 	}
 	Graphics.renderQueried = true;
+}
+
+// If 0, grabs main window.
+GMPushUI::GMPushUI(String sourceName, AppWindow * iWindow)
+	: GMUI(GM_PUSH_UI), element(NULL), uiName(sourceName)
+{
+	this->window = iWindow;
 }
 
 GMPushUI::GMPushUI(String uiName, UserInterface * ontoUI)

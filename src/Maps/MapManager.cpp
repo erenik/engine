@@ -62,7 +62,8 @@ void MapManager::Deallocate(){
 	mapMan = NULL;
 }
 
-MapManager::MapManager(){
+MapManager::MapManager()
+{
 	activeMap = NULL;
 	defaultAddPhysics = true;
 	processOnEnter = true;
@@ -148,6 +149,14 @@ Map * MapManager::CreateMap(String mapName){
 	maps.Add(map);
 	return map;
 }
+/// o-o
+bool MapManager::DeleteMap(Map * map)
+{
+	maps.RemoveItem(map);
+	delete map;
+	return true;
+}
+
 
 /** Creates a map with specified name. Returns NULL upon failure.
 */
@@ -209,30 +218,19 @@ bool MapManager::MakeActive(Map * map)
 	/// Target map is already active one!
 	if (activeMap == map)
 		return true;
-
-//	std::cout<<"\nMapManager::MakeActive map: "<<(map ? map->name : "NULL");
-
 	/// Make last map inactive first?
 	if (this->activeMap)
 	{
-		activeMap->active = false;
-		activeMap->OnExit();
-		/// Unregister all entities
-		Graphics.QueueMessage(new GraphicsMessage(GM_UNREGISTER_ALL_ENTITIES));
-		Graphics.QueueMessage(new GMClear(GT_PARTICLE_SYSTEMS));
-		Physics.QueueMessage(new PhysicsMessage(PM_CLEAR_ALL_ENTITIES));
-		activeMap = NULL;
-		// Clear entities?
+		MakeInactive(activeMap);
 	}
-
-	/// Set this as the active map! :3
-	this->activeMap = map;
+	// Set new one as active.
+	activeMap = map;
 	// Now, if a null-map was queued, make it so!
 	if (map == NULL)
+	{
 		return false;
-	// Set new map as active.
-	map->active = true;
-
+	}
+	map->active = true; // Set new one as active.
 	Graphics.QueueMessage(new GMSetLighting(map->lighting));
 	/// Initial check again.
 	if (!map->Name().Length()){
@@ -240,12 +238,6 @@ bool MapManager::MakeActive(Map * map)
 		assert(false && "WARNING: NULL map set (no-name)");
 		return false;
 	}
-
-	/** Creates entities from the cEntity data, as these structures are the only ones guaranteed to remain upon
-		switching active map!
-	*/
-//	LoadFromCompactData(map);
-
 	/// Register the entities with relevant managers!
 	Entity * currentEntity;
 	for (int i = 0; i < map->entities.Size(); ++i){
@@ -256,11 +248,25 @@ bool MapManager::MakeActive(Map * map)
 		if (currentEntity->physics && !currentEntity->registeredForPhysics)
 			Physics.QueueMessage(new PMRegisterEntity(currentEntity));
 	}
-//	std::cout<<"\nMapManager::MakeActive map loaded, calling map's OnEnter: "<<map->name;
 	if (processOnEnter)
 		activeMap->OnEnter();
 	return true;
 }
+
+/// Makes target map inactive, unregistering it from both physics and graphics.
+bool MapManager::MakeInactive(Map * map)
+{
+	assert(map && map->active);
+	/// Target map is already active one!
+	if (activeMap == map)
+		activeMap = 0;
+	map->active = false;
+	map->OnExit();
+	QueueGraphics(new GMUnregisterEntities(map->entities));
+	QueuePhysics(new PMUnregisterEntities(map->entities));
+	return true;
+}
+
 
 /** "Selects" all entities whose name fulfills the requirements of the provided name by discarding the remaining entities.
 	Arguments can be any of the following formats: name, *name, name* or *name*
@@ -509,15 +515,33 @@ Entity * MapManager::CreateEntity(String name, Model * model, Texture * texture,
 	return entity;
 }
 
+/// Adds entity to the map. If the map is currently registered for rendering, it should be registered for rendering automatically. The same applies for physics.
+bool MapManager::AddEntity(Entity * entity, Map * toMap)
+{
+	assert(toMap);
+	bool ok = toMap->AddEntity(entity);
+	if (ok)
+	{
+		entity->map = toMap;
+		if (toMap->registeredForRendering)
+			QueueGraphics(new GMRegisterEntity(entity));
+		if (toMap->registeredForPhysics)
+			QueuePhysics(new PMRegisterEntity(entity));
+	}
+	entity->map = toMap;
+	return ok;
+}
+
 /// Adds target entity to the map, registering it for physics and graphicsState->
 bool MapManager::AddEntity(Entity * entity, bool registerForGraphics, bool registerForPhysics)
 {
 	if (!activeMap)
 	{
 		// Create it then..?
-		activeMap = CreateMap("DefaultMap");
-		MakeActive(activeMap);
+		Map * map = CreateMap("DefaultMap");
+		MakeActive(map);
 	}
+	entity->map = activeMap;
 	bool addResult = activeMap->AddEntity(entity);
 	if (addResult == false){
 		EntityMan.DeleteEntity(entity);
@@ -547,6 +571,16 @@ bool MapManager::AddEntities(List<Entity *> entities, bool registerForGraphics, 
 	{
 		AddEntity(entities[i], registerForGraphics, registerForPhysics);
 	}
+	return true;
+}
+
+/// Removes from its map.
+bool MapManager::RemoveEntity(Entity * entity)
+{
+	assert(entity->map);
+	/// Unregister from physics and graphics too perhaps? OR done inside function?
+	entity->map->RemoveEntity(entity);
+	entity->map = 0;
 	return true;
 }
 
@@ -636,7 +670,7 @@ bool MapManager::DeleteEntity(Entity * entity)
 		QueuePhysics(new PMUnregisterEntity(entity, true));
 	}
 	// Remove entity from the map too...!
-	activeMap->RemoveEntity(entity);
+	entity->map->RemoveEntity(entity);
 	EntityMan.MarkEntitiesForDeletion(entity);
 	return true;
 }
