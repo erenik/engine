@@ -27,6 +27,8 @@ public:
 	String action;
 	UIInput * input;
 	bool rememberPreviousInputs; // Default true.
+	/// If true, input is disabled from the gui. Default false.
+	bool guiInputDisabled; 
 private:
 	/// For when cycling old inputs.
 	int index;

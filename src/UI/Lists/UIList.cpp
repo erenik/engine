@@ -124,8 +124,11 @@ bool UIList::AddChild(UIElement* child)
 	UIElement::AddChild(child);
 	child->alignmentY = bottom - child->sizeRatioY * 0.5f - padding;
 
+	/// Update bottom after this addition.
+	bottom -= child->sizeRatioY;
+
 	// Update total contents size.
-	contentsSize = 1 - child->alignmentY + child->sizeRatioY * 0.5f;
+	contentsSize = 1 - bottom;
 
 	/// Check if we should add scroll-bars to zis list!
 	bool needScrollBarY = child->alignmentY - child->sizeRatioY * 0.5f < 0;
@@ -136,7 +139,7 @@ bool UIList::AddChild(UIElement* child)
 		CreateScrollBarIfNeeded();
 		/// Update scroll-bar.
 		UIElement * lastChild = contentChildren.Last();
-		scrollBarY->Update(1.0f - lastChild->alignmentY + lastChild->sizeRatioY);
+		scrollBarY->Update(1.0f - bottom);
    //     scroll->text = "Neeeeej";
         FormatElements();
 	//	assert(false && "Implement automatic scrollbars for your lists, yo!");
@@ -266,6 +269,8 @@ UIElement * UIList::GetElement(int mouseX, int mouseY){
 /// Scroll ze listur!
 bool UIList::OnScroll(float delta)
 {
+	if (children.Size() == 0)
+		return false;
 	float moved = 0;
 	bool thisOrParentMoved = false;
     /// Move the slider and adjust content.

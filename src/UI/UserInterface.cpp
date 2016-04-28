@@ -1225,6 +1225,15 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 				ii->guiInputDisabled = true;
 				ii->CreateChildren();				
 			}
+			else if (token == "StringLabel") // Creates an String-display which is not interactable via GUI, just for display.
+			{
+				ADD_PREVIOUS_TO_UI_IF_NEEDED
+				UIStringInput * si = new UIStringInput(firstQuote, "");
+				element = si;
+				SET_DEFAULTS;
+				si->guiInputDisabled = true;
+				si->CreateChildren();
+			}
 			else if (token == "FloatInput"){
 				ADD_PREVIOUS_TO_UI_IF_NEEDED
 				UIFloatInput * fi = new UIFloatInput(firstQuote, "Set"+firstQuote);

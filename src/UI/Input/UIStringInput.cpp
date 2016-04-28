@@ -22,6 +22,7 @@ UIStringInput::UIStringInput(String name, String onTrigger)
 	label = NULL;
 	labelText = name;
 	rememberPreviousInputs = true;
+	guiInputDisabled = false;
 	index = 0;
 }
 UIStringInput::~UIStringInput()
@@ -131,6 +132,11 @@ void UIStringInput::CreateChildren()
 	input->sizeRatioX = 1.0f - divider.x;
 	input->onTrigger = "UIStringInput("+name+")";
 	input->rememberPreviousInputs = true;
+	if (guiInputDisabled)
+	{
+		input->activateable = false;
+		input->highlightOnHover = false;
+	}
 	box->AddChild(input);
 	childrenCreated = true;
 }
