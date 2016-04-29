@@ -38,6 +38,11 @@ UIIntegerInput::~UIIntegerInput()
 */
 bool UIIntegerInput::OnScroll(float delta)
 {
+	if (guiInputDisabled)
+	{
+		/// Go to parent as usual.
+		return UIElement::OnScroll(delta);
+	}
 	// Adjust if the input piece is being hovered over.
 	if (input->state & UIState::HOVER)
 	{
