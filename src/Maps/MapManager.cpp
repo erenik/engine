@@ -233,10 +233,9 @@ bool MapManager::MakeActive(Map * map)
 	map->active = true; // Set new one as active.
 	Graphics.QueueMessage(new GMSetLighting(map->lighting));
 	/// Initial check again.
-	if (!map->Name().Length()){
-		std::cout<<"\nWARNING: Null map set!";
-		assert(false && "WARNING: NULL map set (no-name)");
-		return false;
+	if (!map->Name().Length())
+	{
+		LogMain("WARNING: Null map set!", WARNING);
 	}
 	/// Register the entities with relevant managers!
 	Entity * currentEntity;

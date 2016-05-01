@@ -319,7 +319,7 @@ void Mesh::PrintContents()
 /// Replaces copy-constructor.
 bool Mesh::LoadDataFrom(const Mesh * otherMesh, bool nullify /*= false*/)
 {
-   // std::cout<<"\nLoadDataFrom mesh constructor begun...";
+	// std::cout<<"\nLoadDataFrom mesh constructor begun...";
 	if (!aabb)
 		aabb = new AABB();
 	assert(otherMesh->aabb);

@@ -5,6 +5,15 @@
 #include "EFace.h"
 #include "EVertex.h"
 
+EFace::EFace(){}
+EFace::EFace(EVertex * one, EVertex * two, EVertex * three)
+{
+	AddVertex(one);
+	AddVertex(two);
+	AddVertex(three);
+}
+
+
 /// Adds target vertex to this face, establishing the binding both within the face and within the vertex.
 void EFace::AddVertex(EVertex* vertex)
 {

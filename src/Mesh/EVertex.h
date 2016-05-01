@@ -16,6 +16,7 @@ class EVertex : public Vector3f
 {
 public:
 	EVertex();
+	EVertex(ConstVec3fr vec);
 	const EVertex & operator = (const Vector3f & assign);
 	/// o-o
 //	Vector3f position;

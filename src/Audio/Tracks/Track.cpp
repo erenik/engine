@@ -6,6 +6,8 @@
 #include "Audio/Audio.h"
 #include "Audio/AudioManager.h"
 
+class SRTrack * track = 0;
+
 Track::Track()
 {
 	audio = NULL;
@@ -28,6 +30,7 @@ void Track::Play()
 	}
 #endif
 }
+
 
 bool Track::IsPlaying()
 {

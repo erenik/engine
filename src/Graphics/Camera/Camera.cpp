@@ -81,8 +81,9 @@ void CameraManager::Process()
 		if (camera->inactive)
 			continue;
 		bool moved = camera->ProcessMovement(timeInSeconds);
-		if (camera->entityToTrack || camera->lastUpdate < camera->lastChange)
-			camera->Update();
+		// Really not worth it to not update camera all the time, just hassle.
+		camera->Update();
+//		if (camera->entityToTrack || camera->lastUpdate < camera->lastChange)
 //		std::cout<<"\nLast update: "<<camera->lastUpdate.intervals;
 	}
 }
@@ -194,8 +195,8 @@ bool CameraManager::DeleteCamera(Camera * camera)
 	return true;
 }
 
-float Camera::defaultRotationSpeed = 0.09f;
-float Camera::defaultVelocity = 1.0f;
+float Camera::defaultRotationSpeed = 0.9f; // Radians per second, yo.
+float Camera::defaultVelocity = 5.0f;
 bool Camera::defaultInheritEntityRotation = true;
 
 Camera::Camera()
@@ -213,13 +214,12 @@ void Camera::Nullify()
 {
 	matrixUpdateType = DEFAULT_EDITOR_MATRICES;
 	inactive = false;
-	smoothing = 0;
 	lastUpdate = lastChange = Time::Now();
 	ratioFixed = false;
 	// Tracking vars
 	smoothness = 0.2f;
+	rotationalSmoothness = 0.01f;
 	scaleOffsetWithDistanceToCenterOfMovement = 0.1f;
-	rotationalSmoothness = 0.7f;
 	minTrackingDistance = 1.5f;
 	maxTrackingDistance = 4.5f;
 	trackingDistanceMultiplier = 1.f; // Multiplied on all.
@@ -237,7 +237,7 @@ void Camera::Nullify()
 	position = Vector3f(-10, 10, 20);
 	rotationEuler = rotation = Vector3f(PI*0.25f, PI*0.125f, 0);
 	flySpeed = 1.0f;
-	rotationSpeed = 0.1f;
+	rotationSpeed = 1.0f;
 	memset(navigationControls, 0, sizeof(bool)*6);
 	memset(orientationControls, 0, sizeof(bool)*6);
 	/// Ratio of the display device/context. Both should be at least 1.0, with the other scaling up as needed.
@@ -365,7 +365,7 @@ void Camera::UpdateViewMatrix(bool track /* = true*/, float timeInSeconds /* = 0
 		case DEFAULT_EDITOR_MATRICES:
 		{
 			/// Smooth out position and rotations no matter what.
-			float smoothingRatio = pow(smoothing, timeInSeconds);
+			float smoothingRatio = pow(smoothness, timeInSeconds);
 			/// Rotational smoothing
 			float rotationalSmoothingRatio = pow(this->rotationalSmoothness, timeInSeconds);
 			float sRotSmoothRatio = 1 - rotationalSmoothingRatio;
@@ -441,6 +441,8 @@ void Camera::OnGainCameraFocus()
 {
 	if (entityToTrack)
 		entityToTrack->cameraFocus = this;
+	// Update it!
+	Update(AETime::Now(), true);
 }
 
 
@@ -821,9 +823,9 @@ void Camera::UpdateNavigation()
 	else
 		this->velocity[1] = 0;
 	if (navigationControls[Direction::FORWARD] && !navigationControls[Direction::BACKWARD])
-		this->velocity[2] = this->defaultVelocity * this->flySpeed;
-	else if (navigationControls[Direction::BACKWARD] && !navigationControls[Direction::FORWARD])
 		this->velocity[2] = -this->defaultVelocity * this->flySpeed;
+	else if (navigationControls[Direction::BACKWARD] && !navigationControls[Direction::FORWARD])
+		this->velocity[2] = this->defaultVelocity * this->flySpeed;
 	else
 		this->velocity[2] = 0;
 	if (navigationControls[Direction::LEFT] && !navigationControls[Direction::RIGHT])
@@ -846,6 +848,7 @@ void Camera::UpdateNavigation()
 		this->rotationVelocity[1] = -this->defaultRotationSpeed * this->rotationSpeed;
 	else
 		this->rotationVelocity[1] = 0;
+	this->rotationalVelocityEuler = this->rotationVelocity;
 };
 
 

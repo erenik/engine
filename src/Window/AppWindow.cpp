@@ -28,6 +28,9 @@
 
 #include "Message/MessageManager.h"
 
+/// If true, UI may be created automatically when pushing UI elements to a window currently lacking UI. Default true.
+bool AppWindow::createUIAutomatically = true;
+
 /// List of active monitors.
 List<Monitor> monitors;
 
@@ -699,6 +702,11 @@ void AppWindow::SetBackgroundColor(const Vector4f & color, bool applyToViewports
 UserInterface * AppWindow::GetUI()
 {
 //	assert(ui && "Should have been created at start");
+	if (AppWindow::createUIAutomatically && !ui)
+	{
+		ui = new UserInterface();
+		ui->CreateRoot();
+	}
 	return ui;
 }
 

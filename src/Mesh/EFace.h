@@ -12,7 +12,8 @@ class EVertex;
 class EFace 
 {
 public:
-
+	EFace();
+	EFace(EVertex * one, EVertex * two, EVertex * three);
 	/// Adds target vertex to this face, establishing the binding both within the face and within the vertex.
 	void AddVertex(EVertex* vertex);
 	// If < 3 vertices, is ignored. Uses 3 first vertices to calculate normal

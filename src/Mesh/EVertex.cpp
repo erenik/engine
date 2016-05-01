@@ -9,6 +9,13 @@ EVertex::EVertex()
 	uvCoord = NULL;
 }
 
+EVertex::EVertex(ConstVec3fr vec)
+{
+	x = vec.x;
+	y = vec.y;
+	z = vec.z;
+}
+
 const EVertex & EVertex::operator = (const Vector3f & assign)
 {
 	x = assign.x;

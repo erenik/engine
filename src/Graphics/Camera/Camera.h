@@ -138,7 +138,7 @@ public:
 	float rotationSpeed;
 	/// For when doing adjustments after all regular matrix operations?
 	float elevation;
-	float smoothness;
+//	float smoothness;
 	
 	// Default CAMERA_MOVEMENT_RELATIVE, see enum above.
 	int movementType;
@@ -290,7 +290,7 @@ public:
 	/// Rotational smoothing. Separate from normal smoothing (position).
 	float rotationalSmoothness;
 	/// Smoothing of position.
-	float smoothing;
+	float smoothness;
 
 private:
 	/// Set once "dead".

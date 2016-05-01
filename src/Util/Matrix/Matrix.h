@@ -76,7 +76,8 @@ public:
 
 	/// Query before using set/gets
 	bool ValidPosition(Vector2i position);
-	T At(int x, int y = 0, int z = 0);
+	T At(int x, int y);
+	T At(int x, int y, int z);
 	T At(Vector3i pos);
 	T GetItem(Vector2i atPosition);
 	void Set(Vector3i pos, T toT);
@@ -315,10 +316,20 @@ bool Matrix<T>::ValidPosition(Vector2i position)
 }
 
 template <class T>
+T Matrix<T>::At(int x, int y)
+{
+	if (x < 0 || x >= size.x ||
+		y < 0 || y >= size.y)
+		return NULL;
+	int index = y * size[0] + x;
+	return arr[index];
+}
+
+template <class T>
 T Matrix<T>::At(int x, int y, int z)
 {
 	if (z < 0 || z >= size.z ||
-		x < 0 || z >= size.x ||
+		x < 0 || x >= size.x ||
 		y < 0 || y >= size.y)
 		return NULL;
 	int index = z * size[0] * size[1] + y * size[0] + x;

@@ -124,7 +124,7 @@ void GMSetCamera::Process()
 	switch(target)
 	{
 		case CT_SMOOTHING:
-			camera->smoothing = fValue;
+			camera->smoothness = fValue;
 			break;
 		case CT_TRACKING_MODE:
 		{

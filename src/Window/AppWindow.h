@@ -240,6 +240,9 @@ public:
 	*/
 	bool hideOnEsc;
 	bool swapBuffers;
+
+	/// If true, UI may be created automatically when pushing UI elements to a window currently lacking UI. Default true.
+	static bool createUIAutomatically;
 private:
 
 

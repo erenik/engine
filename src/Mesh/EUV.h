@@ -15,6 +15,7 @@ class EUV : public Vector2f
 {
 public:
 	EUV();
+	EUV(float x, float y);
 
 
 	/// If the UV coord is associated with only 1 vertex, then save it here.

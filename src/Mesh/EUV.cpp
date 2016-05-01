@@ -8,3 +8,11 @@ EUV::EUV()
 {
 	vertex = NULL;
 }
+
+EUV::EUV(float ix, float iy)
+{
+	vertex = 0;
+	x = ix;
+	y = iy;
+}
+
