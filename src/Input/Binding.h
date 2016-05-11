@@ -45,8 +45,10 @@ struct Binding
 	String name;		// Name of the binding input-combination
 	/// Identifier for the action to perform once the required combination is met. If -1, use stringAction instead!
 //	int action;
-
-	/// If true, no other binding may be triggered at the same time, even if it contains similar key-strokes. Default false.
+	
+	/// If true, will only trigger when no entity is focused in camera.
+	static bool requireNoCameraFocusEntity;
+	/// If true, no other binding may be triggered at the same time, even if it contains similar key-strokes. Default false, enabling multiple messages to be generated from one key-stroke.
 	bool exclusive;
 	/** Trigger action. To replace stringAction, stringStopAction, activateOnRepeat, etc. See Action.h for details.
 		If non-NULL, will override all said variables used below to hopefully clean-up code used elsewhere.

@@ -390,7 +390,7 @@ void PhysicsManager::AttachPhysicsTo(Entity * entity){
 	entity->physics->shapeType = ShapeType::SPHERE;
 	assert(entity->physics->shape == NULL);
 	entity->physics->shape = new Sphere();
-	((Sphere*)entity->physics->shape)->radius = entity->radius;
+	((Sphere*)entity->physics->shape)->radius = entity->Radius();
 }
 
 
@@ -449,7 +449,7 @@ void PhysicsManager::SetPhysicsShape(List<Entity*> targetEntities, int type)
 		switch(type){
 		case ShapeType::SPHERE:
 			entity->physics->shape = new Sphere();
-			((Sphere*)entity->physics->shape)->radius = entity->radius;
+			((Sphere*)entity->physics->shape)->radius = entity->Radius();
 			break;
 		case ShapeType::PLANE:
 			entity->physics->shape = new Plane();
@@ -540,43 +540,7 @@ PhysicsMesh * PhysicsManager::LoadPhysicsMesh(Mesh * byMeshSource)
 {
 	assert(byMeshSource);
 	PhysicsMesh * mesh = new PhysicsMesh();
-	mesh->meshCounterpart = byMeshSource;
-	for (int i = 0; i < byMeshSource->numFaces; ++i)
-	{
-		// Just copy shit from it
-		MeshFace * faces = &byMeshSource->faces[i];
-		assert((faces->numVertices <= 4 || faces->numVertices >= 3) && "Bad vertices count in faces");
-
-		int vi0 = faces->vertices[0],
-			vi1 = faces->vertices[1],
-			vi2 = faces->vertices[2];
-
-		assert(vi0 < byMeshSource->vertices.Size() && 
-			vi0 >= 0);
-
-		Vector3f p1 = byMeshSource->vertices[vi0],
-			p2 = byMeshSource->vertices[vi1],
-			p3 = byMeshSource->vertices[vi2];
-
-		if (faces->numVertices == 4){
-			Vector3f p4 = byMeshSource->vertices[faces->vertices[3]];
-			Quad * quad = new Quad();
-			quad->Set4Points(p1, p2, p3, p4);
-			mesh->quads.Add(quad);
-		}
-		else if (faces->numVertices == 3){
-			Triangle * tri = new Triangle();
-			tri->Set3Points(p1, p2, p3);
-			mesh->triangles.Add(tri);
-		}
-	}
-	if (mesh->quads.Size() == 0 && mesh->triangles.Size() == 0)
-		assert(false && "Unable to load physicsmesh from mesh source!");
-	std::cout<<"\nCreated physics mesh for \""<<byMeshSource->source<<"\": ";
-	if (mesh->triangles.Size())
-		std::cout<<"\n- "<<mesh->triangles.Size()<<" triangles";
-	if (mesh->quads.Size())
-		std::cout<<"\n- "<<mesh->quads.Size()<<" quads";
+	mesh->LoadFrom(byMeshSource);
 	physicsMeshes.Add(mesh);
 	return mesh;
 }
@@ -588,14 +552,33 @@ PhysicsMesh * PhysicsManager::GetPhysicsMesh(String bySourceFile){
 	}
 	return NULL;
 }
-PhysicsMesh * PhysicsManager::GetPhysicsMesh(const Mesh * byMeshSource){
-	for (int i = 0; i < physicsMeshes.Size(); ++i){
-		if (physicsMeshes[i]->meshCounterpart == byMeshSource)
+
+PhysicsMesh * PhysicsManager::GetPhysicsMesh(const Mesh * byMeshSource)
+{
+	for (int i = 0; i < physicsMeshes.Size(); ++i)
+	{
+		if (physicsMeshes[i]->source == byMeshSource->source)
 			return physicsMeshes[i];
 	}
 	return NULL;
 }
 
+// Called server-side.
+void PhysicsManager::RecalculatePhysicsMesh(Mesh * mesh)
+{
+	int recalcs = 0;
+	for (int i = 0; i < physicsMeshes.Size(); ++i)
+	{
+		PhysicsMesh * pm = physicsMeshes[i];
+		if (pm->source == mesh->source)
+		{
+			// Recalc
+			pm->LoadFrom(mesh);
+			++recalcs;
+			assert(recalcs <= 1 && "if more than one");
+		}
+	}
+}
 
 /*
 private:
@@ -622,12 +605,8 @@ void PhysicsManager::RecalculatePhysicsProperties(){
 	for (int i = 0; i < physicalEntities.Size(); ++i){
 		Entity * entity = physicalEntities[i];
 		PhysicsProperty * physics = entity->physics;
-		/// The physical position is defined as the centre of the object, physically.
-	//	physics->physicalPosition = entity->position;
-	//	physics->physicalPosition += entity->model->centerOfModel.ElementMultiplication(entity->scale);
 		// Recalculate radius
-		if (physics->recalculatePhysicalRadius)
-			physics->physicalRadius = entity->model->radius * entity->scale.MaxPart();
+		entity->RecalculateRadius();
 		entity->aabb->Recalculate(entity);
 	}
 }

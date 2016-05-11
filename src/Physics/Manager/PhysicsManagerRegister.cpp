@@ -31,9 +31,10 @@ int PhysicsManager::RegisterEntity(Entity * newEntity)
     }
 
 	/// Create AABB.. unless model is missing.
-	if (newEntity->model && !newEntity->aabb)
+	if (newEntity->model)
 	{
-		newEntity->aabb = new AABB();
+		if (newEntity->aabb == 0)
+			newEntity->aabb = new AABB();
 		newEntity->aabb->Recalculate(newEntity);
 	}
 	/// Assertion not valid anymore as some entities are not interested in collissions..!

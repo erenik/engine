@@ -64,9 +64,6 @@ void FirstPersonIntegrator::IntegrateVelocity(List<Entity*> & entities, float ti
 	__m128 defaultSSE = _mm_load1_ps(&zero);
 #endif
 
-    /// Apply homogenized damping.
-    float damp = pow(0.9f, timeInSeconds);
-
 	for (int i = 0; i < entities.Size(); ++i)
 	{
 		Entity * forEntity = entities[i];
@@ -94,7 +91,6 @@ void FirstPersonIntegrator::IntegrateVelocity(List<Entity*> & entities, float ti
 			if (pp->relativeAcceleration.x || pp->relativeAcceleration.y || pp->relativeAcceleration.z)
 			{
 				Vector3f relAcc = pp->relativeAcceleration;
-				relAcc.z *= -1;
 				Vector3f worldAcceleration = forEntity->rotationMatrix.Product(relAcc);
 				totalAcceleration.data = _mm_add_ps(totalAcceleration.data, worldAcceleration.data);
 				assert(totalAcceleration.x == totalAcceleration.x);
@@ -126,6 +122,7 @@ void FirstPersonIntegrator::IntegrateVelocity(List<Entity*> & entities, float ti
 #ifdef USE_SSE
 		pp->velocity.data = _mm_add_ps(pp->velocity.data, _mm_mul_ps(totalAcceleration.data, timeSSE.data));
 		// Apply linear damping
+		float damp = pow(pp->linearDamping, timeInSeconds);
 		sse = _mm_load1_ps(&damp);
 		pp->currentVelocity.data = pp->velocity.data = _mm_mul_ps(pp->velocity.data, sse);
 		/// Player induced / controlled constant velocity in relative direction?
@@ -161,8 +158,62 @@ void FirstPersonIntegrator::IntegrateVelocity(List<Entity*> & entities, float ti
 		if (pp->currentVelocity.MaxPart())
 			pp->state &= ~CollisionState::IN_REST;
 #endif
-
 		assert(pp->velocity.x == pp->velocity.x);
+
+
+		/// Rotation
+
+		// Rotation, non-SSE
+		if (pp->angularAcceleration.MaxPart())
+		{
+			/// Gimbal-style (features gimbal-lock!)
+
+			/// Quaternion-style.
+			if (pp->useQuaternions)
+			{
+				Vector3f accToApply = pp->angularAcceleration * timeInSeconds;
+
+				// Add rotational velocity around local forward, up and right vectors.
+				Vector3f rightVec = forEntity->RightVec();
+				Vector3f upVec = forEntity->UpVec();
+				Vector3f lookAt = forEntity->LookAt();
+				Quaternion pitch(forEntity->RightVec(), accToApply.x);
+				Quaternion yaw(forEntity->UpVec(), accToApply.y);
+				Quaternion roll(forEntity->LookAt(), accToApply.z);
+
+				/// Global ang velocity update.
+				pp->angularVelocity += pp->angularAcceleration * timeInSeconds;
+				/// Relative ang vel update.
+			}
+		}
+		// Apply damping
+		pp->angularVelocity *= pow(pp->angularDamping, timeInSeconds);
+	}
+}
+					/*
+				if (pitch.angle)
+				{
+					pp->angularVelocityQuaternion = pp->angularVelocityQuaternion * pitch;
+					pp->angularVelocityQuaternion.Normalize();
+				}
+				if (yaw.angle)
+				{
+					pp->angularVelocityQuaternion = pp->angularVelocityQuaternion * yaw;
+					pp->angularVelocityQuaternion.Normalize();
+				}
+				if (roll.angle)
+				{
+					pp->angularVelocityQuaternion = pp->angularVelocityQuaternion * roll;
+					pp->angularVelocityQuaternion.Normalize();
+				}
+//				forEntity->RecalculateMatrix();
+
+				// Fetch forward-vector again.
+				// Re-align the old velocity to the new forward vector!
+		//		Vector3f newForward = -forEntity->rotationMatrix.GetColumn(2);
+		//		std::cout<<"\nAngular velocity quaternion: "<<pp->angularVelocityQuaternion;
+			}
+		}
 	}
 }
 
@@ -185,41 +236,7 @@ void FirstPersonIntegrator::IntegrateVelocity(List<Entity*> & entities, float ti
 		pp->currentVelocity = pp->velocity + relVelWorldSpaced;
 		*/
 
-
 	/*
-		// Was in SSE section above earlier.
-		if (pp->angularAcceleration.MaxPart())
-		{
-			std::cout<<"\nDo the drone dance.";
-			// Add rotational velocity around local forward, up and right vectors.
-			Vector3f rightVec = forEntity->RightVec();
-			Vector3f upVec = forEntity->UpVec();
-			Vector3f lookAt = forEntity->LookAt();
-			Quaternion pitch(forEntity->RightVec(), pp->angularAcceleration.x);
-			Quaternion yaw(forEntity->UpVec(), pp->angularAcceleration.y);
-			Quaternion roll(forEntity->LookAt(), pp->angularAcceleration.z);
-
-			if (pitch.angle)
-			{
-				pp->angularVelocityQuaternion = pp->angularVelocityQuaternion * pitch;
-				pp->angularVelocityQuaternion.Normalize();
-			}
-			if (yaw.angle)
-			{
-				pp->angularVelocityQuaternion = pp->angularVelocityQuaternion * yaw;
-				pp->angularVelocityQuaternion.Normalize();
-			}
-			if (roll.angle)
-			{
-				pp->angularVelocityQuaternion = pp->angularVelocityQuaternion * roll;
-				pp->angularVelocityQuaternion.Normalize();
-			}
-			forEntity->RecalculateMatrix();
-
-			// Fetch forward-vector again.
-			// Re-align the old velocity to the new forward vector!
-	//		Vector3f newForward = -forEntity->rotationMatrix.GetColumn(2);
-			std::cout<<"\nAngular velocity quaternion: "<<pp->angularVelocityQuaternion;
 		*/
 
 void FirstPersonIntegrator::IntegratePosition(List<Entity*> & entities, float timeInSeconds)
@@ -263,20 +280,15 @@ void FirstPersonIntegrator::IntegratePosition(List<Entity*> & entities, float ti
 		//		forEntity->rotationMatrix = q.Matrix();
 			}
 		}
-		else if (pp->angularVelocityQuaternion.MaxPart())
+		else if (pp->angularVelocity.MaxPart())
 		{
-			// Rotate.
-			Quaternion rotation(pp->angularVelocityQuaternion);
-			// Multiple the amount to rotate with time.
-			rotation.angle *= timeInSeconds;
-			// Recalculate it so that it becomes a unit quaternion again.
-			rotation.RecalculateXYZW();
-			assert(rotation.x == rotation.x);
-			pp->orientation = pp->orientation * rotation;
-			assert(pp->orientation.x == pp->orientation.x);
-			//.. and don't forget to normalize it or it will die.
-			pp->orientation.Normalize();
-			assert(pp->orientation.x == pp->orientation.x);
+			/// WOIRK HGER MOARE LATARR@!
+			Quaternion & orientation = pp->orientation;
+			Quaternion rotate(pp->angularVelocity[0], pp->angularVelocity[1], pp->angularVelocity[2]);
+			Vector3f axis = pp->angularVelocity.NormalizedCopy();
+			Quaternion r2(axis, pp->angularVelocity.Length());
+			orientation = orientation * r2;
+			orientation.Normalize();
 			forEntity->hasRotated = true;
 		}
 		else if (pp->relativeRotationalVelocity.MaxPart())
@@ -319,5 +331,7 @@ void FirstPersonIntegrator::IntegratePosition(List<Entity*> & entities, float ti
 			if (debug == -27)
 				std::cout<<"\nVelcity "<<oldVel<<" -> "<<pp->velocity<<" dot: "<<dot;
 		}
+		if (forEntity->hasRotated)
+			forEntity->RecalculateMatrix();
 	}
 }

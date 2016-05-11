@@ -338,7 +338,7 @@ void VFCOctree::setInFrustum(bool inTrueOrOutFalse){
 /// Checks if the target Entity is inside this VFCOctree Entity, intersecting it or outside.
 int VFCOctree::IsEntityInside(Entity * entity){
 	// Make box test insteeeead
-	float radius = entity->radius * entity->scale.MaxPart();
+	float radius = entity->Radius() * entity->scale.MaxPart();
 	// Check if it's inside.
 	if (entity->position[0] + radius < right &&
 		entity->position[0] - radius > left &&

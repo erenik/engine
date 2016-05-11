@@ -223,9 +223,9 @@ Model * ModelManager::LoadObj(String source)
 		if (compressedLoadResult)
 		{
 //			std::cout<<"\nMesh loaded.";
-			if (mesh->radius <= 0)
+			if (mesh->radiusOrigo <= 0)
 				mesh->CalculateBounds();
-			assert(mesh->radius > 0);
+			assert(mesh->radiusOrigo > 0);
 	
 			// ... 
 			modelLoaded = true;
@@ -251,9 +251,7 @@ Model * ModelManager::LoadObj(String source)
 		modelLoaded = ObjReader::ReadObj(source.c_str(), mesh);
 		
 		mesh->CalculateBounds();
-		assert(mesh->radius > 0);
-	 //   mesh->PrintContents();
-
+		assert(mesh->radiusOrigo > 0);
 	}
 	// If model was loaded, create new model for it.
 	if (modelLoaded)
@@ -263,7 +261,6 @@ Model * ModelManager::LoadObj(String source)
 		
 		// Centering can be bad to configuring stuff yourself..!
 	//	mesh->Center();
-		model->radius = mesh->radius;
 		model->centerOfModel = mesh->centerOfMesh;
 		model->SetName(source);
 		model->source = source;
@@ -293,7 +290,6 @@ Model * ModelManager::LoadObj(String source)
 		}
 
 		modelList.Add(model);
-		assert(model->radius > 0);
 		return model;
 	}
 	else {
@@ -369,7 +365,6 @@ Model * ModelManager::LoadCollada(String source)
 	mesh->CalculateBounds();
 	// Centering can be bad to configuring stuff yourself..!
 	//	mesh->Center();
-	model->radius = mesh->radius;
 	model->centerOfModel = mesh->centerOfMesh;
 	model->SetName(source);
 	model->source = source;

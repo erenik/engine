@@ -60,9 +60,9 @@ void Camera::Follow()
 		/// Save old Y.
 		newPosition.y = position.y;
 		/// Adjust position to go to minimum if below it.
-		if (minimumDiff.y != 0 && toEntity.y > minimumDiff.y)
+		if (minimumDiff.y != 0 && toEntity.y > -minimumDiff.y)
 		{
-			newPosition.y += minimumDiff.y * 0.1f; // Doesn't have to be hard minimum cap.
+			newPosition.y += minimumDiff.y * 0.1f - newPosition.y * 0.01f; // Doesn't have to be hard minimum cap.
 		}
 		float maxDiff = 10.f;
 		if (toEntity.y < -maxDiff)

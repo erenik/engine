@@ -68,7 +68,7 @@ Entities Entities::CullByCamera(Camera * camera) const
 	{
 		if (arr[i] == NULL)
 			continue;
-		if (camera->GetFrustum().SphereInFrustum(arr[i]->worldPosition, arr[i]->radius))
+		if (camera->GetFrustum().SphereInFrustum(arr[i]->worldPosition, arr[i]->Radius()))
 			culled.Add(arr[i]);
 		++found;
 		if (found >= currentItems)

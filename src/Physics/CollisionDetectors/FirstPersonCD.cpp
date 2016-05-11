@@ -17,17 +17,20 @@ int FirstPersonCD::DetectCollisions(List<EntityPair> & pairs, List<Collision> & 
 		// do detailed collision detection?
 		Collision data;
 		List<Collision> collisionsFound;
-		bool colliding = TestCollision(pair.one, pair.two, collisionsFound);
-		if (!colliding)
-			continue;
-	
 		// o.o
 		Entity * dynamic = NULL, * dynamic2 = NULL;
 		if (pair.one->physics->type == PhysicsType::DYNAMIC)
 			dynamic = pair.one;
 		if (pair.two->physics->type == PhysicsType::DYNAMIC)
 			dynamic2 = pair.two;
-//		std::cout<<"\nTwo dynamics, woooo: "<<pair.one->name<<" & "<<pair.two->name;
+		if (dynamic == 0 && dynamic2 == 0)
+			continue;
+
+		bool colliding = TestCollision(pair.one, pair.two, collisionsFound);
+		if (!colliding)
+			continue;
+	
+//		std::cout<<"\nCollision, woooo: "<<pair.one->name<<" & "<<pair.two->name;
 
 		collisions.Add(collisionsFound);
 	}

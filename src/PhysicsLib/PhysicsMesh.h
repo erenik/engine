@@ -7,6 +7,7 @@
 #include "MathLib.h"
 #include <Util.h>
 #include "PhysicsLib/Intersection.h"
+#include "PhysicsLib/Shapes/AABB.h"
 
 class Ray;
 class Triangle;
@@ -22,6 +23,9 @@ public:
 	/// Construct-Destruct
 	PhysicsMesh();
 	~PhysicsMesh();
+	/// Loads
+	bool LoadFrom(Mesh * mesh);
+
 	/// Performs a raycast considering target ray and the transform of this physics mesh.
 	List<Intersection> Raycast(Ray & ray, Matrix4f & transform);
 	/// Generates a collission shape octree that can be used in the local-coordinate system or multiplied by matrices to be used globally.
@@ -30,9 +34,13 @@ public:
 	List<Triangle*> triangles;
 	List<Quad*> quads;
 	List<Ngon*> ngons;
-	/// For referenceŜ
+	/// Name, if based on mesh, same name as mesh.
+	String name;
+	/// Source name of source mesh.
 	String source;
-	const Mesh * meshCounterpart;
+	/// Inherited from source mesh (or generated).
+	AABB aabb;
+//	const Mesh * meshCounterpart;
 	/// Structure used for optimizing collission detection
 	CollisionShapeOctree * collisionShapeOctree;
 };

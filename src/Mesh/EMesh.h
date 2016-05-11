@@ -30,6 +30,7 @@ private:
 public:
 	/// Default constructor
 	EMesh();
+	EMesh(String name);
 	/// Destructor
 	virtual ~EMesh();
 

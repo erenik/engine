@@ -22,6 +22,8 @@
 #include "Graphics/Messages/GraphicsMessages.h"
 #include "Graphics/FrameStatistics.h"
 
+#include "Graphics/Camera/Camera.h"
+
 #include "Window/AppWindow.h"
 #include "Window/AppWindowManager.h"
 #include "Viewport.h"
@@ -154,6 +156,12 @@ void Action::TriggerStart()
 			OSUtil::Paste();
 			break;
 
+		case CYCLE_ACTIVE_CAMERA:
+		{
+			Camera * c = CameraMan.NextCamera();
+			std::cout<<"\nActive camera: "<<c->name;
+			break;
+		}
 			// Pasted shit from /Input/Bindings/General.cpp
 		case CYCLE_RENDER_PIPELINE:
 		{

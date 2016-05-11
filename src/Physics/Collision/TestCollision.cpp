@@ -117,22 +117,20 @@ bool TestCollision(Entity * one, Entity * two, List<Collision> & collissionList)
 		// If it's got an optimized octree, use it instead, yo.
 		if (meshEntity->physics->usesCollisionShapeOctree && USE_COLLISSION_SHAPE_OCTREE)
 		{
-		//	std::cout<<"\nUsing collission shape octree to optimized collission detection.";
 			PhysicsMesh * physicsMesh = meshEntity->physics->physicsMesh;
 			List<Collision> physicsMeshCollisions;
 			int tests = physicsMesh->collisionShapeOctree->FindCollisions(sphereEntity, physicsMeshCollisions, meshEntity->transformationMatrix);
-		//	std::cout<<"\nPhysicsMeshCollisions: "<<physicsMeshCollisions.Size();
-		//	std::cout<<"\nPhysicsMeshChecks: "<<tests<<" out of "<<physicsMesh->triangles.Size()<<" triangles tested";
 			PhysicsMan.physicsMeshCollisionChecks += tests;
 			for (int i = 0; i < physicsMeshCollisions.Size(); ++i){
 				Collision col = physicsMeshCollisions[i];
 				col.one = one;
 				col.two = two;
+				shouldCollide = true;
 				collissionList.Add(col);
 			}
 		}
+		// All tris vs. sphere.
 		else if (MeshSphereCollision(meshEntity, sphereEntity, data)){
-		//	std::cout<<"\nRegular MeshSphere every-tri-vs-sphere collission detection.";
 			shouldCollide = true;
 			/// Swap them to get normal right.
 			/// Flip collision normal if needed, always point from one to two.

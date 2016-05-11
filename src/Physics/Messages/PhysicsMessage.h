@@ -21,6 +21,7 @@ enum physicsMessages {
 	PM_NULL,
 	PM_PAUSE_SIMULATION,
 	PM_RESUME_SIMULATION,
+	PM_RECALC_PHYS_MESH,
 	PM_RAYCAST,
 	PM_RECALCULATE_PHYSICS_PROPERTIES, // Recalculates physics properties for ALL registered entities.
 	PM_SET_GRAVITY,			// Sets gravity vector
@@ -174,6 +175,18 @@ public:
 protected:
 	/// Type of message, if relevant
 	int type;
+};
+
+class Mesh;
+
+/// For calculating a physics mesh out of the given mesh.
+class PMRecalculatePhysicsMesh : public PhysicsMessage 
+{
+public:
+	PMRecalculatePhysicsMesh(Mesh * forMesh);
+	virtual void Process();
+private:
+	Mesh * mesh;
 };
 
 class PMCreateSpring : public PhysicsMessage {

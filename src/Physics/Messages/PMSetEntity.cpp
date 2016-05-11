@@ -51,6 +51,7 @@ PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, float value)
 		case PT_POSITION_Y:
 		case PT_POSITION_X:
 		case PT_ROTATION_YAW:
+		case PT_ANGULAR_DAMPING:
 			break;
 		default:
 			assert("Mismatched target and value in PMSetEntity!");
@@ -380,14 +381,7 @@ void PMSetEntity::Process()
 				break;
 			case PT_ANGULAR_VELOCITY:
 				ASSERT_ENTITY_NOT_STATIC;
-				if (pp->useQuaternions)
-				{
-					assert(qValue.x == qValue.x);
-					pp->angularVelocityQuaternion = this->qValue;
-					assert(pp->angularVelocityQuaternion.x == pp->angularVelocityQuaternion.x);
-				}
-				else
-					entity->physics->angularVelocity = vec3fValue;
+				entity->physics->angularVelocity = vec3fValue; // ang vel pretty much only used for quaternions, but could be used for non-Quats too.
 				break;
 			case PT_CONSTANT_ROTATION_VELOCITY:
 				ASSERT_ENTITY_NOT_STATIC;
@@ -534,6 +528,9 @@ void PMSetEntity::Process()
 			case PT_RELATIVE_ROTATIONAL_VELOCITY: // earlier PT_RELATIVE_ROTATION
 				ASSERT_ENTITY_NOT_STATIC;
 				entity->physics->relativeRotationalVelocity = vec3fValue;
+				break;
+			case PT_ANGULAR_DAMPING:
+				entity->physics->angularDamping = fValue;
 				break;
 			case PT_FRICTION:
 				entity->physics->friction = fValue;

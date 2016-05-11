@@ -59,7 +59,7 @@ void AABB::Recalculate(Entity * entity)
 	{
 		case PhysicsShape::SPHERE:
 		{
-			Vector3f radiusVec = Vector3f(1,1,1) * entity->radius;
+			Vector3f radiusVec = Vector3f(1,1,1) * entity->Radius();
 			this->position = entityWorldPosition;
 			this->min = position - radiusVec;
 			this->max = position + radiusVec;

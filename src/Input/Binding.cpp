@@ -7,6 +7,7 @@
 #include "Action.h"
 
 int Binding::defaultInputDevice = InputDevice::KEYBOARD_1;
+bool Binding::requireNoCameraFocusEntity = false;
 
 Binding::Binding()
 {

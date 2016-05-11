@@ -67,7 +67,11 @@ bool Map::AddEvent(Script * event){
 bool Map::RemoveEntity(Entity * entity)
 {
 	entities.Remove(entity);
-	// Already removed via map manager.
+	if (active)
+	{
+		PhysicsMan.QueueMessage(new PMUnregisterEntity(entity));
+		GraphicsMan.QueueMessage(new GMUnregisterEntity(entity));
+	}
 	return true;
 }
 
@@ -159,7 +163,7 @@ void Map::RemoveAllEvents(){
 */
 
 // Process called each game loop by the stateManager
-void Map::Process(float timePassed)
+void Map::Process(int timePassedInMs)
 {
 	for (int i = 0; i < entities.Size(); ++i)
 	{
@@ -168,7 +172,7 @@ void Map::Process(float timePassed)
 			continue;
 		for (int j = 0; j < entity->properties.Size(); ++j)
 		{
-			entity->properties[j]->Process(timePassed);
+			entity->properties[j]->Process(timePassedInMs);
 		}
 	}
 }

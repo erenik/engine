@@ -7,6 +7,8 @@
 #include "Matrix4f.h"
 class Vector3f;
 
+#define ConstQuatRef const Quaternion &
+
 /** Could have been based off of the Vector4f class, but to avoid confusion we will have a separate class entirely for the quaternions!
     Require a length of 1 to represent an orientation.
 */
@@ -26,8 +28,16 @@ public:
 
     /// Extract a matrix from this quaternion.
     Matrix4f Matrix() const;
-    /// Normalize to length/magnitude 1.
+    /// Normalize to length/magnitude 1. <- useful how?
     void Normalize();
+
+	/// Returns quaternion rotation between this and q2 according to ratio. 0.0 is at this, 1.0 is at q2, 0.5 in the middle.
+	Quaternion SlerpTo(ConstQuatRef q2, float ratio);
+
+	/// Based on Qxyzw, calculates axis around which this quaternion is turning.
+	Vector3f GetAxis();
+	/// Based on Qzyzw, calculates angle around the axis which this quaternion is turning.
+	float GetAngle();
 
 	// Unary operator overloading
 	Quaternion operator - () const;
@@ -39,7 +49,8 @@ public:
     Quaternion operator * (const Quaternion &f) const;
 
     /// Multiplication with floats
-	friend Quaternion operator * (const float multiplier, const Quaternion q);
+	friend Quaternion operator * (const float multiplier, const Quaternion & q);
+//    Quaternion operator *= (const float multiplier);
 
     /// Rotate by vector and scale (distance?)
     void Rotate(const Vector3f & byVector, float andScale);

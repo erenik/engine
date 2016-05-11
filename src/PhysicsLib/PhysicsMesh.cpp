@@ -29,6 +29,59 @@ PhysicsMesh::~PhysicsMesh(){
 	collisionShapeOctree = NULL;
 };
 
+bool PhysicsMesh::LoadFrom(Mesh * mesh)
+{
+	// Clear old
+	triangles.ClearAndDelete();
+	quads.ClearAndDelete();
+
+	name = mesh->name;
+	source = mesh->source; 
+	aabb = *mesh->aabb;
+
+	for (int i = 0; i < mesh->numFaces; ++i)
+	{
+		// Just copy shit from it
+		MeshFace * faces = &mesh->faces[i];
+		assert((faces->numVertices <= 4 || faces->numVertices >= 3) && "Bad vertices count in faces");
+
+		int vi0 = faces->vertices[0],
+			vi1 = faces->vertices[1],
+			vi2 = faces->vertices[2];
+
+		assert(vi0 < mesh->vertices.Size() && 
+			vi0 >= 0);
+
+		Vector3f p1 = mesh->vertices[vi0],
+			p2 = mesh->vertices[vi1],
+			p3 = mesh->vertices[vi2];
+
+		if (faces->numVertices == 4){
+			Vector3f p4 = mesh->vertices[faces->vertices[3]];
+			Quad * quad = new Quad();
+			quad->Set4Points(p1, p2, p3, p4);
+			quads.Add(quad);
+		}
+		else if (faces->numVertices == 3){
+			Triangle * tri = new Triangle();
+			tri->Set3Points(p1, p2, p3);
+			triangles.Add(tri);
+		}
+	}
+	if (quads.Size() == 0 && triangles.Size() == 0)
+		assert(false && "Unable to load physicsmesh from mesh source!");
+	else
+		std::cout<<"\nCreated physics mesh for \""<<source<<"\": ";
+	if (triangles.Size())
+		std::cout<<"\n- "<<triangles.Size()<<" triangles";
+	if (quads.Size())
+		std::cout<<"\n- "<<quads.Size()<<" quads";
+
+	// Re-generate it.
+	GenerateCollisionShapeOctree();
+	return true;
+}
+
 /// Performs a raycast considering target ray and the transform of this physics mesh.
 List<Intersection> PhysicsMesh::Raycast(Ray & ray, Matrix4f & transform)
 {
@@ -53,24 +106,23 @@ List<Intersection> PhysicsMesh::Raycast(Ray & ray, Matrix4f & transform)
 /// Generates a collission shape octree that can be used in the local-coordinate system or multiplied by matrices to be used globally.
 void PhysicsMesh::GenerateCollisionShapeOctree()
 {
-	assert(collisionShapeOctree == NULL && "Attempting to generate collission shape octree where not needed! This should only be done after loading the model.");
-	Mesh * mesh = (Mesh*)meshCounterpart;
-	assert(mesh != NULL);
-	collisionShapeOctree = new CollisionShapeOctree();
-	if (!mesh->aabb)
-		mesh->CalculateBounds();
-	assert(mesh->aabb);
+	if (collisionShapeOctree == 0)
+		collisionShapeOctree = new CollisionShapeOctree();
+	else 
+	{
+		collisionShapeOctree->ClearAll();
+	}
 	/// Fetch size of object and extend the size of the octree by 10% just to make sure that it works later on.
-	Vector3f size = mesh->aabb->scale;
-	Vector3f min = mesh->aabb->min,
-		max = mesh->aabb->max;
+	Vector3f size = aabb.scale;
+	Vector3f min = aabb.min,
+		max = aabb.max;
 	collisionShapeOctree->SetBoundaries(
-		min[0] - size[0] * 0.1f,
-		max[0] + size[0] * 0.1f,
-		max[1] + size[1] * 0.1f,
-		min[1] - size[1] * 0.1f,
-		max[2] + size[2] * 0.1f,
-		min[2] - size[2] * 0.1f);
+		min[0] - size[0] * 0.1f + aabb.position.x - 1.f,
+		max[0] + size[0] * 0.1f + aabb.position.x + 1.f,
+		max[1] + size[1] * 0.1f + aabb.position.y + 1.f,
+		min[1] - size[1] * 0.1f + aabb.position.y - 1.f,
+		max[2] + size[2] * 0.1f + aabb.position.z + 1.f,
+		min[2] - size[2] * 0.1f + aabb.position.z - 1.f);
 
 	// Adding triangles..
 	int skipped = 0;
@@ -84,10 +136,10 @@ void PhysicsMesh::GenerateCollisionShapeOctree()
 		}
 		assert(triangle->normal.MaxPart());
 		collisionShapeOctree->AddTriangle(triangles[i]);
-	//	collisionShapeOctree->PrintContents();
+//		collisionShapeOctree->PrintContents();
 	}
 	if (skipped)
-		LogPhysics("\n"+String(skipped)+" triangles skipped while generating colision octree for mesh: "+mesh->source, INFO);
+		LogPhysics("\n"+String(skipped)+" triangles skipped while generating colision octree for mesh: "+source, INFO);
 	
 //	collisionShapeOctree->PrintContents();
 	
@@ -95,5 +147,5 @@ void PhysicsMesh::GenerateCollisionShapeOctree()
 	collisionShapeOctree->Optimize();
 	std::cout<<"\nOptimizing collission shape octree by removing unused child cells.";
 //	collisionShapeOctree->PrintContents();
-	std::cout<<"\nCollision shape octree generated for mesh: "<<this->meshCounterpart->name;
+	std::cout<<"\nCollision shape octree generated for mesh: "<<name;
 }

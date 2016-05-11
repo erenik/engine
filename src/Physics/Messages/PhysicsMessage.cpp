@@ -7,6 +7,8 @@
 #include "Physics/Springs/Spring.h"
 #include "PhysicsState.h"
 
+#include "Mesh/Mesh.h"
+
 PhysicsMessage::PhysicsMessage()
 {
 	type = PM_NULL;
@@ -47,6 +49,16 @@ void PhysicsMessage::Process()
 			Physics.ignoreCollisions = false;
 			break;
 	}
+}
+
+PMRecalculatePhysicsMesh::PMRecalculatePhysicsMesh(Mesh * forMesh)
+: PhysicsMessage(PM_RECALC_PHYS_MESH), mesh(forMesh)
+{
+
+}
+void PMRecalculatePhysicsMesh::Process()
+{
+	Physics.RecalculatePhysicsMesh(mesh);
 }
 
 

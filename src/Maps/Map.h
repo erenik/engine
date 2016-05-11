@@ -68,7 +68,7 @@ public:
 	// Called once when exiting the map
 	virtual void OnExit();	
 	// Process called each game loop by the stateManager. Time passed in seconds!
-	void Process(float timePassed);
+	void Process(int timePassedInMs);
 
 	/// Loads map data from file.
 	virtual bool Load(const char * fromFile);

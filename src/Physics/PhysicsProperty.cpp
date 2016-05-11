@@ -130,6 +130,7 @@ void PhysicsProperty::Nullify()
 	maxCallbacks = -1;
 	collisionCallbackRequirementValue = 1.0f;
 	linearDamping = defaultLinearDamping;
+	angularDamping = 0.5f;
 	linearDampingPerPhysicsFrame = 0.9999f;
 	angularDampingPerPhysicsFrame = 0.999f;
 	collisionsEnabled = true;
@@ -275,9 +276,10 @@ void PhysicsProperty::UpdateProperties(Entity * entity)
 	{
 	//	assert(entity->model->radius > 0);
 		if (recalculatePhysicalRadius)
-			physicalRadius = entity->model->radius * entity->scale.MaxPart();
+			physicalRadius = entity->Radius() * entity->scale.MaxPart();
 		if (obb)
 			obb->Recalculate(entity);
+		entity->RecalculateRadius();
 	}
 	else 
 		physicalRadius = 0;

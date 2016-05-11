@@ -387,7 +387,7 @@ Entity * MapManager::GetFirstEntity(Ray & selectionRay, Vector3f & intersectionP
         Entity * entity = entities[i];
 
         /// First discard those entities which are behind the ray's origin.
-        float entityRadius = entity->scale.MaxPart() * entity->radius;
+        float entityRadius = entity->scale.MaxPart() * entity->Radius();
         float distanceEntityToRayStart = (entity->worldPosition - selectionRay.start).Length() - entityRadius;
 
         /// Check if it's anywhere near as close as the closest-distance, if not discard it now.
@@ -397,7 +397,7 @@ Entity * MapManager::GetFirstEntity(Ray & selectionRay, Vector3f & intersectionP
         }
 
         Vector3f rayStartToEntity = entity->worldPosition - selectionRay.start;
-        if (rayStartToEntity.DotProduct(selectionRay.direction) < 0 && distanceEntityToRayStart > entity->radius * entity->scale.MaxPart()){
+        if (rayStartToEntity.DotProduct(selectionRay.direction) < 0 && distanceEntityToRayStart > entity->Radius() * entity->scale.MaxPart()){
             entitiesBehind.Add(entity);
             continue;
         }
@@ -407,7 +407,7 @@ Entity * MapManager::GetFirstEntity(Ray & selectionRay, Vector3f & intersectionP
         Vector3f projectedPointOnVector = selectionRay.start + distanceProjectedOntoClickRay * selectionRay.direction;
         float distanceEntityToRay = (entity->worldPosition - projectedPointOnVector).Length();
         /// Skip entities that aren't even close to the ray. (sphere not touching the ray).
-        if (distanceEntityToRay > entity->radius * entity->scale.MaxPart()){
+        if (distanceEntityToRay > entity->Radius() * entity->scale.MaxPart()){
             continue;
         }
 
@@ -582,6 +582,16 @@ bool MapManager::RemoveEntity(Entity * entity)
 	entity->map = 0;
 	return true;
 }
+
+bool MapManager::RemoveEntities(List<Entity*> entities)
+{
+	for (int i = 0; i < entities.Size(); ++i)
+	{
+		RemoveEntity(entities[i]);
+	}
+	return true;
+}
+
 
 /** Adds an event ~ */
 bool MapManager::AddEvent(Script * eventScript)

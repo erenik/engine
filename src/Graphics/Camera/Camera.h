@@ -125,6 +125,7 @@ public:
 
 	/// Name of the camera, can be nice to know.
 	String name;
+	bool inputFocus; // Default false. True after making active with GMSetCamera
 
 	/// Defines viewing distance to active object. Should be near 0 if first-person, larger if 3rd-person.
 #define distanceFromCentreOfMovement distanceFromCenterOfMovement

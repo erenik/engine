@@ -22,7 +22,6 @@ Texture * Model::defaultTexture = NULL;
 Model::Model()
 {
 	users = 0;
-	radius = 0;
 	triangleList = NULL;
 
 	mesh = NULL;
@@ -81,7 +80,8 @@ void Model::BufferizeIfNeeded()
 /// Calls render on the triangulized mesh parts within.
 void Model::Render()
 {
-	// IF we have a triangulated mesh, ensure it is up to date.
+	// IF we have a triangulated mesh, ensure it is up to date. <- no? reload only when queried.
+	/*
 	if (triangulatedMesh)
 	{
 		if (triangulatedMesh->lastUpdate < mesh->lastUpdate)
@@ -94,7 +94,7 @@ void Model::Render()
 		}
 	}
 render:
-
+*/
 	Mesh * triangulatedMesh = GetTriangulatedMesh();
 	if (!triangulatedMesh)
 	{
@@ -223,6 +223,12 @@ bool Model::RegenerateTriangulizedMesh()
 	std::cout<<" done.";
 	return true;
 }
+
+float Model::Radius() const
+{
+	return mesh->radiusOrigo;
+}
+
 
 /// Returns the AABB.
 const AABB & Model::GetAABB()

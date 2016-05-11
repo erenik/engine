@@ -214,7 +214,7 @@ void GraphicsManager::RenderPhysics()
 			}*/
 			case ShapeType::SPHERE: {
 				// Multiply by entity
-				transformationMatrix.Multiply((Matrix4d().Scale(entity->radius)));
+				transformationMatrix.Multiply((Matrix4d().Scale(entity->Radius())));
 				Sphere * sphere = (Sphere*)entity->physics->shape;
 				model = ModelMan.GetModel("Sphere6.obj");
 				break;

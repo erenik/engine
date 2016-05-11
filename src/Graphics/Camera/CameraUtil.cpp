@@ -12,6 +12,9 @@
 */
 List<Binding*> CreateDefaultCameraBindings()
 {
+	/// Need to either filter out messages, or make some trigger only under special circumstances...
+	Binding::requireNoCameraFocusEntity = true;
+
 	List<Binding*> cameraBindings;
 	cameraBindings.Add(new Binding(new Action("ResetCamera"), KEY::HOME),
 		new Binding(Action::CreateStartStopAction("CameraForward"), KEY::W),
@@ -24,15 +27,30 @@ List<Binding*> CreateDefaultCameraBindings()
 		new Binding(Action::CreateStartStopAction("CameraRotDown"), KEY::DOWN),
 		new Binding(Action::CreateStartStopAction("CameraRotRight"), KEY::RIGHT),
 		new Binding(Action::CreateStartStopAction("CameraRotLeft"), KEY::LEFT));
+
+	cameraBindings.Add(new Binding(Action::FromString("CamIncreaseSpeed"), KEY::PLUS),
+		new Binding(Action::FromString("CamDecreaseSpeed"), KEY::MINUS));
+
+	Binding::requireNoCameraFocusEntity = false;
 	return cameraBindings;
 }
 
 /// Default processor to react to messages created by the default bindings declared above.
 void ProcessCameraMessages(String msg, Camera * forCamera)
 {
+	if (!forCamera->inputFocus)
+		return;
 	if (msg == "ResetCamera")
 	{
 		forCamera->Reset();		
+	}
+	else if (msg == "CamIncreaseSpeed")
+	{
+		forCamera->flySpeed = ClampedFloat(forCamera->flySpeed * 1.1f + 0.1f, 0.1f, 100.f);
+	}
+	else if (msg == "CamDecreaseSpeed")
+	{
+		forCamera->flySpeed = ClampedFloat(forCamera->flySpeed * 0.9f - 0.1f, 0.1f, 100.f);
 	}
 	else if (msg.Contains("StartCameraRot"))
 	{

@@ -113,6 +113,77 @@ void Quaternion::Normalize()
 #endif
 }
 
+/// Returns quaternion rotation between this and q2 according to ratio. 0.0 is at this, 1.0 is at q2, 0.5 in the middle.
+Quaternion Quaternion::SlerpTo(ConstQuatRef q2, float ratio)
+{
+	// http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/slerp/index.htm
+	// qm = (qa * sin((1-t)theta) + qb * sin (t * theta)) / sin(theta)
+	// where qm = interpolated, qa = Q1, qb = q2, t = scalar between 0 and 1, theta is half the angle between qa and qb.
+	Quaternion interpolated;
+	assert(false && "bad");
+	return interpolated;
+	/*
+	// cos(theta/2) = qa.w*qb.w + qa.x*qb.x + qa.y*qb.y+ qa.z*qb.z
+	float cosThetaDiv2 = w * q2.w + x * q2.x + y * q2.y + z * q2.z;
+	if (abs(cosThetaDiv2) >= 1.0) // Equal or theta is 0
+	{
+		return 
+	}
+
+	quat slerp(quat qa, quat qb, double t) {
+	// quaternion to return
+	quat qm = new quat();
+	// Calculate angle between them.
+	double cosHalfTheta = qa.w * qb.w + qa.x * qb.x + qa.y * qb.y + qa.z * qb.z;
+	// if qa=qb or qa=-qb then theta = 0 and we can return qa
+	if (abs(cosHalfTheta) >= 1.0){
+		qm.w = qa.w;qm.x = qa.x;qm.y = qa.y;qm.z = qa.z;
+		return qm;
+	}
+	// Calculate temporary values.
+	double halfTheta = acos(cosHalfTheta);
+	double sinHalfTheta = sqrt(1.0 - cosHalfTheta*cosHalfTheta);
+	// if theta = 180 degrees then result is not fully defined
+	// we could rotate around any axis normal to qa or qb
+	if (fabs(sinHalfTheta) < 0.001){ // fabs is floating point absolute
+		qm.w = (qa.w * 0.5 + qb.w * 0.5);
+		qm.x = (qa.x * 0.5 + qb.x * 0.5);
+		qm.y = (qa.y * 0.5 + qb.y * 0.5);
+		qm.z = (qa.z * 0.5 + qb.z * 0.5);
+		return qm;
+	}
+	double ratioA = sin((1 - t) * halfTheta) / sinHalfTheta;
+	double ratioB = sin(t * halfTheta) / sinHalfTheta; 
+	//calculate Quaternion.
+	qm.w = (qa.w * ratioA + qb.w * ratioB);
+	qm.x = (qa.x * ratioA + qb.x * ratioB);
+	qm.y = (qa.y * ratioA + qb.y * ratioB);
+	qm.z = (qa.z * ratioA + qb.z * ratioB);
+	return qm;
+
+	float sinTheta = sin(acos(cos(theta)));
+	*/
+}
+
+/// Based on Qxyzw, calculates axis around which this quaternion is turning.
+Vector3f Quaternion::GetAxis()
+{
+	Vector3f axis;
+	float w2 = w * w;
+	float root = sqrt(1 - w2);
+	if (root == 0)
+		return axis;
+	axis.x = x / root;
+	axis.y = y / root;
+	axis.z = z / root;
+	return axis;
+}
+/// Based on Qzyzw, calculates angle around the axis which this quaternion is turning.
+float Quaternion::GetAngle()
+{
+	return 2 * acos(w);
+}
+
 // Unary operator overloading
 Quaternion Quaternion::operator - () const
 {
@@ -201,6 +272,12 @@ Quaternion Quaternion::operator * (const Quaternion &q2) const
 Quaternion operator * (const float mult, const Quaternion & q){
     return Quaternion(q.x * mult, q.y * mult, q.z * mult, q.w * mult);
 }
+
+//Quaternion operator *= (const float multiplier)
+//{
+	
+//}
+
 
 /// Rotate by vector
 void Quaternion::Rotate(const Vector3f & vector, float scale){

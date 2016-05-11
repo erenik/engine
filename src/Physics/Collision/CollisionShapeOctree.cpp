@@ -30,9 +30,9 @@ CollisionShapeOctree::CollisionShapeOctree()
 /// Internal constructor that sets the Entity's boundaries and subdivision level
 CollisionShapeOctree::CollisionShapeOctree(float i_leftBound, float i_rightBound, float i_topBound, float i_bottomBound, float i_nearBound, float i_farBound, int i_subdivision)
 {
-	assert(i_leftBound < i_rightBound);
-	assert(i_topBound > i_bottomBound);
-	assert(i_nearBound > i_farBound);
+	assert(i_leftBound <= i_rightBound);
+	assert(i_topBound >= i_bottomBound);
+	assert(i_nearBound >= i_farBound);
 
 	// Set boundaries, calculate radius, etc.
 	SetBoundaries(i_leftBound, i_rightBound, i_topBound, i_bottomBound, i_nearBound, i_farBound);
@@ -46,7 +46,7 @@ CollisionShapeOctree::~CollisionShapeOctree(){
 	children.ClearAndDelete();
 }
 
-/// Removes unused children. After optimizing now new triangles may be added.
+/// Removes unused children. After optimizing no new triangles may be added.
 void CollisionShapeOctree::Optimize()
 {
 	for (int i = 0; i < children.Size(); ++i)
@@ -178,10 +178,16 @@ void CollisionShapeOctree::subdivide(int levels)
 	}
 }
 
-void CollisionShapeOctree::clearAll(){
+void CollisionShapeOctree::ClearAll()
+{
+	optimized = false;
 	triangles.Clear();
 	for (int i = 0; i < children.Size(); ++i)
-		children[i]->clearAll();
+	{
+		children[i]->ClearAll();
+		// Delete children for re-creation.
+		children.ClearAndDelete();
+	}
 }
 
 
@@ -191,7 +197,10 @@ void CollisionShapeOctree::clearAll(){
 bool CollisionShapeOctree::AddTriangle(Triangle * tri)
 {
 	if (optimized)
+	{
+		assert(false && "optimized");
 		return false;
+	}
 	// Check that it isn't already added!
 	bool exists = triangles.Exists(tri);
 	if (exists){
@@ -429,12 +438,13 @@ int CollisionShapeOctree::FindCollisions(Entity * targetEntity, List<Collision> 
 		if (!tri.normal.MaxPart())
 			continue;
 		assert(tri.normal.MaxPart());
-		Viewport * viewport = ActiveViewport;
+		/* // Collisions are not viewport-dependant, so re-write this later if need to debug again.
+		Viewport * viewport = graphicsState->activeViewport;
 		if (viewport)
 		{
 			if (viewport->renderPhysics && viewport->renderCollisionTriangles)
 				Physics.activeTriangles.Add(tri);
-		}
+		}*/
 		Collision col;
 		// Check physics type. If Entity has physics type mesh then we should try and optimize it in some other way.
 		if (targetEntity->physics->type == ShapeType::MESH){
@@ -567,12 +577,12 @@ int CollisionShapeOctree::IsEntityInside(Entity * entity, Matrix4f & localTransf
 	/// The below approach doesn't work when the transform includes rotation.
 	/*
 	
-	float entityLeft = entity->position[0] - entity->radius,
-		entityRight = entity->position[0] + entity->radius,
-		entityTop = entity->position[1] + entity->radius,
-		entityBottom = entity->position[1] - entity->radius,
-		entityNear = entity->position[2] + entity->radius,
-		entityFar = entity->position[2] - entity->radius;
+	float entityLeft = entity->position[0] - entity->Radius(),
+		entityRight = entity->position[0] + entity->Radius(),
+		entityTop = entity->position[1] + entity->Radius(),
+		entityBottom = entity->position[1] - entity->Radius(),
+		entityNear = entity->position[2] + entity->Radius(),
+		entityFar = entity->position[2] - entity->Radius();
 	// Check if it's inside.
 	if (entityRight < maxVec[0] &&
 		entityLeft > minVec[0] &&

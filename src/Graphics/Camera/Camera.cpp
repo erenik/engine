@@ -212,6 +212,7 @@ Camera::~Camera()
 /// Resets everything.
 void Camera::Nullify()
 {
+	inputFocus = false;
 	matrixUpdateType = DEFAULT_EDITOR_MATRICES;
 	inactive = false;
 	lastUpdate = lastChange = Time::Now();
@@ -435,6 +436,7 @@ void Camera::OnLoseCameraFocus()
 {
 	if (entityToTrack)
 		entityToTrack->cameraFocus = NULL;
+	inputFocus = false;
 }
 /// For coupling bindings to relevant entities.
 void Camera::OnGainCameraFocus()
@@ -443,6 +445,7 @@ void Camera::OnGainCameraFocus()
 		entityToTrack->cameraFocus = this;
 	// Update it!
 	Update(AETime::Now(), true);
+	inputFocus = true;
 }
 
 
@@ -640,7 +643,7 @@ void Camera::ThirdPersonAircraft()
 	// Inherit position.
 	Vector3f entityPos = entityToTrack->worldPosition;
 	// Offset a bit back and up, based on its matrix.
-	Vector3f offset = entityToTrack->rotationMatrix * Vector4f(0,1,2,0) * entityToTrack->radius;
+	Vector3f offset = entityToTrack->rotationMatrix * Vector4f(0,1,2,0) * entityToTrack->Radius();
 	position = entityPos + offset;
 	// Look at it?
 	if (false)

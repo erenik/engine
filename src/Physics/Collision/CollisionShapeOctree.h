@@ -44,7 +44,7 @@ public:
 	void subdivide(int levels = 1);
 
 	/// Removes all Entity pointers from the tree without deallocating any vfcOctree nodes.
-	void clearAll();
+	void ClearAll();
 
 	/** Adds an entity node to this vfcOctree node unless max nodes has been reached.
 		If MAX_INITIAL_NODES_BEFORE_SUBDIVISION is reached, subdivision hasn't yet been done and MAX_SUBDIVISION hasn't been reached, subdivision occurs.

@@ -47,7 +47,8 @@ void Mesh::Nullify()
 	triangulated = false;
 	loadedFromCompactObj = false;
 	aabb = NULL;
-	radius = 0;
+	radiusOrigo = 0;
+	radiusCentered = 0;
 
 	skeleton = NULL;
 
@@ -161,7 +162,7 @@ bool Mesh::SaveCompressedTo(String compressedPath)
 
 	// Write extra data so that they do not have to be re-calculated.?
 	centerOfMesh.WriteTo(file);
-	file.write((char*)&radius, sizeof(float));
+	file.write((char*)&radiusOrigo, sizeof(float));
 	file.write((char*)&triangulated, sizeof(bool));
 	// Write AABB data so that it is pre-loaded.
 	assert(aabb && "No aabb when trying to save compressed mesh. Calculate it NOW!");
@@ -242,7 +243,7 @@ bool Mesh::LoadCompressedFrom(String compressedPath)
 
 	// Write extra data so that they do not have to be re-calculated.?
 	centerOfMesh.ReadFrom(file);
-	file.read((char*)&radius, sizeof(float));
+	file.read((char*)&radiusOrigo, sizeof(float));
 	file.read((char*)&triangulated, sizeof(bool));
 	// Write AABB data so that it is pre-loaded.
 	if (!aabb) 
@@ -774,20 +775,20 @@ void Mesh::CalculateBounds()
 	Vector3f & max = aabb->max;
 	min = vertices[0];
 	max = vertices[0];
-	radius = 0;
+	radiusOrigo = 0;
 	float newRadius = 0;
 	for (int i = 1; i < numVertices; ++i)
 	{
 		newRadius = vertices[i].LengthSquared();
-		if (newRadius > radius)
-			radius = newRadius;
+		if (newRadius > radiusOrigo)
+			radiusOrigo = newRadius;
 		// Get min
 		min = Vector3f::Minimum(min, vertices[i]);
 		// Get max
 		max = Vector3f::Maximum(max, vertices[i]);
 	}
 	// Update related values.
-	radius = sqrt(radius);
+	radiusOrigo = sqrt(radiusOrigo); // why sqrt? since LengthSquared above.
 	centerOfMesh = (max - min)/2.0f + min;
 	// Update more AABB values.
 	aabb->scale = max - min;

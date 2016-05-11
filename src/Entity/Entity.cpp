@@ -106,7 +106,6 @@ Entity::Entity(int i_id)
 	scale = Vector3f(1,1,1);
 	rotation = Vector3f(0,0,0);
 	flags = 0;
-	radius = 1;
 	diffuseMap = NULL;
 	specularMap = NULL;
 	normalMap = NULL;
@@ -485,6 +484,12 @@ void Entity::SetRotation(ConstVec3fr rotation)
 	RecalculateMatrix();
 }
 
+/// Scales all axes to target value.
+void Entity::SetScale(float scale)
+{
+	SetScale(Vector3f(scale, scale, scale));
+}
+
 /// Sets scale of the entity
 void Entity::SetScale(ConstVec3fr scale)
 {
@@ -596,7 +601,6 @@ void Entity::RecalculateMatrix(int whichParts/*= true*/, bool recursively /* = f
 
 void Entity::RecalcRotationMatrix(bool force /* = false*/)
 {
-	float length;
 #define EXTRACT_VECTORS \
 	lookAt = rotationMatrix * Vector4f(0,0,-1,0);\
 	upVec = rotationMatrix * Vector4f(0,1,0,0);\
@@ -633,7 +637,7 @@ void Entity::RecalcRotationMatrix(bool force /* = false*/)
 		Quaternion q2 = physics->preTranslateRotationQ;
 		if (physics->preTranslateRotationQ.y != 0)
 		{
-			int i = + q2.y;
+			int i = int(+q2.y);
 		}
 		preTranslateMat = q2.Matrix();
 	}
@@ -761,11 +765,10 @@ Matrix4f Entity::RecalculateMatrix(ConstVec3fr position, ConstVec3fr rotation, C
 /// Recalculates the radius of the entity, both in the upper level radius as well as the physics-property variable one if applicable.
 void Entity::RecalculateRadius()
 {
-	float newRadius = model->radius * scale.MaxPart();
-	this->radius = newRadius;
+	float newRadius = model->Radius() * scale.MaxPart();
 	/// Recalculate physical radius too.
 	if (physics && physics->recalculatePhysicalRadius)
-		physics->physicalRadius = radius;
+		physics->physicalRadius = newRadius;
 }
 
 /// Sets name for this entity.
@@ -785,13 +788,6 @@ bool Entity::SetModel(Model * i_model)
 	if (model)
 	{
 		++model->users;
-		radius = model->radius;
-	}
-	// No model?
-	else 
-	{
-		// No radius.
-		radius = 0;
 	}
 	return true;
 };
@@ -913,6 +909,15 @@ Vector3f Entity::UpVec()
 Vector3f Entity::RightVec()
 {
 	return rightVec;
+}
+
+/// Radius of the bounding sphere.
+float Entity::Radius() const
+{
+	float rad = 0.f;
+	if (model)
+		rad = model->Radius();
+	return rad * this->scale.MaxPart();
 }
 
 

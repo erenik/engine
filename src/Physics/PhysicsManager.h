@@ -62,7 +62,7 @@ class PhysicsManager
 	friend class PhysicsOctree;
 	friend class PhysicsMessage;
 	friend class PMSet; friend class PMSeti;
-	friend class PMRegisterEntity;
+	friend class PMRegisterEntity; friend class PMRecalculatePhysicsMesh;
 	friend class PMRegisterEntities;
 	friend class PMUnregisterEntity;
 	friend class PMUnregisterEntities;
@@ -187,6 +187,8 @@ private:
 	/// Getter funcsschtlions
 	PhysicsMesh * GetPhysicsMesh(const String bySourceFile);
 	PhysicsMesh * GetPhysicsMesh(const Mesh * byMeshSource);
+	/// Called server-side.
+	void RecalculatePhysicsMesh(Mesh * mesh);
 	/// Checks if the entity requires a physics mesh and loads it if so.
 	void EnsurePhysicsMeshIfNeeded(Entity * targetEntity);
 

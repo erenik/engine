@@ -123,7 +123,7 @@ void DataStream::PushBytes(uchar * fromArray, int numberOfBytes)
 			memcpy(data + bytesUsed - numberOfBytes, fromArray, numberOfBytes);
 			return;
 		}
-		int newLength = dataLength + numberOfBytes;
+		int newLength = bytesUsed + numberOfBytes;
 		uchar * newData = new uchar[newLength];
 		memcpy(newData, data, bytesUsed);
 		dataLength = newLength;

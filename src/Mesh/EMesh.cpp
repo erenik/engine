@@ -19,13 +19,19 @@
 EMesh::EMesh()
 {
 	Nullify();
+	name = "EMesh";
+	source = "Generated EMesh";
 }
 
-	/// Nullifies all default variables!
+EMesh::EMesh(String i_name)
+{
+	Nullify();
+	name = source = i_name;
+}
+
+/// Nullifies all default variables!
 void EMesh::Nullify()
 {
-	source = "Generated EMesh";
-	name = "EMesh";
 }
 
 EMesh::~EMesh()

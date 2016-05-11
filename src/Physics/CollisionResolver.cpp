@@ -61,7 +61,7 @@ int CollisionResolver::ResolveCollisions(List<Collision> collisions)
 		}
 		else 
 		{
-			std::cout<<"\nNo likely collision detected. Could require some adjustment.";
+//			std::cout<<"\nNo likely collision detected. Could require some adjustment.";
 			break;
 		}
 

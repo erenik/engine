@@ -41,7 +41,7 @@ void AlphaModelEffect::Render(GraphicsState & graphicsState)
 		assert(false);
 		/* // Commented out due to expected obsolescence.
 		modelMatrix = Matrix4f::InitTranslationMatrix(entity->position);
-		modelMatrix.Scale(entity->radius * (entity->scale.ElementMultiplication(relativeScale)).MaxPart());
+		modelMatrix.Scale(entity->Radius() * (entity->scale.ElementMultiplication(relativeScale)).MaxPart());
 		modelMatrix.Multiply(Matrix4f::InitRotationMatrixX(entity->rotation[0]));
 		modelMatrix.Multiply(Matrix4f::InitRotationMatrixY(relativeRotation[1] + entity->rotation[1]));
 		graphicsState.modelMatrixF = modelMatrix;

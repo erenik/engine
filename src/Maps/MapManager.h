@@ -67,6 +67,7 @@ public:
 	bool AddEntities(List<Entity *> entities, bool registerForGraphics = true, bool registerForPhysics = true);
 	/// Removes from its map.
 	bool RemoveEntity(Entity * entity);
+	bool RemoveEntities(List<Entity*> entities);
 
 	/** Adds an event ~ */
 	bool AddEvent(Script * eventScript);

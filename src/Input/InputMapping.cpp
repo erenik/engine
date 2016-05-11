@@ -75,7 +75,9 @@ Binding * InputMapping::EvaluateInput(int activeKeyCode, bool * keyPressedState,
 			std::cout<<"\nExecuting binding: "<<(b->name ? b->name : "Unnamed");
 #endif
 		/// Return the binding with was triggered? Only one should be triggered at a time, right?
-		return binding;
+		if (binding->exclusive)
+			return binding;
+		++triggeredBindings;
 	}
 	return 0;
 }
@@ -112,9 +114,10 @@ Binding * InputMapping::EvaluateKeyRelease(int activeKeyCode, bool *keyPressedSt
 			continue;
 		/// If just one key away, it means it was just triggered and should now end?
 		binding->action->TriggerStop();
-		// if (binding->name)std::cout<<"\nExecuting stopAction for binding: "<<binding->name;
-		/// Process our action!
-		return binding;
+		/// Return the binding with was triggered? Only one should be triggered at a time, right?
+		if (binding->exclusive)
+			return binding;
+		++triggeredBindings;
 	}
 	return NULL;
 }

@@ -153,7 +153,8 @@ public:
 		linearDampingPerPhysicsFrame;
 	// Default usually 0.99, change to 1.0 for games which have stricter controls/custom integrators.
 	static float defaultLinearDamping; 
-	float angularDampingPerPhysicsFrame;
+	float angularDamping,
+		angularDampingPerPhysicsFrame;
 
 	/** Obsolete! All positional updates should use the entity's own position vector.
 		If a "center of mass" is wanted later on, name it "centerOfMass" or something then...!
@@ -172,8 +173,9 @@ public:
     /// Orientatin quaternion, q(t),
     Quaternion orientation;
 	Quaternion preTranslateRotationQ;
-	/// Angular velocity as expressed by a quaternion! (refers to global rotations)
-	Quaternion angularVelocityQuaternion;
+	/// Angular velocity as expressed by a quaternion! (refers to global rotations) <- there is no such thing.
+	// Use the angularAcceleration or angularForce if so.
+//	Quaternion angularVelocityQuaternion;
 
     /// Orientation, R(t),  (or rotation for the noobs (me))
     Matrix3f orientationMatrix;
@@ -243,16 +245,17 @@ public:
 	/// If requireGroundForLocalAcceleration is true, this specifies the amount of milliseconds within which a ground collision must have been detected.
 	int isOnGroundThresholdMs;
 	int64 lastGroundCollisionMs;
-	/** Relative rotation compared to entity's current direction vectors. 
-		The speed of these rotations will vary with the entity's rate/radius of turns (ROT) (turning rate), current air speed and time.
-		Mainly used for airplanes and similar vehicles.	*/
+	/** Relative rotation compared to entity's current direction vectors. */
 	Vector3f relativeRotationalVelocity;
 	/// Angular velocity, ω(t), see Physically Based Modelling - David Baraff
 	/// ω(t) = I(t)^-1 * L(t)   (inverse inertia tensor times angular momentum)
     /// Direction gives the axis about which the body is spinning,
     /// quantity (length) specifies spin velocity (in revolutions per time)!
     Vector3f angularVelocity;
+	/// Global angular acceleration.
 	Vector3f angularAcceleration;
+	/// Angular acceleration relative to entity forward, up, right vectors.
+	Vector3f relativeAngularAcceleration;
 
 	/// Angular velocity, may only be changed and set with CONSTANT_ANGULAR_VEOCITY
 	Vector3f constantAngularVelocity;

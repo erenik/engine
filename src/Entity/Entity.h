@@ -140,6 +140,8 @@ public:
 	void SetRotation(const Quaternion & quat);
 	/// Rotation from the default (looking into -Z
 	void SetRotation(const Vector3f & rotationFromZMinus1);
+	/// Scales all axes to target value.
+	void SetScale(float scale);
 	/// Sets scale of the entity, updates transform.
 	void SetScale(const Vector3f & scale);
 	/// Scales the Entity, updates transform.
@@ -213,7 +215,7 @@ public:
 	/// Bounding volumes, spherical for now!
 //	Vector3f absolutePosition;
 	/// Radius of the bounding sphere.
-	float radius;
+	float Radius() const;
 
 	/// o.o Links child and parent for both.
 	void AddChild(Entity * child);
@@ -266,7 +268,7 @@ public:
 	/// Default false. If true, the entity shares properties with other entities, and Process should thus not be called for it.
 	bool sharedProperties;
 
-	/// Axis-aligned bounding box.
+	/// Axis-aligned bounding box. <- why pointer? Always used now.
 	AABB * aabb;
 
 	/// Texture to be used for this Entity. TODO: Rename to DiffuseMap?

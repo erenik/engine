@@ -938,13 +938,10 @@ bool Texture::Save(String toFile, bool overwrite /* = false */)
 		std::cout<<"\nTexture lacking data to write!";
 		return false;
 	}
-	if (!toFile.Contains(".png"))
-		toFile += ".png";
 	if (FileExists(toFile) && !overwrite)
 		return false;
 
 	/// Default, lazy bmp save?
-
 	return SaveBMP(toFile, this);
 
 

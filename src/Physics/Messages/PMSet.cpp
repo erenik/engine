@@ -35,7 +35,6 @@ PMSet::PMSet(int target, float fValue)
 		case PT_GRAVITY:
 		case PT_DEFAULT_DENSITY:
 		case PT_LINEAR_DAMPING:
-		case PT_ANGULAR_DAMPING:
 			break;
 		default:
 			assert(false && "Invalid target in PMSet");
@@ -75,12 +74,6 @@ void PMSet::Process()
 	{
 		case PT_SIMULATION_SPEED:
 			Physics.simulationSpeed = floatValue;
-			break;
-		case PT_LINEAR_DAMPING:
-			Physics.linearDamping = floatValue;
-			break;
-		case PT_ANGULAR_DAMPING:
-			Physics.angularDamping = floatValue;
 			break;
 		case PT_AIR_DENSITY:
 			Physics.airDensity = floatValue;

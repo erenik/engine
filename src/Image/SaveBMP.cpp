@@ -22,6 +22,9 @@ bool SaveBMP(String toFile, Texture * texture)
 	if (!isOpen)
 		return false;
 
+	// Make stream fit size beforehand?
+	ds.Allocate(texture->height * texture->width * 3 + 80);
+
 	int bitsPerPixel = 24;
 	// Calc it.. 14 for header
 	int dataStartOffset = 14 + 12;
