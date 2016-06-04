@@ -163,6 +163,9 @@ void PMSeti::Process()
 	PhysicsManager & physics = PhysicsMan;
 	switch(target)
 	{
+//		case PT_AABB_SWEEPER_AXES_SCALE: 
+	//		minZ
+		//	break;
 		case PT_AABB_SWEEPER_DIVISIONS:
 			physics.aabbSweeper->divisions = iValue;
 			physics.aabbSweeper->CreateAxes();

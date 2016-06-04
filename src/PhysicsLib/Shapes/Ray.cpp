@@ -11,6 +11,16 @@
 #include <cassert>
 #include "AABB.h"
 
+Ray::Ray() 
+{
+	collisionFilter = 0;
+}
+Ray::Ray(ConstVec3fr start, ConstVec3fr dir)
+: start(start), direction(dir)
+{
+	collisionFilter = 0;
+}
+
 /// Intersect with sphere.
 bool Ray::Intersect(Sphere & sphere, float * distance)
 {

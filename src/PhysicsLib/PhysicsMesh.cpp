@@ -15,6 +15,8 @@
 
 #include "File/LogFile.h"
 
+bool PhysicsMesh::useCollisionShapeOctrees = false;
+
 PhysicsMesh::PhysicsMesh(){
 	collisionShapeOctree = NULL;
 };
@@ -78,7 +80,8 @@ bool PhysicsMesh::LoadFrom(Mesh * mesh)
 		std::cout<<"\n- "<<quads.Size()<<" quads";
 
 	// Re-generate it.
-	GenerateCollisionShapeOctree();
+	if (useCollisionShapeOctrees)
+		GenerateCollisionShapeOctree();
 	return true;
 }
 

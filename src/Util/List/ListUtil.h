@@ -18,6 +18,17 @@ bool WriteListTo(const List<T * > & list, std::fstream & file)
 	}
 	return true;	
 }
+template<class T>
+bool WriteListTo(const List<T> & list, std::fstream & file)
+{
+	file.write((char*) &list.Size(), sizeof(int));
+	for (int i = 0; i < list.Size(); ++i)
+	{
+		const T & item = list[i];
+		item.WriteTo(file);
+	}
+	return true;	
+}
 
 /** Used to write lists of pointer-classes using standard WriteTo, ReadFrom functions. 
 	Creates the items and deletes the contents of the list as necessary.
@@ -33,6 +44,21 @@ bool ReadListFrom(List<T *> & list, std::fstream & file)
 	{
 		T * item = new T();
 		item->ReadFrom(file);
+		list.Add(item);
+	}
+	return true;	
+}
+template<class T>
+bool ReadListFrom(List<T> & list, std::fstream & file)
+{
+	// Delete all items before loadnag new stuff into it.
+	list.ClearAndDelete();
+	int listSize;
+	file.read((char*) &listSize, sizeof(int));
+	for (int i = 0; i < listSize; ++i)
+	{
+		T item;
+		item.ReadFrom(file);
 		list.Add(item);
 	}
 	return true;	

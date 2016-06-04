@@ -115,6 +115,7 @@ PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, const Vector3
 		case PT_RELATIVE_ACCELERATION:
 		case PT_ACCELERATION_MULTIPLIER:
 		case PT_ANGULAR_ACCELERATION:
+		case PT_RELATIVE_ANGULAR_ACCELERATION:
 		case PT_DESTINATION:
 		case PT_RELATIVE_ROTATION:
 			break;
@@ -520,6 +521,10 @@ void PMSetEntity::Process()
 			case PT_ANGULAR_ACCELERATION:
 				ASSERT_ENTITY_NOT_STATIC;
 				entity->physics->angularAcceleration = vec3fValue;
+				break;
+			case PT_RELATIVE_ANGULAR_ACCELERATION:
+				ASSERT_ENTITY_NOT_STATIC;
+				entity->physics->relativeAngularAcceleration = vec3fValue;
 				break;
 			case PT_RELATIVE_ACCELERATION:
 				ASSERT_ENTITY_NOT_STATIC;

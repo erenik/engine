@@ -96,7 +96,9 @@ bool TestCollision(Entity * one, Entity * two, List<Collision> & collissionList)
 	///=================================================================================//
 	///  Mesh-Sphere Intersection
 	///=================================================================================//
-	else if (shapeTypes[ShapeType::MESH] == 1 && shapeTypes[ShapeType::SPHERE]){
+	else if (shapeTypes[ShapeType::MESH] == 1 && shapeTypes[ShapeType::SPHERE])
+	{
+
 		Entity * meshEntity = NULL,
 			* sphereEntity = NULL;
 		if (one->physics->shapeType == ShapeType::MESH){
@@ -115,7 +117,7 @@ bool TestCollision(Entity * one, Entity * two, List<Collision> & collissionList)
 #define USE_COLLISSION_SHAPE_OCTREE true
 
 		// If it's got an optimized octree, use it instead, yo.
-		if (meshEntity->physics->usesCollisionShapeOctree && USE_COLLISSION_SHAPE_OCTREE)
+		if (meshEntity->physics->usesCollisionShapeOctree && USE_COLLISSION_SHAPE_OCTREE && false)
 		{
 			PhysicsMesh * physicsMesh = meshEntity->physics->physicsMesh;
 			List<Collision> physicsMeshCollisions;

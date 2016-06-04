@@ -182,7 +182,7 @@ std::ostream& operator <<(std::ostream& os, const Vector3f& vec){
 }
 
 /// Writes to file stream.
-void Vector3f::WriteTo(std::fstream & file)
+void Vector3f::WriteTo(std::fstream & file) const
 {
 	file.write((char*)&x, sizeof(float));
 	file.write((char*)&y, sizeof(float));

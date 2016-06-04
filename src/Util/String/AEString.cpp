@@ -969,6 +969,9 @@ bool String::Remove(const String & subString, bool all /*= false*/)
 		}
 		case String::WIDE_CHAR: 
 		{
+			ConvertToChar();
+			Remove(subString, all);
+			return true;
 			assert(false && "implement");
 			/*
 			// Check if it exists within.
@@ -1727,8 +1730,11 @@ bool String::ReadFrom(std::fstream& file)
 	return true;
 }
 /// Write data to file stream
-bool String::WriteTo(std::fstream& file) const{
+bool String::WriteTo(std::fstream& file) const
+{
 	file.write((char*)&type, sizeof(int));
+	if (type == NULL_TYPE)
+		return true;
 	file.write((char*)&arraySize, sizeof(int));
 	if (arraySize == 0)
 		return true;

@@ -170,9 +170,11 @@ public:
 	Vector3f GetGravitation() { return gravitation; };
 
 	Entities forceBasedEntities;
-private:
-	/// Casts a ray.
+
+	/// Casts a ray, returns result of sorted intersections by distance. First index is the closest intersection. Only to be called from physics thread.
 	List<Intersection> Raycast(Ray & ray);
+
+private:
 
 	/// Functions for handling the various aspects of the physical simulation procedures.
 	void Integrate(float timeInSecondsSinceLastUpdate);

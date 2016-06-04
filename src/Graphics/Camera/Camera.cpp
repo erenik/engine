@@ -78,7 +78,7 @@ void CameraManager::Process()
 	for (int i = 0; i < cameras.Size(); ++i)
 	{
 		Camera * camera = cameras[i];
-		if (camera->inactive)
+		if (camera->inactive || !camera->cameraFocus)
 			continue;
 		bool moved = camera->ProcessMovement(timeInSeconds);
 		// Really not worth it to not update camera all the time, just hassle.
@@ -215,6 +215,7 @@ void Camera::Nullify()
 	inputFocus = false;
 	matrixUpdateType = DEFAULT_EDITOR_MATRICES;
 	inactive = false;
+	cameraFocus = false;
 	lastUpdate = lastChange = Time::Now();
 	ratioFixed = false;
 	// Tracking vars
@@ -437,6 +438,7 @@ void Camera::OnLoseCameraFocus()
 	if (entityToTrack)
 		entityToTrack->cameraFocus = NULL;
 	inputFocus = false;
+	cameraFocus = false;
 }
 /// For coupling bindings to relevant entities.
 void Camera::OnGainCameraFocus()
@@ -446,6 +448,7 @@ void Camera::OnGainCameraFocus()
 	// Update it!
 	Update(AETime::Now(), true);
 	inputFocus = true;
+	cameraFocus = true;
 }
 
 
@@ -788,9 +791,9 @@ bool Camera::ProcessMovement(float timeInSeconds)
 			{
 				rotationEuler += rotationalVelocityEuler * timeInSeconds;
 				// Re-calculate the quaternion defining this rotation (if possible).
-				Quaternion pitch(Vector3f(1,0,0), rotationEuler[0]);
-				Quaternion yaw(Vector3f(0,1,0), rotationEuler[1]);
-				Quaternion roll(Vector3f(0,0,1), rotationEuler[2]);
+				Quaternion pitch(Vector3f(1,0,0), rotationEuler.x.Radians());
+				Quaternion yaw(Vector3f(0,1,0), rotationEuler.y.Radians());
+				Quaternion roll(Vector3f(0,0,1), rotationEuler.z.Radians());
 
 				// Just update "rotation"?
 				rotation = rotationEuler;
@@ -949,6 +952,7 @@ bool Camera::CalculateDefaultEditorMatrices(float distanceFromCenterOfMovement, 
 	viewMatrix.Translate(0, 0, -distanceFromCentreOfMovement);
 	/*
 	*/
+//	std::cout<<"\nRotXY "<<rotationXY;
 	rotationMatrix.Multiply(Matrix4d().InitRotationMatrix(rotationXY.x.Radians(), 1, 0, 0));
 	rotationMatrix.Multiply(Matrix4d().InitRotationMatrix(rotationXY.y.Radians(), 0, 1, 0));
 

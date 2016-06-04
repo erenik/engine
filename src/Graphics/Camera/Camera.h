@@ -126,14 +126,15 @@ public:
 	/// Name of the camera, can be nice to know.
 	String name;
 	bool inputFocus; // Default false. True after making active with GMSetCamera
+	bool cameraFocus; // If focused camera in ANY viewport.
 
 	/// Defines viewing distance to active object. Should be near 0 if first-person, larger if 3rd-person.
 #define distanceFromCentreOfMovement distanceFromCenterOfMovement
 	float distanceFromCenterOfMovement;
 	/// Center of Orientation in the world.
 	Vector3f position;
-	/// Defines where we are looking relative to z = -1
-	Vector3f rotation;
+	/// Defines where we are looking relative to z = -1 <- wat? Is Euler I guess?
+	Angle3 rotation;
 	/// Fly-speed in units (meters) per second.
 	float flySpeed;
 	float rotationSpeed;
@@ -155,7 +156,7 @@ public:
 	/** To distinguish it from the general "rotation" earlier which is.. idk.
 		If tracking an entity, these angles will be in relation to the entity, while if not these wil be along the global axises.
 	*/
-	Vector3f rotationEuler;
+	Angle3 rotationEuler;
 	/// The quaternion as built up by the 3 rotations as specified by rotationEuler.
 	Quaternion orientationEuler;
 

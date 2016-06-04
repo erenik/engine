@@ -186,6 +186,27 @@ void FirstPersonIntegrator::IntegrateVelocity(List<Entity*> & entities, float ti
 				/// Relative ang vel update.
 			}
 		}
+		if (pp->relativeAngularAcceleration.MaxPart())
+		{
+			if (pp->useQuaternions)
+			{
+				// Relative angular acceleration to entity's forward (roll), right(pitch) and up (yaw) vectors.
+				Vector3f accToApply = pp->relativeAngularAcceleration * timeInSeconds;
+
+				// Add rotational velocity around local forward, up and right vectors.
+				Vector3f rightVec = forEntity->RightVec();
+				Vector3f upVec = forEntity->UpVec();
+				Vector3f lookAt = forEntity->LookAt();
+				Quaternion pitch(forEntity->RightVec(), accToApply.x);
+				Quaternion yaw(forEntity->UpVec(), accToApply.y);
+				Quaternion roll(forEntity->LookAt(), accToApply.z);
+
+				/// Relative ang vel update.
+				pp->angularVelocity += upVec * accToApply.y;
+				pp->angularVelocity += rightVec * accToApply.x;
+				pp->angularVelocity += lookAt * accToApply.z;
+			}
+		}
 		// Apply damping
 		pp->angularVelocity *= pow(pp->angularDamping, timeInSeconds);
 	}

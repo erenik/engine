@@ -59,7 +59,7 @@ void AABBSweeper::CreateAxes()
 	for (int i = 0; i < divisions; ++i)
 	{
 		axes.AddItem(
-			new AABBSweepAxis(X_AXIS, Vector3f(-LARGE,-LARGE, minZ + rangePerSubdivision * i), Vector3f(LARGE,LARGE, minZ + rangePerSubdivision * (i + 1)))
+			new AABBSweepAxis(X_AXIS, Vector3f(-LARGE,-LARGE, i == 0? -LARGE : minZ + rangePerSubdivision * i), Vector3f(LARGE,LARGE, i == (divisions - 1)? LARGE : minZ + rangePerSubdivision * (i + 1)))
 		);
 	}
 }

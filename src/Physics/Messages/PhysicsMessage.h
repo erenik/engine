@@ -102,7 +102,8 @@ enum physicsTargets{
 	PT_ROTATION_Y, PT_ROTATION_YAW = PT_ROTATION_Y, // For setting the yaw (y) component.
 	PT_GRAVITY,
 	PT_ACCELERATION, PT_ACCELERATION_MULTIPLIER, // <- Lazy me, but might be good, hm?
-	PT_ANGULAR_ACCELERATION,
+	PT_ANGULAR_ACCELERATION,  // World-space angular acceleration.
+	PT_RELATIVE_ANGULAR_ACCELERATION, // Relative angular acceleration to entity's forward (roll), right(pitch) and up (yaw) vectors.
 	PT_VELOCITY,
 
 	// Relative acceleration, meaning acceleration in relation to the entity's current direction vectors (up, left, forward)

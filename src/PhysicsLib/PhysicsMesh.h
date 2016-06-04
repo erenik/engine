@@ -43,6 +43,9 @@ public:
 //	const Mesh * meshCounterpart;
 	/// Structure used for optimizing collission detection
 	CollisionShapeOctree * collisionShapeOctree;
+
+	/// Default false? Since they aren't optimized anyway?
+	static bool useCollisionShapeOctrees;
 };
 
 #endif

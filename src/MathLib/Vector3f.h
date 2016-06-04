@@ -87,7 +87,7 @@ public:
 	/// Printing out data
 	friend std::ostream& operator <<(std::ostream& os, const Vector3f& vec);
 	/// Writes to file stream.
-	void WriteTo(std::fstream & file);
+	void WriteTo(std::fstream & file) const;
 	
 	/// Reads from file stream. 
 	void ReadFrom(std::fstream & file);

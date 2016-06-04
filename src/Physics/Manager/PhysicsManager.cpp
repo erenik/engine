@@ -171,6 +171,13 @@ List<Intersection> PhysicsManager::Raycast(Ray & ray)
 	{
 		Entity * entity = physicalEntities[i];
 		PhysicsProperty * pp = entity->physics;
+		/// Check filters if relevant.
+		if (ray.collisionFilter)
+		{
+			if ((ray.collisionFilter & pp->collisionCategory) == 0)
+				continue;
+		}
+
 		/// Do a simple dot-product check first for early out, no matter what physics-shape.
 #ifdef USE_SSE
 		SSEVec sse;

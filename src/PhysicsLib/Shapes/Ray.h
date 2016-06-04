@@ -16,6 +16,8 @@ class Plane;
 class Ray
 {
 public:
+	Ray();
+	Ray(ConstVec3fr start, ConstVec3fr dir);
 	/// Intersect with sphere.
 	bool Intersect(Sphere & sphere, float * distance);
     /// Returns true if they intersect, and the distance (along the ray) if so.
@@ -36,7 +38,7 @@ public:
 	*/
 	bool Intersect(const Plane& plane, Vector3f * collisionPoint = NULL, Vector3f * collissionPointNormal = NULL, double * collissionDistance = NULL);
 
-
+	int collisionFilter; // Default 0
 	Vector3f start; // or where it origins from
 	Vector3f direction;
 };
