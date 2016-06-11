@@ -82,7 +82,16 @@ bool FirstPersonCR::ResolveCollision(Collision & c)
 		dynamic->physics->velocity = newVel;
 		assert(dynamic->parent == 0); 
 		/// Adjusting local position may not help if child entity.
+		// Old code
 		dynamic->localPosition += AbsoluteValue(c.distanceIntoEachOther) * c.collisionNormal;
+		/// For double-surface collision resolution (not bouncing through walls..)
+
+		/// For the previously backwards-collisions.
+//		if (c.distanceIntoEachOther < 0)
+	//		dynamic->localPosition += c.distanceIntoEachOther * c.collisionNormal;
+//		else // Old code
+	//		dynamic->localPosition += AbsoluteValue(c.distanceIntoEachOther) * c.collisionNormal;
+
 		/// If below threshold, sleep it.
 		if (dynamic->physics->velocity.Length() < 0.1f && c.collisionNormal.y > 0.8f)
 		{

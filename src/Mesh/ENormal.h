@@ -12,7 +12,8 @@ class EVertex;
 class ENormal : public Vector3f
 {
 public:
-	
+	const EVertex & operator = (const Vector3f & assign){ x = assign.x; y = assign.y; z = assign.z; return *this;};
+
 };
 
 #endif

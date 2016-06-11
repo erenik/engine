@@ -165,8 +165,6 @@ int PhysicsManager::UnregisterEntity(Entity * entityToRemove)
 {
 	/// If have kids/parent, unbind.
 	entityToRemove->RemoveLinks();
-	if (entityToRemove->name.Contains("Boss1"))
-		std::cout<<"\nUnregistering "<<entityToRemove->name;
 //	LogPhysics("Unregistering entity for physics "+entityToRemove->name, DEBUG);
 	int found = 0;
 	int entitiesInOctree = entityCollisionOctree->RegisteredEntities();

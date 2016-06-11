@@ -69,6 +69,11 @@ public:
 	/** Reloads the identity matrix. */
 	void LoadIdentity();
 
+	/// Mainly for comparison.
+	static Matrix4f Identity(); 
+	/// o-o
+	bool IsIdentity();
+
 	/// Conversion
 	Matrix3f GetMatrix3f();
 

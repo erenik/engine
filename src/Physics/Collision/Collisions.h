@@ -44,6 +44,10 @@ bool PlaneSphereCollision(Entity * plane, Entity * sphere, Collision &data);
 bool MeshSphereCollision(Entity * meshEntity, Entity * sphereEntity, Collision &data);
 bool CubeSphereCollision(Entity * cubeEntity, Entity * sphereEntity, Collision &data);
 
+/// For checking between a set shape/entity and a bunch of basic shapes (e.g. faces/tris/quads). Supply matrix if the tris or quads should be recalculated.
+bool SphereFaceCollision(Entity * sphereEntity, const List<Triangle*> & tris, const List<Quad*> & quads, Collision & data, const Matrix4f * triQuadMatrix = 0);
+
+
 /// Resolves the active collission between the two entities using the given data. Returns false if they are no longer colliding after resolution.
 bool ResolveCollision(Collision &data);
 

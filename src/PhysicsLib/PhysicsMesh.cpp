@@ -119,13 +119,13 @@ void PhysicsMesh::GenerateCollisionShapeOctree()
 	Vector3f size = aabb.scale;
 	Vector3f min = aabb.min,
 		max = aabb.max;
-	collisionShapeOctree->SetBoundaries(
-		min[0] - size[0] * 0.1f + aabb.position.x - 1.f,
-		max[0] + size[0] * 0.1f + aabb.position.x + 1.f,
-		max[1] + size[1] * 0.1f + aabb.position.y + 1.f,
-		min[1] - size[1] * 0.1f + aabb.position.y - 1.f,
-		max[2] + size[2] * 0.1f + aabb.position.z + 1.f,
-		min[2] - size[2] * 0.1f + aabb.position.z - 1.f);
+	collisionShapeOctree->SetBoundaries( // Why add center?
+		min[0] - size[0] * 0.1f - 1.f,
+		max[0] + size[0] * 0.1f + 1.f,
+		max[1] + size[1] * 0.1f + 1.f,
+		min[1] - size[1] * 0.1f - 1.f,
+		max[2] + size[2] * 0.1f + 1.f,
+		min[2] - size[2] * 0.1f - 1.f);
 
 	// Adding triangles..
 	int skipped = 0;

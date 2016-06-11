@@ -646,8 +646,8 @@ void Camera::ThirdPersonAircraft()
 	// Inherit position.
 	Vector3f entityPos = entityToTrack->worldPosition;
 	// Offset a bit back and up, based on its matrix.
-	Vector3f offset = entityToTrack->rotationMatrix * Vector4f(0,1,2,0) * entityToTrack->Radius();
-	position = entityPos + offset;
+	Vector3f globalOffset = entityToTrack->rotationMatrix * relativePosition * entityToTrack->Radius();
+	position = entityPos + globalOffset;
 	// Look at it?
 	if (false)
 		ThirdPersonLookAt();

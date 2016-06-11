@@ -42,7 +42,7 @@ public:
 
     Vector3f min;
     Vector3f max;
-    Vector3f position;
+    Vector3f position; // Center of the AABB.
     /// Scale assuming a 1,1,1 cube centered at 0,0,0 by default (i.e.: regular total size along the axises)
     Vector3f scale;
 private:

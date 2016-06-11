@@ -123,11 +123,18 @@ bool TestCollision(Entity * one, Entity * two, List<Collision> & collissionList)
 			List<Collision> physicsMeshCollisions;
 			int tests = physicsMesh->collisionShapeOctree->FindCollisions(sphereEntity, physicsMeshCollisions, meshEntity->transformationMatrix);
 			PhysicsMan.physicsMeshCollisionChecks += tests;
-			for (int i = 0; i < physicsMeshCollisions.Size(); ++i){
+			for (int i = 0; i < physicsMeshCollisions.Size(); ++i)
+			{
 				Collision col = physicsMeshCollisions[i];
 				col.one = one;
 				col.two = two;
 				shouldCollide = true;
+				/// Flip collision normal if needed, always point from one to two.
+				if (meshEntity == one)
+				{
+					col.collisionNormal *= -1;
+					col.distanceIntoEachOther *= -1;
+				}
 				collissionList.Add(col);
 			}
 		}

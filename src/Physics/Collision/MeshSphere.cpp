@@ -34,46 +34,5 @@ bool MeshSphereCollision(Entity * meshEntity, Entity * sphereEntity, Collision &
 	if (!physicsMesh)
 		return false;
 		
-	/// Test for all, only evaluate the deepest collission! o.o'
-	Collision deepestCollision;
-	float deepestCollisionDistance = 0.0f;
-
-	/// Proceed with checking every face of the mesh with the sphere o-o;
-	Triangle tri;
-	for (int i = 0; i < physicsMesh->triangles.Size(); ++i){
-		tri = *physicsMesh->triangles[i];
-		tri.Transform(meshEntity->transformationMatrix);
-		/// If collide, return true
-		if (TriangleSphereCollision(&tri, sphereEntity, data)){
-			// Add additional data if need be
-			if (abs(data.distanceIntoEachOther) > deepestCollisionDistance){
-				deepestCollisionDistance = abs(data.distanceIntoEachOther);
-				deepestCollision = data;
-				// TODO: Evaluate if this works well.
-		//		if (ActiveViewport->renderCollisionTriangles)
-				deepestCollision.activeTriangles.Add(tri);
-			}
-		}
-	}
-
-	/// Proceed with checking every quad
-	Quad quad;
-	for (int i = 0; i < physicsMesh->quads.Size(); ++i){
-		quad = *physicsMesh->quads[i];
-		quad.Transform(meshEntity->transformationMatrix);
-		/// If collide, return true
-		if (QuadSphereCollision(&quad, sphereEntity, data)){
-			// Add additional data if need be
-			if (abs(data.distanceIntoEachOther) > deepestCollisionDistance){
-				deepestCollisionDistance = abs(data.distanceIntoEachOther);
-				deepestCollision = data;
-			}
-		}
-	}
-	if (deepestCollisionDistance > ZERO){
-		data = deepestCollision;
-		return true;
-	}
-
-	return false;
+	return SphereFaceCollision(sphereEntity, physicsMesh->triangles, physicsMesh->quads, data, meshEntity->transformationMatrix.IsIdentity()? 0 : &meshEntity->transformationMatrix);
 }

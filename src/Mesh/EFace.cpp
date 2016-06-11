@@ -4,13 +4,23 @@
 
 #include "EFace.h"
 #include "EVertex.h"
+#include "ENormal.h"
 
-EFace::EFace(){}
+EFace::EFace()
+{
+	Nullify();
+}
 EFace::EFace(EVertex * one, EVertex * two, EVertex * three)
 {
+	Nullify();
 	AddVertex(one);
 	AddVertex(two);
 	AddVertex(three);
+	CalculateNormal();
+}
+void EFace::Nullify()
+{
+	normal = 0;
 }
 
 
@@ -25,11 +35,16 @@ void EFace::AddVertex(EVertex* vertex)
 		vertex->faces.Add(this);
 }
 
-// If < 3 vertices, is ignored. Uses 3 first vertices to calculate normal
+/// Calculates normal (CCW/counter-clockwise-up normal).
 void EFace::CalculateNormal()
 {
-	if (vertices.Size() < 3)
-		return;
-	
+	// Make vectors.
+	Vector3f vec1 = *vertices[1] - *vertices[0],
+		vec2 = *vertices[2] - *vertices[0];
+	vec1.Normalize();
+	vec2.Normalize();
+	// Cross product.
+	normal = new ENormal();
+	*normal = vec1.CrossProduct(vec2).NormalizedCopy();
 }
 

@@ -110,6 +110,24 @@ void Matrix4f::LoadIdentity(){
 	element[15] = 1;
 }
 
+/// Mainly for comparison.
+Matrix4f Matrix4f::Identity()
+{
+	Matrix4f mat;
+	return mat;
+}
+
+bool Matrix4f::IsIdentity()
+{
+	Matrix4f mat;
+	for (int i = 0; i < 16; ++i)
+	{
+		if (mat[i] != element[i])
+			return false;
+	}
+	return true;
+}
+
 /// Conversion
 Matrix3f Matrix4f::GetMatrix3f(){
     Matrix3f matrix;

@@ -24,7 +24,6 @@ CollisionShapeOctree::CollisionShapeOctree()
 	optimized = false;
 
 	// Stuff.
-	MAX_INITIAL_NODES_BEFORE_SUBDIVISION = 7;
 }
 
 /// Internal constructor that sets the Entity's boundaries and subdivision level
@@ -225,9 +224,9 @@ bool CollisionShapeOctree::AddTriangle(Triangle * tri)
 			}
 		}
 		// If we arrived here, it's either intersecting or something, so add it to our current children since it can't go further down the tree.
-		triangles.Add(tri);
+//		triangles.Add(tri);
 	//	std::cout<<"\nTriangles in element: "<<triangles.Size();
-		return true;
+//		return true;
 	} /// End of trying to enter it into any of our children
 
 	// Okay, no spot in children, check if we should subdivide it (if the children aren't already allocated, that is!)
@@ -430,9 +429,9 @@ int CollisionShapeOctree::FindCollisions(Entity * targetEntity, List<Collision> 
 	for (int i = 0; i < triangles.Size(); ++i)
 	{
 		Triangle * trianglePointer = triangles[i];
-		assert(trianglePointer && "Nullentity in CollisionShapeOctree::FindCollisions");
+//		assert(trianglePointer && "Nullentity in CollisionShapeOctree::FindCollisions");
 		Triangle tri = *trianglePointer;
-		assert(trianglePointer->normal.MaxPart());
+//		assert(trianglePointer->normal.MaxPart());
 		tri.Transform(localTransform);
 		// Probably a bad matrix one frame.. just skip it.
 		if (!tri.normal.MaxPart())

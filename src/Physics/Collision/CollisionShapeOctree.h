@@ -61,7 +61,7 @@ public:
 	int RegisteredShapes();
 
 	/// Number of nodes before a subdivision should occur.
-	int MAX_INITIAL_NODES_BEFORE_SUBDIVISION;
+	static const int MAX_INITIAL_NODES_BEFORE_SUBDIVISION = 7;
 	/** Maximum amount of nodes in total for this node.
 		This is larger than the subdivision query level in order to store entity that are too large for the subdivided levels correctly.
 	*/
