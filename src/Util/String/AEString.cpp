@@ -560,6 +560,19 @@ std::ostream& operator <<(std::ostream& os, const String& str){
 	return os;
 }
 
+/// Printing in data
+std::istream& operator >>(std::istream& is, const String& str)
+{
+	switch(str.type)
+	{
+		case String::CHAR: is >> str.arr; break;
+		case String::WIDE_CHAR: is >> str.warr; break;
+		default: is >> "";
+	}
+	return is;
+};
+
+
 
 /** Returns a substring, from start index to stop index (excluding the stop index), -1 signifies end of the string.
 	Mathematical notation would be [fromIndex, toIndex[

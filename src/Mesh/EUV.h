@@ -15,6 +15,7 @@ class EUV : public Vector2f
 {
 public:
 	EUV();
+	EUV(const Vector2f & vec);
 	EUV(float x, float y);
 
 

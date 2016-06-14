@@ -56,10 +56,25 @@ GMSet::GMSet(int t, void * data)
 	}
 };
 
+GMSet::GMSet(int t, bool bValue)
+	: GraphicsMessage(GM_SET), target(t), bValue(bValue)
+{
+	switch(t)
+	{
+		case GT_RENDER_GRID:
+			break;
+		default:
+			assert(false);
+	}
+}
+
 void GMSet::Process()
 {
 	switch(target)
 	{
+		case GT_RENDER_GRID:
+			WindowMan.MainWindow()->MainViewport()->renderGrid = bValue;
+			break;
 		case GT_MAIN_CAMERA:
 			Graphics.cameraToTrack = (Camera*)pData;
 			break;

@@ -168,6 +168,9 @@ enum graphicsTargets
 	GT_FOG_BEGIN,		// Foggy fog-some. Fog color is defined be the GT_CLEAR_COLOR by default.
 	GT_FOG_END,
 
+	/// Booleans for all viewports?
+	GT_RENDER_GRID,
+
 	GT_OVERLAY_TEXTURE,
 	GT_ACTIVE_USER_INTERFACE,
 	GT_GRID_SPACING,

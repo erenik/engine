@@ -38,7 +38,7 @@ public:
 	void Delete();
 
 	/// Adds a plane, creating 2 faces in a counter-clockwise manner.
-	void AddPlane(const Vector3f & upperLeft, const Vector3f & lowerLeft, const Vector3f & lowerRight, const Vector3f & upperRight);
+	EFace * AddPlane(const Vector3f & upperLeft, const Vector3f & lowerLeft, const Vector3f & lowerRight, const Vector3f & upperRight);
 	/// Adds a grid (basically a plane), with the specified amount of cells/faces in X and Y.
 	void AddGrid(const Vector3f & upperLeft, const Vector3f & lowerLeft, const Vector3f & lowerRight, const Vector3f & upperRight, Vector2i gridSizeDivision);
 	

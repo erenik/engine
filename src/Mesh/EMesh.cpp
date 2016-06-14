@@ -52,7 +52,7 @@ void EMesh::Delete()
 }
 
 /// Adds a plane, creating 2 numFaces in a counter-clockwise manner.
-void EMesh::AddPlane(const Vector3f & upperLeft, const Vector3f & lowerLeft, const Vector3f & lowerRight, const Vector3f & upperRight)
+EFace * EMesh::AddPlane(const Vector3f & upperLeft, const Vector3f & lowerLeft, const Vector3f & lowerRight, const Vector3f & upperRight)
 {
 	// Create the vertex
 	List<EVertex*> verts;
@@ -87,14 +87,16 @@ void EMesh::AddPlane(const Vector3f & upperLeft, const Vector3f & lowerLeft, con
 	uvs.AddItem(uv);
 
 
-	EFace * face = new EFace(verts[0], verts[1], verts[2]);
+	EFace * face = new EFace(verts[0], verts[1], verts[2], verts[3]);
 	face->CalculateNormal();
 	faces.Add(face);
+	/*
 	face = new EFace(verts[2], verts[3], verts[0]);
 	face->CalculateNormal();
 	faces.Add(face);
-
+	*/
 	vertices.Add(verts);
+	return face;
 }
 
 /// Adds a grid (basically a plane), with the specified amount of cells/faces in X and Y.

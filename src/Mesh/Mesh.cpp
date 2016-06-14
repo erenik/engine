@@ -87,6 +87,51 @@ Mesh::~Mesh()
 		delete[] boneWeightData;
 }
 
+/// Yus.
+bool Mesh::SaveObj(String path)
+{
+	if (!path.Contains(".obj"))
+		path = path + ".obj";
+	File objFile(path);
+	bool ok = objFile.OpenForWritingText();
+	if (!ok)
+		return false;
+	std::fstream & fstream = objFile.GetStream();
+	fstream<<"o "<<name;
+	for (int i = 0; i < vertices.Size(); ++i)
+	{
+		Vector3f & v = vertices[i];
+		fstream<<"\nv "<<v;
+	}
+	for (int i = 0; i < uvs.Size(); ++i)
+	{
+		Vector2f & uv = uvs[i];
+		fstream<<"\nvt "<<uv;
+	}
+	for (int i = 0; i < normals.Size(); ++i)
+	{
+		Vector3f & n = normals[i];
+		fstream<<"\nvn "<<n;
+	}
+	for (int i = 0; i < faces.Size(); ++i)
+	{
+		MeshFace & f = faces[i];
+		fstream<<"\nf";
+		for (int i = 0; i < f.vertices.Size(); ++i)
+		{
+			fstream<<" "<<(f.vertices[i]+1);
+			if (f.normals.Size() || f.uvs.Size())
+				fstream<<"/";
+			if (f.uvs.Size())
+				fstream<<(f.uvs[i]+1);
+			if (f.normals.Size())
+				fstream<<"/"<<(f.normals[i]+1);
+		}
+	}
+	objFile.Close();
+	return true;
+}
+
 /// Deletes all parts within this mesh (numVertices, numFaces, edges, etc.)
 void Mesh::Delete()
 {

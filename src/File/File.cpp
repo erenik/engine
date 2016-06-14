@@ -185,6 +185,18 @@ bool File::OpenForWriting()
 	return true;
 }
 
+bool File::OpenForWritingText()
+{
+	/// Add /save/ unless it already exists in the path.
+	fileStream.open(path.c_str(), std::ios_base::out);
+	bool success = fileStream.is_open();
+	if (!success){
+		/// Try another path?
+		return false;
+	}	
+	return true;
+}
+
 /// Fetches contents of this file.
 String File::GetContents()
 {

@@ -43,7 +43,8 @@ public:
 	Mesh();
 	/// Destructor
 	virtual ~Mesh();
-
+	/// Yus.
+	bool SaveObj(String path);
 	/// Deletes all parts within this mesh (vertices, faces, edges, etc.)
 	void Delete();
 

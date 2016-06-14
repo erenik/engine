@@ -52,6 +52,7 @@ public:
 	std::fstream * Open();
 	bool OpenForReading();
 	bool OpenForWriting();
+	bool OpenForWritingText();
 	void Close();
 	bool IsOpen();
 

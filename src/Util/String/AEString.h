@@ -89,6 +89,8 @@ public:
 	/// For printing it o-o;
 	/// Printing out data
 	friend std::ostream& operator <<(std::ostream& os, const String& str);
+	/// Printing in data
+	friend std::istream& operator >>(std::istream& is, const String& str);
 
 	/// Returns true if only numbers, decimals and commas are present (hex 0x may also work, later?)
 	bool IsNumber();
