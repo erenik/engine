@@ -91,6 +91,18 @@ void Map::RemoveAllEntities(){
 		RemoveEntity(entities[0]);
 }
 
+/// Calculates AABB for all entities. 
+AABB Map::CalcAABB()
+{
+	AABB aabb;
+	for (int i = 0; i < entities.Size(); ++i)
+	{
+		Entity * entity = entities[i];
+		aabb.Expand(*entity->aabb);
+	}
+	return aabb;
+}
+
 Entity * Map::GetEntity(String byName){
 	for (int i = 0; i < entities.Size(); ++i){
 		if (entities[i]->name == byName)

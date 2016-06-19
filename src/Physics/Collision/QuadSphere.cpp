@@ -10,16 +10,16 @@
 
 extern int debug;
 
-bool QuadSphereCollision(Entity * quadEntity, Entity * sphere, Collision &data)
+bool QuadSphereCollision(Entity * quadEntity, Entity * sphere, Collision &data, bool planesOnly)
 {
 	assert(quadEntity->physics->shapeType == ShapeType::QUAD);
 	Quad * pquad = (Quad*)quadEntity->physics->shape;
 	Quad quad = *(Quad*)quadEntity->physics->shape;
 	quad.Transform(quadEntity->transformationMatrix);
-	return QuadSphereCollision(&quad, sphere, data);
+	return QuadSphereCollision(&quad, sphere, data, planesOnly);
 }
 
-bool QuadSphereCollision(Quad * quad, Entity * sphereEntity, Collision &data)
+bool QuadSphereCollision(Quad * quad, Entity * sphereEntity, Collision &data, bool planeOnly)
 {
 	if (debug == 5)
 		std::cout<<"\nSphere entity position "<<sphereEntity->worldPosition;
@@ -60,6 +60,8 @@ bool QuadSphereCollision(Quad * quad, Entity * sphereEntity, Collision &data)
 		return true;
 	}
 	// Add handling for the edges and corners?
+	if (planeOnly)
+		return false;
 
 	/// If not, proceed with testing the sphere against each of the triangle's edges.
 	const int CORNERS = 4;

@@ -9,6 +9,7 @@
 #include <Util.h>
 #include "Entity/Entities.h"
 #include "../Lighting.h"
+#include "PhysicsLib/Shapes/AABB.h"
 
 //#include "..\EntityManager.h"
 //#include "..\Entity.h"
@@ -95,6 +96,9 @@ public:
 	void SetName(String newName){ name = newName; };
 	const String Name(){ return name; };
 	const String Creator() { return creator;};
+
+	/// Calculates AABB for all entities. 
+	AABB CalcAABB();
 //	static const int MAX_NAME = 260;
 
 	/// Entities is kind of obsolete now what with the utility list class..

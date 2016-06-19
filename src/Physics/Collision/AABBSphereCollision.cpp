@@ -10,7 +10,7 @@
 #include "PhysicsLib/Shapes/AABB.h"
 #include "PhysicsLib/Shapes/Quad.h"
 
-bool AABBSphereCollision(AABB * aabb, Entity * sphereEntity, Collision &data)
+bool AABBSphereCollision(AABB * aabb, Entity * sphereEntity, Collision &data, bool planesOnly)
 {
 	assert(sphereEntity->physics->shapeType == ShapeType::SPHERE);
 
@@ -35,7 +35,7 @@ bool AABBSphereCollision(AABB * aabb, Entity * sphereEntity, Collision &data)
 	{
 		Quad & quad = quads[i];
 		/// If collide, return true
-		if (QuadSphereCollision(&quad, sphereEntity, data))
+		if (QuadSphereCollision(&quad, sphereEntity, data, planesOnly))
 		{
 			// Add additional data if need be
 			if (abs(data.distanceIntoEachOther) < deepestCollisionDistance)

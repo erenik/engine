@@ -21,8 +21,7 @@ AABB::AABB()
 AABB::AABB(const Vector3f & min, const Vector3f & max)
 : min(min), max(max)
 {
-    scale = max - min;
-    position = (max + min) * 0.5f;
+	UpdatePositionScaleUsingMinMax();
 }
 
 bool AABB::Intersect(const AABB &aabb2) const 
@@ -36,6 +35,25 @@ bool AABB::Intersect(const AABB &aabb2) const
         )
         return false;
     return true;
+}
+
+/// Expands this AABB to include the given one.
+void AABB::Expand(AABB & aabb2)
+{
+	if (min.x > aabb2.min.x)
+		min.x = aabb2.min.x;
+	min = Vector3f::Minimum(aabb2.min, min);
+	max = Vector3f::Maximum(aabb2.max, max);
+	UpdatePositionScaleUsingMinMax();
+}
+
+void AABB::UpdatePositionScaleUsingMinMax()
+{
+	/// Update scale and such.
+	position = (max + min) * 0.5f;
+	scale = max - min;
+//	if (debugAABB)
+	//	std::cout<<"\nPosition "<<position<<" Scale "<<scale;
 }
 
 bool debugAABB = false;
@@ -139,11 +157,7 @@ void AABB::Recalculate(Entity * entity)
 	if (debugAABB)
 		std::cout<<"\nMin "<<min<<" Max "<<max;
 
-	/// Update scale and such.
-	position = (max + min) * 0.5f;
-	scale = max - min;
-	if (debugAABB)
-		std::cout<<"\nPosition "<<position<<" Scale "<<scale;
+	UpdatePositionScaleUsingMinMax();
 }
 
 bool AABB::WriteTo(std::fstream & file)

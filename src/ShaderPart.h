@@ -17,12 +17,14 @@ namespace ShaderType {
 	};
 };
 
+class Shader;
+
 /// E.g. Vertex shader, Fragment shader, etc. All of these are then embedded into the main Shader object.
 class ShaderPart 
 {
 public:
 	/// 
-	ShaderPart(int type);
+	ShaderPart(int type, Shader * shader);
 	/// Deletes the GL-related items.
 	void Delete();
 	String name;
@@ -44,6 +46,7 @@ public:
 private:
 	static const int LOG_MAX = 2048;
 	char shaderLog[LOG_MAX];
+	Shader * shader;
 };
 
 #endif

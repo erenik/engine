@@ -37,7 +37,7 @@ public:
 
 	/// Creates a new light to this setup.
 	Light * NewLight(String name);
-	/// DEPRECATE: bad arguments... Adds light to the lighting, return NULL upon falure. Note that the light is copied in this case! TODO: Remove this function.
+	/// Adds light to the lighting, return NULL upon falure. 
 	Light * Add(Light * light);
 	/// Removes target light. Returns false on failure.
 	bool Remove(Light * light);
@@ -45,6 +45,7 @@ public:
 	void CreateDefaultSetup();
 	/// Returns all lights in their current state.
 	List<Light*> GetLights() const;
+	int NumLights() const;
 	/// Fills the whole light-array, attempting to  test the limits of the hardware with as many lights as possible.
 	void Overload();
 	/// Sets ambient using integral values (divided by 255.0 to get float value)

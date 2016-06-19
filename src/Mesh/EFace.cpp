@@ -56,7 +56,8 @@ void EFace::CalculateNormal()
 	vec1.Normalize();
 	vec2.Normalize();
 	// Cross product.
-	normal = new ENormal();
+	if (normal == 0)
+		normal = new ENormal();
 	*normal = vec1.CrossProduct(vec2).NormalizedCopy();
 }
 

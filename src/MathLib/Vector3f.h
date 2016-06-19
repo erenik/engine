@@ -202,7 +202,9 @@ public:
 	/// Returns the absolute value of the sub-component (x,y,z) of lowest absolute value.
 	const float MinPartAbs() const;
 	/// Utility functions
+	/// Returns a vector with minimum values, both given vectors considered.
 	static Vector3f Minimum(const Vector3f & vec1, const Vector3f & vec2);
+	/// Returns a vector with maximum values, both given vectors considered.
 	static Vector3f Maximum(const Vector3f & vec1, const Vector3f & vec2);
 
 	// Rounds to nearest digit!

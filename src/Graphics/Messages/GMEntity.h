@@ -10,29 +10,28 @@
 #include "Graphics/GraphicsProperty.h"
 #include "Entity/Entity.h"
 
-/*
 
 class GMAttachLight : public GraphicsMessage 
 {
 public:
-	GMAttachLight(Entity * toEntity, Light * light)
+	GMAttachLight(Light * light, Entity * toEntity)
 	:  GraphicsMessage(GM_ADD_LIGHT), toEntity(toEntity), light(light)
 	{
 	};
 	virtual void Process()
 	{
 		if (!toEntity->graphics)
-			toEntity->graphics = new GraphicsProperty();
+			toEntity->graphics = new GraphicsProperty(toEntity);
 		GraphicsProperty * gp = toEntity->graphics;
-		if (!gp->dynamicLights)
-			gp->dynamicLights = new List<Light*>();
-		gp->dynamicLights->Add(light);
-		Graphics.dynamicLights.Add(light);	
+		/// Un register?
+		if (toEntity->registeredForRendering)
+			GraphicsMan.UnregisterEntity(toEntity);
+		gp->dynamicLights.Add(light);
+		GraphicsMan.RegisterEntity(toEntity);
 	}
 private:
 	Entity * toEntity;
 	Light * light;
 };
-*/
 
 #endif

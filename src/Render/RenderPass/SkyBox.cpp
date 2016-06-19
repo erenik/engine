@@ -11,6 +11,12 @@ void RenderPass::RenderSkyBox()
 	// Grab an entity for comparison...
 	if (ActiveShader() == 0)
 		return;
+
+	/// Render sphere from inside-out, so change clock-wise thingy for the culling, or just disable culling briefly..
+	glDisable(GL_CULL_FACE);
+	glCullFace(GL_NONE);
+//	glFrontFace(GL_CW /* or GL_CCW */);
+
 	// Set up camera.
 	// Grab viewmatrix.
 	Matrix4f viewMatrix = graphicsState->camera->ViewMatrix4f();

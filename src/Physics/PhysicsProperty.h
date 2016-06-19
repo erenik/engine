@@ -74,6 +74,8 @@ public:
 	void UpdateProperties(Entity * owner);
 
 	void SetLinearDamping(float newD);
+	// Sets if the entity should only collide using the Tri/Quads planes or including the edges and points (corners) too. Default is false. True for optimization may yield bugs.
+	void SetPlaneCollisionsOnly(bool bValue);
 
 	/** Default true. All entities with this have their matrices updated each physics frame, 
 		in order for collision simulation, etc. to work properly. As an optimization feature

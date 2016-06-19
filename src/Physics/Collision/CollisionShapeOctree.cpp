@@ -459,7 +459,7 @@ int CollisionShapeOctree::FindCollisions(Entity * targetEntity, List<Collision> 
 				Sphere sphere; // = (Sphere*)targetEntity->physics->shape;
 				sphere.position = targetEntity->worldPosition;
 				sphere.radius = targetEntity->physics->physicalRadius;
-				if (TriangleSphereCollision(&tri, &sphere, col))
+				if (TriangleSphereCollision(&tri, &sphere, col, false))
 				{
 				//	col.distanceIntoEachOther
 				//	col.one = targetEntity;

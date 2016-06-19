@@ -11,6 +11,7 @@
 #include "PhysicsLib/Shapes/OBB.h"
 
 #include "PhysicsLib/Estimator.h"
+#include "PhysicsLib/PhysicsMesh.h"
 
 bool PhysicsProperty::defaultUseQuaternions = true;
 int PhysicsProperty::defaultCollisionCategory = 1;
@@ -289,6 +290,12 @@ void PhysicsProperty::SetLinearDamping(float newD)
 {
 	linearDamping = newD;
 	linearDampingPerPhysicsFrame = pow(newD, 0.010f);
+}
+
+// Sets if the entity should only collide using the Tri/Quads planes or including the edges and points (corners) too. Default is false. True for optimization may yield bugs.
+void PhysicsProperty::SetPlaneCollisionsOnly(bool bValue)
+{
+	this->physicsMesh->planeCollisionsOnly = bValue;
 }
 
 /// See state enumerations above. TODO: Consider making the state-variable below private.

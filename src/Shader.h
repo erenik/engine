@@ -235,6 +235,9 @@ public:
 	char shaderLog[LOG_MAX];
 
 
+	/// Default -1. Should be parsed from the file. e.g: #define MAX_LIGHTS 32
+	int maxLights;
+
 	/// For automatically parsed attributes and uniforms.
 	List<GLSLIdentifier> attributes;
 	List<GLSLIdentifier> uniforms;

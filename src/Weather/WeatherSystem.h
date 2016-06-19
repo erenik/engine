@@ -15,6 +15,7 @@ class ParticleEmitter;
 class Message;
 class Light;
 class Entity;
+class AABB;
 
 class WeatherSystem 
 {
@@ -23,8 +24,10 @@ class WeatherSystem
 public:
 	WeatherSystem();
 	virtual ~WeatherSystem();
-	/// Allocates resources.
+	/// Allocates resources. <- does what exactly?
 	void Initialize();
+	/// Sets active area for shadow mapping etc.
+	void SetActiveArea(AABB & activeArea);
 	/// Deallocates resources.
 	void Shutdown();
 
@@ -35,6 +38,8 @@ public:
 	/// Starts the rain.
 	void Rain(float amount);
 	void Snow(float amount);
+	/// Get current sun time.
+	float SunTime() const;
 	/// Hour in 24-hour format, 0.0 to 24.0.
 	void SetSunTime(float hour);
 	/// Sets global wind velocity, affecting rain, snow, etc.
@@ -51,7 +56,10 @@ private:
 	Vector3f globalWind;
 	/// The sun.
 	Entity * sun;
+	bool initialized;
+
 	// o.o 
+	float sunHour;
 	float sunDistance;
 	float sunHours;
 	float sunUp;

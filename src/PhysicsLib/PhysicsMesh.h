@@ -44,6 +44,9 @@ public:
 	/// Structure used for optimizing collission detection
 	CollisionShapeOctree * collisionShapeOctree;
 
+	/// If true, skips collision calcs with edges/corners of tris/quads. Default false.
+	bool planeCollisionsOnly;
+
 	/// Default false? Since they aren't optimized anyway?
 	static bool useCollisionShapeOctrees;
 };

@@ -218,6 +218,7 @@ enum graphicsTargets
 	GT_RENDER_OFFSET, // For rendering at a position slightly different than that stated by the physics and navMesh grid.
 	GT_ANIMATE_SKIN_USING_SHADERS, // For toggling Skeleton-animation to be conducted on the CPU or using Shaders on the GPU.
 	GT_PAUSE_ANIMATIONS, // For temporary pausing of all graphical animations.
+	GT_CAST_SHADOWS,
 	
 	// Added with GraphicsEffects.
 	GT_GRAPHIC_EFFECTS_TARGETS = GT_SET_ENTITY_TARGETS + 100,

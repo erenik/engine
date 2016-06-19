@@ -83,7 +83,7 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 
 	graphicsState.settings |= ENABLE_SPECIFIC_ENTITY_OPTIONS;
 
-	bool backfaceCullingEnabled = false;
+	bool backfaceCullingEnabled = true;
 	if (backfaceCullingEnabled){
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_BACK);

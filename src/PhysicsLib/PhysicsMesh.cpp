@@ -17,8 +17,10 @@
 
 bool PhysicsMesh::useCollisionShapeOctrees = false;
 
-PhysicsMesh::PhysicsMesh(){
+PhysicsMesh::PhysicsMesh()
+{
 	collisionShapeOctree = NULL;
+	planeCollisionsOnly = false;
 };
 
 PhysicsMesh::~PhysicsMesh(){

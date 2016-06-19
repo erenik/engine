@@ -88,6 +88,8 @@ EFace * EMesh::AddPlane(const Vector3f & upperLeft, const Vector3f & lowerLeft, 
 
 
 	EFace * face = new EFace(verts[0], verts[1], verts[2], verts[3]);
+	face->normal = new ENormal();
+	normals.AddItem(face->normal);
 	face->CalculateNormal();
 	faces.Add(face);
 	/*

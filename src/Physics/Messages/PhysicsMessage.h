@@ -75,6 +75,7 @@ enum physicsTargets{
 	/// Collisions
 	PT_COLLISION_CATEGORY,
 	PT_COLLISION_FILTER,
+	PT_PLANE_COLLISIONS_ONLY, // Skip collisions on the sides and corners of each Tri/Quad.
 
     /// For disabling stuff.
     PT_LOCK_POSITION,

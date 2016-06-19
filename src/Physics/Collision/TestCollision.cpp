@@ -82,7 +82,7 @@ bool TestCollision(Entity * one, Entity * two, List<Collision> & collissionList)
 			aabbEntity = two;
 			sphereEntity = one;
 		}
-		if (AABBSphereCollision(aabbEntity->aabb, sphereEntity, data))
+		if (AABBSphereCollision(aabbEntity->aabb, sphereEntity, data, false))
 		{
 			shouldCollide = true;
 			/// Flip collision normal if needed, always point from one to two.
@@ -161,7 +161,7 @@ bool TestCollision(Entity * one, Entity * two, List<Collision> & collissionList)
 			tri = two;
 			sphere = one;
 		}
-		if (TriangleSphereCollision(tri, sphere, data))
+		if (TriangleSphereCollision(tri, sphere, data, false))
 			shouldCollide = true;
 	}
 	else if (shapeTypes[ShapeType::QUAD] && shapeTypes[ShapeType::SPHERE]){
@@ -175,7 +175,7 @@ bool TestCollision(Entity * one, Entity * two, List<Collision> & collissionList)
 			quad = two;
 			sphere = one;
 		}
-		if (QuadSphereCollision(quad, sphere, data))
+		if (QuadSphereCollision(quad, sphere, data, false))
 			shouldCollide = true;
 	}
 	else if (shapeTypes[ShapeType::MESH] && shapeTypes[ShapeType::QUAD]){

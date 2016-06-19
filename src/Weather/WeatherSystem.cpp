@@ -15,15 +15,18 @@
 #include "StateManager.h"
 #include "PhysicsLib/EstimatorVec3f.h"
 #include "Model/ModelManager.h"
+#include "PhysicsLib/Shapes/AABB.h"
 
 WeatherSystem::WeatherSystem()
 {
+	initialized = false;
 	cloudSystem = NULL;
 	precipitationSystem = NULL;
 	precipitationEmitter = NULL;
 	sun = NULL;
 	inGameTime = Time(TimeType::MILLISECONDS_NO_CALENDER);
 	inGameSecondsPerSecond = 1.f;
+	inGameTime.AddMs(1000 * 60 * 60 * 8);
 	sunHours = 14.f;
 	sunDistance = 50.f;
 	smoothedAmbience = Vector3f(0,0,0);
@@ -32,26 +35,45 @@ WeatherSystem::~WeatherSystem()
 {
 	Stop();
 }
+
 /// Allocates resources.
 void WeatherSystem::Initialize()
 {
-	cloudSystem = new CloudSystem(this);
-	GraphicsQueue.Add(new GMRegisterParticleSystem(cloudSystem, true));
-	precipitationSystem = new PrecipitationSystem(this);
-	GraphicsQueue.Add(new GMRegisterParticleSystem(precipitationSystem, true));
+	if (initialized)
+		return;
+	initialized = true;
+	if (!cloudSystem)
+	{
+		cloudSystem = new CloudSystem(this);
+		GraphicsQueue.Add(new GMRegisterParticleSystem(cloudSystem, true));
+		precipitationSystem = new PrecipitationSystem(this);
+		GraphicsQueue.Add(new GMRegisterParticleSystem(precipitationSystem, true));
+	}
+	sunUp = 6.f;
+	if (!sunLight)
+	{
+		sunLight = new Light("SunLight");
+		sunLight->position = Vector3f(0, 50.f, 0);
+		// Add a light?
+		sunLight->shadowMapFarplane = 55.f;
+		sunLight->isStar = true;
+		sunLight->shadowMapZoom = 50.f;
+		sunLight->type = LightType::DIRECTIONAL; // Orthogonal.
+		sunLight->castsShadow = true;
+		sunLight->diffuse = sunLight->specular = Vector4f(1,1,1,1);
+		GraphicsQueue.Add(new GMAddLight(sunLight));
+		// Set ambient light.
+		GraphicsQueue.Add(new GMSetAmbience(Vector3f(0.5f,0.5f,0.5f)));
+	}
+}
 
-	sunLight = new Light("SunLight");
-	sunLight->position = Vector3f(0, 50.f, 0);
-	// Add a light?
-	sunLight->shadowMapFarplane = 55.f;
-	sunLight->isStar = true;
-	sunLight->shadowMapZoom = 50.f;
-	sunLight->type = LightType::DIRECTIONAL; // Orthogonal.
-	sunLight->castsShadow = true;
-	sunLight->diffuse = sunLight->specular = Vector4f(1,1,1,1);
-	GraphicsQueue.Add(new GMAddLight(sunLight));
-	// Set ambient light.
-	GraphicsQueue.Add(new GMSetAmbience(Vector3f(0.5f,0.5f,0.5f)));
+/// Sets active area for shadow mapping etc.
+void WeatherSystem::SetActiveArea(AABB & activeArea)
+{
+	sunDistance = activeArea.scale.Length();
+	sunLight->position.y = sunDistance;
+	sunLight->shadowMapFarplane = sunDistance * 1.5f;
+	sunLight->shadowMapZoom = sunDistance;
 }
 
 void WeatherSystem::Shutdown()
@@ -184,9 +206,16 @@ void WeatherSystem::Snow(float amount)
 	precipitationSystem->emissionVelocity = 2.f;
 }
 
+/// Get current sun time.
+float WeatherSystem::SunTime() const
+{
+	return sunHour;
+}
+
 /// Hour in 24-hour format.
 void WeatherSystem::SetSunTime(float hour)
 {
+	sunHour = hour;
 	float hoursIntoLight = hour - sunUp;
 	Angle angle(hoursIntoLight / sunHours * PI);
 	float cosine = angle.Cosine();
@@ -194,7 +223,6 @@ void WeatherSystem::SetSunTime(float hour)
 	// Get an angle?
 	Vector3f position(cosine, sine, 0);
 	// Derive color?
-	sunLight->castsShadow = position.y > 0;
 	Vector4f color;
 	Vector4f yellow = Vector4f(1,1,0.9f,1.f);
 	Vector4f red = Vector4f(3.f,0.5f,0.2f,1.f);
@@ -217,12 +245,18 @@ void WeatherSystem::SetSunTime(float hour)
 
 
 	sunColor = color;
+	
+	if (sunLight)
+	{
+		sunLight->castsShadow = position.y > 0;
+		// Set position.
+		GraphicsQueue.Add(new GMSetLight(sunLight, LT_POSITION, smoothedSunPosition));
+		GraphicsQueue.Add(new GMSetLight(sunLight, LT_COLOR, smoothedSunColor));
+	}
+	
 	/// Smooth 10% per logic frame (roughly 10 times per second).
 	smoothedSunColor = smoothedSunColor * 0.95f + sunColor * 0.05f;
 	smoothedSunPosition = smoothedSunPosition * 0.95f + position * 0.05f;
-	// Set position.
-	GraphicsQueue.Add(new GMSetLight(sunLight, LightTarget::POSITION, smoothedSunPosition));
-	GraphicsQueue.Add(new GMSetLight(sunLight, LightTarget::COLOR, smoothedSunColor));
 	
 	// Get normalized sun position...
 	Vector3f sunPositionNormalized = smoothedSunPosition.NormalizedCopy();

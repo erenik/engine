@@ -24,6 +24,7 @@ GMSetEntityTexture::GMSetEntityTexture(List<Entity*> entities, Texture * texture
 GMSetEntityTexture::GMSetEntityTexture(List<Entity*> entities, int target, Texture * texture)
 : GraphicsMessage(GM_SET_ENTITY_TEXTURE), entities(entities), target(target), textureSource(String()), t(texture)
 {
+//	std::cout<<"Max text: "<<MAX_TEXTURE_TARGETS;
 	assert(target >= DIFFUSE_MAP && target <= MAX_TEXTURE_TARGETS);
 }
 GMSetEntityTexture::GMSetEntityTexture(List<Entity*> entities, int target, String texture)
@@ -198,6 +199,7 @@ GMSetEntityb::GMSetEntityb(List<Entity*> entities, int target, bool value, bool 
 		case GT_DEPTH_TEST:
 		case GT_ANIMATE_SKIN_USING_SHADERS:
 		case GT_PAUSE_ANIMATIONS:
+		case GT_CAST_SHADOWS:
 			break;
 		default:
 			assert(false && "Bad target in GMSetEntityb");
@@ -210,9 +212,14 @@ void GMSetEntityb::Process()
 		Entity * entity = entities[i];
 		if (entity->children.Size())
 			entities.Add(entity->children);
+		if (entity->graphics == 0)
+			entity->graphics = new GraphicsProperty(entity);
 		assert(entity->graphics);
 		switch(target)
 		{
+			case GT_CAST_SHADOWS:
+				entity->graphics->castsShadow = bValue;
+				break;
 			case GT_DEPTH_TEST:
 				entity->graphics->depthTest = bValue;
 				break;

@@ -69,11 +69,12 @@ void GMSetSkyColor::Process()
 GMSetLight::GMSetLight(Light * light, int target, ConstVec3fr value)
 : GraphicsMessage(GM_SET_LIGHT), target(target), vec3Value(value), light(light) 
 {
+	assert(light);
 	switch(target)
 	{
-	case LightTarget::ATTENUATION:
-	case LightTarget::COLOR:
-	case LightTarget::POSITION:
+	case LT_ATTENUATION:
+	case LT_COLOR:
+	case LT_POSITION:
 		break;
 	default:
 		assert(false);
@@ -82,7 +83,16 @@ GMSetLight::GMSetLight(Light * light, int target, ConstVec3fr value)
 GMSetLight::GMSetLight(Light * light, int target, float value)
 : GraphicsMessage(GM_SET_LIGHT), target(target), fValue(value), light(light)
 {
+	assert(light);
+	switch(target)
+	{
+	case LT_CONSTANT_ATTENUATION:
+		break;
+	default:
+		assert(false);
+	}
 }
+
 GMSetLight::~GMSetLight()
 {
 
@@ -93,14 +103,17 @@ void GMSetLight::Process()
 		return;
 	switch(target)
 	{
-		case LightTarget::ATTENUATION:
+		case LT_ATTENUATION:
 			light->attenuation = vec3Value;
 			break;
-		case LightTarget::COLOR:
+		case LT_COLOR:
 			light->specular = light->diffuse = vec3Value;
 			break;
-		case LightTarget::POSITION:
+		case LT_POSITION:
 			light->position = vec3Value;
+			break;
+		case LT_CONSTANT_ATTENUATION:
+			light->attenuation.x = fValue;
 			break;
 		default:
 			assert(false);

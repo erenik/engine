@@ -124,7 +124,7 @@ int CollisionDetector::DetectCollisions(Entity * one, Entity * two, List<Collisi
 			tri = two;
 			sphere = one;
 		}
-		if (TriangleSphereCollision(tri, sphere, data))
+		if (TriangleSphereCollision(tri, sphere, data, true))
 			shouldCollide = true;
 	}
 	else if (shapeTypes[ShapeType::QUAD] && shapeTypes[ShapeType::SPHERE]){
@@ -138,7 +138,7 @@ int CollisionDetector::DetectCollisions(Entity * one, Entity * two, List<Collisi
 			quad = two;
 			sphere = one;
 		}
-		if (QuadSphereCollision(quad, sphere, data))
+		if (QuadSphereCollision(quad, sphere, data, true))
 			shouldCollide = true;
 	}
 	else if (shapeTypes[ShapeType::MESH] && shapeTypes[ShapeType::QUAD]){

@@ -44,6 +44,7 @@ bool GraphicsManager::RegisterEntity(Entity * entity)
 			ParticleSystem * ps = gp->particleSystems[i];
 			RegisterParticleSystem(ps, false);
 		}
+		graphicsState->dynamicLights += gp->dynamicLights;
 	}
 	/// If no graphics property exists. Add it.
 	else 

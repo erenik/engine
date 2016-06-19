@@ -92,7 +92,8 @@ bool RenderPass::SetupLightPOVCamera()
 			s4 = shadowMappingMatrix * Vector3f(0,0,10);
 
 		/// Set up a viewport similar to the shadow-map texture we are going to use!
-		glViewport(0, 0, shadowMapResolution, shadowMapResolution);
+//		glViewport(-shadowMapResolution/2, -shadowMapResolution/2, shadowMapResolution, shadowMapResolution);
+//		glViewport(0, 0, shadowMapResolution, shadowMapResolution);
 		glDisable(GL_SCISSOR_TEST);
 
 		light->shadowMappingMatrix = shadowMappingMatrix;

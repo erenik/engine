@@ -320,23 +320,27 @@ void Camera::UpdateProjectionMatrix()
 		case PROJECTION_3D:
 		{
 			projectionMatrix.InitProjectionMatrix(left, right, bottom, top, nearPlane, farPlane);
+			/*
 			Vector4f pos = projectionMatrix * Vector4d(0,0,0,1),
 				pos2 = projectionMatrix * Vector4d(10,10,10,1),
 				pos3 = projectionMatrix * Vector4d(100,100,100,1);
 			pos /= pos.w;
 			pos2 /= pos2.w;
-			pos3 /= pos3.w;
+			pos3 /= pos3.w;*/
 			break;
 		}
 		case ORTHOGONAL:
 		{
+//			std::cout<<"\nNearplane: "<<nearPlane<<" farPlane: "<<farPlane;
 			projectionMatrix.InitOrthoProjectionMatrix(left, right, bottom, top, nearPlane, farPlane);
+			/*
 			Vector4f pos = projectionMatrix * Vector4d(0,0,0,1),
 				pos2 = projectionMatrix * Vector4d(10,10,10,1),
 				pos3 = projectionMatrix * Vector4d(100,100,100,1);
 			pos /= pos.w;
 			pos2 /= pos2.w;
 			pos3 /= pos3.w;
+			*/
 			break;
 		}
 	}

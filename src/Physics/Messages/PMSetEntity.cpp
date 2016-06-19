@@ -167,6 +167,7 @@ PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, bool value)
 		case PT_ESTIMATION_ENABLED:
 		case PT_PAUSED:
 		case PT_FACE_VELOCITY_DIRECTION:
+		case PT_PLANE_COLLISIONS_ONLY:
 			break;
 		default:
 			assert(false && "Mismatched target and value in PMSetEntity!");
@@ -248,6 +249,11 @@ void PMSetEntity::Process()
 			case PT_INHERIT_POSITION_ONLY:
 			{
 				entity->inheritPositionOnly = true;
+				break;
+			}
+			case PT_PLANE_COLLISIONS_ONLY:
+			{
+				entity->physics->SetPlaneCollisionsOnly(bValue);
 				break;
 			}
 			case PT_FACE_VELOCITY_DIRECTION:

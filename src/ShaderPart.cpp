@@ -6,10 +6,11 @@
 
 #include <fstream>
 #include "File/LogFile.h"
+#include "Shader.h"
 
 /// 
-ShaderPart::ShaderPart(int type)
-: type(type)
+ShaderPart::ShaderPart(int type, Shader * owner)
+: type(type), shader(owner)
 {
 	shaderKernelPart = -1;
 }
@@ -40,6 +41,18 @@ bool ShaderPart::Load(String fromSource)
 	String sourceCode;
 	// Open file
 	sourceCode = source.GetContents();
+
+	/// Check for variables within. E.g. defines.
+	List<String> lines = sourceCode.GetLines();
+	for (int i = 0; i < lines.Size(); ++i)
+	{
+		String line = lines[i];
+		if (line.StartsWith("#define MAX_LIGHTS"))
+		{
+			shader->maxLights = (line - "#define MAX_LIGHTS").ParseInt();
+		}
+	}
+
 //		sourceCode.PrintData();
 	const char * arr = sourceCode.c_str();
 	// Associate the source code buffers with each handle 

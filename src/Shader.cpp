@@ -35,6 +35,9 @@ Shader * ActiveShader()
 
 Shader::Shader()
 {
+	/// Default -1. Should be parsed from the file. e.g: #define MAX_LIGHTS 32
+	maxLights = -1;
+
 	/// GL ids
 	shaderProgram = id = 0;
 	vertexShader = fragmentShader = NULL;
@@ -111,10 +114,10 @@ bool Shader::Compile()
 
 	if (shaderParts.Size() == 0)
 	{
-		vertexShader = new ShaderPart(ShaderType::VERTEX_SHADER);
+		vertexShader = new ShaderPart(ShaderType::VERTEX_SHADER, this);
 		shaderParts.Add(vertexShader);
 		vertexShader->name = name;
-		fragmentShader = new ShaderPart(ShaderType::FRAGMENT_SHADER);
+		fragmentShader = new ShaderPart(ShaderType::FRAGMENT_SHADER, this);
 		shaderParts.Add(fragmentShader);
 		fragmentShader->name = name;
 	}

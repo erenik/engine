@@ -419,7 +419,6 @@ bool Mesh::LoadDataFrom(const EMesh * otherMesh)
 	bool generateNormals = false;
 	if (numNormals == 0)
 	{
-		numNormals = 1;
 		generateNormals = true;
 	}
 
@@ -438,8 +437,14 @@ bool Mesh::LoadDataFrom(const EMesh * otherMesh)
 		Vector2f data = *(Vector2f*)otherMesh->uvs[i];
 		uvs[i] = data;
 	}
+	for (int i = 0; i < otherMesh->normals.Size(); ++i)
+	{
+		Vector3f data = *(Vector3f*)otherMesh->normals[i];
+		normals[i] = data;
+	}
 	if (generateNormals)
 	{
+		numNormals = 1;
 		normals[0] = Vector3f(0,1,0);
 	}
 
@@ -465,7 +470,11 @@ bool Mesh::LoadDataFrom(const EMesh * otherMesh)
 			}
 			// .. and decrement it? or increment..? Nah. Should be 0-based!
 			face.vertices[j] = index;
-			face.normals[j] = 0;
+			int normalIndex = 0;
+			ENormal * normal = eFace->normal;
+			if (normal)
+				normalIndex = otherMesh->normals.GetIndexOf(normal);
+			face.normals[j] = normalIndex;
 			face.uvs[j] = uvIndex;
 		}
 	}

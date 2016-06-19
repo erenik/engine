@@ -34,5 +34,5 @@ bool MeshSphereCollision(Entity * meshEntity, Entity * sphereEntity, Collision &
 	if (!physicsMesh)
 		return false;
 		
-	return SphereFaceCollision(sphereEntity, physicsMesh->triangles, physicsMesh->quads, data, meshEntity->transformationMatrix.IsIdentity()? 0 : &meshEntity->transformationMatrix);
+	return SphereFaceCollision(sphereEntity, physicsMesh->triangles, physicsMesh->quads, data, meshEntity->transformationMatrix.IsIdentity()? 0 : &meshEntity->transformationMatrix, physicsMesh->planeCollisionsOnly);
 }

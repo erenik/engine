@@ -30,10 +30,14 @@ public:
     AABB();
     AABB(const Vector3f & min, const Vector3f & max);
     bool Intersect(const AABB &aabb2) const;
+	/// Expands this AABB to include the given one.
+	void Expand(AABB & aabb2);
     /// Recalculate the AABBs constraints based on the given entity's transform and base model AABB.
     void Recalculate(Entity * entity);
 	bool WriteTo(std::fstream & file);
 	bool ReadFrom(std::fstream & file);
+
+	void UpdatePositionScaleUsingMinMax();
 
 	/// Returns this AABB in the form of 8 quads.
 	List<Quad> AsQuads();

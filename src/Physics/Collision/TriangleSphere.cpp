@@ -7,19 +7,19 @@
 
 #include "Sphere.h"
 
-bool TriangleSphereCollision(Entity * triEntity, Entity * sphereEntity, Collision &data){
+bool TriangleSphereCollision(Entity * triEntity, Entity * sphereEntity, Collision &data, bool planesOnly){
 	assert(triEntity->physics->shapeType == ShapeType::TRIANGLE);
 	assert(triEntity->physics->shape);
 	Triangle tri = *(Triangle*)(triEntity->physics->shape);
 	tri.Transform(triEntity->transformationMatrix);
 
-	if(TriangleSphereCollision(&tri, sphereEntity, data))
+	if(TriangleSphereCollision(&tri, sphereEntity, data, planesOnly))
 		return true;
 	return false;
 }
 
 /// For checking between static shapes (most raw data types, pretty much)
-bool TriangleSphereCollision(Triangle * triangle, Sphere * sphere, Collision &data)
+bool TriangleSphereCollision(Triangle * triangle, Sphere * sphere, Collision &data, bool planeOnly)
 {
 
 	/// Remember to multiply it by it's normal-matrix....
@@ -69,6 +69,8 @@ bool TriangleSphereCollision(Triangle * triangle, Sphere * sphere, Collision &da
 		data.results |= DISTANCE_INTO;
 		return true;
 	}
+	if (planeOnly)
+		return false;
 	/// If not, proceed with testing the sphere against each of the triangle's edges.
 	const int CORNERS = 3;
 	Vector3f edgeStart[CORNERS], edgeStop[CORNERS], vertexToSphere[CORNERS];
@@ -130,12 +132,12 @@ bool TriangleSphereCollision(Triangle * triangle, Sphere * sphere, Collision &da
 	return false;
 }
 
-bool TriangleSphereCollision(Triangle * triangle, Entity * sphereEntity, Collision &data)
+bool TriangleSphereCollision(Triangle * triangle, Entity * sphereEntity, Collision &data, bool planesOnly)
 {
 	static Sphere sphere; // = (Sphere*)sphereEntity->physics->shape;
 	sphere.position = sphereEntity->worldPosition;
 	sphere.radius = sphereEntity->physics->physicalRadius;
-	return TriangleSphereCollision(triangle, &sphere, data);
+	return TriangleSphereCollision(triangle, &sphere, data, planesOnly);
 /*
 	/// Remember to multiply it by it's normal-matrix....
 	Vector3f planeNormal = triangle->normal;

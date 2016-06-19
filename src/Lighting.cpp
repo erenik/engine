@@ -263,19 +263,13 @@ Light * Lighting::NewLight(String name)
 	return light;
 }
 
-/// DEPRECATE: bad arguments... Adds light to the lighting, return NULL upon falure. Note that the light is copied in this case! TODO: Remove this function.
+/// Adds light to the lighting, return NULL upon falure. 
 Light * Lighting::Add(Light * newLight)
 {
-	assert(false);
-	if (lights.Size() >= MAX_LIGHTS)
-		return NULL;
-	Light * light = new Light(*newLight);
-	light->currentlyActive = true;
-	activeLight = light;
-	/// Set default values
-	lights.Add(light);
+	newLight->currentlyActive = true;
+	lights.AddItem(newLight);
 	UPDATE_LAST_UPDATE_TIME
-	return light;
+	return newLight;
 }
 
 /// Removes target light. Returns false on failure.
@@ -345,6 +339,12 @@ List<Light*> Lighting::GetLights() const
 	}
 	return constLightList;
 }
+
+int Lighting::NumLights() const 
+{
+	return lights.Size();
+}
+
 
 /// Fills the whole light-array, attempting to  test the limits of the hardware with as many lights as possible.
 void Lighting::Overload()
@@ -562,10 +562,12 @@ void LoadLighting(Lighting * lighting, Shader * shader)
 	static GLfloat spotCutoff[MAX_LIGHTS];
 	static GLint spotExponent[MAX_LIGHTS];
 	int activeLights = 0;
-	for (int i = 0; i < lighting->lights.Size(); ++i)
+	for (int i = 0; i < lighting->lights.Size() && activeLights < shader->maxLights; ++i)
 	{
 		Light * light = lighting->lights[i];
 		if (!light->currentlyActive)
+			continue;
+		if (light->attenuation.x <= 0)
 			continue;
 		// Only take those lights which are visible in the frustum, or will reach it with their light?
 		// ... 
