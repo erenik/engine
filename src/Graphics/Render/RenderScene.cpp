@@ -322,12 +322,6 @@ uniform sampler2D positionMap;*/
 		glActiveTexture(GL_TEXTURE0 + 7);
 		glBindTexture(GL_TEXTURE_2D, pickingTexture);
 
-		// Set sampler in client state
-/*		if (shader->uniformBaseTexture != -1)
-			glUniform1i(shader->uniformBaseTexture, 0);		// Sets sampler
-		if (shader->uniformNormalMap != -1)
-			glUniform1i(shader->uniformNormalMap, 1);		// Sets sampler
-*/
 		graphicsState->currentTexture = 0;
 
 		// Render square for the AppWindow

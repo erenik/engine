@@ -15,6 +15,8 @@ void RenderPass::RenderSkyBox()
 	/// Render sphere from inside-out, so change clock-wise thingy for the culling, or just disable culling briefly..
 	glDisable(GL_CULL_FACE);
 	glCullFace(GL_NONE);
+	/// early-Z, Skybox after solid entities.
+	glDepthFunc(GL_LEQUAL);
 //	glFrontFace(GL_CW /* or GL_CCW */);
 
 	// Set up camera.
@@ -25,8 +27,8 @@ void RenderPass::RenderSkyBox()
 	
 	// Was here.
 
-	// Disable depth test and depth-write.
-	glDisable(GL_DEPTH_TEST);
+	// Disable depth-write. Not test to use early-z
+//	glDisable(GL_DEPTH_TEST);
 	glDepthMask(false);
 
 	if (shader->uniformSunPosition != -1)

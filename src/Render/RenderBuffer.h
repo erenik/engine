@@ -15,11 +15,17 @@ namespace BufferType
 	enum 
 	{
 		DEPTH_BUFFER,
-		COLOR_BUFFER_1,
+		COLOR_BUFFER_1,  
 		COLOR_BUFFER_2,
 		COLOR_BUFFER_3,
 		COLOR_BUFFER_4,
 		COLOR_BUFFER_5,
+		/// Default 5.
+		DIFFUSE = COLOR_BUFFER_1,
+		NORMAL,
+		POSITION,
+		SPECULAR,
+		EMISSIVE,
 	};
 };
 
@@ -30,8 +36,10 @@ namespace BufferStorageType
 		SINGLE_BYTE,
 		/// Used for e.g. depth-buffers.
 		DEPTH_16F, // 16-bit floating point. 
+		DEPTH_24F, // 24-bit floating point depth.
 		DEPTH_32F, // 32-bit floating point. Should work better for e.g. shadow mapping, but may cost some more memory.
 		/// Vector-buffers.
+		RGBA, // Also 8 bit per channel?
 		RGBA_8, // 4-channels, 8 bit integers per channel.
 		RGB_16F, // 3-channel, 16 bit floating point values per channel
 		RGB_32F, // 3-channel, 32 bit floating point values per channel

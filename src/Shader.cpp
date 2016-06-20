@@ -55,6 +55,8 @@ Shader::Shader()
 	uniformSpecularMap = -1;
 	uniformNormalMap = -1;
 	uniformEmissiveMap = -1;
+	uniformPositionMap = -1;
+	uniformDepthMap = -1;
 
 	/// Set the using uniforms to -1.
 	uniformUseDiffuseMap = uniformUseSpecularMap = uniformUseNormalMap = uniformBoneSkinningMatrixMap = -1;
@@ -276,6 +278,8 @@ void Shader::ExtractUniforms()
 	uniformNormalMap = glGetUniformLocation(shaderProgram, "normalMap");
 	uniformEmissiveMap = glGetUniformLocation(shaderProgram, "emissiveMap");
 	uniformBoneSkinningMatrixMap = glGetUniformLocation(shaderProgram, "boneSkinningMatrixMap");
+	uniformPositionMap = glGetUniformLocation(shaderProgram, "positionMap");
+	uniformDepthMap = glGetUniformLocation(shaderProgram, "depthMap");
 
 	// Shadow maps.
 	uniformShadowMap = glGetUniformLocation(shaderProgram, "shadowMap");
@@ -493,7 +497,20 @@ void Shader::SetModelMatrix(const Matrix4f & mat)
 	glUniformMatrix4fv(uniformModelMatrix, 1 , false, mat.getConstPointer());
 }
 	
-
+#include "Render/RenderBuffer.h"
+/// See Render/RenderBuffer.h for types.
+int Shader::GetUniformTextureByBufferType(int type)
+{
+	switch(type)
+	{
+		case BufferType::DIFFUSE: return uniformDiffuseMap;
+		case BufferType::NORMAL: return uniformNormalMap;
+		case BufferType::POSITION: return uniformPositionMap;
+		case BufferType::DEPTH_BUFFER: return uniformDepthMap;
+		case BufferType::SPECULAR: return uniformSpecularMap;
+	}
+	return -1;
+}
 
 /** Sets the texture indices to the default values, so that binding is done correctly afterwards. 
 	The equivalent texture unit is glActiveTexture(GL_TEXTURE0 + value). Default values are as follows:
@@ -511,10 +528,11 @@ void Shader::SetTextureLocations()
 	normalMapIndex = 2;
 	emissiveMapIndex = 3;
 	boneSkinningMatrixMapIndex = 4;
-	
-	shadowMapIndex = 5;
+	positionMapIndex = 5;
+	depthMapIndex = 6;
+	shadowMapIndex = 7;
 
-	int indicesUsed = 6;
+	int indicesUsed = 8;
 
 	if (uniformBaseTexture != -1)
 	{
@@ -541,7 +559,17 @@ void Shader::SetTextureLocations()
 		glActiveTexture(GL_TEXTURE0 + boneSkinningMatrixMapIndex);
 		glUniform1i(uniformBoneSkinningMatrixMap, boneSkinningMatrixMapIndex); // Sets sampler to use texture #3 for skinning maps	
 	}
-	// Location 4 and onwards for the shadow maps?
+	if (uniformPositionMap != -1)
+	{
+		glActiveTexture(GL_TEXTURE0 + positionMapIndex);
+		glUniform1i(uniformPositionMap, positionMapIndex);
+	}
+	if (uniformDepthMap != -1)
+	{
+		glActiveTexture(GL_TEXTURE0 + depthMapIndex);
+		glUniform1i(uniformDepthMap, depthMapIndex);
+	}
+	// Location 10 and onwards for the shadow maps?
 	if (uniformShadowMap != -1)
 	{
 		glActiveTexture(GL_TEXTURE0 + shadowMapIndex);

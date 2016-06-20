@@ -98,6 +98,8 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 	else 
 		glDisable(GL_DEPTH_TEST);
 
+	glDepthFunc(GL_LESS);
+
 	glDepthMask(GL_TRUE);
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_LIGHTING);
@@ -233,9 +235,10 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 	if (shader)
 	{
 		// Update view and projection matrix in specified shader
+		Vector3f camPos = camera.Position();
 		glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, graphicsState.projectionMatrixF.getPointer());
 		glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, graphicsState.viewMatrixF.getPointer());
-		glUniform4f(shader->uniformEyePosition, camera.Position()[0], camera.Position()[1], camera.Position()[2], 1.0f);
+		glUniform4f(shader->uniformEyePosition, camPos.x, camPos.y, camPos.z, 1.0f);
 		CheckGLError("RenderPass, eye position");
 	}	
 	// Check for instancing before we start.
@@ -250,7 +253,7 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 		/// Use previously rendered-to render-buffers associated with this viewport.
 		case RenderTarget::DEFERRED_GATHER:
 		{
-		
+			SetupDeferredGatherAsInput();
 			break;
 		}
 		case RenderTarget::SHADOW_CASTING_ENTITIES:
@@ -336,7 +339,10 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 		}
 		case RenderTarget::DEFERRED_GATHER:
 		{
-			assert(false);
+			/// Outputs should already be taken core of during initialization, but maybe print something?
+			// Set defaults for... stuff.
+
+//			assert(false);
 //			graphicsState.activeViewport->frameBuffer->DumpTexturesToFile();
 			break;
 		}
@@ -383,8 +389,10 @@ bool RenderPass::SetupOutput()
 		case RenderTarget::DEFERRED_GATHER:
 		{
 			// Set up/fetch render buffers for this, based on the viewport.
-			if (!graphicsState->activeViewport->BindFrameBuffer())
-				return false;
+			BindDeferredGatherFrameBuffer();
+
+//			if (!graphicsState->activeViewport->BindFrameBuffer())
+//				return false;
 			break;
 		}
 		default:

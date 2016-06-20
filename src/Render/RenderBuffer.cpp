@@ -40,21 +40,13 @@ void RenderBuffer::CreateBuffer()
 	}
 	switch(storageType)
 	{
-		case BufferStorageType::DEPTH_16F:
-			glStorageType = GL_DEPTH_COMPONENT16;
-			break;
-		case BufferStorageType::DEPTH_32F:
-			glStorageType = GL_DEPTH_COMPONENT32;
-			break;
-		case BufferStorageType::RGBA_8:
-			glStorageType = GL_RGBA8;
-			break;
-		case BufferStorageType::RGB_16F:
-			glStorageType = GL_RGB16F;
-			break;
-		case BufferStorageType::RGB_32F:
-			glStorageType = GL_RGB32F;
-			break;
+		case BufferStorageType::DEPTH_16F: glStorageType = GL_DEPTH_COMPONENT16; break;
+		case BufferStorageType::DEPTH_24F: glStorageType = GL_DEPTH_COMPONENT24; break;
+		case BufferStorageType::DEPTH_32F: glStorageType = GL_DEPTH_COMPONENT32; break;
+		case BufferStorageType::RGBA: glStorageType = GL_RGBA; break;
+		case BufferStorageType::RGBA_8: glStorageType = GL_RGBA8; break;
+		case BufferStorageType::RGB_16F: glStorageType = GL_RGB16F; break;
+		case BufferStorageType::RGB_32F: glStorageType = GL_RGB32F; break;
 		default:
 			assert(false);
 	}
@@ -83,8 +75,16 @@ void RenderBuffer::CreateTexture()
 
 	int glPixelDataFormat = -1;
 	int glPixelDataType = -1;
+	int glInternalFormat = glStorageType;
 	switch(storageType)
 	{
+		case BufferStorageType::RGBA: 
+			glInternalFormat = GL_RGBA;  
+			glPixelDataFormat = GL_RGBA;
+			glPixelDataType = GL_UNSIGNED_BYTE;
+			texture->bpp = 4;
+			texture->format = Texture::RGBA;
+			break;
 		case BufferStorageType::RGBA_8:
 			glPixelDataFormat = GL_RGBA;
 			glPixelDataType = GL_UNSIGNED_BYTE;
@@ -104,13 +104,19 @@ void RenderBuffer::CreateTexture()
 			texture->format = Texture::RGB_32F;
 			break;
 		case BufferStorageType::DEPTH_16F:
-			glPixelDataFormat = GL_DEPTH_COMPONENT;
+			glInternalFormat = glPixelDataFormat = GL_DEPTH_COMPONENT;
 			glPixelDataType = GL_FLOAT;
 			texture->bpp = 2;
 			texture->format = Texture::SINGLE_16F;
 			break;
+		case BufferStorageType::DEPTH_24F:
+			glInternalFormat = glPixelDataFormat = GL_DEPTH_COMPONENT;
+			glPixelDataType = GL_FLOAT;
+			texture->bpp = 3;
+			texture->format = Texture::SINGLE_24F;
+			break;
 		case BufferStorageType::DEPTH_32F:
-			glPixelDataFormat = GL_DEPTH_COMPONENT;
+			glInternalFormat = glPixelDataFormat = GL_DEPTH_COMPONENT;
 			glPixelDataType = GL_FLOAT;
 			texture->bpp = 4;
 			texture->format = Texture::SINGLE_32F;
@@ -118,7 +124,7 @@ void RenderBuffer::CreateTexture()
 	}
 	// Create a standard texture with the width and height of our AppWindow
 	assert(size.x > 0 && size.y > 0);
-	glTexImage2D(GL_TEXTURE_2D, 0, glStorageType, size.x, size.y, 0, glPixelDataFormat, glPixelDataType, NULL); 
+	glTexImage2D(GL_TEXTURE_2D, 0, glInternalFormat, size.x, size.y, 0, glPixelDataFormat, glPixelDataType, NULL); 
 	AssertGLError("RenderBuffer::CreateTexture");
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);  // Sampling outside (0,0), (1,1)
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);

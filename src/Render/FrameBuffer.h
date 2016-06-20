@@ -7,6 +7,7 @@
 
 #include "RenderBuffer.h"
 
+class Shader;
 class Viewport;
 
 class FrameBuffer
@@ -26,8 +27,12 @@ public:
 	void CreateRenderBuffers();
 	/// Creates just 1 dedicated buffer to receive the depth-data. Preferably in 32-bit floating point to ensure better quality?
 	bool CreateDepthBuffer(Vector2i size);
+	/// Creates a default set of render-buffers for deferred rendering. Included: diffuse, normal, position, specular, emissive (all triple-vectors) + a depth buffer.   
+	bool CreateDeferredBuffers(Vector2i size);
 	/// Binds it for use.
 	bool Bind();
+	/// Binds textures for sampling, e.g. using Deferred previously rendered-to buffer to do the Deferred-rendering part. Binds the textures straight into the current shader.
+	void BindTexturesForSampling(Shader * inShader);
 	/// Sets the buffers to draw in.
 	bool SetDrawBuffers();
 	/// Yup.

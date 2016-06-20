@@ -120,6 +120,10 @@ private:
 	Viewport * viewport;
 	/// Creates it as needed.
 	bool BindShadowMapFrameBuffer();
+	/// Set up/fetch render buffers as needed. (For output)
+	bool BindDeferredGatherFrameBuffer();
+	void SetupDeferredGatherAsInput(); // (For input);
+
 	/// In pixels.
 	int shadowMapResolution;
 };

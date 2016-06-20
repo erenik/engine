@@ -138,6 +138,7 @@ public:
 		NULL_FORMAT,
 		GREYSCALE,
 		SINGLE_16F, // Single channel red/greyscale image, 16 bits float per pixel.
+		SINGLE_24F, // 24 bits.
 		SINGLE_32F, // floating point 32 bits per pixel, 1 channel/
 		RGB,
 		RGB_8 = RGB, // standard 8 bit per channel, 3 channels

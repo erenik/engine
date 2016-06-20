@@ -275,6 +275,70 @@ bool FrameBuffer::CreateDepthBuffer(Vector2i depthBufferSize)
 	return true;
 }
 
+/// Creates a default set of render-buffers for deferred rendering. Included: diffuse, normal, position, specular, emissive (all triple-vectors) + a depth buffer.   
+bool FrameBuffer::CreateDeferredBuffers(Vector2i inSize)
+{
+	this->size = inSize;
+	/// OpenGL specific data
+	if (frameBufferObject == -1)
+		frameBufferObject = GLFrameBuffers::New();
+	int error = glGetError();
+	/// Bind it for manipulatoin.
+	glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObject);
+	AssertGLError("FrameBuffer::CreateRenderBuffers");
+	/// Establish some variables before we try tweaking properties..
+	Vector2i textureSize = size;	
+	// Delete the old buffers as needed.
+	renderBuffers.ClearAndDelete();	
+	// Add the depth-buffer.
+	renderBuffers.AddItem(new RenderBuffer("Depth", BufferType::DEPTH_BUFFER, BufferStorageType::DEPTH_24F, textureSize));
+	// Create the buffers.
+	RenderBuffer * diffBuf = new RenderBuffer("Diffuse", BufferType::COLOR_BUFFER_1, BufferStorageType::RGBA, textureSize);
+	renderBuffers.AddItem(diffBuf);
+	renderBuffers.Add(new RenderBuffer("Normal", BufferType::COLOR_BUFFER_2, BufferStorageType::RGB_16F, textureSize),
+		new RenderBuffer("Position", BufferType::COLOR_BUFFER_3, BufferStorageType::RGB_32F, textureSize),
+		new RenderBuffer("Specular", BufferType::COLOR_BUFFER_4, BufferStorageType::RGB_32F, textureSize),
+		new RenderBuffer("Emissive", BufferType::COLOR_BUFFER_5, BufferStorageType::RGB_32F, textureSize));
+
+	// Bind to 0 when done.
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);	
+	AssertGLError("FrameBuffer::CreateRenderBuffers");
+	// Create textures for each buffer.
+	for (int i = 0; i < renderBuffers.Size(); ++i)
+	{
+		RenderBuffer * rb = renderBuffers[i];
+		// Actually create it.
+		rb->CreateBuffer();
+		rb->CreateTexture();
+		// Bind them straight away too.
+		rb->BindTextureToFrameBuffer();
+	}
+	int frameBufferColorAttachmentsSet = renderBuffers.Size();
+
+	GLenum status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT); // Check that status of our generated frame buffer
+	AssertGLError("FrameBuffer::CreateRenderBuffers");
+	
+	// Check that frame buffer is okay to work on.
+	status = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER);
+	if (!CheckFrameBufferStatus(status, name))
+		return false;
+
+	/// Only have frame buffer parameters in OpenGL 4.3 core and above...
+	if (GL_VERSION_MAJOR >= 4 && GL_VERSION_MINOR >= 3){
+		/// Set frame buffer parameters
+	//	glFramebufferParameteri(GL_DRAW_FRAMEBUFFER, GL_FRAMEBUFFER_DEFAULT_WIDTH, 512);
+	//	glFramebufferParameteri(GL_DRAW_FRAMEBUFFER, GL_FRAMEBUFFER_DEFAULT_HEIGHT, 512);
+	//	glFramebufferParameteri(GL_DRAW_FRAMEBUFFER, GL_FRAMEBUFFER_DEFAULT_SAMPLES, 4);
+		error = glGetError();
+	}
+	// Unbind our frame buffer object, along with its attached render buffers
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	AssertGLError("FrameBuffer::CreateRenderBuffers");	
+	// Ok!
+	good = true;
+	return true;
+}
+
 bool CheckFrameBufferStatus(int status, String frameBufferName)
 {
 	switch(status) {
@@ -321,6 +385,27 @@ bool FrameBuffer::Bind()
 	glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObject);
 	AssertGLError("Viewport::BindFrameBuffer");
 	return true;
+}
+
+#include "Shader.h"
+
+/// Binds textures for sampling, e.g. using Deferred previously rendered-to buffer to do the Deferred-rendering part.
+void FrameBuffer::BindTexturesForSampling(Shader * shader)
+{
+	int bound = 0;
+	for (int i = 0; i < renderBuffers.Size(); ++i)
+	{
+		RenderBuffer * rb = renderBuffers[i];
+		rb->texture->glid;
+		// Check uniform associated.
+		int uni = shader->GetUniformTextureByBufferType(rb->type);
+		if (uni == -1)
+			continue;
+		glUniform1i(uni, bound);
+		glActiveTexture(GL_TEXTURE0 + bound);
+		glBindTexture(GL_TEXTURE_2D, rb->texture->glid);
+		++bound;
+	}
 }
 
 /// Sets the buffers to draw in.

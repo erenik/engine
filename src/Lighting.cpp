@@ -518,7 +518,6 @@ void Lighting::ReadFrom(std::fstream & file)
 /// Loads selected lighting into the active shader program
 void LoadLighting(Lighting * lighting, Shader * shader)
 {
-	
 	GLuint loc = -1, error;
 	error = glGetError();
 	if (error != GL_NO_ERROR)
@@ -529,7 +528,9 @@ void LoadLighting(Lighting * lighting, Shader * shader)
 		return;
 	if (!shader)
 		return;
-
+	if (lighting->lastUpdate == shader->lastLightUpdate)
+		return;
+	shader->lastLightUpdate = lighting->lastUpdate;
 //#define PRINT_DEBUG
 
 	// Return. If no ambient is present no other light will be either.

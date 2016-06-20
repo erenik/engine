@@ -80,6 +80,9 @@ public:
 	void SetViewMatrix(const Matrix4f & mat);
 	void SetModelMatrix(const Matrix4f & mat);
 
+	/// See Render/RenderBuffer.h for types.
+	int GetUniformTextureByBufferType(int type);
+
 	/** Sets the texture indices to the default values, so that binding is done correctly afterwards. 
 		The equivalent texture unit is glActiveTexture(GL_TEXTURE0 + value). Default values are as follows:
 		0 - Diffuse/Default map
@@ -108,7 +111,7 @@ public:
 	/// Flag for successful building of the shader
 	bool built;
 	/// Last time we updated information about the active lights in the shader
-	long lightUpdate;
+	AETime lastLightUpdate;
 
 	/** Attribues (streamed/buffered data) specific to this shader.
 		Attributes not in use will have the value -1 (or UINT_MAX?)
@@ -199,11 +202,15 @@ public:
 		3 - Emissive
 		4 - Bone/Skinning
 	*/
+#define uniformDiffuseMap uniformBaseTexture
 	GLuint uniformBaseTexture,
 		uniformSpecularMap,
 		uniformNormalMap,
 		uniformEmissiveMap;
 	GLuint uniformBoneSkinningMatrixMap;	/// Skeletal animation texture storages
+
+	/// Maps for deferred et al.
+	GLuint uniformPositionMap, uniformDepthMap;
 
 	// Shadow maps.
 	GLuint uniformShadowMap; // Default location: glActiveTexture(GL_TEXTURE0 + 4);
@@ -216,6 +223,7 @@ public:
 	int emissiveMapIndex;
 	int boneSkinningMatrixMapIndex;
 	int shadowMapIndex;
+	int positionMapIndex, depthMapIndex;
 	
 	// Texture factors
 	GLuint uniformEmissiveMapFactor;
