@@ -1,18 +1,19 @@
 // Author: Emil Hedemalm
-// Date: 2012-10-29
-#version 120
-
-// For bit-wise operations!
-// #extension GL_EXT_gpu_shader4 : enable
+// Date: 2016-06-20
+// Name: Deferred lighting n shadow mapping
+#version 330
 
 // Uniforms
-// Position of eye in the world.
-uniform vec4 eyePosition	= vec4(0.0, 5.0, 0.0, 0.0);	
-// Color applied to all stuff in the final.
-uniform vec4 primaryColorVec4 = vec4(1.0, 1.0, 1.0, 1.0);
+// 2D Texture texture. Set these to -1 if you are not going to use them!
+uniform sampler2D diffuseMap; // Same namespace as the regular diffuse/specular/normal maps in 
+uniform sampler2D specularMap; // Simple/non-deferred or in deferred-gatherer render-passes.
+uniform sampler2D normalMap;
+uniform sampler2D positionMap; // For deferred.
+uniform sampler2D emissiveMap;
+uniform sampler2D depthMap; // For writing the correct depth from earlier.
 
 // Lights
-#define MAX_LIGHTS	32	
+#define MAX_LIGHTS	150
 uniform vec4 light_ambient = vec4(1,1,1,1);
 uniform vec4 light_diffuse[MAX_LIGHTS];
 uniform vec4 light_specular[MAX_LIGHTS];
@@ -30,39 +31,34 @@ uniform int light_spotExponent[MAX_LIGHTS];
 // Total amount of active lights
 uniform int activeLights = 0;	// Lights active, from index 0 to activeLights-1
 
-// Material statistics
+/// Variables needing replacement/new buffers/textures/uniforms.
+/*
+	material-properties.
+	emissiveMap
+*/
 uniform vec4	materialAmbient		= vec4(0.2, 0.2, 0.2, 1.0);
 uniform vec4	materialDiffuse		= vec4(0.8, 0.8, 0.8, 1.0);
 uniform vec4	materialSpecular	= vec4(1.1, 1.1, 1.1, 1.0);
 uniform int		materialShininess	= 8	;
 
-// 2D Texture texture
-uniform sampler2D diffuseMap;
-uniform sampler2D specularMap;
-uniform sampler2D normalMap;
-uniform sampler2D emissiveMap;
-
-uniform float emissiveMapFactor = 1.0;
-
 /// Shadow-mapping o.o
 uniform sampler2D shadowMap;
 uniform mat4 shadowMapMatrix;
 
-/// Individual bools for if the above samplers are active or not!
-uniform bool useDiffuseMap;
-uniform bool useSpecularMap;
-uniform bool useNormalMap;
-
-uniform float fogBegin = 500.0;
-uniform float fogEnd = 2500.0;
-uniform vec3 fogColor = vec3(0,0,0);
+// Matrix to be multiplied for the normals (for rotations primarily)
+uniform mat4 normalMatrix = mat4(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1);
+// Position of eye in the world.
+uniform vec4 eyePosition	= vec4(0.0, 5.0, 0.0, 0.0);
 
 // Input data from the fragment shader
-varying vec3 v_normal;		// Interpolated coordinates that have been transformed to view space
-varying vec2 UV_Coord;	// Just passed on
-varying vec3 position;	// World coordinates of the fragment
-varying vec3 vecToEye;	// Vector from vertex to eye
-varying vec4 v_Tangent;	// Tangent XY in XY and CoTangent XY in ZW?
+varying vec2 UV_Coord;		// Just passed on
+varying vec3 constantColor;
+
+/// Explicit out locations for the destination FrameBuffer 
+// Use for later maybe, next pass.
+// layout (location = 0) out vec4 diffuseOut;
+uniform int pickingID = 1;
+uniform vec4 primaryColorVec4 = vec4(1,1,1,1);
 
 /// Gets attenuation based on vectors of constant, linear, quadratic + distance to object.
 float GetAttenuation(vec3 att, float dist)
@@ -70,44 +66,33 @@ float GetAttenuation(vec3 att, float dist)
 	return att.x / (1 + att.y * dist + att.z * pow(dist, 2)); 
 }
 
-void main()
-{
-	// For testing shit
-	vec3 constantColor = vec3(0,0,0);
-
-//	constantColor.x = 1;
-
-	// Set depth first..
-	float depth = gl_FragCoord.z;
-	/// Set depth of the pixel as it was!
-	gl_FragDepth = depth; //depth.x;
-	// Base texel for color, usually gathered from the DiffuseMap.
-	vec4 texel;
+void main(){
 	// Texture image data. This will be the base for the colors.
-	if (useDiffuseMap){
-		/// Call the blended texture fragment Texel ^^ Could be derived from multiple textures! ^.^
-		 texel = texture2D(diffuseMap, UV_Coord);	
-	}
-	else 
-		texel = vec4(0.3,0.3,0.3,1.0);
-	
-	gl_FragColor = texel;
-	/// Background static ambience if depth is 1 (farplane)
-	if (depth == 1){
-//		gl_FragColor = light_ambient;
-//		return;
-	}
+	vec3 white = vec3(1,1,1);
 
-	vec3 normal = v_normal;
+	vec3 position = texture2D(positionMap, UV_Coord).xyz;
+	vec3 vecToEye = position - eyePosition.xyz + vec3(0,5,0);
+	/// Assume eye is at 0,0,0 for now
+	float distance = length(vecToEye);
+	float intensity = 1.0f;
+	intensity = 1.0f / (1.0f + distance);
 	
-	// Calculate vector to eye from vertex.
-	vec3 vecToEye = eyePosition.xyz - position.xyz;
-	gl_FragColor.xyz += vecToEye;
-	gl_FragColor.xyz += eyePosition.xyz;
-	/// Set color to 0.
-	gl_FragColor = vec4(0,0,0,0);
-	/// Set alpha now.
-	gl_FragColor.w += texel.w;
+	vec3 diffuse = texture2D(diffuseMap, UV_Coord).xyz;
+	vec3 specular = texture2D(specularMap, UV_Coord).xyz;
+	vec3 normal = texture2D(normalMap, UV_Coord).xyz;
+	// DO NOTE: Alpha has to be Positive for the value to be printed out to the texture AT ALL! 
+	// It defines probably the ratio at which it is sent down the pipeline. o-o;;
+	/*
+	normalOut = vec4((normalize(normal)).xyz, 1);
+	if (true)
+		diffuseOut = texture2D(diffuseMap, UV_Coord) * primaryColorVec4;
+	else
+		diffuseOut = vec4(1.3,0.3,0.3,1.0) * primaryColorVec4;
+*/	
+	vec3 color = vec3(0,0,0);
+//	color = specular;
+//	color = position;
+//	color.xy += UV_Coord * 0.2;
 
 	// Luminosity for each color
 	vec3 diffuseLuminosity = vec3(0,0,0);
@@ -311,41 +296,32 @@ void main()
 	}
 
 	// Final illumination done, multiply with diffuse ^^
-	vec3 diffuseTotal = texel.xyz * diffuseLuminosity * materialDiffuse.xyz;
+	vec3 diffuseTotal = diffuse.xyz * diffuseLuminosity * materialDiffuse.xyz;
 	vec3 specularTotal = vec3(0,0,0);
 	/// Check if using specular map.
-	if (useSpecularMap)
-	{
-		vec4 specTex = texture2D(specularMap, UV_Coord);
-		specularTotal.xyz += specTex.xyz * specularLuminosity * materialSpecular.xyz;
-//		constantColor.x = 1;
-	}
-	// Default, use diffuse-map as specular.
-	else
-		specularTotal.xyz += texel.xyz * specularLuminosity * materialSpecular.xyz;
+	vec4 specTex = texture2D(specularMap, UV_Coord);
+	specularTotal.xyz += specTex.xyz * specularLuminosity * materialSpecular.xyz;
 	
 	// Sample emissive map?
-	vec3 emissive = texture2D(emissiveMap, UV_Coord).xyz * emissiveMapFactor;
-
+	vec3 emissive = texture2D(emissiveMap, UV_Coord).xyz;
+	
 	/// Add global ambient ^^
 	vec3 diffuseFactor = clamp(diffuseTotal.xyz, 0, 1);
 	vec3 specularFactor = clamp(specularTotal, 0, 1);
-	vec3 emissiveFactor = clamp(emissive, 0, 1);
-	vec3 ambientFactor = clamp(texel.xyz * light_ambient.xyz, 0, 1);
+	vec3 emissiveFactor = clamp(emissive, 0, 1) * 0;
+	vec3 ambientFactor = clamp(diffuse.xyz * light_ambient.xyz, 0, 1);
 	
-	gl_FragColor.xyz = diffuseFactor + specularFactor + emissiveFactor + ambientFactor;
-	
-	// Additional multiplier.
-	gl_FragColor *= clamp(primaryColorVec4, 0.01, 1.0); 
+	color = diffuseFactor + specularFactor + emissiveFactor + ambientFactor;
 
-//	constantColor.xyz = light_ambient.xyz;
-	
-	if (gl_FragColor.x < 0)
-	{
-//		constantColor.x = 0.1;
-	}
-	/// Debugging color.
-	if (constantColor.x > 0 || constantColor.y > 0 || constantColor.z  > 0)
-		gl_FragColor.xyz = constantColor;
+	if (constantColor.x != 0)
+		color = constantColor;
+//	color.x += distance;
+//	color = specTex.xyz;
+//	color = diffuse.xyz;
+		
+	gl_FragColor.xyz = color;
+	gl_FragColor.w = distance;
+	gl_FragDepth = texture2D(depthMap, UV_Coord).x;
+//	gl_Position.w = distance;
+	return;
 }
-
