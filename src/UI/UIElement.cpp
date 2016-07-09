@@ -198,7 +198,7 @@ UIElement::~UIElement()
 	/// But take care of the mesh!
 	SAFE_DELETE(mesh);
 	/// Inform the input manager that we delete the element.
-	// Input.OnElementDeleted(this);
+	// InputMan.OnElementDeleted(this);
 }
 
 /// Sets the bufferized flag. Should only be called before program shutdown. Ensures less assertions will fail.

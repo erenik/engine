@@ -38,7 +38,8 @@ void PhysicsManager::DetectCollisions()
             pairs = aabbSweeper->Sweep();
 //               aabbSweeper->PrintSortedList();
     //           std::cout<<"\nBroad phase AABB sweep pairs: "<<pairs.Size();
-            for (int i = 0; i < pairs.Size(); ++i){
+            for (int i = 0; i < pairs.Size(); ++i)
+			{
                 /// For now just mark both as intersecting.
                 EntityPair ep = pairs[i];
 				Entity * one = ep.one, * two = ep.two;

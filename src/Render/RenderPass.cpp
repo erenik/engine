@@ -221,7 +221,7 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 	if (shader)
 	{
 		/// Load lighting settings to shader ^^
-		LoadLighting(graphicsState.lighting, shader);
+		graphicsState.lighting->LoadIntoShader(shader);
 	}
 	
 	// Set primary color

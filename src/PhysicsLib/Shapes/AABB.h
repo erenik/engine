@@ -32,6 +32,7 @@ public:
     bool Intersect(const AABB &aabb2) const;
 	/// Expands this AABB to include the given one.
 	void Expand(AABB & aabb2);
+	void Expand(ConstVec3fr vec); 
     /// Recalculate the AABBs constraints based on the given entity's transform and base model AABB.
     void Recalculate(Entity * entity);
 	bool WriteTo(std::fstream & file);

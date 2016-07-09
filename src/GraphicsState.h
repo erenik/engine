@@ -52,6 +52,8 @@ class RenderInstancingGroup;
 	Read only unless you know what you're doing (and are located within a render-thread function).
 */
 extern GraphicsState * graphicsState;
+/// Frame ID/number/enumeration.
+extern int graphicsFrameNumber;
 
 /** A structure containing information about the current rendering settings and temporary variables, including:
 	- the current model matrix.

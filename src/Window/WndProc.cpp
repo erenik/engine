@@ -272,7 +272,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			break;
 		case SC_KEYMENU:	// Retrieves the AppWindow menu as a result of a keystroke. For more information, see the Remarks section.
 		//	std::cout<<"\nSC_KEYMENU (Alt) received.";
-		//	Input.KeyDown(KEY::ALT);
+		//	InputMan.KeyDown(KEY::ALT);
 			return 0;
 			break;
 		case SC_MOVE:		// Moves the AppWindow.
@@ -399,8 +399,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 		////	BlockInput(true);
 		//	INPUT mouseInput;
-		//	mouseInput.type = INPUT_MOUSE;
-		//	MOUSEINPUT * mi = &mouseInput.mi;
+		//	mouseInputMan.type = INPUT_MOUSE;
+		//	MOUSEINPUT * mi = &mouseInputMan.mi;
 		//	mi->dx = (LONG) (Graphics.ScreenWidth() * 0.5f * 20);
 		//	mi->dy = (LONG) (Graphics.ScreenHeight() * 0.5f * 40);
 		//	mi->mouseData = NULL;

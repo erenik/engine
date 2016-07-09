@@ -42,6 +42,9 @@ int fatalGraphicsError = 0;
 
 String graphicsThreadDetails;
 
+/// Frame ID/number/enumeration.
+int graphicsFrameNumber = 0;
+
 /// Mark application for destruction if not done so already?
 /// Inform that the thread has ended.
 #define END_GRAPHICS_THREAD_ERROR(s) \
@@ -374,6 +377,7 @@ PROCESSOR_THREAD_START(GraphicsManager)
 
 			// How long the last frame took. Used for updating some mechanisms next frame.
 			graphicsState->frameTime = Graphics.frameTime * 0.001;
+			++graphicsFrameNumber;
 
 			/// Enable the below via some option maybe, it just distracts atm.
 			/*

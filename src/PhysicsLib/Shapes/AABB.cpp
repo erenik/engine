@@ -47,6 +47,12 @@ void AABB::Expand(AABB & aabb2)
 	UpdatePositionScaleUsingMinMax();
 }
 
+void AABB::Expand(ConstVec3fr vec)
+{
+	min = Vector3f::Minimum(min, vec);
+	max = Vector3f::Maximum(max, vec);
+}
+
 void AABB::UpdatePositionScaleUsingMinMax()
 {
 	/// Update scale and such.

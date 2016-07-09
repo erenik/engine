@@ -87,40 +87,6 @@ void GMSet::Process()
 	    case GT_CLEAR_COLOR:
             graphicsState->clearColor = vec3fValue;
             break;
-		case GT_ACTIVE_USER_INTERFACE:
-		{
-			assert(false && "Deprecated?");
-			/*
-			/// Notify the previous ui that they are going out of scope.
-			UserInterface * previousUI = Graphics.GetUI();
-			if (previousUI)
-				previousUI->OnExitScope();
-
-			UserInterface * ui = (UserInterface*) pData;
-			Graphics.ui = ui;
-			if (ui == NULL)
-				return;
-			// Activate things as necessary.
-			ui->OnEnterScope();
-			bool needToResize = ui->AdjustToWindow(Graphics.width, Graphics.height);
-			// If we haven't created the geoms, do it and buffer it straight away
-			if (!ui->IsGeometryCreated()){
-				ui->CreateGeometry();
-				ui->Bufferize();
-			}
-			// If not, check if we need to resize and re-buffer the geoms
-			else if (needToResize){
-				if (ui->IsBuffered())
-					ui->Unbufferize();
-				ui->ResizeGeometry();
-				ui->Bufferize();
-			}
-			// Notify the input-manager that a new UI is active, so that it may update it's input-thingies
-			Input.OnSetUI(ui);
-			// No bufferization was needed apparantly ^^
-			break;
-			*/
-		}
 		case GT_OVERLAY_TEXTURE: {
 			Texture * t = (Texture*) pData;
 			Graphics.SetOverlayTexture(t);

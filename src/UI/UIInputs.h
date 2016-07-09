@@ -5,7 +5,7 @@
 
 // Base input class.
 #include "Input/UIInput.h"
-/// Aggregate types which leverage the UIInput.
+/// Aggregate types which leverage the UIInputMan.
 #include "Input/UIFloatInput.h"
 #include "Input/UIIntegerInput.h"
 #include "Input/UIVectorInput.h"

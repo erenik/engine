@@ -37,6 +37,7 @@ Lighting::Lighting()
 	this->activeLight = NULL;
 	this->activeLightIndex = 0;
 	this->lightCounter = 0;
+	lastPreparationFrame = -1;
 	UPDATE_LAST_UPDATE_TIME
 }
 Lighting::~Lighting()
@@ -514,58 +515,17 @@ void Lighting::ReadFrom(std::fstream & file)
 	}
 }
 
-
-/// Loads selected lighting into the active shader program
-void LoadLighting(Lighting * lighting, Shader * shader)
+/// Fills the big arrays with data from the individual lights.
+void Lighting::PrepareForLoading()
 {
-	GLuint loc = -1, error;
-	error = glGetError();
-	if (error != GL_NO_ERROR)
+	activeLights = 0;
+	ambient[0] = global_ambient[0];
+	ambient[1] = global_ambient[1];
+	ambient[2] = global_ambient[2];
+	ambient[3] = global_ambient[3];
+	for (int i = 0; i < lights.Size() && i < MAX_LIGHTS; ++i)
 	{
-		std::cout<<"\nError before LoadLighting";
-	}
-	if (!lighting)
-		return;
-	if (!shader)
-		return;
-	if (lighting->lastUpdate == shader->lastLightUpdate)
-		return;
-	shader->lastLightUpdate = lighting->lastUpdate;
-//#define PRINT_DEBUG
-
-	// Return. If no ambient is present no other light will be either.
-	if (shader->uniformLight.ambientVec4 == -1)
-		return;
-
-	CheckGLError("LoadLighting before gl calls.");
-
-	/// Set ambient
-	GLfloat ambient[4];
-	ambient[0] = lighting->global_ambient[0];
-	ambient[1] = lighting->global_ambient[1];
-	ambient[2] = lighting->global_ambient[2];
-	ambient[3] = lighting->global_ambient[3];
-	glUniform4fv(shader->uniformLight.ambientVec4, 1, ambient);
-	CheckGLError("Error setting global ambient luminosity");
-	
-	// If no diffuse uniform, abort.
-	if (shader->uniformLight.diffuseVec4 == -1)
-		return;
-
-	/// Gather all data
-	static GLfloat diffuse[MAX_LIGHTS * 4];
-	static GLfloat specular[MAX_LIGHTS * 4];
-	static GLfloat position[MAX_LIGHTS * 3];
-	static GLfloat attenuation[MAX_LIGHTS * 3];
-	static GLint castsShadows[MAX_LIGHTS];
-	static GLint type[MAX_LIGHTS];
-	static GLfloat spotDirection[MAX_LIGHTS * 3];
-	static GLfloat spotCutoff[MAX_LIGHTS];
-	static GLint spotExponent[MAX_LIGHTS];
-	int activeLights = 0;
-	for (int i = 0; i < lighting->lights.Size() && activeLights < shader->maxLights; ++i)
-	{
-		Light * light = lighting->lights[i];
+		Light * light = lights[i];
 		if (!light->currentlyActive)
 			continue;
 		if (light->attenuation.x <= 0)
@@ -606,9 +566,45 @@ void LoadLighting(Lighting * lighting, Shader * shader)
 
 		activeLights++;
 	}
-//	std::cout<<"\nActive lights: "<<activeLights<<" of "<<lighting->lights.Size();
+}
 
-	/// Set all data
+/// Loads selected lighting into the active shader program
+void Lighting::LoadIntoShader(Shader * shader)
+{
+	GLuint loc = -1, error;
+	error = glGetError();
+	if (error != GL_NO_ERROR)
+	{
+		std::cout<<"\nError before LoadLighting";
+	}
+	if (!shader)
+		return;
+	if (lastUpdate == shader->lastLightUpdate)
+		return;
+	shader->lastLightUpdate = lastUpdate;
+//#define PRINT_DEBUG
+
+	// Return. If no ambient is present no other light will be either.
+	if (shader->uniformLight.ambientVec4 == -1)
+		return;
+
+	CheckGLError("LoadLighting before gl calls.");
+
+	
+	/// Only update once per frame, as needed.
+	if (graphicsFrameNumber != lastPreparationFrame)
+	{
+		PrepareForLoading();
+		/// Update.
+		lastPreparationFrame = graphicsFrameNumber;
+	}
+
+	glUniform4fv(shader->uniformLight.ambientVec4, 1, ambient);
+	CheckGLError("Error setting global ambient luminosity");
+	
+	// If no diffuse uniform, abort.
+	if (shader->uniformLight.diffuseVec4 == -1)
+		return;
 	/// Set Diffuse
 	if (shader->uniformLight.diffuseVec4 != -1)
 	{

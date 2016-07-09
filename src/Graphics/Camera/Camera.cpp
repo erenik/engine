@@ -206,7 +206,7 @@ Camera::Camera()
 
 Camera::~Camera()
 {
-
+	std::cout<<"\nKillin' camera "<<name;
 }
 
 /// Resets everything.

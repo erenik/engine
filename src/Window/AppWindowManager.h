@@ -51,6 +51,7 @@ public:
 	/// For creating the first AppWindow, sets certain properties as needed.
 	AppWindow * CreateMainWindow();
 	/// Creates a new AppWindow, returning a reference to it.
+	AppWindow * NewWindow(String nameAndDisplayName);
 	AppWindow * NewWindow(String name, String displayName);
 	AppWindow * GetWindow(int index);
 	AppWindow * GetWindowByName(String name);

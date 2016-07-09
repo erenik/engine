@@ -66,62 +66,13 @@ void GraphicsManager::RenderWindow()
 		renderViewportsFrameTime = (float)viewportTimer.GetMs();
 	}
 	
-	PrintTime("\nRendering viewports: ");
-	/*
-	// Reset scissor-variables
-	graphicsState->viewportX0 = graphicsState->viewportY0 = 0;
-
-	// Deferred, bit more complex
-	/*
-	else {
-		/// Set up FBO shit
-
-		for (int i = 0; i < renderViewports.Size(); ++i){
-			Viewport * vp = renderViewports[i];
-			if (vp == NULL){
-				renderViewports.Remove(i);
-				continue;
-			}
-			assert(vp->camera);
-			vp->RenderScene(graphicsState);
-		}
-		/// Apply deferred lighting pass.
-		/// Do the remaining scene-stuff now.
-		for (int i = 0; i < renderViewports.Size(); ++i){
-			Viewport * vp = renderViewports[i];
-			if (vp == NULL){
-				renderViewports.Remove(i);
-				continue;
-			}
-			assert(vp->camera);
-			vp->RenderExtras(graphicsState);
-		}
-	}
-	*/
-
-
-
-//	std::cout<<"\nRenderViewports: "<<renderViewports.Size();
-	
+	PrintTime("\nRendering viewports: ");	
     Timer postViewportTimer;
     postViewportTimer.Start();
-	/*
-
-	PrintTime("\nView port rendered");
-
-	// Reset viewport and the projection matrices as needed after viewports have been drawn!
-	glViewport(0, 0, windowSize[0], windowSize[1]);
-//	std::cout<<"\nViewport size: "<<width<<" x" <<height;
-//	UpdateProjection();
-
-	if (window->renderState && StateMan.ActiveState() && false)
-		StateMan.ActiveState()->Render(graphicsState);
 
 	// And render FPS while we're at it...!
 	if (window->renderFPS)
 		RenderFPS();
-	
-		*/
 
 	UserInterface * ui = window->ui, 
 		* globalUI = window->globalUI;

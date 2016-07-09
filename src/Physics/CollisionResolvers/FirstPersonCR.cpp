@@ -93,7 +93,7 @@ bool FirstPersonCR::ResolveCollision(Collision & c)
 	//		dynamic->localPosition += AbsoluteValue(c.distanceIntoEachOther) * c.collisionNormal;
 
 		/// If below threshold, sleep it.
-		if (dynamic->physics->velocity.Length() < 0.1f && c.collisionNormal.y > 0.8f)
+		if (dynamic->physics->velocity.Length() < inRestThreshold && c.collisionNormal.y > 0.8f)
 		{
 			// Sleep eeet.
 			dynamic->physics->state |= CollisionState::IN_REST;
@@ -115,7 +115,7 @@ bool FirstPersonCR::ResolveCollision(Collision & c)
 	// Check collision normal.
 
 
-	return false;
+	return true;
 }
 
 

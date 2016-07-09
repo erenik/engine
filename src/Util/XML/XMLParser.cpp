@@ -48,6 +48,8 @@ bool XMLParser::Read(String fromFile)
 	return true;
 }
 
+#define IsQuote(c) (c == '\'' || c == '\"')
+
 /** After reading, parsing will create all separate XMLElements and store them hierarchically.
 	NOTE: For huge files the parser can take a while.
 */
@@ -206,10 +208,10 @@ bool XMLParser::Parse()
 				break;
 			}
 			case READING_ARG_VALUE: {
-				if (begin == 0 && character == '\"'){
+				if (begin == 0 && IsQuote(character)){
 					begin = c+1;
 				}
-				else if (character == '\"'){
+				else if (IsQuote(character)){
 					argument->value = String(begin, c);
 					argument = NULL;
 					state = READING_ELEMENT_ARGS;

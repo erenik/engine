@@ -668,7 +668,8 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 
 void ParticleSystem::RenderOld(GraphicsState & graphicsState)
 {
-	assert(false && "Deprecated.");
+	LogGraphics("ParticleSystem::RenderOld, update code or GL version?", ERROR); // Better log than crash in vain, hm?
+//	assert(false && "Deprecated.");
 #ifdef SSE_PARTICLES
 #else // Not SSE_PARTICLES
 #endif

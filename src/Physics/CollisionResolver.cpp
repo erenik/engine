@@ -5,6 +5,12 @@
 #include "CollisionResolver.h"
 #include "Collision/Collision.h"
 
+CollisionResolver::CollisionResolver()
+{
+	inRestThreshold = 0.1f;
+}
+
+
 /// Resolves collisions.
 int CollisionResolver::ResolveCollisions(List<Collision> collisions)
 {

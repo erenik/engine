@@ -24,6 +24,7 @@
 #include "PhysicsLib/Shapes/Ray.h"
 #include "PhysicsLib/Shapes/OBB.h"
 
+#include "File/LogFile.h"
 #include "Mesh/Mesh.h"
 #include "Graphics/FrameStatistics.h"
 
@@ -662,7 +663,7 @@ void PhysicsManager::ProcessMessages()
 			if ((currTime - startTime).Milliseconds() > 100)
 			{
 				// Break and postpone messages.
-				std::cout<<"\nPhysics messages consuming over 100 ms, starting to skip time-consuming requests.";
+				LogPhysics("Physics messages consuming over 100 ms, starting to skip time-consuming requests.", DEBUG);
 				skipHeavy = true;
 			//	requeuedMessages = messages.Part(i + 1);
 //				requeuedMessages.ClearAndDelete();

@@ -151,7 +151,7 @@ void TileMap2D::Render(GraphicsState & graphicsState)
 		if (!shader)
 			return;
 
-		LoadLighting(&lighting, shader);
+		lighting.LoadIntoShader(shader);
 
 		glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, graphicsState.viewMatrixF.getPointer());
 		glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, graphicsState.modelMatrixF.getPointer());

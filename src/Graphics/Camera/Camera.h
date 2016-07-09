@@ -20,6 +20,7 @@ class AppWindow;
 
 namespace TrackingMode {
 enum trackingMode {
+	NONE,
 	FROM_BEHIND, 
 	FIRST_PERSON,
 	THIRD_PERSON,

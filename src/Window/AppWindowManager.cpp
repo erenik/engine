@@ -225,6 +225,11 @@ AppWindow * WindowManager::CreateMainWindow()
 	return mainWindow;
 }
 
+AppWindow * WindowManager::NewWindow(String nameAndDisplayName)
+{
+	return NewWindow(nameAndDisplayName, nameAndDisplayName);
+}
+
 /// Creates a new AppWindow, returning a reference to it.
 AppWindow * WindowManager::NewWindow(String name, String displayName)
 {

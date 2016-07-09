@@ -640,7 +640,7 @@ int MapManager::DeleteAllEntities()
 	{
 		lg += mapEntities[i]->name+" ";
 	}
-	LogMain("Deleting entities "+lg, INFO);
+	LogMain("Deleting entities "+lg, DEBUG);
 	activeMap->RemoveEntities(mapEntities);
 	QueueGraphics(new GMUnregisterEntities(mapEntities));
 	QueuePhysics(new PMUnregisterEntities(mapEntities));

@@ -91,7 +91,7 @@ void GraphicsManager::RenderViewport(Viewport * vp)
 	}	
 
 	timer.Start();
-
+	
 	FrameStats.sceneTime += sceneTimer.GetMs();
 
 	CheckGLError("Pre alpha entities GraphicsManager::RenderViewport");

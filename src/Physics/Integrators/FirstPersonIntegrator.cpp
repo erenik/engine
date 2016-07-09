@@ -96,7 +96,8 @@ void FirstPersonIntegrator::IntegrateVelocity(List<Entity*> & entities, float ti
 				assert(totalAcceleration.x == totalAcceleration.x);
 			}
 			// Regular acceleration.
-			totalAcceleration.data = _mm_add_ps(totalAcceleration.data, pp->acceleration.data);
+			if (pp->acceleration.MaxPart())
+				totalAcceleration.data = _mm_add_ps(totalAcceleration.data, pp->acceleration.data);
 			assert(totalAcceleration.x == totalAcceleration.x);
 		}
 #else   /// Acceleration, non-SSE

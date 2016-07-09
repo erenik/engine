@@ -187,7 +187,7 @@ void GraphicsManager::RenderScene()
 		Shader * shader = ShadeMan.SetActiveShader("Phong");
 
 		/// Load lighting settings to shader ^^
-		LoadLighting(graphicsState->lighting, shader);
+		graphicsState->lighting->LoadIntoShader(shader);
 	}
 	// Set primary color
 	glUniform4f(shader->uniformPrimaryColorVec4, 1.f,1.f,1.f,1.f);
@@ -242,7 +242,7 @@ void GraphicsManager::RenderScene()
 			glUniform4f(shader->uniformPrimaryColorVec4, 1,1,1,1);
 
 		/// Load lighting settings to shader ^^
-		LoadLighting(graphicsState->lighting, shader);
+		graphicsState->lighting->LoadIntoShader(shader);
 
 		// Update camera in the world
 		if (shader && shader->uniformEyePosition != -1)

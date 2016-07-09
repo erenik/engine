@@ -192,10 +192,6 @@ void PhysicsManager::ProcessPhysics()
 				c.one->OnCollision(c);
 			if (c.two->physics->onCollision)
 				c.two->OnCollision(c);
-			if (c.one->name == "ExplosionEntity" || c.two->name == "ExplosionEntity")
-			{
-				int p = 14;
-			}
 			if (c.one->physics->collisionCallback || c.two->physics->collisionCallback)
 			{
 				/// Check max callbacks.
@@ -226,7 +222,10 @@ void PhysicsManager::ProcessPhysics()
 		}
 	}
 	// Recalc matrices for the semi-dynamic ones.
-	physicsIntegrator->RecalculateMatrices(semiDynamicEntities);
+	if (physicsIntegrator)
+		physicsIntegrator->RecalculateMatrices(semiDynamicEntities);
+	else 
+		LogPhysics("No integrator assigned", ERROR);
 
 	// Reset previous frame-times
 //	FrameStats.physicsIntegration = integration;

@@ -64,7 +64,7 @@ void Entity::Render(GraphicsState & graphicsState)
 		diffuseMap = this->graphics->GetTextureForCurrentFrame(graphicsState.frametimeStartMs);
 		assert(diffuseMap);
 	//	diffuseMap = TexMan.GetTextureByName("Checkpoints/test");
-	//	diffuseMap = TexMan.GetTextureByName("RuneRPG/Units/200");
+	//	diffuseMap = TexMan.GetTextureByName("Units/200");
 	//	diffuseMap = TexMan.GetTextureByName("logo8");
 		if (diffuseMap->glid == -1)
 		{

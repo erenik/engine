@@ -467,7 +467,7 @@ void Shader::OnMadeActive()
 	}
 	CheckGLError("Shader::OnMadeActive -enabling vertex attrib arrays");
 	SetTextureLocations();
-	LoadLighting(graphicsState->lighting, this);
+	graphicsState->lighting->LoadIntoShader(this);
 }
 /// Disables the respective vertex attribute pointers.
 void Shader::OnMadeInactive()

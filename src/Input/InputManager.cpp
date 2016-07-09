@@ -1262,6 +1262,6 @@ UIElement * InputManager::PopFromStack(UIElement * element, UserInterface * ui, 
 
 	/// If no activatable menu item is out, set navigate UI to false?
 	/// No. Better embed this into the appropriate UI's onExit message!
-	// Input.NavigateUI(true);
+	// InputMan.NavigateUI(true);
 	return element;
 }

@@ -139,7 +139,7 @@ enum physicsTargets{
 	*/
 	PT_PAUSED, 
 	PT_COLLISIONS_ENABLED,
-	PT_COLLISSION_CALLBACK,
+	PT_COLLISION_CALLBACK,
 	PT_NO_COLLISSION_RESOLUTION,
 	PT_PAUSE_ON_COLLISSION,
 	PT_SIMULATION_ENABLED, /// If disabled, no simulation will be done, including collissions, gravity etc. Used for network synchronization for example.

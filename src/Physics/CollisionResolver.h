@@ -11,10 +11,14 @@
 class CollisionResolver 
 {
 public:
+	CollisionResolver();
 	/// Resolves collisions.
 	virtual int ResolveCollisions(List<Collision> collisions);
 	/// Returns false if the colliding entities are no longer in contact after resolution.
 	virtual bool ResolveCollision(Collision & c) = 0;
+
+	/// Threshold for considering to be in rest and nullifying velocity. Default 0.1 for fast-paced games? Reduce to make playable at lower scales or slower games.
+	float inRestThreshold;
 private:
 };
 

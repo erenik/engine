@@ -1026,7 +1026,7 @@ void GMPopUI::Process()
 
 
 	/// By default, set navigate UI to true too!
-//	Input.NavigateUI(true);
+//	InputMan.NavigateUI(true);
 }
 
 /*

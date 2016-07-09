@@ -85,6 +85,28 @@ public:
 
 	/// wooo
 	Vector3f skyColor;
+	/// ID of last frame that we prepared for loading stats into GL etc.
+	int lastPreparationFrame;
+
+	/// Fills the big arrays with data from the individual lights.
+	void PrepareForLoading();
+
+	/// Big arrays for loading all lighting data in one go.
+	int activeLights;
+	float ambient[4];
+	float diffuse[MAX_LIGHTS * 4];
+	float specular[MAX_LIGHTS * 4];
+	float position[MAX_LIGHTS * 3];
+	float attenuation[MAX_LIGHTS * 3];
+	int castsShadows[MAX_LIGHTS];
+	int type[MAX_LIGHTS];
+	float spotDirection[MAX_LIGHTS * 3];
+	float spotCutoff[MAX_LIGHTS];
+	int spotExponent[MAX_LIGHTS];
+
+	/// Loads selected lighting into the active shader program
+	void LoadIntoShader(Shader * shader);
+
 private:
 	bool SaveLighting(String toFileName);
 	bool LoadLighting(String fromFileName);
@@ -108,8 +130,5 @@ private:
 	/// o.o
 	static AppWindow * lightingEditor;
 };
-
-/// Loads selected lighting into the active shader program
-void LoadLighting(Lighting * lighting, Shader * shader);
 
 #endif

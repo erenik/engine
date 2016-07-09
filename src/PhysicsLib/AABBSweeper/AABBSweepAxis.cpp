@@ -225,6 +225,8 @@ void AABBSweepAxis::Sort()
 					("START X: "+String(node->aabb->min.x)) : 
 					("STOP X: "+String(node->aabb->max.x))
 				);
+			if (debug != 2)
+				break;
 		}
 	}
 }
@@ -243,6 +245,8 @@ void AABBSweepAxis::SortDynamicFocus()
 /// X+
 bool AABBSweepAxis::FindPairsLinearPlusSearch(List<EntityPair> & entityPairs)
 {
+	if (nodes.Size() == 0)
+		return true;
 	/// Old loop.
 	int dynamicEntitiesInside = 0;
 	int numActiveEntities;

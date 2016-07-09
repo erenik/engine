@@ -564,11 +564,11 @@ UIElement * UserInterface::CreateRoot()
 	root->exitable = false;
 	root->selectable = false;
 	root->activateable = false;
+	root->textureSource = "0xFF00"; // Alpha texture.
 	// Link it.
 	root->ui = this;
 	return root;
 }
-
 
 #include <fstream>
 

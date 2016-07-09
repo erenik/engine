@@ -15,6 +15,7 @@ public:
 	/// Returns false if the colliding entities are no longer in contact after resolution.
 	virtual bool ResolveCollision(Collision & c);
 
+
 };
 
 #endif

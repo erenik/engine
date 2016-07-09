@@ -848,8 +848,8 @@ void MessageManager::ProcessMessage(Message * message)
 					// assert(element->onTrigger);
 					if (!element->onTrigger)
 						std::cout<<"\nBegnning input for element without onTrigger specified!";
-					Input.SetActiveUIInputElement(element);
-					Input.EnterTextInputMode(element->onTrigger);
+					InputMan.SetActiveUIInputElement(element);
+					InputMan.EnterTextInputMode(element->onTrigger);
 				}
 				else
 					assert(false && "NULL-element :<");

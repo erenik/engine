@@ -67,7 +67,7 @@ UIElement * UIScrollBarHandle::Hover(int mouseX, int mouseY)
 	// Just do default, make us highlighted?
 	UIElement::Hover(mouseX, mouseY);
 	/* Moved to be handled within OnMouseMove
-	if (element == this && Input.lButtonDown)
+	if (element == this && InputMan.lButtonDown)
 	{
 		float alignmentY = (mouseY - parent->bottom) / (float)this->parent->sizeY;
 		this->SetAlignmentY(alignmentY);

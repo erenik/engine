@@ -49,7 +49,8 @@ void GMSetViewports::Process()
 	window->viewports.ClearAndDelete();
 	
 	// Buffer new UIs if applicable
-	for (int i = 0; i < viewports.Size(); ++i){
+	for (int i = 0; i < viewports.Size(); ++i)
+	{
 		Viewport * rv = viewports[i];
 		/// Update size based on window they reside in.
 		rv->window = window;
@@ -57,7 +58,8 @@ void GMSetViewports::Process()
 		window->viewports.Add(rv);
 		if (!rv)
 			continue;
-		if (rv->uiSource && rv->ui == NULL){
+		if (rv->uiSource && rv->ui == NULL)
+		{
 			UserInterface * ui = new UserInterface();
 			ui->Load(rv->uiSource);
 			ui->CreateGeometry();

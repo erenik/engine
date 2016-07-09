@@ -141,9 +141,6 @@ void EntityManager::MarkEntitiesForDeletion(List<Entity*> entitiesToMark)
 		Entity * entity = entitiesToMark[i];
 		if (!entity->flaggedForDeletion)
 		{
-			if (entity->name.Contains("Boss1_"))
-				int lall=5;
-
 			entity->flaggedForDeletion = true;
 			entity->deletionTimeMs = 3000;
 			entitiesToDelete.AddItem(entity);

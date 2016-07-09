@@ -160,7 +160,7 @@ PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, bool value)
 	{
 		case PT_USE_QUATERNIONS:
 		case PT_COLLISIONS_ENABLED:
-		case PT_COLLISSION_CALLBACK:
+		case PT_COLLISION_CALLBACK:
 		case PT_NO_COLLISSION_RESOLUTION:
 		case PT_LOCK_POSITION:
 		case PT_SIMULATION_ENABLED:
@@ -461,6 +461,9 @@ void PMSetEntity::Process()
 						break;
 				}
 				entity->physics->UpdateProperties(entity);
+				/// Re-register to avoid bugs in collision-detection optimized systems (such as AABBSweeper) which do not actively re-sort non-dynamic entities!
+				PhysicsMan.ReregisterEntity(entity);
+
 		//		std::cout<<"\nEntity scale set to "<<vec3fValue;
 				break;
 			}
@@ -561,7 +564,7 @@ void PMSetEntity::Process()
 				}
 				*/
 				break;
-			case PT_COLLISSION_CALLBACK:
+			case PT_COLLISION_CALLBACK:
 				entity->physics->collisionCallback = bValue;
 				break;
 			case PT_NO_COLLISSION_RESOLUTION:
