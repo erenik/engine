@@ -184,7 +184,8 @@ void Map::Process(int timePassedInMs)
 			continue;
 		for (int j = 0; j < entity->properties.Size(); ++j)
 		{
-			entity->properties[j]->Process(timePassedInMs);
+			EntityProperty * prop = entity->properties[j];
+			prop->Process(timePassedInMs);
 		}
 	}
 }

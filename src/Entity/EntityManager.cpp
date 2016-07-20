@@ -134,6 +134,7 @@ List<Entity*> EntityManager::AllEntities()
 
 void EntityManager::MarkEntitiesForDeletion(List<Entity*> entitiesToMark)
 {
+	LogMain("EntityManager::MarkEntitiesForDelection: "+String(entitiesToMark.Size()), INFO);
 	Time now = Time::Now();
 	int64 ms = now.Milliseconds();
 	for (int i = 0; i < entitiesToMark.Size(); ++i)
@@ -144,7 +145,7 @@ void EntityManager::MarkEntitiesForDeletion(List<Entity*> entitiesToMark)
 			entity->flaggedForDeletion = true;
 			entity->deletionTimeMs = 3000;
 			entitiesToDelete.AddItem(entity);
-			assert(entitiesToDelete.Duplicates() == 0);
+//			assert(entitiesToDelete.Duplicates() == 0);
 		}
 	}
 }

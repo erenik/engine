@@ -42,6 +42,9 @@ class Texture
 public:
 	~Texture();
 
+	/// Checks if the top-left (first) pixel has any non-1 alpha (any transparency).
+	bool HasAlpha();
+
 	/// Deallocates the memory for the data buffers located on the heap.
 	void Deallocate();
 	// Reallocate based on new size and format.

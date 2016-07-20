@@ -197,7 +197,7 @@ protected:
 	int numEvents;
 
 	/// Maximum amount of entities the map will ever need to hold
-	const static int MAX_ENTITIES_PER_MAP = 5000;
+	const static int MAX_ENTITIES_PER_MAP = 50000;
 	const static int MAX_EVENTS_PER_MAP = 100;
 
 	/// Compact entity list, as saved to file.

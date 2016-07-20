@@ -68,6 +68,15 @@ Texture::~Texture()
 }
 
 
+/// Checks if any pixel has alpha.
+bool Texture::HasAlpha()
+{
+	Vector4f pix = this->GetPixel(0);
+	if (pix.z < 1)
+		return true;
+	return false;
+}
+
 void Texture::Deallocate()
 {
 	delete[] data;
@@ -679,7 +688,8 @@ void Texture::SetName(String str){
 
 
 /// Gets pixel from indice.
-Vector4f Texture::GetPixel(int index){
+Vector4f Texture::GetPixel(int index)
+{
 	assert(bpp == 4 && format == Texture::RGBA);
 	Vector4f color;
 	unsigned char * buf = data;

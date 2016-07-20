@@ -39,6 +39,7 @@ GraphicsProperty::GraphicsProperty(Entity * owner)
 	blendModeSource = GL_SRC_ALPHA;
 	blendModeDest = GL_ONE_MINUS_SRC_ALPHA;
 	depthTest = true;
+	depthWrite = true;
 
 	color = Vector4f(1,1,1,1);
 

@@ -62,7 +62,7 @@ Camera * CameraManager::NewCamera(String name, bool reuseExisting)
 	}
 	Camera * camera = new Camera();
 	camera->name = name;
-	cameras.Add(camera);
+	cameras.AddItem(camera);
 	assert(cameras.Size() < 50 && "Re-use cameras please, coder moder");
 	return camera;
 }
@@ -158,8 +158,10 @@ Camera * CameraManager::PreviousCamera()
 Camera * CameraManager::DefaultCamera()
 {
 	if (!defaultCamera)
+	{
 		defaultCamera = new Camera();
-	cameras.Add(defaultCamera);
+		cameras.AddItem(defaultCamera);
+	}
 	return defaultCamera;
 }
 

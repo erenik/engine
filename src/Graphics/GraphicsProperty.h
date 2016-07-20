@@ -88,6 +88,9 @@ public:
 	/// Equivalent to "primaryColorVec4f" which is used in the shader's multiplicatively. Default should be (1,1,1,1)
 	Vector4f color;
 
+	/// The scale to be rendered for this entity.
+	Vector3f scale;
+
 	Vector4f textColor;
 	// Offset?
 	Vector4f textPositionOffset; 
@@ -101,6 +104,8 @@ public:
 	int blendModeSource, blendModeDest; 
 	/// If true, requires depth test while rendering, false skips. Default true.
 	bool depthTest;
+	/// Default true.
+	bool depthWrite;
 
 	/** If true, skeleton will be animated, and hopefully skin will be rendered accordingly if proper shaders are used.
 		Default false. Set with GMPlaySkeletalAnimation()

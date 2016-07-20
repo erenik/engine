@@ -204,7 +204,10 @@ enum graphicsTargets
 	GT_REQUIRE_DEPTH_SORTING, // So rendering things work properly, specifically for sprites.
 	GT_BLEND_MODE_SRC, // E.g. GL_ONE for additive blending, or GL_ONE_MINUS_SRC_ALPHA for regular alpha-blending.
 	GT_BLEND_MODE_DST,
+	GT_IS_ALPHA_ENTITY, // For depth-sorting + transparency settings.
+	GT_SCALE, // For separating graphical parts of entity from the physical one. Calling this one will detach the graphical scale from the physical one indefinitely.
 	GT_DEPTH_TEST, // True to require depth test, false to skip.
+	GT_DEPTH_WRITE, // True to write depth, false not. False may be used for transparent entities where sorting has already been done. 
 	GT_VISIBILITY,
 	GT_TEXT,
 	GT_TEXT_COLOR,

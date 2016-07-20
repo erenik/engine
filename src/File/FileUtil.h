@@ -29,6 +29,10 @@ int GetDirectoriesInDirectory(String directory, List<String> & result);
 	Returns 1 upon success, 0 if there is no such directory.
 */
 int GetFilesInDirectory(String directory, List<String> & result);
+/** Gets list of file-paths (paths for each file) in target directory. The result list will contain 1 path/file per string.
+	Returns 1 upon success, 0 if there is no such directory.
+*/
+int GetFilePathsInDirectory(String directory, List<String> & result);
 
 /// Tries to create a folder. Returns success or not.
 bool CreateFolder(String withPath);

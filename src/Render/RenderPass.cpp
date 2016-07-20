@@ -444,12 +444,19 @@ void RenderPass::RenderEntities()
 	Entity * entity;
 	GraphicsProperty * gp;
 	// Render all entities listed in the graphicsState!
+	bool depthWrite = true;
 	for (int i = 0; i < entitiesToRender.Size(); ++i)
 	{
 		entity = entitiesToRender[i];
 		if (!entity->IsVisible())
 			continue;
 		gp = entity->graphics;
+		/// Set entity depth write as needed.
+		if (depthWrite != gp->depthWrite)
+		{
+			depthWrite = gp->depthWrite;
+			glDepthMask(depthWrite);
+		}
 		if (entity->diffuseMap != diffuseMap)
 		{
 			diffuseMap = entity->diffuseMap;

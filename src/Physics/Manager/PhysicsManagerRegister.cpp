@@ -163,8 +163,9 @@ int PhysicsManager::RegisterEntities(List<Entity*> & targetEntities)
 /// Unregisters an Entity from the physics calculations. Returns 0 if it found the Entity and successfully removed it, 1 if not.
 int PhysicsManager::UnregisterEntity(Entity * entityToRemove)
 {
-	/// If have kids/parent, unbind.
-	entityToRemove->RemoveLinks();
+	/// If have kids/parent, unbind. -> Why? What if it is just a unregistration for re-registering?
+	if (entityToRemove->flaggedForDeletion)
+		entityToRemove->RemoveLinks();
 //	LogPhysics("Unregistering entity for physics "+entityToRemove->name, DEBUG);
 	int found = 0;
 	int entitiesInOctree = entityCollisionOctree->RegisteredEntities();

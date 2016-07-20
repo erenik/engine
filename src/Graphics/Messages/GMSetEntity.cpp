@@ -197,9 +197,11 @@ GMSetEntityb::GMSetEntityb(List<Entity*> entities, int target, bool value, bool 
 		case GT_VISIBILITY:
 		case GT_REQUIRE_DEPTH_SORTING:
 		case GT_DEPTH_TEST:
+		case GT_DEPTH_WRITE:
 		case GT_ANIMATE_SKIN_USING_SHADERS:
 		case GT_PAUSE_ANIMATIONS:
 		case GT_CAST_SHADOWS:
+		case GT_IS_ALPHA_ENTITY:
 			break;
 		default:
 			assert(false && "Bad target in GMSetEntityb");
@@ -214,17 +216,27 @@ void GMSetEntityb::Process()
 			entities.Add(entity->children);
 		if (entity->graphics == 0)
 			entity->graphics = new GraphicsProperty(entity);
+		GraphicsProperty * gp = entity->graphics;
 		assert(entity->graphics);
 		switch(target)
 		{
 			case GT_CAST_SHADOWS:
-				entity->graphics->castsShadow = bValue;
+				gp->castsShadow = bValue;
+				break;
+			case GT_DEPTH_WRITE:
+				gp->depthWrite = bValue;
 				break;
 			case GT_DEPTH_TEST:
-				entity->graphics->depthTest = bValue;
+				gp->depthTest = bValue;
 				break;
 			case GT_VISIBILITY:
-				entity->graphics->visible = bValue;
+				gp->visible = bValue;
+				break;
+			case GT_IS_ALPHA_ENTITY:
+				if (bValue)
+					gp->flags |= RenderFlag::ALPHA_ENTITY;
+				else
+					gp->flags &= ~RenderFlag::ALPHA_ENTITY;
 				break;
 			case GT_REQUIRE_DEPTH_SORTING:
 				assert(false && "REQUIRES_DEPTH_SORTING removed, replaced with ALPHA_ENTITY");
@@ -294,6 +306,7 @@ GMSetEntityf::GMSetEntityf(List<Entity*> entities, int target, float value)
 	{
 		case GT_TEXT_SIZE_RATIO:
 		case GT_ALPHA:
+		case GT_SCALE:
 			break;
 		default:
 			assert(false && "Bad value");
@@ -312,6 +325,9 @@ void GMSetEntityf::Process()
 				break;
 			case GT_TEXT_SIZE_RATIO:
 				entity->graphics->textSizeRatio = fValue;
+				break;
+			case GT_SCALE:
+				entity->graphics->scale = Vector3f(1,1,1) * fValue;
 				break;
 		}
 	}

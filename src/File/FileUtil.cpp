@@ -232,6 +232,22 @@ int GetFilesInDirectory(String directory, List<String> & files)
 	return 1;
 #endif
 }
+#include "String/StringUtil.h"
+
+/** Gets list of file-paths (paths for each file) in target directory. The result list will contain 1 path/file per string.
+	Returns 1 upon success, 0 if there is no such directory.
+*/
+int GetFilePathsInDirectory(String directory, List<String> & result)
+{
+	List<String> files;
+	int ok = GetFilesInDirectory(directory, files);
+	if (!ok)
+		return 0;
+	PrependStrings(files, directory+"/");
+	result.Add(files);
+	return 1;
+}
+
 
 /// Tries to create a folder. Returns success or not.
 bool CreateFolder(String withPath)
