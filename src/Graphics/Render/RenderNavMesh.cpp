@@ -110,7 +110,8 @@ void GraphicsManager::RenderNavMesh()
 	/// Renders paths
 	if (true)
 	{
-
+		std::cout<<"redo";
+		/*
 		glDisable(GL_DEPTH_TEST);
 		Path & path = graphicsState->pathToRender;
 		glBegin(GL_LINE_STRIP);
@@ -122,6 +123,7 @@ void GraphicsManager::RenderNavMesh()
 		}
 		glEnd();
 		glEnable(GL_DEPTH_TEST);
+		*/
 	}
 
 	glPointSize(1.0f);
@@ -142,12 +144,12 @@ void GraphicsManager::RenderPath()
 		
 	//  Old shit.
 	return;
-
+	/*
 	Shader * shader = ActiveShader();
 	/// Get last calculated path
 	Path path;
 	PathMan.GetLastPath(path);
-	if (!path.Waypoints())
+	if (!path.Size())
 		return;
 
 	// Get model to render
@@ -216,4 +218,5 @@ void GraphicsManager::RenderPath()
 	}
 	glEnd();
 	return;
+	*/
 }

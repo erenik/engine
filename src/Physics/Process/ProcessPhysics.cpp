@@ -143,8 +143,8 @@ void PhysicsManager::ProcessPhysics()
 		/// Apply external constraints
 	//	ApplyContraints();		
 
-		/// Apply pathfinding for all relevant entities
-		ApplyPathfinding();
+		/// Apply pathfinding for all relevant entities - should be done in separate property-files. Or in more dedicated classes for specific games.
+//		ApplyPathfinding();
         
 		Timer collisionTimer;
 		collisionTimer.Start();

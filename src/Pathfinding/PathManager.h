@@ -6,10 +6,13 @@
 
 #include "Path.h"
 
+class PathMessage;
+
 #define PathMan		(*PathManager::Instance())
 
 /// A manager for handling and calculating paths between various nodes provided by the waypoint-manager.
-class PathManager{
+class PathManager 
+{
 	/// Private constructor for singleton pattern
 	PathManager();
 	static PathManager * pathManager;
@@ -21,6 +24,11 @@ public:
 	/// Get singleton instance
 	static inline PathManager * Instance() { return pathManager; };
 
+	/// In reality only accepts PathMessages, the rest are mostly ignored.
+	void QueueMessage(PathMessage * pm);
+
+	/// For processing the path searches. If 1 thread, iterates a bit, if multi-threaded approach, will mostly keep track of which threads have finished or not.
+	void Process(int timeInMs);
 
 	/** Attempts to get control of the LastPath Mutex
 		Make sure you call ReleaseLastPathMutex afterward!
@@ -43,6 +51,7 @@ public:
 private:
 	/// Last calculated path.
 	Path lastPath;
+//	List<PathMessage*> messages;
 };
 
 

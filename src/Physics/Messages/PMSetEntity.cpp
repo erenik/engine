@@ -338,14 +338,14 @@ void PMSetEntity::Process()
 			//	pathProp->OnPathCompleted();
 
 				// If we're already walking, queue a destination, not a full path!
-				if (pathProp->CurrentPath().Waypoints()){
+				if (pathProp->CurrentPath().Size()){
 					pathProp->SetQueuedDestination(to);
 					return;
 				}
 				assert(to);
 				assert(from);
 				Path path = PathMan.GetPath(from, to);
-				if (path.Waypoints()){
+				if (path.Size()){
 					entity->pathfindingProperty->QueuePath(path);
 				}
 				break;

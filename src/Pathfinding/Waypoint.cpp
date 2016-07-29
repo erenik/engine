@@ -8,6 +8,17 @@
 
 Waypoint::Waypoint()
 {
+	Nullify();
+};
+
+Waypoint::Waypoint(ConstVec3fr vec)
+	: position(vec)
+{
+	Nullify();
+}
+
+void Waypoint::Nullify()
+{
 	merged = false;
 	neighbour = NULL;
 	neighbourIDs = NULL;
@@ -15,8 +26,7 @@ Waypoint::Waypoint()
 	neighbours = 0;
 	passable = true;
 	physicsShape = PhysicsShape::PLANE;
-	shape = new Plane();
-	
+	shape = 0; //new Plane();	
 	parent = NULL;
 	child = NULL;
 	children = 0;
@@ -24,8 +34,8 @@ Waypoint::Waypoint()
 	data = 0;
 	pData = NULL;
 	id = -1;
-
-};
+	
+}
 
 Waypoint::~Waypoint(){
 	if (shape)

@@ -15,12 +15,14 @@
 
 class Script;
 class UIElement;
+class Entity;
 
 class Message {
 	friend class MessageManager;
 public:
 	Message(int type);
 	Message(const String & msg);
+	void Nullify();
 	virtual ~Message();
 	
 	String msg;
@@ -32,6 +34,9 @@ public:
 	UIElement * element;
 	/// Time when this message should be processed.
 	AETime timeToProcess;
+
+	/// If this is non-null, the message is sent only to this entity, instead of being processed by the general application states.
+	Entity * recipientEntity;
 };
 
 class AppWindow;

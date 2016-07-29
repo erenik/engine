@@ -10,16 +10,22 @@ Message::Message(){
 */
 Message::Message(const String & i_string)
 {
+	Nullify();
 	msg = i_string;
 	type = MessageType::STRING;
-	data = NULL;
 }
 
 Message::Message(int i_type)
 {
-	data = NULL;
+	Nullify();
 	type = i_type;
 };
+
+void Message::Nullify()
+{
+	data = NULL;
+	recipientEntity = 0;
+}
 
 Message::~Message(){
 	/// TODO: Evaluate whether data parameter should be deleted or not, probably not.

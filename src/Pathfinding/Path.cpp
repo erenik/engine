@@ -5,88 +5,30 @@
 #include <cstring>
 
 /// Default constructor
-Path::Path(){
-	waypoint = NULL;
-	waypoints = 0;
+Path::Path()
+: List<Waypoint*>()
+{
 	circular = false;
-	arraySize = 0;
 }
-Path::~Path(){
-	if (waypoint){
-		if (waypoints > 0 && waypoint[0] == NULL){
-			std::cout<<"\nWARNING: Waypoints in path are NULL for some reason.";
-		}
-		delete[] waypoint;
-	}
-	waypoint = NULL;
-	waypoints = 0;
+
+Path::~Path()
+{
 }
+
 /// Copy constructor
-Path::Path(const Path &path){
-	waypoint = NULL;
+Path::Path(const Path &path)
+{
 	circular = path.circular;
-	waypoints = path.waypoints;
-	if (waypoints)
-		waypoint = new Waypoint * [waypoints];
-	for (int i = 0; i < waypoints; ++i){
-		waypoint[i] = path.waypoint[i];
-	}
-	arraySize = waypoints;
-}
-Path::Path(const Path * path){
-	waypoint = NULL;
-	circular = false;
-	waypoints = path->waypoints;
-	if (waypoints)
-		waypoint = new Waypoint * [waypoints];
-	for (int i = 0; i < waypoints; ++i){
-		waypoint[i] = path->waypoint[i];
-	}
-	arraySize = waypoints;
+	this->Add(path);
 }
 
-Path& Path::operator = (const Path &path){
-	if (path.waypoints == 0){
-		this->waypoints = 0;
-		return *this;
-	}
-	if (arraySize > 0 && waypoint){
-		delete[] waypoint;
-		waypoint = NULL;
-	}
-	waypoints = path.waypoints;
-	if (waypoints > 0)
-		waypoint = new Waypoint * [waypoints];
-	for (int i = 0; i < waypoints; ++i){
-		waypoint[i] = path.waypoint[i];
-	}
-	arraySize = waypoints;
-	return *this;
-}
-
-/// Returns waypoint at specified index.
-Waypoint * Path::GetWaypoint(int i){
-	if (arraySize == 0)
-		return NULL;
-//	if (circular){
-		if (i >= arraySize)
-			i -= arraySize;
-		else if (i < 0)
-			i += arraySize;
-//	}
-	assert(i >= 0 && i < arraySize && "Specified index not valid for given array in Path::Waypoint()");
-	if (i < 0 || i >= arraySize)
-		return NULL;
-	return waypoint[i];
-}
-
-Waypoint * Path::GetClosest(const Vector3f & position) const {
-	assert(waypoints);
+Waypoint * Path::GetClosest(const Vector3f & position) const 
+{
 	float lengthSq = 1000000000000.f,
 		minLengthSq = 100000000000000.f;
 	Waypoint * closest = NULL;
-	for (int i = 0; i < waypoints; ++i){
-		Waypoint * wp = waypoint[i];
+	for (int i = 0; i < this->currentItems; ++i){
+		Waypoint * wp = arr[i];
 		lengthSq = (wp->position - position).LengthSquared();
 		if (lengthSq < minLengthSq){
 			closest = wp;
@@ -95,70 +37,40 @@ Waypoint * Path::GetClosest(const Vector3f & position) const {
 	}
 	return closest;
 }
-Waypoint * Path::GetNext(const Waypoint * previousWaypoint){
-	for (int i = 0; i < waypoints; ++i){
-		Waypoint * wp = waypoint[i];
-		if (wp == previousWaypoint){
-			if (i < waypoints -1)
-				return waypoint[i+1];
-			else
-				return waypoint[0];
+
+Waypoint * Path::GetNext(const Waypoint * previousWaypoint)
+{
+	for (int i = 0; i < currentItems; ++i)
+	{
+		Waypoint * wp = arr[i];
+		if (wp == previousWaypoint)
+		{
+			return arr[(i+1) % currentItems];
 		}
 	}
 	return NULL;
 }
 
 
-int Path::GetIndex(const Waypoint * wp) const{
-	for (int i = 0; i < waypoints; ++i){
-		if (waypoint[i] == wp){
+int Path::GetIndex(const Waypoint * wp) const
+{
+	for (int i = 0; i < currentItems; ++i){
+		if (arr[i] == wp){
 			return i;
 		}
 	}
 	return -1;
 }
 
-/// Adds specified waypoint at the end of the path
-void Path::AddWaypoint(Waypoint * newWaypoint){
-	if (waypoints == arraySize){
-		Resize(arraySize * 2);
-	}
-	waypoint[waypoints] = newWaypoint;
-	++waypoints;
-}
-
-/// Resizes the array length.
-void Path::Resize(int newSize){
-	if (newSize == 0)
-		newSize = 8;
-	Waypoint ** newArray = new Waypoint * [newSize];
-	for (int i = 0; i < waypoints; ++i){
-		newArray[i] = waypoint[i];
-	}
-	if (waypoint){
-		delete[] waypoint;
-		waypoint = NULL;
-	}
-	waypoint = newArray;
-	arraySize = newSize;
-}
-
-/// Clears all entries.
-void Path::Clear(){
-	for (int i = 0; i < arraySize; ++i){
-		waypoint[i] = NULL;
-	}
-	waypoints = 0;
-}
-
 /// Mirrors the path, this since most algorithms build it up in reverse...
-void Path::Mirror(){
-	for (int i = 0; i < waypoints * 0.5f; ++i){
-		Waypoint * tmp = waypoint[i];
-		int otherI = waypoints - i-1;
-		waypoint[i] = waypoint[otherI];
-		waypoint[otherI] = tmp;
-		std::cout<<"\nSwapping waypoint "<<i<<" with "<<otherI<<": "<<waypoint[i]->position<<" <-> "<<waypoint[otherI]->position;
+void Path::Mirror()
+{
+	for (int i = 0; i < currentItems * 0.5f; ++i){
+		Waypoint * tmp = arr[i];
+		int otherI = currentItems - i-1;
+		arr[i] = arr[otherI];
+		arr[otherI] = tmp;
+		std::cout<<"\nSwapping waypoint "<<i<<" with "<<otherI<<": "<<arr[i]->position<<" <-> "<<arr[otherI]->position;
 	}
 }
 
@@ -195,9 +107,13 @@ bool Path::Load(String fromFile){
 	return true;
 }
 
+#include "List/ListUtil.h"
+
 /// For reading/writing to stream.
-bool Path::ReadFrom(std::fstream & file){
-	bool result;
+bool Path::ReadFrom(std::fstream & file)
+{
+	std::cout<<"fix it";
+	/*
 	int version = PATH_VERSION;
 	/// Version!
 	file.read((char*)&version, sizeof(int));
@@ -205,6 +121,12 @@ bool Path::ReadFrom(std::fstream & file){
 	result = name.ReadFrom(file); // <- Use String::s built-in file-reader :)
 	if (!result)
 		return false;
+
+	ReadListFrom<Waypoint*>(*this, file);
+
+//	WriteListTo<Waypoint*>(*this, file);
+
+	bool result;
 	// Circularity!
 	file.read((char*)&circular, sizeof(bool)); // <- Should definitely make int and bit-wise flag for this shit...
 	/// Waypoints !
@@ -241,9 +163,13 @@ bool Path::ReadFrom(std::fstream & file){
 		}
 	}
 	waypoints = newWaypoints;
+	*/
 	return true;
 }
-bool Path::WriteTo(std::fstream & file) const{
+bool Path::WriteTo(std::fstream & file) const
+{
+	std::cout<<"fix it";
+	/*
 	int version = PATH_VERSION;
 	/// Version!
 	file.write((char*)&version, sizeof(int));
@@ -256,45 +182,21 @@ bool Path::WriteTo(std::fstream & file) const{
 	/// Write waypoint data.
 	for (int i = 0; i < waypoints; ++i){
 		file.write((char*)&waypoint[i]->position, sizeof(Vector3f));
-	}
+	}*/
 	return true;
 }
 
 /// Adds addend to this vector.
-void Path::operator += (const Path otherPath){
-	if (otherPath.arraySize == 0)
-		return;
-	Waypoint ** newArray = new Waypoint * [waypoints + otherPath.waypoints];
-	int newNumWaypoints = 0;
-	memset(newArray,0,sizeof(Waypoint**));
-	for (int i = 0; i < waypoints; ++i){
-		newArray[i] = waypoint[i];
-		++newNumWaypoints;
-	}
-	if (waypoint)
-		delete waypoint;
-	waypoint = newArray;
-	waypoints = newNumWaypoints;
-
-	/// Check if the first waypoints in OtherPath occurs in this path!
-	bool firstOneExistsInLastPath = false;
-	for (int i = 0; i < waypoints; ++i){
-		if (waypoint[i] == otherPath.waypoint[0])
-			firstOneExistsInLastPath = true;
-	}
-	/// If so, skip it and add le others.
-	for (int i = 0; i < otherPath.waypoints; ++i){
-		if (i == 0 && firstOneExistsInLastPath)
-			continue;
-		waypoint[waypoints] = otherPath.waypoint[i];
-		++waypoints;
-	}
+void Path::operator += (const Path otherPath)
+{
+	this->Add(otherPath);
 }
 
 
 // Debug
-void Path::Print(){
-	std::cout<<"\nPath with "<<waypoints<<" waypoints:";
-	for (int i = 0; i < waypoints; ++i)
-		std::cout<<"\n- "<<i<<": "<<GetWaypoint(i)->position;
+void Path::Print()
+{
+	std::cout<<"\nPath with "<<currentItems<<" waypoints:";
+	for (int i = 0; i < currentItems; ++i)
+		std::cout<<"\n- "<<i<<": "<<arr[i]->position;
 }

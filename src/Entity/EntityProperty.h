@@ -21,6 +21,7 @@ namespace EntityPropertyID
 	{
 		UTILITY_PROPERTIES, // E.g. EntityStateTile2D.
 		EDITOR_CAMERA, // Default 3D editor camera
+		PATHABLE_PROPERTY,
 
 		CUSTOM_GAME_1 = UTILITY_PROPERTIES + 100,
 		CUSTOM_GAME_2 = CUSTOM_GAME_1 + propertiesPerGame,

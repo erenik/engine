@@ -10,7 +10,10 @@
 #include "Pathfinding/Path.h"
 
 /// Applies pathfinding for all relevant entities
-void PhysicsManager::ApplyPathfinding(){
+void PhysicsManager::ApplyPathfinding()
+{
+	std::cout<<"removeme";
+	/*
 	/// Woo!
 	for (int i = 0; i < dynamicEntities.Size(); ++i)
 	{
@@ -25,7 +28,7 @@ void PhysicsManager::ApplyPathfinding(){
 		bool hasPathsToTread = pathProp->HasPathsToTread();	
 		if (pathProp){
 			path = &pathProp->currentPath;
-			hasPathsToTread = path->Waypoints();
+			hasPathsToTread = path->Size();
 		}
 	//	std::cout<<"\nBoudn to navmesh: "<<physics->boundToNavMesh<<" path: "<<path;
 		/// Main variable used for now to show that an entity is involved in any kind of pathfinding..
@@ -158,6 +161,7 @@ void PhysicsManager::ApplyPathfinding(){
 			physics->velocity = Vector3f();
 		}
     }
+	*/
 }
 
 

@@ -35,9 +35,9 @@ void PathfindingProperty::QueuePath(Path path){
 
 bool PathfindingProperty::HasPathsToTread()
 {
-	if (currentPath.Waypoints())
+	if (currentPath.Size())
 		return true;
-	if (queuedPath.Waypoints())
+	if (queuedPath.Size())
 		return true;
 	if (queuedDestination)
 		return true;
@@ -48,16 +48,17 @@ void PathfindingProperty::SetQueuedDestination(Waypoint * wp){
 	queuedDestination = wp;
 }
 
-void PathfindingProperty::BeginPathIfNotAlreadyOneOne(){
-	if (currentPath.Waypoints())
+void PathfindingProperty::BeginPathIfNotAlreadyOneOne()
+{
+	if (currentPath.Size())
 		return;
-	else if (queuedPath.Waypoints()){
+	else if (queuedPath.Size()){
 		currentPath = queuedPath;
 		queuedPath = Path();
 	}
 	else if (queuedDestination){
 		Path path = PathMan.GetPath(currentWaypoint, queuedDestination);
-		if (path.Waypoints()){
+		if (path.Size()){
 			currentPath = path;
 		}
 		queuedDestination = NULL;

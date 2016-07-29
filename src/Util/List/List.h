@@ -42,7 +42,7 @@ public:
 	List(const T & item, const T & item2, const T & item3) { Nullify(); Add(item, item2, item3); };
 	List(const T & item, const T & item2, const T & item3, const T & item4) { Nullify(); Add(item, item2, item3, item4);};
 	void Nullify();
-	~List();
+	virtual ~List();
 
 	/** Sets currentItems to arraySize. 
 		Useful if using Allocate() followed by a memory operation using the GetArray()'s pointer, 
@@ -154,9 +154,11 @@ public:
 protected:
 	/// Resizing function
 	void Resize(int newSize);
-
+	/// Array.
 	value_type * arr;
+	/// Number of current items.
 	int currentItems;
+	/// Size of the array.
 	int arrLength;
 	bool inUse;		// Defines that the list is currently being popped or pushed.
 };

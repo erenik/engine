@@ -34,7 +34,7 @@ public:
 	/// Fetch by name
 	NavMesh * GetNavMeshByName(String name);
 	/// Returns the loaded navMesh by source
-	NavMesh * GetNavMesh(String source);
+	NavMesh * GetNavMesh(String nameOrSource);
 
 	/// Makes it active for manipulation
 	void MakeActive(NavMesh * nm);
@@ -66,6 +66,13 @@ public:
 		as well as the arrays from which the NavMesh is based upon.
 	*/
 	bool ToggleWaypointWalkability(const Vector3f & position);
+
+	/// Simple get. Checks distance.
+	Waypoint * GetClosestWaypoint(ConstVec3fr toPosition);
+
+	/// TODO actually move them.
+	/// Below functions should probably be moved elsewhere... Util file or game-specific files.
+
 	/// Returns a waypoint that has no active data bound to it's pData member.
 	Waypoint * GetFreeWaypoint();
 	/// Returns the closest waypoint to target position that is passable/walkable/valid.

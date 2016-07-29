@@ -28,7 +28,9 @@ private:
 public:
 	/// Default constructor
 	Waypoint();
+	Waypoint(ConstVec3fr vec);
 	~Waypoint();
+	void Nullify();
 	/// Center position of the waypoint
 	Vector3f position;
 	/// Distance from center of world. :)

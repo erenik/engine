@@ -8,31 +8,21 @@
 #include <String/AEString.h>
 
 /// A single path
-class Path {
+class Path : public List<Waypoint*>
+{
 public:
 	/// Default constructor
 	Path();
-	~Path();
+	virtual ~Path();
 	/// Copy constructors
 	Path(const Path &path);
-	/// Assignment operator
-	Path& operator = (const Path &path);
 private:
-	Path(const Path * path);
 	
 public:
-	
-	/// Returns number of active waypoints in the path
-	int Waypoints() { return waypoints; };
 	/// Returns waypoint at specified index.
-	Waypoint * GetWaypoint(int i);
 	Waypoint * GetClosest(const Vector3f & position) const;
 	Waypoint * GetNext(const Waypoint * previousWaypoint);
 	int GetIndex(const Waypoint * ofThisWaypoint) const;
-	/// Adds specified waypoint at the end of the path
-	void AddWaypoint(Waypoint * waypoint);
-	/// Clears all entries.
-	void Clear();
 
 	/// Mirrors the path, this since most algorithms build it up in reverse... 
 	void Mirror();
@@ -49,22 +39,10 @@ public:
 
 	// Debug
 	void Print();
-
 	/// Identifier for this path.
 	String name;
+
 private:
-	/// Resizes the array length.
-	void Resize(int newSize);
-
-
-	
-
-	/// Size of the waypoint-array.
-	int arraySize;
-	/// The array of waypoints that the Path consists of.
-	Waypoint ** waypoint;
-	/// Number of waypoints in the path
-	int waypoints;
 	/// Defines if the last node should consider the first node as it's next waypoint.
 	bool circular;
 };

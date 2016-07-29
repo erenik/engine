@@ -7,6 +7,8 @@
 #include <cstring>
 #include "WaypointManager.h"
 #include <ctime>
+#include "PathMessage.h"
+#include "Message/MessageManager.h"
 
 /// A manager for handling and calculating paths between various nodes provided by the waypoint-manager.
 // class PathManager{
@@ -39,6 +41,29 @@ void PathManager::Deallocate(){
 	pathManager = NULL;
 }
 
+/// In reality only accepts PathMessages, the rest are mostly ignored.
+void PathManager::QueueMessage(PathMessage * pm)
+{
+//	messages.AddItem(pm);
+	assert(pm->from);
+	assert(pm->to);
+	assert(pm->recipientEntity);
+
+	/// Just process straight away...?
+	PathMessage * reply = new PathMessage(pm->recipientEntity);
+	// Get the path.
+	this->GetPath(pm->from, pm->to, reply->path);
+	reply->path;
+	MesMan.QueueMessage(reply);
+}
+
+/// For processing the path searches. If 1 thread, iterates a bit, if multi-threaded approach, will mostly keep track of which threads have finished or not.
+void PathManager::Process(int timeInMs)
+{
+	
+}
+
+
 /** Attempts to get control of the LastPath Mutex
 	Make sure you call ReleaseLastPathMutex afterward!
 	The maxWaitTime-parameter defines how long the function will wait before returning automatically.
@@ -68,7 +93,8 @@ void PathManager::GetLastPath(Path& path){
 }
 
 /// Calculates a path between target waypoint nodes.
-Path PathManager::GetPath(Waypoint * from, Waypoint * to){
+Path PathManager::GetPath(Waypoint * from, Waypoint * to)
+{
 	GetLatsPathMutex();
 	/// Get mutex for the active navmesh too
 	WaypointMan.GetActiveNavMeshMutex();
@@ -80,7 +106,8 @@ Path PathManager::GetPath(Waypoint * from, Waypoint * to){
 	return returnPath;
 }
 /// Calculates a path between target waypoint nodes, storing the finished path in the given variable.
-void PathManager::GetPath(Waypoint * from, Waypoint * to, Path &path){
+void PathManager::GetPath(Waypoint * from, Waypoint * to, Path &path)
+{
 	GetLatsPathMutex();
 	WaypointMan.GetActiveNavMeshMutex();
 	searchFunction(from, to, path);
@@ -91,7 +118,8 @@ void PathManager::GetPath(Waypoint * from, Waypoint * to, Path &path){
 }
 
 /// Sets search algorithm by name (must match exact function name for now)
-void PathManager::SetSearchAlgorithm(const char * name){
+void PathManager::SetSearchAlgorithm(const char * name)
+{
 	if (!name)
 		return;
 	if (strcmp(name, "AStar") == 0){
@@ -121,10 +149,9 @@ float ManhattanDistance(Waypoint * from, Waypoint * to){
 /** Calculates the given path using the A* algorithm, derived with guidance from Wikipedia
 	http://en.wikipedia.org/wiki/A*_search_algorithm
 */
-void AStar(Waypoint * from, Waypoint * to, Path& path){
-
-	assert(from->passable && to->passable);
-	assert(from->IsAerial() == to->IsAerial());
+void AStar(Waypoint * from, Waypoint * to, Path& path)
+{
+	/// TODO: Add custom functions for seeking game-specific tiles. Or manipulate the navmesh in run-time somehow.
 	std::cout<<"\nBeginning A* path search...";
 	clock_t start = clock();
 	path.Clear();
@@ -181,12 +208,13 @@ void AStar(Waypoint * from, Waypoint * to, Path& path){
 		}
 		int currentIndex = nm->GetIndex(current);
 		/// If the current node is our goal, reconstruct our path.
-		if (current == to) {
+		if (current == to) 
+		{
 			std::cout<<"\nGoal has been reached! Yays";
-			path.AddWaypoint(current);
+			path.AddItem(current);
 			while (current != from){
 				current = cameFrom[nm->GetIndex(current)];
-				path.AddWaypoint(current);
+				path.AddItem(current);
 			}
 			clock_t stop = clock();
 			clock_t duration = stop - start;

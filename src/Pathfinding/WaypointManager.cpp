@@ -42,8 +42,10 @@ void WaypointManager::Deallocate(){
 }
 
 /// Create a new navmesh!
-NavMesh * WaypointManager::CreateNavMesh(String name){
-	for (int i = 0; i < navMeshList.Size(); ++i){
+NavMesh * WaypointManager::CreateNavMesh(String name)
+{
+	for (int i = 0; i < navMeshList.Size(); ++i)
+	{
 		NavMesh * n = navMeshList[i];
 		if (n->name == name){
 			assert( false && "Navmesh already exists! select it instead yaow");
@@ -406,6 +408,28 @@ bool WaypointManager::ToggleWaypointWalkability(const Vector3f & position){
 	return true;
 }
 
+/// Simple get. Checks distance.
+Waypoint * WaypointManager::GetClosestWaypoint(ConstVec3fr toPosition)
+{
+	List<Waypoint*> & waypoints = activeNavMesh->waypoints;
+	if (!waypoints.Size())
+		return NULL;
+	/// Get a first waypoint
+	Waypoint * closest = NULL;
+	float closestDist = 100000.f;
+	for (int i = 0; i < waypoints.Size(); ++i)
+	{
+		Waypoint * wp = waypoints[i];
+		float thisDist = (wp->position - toPosition).Length();
+		if (thisDist < closestDist)
+		{
+			closest = wp;
+			closestDist = thisDist;
+		}
+	}
+	return closest;
+}
+
 /// Returns a waypoint that has no active data bound to it's pData member.
 Waypoint * WaypointManager::GetFreeWaypoint(){
 	Waypoint * wp = NULL;
@@ -417,7 +441,8 @@ Waypoint * WaypointManager::GetFreeWaypoint(){
 	return NULL;
 }
 /// Returns the closest waypoint to target position that is passable/walkable/valid.
-Waypoint * WaypointManager::GetClosestValidWaypoint(const Vector3f & position){
+Waypoint * WaypointManager::GetClosestValidWaypoint(const Vector3f & position)
+{
 	int waypoints = activeNavMesh->waypoints.Size();
 	if (!waypoints)
 		return NULL;
@@ -638,13 +663,12 @@ bool WaypointManager::Load2DWaypointMap(const char * filename, bool optimize){
 }
 
 /// Returns the loaded navMesh by source
-NavMesh * WaypointManager::GetNavMesh(String source){
-	if (source.Length() == 0)
-		return NULL;
-	for (int i = 0; i < navMeshList.Size(); ++i){
+NavMesh * WaypointManager::GetNavMesh(String nameOrSource)
+{
+	for (int i = 0; i < navMeshList.Size(); ++i)
+	{
 		NavMesh * nm = navMeshList[i];
-		String nmSource = nm->source;
-		if (source == navMeshList[i]->source)
+		if (nameOrSource == nm->source || nameOrSource == nm->name)
 			return navMeshList[i];
 	}
 	return NULL;

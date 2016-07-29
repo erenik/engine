@@ -32,6 +32,9 @@ enum messageTypes{
 	EDITOR_MESSAGE,
 	CURL, // HTTP and similar stuff, sent by the CURLManager
 	SIP, // Session Initiation Protocol, sent from the NetworkManager when certain SIP packets are received.
+	SET_PATH_DESTINATION_MESSAGE, // PathableProperty.
+	PATHFINDING_MESSAGE, // For Pathfinding/Navmesh system. Sent to PathableProperty, PathManager and entities.
+	MOVE_TO_MESSAGE, /// Sent by PathableProperty. Interpret in other properties and apply accelerations accordingly!
 
 	// Consider creating packets straight away for these networking features instead of using the message system?
 	/// Make room for 100 different network packets (no more than like 10 should be needed, but eh..)

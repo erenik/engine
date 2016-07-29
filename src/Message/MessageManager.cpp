@@ -264,6 +264,7 @@ void MessageManager::ProcessPacket(Packet * packet)
 	if (StateMan.ActiveState())
 		StateMan.ActiveState()->ProcessPacket(packet);
 }
+
 void MessageManager::ProcessMessage(Message * message)
 {
 	// Check for UI-messages first.
@@ -272,6 +273,11 @@ void MessageManager::ProcessMessage(Message * message)
 	// Do note that not all messages uses the string-argument...
 //	if (!msg.Length())
 //		return;
+
+	if (message->recipientEntity)
+	{
+		message->recipientEntity->ProcessMessage(message);
+	}
 
 	// Let active lighting process messages if wanted.
 	Lighting * activeLighting = Graphics.ActiveLighting();
