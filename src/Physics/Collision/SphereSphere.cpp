@@ -28,5 +28,6 @@ bool SphereSphereCollision(Entity * one, Entity * two, Collision &data)
 	data.collisionNormal = distanceVector.NormalizedCopy();
 	data.distanceIntoEachOther = distance;
 	data.results |= DISTANCE_INTO;
+	data.collissionPoint = (one->worldPosition + two->worldPosition) * 0.5f;
 	return true;
 }

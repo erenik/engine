@@ -139,7 +139,9 @@ bool TestCollision(Entity * one, Entity * two, List<Collision> & collissionList)
 			}
 		}
 		// All tris vs. sphere.
-		else if (MeshSphereCollision(meshEntity, sphereEntity, data)){
+		else if (MeshSphereCollision(meshEntity, sphereEntity, data))
+		{
+
 			shouldCollide = true;
 			/// Swap them to get normal right.
 			/// Flip collision normal if needed, always point from one to two.

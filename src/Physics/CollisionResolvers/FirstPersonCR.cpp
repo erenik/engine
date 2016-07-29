@@ -108,7 +108,68 @@ bool FirstPersonCR::ResolveCollision(Collision & c)
 	// Dynamic-dynamic collision.
 	else 
 	{
-	
+//		std::cout<<"\nProblem?"	;
+		/// Push both apart?
+		PhysicsProperty * pp = dynamic->physics, * pp2 = dynamic2->physics;
+
+		/// Flip normal if dynamic is two.
+		// See if general velocities align with one or the other? or...
+		
+//		if (dynamic == c.two)
+
+		;// c.collisionNormal *= -1;
+
+		std::cout<<"\nNormal: "<<c.collisionNormal;
+
+		// Default plane? reflect velocity upward?		
+		/// This will be used to reflect it.
+		Vector3f velInNormalDir = c.collisionNormal * pp->velocity.DotProduct(c.collisionNormal);
+		Vector3f velInNormalDir2 = c.collisionNormal * pp2->velocity.DotProduct(c.collisionNormal);
+		Vector3f velInTangent = pp->velocity - velInNormalDir,
+			velInTangent2 = pp2->velocity - velInNormalDir2;
+		Vector3f velInTangentTot = velInTangent + velInTangent2,
+			velInNormalDirTot = velInNormalDir + velInNormalDir2;		
+		/// Use lower value restitution of the two?
+		float restitution = 0.5f; // MinimumFloat(pp->restitution, pp2->restitution);
+		Vector3f normalDirPart = velInNormalDirTot * restitution * 0.5f;
+		Vector3f to2 = (dynamic2->worldPosition - dynamic->worldPosition).NormalizedCopy();
+		float partTo2 = normalDirPart.DotProduct(to2);
+		std::cout<<" normalDirPart: "<<normalDirPart;
+
+		float normalDirPartVal = normalDirPart.Length();
+
+		Vector3f fromCollisionToDyn1 = (dynamic->worldPosition - c.collissionPoint).NormalizedCopy();
+		Vector3f fromCollisionToDyn2 = (dynamic2->worldPosition - c.collissionPoint).NormalizedCopy();
+
+		pp->velocity = velInTangent * (1 - pp->friction) + fromCollisionToDyn1 * normalDirPartVal;
+		pp2->velocity = velInTangent2 * (1 - pp->friction) + fromCollisionToDyn2 * normalDirPartVal;
+		/// Apply resitution and stuffs.
+		assert(dynamic->parent == 0);
+		/// Adjusting local position may not help if child entity.
+		// Old code
+		float distanceIntoAbsH = AbsoluteValue(c.distanceIntoEachOther * 0.5f);
+
+		dynamic->localPosition += distanceIntoAbsH * fromCollisionToDyn1;
+		dynamic2->localPosition += distanceIntoAbsH * fromCollisionToDyn2;
+
+		/// For double-surface collision resolution (not bouncing through walls..)
+		/// If below threshold, sleep it.
+		if (dynamic->physics->velocity.Length() < inRestThreshold && c.collisionNormal.y > 0.8f)
+		{
+			pp->Sleep();
+		}
+		else
+			pp->Activate();
+		if (pp2->velocity.Length() < inRestThreshold && c.collisionNormal.y > 0.8f)
+		{
+			pp2->Sleep();
+		}
+		else
+			pp2->Activate();
+		if (debug == 7)
+		{
+			std::cout<<"\nCollision resolution: "<<(c.one->name+" "+c.two->name+" ")<<c.collisionNormal<<" onePos"<<c.one->worldPosition<<" twoPos"<<c.two->worldPosition;
+		}
 	}
 
 

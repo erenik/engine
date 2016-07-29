@@ -298,6 +298,18 @@ void PhysicsProperty::SetPlaneCollisionsOnly(bool bValue)
 	this->physicsMesh->planeCollisionsOnly = bValue;
 }
 
+/// Sets state to IN_REST. Nullifies velocity.
+void PhysicsProperty::Sleep()
+{
+	state |= CollisionState::IN_REST;
+	velocity = Vector3f();
+}
+/// Remove IN_REST. 
+void PhysicsProperty::Activate()
+{
+	state &= ~CollisionState::IN_REST;
+}
+
 /// See state enumerations above. TODO: Consider making the state-variable below private.
 void PhysicsProperty::SetPhysicsState(int state){
 	switch(state){

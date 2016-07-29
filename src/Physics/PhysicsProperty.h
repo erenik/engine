@@ -77,6 +77,11 @@ public:
 	// Sets if the entity should only collide using the Tri/Quads planes or including the edges and points (corners) too. Default is false. True for optimization may yield bugs.
 	void SetPlaneCollisionsOnly(bool bValue);
 
+	/// Sets state to IN_REST. Nullifies velocity.
+	void Sleep();
+	/// Remove IN_REST. 
+	void Activate();
+
 	/** Default true. All entities with this have their matrices updated each physics frame, 
 		in order for collision simulation, etc. to work properly. As an optimization feature
 		entities may be flagged false here, making them only have their matrices updated once 
