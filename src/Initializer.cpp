@@ -11,7 +11,7 @@
 #include "File/File.h"
 #include "Application/Application.h"
 
-#include "OS/Thread.h"
+#include "OS/OSThread.h"
 #include "File/LogFile.h"
 
 THREAD_HANDLE initializerThread = 0;

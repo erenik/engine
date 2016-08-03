@@ -92,6 +92,7 @@ void * StateManager::StateProcessor(void * vArgs){
 					WindowMan.ProcessMessages();
 					/// Process network packets if applicable
 					MesMan.ProcessPackets();
+					PathMan.Process(timeDiffInMs);
 				
 				}
 

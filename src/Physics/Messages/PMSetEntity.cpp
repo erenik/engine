@@ -443,6 +443,7 @@ void PMSetEntity::Process()
 				break;
 			case PT_SET_SCALE:
 			{
+				PhysicsMan.UnregisterEntity(entity);
 				switch(dataType)
 				{
 					case INTEGER:
@@ -462,7 +463,7 @@ void PMSetEntity::Process()
 				}
 				entity->physics->UpdateProperties(entity);
 				/// Re-register to avoid bugs in collision-detection optimized systems (such as AABBSweeper) which do not actively re-sort non-dynamic entities!
-				PhysicsMan.ReregisterEntity(entity);
+				PhysicsMan.RegisterEntity(entity);
 
 		//		std::cout<<"\nEntity scale set to "<<vec3fValue;
 				break;

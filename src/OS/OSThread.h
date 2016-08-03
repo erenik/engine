@@ -27,9 +27,11 @@ void QuitApplicationFatalError(const String & errorMessage);
 	#define CREATE_AND_START_THREAD(classAndFunctionName, threadHandle)  	threadHandle = _beginthread(classAndFunctionName, NULL, NULL);
 	#define THREAD_START(functionName) void functionName(void * vArgs)
 	#define PROCESSOR_THREAD_DEC static void Processor(void * vArgs);
+	#define THREAD_DECLARATION(functionName) static void functionName(void * vArgs);
 	#define PROCESSOR_THREAD_START(managerName) void managerName::Processor(void * vArgs)
 	#define THREAD_HANDLE uintptr_t 
-	#define RETURN_NULL(threadHandle) threadHandle = 0; 	return;
+	// https://msdn.microsoft.com/en-us/library/hw264s73.aspx - _endthread is good to call to ensure deallocation of resources.
+	#define RETURN_NULL(threadHandle)  threadHandle = 0; _endthread(); return;
 #elif defined LINUX | defined OSX
 	// Linux/OS X
 	#define CREATE_AND_START_THREAD(classAndFunctionName, threadHandle)     pthread_create(&threadHandle, NULL, classAndFunctionName, NULL);

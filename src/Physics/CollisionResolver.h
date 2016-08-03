@@ -19,6 +19,8 @@ public:
 
 	/// Threshold for considering to be in rest and nullifying velocity. Default 0.1 for fast-paced games? Reduce to make playable at lower scales or slower games.
 	float inRestThreshold;
+	/// If false, will do only the "deepest" one per iteration <- wat even.
+	bool resolveAllCollisions;
 private:
 };
 

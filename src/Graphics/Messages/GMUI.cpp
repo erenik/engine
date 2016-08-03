@@ -946,6 +946,9 @@ void GMPushUI::Process()
 		std::cout<<"\nGMPushUI: Invalid UIElement.";
 		return;
 	}
+	/// Add to root.
+	if (e->Parent() == 0)
+		ui->GetRoot()->AddChild(e);
 	/// Push to stack, the InputManager will also try and hover on the first primary element.
 	InputMan.PushToStack(e, ui);
 

@@ -63,7 +63,8 @@ public:
 	Matrix4f transform;
 	/// Linked to the 2 above. Use for dynamic entities in fast-paced games.
 	bool temporalAliasingEnabled;
-
+	/// Entity group this entity belongs to (when it comes to rendering). This may help organize group-specific render-passes.
+	String group;
 	/// Meaning: text-based animation. If true then the GetTextureForCurrentFrame should work as intended!
 	bool hasAnimation;
 	/// For flags, see above: example DISABLE_DEPTH_WRITING (for this model only)

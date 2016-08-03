@@ -7,6 +7,7 @@
 #include "Path.h"
 
 class PathMessage;
+class Thread;
 
 #define PathMan		(*PathManager::Instance())
 
@@ -26,6 +27,7 @@ public:
 
 	/// In reality only accepts PathMessages, the rest are mostly ignored.
 	void QueueMessage(PathMessage * pm);
+	void StartThreadFromMessage(PathMessage * pm);
 
 	/// For processing the path searches. If 1 thread, iterates a bit, if multi-threaded approach, will mostly keep track of which threads have finished or not.
 	void Process(int timeInMs);
@@ -48,10 +50,15 @@ public:
 	/// Sets search algorithm by name (must match exact function name for now)
 	void SetSearchAlgorithm(const char * name);
 
+	/// Ew.
+	int ThreadsActive();
+	/// IF false, no.
+	bool acceptRequests;
 private:
 	/// Last calculated path.
 	Path lastPath;
-//	List<PathMessage*> messages;
+	List<Thread*> pathfindingThreads;
+	List<PathMessage*> messageQueue;
 };
 
 

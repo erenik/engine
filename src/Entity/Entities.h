@@ -44,6 +44,8 @@ public:
 	Entities SelectNext(Entity * entity) const;
 	/// Selects previous entity using given one as reference for the previous one.
 	Entities SelectPrevious(Entity * entity) const;
+	/// If the list has a specific name?
+///	String name;
 private:
 	/// Inherited variables from List<Entity*>
 };

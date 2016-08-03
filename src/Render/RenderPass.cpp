@@ -32,6 +32,9 @@ RenderPass::RenderPass()
 	shadows = false;
 	shadowMapResolution = 512;
 	viewport = NULL;
+
+	sortBy = 0;
+	sortByIncreasing = true;
 }
 
 RenderPass::~RenderPass()
@@ -278,6 +281,25 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 			RenderEntities();
 			break;
 		}
+		case RenderTarget::ENTITY_GROUP:
+		{
+			for (int i = 0; i < graphicsState.entityGroups.Size(); ++i)
+			{
+				EntityGroup * eg = graphicsState.entityGroups[i];
+				if (eg->name == inputGroup)
+				{
+					entitiesToRender = *eg;
+					RenderEntities();
+				}
+				break;
+			}
+		}
+		case RenderTarget::REMAINING_ENTITIES:
+		{
+			entitiesToRender = *graphicsState.defaultEntityGroup;
+			RenderEntities();
+			break;
+		}
 		case RenderTarget::SOLID_ENTITIES:
 		{
 //			instancingEnabled = false;
@@ -401,10 +423,50 @@ bool RenderPass::SetupOutput()
 	return true;
 }
 
-
+/// 1 X, 2 Y, 3 Z, list of entities.
+void SortBy(int axis, List<Entity*> & entities, bool increasing)
+{
+	int currentItems = entities.Size();
+	Entity * entity, * entity2, * tmp;
+	/// Use insertion sort, as we can assume that the entities will remain nearly sorted all the time?
+	/// http://en.wikipedia.org/wiki/Insertion_sort
+	for (int i = 0; i < currentItems; ++i)
+	{
+		// Calculate distances as we go.
+		entity = entities[i];
+		// Get value?
+		float v = entity->worldPosition.z;
+		tmp = entity;
+		// Compare with previous items.
+		for (int j = i - 1; j >= 0; --j)
+		{
+			entity2 = entities[j];
+			float v2 = entity2->worldPosition.z;
+			// If zdepth is lower on tmp, move entity2 up one step.
+			if (v < v2)
+			{
+				entities[j + 1] = entities[j]; 
+			}
+			// Once we find another item with a lesser depth, place tmp in the previous spot.
+			else {
+				entities[j + 1] = tmp;
+				tmp = 0;
+				// Break inner loop.
+				break;
+			}
+		}
+		// Special case, placing the closest one.
+		if (tmp)
+			entities[0] = tmp;
+	}
+}
 
 void RenderPass::RenderEntities()
 {
+	// Sort entities?
+	if (sortBy > 0)
+		SortBy(sortBy, entitiesToRender, sortByIncreasing);
+
 	bool optimized = true;
 	// Old here.
 	if (!optimized)

@@ -32,6 +32,7 @@ class TextFont;
 class Camera;
 class Light;
 class GraphicsState;
+class EntityGroup;
 class RenderInstancingGroup;
 
 #define checkGLError() {int error = glGetError();if (error != GL_NO_ERROR)throw 1;}
@@ -91,11 +92,13 @@ public:
 	Entities shadowCastingEntities,
 		shadowCastingEntitiesNotInstanced;
 
+	List<EntityGroup*> entityGroups;
+	EntityGroup * defaultEntityGroup;
 
 	/// Sublist.
 	List<RenderInstancingGroup*> shadowCastingEntityGroups, solidEntityGroups;
 	/// Contains all groups
-	List<RenderInstancingGroup*> entityGroups;
+	List<RenderInstancingGroup*> entityInstancingGroups;
 
 	/** Used to smooth out positions and quaternions of entitys to solve issue of temporal aliasing  (http://gafferongames.com/game-physics/fix-your-timestep/)
 		Default 0.5?

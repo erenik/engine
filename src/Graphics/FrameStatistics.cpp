@@ -64,6 +64,8 @@ void FrameStatistics::ResetPhysics()
 	physicsRecalcAABBs = physicsRecalcOBBs = physicsRecalcProps = 0;
 	physicsCollisions = 0;
 	physicsCollisionDetection = physicsCollisionResolution = physicsCollisionCallback = 0;
+	physicsCollisionDetectionAABBSweep = physicsCollisionDetectionChosenDetector = 0;
+
 }
 
 /// Pushes the frame time which is then used to calculate the average frame-time.
@@ -109,6 +111,8 @@ void FrameStatistics::Print(){
 		<<"\n		- recalc props: " <<physicsRecalcProps
 		<<"\n		- collisions: " <<physicsCollisions
 		<<"\n			- detection: " <<physicsCollisionDetection
+		<<"\n				- AABB Sweep: "<<physicsCollisionDetectionAABBSweep
+		<<"\n				- Chosen detector: "<<physicsCollisionDetectionChosenDetector
 		<<"\n			- resolution: " <<physicsCollisionResolution 
 		<<"\n			- callbacks: " <<physicsCollisionCallback
 		<<"\n	- messages: "<<physicsMessages

@@ -300,8 +300,8 @@ class AppWindow;
 class GMPushUI : public GMUI{
 public:
 	GMPushUI(String sourceName, AppWindow * window = 0); // If 0, grabs main window.
-	GMPushUI(String elementName, UserInterface * ontoUI);
-	GMPushUI(UIElement * element, UserInterface * ontoUI);
+	GMPushUI(String elementName, UserInterface * ontoUI = 0); // if 0 UI, grabs main window's main UI.
+	GMPushUI(UIElement * element, UserInterface * ontoUI = 0); // if 0 UI, grabs main window's main UI.
 	void Process();
 private:
 	UIElement * element;

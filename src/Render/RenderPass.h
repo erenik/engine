@@ -31,6 +31,8 @@ namespace RenderTarget
 		FINAL_GATHER,	 // Render to final gather texture for the initial lighting pass.
 		// Inputs
 		ENTITIES, // All entities registered for rendering.
+		ENTITY_GROUP, // Entities part of a specific render-group.
+		REMAINING_ENTITIES, // Entities not part of any specific entity-group.
 		SHADOW_CASTING_ENTITIES, // Yup.
 		SOLID_ENTITIES, // All non-Alpha entities (most regular ones).
 		ALPHA_ENTITIES, // All entities which some either texture or material transparency.
@@ -87,6 +89,7 @@ public:
 	int camera;
 	// Input type. 
 	int input;
+	String inputGroup; // Identifier for the group.
 	int output;
 
 	// Default false. If true, shader will be supplied with shadow maps and the matrices used to create them.
@@ -97,6 +100,10 @@ public:
 
 	/// Default true.
 	bool depthTestEnabled;
+
+	/// Axis, 1 for X, 2 for Y, 3 for Z, 0 for no sorting.
+	int sortBy;
+	bool sortByIncreasing; // For the sorting. If increasing or decreasing manner.
 
 private:
 	/// Based on available shader data. Updated each frame.

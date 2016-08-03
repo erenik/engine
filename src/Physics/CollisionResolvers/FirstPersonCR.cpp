@@ -34,12 +34,13 @@ bool FirstPersonCR::ResolveCollision(Collision & c)
 	if (c.one->physics->noCollisionResolutions || c.two->physics->noCollisionResolutions)
 		return false;
 
-	if (dynamic->physics->lastCollisionMs + dynamic->physics->minCollisionIntervalMs > physicsNowMs)
-		return false;
+	// Retardation?
+//	if (dynamic->physics->lastCollisionMs + dynamic->physics->minCollisionIntervalMs > physicsNowMs)
+	//	return false;
 
 	dynamic->physics->lastCollisionMs = physicsNowMs;
 
-	Entity * dynamic2 = other->physics->type == PhysicsType::DYNAMIC? other : NULL;
+	Entity * dynamic2 = (other->physics->type == PhysicsType::DYNAMIC) ? other : NULL;
 	Entity * staticEntity;
 	Entity * kinematicEntity;
 	if (dynamic == c.one)
@@ -83,7 +84,10 @@ bool FirstPersonCR::ResolveCollision(Collision & c)
 		assert(dynamic->parent == 0); 
 		/// Adjusting local position may not help if child entity.
 		// Old code
-		dynamic->localPosition += AbsoluteValue(c.distanceIntoEachOther) * c.collisionNormal;
+		Vector3f moveVec = AbsoluteValue(c.distanceIntoEachOther) * c.collisionNormal;
+//		if (moveVec.x || moveVec.z)
+//			std::cout<<"\nMoveVec: "<<moveVec;
+		dynamic->localPosition += moveVec;
 		/// For double-surface collision resolution (not bouncing through walls..)
 
 		/// For the previously backwards-collisions.
@@ -119,7 +123,7 @@ bool FirstPersonCR::ResolveCollision(Collision & c)
 
 		;// c.collisionNormal *= -1;
 
-		std::cout<<"\nNormal: "<<c.collisionNormal;
+//		std::cout<<"\nNormal: "<<c.collisionNormal;
 
 		// Default plane? reflect velocity upward?		
 		/// This will be used to reflect it.
@@ -134,7 +138,7 @@ bool FirstPersonCR::ResolveCollision(Collision & c)
 		Vector3f normalDirPart = velInNormalDirTot * restitution * 0.5f;
 		Vector3f to2 = (dynamic2->worldPosition - dynamic->worldPosition).NormalizedCopy();
 		float partTo2 = normalDirPart.DotProduct(to2);
-		std::cout<<" normalDirPart: "<<normalDirPart;
+	//	std::cout<<" normalDirPart: "<<normalDirPart;
 
 		float normalDirPartVal = normalDirPart.Length();
 

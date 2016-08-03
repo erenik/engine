@@ -77,7 +77,9 @@ bool RenderPipeline::Load(String fromFile)
 			}
 			if (tokens.Size() < 2)
 				continue;
-			String arg = tokens[1];
+			String arg = tokens[1], arg2;
+			if (tokens.Size() > 2)
+				arg2 = tokens[2];
 			if (line.StartsWith("Camera"))
 			{
 				if (arg == "Light")
@@ -95,6 +97,14 @@ bool RenderPipeline::Load(String fromFile)
 			{
 				rp->shadowMapping = true;
 			}
+			else if (line.StartsWith("SortBy"))
+			{
+				List<String> args = line.Tokenize(" \t");
+				String axisStr = arg,
+					increasingStr = arg2;
+				rp->sortBy = axisStr == "Z"? 3 : (axisStr == "Y"? 2 : 1);
+				rp->sortByIncreasing = increasingStr == "Increasing";
+			}
 			else if (line.StartsWith("ShadowMapResolution"))
 			{
 				rp->shadowMapResolution = arg.ParseInt();
@@ -111,6 +121,16 @@ bool RenderPipeline::Load(String fromFile)
 					rp->input = RenderTarget::SOLID_ENTITIES;
 				else if (arg == "ShadowCastingEntities")
 					rp->input = RenderTarget::SHADOW_CASTING_ENTITIES;
+				else if (arg == "EntityGroup")
+				{
+					rp->input = RenderTarget::ENTITY_GROUP;
+					rp->inputGroup = arg2;
+				}
+				else if (arg == "RemainingEntities")
+				{
+					// All other entities, not defined in other (EntityGroup) groups
+					rp->input = RenderTarget::REMAINING_ENTITIES;
+				}
 				else if (arg == "AlphaEntities")
 				{
 					rp->input = RenderTarget::ALPHA_ENTITIES;

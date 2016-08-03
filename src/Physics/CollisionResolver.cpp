@@ -18,12 +18,27 @@ int CollisionResolver::ResolveCollisions(List<Collision> collisions)
 	if (collisions.Size())
 		;//std::cout<<"\n"<<collisions.Size()<<" collisions to resolve.";
 
-	Collision * mostLikelyCollision = 0;
 	float maxLikelyhood;
 	int deepestCollisionIndex;
+
+	for (int i = 0; i < collisions.Size(); ++i)
+	{
+		Collision & c = collisions[i];
+		bool didSomething = ResolveCollision(c);
+		numResolved += didSomething;
+		if (didSomething)
+		{
+			++numResolved;
+		}
+	}
+	collisions.Clear();
+
+		/*
+	Collision * mostLikelyCollision = 0;
 	while(collisions.Size())
 	{
 		maxLikelyhood = -1000.f;
+
 		/// Solve the deepest collisions first.
 		for (int i = 0; i < collisions.Size(); ++i)
 		{
@@ -72,5 +87,6 @@ int CollisionResolver::ResolveCollisions(List<Collision> collisions)
 		}
 
 	}
+		*/
 	return numResolved;
 }

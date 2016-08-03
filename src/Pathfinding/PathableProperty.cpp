@@ -38,6 +38,12 @@ void PathableProperty::ProcessMessage(Message * message)
 	/// Response from pathfinding server?
 	assert(pm->requestResponse == PathMessage::RESPONSE);
 	StartWalking(pm->path);
+	if (pm->path.Size() == 0)
+	{
+		/// Notify that we got a bad path.
+		Message msg("PathableProperty::ZeroLengthPathReceived");
+		owner->ProcessMessage(&msg);
+	}
 }
 
 void PathableProperty::Process(int timeInMs)
@@ -55,12 +61,14 @@ void PathableProperty::Process(int timeInMs)
 		updated = true;
 		if (!SetNextWaypointAsTarget())
 			return; // If at the end of the road, return.
+		// Only spam it upon each update..?
+		GoToWaypoint(nextWaypoint);
 	}
 	if (updated)
 	{
-		std::cout<<"\nNext waypoint: "<<path.GetIndexOf(nextWaypoint)<<"/"<<path.Size(); if (nextWaypoint) std::cout<<" "<<nextWaypoint->position;
+	//	if (debug == 11)
+		//	std::cout<<"\nNext waypoint: "<<path.GetIndexOf(nextWaypoint)<<"/"<<path.Size(); if (nextWaypoint) std::cout<<" "<<nextWaypoint->position;
 	}
-	GoToWaypoint(nextWaypoint);
 }
 
 /// Requests a path to the target waypoint. This will then be returned via the PathManaging system as a message.
@@ -120,7 +128,7 @@ bool PathableProperty::SetNextWaypointAsTarget()
 	++index;
 	if (index >= path.Size() - 1) // If final point, just go to it and stop.
 	{
-		std::cout<<"\nIs final waypoint.";
+//		std::cout<<"\nIs final waypoint.";
 		GoToWaypoint(nextWaypoint);
 		Message msg("OnFinalDestinationSet");
 		owner->ProcessMessage(&msg);
@@ -141,7 +149,6 @@ void PathableProperty::GoToWaypoint(Waypoint * wp)
 		return;
 	}
 	MoveToMessage mtm(wp->position);
-//	std::cout<<"\nGo to "<<wp->position;
 	owner->ProcessMessage(&mtm);
 }
 

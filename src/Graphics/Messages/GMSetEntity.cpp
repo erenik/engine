@@ -266,6 +266,7 @@ GMSetEntitys::GMSetEntitys(Entity * entity, int target, String value)
 		case GT_TEXT:
 		case GT_ANIMATION:
 		case GT_ANIMATION_SET:
+		case GT_ENTITY_GROUP:
 			break;
 		default:
 			assert(false && "Bad target in GMSetEntitys");
@@ -294,7 +295,13 @@ void GMSetEntitys::Process()
 				entity->graphics->hasAnimation = true;
 			break;
 		}
-
+		case GT_ENTITY_GROUP:
+		{
+			graphicsState->RemoveEntity(entity);
+			entity->graphics->group = sValue;
+			graphicsState->AddEntity(entity);
+			break;
+		}
 	}
 }
 

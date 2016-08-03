@@ -115,6 +115,17 @@ void AABBSweeper::UnregisterEntity(Entity * entity)
 	}	
 	if (entity->physics->type != PhysicsType::STATIC)
 		movingEntities.RemoveItemUnsorted(entity);
+
+	for (int i = 0; i < axes.Size(); ++i)
+	{
+        AABBSweepAxis * axis = axes[i];
+		for (int j = 0; j < axis->nodes.Size(); ++j)
+		{
+			AABBSweepNode * an = axis->nodes[j];
+			if (an->entity == entity)
+				assert(false);
+		}
+    }
 }
 
 /// Returns the amount of nodes currently registered. Should always be registeredEntities * 2.

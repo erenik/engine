@@ -15,3 +15,6 @@ void QuitApplicationFatalError(const String & errMsg)
 	MesMan.QueueMessages("QuitApplication");
 	// Set error message?
 }
+
+
+

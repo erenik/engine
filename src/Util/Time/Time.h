@@ -119,7 +119,7 @@ public:
 	int IntervalsPerMillisecond();
 private:
 	/// Fetches calender data given the intervals and type defined now.
-	void FetchCalenderData();
+	virtual void FetchCalenderData();
 
 	int millisecond;
 	int second;

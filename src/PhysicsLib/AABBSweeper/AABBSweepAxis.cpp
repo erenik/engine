@@ -295,6 +295,9 @@ bool AABBSweepAxis::FindPairsLinearPlusSearch(List<EntityPair> & entityPairs)
 				{
 					continue;
 				}
+				if (node->entity->physics->type != PhysicsType::DYNAMIC &&
+					entity->physics->type != PhysicsType::DYNAMIC)
+					continue; // Irrelevant.
 				// Check other axes straight away.
 				oneab = node->aabb;
 				twoab = entity->aabb;
@@ -312,7 +315,10 @@ bool AABBSweepAxis::FindPairsLinearPlusSearch(List<EntityPair> & entityPairs)
                 ep.two = entity;
 				/// check for duplicates?
 				/// TODO: Check for duplicates in the entityPairs list?, since this functions is called iteratively.
-      //          std::cout<<"\nAdding pair: "<<ep.one<<" "<<ep.one->position<<" & "<<ep.two<<" "<<ep.two->position;
+				if (debug == 10)
+					std::cout<<"\nAdding pair "<<entityPairs.Size()<<": "<<ep.one->name<<" "<<ep.one->worldPosition<<" & "<<ep.two->name<<" "<<ep.two->worldPosition;
+				if (debug == 12)
+					std::cout<<"\nAdding pair "<<entityPairs.Size()<<": "<<ep.one->name<<"  &  "<<ep.two->name;
                 entityPairs.AddItem(ep);
             }
 			activeEntities.AddItem(node->entity);

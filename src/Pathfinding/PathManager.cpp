@@ -9,6 +9,7 @@
 #include <ctime>
 #include "PathMessage.h"
 #include "Message/MessageManager.h"
+#include "Thread/Thread.h"
 
 /// A manager for handling and calculating paths between various nodes provided by the waypoint-manager.
 // class PathManager{
@@ -41,6 +42,17 @@ void PathManager::Deallocate(){
 	pathManager = NULL;
 }
 
+AE_THREAD_START(PathFinderThread)
+	/// Check arguments.
+	Waypoint * from = (Waypoint*) args[1], * to = (Waypoint*) args[2];
+	Entity * entity = (Entity*) args[3];
+	PathMessage * reply = new PathMessage(entity);
+	AStar(from, to, reply->path);
+	reply->path.Mirror();
+	/// Queue reply via Message manager once we are done, since we are currently in another thread.
+	MesMan.QueueMessage(reply);
+AE_THREAD_END
+
 /// In reality only accepts PathMessages, the rest are mostly ignored.
 void PathManager::QueueMessage(PathMessage * pm)
 {
@@ -49,18 +61,50 @@ void PathManager::QueueMessage(PathMessage * pm)
 	assert(pm->to);
 	assert(pm->recipientEntity);
 
-	/// Just process straight away...?
-	PathMessage * reply = new PathMessage(pm->recipientEntity);
-	// Get the path.
-	this->GetPath(pm->from, pm->to, reply->path);
-	reply->path;
-	MesMan.QueueMessage(reply);
+	if (pathfindingThreads.Size() > 20)
+	{
+		messageQueue.AddItem(pm);
+		return;
+	}
+
+	/// Make a new thread.
+	StartThreadFromMessage(pm);
+	delete pm;
+}
+
+void PathManager::StartThreadFromMessage(PathMessage * pm)
+{
+	Thread * thread = new Thread(PathFinderThread);
+	thread->AddArgument((Argument*)pm->from);
+	thread->AddArgument((Argument*)pm->to);
+	thread->AddArgument((Argument*)pm->recipientEntity);
+	thread->Run();
+	pathfindingThreads.AddItem(thread);
 }
 
 /// For processing the path searches. If 1 thread, iterates a bit, if multi-threaded approach, will mostly keep track of which threads have finished or not.
 void PathManager::Process(int timeInMs)
 {
-	
+	static int accum = 0;
+	accum += timeInMs;
+	if (accum > 1000)
+		accum = accum % 1000;
+	for (int i = 0; i < pathfindingThreads.Size(); ++i)
+	{
+		Thread * t = pathfindingThreads[i];
+		if (t->HasEnded())
+		{
+			pathfindingThreads.RemoveItem(t);
+			--i;
+			if (messageQueue.Size())
+			{
+				PathMessage * pm = messageQueue[0];
+				StartThreadFromMessage(pm);
+				messageQueue.RemoveItem(pm);
+				delete pm;
+			}
+		}
+	}
 }
 
 
@@ -136,6 +180,21 @@ void PathManager::SetSearchAlgorithm(const char * name)
 	}
 }
 
+/// Ew.
+int PathManager::ThreadsActive()
+{
+	for (int i = 0; i < pathfindingThreads.Size(); ++i)
+	{
+		Thread * t = pathfindingThreads[i];
+		if (t->HasEnded()){
+			pathfindingThreads.RemoveItem(t);
+			--i;
+		}
+	}
+	return pathfindingThreads.Size();
+}
+
+
 //=============================================================================================//
 // Search algorithms
 //=============================================================================================//
@@ -152,8 +211,9 @@ float ManhattanDistance(Waypoint * from, Waypoint * to){
 void AStar(Waypoint * from, Waypoint * to, Path& path)
 {
 	/// TODO: Add custom functions for seeking game-specific tiles. Or manipulate the navmesh in run-time somehow.
-	std::cout<<"\nBeginning A* path search...";
-	clock_t start = clock();
+//	std::cout<<"\nBeginning A* path search...";
+	Timer timer;
+	timer.Start();
 	path.Clear();
 
 	/// Get active navmesh, as it should be what we're working with.
@@ -210,15 +270,14 @@ void AStar(Waypoint * from, Waypoint * to, Path& path)
 		/// If the current node is our goal, reconstruct our path.
 		if (current == to) 
 		{
-			std::cout<<"\nGoal has been reached! Yays";
+		//	std::cout<<"\nGoal has been reached! Yays";
 			path.AddItem(current);
 			while (current != from){
 				current = cameFrom[nm->GetIndex(current)];
 				path.AddItem(current);
 			}
-			clock_t stop = clock();
-			clock_t duration = stop - start;
-			std::cout<<"\nA* Time taken: "<<duration<<" clock() ticks, or "<<duration / CLOCKS_PER_SEC<<" seconds.";
+			timer.Stop();
+//			std::cout<<"\nA* Time taken: "<<timer.GetMicros()<<" microseconds, or "<<timer.GetMs()<<" ms.";
 			return;
 		}
 		/// Remove the current from the open set

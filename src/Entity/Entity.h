@@ -40,7 +40,7 @@ struct LifeAttribute{
 /** An encapsulation Entity for objects, including their corresponding transforms, textures, Mesh, etc.
 	An entiy with an ID of 0 can be considered invalid.
 */
-class Entity 
+class Entity
 {
 	friend class RenderPass;
 	friend class PhysicsManager;
@@ -292,5 +292,13 @@ private:
 };
 
 //Node * createScenegraphNode
+
+class EntityGroup : public List<Entity*> 
+{
+public:
+	virtual ~EntityGroup(){};
+	/// Inherit the rest from list.
+	String name;
+};
 
 #endif

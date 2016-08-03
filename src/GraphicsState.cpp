@@ -15,6 +15,7 @@ GraphicsState * graphicsState = NULL;
 
 GraphicsState::GraphicsState()
 {
+	defaultEntityGroup = new EntityGroup();
 	perFrameSmoothness = 0.7f;
 	shadowPass = false;
 	activeWindow = NULL;
@@ -49,6 +50,7 @@ GraphicsState::~GraphicsState()
 		delete lighting;
 	/// Delete RenderInstancingGroups
 	shadowCastingEntityGroups.ClearAndDelete();
+	entityGroups.ClearAndDelete();
 }
 
 
@@ -56,6 +58,28 @@ GraphicsState::~GraphicsState()
 void GraphicsState::AddEntity(Entity * entity)
 {
 	GraphicsProperty * gp = entity->graphics;
+	if (gp->group.Length())
+	{
+		bool added = false;
+		for (int i = 0; i < entityGroups.Size(); ++i)
+		{
+			EntityGroup * eg = entityGroups[i];
+			if (eg->name == gp->group)
+			{
+				eg->AddItem(entity);
+				added = true;
+			}
+		}
+		if (!added)
+		{
+			EntityGroup * eg = new EntityGroup();
+			eg->name = gp->group;
+			eg->AddItem(entity);
+			entityGroups.AddItem(eg);
+		}
+	}
+	else
+		defaultEntityGroup->AddItem(entity);
 	/// Add alpha-entities straight to the graphics-state?
 	if (gp->flags & RenderFlag::ALPHA_ENTITY)
 	{
@@ -80,13 +104,13 @@ void GraphicsState::AddEntity(Entity * entity)
 	/// Setup instance render groups if needed.
 	if (!gp->renderInstanced)
 		return;
-	RIG * rig = GetGroup(entityGroups, entity);
+	RIG * rig = GetGroup(entityInstancingGroups, entity);
 	if (rig)
 		rig->AddEntity(entity);
 	else
 	{
 		rig = new RIG(entity);
-		entityGroups.AddItem(rig);
+		entityInstancingGroups.AddItem(rig);
 		if (rig->isSolid)
 			solidEntityGroups.AddItem(rig);
 		if (rig->isShadowCasting)
@@ -97,6 +121,21 @@ void GraphicsState::AddEntity(Entity * entity)
 void GraphicsState::RemoveEntity(Entity * entity)
 {
 	GraphicsProperty * gp = entity->graphics;
+	if (!gp)
+		return;
+	if (gp->group.Length())
+	{
+		for (int i = 0; i < entityGroups.Size(); ++i)
+		{
+			EntityGroup * eg = entityGroups[i];
+			if (eg->name == gp->group)
+			{
+				eg->RemoveItem(entity);
+			}
+		}
+	}
+	else
+		defaultEntityGroup->RemoveItem(entity);
 	/// Specific groups.
 	if (gp->flags & RenderFlag::ALPHA_ENTITY)
 		graphicsState->alphaEntities.RemoveItemUnsorted(entity);
@@ -116,13 +155,13 @@ void GraphicsState::RemoveEntity(Entity * entity)
 	/// Remove from instancing groups as needed.
 	if (gp->renderInstanced)
 	{
-		for (int i = 0; i < entityGroups.Size(); ++i)
+		for (int i = 0; i < entityInstancingGroups.Size(); ++i)
 		{
-			RIG * rig = entityGroups[i];
+			RIG * rig = entityInstancingGroups[i];
 			rig->RemoveEntity(entity);
 			if (rig->reference == 0)
 			{
-				entityGroups.RemoveItemUnsorted(rig);
+				entityInstancingGroups.RemoveItemUnsorted(rig);
 				shadowCastingEntityGroups.RemoveItemUnsorted(rig);
 				solidEntityGroups.RemoveItemUnsorted(rig);
 				delete rig;
@@ -134,9 +173,9 @@ void GraphicsState::RemoveEntity(Entity * entity)
 
 void GraphicsState::UpdateRenderInstancingGroupBuffers()
 {
-	for (int i = 0; i < this->entityGroups.Size(); ++i)
+	for (int i = 0; i < entityInstancingGroups.Size(); ++i)
 	{
-		RIG * rig = entityGroups[i];
+		RIG * rig = entityInstancingGroups[i];
 		rig->UpdateBuffers();
 	}
 }

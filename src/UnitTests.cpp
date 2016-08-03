@@ -9,9 +9,14 @@ extern bool TrigonometryTests();
 
 #include "MathLib/Function.h"
 #include "MathLib/FunctionEvaluator.h"
+#include "Thread/Thread.h"
 
 bool UnitTests()
 {
+	// Test threads.
+//	if (ThreadTest())
+	//	return true;
+
 	/*
 	Expression exp;
 	exp.functionEvaluators.AddItem(&defMatFuncEval);

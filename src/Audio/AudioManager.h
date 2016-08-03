@@ -6,7 +6,7 @@
 
 #define AUDIO	1
 
-#include "OS/Thread.h"
+#include "OS/OSThread.h"
 #include <stdexcept>
 #include <Util.h>
 #include "AudioTypes.h"

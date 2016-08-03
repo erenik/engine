@@ -37,6 +37,8 @@ public:
 		physicsIntegration, physicsIntegrationRecalcMatrices, physicsRecalcAABBs, physicsRecalcOBBs,
 		physicsRecalcProps, physicsCollisions;
 	float physicsCollisionDetection, physicsCollisionResolution, physicsCollisionCallback;
+	/// Detection, broad-phase AABB, and narrow-phase based on chosen detector.
+	float physicsCollisionDetectionAABBSweep, physicsCollisionDetectionChosenDetector;
 
 
 	/// Pushes the frame time which is then used to calculate the average frame-time.

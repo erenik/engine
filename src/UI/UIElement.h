@@ -68,6 +68,8 @@ public:
 	/// Copy-cosntructor.
 	UIElement(const UIElement & reference);
 
+	UIElement * Parent() {return parent;};
+
 	/// Sets the bufferized flag. Should only be called before program shutdown. Ensures less assertions will fail.
 	void SetBufferized(bool bufferizedFlag);
 	
@@ -333,7 +335,8 @@ public:
 	/** If true, the element and all its subchildren will be deleted when the element is popped from the UI. 
 		Default false. Used for dynamically created UI that are not meant to be re-used.
 	*/
-	bool removeOnPop;
+#define removeOnPop deleteOnPop
+	bool deleteOnPop;
     /// System elements, are treated slightly differently than content elements, like having prioritized rendering and interaction.
     bool isSysElement;
 	bool selected;

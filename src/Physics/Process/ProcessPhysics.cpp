@@ -159,9 +159,11 @@ void PhysicsManager::ProcessPhysics()
 		List<EntityPair> pairs = this->aabbSweeper->Sweep();
 		sweepTimer.Stop();
 		int sweepDur = sweepTimer.GetMs();
+		FrameStats.physicsCollisionDetectionAABBSweep += sweepDur;
 //		std::cout<<"\nAABB sweep pairs: "<<pairs.Size()<<" with "<<physicalEntities.Size()<<" entities";
 		Timer detectorTimer;
 		detectorTimer.Start();
+
 		if (collisionDetector)
 		{
 			collisionDetector->DetectCollisions(pairs, collisions);
@@ -172,6 +174,7 @@ void PhysicsManager::ProcessPhysics()
 			DetectCollisions();
 		detectorTimer.Stop();
 		int detectorMs = detectorTimer.GetMs();
+		FrameStats.physicsCollisionDetectionChosenDetector += detectorMs;
 		timer.Stop();
 		int thisFrame = timer.GetMs();
 		FrameStats.physicsCollisionDetection += thisFrame;
@@ -219,6 +222,7 @@ void PhysicsManager::ProcessPhysics()
 		if (colMs > 50)
 		{
 			std::cout<<"\nCollision detection and resolution taking "<<colMs<<" milliseconds per frame.";
+			break; // Break the loop. Simulate more next time if it's already being slow.
 		}
 	}
 	// Recalc matrices for the semi-dynamic ones.

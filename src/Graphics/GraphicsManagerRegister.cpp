@@ -76,6 +76,9 @@ int GraphicsManager::RegisterEntities(List<Entity*> & toRegister){
 /// Removes an Entity from the rendering vfcOctree.
 bool GraphicsManager::UnregisterEntity(Entity * entity)
 {
+	/// Remove it.
+	graphicsState->RemoveEntity(entity);
+
 	bool result = registeredEntities.RemoveItemUnsorted(entity);
 	if (!result){
 //		std::cout<<"\nWARNING: Unable to remove entity, already unregistered?";
@@ -120,9 +123,6 @@ bool GraphicsManager::UnregisterEntity(Entity * entity)
 			bool succeeded = particleSystems.RemoveItemUnsorted(ps);
 		}
 	}
-
-	/// Add it to its proper render groups.
-	graphicsState->RemoveEntity(entity);
 
 	int entitesAfter = registeredEntities.Size();
 	// Remove from optimization structures, if any.

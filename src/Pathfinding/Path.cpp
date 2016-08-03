@@ -70,7 +70,7 @@ void Path::Mirror()
 		int otherI = currentItems - i-1;
 		arr[i] = arr[otherI];
 		arr[otherI] = tmp;
-		std::cout<<"\nSwapping waypoint "<<i<<" with "<<otherI<<": "<<arr[i]->position<<" <-> "<<arr[otherI]->position;
+//		std::cout<<"\nSwapping waypoint "<<i<<" with "<<otherI<<": "<<arr[i]->position<<" <-> "<<arr[otherI]->position;
 	}
 }
 
