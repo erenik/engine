@@ -894,24 +894,40 @@ void GMAddUI::Process()
 }
 
 // If 0, grabs main window.
-GMPushUI::GMPushUI(String sourceName, AppWindow * iWindow)
-	: GMUI(GM_PUSH_UI), element(NULL), uiName(sourceName)
+GMPushUI::GMPushUI(String sourceName) // Default window and UI.
+	: GMUI(GM_PUSH_UI), element(0), uiName(sourceName)
 {
-	this->window = iWindow;
+	this->window = 0;
+	this->ui = 0;
+}
+GMPushUI::GMPushUI(UIElement * in_element)
+	: GMUI(GM_PUSH_UI), element(in_element)
+{
+	this->window = 0;
+	this->ui = 0;
 }
 
-GMPushUI::GMPushUI(String uiName, UserInterface * ontoUI)
-: GMUI(GM_PUSH_UI, viewport), uiName(uiName), element(NULL)
-{
-	ui = ontoUI;
-};
 
-GMPushUI::GMPushUI(UIElement * element, UserInterface * ontoUI)
-: GMUI(GM_PUSH_UI, viewport), element(element)
+/// Creates and returns a new message, aimed at a specific window (or the main one, if 0).
+GMPushUI * GMPushUI::ToWindow(String elementName, AppWindow * window)
 {
-	assert(element);
-	ui = ontoUI;
-};
+	GMPushUI * p = new GMPushUI(elementName);
+	p->window = window;
+	return p;
+}
+GMPushUI * GMPushUI::ToUI(String elementName, UserInterface * toUI)
+{
+	GMPushUI * p = new GMPushUI(elementName);
+	p->ui = toUI;
+	return p;
+}
+GMPushUI * GMPushUI::ToUI(UIElement * element, UserInterface * ontoUI)
+{
+	GMPushUI * p = new GMPushUI(element);
+	p->ui = ontoUI;
+	return p;	
+}
+
 
 void GMPushUI::Process()
 {

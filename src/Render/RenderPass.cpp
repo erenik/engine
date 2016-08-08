@@ -41,6 +41,89 @@ RenderPass::~RenderPass()
 {
 }
 
+#include "Mesh/Square.h"
+
+void RenderPass::RenderQuad()
+{
+	/// Should have been set earlier, dun need to set again.
+//	glViewport(0, 0, windowWorkingArea[0], windowWorkingArea[1]);
+
+	/// Reset projection matrix.
+//	graphicsState->projectionMatrixF = ();
+//	shader->SetProjectionMatrix(graphicsState->projectionMatrixF);
+//	shader->SetViewMatrix(graphicsState->projectionMatrixF);
+	Matrix4f proj = Matrix4f();
+	proj.LoadIdentity();
+	proj.InitOrthoProjectionMatrix(-1,1,-1,1, 0.10f, 10.f);
+	proj.Translate(0, 0, 1.f);
+
+	int width = viewport->size.x, height = viewport->size.y;
+	Vector4f point = Vector4f((float)viewport->size.x, (float)viewport->size.y, 0, 1.0f);
+//	point = proj * point;
+//	point = Vector4f(width/2.0f, height/2.0f, 0, 1.0f);
+//	point = proj * point;
+//	point = Vector4f(0, 0, 0, 1.0f);
+//	point = proj * point;
+
+	Matrix4f view = Matrix4f();
+	shader->SetProjectionMatrix(proj);
+	Matrix4f translate, model;
+//	translate.InitTranslationMatrix(Vector3f(0,0,+50.1f));
+	view = translate;
+	shader->SetViewMatrix(translate);
+	glDisable(GL_CULL_FACE);
+	shader->SetModelMatrix(Matrix4f());
+	Vector3f renderedPoint;
+
+	/*
+	/// Update projection matrix
+	Matrix4f projection = Matrix4f();
+	projection.LoadIdentity();
+	projection.InitOrthoProjectionMatrix(0, width, 0, height, 1.0f, 100.0f);
+//	projection.InitProjectionMatrix(-1000, 1000, -500, 500, -1, -100);
+	projection.Translate(0, 0, 1.0f);
+	/// Just testing that the matrix is set correctly..
+	Vector4f point = Vector4f((float)width, (float)height, 0, 1.0f);
+	point = projection * point;
+	point = Vector4f(width/2.0f, height/2.0f, 0, 1.0f);
+	point = projection * point;
+	point = Vector4f(0, 0, 0, 1.0f);
+	point = projection * point;
+	PrintGLError("GLError in RenderUI getting uniform locations");
+*/
+
+/*	// Load matrices into shader
+    Matrix4f view = Matrix4f();
+    // Upload view matrix too...
+    glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, view.getPointer());
+    PrintGLError("GLError in RenderUI uploading viewMatrix");
+	// Upload projection matrix
+	glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, projection.getPointer());
+    PrintGLError("GLError in RenderUI uploading projectionMatrix");
+
+	graphicsState->projectionMatrixF = graphicsState->projectionMatrixD = projection;
+	graphicsState->viewMatrixF = graphicsState->viewMatrixD.LoadIdentity();
+	graphicsState->modelMatrixF.LoadIdentity();
+	*/
+
+	Matrix4f mvp = model * view * proj;
+	Vector3f projectedPoint = mvp.Product(Vector4f(renderedPoint, 1));
+	Vector3f projP2 = (graphicsState->modelMatrix * graphicsState->viewMatrixF * graphicsState->projectionMatrixF).Product(renderedPoint);
+//	std::cout<<"\nProjected point: "<<projectedPoint<<" vs "<<projP2;
+	// Allocate o-o
+	static Square * deferredRenderingBox = 0;
+	if (deferredRenderingBox == 0)
+	{
+		float size = 1.0f;
+		deferredRenderingBox = new Square();
+		deferredRenderingBox->SetDimensions(-size, size, -size, size);
+		deferredRenderingBox->Bufferize(true);
+	}
+	
+	deferredRenderingBox->name = "DeferredLighting";
+	deferredRenderingBox->Render();
+}
+
 // Renders this pass. Returns false if some error occured, usually mid-way and aborting the rest of the procedure.
 bool RenderPass::Render(GraphicsState & graphicsState)
 {
@@ -64,7 +147,7 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 			break;
 	}
 	// Set shader to use in this render-pass.
-	if (!shader)
+	if (!shader || (shader->name != shaderName))
 	{
 		shader = ShadeMan.SetActiveShader(shaderName);
 		if (!shader)
@@ -114,6 +197,9 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 		case DEFAULT_CAMERA:
 		{
 			graphicsState.camera = oldCamera;
+			/// value set for farplane?
+			if (graphicsState.farPlane > 0)
+				graphicsState.camera->farPlane = graphicsState.farPlane;
 			break;
 		}
 		case RenderPass::LIGHT:
@@ -233,7 +319,7 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 	// Reset bound textures
 	graphicsState.currentTexture = NULL;
 
-	Shader * shader = ActiveShader();
+	shader = ActiveShader();
 	// Set uniforms as applicable.
 	if (shader)
 	{
@@ -257,6 +343,14 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 		case RenderTarget::DEFERRED_GATHER:
 		{
 			SetupDeferredGatherAsInput();
+			RenderQuad();
+			break;
+		}
+		case RenderTarget::DEFERRED_OUTPUT:
+		{
+			SetupDeferredOutputAsInput(); 
+			/// Render the quad.
+			RenderQuad();
 			break;
 		}
 		case RenderTarget::SHADOW_CASTING_ENTITIES:
@@ -363,11 +457,16 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 		{
 			/// Outputs should already be taken core of during initialization, but maybe print something?
 			// Set defaults for... stuff.
-
+			if (debug == 18)
+				graphicsState.activeViewport->deferredGatherBuffer->DumpTexturesToFile();
 //			assert(false);
 //			graphicsState.activeViewport->frameBuffer->DumpTexturesToFile();
 			break;
 		}
+		case RenderTarget::DEFERRED_OUTPUT:
+			if (debug == 19)
+				graphicsState.activeViewport->deferredOutputBuffer->DumpTexturesToFile();
+			break;
 	}
 	CheckGLError("RenderPass::Render - extraction");
 	// Unbind the framebuffer so that UI and stuff will render as usual.
@@ -390,6 +489,11 @@ bool RenderPass::SetupOutput()
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			viewport->SetGLViewport();
 			graphicsState->shadowPass = false;
+			// Clear depth  and color for our target.
+			glClearColor(0.1f, 0.1f, 0.1f, 0.0f);
+			// Ensure depth-testing etc. is enabled. 
+			glDepthMask(true);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			break;
 		}
 		case RenderTarget::SHADOW_MAPS:
@@ -412,9 +516,11 @@ bool RenderPass::SetupOutput()
 		{
 			// Set up/fetch render buffers for this, based on the viewport.
 			BindDeferredGatherFrameBuffer();
-
-//			if (!graphicsState->activeViewport->BindFrameBuffer())
-//				return false;
+			break;
+		}
+		case RenderTarget::DEFERRED_OUTPUT:
+		{
+			BindDeferredOutputFrameBuffer();
 			break;
 		}
 		default:

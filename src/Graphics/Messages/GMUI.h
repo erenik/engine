@@ -297,11 +297,19 @@ private:
 
 class AppWindow;
 
-class GMPushUI : public GMUI{
+class GMPushUI : public GMUI
+{
+	GMPushUI(String sourceName); // Default window and UI.
+	GMPushUI(UIElement * element); // Default window and UI.
 public:
-	GMPushUI(String sourceName, AppWindow * window = 0); // If 0, grabs main window.
-	GMPushUI(String elementName, UserInterface * ontoUI = 0); // if 0 UI, grabs main window's main UI.
-	GMPushUI(UIElement * element, UserInterface * ontoUI = 0); // if 0 UI, grabs main window's main UI.
+	/// Obsolete, use static constructors!
+//	GMPushUI(String sourceName, AppWindow * window = 0); // If 0, grabs main window.
+//	GMPushUI(String elementName, UserInterface * ontoUI = 0); // if 0 UI, grabs main window's main UI.
+//	GMPushUI(UIElement * element, UserInterface * ontoUI = 0); // if 0 UI, grabs main window's main UI.
+	/// Creates and returns a new message, aimed at a specific window (or the main one, if 0).
+	static GMPushUI * ToWindow(String elementName, AppWindow * window = 0);
+	static GMPushUI * ToUI(String elementName, UserInterface * toUI = 0);
+	static GMPushUI * ToUI(UIElement * element, UserInterface * ontoUI = 0); // if 0 UI, grabs main window's main UI.
 	void Process();
 private:
 	UIElement * element;

@@ -100,7 +100,7 @@ bool LoadPNG(String fromFile, Texture * intoTexture)
 	
 	bool streamEndedCorrectly = false;
 	timer.Stop();
-	int inflateMs = 0, initMs = timer.GetMs();
+	int inflateMs = 0, initMs = (int) timer.GetMs();
 	timer.Start();
 
 	// Read chunks.
@@ -194,7 +194,7 @@ bool LoadPNG(String fromFile, Texture * intoTexture)
 			 /* done when inflate() says it's done */
 		    } while (ret != Z_STREAM_END);
 			timer2.Stop();
-			inflateMs += timer2.GetMs();
+			inflateMs += (int) timer2.GetMs();
 			if (ret == Z_STREAM_END)
 			{
 				streamEndedCorrectly = true;
@@ -222,11 +222,22 @@ bool LoadPNG(String fromFile, Texture * intoTexture)
 
 
 	timer.Stop();
-	int readingInflatingMs = timer.GetMs();
+	int readingInflatingMs = (int) timer.GetMs();
 	timer.Start();
 
 	/// Alright, data should be there, sizes too, now create texture from it? perhaps copy over the pre-allocated array already? D:
 	Texture * texture = intoTexture;
+	if (colorType == PNG_RGB)
+	{
+		texture->SetFormat(Texture::RGB);
+	}
+	else if (colorType == PNG_RGBA)
+	{
+		texture->SetFormat(Texture::RGBA);
+	}
+	else 
+		assert(false);
+	/// PNG is always 1 byte per channel, at least for this version?
 	texture->Resize(Vector2i(width, height));
 	uchar * texData = texture->data;
 
@@ -354,15 +365,12 @@ bool LoadPNG(String fromFile, Texture * intoTexture)
 	std::cout<<"";
 
 	timer.Stop();
-	int defilteringMs = timer.GetMs();
+	int defilteringMs = (int) timer.GetMs();
 	std::cout<<"\nInit MS: "<<initMs<<" readingInflating: "<<readingInflatingMs<<" inflating: "<<inflateMs<<" defiltering: "<<defilteringMs<<" for source: "<<fromFile; 
 	
 	/// Delete allocated buffers.
 	delete[] in;
 	delete[] out;
-	
-	/// Set texture stats?
-	texture->bytesPerChannel = 1;
 	return true;
 }
 

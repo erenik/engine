@@ -17,6 +17,18 @@ RenderBuffer::RenderBuffer(String name, int type, int storageType, Vector2i size
 	texture = NULL;
 }
 
+/// Clean up! GL style.
+RenderBuffer::~RenderBuffer()
+{
+}
+void RenderBuffer::Free()
+{
+	GLRenderBuffers::Free(renderBuffer);
+	renderBuffer = -1;
+	AssertGLError("RenderBuffer::~RenderBuffer");	
+}
+
+
 void RenderBuffer::CreateBuffer()
 {
 	// Create it.
@@ -76,52 +88,47 @@ void RenderBuffer::CreateTexture()
 	int glPixelDataFormat = -1;
 	int glPixelDataType = -1;
 	int glInternalFormat = glStorageType;
+	int texFormat = -1;
 	switch(storageType)
 	{
 		case BufferStorageType::RGBA: 
 			glInternalFormat = GL_RGBA;  
 			glPixelDataFormat = GL_RGBA;
 			glPixelDataType = GL_UNSIGNED_BYTE;
-			texture->bpp = 4;
-			texture->format = Texture::RGBA;
+			texFormat = Texture::RGBA;
 			break;
 		case BufferStorageType::RGBA_8:
 			glPixelDataFormat = GL_RGBA;
 			glPixelDataType = GL_UNSIGNED_BYTE;
-			texture->bpp = 4;
-			texture->format = Texture::RGBA;
+			texFormat = Texture::RGBA;
 			break;
 		case BufferStorageType::RGB_16F:
 			glPixelDataFormat = GL_RGB;
 			glPixelDataType = GL_FLOAT;
-			texture->bpp = 2;
-			texture->format = Texture::RGB_16F;
+			texFormat = Texture::RGB_16F;
 			break;
 		case BufferStorageType::RGB_32F:
 			glPixelDataFormat = GL_RGB;
 			glPixelDataType = GL_FLOAT;
-			texture->bpp = 4;
-			texture->format = Texture::RGB_32F;
+			texFormat = Texture::RGB_32F;
 			break;
 		case BufferStorageType::DEPTH_16F:
 			glInternalFormat = glPixelDataFormat = GL_DEPTH_COMPONENT;
 			glPixelDataType = GL_FLOAT;
-			texture->bpp = 2;
-			texture->format = Texture::SINGLE_16F;
+			texFormat = Texture::SINGLE_16F;
 			break;
 		case BufferStorageType::DEPTH_24F:
 			glInternalFormat = glPixelDataFormat = GL_DEPTH_COMPONENT;
 			glPixelDataType = GL_FLOAT;
-			texture->bpp = 3;
-			texture->format = Texture::SINGLE_24F;
+			texFormat = Texture::SINGLE_24F;
 			break;
 		case BufferStorageType::DEPTH_32F:
 			glInternalFormat = glPixelDataFormat = GL_DEPTH_COMPONENT;
 			glPixelDataType = GL_FLOAT;
-			texture->bpp = 4;
-			texture->format = Texture::SINGLE_32F;
+			texFormat = Texture::SINGLE_32F;
 			break;
 	}
+	texture->SetFormat(texFormat);
 	// Create a standard texture with the width and height of our AppWindow
 	assert(size.x > 0 && size.y > 0);
 	glTexImage2D(GL_TEXTURE_2D, 0, glInternalFormat, size.x, size.y, 0, glPixelDataFormat, glPixelDataType, NULL); 

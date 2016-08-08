@@ -70,6 +70,7 @@ public:
 	/// Adds an entity to the graphics state, which includes sorting it into proper instancing groups, if flagged for it.
 	void AddEntity(Entity * entity);
 	void RemoveEntity(Entity * entity);
+	void RemoveAllEntities();
 	void UpdateRenderInstancingGroupBuffers();
 	/// Calls glScissor, and updates locally tracked scissor. Appends current viewport x0/y0 co-ordinates automatically to the GL call.
 	void SetGLScissor(const Rect & scissor);
@@ -81,6 +82,14 @@ public:
 	Viewport * activeViewport;
 	/// Current width and height of the active AppWindow.
 	int windowWidth, windowHeight;
+	
+	/// Desired resolution during rendering. Updated automatically when window-sizes changes. Lock it using GM_SET_RESOLUTION messages. Applicable ONLY to the main window and main pipeline rendering.
+	Vector2i renderResolution;
+	Vector2f relativeResolution;
+	bool resolutionLocked;
+	bool antialiasing; // 0 off, 1 on?
+	/// Distance. If 0 or negative, will use default values from camera.
+	int farPlane;
 
 	/// All entities to render?
 	List<Entity*> entities;

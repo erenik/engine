@@ -642,8 +642,8 @@ int MapManager::DeleteAllEntities()
 	}
 	LogMain("Deleting entities "+lg, DEBUG);
 	activeMap->RemoveEntities(mapEntities);
-	QueueGraphics(new GMUnregisterEntities(mapEntities));
-	QueuePhysics(new PMUnregisterEntities(mapEntities));
+	QueueGraphics(new GraphicsMessage(GM_UNREGISTER_ALL_ENTITIES));
+	QueuePhysics(new PhysicsMessage(PM_UNREGISTER_ALL_ENTITIES));
 	EntityMan.MarkEntitiesForDeletion(mapEntities);
 	return deleted;
 }

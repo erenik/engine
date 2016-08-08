@@ -116,7 +116,7 @@ private:
 	/// Array of [MAX_LIGHTS] lights.
 	List<Light*> lights;
 	/// Last time we changed any of the internal parameters for this current lighting, in ms (Timer::GetCurrentTimeMs())
-	Time lastUpdate;
+	AETime lastUpdate;
 	/// Currently active light for editing purposes ^^
 	int activeLightIndex;
 

@@ -56,12 +56,11 @@ bool LoadLodePNG(String source, Texture * texture)
 	}
 
 	// Set Texture to RGBA since we will assign Alpha-values by default anyway
-	texture->format = Texture::RGBA;
+	texture->SetFormat(Texture::RGBA);
 
 	// Get width, height and pixels
 	int width = decoder.getWidth(), height =  decoder.getHeight();
 	int bytesPerPixel = decoder.getBpp()/8;
-	texture->bpp = bytesPerPixel;
 
 	// Make sure the texture data array isn't already allocated.
 	assert(texture->data== NULL);
@@ -167,8 +166,6 @@ bool LoadLodePNG(String source, Texture * texture)
 #endif
 		return NULL;
 	}
-
 	/// Since we converted the image to RGBA above, fix the BitsPerPixel again!
-	texture->bpp = 4;
 	return true;
 }

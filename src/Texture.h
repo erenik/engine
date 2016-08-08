@@ -147,18 +147,31 @@ public:
 		RGB_8 = RGB, // standard 8 bit per channel, 3 channels
 		RGB_16F, // 3 channel, 16 bit float per channel. 
 		RGB_32F,
+
 		RGBA, // standard 8 bit per channel, 4 channels
 		RGBA_8 = RGBA,
+		RGBA_32F, // For loading stuff from memory.
 		CMYK,
 		FORMATS
 	};
 	/** Format of inherent data, e.g: RGB, RGBA, CMYK, etc.
 		Default is RGBA.
 	*/
-	int format;
+	int Format() const;// format; Format is based on the data-type, amount of channels, and requested internal format.
+	void SetFormat(int format); // Sets format, setting data-type, amount of channels, bytes per channel, etc.
+//	int internalFormat; /// RGB, RGBA, CMYK, etc., unused for now.
+	/// Format affects:
+	// - dataType
+	// - bpp
+	// - channels
+	// - bytesPerChannel
+	// - internalFormat
+//	int DataType();
+//	int dataType;
 	/** Bytes Per Pixel. Standard is 4 for RGBA, where each color has it's own byte representation (0-255).
 	*/
-	int bpp;
+	int BytesPerPixel();
+//	int bpp;
 
 	/// Unique ID per session
 	int ID() {return id;};
@@ -211,9 +224,11 @@ public:
 	bool queueRebufferization;
 
 	/// 1 for Greyscale, 3 for RGB, 4 for RGBA, etc. Custom types may use any amount of channels.
-	int channels;
+	int Channels();
+//	int channels;
 	/// Bytes per channel. All channels must have same amount of bytes per.
-	int bytesPerChannel;
+	int BytesPerChannel();
+//	int bytesPerChannel;
 
 	/** If true, will make texture memory in CPU be cleared after successful bufferization to video memory.
 		Textures marked with 'dynamic' boolean will not be cleared in this manner.
@@ -222,6 +237,7 @@ public:
 	static bool releaseOnBufferization;
 
 private:
+	int format;
 
 	// Save via openCV
 	bool SaveOpenCV(String toPath);

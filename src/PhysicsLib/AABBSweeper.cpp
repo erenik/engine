@@ -127,23 +127,27 @@ void AABBSweeper::UnregisterEntity(Entity * entity)
 		}
     }
 }
+/// Clear all internal nodes and references to entities.
+void AABBSweeper::Clear()
+{
+	for (int i = 0; i < axes.Size(); ++i)
+	{
+		axes[i]->Clear();
+	}
+	movingEntities.Clear();
+}
 
 /// Returns the amount of nodes currently registered. Should always be registeredEntities * 2.
 int AABBSweeper::Nodes()
 {
-	assert(false);
-	/*
-	return -1;
     /// Only sort one axis to begin with?
 	int numNodes = 0;
 	for (int i = 0; i < axes.Size(); ++i)
 	{
-        List<AABBSweepNode*> axis = axes[i];
-        numNodes += axis.Size();
+        AABBSweepAxis * axis = axes[i];
+		numNodes += axis->nodes.Size();
     }
     return numNodes;
-	*/
-	return 0;
 }
 
 /// Performs the sweep (including sort) and returns a list of all entity pairs whose AABBs are intersecting.

@@ -17,6 +17,8 @@ GMSets::GMSets(int t, String s): GraphicsMessage(GM_SET_STRING) {
 	this->target = t;
 };
 
+GMSet::GMSet(int target)
+	: GraphicsMessage(GM_SET), target(target){}
 
 GMSet::GMSet(int target, float floatValue)
 : GraphicsMessage(GM_SET), target(target), floatValue(floatValue)
@@ -62,16 +64,35 @@ GMSet::GMSet(int t, bool bValue)
 	switch(t)
 	{
 		case GT_RENDER_GRID:
+		case GT_ANTIALIASING:
 			break;
 		default:
 			assert(false);
 	}
 }
 
+GMSet * GMSet::Antialiasing(bool bValue)
+{
+	GMSet * gt = new GMSet(GT_ANTIALIASING, bValue);
+	return gt;
+}
+GMSet * GMSet::FarPlane(int newValue)
+{
+	GMSet * gt = new GMSet(GT_FAR_PLANE);
+	gt->iValue = newValue;
+	return gt;
+}
+
 void GMSet::Process()
 {
 	switch(target)
 	{
+		case GT_ANTIALIASING:
+			graphicsState->antialiasing = bValue;
+			break;
+		case GT_FAR_PLANE:
+			graphicsState->farPlane = iValue;
+			break;
 		case GT_RENDER_GRID:
 			WindowMan.MainWindow()->MainViewport()->renderGrid = bValue;
 			break;
@@ -288,4 +309,60 @@ void GMSetOverlay::Process()
 		Graphics.SetOverlayTexture(tex, fadeInTimeInMs);
 	else
 		Graphics.SetOverlayTexture(textureName, fadeInTimeInMs);
+}
+
+
+GMSetResolution::GMSetResolution()
+	: GraphicsMessage(GM_SET_RESOLUTION)
+{
+	Nullify();
+}
+GMSetResolution::GMSetResolution(Vector2i newRes, bool reqLock)
+	: GraphicsMessage(GM_SET_RESOLUTION)
+{
+	Nullify();
+	res = newRes; 
+	lock = reqLock;
+}
+void GMSetResolution::Nullify()
+{
+	naturalRatio = false;
+	staticRatio = false;
+	lock = false;
+}
+
+// To set ratio to follow window, but without auto-scaling.
+GMSetResolution * GMSetResolution::ToStaticRatio(Vector2f staticRatio)
+{
+	GMSetResolution * gm = new GMSetResolution();
+	gm->staticRatio = true;
+	gm->ratio = staticRatio;
+	return gm;
+}
+GMSetResolution * GMSetResolution::ToNaturalRatio()
+{
+	GMSetResolution * gm = new GMSetResolution();
+	gm->naturalRatio = true;
+	return gm;
+}
+
+void GMSetResolution::Process()
+{
+	if (naturalRatio)
+	{
+		graphicsState->renderResolution = MainWindow()->ClientAreaSize();
+		graphicsState->resolutionLocked = false;
+		return;
+	}
+	if (staticRatio)
+	{
+		graphicsState->relativeResolution = ratio;
+		graphicsState->renderResolution = MainWindow()->ClientAreaSize() * ratio;
+		graphicsState->resolutionLocked = false;
+		return;
+	}
+	if (graphicsState->resolutionLocked && !lock)
+		return;
+	graphicsState->renderResolution = res * graphicsState->relativeResolution;
+	graphicsState->resolutionLocked = lock;
 }

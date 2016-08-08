@@ -23,6 +23,8 @@ public:
     void PrintSortedList();
     /// Returns the amount of nodes currently registered. Should always be registeredEntities * 2.
     int Nodes();
+	/// Clear all internal nodes and references to entities.
+	void Clear();
 
     /// Performs the sweep (including sort) and returns a list of all entity pairs whose AABBs are intersecting.
     /// Should be called once per physics frame if in use.

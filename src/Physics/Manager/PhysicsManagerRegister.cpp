@@ -199,15 +199,8 @@ int PhysicsManager::UnregisterEntity(Entity * entityToRemove)
 	{
 		if (checkType == OCTREE)
 			removedResult = entityCollisionOctree->RemoveEntity(entityToRemove);
-	//	std::cout<<"\nUnregistering from aabbsweeper...";
 		else if (checkType == AABB_SWEEP)
 			aabbSweeper->UnregisterEntity(entityToRemove);
-	}
-	else {
-		while(entityCollisionOctree->Exists(entityToRemove)){
-	//		std::cout<<"\nERROR: Entity "<<entityToRemove->name<<" existed in Collision octree without having the collisionsEnabled flag! What are you doing?!";
-			removedResult = entityCollisionOctree->RemoveEntity(entityToRemove);
-		}
 	}
 	assert(removedResult && "Unable to remove entity from Octree!");
 
@@ -240,29 +233,19 @@ int PhysicsManager::UnregisterEntity(Entity * entityToRemove)
 
 	entitiesInOctree = entityCollisionOctree->RegisteredEntities();
 	physicalEntitiesNum = physicalEntities.Size();
-//	aabbSweeperNodes = aabbSweeper->Nodes();
 	collidingEntities = 0;
-	for (int i = 0; i < physicalEntities.Size(); ++i){
+	for (int i = 0; i < physicalEntities.Size(); ++i)
+	{
         if (physicalEntities[i]->physics->collisionsEnabled){
             ++collidingEntities;
         }
     }
-
-	// Check if marked for deletion. If so delete the PhysicsProperty too.
-	if (entityToRemove->flaggedForDeletion)
-	{
-//		delete entityToRemove->physics;
-//		entityToRemove->physics = NULL;
-	}
-
 	if (entityToRemove->pathfindingProperty)
 	{
 		delete entityToRemove->pathfindingProperty;
 		entityToRemove->pathfindingProperty = NULL;
 	}
-
 	entityToRemove->registeredForPhysics = false;
-//	assert(entitiesInOctree == physicalEntitiesNum);
 	return 0;
 }
 
@@ -279,20 +262,22 @@ int PhysicsManager::UnregisterEntities(List<Entity*> & targetEntities){
 }
 
 /// Unregisters all entities from physics calculations, and clears the collission entityCollisionOctree as well.
-int PhysicsManager::UnregisterAllEntities(){
-	int failedUnregistrations = 0;
-	int entities = this->physicalEntities.Size();
-	for (int i = 0; i < entities; ++i){
-		if (UnregisterEntity(this->physicalEntities[0]) != 0)
-			++failedUnregistrations;
+int PhysicsManager::UnregisterAllEntities()
+{
+	for (int i = 0; i < physicalEntities.Size(); ++i)
+	{
+		physicalEntities[i]->registeredForPhysics = false;
 	}
-
-	/// Clear the octree just in case
-	int num = entityCollisionOctree->RegisteredEntities();
-	if (num){
-		std::cout<<"\nERROR: Collision octree had remaining entities despite having an UnregisterAllEntities called. Some flags are probably wrong..!";
+	physicalEntities.Clear();
+	dynamicEntities.Clear();
+	kinematicEntities.Clear();
+	fullyDynamicEntities.Clear();
+	semiDynamicEntities.Clear();
+	forceBasedEntities.Clear();
+	if (aabbSweeper)
+		aabbSweeper->Clear();
+	if (entityCollisionOctree)
 		entityCollisionOctree->clearAll();
-	}
 
-	return failedUnregistrations;
+	return 0;
 }

@@ -21,7 +21,8 @@ void GraphicsManager::RenderCapture()
 		Texture * frame = window->frame;
 		if (!frame)
 			window->frames = frame = TexMan.New();
-		frame->bpp = 4; // 4 bytes per pixel, RGBA
+		frame->SetFormat(Texture::RGBA);
+//		frame->bpp = 4; // 4 bytes per pixel, RGBA
 		frame->Resize(windowSize);
 		glReadPixels(0, 0, windowSize[0], windowSize[1], GL_RGBA, GL_UNSIGNED_BYTE, frame->data);
 		// Flip it.
@@ -72,7 +73,8 @@ void GraphicsManager::RenderCapture()
 		Texture * frame = NULL;
 		frame = TexMan.New();
 		frame->name = window->name + "_"+String::ToString(window->frames.Size()); 
-		frame->bpp = 4; // 4 bytes per pixel, RGBA
+		frame->SetFormat(Texture::RGBA);
+//		frame->bpp = 4; // 4 bytes per pixel, RGBA
 		// Resize/allocate the frame. 
 		if (!frame->Resize(windowSize))
 		{

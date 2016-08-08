@@ -141,6 +141,8 @@ bool RenderPass::BindShadowMapFrameBuffer()
 	return true;
 }
 
+#include "Window/AppWindow.h"
+
 bool newT = true;
 // Set up/fetch render buffers for this, based on the viewport.
 bool RenderPass::BindDeferredGatherFrameBuffer()
@@ -149,366 +151,75 @@ bool RenderPass::BindDeferredGatherFrameBuffer()
 	glEnable(GL_TEXTURE_2D); // Enable texturing so we can bind our frame buffer texture
 	glEnable(GL_DEPTH_TEST); // Enable depth testing
 
-//	newT = false;
-	if (newT)
+	Vector2i requestedRenderSize = viewport->size;
+	if (viewport->window == MainWindow())
+		requestedRenderSize = graphicsState->renderResolution;
+
+	if (!viewport->deferredGatherBuffer)
 	{
-		if (!viewport->deferredGatherBuffer)
-		{
-			viewport->deferredGatherBuffer = new FrameBuffer("DeferredGatherBuffer");
-		}
-		if (!viewport->deferredGatherBuffer->IsGood() || viewport->deferredGatherBuffer->size != viewport->size)
-		{
-			if (!viewport->deferredGatherBuffer->CreateDeferredBuffers(viewport->size))
-			{
-				SAFE_DELETE(viewport->deferredGatherBuffer);
-				return false;
-			}
-		}
-		int error = glGetError();
-		/// Make frame buffer active
-		viewport->deferredGatherBuffer->Bind();
-		// Clear depth  and color - else nothing will render.
-		glClearColor(0.1f, 0.1f, 0.1f, 0.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		// Set viewport size to clear?
-		viewport->SetGLViewport();
-		// Set buffers to render into (the textures ^^)
-		viewport->deferredGatherBuffer->SetDrawBuffers();
-		CheckGLError("RenderPass::BindDeferredGatherFrameBuffer");
-		return true;
+		viewport->deferredGatherBuffer = new FrameBuffer("DeferredGatherBuffer");
 	}
-
-	CheckGLError("Before RenderPass::BindDeferredGatherFrameBuffer");
-
-	/// Use Deferred-shader to store all data correctly!
-	/*
-	if (ShadeMan.SetActiveShader("Deferred") == NULL){
-		std::cout<<"\nUnable to set Deferred Shader. Breaking rendering.";
-	//	assert(false && "Unable to set Deferred Shader. Breaking rendering.");
-		return;
-	}*/
-	/// Generate frame buffer
-	/// OpenGL specific data
-	//
-	GLuint error;
-	/// Setup main Frame buffer object
-	if (!frameBufferObject)
-		glGenFramebuffers(1, &frameBufferObject);
-	error = glGetError();
-
-	glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObject);
-	/// Establish some variables before we try tweaking properties..
-	int textureWidth = viewport->size.x;
-	int textureHeight = viewport->size.y;
-	/// Try oversampling o-o
-	bool overSampling = false;
-	if (overSampling){
-		glEnable( GL_MULTISAMPLE );
-		textureWidth *= 2;
-		textureHeight *= 2;
-	}
-	else
-		glDisable(GL_MULTISAMPLE);
-	/// Setup Render buffers
-	error = glGetError();
-	if (!depthBuffer){
-		glGenRenderbuffers(1, &depthBuffer);
-		glGenRenderbuffers(1, &diffuseBuffer);
-		glGenRenderbuffers(1, &positionBuffer);
-		glGenRenderbuffers(1, &normalBuffer);
-		glGenRenderbuffers(1, &specularBuffer);
-//		glGenRenderbuffers(1, &tangentBuffer);
-//		glGenRenderbuffers(1, &normalMapBuffer);
-//		glGenRenderbuffers(1, &pickingBuffer);
-	}
-	glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
-	error = glGetError();
-	if (error == 1282){
-		std::cout<<"\nGL_ERROR: 1282 GL_INVALID_OPERATION: renderbuffer is not zero or the name of a renderbuffer previously returned from a call to glGenRenderbuffers.";
-	}
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, textureWidth, textureHeight); // Set the render buffer storage to be a depth component, with a width and height of the AppWindow
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);	// Attach the depth buffer fbo_depth to our frame buffer
-	
-	glBindRenderbuffer(GL_RENDERBUFFER, diffuseBuffer);
-	error = glGetError();
-	if (error == 1282){
-		std::cout<<"\nGL_ERROR: 1282 GL_INVALID_OPERATION: renderbuffer is not zero or the name of a renderbuffer previously returned from a call to glGenRenderbuffers.";
-	}
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA,textureWidth, textureHeight); // Set the render buffer storage to be a depth component, with a width and height of the AppWindow
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, diffuseBuffer);	// Attach the depth buffer fbo_depth to our frame buffer
-	
-	glBindRenderbuffer(GL_RENDERBUFFER, normalBuffer);
-	error = glGetError();
-	if (error == 1282){
-		std::cout<<"\nGL_ERROR: 1282 GL_INVALID_OPERATION: renderbuffer is not zero or the name of a renderbuffer previously returned from a call to glGenRenderbuffers.";
-	}
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB16F,textureWidth, textureHeight); // Set the render buffer storage to be a depth component, with a width and height of the AppWindow
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_RENDERBUFFER, normalBuffer);	// Attach the depth buffer fbo_depth to our frame buffer
-
-	glBindRenderbuffer(GL_RENDERBUFFER, positionBuffer);
-	error = glGetError();
-	if (error == 1282){
-		std::cout<<"\nGL_ERROR: 1282 GL_INVALID_OPERATION: renderbuffer is not zero or the name of a renderbuffer previously returned from a call to glGenRenderbuffers.";
-	}
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB32F,textureWidth, textureHeight); // Set the render buffer storage to be a depth component, with a width and height of the AppWindow
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_RENDERBUFFER, positionBuffer);	// Attach the depth buffer fbo_depth to our frame buffer
-
-	glBindRenderbuffer(GL_RENDERBUFFER, specularBuffer);
-	error = glGetError();
-	if (error == 1282){
-		std::cout<<"\nGL_ERROR: 1282 GL_INVALID_OPERATION: renderbuffer is not zero or the name of a renderbuffer previously returned from a call to glGenRenderbuffers.";
-	}
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA,textureWidth, textureHeight); // Set the render buffer storage to be a depth component, with a width and height of the AppWindow
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_RENDERBUFFER, specularBuffer);	// Attach the depth buffer fbo_depth to our frame buffer
-
-/*	glBindRenderbuffer(GL_RENDERBUFFER, tangentBuffer);
-	error = glGetError();
-	if (error == 1282){
-		std::cout<<"\nGL_ERROR: 1282 GL_INVALID_OPERATION: renderbuffer is not zero or the name of a renderbuffer previously returned from a call to glGenRenderbuffers.";
-	}
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB32F,textureWidth, textureHeight); // Set the render buffer storage to be a depth component, with a width and height of the AppWindow
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_RENDERBUFFER, tangentBuffer);	// Attach the depth buffer fbo_depth to our frame buffer
-
-	glBindRenderbuffer(GL_RENDERBUFFER, normalMapBuffer);
-	error = glGetError();
-	if (error == 1282){
-		std::cout<<"\nGL_ERROR: 1282 GL_INVALID_OPERATION: renderbuffer is not zero or the name of a renderbuffer previously returned from a call to glGenRenderbuffers.";
-	}
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB32F,textureWidth, textureHeight); // Set the render buffer storage to be a depth component, with a width and height of the AppWindow
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT5, GL_RENDERBUFFER, normalMapBuffer);	// Attach the depth buffer fbo_depth to our frame buffer
-
-	glBindRenderbuffer(GL_RENDERBUFFER, pickingBuffer);
-	error = glGetError();
-	if (error == 1282){
-		std::cout<<"\nGL_ERROR: 1282 GL_INVALID_OPERATION: renderbuffer is not zero or the name of a renderbuffer previously returned from a call to glGenRenderbuffers.";
-	}
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB32F,textureWidth, textureHeight); // Set the render buffer storage to be a depth component, with a width and height of the AppWindow
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT6, GL_RENDERBUFFER, pickingBuffer);	// Attach the depth buffer fbo_depth to our frame buffer
-	*/
-
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);	// Bind to 0 when done.
-	/// Set up textures
-	if (!diffuseTexture)
-		glGenTextures(1, &diffuseTexture); // Generate one texture
-	glBindTexture(GL_TEXTURE_2D, diffuseTexture); // Bind the texture fbo_texture
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textureWidth, textureHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL); // Create a standard texture with the width and height of our AppWindow
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);  // Setup the basic texture parameters
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glBindTexture(GL_TEXTURE_2D, 0);	// Unbind the texture
-	if (!normalTexture)
-		glGenTextures(1, &normalTexture); // Generate one texture
-	glBindTexture(GL_TEXTURE_2D, normalTexture); // Bind the texture fbo_texture
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, textureWidth, textureHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL); // Create a standard texture with the width and height of our AppWindow
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);  // Setup the basic texture parameters
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glBindTexture(GL_TEXTURE_2D, 0);	// Unbind the texture
-
-	if (!positionTexture)
-		glGenTextures(1, &positionTexture); // Generate one texture
-	glBindTexture(GL_TEXTURE_2D, positionTexture); // Bind the texture fbo_texture
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, textureWidth, textureHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL); // Create a standard texture with the width and height of our AppWindow
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);  // Setup the basic texture parameters
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glBindTexture(GL_TEXTURE_2D, 0);	// Unbind the texture
-	CheckGLError("Error initializing frame buffer textures");
-
-	if (!depthTexture)
-		glGenTextures(1, &depthTexture); // Generate one texture
-	glBindTexture(GL_TEXTURE_2D, depthTexture); // Bind the texture fbo_texture
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, textureWidth, textureHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL); // Create a standard texture with the width and height of our AppWindow
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);  // Setup the basic texture parameters
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glBindTexture(GL_TEXTURE_2D, 0);	// Unbind the texture
-	CheckGLError("Error initializing depth texture");
-
-	/// Set up textures
-	if (!specularTexture)
-		glGenTextures(1, &specularTexture); // Generate one texture
-	glBindTexture(GL_TEXTURE_2D, specularTexture); // Bind the texture fbo_texture
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, textureWidth, textureHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL); // Create a standard texture with the width and height of our AppWindow
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);  // Setup the basic texture parameters
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glBindTexture(GL_TEXTURE_2D, 0);	// Unbind the texture
-	/*
-	if (!tangentTexture)
-		glGenTextures(1, &tangentTexture); // Generate one texture
-	glBindTexture(GL_TEXTURE_2D, tangentTexture); // Bind the texture fbo_texture
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, textureWidth, textureHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL); // Create a standard texture with the width and height of our AppWindow
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);  // Setup the basic texture parameters
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glBindTexture(GL_TEXTURE_2D, 0);	// Unbind the texture
-
-	if (!normalMapTexture)
-		glGenTextures(1, &normalMapTexture); // Generate one texture
-	glBindTexture(GL_TEXTURE_2D, normalMapTexture); // Bind the texture fbo_texture
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, textureWidth, textureHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL); // Create a standard texture with the width and height of our AppWindow
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);  // Setup the basic texture parameters
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glBindTexture(GL_TEXTURE_2D, 0);	// Unbind the texture
-
-	if (!pickingTexture)
-		glGenTextures(1, &pickingTexture); // Generate one texture
-	glBindTexture(GL_TEXTURE_2D, pickingTexture); // Bind the texture fbo_texture
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, textureWidth, textureHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL); // Create a standard texture with the width and height of our AppWindow
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);  // Setup the basic texture parameters
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glBindTexture(GL_TEXTURE_2D, 0);	// Unbind the texture
-	*/
-
-	// Bind framebuffer first?
-
-	// Try bidning color 0 to null.
-	//	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0);
-
-	// Attach textures to be rendered to
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, diffuseTexture, 0); // Attach the texture to the color buffer in our frame buffer
-	CheckGLError("glFramebufferTexture2D");
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, normalTexture, 0); // Attach the texture to the color buffer in our frame buffer
-	CheckGLError("glFramebufferTexture2D");
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, positionTexture, 0); // Attach the texture to the color buffer in our frame buffer
-	CheckGLError("glFramebufferTexture2D");
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, specularTexture, 0); // Attach the texture to the color buffer in our frame buffer
-	CheckGLError("glFramebufferTexture2D");
-
-	/*
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D, tangentTexture, 0); // Attach the texture to the color buffer in our frame buffer
-	CheckGLError("glFramebufferTexture2D");
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT5, GL_TEXTURE_2D, normalMapTexture, 0); // Attach the texture to the color buffer in our frame buffer
-	CheckGLError("glFramebufferTexture2D");
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT6, GL_TEXTURE_2D, pickingTexture, 0); // Attach the texture to the color buffer in our frame buffer
-	CheckGLError("glFramebufferTexture2D");
-	*/
-
-	int frameBufferColorAttachmentsSet = 4;
-
-	/// Attach depth texture too
-	//	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, depthTexture, 0); // Attach the texture to the color buffer in our frame buffer
-//	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, depthTexture, 0); /// Attach depth texture o.O
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTexture, 0); /// Attach depth texture o.O
-	CheckGLError("GLError");
-
-	GLenum status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT); // Check that status of our generated frame buffer
-	CheckGLError("glCheckFramebufferStatusEXT");
-
-	// Check that frame buffer is okay to work on.
-	int result = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER);
-	switch(result) {
-		case GL_FRAMEBUFFER_COMPLETE: // yay :3
-			break;
-		case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
-			std::cout<<"\nINFO: Framebuffer incomplete attachment.";
-			break;
-		case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
-			std::cout<<"\nINFO: Framebuffer incomplete, missing attachment. Attach an image!";
-			break;
-		case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
-			std::cout<<"\nINFO: Framebuffer incomplete draw buffer.";
-			break;
-		case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
-			std::cout<<"\nINFO: Framebuffer incomplete read buffer.";
-			break;
-		case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
-			std::cout<<"\nINFO: Framebuffer incomplete multisample.";
-			break;
-		case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
-			std::cout<<"\nINFO: Framebuffer incomplete layer targets.";
-			break;
-		case GL_FRAMEBUFFER_UNSUPPORTED:
-			std::cout<<"\nINFO: Framebuffer unsupported.";
-			break;
-		default:
-			std::cout<<"\nINFO: Unknown error in framebuffer ...";
-			break;
-	}
-	if (result != GL_FRAMEBUFFER_COMPLETE){
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, NULL);
-		std::cout<<"\nINFO: FrameBuffer not ready to be used.";
-		Sleep(10);
-	}
-
-	/*
-	/// Only have frame buffer parameters in OpenGL 4.3 core and above...
-	if (this->GL_VERSION_MAJOR >= 4 && this->GL_VERSION_MINOR >= 3){
-		/// Set frame buffer parameters
-	//	glFramebufferParameteri(GL_DRAW_FRAMEBUFFER, GL_FRAMEBUFFER_DEFAULT_WIDTH, 512);
-	//	glFramebufferParameteri(GL_DRAW_FRAMEBUFFER, GL_FRAMEBUFFER_DEFAULT_HEIGHT, 512);
-	//	glFramebufferParameteri(GL_DRAW_FRAMEBUFFER, GL_FRAMEBUFFER_DEFAULT_SAMPLES, 4);
-		error = glGetError();
-	}*/
-
-	// Unbind our frame buffer
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-
-	/// Make frame buffer active
-	glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObject);
-	result = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-	if (result == 0){
-		std::cout<<"\nFramebuffer states bad!";
-	}
-	// Clear depth  and color
-	glClearColor(0.1f, 0.1f, 0.1f, 0.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	// Set buffers to render into (the textures ^^)
-	GLenum buffers[] = {
-		GL_COLOR_ATTACHMENT0,
-		GL_COLOR_ATTACHMENT1,
-		GL_COLOR_ATTACHMENT2,
-		GL_COLOR_ATTACHMENT3,
-/*		GL_COLOR_ATTACHMENT4,
-		GL_COLOR_ATTACHMENT5,
-		GL_COLOR_ATTACHMENT6,
-		GL_COLOR_ATTACHMENT7*/
-	}; //, GL_COLOR_ATTACHMENT3};
-//	glDrawBuffers(frameBufferColorAttachmentsSet, buffers);
-	glDrawBuffers(4, buffers);
-
-//	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-
-
-/*	if (!viewport->shadowMapDepthBuffer)
+	if (!viewport->deferredGatherBuffer->IsGood() || viewport->deferredGatherBuffer->size != requestedRenderSize)
 	{
-		viewport->shadowMapDepthBuffer = new FrameBuffer("ShadowMapDepthBuffer");
-	}
-	if (!viewport->shadowMapDepthBuffer->IsGood() || viewport->shadowMapDepthBuffer->size != (Vector2i(1,1) * shadowMapResolution))
-	{
-		// Try and rebuild it..?
-		if (!viewport->shadowMapDepthBuffer->CreateDepthBuffer(Vector2i(1, 1) * shadowMapResolution))
+		if (!viewport->deferredGatherBuffer->CreateDeferredBuffers(requestedRenderSize))
 		{
-			SAFE_DELETE(viewport->shadowMapDepthBuffer);
+			SAFE_DELETE(viewport->deferredGatherBuffer);
 			return false;
 		}
 	}
-	*/
-	error = glGetError();
+	int error = glGetError();
 	/// Make frame buffer active
-//	viewport->shadowMapDepthBuffer->Bind();
-	// Set viewport size to clear?
-//	glViewport(0, 0, viewport->shadowMapDepthBuffer->size.x, viewport->shadowMapDepthBuffer->size.y);
-	viewport->SetGLViewport();
-//	glViewport(0,0,viewport->size.x, viewport->size.y);
+	viewport->deferredGatherBuffer->Bind();
+	// Clear depth  and color - else nothing will render.
+	glClearColor(0.1f, 0.1f, 0.1f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	// Set viewport size to render accordingly.
+	if (viewport == MainWindow()->MainViewport())
+		glViewport(0, 0, requestedRenderSize.x, requestedRenderSize.y);
+	else
+		viewport->SetGLViewport();
 	// Set buffers to render into (the textures ^^)
-//	viewport->shadowMapDepthBuffer->SetDrawBuffers();
-//	CheckGLError("RenderPass::BindShadowMapFrameBuffer");
+	viewport->deferredGatherBuffer->SetDrawBuffers();
+	CheckGLError("RenderPass::BindDeferredGatherFrameBuffer");
+	return true;
+}
+
+bool RenderPass::BindDeferredOutputFrameBuffer()
+{
+	glDisable(GL_CULL_FACE);
+	glEnable(GL_TEXTURE_2D); // Enable texturing so we can bind our frame buffer texture
+	glEnable(GL_DEPTH_TEST); // Enable depth testing
+
+	Vector2i requestedRenderSize = viewport->size;
+	if (viewport->window == MainWindow())
+		requestedRenderSize = graphicsState->renderResolution;
+	if (!viewport->deferredOutputBuffer)
+	{
+		viewport->deferredOutputBuffer = new FrameBuffer("DeferredOutputBuffer");
+	}
+	if (!viewport->deferredOutputBuffer->IsGood() || viewport->deferredOutputBuffer->size != requestedRenderSize)
+	{
+		if (!viewport->deferredOutputBuffer->CreateDeferredOutputBuffers(requestedRenderSize))
+		{
+			SAFE_DELETE(viewport->deferredOutputBuffer);
+			return false;
+		}
+	}
+	int error = glGetError();
+	/// Make frame buffer active
+	viewport->deferredOutputBuffer->Bind();
+	// Clear depth  and color - else nothing will render.
+	glClearColor(0.1f, 0.1f, 0.1f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	// Set viewport size to render accordingly.
+	if (viewport == MainWindow()->MainViewport())
+		glViewport(0, 0, requestedRenderSize.x, requestedRenderSize.y);
+	else
+		viewport->SetGLViewport();
+	// Set buffers to render into (the textures ^^)
+	viewport->deferredOutputBuffer->SetDrawBuffers();
+	CheckGLError("RenderPass::BindDeferredOutputFrameBuffer");
 	return true;
 }
 
@@ -518,10 +229,11 @@ void RenderPass::SetupDeferredGatherAsInput()
 {
 	if (newT)
 	{
-		// Unbind the frame buffer from usage
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		// Unbind the frame buffer from usage -> No. Only if this was actively bound, -> Which it isn't anymore!
+//		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		viewport->deferredGatherBuffer->BindTexturesForSampling(shader);
 
+		/*
 		// Allocate o-o
 		static Square * deferredRenderingBox = 0;
 		if (deferredRenderingBox == 0)
@@ -534,10 +246,11 @@ void RenderPass::SetupDeferredGatherAsInput()
 	
 		deferredRenderingBox->name = "DeferredLighting";
 		deferredRenderingBox->Render();
-
+	*/
 		//glDeleteBuffers(1, &box.vboBuffer);
 		//box.vboBuffer = NULL;
 
+		/*
 		/// Unbind textures~
 		glActiveTexture(GL_TEXTURE0 + 0);
 		glBindTexture(GL_TEXTURE_2D, 0); // Unbind any textures
@@ -545,11 +258,11 @@ void RenderPass::SetupDeferredGatherAsInput()
 		glActiveTexture(GL_TEXTURE0 + 1);
 		glBindTexture(GL_TEXTURE_2D, 0); // Unbind any textures
 		glActiveTexture(GL_TEXTURE0 + 0);
-
+		*/
 		return;
 	}
-	// Unbind the frame buffer from usage
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	// Unbind the frame buffer from usage -> Not needed here either. We are only binding the textures right now.
+//	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	
 	/*
 uniform sampler2D diffuseMap;
@@ -639,6 +352,40 @@ uniform sampler2D positionMap;*/
 	// Render the light-sources o-o
 //	ShadeMan.SetActiveShader(0);	// Set default program, matrices should still be correct
 //	for (int i = 0; i <
+}
+
+void RenderPass::SetupDeferredOutputAsInput()
+{
+	// Unbind the frame buffer from usage
+//	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	viewport->deferredOutputBuffer->BindTexturesForSampling(shader);
+
+	/*
+	// Allocate o-o
+	static Square * deferredRenderingBox = 0;
+	if (deferredRenderingBox == 0)
+	{
+		float size = 1.0f;
+		deferredRenderingBox = new Square();
+		deferredRenderingBox->SetDimensions(-size, size, -size, size);
+		deferredRenderingBox->Bufferize(true);
+	}
+	
+	deferredRenderingBox->name = "DeferredLighting";
+	deferredRenderingBox->Render();
+
+	//glDeleteBuffers(1, &box.vboBuffer);
+	//box.vboBuffer = NULL;
+
+	/// Unbind textures~
+	glActiveTexture(GL_TEXTURE0 + 0);
+	glBindTexture(GL_TEXTURE_2D, 0); // Unbind any textures
+	// Unbind normalMap too
+	glActiveTexture(GL_TEXTURE0 + 1);
+	glBindTexture(GL_TEXTURE_2D, 0); // Unbind any textures
+	glActiveTexture(GL_TEXTURE0 + 0);
+	*/
+	return;
 }
 
 

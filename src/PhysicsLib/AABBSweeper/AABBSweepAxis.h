@@ -23,8 +23,9 @@ public:
 	~AABBSweepNode();
 
 	static AABBSweepNode * New();
-	static void Free(AABBSweepNode * node);
-	static void FreeAll();
+	static void FreeForUse(AABBSweepNode * node); // Moves to the usable-array.
+	static void FreeAllForUse(); // Just moves to the usable-array.
+	static void FreeAll(); // Actually deletes.
     enum types {
         NULL_TYPE,
         START,
@@ -55,6 +56,7 @@ public:
 
 	void AddEntity(Entity * entity);
 	void RemoveEntity(Entity * entity);
+	void Clear(); // Clears all references.
 
 	bool ShouldBeHere(Entity * entity);
 

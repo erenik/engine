@@ -99,7 +99,8 @@ void GraphicsManager::RenderWindow()
 	if (window->getNextFrame)
 	{
 		Texture * tex = window->frameTexture;
-		tex->bpp = 4; // 4 bytes per pixel, RGBA
+		tex->SetFormat(Texture::RGBA);
+//		tex->bpp = 4; // 4 bytes per pixel, RGBA
 		tex->Resize(windowSize);
 		glReadPixels(0, 0, windowSize[0], windowSize[1], GL_RGBA, GL_UNSIGNED_BYTE, tex->data);
 		window->getNextFrame = false;

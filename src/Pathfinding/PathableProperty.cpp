@@ -124,7 +124,7 @@ bool PathableProperty::HasReachedNextWaypoint()
 /// Sets next waypoint as target. If next waypoint becomes 0, it will stop walking. If path is cyclic, will never stop walking until StopWalking is called.
 bool PathableProperty::SetNextWaypointAsTarget()
 {
-	int index = path.GetIndex(nextWaypoint);
+	int index = path.GetIndexOf(nextWaypoint);
 	++index;
 	if (index >= path.Size() - 1) // If final point, just go to it and stop.
 	{

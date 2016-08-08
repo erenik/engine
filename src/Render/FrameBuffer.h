@@ -17,6 +17,7 @@ public:
 	FrameBuffer(String name);
 	FrameBuffer(Viewport * vp, Vector2i size);
 	virtual ~FrameBuffer();
+	void Free();
 	void Nullify();
 
 	void DumpTexturesToFile();
@@ -29,6 +30,8 @@ public:
 	bool CreateDepthBuffer(Vector2i size);
 	/// Creates a default set of render-buffers for deferred rendering. Included: diffuse, normal, position, specular, emissive (all triple-vectors) + a depth buffer.   
 	bool CreateDeferredBuffers(Vector2i size);
+	/// Creates a default set of render-buffers for the output of rendering (deferred or otherwise), including color (diffuse) and depth.
+	bool CreateDeferredOutputBuffers(Vector2i size);
 	/// Binds it for use.
 	bool Bind();
 	/// Binds textures for sampling, e.g. using Deferred previously rendered-to buffer to do the Deferred-rendering part. Binds the textures straight into the current shader.
@@ -48,6 +51,8 @@ private:
 	// If it is ready to be used or not.
 	bool good;
 	String name;
+
+	void CreateTexturesAndBind();
 };
 
 #endif

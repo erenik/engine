@@ -14,15 +14,19 @@ class Viewport;
 */
 class GMSet : public GraphicsMessage {
 public:
+	GMSet(int target);
 	GMSet(int target, void *pData);
 	GMSet(int target, const Vector3f & vec3fValue);
 	GMSet(int target, float floatValue);
 	GMSet(int target, bool bValue);
+	static GMSet * Antialiasing(bool bValue);
+	static GMSet * FarPlane(int iValue);
 	void Process();
 private:
 	bool bValue;
 	float floatValue;
 	int target;
+	int iValue;
 	Vector3f vec3fValue;
 	void * pData;
 };
@@ -107,5 +111,21 @@ private:
 	int fadeInTimeInMs;
 };
 
+class GMSetResolution : public GraphicsMessage 
+{
+	GMSetResolution();
+public:
+	GMSetResolution(Vector2i newRes, bool lock);
+	static GMSetResolution * ToStaticRatio(Vector2f staticRatio); // To set ratio to follow window, but auto-scaling.
+	static GMSetResolution * ToNaturalRatio();
+	void Nullify();
+	void Process();
+private:
+	Vector2i res;
+	Vector2f ratio;
+	bool lock;
+	bool staticRatio;
+	bool naturalRatio;
+};
 
 #endif

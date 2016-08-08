@@ -110,6 +110,7 @@ public:
 	// o.o 
 	FrameBuffer * shadowMapDepthBuffer;
 	FrameBuffer * deferredGatherBuffer;
+	FrameBuffer * deferredOutputBuffer;
 
 protected:
 	

@@ -42,6 +42,12 @@ GraphicsState::GraphicsState()
 	fogEnd = 2500.0f;
 
 	boundVertexArrayBuffer = 0;
+
+	resolutionLocked = false;
+	renderResolution = Vector2i(32,32);
+	relativeResolution = Vector2f(1,1);
+	antialiasing = true;
+	farPlane = 0;
 };
 
 GraphicsState::~GraphicsState()
@@ -169,6 +175,21 @@ void GraphicsState::RemoveEntity(Entity * entity)
 			}
 		}
 	}
+}
+
+void GraphicsState::RemoveAllEntities()
+{
+	defaultEntityGroup->Clear();
+	entityGroups.ClearAndDelete();
+	alphaEntities.Clear();
+	solidEntities.Clear();
+	solidEntitiesNotInstanced.Clear();
+	shadowCastingEntities.Clear();
+	shadowCastingEntitiesNotInstanced.Clear();
+	
+	entityInstancingGroups.ClearAndDelete();
+	shadowCastingEntityGroups.Clear(); // Same pointers here
+	solidEntityGroups.Clear(); // and here, thus clear.
 }
 
 void GraphicsState::UpdateRenderInstancingGroupBuffers()

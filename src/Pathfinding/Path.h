@@ -22,7 +22,7 @@ public:
 	/// Returns waypoint at specified index.
 	Waypoint * GetClosest(const Vector3f & position) const;
 	Waypoint * GetNext(const Waypoint * previousWaypoint);
-	int GetIndex(const Waypoint * ofThisWaypoint) const;
+	int GetIndexOf(const Waypoint * ofThisWaypoint) const;
 
 	/// Mirrors the path, this since most algorithms build it up in reverse... 
 	void Mirror();

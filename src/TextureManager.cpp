@@ -210,7 +210,7 @@ Texture * TextureManager::New()
 	Texture * tex = new Texture();
 	textures.Add(tex);
 	tex->format = Texture::RGBA;
-	tex->bpp = 4;
+//	tex->bpp = 4;
 	return tex;
 }
 
@@ -279,14 +279,14 @@ Texture * TextureManager::GenerateTexture(const Vector4f & andColor)
 Texture * TextureManager::GenerateTexture(String withName, const Vector4f & andColor)
 {
 	/// Check that we don't already have one with the same name, it should be correct if so.
-	for (int i = 0; i < textures.Size(); ++i){
+	for (int i = 0; i < textures.Size(); ++i)
+	{
 		Texture * tex = textures[i];
 		if (tex->name == withName)
 			return tex;
 	}
 	Texture * newTex = new Texture();
 	newTex->width = newTex->height = 1;
-	newTex->bpp = 4;
 	newTex->format = Texture::RGBA;
 	newTex->CreateDataBuffer();
 	newTex->SetColor(andColor);

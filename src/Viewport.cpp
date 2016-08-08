@@ -72,6 +72,7 @@ void Viewport::Initialize()
 
 	// Render stuff
 	frameBuffer = 0;
+	deferredOutputBuffer = 0;
 }
 
 Viewport::~Viewport()

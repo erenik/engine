@@ -702,7 +702,7 @@ void MessageManager::ProcessMessage(Message * message)
 				/// Add the dialogue to the global UI
 				Graphics.QueueMessage(new GMAddGlobalUI(dialog, "root"));
 				/// Push it to the top... should not be needed with the global ui.
-				Graphics.QueueMessage(new GMPushUI(dialog, GlobalUI()));
+				Graphics.QueueMessage(GMPushUI::ToUI(dialog, GlobalUI()));
 				return;
 			}
 			else if (msg.Contains("SetFileBrowserDirectory("))
@@ -786,7 +786,7 @@ void MessageManager::ProcessMessage(Message * message)
 				UserInterface * ui = RelevantUI();
 				assert(ui);
 				Graphics.QueueMessage(new GMAddUI(fileBrowser, "root", ui));
-				Graphics.QueueMessage(new GMPushUI(fileBrowser, ui));
+				Graphics.QueueMessage(GMPushUI::ToUI(fileBrowser, ui));
 				return;
 			}
 			else if (msg.Contains("QuitApplication"))

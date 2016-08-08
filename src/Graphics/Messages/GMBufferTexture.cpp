@@ -16,7 +16,7 @@ GMBufferTexture::GMBufferTexture(Texture * texture) : GraphicsMessage(GM_BUFFER_
 	assert(texture->source.Length());
 	textureID = -1;
 	t = texture;
-	assert(t->bytesPerChannel != 0);
+	assert(t->BytesPerChannel() != 0);
 }
 
 

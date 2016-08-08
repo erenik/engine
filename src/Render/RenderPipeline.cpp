@@ -29,6 +29,32 @@ namespace ParseState
 	};
 };
 
+int GetRenderTarget(String arg)
+{
+	if (arg == "DeferredOutput")
+		return RenderTarget::DEFERRED_OUTPUT;
+	else if (arg == "Entities")
+		return RenderTarget::ENTITIES;
+	else if (arg == "SolidEntities")
+		return RenderTarget::SOLID_ENTITIES;
+	else if (arg == "ShadowCastingEntities")
+		return RenderTarget::SHADOW_CASTING_ENTITIES;
+	else if (arg == "Default")
+		return RenderTarget::DEFAULT;
+	else if (arg == "DeferredGather")
+		return RenderTarget::DEFERRED_GATHER;
+	else if (arg == "ShadowMaps")
+		return RenderTarget::SHADOW_MAPS;
+	else if (arg == "SkyBox")
+		return RenderTarget::SKY_BOX;
+	else if (arg == "AlphaEntities")
+		return RenderTarget::ALPHA_ENTITIES;
+	else if (arg == "RemainingEntities")
+		return RenderTarget::REMAINING_ENTITIES;
+	assert(false);
+	return RenderTarget::UNKNOWN;
+}
+
 bool RenderPipeline::Load(String fromFile)
 {
 	// Delete old allocated data concerning render-passes.
@@ -115,40 +141,20 @@ bool RenderPipeline::Load(String fromFile)
 			}
 			else if (line.Contains("Input"))
 			{
-				if (arg == "Entities")
-					rp->input = RenderTarget::ENTITIES;
-				else if (arg == "SolidEntities")
-					rp->input = RenderTarget::SOLID_ENTITIES;
-				else if (arg == "ShadowCastingEntities")
-					rp->input = RenderTarget::SHADOW_CASTING_ENTITIES;
-				else if (arg == "EntityGroup")
+				rp->input = GetRenderTarget(arg);
+				if (arg == "EntityGroup")
 				{
 					rp->input = RenderTarget::ENTITY_GROUP;
 					rp->inputGroup = arg2;
 				}
-				else if (arg == "RemainingEntities")
+				if (rp->input == RenderTarget::ALPHA_ENTITIES)
 				{
-					// All other entities, not defined in other (EntityGroup) groups
-					rp->input = RenderTarget::REMAINING_ENTITIES;
-				}
-				else if (arg == "AlphaEntities")
-				{
-					rp->input = RenderTarget::ALPHA_ENTITIES;
 					rp->depthTestEnabled = false;
 				}
-				else if (arg == "DeferredGather")
-					rp->input = RenderTarget::DEFERRED_GATHER;
-				else if (arg == "SkyBox")
-					rp->input = RenderTarget::SKY_BOX;
 			}
-			else if (line.Contains("Output"))
+			else if (line.StartsWith("Output"))
 			{
-				if (arg == "Default")
-					rp->output = RenderTarget::DEFAULT;
-				else if (arg == "DeferredGather")
-					rp->output = RenderTarget::DEFERRED_GATHER;
-				else if (arg == "ShadowMaps")
-					rp->output = RenderTarget::SHADOW_MAPS;
+				rp->output = GetRenderTarget(arg);
 			}
 			else if (line.Contains("Shader"))
 			{

@@ -36,12 +36,15 @@ AABBSweepNode * AABBSweepNode::New()
 	}
 	return new AABBSweepNode();
 }
-void AABBSweepNode::Free(AABBSweepNode * node)
+void AABBSweepNode::FreeForUse(AABBSweepNode * node)
 {
 	freeNodes.AddItem(node);
 	assert(freeNodes.Size() < 10000);
 }
-
+void AABBSweepNode::FreeAllForUse() // Just moves to the usable-array.
+{
+	freeNodes = allTheNodes;
+}
 
 void AABBSweepNode::FreeAll()
 {
@@ -123,7 +126,7 @@ void AABBSweepAxis::RemoveEntity(Entity * entity)
 			entity->physics->aabbSweepNodes.RemoveItemUnsorted(node);
 			--i;
 			++deleted;
-			AABBSweepNode::Free(node);
+			AABBSweepNode::FreeForUse(node);
 		}
 	}
 	assert(deleted == 2);
@@ -132,6 +135,13 @@ void AABBSweepAxis::RemoveEntity(Entity * entity)
 
 	if (entity->physics->type == PhysicsType::DYNAMIC)
 		dynamicEntities.RemoveItemUnsorted(entity);
+}
+
+void AABBSweepAxis::Clear() // Clears all references.
+{
+	AABBSweepNode::FreeAllForUse();
+	nodes.Clear();
+	dynamicEntities.Clear();
 }
 
 bool AABBSweepAxis::ShouldBeHere(Entity * entity)

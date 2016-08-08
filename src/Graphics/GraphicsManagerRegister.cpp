@@ -155,11 +155,14 @@ int GraphicsManager::UnregisterEntities(List<Entity*> & toUnregister)
 /// Unregisters all entities possible from rendering.
 int GraphicsManager::UnregisterAll()
 {
-	while(registeredEntities.Size() > 0){
-		UnregisterEntity(registeredEntities[0]);
+	for (int i = 0; i < registeredEntities.Size(); ++i)
+	{
+		registeredEntities[i]->registeredForRendering = false;
 	}
+	/// Just unregister all immediately?
+	graphicsState->RemoveAllEntities();
 	registeredEntities.Clear();
-//	assert(registeredEntities.Size() == vfcOctree->RegisteredEntities());
+	graphicsState->dynamicLights.Clear();
 	return 0;
 }
 

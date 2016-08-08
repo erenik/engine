@@ -291,10 +291,16 @@ void AppWindow::ToggleFullScreen()
 		BOOL getMonitorInfoResult = GetMonitorInfoW(hMonitor, &lpmi);
 		if (getMonitorInfoResult)
 		{
-			newMin[0] = lpmi.rcMonitor.left - 2;
-			newMin[1] = lpmi.rcMonitor.top - 1;
-			newSize[0] = lpmi.rcMonitor.right - lpmi.rcMonitor.left + 4;
-			newSize[1] = lpmi.rcMonitor.bottom - lpmi.rcMonitor.top + 2;
+			newMin[0] = lpmi.rcMonitor.left;
+			newMin[1] = lpmi.rcMonitor.top;
+			newSize[0] = lpmi.rcMonitor.right - lpmi.rcMonitor.left;
+			newSize[1] = lpmi.rcMonitor.bottom - lpmi.rcMonitor.top;
+			bool doOffset = false;
+			if (doOffset)
+			{
+				newMin -= Vector2i(2,2);
+				newSize += Vector2i(4,4);
+			}
 		}
 		else {
 			assert(false);
@@ -305,7 +311,7 @@ void AppWindow::ToggleFullScreen()
 		}
 		// Sets full-screen style if specified
 		SetWindowLongPtr(hWnd, GWL_STYLE,
-			WS_SYSMENU |
+//			WS_SYSMENU |
 			WS_POPUP | 
 		//	WS_CLIPCHILDREN | 
 			WS_CLIPSIBLINGS | WS_VISIBLE);
@@ -1067,6 +1073,8 @@ bool AppWindow::SetupPixelFormat(HDC hDC)
 #endif
 
 #include "Message/WindowMessage.h"
+#include "Graphics/Messages/GMSet.h"
+#include "StateManager.h"
 
 void AppWindow::OnSizeUpdated()
 {
@@ -1074,4 +1082,6 @@ void AppWindow::OnSizeUpdated()
     WindowMessage * mes = new WindowMessage(WMes::SIZE_UPDATED);
     mes->size = this->clientAreaSize;
     MesMan.QueueMessage(mes);	
+	if (this == MainWindow())
+		QueueGraphics(new GMSetResolution(this->clientAreaSize, false));
 }

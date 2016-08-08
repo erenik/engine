@@ -52,6 +52,9 @@ class RenderBuffer
 public:
 	// See above.  NOTE: The RenderBuffer constructor is special in that it will initialize all GL-related objects within the constructor.
 	RenderBuffer(String name, int type, int storageType, Vector2i size);
+	/// Clean up! GL style.
+	virtual ~RenderBuffer();
+	void Free();
 
 	void CreateBuffer();
 	/// Allocates a texture object to be used for storing/receiving and later on fetching values from this buffer.

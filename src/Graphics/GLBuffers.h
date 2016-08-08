@@ -41,6 +41,7 @@ class GLRenderBuffers
 {
 public:
 	static unsigned int New();
+	static void Free(int glRenderBufferId);
 	static void FreeAll();
 private:
 	static List<int> renderBuffers;

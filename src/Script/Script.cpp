@@ -491,7 +491,7 @@ void Script::EvaluateLine(String & line)
 			dialogue->alignmentY = 0.15f;
 			dialogue->state |= UIState::DIALOGUE;  // Flag the dialogue-state flag to signify importance!
 			Graphics.QueueMessage(new GMAddUI(dialogue, "root"));
-			Graphics.QueueMessage(new GMPushUI("Dialogue", ActiveUI()));
+			Graphics.QueueMessage(GMPushUI::ToUI("Dialogue", ActiveUI()));
 		}
 		/// If no quotes, load the specified dialogue-file and begin processing that instead, waiting until it is finished.!
 		else {
@@ -592,7 +592,7 @@ void Script::EvaluateLine(String & line)
 		}
 		isInAlternativeDialogue = true;
 		Graphics.QueueMessage(new GMAddUI(dialogue, "root"));
-		Graphics.QueueMessage(new GMPushUI(dialogue, ActiveUI()));
+		Graphics.QueueMessage(GMPushUI::ToUI(dialogue, ActiveUI()));
 	}
 	else if (line.Contains("elsif") || line.Contains("elseif") || line.Contains("else if"))
 	{

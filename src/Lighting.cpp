@@ -23,6 +23,8 @@
 #include "Message/MathMessage.h"
 #include "Message/FileEvent.h"
 
+#include "Graphics/Camera/Camera.h"
+
 AppWindow * Lighting::lightingEditor = NULL;
 
 String lightList = "LightList";
@@ -523,49 +525,61 @@ void Lighting::PrepareForLoading()
 	ambient[1] = global_ambient[1];
 	ambient[2] = global_ambient[2];
 	ambient[3] = global_ambient[3];
-	for (int i = 0; i < lights.Size() && i < MAX_LIGHTS; ++i)
+	assert(graphicsState->camera);
+	Vector3f camPos = graphicsState->camera->position;
+	for (int i = 0; i < lights.Size() && activeLights < MAX_LIGHTS; ++i)
 	{
 		Light * light = lights[i];
 		if (!light->currentlyActive)
 			continue;
 		if (light->attenuation.x <= 0)
 			continue;
+
+		float dist = (camPos - light->position).Length();
+		if (dist > 50)
+			continue;
+
 		// Only take those lights which are visible in the frustum, or will reach it with their light?
 		// ... 
-
+		int interval4 = activeLights * 4;
+		int interval3 = activeLights * 3;
 		int interval = 4;
-		diffuse[activeLights*interval] = light->diffuse[0];
-		diffuse[activeLights*interval+1] = light->diffuse[1];
-		diffuse[activeLights*interval+2] = light->diffuse[2];
-		diffuse[activeLights*interval+3] = light->diffuse[3];
+		diffuse[interval4] = light->diffuse[0];
+		diffuse[interval4+1] = light->diffuse[1];
+		diffuse[interval4+2] = light->diffuse[2];
+		diffuse[interval4+3] = light->diffuse[3];
 
-		specular[activeLights*interval] = light->specular[0];
-		specular[activeLights*interval+1] = light->specular[1];
-		specular[activeLights*interval+2] = light->specular[2];
-		specular[activeLights*interval+3] = light->specular[3];
+		specular[interval4] = light->specular[0];
+		specular[interval4+1] = light->specular[1];
+		specular[interval4+2] = light->specular[2];
+		specular[interval4+3] = light->specular[3];
 
 		interval = 3;
-		position[activeLights*interval] = light->position[0];
-		position[activeLights*interval+1] = light->position[1];
-		position[activeLights*interval+2] = light->position[2];
+		position[interval3] = light->position[0];
+		position[interval3+1] = light->position[1];
+		position[interval3+2] = light->position[2];
 
-		attenuation[activeLights*interval] = light->attenuation[0];
-		attenuation[activeLights*interval+1] = light->attenuation[1];
-		attenuation[activeLights*interval+2] = light->attenuation[2];
+		attenuation[interval3] = light->attenuation[0];
+		attenuation[interval3+1] = light->attenuation[1];
+		attenuation[interval3+2] = light->attenuation[2];
+		if (debug == 15)
+			std::cout<<"\nLight attenuation "<<activeLights<<" :"<<light->attenuation;
 
 		castsShadows[activeLights] = light->shadowMapIndex;
 
 		type[activeLights] = light->type;
 
-		spotDirection[activeLights*interval] = light->spotDirection[0];
-		spotDirection[activeLights*interval+1] = light->spotDirection[1];
-		spotDirection[activeLights*interval+2] = light->spotDirection[2];
+		spotDirection[interval3] = light->spotDirection[0];
+		spotDirection[interval3+1] = light->spotDirection[1];
+		spotDirection[interval3+2] = light->spotDirection[2];
 		/// Calcualte cutoff as a cosine value of the degrees converted to radians before we throw it in ^^
 		spotCutoff[activeLights] = cos(light->spotCutoff / 180.0f * PI);
 		spotExponent[activeLights] = light->spotExponent;
 
 		activeLights++;
 	}
+	if (debug == 4)
+		std::cout<<"\nActive lights: "<<activeLights;
 }
 
 /// Loads selected lighting into the active shader program

@@ -51,8 +51,7 @@ Waypoint * Path::GetNext(const Waypoint * previousWaypoint)
 	return NULL;
 }
 
-
-int Path::GetIndex(const Waypoint * wp) const
+int Path::GetIndexOf(const Waypoint * wp) const
 {
 	for (int i = 0; i < currentItems; ++i){
 		if (arr[i] == wp){

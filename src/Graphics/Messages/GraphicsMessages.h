@@ -14,6 +14,9 @@ enum graphicsMessages {
 	GM_MOUSE,
 	GM_CHAR,
 	GM_KEY,
+	
+	/// Render-config.
+	GM_SET_RESOLUTION,
 
 	// Render-pass configuration
 	GM_ADD_RENDER_PASS,
@@ -170,6 +173,9 @@ enum graphicsTargets
 
 	/// Booleans for all viewports?
 	GT_RENDER_GRID,
+
+	GT_ANTIALIASING,
+	GT_FAR_PLANE,
 
 	GT_OVERLAY_TEXTURE,
 	GT_GRID_SPACING,

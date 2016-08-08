@@ -86,6 +86,19 @@ unsigned int GLRenderBuffers::New()
 	renderBuffers.Add(newRenderBuffer);
 	return newRenderBuffer;
 }
+void GLRenderBuffers::Free(int glRenderBufferId)
+{
+	for (int i = 0; i < renderBuffers.Size(); ++i)
+	{
+		if (renderBuffers[i] == glRenderBufferId)
+		{
+			unsigned int renderBuffer = renderBuffers[i];
+			glDeleteRenderbuffers(1, &renderBuffer);
+			renderBuffers.RemoveIndex(i);
+			return;
+		}
+	}
+}
 void GLRenderBuffers::FreeAll()
 {
 	std::cout<<"\nFreeing render-buffers..";

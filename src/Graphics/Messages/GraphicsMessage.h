@@ -33,9 +33,9 @@ public:
 	bool retry;
 	int maxRetryAttempts; // Default 3.
 	/// If the processing is to be attempted again, this is the timeout when re-queueing the message for processing it again. Default 1 second.
-	Time retryTimeout;
+	AETime retryTimeout;
 	/// Actual time the message will be processed when re-queued.
-	Time timeToProcess;
+	AETime timeToProcess;
 
 	/// Default 3. Adjust if you are using it much for UI updates.
 	static int defaultMaxRetryAttempts;
