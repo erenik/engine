@@ -17,6 +17,7 @@ void RenderPass::RenderSkyBox()
 	glCullFace(GL_NONE);
 	/// early-Z, Skybox after solid entities.
 	glDepthFunc(GL_LEQUAL);
+//	glDepthFunc(GL_LEQUAL);
 //	glFrontFace(GL_CW /* or GL_CCW */);
 
 	// Set up camera.

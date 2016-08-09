@@ -59,6 +59,7 @@ void RenderBuffer::CreateBuffer()
 		case BufferStorageType::RGBA_8: glStorageType = GL_RGBA8; break;
 		case BufferStorageType::RGB_16F: glStorageType = GL_RGB16F; break;
 		case BufferStorageType::RGB_32F: glStorageType = GL_RGB32F; break;
+		case BufferStorageType::RGBA_16F: glStorageType = GL_RGBA16F; break;
 		default:
 			assert(false);
 	}
@@ -112,6 +113,11 @@ void RenderBuffer::CreateTexture()
 			glPixelDataType = GL_FLOAT;
 			texFormat = Texture::RGB_32F;
 			break;
+		case BufferStorageType::RGBA_16F:
+			glPixelDataFormat = GL_RGBA;
+			glPixelDataType = GL_FLOAT;
+			texFormat = Texture::RGBA_16F;
+			break;
 		case BufferStorageType::DEPTH_16F:
 			glInternalFormat = glPixelDataFormat = GL_DEPTH_COMPONENT;
 			glPixelDataType = GL_FLOAT;
@@ -126,6 +132,9 @@ void RenderBuffer::CreateTexture()
 			glInternalFormat = glPixelDataFormat = GL_DEPTH_COMPONENT;
 			glPixelDataType = GL_FLOAT;
 			texFormat = Texture::SINGLE_32F;
+			break;
+		default:
+			assert(false);
 			break;
 	}
 	texture->SetFormat(texFormat);

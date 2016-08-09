@@ -243,8 +243,8 @@ void WeatherSystem::SetSunTime(float hour)
 	/// Place sun 50 away?
 	position *= sunDistance;
 
-
-	sunColor = color;
+	/// Enhance the color a bit to make it useful at all as a sun. Gotta be powerful, yow?
+	sunColor = color * 10.0f;
 	
 	if (sunLight)
 	{

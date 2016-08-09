@@ -45,6 +45,7 @@ Viewport::Viewport(Vector2i bottomLeftCorner, Vector2i size)
 // Set initial default/NULL-values.
 void Viewport::Initialize()
 {
+	postProcessOutputBuffer = 0;
 	deferredGatherBuffer = 0;
 	shadowMapDepthBuffer = NULL;
 	printShadowMaps = false;

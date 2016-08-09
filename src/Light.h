@@ -91,9 +91,10 @@ public:
 		Defines intensity as the light goes away from centre to the cutoff. 
 	*/
 	int spotExponent;
-	/// Defines the spot lights area of influence by determining the radius (in degrees) out from the spotDirection.
+	/// In radians. (cos(spotCutoffInDegrees / 180.0f * PI)).
 	float spotCutoff;
-	
+	void SetSpotCutoffInDegrees(float degrees);
+
 	/// Entity owner.
 	Entity * owner;
 	/// Extra data pointer. For dynamic lights this pointer will refer to the entity owning it.

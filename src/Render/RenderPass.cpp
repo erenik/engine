@@ -35,6 +35,7 @@ RenderPass::RenderPass()
 
 	sortBy = 0;
 	sortByIncreasing = true;
+	clear = true;
 }
 
 RenderPass::~RenderPass()
@@ -353,6 +354,10 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 			RenderQuad();
 			break;
 		}
+		case RenderTarget::POST_PROCESS_OUTPUT:
+			viewport->postProcessOutputBuffer->BindTexturesForSampling(shader);
+			RenderQuad();
+			break;
 		case RenderTarget::SHADOW_CASTING_ENTITIES:
 		{
 			/// If possible, part instanced, part individually.
@@ -489,11 +494,8 @@ bool RenderPass::SetupOutput()
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			viewport->SetGLViewport();
 			graphicsState->shadowPass = false;
-			// Clear depth  and color for our target.
-			glClearColor(0.1f, 0.1f, 0.1f, 0.0f);
 			// Ensure depth-testing etc. is enabled. 
 			glDepthMask(true);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			break;
 		}
 		case RenderTarget::SHADOW_MAPS:
@@ -504,12 +506,8 @@ bool RenderPass::SetupOutput()
 			GLboolean wasEnabled = glIsEnabled(GL_SCISSOR_TEST);
 			// Disable scissor for proper clear?
 			glDisable(GL_SCISSOR_TEST);
-			// Clear depth  and color for our target.
-			glClearColor(0.1f, 0.1f, 0.1f, 0.0f);
 			// Ensure depth-testing etc. is enabled. 
-			glDepthMask(true);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			
+			glDepthMask(true);			
 			break;
 		}
 		case RenderTarget::DEFERRED_GATHER:
@@ -523,8 +521,20 @@ bool RenderPass::SetupOutput()
 			BindDeferredOutputFrameBuffer();
 			break;
 		}
+		case RenderTarget::POST_PROCESS_OUTPUT:
+		{
+			BindPostProcessOutputFrameBuffer();
+			break;
+		}
 		default:
 			assert(false);
+	}
+	// Clear the screen if set so.
+	if (clear)
+	{
+		// Clear depth  and color for our target.
+		glClearColor(0.1f, 0.1f, 0.1f, 0.0f); // Use prescribed clearColor instead of random grey later?
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 	return true;
 }

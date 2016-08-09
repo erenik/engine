@@ -107,10 +107,8 @@ public:
 	/// Fetches ray using viewport-based co-ordinates (not to be confused with the Window/screen-space co-ordinates!)
 	bool GetRayFromViewportCoordinates(Vector2i viewportCoords, Ray & ray);
 
-	// o.o 
-	FrameBuffer * shadowMapDepthBuffer;
-	FrameBuffer * deferredGatherBuffer;
-	FrameBuffer * deferredOutputBuffer;
+	// For rendering in multi-pass render pipelines. o.o 
+	FrameBuffer * shadowMapDepthBuffer, * deferredGatherBuffer, * deferredOutputBuffer, * postProcessOutputBuffer;
 
 protected:
 	

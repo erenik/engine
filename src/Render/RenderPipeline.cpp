@@ -51,6 +51,8 @@ int GetRenderTarget(String arg)
 		return RenderTarget::ALPHA_ENTITIES;
 	else if (arg == "RemainingEntities")
 		return RenderTarget::REMAINING_ENTITIES;
+	else if (arg == "PostProcessOutput")
+		return RenderTarget::POST_PROCESS_OUTPUT;
 	assert(false);
 	return RenderTarget::UNKNOWN;
 }
@@ -139,6 +141,8 @@ bool RenderPipeline::Load(String fromFile)
 			{
 				rp->lights = RenderPass::PRIMARY_LIGHT;
 			}
+			else if (line.StartsWith("Clear"))
+				rp->clear = arg.ParseBool();
 			else if (line.Contains("Input"))
 			{
 				rp->input = GetRenderTarget(arg);

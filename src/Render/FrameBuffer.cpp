@@ -46,6 +46,7 @@ void FrameBuffer::Nullify()
 	viewport = NULL;
 	frameBufferObject = -1;
 	good = false;
+	useFloatingPointStorage = false;
 }
 
 void FrameBuffer::DumpTexturesToFile()
@@ -128,7 +129,7 @@ void FrameBuffer::CreateRenderBuffers()
 	// Create the buffers.
 	RenderBuffer 
 		* depthBuf = new RenderBuffer("Depthbuf", BufferType::DEPTH_BUFFER, BufferStorageType::DEPTH_16F, textureSize),
-		* diffBuf = new RenderBuffer("Diffuse", BufferType::COLOR_BUFFER_1, BufferStorageType::RGBA_8, textureSize)//,
+		* diffBuf = new RenderBuffer("Diffuse", BufferType::COLOR_BUFFER_1, ColorStorageType(), textureSize)//,
 	//	* norBuf = new RenderBuffer(BufferType::COLOR_BUFFER_2, BufferStorageType::RGB_16F, textureSize),
 	//	* posBuf = new RenderBuffer(BufferType::COLOR_BUFFER_3, BufferStorageType::RGB_32F, textureSize)
 		;
@@ -275,6 +276,11 @@ bool FrameBuffer::CreateDepthBuffer(Vector2i depthBufferSize)
 	return true;
 }
 
+int FrameBuffer::ColorStorageType()
+{
+	return useFloatingPointStorage? BufferStorageType::RGBA_16F : BufferStorageType::RGBA;
+}
+
 /// Creates a default set of render-buffers for deferred rendering. Included: diffuse, normal, position, specular, emissive (all triple-vectors) + a depth buffer.   
 bool FrameBuffer::CreateDeferredBuffers(Vector2i inSize)
 {
@@ -294,7 +300,7 @@ bool FrameBuffer::CreateDeferredBuffers(Vector2i inSize)
 	// Add the depth-buffer.
 	renderBuffers.AddItem(new RenderBuffer("Depth", BufferType::DEPTH_BUFFER, BufferStorageType::DEPTH_24F, textureSize));
 	// Create the buffers.
-	RenderBuffer * diffBuf = new RenderBuffer("Diffuse", BufferType::COLOR_BUFFER_1, BufferStorageType::RGBA, textureSize);
+	RenderBuffer * diffBuf = new RenderBuffer("Diffuse", BufferType::COLOR_BUFFER_1, ColorStorageType(), textureSize);
 	renderBuffers.AddItem(diffBuf);
 	renderBuffers.Add(new RenderBuffer("Normal", BufferType::COLOR_BUFFER_2, BufferStorageType::RGB_16F, textureSize),
 		new RenderBuffer("Position", BufferType::COLOR_BUFFER_3, BufferStorageType::RGB_32F, textureSize),
@@ -346,7 +352,7 @@ bool FrameBuffer::CreateDeferredOutputBuffers(Vector2i inSize)
 	Vector2i textureSize = size;
 	renderBuffers.ClearAndDelete();	
 	renderBuffers.AddItem(new RenderBuffer("Depth", BufferType::DEPTH_BUFFER, BufferStorageType::DEPTH_24F, textureSize));
-	RenderBuffer * diffBuf = new RenderBuffer("Diffuse", BufferType::COLOR_BUFFER_1, BufferStorageType::RGBA, textureSize);
+	RenderBuffer * diffBuf = new RenderBuffer("Diffuse", BufferType::COLOR_BUFFER_1, ColorStorageType(), textureSize);
 	renderBuffers.AddItem(diffBuf);
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);	
 	AssertGLError("FrameBuffer::CreateDeferredOutputBuffers");
@@ -355,6 +361,51 @@ bool FrameBuffer::CreateDeferredOutputBuffers(Vector2i inSize)
 
 	GLenum status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT); // Check that status of our generated frame buffer
 	AssertGLError("FrameBuffer::CreateRenderBuffers");
+	
+	// Check that frame buffer is okay to work on.
+	status = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER);
+	if (!CheckFrameBufferStatus(status, name))
+		return false;
+
+	/// Only have frame buffer parameters in OpenGL 4.3 core and above...
+	if (GL_VERSION_MAJOR >= 4 && GL_VERSION_MINOR >= 3){
+		/// Set frame buffer parameters
+	//	glFramebufferParameteri(GL_DRAW_FRAMEBUFFER, GL_FRAMEBUFFER_DEFAULT_WIDTH, 512);
+	//	glFramebufferParameteri(GL_DRAW_FRAMEBUFFER, GL_FRAMEBUFFER_DEFAULT_HEIGHT, 512);
+	//	glFramebufferParameteri(GL_DRAW_FRAMEBUFFER, GL_FRAMEBUFFER_DEFAULT_SAMPLES, 4);
+		error = glGetError();
+	}
+	// Unbind our frame buffer object, along with its attached render buffers
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	AssertGLError("FrameBuffer::CreateRenderBuffers");	
+	// Ok!
+	good = true;
+	return true;
+}
+
+/// Creates 1 or more post-processing output buffers. More may be needed for ping-pong downscaling for e.g. Bloom
+bool FrameBuffer::CreatePostProcessOutputBuffers(Vector2i inSize)
+{
+	Free();
+	this->size = inSize;
+	/// OpenGL specific data
+	if (frameBufferObject == -1)
+		frameBufferObject = GLFrameBuffers::New();
+	int error = glGetError();
+	/// Bind it for manipulatoin.
+	glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObject);
+	AssertGLError("FrameBuffer::CreatePostProcessOutputBuffers");
+	Vector2i textureSize = size;
+	renderBuffers.ClearAndDelete();	
+	RenderBuffer * diffBuf = new RenderBuffer("Diffuse", BufferType::COLOR_BUFFER_1, ColorStorageType(), textureSize);
+	renderBuffers.AddItem(diffBuf);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);	
+	AssertGLError("FrameBuffer::CreatePostProcessOutputBuffers");
+	CreateTexturesAndBind();
+	int frameBufferColorAttachmentsSet = renderBuffers.Size();
+
+	GLenum status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT); // Check that status of our generated frame buffer
+	AssertGLError("FrameBuffer::CreatePostProcessOutputBuffers");
 	
 	// Check that frame buffer is okay to work on.
 	status = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER);

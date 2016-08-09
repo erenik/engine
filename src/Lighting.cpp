@@ -536,7 +536,7 @@ void Lighting::PrepareForLoading()
 			continue;
 
 		float dist = (camPos - light->position).Length();
-		if (dist > 50)
+		if (dist > 50 && light->type != LightType::DIRECTIONAL)
 			continue;
 
 		// Only take those lights which are visible in the frustum, or will reach it with their light?
@@ -573,7 +573,7 @@ void Lighting::PrepareForLoading()
 		spotDirection[interval3+1] = light->spotDirection[1];
 		spotDirection[interval3+2] = light->spotDirection[2];
 		/// Calcualte cutoff as a cosine value of the degrees converted to radians before we throw it in ^^
-		spotCutoff[activeLights] = cos(light->spotCutoff / 180.0f * PI);
+		spotCutoff[activeLights] = light->spotCutoff;
 		spotExponent[activeLights] = light->spotExponent;
 
 		activeLights++;

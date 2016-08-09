@@ -41,6 +41,7 @@ namespace BufferStorageType
 		/// Vector-buffers.
 		RGBA, // Also 8 bit per channel?
 		RGBA_8, // 4-channels, 8 bit integers per channel.
+		RGBA_16F, // 4-channels, 16-bit floating point.
 		RGB_16F, // 3-channel, 16 bit floating point values per channel
 		RGB_32F, // 3-channel, 32 bit floating point values per channel
 

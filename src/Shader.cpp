@@ -508,6 +508,7 @@ int Shader::GetUniformTextureByBufferType(int type)
 		case BufferType::POSITION: return uniformPositionMap;
 		case BufferType::DEPTH_BUFFER: return uniformDepthMap;
 		case BufferType::SPECULAR: return uniformSpecularMap;
+		case BufferType::EMISSIVE: return uniformEmissiveMap;
 	}
 	return -1;
 }

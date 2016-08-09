@@ -114,6 +114,7 @@ bool ShaderPart::Compile()
 			}
 			dumpFileName += name;
 			dumpFileName += ".log";
+			dumpFileName.Replace("/", "_");
 			dump.open(dumpFileName.c_str(), std::ios_base::out);
 			if (dump.is_open()){
 				dump << cError;

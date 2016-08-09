@@ -150,6 +150,7 @@ public:
 
 		RGBA, // standard 8 bit per channel, 4 channels
 		RGBA_8 = RGBA,
+		RGBA_16F, 
 		RGBA_32F, // For loading stuff from memory.
 		CMYK,
 		FORMATS

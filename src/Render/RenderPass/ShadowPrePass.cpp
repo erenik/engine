@@ -158,6 +158,7 @@ bool RenderPass::BindDeferredGatherFrameBuffer()
 	if (!viewport->deferredGatherBuffer)
 	{
 		viewport->deferredGatherBuffer = new FrameBuffer("DeferredGatherBuffer");
+		viewport->deferredGatherBuffer->useFloatingPointStorage = true;
 	}
 	if (!viewport->deferredGatherBuffer->IsGood() || viewport->deferredGatherBuffer->size != requestedRenderSize)
 	{
@@ -170,9 +171,6 @@ bool RenderPass::BindDeferredGatherFrameBuffer()
 	int error = glGetError();
 	/// Make frame buffer active
 	viewport->deferredGatherBuffer->Bind();
-	// Clear depth  and color - else nothing will render.
-	glClearColor(0.1f, 0.1f, 0.1f, 0.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// Set viewport size to render accordingly.
 	if (viewport == MainWindow()->MainViewport())
@@ -197,6 +195,7 @@ bool RenderPass::BindDeferredOutputFrameBuffer()
 	if (!viewport->deferredOutputBuffer)
 	{
 		viewport->deferredOutputBuffer = new FrameBuffer("DeferredOutputBuffer");
+		viewport->deferredOutputBuffer->useFloatingPointStorage = true;
 	}
 	if (!viewport->deferredOutputBuffer->IsGood() || viewport->deferredOutputBuffer->size != requestedRenderSize)
 	{
@@ -209,9 +208,6 @@ bool RenderPass::BindDeferredOutputFrameBuffer()
 	int error = glGetError();
 	/// Make frame buffer active
 	viewport->deferredOutputBuffer->Bind();
-	// Clear depth  and color - else nothing will render.
-	glClearColor(0.1f, 0.1f, 0.1f, 0.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	// Set viewport size to render accordingly.
 	if (viewport == MainWindow()->MainViewport())
 		glViewport(0, 0, requestedRenderSize.x, requestedRenderSize.y);
@@ -219,6 +215,41 @@ bool RenderPass::BindDeferredOutputFrameBuffer()
 		viewport->SetGLViewport();
 	// Set buffers to render into (the textures ^^)
 	viewport->deferredOutputBuffer->SetDrawBuffers();
+	CheckGLError("RenderPass::BindDeferredOutputFrameBuffer");
+	return true;
+}
+bool RenderPass::BindPostProcessOutputFrameBuffer()
+{
+	glEnable(GL_TEXTURE_2D); // Enable texturing so we can bind our frame buffer texture
+	glDisable(GL_DEPTH_TEST); // Disable depth testing
+
+	Vector2i requestedRenderSize = viewport->size;
+	FrameBuffer * ppob = viewport->postProcessOutputBuffer;
+	if (viewport->window == MainWindow())
+		requestedRenderSize = graphicsState->renderResolution;
+	if (!ppob)
+	{
+		ppob = viewport->postProcessOutputBuffer = new FrameBuffer("PostProcessOutputBuffer");
+		ppob->useFloatingPointStorage = true;
+	}
+	if (!ppob->IsGood() || ppob->size != requestedRenderSize)
+	{
+		if (!ppob->CreatePostProcessOutputBuffers(requestedRenderSize))
+		{
+			SAFE_DELETE(ppob);
+			return false;
+		}
+	}
+	int error = glGetError();
+	/// Make frame buffer active
+	ppob->Bind();
+	// Set viewport size to render accordingly.
+	if (viewport == MainWindow()->MainViewport())
+		glViewport(0, 0, requestedRenderSize.x, requestedRenderSize.y);
+	else
+		viewport->SetGLViewport();
+	// Set buffers to render into (the textures ^^)
+	ppob->SetDrawBuffers();
 	CheckGLError("RenderPass::BindDeferredOutputFrameBuffer");
 	return true;
 }

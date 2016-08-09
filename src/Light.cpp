@@ -286,6 +286,11 @@ void Light::ReadFrom(std::fstream & file){
 	attenuation.ReadFrom(file);
 	spotDirection.ReadFrom(file);
 }
+void Light::SetSpotCutoffInDegrees(float degrees)
+{ 
+	spotCutoff = cos(degrees / 180.0f * PI); 
+}
+	
 
 
 void Light::SetName(const String newName){ 
