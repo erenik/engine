@@ -17,6 +17,7 @@ public:
 	FrameBuffer(String name);
 	FrameBuffer(Viewport * vp, Vector2i size);
 	virtual ~FrameBuffer();
+	const String & Name() const {return name;};
 	void Free();
 	void Nullify();
 
@@ -36,6 +37,8 @@ public:
 	bool CreateDeferredOutputBuffers(Vector2i size);
 	/// Creates 1 or more post-processing output buffers. More may be needed for ping-pong downscaling for e.g. Bloom
 	bool CreatePostProcessOutputBuffers(Vector2i size);
+	/// Yas. Only inherits main stats of the other buffer, keeps size.
+	bool CreateBuffersLikeIn(FrameBuffer * otherBuffer);
 	/// Binds it for use.
 	bool Bind();
 	/// Binds textures for sampling, e.g. using Deferred previously rendered-to buffer to do the Deferred-rendering part. Binds the textures straight into the current shader.
@@ -52,6 +55,7 @@ public:
 	bool IsGood(){return good;};
 	/// Default false.
 	bool useFloatingPointStorage;
+	bool skipDepthBuffers;
 private:
 	Viewport * viewport;
 	// If it is ready to be used or not.

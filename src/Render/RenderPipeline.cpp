@@ -53,6 +53,8 @@ int GetRenderTarget(String arg)
 		return RenderTarget::REMAINING_ENTITIES;
 	else if (arg == "PostProcessOutput")
 		return RenderTarget::POST_PROCESS_OUTPUT;
+	else if (arg == "MinificationBuffers") // Is automatically ping-ponged?
+		return RenderTarget::MINIFICATION_BUFFERS;
 	assert(false);
 	return RenderTarget::UNKNOWN;
 }
@@ -125,6 +127,8 @@ bool RenderPipeline::Load(String fromFile)
 			{
 				rp->shadowMapping = true;
 			}
+			else if (line.StartsWith("Iterations"))
+				rp->iterations = arg.ParseInt();
 			else if (line.StartsWith("SortBy"))
 			{
 				List<String> args = line.Tokenize(" \t");

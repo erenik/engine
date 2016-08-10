@@ -216,6 +216,8 @@ public:
 	GLuint uniformShadowMap; // Default location: glActiveTexture(GL_TEXTURE0 + 4);
 	GLuint uniformShadowMapMatrix;
 
+	GLuint uniformExposure; /// Used for ToneMapping in HDR rendering pipelines.
+
 	/// Provides the locations for the above, if they should deviate from the defaults.
 	int diffuseMapIndex;
 	int specularMapIndex;

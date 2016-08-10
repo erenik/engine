@@ -57,6 +57,8 @@ public:
 
 	/// Loads from file. Can call to reload data even if already loaded once.
 	bool LoadFromFile();
+	/// Yah.
+	Vector3f CalcAverageColorAllPixels();
 
 	// Flips along Y axis?
 	void FlipY();

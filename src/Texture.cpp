@@ -172,6 +172,22 @@ bool Texture::LoadFromFile()
 	return ok;
 }
 
+/// Yah.
+Vector3f Texture::CalcAverageColorAllPixels()
+{
+	int pixels = width * height;
+	if (pixels > 100)
+		std::cout<<"\nPixels: "<<pixels;
+	Vector3f average;
+	for (int i = 0; i < pixels; ++i)
+	{
+		average += GetPixel(i);
+	}
+	average /= pixels;
+	return average;
+}
+
+
 // Flips along Y axis?
 void Texture::FlipY()
 {
@@ -335,14 +351,15 @@ void Texture::LoadDataFromGL()
 	
 	/// Get data of the texture before loading it...!
 	int width, height, glImageFormat, glFormat;
-	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width); 
-	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height); 
+	// Skip the gets..?
+//	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width); 
+//	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height); 
 //	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_IMAGE_FORMAT, &glImageFormat); 
-	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_INTERNAL_FORMAT, &glFormat); 
+//	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_INTERNAL_FORMAT, &glFormat); 
 	CheckGLError("Texture::LoadDataFromGL after glGetTexLevelParams");
 
 	/// Update accordingly.
-	size = Vector2i(width, height);
+//	Vector2i sizeNeeded = Vector2i(width, height);
 	/// Just make it 4-channeled.
 	switch(format)
 	{
@@ -358,30 +375,17 @@ void Texture::LoadDataFromGL()
 			break;
 		case RGB_16F:
 		case RGB_32F:
+		case RGBA_16F:
 		case RGBA_32F:
 			format = RGBA_32F;
 			break;
 		default:
 			assert(false);
 	}
-	/*
-	switch(glFormat)
-	{
-		case GL_DEPTH_COMPONENT:
-			format = Texture::RGBA_32F;
-			break;
-		case GL_RGBA:
-			format = RGBA;
-			break;
-		case GL_RGB:
-			format = RGB;
-			break;
-		default:
-			assert(false);
-	}*/
-
 	// Calculate 
-	Reallocate();
+	if (dataBufferSize == 0)
+		Reallocate();
+
 
 	CheckGLError("Texture::LoadDataFromGL after Reallocate");
 
@@ -418,6 +422,7 @@ void Texture::LoadDataFromGL()
 			glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, fData); 
 			break;
 		}
+		case RGBA_16F:
 		case RGBA_32F:
 			loadChannels = 4;
 			glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, fData);
@@ -426,7 +431,7 @@ void Texture::LoadDataFromGL()
 			assert(false);
 	}
 	int error = CheckGLError("Texture::LoadDataFromGL");
-	if (error == GL_NO_ERROR)
+	if (error != GL_NO_ERROR)
 	{
 		std::cout<<"\nWaaai!";
 	}
@@ -734,24 +739,10 @@ void Texture::SetName(String str){
 /// Gets pixel from indice.
 Vector4f Texture::GetPixel(int index)
 {
-	assert(BytesPerPixel() == 4 && format == Texture::RGBA);
 	Vector4f color;
-	unsigned char * buf = data;
 	/// PixelStartIndex
-	int psi = index * BytesPerPixel();
-	color[0] = buf[psi] / 255.0f;
-	color[1] = buf[psi+1] / 255.0f;
-	color[2] = buf[psi+2] / 255.0f;
-	color[3] = buf[psi+3] / 255.0f;
-	return color;
-}
-
-/// Gets color data from specified pixel in RGBA
-Vector4f Texture::GetPixel(int x, int y)
-{
-	Vector4f color;
+	int psi = index * Channels();
 	unsigned char * buf = data;
-	int psi = (y * width + x) * BytesPerPixel();
 	switch(format)
 	{
 		case RGBA:
@@ -761,11 +752,26 @@ Vector4f Texture::GetPixel(int x, int y)
 			color[1] = buf[psi+1] / 255.0f;
 			color[2] = buf[psi+2] / 255.0f;
 			break;
+		case RGBA_16F:
+		case RGBA_32F:
+			color[0] = fData[psi];
+			color[1] = fData[psi+1];
+			color[2] = fData[psi+2];
+			color[3] = fData[psi+3];
+			break;
 		default:
 			assert(false);
 	}
 	/// PixelStartIndex
 	return color;
+}
+
+/// Gets color data from specified pixel in RGBA
+Vector4f Texture::GetPixel(int x, int y)
+{
+	Vector4f color;
+	unsigned char * buf = data;
+	return GetPixel(y * width + x);
 }
 
 /// Gets color data from specified pixel in RGBA
@@ -1137,6 +1143,8 @@ int Texture::Channels()
 {
 	switch(format)
 	{
+		case RGB_8:
+			return 3;
 		case RGBA_32F: 
 		case RGBA:
 			return 4;

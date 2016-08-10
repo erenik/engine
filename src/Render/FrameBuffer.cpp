@@ -47,6 +47,7 @@ void FrameBuffer::Nullify()
 	frameBufferObject = -1;
 	good = false;
 	useFloatingPointStorage = false;
+	skipDepthBuffers = false;
 }
 
 void FrameBuffer::DumpTexturesToFile()
@@ -428,6 +429,51 @@ bool FrameBuffer::CreatePostProcessOutputBuffers(Vector2i inSize)
 	return true;
 }
 
+/// Yas. Only inherits main stats of the other buffer, keeps size.
+bool FrameBuffer::CreateBuffersLikeIn(FrameBuffer * otherBuffer)
+{
+	Free();
+	/// OpenGL specific data
+	if (frameBufferObject == -1)
+		frameBufferObject = GLFrameBuffers::New();
+	int error = glGetError();
+	/// Bind it for manipulatoin.
+	glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObject);
+	AssertGLError("FrameBuffer::CreateBuffersLikeIn");
+	Vector2i textureSize = size;
+	renderBuffers.ClearAndDelete();	
+	/// Create render buffers.
+	for (int i = 0; i < otherBuffer->renderBuffers.Size(); ++i)
+	{
+		RenderBuffer * ref = otherBuffer->renderBuffers[i];
+		if (ref->type == BufferType::DEPTH_BUFFER && skipDepthBuffers)
+			continue;
+		RenderBuffer * newOne = new RenderBuffer(ref->name, ref->type, ref->storageType, textureSize);
+		renderBuffers.AddItem(newOne);
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);	
+	}
+
+	AssertGLError("FrameBuffer::CreateBuffersLikeIn");
+	CreateTexturesAndBind();
+	int frameBufferColorAttachmentsSet = renderBuffers.Size();
+
+	GLenum status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT); // Check that status of our generated frame buffer
+	AssertGLError("FrameBuffer::CreateBuffersLikeIn");
+	
+	// Check that frame buffer is okay to work on.
+	status = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER);
+	if (!CheckFrameBufferStatus(status, name))
+		return false;
+
+	// Unbind our frame buffer object, along with its attached render buffers
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	AssertGLError("FrameBuffer::CreateBuffersLikeIn");	
+	// Ok!
+	good = true;
+	return true;
+}
+
+
 void FrameBuffer::CreateTexturesAndBind()
 {
 	// Create textures for each buffer.
@@ -509,7 +555,15 @@ void FrameBuffer::BindTexturesForSampling(Shader * shader)
 		glActiveTexture(GL_TEXTURE0 + bound);
 		glBindTexture(GL_TEXTURE_2D, rb->texture->glid);
 		if (graphicsState->antialiasing == false)
+		{
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		}
+		else 
+		{
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		}
 		++bound;
 	}
 }

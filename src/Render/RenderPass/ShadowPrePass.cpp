@@ -250,7 +250,118 @@ bool RenderPass::BindPostProcessOutputFrameBuffer()
 		viewport->SetGLViewport();
 	// Set buffers to render into (the textures ^^)
 	ppob->SetDrawBuffers();
+	/// Assume some uniforms are relevant for this pass.
+	viewport->exposure;
+	Vector3f col = viewport->averageScreenColor;
+	float brightness = (col.x + col.y + col.z) / 3.f;
+	float minBrightness = 0.25f;
+	float maxBrightness = 0.5f;
+	float newExposure = viewport->exposure;
+	if (newExposure != newExposure)
+		newExposure = 1.f;
+	if (brightness > maxBrightness)
+		newExposure *= 0.67f;
+	if (brightness < minBrightness)
+		newExposure *= 1.5f;
+	if (viewport->exposure != newExposure)
+		std::cout<<"\nSetting exposure: "<<viewport->exposure;
+	viewport->exposure = viewport->exposure * 0.90f + newExposure * 0.10f;
+	ClampFloat(viewport->exposure, 0.05f, 20.f);
+//	float exposure = 1 / (MaximumFloat(viewport->averageScreenColor.Length(), 0.01f));
+//	exposure = sqrt(exposure);
+	if (shader)
+		glUniform1f(shader->uniformExposure, viewport->exposure);
+
+
 	CheckGLError("RenderPass::BindDeferredOutputFrameBuffer");
+	return true;
+}
+
+bool RenderPass::PerformIterativePingPongRenders()
+{
+	glEnable(GL_TEXTURE_2D); // Enable texturing so we can bind our frame buffer texture
+	glDisable(GL_DEPTH_TEST); // Disable depth testing
+	assert(shader);
+	Vector2i requestedRenderSize = MainWindow()->ClientAreaSize();
+	if (viewport->window == MainWindow())
+		requestedRenderSize = graphicsState->renderResolution;
+	List<FrameBuffer*> fbs;
+	FrameBuffer * previous = GetInputFrameBuffer();
+	Timer t;
+	t.Start();
+	for (int i = 0; i < iterations; ++i)
+	{
+		/// Check for existing FrameBuffer.
+		String fbName = name+String(i);
+		Vector2i reqSize = previous? previous->size * 0.5f : requestedRenderSize * 0.5f;
+		while (reqSize.x * reqSize.y > 10000)
+			reqSize *= 0.5f;
+		if (reqSize.x * reqSize.y < 15)
+			continue;
+		FrameBuffer * fb = viewport->GetFrameBuffer(fbName);
+		if (fb == 0)
+		{
+			fb = new FrameBuffer(fbName);
+			fb->useFloatingPointStorage = previous->useFloatingPointStorage;
+			viewport->frameBuffers.AddItem(fb);
+		}
+		fbs.AddItem(fb);
+		if (fb->size != reqSize)
+		{
+			fb->size = reqSize;
+			fb->skipDepthBuffers = true;
+			fb->CreateBuffersLikeIn(previous);
+		}
+		previous = fb;
+	}
+	t.Stop();
+	int msAllocating = t.GetMs();
+	CheckGLError("RenderPass::PerformIterativePingPongRenders - fb creation/resize");
+	graphicsState->antialiasing = true; // Do it.
+	/// Buffers created, now 
+	t.Start();
+	for (int i = 0; i < fbs.Size(); ++i)
+	{
+		// Set output.
+		FrameBuffer * fb = fbs[i];
+		bool ok = fb->Bind();
+		assert(ok);
+		ok = fb->SetDrawBuffers();
+		assert(ok);
+		glViewport(0, 0, fb->size.x, fb->size.y);
+		CheckGLError("RenderPass::PerformIterativePingPongRenders - rendering");
+		// Do initial render.
+		RenderQuad();
+		// Unbind, bind next.
+		fb->BindTexturesForSampling(shader);
+		// Ensure linear sampling.
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		// save texture?
+	//	fb->DumpTexturesToFile();
+	}
+	t.Stop();
+	int msRendering = t.GetMs();
+
+	/// Unbind framebuffer first.
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	// Analyze the last one?
+	t.Start();
+	//CalculateAverage
+	// Grab last texture.
+	FrameBuffer * last = fbs.Last();
+	Texture * tex = last->renderBuffers[0]->texture;
+	tex->LoadDataFromGL();
+	t.Stop();
+	int msLoadingFromGL = t.GetMs();
+	t.Start();
+	Vector3f average = tex->CalcAverageColorAllPixels();
+//	std::cout<<"\nAverage color: "<<average;
+	viewport->averageScreenColor = average; // Smooth a bit from frame to frame.
+	t.Stop();
+	int msAveraging = t.GetMs();
+
+	// Set buffers to render into (the textures ^^)
 	return true;
 }
 
@@ -258,131 +369,8 @@ bool RenderPass::BindPostProcessOutputFrameBuffer()
 
 void RenderPass::SetupDeferredGatherAsInput()
 {
-	if (newT)
-	{
-		// Unbind the frame buffer from usage -> No. Only if this was actively bound, -> Which it isn't anymore!
-//		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		viewport->deferredGatherBuffer->BindTexturesForSampling(shader);
-
-		/*
-		// Allocate o-o
-		static Square * deferredRenderingBox = 0;
-		if (deferredRenderingBox == 0)
-		{
-			float size = 1.0f;
-			deferredRenderingBox = new Square();
-			deferredRenderingBox->SetDimensions(-size, size, -size, size);
-			deferredRenderingBox->Bufferize(true);
-		}
-	
-		deferredRenderingBox->name = "DeferredLighting";
-		deferredRenderingBox->Render();
-	*/
-		//glDeleteBuffers(1, &box.vboBuffer);
-		//box.vboBuffer = NULL;
-
-		/*
-		/// Unbind textures~
-		glActiveTexture(GL_TEXTURE0 + 0);
-		glBindTexture(GL_TEXTURE_2D, 0); // Unbind any textures
-		// Unbind normalMap too
-		glActiveTexture(GL_TEXTURE0 + 1);
-		glBindTexture(GL_TEXTURE_2D, 0); // Unbind any textures
-		glActiveTexture(GL_TEXTURE0 + 0);
-		*/
-		return;
-	}
-	// Unbind the frame buffer from usage -> Not needed here either. We are only binding the textures right now.
-//	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	
-	/*
-uniform sampler2D diffuseMap;
-uniform sampler2D depthMap;
-uniform sampler2D normalMap;
-uniform sampler2D positionMap;*/
-	// Bind textures to our lighting shader
-//	GLuint uniformBaseTexture = glGetUniformLocation(shader->shaderProgram, "baseImage");
-	GLuint loc = glGetUniformLocation(shader->shaderProgram, "diffuseMap");
-	if (loc != -1)
-		glUniform1i(loc, 0);
-	loc = glGetUniformLocation(shader->shaderProgram, "depthMap");
-	if (loc != -1)
-		glUniform1i(loc, 1);
-	loc = glGetUniformLocation(shader->shaderProgram, "normalMap");
-	if (loc != -1)
-		glUniform1i(loc, 2);
-	loc = glGetUniformLocation(shader->shaderProgram, "positionMap");
-	if (loc != -1)
-		glUniform1i(loc, 3);
-	loc = glGetUniformLocation(shader->shaderProgram, "specularMap");
-	if (loc != -1)
-		glUniform1i(loc, 4);
-	loc = glGetUniformLocation(shader->shaderProgram, "tangentMap");
-	if (loc != -1)
-		glUniform1i(loc, 5);
-	loc = glGetUniformLocation(shader->shaderProgram, "bumpMap");
-	if (loc != -1)
-		glUniform1i(loc, 6);
-	loc = glGetUniformLocation(shader->shaderProgram, "pickingMap");
-	if (loc != -1)
-		glUniform1i(loc, 7);
-
-	glEnable(GL_TEXTURE_2D);
-	// Bind sampler
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	GLint maxTextures;
-	glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &maxTextures);
-
-	// When rendering an objectwith this program.
-	glActiveTexture(GL_TEXTURE0 + 0);
-	glBindTexture(GL_TEXTURE_2D, diffuseTexture);
-	glActiveTexture(GL_TEXTURE0 + 1);
-	glBindTexture(GL_TEXTURE_2D, depthTexture);
-	glActiveTexture(GL_TEXTURE0 + 2);
-	glBindTexture(GL_TEXTURE_2D, normalTexture);
-	glActiveTexture(GL_TEXTURE0 + 3);
-	glBindTexture(GL_TEXTURE_2D, positionTexture);
-	glActiveTexture(GL_TEXTURE0 + 4);
-	glBindTexture(GL_TEXTURE_2D, specularTexture);
-	glActiveTexture(GL_TEXTURE0 + 5);
-	glBindTexture(GL_TEXTURE_2D, tangentTexture);
-	glActiveTexture(GL_TEXTURE0 + 6);
-	glBindTexture(GL_TEXTURE_2D, normalMapTexture);
-	glActiveTexture(GL_TEXTURE0 + 7);
-	glBindTexture(GL_TEXTURE_2D, pickingTexture);
-
-	graphicsState->currentTexture = 0;
-
-	// Render square for the AppWindow
-		// Allocate o-o
-	static Square * deferredRenderingBox = 0;
-	if (deferredRenderingBox == 0)
-	{
-		float size = 1.0f;
-		deferredRenderingBox = new Square();
-		deferredRenderingBox->SetDimensions(-size, size, -size, size);
-		deferredRenderingBox->Bufferize(true);
-	}
-	
-	deferredRenderingBox->name = "DeferredLighting";
-	deferredRenderingBox->Render();
-
-	//glDeleteBuffers(1, &box.vboBuffer);
-	//box.vboBuffer = NULL;
-
-	/// Unbind textures~
-	glActiveTexture(GL_TEXTURE0 + 0);
-	glBindTexture(GL_TEXTURE_2D, 0); // Unbind any textures
-	// Unbind normalMap too
-	glActiveTexture(GL_TEXTURE0 + 1);
-	glBindTexture(GL_TEXTURE_2D, 0); // Unbind any textures
-	glActiveTexture(GL_TEXTURE0 + 0);
-
-	// Render the light-sources o-o
-//	ShadeMan.SetActiveShader(0);	// Set default program, matrices should still be correct
-//	for (int i = 0; i <
+	viewport->deferredGatherBuffer->BindTexturesForSampling(shader);
+	return;
 }
 
 void RenderPass::SetupDeferredOutputAsInput()
@@ -390,33 +378,29 @@ void RenderPass::SetupDeferredOutputAsInput()
 	// Unbind the frame buffer from usage
 //	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	viewport->deferredOutputBuffer->BindTexturesForSampling(shader);
-
+	// RenderQuad func added.
+	// Unbind textures?
 	/*
-	// Allocate o-o
-	static Square * deferredRenderingBox = 0;
-	if (deferredRenderingBox == 0)
-	{
-		float size = 1.0f;
-		deferredRenderingBox = new Square();
-		deferredRenderingBox->SetDimensions(-size, size, -size, size);
-		deferredRenderingBox->Bufferize(true);
-	}
-	
-	deferredRenderingBox->name = "DeferredLighting";
-	deferredRenderingBox->Render();
-
-	//glDeleteBuffers(1, &box.vboBuffer);
-	//box.vboBuffer = NULL;
-
-	/// Unbind textures~
-	glActiveTexture(GL_TEXTURE0 + 0);
+	glActiveTexture(GL_TEXTURE0 + x);
 	glBindTexture(GL_TEXTURE_2D, 0); // Unbind any textures
-	// Unbind normalMap too
-	glActiveTexture(GL_TEXTURE0 + 1);
-	glBindTexture(GL_TEXTURE_2D, 0); // Unbind any textures
-	glActiveTexture(GL_TEXTURE0 + 0);
 	*/
 	return;
+}
+
+FrameBuffer * RenderPass::GetInputFrameBuffer()
+{
+	switch(input)
+	{
+	case RenderTarget::DEFERRED_GATHER:
+		return viewport->deferredGatherBuffer;
+	case RenderTarget::DEFERRED_OUTPUT:
+		return viewport->deferredOutputBuffer;
+	case RenderTarget::POST_PROCESS_OUTPUT:
+		return viewport->postProcessOutputBuffer;
+	default:
+		assert(false);
+	}
+	return 0;
 }
 
 

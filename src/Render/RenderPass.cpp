@@ -20,6 +20,7 @@
 
 RenderPass::RenderPass()
 {
+	iterations = 1;
 	shader = 0;
 	shaderName = "Phong";
 	depthTestEnabled = true;
@@ -130,6 +131,23 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 {
 	viewport = graphicsState.activeViewport;
 	CheckGLError("Before RenderPass::Render");
+	// Set shader to use in this render-pass.
+	if (!shader || (shader->name != shaderName))
+	{
+		shader = ShadeMan.SetActiveShader(shaderName);
+		if (!shader)
+		{
+			std::cout<<"\nSkipping render pass. Failed to grab specified shader: "<<shaderName;
+			return false;
+		}
+	}
+	else {
+		ShadeMan.SetActiveShader(shader);
+	}
+	// Return if we couldn't even set the shader..
+    if (shader == NULL)
+	    return false;
+    
 	// Setup output buffers?
 	if (!SetupOutput())
 		return false;
@@ -147,24 +165,7 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 		default:
 			break;
 	}
-	// Set shader to use in this render-pass.
-	if (!shader || (shader->name != shaderName))
-	{
-		shader = ShadeMan.SetActiveShader(shaderName);
-		if (!shader)
-		{
-			std::cout<<"\nSkipping render pass. Failed to grab specified shader: "<<shaderName;
-			return false;
-		}
-	}
-	else {
-		ShadeMan.SetActiveShader(shader);
-	}
-	// Return if we couldn't even set the shader..
-    if (shader == NULL)
-	{
-        return false;
-    }
+	
 	// Default no vertex buffer.
 	graphicsState.BindVertexArrayBuffer(0);
 
@@ -338,25 +339,26 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 		instancingEnabled = true;
 
 
+	bool renderQuad = false;
 	switch(input)
 	{
 		/// Use previously rendered-to render-buffers associated with this viewport.
 		case RenderTarget::DEFERRED_GATHER:
 		{
 			SetupDeferredGatherAsInput();
-			RenderQuad();
+			renderQuad = true;
 			break;
 		}
 		case RenderTarget::DEFERRED_OUTPUT:
 		{
 			SetupDeferredOutputAsInput(); 
 			/// Render the quad.
-			RenderQuad();
+			renderQuad = true;
 			break;
 		}
 		case RenderTarget::POST_PROCESS_OUTPUT:
 			viewport->postProcessOutputBuffer->BindTexturesForSampling(shader);
-			RenderQuad();
+			renderQuad = true;
 			break;
 		case RenderTarget::SHADOW_CASTING_ENTITIES:
 		{
@@ -442,6 +444,16 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 			assert(false);
 	}
 
+	/// Do the render for those with quad (deferred).
+	if (renderQuad)
+	{
+		if (iterations > 1)			
+			PerformIterativePingPongRenders();
+		else
+			RenderQuad();
+	}
+
+
 	CheckGLError("RenderPass::Render - rendering");
 	/// Extract the texture data from the buffers to see what it looks like?
 	switch(output)
@@ -524,6 +536,12 @@ bool RenderPass::SetupOutput()
 		case RenderTarget::POST_PROCESS_OUTPUT:
 		{
 			BindPostProcessOutputFrameBuffer();
+			break;
+		}
+		case RenderTarget::MINIFICATION_BUFFERS:
+		{
+			/// Do the minify!
+			// Do rendering later.
 			break;
 		}
 		default:

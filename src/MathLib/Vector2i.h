@@ -103,6 +103,8 @@ public:
 	void operator /= (const int &f);
 	/// Internal element multiplication
 	void operator *= (const int &f);
+	/// Internal element multiplication
+	void operator *= (const float &f);
 
 	/// Internal element multiplication
 	Vector2i operator * (const float &f) const;

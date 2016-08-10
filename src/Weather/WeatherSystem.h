@@ -48,6 +48,8 @@ public:
 	/// Stops the wind, rain, etc.
 	void Stop();
 
+	float sunStrength; // Default 5?
+
 private:
 	/// Rain-snow?
 	CloudSystem * cloudSystem;

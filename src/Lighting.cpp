@@ -604,7 +604,6 @@ void Lighting::LoadIntoShader(Shader * shader)
 
 	CheckGLError("LoadLighting before gl calls.");
 
-	
 	/// Only update once per frame, as needed.
 	if (graphicsFrameNumber != lastPreparationFrame)
 	{

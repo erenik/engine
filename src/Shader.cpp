@@ -264,6 +264,7 @@ void Shader::ExtractUniforms()
 	uniformCharacter = glGetUniformLocation(shaderProgram, "character");
 	uniformPivot = glGetUniformLocation(shaderProgram, "pivot");
 
+	uniformExposure = glGetUniformLocation(shaderProgram, "exposure");
 	// Get textures
 	// First diffuse
 	uniformBaseTexture = glGetUniformLocation(shaderProgram, "baseImage");

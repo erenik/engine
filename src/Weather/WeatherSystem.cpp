@@ -30,6 +30,7 @@ WeatherSystem::WeatherSystem()
 	sunHours = 14.f;
 	sunDistance = 50.f;
 	smoothedAmbience = Vector3f(0,0,0);
+	sunStrength = 5.f;
 }
 WeatherSystem::~WeatherSystem()
 {
@@ -244,7 +245,7 @@ void WeatherSystem::SetSunTime(float hour)
 	position *= sunDistance;
 
 	/// Enhance the color a bit to make it useful at all as a sun. Gotta be powerful, yow?
-	sunColor = color * 10.0f;
+	sunColor = color * sunStrength;
 	
 	if (sunLight)
 	{
@@ -268,7 +269,7 @@ void WeatherSystem::SetSunTime(float hour)
 	Vector3f firstColor;
 	Vector3f secondColor;
 	EstimatorVec3f ambienceSmoother;
-	ambienceSmoother.AddState(Vector3f(0.1f,		0.1f,	0.12f), 0);
+	ambienceSmoother.AddState(Vector3f(0.01f,		0.01f,	0.012f), 0);
 	ambienceSmoother.AddState(Vector3f(0.15f,	0.15f,	0.19f), 1000);
 	ambienceSmoother.AddState(Vector3f(0.225f,	0.225f,	0.35f), 10000);
 	// Base it on Y.
@@ -287,7 +288,7 @@ void WeatherSystem::SetSunTime(float hour)
 
 	// Set sky-color.
 	EstimatorVec3f skyColorSmoother;
-	skyColorSmoother.AddState(Vector3f(0.03f,	0.04f,	0.055f), 0);
+	skyColorSmoother.AddState(Vector3f(0.003f,	0.004f,	0.0055f), 0);
 	skyColorSmoother.AddState(Vector3f(0.12f,	0.13f,	0.25f), 2000);
 	skyColorSmoother.AddState(Vector3f(0.78f,	0.89f,	1.f), 10000);
 	Vector3f skyColor;

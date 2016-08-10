@@ -30,6 +30,7 @@ namespace RenderTarget
 		SHADOW_MAPS, // output of shadow maps when rendering from light's point of view.
 		DEFERRED_GATHER, // Renders to several textures.
 		DEFERRED_OUTPUT, // Renders to 1 Color + 1 Depth texture.
+		MINIFICATION_BUFFERS, // A set of buffers for minification. Exact contents depend on the input used previously.
 		POST_PROCESS_OUTPUT, // Renders to 1 color texture.
 		FINAL_GATHER,	 // Render to final gather texture for the initial lighting pass. <- wat
 		// Inputs
@@ -134,11 +135,18 @@ private:
 	bool BindDeferredGatherFrameBuffer();
 	bool BindDeferredOutputFrameBuffer();
 	bool BindPostProcessOutputFrameBuffer();
+	/// If iterations is non-0.
+	bool PerformIterativePingPongRenders();
 	void SetupDeferredGatherAsInput(); // (For input);
 	void SetupDeferredOutputAsInput();
+
+	FrameBuffer * GetInputFrameBuffer();
+
 	/// Renders a -1,1, -1,1 quad, covering the screen (or current framebuffer). Uses a nullified projection and view matrix to achieve it.
 	void RenderQuad();
 	/// In pixels.
 	int shadowMapResolution;
+	/// For ping-pong render-passes such as to MinificationBuffers, determines amount of buffers and times to render between them. Default 1.
+	int iterations;
 	bool clear; /// Default true. If false, does not clear render buffers it is rendering to.
 };

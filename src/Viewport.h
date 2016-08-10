@@ -44,6 +44,7 @@ public:
 	/// Creates a default set of ish 8 render buffers joint to a FrameBuffer object.
 	void CreateFrameBuffer();
 
+	/// Arbitrary frameBuffer...?
 	FrameBuffer * frameBuffer;
 
 	/// For distinguation and later alteration
@@ -78,7 +79,8 @@ public:
 	Vector2i bottomLeftCorner, size;
 	Vector2f relativeOffset;
 	Vector2f relativeSize;
-
+	/// Default 1.0. Used for tone-mapping.
+	float exposure;
 	// For toggling all debug renders.
 	void EnableAllDebugRenders(bool enabled = true);
 
@@ -109,7 +111,12 @@ public:
 
 	// For rendering in multi-pass render pipelines. o.o 
 	FrameBuffer * shadowMapDepthBuffer, * deferredGatherBuffer, * deferredOutputBuffer, * postProcessOutputBuffer;
-
+	/// Searches the list below.
+	FrameBuffer * GetFrameBuffer(String byName);
+	/// For arbitrary framebuffers.
+	List<FrameBuffer*> frameBuffers;
+	//// o.o
+	Vector3f averageScreenColor;
 protected:
 	
 	/// Unique ID

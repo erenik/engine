@@ -199,6 +199,13 @@ void Vector2i::operator *= (const int &f){
 	x *= f;
 	y *= f;
 }
+	/// Internal element multiplication
+void Vector2i::operator *= (const float &f)
+{
+	x *= f;
+	y *= f;
+}
+
 
 /// Internal element multiplication
 Vector2i Vector2i::operator * (const float &f) const {

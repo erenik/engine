@@ -45,6 +45,7 @@ Viewport::Viewport(Vector2i bottomLeftCorner, Vector2i size)
 // Set initial default/NULL-values.
 void Viewport::Initialize()
 {
+	exposure = 1.0f;
 	postProcessOutputBuffer = 0;
 	deferredGatherBuffer = 0;
 	shadowMapDepthBuffer = NULL;
@@ -141,6 +142,17 @@ UserInterface * Viewport::GetUI()
 	return ui; 
 };
 
+/// Searches the list below.
+FrameBuffer * Viewport::GetFrameBuffer(String byName)
+{
+	for (int i = 0; i < frameBuffers.Size(); ++i)
+	{
+		FrameBuffer * fb = frameBuffers[i];
+		if (fb->Name() == byName)
+			return fb;
+	}
+	return 0;
+}
 
 /// Sets up a frame-buffer for this viewport, resizing it as needed. Creates frame buffer if needed. Returns false if something failed along the way.
 bool Viewport::BindFrameBuffer()
