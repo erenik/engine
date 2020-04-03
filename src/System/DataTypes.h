@@ -27,14 +27,16 @@
 
 
 /// And some max/min values if not defined elsewhere.
-#ifdef WINDOWS
-	#define UINT32_MAX 4294967295
-#elif defined LINUX
-	// available via stdint.h .. although in C++11 version onry
-	#ifndef UINT32_MAX
-	#define UINT32_MAX 4294967295
+#ifndef MIN_MAX_VALUES
+#define MIN_MAX_VALUES
+	#ifdef WINDOWS
+		#define UINT32_MAX 4294967295
+	#elif defined LINUX
+		// available via stdint.h .. although in C++11 version onry
+		#ifndef UINT32_MAX
+		#define UINT32_MAX 4294967295
+		#endif
 	#endif
 #endif
-
 
 #endif

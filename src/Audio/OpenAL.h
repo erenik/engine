@@ -18,9 +18,9 @@ extern bool openALInitialized;
 #define AL_BAD_SOURCE -1
 
 #ifdef OPENAL
-	#include <AL/al.h>
-	#include <AL/alc.h>
-	// #include <AL/alut.h>
+	#include <al.h>
+	#include <alc.h>
+	// #include <alut.h>
 
 	int CheckALError(const String & errorLocation);
 	int AssertALError(const String & errorLocation);

@@ -1,8 +1,0 @@
-D:\libs\glew-1.12.0\include
-D:\libs\libogg\include
-D:\libs\libtheora\include
-D:\libs\libvorbis\include
-D:\libs\openal-soft-1.16.0-bin\include
-D:\libs\opencv\build\include
-D:\libs\zlib
-

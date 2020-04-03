@@ -1,3 +1,19 @@
+# GameEngine Main CMakeLists file.
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
+
+# Create options
+set(ENGINE_SRC_DIR "C:/git/engine/src" CACHE STRING "Path to the engine repository where this file lies.")
+set(LIBCURL "OFF" CACHE BOOL "Whether to compile and link with LibCURL. Required for HTTP requests")
+set(OPENCV "OFF" CACHE BOOL "Whether to compile and link with OpenCV. Required for image processing.")
+set(OPENAL "ON" CACHE BOOL "Whether to compile and link with OpenAL soft. Required for sound playback.")
+set(OPENAL_INCLUDE_DIR "C:/Program Files (x86)/OpenAL 1.1 SDK/include" CACHE STRING "" )
+set(OPENAL_LIBRARY "c:/Program Files (x86)/OpenAL 1.1 SDK/libs/Win32/OpenAL32.lib" CACHE STRING "" )
+set(OGG_LIB_DIR "C:/libs/libogg-1.3.2/win32/VS2010/Win32/" CACHE STRING "" )
+set(OPUS "OFF" CACHE BOOL "Whether to compile and link with (Ogg/)Opus. Required for certain sound playback.")
+set(VORBIS "ON" CACHE BOOL "Whether to compile and link with (Ogg/)Vorbis. Required for certain sound playback.")
+set(THEORA "OFF" CACHE BOOL "Whether to compile and link with (Ogg/)Theora. Required for certain video playback.")
+set(LIBS_DIR "C:/libs" CACHE STRING "Root directory for additional dependencies (OpenGL, CV, AL, etc.)")
+set(INSTALL_DEPENDENCIES "OFF" CACHE BOOL "Whether to automatically download and try set up dependencies or not.")
 
 message("Binary dir: ${CMAKE_BINARY_DIR}")
 message("Source dir: ${CMAKE_SOURCE_DIR}")
@@ -47,20 +63,10 @@ macro(printList listToPrint)
 endmacro(printList)
 
 # Removes all files belonging to target directory, using given list and list name. Inrements variable ${filesRemoved} for each file removed.
-macro(remove_dir dir fromList listName filesR dirsToIgnore)
-#	message("")
-#	printList("${fromList}")
-#	message ("List: ${listName}")
-#	SET(filesRemoved 0)		
-#	message("Files removed: ${filesR}")
+macro(remove_dir dir fromList listName filesR)
 	FOREACH(f ${fromList})
 		if (${f} MATCHES ${dir})
-		#	message(${dir})
 			SET(ignore "No")
-			
-		#	message("F: ${f} MATCHES ${dir}")
-		#	message("found stuff ${f}")
-		#	message("found stuff ${filesRemoved}")
 			if (${ignore} MATCHES "No")
 				math(EXPR sum "${filesRemoved}+1")
 				SET(filesRemoved ${sum})
@@ -68,17 +74,13 @@ macro(remove_dir dir fromList listName filesR dirsToIgnore)
 			endif()
 		endif()
 	ENDFOREACH()
-#	message("remove_dir macro called with dir: ${dir}")
-#	message("list: ${fromList}")
-#	message("Files removed from ${listName}: ${filesRemoved}")
 endmacro(remove_dir)
 
 # Removes target directory from both source and header files. Saves amount of removed files in ${filesRemoved}
-macro(RemoveDir dir dirsToIgnore)
+macro(RemoveDir dir)
 	SET(filesRemoved 0)
-	remove_dir(${dir} "${source_files}" source_files ${filesRemoved} ${dirsToIgnore}) 
-	remove_dir(${dir} "${header_files}" header_files ${filesRemoved} ${dirsToIgnore})
-#	message("RemoveDir with dir: ${dir}. Files removed: ${filesRemoved}")
+	remove_dir(${dir} "${source_files}" source_files ${filesRemoved}) 
+	remove_dir(${dir} "${header_files}" header_files ${filesRemoved})
 endmacro(RemoveDir)
 	
 # Defines the list of project sub-folders that a basic project should NOT include.
@@ -86,7 +88,6 @@ endmacro(RemoveDir)
 set(projectFolders 
 	# Folders of classes based on frameworks which could be a hassle to set up could also be listed here, if you are lazy about getting appropriate libs or just do not want to include certain parts.
 	"/CV/"
-	"/Projects/"
 	"/MiniGames/"
 )
 
@@ -106,6 +107,7 @@ macro(InstallDependencies)
 	set(liboggPath ${LIBS_DIR}/libogg.zip)
 	set(libvorbisPath ${LIBS_DIR}/libvorbis.zip)
 	set(opencvPath ${LIBS_DIR}/opencv.exe)
+	set(zlibPath ${LIBS_DIR}/zlib.zip)
 
 	if(EXISTS "${OpenALZipPath}")
 	else()
@@ -150,6 +152,12 @@ macro(InstallDependencies)
 		UnpackLibZip(${opencvPath})
 	endif()
 
+	message("Downloading zlib")
+	file(DOWNLOAD "https://www.zlib.net/zlib1211.zip" ${zlibPath}
+		LOG ${LIBS_DIR}/downloadlog.txt SHOW_PROGRESS 
+		UnpackLibZip(${zlibPath})
+	)
+
 #	message("Unpacking archives...")
 	# Change working dir
 
@@ -186,36 +194,50 @@ macro(InstallDependencies)
 	
 endmacro(InstallDependencies)
 
+macro(ReadFileConcatComma filePathAbsolute)
+    message("Reading file at ${filePathAbsolute}")
+    FILE(READ "${filePathAbsolute}" contents)
+    # Convert file contents into a CMake list (where each element in the list
+    # is one line of the file)
+    STRING(REGEX REPLACE ";" "\\\\;" contents "${contents}")
+    STRING(REGEX REPLACE "\n" ";" contents "${contents}")
+    set(commaList ${contents})
+endmacro(ReadFileConcatComma)
+
 # Macro to read in a .txt file with 1 include directory per line (for dependencies)
-macro(AddIncludeDirs fromFile)
-#	message("AddIncludeDirs")
-	FILE(READ "${CMAKE_SOURCE_DIR}/${fromFile}" contents)
-	# Convert file contents into a CMake list (where each element in the list
-	# is one line of the file)
-	#
-	STRING(REGEX REPLACE ";" "\\\\;" contents "${contents}")
-	STRING(REGEX REPLACE "\n" ";" contents "${contents}")
-	set(lib_include_dirs ${lib_include_dirs} ${contents} )
+macro(AddIncludeDirs filePathAbsolute)
+    ReadFileConcatComma(${filePathAbsolute})
+    STRING(REGEX REPLACE "LIBS_DIR" ${LIBS_DIR} commaList "${commaList}")
+	message("After replace: " ${commaList})
+	set(lib_include_dirs ${lib_include_dirs} ${commaList} )
 	message("lib_include_dirs: ${lib_include_dirs}")
 endmacro(AddIncludeDirs)
 
 # Macro to read in a .txt file with 1 include directory per line (for dependencies)
-macro(AddLibraryDirs fromFile)
-#	message("AddLibraryDirs")
-	FILE(READ "${CMAKE_SOURCE_DIR}/${fromFile}" contents)
-	# Convert file contents into a CMake list (where each element in the list
-	# is one line of the file)
-	#
-	STRING(REGEX REPLACE ";" "\\\\;" contents "${contents}")
-	STRING(REGEX REPLACE "\n" ";" contents "${contents}")
-	set(lib_library_dirs ${contents} )
+macro(AddLibraryDirs filePathAbsolute)
+    ReadFileConcatComma(${filePathAbsolute})
+    STRING(REGEX REPLACE "LIBS_DIR" ${LIBS_DIR} commaList "${commaList}")
+    message("After replace: " ${commaList})
+	set(lib_library_dirs ${commaList} )
 	message("lib_library_dirs: ${lib_library_dirs}")
 endmacro(AddLibraryDirs)
 
 
+macro(AddFilesInDir pathAbsolute)
+    message("Adding source files from path ${pathAbsolute}")	
+	# Gather all .cpp and .h source files recursively.
+	FILE(GLOB_RECURSE more_source_files "${pathAbsolute}/*.cpp")
+	FILE(GLOB_RECURSE more_header_files "${pathAbsolute}/*.h")		
+    list(LENGTH more_source_files numFiles)
+    list(LENGTH more_header_files numFiles2)
+    list(APPEND source_files ${more_source_files})
+    list(APPEND header_files ${more_header_files})
+    Message(" amount of files found: " ${numFiles}+${numFiles2})
+endmacro(AddFilesInDir)
+
 # Macro to add a project for this game-engine!
-macro (addProject ProjectName projectFoldersToInclude)
-	project(${ProjectName})
+macro (addProject ProjectName projectSrcDir engineSrcDir)
+    project(${ProjectName})
 	set(project_name ${ProjectName})
 
 	# Generate a Header file with indications as to which libraries are being built and linked against.
@@ -258,8 +280,8 @@ macro (addProject ProjectName projectFoldersToInclude)
 		ENDIF(INSTALL_DEPENDENCIES)
 		
 		# Add include dirs
-		AddIncludeDirs("Win32_IncludeDirs.txt")
-		AddLibraryDirs("Win32_LibraryDirs.txt")
+		AddIncludeDirs(${engineSrcDir}/Win32_IncludeDirs.txt)
+		AddLibraryDirs(${engineSrcDir}/Win32_LibraryDirs.txt)
 		
 		# In order to retain edit-and-continue build mode, must specify SAFESEH:NO in newer VS version.
 		#IF(${_MACHINE_ARCH_FLAG} MATCHES X86)
@@ -296,33 +318,15 @@ macro (addProject ProjectName projectFoldersToInclude)
 	# Enable Function-Level Linking: (Edit and Continue builds) /Gy
 
 	message("Adding project: ${ProjectName}")
-	
-	# Collect source and header files
-	set(source_dir ${CMAKE_SOURCE_DIR}/src)
-#	message("Src dir: ${CMAKE_CURRENT_SOURCE_DIR}/src")
-#	message("Bin dir: ${CMAKE_BINARY_DIR}")
-#	include_directories(${CMAKE_BINARY_DIR}) # <- Does what?
-	
-	# Gather all .cpp and .h source files recursively.
-	FILE(GLOB_RECURSE source_files "${source_dir}/*.cpp")
-	FILE(GLOB_RECURSE header_files "${source_dir}/*.h")		
+
+    AddFilesInDir(${ENGINE_SRC_DIR})
+    AddFilesInDir(${CMAKE_SOURCE_DIR})
 	
 	# Remove all project subfolders with the exception of those specified in the 	second argument!		
 	FOREACH(projectSubFolder ${projectFolders})
-		RemoveDir(${projectSubFolder} ${projectFoldersToInclude})
+		RemoveDir(${projectSubFolder})
 	ENDFOREACH()
-	
-	FOREACH(projectFolder ${projectFoldersToInclude})
-		Message("    checking " ${projectFolder})
-		FILE(GLOB_RECURSE more_source_files "${projectFolder}/*.cpp")
-		FILE(GLOB_RECURSE more_header_files "${projectFolder}/*.h")
-		list(LENGTH more_source_files numFiles)
-		list(LENGTH more_header_files numFiles2)
-		list(APPEND source_files ${more_source_files})
-		list(APPEND header_files ${more_header_files})
-		Message(" amount of files found: " ${numFiles}+${numFiles2})
-	ENDFOREACH()
-	
+		
 	# LINUX library linking
 	IF(UNIX)
 		message("Configuring for UNIX OS")
@@ -378,7 +382,7 @@ macro (addProject ProjectName projectFoldersToInclude)
 		#	glu32.lib
 		#	opengl32.lib
 			ws2_32.lib
-			${LIBS_DIR}/zlib/out/Debug/zlibstaticd.lib
+			zlibstaticd.lib
 		)
 		# FMOD Studio, Audio
 	#	set(DEBUG_LIBS ${DEBUG_LIBS} fmod_vc.lib)
@@ -396,7 +400,7 @@ macro (addProject ProjectName projectFoldersToInclude)
 			glu32.lib
 			opengl32.lib
 			ws2_32.lib
-			${LIBS_DIR}/zlib/out/Release/zlibstatic.lib
+			zlibstatic.lib
 		)
 
 		# Windows Core Audio
@@ -412,7 +416,6 @@ macro (addProject ProjectName projectFoldersToInclude)
 		# OGG Container for Vorbis, Opus, Theora, etc.
 		if ((VORBIS OR OPUS) OR THEORA)
 #			message("Linking with OGG")
-			set(OGG_LIB_DIR "${LIBS_DIR}/libogg/win32/VS2010/Win32")
 			set(DEBUG_LIBS ${DEBUG_LIBS} ${OGG_LIB_DIR}/Debug/libogg_static.lib)
 			set(RELEASE_LIBS ${RELEASE_LIBS} ${OGG_LIB_DIR}/Release/libogg_static.lib)
 		ENDIF((VORBIS OR OPUS) OR THEORA)
@@ -478,8 +481,8 @@ macro (addProject ProjectName projectFoldersToInclude)
 		ENDIF(LIBCURL)
 					
 		# Group files into the same structure as they appear in the file directories.
-		create_file_group(${source_dir} "engine/")
-		create_file_group(${PROJ_SPEC_DIR} "/")
+		create_file_group(${ENGINE_SRC_DIR} "engine/")
+		create_file_group(${CMAKE_SOURCE_DIR} "/")
 	ENDIF(MSVC)
 
 	message("Setting include directories")
@@ -487,15 +490,17 @@ macro (addProject ProjectName projectFoldersToInclude)
 	# Additional include directories specified here (?)
 	include_directories(
 		${lib_include_dirs}
-		${PROJ_SPEC_DIR}
+		${OPENAL_INCLUDE_DIR}
 		${source_dir}
-		${source_dir}/Util
-		${source_dir}/OS
-		${source_dir}/Projects
+		${ENGINE_SRC_DIR}
+		${ENGINE_SRC_DIR}/Util
+		${ENGINE_SRC_DIR}/OS
+		${ENGINE_SRC_DIR}/Projects
 	)
 	# Lib dirs.
 	link_directories(
 		${lib_library_dirs}
+		${OPENAL_LIBRARY}
 	)
 
 	
@@ -525,9 +530,9 @@ macro (addProject ProjectName projectFoldersToInclude)
 	# Set working dir 
 	set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 	set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-	set(PROJECT_BIN_DIR ${CMAKE_SOURCE_DIR}/bin)
+	set(PROJECT_BIN_DIR ${CMAKE_SOURCE_DIR}/../bin)
 	message("PROJECT_BIN_DIR: ${PROJECT_BIN_DIR}")
 	
 	set(TargetName ${PROJECT_NAME})

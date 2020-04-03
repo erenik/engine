@@ -1,0 +1,8 @@
+LIBS_DIR\glew-1.12.0\include
+LIBS_DIR\libogg-1.3.2\include
+LIBS_DIR\libtheora\include
+LIBS_DIR\libvorbis-1.3.5\include
+LIBS_DIR\openal-soft-1.16.0-bin\include
+LIBS_DIR\opencv\build\include
+LIBS_DIR\zlib-1.2.11\
+LIBS_DIR\zlib-1.2.11\out
