@@ -81,3 +81,7 @@ void Integrator::RecalculateMatrices(List<Entity*> & entities)
 	this->entityMatrixRecalcMs = timer.GetMs();
 }
 
+void NoIntegrator::IntegrateDynamicEntities(List<Entity*>& dynamicEntities, float timeInSeconds) {
+}
+void NoIntegrator::IntegrateKinematicEntities(List<Entity*>& kinematicEntities, float timeInSeconds) {
+}

@@ -26,6 +26,7 @@
 #include "Window/AppWindow.h"
 #include "Render/FrameBuffer.h"
 #include "Message/Message.h"
+#include "File/LogFile.h"
 
 int GraphicsMessage::defaultMaxRetryAttempts = 3;
 
@@ -78,12 +79,20 @@ void GraphicsMessage::Process()
 		case GM_CYCLE_RENDER_PIPELINE:
 		{
 			RenderPipeline * pipe = RenderPipeMan.Next();
+			String name = "NULL";
+			if (pipe != NULL)
+				name = pipe->name;
+			LogGraphics("Cycling to next render pipeline: " + name, INFO);
 			graphicsState->renderPipe = pipe;
 			break;
 		}
 		case GM_CYCLE_RENDER_PIPELINE_BACK:	
 		{
 			RenderPipeline * pipe = RenderPipeMan.Previous();
+			String name = "NULL";
+			if (pipe != NULL)
+				name = pipe->name;
+			LogGraphics("Cycling to previous render pipeline: " + name, INFO);
 			graphicsState->renderPipe = pipe;
 			break;
 		}

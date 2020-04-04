@@ -45,6 +45,12 @@ protected:
 private:
 };
 
+class NoIntegrator : public Integrator {
+	virtual void IntegrateDynamicEntities(List<Entity*>& dynamicEntities, float timeInSeconds);
+	virtual void IntegrateKinematicEntities(List<Entity*>& kinematicEntities, float timeInSeconds);
+};
+
+
 #endif
 
 

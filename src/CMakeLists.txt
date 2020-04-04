@@ -7,10 +7,11 @@ set(LIBCURL "OFF" CACHE BOOL "Whether to compile and link with LibCURL. Required
 set(OPENCV "OFF" CACHE BOOL "Whether to compile and link with OpenCV. Required for image processing.")
 set(OPENAL "ON" CACHE BOOL "Whether to compile and link with OpenAL soft. Required for sound playback.")
 set(OPENAL_INCLUDE_DIR "C:/Program Files (x86)/OpenAL 1.1 SDK/include" CACHE STRING "" )
-set(OPENAL_LIBRARY "c:/Program Files (x86)/OpenAL 1.1 SDK/libs/Win32/OpenAL32.lib" CACHE STRING "" )
-set(OGG_LIB_DIR "C:/libs/libogg-1.3.2/win32/VS2010/Win32/" CACHE STRING "" )
+set(OPENAL_LIBRARY "C:/Program Files (x86)/OpenAL 1.1 SDK/libs/Win64" CACHE STRING "" )
+set(OGG_LIB_DIR "C:/libs/libogg/win32/VS2010/x64/" CACHE STRING "" )
 set(OPUS "OFF" CACHE BOOL "Whether to compile and link with (Ogg/)Opus. Required for certain sound playback.")
 set(VORBIS "ON" CACHE BOOL "Whether to compile and link with (Ogg/)Vorbis. Required for certain sound playback.")
+set(VORBIS_LIB_DIR "C:/libs/libvorbis/win32/VS2010/x64/")
 set(THEORA "OFF" CACHE BOOL "Whether to compile and link with (Ogg/)Theora. Required for certain video playback.")
 set(LIBS_DIR "C:/libs" CACHE STRING "Root directory for additional dependencies (OpenGL, CV, AL, etc.)")
 set(INSTALL_DEPENDENCIES "OFF" CACHE BOOL "Whether to automatically download and try set up dependencies or not.")
@@ -112,7 +113,7 @@ macro(InstallDependencies)
 	if(EXISTS "${OpenALZipPath}")
 	else()
 		message("Downloading OpenAL soft")
-		file(DOWNLOAD "http://kcat.strangesoft.net/openal-soft-1.16.0-bin.zip" ${OpenALZipPath} 
+		file(DOWNLOAD "https://www.openal.org/downloads/OpenAL11CoreSDK.zip" ${OpenALZipPath} 
 			LOG ${LIBS_DIR}/downloadlog.txt SHOW_PROGRESS
 		)
 		UnpackLibZip(${OpenALZipPath})
@@ -143,20 +144,26 @@ macro(InstallDependencies)
 		UnpackLibZip(${libvorbisPath})
 	endif()
 	
-	if (EXISTS "${opencvPath}")
+	if (OPENCV)
+		if (EXISTS "${opencvPath}")
+		else()
+			message("Downloading OpenCV")
+			file(DOWNLOAD "http://downloads.sourceforge.net/project/opencvlibrary/opencv-win/2.4.10/opencv-2.4.10.exe" ${opencvPath} 
+				LOG ${LIBS_DIR}/downloadlog.txt SHOW_PROGRESS
+			)
+			UnpackLibZip(${opencvPath})
+		endif()
 	else()
-		message("Downloading OpenCV")
-		file(DOWNLOAD "http://downloads.sourceforge.net/project/opencvlibrary/opencv-win/2.4.10/opencv-2.4.10.exe" ${opencvPath} 
-			LOG ${LIBS_DIR}/downloadlog.txt SHOW_PROGRESS
-		)
-		UnpackLibZip(${opencvPath})
 	endif()
 
-	message("Downloading zlib")
-	file(DOWNLOAD "https://www.zlib.net/zlib1211.zip" ${zlibPath}
-		LOG ${LIBS_DIR}/downloadlog.txt SHOW_PROGRESS 
+	if (EXISTS "${zlibPath}")
+	else()
+		message("Downloading zlib")
+		file(DOWNLOAD "https://www.zlib.net/zlib1211.zip" ${zlibPath}
+			LOG ${LIBS_DIR}/downloadlog.txt SHOW_PROGRESS 
+		)
 		UnpackLibZip(${zlibPath})
-	)
+	endif()
 
 #	message("Unpacking archives...")
 	# Change working dir
@@ -423,7 +430,6 @@ macro (addProject ProjectName projectSrcDir engineSrcDir)
 		# VORBIS Audio codec
 		if (VORBIS)
 #			message("Linking with VORBIS")
-			set(VORBIS_LIB_DIR "${LIBS_DIR}/libvorbis/win32/VS2010/Win32/")
 			set(DEBUG_LIBS ${DEBUG_LIBS} 
 				${VORBIS_LIB_DIR}/Debug/libvorbis_static.lib
 				${VORBIS_LIB_DIR}/Debug/libvorbisfile_static.lib
