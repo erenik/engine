@@ -8,16 +8,13 @@ During the spring of 2014 I used it in my specialization project at school where
 Later on during spring/summer of 2014 it was used again as the basis for my [thesis work](https://pure.ltu.se/portal/en/studentthesis/interaktiv-projektionskartlaggning%28bcca6075-4774-466c-9990-4f3cd91343d4%29.html) at Bosch Sensortec, and has been used since for various demonstrations of image-based interactivity.
 
 
-Active projects
+Projects
 ---------------
-*	[SpaceShooter2D](https://github.com/erenik/SpaceShooter2D), a project that has been active for 1~2 years now.
-*	[MORPG](https://github.com/erenik/MORPG), a Multi-player RPG project idea that has been itching in the back of my head for some time now.
-
-To be updated.
+*	[Tetris](https://github.com/erenik/tetris), an example implementation of the iconic game.
 
 Older projects
 --------------
-Besides those mentioned above (SpaceRace for networking, IPM for interactive projection mapping), I played around with making a music-player, worked on a side-scroller-jumping game which never really took off, a Tetris game, and a re-work of an old school project called TIFS (The invader from space). 
+Besides those mentioned above (SpaceRace for networking, IPM for interactive projection mapping), I played around with making a music-player, worked on a side-scroller-jumping game which never really took off, a Tetris game, and a re-work of an old school project called TIFS (The invader from space).
 
 I just recently began branching of the old projects into own git repos and updating the CMake code so that it is easy to work on several projects simultaneously, so I might post more updates shortly.
 
@@ -27,15 +24,13 @@ Free for educational and private purposes. Usage for commercial purposes can be 
 
 Building
 --------
-- Clone this git. Clone or create a project-specific directory of code.
-- Run CMake with the /engine/ dir as source, /projectName-out/ as binary dir. E.g. D:/git/engine and D:/git/engine/morpg-out 
+- Clone this git. Clone or create a project-specific directory of code next to it.
+- Run CMake with the project dir as source
+	- Point out engine dir to where you checked this out.
 	- In LIBS_DIR, specify directory to headers and binaries for external depdendencies. E.g. D:/libs. If you need the dependencies installed, you can try marking the INSTALL_DEPENDENCIES and CMake may try to download and unpack some of them, but you may need to compile them yourself or download binaries as needed.
 	- Choose which dependencies you want. Many can be omitted as they were mostly experimental.
 	- in PROJ_SPEC_DIR enter the path to the source code for your project. E.g. D:/git/engine-games/MORPG 
-
-Dependencies
-------------
-More info on dependencies later.
+- You will need to download and build the relevant dependencies as well. Hit the checkbox within the CMake config to download the zips.
 
 
 
