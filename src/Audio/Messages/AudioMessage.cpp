@@ -260,15 +260,15 @@ AMPlaySFX::AMPlaySFX(String nameOrSource, float volume, ConstVec3fr atPosition)
 	position = atPosition;
 }
 
-AMPlayBGM::AMPlayBGM(String nameOrSource, float volume)
+AMPlayBGM::AMPlayBGM(String nameOrSource, float volume, bool resumePaused)
 	: AMPlay(AudioType::BGM, nameOrSource, volume)
+	, resumePaused(resumePaused)
 {
-	resumePaused = false;
 }
 
 void AMPlayBGM::Process()
 {
-	AudioMan.PlayBGM(nameOrSource, volume);	
+	AudioMan.PlayBGM(nameOrSource, volume, resumePaused);	
 }
 
 

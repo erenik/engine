@@ -495,12 +495,32 @@ void AudioManager::PlaySFX(String name, float volume /*= 1.f*/)
 }
 	
 /// Plays target BGM, pausing all others. Default sets to repeat.
-Audio * AudioManager::PlayBGM(String name, float volume /* = 1.f */)
+Audio * AudioManager::PlayBGM(String name, float volume /* = 1.f */, bool resumePaused /* = false */)
 {
 	if (!bgmEnabled)
 		return NULL;
 	LogAudio("PlayBGM", INFO);
+	Audio* previouslyPlayedOrPlaying = GetAudioByName(name);
+	if (previouslyPlayedOrPlaying != nullptr) {
+		if (resumePaused) {
+			{
+				previouslyPlayedOrPlaying->Resume();
+				return previouslyPlayedOrPlaying;
+			}
+		}
+		// If currently playing, also just return.
+		if (previouslyPlayedOrPlaying->IsPlaying())
+			return previouslyPlayedOrPlaying;
+	}
+	StopAllOfType(AudioType::BGM);
 	return Play(AudioType::BGM, name, true, volume);
+}
+
+bool AudioManager::IsPlaying(String nameOrSource) {
+	Audio* audio = GetAudioByName(nameOrSource);
+	if (!audio)
+		return false;
+	return audio->IsPlaying();
 }
 
 /// Pauses playback of all audio.

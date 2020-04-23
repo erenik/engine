@@ -6,8 +6,12 @@
 /// Enables logging of all key-strokes
 // #define LOG_KEYS
 // #define LOG_BINDINGS
+#ifdef _DEBUG
+
 #define DEBUGGER_ENABLED	// Enables debugging-specific key-bindings for ALL states. 
 #define CONSOLE_ENABLED		// Enables the allocation and use of console for std::out
+
+#endif
 
 extern int debug;
 

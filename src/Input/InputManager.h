@@ -22,7 +22,9 @@ struct Gamepad;
 #define InputMan (*InputManager::Instance())
 
 /// Disable this for disabling debug commands like reloading UI/shaders
-#define DEBUG_INPUT_ENABLED
+#ifdef DEBUGGER_ENABLED
+	#define DEBUG_INPUT_ENABLED
+#endif 
 
 /// Binds all keys to actions (i.e. messages) depending on the current game state and key configuration
 class InputManager {

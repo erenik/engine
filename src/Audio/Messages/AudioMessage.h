@@ -153,10 +153,10 @@ private:
 class AMPlayBGM : public AMPlay 
 {
 public:
-	AMPlayBGM(String nameOrSource, float volume = 1.f);
+	AMPlayBGM(String nameOrSource, float volume = 1.f, bool resumePaused = false);
 	virtual void Process();
-	bool resumePaused;
 private:
+	bool resumePaused;
 };
 
 class AMPause : public AudioMessage 

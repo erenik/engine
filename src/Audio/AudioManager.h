@@ -117,6 +117,10 @@ public:
 	// Yup.
 	void StopAndRemoveAll();
 
+	// Returns currently playing BGM, if any.
+	const Audio* PlayingBgm();
+	bool IsPlaying(String nameOrSource);
+
 private:
 
 	Audio * GetAudioByName(String name);
@@ -131,7 +135,7 @@ private:
 	/// Name is should correspond to filename or path, expected locatoin in ./sound/sfx/
 	void PlaySFX(String name, float volume = 1.f);
 	/// Plays target BGM, pausing all others. Default sets to repeat.
-	Audio * PlayBGM(String name, float volume = 1.f);
+	Audio * PlayBGM(String name, float volume = 1.f, bool resumeIfPaused = false);
 
 	/// Pauses playback of all audio.
 	void GlobalPause(bool newPauseState);
