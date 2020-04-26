@@ -14,7 +14,7 @@
 
 #include "TextureManager.h"
 
-GMAttachParticleSystem::GMAttachParticleSystem(Entity * entity, ParticleSystem * pa)
+GMAttachParticleSystem::GMAttachParticleSystem(EntitySharedPtr entity, ParticleSystem * pa)
 	: GraphicsMessage(GM_ATTACH_PARTICLE_SYSTEM), entity(entity), pa(pa)
 {
 }
@@ -97,7 +97,7 @@ void GMClearParticles::Process()
 
 
 
-GMPauseEmission::GMPauseEmission(Entity * entity) 
+GMPauseEmission::GMPauseEmission(EntitySharedPtr entity) 
 : GraphicsMessage(GM_PAUSE_EMISSION), entity(entity)
 {
 	assert(entity);
@@ -113,7 +113,7 @@ void GMPauseEmission::Process()
 	}
 }
 
-GMResumeEmission::GMResumeEmission(Entity * entity)
+GMResumeEmission::GMResumeEmission(EntitySharedPtr entity)
 : GraphicsMessage(GM_RESUME_EMISSION), entity(entity)
 {
 }
@@ -155,7 +155,7 @@ GMSetParticleEmitter::GMSetParticleEmitter(ParticleEmitter * emitter, int target
 	}
 }
 
-GMSetParticleEmitter::GMSetParticleEmitter(ParticleEmitter * emitter, int target, Entity * entity)
+GMSetParticleEmitter::GMSetParticleEmitter(ParticleEmitter * emitter, int target, EntitySharedPtr entity)
 : GraphicsMessage(GM_SET_PARTICLE_EMITTER), target(target), emitter(emitter), entity(entity)
 {
 	switch(target)

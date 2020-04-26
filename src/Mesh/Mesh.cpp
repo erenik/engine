@@ -10,7 +10,7 @@
 
 #include "Graphics/OpenGL.h"
 #include "Graphics/GLBuffers.h"
-//#include "Graphics/GraphicsManager.h"
+#include "Graphics/GraphicsManager.h"
 //#include "GraphicsState.h"
 
 #include "Material.h"
@@ -26,7 +26,7 @@
 #include "PhysicsLib/Shapes/AABB.h"
 
 #include "GraphicsState.h"
-#include "Shader.h"
+#include "Graphics/Shader.h"
 
 #include "Model/SkeletalAnimationNode.h"
 #include "TextureManager.h"
@@ -500,19 +500,19 @@ void Mesh::SetName(String str){
 #include <iostream>
 
 /// Renders the meshi-mesh :3
-void Mesh::Render()
+void Mesh::Render(GraphicsState & graphicsState)
 {
 	assert(vertexBuffer != -1);
 //	LogGraphics("Mesh::Render", EXTENSIVE_DEBUG);
 	Shader * shader = ActiveShader();
 	// Check for valid buffer before rendering
-	if (graphicsState->BoundVertexArrayBuffer() != vertexBuffer)
+	if (graphicsState.BoundVertexArrayBuffer() != vertexBuffer)
 	{
 		assert(floatsPerVertex >= 8 && "Bad float-count per vertices, ne?!");
 		// Set VBO and render
 		if (logLevel <= DEBUG)
 			CheckGLError("Mesh::Render - before binding stuff");
-		BindVertexBuffer();
+		BindVertexBuffer(graphicsState);
 		if (logLevel <= DEBUG)
 			CheckGLError("Mesh::Render - binding stuff");
 	}
@@ -527,11 +527,11 @@ void Mesh::Render()
 		CheckGLError("Mesh::Render - glDrawArrays");
 }
 
-void Mesh::BindVertexBuffer()
+void Mesh::BindVertexBuffer(GraphicsState & graphicsState)
 {
 //	LogGraphics("Mesh::BindVertexBuffer", EXTENSIVE_DEBUG);
 	// Bind the vertex buffer.
-	graphicsState->BindVertexArrayBuffer(vertexBuffer);
+	graphicsState.BindVertexArrayBuffer(vertexBuffer);
 	Shader * shader = ActiveShader();
 	assert(shader);
 

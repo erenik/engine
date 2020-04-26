@@ -9,8 +9,10 @@
 #include "MathLib/Vector3f.h"
 #include "OpenAL.h"
 
-class MultimediaStream;
 class Entity;
+#define EntitySharedPtr std::shared_ptr<Entity>
+
+class MultimediaStream;
 
 namespace AudioState {
 enum audioStatus {
@@ -66,9 +68,9 @@ public:
 	// Buffers new data from underlying streams and pushes it into AL for playback.
 	void Update();			
 	/// Binding position to entity.
-	void BindTo(Entity * entity);
+	void BindTo(EntitySharedPtr entity);
 
-	Entity * entity;
+	EntitySharedPtr entity;
 	Vector3f position; // static position
 	bool positional; // Default false, if true, position is considered related to hearer to determine volume and panning.
 	bool pauseOnMuted; // Default true.

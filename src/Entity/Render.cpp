@@ -5,7 +5,7 @@
 #include "Entity.h"
 #include "GraphicsState.h"
 #include "TextureManager.h"
-#include "Shader.h"
+#include "Graphics/Shader.h"
 #include "Light.h"
 #include "Model/Model.h"
 #include "Mesh/Mesh.h"
@@ -15,7 +15,7 @@
 
 #include "Physics/PhysicsProperty.h"
 
-#include "ShaderManager.h"
+#include "Graphics/ShaderManager.h"
 
 /// Rendering method
 void Entity::Render(GraphicsState & graphicsState)
@@ -40,7 +40,7 @@ void Entity::Render(GraphicsState & graphicsState)
 	// Change shader to one supporting skeletal animations if necessary.
 	if (this->graphics->skeletalAnimationEnabled && this->graphics->shaderBasedSkeletonAnimation && shader->attributeBoneIndices == -1)
 	{
-		shader = ShadeMan.SetActiveShader("PhongSkeletal");
+		shader = ShadeMan.SetActiveShader("PhongSkeletal", graphicsState);
 		if (!shader)
 			return;
 		// Load in the main matrices.
@@ -48,11 +48,13 @@ void Entity::Render(GraphicsState & graphicsState)
 		glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, graphicsState.viewMatrixF.getPointer());
 	}
 
+	/*
 	if (graphicsState.settings & USE_LEGACY_GL){
 		RenderOld(graphicsState);
 		return;
 	}
-	
+	*/
+
 	int error = 0;
 
 	// To send to the shadar
@@ -264,7 +266,7 @@ void Entity::Render(GraphicsState & graphicsState)
 		}
 
 		// Render the model
-		model->Render();
+		model->Render(graphicsState);
 		++graphicsState.renderedObjects;		// increment rendered objects for debug info
 
 
@@ -372,7 +374,7 @@ void Entity::Render(GraphicsState & graphicsState)
 		//}
 
 #ifdef DEBUG_TRIANGLE
-			ShadeMan.SetActiveShader(0);
+			ShadeMan.SetActiveShader(nullptr, graphicsState);
 
 			glMatrixMode(GL_PROJECTION);
 			glLoadIdentity();

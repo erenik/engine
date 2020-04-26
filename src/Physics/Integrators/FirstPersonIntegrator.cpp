@@ -14,12 +14,12 @@ FirstPersonIntegrator::FirstPersonIntegrator()
 /** All entities sent here should be fully dynamic!
 	Kinematic ones may or may not work (consider adding own integration function).
 */
-void FirstPersonIntegrator::IntegrateDynamicEntities(List<Entity*> & dynamicEntities, float timeInSeconds)
+void FirstPersonIntegrator::IntegrateDynamicEntities(List< std::shared_ptr<Entity> > & dynamicEntities, float timeInSeconds)
 {
 
 	Timer timer;
 	timer.Start();
-	List<Entity*> & forceBasedEntities = PhysicsMan.forceBasedEntities;
+	List< std::shared_ptr<Entity> > & forceBasedEntities = PhysicsMan.forceBasedEntities;
 	Timer timer2;
 	timer2.Start();
 	if (forceBasedEntities.Size())
@@ -46,7 +46,7 @@ void FirstPersonIntegrator::IntegrateDynamicEntities(List<Entity*> & dynamicEnti
 /** All entities sent here should be fully kinematic!
 	If not subclassed, the standard IntegrateEntities is called.
 */
-void FirstPersonIntegrator::IntegrateKinematicEntities(List<Entity*> & entities, float timeInSeconds)
+void FirstPersonIntegrator::IntegrateKinematicEntities(List< std::shared_ptr<Entity> > & entities, float timeInSeconds)
 {
 	Timer timer;
 	timer.Start();
@@ -55,7 +55,7 @@ void FirstPersonIntegrator::IntegrateKinematicEntities(List<Entity*> & entities,
 }
 
 
-void FirstPersonIntegrator::IntegrateVelocity(List<Entity*> & entities, float timeInSeconds)
+void FirstPersonIntegrator::IntegrateVelocity(List< std::shared_ptr<Entity> > & entities, float timeInSeconds)
 {
 #ifdef USE_SSE
 	SSEVec timeSSE;
@@ -66,7 +66,7 @@ void FirstPersonIntegrator::IntegrateVelocity(List<Entity*> & entities, float ti
 
 	for (int i = 0; i < entities.Size(); ++i)
 	{
-		Entity * forEntity = entities[i];
+		EntitySharedPtr forEntity = entities[i];
 
 		PhysicsProperty * pp = forEntity->physics;
 		Vector3f & relativeVelocity = pp->relativeVelocity;
@@ -261,7 +261,7 @@ void FirstPersonIntegrator::IntegrateVelocity(List<Entity*> & entities, float ti
 	/*
 		*/
 
-void FirstPersonIntegrator::IntegratePosition(List<Entity*> & entities, float timeInSeconds)
+void FirstPersonIntegrator::IntegratePosition(List< std::shared_ptr<Entity> > & entities, float timeInSeconds)
 {
 #ifdef USE_SSE
 	SSEVec timeSSE;
@@ -270,7 +270,7 @@ void FirstPersonIntegrator::IntegratePosition(List<Entity*> & entities, float ti
 #endif
 	for (int i = 0; i < entities.Size(); ++i)
 	{
-		Entity * forEntity = entities[i];
+		EntitySharedPtr forEntity = entities[i];
 		PhysicsProperty * pp = forEntity->physics;
 		Vector3f & position = forEntity->localPosition;
 #ifdef USE_SSE

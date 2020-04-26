@@ -36,7 +36,7 @@ public:
 	/// Distance from center of world. :)
 	float elevation;
 	/// Entity that's currently at this waypoint (mostly for debugging)
-	List<Entity*> entities;
+	List< std::shared_ptr<Entity> > entities;
 	/// Passability
 	bool passable;
 	/// Other data

@@ -14,9 +14,9 @@
 #include "Timer/Timer.h"
 #include "Graphics/FrameStatistics.h"
 
-#include "Shader.h"
+#include "Graphics/Shader.h"
 #include "File/LogFile.h"
-#include "ShaderManager.h"
+#include "Graphics/ShaderManager.h"
 #include "Graphics/OpenGL.h"
 #include "GraphicsState.h"
 

@@ -9,7 +9,7 @@
 
 #include "Texture.h"
 #include "TextureManager.h"
-#include "Shader.h"
+#include "Graphics/Shader.h"
 #include <String/Text.h>
 #include <ctime>
 #include <Timer/Timer.h>
@@ -18,7 +18,7 @@
 
 #include "Time/Time.h"
 
-#include "ShaderManager.h"
+#include "Graphics/ShaderManager.h"
 
 #include "File/LogFile.h"
 
@@ -433,7 +433,7 @@ void TextFont::RenderText(Text & text, GraphicsState & graphicsState)
 	/// Save old shader!
 	Shader * oldShader = ActiveShader();
 	// Load shader, set default uniform values, etc.
-	if (!PrepareForRender())
+	if (!PrepareForRender(graphicsState))
 		return;
 
 	/// Sort the carets in order to render selected text properly.
@@ -451,12 +451,12 @@ void TextFont::RenderText(Text & text, GraphicsState & graphicsState)
 
 	bool shouldRenderCaret = Timer::GetCurrentTimeMs() % 1000 > 500;
 	if (text.Length() == 0 && shouldRenderCaret)
-		RenderChar('|');
+		RenderChar('|', graphicsState);
 	for (i = 0; i < text.Length(); ++i)
 	{
 		if (text.caretPosition == i && shouldRenderCaret)
 		{
-			RenderChar('|');
+			RenderChar('|', graphicsState);
 		}
 		currentCharIndex = i;
 		currentChar = text.c_str()[i];
@@ -468,7 +468,7 @@ void TextFont::RenderText(Text & text, GraphicsState & graphicsState)
 			continue;
 
 		StartChar();				// Move in.
-		RenderChar(currentChar);	// Render
+		RenderChar(currentChar, graphicsState);	// Render
 		/// If we are between the 2 active carets, render the region the char covers over with a white quad ?
 		if (text.previousCaretPosition != -1 && i >= min && i < max)
 		{
@@ -480,17 +480,17 @@ void TextFont::RenderText(Text & text, GraphicsState & graphicsState)
 	// Caret at the end?
 	if (text.caretPosition >= text.Length() && shouldRenderCaret)
 	{
-		RenderChar('|');
+		RenderChar('|', graphicsState);
 	}
 	
 	OnEndRender(graphicsState);
 	/// Revert to old shader!
-	ShadeMan.SetActiveShader(oldShader);
+	ShadeMan.SetActiveShader(oldShader, graphicsState);
 }
 
 
 
-bool TextFont::PrepareForRender()
+bool TextFont::PrepareForRender(GraphicsState & graphicsState)
 {
 	if (!texture){
 		std::cout<<"\nERROR: Texture not allocated in Font::RenderText";
@@ -510,15 +510,15 @@ bool TextFont::PrepareForRender()
 	if (shaderBased)
 	{
 		// Load shader.
-		shader = ShadeMan.SetActiveShader("Font");
+		shader = ShadeMan.SetActiveShader("Font", graphicsState);
 		if (!shader)
 			return false;
 		// Enable texture
 		glEnable(GL_TEXTURE_2D);
 		// Set matrices.
-		shader->SetProjectionMatrix(graphicsState->projectionMatrixF);
-		shader->SetViewMatrix(graphicsState->viewMatrixF);
-		shader->SetModelMatrix(graphicsState->modelMatrixF);
+		shader->SetProjectionMatrix(graphicsState.projectionMatrixF);
+		shader->SetViewMatrix(graphicsState.viewMatrixF);
+		shader->SetModelMatrix(graphicsState.modelMatrixF);
 		// Set text color
 		glUniform4f(shader->uniformPrimaryColorVec4, color.x, color.y, color.z, color.w);
 		
@@ -549,7 +549,7 @@ bool TextFont::PrepareForRender()
 		/// Set fill mode!
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-		ShadeMan.SetActiveShader(0);
+		ShadeMan.SetActiveShader(nullptr, graphicsState);
 
 		glEnable(GL_TEXTURE_2D);
 	//	glEnable(GL_LIGHTING);
@@ -558,8 +558,8 @@ bool TextFont::PrepareForRender()
 		
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
-		glLoadMatrixf(graphicsState->projectionMatrixF.getPointer());
-		Matrix4f modelView = graphicsState->viewMatrixF * graphicsState->modelMatrixF;
+		glLoadMatrixf(graphicsState.projectionMatrixF.getPointer());
+		Matrix4f modelView = graphicsState.viewMatrixF * graphicsState.modelMatrixF;
 		glMatrixMode(GL_MODELVIEW);
 		glLoadMatrixf(modelView.getPointer());
 		glColor4f(color[0], color[1], color[2], color[3]);
@@ -596,7 +596,7 @@ bool TextFont::PrepareForRender()
 }
 
 // Renders character at current position.
-void TextFont::RenderChar(uchar c)
+void TextFont::RenderChar(uchar c, GraphicsState& graphicsState)
 {
 	float & xStart = pivotPoint[0];
 	float & yStart = pivotPoint[1];
@@ -609,7 +609,7 @@ void TextFont::RenderChar(uchar c)
 		glUniform1i(shader->uniformCharacter, character);
 		glUniform2f(shader->uniformPivot, xStart, yStart); 
 		// Render it.
-		model->Render();
+		model->Render(graphicsState);
 	}
 	/// Old render
 	else 

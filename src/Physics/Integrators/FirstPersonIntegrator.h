@@ -14,19 +14,19 @@ public:
 	/** All entities sent here should be fully dynamic! 
 		Kinematic ones may or may not work (consider adding own integration function).
 	*/
-	virtual void IntegrateDynamicEntities(List<Entity*> & dynamicEntities, float timeInSeconds);
+	virtual void IntegrateDynamicEntities(List< std::shared_ptr<Entity> > & dynamicEntities, float timeInSeconds);
 	/** All entities sent here should be fully kinematic! 
 		If not subclassed, the standard IntegrateEntities is called.
 	*/
-	virtual void IntegrateKinematicEntities(List<Entity*> & kinematicEntities, float timeInSeconds);
+	virtual void IntegrateKinematicEntities(List< std::shared_ptr<Entity> > & kinematicEntities, float timeInSeconds);
 
 	// Default true
 	bool applyGravity;
 
 private:
-	void IntegrateVelocity(List<Entity*> & forEntities, float timeInSeconds);
-	void IntegratePosition(List<Entity*> & forEntities, float timeInSeconds);
-	void RecalcMatrices(List<Entity*> & entities);
+	void IntegrateVelocity(List< std::shared_ptr<Entity> > & forEntities, float timeInSeconds);
+	void IntegratePosition(List< std::shared_ptr<Entity> > & forEntities, float timeInSeconds);
+	void RecalcMatrices(List< std::shared_ptr<Entity> > & entities);
 };
 
 #endif

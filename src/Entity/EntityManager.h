@@ -10,6 +10,8 @@ const int MAX_ENTITIES = 5000;
 #include "Entity/Entities.h"
 
 class Entity;
+#define EntitySharedPtr std::shared_ptr<Entity>
+
 class Model;
 class Texture;
 
@@ -29,20 +31,20 @@ public:
 	static void Deallocate();
 	~EntityManager();
 
-	bool IsGood(Entity * entity);
+	bool IsGood(std::shared_ptr<Entity> entity);
 
 	/** Creates an entity using specified model and base texture.
 		Should only be callable by other managers.
 	*/
-	Entity * CreateEntity(String withName, Model * model, Texture * andTexture);
+	std::shared_ptr<Entity> CreateEntity(String withName, Model * model, Texture * andTexture);
 	/** Deletes target entity. 
 		Should only be callable by other managers.
 	*/
-	bool DeleteEntity(Entity * entity);
+	bool DeleteEntity(EntitySharedPtr entity);
 	/// All active ones not already flagged for deletion.
-	List<Entity*> AllEntities();
+	List< std::shared_ptr<Entity> > AllEntities();
 
-	void MarkEntitiesForDeletion(List<Entity*> entities);
+	void MarkEntitiesForDeletion(List<std::shared_ptr<Entity>> entities);
 	/** Deletes (resets IDs) of all entities that have been flagged for deletion and are not registered anywhere still. */
 	int DeleteUnusedEntities(int timeInMs);
 private:
@@ -50,8 +52,8 @@ private:
 	/// Counter for generating IDs to entities
 	static int idCounter;
 	/// Array of loaded entities.
-	List<Entity*> entities;
-	List<Entity*> entitiesToDelete;
+	List< std::shared_ptr<Entity> > entities;
+	List < std::shared_ptr<Entity> > entitiesToDelete;
 };
 
 

@@ -83,7 +83,7 @@ void GraphicsMessage::Process()
 			if (pipe != NULL)
 				name = pipe->name;
 			LogGraphics("Cycling to next render pipeline: " + name, INFO);
-			graphicsState->renderPipe = pipe;
+			GraphicsThreadGraphicsState->renderPipe = pipe;
 			break;
 		}
 		case GM_CYCLE_RENDER_PIPELINE_BACK:	
@@ -93,19 +93,19 @@ void GraphicsMessage::Process()
 			if (pipe != NULL)
 				name = pipe->name;
 			LogGraphics("Cycling to previous render pipeline: " + name, INFO);
-			graphicsState->renderPipe = pipe;
+			GraphicsThreadGraphicsState->renderPipe = pipe;
 			break;
 		}
 		case GM_RECORD_VIDEO: 
 		{
-			graphicsState->recording = !graphicsState->recording; 
+			GraphicsThreadGraphicsState->recording = !GraphicsThreadGraphicsState->recording; 
 			break;
 		}
 		case GM_PRINT_SCREENSHOT:
 		{
 			AppWindow * activeWindow = ActiveWindow();
 			activeWindow->saveScreenshot = true;
-	//		graphicsState->promptScreenshot = true;
+	//		GraphicsThreadGraphicsState->promptScreenshot = true;
 			break;
 		}
 	    case GM_RENDER_FRUSTUM: {

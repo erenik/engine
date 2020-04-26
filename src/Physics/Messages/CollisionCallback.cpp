@@ -10,7 +10,7 @@ CollisionCallback::CollisionCallback() : Message(MessageType::COLLISSION_CALLBAC
 	data = NULL;
 };
 
-CollisionCallback::CollisionCallback(Entity * one, Entity * two)
+CollisionCallback::CollisionCallback(EntitySharedPtr one, EntitySharedPtr two)
 : Message(MessageType::COLLISSION_CALLBACK), one(one), two(two)
 {
 	data = NULL;

@@ -7,6 +7,8 @@
 #include "GraphicsState.h"
 #include "Render/RenderPass.h"
 #include "Render/RenderPipeline.h"
+#include "Entity/Entity.h"
+
 
 FrameStatistics * FrameStatistics::frameStatistics = NULL;
 
@@ -99,7 +101,7 @@ void FrameStatistics::QueuePrint()
 
 
 
-void FrameStatistics::Print(){
+void FrameStatistics::Print(GraphicsState & graphicsState){
 	std::cout
 		<<"\nFrame statistics (total): "
 		<<"\n- Physics total: "<< totalPhysics
@@ -130,9 +132,9 @@ void FrameStatistics::Print(){
 		<<"\n	- render: "<<renderTotal;
 	// Print the separate passed.
 	String renderPassed = "\n		- RenderPasses:";
-	for (int i = 0; i < graphicsState->renderPipe->renderPasses.Size(); ++i)
+	for (int i = 0; i < graphicsState.renderPipe->renderPasses.Size(); ++i)
 	{
-		RenderPass * rp = graphicsState->renderPipe->renderPasses[i];
+		RenderPass * rp = graphicsState.renderPipe->renderPasses[i];
 		renderPassed += 
 			"\n			- "+rp->name+": "+String(rp->renderTimeMs);
 	}

@@ -192,7 +192,7 @@ List<int> InputManager::ActiveModifierKeys()
 }
 
 /// Sets input focus, which currently just flags a boolean with its properties (if available and set up correctly).
-void InputManager::SetInputFocus(Entity * entity)
+void InputManager::SetInputFocus(EntitySharedPtr entity)
 {
 	/// Check if it can take it.
 	bool canTakeInputFocus = false;
@@ -209,7 +209,7 @@ void InputManager::SetInputFocus(Entity * entity)
 	}
 	for (int i = 0; i < inputFocusEntities.Size(); ++i)
 	{
-		Entity * oldEntity = inputFocusEntities[i];
+		EntitySharedPtr oldEntity = inputFocusEntities[i];
 		for (int i = 0; i < oldEntity->properties.Size(); ++i)
 		{
 			EntityProperty * ep = oldEntity->properties[i];

@@ -19,10 +19,13 @@ class String;
 
 /** A four-dimensional vector class using floats.
 */
+
+class  
 #ifdef USE_SSE
-Align(16)
+	alignas(16)
 #endif
-class Vector4f {
+	Vector4f
+	  {
 
 public:
 

@@ -19,8 +19,8 @@ int FirstPersonCR::ResolveCollisions(List<Collision> collisions)
 /// Returns false if the colliding entities are no longer in contact after resolution.
 bool FirstPersonCR::ResolveCollision(Collision & c)
 {
-	Entity * dynamic;
-	Entity * other;
+	EntitySharedPtr dynamic;
+	EntitySharedPtr other;
 	if (c.one->physics->type == PhysicsType::DYNAMIC)
 	{
 		dynamic = c.one;
@@ -40,9 +40,9 @@ bool FirstPersonCR::ResolveCollision(Collision & c)
 
 	dynamic->physics->lastCollisionMs = physicsNowMs;
 
-	Entity * dynamic2 = (other->physics->type == PhysicsType::DYNAMIC) ? other : NULL;
-	Entity * staticEntity;
-	Entity * kinematicEntity;
+	EntitySharedPtr dynamic2 = (other->physics->type == PhysicsType::DYNAMIC) ? other : NULL;
+	EntitySharedPtr staticEntity;
+	EntitySharedPtr kinematicEntity;
 	if (dynamic == c.one)
 		other = c.two;
 	else

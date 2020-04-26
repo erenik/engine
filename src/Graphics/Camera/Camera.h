@@ -12,6 +12,7 @@
 #include "Time/Time.h"
 #include "PhysicsLib/Shapes/Frustum.h"
 #include "MathLib/Angle3.h"
+#include "Entity/Entity.h"
 
 class AppWindow;
 
@@ -37,7 +38,6 @@ enum {
 };
 };
 
-class Entity;
 class Camera;
 
 #define CameraMan (*CameraManager::Instance())
@@ -259,7 +259,7 @@ public:
 	Matrix4f ProjectionMatrix4f() { return projectionMatrix; };
 
 	/// For following camera's!
-	Entity * entityToTrack;
+	EntitySharedPtr entityToTrack;
 	/// Tracking mode o-o;
 	int trackingMode;
 

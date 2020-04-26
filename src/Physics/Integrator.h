@@ -8,7 +8,7 @@
 #include "Physics/PhysicsProperty.h"
 #include "Entity/Entity.h"
 
-void RecalculateMatrices(List<Entity*> entities);
+void RecalculateMatrices(List< std::shared_ptr<Entity> > entities);
 
 class Integrator 
 {
@@ -19,11 +19,11 @@ public:
 	/** All entities sent here should be fully dynamic! 
 		Kinematic ones may or may not work (consider adding own integration function).
 	*/
-	virtual void IntegrateDynamicEntities(List<Entity*> & dynamicEntities, float timeInSeconds) = 0;
+	virtual void IntegrateDynamicEntities(List< std::shared_ptr<Entity> > & dynamicEntities, float timeInSeconds) = 0;
 	/** All entities sent here should be fully kinematic! 
 		If not subclassed, the standard IntegrateEntities is called.
 	*/
-	virtual void IntegrateKinematicEntities(List<Entity*> & kinematicEntities, float timeInSeconds) = 0;
+	virtual void IntegrateKinematicEntities(List< std::shared_ptr<Entity> > & kinematicEntities, float timeInSeconds) = 0;
 	
 	/// -9.82 y by default
 	Vector3f gravity;
@@ -36,18 +36,18 @@ public:
 	int entityMatrixRecalcMs;
 
 	/// Called once from the PhysicsManager after integration completes. By default entities with parents are skipped, as the parent should trigger the recursive recalc.
-	void RecalculateMatrices(List<Entity*> & entities);
+	void RecalculateMatrices(List< std::shared_ptr<Entity> > & entities);
 protected:
 	/// Provides default "scientific" rigid-body based simulation handling of forces, torques, etc.
-	void CalculateForces(List<Entity*> & entities);
-	void UpdateMomentum(List<Entity*> & entities, float timeInSeconds);
-	void DeriveVelocity(List<Entity*> & entities);
+	void CalculateForces(List< std::shared_ptr<Entity> > & entities);
+	void UpdateMomentum(List< std::shared_ptr<Entity> > & entities, float timeInSeconds);
+	void DeriveVelocity(List< std::shared_ptr<Entity> > & entities);
 private:
 };
 
 class NoIntegrator : public Integrator {
-	virtual void IntegrateDynamicEntities(List<Entity*>& dynamicEntities, float timeInSeconds);
-	virtual void IntegrateKinematicEntities(List<Entity*>& kinematicEntities, float timeInSeconds);
+	virtual void IntegrateDynamicEntities(List< std::shared_ptr<Entity> >& dynamicEntities, float timeInSeconds);
+	virtual void IntegrateKinematicEntities(List< std::shared_ptr<Entity> >& kinematicEntities, float timeInSeconds);
 };
 
 

@@ -16,10 +16,10 @@ public:
 	/// Does not rely on other structures that require further updates. All entities are present in the list.
 	virtual int DetectCollisions(List<EntityPair> & pairs, List<Collision> & collisions) = 0;
 	/// Does not rely on other structures that require further updates. All entities are present in the list.
-	virtual int DetectCollisions(List<Entity*> & entities, List<Collision> & collisions) = 0;
+	virtual int DetectCollisions(List< std::shared_ptr<Entity> > & entities, List<Collision> & collisions) = 0;
 
 	/// Detects collisions between two entities. Method used is based on physics-shape. Sub-class to override it.
-	virtual int DetectCollisions(Entity * one, Entity * two, List<Collision> & collisions);
+	virtual int DetectCollisions(EntitySharedPtr one, EntitySharedPtr two, List<Collision> & collisions);
 private:
 };
 

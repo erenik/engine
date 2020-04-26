@@ -8,11 +8,11 @@
 #include "Graphics/GraphicsProperty.h"
 #include "GraphicsState.h"
 #include "Texture.h"
-#include "Shader.h"
+#include "Graphics/Shader.h"
 #include "TextureManager.h"
 #include "Model/Model.h"
 
-EntityStateTile2D::EntityStateTile2D(Entity * owner)
+EntityStateTile2D::EntityStateTile2D(EntitySharedPtr owner)
 : EntityProperty("EntityStateTile2D", EntityPropertyID::UTILITY_PROPERTIES, owner)
 {
 }

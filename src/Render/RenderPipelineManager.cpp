@@ -85,7 +85,7 @@ RenderPipeline * RenderPipelineManager::Previous()
 // Loads from render/PipelineConfig.txt 
 bool RenderPipelineManager::LoadFromPipelineConfig()
 {
-	LogMain("LoadFromPipelineConfig", INFO);
+	LogGraphics("RenderPipelineManager::LoadFromPipelineConfig", INFO);
 	// Open file if not already done so.
 	if (!pipelineConfig.Path().Length())
 		pipelineConfig.SetPath("render/PipelineConfig.txt");
@@ -104,13 +104,13 @@ bool RenderPipelineManager::LoadFromPipelineConfig()
 	}*/
 
 	// Set pipeline
-	graphicsState->renderPipe = NULL;
+	GraphicsThreadGraphicsState->renderPipe = NULL;
 	// Delete old pipelines.
 	renderPipelines.ClearAndDelete();
 
 
 	List<String> lines = pipelineConfig.GetLines();
-	LogMain("Lines "+lines.Size(), INFO);
+	LogGraphics("Lines "+lines.Size(), INFO);
 	for (int i = 0; i < lines.Size(); ++i)
 	{
 		String line = lines[i];
@@ -145,13 +145,14 @@ bool RenderPipelineManager::LoadFromPipelineConfig()
 	{
 		if (renderPipelines.Size())
 			activePipeline = renderPipelines[0];
+		LogGraphics("Assigning null index pipeline as default: " + activePipeline->name, INFO);
 	}
 	if (!activePipeline)
 	{
 		LogGraphics("No active render pipelines to use!", ERROR);
 		assert(false && "No active render pipelines to use");
 	}
-	graphicsState->renderPipe = activePipeline;
+	GraphicsThreadGraphicsState->renderPipe = activePipeline;
 //	assert(false);
 }
 

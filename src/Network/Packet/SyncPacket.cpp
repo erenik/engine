@@ -13,7 +13,7 @@ SyncPacket::SyncPacket()
 
 }
 
-void SyncPacket::AddEntity(Entity *entity)
+void SyncPacket::AddEntity(EntitySharedPtr entity)
 {
 	entities.Add(entity);
 }
@@ -40,13 +40,13 @@ class SyncPacket : public Packet {
 public:
 	SyncPacket();
 	/// For adding entity to sync
-	void AddEntity(Entity * entity);
+	void AddEntity(EntitySharedPtr entity);
 	/// String with properties to sync.
 	String propertiesToSync;
 private:
 	/// Re-writes the data to be sent.
 	void UpdateData();
-	List<Entity*> entities;
+	List< std::shared_ptr<Entity> > entities;
 	
 };
 

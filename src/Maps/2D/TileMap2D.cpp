@@ -147,7 +147,7 @@ void TileMap2D::Render(GraphicsState & graphicsState)
 	/// Set sprite-shader.	
 	bool old = false;
 	if (!old){
-		Shader * shader = ShadeMan.SetActiveShader("Sprite");
+		Shader * shader = ShadeMan.SetActiveShader("Sprite", graphicsState);
 		if (!shader)
 			return;
 
@@ -208,7 +208,7 @@ void TileMap2D::Render(GraphicsState & graphicsState)
 				// Texture enabled.
 				glBindTexture(GL_TEXTURE_2D, previewTexture->glid);
 				// Render it.			
-				model->Render();
+				model->Render(graphicsState);
 				/// Reset transformation matrix.
 				graphicsState.modelMatrixF = graphicsState.modelMatrixD = Matrix4d();
 
@@ -247,7 +247,7 @@ void TileMap2D::Render(GraphicsState & graphicsState)
 					glBindTexture(GL_TEXTURE_2D, tex->glid);
 				}
 				/// Set position.
-				model->Render();
+				model->Render(graphicsState);
 			}
 		}
 
@@ -296,13 +296,13 @@ void TileMap2D::Render(GraphicsState & graphicsState)
 			}
 			/// Disable depth test.. should not be needed.
 			/// Render
-			model->Render();
+			model->Render(graphicsState);
 		}
 		/// Render (active) entities!
 		for (int i = 0; i < entities.Size(); ++i)
 		{
 			// Let's just hope it's sorted.. lol
-			Entity * entity = entities[i];
+			EntitySharedPtr entity = entities[i];
 			/// Fetch it's position and texture, assume the anchor point is correct and just paint it.
 			Vector3f position = entity->worldPosition;
 			/// Skip all out of sight?
@@ -348,14 +348,14 @@ void TileMap2D::Render(GraphicsState & graphicsState)
 			}
 			/// Disable depth test.. should not be needed.
 			/// Render
-			model->Render();
+			model->Render(graphicsState);
 		}
 
 	}
 
 	/// Old below.
 	if (old){
-		ShadeMan.SetActiveShader(0);
+		ShadeMan.SetActiveShader(nullptr, graphicsState);
 		glMatrixMode(GL_PROJECTION);
 		glLoadMatrixd(graphicsState.projectionMatrixD.getPointer());
 		glMatrixMode(GL_MODELVIEW);
@@ -384,7 +384,7 @@ void TileMap2D::Render(GraphicsState & graphicsState)
 		glDisable(GL_COLOR_MATERIAL);
 
 		float z = -4;
-		Vector3f ambient = graphicsState.lighting->GetAmbient();
+		Vector3f ambient = graphicsState.lighting.GetAmbient();
 		glColor4f(ambient[0], ambient[1], ambient[2], 1.0f);
 
 		error = glGetError();
@@ -562,12 +562,12 @@ void TileMap2D::RenderEntities(GraphicsState & graphicsState)
 		float xPos = (float)pos[0];
 		float yPos = (float)pos[1];
 		// Draw entities too, yo.
-		const Entity * e = entityTile2D->owner;
+		const EntitySharedPtr e = entityTile2D->owner;
 	//	std::cout<<"\nRendering entity "<<i<<": "<<e->name;
 
 		float z = 0.1f;
 		//	glBlendFunc(GL_ONE, GL_ONE);
-		Shader * shader = ShadeMan.SetActiveShader("Flat");
+		Shader * shader = ShadeMan.SetActiveShader("Flat", graphicsState);
 		/// Load in matrices, yawow!
 		glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, graphicsState.projectionMatrixF.getPointer());
 		glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, graphicsState.viewMatrixF.getPointer());
@@ -586,7 +586,7 @@ void TileMap2D::RenderEntities(GraphicsState & graphicsState)
 		bool renderEntityOverlay = true;
 		if (renderEntityOverlay){
 			glBlendFunc(GL_ONE, GL_ONE);
-			ShadeMan.SetActiveShader(0);
+			ShadeMan.SetActiveShader(nullptr, graphicsState);
 			glColor4f(0.2f,0.2f,0.2f,0.2f);
 			glBegin(GL_QUADS);
 			glVertex3f(xPos-0.5f, yPos-0.5f, 0.1f);
@@ -1190,7 +1190,7 @@ bool TileMap2D::IsTileVacant(Vector3i position){
 }
 
 /// Moves ze entity on the grid! Returns true upon success.
-bool TileMap2D::MoveEntity(Entity * entity, Vector3i position){
+bool TileMap2D::MoveEntity(EntitySharedPtr entity, Vector3i position){
 	std::cout<<"\nTileMap2D::MoveEntity";
 	/// Get right level
 	TileMapLevel * level = GetLevelByElevation(position[2]);
@@ -1212,7 +1212,7 @@ bool TileMap2D::MoveEntity(Entity * entity, Vector3i position){
 
 /*
 /// To check for events when arriving at a specified tile.
-void TileMap2D::OnArrive(Entity * e, int x, int y){
+void TileMap2D::OnArrive(EntitySharedPtr e, int x, int y){
 	for (int i = 0; i < events.Size(); ++i){
 		Script * event = events[i];
 		if (event->triggerCondition != Script::ON_TOUCH)
@@ -1249,7 +1249,7 @@ void TileMap2D::RandomizeTiles(){
 }
 
 /// For le adding!
-bool TileMap2D::AddEntity(Entity * entity)
+bool TileMap2D::AddEntity(EntitySharedPtr entity)
 {
 	EntityStateTile2D * tile2DState = (EntityStateTile2D*) entity->GetProperty("EntityStateTile2D");
 	if (entitiesTile2D.Exists(tile2DState))
@@ -1279,7 +1279,7 @@ bool TileMap2D::AddEntity(Entity * entity)
 }
 
 /** Removes target entity from the map. */
-bool TileMap2D::RemoveEntity(Entity * entity)
+bool TileMap2D::RemoveEntity(EntitySharedPtr entity)
 {
 	EntityStateTile2D * entityTile2D = GetEntity2DByEntity(entity);
 	if (!entityTile2D)
@@ -1297,7 +1297,7 @@ bool TileMap2D::RemoveEntity(Entity * entity)
 }
 
 
-void TileMap2D::Interact(Vector3i position, const Entity * interacter)
+void TileMap2D::Interact(Vector3i position, const EntitySharedPtr interacter)
 {
 	/// Interactor might be omitted if wished?
 	assert(interacter);
@@ -1306,7 +1306,7 @@ void TileMap2D::Interact(Vector3i position, const Entity * interacter)
 	EntityStateTile2D * interactee = GetEntityByPosition(position);
 	if (!interactee)
 		return;
-	const Entity * entity = interactee->owner;
+	const EntitySharedPtr entity = interactee->owner;
 	if (entity && entity->scripts && entity->scripts->onInteract){
 		Script * onInteract = entity->scripts->onInteract;
 		ScriptMan.PlayEvent(onInteract);
@@ -1315,7 +1315,7 @@ void TileMap2D::Interact(Vector3i position, const Entity * interacter)
 }
 
 /// Attempts to fetch target entity's Tile2D equivalent/meta-structure.
-EntityStateTile2D * TileMap2D::GetEntity2DByEntity(const Entity * entity)
+EntityStateTile2D * TileMap2D::GetEntity2DByEntity(const EntitySharedPtr entity)
 {
 	for (int i = 0; i < entitiesTile2D.Size(); ++i)
 	{

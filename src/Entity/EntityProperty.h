@@ -5,8 +5,8 @@
 #define AI_PROPERTY_H
 
 #include "String/AEString.h"
+#include "Entity/Entity.h"
 
-class Entity;
 class EntityPropertyState;
 class Message;
 struct Collision;
@@ -47,7 +47,7 @@ class EntityProperty
 	friend class EntityPropertyState;
 public:
 	/// Default annulizing constructor.
-	EntityProperty(String name, int id, Entity * owner);
+	EntityProperty(String name, int id, EntitySharedPtr owner);
 	virtual ~EntityProperty();
 
 	/// Should correspond to class-name.
@@ -83,9 +83,9 @@ public:
 	virtual void ProcessMessage(Message * message);
 
 	/// Reference, should not be altered.
-	Entity * owner;
+	EntitySharedPtr owner;
 	// For properties with multiple owners.
-	List<Entity*> owners;
+	List< std::shared_ptr<Entity> > owners;
 
 	// Default false. Enable to steer this entity.
 	bool inputFocus;

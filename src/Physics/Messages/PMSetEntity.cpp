@@ -14,7 +14,7 @@
 #include "Physics/Calc/EntityPhysicsEstimator.h"
 
 // For resets and similar
-PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target)
+PMSetEntity::PMSetEntity(List< std::shared_ptr<Entity> > targetEntities, int target)
 	: target(target)
 {
 	type = PM_SET_ENTITY;
@@ -30,7 +30,7 @@ PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target)
 }
 
 
-PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, float value)
+PMSetEntity::PMSetEntity(List< std::shared_ptr<Entity> > targetEntities, int target, float value)
 : target(target)
 {
 	dataType = FLOAT;
@@ -38,7 +38,7 @@ PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, float value)
 	entities = targetEntities;
 	/// Assertions earlier should guarantee correct target now
 	for (int i = 0; i < entities.Size(); ++i){
-		Entity * entity = entities[i];
+		EntitySharedPtr entity = entities[i];
 	}
 	fValue = value;
 	switch(target){
@@ -58,7 +58,7 @@ PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, float value)
 	}
 }
 
-PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, Vector2f value, long long timeStamp)
+PMSetEntity::PMSetEntity(List< std::shared_ptr<Entity> > targetEntities, int target, Vector2f value, long long timeStamp)
 : target(target), timeStamp(timeStamp)
 {
 	dataType = VECTOR2F;
@@ -66,7 +66,7 @@ PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, Vector2f valu
 	entities = targetEntities;
 	/// Assertions earlier should guarantee correct target now
 	for (int i = 0; i < entities.Size(); ++i){
-		Entity * entity = entities[i];
+		EntitySharedPtr entity = entities[i];
 	//	std::cout<<"entity ang acc:"<<entity->physics->angularAcceleration;
 	}
 	vec2fValue = value;
@@ -83,7 +83,7 @@ PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, Vector2f valu
 }
 
 
-PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, const Vector3f & value, long long timeStamp)
+PMSetEntity::PMSetEntity(List< std::shared_ptr<Entity> > targetEntities, int target, const Vector3f & value, long long timeStamp)
 : target(target), timeStamp(timeStamp)
 {
 	dataType = VECTOR3F;
@@ -91,7 +91,7 @@ PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, const Vector3
 	entities = targetEntities;
 	/// Assertions earlier should guarantee correct target now
 	for (int i = 0; i < entities.Size(); ++i){
-		Entity * entity = entities[i];
+		EntitySharedPtr entity = entities[i];
 	//	std::cout<<"entity ang acc:"<<entity->physics->angularAcceleration;
 	}
 	vec3fValue = value;
@@ -124,7 +124,7 @@ PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, const Vector3
 	}
 }
 
-PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, const Quaternion & value, long long timeStamp /*= 0*/)
+PMSetEntity::PMSetEntity(List< std::shared_ptr<Entity> > targetEntities, int target, const Quaternion & value, long long timeStamp /*= 0*/)
 	: target(target), timeStamp(timeStamp)
 {
 	dataType = QUATERNION;
@@ -132,7 +132,7 @@ PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, const Quatern
 	entities = targetEntities;
 	/// Assertions earlier should guarantee correct target now
 	for (int i = 0; i < entities.Size(); ++i){
-		Entity * entity = entities[i];
+		EntitySharedPtr entity = entities[i];
 	//	std::cout<<"entity ang acc:"<<entity->physics->angularAcceleration;
 	}
 	qValue = value;
@@ -149,7 +149,7 @@ PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, const Quatern
 	}
 }
 
-PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, bool value)
+PMSetEntity::PMSetEntity(List< std::shared_ptr<Entity> > targetEntities, int target, bool value)
 : target(target)
 {
 	dataType = BOOLEAN;
@@ -174,7 +174,7 @@ PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, bool value)
 	}
 }
 
-PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, int value)
+PMSetEntity::PMSetEntity(List< std::shared_ptr<Entity> > targetEntities, int target, int value)
 : target(target)
 {
 	dataType = INTEGER;
@@ -199,7 +199,7 @@ PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, int value)
 	}
 }
 
-PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, Waypoint * waypoint)
+PMSetEntity::PMSetEntity(List< std::shared_ptr<Entity> > targetEntities, int target, Waypoint * waypoint)
 : target(target), entities(targetEntities), waypoint(waypoint)
 {
 	switch(target)
@@ -211,7 +211,7 @@ PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, Waypoint * wa
 	}
 }
 
-PMSetEntity::PMSetEntity(List<Entity*> targetEntities, int target, Entity * referenceEntity)
+PMSetEntity::PMSetEntity(List< std::shared_ptr<Entity> > targetEntities, int target, EntitySharedPtr referenceEntity)
 	: target(target), entities(targetEntities), referenceEntity(referenceEntity)
 {
 	switch(target)
@@ -235,7 +235,7 @@ void PMSetEntity::Process()
 	/// Assertions earlier should guarantee correct target now
 	for (int i = 0; i < entities.Size(); ++i)
 	{
-		Entity * entity = entities[i];
+		EntitySharedPtr entity = entities[i];
 		if (!entity)
 			continue;
 		// Create if not there.

@@ -59,13 +59,13 @@ enum cameraTargets
 class GMTrack : public GraphicsMessage
 {
 public:
-	GMTrack(Entity * entity) 
+	GMTrack(EntitySharedPtr entity) 
 		: GraphicsMessage(GM_TRACK), entity(entity)
 	{		
 	}
 	virtual void Process();
 private:
-	Entity * entity;
+	EntitySharedPtr entity;
 };
 
 class GMDeleteCamera : public GraphicsMessage 
@@ -86,7 +86,7 @@ public:
 	GMSetCamera(Camera * camera, int target, int iValue);
 	GMSetCamera(Camera * camera, int target, float fValue);
 	GMSetCamera(Camera * camera, int target, bool bValue);
-	GMSetCamera(Camera * camera, int target, Entity * entity);
+	GMSetCamera(Camera * camera, int target, EntitySharedPtr entity);
 	virtual void Process();
 
 private:
@@ -97,7 +97,7 @@ private:
 	Vector3f vec3fValue;
 	Camera * camera;
 	AppWindow * window;
-	Entity * entity;
+	EntitySharedPtr entity;
 };
 
 #endif

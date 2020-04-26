@@ -7,7 +7,7 @@
 
 #include "Sphere.h"
 
-bool TriangleSphereCollision(Entity * triEntity, Entity * sphereEntity, Collision &data, bool planesOnly){
+bool TriangleSphereCollision(EntitySharedPtr triEntity, EntitySharedPtr sphereEntity, Collision &data, bool planesOnly){
 	assert(triEntity->physics->shapeType == ShapeType::TRIANGLE);
 	assert(triEntity->physics->shape);
 	Triangle tri = *(Triangle*)(triEntity->physics->shape);
@@ -132,7 +132,7 @@ bool TriangleSphereCollision(Triangle * triangle, Sphere * sphere, Collision &da
 	return false;
 }
 
-bool TriangleSphereCollision(Triangle * triangle, Entity * sphereEntity, Collision &data, bool planesOnly)
+bool TriangleSphereCollision(Triangle * triangle, EntitySharedPtr sphereEntity, Collision &data, bool planesOnly)
 {
 	static Sphere sphere; // = (Sphere*)sphereEntity->physics->shape;
 	sphere.position = sphereEntity->worldPosition;

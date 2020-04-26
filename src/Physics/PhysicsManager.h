@@ -91,8 +91,8 @@ public:
 	CollisionDetector * collisionDetector;
 
 	// Integrators
-	void LabPhysicsIntegrate(Entity * entity, float timeSinceLastUpdate);
-	void ApproximateIntegrate(Entity * entity, float timeSinceLastUpdate);
+	void LabPhysicsIntegrate(EntitySharedPtr entity, float timeSinceLastUpdate);
+	void ApproximateIntegrate(EntitySharedPtr entity, float timeSinceLastUpdate);
 
 	void DetectCollisions();
 
@@ -133,7 +133,7 @@ public:
 	void QueueMessages(List<PhysicsMessage*> msgs);
 
 	/// Attaches a physics property to target entity if it didn't already have one.
-	void AttachPhysicsTo(Entity * entity);
+	void AttachPhysicsTo(EntitySharedPtr entity);
 
 	/// Resumes physics calculations, moving entities in the world using gravitation, given velocities, etc.
 	void Resume();
@@ -144,14 +144,14 @@ public:
 
 	/// Returns a list of all registered entities.
 	Entities GetEntities();
-	List<Entity*> GetDynamicEntities();
+	List< std::shared_ptr<Entity> > GetDynamicEntities();
 	const Vector3f Gravity() const { return gravitation; };
 
 	/// Numeric statistics
 	inline float GetPhysicsMeshCollisionChecks() const { return physicsMeshCollisionChecks; };
 
     /// Loads physics mesh if not already loaded.
-    void EnsurePhysicsMesh(Entity * targetEntity);
+    void EnsurePhysicsMesh(EntitySharedPtr targetEntity);
 	
 	Collision lastCollision;
 
@@ -192,7 +192,7 @@ private:
 	/// Called server-side.
 	void RecalculatePhysicsMesh(Mesh * mesh);
 	/// Checks if the entity requires a physics mesh and loads it if so.
-	void EnsurePhysicsMeshIfNeeded(Entity * targetEntity);
+	void EnsurePhysicsMeshIfNeeded(EntitySharedPtr targetEntity);
 
 	/// Meshes used for collission calculations
 	List<PhysicsMesh*> physicsMeshes;
@@ -217,29 +217,29 @@ private:
 	void ProcessPhysics();
 
 	/// Sets physics type of target entity.
-	void SetPhysicsType(Entity * entity, int type);
+	void SetPhysicsType(EntitySharedPtr entity, int type);
 	/// Sets physics type of target entities.
-	void SetPhysicsType(List<Entity*> &targetEntities, int type);
+	void SetPhysicsType(List< std::shared_ptr<Entity> > &targetEntities, int type);
 	/// Sets physics shape (Plane, Sphere, Mesh, etc.)
-	void SetPhysicsShape(List<Entity*> targetEntities, int type);
+	void SetPhysicsShape(List< std::shared_ptr<Entity> > targetEntities, int type);
 
 	/** Registers an Entity to take part in physics calculations. This requires that the Entity has the physics attribute attached.
 		Returns 0 upon success, 1 if it's lacking a physics attribute, 2 if the Entity array has been filled and 3 if the dynamic entity array has been filled.
 		4 if it's already registered.
 	*/
-	int RegisterEntity(Entity * Entity);
+	int RegisterEntity(EntitySharedPtr Entity);
 	/** Registers a selection of entities to take part in physics calculations. This requires that the entities have physics attributes attached.
 		Returns 0 upon success or a positive number equal to the amount of entities that it failed to register.
 	*/
-	int RegisterEntities(List<Entity*>& targetEntities);
+	int RegisterEntities(List< std::shared_ptr<Entity> >& targetEntities);
 	/// Unregisters and re-registers selected entity.
-	void ReregisterEntity(Entity * entity) { UnregisterEntity(entity); RegisterEntity(entity); };
+	void ReregisterEntity(EntitySharedPtr entity) { UnregisterEntity(entity); RegisterEntity(entity); };
 	/// Unregisters an Entity from the physics calculations. Returns 0 if it found the Entity and successfully removed it, 1 if not.
-	int UnregisterEntity(Entity * Entity);
+	int UnregisterEntity(EntitySharedPtr Entity);
 	/** Unregisters a selection of entities from physics calculations.
 		Returns 0 upon success or a positive number equal to the amount of entities that it failed to unregister.
 	*/
-	int UnregisterEntities(List<Entity*> &targetEntities);
+	int UnregisterEntities(List< std::shared_ptr<Entity> > &targetEntities);
 	/** Unregisters all entities from physics calculations, and clears the collission vfcOctree as well.
 		Returns 0 upon success or a positive number equal to the amount of entities that it failed to
 		unregister. */
@@ -270,12 +270,12 @@ private:
 		semiDynamicEntities;  // Those entities which are KINEMATIC or DYNAMIC but have the fullyDynamic flag set to false.
 /*	/// Old manual list implementation~~
 	/// Array with pointers to all registered objects.
-	Entity * physicalEntity[MAX_REGISTERED_ENTITIES];
+	EntitySharedPtr physicalEntity[MAX_REGISTERED_ENTITIES];
 	/// Amount of currently registered objects.
 	int physicalEntities;
 
 	/// Array with pointers to all registered dynamic objects.
-	Entity * dynamicEntity[MAX_DYNAMIC_ENTITIES];
+	EntitySharedPtr dynamicEntity[MAX_DYNAMIC_ENTITIES];
 	/// Amount of currently registered dynamic entities.
 	int dynamicEntities;
 */

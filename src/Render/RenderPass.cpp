@@ -45,15 +45,15 @@ RenderPass::~RenderPass()
 
 #include "Mesh/Square.h"
 
-void RenderPass::RenderQuad()
+void RenderPass::RenderQuad(GraphicsState & graphicsState)
 {
 	/// Should have been set earlier, dun need to set again.
 //	glViewport(0, 0, windowWorkingArea[0], windowWorkingArea[1]);
 
 	/// Reset projection matrix.
-//	graphicsState->projectionMatrixF = ();
-//	shader->SetProjectionMatrix(graphicsState->projectionMatrixF);
-//	shader->SetViewMatrix(graphicsState->projectionMatrixF);
+//	GraphicsThreadGraphicsState->projectionMatrixF = ();
+//	shader->SetProjectionMatrix(GraphicsThreadGraphicsState->projectionMatrixF);
+//	shader->SetViewMatrix(GraphicsThreadGraphicsState->projectionMatrixF);
 	Matrix4f proj = Matrix4f();
 	proj.LoadIdentity();
 	proj.InitOrthoProjectionMatrix(-1,1,-1,1, 0.10f, 10.f);
@@ -103,14 +103,14 @@ void RenderPass::RenderQuad()
 	glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, projection.getPointer());
     PrintGLError("GLError in RenderUI uploading projectionMatrix");
 
-	graphicsState->projectionMatrixF = graphicsState->projectionMatrixD = projection;
-	graphicsState->viewMatrixF = graphicsState->viewMatrixD.LoadIdentity();
-	graphicsState->modelMatrixF.LoadIdentity();
+	GraphicsThreadGraphicsState->projectionMatrixF = GraphicsThreadGraphicsState->projectionMatrixD = projection;
+	GraphicsThreadGraphicsState->viewMatrixF = GraphicsThreadGraphicsState->viewMatrixD.LoadIdentity();
+	GraphicsThreadGraphicsState->modelMatrixF.LoadIdentity();
 	*/
 
 	Matrix4f mvp = model * view * proj;
 	Vector3f projectedPoint = mvp.Product(Vector4f(renderedPoint, 1));
-	Vector3f projP2 = (graphicsState->modelMatrix * graphicsState->viewMatrixF * graphicsState->projectionMatrixF).Product(renderedPoint);
+	Vector3f projP2 = (GraphicsThreadGraphicsState->modelMatrix * GraphicsThreadGraphicsState->viewMatrixF * GraphicsThreadGraphicsState->projectionMatrixF).Product(renderedPoint);
 //	std::cout<<"\nProjected point: "<<projectedPoint<<" vs "<<projP2;
 	// Allocate o-o
 	static Square * deferredRenderingBox = 0;
@@ -123,7 +123,7 @@ void RenderPass::RenderQuad()
 	}
 	
 	deferredRenderingBox->name = "DeferredLighting";
-	deferredRenderingBox->Render();
+	deferredRenderingBox->Render(graphicsState);
 }
 
 // Renders this pass. Returns false if some error occured, usually mid-way and aborting the rest of the procedure.
@@ -134,7 +134,7 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 	// Set shader to use in this render-pass.
 	if (!shader || (shader->name != shaderName))
 	{
-		shader = ShadeMan.SetActiveShader(shaderName);
+		shader = ShadeMan.SetActiveShader(shaderName, graphicsState);
 		if (!shader)
 		{
 			std::cout<<"\nSkipping render pass. Failed to grab specified shader: "<<shaderName;
@@ -142,14 +142,14 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 		}
 	}
 	else {
-		ShadeMan.SetActiveShader(shader);
+		ShadeMan.SetActiveShader(shader, graphicsState);
 	}
 	// Return if we couldn't even set the shader..
     if (shader == NULL)
 	    return false;
     
 	// Setup output buffers?
-	if (!SetupOutput())
+	if (!SetupOutput(graphicsState))
 		return false;
 	/// Check basic type. If specific, call other procedures.
 	switch(type)
@@ -206,7 +206,7 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 		}
 		case RenderPass::LIGHT:
 		{
-			if (!SetupLightPOVCamera())
+			if (!SetupLightPOVCamera(graphicsState))
 			{
 				// Unbind the framebuffer so that UI and stuff will render as usual.
 				glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -224,7 +224,7 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 	// If shadows are to be rendered, look for em in the light.
 	if (shadows)
 	{
-		List<Light*> lights = graphicsState.lighting->GetLights();
+		List<Light*> lights = graphicsState.lighting.GetLights();
 		for (int i = 0; i < lights.Size(); ++i)
 		{
 			Light * light = lights[i];
@@ -305,14 +305,14 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 	if (graphicsState.settings & USE_LEGACY_GL){
 		// Set default shader program
 		shader = NULL;
-		ShadeMan.SetActiveShader(0);
+		ShadeMan.SetActiveShader(nullptr, graphicsState);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
 	
 	if (shader)
 	{
 		/// Load lighting settings to shader ^^
-		graphicsState.lighting->LoadIntoShader(shader);
+		graphicsState.lighting.LoadIntoShader(shader);
 	}
 	
 	// Set primary color
@@ -345,19 +345,19 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 		/// Use previously rendered-to render-buffers associated with this viewport.
 		case RenderTarget::DEFERRED_GATHER:
 		{
-			SetupDeferredGatherAsInput();
+			SetupDeferredGatherAsInput(graphicsState);
 			renderQuad = true;
 			break;
 		}
 		case RenderTarget::DEFERRED_OUTPUT:
 		{
-			SetupDeferredOutputAsInput(); 
+			SetupDeferredOutputAsInput(graphicsState);
 			/// Render the quad.
 			renderQuad = true;
 			break;
 		}
 		case RenderTarget::POST_PROCESS_OUTPUT:
-			viewport->postProcessOutputBuffer->BindTexturesForSampling(shader);
+			viewport->postProcessOutputBuffer->BindTexturesForSampling(shader, graphicsState);
 			renderQuad = true;
 			break;
 		case RenderTarget::SHADOW_CASTING_ENTITIES:
@@ -373,13 +373,13 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 			{
 				entitiesToRender = graphicsState.shadowCastingEntities;
 			}
-			RenderEntitiesOnlyVertices();
+			RenderEntitiesOnlyVertices(graphicsState);
 			break;
 		}
 		case RenderTarget::ENTITIES:
 		{
 			entitiesToRender = graphicsState.entities;
-			RenderEntities();
+			RenderEntities(graphicsState);
 			break;
 		}
 		case RenderTarget::ENTITY_GROUP:
@@ -390,7 +390,7 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 				if (eg->name == inputGroup)
 				{
 					entitiesToRender = *eg;
-					RenderEntities();
+					RenderEntities(graphicsState);
 				}
 				break;
 			}
@@ -398,7 +398,7 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 		case RenderTarget::REMAINING_ENTITIES:
 		{
 			entitiesToRender = *graphicsState.defaultEntityGroup;
-			RenderEntities();
+			RenderEntities(graphicsState);
 			break;
 		}
 		case RenderTarget::SOLID_ENTITIES:
@@ -415,14 +415,14 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 			{
 				entitiesToRender = graphicsState.solidEntities;
 			}
-			RenderEntities();
+			RenderEntities(graphicsState);
 			// Only entities for now!
 			break;
 		}
 		case RenderTarget::ALPHA_ENTITIES:
 		{
 			entitiesToRender = graphicsState.alphaEntities;
-			RenderAlphaEntities();
+			RenderAlphaEntities(graphicsState);
 			break;
 		}
 		case RenderTarget::PARTICLE_SYSTEMS:
@@ -437,7 +437,7 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 		}
 		case RenderTarget::SKY_BOX:
 		{
-			RenderSkyBox();
+			RenderSkyBox(graphicsState);
 			break;
 		}
 		default:
@@ -448,9 +448,9 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 	if (renderQuad)
 	{
 		if (iterations > 1)			
-			PerformIterativePingPongRenders();
+			PerformIterativePingPongRenders(graphicsState);
 		else
-			RenderQuad();
+			RenderQuad(graphicsState);
 	}
 
 
@@ -495,7 +495,7 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 	return true;
 }
 
-bool RenderPass::SetupOutput()
+bool RenderPass::SetupOutput(GraphicsState& graphicsState)
 {
 	// Target determines glViewport, glFrameBuffer, etc.
 	switch(output)
@@ -504,8 +504,10 @@ bool RenderPass::SetupOutput()
 		{
 			// Set default render target.. however one does that.
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			if (viewport == nullptr)
+				break;
 			viewport->SetGLViewport();
-			graphicsState->shadowPass = false;
+			graphicsState.shadowPass = false;
 			// Ensure depth-testing etc. is enabled. 
 			glDepthMask(true);
 			break;
@@ -513,8 +515,8 @@ bool RenderPass::SetupOutput()
 		case RenderTarget::SHADOW_MAPS:
 		{
 			// Fetch shadow-map framebuffer for this viewport?
-			BindShadowMapFrameBuffer();
-			graphicsState->shadowPass = true;
+			BindShadowMapFrameBuffer(graphicsState);
+			graphicsState.shadowPass = true;
 			GLboolean wasEnabled = glIsEnabled(GL_SCISSOR_TEST);
 			// Disable scissor for proper clear?
 			glDisable(GL_SCISSOR_TEST);
@@ -525,17 +527,17 @@ bool RenderPass::SetupOutput()
 		case RenderTarget::DEFERRED_GATHER:
 		{
 			// Set up/fetch render buffers for this, based on the viewport.
-			BindDeferredGatherFrameBuffer();
+			BindDeferredGatherFrameBuffer(graphicsState);
 			break;
 		}
 		case RenderTarget::DEFERRED_OUTPUT:
 		{
-			BindDeferredOutputFrameBuffer();
+			BindDeferredOutputFrameBuffer(graphicsState);
 			break;
 		}
 		case RenderTarget::POST_PROCESS_OUTPUT:
 		{
-			BindPostProcessOutputFrameBuffer();
+			BindPostProcessOutputFrameBuffer(graphicsState);
 			break;
 		}
 		case RenderTarget::MINIFICATION_BUFFERS:
@@ -558,10 +560,10 @@ bool RenderPass::SetupOutput()
 }
 
 /// 1 X, 2 Y, 3 Z, list of entities.
-void SortBy(int axis, List<Entity*> & entities, bool increasing)
+void SortBy(int axis, List< std::shared_ptr<Entity> > & entities, bool increasing)
 {
 	int currentItems = entities.Size();
-	Entity * entity, * entity2, * tmp;
+	EntitySharedPtr entity, entity2, tmp;
 	/// Use insertion sort, as we can assume that the entities will remain nearly sorted all the time?
 	/// http://en.wikipedia.org/wiki/Insertion_sort
 	for (int i = 0; i < currentItems; ++i)
@@ -595,7 +597,7 @@ void SortBy(int axis, List<Entity*> & entities, bool increasing)
 	}
 }
 
-void RenderPass::RenderEntities()
+void RenderPass::RenderEntities(GraphicsState & graphicsState)
 {
 	// Sort entities?
 	if (sortBy > 0)
@@ -605,15 +607,15 @@ void RenderPass::RenderEntities()
 	// Old here.
 	if (!optimized)
 	{
-		graphicsState->modelMatrixD.LoadIdentity();
-		graphicsState->modelMatrixF.LoadIdentity();
+		graphicsState.modelMatrixD.LoadIdentity();
+		graphicsState.modelMatrixF.LoadIdentity();
 		Timer timer;
 		timer.Start();
 		// Render all entities listed in the graphicsState!
 		for (int i = 0; i < entitiesToRender.Size(); ++i)
 		{
-			Entity * entity = entitiesToRender[i];
-			entity->Render(*graphicsState);
+			EntitySharedPtr entity = entitiesToRender[i];
+			entity->Render(graphicsState);
 		}
 		timer.Stop();
 		FrameStats.renderEntities += timer.GetMs();
@@ -637,7 +639,7 @@ void RenderPass::RenderEntities()
 		// Turn it off first, though.
 		glUniform1i(shader->uniformInstancingEnabled, 0);
 	}
-	Entity * entity;
+	EntitySharedPtr entity;
 	GraphicsProperty * gp;
 	// Render all entities listed in the graphicsState!
 	bool depthWrite = true;
@@ -707,8 +709,8 @@ void RenderPass::RenderEntities()
 		glUniformMatrix4fv(shader->uniformNormalMatrix, 1, false, entity->normalMatrix.getPointer());
 
 		// Render the model
-		entity->model->Render();
-		++graphicsState->renderedObjects;		// increment rendered objects for debug info
+		entity->model->Render(graphicsState);
+		++graphicsState.renderedObjects;		// increment rendered objects for debug info
 	}
 	if (instancingEnabled)
 	{
@@ -716,7 +718,7 @@ void RenderPass::RenderEntities()
 		for (int i = 0; i < entityGroupsToRender.Size(); ++i)
 		{
 			RenderInstancingGroup * group = entityGroupsToRender[i];
-			group->Render();
+			group->Render(graphicsState);
 		}
 	}
 	timer.Stop();
@@ -724,12 +726,12 @@ void RenderPass::RenderEntities()
 	CheckGLError("RenderPass::RenderEntities");
 }
 
-void RenderPass::RenderAlphaEntities()
+void RenderPass::RenderAlphaEntities(GraphicsState & graphicsState)
 {
 	bool optimized = true;
 	Timer timer;
 	timer.Start();
-	entitiesToRender.SortByDistanceToCamera(graphicsState->camera);
+	entitiesToRender.SortByDistanceToCamera(graphicsState.camera);
 	timer.Stop();
 	FrameStats.renderSortEntities += timer.GetMs();
 
@@ -751,7 +753,7 @@ void RenderPass::RenderAlphaEntities()
 	// Disable it if not already done so earlier..?
 //	glDisable(GL_DEPTH_TEST);
 
-	Entity * entity;
+	EntitySharedPtr entity;
 	GraphicsProperty * gp;
 	// Render all entities listed in the graphicsState!
 	for (int i = 0; i < entitiesToRender.Size(); ++i)
@@ -759,7 +761,7 @@ void RenderPass::RenderAlphaEntities()
 		entity = entitiesToRender[i];
 		if (!optimized)
 		{
-			entity->Render(*graphicsState);
+			entity->Render(graphicsState);
 			continue;
 		}
 		gp = entity->graphics;
@@ -808,8 +810,8 @@ void RenderPass::RenderAlphaEntities()
 		glUniform4fv(shader->uniformPrimaryColorVec4, 1, gp->color.v);
 
 		// Render the model
-		entity->model->Render();
-		++graphicsState->renderedObjects;		// increment rendered objects for debug info
+		entity->model->Render(graphicsState);
+		++GraphicsThreadGraphicsState->renderedObjects;		// increment rendered objects for debug info
 	}
 	timer.Stop();
 	FrameStats.renderEntities += timer.GetMs();

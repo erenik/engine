@@ -35,7 +35,9 @@ public:
 	Waypoint * to; // Destination wp.
 	Waypoint * from; // Starting point.
 	Path path; // Stored path as reply.
+	Entity* entity;
 };
+
 /// Sent for other properties to interpret. -> Start walking, running, etc.
 class MoveToMessage : public Message 
 {

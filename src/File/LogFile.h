@@ -21,7 +21,7 @@ extern List<TextError> gErrors, pErrors, aErrors, mErrors;
 #ifdef ERROR
 #undef ERROR
 #endif
-enum 
+enum LogLevel
 {
 	EXTENSIVE_DEBUG = 0,
 	DEBUG = 1,
@@ -33,10 +33,10 @@ enum
 };
 
 /// Global log- and debugging level, adjustable at start-up.
-extern int logLevel;
+extern LogLevel logLevel;
 
 /// Logs to file, creates the file (and folders) necessary if it does not already exist. Time stamps will probably also be available.
-void LogToFile(String fileName, String text, int level, List<TextError> * previousErrors = 0);
+void LogToFile(String fileName, String text, LogLevel level, List<TextError> * previousErrors = 0);
 void SetLogLevel(String fromString);
 
 

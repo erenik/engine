@@ -7,11 +7,11 @@
 #include <String/AEString.h>
 #include "MathLib/Vector3f.h"
 #include "MathLib/Variable.h"
+#include "Entity/Entity.h"
 
 /// Compact saveable version of the event
 struct CompactEvent{};
 class AppState;
-class Entity;
 class FunctionEvaluator;
 
 // Script flags
@@ -105,7 +105,7 @@ public:
 	
 	/// To keep track of things.
 	Script * parent;
-	Entity * entity; // Owner, depeneding on application.
+	EntitySharedPtr entity; // Owner, depeneding on application.
 	List<Script*> childScripts;
 
 	/// Wosh?

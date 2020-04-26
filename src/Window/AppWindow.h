@@ -64,8 +64,11 @@ AppWindow * MainWindow();
 /// AppWindow mouse is currently hovering over.
 AppWindow * HoverWindow();
 
-Align(16)
-class AppWindow
+class 
+#ifdef USE_SSE
+	alignas(16)
+#endif
+	AppWindow
 {
 	friend class GraphicsManager;
 #ifdef WINDOWS

@@ -115,7 +115,7 @@ void VFCOctree::clearAll(){
 /** Adds a scenegraph Entity to this vfcOctree Entity unless max nodes has been reached. 
 	If MAX_INITIAL_NODES_BEFORE_SUBDIVISION is reached, subdivision hasn't yet been done and MAX_SUBDIVISION hasn't been reached, subdivision occurs. 
 */
-bool VFCOctree::AddEntity(Entity * targetEntity){
+bool VFCOctree::AddEntity(EntitySharedPtr targetEntity){
 	// Check that it isn't already added!
 	bool exists = entities.Exists(targetEntity);
 	if (exists){
@@ -153,7 +153,7 @@ bool VFCOctree::AddEntity(Entity * targetEntity){
 	{
 		// Subdivide and then try push all our children down the tree further, so they don't get stuck here without reason.
 		subdivide();
-		List<Entity*> tempList(entities);
+		List< std::shared_ptr<Entity> > tempList(entities);
 		entities.Clear();
 		for (int j = 0; j < tempList.Size(); ++j){
 			AddEntity(tempList[j]);
@@ -168,7 +168,7 @@ bool VFCOctree::AddEntity(Entity * targetEntity){
 }
 
 /** Polls the existence of target entity with in this node (or any of it's children). */
-bool VFCOctree::Exists(Entity * entity){
+bool VFCOctree::Exists(EntitySharedPtr entity){
 	if (entities.Exists(entity))
 		return true;
 	if (child[0]){
@@ -180,7 +180,7 @@ bool VFCOctree::Exists(Entity * entity){
 }
 
 /// Removes the Entity and re-inserts it to it's new location
-bool VFCOctree::RepositionEntity(Entity * entity){
+bool VFCOctree::RepositionEntity(EntitySharedPtr entity){
 	if (!RemoveEntity(entity)){
 		throw 3;
 		return false;
@@ -191,7 +191,7 @@ bool VFCOctree::RepositionEntity(Entity * entity){
 }
 
 // Removes a scenegraph Entity from this vfcOctree. Searches recursively until.
-bool VFCOctree::RemoveEntity(Entity * targetEntity){
+bool VFCOctree::RemoveEntity(EntitySharedPtr targetEntity){
 	assert(targetEntity->registeredForRendering);
 	if (entities.Remove(targetEntity)){
 		return true;
@@ -336,7 +336,7 @@ void VFCOctree::setInFrustum(bool inTrueOrOutFalse){
 
 
 /// Checks if the target Entity is inside this VFCOctree Entity, intersecting it or outside.
-int VFCOctree::IsEntityInside(Entity * entity){
+int VFCOctree::IsEntityInside(EntitySharedPtr entity){
 	// Make box test insteeeead
 	float radius = entity->Radius() * entity->scale.MaxPart();
 	// Check if it's inside.

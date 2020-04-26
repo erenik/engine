@@ -10,7 +10,7 @@ class Entity;
 
 class Exhaust : public ParticleSystem {
 public:
-    Exhaust(Entity * reference);
+    Exhaust(EntitySharedPtr reference);
     virtual ~Exhaust();
     void Process(float timeInSeconds);
     void Render(GraphicsState * graphicsState);

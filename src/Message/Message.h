@@ -12,10 +12,10 @@
 #include "DataTypes.h"
 #include "MathLib.h"
 #include "Time/Time.h"
+#include "Entity/Entity.h"
 
 class Script;
 class UIElement;
-class Entity;
 
 class Message {
 	friend class MessageManager;
@@ -36,7 +36,7 @@ public:
 	AETime timeToProcess;
 
 	/// If this is non-null, the message is sent only to this entity, instead of being processed by the general application states.
-	Entity * recipientEntity;
+	EntitySharedPtr recipientEntity;
 };
 
 class AppWindow;

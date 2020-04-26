@@ -12,7 +12,7 @@
 
 float PathableProperty::defaultProximityThreshold = 1.0f;
 
-PathableProperty::PathableProperty(Entity * owner)
+PathableProperty::PathableProperty(EntitySharedPtr owner)
 : EntityProperty("PathableProperty", ID(), owner)
 {
 	isWalking = false;
@@ -75,7 +75,7 @@ void PathableProperty::Process(int timeInMs)
 void PathableProperty::RequestPath(Waypoint * to)
 {
 	Waypoint * from = WaypointMan.GetClosestWaypoint(owner->worldPosition);
-	PathMessage * pm = new PathMessage(owner, from, to);
+	PathMessage * pm = new PathMessage(owner.get(), from, to);
 	PathMan.QueueMessage(pm); /// TODO: Add message queue and handling in path manager. 
 	/// TODO: Make pathmanager use threads for querying each new path in the navmesh, since it may take some time for each.
 }

@@ -5,7 +5,7 @@
 #include "UIVideo.h"
 #include "UITypes.h"
 #include "Multimedia/MultimediaManager.h"
-#include "Shader.h"
+#include "Graphics/Shader.h"
 #include "GraphicsState.h"
 #include "Texture.h"
 
@@ -114,7 +114,7 @@ void UIVideo::RenderSelf(GraphicsState & graphicsState)
 	/// Save old shader!
 	Shader * pastShader = ActiveShader();
 
-	ShadeMan.SetActiveShader(0);
+	ShadeMan.SetActiveShader(nullptr, graphicsState);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glLoadMatrixf(graphicsState.projectionMatrixF.getPointer());
@@ -174,5 +174,5 @@ void UIVideo::RenderSelf(GraphicsState & graphicsState)
 		glVertex3f(x1, y2, 0);
 	glEnd();
 	
-	ShadeMan.SetActiveShader(pastShader);	
+	ShadeMan.SetActiveShader(pastShader, graphicsState);
 }

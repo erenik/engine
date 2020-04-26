@@ -10,7 +10,7 @@
 #include "PhysicsLib/Shapes/AABB.h"
 #include "PhysicsLib/Shapes/Quad.h"
 
-bool AABBSphereCollision(AABB * aabb, Entity * sphereEntity, Collision &data, bool planesOnly)
+bool AABBSphereCollision(AABB * aabb, EntitySharedPtr sphereEntity, Collision &data, bool planesOnly)
 {
 	assert(sphereEntity->physics->shapeType == ShapeType::SPHERE);
 

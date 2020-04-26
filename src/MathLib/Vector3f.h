@@ -30,10 +30,14 @@ class String;
 
 /** A three-dimensional vector class using floats.
 */
+//#ifdef USE_SSE
+//Align(16)
+//#endif
+class 
 #ifdef USE_SSE
-Align(16)
+	alignas(16)
 #endif
-class Vector3f {
+	Vector3f  {
 public:
 	// CONSTRUCTORS
 	/**	Default Constructor

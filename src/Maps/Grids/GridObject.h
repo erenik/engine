@@ -7,8 +7,7 @@
 
 #include "MathLib.h"
 #include "Tile.h"
-
-class Entity;
+#include "Entity/Entity.h"
 
 /** Grid Object Type
 	Basic information about the grid object, shared by all version of the specified grid object.
@@ -66,7 +65,7 @@ public:
 	/// Name of zis object.
 	String name;
 	/// Entity that is related to this grid-object.
-	Entity * entity;
+	EntitySharedPtr entity;
 	/// Type of this object.
 	GridObjectType * type;
 	/// Name of the GridObjectType.

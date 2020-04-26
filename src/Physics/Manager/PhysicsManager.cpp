@@ -160,7 +160,7 @@ List<Intersection> PhysicsManager::Raycast(Ray & ray)
 	static List<Intersection> intersections;
 	intersections.Clear();
 	// Grab entities.
-	static List<Entity*> entities;
+	static List< std::shared_ptr<Entity> > entities;
 	entities.Clear();
 
 	Sphere sphere;
@@ -170,7 +170,7 @@ List<Intersection> PhysicsManager::Raycast(Ray & ray)
 	// Do some initial filtering, as most of the entities will either: not be relevant for the raycast or may be culled quickly using a sphere-ray check.	
 	for (int i = 0; i < physicalEntities.Size(); ++i)
 	{
-		Entity * entity = physicalEntities[i];
+		EntitySharedPtr entity = physicalEntities[i];
 		PhysicsProperty * pp = entity->physics;
 		/// Check filters if relevant.
 		if (ray.collisionFilter)
@@ -229,7 +229,7 @@ List<Intersection> PhysicsManager::Raycast(Ray & ray)
 	float distance;
 	for (int i = 0; i < entities.Size(); ++i)
 	{
-		Entity * entity = entities[i];
+		EntitySharedPtr entity = entities[i];
 		PhysicsProperty * pp = entity->physics;
 		switch(pp->shapeType)
 		{
@@ -314,7 +314,7 @@ void PhysicsManager::RecalculateAABBs()
 	/*
 	for (int i = 0; i < dynamicEntities.Size(); ++i)
 	{
-		Entity * dynamicEntity = dynamicEntities[i];
+		EntitySharedPtr dynamicEntity = dynamicEntities[i];
 		AABB * aabb = dynamicEntity->GetAABB();
 		aabb->position = dynamicEntity->worldPosition;
 		aabb->min = aabb->position - aabb->scale * 0.5f;
@@ -329,7 +329,7 @@ void PhysicsManager::RecalculateAABBs()
     }
 	for (int i = 0; i < kinematicEntities.Size(); ++i)
 	{
-		Entity * kinematicEntities = dynamicEntities[i];
+		EntitySharedPtr kinematicEntities = dynamicEntities[i];
 		AABB * aabb = kinematicEntities->GetAABB();
 		aabb->position = kinematicEntities->position;
 		aabb->min = aabb->position - aabb->scale * 0.5f;
@@ -349,7 +349,7 @@ void PhysicsManager::RecalculateOBBs()
 {
 	for (int i = 0; i < dynamicEntities.Size(); ++i)
 	{
-		Entity * dynamicEntity = dynamicEntities[i];
+		EntitySharedPtr dynamicEntity = dynamicEntities[i];
 	  	dynamicEntity->physics->obb->Recalculate(dynamicEntity);
     }
 }
@@ -360,7 +360,7 @@ AABB PhysicsManager::GetAllEntitiesAABB()
 	AABB aabb;
 	for (int i = 0; i < physicalEntities.Size(); ++i)
 	{
-		Entity * entity = physicalEntities[i];
+		EntitySharedPtr entity = physicalEntities[i];
 #ifdef USE_SSE
 		aabb.max.data = _mm_max_ps(aabb.max.data, entity->aabb->max.data);
 		aabb.min.data = _mm_min_ps(aabb.min.data, entity->aabb->min.data);
@@ -390,7 +390,7 @@ void PhysicsManager::QueueMessages(List<PhysicsMessage*> msgs)
 
 
 /// Attaches a physics property to target entity if it didn't already have one.
-void PhysicsManager::AttachPhysicsTo(Entity * entity){
+void PhysicsManager::AttachPhysicsTo(EntitySharedPtr entity){
 	if (entity->physics)	// Return if it already has a type
 		return;
 	entity->physics = new PhysicsProperty();
@@ -403,7 +403,7 @@ void PhysicsManager::AttachPhysicsTo(Entity * entity){
 
 
 /// Sets physics type of target entity.
-void PhysicsManager::SetPhysicsType(Entity * entity, int type){
+void PhysicsManager::SetPhysicsType(EntitySharedPtr entity, int type){
 	if (type < PhysicsType::STATIC || type >= PhysicsType::NUM_TYPES){
 		std::cout<<"\nERROR: Invalid physics type provided!";
 		return;
@@ -422,12 +422,12 @@ void PhysicsManager::SetPhysicsType(Entity * entity, int type){
 };
 
 /// Sets physics type of target entities.
-void PhysicsManager::SetPhysicsType(List<Entity*> & targetEntities, int type){
+void PhysicsManager::SetPhysicsType(List< std::shared_ptr<Entity> > & targetEntities, int type){
 	if (type >= PhysicsType::STATIC || type >= PhysicsType::NUM_TYPES){
 		std::cout<<"\nERROR: Invalid physics type provided!";
 		return;
 	}
-	Entity * entity;
+	EntitySharedPtr entity;
 	for (int i = 0; i < targetEntities.Size(); ++i){
 		entity = targetEntities[i];
 		SetPhysicsType(entity, type);
@@ -436,13 +436,13 @@ void PhysicsManager::SetPhysicsType(List<Entity*> & targetEntities, int type){
 
 
 /// Sets physics shape (Plane, Sphere, Mesh, etc.)
-void PhysicsManager::SetPhysicsShape(List<Entity*> targetEntities, int type)
+void PhysicsManager::SetPhysicsShape(List< std::shared_ptr<Entity> > targetEntities, int type)
 {
 	if (type < ShapeType::SPHERE || type >= ShapeType::NUM_TYPES){
 		std::cout<<"\nERROR: Invalid physics type provided!";
 		return;
 	}
-	Entity * entity;
+	EntitySharedPtr entity;
 	for (int i = 0; i < targetEntities.Size(); ++i){
 		entity = targetEntities[i];
 		if (entity->physics == NULL){
@@ -510,12 +510,12 @@ Entities PhysicsManager::GetEntities(){
 		return Entities();
 	return Entities(physicalEntities);
 }
-List<Entity*> PhysicsManager::GetDynamicEntities(){
+List< std::shared_ptr<Entity> > PhysicsManager::GetDynamicEntities(){
 	return dynamicEntities;
 }
 
 /// Loads physics mesh if not already loaded.
-void PhysicsManager::EnsurePhysicsMesh(Entity * targetEntity)
+void PhysicsManager::EnsurePhysicsMesh(EntitySharedPtr targetEntity)
 {
 	///
 	if (!targetEntity->model)
@@ -536,7 +536,7 @@ void PhysicsManager::EnsurePhysicsMesh(Entity * targetEntity)
 }
 
 /// Checks if the entity requires a physics mesh and loads it if so.
-void PhysicsManager::EnsurePhysicsMeshIfNeeded(Entity * targetEntity){
+void PhysicsManager::EnsurePhysicsMeshIfNeeded(EntitySharedPtr targetEntity){
 	// Check if we need a physics-mesh.
 	if (targetEntity->physics->shapeType == ShapeType::MESH){
 		EnsurePhysicsMesh(targetEntity);
@@ -596,7 +596,7 @@ private:
 	long lastUpdate;
 
 	/// Array with pointers to all registered objects.
-	Entity * Entity[MAX_REGISTERED_ENTITIES];
+	EntitySharedPtr Entity[MAX_REGISTERED_ENTITIES];
 	/// Amount of currently registered objects.
 	int registeredEntities;
 
@@ -611,7 +611,7 @@ void PhysicsManager::RecalculatePhysicsProperties(){
     /// This should be handled elsewhere as it's probably a bit of a time-sink?
     assert(false);
 	for (int i = 0; i < physicalEntities.Size(); ++i){
-		Entity * entity = physicalEntities[i];
+		EntitySharedPtr entity = physicalEntities[i];
 		PhysicsProperty * physics = entity->physics;
 		// Recalculate radius
 		entity->RecalculateRadius();

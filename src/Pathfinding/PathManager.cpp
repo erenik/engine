@@ -59,7 +59,7 @@ void PathManager::QueueMessage(PathMessage * pm)
 //	messages.AddItem(pm);
 	assert(pm->from);
 	assert(pm->to);
-	assert(pm->recipientEntity);
+	assert(pm->entity);
 
 	if (pathfindingThreads.Size() > 20)
 	{
@@ -77,7 +77,7 @@ void PathManager::StartThreadFromMessage(PathMessage * pm)
 	Thread * thread = new Thread(PathFinderThread);
 	thread->AddArgument((Argument*)pm->from);
 	thread->AddArgument((Argument*)pm->to);
-	thread->AddArgument((Argument*)pm->recipientEntity);
+	thread->AddArgument((Argument*)pm->entity);
 	thread->Run();
 	pathfindingThreads.AddItem(thread);
 }

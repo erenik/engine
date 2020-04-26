@@ -44,7 +44,7 @@ Map::~Map(){
 }
 
 /** Adds target entity to the map. */
-bool Map::AddEntity(Entity * i_entity){
+bool Map::AddEntity(EntitySharedPtr i_entity){
 	assert(entities.Size() < MAX_ENTITIES_PER_MAP);
 	assert(entities.Add(i_entity));
 	return true;
@@ -64,7 +64,7 @@ bool Map::AddEvent(Script * event){
 }
 
 /** Removes target entity from the map. If the map is active the entity will also be de-registered from graphics/physics/etc.? */
-bool Map::RemoveEntity(Entity * entity)
+bool Map::RemoveEntity(EntitySharedPtr entity)
 {
 	entities.Remove(entity);
 	if (active)
@@ -97,13 +97,13 @@ AABB Map::CalcAABB()
 	AABB aabb;
 	for (int i = 0; i < entities.Size(); ++i)
 	{
-		Entity * entity = entities[i];
+		EntitySharedPtr entity = entities[i];
 		aabb.Expand(*entity->aabb);
 	}
 	return aabb;
 }
 
-Entity * Map::GetEntity(String byName){
+EntitySharedPtr Map::GetEntity(String byName){
 	for (int i = 0; i < entities.Size(); ++i){
 		if (entities[i]->name == byName)
 			return entities[i];
@@ -112,7 +112,7 @@ Entity * Map::GetEntity(String byName){
 }
 
 /** Returns a list of entities in the map. */
-List<Entity*> Map::GetEntities(){
+List< std::shared_ptr<Entity> > Map::GetEntities(){
 	return entities;
 }
 List<Script*> Map::GetEvents(){
@@ -158,7 +158,7 @@ void Map::LoadFromCompactData()
 			continue;
 		}
 		/// Ask entity manager to create them :P
-		Entity * newEntity = EntityMan.CreateEntity(cEntity->name, model, texture);
+		EntitySharedPtr newEntity = EntityMan.CreateEntity(cEntity->name, model, texture);
 		newEntity->LoadCompactEntityData(cEntity);
 		/// Add them to the map ^^
 		AddEntity(newEntity);
@@ -179,7 +179,7 @@ void Map::Process(int timePassedInMs)
 {
 	for (int i = 0; i < entities.Size(); ++i)
 	{
-		Entity * entity = entities[i];
+		EntitySharedPtr entity = entities[i];
 		if (entity->sharedProperties)
 			continue;
 		for (int j = 0; j < entity->properties.Size(); ++j)

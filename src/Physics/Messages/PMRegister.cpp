@@ -6,7 +6,7 @@
 #include "../PhysicsManager.h"
 #include "File/LogFile.h"
 
-PMRegisterEntity::PMRegisterEntity(Entity * i_entity): PhysicsMessage(PM_REGISTER_ENTITY) 
+PMRegisterEntity::PMRegisterEntity(EntitySharedPtr i_entity): PhysicsMessage(PM_REGISTER_ENTITY) 
 {
 	entity = i_entity;
 //	assert(i_entity->registeredForPhysics != true);
@@ -28,7 +28,7 @@ void PMRegisterEntity::Process()
 }
 
 
-PMRegisterEntities::PMRegisterEntities(List<Entity*> targetEntities): PhysicsMessage(PM_REGISTER_ENTITIES) 
+PMRegisterEntities::PMRegisterEntities(List< std::shared_ptr<Entity> > targetEntities): PhysicsMessage(PM_REGISTER_ENTITIES) 
 {
 	entities = targetEntities;
 }

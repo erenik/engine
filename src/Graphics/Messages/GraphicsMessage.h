@@ -164,10 +164,10 @@ private:
 
 class GMRegisterEntity : public GraphicsMessage {
 public:
-	GMRegisterEntity(Entity * entity);
+	GMRegisterEntity(EntitySharedPtr entity);
 	void Process();
 private:
-	Entity * entity;
+	EntitySharedPtr entity;
 };
 
 class GMRegisterEntities : public GraphicsMessage {
@@ -180,18 +180,18 @@ private:
 
 class GMUnregisterEntity : public GraphicsMessage {
 public:
-	GMUnregisterEntity(Entity * entity);
+	GMUnregisterEntity(EntitySharedPtr entity);
 	void Process();
 private:
-	Entity * entity;
+	EntitySharedPtr entity;
 };
 
 class GMUnregisterEntities : public GraphicsMessage {
 public:
-	GMUnregisterEntities(List<Entity*> entities);
+	GMUnregisterEntities(List< std::shared_ptr<Entity> > entities);
 	void Process();
 private:
-	List<Entity*> entities;
+	List< std::shared_ptr<Entity> > entities;
 };
 
 class ParticleSystem;

@@ -10,11 +10,11 @@ AircraftIntegrator::AircraftIntegrator()
 }
 
 
-void AircraftIntegrator::IntegrateDynamicEntities(List<Entity*> dynamicEntities, float timeInSeconds)
+void AircraftIntegrator::IntegrateDynamicEntities(List< std::shared_ptr<Entity> > dynamicEntities, float timeInSeconds)
 {
 	for (int i = 0; i < dynamicEntities.Size(); ++i)
 	{
-		Entity * dynamicEntity = dynamicEntities[i];
+		EntitySharedPtr dynamicEntity = dynamicEntities[i];
 		IntegrateVelocity(dynamicEntity, timeInSeconds);
 	}
 }
@@ -24,17 +24,17 @@ void AircraftIntegrator::IntegrateDynamicEntities(List<Entity*> dynamicEntities,
 /** All entities sent here should be fully kinematic! 
 	If not subclassed, the standard IntegrateEntities is called.
 */
-void AircraftIntegrator::IntegrateKinematicEntities(List<Entity*> kinematicEntities, float timeInSeconds)
+void AircraftIntegrator::IntegrateKinematicEntities(List< std::shared_ptr<Entity> > kinematicEntities, float timeInSeconds)
 {
 	for (int i = 0; i < kinematicEntities.Size(); ++i)
 	{
-		Entity * kinematicEntity = kinematicEntities[i];
+		EntitySharedPtr kinematicEntity = kinematicEntities[i];
 		IntegrateVelocity(kinematicEntity, timeInSeconds);
 	}
 }
 	
 
-void AircraftIntegrator::IntegrateVelocity(Entity * forEntity, float timeInSeconds)
+void AircraftIntegrator::IntegrateVelocity(EntitySharedPtr forEntity, float timeInSeconds)
 {
 	PhysicsProperty * pp = forEntity->physics;
 	Vector3f & position = forEntity->localPosition;

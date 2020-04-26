@@ -20,7 +20,6 @@
 #include "CompactEntity.h"
 #include "../GraphicsState.h"
 #include "Texture.h"
-#include "Shader.h"
 #include "TextureManager.h"
 #include "Model/ModelManager.h"
 #include "Script/ScriptProperty.h"
@@ -42,7 +41,7 @@
 const Material Entity::defaultMaterial = Material();
 
 /// Creates a compact entity out of this Entity object
-void Entity::CreateCompactEntity(CompactEntity * cEntity)
+void Entity::CreateCompactEntity(CompactEntity* cEntity)
 {
 	assert(cEntity);
 	strcpy(cEntity->name, name.c_str());
@@ -68,8 +67,12 @@ void Entity::CreateCompactEntity(CompactEntity * cEntity)
 	}
 }
 
+EntitySharedPtr Entity::SharedPtr() {
+	return selfPtr.lock();
+}
+
 /// Loads data from the file compact entity format
-void Entity::LoadCompactEntityData(CompactEntity * cEntity)
+void Entity::LoadCompactEntityData(CompactEntity* cEntity)
 {
 	/// Model and texture is extracted elsewhere, but we can copy name, and other details here..
 	name = cEntity->name;
@@ -79,12 +82,12 @@ void Entity::LoadCompactEntityData(CompactEntity * cEntity)
 	if (cEntity->cPhysics){
 		assert(!physics);
 		physics = new PhysicsProperty(cEntity->cPhysics);
-		Physics.QueueMessage(new PMSetPhysicsType(this, physics->type));
-		Physics.QueueMessage(new PMSetPhysicsShape(this, physics->shapeType));
+		Physics.QueueMessage(new PMSetPhysicsType(SharedPtr(), physics->type));
+		Physics.QueueMessage(new PMSetPhysicsShape(SharedPtr(), physics->shapeType));
 	}
 	if (cEntity->cGraphics){
 		assert(!graphics);
-		graphics = new GraphicsProperty(this);
+		graphics = new GraphicsProperty(SharedPtr());
 		graphics->LoadDataFrom(cEntity->cGraphics);
 	}
 	diffuseMap = TexMan.GetTextureBySource(cEntity->diffuseMap);
@@ -129,14 +132,14 @@ Entity::Entity(int i_id)
 	this->physics = NULL;
 	this->scripts = NULL;
 	/// Create it automatiaclly so we don't have to, cheers..
-	this->pathfindingProperty = new PathfindingProperty(this);
+	this->pathfindingProperty = new PathfindingProperty(SharedPtr());
 
 	parent = NULL;
 	cameraFocus = NULL;
 	hasRotated = false;
 
-	/// Calculate look-at vectors, etc...
-	RecalculateMatrix(ALL_PARTS);
+	/// Calculate look-at vectors, etc... - do it after registering with physics/graphics.
+	//RecalculateMatrix(ALL_PARTS);
 
 	/// Default render transform..
 	renderTransform = &transformationMatrix;
@@ -171,11 +174,11 @@ Entity::~Entity()
 void Entity::RemoveLinks()
 {
 	if (parent)
-		parent->children.RemoveItem(this);
+		parent->children.RemoveItem(SharedPtr());
 
 	for (int i = 0; i < children.Size(); ++i)
 	{
-		Entity * child = children[i];
+		EntitySharedPtr child = children[i];
 		child->parent = 0;
 	}
 	children.Clear();
@@ -270,6 +273,7 @@ void Entity::Bufferize()
 		emissiveMap->Bufferize();
 }
 
+/*
 void Entity::RenderOld(GraphicsState & graphicsState)
 {
 	Shader * shader = ActiveShader();
@@ -354,15 +358,16 @@ void Entity::RenderOld(GraphicsState & graphicsState)
 	++graphicsState.renderedObjects;		// increment rendered objects for debug info
 
 	// Render children if needed
-	/*
-	if (child)
-		for (int i = 0; i < children; ++i)
-			child[i]->RenderOld(graphicsState);
-*/
+	
+	//if (child)
+	//	for (int i = 0; i < children; ++i)
+	//		child[i]->RenderOld(graphicsState);
 
 	// Revert the model matrix to the old one in the stack
 	graphicsState.modelMatrixD = tmp;
 }
+
+*/
 
 /// Gets velocity, probably from the PhysicsState
 Vector3f Entity::Velocity()
@@ -596,7 +601,7 @@ void Entity::RecalculateMatrix(int whichParts/*= true*/, bool recursively /* = f
 	worldPosition = transformationMatrix.Product(Vector4f());
 
 	/// Update AABB accordingly.
-	aabb->Recalculate(this);
+	aabb->Recalculate(SharedPtr());
 }
 
 void Entity::RecalcRotationMatrix(bool force /* = false*/)
@@ -922,9 +927,9 @@ float Entity::Radius() const
 
 
 /// o.o Links child and parent for both.
-void Entity::AddChild(Entity * child)
+void Entity::AddChild(EntitySharedPtr child)
 {
 	assert(child->parent == NULL);
 	children.Add(child);
-	child->parent = this;
+	child->parent = SharedPtr();
 }

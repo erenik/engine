@@ -6,6 +6,8 @@
 
 #include "List/List.h"
 
+class GraphicsState;
+
 #define FrameStats (*FrameStatistics::Instance())
 
 // Data handling single for render-statistics.
@@ -22,7 +24,7 @@ public:
 	/// Anulls the frame stats (only for current-frame statistics, not FPS et al)
 	void ResetGraphics();
 	void ResetPhysics();
-	void Print();
+	void Print(GraphicsState& graphicsState);
 
 	/// And the stats!
 	float sceneTime, alphaTime, effectsTime, uiTime;

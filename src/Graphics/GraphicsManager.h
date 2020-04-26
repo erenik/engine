@@ -42,6 +42,8 @@ class RenderPipeline;
 /// If part of the graphics processing, is used to record latest function location in order to track where exceptions are thrown..?
 extern String graphicsThreadDetails;
 
+#define GraphicsThreadGraphicsState (GraphicsMan.GraphicsStatePtr())
+
 // Defines a class that handles textures, rendering and it's contexts and settings
 class GraphicsManager 
 {
@@ -73,13 +75,27 @@ private:
 	/// Constructor which anulls all relevant variables.
 	GraphicsManager();
 	static GraphicsManager * graphicsManager;
+
+	/** Main state for rendering. Contains settings for pretty much everything which is not embedded in other objects.
+		Read only unless you know what you're doing (and are located within a render-thread function).
+	*/
+	GraphicsState graphicsState;
+
 public:
+
+	GraphicsState* GraphicsStatePtr() {
+		return &graphicsState;
+	}
+
 	static void Allocate();
 	static GraphicsManager * Instance();
 	static void Deallocate();
 	~GraphicsManager();
 	/// If true, it is still OK to queue messages.
 	static bool GraphicsProcessingActive();
+
+	// Called in graphics thread after initial init and shader compilation.
+	void InitRenderPipelineManager();
 
 	int RegisteredEntities();
 
@@ -328,13 +344,13 @@ private:
 	void RenderFullScreen(Texture * tex, float alpha = 1.0f);
 
 	/// Adds an Entity to be rendered to the vfcOctree.
-	bool RegisterEntity(Entity * entity);
+	bool RegisterEntity(EntitySharedPtr entity);
 	/// Registers all entities in the selection for rendering. Returns the number of faield registrations.
-	int RegisterEntities(List<Entity*> & toRegister);
+	int RegisterEntities(List< std::shared_ptr<Entity> > & toRegister);
 	/// Removes an Entity from the rendering vfcOctree.
-	bool UnregisterEntity(Entity * entity);
+	bool UnregisterEntity(EntitySharedPtr entity);
 	/// Unregisters all entities in the selection from rendering. Returns the number of failed unregistrations.
-	int UnregisterEntities(List<Entity*> & toUnregister);
+	int UnregisterEntities(List< std::shared_ptr<Entity> > & toUnregister);
 	/// Unregisters all entities possible from rendering.
 	int UnregisterAll();
 
@@ -361,13 +377,13 @@ private:
 	VFCOctree * vfcOctree;
 #endif
 	// Main frustum pointer for VFC. This should be updated to correspond to the active camera at all times.
-	Frustum * frustum;
+	Frustum* frustum;
 
 	// Queue for messages to be processed between renders
 	List<GraphicsMessage*> messageQueue, delayedMessages;
 
 	/// Number of registered entities
-	List<Entity*> registeredEntities;
+	List< std::shared_ptr<Entity> > registeredEntities;
 
 	/// Allocates the frame buffer objects
 	void InitFrameBuffer();

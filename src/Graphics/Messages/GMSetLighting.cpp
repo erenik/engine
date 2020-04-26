@@ -5,6 +5,8 @@
 #include "../GraphicsManager.h"
 #include "GraphicsMessages.h"
 #include "GraphicsState.h"
+#include "File/LogFile.h"
+#include "Util/String/StringUtil.h"
 
 /// Sets copy of the given lighting setup.
 GMSetLighting::GMSetLighting(Lighting & lighting)
@@ -29,4 +31,5 @@ void GMSetLighting::Process()
 		GraphicsMan.lighting = *lightingPtr;
 	else 
 		GraphicsMan.lighting = lighting;
+	LogGraphics("Lighting updated, ambient: " + VectorString(GraphicsMan.lighting.GetAmbient()), INFO);
 }

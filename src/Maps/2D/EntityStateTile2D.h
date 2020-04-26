@@ -13,7 +13,7 @@
 class EntityStateTile2D : public EntityProperty
 {
 public:
-	EntityStateTile2D(Entity * entity);
+	EntityStateTile2D(EntitySharedPtr entity);
 	~EntityStateTile2D();
 	/// Render, why does the entity state have a render function..?
 	void Render();

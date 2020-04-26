@@ -7,7 +7,7 @@
 #include <cstring>
 #include <fstream>
 
-#include "Shader.h"
+#include "Graphics/Shader.h"
 #include "GraphicsState.h"
 
 #include "Graphics/GraphicsManager.h"
@@ -384,6 +384,12 @@ void Lighting::SetAmbient(float r, float g, float b, float a)
 	this->global_ambient = Vector4f(r,g,b,a);
 	this->lastUpdate = Time::Now();
 }
+/// Sets ambient using doubles.
+void Lighting::SetAmbient(double r, double g, double b, double a) {
+	SetAmbient(float(r), float(g), float(b), float(a));
+}
+
+
 /// Sets ambient values. Alpha defaults to 0.
 void Lighting::SetAmbient(const Vector3f & values)
 {
@@ -525,8 +531,8 @@ void Lighting::PrepareForLoading()
 	ambient[1] = global_ambient[1];
 	ambient[2] = global_ambient[2];
 	ambient[3] = global_ambient[3];
-	assert(graphicsState->camera);
-	Vector3f camPos = graphicsState->camera->position;
+	assert(GraphicsThreadGraphicsState->camera);
+	Vector3f camPos = GraphicsThreadGraphicsState->camera->position;
 	for (int i = 0; i < lights.Size() && activeLights < MAX_LIGHTS; ++i)
 	{
 		Light * light = lights[i];

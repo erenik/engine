@@ -10,7 +10,7 @@
 
 extern int debug;
 
-bool QuadSphereCollision(Entity * quadEntity, Entity * sphere, Collision &data, bool planesOnly)
+bool QuadSphereCollision(EntitySharedPtr quadEntity, EntitySharedPtr sphere, Collision &data, bool planesOnly)
 {
 	assert(quadEntity->physics->shapeType == ShapeType::QUAD);
 	Quad * pquad = (Quad*)quadEntity->physics->shape;
@@ -19,7 +19,7 @@ bool QuadSphereCollision(Entity * quadEntity, Entity * sphere, Collision &data, 
 	return QuadSphereCollision(&quad, sphere, data, planesOnly);
 }
 
-bool QuadSphereCollision(Quad * quad, Entity * sphereEntity, Collision &data, bool planeOnly)
+bool QuadSphereCollision(Quad * quad, EntitySharedPtr sphereEntity, Collision &data, bool planeOnly)
 {
 	if (debug == 5)
 		std::cout<<"\nSphere entity position "<<sphereEntity->worldPosition;

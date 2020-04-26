@@ -6,9 +6,13 @@
 
 #include "GraphicEffect.h"
 
+class Entity;
+#define EntitySharedPtr std::shared_ptr<Entity>
+
+
 // Static model with interactive alpha-effects
 struct AlphaModelEffect : public GraphicEffect {
-	AlphaModelEffect(String name, String model, Entity * reference);
+	AlphaModelEffect(String name, String model, EntitySharedPtr reference);
 	void SetModel();
 	/// Renders, but also updates it's various values using the given timestep since last frame.
 	void Render(GraphicsState & graphics);

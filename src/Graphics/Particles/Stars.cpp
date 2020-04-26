@@ -49,7 +49,7 @@ Stars::Stars(bool emitWithEmittersOnly)
 }
 	
 /// Creates a particle system which will be attached to a specific entity.
-Stars::Stars(Entity * reference, bool emitWithEmittersOnly)
+Stars::Stars(EntitySharedPtr reference, bool emitWithEmittersOnly)
 : ParticleSystem("Sparks", emitWithEmittersOnly)
 {
 	/// Set link to entity.
@@ -136,7 +136,7 @@ void Stars::PrintData(){
 }
 
 
-void Stars::AttachTo(Entity * entity, ConstMat4r relativePosition)
+void Stars::AttachTo(EntitySharedPtr entity, ConstMat4r relativePosition)
 {
 	assert(false);
 }

@@ -7,9 +7,9 @@
 
 #include "MathLib/Emitter.h"
 #include "PhysicsLib/Shapes/Contour.h"
+#include "Entity/Entity.h"
 
 class Mesh;
-class Entity;
 class ParticleSystem;
 
 /// Pre-calculated
@@ -89,7 +89,7 @@ public:
 	/// For line-, plane- and cube-based emitters.
 	Vector3f upVec, leftVec;
 	/// Position will be relative to the tracked entity, if any.
-	Entity * entityToTrack;
+	EntitySharedPtr entityToTrack;
 	Vector3f positionOffset;
 	/// That it is currently attached to.
 	List<ParticleSystem*> particleSystems;

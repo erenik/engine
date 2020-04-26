@@ -64,7 +64,7 @@ AABBSweepAxis::~AABBSweepAxis()
 	nodes.ClearAndDelete();
 }
 
-void AABBSweepAxis::AddEntity(Entity * entity)
+void AABBSweepAxis::AddEntity(EntitySharedPtr entity)
 {
 	// check if it fits here?
 	AABB * aabb = entity->aabb;
@@ -112,7 +112,7 @@ void AABBSweepAxis::AddEntity(Entity * entity)
 
 }
 
-void AABBSweepAxis::RemoveEntity(Entity * entity)
+void AABBSweepAxis::RemoveEntity(EntitySharedPtr entity)
 {
 	entity->physics->axes.RemoveItemUnsorted(this);
 	int deleted = 0;
@@ -144,7 +144,7 @@ void AABBSweepAxis::Clear() // Clears all references.
 	dynamicEntities.Clear();
 }
 
-bool AABBSweepAxis::ShouldBeHere(Entity * entity)
+bool AABBSweepAxis::ShouldBeHere(EntitySharedPtr entity)
 {
 	AABB * aabb = entity->aabb;
 	if (aabb->min.x > max.x)
@@ -262,11 +262,11 @@ bool AABBSweepAxis::FindPairsLinearPlusSearch(List<EntityPair> & entityPairs)
 	int numActiveEntities;
 	AABBSweepNode * node;
 	int i, j;
-	Entity ** activeEntityArray;
-	Entity * entity;
+	EntitySharedPtr* activeEntityArray;
+	EntitySharedPtr entity;
 	AABB * oneab, * twoab;
 
-	static List<Entity*> activeEntities;
+	static List< std::shared_ptr<Entity> > activeEntities;
 	/// Clear the active entities list.
     activeEntities.Clear();
     for (j = 0; j < nodes.Size(); ++j)
@@ -348,16 +348,16 @@ bool AABBSweepAxis::FindPairsLinearPlusSearch(List<EntityPair> & entityPairs)
 
 //#define TEST_DYNAMIC_FOCUS_SORT
 #ifdef TEST_DYNAMIC_FOCUS_SORT
-	static List<Entity*> relevantEntities;
+	static List< std::shared_ptr<Entity> > relevantEntities;
 	relevantEntities = dynamicEntities;
 	// Remove sleeping ones.
-	Entity * entity;
+	EntitySharedPtr entity;
 	int i, j, k;
 	static List<EntityPair> toAdd;
 	List<AABBSweepNode*> & xAxis = axisNodeList[0];
 	AABBSweepNode * start, * stop, * node;
 	AABB * oneab, * twoab;
-	static List<Entity*> processedDynamicEntities; // Used to filter for duplicates of collisions.
+	static List< std::shared_ptr<Entity> > processedDynamicEntities; // Used to filter for duplicates of collisions.
 	processedDynamicEntities.Clear();
 	for (i = 0; i < relevantEntities.Size(); ++i)
 	{

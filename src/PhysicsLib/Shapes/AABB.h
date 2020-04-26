@@ -8,14 +8,14 @@
 #include "MathLib.h"
 
 #include "PhysicsLib/Shapes/Quad.h"
-class Entity;
+#include "Entity/Entity.h"
 
 struct EntityPair 
 {
 	EntityPair();
-	EntityPair(Entity * one, Entity * two);
-    Entity * one;
-    Entity * two;
+	EntityPair(EntitySharedPtr one, EntitySharedPtr two);
+    EntitySharedPtr one;
+    EntitySharedPtr two;
     void PrintDetailed();
 };
 
@@ -34,7 +34,7 @@ public:
 	void Expand(AABB & aabb2);
 	void Expand(ConstVec3fr vec); 
     /// Recalculate the AABBs constraints based on the given entity's transform and base model AABB.
-    void Recalculate(Entity * entity);
+    void Recalculate(EntitySharedPtr entity);
 	bool WriteTo(std::fstream & file);
 	bool ReadFrom(std::fstream & file);
 

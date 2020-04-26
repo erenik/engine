@@ -17,11 +17,11 @@ void Integrator::IsGood()
 	// std::cout<<"\nAll is well.. o.o";
 }
 
-void Integrator::CalculateForces(List<Entity*> & entities)
+void Integrator::CalculateForces(List< std::shared_ptr<Entity> > & entities)
 {
 	for (int i = 0; i < entities.Size(); ++i)
 	{
-		Entity * entity = entities[i];
+		EntitySharedPtr entity = entities[i];
 		PhysicsProperty * pp = entity->physics;
 		pp->totalForce = Vector3f();
 
@@ -36,11 +36,11 @@ void Integrator::CalculateForces(List<Entity*> & entities)
 		pp->totalForce += gravity * pp->mass * pp->gravityMultiplier;
 	}
 }
-void Integrator::UpdateMomentum(List<Entity*> & entities, float timeInSeconds)
+void Integrator::UpdateMomentum(List< std::shared_ptr<Entity> > & entities, float timeInSeconds)
 {
 	for (int i = 0; i < entities.Size(); ++i)
 	{
-		Entity * entity = entities[i];
+		EntitySharedPtr entity = entities[i];
 		PhysicsProperty * pp = entity->physics;
 		pp->linearMomentum += pp->totalForce * timeInSeconds;
 		pp->angularMomentum += pp->totalTorque * timeInSeconds;
@@ -52,11 +52,11 @@ void Integrator::UpdateMomentum(List<Entity*> & entities, float timeInSeconds)
 	}
 
 }
-void Integrator::DeriveVelocity(List<Entity*> & entities)
+void Integrator::DeriveVelocity(List< std::shared_ptr<Entity> > & entities)
 {
 	for (int i = 0; i < entities.Size(); ++i)
 	{
-		Entity * entity = entities[i];
+		EntitySharedPtr entity = entities[i];
 		/// Recalculate 'auxiliary variables'...
 		PhysicsProperty * pp = entity->physics;
 		pp->velocity = pp->linearMomentum * pp->inverseMass;
@@ -64,14 +64,14 @@ void Integrator::DeriveVelocity(List<Entity*> & entities)
 }
 
 
-void Integrator::RecalculateMatrices(List<Entity*> & entities)
+void Integrator::RecalculateMatrices(List< std::shared_ptr<Entity> > & entities)
 {
 	// Recalc
 	Timer timer;
 	timer.Start();
 	for (int i = 0; i < entities.Size(); ++i)
 	{
-		Entity * entity = entities[i];
+		EntitySharedPtr entity = entities[i];
 		/// Skip all entities with parents. Let the parent trigger the default recursive recalculation procedure.
 		if (entity->parent)
 			continue;
@@ -81,7 +81,7 @@ void Integrator::RecalculateMatrices(List<Entity*> & entities)
 	this->entityMatrixRecalcMs = timer.GetMs();
 }
 
-void NoIntegrator::IntegrateDynamicEntities(List<Entity*>& dynamicEntities, float timeInSeconds) {
+void NoIntegrator::IntegrateDynamicEntities(List< std::shared_ptr<Entity> >& dynamicEntities, float timeInSeconds) {
 }
-void NoIntegrator::IntegrateKinematicEntities(List<Entity*>& kinematicEntities, float timeInSeconds) {
+void NoIntegrator::IntegrateKinematicEntities(List< std::shared_ptr<Entity> >& kinematicEntities, float timeInSeconds) {
 }

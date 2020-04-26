@@ -626,7 +626,7 @@ bool Texture::Bufferize(bool force /* = false*/)
 		std::cout<<"\nNo data to bufferize!";
 		return false;
 	}
-	LogGraphics("Buffering texture "+source, INFO);
+	LogGraphics("Buffering texture "+source, DEBUG);
 	queueRebufferization = false;
 
 	GLuint error;
@@ -640,8 +640,9 @@ bool Texture::Bufferize(bool force /* = false*/)
 	if (error != GL_NO_ERROR){
 		std::cout<<"\nGLError in Render "<<error;
 	}
-	if (!dynamic)
-		std::cout<<"\nBuffering texture "<<name<<"...";
+	if (!dynamic) {
+		LogGraphics("Buffering texture " + name, DEBUG);
+	}
 	// Generate texture
 	if (glid == -1)
 		glGenTextures(1, &glid);

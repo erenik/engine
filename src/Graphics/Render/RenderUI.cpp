@@ -13,14 +13,14 @@ void GraphicsManager::RenderUI(UserInterface * ui)
 	if (ui == NULL)
 		return;
 	/// Set UI Shader program
-	Shader * shader = ShadeMan.SetActiveShader("UI");
+	Shader * shader = ShadeMan.SetActiveShader("UI", graphicsState);
 	if (shader == NULL && GL_VERSION_MAJOR > 2)
 	{
 		std::cout<<"\nUI shader unavailable for some reason. Unable to render UI.";
 		return;
     }
 
-	AppWindow * window = graphicsState->activeWindow;
+	AppWindow * window = graphicsState.activeWindow;
 	Vector2i windowWorkingArea = window->WorkingArea();
 	glViewport(0, 0, windowWorkingArea[0], windowWorkingArea[1]);
 
@@ -36,7 +36,7 @@ void GraphicsManager::RenderUI(UserInterface * ui)
 	/// Disable stuff.
 	glDisable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, 0);
-	graphicsState->currentTexture = NULL;
+	graphicsState.currentTexture = NULL;
 	// Disable lighting
 	glDisable(GL_LIGHTING);
 	glDisable(GL_COLOR_MATERIAL);
@@ -48,7 +48,7 @@ void GraphicsManager::RenderUI(UserInterface * ui)
     /// Setup scissor test variables
     glEnable(GL_SCISSOR_TEST);
 //	std::cout<<"\nWidth: "<<Graphics.Width()<<" Height: "<<Graphics.Height();
-	graphicsState->scissor = Rect(0, 0, graphicsState->windowWidth, graphicsState->windowHeight);
+	graphicsState.scissor = Rect(0, 0, graphicsState.windowWidth, graphicsState.windowHeight);
 
     PrintGLError("GLError in RenderUI setting shader");
 	
@@ -86,13 +86,13 @@ void GraphicsManager::RenderUI(UserInterface * ui)
 	glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, projection.getPointer());
     PrintGLError("GLError in RenderUI uploading projectionMatrix");
 
-	graphicsState->projectionMatrixF = graphicsState->projectionMatrixD = projection;
-	graphicsState->viewMatrixF = graphicsState->viewMatrixD.LoadIdentity();
-	graphicsState->modelMatrixF.LoadIdentity();
+	graphicsState.projectionMatrixF = graphicsState.projectionMatrixD = projection;
+	graphicsState.viewMatrixF = graphicsState.viewMatrixD.LoadIdentity();
+	graphicsState.modelMatrixF.LoadIdentity();
 
 	/// Render
 	try {
-		ui->Render(*graphicsState);
+		ui->Render(graphicsState);
 	} catch(...){
 		std::cout<<"\nERROR: Exception trying to render ui: "<<ui->Source();
 	}

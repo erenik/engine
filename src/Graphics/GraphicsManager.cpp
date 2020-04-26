@@ -51,11 +51,7 @@ GraphicsManager * GraphicsManager::graphicsManager = NULL;
 void GraphicsManager::Allocate()
 {
 	assert(graphicsManager == NULL);
-	graphicsManager= new GraphicsManager();
-
-	RenderPipelineManager::Allocate();
-	RenderPipeMan.LoadFromPipelineConfig();
-	graphicsState->renderPipe = RenderPipeMan.activePipeline;
+	graphicsManager = new GraphicsManager();
 }
 GraphicsManager * GraphicsManager::Instance()
 {
@@ -113,7 +109,6 @@ void PrintGLError(const char * text){
 /// Constructor which anulls all relevant variables.
 GraphicsManager::GraphicsManager()
 {
-	graphicsState = new GraphicsState();
 	pauseProcessing = false;
 	optimizationStructure = NONE;
 //	this->defaultLighting.CreateDefaultSetup();
@@ -245,8 +240,7 @@ GraphicsManager::~GraphicsManager()
     rays.ClearAndDelete();
     renderShapes.ClearAndDelete();
 
-	SAFE_DELETE(graphicsState);
-	SAFE_DELETE(frustum);
+	frustum = nullptr;
 #ifdef VFC_OCTREE
 	SAFE_DELETE(vfcOctree);
 #endif
@@ -258,6 +252,16 @@ GraphicsManager::~GraphicsManager()
 bool GraphicsManager::GraphicsProcessingActive()
 {
 	return graphicsThread;
+}
+
+void GraphicsManager::InitRenderPipelineManager()
+{
+	LogGraphics("Initializing RenderPipeline manager", INFO);
+	RenderPipelineManager::Allocate();
+	RenderPipeMan.LoadFromPipelineConfig(); 
+	//RenderPipeMan.activePipeline->Render(graphicsState); // Test-render with the pipeline with an empty graphics state to fetch relevant shaders.
+	// Recompile shaders afterwards
+	ShaderMan.RecompileAllShaders();
 }
 
 int GraphicsManager::RegisteredEntities()
@@ -276,7 +280,7 @@ void GraphicsManager::Initialize()
 	Vector2f screenSize = GetScreenSize();	
 
 	/// Update camera projection for the first time!
-	graphicsState->camera = this->defaultCamera;
+	graphicsState.camera = this->defaultCamera;
 	Texture * tex = TexMan.GetTextureBySource("img/initializing.png");
 	SetOverlayTexture(tex);
 }
@@ -285,7 +289,7 @@ void GraphicsManager::Initialize()
 Camera * GraphicsManager::ActiveCamera(int viewport /* = 0*/) const 
 {
     if (viewport == 0){
-		return graphicsState->camera;
+		return graphicsState.camera;
     }
 
   //  else {
@@ -433,7 +437,7 @@ void GraphicsManager::RepositionEntities()
 #ifdef VFC_OCTREE
 	if (optimizationStructure == VFC_OCTREE)
 	{
-		List<Entity*> dynamicEntities = Physics.GetDynamicEntities();
+		List< std::shared_ptr<Entity> > dynamicEntities = Physics.GetDynamicEntities();
 		for (int i = 0; i < dynamicEntities.Size(); ++i){
 			if (!dynamicEntities[i]->registeredForRendering)
 				continue;
@@ -471,7 +475,7 @@ void GraphicsManager::OnEndRendering()
 
 	/// Delete all shaders
 	timeStart = clock();
-	ShadeMan.DeleteShaders();
+	ShadeMan.DeleteShaders(graphicsState);
 	timeTaken = clock() - timeStart;
 	std::cout<<"\nDeleting shaders... "<<timeTaken / CLOCKS_PER_SEC<<" seconds";
 
@@ -488,58 +492,6 @@ void GraphicsManager::OnEndRendering()
 void GraphicsManager::UpdateProjection(float relativeWidth /* = 1.0f */, float relativeHeight /* = 1.0f */)
 {
 	assert(false && "Do this when you know the viewport to render in");
-	/*
-	float widthRatio = 1.0f, heightRatio = 1.0f;
-	float requestedWidth = relativeWidth;
-	float requestedHeight = relativeHeight;
-	/// If ratios provided are big numbers, assume they are absolute-values for the AppWindow.
-	if (requestedWidth > 1 && requestedHeight > 1){
-
-	}
-	/// If ratios provided were around 1, multiply by AppWindow size
-	else {
-		requestedWidth = Graphics.Width() * relativeWidth;
-		requestedHeight = Graphics.Height() * relativeHeight;
-	}
-	if (requestedWidth > requestedHeight)
-		widthRatio *= (float) requestedWidth / requestedHeight;
-	else if (requestedHeight > requestedWidth)
-		heightRatio *= (float) requestedHeight / requestedWidth;
-
-
-	Camera * cameraToTrack = graphicsState->camera;
-	/// Update cameras with these ratios too!
-	graphicsState->camera->SetRatio(requestedWidth, requestedHeight);
-
-	// Set up projection matrix before sending it in
-	graphicsState->projectionMatrixD.InitProjectionMatrix(
-		-cameraToTrack->zoom * widthRatio,
-		cameraToTrack->zoom * widthRatio,
-		-cameraToTrack->zoom * heightRatio,
-		cameraToTrack->zoom * heightRatio,
-		cameraToTrack->nearPlane,
-		cameraToTrack->farPlane
-	);
-	graphicsState->projectionMatrixF = graphicsState->projectionMatrixD;
-
-	// Load the matrix into GLs built-in projection matrix for testing purposes too.
-//	glMatrixMode(GL_PROJECTION);
-//	glLoadMatrixd(graphicsState->projectionMatrixD.getPointer());
-//	if (glGetError() != GL_NO_ERROR)
-//		std::cout<<"\nERROR: Unable to load projection matrix to GL";
-	// And do the same for the projection matrix! o-o
-//	glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, graphicsState->projectionMatrixF.getPointer());
-//	if (glGetError() != GL_NO_ERROR)
-//		int b = 14;
-//	glGetError();
-	// Update graphicsState viewFrustum internal variables
-	graphicsState->viewFrustum.SetCamInternals(-cameraToTrack->zoom * widthRatio,
-		cameraToTrack->zoom * widthRatio,
-		-cameraToTrack->zoom * heightRatio,
-		cameraToTrack->zoom * heightRatio,
-		cameraToTrack->nearPlane,
-		cameraToTrack->farPlane);
-		*/
 }
 
 // Enters a message into the message queue
@@ -992,19 +944,15 @@ void GraphicsManager::DeallocFrameBuffer(){
 void GraphicsManager::UpdateLighting()
 {
 	graphicsThreadDetails = "GraphicsManager::ProcessMessages";
-	if (graphicsState->lighting == NULL)
-	{
-		graphicsState->lighting = new Lighting();
-	}
 	// Reload light from the active setup, before dynamic-entity lights are being taken into account.
-	*graphicsState->lighting = lighting;
+	graphicsState.lighting = lighting;
 
 	// Reset the lights in the lighting to be first only the static ones.
-	for (int i = 0; i < graphicsState->dynamicLights.Size(); ++i)
+	for (int i = 0; i < graphicsState.dynamicLights.Size(); ++i)
 	{
-		Light * light = graphicsState->dynamicLights[i];
+		Light * light = graphicsState.dynamicLights[i];
 		// Update it's position relative to the entity.. important!
-		Entity * owner = light->owner;
+		EntitySharedPtr owner = light->owner;
 		if (!owner)
 			continue;
 
@@ -1013,7 +961,7 @@ void GraphicsManager::UpdateLighting()
 		light->position = owner->transformationMatrix.Product(light->relativePosition);
 		
 		// Add the dynamic light to be rendered.
-		graphicsState->lighting->Add(light);
+		graphicsState.lighting.Add(light);
 	}
 }
 
@@ -1042,14 +990,14 @@ void GraphicsManager::Process()
 	/// Process entity specific controls and systems
 	for (int i = 0; i < registeredEntities.Size(); ++i)
 	{
-		Entity * entity = registeredEntities[i];
-		entity->graphics->Process(milliseconds);
+		EntitySharedPtr entity = registeredEntities[i];
+		entity->graphics->Process(milliseconds, graphicsState);
 		/** If not registered for physics, update transformation matrix now (since parents may be moving, etc.... No.)
 			For parenting, make the parent force children to update transform or register them properly via physics. or send a custom GM or PM message to update the matrix!
 		*/
 	}
 	/// Update buffers for all entity groups in the graphicsState.
-	graphicsState->UpdateRenderInstancingGroupBuffers();
+	graphicsState.UpdateRenderInstancingGroupBuffers();
 }
 
 

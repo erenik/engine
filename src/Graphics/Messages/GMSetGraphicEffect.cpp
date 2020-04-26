@@ -8,15 +8,15 @@
 #include "GraphicsMessages.h"
 
 // Float
-GMSetGraphicEffect::GMSetGraphicEffect(int target, String effectName, float value, Entity * owner)
+GMSetGraphicEffect::GMSetGraphicEffect(int target, String effectName, float value, EntitySharedPtr owner)
 : GraphicsMessage(GM_SET_GRAPHIC_EFFECT), target(target), effectName(effectName), floatValue(value), owner(owner){
 }
 /// Vector
-GMSetGraphicEffect::GMSetGraphicEffect(int target, String effectName, const Vector3f & value, Entity * owner)
+GMSetGraphicEffect::GMSetGraphicEffect(int target, String effectName, const Vector3f & value, EntitySharedPtr owner)
 : GraphicsMessage(GM_SET_GRAPHIC_EFFECT), target(target), effectName(effectName), vec3fValue(value), owner(owner){
 }
 // For any pointer, yo.
-GMSetGraphicEffect::GMSetGraphicEffect(int target, String effectName, void * data, Entity * owner)
+GMSetGraphicEffect::GMSetGraphicEffect(int target, String effectName, void * data, EntitySharedPtr owner)
 : GraphicsMessage(GM_SET_GRAPHIC_EFFECT), target(target), effectName(effectName), data(data), owner(owner){
 
 }

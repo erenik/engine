@@ -25,11 +25,6 @@ class Camera;
 class Message;
 class Map;
 class CollisionCallback;
-/*
-#include "GL/glew.h"
-#include "Mesh/Mesh.h"
-#include "Texture.h"
-*/
 
 class AABB;
 
@@ -37,11 +32,15 @@ struct LifeAttribute{
 	int HP, maxHP;
 };
 
+#define EntitySharedPtr std::shared_ptr<Entity>
+#define EntityWeakPtr std::weak_ptr<Entity>
+
 /** An encapsulation Entity for objects, including their corresponding transforms, textures, Mesh, etc.
 	An entiy with an ID of 0 can be considered invalid.
 */
 class Entity
 {
+	friend class EntityManager;
 	friend class RenderPass;
 	friend class PhysicsManager;
 	friend class EntityManager;
@@ -101,9 +100,9 @@ public:
 ///	LifeAttribute * life;
 
 	/// Creates a compact entity out of this Entity object
-	void CreateCompactEntity(CompactEntity * cEntity);
+	void CreateCompactEntity(CompactEntity* cEntity);
 	/// Loads data from the file compact entity format
-	void LoadCompactEntityData(CompactEntity * cEntity);
+	void LoadCompactEntityData(CompactEntity* cEntity);
 
 	/// Default material granted to all new objects if a specific one isn't assigned.
 	static const Material defaultMaterial;
@@ -115,7 +114,7 @@ public:
 	/** Rendering method using legacy code
 		Should only be used by the graphics manager. USE WITH CAUTION.
 	*/
-	void RenderOld(GraphicsState & state);
+	//void RenderOld(GraphicsState & state);
 	/** Rendering method
 		Should only be used by the graphics manager. USE WITH CAUTION.
 	*/
@@ -134,7 +133,7 @@ public:
 	/// New rotation. Should hopefully make old rotatoin system obsolete... maybe :P
 	/// Rotates around the globally defined quaternion axis.
 	void RotateGlobal(const Quaternion & withQuaternion);
-	/** Rotates the Entity */
+	/// Rotates the Entity
 	void Rotate(const Vector3f & rotation);
 	/// Quaternion initial rotation.
 	void SetRotation(const Quaternion & quat);
@@ -148,9 +147,9 @@ public:
 	void Scale(const Vector3f & scale);
 	/// Scales the Entity, updates transform.
 	void Scale(float scale);
-	/** Translates the Entity */
+	/// Translates the Entity
 	void Translate(float x, float y, float z);
-	/** Translates the Entity */
+	/// Translates the Entity   
 	void Translate(const Vector3f & translation);
 
 	enum {
@@ -218,14 +217,17 @@ public:
 	float Radius() const;
 
 	/// o.o Links child and parent for both.
-	void AddChild(Entity * child);
+	void AddChild(EntitySharedPtr child);
+
+	/// Returns the shared pointer pointing to self.
+	EntitySharedPtr SharedPtr();
 
 	/** Child entities, for example wheels for a bike, etc.
 		All child-entities are merely here by relation, and should not be processed (in general) when the parent is processed!
 	*/
-	List<Entity*> children;
+	List< std::shared_ptr<Entity> > children;
 	/// Parent entity. Helps dictate how the transformation-matrix will be calculated.
-	Entity * parent;
+	EntitySharedPtr parent;
 	bool inheritPositionOnly; // Default false.
 
 	/// Status, for whether it's part of rendering, physics, etc.
@@ -282,6 +284,9 @@ public:
 
 
 private:
+	// For distribution of SharedPtr of self. Assign this upon construction where you called make_shared
+	std::weak_ptr<Entity> selfPtr;
+
 	/// If non-identity scale.
 	bool relevantScale;
 	/// Used internally.
@@ -293,7 +298,7 @@ private:
 
 //Node * createScenegraphNode
 
-class EntityGroup : public List<Entity*> 
+class EntityGroup : public List< std::shared_ptr<Entity> > 
 {
 public:
 	virtual ~EntityGroup(){};

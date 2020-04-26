@@ -6,14 +6,14 @@
 
 #include "Entity/Entity.h"
 
-PMApplyImpulse::PMApplyImpulse(List<Entity*> targetEntities, const Vector3f & force, const Vector3f & pointInSpace, float duration /* = 1.0f*/)
+PMApplyImpulse::PMApplyImpulse(List< std::shared_ptr<Entity> > targetEntities, const Vector3f & force, const Vector3f & pointInSpace, float duration /* = 1.0f*/)
 : PhysicsMessage(PM_APPLY_IMPULSE), entities(targetEntities), force(force), position(pointInSpace), duration(duration)
 {
 }
 
 void PMApplyImpulse::Process(){
     for (int i = 0; i < entities.Size(); ++i){
-        Entity * e = entities[i];
+        EntitySharedPtr e = entities[i];
 
         assert(e);
         assert(e->physics);

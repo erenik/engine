@@ -56,9 +56,6 @@ GMSetCamera::GMSetCamera(Camera * camera, int target, int iValue)
 	{
 		case CT_TRACKING_MODE:
 			break;
-		case CT_ENTITY_TO_TRACK:
-			entity = (Entity*)iValue;
-			break;
 		case CT_DISTANCE_FROM_CENTER_OF_MOVEMENT:
 			fValue = iValue;
 			break;
@@ -102,7 +99,7 @@ GMSetCamera::GMSetCamera(Camera * camera, int target, bool bValue)
 }
 	
 
-GMSetCamera::GMSetCamera(Camera * camera, int target, Entity * entity)
+GMSetCamera::GMSetCamera(Camera * camera, int target, EntitySharedPtr entity)
 : GraphicsMessage(GM_SET_CAMERA), camera(camera), target(target), entity(entity)
 {
 	assert(camera);

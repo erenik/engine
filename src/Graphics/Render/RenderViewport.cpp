@@ -26,7 +26,7 @@ void GraphicsManager::RenderViewport(Viewport * vp)
 //	std::cout<<"\nViewport size: "<<width<<"x"<<height;
 	
 	/// Absolute coordinates
-	graphicsState->activeViewport->SetGLViewport();
+	GraphicsThreadGraphicsState->activeViewport->SetGLViewport();
 	glEnable(GL_SCISSOR_TEST);
 	glScissor(vp->bottomLeftCorner[0], vp->bottomLeftCorner[1], vp->size[0], vp->size[1]);
 
@@ -44,22 +44,22 @@ void GraphicsManager::RenderViewport(Viewport * vp)
 		return;
 	}
 	// Movement should be processed.. in physics or earlier.
-//	camera->ProcessMovement(graphicsState->frameTime);
+//	camera->ProcessMovement(GraphicsThreadGraphicsState->frameTime);
 	camera->SetRatioI(width, height);
 	camera->UpdateProjectionMatrix();
 	// Set active camera to current one
-	graphicsState->camera = camera;
+	GraphicsThreadGraphicsState->camera = camera;
 
 	// Copy over the matrices to float
-	graphicsState->viewMatrixF = graphicsState->viewMatrixD = camera->ViewMatrix4d();
-	graphicsState->modelMatrix.LoadIdentity();
-	graphicsState->projectionMatrixF = graphicsState->projectionMatrixD = camera->ProjectionMatrix4d();
+	GraphicsThreadGraphicsState->viewMatrixF = GraphicsThreadGraphicsState->viewMatrixD = camera->ViewMatrix4d();
+	GraphicsThreadGraphicsState->modelMatrix.LoadIdentity();
+	GraphicsThreadGraphicsState->projectionMatrixF = GraphicsThreadGraphicsState->projectionMatrixD = camera->ProjectionMatrix4d();
 
 	// Clear lists so that the render-passes are performed as requested.
-	graphicsState->graphicEffectsToBeRendered.Clear();
-	graphicsState->particleEffectsToBeRendered.Clear();
+	GraphicsThreadGraphicsState->graphicEffectsToBeRendered.Clear();
+	GraphicsThreadGraphicsState->particleEffectsToBeRendered.Clear();
 	// Add global particle systems if they are within range?
-	graphicsState->particleEffectsToBeRendered.Add(Graphics.globalParticleSystems);
+	GraphicsThreadGraphicsState->particleEffectsToBeRendered.Add(Graphics.globalParticleSystems);
 
 
 	Timer sceneTimer, alphaEntitiesTimer, effectsTimer, uiTimer;
@@ -67,23 +67,23 @@ void GraphicsManager::RenderViewport(Viewport * vp)
 
 	// Cull entities depending on the viewport and camera.
 	// TODO: Actually cull it too. 
-	graphicsState->entities = registeredEntities;
+	GraphicsThreadGraphicsState->entities = registeredEntities;
 	
 	timer.Stop();
 	FrameStats.renderPrePipeline += timer.GetMs();
 
 	/// Old pipeline configuration! Only testing with the regular entities first. 
-	RenderPipeline * renderPipeline = graphicsState->renderPipe;
+	RenderPipeline * renderPipeline = GraphicsThreadGraphicsState->renderPipe;
 	/// Test with alpha-entities and other passes later on...
 	if (renderPipeline)
 	{
-		renderPipeline->Render(*graphicsState);
+		renderPipeline->Render(graphicsState);
 	}
 	// Default/old fixed pipeline.
 	else {
 		// Render le map as wanted?
 		if (Graphics.mapToRender && ActiveViewport->renderMap){
-			Graphics.mapToRender->Render(*graphicsState);
+			Graphics.mapToRender->Render(graphicsState);
 		}
 		// Render the scene, now
 		else

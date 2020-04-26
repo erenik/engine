@@ -21,10 +21,11 @@ enum planeSideEnum{
 /** Class for handling a frustum, source taken in part from lighthouse3d.
 http://www.lighthouse3d.com/tutorials/view-frustum-culling/geometric-approach-implementation/
 */
+class 
 #ifdef USE_SSE
-Align(16)
+	alignas(16)
 #endif
-class Frustum {
+	Frustum {
 private:
 public:
     /// Default constructor

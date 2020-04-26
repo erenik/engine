@@ -6,13 +6,14 @@
 #define ENTITY_PHYSICS_ESTIMATOR_H
 
 #include "PhysicsLib/EstimatorVec3f.h"
-class Entity;
+#include "Entity/Entity.h"
+
 class Time;
 
 /// Entity physics estimator
 class EntityPhysicsEstimator : public Estimator {
 public:
-	EntityPhysicsEstimator(Entity * owner);
+	EntityPhysicsEstimator(EntitySharedPtr owner);
 
 
 	/** Estimates values for given time. If loop is true, the given time will be modulated to be within the interval of applicable time-values.
@@ -38,7 +39,7 @@ public:
 	int smoothingDuration;
 private:
 	EstimatorVec3f positionEstimator, rotationEstimator, velocityEstimator;
-	Entity * owner;
+	EntitySharedPtr owner;
 
 	Vector3f lastPosition;
 	long long lastTime;

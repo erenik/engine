@@ -17,6 +17,7 @@
 #include "Graphics/Camera/Camera.h"
 #include <cstdio>
 #include <cstring>
+#include "Entity/Entity.h"
 
 #include "Globals.h"
 
@@ -227,6 +228,8 @@ PROCESSOR_THREAD_START(GraphicsManager)
 #endif
 
 
+	Graphics.InitRenderPipelineManager();
+
 	/// Bufferize the rendering box
 	Graphics.OnBeginRendering();
 
@@ -250,7 +253,7 @@ PROCESSOR_THREAD_START(GraphicsManager)
 
 			total.Start();
 			now = Timer::GetCurrentTimeMs();
-			graphicsState->frametimeStartMs = now;
+			GraphicsThreadGraphicsState->frametimeStartMs = now;
 
 			/// Sleep at least a bit...
 			int sleepTime = Graphics.sleepTime;
@@ -373,26 +376,26 @@ PROCESSOR_THREAD_START(GraphicsManager)
 			FrameStats.PushFrameTime(total.GetMs());
 			int fps = FrameStats.FPS();
 			if (FrameStats.printQueued)
-				FrameStats.Print();
+				FrameStats.Print(Graphics.graphicsState);
 
 			// How long the last frame took. Used for updating some mechanisms next frame.
-			graphicsState->frameTime = Graphics.frameTime * 0.001;
+			GraphicsThreadGraphicsState->frameTime = Graphics.frameTime * 0.001;
 			++graphicsFrameNumber;
 
 			/// Enable the below via some option maybe, it just distracts atm.
 			/*
-			if (graphicsState->optimizationLevel < 5 && fps < 20 && now > lastOptimization + 100)
+			if (GraphicsThreadGraphicsState->optimizationLevel < 5 && fps < 20 && now > lastOptimization + 100)
 			{
-				graphicsState->optimizationLevel++;
+				GraphicsThreadGraphicsState->optimizationLevel++;
 				lastOptimization = now;
-			//	std::cout<<"\nFPS low, increasing graphics optimization level to: "<<graphicsState->optimizationLevel;
+			//	std::cout<<"\nFPS low, increasing graphics optimization level to: "<<GraphicsThreadGraphicsState->optimizationLevel;
 			}*/
 			
-/*			else if (graphicsState->optimizationLevel > 0 && fps > 40 && now > lastOptimization + 500)
+/*			else if (GraphicsThreadGraphicsState->optimizationLevel > 0 && fps > 40 && now > lastOptimization + 500)
 			{
-				graphicsState->optimizationLevel--;
+				GraphicsThreadGraphicsState->optimizationLevel--;
 				lastOptimization = now;
-			//	std::cout<<"\nFPS high again, decreasing graphics optimization level to: "<<graphicsState->optimizationLevel;
+			//	std::cout<<"\nFPS high again, decreasing graphics optimization level to: "<<GraphicsThreadGraphicsState->optimizationLevel;
 			}
 			*/
 		}

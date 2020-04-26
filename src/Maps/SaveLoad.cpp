@@ -238,7 +238,7 @@ bool Map::ReadEntities(std::fstream &file){
 	}
 	// Read in the entity-data into cEntity after allocating it's size accordingly.
 	for (int i = 0; i < entitiesInBlock; ++i){
-		CompactEntity * cEntity = new CompactEntity();
+		CompactEntity* cEntity = new CompactEntity();
 		cEntity->ReadFrom(file);
 		cEntities.Add(cEntity);
 	}
@@ -257,7 +257,7 @@ bool Map::WriteEntities(std::fstream &file){
 	for (int i = 0; i < MAX_ENTITIES && i < NumEntities(); ++i){
 		if (!entities[i] || entities[i]->name.Length() == 0)
 			continue;
-		CompactEntity * cEntity = new CompactEntity();
+		CompactEntity* cEntity = new CompactEntity();
 		entities[i]->CreateCompactEntity(cEntity);
 		cEntities.Add(cEntity);
 		++entitiesAdded;

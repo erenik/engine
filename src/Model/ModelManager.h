@@ -52,8 +52,8 @@ public:
 	/// Loads a model using target Collada file, using all given geometry nodes within it to generate a single mesh.
 	Model * LoadCollada(String source);
 
-	/** Removes target Entity */
-//	bool removeObject(Entity * Entity);
+	/** Removes target Entity    */
+//	bool removeObject(EntitySharedPtr Entity);
 
 
 	/// Default texture for newly constructed objects.

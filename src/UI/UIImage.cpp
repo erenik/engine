@@ -3,7 +3,7 @@
 /// UI class to show images, often with restrictions if they should scale, tile, etc.
 
 #include "UIImage.h"
-#include "Shader.h"
+#include "Graphics/Shader.h"
 #include "TextureManager.h"
 #include "GraphicsState.h"
 #include "UITypes.h"

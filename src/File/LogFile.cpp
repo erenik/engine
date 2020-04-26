@@ -18,10 +18,10 @@ List<String> logsStartedThisSession;
 
 // yer.
 bool loggingEnabled = true;
-int logLevel = INFO;
+LogLevel logLevel = INFO;
 
 /// Logs to file, creates the file (and folders) necessary if it does not already exist. Time stamps will probably also be available.
-void LogToFile(String fileName, String logText, int levelFlags, List<TextError> * previousErrors /* = 0*/)
+void LogToFile(String fileName, String logText, LogLevel levelFlags, List<TextError> * previousErrors /* = 0*/)
 {
 	int level = levelFlags % 16;
 	// What does this even do..?

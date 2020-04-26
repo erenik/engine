@@ -17,7 +17,7 @@
 
 #include "Model/SkeletalAnimationNode.h"
 
-GraphicsProperty::GraphicsProperty(Entity * owner)
+GraphicsProperty::GraphicsProperty(EntitySharedPtr owner)
 : owner(owner)
 {
 	temporalAliasingEnabled = false;
@@ -86,12 +86,12 @@ void GraphicsProperty::OnRegister()
 #include "GraphicsState.h"
 
 /// Processes estimators related to this entity.
-void GraphicsProperty::Process(int timeInMs)
+void GraphicsProperty::Process(int timeInMs, GraphicsState & graphicsState)
 {
 	/// Update smoothed position and matrices.
 	if (temporalAliasingEnabled)
 	{
-		smoothedPosition = smoothedPosition * graphicsState->perFrameSmoothness + owner->worldPosition * (1 - graphicsState->perFrameSmoothness);
+		smoothedPosition = smoothedPosition * graphicsState.perFrameSmoothness + owner->worldPosition * (1 - graphicsState.perFrameSmoothness);
 		owner->RecalculateMatrix(transform, &smoothedPosition);
 		// TODO: Add a flag for temporal Anti-Alisasin so that not ALL static entities too have their shit recalculated each frame... ?
 	}
@@ -102,7 +102,7 @@ void GraphicsProperty::Process(int timeInMs)
 	// Sprite-animation
 	if (animationSet)
 	{
-		owner->diffuseMap = GetTextureForCurrentFrame(graphicsState->frametimeStartMs);
+		owner->diffuseMap = GetTextureForCurrentFrame(graphicsState.frametimeStartMs);
 		assert(owner->diffuseMap);
 		if (owner->diffuseMap->glid == -1)
 		{

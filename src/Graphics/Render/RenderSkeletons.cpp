@@ -4,7 +4,7 @@
 
 #include "../GraphicsManager.h"
 
-#include "ShaderManager.h"
+#include "Graphics/ShaderManager.h"
 
 #include "Graphics/GraphicsProperty.h"
 
@@ -18,14 +18,14 @@ void GraphicsManager::RenderSkeletons()
 {
 	CheckGLError("Before GraphicsManager::RenderSkeletons");
 
-	ShadeMan.SetActiveShader(0);
+	ShadeMan.SetActiveShader(nullptr, graphicsState);
 //	rer
 	// Load projection matrix.
 
 	glMatrixMode(GL_PROJECTION);
-	glLoadMatrixf(graphicsState->projectionMatrixF.getPointer());
+	glLoadMatrixf(GraphicsThreadGraphicsState->projectionMatrixF.getPointer());
 	glMatrixMode(GL_MODELVIEW);
-	glLoadMatrixf(graphicsState->viewMatrixF.getPointer());
+	glLoadMatrixf(GraphicsThreadGraphicsState->viewMatrixF.getPointer());
 
 	// Load view matrix.
 
@@ -51,12 +51,12 @@ void GraphicsManager::RenderSkeletons()
 
 	for (int i = 0; i < registeredEntities.Size(); ++i)
 	{
-		Entity * entity = registeredEntities[i];
+		EntitySharedPtr entity = registeredEntities[i];
 		Model * model = entity->model;
 		if (!model)
 			continue;
 		Mesh * mesh = model->mesh;
-		graphicsState->modelMatrixF = entity->transformationMatrix;
+		GraphicsThreadGraphicsState->modelMatrixF = entity->transformationMatrix;
 		Bone * skeleton = mesh->skeleton;
 		if (skeleton && true)
 		{
@@ -71,7 +71,7 @@ void GraphicsManager::RenderSkeletons()
 			//	skeleton->UpdateMatrices(entity->transformationMatrix);
 			}
 
-			skeleton->RenderBones(*graphicsState);
+			skeleton->RenderBones(graphicsState);
 		}
 	}
 

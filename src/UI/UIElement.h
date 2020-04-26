@@ -267,7 +267,7 @@ public:
 	void FreeBuffers();
 	/// Rendering
 	virtual void Render(GraphicsState & graphicsState);
-	virtual void RenderText();
+	virtual void RenderText(GraphicsState& graphicsState);
 	/// Called after resize of UI before RenderText.
 	virtual void FormatText(); 
 

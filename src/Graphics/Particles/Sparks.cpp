@@ -19,7 +19,7 @@ Sparks::Sparks(bool emitWithEmittersOnly)
 }
 	
 /// Creates a particle system which will be attached to a specific entity.
-Sparks::Sparks(Entity * reference, bool emitWithEmittersOnly)
+Sparks::Sparks(EntitySharedPtr reference, bool emitWithEmittersOnly)
 : ParticleSystem("Sparks", emitWithEmittersOnly)
 {
 	/// Set link to entity.

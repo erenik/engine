@@ -19,7 +19,7 @@
 class FirstPersonPlayerProperty : public EntityProperty
 {
 public:
-	FirstPersonPlayerProperty(String propertyName, int id, Entity * owner);
+	FirstPersonPlayerProperty(String propertyName, int id, EntitySharedPtr owner);
 
 	/// Time passed in seconds..! Will steer if inputFocus is true.
 	virtual void Process(int timeInMs);
@@ -50,8 +50,8 @@ protected:
 	void UpdateTargetsByCursorPosition();
 
 	// Targets dictated by the latest call to UpdateTargets
-	List<Entity*> targets;
-	Entity * primaryTarget;
+	List< std::shared_ptr<Entity> > targets;
+	EntitySharedPtr primaryTarget;
 	/// Set to be the first raycast target position when calling UpdateTargetsByCursorPosition
 	Vector3f lastRaycastTargetPosition;
 

@@ -497,7 +497,7 @@ macro (addProject ProjectName projectSrcDir engineSrcDir)
 	include_directories(
 		${lib_include_dirs}
 		${OPENAL_INCLUDE_DIR}
-		${source_dir}
+		${CMAKE_SOURCE_DIR}
 		${ENGINE_SRC_DIR}
 		${ENGINE_SRC_DIR}/Util
 		${ENGINE_SRC_DIR}/OS

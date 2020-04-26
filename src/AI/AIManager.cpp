@@ -68,7 +68,7 @@
 ///** Registers an Entity to take part in physics calculations. This requires that the Entity has the physics attribute attached.
 //	Returns 0 upon success, 1 if it's lacking a physics attribute, 2 if the Entity array has been filled and 3 if the dynamic entity array has been filled.
 //*/
-//int AIManager::RegisterEntity(Entity * newEntity){
+//int AIManager::RegisterEntity(EntitySharedPtr newEntity){
 //	if (newEntity->state == NULL){
 //		if (false/*autoAddPhysics*/){
 //		}
@@ -107,7 +107,7 @@
 //
 //
 ///// Unregisters an Entity from the physics calculations. Returns 0 if it found the Entity and successfully removed it, 1 if not.
-//int AIManager::UnregisterEntity(Entity * entityToRemove){
+//int AIManager::UnregisterEntity(EntitySharedPtr entityToRemove){
 //	int found = 0;
 //	for (int i = 0; i < MAX_AI_ENTITIES; ++i){
 //		if (aiEntity[i] == entityToRemove){
@@ -183,7 +183,7 @@
 //	}
 //
 //	lastUpdate = newTime;
-//	Entity * entity = NULL;
+//	EntitySharedPtr entity = NULL;
 //	timeDiff *= simulationSpeed;
 //
 //

@@ -3,7 +3,7 @@
 /// Defines one single render pass.
 /// A Render-pass in this sense is just one group of graphics related actions, often painting some data onto a buffer or texture object.
 
-#include "Shader.h"
+#include "Graphics/Shader.h"
 #include "String/AEString.h"
 #include "GraphicsState.h"
 #include "Entity/Entities.h"
@@ -117,33 +117,33 @@ private:
 	List<RenderInstancingGroup*> entityGroupsToRender;
 
 	// Parts of rendering.
-	bool SetupOutput();
-	bool SetupLightPOVCamera();
+	bool SetupOutput(GraphicsState& graphicsState);
+	bool SetupLightPOVCamera(GraphicsState& graphicsState);
 
 	/// o.o
-	void RenderEntities();
+	void RenderEntities(GraphicsState& graphicsState);
 	/// Used for e.g. shadow-mapping.
-	void RenderEntitiesOnlyVertices(); 
-	void RenderAlphaEntities();
-	void RenderSkyBox();
+	void RenderEntitiesOnlyVertices(GraphicsState& graphicsState);
+	void RenderAlphaEntities(GraphicsState& graphicsState);
+	void RenderSkyBox(GraphicsState& graphicsState);
 
 	/// Current
 	Viewport * viewport;
 	/// Creates it as needed.
-	bool BindShadowMapFrameBuffer();
+	bool BindShadowMapFrameBuffer(GraphicsState& graphicsState);
 	/// Set up/fetch render buffers as needed. (For output)
-	bool BindDeferredGatherFrameBuffer();
-	bool BindDeferredOutputFrameBuffer();
-	bool BindPostProcessOutputFrameBuffer();
+	bool BindDeferredGatherFrameBuffer(GraphicsState& graphicsState);
+	bool BindDeferredOutputFrameBuffer(GraphicsState& graphicsState);
+	bool BindPostProcessOutputFrameBuffer(GraphicsState& graphicsState);
 	/// If iterations is non-0.
-	bool PerformIterativePingPongRenders();
-	void SetupDeferredGatherAsInput(); // (For input);
-	void SetupDeferredOutputAsInput();
+	bool PerformIterativePingPongRenders(GraphicsState& graphicsState);
+	void SetupDeferredGatherAsInput(GraphicsState& graphicsState); // (For input);
+	void SetupDeferredOutputAsInput(GraphicsState& graphicsState);
 
 	FrameBuffer * GetInputFrameBuffer();
 
 	/// Renders a -1,1, -1,1 quad, covering the screen (or current framebuffer). Uses a nullified projection and view matrix to achieve it.
-	void RenderQuad();
+	void RenderQuad(GraphicsState & graphicsState);
 	/// In pixels.
 	int shadowMapResolution;
 	/// For ping-pong render-passes such as to MinificationBuffers, determines amount of buffers and times to render between them. Default 1.

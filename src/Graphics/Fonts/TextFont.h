@@ -63,11 +63,11 @@ public:
 private:
 
 	/// Sets up text-shader and font texture.
-	bool PrepareForRender();
+	bool PrepareForRender(GraphicsState& graphicsState);
 	/// Renders the caret.
 	void RenderCaret();
 	// Renders character at current position.
-	void RenderChar(uchar c);
+	void RenderChar(uchar c, GraphicsState & graphicsState);
 	/// For rendering a quad on top over the character's which are selected, pretty much.
 	void RenderSelection(uchar currentChar);
 	/// Re-instates old shader as needed.

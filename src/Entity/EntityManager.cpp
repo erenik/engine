@@ -1,12 +1,15 @@
 /// Emil Hedemalm
 /// 2015-05-21
 
+#define _ENABLE_EXTENDED_ALIGNED_STORAGE
+
 #include "EntityManager.h"
 #include "Model/Model.h"
 #include "Texture.h"
 #include "Graphics/GraphicsManager.h"
 #include "File/LogFile.h"
 extern GraphicsManager graphics;
+
 
 int EntityManager::idCounter = 1;
 
@@ -34,11 +37,10 @@ EntityManager::EntityManager(){
 
 EntityManager::~EntityManager()
 {
-	// Delete 'em! o.o
-	entities.ClearAndDelete();
+	entities.Clear();
 };
 
-bool EntityManager::IsGood(Entity * entity)
+bool EntityManager::IsGood(EntitySharedPtr entity)
 {
 	return entities.Exists(entity);
 }
@@ -46,7 +48,7 @@ bool EntityManager::IsGood(Entity * entity)
 List<std::pair<String, int>> nameOccurances;
 
 /// Creates entity using specified model and base texture
-Entity * EntityManager::CreateEntity(String name, Model * model, Texture * texture)
+EntitySharedPtr EntityManager::CreateEntity(String name, Model * model, Texture * texture)
 {
 	bool found = false;
 	int occurances = 0;
@@ -64,23 +66,8 @@ Entity * EntityManager::CreateEntity(String name, Model * model, Texture * textu
 	if (occurances > 1)
 		name = name +"_"+ String(occurances);
 
-	Entity * newEntity = NULL;
-	/// Check for model
-/*	if (model == NULL || (model && !model->Name())){
-		std::cout<<"\nNo valid model was supplied. Aborting creation. ";
-		return NULL;
-	}
-	*/
+	EntitySharedPtr newEntity = NULL;
 
-	// Check for texture
-/*	if (texture->name == NULL){
-		texture = Model::GetDefaultTexture();
-		if (!texture || texture->name == NULL){
-			std::cout<<"\nNo valid texture supplied and default is NULL. Aborting creation. ";
-			return NULL;
-		}
-	}
-	*/
 	// Get a spot om the entity list
 	for (int i = 0; i < entities.Size(); ++i)
 	{
@@ -93,7 +80,8 @@ Entity * EntityManager::CreateEntity(String name, Model * model, Texture * textu
 	// Create it if needed.
 	if (!newEntity)
 	{
-		newEntity = new Entity(idCounter++);
+		newEntity = std::shared_ptr<Entity>(new Entity(idCounter++));
+		newEntity->selfPtr = newEntity; // Assign own weak ptr based on the new shared ptr.
 		entities.AddItem(newEntity);
 	}
 	if (newEntity == NULL)
@@ -114,7 +102,7 @@ Entity * EntityManager::CreateEntity(String name, Model * model, Texture * textu
 	return newEntity;
 }
 
-bool EntityManager::DeleteEntity(Entity * entity)
+bool EntityManager::DeleteEntity(EntitySharedPtr entity)
 {
 	if (entity == NULL){
 		std::cout<<"\nERROR: Null entity";
@@ -127,19 +115,19 @@ bool EntityManager::DeleteEntity(Entity * entity)
 }
 
 /// All active ones not already flagged for deletion.
-List<Entity*> EntityManager::AllEntities()
+List< std::shared_ptr<Entity> > EntityManager::AllEntities()
 {
 	return entities;
 }
 
-void EntityManager::MarkEntitiesForDeletion(List<Entity*> entitiesToMark)
+void EntityManager::MarkEntitiesForDeletion(List<std::shared_ptr<Entity>> entitiesToMark)
 {
-	LogMain("EntityManager::MarkEntitiesForDelection: "+String(entitiesToMark.Size()), INFO);
+	LogMain("EntityManager::MarkEntitiesForDelection: "+String(entitiesToMark.Size()), DEBUG);
 	Time now = Time::Now();
 	int64 ms = now.Milliseconds();
 	for (int i = 0; i < entitiesToMark.Size(); ++i)
 	{
-		Entity * entity = entitiesToMark[i];
+		std::shared_ptr<Entity> entity = entitiesToMark[i];
 		if (!entity->flaggedForDeletion)
 		{
 			entity->flaggedForDeletion = true;
@@ -168,7 +156,7 @@ int EntityManager::DeleteUnusedEntities(int timeInMs)
 
 	for (int i = 0; i < entitiesToDelete.Size(); ++i)
 	{
-		Entity * entity = entitiesToDelete[i];
+		EntitySharedPtr entity = entitiesToDelete[i];
 		entity->deletionTimeMs -= timeInMs;
 		/// Only process those that have been flagged.
 		if (!entity->flaggedForDeletion)
@@ -190,7 +178,7 @@ int EntityManager::DeleteUnusedEntities(int timeInMs)
 		++deletedEntities;
 		entities.RemoveItemUnsorted(entity);
 		entitiesToDelete.RemoveItemUnsorted(entity);
-		delete entity;
+		// delete entity; // Assume it deletes auto-magically from de-referencing?
 		--i;
 	}
 	return deletedEntities;

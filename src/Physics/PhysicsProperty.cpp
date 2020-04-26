@@ -271,7 +271,7 @@ void PhysicsProperty::ApplyImpulse(const Vector3f & impulse, const Vector3f & po
 
 
 /// Updates physical radius, Bounding box size, etc. Should be called from the physics thread only!
-void PhysicsProperty::UpdateProperties(Entity * entity)
+void PhysicsProperty::UpdateProperties(EntitySharedPtr entity)
 {
 	if (entity->model)
 	{

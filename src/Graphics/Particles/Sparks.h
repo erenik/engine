@@ -15,7 +15,7 @@ public:
 	/// Creates a global particle system
 	Sparks(bool emitWithEmittersOnly);
 	/// Creates a particle system which will be attached to a specific entity.
-    Sparks(Entity * reference, bool emitWithEmittersOnly);
+    Sparks(EntitySharedPtr reference, bool emitWithEmittersOnly);
 	virtual ~Sparks();
 
 	virtual void Initialize();

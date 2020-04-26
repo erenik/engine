@@ -39,9 +39,9 @@ public:
 	/// Call on a per-frame basis.
 	virtual void Process() = 0;
 	/// Fetches all entities concerning this game.
-	virtual List<Entity*> GetEntities() = 0;
+	virtual List< std::shared_ptr<Entity> > GetEntities() = 0;
 	/// Fetches all static entities.
-	virtual List<Entity*> StaticEntities() = 0;
+	virtual List< std::shared_ptr<Entity> > StaticEntities() = 0;
 
 	/// Sets if the game should use mouse input in a default manner for the player to play the game or not.
 	virtual void UseMouseInput(bool value);

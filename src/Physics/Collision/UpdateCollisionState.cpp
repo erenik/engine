@@ -6,7 +6,7 @@
 #include "../PhysicsProperty.h"
 
 /// Updates the entity's collission state (colliding, in rest, on plane) using it's current velocities and the collission normal.
-void UpdateCollisionState(Entity * entity, Vector3f & collisionNormal){
+void UpdateCollisionState(EntitySharedPtr entity, Vector3f & collisionNormal){
     if (entity->physics->velocity.Length() < 0.001f &&
 		entity->physics->acceleration.Length() < ZERO &&
 		collisionNormal[1] > 0.90f){

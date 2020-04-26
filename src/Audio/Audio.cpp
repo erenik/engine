@@ -470,7 +470,7 @@ void Audio::Update()
     return;
 }
 
-void Audio::BindTo(Entity * bindEntity)
+void Audio::BindTo(EntitySharedPtr bindEntity)
 {
 	this->entity = bindEntity;
 	positional = true;

@@ -88,10 +88,10 @@ void GMSet::Process()
 	switch(target)
 	{
 		case GT_ANTIALIASING:
-			graphicsState->antialiasing = bValue;
+			GraphicsThreadGraphicsState->antialiasing = bValue;
 			break;
 		case GT_FAR_PLANE:
-			graphicsState->farPlane = iValue;
+			GraphicsThreadGraphicsState->farPlane = iValue;
 			break;
 		case GT_RENDER_GRID:
 			WindowMan.MainWindow()->MainViewport()->renderGrid = bValue;
@@ -100,13 +100,13 @@ void GMSet::Process()
 			Graphics.cameraToTrack = (Camera*)pData;
 			break;
 		case GT_FOG_BEGIN:
-			graphicsState->fogBegin = floatValue;
+			GraphicsThreadGraphicsState->fogBegin = floatValue;
 			break;
 		case GT_FOG_END:
-			graphicsState->fogEnd = floatValue;
+			GraphicsThreadGraphicsState->fogEnd = floatValue;
 			break;
 	    case GT_CLEAR_COLOR:
-            graphicsState->clearColor = vec3fValue;
+			GraphicsThreadGraphicsState->clearColor = vec3fValue;
             break;
 		case GT_OVERLAY_TEXTURE: {
 			Texture * t = (Texture*) pData;
@@ -156,11 +156,11 @@ void GMSetf::Process()
 {	
 	switch (target){
 		case GT_GRID_SPACING: {
-			graphicsState->gridSpacing = floatValue;
+			GraphicsThreadGraphicsState->gridSpacing = floatValue;
 			break;
 		}
 		case GT_GRID_SIZE: {
-			graphicsState->gridSize = (int)floatValue;
+			GraphicsThreadGraphicsState->gridSize = (int)floatValue;
 			break;
 		}
 		default: {
@@ -350,19 +350,19 @@ void GMSetResolution::Process()
 {
 	if (naturalRatio)
 	{
-		graphicsState->renderResolution = MainWindow()->ClientAreaSize();
-		graphicsState->resolutionLocked = false;
+		GraphicsThreadGraphicsState->renderResolution = MainWindow()->ClientAreaSize();
+		GraphicsThreadGraphicsState->resolutionLocked = false;
 		return;
 	}
 	if (staticRatio)
 	{
-		graphicsState->relativeResolution = ratio;
-		graphicsState->renderResolution = MainWindow()->ClientAreaSize() * ratio;
-		graphicsState->resolutionLocked = false;
+		GraphicsThreadGraphicsState->relativeResolution = ratio;
+		GraphicsThreadGraphicsState->renderResolution = MainWindow()->ClientAreaSize() * ratio;
+		GraphicsThreadGraphicsState->resolutionLocked = false;
 		return;
 	}
-	if (graphicsState->resolutionLocked && !lock)
+	if (GraphicsThreadGraphicsState->resolutionLocked && !lock)
 		return;
-	graphicsState->renderResolution = res * graphicsState->relativeResolution;
-	graphicsState->resolutionLocked = lock;
+	GraphicsThreadGraphicsState->renderResolution = res * GraphicsThreadGraphicsState->relativeResolution;
+	GraphicsThreadGraphicsState->resolutionLocked = lock;
 }

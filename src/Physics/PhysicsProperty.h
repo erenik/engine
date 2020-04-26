@@ -71,7 +71,7 @@ public:
 	void ApplyImpulse(const Vector3f & impulse, const Vector3f & position);
 
 	/// Updates physical radius, Bounding box size, etc. Should be called from the physics thread only!
-	void UpdateProperties(Entity * owner);
+	void UpdateProperties(EntitySharedPtr owner);
 
 	void SetLinearDamping(float newD);
 	// Sets if the entity should only collide using the Tri/Quads planes or including the edges and points (corners) too. Default is false. True for optimization may yield bugs.
@@ -224,7 +224,7 @@ public:
     /// See enum CollisionStates above
     int collissionState;
 	/// Owner of this property.
-	Entity * owner;
+	EntitySharedPtr owner;
 	/// List of (probably) resting contacts which are needed to invalidate all objects in rest later on.
 	List<Contact*> contacts;
 	/// List of actively connected springs.

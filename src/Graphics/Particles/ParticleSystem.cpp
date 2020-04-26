@@ -6,13 +6,13 @@
 
 #include "Graphics/Messages/GraphicsMessage.h"
 #include "Graphics/Messages/GraphicsMessage.h"
-#include "GraphicsState.h"
+#include "Graphics/GraphicsManager.h"
 #include "Graphics/GLBuffers.h"
 
 #include "Graphics/Camera/Camera.h"
 
-#include "Shader.h"
-#include "ShaderManager.h"
+#include "Graphics/Shader.h"
+#include "Graphics/ShaderManager.h"
 
 #include "Graphics/FrameStatistics.h"
 
@@ -339,20 +339,20 @@ void ParticleSystem::UpdateBuffers()
 	if (particlePositionScaleBuffer == -1)
 	{
 		particlePositionScaleBuffer = GLBuffers::New();
-		graphicsState->BindVertexArrayBuffer(particlePositionScaleBuffer);
+		GraphicsThreadGraphicsState->BindVertexArrayBuffer(particlePositionScaleBuffer);
 		glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
 	}
 	if (particleLifeTimeDurationScaleBuffer == -1)
 	{
 		particleLifeTimeDurationScaleBuffer = GLBuffers::New();
-		graphicsState->BindVertexArrayBuffer(particleLifeTimeDurationScaleBuffer);
+		GraphicsThreadGraphicsState->BindVertexArrayBuffer(particleLifeTimeDurationScaleBuffer);
 		glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
 	}
 	// The VBO containing the colors of the particles
 	if (particleColorBuffer == -1)
 	{
 		particleColorBuffer = GLBuffers::New();
-		graphicsState->BindVertexArrayBuffer(particleColorBuffer);
+		GraphicsThreadGraphicsState->BindVertexArrayBuffer(particleColorBuffer);
 #ifdef SSE_PARTICLES
 		glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
 #else
@@ -362,13 +362,13 @@ void ParticleSystem::UpdateBuffers()
 
 #ifdef SSE_PARTICLES
 	// Buffer the actual data.
-	graphicsState->BindVertexArrayBuffer(particlePositionScaleBuffer);
+	GraphicsThreadGraphicsState->BindVertexArrayBuffer(particlePositionScaleBuffer);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, aliveParticles * sizeof(GLfloat) * 4, positionsSSE);
  
-	graphicsState->BindVertexArrayBuffer(particleColorBuffer);
+	GraphicsThreadGraphicsState->BindVertexArrayBuffer(particleColorBuffer);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, aliveParticles * sizeof(GLfloat) * 4, colorsSSE);
 
-	graphicsState->BindVertexArrayBuffer(particleLifeTimeDurationScaleBuffer);
+	GraphicsThreadGraphicsState->BindVertexArrayBuffer(particleLifeTimeDurationScaleBuffer);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, aliveParticles * sizeof(GLfloat) * 4, ldsSSE);
 #endif
 	CheckGLError("ParticleSystem::UpdateBuffers");
@@ -414,7 +414,7 @@ void ParticleSystem::Render(GraphicsState & graphicsState)
 void ParticleSystem::PrintData(){
     assert(false);
 }
-void ParticleSystem::AttachTo(Entity * entity, ConstMat4r relativePosition){
+void ParticleSystem::AttachTo(EntitySharedPtr entity, ConstMat4r relativePosition){
     assert(false);
 }
 void ParticleSystem::SetPosition(ConstMat4r relativePosition){
@@ -480,11 +480,11 @@ void ParticleSystem::SetUniforms()
 	if (shader->uniformParticleDecayAlphaWithLifeTime != -1)
 		glUniform1i(shader->uniformParticleDecayAlphaWithLifeTime, decayAlphaWithLifeTime);
 
-	Vector3f right = -graphicsState->camera->LeftVector();
+	Vector3f right = -GraphicsThreadGraphicsState->camera->LeftVector();
 	if (shader->uniformCameraRightWorldSpace != -1)
 	{
 		glUniform3f(shader->uniformCameraRightWorldSpace, right.x, right.y, right.z);
-		Vector3f up = graphicsState->camera->UpVector();
+		Vector3f up = GraphicsThreadGraphicsState->camera->UpVector();
 		glUniform3f(shader->uniformCameraUpWorldSpace, up.x, up.y, up.z);
 	}
 	if (shader->uniformScale != -1)
@@ -509,7 +509,7 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 		return;
 	}
 	LogGraphics("ParticleSystem::RenderInstanced", EXTENSIVE_DEBUG);
-	shader = ShadeMan.SetActiveShader(shader);
+	shader = ShadeMan.SetActiveShader(shader, graphicsState);
 	if (!shader)
 	{
 		LogGraphics("Bad shader "+shaderName, ERROR);
@@ -554,7 +554,7 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 		return;
 	}
 	// Set up model properties first?
-	model->mesh->BindVertexBuffer();
+	model->mesh->BindVertexBuffer(graphicsState);
 	// These functions are specific to glDrawArrays*Instanced*.
 	// The first parameter is the attribute buffer we're talking about.
 	// The second parameter is the "rate at which generic vertex attributes advance when rendering multiple instances"

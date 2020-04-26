@@ -5,14 +5,14 @@
 #ifndef INTERSECTION_H
 #define INTERSECTION_H
 
-class Entity;
+#include "Entity/Entity.h"
 
 struct Intersection 
 {
 	/// Distance from the origin that the ray met this intersection.
 	float distance;
 	/// Entity the ray is intersecting with.
-	Entity * entity;
+	EntitySharedPtr entity;
 };
 
 #endif

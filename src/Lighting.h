@@ -15,8 +15,11 @@ class AppWindow;
 /** A structure for keeping track of currently active lights in a scene
 	It contains mostly pointers since it is an encapsulating object for passing data between functions.
 */
-Align(16)
-class Lighting 
+class 
+#ifdef USE_SSE
+	alignas(16)
+#endif
+	Lighting
 {
 	/// Loads selected lighting into the active shader program
 	friend void LoadLighting(Lighting * lighting, Shader * shader);

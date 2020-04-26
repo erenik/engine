@@ -57,9 +57,9 @@ public:
 	/// Checks if target tile is vacant and walkable.
 	bool IsTileVacant(Vector3i position);
 	/// Moves ze entity on the grid! Returns true upon success.
-	bool MoveEntity(Entity * e, Vector3i toPosition);
+	bool MoveEntity(EntitySharedPtr e, Vector3i toPosition);
 	/// To check for events when arriving at a specified tile.
-//	void OnArrive(Entity * e, int x, int y);
+//	void OnArrive(EntitySharedPtr e, int x, int y);
 
 	/// Returns a walkable tile close to given coordinates.
 	Tile * GetClosestVacantTile(Vector3i position);
@@ -67,10 +67,10 @@ public:
 	void RandomizeTiles();
 
 	/// Wosh. Tries OnInteract events at target tile, with the interacter as reference.
-	void Interact(Vector3i position, const Entity * interacter);
+	void Interact(Vector3i position, const EntitySharedPtr interacter);
 
 	/// Attempts to fetch target entity's Tile2D equivalent/meta-structure.
-	EntityStateTile2D * GetEntity2DByEntity(const Entity * entity);
+	EntityStateTile2D * GetEntity2DByEntity(const EntitySharedPtr entity);
 	/// Attempts to fetch target EntityStateTile2D using given position.
 	EntityStateTile2D * GetEntityByPosition(Vector3i position);
 	/// Generates (allocates) waypoints for target navmesh. It also performs any connections within as appropriate.
@@ -86,7 +86,7 @@ public:
 	Vector2i Size();
 
 	/** Removes target entity from the map. */
-	virtual bool RemoveEntity(Entity * entity);
+	virtual bool RemoveEntity(EntitySharedPtr entity);
 
 private:
 	// Update the vectors that define the area which requires recalculation.	
@@ -122,7 +122,7 @@ private:
 
 	/// For le adding! Has to be called at least once before using the 2D moving functions. 
 	/// If positions are provided these will be attempted to be used.
-	virtual bool AddEntity(Entity * e);
+	virtual bool AddEntity(EntitySharedPtr e);
 
 	/// Reads map stats (width/height/version)
 	bool ReadStats(std::fstream &file);
@@ -149,7 +149,7 @@ private:
 
 
 	/// For keeping track of collissions n shit.
-//	Entity *** entityGrid;
+//	EntitySharedPtr** entityGrid;
 
 	/// An individual level, contain X amount of tiles (a tileGrid)
 	List<TileMapLevel*> levels;
@@ -166,7 +166,7 @@ private:
 	void AssignTileTypes();
 	bool tileTypesAssignedToTiles;
 	/// Inherited from Map, list of Entities o-o
-///	List<Entity*> entities;
+///	List< std::shared_ptr<Entity> > entities;
 };
 
 #endif

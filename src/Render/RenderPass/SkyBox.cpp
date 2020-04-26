@@ -5,8 +5,9 @@
 
 #include "Render/RenderPass.h"
 #include "Lighting.h"
+#include "Graphics/GraphicsManager.h"
 
-void RenderPass::RenderSkyBox()
+void RenderPass::RenderSkyBox(GraphicsState& graphicsState)
 {
 	// Grab an entity for comparison...
 	if (ActiveShader() == 0)
@@ -22,8 +23,8 @@ void RenderPass::RenderSkyBox()
 
 	// Set up camera.
 	// Grab viewmatrix.
-	Matrix4f viewMatrix = graphicsState->camera->ViewMatrix4f();
-	Matrix4f rotMatrix = graphicsState->camera->RotationMatrix4f();
+	Matrix4f viewMatrix = graphicsState.camera->ViewMatrix4f();
+	Matrix4f rotMatrix = graphicsState.camera->RotationMatrix4f();
 	Matrix4f invView = rotMatrix.InvertedCopy();
 	
 	// Was here.
@@ -35,7 +36,7 @@ void RenderPass::RenderSkyBox()
 	if (shader->uniformSunPosition != -1)
 	{
 		// Set it! o.o
-		List<Light*> lights = graphicsState->lighting->GetLights();
+		List<Light*> lights = graphicsState.lighting.GetLights();
 		for (int i = 0; i < lights.Size(); ++i)
 		{
 			Light * light = lights[i];
@@ -47,7 +48,7 @@ void RenderPass::RenderSkyBox()
 			}
 		}
 		// Set sky-color.
-		glUniform3fv(shader->uniformSkyColor, 1, graphicsState->lighting->skyColor.v);
+		glUniform3fv(shader->uniformSkyColor, 1, graphicsState.lighting.skyColor.v);
 	}
 	/// Load it into shader.
 	glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, rotMatrix.getPointer());
@@ -56,6 +57,6 @@ void RenderPass::RenderSkyBox()
 	if (!box)
 		return;
 	box->BufferizeIfNeeded();
-	box->Render();
+	box->Render(graphicsState);
 	return;		
 }

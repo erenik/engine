@@ -9,7 +9,7 @@
 #include "PhysicsLib/Force.h"
 
 
-void PhysicsManager::LabPhysicsIntegrate(Entity * dynamicEntity, float timeSinceLastUpdate)
+void PhysicsManager::LabPhysicsIntegrate(EntitySharedPtr dynamicEntity, float timeSinceLastUpdate)
 {
 // std::cout<<"\nLAB_PHYSICS";
     /// Grab pointers

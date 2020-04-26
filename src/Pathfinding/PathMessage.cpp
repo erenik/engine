@@ -6,16 +6,14 @@
 
 /// Request constructor.
 PathMessage::PathMessage(Entity * entity, Waypoint * from, Waypoint * to)
-	: Message(MessageType::PATHFINDING_MESSAGE), from(from), to(to)
+	: Message(MessageType::PATHFINDING_MESSAGE), from(from), to(to), entity(entity)
 {
-	recipientEntity = entity;
 	requestResponse = REQUEST;
 }
 /// Response type. Assumes path has already been written to.
-PathMessage::PathMessage(Entity * entity)
-	: Message(MessageType::PATHFINDING_MESSAGE)
+PathMessage::PathMessage(Entity* entity)
+	: Message(MessageType::PATHFINDING_MESSAGE), entity(entity)
 {
-	recipientEntity = entity;
 	requestResponse = RESPONSE;
 }
 

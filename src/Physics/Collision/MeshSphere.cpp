@@ -9,7 +9,7 @@
 #include "PhysicsLib/PhysicsMesh.h"
 #include "PhysicsLib/Shapes/Quad.h"
 
-bool MeshSphereCollision(Entity * meshEntity, Entity * sphereEntity, Collision &data)
+bool MeshSphereCollision(EntitySharedPtr meshEntity, EntitySharedPtr sphereEntity, Collision &data)
 {
 	assert(meshEntity->physics->shapeType == ShapeType::MESH &&
 		sphereEntity->physics->shapeType == ShapeType::SPHERE);

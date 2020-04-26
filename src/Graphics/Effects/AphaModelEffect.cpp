@@ -4,7 +4,7 @@
 #include "AlphaModelEffect.h"
 #include "Model/ModelManager.h"
 #include "GraphicsState.h"
-#include "Shader.h"
+#include "Graphics/Shader.h"
 
 #include "Entity/Entity.h"
 
@@ -14,7 +14,7 @@
 #define max(a,b) ((a > b)? (a) : (b))
 #endif
 
-AlphaModelEffect::AlphaModelEffect(String name, String modelName, Entity * reference)
+AlphaModelEffect::AlphaModelEffect(String name, String modelName, EntitySharedPtr reference)
 : GraphicEffect(name, GFX::ALPHA_MODEL_EFFECT) {
 	model = ModelMan.GetModel(modelName);
 	assert(model);
@@ -65,6 +65,6 @@ void AlphaModelEffect::Render(GraphicsState & graphicsState)
 //	std::cout<<"\nAlpha: "<<primaryColor[3];
 
 	// Render stuffs.
-	model->Render();
+	model->Render(graphicsState);
 
 }

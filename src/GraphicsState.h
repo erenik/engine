@@ -17,6 +17,7 @@
 #include "Entity/Entities.h"
 
 #include "Pathfinding/Path.h"
+#include "Lighting.h"
 
 class RenderPipeline;
 class Waypoint;
@@ -27,13 +28,15 @@ class Texture;
 class Mesh;
 struct GraphicEffect;
 class ParticleSystem;
-class Lighting;
 class TextFont;
 class Camera;
 class Light;
 class GraphicsState;
 class EntityGroup;
 class RenderInstancingGroup;
+
+class Entity;
+#define EntitySharedPtr std::shared_ptr<Entity>
 
 #define checkGLError() {int error = glGetError();if (error != GL_NO_ERROR)throw 1;}
 
@@ -46,13 +49,8 @@ class RenderInstancingGroup;
 #define SCISSOR_DISABLED                0x00000040  // For toggling scissor-functionality which is used by UILists et al.
 
 // Macro while rendering
-#define ActiveViewport (graphicsState->activeViewport)
+#define ActiveViewport (GraphicsThreadGraphicsState->activeViewport)
 
-
-/** Main state for rendering. Contains settings for pretty much everything which is not embedded in other objects.
-	Read only unless you know what you're doing (and are located within a render-thread function).
-*/
-extern GraphicsState * graphicsState;
 /// Frame ID/number/enumeration.
 extern int graphicsFrameNumber;
 
@@ -68,8 +66,8 @@ public:
 	~GraphicsState();
 public:
 	/// Adds an entity to the graphics state, which includes sorting it into proper instancing groups, if flagged for it.
-	void AddEntity(Entity * entity);
-	void RemoveEntity(Entity * entity);
+	void AddEntity(EntitySharedPtr entity);
+	void RemoveEntity(EntitySharedPtr entity);
 	void RemoveAllEntities();
 	void UpdateRenderInstancingGroupBuffers();
 	/// Calls glScissor, and updates locally tracked scissor. Appends current viewport x0/y0 co-ordinates automatically to the GL call.
@@ -92,7 +90,7 @@ public:
 	int farPlane;
 
 	/// All entities to render?
-	List<Entity*> entities;
+	List< std::shared_ptr<Entity> > entities;
 	/// Those requiring depth-sorting and usually rendered in a separate alpha-pass?
 	Entities alphaEntities;
 	Entities solidEntities,
@@ -119,7 +117,7 @@ public:
 	int renderedObjects;
 
 	/// Current lighting setup
-	Lighting * lighting;
+	Lighting lighting;
 	/// Lights which move o-o
 	List<Light*> dynamicLights;
 	/// Active shaderProgram -> Moved to be stored in ShaderManager::ActiveShader()
@@ -218,7 +216,7 @@ public:
 private:
 	/// Used to reduce amount of calls to GL by not re-binding and setting up all vertex buffer stats if the same buffer is still bound. GL_ARRAY_BUFFER type
 	int boundVertexArrayBuffer;
-	RenderInstancingGroup * GetGroup(List<RenderInstancingGroup*> & fromListOfGroups, Entity * basedOnEntity);
+	RenderInstancingGroup * GetGroup(List<RenderInstancingGroup*> & fromListOfGroups, EntitySharedPtr basedOnEntity);
 
 };
 

@@ -17,7 +17,7 @@ void GMClearLighting::Process()
 {
 	Lighting * lighting = Graphics.ActiveLighting();
 	lighting->DeleteAllLights();
-	graphicsState->dynamicLights.ClearAndDelete();
+	GraphicsThreadGraphicsState->dynamicLights.ClearAndDelete();
 }
 
 

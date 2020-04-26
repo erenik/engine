@@ -29,9 +29,9 @@
 #include "Maps/MapManager.h"
 
 /// Creates an entity featuring the EditorCameraProperty. If entity argument is provided, link to the entity is given as well.
-Camera * CreateEditorCamera(Entity ** entityPointer /*= NULL*/)
+Camera * CreateEditorCamera(EntitySharedPtr* entityPointer /*= NULL*/)
 {
-	Entity * entity = EntityMan.CreateEntity("EditorCameraEntity", NULL, NULL);
+	EntitySharedPtr entity = EntityMan.CreateEntity("EditorCameraEntity", NULL, NULL);
 	/// Set up default settings.
 
 	EditorCameraProperty * ecp = new EditorCameraProperty(entity);
@@ -53,7 +53,7 @@ Camera * CreateEditorCamera(Entity ** entityPointer /*= NULL*/)
 }
 
 
-EditorCameraProperty::EditorCameraProperty(Entity * owner)
+EditorCameraProperty::EditorCameraProperty(EntitySharedPtr owner)
 : EntityProperty("EditorCameraProperty", EntityPropertyID::EDITOR_CAMERA, owner)
 {
 	inputFocusEnabled = true;
@@ -100,7 +100,7 @@ void EditorCameraProperty::ProcessMessage(Message * message)
 			for (int i = 0; i < contacts.Size(); ++i)
 			{
 				Intersection & contact = contacts[i];
-				Entity * entity = contact.entity;
+				std::shared_ptr<Entity> entity = contact.entity;
 //				std::cout<<"\n contacts "<<i<<" "<<entity->name;
 				targets.Add(entity);
 			}

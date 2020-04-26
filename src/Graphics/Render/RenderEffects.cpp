@@ -18,25 +18,25 @@ void GraphicsManager::RenderEffects()
 //	glDisable(GL_CULL_FACE);
 //	glCullFace(GL_FRONT);
 
-	Shader * effect = ShadeMan.SetActiveShader("Effect");
+	Shader * effect = ShadeMan.SetActiveShader("Effect", graphicsState);
     /// No rendering if the shader ain't compiled, ne?
     if (effect == NULL)
         return;
     glDisable(GL_TEXTURE_2D);
 	// Set projection and view matrices
-	glUniformMatrix4fv(effect->uniformProjectionMatrix, 1, false, graphicsState->projectionMatrixF.getPointer());
-	glUniformMatrix4fv(effect->uniformViewMatrix, 1, false, graphicsState->viewMatrixF.getPointer());
+	glUniformMatrix4fv(effect->uniformProjectionMatrix, 1, false, GraphicsThreadGraphicsState->projectionMatrixF.getPointer());
+	glUniformMatrix4fv(effect->uniformViewMatrix, 1, false, GraphicsThreadGraphicsState->viewMatrixF.getPointer());
 	assert(effect);
-	for (int i = 0; i < graphicsState->graphicEffectsToBeRendered.Size(); ++i)
+	for (int i = 0; i < GraphicsThreadGraphicsState->graphicEffectsToBeRendered.Size(); ++i)
 	{
-		graphicsState->graphicEffectsToBeRendered[i]->Render(*graphicsState);
+		GraphicsThreadGraphicsState->graphicEffectsToBeRendered[i]->Render(graphicsState);
 	}
 	CheckGLError("Post entity-effects GraphicsManager::RenderEffects");
 
-    for (int i = 0; i < graphicsState->particleEffectsToBeRendered.Size(); ++i)
+    for (int i = 0; i < GraphicsThreadGraphicsState->particleEffectsToBeRendered.Size(); ++i)
 	{
-		ParticleSystem * ps = graphicsState->particleEffectsToBeRendered[i];
-		ps->Render(*graphicsState);
+		ParticleSystem * ps = GraphicsThreadGraphicsState->particleEffectsToBeRendered[i];
+		ps->Render(graphicsState);
     }
 
 	// Reset blend equation after particle effects are done.

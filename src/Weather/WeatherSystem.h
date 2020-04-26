@@ -8,13 +8,13 @@
 
 #include "MathLib.h"
 #include "Time/Time.h"
+#include "Entity/Entity.h"
 
 class CloudSystem;
 class PrecipitationSystem;
 class ParticleEmitter;
 class Message;
 class Light;
-class Entity;
 class AABB;
 
 class WeatherSystem 
@@ -57,7 +57,7 @@ private:
 	ParticleEmitter * precipitationEmitter;
 	Vector3f globalWind;
 	/// The sun.
-	Entity * sun;
+	EntitySharedPtr sun;
 	bool initialized;
 
 	// o.o 

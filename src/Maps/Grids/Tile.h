@@ -67,7 +67,7 @@ public:
 	List<GridObject*> objects;
 
 	/// Any entities currently occupying this tile. Temporary variable that will NOT be saved to file.
-	List<Entity*> entities; 
+	List< std::shared_ptr<Entity> > entities; 
 
 private:
 	/// String containing any extra statistics about this tile. Any custom terrain, object or entity creation should be stored and handled here. This will be saved to file. 

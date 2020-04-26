@@ -20,7 +20,7 @@ void GraphicsManager::RenderFPS(){
 	// Draw awesome grid for debugging, yo.
 	if (true){
 	    if (GL_VERSION_MAJOR >= 2)
-            ShadeMan.SetActiveShader(0);
+            ShadeMan.SetActiveShader(0, graphicsState);
 		// Set projection
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
@@ -37,7 +37,7 @@ void GraphicsManager::RenderFPS(){
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glDisable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, 0);
-		graphicsState->currentTexture = NULL;
+		GraphicsThreadGraphicsState->currentTexture = NULL;
 		// Disable lighting
 		glDisable(GL_LIGHTING);
 		error = glGetError();

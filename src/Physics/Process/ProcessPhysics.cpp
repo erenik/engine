@@ -116,7 +116,7 @@ void PhysicsManager::ProcessPhysics()
 		int milliseconds = newStepSizeMs;
 		for (int i = 0 ; i < physicalEntities.Size(); ++i)
 		{
-			Entity * entity = physicalEntities[i];
+			EntitySharedPtr entity = physicalEntities[i];
 			List<Estimator*> & estimators = entity->physics->estimators;
 			for (int j = 0; j < estimators.Size(); ++j)
 			{

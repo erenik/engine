@@ -12,13 +12,13 @@ void GraphicsManager::RenderEntityVectors(){
 	// TODO: if so.
 	return;
 
-	ShadeMan.SetActiveShader(NULL);
+	ShadeMan.SetActiveShader(nullptr, graphicsState);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glLoadMatrixf(graphicsState->projectionMatrixF.getPointer());
+	glLoadMatrixf(GraphicsThreadGraphicsState->projectionMatrixF.getPointer());
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	glLoadMatrixf(graphicsState->viewMatrixF.getPointer());
+	glLoadMatrixf(GraphicsThreadGraphicsState->viewMatrixF.getPointer());
 
 	glDisable(GL_TEXTURE_2D);
 	glEnable(GL_DEPTH_TEST);
@@ -27,7 +27,7 @@ void GraphicsManager::RenderEntityVectors(){
 	glDisable(GL_LIGHTING);
 
 	glLoadIdentity();
-	glLoadMatrixf(graphicsState->viewMatrixF.getPointer());
+	glLoadMatrixf(GraphicsThreadGraphicsState->viewMatrixF.getPointer());
 
 
 	glBegin(GL_LINES);
@@ -38,7 +38,7 @@ void GraphicsManager::RenderEntityVectors(){
 		// Reset view/proj matrices
 
 		// Now just render a single line first.
-		Entity * e = registeredEntities[i];
+		EntitySharedPtr e = registeredEntities[i];
 		Vector3f position = e->worldPosition;
 		Vector3f lookAt = e->rotationMatrix * Vector4d(0,0,1,0);
 		Vector3f upVec = e->rotationMatrix * Vector4d(0,1,0,0);

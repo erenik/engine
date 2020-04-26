@@ -10,8 +10,12 @@ class Mesh;
 
 // A struct for a geometric MeshFace, containing number of vertices and indices for which vertex is used and which UV-coordinate is used.
 // https://msdn.microsoft.com/en-us/library/83ythb65.aspx
-Align(16)
-struct  MeshFace 
+
+struct  
+#ifdef USE_SSE
+	alignas(16)
+#endif
+	MeshFace
 {
 	MeshFace();
 	~MeshFace();

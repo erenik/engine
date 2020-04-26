@@ -6,12 +6,13 @@
 #include "Render/RenderPass.h"
 #include "Lighting.h"
 
+#include "Graphics/GraphicsManager.h"
 #include "Physics/PhysicsManager.h"
 #include "PhysicsLib/Shapes/AABB.h"
 
 #include "Graphics/GraphicsProperty.h"
 
-bool RenderPass::SetupLightPOVCamera()
+bool RenderPass::SetupLightPOVCamera(GraphicsState& graphicsState)
 {
 	// Now it becomes tricky..
 	static Camera * camera = NULL;
@@ -19,7 +20,7 @@ bool RenderPass::SetupLightPOVCamera()
 	if (camera == NULL)
 		camera = CameraMan.NewCamera("LightPOVCamera");
 
-	Lighting * lighting = graphicsState->lighting;
+	Lighting * lighting = &graphicsState.lighting;
 	List<Light*> lights = lighting->GetLights();
 	for (int i = 0; i < lights.Size(); ++i)
 	{
@@ -76,7 +77,7 @@ bool RenderPass::SetupLightPOVCamera()
 			position2 = viewProjection * Vector4f(10,0,0,1),
 			position3 = viewProjection * Vector4f(0,10,0,1),
 			position4 = viewProjection * Vector4f(0,0,10,1);
-		graphicsState->SetCamera(camera);
+		GraphicsThreadGraphicsState->SetCamera(camera);
 		light->shadowMapIndex = 0;
 		float elements [16] = {	0.5, 0, 0, 0,
 								0, 0.5, 0, 0,
@@ -100,7 +101,7 @@ bool RenderPass::SetupLightPOVCamera()
 		// Take current shadow map texture we created earlier and make sure the camera is bound to it for usage later.
 		// Save matrix used to render shadows properly later on?
 //			light->inverseTransposeMatrix = ;
-		light->shadowMap = graphicsState->activeViewport->shadowMapDepthBuffer->renderBuffers[0]->texture;
+		light->shadowMap = GraphicsThreadGraphicsState->activeViewport->shadowMapDepthBuffer->renderBuffers[0]->texture;
 		assert(light->shadowMap);
 		return true;
 	}
@@ -114,7 +115,7 @@ GLuint diffuseBuffer = 0, normalBuffer = 0, positionBuffer = 0, specularBuffer =
 // tangentBuffer = 0,	normalMapBuffer = 0, pickingBuffer = 0;
 
 /// Creates it as needed.
-bool RenderPass::BindShadowMapFrameBuffer()
+bool RenderPass::BindShadowMapFrameBuffer(GraphicsState& graphicsState)
 {
 	CheckGLError("Before RenderPass::BindShadowMapFrameBuffer");
 	if (!viewport->shadowMapDepthBuffer)
@@ -145,7 +146,7 @@ bool RenderPass::BindShadowMapFrameBuffer()
 
 bool newT = true;
 // Set up/fetch render buffers for this, based on the viewport.
-bool RenderPass::BindDeferredGatherFrameBuffer()
+bool RenderPass::BindDeferredGatherFrameBuffer(GraphicsState& graphicsState)
 {
 	glDisable(GL_CULL_FACE);
 	glEnable(GL_TEXTURE_2D); // Enable texturing so we can bind our frame buffer texture
@@ -153,7 +154,7 @@ bool RenderPass::BindDeferredGatherFrameBuffer()
 
 	Vector2i requestedRenderSize = viewport->size;
 	if (viewport->window == MainWindow())
-		requestedRenderSize = graphicsState->renderResolution;
+		requestedRenderSize = GraphicsThreadGraphicsState->renderResolution;
 
 	if (!viewport->deferredGatherBuffer)
 	{
@@ -183,7 +184,7 @@ bool RenderPass::BindDeferredGatherFrameBuffer()
 	return true;
 }
 
-bool RenderPass::BindDeferredOutputFrameBuffer()
+bool RenderPass::BindDeferredOutputFrameBuffer(GraphicsState& graphicsState)
 {
 	glDisable(GL_CULL_FACE);
 	glEnable(GL_TEXTURE_2D); // Enable texturing so we can bind our frame buffer texture
@@ -191,7 +192,7 @@ bool RenderPass::BindDeferredOutputFrameBuffer()
 
 	Vector2i requestedRenderSize = viewport->size;
 	if (viewport->window == MainWindow())
-		requestedRenderSize = graphicsState->renderResolution;
+		requestedRenderSize = GraphicsThreadGraphicsState->renderResolution;
 	if (!viewport->deferredOutputBuffer)
 	{
 		viewport->deferredOutputBuffer = new FrameBuffer("DeferredOutputBuffer");
@@ -218,7 +219,7 @@ bool RenderPass::BindDeferredOutputFrameBuffer()
 	CheckGLError("RenderPass::BindDeferredOutputFrameBuffer");
 	return true;
 }
-bool RenderPass::BindPostProcessOutputFrameBuffer()
+bool RenderPass::BindPostProcessOutputFrameBuffer(GraphicsState& graphicsState)
 {
 	glEnable(GL_TEXTURE_2D); // Enable texturing so we can bind our frame buffer texture
 	glDisable(GL_DEPTH_TEST); // Disable depth testing
@@ -226,7 +227,7 @@ bool RenderPass::BindPostProcessOutputFrameBuffer()
 	Vector2i requestedRenderSize = viewport->size;
 	FrameBuffer * ppob = viewport->postProcessOutputBuffer;
 	if (viewport->window == MainWindow())
-		requestedRenderSize = graphicsState->renderResolution;
+		requestedRenderSize = GraphicsThreadGraphicsState->renderResolution;
 	if (!ppob)
 	{
 		ppob = viewport->postProcessOutputBuffer = new FrameBuffer("PostProcessOutputBuffer");
@@ -277,14 +278,14 @@ bool RenderPass::BindPostProcessOutputFrameBuffer()
 	return true;
 }
 
-bool RenderPass::PerformIterativePingPongRenders()
+bool RenderPass::PerformIterativePingPongRenders(GraphicsState& graphicsState)
 {
 	glEnable(GL_TEXTURE_2D); // Enable texturing so we can bind our frame buffer texture
 	glDisable(GL_DEPTH_TEST); // Disable depth testing
 	assert(shader);
 	Vector2i requestedRenderSize = MainWindow()->ClientAreaSize();
 	if (viewport->window == MainWindow())
-		requestedRenderSize = graphicsState->renderResolution;
+		requestedRenderSize = graphicsState.renderResolution;
 	List<FrameBuffer*> fbs;
 	FrameBuffer * previous = GetInputFrameBuffer();
 	Timer t;
@@ -317,7 +318,7 @@ bool RenderPass::PerformIterativePingPongRenders()
 	t.Stop();
 	int msAllocating = t.GetMs();
 	CheckGLError("RenderPass::PerformIterativePingPongRenders - fb creation/resize");
-	graphicsState->antialiasing = true; // Do it.
+	graphicsState.antialiasing = true; // Do it.
 	/// Buffers created, now 
 	t.Start();
 	for (int i = 0; i < fbs.Size(); ++i)
@@ -331,9 +332,9 @@ bool RenderPass::PerformIterativePingPongRenders()
 		glViewport(0, 0, fb->size.x, fb->size.y);
 		CheckGLError("RenderPass::PerformIterativePingPongRenders - rendering");
 		// Do initial render.
-		RenderQuad();
+		RenderQuad(graphicsState);
 		// Unbind, bind next.
-		fb->BindTexturesForSampling(shader);
+		fb->BindTexturesForSampling(shader, graphicsState);
 		// Ensure linear sampling.
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		// save texture?
@@ -367,17 +368,17 @@ bool RenderPass::PerformIterativePingPongRenders()
 
 #include "Mesh/Square.h"
 
-void RenderPass::SetupDeferredGatherAsInput()
+void RenderPass::SetupDeferredGatherAsInput(GraphicsState& graphicsState)
 {
-	viewport->deferredGatherBuffer->BindTexturesForSampling(shader);
+	viewport->deferredGatherBuffer->BindTexturesForSampling(shader, graphicsState);
 	return;
 }
 
-void RenderPass::SetupDeferredOutputAsInput()
+void RenderPass::SetupDeferredOutputAsInput(GraphicsState& graphicsState)
 {
 	// Unbind the frame buffer from usage
 //	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	viewport->deferredOutputBuffer->BindTexturesForSampling(shader);
+	viewport->deferredOutputBuffer->BindTexturesForSampling(shader, graphicsState);
 	// RenderQuad func added.
 	// Unbind textures?
 	/*
@@ -405,15 +406,15 @@ FrameBuffer * RenderPass::GetInputFrameBuffer()
 
 
 /// Used for e.g. shadow-mapping.
-void RenderPass::RenderEntitiesOnlyVertices()
+void RenderPass::RenderEntitiesOnlyVertices(GraphicsState& graphicsState)
 {
 	bool optimized = true;
 	if (!optimized)
 	{
-		RenderEntities();
+		RenderEntities(graphicsState);
 		return;
 	}
-	Entity * entity;
+	EntitySharedPtr entity;
 	GraphicsProperty * gp;
 	Timer timer;
 	timer.Start();
@@ -424,7 +425,7 @@ void RenderPass::RenderEntitiesOnlyVertices()
 		glUniform1i(shader->uniformInstancingEnabled, 0);
 	}
 	/// Bind default array.
-	graphicsState->BindVertexArrayBuffer(0);
+	graphicsState.BindVertexArrayBuffer(0);
 	// Render all entities listed in the graphicsState!
 	for (int i = 0; i < entitiesToRender.Size(); ++i)
 	{
@@ -432,8 +433,8 @@ void RenderPass::RenderEntitiesOnlyVertices()
 		// Just load transform as model matrix straight away.
 		glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, entity->transformationMatrix.getPointer());	
 		// Render the model
-		entity->model->Render();
-		++graphicsState->renderedObjects;		// increment rendered objects for debug info
+		entity->model->Render(graphicsState);
+		++graphicsState.renderedObjects;		// increment rendered objects for debug info
 	}
 	if (instancingEnabled)
 	{
@@ -441,7 +442,7 @@ void RenderPass::RenderEntitiesOnlyVertices()
 		for (int i = 0; i < entityGroupsToRender.Size(); ++i)
 		{
 			RenderInstancingGroup * group = entityGroupsToRender[i];
-			group->Render();
+			group->Render(graphicsState);
 		}
 	}
 	timer.Stop();

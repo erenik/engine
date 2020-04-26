@@ -10,7 +10,7 @@
 #include "../PhysicsProperty.h"
 
 /// Checks and resolves a collission between target two spheres.
-bool SphereSphereCollision(Entity * one, Entity * two, Collision &data)
+bool SphereSphereCollision(EntitySharedPtr one, EntitySharedPtr two, Collision &data)
 {
 	assert(one->physics->shapeType == ShapeType::SPHERE &&
 		two->physics->shapeType == ShapeType::SPHERE);

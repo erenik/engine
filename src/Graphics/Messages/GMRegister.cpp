@@ -7,7 +7,7 @@
 
 #include "Entity/EntityManager.h"
 
-GMRegisterEntity::GMRegisterEntity(Entity * i_entity) : GraphicsMessage(GM_REGISTER_ENTITY){
+GMRegisterEntity::GMRegisterEntity(EntitySharedPtr i_entity) : GraphicsMessage(GM_REGISTER_ENTITY){
 	entity = i_entity;
 }
 

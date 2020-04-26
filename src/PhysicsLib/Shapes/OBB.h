@@ -10,9 +10,9 @@
 #include "Model/Geometry.h"
 #include "List/List.h"
 #include "Triangle.h"
+#include "Entity/Entity.h"
 
 struct Collision;
-class Entity;
 class Edge;
 class Face;
 class Sphere;
@@ -25,7 +25,7 @@ public:
     virtual ~OBB();
 
     /// Recalculate it using the entity's base model's AABB and current matrix.
-    void Recalculate(Entity * entity);
+    void Recalculate(EntitySharedPtr entity);
     /// Render with glVertex vertexou
     void Render();
 

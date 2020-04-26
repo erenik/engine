@@ -81,14 +81,14 @@ public:
 		Returns amount of collissions tested.
 		- localTransform is applied to all relevant triangle upon testing if provided.
 	*/
-	int FindCollisions(Entity * entity, List<Collision> & collissions, Matrix4f & localTransform, int entrySubdivisionLevel = -1);
+	int FindCollisions(EntitySharedPtr entity, List<Collision> & collissions, Matrix4f & localTransform, int entrySubdivisionLevel = -1);
 	/** Searches for collissions with specified entity.
 		If entry subdivision level is not specified the initial call will set it automatically (used for recursion limits)
 		Returns amount of collissions tested.
 	*/
-	int FindCollisions(Entity * entity, List<Collision> & collissions, int entrySubdivisionLevel = -1);
+	int FindCollisions(EntitySharedPtr entity, List<Collision> & collissions, int entrySubdivisionLevel = -1);
 	/// Checks if the target entity is inside this Octree node, intersecting it or outside.
-	int IsEntityInside(Entity * Entity, Matrix4f & localTransform);
+	int IsEntityInside(EntitySharedPtr Entity, Matrix4f & localTransform);
 	/// Checks if the target tri is inside this Octree node, intersecting it or outside.
 	int IsTriangleInside(Triangle * tri);
 

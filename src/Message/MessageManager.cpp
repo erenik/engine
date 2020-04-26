@@ -49,7 +49,7 @@
 #include "Model/ModelManager.h"
 #include "TextureManager.h"
 
-extern Camera * CreateEditorCamera(Entity ** e = NULL);
+extern Camera * CreateEditorCamera(EntitySharedPtr* e = NULL);
 
 MessageManager * MessageManager::messageManager = NULL;
 
@@ -322,8 +322,8 @@ void MessageManager::ProcessMessage(Message * message)
 		{
 			CollisionCallback * cc = (CollisionCallback*) message;
 			/// o.o
-			Entity * one = cc->one;
-			Entity * two = cc->two;
+			EntitySharedPtr one = cc->one;
+			EntitySharedPtr two = cc->two;
 			one->ProcessMessage(cc);
 			two->ProcessMessage(cc);
 			break;	
@@ -394,7 +394,7 @@ void MessageManager::ProcessMessage(Message * message)
 			else if (msg.Contains("CreateNormalMapTestEntities"))
 			{
 				// Create some entities.
-				Entity * entity = MapMan.CreateEntity("NormalMapSprite", ModelMan.GetModel("sprite.obj"), TexMan.GetTexture("0x77"), Vector3f(0,0,0));
+				EntitySharedPtr entity = MapMan.CreateEntity("NormalMapSprite", ModelMan.GetModel("sprite.obj"), TexMan.GetTexture("0x77"), Vector3f(0,0,0));
 				GraphicsQueue.Add(new GMSetEntityTexture(entity, NORMAL_MAP, "normalMapTest2"));
 			}
 			if (msg == "AcceptInput:false")

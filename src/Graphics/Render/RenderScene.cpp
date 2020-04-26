@@ -21,17 +21,17 @@ void GraphicsManager::RenderScene()
 	
 	glBlendFunc(GL_ONE, GL_ZERO);
 
-	Shader * shader = ShadeMan.SetActiveShader("Phong");
+	Shader * shader = ShadeMan.SetActiveShader("Phong", graphicsState);
     if (shader == NULL){
 		LogGraphics("Unable to set Phong shader.", ERROR);
         return;
     }
-	graphicsState->settings |= ENABLE_SPECIFIC_ENTITY_OPTIONS;
+	GraphicsThreadGraphicsState->settings |= ENABLE_SPECIFIC_ENTITY_OPTIONS;
 
 	// Set fog properties as needed.
-	glUniform1f(shader->uniformFogBeginDistance, graphicsState->fogBegin);
-	glUniform1f(shader->uniformFogEndDistance, graphicsState->fogEnd);
-	glUniform3f(shader->uniformFogColor, graphicsState->clearColor[0], graphicsState->clearColor[1], graphicsState->clearColor[2]);
+	glUniform1f(shader->uniformFogBeginDistance, GraphicsThreadGraphicsState->fogBegin);
+	glUniform1f(shader->uniformFogEndDistance, GraphicsThreadGraphicsState->fogEnd);
+	glUniform3f(shader->uniformFogColor, GraphicsThreadGraphicsState->clearColor[0], GraphicsThreadGraphicsState->clearColor[1], GraphicsThreadGraphicsState->clearColor[2]);
 
 	if (backfaceCullingEnabled){
 		glEnable(GL_CULL_FACE);
@@ -50,13 +50,13 @@ void GraphicsManager::RenderScene()
 	// Reset matrices: This may as well be done before rendering is done, since the matrices
 	// will need to be reset all the time depending on the content to be rendered and where ^^
 	/// Camera is already updated, so just use it's matrices straight away ^^
-	Camera & camera = *graphicsState->camera;
+	Camera & camera = *GraphicsThreadGraphicsState->camera;
 
 	// Camera calculations are now done inside the camera, so the camPos/camLookingAtVector/camUpVector can now be removed!
 	// If view frustum culling is enabled, set it in the settings and update the frustum with the camera's current position.
 	if (true /*useOctree && frustumCullingActive*/){
-		graphicsState->viewFrustum.SetCamPos(Vector3f((Vector4f)camera.Position()), Vector3f((Vector4f)camera.LookingAt()), Vector3f((Vector4f)camera.UpVector()));
-		Frustum & viewFrustum = graphicsState->viewFrustum;
+		GraphicsThreadGraphicsState->viewFrustum.SetCamPos(Vector3f((Vector4f)camera.Position()), Vector3f((Vector4f)camera.LookingAt()), Vector3f((Vector4f)camera.UpVector()));
+		Frustum & viewFrustum = GraphicsThreadGraphicsState->viewFrustum;
 //		std::cout<<"\nViewfrustum: "<<viewFrustum.left<<" "<<viewFrustum.right<<" nearplane: "<<viewFrustum.nearPlaneDistance<<" farplane: "<<viewFrustum.farPlaneDistance;
 	}
 
@@ -65,9 +65,9 @@ void GraphicsManager::RenderScene()
 
 	// Load in the model and view matrices
 //	shader->uniformViewMatrix = glGetUniformLocation(shader->shaderProgram, "viewMatrix");
-	glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, graphicsState->viewMatrixF.getPointer());	
+	glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, GraphicsThreadGraphicsState->viewMatrixF.getPointer());	
 //	shader->uniformModelMatrix = glGetUniformLocation(shader->shaderProgram, "modelMatrix");
-	glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, graphicsState->modelMatrixF.getPointer());
+	glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, GraphicsThreadGraphicsState->modelMatrixF.getPointer());
 
 	// Set later! ALSO: glProgramUniform is in a later GL version compared to glUniform!
 /*	if (shader && shader->uniformEyePosition != -1)
@@ -83,10 +83,10 @@ void GraphicsManager::RenderScene()
 
 	// Load projection matrix into shader
 //	GLuint uniformProjectionMatrix = glGetUniformLocation(shader->shaderProgram, "projectionMatrix");
-	graphicsState->projectionMatrixF = graphicsState->projectionMatrixD;
-	glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, graphicsState->projectionMatrixF.getPointer());
+	GraphicsThreadGraphicsState->projectionMatrixF = GraphicsThreadGraphicsState->projectionMatrixD;
+	glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, GraphicsThreadGraphicsState->projectionMatrixF.getPointer());
 
-	Matrix4f mvp = graphicsState->projectionMatrixF * graphicsState->viewMatrixF * graphicsState->modelMatrixF;
+	Matrix4f mvp = GraphicsThreadGraphicsState->projectionMatrixF * GraphicsThreadGraphicsState->viewMatrixF * GraphicsThreadGraphicsState->modelMatrixF;
 	/// Just testing that the matrix is set correctly..
 	//Vector4f point = Vector4f(1.0, 1.0, 1.0, 1.0f);
 	//point = mvp * point;
@@ -109,9 +109,9 @@ void GraphicsManager::RenderScene()
 	/// Set legacy rendering setting
 	bool useLegacy = false;
 	if (useLegacy)
-		graphicsState->settings |= USE_LEGACY_GL;
+		GraphicsThreadGraphicsState->settings |= USE_LEGACY_GL;
 	else
-		graphicsState->settings &= ~USE_LEGACY_GL;
+		GraphicsThreadGraphicsState->settings &= ~USE_LEGACY_GL;
 
 	/// Deferred rendering setting ^^
 	bool useDeferred = false;
@@ -132,10 +132,10 @@ void GraphicsManager::RenderScene()
 	glGenerateMipmap = (PFNGLGENERATEMIPMAPPROC)wglGetProcAddress((std::string("glGenerateMipmap") + suffix).c_str());
 */
 
-	if (graphicsState->settings & USE_LEGACY_GL){
+	if (GraphicsThreadGraphicsState->settings & USE_LEGACY_GL){
 		// Set default shader program
 		shader = NULL;
-		ShadeMan.SetActiveShader(0);
+		ShadeMan.SetActiveShader(nullptr, graphicsState);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
 	/// Deferred rendering, check GL version too! Need > 3.0 for FBOs (Frame Buffer Objects)
@@ -143,7 +143,7 @@ void GraphicsManager::RenderScene()
 	{
 		CheckGLError("Before deferred start");
 	/// Use Deferred-shader to store all data correctly!
-		if (ShadeMan.SetActiveShader("Deferred") == NULL){
+		if (ShadeMan.SetActiveShader("Deferred", graphicsState) == NULL){
 			std::cout<<"\nUnable to set Deferred Shader. Breaking rendering.";
 		//	assert(false && "Unable to set Deferred Shader. Breaking rendering.");
 			return;
@@ -181,25 +181,25 @@ void GraphicsManager::RenderScene()
 	}
 	/// Only set shader properties if we're using modern GL!
 	else {
-		ShadeMan.SetActiveShader("Flat");
+		ShadeMan.SetActiveShader("Flat", graphicsState);
 	//	ShadeMan.SetActiveShader("Normal");
 	//	ShadeMan.SetActiveShader("Depth");
-		Shader * shader = ShadeMan.SetActiveShader("Phong");
+		Shader * shader = ShadeMan.SetActiveShader("Phong", graphicsState);
 
 		/// Load lighting settings to shader ^^
-		graphicsState->lighting->LoadIntoShader(shader);
+		GraphicsThreadGraphicsState->lighting.LoadIntoShader(shader);
 	}
 	// Set primary color
 	glUniform4f(shader->uniformPrimaryColorVec4, 1.f,1.f,1.f,1.f);
 
 	// Reset bound textures
-	graphicsState->currentTexture = NULL;
+	GraphicsThreadGraphicsState->currentTexture = NULL;
 	// Update view and projection matrix in specified shader
 	if (shader && shader->uniformProjectionMatrix != -1)
-		glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, graphicsState->projectionMatrixF.getPointer());
+		glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, GraphicsThreadGraphicsState->projectionMatrixF.getPointer());
 	// Update view and projection matrix in specified shader
 	if (shader && shader->uniformViewMatrix != -1)
-		glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, graphicsState->viewMatrixF.getPointer());
+		glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, GraphicsThreadGraphicsState->viewMatrixF.getPointer());
 	// Update camera in the world
 	if (shader && shader->uniformEyePosition != -1)
 		glUniform4f(shader->uniformEyePosition, camera.Position()[0], camera.Position()[1], camera.Position()[2], 1.0f);
@@ -230,7 +230,7 @@ void GraphicsManager::RenderScene()
 		// Unbind the frame buffer from usage
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		/// Set shader program
-		Shader * shader = ShadeMan.SetActiveShader("Lighting");
+		Shader * shader = ShadeMan.SetActiveShader("Lighting", graphicsState);
 
 		// Set primary color and other uniforms
 		if (shader->uniformPrimaryColorVec4 == -1){
@@ -242,7 +242,7 @@ void GraphicsManager::RenderScene()
 			glUniform4f(shader->uniformPrimaryColorVec4, 1,1,1,1);
 
 		/// Load lighting settings to shader ^^
-		graphicsState->lighting->LoadIntoShader(shader);
+		GraphicsThreadGraphicsState->lighting.LoadIntoShader(shader);
 
 		// Update camera in the world
 		if (shader && shader->uniformEyePosition != -1)
@@ -322,11 +322,11 @@ uniform sampler2D positionMap;*/
 		glActiveTexture(GL_TEXTURE0 + 7);
 		glBindTexture(GL_TEXTURE_2D, pickingTexture);
 
-		graphicsState->currentTexture = 0;
+		GraphicsThreadGraphicsState->currentTexture = 0;
 
 		// Render square for the AppWindow
 		deferredRenderingBox->name = "DeferredLighting";
-		deferredRenderingBox->Render();
+		deferredRenderingBox->Render(graphicsState);
 
 		//glDeleteBuffers(1, &box.vboBuffer);
 		//box.vboBuffer = NULL;
@@ -340,7 +340,7 @@ uniform sampler2D positionMap;*/
 		glActiveTexture(GL_TEXTURE0 + 0);
 
 		// Render the light-sources o-o
-		ShadeMan.SetActiveShader(0);	// Set default program, matrices should still be correct
+		ShadeMan.SetActiveShader(nullptr, graphicsState);	// Set default program, matrices should still be correct
 	//	for (int i = 0; i <
 
 	}

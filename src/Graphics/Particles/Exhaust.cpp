@@ -11,7 +11,7 @@
 #include "../GraphicsManager.h"
 #include "../FrameStatistics.h"
 
-Exhaust::Exhaust(Entity * reference)
+Exhaust::Exhaust(EntitySharedPtr reference)
 : ParticleSystem("PointEmitter", true)
 {
 	/*
@@ -120,18 +120,18 @@ void Exhaust::Render(GraphicsState * graphicsState)
 {
 	/*
     /// Based on the optimization level, will probably be pow(0.5, optimizationLevel);
-    optimizationLevel = pow(0.5f, graphicsState->optimizationLevel);
+    optimizationLevel = pow(0.5f, GraphicsThreadGraphicsState->optimizationLevel);
     if (optimizationLevel == 0)
         return;
     assert(optimizationLevel > 0);
     /// Calculate particles to process based on the graphicsState's optimization level.
     particlesToProcess = (int) (optimizationLevel * maxParticles);
 
-    ShadeMan.SetActiveShader(0);
+    ShadeMan.SetActiveShader(nullptr, graphicsState);
     glMatrixMode(GL_PROJECTION);
-    glLoadMatrixf(graphicsState->projectionMatrixF.getPointer());
+    glLoadMatrixf(GraphicsThreadGraphicsState->projectionMatrixF.getPointer());
     glMatrixMode(GL_MODELVIEW);
-    Matrix4f viewMatrix = graphicsState->viewMatrixF.getPointer();
+    Matrix4f viewMatrix = GraphicsThreadGraphicsState->viewMatrixF.getPointer();
     Matrix4f modelMatrix;
   //  if (relativeTo)
   //      modelMatrix = relativeTo->transformationMatrix;
@@ -162,8 +162,8 @@ void Exhaust::Render(GraphicsState * graphicsState)
 		glEnable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, diffuse->glid);
 		Vector3f leftBase, upBase, left, up;
-		leftBase = graphicsState->camera->LeftVector() * particleSize;
-		upBase = graphicsState->camera->UpVector() * particleSize;
+		leftBase = GraphicsThreadGraphicsState->camera->LeftVector() * particleSize;
+		upBase = GraphicsThreadGraphicsState->camera->UpVector() * particleSize;
 		glBegin(GL_QUADS);
 		float optimizedAlpha = 1 / optimizationLevel;
 		for (int i = 0; i < particlesToProcess; ++i){

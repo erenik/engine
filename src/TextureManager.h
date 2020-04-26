@@ -8,7 +8,9 @@
 #include <Util.h>
 #include "Texture.h"
 #include "Color.h"
+
 class Entity;
+#define EntitySharedPtr std::shared_ptr<Entity>
 
 #define TexMan		(*TextureManager::Instance())
 
@@ -51,7 +53,7 @@ public:
 	/// Loads all required textures for the specified state into memory.   WHAT.. I don't even
 	bool LoadTextures(int state);
 	/// Loads all textures required by target Entity.
-	bool LoadTextures(Entity * Entity);
+	bool LoadTextures(EntitySharedPtr Entity);
 
 	/// Generates a texture with automatic name and given color. The texture will be exactly 1 or 2x2 pixels, simply for the color!
 	Texture * GenerateTexture(const Vector4f & andColor);
@@ -63,7 +65,7 @@ public:
 	/// Buffers all textures required by target Entity.
 	bool BufferizeTextures(List<Texture*> textures);
 	/// Buffers all textures required by target Entity.
-	bool BufferizeTextures(Entity * Entity);
+	bool BufferizeTextures(EntitySharedPtr Entity);
 	/** Bufferizes texture at target index in the texture array.
 		Assertion will be thrown if outside the array.
 	*/

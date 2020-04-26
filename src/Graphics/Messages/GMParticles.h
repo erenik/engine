@@ -15,10 +15,10 @@ class ParticleEmitter;
 class GMAttachParticleSystem : public GraphicsMessage 
 {
 public:
-	GMAttachParticleSystem(Entity * entity, ParticleSystem * pa);
+	GMAttachParticleSystem(EntitySharedPtr entity, ParticleSystem * pa);
 	virtual void Process();
 private:
-	Entity * entity;
+	EntitySharedPtr entity;
 	ParticleSystem * pa;
 };
 
@@ -79,18 +79,18 @@ private:
 class GMPauseEmission : public GraphicsMessage 
 {
 public:
-	GMPauseEmission(Entity * entity);
+	GMPauseEmission(EntitySharedPtr entity);
 	virtual void Process();
 private:
-	Entity * entity;
+	EntitySharedPtr entity;
 };
 class GMResumeEmission : public GraphicsMessage 
 {
 public:
-	GMResumeEmission(Entity * entity);
+	GMResumeEmission(EntitySharedPtr entity);
 	virtual void Process();
 private:
-	Entity * entity;
+	EntitySharedPtr entity;
 };
 
 // Sets the initial emitter shape/mesh of a particle system.
@@ -101,7 +101,7 @@ public:
 	GMSetParticleEmitter(ParticleSystem * ps, const Contour & contour);
 	GMSetParticleEmitter(ParticleSystem * ps, List<ParticleEmitter*> newEmitters);
 	GMSetParticleEmitter(ParticleEmitter * emitter, int target, const Vector3f & vec3fValue);
-	GMSetParticleEmitter(ParticleEmitter * emitter, int target, Entity * vec3fValue);
+	GMSetParticleEmitter(ParticleEmitter * emitter, int target, EntitySharedPtr vec3fValue);
 	virtual void Process();
 private:
 	ParticleSystem * ps;
@@ -110,7 +110,7 @@ private:
 		NEW_EMITTER_LIST,
 	};
 	Vector3f vec3fValue;
-	Entity * entity;
+	EntitySharedPtr entity;
 	int target;
 	int type;
 	Contour contour;

@@ -13,9 +13,9 @@ class Entity;
 */
 class GMSetGraphicEffect : public GraphicsMessage {
 public:
-	GMSetGraphicEffect(int target, String effectName, float value, Entity * owner = NULL);
-	GMSetGraphicEffect(int target, String effectName, const Vector3f & value, Entity * owner = NULL);
-	GMSetGraphicEffect(int target, String effectName, void * data, Entity * owner = NULL); // For any pointer, yo.
+	GMSetGraphicEffect(int target, String effectName, float value, EntitySharedPtr owner = NULL);
+	GMSetGraphicEffect(int target, String effectName, const Vector3f & value, EntitySharedPtr owner = NULL);
+	GMSetGraphicEffect(int target, String effectName, void * data, EntitySharedPtr owner = NULL); // For any pointer, yo.
 	void Process();
 private:
 	int target;
@@ -23,7 +23,7 @@ private:
 	Vector3f vec3fValue;
 	String effectName;
 	void * data;
-	Entity * owner;
+	EntitySharedPtr owner;
 };
 
 #endif

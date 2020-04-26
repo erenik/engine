@@ -116,9 +116,9 @@ NavMesh * WaypointManager::GenerateNavMesh(Map * fromMap){
 	// Do the generation for the active map.
 	assert(activeNavMesh);
 
-	List<Entity*> entities = fromMap->GetEntities();
+	List< std::shared_ptr<Entity> > entities = fromMap->GetEntities();
 	for (int i = 0; i < entities.Size(); ++i){
-		Entity * entity = entities[i];		
+		EntitySharedPtr entity = entities[i];		
 		GenerateWaypointsFromEntity(entity);
 	}
 	/// Merge 'em
@@ -130,15 +130,15 @@ NavMesh * WaypointManager::GenerateNavMesh(Map * fromMap){
 	return activeNavMesh;
 }
 
-NavMesh * WaypointManager::GenerateNavMesh(List<Entity*> fromEntities)
+NavMesh * WaypointManager::GenerateNavMesh(List< std::shared_ptr<Entity> > fromEntities)
 {
 	GetActiveNavMeshMutex();
 	// Do the generation for the active map.
 	assert(activeNavMesh);
 
-	List<Entity*> entities = fromEntities;
+	List< std::shared_ptr<Entity> > entities = fromEntities;
 	for (int i = 0; i < entities.Size(); ++i){
-		Entity * entity = entities[i];		
+		EntitySharedPtr entity = entities[i];		
 		GenerateWaypointsFromEntity(entity);
 	}
 	/// Merge 'em
@@ -151,7 +151,7 @@ NavMesh * WaypointManager::GenerateNavMesh(List<Entity*> fromEntities)
 }
 
 /// generates and stores new waypoints for this entity into the active navmesh.
-void WaypointManager::GenerateWaypointsFromEntity(Entity * entity)
+void WaypointManager::GenerateWaypointsFromEntity(EntitySharedPtr entity)
 {
 	/*
 	Model * model = entity->model;
@@ -185,7 +185,7 @@ void WaypointManager::GenerateWaypointsFromEntity(Entity * entity)
 }
 
 /// Attempts to load a spherical world from target entity's model file.
-void WaypointManager::GenerateNavMeshFromWorld(Entity * worldEntity)
+void WaypointManager::GenerateNavMeshFromWorld(EntitySharedPtr worldEntity)
 {
 
 	/*

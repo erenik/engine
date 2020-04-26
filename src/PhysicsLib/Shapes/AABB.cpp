@@ -65,7 +65,7 @@ void AABB::UpdatePositionScaleUsingMinMax()
 bool debugAABB = false;
 
 /// Recalculate the AABBs constraints based on the given entity using it.
-void AABB::Recalculate(Entity * entity)
+void AABB::Recalculate(EntitySharedPtr entity)
 {
 	if (!entity->model)
 		return;

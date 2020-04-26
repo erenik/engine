@@ -7,7 +7,7 @@
 #ifndef RENDER_PIPELINE_H
 #define RENDER_PIPELINE_H
 
-#include "Shader.h"
+#include "Graphics/Shader.h"
 #include "List/List.h"
 #include "String/AEString.h"
 

@@ -13,7 +13,7 @@
 
 void GraphicsManager::RenderCapture()
 {
-	AppWindow * window = graphicsState->activeWindow;
+	AppWindow * window = GraphicsThreadGraphicsState->activeWindow;
 	Vector2i windowSize = window->WorkingArea();
 	if (window->saveScreenshot)
 	{
@@ -39,7 +39,7 @@ void GraphicsManager::RenderCapture()
 				return;
 			}
 		}
-		frame->Save(dirPath+"/"+String::ToString(++graphicsState->screenshotsTaken)+".png", true);
+		frame->Save(dirPath+"/"+String::ToString(++GraphicsThreadGraphicsState->screenshotsTaken)+".png", true);
 		window->saveScreenshot = false;
 	}
 
@@ -133,7 +133,7 @@ void GraphicsManager::RenderCapture()
 	if (window->isRecording)
 	{
 		// Render a "recording" symbol somewhere?
-		ShadeMan.SetActiveShader(0);
+		ShadeMan.SetActiveShader(0, graphicsState);
 	
 		// Fill the polygons!
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -148,7 +148,7 @@ void GraphicsManager::RenderCapture()
 		glLoadIdentity();
 		float z = -1.01f;		
 		glTranslatef(0,0,z);
-		Matrix4d modelView = graphicsState->viewMatrixD * graphicsState->modelMatrixD;
+		Matrix4d modelView = GraphicsThreadGraphicsState->viewMatrixD * GraphicsThreadGraphicsState->modelMatrixD;
 	//	glLoadMatrixd(modelView.getPointer());
 
 		// Disable depth-testing in-case deferred rendering is enabled D:
@@ -163,7 +163,7 @@ void GraphicsManager::RenderCapture()
 		if (texture->glid == -1)
 			texture->Bufferize();
 		glBindTexture(GL_TEXTURE_2D, texture->glid);
-		graphicsState->currentTexture = texture;
+		GraphicsThreadGraphicsState->currentTexture = texture;
 		// Buffer it again..
 		int error = glGetError();
 		if (error != GL_NO_ERROR){
@@ -205,7 +205,7 @@ void GraphicsManager::RenderCapture()
 		}
 		glDisable(GL_TEXTURE_2D);
 		// Load projection matrix again
-		glLoadMatrixd(graphicsState->projectionMatrixD.getPointer());
+		glLoadMatrixd(GraphicsThreadGraphicsState->projectionMatrixD.getPointer());
 
 		// Enable disabled stuffs.
 		glEnable(GL_DEPTH_TEST);	

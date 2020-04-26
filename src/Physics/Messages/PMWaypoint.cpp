@@ -9,8 +9,8 @@
 
 #include "Entity/Entity.h"
 
-PMSetWaypoint::PMSetWaypoint(const Vector3f & position, int target, void * value)
-: PhysicsMessage(PM_SET_WAYPOINT), position(position), target(target), pValue(value)
+PMSetWaypoint::PMSetWaypoint(const Vector3f & position, int target, EntitySharedPtr entity)
+: PhysicsMessage(PM_SET_WAYPOINT), position(position), target(target), entity(entity)
 {
 	switch(target){
 		case PT_ENTITY:
@@ -32,7 +32,6 @@ void PMSetWaypoint::Process()
 			}
 			Waypoint * wp = nm->GetClosestTo(position);
 			assert(wp);
-			Entity * entity = (Entity*)pValue;
 			wp->entities.Add(entity);
 			entity->pathfindingProperty->currentWaypoint = wp;
 			break;

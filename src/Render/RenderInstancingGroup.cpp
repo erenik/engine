@@ -10,7 +10,7 @@
 #include "Model/Model.h"
 #include "Mesh/Mesh.h"
 #include "File/LogFile.h"
-#include "ShaderManager.h"
+#include "Graphics/ShaderManager.h"
 #include "Texture.h"
 #include "Graphics/GraphicsProperty.h"
 
@@ -18,7 +18,7 @@ RenderInstancingGroup::RenderInstancingGroup()
 {
 	Nullify();
 }
-RenderInstancingGroup::RenderInstancingGroup(Entity * fromReference)
+RenderInstancingGroup::RenderInstancingGroup(EntitySharedPtr fromReference)
 {
 	Nullify();
 	AddEntity(fromReference);
@@ -40,7 +40,7 @@ RenderInstancingGroup::~RenderInstancingGroup()
 }
 
 /// o.o
-void RIG::AddEntity(Entity * entity)
+void RIG::AddEntity(EntitySharedPtr entity)
 {
 	// Claiming a disowned empty group.
 	if (reference == NULL)
@@ -54,7 +54,7 @@ void RIG::AddEntity(Entity * entity)
 	AddItem(entity);
 }
 /// Removes all occurences of any items in the sublist in this list. Also re-points the reference pointer if needed.
-void RIG::RemoveEntity(Entity * entity)
+void RIG::RemoveEntity(EntitySharedPtr entity)
 {
 	RemoveItemUnsorted(entity);
 	if (entity == reference)
@@ -96,7 +96,7 @@ void RenderInstancingGroup::UpdateBuffers(bool force)
 	// Fill data.
 	for (int i = 0; i < this->currentItems; ++i)
 	{
-		Entity * entity = arr[i];
+		EntitySharedPtr entity = arr[i];
 		float * matrPtr = entity->transformationMatrix.getPointer();
 		memcpy(&matrixData[i*16], matrPtr, 16 * sizeof(float));
 		float * norMatrPtr = entity->normalMatrix.getPointer();
@@ -125,7 +125,7 @@ void RenderInstancingGroup::UpdateBuffers(bool force)
 }
 
 // Called once per viewport that is rendered.
-void RenderInstancingGroup::Render()
+void RenderInstancingGroup::Render(GraphicsState & graphicsState)
 {
 	if (!reference) // empty group?
 		return;
@@ -136,7 +136,7 @@ void RenderInstancingGroup::Render()
 	// http://www.opengl.org/wiki/Buffer_Object_Streaming
 
 	// Set up model properties first?
-	reference->model->mesh->BindVertexBuffer();
+	reference->model->mesh->BindVertexBuffer(graphicsState);
 	// These functions are specific to glDrawArrays*Instanced*.
 	// The first parameter is the attribute buffer we're talking about.
 	// The second parameter is the "rate at which generic vertex attributes advance when rendering multiple instances"
@@ -166,7 +166,7 @@ void RenderInstancingGroup::Render()
 	}
 
 	// 1rst attribute buffer : vertices
-	graphicsState->BindVertexArrayBuffer(matrixBuffer);
+	graphicsState.BindVertexArrayBuffer(matrixBuffer);
 	if (shader->attributeInstanceModelMatrix == -1)
 	{
 		LogGraphics("No instance ModelMatrix attribute found in current shader?", ERROR);
@@ -284,7 +284,7 @@ void RenderInstancingGroup::Render()
 	}
 
 	// Unbind.
-	graphicsState->BindVertexArrayBuffer(0);
+	graphicsState.BindVertexArrayBuffer(0);
 
 	/// Disable mesh-based attributes.
 	glDisableVertexAttribArray(shader->attributePosition);

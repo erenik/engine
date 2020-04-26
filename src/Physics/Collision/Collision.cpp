@@ -19,7 +19,7 @@ void Collision::ExtractData()
 	ExtractEntityData(two);
 }
 
-void Collision::ExtractEntityData(Entity * entity)
+void Collision::ExtractEntityData(EntitySharedPtr entity)
 {
 	switch(entity->physics->type)
 	{

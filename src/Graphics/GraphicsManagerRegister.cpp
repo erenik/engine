@@ -11,7 +11,7 @@
 #include "Entity/EntityProperty.h"
 
 /// Adds an Entity to be rendered to the vfcOctree.
-bool GraphicsManager::RegisterEntity(Entity * entity)
+bool GraphicsManager::RegisterEntity(EntitySharedPtr entity)
 {
 	/// So it can be avoided when creating them and positioning manually in main code...
 	entity->RecalculateMatrix();
@@ -44,7 +44,7 @@ bool GraphicsManager::RegisterEntity(Entity * entity)
 			ParticleSystem * ps = gp->particleSystems[i];
 			RegisterParticleSystem(ps, false);
 		}
-		graphicsState->dynamicLights += gp->dynamicLights;
+		graphicsState.dynamicLights += gp->dynamicLights;
 	}
 	/// If no graphics property exists. Add it.
 	else 
@@ -55,7 +55,7 @@ bool GraphicsManager::RegisterEntity(Entity * entity)
 	gp->OnRegister();
 
 	/// Add it to its proper render groups.
-	graphicsState->AddEntity(entity);
+	graphicsState.AddEntity(entity);
 
 	// Buffer textures and meshes if needed
 	List<Texture*> textures = entity->GetTextures(0xFFFFFFF);
@@ -64,7 +64,7 @@ bool GraphicsManager::RegisterEntity(Entity * entity)
 };
 
 /// Registers all entities in the selection for rendering. Returns the number of faield registrations.
-int GraphicsManager::RegisterEntities(List<Entity*> & toRegister){
+int GraphicsManager::RegisterEntities(List< std::shared_ptr<Entity> > & toRegister){
 	int failed = 0;
 	for (int i = 0; i < toRegister.Size(); ++i){
 		if (!RegisterEntity(toRegister[i]))
@@ -74,10 +74,10 @@ int GraphicsManager::RegisterEntities(List<Entity*> & toRegister){
 }
 
 /// Removes an Entity from the rendering vfcOctree.
-bool GraphicsManager::UnregisterEntity(Entity * entity)
+bool GraphicsManager::UnregisterEntity(EntitySharedPtr entity)
 {
 	/// Remove it.
-	graphicsState->RemoveEntity(entity);
+	graphicsState.RemoveEntity(entity);
 
 	bool result = registeredEntities.RemoveItemUnsorted(entity);
 	if (!result){
@@ -112,7 +112,7 @@ bool GraphicsManager::UnregisterEntity(Entity * entity)
 		for (int i = 0; i < gp->dynamicLights.Size(); ++i)
 		{
 			Light * light = gp->dynamicLights[i];
-			List<Light*> & dynamicLights = graphicsState->dynamicLights;
+			List<Light*> & dynamicLights = graphicsState.dynamicLights;
 			bool removed = dynamicLights.RemoveItemUnsorted(light);
 			assert(removed);
 		}
@@ -141,7 +141,7 @@ bool GraphicsManager::UnregisterEntity(Entity * entity)
 };
 
 /// Unregisters all entities in the selection from rendering. Returns the number of failed unregistrations.
-int GraphicsManager::UnregisterEntities(List<Entity*> & toUnregister)
+int GraphicsManager::UnregisterEntities(List< std::shared_ptr<Entity> > & toUnregister)
 {
 	int failed = 0;
 	for (int i = 0; i < toUnregister.Size(); ++i){
@@ -160,9 +160,9 @@ int GraphicsManager::UnregisterAll()
 		registeredEntities[i]->registeredForRendering = false;
 	}
 	/// Just unregister all immediately?
-	graphicsState->RemoveAllEntities();
+	graphicsState.RemoveAllEntities();
 	registeredEntities.Clear();
-	graphicsState->dynamicLights.Clear();
+	graphicsState.dynamicLights.Clear();
 	return 0;
 }
 

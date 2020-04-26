@@ -39,35 +39,35 @@ public:
 		Arguments can be any of the following formats: name, *name, name* or *name*
 		Where the asterix * acts as a wildcard character which can be a string of any length.
 	*/
-	List<Entity*> SelectEntitiesByName(const char * name);
+	List< std::shared_ptr<Entity> > SelectEntitiesByName(const char * name);
 	// GET MAP
 	Map * GetMap(String byName);
 	Map * GetMapBySource(String source);
 	/// Prints list of enities in active map to console
 	void ListEntities();
 
-	Entity * GetEntityByName(String name);
+	EntitySharedPtr GetEntityByName(String name);
 	/** Fills the provided selection with all available entities in the active map. */
-	int GetEntities(List<Entity*> & entityList);
+	int GetEntities(List< std::shared_ptr<Entity> > & entityList);
 	/** Returns a selection object containing all entities in the current map. */
-	List<Entity*> GetEntities();
+	List< std::shared_ptr<Entity> > GetEntities();
     /// Returns the first/best entity found via the provided selection ray.
-	Entity * GetFirstEntity(Ray & selectionRay, Vector3f & intersectionPoint);
+	EntitySharedPtr GetFirstEntity(Ray & selectionRay, Vector3f & intersectionPoint);
 
 	/** Creates a duplicate entity, copying all relevant information (as possible). */
-	Entity * CreateEntity(Entity * entity);
+	EntitySharedPtr CreateEntity(EntitySharedPtr entity);
 	/** Creates an entity with target model and texture and places it into the active map. */
-	Entity * CreateEntity(String name, Model * model, Texture * texture, const Vector3f & position = Vector3f());
+	EntitySharedPtr CreateEntity(String name, Model * model, Texture * texture, const Vector3f & position = Vector3f());
 	
 	/// Adds entity to the map. If the map is currently registered for rendering, it should be registered for rendering automatically. The same applies for physics.
-	bool AddEntity(Entity * entity, Map * toMap);
+	bool AddEntity(EntitySharedPtr entity, Map * toMap);
 	/// Adds target entity to the map, registering it for physics and graphics
-	bool AddEntity(Entity * entity, bool registerForGraphics = true, bool registerForPhysics = true);
+	bool AddEntity(EntitySharedPtr entity, bool registerForGraphics = true, bool registerForPhysics = true);
 	/// Adds target entity to the map, registering it for physics and graphics
-	bool AddEntities(List<Entity *> entities, bool registerForGraphics = true, bool registerForPhysics = true);
+	bool AddEntities(List<EntitySharedPtr> entities, bool registerForGraphics = true, bool registerForPhysics = true);
 	/// Removes from its map.
-	bool RemoveEntity(Entity * entity);
-	bool RemoveEntities(List<Entity*> entities);
+	bool RemoveEntity(EntitySharedPtr entity);
+	bool RemoveEntities(List< std::shared_ptr<Entity> > entities);
 
 	/** Adds an event ~ */
 	bool AddEvent(Script * eventScript);
@@ -85,13 +85,13 @@ public:
 	// Deletes all entities in the active map.
 	int DeleteAllEntities();
 	// Delete specific entities.
-	int DeleteEntities(List<Entity*> entities);
+	int DeleteEntities(List< std::shared_ptr<Entity> > entities);
 	/** Queries deletion of specified entity in active map. */
-	bool DeleteEntity(Entity * entity);
+	bool DeleteEntity(std::shared_ptr<Entity> entity);
 	/** Notifies the map that the entity has been registered from one or more services.
 		This function will then check relevant variables and if fully unregistered will mark it as
 		unused and queue it's deletion in the EntityManager. */
-	void EntityUnregistered(Entity * entity);
+	void EntityUnregistered(std::shared_ptr<Entity> entity);
 
 	/// Get current map lighting
 	Lighting GetLighting();
@@ -156,7 +156,7 @@ public:
 	bool DefaultAddPhysics() const { return defaultAddPhysics; };
 
 	/// Navmeseeeesh. Returns false if fail (like if 0 entities or what?)
-	bool CreateNavMesh(List<Entity*> entitiesToCreateFrom);
+	bool CreateNavMesh(List< std::shared_ptr<Entity> > entitiesToCreateFrom);
 	/// Assign a navmesh to the current map, invalidating old paths that might have been linked to the old navmesh!
 	bool AssignNavMesh(NavMesh * nm);
 	const NavMesh * GetNavMesh();

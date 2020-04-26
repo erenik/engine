@@ -12,7 +12,7 @@
 /** Registers an Entity to take part in physics calculations. This requires that the Entity has the physics attribute attached.
 	Returns 0 upon success, 1 if it's lacking a physics attribute, 2 if the Entity array has been filled and 3 if the dynamic entity array has been filled.
 */
-int PhysicsManager::RegisterEntity(Entity * newEntity)
+int PhysicsManager::RegisterEntity(EntitySharedPtr newEntity)
 {
 //	std::cout<<"\nRegistering entity for physics "<<newEntity->name;
 	/// So it can be avoided when creating them and positioning manually in main code...
@@ -149,7 +149,7 @@ int PhysicsManager::RegisterEntity(Entity * newEntity)
 /** Registers a selection of entities to take part in physics calculations. This requires that the entities have physics attributes attached.
 	Returns 0 upon success or a positive number equal to the amount of entities that it failed to register.
 */
-int PhysicsManager::RegisterEntities(List<Entity*> & targetEntities)
+int PhysicsManager::RegisterEntities(List< std::shared_ptr<Entity> > & targetEntities)
 {
 	int failedRegistrations = 0;
 	for (int i = 0; i < targetEntities.Size(); ++i){
@@ -161,7 +161,7 @@ int PhysicsManager::RegisterEntities(List<Entity*> & targetEntities)
 
 
 /// Unregisters an Entity from the physics calculations. Returns 0 if it found the Entity and successfully removed it, 1 if not.
-int PhysicsManager::UnregisterEntity(Entity * entityToRemove)
+int PhysicsManager::UnregisterEntity(EntitySharedPtr entityToRemove)
 {
 	/// If have kids/parent, unbind. -> Why? What if it is just a unregistration for re-registering?
 	if (entityToRemove->flaggedForDeletion)
@@ -252,7 +252,7 @@ int PhysicsManager::UnregisterEntity(Entity * entityToRemove)
 /** Unregisters a selection of entities from physics calculations.
 	Returns 0 upon success or a positive number equal to the amount of entities that it failed to unregister.
 */
-int PhysicsManager::UnregisterEntities(List<Entity*> & targetEntities){
+int PhysicsManager::UnregisterEntities(List< std::shared_ptr<Entity> > & targetEntities){
 	int failedUnregistrations = 0;
 	for (int i = 0; i < targetEntities.Size(); ++i){
 		if (UnregisterEntity(targetEntities[i]) != 0)

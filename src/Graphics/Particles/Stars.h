@@ -28,7 +28,7 @@ public:
 	/// Creates a global particle system
 	Stars(bool emitWithEmittersOnly);
 	/// Creates a particle system which will be attached to a specific entity.
-    Stars(Entity * reference, bool emitWithEmittersOnly);
+    Stars(EntitySharedPtr reference, bool emitWithEmittersOnly);
 	virtual ~Stars();
 	
 	// o.o
@@ -39,7 +39,7 @@ public:
 	virtual void UpdateBuffers();
 
     void PrintData();
-	void AttachTo(Entity * entity, ConstMat4r relativePosition);
+	void AttachTo(EntitySharedPtr entity, ConstMat4r relativePosition);
 
 	// Relative to the entity.
 	Vector4f relativePosition;

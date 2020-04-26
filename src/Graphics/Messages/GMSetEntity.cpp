@@ -1,7 +1,7 @@
 // Emil Hedemalm
 // 2013-07-01
 
-#include "Shader.h"
+#include "Graphics/Shader.h"
 #include "GraphicsMessages.h"
 #include "GMSetEntity.h"
 #include "TextureManager.h"
@@ -14,20 +14,20 @@
 #include "Graphics/GraphicsProperty.h"
 #include "Graphics/GraphicsManager.h"
 
-GMSetEntityTexture::GMSetEntityTexture(List<Entity*> entities, Texture * texture)
+GMSetEntityTexture::GMSetEntityTexture(List< std::shared_ptr<Entity> > entities, Texture * texture)
 	: GraphicsMessage(GM_SET_ENTITY_TEXTURE), entities(entities), t(texture)
 {
 	target = DIFFUSE_MAP | SPECULAR_MAP;
 }
 
 
-GMSetEntityTexture::GMSetEntityTexture(List<Entity*> entities, int target, Texture * texture)
+GMSetEntityTexture::GMSetEntityTexture(List< std::shared_ptr<Entity> > entities, int target, Texture * texture)
 : GraphicsMessage(GM_SET_ENTITY_TEXTURE), entities(entities), target(target), textureSource(String()), t(texture)
 {
 //	std::cout<<"Max text: "<<MAX_TEXTURE_TARGETS;
 	assert(target >= DIFFUSE_MAP && target <= MAX_TEXTURE_TARGETS);
 }
-GMSetEntityTexture::GMSetEntityTexture(List<Entity*> entities, int target, String texture)
+GMSetEntityTexture::GMSetEntityTexture(List< std::shared_ptr<Entity> > entities, int target, String texture)
 : GraphicsMessage(GM_SET_ENTITY_TEXTURE), entities(entities), target(target), textureSource(texture), t(NULL)
 {
 	assert(target >= DIFFUSE_MAP && target <= MAX_TEXTURE_TARGETS);
@@ -45,7 +45,7 @@ void GMSetEntityTexture::Process()
 	}
 	for (int i = 0; i < entities.Size(); ++i)
 	{
-		Entity * entity = entities[i];
+		EntitySharedPtr entity = entities[i];
 		if (entity == 0)
 		{
 			std::cout<<"\nNULL entity in GMSetEntityTexture!";
@@ -59,7 +59,7 @@ void GMSetEntityTexture::Process()
 };
 
 /// For general procedures that do stuff..
-GMSetEntity::GMSetEntity(Entity * entity, int target)
+GMSetEntity::GMSetEntity(EntitySharedPtr entity, int target)
 	: GraphicsMessage(GM_SET_ENTITY), entities(entity), target(target)
 {
 	switch(target)
@@ -71,7 +71,7 @@ GMSetEntity::GMSetEntity(Entity * entity, int target)
 	}
 }
 
-GMSetEntity::GMSetEntity(List<Entity*> entities, int target, Entity * otherEntity)
+GMSetEntity::GMSetEntity(List< std::shared_ptr<Entity> > entities, int target, EntitySharedPtr otherEntity)
 : GraphicsMessage(GM_SET_ENTITY), entities(entities), target(target), otherEntity(otherEntity)
 {
 	switch(target)
@@ -84,7 +84,7 @@ GMSetEntity::GMSetEntity(List<Entity*> entities, int target, Entity * otherEntit
 }
 
 
-GMSetEntity::GMSetEntity(List<Entity*> entities, int target, Camera * camera)
+GMSetEntity::GMSetEntity(List< std::shared_ptr<Entity> > entities, int target, Camera * camera)
 	: GraphicsMessage(GM_SET_ENTITY), entities(entities), target(target), camera(camera)
 {
 	switch(target)
@@ -97,7 +97,7 @@ GMSetEntity::GMSetEntity(List<Entity*> entities, int target, Camera * camera)
 	}
 }
 
-GMSetEntity::GMSetEntity(List<Entity*> entities, int target, String string)
+GMSetEntity::GMSetEntity(List< std::shared_ptr<Entity> > entities, int target, String string)
 : GraphicsMessage(GM_SET_ENTITY), entities(entities), target(target), string(string)
 {
 	switch(target)
@@ -111,7 +111,7 @@ GMSetEntity::GMSetEntity(List<Entity*> entities, int target, String string)
 	}
 }
 
-GMSetEntity::GMSetEntity(Entity * entity, int target, Model * model)
+GMSetEntity::GMSetEntity(EntitySharedPtr entity, int target, Model * model)
 : GraphicsMessage(GM_SET_ENTITY), entities(entity), target(target), model(model)
 {
 	switch(target){
@@ -128,7 +128,7 @@ void GMSetEntity::Process()
 {
 	for (int i = 0; i < entities.Size(); ++i)
 	{
-		Entity * entity = entities[i];
+		EntitySharedPtr entity = entities[i];
 		if (!entity)
 		{
 			std::cout<<"\nNull entity in GMSetEntity";
@@ -189,7 +189,7 @@ void GMSetEntity::Process()
 	}
 }
 
-GMSetEntityb::GMSetEntityb(List<Entity*> entities, int target, bool value, bool recursive)
+GMSetEntityb::GMSetEntityb(List< std::shared_ptr<Entity> > entities, int target, bool value, bool recursive)
 	: GraphicsMessage(GM_SET_ENTITY_BOOLEAN), entities(entities), target(target), bValue(value), recurse(recursive)
 {
 	switch(target)
@@ -211,7 +211,7 @@ void GMSetEntityb::Process()
 {
 	for (int i = 0; i < entities.Size(); ++i)
 	{
-		Entity * entity = entities[i];
+		EntitySharedPtr entity = entities[i];
 		if (entity->children.Size())
 			entities.Add(entity->children);
 		if (entity->graphics == 0)
@@ -258,7 +258,7 @@ void GMSetEntityb::Process()
 }
 
 
-GMSetEntitys::GMSetEntitys(Entity * entity, int target, String value)
+GMSetEntitys::GMSetEntitys(EntitySharedPtr entity, int target, String value)
 	: GraphicsMessage(GM_SET_ENTITY_STRING), entity(entity), target(target), sValue(value)
 {
 	switch(target)
@@ -297,16 +297,16 @@ void GMSetEntitys::Process()
 		}
 		case GT_ENTITY_GROUP:
 		{
-			graphicsState->RemoveEntity(entity);
+			GraphicsThreadGraphicsState->RemoveEntity(entity);
 			entity->graphics->group = sValue;
-			graphicsState->AddEntity(entity);
+			GraphicsThreadGraphicsState->AddEntity(entity);
 			break;
 		}
 	}
 }
 
 
-GMSetEntityf::GMSetEntityf(List<Entity*> entities, int target, float value)
+GMSetEntityf::GMSetEntityf(List< std::shared_ptr<Entity> > entities, int target, float value)
 	: GraphicsMessage(GM_SET_ENTITY_FLOAT), entities(entities), target(target), fValue(value)
 {
 	switch(target)
@@ -323,7 +323,7 @@ void GMSetEntityf::Process()
 {
 	for (int i = 0; i < entities.Size(); ++i)
 	{
-		Entity * entity = entities[i];
+		EntitySharedPtr entity = entities[i];
 		assert(entity->graphics);
 		switch(target)
 		{
@@ -340,7 +340,7 @@ void GMSetEntityf::Process()
 	}
 }
 
-GMSetEntityi::GMSetEntityi(List<Entity*> entities, int target, int value)
+GMSetEntityi::GMSetEntityi(List< std::shared_ptr<Entity> > entities, int target, int value)
 	: GraphicsMessage(GM_SET_ENTITY_INTEGER), entities(entities), target(target), iValue(value)
 {
 	switch(target)
@@ -357,7 +357,7 @@ void GMSetEntityi::Process()
 {
 	for (int i = 0; i < entities.Size(); ++i)
 	{
-		Entity * entity = entities[i];
+		EntitySharedPtr entity = entities[i];
 		/// Should probably just attach this when adding it for rendering...?
 		assert(entity->graphics);
 		GraphicsProperty * graphics = entity->graphics;
@@ -376,7 +376,7 @@ void GMSetEntityi::Process()
 
 
 
-GMSetEntityVec4f::GMSetEntityVec4f(List<Entity*> entities, int target, const Vector4f & value)
+GMSetEntityVec4f::GMSetEntityVec4f(List< std::shared_ptr<Entity> > entities, int target, const Vector4f & value)
 	: GraphicsMessage(GM_SET_ENTITY_VEC4F), entities(entities), target(target), vec4fValue(value)
 {
 	switch(target)
@@ -393,7 +393,7 @@ void GMSetEntityVec4f::Process()
 {
 	for (int i = 0; i < entities.Size(); ++i)
 	{
-		Entity * entity = entities[i];
+		EntitySharedPtr entity = entities[i];
 		assert(entity->graphics);
 		switch(target)
 		{
@@ -442,7 +442,7 @@ void GMSlideEntityf::Process()
 {
 	for (int i = 0; i < entities.Size(); ++i)
 	{
-		Entity * entity = entities[i];
+		EntitySharedPtr entity = entities[i];
 		if (!entity)
 		{
 			std::cout<<"\nNULL entity.";
@@ -502,7 +502,7 @@ void GMClearEstimators::Process()
 {
 	for (int i = 0; i < entities.Size(); ++i)
 	{
-		Entity * entity = entities[i];
+		EntitySharedPtr entity = entities[i];
 		if (!entity)
 		{
 			std::cout<<"\nWARNING: NULL entity in GMClearEstimators";

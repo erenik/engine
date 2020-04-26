@@ -7,20 +7,20 @@
 #include "Graphics/GraphicsProperty.h"
 #include "Entity/Entity.h"
 #include "Render/RenderInstancingGroup.h"
+#include "File/LogFile.h"
 
 /** Main state for rendering. Contains settings for pretty much everything which is not embedded in other objects.
 	Read only unless you know what you're doing (and are located within a render-thread function).
 */
-GraphicsState * graphicsState = NULL;
-
 GraphicsState::GraphicsState()
 {
+	LogMain("GraphicsState created", INFO);
+
 	defaultEntityGroup = new EntityGroup();
 	perFrameSmoothness = 0.7f;
 	shadowPass = false;
 	activeWindow = NULL;
 	activeViewport = NULL;
-	lighting = NULL;
 //	activeShader = NULL;
 	currentMesh = NULL;
 	currentTexture = NULL;
@@ -52,8 +52,6 @@ GraphicsState::GraphicsState()
 
 GraphicsState::~GraphicsState()
 {
-	if (lighting)
-		delete lighting;
 	/// Delete RenderInstancingGroups
 	shadowCastingEntityGroups.ClearAndDelete();
 	entityGroups.ClearAndDelete();
@@ -61,7 +59,7 @@ GraphicsState::~GraphicsState()
 
 
 /// Adds an entity to the graphics state, which includes sorting it into proper instancing groups, if flagged for it.
-void GraphicsState::AddEntity(Entity * entity)
+void GraphicsState::AddEntity(EntitySharedPtr entity)
 {
 	GraphicsProperty * gp = entity->graphics;
 	if (gp->group.Length())
@@ -124,7 +122,7 @@ void GraphicsState::AddEntity(Entity * entity)
 	}	
 }
 
-void GraphicsState::RemoveEntity(Entity * entity)
+void GraphicsState::RemoveEntity(EntitySharedPtr entity)
 {
 	GraphicsProperty * gp = entity->graphics;
 	if (!gp)
@@ -144,7 +142,7 @@ void GraphicsState::RemoveEntity(Entity * entity)
 		defaultEntityGroup->RemoveItem(entity);
 	/// Specific groups.
 	if (gp->flags & RenderFlag::ALPHA_ENTITY)
-		graphicsState->alphaEntities.RemoveItemUnsorted(entity);
+		alphaEntities.RemoveItemUnsorted(entity);
 	else  
 	{
 		solidEntities.RemoveItemUnsorted(entity);
@@ -153,9 +151,9 @@ void GraphicsState::RemoveEntity(Entity * entity)
 	}
 	if (gp->castsShadow)
 	{
-		graphicsState->shadowCastingEntities.RemoveItemUnsorted(entity);
+		shadowCastingEntities.RemoveItemUnsorted(entity);
 		if (!gp->renderInstanced)
-			graphicsState->shadowCastingEntitiesNotInstanced.RemoveItemUnsorted(entity);
+			shadowCastingEntitiesNotInstanced.RemoveItemUnsorted(entity);
 	}
 
 	/// Remove from instancing groups as needed.
@@ -202,13 +200,13 @@ void GraphicsState::UpdateRenderInstancingGroupBuffers()
 }
 
 
-RenderInstancingGroup * GraphicsState::GetGroup(List<RenderInstancingGroup*> & fromListOfGroups, Entity * entity)
+RenderInstancingGroup * GraphicsState::GetGroup(List<RenderInstancingGroup*> & fromListOfGroups, EntitySharedPtr entity)
 {
 	for (int i = 0; i < fromListOfGroups.Size(); ++i)
 	{
 		RIG * rig = fromListOfGroups[i];
 		// Compare with reference entity.
-		Entity * reference = rig->reference;
+		EntitySharedPtr reference = rig->reference;
 		if (!reference)
 		{
 			// Delete it?

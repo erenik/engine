@@ -7,6 +7,7 @@
 
 #include "RenderBuffer.h"
 
+class GraphicsState;
 class Shader;
 class Viewport;
 
@@ -42,7 +43,7 @@ public:
 	/// Binds it for use.
 	bool Bind();
 	/// Binds textures for sampling, e.g. using Deferred previously rendered-to buffer to do the Deferred-rendering part. Binds the textures straight into the current shader.
-	void BindTexturesForSampling(Shader * inShader);
+	void BindTexturesForSampling(Shader * inShader, GraphicsState& graphicsState);
 	/// Sets the buffers to draw in.
 	bool SetDrawBuffers();
 	/// Yup.

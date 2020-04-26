@@ -58,7 +58,7 @@ public:
 	/// Renders the particles
     virtual void Render(GraphicsState & graphicsState);
     virtual void PrintData();
-    virtual void AttachTo(Entity * entity, ConstMat4r relativePosition);
+    virtual void AttachTo(EntitySharedPtr entity, ConstMat4r relativePosition);
     virtual void SetPosition(ConstMat4r  relativePosition);
     /// Emission control.
     virtual void PauseEmission();
@@ -101,7 +101,7 @@ public:
 
 	/// Positioning
 	/// If this is NULL, the relative model matrix will be in world coordinates. Simple as that!
-	Entity * relativeTo;
+	EntitySharedPtr relativeTo;
 	Matrix4f relativeModelMatrix;
 	/// Before respawning/dying
 	float maxRange, maxRangeSq;

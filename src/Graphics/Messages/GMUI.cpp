@@ -806,7 +806,7 @@ void GMClearUI::Process()
 		String uiName = uiNames[i];
 		UIElement * e = ui->GetElementByName(uiName);
 		if (!e){
-			LogGraphics("INFO: No element found with specified name \""+uiName+"\"", DEBUG);
+			LogGraphics("GMClearUI: No element found with specified name \""+uiName+"\"", DEBUG);
 			return;
 		}
 		e->Clear();
@@ -824,7 +824,7 @@ void GMScrollUI::Process(){
         return;
     UIElement * e = ui->GetElementByName(uiName);
     if (e == NULL){
-		LogGraphics("INFO: No element found with specified name \""+uiName+"\"", DEBUG);
+		LogGraphics("GMScrollUI: No element found with specified name \""+uiName+"\"", DEBUG);
         return;
     }
     switch(e->type){
@@ -883,7 +883,7 @@ void GMAddUI::Process()
 	else
 		e = ui->GetElementByName(parentName);
 	if (!e){
-		std::cout<<"\nNo UIElement with given name could be found: "<<parentName;
+		LogGraphics("GMAddUI: No UIElement with given name could be found: "+parentName, INFO);
 		return;
 	}
 	for (int i = 0; i < elements.Size(); ++i)

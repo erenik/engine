@@ -7,8 +7,8 @@
 
 #include "MathLib.h"
 #include "Pathfinding/Path.h"
+#include "Entity/Entity.h"
 
-class Entity;
 class Path;
 class Waypoint;
 
@@ -17,7 +17,7 @@ class PathfindingProperty
 {
 	friend class PhysicsManager;
 public:
-	PathfindingProperty(Entity * owner);
+	PathfindingProperty(EntitySharedPtr owner);
 	virtual ~PathfindingProperty();
 	void OnPathCompleted();
 	// Woo
@@ -34,7 +34,7 @@ public:
 	
 	Path CurrentPath(){ return currentPath; };
 	// wuff
-	Entity * owner;
+	EntitySharedPtr owner;
 private:
 	Path currentPath;
 	Path queuedPath;

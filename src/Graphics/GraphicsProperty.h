@@ -20,7 +20,9 @@ class ParticleSystem;
 class Camera;
 class Estimator;
 class RenderInstancingGroup;
+
 class Entity;
+#define EntitySharedPtr std::shared_ptr<Entity>
 
 /// Flags for toggling stuff
 namespace RenderFlag {
@@ -45,12 +47,12 @@ struct GraphicsProperty
 	friend class GraphicsState;
 public:
 	
-	GraphicsProperty(Entity * owner);
+	GraphicsProperty(EntitySharedPtr owner);
 	~GraphicsProperty();
 	/// Called when registered to Graphics Manager for rendering. Extracts initial position, etc.
 	void OnRegister();
 	/// Processes estimators related to this entity. Possibly particle effects too?
-	virtual void Process(int timeInMs);
+	virtual void Process(int timeInMs, GraphicsState& graphicsState);
 
 	/// Loads save data from target CompactGraphics equivalent that can be saved to file.
 	bool LoadDataFrom(const CompactGraphics * cGraphics);
@@ -155,7 +157,7 @@ private:
 	List<Camera*> cameraFilter;
 
 	// Must be non-NULL.
-	Entity * owner;
+	EntitySharedPtr owner;
 };
 
 #endif

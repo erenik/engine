@@ -3,7 +3,7 @@
 
 #include "EntityPropertyState.h"
 
-EntityPropertyState::EntityPropertyState(int stateType, Entity * owner)
+EntityPropertyState::EntityPropertyState(int stateType, EntitySharedPtr owner)
 { 
 	this->stateID = stateType; 
 	entity = owner;

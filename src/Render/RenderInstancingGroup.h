@@ -20,24 +20,24 @@ namespace InstancingOption
 
 #define RIG RenderInstancingGroup
 
-class RenderInstancingGroup : public List<Entity*> 
+class RenderInstancingGroup : public List< std::shared_ptr<Entity> > 
 {
 	friend class GraphicsState;
 public:
 	RenderInstancingGroup();
-	RenderInstancingGroup(Entity * reference);
+	RenderInstancingGroup(EntitySharedPtr reference);
 	virtual ~RenderInstancingGroup();
 	void Nullify();
 	
 	/// o.o
-	void AddEntity(Entity * entity);
+	void AddEntity(EntitySharedPtr entity);
 	/// Removes all occurences of any items in the sublist in this list. Also re-points the reference pointer if needed.
-	void RemoveEntity(Entity * entity);
+	void RemoveEntity(EntitySharedPtr entity);
 
 	// Called once per frame. Called with force = true when adding an entity or several to the group.
 	void UpdateBuffers(bool force = false);
 	// Called once per viewport that is rendered.
-	void Render();
+	void Render(GraphicsState& graphicsState);
 
 	/// Based on reference.
 	String name;
@@ -49,7 +49,7 @@ public:
 	bool isSolid;
 private:
 	/// Base model and texture on the reference.
-	Entity * reference;
+	EntitySharedPtr reference;
 	/// Necessary buffers?
 	float * matrixData, 
 		* normalMatrixData;

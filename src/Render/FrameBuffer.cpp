@@ -7,6 +7,7 @@
 #include "Window/AppWindow.h"
 #include "Graphics/GLBuffers.h"
 #include "Graphics/OpenGL.h"
+#include "GraphicsState.h"
 #include "TextureManager.h"
 #include "File/LogFile.h"
 #include "OS/Sleep.h"
@@ -536,11 +537,11 @@ bool FrameBuffer::Bind()
 	return true;
 }
 
-#include "Shader.h"
+#include "Graphics/Shader.h"
 #include "GraphicsState.h"
 
 /// Binds textures for sampling, e.g. using Deferred previously rendered-to buffer to do the Deferred-rendering part.
-void FrameBuffer::BindTexturesForSampling(Shader * shader)
+void FrameBuffer::BindTexturesForSampling(Shader * shader, GraphicsState & graphicsState)
 {
 	int bound = 0;
 	for (int i = 0; i < renderBuffers.Size(); ++i)
@@ -554,7 +555,7 @@ void FrameBuffer::BindTexturesForSampling(Shader * shader)
 		glUniform1i(uni, bound);
 		glActiveTexture(GL_TEXTURE0 + bound);
 		glBindTexture(GL_TEXTURE_2D, rb->texture->glid);
-		if (graphicsState->antialiasing == false)
+		if (graphicsState.antialiasing == false)
 		{
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
