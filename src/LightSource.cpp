@@ -51,8 +51,8 @@
 //	glDisable(GL_LIGHTING);
 //
 //	// If enabled, render a point cross at the lighting center	
-//	if (GraphicsThreadGraphicsState->settings & RENDER_LIGHT_POSITION){
-//		glLoadMatrixd(GraphicsThreadGraphicsState->modelMatrixD.getPointer());
+//	if (GraphicsThreadGraphicsState.settings & RENDER_LIGHT_POSITION){
+//		glLoadMatrixd(GraphicsThreadGraphicsState.modelMatrixD.getPointer());
 //		glBegin(GL_POINTS);
 //		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 //			glVertex3f(position[0], position[1], position[2]);
@@ -75,7 +75,7 @@
 //	// Disabled for now
 //	throw 3;
 ///*	// Render a point cross at the lighting center	
-//	glLoadMatrixd(GraphicsThreadGraphicsState->modelMatrixD.getPointer());
+//	glLoadMatrixd(GraphicsThreadGraphicsState.modelMatrixD.getPointer());
 //	glBegin(GL_POINTS);
 //	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 //		glVertex3f(position[0], position[1], position[2]);

@@ -24,18 +24,18 @@ void GraphicsManager::RenderEffects()
         return;
     glDisable(GL_TEXTURE_2D);
 	// Set projection and view matrices
-	glUniformMatrix4fv(effect->uniformProjectionMatrix, 1, false, GraphicsThreadGraphicsState->projectionMatrixF.getPointer());
-	glUniformMatrix4fv(effect->uniformViewMatrix, 1, false, GraphicsThreadGraphicsState->viewMatrixF.getPointer());
+	glUniformMatrix4fv(effect->uniformProjectionMatrix, 1, false, GraphicsThreadGraphicsState.projectionMatrixF.getPointer());
+	glUniformMatrix4fv(effect->uniformViewMatrix, 1, false, GraphicsThreadGraphicsState.viewMatrixF.getPointer());
 	assert(effect);
-	for (int i = 0; i < GraphicsThreadGraphicsState->graphicEffectsToBeRendered.Size(); ++i)
+	for (int i = 0; i < GraphicsThreadGraphicsState.graphicEffectsToBeRendered.Size(); ++i)
 	{
-		GraphicsThreadGraphicsState->graphicEffectsToBeRendered[i]->Render(graphicsState);
+		GraphicsThreadGraphicsState.graphicEffectsToBeRendered[i]->Render(graphicsState);
 	}
 	CheckGLError("Post entity-effects GraphicsManager::RenderEffects");
 
-    for (int i = 0; i < GraphicsThreadGraphicsState->particleEffectsToBeRendered.Size(); ++i)
+    for (int i = 0; i < GraphicsThreadGraphicsState.particleEffectsToBeRendered.Size(); ++i)
 	{
-		ParticleSystem * ps = GraphicsThreadGraphicsState->particleEffectsToBeRendered[i];
+		ParticleSystem * ps = GraphicsThreadGraphicsState.particleEffectsToBeRendered[i];
 		ps->Render(graphicsState);
     }
 

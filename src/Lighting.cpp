@@ -531,8 +531,8 @@ void Lighting::PrepareForLoading()
 	ambient[1] = global_ambient[1];
 	ambient[2] = global_ambient[2];
 	ambient[3] = global_ambient[3];
-	assert(GraphicsThreadGraphicsState->camera);
-	Vector3f camPos = GraphicsThreadGraphicsState->camera->position;
+	assert(GraphicsThreadGraphicsState.camera);
+	Vector3f camPos = GraphicsThreadGraphicsState.camera->position;
 	for (int i = 0; i < lights.Size() && activeLights < MAX_LIGHTS; ++i)
 	{
 		Light * light = lights[i];

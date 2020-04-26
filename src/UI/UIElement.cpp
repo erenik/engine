@@ -41,16 +41,24 @@ void UIElement::OnEnterScope(){
 		children[i]->OnEnterScope();
 }
 /// Called once this element is no longer visible for any reason. E.g. switching game states to display another UI.
-void UIElement::OnExitScope()
+void UIElement::OnExitScope(bool forced)
 {
 	/// Skip those which have already exited scope.
 	if (!this->visible)
 		return;
 	// Do nothing in general.
 	for (int i = 0; i < children.Size(); ++i)
-		children[i]->OnExitScope();
+		children[i]->OnExitScope(forced);
 	if (onExit.Length())
 		MesMan.QueueMessages(onExit);
+
+	/// Check if the element has any onPop messages.
+	if (onPop.Length())
+		MesMan.QueueMessages(onPop);
+	if (forced && onForcePop.Length())
+		MesMan.QueueMessages(onForcePop);
+
+	inStack = false;
 }
 
 /** Called by OS-functions to query if the UI wants to process drag-and-drop files. If so the active element where the mouse is hovering may opt to do magic with it.
@@ -685,10 +693,10 @@ void UIElement::OnMouseMove(Vector2i activeWindowCoords)
 
 
 /// For mouse-scrolling. By default calls it's parent's OnScroll.
-bool UIElement::OnScroll(float delta)
+bool UIElement::OnScroll(float delta, GraphicsState& graphicsState)
 {
     if (parent)
-        return parent->OnScroll(delta);
+        return parent->OnScroll(delta, graphicsState);
     return false;
 }
 
@@ -702,10 +710,10 @@ UIElement * UIElement::GetRoot()
 }
 
 /// Sent by UIInput elements upon pressing Enter and thus confirmign the new input, in case extra actions are warranted. (e.g. UITextureInput to update the texture provided as reference).
-void UIElement::OnInputUpdated(UIInput * inputElement)
+void UIElement::OnInputUpdated(UIInput * inputElement, GraphicsState& graphicsState)
 {
 	if (parent)
-		parent->OnInputUpdated(inputElement);
+		parent->OnInputUpdated(inputElement, graphicsState);
 }
 
 /// Callback sent to parents once an element is toggled, in order to act upon it. Used by UIMatrix.
@@ -1751,7 +1759,7 @@ void UIElement::RenderText(GraphicsState & graphicsState)
 void UIElement::FormatText()
 {
 	/// Resize to fit.
-	TextFont * currentFont = GraphicsThreadGraphicsState->currentFont;
+	TextFont * currentFont = GraphicsThreadGraphicsState.currentFont;
 	textToRender = text;
 	/// Rows available
 	int rowsAvailable = 1;
@@ -2128,10 +2136,10 @@ UISlider::~UISlider()
 /** Used by input-captuing elements. Calls recursively upward until an element wants to respond to the input.
 	Returns 1 if it processed anything, 0 if not.
 */
-int UIElement::OnKeyDown(int keyCode, bool downBefore)
+int UIElement::OnKeyDown(int keyCode, bool downBefore, GraphicsState& graphicsState)
 {
 	if (parent)
-		parent->OnKeyDown(keyCode, downBefore);
+		parent->OnKeyDown(keyCode, downBefore, graphicsState);
 	return 0;
 }
 /// Used for getting text. This will be local translated language key codes?

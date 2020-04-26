@@ -267,7 +267,7 @@ UIElement * UIList::GetElement(int mouseX, int mouseY){
 
 
 /// Scroll ze listur!
-bool UIList::OnScroll(float delta)
+bool UIList::OnScroll(float delta, GraphicsState& graphicsState)
 {
 	if (children.Size() == 0)
 		return false;
@@ -301,7 +301,7 @@ bool UIList::OnScroll(float delta)
 	}
     float moveRemaining = delta - moved;
 	if (moveRemaining == delta)
-		thisOrParentMoved |= UIElement::OnScroll(moveRemaining) != 0;
+		thisOrParentMoved |= UIElement::OnScroll(moveRemaining, graphicsState) != 0;
 	else {
 		// Did all the moving here.
 		std::cout<<"\ndid all the moving.";

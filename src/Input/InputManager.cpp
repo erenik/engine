@@ -514,11 +514,7 @@ void InputManager::MouseWheel(AppWindow * AppWindow, float delta)
 			delta *= 2.f;
 			if (KeyPressed(KEY::CTRL))
 				delta *= 0.25f;
-	//		std::cout<<"\nWheeled over element: "<<element->name;
-			bool scrolled = element->OnScroll(delta);
-			if (scrolled)
-				// Mark some variable... to pass to the MouseWheel of the state.
-				;
+			QueueGraphics(new GMScrollUI(element->name, delta)); // Do it in the render thread.
 			
 			// Do a mouse hover/move too!
 			ui->Hover(inputState->mousePosition);
@@ -633,10 +629,8 @@ void InputManager::EvaluateKeyPressed(int activeKeyCode, bool downBefore, UIElem
 				case KEY::DOWN:		UIDown();	break;
 				case KEY::LEFT:		UILeft();	break;
 				case KEY::RIGHT:	UIRight();	break;
-				case KEY::PG_UP: 
-					uiCommand = UIPage(1.f); break;
-				case KEY::PG_DOWN: 
-					uiCommand = UIPage(-1.f); break;
+				case KEY::PG_UP:	UIPage(1.f); break;
+				case KEY::PG_DOWN:	UIPage(-1.f); break;
 				case KEY::TAB:
 					if (keyPressed[KEY::SHIFT])
 						UIPrevious();
@@ -1044,27 +1038,16 @@ void InputManager::UIRight()
 }
 
 // Returns true if it did anything.
-bool InputManager::UIPage(float amount)
+void InputManager::UIPage(float amount)
 {
 	UserInterface * ui = RelevantUI();
 	// TODO: Add a UIElement::UIPage function, which scrolls up or down a page (if inside a UIList), updating the active hover item.
 	/// Then update the list position and stuff as is done with regular hover and UI-navigation functions!
 	UIElement * hoverElement = ui->GetHoverElement();
 	if (!hoverElement)
-		return false;
+		return;
 	// Get position of hoverelement before scroll
-	Vector2i absPos = hoverElement->GetAbsolutePos();
-	bool didScroll = hoverElement->OnScroll(amount);
-	if (didScroll)
-	{
-//		std::cout<<"\nMouse pos: "<<InputMan.mousePosition;
-//		std::cout<<"\nElement pos pre scroll: "<<absPos;
-		// Re-hover at old co-ordinates.
-		MouseMove(ActiveWindow(), absPos);
-	}
-	else {
-	}
-	return didScroll;
+	QueueGraphics(new GMScrollUI(hoverElement->name, amount));
 }
 
 
@@ -1202,7 +1185,7 @@ void InputManager::LoadNavigateUIState(int state)
 }
 
 /// Will push to stack target element in the active UI and also automatically try and hover on the primary/first element hoverable element within.
-void InputManager::PushToStack(UIElement * element, UserInterface * ui)
+void InputManager::PushToStack(GraphicsState& graphicsState, UIElement * element, UserInterface * ui)
 {
 	if (!ui || !element)
 		return;
@@ -1220,17 +1203,17 @@ void InputManager::PushToStack(UIElement * element, UserInterface * ui)
 }
 
 /// Pops the top-most UI from stack, also automatically tries to locate the previous hover-element for further interaction.
-UIElement * InputManager::PopTopmostUIFromStack(UserInterface * ui)
+UIElement * InputManager::PopTopmostUIFromStack(GraphicsState& graphicsState, UserInterface * ui)
 {
 	if (!ui)
 		return NULL;
 	UIElement * top = ui->GetStackTop();
-	if (PopFromStack(top, ui))
+	if (PopFromStack(graphicsState, top, ui))
 		return top;
 	return NULL;
 }
 /// Pops target element from stack, and also automatically tries to locate the previous hover-element!
-UIElement * InputManager::PopFromStack(UIElement * element, UserInterface * ui, bool force /* = false*/)
+UIElement * InputManager::PopFromStack(GraphicsState& graphicsState, UIElement * element, UserInterface * ui, bool force /* = false*/)
 {
 	if (!ui || !element){
 		std::cout<<"\nNull UI or element";

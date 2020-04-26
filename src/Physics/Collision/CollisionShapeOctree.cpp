@@ -319,7 +319,7 @@ void CollisionShapeOctree::PrintContents()
 bool CollisionShapeOctree::Render(GraphicsState * graphicsState)
 {
 	// If the camera is inside here, render with hard mode-desu for clarity's sake.
-	Vector3f cam = GraphicsThreadGraphicsState->camera->Position();
+	Vector3f cam = GraphicsThreadGraphicsState.camera->Position();
 	bool isInside = false, wasInside = false;
 
 	/// Check if inside any children, render only that child if so
@@ -438,7 +438,7 @@ int CollisionShapeOctree::FindCollisions(EntitySharedPtr targetEntity, List<Coll
 			continue;
 		assert(tri.normal.MaxPart());
 		/* // Collisions are not viewport-dependant, so re-write this later if need to debug again.
-		Viewport * viewport = GraphicsThreadGraphicsState->activeViewport;
+		Viewport * viewport = GraphicsThreadGraphicsState.activeViewport;
 		if (viewport)
 		{
 			if (viewport->renderPhysics && viewport->renderCollisionTriangles)

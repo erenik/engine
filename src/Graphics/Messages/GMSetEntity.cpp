@@ -297,9 +297,9 @@ void GMSetEntitys::Process()
 		}
 		case GT_ENTITY_GROUP:
 		{
-			GraphicsThreadGraphicsState->RemoveEntity(entity);
+			GraphicsThreadGraphicsState.RemoveEntity(entity);
 			entity->graphics->group = sValue;
-			GraphicsThreadGraphicsState->AddEntity(entity);
+			GraphicsThreadGraphicsState.AddEntity(entity);
 			break;
 		}
 	}

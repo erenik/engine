@@ -19,7 +19,7 @@ void GMAddRenderPass::Process()
 {
 	RenderPipeline * pipe = NULL;
 	// Add the render-pass to the current pipeline.
-	pipe = GraphicsThreadGraphicsState->renderPipe;
+	pipe = GraphicsThreadGraphicsState.renderPipe;
 	if (!pipe)
 	{
 		LogGraphics("Unablet o add render pass to pipeline - no valid pipeline selected", ERROR);

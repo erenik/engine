@@ -15,10 +15,10 @@ void GraphicsManager::RenderEntityVectors(){
 	ShadeMan.SetActiveShader(nullptr, graphicsState);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glLoadMatrixf(GraphicsThreadGraphicsState->projectionMatrixF.getPointer());
+	glLoadMatrixf(GraphicsThreadGraphicsState.projectionMatrixF.getPointer());
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	glLoadMatrixf(GraphicsThreadGraphicsState->viewMatrixF.getPointer());
+	glLoadMatrixf(GraphicsThreadGraphicsState.viewMatrixF.getPointer());
 
 	glDisable(GL_TEXTURE_2D);
 	glEnable(GL_DEPTH_TEST);
@@ -27,7 +27,7 @@ void GraphicsManager::RenderEntityVectors(){
 	glDisable(GL_LIGHTING);
 
 	glLoadIdentity();
-	glLoadMatrixf(GraphicsThreadGraphicsState->viewMatrixF.getPointer());
+	glLoadMatrixf(GraphicsThreadGraphicsState.viewMatrixF.getPointer());
 
 
 	glBegin(GL_LINES);

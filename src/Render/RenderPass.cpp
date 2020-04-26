@@ -51,9 +51,9 @@ void RenderPass::RenderQuad(GraphicsState & graphicsState)
 //	glViewport(0, 0, windowWorkingArea[0], windowWorkingArea[1]);
 
 	/// Reset projection matrix.
-//	GraphicsThreadGraphicsState->projectionMatrixF = ();
-//	shader->SetProjectionMatrix(GraphicsThreadGraphicsState->projectionMatrixF);
-//	shader->SetViewMatrix(GraphicsThreadGraphicsState->projectionMatrixF);
+//	GraphicsThreadGraphicsState.projectionMatrixF = ();
+//	shader->SetProjectionMatrix(GraphicsThreadGraphicsState.projectionMatrixF);
+//	shader->SetViewMatrix(GraphicsThreadGraphicsState.projectionMatrixF);
 	Matrix4f proj = Matrix4f();
 	proj.LoadIdentity();
 	proj.InitOrthoProjectionMatrix(-1,1,-1,1, 0.10f, 10.f);
@@ -103,14 +103,14 @@ void RenderPass::RenderQuad(GraphicsState & graphicsState)
 	glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, projection.getPointer());
     PrintGLError("GLError in RenderUI uploading projectionMatrix");
 
-	GraphicsThreadGraphicsState->projectionMatrixF = GraphicsThreadGraphicsState->projectionMatrixD = projection;
-	GraphicsThreadGraphicsState->viewMatrixF = GraphicsThreadGraphicsState->viewMatrixD.LoadIdentity();
-	GraphicsThreadGraphicsState->modelMatrixF.LoadIdentity();
+	GraphicsThreadGraphicsState.projectionMatrixF = GraphicsThreadGraphicsState.projectionMatrixD = projection;
+	GraphicsThreadGraphicsState.viewMatrixF = GraphicsThreadGraphicsState.viewMatrixD.LoadIdentity();
+	GraphicsThreadGraphicsState.modelMatrixF.LoadIdentity();
 	*/
 
 	Matrix4f mvp = model * view * proj;
 	Vector3f projectedPoint = mvp.Product(Vector4f(renderedPoint, 1));
-	Vector3f projP2 = (GraphicsThreadGraphicsState->modelMatrix * GraphicsThreadGraphicsState->viewMatrixF * GraphicsThreadGraphicsState->projectionMatrixF).Product(renderedPoint);
+	Vector3f projP2 = (GraphicsThreadGraphicsState.modelMatrix * GraphicsThreadGraphicsState.viewMatrixF * GraphicsThreadGraphicsState.projectionMatrixF).Product(renderedPoint);
 //	std::cout<<"\nProjected point: "<<projectedPoint<<" vs "<<projP2;
 	// Allocate o-o
 	static Square * deferredRenderingBox = 0;
@@ -811,7 +811,7 @@ void RenderPass::RenderAlphaEntities(GraphicsState & graphicsState)
 
 		// Render the model
 		entity->model->Render(graphicsState);
-		++GraphicsThreadGraphicsState->renderedObjects;		// increment rendered objects for debug info
+		++GraphicsThreadGraphicsState.renderedObjects;		// increment rendered objects for debug info
 	}
 	timer.Stop();
 	FrameStats.renderEntities += timer.GetMs();

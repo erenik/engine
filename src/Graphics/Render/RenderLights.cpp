@@ -21,10 +21,10 @@ void GraphicsManager::RenderLights(){
 	ShadeMan.SetActiveShader(nullptr, graphicsState);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glLoadMatrixf(GraphicsThreadGraphicsState->projectionMatrixF.getPointer());
+	glLoadMatrixf(GraphicsThreadGraphicsState.projectionMatrixF.getPointer());
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	glLoadMatrixf(GraphicsThreadGraphicsState->viewMatrixF.getPointer());
+	glLoadMatrixf(GraphicsThreadGraphicsState.viewMatrixF.getPointer());
 
 	Lighting * lighting = &graphicsState.lighting;
 
@@ -39,7 +39,7 @@ void GraphicsManager::RenderLights(){
 	{
 		// Reset view/proj matrices
 		glLoadIdentity();
-		glLoadMatrixf(GraphicsThreadGraphicsState->viewMatrixF.getPointer());
+		glLoadMatrixf(GraphicsThreadGraphicsState.viewMatrixF.getPointer());
 
 		Light * light = lighting->GetLight(i);
 		Vector3f position = light->position;
@@ -52,7 +52,7 @@ void GraphicsManager::RenderLights(){
 					glVertex3f(position[0], position[1], position[2]);
 				glEnd();
 				glTranslatef(position[0], position[1], position[2]);
-			//	GraphicsThreadGraphicsState->modelMatrixF = Matrix4f::Translation(position);
+			//	GraphicsThreadGraphicsState.modelMatrixF = Matrix4f::Translation(position);
 				Model * model = ModelMan.GetModel("Sphere6");
 				if (model)
 					model->Render(graphicsState);

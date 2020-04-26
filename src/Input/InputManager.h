@@ -213,11 +213,11 @@ public:
 	
 	
 	/// Will push to stack target element in the active UI and also automatically try and hover on the primary/first element hoverable element within.
-	void PushToStack(UIElement * element, UserInterface * ui);
+	void PushToStack(GraphicsState& graphicsState, UIElement * element, UserInterface * ui);
 	/// Pops the top-most UI from stack, also automatically tries to locate the previous hover-element for further interaction, returning the element removed upon success.
-	UIElement * PopTopmostUIFromStack(UserInterface * ui);
+	UIElement * PopTopmostUIFromStack(GraphicsState& graphicsState, UserInterface * ui);
 	/// Pops target element from stack, and also automatically tries to locate the previous hover-element!
-	UIElement * PopFromStack(UIElement * element, UserInterface * ui, bool force = false);
+	UIElement * PopFromStack(GraphicsState& graphicsState, UIElement * element, UserInterface * ui, bool force = false);
 
     /// Deprecateeeeed! Adjust player input device via the PlayerManager from now on! :)
 /*
@@ -245,7 +245,7 @@ public:
 	void UILeft();
 	void UIRight();
 	// For Page up/down, returns true if anything was done.
-	bool UIPage(float amount);
+	void UIPage(float amount);
 	/** Emulates Pressing a mouse-button or Enter-key in order to continue with whatever dialogue was up, using the selected or default option (if any)
 		Returns true if it actually did something. False if e.g. no UI item was active or in hover state.
 	*/

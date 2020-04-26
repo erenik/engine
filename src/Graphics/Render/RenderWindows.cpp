@@ -44,9 +44,9 @@ void GraphicsManager::RenderWindows()
 
 
 		framesSkipped = 0;
-		GraphicsThreadGraphicsState->activeWindow = window;
-		GraphicsThreadGraphicsState->windowWidth = window->WorkingArea()[0];
-		GraphicsThreadGraphicsState->windowHeight = window->WorkingArea()[1];
+		GraphicsThreadGraphicsState.activeWindow = window;
+		GraphicsThreadGraphicsState.windowWidth = window->WorkingArea()[0];
+		GraphicsThreadGraphicsState.windowHeight = window->WorkingArea()[1];
 
 		// Reset shader. Force AppWindow to explicitly set an own one, so that attributes are bound correctly.
 		ShadeMan.SetActiveShader(nullptr, graphicsState);

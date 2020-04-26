@@ -42,7 +42,7 @@ class RenderPipeline;
 /// If part of the graphics processing, is used to record latest function location in order to track where exceptions are thrown..?
 extern String graphicsThreadDetails;
 
-#define GraphicsThreadGraphicsState (GraphicsMan.GraphicsStatePtr())
+#define GraphicsThreadGraphicsState (GraphicsMan.GraphicsStateRef())
 
 // Defines a class that handles textures, rendering and it's contexts and settings
 class GraphicsManager 
@@ -83,8 +83,8 @@ private:
 
 public:
 
-	GraphicsState* GraphicsStatePtr() {
-		return &graphicsState;
+	GraphicsState& GraphicsStateRef() {
+		return graphicsState;
 	}
 
 	static void Allocate();

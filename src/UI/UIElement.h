@@ -102,7 +102,7 @@ public:
 	/// Called when this UI is made active (again).
 	virtual void OnEnterScope();
 	/// Called once this element is no longer visible for any reason. E.g. switching game states to display another UI, or when this or a parent has been popped from the ui.
-	virtual void OnExitScope();
+	virtual void OnExitScope(bool forced);
 
 	/** Called by OS-functions to query if the UI wants to process drag-and-drop files. If so the active element where the mouse is hovering may opt to do magic with it.
 		If no magic, or action, is taken, it will return false, at which point the game state should be called to handle general drag-and-drop files.
@@ -145,7 +145,7 @@ public:
     /** For mouse-scrolling. By default calls it's parent's OnScroll. Returns true if the element did anything because of the scroll.
 		The delta corresponds to amount of "pages" it should scroll.
 	*/
-	virtual bool OnScroll(float delta);
+	virtual bool OnScroll(float delta, GraphicsState& graphicsState);
 
 	/// Returns the root, via parent-chain.
 	UIElement * GetRoot();
@@ -153,7 +153,7 @@ public:
 
 	/// UI events!
 	/// Sent by UIInput elements upon pressing Enter and thus confirmign the new input, in case extra actions are warranted. (e.g. UITextureInput to update the texture provided as reference).
-	virtual void OnInputUpdated(UIInput * inputElement);
+	virtual void OnInputUpdated(UIInput * inputElement, GraphicsState& graphicsState);
 	/// Callback sent to parents once an element is toggled, in order to act upon it. Used by UIMatrix.
 	virtual void OnToggled(UICheckBox * box);
 
@@ -439,7 +439,7 @@ public:
 	/** Used by input-captuing elements. Calls recursively upward until an element wants to respond to the input.
 		Returns 1 if it processed anything, 0 if not.
 	*/
-	virtual int OnKeyDown(int keyCode, bool downBefore);
+	virtual int OnKeyDown(int keyCode, bool downBefore, GraphicsState& graphicsState);
 	/// Used for getting text. This will be local translated language key codes?
 	virtual int OnChar(int asciiCode);
 

@@ -43,7 +43,7 @@ std::pair<String, List<Text>> * GetListForUI(String name)
 }
 
 /// Sent by UIInput elements upon pressing Enter and thus confirmign the new input, in case extra actions are warranted. (e.g. UITextureInput to update the texture provided as reference).
-void UIStringInput::OnInputUpdated(UIInput * inputElement)
+void UIStringInput::OnInputUpdated(UIInput * inputElement, GraphicsState& graphicsState)
 {
 	std::cout<<"\nOnInputUpdated..."<<inputElement;
 	// Only logical thing should be our input calling us straight away.
@@ -76,7 +76,7 @@ void UIStringInput::OnInputUpdated(UIInput * inputElement)
 }
 
 // For managing old texts.
-int UIStringInput::OnKeyDown(int keyCode, bool downBefore)
+int UIStringInput::OnKeyDown(int keyCode, bool downBefore, GraphicsState& graphicsState)
 {
 	// Check for previous texts?
 	int indexDesired = index;

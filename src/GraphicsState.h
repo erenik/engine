@@ -49,7 +49,7 @@ class Entity;
 #define SCISSOR_DISABLED                0x00000040  // For toggling scissor-functionality which is used by UILists et al.
 
 // Macro while rendering
-#define ActiveViewport (GraphicsThreadGraphicsState->activeViewport)
+#define ActiveViewport (GraphicsThreadGraphicsState.activeViewport)
 
 /// Frame ID/number/enumeration.
 extern int graphicsFrameNumber;

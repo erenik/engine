@@ -966,7 +966,7 @@ void GMPushUI::Process()
 	if (e->Parent() == 0)
 		ui->GetRoot()->AddChild(e);
 	/// Push to stack, the InputManager will also try and hover on the first primary element.
-	InputMan.PushToStack(e, ui);
+	InputMan.PushToStack(GraphicsThreadGraphicsState, e, ui);
 
 	/// Enable navigate ui if element wants it.
 	if (e->navigateUIOnPush){
@@ -1019,20 +1019,14 @@ void GMPopUI::Process()
 		LogGraphics("GMPopUI: Invalid UIElement: "+uiName, DEBUG);
 		return;
 	}
+
 	/// Push to stack, the InputManager will also try and hover on the first primary element.
-	bool success = InputMan.PopFromStack(e, ui, force);
+	bool success = InputMan.PopFromStack(GraphicsThreadGraphicsState, e, ui, force);
+	LogGraphics("Popped element/menu: " + e->name, INFO);
 
     /// Post onExit message if it was popped.
     if (success)
 	{
-		/// Check if the element has any onPop messages.
-		if (force)
-		{
-			if (e->onForcePop.Length())
-				MesMan.QueueMessages(e->onForcePop);
-		}
-		else if (e->onPop.Length())
-			MesMan.QueueMessages(e->onPop);
 		/// If the element wants to keep track of the navigate UI state, then reload it. If not, don't as it will set it to false by default if so.
 		if (e->navigateUIOnPush)
 			InputMan.LoadNavigateUIState(e->previousNavigateUIState);

@@ -339,20 +339,20 @@ void ParticleSystem::UpdateBuffers()
 	if (particlePositionScaleBuffer == -1)
 	{
 		particlePositionScaleBuffer = GLBuffers::New();
-		GraphicsThreadGraphicsState->BindVertexArrayBuffer(particlePositionScaleBuffer);
+		GraphicsThreadGraphicsState.BindVertexArrayBuffer(particlePositionScaleBuffer);
 		glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
 	}
 	if (particleLifeTimeDurationScaleBuffer == -1)
 	{
 		particleLifeTimeDurationScaleBuffer = GLBuffers::New();
-		GraphicsThreadGraphicsState->BindVertexArrayBuffer(particleLifeTimeDurationScaleBuffer);
+		GraphicsThreadGraphicsState.BindVertexArrayBuffer(particleLifeTimeDurationScaleBuffer);
 		glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
 	}
 	// The VBO containing the colors of the particles
 	if (particleColorBuffer == -1)
 	{
 		particleColorBuffer = GLBuffers::New();
-		GraphicsThreadGraphicsState->BindVertexArrayBuffer(particleColorBuffer);
+		GraphicsThreadGraphicsState.BindVertexArrayBuffer(particleColorBuffer);
 #ifdef SSE_PARTICLES
 		glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
 #else
@@ -362,13 +362,13 @@ void ParticleSystem::UpdateBuffers()
 
 #ifdef SSE_PARTICLES
 	// Buffer the actual data.
-	GraphicsThreadGraphicsState->BindVertexArrayBuffer(particlePositionScaleBuffer);
+	GraphicsThreadGraphicsState.BindVertexArrayBuffer(particlePositionScaleBuffer);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, aliveParticles * sizeof(GLfloat) * 4, positionsSSE);
  
-	GraphicsThreadGraphicsState->BindVertexArrayBuffer(particleColorBuffer);
+	GraphicsThreadGraphicsState.BindVertexArrayBuffer(particleColorBuffer);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, aliveParticles * sizeof(GLfloat) * 4, colorsSSE);
 
-	GraphicsThreadGraphicsState->BindVertexArrayBuffer(particleLifeTimeDurationScaleBuffer);
+	GraphicsThreadGraphicsState.BindVertexArrayBuffer(particleLifeTimeDurationScaleBuffer);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, aliveParticles * sizeof(GLfloat) * 4, ldsSSE);
 #endif
 	CheckGLError("ParticleSystem::UpdateBuffers");
@@ -480,11 +480,11 @@ void ParticleSystem::SetUniforms()
 	if (shader->uniformParticleDecayAlphaWithLifeTime != -1)
 		glUniform1i(shader->uniformParticleDecayAlphaWithLifeTime, decayAlphaWithLifeTime);
 
-	Vector3f right = -GraphicsThreadGraphicsState->camera->LeftVector();
+	Vector3f right = -GraphicsThreadGraphicsState.camera->LeftVector();
 	if (shader->uniformCameraRightWorldSpace != -1)
 	{
 		glUniform3f(shader->uniformCameraRightWorldSpace, right.x, right.y, right.z);
-		Vector3f up = GraphicsThreadGraphicsState->camera->UpVector();
+		Vector3f up = GraphicsThreadGraphicsState.camera->UpVector();
 		glUniform3f(shader->uniformCameraUpWorldSpace, up.x, up.y, up.z);
 	}
 	if (shader->uniformScale != -1)

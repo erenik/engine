@@ -36,12 +36,12 @@ UIIntegerInput::~UIIntegerInput()
 /** For mouse-scrolling. By default calls it's parent's OnScroll. Returns true if the element did anything because of the scroll.
 	The delta corresponds to amount of "pages" it should scroll.
 */
-bool UIIntegerInput::OnScroll(float delta)
+bool UIIntegerInput::OnScroll(float delta, GraphicsState& graphicsState)
 {
 	if (guiInputDisabled)
 	{
 		/// Go to parent as usual.
-		return UIElement::OnScroll(delta);
+		return UIElement::OnScroll(delta, graphicsState);
 	}
 	// Adjust if the input piece is being hovered over.
 	if (input->state & UIState::HOVER)
@@ -58,13 +58,13 @@ bool UIIntegerInput::OnScroll(float delta)
 		return true;
 	}
 	// If not, do as regular UIElements do, probably query parents..
-	return UIElement::OnScroll(delta);
+	return UIElement::OnScroll(delta, graphicsState);
 }
 
 /** Used by input-capturing elements. Calls recursively upward until an element wants to respond to the input.
 	Returns 1 if it processed anything, 0 if not.
 */
-int UIIntegerInput::OnKeyDown(int keyCode, bool downBefore)
+int UIIntegerInput::OnKeyDown(int keyCode, bool downBefore, GraphicsState& graphicsState)
 {
 	int v = GetValue();
 	switch(keyCode)
@@ -78,12 +78,12 @@ int UIIntegerInput::OnKeyDown(int keyCode, bool downBefore)
 			SetValue(v);
 			return 1;
 	}
-	UIElement::OnKeyDown(keyCode, downBefore);
+	UIElement::OnKeyDown(keyCode, downBefore, graphicsState);
 	return 0;
 }	
 
 /// Sent by UIInput elements upon pressing Enter and thus confirmign the new input, in case extra actions are warranted. (e.g. UITextureInput to update the texture provided as reference).
-void UIIntegerInput::OnInputUpdated(UIInput * inputElement)
+void UIIntegerInput::OnInputUpdated(UIInput * inputElement, GraphicsState & graphicsState)
 {
 	assert(inputElement == input);
 	/// If we accept expressions, parse and evaluate it?
@@ -106,9 +106,7 @@ void UIIntegerInput::OnInputUpdated(UIInput * inputElement)
 				std::cout<<"\nUIFloatInput: Bad input, skipping.";
 				return;
 		}
-		Graphics.Pause();
 		input->SetText(result, true);
-		Graphics.Resume();
 	}
 	IntegerMessage * m = new IntegerMessage(action, GetValue());
 	MesMan.QueueMessage(m);

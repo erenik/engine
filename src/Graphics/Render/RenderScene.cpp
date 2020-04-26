@@ -26,12 +26,12 @@ void GraphicsManager::RenderScene()
 		LogGraphics("Unable to set Phong shader.", ERROR);
         return;
     }
-	GraphicsThreadGraphicsState->settings |= ENABLE_SPECIFIC_ENTITY_OPTIONS;
+	GraphicsThreadGraphicsState.settings |= ENABLE_SPECIFIC_ENTITY_OPTIONS;
 
 	// Set fog properties as needed.
-	glUniform1f(shader->uniformFogBeginDistance, GraphicsThreadGraphicsState->fogBegin);
-	glUniform1f(shader->uniformFogEndDistance, GraphicsThreadGraphicsState->fogEnd);
-	glUniform3f(shader->uniformFogColor, GraphicsThreadGraphicsState->clearColor[0], GraphicsThreadGraphicsState->clearColor[1], GraphicsThreadGraphicsState->clearColor[2]);
+	glUniform1f(shader->uniformFogBeginDistance, GraphicsThreadGraphicsState.fogBegin);
+	glUniform1f(shader->uniformFogEndDistance, GraphicsThreadGraphicsState.fogEnd);
+	glUniform3f(shader->uniformFogColor, GraphicsThreadGraphicsState.clearColor[0], GraphicsThreadGraphicsState.clearColor[1], GraphicsThreadGraphicsState.clearColor[2]);
 
 	if (backfaceCullingEnabled){
 		glEnable(GL_CULL_FACE);
@@ -50,13 +50,13 @@ void GraphicsManager::RenderScene()
 	// Reset matrices: This may as well be done before rendering is done, since the matrices
 	// will need to be reset all the time depending on the content to be rendered and where ^^
 	/// Camera is already updated, so just use it's matrices straight away ^^
-	Camera & camera = *GraphicsThreadGraphicsState->camera;
+	Camera & camera = *GraphicsThreadGraphicsState.camera;
 
 	// Camera calculations are now done inside the camera, so the camPos/camLookingAtVector/camUpVector can now be removed!
 	// If view frustum culling is enabled, set it in the settings and update the frustum with the camera's current position.
 	if (true /*useOctree && frustumCullingActive*/){
-		GraphicsThreadGraphicsState->viewFrustum.SetCamPos(Vector3f((Vector4f)camera.Position()), Vector3f((Vector4f)camera.LookingAt()), Vector3f((Vector4f)camera.UpVector()));
-		Frustum & viewFrustum = GraphicsThreadGraphicsState->viewFrustum;
+		GraphicsThreadGraphicsState.viewFrustum.SetCamPos(Vector3f((Vector4f)camera.Position()), Vector3f((Vector4f)camera.LookingAt()), Vector3f((Vector4f)camera.UpVector()));
+		Frustum & viewFrustum = GraphicsThreadGraphicsState.viewFrustum;
 //		std::cout<<"\nViewfrustum: "<<viewFrustum.left<<" "<<viewFrustum.right<<" nearplane: "<<viewFrustum.nearPlaneDistance<<" farplane: "<<viewFrustum.farPlaneDistance;
 	}
 
@@ -65,9 +65,9 @@ void GraphicsManager::RenderScene()
 
 	// Load in the model and view matrices
 //	shader->uniformViewMatrix = glGetUniformLocation(shader->shaderProgram, "viewMatrix");
-	glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, GraphicsThreadGraphicsState->viewMatrixF.getPointer());	
+	glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, GraphicsThreadGraphicsState.viewMatrixF.getPointer());	
 //	shader->uniformModelMatrix = glGetUniformLocation(shader->shaderProgram, "modelMatrix");
-	glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, GraphicsThreadGraphicsState->modelMatrixF.getPointer());
+	glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, GraphicsThreadGraphicsState.modelMatrixF.getPointer());
 
 	// Set later! ALSO: glProgramUniform is in a later GL version compared to glUniform!
 /*	if (shader && shader->uniformEyePosition != -1)
@@ -83,10 +83,10 @@ void GraphicsManager::RenderScene()
 
 	// Load projection matrix into shader
 //	GLuint uniformProjectionMatrix = glGetUniformLocation(shader->shaderProgram, "projectionMatrix");
-	GraphicsThreadGraphicsState->projectionMatrixF = GraphicsThreadGraphicsState->projectionMatrixD;
-	glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, GraphicsThreadGraphicsState->projectionMatrixF.getPointer());
+	GraphicsThreadGraphicsState.projectionMatrixF = GraphicsThreadGraphicsState.projectionMatrixD;
+	glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, GraphicsThreadGraphicsState.projectionMatrixF.getPointer());
 
-	Matrix4f mvp = GraphicsThreadGraphicsState->projectionMatrixF * GraphicsThreadGraphicsState->viewMatrixF * GraphicsThreadGraphicsState->modelMatrixF;
+	Matrix4f mvp = GraphicsThreadGraphicsState.projectionMatrixF * GraphicsThreadGraphicsState.viewMatrixF * GraphicsThreadGraphicsState.modelMatrixF;
 	/// Just testing that the matrix is set correctly..
 	//Vector4f point = Vector4f(1.0, 1.0, 1.0, 1.0f);
 	//point = mvp * point;
@@ -109,9 +109,9 @@ void GraphicsManager::RenderScene()
 	/// Set legacy rendering setting
 	bool useLegacy = false;
 	if (useLegacy)
-		GraphicsThreadGraphicsState->settings |= USE_LEGACY_GL;
+		GraphicsThreadGraphicsState.settings |= USE_LEGACY_GL;
 	else
-		GraphicsThreadGraphicsState->settings &= ~USE_LEGACY_GL;
+		GraphicsThreadGraphicsState.settings &= ~USE_LEGACY_GL;
 
 	/// Deferred rendering setting ^^
 	bool useDeferred = false;
@@ -132,7 +132,7 @@ void GraphicsManager::RenderScene()
 	glGenerateMipmap = (PFNGLGENERATEMIPMAPPROC)wglGetProcAddress((std::string("glGenerateMipmap") + suffix).c_str());
 */
 
-	if (GraphicsThreadGraphicsState->settings & USE_LEGACY_GL){
+	if (GraphicsThreadGraphicsState.settings & USE_LEGACY_GL){
 		// Set default shader program
 		shader = NULL;
 		ShadeMan.SetActiveShader(nullptr, graphicsState);
@@ -187,19 +187,19 @@ void GraphicsManager::RenderScene()
 		Shader * shader = ShadeMan.SetActiveShader("Phong", graphicsState);
 
 		/// Load lighting settings to shader ^^
-		GraphicsThreadGraphicsState->lighting.LoadIntoShader(shader);
+		GraphicsThreadGraphicsState.lighting.LoadIntoShader(shader);
 	}
 	// Set primary color
 	glUniform4f(shader->uniformPrimaryColorVec4, 1.f,1.f,1.f,1.f);
 
 	// Reset bound textures
-	GraphicsThreadGraphicsState->currentTexture = NULL;
+	GraphicsThreadGraphicsState.currentTexture = NULL;
 	// Update view and projection matrix in specified shader
 	if (shader && shader->uniformProjectionMatrix != -1)
-		glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, GraphicsThreadGraphicsState->projectionMatrixF.getPointer());
+		glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, GraphicsThreadGraphicsState.projectionMatrixF.getPointer());
 	// Update view and projection matrix in specified shader
 	if (shader && shader->uniformViewMatrix != -1)
-		glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, GraphicsThreadGraphicsState->viewMatrixF.getPointer());
+		glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, GraphicsThreadGraphicsState.viewMatrixF.getPointer());
 	// Update camera in the world
 	if (shader && shader->uniformEyePosition != -1)
 		glUniform4f(shader->uniformEyePosition, camera.Position()[0], camera.Position()[1], camera.Position()[2], 1.0f);
@@ -242,7 +242,7 @@ void GraphicsManager::RenderScene()
 			glUniform4f(shader->uniformPrimaryColorVec4, 1,1,1,1);
 
 		/// Load lighting settings to shader ^^
-		GraphicsThreadGraphicsState->lighting.LoadIntoShader(shader);
+		GraphicsThreadGraphicsState.lighting.LoadIntoShader(shader);
 
 		// Update camera in the world
 		if (shader && shader->uniformEyePosition != -1)
@@ -322,7 +322,7 @@ uniform sampler2D positionMap;*/
 		glActiveTexture(GL_TEXTURE0 + 7);
 		glBindTexture(GL_TEXTURE_2D, pickingTexture);
 
-		GraphicsThreadGraphicsState->currentTexture = 0;
+		GraphicsThreadGraphicsState.currentTexture = 0;
 
 		// Render square for the AppWindow
 		deferredRenderingBox->name = "DeferredLighting";

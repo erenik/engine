@@ -207,7 +207,7 @@
 // 	shader->uniformModelMatrix = glGetUniformLocation(shader->shaderProgram, "modelMatrix");
 // 	glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, projection.getPointer());
 //
-// 	GraphicsThreadGraphicsState->modelMatrixF = GraphicsThreadGraphicsState->modelMatrixD.LoadIdentity();
+// 	GraphicsThreadGraphicsState.modelMatrixF = GraphicsThreadGraphicsState.modelMatrixD.LoadIdentity();
 //
 // 	// Enable alpha-blendinggg!
 // 	glEnable(GL_BLEND);

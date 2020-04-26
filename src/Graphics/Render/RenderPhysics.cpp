@@ -40,7 +40,7 @@ void GraphicsManager::RenderPhysics()
 		if (physicalEntities.Size() <= 0)
 			return;
 		// Cull the shiat
-		physicalEntities.CullByCamera(GraphicsThreadGraphicsState->camera);
+		physicalEntities.CullByCamera(GraphicsThreadGraphicsState.camera);
 		lastFetch = clock();
 	}
 
@@ -56,9 +56,9 @@ void GraphicsManager::RenderPhysics()
 	// Set color of the wireframes of all selected objects
 	glUniform4f(shader->uniformPrimaryColorVec4, 0.0f, 0.8f, 1.0f, 0.2f);
 	// Set projection and view matrices just in-case too.
-	glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, GraphicsThreadGraphicsState->viewMatrixF.getPointer());
+	glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, GraphicsThreadGraphicsState.viewMatrixF.getPointer());
 	GLuint error = glGetError();
-	glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, GraphicsThreadGraphicsState->projectionMatrixF.getPointer());
+	glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, GraphicsThreadGraphicsState.projectionMatrixF.getPointer());
 	error = glGetError();
 
 	/// Disable crap
@@ -67,7 +67,7 @@ void GraphicsManager::RenderPhysics()
 	float z = -4;
 	glDisable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, 0);
-	GraphicsThreadGraphicsState->currentTexture = NULL;
+	GraphicsThreadGraphicsState.currentTexture = NULL;
 	// Disable lighting
 	glDisable(GL_LIGHTING);
 	error = glGetError();
@@ -169,9 +169,9 @@ void GraphicsManager::RenderPhysics()
 
 				/// Set matrices
 				glMatrixMode(GL_PROJECTION);
-				glLoadMatrixf(GraphicsThreadGraphicsState->projectionMatrixF.getPointer());
+				glLoadMatrixf(GraphicsThreadGraphicsState.projectionMatrixF.getPointer());
 				glMatrixMode(GL_MODELVIEW);
-				Matrix4f modelView = GraphicsThreadGraphicsState->viewMatrixF;
+				Matrix4f modelView = GraphicsThreadGraphicsState.viewMatrixF;
 				glLoadMatrixf(modelView.getPointer());
 				// Disable lighting, enabling pure color-rendering
 				glDisable(GL_LIGHTING);
@@ -250,9 +250,9 @@ rerer
 
 				/// Set matrices
 				glMatrixMode(GL_PROJECTION);
-				glLoadMatrixf(GraphicsThreadGraphicsState->projectionMatrixF.getPointer());
+				glLoadMatrixf(GraphicsThreadGraphicsState.projectionMatrixF.getPointer());
 				glMatrixMode(GL_MODELVIEW);
-				Matrix4f modelView = GraphicsThreadGraphicsState->viewMatrixF * transformationMatrix;
+				Matrix4f modelView = GraphicsThreadGraphicsState.viewMatrixF * transformationMatrix;
 				glLoadMatrixf(modelView.getPointer());
 				// Disable lighting, enabling pure color-rendering
 				glDisable(GL_LIGHTING);
@@ -317,9 +317,9 @@ rerer
 	// Render active triangles if wanted toooo
 	ShadeMan.SetActiveShader(nullptr, graphicsState);
 	glMatrixMode(GL_PROJECTION);
-	glLoadMatrixf(GraphicsThreadGraphicsState->projectionMatrixF.getPointer());
+	glLoadMatrixf(GraphicsThreadGraphicsState.projectionMatrixF.getPointer());
 	glMatrixMode(GL_MODELVIEW);
-	Matrix4f modelView = GraphicsThreadGraphicsState->viewMatrixF;
+	Matrix4f modelView = GraphicsThreadGraphicsState.viewMatrixF;
 	glLoadMatrixf(modelView.getPointer());
 	glDisable(GL_LIGHTING);
 	glDisable(GL_DEPTH_TEST);
@@ -341,7 +341,7 @@ rerer
 	/// Set default shader program
     ShadeMan.SetActiveShader(nullptr, graphicsState);
     glMatrixMode(GL_MODELVIEW);
-    glLoadMatrixf(GraphicsThreadGraphicsState->viewMatrixF.getPointer());
+    glLoadMatrixf(GraphicsThreadGraphicsState.viewMatrixF.getPointer());
     for (int i = 0; i < physicalEntities.Size(); ++i){
         EntitySharedPtr e = physicalEntities[i];
         /// Set optional color first.
@@ -351,7 +351,7 @@ rerer
 	/// Render collission data. Only render the latest collission if we're paused?
 	Collision & c = Physics.lastCollision;
 	CollisionResolution & cr = c.cr;
-	if (GraphicsThreadGraphicsState->activeViewport->renderCollisions
+	if (GraphicsThreadGraphicsState.activeViewport->renderCollisions
 		&& Physics.IsPaused()
 		&& c.one && c.two
 		&& c.one->physics && c.two->physics
@@ -435,8 +435,8 @@ rerer
 			/// Render one and two with pre-collission matrices
 			Shader * shader = ShadeMan.SetActiveShader("Flat", graphicsState);
 			glBlendFunc(GL_SRC_ALPHA, GL_DST_ALPHA); // GL_ONE_MINUS_SRC_ALPHA
-			glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, GraphicsThreadGraphicsState->viewMatrixF.getPointer());
-			glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, GraphicsThreadGraphicsState->projectionMatrixF.getPointer());
+			glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, GraphicsThreadGraphicsState.viewMatrixF.getPointer());
+			glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, GraphicsThreadGraphicsState.projectionMatrixF.getPointer());
 			// Hope matrices are still same.
 			Model * model = c.one->model;
 			glUniform4f(shader->uniformPrimaryColorVec4, 15.0f, 0.0f, 0.0f, 0.1f);

@@ -23,9 +23,9 @@ void GraphicsManager::RenderSkeletons()
 	// Load projection matrix.
 
 	glMatrixMode(GL_PROJECTION);
-	glLoadMatrixf(GraphicsThreadGraphicsState->projectionMatrixF.getPointer());
+	glLoadMatrixf(GraphicsThreadGraphicsState.projectionMatrixF.getPointer());
 	glMatrixMode(GL_MODELVIEW);
-	glLoadMatrixf(GraphicsThreadGraphicsState->viewMatrixF.getPointer());
+	glLoadMatrixf(GraphicsThreadGraphicsState.viewMatrixF.getPointer());
 
 	// Load view matrix.
 
@@ -56,7 +56,7 @@ void GraphicsManager::RenderSkeletons()
 		if (!model)
 			continue;
 		Mesh * mesh = model->mesh;
-		GraphicsThreadGraphicsState->modelMatrixF = entity->transformationMatrix;
+		GraphicsThreadGraphicsState.modelMatrixF = entity->transformationMatrix;
 		Bone * skeleton = mesh->skeleton;
 		if (skeleton && true)
 		{

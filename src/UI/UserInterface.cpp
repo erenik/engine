@@ -671,11 +671,8 @@ bool UserInterface::PopFromStack(UIElement * element, bool force)
 	/// Option to ensure that it doesn't flip any other elements anyway.
 	bool result = stack.RemoveItem(element) != NULL;
 	assert(!stack.Exists(element));
-	/// Make it invisible in any case?
-	element->visible = false;
-	element->inStack = false;
 	/// Call on exit scope for it!
-	element->OnExitScope();
+	element->OnExitScope(force);
 	return result;
 }
 
@@ -728,7 +725,7 @@ void UserInterface::OnEnterScope(){
 void UserInterface::OnExitScope()
 {
 	if (root)
-		root->OnExitScope();
+		root->OnExitScope(false);
 }
 
 /// Deallocates UI, and reloads from base-file.

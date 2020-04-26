@@ -36,12 +36,12 @@ public:
 	virtual void SetEditText(CTextr newText);
 
 	/// Called once this element is no longer visible for any reason. E.g. switching game states to display another UI, or when this or a parent has been popped from the ui.
-	virtual void OnExitScope();
+	virtual void OnExitScope(bool forced);
 
 	/** Used by input-captuing elements. Should not be called for any base UI elements(?). 
 		Return value of significance, but not defined yet.
 	*/
-	virtual int OnKeyDown(int keyCode, bool downBefore);
+	virtual int OnKeyDown(int keyCode, bool downBefore, GraphicsState& graphicsState);
 	/// Used for getting text. This will be local translated language key codes?
 	virtual int OnChar(int asciiCode);
 	/// Begins input! >)

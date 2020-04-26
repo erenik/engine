@@ -139,10 +139,10 @@ void UIInput::SetEditText(CTextr newText)
 }
 
 /// Called once this element is no longer visible for any reason. E.g. switching game states to display another UI, or when this or a parent has been popped from the ui.
-void UIInput::OnExitScope()
+void UIInput::OnExitScope(bool forced)
 {
 	/// Call it for children too.
-	UIElement::OnExitScope();
+	UIElement::OnExitScope(forced);
 	if (inputActive)
 	{
 		StopInput();
@@ -150,7 +150,7 @@ void UIInput::OnExitScope()
 }
 
 /// Used by input-captuing elements. Should not be called for any base UI elements(?)
-int UIInput::OnKeyDown(int keyCode, bool downBefore)
+int UIInput::OnKeyDown(int keyCode, bool downBefore, GraphicsState& graphicsState)
 {
 	bool isActive = (state & UIState::ACTIVE);
 	assert(inputActive == isActive);
@@ -190,7 +190,7 @@ int UIInput::OnKeyDown(int keyCode, bool downBefore)
 				
 			}
 			/// Notify of the update to self and then parents, so that extra actions may be taken.
-			this->OnInputUpdated(this);
+			this->OnInputUpdated(this, graphicsState);
 			break;
 		}
 		// Delete
@@ -221,12 +221,12 @@ int UIInput::OnKeyDown(int keyCode, bool downBefore)
 			break;
 		case KEY::UP: 
 		{
-			parent->OnKeyDown(keyCode, downBefore);
+			parent->OnKeyDown(keyCode, downBefore, graphicsState);
 			break;
 		}
 		case KEY::DOWN: 
 		{
-			parent->OnKeyDown(keyCode, downBefore);
+			parent->OnKeyDown(keyCode, downBefore, graphicsState);
 			break;
 		}
 		case KEY::LEFT:

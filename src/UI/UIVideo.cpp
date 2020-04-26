@@ -43,12 +43,12 @@ void UIVideo::OnEnterScope(){
 }
 
 /// Called once this element is no longer visible for any reason. E.g. switching game states to display another UI.
-void UIVideo::OnExitScope(){
+void UIVideo::OnExitScope(bool forced){
 	if (stream && stream->IsPlaying()){
 		stream->Pause();
 		wasPlayingWhenExitScope = true;
 	}
-	UIElement::OnExitScope();
+	UIElement::OnExitScope(forced);
 }
 
 

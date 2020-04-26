@@ -13,8 +13,8 @@
 // Utility function used by e.g. RenderOverlay.
 void GraphicsManager::RenderFullScreen(Texture * texture, float alpha)
 {
-	int width = GraphicsThreadGraphicsState->windowWidth;
-	int height = GraphicsThreadGraphicsState->windowHeight;
+	int width = GraphicsThreadGraphicsState.windowWidth;
+	int height = GraphicsThreadGraphicsState.windowHeight;
 
 	// Buffer if needed.
 	if (texture->glid == -1)
@@ -29,7 +29,7 @@ void GraphicsManager::RenderFullScreen(Texture * texture, float alpha)
 	// Reset projection matrix for this
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-//	glLoadMatrixd(GraphicsThreadGraphicsState->projectionMatrixD.getPointer());
+//	glLoadMatrixd(GraphicsThreadGraphicsState.projectionMatrixD.getPointer());
 
 	glOrtho(0, width, 0, height, 1, 10);
 	// Reset modelmatrix too
@@ -37,7 +37,7 @@ void GraphicsManager::RenderFullScreen(Texture * texture, float alpha)
 	glLoadIdentity();
 	float z = -1.01f;		
 	glTranslatef(0,0,z);
-	Matrix4d modelView = GraphicsThreadGraphicsState->viewMatrixD * GraphicsThreadGraphicsState->modelMatrixD;
+	Matrix4d modelView = GraphicsThreadGraphicsState.viewMatrixD * GraphicsThreadGraphicsState.modelMatrixD;
 //	glLoadMatrixd(modelView.getPointer());
 
 	// Disable depth-testing in-case deferred rendering is enabled D:
@@ -48,9 +48,9 @@ void GraphicsManager::RenderFullScreen(Texture * texture, float alpha)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	// Enable texturing
 	glEnable(GL_TEXTURE_2D);
-	if (GraphicsThreadGraphicsState->currentTexture != texture){
+	if (GraphicsThreadGraphicsState.currentTexture != texture){
 		glBindTexture(GL_TEXTURE_2D, texture->glid);
-		GraphicsThreadGraphicsState->currentTexture = texture;
+		GraphicsThreadGraphicsState.currentTexture = texture;
 	}
 	// Buffer it again..
 	int error = glGetError();
@@ -90,7 +90,7 @@ void GraphicsManager::RenderFullScreen(Texture * texture, float alpha)
 	}
 	glDisable(GL_TEXTURE_2D);
 	// Load projection matrix again
-	glLoadMatrixd(GraphicsThreadGraphicsState->projectionMatrixD.getPointer());
+	glLoadMatrixd(GraphicsThreadGraphicsState.projectionMatrixD.getPointer());
 
 	// Enable disabled stuffs.
 	glEnable(GL_DEPTH_TEST);	

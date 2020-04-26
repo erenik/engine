@@ -92,7 +92,7 @@ public:
 	/** For mouse-scrolling. By default calls it's parent's OnScroll. Returns true if the element did anything because of the scroll.
 		The delta corresponds to amount of "pages" it should scroll.
 	*/
-	virtual bool OnScroll(float delta);
+	virtual bool OnScroll(float delta, GraphicsState& graphicsState);
 
 	/** Suggests a neighbour which could be to the right of this element. 
 		Meant to be used for UI-navigation support. The reference element 

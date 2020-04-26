@@ -52,7 +52,7 @@ void UIRadioButtons::CreateChildren()
 		UICheckBox * button = new UICheckBox();
 		/// Set them to only accept floats?
 		button->name = name + "Input";
-		button->text = names.Size() > i ? names[i] : "NoName";
+		button->text = buttonTexts.Size() > i ? buttonTexts[i] : "ErrorNoName";
 		button->sizeRatioX = spacePerElement;
 		button->textureSource = this->textureSource;
 		/// Pre-select first one always.
@@ -69,6 +69,8 @@ void UIRadioButtons::CreateChildren()
 /// Sets the texts of the children.
 void UIRadioButtons::SetTexts(List<String> texts)
 {
+	buttonTexts = texts;
+
 	for (int i = 0; i < buttons.Size() && i < texts.Size(); ++i)
 	{
 		UICheckBox * button = buttons[i];

@@ -36,7 +36,7 @@ UIFloatInput::~UIFloatInput(){
 /** For mouse-scrolling. By default calls it's parent's OnScroll. Returns true if the element did anything because of the scroll.
 	The delta corresponds to amount of "pages" it should scroll.
 */
-bool UIFloatInput::OnScroll(float delta)
+bool UIFloatInput::OnScroll(float delta, GraphicsState& graphicsState)
 {
 	// Adjust if the input piece is being hovered over.
 	if (input->state & UIState::HOVER)
@@ -53,11 +53,11 @@ bool UIFloatInput::OnScroll(float delta)
 		return true;
 	}
 	// If not, do as regular UIElements do, probably query parents..
-	return UIElement::OnScroll(delta);
+	return UIElement::OnScroll(delta, graphicsState);
 }
 
 /// Sent by UIInput elements upon pressing Enter and thus confirming the new input, in case extra actions are warranted. (e.g. UITextureInput to update the texture provided as reference).
-void UIFloatInput::OnInputUpdated(UIInput * inputElement)
+void UIFloatInput::OnInputUpdated(UIInput * inputElement, GraphicsState & graphicsState)
 {
 	// Only logical thing should be our input calling us straight away.
 	assert(inputElement == input);

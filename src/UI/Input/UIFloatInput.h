@@ -6,6 +6,7 @@
 #define UI_FLOAT_INPUT_H
 
 #include "UI/UIElement.h"
+class GraphicsState;
 
 /// Class for 1 float inputs.
 class UIFloatInput : public UIElement {
@@ -16,10 +17,10 @@ public:
 	/** For mouse-scrolling. By default calls it's parent's OnScroll. Returns true if the element did anything because of the scroll.
 		The delta corresponds to amount of "pages" it should scroll.
 	*/
-	virtual bool OnScroll(float delta);
+	virtual bool OnScroll(float delta, GraphicsState& graphicsState);
 
 	/// Sent by UIInput elements upon pressing Enter and thus confirmign the new input, in case extra actions are warranted. (e.g. UITextureInput to update the texture provided as reference).
-	virtual void OnInputUpdated(UIInput * inputElement);
+	virtual void OnInputUpdated(UIInput * inputElement, GraphicsState& graphicsState);
 
 	/// Creates the label and input.
 	void CreateChildren();

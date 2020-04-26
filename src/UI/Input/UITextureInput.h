@@ -15,7 +15,7 @@ public:
 	virtual ~UITextureInput();
 
 	/// Sent by UIInput elements upon pressing Enter and thus confirmign the new input, in case extra actions are warranted. (e.g. UITextureInput to update the texture provided as reference).
-	virtual void OnInputUpdated(UIInput * inputElement);
+	virtual void OnInputUpdated(UIInput * inputElement, GraphicsState& graphicsState);
 
 	/** Called by OS-functions to query if the UI wants to process drag-and-drop files. If so the active element where the mouse is hovering may opt to do magic with it.
 		If no magic, or action, is taken, it will return false, at which point the game state should be called to handle general drag-and-drop files.

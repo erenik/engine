@@ -18,7 +18,7 @@ void GraphicsManager::RenderShapes(){
             --i;
             continue;
         }
-        rr->duration += GraphicsThreadGraphicsState->frameTime;
+        rr->duration += GraphicsThreadGraphicsState.frameTime;
         glColor4f(1.0f, 1.0f, 1.0f, 1 - rr->duration / rr->lifeTime);
         Vector3f start = rr->start, end = rr->start + rr->direction * 100000000.0f;
         glVertex3f(start[0], start[1], start[2]);
@@ -34,7 +34,7 @@ void GraphicsManager::RenderShapes(){
     }
 
 
-    Camera * cam = GraphicsThreadGraphicsState->camera;
+    Camera * cam = GraphicsThreadGraphicsState.camera;
     assert(cam);
     if (!cam)
         return;

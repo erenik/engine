@@ -19,7 +19,7 @@ public:
 	/// Called when this UI is made active (again).
 	virtual void OnEnterScope();
 	/// Called once this element is no longer visible for any reason. E.g. switching game states to display another UI.
-	virtual void OnExitScope();
+	virtual void OnExitScope(bool forced);
 
 	/// Tries to create the target stream.
 	bool CreateStream();

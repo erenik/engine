@@ -34,7 +34,7 @@ public:
 
 protected:
 	int numButtons;
-	List<String> names;
+	List<String> buttonTexts;
 	List<UICheckBox*> buttons;
 };
 

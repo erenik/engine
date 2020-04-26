@@ -83,7 +83,7 @@ void GraphicsMessage::Process()
 			if (pipe != NULL)
 				name = pipe->name;
 			LogGraphics("Cycling to next render pipeline: " + name, INFO);
-			GraphicsThreadGraphicsState->renderPipe = pipe;
+			GraphicsThreadGraphicsState.renderPipe = pipe;
 			break;
 		}
 		case GM_CYCLE_RENDER_PIPELINE_BACK:	
@@ -93,19 +93,19 @@ void GraphicsMessage::Process()
 			if (pipe != NULL)
 				name = pipe->name;
 			LogGraphics("Cycling to previous render pipeline: " + name, INFO);
-			GraphicsThreadGraphicsState->renderPipe = pipe;
+			GraphicsThreadGraphicsState.renderPipe = pipe;
 			break;
 		}
 		case GM_RECORD_VIDEO: 
 		{
-			GraphicsThreadGraphicsState->recording = !GraphicsThreadGraphicsState->recording; 
+			GraphicsThreadGraphicsState.recording = !GraphicsThreadGraphicsState.recording; 
 			break;
 		}
 		case GM_PRINT_SCREENSHOT:
 		{
 			AppWindow * activeWindow = ActiveWindow();
 			activeWindow->saveScreenshot = true;
-	//		GraphicsThreadGraphicsState->promptScreenshot = true;
+	//		GraphicsThreadGraphicsState.promptScreenshot = true;
 			break;
 		}
 	    case GM_RENDER_FRUSTUM: {
@@ -299,7 +299,7 @@ void GMKey::Process()
 			{
 				activeElement = inputFocusElement;
 				/// Use the result somehow to determine if other actions can be triggered, too.
-				int result = inputFocusElement->OnKeyDown(keyCode, false);
+				int result = inputFocusElement->OnKeyDown(keyCode, false, GraphicsThreadGraphicsState);
 				Graphics.QueryRender();
 			}
 		}

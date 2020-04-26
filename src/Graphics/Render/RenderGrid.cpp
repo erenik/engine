@@ -11,10 +11,10 @@ void GraphicsManager::RenderGrid(){
 		glEnable(GL_DEPTH_TEST);
 		ShadeMan.SetActiveShader(0, graphicsState);
 		glMatrixMode(GL_PROJECTION);
-		glLoadMatrixd(GraphicsThreadGraphicsState->projectionMatrixD.getPointer());
+		glLoadMatrixd(GraphicsThreadGraphicsState.projectionMatrixD.getPointer());
 		glMatrixMode(GL_MODELVIEW);
-		GraphicsThreadGraphicsState->modelMatrix.LoadIdentity(); // Don't inherit model from entities....
-		Matrix4d modelView = GraphicsThreadGraphicsState->viewMatrixD * GraphicsThreadGraphicsState->modelMatrixD;
+		GraphicsThreadGraphicsState.modelMatrix.LoadIdentity(); // Don't inherit model from entities....
+		Matrix4d modelView = GraphicsThreadGraphicsState.viewMatrixD * GraphicsThreadGraphicsState.modelMatrixD;
 		glLoadMatrixd(modelView.getPointer());
 		// Enable blending
 		glEnable(GL_BLEND);	
@@ -22,7 +22,7 @@ void GraphicsManager::RenderGrid(){
 		float z = -4;
 		glDisable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, 0);
-		GraphicsThreadGraphicsState->currentTexture = NULL;
+		GraphicsThreadGraphicsState.currentTexture = NULL;
 		// Disable lighting
 		glDisable(GL_LIGHTING);
 		error = glGetError();
@@ -41,8 +41,8 @@ void GraphicsManager::RenderGrid(){
 		glLineStipple(1, 0x0101);
 		glLineWidth(1.0f);
 		// Do grid, yo.
-		float spacing = GraphicsThreadGraphicsState->gridSpacing; // 10.0f;
-		int gridSize = GraphicsThreadGraphicsState->gridSize; // 20;
+		float spacing = GraphicsThreadGraphicsState.gridSpacing; // 10.0f;
+		int gridSize = GraphicsThreadGraphicsState.gridSize; // 20;
 		float start = -gridSize / 2 * spacing;
 		for (int i = 0; i < gridSize; ++i){
 			float x = i * spacing + start, x2 = (i+1) * spacing + start;

@@ -104,7 +104,7 @@ bool RenderPipelineManager::LoadFromPipelineConfig()
 	}*/
 
 	// Set pipeline
-	GraphicsThreadGraphicsState->renderPipe = NULL;
+	GraphicsThreadGraphicsState.renderPipe = NULL;
 	// Delete old pipelines.
 	renderPipelines.ClearAndDelete();
 
@@ -152,7 +152,7 @@ bool RenderPipelineManager::LoadFromPipelineConfig()
 		LogGraphics("No active render pipelines to use!", ERROR);
 		assert(false && "No active render pipelines to use");
 	}
-	GraphicsThreadGraphicsState->renderPipe = activePipeline;
+	GraphicsThreadGraphicsState.renderPipe = activePipeline;
 //	assert(false);
 }
 

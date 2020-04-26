@@ -33,14 +33,14 @@ void GraphicsManager::RenderSelection()
 	/// Set rainbow factor for XYZ ^w^
 	glUniform1f(glGetUniformLocation(shader->shaderProgram, "rainbowXYZFactor"), 0.0f);
 	
-	Camera * camera = GraphicsThreadGraphicsState->camera;
+	Camera * camera = GraphicsThreadGraphicsState.camera;
 
 	// Update view and projection matrix in specified shader
 	if (shader && shader->uniformProjectionMatrix != -1)
-		glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, GraphicsThreadGraphicsState->projectionMatrixF.getPointer());
+		glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, GraphicsThreadGraphicsState.projectionMatrixF.getPointer());
 	// Update view and projection matrix in specified shader
 	if (shader && shader->uniformViewMatrix != -1)
-		glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, GraphicsThreadGraphicsState->viewMatrixF.getPointer());
+		glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, GraphicsThreadGraphicsState.viewMatrixF.getPointer());
 	// Update camera in the world
 	if (shader && shader->uniformEyePosition != -1)
 		glUniform4f(shader->uniformEyePosition, camera->Position()[0], camera->Position()[1], camera->Position()[2], 1.0);
@@ -55,7 +55,7 @@ void GraphicsManager::RenderSelection()
 	glLineWidth(3.f);
 	EntitySharedPtr* activeEntity = selectionToRender->GetArray();
 	int amount = selectionToRender->Size();
-	GraphicsThreadGraphicsState->settings &= ~ENABLE_SPECIFIC_ENTITY_OPTIONS;
+	GraphicsThreadGraphicsState.settings &= ~ENABLE_SPECIFIC_ENTITY_OPTIONS;
 	// Render all entities in the selection, yo
 	for (int i = 0; i < amount; ++i){
 		activeEntity[i]->Render(graphicsState);

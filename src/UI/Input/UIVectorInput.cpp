@@ -30,7 +30,7 @@ UIVectorInput::~UIVectorInput()
 }
 
 /// Sent by UIInput elements upon pressing Enter and thus confirmign the new input, in case extra actions are warranted. (e.g. UITextureInput to update the texture provided as reference).
-void UIVectorInput::OnInputUpdated(UIInput * inputElement)
+void UIVectorInput::OnInputUpdated(UIInput * inputElement, GraphicsState& graphicsState)
 {
 	assert(this->inputs.Exists(inputElement));
 	/// Fetch vector data from the input first.
@@ -163,7 +163,7 @@ void UIVectorInput::SetValue4f(const Vector4f & vec)
 /** For mouse-scrolling. By default calls it's parent's OnScroll. Returns true if the element did anything because of the scroll.
 	The delta corresponds to amount of "pages" it should scroll.
 */
-bool UIVectorInput::OnScroll(float delta)
+bool UIVectorInput::OnScroll(float delta, GraphicsState& graphicsState)
 {
 	for (int i = 0; i < inputs.Size(); ++i)
 	{
@@ -192,12 +192,12 @@ bool UIVectorInput::OnScroll(float delta)
 				input->SetText(String(v, maxDecimals));	
 			}
 			/// Notify game state etc. of the change.
-			OnInputUpdated(input);
+			OnInputUpdated(input, graphicsState);
 			return true;
 		}
 	}
 	// If not, do as regular UIElements do, probably query parents..
-	return UIElement::OnScroll(delta);
+	return UIElement::OnScroll(delta, graphicsState);
 }
 
 /// See dataTypes below.

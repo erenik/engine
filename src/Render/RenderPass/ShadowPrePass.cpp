@@ -77,7 +77,7 @@ bool RenderPass::SetupLightPOVCamera(GraphicsState& graphicsState)
 			position2 = viewProjection * Vector4f(10,0,0,1),
 			position3 = viewProjection * Vector4f(0,10,0,1),
 			position4 = viewProjection * Vector4f(0,0,10,1);
-		GraphicsThreadGraphicsState->SetCamera(camera);
+		GraphicsThreadGraphicsState.SetCamera(camera);
 		light->shadowMapIndex = 0;
 		float elements [16] = {	0.5, 0, 0, 0,
 								0, 0.5, 0, 0,
@@ -101,7 +101,7 @@ bool RenderPass::SetupLightPOVCamera(GraphicsState& graphicsState)
 		// Take current shadow map texture we created earlier and make sure the camera is bound to it for usage later.
 		// Save matrix used to render shadows properly later on?
 //			light->inverseTransposeMatrix = ;
-		light->shadowMap = GraphicsThreadGraphicsState->activeViewport->shadowMapDepthBuffer->renderBuffers[0]->texture;
+		light->shadowMap = GraphicsThreadGraphicsState.activeViewport->shadowMapDepthBuffer->renderBuffers[0]->texture;
 		assert(light->shadowMap);
 		return true;
 	}
@@ -154,7 +154,7 @@ bool RenderPass::BindDeferredGatherFrameBuffer(GraphicsState& graphicsState)
 
 	Vector2i requestedRenderSize = viewport->size;
 	if (viewport->window == MainWindow())
-		requestedRenderSize = GraphicsThreadGraphicsState->renderResolution;
+		requestedRenderSize = GraphicsThreadGraphicsState.renderResolution;
 
 	if (!viewport->deferredGatherBuffer)
 	{
@@ -192,7 +192,7 @@ bool RenderPass::BindDeferredOutputFrameBuffer(GraphicsState& graphicsState)
 
 	Vector2i requestedRenderSize = viewport->size;
 	if (viewport->window == MainWindow())
-		requestedRenderSize = GraphicsThreadGraphicsState->renderResolution;
+		requestedRenderSize = GraphicsThreadGraphicsState.renderResolution;
 	if (!viewport->deferredOutputBuffer)
 	{
 		viewport->deferredOutputBuffer = new FrameBuffer("DeferredOutputBuffer");
@@ -227,7 +227,7 @@ bool RenderPass::BindPostProcessOutputFrameBuffer(GraphicsState& graphicsState)
 	Vector2i requestedRenderSize = viewport->size;
 	FrameBuffer * ppob = viewport->postProcessOutputBuffer;
 	if (viewport->window == MainWindow())
-		requestedRenderSize = GraphicsThreadGraphicsState->renderResolution;
+		requestedRenderSize = GraphicsThreadGraphicsState.renderResolution;
 	if (!ppob)
 	{
 		ppob = viewport->postProcessOutputBuffer = new FrameBuffer("PostProcessOutputBuffer");
