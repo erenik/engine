@@ -19,8 +19,8 @@
 /// Renders the active scene, including UI, etc.
 void GraphicsManager::RenderWindow()
 {
-	AppWindow * window = GraphicsThreadGraphicsState->activeWindow;
-	Vector2i windowSize = GraphicsThreadGraphicsState->activeWindow->WorkingArea();
+	AppWindow * window = graphicsState.activeWindow;
+	Vector2i windowSize = graphicsState.activeWindow->WorkingArea();
 	Timer timer;
 	timer.Start();
 
@@ -44,7 +44,7 @@ void GraphicsManager::RenderWindow()
 	if (window->renderViewports)
 	{
 
-		List<Viewport*> viewports = GraphicsThreadGraphicsState->activeWindow->viewports;
+		List<Viewport*> viewports = graphicsState.activeWindow->viewports;
 		// assert(viewports.Size() && "Really? No viewport to render anything?");
 		for (int i = 0; i < viewports.Size(); ++i)
 		{
@@ -56,9 +56,9 @@ void GraphicsManager::RenderWindow()
 			}
 			if (vp->camera)
 			{
-				GraphicsThreadGraphicsState->camera = vp->camera;
+				graphicsState.camera = vp->camera;
 			}
-			GraphicsThreadGraphicsState->activeViewport = vp;
+			graphicsState.activeViewport = vp;
 			RenderViewport(vp);
 			if (i < 4)
 				renderViewportFrameTime[i] = (float)viewportTimer.GetMs();

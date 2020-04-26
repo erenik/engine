@@ -29,18 +29,21 @@ void GraphicsManager::RenderWindows()
 	renderWindowStart:
 		AppWindow * window = windows[i];
 
-		/// Tester functions.
-		SetupViewProjectionGL(400, 400);
-		RenderTestTriangle();
-
 
 		// Only render visible windows?
 		if (!window->IsVisible())
 		{
 			continue;
 		}
-		framesSkipped = 0;
+
 		bool ok = window->MakeGLContextCurrent();
+
+		/// Tester functions: setting up a default projection and rendering test triangle...?
+		//SetupViewProjectionGL(400, 400);
+		//RenderTestTriangle();
+
+
+		framesSkipped = 0;
 		GraphicsThreadGraphicsState->activeWindow = window;
 		GraphicsThreadGraphicsState->windowWidth = window->WorkingArea()[0];
 		GraphicsThreadGraphicsState->windowHeight = window->WorkingArea()[1];

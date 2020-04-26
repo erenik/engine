@@ -26,7 +26,7 @@ void GraphicsManager::RenderViewport(Viewport * vp)
 //	std::cout<<"\nViewport size: "<<width<<"x"<<height;
 	
 	/// Absolute coordinates
-	GraphicsThreadGraphicsState->activeViewport->SetGLViewport();
+	graphicsState.activeViewport->SetGLViewport();
 	glEnable(GL_SCISSOR_TEST);
 	glScissor(vp->bottomLeftCorner[0], vp->bottomLeftCorner[1], vp->size[0], vp->size[1]);
 
@@ -48,18 +48,18 @@ void GraphicsManager::RenderViewport(Viewport * vp)
 	camera->SetRatioI(width, height);
 	camera->UpdateProjectionMatrix();
 	// Set active camera to current one
-	GraphicsThreadGraphicsState->camera = camera;
+	graphicsState.camera = camera;
 
 	// Copy over the matrices to float
-	GraphicsThreadGraphicsState->viewMatrixF = GraphicsThreadGraphicsState->viewMatrixD = camera->ViewMatrix4d();
-	GraphicsThreadGraphicsState->modelMatrix.LoadIdentity();
-	GraphicsThreadGraphicsState->projectionMatrixF = GraphicsThreadGraphicsState->projectionMatrixD = camera->ProjectionMatrix4d();
+	graphicsState.viewMatrixF = graphicsState.viewMatrixD = camera->ViewMatrix4d();
+	graphicsState.modelMatrix.LoadIdentity();
+	graphicsState.projectionMatrixF = graphicsState.projectionMatrixD = camera->ProjectionMatrix4d();
 
 	// Clear lists so that the render-passes are performed as requested.
-	GraphicsThreadGraphicsState->graphicEffectsToBeRendered.Clear();
-	GraphicsThreadGraphicsState->particleEffectsToBeRendered.Clear();
+	graphicsState.graphicEffectsToBeRendered.Clear();
+	graphicsState.particleEffectsToBeRendered.Clear();
 	// Add global particle systems if they are within range?
-	GraphicsThreadGraphicsState->particleEffectsToBeRendered.Add(Graphics.globalParticleSystems);
+	graphicsState.particleEffectsToBeRendered.Add(Graphics.globalParticleSystems);
 
 
 	Timer sceneTimer, alphaEntitiesTimer, effectsTimer, uiTimer;
@@ -67,13 +67,13 @@ void GraphicsManager::RenderViewport(Viewport * vp)
 
 	// Cull entities depending on the viewport and camera.
 	// TODO: Actually cull it too. 
-	GraphicsThreadGraphicsState->entities = registeredEntities;
+	graphicsState.entities = registeredEntities;
 	
 	timer.Stop();
 	FrameStats.renderPrePipeline += timer.GetMs();
 
 	/// Old pipeline configuration! Only testing with the regular entities first. 
-	RenderPipeline * renderPipeline = GraphicsThreadGraphicsState->renderPipe;
+	RenderPipeline * renderPipeline = graphicsState.renderPipe;
 	/// Test with alpha-entities and other passes later on...
 	if (renderPipeline)
 	{

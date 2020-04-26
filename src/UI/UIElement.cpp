@@ -1698,30 +1698,30 @@ void UIElement::RenderText(GraphicsState & graphicsState)
 	/// Bind correct font if applicable.
 	if (this->text.Length()){
 		if (this->font){
-			GraphicsThreadGraphicsState->currentFont = this->font;
+			graphicsState.currentFont = this->font;
 		}
 		else if (this->fontSource && !this->font){
 			this->font = Graphics.GetFont(this->fontSource);
 			if (this->font)
-				GraphicsThreadGraphicsState->currentFont = this->font;
+				graphicsState.currentFont = this->font;
 		}
 		// If still no font, use default font.
 		if (!font)
 		{
-			GraphicsThreadGraphicsState->currentFont = Graphics.GetFont(TextFont::defaultFontSource);
+			graphicsState.currentFont = Graphics.GetFont(TextFont::defaultFontSource);
 		}
 	}
 	// Render text if applicable!
 	if ((this->text.Length() || text.caretPosition > -1) 
-		&& GraphicsThreadGraphicsState->currentFont)
+		&& graphicsState.currentFont)
 	{
 	}
 	else
 		return;
 
-	TextFont * currentFont = GraphicsThreadGraphicsState->currentFont;
-	Matrix4d tmp = GraphicsThreadGraphicsState->modelMatrixD;
-	GraphicsThreadGraphicsState->modelMatrixD.Translate(this->left + textToRender.offsetX, this->top,(this->zDepth+0.05));
+	TextFont * currentFont = graphicsState.currentFont;
+	Matrix4d tmp = graphicsState.modelMatrixD;
+	graphicsState.modelMatrixD.Translate(this->left + textToRender.offsetX, this->top,(this->zDepth+0.05));
 	float pixels = sizeY * textSizeRatio; // Graphics.Height();
 
     if (currentTextSizeRatio <= 0)
@@ -1731,8 +1731,8 @@ void UIElement::RenderText(GraphicsState & graphicsState)
 
 	pixels *= currentTextSizeRatio; //this->textSizeRatio;
 //		std::cout<<"\nTextToRender size in pixels: "<<pixels;
-	GraphicsThreadGraphicsState->modelMatrixD.Scale(pixels);	//Graphics.Height()
-	GraphicsThreadGraphicsState->modelMatrixF = GraphicsThreadGraphicsState->modelMatrixD;
+	graphicsState.modelMatrixD.Scale(pixels);	//Graphics.Height()
+	graphicsState.modelMatrixF = graphicsState.modelMatrixD;
 	// If disabled, dull the color! o.o
 	if (this->IsDisabled())
 		currentFont->disabled = true;
@@ -1744,8 +1744,8 @@ void UIElement::RenderText(GraphicsState & graphicsState)
 		currentFont->hoveredOver = false;
 //	color[3] *= 0.5f;
 //		std::cout<<"\nTextToRender: "<<textToRender;
-	GraphicsThreadGraphicsState->currentFont->RenderText(this->textToRender, graphicsState);
-	GraphicsThreadGraphicsState->modelMatrixF = GraphicsThreadGraphicsState->modelMatrixD = tmp;
+	graphicsState.currentFont->RenderText(this->textToRender, graphicsState);
+	graphicsState.modelMatrixF = graphicsState.modelMatrixD = tmp;
 }
 
 void UIElement::FormatText()
