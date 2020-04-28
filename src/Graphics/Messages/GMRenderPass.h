@@ -13,7 +13,7 @@ class GMAddRenderPass : public GraphicsMessage
 {
 public:
 	GMAddRenderPass(RenderPass * rs);
-	virtual void Process();
+	virtual void Process(GraphicsState* graphicsState) override;
 private:
 	RenderPass * rs;
 };

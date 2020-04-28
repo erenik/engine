@@ -21,7 +21,7 @@ public:
 	RenderPipeline * Previous();
 
 	// Loads from render/PipelineConfig.txt, creating new pipelines and setting initial active one.
-	bool LoadFromPipelineConfig();
+	bool LoadFromPipelineConfig(GraphicsState * graphicsState);
 
 	RenderPipeline * activePipeline;
 	List<RenderPipeline*> renderPipelines;

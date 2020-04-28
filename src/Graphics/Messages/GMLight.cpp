@@ -13,11 +13,11 @@ GMClearLighting::GMClearLighting()
 : GraphicsMessage(0)
 {
 }
-void GMClearLighting::Process()
+void GMClearLighting::Process(GraphicsState* graphicsState)
 {
 	Lighting * lighting = Graphics.ActiveLighting();
 	lighting->DeleteAllLights();
-	GraphicsThreadGraphicsState.dynamicLights.ClearAndDelete();
+	graphicsState->dynamicLights.ClearAndDelete();
 }
 
 
@@ -30,7 +30,7 @@ GMAddLight::~GMAddLight()
 {
 
 }
-void GMAddLight::Process()
+void GMAddLight::Process(GraphicsState* graphicsState)
 {
 	Lighting * lighting = Graphics.ActiveLighting();
 	lighting->lights.Add(light);
@@ -48,7 +48,7 @@ GMSetAmbience::~GMSetAmbience()
 {
 
 }
-void GMSetAmbience::Process()
+void GMSetAmbience::Process(GraphicsState* graphicsState)
 {
 	Lighting * lighting = Graphics.ActiveLighting();
 	lighting->SetAmbient(value);
@@ -59,7 +59,7 @@ GMSetSkyColor::GMSetSkyColor(ConstVec3fr value)
 {
 }
 GMSetSkyColor::~GMSetSkyColor(){}
-void GMSetSkyColor::Process()
+void GMSetSkyColor::Process(GraphicsState * graphicsState)
 {
 	Lighting * lighting = Graphics.ActiveLighting();
 	lighting->skyColor = value;
@@ -97,7 +97,7 @@ GMSetLight::~GMSetLight()
 {
 
 }
-void GMSetLight::Process()
+void GMSetLight::Process(GraphicsState* graphicsState)
 {
 	if (!light)
 		return;

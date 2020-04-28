@@ -15,10 +15,10 @@ public:
 
 	/// Sent by UIInput elements upon pressing Enter and thus confirmign the new input, in case extra actions are warranted. (e.g. UITextureInput to update the texture provided as reference).
 	virtual void OnInputUpdated(UIInput * inputElement, GraphicsState& graphicsState);
-	virtual int OnKeyDown(int keyCode, bool downBefore, GraphicsState& graphicsState); // For managing old texts.
+	virtual int OnKeyDown(GraphicsState* graphicsState, int keyCode, bool downBefore); // For managing old texts.
 
 	/// Creates the label and input.
-	void CreateChildren();
+	void CreateChildren(GraphicsState* graphicsState) override;
 	/// Getter/setter for the input element.
 	String GetValue();
 	void SetValue(String value);

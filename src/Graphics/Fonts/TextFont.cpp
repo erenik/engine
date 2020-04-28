@@ -485,7 +485,7 @@ void TextFont::RenderText(Text & text, GraphicsState & graphicsState)
 	
 	OnEndRender(graphicsState);
 	/// Revert to old shader!
-	ShadeMan.SetActiveShader(oldShader, graphicsState);
+	ShadeMan.SetActiveShader(&graphicsState, oldShader);
 }
 
 
@@ -510,7 +510,7 @@ bool TextFont::PrepareForRender(GraphicsState & graphicsState)
 	if (shaderBased)
 	{
 		// Load shader.
-		shader = ShadeMan.SetActiveShader("Font", graphicsState);
+		shader = ShadeMan.SetActiveShader(&graphicsState, "Font");
 		if (!shader)
 			return false;
 		// Enable texture
@@ -549,7 +549,7 @@ bool TextFont::PrepareForRender(GraphicsState & graphicsState)
 		/// Set fill mode!
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-		ShadeMan.SetActiveShader(nullptr, graphicsState);
+		ShadeMan.SetActiveShader(&graphicsState, nullptr);
 
 		glEnable(GL_TEXTURE_2D);
 	//	glEnable(GL_LIGHTING);
@@ -609,7 +609,7 @@ void TextFont::RenderChar(uchar c, GraphicsState& graphicsState)
 		glUniform1i(shader->uniformCharacter, character);
 		glUniform2f(shader->uniformPivot, xStart, yStart); 
 		// Render it.
-		model->Render(graphicsState);
+		model->Render(&graphicsState);
 	}
 	/// Old render
 	else 

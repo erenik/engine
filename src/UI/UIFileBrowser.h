@@ -23,7 +23,7 @@ public:
 	UIFileBrowser(String title, String action, String fileFilter);
 	virtual ~UIFileBrowser();
 	/// Creates ze children!
-	void CreateChildren();
+	void CreateChildren(GraphicsState* graphicsState) override;
 	/// Clears and creates new list of directory-contents. Use false on first usage, rest should be true.
 	void LoadDirectory(bool fromRenderThread);
 	/// Call to update path, using given argument to add to the path.

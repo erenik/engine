@@ -22,7 +22,7 @@ public:
 	// When clicking/Enter pressed on keyboard.
 	virtual UIElement * Click(int mouseX, int mouseY);
 	// When button is released.
-	virtual UIElement * Activate();
+	virtual UIElement* Activate(GraphicsState* graphicsState) override;
 
 	/// Default calls parent class RemoveState. If the Active flag is removed, input is also halted/cancelled.
 	virtual void RemoveState(int state, bool recursive = false);
@@ -41,7 +41,7 @@ public:
 	/** Used by input-captuing elements. Should not be called for any base UI elements(?). 
 		Return value of significance, but not defined yet.
 	*/
-	virtual int OnKeyDown(int keyCode, bool downBefore, GraphicsState& graphicsState);
+	virtual int OnKeyDown(GraphicsState* graphicsState, int keyCode, bool downBefore);
 	/// Used for getting text. This will be local translated language key codes?
 	virtual int OnChar(int asciiCode);
 	/// Begins input! >)

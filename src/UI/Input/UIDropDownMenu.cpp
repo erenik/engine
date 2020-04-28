@@ -27,7 +27,7 @@ UIDropDownMenu::~UIDropDownMenu()
 {
 }
 
-void UIDropDownMenu::CreateChildren()
+void UIDropDownMenu::CreateChildren(GraphicsState* graphicsState)
 {
 	if (childrenCreated)
 		return;
@@ -38,7 +38,7 @@ void UIDropDownMenu::CreateChildren()
 		label->sizeRatioX = 0.4f;
 		label->sizeRatioY = 1.f;
 		label->alignmentX = 0.2f;
-		AddChild(label);
+		AddChild(nullptr, label);
 	}
 	selectButton = new UIButton("<Placeholder>");
 	selectButton->sizeRatioX = 1 - (label? label->sizeRatioX : 0);
@@ -47,7 +47,7 @@ void UIDropDownMenu::CreateChildren()
 	UIAction uac(UIAction::OPEN_DROP_DOWN_MENU, UIAction::PARENT);
 	selectButton->activationActions.AddItem(uac);
 
-	AddChild(selectButton);
+	AddChild(graphicsState, selectButton);
 //	ShipTypeToSpawn
 }
 
@@ -62,7 +62,7 @@ void UIDropDownMenu::RenderText()
 }
 
 /// Call from graphics thread only. Or set via GMSetUIContents
-void UIDropDownMenu::SetContents(List<String> contents)
+void UIDropDownMenu::SetContents(GraphicsState * graphicsState, List<String> contents)
 {
 	bool equal = false;
 	if (available.Size() == contents.Size())
@@ -80,11 +80,11 @@ void UIDropDownMenu::SetContents(List<String> contents)
 	if (equal)
 		return; // No change needed.
 	this->available = contents;
-	PopulateList();
+	PopulateList(graphicsState);
 }
 
 /// Opens UI to select among children. How this will be done depends on settings.
-void UIDropDownMenu::Open()
+void UIDropDownMenu::Open(GraphicsState* graphicsState)
 {
 	// Create list to select. Cover entire screen. Stupid initial implementation :D
 	if (!selectionList)
@@ -92,17 +92,17 @@ void UIDropDownMenu::Open()
 		selectionList = new UIList();
 		selectionList->visible = false;
 		selectionList->textureSource = "0x22FF";
-		PopulateList();
+		PopulateList(graphicsState);
 	}
 	if (!selectionList->visible)
 	{
 		selectionList->visible = true;
-		ui->Root()->AddChild(selectionList);
+		ui->Root()->AddChild(graphicsState, selectionList);
 		this->ui->PushToStack(selectionList);
 	}
 }
 
-void UIDropDownMenu::PopulateList()
+void UIDropDownMenu::PopulateList(GraphicsState* graphicsState)
 {
 	if (!selectionList)
 		return;
@@ -116,14 +116,14 @@ void UIDropDownMenu::PopulateList()
 		UIAction ac(UIAction::CLOSE_DROP_DOWN_MENU, this);
 		button->activationActions.AddItem(ac);
 		button->activationActions.AddItem(UIAction(UIAction::SELECT_DROP_DOWN_MENU, this, i));
-		selectionList->AddChild(button);
+		selectionList->AddChild(graphicsState, button);
 	}
 }
 
-void UIDropDownMenu::Close()
+void UIDropDownMenu::Close(GraphicsState* graphicsState)
 {
 	this->ui->PopFromStack(selectionList);
-	this->ui->Root()->RemoveChild(selectionList);
+	this->ui->Root()->RemoveChild(graphicsState, selectionList);
 	selectionList->visible = false;
 }
 

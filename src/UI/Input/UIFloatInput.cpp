@@ -36,7 +36,7 @@ UIFloatInput::~UIFloatInput(){
 /** For mouse-scrolling. By default calls it's parent's OnScroll. Returns true if the element did anything because of the scroll.
 	The delta corresponds to amount of "pages" it should scroll.
 */
-bool UIFloatInput::OnScroll(float delta, GraphicsState& graphicsState)
+bool UIFloatInput::OnScroll(GraphicsState* graphicsState, float delta)
 {
 	// Adjust if the input piece is being hovered over.
 	if (input->state & UIState::HOVER)
@@ -53,11 +53,11 @@ bool UIFloatInput::OnScroll(float delta, GraphicsState& graphicsState)
 		return true;
 	}
 	// If not, do as regular UIElements do, probably query parents..
-	return UIElement::OnScroll(delta, graphicsState);
+	return UIElement::OnScroll(graphicsState, delta);
 }
 
 /// Sent by UIInput elements upon pressing Enter and thus confirming the new input, in case extra actions are warranted. (e.g. UITextureInput to update the texture provided as reference).
-void UIFloatInput::OnInputUpdated(UIInput * inputElement, GraphicsState & graphicsState)
+void UIFloatInput::OnInputUpdated(GraphicsState* graphicsState, UIInput * inputElement)
 {
 	// Only logical thing should be our input calling us straight away.
 	assert(inputElement == input);
@@ -93,14 +93,14 @@ void UIFloatInput::OnInputUpdated(UIInput * inputElement, GraphicsState & graphi
 
 
 /// Creates the label and input.
-void UIFloatInput::CreateChildren()
+void UIFloatInput::CreateChildren(GraphicsState* graphicsState)
 {
 	if (childrenCreated)
 		return;
 	/// Use a column-list to automatically get links between the elements, etc.
 	UIColumnList * box = new UIColumnList();
 	box->padding = this->padding;
-	AddChild(box);
+	AddChild(nullptr, box);
 
 	int elements = 1 + 1;
 	float spaceLeft = 1.0f - padding * elements;
@@ -110,7 +110,7 @@ void UIFloatInput::CreateChildren()
 	label = new UILabel();
 	label->text = name;
 	label->sizeRatioX = spacePerElement;
-	box->AddChild(label);
+	box->AddChild(nullptr, label);
 
 	/// Create 3 children
 	input = new UIInput();
@@ -128,7 +128,7 @@ void UIFloatInput::CreateChildren()
 	input->text = "0";
 	input->sizeRatioX = spacePerElement;
 //	input->onTrigger = "UIFloatInput("+name+")";
-	box->AddChild(input);
+	box->AddChild(nullptr, input);
 	childrenCreated = true;
 }
 

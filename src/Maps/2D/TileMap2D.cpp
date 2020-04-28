@@ -147,11 +147,11 @@ void TileMap2D::Render(GraphicsState & graphicsState)
 	/// Set sprite-shader.	
 	bool old = false;
 	if (!old){
-		Shader * shader = ShadeMan.SetActiveShader("Sprite", graphicsState);
+		Shader * shader = ShadeMan.SetActiveShader(&graphicsState, "Sprite");
 		if (!shader)
 			return;
 
-		lighting.LoadIntoShader(shader);
+		lighting.LoadIntoShader(&graphicsState, shader);
 
 		glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, graphicsState.viewMatrixF.getPointer());
 		glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, graphicsState.modelMatrixF.getPointer());
@@ -208,7 +208,7 @@ void TileMap2D::Render(GraphicsState & graphicsState)
 				// Texture enabled.
 				glBindTexture(GL_TEXTURE_2D, previewTexture->glid);
 				// Render it.			
-				model->Render(graphicsState);
+				model->Render(&graphicsState);
 				/// Reset transformation matrix.
 				graphicsState.modelMatrixF = graphicsState.modelMatrixD = Matrix4d();
 
@@ -247,7 +247,7 @@ void TileMap2D::Render(GraphicsState & graphicsState)
 					glBindTexture(GL_TEXTURE_2D, tex->glid);
 				}
 				/// Set position.
-				model->Render(graphicsState);
+				model->Render(&graphicsState);
 			}
 		}
 
@@ -296,7 +296,7 @@ void TileMap2D::Render(GraphicsState & graphicsState)
 			}
 			/// Disable depth test.. should not be needed.
 			/// Render
-			model->Render(graphicsState);
+			model->Render(&graphicsState);
 		}
 		/// Render (active) entities!
 		for (int i = 0; i < entities.Size(); ++i)
@@ -348,14 +348,14 @@ void TileMap2D::Render(GraphicsState & graphicsState)
 			}
 			/// Disable depth test.. should not be needed.
 			/// Render
-			model->Render(graphicsState);
+			model->Render(&graphicsState);
 		}
 
 	}
 
 	/// Old below.
 	if (old){
-		ShadeMan.SetActiveShader(nullptr, graphicsState);
+		ShadeMan.SetActiveShader(&graphicsState, nullptr);
 		glMatrixMode(GL_PROJECTION);
 		glLoadMatrixd(graphicsState.projectionMatrixD.getPointer());
 		glMatrixMode(GL_MODELVIEW);
@@ -567,7 +567,7 @@ void TileMap2D::RenderEntities(GraphicsState & graphicsState)
 
 		float z = 0.1f;
 		//	glBlendFunc(GL_ONE, GL_ONE);
-		Shader * shader = ShadeMan.SetActiveShader("Flat", graphicsState);
+		Shader * shader = ShadeMan.SetActiveShader(&graphicsState, "Flat");
 		/// Load in matrices, yawow!
 		glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, graphicsState.projectionMatrixF.getPointer());
 		glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, graphicsState.viewMatrixF.getPointer());
@@ -586,7 +586,7 @@ void TileMap2D::RenderEntities(GraphicsState & graphicsState)
 		bool renderEntityOverlay = true;
 		if (renderEntityOverlay){
 			glBlendFunc(GL_ONE, GL_ONE);
-			ShadeMan.SetActiveShader(nullptr, graphicsState);
+			ShadeMan.SetActiveShader(&graphicsState, nullptr);
 			glColor4f(0.2f,0.2f,0.2f,0.2f);
 			glBegin(GL_QUADS);
 			glVertex3f(xPos-0.5f, yPos-0.5f, 0.1f);

@@ -11,7 +11,7 @@ class GMQueueAnimation : public GraphicsMessage
 {
 public:
 	GMQueueAnimation(String animationName, EntitySharedPtr forEntity);
-	virtual void Process();
+	virtual void Process(GraphicsState* graphicsState);
 private:
 	String animationName;
 	EntitySharedPtr entity;
@@ -21,7 +21,7 @@ class GMPlayAnimation : public GraphicsMessage
 {
 public:
 	GMPlayAnimation(String animationName, EntitySharedPtr forEntity);
-	virtual void Process();
+	virtual void Process(GraphicsState* graphicsState);
 private:
 	String animationName;
 	EntitySharedPtr entity;
@@ -32,7 +32,7 @@ class GMPlaySkeletalAnimation : public GraphicsMessage
 {
 public:
 	GMPlaySkeletalAnimation(EntitySharedPtr entity);
-	virtual void Process();
+	virtual void Process(GraphicsState* graphicsState);
 private:
 	EntitySharedPtr entity;
 };

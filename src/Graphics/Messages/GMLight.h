@@ -12,7 +12,7 @@ class GMClearLighting : public GraphicsMessage
 {
 public:
 	GMClearLighting();
-	virtual void Process();
+	virtual void Process(GraphicsState* graphicsState) override;
 };
 
 // Add a light to the lighting setup.
@@ -21,7 +21,7 @@ class GMAddLight : public GraphicsMessage
 public:
 	GMAddLight(Light * newLight);
 	virtual ~GMAddLight();
-	virtual void Process();
+	virtual void Process(GraphicsState* graphicsState) override;
 private:
 	Light * light;
 };
@@ -32,7 +32,7 @@ class GMSetAmbience : public GraphicsMessage
 public:
 	GMSetAmbience(ConstVec3fr value);
 	virtual ~GMSetAmbience();
-	virtual void Process();
+	virtual void Process(GraphicsState* graphicsState) override;
 private:
 	Vector3f value;
 };
@@ -42,7 +42,7 @@ class GMSetSkyColor : public GraphicsMessage
 public: 
 	GMSetSkyColor(ConstVec3fr value);
 	virtual ~GMSetSkyColor();
-	virtual void Process();
+	virtual void Process(GraphicsState* graphicsState) override;
 private:
 	Vector3f value;
 };
@@ -62,7 +62,7 @@ public:
 	GMSetLight(Light * light, int target, ConstVec3fr value);
 	GMSetLight(Light * light, int target, float value);
 	~GMSetLight();
-	virtual void Process();
+	virtual void Process(GraphicsState* graphicsState) override;
 private:
 	Light * light;
 	int target;

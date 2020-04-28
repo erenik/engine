@@ -90,7 +90,7 @@ Shader * ShaderManager::CreateShader(const char * name, int i_flags)
 void ShaderManager::DeleteShaders(GraphicsState & graphicsState)
 {
 	/// Unbind currently bound shader program so that it may be deallocated.
-	ShadeMan.SetActiveShader(0, graphicsState);
+	ShadeMan.SetActiveShader(&graphicsState, 0);
 	// Delete 'em.
     while(shaders.Size()){
         Shader * shader = shaders[0];
@@ -159,7 +159,7 @@ void ShaderManager::ReloadLights(Lighting * newLighting)
 
 
 /// Sets selected shader to be active. Prints out error information and does not set to new shader if it fails.
-Shader * ShaderManager::SetActiveShader(String shaderName, GraphicsState& graphicsState)
+Shader * ShaderManager::SetActiveShader(GraphicsState* graphicsState, String shaderName)
 {
 	Shader * shader = GetShader(shaderName);
 	// Try to load it if it doesn't exist.
@@ -173,11 +173,11 @@ Shader * ShaderManager::SetActiveShader(String shaderName, GraphicsState& graphi
 			return NULL;
 		}
 	}
-	return SetActiveShader(shader, graphicsState);
+	return SetActiveShader(graphicsState, shader);
 }
 
 /// Sets selected shader to be active. Prints out error information and does not set to new shader if it fails.
-Shader * ShaderManager::SetActiveShader(Shader * shader, GraphicsState & graphicsState)
+Shader * ShaderManager::SetActiveShader(GraphicsState* graphicsState, Shader * shader)
 {
 	CheckGLError("Before ShaderManager::SetActiveShader");
 

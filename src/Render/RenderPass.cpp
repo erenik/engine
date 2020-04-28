@@ -51,9 +51,9 @@ void RenderPass::RenderQuad(GraphicsState & graphicsState)
 //	glViewport(0, 0, windowWorkingArea[0], windowWorkingArea[1]);
 
 	/// Reset projection matrix.
-//	GraphicsThreadGraphicsState.projectionMatrixF = ();
-//	shader->SetProjectionMatrix(GraphicsThreadGraphicsState.projectionMatrixF);
-//	shader->SetViewMatrix(GraphicsThreadGraphicsState.projectionMatrixF);
+//	graphicsState.projectionMatrixF = ();
+//	shader->SetProjectionMatrix(graphicsState.projectionMatrixF);
+//	shader->SetViewMatrix(graphicsState.projectionMatrixF);
 	Matrix4f proj = Matrix4f();
 	proj.LoadIdentity();
 	proj.InitOrthoProjectionMatrix(-1,1,-1,1, 0.10f, 10.f);
@@ -103,14 +103,14 @@ void RenderPass::RenderQuad(GraphicsState & graphicsState)
 	glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, projection.getPointer());
     PrintGLError("GLError in RenderUI uploading projectionMatrix");
 
-	GraphicsThreadGraphicsState.projectionMatrixF = GraphicsThreadGraphicsState.projectionMatrixD = projection;
-	GraphicsThreadGraphicsState.viewMatrixF = GraphicsThreadGraphicsState.viewMatrixD.LoadIdentity();
-	GraphicsThreadGraphicsState.modelMatrixF.LoadIdentity();
+	graphicsState.projectionMatrixF = graphicsState.projectionMatrixD = projection;
+	graphicsState.viewMatrixF = graphicsState.viewMatrixD.LoadIdentity();
+	graphicsState.modelMatrixF.LoadIdentity();
 	*/
 
 	Matrix4f mvp = model * view * proj;
 	Vector3f projectedPoint = mvp.Product(Vector4f(renderedPoint, 1));
-	Vector3f projP2 = (GraphicsThreadGraphicsState.modelMatrix * GraphicsThreadGraphicsState.viewMatrixF * GraphicsThreadGraphicsState.projectionMatrixF).Product(renderedPoint);
+	Vector3f projP2 = (graphicsState.modelMatrix * graphicsState.viewMatrixF * graphicsState.projectionMatrixF).Product(renderedPoint);
 //	std::cout<<"\nProjected point: "<<projectedPoint<<" vs "<<projP2;
 	// Allocate o-o
 	static Square * deferredRenderingBox = 0;
@@ -123,7 +123,7 @@ void RenderPass::RenderQuad(GraphicsState & graphicsState)
 	}
 	
 	deferredRenderingBox->name = "DeferredLighting";
-	deferredRenderingBox->Render(graphicsState);
+	deferredRenderingBox->Render(&graphicsState);
 }
 
 // Renders this pass. Returns false if some error occured, usually mid-way and aborting the rest of the procedure.
@@ -134,7 +134,7 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 	// Set shader to use in this render-pass.
 	if (!shader || (shader->name != shaderName))
 	{
-		shader = ShadeMan.SetActiveShader(shaderName, graphicsState);
+		shader = ShadeMan.SetActiveShader(&graphicsState, shaderName);
 		if (!shader)
 		{
 			std::cout<<"\nSkipping render pass. Failed to grab specified shader: "<<shaderName;
@@ -142,7 +142,7 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 		}
 	}
 	else {
-		ShadeMan.SetActiveShader(shader, graphicsState);
+		ShadeMan.SetActiveShader(&graphicsState, shader);
 	}
 	// Return if we couldn't even set the shader..
     if (shader == NULL)
@@ -305,14 +305,14 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 	if (graphicsState.settings & USE_LEGACY_GL){
 		// Set default shader program
 		shader = NULL;
-		ShadeMan.SetActiveShader(nullptr, graphicsState);
+		ShadeMan.SetActiveShader(&graphicsState, nullptr);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
 	
 	if (shader)
 	{
 		/// Load lighting settings to shader ^^
-		graphicsState.lighting.LoadIntoShader(shader);
+		graphicsState.lighting.LoadIntoShader(&graphicsState, shader);
 	}
 	
 	// Set primary color
@@ -431,7 +431,7 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 			for (int i = 0; i < graphicsState.particleEffectsToBeRendered.Size(); ++i)
 			{
 				ParticleSystem * ps = graphicsState.particleEffectsToBeRendered[i];
-				ps->Render(graphicsState);
+				ps->Render(&graphicsState);
 			}
 			break;
 		}
@@ -709,7 +709,7 @@ void RenderPass::RenderEntities(GraphicsState & graphicsState)
 		glUniformMatrix4fv(shader->uniformNormalMatrix, 1, false, entity->normalMatrix.getPointer());
 
 		// Render the model
-		entity->model->Render(graphicsState);
+		entity->model->Render(&graphicsState);
 		++graphicsState.renderedObjects;		// increment rendered objects for debug info
 	}
 	if (instancingEnabled)
@@ -718,7 +718,7 @@ void RenderPass::RenderEntities(GraphicsState & graphicsState)
 		for (int i = 0; i < entityGroupsToRender.Size(); ++i)
 		{
 			RenderInstancingGroup * group = entityGroupsToRender[i];
-			group->Render(graphicsState);
+			group->Render(&graphicsState);
 		}
 	}
 	timer.Stop();
@@ -810,8 +810,8 @@ void RenderPass::RenderAlphaEntities(GraphicsState & graphicsState)
 		glUniform4fv(shader->uniformPrimaryColorVec4, 1, gp->color.v);
 
 		// Render the model
-		entity->model->Render(graphicsState);
-		++GraphicsThreadGraphicsState.renderedObjects;		// increment rendered objects for debug info
+		entity->model->Render(&graphicsState);
+		++graphicsState.renderedObjects;		// increment rendered objects for debug info
 	}
 	timer.Stop();
 	FrameStats.renderEntities += timer.GetMs();

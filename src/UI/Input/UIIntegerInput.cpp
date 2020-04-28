@@ -36,12 +36,12 @@ UIIntegerInput::~UIIntegerInput()
 /** For mouse-scrolling. By default calls it's parent's OnScroll. Returns true if the element did anything because of the scroll.
 	The delta corresponds to amount of "pages" it should scroll.
 */
-bool UIIntegerInput::OnScroll(float delta, GraphicsState& graphicsState)
+bool UIIntegerInput::OnScroll(GraphicsState* graphicsState, float delta)
 {
 	if (guiInputDisabled)
 	{
 		/// Go to parent as usual.
-		return UIElement::OnScroll(delta, graphicsState);
+		return UIElement::OnScroll(graphicsState, delta);
 	}
 	// Adjust if the input piece is being hovered over.
 	if (input->state & UIState::HOVER)
@@ -58,13 +58,13 @@ bool UIIntegerInput::OnScroll(float delta, GraphicsState& graphicsState)
 		return true;
 	}
 	// If not, do as regular UIElements do, probably query parents..
-	return UIElement::OnScroll(delta, graphicsState);
+	return UIElement::OnScroll(graphicsState, delta);
 }
 
 /** Used by input-capturing elements. Calls recursively upward until an element wants to respond to the input.
 	Returns 1 if it processed anything, 0 if not.
 */
-int UIIntegerInput::OnKeyDown(int keyCode, bool downBefore, GraphicsState& graphicsState)
+int UIIntegerInput::OnKeyDown(GraphicsState* graphicsState, int keyCode, bool downBefore)
 {
 	int v = GetValue();
 	switch(keyCode)
@@ -78,12 +78,12 @@ int UIIntegerInput::OnKeyDown(int keyCode, bool downBefore, GraphicsState& graph
 			SetValue(v);
 			return 1;
 	}
-	UIElement::OnKeyDown(keyCode, downBefore, graphicsState);
+	UIElement::OnKeyDown(graphicsState, keyCode, downBefore);
 	return 0;
 }	
 
 /// Sent by UIInput elements upon pressing Enter and thus confirmign the new input, in case extra actions are warranted. (e.g. UITextureInput to update the texture provided as reference).
-void UIIntegerInput::OnInputUpdated(UIInput * inputElement, GraphicsState & graphicsState)
+void UIIntegerInput::OnInputUpdated(GraphicsState* graphicsState, UIInput * inputElement)
 {
 	assert(inputElement == input);
 	/// If we accept expressions, parse and evaluate it?
@@ -114,14 +114,14 @@ void UIIntegerInput::OnInputUpdated(UIInput * inputElement, GraphicsState & grap
 
 
 /// Creates the label and input.
-void UIIntegerInput::CreateChildren()
+void UIIntegerInput::CreateChildren(GraphicsState* graphicsState)
 {
 	if (childrenCreated)
 		return;
 	/// Use a column-list to automatically get links between the elements, etc.
 	UIColumnList * box = new UIColumnList();
 	box->padding = this->padding;
-	AddChild(box);
+	AddChild(nullptr, box);
 
 	int elements = 1 + 1;
 	float spaceLeft = 1.0f - padding * elements;
@@ -131,7 +131,7 @@ void UIIntegerInput::CreateChildren()
 	label = new UILabel();
 	label->text = name;
 	label->sizeRatioX = spacePerElement;
-	box->AddChild(label);
+	box->AddChild(nullptr, label);
 
 	/// Create 3 children
 	input = new UIInput();
@@ -153,7 +153,7 @@ void UIIntegerInput::CreateChildren()
 		input->highlightOnHover = false;
 	}
 //	input->onTrigger = "UIIntegerInput("+name+")";
-	box->AddChild(input);
+	box->AddChild(nullptr, input);
 	childrenCreated = true;
 }
 

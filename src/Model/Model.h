@@ -26,7 +26,7 @@ public:
 
 	void BufferizeIfNeeded();
 	/// Calls render on the triangulized mesh parts within.
-	void Render(GraphicsState& graphicsState);
+	void Render(GraphicsState* graphicsState);
 
 	void SetName(String name);
 	String Name(){ return name; };

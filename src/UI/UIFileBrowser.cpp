@@ -56,7 +56,7 @@ UIFileBrowser::~UIFileBrowser()
 }
 
 /// Creates ze children!
-void UIFileBrowser::CreateChildren()
+void UIFileBrowser::CreateChildren(GraphicsState* graphicsState)
 {
 	if (childrenCreated)
 		return;
@@ -67,7 +67,7 @@ void UIFileBrowser::CreateChildren()
 	UILabel * label = new UILabel();
 	label->text = title;
 	label->sizeRatioY = 0.1f;
-	AddChild(label);
+	AddChild(nullptr, label);
 
 	// Create path/dir input
 	dirInput = new UIInput();
@@ -75,36 +75,36 @@ void UIFileBrowser::CreateChildren()
 	dirInput->onTrigger = "SetFileBrowserDirectory("+this->name+",this)";
 	dirInput->sizeRatioY = 0.1f;
 	dirInput->text = currentPath;
-	AddChild(dirInput);
+	AddChild(nullptr, dirInput);
 	// Create file-list
 	dirList = new UIList();
 	dirList->sizeRatioY = 0.6f;
 	dirList->name = this->name+"DirList";
-	AddChild(dirList);
+	AddChild(nullptr, dirList);
 	
 	// Create file-name input
 	fileInput = new UIInput();
 	fileInput->name = this->name+"FileInput";
 	fileInput->sizeRatioY = 0.1f;
 	fileInput->onTrigger = "SetFileBrowserFile("+this->name+",this)";
-	AddChild(fileInput);
+	AddChild(nullptr, fileInput);
 
 	// Create OK/Cancel buttons
 	UIColumnList * cList = new UIColumnList();
 	cList->sizeRatioY = 0.1f;
-	AddChild(cList);
+	AddChild(nullptr, cList);
 	
 	UIButton * cancelButton = new UIButton();
 	cancelButton->name = cancelButton->text = "Cancel";
 	cancelButton->sizeRatioX = 0.4f;
 	cancelButton->activationMessage = "PopUI("+this->name+")";
-	cList->AddChild(cancelButton);
+	cList->AddChild(nullptr, cancelButton);
 
 	UIButton * okButton = new UIButton();
 	okButton->name = okButton->text = "OK";
 	okButton->sizeRatioX = 0.4f;
 	okButton->activationMessage = "EvaluateFileBrowserSelection("+this->name+")&PopUI("+this->name+")";
-	cList->AddChild(okButton);
+	cList->AddChild(nullptr, okButton);
 	
 	/// Bind neighbours for proper ui navigation...
 	/*
@@ -144,7 +144,7 @@ void UIFileBrowser::LoadDirectory(bool fromRenderThread)
 #define MID	0.7f
 		dirButton->text.color = Color(Vector3f(LOW,MID,2.0f));
 		dirButton->activationMessage = "UpdateFileBrowserDirectory("+this->name+","+dirs[i]+")";
-		dirList->AddChild(dirButton);
+		dirList->AddChild(nullptr, dirButton);
 		// Save first directory so we may hover to it.
 		if (i == 0)
 			firstDir = dirButton;
@@ -161,7 +161,7 @@ void UIFileBrowser::LoadDirectory(bool fromRenderThread)
 		fileButton->text = files[i];
 		fileButton->text.color = Color(Vector3f(LOW,2.0f,LOW));
 		fileButton->activationMessage = "SetFileBrowserFile("+this->name+","+files[i]+")";
-		dirList->AddChild(fileButton);
+		dirList->AddChild(nullptr, fileButton);
 	}
 	// Hover to the element at once!
 	firstDir->AddState(UIState::HOVER);
@@ -252,7 +252,7 @@ void UIFileBrowser::Render(GraphicsState & graphicsState)
 {
 	// Create children first if not done so already!!
 	if (!childrenCreated)
-		CreateChildren();
+		CreateChildren(&graphicsState);
 	// Load directory if not done so already.
 	if (!directoryLoaded)
 		LoadDirectory(true);

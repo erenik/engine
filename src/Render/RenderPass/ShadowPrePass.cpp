@@ -77,7 +77,7 @@ bool RenderPass::SetupLightPOVCamera(GraphicsState& graphicsState)
 			position2 = viewProjection * Vector4f(10,0,0,1),
 			position3 = viewProjection * Vector4f(0,10,0,1),
 			position4 = viewProjection * Vector4f(0,0,10,1);
-		GraphicsThreadGraphicsState.SetCamera(camera);
+		graphicsState.SetCamera(camera);
 		light->shadowMapIndex = 0;
 		float elements [16] = {	0.5, 0, 0, 0,
 								0, 0.5, 0, 0,
@@ -101,7 +101,7 @@ bool RenderPass::SetupLightPOVCamera(GraphicsState& graphicsState)
 		// Take current shadow map texture we created earlier and make sure the camera is bound to it for usage later.
 		// Save matrix used to render shadows properly later on?
 //			light->inverseTransposeMatrix = ;
-		light->shadowMap = GraphicsThreadGraphicsState.activeViewport->shadowMapDepthBuffer->renderBuffers[0]->texture;
+		light->shadowMap = graphicsState.activeViewport->shadowMapDepthBuffer->renderBuffers[0]->texture;
 		assert(light->shadowMap);
 		return true;
 	}
@@ -154,7 +154,7 @@ bool RenderPass::BindDeferredGatherFrameBuffer(GraphicsState& graphicsState)
 
 	Vector2i requestedRenderSize = viewport->size;
 	if (viewport->window == MainWindow())
-		requestedRenderSize = GraphicsThreadGraphicsState.renderResolution;
+		requestedRenderSize = graphicsState.renderResolution;
 
 	if (!viewport->deferredGatherBuffer)
 	{
@@ -192,7 +192,7 @@ bool RenderPass::BindDeferredOutputFrameBuffer(GraphicsState& graphicsState)
 
 	Vector2i requestedRenderSize = viewport->size;
 	if (viewport->window == MainWindow())
-		requestedRenderSize = GraphicsThreadGraphicsState.renderResolution;
+		requestedRenderSize = graphicsState.renderResolution;
 	if (!viewport->deferredOutputBuffer)
 	{
 		viewport->deferredOutputBuffer = new FrameBuffer("DeferredOutputBuffer");
@@ -227,7 +227,7 @@ bool RenderPass::BindPostProcessOutputFrameBuffer(GraphicsState& graphicsState)
 	Vector2i requestedRenderSize = viewport->size;
 	FrameBuffer * ppob = viewport->postProcessOutputBuffer;
 	if (viewport->window == MainWindow())
-		requestedRenderSize = GraphicsThreadGraphicsState.renderResolution;
+		requestedRenderSize = graphicsState.renderResolution;
 	if (!ppob)
 	{
 		ppob = viewport->postProcessOutputBuffer = new FrameBuffer("PostProcessOutputBuffer");
@@ -433,7 +433,7 @@ void RenderPass::RenderEntitiesOnlyVertices(GraphicsState& graphicsState)
 		// Just load transform as model matrix straight away.
 		glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, entity->transformationMatrix.getPointer());	
 		// Render the model
-		entity->model->Render(graphicsState);
+		entity->model->Render(&graphicsState);
 		++graphicsState.renderedObjects;		// increment rendered objects for debug info
 	}
 	if (instancingEnabled)
@@ -442,7 +442,7 @@ void RenderPass::RenderEntitiesOnlyVertices(GraphicsState& graphicsState)
 		for (int i = 0; i < entityGroupsToRender.Size(); ++i)
 		{
 			RenderInstancingGroup * group = entityGroupsToRender[i];
-			group->Render(graphicsState);
+			group->Render(&graphicsState);
 		}
 	}
 	timer.Stop();

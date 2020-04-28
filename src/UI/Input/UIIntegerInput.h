@@ -17,17 +17,17 @@ public:
 	/** For mouse-scrolling. By default calls it's parent's OnScroll. Returns true if the element did anything because of the scroll.
 		The delta corresponds to amount of "pages" it should scroll.
 	*/
-	virtual bool OnScroll(float delta, GraphicsState& graphicsState);
+	virtual bool OnScroll(GraphicsState* graphicsState, float delta);
 	/** Used by input-capturing elements. Calls recursively upward until an element wants to respond to the input.
 		Returns 1 if it processed anything, 0 if not.
 	*/
-	virtual int OnKeyDown(int keyCode, bool downBefore, GraphicsState& graphicsState);
+	virtual int OnKeyDown(GraphicsState* graphicsState, int keyCode, bool downBefore);
 	
 	/// Sent by UIInput elements upon pressing Enter and thus confirmign the new input, in case extra actions are warranted. (e.g. UITextureInput to update the texture provided as reference). Called from render thread.
-	virtual void OnInputUpdated(UIInput * inputElement, GraphicsState& graphicsState);
+	virtual void OnInputUpdated(GraphicsState* graphicsState, UIInput * inputElement);
 
 	/// Creates the label and input.
-	void CreateChildren();
+	void CreateChildren(GraphicsState* graphicsState = nullptr) override;
 	/// Getter/setter for the input element.
 	int GetValue();
 	void SetValue(int value);

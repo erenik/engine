@@ -16,7 +16,7 @@ class GMAttachParticleSystem : public GraphicsMessage
 {
 public:
 	GMAttachParticleSystem(EntitySharedPtr entity, ParticleSystem * pa);
-	virtual void Process();
+	virtual void Process(GraphicsState* graphicsState) override;
 private:
 	EntitySharedPtr entity;
 	ParticleSystem * pa;
@@ -29,7 +29,7 @@ class GMRegisterParticleSystem : public GraphicsMessage
 {
 public:
 	GMRegisterParticleSystem(ParticleSystem * ps, bool global = true);
-	virtual void Process();
+	virtual void Process(GraphicsState* graphicsState) override;
 private:
 	ParticleSystem * ps;
 	bool global;
@@ -39,7 +39,7 @@ class GMUnregisterParticleSystem : public GraphicsMessage
 {
 public:
 	GMUnregisterParticleSystem(ParticleSystem * ps, bool deleteOnUnregister);
-	virtual void Process();
+	virtual void Process(GraphicsState* graphicsState) override;
 private:
 	ParticleSystem * ps;
 	bool deleteOnUnregister;
@@ -50,7 +50,7 @@ class GMAttachParticleEmitter : public GraphicsMessage
 {
 public:
 	GMAttachParticleEmitter(ParticleEmitter * pe, ParticleSystem * ps);
-	virtual void Process();
+	virtual void Process(GraphicsState* graphicsState) override; 
 private:
 	ParticleSystem * ps;
 	ParticleEmitter * pe;
@@ -61,7 +61,7 @@ class GMDetachParticleEmitter : public GraphicsMessage
 public:
 	GMDetachParticleEmitter(ParticleEmitter * pe);
 	GMDetachParticleEmitter(ParticleEmitter * pe, ParticleSystem * ps);
-	virtual void Process();
+	virtual void Process(GraphicsState* graphicsState) override;
 private:
 	ParticleSystem * ps;
 	ParticleEmitter * pe;
@@ -71,7 +71,7 @@ class GMClearParticles : public GraphicsMessage
 {
 public:
 	GMClearParticles(ParticleSystem * inSystem);
-	virtual void Process();
+	virtual void Process(GraphicsState* graphicsState) override;
 private:
 	ParticleSystem * ps;
 };
@@ -80,7 +80,7 @@ class GMPauseEmission : public GraphicsMessage
 {
 public:
 	GMPauseEmission(EntitySharedPtr entity);
-	virtual void Process();
+	virtual void Process(GraphicsState* graphicsState) override;
 private:
 	EntitySharedPtr entity;
 };
@@ -88,7 +88,7 @@ class GMResumeEmission : public GraphicsMessage
 {
 public:
 	GMResumeEmission(EntitySharedPtr entity);
-	virtual void Process();
+	virtual void Process(GraphicsState* graphicsState) override;
 private:
 	EntitySharedPtr entity;
 };
@@ -102,7 +102,7 @@ public:
 	GMSetParticleEmitter(ParticleSystem * ps, List<ParticleEmitter*> newEmitters);
 	GMSetParticleEmitter(ParticleEmitter * emitter, int target, const Vector3f & vec3fValue);
 	GMSetParticleEmitter(ParticleEmitter * emitter, int target, EntitySharedPtr vec3fValue);
-	virtual void Process();
+	virtual void Process(GraphicsState* graphicsState) override;
 private:
 	ParticleSystem * ps;
 	enum {
@@ -128,7 +128,7 @@ public:
 	GMSetParticleSystem(ParticleSystem * ps, int target, bool bValue);
 	GMSetParticleSystem(ParticleSystem * ps, int target, String sValue);
 	GMSetParticleSystem(ParticleSystem * ps, int target, Model * model);
-	virtual void Process();
+	virtual void Process(GraphicsState* graphicsState) override;
 private:
 	ParticleSystem * ps;
 	Model * model;
@@ -145,7 +145,7 @@ private:
 class GMGenerateParticles : public GraphicsMessage {
 public:
 	GMGenerateParticles(String particleTypeName, void * extraData);
-	void Process();
+	virtual void Process(GraphicsState* graphicsState) override;
 private:
 	String name;
 	void * data;

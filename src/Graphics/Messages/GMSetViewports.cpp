@@ -30,7 +30,7 @@ GMSetViewports::GMSetViewports(List<Viewport*> i_viewports, AppWindow * inWindow
 GMSetViewports::~GMSetViewports(){
 }
 
-void GMSetViewports::Process()
+void GMSetViewports::Process(GraphicsState* graphicsState)
 {
 	// Unbuffer old viewports as needed.
 	for (int i = 0; i < window->viewports.Size(); ++i)

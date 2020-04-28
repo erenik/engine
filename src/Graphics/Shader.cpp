@@ -458,7 +458,7 @@ void Shader::PrintUniforms()
 }
 
 /// Enables the respective vertex attribute pointers.
-void Shader::OnMadeActive(GraphicsState & graphicsState)
+void Shader::OnMadeActive(GraphicsState * graphicsState)
 {
 	CheckGLError("Before Shader::OnMadeActive");
 	for (int i = 0; i < attributes.Size(); ++i)
@@ -470,7 +470,7 @@ void Shader::OnMadeActive(GraphicsState & graphicsState)
 	}
 	CheckGLError("Shader::OnMadeActive -enabling vertex attrib arrays");
 	SetTextureLocations();
-	graphicsState.lighting.LoadIntoShader(this);
+	graphicsState->lighting.LoadIntoShader(graphicsState, this);
 }
 /// Disables the respective vertex attribute pointers.
 void Shader::OnMadeInactive()

@@ -260,7 +260,10 @@ int main(int argc, char **argv)
 #ifdef CONSOLE_ENABLED
 	// Allocate debug console
 	AllocConsole();
+	freopen("CONOUT$", "w", stdout);
+	std::cout << "This works" << std::endl;
 
+	/* // Unnecessary?
 	// redirect unbuffered STDOUT to the console
 	long lStdHandle = (long) GetStdHandle(STD_OUTPUT_HANDLE);
 	int hConHandle = _open_osfhandle(lStdHandle, _O_TEXT);
@@ -285,6 +288,7 @@ int main(int argc, char **argv)
 	// make cout, wcout, cin, wcin, wcerr, cerr, wclog and clog
 	// point to console as well
 	std::ios::sync_with_stdio();
+	*/
 #endif // CONSOLE_ENABLED
 #endif // WINDOWS
 

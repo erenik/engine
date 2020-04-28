@@ -7,7 +7,7 @@
 #include "Window/AppWindowManager.h"
 #include "Viewport.h"
 
-void GMTrack::Process()
+void GMTrack::Process(GraphicsState* graphicsState)
 {
 	Graphics.ActiveCamera()->entityToTrack = entity;
 };
@@ -17,7 +17,7 @@ GMDeleteCamera::GMDeleteCamera(Camera * camera)
 {
 }
 
-void GMDeleteCamera::Process()
+void GMDeleteCamera::Process(GraphicsState* graphicsState)
 {
 	CameraMan.DeleteCamera(camera);
 }
@@ -112,7 +112,7 @@ GMSetCamera::GMSetCamera(Camera * camera, int target, EntitySharedPtr entity)
 	}
 }
 
-void GMSetCamera::Process()
+void GMSetCamera::Process(GraphicsState* graphicsState)
 {
 
 	// For setting camera attributes

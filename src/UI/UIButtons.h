@@ -17,7 +17,7 @@ class UICheckBox : public UIElement {
 public:
 	UICheckBox(String name = "");
 	virtual ~UICheckBox();
-	virtual UIElement* Activate();
+	virtual UIElement* Activate(GraphicsState* graphicsState) override;
 private:
 };
 

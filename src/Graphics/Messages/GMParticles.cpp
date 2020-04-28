@@ -18,7 +18,7 @@ GMAttachParticleSystem::GMAttachParticleSystem(EntitySharedPtr entity, ParticleS
 	: GraphicsMessage(GM_ATTACH_PARTICLE_SYSTEM), entity(entity), pa(pa)
 {
 }
-void GMAttachParticleSystem::Process()
+void GMAttachParticleSystem::Process(GraphicsState* graphicsState)
 {
 	ADD_GRAPHICS_PROPERTY_IF_NEEDED(entity);
 	// Add it.
@@ -29,7 +29,7 @@ GMRegisterParticleSystem::GMRegisterParticleSystem(ParticleSystem * ps, bool glo
 : GraphicsMessage(GM_REGISTER_PARTICLE_SYSTEM), ps(ps), global(global)
 {
 }
-void GMRegisterParticleSystem::Process()
+void GMRegisterParticleSystem::Process(GraphicsState* graphicsState)
 {
 	GraphicsMan.RegisterParticleSystem(ps, global);
 }
@@ -38,7 +38,7 @@ GMUnregisterParticleSystem::GMUnregisterParticleSystem(ParticleSystem * ps, bool
 	: GraphicsMessage(GM_UNREGISTER_PARTICLE_SYSETM), ps(ps), deleteOnUnregister(deleteOnUnregister)
 {
 }
-void GMUnregisterParticleSystem::Process()
+void GMUnregisterParticleSystem::Process(GraphicsState* graphicsState)
 {
 	GraphicsMan.UnregisterParticleSystem(ps);
 	if (ps && deleteOnUnregister)
@@ -50,7 +50,7 @@ GMAttachParticleEmitter::GMAttachParticleEmitter(ParticleEmitter * pe, ParticleS
 {
 
 }
-void GMAttachParticleEmitter::Process()
+void GMAttachParticleEmitter::Process(GraphicsState* graphicsState)
 {
 	// Return if already attached?
 	if (ps->emitters.Exists(pe))
@@ -67,7 +67,7 @@ GMDetachParticleEmitter::GMDetachParticleEmitter(ParticleEmitter * pe, ParticleS
 	: GraphicsMessage(GM_ATTACH_PARTICLE_EMITTER), pe(pe), ps(ps)
 {
 }
-void GMDetachParticleEmitter::Process()
+void GMDetachParticleEmitter::Process(GraphicsState* graphicsState)
 {
 	if (ps)
 	{
@@ -90,7 +90,7 @@ GMClearParticles::GMClearParticles(ParticleSystem * inSystem)
 	: GraphicsMessage(GM_CLEAR_PARTICLES), ps(inSystem)
 {
 }
-void GMClearParticles::Process()
+void GMClearParticles::Process(GraphicsState* graphicsState)
 {
 	ps->ClearParticles();
 }
@@ -102,7 +102,7 @@ GMPauseEmission::GMPauseEmission(EntitySharedPtr entity)
 {
 	assert(entity);
 }
-void GMPauseEmission::Process()
+void GMPauseEmission::Process(GraphicsState* graphicsState)
 {
 	if (!entity->graphics)
 		return;
@@ -118,7 +118,7 @@ GMResumeEmission::GMResumeEmission(EntitySharedPtr entity)
 {
 }
 
-void GMResumeEmission::Process()
+void GMResumeEmission::Process(GraphicsState* graphicsState)
 {
 	if (!entity->graphics)
 		return;
@@ -167,7 +167,7 @@ GMSetParticleEmitter::GMSetParticleEmitter(ParticleEmitter * emitter, int target
 	}
 }
 	
-void GMSetParticleEmitter::Process()
+void GMSetParticleEmitter::Process(GraphicsState* graphicsState)
 {
 	switch(target)
 	{
@@ -282,7 +282,7 @@ GMSetParticleSystem::GMSetParticleSystem(ParticleSystem * ps, int target, Model 
 
 
 
-void GMSetParticleSystem::Process()
+void GMSetParticleSystem::Process(GraphicsState* graphicsState)
 {
 	switch(target)
 	{
@@ -345,7 +345,7 @@ GMGenerateParticles::GMGenerateParticles(String particleTypeName, void * extraDa
 : GraphicsMessage(GM_GENERATE_PARTICLES), name(particleTypeName), data(extraData){
 }
 
-void GMGenerateParticles::Process(){
+void GMGenerateParticles::Process(GraphicsState* graphicsState){
 	name.SetComparisonMode(String::NOT_CASE_SENSITIVE);
 	if (name == "CollisionSparks"){
 	//	assert(false && "Do stuff!");

@@ -16,8 +16,10 @@ public:
 	virtual ~UIColumnList();
 	/// Deletes all children and content inside.
 	void Clear();
-	// Adjusts hierarchy besides the regular addition
-	virtual bool AddChild(UIElement* child); // Sets child pointer to child UI element, NULL if non
+	/** Adds a child/children
+		If called with graphicsState non-NULL, it is from the render thread, and updates to the UI may be made.
+	*/
+	virtual bool AddChild(GraphicsState* graphicsState, UIElement* child); // Sets child pointer to child UI element, NULL if non
 
 	/** Suggests a neighbour which could be to the right of this element. 
 		Meant to be used for UI-navigation support. The reference element 

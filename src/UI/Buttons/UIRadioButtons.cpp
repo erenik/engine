@@ -22,7 +22,7 @@ UIRadioButtons::~UIRadioButtons()
 
 
 /// Creates the actual buttons.
-void UIRadioButtons::CreateChildren()
+void UIRadioButtons::CreateChildren(GraphicsState* graphicsState)
 {
 	if (childrenCreated)
 		return;
@@ -44,7 +44,7 @@ void UIRadioButtons::CreateChildren()
 		UILabel * label = new UILabel(text);
 		label->sizeRatioX = labelSize;
 		label->text = displayText;
-		AddChild(label);
+		AddChild(nullptr, label);
 	}
 	for (int i = 0; i < numButtons; ++i)
 	{
@@ -59,7 +59,7 @@ void UIRadioButtons::CreateChildren()
 		if (i == 0)
 			button->toggled = true;
 	//	input->onTrigger = "UIFloatInput("+name+")";
-		AddChild(button);
+		AddChild(nullptr, button);
 		buttons.Add(button);
 	}
 	childrenCreated = true;
@@ -114,8 +114,11 @@ void UIRadioButtons::OnToggled(UICheckBox * box)
 }
 
 /// Toggles appropriately.
-void UIRadioButtons::SetValue(int v)
+void UIRadioButtons::SetValue(GraphicsState* graphicsState, int v)
 {
+	if (buttons.Size() == 0) // JIT creation?
+		CreateChildren(graphicsState);
+
 	if (v >= buttons.Size() || v < 0)
 	{
 		assert(false);

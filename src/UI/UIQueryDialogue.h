@@ -15,7 +15,7 @@ public:
 	UIQueryDialogue(String queryHeader, String actionToBeTakenIfProceeding, String actionToBeTakenIfDeclining = "");
 	virtual ~UIQueryDialogue();
 	/// Creates the relevant children. Separate function in order to not have everything allocated in the constructor.
-	void CreateChildren();
+	void CreateChildren(GraphicsState* graphicsState) override;
 	UIElement * OKButton() { return okButton; };
 	UIElement * CancelButton() { return cancelButton; };
 
@@ -48,7 +48,7 @@ public:
 	UIStringDialogue(String queryHeader, String actionToBeTakenIfProceeding, String textToPresent, String initialText);
 	virtual ~UIStringDialogue();
 	/// Creates the relevant children. Separate function in order to not have everything allocated in the constructor.
-	void CreateChildren();
+	void CreateChildren(GraphicsState* graphicsState) override;
 
 	/// Callback from the input-system. Will submit a SetString message and remove this Dialogue.
 	virtual void Proceed();

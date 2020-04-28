@@ -531,7 +531,7 @@ bool MapManager::AddEntity(EntitySharedPtr entity, Map * toMap)
 	return ok;
 }
 
-/// Adds target entity to the map, registering it for physics and GraphicsThreadGraphicsState.
+/// Adds target entity to the map, registering it for physics and graphicsState->
 bool MapManager::AddEntity(EntitySharedPtr entity, bool registerForGraphics, bool registerForPhysics)
 {
 	if (!activeMap)

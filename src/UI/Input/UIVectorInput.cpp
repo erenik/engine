@@ -30,7 +30,7 @@ UIVectorInput::~UIVectorInput()
 }
 
 /// Sent by UIInput elements upon pressing Enter and thus confirmign the new input, in case extra actions are warranted. (e.g. UITextureInput to update the texture provided as reference).
-void UIVectorInput::OnInputUpdated(UIInput * inputElement, GraphicsState& graphicsState)
+void UIVectorInput::OnInputUpdated(GraphicsState* graphicsState, UIInput * inputElement)
 {
 	assert(this->inputs.Exists(inputElement));
 	/// Fetch vector data from the input first.
@@ -58,7 +58,7 @@ void UIVectorInput::OnInputUpdated(UIInput * inputElement, GraphicsState& graphi
 }
 
 /// Creates ze children!
-void UIVectorInput::CreateChildren()
+void UIVectorInput::CreateChildren(GraphicsState* graphicsState)
 {
 	if (childrenCreated)
 		return;
@@ -66,7 +66,7 @@ void UIVectorInput::CreateChildren()
 	/// Use a column-list to automatically get links between the elements, etc.
 	UIColumnList * box = new UIColumnList();
 	box->padding = this->padding;
-	AddChild(box);
+	AddChild(nullptr, box);
 
 	int elements = numInputs + 1;
 	float spaceLeft = 1.0f - padding * elements;
@@ -76,7 +76,7 @@ void UIVectorInput::CreateChildren()
 	label = new UILabel();
 	label->text = name;
 	label->sizeRatioX = spacePerElement;
-	box->AddChild(label);
+	box->AddChild(nullptr, label);
 
 	/// Create 3 children
 	for (int i = 0; i < numInputs; ++i)
@@ -88,7 +88,7 @@ void UIVectorInput::CreateChildren()
 		input->text = "0";
 		input->sizeRatioX = spacePerElement;
 	//	input->onTrigger = "UIVectorInput("+name+")";
-		box->AddChild(input);
+		box->AddChild(nullptr, input);
 		inputs.Add(input);
 	}
 	childrenCreated = true;
@@ -163,7 +163,7 @@ void UIVectorInput::SetValue4f(const Vector4f & vec)
 /** For mouse-scrolling. By default calls it's parent's OnScroll. Returns true if the element did anything because of the scroll.
 	The delta corresponds to amount of "pages" it should scroll.
 */
-bool UIVectorInput::OnScroll(float delta, GraphicsState& graphicsState)
+bool UIVectorInput::OnScroll(GraphicsState* graphicsState, float delta)
 {
 	for (int i = 0; i < inputs.Size(); ++i)
 	{
@@ -192,12 +192,12 @@ bool UIVectorInput::OnScroll(float delta, GraphicsState& graphicsState)
 				input->SetText(String(v, maxDecimals));	
 			}
 			/// Notify game state etc. of the change.
-			OnInputUpdated(input, graphicsState);
+			OnInputUpdated(graphicsState, input);
 			return true;
 		}
 	}
 	// If not, do as regular UIElements do, probably query parents..
-	return UIElement::OnScroll(delta, graphicsState);
+	return UIElement::OnScroll(graphicsState, delta);
 }
 
 /// See dataTypes below.

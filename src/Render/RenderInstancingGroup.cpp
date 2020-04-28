@@ -125,7 +125,7 @@ void RenderInstancingGroup::UpdateBuffers(bool force)
 }
 
 // Called once per viewport that is rendered.
-void RenderInstancingGroup::Render(GraphicsState & graphicsState)
+void RenderInstancingGroup::Render(GraphicsState * graphicsState)
 {
 	if (!reference) // empty group?
 		return;
@@ -166,7 +166,7 @@ void RenderInstancingGroup::Render(GraphicsState & graphicsState)
 	}
 
 	// 1rst attribute buffer : vertices
-	graphicsState.BindVertexArrayBuffer(matrixBuffer);
+	graphicsState->BindVertexArrayBuffer(matrixBuffer);
 	if (shader->attributeInstanceModelMatrix == -1)
 	{
 		LogGraphics("No instance ModelMatrix attribute found in current shader?", ERROR);
@@ -284,7 +284,7 @@ void RenderInstancingGroup::Render(GraphicsState & graphicsState)
 	}
 
 	// Unbind.
-	graphicsState.BindVertexArrayBuffer(0);
+	graphicsState->BindVertexArrayBuffer(0);
 
 	/// Disable mesh-based attributes.
 	glDisableVertexAttribArray(shader->attributePosition);

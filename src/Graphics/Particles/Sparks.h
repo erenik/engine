@@ -20,7 +20,7 @@ public:
 
 	virtual void Initialize();
 	/// Update buffers to use when rendering.
-	virtual void UpdateBuffers();
+	virtual void UpdateBuffers(GraphicsState* graphicsState) override;
 
 	void PrintData();
 	

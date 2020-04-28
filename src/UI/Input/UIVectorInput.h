@@ -15,10 +15,10 @@ public:
 	virtual ~UIVectorInput();
 
 	/// Sent by UIInput elements upon pressing Enter and thus confirmign the new input, in case extra actions are warranted. (e.g. UITextureInput to update the texture provided as reference).
-	virtual void OnInputUpdated(UIInput * inputElement, GraphicsState& graphicsState);
+	virtual void OnInputUpdated(GraphicsState* graphicsState, UIInput * inputElement) override;
 
 	/// Creates ze children!
-	void CreateChildren();
+	void CreateChildren(GraphicsState* graphicsState) override;
 
 	/// Getters
 	Vector2i GetValue2i();
@@ -35,7 +35,7 @@ public:
 	/** For mouse-scrolling. By default calls it's parent's OnScroll. Returns true if the element did anything because of the scroll.
 		The delta corresponds to amount of "pages" it should scroll.
 	*/
-	bool OnScroll(float delta, GraphicsState& graphicsState);
+	bool OnScroll(GraphicsState * graphicsState, float delta) override;
 	
 	/// See dataTypes below.
 	void SetDataType(int dataType);

@@ -7,6 +7,7 @@
 
 #include "Graphics/OpenGL.h"
 #include "UIAction.h"
+#include "UITypes.h"
 
 #include <cstdlib>
 #include <ctime>
@@ -110,7 +111,7 @@ public:
 	virtual bool HandleDADFiles(List<String> files);
 
 	/// For aggregate types. Creates children elements. Called upon attaching to ui tree so that all settings may be set after initial construction but before contents are finalized.
-	virtual void CreateChildren();
+	virtual void CreateChildren(GraphicsState* graphicsState);
 	/// Set default values.
 	void Nullify();
 	/** Deletes element of target ID and all it's children.
@@ -130,14 +131,14 @@ public:
 	// Recursive hover function which will return the element currently hovered over using given co-ordinates.
 	virtual UIElement * Hover(int mouseX, int mouseY);	// Skickar hover-meddelande till UI-objektet.
 	virtual UIElement * Click(int mouseX, int mouseY);						// Skicker Genererar meddelande ifall man tryckt på elementet
-	virtual UIElement * Activate();						// When button is released.
+	virtual UIElement * Activate(GraphicsState * graphicsState);						// When button is released.
 	/// GEtttererrr
 	virtual UIElement * GetElement(float & mouseX, float & mouseY);
 
 	/// Returns all children recursively.
 	List<UIElement*> AllChildrenR();
 	bool HasActivatables();
-	UIElement * GetElement(String byName, int andType);
+	UIElement * GetElement(String byName, UIType andType);
 
 	/// Used by e.g. ScrollBarHandle's in order to slide its content according to mouse movement, even when the mouse extends beyond the scope of the element.
 	virtual void OnMouseMove(Vector2i activeWindowCoords);
@@ -145,7 +146,7 @@ public:
     /** For mouse-scrolling. By default calls it's parent's OnScroll. Returns true if the element did anything because of the scroll.
 		The delta corresponds to amount of "pages" it should scroll.
 	*/
-	virtual bool OnScroll(float delta, GraphicsState& graphicsState);
+	virtual bool OnScroll(GraphicsState* graphicsState, float delta);
 
 	/// Returns the root, via parent-chain.
 	UIElement * GetRoot();
@@ -153,7 +154,7 @@ public:
 
 	/// UI events!
 	/// Sent by UIInput elements upon pressing Enter and thus confirmign the new input, in case extra actions are warranted. (e.g. UITextureInput to update the texture provided as reference).
-	virtual void OnInputUpdated(UIInput * inputElement, GraphicsState& graphicsState);
+	virtual void OnInputUpdated(GraphicsState* graphicsState, UIInput * inputElement);
 	/// Callback sent to parents once an element is toggled, in order to act upon it. Used by UIMatrix.
 	virtual void OnToggled(UICheckBox * box);
 
@@ -168,9 +169,9 @@ public:
 		This is set by special classes such as UIList and UIColumnList when they know
 		a certain element should be or contain the correct neighbour element.
 	*/
-	virtual UIElement * GetUpNeighbour(UIElement * referenceElement, bool & searchChildrenOnly);
+	virtual UIElement * GetUpNeighbour(GraphicsState* graphicsState, UIElement * referenceElement, bool & searchChildrenOnly);
 	virtual UIElement * GetRightNeighbour(UIElement * referenceElement, bool & searchChildrenOnly);
-	virtual UIElement * GetDownNeighbour(UIElement * referenceElement, bool & searchChildrenOnly);
+	virtual UIElement * GetDownNeighbour(GraphicsState* graphicsState, UIElement * referenceElement, bool & searchChildrenOnly);
 	virtual UIElement * GetLeftNeighbour(UIElement * referenceElement, bool & searchChildrenOnly);
 	
 	/// Works recursively.
@@ -189,6 +190,9 @@ public:
 	String activationMessage;
 	// Action(s) to be performed upon activation. These will be done entirely/only on the Graphics-thread.
 	List<UIAction> activationActions; 
+
+	// When it has been pushed to screen or otherwise become relevant.
+	String onEnterScope;
 	/// Message sent when hovering over an element.
 	String onHover;
 	String onTrigger; // For "triggering" the element, e.g. pressing Enter for input fields
@@ -245,15 +249,16 @@ public:
 	const UIElement * GetChild(int index);
 
     /// Returns false if it could nottur.
-    bool AddToParent(String parentName, UIElement * child);
+    bool AddToParent(GraphicsState* graphicsState, String parentName, UIElement * child);
 	void SetParent(UIElement *in_parent);
 
-	// Adjust hierarchy
-	/// Adds x children. Subclassed in e.g. Matrix-class in order to setup contents properly.
-	virtual bool AddChildren(List<UIElement*> children);
-	virtual bool AddChild(UIElement* child); // Sets child pointer to child UI element, NULL if non
+	/** Adds a child/children
+		If called with graphicsState non-NULL, it is from the render thread, and updates to the UI may be made.
+	*/
+	virtual bool AddChildren(GraphicsState* graphicsState, List<UIElement*> children);
+	virtual bool AddChild(GraphicsState* graphicsState, UIElement* child); // Sets child pointer to child UI element, NULL if non
 	/// Attempts to remove said child from this element. Returns false if it was not a valid child (thus action unnecessary). Does NOT delete anything!
-	bool RemoveChild(UIElement * element);
+	bool RemoveChild(GraphicsState* graphicsState, UIElement * element);
 
 	/// Checks if the target element is somehow a part of this list. If it is, the function will return the index of the child it is or belongs to. Otherwise -1 will be returned.
 	int BelongsToChildIndex(UIElement * ele);
@@ -269,7 +274,7 @@ public:
 	virtual void Render(GraphicsState & graphicsState);
 	virtual void RenderText(GraphicsState& graphicsState);
 	/// Called after resize of UI before RenderText.
-	virtual void FormatText(); 
+	virtual void FormatText(GraphicsState * graphicsState); 
 
 	/// Adjusts the UI element size and position relative to new AppWindow size
 	void AdjustToWindow(int left, int right, int bottom, int top);
@@ -330,7 +335,7 @@ public:
 	// Position-adjustment variables for advanced UI elements like UIList
 	float padding;
 
-	int type;							// Type of the UIElement
+	UIType type;							// Type of the UIElement
 
 	/** If true, the element and all its subchildren will be deleted when the element is popped from the UI. 
 		Default false. Used for dynamically created UI that are not meant to be re-used.
@@ -439,12 +444,12 @@ public:
 	/** Used by input-captuing elements. Calls recursively upward until an element wants to respond to the input.
 		Returns 1 if it processed anything, 0 if not.
 	*/
-	virtual int OnKeyDown(int keyCode, bool downBefore, GraphicsState& graphicsState);
+	virtual int OnKeyDown(GraphicsState* graphicsState, int keyCode, bool downBefore);
 	/// Used for getting text. This will be local translated language key codes?
 	virtual int OnChar(int asciiCode);
 
 	/// Called to ensure visibility of target element. First call should be made to the target element with a NULL-argument!
-	virtual void EnsureVisibility(UIElement * element = 0);
+	virtual void EnsureVisibility(GraphicsState* graphicsState, UIElement * element = 0);
 
 	/// Similar to UI, this checks if this particular element is buffered or not.
 	bool IsBuffered() const { return isBuffered;};

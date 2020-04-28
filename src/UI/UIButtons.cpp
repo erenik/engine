@@ -44,7 +44,7 @@ UICheckBox::~UICheckBox()
 //	std::cout<<"\nUICheckBox destructor";
 }
 
-UIElement* UICheckBox::Activate()
+UIElement* UICheckBox::Activate(GraphicsState* graphicsState)
 {
 	UIElement* result = 0;
 	// Don't process invisible UIElements, please.

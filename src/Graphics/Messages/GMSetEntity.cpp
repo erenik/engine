@@ -33,7 +33,7 @@ GMSetEntityTexture::GMSetEntityTexture(List< std::shared_ptr<Entity> > entities,
 	assert(target >= DIFFUSE_MAP && target <= MAX_TEXTURE_TARGETS);
 }
 
-void GMSetEntityTexture::Process()
+void GMSetEntityTexture::Process(GraphicsState* graphicsState)
 {
 	if (t == NULL && textureSource.Length())
 	{
@@ -124,7 +124,7 @@ GMSetEntity::GMSetEntity(EntitySharedPtr entity, int target, Model * model)
 }
 
 
-void GMSetEntity::Process()
+void GMSetEntity::Process(GraphicsState* graphicsState)
 {
 	for (int i = 0; i < entities.Size(); ++i)
 	{
@@ -207,7 +207,7 @@ GMSetEntityb::GMSetEntityb(List< std::shared_ptr<Entity> > entities, int target,
 			assert(false && "Bad target in GMSetEntityb");
 	}
 }
-void GMSetEntityb::Process()
+void GMSetEntityb::Process(GraphicsState* graphicsState)
 {
 	for (int i = 0; i < entities.Size(); ++i)
 	{
@@ -272,7 +272,7 @@ GMSetEntitys::GMSetEntitys(EntitySharedPtr entity, int target, String value)
 			assert(false && "Bad target in GMSetEntitys");
 	}
 }
-void GMSetEntitys::Process()
+void GMSetEntitys::Process(GraphicsState* graphicsState)
 {
 	assert(entity->graphics);
 	switch(target)
@@ -297,9 +297,9 @@ void GMSetEntitys::Process()
 		}
 		case GT_ENTITY_GROUP:
 		{
-			GraphicsThreadGraphicsState.RemoveEntity(entity);
+			graphicsState->RemoveEntity(entity);
 			entity->graphics->group = sValue;
-			GraphicsThreadGraphicsState.AddEntity(entity);
+			graphicsState->AddEntity(entity);
 			break;
 		}
 	}
@@ -319,7 +319,7 @@ GMSetEntityf::GMSetEntityf(List< std::shared_ptr<Entity> > entities, int target,
 			assert(false && "Bad value");
 	}
 }
-void GMSetEntityf::Process()
+void GMSetEntityf::Process(GraphicsState* graphicsState)
 {
 	for (int i = 0; i < entities.Size(); ++i)
 	{
@@ -353,7 +353,7 @@ GMSetEntityi::GMSetEntityi(List< std::shared_ptr<Entity> > entities, int target,
 	}
 }
 
-void GMSetEntityi::Process()
+void GMSetEntityi::Process(GraphicsState* graphicsState)
 {
 	for (int i = 0; i < entities.Size(); ++i)
 	{
@@ -389,7 +389,7 @@ GMSetEntityVec4f::GMSetEntityVec4f(List< std::shared_ptr<Entity> > entities, int
 			assert(false && "Bad value");
 	}
 }
-void GMSetEntityVec4f::Process()
+void GMSetEntityVec4f::Process(GraphicsState* graphicsState)
 {
 	for (int i = 0; i < entities.Size(); ++i)
 	{
@@ -438,7 +438,7 @@ GMSlideEntityf::GMSlideEntityf(Entities entities, int target, float targetValue,
 
 #include "PhysicsLib/EstimatorFloat.h"
 
-void GMSlideEntityf::Process()
+void GMSlideEntityf::Process(GraphicsState* graphicsState)
 {
 	for (int i = 0; i < entities.Size(); ++i)
 	{
@@ -498,7 +498,7 @@ GMClearEstimators::GMClearEstimators(Entities entities)
 {
 
 }
-void GMClearEstimators::Process()
+void GMClearEstimators::Process(GraphicsState* graphicsState)
 {
 	for (int i = 0; i < entities.Size(); ++i)
 	{

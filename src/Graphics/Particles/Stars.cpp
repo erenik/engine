@@ -104,9 +104,9 @@ void Stars::ProcessParticles(float & timeInSeconds)
 }
 
 /// Update buffers to use when rendering.
-void Stars::UpdateBuffers()
+void Stars::UpdateBuffers(GraphicsState* graphicsState)
 {
-	ParticleSystem::UpdateBuffers();
+	ParticleSystem::UpdateBuffers(graphicsState);
 #ifdef SSE_PARTICLES
 //		positionsSSE[i] = _mm_add_ps(positions[i].data, _mm_mul_ps(sseTime, _mm_add_ps(velocities[i].data, weather->globalWind.data)));
 	

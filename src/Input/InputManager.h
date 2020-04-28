@@ -213,11 +213,11 @@ public:
 	
 	
 	/// Will push to stack target element in the active UI and also automatically try and hover on the primary/first element hoverable element within.
-	void PushToStack(GraphicsState& graphicsState, UIElement * element, UserInterface * ui);
+	void PushToStack(GraphicsState* graphicsState, UIElement * element, UserInterface * ui);
 	/// Pops the top-most UI from stack, also automatically tries to locate the previous hover-element for further interaction, returning the element removed upon success.
-	UIElement * PopTopmostUIFromStack(GraphicsState& graphicsState, UserInterface * ui);
+	UIElement * PopTopmostUIFromStack(GraphicsState* graphicsState, UserInterface * ui);
 	/// Pops target element from stack, and also automatically tries to locate the previous hover-element!
-	UIElement * PopFromStack(GraphicsState& graphicsState, UIElement * element, UserInterface * ui, bool force = false);
+	UIElement * PopFromStack(GraphicsState* graphicsState, UIElement * element, UserInterface * ui, bool force = false);
 
     /// Deprecateeeeed! Adjust player input device via the PlayerManager from now on! :)
 /*

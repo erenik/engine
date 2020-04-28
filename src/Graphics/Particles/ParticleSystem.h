@@ -41,13 +41,13 @@ public:
 
 		Relies on ProcessParticles() and SpawnParticles() functions.
 	*/
-    virtual void Process(float timeInSeconds);
+    virtual void Process(GraphicsState * graphicsState, float timeInSeconds);
 	/// Integrates all particles.
 	virtual void ProcessParticles(float & timeInSeconds);
 	/// Spawns new particles depending on which emitters are attached.
 	virtual void SpawnNewParticles(int & timeInMs);
 	/// Update buffers to use when rendering.
-	virtual void UpdateBuffers();
+	virtual void UpdateBuffers(GraphicsState* graphicsState);
 	/// Clears all existing particles.
 	virtual void ClearParticles(); 
 
@@ -56,7 +56,7 @@ public:
 	*/
 	virtual bool FetchTextures();
 	/// Renders the particles
-    virtual void Render(GraphicsState & graphicsState);
+    virtual void Render(GraphicsState * graphicsState);
     virtual void PrintData();
     virtual void AttachTo(EntitySharedPtr entity, ConstMat4r relativePosition);
     virtual void SetPosition(ConstMat4r  relativePosition);
@@ -125,15 +125,15 @@ public:
 	int blendEquation;
 protected:
 	/// For setting specific uniforms after most other properties have been set up.
-	virtual void SetUniforms();
+	virtual void SetUniforms(GraphicsState* graphicsState);
 	/// By default, "ParticleFlatColor"
 	String shaderName;
 	bool initialized;
 	/** Renders using instanced functions such as glDrawArraysInstanced and glVertexAttribDivisor, requiring GL versions
 		3.1 and 3.3 respectively. Ensure these requirements are fulfilled before calling the function or the program will crash.
 	*/
-	virtual void RenderInstanced(GraphicsState & graphicsState);
-	virtual void RenderOld(GraphicsState & graphicsState);
+	virtual void RenderInstanced(GraphicsState * graphicsState);
+	virtual void RenderOld(GraphicsState * graphicsState);
 
 	/// Number of alive particles.
 	int aliveParticles;

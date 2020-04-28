@@ -26,7 +26,7 @@ public:
 		No explicit constructor may skip subclassed variable deallocation!
 	*/
 	virtual ~GraphicsMessage();
-	virtual void Process();
+	virtual void Process(GraphicsState* graphicsState);
 	int GetType() const { return type; };
 
 	/// The retry flag. Default false. If true, message is assumed to have failed processing and will be requeued using retryTimeout to be attempted again at a later time.
@@ -53,7 +53,7 @@ public:
 	static GMMouse * RDown(AppWindow * window, Vector2i coords);
 	static GMMouse * LUp(AppWindow * window, Vector2i coords);
 	static GMMouse * RUp(AppWindow * window, Vector2i coords);
-	virtual void Process();
+	virtual void Process(GraphicsState* graphicsState) override;
 	enum interactions 
 	{
 		MOVE,
@@ -72,7 +72,7 @@ class GMChar : public GraphicsMessage
 {
 public:
 	GMChar(AppWindow * window, char c);
-	virtual void Process();
+	virtual void Process(GraphicsState* graphicsState) override;
 private:
 	AppWindow * window;
 	char c;
@@ -84,7 +84,7 @@ public:
 	GMKey(AppWindow * window, int keyCode, bool down, bool downBefore);
 	static GMKey * Down(AppWindow * window, int keyCode, bool downBefore);
 	static GMKey * Up(AppWindow * window, int keyCode);
-	virtual void Process();
+	virtual void Process(GraphicsState* graphicsState) override;
 private:
 	bool down;
 	bool up;
@@ -98,7 +98,7 @@ class GMRecordVideo : public GraphicsMessage
 {
 public:
 	GMRecordVideo(AppWindow * fromWindow);
-	virtual void Process();
+	virtual void Process(GraphicsState * graphicsState) override;
 private:
 	AppWindow * window;
 };
@@ -113,7 +113,7 @@ public:
     GMRender(Triangle & tri, RenderOptions * ro = NULL);
     GMRender(Ray & ray, float time);
     GMRender(Renderable * renderable);
-    void Process();
+    void Process(GraphicsState* graphicsState) override;
 private:
     int type;
     void * renderObject;
@@ -123,7 +123,7 @@ private:
 class GMResize : public GraphicsMessage {
 public:
 	GMResize(AppWindow * window, short width, short height);
-	void Process();
+	void Process(GraphicsState* graphicsState) override;
 private:
 	AppWindow * window;
 	short width;
@@ -133,7 +133,7 @@ private:
 class GMBufferMesh : public GraphicsMessage {
 public:
 	GMBufferMesh(Mesh * mesh);
-	void Process();
+	void Process(GraphicsState* graphicsState) override;
 private:
 	Mesh * mesh;
 };
@@ -142,7 +142,7 @@ class GMBufferTexture : public GraphicsMessage {
 public:
 	GMBufferTexture(int textureID);
 	GMBufferTexture(Texture * t);
-	void Process();
+	void Process(GraphicsState* graphicsState) override;
 private:
 	int textureID;
 	Texture * t;
@@ -154,7 +154,7 @@ class UIElement;
 class GMBufferUI : public GraphicsMessage {
 public:
 	GMBufferUI(UIElement * element);
-	void Process();
+	void Process(GraphicsState* graphicsState) override;
 private:
 	UIElement * element;
 };
@@ -165,7 +165,7 @@ private:
 class GMRegisterEntity : public GraphicsMessage {
 public:
 	GMRegisterEntity(EntitySharedPtr entity);
-	void Process();
+	void Process(GraphicsState* graphicsState) override;
 private:
 	EntitySharedPtr entity;
 };
@@ -173,7 +173,7 @@ private:
 class GMRegisterEntities : public GraphicsMessage {
 public:
 	GMRegisterEntities(Entities selection);
-	void Process();
+	void Process(GraphicsState* graphicsState) override;
 private:
 	Entities selection;
 };
@@ -181,7 +181,7 @@ private:
 class GMUnregisterEntity : public GraphicsMessage {
 public:
 	GMUnregisterEntity(EntitySharedPtr entity);
-	void Process();
+	void Process(GraphicsState* graphicsState) override;
 private:
 	EntitySharedPtr entity;
 };
@@ -189,7 +189,7 @@ private:
 class GMUnregisterEntities : public GraphicsMessage {
 public:
 	GMUnregisterEntities(List< std::shared_ptr<Entity> > entities);
-	void Process();
+	void Process(GraphicsState* graphicsState) override;
 private:
 	List< std::shared_ptr<Entity> > entities;
 };
@@ -199,7 +199,7 @@ class ParticleSystem;
 class GMRegister : public GraphicsMessage {
 public:
 	GMRegister(List<ParticleSystem*> particleSystems);
-	void Process();
+	void Process(GraphicsState* graphicsState) override;
 private:
 	int target;
 	List<ParticleSystem*> particleSystems;
@@ -208,7 +208,7 @@ private:
 class GMClear : public GraphicsMessage {
 public:
 	GMClear(int target);
-	void Process();
+	void Process(GraphicsState* graphicsState) override;
 private:
 	int target;
 };
@@ -220,7 +220,7 @@ public:
 	/// Sets copy of the given lighting setup. Should be removed since pointers imply setting a newly allocated object.
 	GMSetLighting(Lighting * lighting);
 	~GMSetLighting();
-	void Process();
+	void Process(GraphicsState* graphicsState) override;
 private:
 	Lighting lighting;
 	Lighting * lightingPtr;
@@ -232,7 +232,7 @@ public:
 	/// ALWAYS send at least 1 Viewport.
 	GMSetViewports(List<Viewport *> viewports, AppWindow * inWindow);
 	~GMSetViewports();
-	void Process();
+	void Process(GraphicsState* graphicsState) override;
 private:
 	List<Viewport*> viewports;
 	AppWindow * window;
@@ -241,7 +241,7 @@ private:
 class GMDeleteVBOs : public GraphicsMessage {
 public:
 	GMDeleteVBOs(UserInterface * ui);
-	void Process();
+	void Process(GraphicsState* graphicsState) override;
 private:
 	UserInterface * ui;
 };
@@ -250,7 +250,7 @@ private:
 class GMDelete : public GraphicsMessage {
 public:
 	GMDelete(UserInterface * ui);
-	void Process();
+	void Process(GraphicsState* graphicsState) override;
 private:
 	UserInterface * ui;
 };
@@ -258,7 +258,7 @@ private:
 class GMRecompileShaders : public GraphicsMessage {
 public:
 	GMRecompileShaders();
-	void Process();
+	void Process(GraphicsState* graphicsState) override;
 };
 
 

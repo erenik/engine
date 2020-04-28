@@ -50,7 +50,7 @@ GMRender::GMRender(Renderable * renderable)
     renderObject = (void*) renderable;
 }
 
-void GMRender::Process(){
+void GMRender::Process(GraphicsState* graphicsState){
     switch(type){
 		case FRAME: {
 			Graphics.renderQueried = true;

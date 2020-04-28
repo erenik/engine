@@ -13,7 +13,7 @@ void GraphicsManager::RenderUI(UserInterface * ui)
 	if (ui == NULL)
 		return;
 	/// Set UI Shader program
-	Shader * shader = ShadeMan.SetActiveShader("UI", graphicsState);
+	Shader * shader = ShadeMan.SetActiveShader(&graphicsState, "UI");
 	if (shader == NULL && GL_VERSION_MAJOR > 2)
 	{
 		std::cout<<"\nUI shader unavailable for some reason. Unable to render UI.";

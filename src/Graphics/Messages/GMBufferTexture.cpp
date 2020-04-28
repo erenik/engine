@@ -20,7 +20,7 @@ GMBufferTexture::GMBufferTexture(Texture * texture) : GraphicsMessage(GM_BUFFER_
 }
 
 
-void GMBufferTexture::Process()
+void GMBufferTexture::Process(GraphicsState * graphicsState)
 {
 	Texture * texturePtr;
 	if (textureID != -1)

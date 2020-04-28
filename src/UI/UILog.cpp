@@ -34,11 +34,11 @@ void UILog::Append(CTextr text)
 	newOne->text = text;
 	newOne->sizeRatioY = lineSizeRatio;
 
-	this->AddChild(newOne); // Just add, since should be on graphics thread already.
+	this->AddChild(nullptr, newOne); // Just add, since should be on graphics thread already.
 
 scroll:
 	// Start scrolling so that it becomes visible (if not already so).
-	this->Scroll(position - 1.f);
+	this->Scroll(nullptr, position - 1.f);
 }
 
 void UILog::Fill(List<Text> texts)

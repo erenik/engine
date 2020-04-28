@@ -17,7 +17,7 @@ public:
 	virtual ~UIRadioButtons();
 
 	/// Creates the actual buttons.
-	virtual void CreateChildren();
+	virtual void CreateChildren(GraphicsState * graphicsState) override;
 	/// Sets the texts of the children.
 	void SetTexts(List<String> texts);
 	// Set texture for all elements.
@@ -27,7 +27,7 @@ public:
 	virtual void OnToggled(UICheckBox * box);
 
 	/// Toggles appropriately.
-	void SetValue(int v);
+	void SetValue(GraphicsState* graphicsState, int v);
 
 	/// Sets activationMessage/onActivate for all buttons.
 	String action;

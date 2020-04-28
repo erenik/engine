@@ -92,7 +92,7 @@ public:
 	int lastPreparationFrame;
 
 	/// Fills the big arrays with data from the individual lights.
-	void PrepareForLoading();
+	void PrepareForLoading(GraphicsState* graphicsState);
 
 	/// Big arrays for loading all lighting data in one go.
 	int activeLights;
@@ -108,7 +108,7 @@ public:
 	int spotExponent[MAX_LIGHTS];
 
 	/// Loads selected lighting into the active shader program
-	void LoadIntoShader(Shader * shader);
+	void LoadIntoShader(GraphicsState* graphicsState, Shader * shader);
 
 private:
 	bool SaveLighting(String toFileName);

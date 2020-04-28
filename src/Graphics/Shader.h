@@ -70,7 +70,7 @@ public:
 	void PrintUniforms();
 
 	/// Enables the respective vertex attribute pointers.
-	void OnMadeActive(GraphicsState & graphicsState);
+	void OnMadeActive(GraphicsState * graphicsState);
 	/// Disables the respective vertex attribute pointers.
 	void OnMadeInactive();
 	

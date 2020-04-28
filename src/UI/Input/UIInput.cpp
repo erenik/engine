@@ -70,7 +70,7 @@ UIElement * UIInput::Click(int mouseX, int mouseY)
 	return e;
 }
 // When button is released.
-UIElement* UIInput::Activate()
+UIElement* UIInput::Activate(GraphicsState* graphicsState)
 {
 	// Make this element active for input!
 	BeginInput();
@@ -150,7 +150,7 @@ void UIInput::OnExitScope(bool forced)
 }
 
 /// Used by input-captuing elements. Should not be called for any base UI elements(?)
-int UIInput::OnKeyDown(int keyCode, bool downBefore, GraphicsState& graphicsState)
+int UIInput::OnKeyDown(GraphicsState* graphicsState, int keyCode, bool downBefore)
 {
 	bool isActive = (state & UIState::ACTIVE);
 	assert(inputActive == isActive);
@@ -190,7 +190,7 @@ int UIInput::OnKeyDown(int keyCode, bool downBefore, GraphicsState& graphicsStat
 				
 			}
 			/// Notify of the update to self and then parents, so that extra actions may be taken.
-			this->OnInputUpdated(this, graphicsState);
+			this->OnInputUpdated(graphicsState, this);
 			break;
 		}
 		// Delete
@@ -221,12 +221,12 @@ int UIInput::OnKeyDown(int keyCode, bool downBefore, GraphicsState& graphicsStat
 			break;
 		case KEY::UP: 
 		{
-			parent->OnKeyDown(keyCode, downBefore, graphicsState);
+			parent->OnKeyDown(graphicsState, keyCode, downBefore);
 			break;
 		}
 		case KEY::DOWN: 
 		{
-			parent->OnKeyDown(keyCode, downBefore, graphicsState);
+			parent->OnKeyDown(graphicsState, keyCode, downBefore);
 			break;
 		}
 		case KEY::LEFT:

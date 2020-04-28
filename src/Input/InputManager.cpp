@@ -451,12 +451,13 @@ void InputManager::MouseRightClick(AppWindow * AppWindow, bool down, int x, int 
 		std::cout<<" UP!";
 #endif
 
+
 	UIElement * element = NULL;
 	UserInterface * userInterface = RelevantUI();	
 	if (userInterface)
 	{
 		element = userInterface->Hover(x, y, true);
-		userInterface->SetHoverElement(element);
+		QueueGraphics(new GMSetHoverUI(element->name));
 	}
 	// If navigating UI, interpret right-click as cancel/exit?
 	if (this->navigateUI && !down){
@@ -923,7 +924,7 @@ void InputManager::UIUp()
 		// If not, or if the element couldn't find the named one, try and let it figure out for itself which one it would suggest for us!
 		if (!element){
 			bool searchChildrenOnly = false;
-			UIElement * desiredElement = hoverElement->GetUpNeighbour(NULL, searchChildrenOnly);
+			UIElement * desiredElement = hoverElement->GetUpNeighbour(nullptr, NULL, searchChildrenOnly);
 			if (IsNavigatable(desiredElement))
 			{
 				element = desiredElement;
@@ -933,7 +934,9 @@ void InputManager::UIUp()
 	/// Skip if no valid elements were returned, keep the old one.
 	if (!element)
 		return;
-	ui->SetHoverElement(element);}
+
+	QueueGraphics(new GMSetHoverUI(element->name));
+}
 
 void InputManager::UIDown()
 {
@@ -958,7 +961,7 @@ void InputManager::UIDown()
 		// If not, or if the element couldn't find the named one, try and let it figure out for itself which one it would suggest for us!
 		if (!element){
 			bool searchChildrenOnly = false;
-			UIElement * desiredElement = hoverElement->GetDownNeighbour(NULL, searchChildrenOnly);
+			UIElement * desiredElement = hoverElement->GetDownNeighbour(nullptr, NULL, searchChildrenOnly);
 			if (IsNavigatable(desiredElement))
 				element = desiredElement;
 		}
@@ -966,7 +969,7 @@ void InputManager::UIDown()
 	/// Skip if no valid elements were returned, keep the old one.
 	if (!element)
 		return;
-	ui->SetHoverElement(element);
+	QueueGraphics(new GMSetHoverUI(element->name));
 }
 void InputManager::UILeft()
 {
@@ -1000,7 +1003,7 @@ void InputManager::UILeft()
 	/// Skip if no valid elements were returned, keep the old one.
 	if (!element)
 		return;
-	ui->SetHoverElement(element);
+	QueueGraphics(new GMSetHoverUI(element->name));
 }
 void InputManager::UIRight()
 {
@@ -1034,7 +1037,7 @@ void InputManager::UIRight()
 	/// Skip if no valid elements were returned, keep the old one.
 	if (!element)
 		return;
-	ui->SetHoverElement(element);
+	QueueGraphics(new GMSetHoverUI(element->name));
 }
 
 // Returns true if it did anything.
@@ -1063,7 +1066,7 @@ bool InputManager::UIProceed()
 	/// Set it as active if needed.
 	hoverElement->state |= UIState::ACTIVE;
 	/// Activate it.
-	hoverElement->Activate();
+	hoverElement->Activate(nullptr);
 	/// Trigger active hover-element.
 //	ui->Activate(hoverElement);
 	return true;
@@ -1185,7 +1188,7 @@ void InputManager::LoadNavigateUIState(int state)
 }
 
 /// Will push to stack target element in the active UI and also automatically try and hover on the primary/first element hoverable element within.
-void InputManager::PushToStack(GraphicsState& graphicsState, UIElement * element, UserInterface * ui)
+void InputManager::PushToStack(GraphicsState* graphicsState, UIElement * element, UserInterface * ui)
 {
 	if (!ui || !element)
 		return;
@@ -1195,7 +1198,7 @@ void InputManager::PushToStack(GraphicsState& graphicsState, UIElement * element
 		return;
 	UIElement * firstActivatable = element->GetElementByFlag(UIFlag::HOVERABLE | UIFlag::ACTIVATABLE);
 //	std::cout<<"\nHovering to element \""<<firstActivatable->name<<"\" with text \""<<firstActivatable->text<<"\"";
-	ui->SetHoverElement(firstActivatable);
+	ui->SetHoverElement(graphicsState, firstActivatable);
 
 	// Set navigation cyclicity.
 	cyclicY = element->cyclicY;
@@ -1203,7 +1206,7 @@ void InputManager::PushToStack(GraphicsState& graphicsState, UIElement * element
 }
 
 /// Pops the top-most UI from stack, also automatically tries to locate the previous hover-element for further interaction.
-UIElement * InputManager::PopTopmostUIFromStack(GraphicsState& graphicsState, UserInterface * ui)
+UIElement * InputManager::PopTopmostUIFromStack(GraphicsState* graphicsState, UserInterface * ui)
 {
 	if (!ui)
 		return NULL;
@@ -1213,7 +1216,7 @@ UIElement * InputManager::PopTopmostUIFromStack(GraphicsState& graphicsState, Us
 	return NULL;
 }
 /// Pops target element from stack, and also automatically tries to locate the previous hover-element!
-UIElement * InputManager::PopFromStack(GraphicsState& graphicsState, UIElement * element, UserInterface * ui, bool force /* = false*/)
+UIElement * InputManager::PopFromStack(GraphicsState* graphicsState, UIElement * element, UserInterface * ui, bool force /* = false*/)
 {
 	if (!ui || !element){
 		std::cout<<"\nNull UI or element";
@@ -1236,12 +1239,12 @@ UIElement * InputManager::PopFromStack(GraphicsState& graphicsState, UIElement *
 
 	UIElement * currentHover = stackTop->GetElementByState(UIState::HOVER);
 	if (currentHover){
-		ui->SetHoverElement(currentHover);
+		ui->SetHoverElement(graphicsState, currentHover);
 		return element;
 	}
 	UIElement * firstActivatable = stackTop->GetElementByFlag(UIFlag::HOVERABLE | UIFlag::ACTIVATABLE);
 //	std::cout<<"\nHovering to element \""<<firstActivatable->name<<"\" with text \""<<firstActivatable->text<<"\"";
-	ui->SetHoverElement(firstActivatable);
+	ui->SetHoverElement(graphicsState, firstActivatable);
 
 	/// If no activatable menu item is out, set navigate UI to false?
 	/// No. Better embed this into the appropriate UI's onExit message!

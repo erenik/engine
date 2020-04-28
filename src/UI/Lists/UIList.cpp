@@ -84,12 +84,12 @@ void UIList::CreateScrollBarIfNeeded()
 		scroll->alignmentX = 0.95f;
 		scroll->textureSource = "img/80Gray50Alpha.png";
 	    scrollBarY = scroll;
-	    UIElement::AddChild(scrollBarY);
+	    UIElement::AddChild(nullptr, scrollBarY);
 	}
 }
 
 // Adjusts hierarchy besides the regular addition
-bool UIList::AddChild(UIElement* child)
+bool UIList::AddChild(GraphicsState * graphicsState, UIElement* child)
 {
 	/// Automate name if none was given.
 	if (child->name.Length() < 1)
@@ -102,7 +102,7 @@ bool UIList::AddChild(UIElement* child)
  //   std::cout<<"\nAdding child "<<child->name<<" text: "<<child->text;
 	/// If first child, place it at the top.
 	if (children.Size() == 0){
-		UIElement::AddChild(child);
+		UIElement::AddChild(nullptr, child);
 		child->alignmentY = 1.0f - child->sizeRatioY * 0.5f;
 		return true;
 	}
@@ -121,7 +121,7 @@ bool UIList::AddChild(UIElement* child)
 		if (childBottomEdge < bottom)
 			bottom = childBottomEdge;
 	}
-	UIElement::AddChild(child);
+	UIElement::AddChild(nullptr, child);
 	child->alignmentY = bottom - child->sizeRatioY * 0.5f - padding;
 
 	/// Update bottom after this addition.
@@ -158,7 +158,7 @@ bool UIList::AddChild(UIElement* child)
 	// If adding a child with hover state, assume it should be in focus.
 	if (child->state & UIState::HOVER)
 	{
-		child->EnsureVisibility();
+		child->EnsureVisibility(graphicsState);
 	}
 
 	return true;
@@ -253,7 +253,7 @@ UIElement * UIList::GetElement(int mouseX, int mouseY){
         if (child->isSysElement)
             e = child->Click(mouseX, mouseY);
         else
-            e = child->GetElement(RoundInt(listX), RoundInt(listY));
+            e = child->GetElement(listX, listY);
         if (e)
             break;
     }
@@ -267,7 +267,7 @@ UIElement * UIList::GetElement(int mouseX, int mouseY){
 
 
 /// Scroll ze listur!
-bool UIList::OnScroll(float delta, GraphicsState& graphicsState)
+bool UIList::OnScroll(GraphicsState* graphicsState, float delta)
 {
 	if (children.Size() == 0)
 		return false;
@@ -301,7 +301,7 @@ bool UIList::OnScroll(float delta, GraphicsState& graphicsState)
 	}
     float moveRemaining = delta - moved;
 	if (moveRemaining == delta)
-		thisOrParentMoved |= UIElement::OnScroll(moveRemaining, graphicsState) != 0;
+		thisOrParentMoved |= UIElement::OnScroll(graphicsState, moveRemaining) != 0;
 	else {
 		// Did all the moving here.
 		std::cout<<"\ndid all the moving.";
@@ -323,7 +323,7 @@ bool UIList::OnScroll(float delta, GraphicsState& graphicsState)
 }
 
 /// Suggests a neighbour which could be to the right of this element. Meant to be used for UI-navigation support. The reference element indicates the element to which we are seeking a compatible or optimum neighbour, and should be NULL for the initial call.
-UIElement * UIList::GetUpNeighbour(UIElement * referenceElement, bool & searchChildrenOnly)
+UIElement * UIList::GetUpNeighbour(GraphicsState* graphicsState, UIElement * referenceElement, bool & searchChildrenOnly)
 {
 	// Check if the element is part of this list.
 	int index = BelongsToChildIndex(referenceElement);
@@ -347,7 +347,7 @@ UIElement * UIList::GetUpNeighbour(UIElement * referenceElement, bool & searchCh
 				
 				// Set to only search children now!
 				searchChildrenOnly = true;
-				UIElement * neighbour = child->GetUpNeighbour(referenceElement, searchChildrenOnly);
+				UIElement * neighbour = child->GetUpNeighbour(graphicsState, referenceElement, searchChildrenOnly);
 			//	if (neighbour == child)
 			//		continue;
 				if (neighbour)
@@ -359,12 +359,12 @@ UIElement * UIList::GetUpNeighbour(UIElement * referenceElement, bool & searchCh
 	else if (children.Size())
 	{
 		// But first. Scroll to the bottom, to ensure that it is made visible! owo
-		Scroll(-500.f);
+		Scroll(graphicsState, -500.f);
 		// Get last child which is not a system element
 		return LastChild();
 	}
 	// No children? Do we have a valid up-element?
-	UIElement * upEle = UIElement::GetUpNeighbour(referenceElement, searchChildrenOnly);
+	UIElement * upEle = UIElement::GetUpNeighbour(graphicsState, referenceElement, searchChildrenOnly);
 	if (upEle)
 		return upEle;
 
@@ -373,7 +373,7 @@ UIElement * UIList::GetUpNeighbour(UIElement * referenceElement, bool & searchCh
 }
 
 /// Suggests a neighbour which could be to the right of this element. Meant to be used for UI-navigation support. The reference element indicates the element to which we are seeking a compatible or optimum neighbour, and should be NULL for the initial call.
-UIElement * UIList::GetDownNeighbour(UIElement * referenceElement, bool & searchChildrenOnly)
+UIElement * UIList::GetDownNeighbour(GraphicsState* graphicsState, UIElement * referenceElement, bool & searchChildrenOnly)
 {
 	// Check if the element is part of this list.
 	UIElement * search = referenceElement;
@@ -413,7 +413,7 @@ UIElement * UIList::GetDownNeighbour(UIElement * referenceElement, bool & search
 		return children[0];
 	}
 	// No children? Do we have a valid up-element?
-	UIElement * downEle = UIElement::GetDownNeighbour(referenceElement, searchChildrenOnly);
+	UIElement * downEle = UIElement::GetDownNeighbour(graphicsState, referenceElement, searchChildrenOnly);
 	if (downEle)
 		return downEle;
 
@@ -477,16 +477,18 @@ void UIList::SetScrollPosition(float fValue)
 
 
 /// Scroll, not capped.
-bool UIList::Scroll(float absoluteDistanceInPages)
+bool UIList::Scroll(GraphicsState* graphicsState, float absoluteDistanceInPages)
 {
     /// Move the slider and adjust content.
-    if (scrollBarY)
+	if (scrollBarY)
 	{
-        float pageSize = scrollBarY->handle->sizeRatioY;
-        float distance = absoluteDistanceInPages * pageSize;
-        scrollBarY->Move(distance);
-    //    scrollBarY->PrintDebug();
-    }
+		float pageSize = scrollBarY->handle->sizeRatioY;
+		float distance = absoluteDistanceInPages * pageSize;
+		scrollBarY->Move(distance);
+		//    scrollBarY->PrintDebug();
+	}
+	else
+		parent->OnScroll(graphicsState, absoluteDistanceInPages);
     return true;
 }
 
@@ -580,7 +582,7 @@ void UIList::RenderChildren(GraphicsState & graphicsState)
 
 
 /// Called to ensure visibility of target element.
-void UIList::EnsureVisibility(UIElement * element)
+void UIList::EnsureVisibility(GraphicsState* graphicsState, UIElement * element)
 {
 	if (!element)
 		return;
@@ -602,13 +604,13 @@ void UIList::EnsureVisibility(UIElement * element)
 	// If elements top exceeding current viewable top, scroll up.
 	if (top <= pageTop){
 		float dist = pageTop - top;
-		this->Scroll(dist);
+		this->Scroll(graphicsState, dist);
 	//	std::cout<<"\nScrolling up.";
 	}
 	// And if element's bottom exceeding current viewable bottom, scroll down..!
 	else if (bottom >= pageStop){
 		float dist = pageStop - bottom;
-		this->Scroll(dist);
+		this->Scroll(graphicsState, dist);
 //		std::cout<<"\nScrolling down.";
 	}
 

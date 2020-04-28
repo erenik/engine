@@ -80,14 +80,14 @@ public:
 	UIElement * GetElementByPosition(float x, float y);
 
 	/// Woo!
-	UIElement * GetElement(String byName, int andType);
+	UIElement * GetElement(String byName, UIType andType);
 
 
 	/// Primarily used by the system-global UI. This queries if there is any currently visible UI which may respond to user input available.
 	bool HasActivatableElement();
 
 	/// Sets target element as hovered one, removing the flag from all other elements.
-	void SetHoverElement(UIElement * targetElement);
+	void SetHoverElement(GraphicsState* graphicsState, UIElement * targetElement);
 
 	/** Function called when an element is activated,
 		by mouse-clicking, pressing enter on selction or otherwise. */

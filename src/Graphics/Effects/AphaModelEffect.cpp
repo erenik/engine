@@ -26,7 +26,7 @@ AlphaModelEffect::AlphaModelEffect(String name, String modelName, EntitySharedPt
 }
 
 /// Renders, but also updates it's various values using the given timestep since last frame.
-void AlphaModelEffect::Render(GraphicsState & graphicsState)
+void AlphaModelEffect::Render(GraphicsState * graphicsState)
 {
 	Shader * shader = ActiveShader();
 	assert(model);
@@ -49,18 +49,20 @@ void AlphaModelEffect::Render(GraphicsState & graphicsState)
 	};
 
 
+	float& frameTime = graphicsState->frameTime;
+
 	/// Set model matrix and other stuff.
 	if (shader){
 		// Model matrix
-		glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, graphicsState.modelMatrixF.getPointer());
+		glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, graphicsState->modelMatrixF.getPointer());
 		// Alpha
 		glUniform4f(shader->uniformPrimaryColorVec4, primaryColor[0], primaryColor[1], primaryColor[2], primaryColor[3]);
 	}
-	primaryColor[3] -= linearDecay * graphicsState.frameTime;
-	primaryColor[3] *= pow(1.0f - relativeDecay, graphicsState.frameTime); 
+	primaryColor[3] -= linearDecay * frameTime;
+	primaryColor[3] *= pow(1.0f - relativeDecay, frameTime);
 	primaryColor[3] = max(primaryColor[3], 0.0f);
 	lastAlpha = primaryColor[3];
-	relativeRotation[1] += 0.2f * graphicsState.frameTime;
+	relativeRotation[1] += 0.2f * frameTime;
 
 //	std::cout<<"\nAlpha: "<<primaryColor[3];
 

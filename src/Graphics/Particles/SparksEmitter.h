@@ -1,6 +1,7 @@
 /// Emil Hedemalm
 /// 2014-09-19
 /// Emitter dedicated to creating "spark"-like particles, as if something is on fire or creating heat-related sparks
+#pragma once
 
 #include "ParticleEmitter.h"
 

@@ -63,7 +63,7 @@ public:
 		: GraphicsMessage(GM_TRACK), entity(entity)
 	{		
 	}
-	virtual void Process();
+	virtual void Process(GraphicsState* graphicsState);
 private:
 	EntitySharedPtr entity;
 };
@@ -72,7 +72,7 @@ class GMDeleteCamera : public GraphicsMessage
 {
 public:
 	GMDeleteCamera(Camera * camera);
-	virtual void Process();
+	virtual void Process(GraphicsState* graphicsState);
 private:
 	Camera * camera;
 };
@@ -87,7 +87,7 @@ public:
 	GMSetCamera(Camera * camera, int target, float fValue);
 	GMSetCamera(Camera * camera, int target, bool bValue);
 	GMSetCamera(Camera * camera, int target, EntitySharedPtr entity);
-	virtual void Process();
+	virtual void Process(GraphicsState* graphicsState);
 
 private:
 	int target;

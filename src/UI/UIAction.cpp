@@ -40,7 +40,7 @@ void UIAction::Nullify()
 	targetElement = 0;
 }
 
-void UIAction::Process(UIElement * forElement)
+void UIAction::Process(GraphicsState* graphicsState, UIElement * forElement)
 {
 	if (targetElement == 0)
 	{
@@ -53,11 +53,11 @@ void UIAction::Process(UIElement * forElement)
 	{
 		case OPEN_DROP_DOWN_MENU:
 			if (targetElement->type == UIType::DROP_DOWN_MENU)
-				((UIDropDownMenu*)targetElement)->Open();
+				((UIDropDownMenu*)targetElement)->Open(graphicsState);
 			break;
 		case CLOSE_DROP_DOWN_MENU:
 			if (targetElement->type == UIType::DROP_DOWN_MENU)
-				((UIDropDownMenu*)targetElement)->Close();
+				((UIDropDownMenu*)targetElement)->Close(graphicsState);
 			break;
 		case SELECT_DROP_DOWN_MENU:
 			if (targetElement->type == UIType::DROP_DOWN_MENU)

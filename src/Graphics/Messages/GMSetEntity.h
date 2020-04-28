@@ -22,7 +22,7 @@ public:
 	GMSetEntityTexture(List< std::shared_ptr<Entity> > entities, Texture * texture);
 	GMSetEntityTexture(List< std::shared_ptr<Entity> > entities, int target, Texture * texture);
 	GMSetEntityTexture(List< std::shared_ptr<Entity> > entities, int target, String textureSource);
-	void Process();
+	virtual void Process(GraphicsState* graphicsState) override;
 private:
 	List< std::shared_ptr<Entity> > entities;
 	Texture * t;
@@ -38,7 +38,7 @@ public:
 	GMSetEntity(List< std::shared_ptr<Entity> > entities, int target, Camera * camera);
 	GMSetEntity(EntitySharedPtr entity, int target, Model * model);
 	GMSetEntity(List< std::shared_ptr<Entity> > entities, int target, String string);
-	void Process();
+	virtual void Process(GraphicsState* graphicsState) override;
 private:
 	EntitySharedPtr otherEntity;
 	String string;
@@ -53,7 +53,7 @@ class GMSetEntityb : public GraphicsMessage
 {
 public:
 	GMSetEntityb(List< std::shared_ptr<Entity> > entities, int target, bool value, bool recursive = false);
-	virtual void Process();
+	virtual void Process(GraphicsState* graphicsState) override;
 private:
 	List< std::shared_ptr<Entity> > entities;
 	bool bValue;
@@ -66,7 +66,7 @@ class GMSetEntitys : public GraphicsMessage
 {
 public:
 	GMSetEntitys(EntitySharedPtr entity, int target, String value);
-	virtual void Process();
+	virtual void Process(GraphicsState* graphicsState) override;
 private:
 	EntitySharedPtr entity;
 	String sValue;
@@ -77,7 +77,7 @@ class GMSetEntityf : public GraphicsMessage
 {
 public:
 	GMSetEntityf(List< std::shared_ptr<Entity> > entities, int target, float value);
-	virtual void Process();
+	virtual void Process(GraphicsState* graphicsState) override;
 private:
 	List< std::shared_ptr<Entity> > entities;
 	float fValue;
@@ -88,7 +88,7 @@ class GMSetEntityi : public GraphicsMessage
 {
 public:
 	GMSetEntityi(List< std::shared_ptr<Entity> > entities, int target, int value);
-	virtual void Process();
+	virtual void Process(GraphicsState* graphicsState) override;
 private:
 	List< std::shared_ptr<Entity> > entities;
 	int iValue;
@@ -99,7 +99,7 @@ class GMSetEntityVec4f : public GraphicsMessage
 {
 public:
 	GMSetEntityVec4f(List< std::shared_ptr<Entity> > entities, int target, const Vector4f & value);
-	virtual void Process();
+	virtual void Process(GraphicsState* graphicsState) override;
 private:
 	List< std::shared_ptr<Entity> > entities;
 	Vector4f vec4fValue;
@@ -112,7 +112,7 @@ class GMSlideEntityf : public GraphicsMessage
 public:
 	GMSlideEntityf(Entities entities, int target, EstimatorFloat * usingPrefilledEstimator);
 	GMSlideEntityf(Entities entities, int target, float targetValue, int timeInMs);
-	virtual void Process();
+	virtual void Process(GraphicsState* graphicsState) override;
 private:
 	Entities entities;
 	EstimatorFloat * estimatorFloat;
@@ -125,7 +125,7 @@ class GMClearEstimators : public GraphicsMessage
 {
 public:
 	GMClearEstimators(Entities entities);
-	virtual void Process();
+	virtual void Process(GraphicsState* graphicsState) override;
 private:
 	Entities entities;
 };

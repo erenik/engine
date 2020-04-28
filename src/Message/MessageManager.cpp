@@ -698,7 +698,7 @@ void MessageManager::ProcessMessage(Message * message)
 					dialog->headerText = params[2];
 					dialog->textToPresent = params[3];
 				}
-				dialog->CreateChildren();
+				dialog->CreateChildren(nullptr);
 				/// Add the dialogue to the global UI
 				Graphics.QueueMessage(new GMAddGlobalUI(dialog, "root"));
 				/// Push it to the top... should not be needed with the global ui.
@@ -780,7 +780,7 @@ void MessageManager::ProcessMessage(Message * message)
 				}
 				/// Create the browser.
 				UIFileBrowser * fileBrowser = new UIFileBrowser(title, action, filter);
-				fileBrowser->CreateChildren();
+				fileBrowser->CreateChildren(nullptr);
 				fileBrowser->LoadDirectory(false);
 				/// Push it to the UI.
 				UserInterface * ui = RelevantUI();

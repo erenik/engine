@@ -32,7 +32,7 @@ void SetColorForWaypoint(Waypoint * wp)
 		color += Vector4f(2.0f,0,0,0.7f);
 	}
 	/// If in selection, highlight
-//	if (GraphicsThreadGraphicsState.selectedWaypoints.Exists(wp)){
+//	if (graphicsState.selectedWaypoints.Exists(wp)){
 	//	color += Vector4f(0.2, 0.2f, 0, 0.2f);
 //	}
 	glColor4f(color[0],color[1],color[2],color[3]);
@@ -55,13 +55,13 @@ void GraphicsManager::RenderNavMesh()
 		
 	/// Draw a line-strip too, using default renderer!
 	int waypointRendered = 0;
-	ShadeMan.SetActiveShader(nullptr, graphicsState);
+	ShadeMan.SetActiveShader(&graphicsState, nullptr);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glLoadMatrixf(GraphicsThreadGraphicsState.projectionMatrixF.getPointer());
+	glLoadMatrixf(graphicsState.projectionMatrixF.getPointer());
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	glLoadMatrixf(GraphicsThreadGraphicsState.viewMatrixF.getPointer());
+	glLoadMatrixf(graphicsState.viewMatrixF.getPointer());
 
 	// Enable blending
 	glEnable(GL_BLEND);	
@@ -69,7 +69,7 @@ void GraphicsManager::RenderNavMesh()
 	float z = -4;
 	glDisable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, 0);
-	GraphicsThreadGraphicsState.currentTexture = NULL;
+	graphicsState.currentTexture = NULL;
 	glLineWidth(2.0f);
 	glPointSize(3.0f);
 
@@ -113,7 +113,7 @@ void GraphicsManager::RenderNavMesh()
 		std::cout<<"redo";
 		/*
 		glDisable(GL_DEPTH_TEST);
-		Path & path = GraphicsThreadGraphicsState.pathToRender;
+		Path & path = graphicsState.pathToRender;
 		glBegin(GL_LINE_STRIP);
 		for (int i = 0; i < path.Waypoints(); ++i){
 			Waypoint * wp = path.GetWaypoint(i);
@@ -186,13 +186,13 @@ void GraphicsManager::RenderPath()
 	}
 	/// Draw a line-strip too, using default renderer!
 	waypointRendered = 0;
-	ShadeMan.SetActiveShader(nullptr, graphicsState);
+	ShadeMan.SetActiveShader(graphicsState, nullptr);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glLoadMatrixf(GraphicsThreadGraphicsState.projectionMatrixF.getPointer());
+	glLoadMatrixf(graphicsState.projectionMatrixF.getPointer());
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	glLoadMatrixf(GraphicsThreadGraphicsState.viewMatrixF.getPointer());
+	glLoadMatrixf(graphicsState.viewMatrixF.getPointer());
 
 	// Enable blending
 	glEnable(GL_BLEND);	
@@ -200,7 +200,7 @@ void GraphicsManager::RenderPath()
 	float z = -4;
 	glDisable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, 0);
-	GraphicsThreadGraphicsState.currentTexture = NULL;
+	graphicsState.currentTexture = NULL;
 	glLineWidth(2.0f);
 
 	glBegin(GL_LINE_STRIP);

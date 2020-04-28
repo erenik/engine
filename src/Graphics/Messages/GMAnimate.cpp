@@ -11,7 +11,7 @@ GMQueueAnimation::GMQueueAnimation(String animationName, EntitySharedPtr forEnti
 {
 }
 
-void GMQueueAnimation::Process()
+void GMQueueAnimation::Process(GraphicsState* graphicsState)
 {
 	if (!entity)
 		return;
@@ -26,7 +26,7 @@ GMPlayAnimation::GMPlayAnimation(String animationName, EntitySharedPtr forEntity
 {
 }
 
-void GMPlayAnimation::Process()
+void GMPlayAnimation::Process(GraphicsState* graphicsState)
 {
 	if (!entity)
 		return;
@@ -39,7 +39,7 @@ GMPlaySkeletalAnimation::GMPlaySkeletalAnimation(EntitySharedPtr entity)
 	: GraphicsMessage(GM_PLAY_ANIMATION), entity(entity)
 {
 }
-void GMPlaySkeletalAnimation::Process()
+void GMPlaySkeletalAnimation::Process(GraphicsState* graphicsState)
 {
 	entity->graphics->skeletalAnimationEnabled = true;
 }

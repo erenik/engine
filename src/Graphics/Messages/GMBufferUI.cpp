@@ -10,7 +10,7 @@ GMBufferUI::GMBufferUI(UIElement * i_element): GraphicsMessage(GM_BUFFER_UI)
 	this->element = i_element;
 }
 
-void GMBufferUI::Process()
+void GMBufferUI::Process(GraphicsState* graphicsState)
 {
 	
 	// Check if already buffered. If so re-create the mesh in it's entirety.

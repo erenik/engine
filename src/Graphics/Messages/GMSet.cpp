@@ -83,15 +83,15 @@ GMSet * GMSet::FarPlane(int newValue)
 	return gt;
 }
 
-void GMSet::Process()
+void GMSet::Process(GraphicsState* graphicsState)
 {
 	switch(target)
 	{
 		case GT_ANTIALIASING:
-			GraphicsThreadGraphicsState.antialiasing = bValue;
+			graphicsState->antialiasing = bValue;
 			break;
 		case GT_FAR_PLANE:
-			GraphicsThreadGraphicsState.farPlane = iValue;
+			graphicsState->farPlane = iValue;
 			break;
 		case GT_RENDER_GRID:
 			WindowMan.MainWindow()->MainViewport()->renderGrid = bValue;
@@ -100,13 +100,13 @@ void GMSet::Process()
 			Graphics.cameraToTrack = (Camera*)pData;
 			break;
 		case GT_FOG_BEGIN:
-			GraphicsThreadGraphicsState.fogBegin = floatValue;
+			graphicsState->fogBegin = floatValue;
 			break;
 		case GT_FOG_END:
-			GraphicsThreadGraphicsState.fogEnd = floatValue;
+			graphicsState->fogEnd = floatValue;
 			break;
 	    case GT_CLEAR_COLOR:
-			GraphicsThreadGraphicsState.clearColor = vec3fValue;
+			graphicsState->clearColor = vec3fValue;
             break;
 		case GT_OVERLAY_TEXTURE: {
 			Texture * t = (Texture*) pData;
@@ -136,7 +136,7 @@ GMSeti::GMSeti(int target, int iValue)
 	}
 }
 
-void GMSeti::Process()
+void GMSeti::Process(GraphicsState* graphicsState)
 {
 	switch(target)
 	{
@@ -152,15 +152,15 @@ GMSetf::GMSetf(int target, float value): GraphicsMessage(GM_SET_FLOAT) {
 	this->floatValue = value;
 }
 
-void GMSetf::Process()
+void GMSetf::Process(GraphicsState* graphicsState)
 {	
 	switch (target){
 		case GT_GRID_SPACING: {
-			GraphicsThreadGraphicsState.gridSpacing = floatValue;
+			graphicsState->gridSpacing = floatValue;
 			break;
 		}
 		case GT_GRID_SIZE: {
-			GraphicsThreadGraphicsState.gridSize = (int)floatValue;
+			graphicsState->gridSize = (int)floatValue;
 			break;
 		}
 		default: {
@@ -170,7 +170,7 @@ void GMSetf::Process()
 	}
 }
 
-void GMSets::Process(){
+void GMSets::Process(GraphicsState* graphicsState){
 	switch(target){
 		case GT_OVERLAY_TEXTURE: {
 			Graphics.SetOverlayTexture(str);
@@ -188,7 +188,7 @@ GMSetData::GMSetData(List<Vector3f> * targetList, List<Vector3f> newData)
 	: GraphicsMessage(GM_SET_DATA), targetList(targetList), newData(newData)
 {
 }
-void GMSetData::Process()
+void GMSetData::Process(GraphicsState* graphicsState)
 {
 	*targetList = newData;
 }
@@ -199,7 +199,7 @@ GMSetGlobalUI::GMSetGlobalUI(UserInterface *ui, AppWindow * window)
 {
 }
 
-void GMSetGlobalUI::Process()
+void GMSetGlobalUI::Process(GraphicsState* graphicsState)
 {
 	/// Allow single windows for all projects with them no more.
 	if (!window)
@@ -239,7 +239,7 @@ GMSetUI::GMSetUI(UserInterface * ui, Viewport * i_viewport /* = NULL */)
 : GraphicsMessage(GM_SET_UI), ui(ui), viewport(i_viewport)
 {
 }
-void GMSetUI::Process()
+void GMSetUI::Process(GraphicsState* graphicsState)
 {
 	/// First remove the old UI.
 	UserInterface * oldUI = NULL;
@@ -303,7 +303,7 @@ GMSetOverlay::GMSetOverlay(Texture * tex, int fadeInTimeInMs)
 }
 
 
-void GMSetOverlay::Process()
+void GMSetOverlay::Process(GraphicsState* graphicsState)
 {
 	if (tex)
 		Graphics.SetOverlayTexture(tex, fadeInTimeInMs);
@@ -346,23 +346,23 @@ GMSetResolution * GMSetResolution::ToNaturalRatio()
 	return gm;
 }
 
-void GMSetResolution::Process()
+void GMSetResolution::Process(GraphicsState* graphicsState)
 {
 	if (naturalRatio)
 	{
-		GraphicsThreadGraphicsState.renderResolution = MainWindow()->ClientAreaSize();
-		GraphicsThreadGraphicsState.resolutionLocked = false;
+		graphicsState->renderResolution = MainWindow()->ClientAreaSize();
+		graphicsState->resolutionLocked = false;
 		return;
 	}
 	if (staticRatio)
 	{
-		GraphicsThreadGraphicsState.relativeResolution = ratio;
-		GraphicsThreadGraphicsState.renderResolution = MainWindow()->ClientAreaSize() * ratio;
-		GraphicsThreadGraphicsState.resolutionLocked = false;
+		graphicsState->relativeResolution = ratio;
+		graphicsState->renderResolution = MainWindow()->ClientAreaSize() * ratio;
+		graphicsState->resolutionLocked = false;
 		return;
 	}
-	if (GraphicsThreadGraphicsState.resolutionLocked && !lock)
+	if (graphicsState->resolutionLocked && !lock)
 		return;
-	GraphicsThreadGraphicsState.renderResolution = res * GraphicsThreadGraphicsState.relativeResolution;
-	GraphicsThreadGraphicsState.resolutionLocked = lock;
+	graphicsState->renderResolution = res * graphicsState->relativeResolution;
+	graphicsState->resolutionLocked = lock;
 }

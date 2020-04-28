@@ -25,7 +25,7 @@ GMSetLighting::GMSetLighting(Lighting * lightingPtr)
 GMSetLighting::~GMSetLighting(){
 }
 
-void GMSetLighting::Process()
+void GMSetLighting::Process(GraphicsState* graphicsState)
 {
 	if (lightingPtr)
 		GraphicsMan.lighting = *lightingPtr;

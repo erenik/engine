@@ -36,7 +36,7 @@ public:
 		/// Integrates all particles.
 	virtual void ProcessParticles(float & timeInSeconds);
 	/// Update buffers to use when rendering.
-	virtual void UpdateBuffers();
+	virtual void UpdateBuffers(GraphicsState* graphicsState) override;
 
     void PrintData();
 	void AttachTo(EntitySharedPtr entity, ConstMat4r relativePosition);

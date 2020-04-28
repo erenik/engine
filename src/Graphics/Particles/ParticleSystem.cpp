@@ -163,7 +163,7 @@ void ParticleSystem::AllocateArrays()
 }
 
 
-void ParticleSystem::Process(float timeInSeconds)
+void ParticleSystem::Process(GraphicsState * graphicsState, float timeInSeconds)
 {
 	if (!initialized)
 		Initialize();
@@ -186,7 +186,7 @@ void ParticleSystem::Process(float timeInSeconds)
 	FrameStats.particleSpawning = (float) timer.GetMs();
 	// Update buffers to use when rendering.
 	timer.Start();
-	UpdateBuffers();
+	UpdateBuffers(graphicsState);
 	timer.Stop();
 	FrameStats.particleBufferUpdate = (float) timer.GetMs();
 }
@@ -333,26 +333,26 @@ void ParticleSystem::SpawnNewParticles(int & timeInMs)
 }	
 
 /// Update buffers to use when rendering.
-void ParticleSystem::UpdateBuffers()
+void ParticleSystem::UpdateBuffers(GraphicsState* graphicsState)
 {
 	// The VBO containing the positions and sizes of the particles
 	if (particlePositionScaleBuffer == -1)
 	{
 		particlePositionScaleBuffer = GLBuffers::New();
-		GraphicsThreadGraphicsState.BindVertexArrayBuffer(particlePositionScaleBuffer);
+		graphicsState->BindVertexArrayBuffer(particlePositionScaleBuffer);
 		glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
 	}
 	if (particleLifeTimeDurationScaleBuffer == -1)
 	{
 		particleLifeTimeDurationScaleBuffer = GLBuffers::New();
-		GraphicsThreadGraphicsState.BindVertexArrayBuffer(particleLifeTimeDurationScaleBuffer);
+		graphicsState->BindVertexArrayBuffer(particleLifeTimeDurationScaleBuffer);
 		glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
 	}
 	// The VBO containing the colors of the particles
 	if (particleColorBuffer == -1)
 	{
 		particleColorBuffer = GLBuffers::New();
-		GraphicsThreadGraphicsState.BindVertexArrayBuffer(particleColorBuffer);
+		graphicsState->BindVertexArrayBuffer(particleColorBuffer);
 #ifdef SSE_PARTICLES
 		glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
 #else
@@ -362,13 +362,13 @@ void ParticleSystem::UpdateBuffers()
 
 #ifdef SSE_PARTICLES
 	// Buffer the actual data.
-	GraphicsThreadGraphicsState.BindVertexArrayBuffer(particlePositionScaleBuffer);
+	graphicsState->BindVertexArrayBuffer(particlePositionScaleBuffer);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, aliveParticles * sizeof(GLfloat) * 4, positionsSSE);
  
-	GraphicsThreadGraphicsState.BindVertexArrayBuffer(particleColorBuffer);
+	graphicsState->BindVertexArrayBuffer(particleColorBuffer);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, aliveParticles * sizeof(GLfloat) * 4, colorsSSE);
 
-	GraphicsThreadGraphicsState.BindVertexArrayBuffer(particleLifeTimeDurationScaleBuffer);
+	graphicsState->BindVertexArrayBuffer(particleLifeTimeDurationScaleBuffer);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, aliveParticles * sizeof(GLfloat) * 4, ldsSSE);
 #endif
 	CheckGLError("ParticleSystem::UpdateBuffers");
@@ -399,7 +399,7 @@ bool ParticleSystem::FetchTextures()
 	return true;
 }
 
-void ParticleSystem::Render(GraphicsState & graphicsState)
+void ParticleSystem::Render(GraphicsState * graphicsState)
 {
 	CheckGLError("Before ParticleSystem::Render");
    	if (!FetchTextures())
@@ -473,18 +473,18 @@ void ParticleSystem::SetAlphaDecay(int decayType)
 }
 
 /// For setting specific uniforms after most other properties have been set up.
-void ParticleSystem::SetUniforms()
+void ParticleSystem::SetUniforms(GraphicsState* graphicsState)
 {
 	Shader * shader = ActiveShader();
 	// Set decay type.
 	if (shader->uniformParticleDecayAlphaWithLifeTime != -1)
 		glUniform1i(shader->uniformParticleDecayAlphaWithLifeTime, decayAlphaWithLifeTime);
 
-	Vector3f right = -GraphicsThreadGraphicsState.camera->LeftVector();
+	Vector3f right = -graphicsState->camera->LeftVector();
 	if (shader->uniformCameraRightWorldSpace != -1)
 	{
 		glUniform3f(shader->uniformCameraRightWorldSpace, right.x, right.y, right.z);
-		Vector3f up = GraphicsThreadGraphicsState.camera->UpVector();
+		Vector3f up = graphicsState->camera->UpVector();
 		glUniform3f(shader->uniformCameraUpWorldSpace, up.x, up.y, up.z);
 	}
 	if (shader->uniformScale != -1)
@@ -497,7 +497,7 @@ void ParticleSystem::SetUniforms()
 /** Renders using instanced functions such as glDrawArraysInstanced and glVertexAttribDivisor, requiring GL versions
 	3.1 and 3.3 respectively. Ensure these requirements are fulfilled before calling the function or the program will crash.
 */
-void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
+void ParticleSystem::RenderInstanced(GraphicsState * graphicsState)
 {
 #define LogParticleSystem(text, errorLevel) LogGraphics(name+": "+text, errorLevel);
 #define CheckGLErrorParticle(text) CheckGLError(type+": "+text);
@@ -509,7 +509,7 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 		return;
 	}
 	LogGraphics("ParticleSystem::RenderInstanced", EXTENSIVE_DEBUG);
-	shader = ShadeMan.SetActiveShader(shader, graphicsState);
+	shader = ShadeMan.SetActiveShader(graphicsState, shader);
 	if (!shader)
 	{
 		LogGraphics("Bad shader "+shaderName, ERROR);
@@ -518,21 +518,21 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 	// Set projection and view matrices
 	if (shader->uniformViewProjectionMatrix != -1)
 	{
-		Matrix4f viewProjection = graphicsState.camera->ViewProjectionF();
+		Matrix4f viewProjection = graphicsState->camera->ViewProjectionF();
 		glUniformMatrix4fv(shader->uniformViewProjectionMatrix, 1, false, viewProjection.getPointer());
 	}
 	/// Obsolete, but may still want this to work for a while..
 	else 
 	{
-		glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, graphicsState.camera->ViewMatrix4f().getPointer());	
-		glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, graphicsState.camera->ProjectionMatrix4f().getPointer());	
+		glUniformMatrix4fv(shader->uniformViewMatrix, 1, false, graphicsState->camera->ViewMatrix4f().getPointer());	
+		glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, graphicsState->camera->ProjectionMatrix4f().getPointer());	
 	}
 	Matrix4f modelMatrix;
 	if (shader->uniformModelMatrix != -1)
 		glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, modelMatrix.getPointer());
 
 	// Set uniforms
-	SetUniforms();
+	SetUniforms(graphicsState);
 	CheckGLError("ParticleSystem::RenderInstanced - set uniforms");
 
 
@@ -585,7 +585,7 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 	// 1rst attribute buffer : vertices
 	if (shader->attributeParticlePositionScale != -1 && particlePositionScaleBuffer != -1)
 	{
-		graphicsState.BindVertexArrayBuffer(particlePositionScaleBuffer);
+		graphicsState->BindVertexArrayBuffer(particlePositionScaleBuffer);
 		glEnableVertexAttribArray(shader->attributeParticlePositionScale);
 		glVertexAttribPointer(shader->attributeParticlePositionScale, 4, GL_FLOAT, GL_FALSE, 0, (void*)0);
 		glVertexAttribDivisor(shader->attributeParticlePositionScale, 1); 
@@ -595,7 +595,7 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 	}
 	if (shader->attributeColor != -1 && particleColorBuffer != -1)
 	{
-		graphicsState.BindVertexArrayBuffer(particleColorBuffer);
+		graphicsState->BindVertexArrayBuffer(particleColorBuffer);
 		glEnableVertexAttribArray(shader->attributeColor);
 		glVertexAttribPointer(shader->attributeColor, 4, GL_FLOAT, GL_TRUE, 0, (void*)0);
 		glVertexAttribDivisor(shader->attributeColor, 1);
@@ -607,7 +607,7 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 	/// Set up life time, duration and scale (used for rain).
 	if (shader->attributeParticleLifeTimeDurationScale != -1 && particleLifeTimeDurationScaleBuffer != -1)
 	{
-		graphicsState.BindVertexArrayBuffer(particleLifeTimeDurationScaleBuffer);
+		graphicsState->BindVertexArrayBuffer(particleLifeTimeDurationScaleBuffer);
 		glEnableVertexAttribArray(shader->attributeParticleLifeTimeDurationScale);
 		glVertexAttribPointer(shader->attributeParticleLifeTimeDurationScale, 4, GL_FLOAT, GL_FALSE, 0, (void*)0);
 		glVertexAttribDivisor(shader->attributeParticleLifeTimeDurationScale, 1); 
@@ -642,7 +642,7 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 	// Draw the particules !
 	glDrawArraysInstanced(GL_TRIANGLES, 0, mesh->vertexDataCount, aliveParticles);
 
-	graphicsState.BindVertexArrayBuffer(0);
+	graphicsState->BindVertexArrayBuffer(0);
 	CheckGLErrorParticle("ParticleSystem::RenderInstanced - post draw");
 
 	// Reset the instancing/divisor attributes or shading will fail on other shaders after this!
@@ -666,7 +666,7 @@ void ParticleSystem::RenderInstanced(GraphicsState & graphicsState)
 	CheckGLErrorParticle("ParticleSystem::RenderInstanced - unbind");
 }
 
-void ParticleSystem::RenderOld(GraphicsState & graphicsState)
+void ParticleSystem::RenderOld(GraphicsState * graphicsState)
 {
 	LogGraphics("ParticleSystem::RenderOld, update code or GL version?", ERROR); // Better log than crash in vain, hm?
 //	assert(false && "Deprecated.");

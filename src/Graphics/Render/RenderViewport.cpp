@@ -44,7 +44,7 @@ void GraphicsManager::RenderViewport(Viewport * vp)
 		return;
 	}
 	// Movement should be processed.. in physics or earlier.
-//	camera->ProcessMovement(GraphicsThreadGraphicsState.frameTime);
+//	camera->ProcessMovement(graphicsState.frameTime);
 	camera->SetRatioI(width, height);
 	camera->UpdateProjectionMatrix();
 	// Set active camera to current one

@@ -8,18 +8,15 @@
 #include "String/AEString.h"
 #include "System/DataTypes.h"
 
-namespace TimeType
-{
-	enum {
-		UNDEFINED,
-		// http://msdn.microsoft.com/en-us/library/windows/desktop/ms724284%28v=vs.85%29.aspx
-		WIN32_100NANOSEC_SINCE_JAN1_1601, 
-		// Default linux time and gettimeofday function return value. See linux.die.net/man/2/time and linux.die.net/man/2/gettimeofday
-		LINUX_MICROSEC_SINCE_JAN1_1970,
-		// Custom type only used for handling in-game minute/hour/day cycles within e.g. the Weather system.
-		MILLISECONDS_NO_CALENDER,
-		TIME_TYPES
-	};
+enum TimeType {
+	UNDEFINED,
+	// http://msdn.microsoft.com/en-us/library/windows/desktop/ms724284%28v=vs.85%29.aspx
+	WIN32_100NANOSEC_SINCE_JAN1_1601, 
+	// Default linux time and gettimeofday function return value. See linux.die.net/man/2/time and linux.die.net/man/2/gettimeofday
+	LINUX_MICROSEC_SINCE_JAN1_1970,
+	// Custom type only used for handling in-game minute/hour/day cycles within e.g. the Weather system.
+	MILLISECONDS_NO_CALENDER,
+	TIME_TYPES
 };
 
 /// There can only be one time.
@@ -29,9 +26,9 @@ class AETime
 public:
 	/// 0 time.
 	Time();
-	Time(int type);
+	Time(TimeType type);
 	/// Time using a given type and starting-point. 
-	Time(int type, uint64 intervals);
+	Time(TimeType type, uint64 intervals);
 	/// Unit test.
 	static void Test();
 	/// o.o
@@ -39,7 +36,7 @@ public:
 	/// Returns current time in default time-type/-format.
 	static Time Now();
 	/// Dicates default type of created Time objects. Default is TimeType::UNDEFINED
-	static int defaultType;
+	static TimeType defaultType;
 
 	/** Valid format, where the following characters will be replaced as follows:
 		Y - year in 4 digits
@@ -73,7 +70,7 @@ public:
 	operator const int32 () const;
 	
 	/// Converts this time into specified type.
-	void ConvertTo(int type);
+	void ConvertTo(TimeType type);
 
 	/// o.o
 	void AddMs(int amount);
@@ -111,7 +108,7 @@ public:
 	/// Prints type, intervals, and relevant unit
 	void PrintData();
 	/// o-o
-	int Type(){ return type;};
+	TimeType Type(){ return type;};
 
 	int IntervalsPerHour();
 	int IntervalsPerMinute();
@@ -130,7 +127,7 @@ private:
 	int year;
 
 	/// See enumeratoin above. Defines the duration of one interval, but may also affect how the accessors work (e.g. for other calender-types).
-	int type;
+	TimeType type;
 };
 
 #endif

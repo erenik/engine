@@ -114,7 +114,7 @@ void UIVideo::RenderSelf(GraphicsState & graphicsState)
 	/// Save old shader!
 	Shader * pastShader = ActiveShader();
 
-	ShadeMan.SetActiveShader(nullptr, graphicsState);
+	ShadeMan.SetActiveShader(&graphicsState, nullptr);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glLoadMatrixf(graphicsState.projectionMatrixF.getPointer());
@@ -174,5 +174,5 @@ void UIVideo::RenderSelf(GraphicsState & graphicsState)
 		glVertex3f(x1, y2, 0);
 	glEnd();
 	
-	ShadeMan.SetActiveShader(pastShader, graphicsState);
+	ShadeMan.SetActiveShader(&graphicsState, pastShader);
 }

@@ -259,7 +259,7 @@ Light * Lighting::NewLight(String name)
 	Light * light = new Light(this);
 	light->name = name;
 	activeLight = light;
-	lastUpdate = Timer::GetCurrentTimeMs();
+	lastUpdate = AETime(TimeType::MILLISECONDS_NO_CALENDER, Timer::GetCurrentTimeMs());
 	lights.Add(light);
 	// Update UI if needed.
 	UpdateLightList();
@@ -524,15 +524,15 @@ void Lighting::ReadFrom(std::fstream & file)
 }
 
 /// Fills the big arrays with data from the individual lights.
-void Lighting::PrepareForLoading()
+void Lighting::PrepareForLoading(GraphicsState* graphicsState)
 {
 	activeLights = 0;
 	ambient[0] = global_ambient[0];
 	ambient[1] = global_ambient[1];
 	ambient[2] = global_ambient[2];
 	ambient[3] = global_ambient[3];
-	assert(GraphicsThreadGraphicsState.camera);
-	Vector3f camPos = GraphicsThreadGraphicsState.camera->position;
+	assert(graphicsState->camera);
+	Vector3f camPos = graphicsState->camera->position;
 	for (int i = 0; i < lights.Size() && activeLights < MAX_LIGHTS; ++i)
 	{
 		Light * light = lights[i];
@@ -589,7 +589,7 @@ void Lighting::PrepareForLoading()
 }
 
 /// Loads selected lighting into the active shader program
-void Lighting::LoadIntoShader(Shader * shader)
+void Lighting::LoadIntoShader(GraphicsState* graphicsState, Shader * shader)
 {
 	GLuint loc = -1, error;
 	error = glGetError();
@@ -613,7 +613,7 @@ void Lighting::LoadIntoShader(Shader * shader)
 	/// Only update once per frame, as needed.
 	if (graphicsFrameNumber != lastPreparationFrame)
 	{
-		PrepareForLoading();
+		PrepareForLoading(graphicsState);
 		/// Update.
 		lastPreparationFrame = graphicsFrameNumber;
 	}

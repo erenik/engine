@@ -76,7 +76,7 @@ void UIStringInput::OnInputUpdated(UIInput * inputElement, GraphicsState& graphi
 }
 
 // For managing old texts.
-int UIStringInput::OnKeyDown(int keyCode, bool downBefore, GraphicsState& graphicsState)
+int UIStringInput::OnKeyDown(GraphicsState* graphicsState, int keyCode, bool downBefore)
 {
 	// Check for previous texts?
 	int indexDesired = index;
@@ -107,7 +107,7 @@ int UIStringInput::OnKeyDown(int keyCode, bool downBefore, GraphicsState& graphi
 
 
 /// Creates the label and input.
-void UIStringInput::CreateChildren()
+void UIStringInput::CreateChildren(GraphicsState * graphicsState)
 {
 	if (childrenCreated)
 		return;
@@ -115,15 +115,15 @@ void UIStringInput::CreateChildren()
 	/// Use a column-list to automatically get links between the elements, etc.
 	UIColumnList * box = new UIColumnList();
 	box->padding = this->padding;
-	AddChild(box);
+	AddChild(nullptr, box);
 
 	/// Create a label
 	label = new UILabel();
-	label->text = labelText;
+	label->text = displayText;
 	label->sizeRatioX = divider.x;
-	box->AddChild(label);
+	box->AddChild(nullptr, label);
 
-	/// Create 3 children
+	/// Create input
 	input = new UIInput();
 	input->textureSource = textureSource;
 	/// Set them to only accept floats?
@@ -137,7 +137,7 @@ void UIStringInput::CreateChildren()
 		input->activateable = false;
 		input->highlightOnHover = false;
 	}
-	box->AddChild(input);
+	box->AddChild(nullptr, input);
 	childrenCreated = true;
 }
 /// Getter/setter for the input element.

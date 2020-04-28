@@ -258,7 +258,7 @@ void GraphicsManager::InitRenderPipelineManager()
 {
 	LogGraphics("Initializing RenderPipeline manager", INFO);
 	RenderPipelineManager::Allocate();
-	RenderPipeMan.LoadFromPipelineConfig(); 
+	RenderPipeMan.LoadFromPipelineConfig(&graphicsState); 
 	//RenderPipeMan.activePipeline->Render(graphicsState); // Test-render with the pipeline with an empty graphics state to fetch relevant shaders.
 	// Recompile shaders afterwards
 	ShaderMan.RecompileAllShaders();
@@ -524,7 +524,7 @@ void GraphicsManager::ProcessMessage(GraphicsMessage * msg)
 {
 	while(!graphicsMessageQueueMutex.Claim(-1))
 		;
-	msg->Process();
+	msg->Process(&graphicsState);
 	delete msg;
 	graphicsMessageQueueMutex.Release();
 }
@@ -578,7 +578,7 @@ void GraphicsManager::ProcessMessages()
 	for (int i = 0; i < numMessages; ++i)
 	{
 		GraphicsMessage * gm = graphicsMessages[i];
-		gm->Process();
+		gm->Process(&graphicsState);
 		if (gm->retry && gm->maxRetryAttempts > 0)
 		{
 			--gm->maxRetryAttempts;
@@ -985,7 +985,7 @@ void GraphicsManager::Process()
 	for (int i = 0; i < particleSystems.Size(); ++i)
 	{
 		ParticleSystem * ps = particleSystems[i];
-		ps->Process(milliseconds * 0.001f);
+		ps->Process(&graphicsState, milliseconds * 0.001f);
 	}
 	/// Process entity specific controls and systems
 	for (int i = 0; i < registeredEntities.Size(); ++i)

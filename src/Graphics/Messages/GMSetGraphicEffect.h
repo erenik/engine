@@ -16,7 +16,7 @@ public:
 	GMSetGraphicEffect(int target, String effectName, float value, EntitySharedPtr owner = NULL);
 	GMSetGraphicEffect(int target, String effectName, const Vector3f & value, EntitySharedPtr owner = NULL);
 	GMSetGraphicEffect(int target, String effectName, void * data, EntitySharedPtr owner = NULL); // For any pointer, yo.
-	void Process();
+	virtual void Process(GraphicsState* graphicsState) override;
 private:
 	int target;
 	float floatValue;

@@ -21,7 +21,7 @@ GMSetGraphicEffect::GMSetGraphicEffect(int target, String effectName, void * dat
 
 }
 
-void GMSetGraphicEffect::Process()
+void GMSetGraphicEffect::Process(GraphicsState* graphicsState)
 {
 	GraphicEffect * gfx = NULL;
 	List<GraphicEffect*> & effects = owner->graphics->effects;

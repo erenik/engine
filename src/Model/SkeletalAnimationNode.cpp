@@ -238,7 +238,7 @@ void SkeletalAnimationNode::AnimateForTime(int64 timeInMs, bool loop /*= false*/
 	for (int i = 0; i < animations.Size(); ++i)
 	{
 		Estimator * animation = animations[i];
-		animation->Estimate(timeInMs, loop);
+		animation->Estimate(AETime(TimeType::MILLISECONDS_NO_CALENDER, timeInMs), loop);
 	}
 	
 	// Update matrices.

@@ -255,7 +255,7 @@ UIElement * UserInterface::Activate(){
 	if (!stackTop)
 		return NULL;
 	UIElement * result = NULL;
-	result = stackTop->Activate();
+	result = stackTop->Activate(nullptr);
 	if (result)
 	{
 		if (result->activationMessage.Length() == 0){
@@ -290,7 +290,7 @@ bool UserInterface::HasActivatableElement()
 }
 
 /// Sets target element as hovered one, removing the flag from all other elements.
-void UserInterface::SetHoverElement(UIElement * targetElement)
+void UserInterface::SetHoverElement(GraphicsState* graphicsState, UIElement * targetElement)
 {
 	/// Remove the hover flag from all other UIs in the same stack.
 	RemoveState(UIState::HOVER);
@@ -298,7 +298,7 @@ void UserInterface::SetHoverElement(UIElement * targetElement)
 		return;
 	/// Then add it to our specified one.
 	targetElement->AddState(UIState::HOVER);
-	targetElement->EnsureVisibility();
+	targetElement->EnsureVisibility(graphicsState);
 	targetElement->OnHover();
 }
 
@@ -328,7 +328,7 @@ UIElement * UserInterface::GetElementByPosition(float x, float y)
 }
 
 /// Woo!
-UIElement * UserInterface::GetElement(String byName, int andType)
+UIElement * UserInterface::GetElement(String byName, UIType andType)
 {
 	if (!root)
 		return NULL;
@@ -838,11 +838,11 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 	}
 #define ADD_PREVIOUS_TO_UI_IF_NEEDED {\
 	if (element && element != root){\
-		bool addedOK = root->AddToParent(defaultParent, element);\
+		bool addedOK = root->AddToParent(nullptr, defaultParent, element);\
 		if (!addedOK)\
 			delete element;\
 		else\
-			element->CreateChildren();\
+			element->CreateChildren(nullptr);\
 		}\
 	element = NULL;\
 	}
@@ -1167,7 +1167,7 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 				UIDropDownMenu * ddm = new UIDropDownMenu(firstQuote);
 				element = ddm;
 				SET_DEFAULTS;
-				ddm->CreateChildren();
+				ddm->CreateChildren(nullptr);
 			}
 			else if (token == "Matrix")
 			{
@@ -1175,7 +1175,7 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 				UIMatrix * matrix = new UIMatrix(firstQuote);
 				element = matrix;
 				SET_DEFAULTS;
-				matrix->CreateChildren();
+				matrix->CreateChildren(nullptr);
 			}
 			else if (token == "TextureInput")
 			{
@@ -1183,12 +1183,13 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 				UITextureInput * ti = new UITextureInput(firstQuote, "Set"+firstQuote);
 				element = ti;
 				SET_DEFAULTS;
-				ti->CreateChildren();
+				ti->CreateChildren(nullptr);
 			}
 			else if (token == "StringInput")
 			{
 				ADD_PREVIOUS_TO_UI_IF_NEEDED;
-				UIStringInput * si = new UIStringInput(firstQuote, "Set"+firstQuote);
+				UIStringInput * si = new UIStringInput(tokens[1], "Set"+tokens[1]);
+				si->displayText = firstQuote;
 				element = si;
 				SET_DEFAULTS;
 				// Can craete it later..?
@@ -1211,7 +1212,7 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 				UIIntegerInput * ii = new UIIntegerInput(firstQuote, "Set"+firstQuote);
 				element = ii;
 				SET_DEFAULTS
-				ii->CreateChildren();
+				ii->CreateChildren(nullptr);
 			}
 			else if (token == "IntegerLabel") // Creates an Integer-display which is not interactable via GUI, just for display.
 			{
@@ -1220,7 +1221,7 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 				element = ii;
 				SET_DEFAULTS
 				ii->guiInputDisabled = true;
-				ii->CreateChildren();				
+				ii->CreateChildren(nullptr);				
 			}
 			else if (token == "StringLabel") // Creates an String-display which is not interactable via GUI, just for display.
 			{
@@ -1229,14 +1230,14 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 				element = si;
 				SET_DEFAULTS;
 				si->guiInputDisabled = true;
-				si->CreateChildren();
+				si->CreateChildren(nullptr);
 			}
 			else if (token == "FloatInput"){
 				ADD_PREVIOUS_TO_UI_IF_NEEDED
 				UIFloatInput * fi = new UIFloatInput(firstQuote, "Set"+firstQuote);
 				element = fi;
 				SET_DEFAULTS
-				fi->CreateChildren();
+				fi->CreateChildren(nullptr);
 			}	
 			else if (token == "FloatValue")
 			{
@@ -1254,7 +1255,7 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 				UIVectorInput * vi = new UIVectorInput(firstQuote.ParseInt(), secondQuote, action);
 				element = vi;
 				SET_DEFAULTS
-				vi->CreateChildren();
+				vi->CreateChildren(nullptr);
 			}
 			else if (token == "RadioButtons")
 			{
@@ -1363,6 +1364,11 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 			{
 				ENSURE_NEXT_TOKEN
 				element->removeOnPop = NEXT_TOKEN.ParseBool();
+			}
+			else if (token == "onEnterScope")
+			{
+				ENSURE_NEXT_TOKEN
+				element->onEnterScope = NEXT_TOKEN;
 			}
 			else if (token == "onPop")
 			{
@@ -1588,7 +1594,7 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 					}
                     std::cout<<"\nAdding element "<<element->name<<" as child to "<<e->name;
                     int childrenPre = e->children.Size();
-					e->AddChild(element);
+					e->AddChild(nullptr, element);
                     int children = e->children.Size();
                     assert(children > childrenPre);
 				}
@@ -1596,7 +1602,7 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 					assert(element && "Element NULL! No element has been defined or it was already added! o-o");
 					if (element == NULL)
 						break;
-					root->AddChild(element);
+					root->AddChild(nullptr, element);
 				}
 				element = NULL;
 			}

@@ -11,7 +11,7 @@ GMRegisterEntity::GMRegisterEntity(EntitySharedPtr i_entity) : GraphicsMessage(G
 	entity = i_entity;
 }
 
-void GMRegisterEntity::Process()
+void GMRegisterEntity::Process(GraphicsState* graphicsState)
 {
 	if (!EntityMan.IsGood(entity))
 		return;
@@ -30,7 +30,7 @@ GMRegisterEntities::GMRegisterEntities(Entities i_selection) : GraphicsMessage(G
 	selection = i_selection;
 }
 
-void GMRegisterEntities::Process()
+void GMRegisterEntities::Process(GraphicsState* graphicsState)
 {
 	for (int i = 0; i < selection.Size(); ++i)
 	{
@@ -49,7 +49,7 @@ target(GT_PARTICLE_SYSTEMS)
 {
 }
 
-void GMRegister::Process()
+void GMRegister::Process(GraphicsState* graphicsState)
 {	
 	switch(target){
 		case GT_PARTICLE_SYSTEMS:
@@ -64,7 +64,7 @@ GMClear::GMClear(int target)
 : GraphicsMessage(GM_CLEAR), target(target){
 }
 
-void GMClear::Process()
+void GMClear::Process(GraphicsState* graphicsState)
 {
 	switch(target){
 		case GT_PARTICLE_SYSTEMS:

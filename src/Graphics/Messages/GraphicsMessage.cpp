@@ -40,7 +40,7 @@ GraphicsMessage::GraphicsMessage(int i_type)
 GraphicsMessage::~GraphicsMessage(){
 }
 
-void GraphicsMessage::Process()
+void GraphicsMessage::Process(GraphicsState* graphicsState)
 {
 	switch(type)
 	{
@@ -83,7 +83,7 @@ void GraphicsMessage::Process()
 			if (pipe != NULL)
 				name = pipe->name;
 			LogGraphics("Cycling to next render pipeline: " + name, INFO);
-			GraphicsThreadGraphicsState.renderPipe = pipe;
+			graphicsState->renderPipe = pipe;
 			break;
 		}
 		case GM_CYCLE_RENDER_PIPELINE_BACK:	
@@ -93,19 +93,19 @@ void GraphicsMessage::Process()
 			if (pipe != NULL)
 				name = pipe->name;
 			LogGraphics("Cycling to previous render pipeline: " + name, INFO);
-			GraphicsThreadGraphicsState.renderPipe = pipe;
+			graphicsState->renderPipe = pipe;
 			break;
 		}
 		case GM_RECORD_VIDEO: 
 		{
-			GraphicsThreadGraphicsState.recording = !GraphicsThreadGraphicsState.recording; 
+			graphicsState->recording = !graphicsState->recording; 
 			break;
 		}
 		case GM_PRINT_SCREENSHOT:
 		{
 			AppWindow * activeWindow = ActiveWindow();
 			activeWindow->saveScreenshot = true;
-	//		GraphicsThreadGraphicsState.promptScreenshot = true;
+	//		graphicsState->promptScreenshot = true;
 			break;
 		}
 	    case GM_RENDER_FRUSTUM: {
@@ -126,7 +126,7 @@ void GraphicsMessage::Process()
 			break;
 		case GM_RECOMPILE_SHADERS:
 			ShadeMan.RecompileAllShaders();
-			RenderPipeMan.LoadFromPipelineConfig();
+			RenderPipeMan.LoadFromPipelineConfig(graphicsState);
 			break;
 		case GM_CLEAR_OVERLAY_TEXTURE:
 			Graphics.SetOverlayTexture(NULL);
@@ -190,7 +190,7 @@ GMMouse * GMMouse::RUp(AppWindow * window, Vector2i coords)
 {
 	return new GMMouse(RUP, window, coords);
 }
-void GMMouse::Process()
+void GMMouse::Process(GraphicsState * graphicsState)
 {
 	UserInterface * userInterface = GetRelevantUIForWindow(window);
 	UIElement * element = NULL;
@@ -205,10 +205,10 @@ void GMMouse::Process()
 			if (activeElement)
 			{ 
 //				activeElement->RemoveState(UIState::ACTIVE);
-				activeElement->Activate();	
+				activeElement->Activate(graphicsState);
 			}
 			UIElement * hoverElement = userInterface->Hover(coords.x, coords.y, true);
-			userInterface->SetHoverElement(hoverElement);
+			userInterface->SetHoverElement(graphicsState, hoverElement);
 			break;
 		}
 		case LDOWN:
@@ -253,7 +253,7 @@ GMChar::GMChar(AppWindow * window, char c)
 	: GraphicsMessage(GM_CHAR), window(window), c(c)
 {
 }
-void GMChar::Process()
+void GMChar::Process(GraphicsState * graphicsState)
 {
 	UserInterface * ui = GetRelevantUIForWindow(window);
 	UIElement * element = NULL;
@@ -284,7 +284,7 @@ GMKey * GMKey::Up(AppWindow * window, int keyCode)
 	return new GMKey(window, keyCode, false, false);
 }
 
-void GMKey::Process()
+void GMKey::Process(GraphicsState* graphicsState)
 {
 	/// Key down.
 	if (down)
@@ -299,7 +299,7 @@ void GMKey::Process()
 			{
 				activeElement = inputFocusElement;
 				/// Use the result somehow to determine if other actions can be triggered, too.
-				int result = inputFocusElement->OnKeyDown(keyCode, false, GraphicsThreadGraphicsState);
+				int result = inputFocusElement->OnKeyDown(graphicsState, keyCode, false);
 				Graphics.QueryRender();
 			}
 		}
@@ -313,7 +313,7 @@ GMRecordVideo::GMRecordVideo(AppWindow * fromWindow)
 {
 }
 
-void GMRecordVideo::Process()
+void GMRecordVideo::Process(GraphicsState * graphicsState)
 {
 	window->recordVideo = !window->recordVideo;
 }
@@ -323,7 +323,7 @@ GMDeleteVBOs::GMDeleteVBOs(UserInterface * ui) : GraphicsMessage(GM_DELETE_VBOS)
 	assert(ui->IsBuffered());
 	this->ui = ui;
 }
-void GMDeleteVBOs::Process(){
+void GMDeleteVBOs::Process(GraphicsState * graphicsState){
 	ui->Unbufferize();
 }
 
@@ -333,7 +333,7 @@ GMDelete::GMDelete(UserInterface * ui)
 {
 	this->ui = ui;
 }
-void GMDelete::Process()
+void GMDelete::Process(GraphicsState * graphicsState)
 {
 	if (ui->IsBuffered())
 		ui->Unbufferize();

@@ -18,14 +18,14 @@ void GraphicsManager::RenderSkeletons()
 {
 	CheckGLError("Before GraphicsManager::RenderSkeletons");
 
-	ShadeMan.SetActiveShader(nullptr, graphicsState);
+	ShadeMan.SetActiveShader(&graphicsState, nullptr);
 //	rer
 	// Load projection matrix.
 
 	glMatrixMode(GL_PROJECTION);
-	glLoadMatrixf(GraphicsThreadGraphicsState.projectionMatrixF.getPointer());
+	glLoadMatrixf(graphicsState.projectionMatrixF.getPointer());
 	glMatrixMode(GL_MODELVIEW);
-	glLoadMatrixf(GraphicsThreadGraphicsState.viewMatrixF.getPointer());
+	glLoadMatrixf(graphicsState.viewMatrixF.getPointer());
 
 	// Load view matrix.
 
@@ -56,7 +56,7 @@ void GraphicsManager::RenderSkeletons()
 		if (!model)
 			continue;
 		Mesh * mesh = model->mesh;
-		GraphicsThreadGraphicsState.modelMatrixF = entity->transformationMatrix;
+		graphicsState.modelMatrixF = entity->transformationMatrix;
 		Bone * skeleton = mesh->skeleton;
 		if (skeleton && true)
 		{

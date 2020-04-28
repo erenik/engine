@@ -18,13 +18,13 @@ void GraphicsManager::RenderLights(){
 	// Optionally render the global-light as a small... tile?
 	// TODO: if so.
 
-	ShadeMan.SetActiveShader(nullptr, graphicsState);
+	ShadeMan.SetActiveShader(&graphicsState, nullptr);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glLoadMatrixf(GraphicsThreadGraphicsState.projectionMatrixF.getPointer());
+	glLoadMatrixf(graphicsState.projectionMatrixF.getPointer());
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	glLoadMatrixf(GraphicsThreadGraphicsState.viewMatrixF.getPointer());
+	glLoadMatrixf(graphicsState.viewMatrixF.getPointer());
 
 	Lighting * lighting = &graphicsState.lighting;
 
@@ -39,7 +39,7 @@ void GraphicsManager::RenderLights(){
 	{
 		// Reset view/proj matrices
 		glLoadIdentity();
-		glLoadMatrixf(GraphicsThreadGraphicsState.viewMatrixF.getPointer());
+		glLoadMatrixf(graphicsState.viewMatrixF.getPointer());
 
 		Light * light = lighting->GetLight(i);
 		Vector3f position = light->position;
@@ -52,10 +52,10 @@ void GraphicsManager::RenderLights(){
 					glVertex3f(position[0], position[1], position[2]);
 				glEnd();
 				glTranslatef(position[0], position[1], position[2]);
-			//	GraphicsThreadGraphicsState.modelMatrixF = Matrix4f::Translation(position);
+			//	graphicsState.modelMatrixF = Matrix4f::Translation(position);
 				Model * model = ModelMan.GetModel("Sphere6");
 				if (model)
-					model->Render(graphicsState);
+					model->Render(&graphicsState);
 				else
 					std::cout<<"\nUnable to render PointLight!";
 				break;

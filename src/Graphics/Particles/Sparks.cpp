@@ -39,9 +39,9 @@ void Sparks::Initialize()
 
 
 /// Update buffers to use when rendering.
-void Sparks::UpdateBuffers()
+void Sparks::UpdateBuffers(GraphicsState* graphicsState)
 {
-	ParticleSystem::UpdateBuffers();
+	ParticleSystem::UpdateBuffers(graphicsState);
 }
 
 

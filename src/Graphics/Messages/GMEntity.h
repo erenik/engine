@@ -18,7 +18,7 @@ public:
 	:  GraphicsMessage(GM_ADD_LIGHT), toEntity(toEntity), light(light)
 	{
 	};
-	virtual void Process()
+	virtual void Process(GraphicsState* graphicsState)
 	{
 		if (!toEntity->graphics)
 			toEntity->graphics = new GraphicsProperty(toEntity);

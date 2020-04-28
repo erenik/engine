@@ -41,7 +41,7 @@ void UIMatrix::RenderSelf(GraphicsState & graphicsState)
 }
 
 
-void UIMatrix::CreateChildren()
+void UIMatrix::CreateChildren(GraphicsState* graphicsState)
 {
 	if (childrenCreated)
 		return;
@@ -101,7 +101,7 @@ void UIMatrix::CreateMatrix()
 			element->alignmentY = 1.0f - (y + 0.5f) * elementHeight - labelHeightY;
 			element->sizeRatioX = elementWidth;
 			element->sizeRatioY = elementHeight;
-			AddChild(element);
+			AddChild(nullptr, element);
 		}
 	}
 }
@@ -113,16 +113,16 @@ void UIMatrix::SetText(CTextr newText, bool force)
 }
 
 /// Adds x children. Subclassed in e.g. Matrix-class in order to setup contents properly.
-bool UIMatrix::SetContents(List<UIElement*> children)
+bool UIMatrix::SetContents(GraphicsState * graphicsState, List<UIElement*> children)
 {
 	DeleteContents();	
 	matrixElements = children;	
-	FormatContents();
+	FormatContents(graphicsState);
 	return true;
 }
 
 /// Re-arranges internal elements based on pre-configured or newly set options. Does not create or delete anything.
-void UIMatrix::FormatContents()
+void UIMatrix::FormatContents(GraphicsState * graphicsState)
 {
 	float labelHeightY = 0.0f;
 //	if (label)
@@ -143,7 +143,7 @@ void UIMatrix::FormatContents()
 			UIElement * element = matrixElements[formattedElements];
 			layoutMatrix.Set(Vector2i(x, y), element);
 			// Remove it first, if already there.
-			RemoveChild(element);
+			RemoveChild(graphicsState, element);
 
 			/// Give new alignments and size-ratios based on the matrix cell size.
 			element->alignmentX = (x+0.5f) * elementWidth;
@@ -151,7 +151,7 @@ void UIMatrix::FormatContents()
 			element->sizeRatioX = elementWidth;
 			element->sizeRatioY = elementHeight;
 			/// And add it!
-			AddChild(element);
+			AddChild(graphicsState, element);
 			// Make sure that the element is re-built next frame?
 			++formattedElements;
 			if (formattedElements >= matrixElements.Size())

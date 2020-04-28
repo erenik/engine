@@ -37,7 +37,7 @@ public:
 	// Called once per frame. Called with force = true when adding an entity or several to the group.
 	void UpdateBuffers(bool force = false);
 	// Called once per viewport that is rendered.
-	void Render(GraphicsState& graphicsState);
+	void Render(GraphicsState* graphicsState);
 
 	/// Based on reference.
 	String name;

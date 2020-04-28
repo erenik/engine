@@ -13,7 +13,7 @@ GMResize::GMResize(AppWindow * window, short width, short height)
 {
 };
 
-void GMResize::Process()
+void GMResize::Process(GraphicsState* graphicsState)
 {
 	// TODO: Move this to the render-code.
 	/*

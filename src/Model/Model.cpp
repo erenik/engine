@@ -78,7 +78,7 @@ void Model::BufferizeIfNeeded()
 
 
 /// Calls render on the triangulized mesh parts within.
-void Model::Render(GraphicsState & graphicsState)
+void Model::Render(GraphicsState * graphicsState)
 {
 	// IF we have a triangulated mesh, ensure it is up to date. <- no? reload only when queried.
 	/*

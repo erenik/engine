@@ -39,6 +39,8 @@ void UIElement::OnEnterScope(){
 	// Do nothing in general.
 	for (int i = 0; i < children.Size(); ++i)
 		children[i]->OnEnterScope();
+	if (onEnterScope.Length())
+		MesMan.QueueMessages(onEnterScope);
 }
 /// Called once this element is no longer visible for any reason. E.g. switching game states to display another UI.
 void UIElement::OnExitScope(bool forced)
@@ -168,7 +170,7 @@ UIElement::UIElement(){
 	Nullify();
 }
 
-void UIElement::CreateChildren(){}
+void UIElement::CreateChildren(GraphicsState* graphicsState){}
 
 /// Copy-cosntructor.
 UIElement::UIElement(const UIElement & ref){
@@ -540,7 +542,7 @@ UIElement* UIElement::Click(int mouseX, int mouseY)
 // Returns a non-0 message once the highest-level appropriate element has been found.
 // No co-ordinates are required since we will instead require the element to already
 // clicked.
-UIElement* UIElement::Activate()
+UIElement* UIElement::Activate(GraphicsState * graphicsState)
 {
 	UIElement* result = 0;
 	// Don't process invisible UIElements, please.
@@ -552,7 +554,7 @@ UIElement* UIElement::Activate()
 		UIElement * child = children[i];
 	    if (!child->visible)
             continue;
-		result = child->Activate();
+		result = child->Activate(graphicsState);
 		if (result != 0){
 			// The active element has been found further down the tree,
 			// so we return it's message.
@@ -604,7 +606,7 @@ UIElement* UIElement::Activate()
 		{
 			didNothing = false;
 			UIAction & uia = activationActions[i];
-			uia.Process(this);
+			uia.Process(graphicsState, this);
 		}
 		if (didNothing)
 		{
@@ -668,7 +670,7 @@ bool UIElement::HasActivatables()
 	return false;
 }
 
-UIElement * UIElement::GetElement(String byName, int andType)
+UIElement * UIElement::GetElement(String byName, UIType andType)
 {
 	if (type == andType)
 	{
@@ -693,10 +695,10 @@ void UIElement::OnMouseMove(Vector2i activeWindowCoords)
 
 
 /// For mouse-scrolling. By default calls it's parent's OnScroll.
-bool UIElement::OnScroll(float delta, GraphicsState& graphicsState)
+bool UIElement::OnScroll(GraphicsState * graphicsState, float delta)
 {
     if (parent)
-        return parent->OnScroll(delta, graphicsState);
+        return parent->OnScroll(graphicsState, delta);
     return false;
 }
 
@@ -710,10 +712,10 @@ UIElement * UIElement::GetRoot()
 }
 
 /// Sent by UIInput elements upon pressing Enter and thus confirmign the new input, in case extra actions are warranted. (e.g. UITextureInput to update the texture provided as reference).
-void UIElement::OnInputUpdated(UIInput * inputElement, GraphicsState& graphicsState)
+void UIElement::OnInputUpdated(GraphicsState* graphicsState, UIInput * inputElement)
 {
 	if (parent)
-		parent->OnInputUpdated(inputElement, graphicsState);
+		parent->OnInputUpdated(graphicsState, inputElement);
 }
 
 /// Callback sent to parents once an element is toggled, in order to act upon it. Used by UIMatrix.
@@ -737,7 +739,7 @@ void UIElement::InheritNeighbours(UIElement * fromElement)
 
 
 /// Suggests a neighbour which could be to the top of this element. Meant to be used for UI-navigation support. The reference element indicates the element from which we are seeking a compatible or optimum neighbour.
-UIElement * UIElement::GetUpNeighbour(UIElement * referenceElement, bool & searchChildrenOnly)
+UIElement * UIElement::GetUpNeighbour(GraphicsState* graphicsState, UIElement * referenceElement, bool & searchChildrenOnly)
 {
 	UIElement * element = NULL;
 	// Ok, we are the one,
@@ -757,7 +759,7 @@ UIElement * UIElement::GetUpNeighbour(UIElement * referenceElement, bool & searc
 		if (!element && !searchChildrenOnly && !inStack)
 		{
 			if (parent)
-				element = parent->GetUpNeighbour(referenceElement, searchChildrenOnly);
+				element = parent->GetUpNeighbour(graphicsState, referenceElement, searchChildrenOnly);
 			/// No parent? Then we probably don't have any good one, search lower down, yo.
 			else 
 				return NULL;
@@ -842,7 +844,7 @@ UIElement * UIElement::GetRightNeighbour(UIElement * referenceElement, bool & se
 }
 
 /// Suggests a neighbour which could be to the right of this element. Meant to be used for UI-navigation support. The reference element indicates the element to which we are seeking a compatible or optimum neighbour, and should be NULL for the initial call.
-UIElement * UIElement::GetDownNeighbour(UIElement * referenceElement, bool & searchChildrenOnly)
+UIElement * UIElement::GetDownNeighbour(GraphicsState* graphicsState, UIElement * referenceElement, bool & searchChildrenOnly)
 {
 	UIElement * element = NULL;
 	// Ok, we are the one,
@@ -862,7 +864,7 @@ UIElement * UIElement::GetDownNeighbour(UIElement * referenceElement, bool & sea
 		if (!element && !searchChildrenOnly && !inStack)
 		{
 			if (parent)
-				element = parent->GetDownNeighbour(referenceElement, searchChildrenOnly);
+				element = parent->GetDownNeighbour(graphicsState, referenceElement, searchChildrenOnly);
 			/// No parent? Then we probably don't have any good one, search lower down, yo.
 			else 
 				return NULL;
@@ -1363,18 +1365,18 @@ const UIElement * UIElement::GetChild(int index){
 }
 
 /// Adds x children. Subclassed in e.g. Matrix-class in order to setup contents properly.
-bool UIElement::AddChildren(List<UIElement*> children)
+bool UIElement::AddChildren(GraphicsState * graphicsState, List<UIElement*> children)
 {
 	// No options? Just add children.. even tho it will look like crap.
 	for (int i = 0; i < children.Size(); ++i)
 	{
-		AddChild(children[i]);
+		AddChild(graphicsState, children[i]);
 	}
 	return true;
 }
 
 // Structurization
-bool UIElement::AddChild(UIElement *in_child)
+bool UIElement::AddChild(GraphicsState* graphicsState, UIElement *in_child)
 {
     assert(in_child);
     if (in_child == NULL)
@@ -1399,7 +1401,7 @@ bool UIElement::AddChild(UIElement *in_child)
 }
 
 /// Attempts to remove said child from this element. Returns false if it was not a valid child. (thus action unnecessary).
-bool UIElement::RemoveChild(UIElement * element)
+bool UIElement::RemoveChild(GraphicsState* graphicsState, UIElement * element)
 {
 	if (children.RemoveItemUnsorted(element))
 	{
@@ -1410,11 +1412,11 @@ bool UIElement::RemoveChild(UIElement * element)
 }
 
 
-bool UIElement::AddToParent(String parentName, UIElement * child)
+bool UIElement::AddToParent(GraphicsState* graphicsState, String parentName, UIElement * child)
 {
     UIElement * padre = GetElementWithName(parentName);
     if (padre){
-        padre->AddChild(child);
+        padre->AddChild(graphicsState, child);
         return true;
     }
 	std::cout<<"\nUnable to add element "<<child->name<<" to parent \'"<<parentName<<"\'. Could not find parent within UI.";
@@ -1734,7 +1736,7 @@ void UIElement::RenderText(GraphicsState & graphicsState)
 
     if (currentTextSizeRatio <= 0)
 	{
-		FormatText();
+		FormatText(&graphicsState);
     }
 
 	pixels *= currentTextSizeRatio; //this->textSizeRatio;
@@ -1756,10 +1758,14 @@ void UIElement::RenderText(GraphicsState & graphicsState)
 	graphicsState.modelMatrixF = graphicsState.modelMatrixD = tmp;
 }
 
-void UIElement::FormatText()
+void UIElement::FormatText(GraphicsState * graphicsState)
 {
 	/// Resize to fit.
-	TextFont * currentFont = GraphicsThreadGraphicsState.currentFont;
+	TextFont * currentFont = font;
+	if (currentFont == nullptr)
+		currentFont = graphicsState->currentFont;
+	assert(currentFont);
+
 	textToRender = text;
 	/// Rows available
 	int rowsAvailable = 1;
@@ -2136,10 +2142,10 @@ UISlider::~UISlider()
 /** Used by input-captuing elements. Calls recursively upward until an element wants to respond to the input.
 	Returns 1 if it processed anything, 0 if not.
 */
-int UIElement::OnKeyDown(int keyCode, bool downBefore, GraphicsState& graphicsState)
+int UIElement::OnKeyDown(GraphicsState* graphicsState, int keyCode, bool downBefore)
 {
 	if (parent)
-		parent->OnKeyDown(keyCode, downBefore, graphicsState);
+		parent->OnKeyDown(graphicsState, keyCode, downBefore);
 	return 0;
 }
 /// Used for getting text. This will be local translated language key codes?
@@ -2150,7 +2156,7 @@ int UIElement::OnChar(int asciiCode){
 
 
 /// Called to ensure visibility of target element. First call should be made to the target element with a NULL-argument!
-void UIElement::EnsureVisibility(UIElement * element)
+void UIElement::EnsureVisibility(GraphicsState* graphicsState, UIElement * element)
 {
 	// If this is a "system" element, i.e. scroll-bars that are automatically added, skip this step, as they should always be visible.
 	if (isSysElement)
@@ -2158,5 +2164,5 @@ void UIElement::EnsureVisibility(UIElement * element)
 	if (!element)
 		element = this;
 	if (parent)
-		parent->EnsureVisibility(this);
+		parent->EnsureVisibility(graphicsState, this);
 }

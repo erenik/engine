@@ -36,12 +36,12 @@ public:
 
 	
 	/// Sets selected shader to be active.  Returns the shader that was set.
-	Shader * SetActiveShader(Shader * shader, GraphicsState & graphicsState);
+	Shader * SetActiveShader(GraphicsState* graphicsState, Shader * shader);
 	/** Sets selected shader to be active. Prints out error information and does not set to new shader if it fails.
 		Returns the active shading program or NULL if it fails.
 		WARNING: Should only be called from a render-thread, yaow.
 	*/
-	Shader * SetActiveShader(String shaderName, GraphicsState& graphicsState);
+	Shader * SetActiveShader(GraphicsState* graphicsState, String shaderName);
 	/// Returns the active shader, or NULL if the default shading program is in use.
 	Shader * ActiveShader();
 

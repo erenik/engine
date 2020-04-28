@@ -2,6 +2,7 @@
 // 2013-07-14
 
 #include "InputState.h"
+#include "UI/UITypes.h"
 #include "UI/UI.h"
 #include "GMUI.h"
 #include "../../UI/UserInterface.h"
@@ -111,7 +112,7 @@ GMSetHoverUI::GMSetHoverUI(String uiName, UserInterface * inUI)
 : GMUI(GM_SET_HOVER_UI, inUI), name(uiName)
 {
 }
-void GMSetHoverUI::Process()
+void GMSetHoverUI::Process(GraphicsState* graphicsState)
 {
 	if (!GetUI())
         return;
@@ -136,7 +137,7 @@ GMSetUIp::GMSetUIp(String uiName, int target, Texture * tex, UserInterface * ui)
 		assert(false && "Bad target in GMSetUIp");
 	}
 }
-void GMSetUIp::Process()
+void GMSetUIp::Process(GraphicsState * graphicsState)
 {
 	if (!GetUI())
         return;
@@ -167,7 +168,7 @@ GMSetUIvb::GMSetUIvb(String uiName, int target, List<bool*> boolData, Viewport *
 			assert(false && "Invalid target in GMSetUIvb");
 	}
 }
-void GMSetUIvb::Process() 
+void GMSetUIvb::Process(GraphicsState * graphicsState) 
 {
 	if (!GetUI())
         return;
@@ -208,7 +209,7 @@ GMSetUIi::GMSetUIi(String uiName, int target, int value, UserInterface * ui)
 		return;\
 	}
 
-void GMSetUIi::Process()
+void GMSetUIi::Process(GraphicsState * graphicsState)
 {
 	if (!GetUI())
         return;
@@ -236,7 +237,7 @@ void GMSetUIi::Process()
 				case UIType::RADIO_BUTTONS:
 				{
 					UIRadioButtons * rb = (UIRadioButtons*)e;
-					rb->SetValue(value);
+					rb->SetValue(graphicsState, value);
 					break;
 				}
 				default:
@@ -279,7 +280,7 @@ GMSetUIv2i::GMSetUIv2i(String UIname, int target, Vector2i v, UserInterface * ta
 }
 
 
-void GMSetUIv2i::Process()
+void GMSetUIv2i::Process(GraphicsState * graphicsState)
 {
 	if (!GetUI())
         return;
@@ -335,7 +336,7 @@ void GMSetUIv3f::AssertTarget()
 	}
 }
 
-void GMSetUIv3f::Process()
+void GMSetUIv3f::Process(GraphicsState * graphicsState)
 {
 	if (!GetUI())
         return;
@@ -386,7 +387,7 @@ void GMSetUIv4f::AssertTarget()
 }
 
 
-void GMSetUIv4f::Process()
+void GMSetUIv4f::Process(GraphicsState * graphicsState)
 {
 	if (!GetUI())
         return;
@@ -453,7 +454,7 @@ void GMSetUIf::AssertTarget()
 }
 
 
-void GMSetUIf::Process()
+void GMSetUIf::Process(GraphicsState * graphicsState)
 {
 	if (!GetUI())
         return;
@@ -542,7 +543,7 @@ GMSetGlobalUIf::GMSetGlobalUIf(String uiName, int target, float value, AppWindow
 };
 
 
-void GMSetUIb::Process()
+void GMSetUIb::Process(GraphicsState * graphicsState)
 {
 	if (!GetUI())
         return;
@@ -594,7 +595,7 @@ void GMSetUIb::Process()
 			{
 				return;
 			}
-			e->Activate();
+			e->Activate(graphicsState);
 			break;
 		default:
 			std::cout<<"\nERROR: Invalid target provided in GMSetUIb";
@@ -655,7 +656,7 @@ void GMSetUIs::AssertTarget()
 GMSetUIs::~GMSetUIs(){
 }
 
-void GMSetUIs::Process()
+void GMSetUIs::Process(GraphicsState * graphicsState)
 {
 	if (!GetUI())
         return;
@@ -742,7 +743,7 @@ void GMSetUIt::AssertTarget()
 	}
 }
 
-void GMSetUIt::Process()
+void GMSetUIt::Process(GraphicsState * graphicsState)
 {
 	if (!GetUI())
         return;
@@ -797,7 +798,7 @@ GMClearUI::GMClearUI(String uiName, Viewport * viewport)
 	uiNames.AddItem(uiName);
 }
 
-void GMClearUI::Process()
+void GMClearUI::Process(GraphicsState * graphicsState)
 {
 	if (!GetUI())
         return;
@@ -819,7 +820,7 @@ GMScrollUI::GMScrollUI(String uiName, float scrollDiff, Viewport * viewport)
 {
 }
 
-void GMScrollUI::Process(){
+void GMScrollUI::Process(GraphicsState * graphicsState){
     if (!GetUI())
         return;
     UIElement * e = ui->GetElementByName(uiName);
@@ -830,11 +831,11 @@ void GMScrollUI::Process(){
     switch(e->type){
         case UIType::LIST:{
             UIList * list = (UIList*) e;
-            list->Scroll(scrollDistance);
+            list->Scroll(graphicsState, scrollDistance);
             break;
         }
         default:
-            assert(false && "Bad type in GMScrollUI");
+			e->OnScroll(graphicsState, scrollDistance);
     }
 	Graphics.renderQueried = true;
 }
@@ -846,7 +847,7 @@ GMAddGlobalUI::GMAddGlobalUI(UIElement *element, String toParent /* = "root" */)
 	assert(element);
 	global = true;
 }
-void GMAddGlobalUI::Process()
+void GMAddGlobalUI::Process(GraphicsState* graphicsState)
 {
 	if (!GetGlobalUI())
         return;
@@ -859,7 +860,7 @@ void GMAddGlobalUI::Process()
 		std::cout<<"\nNo UIElement with given name could be found: "<<parentName;
 		return;
 	}
-	e->AddChild(element);
+	e->AddChild(graphicsState, element);
 	Graphics.renderQueried = true;
 }
 
@@ -873,7 +874,7 @@ GMAddUI::GMAddUI(List<UIElement*> elements, String toParent, Viewport * viewport
 : GMUI(GM_ADD_UI, viewport), elements(elements), parentName(toParent)
 {
 }
-void GMAddUI::Process()
+void GMAddUI::Process(GraphicsState * graphicsState)
 {
 	if (!GetUI())
         return;
@@ -888,7 +889,7 @@ void GMAddUI::Process()
 	}
 	for (int i = 0; i < elements.Size(); ++i)
 	{
-		e->AddChild(elements[i]);
+		e->AddChild(graphicsState, elements[i]);
 	}
 	Graphics.renderQueried = true;
 }
@@ -929,7 +930,7 @@ GMPushUI * GMPushUI::ToUI(UIElement * element, UserInterface * ontoUI)
 }
 
 
-void GMPushUI::Process()
+void GMPushUI::Process(GraphicsState * graphicsState)
 {
 	if (!ui){
 		if (!GetUI())
@@ -955,7 +956,7 @@ void GMPushUI::Process()
 			e = UserInterface::LoadUIAsElement(uiName);
 			/// If not added, add it too.
 			if (e)
-				ui->Root()->AddChild(e);
+				ui->Root()->AddChild(graphicsState, e);
 		}
 	}
 	if (!e){
@@ -964,9 +965,9 @@ void GMPushUI::Process()
 	}
 	/// Add to root.
 	if (e->Parent() == 0)
-		ui->GetRoot()->AddChild(e);
+		ui->GetRoot()->AddChild(graphicsState, e);
 	/// Push to stack, the InputManager will also try and hover on the first primary element.
-	InputMan.PushToStack(GraphicsThreadGraphicsState, e, ui);
+	InputMan.PushToStack(graphicsState, e, ui);
 
 	/// Enable navigate ui if element wants it.
 	if (e->navigateUIOnPush){
@@ -999,7 +1000,7 @@ GMPopUI::GMPopUI(String uiName, UserInterface * targetUI, bool force, Viewport *
 	ui = targetUI;
 }
 
-void GMPopUI::Process()
+void GMPopUI::Process(GraphicsState * graphicsState)
 {
 	GetUI();
 	if (!ui){
@@ -1021,7 +1022,7 @@ void GMPopUI::Process()
 	}
 
 	/// Push to stack, the InputManager will also try and hover on the first primary element.
-	bool success = InputMan.PopFromStack(GraphicsThreadGraphicsState, e, ui, force);
+	bool success = InputMan.PopFromStack(graphicsState, e, ui, force);
 	LogGraphics("Popped element/menu: " + e->name, INFO);
 
     /// Post onExit message if it was popped.
@@ -1049,7 +1050,7 @@ GMDeleteUI::GMDeleteUI(UIElement * element)
     std::cout<<"\nDeleting element??: "<<element->name;
 }
 
-void GMDeleteUI::Process(){
+void GMDeleteUI::Process(GraphicsState * graphicsState){
 	assert(false && "GMDeleteUI DEPRECATED use GMRemoveUI! ");
     std::cout<<"\nDeleting element: "<<element->name;
     element->FreeBuffers();
@@ -1064,7 +1065,7 @@ GMRemoveUI::GMRemoveUI(UIElement * element)
 	assert(element != NULL);
 }
 
-void GMRemoveUI::Process(){
+void GMRemoveUI::Process(GraphicsState * graphicsState){
 	if (!GetUI())
 		return;
 	DeleteUI(element, ui);
@@ -1080,7 +1081,7 @@ GMSetUIContents::GMSetUIContents(List<UIElement*> elements, String uiName)
 : GMUI(GM_SET_UI_CONTENTS), elements(elements), uiName(uiName)
 {
 }
-void GMSetUIContents::Process()
+void GMSetUIContents::Process(GraphicsState * graphicsState)
 {
 	GetUI();
 	if (!ui){
@@ -1101,10 +1102,10 @@ void GMSetUIContents::Process()
 	switch(e->type)
 	{
 		case UIType::MATRIX:
-			((UIMatrix*)e)->SetContents(elements);
+			((UIMatrix*)e)->SetContents(graphicsState, elements);
 			break;
 		case UIType::DROP_DOWN_LIST:
-			((UIDropDownList*)e)->SetContents(contents);
+			((UIDropDownList*)e)->SetContents(graphicsState, contents);
 	}
 }
 

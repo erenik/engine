@@ -13,7 +13,7 @@
 class GMSetSelectedWaypoints : public GraphicsMessage {
 public:
 	GMSetSelectedWaypoints(List<Waypoint*> waypointsToRenderAsSelected);
-	virtual void Process();
+	virtual void Process(GraphicsState* graphicsState) override;
 private:
 	List<Waypoint*> wpList;
 };
@@ -21,7 +21,7 @@ private:
 class GMSetPathToRender : public GraphicsMessage {
 public:
 	GMSetPathToRender(Path path);
-	virtual void Process();
+	virtual void Process(GraphicsState* graphicsState) override;
 private:
 	Path path;
 };

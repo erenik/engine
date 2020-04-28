@@ -16,7 +16,7 @@
 #endif
 
 /// Dicates default type of created Time objects. Default is TimeType::UNDEFINED
-int Time::defaultType = TimeType::UNDEFINED;
+TimeType Time::defaultType = TimeType::UNDEFINED;
 
 /// Current time.
 Time::Time()
@@ -25,7 +25,7 @@ Time::Time()
 	type = defaultType;
 }
 /// Undefined time.
-Time::Time(int type)
+Time::Time(TimeType type)
 	: type(type)
 {
 	if (type == TimeType::UNDEFINED)
@@ -34,7 +34,7 @@ Time::Time(int type)
 	intervals = 0;
 }
 /// Time using a given type and starting-point. 
-Time::Time(int type, uint64 intervals)
+Time::Time(TimeType type, uint64 intervals)
 	: intervals(intervals), type(type)
 {
 	assert(type > TimeType::UNDEFINED && type < TimeType::TIME_TYPES);
@@ -282,7 +282,7 @@ Time::operator const int32 () const
 }
 
 /// Converts this time into specified type.
-void Time::ConvertTo(int toType)
+void Time::ConvertTo(TimeType toType)
 {
 	// Same type, skip.
 	if (type == toType)

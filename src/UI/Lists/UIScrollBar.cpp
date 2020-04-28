@@ -26,7 +26,7 @@ void UIScrollBar::CreateHandle()
     handle->textureSource = "0xAAFF";
 	handle->sizeRatioX = 0.9f;
  //   handle->text = "Joooooo";
-    AddChild(handle);
+    AddChild(nullptr, handle);
     previousSize = 1.0f;
 }
 

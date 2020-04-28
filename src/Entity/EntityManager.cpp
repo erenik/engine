@@ -8,6 +8,9 @@
 #include "Texture.h"
 #include "Graphics/GraphicsManager.h"
 #include "File/LogFile.h"
+#include "Physics/PhysicsManager.h"
+#include "StateManager.h"
+
 extern GraphicsManager graphics;
 
 
@@ -164,15 +167,18 @@ int EntityManager::DeleteUnusedEntities(int timeInMs)
 		if (entity->deletionTimeMs > 0)
 			continue;
 		/// Check that it isn't still registered with any other manager!
-		if (entity->registeredForRendering)
-		{
-			std::cout<<"\nWARNING: Entity: "<<entity->name<<" registered for rendering while flagged for deletion!";
-			continue;
-		}
-		if (entity->registeredForPhysics)
-		{
-			std::cout<<"\nWARNING: Entity: "<<entity->name<<" registered for physics while flagged for deletion!";
-			continue;
+		if (entity->deletionTimeMs < -3000) {
+			if (entity->registeredForRendering)
+			{
+				std::cout << "\nWARNING: Entity: " << entity->name << " registered for rendering while flagged for deletion!";
+				continue;
+			}
+			if (entity->registeredForPhysics)
+			{
+				std::cout << "\nWARNING: Entity: " << entity->name << " registered for physics while flagged for deletion!";
+				QueuePhysics(new PMUnregisterEntity(entity));
+				continue;
+			}
 		}
 		/// Increment amount that was successfully deleted.
 		++deletedEntities;

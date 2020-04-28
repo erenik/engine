@@ -81,8 +81,10 @@ public:
 	/// Deletes all children and content inside.
 	void Clear();
 	void CreateScrollBarIfNeeded(); // Called internally.
-	// Adjusts hierarchy besides the regular addition
-	virtual bool AddChild(UIElement* child); // Sets child pointer to child UI element, NULL if non
+	/** Adds a child/children
+		If called with graphicsState non-NULL, it is from the render thread, and updates to the UI may be made.
+	*/
+	virtual bool AddChild(GraphicsState* graphicsState, UIElement* element) override;
 
 	/// Activation functions
 	virtual UIElement* Hover(int mouseX, int mouseY);
@@ -92,7 +94,7 @@ public:
 	/** For mouse-scrolling. By default calls it's parent's OnScroll. Returns true if the element did anything because of the scroll.
 		The delta corresponds to amount of "pages" it should scroll.
 	*/
-	virtual bool OnScroll(float delta, GraphicsState& graphicsState);
+	virtual bool OnScroll(GraphicsState* graphicsState, float delta) override;
 
 	/** Suggests a neighbour which could be to the right of this element. 
 		Meant to be used for UI-navigation support. The reference element 
@@ -103,10 +105,10 @@ public:
 		This is set by special classes such as UIList and UIColumnList when they know
 		a certain element should be or contain the correct neighbour element.
 	*/
-	virtual UIElement * GetUpNeighbour(UIElement * referenceElement, bool & searchChildrenOnly);
-	virtual UIElement * GetDownNeighbour(UIElement * referenceElement, bool & searchChildrenOnly);
-	virtual UIElement * GetLeftNeighbour(UIElement * referenceElement, bool & searchChildrenOnly);
-	virtual UIElement * GetRightNeighbour(UIElement * referenceElement, bool & searchChildrenOnly);
+	virtual UIElement * GetUpNeighbour(GraphicsState* graphicsState, UIElement * referenceElement, bool & searchChildrenOnly) override;
+	virtual UIElement * GetDownNeighbour(GraphicsState* graphicsState, UIElement * referenceElement, bool & searchChildrenOnly) override;
+	virtual UIElement * GetLeftNeighbour(UIElement * referenceElement, bool & searchChildrenOnly) override;
+	virtual UIElement * GetRightNeighbour(UIElement * referenceElement, bool & searchChildrenOnly) override;
 	
 	// Get last child which is not a system element
 	UIElement * LastChild();
@@ -117,7 +119,7 @@ public:
 	void SetScrollPosition(float fValue);
 
     /// Scroll, not capped.
-	virtual bool Scroll(float absoluteDistanceInPages);
+	virtual bool Scroll(GraphicsState* graphicsState, float absoluteDistanceInPages);
 
     /// Adjusts positions and sizes acording to any attached scroll-bars or other system UI elements.
 	void FormatElements();
@@ -126,7 +128,7 @@ public:
 	virtual void Render(GraphicsState & graphicsState);
 
 	/// Called to ensure visibility of target element.
-	virtual void EnsureVisibility(UIElement * element);
+	virtual void EnsureVisibility(GraphicsState* graphicsState, UIElement * element);
 
 protected:
 	/// Called whenever an element is deleted externally. Sub-class in order to properly deal with references.

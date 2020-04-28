@@ -40,7 +40,7 @@ void Entity::Render(GraphicsState & graphicsState)
 	// Change shader to one supporting skeletal animations if necessary.
 	if (this->graphics->skeletalAnimationEnabled && this->graphics->shaderBasedSkeletonAnimation && shader->attributeBoneIndices == -1)
 	{
-		shader = ShadeMan.SetActiveShader("PhongSkeletal", graphicsState);
+		shader = ShadeMan.SetActiveShader(&graphicsState, "PhongSkeletal");
 		if (!shader)
 			return;
 		// Load in the main matrices.
@@ -266,7 +266,7 @@ void Entity::Render(GraphicsState & graphicsState)
 		}
 
 		// Render the model
-		model->Render(graphicsState);
+		model->Render(&graphicsState);
 		++graphicsState.renderedObjects;		// increment rendered objects for debug info
 
 
@@ -374,7 +374,7 @@ void Entity::Render(GraphicsState & graphicsState)
 		//}
 
 #ifdef DEBUG_TRIANGLE
-			ShadeMan.SetActiveShader(nullptr, graphicsState);
+			ShadeMan.SetActiveShader(graphicsState, nullptr);
 
 			glMatrixMode(GL_PROJECTION);
 			glLoadIdentity();

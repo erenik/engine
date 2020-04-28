@@ -177,7 +177,7 @@
 // 	if (shader->built)
 // 		glUseProgram(shader->shaderProgram);
 // 	else {
-// 		ShadeMan.SetActiveShader(nullptr, graphicsState);
+// 		ShadeMan.SetActiveShader(graphicsState, nullptr);
 // 		shader = 0;
 // 		return;
 // 	}
@@ -207,7 +207,7 @@
 // 	shader->uniformModelMatrix = glGetUniformLocation(shader->shaderProgram, "modelMatrix");
 // 	glUniformMatrix4fv(shader->uniformProjectionMatrix, 1, false, projection.getPointer());
 //
-// 	GraphicsThreadGraphicsState.modelMatrixF = GraphicsThreadGraphicsState.modelMatrixD.LoadIdentity();
+// 	graphicsState->modelMatrixF = graphicsState->modelMatrixD.LoadIdentity();
 //
 // 	// Enable alpha-blendinggg!
 // 	glEnable(GL_BLEND);
@@ -216,6 +216,6 @@
 // 	element->render(graphics);
 //
 // 	/// Set to default shader program again
-// 	ShadeMan.SetActiveShader(nullptr, graphicsState);
+// 	ShadeMan.SetActiveShader(graphicsState, nullptr);
 // }
 //

@@ -37,7 +37,7 @@ void UIColumnList::Clear(){
 }
 
 // Adjusts hierarchy besides the regular addition
-bool UIColumnList::AddChild(UIElement* child)
+bool UIColumnList::AddChild(GraphicsState* graphicsState, UIElement* child)
 {
 	/// Automate name if none was given.
 	if (child->name.Length() < 1)
@@ -48,7 +48,7 @@ bool UIColumnList::AddChild(UIElement* child)
 
 	/// If first child, place it at the top.
 	if (children.Size() == 0){
-		UIElement::AddChild(child);
+		UIElement::AddChild(graphicsState, child);
 		child->alignmentX = 0.0f + child->sizeRatioX * 0.5f + padding;
 		return true;
 	}
@@ -64,7 +64,7 @@ bool UIColumnList::AddChild(UIElement* child)
 		if (childLeftEdge > left)
 			left = childLeftEdge;
 	}
-	UIElement::AddChild(child);
+	UIElement::AddChild(graphicsState, child);
 	child->alignmentX = left + child->sizeRatioX * 0.5f + padding;
 
     // Bind them for proper navigation.

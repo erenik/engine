@@ -537,12 +537,12 @@ void Script::EvaluateLine(String & line)
 		dialogueText->textSizeRatio = DEFAULT_TEXT_SIZE_RATIO;
 		dialogueText->sizeRatioX = 0.5f;
 		dialogueText->alignmentX = 0.25f;
-		dialogue->AddChild(dialogueText);
+		dialogue->AddChild(nullptr, dialogueText);
 
 		UIList * dialogueAnswerList = new UIList();
 		dialogueAnswerList->sizeRatioX = 0.5f;
 		dialogueAnswerList->alignmentX = 0.75f;
-		dialogue->AddChild(dialogueAnswerList);
+		dialogue->AddChild(nullptr, dialogueAnswerList);
 
 		int answers = 0;
 		List<UIElement*> answerList;
@@ -588,7 +588,7 @@ void Script::EvaluateLine(String & line)
 		for (int i = 0; i < answers; ++i){
 			UIElement * ans = answerList[i];
 		//	ans->sizeRatioY = sizeRatioY; // Stupid to set the sizeRatioY to be this dynamic, yo.
-			dialogueAnswerList->AddChild(ans);
+			dialogueAnswerList->AddChild(nullptr, ans);
 		}
 		isInAlternativeDialogue = true;
 		Graphics.QueueMessage(new GMAddUI(dialogue, "root"));

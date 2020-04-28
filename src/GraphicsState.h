@@ -35,6 +35,8 @@ class GraphicsState;
 class EntityGroup;
 class RenderInstancingGroup;
 
+#define GraphicsStatePtr (GraphicsState*)
+
 class Entity;
 #define EntitySharedPtr std::shared_ptr<Entity>
 
@@ -49,7 +51,7 @@ class Entity;
 #define SCISSOR_DISABLED                0x00000040  // For toggling scissor-functionality which is used by UILists et al.
 
 // Macro while rendering
-#define ActiveViewport (GraphicsThreadGraphicsState.activeViewport)
+#define ActiveViewport (graphicsState.activeViewport)
 
 /// Frame ID/number/enumeration.
 extern int graphicsFrameNumber;

@@ -10,7 +10,7 @@ GMUnregisterEntity::GMUnregisterEntity(EntitySharedPtr i_entity) : GraphicsMessa
 	entity = i_entity;
 }
 
-void GMUnregisterEntity::Process()
+void GMUnregisterEntity::Process(GraphicsState* graphicsState)
 {
 	Graphics.UnregisterEntity(entity);
 }
@@ -25,7 +25,7 @@ GMUnregisterEntities::GMUnregisterEntities(List< std::shared_ptr<Entity> > entit
 	}*/
 }
 
-void GMUnregisterEntities::Process()
+void GMUnregisterEntities::Process(GraphicsState* graphicsState)
 {
 	Graphics.UnregisterEntities(entities);
 }

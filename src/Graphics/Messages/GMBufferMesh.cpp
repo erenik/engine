@@ -12,7 +12,7 @@ GMBufferMesh::GMBufferMesh(Mesh * iMesh) : GraphicsMessage(GM_BUFFER_MESH)
 	mesh = iMesh;
 }
 
-void GMBufferMesh::Process()
+void GMBufferMesh::Process(GraphicsState* graphicsState)
 {
 	mesh->Bufferize(true);
 }

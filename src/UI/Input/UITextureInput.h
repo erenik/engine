@@ -24,7 +24,7 @@ public:
 
 
 	/// Creates the label and input.
-	void CreateChildren();
+	void CreateChildren(GraphicsState* graphicsState) override;
 	/// Getter/setter for the input element.
 	Texture * GetTexture();
 	String GetTextureSource();

@@ -6,6 +6,7 @@
 #define UI_ACTION_H
 
 class UIElement;
+class GraphicsState;
 
 class UIAction
 {
@@ -15,7 +16,7 @@ public:
 	UIAction(int type, UIElement * targetElement);
 	UIAction(int type, UIElement * targetElement, int argument);
 	void Nullify();
-	void Process(UIElement * forElement);
+	void Process(GraphicsState* graphicsState, UIElement * forElement);
 	enum 
 	{
 		STRING,

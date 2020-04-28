@@ -8,6 +8,7 @@
 #include "GraphicsMessages.h"
 #include "String/Text.h"
 
+class GraphicsState;
 class Viewport;
 class UserInterface;
 
@@ -20,7 +21,7 @@ public:
 	/// Default constructor.
 	GMUI(int messageType, Viewport * viewport);
 	void Nullify();
-	virtual void Process() = 0;
+	virtual void Process(GraphicsState* graphicsState) override = 0;
 
 	enum gmUITargets {
 		NULL_TARGET,
@@ -78,7 +79,7 @@ class GMSetHoverUI : public GMUI
 {
 public:
 	GMSetHoverUI(String uiName, UserInterface * inUI = NULL);
-	virtual void Process();
+	virtual void Process(GraphicsState* graphicsState);
 private:
 	String name;
 };
@@ -87,7 +88,7 @@ private:
 class GMSetUIp : public GMUI{
 public:
 	GMSetUIp(String uiName, int target, Texture * tex, UserInterface * ui);
-	void Process();
+	void Process(GraphicsState* graphicsState);
 private:
 	String name;
 	int target;
@@ -99,7 +100,7 @@ private:
 class GMSetUIvb : public GMUI{
 public:
 	GMSetUIvb(String uiName, int target, List<bool*> boolData, Viewport * viewport = NULL);
-	void Process();
+	void Process(GraphicsState* graphicsState);
 private:
 	String name;
 	int target;
@@ -110,7 +111,7 @@ class GMSetUIi : public GMUI
 {
 public:
 	GMSetUIi(String uiName, int target, int value, UserInterface * ui = NULL);
-	void Process();
+	void Process(GraphicsState* graphicsState);
 private:
 	String uiName;
 	int target;
@@ -122,7 +123,7 @@ class GMSetUIv2i : public GMUI {
 public:
 	GMSetUIv2i(String UIname, int target, Vector2i v, Viewport * viewport = NULL);
 	GMSetUIv2i(String UIname, int target, Vector2i v, UserInterface * targetUI);
-	void Process();
+	void Process(GraphicsState* graphicsState);
 private:
 	String name;
 	int target;
@@ -135,7 +136,7 @@ class GMSetUIv3f : public GMUI {
 public:
 	GMSetUIv3f(String UIname, int target, const Vector3f & v, Viewport * viewport = NULL);
 	GMSetUIv3f(String uiName, int target, const Vector3f & v, UserInterface * ui);
-	void Process();
+	void Process(GraphicsState* graphicsState);
 private:
 	void AssertTarget();
 	String name;
@@ -150,7 +151,7 @@ class GMSetUIv4f : public GMUI {
 public:
 	GMSetUIv4f(String UIname, int target, const Vector4f & v, UserInterface * ui);
 	GMSetUIv4f(String UIname, int target, const Vector4f & v, Viewport * viewport = NULL);
-	void Process();
+	void Process(GraphicsState* graphicsState);
 private:
 	void AssertTarget();
 	String name;
@@ -166,7 +167,7 @@ public:
 	GMSetUIf(String UIname, int target, float value);
 	GMSetUIf(String UIname, int target, float value, UserInterface * inUI);
 	GMSetUIf(String UIname, int target, float value, Viewport * viewport);
-	void Process();
+	void Process(GraphicsState* graphicsState);
 private:
 	void AssertTarget();
 	String name;
@@ -190,7 +191,7 @@ class GMSetUIb : public GMUI {
 public:
 	GMSetUIb(String UIname, int target, bool v, UserInterface * inUI);
 	GMSetUIb(String UIname, int target, bool v, Viewport * viewport = NULL);
-	void Process();
+	void Process(GraphicsState* graphicsState);
 private:
 	void AssertTarget();
 	String name;
@@ -213,7 +214,7 @@ public:
 		No explicit constructor may skip subclassed variable deallocation!
 	*/
 	~GMSetUIs();
-	void Process();
+	void Process(GraphicsState* graphicsState);
 private:
 	void AssertTarget();
 	int target;
@@ -232,7 +233,7 @@ public:
 		No explicit constructor may skip subclassed variable deallocation!
 	*/
 	~GMSetUIt();
-	void Process();
+	void Process(GraphicsState* graphicsState);
 private:
 	void AssertTarget();
 	Text text;
@@ -257,7 +258,7 @@ public:
 	GMClearUI(List<String> uiNames);
 	GMClearUI(String uiName, UserInterface * inUI);
 	GMClearUI(String uiName, Viewport * viewport = NULL);
-	void Process();
+	void Process(GraphicsState* graphicsState);
 private:
 	List<String> uiNames;
 };
@@ -265,7 +266,7 @@ private:
 class GMScrollUI : public GMUI{
 public:
     GMScrollUI(String uiName, float scrollDistance, Viewport * viewport = NULL);
-    void Process();
+    void Process(GraphicsState* graphicsState);
 private:
     String uiName;
     float scrollDistance;
@@ -277,7 +278,7 @@ class GMAddGlobalUI : public GMUI
 {
 public:
 	GMAddGlobalUI(UIElement * element, String toParent = "root");
-	void Process();
+	void Process(GraphicsState* graphicsState) override;
 private:
 	UIElement * element;
 	String parentName;
@@ -289,7 +290,7 @@ class GMAddUI : public GMUI{
 public:
 	GMAddUI(List<UIElement*> elements, String toParent, UserInterface * inUI);
 	GMAddUI(List<UIElement*> elements, String toParent = "root", Viewport * viewport = NULL);
-	void Process();
+	void Process(GraphicsState* graphicsState);
 private:
 	List<UIElement*> elements;
 	String parentName;
@@ -310,7 +311,7 @@ public:
 	static GMPushUI * ToWindow(String elementName, AppWindow * window = 0);
 	static GMPushUI * ToUI(String elementName, UserInterface * toUI = 0);
 	static GMPushUI * ToUI(UIElement * element, UserInterface * ontoUI = 0); // if 0 UI, grabs main window's main UI.
-	void Process();
+	void Process(GraphicsState* graphicsState);
 private:
 	UIElement * element;
 	String uiName;
@@ -320,7 +321,7 @@ class GMPopUI : public GMUI{
 public:
 	/// If force is specified, it will pop the UI no matter what it's exitable property says. If UI is 0, default ui in main window is chosen.
 	GMPopUI(String uiName, UserInterface * ui = 0, bool force = false, Viewport * viewport = NULL);
-	void Process();
+	void Process(GraphicsState* graphicsState);
 private:
 	UIElement * element;
 	String uiName;
@@ -331,7 +332,7 @@ private:
 class GMDeleteUI : public GMUI{
 public:
     GMDeleteUI(UIElement * element);
-    void Process();
+    void Process(GraphicsState* graphicsState);
 private:
     UIElement * element;
 };
@@ -339,7 +340,7 @@ private:
 class GMRemoveUI : public GMUI{
 public:
 	GMRemoveUI(UIElement * element);
-	void Process();
+	virtual void Process(GraphicsState* graphicsState) override;
 private:
 	UIElement * element;
 };
@@ -354,7 +355,7 @@ public:
 	GMSetUIContents(UserInterface * ui, String uiName, List<String> contents);
 	/// Used for setting elements in Matrix.
 	GMSetUIContents(List<UIElement*> elements, String uiName);
-	void Process();
+	virtual void Process(GraphicsState* graphicsState) override;
 private:
 	String uiName;
 	List<String> contents;
