@@ -17,6 +17,7 @@
 #include "ShaderManager.h"
 #include "VFCOctree.h"
 #include "System/DataTypes.h"
+#include "Particles/ParticleSystem.h"
 
 // Palla inkludera överallt..
 #include "GraphicsState.h"
@@ -249,9 +250,9 @@ private:
     /// Wosh. For like Frustum and other custom stuff.
     List<Renderable*> renderShapes;
 	/// List of all particle systems that will be updated each frame. Is this really worth having an own separate list for...?
-	List<ParticleSystem*> particleSystems;
+	List<ParticleSystemSharedPtr> particleSystems;
 	/// List of all global particle systems that will be updated and rendered in separate draw calls.
-	List<ParticleSystem*> globalParticleSystems;
+	List<ParticleSystemSharedPtr> globalParticleSystems;
 
 	/// For deferred.
 	void BindFrameBuffer();
@@ -349,8 +350,8 @@ private:
 	int UnregisterAll();
 
 	/// If global is true, the particle system is considered global, and will be updated and rendered separately compared to entity-based particle systems.
-	bool RegisterParticleSystem(ParticleSystem * ps, bool global);
-	bool UnregisterParticleSystem(ParticleSystem * ps);
+	bool RegisterParticleSystem(std::shared_ptr<ParticleSystem> ps, bool global);
+	bool UnregisterParticleSystem(std::shared_ptr <ParticleSystem> ps);
 
 	/// Screen size
 	int scrWidth, scrHeight;

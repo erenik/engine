@@ -13,6 +13,8 @@ class Model;
 #include <String/AEString.h>
 #include "Graphics/OpenGL.h"
 
+class ParticleEmitter;
+
 
 namespace DecayType {
 enum {
@@ -23,12 +25,23 @@ enum {
 	};	
 };
 
-class ParticleSystem {
+#define ParticleSystemSharedPtr std::shared_ptr<ParticleSystem>
+#define ParticleSystemWeakPtr std::weak_ptr<ParticleSystem>
+
+class alignas(16) ParticleSystem {
 	friend class GraphicsManager;
 	friend class GMAttachParticleEmitter;
 	friend class GMDetachParticleEmitter;
+
+	std::weak_ptr<ParticleSystem> selfPtr;
 public:
-    ParticleSystem(String type, bool emitWithEmittersOnly);
+	// Use only for sub-classing.
+	ParticleSystem(String type, bool emitWithEmittersOnly);
+
+	template<typename... Args>
+	static std::shared_ptr<ParticleSystem> NewParticleSystem(Args... args);
+	std::shared_ptr<ParticleSystem> GetSharedPtr();
+
     virtual ~ParticleSystem();
 
 	/// Sets default values. Calls AllocateArrays.
@@ -67,7 +80,7 @@ public:
 
 	/// Sets the emitter to be a contour. Default before calling this is a point or a plane.
 	virtual void SetEmitter(const Contour & contour);
-	virtual void SetEmitter(List<ParticleEmitter*> newEmitters);
+	virtual void SetEmitter(List<std::shared_ptr<ParticleEmitter>> newEmitters);
 
 	/// Sets emission velocity. This will be forward to any attached emitters as well.
 	void SetEmissionVelocity(float vel);
@@ -169,7 +182,7 @@ protected:
 	int decayAlphaWithLifeTime;
 
     // For getting new spawn positions
-    List<ParticleEmitter*> emitters;
+    List<std::shared_ptr<ParticleEmitter>> emitters;
 
 	/// For instanced particle rendering. Some buffers.
 	GLuint billboardVertexBuffer;

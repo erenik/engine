@@ -198,11 +198,11 @@ class ParticleSystem;
 
 class GMRegister : public GraphicsMessage {
 public:
-	GMRegister(List<ParticleSystem*> particleSystems);
+	GMRegister(List<std::shared_ptr<ParticleSystem>> particleSystems);
 	void Process(GraphicsState* graphicsState) override;
 private:
 	int target;
-	List<ParticleSystem*> particleSystems;
+	List<std::shared_ptr<ParticleSystem>> particleSystems;
 };
 
 class GMClear : public GraphicsMessage {

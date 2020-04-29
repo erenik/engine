@@ -174,8 +174,8 @@ UIElement * UserInterface::Hover(int x, int y, bool allUi)
 		for (int i = stack.Size()-1; i >= 0; --i)
 		{
 			UIElement * stackElement = stack[i];
-			/// Remove the hover flag before re-hovering.
-			stackElement->RemoveFlags(UIState::HOVER);
+			/// Remove the hover state before re-hovering.
+			stackElement->RemoveState(UIState::HOVER);
 			result = stackElement->Hover(x,y);
 			if (result)
 				break;
@@ -183,7 +183,7 @@ UIElement * UserInterface::Hover(int x, int y, bool allUi)
 		/// If still no result, try the root.
 		if (!result)
 		{
-			root->RemoveFlags(UIState::HOVER);
+			root->RemoveState(UIState::HOVER);
 			result = root->Hover(x,y);
 		}
 		/// Demand hover will have to be investigated how it could work in this mode, if at all.
@@ -193,7 +193,7 @@ UIElement * UserInterface::Hover(int x, int y, bool allUi)
 	else {
 		UIElement * previous = stackTop->GetElementByState(UIState::HOVER);
 		/// Remove the hover flag before re-hovering.
-		stackTop->RemoveFlags(UIState::HOVER);
+		stackTop->RemoveState(UIState::HOVER);
 		result = stackTop->Hover(x,y);
 		hoverElement = result;
 		/// If we always want a hovered element (for whatever reason).

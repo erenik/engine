@@ -86,6 +86,22 @@ ParticleSystem::ParticleSystem(String type, bool emitWithEmittersOnly)
 	modelName = "sprite";
 }
 
+template<typename... Args>
+std::shared_ptr<ParticleSystem> ParticleSystem::NewParticleSystem(Args... args) {
+	std::shared_ptr<ParticleSystem> ps = new ParticleSystem(args)->GetSharedPtr();
+	selfPtr = ps;
+	return selfPtr;
+}
+std::shared_ptr<ParticleSystem> ParticleSystem::GetSharedPtr() {
+	auto sharedPtr = selfPtr.lock();
+	if (sharedPtr == nullptr) {
+		sharedPtr = std::shared_ptr<ParticleSystem>(this);
+		selfPtr = sharedPtr;
+	}
+	return selfPtr.lock();
+}
+
+
 ParticleSystem::~ParticleSystem()
 {
     std::cout<<"\nParticleSystem Destructor.....";
@@ -112,7 +128,7 @@ ParticleSystem::~ParticleSystem()
 #endif
 
 	if (deleteEmittersOnDeletion)
-		emitters.ClearAndDelete();
+		emitters.Clear();
 }
 
 /// Sets default values. Calls AllocateArrays.
@@ -267,7 +283,7 @@ void ParticleSystem::SpawnNewParticles(int & timeInMs)
 	/// Spawn new particles as wanted.
 	for (int i = 0; i < emitters.Size(); ++i)
 	{
-		ParticleEmitter * emitter = emitters[i];
+		auto emitter = emitters[i];
 		emitter->elapsedDurationMs += timeInMs;
 		// Spawn for max 0.2 seconds at a time.
 		float timeInSecondsCulled = MinimumFloat(timeInSeconds, 0.2f);
@@ -308,11 +324,11 @@ void ParticleSystem::SpawnNewParticles(int & timeInMs)
 		/// Check if the emitter should be deleted after some time.
 		if ((emitter->deleteAfterMs > 0 && emitter->elapsedDurationMs > emitter->deleteAfterMs) ||
 			emitter->instantaneous)
-		{
+		{	
+			emitter->ps = nullptr; // Remove reference to self.
 			// If so, delete it then!
 			emitters.Remove(emitter);
 			--i;
-			delete emitter;
 		}
 	}
 	/// If no emitters are present and default emitter is enabled..
@@ -437,21 +453,21 @@ void ParticleSystem::SetEmitter(const Contour & contour)
 {
 	// Delete the old emitter
 	std::cout<<"\nSetting new contour as emitter, with position "<<contour.centerOfMass[0]<<", "<<contour.centerOfMass[1]<<" and points: "<<contour.points.Size();	
-	emitters.ClearAndDelete();
-	ParticleEmitter * newEmitter = new ParticleEmitter(contour);
+	emitters.Clear();
+	auto newEmitter = (new ParticleEmitter(contour))->GetSharedPtr();
 	emitters.Add(newEmitter);
 }
 
 
-void ParticleSystem::SetEmitter(List<ParticleEmitter*> newEmitters)
+void ParticleSystem::SetEmitter(List<std::shared_ptr<ParticleEmitter>> newEmitters)
 {
 	// Delete the old emitter
-	emitters.ClearAndDelete();
+	emitters.Clear();
 	emitters = newEmitters;
 	for (int i = 0; i < newEmitters.Size(); ++i)
 	{
-		ParticleEmitter * emitter = newEmitters[i];
-		emitter->AttachTo(this);
+		std::shared_ptr<ParticleEmitter> emitter = newEmitters[i];
+		emitter->AttachTo(GetSharedPtr());
 	}
 }
 
@@ -461,7 +477,7 @@ void ParticleSystem::SetEmissionVelocity(float vel)
 	emissionVelocity = vel;
 	for (int i = 0; i < emitters.Size(); ++i)
 	{
-		ParticleEmitter * emitter = emitters[i];
+		auto emitter = emitters[i];
 		emitter->SetEmissionVelocity(emissionVelocity);
 	}
 }

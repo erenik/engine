@@ -221,7 +221,7 @@ void PhysicsManager::ProcessPhysics()
 		int64 colMs = collisionTimer.GetMs();
 		if (colMs > 50)
 		{
-			std::cout<<"\nCollision detection and resolution taking "<<colMs<<" milliseconds per frame.";
+			LogPhysics("Collision detection and resolution taking "+String(colMs)+" milliseconds per frame.", INFO);
 			break; // Break the loop. Simulate more next time if it's already being slow.
 		}
 	}

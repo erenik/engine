@@ -126,7 +126,7 @@ public:
 //	Shader * activeShader;
 	/// List of all graphical effects that are to be rendered. Can be stocked up during initial culling!
 	List<GraphicEffect*> graphicEffectsToBeRendered;
-	List<ParticleSystem*> particleEffectsToBeRendered;
+	List<std::shared_ptr<ParticleSystem> > particleEffectsToBeRendered;
 	/// Entities that require depth-sorting before they can be rendered..!
 	Entities entitiesRequiringSorting;
 

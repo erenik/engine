@@ -77,7 +77,9 @@ public:
 	String operator + (const char * otherString);
 	String operator + (const char c);
 	String operator + (const int value);
-	
+	// By default concatenates in with 3 decimal places.
+	String operator + (const float value);
+
 	/** Returns a substring, from start index to stop index (excluding the stop index), -1 signifies end of the string.
 		Mathematical notation would be [fromIndex, toIndex[
 	*/

@@ -42,10 +42,10 @@ namespace UIState {
 	const int DIALOGUE	=	0x00000020; /// Used to require further action from the user! This flag is used to easier find which elements are important for when processing them.
 };
 
-namespace UIFlag {
-	const int VISIBLE		=	0x00000001;
-	const int HOVERABLE		=	0x00000002; // Wosh.
-	const int ACTIVATABLE	=	0x00000004; // Gosh-
+enum UIFlag {
+	VISIBLE		=	0x00000001,
+	HOVERABLE	=	0x00000002, 
+	ACTIVATABLE	=	0x00000004,
 };
 
 class UIElement
@@ -412,7 +412,7 @@ public:
 	bool IsDisabled();
 
 	/// For example UIFlag::HOVERABLE, not to be confused with State! State = current, Flags = possibilities
-	void SetFlags(int flag);
+	void SetFlags(UIFlag flag);
 	/** For example UIState::HOVER, not to be confused with flags! State = current, Flags = possibilities
 		For operations controlling the HOVER flag, certain criteria may need to be met in order for the adder to succeed.
 	*/
@@ -482,7 +482,7 @@ protected:
     virtual void RenderChildren(GraphicsState & graphicsState);
 
 	// Works recursively.
-	void RemoveFlags(int flag);
+	void RemoveFlags(UIFlag flag);
 
 	// Graphical members, relevant to buffering/rendering
 	Square * mesh;		// Mesh Entity for this element

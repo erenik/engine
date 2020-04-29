@@ -42,7 +42,7 @@ void GMRegisterEntities::Process(GraphicsState* graphicsState)
 }
 
 
-GMRegister::GMRegister(List<ParticleSystem*> particleSystems)
+GMRegister::GMRegister(List< std::shared_ptr<ParticleSystem> > particleSystems)
 : GraphicsMessage(GM_REGISTER), 
 particleSystems(particleSystems),
 target(GT_PARTICLE_SYSTEMS)

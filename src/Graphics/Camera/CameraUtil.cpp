@@ -55,25 +55,25 @@ void ProcessCameraMessages(String msg, Camera * forCamera)
 	else if (msg.Contains("StartCameraRot"))
 	{
 		String dirStr = msg - "StartCameraRot";
-		int direction = Direction::Get(dirStr);
+		int direction = GetDirection(dirStr);
 		forCamera->BeginRotate(direction);	
 	}
 	else if (msg.Contains("StopCameraRot"))
 	{
 		String dirStr = msg - "StopCameraRot";
-		int direction = Direction::Get(dirStr);
+		int direction = GetDirection(dirStr);
 		forCamera->EndRotate(direction);	
 	}
 	else if (msg.Contains("StartCamera"))
 	{
 		String dirStr = msg - "StartCamera";
-		int direction = Direction::Get(dirStr);
+		int direction = GetDirection(dirStr);
 		forCamera->Begin(direction);
 	}
 	else if (msg.Contains("StopCamera"))
 	{
 		String dirStr = msg - "StopCamera";
-		int direction = Direction::Get(dirStr);
+		int direction = GetDirection(dirStr);
 		forCamera->End(direction);
 	}
 }

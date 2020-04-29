@@ -41,7 +41,7 @@ bool GraphicsManager::RegisterEntity(EntitySharedPtr entity)
 		// Check for attached graphical properties.
 		for (int i = 0; i < gp->particleSystems.Size(); ++i)
 		{
-			ParticleSystem * ps = gp->particleSystems[i];
+			auto ps = gp->particleSystems[i];
 			RegisterParticleSystem(ps, false);
 		}
 		graphicsState.dynamicLights += gp->dynamicLights;
@@ -116,10 +116,10 @@ bool GraphicsManager::UnregisterEntity(EntitySharedPtr entity)
 			bool removed = dynamicLights.RemoveItemUnsorted(light);
 			assert(removed);
 		}
-		List<ParticleSystem*> & entityParticleSystems = gp->particleSystems;
+		auto entityParticleSystems = gp->particleSystems;
 		for (int i = 0; i < entityParticleSystems.Size(); ++i)
 		{
-			ParticleSystem * ps = entityParticleSystems[i];
+			auto ps = entityParticleSystems[i];
 			bool succeeded = particleSystems.RemoveItemUnsorted(ps);
 		}
 	}
@@ -167,7 +167,7 @@ int GraphicsManager::UnregisterAll()
 }
 
 
-bool GraphicsManager::RegisterParticleSystem(ParticleSystem * ps, bool global)
+bool GraphicsManager::RegisterParticleSystem(ParticleSystemSharedPtr ps, bool global)
 {
 	if (!particleSystems.Exists(ps))
 		particleSystems.Add(ps);
@@ -178,7 +178,7 @@ bool GraphicsManager::RegisterParticleSystem(ParticleSystem * ps, bool global)
 	return true;
 }
 
-bool GraphicsManager::UnregisterParticleSystem(ParticleSystem * ps)
+bool GraphicsManager::UnregisterParticleSystem(std::shared_ptr<ParticleSystem> ps)
 {
 	assert(ps);
 	if (!ps)

@@ -55,6 +55,16 @@ ParticleEmitter::ParticleEmitter(int type)
 	emissionVelocity = 1.f;
 }
 
+std::shared_ptr<ParticleEmitter> ParticleEmitter::GetSharedPtr() {
+	auto sharedPtr = selfPtr.lock();
+	if (sharedPtr != nullptr)
+		return sharedPtr;
+	sharedPtr = std::shared_ptr<ParticleEmitter>(this);
+	selfPtr = sharedPtr;
+	return sharedPtr;
+}
+
+
 /// Point-based circular emitter
 ParticleEmitter::ParticleEmitter(ConstVec3fr point)
 	: position(point), type(EmitterType::POINT_CIRCLE)
@@ -92,9 +102,9 @@ void ParticleEmitter::Initialize()
 
 
 /// Attaches this emitter to target system.
-void ParticleEmitter::AttachTo(ParticleSystem * targetPS)
+void ParticleEmitter::AttachTo(ParticleSystemWeakPtr targetPS)
 {
-	this->ps = targetPS;
+	this->ps = targetPS.lock();
 	// Extract default attributes, unless they have been state explicitly earlier!
 	if (inheritColor)
 		this->color = ps->color;
@@ -107,8 +117,8 @@ void ParticleEmitter::AttachTo(ParticleSystem * targetPS)
 	if (inheritEmissionsPerSecond)
 		this->particlesPerSecond = ps->emissionsPerSecond;
 
-	if (!particleSystems.Exists(targetPS))
-		particleSystems.Add(targetPS);
+	if (!particleSystems.Exists(ps))
+		particleSystems.Add(ps);
 }
 
 /// Called each frame to update position and other according to automations (if any)

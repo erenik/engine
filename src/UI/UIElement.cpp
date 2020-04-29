@@ -421,7 +421,7 @@ UIElement* UIElement::Hover(int mouseX, int mouseY)
 		mouseY > top || mouseY < bottom){
 		// Return false if we are outside of the boundaries,
 		// since we haven't found the selected element.
-		RemoveFlags(UIState::HOVER);
+		RemoveState(UIState::HOVER);
 	//	if(child != NULL)
 		return NULL;
 	}
@@ -2076,14 +2076,14 @@ void UIElement::RemoveState(int statesToRemove, bool recursive /* = false*/){
 
 
 /// Take care when using!
-void UIElement::SetFlags(int flags){
+void UIElement::SetFlags(UIFlag flags){
 	assert(false);
 	/// RETHINK MAN!
 	// state |= flags;
 }
 
 // Works recursively.
-void UIElement::RemoveFlags(int flags){
+void UIElement::RemoveFlags(UIFlag flags){
 	int antiFlag = ~flags;
 	if (state & flags){
 //		std::cout<<"\nFound UIElement "<<name<<" with specified flags to remove: "<<flags;

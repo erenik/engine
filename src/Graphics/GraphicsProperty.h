@@ -9,6 +9,7 @@
 #include "MathLib.h"
 #include "String/Text.h"
 #include "System/DataTypes.h"
+#include "Particles/ParticleSystem.h"
 
 struct GraphicEffect;
 struct CompactGraphics;
@@ -77,7 +78,7 @@ public:
 	/// usually with other (unique) blending modes.
 	List<GraphicEffect*> effects;
 	/// Particle systems attached to le entity
-	List<ParticleSystem*> particleSystems;
+	List<std::shared_ptr<ParticleSystem>> particleSystems;
 	/// Lights that are attached to the entity (relative position/direction/etc.)
 	/// Dynamic lights are updated each frame whilst the static lights are added
 	/// to the primary lighting-setup on attachment.

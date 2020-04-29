@@ -22,7 +22,7 @@ private:
 	Random colorRandom;
 };
 
-class Stars : public ParticleSystem 
+class alignas(16) Stars : public ParticleSystem 
 {
 public:
 	/// Creates a global particle system

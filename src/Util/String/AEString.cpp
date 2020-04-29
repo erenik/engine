@@ -544,6 +544,13 @@ String String::operator + (const int value){
 	return string;
 }
 
+String String::operator + (const float value) {
+	String string(this);
+	string.Add(String::ToString(value, 3));
+	return string;
+}
+
+
 /// Printing out data
 std::ostream& operator <<(std::ostream& os, const String& str){
 	switch(str.type){

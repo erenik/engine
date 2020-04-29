@@ -14,71 +14,75 @@
 
 #include "TextureManager.h"
 
-GMAttachParticleSystem::GMAttachParticleSystem(EntitySharedPtr entity, ParticleSystem * pa)
+GMAttachParticleSystem::GMAttachParticleSystem(EntitySharedPtr entity, ParticleSystemWeakPtr pa)
 	: GraphicsMessage(GM_ATTACH_PARTICLE_SYSTEM), entity(entity), pa(pa)
 {
 }
 void GMAttachParticleSystem::Process(GraphicsState* graphicsState)
 {
 	ADD_GRAPHICS_PROPERTY_IF_NEEDED(entity);
-	// Add it.
-	entity->graphics->particleSystems.Add(pa);
+	entity->graphics->particleSystems.Add(pa.lock());
 }
 
-GMRegisterParticleSystem::GMRegisterParticleSystem(ParticleSystem * ps, bool global)
+GMRegisterParticleSystem::GMRegisterParticleSystem(ParticleSystemWeakPtr ps, bool global)
 : GraphicsMessage(GM_REGISTER_PARTICLE_SYSTEM), ps(ps), global(global)
 {
 }
 void GMRegisterParticleSystem::Process(GraphicsState* graphicsState)
 {
-	GraphicsMan.RegisterParticleSystem(ps, global);
+	GraphicsMan.RegisterParticleSystem(ps.lock(), global);
 }
 
-GMUnregisterParticleSystem::GMUnregisterParticleSystem(ParticleSystem * ps, bool deleteOnUnregister)
+GMUnregisterParticleSystem::GMUnregisterParticleSystem(std::weak_ptr<ParticleSystem> ps, bool deleteOnUnregister)
 	: GraphicsMessage(GM_UNREGISTER_PARTICLE_SYSETM), ps(ps), deleteOnUnregister(deleteOnUnregister)
 {
 }
 void GMUnregisterParticleSystem::Process(GraphicsState* graphicsState)
 {
-	GraphicsMan.UnregisterParticleSystem(ps);
-	if (ps && deleteOnUnregister)
-		delete ps;
+	auto system = ps.lock();
+	if (system == nullptr)
+		return;
+	GraphicsMan.UnregisterParticleSystem(system);
 }
 
-GMAttachParticleEmitter::GMAttachParticleEmitter(ParticleEmitter * pe, ParticleSystem * ps)
+GMAttachParticleEmitter::GMAttachParticleEmitter(std::shared_ptr<ParticleEmitter> pe, ParticleSystemWeakPtr ps)
 : GraphicsMessage(GM_ATTACH_PARTICLE_EMITTER), pe(pe), ps(ps)
 {
 
 }
 void GMAttachParticleEmitter::Process(GraphicsState* graphicsState)
 {
-	// Return if already attached?
-	if (ps->emitters.Exists(pe))
+	auto system = ps.lock();
+	auto emitter = pe;
+	if (system == nullptr)
 		return;
-	ps->emitters.Add(pe);
-	pe->AttachTo(ps);
+	// Return if already attached?
+	if (system->emitters.Exists(emitter))
+		return;
+	emitter->AttachTo(system);
 }
 
-GMDetachParticleEmitter::GMDetachParticleEmitter(ParticleEmitter * pe)
-	: GraphicsMessage(GM_ATTACH_PARTICLE_EMITTER), pe(pe), ps(NULL)
+GMDetachParticleEmitter::GMDetachParticleEmitter(std::shared_ptr<ParticleEmitter> pe)
+	: GraphicsMessage(GM_ATTACH_PARTICLE_EMITTER), pe(pe), ps(std::weak_ptr<ParticleSystem>())
 {
 }
-GMDetachParticleEmitter::GMDetachParticleEmitter(ParticleEmitter * pe, ParticleSystem * ps)
+GMDetachParticleEmitter::GMDetachParticleEmitter(std::shared_ptr<ParticleEmitter> pe, ParticleSystemWeakPtr ps)
 	: GraphicsMessage(GM_ATTACH_PARTICLE_EMITTER), pe(pe), ps(ps)
 {
 }
 void GMDetachParticleEmitter::Process(GraphicsState* graphicsState)
 {
-	if (ps)
+	auto system = ps.lock();
+	if (system)
 	{
-		ps->emitters.Remove(pe);
-		pe->particleSystems.Remove(ps);
+		system->emitters.Remove(pe);
+		pe->particleSystems.Remove(system);
 	}
 	else 
 	{
 		for (int i = 0; i < pe->particleSystems.Size(); ++i)
 		{
-			ParticleSystem * ps = pe->particleSystems[i];
+			ParticleSystemSharedPtr ps = pe->particleSystems[i];
 			ps->emitters.Remove(pe);
 		}
 		pe->particleSystems.Clear();
@@ -86,13 +90,15 @@ void GMDetachParticleEmitter::Process(GraphicsState* graphicsState)
 }
 
 
-GMClearParticles::GMClearParticles(ParticleSystem * inSystem)
+GMClearParticles::GMClearParticles(std::weak_ptr<ParticleSystem> inSystem)
 	: GraphicsMessage(GM_CLEAR_PARTICLES), ps(inSystem)
 {
 }
 void GMClearParticles::Process(GraphicsState* graphicsState)
 {
-	ps->ClearParticles();
+	auto system = ps.lock();
+	if (system != nullptr)
+		system->ClearParticles();
 }
 
 
@@ -108,8 +114,8 @@ void GMPauseEmission::Process(GraphicsState* graphicsState)
 		return;
 	for (int i = 0; i < entity->graphics->particleSystems.Size(); ++i)
 	{
-		ParticleSystem * ps = entity->graphics->particleSystems[i];
-		ps->PauseEmission();
+		ParticleSystemWeakPtr ps = entity->graphics->particleSystems[i];
+		ps.lock()->PauseEmission();
 	}
 }
 
@@ -124,24 +130,24 @@ void GMResumeEmission::Process(GraphicsState* graphicsState)
 		return;
 	for (int i = 0; i < entity->graphics->particleSystems.Size(); ++i)
 	{
-		ParticleSystem * ps = entity->graphics->particleSystems[i];
+		auto ps = entity->graphics->particleSystems[i];
 		ps->ResumeEmission();
 	}
 }
 
 /// Sets a (2D) contour to be the emitter shape.
-GMSetParticleEmitter::GMSetParticleEmitter(ParticleSystem * ps, const Contour & contour)
+GMSetParticleEmitter::GMSetParticleEmitter(std::shared_ptr<ParticleSystem> ps, const Contour & contour)
 : GraphicsMessage(GM_SET_PARTICLE_EMITTER), ps(ps), contour(contour), type(CONTOUR)
 {
 
 }
-GMSetParticleEmitter::GMSetParticleEmitter(ParticleSystem * ps, List<ParticleEmitter*> newEmitters)
+GMSetParticleEmitter::GMSetParticleEmitter(std::shared_ptr<ParticleSystem> ps, List<std::shared_ptr<ParticleEmitter>> newEmitters)
 : GraphicsMessage(GM_SET_PARTICLE_EMITTER), ps(ps), newEmitters(newEmitters), type(NEW_EMITTER_LIST)
 {
 	target = GT_SET_PARTICLE_EMITTER_OF_PARTICLE_SYSTEM;
 }
 
-GMSetParticleEmitter::GMSetParticleEmitter(ParticleEmitter * emitter, int target, ConstVec3fr vec3fValue)
+GMSetParticleEmitter::GMSetParticleEmitter(std::shared_ptr<ParticleEmitter> emitter, int target, ConstVec3fr vec3fValue)
 : GraphicsMessage(GM_SET_PARTICLE_EMITTER), target(target), emitter(emitter), vec3fValue(vec3fValue)
 {
 	switch(target)
@@ -155,7 +161,7 @@ GMSetParticleEmitter::GMSetParticleEmitter(ParticleEmitter * emitter, int target
 	}
 }
 
-GMSetParticleEmitter::GMSetParticleEmitter(ParticleEmitter * emitter, int target, EntitySharedPtr entity)
+GMSetParticleEmitter::GMSetParticleEmitter(std::shared_ptr<ParticleEmitter> emitter, int target, EntitySharedPtr entity)
 : GraphicsMessage(GM_SET_PARTICLE_EMITTER), target(target), emitter(emitter), entity(entity)
 {
 	switch(target)

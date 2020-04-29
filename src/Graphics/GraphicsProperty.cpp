@@ -65,7 +65,7 @@ GraphicsProperty::~GraphicsProperty()
 {
 	estimators.ClearAndDelete();
 	effects.ClearAndDelete();
-	particleSystems.ClearAndDelete();
+	particleSystems.Clear();
 	dynamicLights.ClearAndDelete();
 	staticLights.ClearAndDelete();
 }

@@ -18,6 +18,8 @@ extern float oneDivRandMaxFloat;
 class ParticleEmitter 
 {
 	friend class ParticleSystem;
+private:
+	std::weak_ptr<ParticleEmitter> selfPtr;
 public:
 	// Default constructor with no assigned type or anything. MUST overload GetNewParticle if so!
 	ParticleEmitter();
@@ -33,11 +35,15 @@ public:
 	ParticleEmitter(const Vector3f & point);
 	/// Triangle-list-based emitter
 	ParticleEmitter(List<Triangle> tris);
+
+	// Creates a shared ptr of self.
+	std::shared_ptr<ParticleEmitter> GetSharedPtr();
+
 	/// Initializes and allocates stuff.
 	virtual void Initialize();
 
 	/// Attaches this emitter to target system.
-	virtual void AttachTo(ParticleSystem * ps);
+	virtual void AttachTo(std::weak_ptr<ParticleSystem> ps);
 
 	/// Called each frame to update position and other according to automations (if any)
 	void Update();
@@ -92,7 +98,7 @@ public:
 	EntitySharedPtr entityToTrack;
 	Vector3f positionOffset;
 	/// That it is currently attached to.
-	List<ParticleSystem*> particleSystems;
+	List<std::shared_ptr<ParticleSystem> > particleSystems;
 
 	// o.o
 	float emissionVelocity;
@@ -113,7 +119,7 @@ protected:
 	/** Belonging particle system. An emitter almost always belongs to just 1 system. 
 		Re-write and virtualize the system in sub-classes if you want to be obnoxious about this.
 	*/
-	ParticleSystem * ps;
+	std::shared_ptr<ParticleSystem> ps;
 
 	/// Calculate in ParticlesToEmit, decremented each time GetNewParticle is called.
 	int toSpawn;

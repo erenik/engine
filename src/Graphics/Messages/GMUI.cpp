@@ -108,6 +108,12 @@ bool GMUI::GetGlobalUI()
 	*/
 }
 
+GMSetHoverUI::GMSetHoverUI(void* nullPointer, UserInterface* inUI)
+	: GMUI(GM_SET_HOVER_UI, inUI), nullify(true)
+{
+}
+
+
 GMSetHoverUI::GMSetHoverUI(String uiName, UserInterface * inUI)
 : GMUI(GM_SET_HOVER_UI, inUI), name(uiName)
 {
@@ -118,12 +124,17 @@ void GMSetHoverUI::Process(GraphicsState* graphicsState)
         return;
 	if (!name.Length())
 		return;
+	if (nullify) {
+		ui->SetHoverElement(graphicsState, nullptr);
+		return;
+	}
+
 	UIElement * e = ui->GetElementByName(name);
 	if (!e){
 		std::cout<<"\nINFO: No element found with specified name \""<<name<<"\"";
 		return;
 	}
-	e->Hover();
+	ui->SetHoverElement(graphicsState, e);
 }
 
 GMSetUIp::GMSetUIp(String uiName, int target, Texture * tex, UserInterface * ui)

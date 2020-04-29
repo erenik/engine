@@ -46,7 +46,7 @@ extern int debug;
 Action::Action()
 {
 	Nullify();
-	type = NONE;
+	type = NO_ACTION;
 }
 
 /// Default of queueing the message into the Message-manager.

@@ -6,7 +6,7 @@
 
 #include <cassert>
 
-int Direction::Get(String byString)
+Direction GetDirection(String byString)
 {
 	byString.SetComparisonMode(String::NOT_CASE_SENSITIVE);
 	if (byString == "Left")	return Direction::LEFT;
@@ -15,11 +15,11 @@ int Direction::Get(String byString)
 	if (byString == "DOWN")	return Direction::DOWN;
 	if (byString == "FORWARD")	return Direction::FORWARD;
 	if (byString == "BACKWARD")	return Direction::BACKWARD;
-	return NONE;
+	return Direction::NO_DIRECTION;
 }
 
 /// Returns unit-vectors.
-Vector3f Direction::GetVector(int forDirection)
+Vector3f GetVector(Direction forDirection)
 {
 	switch(forDirection)
 	{

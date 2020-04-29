@@ -430,7 +430,7 @@ bool RenderPass::Render(GraphicsState & graphicsState)
 			// Render all registered particle systems.
 			for (int i = 0; i < graphicsState.particleEffectsToBeRendered.Size(); ++i)
 			{
-				ParticleSystem * ps = graphicsState.particleEffectsToBeRendered[i];
+				auto ps = graphicsState.particleEffectsToBeRendered[i];
 				ps->Render(&graphicsState);
 			}
 			break;

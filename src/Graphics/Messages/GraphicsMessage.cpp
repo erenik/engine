@@ -125,8 +125,8 @@ void GraphicsMessage::Process(GraphicsState* graphicsState)
 			Graphics.renderingEnabled = true;
 			break;
 		case GM_RECOMPILE_SHADERS:
-			ShadeMan.RecompileAllShaders();
 			RenderPipeMan.LoadFromPipelineConfig(graphicsState);
+			ShadeMan.RecompileAllShaders();
 			break;
 		case GM_CLEAR_OVERLAY_TEXTURE:
 			Graphics.SetOverlayTexture(NULL);
@@ -340,4 +340,12 @@ void GMDelete::Process(GraphicsState * graphicsState)
 	if (ui->IsGeometryCreated())
 		ui->DeleteGeometry();
 	delete ui;
+}
+
+GMRecompileShaders::GMRecompileShaders() : GraphicsMessage(GM_RECOMPILE_SHADERS) {
+}
+
+void GMRecompileShaders::Process(GraphicsState* graphicsState) {
+	RenderPipeMan.LoadFromPipelineConfig(graphicsState);
+	ShadeMan.RecompileAllShaders();
 }

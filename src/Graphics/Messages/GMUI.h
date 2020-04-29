@@ -78,9 +78,11 @@ protected:
 class GMSetHoverUI : public GMUI 
 {
 public:
+	GMSetHoverUI(void * nullPointer, UserInterface* inUI = NULL);
 	GMSetHoverUI(String uiName, UserInterface * inUI = NULL);
 	virtual void Process(GraphicsState* graphicsState);
 private:
+	bool nullify = false;
 	String name;
 };
 

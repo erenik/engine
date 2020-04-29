@@ -16,7 +16,7 @@
 #include "String/AEString.h"
 
 enum {
-	NONE,
+	NO_ACTION,
 	QUEUE_STRING_MESSAGE, /// Equivalent to the defualt of just queuing up a String in the MessageManager to be processed by the AppState, etc.
 	QUEUE_STRING_START_STOP, /// Similar to the regular message, but posts a different message based on if the action starts or stops (key-binding starts and stops).
 							 /// By default all actions are presumed to be executed only on the Starting phase.

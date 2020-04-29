@@ -35,7 +35,7 @@ void GraphicsManager::RenderEffects()
 
     for (int i = 0; i < graphicsState.particleEffectsToBeRendered.Size(); ++i)
 	{
-		ParticleSystem * ps = graphicsState.particleEffectsToBeRendered[i];
+		auto ps = graphicsState.particleEffectsToBeRendered[i];
 		ps->Render(&graphicsState);
     }
 

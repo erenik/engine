@@ -984,7 +984,7 @@ void GraphicsManager::Process()
 	/// Process particle effects.
 	for (int i = 0; i < particleSystems.Size(); ++i)
 	{
-		ParticleSystem * ps = particleSystems[i];
+		ParticleSystemSharedPtr ps = particleSystems[i];
 		ps->Process(&graphicsState, milliseconds * 0.001f);
 	}
 	/// Process entity specific controls and systems

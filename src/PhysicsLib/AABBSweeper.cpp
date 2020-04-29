@@ -8,6 +8,7 @@
 #include <iomanip>
 #include "Timer/Timer.h"
 #include "AABBSweeper/AABBSweepAxis.h"
+#include "File/LogFile.h"
 
 extern int debug;
 
@@ -182,8 +183,10 @@ List<EntityPair> AABBSweeper::Sweep()
 			if (!shouldBeHere)
 			{
 				/// Remove if needed.
-				if (existsWithin)
+				if (existsWithin) {
+					LogPhysics("Removing entity from axis within AABB Sweeper", INFO);
 					axis->RemoveEntity(entity);
+				}
 				continue;
 			}
 			// If not, add it. Add iiiit o.o
