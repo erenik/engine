@@ -163,7 +163,7 @@ int PhysicsManager::RegisterEntities(List< std::shared_ptr<Entity> > & targetEnt
 /// Unregisters an Entity from the physics calculations. Returns 0 if it found the Entity and successfully removed it, 1 if not.
 int PhysicsManager::UnregisterEntity(EntitySharedPtr entityToRemove)
 {
-	LogPhysics("Unregistering entity " + entityToRemove->name + " from physics", INFO);
+	LogPhysics("Unregistering entity " + entityToRemove->name + " from physics", DEBUG);
 
 	/// If have kids/parent, unbind. -> Why? What if it is just a unregistration for re-registering?
 	if (entityToRemove->flaggedForDeletion)

@@ -21,8 +21,15 @@ bool loggingEnabled = true;
 LogLevel logLevel = INFO;
 
 /// Logs to file, creates the file (and folders) necessary if it does not already exist. Time stamps will probably also be available.
-void LogToFile(String fileName, String logText, LogLevel levelFlags, List<TextError> * previousErrors /* = 0*/)
+void LogToFile(String fileName,  String codeFile, String function, String logText, LogLevel levelFlags, List<TextError> * previousErrors /* = 0*/)
 {
+	Time time = Time::Now();
+	String timeString = time.ToString("H:m:S ");
+	String logTextWithFunction = codeFile +"::"+function+" "+logText;
+
+	String textToStdOut = logTextWithFunction;
+	String textToFile = timeString + logTextWithFunction + "\n";
+
 	int level = levelFlags % 16;
 	// What does this even do..?
 	if (level < logLevel)
@@ -62,12 +69,7 @@ void LogToFile(String fileName, String logText, LogLevel levelFlags, List<TextEr
 	if(!file.is_open())
 		return;
 
-	String text;
-	Time time = Time::Now();
-	String timeString = time.ToString("H:m:S ");
-	text = timeString + logText + "\n";
-
-	file.write((char*) text.c_str(), text.Length());
+	file.write((char*)textToFile.c_str(), textToFile.Length());
 	file.close();
 
 	bool causeAssertionError = levelFlags & CAUSE_ASSERTION_ERROR;

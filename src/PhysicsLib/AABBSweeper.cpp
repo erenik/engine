@@ -249,6 +249,7 @@ List<EntityPair> AABBSweeper::Sweep()
 		AABBSweepAxis * axis = axes[i];
 		axis->GetPairs(entityPairs);		
 	}
+
 //    std::cout<<"\nPairs after sweep: "<<entityPairs.Size();
 	timer.Stop();
 	int filtering = timer.GetMs();

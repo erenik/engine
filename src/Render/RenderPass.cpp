@@ -646,6 +646,10 @@ void RenderPass::RenderEntities(GraphicsState & graphicsState)
 	for (int i = 0; i < entitiesToRender.Size(); ++i)
 	{
 		entity = entitiesToRender[i];
+		if (entity->model == nullptr) {
+			LogGraphics("Attempting to render entity with nullptr model.", LogLevel::CAUSE_ASSERTION_ERROR);
+			continue;
+		}
 		if (!entity->IsVisible())
 			continue;
 		gp = entity->graphics;

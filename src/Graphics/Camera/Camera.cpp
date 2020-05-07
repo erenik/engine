@@ -549,6 +549,7 @@ void Camera::Track()
 		{
 			positionWithOffsets = this->position;
 			positionWithOffsets += *entityToTrack->renderPosition;
+			positionWithOffsets += trackingPositionOffset;
 			break;
 		}
 		default:

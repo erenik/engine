@@ -292,7 +292,7 @@ public:
 	
 	/// Rotational smoothing. Separate from normal smoothing (position).
 	float rotationalSmoothness;
-	/// Smoothing of position.
+	/// Smoothing of position, 0.8 = Follows rapidly, 0.5 = Reduces distance by 50% each frame, 0.2 = Follows slower.
 	float smoothness;
 
 private:

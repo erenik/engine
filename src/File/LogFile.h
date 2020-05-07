@@ -13,10 +13,12 @@
 #include "Output.h"
 extern List<TextError> gErrors, pErrors, aErrors, mErrors;
 
-#define LogPhysics(text, level) LogToFile(PHYSICS_THREAD, text, level, &pErrors)
-#define LogMain(text, level) LogToFile(MAIN_THREAD, text, level, &mErrors)
-#define LogAudio(text, level) LogToFile(AUDIO_THREAD, text, level, &aErrors)
-#define LogGraphics(text, level) LogToFile(GRAPHICS_THREAD, text, level, &gErrors)
+#define CURRENT_FILE __FILE__
+
+#define LogPhysics(text, level) LogToFile(PHYSICS_THREAD, CURRENT_FILE, __func__, text, level, &pErrors)
+#define LogMain(text, level) LogToFile(MAIN_THREAD, CURRENT_FILE, __func__, text, level, &mErrors)
+#define LogAudio(text, level) LogToFile(AUDIO_THREAD, CURRENT_FILE, __func__, text, level, &aErrors)
+#define LogGraphics(text, level) LogToFile(GRAPHICS_THREAD, CURRENT_FILE, __func__, text, level, &gErrors)
 
 #ifdef ERROR
 #undef ERROR
@@ -36,7 +38,7 @@ enum LogLevel
 extern LogLevel logLevel;
 
 /// Logs to file, creates the file (and folders) necessary if it does not already exist. Time stamps will probably also be available.
-void LogToFile(String fileName, String text, LogLevel level, List<TextError> * previousErrors = 0);
+void LogToFile(String fileName, String codeFile, String funcName, String text, LogLevel level, List<TextError> * previousErrors = 0);
 void SetLogLevel(String fromString);
 
 

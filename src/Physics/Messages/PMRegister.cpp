@@ -41,5 +41,5 @@ void PMRegisterEntities::Process()
 		LogPhysics(String(entities.Size())+" entities registered successfully.", EXTENSIVE_DEBUG);
 	}
 	else
-		std::cout<<"\nUnable to register "<<failed<<" of "<<entities.Size()<<" entities. Make sure they all have physicsProperties.";
+		LogPhysics("Unable to register "+String(failed)+" of "+entities.Size()+" entities. Make sure they all have physicsProperties.", ERROR);
 }
