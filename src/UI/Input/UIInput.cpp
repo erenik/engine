@@ -9,6 +9,7 @@
 
 #include "Input/InputManager.h"
 #include "Input/Keys.h"
+#include "UI/Lists/UIColumnList.h"
 
 #include "Message/Message.h"
 #include "Message/MessageManager.h"
@@ -445,6 +446,36 @@ void UIInput::BeginInput()
 	OnTextUpdated();
 	previousText = editText;
 	InputMan.DisableKeyBindings();
+}
+
+// Creates default elements for a label and input one-liner input element. Used by Integer, String, Float inputs.
+UIColumnList * UIInput::CreateDefaultColumnList() {
+	/// Use a column-list to automatically get links between the elements, etc.
+	UIColumnList * box = new UIColumnList();
+	box->padding = this->padding;
+	AddChild(nullptr, box);
+	return box;
+}
+UILabel * UIInput::CreateDefaultLabel(UIColumnList * box, float sizeX) {
+	UILabel * label = new UILabel();
+	label->text = name;
+	label->sizeRatioX = sizeX;
+	box->AddChild(nullptr, label);
+	return label;
+}
+UIInput * UIInput::CreateDefaultInput(UIColumnList * box, float sizeX) {
+	/// Create 3 children
+	UIInput * input = new UIInput();
+	input->textureSource = textureSource;
+	input->name = name + "Input";
+	box->AddChild(nullptr, input);
+	return input;
+}
+float UIInput::DefaultSpacePerElement() {
+	int elements = 1 + 1;
+	float spaceLeft = 1.0f - padding * elements;
+	float spacePerElement = spaceLeft / elements;
+	return spacePerElement;
 }
 
 /// Halts input and removes Active state.

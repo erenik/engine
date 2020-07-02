@@ -59,6 +59,7 @@ public:
 		LOG_FILL, 
 		TEXTURE_SOURCE,
 		STRING_INPUT_TEXT, // For UIStringInput
+		STRING_INPUT, // UIStringInput value/contents
 		INTEGER_INPUT_TEXT, // For UIIntegerInput
 		TEXTURE_INPUT_SOURCE, // For UITextureInput
 	};

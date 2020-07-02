@@ -212,6 +212,8 @@ public:
 	/** Should NOT be confused with the working/client area of the AppWindow!
 	*/
 	Vector2i OSWindowSize();
+	// Fetches size of monitor in which this window resides (based on some anchor).
+	Vector2i GetMonitorSize();
 
 	/// Fetches ray using viewport-based co-ordinates (not to be confused with the Window/screen-space co-ordinates!)
 #define GetRayFromWindowCoordinates GetRayFromScreenCoordinates

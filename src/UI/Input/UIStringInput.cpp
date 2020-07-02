@@ -14,7 +14,7 @@
 #include "Graphics/GraphicsManager.h"
 
 UIStringInput::UIStringInput(String name, String onTrigger)
-: UIElement(),action(onTrigger)
+: UIInput(), action(onTrigger)
 {
 	this->type = UIType::STRING_INPUT;
 	this->name = name;
@@ -113,19 +113,11 @@ void UIStringInput::CreateChildren(GraphicsState * graphicsState)
 		return;
 
 	/// Use a column-list to automatically get links between the elements, etc.
-	UIColumnList * box = new UIColumnList();
-	box->padding = this->padding;
-	AddChild(nullptr, box);
+	UIColumnList * box = CreateDefaultColumnList();
+	float spacePerElement = DefaultSpacePerElement();
+	label = CreateDefaultLabel(box, spacePerElement);
+	input = CreateDefaultInput(box, spacePerElement);
 
-	/// Create a label
-	label = new UILabel();
-	label->text = displayText;
-	label->sizeRatioX = divider.x;
-	box->AddChild(nullptr, label);
-
-	/// Create input
-	input = new UIInput();
-	input->textureSource = textureSource;
 	/// Set them to only accept floats?
 	input->name = name + "Input";
 	input->text = "";
@@ -137,7 +129,6 @@ void UIStringInput::CreateChildren(GraphicsState * graphicsState)
 		input->activateable = false;
 		input->highlightOnHover = false;
 	}
-	box->AddChild(nullptr, input);
 	childrenCreated = true;
 }
 /// Getter/setter for the input element.
@@ -147,8 +138,6 @@ String UIStringInput::GetValue()
 }
 void UIStringInput::SetValue(String value)
 {
-	Graphics.Pause();
 	this->SetText(value);
-	Graphics.Resume();
 }
 

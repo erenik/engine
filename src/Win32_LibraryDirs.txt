@@ -1,9 +1,9 @@
 LIBS_DIR\glew-1.12.0\lib\Release\x64
-LIBS_DIR\libogg-1.3.2\win32\VS2010\Win32\Debug\
+LIBS_DIR\libogg\win32\VS2010\Win32\Debug\
 LIBS_DIR\openal-soft-1.16.0-bin\libs\Win32
 LIBS_DIR\opencv\out\lib\Debug
 LIBS_DIR\opencv\out\lib\Release
 LIBS_DIR\libpng\lib
-LIBS_DIR\zlib-1.2.11\out\Debug
-LIBS_DIR\zlib-1.2.11\out\Release
+LIBS_DIR\zlib-1.2.11\Debug
+LIBS_DIR\zlib-1.2.11\Release
 

@@ -5,11 +5,11 @@
 #ifndef UI_FLOAT_INPUT_H
 #define UI_FLOAT_INPUT_H
 
-#include "UI/UIElement.h"
+#include "UI/Input/UIInput.h"
 class GraphicsState;
 
 /// Class for 1 float inputs.
-class UIFloatInput : public UIElement {
+class UIFloatInput : public UIInput {
 public:
 	UIFloatInput(String name, String onTrigger);
 	virtual ~UIFloatInput();

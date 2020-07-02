@@ -206,17 +206,7 @@ void WindowManager::DeleteWindows()
 AppWindow * WindowManager::CreateMainWindow()
 {
 #ifdef USE_SSE
-//	mainWindow = NewAligned<AppWindow>(AppWindow("MainWindow", Application::name));
 	mainWindow = NewAS(AppWindow, AppWindow("MainWindow", Application::name));
-	/* Macro testing.
-	mainWindow = AllocAligned(AppWindow);
-	mainWindow = Construct(mainWindow, AppWindow("MainWindow", Application::name));
-	mainWindow = NewAligned(AppWindow, AppWindow("MainWindow", Application::name));
-*/
-//	mainWindow = NewAligned(AppWindow, AppWindow("MainWindow", Application::name));
-	// Working.
-//	mainWindow = (AppWindow*) _aligned_malloc(1 * sizeof(AppWindow), 16);
-//	mainWindow = new((void*)mainWindow) AppWindow("MainWindow", Application::name);
 #else
 	mainWindow = new AppWindow("MainWindow", Application::name);
 #endif

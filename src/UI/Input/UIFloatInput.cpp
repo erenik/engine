@@ -18,7 +18,7 @@
 
 /// Class for 1 float inputs.
 UIFloatInput::UIFloatInput(String name, String onTrigger)
-: UIElement(), action(onTrigger)
+: UIInput(), action(onTrigger)
 {
 	this->type = UIType::FLOAT_INPUT;
 	this->name = name;
@@ -97,26 +97,13 @@ void UIFloatInput::CreateChildren(GraphicsState* graphicsState)
 {
 	if (childrenCreated)
 		return;
+
 	/// Use a column-list to automatically get links between the elements, etc.
-	UIColumnList * box = new UIColumnList();
-	box->padding = this->padding;
-	AddChild(nullptr, box);
+	UIColumnList * box = CreateDefaultColumnList();
+	float spacePerElement = DefaultSpacePerElement();
+	label = CreateDefaultLabel(box, spacePerElement);
+	input = CreateDefaultInput(box, spacePerElement);
 
-	int elements = 1 + 1;
-	float spaceLeft = 1.0f - padding * elements;
-	float spacePerElement = spaceLeft / elements;
-
-	/// Create a label
-	label = new UILabel();
-	label->text = name;
-	label->sizeRatioX = spacePerElement;
-	box->AddChild(nullptr, label);
-
-	/// Create 3 children
-	input = new UIInput();
-	/// Set them to only accept floats?
-	input->name = name + "Input";
-	input->textureSource = this->textureSource;
 	/// Inherit texture from parent by default, so highlighting works accordingly? Or highlight without any texture base...?
 	/// ...
 	/// Any mathematical expression?
@@ -128,7 +115,6 @@ void UIFloatInput::CreateChildren(GraphicsState* graphicsState)
 	input->text = "0";
 	input->sizeRatioX = spacePerElement;
 //	input->onTrigger = "UIFloatInput("+name+")";
-	box->AddChild(nullptr, input);
 	childrenCreated = true;
 }
 

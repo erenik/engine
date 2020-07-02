@@ -654,6 +654,7 @@ void GMSetUIs::AssertTarget()
 		case GMUI::TEXTURE_SOURCE:
 		case GMUI::TEXTURE_INPUT_SOURCE:
 		case GMUI::STRING_INPUT_TEXT:
+		case GMUI::STRING_INPUT:
 		case GMUI::INTEGER_INPUT_TEXT:
 			break;
 		default:
@@ -702,6 +703,14 @@ void GMSetUIs::Process(GraphicsState * graphicsState)
 				break;
 			UIStringInput * si = (UIStringInput*) e;
 			si->input->SetText(text);
+			break;
+		}
+		case GMUI::STRING_INPUT: 
+		{ 
+			if (e->type != UIType::STRING_INPUT)
+				break;
+			UIStringInput * si = (UIStringInput*)e;
+			si->SetValue(text);
 			break;
 		}
 		case GMUI::INTEGER_INPUT_TEXT:

@@ -358,6 +358,11 @@ macro (addProject ProjectName projectSrcDir engineSrcDir)
 	# Win32 MSVC++
 	IF(MSVC)
 		message("Configuring for Windows MSVC")
+
+		set(CMAKE_VS_PLATFORM_NAME_DEFAULT "x64")
+		set(CMAKE_GENERATOR_PLATFORM "x64")
+		message("Generating for Architecture: ${CMAKE_GENERATOR_PLATFORM}")	
+
 		# Preprocessor definitions
 		add_definitions(
 			-DGLEW_STATIC
@@ -508,7 +513,6 @@ macro (addProject ProjectName projectSrcDir engineSrcDir)
 		${lib_library_dirs}
 		${OPENAL_LIBRARY}
 	)
-
 	
 	# Set binaries to build.
 	message("Adding executable")

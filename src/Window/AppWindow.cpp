@@ -216,6 +216,30 @@ void AppWindow::EnsureUIIsCreated()
 	}
 }
 
+Vector2i AppWindow::GetMonitorSize() {
+	Vector2i size;
+#ifdef WINDOWS
+	// First extract screen to full-size in.
+	// http://msdn.microsoft.com/en-us/library/windows/desktop/dd145064%28v=vs.85%29.aspx
+	HMONITOR hMonitor = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
+	MONITORINFOEX lpmi;
+	// http://msdn.microsoft.com/en-us/library/windows/desktop/dd144901%28v=vs.85%29.aspx
+	lpmi.cbSize = sizeof(MONITORINFOEX);
+	BOOL getMonitorInfoResult = GetMonitorInfoW(hMonitor, &lpmi);
+	if (getMonitorInfoResult)
+	{
+		size[0] = lpmi.rcMonitor.right - lpmi.rcMonitor.left;
+		size[1] = lpmi.rcMonitor.bottom - lpmi.rcMonitor.top;
+		bool doOffset = false;
+		if (doOffset)
+		{
+			size += Vector2i(4, 4);
+		}
+	}
+#endif 
+	return size;
+}
+
 /// Toggles full-screen for this AppWindow.
 void AppWindow::ToggleFullScreen()
 {
@@ -382,6 +406,10 @@ bool AppWindow::Create()
 	
 
 	Vector2i size(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT);
+	// Default size to half of primary monitor width and height?
+	size = GetMonitorSize() / 2;
+	LogMain("Using half monitor size for window creation: "+ VectorString(size), INFO);
+
 	if (requestedSize[0] && requestedSize[1] )
 		size = requestedSize;
 	Vector2i position(CW_USEDEFAULT,CW_USEDEFAULT);

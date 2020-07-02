@@ -30,7 +30,11 @@ Building
 	- In LIBS_DIR, specify directory to headers and binaries for external depdendencies. E.g. D:/libs. If you need the dependencies installed, you can try marking the INSTALL_DEPENDENCIES and CMake may try to download and unpack some of them, but you may need to compile them yourself or download binaries as needed.
 	- Choose which dependencies you want. Many can be omitted as they were mostly experimental.
 	- in PROJ_SPEC_DIR enter the path to the source code for your project. E.g. D:/git/engine-games/MORPG 
-- You will need to download and build the relevant dependencies as well. Hit the checkbox within the CMake config to download the zips.
+- You will need to download and build the relevant dependencies as well. Hit the checkbox within the CMake config to download the zips and get you kick-started.
+	- Rename ogg and vorbis dirs to remove the semantic versions from their directories (e.g. /ogg-1.2.1/ -> /ogg/)
+	- When building, ensure you use the same architecture for all libraries as your game, e.g. x86 or x64, this can be configured with Cmake additional arguments '-A x64'
+		- E.g. 'cmake . -A x64'
+
 
 
 

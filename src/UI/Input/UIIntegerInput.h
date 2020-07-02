@@ -5,10 +5,10 @@
 #ifndef UI_INTEGER_INPUT_H
 #define UI_INTEGER_INPUT_H
 
-#include "UI/UIElement.h"
+#include "UI/Input/UIInput.h"
 
 /// Class for 1 Integer inputs.
-class UIIntegerInput : public UIElement 
+class UIIntegerInput : public UIInput
 {
 public:
 	UIIntegerInput(String name, String onTrigger);

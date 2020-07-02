@@ -5,10 +5,10 @@
 #ifndef UI_STRING_INPUT_H
 #define UI_STRING_INPUT_H
 
-#include "UI/UIElement.h"
+#include "UI/Input/UIInput.h"
 
 /// Class for 1 string input with label before it.
-class UIStringInput : public UIElement {
+class UIStringInput : public UIInput {
 public:
 	UIStringInput(String name, String onTrigger);
 	virtual ~UIStringInput();

@@ -1180,17 +1180,20 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 			else if (token == "TextureInput")
 			{
 				ADD_PREVIOUS_TO_UI_IF_NEEDED;
-				UITextureInput * ti = new UITextureInput(firstQuote, "Set"+firstQuote);
+				String firstToken = tokens[1];
+				UITextureInput * ti = new UITextureInput(firstToken, "Set"+ firstToken);
 				element = ti;
+				element->displayText = firstQuote;
 				SET_DEFAULTS;
 				ti->CreateChildren(nullptr);
 			}
 			else if (token == "StringInput")
 			{
 				ADD_PREVIOUS_TO_UI_IF_NEEDED;
-				UIStringInput * si = new UIStringInput(tokens[1], "Set"+tokens[1]);
-				si->displayText = firstQuote;
+				String firstToken = tokens[1];
+				UIStringInput * si = new UIStringInput(firstToken, "Set"+ firstToken);
 				element = si;
+				element->displayText = firstQuote;
 				SET_DEFAULTS;
 				// Can craete it later..?
 //				si->CreateChildren();
@@ -1208,34 +1211,42 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 			else if (token == "IntegerInput" ||
 				token == "IntInput")
 			{
-				ADD_PREVIOUS_TO_UI_IF_NEEDED
-				UIIntegerInput * ii = new UIIntegerInput(firstQuote, "Set"+firstQuote);
+				ADD_PREVIOUS_TO_UI_IF_NEEDED;
+				String firstToken = tokens[1];
+				UIIntegerInput * ii = new UIIntegerInput(firstToken, "Set"+ firstToken);
 				element = ii;
+				element->displayText = firstQuote;
 				SET_DEFAULTS
 				ii->CreateChildren(nullptr);
 			}
 			else if (token == "IntegerLabel") // Creates an Integer-display which is not interactable via GUI, just for display.
 			{
-				ADD_PREVIOUS_TO_UI_IF_NEEDED
-				UIIntegerInput * ii = new UIIntegerInput(firstQuote, "Set"+firstQuote);
+				ADD_PREVIOUS_TO_UI_IF_NEEDED;
+				String firstToken = tokens[1];
+				UIIntegerInput * ii = new UIIntegerInput(firstToken, "Set"+ firstToken);
 				element = ii;
+				element->displayText = firstQuote;
 				SET_DEFAULTS
 				ii->guiInputDisabled = true;
 				ii->CreateChildren(nullptr);				
 			}
 			else if (token == "StringLabel") // Creates an String-display which is not interactable via GUI, just for display.
 			{
-				ADD_PREVIOUS_TO_UI_IF_NEEDED
-				UIStringInput * si = new UIStringInput(firstQuote, "");
+				ADD_PREVIOUS_TO_UI_IF_NEEDED;
+				String firstToken = tokens[1];
+				UIStringInput * si = new UIStringInput(firstToken, "");
 				element = si;
+				element->displayText = firstQuote;
 				SET_DEFAULTS;
 				si->guiInputDisabled = true;
 				si->CreateChildren(nullptr);
 			}
 			else if (token == "FloatInput"){
-				ADD_PREVIOUS_TO_UI_IF_NEEDED
-				UIFloatInput * fi = new UIFloatInput(firstQuote, "Set"+firstQuote);
+				ADD_PREVIOUS_TO_UI_IF_NEEDED;
+				String firstToken = tokens[1];
+				UIFloatInput * fi = new UIFloatInput(firstToken, "Set"+ firstToken);
 				element = fi;
+				element->displayText = firstQuote;
 				SET_DEFAULTS
 				fi->CreateChildren(nullptr);
 			}	

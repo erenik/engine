@@ -47,6 +47,12 @@ public:
 	/// Begins input! >)
 	void BeginInput();
 
+	// Creates default elements for a label and input one-liner input element. Used by Integer, String, Float inputs.
+	UIColumnList * CreateDefaultColumnList();
+	UILabel * CreateDefaultLabel(UIColumnList * box, float sizeX);
+	UIInput * CreateDefaultInput(UIColumnList * box, float sizeX);
+	float DefaultSpacePerElement();
+
 	/// For making it a float/integer-only thingy.
 	bool numbersOnly;
 	/// For any valid alpha-numeric + a few key signs mathematical expressions.
