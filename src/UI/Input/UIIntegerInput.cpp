@@ -133,6 +133,7 @@ void UIIntegerInput::CreateChildren(GraphicsState* graphicsState)
 		input->numbersOnly = true;
 	input->text = "0";
 	input->sizeRatioX = spacePerElement;
+	input->textAlignment = RIGHT;
 	if (guiInputDisabled)
 	{
 		input->activateable = false;

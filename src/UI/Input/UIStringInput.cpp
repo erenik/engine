@@ -119,11 +119,9 @@ void UIStringInput::CreateChildren(GraphicsState * graphicsState)
 	input = CreateDefaultInput(box, spacePerElement);
 
 	/// Set them to only accept floats?
-	input->name = name + "Input";
 	input->text = "";
-	input->sizeRatioX = 1.0f - divider.x;
-	input->onTrigger = "UIStringInput("+name+")";
 	input->rememberPreviousInputs = true;
+	input->textAlignment = CENTER;
 	if (guiInputDisabled)
 	{
 		input->activateable = false;
@@ -138,6 +136,6 @@ String UIStringInput::GetValue()
 }
 void UIStringInput::SetValue(String value)
 {
-	this->SetText(value);
+	input->SetText(value);
 }
 

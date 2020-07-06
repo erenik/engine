@@ -78,6 +78,9 @@ public:
     virtual void ResumeEmission();
     virtual void SetColor(const Vector4f & color);
 
+
+	virtual void AddEmitter(std::shared_ptr<ParticleEmitter> particleEmitter);
+
 	/// Sets the emitter to be a contour. Default before calling this is a point or a plane.
 	virtual void SetEmitter(const Contour & contour);
 	virtual void SetEmitter(List<std::shared_ptr<ParticleEmitter>> newEmitters);

@@ -448,6 +448,12 @@ void ParticleSystem::SetColor(const Vector4f & icolor){
     color = icolor;
 }
 
+void ParticleSystem::AddEmitter(std::shared_ptr<ParticleEmitter> particleEmitter) {
+	emitters.Add(particleEmitter);
+	particleEmitter->AttachTo(GetSharedPtr());
+}
+
+
 /// Sets the emitter to be a contour. Default before calling this is a point or a plane.
 void ParticleSystem::SetEmitter(const Contour & contour)
 {

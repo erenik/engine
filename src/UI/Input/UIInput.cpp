@@ -468,7 +468,12 @@ UIInput * UIInput::CreateDefaultInput(UIColumnList * box, float sizeX) {
 	UIInput * input = new UIInput();
 	input->textureSource = textureSource;
 	input->name = name + "Input";
+	input->sizeRatioX = sizeX;
 	box->AddChild(nullptr, input);
+
+	// If activating this meta-Input element, start adjusting this sub-field.
+	activationMessage = "BEGIN_INPUT("+ input->name +")";
+
 	return input;
 }
 float UIInput::DefaultSpacePerElement() {

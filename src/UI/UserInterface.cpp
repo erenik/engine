@@ -1226,6 +1226,7 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 				UIIntegerInput * ii = new UIIntegerInput(firstToken, "Set"+ firstToken);
 				element = ii;
 				element->displayText = firstQuote;
+				element->activateable = false;
 				SET_DEFAULTS
 				ii->guiInputDisabled = true;
 				ii->CreateChildren(nullptr);				
@@ -1234,9 +1235,10 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 			{
 				ADD_PREVIOUS_TO_UI_IF_NEEDED;
 				String firstToken = tokens[1];
-				UIStringInput * si = new UIStringInput(firstToken, "");
+				UIStringInput * si = new UIStringInput(firstToken, "Set"+ firstToken);
 				element = si;
 				element->displayText = firstQuote;
+				element->activateable = false;
 				SET_DEFAULTS;
 				si->guiInputDisabled = true;
 				si->CreateChildren(nullptr);

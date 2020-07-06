@@ -48,7 +48,7 @@ void GMUnregisterParticleSystem::Process(GraphicsState* graphicsState)
 GMAttachParticleEmitter::GMAttachParticleEmitter(std::shared_ptr<ParticleEmitter> pe, ParticleSystemWeakPtr ps)
 : GraphicsMessage(GM_ATTACH_PARTICLE_EMITTER), pe(pe), ps(ps)
 {
-
+	assert(pe != nullptr);
 }
 void GMAttachParticleEmitter::Process(GraphicsState* graphicsState)
 {
@@ -59,7 +59,7 @@ void GMAttachParticleEmitter::Process(GraphicsState* graphicsState)
 	// Return if already attached?
 	if (system->emitters.Exists(emitter))
 		return;
-	emitter->AttachTo(system);
+	system->AddEmitter(emitter);
 }
 
 GMDetachParticleEmitter::GMDetachParticleEmitter(std::shared_ptr<ParticleEmitter> pe)
@@ -164,6 +164,7 @@ GMSetParticleEmitter::GMSetParticleEmitter(std::shared_ptr<ParticleEmitter> emit
 GMSetParticleEmitter::GMSetParticleEmitter(std::shared_ptr<ParticleEmitter> emitter, int target, EntitySharedPtr entity)
 : GraphicsMessage(GM_SET_PARTICLE_EMITTER), target(target), emitter(emitter), entity(entity)
 {
+	assert(emitter != nullptr);
 	switch(target)
 	{
 		case GT_EMITTER_ENTITY_TO_TRACK:

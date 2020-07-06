@@ -115,7 +115,7 @@ void ParticleEmitter::AttachTo(ParticleSystemWeakPtr targetPS)
 	if (inheritScale)
 		this->scale = ps->particleSize;
 	if (inheritEmissionsPerSecond)
-		this->particlesPerSecond = ps->emissionsPerSecond;
+		this->particlesPerSecond = (float) ps->emissionsPerSecond;
 
 	if (!particleSystems.Exists(ps))
 		particleSystems.Add(ps);
@@ -138,8 +138,8 @@ int ParticleEmitter::ParticlesToEmit(float timeInSeconds)
 		return constantEmission;
 	}
 	secondsEmitted += timeInSeconds;
-	int64 totalParticlesShouldHaveEmittedByNow = secondsEmitted * particlesPerSecond;
-	int particlesToEmit = totalParticlesShouldHaveEmittedByNow - emissions;
+	int64 totalParticlesShouldHaveEmittedByNow = int64(secondsEmitted * particlesPerSecond);
+	int particlesToEmit = int(totalParticlesShouldHaveEmittedByNow - emissions);
 	emissions += particlesToEmit;
 	return particlesToEmit;
 }
@@ -265,7 +265,7 @@ void ParticleEmitter::SetEmissionVelocity(float vel)
 
 void ParticleEmitter::SetParticlesPerSecond(int num)
 {
-	particlesPerSecond = num;
+	particlesPerSecond = (float) num;
 	inheritEmissionsPerSecond = false;
 }
 

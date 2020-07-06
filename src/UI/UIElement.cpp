@@ -1812,6 +1812,14 @@ void UIElement::FormatText(GraphicsState * graphicsState)
 			offsetX = 0;
 		textToRender.offsetX = offsetX;
 	}
+	else if (textAlignment == UIElement::RIGHT) {
+		pixelsPerUnit = currentTextSizeRatio * sizeY;
+		pixelsRequired = size * pixelsPerUnit;
+		int offsetX = sizeX - pixelsRequired.x;
+		if (offsetX < 0)
+			offsetX = 0;
+		textToRender.offsetX = offsetX;
+	}
 
 }
 
