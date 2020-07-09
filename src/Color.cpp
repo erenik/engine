@@ -32,7 +32,7 @@ Color::Color(uchar r, uchar g, uchar b, uchar a)
 /// E.g. "0x115588AA"
 Color Color::ColorByHexName(String byHexName)
 {
-	uint32 hex = byHexName.ParseHex();
+	uint32 hex = (uint32) byHexName.ParseHex();
 
 	Color newColor;
 

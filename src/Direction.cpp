@@ -37,6 +37,7 @@ Vector3f GetVector(Direction forDirection)
 			return Vector3f(0,-1,0);
 		default:
 			assert(false);
+			return Vector3f();
 
 	}
 }

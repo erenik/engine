@@ -105,6 +105,10 @@ AMSet::AMSet(int target, int id, float fValue)
 {
 	switch(target)
 	{
+		case AT_MASTER_VOLUME:
+		case AT_BGM_VOLUME:
+		case AT_SFX_VOLUME:
+		case AT_LISTENER:
 		default:
 			assert(false);
 	}

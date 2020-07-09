@@ -37,6 +37,7 @@ Vector4f UIElement::defaultTextColor = Vector4f(1,1,1,1);
 /// Called when this UI is made active (again).
 void UIElement::OnEnterScope(){
 	// Do nothing in general.
+	visible = true;
 	for (int i = 0; i < children.Size(); ++i)
 		children[i]->OnEnterScope();
 	if (onEnterScope.Length())

@@ -396,7 +396,7 @@ void Audio::Stop(bool andSeekToStart)
 void Audio::FadeOut(float seconds)
 {
 	fadeStartMs = audioNowMs;
-	fadeEndMs = audioNowMs + seconds * 1000;
+	fadeEndMs = (int64) (audioNowMs + seconds * 1000);
 	fadeStartVolume = volume;
 	fadeEndVolume = 0.f;
 	fading = true;
@@ -405,7 +405,7 @@ void Audio::FadeOut(float seconds)
 void Audio::FadeTo(float toVolume, float seconds)
 {
 	fadeStartMs = audioNowMs;
-	fadeEndMs = audioNowMs + seconds * 1000;
+	fadeEndMs = (int64) (audioNowMs + seconds * 1000);
 	fadeStartVolume = volume;
 	fadeEndVolume = toVolume;
 	fading = true;

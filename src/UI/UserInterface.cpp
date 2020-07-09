@@ -673,6 +673,7 @@ bool UserInterface::PopFromStack(UIElement * element, bool force)
 	assert(!stack.Exists(element));
 	/// Call on exit scope for it!
 	element->OnExitScope(force);
+	element->visible = false; // Make invisible when popped from stack
 	return result;
 }
 

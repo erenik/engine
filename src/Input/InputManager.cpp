@@ -1229,7 +1229,7 @@ UIElement * InputManager::PopFromStack(GraphicsState* graphicsState, UIElement *
 	/// Pop it.
 	bool success = ui->PopFromStack(element, force);
 	if (!success){
-		std::cout<<"\nUnable to pop UI from stack, might require force=true";
+		LogGraphics("Unable to pop UI from stack, might require force=true", FATAL);
 		return NULL;
 	}
 

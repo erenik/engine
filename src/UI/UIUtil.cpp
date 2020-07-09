@@ -52,7 +52,7 @@ bool PushUI(String nameOrSource)
 	}
 	/// Push it to stack if not.
 	if (element)
-		QueueGraphics(GMPushUI::ToUI(element->name, ui));
+		QueueGraphics(GMPushUI::ToUI(element, ui));
 	/// Just try pushing it.
 	else 
 		QueueGraphics(GMPushUI::ToUI(uiName, ui));
