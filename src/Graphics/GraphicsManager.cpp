@@ -976,7 +976,7 @@ void GraphicsManager::Process()
 	static Time lastTime = Time::Now();
 	Time now = Time::Now();
 
-	int milliseconds = (now - lastTime).Milliseconds();
+	int milliseconds = int ( (now - lastTime).Milliseconds());
 	// Max 200 milliseconds per batch, 5 fps is needed, yo.
 	milliseconds = milliseconds % 200;
 	lastTime = now;

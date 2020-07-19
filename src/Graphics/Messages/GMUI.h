@@ -44,6 +44,7 @@ public:
 		ALPHA, // Assuming color only varies by alpha...
 		TEXT_ALPHA,
 		CHILD_SIZE_RATIO_Y, // For adjusting children sizes.
+		BAR_FILL_RATIO, // 0 to 1 for UIBar
 		// Bools
 		ACTIVE, // Sets active, same as calling Activate() on it.
 		VISIBILITY,

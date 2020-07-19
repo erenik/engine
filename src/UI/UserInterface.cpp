@@ -14,6 +14,7 @@
 #include "../GraphicsState.h"
 #include <iomanip>
 #include "UILists.h"
+#include "UIBar.h"
 #include "UIInputs.h"
 #include "UIButtons.h"
 #include "UIVideo.h"
@@ -1227,7 +1228,7 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 				UIIntegerInput * ii = new UIIntegerInput(firstToken, "Set"+ firstToken);
 				element = ii;
 				element->displayText = firstQuote;
-				element->activateable = false;
+				element->hoverable = element->activateable = false;
 				SET_DEFAULTS
 				ii->guiInputDisabled = true;
 				ii->CreateChildren(nullptr);				
@@ -1239,7 +1240,7 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 				UIStringInput * si = new UIStringInput(firstToken, "Set"+ firstToken);
 				element = si;
 				element->displayText = firstQuote;
-				element->activateable = false;
+				element->hoverable = element->activateable = false;
 				SET_DEFAULTS;
 				si->guiInputDisabled = true;
 				si->CreateChildren(nullptr);
@@ -1303,6 +1304,12 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 				SET_DEFAULTS
 				if (secondQuote.Length())
 					image->textureSource = secondQuote;
+			}
+			else if (token == "Bar") {
+				ADD_PREVIOUS_TO_UI_IF_NEEDED
+				UIBar * bar = new UIBar(firstQuote);
+				element = bar;
+				SET_DEFAULTS 
 			}
 			else if (token == "Video"){
 				ADD_PREVIOUS_TO_UI_IF_NEEDED
@@ -1563,6 +1570,10 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 					continue;
 				element->sizeRatioX = tokens[1].ParseFloat();
 				element->sizeRatioY = tokens[2].ParseFloat();
+			}
+			else if (token == "alignment") {
+				ENSURE_NEXT_TOKEN
+				element->alignment = UIElement::GetAlignment(NEXT_TOKEN);
 			}
 			else if (token == "alignmentX"){
 				ENSURE_NEXT_TOKEN

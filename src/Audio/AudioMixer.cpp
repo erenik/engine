@@ -139,7 +139,7 @@ void AudioMixer::SendToDriver(int driverID)
 		return;
 	//	int bytesToBuffer = device->BytesToBuffer();
 	/// Always send a constant amount of samples, based on the mixer's buffer-size?
-	int defaultSamplesToSend = queueSampleTotal * 0.1;
+	int defaultSamplesToSend = int (queueSampleTotal * 0.1);
 	/// Check availability in driver.
 	int driverSamplesToBuffer = device->SamplesToBuffer();
 	// Use the lower value.

@@ -54,10 +54,10 @@ UIElement* UICheckBox::Activate(GraphicsState* graphicsState)
 	// Assume no checkbox has any children.
 
 	// Check the element's state. If it is active, we've found it. Dialogues work too, or?
-	if (state & UIState::ACTIVE)
+	if (HasState(UIState::ACTIVE))
 	{
 		/// Just unflag the active state, try ensure that the hover-state remains!
-		state &= ~UIState::ACTIVE;
+		RemoveState(UIState::ACTIVE);
 		// Now return our message!
 		if (selectable == true){
 			toggled = !toggled;

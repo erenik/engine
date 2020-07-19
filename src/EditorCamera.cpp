@@ -86,7 +86,6 @@ void EditorCameraProperty::ProcessMessage(Message * message)
 		case MessageType::RAYCAST:
 		{
 			Raycast * raycast = (Raycast*) message;
-			bool done;
 			List<Intersection> contacts = raycast->isecs;
 			targets.Clear();
 

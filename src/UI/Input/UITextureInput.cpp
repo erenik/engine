@@ -29,7 +29,7 @@ UITextureInput::~UITextureInput()
 }
 
 /// Sent by UIInput elements upon pressing Enter and thus confirmign the new input, in case extra actions are warranted. (e.g. UITextureInput to update the texture provided as reference).
-void UITextureInput::OnInputUpdated(UIInput * inputElement, GraphicsState& graphicsState)
+void UITextureInput::OnInputUpdated(GraphicsState* graphicsState, UIInput * inputElement)
 {
 	Graphics.QueueMessage(new GMSetUIs(uiImage->name, GMUI::TEXTURE_SOURCE, inputElement->text));
 	// Generate a message to send to the game-state too.

@@ -154,6 +154,7 @@ int InputManager::ClearInputFlags()
 			this->KeyUp(MainWindow(), this->keyPressed[i]);
 		}
 	}
+	LogMain("ClearInputFlags: Keys reset: " + String(inputsReset), INFO);
 	return inputsReset;
 }
 
@@ -764,9 +765,9 @@ void InputManager::KeyUp(AppWindow * window, int keyCode)
 {
 	if (!inputState->acceptInput)
 		return;
+	keyPressed[keyCode] = false;
 	if (!keyBindingsEnabled)
 		return;
-	keyPressed[keyCode] = false;
 	EvaluateKeyReleased(keyCode);
 };
 
@@ -1064,7 +1065,7 @@ bool InputManager::UIProceed()
 	if (!hoverElement)
 		return false;
 	/// Set it as active if needed.
-	hoverElement->state |= UIState::ACTIVE;
+	hoverElement->AddState(UIState::ACTIVE);
 	/// Activate it.
 	hoverElement->Activate(nullptr);
 	/// Trigger active hover-element.

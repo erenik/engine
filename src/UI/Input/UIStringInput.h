@@ -14,8 +14,8 @@ public:
 	virtual ~UIStringInput();
 
 	/// Sent by UIInput elements upon pressing Enter and thus confirmign the new input, in case extra actions are warranted. (e.g. UITextureInput to update the texture provided as reference).
-	virtual void OnInputUpdated(UIInput * inputElement, GraphicsState& graphicsState);
-	virtual int OnKeyDown(GraphicsState* graphicsState, int keyCode, bool downBefore); // For managing old texts.
+	virtual void OnInputUpdated(GraphicsState* graphicsState, UIInput * inputElement) override;
+	virtual int OnKeyDown(GraphicsState* graphicsState, int keyCode, bool downBefore) override; // For managing old texts.
 
 	/// Creates the label and input.
 	void CreateChildren(GraphicsState* graphicsState) override;

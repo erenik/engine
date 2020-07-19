@@ -369,9 +369,6 @@ public:
     /// To toggle internal formating if that is already being considered in the design-phase.
 	bool formatX, formatY;
 
-	// Current state of the UI Element, See UIState above.
-	int state;							
-
 	/** Label child element. Adding here since many subclasses use a label, and it is far swifter to store the link in the base class then.
 		If this element exists (non-NULL), all text is assumed to be rendered using solely it and not this (parent) element.
 		Thusly all messages and parsing regarding text will be applied to this element instead.
@@ -413,10 +410,13 @@ public:
 
 	/// For example UIFlag::HOVERABLE, not to be confused with State! State = current, Flags = possibilities
 	void SetFlags(UIFlag flag);
+	void SetState(int newState);
 	/** For example UIState::HOVER, not to be confused with flags! State = current, Flags = possibilities
 		For operations controlling the HOVER flag, certain criteria may need to be met in order for the adder to succeed.
 	*/
 	bool AddState(int state);
+	// See UIState::
+	bool HasState(int queryState);
 	/// For example UIState::HOVER, if recursive will apply to all children.
 	virtual void RemoveState(int state, bool recursive = false);
 
@@ -501,6 +501,10 @@ protected:
 	static int idEnumerator;
 
 private:
+
+	// Current state of the UI Element, See UIState above.
+	int state;
+
 	/// GL specific stuff
 	GLuint vertexArray;
 };

@@ -8,6 +8,11 @@
 #include "String/AEString.h"
 #include "System/DataTypes.h"
 
+class AETime;
+
+/// There can only be one time.
+#define Time AETime
+
 enum TimeType {
 	UNDEFINED,
 	// http://msdn.microsoft.com/en-us/library/windows/desktop/ms724284%28v=vs.85%29.aspx
@@ -19,8 +24,8 @@ enum TimeType {
 	TIME_TYPES
 };
 
-/// There can only be one time.
-#define Time AETime
+Time ParseTimeFrom(const String & string);
+
 class AETime 
 {
 public:

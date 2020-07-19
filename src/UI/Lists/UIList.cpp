@@ -230,7 +230,7 @@ UIElement * UIList::Click(int mouseX, int mouseY)
         e = this;
 		// If activatable, flag it.
 		if (this->activateable){
-			state |= UIState::ACTIVE;
+			AddState(UIState::ACTIVE);
 			return this;
 		}
 	}

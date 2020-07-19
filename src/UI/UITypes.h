@@ -38,5 +38,6 @@ enum UIType
 	MATRIX,	// For data-manipulation.
 	DROP_DOWN_MENU,	DROP_DOWN_LIST = DROP_DOWN_MENU,
 	LOG, // For lists of texts that update/scroll dynamically, may have filtering functions, etc.
+	BAR, // For HP, shield, etc., Default horizontal
 
 };

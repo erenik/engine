@@ -11,6 +11,7 @@
 #include "Input/Keys.h"
 #include "UI/Lists/UIColumnList.h"
 
+#include "File/LogFile.h"
 #include "Message/Message.h"
 #include "Message/MessageManager.h"
 
@@ -39,6 +40,10 @@ UIInput::~UIInput()
 //	std::cout<<"\nUIInput destructor";
 }
 
+void UIInput::OnInputUpdated(GraphicsState* graphicsState, UIInput * inputElement) {
+	UIElement::OnInputUpdated(graphicsState, inputElement);
+}
+
 /** Called by OS-functions to query if the UI wants to process drag-and-drop files. If so the active element where the mouse is hovering may opt to do magic with it.
 	If no magic, or action, is taken, it will return false, at which point the game state should be called to handle general drag-and-drop files.
 */
@@ -54,7 +59,7 @@ bool UIInput::HandleDADFiles(List<String> files)
 	Graphics.Pause();
 	editText = text = firstFile;
 	// Remove active flag if it was active.
-	state &= ~UIState::ACTIVE;
+	RemoveState(UIState::ACTIVE);
 	Graphics.Resume();
 	// Activate the messages this element had.
 	MesMan.QueueMessages(onTrigger, this);		
@@ -73,16 +78,15 @@ UIElement * UIInput::Click(int mouseX, int mouseY)
 // When button is released.
 UIElement* UIInput::Activate(GraphicsState* graphicsState)
 {
-	// Make this element active for input!
-	BeginInput();
-	// Skip this.
-	return this;
+	if (BeginInput())
+		return this;
+	return nullptr;
 }
 
 /// Default calls parent class RemoveState. If the Active flag is removed, input is also halted/cancelled.
 void UIInput::RemoveState(int state, bool recursive /*= false*/)
 {
-	bool wasActive = this->state & UIState::ACTIVE;
+	bool wasActive = HasState(UIState::ACTIVE);
 	UIElement::RemoveState(state, recursive);
 	// And restore old string!
 	if (wasActive && (state & UIState::ACTIVE))
@@ -153,7 +157,7 @@ void UIInput::OnExitScope(bool forced)
 /// Used by input-captuing elements. Should not be called for any base UI elements(?)
 int UIInput::OnKeyDown(GraphicsState* graphicsState, int keyCode, bool downBefore)
 {
-	bool isActive = (state & UIState::ACTIVE);
+	bool isActive = HasState(UIState::ACTIVE);
 	assert(inputActive == isActive);
 	if (!inputActive)
 		return 0;
@@ -287,7 +291,13 @@ int UIInput::OnKeyDown(GraphicsState* graphicsState, int keyCode, bool downBefor
 /// Used for getting text. This will be local translated language key codes?
 int UIInput::OnChar(int asciiCode)
 {
-	bool isActive = (state & UIState::ACTIVE);
+	LogGraphics("OnChar for element " + name + " activatable: " + activateable + " inputActive: " + HasState(UIState::ACTIVE) + " asciiCode: "+ asciiCode + " as Char: "+ (char) asciiCode + " CtrlPressed: "+ InputMan.KeyPressed(KEY::CTRL), INFO);
+	assert(activateable);
+	if (!activateable) {
+		return 0;
+	}
+
+	bool isActive = HasState(UIState::ACTIVE);
 	assert(inputActive == isActive);
 	if (!this->inputActive)
 		return 0;
@@ -406,6 +416,9 @@ int UIInput::OnChar(int asciiCode)
 		// inputBuffers[selectedInputBuffer][caretPosition] = asciiCode;
 		++caretPosition;
 		editText.caretPosition = caretPosition;
+
+		LogGraphics("OnChar for element " + name + " caretPos " + caretPosition+" editText: "+editText, INFO);
+
 		OnTextUpdated();
 	}
 	return 0;
@@ -434,8 +447,13 @@ void UIInput::OnBackspace()
 
 
 /// Begins input! >)
-void UIInput::BeginInput()
+bool UIInput::BeginInput()
 {
+	if (!activateable) {
+		LogMain("Attempting to input on non-activatable input", ERROR);
+		return false;
+	}
+
 	inputActive = true;
 	// Set active state if not done so already.
 	this->AddState(UIState::ACTIVE);
@@ -446,18 +464,21 @@ void UIInput::BeginInput()
 	OnTextUpdated();
 	previousText = editText;
 	InputMan.DisableKeyBindings();
+	return true;
 }
 
 // Creates default elements for a label and input one-liner input element. Used by Integer, String, Float inputs.
 UIColumnList * UIInput::CreateDefaultColumnList() {
 	/// Use a column-list to automatically get links between the elements, etc.
 	UIColumnList * box = new UIColumnList();
+	box->textureSource = textureSource;
 	box->padding = this->padding;
 	AddChild(nullptr, box);
 	return box;
 }
 UILabel * UIInput::CreateDefaultLabel(UIColumnList * box, float sizeX) {
 	UILabel * label = new UILabel();
+	label->textureSource = textureSource;
 	label->text = name;
 	label->sizeRatioX = sizeX;
 	box->AddChild(nullptr, label);

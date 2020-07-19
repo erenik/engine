@@ -237,7 +237,7 @@ void UIElement::ProcessMessage(Message * message)
 void UIElement::SetText(CTextr newText, bool force)
 {
 	/// Check that it's not currently being edited. If so cancel this setting.
-	if (this->demandInputFocus && state & UIState::ACTIVE && !force){
+	if (this->demandInputFocus && HasState(UIState::ACTIVE) && !force){
 		return;
 	}
 	this->text = newText;
@@ -451,7 +451,7 @@ UIElement* UIElement::Hover(int mouseX, int mouseY)
 		if (result != NULL){
 			// The active element has been found further down the tree,
 			// so we can return true.
-			state &= ~UIState::HOVER;
+			RemoveState(UIState::HOVER);
 			return result;
 		}
 	}
@@ -469,7 +469,7 @@ UIElement* UIElement::Hover(int mouseX, int mouseY)
 //		return false;
 
 	// If we weren't hovering over it before.
-	if (! (state & UIState::HOVER))
+	if (! (HasState(UIState::HOVER)))
 	{
 		this->OnHover();
 	}
@@ -1920,6 +1920,7 @@ void UIElement::AdjustToWindow(int w_left, int w_right, int w_bottom, int w_top)
 			else
 				mesh->SetDimensions((float)w_left, (float)w_right, (float)w_bottom, (float)w_top, (float)zDepth);
 			break;
+		case LEFT:
 		case CENTER:
 			/// Do nothing, we start off using regular centering
 			left = RoundInt(centerX - sizeX * sizeRatioX / 2);
@@ -1991,6 +1992,10 @@ int UIElement::GetAlignment(String byName)
 		return UIElement::CENTER;
 	else if (byName == "TOP_LEFT")
 		return UIElement::TOP_LEFT;
+	else if (byName == "Left")
+		return UIElement::LEFT;
+	else if (byName == "Right")
+		return UIElement::RIGHT;
 	else if (byName == "BOTTOM_LEFT")
 		return UIElement::BOTTOM_LEFT;
 	else {
@@ -2056,12 +2061,20 @@ void UIElement::DeleteGeometry()
 	}
 }
 
+void UIElement::SetState(int newState) {
+	state = newState;
+}
+
 /// For example UIState::HOVER, not to be confused with flags! State = current, Flags = possibilities
 bool UIElement::AddState(int i_state)
 {
 	// Return if trying to add invalid state.
 	if (!hoverable && i_state & UIState::HOVER)
 		return false;
+	// Don't allow activating an non-activatable element.
+	if (!activateable && i_state & UIState::ACTIVE)
+		return false;
+
 	if (i_state == UIState::HOVER)
 	{
 		if (inputState->demandActivatableForHoverElements && !activateable)
@@ -2072,6 +2085,12 @@ bool UIElement::AddState(int i_state)
 	state |= i_state;
 	return true;
 }
+
+// See UIState::
+bool UIElement::HasState(int queryState) {
+	return state & queryState;
+}
+
 
 /// For example UIState::HOVER, if recursive will apply to all children.
 void UIElement::RemoveState(int statesToRemove, bool recursive /* = false*/){

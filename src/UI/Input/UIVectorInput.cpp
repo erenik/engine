@@ -169,7 +169,7 @@ bool UIVectorInput::OnScroll(GraphicsState* graphicsState, float delta)
 	{
 		UIInput * input = inputs[i];
 		// Adjust if the input piece is being hovered over.
-		if (input->state & UIState::HOVER)
+		if (input->HasState(UIState::HOVER))
 		{
 			if (dataType == INTEGERS)
 			{

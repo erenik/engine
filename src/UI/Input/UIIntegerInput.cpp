@@ -44,7 +44,7 @@ bool UIIntegerInput::OnScroll(GraphicsState* graphicsState, float delta)
 		return UIElement::OnScroll(graphicsState, delta);
 	}
 	// Adjust if the input piece is being hovered over.
-	if (input->state & UIState::HOVER)
+	if (input->HasState(UIState::HOVER))
 	{
 		int v = GetValue();
 		if (delta > 0)

@@ -37,7 +37,7 @@ int File::FileSize()
 	if (!this->IsOpen())
 		return false;
 	fileStream.seekg(0, std::ios_base::end);
-	int length = fileStream.tellg();
+	int length = int (fileStream.tellg());
 	fileStream.seekg(0, std::ios_base::beg);
 	return length;
 }

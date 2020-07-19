@@ -47,8 +47,10 @@ List<ChatMessage*> ChatManager::GetMessages() {
         return messages;
     else {
         assert(false && "Implement");
+		return List<ChatMessage*>();
     };
 };
+
 /// See ChatMessage.h for types.
 List<ChatMessage*> ChatManager::GetMessages(int byType)
 {

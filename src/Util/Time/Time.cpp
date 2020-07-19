@@ -516,7 +516,10 @@ bool Time::ParseFrom(const String & string)
 {
 	/// Any formatting?
 	List<String> tokens = string.Tokenize(":.");
-	if (tokens.Size() == 2)
+	if (tokens.Size() == 1) { // Set seconds only.
+		this->SetSecond(tokens[0].ParseInt());
+	}
+	else if (tokens.Size() == 2)
 	{
 		// Minute-second, by default?
 		if (string.Contains(":"))
@@ -542,6 +545,13 @@ bool Time::ParseFrom(const String & string)
 	}
 	return false;
 }
+
+Time ParseTimeFrom(const String & string) {
+	Time time = Time(TimeType::MILLISECONDS_NO_CALENDER, 0);
+	time.ParseFrom(string);
+	return time;
+}
+
 
 /// Prints type, intervals, and relevant unit
 void Time::PrintData()

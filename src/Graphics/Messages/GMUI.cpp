@@ -14,6 +14,7 @@
 #include "UI/UITypes.h"
 #include "UI/UILists.h"
 #include "UI/UIInputs.h"
+#include "UI/UIBar.h"
 #include "UI/DataUI/UIMatrix.h"
 #include "UI/Buttons/UIRadioButtons.h"
 
@@ -458,6 +459,7 @@ void GMSetUIf::AssertTarget()
 		case GMUI::ALPHA:
 		case GMUI::TEXT_ALPHA:
 		case GMUI::CHILD_SIZE_RATIO_Y:
+		case GMUI::BAR_FILL_RATIO:
 			break;
 		default:
 			assert(false && "Invalid target in GMSetUIf");
@@ -500,11 +502,18 @@ void GMSetUIf::Process(GraphicsState * graphicsState)
 			l->RescaleChildrenY(value);
 			break;
 		}
-		case GMUI::FLOAT_INPUT:
+		case GMUI::FLOAT_INPUT: {
 			if (element->type != UIType::FLOAT_INPUT)
 				return;
 			UIFloatInput * vi = (UIFloatInput*) element;
 			vi->SetValue(value);
+			break;
+		}
+		case GMUI::BAR_FILL_RATIO:
+			if (element->type != UIType::BAR)
+				return;
+			UIBar * bar = (UIBar*)element;
+			bar->SetFill(value);
 			break;
 
 	};

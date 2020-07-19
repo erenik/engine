@@ -289,8 +289,8 @@ void TextFont::NewText(Text & text)
 
 	scale = Vector2f(1,1);
 	halfScale = scale * 0.5f;
-	padding = scale * 0.15;
-	padding[1] *= 0.5;
+	padding = scale * 0.15f;
+	padding[1] *= 0.5f;
 	maxRowSizeX = 0;
 
 	pivotPoint = Vector2f(0, -halfScale[1]);

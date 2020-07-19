@@ -57,7 +57,7 @@ GMSetCamera::GMSetCamera(Camera * camera, int target, int iValue)
 		case CT_TRACKING_MODE:
 			break;
 		case CT_DISTANCE_FROM_CENTER_OF_MOVEMENT:
-			fValue = iValue;
+			fValue = float(iValue);
 			break;
 		default:
 			assert(false);

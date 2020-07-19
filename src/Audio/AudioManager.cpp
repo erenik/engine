@@ -165,6 +165,7 @@ bool AudioManager::InitializeDriver(int driverID)
 		system->playSound(sound, channelGroup, false, &channel);
 	}	
 #endif	
+	return false;
 }
 
 

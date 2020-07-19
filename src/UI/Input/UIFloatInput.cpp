@@ -39,7 +39,7 @@ UIFloatInput::~UIFloatInput(){
 bool UIFloatInput::OnScroll(GraphicsState* graphicsState, float delta)
 {
 	// Adjust if the input piece is being hovered over.
-	if (input->state & UIState::HOVER)
+	if (input->HasState(UIState::HOVER))
 	{
 		float v = GetValue();
 		if (delta > 0)

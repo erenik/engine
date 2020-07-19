@@ -50,7 +50,7 @@ WMMDevice::WMMDevice()
 	pwfx = NULL;
 	// Default buffer of 1 second is a bit long, causing volume changes to appear laggy, better let AudioMixer have bigger size.
 	// 50 ms buffer size should provide more than enough leeway (20 updates per second?).
-	bufferFrameCount = REFTIMES_PER_SEC * 0.05; 
+	bufferFrameCount = UINT32(REFTIMES_PER_SEC * 0.05); 
 	waveFormat = WaveFormat::BAD_TYPE;
 }
 
@@ -277,7 +277,7 @@ int WMMDevice::BufferData(char * data, int maxBytes)
 		CANCEL_ON_ERROR;
 
 		// Calculate the actual duration of the allocated buffer.
-		hnsActualDuration = (double)REFTIMES_PER_SEC *
+		hnsActualDuration = (REFERENCE_TIME)REFTIMES_PER_SEC *
 							bufferFrameCount / pwfx->nSamplesPerSec;
 
 		hr = audioClient->Start();  // Start playing.
@@ -294,7 +294,7 @@ int WMMDevice::BufferData(char * data, int maxBytes)
 
     numFramesAvailable = bufferFrameCount - numFramesPadding;
 	int framesNeeded = maxBytes / (pwfx->wBitsPerSample / 8) / 2;
-	int framesToBuffer = min(framesNeeded, numFramesAvailable);
+	int framesToBuffer = min(UINT32(framesNeeded), numFramesAvailable);
 
 //	hr = audioClient->Start();  // Start playing.
 

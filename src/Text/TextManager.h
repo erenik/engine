@@ -16,7 +16,7 @@ public:
 	LocalizedText(String contents);
 	// Inherit Text-functions.
 	// Also provide ID and perhaps translational help?
-	int id;
+	String id;
 	String refName; // If a default name is used.
 };
 
@@ -24,11 +24,11 @@ public:
 class LocalizedTextCategory : public List<LocalizedText>
 {
 public:
-	LocalizedText GetText(int byID);
+	LocalizedText GetText(String byID);
 
 	String language; // Main language? E.g. English, Español, Svenska
 	String locale; // Used for variations. To be added later... maybe
-	int id; // assigned upon loading. Defines this combination of language and locale.
+	String id; // assigned upon loading. Defines this combination of language and locale.
 	// texts contained within the List<Text> part.
 	int index; // Index while parsing from file.
 };
@@ -51,13 +51,13 @@ public:
 
 	void SetLanguage(int languageID);
 	void SetLanguage(String byName);
-	Text GetText(int forTextID);
+	Text GetText(String forTextID);
 	LTC * GetLanguage(String byName);
 	/// Used for SFX and/or Help?
-	Text GetSubtitle(int forTextID);
+	Text GetSubtitle(String forTextID);
 	void SetSubtitleLanguage(String byName);
 	/// Used for Help
-	Text GetHelpText(int forTextID);
+	Text GetHelpText(String forTextID);
 	void SetHelpTextLanguage(String byName);
 private:
 	LTC * language, * subtitleLanguage, * helpTextLanguage;

@@ -106,11 +106,11 @@ bool CompactEntity::WriteTo(std::fstream& file){
 	// Write block version
 	int ceVersion = CE_VERSION_1;
 	file.write((char*) &ceVersion, sizeof(int));
-	int nameLength = strlen(name)+1,
-		modelNameLength = strlen(model)+1,
-		textureNameLength = strlen(diffuseMap)+1,
-		textureNameLength2 = strlen(specularMap)+1,
-		textureNameLength3 = strlen(normalMap)+1;
+	int nameLength = int (strlen(name)+1),
+		modelNameLength = int (strlen(model)+1),
+		textureNameLength = int (strlen(diffuseMap)+1),
+		textureNameLength2 = int (strlen(specularMap)+1),
+		textureNameLength3 = int (strlen(normalMap)+1);
 	file.write((char*) &nameLength, sizeof(int));
 	file.write((char*) &modelNameLength, sizeof(int));
 	file.write((char*) &textureNameLength, sizeof(int));
@@ -143,7 +143,7 @@ bool CompactEntity::WriteTo(std::fstream& file){
 /// Calculates size the entity will take when saving, including any eventual sub-properties (if we place them here?)
 int CompactEntity::Size(){
 	int size = sizeof(int) * 3;
-	size += strlen(name) + strlen(model) + strlen(diffuseMap);
+	size += int (strlen(name) + strlen(model) + strlen(diffuseMap));
 	size += sizeof(Vector3f) * 3;
 	return size;
 }

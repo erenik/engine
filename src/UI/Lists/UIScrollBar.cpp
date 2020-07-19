@@ -66,7 +66,7 @@ UIElement * UIScrollBar::Click(int mouseX, int mouseY)
 		mouseY > top || mouseY < bottom){
 			// Return false if we are outside of the boundaries,
 			// since we haven't found the selected element.
-			state = UIState::IDLE;
+			SetState(UIState::IDLE);
 			//	if(child != NULL)
 			return NULL;
 	}
@@ -74,7 +74,7 @@ UIElement * UIScrollBar::Click(int mouseX, int mouseY)
 	// Check axiomaticness (direct-activation without further processing)
 	if (axiomatic){
 		if (activateable){
-			state |= UIState::ACTIVE;
+			AddState(UIState::ACTIVE);
 			return this;
 		}
 		return NULL;
@@ -95,15 +95,15 @@ UIElement * UIScrollBar::Click(int mouseX, int mouseY)
 		if (result != NULL){
 			// The active element has been found further down the tree,
 			// so we can return true.
-			state = UIState::IDLE;
+			SetState(UIState::IDLE);
 			return result;
 		}
 	}
 
 	
-	// Check the element's StateMan. If it is hovered over, we've found it.
-	if (this->activateable && state & UIState::HOVER){
-		state |= UIState::ACTIVE;
+	// Check the element's state. If it is hovered over, we've found it.
+	if (this->activateable && HasState(UIState::HOVER)){
+		AddState(UIState::ACTIVE);
 		return this;
 	}
 	// If not, return false, since we haven't foun the right element.

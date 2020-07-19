@@ -45,7 +45,7 @@ int GameVariable::GetInt()
 	switch(type)
 	{
 		case INTEGER: return iValue;
-		case INT64: return i64Value;
+		case INT64: return int (i64Value);
 	}
 	return -1;
 }

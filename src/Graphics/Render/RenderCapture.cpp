@@ -62,7 +62,7 @@ void GraphicsManager::RenderCapture()
 	{
 		Time now = Time::Now();
 		// See if enough time has passed. Is a new frame due?
-		int millisecondsPassed = (now - window->captureStart).Milliseconds();
+		int millisecondsPassed = int ((now - window->captureStart).Milliseconds());
 		// Min milliseconds per frame.
 		if (millisecondsPassed > window->frames.Size() * 50)
 			grabFrame = true;
@@ -89,7 +89,7 @@ void GraphicsManager::RenderCapture()
 		// Add it to list of frames to save.
 		window->frames.Add(frame);
 		// Check amount of free memory available.
-		int freeMBs = AvailableMemoryMB();
+		int freeMBs = int (AvailableMemoryMB());
 		// If we exceed a pre-defined limit, which should be relative to the amount of free memory, stop recording.
 		if (freeMBs < 50)
 		{
@@ -185,8 +185,8 @@ void GraphicsManager::RenderCapture()
 
 	
 
-		int size = windowSize[0] * 0.05f;
-		int offset = size * 0.5f;
+		int size = int (windowSize[0] * 0.05f);
+		int offset = int (size * 0.5f);
 		// Specifies how the red, green, blue and alpha source blending factors are computed
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glBlendFunc(GL_ONE, GL_ONE);

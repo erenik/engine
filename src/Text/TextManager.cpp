@@ -22,7 +22,7 @@ LocalizedText::LocalizedText(String contents)
 	id = -1;
 }
 
-LocalizedText LocalizedTextCategory::GetText(int byID)
+LocalizedText LocalizedTextCategory::GetText(String byID)
 {
 	for (int i = 0; i < List::currentItems; ++i)
 	{
@@ -91,7 +91,7 @@ bool TextManager::LoadFromFile(String filePath)
 	int idIndex = -1;
 	List<LTC*> ltcs;
 	LocalizedText lt;
-	int id;
+	String id;
 	for (int i = 0; i < lines.Size(); ++i)
 	{
 		String & line = lines[i];
@@ -125,7 +125,7 @@ bool TextManager::LoadFromFile(String filePath)
 				continue;
 			// o.o
 			if (j == idIndex)
-				id = token.ParseInt();
+				id = token;
 			else 
 			{
 				for (int k = 0; k < ltcs.Size(); ++k)
@@ -154,7 +154,7 @@ void TextManager::SetLanguage(String byName)
 	language = GetLanguage(byName);
 }
 
-Text TextManager::GetText(int forTextID)
+Text TextManager::GetText(String forTextID)
 {
 	if (language)
 		return language->GetText(forTextID);
@@ -172,7 +172,7 @@ LTC * TextManager::GetLanguage(String byName)
 	return NULL;
 }
 
-Text TextManager::GetSubtitle(int forTextID)
+Text TextManager::GetSubtitle(String forTextID)
 {
 	if (subtitleLanguage)
 		return subtitleLanguage->GetText(forTextID);
@@ -184,7 +184,7 @@ void TextManager::SetSubtitleLanguage(String byName)
 }
 
 /// Used for Help
-Text TextManager::GetHelpText(int forTextID)
+Text TextManager::GetHelpText(String forTextID)
 {
 	if (helpTextLanguage)
 		return helpTextLanguage->GetText(forTextID);

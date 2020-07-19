@@ -479,7 +479,7 @@ void Audio::BindTo(EntitySharedPtr bindEntity)
 /// Playback time in milliseconds.
 long long Audio::PlaybackTimeMs()
 {
-	return playbackTime * 1000;
+	return long (playbackTime * 1000);
 }
 
 /// Unqueues all AL buffers. This is wanted when stopping or changing locations,... probably.
@@ -521,8 +521,8 @@ void Audio::UpdateVolume()
 		}
 		else if (audioNowMs > fadeStartMs)
 		{
-			int msInto = audioNowMs - fadeStartMs;
-			int duration = fadeEndMs - fadeStartMs;
+			int msInto = int (audioNowMs - fadeStartMs);
+			int duration = int (fadeEndMs - fadeStartMs);
 			float ratio = msInto / (float) duration;
 			volume = ratio * fadeEndVolume + (1 - ratio) * fadeStartVolume;
 		}
@@ -592,11 +592,11 @@ void Audio::BufferData(MultimediaStream * fromStream, AudioBuffer * intoBuffer)
 		{
 			case 1: 
 				format = AL_FORMAT_MONO16; 
-				numberOfSampleFrames = bytesBuffered * 0.5;
+				numberOfSampleFrames = int (bytesBuffered * 0.5);
 				break;
 			case 2: 
 				format = AL_FORMAT_STEREO16; 
-				numberOfSampleFrames = bytesBuffered * 0.25;
+				numberOfSampleFrames = int (bytesBuffered * 0.25);
 				break;
 		}
 #endif

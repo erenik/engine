@@ -43,7 +43,7 @@ std::pair<String, List<Text>> * GetListForUI(String name)
 }
 
 /// Sent by UIInput elements upon pressing Enter and thus confirmign the new input, in case extra actions are warranted. (e.g. UITextureInput to update the texture provided as reference).
-void UIStringInput::OnInputUpdated(UIInput * inputElement, GraphicsState& graphicsState)
+void UIStringInput::OnInputUpdated(GraphicsState* graphicsState, UIInput * inputElement)
 {
 	std::cout<<"\nOnInputUpdated..."<<inputElement;
 	// Only logical thing should be our input calling us straight away.
@@ -126,6 +126,10 @@ void UIStringInput::CreateChildren(GraphicsState * graphicsState)
 	{
 		input->activateable = false;
 		input->highlightOnHover = false;
+		box->activateable = false;
+		box->hoverable = false;
+		activateable = false;
+		hoverable = false;
 	}
 	childrenCreated = true;
 }

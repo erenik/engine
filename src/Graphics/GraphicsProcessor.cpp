@@ -326,26 +326,26 @@ PROCESSOR_THREAD_START(GraphicsManager)
 					// Update the lights' positions as needed.
 					Graphics.UpdateLighting();
 					timer.Stop();
-					FrameStats.updateLighting = timer.GetMs();
+					FrameStats.updateLighting = float (timer.GetMs());
 
 					// Reposition all entities that are physically active (dynamic entities) in the octrees and other optimization structures!
 					timer.Start();
 					Graphics.RepositionEntities();
 					timer.Stop();
-					FrameStats.graphicsRepositionEntities = timer.GetMs();
+					FrameStats.graphicsRepositionEntities = float (timer.GetMs());
 
 					timer.Start();
 					/// Process particles and movement for cameras.
 					Graphics.Process();
 					CameraMan.Process();
 					timer.Stop();
-					FrameStats.graphicsProcess = timer.GetMs();
+					FrameStats.graphicsProcess = float (timer.GetMs());
 
 					// Render
 					renderTimer.Start();
 					Graphics.RenderWindows();
 					renderTimer.Stop();
-					FrameStats.renderTotal = renderTimer.GetMs();
+					FrameStats.renderTotal = float (renderTimer.GetMs());
 					Graphics.renderQueried = false;
 				
 				}
@@ -359,7 +359,7 @@ PROCESSOR_THREAD_START(GraphicsManager)
 					*/
 				}
 				graphicsTotal.Stop();
-				FrameStats.totalGraphics = graphicsTotal.GetMs();
+				FrameStats.totalGraphics = float (graphicsTotal.GetMs());
 
 				Graphics.processing = false;
 				Graphics.graphicsProcessingMutex.Release();
@@ -373,13 +373,13 @@ PROCESSOR_THREAD_START(GraphicsManager)
 			graphicsThreadDetails = "After graphics";
 
 			/// Push frame time and increase optimization once a second if needed.
-			FrameStats.PushFrameTime(total.GetMs());
-			int fps = FrameStats.FPS();
+			FrameStats.PushFrameTime( float(total.GetMs()));
+			int fps = int (FrameStats.FPS());
 			if (FrameStats.printQueued)
 				FrameStats.Print(Graphics.graphicsState);
 
 			// How long the last frame took. Used for updating some mechanisms next frame.
-			Graphics.graphicsState.frameTime = Graphics.frameTime * 0.001;
+			Graphics.graphicsState.frameTime = float (Graphics.frameTime * 0.001f);
 			++graphicsFrameNumber;
 
 			/// Enable the below via some option maybe, it just distracts atm.

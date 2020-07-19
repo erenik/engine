@@ -14,38 +14,40 @@ public:
 	UIInput(String name = "");
 	virtual ~UIInput();
 
+	virtual void OnInputUpdated(GraphicsState* graphicsState, UIInput * inputElement) override;
+
 	/** Called by OS-functions to query if the UI wants to process drag-and-drop files. If so the active element where the mouse is hovering may opt to do magic with it.
 		If no magic, or action, is taken, it will return false, at which point the game state should be called to handle general drag-and-drop files.
 	*/
-	virtual bool HandleDADFiles(List<String> files);
+	virtual bool HandleDADFiles(List<String> files) override;
 
 	// When clicking/Enter pressed on keyboard.
-	virtual UIElement * Click(int mouseX, int mouseY);
+	virtual UIElement * Click(int mouseX, int mouseY) override;
 	// When button is released.
 	virtual UIElement* Activate(GraphicsState* graphicsState) override;
 
 	/// Default calls parent class RemoveState. If the Active flag is removed, input is also halted/cancelled.
-	virtual void RemoveState(int state, bool recursive = false);
+	virtual void RemoveState(int state, bool recursive = false) override;
 
 	// Used for handling things like drag-n-drop and copy-paste operations, etc. as willed.
-	virtual void ProcessMessage(Message * message);
+	virtual void ProcessMessage(Message * message) override;
 
 	/// Calls UIElement::SetText in addition to setting the editText to the same value if force is true.
-	virtual void SetText(CTextr newText, bool force = false);
+	virtual void SetText(CTextr newText, bool force = false) override;
 	/// Sets edit text. Resets text size so that it should be visible straight away.
 	virtual void SetEditText(CTextr newText);
 
 	/// Called once this element is no longer visible for any reason. E.g. switching game states to display another UI, or when this or a parent has been popped from the ui.
-	virtual void OnExitScope(bool forced);
+	virtual void OnExitScope(bool forced) override;
 
 	/** Used by input-captuing elements. Should not be called for any base UI elements(?). 
 		Return value of significance, but not defined yet.
 	*/
-	virtual int OnKeyDown(GraphicsState* graphicsState, int keyCode, bool downBefore);
+	virtual int OnKeyDown(GraphicsState* graphicsState, int keyCode, bool downBefore) override;
 	/// Used for getting text. This will be local translated language key codes?
-	virtual int OnChar(int asciiCode);
-	/// Begins input! >)
-	void BeginInput();
+	virtual int OnChar(int asciiCode) override;
+	/// Begins input, returns false if not possible (e.g. non-activatable StringLabel input)
+	bool BeginInput();
 
 	// Creates default elements for a label and input one-liner input element. Used by Integer, String, Float inputs.
 	UIColumnList * CreateDefaultColumnList();

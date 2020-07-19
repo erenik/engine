@@ -26,7 +26,7 @@ ChatMessage::ChatMessage(Peer * playerWhoSentIt, String text, int i_type)
   //  std::cout<<"\nGetting time.";
     timeCreated = Timer::GetCurrentTimeMs();
 	/// Convert it to seconds, yo.
-	timeCreated *= 0.001f;
+	timeCreated = time_t(timeCreated * 0.001f);
    // std::cout<<"\nTiming time.";
     tm * cTime = NULL;
     time_t tTime = timeCreated;

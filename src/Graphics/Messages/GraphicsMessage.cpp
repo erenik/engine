@@ -8,6 +8,7 @@
 #include "StateManager.h"
 #include "UI/UserInterface.h"
 #include "Texture.h"
+#include "File/LogFile.h"
 #include "Viewport.h"
 #include "GraphicsMessages.h"
 #include "Graphics/Camera/Camera.h"
@@ -264,6 +265,7 @@ void GMChar::Process(GraphicsState * graphicsState)
 		if (inputFocusElement)
 		{
 			/// Use the result somehow to determine if other actions can be triggered, too.
+			LogGraphics("GMChar for element " + inputFocusElement->name, INFO);
 			int result = inputFocusElement->OnChar(c);
 			return;
 		}
