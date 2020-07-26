@@ -240,7 +240,7 @@ void ParticleSystem::ProcessParticles(float & timeInSeconds)
 #endif // SSE_PARTICLES
 	}
 	timer.Stop();
-	FrameStats.particleProcessingOldify = timer.GetMs();
+	FrameStats.particleProcessingOldify = float(timer.GetMs());
 
 
 	/// Look for dead particles and move them out of our way.

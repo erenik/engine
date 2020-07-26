@@ -178,8 +178,9 @@ UIElement * UserInterface::Hover(int x, int y, bool allUi)
 			/// Remove the hover state before re-hovering.
 			stackElement->RemoveState(UIState::HOVER);
 			result = stackElement->Hover(x,y);
-			if (result)
+			if (result) {
 				break;
+			}
 		}
 		/// If still no result, try the root.
 		if (!result)
@@ -821,7 +822,9 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 	Vector2f defaultDivider = Vector2f(0.5f,0.5f);
 	int defaultTextAlignment = UIElement::LEFT;
 
-#define ENSURE_NEXT_TOKEN if(tokens.Size() < 2){ assert(false && "argument token missing"); continue; };
+#define ENSURE_NEXT_TOKEN if(tokens.Size() < 2){ \
+		assert(false && "argument token missing"); continue; \
+	};
 #define NEXT_TOKEN	(tokens[1])
 #define SET_DEFAULTS {element->alignment = defaultAlignment;\
 	element->textureSource = defaultTexture;\
@@ -1575,9 +1578,24 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 				ENSURE_NEXT_TOKEN
 				element->alignment = UIElement::GetAlignment(NEXT_TOKEN);
 			}
+			else if (token == "maxWidth") {
+				ENSURE_NEXT_TOKEN;
+				element->maxWidth = tokens[1].ParseInt();
+			}
 			else if (token == "alignmentX"){
 				ENSURE_NEXT_TOKEN
 				element->alignmentX = NEXT_TOKEN.ParseFloat();
+			}
+			else if (token == "textures") {
+				ENSURE_NEXT_TOKEN;
+				UIType type = element->type;
+				switch (type) {
+				case UIType::RADIO_BUTTONS:
+					UIRadioButtons* radioButtons = (UIRadioButtons*) element;
+					List<String> textures = tokens;
+					textures.RemoveIndex(0, ListOption::RETAIN_ORDER);
+					radioButtons->SetTextures(textures);
+				}
 			}
 			else if (token == "alignmentY"){
 				ENSURE_NEXT_TOKEN

@@ -237,6 +237,7 @@ void Camera::Nullify()
 	nearPlane = 0.1f;
 	farPlane = 100000.0f;
 	zoom = 0.1f;
+	smoothedZoom = zoom;
 	distanceFromCentreOfMovement = 0.0f;
 	position = Vector3f(-10, 10, 20);
 	rotationEuler = rotation = Vector3f(PI*0.25f, PI*0.125f, 0);
@@ -305,10 +306,10 @@ void Camera::UpdateProjectionMatrix()
 		top = heightRatio;
 	};
 
-	left *= zoom;
-	right *= zoom;
-	bottom *= zoom;
-	top *= zoom;
+	left *= smoothedZoom;
+	right *= smoothedZoom;
+	bottom *= smoothedZoom;
+	top *= smoothedZoom;
 
 	/// Nothing to create matrix out of...
 	if (left == right || bottom == top &&
@@ -502,6 +503,9 @@ void Camera::Update(const Time & now, bool force)
 	float milliseconds = (float)(now - lastUpdate).Milliseconds();
 	float timeInSeconds = milliseconds * 0.001f;
 	
+	// Update zoom, which mainly affects the projection matrix.
+	smoothedZoom = smoothedZoom * (1.0f - smoothness) + zoom * smoothness;
+
 	/// Load identity matrices before we re-calculate them... hmm
 	projectionMatrix.LoadIdentity();
 	viewMatrix.LoadIdentity();
@@ -753,7 +757,7 @@ bool Camera::ProcessMovement(float timeInSeconds)
 	
 	if (scaleSpeedWithZoom)
 	{
-		totalPosDiff *= zoom;
+		totalPosDiff *= smoothedZoom;
 	}
 	position += totalPosDiff;	
 
@@ -867,14 +871,14 @@ void Camera::UpdateNavigation()
 
 /// Returns the width of the camera's nearplane.
 float Camera::Width() const {
-    float width = widthRatio * zoom;
-    std::cout<<"\nWidthRatio: "<<widthRatio<<" zoom: "<<zoom<<" width:"<<width;
+    float width = widthRatio * smoothedZoom;
+    std::cout<<"\nWidthRatio: "<<widthRatio<<" zoom: "<< smoothedZoom <<" width:"<<width;
     return width;
 }
 /// Returns the height of the camera's nearplane.
 float Camera::Height() const {
-    float height = heightRatio * zoom;
-    std::cout<<"\nHeightRatio: "<<heightRatio<<" zoom: "<<zoom<<" height:"<<height;
+    float height = heightRatio * smoothedZoom;
+    std::cout<<"\nHeightRatio: "<<heightRatio<<" zoom: "<< smoothedZoom <<" height:"<<height;
     return height;
 }
 
@@ -912,7 +916,7 @@ Ray Camera::GetRayFromScreenCoordinates(AppWindow * window, int mouseX, int mous
 	float relativeX = mouseX / clientAreaWidth,
 		  relativeY = mouseY / clientAreaHeight;
 
-    float zoom = camera.zoom;
+    float zoom = camera.smoothedZoom;
     Frustum frustum = camera.GetFrustum();
 
  //   relativeX -= 0.5f;

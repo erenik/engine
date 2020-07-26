@@ -34,6 +34,14 @@ int UIElement::idEnumerator = 0;
 String UIElement::defaultTextureSource; //  = "80Gray50Alpha.png";
 Vector4f UIElement::defaultTextColor = Vector4f(1,1,1,1);
 
+// When clicking on it.
+float UIElement::onActiveHightlightFactor = 0.4f;
+// When hovering on it.
+float UIElement::onHoverHighlightFactor = 0.3f;
+// When toggled, additional factor
+float UIElement::onToggledHighlightFactor = 0.3f;
+
+
 /// Called when this UI is made active (again).
 void UIElement::OnEnterScope(){
 	// Do nothing in general.
@@ -308,17 +316,17 @@ void UIElement::UpdateHighlightColor()
 	/// Set color if highlighted!
 	Vector3f highlightColor(1,1,1);
 	if (this->state & UIState::ACTIVE && highlightOnActive)
-		highlightColor *= 0.4f;
+		highlightColor *= onActiveHightlightFactor;
 	else if (this->state & UIState::HOVER && highlightOnHover){
 	//	std::cout<<"\nHoverElement: "<<name;
-		highlightColor *= 0.3f;
+		highlightColor *= onHoverHighlightFactor;
 	}
 	else {
 		highlightColor *= 0.f;
 		// Default color
 	}
 	if (this->toggled){
-		float toggledFloat = 0.30f;
+		float toggledFloat = onToggledHighlightFactor;
 		highlightColor += Vector3f(toggledFloat, toggledFloat, toggledFloat);
 	}
 	// Duller colors for temporarily disabled buttons.
@@ -444,18 +452,22 @@ UIElement* UIElement::Hover(int mouseX, int mouseY)
 	for (int i = children.Size()-1; i >= 0; --i)
 	{
 	    UIElement * child = children[i];
-	    if (!child->visible)
+		// so we can return true.
+		child->RemoveState(UIState::HOVER);
+		if (!child->visible)
             continue;
+		if (result != nullptr)
+			continue;
 		result = child->Hover(mouseX, mouseY);
-		// If so, check if they are the active element.
-		if (result != NULL){
-			// The active element has been found further down the tree,
-			// so we can return true.
-			RemoveState(UIState::HOVER);
-			return result;
-		}
 	}
-	// If the Element is not hoverable, return now.
+
+	// If we have a result now, exit
+	if (result != NULL) {
+		// The active element has been found further down the tree,
+		return result;
+	}
+
+// If the Element is not hoverable, return now.
 	if (!hoverable)
 		return NULL;
 
@@ -1897,13 +1909,20 @@ void UIElement::AdjustToWindow(int w_left, int w_right, int w_bottom, int w_top)
 		z = parent->zDepth + 0.1f;
 	zDepth = z;
 
+	// If limiting width.
+	float wouldBeWidth = sizeX * sizeRatioX;
+	float sizeRatioXwithConstraints = sizeRatioX;
+	if (maxWidth != 0) {
+		if (wouldBeWidth > maxWidth)
+			sizeRatioXwithConstraints = maxWidth / (float)sizeX;
+	}
 
 	/// Check alignment
 	switch(alignment){
 		case NULL_ALIGNMENT: {
 			/// Default behavior, just scale out from our determined center.
-			left = RoundInt(centerX - sizeX * sizeRatioX / 2);
-			right = RoundInt(centerX + sizeX * sizeRatioX / 2);
+			left = RoundInt(centerX - sizeX * sizeRatioXwithConstraints / 2);
+			right = RoundInt(centerX + sizeX * sizeRatioXwithConstraints / 2);
 			bottom = RoundInt(centerY - sizeY * sizeRatioY / 2);
 			top = RoundInt(centerY + sizeY * sizeRatioY / 2);
 			break;
@@ -1923,8 +1942,8 @@ void UIElement::AdjustToWindow(int w_left, int w_right, int w_bottom, int w_top)
 		case LEFT:
 		case CENTER:
 			/// Do nothing, we start off using regular centering
-			left = RoundInt(centerX - sizeX * sizeRatioX / 2);
-			right = RoundInt(centerX + sizeX * sizeRatioX / 2);
+			left = RoundInt(centerX - sizeX * sizeRatioXwithConstraints / 2);
+			right = RoundInt(centerX + sizeX * sizeRatioXwithConstraints / 2);
 			bottom = RoundInt(centerY - sizeY * sizeRatioY / 2);
 			top = RoundInt(centerY + sizeY * sizeRatioY / 2);
 			break;
@@ -2034,14 +2053,52 @@ void UIElement::CreateGeometry()
 		children[i]->CreateGeometry();
 	}
 	isGeometryCreated = true;
+	if (retainAspectRatioOfTexture)
+		ResizeGeometry();
 }
 void UIElement::ResizeGeometry()
 {
 	if (!isGeometryCreated)
 		CreateGeometry();
 	assert(mesh);
-//    std::cout<<"\nResizing geometry: L"<<left<<" R"<<right<<" B"<<bottom<<" T"<<top<<" Z"<<this->zDepth;
-	this->mesh->SetDimensions((float)left, (float)right, (float)bottom, (float)top, this->zDepth);
+
+	if (retainAspectRatioOfTexture) {
+		// By default, demand dimensions to be proportional with the image.
+		Vector2i size(right - left, top - bottom);
+		if (!texture)
+		{
+			if (!FetchBindAndBufferizeTexture())
+			{
+				UIElement::ResizeGeometry();
+				return;
+			}
+		}
+		Vector2f texSize = texture->size;
+		Vector2i center((right + left) / 2, (bottom + top) / 2);
+		Vector2f elemSize(right - left, top - bottom);
+		Vector2f relativeRatios = texSize / elemSize;
+		// Choose the smaller ratio?
+		bool xSmaller, yBigger;
+		xSmaller = yBigger = relativeRatios.x < relativeRatios.y;
+		float biggestPossible = relativeRatios.x > relativeRatios.y ? relativeRatios.x : relativeRatios.y;
+		Vector2f biggestPossiblePx;
+		if (biggestPossible > 1.f)
+			biggestPossiblePx = texSize / biggestPossible;
+		else if (biggestPossible > 0.f)
+			biggestPossiblePx = texSize / biggestPossible;
+		// Use largest possible ratio of the available space in the element.
+		Vector2f modSize = biggestPossiblePx;
+		// Take into account shrinking too-large spaces.
+		Vector2f halfModSize = modSize * 0.5;
+
+		this->mesh->SetDimensions((float)center.x - halfModSize.x, (float)center.x + halfModSize.x, (float)center.y - halfModSize.y, (float)center.y + halfModSize.y, this->zDepth);
+	}
+	// Default, follow the previously chosen size for the element.
+	else {
+		//    std::cout<<"\nResizing geometry: L"<<left<<" R"<<right<<" B"<<bottom<<" T"<<top<<" Z"<<this->zDepth;
+		this->mesh->SetDimensions((float)left, (float)right, (float)bottom, (float)top, this->zDepth);
+	}
+
 	for (int i = 0; i < children.Size(); ++i){
 		children[i]->ResizeGeometry();
 	}

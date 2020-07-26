@@ -18,7 +18,11 @@ enum cameraTargets
 	CT_TRACKING_MODE,
 
 	// Float
+	CT_ZOOM,
+	// Used for averaging out position translations over time for smooth camera movement, as well as adjustments to zoom.
+	// Smoothing of position, 0.8 = Follows rapidly, 0.5 = Reduces distance by 50% each frame, 0.2 = Follows slower.
 	CT_SMOOTHING,
+	
 	CT_SMOOTHED_POSITION, // The averaged position. Use to reset.
 
 	// Setting global camera

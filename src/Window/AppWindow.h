@@ -114,6 +114,11 @@ public:
 	void MoveToMonitor(int monitorIndex);
 	void OnSizeUpdated();
 
+	// By default no minimum size.
+	void SetMinimumSize(Vector2i newMinSize);
+	// Sent by the OS from user.
+	void SetClientAreaSize(Vector2i newClientAreaSize);
+
 	/// Returns the area available for application-specific rendering.
 #define WorkingArea ClientAreaSize
 	Vector2i ClientAreaSize();
@@ -205,6 +210,7 @@ public:
 	/// UI and GlobalUI for this AppWindow. DO NOT TOUCH OUTSIDE OF RENDER THREAD! Looking may be fine...
 	UserInterface * ui, * globalUI;
 
+	Vector2i minimumSize;
 	Vector2i requestedSize;
 	Vector2i requestedRelativePosition;
 

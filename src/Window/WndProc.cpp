@@ -184,8 +184,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			// If wParam is TRUE, it specifies that the application should indicate
 			// which part of the client area contains valid information. The system
 			// copies the valid information to the specified area within the new client area.
-			NCCALCSIZE_PARAMS * calcParams = (NCCALCSIZE_PARAMS*)lParam;
-			PWINDOWPOS windowPos = calcParams->lppos;
+			//NCCALCSIZE_PARAMS * calcParams = (NCCALCSIZE_PARAMS*)lParam;
+			//PWINDOWPOS windowPos = calcParams->lppos;
+			//Vector2i requestedSize = Vector2i(windowPos->cx, windowPos->cy);
+			//Vector2i newSize = Vector2i::Maximum(requestedSize, window->minimumSize);
+			//RECT * rgrc = calcParams->rgrc;
+			//RECT newRect = calcParams->rgrc[0];
+			//// 1 - previous window rect
+			//// 2 - previous client area rect.
+			//int paddingLeft = rgrc[2].left - rgrc[1].left;
+			//int paddingTop = rgrc[2].top - rgrc[1].top;
+			//int paddingRight = rgrc[1].right - rgrc[2].right;
+			//int paddingBottom = rgrc[1].bottom - rgrc[2].bottom;
+			//calcParams->rgrc[0] = RECT{ newRect.left + paddingLeft, newRect.top + paddingTop, newRect.left + newSize.x - paddingRight, newRect.top + newSize.y - paddingBottom };
+			//// https://docs.microsoft.com/sv-se/windows/win32/api/winuser/ns-winuser-nccalcsize_params?redirectedfrom=MSDN
+			//return WVR_REDRAW;
 			/*
 			/// If full-screen, disable the additional parameters to get truly full-screen ^^
 			if (calcParams->lppos->cx == Graphics.ScreenWidth() && calcParams->lppos->cy == Graphics.ScreenHeight())
@@ -220,6 +233,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		return 0;
 		break;
 	}
+	case WM_SIZING:
+	{
+		RECT * rect = (RECT*)lParam;
+		Vector2i requestedSize = Vector2i(rect->right - rect->left, rect->bottom - rect->top);
+		Vector2i updatedSize = Vector2i::Maximum(window->minimumSize, requestedSize);
+		rect->right = rect->left + updatedSize.x;
+		rect->bottom = rect->top + updatedSize.y;
+		return TRUE;
+	}
 	case WM_SIZE: 
 	{		// Sent to a window after its size has changed.
 		switch(wParam){
@@ -244,7 +266,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		DWORD width = (lParam & 0xFFFF);
 		DWORD height = (lParam >> 16);
 
-		window->clientAreaSize = Vector2i(width, height);
+		window->SetClientAreaSize(Vector2i(width, height));
 //		std::cout<<"\nWindow "<<window->name<<" new size: "<<width<<"x"<<height;
 		// Recalculate OS window size.
 		window->osWindowSize = window->OSWindowSize();

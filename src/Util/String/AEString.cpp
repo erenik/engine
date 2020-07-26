@@ -688,7 +688,7 @@ bool String::IsNumber()
 			case CHAR:	c = arr[i]; break;
 			case WCHAR: c = warr[i]; break;
 			default:
-				assert(false);
+				return false;
 		}
 		switch(c)
 		{
@@ -1185,14 +1185,23 @@ int String::ParseInt() const
 	}
 	else if (copy.type == NULL_TYPE)
 		return 0;
+
+	int digits = 0;
 	for (int i = 0; i < copy.arraySize; ++i)
 	{
 		if (copy.arr[i] == 0)
 			break;
-		if (isdigit(copy.arr[i]) || copy.arr[i] == '-')
+		if (isdigit(copy.arr[i])) {
+			++digits;
 			continue;
+		}
+		if (copy.arr[i] == '-') {
+			continue;
+		}			
 		copy.arr[i] = ' ';
 	}
+	if (digits == 0)
+		throw new std::exception("String has no digits.");
 	return atoi(copy.arr);
 }
 

@@ -763,6 +763,16 @@ const float Vector3f::MinPartAbs() const
 };
 
 
+/// Returns true if any of the sub-components are inf or nan.
+const bool Vector3f::IsInfinite() const {
+	if (x == NAN || y == NAN || z == NAN)
+		return true;
+	if (x == INFINITY || y == INFINITY || z == INFINITY)
+		return true;
+	return false;
+}
+
+
 /// Utility functions
 Vector3f Vector3f::Minimum(const Vector3f & vec1, const Vector3f & vec2)
 {

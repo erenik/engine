@@ -23,6 +23,9 @@ public:
 	// Set texture for all elements.
 	void SetTextureSource(String source);
 
+	// Sets textures to be used for the elements, assuming one texture per button.
+	void SetTextures(List<String> textureSourcesOrNames);
+
 	// Sent when a child checkbox is toggled. 
 	virtual void OnToggled(UICheckBox * box);
 
@@ -36,6 +39,7 @@ protected:
 	int numButtons;
 	List<String> buttonTexts;
 	List<UICheckBox*> buttons;
+	List<String> textureSourcesOrNames;
 };
 
 #endif

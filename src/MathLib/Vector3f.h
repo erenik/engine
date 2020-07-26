@@ -205,6 +205,9 @@ public:
 	const float MinPart() const;
 	/// Returns the absolute value of the sub-component (x,y,z) of lowest absolute value.
 	const float MinPartAbs() const;
+
+	/// Returns true if any of the sub-components are inf or nan.
+	const bool IsInfinite() const;
 	/// Utility functions
 	/// Returns a vector with minimum values, both given vectors considered.
 	static Vector3f Minimum(const Vector3f & vec1, const Vector3f & vec2);

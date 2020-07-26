@@ -334,6 +334,11 @@ void Time::AddMs(int amount)
 	intervals += amount * multiplier;
 }
 
+void Time::AddSeconds(int seconds) {
+	AddMs(seconds * 1000);
+}
+
+
 /// Sets the hour by adding intervals.
 void Time::SetHour(int hour)
 {

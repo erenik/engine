@@ -52,9 +52,14 @@ void UIRadioButtons::CreateChildren(GraphicsState* graphicsState)
 		UICheckBox * button = new UICheckBox();
 		/// Set them to only accept floats?
 		button->name = name + "Input";
-		button->text = buttonTexts.Size() > i ? buttonTexts[i] : "ErrorNoName";
+		button->text = buttonTexts.Size() > i ? buttonTexts[i] : "";
 		button->sizeRatioX = spacePerElement;
-		button->textureSource = this->textureSource;
+		if (textureSourcesOrNames.Size()) {
+			button->textureSource = textureSourcesOrNames[i];
+			button->retainAspectRatioOfTexture = true;
+		}
+		else 
+			button->textureSource = this->textureSource;
 		/// Pre-select first one always.
 		if (i == 0)
 			button->toggled = true;
@@ -88,6 +93,12 @@ void UIRadioButtons::SetTextureSource(String source)
 		button->textureSource = source;
 	}
 }
+
+// Sets textures to be used for the elements, assuming one texture per button.
+void UIRadioButtons::SetTextures(List<String> newTextureSourcesOrNames) {
+	textureSourcesOrNames = newTextureSourcesOrNames;
+}
+
 
 /// Sent when a child checkbox is toggled. 
 void UIRadioButtons::OnToggled(UICheckBox * box)

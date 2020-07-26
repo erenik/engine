@@ -263,7 +263,7 @@ PROCESSOR_THREAD_START(GraphicsManager)
 				SleepThread(Graphics.outOfFocusSleepTime);
 	
 			Time now = Time::Now();
-			int millisSince = (now - frameStart).Milliseconds();
+			int millisSince = int( (now - frameStart).Milliseconds());
 			bool slept = false;
 			/// Less than 16 ms since last frame? Sleep a bit. Aim for 60 Hz.
 			if (millisSince < 16)
@@ -276,7 +276,7 @@ PROCESSOR_THREAD_START(GraphicsManager)
 			frameStart = Time::Now();
 			if (slept)
 			{
-				int millisSlept = (frameStart - now).Milliseconds();
+				int millisSlept = int((frameStart - now).Milliseconds());
 //				std::cout<<" Slept: "<<millisSlept;
 			}
 
@@ -296,7 +296,7 @@ PROCESSOR_THREAD_START(GraphicsManager)
 			// Process audio
 			graphicsThreadDetails = "AudioMan.Update";
 			multimedia.Stop();
-			FrameStats.multimedia = multimedia.GetMs();
+			FrameStats.multimedia = float(multimedia.GetMs());
 
 			/// Process graphics if we can claim the mutex within 10 ms. If not, skip it this iteration.
 			if (GraphicsMan.graphicsProcessingMutex.Claim(100))
@@ -310,7 +310,7 @@ PROCESSOR_THREAD_START(GraphicsManager)
 				gmTimer.Start();
 				Graphics.ProcessMessages();
 				gmTimer.Stop();
-				FrameStats.graphicsMessages = gmTimer.GetMs();
+				FrameStats.graphicsMessages = float(gmTimer.GetMs());
 
 				/// Check if we should render or not.
 				bool renderOnQuery = Graphics.renderOnQuery;

@@ -597,6 +597,10 @@ bool AppWindow::GetRayFromScreenCoordinates(Vector2i screenCoords, Ray & ray)
 }
 
 
+void AppWindow::SetMinimumSize(Vector2i newMinimumSize) {
+	minimumSize = newMinimumSize;
+}
+
 /// Since some parts of the AppWindow may be used by the OS, this has to be taken into consideration when rendering.
 Vector2i AppWindow::ClientAreaSize()
 {
@@ -1103,6 +1107,11 @@ bool AppWindow::SetupPixelFormat(HDC hDC)
 #include "Message/WindowMessage.h"
 #include "Graphics/Messages/GMSet.h"
 #include "StateManager.h"
+
+void AppWindow::SetClientAreaSize(Vector2i newClientAreaSize) {
+	clientAreaSize = newClientAreaSize;
+	clientAreaSize = Vector2i::Maximum(clientAreaSize, minimumSize);
+}
 
 void AppWindow::OnSizeUpdated()
 {

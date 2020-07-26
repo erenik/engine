@@ -184,11 +184,6 @@ public:
 	/// Dictates how matrices and variables are used to calculate the final view matrix.
 	int matrixUpdateType;
 
-	// Active camera variables
-	/** Multiplied to all edges in the projectionMatrix, the zoom regulates how much content will be visible. 
-		A value of 1 is default, while a lower value will zoom in on smaller details, and higher values will allow more content to be visible.
-	*/
-	float zoom;		
 	float farPlane;		// Defines distance of the farplane.
 	float nearPlane;	// Defines distance to the nearplane. Should probably be quite low?
 	/// Begin moving in the specified direction
@@ -295,7 +290,18 @@ public:
 	/// Smoothing of position, 0.8 = Follows rapidly, 0.5 = Reduces distance by 50% each frame, 0.2 = Follows slower.
 	float smoothness;
 
+	float CurrentZoom() const { return smoothedZoom; };
+	float TargetZoom() const { return zoom; };
+	void SetTargetZoom(float value) { zoom = value; };
+
 private:
+
+	/** Multiplied to all edges in the projectionMatrix, the zoom regulates how much content will be visible.
+		A value of 1 is default, while a lower value will zoom in on smaller details, and higher values will allow more content to be visible.
+	*/
+	float zoom;
+	float smoothedZoom;
+
 	/// Set once "dead".
 	bool inactive;
 	/// cool.

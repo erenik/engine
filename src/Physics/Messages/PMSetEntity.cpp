@@ -381,6 +381,7 @@ void PMSetEntity::Process()
 							entity->physics->estimator->AddVelocity(vec3fValue, timeStamp);
 						else {
 							entity->physics->velocity = vec3fValue;
+							assert(!entity->physics->velocity.IsInfinite());
 							entity->physics->linearMomentum = entity->physics->velocity * entity->physics->mass;
 						}
 						break;

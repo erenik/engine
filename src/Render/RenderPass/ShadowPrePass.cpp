@@ -64,7 +64,7 @@ bool RenderPass::SetupLightPOVCamera(GraphicsState& graphicsState)
 		Angle pitch = Angle(xzLen, lpn.y);
 		camera->rotation.y = yaw.Radians();
 		camera->rotation.x = pitch.Radians();
-		camera->zoom = zoom;
+		camera->SetTargetZoom(zoom);
 		camera->SetRatioF(1,1);
 		camera->farPlane = farPlane;
 		camera->Update();
@@ -316,7 +316,7 @@ bool RenderPass::PerformIterativePingPongRenders(GraphicsState& graphicsState)
 		previous = fb;
 	}
 	t.Stop();
-	int msAllocating = t.GetMs();
+	int msAllocating = int(t.GetMs());
 	CheckGLError("RenderPass::PerformIterativePingPongRenders - fb creation/resize");
 	graphicsState.antialiasing = true; // Do it.
 	/// Buffers created, now 
@@ -341,7 +341,7 @@ bool RenderPass::PerformIterativePingPongRenders(GraphicsState& graphicsState)
 	//	fb->DumpTexturesToFile();
 	}
 	t.Stop();
-	int msRendering = t.GetMs();
+	int msRendering = int(t.GetMs());
 
 	/// Unbind framebuffer first.
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -354,13 +354,13 @@ bool RenderPass::PerformIterativePingPongRenders(GraphicsState& graphicsState)
 	Texture * tex = last->renderBuffers[0]->texture;
 	tex->LoadDataFromGL();
 	t.Stop();
-	int msLoadingFromGL = t.GetMs();
+	int msLoadingFromGL = int(t.GetMs());
 	t.Start();
 	Vector3f average = tex->CalcAverageColorAllPixels();
 //	std::cout<<"\nAverage color: "<<average;
 	viewport->averageScreenColor = average; // Smooth a bit from frame to frame.
 	t.Stop();
-	int msAveraging = t.GetMs();
+	int msAveraging = int(t.GetMs());
 
 	// Set buffers to render into (the textures ^^)
 	return true;
@@ -415,7 +415,6 @@ void RenderPass::RenderEntitiesOnlyVertices(GraphicsState& graphicsState)
 		return;
 	}
 	EntitySharedPtr entity;
-	GraphicsProperty * gp;
 	Timer timer;
 	timer.Start();
 	/// Instancing enabled?

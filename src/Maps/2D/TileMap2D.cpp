@@ -198,7 +198,7 @@ void TileMap2D::Render(GraphicsState & graphicsState)
 				Vector2i mapSize = Size();
 			
 				Matrix4d transformationMatrix = Matrix4d::InitTranslationMatrix(Vector3f(mapSize[0] * 0.5f + offset[0], mapSize[1] * 0.5f + offset[1], -0.1f));
-				transformationMatrix.Scale(Vector3f(mapSize[0], mapSize[1], 1));
+				transformationMatrix.Scale(Vector3f(float(mapSize[0]), float(mapSize[1]), float(1)));
 				// Apply transformation
 				graphicsState.modelMatrixD.Multiply(transformationMatrix);
 				graphicsState.modelMatrixF = graphicsState.modelMatrixD;
@@ -278,7 +278,7 @@ void TileMap2D::Render(GraphicsState & graphicsState)
 			offset = Vector2f(got->size) * 0.5f - got->pivotPosition;
 			/// Add an offset in depth based on Y, so that we can easily render moving entities afterwards.
 			Matrix4d transformationMatrix = Matrix4d::InitTranslationMatrix(Vector3f(position[0] + offset[0], position[1] + offset[1], 0.1f - position[1] * 0.0001f));
-			transformationMatrix.Scale(Vector3f(got->size[0], got->size[1], 1.f));
+			transformationMatrix.Scale(Vector3f(float(got->size[0]), float(got->size[1]), 1.f));
 			// Apply transformation
 			graphicsState.modelMatrixD = Matrix4d();
 			graphicsState.modelMatrixD.Multiply(transformationMatrix);
@@ -437,7 +437,7 @@ void TileMap2D::Render(GraphicsState & graphicsState)
 		}
 
 		/// If stuff, render preview map
-		if (graphicsState.camera->zoom > 20)
+		if (graphicsState.camera->CurrentZoom() > 20)
 		{
 			return;
 		}

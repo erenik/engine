@@ -136,7 +136,7 @@ void TileGrid2D::Resize(Vector2i newSize)
 		for (int x = 0; x < size[0]; ++x)
 		{
 			Tile * tile = new Tile();
-			tile->position = rowSpacing.ElementMultiplication(Vector2f(x,y));
+			tile->position = rowSpacing.ElementMultiplication(Vector2f(float(x), float(y)));
 			if (y % 2 == 0)
 				tile->position += eachOtherRowOffset;
 			list->Add(tile);

@@ -79,6 +79,7 @@ public:
 
 	/// o.o
 	void AddMs(int amount);
+	void AddSeconds(int seconds);
 	/// Sets the hour in current day by adding or removing diff amount of intervals.
 	void SetHour(int hour);
 	/// Sets the hour in current hour by adding or removing diff amount of intervals.

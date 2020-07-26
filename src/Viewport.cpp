@@ -238,7 +238,7 @@ bool Viewport::GetRayFromViewportCoordinates(Vector2i coords, Ray & ray)
 	float relativeX = coords[0] / clientAreaWidth,
 		  relativeY = coords[1] / clientAreaHeight;
 
-    float zoom = camera.zoom;
+    float zoom = camera.CurrentZoom();
 
  //   relativeX -= 0.5f;
  //   relativeY -= 0.5f;

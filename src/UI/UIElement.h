@@ -325,6 +325,8 @@ public:
 	float sizeRatioX;		// Size ratio compared to parent(!)
 	float sizeRatioY;		// Size ratio compared to parent(!)
 
+	// If 0, not used. Used to limit stretching beyond some mark to make display nicer on bigger displays.
+	int maxWidth = 0, maxHeight = 0;
 
 	// Position, usage depends on the alightment type, scalability, etc.
 	Vector3f position; // Vector, try and migrate to them instead, ya?
@@ -387,6 +389,13 @@ public:
 	Vector4f color;
 	/// Colors for the text
 	static Vector4f defaultTextColor;
+
+	// When clicking on it.
+	static float onActiveHightlightFactor; 
+	// When hovering on it.
+	static float onHoverHighlightFactor;
+	// If toggled (checkbox, radiobutton), additional highlight-factor
+	static float onToggledHighlightFactor;
 
 	// Image ID
 	int image; // <- wat
@@ -459,6 +468,10 @@ public:
 	virtual void CreateGeometry();
 	virtual void ResizeGeometry();
 	void DeleteGeometry();
+
+
+	// If true, will reduce width or height dynamically so that the texture's aspect ratio is retained when rendering.
+	bool retainAspectRatioOfTexture = false;
 
 // Some inherited for UI subclasses
 protected:

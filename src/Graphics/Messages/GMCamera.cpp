@@ -71,6 +71,7 @@ GMSetCamera::GMSetCamera(Camera * camera, int target, float fValue)
 	{
 		case CT_DESIRED_MINIMUM_Y_DIFF:
 		case CT_SMOOTHING:
+		case CT_ZOOM:
 		case CT_RELATIVE_POSITION_Y:
 		case CT_DISTANCE_FROM_CENTER_OF_MOVEMENT:
 		case CT_ROTATION_SPEED_YAW:
@@ -122,6 +123,11 @@ void GMSetCamera::Process(GraphicsState* graphicsState)
 	{
 		case CT_SMOOTHING:
 			camera->smoothness = fValue;
+			break;
+		case CT_ZOOM:
+			assert(fValue > 0);
+			assert(fValue < 1000000.0f);
+			camera->zoom = fValue;
 			break;
 		case CT_TRACKING_MODE:
 		{
