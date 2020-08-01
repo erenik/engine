@@ -292,6 +292,17 @@ public:
 
 	static int GetAlignment(String byName);
 
+	// Free buffers and deletes all border elements and their references.
+	void DeleteBorders();
+
+	// Used for borders.
+	UIElement * topBorder, 
+		* rightBorder,
+		* topRightCorner;
+	String topBorderTextureSource,
+		rightBorderTextureSource,
+		topRightCornerTextureSource;
+
 	/// Alignment relative to parent. If this is set all other alignment* variables will be ignored.
 	char alignment;
 	/// Text contents alignment relative to current size/etc. Defautlt left.
@@ -332,6 +343,7 @@ public:
 	Vector3f position; // Vector, try and migrate to them instead, ya?
 	int posX, posY;					// Position of the element, relative to parent and origin.
 	int sizeX, sizeY;					// Dimensions of the element.
+	bool lockSizeY, lockSizeX;
 	int left, right, top, bottom;		// Dimensions in screen-space, from 0 to width and 0 to height, 0,0 being in the bottom-left.
 
 	// Position-adjustment variables for advanced UI elements like UIList
@@ -493,6 +505,9 @@ protected:
     /// Splitting up the rendering.
     virtual void RenderSelf(GraphicsState & graphicsState);
     virtual void RenderChildren(GraphicsState & graphicsState);
+	virtual void RenderBorders(GraphicsState & graphicsState);
+
+	virtual UIElement * CreateBorderElement(String textureSource, char alignment);
 
 	// Works recursively.
 	void RemoveFlags(UIFlag flag);
@@ -507,6 +522,7 @@ protected:
 	// Hierarchal pointers
 	UIElement * parent;					// Pointer to parent UI element
 	List<UIElement*> children;					// Pointer-array to a child.
+	List<UIElement*> borderElements;
 	bool childrenCreated; // For complex types, set to true once created (false by default).
 
 	/// Id stuff

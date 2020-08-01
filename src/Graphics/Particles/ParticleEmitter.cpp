@@ -39,7 +39,7 @@ ParticleEmitter::ParticleEmitter(List<Triangle> tris)
 	Initialize();
 }
 
-ParticleEmitter::ParticleEmitter(int type)	
+ParticleEmitter::ParticleEmitter(EmitterType type)	
 	: type(type)
 {
 	Initialize();

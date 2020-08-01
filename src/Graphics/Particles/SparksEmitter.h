@@ -20,10 +20,12 @@ public:
 	/// Extended particle emission.
 	virtual bool GetNewParticle(Vector3f & position, Vector3f & velocity, float & scale, float & lifeTime, Vector4f & color);
 
+	// Sets part of velocity to be random, e.g. 0.2, will make the constant part become 0.8
 	void SetRatioRandomVelocity(float part);
 
 private:
 	float velRandPart, velConstPart;
+
 	static Random velocityRandom;
 	static Random lifeTimeRandom;
 };

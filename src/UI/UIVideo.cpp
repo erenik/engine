@@ -131,8 +131,8 @@ void UIVideo::RenderSelf(GraphicsState & graphicsState)
 	/// Disable depth, test, since I'm lazy.
 	glDisable(GL_DEPTH_TEST);
 
-	float videoWidth = videoFrameTexture->width;
-	float videoHeight = videoFrameTexture->height;
+	float videoWidth = videoFrameTexture->Width();
+	float videoHeight = videoFrameTexture->Height();
 	
 	float aspectRatio = videoWidth / videoHeight;
 	float videoLeft, videoRight, videoTop, videoBottom;

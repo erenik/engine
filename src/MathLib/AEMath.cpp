@@ -19,6 +19,11 @@ MathLib::~MathLib()
 	Free();
 }
 
+const float MathLib::OneDivRandMaxFloat() {
+	return oneDivRandMaxFloat;
+}
+
+
 // Initializes the various numbers specified above.
 void MathLib::Init()
 {

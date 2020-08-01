@@ -216,8 +216,8 @@ bool Audio::Load()
 	}
 
     // Stream
-	if (name.Contains(".ogg") ||
-		name.Contains(".opus"))
+	if (path.Contains(".ogg") ||
+		path.Contains(".opus"))
 	{
 		LogAudio("File deemed of type Ogg Vorbis, trying to load.", DEBUG);
 #ifdef BUILD_OGG
@@ -226,7 +226,7 @@ bool Audio::Load()
 		assert(loaded);	
 #endif
 	}
-	else if (name.Contains(".wav"))
+	else if (path.Contains(".wav"))
 	{
 	  //  std::cout<<"\nFile deemed of type Waveform Audio File Format, trying to load.";
         // Load wavvy

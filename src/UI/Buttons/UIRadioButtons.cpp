@@ -54,6 +54,7 @@ void UIRadioButtons::CreateChildren(GraphicsState* graphicsState)
 		button->name = name + "Input";
 		button->text = buttonTexts.Size() > i ? buttonTexts[i] : "";
 		button->sizeRatioX = spacePerElement;
+		button->topRightCornerTextureSource = topRightCornerTextureSource;
 		if (textureSourcesOrNames.Size()) {
 			button->textureSource = textureSourcesOrNames[i];
 			button->retainAspectRatioOfTexture = true;

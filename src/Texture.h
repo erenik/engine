@@ -182,9 +182,9 @@ public:
 	GLuint glid;
 
 	/// Width in pixels
-	int width;
+	const int Width() const { return size.x; };
 	/// Height in pixels
-	int height;
+	const int Height() const { return size.y; };
 
 	/// Width and height. Might replace width and height above with this one?
 	Vector2i size;

@@ -15,6 +15,7 @@
 #include "Viewport.h"
 #include "Entity/EntityProperty.h"
 #include "InputState.h"
+#include "Gamepad/Gamepad.h"
 
 #include "File/LogFile.h"
 
@@ -61,6 +62,8 @@ void InputManager::Deallocate()
 
 InputManager::InputManager()
 {
+
+	gamepadManager = new GamepadManager();
 	keyBindingsEnabled = true;
 	printHoverElement = 0;
 	/// Default mouse data
@@ -73,11 +76,6 @@ InputManager::InputManager()
 //	activeUIInputElement = NULL;
 //	hoverElement = NULL;
 //	clickElement = NULL;
-
-#ifdef WINDOWS
-	gamepadState = NULL;
-	previousGamepadState = NULL;
-#endif
 
 	// Default some inputs..!
 	activePlayer = 0;
@@ -96,12 +94,7 @@ InputManager::InputManager()
 }
 InputManager::~InputManager(){
 #ifdef WINDOWS
-	if (gamepadState)
-		delete[] gamepadState;
-	gamepadState = NULL;
-	if (previousGamepadState)
-		delete[] previousGamepadState;
-	previousGamepadState = NULL;
+	delete gamepadManager;
 #endif
 }
 
@@ -128,13 +121,6 @@ void InputManager::Initialize(){
 	for (int i = 0; i < INPUT_BUFFERS; ++i){
 		// memset(inputBuffers[i], 0 , BUFFER_SIZE * sizeof(wchar_t));
 	}
-
-#ifdef WINDOWS
-	/// Enabled
-//	XInputEnable(true);
-	gamepadState = new Gamepad[4];
-	previousGamepadState = new Gamepad[4];
-#endif
 }
 
 /// Clears flags for all input keys. Returns amount of keys that were in need of resetting.
@@ -260,6 +246,7 @@ int InputManager::GetNextAvailableInputDevice()
 /// Fetches and updates the device states for all external controllers (if any)
 void InputManager::UpdateDeviceStates(){
 	// See Input/Gamepad/Gamepad.h
+	gamepadManager->Update();
 }
 
 /// Clears mainly the keyPressedThisFrame array, used for checking newly pressed keys without specific bindings.
@@ -542,20 +529,7 @@ extern void debuggingInputProcessor(int action, int inputDevice = 0);
 
 /// Evaluates if the active key generates any new events by looking at the relevant key bindings
 void InputManager::EvaluateKeyPressed(int activeKeyCode, bool downBefore, UIElement * activeElement)
-{/*
-	std::cout<<"\nKey down: "<<activeKeyCode;
-	String totalKeys;
-	for (int i = 0; i < KEY::TOTAL_KEYS; ++i)
-	{
-		bool held = keyPressed[i];
-		if (held)
-			totalKeys += " "+String(i);
-	}
-	if (totalKeys.Length())
-	{
-		std::cout<<"\nKeys pressed: "<<totalKeys;
-	}
-	*/
+{
 	/// Check if we have an active ui element.
 	UserInterface * userInterface = RelevantUI();
 	UIElement * hoverElement = NULL;

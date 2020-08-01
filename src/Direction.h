@@ -16,7 +16,7 @@ enum Direction {
 	RIGHT,
 	UP,
 	DOWN,
-	DIRECTIONS
+	MAX_DIRECTIONS
 };
 
 Direction GetDirection(String byString);

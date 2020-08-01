@@ -36,15 +36,7 @@ struct Binding
 	/// Includes all keys required to trigger this binding. Replaces the inputCombinationArray.
 	List<int> keysToTriggerIt;
 
-	/// Array of inputs that have to be active in order for the binding to execute
-//	int * inputCombinationArray;
-	/// Array of keys that will make the command not process in order make more bindings.
-//	int * blockingKeyArray;
-//	int inputs;			// Length of the input-array.
-//	int blocks;			// Number of blocking keys
 	String name;		// Name of the binding input-combination
-	/// Identifier for the action to perform once the required combination is met. If -1, use stringAction instead!
-//	int action;
 	
 	/// If true, will only trigger when no entity is focused in camera.
 	static bool requireNoCameraFocusEntity;
@@ -54,29 +46,6 @@ struct Binding
 		If non-NULL, will override all said variables used below to hopefully clean-up code used elsewhere.
 	*/
 	Action * action;
-	/*
-	enum {
-		DEPRECATED_INTEGER_MESSAGE, // Old
-		STRING_MESSAGE, // Posting messages straight to the message-manager.
-		ACTION, // Executing the triggerAction straight away.
-	};
-	// See enum of 3 above.
-	int actionType;
-
-	/// String action. Uses the same philosophy as the rest of the messaging system. Might obsolete the integral system in due time.
-	String stringAction;
-	/// String action to take when the key-binding is released. Similar to stopAction but uses the regular messaging system.
-	String stringStopAction;
-	*/
-	/** Identifier for the action to perform once one or more of the
-		inputCombination keys have been released. */
-	/*
-	int stopAction;
-	/// Defaults if the bindings activate on repeated inputs sent from the OS after the initial one. (holding keys down, for example)
-	bool activateOnRepeat;
-	/// If true, is activatable whenever. If false, will not be evaluated when any UI is currently being hovered over.
-	bool activateOverUI;
-	*/
 
 	/// By default, keyboard 1.
 	int inputDevice;

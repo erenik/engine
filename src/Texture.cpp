@@ -34,8 +34,7 @@ Texture::Texture()
 	// Strings should initialize correctly as it is...
 	glid = -1;
 	data = 0;
-	height = 0;
-	width = 0;
+	size = Vector2i(0,0);
 	users = 0;
 	// Default to 4 bytes per pixel RGBA. one byte per channel.
 	format = RGBA;
@@ -97,9 +96,6 @@ void Texture::Reallocate()
 	int bufferSizeNeeded = areaInPixels * channels;
 	int dataType = DataType();
 
-	width = size[0];
-	height = size[1];
-
 	// Save new size.
 	dataBufferSize = bufferSizeNeeded;
 
@@ -125,10 +121,7 @@ void Texture::SetSize(Vector2i newSize)
 
 /// Resets width, height and creates a new data buffer after deleting the old one. Returns false if it failed (due to lacking memory).
 bool Texture::Resize(Vector2i newSize)
-{
-	width = newSize[0];
-	height = newSize[1];
-	
+{	
 	/// Always 4-channel data array no matter what part of it will be used!.
 	int sizeRequired = newSize[0] * newSize[1] * 4 * BytesPerChannel();
 	if (sizeRequired != dataBufferSize)
@@ -175,7 +168,7 @@ bool Texture::LoadFromFile()
 /// Yah.
 Vector3f Texture::CalcAverageColorAllPixels()
 {
-	int pixels = width * height;
+	int pixels = size.x * size.y;
 	if (pixels > 100)
 		std::cout<<"\nPixels: "<<pixels;
 	Vector3f average;
@@ -196,12 +189,12 @@ void Texture::FlipY()
 		return;
 	// Row Buffer! o-o
 	static unsigned char buf[2048 * 4];
-	int lineBufSize = width * BytesPerPixel();
-	for (int y = 0; y < height * 0.5f; y++)
+	int lineBufSize = size.x * BytesPerPixel();
+	for (int y = 0; y < size.y * 0.5f; y++)
 	{
 		memcpy(buf, &data[y * lineBufSize], lineBufSize);
-		memcpy(&data[y * lineBufSize], &data[(height - y - 1) * lineBufSize], lineBufSize);
-		memcpy(&data[(height - y - 1) * lineBufSize], buf, lineBufSize);
+		memcpy(&data[y * lineBufSize], &data[(size.y - y - 1) * lineBufSize], lineBufSize);
+		memcpy(&data[(size.y - y - 1) * lineBufSize], buf, lineBufSize);
 	}
 }
 
@@ -250,7 +243,7 @@ bool Texture::CreateDataBuffer(int withGivenSize /*= -1*/)
 	if (withGivenSize > 0)
 		targetSize = withGivenSize;
 	else
-		targetSize = width * height * BytesPerPixel();
+		targetSize = size.x * size.y * BytesPerPixel();
 	try 
 	{
 		data = new unsigned char [targetSize];
@@ -270,8 +263,8 @@ Vector4f Texture::GetSampleColor(int samples /*= 4*/)
 	Vector4f colorTotal;
 	int xDist, yDist;
 	xDist = yDist = (int)RoundFloat(sqrt((float)samples));
-	int stepsPerX = width / xDist;
-	int stepsPerY = height / yDist;
+	int stepsPerX = size.x / xDist;
+	int stepsPerY = size.y / yDist;
 	for (int i = 0; i < samples; ++i)
 	{
 		int xStep = i % xDist;
@@ -590,16 +583,16 @@ void Texture::LoadFromCVMat(cv::Mat & mat)
 
 /// For debugging.
 bool Texture::MakeRed(){
-	for (int h = 0; h < height; ++h){
-		for (int w = 0; w < width; ++w){
+	/*for (int h = 0; h < size.x; ++h){
+		for (int w = 0; w < size.y; ++w){
 			/// Get pixel start index.
-			int psi = h * width + w;
+			int psi = h * size.x + w;
 			data[psi] = 255;
 			data[psi] = 0;
 			data[psi] = 0;
 			data[psi] = 255;
 		}
-	} 
+	} */
 	return true;
 }
 
@@ -614,7 +607,7 @@ bool Texture::Bufferize(bool force /* = false*/)
 //		std::cout<<"\nTexture \""<<source<<"\" already bufferized! Skipping.";
 		return false;
 	}
-	if (height == 0 || width == 0)
+	if (size.GeometricSum() == 0)
 	{
 		// nothing to buferize..
 		return false;
@@ -691,7 +684,7 @@ bool Texture::Bufferize(bool force /* = false*/)
 			assert(false);
 	}
 	
-	glTexImage2D(GL_TEXTURE_2D, 0, glFormat, width, height, 0, glFormat, pixelDataType, data);
+	glTexImage2D(GL_TEXTURE_2D, 0, glFormat, size.x, size.y, 0, glFormat, pixelDataType, data);
 	CheckGLError("Bufferize");
 	
 	/// Generate mip-maps!
@@ -772,7 +765,7 @@ Vector4f Texture::GetPixel(int x, int y)
 {
 	Vector4f color;
 	unsigned char * buf = data;
-	return GetPixel(y * width + x);
+	return GetPixel(y * size.x + x);
 }
 
 /// Gets color data from specified pixel in RGBA
@@ -787,7 +780,7 @@ Vector4i Texture::GetPixelVec4i(int x, int y)
 	{
 		float * buf = fData;
 		/// PixelStartIndex
-		int psi = y * width + x;
+		int psi = y * size.x + x;
 		color[0] = int(buf[psi] * 255.f);
 		color.w = 1;
 	}
@@ -795,7 +788,7 @@ Vector4i Texture::GetPixelVec4i(int x, int y)
 	switch(format)
 	{
 		case RGBA_32F:
-			psi = (y * width + x) * Channels();
+			psi = (y * size.x + x) * Channels();
 			color[0] = fData[psi] * 255.f;
 			color[1] = fData[psi+1] * 255.f;
 			color[2] = fData[psi+2] * 255.f;
@@ -803,7 +796,7 @@ Vector4i Texture::GetPixelVec4i(int x, int y)
 			break;
 		case RGBA:
 			/// PixelStartIndex
-			psi = (y * width + x) * BytesPerPixel();
+			psi = (y * size.x + x) * BytesPerPixel();
 			color[0] = data[psi];
 			color[1] = data[psi+1];
 			color[2] = data[psi+2];
@@ -865,13 +858,13 @@ void Texture::SetPixel(Vector2i location, const Vector4f & toColor, int pixelSiz
 	
 	for (int y = location[1] - pixelSize + 1; y < location[1] + pixelSize; ++y)
 	{
-		if (y < 0 || y >= height)
+		if (y < 0 || y >= Height())
 			continue;
 		for (int x = location[0] - pixelSize + 1; x < location[0] + pixelSize; ++x)
 		{
-			if (x < 0 || x >= width)
+			if (x < 0 || x >= Width())
 				continue;
-			int psi = (y * width + x) * bpp;
+			int psi = (y * Width() + x) * bpp;
 			buf[psi] = (unsigned char) (color[0] * 255.0f);
 			buf[psi+1] = (unsigned char) (color[1] * 255.0f);
 			buf[psi+2] = (unsigned char) (color[2] * 255.0f);
@@ -893,7 +886,7 @@ void Texture::SetPixel(int x, int y, const Vector4f & toColor)
 	unsigned char * buf = data;
 	color.Clamp(0, 1);
 	/// PixelStartIndex
-	int psi = y * width * bpp + x * bpp;
+	int psi = y * Width() * bpp + x * bpp;
 	buf[psi] = (unsigned char) (color[0] * 255.0f);
 	buf[psi+1] = (unsigned char) (color[1] * 255.0f);
 	buf[psi+2] = (unsigned char) (color[2] * 255.0f);
@@ -909,9 +902,9 @@ float Texture::GetMaxIntensity()
 	assert(bpp == 4 && format == Texture::RGBA);
 	float maxIntensity = 0;
 	unsigned char * buf = data;
-	for (int y = 0; y < height; ++y){
-		for (int x = 0; x < width; ++x){
-			int psi = y * width * bpp + x * bpp;
+	for (int y = 0; y < Height(); ++y){
+		for (int x = 0; x < Width(); ++x){
+			int psi = y * Width() * bpp + x * bpp;
 			Vector3f color(
 				data[psi] / 255.0f,
 				data[psi+1] / 255.0f,
@@ -932,9 +925,9 @@ void Texture::Add(ConstVec3fr color, float alpha /*= 0.0f*/)
 	int bpp = BytesPerPixel();
 	assert(bpp == 4 && format == Texture::RGBA);
 	unsigned char * buf = data;
-	for (int y = 0; y < height; ++y){
-		for (int x = 0; x < width; ++x){
-			int psi = y * width * bpp + x * bpp;
+	for (int y = 0; y < Height(); ++y){
+		for (int x = 0; x < Width(); ++x){
+			int psi = y * Width() * bpp + x * bpp;
 			buf[psi] += (unsigned char) (color[0] * 255.0f);
 			buf[psi+1] += (unsigned char) (color[1] * 255.0f);
 			buf[psi+2] += (unsigned char) (color[2] * 255.0f);
@@ -948,9 +941,9 @@ void Texture::Colorize(ConstVec3fr color){
 	int bpp = BytesPerPixel();
 	assert(bpp == 4 && format == Texture::RGBA);
 	unsigned char * buf = data;
-	for (int y = 0; y < height; ++y){
-		for (int x = 0; x < width; ++x){
-			int psi = y * width * bpp + x * bpp;
+	for (int y = 0; y < Height(); ++y){
+		for (int x = 0; x < Width(); ++x){
+			int psi = y * Width() * bpp + x * bpp;
 			buf[psi] = (unsigned char) (color[0] * 255.0f);
 			buf[psi+1] = (unsigned char) (color[1] * 255.0f);
 			buf[psi+2] = (unsigned char) (color[2] * 255.0f);
@@ -964,11 +957,11 @@ void Texture::SetColor(const Vector4f & color)
 	int bpp = BytesPerPixel();
 	assert(bpp == 4 && format == Texture::RGBA);
 	unsigned char * buf = data;
-	for (int y = 0; y < height; ++y)
+	for (int y = 0; y < Height(); ++y)
 	{
-		for (int x = 0; x < width; ++x)
+		for (int x = 0; x < Width(); ++x)
 		{
-			int psi = y * width * bpp + x * bpp;
+			int psi = y * Width() * bpp + x * bpp;
 			buf[psi] = (unsigned char) (color[0] * 255.f);
 			buf[psi+1] = (unsigned char) (color[1] * 255.f);
 			buf[psi+2] = (unsigned char) (color[2] * 255.f);
@@ -982,13 +975,13 @@ void Texture::SetColorOfColumn(int column, const Vector4f & color)
 	int bpp = BytesPerPixel();
 	assert(bpp == 4 && format == Texture::RGBA);
 	unsigned char * buf = data;
-	for (int y = 0; y < height; ++y)
+	for (int y = 0; y < Height(); ++y)
 	{
-		for (int x = 0; x < width; ++x)
+		for (int x = 0; x < Width(); ++x)
 		{
 			if (x != column)
 				continue;
-			int psi = y * width * bpp + x * bpp;
+			int psi = y * Width() * bpp + x * bpp;
 			buf[psi] = (unsigned char) (color[0] * 255.f);
 			buf[psi+1] = (unsigned char) (color[1] * 255.f);
 			buf[psi+2] = (unsigned char) (color[2] * 255.f);
@@ -1001,13 +994,13 @@ void Texture::SetColorOfRow(int row, const Vector4f & color)
 	int bpp = BytesPerPixel();
 	assert(bpp == 4 && format == Texture::RGBA);
 	unsigned char * buf = data;
-	for (int y = 0; y < height; ++y)
+	for (int y = 0; y < Height(); ++y)
 	{
 		if (y != row)
 			continue;
-		for (int x = 0; x < width; ++x)
+		for (int x = 0; x < Width(); ++x)
 		{
-			int psi = y * width * bpp + x * bpp;
+			int psi = y * Width() * bpp + x * bpp;
 			buf[psi] = (unsigned char) (color[0] * 255.f);
 			buf[psi+1] = (unsigned char) (color[1] * 255.f);
 			buf[psi+2] = (unsigned char) (color[2] * 255.f);
@@ -1080,7 +1073,7 @@ bool Texture::Save(String toFile, bool overwrite /* = false */)
 	settings.zlibsettings.btype = 2;
 	settings.zlibsettings.useLZ77 = 0;
 	encoder.setSettings(settings);
-	encoder.encode(image, this->data, width, height); //decode the png
+	encoder.encode(image, this->data, Width(), Height()); //decode the png
 
 	try {
 		LodePNG::saveFile(image, toFile.c_str()); //load the image file with given filename
@@ -1160,7 +1153,7 @@ bool Texture::SaveOpenCV(String toPath)
 	cv::Mat mat;
 	int cvMatChannels = channels;
 	int cvFormat = CV_8UC(cvMatChannels);
-	mat.create(cv::Size(width, height), cvFormat);
+	mat.create(cv::Size(Width(), Height()), cvFormat);
 	int bytesPerChannel = 3;
 	int non1s = 0;
 	List<float> valueTypes;
@@ -1170,8 +1163,8 @@ bool Texture::SaveOpenCV(String toPath)
 		{
 			/// Pixel start index.
 			int psiMat = (mat.step * y) + (x * cvMatChannels);
-			int psiTex = ((height - y - 1) * width + x) * bpp;
-			int psiTex2 = ((height - y - 1) * width + x);
+			int psiTex = ((Height() - y - 1) * Width() + x) * bpp;
+			int psiTex2 = ((Height() - y - 1) * Width() + x);
 			/// Depending on the step count...
 			switch(channels)
 			{		

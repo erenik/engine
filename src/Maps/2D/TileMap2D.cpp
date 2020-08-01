@@ -1055,8 +1055,8 @@ void TileMap2D::UpdatePreviewTexture()
 
 	/// Change size as needed.
 	Vector2i mapSize = Size();
-	if (previewTexture->width != mapSize[0] ||
-		previewTexture->height != mapSize[1])
+	if (previewTexture->Width() != mapSize[0] ||
+		previewTexture->Height() != mapSize[1])
 	{
 		/// Rescale
 		previewTexture->Resize(mapSize);

@@ -23,6 +23,10 @@ LogLevel logLevel = INFO;
 /// Logs to file, creates the file (and folders) necessary if it does not already exist. Time stamps will probably also be available.
 void LogToFile(String fileName,  String codeFile, String function, String logText, LogLevel levelFlags, List<TextError> * previousErrors /* = 0*/)
 {
+	bool causeAssertionError = levelFlags & CAUSE_ASSERTION_ERROR;
+	if (causeAssertionError)
+		assert(false && "LogFile-triggered assertion error. See relevant log file for details.");
+
 	Time time = Time::Now();
 	String timeString = time.ToString("H:m:S ");
 	String logTextWithFunction = codeFile +"::"+function+" "+logText;
@@ -71,10 +75,6 @@ void LogToFile(String fileName,  String codeFile, String function, String logTex
 
 	file.write((char*)textToFile.c_str(), textToFile.Length());
 	file.close();
-
-	bool causeAssertionError = levelFlags & CAUSE_ASSERTION_ERROR;
-	if (causeAssertionError)
-		assert(false && "LogFile-triggered assertion error. See relevant log file for details.");
 }
 
 void SetLogLevel(String fromString)

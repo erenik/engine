@@ -159,6 +159,15 @@ bool Vector2f::operator == (const Vector2f other) const
 	return false;
 }
 
+/// Binary operator.
+bool Vector2f::operator != (const Vector2f other) const 
+{
+	if (x != other.x || y != other.y)
+		return true;
+	return false;
+}
+
+
 /// This will return true if and only if all three components (x,y,z) are smaller than their corresponding comparands in the vector comparand.
 bool Vector2f::operator < (const Vector2f & comparand) const
 {

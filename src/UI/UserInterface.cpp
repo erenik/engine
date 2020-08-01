@@ -810,6 +810,8 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 	String defaultTexture = "default.png";
 	String defaultParent = "root";
 	String defaultRootFolder = "";
+	String defaultTopBorder = "", defaultRightBorder = "";
+	String defaultTopRightCorner = "";
 	bool defaultScalability = true;
 	bool defaultVisibility = true;
 	bool defaultExitability = true;
@@ -840,7 +842,10 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 	element->divider = defaultDivider;\
 	element->textAlignment = defaultTextAlignment;\
 	element->exitable = defaultExitability; \
-	}
+	element->topBorderTextureSource = defaultTopBorder; \
+	element->rightBorderTextureSource = defaultRightBorder; \
+	element->topRightCornerTextureSource = defaultTopRightCorner; \
+	};
 #define ADD_PREVIOUS_TO_UI_IF_NEEDED {\
 	if (element && element != root){\
 		bool addedOK = root->AddToParent(nullptr, defaultParent, element);\
@@ -1007,6 +1012,21 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
                     defaultTexture = String();
                 else
                     defaultTexture = param;
+			}
+			else if (token == "defaultTopBorder") {
+				ENSURE_NEXT_TOKEN;
+				defaultTopBorder = (line - "defaultTopBorder");
+				defaultTopBorder.RemoveSurroundingWhitespaces();
+			}
+			else if (token == "defaultRightBorder") {
+				ENSURE_NEXT_TOKEN;
+				defaultRightBorder = (line - "defaultRightBorder");
+				defaultRightBorder.RemoveSurroundingWhitespaces();
+			}
+			else if (token == "defaultTopRightCorner") {
+				ENSURE_NEXT_TOKEN;
+				defaultTopRightCorner = (line - "defaultTopRightCorner");
+				defaultTopRightCorner.RemoveSurroundingWhitespaces();
 			}
 			else if (token == "defaultOnTrigger"){
 				ENSURE_NEXT_TOKEN
@@ -1585,6 +1605,21 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 			else if (token == "alignmentX"){
 				ENSURE_NEXT_TOKEN
 				element->alignmentX = NEXT_TOKEN.ParseFloat();
+			}
+			else if (token == "topBorder") {
+				ENSURE_NEXT_TOKEN;
+				element->topBorderTextureSource = (line - "topBorder");
+				element->topBorderTextureSource.RemoveSurroundingWhitespaces();
+			}
+			else if (token == "rightBorder") {
+				ENSURE_NEXT_TOKEN;
+				element->rightBorderTextureSource = (line - "rightBorder");
+				element->rightBorderTextureSource.RemoveSurroundingWhitespaces();
+			}
+			else if (token == "topRightCorner") {
+				ENSURE_NEXT_TOKEN;
+				element->topRightCornerTextureSource = (line - "topRightCorner");
+				element->topRightCornerTextureSource.RemoveSurroundingWhitespaces();
 			}
 			else if (token == "textures") {
 				ENSURE_NEXT_TOKEN;

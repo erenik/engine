@@ -12,6 +12,13 @@ Emitter::Emitter()
 	triangles = 0;
 }
 
+Emitter::Emitter(EmitterType type)
+	: type(type)
+{
+	DefaultVectors();
+	triangles = 0;
+}
+
 // Sets default up/left/forward vectors.
 void Emitter::DefaultVectors()
 {
@@ -81,6 +88,19 @@ void Emitter::Position(Vector3f & positionVec)
 			// Random angle.
 			float angle = (rand() * oneDivRandMaxFloat * 2 * PI);
 			positionVec = Vector3f(cos(angle), sin(angle), 0) * (rand() * oneDivRandMaxFloat);
+			break;
+		}
+		case EmitterType::CIRCLE_ARC_XY: {
+			// Random angle.
+			float angle = arcOffset + (rand() * oneDivRandMaxFloat * arcLength) - arcLength * 0.5f;
+			positionVec = Vector3f(cos(angle), sin(angle), 0);
+			break;
+		}
+		case EmitterType::WEIGHTED_CIRCLE_ARC_XY: {
+			// Random angle.
+			float randomWeight = pow(rand() * oneDivRandMaxFloat, weight); // Generates a value between 0 and 1.0, closer to 0 the bigger the weight.
+			float angle = arcOffset + (rand() * oneDivRandMaxFloat * arcLength * randomWeight) - arcLength * 0.5f * randomWeight;
+			positionVec = Vector3f(cos(angle), sin(angle), 0);
 			break;
 		}
 		case EmitterType::VECTOR:

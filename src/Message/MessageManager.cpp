@@ -453,9 +453,9 @@ void MessageManager::ProcessMessage(Message * message)
 			{
  				PhysicsMan.Resume();
 			}
-			else if (msg.Contains("PlayBGM:"))
+			else if (msg.Contains("PlayBGM"))
 			{
-				String source = msg - "PlayBGM:";
+				String source = msg - "PlayBGM";
 				source.RemoveSurroundingWhitespaces();
 				AudioMan.QueueMessage(new AMPlayBGM(source, 1.f));
 			}

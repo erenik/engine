@@ -28,7 +28,7 @@ public:
 	ParticleEmitter(const Contour & contour);
     ParticleEmitter(Mesh * mesh);
 	/// See EmitterTypes above.
-    ParticleEmitter(int type);
+    ParticleEmitter(EmitterType type);
 	/// Point-based directional emitter
 	ParticleEmitter(const Vector3f & point, const Vector3f & direction);
 	/// Point-based circular emitter
@@ -46,7 +46,7 @@ public:
 	virtual void AttachTo(std::weak_ptr<ParticleSystem> ps);
 
 	/// Called each frame to update position and other according to automations (if any)
-	void Update();
+	virtual void Update();
 	/// Query how many particles this emitter wants to emit, considering the time that has elapsed.
 	int ParticlesToEmit(float timeInSeconds);
 	/// Default new particle.
@@ -109,6 +109,10 @@ public:
 	/// Default (1,1,1,1) or the same as the particle system it is used in.
 	Vector4f color;
 
+	// MathLib/Emitter.h
+	EmitterType type;
+
+
 protected:
 
 	// Time we started emitting particles. Used to calculate how many particles we should emit next!
@@ -131,8 +135,6 @@ protected:
     int shapeType;
     Mesh * m;
 	Contour contour;
-	// See enum above.
-	int type;
 	/// o.o
 	List<Triangle> tris;
 	

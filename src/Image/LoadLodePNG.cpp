@@ -83,8 +83,7 @@ bool LoadLodePNG(String source, Texture * texture)
 		texture->data = new unsigned char [texture->dataBufferSize];
 		memset(texture->data, '0', texture->dataBufferSize);
 		// And save the width and height.
-		texture->width = width;
-		texture->height = height;
+		texture->size = Vector2i(width, height);
 		// Go through the whole image.
 		for(int j = 0; j < height; j++){
 		//	int y = height - j - 1;
@@ -109,8 +108,7 @@ bool LoadLodePNG(String source, Texture * texture)
 		texture->dataBufferSize = width*height*bytesPerPixel;
 		texture->data = new unsigned char [texture->dataBufferSize];
 		// And save the width and height.
-		texture->width = width;
-		texture->height = height;
+		texture->size = Vector2i(width, height);
 		// Go through the whole image.
 		for(int j = 0; j < height; j++){
 		//	int y = height - j - 1;
@@ -134,8 +132,7 @@ bool LoadLodePNG(String source, Texture * texture)
 		// Allocate texture data array.
 		texture->data = new unsigned char [width*height*4];
 		// And save the width and height.
-		texture->width = width;
-		texture->height = height;
+		texture->size = Vector2i(width, height);
 		// Go through the whole image.
 		for(int j = 0; j < height; j++){
 		//	int y = height - j - 1;

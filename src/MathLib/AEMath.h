@@ -24,6 +24,8 @@ class MathLib
 public:
 	MathLib();
 	~MathLib();
+
+	static const float OneDivRandMaxFloat();
 private:
 	// Initializes the various numbers specified above.
 	void Init();

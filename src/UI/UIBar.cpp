@@ -24,11 +24,13 @@ void UIBar::SetFill(float ratio0to1) {
 	}
 
 	this->sizeRatioX = sizeRatioXBeforeFillRatio * ratio0to1;
+//	this->sizeX = parent->sizeX * this->sizeRatioX;
+//	this->lockSizeX = true;
 
 	// Align as needed.
 	switch (alignment) {
 		case UIElement::LEFT:
-			this->alignmentX = alignmentXBeforeFillRatio - sizeRatioXBeforeFillRatio * 0.5f + this->sizeRatioX * 0.5f;
+			//this->alignmentX = alignmentXBeforeFillRatio - sizeRatioXBeforeFillRatio * 0.5f + this->sizeRatioX * 0.5f;
 			break;
 	}
 

@@ -191,8 +191,8 @@ bool TextFont::LoadFromTexture(Texture * i_texture)
 		name = name.Tokenize(".")[0];
 
 	texture = i_texture;
-	fontWidth = texture->width / 16;
-	fontHeight = texture->height / 16;
+	fontWidth = texture->size.x / 16;
+	fontHeight = texture->size.y / 16;
 
 /*	int validPixels = 0;
 	for (int i = 0; i < texture->width * texture->height; ++i){

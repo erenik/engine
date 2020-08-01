@@ -428,15 +428,19 @@ Audio * AudioManager::Play(char type, String name, bool repeat, float volume)
 	}
 
 	// Create audio
-	std::cout<<"\nAudio not found, tryng to create and load it.";
+	LogAudio("Audio not found, tryng to create and load it.", INFO);
 	audio = new Audio(type, name, repeat, volume);
 	bool loadResult = audio->Load();
+	if (!loadResult && !audio->path.Contains(".ogg")) { // Attempt re-try with .ogg path.
+		audio->path += ".ogg";
+		loadResult = audio->Load();
+	}
 
-	std::cout<<"\nLoad result: "<<loadResult;
+	LogAudio("Load result: "+String(loadResult), INFO);
 //	assert(loadResult && "Could not load audio data?");
 	if (loadResult == false){
         delete audio;
-        std::cout<<"\nERROR: Unable to load audio \""<<name<<"\". Aborting playback.";
+        LogAudio("ERROR: Unable to load audio \""+name+"\". Aborting playback.", CAUSE_ASSERTION_ERROR);
         return 0;
 	}
 	/// Generate audio source if not existing.

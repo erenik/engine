@@ -286,7 +286,7 @@ Texture * TextureManager::GenerateTexture(String withName, const Vector4f & andC
 			return tex;
 	}
 	Texture * newTex = new Texture();
-	newTex->width = newTex->height = 1;
+	newTex->size = Vector2i(1, 1);
 	newTex->format = Texture::RGBA;
 	newTex->CreateDataBuffer();
 	newTex->SetColor(andColor);

@@ -15,6 +15,7 @@
     #include <Windows.h>
 #endif
 
+#include "File/LogFile.h"
 #include "../Input/InputManager.h"
 #include "TextureManager.h"
 #include "Mesh/Square.h"
@@ -85,6 +86,12 @@ bool UIElement::HandleDADFiles(List<String> files)
 /// Set default values.
 void UIElement::Nullify()
 {
+	topBorder = nullptr;
+	rightBorder = nullptr;
+	topRightCorner = nullptr;
+	lockSizeY = false;
+	lockSizeX = false;
+
 	lineSizeRatio = -1.f;
 	childrenCreated = false;
 	/// ID
@@ -210,6 +217,8 @@ UIElement::~UIElement()
 	parent = NULL;
 	/// Use for-loop instead of crazy recursion for deallocating the children
 	children.ClearAndDelete();
+
+	DeleteBorders();
 
 	/// Deallocate texture and mesh if needed, as well as vbo, we should never do that here though!
 	assert(vboBuffer == -1 && "vboBuffer not released in UIElement::~UIElement()!");
@@ -1574,6 +1583,8 @@ void UIElement::FreeBuffers()
 	for (int i = 0; i < children.Size(); ++i){
 		children[i]->FreeBuffers();
 	}
+	for (int i = 0; i < borderElements.Size(); ++i)
+		borderElements[i]->FreeBuffers();
 	isBuffered = false;
 }
 
@@ -1591,6 +1602,9 @@ void UIElement::Render(GraphicsState & graphicsState)
     if (children.Size())
         RenderChildren(graphicsState);
 	PrintGLError("GLError in UIElement::Render after RenderChildren");
+
+	RenderBorders(graphicsState);
+	PrintGLError("GLError in UIElement::Render after RenderBorders");
 
 	// Pop matrices
 	graphicsState.modelMatrixF = graphicsState.modelMatrixD = tmp;
@@ -1836,6 +1850,58 @@ void UIElement::FormatText(GraphicsState * graphicsState)
 
 }
 
+UIElement * UIElement::CreateBorderElement(String textureSource, char alignment) {
+	UIElement * borderElement = new UIElement();
+	borderElement->textureSource = textureSource;
+	borderElement->parent = this;
+	Texture * texture = TexMan.GetTexture(textureSource);
+	if (texture == nullptr) {
+		LogGraphics("Unable to fetch texture for border: " + textureSource + " for element " + name, INFO);
+		delete borderElement;
+		return nullptr;
+	}
+	borderElement->alignment = alignment;
+	switch (alignment) {
+	case TOP:
+		borderElement->sizeY = texture->size.y;
+		borderElement->lockSizeY = true;
+		break;
+	case RIGHT:
+		borderElement->sizeX = texture->size.x;
+		borderElement->lockSizeX = true;
+		break;
+	case TOP_RIGHT:
+		borderElement->sizeY = texture->size.y;
+		borderElement->lockSizeY = true;
+		borderElement->sizeX = texture->size.x;
+		borderElement->lockSizeX = true;
+		break;
+	default:
+		assert(false && "Implemenet");
+	}
+	borderElements.Add(borderElement);
+	return borderElement;
+}
+
+void UIElement::RenderBorders(GraphicsState& graphicsState) {
+	if (topBorderTextureSource.Length() > 0) {
+		if (topBorder == nullptr) {
+			topBorder = CreateBorderElement(topBorderTextureSource, TOP);
+		}
+		topBorder->Render(graphicsState);
+	}
+	if (rightBorderTextureSource.Length() > 0) {
+		if (rightBorder == nullptr)
+			rightBorder = CreateBorderElement(rightBorderTextureSource, RIGHT);
+		rightBorder->Render(graphicsState);
+	}
+	if (topRightCornerTextureSource.Length() > 0) {
+		if (topRightCorner == nullptr)
+			topRightCorner = CreateBorderElement(topRightCornerTextureSource, TOP_RIGHT);
+		topRightCorner->Render(graphicsState);
+	}
+}
+
 void UIElement::RenderChildren(GraphicsState & graphicsState)
 {
 	Vector4d initialPositionTopRight(right, top, 0, 1), 
@@ -1873,7 +1939,10 @@ void UIElement::AdjustToWindow(int w_left, int w_right, int w_bottom, int w_top)
 
 	// Extract some attributes before we begin
     left = -1, right = 1, bottom = -1, top = 1;
-	sizeX = 1, sizeY = 1;
+	if (!lockSizeX)
+		sizeX = 1;
+	if (!lockSizeY)
+		sizeY = 1;
 	float z = 0;
 	if (parent){
 		left = parent->posX - parent->sizeX/2;
@@ -1903,8 +1972,10 @@ void UIElement::AdjustToWindow(int w_left, int w_right, int w_bottom, int w_top)
 		centerX = (float)left;
 		centerY = (float)bottom;
 	}
-	sizeX = (int) (right - left);
-	sizeY = (int) (top - bottom);
+	if (!lockSizeX)
+		sizeX = (int) (right - left);
+	if (!lockSizeY)
+		sizeY = (int) (top - bottom);
 	if (parent)
 		z = parent->zDepth + 0.1f;
 	zDepth = z;
@@ -1939,7 +2010,15 @@ void UIElement::AdjustToWindow(int w_left, int w_right, int w_bottom, int w_top)
 			else
 				mesh->SetDimensions((float)w_left, (float)w_right, (float)w_bottom, (float)w_top, (float)zDepth);
 			break;
+
 		case LEFT:
+			/// Do nothing, we start off using regular centering
+			left = RoundInt(left);
+			right = RoundInt(left + sizeX * sizeRatioXwithConstraints);
+			bottom = RoundInt(centerY - sizeY * sizeRatioY / 2);
+			top = RoundInt(centerY + sizeY * sizeRatioY / 2);
+			break;
+
 		case CENTER:
 			/// Do nothing, we start off using regular centering
 			left = RoundInt(centerX - sizeX * sizeRatioXwithConstraints / 2);
@@ -1947,15 +2026,28 @@ void UIElement::AdjustToWindow(int w_left, int w_right, int w_bottom, int w_top)
 			bottom = RoundInt(centerY - sizeY * sizeRatioY / 2);
 			top = RoundInt(centerY + sizeY * sizeRatioY / 2);
 			break;
-			/*
-		case TOP:
-			/// Do nothing, we start off using regular centering
-			left = centerX - sizeX * sizeRatioX / 2;
-			right = centerX + sizeX * sizeRatioX / 2;
-			bottom = centerY - sizeY * sizeRatioY;
-			top = centerY;
+
+		case RIGHT:
+			left = RoundInt(right - sizeX * sizeRatioXwithConstraints);
+			right = RoundInt(right);
+			bottom = RoundInt(centerY - sizeY * sizeRatioY / 2);
+			top = RoundInt(centerY + sizeY * sizeRatioY / 2);
 			break;
-			*/
+
+		case TOP:
+			left = RoundInt(centerX - sizeX * sizeRatioXwithConstraints / 2);
+			right = RoundInt(centerX + sizeX * sizeRatioXwithConstraints / 2);
+			bottom = RoundInt(top - sizeY * sizeRatioY);
+			top = RoundInt(top);
+			break;
+
+		case TOP_RIGHT:
+			left = RoundInt(right - sizeX * sizeRatioXwithConstraints);
+			right = RoundInt(right);
+			bottom = RoundInt(top - sizeY * sizeRatioY);
+			top = RoundInt(top);
+			break;
+
 		default:
 			// Make half-size
 			std::cout<<"UIElement "<<this->name<<" gets default half-size.";
@@ -2023,6 +2115,17 @@ int UIElement::GetAlignment(String byName)
 	return NULL_ALIGNMENT;
 }
 
+
+// Unbufferizes and deletes all border elements and their references.
+void UIElement::DeleteBorders() {
+	for (int i = 0; i < borderElements.Size(); ++i)
+		borderElements[i]->FreeBuffers();
+	borderElements.ClearAndDelete();
+
+	rightBorder = topBorder = nullptr;
+	topRightCorner = nullptr;
+}
+
 /** Sets slider level by adjusting it's child's position.
 	Values should be within the range [0.0,1.0]. **/
 void UISlider::SetLevel(float level){
@@ -2061,6 +2164,8 @@ void UIElement::ResizeGeometry()
 	if (!isGeometryCreated)
 		CreateGeometry();
 	assert(mesh);
+
+	DeleteBorders();
 
 	if (retainAspectRatioOfTexture) {
 		// By default, demand dimensions to be proportional with the image.
@@ -2116,6 +2221,8 @@ void UIElement::DeleteGeometry()
 	for (int i = 0; i < children.Size(); ++i){
 		children[i]->DeleteGeometry();
 	}
+	for (int i = 0; i < borderElements.Size(); ++i)
+		borderElements[i]->DeleteGeometry();
 }
 
 void UIElement::SetState(int newState) {

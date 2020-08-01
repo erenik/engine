@@ -20,6 +20,7 @@
 #include "Input/InputDevices.h"
 
 struct Gamepad;
+class GamepadManager;
 
 #define InputMan (*InputManager::Instance())
 
@@ -45,8 +46,6 @@ public:
 #endif
 	// A general mapping for world-wide commands (bringing up menus and UI navigation, etc)
 	InputMapping general;
-	// Input-mappings for all specific game states.
-//	InputMapping inputMapping[MAX_GAME_STATES];
 
 	/// For debugging.
 	bool printHoverElement;
@@ -192,7 +191,7 @@ public:
 	int startMouseX, startMouseY;
 	/// Previous mouse position
 	int prevMouseX, prevMouseY;
-//	int mouseX, mouseY;
+
 	enum mouseCameraStates {
 		NULL_STATE,
 		ROTATING,
@@ -219,19 +218,6 @@ public:
 	/// Pops target element from stack, and also automatically tries to locate the previous hover-element!
 	UIElement * PopFromStack(GraphicsState* graphicsState, UIElement * element, UserInterface * ui, bool force = false);
 
-    /// Deprecateeeeed! Adjust player input device via the PlayerManager from now on! :)
-/*
-	/// For adjusting local-player input-settings. 0 for player 1, so 3 would for example be player 4.
-	void SetActivePlayer(int player);
-	/// Returns active player, 0 is the first player, so 3 would for example be player 4.
-	int GetActivePlayer() const { return activePlayer; };
-	// Adjusting active player input-device.
-	void SetActivePlayerInputDevice(int device);
-	int GetActivePlayerInputDevice() const;
-	/// Returns the player(s) bound to the current input-device. Returns -1 if no player is bound to the current index.
-	int GetPlayerByActiveInputDevice(int deviceID);
-	String GetActivePlayerInputDeviceString() const;
-*/
 	/// Returns the state of the mouse lock
 	bool MouseLocked() const;
 	void SetMouseLock(bool enable);
@@ -261,14 +247,6 @@ public:
 
 	/// Returns the element that the cursor is currently hovering over.
 	UIElement * HoverElement(); //{return hoverElement;};
-/*
-	/// Emulates Pressing a mouse-button or Enter-key in order to continue with whatever dialogue was up, using the selected or default option (if any)
-	void Proceed();
-	/// Menu navigation, keyboard-/hotkey-style.
-	void GoToNextElement();
-	void GoToPreviousElement();
-	void ActivateElement();
-*/
 
 private:
 	List< std::shared_ptr<Entity> > inputFocusEntities;
@@ -288,6 +266,9 @@ private:
 	/// For disabling/enabling mouse-input!
 	bool mouseLocked;
 
+#define EvaluateButtonPressed EvaluateKeyPressed
+#define EvaluateButtonReleased EvaluateKeyReleased
+
     /// Evaluates if the active key generates any new events by looking at the relevant key bindings. 
 	void EvaluateKeyPressed(int activeKeyCode, bool downBefore, UIElement * activeElement);
 	/// Evaluates if the active key generates any new events by looking at the relevant key bindings
@@ -301,34 +282,14 @@ private:
 	void OnStopActiveInput();
 
 	/// Input device
-//	int playerInputDevice[MAX_PLAYERS];
 	int activePlayer; // Default the active player to first one.
-
-// Xbox Controller structures
-#ifdef WINDOWS
-	Gamepad * gamepadState;
-	Gamepad * previousGamepadState;
-#endif
 
 	/// Flags for if the keys are pressed down currently
 	bool keyPressed[KEY::TOTAL_KEYS];
 	bool keyPressedThisFrame[KEY::TOTAL_KEYS];
 
-	/// Current element that the cursor is over. This can be any visible UI element that has any hoverable flag or similar (non-NULL-type)
-//	UIElement * hoverElement;
-	/// Current element we're hovering over. Re-name to activeElement?
-//	UIElement * clickElement;
-	/// For le update, set this ONLY using the SetActiveUIInputElement function!
-//	UIElement * activeUIInputElement;
-
-// Le macroooo
-#define ACTIVE_INPUT_BUFFER	inputBuffers[selectedInputBuffer]
 	/// Currently selected previous input buffer
 	int selectedInputBuffer;
-	/// Input buffers, with the most recent ones close to index 0 and the oldest used command at index INPUT_BUFFERS-1
-//	wchar_t inputBuffers[INPUT_BUFFERS][BUFFER_SIZE];
-	/// Simple Char buffer for input. Used for easy ASCII commands during development/editor work primarily.
-//	char inputBufferc[BUFFER_SIZE];
 
 	/// Flag for text-entering mode
 	bool isInTextEnteringMode;
@@ -343,6 +304,8 @@ private:
 
 	/// Used to make user-experience more fluid.
 	AppWindow * lastMouseMoveWindow;
+
+	GamepadManager * gamepadManager;
 };
 
 

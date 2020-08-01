@@ -15,6 +15,7 @@ enum messageTypes{
 	MOUSE_MESSAGE,
 	PASTE, // Copy-paste.
 	CONSOLE_COMMAND, // Supposed to be entered from any input or maybe console for more complex usage.
+	GAMEPAD_MESSAGE, // See Input/Gamepad/GamepadMessage.h
 	/// Messages sent from the UI system
 	ON_UI_ELEMENT_HOVER,
 	/// Message type that is based on a string for what action to perform, but includes a list of 1 or more files or directories to act upon too. See Message/FileEvent.h

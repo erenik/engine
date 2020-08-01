@@ -23,16 +23,16 @@ bool SaveBMP(String toFile, Texture * texture)
 		return false;
 
 	// Make stream fit size beforehand?
-	ds.Allocate(texture->height * texture->width * 3 + 80);
+	ds.Allocate(texture->Height() * texture->Width() * 3 + 80);
 
 	int bitsPerPixel = 24;
 	// Calc it.. 14 for header
 	int dataStartOffset = 14 + 12;
 	// Image data.
-	int bytesPerRowWithPadding = ((bitsPerPixel * texture->width + 31) / 32) * 4;
-	int bytesPerRow = texture->width * 3;
+	int bytesPerRowWithPadding = ((bitsPerPixel * texture->Width() + 31) / 32) * 4;
+	int bytesPerRow = texture->Width() * 3;
 	int paddingBytesPerRow = bytesPerRowWithPadding - bytesPerRow;
-	int dataSize = bytesPerRowWithPadding * texture->height;
+	int dataSize = bytesPerRowWithPadding * texture->Height();
 	int fileSize = dataStartOffset + dataSize;
 
 	// Write data to stream,
@@ -43,14 +43,14 @@ bool SaveBMP(String toFile, Texture * texture)
 	ds.PushInt(dataStartOffset);
 	// DIB header, (bitmap information header)
 	ds.PushInt(12); // Smallest header.
-	ds.PushInt16(texture->width);
-	ds.PushInt16(texture->height);
+	ds.PushInt16(texture->Width());
+	ds.PushInt16(texture->Height());
 	ds.PushInt16(1); // color-panes, must be 1
 	ds.PushInt16(bitsPerPixel); // bits per pixel, default 32, no alpha support.
 	assert(paddingBytesPerRow >= 0);
-	for (int y = 0; y < texture->height; ++y)
+	for (int y = 0; y < texture->Height(); ++y)
 	{
-		for (int x = 0; x < texture->width; ++x)
+		for (int x = 0; x < texture->Width(); ++x)
 		{
 			Vector4i vec = texture->GetPixelVec4i(x,y); // BGR format
 			ds.PushInt8(vec.z);

@@ -389,7 +389,7 @@ macro (addProject ProjectName projectSrcDir engineSrcDir)
 		# Debug library dependencies
 		set(DEBUG_LIBS 
 			# For Microsoft game pads via DX SDK.
-		#	xinput.lib
+			xinput.lib
 			glew32s.lib
 		#	glu32.lib
 		#	opengl32.lib

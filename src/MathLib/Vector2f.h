@@ -84,6 +84,8 @@ public:
 
 	/// Binary operator.
 	bool operator == (const Vector2f other) const;
+	/// Binary operator.
+	bool operator != (const Vector2f other) const;
 	/// This will return true if and only if all three components (x,y,z) are smaller than their corresponding comparands in the vector comparand.
 	bool operator < (const Vector2f & comparand) const;
 	/// This will return true if and only if all three components (x,y,z) are larger than their corresponding comparands in the vector comparand.

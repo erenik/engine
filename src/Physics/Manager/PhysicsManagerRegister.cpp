@@ -16,7 +16,7 @@ int PhysicsManager::RegisterEntity(EntitySharedPtr newEntity)
 {
 //	std::cout<<"\nRegistering entity for physics "<<newEntity->name;
 	/// So it can be avoided when creating them and positioning manually in main code...
-	newEntity->RecalculateMatrix();
+	newEntity->RecalculateMatrix(Entity::ALL_PARTS);
 
 	if (!EntityMan.IsGood(newEntity))
 		return -1;

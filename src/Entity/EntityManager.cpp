@@ -180,6 +180,9 @@ int EntityManager::DeleteUnusedEntities(int timeInMs)
 				continue;
 			}
 		}
+		// Delete all extra properties attached to it now.
+		entity->properties.ClearAndDelete();
+
 		/// Increment amount that was successfully deleted.
 		++deletedEntities;
 		entities.RemoveItemUnsorted(entity);
