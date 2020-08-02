@@ -140,6 +140,10 @@ enum graphicsMessages {
 	GM_PUSH_UI,
 	GM_POP_UI,
 
+	// UI Navigation
+	GM_PROCEED_UI,
+	GM_CANCEL_UI,
+
 	// 2D-maps
 	GM_CLEAR_ACTIVE_2D_MAP,
 

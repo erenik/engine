@@ -296,6 +296,9 @@ void GMKey::Process(GraphicsState* graphicsState)
 		if (ui)
 		{
 			UIElement * inputFocusElement = RelevantUI()->ActiveInputFocusElement();
+			if (!inputFocusElement)
+				inputFocusElement = RelevantUI()->GetHoverElement();
+
 			// Catch the codes there that don't get caught in WM_CHAR?
 			if (inputFocusElement)
 			{
@@ -303,6 +306,9 @@ void GMKey::Process(GraphicsState* graphicsState)
 				/// Use the result somehow to determine if other actions can be triggered, too.
 				int result = inputFocusElement->OnKeyDown(graphicsState, keyCode, false);
 				Graphics.QueryRender();
+			}
+			else {
+				LogGraphics("No focus element found to accept input!", INFO);
 			}
 		}
 	}

@@ -105,6 +105,11 @@ int UIStringInput::OnKeyDown(GraphicsState* graphicsState, int keyCode, bool dow
 	return 0;
 }
 
+// For sub-classes to adjust children as needed (mainly for input elements).
+void UIStringInput::OnStateAdded(int state) {
+	input->AddState(state);
+}
+
 
 /// Creates the label and input.
 void UIStringInput::CreateChildren(GraphicsState * graphicsState)

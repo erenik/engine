@@ -13,6 +13,8 @@ class GLBuffers
 public:
 	/// Returns a new buffer to be used.
 	static unsigned int New();
+	/// Frees given buffer.
+	static void Free(unsigned int bufferWithId);
 	// Frees all buffers.
 	static void FreeAll();
 private:
@@ -23,6 +25,7 @@ class GLVertexArrays
 {
 public:
 	static unsigned int New();
+	static void Free(unsigned int vertexArrayId);
 	static void FreeAll();
 private:
 	static List<int> vertexArrays;

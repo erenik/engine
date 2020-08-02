@@ -1573,11 +1573,11 @@ void UIElement::Bufferize()
 void UIElement::FreeBuffers()
 {
 	if (vboBuffer){
-		glDeleteBuffers(1, &vboBuffer);
+		GLBuffers::Free(vboBuffer);
 		vboBuffer = -1;
 	}
 	if (vertexArray){
-		glDeleteVertexArrays(1, &vertexArray);
+		GLVertexArrays::Free(vertexArray);
 		vertexArray = -1;
 	}
 	for (int i = 0; i < children.Size(); ++i){
@@ -2247,8 +2247,31 @@ bool UIElement::AddState(int i_state)
 			return false;
 	}
 	state |= i_state;
+	OnStateAdded(i_state);
 	return true;
 }
+
+// For sub-classes to adjust children as needed (mainly for input elements).
+void UIElement::OnStateAdded(int state) {
+	if (state == UIState::ACTIVE) {
+		/// It it us! Activate power!
+		if (activationMessage.Length() == 0)
+		{
+			std::cout << "Activatable UI element has no valid activation message string!";
+		}
+		else if (activationMessage.Length() != 0)
+		{
+			List<String> msgs = activationMessage.Tokenize("&");
+			for (int i = 0; i < msgs.Size(); ++i)
+			{
+				Message * message = new Message(msgs[i]);
+				message->element = this;
+				MesMan.QueueMessage(message);
+			}
+		}
+	}
+}
+
 
 // See UIState::
 bool UIElement::HasState(int queryState) {

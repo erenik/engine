@@ -96,6 +96,9 @@ void UIInput::RemoveState(int state, bool recursive /*= false*/)
 	}
 }
 
+// For sub-classes to adjust children as needed (mainly for input elements).
+void UIInput::OnStateAdded(int state) {
+}
 
 // Used for handling things like drag-n-drop and copy-paste operations, etc. as willed.
 void UIInput::ProcessMessage(Message * message)
@@ -226,12 +229,22 @@ int UIInput::OnKeyDown(GraphicsState* graphicsState, int keyCode, bool downBefor
 			break;
 		case KEY::UP: 
 		{
-			parent->OnKeyDown(graphicsState, keyCode, downBefore);
+			if (this->numbersOnly) {
+				int value = editText.ParseInt();
+				editText = String::ToString(value + 1);
+			}
+			else
+				parent->OnKeyDown(graphicsState, keyCode, downBefore);
 			break;
 		}
 		case KEY::DOWN: 
 		{
-			parent->OnKeyDown(graphicsState, keyCode, downBefore);
+			if (this->numbersOnly) {
+				int value = editText.ParseInt();
+				editText = String::ToString(value - 1);
+			}
+			else
+				parent->OnKeyDown(graphicsState, keyCode, downBefore);
 			break;
 		}
 		case KEY::LEFT:
@@ -454,6 +467,7 @@ bool UIInput::BeginInput()
 		return false;
 	}
 
+	LogMain("Beginning input on " + name, INFO);
 	inputActive = true;
 	// Set active state if not done so already.
 	this->AddState(UIState::ACTIVE);
@@ -509,6 +523,7 @@ void UIInput::StopInput()
 {
 	if (inputActive)
 	{
+		LogMain("Stopping input on " + name, INFO);
 		inputActive = false;
 		/// Remove caret
 		editText.caretPosition = -1;

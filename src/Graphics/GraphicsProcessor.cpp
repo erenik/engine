@@ -411,10 +411,10 @@ PROCESSOR_THREAD_START(GraphicsManager)
 
 //	std::cout<<"\nExiting rendering loop. Beginning deallocating graphical resources.";
 
-	/// Remove flags and begin deallocating all GL data.
-	/// Deallocate textures before we remove any context!
 	Graphics.OnEndRendering();
 
+	/// Remove flags and begin deallocating all GL data.
+	/// Deallocate textures before we remove any context!
 	// Free textures, delete buffers and delete VAOs (if any) before de-allocatin the GL context!
 	// https://www.opengl.org/discussion_boards/showthread.php/125908-wglDeleteContext-causing-problems
 	TexMan.FreeTextures();
@@ -431,6 +431,7 @@ PROCESSOR_THREAD_START(GraphicsManager)
 	glBindTexture(GL_TEXTURE_1D, 0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	GLTextures::FreeAll();
+
 
 	List<AppWindow*> windows = WindowMan.GetWindows();
 	for (int i = 0; i < windows.Size(); ++i)

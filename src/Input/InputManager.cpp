@@ -7,7 +7,7 @@
 
 #include "Message/Message.h"
 #include "Graphics/GraphicsManager.h"
-#include "Graphics/Messages/GMUI.h"
+#include "Graphics/Messages/UIMessages.h"
 #include "../UI/UserInterface.h"
 #include "DefaultBindings.h"
 #include <cstring>
@@ -615,8 +615,7 @@ void InputManager::EvaluateKeyPressed(int activeKeyCode, bool downBefore, UIElem
 					break;
 				case KEY::ENTER:
 				{
-					bool didSomething = UIProceed();
-					uiCommand = didSomething;
+					uiCommand = UIProceed();
 					break;
 				}
 				default:
@@ -1039,9 +1038,10 @@ bool InputManager::UIProceed()
 	if (!hoverElement)
 		return false;
 	/// Set it as active if needed.
-	hoverElement->AddState(UIState::ACTIVE);
+	QueueGraphics(new GMProceedUI());
+	//hoverElement->AddState(UIState::ACTIVE);
 	/// Activate it.
-	hoverElement->Activate(nullptr);
+//	hoverElement->Activate(nullptr);
 	/// Trigger active hover-element.
 //	ui->Activate(hoverElement);
 	return true;

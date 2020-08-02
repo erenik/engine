@@ -17,6 +17,9 @@ public:
 	virtual void OnInputUpdated(GraphicsState* graphicsState, UIInput * inputElement) override;
 	virtual int OnKeyDown(GraphicsState* graphicsState, int keyCode, bool downBefore) override; // For managing old texts.
 
+	// For sub-classes to adjust children as needed (mainly for input elements).
+	virtual void OnStateAdded(int state) override;
+
 	/// Creates the label and input.
 	void CreateChildren(GraphicsState* graphicsState) override;
 	/// Getter/setter for the input element.

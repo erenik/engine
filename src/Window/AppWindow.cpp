@@ -406,8 +406,8 @@ bool AppWindow::Create()
 	
 
 	Vector2i size(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT);
-	// Default size to half of primary monitor width and height?
-	size = GetMonitorSize() / 2;
+	// Default size to 2/3 of primary monitor width and height?
+	size = GetMonitorSize() * 0.66f;
 	LogMain("Using half monitor size for window creation: "+ VectorString(size), INFO);
 
 	if (requestedSize[0] && requestedSize[1] )

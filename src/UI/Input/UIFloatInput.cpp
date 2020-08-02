@@ -91,6 +91,13 @@ void UIFloatInput::OnInputUpdated(GraphicsState* graphicsState, UIInput * inputE
 	MesMan.QueueMessage(m);
 }
 
+// For sub-classes to adjust children as needed (mainly for input elements).
+void UIFloatInput::OnStateAdded(int state) {
+	if (state == UIState::HOVER)
+		input->AddState(state);
+	else if (state == UIState::ACTIVE)
+		BeginInput();
+}
 
 /// Creates the label and input.
 void UIFloatInput::CreateChildren(GraphicsState* graphicsState)

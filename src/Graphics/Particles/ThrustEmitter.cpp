@@ -59,6 +59,7 @@ bool ThrustEmitter::GetNewParticle(Vector3f & position, Vector3f & velocity) {
 bool ThrustEmitter::GetNewParticle(Vector3f & position, Vector3f & velocity, float & scale, float & lifeTime, Vector4f & color) {
 	bool result = ParticleEmitter::GetNewParticle(position, velocity, scale, lifeTime, color);
 	position += diffVector * rand() * MathLib::OneDivRandMaxFloat();
+	assert(false);
 	return result;
 }
 

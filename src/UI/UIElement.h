@@ -436,6 +436,8 @@ public:
 		For operations controlling the HOVER flag, certain criteria may need to be met in order for the adder to succeed.
 	*/
 	bool AddState(int state);
+	// For sub-classes to adjust children as needed (mainly for input elements).
+	virtual void OnStateAdded(int state);
 	// See UIState::
 	bool HasState(int queryState);
 	/// For example UIState::HOVER, if recursive will apply to all children.

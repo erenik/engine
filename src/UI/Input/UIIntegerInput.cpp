@@ -27,6 +27,7 @@ UIIntegerInput::UIIntegerInput(String name, String onTrigger)
 	input = NULL;
 	label = NULL;
 	guiInputDisabled = false;
+	acceptMathematicalExpressions = false;
 }
 UIIntegerInput::~UIIntegerInput()
 {
@@ -66,18 +67,10 @@ bool UIIntegerInput::OnScroll(GraphicsState* graphicsState, float delta)
 */
 int UIIntegerInput::OnKeyDown(GraphicsState* graphicsState, int keyCode, bool downBefore)
 {
-	int v = GetValue();
-	switch(keyCode)
-	{
-		case KEY::DOWN:
-			--v;
-			SetValue(v);
-			return 1;
-		case KEY::UP:
-			++v;
-			SetValue(v);
-			return 1;
+	if (input->InputActive()) {
+		return input->OnKeyDown(graphicsState, keyCode, downBefore);
 	}
+
 	UIElement::OnKeyDown(graphicsState, keyCode, downBefore);
 	return 0;
 }	
@@ -110,6 +103,16 @@ void UIIntegerInput::OnInputUpdated(GraphicsState* graphicsState, UIInput * inpu
 	}
 	IntegerMessage * m = new IntegerMessage(action, GetValue());
 	MesMan.QueueMessage(m);
+}
+
+// For sub-classes to adjust children as needed (mainly for input elements).
+void UIIntegerInput::OnStateAdded(int state) {
+	if (state == UIState::HOVER)
+		input->AddState(state);
+	else if (state == UIState::ACTIVE) {
+		input->BeginInput();
+		RemoveState(state, false);
+	}
 }
 
 

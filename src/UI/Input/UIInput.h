@@ -29,6 +29,9 @@ public:
 	/// Default calls parent class RemoveState. If the Active flag is removed, input is also halted/cancelled.
 	virtual void RemoveState(int state, bool recursive = false) override;
 
+	// For sub-classes to adjust children as needed (mainly for input elements).
+	virtual void OnStateAdded(int state) override;
+
 	// Used for handling things like drag-n-drop and copy-paste operations, etc. as willed.
 	virtual void ProcessMessage(Message * message) override;
 
@@ -63,6 +66,9 @@ public:
 	bool concealCharacters;
 	// Default false.
 	bool rememberPreviousInputs; 
+
+	// Is it currently active for input?
+	const bool InputActive() const { return inputActive; }
 
 protected:
 	/// For handling text-input

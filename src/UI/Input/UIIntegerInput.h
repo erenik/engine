@@ -26,6 +26,9 @@ public:
 	/// Sent by UIInput elements upon pressing Enter and thus confirmign the new input, in case extra actions are warranted. (e.g. UITextureInput to update the texture provided as reference). Called from render thread.
 	virtual void OnInputUpdated(GraphicsState* graphicsState, UIInput * inputElement) override;
 
+	// For sub-classes to adjust children as needed (mainly for input elements).
+	virtual void OnStateAdded(int state) override;
+
 	/// Creates the label and input.
 	void CreateChildren(GraphicsState* graphicsState = nullptr) override;
 	/// Getter/setter for the input element.

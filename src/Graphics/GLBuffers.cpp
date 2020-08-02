@@ -21,6 +21,16 @@ unsigned int GLBuffers::New()
 	return newBufferID;
 }
 
+/// Frees given buffer.
+void GLBuffers::Free(unsigned int bufferWithId) {
+	// If we have no allocated buffers (only during shutdown), no need to do anything more here.
+	if (buffers.Size() == 0) 
+		return;
+	glDeleteBuffers(1, &bufferWithId);
+	buffers.Remove(bufferWithId);
+}
+
+
 // Frees all buffers.
 void GLBuffers::FreeAll()
 {
@@ -43,6 +53,15 @@ unsigned int GLVertexArrays::New()
 	vertexArrays.Add(newVertexArray);
 	return newVertexArray;
 }
+
+void GLVertexArrays::Free(unsigned int vertexArrayId) {
+	// If we have no allocated buffers (only during shutdown), no need to do anything more here.
+	if (vertexArrays.Size() == 0)
+		return;
+	glDeleteVertexArrays(1, &vertexArrayId);
+	vertexArrays.Remove(vertexArrayId);
+}
+
 
 // Frees all buffers.
 void GLVertexArrays::FreeAll()

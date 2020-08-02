@@ -20,6 +20,7 @@ public:
 	GMUI(int messageType, UserInterface * targetUI);
 	/// Default constructor.
 	GMUI(int messageType, Viewport * viewport);
+	virtual ~GMUI() {};
 	void Nullify();
 	virtual void Process(GraphicsState* graphicsState) override = 0;
 

@@ -72,7 +72,7 @@ GMDetachParticleEmitter::GMDetachParticleEmitter(std::shared_ptr<ParticleEmitter
 }
 void GMDetachParticleEmitter::Process(GraphicsState* graphicsState)
 {
-	auto system = ps.lock();
+ 	auto system = ps.lock();
 	if (system)
 	{
 		system->emitters.Remove(pe);
