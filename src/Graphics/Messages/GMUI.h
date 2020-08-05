@@ -325,7 +325,8 @@ private:
 class GMPopUI : public GMUI{
 public:
 	/// If force is specified, it will pop the UI no matter what it's exitable property says. If UI is 0, default ui in main window is chosen.
-	GMPopUI(String uiName, UserInterface * ui = 0, bool force = false, Viewport * viewport = NULL);
+	GMPopUI(String uiName, UserInterface * ui, bool force = false, Viewport * viewport = NULL);
+	GMPopUI(String uiName, bool force);
 	void Process(GraphicsState* graphicsState);
 private:
 	UIElement * element;

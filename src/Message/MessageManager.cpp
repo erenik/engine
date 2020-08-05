@@ -459,6 +459,11 @@ void MessageManager::ProcessMessage(Message * message)
 				source.RemoveSurroundingWhitespaces();
 				AudioMan.QueueMessage(new AMPlayBGM(source, 1.f));
 			}
+			else if (msg.Contains("SetBGMVolume")) {
+				String volume = msg - "SetBGMVolume";
+				volume.RemoveSurroundingWhitespaces();
+				AudioMan.QueueMessage(new AMSet(AT_BGM_VOLUME, volume.ParseFloat()));
+			}
 			else if (msg.Contains("NavigateUI(")){
 				bool toggle = msg.Tokenize("()")[1].ParseBool();
 				InputMan.NavigateUI(toggle);

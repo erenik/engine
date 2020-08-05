@@ -53,7 +53,7 @@ void * StateManager::StateProcessor(void * vArgs){
 				time = newTime;
 				newTime = Timer::GetCurrentTimeMs();
 				int timeDiffInMs = newTime - time;
-				timeDiffInMs %= 200; // Max 200 ms per simulation-iteration?
+				timeDiffInMs %= 50; // Max 200 ms per simulation-iteration?
 				float timeDiffF = ((float)timeDiffInMs) * 0.001f;
 				/// Enter new state if queued.
 				if (!quittingApplication)

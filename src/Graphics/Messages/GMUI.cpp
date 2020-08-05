@@ -1029,6 +1029,14 @@ GMPopUI::GMPopUI(String uiName, UserInterface * targetUI, bool force, Viewport *
 	ui = targetUI;
 }
 
+GMPopUI::GMPopUI(String uiName, bool force) 
+	: GMUI(GM_POP_UI), uiName(uiName), element(nullptr), force(force)
+{
+	ui = nullptr;
+}
+
+
+
 void GMPopUI::Process(GraphicsState * graphicsState)
 {
 	GetUI();

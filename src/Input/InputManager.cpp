@@ -445,6 +445,8 @@ void InputManager::MouseRightClick(AppWindow * AppWindow, bool down, int x, int 
 	if (userInterface)
 	{
 		element = userInterface->Hover(x, y, true);
+		if (element == nullptr)
+			return;
 		QueueGraphics(new GMSetHoverUI(element->name));
 	}
 	// If navigating UI, interpret right-click as cancel/exit?
