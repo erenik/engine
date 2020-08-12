@@ -143,6 +143,7 @@ enum graphicsMessages {
 	// UI Navigation
 	GM_PROCEED_UI,
 	GM_CANCEL_UI,
+	GM_NAVIGATE_UI,
 
 	// 2D-maps
 	GM_CLEAR_ACTIVE_2D_MAP,

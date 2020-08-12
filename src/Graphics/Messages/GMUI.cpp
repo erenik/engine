@@ -1002,9 +1002,9 @@ void GMPushUI::Process(GraphicsState * graphicsState)
 	if (e->navigateUIOnPush){
 		e->previousNavigateUIState = InputMan.NavigateUIState();
 		if (e->forceNavigateUI)
-			InputMan.ForceNavigateUI(true);
+			InputMan.SetForceNavigateUI(true);
 		else
-			InputMan.NavigateUI(true);
+			InputMan.SetNavigateUI(true);
 	}
 }
 
@@ -1077,7 +1077,7 @@ void GMPopUI::Process(GraphicsState * graphicsState)
 
 
 	/// By default, set navigate UI to true too!
-//	InputMan.NavigateUI(true);
+//	InputMan.SetNavigateUI(true);
 }
 
 /*

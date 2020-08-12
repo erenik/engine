@@ -77,7 +77,7 @@ public:
 	int GetNextAvailableInputDevice();
 
 	/// Fetches and updates the device states for all external controllers (if any)
-	void UpdateDeviceStates();
+	void UpdateDeviceStates(float timeInSeconds);
 	/// Clears mainly the keyPressedThisFrame array, used for checking newly pressed keys without specific bindings.
 	void ClearPreviousFrameStats();
 
@@ -201,10 +201,12 @@ public:
 	/// Default false. Toggleable with CTRL+I+M. When true, all mouse input is disabled.
 	bool ignoreMouse;
 	
+	/// If true, we are in a menu and should interpret events differently.
+	bool NavigateUI();
 	/// When set, will make certain keys only navigate the UI, by default arrow-keys, ENTER and Escape for PC.
-	void NavigateUI(bool mode);
+	void SetNavigateUI(bool mode);
 	/// When set, nothing will disable the Navigate UI mode until this function is called again, at which point it is cancelled.
-	void ForceNavigateUI(bool mode);
+	void SetForceNavigateUI(bool mode);
 	/// Fetches state of the NavigateUI tool. 0 = disabled, 1 = enabled, 2 = force enabled.
 	int NavigateUIState();
 	/// Loads NavigateUI state using integer provided using NavigateUIState() function earlier.

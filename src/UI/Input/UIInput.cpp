@@ -33,6 +33,9 @@ UIInput::UIInput(String name /*= ""*/)
 	numbersOnly = false;
 	mathematicalExpressionsOnly = false;
 	concealCharacters = false;
+
+	min = -INT_MAX;
+	max = INT_MAX;
 }
 
 UIInput::~UIInput()
@@ -82,6 +85,25 @@ UIElement* UIInput::Activate(GraphicsState* graphicsState)
 		return this;
 	return nullptr;
 }
+
+// When navigating, either via control, or arrow keys or whatever.
+void UIInput::Navigate(NavigateDirection direction) {
+	if (HasState(UIState::ACTIVE)) {
+		if (numbersOnly) {
+			switch (direction) {
+			case NavigateDirection::Right:
+			case NavigateDirection::Up:
+				IncrementValue();
+				break;
+			case NavigateDirection::Left:
+			case NavigateDirection::Down:
+				DecrementValue();
+				break;
+			}
+		}
+	}
+}
+
 
 /// Default calls parent class RemoveState. If the Active flag is removed, input is also halted/cancelled.
 void UIInput::RemoveState(int state, bool recursive /*= false*/)
@@ -230,8 +252,7 @@ int UIInput::OnKeyDown(GraphicsState* graphicsState, int keyCode, bool downBefor
 		case KEY::UP: 
 		{
 			if (this->numbersOnly) {
-				int value = editText.ParseInt();
-				editText = String::ToString(value + 1);
+				IncrementValue();
 			}
 			else
 				parent->OnKeyDown(graphicsState, keyCode, downBefore);
@@ -240,8 +261,7 @@ int UIInput::OnKeyDown(GraphicsState* graphicsState, int keyCode, bool downBefor
 		case KEY::DOWN: 
 		{
 			if (this->numbersOnly) {
-				int value = editText.ParseInt();
-				editText = String::ToString(value - 1);
+				DecrementValue();
 			}
 			else
 				parent->OnKeyDown(graphicsState, keyCode, downBefore);
@@ -516,6 +536,27 @@ float UIInput::DefaultSpacePerElement() {
 	float spaceLeft = 1.0f - padding * elements;
 	float spacePerElement = spaceLeft / elements;
 	return spacePerElement;
+}
+
+// Used for numbersOnly input fields.
+void UIInput::IncrementValue() {
+	int value = editText.ParseInt() + 1;
+	if (value > max)
+		value = max;
+	editText = String::ToString(value);
+	OnTextUpdated();
+}
+void UIInput::DecrementValue() {
+	int value = editText.ParseInt() - 1;
+	if (value < min)
+		value = min;
+	editText = String::ToString(value);
+	OnTextUpdated();
+}
+
+void UIInput::SetRange(int newMin, int newMax) {
+	min = newMin;
+	max = newMax;
 }
 
 /// Halts input and removes Active state.

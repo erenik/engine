@@ -5,7 +5,7 @@
 #include "UI/UIElement.h"
 
 class UIMatrix : public UIElement {
-	friend class UserInterface;
+	friend class UIParser;
 public:
 	enum matrixTypes {
 		BINARY,

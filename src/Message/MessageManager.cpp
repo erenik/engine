@@ -19,8 +19,10 @@
 #include "StateManager.h"
 #include "Graphics/GraphicsManager.h"
 #include "Graphics/Messages/GMUI.h"
+#include "Graphics/Messages/UI/GMProceedUI.h"
 #include "Graphics/Messages/GMSetEntity.h"
 #include "Input/InputManager.h"
+#include "Input/Gamepad/GamepadMessage.h"
 #include "Script/Script.h"
 #include "Maps/MapManager.h"
 #include "Script/ScriptManager.h"
@@ -292,6 +294,10 @@ void MessageManager::ProcessMessage(Message * message)
 
 	switch(message->type)
 	{
+		case MessageType::GAMEPAD_MESSAGE: {
+			GamepadMessage * gamepadMessage = (GamepadMessage*)message;
+			break;
+		}
 		case MessageType::BOOL_MESSAGE:
 		{
 			BoolMessage * bm = (BoolMessage*) message;
@@ -466,7 +472,7 @@ void MessageManager::ProcessMessage(Message * message)
 			}
 			else if (msg.Contains("NavigateUI(")){
 				bool toggle = msg.Tokenize("()")[1].ParseBool();
-				InputMan.NavigateUI(toggle);
+				InputMan.SetNavigateUI(toggle);
 				return;
 			}
 			else if (msg == "IgnoreMouseInput")

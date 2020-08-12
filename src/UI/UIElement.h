@@ -8,6 +8,7 @@
 #include "Graphics/OpenGL.h"
 #include "UIAction.h"
 #include "UITypes.h"
+#include "NavigateDirection.h"
 
 #include <cstdlib>
 #include <ctime>
@@ -51,6 +52,7 @@ enum UIFlag {
 class UIElement
 {
 	friend class UserInterface;
+	friend class UIParser;
 	friend class InputManager;
 	friend class GraphicsManager;
 	friend class UIList;
@@ -76,6 +78,7 @@ public:
 	
 	/// Callback-function for sub-classes to implement own behaviour to run within the UI-class' code.
 	virtual void Proceed();
+	virtual void StopInput();
 
 	// Used for handling things like drag-n-drop and copy-paste operations, etc. as willed.
 	virtual void ProcessMessage(Message * message);
@@ -173,6 +176,9 @@ public:
 	virtual UIElement * GetRightNeighbour(UIElement * referenceElement, bool & searchChildrenOnly);
 	virtual UIElement * GetDownNeighbour(GraphicsState* graphicsState, UIElement * referenceElement, bool & searchChildrenOnly);
 	virtual UIElement * GetLeftNeighbour(UIElement * referenceElement, bool & searchChildrenOnly);
+
+	// Is it navigatable?
+	bool IsNavigatable();
 	
 	/// Works recursively.
 	UIElement * GetElementClosestTo(Vector3f & position, bool mustBeActivatable);
@@ -440,9 +446,12 @@ public:
 	virtual void OnStateAdded(int state);
 	// See UIState::
 	bool HasState(int queryState);
+	bool HasStateRecursive(int queryState);
 	/// For example UIState::HOVER, if recursive will apply to all children.
 	virtual void RemoveState(int state, bool recursive = false);
 
+	// When navigating, either via control, or arrow keys or whatever.
+	virtual void Navigate(NavigateDirection direction);
 
 	/// Wether NavigateUI should be enabled when this element is pushed. Default is false.
 	bool navigateUIOnPush;

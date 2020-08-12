@@ -84,7 +84,7 @@ void * StateManager::StateProcessor(void * vArgs){
 					NetworkMan.ProcessNetwork(); errorLocation = 8;
 
 					/// Get input from XBox devices if possible
-					InputMan.UpdateDeviceStates();
+					InputMan.UpdateDeviceStates(timeDiffF);
 					/// Clear previous frame input before fetching new from the AppWindow system.
 					InputMan.ClearPreviousFrameStats();
 

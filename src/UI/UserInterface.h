@@ -135,6 +135,13 @@ public:
 	/// Checks for visibility, activateability, etc. Also works bit-wise!
 	UIElement * GetElementByFlag(int uiFlag);
 	bool GetElementsByFlags(int uiFlags, List<UIElement*> & listToFill);
+
+	// Fetches all hoverable and/or activatable/interactable elements in this UI.
+	List<UIElement*> GetRelevantElements();
+
+	// Is it navigatable?
+	static bool IsNavigatable(UIElement * element);
+
 	/// Returns a pointer to the root element
 	UIElement * Root() {return root;};
 	const int Width(){ return width;};
@@ -145,7 +152,7 @@ public:
 	String Source(){ return source;};
 
 	/// Statistics for newly created elements that may be applied if wished.
-	Vector4f defaultTextColor;
+	//Vector4f defaultTextColor;
 
 	/// Checks if it is in the stack already. Can be good to avoid duplicates...
 	bool InStack(UIElement * element);

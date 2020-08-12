@@ -7,15 +7,30 @@
 #include "Input/InputDevices.h"
 #include "GamepadMessage.h"
 #include "Message/MessageManager.h"
+#include "Graphics/Messages/UI/GMNavigateUI.h"
+#include "Graphics/Messages/UI/GMProceedUI.h"
+#include "Input/InputManager.h"
+#include "StateManager.h"
 
 #ifdef WINDOWS
 	#include <Xinput.h>
 	#include <winerror.h>
 #endif 
 
+Gamepad::Gamepad()
+	: durationLeftStick(0)
+	, leftStickIterations(0)
+{
+
+}
+
 using namespace InputDevice;
 
 GamepadManager::GamepadManager() {
+
+	secondsBetweenNavigationIterations = 0.08f;
+	accelerationFactor = 0.98f;
+
 #ifdef WINDOWS
 	gamepadState = NULL;
 	previousGamepadState = NULL;
@@ -40,7 +55,7 @@ GamepadManager::~GamepadManager(){
 #endif
 }
 
-void GamepadManager::Update() {
+void GamepadManager::Update(float timeInSeconds) {
 	/// Check for xbox controller input on windows and xbox o-o
 #ifdef WINDOWS
 	for (int i = 0; i < XUSER_MAX_COUNT; ++i) {
@@ -50,13 +65,14 @@ void GamepadManager::Update() {
 		// Skip if failed
 		if (result != ERROR_SUCCESS)
 			continue;
-		//	std::cout<<"\nXbox Controller "<<i+1<<" responding as intended? >:3";
 
 		static DWORD lastPacketNumber[4];
+		Gamepad & gamepad = gamepadState[i];
+		Gamepad & previousState = previousGamepadState[i];
 
 		// Check if there's any new data avaiable at all
 		if (tmpXInputState.dwPacketNumber == lastPacketNumber[i]) {
-			//		std::cout<<"\nOld data, skipping";
+			OnNoUpdate(timeInSeconds, gamepad, previousGamepadState[i]);			
 			continue;
 		}
 		lastPacketNumber[i] = tmpXInputState.dwPacketNumber;
@@ -68,14 +84,32 @@ void GamepadManager::Update() {
 		// Get float valuesl.....
 #define XINPUT_THUMB_MAX	32768
 
-		Gamepad & gamepad = gamepadState[i];
 		GamepadMessage * message = new GamepadMessage();
 		message->index = i;
 
 		gamepad.leftStick = Vector2f(((float)input->sThumbLX) / XINPUT_THUMB_MAX, ((float)input->sThumbLY) / XINPUT_THUMB_MAX);
 		gamepad.rightStick = Vector2f(((float)input->sThumbRX) / XINPUT_THUMB_MAX, ((float)input->sThumbRY) / XINPUT_THUMB_MAX);
+
+		gamepad.leftStickUp = gamepad.leftStick.y > 0.5f;
+		gamepad.leftStickDown = gamepad.leftStick.y < -0.5f;
+		gamepad.leftStickRight = gamepad.leftStick.x > 0.5f;
+		gamepad.leftStickLeft = gamepad.leftStick.x < -0.5f;
+
+
+		// Reset duration if needed.
+		if (gamepad.leftStickUp != previousState.leftStickUp ||
+			gamepad.leftStickDown != previousState.leftStickDown ||
+			gamepad.leftStickLeft != previousState.leftStickLeft ||
+			gamepad.leftStickRight != previousState.leftStickRight)
+		{
+			gamepad.durationLeftStick = 0;
+			gamepad.leftStickIterations = 0;
+		}
+
+
 		gamepad.leftTrigger = input->bLeftTrigger;
 		gamepad.rightTrigger = input->bRightTrigger;
+		gamepad.menuButtonPressed = input->wButtons & XINPUT_GAMEPAD_START;
 		gamepad.aButtonPressed = input->wButtons & XINPUT_GAMEPAD_A;
 		gamepad.bButtonPressed = input->wButtons & XINPUT_GAMEPAD_B;
 		gamepad.xButtonPressed = input->wButtons & XINPUT_GAMEPAD_X;
@@ -83,7 +117,7 @@ void GamepadManager::Update() {
 		gamepad.leftButtonPressed = input->wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER;
 		gamepad.rightButtonPressed = input->wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER;
 
-		Gamepad & previousState = previousGamepadState[i];
+		message->previousState = previousState;
 
 		message->leftStickUpdated = previousState.leftStick != gamepad.leftStick;
 		message->rightStickUpdated = previousState.rightStick != gamepad.leftStick;
@@ -99,12 +133,48 @@ void GamepadManager::Update() {
 		message->leftButtonPressed = gamepad.leftButtonPressed && (previousState.leftButtonPressed != gamepad.leftButtonPressed);
 		message->rightButtonPressed = gamepad.rightButtonPressed && (previousState.rightButtonPressed != gamepad.rightButtonPressed);
 
+		MesMan.QueueMessage(message);
+
+		// UI code if relevant
+		PostUpdate(gamepad, previousState);
+
 		// Update previous state to track changes.
 		previousState = gamepad;
 
-		MesMan.QueueMessage(message);
 #endif
 	};
+}
+
+
+void GamepadManager::OnNoUpdate(float timeInSeconds, Gamepad & state, Gamepad & previousState) {
+
+	if (state.leftStickUp || state.leftStickDown || state.leftStickLeft || state.leftStickRight) {
+		state.durationLeftStick += timeInSeconds;
+		if (state.durationLeftStick > pow(accelerationFactor, state.leftStickIterations) * (1 + state.leftStickIterations) * secondsBetweenNavigationIterations) {
+			++state.leftStickIterations;
+			QueueGraphics(new GMNavigateUI(state.leftStickUp?  NavigateDirection::Up : 
+				state.leftStickDown? NavigateDirection::Down : 
+				state.leftStickRight? NavigateDirection::Right : NavigateDirection::Left));
+		}
+	}
+}
+
+
+void GamepadManager::PostUpdate(Gamepad & state, Gamepad & previousState) {
+	if (InputMan.NavigateUI()) {
+
+		if (state.leftStickUp && !previousState.leftStickUp)
+			QueueGraphics(new GMNavigateUI(NavigateDirection::Up));
+		else if (state.leftStickDown && !previousState.leftStickDown)
+			QueueGraphics(new GMNavigateUI(NavigateDirection::Down));
+		else if (state.leftStickRight && !previousState.leftStickRight)
+			QueueGraphics(new GMNavigateUI(NavigateDirection::Right));
+		else if (state.leftStickLeft && !previousState.leftStickLeft)
+			QueueGraphics(new GMNavigateUI(NavigateDirection::Left));
+
+		if (state.aButtonPressed && !previousState.aButtonPressed)
+			QueueGraphics(new GMProceedUI());
+	}
 }
 
 

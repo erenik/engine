@@ -29,6 +29,14 @@ public:
 	// For sub-classes to adjust children as needed (mainly for input elements).
 	virtual void OnStateAdded(int state) override;
 
+	virtual void SetRange(int min, int max) override;
+
+	// When navigating, either via control, or arrow keys or whatever.
+	void Navigate(NavigateDirection direction);
+
+	/// Halts input and removes Active state.
+	virtual void StopInput() override;
+
 	/// Creates the label and input.
 	void CreateChildren(GraphicsState* graphicsState = nullptr) override;
 	/// Getter/setter for the input element.
@@ -48,6 +56,7 @@ public:
 	bool acceptMathematicalExpressions;
 
 private:
+
 };
 
 #endif

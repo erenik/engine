@@ -139,6 +139,7 @@ void ParticleSystem::Initialize()
 	if (!model)
 	{
 		LogGraphics("Unable to initialize ParticleSystem. Bad model.", ERROR);
+		assert(false);
 		return;
 	}
 	// Bufferize model if needed.

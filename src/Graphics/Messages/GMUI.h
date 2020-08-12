@@ -28,6 +28,7 @@ public:
 		NULL_TARGET,
 		/// Pointer-targets
 		TEXTURE,
+
 		/// Lists of booleans
 		MATRIX_DATA,
 		// Vectors

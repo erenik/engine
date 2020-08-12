@@ -5,6 +5,7 @@
 #include "GMProceedUI.h"
 
 #include "UI/UserInterface.h"
+#include "UI/UIInputs.h"
 #include "Window/AppWindowManager.h"
 #include "File/LogFile.h"
 
@@ -25,5 +26,20 @@ void GMProceedUI::Process(GraphicsState * gs) {
 	if (!hoverElement)
 		return;
 
-	hoverElement->AddState(UIState::ACTIVE);
+	UIElement * stackTop = ui->GetStackTop();
+	UIElement * activeElement = stackTop->GetElementByState(UIState::ACTIVE);
+
+	// Don't add Active again if same element, then just de-activate it.
+	if (hoverElement == activeElement ||
+		hoverElement->HasStateRecursive(UIState::ACTIVE)) 
+	{
+
+		hoverElement->StopInput();
+
+		stackTop->RemoveState(UIState::ACTIVE, true);
+	}
+	else {
+		ui->GetStackTop()->RemoveState(UIState::ACTIVE, true);
+		hoverElement->AddState(UIState::ACTIVE);
+	}
 }

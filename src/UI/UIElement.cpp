@@ -245,6 +245,8 @@ void UIElement::Proceed()
 {
 }
 
+void UIElement::StopInput() {}
+
 // Used for handling things like drag-n-drop and copy-paste operations, etc. as willed.
 void UIElement::ProcessMessage(Message * message)
 {
@@ -968,6 +970,16 @@ UIElement * UIElement::GetLeftNeighbour(UIElement * referenceElement, bool & sea
 		element = GetElementClosestTo(referenceElement->position, true);
 	}
 	return element;
+}
+
+// Is it navigatable?
+bool UIElement::IsNavigatable() {
+	if (!this->IsVisible())
+		return false;
+	if (!this->activateable)
+		return false;
+	return true;
+
 }
 
 /// Works recursively.
@@ -2278,6 +2290,18 @@ bool UIElement::HasState(int queryState) {
 	return state & queryState;
 }
 
+bool UIElement::HasStateRecursive(int queryState) {
+	if (state & queryState)
+		return true;
+	for (int i = 0; i < children.Size(); ++i) {
+		UIElement * child = children[i];
+		if (child->HasStateRecursive(queryState))
+			return true;
+	}
+	return false;
+}
+
+
 
 /// For example UIState::HOVER, if recursive will apply to all children.
 void UIElement::RemoveState(int statesToRemove, bool recursive /* = false*/){
@@ -2287,6 +2311,11 @@ void UIElement::RemoveState(int statesToRemove, bool recursive /* = false*/){
 			children[i]->RemoveState(statesToRemove, recursive);
 		}
 	}
+}
+
+
+// When navigating, either via control, or arrow keys or whatever.
+void UIElement::Navigate(NavigateDirection direction) {
 }
 
 

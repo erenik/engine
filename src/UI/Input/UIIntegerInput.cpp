@@ -111,8 +111,26 @@ void UIIntegerInput::OnStateAdded(int state) {
 		input->AddState(state);
 	else if (state == UIState::ACTIVE) {
 		input->BeginInput();
-		RemoveState(state, false);
 	}
+}
+
+void UIIntegerInput::SetRange(int newMin, int newMax) {
+	min = newMin;
+	max = newMax;
+	input->SetRange(min, max);
+}
+
+
+// When navigating, either via control, or arrow keys or whatever.
+void UIIntegerInput::Navigate(NavigateDirection direction) {
+	if (HasStateRecursive(UIState::ACTIVE)) {
+		input->Navigate(direction);
+	}
+}
+
+/// Halts input and removes Active state.
+void UIIntegerInput::StopInput() {
+	input->StopInput();
 }
 
 

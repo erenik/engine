@@ -6,6 +6,7 @@
 #define UI_INPUT_H
 
 #include "UI/UIElement.h"
+#include "NavigateDirection.h"
 
 /// Base class for input. Will yield control and process its onTrigger message once ENTER is pressed. Will only yield control if ESC is pressed.
 class UIInput : public UIElement 
@@ -25,6 +26,9 @@ public:
 	virtual UIElement * Click(int mouseX, int mouseY) override;
 	// When button is released.
 	virtual UIElement* Activate(GraphicsState* graphicsState) override;
+
+	// When navigating, either via control, or arrow keys or whatever.
+	virtual void Navigate(NavigateDirection direction) override;
 
 	/// Default calls parent class RemoveState. If the Active flag is removed, input is also halted/cancelled.
 	virtual void RemoveState(int state, bool recursive = false) override;
@@ -51,12 +55,20 @@ public:
 	virtual int OnChar(int asciiCode) override;
 	/// Begins input, returns false if not possible (e.g. non-activatable StringLabel input)
 	bool BeginInput();
+	/// Halts input and removes Active state.
+	virtual void StopInput() override;
 
 	// Creates default elements for a label and input one-liner input element. Used by Integer, String, Float inputs.
 	UIColumnList * CreateDefaultColumnList();
 	UILabel * CreateDefaultLabel(UIColumnList * box, float sizeX);
 	UIInput * CreateDefaultInput(UIColumnList * box, float sizeX);
 	float DefaultSpacePerElement();
+
+	// Used for numbersOnly input fields.
+	void IncrementValue();
+	void DecrementValue();
+
+	virtual void SetRange(int min, int max);
 
 	/// For making it a float/integer-only thingy.
 	bool numbersOnly;
@@ -73,8 +85,6 @@ public:
 protected:
 	/// For handling text-input
 	void OnBackspace();
-	/// Halts input and removes Active state.
-	void StopInput();
 	// sends message to update the ui with new caret and stuff.
 	void OnTextUpdated();
 
@@ -84,6 +94,9 @@ protected:
 	Text previousText;
 	/// Text used during editing, used to update the rendered and used text-string, but not one and the same!
 	Text editText;
+
+	// For range
+	int min, max;
 
 private:
 	// Add variables that limit what can be entered into this input?

@@ -244,9 +244,9 @@ int InputManager::GetNextAvailableInputDevice()
 }
 
 /// Fetches and updates the device states for all external controllers (if any)
-void InputManager::UpdateDeviceStates(){
+void InputManager::UpdateDeviceStates(float timeInSeconds){
 	// See Input/Gamepad/Gamepad.h
-	gamepadManager->Update();
+	gamepadManager->Update(timeInSeconds);
 }
 
 /// Clears mainly the keyPressedThisFrame array, used for checking newly pressed keys without specific bindings.
@@ -855,14 +855,7 @@ List<UIElement*> InputManager::UIGetRelevantElements()
 	UserInterface * ui = RelevantUI();
 	if (!ui)
 		return elements;
-//	UIElement * element;
-	List<UIElement*> uiList;
-	assert(ui);
-	ui->GetElementsByFlags(UIFlag::ACTIVATABLE | UIFlag::VISIBLE, uiList);
-	/// Perform filtering by some other kind too. Like a priority variable?
-	elements = uiList;
-//	std::cout<<"\nUIGetRelevantElements: "<<elements.Size();
-	return elements;
+	return ui->GetRelevantElements();
 }
 
 bool IsNavigatable(UIElement * element)
@@ -1130,8 +1123,12 @@ UIElement * InputManager::HoverElement()
 	return element;
 }
 
+bool InputManager::NavigateUI() {
+	return navigateUI || forceNavigateUI;
+}
+
 /// When set, will make certain keys only navigate the UI, by default arrow-keys, ENTER and Escape for PC.
-void InputManager::NavigateUI(bool mode)
+void InputManager::SetNavigateUI(bool mode)
 {
 	if (forceNavigateUI)
 		return;
@@ -1139,7 +1136,7 @@ void InputManager::NavigateUI(bool mode)
 }
 
 /// When set, nothing will disable the Navigate UI mode until this function is called again, at which point it is cancelled.
-void InputManager::ForceNavigateUI(bool mode)
+void InputManager::SetForceNavigateUI(bool mode)
 {
 	navigateUI = forceNavigateUI = mode;
 }
@@ -1158,9 +1155,9 @@ int InputManager::NavigateUIState()
 void InputManager::LoadNavigateUIState(int state)
 {
 	switch(state){
-		case 2: ForceNavigateUI(true); break;
-		case 1: NavigateUI(true); break;
-		default: NavigateUI(false);
+		case 2: SetForceNavigateUI(true); break;
+		case 1: SetNavigateUI(true); break;
+		default: SetNavigateUI(false);
 	}
 }
 
@@ -1201,7 +1198,7 @@ UIElement * InputManager::PopFromStack(GraphicsState* graphicsState, UIElement *
 	}
 	// If trying to pop root, assume user is trying to cancel the UI-navigation mode?
 	if (element->name == "root"){
-		NavigateUI(false);
+		SetNavigateUI(false);
 	}
 	/// Pop it.
 	bool success = ui->PopFromStack(element, force);
@@ -1225,6 +1222,6 @@ UIElement * InputManager::PopFromStack(GraphicsState* graphicsState, UIElement *
 
 	/// If no activatable menu item is out, set navigate UI to false?
 	/// No. Better embed this into the appropriate UI's onExit message!
-	// InputMan.NavigateUI(true);
+	// InputMan.SetNavigateUI(true);
 	return element;
 }
