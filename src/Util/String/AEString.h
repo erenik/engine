@@ -126,6 +126,8 @@ public:
 	/// Char-wise replacement
 	void Replace(const char a, const char withB);
 	void Replace(String part, String withNewString);
+	// Returns a copy, where part is replaced withNewString
+	String Replaced(String part, String withNewString) const;
 
 	// Extract data o-o
 	bool ParseBool();
@@ -183,6 +185,7 @@ public:
     void RemoveTrailingWhitespaces();
 	/// Returns characters removed.
 	int RemoveSurroundingWhitespaces();
+	String WithSurroundingWhitespacesRemoved() const;
 
     /// Prints the contents of the string both in integer and character form
     void PrintData() const;

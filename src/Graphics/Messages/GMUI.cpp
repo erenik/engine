@@ -9,6 +9,7 @@
 #include "Graphics/GraphicsManager.h"
 #include "Viewport.h"
 #include "OS/Sleep.h"
+#include "Message/Message.h"
 
 #include "Window/AppWindow.h"
 #include "UI/UITypes.h"
@@ -575,14 +576,17 @@ void GMSetUIb::Process(GraphicsState * graphicsState)
 		return;
 	}
 	switch(target){
-	    case GMUI::TOGGLED:
-            e->toggled = value;
-            break;
+		case GMUI::TOGGLED: {
+				UIToggleButton * toggleButton = (UIToggleButton*) e;
+				toggleButton->SetToggled(value);
+				break;
+		}
 		case GMUI::CHILD_TOGGLED:
 		{
 			List<UIElement*> children = e->GetChildren();
 			for (int i = 0; i < children.Size(); ++i){
-				children[i]->toggled = value;
+				UIToggleButton * toggleButton = (UIToggleButton*)children[i];
+				toggleButton->SetToggled(value);
 			}
 			break;
 		}
@@ -1006,6 +1010,8 @@ void GMPushUI::Process(GraphicsState * graphicsState)
 		else
 			InputMan.SetNavigateUI(true);
 	}
+
+	MesMan.QueueMessage(new OnUIPushed(e->name));
 }
 
 
@@ -1114,8 +1120,8 @@ GMSetUIContents::GMSetUIContents(String uiName, List<String> contents)
 GMSetUIContents::GMSetUIContents(UserInterface * ui, String uiName, List<String> contents)
 : GMUI(GM_SET_UI_CONTENTS, ui), contents(contents), uiName(uiName)
 {}
-GMSetUIContents::GMSetUIContents(List<UIElement*> elements, String uiName)
-: GMUI(GM_SET_UI_CONTENTS), elements(elements), uiName(uiName)
+GMSetUIContents::GMSetUIContents(List<UIToggleButton*> elements, String uiName)
+: GMUI(GM_SET_UI_CONTENTS), toggleButtons(elements), uiName(uiName)
 {
 }
 void GMSetUIContents::Process(GraphicsState * graphicsState)
@@ -1139,7 +1145,7 @@ void GMSetUIContents::Process(GraphicsState * graphicsState)
 	switch(e->type)
 	{
 		case UIType::MATRIX:
-			((UIMatrix*)e)->SetContents(graphicsState, elements);
+			((UIMatrix*)e)->SetContents(graphicsState, toggleButtons);
 			break;
 		case UIType::DROP_DOWN_LIST:
 			((UIDropDownList*)e)->SetContents(graphicsState, contents);

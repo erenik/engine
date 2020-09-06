@@ -8,6 +8,8 @@
 
 #include "File.h"
 
+class GameVariable;
+
 struct SaveFileHeader {
 	bool WriteTo(std::fstream & stream);
 	bool ReadFrom(std::fstream & stream);
@@ -28,8 +30,6 @@ public:
 	/// Default constructor, doesn't open any streams.
 	SaveFile(String gameName, String saveName);
 	// File destructor closest the file-stream automatically?
-	/// Default save folder, usually "$Documents$/MyGames/$AppName$/saves/"
-	static String saveFolder;
 	/** Opens a file stream to the targeted location, writing the a SaveFileHeader at the start, including the custom header data, then returns the stream so that all
 		game-related data may be written as wanted. 
 		NOTE: The custom header-data is only used for when browsing the saves and should not be used for actual data.
@@ -40,10 +40,24 @@ public:
 		Header-data is set in headerData member variable upon loading.
 	*/
 	bool OpenLoadFileStream();
+
+	bool SaveVars(List<GameVariable*> gameVars);
+	bool LoadVars();
+
 	/// Gets the stream. Should be called after having called OpenSaveFileStream or OpenLoadFileStream sucessfully.
 	std::fstream & GetStream();
 	/// Returns the header as it was saved or loaded.
 	const SaveFileHeader & GetHeader();
+
+
+	/// By default saves all GameVars.
+	static bool AutoSave(String gameName, String autoSavePostfix);
+	static bool LoadAutoSave(String gameName, String autoSavePostfix);
+
+	bool Load();
+
+	/// Default save folder, usually "$Documents$/MyGames/$AppName$/saves/"
+	static String FolderPath(String gameName);
 
 	/// Returns list of all saves, in the form of their SaveFileHeader objects, which should include all info necessary to judge which save to load!
 	static List<SaveFileHeader> GetSaves(String gameName);

@@ -12,7 +12,7 @@
 
 #define SET_DEFAULTS SetDefaults(element);
 
-#define ADD_PREVIOUS_TO_UI_IF_NEEDED {\
+#define ADD_PREVIOUS_TO_UI_IF_NEEDED AddPreviousToUIIfNeeded(); {\
 	if (element && element != root){\
 		bool addedOK = root->AddToParent(nullptr, defaultParent, element);\
 		if (!addedOK)\
@@ -28,7 +28,7 @@ class UIParser
 {
 public:
 
-	UIParser();
+	UIParser(UIElement * root);
 
 	/// Default values that can be set when parsing
 	int defaultAlignment = UIElement::NULL_ALIGNMENT;
@@ -65,6 +65,12 @@ public:
 	String NextToken(const List<String> fromTokens);
 
 	void SetDefaults(UIElement * forElement);
+
+	void AddPreviousToUIIfNeeded();
+
+private:
+	UIElement * root;
+	UIElement * element;
 
 };
 

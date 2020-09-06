@@ -3,6 +3,7 @@
 /// Aggregate input class which handles a number of buttons
 
 #include "UIRadioButtons.h"
+#include "UI/Buttons/UIToggleButton.h"
 #include "UI/UITypes.h"
 #include "Message/MessageManager.h"
 #include "Message/MathMessage.h"
@@ -14,6 +15,7 @@ UIRadioButtons::UIRadioButtons(int numberOfButtons, String name, String action)
 {
 	this->name = name;
 	this->type = UIType::RADIO_BUTTONS;
+	activateable = false;
 }
 
 UIRadioButtons::~UIRadioButtons()
@@ -49,7 +51,7 @@ void UIRadioButtons::CreateChildren(GraphicsState* graphicsState)
 	for (int i = 0; i < numButtons; ++i)
 	{
 		/// Create 3 children
-		UICheckBox * button = new UICheckBox();
+		UIToggleButton * button = new UIToggleButton();
 		/// Set them to only accept floats?
 		button->name = name + "Input";
 		button->text = buttonTexts.Size() > i ? buttonTexts[i] : "";
@@ -63,7 +65,7 @@ void UIRadioButtons::CreateChildren(GraphicsState* graphicsState)
 			button->textureSource = this->textureSource;
 		/// Pre-select first one always.
 		if (i == 0)
-			button->toggled = true;
+			button->SetToggled(true);
 	//	input->onTrigger = "UIFloatInput("+name+")";
 		AddChild(nullptr, button);
 		buttons.Add(button);
@@ -79,7 +81,7 @@ void UIRadioButtons::SetTexts(List<String> texts)
 
 	for (int i = 0; i < buttons.Size() && i < texts.Size(); ++i)
 	{
-		UICheckBox * button = buttons[i];
+		UIToggleButton * button = buttons[i];
 		String text = texts[i];
 		button->SetText(text);
 	}
@@ -90,7 +92,7 @@ void UIRadioButtons::SetTextureSource(String source)
 {
 	for (int i = 0; i < buttons.Size(); ++i)
 	{
-		UICheckBox * button = buttons[i];
+		UIToggleButton * button = buttons[i];
 		button->textureSource = source;
 	}
 }
@@ -102,27 +104,28 @@ void UIRadioButtons::SetTextures(List<String> newTextureSourcesOrNames) {
 
 
 /// Sent when a child checkbox is toggled. 
-void UIRadioButtons::OnToggled(UICheckBox * box)
+void UIRadioButtons::OnToggled(UIToggleButton * toggleButton)
 {
-	assert(buttons.Exists(box));
+	assert(buttons.Exists(toggleButton));
 	/// Send a message based on which button it was.
-	int index = buttons.GetIndexOf(box);
+	int index = buttons.GetIndexOf(toggleButton);
 	/// Set a message!
 	IntegerMessage * im = new IntegerMessage(action, index);
 	MesMan.QueueMessage(im);
 	bool somethingToggled = false;
 	/// De-toggle the other elements.
-	for (int i = 0; i < buttons.Size(); ++i)
-	{
-		UICheckBox * button = buttons[i];
-		somethingToggled |= button->toggled;
-		if (button == box)
-			continue;
-		button->toggled = false;
+	if (toggleButton->IsToggled()) {
+		for (int i = 0; i < buttons.Size(); ++i)
+		{
+			UIToggleButton * button = buttons[i];
+			if (button == toggleButton)
+				continue;
+			button->SetToggledSilently(false);
+		}
 	}
 	/// Ensure always one radio button is toggled.
-	if (!somethingToggled)
-		box->toggled = true;
+	else 
+		toggleButton->SetToggledSilently(true);
 }
 
 /// Toggles appropriately.
@@ -138,9 +141,9 @@ void UIRadioButtons::SetValue(GraphicsState* graphicsState, int v)
 	}
 	for (int i = 0; i < buttons.Size(); ++i)
 	{
-		buttons[i]->toggled = false;
+		buttons[i]->SetToggledSilently(false);
 	}
-	buttons[v]->toggled = true;
+	buttons[v]->SetToggledSilently(true);
 }
 
 

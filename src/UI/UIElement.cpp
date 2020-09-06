@@ -128,7 +128,6 @@ void UIElement::Nullify()
 
 	state = UIState::IDLE;
 	selected = false;
-	toggled = false;
 	visible = true;
 
 	inStack = false;
@@ -180,6 +179,8 @@ void UIElement::Nullify()
 
 	isBuffered = isGeometryCreated = false;
 	color = Vector4f(1,1,1,1);
+
+	textPadding = 0.1f;
 }
 
 UIElement::UIElement(){
@@ -336,10 +337,6 @@ void UIElement::UpdateHighlightColor()
 		highlightColor *= 0.f;
 		// Default color
 	}
-	if (this->toggled){
-		float toggledFloat = onToggledHighlightFactor;
-		highlightColor += Vector3f(toggledFloat, toggledFloat, toggledFloat);
-	}
 	// Duller colors for temporarily disabled buttons.
 	if (this->IsDisabled())
 	{
@@ -468,7 +465,7 @@ UIElement* UIElement::Hover(int mouseX, int mouseY)
 		if (!child->visible)
             continue;
 		if (result != nullptr)
-			continue;
+			break;
 		result = child->Hover(mouseX, mouseY);
 	}
 
@@ -743,7 +740,7 @@ void UIElement::OnInputUpdated(GraphicsState* graphicsState, UIInput * inputElem
 }
 
 /// Callback sent to parents once an element is toggled, in order to act upon it. Used by UIMatrix.
-void UIElement::OnToggled(UICheckBox * box)
+void UIElement::OnToggled(UIToggleButton * box)
 {
 	if (parent)
 		parent->OnToggled(box);
@@ -810,6 +807,10 @@ UIElement * UIElement::GetUpNeighbour(GraphicsState* graphicsState, UIElement * 
 	{
 		element = GetElementClosestTo(referenceElement->position, true);
 	}
+	// Query parent for help
+	//if (!element) {
+	//	element = parent->GetUpNeighbour(graphicsState, referenceElement, searchChildrenOnly);
+	//}
 	return element;
 }
 
@@ -1768,17 +1769,17 @@ void UIElement::RenderText(GraphicsState & graphicsState)
 	else
 		return;
 
+	if (currentTextSizeRatio <= 0) {
+		FormatText(&graphicsState);
+	}
+	float pixels = textSizeY * currentTextSizeRatio; // Graphics.Height();
+
+
 	TextFont * currentFont = graphicsState.currentFont;
 	Matrix4d tmp = graphicsState.modelMatrixD;
-	graphicsState.modelMatrixD.Translate(this->left + textToRender.offsetX, this->top,(this->zDepth+0.05));
-	float pixels = sizeY * textSizeRatio; // Graphics.Height();
+	graphicsState.modelMatrixD.Translate(this->left + textToRender.offsetX, this->top - textToRender.offsetY,(this->zDepth+0.05));
 
-    if (currentTextSizeRatio <= 0)
-	{
-		FormatText(&graphicsState);
-    }
-
-	pixels *= currentTextSizeRatio; //this->textSizeRatio;
+	//pixels *= currentTextSizeRatio; //this->textSizeRatio;
 //		std::cout<<"\nTextToRender size in pixels: "<<pixels;
 	graphicsState.modelMatrixD.Scale(pixels);	//Graphics.Height()
 	graphicsState.modelMatrixF = graphicsState.modelMatrixD;
@@ -1811,24 +1812,25 @@ void UIElement::FormatText(GraphicsState * graphicsState)
 	currentTextSizeRatio = 1.0f;
 	/// Returns the size required by a call to RenderText if it were to be done now. In... pixels? or units
 	Vector2f size = currentFont->CalculateRenderSizeUnits(text);
+
+	// SizeY but taking into consideration textPadding.
+	textSizeY = sizeY * (textSizeRatio - textPadding * 2);
+	textSizeX = sizeX * (textSizeRatio - textPadding * 2);
+
+	textToRender.offsetY = sizeY * textPadding;
+
 	/// Pixels per unit, defined by the relative Y size the text should have.
-	float pixels = sizeY * textSizeRatio; // Graphics.Height();
-	float pixelsPerUnit = sizeY * textSizeRatio;
+	float pixelsPerUnit = textSizeY;
 	/// Total pixels required if rendering right now.
 	Vector2f pixelsRequired = size * pixelsPerUnit;
 	/// Check how much X is available, if we need to center it, etc.
-	int xAvailable = sizeX - pixelsRequired.x;
+	int xAvailable = textSizeX - pixelsRequired.x;
 	float xRatio = 1.f, yRatio = 1.f;
-	if (pixelsRequired.x > rowsAvailable * sizeX){
-		// assert(false && "Too much text!");
-//				std::cout<<"\nNOTE: Too much text for given space and size, scaling down text to fit!";
-		xRatio = sizeX / pixelsRequired.x;
-		// Scale it down, yes.
+	if (pixelsRequired.x > rowsAvailable * textSizeX){
+		xRatio = textSizeX / pixelsRequired.x;
 	}
-	if (pixelsRequired.y > sizeY)
-	{
-		// D: Divide moar?
-		yRatio = sizeY / pixelsRequired.y;
+	if (pixelsRequired.y > textSizeY){
+		yRatio = textSizeY / pixelsRequired.y;
 	}
 	if (xRatio < yRatio)
 		currentTextSizeRatio = xRatio;
@@ -1842,22 +1844,29 @@ void UIElement::FormatText(GraphicsState * graphicsState)
 	previousTextSizeRatio = currentTextSizeRatio;
 	
 	/// Re-align.
-	if (textAlignment == UIElement::CENTER)
-	{
-		pixelsPerUnit = currentTextSizeRatio * sizeY;
-		pixelsRequired = size * pixelsPerUnit;
-		int offsetX = sizeX * 0.5f - pixelsRequired.x * 0.5f;
-		if (offsetX < 0)
-			offsetX = 0;
-		textToRender.offsetX = offsetX;
-	}
-	else if (textAlignment == UIElement::RIGHT) {
-		pixelsPerUnit = currentTextSizeRatio * sizeY;
-		pixelsRequired = size * pixelsPerUnit;
-		int offsetX = sizeX - pixelsRequired.x;
-		if (offsetX < 0)
-			offsetX = 0;
-		textToRender.offsetX = offsetX;
+	switch (textAlignment) {
+		case UIElement::CENTER: {
+			pixelsPerUnit = currentTextSizeRatio * textSizeY;
+			pixelsRequired = size * pixelsPerUnit;
+			int offsetX = textSizeX * 0.5f - pixelsRequired.x * 0.5f + sizeX * textPadding;
+			if (offsetX < 0)
+				offsetX = 0;
+			textToRender.offsetX = offsetX;
+			break;
+		}
+		case UIElement::RIGHT: {
+			pixelsPerUnit = currentTextSizeRatio * textSizeY;
+			pixelsRequired = size * pixelsPerUnit;
+			int offsetX = textSizeX - pixelsRequired.x + sizeX * textPadding;
+			if (offsetX < 0)
+				offsetX = 0;
+			textToRender.offsetX = offsetX;
+			break;
+		}
+		default:
+		case UIElement::LEFT:
+			textToRender.offsetX = sizeX * textPadding;
+			break;
 	}
 
 }
@@ -2386,16 +2395,16 @@ UISlider::~UISlider()
 /** Used by input-captuing elements. Calls recursively upward until an element wants to respond to the input.
 	Returns 1 if it processed anything, 0 if not.
 */
-int UIElement::OnKeyDown(GraphicsState* graphicsState, int keyCode, bool downBefore)
+UIInputResult UIElement::OnKeyDown(GraphicsState* graphicsState, int keyCode, bool downBefore)
 {
 	if (parent)
 		parent->OnKeyDown(graphicsState, keyCode, downBefore);
-	return 0;
+	return UIInputResult::NoUpdate;
 }
 /// Used for getting text. This will be local translated language key codes?
-int UIElement::OnChar(int asciiCode){
+UIInputResult UIElement::OnChar(int asciiCode){
 	assert(false);
-	return 0;
+	return UIInputResult::NoUpdate;
 }
 
 

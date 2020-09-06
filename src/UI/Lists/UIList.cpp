@@ -196,6 +196,11 @@ UIElement * UIList::Hover(int mouseX, int mouseY)
 		if (!AddState(UIState::HOVER))
 			return NULL;
 	}
+	// Odd-case, with lists acting as buttons, if it can be highlit and sub elements are not highlightable.
+	else if (highlightOnHover && !e->highlightOnHover) {
+		e = this;
+		AddState(UIState::HOVER);
+	}
 	else 
 	{
 		this->RemoveState(UIState::HOVER);
@@ -209,7 +214,13 @@ UIElement * UIList::Click(int mouseX, int mouseY)
 {
 	state &= ~UIState::ACTIVE;
     RETURN_IF_OUTSIDE
-    float listX = (float)mouseX;
+
+	if (activationMessage) {
+		MesMan.QueueMessages(activationMessage);
+		return this;
+	}
+
+	float listX = (float)mouseX;
     float listY = (float)mouseY;
     if (scrollBarY)
         listY -= scrollBarY->GetStart() * sizeY;
@@ -233,6 +244,8 @@ UIElement * UIList::Click(int mouseX, int mouseY)
 			AddState(UIState::ACTIVE);
 			return this;
 		}
+		// If not, skip it if it didn't activate.
+		return nullptr;
 	}
     if (scrollBarY){
         std::cout<<"\nUIList::Click "<< (e ? e->name : "NULL") <<" listY: "<<listY<<" mouseY: "<<mouseY;
@@ -515,10 +528,11 @@ void UIList::FormatElements(){
 /// Rendering
 void UIList::Render(GraphicsState & graphicsState)
 {
+	UIElement::Render(graphicsState);
     // Render ourself and maybe children.
-    RenderSelf(graphicsState);
-    if (children.Size())
-        RenderChildren(graphicsState);
+//    RenderSelf(graphicsState);
+  //  if (children.Size())
+    //    RenderChildren(graphicsState);
 }
 
 void UIList::RenderChildren(GraphicsState & graphicsState)

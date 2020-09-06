@@ -5,6 +5,7 @@
 #include "UIMatrix.h"
 #include "UI/UITypes.h"
 #include "UI/UIButtons.h"
+#include "UI/Buttons/UIToggleButton.h"
 #include "Graphics/GraphicsManager.h"
 #include "Graphics/Messages/GMUI.h"
 #include "Message/MessageManager.h"
@@ -64,7 +65,7 @@ void UIMatrix::CreateMatrix()
 {
 	/// If existing, delete matrix.
 	while(matrixElements.Size()){
-		UIElement * element = matrixElements[0];
+		UIToggleButton * element = matrixElements[0];
 		matrixElements.Remove(element);
 		bool success = this->Delete(element);
 		assert(success);
@@ -81,11 +82,11 @@ void UIMatrix::CreateMatrix()
 	{
 		for (int x = 0; x < columns; ++x)
 		{
-			UIElement * element = NULL;
+			UIToggleButton * element = NULL;
 			switch(matrixType){
 				case BINARY:
 				{
-					element = new UICheckBox();
+					element = new UIToggleButton();
 					break;
 				}
 				default:
@@ -113,7 +114,7 @@ void UIMatrix::SetText(CTextr newText, bool force)
 }
 
 /// Adds x children. Subclassed in e.g. Matrix-class in order to setup contents properly.
-bool UIMatrix::SetContents(GraphicsState * graphicsState, List<UIElement*> children)
+bool UIMatrix::SetContents(GraphicsState * graphicsState, List<UIToggleButton*> children)
 {
 	DeleteContents();	
 	matrixElements = children;	
@@ -199,7 +200,7 @@ void UIMatrix::DeleteContents()
 	/// If existing, delete matrix.
 	while(matrixElements.Size())
 	{
-		UIElement * element = matrixElements[0];
+		UIToggleButton * element = matrixElements[0];
 		matrixElements.Remove(element);
 		bool success = this->Delete(element);
 		assert(success);
@@ -228,21 +229,21 @@ void UIMatrix::SetData(List<bool*> boolData)
 		bool bData = *data;
 		if (dataInverted)
 			bData = !bData;
-		UIElement * element = matrixElements[i];
-		element->toggled = bData;
+		UIToggleButton * element = matrixElements[i];
+		element->SetToggled(bData);
 	}
 }
 
 	/// Callback sent to parents once an element is toggled, in order to act upon it. Used by UIMatrix.
-void UIMatrix::OnToggled(UICheckBox * box)
+void UIMatrix::OnToggled(UIToggleButton * toggleButton)
 {
 	/// Check which element it is, or nvm, just post shit anyway.
 	DataMessage * dm = new DataMessage();
 	dm->msg = "Set"+name;
 	List<bool> data;
 	for (int i = 0; i < matrixElements.Size(); ++i){
-		UIElement * element = matrixElements[i];
-		bool bValue = element->toggled;
+		UIToggleButton * element = matrixElements[i];
+		bool bValue = element->IsToggled();
 		if (dataInverted)
 			bValue = !bValue;
 		data.Add(bValue);

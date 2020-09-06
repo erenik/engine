@@ -8,6 +8,7 @@
 #include "Message/Message.h"
 #include "Graphics/GraphicsManager.h"
 #include "Graphics/Messages/UIMessages.h"
+#include "Graphics/Messages/UI/GMNavigateUI.h"
 #include "../UI/UserInterface.h"
 #include "DefaultBindings.h"
 #include <cstring>
@@ -603,10 +604,22 @@ void InputManager::EvaluateKeyPressed(int activeKeyCode, bool downBefore, UIElem
 						navigateUI = false;
 					break;
 				}
-				case KEY::UP:		UIUp();		break;
-				case KEY::DOWN:		UIDown();	break;
-				case KEY::LEFT:		UILeft();	break;
-				case KEY::RIGHT:	UIRight();	break;
+				case KEY::UP:		
+					QueueGraphics(new GMNavigateUI(NavigateDirection::Up));
+					// UIUp();		
+					break;
+				case KEY::DOWN:
+					QueueGraphics(new GMNavigateUI(NavigateDirection::Down));
+					//UIDown();	
+					break;
+				case KEY::LEFT:
+					QueueGraphics(new GMNavigateUI(NavigateDirection::Left));
+					//UILeft();
+					break;
+				case KEY::RIGHT:
+					QueueGraphics(new GMNavigateUI(NavigateDirection::Right));
+					//UIRight();	
+					break;
 				case KEY::PG_UP:	UIPage(1.f); break;
 				case KEY::PG_DOWN:	UIPage(-1.f); break;
 				case KEY::TAB:
@@ -617,7 +630,8 @@ void InputManager::EvaluateKeyPressed(int activeKeyCode, bool downBefore, UIElem
 					break;
 				case KEY::ENTER:
 				{
-					uiCommand = UIProceed();
+					QueueGraphics(new GMProceedUI());
+					// uiCommand = UIProceed();
 					break;
 				}
 				default:
@@ -1210,6 +1224,9 @@ UIElement * InputManager::PopFromStack(GraphicsState* graphicsState, UIElement *
 	// Set new navigation cyclicity.
 	UIElement * stackTop = ui->GetStackTop();
 	cyclicY = stackTop->cyclicY;
+
+	// If element was previously active, remove it, keep only hover.
+	stackTop->RemoveState(UIState::ACTIVE, true);
 
 	UIElement * currentHover = stackTop->GetElementByState(UIState::HOVER);
 	if (currentHover){

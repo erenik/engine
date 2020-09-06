@@ -15,7 +15,9 @@ public:
 
 	/// Sent by UIInput elements upon pressing Enter and thus confirmign the new input, in case extra actions are warranted. (e.g. UITextureInput to update the texture provided as reference).
 	virtual void OnInputUpdated(GraphicsState* graphicsState, UIInput * inputElement) override;
-	virtual int OnKeyDown(GraphicsState* graphicsState, int keyCode, bool downBefore) override; // For managing old texts.
+	virtual UIInputResult OnKeyDown(GraphicsState* graphicsState, int keyCode, bool downBefore) override; // For managing old texts.
+	/// Used for getting text. This will be local translated language key codes?
+	virtual UIInputResult OnChar(int asciiCode) override;
 
 	// For sub-classes to adjust children as needed (mainly for input elements).
 	virtual void OnStateAdded(int state) override;

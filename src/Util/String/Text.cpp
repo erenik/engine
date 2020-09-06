@@ -20,6 +20,7 @@ void Text::Nullify()
 	caretPosition = -1;
 	previousCaretPosition = -1;
 	offsetX = 0;
+	offsetY = 0;
 	color = Vector4f(1,1,1,1.0f);
 }
 /// Copy constructor and..
@@ -46,6 +47,14 @@ Text::Text(String str, int colorHex)
 	Nullify();
 	color = Color::ColorByHex32(colorHex);
 }
+
+// Returns a copy with given color
+Text Text::WithColor(Color color) const {
+	Text text = *this;
+	text.color = color;
+	return text;
+}
+
 
 /// Pastes text into this text. How it will behave depends on the caret positions.
 void Text::Paste(String text)

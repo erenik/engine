@@ -166,7 +166,7 @@ UIElement * UserInterface::Hover(int x, int y, bool allUi)
 		{
 			UIElement * stackElement = stack[i];
 			/// Remove the hover state before re-hovering.
-			stackElement->RemoveState(UIState::HOVER);
+			stackElement->RemoveState(UIState::HOVER, true);
 			result = stackElement->Hover(x,y);
 			if (result) {
 				break;
@@ -175,7 +175,7 @@ UIElement * UserInterface::Hover(int x, int y, bool allUi)
 		/// If still no result, try the root.
 		if (!result)
 		{
-			root->RemoveState(UIState::HOVER);
+			root->RemoveState(UIState::HOVER, true);
 			result = root->Hover(x,y);
 		}
 		/// Demand hover will have to be investigated how it could work in this mode, if at all.
@@ -185,7 +185,7 @@ UIElement * UserInterface::Hover(int x, int y, bool allUi)
 	else {
 		UIElement * previous = stackTop->GetElementByState(UIState::HOVER);
 		/// Remove the hover flag before re-hovering.
-		stackTop->RemoveState(UIState::HOVER);
+		stackTop->RemoveState(UIState::HOVER, true);
 		result = stackTop->Hover(x,y);
 		hoverElement = result;
 		/// If we always want a hovered element (for whatever reason).
@@ -448,7 +448,7 @@ UIElement * UserInterface::GetActiveElement()
 /// Returns active input focus element, if any. Based on the GetActiveElement but performs additional checks.
 UIElement * UserInterface::ActiveInputFocusElement()
 {
-	UIElement * e = GetActiveElement();
+	UIElement * e = GetStackTop()->GetActiveElement();
 	if (!e)
 		return NULL;
 	if (e->demandInputFocus)
@@ -759,7 +759,7 @@ bool UserInterface::LoadFromFile(String filePath, UIElement * root)
 	if (!fromFile.Contains(rootUIDir)) {
 		fromFile = rootUIDir + fromFile;
 	}
-	UIParser parser;
+	UIParser parser(root);
 	return parser.LoadFromFile(fromFile, root);
 }
 

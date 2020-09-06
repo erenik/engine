@@ -120,6 +120,9 @@ void UIInput::RemoveState(int state, bool recursive /*= false*/)
 
 // For sub-classes to adjust children as needed (mainly for input elements).
 void UIInput::OnStateAdded(int state) {
+	if (state == UIState::ACTIVE) {
+		BeginInput();
+	}
 }
 
 // Used for handling things like drag-n-drop and copy-paste operations, etc. as willed.
@@ -180,12 +183,12 @@ void UIInput::OnExitScope(bool forced)
 }
 
 /// Used by input-captuing elements. Should not be called for any base UI elements(?)
-int UIInput::OnKeyDown(GraphicsState* graphicsState, int keyCode, bool downBefore)
+UIInputResult UIInput::OnKeyDown(GraphicsState* graphicsState, int keyCode, bool downBefore)
 {
 	bool isActive = HasState(UIState::ACTIVE);
 	assert(inputActive == isActive);
 	if (!inputActive)
-		return 0;
+		return UIInputResult::NoUpdate;
 
 	int oldCaretPosition = editText.caretPosition;
 
@@ -210,7 +213,7 @@ int UIInput::OnKeyDown(GraphicsState* graphicsState, int keyCode, bool downBefor
 		case KEY::ENTER: {
 			// Don't evaluate Enter and certain other keys if they were down before
 			if (downBefore)
-				return 0;
+				return UIInputResult::NoUpdate;
 			StopInput();
 			// Activate the messages this element had, if any. If using as a compound e.g. inside a StringInput, then this onTrigger may be omitted.
 			if (onTrigger.Length())
@@ -221,7 +224,7 @@ int UIInput::OnKeyDown(GraphicsState* graphicsState, int keyCode, bool downBefor
 			}
 			/// Notify of the update to self and then parents, so that extra actions may be taken.
 			this->OnInputUpdated(graphicsState, this);
-			break;
+			return UIInputResult::InputStopped;
 		}
 		// Delete
 		case KEY::DELETE_KEY:
@@ -318,22 +321,22 @@ int UIInput::OnKeyDown(GraphicsState* graphicsState, int keyCode, bool downBefor
 
 	// Return from here no matter what now, since we don't want any hot-key
 	// whatsoever to be triggered while entering any input!
-	return 0;
+	return UIInputResult::TextUpdated;
 }
 
 /// Used for getting text. This will be local translated language key codes?
-int UIInput::OnChar(int asciiCode)
+UIInputResult UIInput::OnChar(int asciiCode)
 {
 	LogGraphics("OnChar for element " + name + " activatable: " + activateable + " inputActive: " + HasState(UIState::ACTIVE) + " asciiCode: "+ asciiCode + " as Char: "+ (char) asciiCode + " CtrlPressed: "+ InputMan.KeyPressed(KEY::CTRL), INFO);
 	assert(activateable);
 	if (!activateable) {
-		return 0;
+		return UIInputResult::NoUpdate;
 	}
 
 	bool isActive = HasState(UIState::ACTIVE);
-	assert(inputActive == isActive);
-	if (!this->inputActive)
-		return 0;
+//	assert(inputActive == isActive);
+	if (!isActive)
+		return UIInputResult::NoUpdate;
 	/// Make sure the buffer period has passed ^^
 /*	clock_t currentTime = clock();
 	if (currentTime < textInputStartTime + 10)	/// 100 ms delay before input can be done o-o
@@ -345,7 +348,7 @@ int UIInput::OnChar(int asciiCode)
 	// Backspace
 	if (asciiCode == 0x08){
 	    OnBackspace();
-		return 0;
+		return UIInputResult::NoUpdate;
 	}
 	/// If control is held, only evaluate it as a special command.
 	if (InputMan.KeyPressed(KEY::CTRL))
@@ -368,7 +371,7 @@ int UIInput::OnChar(int asciiCode)
 				break;
 			}
 		}
-		return 0;
+		return UIInputResult::TextUpdated;
 	}
 	// Escape, cancel input
 	else if (asciiCode == 0x1B)
@@ -376,7 +379,7 @@ int UIInput::OnChar(int asciiCode)
 		// And restore old string!
 		editText = previousText;
 		StopInput();
-		return 0;
+		return UIInputResult::InputStopped;
 	}
 	else {
 		#define _DEBUG_ASCII
@@ -390,7 +393,7 @@ int UIInput::OnChar(int asciiCode)
 				#ifdef _DEBUG_ASCII
 		//		std::cout<<"\nSkipping crap letters.. :3";
 				#endif
-				return 0;
+				return UIInputResult::NoUpdate;
 			default:
 				#ifdef _DEBUG_ASCII
 		//		std::cout<<"\nAsciiCode: "<<(int)asciiCode<<" "<<(unsigned char)asciiCode;
@@ -438,7 +441,7 @@ int UIInput::OnChar(int asciiCode)
 			ok = true;
 		}
 		if (!ok)
-			return 0;
+			return UIInputResult::NoUpdate;
 		/// If any text is selected, remove it and start inserting characters where it was.
 		if (editText.DeleteSelection())
 			caretPosition = editText.caretPosition;
@@ -454,7 +457,7 @@ int UIInput::OnChar(int asciiCode)
 
 		OnTextUpdated();
 	}
-	return 0;
+	return UIInputResult::TextUpdated;
 }
 
 
@@ -490,7 +493,9 @@ bool UIInput::BeginInput()
 	LogMain("Beginning input on " + name, INFO);
 	inputActive = true;
 	// Set active state if not done so already.
-	this->AddState(UIState::ACTIVE);
+	if (!HasState(UIState::ACTIVE)) {
+		AddState(UIState::ACTIVE);
+	}
 	editText = text;
 	caretPosition = editText.Length();
 	editText.caretPosition = caretPosition;
@@ -502,36 +507,36 @@ bool UIInput::BeginInput()
 }
 
 // Creates default elements for a label and input one-liner input element. Used by Integer, String, Float inputs.
-UIColumnList * UIInput::CreateDefaultColumnList() {
+UIColumnList * UIInput::CreateDefaultColumnList(UIElement * parent) {
 	/// Use a column-list to automatically get links between the elements, etc.
 	UIColumnList * box = new UIColumnList();
-	box->textureSource = textureSource;
-	box->padding = this->padding;
-	AddChild(nullptr, box);
+	box->textureSource = parent->textureSource;
+	box->padding = parent->padding;
+	parent->AddChild(nullptr, box);
 	return box;
 }
-UILabel * UIInput::CreateDefaultLabel(UIColumnList * box, float sizeX) {
+UILabel * UIInput::CreateDefaultLabel(UIColumnList * box, String text, float sizeX) {
 	UILabel * label = new UILabel();
-	label->textureSource = textureSource;
-	label->text = name;
+	label->textureSource = box->textureSource;
+	label->text = text;
 	label->sizeRatioX = sizeX;
 	box->AddChild(nullptr, label);
 	return label;
 }
-UIInput * UIInput::CreateDefaultInput(UIColumnList * box, float sizeX) {
+UIInput * UIInput::CreateDefaultInput(UIColumnList * box, String inputName, float sizeX) {
 	/// Create 3 children
 	UIInput * input = new UIInput();
-	input->textureSource = textureSource;
-	input->name = name + "Input";
+	input->textureSource = box->textureSource;
+	input->name = inputName + "Input";
 	input->sizeRatioX = sizeX;
 	box->AddChild(nullptr, input);
 
 	// If activating this meta-Input element, start adjusting this sub-field.
-	activationMessage = "BEGIN_INPUT("+ input->name +")";
+	box->activationMessage = "BEGIN_INPUT("+ input->name +")";
 
 	return input;
 }
-float UIInput::DefaultSpacePerElement() {
+float UIInput::DefaultSpacePerElement(float padding) {
 	int elements = 1 + 1;
 	float spaceLeft = 1.0f - padding * elements;
 	float spacePerElement = spaceLeft / elements;

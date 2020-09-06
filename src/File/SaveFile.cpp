@@ -6,10 +6,7 @@
 #include "FileUtil.h"
 #include "Timer/Timer.h"
 #include "OS/OSUtil.h"
-
-/// SaveFile
-/// Default save folder, usually "$Documents$/MyGames/$AppName$/saves/"
-String SaveFile::saveFolder = "saves";
+#include "Game/GameVariableManager.h"
 
 /// Default constructor, doesn't open any streams.
 SaveFile::SaveFile(String gameName, String saveName)
@@ -24,13 +21,8 @@ SaveFileHeader header;
 
 void SaveFile::BuildPath()
 {
-	// Set folder to use for saves.
-	String homeFolder = OSUtil::GetHomeDirectory();
-	homeFolder.Replace('\\', '/');
-	SaveFile::saveFolder = homeFolder;
-
 	// Ensure folder exists.
-	String folderPath = String(saveFolder) + "/" + gameName + "/";
+	String folderPath = FolderPath(gameName);
 	EnsureFoldersExistForPath(folderPath);
 
 	// Update path.
@@ -98,20 +90,44 @@ bool SaveFile::OpenLoadFileStream()
 	return true;
 }
 
+bool SaveFile::AutoSave(String gameName, String customHeaderData) {
+	SaveFile autoSave(gameName, "autosave");
+	autoSave.OpenSaveFileStream(customHeaderData, true);
+	GameVars.WriteTo(autoSave.fileStream);
+	autoSave.Close();
+	return true;
+}
+
+bool SaveFile::LoadAutoSave(String gameName, String customHeaderData) {
+	SaveFile autoSave(gameName, "autosave");
+	return autoSave.Load();
+}
+
+bool SaveFile::Load() {
+	OpenLoadFileStream();
+	GameVars.ReadFrom(fileStream);
+	Close();
+	return true;
+}
+
+
+String SaveFile::FolderPath(String gameName) {
+	return OSUtil::GetHomeDirectory() + "/" + gameName + "/saves/";
+}
 
 /// Returns list of all saves
 List<SaveFileHeader> SaveFile::GetSaves(String gameName)
 {
-	String path = String(saveFolder) + "/" + gameName + "/";
+	String folderPath = FolderPath(gameName);
 	List<SaveFileHeader> saveHeaders;
 	List<String> files;
-	bool worked = GetFilesInDirectory(path, files);
+	bool worked = GetFilesInDirectory(folderPath, files);
 	if (!worked){
-		std::cout<<"\nUnable to locate any files in path: "<<path;
+		std::cout<<"\nUnable to locate any files in path: "<< folderPath;
 		return saveHeaders;
 	}
 	for (int i = 0; i < files.Size(); ++i){
-		String fileURL = path + files[i];
+		String fileURL = folderPath + files[i];
 		std::fstream file;
 		file.open(fileURL.c_str(), std::ios_base::in | std::ios_base::binary);
 		if (!file.is_open()){

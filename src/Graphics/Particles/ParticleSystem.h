@@ -68,6 +68,9 @@ public:
 		Returns false if it failed to fetch any textures, meaning they may still be NULL.
 	*/
 	virtual bool FetchTextures();
+	/** Finds and bufferizes model if needed. Should only be called from Render() or elsewherei n render thread.
+	Returns false if it failed to find the model, meaning they may still be null. */
+	virtual bool FetchModel();
 	/// Renders the particles
     virtual void Render(GraphicsState * graphicsState);
     virtual void PrintData();

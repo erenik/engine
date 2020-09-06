@@ -18,11 +18,12 @@
 #include "UI/UITypes.h"
 #include "UI/DataUI/UIMatrix.h"
 #include "UI/Buttons/UIRadioButtons.h"
+#include "UI/Buttons/UICheckbox.h"
 #include <iomanip>
 
 // Parsing stuff
 
-UIParser::UIParser()
+UIParser::UIParser(UIElement * root)
 	: defaultAlignment(UIElement::NULL_ALIGNMENT)
 	, defaultTexture ("default.png")
 	, defaultParent ("root")
@@ -42,6 +43,8 @@ UIParser::UIParser()
 	, defaultDivider ( Vector2f(0.5f, 0.5f))
 	, defaultTextAlignment ( UIElement::LEFT)
 	, lastEvaluatedIndex ( 0)
+	, element(nullptr)
+	, root(root)
 {
 
 }
@@ -98,7 +101,6 @@ bool UIParser::LoadFromFile(String filePath, UIElement * root){
 	}
 
 	String str;
-	UIElement * element = NULL;
 	enum parsingState {
 		NULL_STATE,
 		MID_COMMENT,	 // For /* */
@@ -231,8 +233,8 @@ bool UIParser::LoadFromFile(String filePath, UIElement * root){
 			}
 			else if (token == "defaultDividerX")
 			{
-				ENSURE_NEXT_TOKEN
-					defaultDivider.x = NEXT_TOKEN.ParseFloat();
+				EnsureNextToken(tokens);
+				defaultDivider.x = NextToken(tokens).ParseFloat();
 			}
 			else if (token == "defaultVisibility") {
 				ENSURE_NEXT_TOKEN
@@ -325,8 +327,10 @@ bool UIParser::LoadFromFile(String filePath, UIElement * root){
 			else if (token == "Label") {
 				ADD_PREVIOUS_TO_UI_IF_NEEDED
 					element = new UILabel();
-				if (tokens.Size() > 1)
-					element->text = element->name = firstQuote;
+				if (tokens.Size() > 1) {
+					element->name = tokens[1];
+					element->text = firstQuote;
+				}
 				SET_DEFAULTS
 			}
 			else if (token == "TextField" || token == "Input")
@@ -360,12 +364,15 @@ bool UIParser::LoadFromFile(String filePath, UIElement * root){
 				SET_DEFAULTS
 			}
 			else if (token == "checkbox") {
-				ADD_PREVIOUS_TO_UI_IF_NEEDED
-					element = new UICheckBox();
-				if (tokens.Size() > 1) {
-					element->name = firstQuote;
-					element->activationMessage = element->text = element->name;
-				}
+				AddPreviousToUIIfNeeded();
+				String firstToken = tokens[1];
+				UICheckbox * checkBox = new UICheckbox(firstToken);
+				checkBox->displayText = firstQuote;
+				checkBox->CreateChildren();
+				if (line.Contains("Checked"))
+					checkBox->SetToggled(true);
+				element = checkBox;
+
 				SET_DEFAULTS
 			}
 			else if (token == "DropDownMenu")
@@ -402,8 +409,6 @@ bool UIParser::LoadFromFile(String filePath, UIElement * root){
 				element = si;
 				element->displayText = firstQuote;
 				SET_DEFAULTS;
-				// Can craete it later..?
-//				si->CreateChildren();
 			}
 			else if (token == "StringValue")
 			{
@@ -424,7 +429,6 @@ bool UIParser::LoadFromFile(String filePath, UIElement * root){
 				element = ii;
 				element->displayText = firstQuote;
 				SET_DEFAULTS
-					ii->CreateChildren(nullptr);
 			}
 			else if (token == "IntegerLabel") // Creates an Integer-display which is not interactable via GUI, just for display.
 			{
@@ -436,7 +440,6 @@ bool UIParser::LoadFromFile(String filePath, UIElement * root){
 				element->hoverable = element->activateable = false;
 				SET_DEFAULTS
 					ii->guiInputDisabled = true;
-				ii->CreateChildren(nullptr);
 			}
 			else if (token == "StringLabel") // Creates an String-display which is not interactable via GUI, just for display.
 			{
@@ -448,7 +451,6 @@ bool UIParser::LoadFromFile(String filePath, UIElement * root){
 				element->hoverable = element->activateable = false;
 				SET_DEFAULTS;
 				si->guiInputDisabled = true;
-				si->CreateChildren(nullptr);
 			}
 			else if (token == "FloatInput") {
 				ADD_PREVIOUS_TO_UI_IF_NEEDED;
@@ -457,7 +459,6 @@ bool UIParser::LoadFromFile(String filePath, UIElement * root){
 				element = fi;
 				element->displayText = firstQuote;
 				SET_DEFAULTS
-					fi->CreateChildren(nullptr);
 			}
 			else if (token == "FloatValue")
 			{
@@ -475,7 +476,6 @@ bool UIParser::LoadFromFile(String filePath, UIElement * root){
 				UIVectorInput * vi = new UIVectorInput(firstQuote.ParseInt(), secondQuote, action);
 				element = vi;
 				SET_DEFAULTS
-					vi->CreateChildren(nullptr);
 			}
 			else if (token == "RadioButtons")
 			{
@@ -613,6 +613,19 @@ bool UIParser::LoadFromFile(String filePath, UIElement * root){
 				ENSURE_NEXT_TOKEN;
 				element->hoverable = NEXT_TOKEN.ParseBool();
 			}
+			else if (token == "activatable") {
+				EnsureNextToken(tokens);
+				element->activateable = NextToken(tokens).ParseBool();
+			}
+			else if (token == "deleteOnPop") {
+				EnsureNextToken(tokens);
+				element->deleteOnPop = NextToken(tokens).ParseBool();
+			}
+			else if (token == "highlightOnHover")
+			{
+				EnsureNextToken(tokens);
+				element->highlightOnHover = NextToken(tokens).ParseBool();
+			}
 			else if (token == "LabelText")
 			{
 				ENSURE_NEXT_TOKEN
@@ -742,8 +755,12 @@ bool UIParser::LoadFromFile(String filePath, UIElement * root){
 			}
 			else if (token == "dividerX")
 			{
-				ENSURE_NEXT_TOKEN
-					element->divider.x = NEXT_TOKEN.ParseFloat();
+				EnsureNextToken(tokens);
+				element->divider.x = NextToken(tokens).ParseFloat();
+			}
+			else if (token == "textPadding") {
+				EnsureNextToken(tokens);
+				element->textPadding = NextToken(tokens).ParseFloat();
 			}
 			else if (token == "origin") {
 				ENSURE_NEXT_TOKEN
@@ -963,6 +980,16 @@ void UIParser::SetDefaults(UIElement * element) {
 	element->topRightCornerTextureSource = defaultTopRightCorner; 
 }
 
+void UIParser::AddPreviousToUIIfNeeded() {
+	if (element && element != root) {
+		bool addedOK = root->AddToParent(nullptr, defaultParent, element); 
+		if (!addedOK)
+			delete element; 
+		else
+			element->CreateChildren(nullptr); 
+	}
+	element = NULL; 
+}
 
 
 

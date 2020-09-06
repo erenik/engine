@@ -18,11 +18,12 @@ enum messageTypes{
 	GAMEPAD_MESSAGE, // See Input/Gamepad/GamepadMessage.h
 	/// Messages sent from the UI system
 	ON_UI_ELEMENT_HOVER,
+	ON_UI_PUSHED,
 	/// Message type that is based on a string for what action to perform, but includes a list of 1 or more files or directories to act upon too. See Message/FileEvent.h
 	FILE_EVENT,
 	TEXTURE_MESSAGE,
 	SET_STRING,			// For setting strings, usually via dedicated ui.
-	BOOL_MESSAGE,		// For setting booleans. Sent from UICheckBox.
+	BOOL_MESSAGE,		// For setting booleans. Sent from UICheckbox.
 	FLOAT_MESSAGE,		// For setting floats, simple as that.
 	INTEGER_MESSAGE,	// For setting Integers.
 	VECTOR_MESSAGE,		// For setting vectors, simple as that.

@@ -46,9 +46,12 @@ public:
 	GameVar * GetInt(String name);
 	GameVar * GetFloat(String name);
 	GameVar * GetTime(String byName);
-	
+
+	int GetIntValue(String name, int defaultValue = 0);
+
 	// SEttetrrrrr
 	void SetInt(String name, int intValue);
+	void SetString(String name, String strValue);
 
 	/// Creators, returns the varible. If it exists, the existing variable will be returned.
 	GameVar * CreateInt(String name, int initialValue = 0);

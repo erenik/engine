@@ -21,7 +21,7 @@ public:
 	/** Used by input-capturing elements. Calls recursively upward until an element wants to respond to the input.
 		Returns 1 if it processed anything, 0 if not.
 	*/
-	virtual int OnKeyDown(GraphicsState* graphicsState, int keyCode, bool downBefore) override;
+	virtual UIInputResult OnKeyDown(GraphicsState* graphicsState, int keyCode, bool downBefore) override;
 	
 	/// Sent by UIInput elements upon pressing Enter and thus confirmign the new input, in case extra actions are warranted. (e.g. UITextureInput to update the texture provided as reference). Called from render thread.
 	virtual void OnInputUpdated(GraphicsState* graphicsState, UIInput * inputElement) override;

@@ -8,6 +8,7 @@
 #include "Graphics/OpenGL.h"
 #include "UIAction.h"
 #include "UITypes.h"
+#include "UI/Input/UIInputResult.h"
 #include "NavigateDirection.h"
 
 #include <cstdlib>
@@ -26,7 +27,7 @@ class GraphicsState;
 class TextFont;
 class UserInterface;
 class UIInput;
-class UICheckBox;
+class UIToggleButton;
 class UILabel;
 
 #include <Util.h>
@@ -159,7 +160,7 @@ public:
 	/// Sent by UIInput elements upon pressing Enter and thus confirmign the new input, in case extra actions are warranted. (e.g. UITextureInput to update the texture provided as reference).
 	virtual void OnInputUpdated(GraphicsState* graphicsState, UIInput * inputElement);
 	/// Callback sent to parents once an element is toggled, in order to act upon it. Used by UIMatrix.
-	virtual void OnToggled(UICheckBox * box);
+	virtual void OnToggled(UIToggleButton * toggleButton);
 
 	/// Yup.
 	void InheritNeighbours(UIElement * fromElement);
@@ -354,6 +355,9 @@ public:
 
 	// Position-adjustment variables for advanced UI elements like UIList
 	float padding;
+	// Padding for text within elements. Default 0, or try 0.1?
+	float textPadding;
+	float textSizeY, textSizeX;
 
 	UIType type;							// Type of the UIElement
 
@@ -374,8 +378,6 @@ public:
 	bool highlightOnActive;				// Toggles if the element should highlight when clicking or active. Default is True.
 	/// Defines if the element is moveable in runtime, for example slider-handles
 	bool moveable;
-	/// For checkboxes.
-	bool toggled;
 	
 	/// If in the UI-interaction/navigation stack, so that navigation commands don't go outside it or to a parent-node.
 	bool inStack;
@@ -476,9 +478,9 @@ public:
 	/** Used by input-captuing elements. Calls recursively upward until an element wants to respond to the input.
 		Returns 1 if it processed anything, 0 if not.
 	*/
-	virtual int OnKeyDown(GraphicsState* graphicsState, int keyCode, bool downBefore);
+	virtual UIInputResult OnKeyDown(GraphicsState* graphicsState, int keyCode, bool downBefore);
 	/// Used for getting text. This will be local translated language key codes?
-	virtual int OnChar(int asciiCode);
+	virtual UIInputResult OnChar(int asciiCode);
 
 	/// Called to ensure visibility of target element. First call should be made to the target element with a NULL-argument!
 	virtual void EnsureVisibility(GraphicsState* graphicsState, UIElement * element = 0);

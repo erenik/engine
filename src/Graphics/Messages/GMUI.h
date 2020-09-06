@@ -361,12 +361,13 @@ public:
 	GMSetUIContents(String uiName, List<String> contents);
 	GMSetUIContents(UserInterface * ui, String uiName, List<String> contents);
 	/// Used for setting elements in Matrix.
-	GMSetUIContents(List<UIElement*> elements, String uiName);
+	GMSetUIContents(List<UIToggleButton*> elements, String uiName);
 	virtual void Process(GraphicsState* graphicsState) override;
 private:
 	String uiName;
 	List<String> contents;
 	List<UIElement*> elements;
+	List<UIToggleButton*> toggleButtons; 
 };
 
 #endif

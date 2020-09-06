@@ -3,6 +3,7 @@
 /// Manager for most variables used within e.g. a game. May be used for other purposes. These vars are usually saved on a per game-save basis.
 
 #include "GameVariableManager.h"
+#include "File/LogFile.h"
 #include <fstream>
 
 GameVariableManager * GameVariableManager::gameVarMan = NULL;
@@ -91,9 +92,8 @@ GameVar * GameVariableManager::GetInt(String name)
 //			return integers[i]->iValue;
 		}
 	}
-	std::cout<<"\nERROR: No such integer with given name!";
-	assert(false && "No such integer with given name!");
-	return 0;
+	LogMain("ERROR: No such integer with given name!", ERROR);
+	return nullptr;
 }
 GameVar * GameVariableManager::GetFloat(String name)
 {
@@ -119,21 +119,39 @@ GameVar * GameVariableManager::GetTime(String byName)
 	return 0;
 }
 
+int GameVariableManager::GetIntValue(String name, int defaultValue /*= 0*/) {
+	GameVar * var = GetInt(name);
+	if (var)
+		return var->iValue;
+	return defaultValue;
+}
+
 
 // SEttetrrrrr
 void GameVariableManager::SetInt(String name, int intValue)
 {
 	for (int i = 0; i < integers.Size(); ++i){
+		name.SetComparisonMode(String::NOT_CASE_SENSITIVE);
 		if (integers[i]->name == name){
 			integers[i]->iValue = intValue;
 			return;
 		}
 	}
-	std::cout<<"\nERROR: No such integer with given name!";
-	assert(false && "No such integer with given name!");
-	return;
+	LogMain("No variable by name " + name + ", creating it.", WARNING);
+	CreateInt(name, intValue);
 }
 
+void GameVariableManager::SetString(String name, String strValue) {
+	for (int i = 0; i < strings.Size(); ++i) {
+		name.SetComparisonMode(String::NOT_CASE_SENSITIVE);
+		if (strings[i]->name == name) {
+			strings[i]->strValue = strValue;
+			return;
+		}
+	}
+	LogMain("No variable by name " + name + ", creating it.", WARNING);
+	CreateString(name, strValue);
+}
 
 /// Creators
 GameVar * GameVariableManager::CreateInt(String name, int initialValue)

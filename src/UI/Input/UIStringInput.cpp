@@ -76,7 +76,7 @@ void UIStringInput::OnInputUpdated(GraphicsState* graphicsState, UIInput * input
 }
 
 // For managing old texts.
-int UIStringInput::OnKeyDown(GraphicsState* graphicsState, int keyCode, bool downBefore)
+UIInputResult UIStringInput::OnKeyDown(GraphicsState* graphicsState, int keyCode, bool downBefore)
 {
 	// Check for previous texts?
 	int indexDesired = index;
@@ -84,6 +84,11 @@ int UIStringInput::OnKeyDown(GraphicsState* graphicsState, int keyCode, bool dow
 	{
 		case KEY::UP:  ++indexDesired; break;
 		case KEY::DOWN: --indexDesired; break;
+		default:
+			UIInputResult result = input->OnKeyDown(graphicsState, keyCode, downBefore);
+			if (result == UIInputResult::InputStopped)
+				RemoveState(UIState::ACTIVE);
+			return result;
 	}
 	if (indexDesired != index)
 	{
@@ -102,7 +107,12 @@ int UIStringInput::OnKeyDown(GraphicsState* graphicsState, int keyCode, bool dow
 			index = indexDesired;
 		}
 	}
-	return 0;
+	return UIInputResult::TextUpdated;
+}
+
+/// Used for getting text. This will be local translated language key codes?
+UIInputResult UIStringInput::OnChar(int asciiCode) {
+	return input->OnChar(asciiCode);
 }
 
 // For sub-classes to adjust children as needed (mainly for input elements).
@@ -118,10 +128,10 @@ void UIStringInput::CreateChildren(GraphicsState * graphicsState)
 		return;
 
 	/// Use a column-list to automatically get links between the elements, etc.
-	UIColumnList * box = CreateDefaultColumnList();
-	float spacePerElement = DefaultSpacePerElement();
-	label = CreateDefaultLabel(box, spacePerElement);
-	input = CreateDefaultInput(box, spacePerElement);
+	UIColumnList * box = CreateDefaultColumnList(this);
+	float spacePerElement = DefaultSpacePerElement(padding);
+	label = CreateDefaultLabel(box, displayText, divider.x);
+	input = CreateDefaultInput(box, name, 1 - divider.x);
 
 	/// Set them to only accept floats?
 	input->text = "";

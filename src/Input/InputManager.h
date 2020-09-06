@@ -19,7 +19,7 @@
 
 #include "Input/InputDevices.h"
 
-struct Gamepad;
+class Gamepad;
 class GamepadManager;
 
 #define InputMan (*InputManager::Instance())

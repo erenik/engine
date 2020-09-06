@@ -4,6 +4,8 @@
 
 #include "UI/UIElement.h"
 
+class UIToggleButton;
+
 class UIMatrix : public UIElement {
 	friend class UIParser;
 public:
@@ -19,7 +21,7 @@ public:
 	virtual void SetText(CTextr newText, bool force = false);
 
 	/// Adds x children. Subclassed in e.g. Matrix-class in order to setup contents properly.
-	virtual bool SetContents(GraphicsState* graphicsState, List<UIElement*> children);
+	virtual bool SetContents(GraphicsState* graphicsState, List<UIToggleButton*> children);
 	/// Re-arranges internal elements based on pre-configured or newly set options. Does not create or delete anything.
 	virtual void FormatContents(GraphicsState * graphicsState);
 	/// Call before deleting or creating contents.
@@ -31,7 +33,7 @@ public:
 	virtual void SetData(List<bool*> boolData);
 
 	/// Callback sent to parents once an element is toggled, in order to act upon it. Used by UIMatrix.
-	virtual void OnToggled(UICheckBox * box);
+	virtual void OnToggled(UIToggleButton * toggleButton);
 
 private:
 	/// For how to display the data. With this as true (default), all booleans will have there values inverted as to how the checkboxes will be toggled or not.
@@ -46,7 +48,7 @@ private:
 	void CreateMatrix();
 
 	/// Matrix of all elements.
-	List<UIElement*> matrixElements;
+	List<UIToggleButton*> matrixElements;
 
 	/// Rebuilds matrix.
 	bool rebuildMatrix;

@@ -231,6 +231,7 @@ void GMMouse::Process(GraphicsState * graphicsState)
 			// If we have an active element, don't hover, to retain focus on the active element (e.g. the scroll-bar).
 			else 
 			{
+				userInterface->GetStackTop()->RemoveState(UIState::HOVER, true);
 				// Save old hover element...? wat
 				UIElement * hoverElement = userInterface->Hover(coords.x, coords.y, true);
 /*				if (printHoverElement)
@@ -266,7 +267,12 @@ void GMChar::Process(GraphicsState * graphicsState)
 		{
 			/// Use the result somehow to determine if other actions can be triggered, too.
 			LogGraphics("GMChar for element " + inputFocusElement->name, INFO);
-			int result = inputFocusElement->OnChar(c);
+			UIInputResult result = inputFocusElement->OnChar(c);
+			switch (result) {
+			case UIInputResult::InputStopped:
+				inputFocusElement->RemoveState(UIState::ACTIVE);
+				break;
+			}
 			return;
 		}
 	}
@@ -304,7 +310,13 @@ void GMKey::Process(GraphicsState* graphicsState)
 			{
 				activeElement = inputFocusElement;
 				/// Use the result somehow to determine if other actions can be triggered, too.
-				int result = inputFocusElement->OnKeyDown(graphicsState, keyCode, false);
+				UIInputResult result = inputFocusElement->OnKeyDown(graphicsState, keyCode, false);
+				switch (result) {
+				case UIInputResult::InputStopped:
+					inputFocusElement->RemoveState(UIState::ACTIVE);
+					break;
+				}
+
 				Graphics.QueryRender();
 			}
 			else {

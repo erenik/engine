@@ -142,12 +142,12 @@ void ScriptManager::Process(int timeInMs)
 			--i;
 			continue;
 		}
-		if (activeScripts.Size() == 0){
-			InputMan.SetNavigateUI(false);
-		}
-		else
-			/// Most events assume UI-interaction, yes?
-			InputMan.SetNavigateUI(true);
+		//if (activeScripts.Size() == 0){
+		//	InputMan.SetNavigateUI(false);
+		//}
+		//else
+		//	/// Most events assume UI-interaction, yes?
+		//	InputMan.SetNavigateUI(true);
 	}
 }
 

@@ -43,8 +43,13 @@ void GMNavigateUI::Process(GraphicsState* graphicsState)
 	}
 
 	UIElement * hoverElement = ui->GetHoverElement();
-	if (!hoverElement)
+	if (!hoverElement) {
+		// No hover element? Find a suitable one.	
+		UIElement * element = ui->GetStackTop()->GetElementByFlag(UIFlag::ACTIVATABLE);
+		if (element != nullptr)
+			element->AddState(UIState::HOVER);
 		return;
+	}
 
 	if (hoverElement->HasStateRecursive(UIState::ACTIVE)) {
 		hoverElement->Navigate(navigateDirection);
@@ -68,7 +73,6 @@ void GMNavigateUI::Process(GraphicsState* graphicsState)
 	}
 	// If we got a valid hover-element.
 	else {
-		// If not, or if the element couldn't find the named one, try and let it figure out for itself which one it would suggest for us!
 		if (!element) {
 			bool searchChildrenOnly = false;
 			switch (navigateDirection) {

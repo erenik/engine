@@ -148,13 +148,15 @@ void GamepadManager::Update(float timeInSeconds) {
 
 void GamepadManager::OnNoUpdate(float timeInSeconds, Gamepad & state, Gamepad & previousState) {
 
-	if (state.leftStickUp || state.leftStickDown || state.leftStickLeft || state.leftStickRight) {
-		state.durationLeftStick += timeInSeconds;
-		if (state.durationLeftStick > pow(accelerationFactor, state.leftStickIterations) * (1 + state.leftStickIterations) * secondsBetweenNavigationIterations) {
-			++state.leftStickIterations;
-			QueueGraphics(new GMNavigateUI(state.leftStickUp?  NavigateDirection::Up : 
-				state.leftStickDown? NavigateDirection::Down : 
-				state.leftStickRight? NavigateDirection::Right : NavigateDirection::Left));
+	if (InputMan.NavigateUI()) {
+		if (state.leftStickUp || state.leftStickDown || state.leftStickLeft || state.leftStickRight) {
+			state.durationLeftStick += timeInSeconds;
+			if (state.durationLeftStick > pow(accelerationFactor, state.leftStickIterations) * (1 + state.leftStickIterations) * secondsBetweenNavigationIterations) {
+				++state.leftStickIterations;
+				QueueGraphics(new GMNavigateUI(state.leftStickUp?  NavigateDirection::Up : 
+					state.leftStickDown? NavigateDirection::Down : 
+					state.leftStickRight? NavigateDirection::Right : NavigateDirection::Left));
+			}
 		}
 	}
 }

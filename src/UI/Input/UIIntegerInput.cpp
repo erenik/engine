@@ -65,14 +65,13 @@ bool UIIntegerInput::OnScroll(GraphicsState* graphicsState, float delta)
 /** Used by input-capturing elements. Calls recursively upward until an element wants to respond to the input.
 	Returns 1 if it processed anything, 0 if not.
 */
-int UIIntegerInput::OnKeyDown(GraphicsState* graphicsState, int keyCode, bool downBefore)
+UIInputResult UIIntegerInput::OnKeyDown(GraphicsState* graphicsState, int keyCode, bool downBefore)
 {
 	if (input->InputActive()) {
 		return input->OnKeyDown(graphicsState, keyCode, downBefore);
 	}
 
-	UIElement::OnKeyDown(graphicsState, keyCode, downBefore);
-	return 0;
+	return UIElement::OnKeyDown(graphicsState, keyCode, downBefore);
 }	
 
 /// Sent by UIInput elements upon pressing Enter and thus confirmign the new input, in case extra actions are warranted. (e.g. UITextureInput to update the texture provided as reference).
@@ -140,10 +139,10 @@ void UIIntegerInput::CreateChildren(GraphicsState* graphicsState)
 	if (childrenCreated)
 		return;
 	/// Use a column-list to automatically get links between the elements, etc.
-	UIColumnList * box = CreateDefaultColumnList();
-	float spacePerElement = DefaultSpacePerElement();
-	label = CreateDefaultLabel(box, spacePerElement);
-	input = CreateDefaultInput(box, spacePerElement);
+	UIColumnList * box = CreateDefaultColumnList(this);
+	float spacePerElement = DefaultSpacePerElement(padding);
+	label = CreateDefaultLabel(box, displayText, divider.x);
+	input = CreateDefaultInput(box, name, 1 - divider.x);
 
 	/// Set them to only accept floats?
 	/// Any mathematical expression?

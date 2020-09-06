@@ -146,6 +146,15 @@ public:
 	}
 };
 
+class OnUIPushed : public Message
+{
+public:
+	OnUIPushed(String uiName) 
+		: Message(MessageType::ON_UI_PUSHED) {
+		this->msg = uiName;
+	}
+};
+
 /*void Message::Process(){
 
 }*/

@@ -7,6 +7,7 @@
 
 #include "UI/Lists/UIColumnList.h"
 #include "UI/UIButtons.h"
+#include "UI/Buttons/UIToggleButton.h"
 
 /// Aggregate input class which handles a number of buttons
 class UIRadioButtons : public UIColumnList 
@@ -27,7 +28,7 @@ public:
 	void SetTextures(List<String> textureSourcesOrNames);
 
 	// Sent when a child checkbox is toggled. 
-	virtual void OnToggled(UICheckBox * box);
+	virtual void OnToggled(UIToggleButton * toggleButton);
 
 	/// Toggles appropriately.
 	void SetValue(GraphicsState* graphicsState, int v);
@@ -38,7 +39,7 @@ public:
 protected:
 	int numButtons;
 	List<String> buttonTexts;
-	List<UICheckBox*> buttons;
+	List<UIToggleButton*> buttons;
 	List<String> textureSourcesOrNames;
 };
 

@@ -13,12 +13,4 @@ public:
 	virtual ~UIButton();
 };
 
-class UICheckBox : public UIElement {
-public:
-	UICheckBox(String name = "");
-	virtual ~UICheckBox();
-	virtual UIElement* Activate(GraphicsState* graphicsState) override;
-private:
-};
-
 #endif

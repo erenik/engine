@@ -1155,6 +1155,13 @@ void String::Replace(String part, String withNewString)
 	}
 }
 
+// Returns a copy, where part is replaced withNewString
+String String::Replaced(String part, String withNewString) const {
+	String newString = this;
+	newString.Replace(part, withNewString);
+	return newString;
+}
+
 
 // Extract data o-o
 bool String::ParseBool(){
@@ -1718,6 +1725,12 @@ retry:
 	}	
 }
 
+String String::WithSurroundingWhitespacesRemoved() const {
+	String copy = this;
+	copy.RemoveSurroundingWhitespaces();
+	return copy;
+}
+
 /// Prints the contents of the string both in integer and character form
 void String::PrintData() const
 {
@@ -1931,7 +1944,8 @@ void String::Copy(const String & fromTargetString, int ofType)
 /// Concatenation operators, left-hand-string and right-hand-strings respectively
 //String operator + (const String & lhs, const char * rhs);	// char*
 String operator + (const String & lhs, const String & rhs){
-	String string = lhs + rhs;
+	String string(lhs);
+	string += rhs;
 	return string;
 }
 

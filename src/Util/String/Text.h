@@ -25,6 +25,9 @@ public:
 	/// String and color in hex.
 	Text(String str, int colorHex);
 
+	// Returns a copy with given color
+	Text WithColor(Color color) const;
+
 	/// Pastes text into this text. How it will behave depends on the caret positions.
 	void Paste(String text);
 
@@ -50,7 +53,7 @@ public:
 	int previousCaretPosition;
 
 	/// Offset in pixels to render this text. Default 0. Used for aligning.
-	float offsetX;
+	float offsetX, offsetY;
 
 	/// Primary/starting text color
 	Color color;

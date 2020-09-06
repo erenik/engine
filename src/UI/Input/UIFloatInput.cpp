@@ -106,10 +106,10 @@ void UIFloatInput::CreateChildren(GraphicsState* graphicsState)
 		return;
 
 	/// Use a column-list to automatically get links between the elements, etc.
-	UIColumnList * box = CreateDefaultColumnList();
-	float spacePerElement = DefaultSpacePerElement();
-	label = CreateDefaultLabel(box, spacePerElement);
-	input = CreateDefaultInput(box, spacePerElement);
+	UIColumnList * box = CreateDefaultColumnList(this);
+	float spacePerElement = DefaultSpacePerElement(padding);
+	label = CreateDefaultLabel(box, displayText, spacePerElement);
+	input = CreateDefaultInput(box, name, spacePerElement);
 
 	/// Inherit texture from parent by default, so highlighting works accordingly? Or highlight without any texture base...?
 	/// ...

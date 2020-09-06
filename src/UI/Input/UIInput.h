@@ -50,19 +50,19 @@ public:
 	/** Used by input-captuing elements. Should not be called for any base UI elements(?). 
 		Return value of significance, but not defined yet.
 	*/
-	virtual int OnKeyDown(GraphicsState* graphicsState, int keyCode, bool downBefore) override;
+	virtual UIInputResult OnKeyDown(GraphicsState* graphicsState, int keyCode, bool downBefore) override;
 	/// Used for getting text. This will be local translated language key codes?
-	virtual int OnChar(int asciiCode) override;
+	virtual UIInputResult OnChar(int asciiCode) override;
 	/// Begins input, returns false if not possible (e.g. non-activatable StringLabel input)
 	bool BeginInput();
 	/// Halts input and removes Active state.
 	virtual void StopInput() override;
 
 	// Creates default elements for a label and input one-liner input element. Used by Integer, String, Float inputs.
-	UIColumnList * CreateDefaultColumnList();
-	UILabel * CreateDefaultLabel(UIColumnList * box, float sizeX);
-	UIInput * CreateDefaultInput(UIColumnList * box, float sizeX);
-	float DefaultSpacePerElement();
+	static UIColumnList * CreateDefaultColumnList(UIElement * parent);
+	static UILabel * CreateDefaultLabel(UIColumnList * box, String text, float sizeX);
+	static UIInput * CreateDefaultInput(UIColumnList * box, String inputName, float sizeX);
+	static float DefaultSpacePerElement(float padding);
 
 	// Used for numbersOnly input fields.
 	void IncrementValue();

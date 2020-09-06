@@ -135,16 +135,7 @@ ParticleSystem::~ParticleSystem()
 void ParticleSystem::Initialize()
 {
 	// Grab model.
-	model = ModelMan.GetModel(modelName);
-	if (!model)
-	{
-		LogGraphics("Unable to initialize ParticleSystem. Bad model.", ERROR);
-		assert(false);
-		return;
-	}
-	// Bufferize model if needed.
-	model->BufferizeIfNeeded();
-	assert(model);
+	FetchModel();
 	// Allocate the particle data arrays.
 	AllocateArrays();
 	initialized = true;
@@ -416,10 +407,25 @@ bool ParticleSystem::FetchTextures()
 	return true;
 }
 
+/** Finds and bufferizes model if needed. Should only be called from Render() or elsewherei n render thread. 
+	Returns false if it failed to find the model, meaning they may still be null. */
+bool ParticleSystem::FetchModel() {
+	if (model == nullptr) {
+		model = ModelMan.GetModel(modelName);
+		if (model == nullptr)
+			return false;
+		model->BufferizeIfNeeded();
+		return true;
+	}
+	return true;
+}
+
 void ParticleSystem::Render(GraphicsState * graphicsState)
 {
 	CheckGLError("Before ParticleSystem::Render");
    	if (!FetchTextures())
+		return;
+	if (!FetchModel())
 		return;
 	if (useInstancedRendering && GL_VERSION_3_3_OR_HIGHER)
 		RenderInstanced(graphicsState);
