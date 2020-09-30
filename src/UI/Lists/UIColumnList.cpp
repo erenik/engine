@@ -10,7 +10,7 @@
 #include "MathLib/Rect.h"
 #include "Input/InputManager.h"
 #include "Message/MessageManager.h"
-
+#include "File/LogFile.h"
 
 UIColumnList::UIColumnList(String name)
 : UIElement()
@@ -22,6 +22,14 @@ UIColumnList::UIColumnList(String name)
 UIColumnList::~UIColumnList()
 {
 //	std::cout<<"\nUIColumnList destructor.";
+}
+
+/// Creates a deep copy of self and all child elements (where possible).
+UIElement * UIColumnList::Copy() {
+	UIColumnList * copy = new UIColumnList();
+	*copy = *this; // Copy all variables?
+	CopyChildrenInto(copy);
+	return copy;
 }
 
 /// Deletes all children and content inside.
@@ -78,7 +86,8 @@ bool UIColumnList::AddChild(GraphicsState* graphicsState, UIElement* child)
 	/// Check if we should add scroll-bars to zis list!
 	if (child->alignmentX + child->sizeRatioX * 0.5f > 1.0f){
 		// assert(false && "Implement automatic scrollbars for your columns lists, yo!");
-		std::cout<<"\nImplement automatic scrollbars for your columns lists, yo!";
+		LogMain("Implement automatic scrollbars for your columns lists, yo!", INFO);
+
 	}
 	return true;
 }

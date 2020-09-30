@@ -28,7 +28,8 @@ using namespace InputDevice;
 
 GamepadManager::GamepadManager() {
 
-	secondsBetweenNavigationIterations = 0.08f;
+	secondsThresholdFirstNavigation = 0.25f;
+	secondsBetweenNavigationIterations = 0.125f;
 	accelerationFactor = 0.98f;
 
 #ifdef WINDOWS
@@ -151,7 +152,20 @@ void GamepadManager::OnNoUpdate(float timeInSeconds, Gamepad & state, Gamepad & 
 	if (InputMan.NavigateUI()) {
 		if (state.leftStickUp || state.leftStickDown || state.leftStickLeft || state.leftStickRight) {
 			state.durationLeftStick += timeInSeconds;
-			if (state.durationLeftStick > pow(accelerationFactor, state.leftStickIterations) * (1 + state.leftStickIterations) * secondsBetweenNavigationIterations) {
+			bool iterate = false;
+
+//			if (state.leftStickIterations == 0) {
+				//iterate = true;
+	//			std::cout << "\nInitial state.durationLeftStick: " << state.durationLeftStick;
+		//	}
+			if (state.durationLeftStick > (secondsThresholdFirstNavigation +
+				state.leftStickIterations * secondsBetweenNavigationIterations * pow(accelerationFactor, state.leftStickIterations))) {
+				iterate = true;
+				std::cout<<"\nRepeat state.durationLeftStick: "<< state.durationLeftStick;
+			}
+			
+			if (iterate)
+			{
 				++state.leftStickIterations;
 				QueueGraphics(new GMNavigateUI(state.leftStickUp?  NavigateDirection::Up : 
 					state.leftStickDown? NavigateDirection::Down : 
@@ -165,10 +179,14 @@ void GamepadManager::OnNoUpdate(float timeInSeconds, Gamepad & state, Gamepad & 
 void GamepadManager::PostUpdate(Gamepad & state, Gamepad & previousState) {
 	if (InputMan.NavigateUI()) {
 
-		if (state.leftStickUp && !previousState.leftStickUp)
+		if (state.leftStickUp && !previousState.leftStickUp) {
 			QueueGraphics(new GMNavigateUI(NavigateDirection::Up));
-		else if (state.leftStickDown && !previousState.leftStickDown)
+			std::cout << "\nNavigate up post update";
+		}
+		else if (state.leftStickDown && !previousState.leftStickDown) {
 			QueueGraphics(new GMNavigateUI(NavigateDirection::Down));
+			std::cout << "\nNavigate down post update";
+		}
 		else if (state.leftStickRight && !previousState.leftStickRight)
 			QueueGraphics(new GMNavigateUI(NavigateDirection::Right));
 		else if (state.leftStickLeft && !previousState.leftStickLeft)
@@ -176,6 +194,8 @@ void GamepadManager::PostUpdate(Gamepad & state, Gamepad & previousState) {
 
 		if (state.aButtonPressed && !previousState.aButtonPressed)
 			QueueGraphics(new GMProceedUI());
+		if (state.bButtonPressed && !previousState.bButtonPressed)
+			QueueGraphics(new GMCancelUI());
 	}
 }
 

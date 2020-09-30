@@ -61,6 +61,7 @@ public:
 		LOG_APPEND, // For UILog
 		LOG_FILL, 
 		TEXTURE_SOURCE,
+		ACTIVATION_MESSAGE, // For adjusting what happens when interacting further.
 		STRING_INPUT_TEXT, // For UIStringInput
 		STRING_INPUT, // UIStringInput value/contents
 		INTEGER_INPUT_TEXT, // For UIIntegerInput
@@ -124,7 +125,7 @@ private:
 	int value;
 };
 
-/// Used to set UI vector2i data. Primarily used to specify size of matrix or maybe later aboslute-size of an element.
+// Used to set UI vector2i data. Primarily used to specify size of matrix or maybe later aboslute-size of an element.
 class GMSetUIv2i : public GMUI {
 public:
 	GMSetUIv2i(String UIname, int target, Vector2i v, Viewport * viewport = NULL);
@@ -137,7 +138,7 @@ private:
 	Vector2i value;
 };
 
-/// Used to set Vector-based data, like input for vector-input UI or RGB colors.
+// Used to set Vector-based data, like input for vector-input UI or RGB colors.
 class GMSetUIv3f : public GMUI {
 public:
 	GMSetUIv3f(String UIname, int target, const Vector3f & v, Viewport * viewport = NULL);
@@ -152,7 +153,7 @@ private:
 };
 
 
-/// Used to set Vector-based data, mainly colors.
+// Used to set Vector-based data, mainly colors.
 class GMSetUIv4f : public GMUI {
 public:
 	GMSetUIv4f(String UIname, int target, const Vector4f & v, UserInterface * ui);
@@ -192,7 +193,7 @@ public:
 };
 
 
-
+// Setting booleans
 class GMSetUIb : public GMUI {
 public:
 	GMSetUIb(String UIname, int target, bool v, UserInterface * inUI);
@@ -206,7 +207,7 @@ private:
 	bool value;
 };
 
-/// For raw strings.
+// For raw strings.
 class GMSetUIs: public GMUI 
 {
 public:
@@ -295,9 +296,10 @@ private:
 class GMAddUI : public GMUI{
 public:
 	GMAddUI(List<UIElement*> elements, String toParent, UserInterface * inUI);
-	GMAddUI(List<UIElement*> elements, String toParent = "root", Viewport * viewport = NULL);
+	GMAddUI(List<UIElement*> elements, String toParent = "root", Viewport * viewport = NULL, UIFilter filter = UIFilter::None);
 	void Process(GraphicsState* graphicsState);
 private:
+	UIFilter filter;
 	List<UIElement*> elements;
 	String parentName;
 };

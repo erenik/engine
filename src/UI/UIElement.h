@@ -50,6 +50,11 @@ enum UIFlag {
 	ACTIVATABLE	=	0x00000004,
 };
 
+enum UIFilter {
+	None,
+	Visible,
+};
+
 class UIElement
 {
 	friend class UserInterface;
@@ -74,9 +79,17 @@ public:
 
 	UIElement * Parent() {return parent;};
 
+	virtual int CenteredContentParentPosX() const;
+	// If parent is e.g. List, available size will vary depending on if scrollbar is present or not.
+	virtual int AvailableParentSizeX() const;
+
 	/// Sets the bufferized flag. Should only be called before program shutdown. Ensures less assertions will fail.
 	void SetBufferized(bool bufferizedFlag);
 	
+	/// Creates a deep copy of self and all child elements (where possible).
+	virtual UIElement * Copy();
+	virtual void CopyChildrenInto(UIElement * copyOfSelf) const;
+
 	/// Callback-function for sub-classes to implement own behaviour to run within the UI-class' code.
 	virtual void Proceed();
 	virtual void StopInput();
@@ -247,9 +260,8 @@ public:
 	/// Sets name of the element
 	void SetName(const String name);
 	const String GetName(){ return name; };
-#define GetElementWithName GetElementByName
 	/// Returns a pointer to specified UIElement
-	UIElement * GetElementByName(const String name);
+	UIElement * GetElementByName(const String name, UIFilter filter = UIFilter::None);
 	/// Tries to fetch element by source, for when loaded from a .gui file straight into an element.
 	UIElement * GetElementBySource(String source);
 	/// Getterrr
@@ -294,7 +306,8 @@ public:
 		MAXIMIZE, MAXIMIZED = MAXIMIZE,	// Have maximization as an alignment too to simplify it all
 		TOP_LEFT, TOP, TOP_RIGHT,
 		LEFT, CENTER, MIDDLE = CENTER, RIGHT,
-		BOTTOM_LEFT, BOTTOM, BOTTOM_RIGHT
+		BOTTOM_LEFT, BOTTOM, BOTTOM_RIGHT,
+		SCROLL_BAR_Y, // Default to the right of the centered content.
 	};
 
 	static int GetAlignment(String byName);

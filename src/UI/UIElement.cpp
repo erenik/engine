@@ -230,6 +230,17 @@ UIElement::~UIElement()
 	// InputMan.OnElementDeleted(this);
 }
 
+
+int UIElement::CenteredContentParentPosX() const {
+	return posX;
+}
+
+// If parent is e.g. List, available size will vary depending on if scrollbar is present or not.
+int UIElement::AvailableParentSizeX() const {
+	return sizeX;
+}
+
+
 /// Sets the bufferized flag. Should only be called before program shutdown. Ensures less assertions will fail.
 void UIElement::SetBufferized(bool bufferizedFlag)
 {
@@ -240,6 +251,23 @@ void UIElement::SetBufferized(bool bufferizedFlag)
 		children[i]->SetBufferized(bufferizedFlag);
 	}
 }	
+
+// Creates a deep copy of all child elements (where possible).
+UIElement * UIElement::Copy() {
+	UIElement * copy = new UIElement();
+	*copy = *this; // Copy all variables?
+	CopyChildrenInto(copy);
+	return copy;
+}
+
+void UIElement::CopyChildrenInto(UIElement * copyOfSelf) const {
+	// Reset all/most pointers though?
+	copyOfSelf->children.Clear();
+	for (int i = 0; i < children.Size(); ++i) {
+		UIElement * childCopy = children[i]->Copy();
+		copyOfSelf->AddChild(nullptr, childCopy);
+	}
+}
 
 /// Callback-function for sub-classes to implement own behaviour to run within the UI-class' code.
 void UIElement::Proceed()
@@ -1362,16 +1390,19 @@ void UIElement::SetName(const String i_name){
 }
 
 /// Returns a pointer to specified UIElement
-UIElement * UIElement::GetElementWithName(String i_name){
-	if (i_name == name)
+UIElement * UIElement::GetElementByName(String i_name, UIFilter filter){
+	if (i_name == name) {
+		if (filter == UIFilter::Visible && !visible)
+			return nullptr;
 		return this;
+	}
 	UIElement * result;
 	for (int i = 0; i < children.Size(); ++i){
         UIElement * child = children[i];
         assert(child && "NULL-child? wtf?");
    //     std::cout<<"\nChild name: "<<child->name;
 		String childName = children[i]->name;
-		result = children[i]->GetElementWithName(i_name);
+		result = children[i]->GetElementByName(i_name, filter);
 		if (result)
 			return result;
 	}
@@ -1420,14 +1451,6 @@ bool UIElement::AddChild(GraphicsState* graphicsState, UIElement *in_child)
 	{
 		in_child->name = name + "Child";
 	}
-	/// Replace name if already taken.
-	int i = 1;
-	String baseName = in_child->name;
-	while(GetRoot()->GetElementByName(in_child->name)){
-		++i;
-		in_child->name = baseName +"_"+ String::ToString(i);
-	}
-
 	children.Add(in_child);
 	// Set it's parent to this.
 	in_child->parent = this;
@@ -1449,7 +1472,7 @@ bool UIElement::RemoveChild(GraphicsState* graphicsState, UIElement * element)
 
 bool UIElement::AddToParent(GraphicsState* graphicsState, String parentName, UIElement * child)
 {
-    UIElement * padre = GetElementWithName(parentName);
+    UIElement * padre = GetElementByName(parentName);
     if (padre){
         padre->AddChild(graphicsState, child);
         return true;
@@ -1964,12 +1987,26 @@ void UIElement::AdjustToWindow(int w_left, int w_right, int w_bottom, int w_top)
 		sizeX = 1;
 	if (!lockSizeY)
 		sizeY = 1;
+
 	float z = 0;
 	if (parent){
-		left = parent->posX - parent->sizeX/2;
-		right = parent->posX + parent->sizeX/2;
-		bottom = parent->posY - parent->sizeY/2;
-		top = parent->posY + parent->sizeY/2;
+		// If parent is list, and has a scrollbar, for example, reduce agailable size
+		int parentSizeX = parent->AvailableParentSizeX();
+		int parentPosX = parent->CenteredContentParentPosX();
+		switch (alignment) {
+		case SCROLL_BAR_Y:
+			left = parentPosX + parentSizeX / 2;
+			right = parent->posX + parent->sizeX / 2;
+			bottom = parent->posY - parent->sizeY / 2;
+			top = parent->posY + parent->sizeY / 2;
+			break;
+		default:
+			left = parentPosX - parentSizeX / 2;
+			right = parentPosX + parentSizeX / 2;
+			bottom = parent->posY - parent->sizeY / 2;
+			top = parent->posY + parent->sizeY / 2;
+			break;
+		}
 	}
 	else {
 		left = w_left;
@@ -2011,6 +2048,15 @@ void UIElement::AdjustToWindow(int w_left, int w_right, int w_bottom, int w_top)
 
 	/// Check alignment
 	switch(alignment){
+	case SCROLL_BAR_Y:
+	{
+		/// Default behavior, just scale out from our determined center.
+		left = RoundInt(left);
+		right = RoundInt(right);
+		bottom = RoundInt(centerY - sizeY * sizeRatioY / 2);
+		top = RoundInt(centerY + sizeY * sizeRatioY / 2);
+		break;
+	}
 		case NULL_ALIGNMENT: {
 			/// Default behavior, just scale out from our determined center.
 			left = RoundInt(centerX - sizeX * sizeRatioXwithConstraints / 2);

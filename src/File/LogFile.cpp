@@ -23,6 +23,10 @@ LogLevel logLevel = INFO;
 /// Logs to file, creates the file (and folders) necessary if it does not already exist. Time stamps will probably also be available.
 void LogToFile(String fileName,  String codeFile, String function, String logText, LogLevel levelFlags, List<TextError> * previousErrors /* = 0*/)
 {
+	int level = levelFlags % 16;
+	if (level < logLevel)
+		return;
+
 	bool causeAssertionError = levelFlags & CAUSE_ASSERTION_ERROR;
 	if (causeAssertionError)
 		assert(false && "LogFile-triggered assertion error. See relevant log file for details.");
@@ -34,10 +38,7 @@ void LogToFile(String fileName,  String codeFile, String function, String logTex
 	String textToStdOut = logTextWithFunction;
 	String textToFile = timeString + logTextWithFunction + "\n";
 
-	int level = levelFlags % 16;
 	// What does this even do..?
-	if (level < logLevel)
-		return;
 //	if (logLevel > DEBUG && level <= DEBUG)
 	//	return;
 	bool printed = Output(logText, previousErrors);

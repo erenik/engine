@@ -97,7 +97,7 @@ public:
 	/// Removes, not caring for internal order. Quicker.
 	bool RemoveItemUnsorted(const value_type & item);
 	/// Removes, retains internal order.
-	T RemoveItem(const value_type & item);
+	bool RemoveItem(const value_type & item);
 	/// Removes all occurences of any items in the sublist in this list. Does not retain order. Quicker.
 	int RemoveUnsorted(const List<T> & subListToRemove);
 	/// Removes all occurences of any items in the sublist in this list. Retains order.
@@ -498,9 +498,9 @@ bool List<T>::RemoveItemUnsorted(const T & item)
 	return false;
 }
 
-/// Remove target item or index, keeping the internal order of the remaining objects!
+/// Remove target item or index, keeping the internal order of the remaining objects! Returns true if successful, false if it failed.
 template <class T>
-T List<T>::RemoveItem(const T & item)
+bool List<T>::RemoveItem(const T & item)
 {
 	for (int i = 0; i < currentItems; ++i)
 	{
@@ -513,10 +513,10 @@ T List<T>::RemoveItem(const T & item)
                 arr[j-1] = arr[j];
 		    }
 			currentItems--;
-			return item;
+			return true;
 		}
 	}
-	return NULL;
+	return false;
 }
 
 /// Removes all occurences of any items in the sublist in this list.

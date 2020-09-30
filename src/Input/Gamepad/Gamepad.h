@@ -36,7 +36,9 @@ public:
 
 	void Update(float timeInSeconds);
 
-	// Default 0.1, time between iterations when browsing menus with analog stick.
+	// Default time for the first navigation iteration, to prevent double navigation it is higher than the repeat one.
+	float secondsThresholdFirstNavigation;
+	// Default time between iterations when browsing menus with analog stick.
 	float secondsBetweenNavigationIterations;
 	// Default 0.98, increase in navigation speed for each previous iteration, i.e. +5% scroll speed per tick if 0.95
 	float accelerationFactor;

@@ -14,6 +14,10 @@ class UIColumnList : public UIElement
 public:
 	UIColumnList(String name = "");
 	virtual ~UIColumnList();
+
+	/// Creates a deep copy of self and all child elements (where possible).
+	virtual UIElement * Copy();
+
 	/// Deletes all children and content inside.
 	void Clear();
 	/** Adds a child/children

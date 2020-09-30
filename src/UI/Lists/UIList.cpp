@@ -35,6 +35,20 @@ UIList::~UIList()
 //	std::cout<<"\nUIList destructor.";
 }
 
+
+int UIList::CenteredContentParentPosX() const {
+	if (scrollBarY && scrollBarY->visible)
+		return posX - sizeX * scrollBarY->sizeRatioX * 0.5f;
+	return posX;
+}
+
+// If parent is e.g. List, available size will vary depending on if scrollbar is present or not.
+int UIList::AvailableParentSizeX() const {
+	if (scrollBarY && scrollBarY->visible)
+		return sizeX - sizeX * scrollBarY->sizeRatioX;
+	return sizeX;
+}
+
 void UIList::RescaleChildrenY(float f)
 {
 	for (int i = 0; i < children.Size(); ++i)

@@ -77,6 +77,11 @@ public:
 	UIList();
 	virtual ~UIList();
 
+
+	virtual int CenteredContentParentPosX() const override;
+	// If parent is e.g. List, available size will vary depending on if scrollbar is present or not.
+	virtual int AvailableParentSizeX() const override;
+
 	void RescaleChildrenY(float f);
 	/// Deletes all children and content inside.
 	void Clear();

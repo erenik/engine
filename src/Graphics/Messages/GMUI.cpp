@@ -417,7 +417,7 @@ void GMSetUIv4f::Process(GraphicsState * graphicsState)
 			e->color = value;
 			break;
         case GMUI::TEXT_COLOR:
-            e->text.color = value;
+			e->SetText(e->text.WithColor(value));
             break;
         case GMUI::VECTOR_INPUT:
             if (e->type != UIType::VECTOR_INPUT)
@@ -669,6 +669,7 @@ void GMSetUIs::AssertTarget()
 		case GMUI::STRING_INPUT_TEXT:
 		case GMUI::STRING_INPUT:
 		case GMUI::INTEGER_INPUT_TEXT:
+		case GMUI::ACTIVATION_MESSAGE:
 			break;
 		default:
 		{
@@ -737,6 +738,9 @@ void GMSetUIs::Process(GraphicsState * graphicsState)
 		case GMUI::TEXT:
 			e->SetText(text, force);
 			break;
+		case GMUI::ACTIVATION_MESSAGE:
+			e->activationMessage = text;
+			break;
 		default:
 			assert(false && "ERROR: Invalid target in GMSetUIs.");
 			break;
@@ -767,6 +771,7 @@ void GMSetUIt::AssertTarget()
 	switch(target){
 		case GMUI::LOG_APPEND:
 		case GMUI::LOG_FILL:
+		case GMUI::TEXT:
 			break;
 		default:
 		{
@@ -782,6 +787,9 @@ void GMSetUIt::Process(GraphicsState * graphicsState)
         return;
 	GetElement("GMSetUIt");
 	switch(target){
+	case GMUI::TEXT:
+		e->SetText(text);
+		break;
 		case GMUI::LOG_APPEND:
 		{
 			if (e->type != UIType::LOG)
@@ -903,8 +911,8 @@ GMAddUI::GMAddUI(List<UIElement*> elements, String toParent, UserInterface * inU
 {
 }
 
-GMAddUI::GMAddUI(List<UIElement*> elements, String toParent, Viewport * viewport)
-: GMUI(GM_ADD_UI, viewport), elements(elements), parentName(toParent)
+GMAddUI::GMAddUI(List<UIElement*> elements, String toParent, Viewport * viewport, UIFilter withFilter)
+: GMUI(GM_ADD_UI, viewport), elements(elements), parentName(toParent), filter(withFilter)
 {
 }
 void GMAddUI::Process(GraphicsState * graphicsState)
@@ -915,7 +923,7 @@ void GMAddUI::Process(GraphicsState * graphicsState)
 	if (parentName == "root")
 		e = ui->GetRoot();
 	else
-		e = ui->GetElementByName(parentName);
+		e = ui->GetElementByName(parentName, filter);
 	if (!e){
 		LogGraphics("GMAddUI: No UIElement with given name could be found: "+parentName, INFO);
 		return;

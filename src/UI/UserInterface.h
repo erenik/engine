@@ -119,7 +119,7 @@ public:
 	/// Returns a pointer to element with given ID. Returns NULL if it cannot be found.
 	UIElement * GetElementById(int ID);
 	/// Returns a  pointer to element with specified name. Returns NULL if it cannot be found.
-	UIElement * GetElementByName(const char * name);
+	UIElement * GetElementByName(const char * name, UIFilter filter = UIFilter::None);
 	/// Tries to fetch element by source, for when loaded from a .gui file straight into an element.
 	UIElement * GetElementBySource(String source);
 	/// Gets the currently active element (for input, probably!)

@@ -1060,6 +1060,9 @@ bool InputManager::UIProceed()
 /// Returns true if it actually did something. False if all menus etc. already have been closed.
 bool InputManager::UICancel()
 {
+	Graphics.QueueMessage(new GMCancelUI());
+	return true;
+	/*
 	std::cout<<"\nUICancel";
 	UserInterface * ui = RelevantUI();
 	/// Fetch active ui in stack.
@@ -1071,6 +1074,7 @@ bool InputManager::UICancel()
 	// Post onExit only when exiting it via UICancel for example!
 	MesMan.QueueMessages(element->onExit);
 	return true;
+	*/
 }
 
 /// Similar to GoToNextElement above^

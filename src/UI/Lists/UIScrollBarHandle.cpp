@@ -18,12 +18,17 @@ UIScrollBarHandle::UIScrollBarHandle()
 {
     type = UIType::SCROLL_HANDLE;
     name = "Scroll bar handle";
+	sizeRatioX = 0.8f;
     selectable = true;
     hoverable = true;
     activateable = true;
     isSysElement = true;
 	highlightOnHover = true;
     activationMessage = "BeginScroll(this)";
+
+	topBorderTextureSource = "ui/border_top_4";
+	rightBorderTextureSource = "ui/border_right_4";
+	topRightCornerTextureSource = "ui/top_right_corner_8x8";
 }
 
 UIScrollBarHandle::~UIScrollBarHandle()
@@ -117,6 +122,8 @@ UIScrollBar::UIScrollBar()
     type = UIType::SCROLL_BAR;
     name = "Scroll bar";
     handle = NULL;
+
+	alignment = SCROLL_BAR_Y;
 
     selectable = true;
     hoverable = true;

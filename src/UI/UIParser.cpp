@@ -83,8 +83,7 @@ bool UIParser::LoadFromFile(String filePath, UIElement * root){
 
 	assert(!file.bad());
 
-	std::cout << "\n=====================================";
-	std::cout << "\nBeginning parsing file " << filePath;
+	LogMain("=====================================\nBeginning parsing file " + filePath, INFO);
 
 	// Dump data into handable format.
 	String contents;
@@ -111,7 +110,9 @@ bool UIParser::LoadFromFile(String filePath, UIElement * root){
 
 	/// Read until done or too many errors!
 	bool wasLastLine = false;
-	std::cout << "\nLines to parse: " << lines.Size();
+	LogMain("Lines to parse: " + String(lines.Size()), INFO);
+	Timer parseStart;
+	parseStart.Start();
 	for (int i = 0; i < lines.Size(); ++i) {
 
 		line = lines[i];
@@ -801,6 +802,10 @@ bool UIParser::LoadFromFile(String filePath, UIElement * root){
 				ENSURE_NEXT_TOKEN
 					element->alignment = UIElement::GetAlignment(NEXT_TOKEN);
 			}
+			else if (token == "retainAspectRatio") {
+				EnsureNextToken(tokens);
+				element->retainAspectRatioOfTexture = NextToken(tokens).ParseBool();
+			}
 			else if (token == "maxWidth") {
 				ENSURE_NEXT_TOKEN;
 				element->maxWidth = tokens[1].ParseInt();
@@ -866,7 +871,7 @@ bool UIParser::LoadFromFile(String filePath, UIElement * root){
 					if (parentName == "root")
 						e = root;
 					else
-						e = root->GetElementWithName(parentName);
+						e = root->GetElementByName(parentName);
 					if (e == NULL) {
 						std::cout << "\nUndefined parent element " << tokens[1] << " for element " << element->name << "! Make sure you define it before you add children to it! o-o";
 						for (int c = 0; c < parentName.Length(); ++c)
@@ -897,12 +902,20 @@ bool UIParser::LoadFromFile(String filePath, UIElement * root){
 		}
 	}
 	ADD_PREVIOUS_TO_UI_IF_NEEDED
+
+	parseStart.Stop();
+	int ms = parseStart.GetMs();
+	if (ms > 50) // If more than 10 ms?
+		LogMain("Parsing UI at " + filePath+ " took more than 50ms: " + String(ms) + " ms!", WARNING);
+	else if (ms > 5)
+		LogMain("Parsing UI at "+ filePath +" took " + String(ms) + " ms", INFO);
+
 	return true;
 };
 
 List<String> UIParser::ParseTokens(String fromLine)
 {
-	LogMain("Parsing tokens from line: " + fromLine, INFO);
+	LogMain("Parsing tokens from line: " + fromLine, DEBUG);
 	List<String> tokens;
 	for (int l = 0; l < fromLine.Length(); ++l) {
 		cChar = fromLine.At(l);

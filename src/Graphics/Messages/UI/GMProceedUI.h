@@ -13,3 +13,10 @@ public:
 
 	virtual void Process(GraphicsState* graphicsState);
 };
+
+class GMCancelUI : public GMUI {
+public:
+	GMCancelUI();
+	virtual ~GMCancelUI();
+	virtual void Process(GraphicsState* graphicsState);
+};

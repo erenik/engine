@@ -419,11 +419,11 @@ UIElement * UserInterface::GetElementById(int ID){
 }
 
 /// Returns a  pointer to element with specified name. Returns NULL if it cannot be found.
-UIElement * UserInterface::GetElementByName(const char * name){
+UIElement * UserInterface::GetElementByName(const char * name, UIFilter filter /*= UIFilter::None*/){
 	if (name == NULL)
 		return NULL;
 	if (root)
-		return root->GetElementWithName(name);
+		return root->GetElementByName(name, filter);
 	return NULL;
 };
 
