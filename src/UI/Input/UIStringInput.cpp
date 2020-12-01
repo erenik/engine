@@ -24,6 +24,11 @@ UIStringInput::UIStringInput(String name, String onTrigger)
 	rememberPreviousInputs = true;
 	guiInputDisabled = false;
 	index = 0;
+	
+	// Don't highlight this, highlight the sub-input element
+	this->highlightOnHover = false;
+	this->highlightOnActive = false;
+	textureSource = "0x00000000";
 }
 UIStringInput::~UIStringInput()
 {
@@ -136,7 +141,7 @@ void UIStringInput::CreateChildren(GraphicsState * graphicsState)
 	/// Set them to only accept floats?
 	input->text = "";
 	input->rememberPreviousInputs = true;
-	input->textAlignment = CENTER;
+	input->textAlignment = LEFT;
 	if (guiInputDisabled)
 	{
 		input->activateable = false;

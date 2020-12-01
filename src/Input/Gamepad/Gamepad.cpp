@@ -118,6 +118,9 @@ void GamepadManager::Update(float timeInSeconds) {
 		gamepad.leftButtonPressed = input->wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER;
 		gamepad.rightButtonPressed = input->wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER;
 
+		gamepad.dPadUpPressed = input->wButtons & XINPUT_GAMEPAD_DPAD_UP;
+		gamepad.dPadDownPressed = input->wButtons & XINPUT_GAMEPAD_DPAD_DOWN;
+
 		message->previousState = previousState;
 
 		message->leftStickUpdated = previousState.leftStick != gamepad.leftStick;
@@ -133,6 +136,9 @@ void GamepadManager::Update(float timeInSeconds) {
 		message->yButtonPressed = gamepad.yButtonPressed && (previousState.yButtonPressed != gamepad.yButtonPressed);
 		message->leftButtonPressed = gamepad.leftButtonPressed && (previousState.leftButtonPressed != gamepad.leftButtonPressed);
 		message->rightButtonPressed = gamepad.rightButtonPressed && (previousState.rightButtonPressed != gamepad.rightButtonPressed);
+
+		message->dPadUpPressed = gamepad.dPadUpPressed && (previousState.dPadUpPressed != gamepad.dPadUpPressed);
+		message->dPadDownPressed = gamepad.dPadDownPressed && (previousState.dPadDownPressed != gamepad.dPadDownPressed);
 
 		MesMan.QueueMessage(message);
 
@@ -178,6 +184,13 @@ void GamepadManager::OnNoUpdate(float timeInSeconds, Gamepad & state, Gamepad & 
 
 void GamepadManager::PostUpdate(Gamepad & state, Gamepad & previousState) {
 	if (InputMan.NavigateUI()) {
+
+		if (state.dPadUpPressed) {
+			QueueGraphics(new GMNavigateUI(NavigateDirection::Up));
+		}
+		if (state.dPadDownPressed) {
+			QueueGraphics(new GMNavigateUI(NavigateDirection::Down));
+		}
 
 		if (state.leftStickUp && !previousState.leftStickUp) {
 			QueueGraphics(new GMNavigateUI(NavigateDirection::Up));

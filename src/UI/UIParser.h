@@ -12,23 +12,12 @@
 
 #define SET_DEFAULTS SetDefaults(element);
 
-#define ADD_PREVIOUS_TO_UI_IF_NEEDED AddPreviousToUIIfNeeded(); {\
-	if (element && element != root){\
-		bool addedOK = root->AddToParent(nullptr, defaultParent, element);\
-		if (!addedOK)\
-			delete element;\
-		else\
-			element->CreateChildren(nullptr);\
-		}\
-	element = NULL;\
-	}
-
 
 class UIParser 
 {
 public:
 
-	UIParser(UIElement * root);
+	UIParser();
 
 	/// Default values that can be set when parsing
 	int defaultAlignment = UIElement::NULL_ALIGNMENT;
@@ -57,7 +46,7 @@ public:
 	String line;
 
 	/// Loads from target file, using given root as root-element in the UI-hierarchy.
-	bool LoadFromFile(String filePath, UIElement * root);
+	UIElement* LoadFromFile(String filePath, UserInterface * ui);
 
 	List<String> ParseTokens(String fromLine);
 

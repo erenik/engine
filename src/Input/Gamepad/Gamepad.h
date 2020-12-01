@@ -23,6 +23,7 @@ public:
 	int leftStickIterations;
 
 	bool aButtonPressed, bButtonPressed, xButtonPressed, yButtonPressed;
+	bool dPadUpPressed, dPadDownPressed;
 	bool leftButtonPressed, rightButtonPressed;
 
 	bool menuButtonPressed;

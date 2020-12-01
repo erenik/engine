@@ -53,6 +53,7 @@ public:
 		CHILD_VISIBILITY, // Used to specify the visibility of all children via GMSetUIb instead of having an own message-class.
 		ACTIVATABLE,
 		HOVERABLE,
+		HOVER_STATE,
 		TOGGLED,
 		CHILD_TOGGLED, // Used to specify the toggled-parameter of all children via GMSetUIb. Function: together with a TOGGLED message to change the active button in a .. button list.
 		ENABLED, // For temporarily enabling/disabling things like buttons.

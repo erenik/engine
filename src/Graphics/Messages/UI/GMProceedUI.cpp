@@ -72,7 +72,6 @@ void GMCancelUI::Process(GraphicsState* graphicsState) {
 		stackTop->RemoveState(UIState::ACTIVE, true);
 	}
 	else {
-		UserInterface * ui = RelevantUI();
 		/// Fetch active ui in stack.
 		UIElement * element = ui->GetStackTop();
 		if (element->exitable == false)

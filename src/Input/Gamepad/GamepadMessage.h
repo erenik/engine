@@ -16,6 +16,7 @@ public:
 		leftTriggerUpdated, rightTriggerUpdated,
 		aButtonPressed, bButtonPressed,
 		xButtonPressed, yButtonPressed,
+		dPadUpPressed, dPadDownPressed,
 		// The buttons above triggers
 		leftButtonPressed, rightButtonPressed;
 

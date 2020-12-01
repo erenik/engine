@@ -189,17 +189,20 @@ String::String(const float fValue, int decimalsAfterZeroAndNotation /*= 0*/)
 	/// Remove unneccessary trailing zeros, and the decimal point if it's still there... wat
 	int len = bufSize;
 	bool done = false;
+	/*
 	for (int i = len-1; i > 0; --i){
 		switch(arr[i]){
 			/// Waste of space	
 			case '0': 
 				arr[i] = '\0';
 				break;
-			/// Waste of space, but end cutoff after this, or we'll clip away valueable numbers.
+			// No! /// Waste of space, but end cutoff after this, or we'll clip away valueable numbers. 
 			case '.':
-				arr[i] = '\0';
 				done = true;
 				break;
+				//arr[i] = '\0';
+				//done = true;
+				//break;
 			/// Valid number, stop cutting away digits.
 			case '1':
 			case '2':
@@ -216,6 +219,7 @@ String::String(const float fValue, int decimalsAfterZeroAndNotation /*= 0*/)
 		if (done)
 			break;
 	}
+	*/
 }
 
 

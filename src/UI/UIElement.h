@@ -77,6 +77,8 @@ public:
 	/// Copy-cosntructor.
 	UIElement(const UIElement & reference);
 
+	void SetRootDefaults(UserInterface * ui);
+
 	UIElement * Parent() {return parent;};
 
 	virtual int CenteredContentParentPosX() const;
@@ -369,7 +371,7 @@ public:
 	// Position-adjustment variables for advanced UI elements like UIList
 	float padding;
 	// Padding for text within elements. Default 0, or try 0.1?
-	float textPadding;
+	int textPaddingPixels;
 	float textSizeY, textSizeX;
 
 	UIType type;							// Type of the UIElement
@@ -418,6 +420,8 @@ public:
 	float textSizeRatio;
 
 
+	/// Sets color, but may also update corner/edge elements to use the same color multiplier as well.
+	void SetColor(Vector4f color);
 	/// Colors for the element.
 	Vector4f color;
 	/// Colors for the text
@@ -427,6 +431,8 @@ public:
 	static float onActiveHightlightFactor; 
 	// When hovering on it.
 	static float onHoverHighlightFactor;
+	// When not hovering, not clicking it.
+	static float onIdleHighlightFactor;
 	// If toggled (checkbox, radiobutton), additional highlight-factor
 	static float onToggledHighlightFactor;
 

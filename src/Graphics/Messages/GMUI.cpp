@@ -414,7 +414,7 @@ void GMSetUIv4f::Process(GraphicsState * graphicsState)
 	}
     switch(target){
 		case GMUI::COLOR:
-			e->color = value;
+			e->SetColor(value);
 			break;
         case GMUI::TEXT_COLOR:
 			e->SetText(e->text.WithColor(value));
@@ -541,6 +541,7 @@ void GMSetUIb::AssertTarget()
         case GMUI::TOGGLED:
         case GMUI::ACTIVATABLE:
 		case GMUI::HOVERABLE:
+		case GMUI::HOVER_STATE:
 		case GMUI::ENABLED:
 		case GMUI::CHILD_TOGGLED:
 		case GMUI::CHILD_VISIBILITY:
@@ -577,9 +578,9 @@ void GMSetUIb::Process(GraphicsState * graphicsState)
 	}
 	switch(target){
 		case GMUI::TOGGLED: {
-				UIToggleButton * toggleButton = (UIToggleButton*) e;
-				toggleButton->SetToggled(value);
-				break;
+			UIToggleButton * toggleButton = (UIToggleButton*) e;
+			toggleButton->SetToggled(value);
+			break;
 		}
 		case GMUI::CHILD_TOGGLED:
 		{
@@ -607,6 +608,12 @@ void GMSetUIb::Process(GraphicsState * graphicsState)
 		case GMUI::HOVERABLE:
 			e->hoverable = value;
 			break;
+		case GMUI::HOVER_STATE:
+			if (value)
+				e->AddState(UIState::HOVER);
+			else
+				e->RemoveState(UIState::HOVER);
+			break;
 		case GMUI::ENABLED:
 			if (value)
 				e->RemoveState(UIState::DISABLED);
@@ -619,7 +626,11 @@ void GMSetUIb::Process(GraphicsState * graphicsState)
 			{
 				return;
 			}
-			e->Activate(graphicsState);
+			if (value)
+				e->AddState(UIState::ACTIVE);
+			else
+				e->RemoveState(UIState::ACTIVE);
+			//e->Activate(graphicsState);
 			break;
 		default:
 			std::cout<<"\nERROR: Invalid target provided in GMSetUIb";
@@ -987,6 +998,12 @@ void GMPushUI::Process(GraphicsState * graphicsState)
 		e = element;
 	else
 		e = ui->GetElementByName(uiName);
+
+	if (ui->Root() == nullptr) {
+		ui->CreateRoot();
+		LogGraphics("Emergency creating root!", WARNING);
+	}
+
 	/// Check if it's a full resource string, if so try and create it now.
 	if (!e && uiName.Contains(".gui"))
 	{

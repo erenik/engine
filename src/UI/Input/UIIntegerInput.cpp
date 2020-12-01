@@ -142,7 +142,10 @@ void UIIntegerInput::CreateChildren(GraphicsState* graphicsState)
 	UIColumnList * box = CreateDefaultColumnList(this);
 	float spacePerElement = DefaultSpacePerElement(padding);
 	label = CreateDefaultLabel(box, displayText, divider.x);
+	label->textAlignment = LEFT;
+	//label->textureSource = "0x554433";
 	input = CreateDefaultInput(box, name, 1 - divider.x);
+	//input->textureSource = "0x334455";
 
 	/// Set them to only accept floats?
 	/// Any mathematical expression?
@@ -152,7 +155,6 @@ void UIIntegerInput::CreateChildren(GraphicsState* graphicsState)
 	else
 		input->numbersOnly = true;
 	input->text = "0";
-	input->sizeRatioX = spacePerElement;
 	input->textAlignment = RIGHT;
 	if (guiInputDisabled)
 	{

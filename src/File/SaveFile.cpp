@@ -98,7 +98,7 @@ bool SaveFile::AutoSave(String gameName, String customHeaderData) {
 	return true;
 }
 
-bool SaveFile::LoadAutoSave(String gameName, String customHeaderData) {
+bool SaveFile::LoadAutoSave(String gameName) {
 	SaveFile autoSave(gameName, "autosave");
 	return autoSave.Load();
 }

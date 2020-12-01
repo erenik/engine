@@ -210,8 +210,10 @@ GameVar * GameVariableManager::CreateString(String name, String initialValue)
 	GameVariable * exists = Get(name);
 	if (exists)
 	{
-		if (exists->Type() == GameVariable::STRING)
+		if (exists->Type() == GameVariable::STRING) 
+		{
 			return exists;
+		}
 		assert(false);
 		return NULL;
 	}
@@ -286,6 +288,14 @@ bool GameVariableManager::ReadFrom(std::fstream & stream)
 		else
 		{
 			gameVariables.Add(newGV);
+			switch (newGV->type) {
+			case GameVariable::INTEGER: integers.Add(newGV); break;
+			case GameVariable::STRING: strings.Add(newGV); break;
+			case GameVariable::TIME: LogMain("No specific filtering for time", INFO); break;
+			default:
+				assert(false);
+				break;
+			}
 		}
 	}
 	return true;

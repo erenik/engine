@@ -113,6 +113,7 @@ public:
 
     /// Prints the UI's tree recursively. The level parameter is in order to display the tree properly.
 	void Print(int level = -1);
+	void PrintStack();
 
 	/// Returns flag if the UI is properly allocated or not.
 	bool IsCreated() { if (root) return true; return false; };
@@ -197,7 +198,7 @@ protected:
 	/// Deallocates UI, and reloads from base-file.
 	void Reload();
 	/// Loads from target file, using given root as root-element in the UI-hierarchy.
-	static bool LoadFromFile(String filePath, UIElement * intoRoot);
+	static UIElement * LoadFromFile(String filePath, UserInterface * ui);
 
 	/// Removes references to target element
 	void OnElementDeleted(UIElement * element);

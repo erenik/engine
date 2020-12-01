@@ -46,6 +46,7 @@ void UIRadioButtons::CreateChildren(GraphicsState* graphicsState)
 		UILabel * label = new UILabel(text);
 		label->sizeRatioX = labelSize;
 		label->text = displayText;
+		label->textureSource = "0x00000000";
 		AddChild(nullptr, label);
 	}
 	for (int i = 0; i < numButtons; ++i)
@@ -57,6 +58,7 @@ void UIRadioButtons::CreateChildren(GraphicsState* graphicsState)
 		button->text = buttonTexts.Size() > i ? buttonTexts[i] : "";
 		button->sizeRatioX = spacePerElement;
 		button->topRightCornerTextureSource = topRightCornerTextureSource;
+		button->textureSource = "";
 		if (textureSourcesOrNames.Size()) {
 			button->textureSource = textureSourcesOrNames[i];
 			button->retainAspectRatioOfTexture = true;

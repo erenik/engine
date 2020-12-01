@@ -276,6 +276,8 @@ UIElement * UserInterface::Activate(){
 /// Primarily used by the system-global UI. This queries if there is any currently visible UI which may respond to user input available.
 bool UserInterface::HasActivatableElement()
 {
+	if (root == nullptr)
+		return false;
 	List<UIElement * > list;
 	root->GetElementsByFlags(UIFlag::ACTIVATABLE | UIFlag::VISIBLE, list);
 	return list.Size() > 0;
@@ -360,6 +362,8 @@ void UserInterface::DeleteGeometry()
 */
 bool UserInterface::AdjustToWindow(Vector2i size)
 {
+	if (root == nullptr)
+		return false;
 	// Check if we need to do anything at all first!
 	if (width == size[0] && height == size[1])
 		return false;
@@ -401,14 +405,31 @@ void UserInterface::Render(GraphicsState & graphicsState)
 {
 	/// Disable depth-test.
 	glDisable(GL_DEPTH_TEST);
+	
 	/// Render the tree.
-	root->Render(graphicsState);
+	// root->Render(graphicsState);
+
+	// Render the stack instead! Tree may be outdated. o-o;;
+	for (int i = 0; i < stack.Size(); ++i) {
+		stack[i]->Render(graphicsState);
+	}
+
 	lastRenderTime = Timer::GetCurrentTimeMs();
 }
 
 /// Prints the UI's tree recursively. The level parameter is in order to display the tree properly.
 void UserInterface::Print(int level/* = -1*/){
     root->Print(level);
+}
+
+void UserInterface::PrintStack() {
+	String toLog;
+	toLog += "\nUI::PrintStack for UI: " + name;
+	toLog += "\nStack size: " + String(stack.Size());
+	for (int i = 0; i < stack.Size(); ++i) {
+		toLog += "\n "+String(i)+": " + stack[i]->name+", visible: "+ String(stack[i]->visible);
+	}
+	std::cout << toLog;
 }
 
 /// lol?
@@ -448,6 +469,9 @@ UIElement * UserInterface::GetActiveElement()
 /// Returns active input focus element, if any. Based on the GetActiveElement but performs additional checks.
 UIElement * UserInterface::ActiveInputFocusElement()
 {
+	UIElement* stackTop = GetStackTop();
+	if (stackTop == nullptr)
+		return nullptr;
 	UIElement * e = GetStackTop()->GetActiveElement();
 	if (!e)
 		return NULL;
@@ -570,13 +594,7 @@ void UserInterface::ReloadAll()
 UIElement * UserInterface::CreateRoot()
 {
 	root = NewA(UIElement);
-	root->name = "root";
-	root->exitable = false;
-	root->selectable = false;
-	root->activateable = false;
-	root->textureSource = "0xFF00"; // Alpha texture.
-	// Link it.
-	root->ui = this;
+	root->SetRootDefaults(this);
 	return root;
 }
 
@@ -596,25 +614,24 @@ bool UserInterface::Load(String fromFile)
 
 	name = fromFile;
 	/// Load into root.
-	bool success = LoadFromFile(fromFile, root);
-	if (success){
+	root = LoadFromFile(fromFile, this);
+	if (root != nullptr){
 		source = fromFile;
 		std::cout<<" done.";
 	}
 	else 
 		std::cout<<" failed.";
-	return success;
+	return false;
 }
 
 
 /** Loads target UI from file, storing it as a single UIElement so that it may be inserted into any other UI of choice.
 	Caller is responsible for inserting it into a proper UI or deallocation if it fails.
 */
-UIElement * UserInterface::LoadUIAsElement(String uiSrcLocation){
-	UIElement * newElement = new UIElement();
-	bool success = LoadFromFile(uiSrcLocation, newElement);
+/* static */ UIElement * UserInterface::LoadUIAsElement(String uiSrcLocation){
+	UIElement * newElement = LoadFromFile(uiSrcLocation, nullptr);
 	/// Check that it worked as intended.
-	if (!success)
+	if (newElement == nullptr)
 	{
 		std::cout<<"\nUserInterface::LoadUIAsElement: Failed.";
 		delete newElement;
@@ -745,22 +762,21 @@ void UserInterface::Reload()
 	this->Unbufferize();
 	this->DeleteGeometry();
 	delete root;
-	this->CreateRoot();
-	LoadFromFile(source, root);
+	root = LoadFromFile(source, this);
 }
 
 
 #include "UIParser.h"
 
 /// Loads from target file, using given root as root-element in the UI-hierarchy.
-bool UserInterface::LoadFromFile(String filePath, UIElement * root)
+/* static */ UIElement * UserInterface::LoadFromFile(String filePath, UserInterface * ui)
 {
 	String fromFile = filePath;
 	if (!fromFile.Contains(rootUIDir)) {
 		fromFile = rootUIDir + fromFile;
 	}
-	UIParser parser(root);
-	return parser.LoadFromFile(fromFile, root);
+	UIParser parser;
+	return parser.LoadFromFile(fromFile, ui);
 }
 
 

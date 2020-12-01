@@ -1195,6 +1195,8 @@ void InputManager::PushToStack(GraphicsState* graphicsState, UIElement * element
 	// Set navigation cyclicity.
 	cyclicY = element->cyclicY;
 	//hoverElement = ui->Hover(firstActivatable->posX, firstActivatable->posY);
+
+	ui->PrintStack();
 }
 
 /// Pops the top-most UI from stack, also automatically tries to locate the previous hover-element for further interaction.
@@ -1203,8 +1205,9 @@ UIElement * InputManager::PopTopmostUIFromStack(GraphicsState* graphicsState, Us
 	if (!ui)
 		return NULL;
 	UIElement * top = ui->GetStackTop();
-	if (PopFromStack(graphicsState, top, ui))
+	if (PopFromStack(graphicsState, top, ui)) {
 		return top;
+	}
 	return NULL;
 }
 /// Pops target element from stack, and also automatically tries to locate the previous hover-element!
@@ -1224,6 +1227,8 @@ UIElement * InputManager::PopFromStack(GraphicsState* graphicsState, UIElement *
 		LogGraphics("Unable to pop UI from stack, might require force=true", FATAL);
 		return NULL;
 	}
+
+	ui->PrintStack();
 
 	// Set new navigation cyclicity.
 	UIElement * stackTop = ui->GetStackTop();

@@ -247,6 +247,9 @@ void Action::TriggerStart()
 				window->ToggleFullScreen();
 			break;
 		}
+		case PRINT_SCREENSHOT:
+			QueueGraphics(new GraphicsMessage(GM_PRINT_SCREENSHOT));
+			break;
 		default:
 			assert(false && "Implement");
 	}

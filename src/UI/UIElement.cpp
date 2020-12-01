@@ -36,9 +36,11 @@ String UIElement::defaultTextureSource; //  = "80Gray50Alpha.png";
 Vector4f UIElement::defaultTextColor = Vector4f(1,1,1,1);
 
 // When clicking on it.
-float UIElement::onActiveHightlightFactor = 0.4f;
+float UIElement::onActiveHightlightFactor = 0.3f;
 // When hovering on it.
-float UIElement::onHoverHighlightFactor = 0.3f;
+float UIElement::onHoverHighlightFactor = 0.0f;
+// When not hovering, not clicking it.
+float UIElement::onIdleHighlightFactor = -0.3f;
 // When toggled, additional factor
 float UIElement::onToggledHighlightFactor = 0.3f;
 
@@ -180,7 +182,7 @@ void UIElement::Nullify()
 	isBuffered = isGeometryCreated = false;
 	color = Vector4f(1,1,1,1);
 
-	textPadding = 0.1f;
+	textPaddingPixels = 4;
 }
 
 UIElement::UIElement(){
@@ -358,12 +360,10 @@ void UIElement::UpdateHighlightColor()
 	if (this->state & UIState::ACTIVE && highlightOnActive)
 		highlightColor *= onActiveHightlightFactor;
 	else if (this->state & UIState::HOVER && highlightOnHover){
-	//	std::cout<<"\nHoverElement: "<<name;
 		highlightColor *= onHoverHighlightFactor;
 	}
-	else {
-		highlightColor *= 0.f;
-		// Default color
+	else if (highlightOnHover || highlightOnActive) {
+		highlightColor *= onIdleHighlightFactor;
 	}
 	// Duller colors for temporarily disabled buttons.
 	if (this->IsDisabled())
@@ -1481,6 +1481,16 @@ bool UIElement::AddToParent(GraphicsState* graphicsState, String parentName, UIE
     return false;
 }
 
+void UIElement::SetRootDefaults(UserInterface * ui) {
+	name = "root";
+	exitable = false;
+	selectable = false;
+	activateable = false;
+	textureSource = "0xFF00"; // Alpha texture.
+	// Link it.
+	ui = ui;
+}
+
 void UIElement::SetParent(UIElement *in_parent){
 	parent = in_parent;
 }
@@ -1837,10 +1847,10 @@ void UIElement::FormatText(GraphicsState * graphicsState)
 	Vector2f size = currentFont->CalculateRenderSizeUnits(text);
 
 	// SizeY but taking into consideration textPadding.
-	textSizeY = sizeY * (textSizeRatio - textPadding * 2);
-	textSizeX = sizeX * (textSizeRatio - textPadding * 2);
+	textSizeY = sizeY * (textSizeRatio) - textPaddingPixels * 2;
+	textSizeX = sizeX * (textSizeRatio) - textPaddingPixels * 2;
 
-	textToRender.offsetY = sizeY * textPadding;
+	textToRender.offsetY = textPaddingPixels;
 
 	/// Pixels per unit, defined by the relative Y size the text should have.
 	float pixelsPerUnit = textSizeY;
@@ -1871,7 +1881,7 @@ void UIElement::FormatText(GraphicsState * graphicsState)
 		case UIElement::CENTER: {
 			pixelsPerUnit = currentTextSizeRatio * textSizeY;
 			pixelsRequired = size * pixelsPerUnit;
-			int offsetX = textSizeX * 0.5f - pixelsRequired.x * 0.5f + sizeX * textPadding;
+			int offsetX = textSizeX * 0.5f - pixelsRequired.x * 0.5f + textPaddingPixels;
 			if (offsetX < 0)
 				offsetX = 0;
 			textToRender.offsetX = offsetX;
@@ -1880,7 +1890,7 @@ void UIElement::FormatText(GraphicsState * graphicsState)
 		case UIElement::RIGHT: {
 			pixelsPerUnit = currentTextSizeRatio * textSizeY;
 			pixelsRequired = size * pixelsPerUnit;
-			int offsetX = textSizeX - pixelsRequired.x + sizeX * textPadding;
+			int offsetX = textSizeX - pixelsRequired.x + textPaddingPixels;
 			if (offsetX < 0)
 				offsetX = 0;
 			textToRender.offsetX = offsetX;
@@ -1888,7 +1898,7 @@ void UIElement::FormatText(GraphicsState * graphicsState)
 		}
 		default:
 		case UIElement::LEFT:
-			textToRender.offsetX = sizeX * textPadding;
+			textToRender.offsetX = textPaddingPixels;
 			break;
 	}
 
@@ -1905,6 +1915,7 @@ UIElement * UIElement::CreateBorderElement(String textureSource, char alignment)
 		return nullptr;
 	}
 	borderElement->alignment = alignment;
+	borderElement->highlightOnHover = true;
 	switch (alignment) {
 	case TOP:
 		borderElement->sizeY = texture->size.y;
@@ -2312,6 +2323,9 @@ bool UIElement::AddState(int i_state)
 			return false;
 		if (inputState->demandHighlightOnHoverForHoverElements && !highlightOnHover)
 			return false;
+		for (int i = 0; i < borderElements.Size(); ++i) {
+			borderElements[i]->state |= i_state;
+		}
 	}
 	state |= i_state;
 	OnStateAdded(i_state);
@@ -2324,7 +2338,7 @@ void UIElement::OnStateAdded(int state) {
 		/// It it us! Activate power!
 		if (activationMessage.Length() == 0)
 		{
-			std::cout << "Activatable UI element has no valid activation message string!";
+			LogGraphics("Activatable UI element has no valid activation message string!", INFO);
 		}
 		else if (activationMessage.Length() != 0)
 		{
@@ -2365,6 +2379,10 @@ void UIElement::RemoveState(int statesToRemove, bool recursive /* = false*/){
 		for (int i = 0; i < children.Size(); ++i){
 			children[i]->RemoveState(statesToRemove, recursive);
 		}
+	}
+
+	for (int i = 0; i < borderElements.Size(); ++i) {
+		borderElements[i]->state &= ~statesToRemove;
 	}
 }
 
@@ -2465,3 +2483,12 @@ void UIElement::EnsureVisibility(GraphicsState* graphicsState, UIElement * eleme
 	if (parent)
 		parent->EnsureVisibility(graphicsState, this);
 }
+
+/// Sets color, but may also update corner/edge elements to use the same color multiplier as well.
+void UIElement::SetColor(Vector4f color) {
+	this->color = color;
+	for (int i = 0; i < borderElements.Size(); ++i) {
+		borderElements[i]->color = color;
+	}
+}
+

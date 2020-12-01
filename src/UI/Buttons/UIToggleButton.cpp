@@ -28,6 +28,9 @@ UIToggleButton::UIToggleButton(String name /*= ""*/)
 	activateable = true;
 	toggled = false;
 
+	this->highlightOnActive = true;
+	this->highlightOnHover = true;
+
 	UpdateTexture();
 };
 
@@ -48,20 +51,7 @@ UIElement* UIToggleButton::Activate(GraphicsState* graphicsState)
 	// Check the element's state. If it is active, we've found it. Dialogues work too, or?
 	if (HasState(UIState::ACTIVE))
 	{
-		/// Just unflag the active state, try ensure that the hover-state remains!
-		RemoveState(UIState::ACTIVE);
-		// Now return our message!
-		if (selectable == true) {
-			toggled = !toggled;
-			UpdateTexture();
-			OnToggled(this);
-			// Send a message!
-			BoolMessage * msg = new BoolMessage(activationMessage, toggled);
-			MesMan.QueueMessage(msg);
-		}
-		else {
-			// Element not activatable
-		}
+		RemoveState(UIState::ACTIVE); // Logic is handled when Active state is removed.
 		return this;
 	}
 	// If not, return 0, since we haven't found the right element.
@@ -82,14 +72,20 @@ void UIToggleButton::SetToggledSilently(bool value) {
 
 
 void UIToggleButton::OnStateAdded(int state) {
-	if (state == UIState::ACTIVE) {
-		SetToggled(!toggled);
-		parent->OnToggled(this);
-		RemoveState(state);
-	}
 	UIElement::OnStateAdded(state);
 }
 
+/// For example UIState::HOVER, if recursive will apply to all children.
+void UIToggleButton::RemoveState(int state, bool recursive /* = false */ ) {
+	if (state == UIState::ACTIVE && HasState(state)) {
+		SetToggled(!toggled);
+		parent->OnToggled(this);
+		// Send a message!
+		BoolMessage * msg = new BoolMessage(activationMessage, toggled);
+		MesMan.QueueMessage(msg);
+	}
+	UIElement::RemoveState(state, recursive);
+}
 
 
 void UIToggleButton::UpdateTexture() {

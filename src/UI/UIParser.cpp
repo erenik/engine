@@ -23,7 +23,9 @@
 
 // Parsing stuff
 
-UIParser::UIParser(UIElement * root)
+#define ADD_PREVIOUS_TO_UI_IF_NEEDED AddPreviousToUIIfNeeded();
+
+UIParser::UIParser()
 	: defaultAlignment(UIElement::NULL_ALIGNMENT)
 	, defaultTexture ("default.png")
 	, defaultParent ("root")
@@ -44,15 +46,17 @@ UIParser::UIParser(UIElement * root)
 	, defaultTextAlignment ( UIElement::LEFT)
 	, lastEvaluatedIndex ( 0)
 	, element(nullptr)
-	, root(root)
+	, root(nullptr)
 {
 
 }
 
 
 /// Loads from target file, using given root as root-element in the UI-hierarchy.
-bool UIParser::LoadFromFile(String filePath, UIElement * root){
+UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 		
+	root = new UIElement();
+	root->SetRootDefaults(ui);
 
 	char * data;
 	int fileSize;
@@ -304,9 +308,17 @@ bool UIParser::LoadFromFile(String filePath, UIElement * root){
 					defaultRootFolder = "";
 			}
 			else if (token == "root") {
+				if (tokens.Size() > 1) {
+					delete root;
+					String typeName = tokens[1];
+					if (typeName == "ToggleButton") {
+						root = new UIToggleButton();
+						root->SetRootDefaults(ui);
+					}
+					else
+						assert(false && "Unsupported root-type");
+				}
 				element = root;
-				if (tokens.Size() > 1)
-					element->name = firstQuote;
 			}
 			else if (token == "element" || token == "div") {
 				ADD_PREVIOUS_TO_UI_IF_NEEDED
@@ -460,6 +472,16 @@ bool UIParser::LoadFromFile(String filePath, UIElement * root){
 				element = fi;
 				element->displayText = firstQuote;
 				SET_DEFAULTS
+			}
+			else if (token == "FloatLabel") {
+				AddPreviousToUIIfNeeded();
+				String firstToken = tokens[1];
+				UIFloatInput * fi = new UIFloatInput(firstToken, "Set" + firstToken);
+				element = fi;
+				element->displayText = firstQuote;
+				element->hoverable = element->activateable = false;
+				//fi->guiInputDisabled = true;
+				SetDefaults(element);
 			}
 			else if (token == "FloatValue")
 			{
@@ -753,6 +775,12 @@ bool UIParser::LoadFromFile(String filePath, UIElement * root){
 				{
 					element->textAlignment = UIElement::CENTER;
 				}
+				else if (value == "Right") {
+					element->textAlignment = UIElement::RIGHT;
+				}
+				else if (value == "Left") {
+					element->textAlignment = UIElement::LEFT;
+				}
 			}
 			else if (token == "dividerX")
 			{
@@ -761,7 +789,7 @@ bool UIParser::LoadFromFile(String filePath, UIElement * root){
 			}
 			else if (token == "textPadding") {
 				EnsureNextToken(tokens);
-				element->textPadding = NextToken(tokens).ParseFloat();
+				element->textPaddingPixels = NextToken(tokens).ParseInt();
 			}
 			else if (token == "origin") {
 				ENSURE_NEXT_TOKEN
@@ -910,7 +938,7 @@ bool UIParser::LoadFromFile(String filePath, UIElement * root){
 	else if (ms > 5)
 		LogMain("Parsing UI at "+ filePath +" took " + String(ms) + " ms", INFO);
 
-	return true;
+	return root;
 };
 
 List<String> UIParser::ParseTokens(String fromLine)
@@ -994,6 +1022,9 @@ void UIParser::SetDefaults(UIElement * element) {
 }
 
 void UIParser::AddPreviousToUIIfNeeded() {
+	// Skip root if it was custom-typed.
+	if (element == root)
+		return;
 	if (element && element != root) {
 		bool addedOK = root->AddToParent(nullptr, defaultParent, element); 
 		if (!addedOK)

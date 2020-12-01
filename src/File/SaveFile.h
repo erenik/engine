@@ -51,8 +51,8 @@ public:
 
 
 	/// By default saves all GameVars.
-	static bool AutoSave(String gameName, String autoSavePostfix);
-	static bool LoadAutoSave(String gameName, String autoSavePostfix);
+	static bool AutoSave(String gameName, String customHeaderData);
+	static bool LoadAutoSave(String gameName);
 
 	bool Load();
 

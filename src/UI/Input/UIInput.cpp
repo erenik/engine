@@ -510,14 +510,14 @@ bool UIInput::BeginInput()
 UIColumnList * UIInput::CreateDefaultColumnList(UIElement * parent) {
 	/// Use a column-list to automatically get links between the elements, etc.
 	UIColumnList * box = new UIColumnList();
-	box->textureSource = parent->textureSource;
+	box->textureSource = "0x00000000";
 	box->padding = parent->padding;
 	parent->AddChild(nullptr, box);
 	return box;
 }
 UILabel * UIInput::CreateDefaultLabel(UIColumnList * box, String text, float sizeX) {
 	UILabel * label = new UILabel();
-	label->textureSource = box->textureSource;
+	label->textureSource = "0x00000000";
 	label->text = text;
 	label->sizeRatioX = sizeX;
 	box->AddChild(nullptr, label);
@@ -526,7 +526,7 @@ UILabel * UIInput::CreateDefaultLabel(UIColumnList * box, String text, float siz
 UIInput * UIInput::CreateDefaultInput(UIColumnList * box, String inputName, float sizeX) {
 	/// Create 3 children
 	UIInput * input = new UIInput();
-	input->textureSource = box->textureSource;
+	input->textureSource = UIElement::defaultTextureSource;
 	input->name = inputName + "Input";
 	input->sizeRatioX = sizeX;
 	box->AddChild(nullptr, input);

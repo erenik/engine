@@ -27,29 +27,6 @@ bool PushUI(String nameOrSource)
 		return false;
 	}
 	UIElement * element = NULL;
-	/// Check if it's a source file, if so try and load that first.
-	if (uiName.Contains(".gui"))
-	{
-		element = ui->GetElementBySource(uiName);
-		if (!element){
-			// Load it.
-			element = UserInterface::LoadUIAsElement(uiSrc);
-			/// Return if we fail to load.
-			if (!element){
-				std::cout<<"\nUnable to load ui: "<<uiName;
-				return false;
-			}
-			/// If we load here, reset elementName since uiName since it probably changed.
-			uiName = element->name;
-			/// Make sure it is exitable. No.
-//			element->exitable = true;
-			QueueGraphics(new GMAddUI(element));
-		}
-	}
-	/// Regular name
-	else {
-		element = ui->GetElementByName(uiName);		
-	}
 	/// Push it to stack if not.
 	if (element)
 		QueueGraphics(GMPushUI::ToUI(element, ui));
