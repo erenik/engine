@@ -122,7 +122,7 @@ void UIDropDownMenu::PopulateList(GraphicsState* graphicsState)
 
 void UIDropDownMenu::Close(GraphicsState* graphicsState)
 {
-	this->ui->PopFromStack(selectionList);
+	this->ui->PopFromStack(graphicsState, selectionList);
 	this->ui->Root()->RemoveChild(graphicsState, selectionList);
 	selectionList->visible = false;
 }

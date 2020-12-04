@@ -1222,7 +1222,7 @@ UIElement * InputManager::PopFromStack(GraphicsState* graphicsState, UIElement *
 		SetNavigateUI(false);
 	}
 	/// Pop it.
-	bool success = ui->PopFromStack(element, force);
+	bool success = ui->PopFromStack(graphicsState, element, force);
 	if (!success){
 		LogGraphics("Unable to pop UI from stack, might require force=true", FATAL);
 		return NULL;

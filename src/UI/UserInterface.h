@@ -166,9 +166,9 @@ public:
 	*/
 	int PushToStack(String elementName);
 	int PushToStack(UIElement * element);
-	void PopFromStack(String elementName);
+	void PopFromStack(GraphicsState * graphicsState, String elementName);
 	/// Pops target element from the interaction/display stack. If force is true it will do it no matter what the element's exitable property says.
-	bool PopFromStack(UIElement * element, bool force = false);
+	bool PopFromStack(GraphicsState * graphicsState, UIElement * element, bool force = false);
 	/// Returns the stack top or root if empty.
 	UIElement * GetStackTop();
 	/// Pops the top element, returning a pointer to it.

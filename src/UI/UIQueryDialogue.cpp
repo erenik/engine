@@ -152,6 +152,7 @@ UIStringDialogue::	UIStringDialogue(String queryHeader, String actionToBeTakenIf
 
 	/// Wether NavigateUI should be enabled when this element is pushed.
 	navigateUIOnPush = true;
+	disableNavigateUIOnPop = false;
 	/// If force navigate UI should be applied for this element.
 	forceNavigateUI = true;
 }

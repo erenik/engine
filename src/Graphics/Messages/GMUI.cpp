@@ -743,7 +743,7 @@ void GMSetUIs::Process(GraphicsState * graphicsState)
 			if (e->type != UIType::INTEGER_INPUT)
 				break;
 			UIIntegerInput * ii = (UIIntegerInput*)e;
-			ii->input->SetText(text);
+			ii->label->SetText(text);
 			break;
 		}
 		case GMUI::TEXT:
@@ -1091,20 +1091,18 @@ void GMPopUI::Process(GraphicsState * graphicsState)
 
 	/// Push to stack, the InputManager will also try and hover on the first primary element.
 	bool success = InputMan.PopFromStack(graphicsState, e, ui, force);
+	if (!success)
+		return;
+
 	LogGraphics("Popped element/menu: " + e->name, INFO);
+	/// If the element wants to keep track of the navigate UI state, then reload it. If not, don't as it will set it to false by default if so.
+	if (e->disableNavigateUIOnPop)
+		InputMan.LoadNavigateUIState(e->previousNavigateUIState);
 
-    /// Post onExit message if it was popped.
-    if (success)
-	{
-		/// If the element wants to keep track of the navigate UI state, then reload it. If not, don't as it will set it to false by default if so.
-		if (e->navigateUIOnPush)
-			InputMan.LoadNavigateUIState(e->previousNavigateUIState);
-
-		/// If specified, remove the element too upon a successful pop-operation.
-		if (e->removeOnPop){
-			DeleteUI(e, ui);
-		}
-    }
+	// Clean it up, yo.
+	ui->GetRoot()->RemoveChild(graphicsState, e);
+	e->FreeBuffers();
+	delete e;
 
 
 	/// By default, set navigate UI to true too!

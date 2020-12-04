@@ -673,10 +673,10 @@ int UserInterface::PushToStack(UIElement * element)
 	element->inStack = true;
 	return PUSHED_TO_STACK;
 }
-void UserInterface::PopFromStack(String elementName){
-	PopFromStack(GetElementByName(elementName));
+void UserInterface::PopFromStack(GraphicsState * graphicsState, String elementName){
+	PopFromStack(graphicsState, GetElementByName(elementName));
 }
-bool UserInterface::PopFromStack(UIElement * element, bool force)
+bool UserInterface::PopFromStack(GraphicsState * graphicsState, UIElement * element, bool force)
 {
 	if (element->GetRoot() != root)
 	{
@@ -699,6 +699,7 @@ bool UserInterface::PopFromStack(UIElement * element, bool force)
 	/// Call on exit scope for it!
 	element->OnExitScope(force);
 	element->visible = false; // Make invisible when popped from stack
+
 	return result;
 }
 

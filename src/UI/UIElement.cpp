@@ -149,6 +149,7 @@ void UIElement::Nullify()
 
 	/// Wether NavigateUI should be enabled when this element is pushed.
 	navigateUIOnPush = false;
+	disableNavigateUIOnPop = false;
 	/// If force navigate UI should be applied for this element.
 	forceNavigateUI = false;
 	/// Previous state before pushing this UI. 0 for none. 1 for regular, 2 for force.

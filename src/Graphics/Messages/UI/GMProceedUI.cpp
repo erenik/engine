@@ -77,7 +77,7 @@ void GMCancelUI::Process(GraphicsState* graphicsState) {
 		if (element->exitable == false)
 			return;
 		/// Queue a message to remove it!
-		ui->PopFromStack(element);
+		ui->PopFromStack(graphicsState, element);
 
 		// Remove active state from stuff in the new stack as well!
 		ui->GetStackTop()->RemoveState(UIState::ACTIVE, true);

@@ -476,6 +476,7 @@ public:
 
 	/// Wether NavigateUI should be enabled when this element is pushed. Default is false.
 	bool navigateUIOnPush;
+	bool disableNavigateUIOnPop;
 	/// If force navigate UI should be applied for this element.
 	bool forceNavigateUI; 
 	/// Previous state before pushing this UI. 0 for none. 1 for regular, 2 for force.
