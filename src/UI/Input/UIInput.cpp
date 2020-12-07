@@ -24,6 +24,7 @@ UIInput::UIInput(String name /*= ""*/)
 	this->name = name;
 	type = UIType::INPUT_FIELD;
 	selectable = hoverable = activateable = true;
+	navigatable = true;
 	activationMessage = "BEGIN_INPUT(this)";
 	
 	/// When true, re-directs all (or most) keyboard input to the target element for internal processing. Must be subclass of UIInput as extra functions there are used for this.
@@ -36,6 +37,9 @@ UIInput::UIInput(String name /*= ""*/)
 
 	min = -INT_MAX;
 	max = INT_MAX;
+
+	label = nullptr;
+	input = nullptr;
 }
 
 UIInput::~UIInput()
@@ -520,6 +524,7 @@ UIColumnList * UIInput::CreateDefaultColumnList(UIElement * parent) {
 UILabel * UIInput::CreateDefaultLabel(UIColumnList * box, String text, float sizeX) {
 	UILabel * label = new UILabel();
 	label->textureSource = "0x00000000";
+	label->hoverable = true;
 	label->SetText(text);
 	label->sizeRatioX = sizeX;
 	box->AddChild(nullptr, label);
@@ -569,6 +574,16 @@ const int UIInput::ParseInt() {
 // Parses float value from this element's text.
 const float UIInput::ParseFloat() {
 	return GetText().ParseFloat();
+}
+
+// For setting static colors.
+void UIInput::SetTextColor(Vector4f newOverrideTextColor) {
+	UIElement::SetTextColor(newOverrideTextColor); // Set for self, in-case elements are not yet created.
+
+	if (label)
+		label->SetTextColor(newOverrideTextColor);
+	if (input)
+		input->SetTextColor(newOverrideTextColor);
 }
 
 void UIInput::SetRange(int newMin, int newMax) {

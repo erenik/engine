@@ -138,6 +138,11 @@ void UIStringInput::CreateChildren(GraphicsState * graphicsState)
 	label = CreateDefaultLabel(box, displayText, divider.x);
 	input = CreateDefaultInput(box, name, 1 - divider.x);
 
+	if (textColor != nullptr) {
+		label->SetTextColor(*textColor);
+		input->SetTextColor(*textColor);
+	}
+
 	/// Set them to only accept floats?
 	input->SetText("");
 	input->rememberPreviousInputs = true;
@@ -147,7 +152,6 @@ void UIStringInput::CreateChildren(GraphicsState * graphicsState)
 		input->activateable = false;
 		input->highlightOnHover = false;
 		box->activateable = false;
-		box->hoverable = false;
 		activateable = false;
 		hoverable = false;
 	}

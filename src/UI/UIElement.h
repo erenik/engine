@@ -325,6 +325,9 @@ public:
 		rightBorderTextureSource,
 		topRightCornerTextureSource;
 
+	// Sets it to override.
+	virtual void SetTextColor(Vector4f overrideColor);
+
 	/// Alignment relative to parent. If this is set all other alignment* variables will be ignored.
 	char alignment;
 	/// Text contents alignment relative to current size/etc. Defautlt left.
@@ -390,6 +393,7 @@ public:
 	bool hoverable;						// Toggles if the element responds to hover-messages
 	bool highlightOnHover;				// Toggles the UI-highlighting for currently hovered UI-elements.
 	bool activateable;					// Toggles whether it is CURRENTLY activatable.
+	bool navigatable;					// Toggles whether this element should be navigatable with arrow-keys/gamepad.
 	bool highlightOnActive;				// Toggles if the element should highlight when clicking or active. Default is True.
 	/// Defines if the element is moveable in runtime, for example slider-handles
 	bool moveable;
@@ -412,6 +416,9 @@ public:
 		It is assumed that this label is a regular child.
 	*/
 	UILabel * label;
+
+	/** Child input element, used by compount String/Integer/Float input classes. */
+	UIInput * input;
 	
 	// Size of text in pixels
 	float textSize;
@@ -423,6 +430,10 @@ public:
 	void SetColor(Vector4f color);
 	/// Colors for the element.
 	Vector4f color;
+
+	// If set, this will override the text colors used by Idle,Hover,Active states.
+	Vector4f * textColor;
+
 	/// Colors for the text
 	static Vector4f defaultTextColor;
 	/// If true, forces all string assignments to upper-case (used with some styles of games)

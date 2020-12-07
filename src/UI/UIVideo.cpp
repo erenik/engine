@@ -19,6 +19,7 @@ UIVideo::UIVideo(String name, String initialVideoUrl)
 	streamUrl.Remove("\"", true);
 	this->activationMessage = "TogglePause(this)";
 	this->hoverable = true;
+	navigatable = true;
 	this->activateable = true;
 	highlightOnHover = false;
 	highlightOnActive = false;

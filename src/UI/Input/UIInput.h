@@ -73,6 +73,9 @@ public:
 	// Parses float value from this element's text.
 	const float ParseFloat();
 
+	// For setting static colors.
+	virtual void SetTextColor(Vector4f newOverrideTextColor);
+
 	virtual void SetRange(int min, int max);
 
 	/// For making it a float/integer-only thingy.

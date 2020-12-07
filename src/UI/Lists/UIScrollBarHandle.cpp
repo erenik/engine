@@ -21,6 +21,7 @@ UIScrollBarHandle::UIScrollBarHandle()
 	sizeRatioX = 0.8f;
     selectable = true;
     hoverable = true;
+	navigatable = true;
     activateable = true;
     isSysElement = true;
 	highlightOnHover = true;
@@ -127,6 +128,7 @@ UIScrollBar::UIScrollBar()
 
     selectable = true;
     hoverable = true;
+	navigatable = true;
     activateable = true;
     isSysElement = true;
 	highlightOnHover = false;

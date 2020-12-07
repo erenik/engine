@@ -7,7 +7,7 @@
 #include "File/LogFile.h"
 #include <fstream>
 #include "String/StringUtil.h"
-
+#include "Globals.h"
 #include "UILists.h"
 #include "UIBar.h"
 #include "UIInputs.h"
@@ -27,7 +27,7 @@
 
 UIParser::UIParser()
 	: defaultAlignment(UIElement::NULL_ALIGNMENT)
-	, defaultTexture ("default.png")
+	, defaultTexture ("")
 	, defaultParent ("root")
 	, defaultRootFolder ("")
 	, defaultTopBorder ("")
@@ -36,7 +36,7 @@ UIParser::UIParser()
 	, defaultScalability ( true)
 	, defaultVisibility ( true)
 	, defaultExitability ( true)
-	, defaultTextColor ( Vector4f(0, 0, 0, 1))
+	, defaultTextColor ( nullptr )
 	, defaultSizeRatioY ( 1.0f)
 	, defaultSizeRatioX ( 1.0f)
 	, defaultPadding ( 0.0f)
@@ -49,6 +49,10 @@ UIParser::UIParser()
 	, root(nullptr)
 {
 
+}
+
+UIParser::~UIParser() {
+	SAFE_DELETE(defaultTextColor);
 }
 
 
@@ -276,30 +280,40 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 			}
 			else if (token == "defaultTextColor")
 			{
-				// Hex detected!
+				SAFE_DELETE(defaultTextColor);
+				if (line.Contains("null"))
+					break;
+
+				defaultTextColor = new Vector4f();
+				Vector4f& newDefaultTextColor = *defaultTextColor;
+			// Hex detected!
 				if (line.Contains("0x"))
 				{
-					defaultTextColor = Color::ColorByHexName(NEXT_TOKEN);
+					newDefaultTextColor = Color::ColorByHexName(NEXT_TOKEN);
+				}
+				else if (line.Contains("#")) {
+					newDefaultTextColor = Color::ColorByHexName(NEXT_TOKEN);
 				}
 				else
 				{
 					switch (tokens.Size() - 1)
 					{
 					case 1: // Assume it's alpha and keep the other colors as usual
-						defaultTextColor[3] = NEXT_TOKEN.ParseFloat();
+						newDefaultTextColor[3] = NEXT_TOKEN.ParseFloat();
 						break;
 					case 4:
-						defaultTextColor[3] = tokens[4].ParseFloat();
+						newDefaultTextColor[3] = tokens[4].ParseFloat();
 					case 3: // Assume it's RGB
-						defaultTextColor[0] = tokens[1].ParseFloat();
-						defaultTextColor[1] = tokens[2].ParseFloat();
-						defaultTextColor[2] = tokens[3].ParseFloat();
+						newDefaultTextColor[0] = tokens[1].ParseFloat();
+						newDefaultTextColor[1] = tokens[2].ParseFloat();
+						newDefaultTextColor[2] = tokens[3].ParseFloat();
 						break;
 					case 2: case 0:
 						assert(false && "Irregular amount of tokens following \"defaultTextColor\"; 1 for alpha, 3 for RGB and 4 for RGBA.");
 						break;
 					}
 				}
+				LogMain("Default text color updated to: " + VectorString(newDefaultTextColor), INFO);
 			}
 			else if (token == "defaultRootFolder") {
 				ENSURE_NEXT_TOKEN
@@ -333,7 +347,8 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 				if (tokens.Size() > 1) {
 					element->name = firstQuote;
 					/// Set the elements text and message default to it's name too, yo.
-					element->activationMessage = element->text = element->name;
+					element->activationMessage = element->name;
+					element->SetText(element->name);
 				}
 				SET_DEFAULTS
 			}
@@ -593,12 +608,17 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 			}
 			else if (token == "displayText")
 			{
-				ENSURE_NEXT_TOKEN
-					element->displayText = firstQuote;
+				EnsureNextToken(tokens);
+				element->displayText = firstQuote;
+			}
+			else if (token == "UseToggleTexts") {
+				EnsureNextToken(tokens);
+				UICheckbox * checkbox = (UICheckbox * )element;
+				checkbox->SetToggleTexts(tokens[1], tokens[2]);
 			}
 			else if (token == "Padding") {
-				ENSURE_NEXT_TOKEN
-					element->padding = NEXT_TOKEN.ParseFloat();
+				EnsureNextToken(tokens);
+				element->padding = NEXT_TOKEN.ParseFloat();
 			}
 			else if (token == "OnActivate") {
 				ENSURE_NEXT_TOKEN
@@ -740,9 +760,9 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 			else if (token == "textColor")
 			{
 				// Hex detected!
-				if (line.Contains("0x"))
+				if (line.Contains("0x") || line.Contains("#"))
 				{
-					element->text.color = Color::ColorByHexName(NEXT_TOKEN);
+					element->SetTextColor(Color::ColorByHexName(NEXT_TOKEN));
 				}
 				else
 				{
@@ -1002,10 +1022,11 @@ String UIParser::NextToken(const List<String> fromTokens) {
 }
 
 void UIParser::SetDefaults(UIElement * element) {
-	element->alignment = defaultAlignment; 
-	element->textureSource = defaultTexture; 
-	element->scalable = defaultScalability; 
-	element->text.color = defaultTextColor; 
+	element->alignment = defaultAlignment;
+	element->textureSource = defaultTexture;
+	element->scalable = defaultScalability;
+	if (defaultTextColor != nullptr)
+		element->SetTextColor(*defaultTextColor);
 	element->sizeRatioY = defaultSizeRatioY; 
 	element->sizeRatioX = defaultSizeRatioX; 
 	element->padding = defaultPadding; 

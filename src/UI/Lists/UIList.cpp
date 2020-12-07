@@ -369,7 +369,7 @@ UIElement * UIList::GetUpNeighbour(GraphicsState* graphicsState, UIElement * ref
 				if (child->isSysElement)
 					continue;
 				/// If activatable? Return it straight away.
-				if (child->activateable)
+				if (child->navigatable)
 					return child;
 				
 				// Set to only search children now!
@@ -421,7 +421,7 @@ UIElement * UIList::GetDownNeighbour(GraphicsState* graphicsState, UIElement * r
 				if (child->isSysElement)
 					continue;
 				/// If activatable? Return it straight away.
-				if (child->activateable)
+				if (child->hoverable)
 					return child;
 				// Set to only search children now!
 				searchChildrenOnly = true;

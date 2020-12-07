@@ -47,8 +47,6 @@ public:
 	String action;
 	/// for eased access.
 	int maxDecimals;
-	/// Should not be set from outside graphics thread (after it is made visible and rendering).
-	UIInput * input;
 	/// If true, input is disabled from the gui. Default false.
 	bool guiInputDisabled; 
 

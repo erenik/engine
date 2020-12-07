@@ -20,7 +20,13 @@ public:
 
 	virtual void OnToggled(UIToggleButton * button) override;
 	virtual void CreateChildren();
+
+	void SetToggleTexts(String on, String off);
+
 private:
 	UILabel * label;
 	UIToggleButton * button;
+
+	String toggleTextOn,
+		toggleTextOff;
 };

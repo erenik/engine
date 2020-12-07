@@ -231,7 +231,10 @@ void GMMouse::Process(GraphicsState * graphicsState)
 			// If we have an active element, don't hover, to retain focus on the active element (e.g. the scroll-bar).
 			else 
 			{
-				userInterface->GetStackTop()->RemoveState(UIState::HOVER, true);
+				UIElement * stackTop = userInterface->GetStackTop();
+				if (stackTop == nullptr)
+					return;
+				stackTop->RemoveState(UIState::HOVER, true);
 				// Save old hover element...? wat
 				UIElement * hoverElement = userInterface->Hover(coords.x, coords.y, true);
 /*				if (printHoverElement)

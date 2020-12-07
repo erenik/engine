@@ -30,14 +30,22 @@ public:
 	// Sent when a child checkbox is toggled. 
 	virtual void OnToggled(UIToggleButton * toggleButton);
 
+	// Returns true if it adjusted any UI state.
+	bool OnNavigate(GraphicsState* graphicsState, NavigateDirection navigateDirection);
+
+	void OnStateAdded(int state) override;
+
 	/// Toggles appropriately.
 	void SetValue(GraphicsState* graphicsState, int v);
 
 	/// Sets activationMessage/onActivate for all buttons.
 	String action;
 
+	static Vector4f toggledTextColor, notToggledTextColor;
+
 protected:
 	int numButtons;
+	int toggledIndex;
 	List<String> buttonTexts;
 	List<UIToggleButton*> buttons;
 	List<String> textureSourcesOrNames;

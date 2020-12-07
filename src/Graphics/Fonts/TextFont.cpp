@@ -45,6 +45,10 @@ bool IsCharacter(uchar c)
 	return true;
 }
 
+Vector4f TextFont::idleColor = Color::ColorByHexName("#AAAAAAff");
+Vector4f TextFont::onHoverColor = Color::ColorByHexName("#CCCCCCff");
+Vector4f TextFont::onActiveColor = Color::ColorByHexName("#FFFFFFFF");
+
 TextFont::TextFont()
 {
 	hoveredOver = false;
@@ -219,9 +223,6 @@ void TextFont::MakeTextureWhite()
 	color *= 1 - intensity;
 	texture->Add(color);
 	whitened = true;
-	/// Unbufferize it, so that it re-buffers!
-//	TexMan.UnbufferizeTexture(texture);
-//	this->texture->Colorize(Vector3f(1,1,1));
 }
 
 /// Calculates size of all ASCII characters in the texture (assumed standard 16x16 grid).
@@ -422,13 +423,27 @@ Vector2f TextFont::CalculateRenderSizeWorldSpace(Text & text, GraphicsState & gr
 
 
 /// Renders text ^^
-void TextFont::RenderText(Text & text, GraphicsState & graphicsState)
+void TextFont::RenderText(Text & text, TextState textState, Vector4f * overrideColor, GraphicsState & graphicsState)
 {
 	// Set starting variables.
 	NewText(text);
 
 	/// One color for all text?
-	this->SetColor(text.color);
+	Vector4f color = text.color;
+	switch (textState) {
+	case TextState::Idle:
+		color = idleColor;
+		break;
+	case TextState::Hover:
+		color = onHoverColor;
+		break;
+	case TextState::Active:
+		color = onActiveColor;
+		break;
+	}
+	if (overrideColor != nullptr)
+		color = *overrideColor;
+	this->SetColor(color);
 	
 	/// Save old shader!
 	Shader * oldShader = ActiveShader();
@@ -524,6 +539,18 @@ bool TextFont::PrepareForRender(GraphicsState & graphicsState)
 		
 		// set hover state
 		glUniform1i(shader->uniformHoveredOver, hoveredOver? 1 : 0);
+
+		// when texture area is small, bilinear filter the closest mipmap
+		// when texture area is large, bilinear filter the original
+		bool texture_sampling_nearest = true;
+		if (texture_sampling_nearest) {
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		}
+		else {
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		}
 
 		// Set some color.. hmm.
 		// 		glColor4f(color[0], color[1], color[2], color[3]);

@@ -18,6 +18,7 @@ class UIParser
 public:
 
 	UIParser();
+	~UIParser();
 
 	/// Default values that can be set when parsing
 	int defaultAlignment = UIElement::NULL_ALIGNMENT;
@@ -29,7 +30,7 @@ public:
 	bool defaultScalability = true;
 	bool defaultVisibility = true;
 	bool defaultExitability = true;
-	Vector4f defaultTextColor = Vector4f(0, 0, 0, 1);
+	Vector4f * defaultTextColor = nullptr;
 	float defaultSizeRatioY = 1.0f;
 	float defaultSizeRatioX = 1.0f;
 	float defaultPadding = 0.0f;

@@ -25,6 +25,7 @@ UIToggleButton::UIToggleButton(String name /*= ""*/)
 	type = UIType::CHECKBOX;
 	selectable = true;
 	hoverable = true;
+	navigatable = true;
 	activateable = true;
 	toggled = false;
 

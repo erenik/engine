@@ -23,6 +23,7 @@ UICheckbox::UICheckbox(String name /*= ""*/)
 	type = UIType::CHECKBOX;
 	selectable = true;
 	hoverable = true;
+	navigatable = true;
 	activateable = true;
 };
 
@@ -45,7 +46,7 @@ UIElement* UICheckbox::Activate(GraphicsState* graphicsState)
 		RemoveState(UIState::ACTIVE);
 		// Now return our message!
 		if (selectable == true) {
-			button->SetToggled(!button->IsToggled());
+			SetToggled(!button->IsToggled());
 			OnToggled(button);
 			// Send a message!
 			BoolMessage * msg = new BoolMessage(activationMessage, button->IsToggled());
@@ -66,10 +67,12 @@ void UICheckbox::OnStateAdded(int state) {
 		button->SetToggled(!button->IsToggled());
 		RemoveState(state);
 	}
+	this->label->AddState(state);
 }
 
 void UICheckbox::SetToggled(bool value) {
 	button->SetToggled(value);
+
 }
 
 
@@ -77,12 +80,15 @@ void UICheckbox::OnToggled(UIToggleButton * button) {
 	BoolMessage * msg = new BoolMessage(activationMessage, button->IsToggled());
 	MesMan.QueueMessage(msg);
 
+	if (toggleTextOn.Length() > 0) {
+		button->SetText(button->IsToggled() ? toggleTextOn : toggleTextOff);
+	}
 }
 
 void UICheckbox::CreateChildren() {
 	UIColumnList * box = UIInput::CreateDefaultColumnList(this);
 	float spacePerElement = UIInput::DefaultSpacePerElement(padding);
-	UIInput::CreateDefaultLabel(box, displayText, spacePerElement);
+	label = UIInput::CreateDefaultLabel(box, displayText, spacePerElement);
 	
 	/// Create 3 children
 	button = new UIToggleButton();
@@ -92,4 +98,14 @@ void UICheckbox::CreateChildren() {
 	button->onNotToggledTexture = "ui/checkbox_not_toggled";
 	button->retainAspectRatioOfTexture = true;
 	box->AddChild(nullptr, button);
+}
+
+void UICheckbox::SetToggleTexts(String on, String off) {
+	toggleTextOn = on;
+	toggleTextOff = off;
+
+	button->onToggledTexture = "";
+	button->onNotToggledTexture = "";
+
+	SetToggled(button->IsToggled());
 }

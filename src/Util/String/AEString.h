@@ -134,6 +134,8 @@ public:
 	int ParseInt() const;
 	/// Tries to parse hexadecimal values in the form of "0xAABBCCDD" or "0xAABBCC"
 	uint64 ParseHex();
+	// Returns how many hexadecimal numbers are included in this string. Preceded usually by 0x or # before start.
+	int HexNumbers();
 	float ParseFloat();
 	double ParseDouble();
 

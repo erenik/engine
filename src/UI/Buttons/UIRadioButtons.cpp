@@ -9,6 +9,9 @@
 #include "Message/MathMessage.h"
 // #include "Graphics/GraphicsManager.h"
 
+Vector4f UIRadioButtons::toggledTextColor = Color::ColorByHexName("0xffffffff")
+	, UIRadioButtons::notToggledTextColor = Color::ColorByHexName("0xaaaaaaff");
+
 /// o.o
 UIRadioButtons::UIRadioButtons(int numberOfButtons, String name, String action)
 : UIColumnList(), numButtons(numberOfButtons), action(action)
@@ -16,6 +19,9 @@ UIRadioButtons::UIRadioButtons(int numberOfButtons, String name, String action)
 	this->name = name;
 	this->type = UIType::RADIO_BUTTONS;
 	activateable = false;
+	hoverable = true;
+	navigatable = true;
+	toggledIndex = 0;
 }
 
 UIRadioButtons::~UIRadioButtons()
@@ -43,10 +49,11 @@ void UIRadioButtons::CreateChildren(GraphicsState* graphicsState)
 	// Add label!
 	if (!noLabel)
 	{
-		UILabel * label = new UILabel(GetText());
+		label = new UILabel(GetText());
 		label->sizeRatioX = labelSize;
 		label->SetText(displayText);
-		label->textureSource = "0x00000000";
+		label->textureSource = "";
+		label->hoverable = true;
 		AddChild(nullptr, label);
 	}
 	for (int i = 0; i < numButtons; ++i)
@@ -54,7 +61,7 @@ void UIRadioButtons::CreateChildren(GraphicsState* graphicsState)
 		/// Create 3 children
 		UIToggleButton * button = new UIToggleButton();
 		/// Set them to only accept floats?
-		button->name = name + "Input";
+		button->name = name + "Button"+ String(i);
 		button->SetText(buttonTexts.Size() > i ? buttonTexts[i] : "");
 		button->sizeRatioX = spacePerElement;
 		button->topRightCornerTextureSource = topRightCornerTextureSource;
@@ -66,7 +73,7 @@ void UIRadioButtons::CreateChildren(GraphicsState* graphicsState)
 		else 
 			button->textureSource = this->textureSource;
 		/// Pre-select first one always.
-		if (i == 0)
+		if (i == toggledIndex)
 			button->SetToggled(true);
 	//	input->onTrigger = "UIFloatInput("+name+")";
 		AddChild(nullptr, button);
@@ -110,9 +117,9 @@ void UIRadioButtons::OnToggled(UIToggleButton * toggleButton)
 {
 	assert(buttons.Exists(toggleButton));
 	/// Send a message based on which button it was.
-	int index = buttons.GetIndexOf(toggleButton);
+	toggledIndex = buttons.GetIndexOf(toggleButton);
 	/// Set a message!
-	IntegerMessage * im = new IntegerMessage(action, index);
+	IntegerMessage * im = new IntegerMessage(action, toggledIndex);
 	MesMan.QueueMessage(im);
 	bool somethingToggled = false;
 	/// De-toggle the other elements.
@@ -120,6 +127,9 @@ void UIRadioButtons::OnToggled(UIToggleButton * toggleButton)
 		for (int i = 0; i < buttons.Size(); ++i)
 		{
 			UIToggleButton * button = buttons[i];
+			button->SetTextColor(button == toggleButton ? toggledTextColor : notToggledTextColor);
+			button->onToggledTexture = "";
+			button->onNotToggledTexture = "";
 			if (button == toggleButton)
 				continue;
 			button->SetToggledSilently(false);
@@ -128,6 +138,35 @@ void UIRadioButtons::OnToggled(UIToggleButton * toggleButton)
 	/// Ensure always one radio button is toggled.
 	else 
 		toggleButton->SetToggledSilently(true);
+}
+
+// Returns true if it adjusted any UI state.
+bool UIRadioButtons::OnNavigate(GraphicsState* graphicsState, NavigateDirection navigateDirection) {
+	int value = toggledIndex;
+	switch (navigateDirection) {
+	case NavigateDirection::Left:
+		--value;
+		break;
+	case NavigateDirection::Right:
+		++value;
+		break;
+	default:
+		return false;
+	}
+	// Clamp it
+	if (value >= buttons.Size())
+		value = 0;
+	if (value < 0)
+		value = buttons.Size() - 1;
+
+	SetValue(graphicsState, value);
+	return true;
+}
+
+
+void UIRadioButtons::OnStateAdded(int state) {
+	if (label != nullptr)
+		label->AddState(state);
 }
 
 /// Toggles appropriately.
@@ -143,9 +182,13 @@ void UIRadioButtons::SetValue(GraphicsState* graphicsState, int v)
 	}
 	for (int i = 0; i < buttons.Size(); ++i)
 	{
-		buttons[i]->SetToggledSilently(false);
+		bool value = i == v;
+		if (graphicsState != nullptr)
+			buttons[i]->SetToggled(value);
+		else
+			buttons[i]->SetToggledSilently(value);
 	}
-	buttons[v]->SetToggledSilently(true);
+	toggledIndex = v;
 }
 
 

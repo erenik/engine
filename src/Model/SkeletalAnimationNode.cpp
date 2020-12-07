@@ -360,7 +360,7 @@ void SkeletalAnimationNode::RenderBones(GraphicsState & graphicsState)
 		TextFont * font = graphicsState.currentFont;
 		assert(font);
 		Text nameText = name;
-		font->RenderText(nameText, graphicsState);
+		font->RenderText(nameText, TextState::Idle, nullptr, graphicsState);
 
 		graphicsState.modelMatrixF = tmp;
 	}

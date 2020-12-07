@@ -335,7 +335,7 @@ void Entity::Render(GraphicsState & graphicsState)
 			modelMatrix.Multiply(rotationMatrix);
 			modelMatrix.Multiply((Matrix4d().Scale(Vector3d(scale * graphics->textSizeRatio))));
 
-			font->RenderText(textToRender, graphicsState);		
+			font->RenderText(textToRender, TextState::Idle, nullptr, graphicsState);
 		}
 	}
 }

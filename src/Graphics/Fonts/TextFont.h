@@ -19,6 +19,12 @@ class Shader;
 */
 bool IsCharacter(uchar c);
 
+enum class TextState {
+	Idle,
+	Hover,
+	Active
+};
+
 class TextFont {
 public:
 	TextFont ();
@@ -32,7 +38,7 @@ public:
 	Vector2f CalculateRenderSizeWorldSpace(Text & text, GraphicsState & graphics);
 
 	/// Renders text using matrices in the graphicsState, but with the default GL shader.
-	void RenderText(Text & text, GraphicsState & graphics);
+	void RenderText(Text & text, TextState textState, Vector4f * overrideColor, GraphicsState & graphics);
 	
 	void SetTextureSource(const String s) { textureSource = s; };
 	const String GetTextureSource() { return textureSource; };
@@ -55,6 +61,10 @@ public:
 	String source;
 
 	static String defaultFontSource;
+
+	static Vector4f idleColor;
+	static Vector4f onHoverColor;
+	static Vector4f onActiveColor;
 
 	/// For extra colors or effects.
 	bool hoveredOver;

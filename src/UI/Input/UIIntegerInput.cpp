@@ -147,6 +147,11 @@ void UIIntegerInput::CreateChildren(GraphicsState* graphicsState)
 	input = CreateDefaultInput(box, name, 1 - divider.x);
 	//input->textureSource = "0x334455";
 
+	if (textColor != nullptr) {
+		label->SetTextColor(*textColor);
+		input->SetTextColor(*textColor);
+	}
+
 	/// Set them to only accept floats?
 	/// Any mathematical expression?
 	if (acceptMathematicalExpressions)

@@ -23,6 +23,7 @@ UIQueryDialogue::UIQueryDialogue(String queryHeader, String actionToBeTakenIfPro
 	modal = true;
 	/// Set modalitity using hoverable property, and disable the highlight so the user doesn't get confused (or the bg will flash when moving the cursor)
 	this->hoverable = true;
+	navigatable = true;
 	this->highlightOnHover = false;
 	/// Disable any automatic popping, so recommend adding it as an actionToBeTakenIfProceeding?
 	this->exitable = false;
@@ -129,6 +130,7 @@ UIStringDialogue::	UIStringDialogue(String queryHeader, String actionToBeTakenIf
 	modal = true;
 	/// Set modalitity using hoverable property, and disable the highlight so the user doesn't get confused (or the bg will flash when moving the cursor)
 	this->hoverable = true;
+	navigatable = true;
 	this->highlightOnHover = false;
 	/// Disable any automatic popping, so recommend adding it as an actionToBeTakenIfProceeding?
 	this->exitable = false;

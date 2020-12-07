@@ -1234,6 +1234,8 @@ uint64 String::ParseHex()
 			initialOxEncountered = 1;
 		else if (initialOxEncountered == 1 && c == 'x')
 			initialOxEncountered = 2;
+		else if (initialOxEncountered == 0 && c == '#') // Also supported colors written with #, i.e. #4d65b2
+			initialOxEncountered = 2;
 		else if (initialOxEncountered == 2)
 		{
 			if (isdigit(c))
@@ -1260,6 +1262,13 @@ uint64 String::ParseHex()
 	return val;
 }
 
+// Returns how many hexadecimal numbers are included in this string. Preceded usually by 0x or # before start.
+int String::HexNumbers() {
+	String copy = this;
+	copy.Remove("0x");
+	copy.Remove("#");
+	return copy.Length() / 2;
+}
 
 float String::ParseFloat()
 {
@@ -1487,6 +1496,11 @@ void String::ToUpperCase(){
 	switch(type){
 		case CHAR:
 			for (int i = 0; i < arraySize; ++i){
+				if (arr[i] == '\\') 
+				{
+					++i; // Skip escaped characters.
+					continue;
+				}
 				arr[i] = toupper(arr[i]);
 			}
 			break;

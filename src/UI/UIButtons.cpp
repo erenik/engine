@@ -12,6 +12,7 @@ UIButton::UIButton(String i_name)
 	type = UIType::BUTTON;
 	selectable = true;
 	hoverable = true;
+	navigatable = true;
 	activateable = true;
 	SetText(i_name);
 	name = activationMessage = i_name;

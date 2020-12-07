@@ -33,11 +33,12 @@ Color::Color(uchar r, uchar g, uchar b, uchar a)
 Color Color::ColorByHexName(String byHexName)
 {
 	uint32 hex = (uint32) byHexName.ParseHex();
+	int hexChars = byHexName.HexNumbers();
 
 	Color newColor;
 
 	/// Count amount of characters.
-	int components = byHexName.Length() / 2 - 1;
+	int components = hexChars;
 	if (components == 4)
 		newColor = ColorByHex32(hex);
 	else if (components == 3)

@@ -9,6 +9,7 @@
 #include "File/LogFile.h"
 #include "UI/UIInputs.h"
 #include "Direction.h"
+#include "UI/Buttons/UIRadioButtons.h"
 
 GMNavigateUI::GMNavigateUI(int direction)
 	: GMUI(GM_NAVIGATE_UI)
@@ -74,6 +75,13 @@ void GMNavigateUI::Process(GraphicsState* graphicsState)
 	// If we got a valid hover-element.
 	else {
 		if (!element) {
+			if (hoverElement->type == UIType::RADIO_BUTTONS) {
+				UIRadioButtons * radioButtons = (UIRadioButtons*)hoverElement;
+				bool reacted =  radioButtons->OnNavigate(graphicsState, navigateDirection);
+				if (reacted)
+					return;
+			}
+
 			bool searchChildrenOnly = false;
 			switch (navigateDirection) {
 			case NavigateDirection::Down:

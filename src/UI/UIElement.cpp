@@ -111,6 +111,8 @@ void UIElement::Nullify()
 	zDepth = 0;
 	noLabel = false;
 
+	textColor = nullptr;
+
 	previousTextSizeRatio = 1.f;
 	alignment = NULL_ALIGNMENT;	// Alignment relative to parent
 	scalable = DEFAULT_SCALABILITY;		// Allow scaling depending on AppWindow size?
@@ -140,6 +142,7 @@ void UIElement::Nullify()
     isSysElement = false;
 
 	hoverable = false;
+	navigatable = false;
 	highlightOnHover = true;
 	highlightOnActive = true;
 	axiomatic = false;
@@ -207,6 +210,7 @@ UIElement::UIElement(const UIElement & ref){
 	sizeRatioY = ref.sizeRatioY;
 	type = ref.type;
 	hoverable = ref.hoverable;
+	navigatable = ref.navigatable;
 	axiomatic = ref.axiomatic;
 	selectable = ref.selectable;
 	activateable = ref.activateable;
@@ -224,6 +228,8 @@ UIElement::~UIElement()
 	children.ClearAndDelete();
 
 	DeleteBorders();
+
+	SAFE_DELETE(textColor);
 
 	/// Deallocate texture and mesh if needed, as well as vbo, we should never do that here though!
 	assert(vboBuffer == -1 && "vboBuffer not released in UIElement::~UIElement()!");
@@ -316,7 +322,7 @@ bool UIElement::FetchBindAndBufferizeTexture()
 	else if (texture) {
 		TexMan.BufferizeTexture(texture);
 	}
-	else if (textureSource){
+	else if (textureSource.Length() > 0){
 		texture = TexMan.GetTexture(textureSource);
 		if (!texture)
             texture = TexMan.GetTextureByName(textureSource);
@@ -821,7 +827,7 @@ UIElement * UIElement::GetUpNeighbour(GraphicsState* graphicsState, UIElement * 
 		}
 	}
 	/// All-right, so we found a suitable neighbour hopefully. Make sure that it is hoverable?
-	if (element && !element->activateable)
+	if (element && !element->navigatable)
 	{
 		/// First query if the element has any valid hoverable children, if so select them.
 		UIElement * childElement = element->GetElementByFlag(UIFlag::ACTIVATABLE);
@@ -930,7 +936,7 @@ UIElement * UIElement::GetDownNeighbour(GraphicsState* graphicsState, UIElement 
 		}
 	}
 	/// All-right, so we found a suitable neighbour hopefully. Make sure that it is hoverable?
-	if (element && !element->activateable){
+	if (element && !element->hoverable){
 		/// First query if the element has any valid hoverable children, if so select them.
 		UIElement * childElement = element->GetElementByFlag(UIFlag::ACTIVATABLE);
 		if (childElement)
@@ -1011,7 +1017,7 @@ UIElement * UIElement::GetLeftNeighbour(UIElement * referenceElement, bool & sea
 bool UIElement::IsNavigatable() {
 	if (!this->IsVisible())
 		return false;
-	if (!this->activateable)
+	if (!this->navigatable)
 		return false;
 	return true;
 
@@ -1492,7 +1498,7 @@ void UIElement::SetRootDefaults(UserInterface * ui) {
 	exitable = false;
 	selectable = false;
 	activateable = false;
-	textureSource = "0xFF00"; // Alpha texture.
+	textureSource = "0x0000"; // Alpha texture.
 	// Link it.
 	ui = ui;
 }
@@ -1831,9 +1837,13 @@ void UIElement::RenderText(GraphicsState & graphicsState)
 		currentFont->hoveredOver = true;
 	else
 		currentFont->hoveredOver = false;
-//	color[3] *= 0.5f;
-//		std::cout<<"\nTextToRender: "<<textToRender;
-	graphicsState.currentFont->RenderText(this->textToRender, graphicsState);
+
+	TextState textState = TextState::Idle;
+	if (HasState(UIState::ACTIVE))
+		textState = TextState::Active;
+	else if (HasState(UIState::HOVER))
+		textState = TextState::Hover;
+	graphicsState.currentFont->RenderText(this->textToRender, textState, textColor, graphicsState);
 	graphicsState.modelMatrixF = graphicsState.modelMatrixD = tmp;
 }
 
@@ -2210,6 +2220,12 @@ void UIElement::DeleteBorders() {
 	topRightCorner = nullptr;
 }
 
+// Sets it to override.
+void UIElement::SetTextColor(Vector4f overrideColor) {
+	SAFE_DELETE(textColor);
+	textColor = new Vector4f(overrideColor);
+}
+
 /** Sets slider level by adjusting it's child's position.
 	Values should be within the range [0.0,1.0]. **/
 void UISlider::SetLevel(float level){
@@ -2425,7 +2441,8 @@ UILabel::UILabel(String name /*= ""*/)
 	this->name = name;
 	SetText(name);
 	type = UIType::LABEL;
-	hoverable = true;
+	hoverable = false;
+	navigatable = false;
 	highlightOnHover = false;
 	selectable = activateable = false;
 	/// Set text-color at least for labels!
