@@ -342,7 +342,7 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 					element = new UILabel();
 				if (tokens.Size() > 1) {
 					element->name = tokens[1];
-					element->text = firstQuote;
+					element->SetText(firstQuote);
 				}
 				SET_DEFAULTS
 			}
@@ -709,11 +709,11 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 				/// Check special cases like dedicated label child elements.
 				if (element->label)
 				{
-					element->label->text = text;
-					element->text = "";
+					element->label->SetText(text);
+					element->SetText("");
 					break;
 				}
-				element->text = text;
+				element->SetText(text);
 			}
 			/// Used for setting aggregate types. 
 			else if (token == "texts")

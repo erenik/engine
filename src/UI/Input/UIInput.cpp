@@ -60,7 +60,9 @@ bool UIInput::HandleDADFiles(List<String> files)
 	editText = firstFile;
 	// Pause graphics and just set it, or it won't work.
 	Graphics.Pause();
-	editText = text = firstFile;
+	SetText(firstFile);
+	editText = GetText();
+	
 	// Remove active flag if it was active.
 	RemoveState(UIState::ACTIVE);
 	Graphics.Resume();
@@ -496,7 +498,7 @@ bool UIInput::BeginInput()
 	if (!HasState(UIState::ACTIVE)) {
 		AddState(UIState::ACTIVE);
 	}
-	editText = text;
+	editText = GetText();
 	caretPosition = editText.Length();
 	editText.caretPosition = caretPosition;
 	// sends message to update the ui with new caret and stuff.
@@ -518,7 +520,7 @@ UIColumnList * UIInput::CreateDefaultColumnList(UIElement * parent) {
 UILabel * UIInput::CreateDefaultLabel(UIColumnList * box, String text, float sizeX) {
 	UILabel * label = new UILabel();
 	label->textureSource = "0x00000000";
-	label->text = text;
+	label->SetText(text);
 	label->sizeRatioX = sizeX;
 	box->AddChild(nullptr, label);
 	return label;
@@ -557,6 +559,16 @@ void UIInput::DecrementValue() {
 		value = min;
 	editText = String::ToString(value);
 	OnTextUpdated();
+}
+
+// Parses int value from this element's text.
+const int UIInput::ParseInt() {
+	return GetText().ParseInt();
+}
+
+// Parses float value from this element's text.
+const float UIInput::ParseFloat() {
+	return GetText().ParseFloat();
 }
 
 void UIInput::SetRange(int newMin, int newMax) {

@@ -483,7 +483,7 @@ void Script::EvaluateLine(String & line)
 			std::cout<<"\n"<<text;
 			UIButton * dialogue = new UIButton("Dialogue");
 			dialogue->exitable = false;
-			dialogue->text = text;
+			dialogue->SetText(text);
 			dialogue->activationMessage = "PopFromStack(this)&Remove(this)&ContinueEvent("+this->name+")";
 			dialogue->textureSource = DEFAULT_TEXTURE_SOURCE;
 			dialogue->textSizeRatio = DEFAULT_TEXT_SIZE_RATIO;
@@ -533,7 +533,7 @@ void Script::EvaluateLine(String & line)
 		dialogue->AddState(UIState::DIALOGUE);  // Flag the dialogue-state flag to signify importance!
 
 		UILabel * dialogueText = new UILabel();
-		dialogueText->text = text;
+		dialogueText->SetText(text);
 		dialogueText->textSizeRatio = DEFAULT_TEXT_SIZE_RATIO;
 		dialogueText->sizeRatioX = 0.5f;
 		dialogueText->alignmentX = 0.25f;
@@ -556,10 +556,11 @@ void Script::EvaluateLine(String & line)
 
 			if (token1 == "text"){
 				l.Remove(token1);
-				dialogueText->text = l;
-				dialogueText->text.RemoveInitialWhitespaces();
-				dialogueText->text.Remove("\"");
-				dialogueText->text.Remove("\"");
+				Text text = l;
+				text.RemoveInitialWhitespaces();
+				text.Remove("\"");
+				text.Remove("\"");
+				dialogueText->SetText(text);
 			}
 			else if (l.Contains("Answer")){
 				++answers;
@@ -570,7 +571,7 @@ void Script::EvaluateLine(String & line)
 				l.Remove("\"");
 				l.Remove("\"");
 				answerButton->textureSource = DEFAULT_TEXTURE_SOURCE;
-				answerButton->text = l;
+				answerButton->SetText(l);
 				answerButton->sizeRatioY = 0.2f;
 				answerButton->activationMessage = "ActivateDialogueAlternative("+name+","+answerButton->name+")&PopFromStack("+dialogue->name+")&Remove("+dialogue->name+")";
 				answerList.Add(answerButton);

@@ -139,7 +139,7 @@ void UIStringInput::CreateChildren(GraphicsState * graphicsState)
 	input = CreateDefaultInput(box, name, 1 - divider.x);
 
 	/// Set them to only accept floats?
-	input->text = "";
+	input->SetText("");
 	input->rememberPreviousInputs = true;
 	input->textAlignment = LEFT;
 	if (guiInputDisabled)
@@ -156,7 +156,7 @@ void UIStringInput::CreateChildren(GraphicsState * graphicsState)
 /// Getter/setter for the input element.
 String UIStringInput::GetValue()
 {
-	return input->text;
+	return input->GetText();
 }
 void UIStringInput::SetValue(String value)
 {

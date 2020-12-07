@@ -54,7 +54,7 @@ public:
 	virtual void Proceed();
 
 	/// Stuff.
-	String GetString() { return input->text; };
+	String GetString() { return input->GetText(); };
 	UIElement * StringInput() { return input; };
 
 	/// Header/title-bar text. Usually set as an argument in the constructor.

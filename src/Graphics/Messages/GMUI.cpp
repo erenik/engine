@@ -363,7 +363,7 @@ void GMSetUIv3f::Process(GraphicsState * graphicsState)
 	}
     switch(target){
         case GMUI::TEXT_COLOR:
-			e->text.color = Vector4f(value);
+			e->GetText().color = Vector4f(value);
             break;
         case GMUI::VECTOR_INPUT:
             if (e->type != UIType::VECTOR_INPUT)
@@ -417,7 +417,7 @@ void GMSetUIv4f::Process(GraphicsState * graphicsState)
 			e->SetColor(value);
 			break;
         case GMUI::TEXT_COLOR:
-			e->SetText(e->text.WithColor(value));
+			e->SetText(e->GetText().WithColor(value));
             break;
         case GMUI::VECTOR_INPUT:
             if (e->type != UIType::VECTOR_INPUT)
@@ -492,7 +492,7 @@ void GMSetUIf::Process(GraphicsState * graphicsState)
 			element->color[3] = value;
 			break;
 		case GMUI::TEXT_ALPHA:
-			element->text.color[3] = value;
+			element->GetText().color[3] = value;
 			break;
 		case GMUI::TEXT_SIZE_RATIO:
 			element->textSizeRatio = value;

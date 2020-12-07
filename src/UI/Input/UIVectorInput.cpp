@@ -74,7 +74,7 @@ void UIVectorInput::CreateChildren(GraphicsState* graphicsState)
 
 	/// Create a label
 	label = new UILabel();
-	label->text = name;
+	label->SetText(name);
 	label->sizeRatioX = spacePerElement;
 	box->AddChild(nullptr, label);
 
@@ -85,7 +85,7 @@ void UIVectorInput::CreateChildren(GraphicsState* graphicsState)
 		/// Set them to only accept floats?
 		input->name = name + "Input"+String::ToString(i);
 		input->numbersOnly = true;
-		input->text = "0";
+		input->SetText("0");
 		input->sizeRatioX = spacePerElement;
 	//	input->onTrigger = "UIVectorInput("+name+")";
 		box->AddChild(nullptr, input);
@@ -98,7 +98,7 @@ Vector2i UIVectorInput::GetValue2i()
 {
 	int arr[2];
 	for (int i = 0; i < inputs.Size() && i < 2; ++i){
-		arr[i] = inputs[i]->text.ParseInt();
+		arr[i] = inputs[i]->ParseInt();
 	}
 	return Vector2i(arr);
 }
@@ -106,7 +106,7 @@ Vector2f UIVectorInput::GetValue2f()
 {
 	float arr[2];
 	for (int i = 0; i < inputs.Size() && i < 2; ++i){
-		arr[i] = inputs[i]->text.ParseFloat();
+		arr[i] = inputs[i]->ParseFloat();
 	}
 	return Vector2f(arr);
 }
@@ -114,7 +114,7 @@ Vector3f UIVectorInput::GetValue3f()
 {
 	float arr[3];
 	for (int i = 0; i < inputs.Size() && i < 3; ++i){
-		arr[i] = inputs[i]->text.ParseFloat();
+		arr[i] = inputs[i]->ParseFloat();
 	}
 	return Vector3f(arr);
 }
@@ -122,7 +122,7 @@ Vector4f UIVectorInput::GetValue4f()
 {
 	float arr[4];
 	for (int i = 0; i < inputs.Size() && i < 4; ++i){
-		arr[i] = inputs[i]->text.ParseFloat();
+		arr[i] = inputs[i]->ParseFloat();
 	}
 	return Vector4f(arr);
 }	
@@ -173,7 +173,7 @@ bool UIVectorInput::OnScroll(GraphicsState* graphicsState, float delta)
 		{
 			if (dataType == INTEGERS)
 			{
-				int v = input->text.ParseInt();
+				int v = input->ParseInt();
 				if (delta > 0)
 					++v;
 				else 
@@ -184,7 +184,7 @@ bool UIVectorInput::OnScroll(GraphicsState* graphicsState, float delta)
 			else 
 			{
 				float diff = 0.05f;
-				float v = input->text.ParseFloat();
+				float v = input->ParseFloat();
 				if (delta > 0)
 					v += diff;
 				else 

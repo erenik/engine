@@ -13,9 +13,10 @@ UIButton::UIButton(String i_name)
 	selectable = true;
 	hoverable = true;
 	activateable = true;
-	name = text = activationMessage = i_name;
+	SetText(i_name);
+	name = activationMessage = i_name;
 	textureSource = defaultTextureSource;
-	text.color = defaultTextColor;
+	GetText().color = defaultTextColor;
 };
 
 UIButton::~UIButton()

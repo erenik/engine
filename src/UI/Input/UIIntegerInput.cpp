@@ -81,7 +81,7 @@ void UIIntegerInput::OnInputUpdated(GraphicsState* graphicsState, UIInput * inpu
 	/// If we accept expressions, parse and evaluate it?
 	if (acceptMathematicalExpressions)
 	{
-		String text = input->text;
+		String text = input->GetText();
 		Expression exp(text);
 		ExpressionResult er = exp.Evaluate();
 		String result;
@@ -154,7 +154,7 @@ void UIIntegerInput::CreateChildren(GraphicsState* graphicsState)
 	/// Numbers only
 	else
 		input->numbersOnly = true;
-	input->text = "0";
+	input->SetText("0");
 	input->textAlignment = RIGHT;
 	if (guiInputDisabled)
 	{
@@ -168,7 +168,7 @@ void UIIntegerInput::CreateChildren(GraphicsState* graphicsState)
 /// Getter/setter for the input element.
 int UIIntegerInput::GetValue()
 {
-	return input->text.ParseInt();
+	return input->GetText().ParseInt();
 }
 void UIIntegerInput::SetValue(int value)
 {

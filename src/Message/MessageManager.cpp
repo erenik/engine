@@ -555,7 +555,7 @@ void MessageManager::ProcessMessage(Message * message)
 			}
 			else if (msg.Contains("INTERPRET_CONSOLE_COMMAND(this)"))
 			{
-				String command = message->element->text;
+				String command = message->element->GetText();
 				Message * newMes = new Message(MessageType::CONSOLE_COMMAND);
 				newMes->msg = command;
 				MesMan.QueueMessage(newMes);	
@@ -727,7 +727,7 @@ void MessageManager::ProcessMessage(Message * message)
 				UIFileBrowser * fb = (UIFileBrowser*)ui;
 				String path = params[2];
 				if (path == "this")
-					path = message->element->text;
+					path = message->element->GetText();
 				fb->SetPath(path, false);
 				return;
 			}
@@ -742,7 +742,7 @@ void MessageManager::ProcessMessage(Message * message)
 				UIFileBrowser * fb = (UIFileBrowser*)ui;
 				String path = params[2];
 				if (path == "this")
-					path = message->element->text;
+					path = message->element->GetText();
 				fb->UpdatePath(path, false);
 				return;
 			}
@@ -772,7 +772,7 @@ void MessageManager::ProcessMessage(Message * message)
 				UIFileBrowser * fb = (UIFileBrowser*)ui;
 				String file = params[2];
 				if (file == "this"){
-					file = message->element->text;
+					file = message->element->GetText();
 				}
 				fb->SetActiveFile(file);
 				return;

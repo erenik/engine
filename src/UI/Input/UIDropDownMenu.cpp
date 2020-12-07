@@ -16,7 +16,7 @@ UIDropDownMenu::UIDropDownMenu(String inName)
 	type = UIType::DROP_DOWN_MENU;
 	this->name = inName;
 	separateLabel = true;
-	text = "";
+	SetText("");
 	selectButton = 0;
 	selectionList = 0;
 
@@ -111,7 +111,7 @@ void UIDropDownMenu::PopulateList(GraphicsState* graphicsState)
 	for (int i = 0; i < available.Size(); ++i)
 	{
 		UIButton * button = new UIButton(name+"ListButton"+i);
-		button->text = available[i];
+		button->SetText(available[i]);
 		button->sizeRatioY = 0.1f;
 		UIAction ac(UIAction::CLOSE_DROP_DOWN_MENU, this);
 		button->activationActions.AddItem(ac);

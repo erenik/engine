@@ -65,7 +65,7 @@ void UIFloatInput::OnInputUpdated(GraphicsState* graphicsState, UIInput * inputE
 	/// If we accept expressions, parse and evaluate it?
 	if (acceptMathematicalExpressions)
 	{
-		String text = input->text;
+		String text = input->GetText();
 		Expression exp(text);
 		ExpressionResult er = exp.Evaluate();
 		String result;
@@ -119,7 +119,7 @@ void UIFloatInput::CreateChildren(GraphicsState* graphicsState)
 	/// Numbers only
 	else
 		input->numbersOnly = true;
-	input->text = "0";
+	input->SetText("0");
 	input->textAlignment = RIGHT;
 
 //	input->onTrigger = "UIFloatInput("+name+")";
@@ -129,7 +129,7 @@ void UIFloatInput::CreateChildren(GraphicsState* graphicsState)
 /// Getter/setter for the input element.
 float UIFloatInput::GetValue()
 {
-	return input->text.ParseFloat();
+	return input->ParseFloat();
 }
 void UIFloatInput::SetValue(float value)
 {

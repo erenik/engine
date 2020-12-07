@@ -23,7 +23,7 @@ void UILog::Append(CTextr text)
 		for (int i = 0; i < contentChildren.Size() - 1; ++i)
 		{
 			UIElement * e = contentChildren[i], * e2 = contentChildren[i+1];
-			e->SetText(e2->text);
+			e->SetText(e2->GetText());
 		}
 		contentChildren.Last()->SetText(text);
 		goto scroll;
@@ -31,7 +31,7 @@ void UILog::Append(CTextr text)
 	}
 	// Add an element to self. 
 	UIElement * newOne = new UIElement();
-	newOne->text = text;
+	newOne->SetText(text);
 	newOne->sizeRatioY = lineSizeRatio;
 
 	this->AddChild(nullptr, newOne); // Just add, since should be on graphics thread already.

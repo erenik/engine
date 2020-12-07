@@ -65,7 +65,7 @@ void UIFileBrowser::CreateChildren(GraphicsState* graphicsState)
 	
 	// Create a title
 	UILabel * label = new UILabel();
-	label->text = title;
+	label->SetText(title);
 	label->sizeRatioY = 0.1f;
 	AddChild(nullptr, label);
 
@@ -74,7 +74,7 @@ void UIFileBrowser::CreateChildren(GraphicsState* graphicsState)
 	dirInput->name = this->name+"DirInput";
 	dirInput->onTrigger = "SetFileBrowserDirectory("+this->name+",this)";
 	dirInput->sizeRatioY = 0.1f;
-	dirInput->text = currentPath;
+	dirInput->SetText(currentPath);
 	AddChild(nullptr, dirInput);
 	// Create file-list
 	dirList = new UIList();
@@ -95,13 +95,15 @@ void UIFileBrowser::CreateChildren(GraphicsState* graphicsState)
 	AddChild(nullptr, cList);
 	
 	UIButton * cancelButton = new UIButton();
-	cancelButton->name = cancelButton->text = "Cancel";
+	cancelButton->name = "Cancel";
+	cancelButton->SetText("Cancel");
 	cancelButton->sizeRatioX = 0.4f;
 	cancelButton->activationMessage = "PopUI("+this->name+")";
 	cList->AddChild(nullptr, cancelButton);
 
 	UIButton * okButton = new UIButton();
-	okButton->name = okButton->text = "OK";
+	okButton->name = "OK";
+	okButton->SetText("OK");
 	okButton->sizeRatioX = 0.4f;
 	okButton->activationMessage = "EvaluateFileBrowserSelection("+this->name+")&PopUI("+this->name+")";
 	cList->AddChild(nullptr, okButton);
@@ -139,10 +141,10 @@ void UIFileBrowser::LoadDirectory(bool fromRenderThread)
 	{
 		UIButton * dirButton = new UIButton();
 		dirButton->sizeRatioY = 0.1f;
-		dirButton->text = dirs[i]+"/";
+		dirButton->SetText(dirs[i]+"/");
 #define LOW	0.5f
 #define MID	0.7f
-		dirButton->text.color = Color(Vector3f(LOW,MID,2.0f));
+		dirButton->GetText().color = Color(Vector3f(LOW,MID,2.0f));
 		dirButton->activationMessage = "UpdateFileBrowserDirectory("+this->name+","+dirs[i]+")";
 		dirList->AddChild(nullptr, dirButton);
 		// Save first directory so we may hover to it.
@@ -158,8 +160,8 @@ void UIFileBrowser::LoadDirectory(bool fromRenderThread)
 		
 		UIButton * fileButton = new UIButton();
 		fileButton->sizeRatioY = 0.1f;
-		fileButton->text = files[i];
-		fileButton->text.color = Color(Vector3f(LOW,2.0f,LOW));
+		fileButton->SetText(files[i]);
+		fileButton->GetText().color = Color(Vector3f(LOW,2.0f,LOW));
 		fileButton->activationMessage = "SetFileBrowserFile("+this->name+","+files[i]+")";
 		dirList->AddChild(nullptr, fileButton);
 	}
@@ -268,7 +270,7 @@ List<String> UIFileBrowser::GetFileSelection(){
 		files.Add(file);
 	}
 	if (files.Size() == 0){
-		String file = this->currentPath+"/"+fileInput->text;
+		String file = this->currentPath+"/"+fileInput->GetText();
 		if (file.Length() == 0)
 			file = "default";
 		files.Add(file);

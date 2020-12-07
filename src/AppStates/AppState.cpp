@@ -62,8 +62,8 @@ void AppState::ProcessMessage(Message * message)
 				if (element != NULL){
 					assert(element->onTrigger);
 					InputMan.EnterTextInputMode(element->onTrigger);
-					if (element->text)
-						InputMan.SetInputBuffer(element->text.c_str());
+					if (element->GetText().Length() > 0)
+						InputMan.SetInputBuffer(element->GetText());
 				}
 				else
 					assert(false && "NULL-element :<");

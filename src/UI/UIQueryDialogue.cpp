@@ -73,14 +73,14 @@ void UIQueryDialogue::CreateChildren(GraphicsState* graphicsState)
 
 	/// Title
 	UILabel * label = new UILabel();
-	label->text = headerText;
+	label->SetText(headerText);
 	label->textureSource = "80Gray50Alpha";
 	label->sizeRatioY = 0.15f;
 	box->AddChild(nullptr, label);
 
 	/// Body
 	label = new UILabel();
-	label->text = textToPresent;
+	label->SetText(textToPresent);
 	label->textSizeRatio = 0.3f;
 	label->sizeRatioY = 0.4f;
 	box->AddChild(nullptr, label);
@@ -92,7 +92,7 @@ void UIQueryDialogue::CreateChildren(GraphicsState* graphicsState)
 	/// Cancel/Decline-button
 	UIButton * button;
 	button = new UIButton("CancelButton");
-	button->text = "Cancel";
+	button->SetText("Cancel");
 	button->sizeRatioX = 0.5f;
 	if (popUponContinuing)
 		button->activationMessage += "&PopUI("+this->name+")&";
@@ -102,7 +102,7 @@ void UIQueryDialogue::CreateChildren(GraphicsState* graphicsState)
 
 	/// OK/Continue-button
 	button = new UIButton("OKButton");
-	button->text = "OK";
+	button->SetText("OK");
 	button->sizeRatioX = 0.5f;
 	if (popUponContinuing)
 		button->activationMessage += "&PopUI("+this->name+")&";
@@ -181,21 +181,21 @@ void UIStringDialogue::CreateChildren(GraphicsState* graphicsState)
 
 	/// Title
 	UILabel * label = new UILabel();
-	label->text = headerText;
+	label->SetText(headerText);
 	label->textureSource = "80Gray50Alpha";
 	label->sizeRatioY = 0.15f;
 	box->AddChild(nullptr, label);
 
 	/// Body
 	label = new UILabel();
-	label->text = textToPresent;
+	label->SetText(textToPresent);
 	label->textSizeRatio = 0.3f;
 	label->sizeRatioY = 0.4f;
 	box->AddChild(nullptr, label);
 
 	/// Add the input.
 	input = new UIInput("StringInput");
-	input->text = initialText;
+	input->SetText(initialText);
 	input->sizeRatioY = 0.2f;
 	box->AddChild(nullptr, input);
 
@@ -213,7 +213,7 @@ void UIStringDialogue::CreateChildren(GraphicsState* graphicsState)
 void UIStringDialogue::Proceed()
 {
 	// Post message with the string.
-	SetStringMessage * msg = new SetStringMessage(actionToBeTakenIfProceeding, input->text);
+	SetStringMessage * msg = new SetStringMessage(actionToBeTakenIfProceeding, input->GetText());
 	MesMan.QueueMessage(msg);
 
 	// Queue removal of the dialogue.

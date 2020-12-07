@@ -20,7 +20,7 @@ UIToggleButton::UIToggleButton(String name /*= ""*/)
 	onNotToggledTexture = "0x44FF";
 
 	this->name = name;
-	text = name;
+	SetText(name);
 	activationMessage = "SetBool:" + name;
 	type = UIType::CHECKBOX;
 	selectable = true;

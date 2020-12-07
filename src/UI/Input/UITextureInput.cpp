@@ -31,9 +31,9 @@ UITextureInput::~UITextureInput()
 /// Sent by UIInput elements upon pressing Enter and thus confirmign the new input, in case extra actions are warranted. (e.g. UITextureInput to update the texture provided as reference).
 void UITextureInput::OnInputUpdated(GraphicsState* graphicsState, UIInput * inputElement)
 {
-	Graphics.QueueMessage(new GMSetUIs(uiImage->name, GMUI::TEXTURE_SOURCE, inputElement->text));
+	Graphics.QueueMessage(new GMSetUIs(uiImage->name, GMUI::TEXTURE_SOURCE, inputElement->GetText()));
 	// Generate a message to send to the game-state too.
-	MesMan.QueueMessage(new TextureMessage(action, inputElement->text));
+	MesMan.QueueMessage(new TextureMessage(action, inputElement->GetText()));
 	return;
 }
 
@@ -67,8 +67,7 @@ void UITextureInput::CreateChildren(GraphicsState* graphicsState)
 	float spacePerElement = spaceLeft / elements;
 
 	/// Create a label
-	label = new UILabel();
-	label->text = name;
+	label = new UILabel(name);
 	label->sizeRatioX = 0.3f;
 	box->AddChild(nullptr, label);
 
@@ -76,7 +75,7 @@ void UITextureInput::CreateChildren(GraphicsState* graphicsState)
 	input = new UIInput();
 	/// Set them to only accept floats?
 	input->name = name + "Input";
-	input->text = "";
+	input->SetText("");
 	input->sizeRatioX = 0.55f;
 //	input->onTrigger = "UIStringInput("+name+")";
 	box->AddChild(nullptr, input);
@@ -95,7 +94,7 @@ Texture * UITextureInput::GetTexture()
 }
 String UITextureInput::GetTextureSource()
 {
-	return input->text;
+	return input->GetText();
 }
 /// To be called only from the RenderThread! Use GMSetUIs with TEXTURE_INPUT_SOURCE target!
 void UITextureInput::SetTextureSource(String source)

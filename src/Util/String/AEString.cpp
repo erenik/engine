@@ -895,8 +895,8 @@ int String::Find(const String & subString) const
 	{
 		String temp = arr;
 		String temp2 = findString;
-		temp.ToUpper();
-		temp2.ToUpper();
+		temp.ToUpperCase();
+		temp2.ToUpperCase();
 		return temp.Find(temp2);
 	}
 	// Case-sensitive
@@ -1483,7 +1483,7 @@ List<String> String::GetLines() const
 }
 
 /// Converts all characters to uppercase if possible
-void String::ToUpper(){
+void String::ToUpperCase(){
 	switch(type){
 		case CHAR:
 			for (int i = 0; i < arraySize; ++i){

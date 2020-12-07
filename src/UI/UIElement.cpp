@@ -34,6 +34,7 @@ extern UserInterface ui[GameStateID::MAX_GAME_STATES];
 int UIElement::idEnumerator = 0;
 String UIElement::defaultTextureSource; //  = "80Gray50Alpha.png";
 Vector4f UIElement::defaultTextColor = Vector4f(1,1,1,1);
+bool UIElement::forceUpperCase = false;
 
 // When clicking on it.
 float UIElement::onActiveHightlightFactor = 0.3f;
@@ -292,6 +293,10 @@ void UIElement::SetText(CTextr newText, bool force)
 		return;
 	}
 	this->text = newText;
+	if (forceUpperCase) {
+		this->text.ToUpperCase();
+	}
+
 	/// Reset text-variables so that they are re-calculated before rendering again.
 	currentTextSizeRatio = -1.0f;
 }
@@ -2418,13 +2423,13 @@ UILabel::UILabel(String name /*= ""*/)
 : UIElement()
 {
 	this->name = name;
-	text = name;
+	SetText(name);
 	type = UIType::LABEL;
 	hoverable = true;
 	highlightOnHover = false;
 	selectable = activateable = false;
 	/// Set text-color at least for labels!
-	text.color = defaultTextColor;
+	GetText().color = defaultTextColor;
 };
 
 UILabel::~UILabel()

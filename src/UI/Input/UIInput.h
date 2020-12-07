@@ -68,6 +68,11 @@ public:
 	void IncrementValue();
 	void DecrementValue();
 
+	// Parses int value from this element's text.
+	const int ParseInt();
+	// Parses float value from this element's text.
+	const float ParseFloat();
+
 	virtual void SetRange(int min, int max);
 
 	/// For making it a float/integer-only thingy.

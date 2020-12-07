@@ -43,9 +43,9 @@ void UIRadioButtons::CreateChildren(GraphicsState* graphicsState)
 	// Add label!
 	if (!noLabel)
 	{
-		UILabel * label = new UILabel(text);
+		UILabel * label = new UILabel(GetText());
 		label->sizeRatioX = labelSize;
-		label->text = displayText;
+		label->SetText(displayText);
 		label->textureSource = "0x00000000";
 		AddChild(nullptr, label);
 	}
@@ -55,7 +55,7 @@ void UIRadioButtons::CreateChildren(GraphicsState* graphicsState)
 		UIToggleButton * button = new UIToggleButton();
 		/// Set them to only accept floats?
 		button->name = name + "Input";
-		button->text = buttonTexts.Size() > i ? buttonTexts[i] : "";
+		button->SetText(buttonTexts.Size() > i ? buttonTexts[i] : "");
 		button->sizeRatioX = spacePerElement;
 		button->topRightCornerTextureSource = topRightCornerTextureSource;
 		button->textureSource = "";

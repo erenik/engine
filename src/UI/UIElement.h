@@ -412,8 +412,7 @@ public:
 		It is assumed that this label is a regular child.
 	*/
 	UILabel * label;
-	// Text that will be rendered
-	Text text;
+	
 	// Size of text in pixels
 	float textSize;
 	/// Relative text size to AppWindow size
@@ -426,6 +425,8 @@ public:
 	Vector4f color;
 	/// Colors for the text
 	static Vector4f defaultTextColor;
+	/// If true, forces all string assignments to upper-case (used with some styles of games)
+	static bool forceUpperCase;
 
 	// When clicking on it.
 	static float onActiveHightlightFactor; 
@@ -514,6 +515,8 @@ public:
 	virtual void ResizeGeometry();
 	void DeleteGeometry();
 
+	Text& GetText() { return text; }
+	const Text& GetText() const { return text; }
 
 	// If true, will reduce width or height dynamically so that the texture's aspect ratio is retained when rendering.
 	bool retainAspectRatioOfTexture = false;
@@ -563,6 +566,9 @@ protected:
 	static int idEnumerator;
 
 private:
+
+	// Text that will be rendered
+	Text text;
 
 	// Current state of the UI Element, See UIState above.
 	int state;
