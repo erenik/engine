@@ -44,11 +44,11 @@ UIParser::UIParser()
 	, defaultOnTrigger ( "")
 	, defaultDivider ( Vector2f(0.5f, 0.5f))
 	, defaultTextAlignment ( UIElement::LEFT)
+	, defaultFontSource(TextFont::defaultFontSource)
 	, lastEvaluatedIndex ( 0)
 	, element(nullptr)
 	, root(nullptr)
 {
-
 }
 
 UIParser::~UIParser() {
@@ -206,20 +206,29 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 				else
 					defaultTexture = param;
 			}
+			else if (token == "defaultFont") {
+				defaultFontSource = tokens[1];
+			}
 			else if (token == "defaultTopBorder") {
 				ENSURE_NEXT_TOKEN;
 				defaultTopBorder = (line - "defaultTopBorder");
 				defaultTopBorder.RemoveSurroundingWhitespaces();
+				if (defaultTopBorder == "null")
+					defaultTopBorder = "";
 			}
 			else if (token == "defaultRightBorder") {
 				ENSURE_NEXT_TOKEN;
 				defaultRightBorder = (line - "defaultRightBorder");
 				defaultRightBorder.RemoveSurroundingWhitespaces();
+				if (defaultRightBorder == "null")
+					defaultRightBorder = "";
 			}
 			else if (token == "defaultTopRightCorner") {
 				ENSURE_NEXT_TOKEN;
 				defaultTopRightCorner = (line - "defaultTopRightCorner");
 				defaultTopRightCorner.RemoveSurroundingWhitespaces();
+				if (defaultTopRightCorner == "null")
+					defaultTopRightCorner = "";
 			}
 			else if (token == "defaultOnTrigger") {
 				ENSURE_NEXT_TOKEN
@@ -327,10 +336,13 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 					String typeName = tokens[1];
 					if (typeName == "ToggleButton") {
 						root = new UIToggleButton();
-						root->SetRootDefaults(ui);
+					}
+					else if (typeName == "Button") {
+						root = new UIButton("root");
 					}
 					else
 						assert(false && "Unsupported root-type");
+					root->SetRootDefaults(ui);
 				}
 				element = root;
 			}
@@ -569,6 +581,10 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 			{
 				element->Disable();
 			}
+			else if (token == "noBorders") {
+				if (element != nullptr)
+					element->rightBorderTextureSource = element->topBorderTextureSource = element->topRightCornerTextureSource = "";
+			}
 			else if (token == "NoLabel")
 			{
 				element->noLabel = true;
@@ -580,6 +596,10 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 				std::cout << "\nINFO: Lacking argument on line " << i << ": " << line;
 				std::cout << "\nSkipping row and going to next one!";
 				break;
+			}
+			else if (token == "SelectionsTextColor") {
+				UIRadioButtons * radioButtons = (UIRadioButtons*)element;
+				radioButtons->SetSelectionsTextColor(Color::ColorByHexName(firstQuote));
 			}
 			else if (token == "DataType")
 			{
@@ -668,6 +688,10 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 			{
 				EnsureNextToken(tokens);
 				element->highlightOnHover = NextToken(tokens).ParseBool();
+			}
+			else if (token == "highlightOnActive") {
+				EnsureNextToken(tokens);
+				element->highlightOnActive = NextToken(tokens).ParseBool();
 			}
 			else if (token == "LabelText")
 			{
@@ -759,10 +783,12 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 			}
 			else if (token == "textColor")
 			{
+				String nextToken = NEXT_TOKEN;
 				// Hex detected!
 				if (line.Contains("0x") || line.Contains("#"))
 				{
-					element->SetTextColor(Color::ColorByHexName(NEXT_TOKEN));
+					Color color = Color::ColorByHexName(nextToken);
+					element->SetTextColor(&color);
 				}
 				else
 				{
@@ -871,6 +897,12 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 				ENSURE_NEXT_TOKEN;
 				element->rightBorderTextureSource = (line - "rightBorder");
 				element->rightBorderTextureSource.RemoveSurroundingWhitespaces();
+				if (element->rightBorderTextureSource == "null")
+					element->rightBorderTextureSource = "";
+			}
+			else if (token == "InputTexture") {
+			UIInput * input = (UIInput*)element;
+			input->SetInputTexture(firstQuote);
 			}
 			else if (token == "topRightCorner") {
 				ENSURE_NEXT_TOKEN;
@@ -1025,14 +1057,13 @@ void UIParser::SetDefaults(UIElement * element) {
 	element->alignment = defaultAlignment;
 	element->textureSource = defaultTexture;
 	element->scalable = defaultScalability;
-	if (defaultTextColor != nullptr)
-		element->SetTextColor(*defaultTextColor);
+	element->SetTextColor(defaultTextColor);
 	element->sizeRatioY = defaultSizeRatioY; 
 	element->sizeRatioX = defaultSizeRatioX; 
 	element->padding = defaultPadding; 
 	element->textSizeRatio = defaultTextSize; 
 	element->onTrigger = defaultOnTrigger; 
-	element->fontSource = TextFont::defaultFontSource; 
+	element->fontSource = defaultFontSource;
 	element->visible = defaultVisibility; 
 	element->divider = defaultDivider; 
 	element->textAlignment = defaultTextAlignment; 

@@ -38,6 +38,7 @@ public:
 	String defaultOnTrigger = "";
 	Vector2f defaultDivider = Vector2f(0.5f, 0.5f);
 	int defaultTextAlignment = UIElement::LEFT;
+	String defaultFontSource = "";
 
 	/// Manually parse the line using a few identifiers that can be relevant.
 	int lastEvaluatedIndex = 0;

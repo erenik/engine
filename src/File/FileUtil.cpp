@@ -287,12 +287,12 @@ bool CreateFolder(String withPath)
 /// Creates directories until the entire path is valid.
 bool CreateDirectoriesForPath(String dirPath, bool skipLast)
 {
-	std::cout<<"\nCreateDirectoriesForPath: "<<dirPath;
+	//std::cout<<"\nCreateDirectoriesForPath: "<<dirPath;
 	List<String> directories = dirPath.Tokenize("/");
 	String entirePath;
 	for (int i = 0; i < directories.Size(); ++i)
 	{
-		std::cout<<"\ni "<<i;
+		//std::cout<<"\ni "<<i;
 		// p=p
 		if (skipLast && i == directories.Size() - 1)
 			return true;

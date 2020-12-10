@@ -95,6 +95,8 @@ void UIElement::Nullify()
 	lockSizeY = false;
 	lockSizeX = false;
 
+	textColor = nullptr;
+
 	lineSizeRatio = -1.f;
 	childrenCreated = false;
 	/// ID
@@ -229,7 +231,7 @@ UIElement::~UIElement()
 
 	DeleteBorders();
 
-	SAFE_DELETE(textColor);
+	textColor = nullptr;
 
 	/// Deallocate texture and mesh if needed, as well as vbo, we should never do that here though!
 	assert(vboBuffer == -1 && "vboBuffer not released in UIElement::~UIElement()!");
@@ -264,10 +266,14 @@ void UIElement::SetBufferized(bool bufferizedFlag)
 
 // Creates a deep copy of all child elements (where possible).
 UIElement * UIElement::Copy() {
+	assert(false);
+	/*
 	UIElement * copy = new UIElement();
 	*copy = *this; // Copy all variables?
 	CopyChildrenInto(copy);
 	return copy;
+	*/
+	return nullptr;
 }
 
 void UIElement::CopyChildrenInto(UIElement * copyOfSelf) const {
@@ -279,9 +285,10 @@ void UIElement::CopyChildrenInto(UIElement * copyOfSelf) const {
 	}
 }
 
-/// Callback-function for sub-classes to implement own behaviour to run within the UI-class' code.
-void UIElement::Proceed()
+/// Callback-function for sub-classes to implement own behaviour to run within the UI-class' code. Return true if it did something.
+bool UIElement::OnProceed(GraphicsState* graphicsState)
 {
+	return false;
 }
 
 void UIElement::StopInput() {}
@@ -1964,7 +1971,8 @@ void UIElement::RenderBorders(GraphicsState& graphicsState) {
 	if (rightBorderTextureSource.Length() > 0) {
 		if (rightBorder == nullptr)
 			rightBorder = CreateBorderElement(rightBorderTextureSource, RIGHT);
-		rightBorder->Render(graphicsState);
+		if (rightBorder)
+			rightBorder->Render(graphicsState);
 	}
 	if (topRightCornerTextureSource.Length() > 0) {
 		if (topRightCorner == nullptr)
@@ -2221,9 +2229,10 @@ void UIElement::DeleteBorders() {
 }
 
 // Sets it to override.
-void UIElement::SetTextColor(Vector4f overrideColor) {
+void UIElement::SetTextColor(Vector4f * overrideColor) {
 	SAFE_DELETE(textColor);
-	textColor = new Vector4f(overrideColor);
+	if (overrideColor != nullptr)
+		textColor = new Vector4f(*overrideColor);
 }
 
 /** Sets slider level by adjusting it's child's position.

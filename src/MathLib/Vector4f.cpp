@@ -18,7 +18,7 @@
 #define w (*this)[3]
 #endif
 
-
+/*
 void* Vector4f::operator new(size_t size)
 {
 	std::cout<<"\nlall";
@@ -31,7 +31,7 @@ void Vector4f::operator delete(void* mem)
 {
 	mem;
 }
-
+*/
 
 Vector4f::Vector4f()
 {
@@ -41,6 +41,20 @@ Vector4f::Vector4f()
 #else
 	x = y = z = 0;
 	w = 1;
+#endif
+}
+
+/**	Copy constructor
+	Postcondition: Initializes a NULL-4D-vector, having x, y & z set to 0 and w to 1.
+*/
+Vector4f::Vector4f(const Vector4f& ref) {
+#ifdef USE_SSE
+	data = ref.data;
+#else 
+	x = ref.x;
+	y = ref.y;
+	z = ref.z;
+	w = ref.w;
 #endif
 }
 
@@ -107,6 +121,15 @@ Vector4f::Vector4f(const Vector3f  & base, float iw)
 	z = base[2];
 	w = iw;
 #endif
+}
+
+void Vector4f::UnitTest() {
+	Vector4f test;
+
+	Vector4f * withNew = new Vector4f();
+	(*withNew) = test;
+
+
 }
 
 /// Printing out data

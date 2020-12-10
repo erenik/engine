@@ -15,6 +15,8 @@ public:
 	void SetToggled(bool value);
 	// Sets the flag, but does not call the OnToggled event.
 	void SetToggledSilently(bool value);
+
+	void OnToggled(UIToggleButton * box) override;
 	const bool IsToggled() const { return toggled; }
 
 	void OnStateAdded(int state) override;
@@ -22,9 +24,15 @@ public:
 	virtual void RemoveState(int state, bool recursive = false);
 
 	void UpdateTexture();
+	void UpdateTextColor();
+
+	static String defaultOnToggledTexture;
+	static String defaultOnNotToggledTexture;
 
 	String onToggledTexture;
 	String onNotToggledTexture;
+	Color toggledTextColor;
+	Color notToggledTextColor;
 
 private:
 	/// For checkboxes.

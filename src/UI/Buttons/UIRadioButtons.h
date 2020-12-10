@@ -24,6 +24,9 @@ public:
 	// Set texture for all elements.
 	void SetTextureSource(String source);
 
+	// Sets color for the toggle-buttons/selections
+	void SetSelectionsTextColor(Color color);
+
 	// Sets textures to be used for the elements, assuming one texture per button.
 	void SetTextures(List<String> textureSourcesOrNames);
 
@@ -32,6 +35,7 @@ public:
 
 	// Returns true if it adjusted any UI state.
 	bool OnNavigate(GraphicsState* graphicsState, NavigateDirection navigateDirection);
+	virtual bool OnProceed(GraphicsState* graphicsState) override;
 
 	void OnStateAdded(int state) override;
 
@@ -44,6 +48,7 @@ public:
 	static Vector4f toggledTextColor, notToggledTextColor;
 
 protected:
+	Color selectionsTextColor;
 	int numButtons;
 	int toggledIndex;
 	List<String> buttonTexts;

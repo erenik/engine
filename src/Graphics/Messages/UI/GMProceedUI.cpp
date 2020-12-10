@@ -41,6 +41,9 @@ void GMProceedUI::Process(GraphicsState * gs) {
 	}
 	else {
 		ui->GetStackTop()->RemoveState(UIState::ACTIVE, true);
+		if (hoverElement->OnProceed(gs))
+			return;
+
 		hoverElement->AddState(UIState::ACTIVE);
 		// Remove active state immediately, as we want to continue navigating.
 		hoverElement->RemoveState(UIState::ACTIVE);

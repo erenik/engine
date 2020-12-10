@@ -7,6 +7,9 @@
 #include "Message/Message.h"
 #include "Message/MessageManager.h"
 
+String UIToggleButton::defaultOnToggledTexture = "0x77FF";
+String UIToggleButton::defaultOnNotToggledTexture = "0x44FF";
+
 UIToggleButton::UIToggleButton(String name /*= ""*/)
 	: UIElement()
 	, toggled(false)
@@ -16,8 +19,8 @@ UIToggleButton::UIToggleButton(String name /*= ""*/)
 	textureSource = defaultTextureSource;
 
 	// Default toggle button - bright and dark backgrounds.
-	onToggledTexture = "0x77FF";
-	onNotToggledTexture = "0x44FF";
+	onToggledTexture = defaultOnToggledTexture;
+	onNotToggledTexture = defaultOnNotToggledTexture;
 
 	this->name = name;
 	SetText(name);
@@ -33,6 +36,7 @@ UIToggleButton::UIToggleButton(String name /*= ""*/)
 	this->highlightOnHover = true;
 
 	UpdateTexture();
+	UpdateTextColor();
 };
 
 UIToggleButton::~UIToggleButton()
@@ -61,7 +65,6 @@ UIElement* UIToggleButton::Activate(GraphicsState* graphicsState)
 
 void UIToggleButton::SetToggled(bool value) { 
 	toggled = value; 
-	UpdateTexture();
 	this->OnToggled(this);
 }
 
@@ -69,8 +72,16 @@ void UIToggleButton::SetToggled(bool value) {
 void UIToggleButton::SetToggledSilently(bool value) {
 	toggled = value;
 	UpdateTexture();
+	UpdateTextColor();
 }
 
+void UIToggleButton::OnToggled(UIToggleButton * button) {
+	UpdateTexture(); 
+	UpdateTextColor();
+
+	// Inform parents if need be.
+	UIElement::OnToggled(button);
+}
 
 void UIToggleButton::OnStateAdded(int state) {
 	UIElement::OnStateAdded(state);
@@ -94,4 +105,7 @@ void UIToggleButton::UpdateTexture() {
 	textureSource = toggled? onToggledTexture : onNotToggledTexture;
 }
 
+void UIToggleButton::UpdateTextColor() {
+	SetTextColor(toggled ? &toggledTextColor : &notToggledTextColor);
+}
 

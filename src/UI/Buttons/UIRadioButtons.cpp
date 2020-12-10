@@ -63,8 +63,11 @@ void UIRadioButtons::CreateChildren(GraphicsState* graphicsState)
 		/// Set them to only accept floats?
 		button->name = name + "Button"+ String(i);
 		button->SetText(buttonTexts.Size() > i ? buttonTexts[i] : "");
+		button->toggledTextColor = toggledTextColor;
+		button->notToggledTextColor = notToggledTextColor;
 		button->sizeRatioX = spacePerElement;
 		button->topRightCornerTextureSource = topRightCornerTextureSource;
+		button->SetTextColor(&selectionsTextColor);
 		button->textureSource = "";
 		if (textureSourcesOrNames.Size()) {
 			button->textureSource = textureSourcesOrNames[i];
@@ -127,17 +130,14 @@ void UIRadioButtons::OnToggled(UIToggleButton * toggleButton)
 		for (int i = 0; i < buttons.Size(); ++i)
 		{
 			UIToggleButton * button = buttons[i];
-			button->SetTextColor(button == toggleButton ? toggledTextColor : notToggledTextColor);
-			button->onToggledTexture = "";
-			button->onNotToggledTexture = "";
 			if (button == toggleButton)
 				continue;
 			button->SetToggledSilently(false);
 		}
 	}
 	/// Ensure always one radio button is toggled.
-	else 
-		toggleButton->SetToggledSilently(true);
+	//else 
+	//	toggleButton->SetToggledSilently(true);
 }
 
 // Returns true if it adjusted any UI state.
@@ -163,6 +163,24 @@ bool UIRadioButtons::OnNavigate(GraphicsState* graphicsState, NavigateDirection 
 	return true;
 }
 
+bool UIRadioButtons::OnProceed(GraphicsState* graphicsState) {
+	int value = toggledIndex + 1;
+	if (value >= buttons.Size())
+		value = 0;
+	if (value < 0)
+		value = buttons.Size() - 1;
+	SetValue(graphicsState, value);
+	return true;
+}
+
+// Sets color for the toggle-buttons/selections
+void UIRadioButtons::SetSelectionsTextColor(Color color) {
+	selectionsTextColor = color;
+	for (int i = 0; i < buttons.Size(); ++i) {
+		UIToggleButton * button = buttons[i];
+		button->SetTextColor(&color);
+	}
+}
 
 void UIRadioButtons::OnStateAdded(int state) {
 	if (label != nullptr)

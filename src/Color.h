@@ -10,7 +10,11 @@
 
 #include "String/AEString.h"
 
-class Color : public Vector4f 
+class 
+#ifdef USE_SSE
+	alignas(16)
+#endif
+	Color : public Vector4f
 {
 public:
 	// o.o

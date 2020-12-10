@@ -27,6 +27,8 @@ UIInput::UIInput(String name /*= ""*/)
 	navigatable = true;
 	activationMessage = "BEGIN_INPUT(this)";
 	
+	inputTextureSource = UIElement::defaultTextureSource;
+
 	/// When true, re-directs all (or most) keyboard input to the target element for internal processing. Must be subclass of UIInput as extra functions there are used for this.
 	demandInputFocus = true;
 	caretPosition = 0;
@@ -518,6 +520,8 @@ UIColumnList * UIInput::CreateDefaultColumnList(UIElement * parent) {
 	UIColumnList * box = new UIColumnList();
 	box->textureSource = "0x00000000";
 	box->padding = parent->padding;
+	box->fontSource = parent->fontSource;
+	box->SetTextColor(parent->textColor);
 	parent->AddChild(nullptr, box);
 	return box;
 }
@@ -527,6 +531,9 @@ UILabel * UIInput::CreateDefaultLabel(UIColumnList * box, String text, float siz
 	label->hoverable = true;
 	label->SetText(text);
 	label->sizeRatioX = sizeX;
+	label->fontSource = box->fontSource;
+	label->SetTextColor(box->textColor);
+	label->rightBorderTextureSource = box->rightBorderTextureSource;
 	box->AddChild(nullptr, label);
 	return label;
 }
@@ -536,6 +543,9 @@ UIInput * UIInput::CreateDefaultInput(UIColumnList * box, String inputName, floa
 	input->textureSource = UIElement::defaultTextureSource;
 	input->name = inputName + "Input";
 	input->sizeRatioX = sizeX;
+	input->fontSource = box->fontSource;
+	input->SetTextColor(box->textColor);
+
 	box->AddChild(nullptr, input);
 
 	// If activating this meta-Input element, start adjusting this sub-field.
@@ -543,6 +553,15 @@ UIInput * UIInput::CreateDefaultInput(UIColumnList * box, String inputName, floa
 
 	return input;
 }
+
+void UIInput::SetInputTexture(String source) {
+	if (source == "null")
+		source = "";
+	if (input)
+		input->textureSource = source;
+	inputTextureSource = source;
+}
+
 float UIInput::DefaultSpacePerElement(float padding) {
 	int elements = 1 + 1;
 	float spaceLeft = 1.0f - padding * elements;
@@ -577,7 +596,7 @@ const float UIInput::ParseFloat() {
 }
 
 // For setting static colors.
-void UIInput::SetTextColor(Vector4f newOverrideTextColor) {
+void UIInput::SetTextColor(Vector4f * newOverrideTextColor) {
 	UIElement::SetTextColor(newOverrideTextColor); // Set for self, in-case elements are not yet created.
 
 	if (label)

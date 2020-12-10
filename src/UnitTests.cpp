@@ -10,6 +10,7 @@ extern bool TrigonometryTests();
 #include "MathLib/Function.h"
 #include "MathLib/FunctionEvaluator.h"
 #include "Thread/Thread.h"
+#include "UI/UIElement.h"
 
 bool UnitTests()
 {
@@ -30,6 +31,9 @@ bool UnitTests()
 		return true;
 
 	Matrix4f::UnitTest();
+	Vector4f::UnitTest();
+	UIElement::UnitTest();
+
 //	Angle::UnitTest();
 
 //	return 0;

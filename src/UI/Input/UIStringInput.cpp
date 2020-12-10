@@ -136,12 +136,13 @@ void UIStringInput::CreateChildren(GraphicsState * graphicsState)
 	UIColumnList * box = CreateDefaultColumnList(this);
 	float spacePerElement = DefaultSpacePerElement(padding);
 	label = CreateDefaultLabel(box, displayText, divider.x);
-	input = CreateDefaultInput(box, name, 1 - divider.x);
+	label->rightBorderTextureSource = rightBorderTextureSource;
 
-	if (textColor != nullptr) {
-		label->SetTextColor(*textColor);
-		input->SetTextColor(*textColor);
-	}
+	input = CreateDefaultInput(box, name, 1 - divider.x);
+	input->textureSource = inputTextureSource;
+
+	label->SetTextColor(textColor);
+	input->SetTextColor(textColor);
 
 	/// Set them to only accept floats?
 	input->SetText("");

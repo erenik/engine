@@ -22,21 +22,25 @@ class String;
 
 class  
 #ifdef USE_SSE
-	alignas(16)
+	alignas(__m128)
 #endif
 	Vector4f
 	  {
 
 public:
 
-	void* operator new(size_t);
-    void operator delete(void*);
+	//void* operator new(size_t);
+    //void operator delete(void*);
 
 	// CONSTRUCTORS
 	/**	Default Constructor
 		Postcondition: Initializes a NULL-4D-vector, having x, y & z set to 0 and w to 1.
 	*/
 	Vector4f();
+	/**	Copy constructor
+		Postcondition: Initializes a NULL-4D-vector, having x, y & z set to 0 and w to 1.
+	*/
+	Vector4f(const Vector4f& ref);
 	/**	Constructor
 		Postcondition: Initializes a 4D vector to specified values.
 	*/
@@ -54,6 +58,8 @@ public:
 		Postcondition: Initializes a 4D vector to have same values as the referenced vector. w defaults to 1 unless the second parameter is sent.
 	*/
 	Vector4f(const Vector3f & base, float w = 1);
+
+	static void UnitTest();
 
 	/// Printing out data
 	friend std::ostream& operator <<(std::ostream& os, const Vector4f& vec);

@@ -74,7 +74,7 @@ public:
 	const float ParseFloat();
 
 	// For setting static colors.
-	virtual void SetTextColor(Vector4f newOverrideTextColor);
+	virtual void SetTextColor(Vector4f * newOverrideTextColor) override;
 
 	virtual void SetRange(int min, int max);
 
@@ -90,6 +90,8 @@ public:
 	// Is it currently active for input?
 	const bool InputActive() const { return inputActive; }
 
+	void SetInputTexture(String source);
+
 protected:
 	/// For handling text-input
 	void OnBackspace();
@@ -102,6 +104,8 @@ protected:
 	Text previousText;
 	/// Text used during editing, used to update the rendered and used text-string, but not one and the same!
 	Text editText;
+
+	String inputTextureSource;
 
 	// For range
 	int min, max;

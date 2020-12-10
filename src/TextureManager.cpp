@@ -145,7 +145,7 @@ Texture * TextureManager::GetTextureByName(String name)
 	else if (name == "Cyan")
 		return GenerateTexture("Cyan", Vector4f(0,1,1,1));
 	/// Hex-code go!
-	else if (name.Contains("0x"))
+	else if (name.Contains("0x") || name.Contains("#"))
 	{
 		return GenerateTexture(name, Color::ColorByHexName(name));
 	}

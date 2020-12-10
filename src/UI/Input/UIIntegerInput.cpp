@@ -28,6 +28,7 @@ UIIntegerInput::UIIntegerInput(String name, String onTrigger)
 	label = NULL;
 	guiInputDisabled = false;
 	acceptMathematicalExpressions = false;
+	textColor = nullptr;
 }
 UIIntegerInput::~UIIntegerInput()
 {
@@ -142,15 +143,15 @@ void UIIntegerInput::CreateChildren(GraphicsState* graphicsState)
 	UIColumnList * box = CreateDefaultColumnList(this);
 	float spacePerElement = DefaultSpacePerElement(padding);
 	label = CreateDefaultLabel(box, displayText, divider.x);
+	label->rightBorderTextureSource = rightBorderTextureSource;
 	label->textAlignment = LEFT;
 	//label->textureSource = "0x554433";
 	input = CreateDefaultInput(box, name, 1 - divider.x);
+	input->textureSource = inputTextureSource;
 	//input->textureSource = "0x334455";
 
-	if (textColor != nullptr) {
-		label->SetTextColor(*textColor);
-		input->SetTextColor(*textColor);
-	}
+	label->SetTextColor(textColor);
+	input->SetTextColor(textColor);
 
 	/// Set them to only accept floats?
 	/// Any mathematical expression?

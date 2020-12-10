@@ -576,7 +576,7 @@ void MessageManager::ProcessMessage(Message * message)
 				UIElement * e = ui->GetElementByName(name);
 				if (!e)
 					return;
-				e->Proceed();
+				e->OnProceed(nullptr);
 				return;
 			}
 			else if (msg.Contains("UITextureInput("))

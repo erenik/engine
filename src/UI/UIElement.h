@@ -79,6 +79,8 @@ public:
 
 	void SetRootDefaults(UserInterface * ui);
 
+	static void UnitTest();
+
 	UIElement * Parent() {return parent;};
 
 	virtual int CenteredContentParentPosX() const;
@@ -92,8 +94,8 @@ public:
 	virtual UIElement * Copy();
 	virtual void CopyChildrenInto(UIElement * copyOfSelf) const;
 
-	/// Callback-function for sub-classes to implement own behaviour to run within the UI-class' code.
-	virtual void Proceed();
+	/// Callback-function for sub-classes to implement own behaviour to run within the UI-class' code. Return true if it did something.
+	virtual bool OnProceed(GraphicsState* graphicsState);
 	virtual void StopInput();
 
 	// Used for handling things like drag-n-drop and copy-paste operations, etc. as willed.
@@ -326,7 +328,7 @@ public:
 		topRightCornerTextureSource;
 
 	// Sets it to override.
-	virtual void SetTextColor(Vector4f overrideColor);
+	virtual void SetTextColor(Vector4f * overrideColor);
 
 	/// Alignment relative to parent. If this is set all other alignment* variables will be ignored.
 	char alignment;

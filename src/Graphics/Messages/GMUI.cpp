@@ -417,7 +417,7 @@ void GMSetUIv4f::Process(GraphicsState * graphicsState)
 			e->SetColor(value);
 			break;
         case GMUI::TEXT_COLOR:
-			e->SetTextColor(value);
+			e->SetTextColor(&value);
             break;
         case GMUI::VECTOR_INPUT:
             if (e->type != UIType::VECTOR_INPUT)
