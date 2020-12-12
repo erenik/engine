@@ -45,9 +45,9 @@ bool IsCharacter(uchar c)
 	return true;
 }
 
-Vector4f TextFont::idleColor = Color::ColorByHexName("#AAAAAAff");
-Vector4f TextFont::onHoverColor = Color::ColorByHexName("#CCCCCCff");
-Vector4f TextFont::onActiveColor = Color::ColorByHexName("#FFFFFFFF");
+std::shared_ptr<Color> TextFont::idleColor = Color::ColorByHexName("#AAAAAAff");
+std::shared_ptr<Color> TextFont::onHoverColor = Color::ColorByHexName("#CCCCCCff");
+std::shared_ptr<Color> TextFont::onActiveColor = Color::ColorByHexName("#FFFFFFFF");
 
 TextFont::TextFont()
 {
@@ -55,7 +55,7 @@ TextFont::TextFont()
 	active = false;
 
 	texture = NULL;
-	color = Vector4f(1.0f, 1.0f, 1.0f, 1.0f);
+	color = Color::defaultTextColor;
 	for (int i = 0; i < MAX_CHARS; ++i){
 		charWidth[i] = 0.2f;
 		charHeight[i] = 0.0f;
@@ -275,7 +275,7 @@ void TextFont::ParseTextureData(){
 	}
 }
 
-void TextFont::SetColor(const Vector4f & textColor){
+void TextFont::SetColor(std::shared_ptr<Color> textColor){
 	color = textColor;
 }
 
@@ -423,13 +423,13 @@ Vector2f TextFont::CalculateRenderSizeWorldSpace(Text & text, GraphicsState & gr
 
 
 /// Renders text ^^
-void TextFont::RenderText(Text & text, TextState textState, Vector4f * overrideColor, GraphicsState & graphicsState)
+void TextFont::RenderText(Text & text, TextState textState, std::shared_ptr<Color> overrideColor, GraphicsState & graphicsState)
 {
 	// Set starting variables.
 	NewText(text);
 
 	/// One color for all text?
-	Vector4f color = text.color;
+	std::shared_ptr<Color> color = text.color;
 	switch (textState) {
 	case TextState::Idle:
 		color = idleColor;
@@ -442,7 +442,7 @@ void TextFont::RenderText(Text & text, TextState textState, Vector4f * overrideC
 		break;
 	}
 	if (overrideColor != nullptr)
-		color = *overrideColor;
+		color = overrideColor;
 	this->SetColor(color);
 	
 	/// Save old shader!
@@ -535,7 +535,7 @@ bool TextFont::PrepareForRender(GraphicsState & graphicsState)
 		shader->SetViewMatrix(graphicsState.viewMatrixF);
 		shader->SetModelMatrix(graphicsState.modelMatrixF);
 		// Set text color
-		glUniform4f(shader->uniformPrimaryColorVec4, color.x, color.y, color.z, color.w);
+		glUniform4f(shader->uniformPrimaryColorVec4, color->x, color->y, color->z, color->w);
 		
 		// set hover state
 		glUniform1i(shader->uniformHoveredOver, hoveredOver? 1 : 0);
@@ -589,7 +589,7 @@ bool TextFont::PrepareForRender(GraphicsState & graphicsState)
 		Matrix4f modelView = graphicsState.viewMatrixF * graphicsState.modelMatrixF;
 		glMatrixMode(GL_MODELVIEW);
 		glLoadMatrixf(modelView.getPointer());
-		glColor4f(color[0], color[1], color[2], color[3]);
+		glColor4f(color->x, color->y, color->z, color->w);
 		glEnable(GL_BLEND);
 		glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 

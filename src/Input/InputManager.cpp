@@ -500,16 +500,17 @@ void InputManager::MouseWheel(AppWindow * AppWindow, float delta)
 	UserInterface * ui = GetRelevantUIForWindow(AppWindow);
 	if (ui)
 	{
-		UIElement * element = ui->GetHoverElement();
+		// Hover first.
+		UIElement * element = ui->GetElementByPosition(inputState->mousePosition);
+		if (element == nullptr)
+			element = ui->GetHoverElement();
 		if (element)
 		{
 			delta *= 2.f;
 			if (KeyPressed(KEY::CTRL))
 				delta *= 0.25f;
-			QueueGraphics(new GMScrollUI(element->name, delta)); // Do it in the render thread.
-			
-			// Do a mouse hover/move too!
-			ui->Hover(inputState->mousePosition);
+			QueueGraphics(new GMScrollUI(element->name, delta));
+			// Do a mouse hover/move too! - from the graphics thread, yeah.
 		}
 	}
 	/// If no UI has been selected/animated, pass the message on to the stateManager

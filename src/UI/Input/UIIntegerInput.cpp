@@ -151,7 +151,8 @@ void UIIntegerInput::CreateChildren(GraphicsState* graphicsState)
 	//input->textureSource = "0x334455";
 
 	label->SetTextColor(textColor);
-	input->SetTextColor(textColor);
+	if (input->textColor == nullptr)
+		input->SetTextColor(textColor);
 
 	/// Set them to only accept floats?
 	/// Any mathematical expression?

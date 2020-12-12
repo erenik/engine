@@ -27,13 +27,11 @@ UIColumnList::~UIColumnList()
 /// Creates a deep copy of self and all child elements (where possible).
 UIElement * UIColumnList::Copy() {
 	
-	assert(false && "RE-implement");
-	/*
 	UIColumnList * copy = new UIColumnList();
 	*copy = *this; // Copy all variables?
+	CopySpecialVariables(copy);
 	CopyChildrenInto(copy);
-	*/
-	return nullptr;
+	return copy;
 }
 
 /// Deletes all children and content inside.

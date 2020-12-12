@@ -27,7 +27,7 @@ GraphicsProperty::GraphicsProperty(EntitySharedPtr owner)
 	castsShadow = true;
 	flags = 0;
 	visible = true;
-	textColor = Vector4f(1,1,1,1);
+	textColor = Color::defaultTextColor;
 	textSizeRatio = 1.0f;
 
 	hasAnimation = false;

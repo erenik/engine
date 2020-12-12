@@ -31,8 +31,8 @@ public:
 
 	String onToggledTexture;
 	String onNotToggledTexture;
-	Color toggledTextColor;
-	Color notToggledTextColor;
+	std::shared_ptr<Color> toggledTextColor;
+	std::shared_ptr<Color> notToggledTextColor;
 
 private:
 	/// For checkboxes.

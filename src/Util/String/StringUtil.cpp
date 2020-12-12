@@ -4,6 +4,7 @@
 
 #include "StringUtil.h"
 #include "Sorting/InsertionSort.h"
+#include "Color.h"
 
 /// Utility function that splits all lines, removing any CR LF or the combination CRLF
 List<String> GetLines(String string){
@@ -46,6 +47,13 @@ String GetSection(String inString, char withStartToken, char andEndToken){
 	return newString;
 }
 
+String ColorString(std::shared_ptr<Color> c) {
+	return ColorString(*c);
+}
+
+String ColorString(const Color& c) {
+	return "rgba "+ String::ToString(c.r) + " " + String::ToString(c.g) + " " + String::ToString(c.b) + " " + String::ToString(c.a);
+}
 
 String VectorString(const Vector4f& v) {
 	return String::ToString(v[0]) + " " + String::ToString(v[1]) + " " + String::ToString(v[2]) + " " + String::ToString(v[3]);

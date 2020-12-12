@@ -77,6 +77,7 @@ public:
 	UIElement * Click(int x, int y, bool allUi = false);
 	UIElement * Activate();
 	// Goes through the active stack until an element is found which corresponds to the given (visible) co-ordinates.
+	UIElement * GetElementByPosition(Vector2f posXY);
 	UIElement * GetElementByPosition(float x, float y);
 
 	/// Woo!

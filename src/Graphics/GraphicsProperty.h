@@ -95,7 +95,7 @@ public:
 	/// The scale to be rendered for this entity.
 	Vector3f scale;
 
-	Vector4f textColor;
+	std::shared_ptr<Color> textColor;
 	// Offset?
 	Vector4f textPositionOffset; 
 	/// For rendering the entity at a slightly different position than is stated by the Physics/NavMesh managers.

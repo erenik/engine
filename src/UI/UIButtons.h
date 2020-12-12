@@ -13,4 +13,23 @@ public:
 	virtual ~UIButton();
 };
 
+// A button composed of a bunch of underlying objects, as defined in their respective .gui file. Highlight and active states are propagated to all children, but interactions only handled on the CompositeButton.
+class UICompositeButton : public UIButton {
+public:
+	UICompositeButton(String name);
+	virtual ~UICompositeButton();
+
+	/// Creates a deep copy of self and all child elements (where possible).
+	virtual UIElement * Copy() override;
+
+	// For sub-classes to adjust children as needed (mainly for input elements).
+	virtual void OnStateAdded(int state) override;
+
+	/// For example UIState::HOVER, if recursive will apply to all children.
+	virtual void RemoveState(int state, bool recursive = false) override;
+
+	virtual bool AddChild(GraphicsState* graphicsState, UIElement *in_child) override;
+
+};
+
 #endif

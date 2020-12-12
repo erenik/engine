@@ -6,68 +6,7 @@
 
 #include "UI/UIElement.h"
 
-class UIScrollBarHandle : public UIElement {
-public:
-    UIScrollBarHandle();
-	virtual ~UIScrollBarHandle();
-	/// Returns the actual distance moved.
-    float Move(float distance);
-	float GetScrollPosition();
-	void SetScrollPosition(float f);
-
-	/// Activation functions
-	virtual UIElement * Hover(int mouseX, int mouseY);
-	// Returns true once the highest-level appropriate element has been found.
-	// No co-ordinates are required since we will instead require the element to already
-	// be highlighted/hovered above.
-	virtual UIElement * Click(int mouseX, int mouseY);
-
-	/// Used by e.g. ScrollBarHandle's in order to slide its content according to mouse movement, even when the mouse extends beyond the scope of the element.
-	virtual void OnMouseMove(Vector2i activeWindowCoords);
-
-
-	// Sets alignment, queueing rebuffering.
-	void SetAlignmentY(float y);
-};
-
-class UIScrollBar : public UIElement {
-    friend class UIList;
-public:
-    UIScrollBar();
-	virtual ~UIScrollBar();
-    void CreateHandle();
-
-	/// For updating scroll-position based on Mouse coordinate
-	void OnMouseY(int y);
-
-	/// Activation functions
-	virtual UIElement * Hover(int mouseX, int mouseY);
-	// Returns true once the highest-level appropriate element has been found.
-	// No co-ordinates are required since we will instead require the element to already
-	// be highlighted/hovered above.
-	virtual UIElement * Click(int mouseX, int mouseY);
-	// Updates to contents with given size in relative units.
-    void Update(float newSize);
-    
-	/** Move the scrollbar, capping it depending on it's size (will never exceed the 0.0 - 1.0 limits)
-		Returns the actual distance moved.
-	*/
-    float Move(float distance);
-	/// Returns current scroll position, based on the handle.
-	float GetScrollPosition();
-	void SetScrollPosition(float f);
-
-    /// Returns the current relative start of the contents, 0.0 being top and close to (pages) at the maximum, varying with the content length.
-    float GetStart();
-    /// Returns the current relative start of the contents
-    float GetStop();
-	/// Returns size of the scroll bar handle, equivalent to how big a page is relative to the total contents.
-	float PageSize();
-    void PrintDebug();
-private:
-    UIScrollBarHandle * handle;
-    float previousSize;
-};
+class UIScrollBar;
 
 /** The UIList class acts in such a way that it formats it's internals content after demand, by repositioning them as needed.
 	As such, it uses several own functions in order to meet these demands.

@@ -21,7 +21,7 @@ void Text::Nullify()
 	previousCaretPosition = -1;
 	offsetX = 0;
 	offsetY = 0;
-	color = Vector4f(1,1,1,1.0f);
+	color = Color::defaultTextColor;
 }
 /// Copy constructor and..
 Text::Text(const String & string)
@@ -45,11 +45,11 @@ Text::Text(String str, int colorHex)
 	: String(str)
 {
 	Nullify();
-	color = Color::ColorByHex32(colorHex);
+	color = std::make_shared<Color>(Color::ColorByHex32(colorHex));
 }
 
 // Returns a copy with given color
-Text Text::WithColor(Color color) const {
+Text Text::WithColor(std::shared_ptr<Color> color) const {
 	Text text = *this;
 	text.color = color;
 	return text;

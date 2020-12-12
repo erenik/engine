@@ -92,6 +92,7 @@ public:
 	
 	/// Creates a deep copy of self and all child elements (where possible).
 	virtual UIElement * Copy();
+	virtual void CopySpecialVariables(UIElement * intoElement);
 	virtual void CopyChildrenInto(UIElement * copyOfSelf) const;
 
 	/// Callback-function for sub-classes to implement own behaviour to run within the UI-class' code. Return true if it did something.
@@ -299,8 +300,8 @@ public:
 	/// Called after resize of UI before RenderText.
 	virtual void FormatText(GraphicsState * graphicsState); 
 
-	/// Adjusts the UI element size and position relative to new AppWindow size
-	void AdjustToWindow(int left, int right, int bottom, int top);
+	/// Adjusts the UI element size and position relative to its parent element or UI/window
+	virtual void AdjustToWindow(int left, int right, int bottom, int top);
 	/// Calls AdjustToWindow for parent's bounds. Will assert if no parent is available.
 	void AdjustToParent();
 
@@ -320,15 +321,21 @@ public:
 	void DeleteBorders();
 
 	// Used for borders.
-	UIElement * topBorder, 
+	UIElement * topBorder,
+		* bottomBorder,
 		* rightBorder,
 		* topRightCorner;
 	String topBorderTextureSource,
+		bottomBorderTextureSource,
 		rightBorderTextureSource,
 		topRightCornerTextureSource;
 
+	int borderOffset = 0;
+
 	// Sets it to override.
-	virtual void SetTextColor(Vector4f * overrideColor);
+	virtual void SetTextColor(std::shared_ptr<Color> overrideColor);
+	// Overrides, but only during onHover.
+	virtual void SetOnHoverTextColor(std::shared_ptr<Color> onHoverTextColor);
 
 	/// Alignment relative to parent. If this is set all other alignment* variables will be ignored.
 	char alignment;
@@ -434,10 +441,11 @@ public:
 	Vector4f color;
 
 	// If set, this will override the text colors used by Idle,Hover,Active states.
-	Vector4f * textColor;
+	std::shared_ptr<Color> textColor,
+		onHoverTextColor;
 
 	/// Colors for the text
-	static Vector4f defaultTextColor;
+	static std::shared_ptr<Color> defaultTextColor;
 	/// If true, forces all string assignments to upper-case (used with some styles of games)
 	static bool forceUpperCase;
 
@@ -475,8 +483,9 @@ public:
 	void SetState(int newState);
 	/** For example UIState::HOVER, not to be confused with flags! State = current, Flags = possibilities
 		For operations controlling the HOVER flag, certain criteria may need to be met in order for the adder to succeed.
+		Specifying force = true will make it ignore checks of hoverable, activatable, etc.
 	*/
-	bool AddState(int state);
+	virtual bool AddState(int state, bool force = false);
 	// For sub-classes to adjust children as needed (mainly for input elements).
 	virtual void OnStateAdded(int state);
 	// See UIState::
@@ -533,6 +542,10 @@ public:
 
 	// If true, will reduce width or height dynamically so that the texture's aspect ratio is retained when rendering.
 	bool retainAspectRatioOfTexture = false;
+
+	float ZDepth() const { return zDepth; }
+
+	Square* GetMesh() { return mesh; }
 
 // Some inherited for UI subclasses
 protected:

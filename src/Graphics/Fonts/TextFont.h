@@ -38,12 +38,12 @@ public:
 	Vector2f CalculateRenderSizeWorldSpace(Text & text, GraphicsState & graphics);
 
 	/// Renders text using matrices in the graphicsState, but with the default GL shader.
-	void RenderText(Text & text, TextState textState, Vector4f * overrideColor, GraphicsState & graphics);
+	void RenderText(Text & text, TextState textState, std::shared_ptr<Color> overrideColor, GraphicsState & graphics);
 	
 	void SetTextureSource(const String s) { textureSource = s; };
 	const String GetTextureSource() { return textureSource; };
 	
-	void SetColor(const Vector4f & color);
+	void SetColor(std::shared_ptr<Color> color);
 	/** Saves the font-data to specified path.
 		If the path length is 0 it will attempt to save to the same location as the given
 		texture for the font.
@@ -62,9 +62,9 @@ public:
 
 	static String defaultFontSource;
 
-	static Vector4f idleColor;
-	static Vector4f onHoverColor;
-	static Vector4f onActiveColor;
+	static std::shared_ptr<Color> idleColor;
+	static std::shared_ptr<Color> onHoverColor;
+	static std::shared_ptr<Color> onActiveColor;
 
 	/// For extra colors or effects.
 	bool hoveredOver;
@@ -151,8 +151,8 @@ private:
 	float charHeight[MAX_CHARS];
 
 	/// Color to be used when rendering the text.
-	Vector4f color;
-	Vector4f secondaryColor;
+	std::shared_ptr<Color> color;
+	std::shared_ptr<Color> secondaryColor;
 
 	/// Texture to be used when rendering.
 	Texture * texture;

@@ -33,7 +33,7 @@ extern UserInterface ui[GameStateID::MAX_GAME_STATES];
 
 int UIElement::idEnumerator = 0;
 String UIElement::defaultTextureSource; //  = "80Gray50Alpha.png";
-Vector4f UIElement::defaultTextColor = Vector4f(1,1,1,1);
+std::shared_ptr<Color> UIElement::defaultTextColor = std::make_shared<Color>(Vector4f(1,1,1,1));
 bool UIElement::forceUpperCase = false;
 
 // When clicking on it.
@@ -90,12 +90,14 @@ bool UIElement::HandleDADFiles(List<String> files)
 void UIElement::Nullify()
 {
 	topBorder = nullptr;
+	bottomBorder = nullptr;
 	rightBorder = nullptr;
 	topRightCorner = nullptr;
 	lockSizeY = false;
 	lockSizeX = false;
 
 	textColor = nullptr;
+	onHoverTextColor = nullptr;
 
 	lineSizeRatio = -1.f;
 	childrenCreated = false;
@@ -114,6 +116,7 @@ void UIElement::Nullify()
 	noLabel = false;
 
 	textColor = nullptr;
+	onHoverTextColor = nullptr;
 
 	previousTextSizeRatio = 1.f;
 	alignment = NULL_ALIGNMENT;	// Alignment relative to parent
@@ -232,6 +235,7 @@ UIElement::~UIElement()
 	DeleteBorders();
 
 	textColor = nullptr;
+	onHoverTextColor = nullptr;
 
 	/// Deallocate texture and mesh if needed, as well as vbo, we should never do that here though!
 	assert(vboBuffer == -1 && "vboBuffer not released in UIElement::~UIElement()!");
@@ -266,14 +270,15 @@ void UIElement::SetBufferized(bool bufferizedFlag)
 
 // Creates a deep copy of all child elements (where possible).
 UIElement * UIElement::Copy() {
-	assert(false);
-	/*
 	UIElement * copy = new UIElement();
 	*copy = *this; // Copy all variables?
 	CopyChildrenInto(copy);
-	return copy;
-	*/
-	return nullptr;
+	return copy;	
+}
+
+void UIElement::CopySpecialVariables(UIElement * intoElement) {
+	intoElement->textColor = textColor;
+	intoElement->onHoverTextColor = onHoverTextColor;
 }
 
 void UIElement::CopyChildrenInto(UIElement * copyOfSelf) const {
@@ -1845,12 +1850,16 @@ void UIElement::RenderText(GraphicsState & graphicsState)
 	else
 		currentFont->hoveredOver = false;
 
+	std::shared_ptr<Color> overrideColor = textColor;
 	TextState textState = TextState::Idle;
 	if (HasState(UIState::ACTIVE))
 		textState = TextState::Active;
-	else if (HasState(UIState::HOVER))
+	else if (HasState(UIState::HOVER)) {
 		textState = TextState::Hover;
-	graphicsState.currentFont->RenderText(this->textToRender, textState, textColor, graphicsState);
+		if (onHoverTextColor != nullptr)
+			overrideColor = onHoverTextColor;
+	}
+	graphicsState.currentFont->RenderText(this->textToRender, textState, overrideColor, graphicsState);
 	graphicsState.modelMatrixF = graphicsState.modelMatrixD = tmp;
 }
 
@@ -1927,8 +1936,11 @@ void UIElement::FormatText(GraphicsState * graphicsState)
 
 }
 
+#include "UIBorder.h"
+
 UIElement * UIElement::CreateBorderElement(String textureSource, char alignment) {
-	UIElement * borderElement = new UIElement();
+	UIBorder * borderElement = new UIBorder();
+	borderElement->name = parent->name + " border "+ String(alignment);
 	borderElement->textureSource = textureSource;
 	borderElement->parent = this;
 	Texture * texture = TexMan.GetTexture(textureSource);
@@ -1941,6 +1953,10 @@ UIElement * UIElement::CreateBorderElement(String textureSource, char alignment)
 	borderElement->highlightOnHover = true;
 	switch (alignment) {
 	case TOP:
+		borderElement->sizeY = texture->size.y;
+		borderElement->lockSizeY = true;
+		break;
+	case BOTTOM:
 		borderElement->sizeY = texture->size.y;
 		borderElement->lockSizeY = true;
 		break;
@@ -1968,6 +1984,13 @@ void UIElement::RenderBorders(GraphicsState& graphicsState) {
 		}
 		topBorder->Render(graphicsState);
 	}
+	if (bottomBorderTextureSource.Length() > 0) {
+		if (bottomBorder == nullptr) {
+			bottomBorder = CreateBorderElement(bottomBorderTextureSource, BOTTOM);
+		}
+		bottomBorder->Render(graphicsState);
+	}
+
 	if (rightBorderTextureSource.Length() > 0) {
 		if (rightBorder == nullptr)
 			rightBorder = CreateBorderElement(rightBorderTextureSource, RIGHT);
@@ -2065,21 +2088,36 @@ void UIElement::AdjustToWindow(int w_left, int w_right, int w_bottom, int w_top)
 		centerX = (float)left;
 		centerY = (float)bottom;
 	}
-	if (!lockSizeX)
-		sizeX = (int) (right - left);
-	if (!lockSizeY)
-		sizeY = (int) (top - bottom);
+
+	// X not locked - default
+	float sizeRatioXwithConstraints = sizeRatioX;
+	if (!lockSizeX) {
+		sizeX = (int)(right - left);
+		// If limiting width.
+		float wouldBeWidth = sizeX * sizeRatioX;
+		sizeRatioXwithConstraints = sizeRatioX;
+		if (maxWidth != 0) {
+			if (wouldBeWidth > maxWidth)
+				sizeRatioXwithConstraints = maxWidth / (float)sizeX;
+		}
+	}
+	else { // X locked.
+		sizeRatioXwithConstraints = 1.0f;
+	}
+	// Y not locked - default
+	if (!lockSizeY) {
+		sizeY = (int)(top - bottom);
+	}
+	else { // Y size locked
+	}
+
 	if (parent)
 		z = parent->zDepth + 0.1f;
 	zDepth = z;
 
-	// If limiting width.
-	float wouldBeWidth = sizeX * sizeRatioX;
-	float sizeRatioXwithConstraints = sizeRatioX;
-	if (maxWidth != 0) {
-		if (wouldBeWidth > maxWidth)
-			sizeRatioXwithConstraints = maxWidth / (float)sizeX;
-	}
+	float parentBorderOffset = 0;
+	if (parent != nullptr)
+		parentBorderOffset = parent->borderOffset * 2;
 
 	/// Check alignment
 	switch(alignment){
@@ -2092,69 +2130,76 @@ void UIElement::AdjustToWindow(int w_left, int w_right, int w_bottom, int w_top)
 		top = RoundInt(centerY + sizeY * sizeRatioY / 2);
 		break;
 	}
-		case NULL_ALIGNMENT: {
-			/// Default behavior, just scale out from our determined center.
-			left = RoundInt(centerX - sizeX * sizeRatioXwithConstraints / 2);
-			right = RoundInt(centerX + sizeX * sizeRatioXwithConstraints / 2);
-			bottom = RoundInt(centerY - sizeY * sizeRatioY / 2);
-			top = RoundInt(centerY + sizeY * sizeRatioY / 2);
-			break;
+	case NULL_ALIGNMENT: {
+		/// Default behavior, just scale out from our determined center.
+		left = RoundInt(centerX - sizeX * sizeRatioXwithConstraints / 2);
+		right = RoundInt(centerX + sizeX * sizeRatioXwithConstraints / 2);
+		bottom = RoundInt(centerY - sizeY * sizeRatioY / 2);
+		top = RoundInt(centerY + sizeY * sizeRatioY / 2);
+		break;
+	}
+	case MAXIMIZE:
+		if (this->keepRatio){
+			//float screenRatio = (w_right - w_left) / (float)(w_top - w_bottom);
+			float newRatio = 1;//screenRatio / ratio;
+			left = RoundInt(centerX - sizeX * newRatio / 2);
+			right = RoundInt(centerX + sizeX * newRatio / 2);
+			bottom = RoundInt(centerY - sizeY * newRatio / 2);
+			top = RoundInt(centerY + sizeY * newRatio / 2);
 		}
-		case MAXIMIZE:
-			if (this->keepRatio){
-				//float screenRatio = (w_right - w_left) / (float)(w_top - w_bottom);
-				float newRatio = 1;//screenRatio / ratio;
-				left = RoundInt(centerX - sizeX * newRatio / 2);
-				right = RoundInt(centerX + sizeX * newRatio / 2);
-				bottom = RoundInt(centerY - sizeY * newRatio / 2);
-				top = RoundInt(centerY + sizeY * newRatio / 2);
-			}
-			else
-				mesh->SetDimensions((float)w_left, (float)w_right, (float)w_bottom, (float)w_top, (float)zDepth);
-			break;
+		else
+			mesh->SetDimensions((float)w_left, (float)w_right, (float)w_bottom, (float)w_top, (float)zDepth);
+		break;
 
-		case LEFT:
-			/// Do nothing, we start off using regular centering
-			left = RoundInt(left);
-			right = RoundInt(left + sizeX * sizeRatioXwithConstraints);
-			bottom = RoundInt(centerY - sizeY * sizeRatioY / 2);
-			top = RoundInt(centerY + sizeY * sizeRatioY / 2);
-			break;
+	case LEFT:
+		/// Do nothing, we start off using regular centering
+		left = RoundInt(left);
+		right = RoundInt(left + sizeX * sizeRatioXwithConstraints);
+		bottom = RoundInt(centerY - sizeY * sizeRatioY / 2);
+		top = RoundInt(centerY + sizeY * sizeRatioY / 2);
+		break;
 
-		case CENTER:
-			/// Do nothing, we start off using regular centering
-			left = RoundInt(centerX - sizeX * sizeRatioXwithConstraints / 2);
-			right = RoundInt(centerX + sizeX * sizeRatioXwithConstraints / 2);
-			bottom = RoundInt(centerY - sizeY * sizeRatioY / 2);
-			top = RoundInt(centerY + sizeY * sizeRatioY / 2);
-			break;
+	case CENTER:
+		/// Do nothing, we start off using regular centering
+		left = RoundInt(centerX - sizeX * sizeRatioXwithConstraints / 2);
+		right = RoundInt(centerX + sizeX * sizeRatioXwithConstraints / 2);
+		bottom = RoundInt(centerY - sizeY * sizeRatioY / 2);
+		top = RoundInt(centerY + sizeY * sizeRatioY / 2);
+		break;
 
-		case RIGHT:
-			left = RoundInt(right - sizeX * sizeRatioXwithConstraints);
-			right = RoundInt(right);
-			bottom = RoundInt(centerY - sizeY * sizeRatioY / 2);
-			top = RoundInt(centerY + sizeY * sizeRatioY / 2);
-			break;
+	case RIGHT:
+		left = RoundInt(right - sizeX * sizeRatioXwithConstraints);
+		right = RoundInt(right);
+		bottom = RoundInt(centerY - sizeY * sizeRatioY / 2);
+		top = RoundInt(centerY + sizeY * sizeRatioY / 2);
+		break;
 
-		case TOP:
-			left = RoundInt(centerX - sizeX * sizeRatioXwithConstraints / 2);
-			right = RoundInt(centerX + sizeX * sizeRatioXwithConstraints / 2);
-			bottom = RoundInt(top - sizeY * sizeRatioY);
-			top = RoundInt(top);
-			break;
+	case TOP:
+		left = RoundInt(centerX - sizeX * sizeRatioXwithConstraints / 2);
+		right = RoundInt(centerX + sizeX * sizeRatioXwithConstraints / 2);
+		bottom = RoundInt(top - sizeY * sizeRatioY);
+		top = RoundInt(top);
+		break;
+	case BOTTOM:
 
-		case TOP_RIGHT:
-			left = RoundInt(right - sizeX * sizeRatioXwithConstraints);
-			right = RoundInt(right);
-			bottom = RoundInt(top - sizeY * sizeRatioY);
-			top = RoundInt(top);
-			break;
+		left = RoundInt(centerX - sizeX * sizeRatioXwithConstraints / 2);
+		right = RoundInt(centerX + sizeX * sizeRatioXwithConstraints / 2);
+		bottom = RoundInt(bottom) - parentBorderOffset;
+		top = RoundInt(bottom + sizeY * sizeRatioY) - parentBorderOffset;
+		break;
 
-		default:
-			// Make half-size
-			std::cout<<"UIElement "<<this->name<<" gets default half-size.";
-			mesh->SetDimensions((left*3.f + right)/4.f, (left + right*3.f/4.f), (bottom * 3.f+ top)/4.f, (bottom + top*3.f)/4.f, zDepth+1.f);
-			break;
+	case TOP_RIGHT:
+		left = RoundInt(right - sizeX * sizeRatioXwithConstraints);
+		right = RoundInt(right);
+		bottom = RoundInt(top - sizeY * sizeRatioY);
+		top = RoundInt(top);
+		break;
+
+	default:
+		// Make half-size
+		std::cout<<"UIElement "<<this->name<<" gets default half-size.";
+		mesh->SetDimensions((left*3.f + right)/4.f, (left + right*3.f/4.f), (bottom * 3.f+ top)/4.f, (bottom + top*3.f)/4.f, zDepth+1.f);
+		break;
 	}
 
 	/// Set the new dimensions
@@ -2224,16 +2269,20 @@ void UIElement::DeleteBorders() {
 		borderElements[i]->FreeBuffers();
 	borderElements.ClearAndDelete();
 
-	rightBorder = topBorder = nullptr;
+	rightBorder = topBorder = bottomBorder = nullptr;
 	topRightCorner = nullptr;
 }
 
 // Sets it to override.
-void UIElement::SetTextColor(Vector4f * overrideColor) {
-	SAFE_DELETE(textColor);
-	if (overrideColor != nullptr)
-		textColor = new Vector4f(*overrideColor);
+void UIElement::SetTextColor(std::shared_ptr<Color> overrideColor) {
+	textColor = overrideColor;
 }
+
+// Overrides, but only during onHover.
+void UIElement::SetOnHoverTextColor(std::shared_ptr<Color> newOnHoverTextColor) {
+	onHoverTextColor = newOnHoverTextColor;
+}
+
 
 /** Sets slider level by adjusting it's child's position.
 	Values should be within the range [0.0,1.0]. **/
@@ -2339,14 +2388,18 @@ void UIElement::SetState(int newState) {
 }
 
 /// For example UIState::HOVER, not to be confused with flags! State = current, Flags = possibilities
-bool UIElement::AddState(int i_state)
+bool UIElement::AddState(int i_state, bool force)
 {
-	// Return if trying to add invalid state.
-	if (!hoverable && i_state & UIState::HOVER)
-		return false;
-	// Don't allow activating an non-activatable element.
-	if (!activateable && i_state & UIState::ACTIVE)
-		return false;
+	if (force) {
+	}
+	else { // Check early out if not forcing.
+		// Return if trying to add invalid state.
+		if (!hoverable && i_state & UIState::HOVER)
+			return false;
+		// Don't allow activating an non-activatable element.
+		if (!activateable && i_state & UIState::ACTIVE)
+			return false;
+	}
 
 	if (i_state == UIState::HOVER)
 	{

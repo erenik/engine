@@ -2,7 +2,7 @@
 /// 2016-04-22
 /// UI scroll-bar
 
-#include "UIList.h"
+#include "UIScrollBarHandle.h"
 
 #include "InputState.h"
 #include "UI/UITypes.h"
@@ -11,14 +11,37 @@
 #include "MathLib/Rect.h"
 #include "Input/InputManager.h"
 #include "Message/MessageManager.h"
+#include "UI/UIBorder.h"
 
+String UIScrollBarHandle::defaultTextureSource = "#FFFF";
 
-UIScrollBarHandle::UIScrollBarHandle()
+String UIScrollBarHandle::defaultTopBorder = "";
+String UIScrollBarHandle::defaultRightBorder = "";
+String UIScrollBarHandle::defaultBottomBorder = "";
+String UIScrollBarHandle::defaultTopRightCorner = "";
+
+int UIScrollBarHandle::defaultLockWidth = 0,
+UIScrollBarHandle::defaultLockHeight = 0,
+ UIScrollBarHandle::defaultBorderOffset = 0;
+
+UIScrollBarHandle::UIScrollBarHandle(String parentName)
 : UIElement()
 {
     type = UIType::SCROLL_HANDLE;
-    name = "Scroll bar handle";
-	sizeRatioX = 0.8f;
+    name = parentName + "Scroll bar handle";
+
+	borderOffset = defaultBorderOffset;
+	
+	lockWidth = defaultLockWidth;
+	if (lockWidth > 0) {
+		sizeRatioX = 1.0f;
+		lockSizeX = true;
+		sizeX = lockWidth;
+	}
+	else {
+		sizeRatioX = 0.8f;
+	}
+
     selectable = true;
     hoverable = true;
 	navigatable = true;
@@ -27,9 +50,14 @@ UIScrollBarHandle::UIScrollBarHandle()
 	highlightOnHover = true;
     activationMessage = "BeginScroll(this)";
 
-	topBorderTextureSource = "ui/border_top_4";
-	rightBorderTextureSource = "ui/border_right_4";
-	topRightCornerTextureSource = "ui/top_right_corner_8x8";
+	topBorderTextureSource = defaultTopBorder;
+	bottomBorderTextureSource = defaultBottomBorder;
+
+	rightBorderTextureSource = defaultRightBorder;
+	topRightCornerTextureSource = "";
+
+	textureSource = defaultTextureSource;
+
 }
 
 UIScrollBarHandle::~UIScrollBarHandle()
@@ -117,22 +145,48 @@ void UIScrollBarHandle::SetAlignmentY(float y)
 	this->isBuffered = false;
 }
 
-UIScrollBar::UIScrollBar()
-: UIElement()
-{
-    type = UIType::SCROLL_BAR;
-    name = "Scroll bar";
-    handle = NULL;
+#include "TextureManager.h"
+#include "File/LogFile.h"
 
-	alignment = SCROLL_BAR_Y;
+UIElement * UIScrollBarHandle::CreateBorderElement(String textureSource, char alignment) {
+	UIBorder * borderElement = new UIBorder();
+	borderElement->name = parent->name + " border " + String(alignment);
+	borderElement->textureSource = textureSource;
+	borderElement->SetParent(this);
+	Texture * texture = TexMan.GetTexture(textureSource);
+	if (texture == nullptr) {
+		LogGraphics("Unable to fetch texture for border: " + textureSource + " for element " + name, INFO);
+		delete borderElement;
+		return nullptr;
+	}
+	borderElement->alignment = alignment;
+	borderElement->highlightOnHover = true;
 
-    selectable = true;
-    hoverable = true;
-	navigatable = true;
-    activateable = true;
-    isSysElement = true;
-	highlightOnHover = false;
-	highlightOnActive = false;
+	// Give top and bottom borders a size proportionate to what they have.
+	float ratioHandleToTextureX = sizeX /  texture->size.x;
 
-    activationMessage = "BeginScroll(this)";
+	switch (alignment) {
+	case TOP:
+		borderElement->sizeY = texture->size.y * ratioHandleToTextureX;
+		borderElement->lockSizeY = true;
+		break;
+	case BOTTOM:
+		borderElement->sizeY = texture->size.y * ratioHandleToTextureX;
+		borderElement->lockSizeY = true;
+		break;
+	case RIGHT:
+		borderElement->sizeX = texture->size.x;
+		borderElement->lockSizeX = true;
+		break;
+	case TOP_RIGHT:
+		borderElement->sizeY = texture->size.y;
+		borderElement->lockSizeY = true;
+		borderElement->sizeX = texture->size.x;
+		borderElement->lockSizeX = true;
+		break;
+	default:
+		assert(false && "Implemenet");
+	}
+	borderElements.Add(borderElement);
+	return borderElement;
 }

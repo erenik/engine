@@ -398,7 +398,7 @@ void GMSetEntityVec4f::Process(GraphicsState* graphicsState)
 		switch(target)
 		{
 			case GT_TEXT_COLOR:
-				entity->graphics->textColor = vec4fValue;
+				entity->graphics->textColor = std::make_shared<Color>(vec4fValue);
 			//	std::cout<<"lall";
 				break;
 			case GT_TEXT_POSITION:

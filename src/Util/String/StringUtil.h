@@ -40,6 +40,10 @@ List<String> TokenizeIgnore(String string, String tokenizers, String ignoreParts
 
 
 #include "MathLib.h"
+class Color;
+
+String ColorString(std::shared_ptr<Color> c);
+String ColorString(const Color& c);
 String VectorString(const Vector4f& v);
 String VectorString(const Vector3f & v);
 String VectorString(const Vector2i & v);

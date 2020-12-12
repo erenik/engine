@@ -557,6 +557,13 @@ macro (addProject ProjectName projectSrcDir engineSrcDir)
 	SET_TARGET_PROPERTIES(${TargetName} PROPERTIES PDB_OUTPUT_DIRECTORY_RELWITHDEBINFO ${CMAKE_BINARY_DIR}/pdb)
 	SET_TARGET_PROPERTIES(${TargetName} PROPERTIES PDB_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/pdb)
 	SET_TARGET_PROPERTIES(${TargetName} PROPERTIES ILK_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/ilk)
+
+
+	if(MSVC AND ${MSVC_VERSION} GREATER_EQUAL 1915)
+		# Due to issues of std::shared_ptr in use with aligned Vector4f.
+		target_compile_definitions( ${TargetName} PRIVATE _ENABLE_EXTENDED_ALIGNED_STORAGE )
+	endif()
+
 # end of AddProject macro/function, add projects below!
 endmacro(addProject)
 

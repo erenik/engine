@@ -25,7 +25,7 @@ public:
 	void SetTextureSource(String source);
 
 	// Sets color for the toggle-buttons/selections
-	void SetSelectionsTextColor(Color color);
+	void SetSelectionsTextColor(std::shared_ptr<Color> color);
 
 	// Sets textures to be used for the elements, assuming one texture per button.
 	void SetTextures(List<String> textureSourcesOrNames);
@@ -45,10 +45,10 @@ public:
 	/// Sets activationMessage/onActivate for all buttons.
 	String action;
 
-	static Vector4f toggledTextColor, notToggledTextColor;
+	static std::shared_ptr<Color> toggledTextColor, notToggledTextColor;
 
 protected:
-	Color selectionsTextColor;
+	std::shared_ptr<Color> selectionsTextColor;
 	int numButtons;
 	int toggledIndex;
 	List<String> buttonTexts;

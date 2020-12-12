@@ -147,7 +147,7 @@ Texture * TextureManager::GetTextureByName(String name)
 	/// Hex-code go!
 	else if (name.Contains("0x") || name.Contains("#"))
 	{
-		return GenerateTexture(name, Color::ColorByHexName(name));
+		return GenerateTexture(name, *Color::ColorByHexName(name));
 	}
 	
 
@@ -269,14 +269,14 @@ int TextureManager::LoadTextures(List<String> & texturesToLoad){
 }
 
 /// Generates a texture with automatic name and given color. The texture will be exactly 1 or 2x2 pixels, simply for the color!
-Texture * TextureManager::GenerateTexture(const Vector4f & andColor)
+Texture * TextureManager::GenerateTexture(const Color & andColor)
 {
 	String name = "GeneratedTexture: r"+String(andColor[0])+" g"+String(andColor[1])+" b"+String(andColor[2]);
 	return GenerateTexture(name, andColor);
 }
 
 /// Generates a texture with given name and color. The texture will be exactly 1 or 2x2 pixels, simply for the color!
-Texture * TextureManager::GenerateTexture(String withName, const Vector4f & andColor)
+Texture * TextureManager::GenerateTexture(String withName, const Color & andColor)
 {
 	/// Check that we don't already have one with the same name, it should be correct if so.
 	for (int i = 0; i < textures.Size(); ++i)

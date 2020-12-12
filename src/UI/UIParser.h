@@ -25,12 +25,14 @@ public:
 	String defaultTexture = "default.png";
 	String defaultParent = "root";
 	String defaultRootFolder = "";
-	String defaultTopBorder = "", defaultRightBorder = "";
+	String defaultTopBorder = "", 
+		defaultBottomBorder = "",
+		defaultRightBorder = "";
 	String defaultTopRightCorner = "";
 	bool defaultScalability = true;
 	bool defaultVisibility = true;
 	bool defaultExitability = true;
-	Vector4f * defaultTextColor = nullptr;
+	std::shared_ptr<Color> defaultTextColor = nullptr;
 	float defaultSizeRatioY = 1.0f;
 	float defaultSizeRatioX = 1.0f;
 	float defaultPadding = 0.0f;

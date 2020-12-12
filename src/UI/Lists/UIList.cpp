@@ -1,9 +1,12 @@
 // Emil Hedemalm
 // 2013-07-10
 
+#include "UIList.h"
+
+#include "UIScrollBar.h"
+#include "UIScrollBarHandle.h"
 #include "InputState.h"
 #include "UI/UITypes.h"
-#include "UIList.h"
 #include "Graphics/Messages/GMUI.h"
 #include "GraphicsState.h"
 #include "MathLib/Rect.h"
@@ -91,12 +94,13 @@ void UIList::CreateScrollBarIfNeeded()
 {
 	if (!scrollBarY)
 	{
-	    UIScrollBar * scroll = new UIScrollBar();
+		float scrollBarWidth = 0.05;
+		UIScrollBar * scroll = new UIScrollBar(name);
+		scroll->parent = this;
+		scroll->sizeRatioX = scrollBarWidth;
 		scroll->CreateHandle();
 		scroll->Update(1.0f - contentChildren.Last()->posY);
-		scroll->sizeRatioX = 0.1f;
-		scroll->alignmentX = 0.95f;
-		scroll->textureSource = "img/80Gray50Alpha.png";
+		scroll->alignmentX = 0.975f;
 	    scrollBarY = scroll;
 	    UIElement::AddChild(nullptr, scrollBarY);
 	}
@@ -528,11 +532,14 @@ void UIList::FormatElements(){
         if (e->isSysElement)
             continue;
         if (scrollBarY){
+			// Handled during rendering instead.
+			/*
             if (e->sizeRatioX > 1.0f - scrollBarY->sizeRatioX){
                 float newSizeRatioX = 1.0f - scrollBarY->sizeRatioX;
                 e->alignmentX = e->alignmentX + (newSizeRatioX - e->sizeRatioX) * 0.5f;
                 e->sizeRatioX = newSizeRatioX;
             }
+			*/
 			/// Re-queue bufferization of all elements that are formated!
 			e->isBuffered = false;
         }

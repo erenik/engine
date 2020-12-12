@@ -106,6 +106,6 @@ void UIToggleButton::UpdateTexture() {
 }
 
 void UIToggleButton::UpdateTextColor() {
-	SetTextColor(toggled ? &toggledTextColor : &notToggledTextColor);
+	SetTextColor(toggled ? toggledTextColor : notToggledTextColor);
 }
 

@@ -17,6 +17,8 @@
 
 #include "Graphics/GraphicsManager.h"
 	
+std::shared_ptr<Color> UIInput::defaultInputTextColor = nullptr;
+
 UIInput::UIInput(String name /*= ""*/)
 : UIElement()
 {
@@ -544,7 +546,12 @@ UIInput * UIInput::CreateDefaultInput(UIColumnList * box, String inputName, floa
 	input->name = inputName + "Input";
 	input->sizeRatioX = sizeX;
 	input->fontSource = box->fontSource;
-	input->SetTextColor(box->textColor);
+
+	if (defaultInputTextColor != nullptr)
+		input->SetTextColor(defaultInputTextColor);
+	else
+		input->SetTextColor(box->textColor);
+
 
 	box->AddChild(nullptr, input);
 
@@ -596,7 +603,7 @@ const float UIInput::ParseFloat() {
 }
 
 // For setting static colors.
-void UIInput::SetTextColor(Vector4f * newOverrideTextColor) {
+void UIInput::SetTextColor(std::shared_ptr<Color> newOverrideTextColor) {
 	UIElement::SetTextColor(newOverrideTextColor); // Set for self, in-case elements are not yet created.
 
 	if (label)

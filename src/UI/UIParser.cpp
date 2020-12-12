@@ -31,6 +31,7 @@ UIParser::UIParser()
 	, defaultParent ("root")
 	, defaultRootFolder ("")
 	, defaultTopBorder ("")
+	, defaultBottomBorder("")
 	, defaultRightBorder ("")
 	, defaultTopRightCorner ( "")
 	, defaultScalability ( true)
@@ -52,7 +53,7 @@ UIParser::UIParser()
 }
 
 UIParser::~UIParser() {
-	SAFE_DELETE(defaultTextColor);
+	defaultTextColor = nullptr;
 }
 
 
@@ -289,12 +290,12 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 			}
 			else if (token == "defaultTextColor")
 			{
-				SAFE_DELETE(defaultTextColor);
+				defaultTextColor = nullptr;
 				if (line.Contains("null"))
 					break;
 
-				defaultTextColor = new Vector4f();
-				Vector4f& newDefaultTextColor = *defaultTextColor;
+				defaultTextColor = std::make_shared<Color>();
+				std::shared_ptr<Color> newDefaultTextColor = defaultTextColor;
 			// Hex detected!
 				if (line.Contains("0x"))
 				{
@@ -308,21 +309,22 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 					switch (tokens.Size() - 1)
 					{
 					case 1: // Assume it's alpha and keep the other colors as usual
-						newDefaultTextColor[3] = NEXT_TOKEN.ParseFloat();
+						newDefaultTextColor->a = NEXT_TOKEN.ParseFloat();
 						break;
 					case 4:
-						newDefaultTextColor[3] = tokens[4].ParseFloat();
+						newDefaultTextColor->a = tokens[4].ParseFloat();
 					case 3: // Assume it's RGB
-						newDefaultTextColor[0] = tokens[1].ParseFloat();
-						newDefaultTextColor[1] = tokens[2].ParseFloat();
-						newDefaultTextColor[2] = tokens[3].ParseFloat();
+						newDefaultTextColor->r = tokens[1].ParseFloat();
+						newDefaultTextColor->g = tokens[2].ParseFloat();
+						newDefaultTextColor->b = tokens[3].ParseFloat();
 						break;
 					case 2: case 0:
 						assert(false && "Irregular amount of tokens following \"defaultTextColor\"; 1 for alpha, 3 for RGB and 4 for RGBA.");
 						break;
 					}
 				}
-				LogMain("Default text color updated to: " + VectorString(newDefaultTextColor), INFO);
+				defaultTextColor = newDefaultTextColor;
+				LogMain("Default text color updated to: " + ColorString(defaultTextColor), INFO);
 			}
 			else if (token == "defaultRootFolder") {
 				ENSURE_NEXT_TOKEN
@@ -339,6 +341,9 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 					}
 					else if (typeName == "Button") {
 						root = new UIButton("root");
+					}
+					else if (typeName == "CompositeButton") {
+						root = new UICompositeButton("root");
 					}
 					else
 						assert(false && "Unsupported root-type");
@@ -583,7 +588,10 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 			}
 			else if (token == "noBorders") {
 				if (element != nullptr)
-					element->rightBorderTextureSource = element->topBorderTextureSource = element->topRightCornerTextureSource = "";
+					element->rightBorderTextureSource =
+					element->topBorderTextureSource =
+					element->bottomBorderTextureSource =
+					element->topRightCornerTextureSource = "";
 			}
 			else if (token == "NoLabel")
 			{
@@ -787,27 +795,28 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 				// Hex detected!
 				if (line.Contains("0x") || line.Contains("#"))
 				{
-					Color color = Color::ColorByHexName(nextToken);
-					element->SetTextColor(&color);
+					element->SetTextColor(Color::ColorByHexName(nextToken));
 				}
 				else
 				{
+					std::shared_ptr<Color> color = std::make_shared<Color>();
 					switch (tokens.Size() - 1)
 					{
 					case 1: // Assume it's alpha and keep the other colors as usual
-						element->text.color[3] = NEXT_TOKEN.ParseFloat();
+						color->w = NEXT_TOKEN.ParseFloat();
 						break;
 					case 4: case 5: case 6: case 7: case 8: case 9: case 10: case 11: case 12:
-						element->text.color[3] = tokens[4].ParseFloat();
+						color->w = tokens[4].ParseFloat();
 					case 3: // Assume it's RGB
-						element->text.color[0] = tokens[1].ParseFloat();
-						element->text.color[1] = tokens[2].ParseFloat();
-						element->text.color[2] = tokens[3].ParseFloat();
+						color->r = tokens[1].ParseFloat();
+						color->g = tokens[2].ParseFloat();
+						color->b = tokens[3].ParseFloat();
 						break;
 					case 2: case 0:
 						assert(false && "Irregular amount of tokens following \"textColor\"; 1 for alpha, 3 for RGB and 4 for RGBA.");
 						break;
 					}
+					element->SetTextColor(color);
 				}
 			}
 			else if (token == "textSizeRatio" || token == "textSize") {
@@ -873,20 +882,25 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 				element->sizeRatioY = tokens[2].ParseFloat();
 			}
 			else if (token == "alignment") {
-				ENSURE_NEXT_TOKEN
-					element->alignment = UIElement::GetAlignment(NEXT_TOKEN);
+				EnsureNextToken(tokens);
+				element->alignment = UIElement::GetAlignment(NEXT_TOKEN);
 			}
 			else if (token == "retainAspectRatio") {
 				EnsureNextToken(tokens);
 				element->retainAspectRatioOfTexture = NextToken(tokens).ParseBool();
 			}
 			else if (token == "maxWidth") {
-				ENSURE_NEXT_TOKEN;
+				EnsureNextToken(tokens);
 				element->maxWidth = tokens[1].ParseInt();
 			}
 			else if (token == "alignmentX") {
-				ENSURE_NEXT_TOKEN
-					element->alignmentX = NEXT_TOKEN.ParseFloat();
+				EnsureNextToken(tokens);
+				element->alignmentX = NEXT_TOKEN.ParseFloat();
+			}
+			else if (token == "bottomBorder") {
+				EnsureNextToken(tokens);
+				element->bottomBorderTextureSource = line - "bottomBorder";
+				element->bottomBorderTextureSource.RemoveSurroundingWhitespaces();
 			}
 			else if (token == "topBorder") {
 				ENSURE_NEXT_TOKEN;
@@ -1068,7 +1082,8 @@ void UIParser::SetDefaults(UIElement * element) {
 	element->divider = defaultDivider; 
 	element->textAlignment = defaultTextAlignment; 
 	element->exitable = defaultExitability; 
-	element->topBorderTextureSource = defaultTopBorder; 
+	element->topBorderTextureSource = defaultTopBorder;
+	element->bottomBorderTextureSource = defaultBottomBorder;
 	element->rightBorderTextureSource = defaultRightBorder; 
 	element->topRightCornerTextureSource = defaultTopRightCorner; 
 }

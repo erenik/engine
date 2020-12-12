@@ -2,8 +2,9 @@
 /// 2016-04-22
 /// UI scroll-bar
 
-#include "UIList.h"
+#include "UIScrollBar.h"
 
+#include "UIScrollBarHandle.h"
 #include "InputState.h"
 #include "UI/UITypes.h"
 #include "Graphics/Messages/GMUI.h"
@@ -12,7 +13,29 @@
 #include "Input/InputManager.h"
 #include "Message/MessageManager.h"
 
+String UIScrollBar::defaultTextureSource = "0x44AA";
 
+UIScrollBar::UIScrollBar(String parentName)
+	: UIElement()
+{
+	type = UIType::SCROLL_BAR;
+	name = parentName + " Scroll bar";
+	handle = NULL;
+
+	alignment = SCROLL_BAR_Y;
+
+	selectable = true;
+	hoverable = true;
+	navigatable = true;
+	activateable = true;
+	isSysElement = true;
+	highlightOnHover = false;
+	highlightOnActive = false;
+
+	activationMessage = "BeginScroll(this)";
+
+	textureSource = defaultTextureSource;
+}
 
 UIScrollBar::~UIScrollBar()
 {
@@ -22,8 +45,7 @@ UIScrollBar::~UIScrollBar()
 void UIScrollBar::CreateHandle()
 {
     assert(handle == NULL);
-    handle = new UIScrollBarHandle();
-    handle->textureSource = "0xAAFF";
+    handle = new UIScrollBarHandle(parent->name);
 	handle->sizeRatioX = 0.9f;
  //   handle->text = "Joooooo";
     AddChild(nullptr, handle);

@@ -306,6 +306,9 @@ void UserInterface::Activate(UIElement* activeElement)
 }
 
 // Goes through the active stack until an element is found which corresponds to the given (visible) co-ordinates.
+UIElement * UserInterface::GetElementByPosition(Vector2f posXY) {
+	return GetElementByPosition(posXY.x, posXY.y);
+}
 UIElement * UserInterface::GetElementByPosition(float x, float y)
 {
 	// Goes through the active stack until an element is found which corresponds to the given (visible) co-ordinates.

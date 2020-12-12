@@ -25,7 +25,7 @@ public:
 	/// Filled with 4 unsigned bytes.
 	Color(uchar r, uchar g, uchar b, uchar a);
 	/// E.g. "0x115588AA"
-	static Color ColorByHexName(String byHexName);
+	static std::shared_ptr<Color> ColorByHexName(String byHexName);
 	/// Anticipates a hex-color in 0xRRGGBBAA format.
 	static Color ColorByHex32(uint32 hex);
 	/// Anticipates a hex-color in 0xRRGGBB format.
@@ -40,8 +40,12 @@ public:
 	bool WriteTo(std::fstream & file);
 	bool ReadFrom(std::fstream & file);
 
+	std::shared_ptr<Color> WithAlpha(float alpha);
+
 	/// E.g. RGBA r g b a where r g b a are numbers between 0 and 255, or 0 and 1.0
 	bool ParseFrom(String str);
+
+	static std::shared_ptr<Color> defaultTextColor;
 
 private:
 	String name;

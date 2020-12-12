@@ -363,7 +363,7 @@ void GMSetUIv3f::Process(GraphicsState * graphicsState)
 	}
     switch(target){
         case GMUI::TEXT_COLOR:
-			e->GetText().color = Vector4f(value);
+			e->GetText().color = std::make_shared<Color>(Vector4f(value));
             break;
         case GMUI::VECTOR_INPUT:
             if (e->type != UIType::VECTOR_INPUT)
@@ -417,7 +417,7 @@ void GMSetUIv4f::Process(GraphicsState * graphicsState)
 			e->SetColor(value);
 			break;
         case GMUI::TEXT_COLOR:
-			e->SetTextColor(&value);
+			e->SetTextColor(std::make_shared<Color>(value));
             break;
         case GMUI::VECTOR_INPUT:
             if (e->type != UIType::VECTOR_INPUT)
@@ -492,7 +492,7 @@ void GMSetUIf::Process(GraphicsState * graphicsState)
 			element->color[3] = value;
 			break;
 		case GMUI::TEXT_ALPHA:
-			element->GetText().color[3] = value;
+			element->GetText().color = element->GetText().color->WithAlpha(value);
 			break;
 		case GMUI::TEXT_SIZE_RATIO:
 			element->textSizeRatio = value;
@@ -877,18 +877,24 @@ void GMScrollUI::Process(GraphicsState * graphicsState){
         return;
     UIElement * e = ui->GetElementByName(uiName);
     if (e == NULL){
-		LogGraphics("GMScrollUI: No element found with specified name \""+uiName+"\"", DEBUG);
+		LogGraphics("GMScrollUI: No element found with specified name \""+uiName+"\"", INFO);
         return;
     }
-    switch(e->type){
+	LogGraphics("Scrolling on element: " + uiName, INFO);
+	bool scrolled = false;
+	switch(e->type){
         case UIType::LIST:{
             UIList * list = (UIList*) e;
-            list->Scroll(graphicsState, scrollDistance);
+			scrolled = list->Scroll(graphicsState, scrollDistance);
             break;
         }
         default:
-			e->OnScroll(graphicsState, scrollDistance);
+			scrolled = e->OnScroll(graphicsState, scrollDistance);
     }
+	if (scrolled) {
+		// Hover with last known cursor co-ordinates.
+		ui->Hover(InputMan.GetMousePosition());
+	}
 	Graphics.renderQueried = true;
 }
 

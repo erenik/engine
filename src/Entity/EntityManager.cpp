@@ -1,8 +1,6 @@
 /// Emil Hedemalm
 /// 2015-05-21
 
-#define _ENABLE_EXTENDED_ALIGNED_STORAGE
-
 #include "EntityManager.h"
 #include "Model/Model.h"
 #include "Texture.h"

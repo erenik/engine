@@ -4,6 +4,8 @@
 
 #include "Color.h"
 
+std::shared_ptr<Color> Color::defaultTextColor = std::make_shared<Color>(Vector4f(1, 1, 1, 1));
+
 // o.o
 Color::Color()
 : Vector4f()
@@ -30,7 +32,7 @@ Color::Color(uchar r, uchar g, uchar b, uchar a)
 }
 
 /// E.g. "0x115588AA"
-Color Color::ColorByHexName(String byHexName)
+std::shared_ptr<Color> Color::ColorByHexName(String byHexName)
 {
 	uint32 hex = (uint32) byHexName.ParseHex();
 	int hexChars = byHexName.HexNumbers();
@@ -49,7 +51,7 @@ Color Color::ColorByHexName(String byHexName)
 		newColor = ColorByHex8(hex);
 
 	newColor.name = byHexName;
-	return newColor;
+	return std::make_shared<Color>(newColor);
 }
 
 /// Anticipates a hex-color in 0xRRGGBBAA format.
@@ -104,6 +106,12 @@ bool Color::ReadFrom(std::fstream & file)
 	name.ReadFrom(file);
 	Vector4f::ReadFrom(file);
 	return true;
+}
+
+std::shared_ptr<Color> Color::WithAlpha(float alpha) {
+	std::shared_ptr<Color> newShared = std::make_shared<Color>(*this);
+	newShared->w = alpha;
+	return newShared;
 }
 
 /// E.g. RGBA r g b a where r g b a are numbers between 0 and 255, or 0 and 1.0

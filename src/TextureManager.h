@@ -56,9 +56,9 @@ public:
 	bool LoadTextures(EntitySharedPtr Entity);
 
 	/// Generates a texture with automatic name and given color. The texture will be exactly 1 or 2x2 pixels, simply for the color!
-	Texture * GenerateTexture(const Vector4f & andColor);
+	Texture * GenerateTexture(const Color & andColor);
 	/// Generates a texture with given name and color. The texture will be exactly 1 or 2x2 pixels, simply for the color!
-	Texture * GenerateTexture(String withName, const Vector4f & andColor);
+	Texture * GenerateTexture(String withName, const Color & andColor);
 
 	/// Buffers all textures required by a certain StateMan.
 	bool BufferizeTextures(int state);

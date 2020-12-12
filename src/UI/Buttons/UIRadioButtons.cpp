@@ -9,7 +9,7 @@
 #include "Message/MathMessage.h"
 // #include "Graphics/GraphicsManager.h"
 
-Vector4f UIRadioButtons::toggledTextColor = Color::ColorByHexName("0xffffffff")
+std::shared_ptr<Color> UIRadioButtons::toggledTextColor = Color::ColorByHexName("0xffffffff")
 	, UIRadioButtons::notToggledTextColor = Color::ColorByHexName("0xaaaaaaff");
 
 /// o.o
@@ -67,7 +67,7 @@ void UIRadioButtons::CreateChildren(GraphicsState* graphicsState)
 		button->notToggledTextColor = notToggledTextColor;
 		button->sizeRatioX = spacePerElement;
 		button->topRightCornerTextureSource = topRightCornerTextureSource;
-		button->SetTextColor(&selectionsTextColor);
+		button->SetTextColor(selectionsTextColor);
 		button->textureSource = "";
 		if (textureSourcesOrNames.Size()) {
 			button->textureSource = textureSourcesOrNames[i];
@@ -174,11 +174,11 @@ bool UIRadioButtons::OnProceed(GraphicsState* graphicsState) {
 }
 
 // Sets color for the toggle-buttons/selections
-void UIRadioButtons::SetSelectionsTextColor(Color color) {
+void UIRadioButtons::SetSelectionsTextColor(std::shared_ptr<Color> color) {
 	selectionsTextColor = color;
 	for (int i = 0; i < buttons.Size(); ++i) {
 		UIToggleButton * button = buttons[i];
-		button->SetTextColor(&color);
+		button->SetTextColor(color);
 	}
 }
 

@@ -321,9 +321,9 @@ void Entity::Render(GraphicsState & graphicsState)
 
 			Text & textToRender = graphics->text;
 
-			Vector4f textColor = graphics->textColor;
+			Color& textColor = *graphics->textColor;
 			glColor4f(textColor[0], textColor[1], textColor[2], textColor[3]);
-			font->SetColor(textColor);
+			font->SetColor(graphics->textColor);
 			
 			// Calcualte size it would assume with current matrix.
 			Vector2f textRenderSize = font->CalculateRenderSizeWorldSpace(textToRender, graphicsState);
