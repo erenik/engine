@@ -326,16 +326,13 @@ void Entity::Render(GraphicsState & graphicsState)
 			font->SetColor(graphics->textColor);
 			
 			// Calcualte size it would assume with current matrix.
-			Vector2f textRenderSize = font->CalculateRenderSizeWorldSpace(textToRender, graphicsState);
+			Vector2f textRenderSize = font->CalculateRenderSizeWorldSpace(textToRender, graphicsState, scale.x * graphics->textSizeRatio);
 			
 			// Recalculate the matrix to center the text on the entity.
 			modelMatrix = Matrix4d();
 			Vector3f centeringOffset(- textRenderSize[0] * 0.5f, textRenderSize[1], 0);
-			modelMatrix.Multiply((Matrix4d().Translate(Vector3d(worldPosition + centeringOffset))));
 			modelMatrix.Multiply(rotationMatrix);
-			modelMatrix.Multiply((Matrix4d().Scale(Vector3d(scale * graphics->textSizeRatio))));
-
-			font->RenderText(textToRender, TextState::Idle, nullptr, graphicsState);
+			font->RenderText(textToRender, TextState::Idle, nullptr, graphicsState, worldPosition + centeringOffset, scale.x * graphics->textSizeRatio);
 		}
 	}
 }

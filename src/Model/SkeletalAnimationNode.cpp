@@ -348,21 +348,14 @@ void SkeletalAnimationNode::RenderBones(GraphicsState & graphicsState)
 
 	bool renderText = true;
 	if (renderText)
-	{
-		Matrix4f tmp = graphicsState.modelMatrixF;
-		
-		Matrix4f translationMatrix = Matrix4f::InitTranslationMatrix(pointInWorldSpace);
+	{		
 		// Scale up the text!
 		float textScale = 20.f;
-		Matrix4f scaleMatrix = Matrix4f::InitScalingMatrix(Vector3f(textScale, textScale, textScale));
-		graphicsState.modelMatrixF = translationMatrix * scaleMatrix;
 
 		TextFont * font = graphicsState.currentFont;
 		assert(font);
 		Text nameText = name;
-		font->RenderText(nameText, TextState::Idle, nullptr, graphicsState);
-
-		graphicsState.modelMatrixF = tmp;
+		font->RenderText(nameText, TextState::Idle, nullptr, graphicsState, pointInWorldSpace, textScale);
 	}
 
 	// Render children!

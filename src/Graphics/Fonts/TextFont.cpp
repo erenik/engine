@@ -68,6 +68,7 @@ TextFont::TextFont()
 	useFramePadding = true;
 	shaderBased = true;
 	model = NULL;
+	fontToWhitespaceScalingRatio = 1.0f;
 };
 
 TextFont::~TextFont(){
@@ -87,9 +88,14 @@ bool TextFont::Save(String path){
 	f.open(path.c_str(), std::ios_base::out | std::ios_base::binary);
 	assert(f.is_open());
 
+	// Version!
+	int version = 0; // Added fontToWhitespaceScalingRatio
+	f.write((char*)&version, sizeof(int));
+
 	// WRite general font data first!
 	f.write((char*)&this->fontWidth, sizeof(int));
 	f.write((char*)&this->fontHeight, sizeof(int));
+	f.write((char*)&this->fontToWhitespaceScalingRatio, sizeof(float));
 
 	// Then character-specific data
 	for (int i = 0; i < this->MAX_CHARS; ++i){
@@ -142,9 +148,17 @@ bool TextFont::Load(String path)
 //	f.open(path.c_str(), std::ios_base::in | std::ios_base::binary);
 	assert(f.is_open());
 
+	int version;
+	f.read((char*)&version, sizeof(int));
+	if (version > 15) {
+		path = textureSource;
+		return this->LoadFromTexture();
+	}
+
 	// WRite general font data first!
 	f.read((char*)&this->fontWidth, sizeof(int));
 	f.read((char*)&this->fontHeight, sizeof(int));
+	f.read((char*)&this->fontToWhitespaceScalingRatio, sizeof(float));
 
 	// Then character-specific data
 	for (int i = 0; i < this->MAX_CHARS; ++i){
@@ -178,7 +192,7 @@ bool TextFont::Load(String path)
 bool TextFont::LoadFromTexture(Texture * i_texture)
 {
 	if (i_texture == NULL){
-		i_texture = TexMan.GetTextureByName(textureSource);
+		i_texture = TexMan.GetTexture(textureSource);
 		if (i_texture == NULL)
 			return false;
 	}
@@ -228,10 +242,11 @@ void TextFont::MakeTextureWhite()
 /// Calculates size of all ASCII characters in the texture (assumed standard 16x16 grid).
 void TextFont::ParseTextureData(){
 	// Parse texture data to determine the width of each character.
-	for (int i = 0; i < 256; ++i){
+	int MAX_CHARS = 256;
+	for (int i = 0; i < MAX_CHARS; ++i){
 		// For each character...
 		bool firstPixel = true;
-		int left, right, top, bottom;
+		float left, right, top, bottom;
 		int startRow = 16 - i / 16;
 		int startColumn = i % 16;
 		int yStart = startRow * fontHeight - 1;
@@ -244,19 +259,21 @@ void TextFont::ParseTextureData(){
 				if (pixel[3] == 0)
 					continue;
 				if (firstPixel){
-					left = right = x;
-					top = bottom = y;
+					left = x - 0.5f;
+					right = x + 0.5f;
+					top = y - 0.5f;
+					bottom = y + 0.5f;
 					firstPixel = false;
 					continue;
 				}
 				if (x < left)
-					left = x;
+					left = x - 0.5f;
 				if (x > right)
-					right = x;
+					right = x + 0.5f;
 				if (y < top)
-					top = y;
+					top = y - 0.5f;
 				if (y > bottom)
-					bottom = y;
+					bottom = y + 0.5f;
 			}
 		}
 		if (firstPixel)
@@ -273,6 +290,14 @@ void TextFont::ParseTextureData(){
 		assert(charWidth[i] != 0);
 		std::cout<<"\nCharacter "<<i<<": "<<(char)i<<" evaluated with width: "<<charWidth[i]<<" and height "<<charHeight[i];
 	}
+	// Capital 'A' to calculate font to whitespace scaling ratio.
+	fontToWhitespaceScalingRatio = 1 / charHeight[65];
+	// Then..! Re-calculate the width and heigh of each character using the given factor.
+	// This to make it so that height is most often 1.0, and width varying in order to render them in a more unified way.
+	for (int i = 0; i < MAX_CHARS; ++i) {
+		charWidth[i] = charWidth[i] * fontToWhitespaceScalingRatio;
+		charHeight[i] = charHeight[i] * fontToWhitespaceScalingRatio;
+	}
 }
 
 void TextFont::SetColor(std::shared_ptr<Color> textColor){
@@ -283,7 +308,7 @@ void TextFont::SetColor(std::shared_ptr<Color> textColor){
 	texts easier to understand, using an iterative state-machine approach.
 */
 /// Sets current text and clears old data. Prepares for a new parse or render.
-void TextFont::NewText(Text & text)
+void TextFont::NewText(Text & text, float textSizePixels)
 {
 	this->currentText = text;
 	rowSizes.Clear();
@@ -294,14 +319,14 @@ void TextFont::NewText(Text & text)
 	padding[1] *= 0.5f;
 	maxRowSizeX = 0;
 
-	pivotPoint = Vector2f(0, -halfScale[1]);
+	pivotPoint = Vector2f(0, -halfScale[1] * textSizePixels);
 	// If using frame-padding...
 	if (useFramePadding)
-		pivotPoint += Vector2f(padding[0], -padding[1]);
+		pivotPoint += Vector2f(padding[0] * textSizePixels, -padding[1] * textSizePixels);
 }
 
 /// Evaluates current char. IF true, should skip processing hte current char in the rest of the procedure.
-bool TextFont::EvaluateSpecialChar()
+bool TextFont::EvaluateSpecialChar(float textSizePixels)
 {
 	// Evaluate special-characters!
 	switch(currentChar)
@@ -312,7 +337,7 @@ bool TextFont::EvaluateSpecialChar()
 			switch(nextChar)
 			{
 				case 'n': // Newline!
-					NewLine();
+					NewLine(textSizePixels);
 					// Increment by two, so the \n isn't actually rendered?
 					++i;
 					return true;
@@ -323,7 +348,7 @@ bool TextFont::EvaluateSpecialChar()
 			break;
 		}
 		case '\n': // And go to next row if we get a newline character!
-			NewLine();
+			NewLine(textSizePixels);
 			return true;
 		case 'ö':
 			std::cout<<"ll;;;h";
@@ -332,25 +357,26 @@ bool TextFont::EvaluateSpecialChar()
 	return false;
 }
 
-void TextFont::StartChar()
+void TextFont::StartChar(float textSizePixels)
 {
-	pivotPoint[0] += charWidth[currentChar] * halfScale[0];
+	pivotPoint[0] += charWidth[currentChar] * halfScale[0] * textSizePixels;
 }
 
-void TextFont::EndChar()
+void TextFont::EndChar(float textSizePixels)
 {
-	pivotPoint[0] += charWidth[currentChar] * halfScale[0];
+	float characterSpacing = 0.05f;
+	pivotPoint[0] += (charWidth[currentChar] * halfScale[0] + characterSpacing) * textSizePixels;
 	// Row finished?
 	if (IsCharacter(nextChar))
-		pivotPoint[0] += padding[0];
+		pivotPoint[0] += padding[0] * textSizePixels;
 }
 
 /// New lines!
-void TextFont::NewLine()
+void TextFont::NewLine(float textSizePixels)
 {
 	// Add padding if needed
 	if (useFramePadding)
-		pivotPoint[0] += padding[0];
+		pivotPoint[0] += padding[0] * textSizePixels;
 	// Save row size.
 	rowSizeX = pivotPoint[0];
 	if (rowSizeX > maxRowSizeX)
@@ -359,9 +385,10 @@ void TextFont::NewLine()
 	// Go left to the start of the row..
 	pivotPoint[0] = 0;
 	if (useFramePadding)
-		pivotPoint[0] = padding[0];
+		pivotPoint[0] = padding[0] * textSizePixels;
 	// And go down one row.
-	pivotPoint[1] -= scale[1];
+	float lineSpacing = 1.15f;
+	pivotPoint[1] -= lineSpacing * textSizePixels;
 }
 
 /// Called when encountering the NULL-character.
@@ -387,7 +414,7 @@ Vector2f TextFont::CalculateRenderSizeUnits(Text & text)
 		return Vector2f(scale[0], scale[1]);
 	}
 	// Set starting variables.
-	NewText(text);
+	NewText(text, 1);
 
 	// Go up to and include the NULL-sign!
 	for (int i = 0; i < text.ArraySize(); ++i)
@@ -400,21 +427,25 @@ Vector2f TextFont::CalculateRenderSizeUnits(Text & text)
 			break;
 		}
 		nextChar = text.c_str()[i + 1];
-		if (EvaluateSpecialChar())
+		if (EvaluateSpecialChar(1))
 			continue;
-		StartChar();
+		StartChar(1);
 		// RenderChar();
-		EndChar();
+		EndChar(1);
 		lastChar = currentChar;
 	}
 	return Vector2f (maxRowSizeX, AbsoluteValue(pivotPoint.y));
 }
 
+Vector2f TextFont::CalculateRenderSizePixels(Text & text, float textSizePixels) {
+	return CalculateRenderSizeUnits(text) * textSizePixels;
+}
+
 /// Calculates the render size in pixels if the text were to be rendered now.
-Vector2f TextFont::CalculateRenderSizeWorldSpace(Text & text, GraphicsState & graphics)
+Vector2f TextFont::CalculateRenderSizeWorldSpace(Text & text, GraphicsState & graphics, float textSizePixels)
 {
 	// Just grab required render size and multiply with the model-matrix?
-	Vector2f renderSize = CalculateRenderSizeUnits(text);
+	Vector2f renderSize = CalculateRenderSizePixels(text, textSizePixels);
 	Vector4f size(renderSize[0], renderSize[1], 0, 0);
 	Vector4f transformed = graphics.modelMatrixF.Product(size);
 	return Vector2f(transformed[0], AbsoluteValue(transformed[1]));
@@ -423,10 +454,18 @@ Vector2f TextFont::CalculateRenderSizeWorldSpace(Text & text, GraphicsState & gr
 
 
 /// Renders text ^^
-void TextFont::RenderText(Text & text, TextState textState, std::shared_ptr<Color> overrideColor, GraphicsState & graphicsState)
-{
+void TextFont::RenderText(
+	Text & text,
+	TextState textState,
+	std::shared_ptr<Color> overrideColor,
+	GraphicsState & graphicsState,
+	ConstVec3fr positionOffset,
+	float textSizePixels
+) {
+	Matrix4f modelMatrixF = graphicsState.modelMatrixF;
+
 	// Set starting variables.
-	NewText(text);
+	NewText(text, textSizePixels);
 
 	/// One color for all text?
 	std::shared_ptr<Color> color = text.color;
@@ -448,7 +487,7 @@ void TextFont::RenderText(Text & text, TextState textState, std::shared_ptr<Colo
 	/// Save old shader!
 	Shader * oldShader = ActiveShader();
 	// Load shader, set default uniform values, etc.
-	if (!PrepareForRender(graphicsState))
+	if (!PrepareForRender(graphicsState, textSizePixels))
 		return;
 
 	/// Sort the carets in order to render selected text properly.
@@ -466,12 +505,12 @@ void TextFont::RenderText(Text & text, TextState textState, std::shared_ptr<Colo
 
 	bool shouldRenderCaret = Timer::GetCurrentTimeMs() % 1000 > 500;
 	if (text.Length() == 0 && shouldRenderCaret)
-		RenderChar('|', graphicsState);
+		RenderChar('|', graphicsState, positionOffset);
 	for (i = 0; i < text.Length(); ++i)
 	{
 		if (text.caretPosition == i && shouldRenderCaret)
 		{
-			RenderChar('|', graphicsState);
+			RenderChar('|', graphicsState, positionOffset);
 		}
 		currentCharIndex = i;
 		currentChar = text.c_str()[i];
@@ -479,33 +518,35 @@ void TextFont::RenderText(Text & text, TextState textState, std::shared_ptr<Colo
 			break;
 		nextChar = text.c_str()[i + 1];
 
-		if (EvaluateSpecialChar())
+		if (EvaluateSpecialChar(textSizePixels))
 			continue;
 
-		StartChar();				// Move in.
-		RenderChar(currentChar, graphicsState);	// Render
+		StartChar(textSizePixels);				// Move in.
+		RenderChar(currentChar, graphicsState, positionOffset);	// Render
 		/// If we are between the 2 active carets, render the region the char covers over with a white quad ?
 		if (text.previousCaretPosition != -1 && i >= min && i < max)
 		{
 			RenderSelection(currentChar);			
 		}
-		EndChar();					// Move out.
+		EndChar(textSizePixels);					// Move out.
 		lastChar = currentChar;
 	}
 	// Caret at the end?
 	if (text.caretPosition >= text.Length() && shouldRenderCaret)
 	{
-		RenderChar('|', graphicsState);
+		RenderChar('|', graphicsState, positionOffset);
 	}
 	
 	OnEndRender(graphicsState);
 	/// Revert to old shader!
 	ShadeMan.SetActiveShader(&graphicsState, oldShader);
+
+	graphicsState.modelMatrixF = modelMatrixF;
 }
 
 
 
-bool TextFont::PrepareForRender(GraphicsState & graphicsState)
+bool TextFont::PrepareForRender(GraphicsState & graphicsState, float textSizePixels)
 {
 	if (!texture){
 		std::cout<<"\nERROR: Texture not allocated in Font::RenderText";
@@ -533,7 +574,11 @@ bool TextFont::PrepareForRender(GraphicsState & graphicsState)
 		// Set matrices.
 		shader->SetProjectionMatrix(graphicsState.projectionMatrixF);
 		shader->SetViewMatrix(graphicsState.viewMatrixF);
-		shader->SetModelMatrix(graphicsState.modelMatrixF);
+		// Scale it up!
+		glUniform1f(shader->uniformScale, textSizePixels * fontToWhitespaceScalingRatio);
+		shader->SetModelMatrix(Matrix4f::Identity());
+		Matrix4f modelMatrix = graphicsState.modelMatrixF;
+		//shader->SetModelMatrix(graphicsState.modelMatrixF);
 		// Set text color
 		glUniform4f(shader->uniformPrimaryColorVec4, color->x, color->y, color->z, color->w);
 		
@@ -623,18 +668,21 @@ bool TextFont::PrepareForRender(GraphicsState & graphicsState)
 }
 
 // Renders character at current position.
-void TextFont::RenderChar(uchar c, GraphicsState& graphicsState)
+void TextFont::RenderChar(uchar c, GraphicsState& graphicsState, ConstVec3fr positionOffset)
 {
 	float & xStart = pivotPoint[0];
 	float & yStart = pivotPoint[1];
 
+
 	// Render an actual character.
 	if (shaderBased)
 	{
+		Vector2f position = pivotPoint + positionOffset;
+
 		// Set location via uniform?
 		int character = c;
 		glUniform1i(shader->uniformCharacter, character);
-		glUniform2f(shader->uniformPivot, xStart, yStart); 
+		glUniform2f(shader->uniformPivot, position.x, position.y);
 		// Render it.
 		model->Render(&graphicsState);
 	}

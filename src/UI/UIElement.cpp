@@ -1833,13 +1833,8 @@ void UIElement::RenderText(GraphicsState & graphicsState)
 
 
 	TextFont * currentFont = graphicsState.currentFont;
-	Matrix4d tmp = graphicsState.modelMatrixD;
-	graphicsState.modelMatrixD.Translate(this->left + textToRender.offsetX, this->top - textToRender.offsetY,(this->zDepth+0.05));
+	Vector3f fontRenderOffset = Vector3f(this->left + textToRender.offsetX, this->top - textToRender.offsetY, this->zDepth + 0.05f);
 
-	//pixels *= currentTextSizeRatio; //this->textSizeRatio;
-//		std::cout<<"\nTextToRender size in pixels: "<<pixels;
-	graphicsState.modelMatrixD.Scale(pixels);	//Graphics.Height()
-	graphicsState.modelMatrixF = graphicsState.modelMatrixD;
 	// If disabled, dull the color! o.o
 	if (this->IsDisabled())
 		currentFont->disabled = true;
@@ -1859,8 +1854,7 @@ void UIElement::RenderText(GraphicsState & graphicsState)
 		if (onHoverTextColor != nullptr)
 			overrideColor = onHoverTextColor;
 	}
-	graphicsState.currentFont->RenderText(this->textToRender, textState, overrideColor, graphicsState);
-	graphicsState.modelMatrixF = graphicsState.modelMatrixD = tmp;
+	graphicsState.currentFont->RenderText(this->textToRender, textState, overrideColor, graphicsState, fontRenderOffset, pixels);
 }
 
 void UIElement::FormatText(GraphicsState * graphicsState)

@@ -34,11 +34,19 @@ public:
 		should get the rendered size (in world-space coordinates).
 	*/
 	Vector2f CalculateRenderSizeUnits(Text & text);
+	Vector2f CalculateRenderSizePixels(Text & text, float textSizePixels);
 	/// Calculates the render size in pixels if the text were to be rendered now.
-	Vector2f CalculateRenderSizeWorldSpace(Text & text, GraphicsState & graphics);
+	Vector2f CalculateRenderSizeWorldSpace(Text & text, GraphicsState & graphics, float textSizePixels);
 
 	/// Renders text using matrices in the graphicsState, but with the default GL shader.
-	void RenderText(Text & text, TextState textState, std::shared_ptr<Color> overrideColor, GraphicsState & graphics);
+	void RenderText(
+		Text & text,
+		TextState textState,
+		std::shared_ptr<Color> overrideColor,
+		GraphicsState & graphics,
+		ConstVec3fr positionOffset,
+		float textSizePixels
+	);
 	
 	void SetTextureSource(const String s) { textureSource = s; };
 	const String GetTextureSource() { return textureSource; };
@@ -73,11 +81,15 @@ public:
 private:
 
 	/// Sets up text-shader and font texture.
-	bool PrepareForRender(GraphicsState& graphicsState);
+	bool PrepareForRender(GraphicsState& graphicsState, float textSizePixels);
 	/// Renders the caret.
 	void RenderCaret();
 	// Renders character at current position.
-	void RenderChar(uchar c, GraphicsState & graphicsState);
+	void RenderChar(
+		uchar c,
+		GraphicsState & graphicsState,
+		ConstVec3fr positionOffset
+	);
 	/// For rendering a quad on top over the character's which are selected, pretty much.
 	void RenderSelection(uchar currentChar);
 	/// Re-instates old shader as needed.
@@ -92,15 +104,15 @@ private:
 		RenderChar may be omitted, in which case only the size of the text will be calculated.
 	*/
 	/// Sets current text and clears old data. Prepares for a new parse or render.
-	void NewText(Text & text);
+	void NewText(Text & text, float textSizePixels);
 	/// Evaluates current char. IF true, should skip processing hte current char in the rest of the procedure.
-	bool EvaluateSpecialChar();
+	bool EvaluateSpecialChar(float textSizePixels);
 	// Moves variables to prepare for rendering this char.
-	void StartChar();
+	void StartChar(float textSizePixels);
 	// Moves to the end of this character. 
-	void EndChar();
+	void EndChar(float textSizePixels);
 	/// New lines!
-	void NewLine();
+	void NewLine(float textSizePixels);
 	/// Called when encountering the NULL-character.
 	void EndText();
 
@@ -162,6 +174,10 @@ private:
 	int fontWidth;
 	/// Height per character (in pixels) in the loaded texture
 	int fontHeight;
+
+	/// Ratio between the actual drawn letter height, and the total height allocated for this letter within the texture (inverse ratio of whitespace to edges to avoid letters sampling from one another).
+	/// This should be a multiplier > 1.0, probably 1.2 or 2.0 depending on whitespace in your texture.
+	float fontToWhitespaceScalingRatio;
 
 	/// Index of character in current text which is rendered. Here to allow manipulation of it from within the various state-functions.
 	int i;
