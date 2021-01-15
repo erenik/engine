@@ -1077,8 +1077,8 @@ GMPopUI::GMPopUI(String uiName, bool force)
 void GMPopUI::Process(GraphicsState * graphicsState)
 {
 	GetUI();
-	if (!ui){
-		std::cout<<"\nGMPopUI: Invalid UI.";
+	if (!ui) {
+		std::cout << "\nGMPopUI: Invalid UI.";
 		return;
 	}
 	UIElement * e = NULL;
@@ -1091,7 +1091,7 @@ void GMPopUI::Process(GraphicsState * graphicsState)
 		e = ui->GetElementBySource(uiName);
 	if (!e)
 	{
-		LogGraphics("GMPopUI: Invalid UIElement: "+uiName, DEBUG);
+		LogGraphics("GMPopUI: Invalid UIElement: " + uiName, DEBUG);
 		return;
 	}
 
@@ -1106,10 +1106,11 @@ void GMPopUI::Process(GraphicsState * graphicsState)
 		InputMan.LoadNavigateUIState(e->previousNavigateUIState);
 
 	// Clean it up, yo.
-	ui->GetRoot()->RemoveChild(graphicsState, e);
-	e->FreeBuffers();
-	delete e;
-
+	if (e->source.Length() > 0) {
+		ui->GetRoot()->RemoveChild(graphicsState, e);
+		e->FreeBuffers();
+		delete e;
+	}
 
 	/// By default, set navigate UI to true too!
 //	InputMan.SetNavigateUI(true);

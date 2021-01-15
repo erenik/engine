@@ -1833,7 +1833,9 @@ void UIElement::RenderText(GraphicsState & graphicsState)
 
 
 	TextFont * currentFont = graphicsState.currentFont;
-	Vector3f fontRenderOffset = Vector3f(this->left + textToRender.offsetX, this->top - textToRender.offsetY, this->zDepth + 0.05f);
+	Vector4f modelPositionOffset = graphicsState.modelMatrix * Vector4f(0, 0, 0, 1); // E.g. due to scrolling in a list.
+	Vector3f fontRenderOffset = Vector3f(this->left + textToRender.offsetX, this->top - textToRender.offsetY, this->zDepth + 0.05f)
+		+ modelPositionOffset;
 
 	// If disabled, dull the color! o.o
 	if (this->IsDisabled())

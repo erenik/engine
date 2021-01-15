@@ -711,6 +711,10 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 				ENSURE_NEXT_TOKEN
 					element->visible = (NEXT_TOKEN).ParseBool();
 			}
+			else if (token == "font") {
+				EnsureNextToken(tokens);
+				element->fontSource = firstQuote;
+			}
 			else if (token == "maxDecimals") {
 				ENSURE_NEXT_TOKEN;
 				switch (element->type)

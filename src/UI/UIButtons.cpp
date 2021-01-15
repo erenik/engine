@@ -59,3 +59,11 @@ bool UICompositeButton::AddChild(GraphicsState* graphicsState, UIElement *in_chi
 	in_child->hoverable = in_child->activateable = false;
 	return result;
 }
+
+/// Callback-function for sub-classes to implement own behaviour to run within the UI-class' code. Return true if it did something.
+bool UICompositeButton::OnProceed(GraphicsState* graphicsState)
+{
+	MesMan.QueueMessages(activationMessage);
+	return true;
+}
+

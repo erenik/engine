@@ -29,6 +29,9 @@ public:
 	virtual void RemoveState(int state, bool recursive = false) override;
 
 	virtual bool AddChild(GraphicsState* graphicsState, UIElement *in_child) override;
+	
+	/// Callback-function for sub-classes to implement own behaviour to run within the UI-class' code. Return true if it did something.
+	bool OnProceed(GraphicsState* graphicsState);
 
 };
 
