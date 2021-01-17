@@ -26,6 +26,7 @@ UIIntegerInput::UIIntegerInput(String name, String onTrigger)
 	this->name = name;
 	input = NULL;
 	label = NULL;
+	labelText = name + "Label";
 	guiInputDisabled = false;
 	acceptMathematicalExpressions = false;
 	textColor = nullptr;
@@ -105,10 +106,16 @@ void UIIntegerInput::OnInputUpdated(GraphicsState* graphicsState, UIInput * inpu
 	MesMan.QueueMessage(m);
 }
 
+UIInputResult UIIntegerInput::OnChar(int asciiCode) {
+	return input->OnChar(asciiCode);
+}
+
 // For sub-classes to adjust children as needed (mainly for input elements).
 void UIIntegerInput::OnStateAdded(int state) {
-	if (state == UIState::HOVER)
+	if (state == UIState::HOVER) {
+		label->AddState(state);
 		input->AddState(state);
+	}
 	else if (state == UIState::ACTIVE) {
 		input->BeginInput();
 	}
@@ -117,7 +124,8 @@ void UIIntegerInput::OnStateAdded(int state) {
 void UIIntegerInput::SetRange(int newMin, int newMax) {
 	min = newMin;
 	max = newMax;
-	input->SetRange(min, max);
+	if (input)
+		input->SetRange(min, max);
 }
 
 
@@ -125,6 +133,8 @@ void UIIntegerInput::SetRange(int newMin, int newMax) {
 void UIIntegerInput::Navigate(NavigateDirection direction) {
 	if (HasStateRecursive(UIState::ACTIVE)) {
 		input->Navigate(direction);
+		IntegerMessage * m = new IntegerMessage(action, GetValue());
+		MesMan.QueueMessage(m);
 	}
 }
 
@@ -143,12 +153,18 @@ void UIIntegerInput::CreateChildren(GraphicsState* graphicsState)
 	UIColumnList * box = CreateDefaultColumnList(this);
 	float spacePerElement = DefaultSpacePerElement(padding);
 	label = CreateDefaultLabel(box, displayText, divider.x);
+	label->name = name+"Label";
 	label->rightBorderTextureSource = rightBorderTextureSource;
 	label->textAlignment = LEFT;
 	//label->textureSource = "0x554433";
 	input = CreateDefaultInput(box, name, 1 - divider.x);
 	input->textureSource = inputTextureSource;
+	input->SetRange(min, max);
 	//input->textureSource = "0x334455";
+
+	label->SetText(labelText);
+	if (onHoverTextColor != nullptr)
+		label->SetOnHoverTextColor(onHoverTextColor);
 
 	label->SetTextColor(textColor);
 	if (input->textColor == nullptr)
@@ -179,7 +195,21 @@ int UIIntegerInput::GetValue()
 }
 void UIIntegerInput::SetValue(int value)
 {
+	ClampInt(value, min, max);
 	input->SetText(String::ToString(value));
 }
 
+/// Sets text, queueing recalculation of the rendered variant. If not force, will ignore for active ui input elements.
+void UIIntegerInput::SetText(CTextr newText, bool force) {
+	labelText = newText;
+	if (label)
+		label->SetText(newText, force);
+}
+
+// Overrides, but only during onHover.
+void UIIntegerInput::SetOnHoverTextColor(std::shared_ptr<Color> newOnHoverTextColor) {
+	onHoverTextColor = newOnHoverTextColor;
+	if (label)
+		label->SetOnHoverTextColor(newOnHoverTextColor);
+}
 

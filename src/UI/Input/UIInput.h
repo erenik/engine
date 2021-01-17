@@ -110,7 +110,8 @@ protected:
 	String inputTextureSource;
 
 	// For range
-	int min, max;
+	int min = -INFINITE, 
+		max = INFINITE;
 
 private:
 	// Add variables that limit what can be entered into this input?

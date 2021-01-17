@@ -793,6 +793,9 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 				}
 
 			}
+			else if (token == "OnHoverTextColor") {
+				element->SetOnHoverTextColor(Color::ColorByHexName(line - "OnHoverTextColor"));
+			}
 			else if (token == "textColor")
 			{
 				String nextToken = NEXT_TOKEN;

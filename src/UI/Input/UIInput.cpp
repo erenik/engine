@@ -462,6 +462,12 @@ UIInputResult UIInput::OnChar(int asciiCode)
 		// inputBuffers[selectedInputBuffer][caretPosition] = asciiCode;
 		++caretPosition;
 		editText.caretPosition = caretPosition;
+		if (numbersOnly) {
+			int value = editText.ParseInt();
+			ClampInt(value, min, max);
+			editText = String::ToString(value);
+			editText.caretPosition = caretPosition;
+		}
 
 		LogGraphics("OnChar for element " + name + " caretPos " + caretPosition+" editText: "+editText, INFO);
 
@@ -499,6 +505,8 @@ bool UIInput::BeginInput()
 		LogMain("Attempting to input on non-activatable input", ERROR);
 		return false;
 	}
+	if (inputActive)
+		return true;
 
 	LogMain("Beginning input on " + name, INFO);
 	inputActive = true;
@@ -536,6 +544,7 @@ UILabel * UIInput::CreateDefaultLabel(UIColumnList * box, String text, float siz
 	label->fontSource = box->fontSource;
 	label->SetTextColor(box->textColor);
 	label->rightBorderTextureSource = box->rightBorderTextureSource;
+	label->activateable = false;
 	box->AddChild(nullptr, label);
 	return label;
 }
@@ -579,16 +588,16 @@ float UIInput::DefaultSpacePerElement(float padding) {
 // Used for numbersOnly input fields.
 void UIInput::IncrementValue() {
 	int value = editText.ParseInt() + 1;
-	if (value > max)
-		value = max;
+	ClampInt(value, min, max);
 	editText = String::ToString(value);
+	editText.caretPosition = editText.Length();
 	OnTextUpdated();
 }
 void UIInput::DecrementValue() {
 	int value = editText.ParseInt() - 1;
-	if (value < min)
-		value = min;
+	ClampInt(value, min, max);
 	editText = String::ToString(value);
+	editText.caretPosition = editText.Length();
 	OnTextUpdated();
 }
 

@@ -504,13 +504,14 @@ void TextFont::RenderText(
 	}
 
 	bool shouldRenderCaret = Timer::GetCurrentTimeMs() % 1000 > 500;
+	Vector3f renderCaretPivot;
 	if (text.Length() == 0 && shouldRenderCaret)
-		RenderChar('|', graphicsState, positionOffset);
+		renderCaretPivot = pivotPoint;
 	for (i = 0; i < text.Length(); ++i)
 	{
 		if (text.caretPosition == i && shouldRenderCaret)
 		{
-			RenderChar('|', graphicsState, positionOffset);
+			renderCaretPivot = pivotPoint;
 		}
 		currentCharIndex = i;
 		currentChar = text.c_str()[i];
@@ -534,9 +535,15 @@ void TextFont::RenderText(
 	// Caret at the end?
 	if (text.caretPosition >= text.Length() && shouldRenderCaret)
 	{
-		RenderChar('|', graphicsState, positionOffset);
+		renderCaretPivot = pivotPoint;
 	}
 	
+	if (renderCaretPivot.MaxPart() != 0) {
+		pivotPoint = renderCaretPivot;
+		RenderCaret(graphicsState, positionOffset, textSizePixels);
+	}
+
+
 	OnEndRender(graphicsState);
 	/// Revert to old shader!
 	ShadeMan.SetActiveShader(&graphicsState, oldShader);
@@ -545,6 +552,25 @@ void TextFont::RenderText(
 }
 
 
+void TextFont::RenderCaret(GraphicsState & graphicsState, ConstVec3fr positionOffset, float textSizePixels) {
+	char fontCaret = '|';
+	// Random offset based on char width..?
+	float moveDistance = 0;
+	pivotPoint[0] += moveDistance; // Move in and back.
+	SetTextSize(textSizePixels * 1.20f);
+	// Set transparency for caret rendering.
+	glUniform4f(shader->uniformPrimaryColorVec4, color->x, color->y, color->z, color->w * 0.5f);
+
+	RenderChar(fontCaret, graphicsState, positionOffset);
+
+	// Revert back pivot point
+	pivotPoint[0] -= moveDistance;
+}
+
+
+void TextFont::SetTextSize(float textSizePixels) {
+	glUniform1f(shader->uniformScale, textSizePixels * fontToWhitespaceScalingRatio);
+}
 
 bool TextFont::PrepareForRender(GraphicsState & graphicsState, float textSizePixels)
 {
@@ -574,8 +600,7 @@ bool TextFont::PrepareForRender(GraphicsState & graphicsState, float textSizePix
 		// Set matrices.
 		shader->SetProjectionMatrix(graphicsState.projectionMatrixF);
 		shader->SetViewMatrix(graphicsState.viewMatrixF);
-		// Scale it up!
-		glUniform1f(shader->uniformScale, textSizePixels * fontToWhitespaceScalingRatio);
+		SetTextSize(textSizePixels);
 		shader->SetModelMatrix(Matrix4f::Identity());
 		Matrix4f modelMatrix = graphicsState.modelMatrixF;
 		//shader->SetModelMatrix(graphicsState.modelMatrixF);

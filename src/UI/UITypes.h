@@ -4,7 +4,7 @@
 #pragma once
 
 /// Default types that .. do stuff? Not sure if this is even used much anymore?
-enum UIType
+enum class UIType
 {
 	NULL_TYPE,
 	BASIC,

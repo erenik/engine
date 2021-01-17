@@ -80,6 +80,8 @@ public:
 	bool disabled; // For buttons currently disabled.
 private:
 
+	void SetTextSize(float textSizePixels);
+
 	/// Sets up text-shader and font texture.
 	bool PrepareForRender(GraphicsState& graphicsState, float textSizePixels);
 	/// Renders the caret.
@@ -111,6 +113,8 @@ private:
 	void StartChar(float textSizePixels);
 	// Moves to the end of this character. 
 	void EndChar(float textSizePixels);
+	// Depends on the caret, offsets, etc.
+	void RenderCaret(GraphicsState & graphicsState, ConstVec3fr positionOffset, float textSizePixels);
 	/// New lines!
 	void NewLine(float textSizePixels);
 	/// Called when encountering the NULL-character.

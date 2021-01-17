@@ -26,6 +26,7 @@ public:
 	/// Sent by UIInput elements upon pressing Enter and thus confirmign the new input, in case extra actions are warranted. (e.g. UITextureInput to update the texture provided as reference). Called from render thread.
 	virtual void OnInputUpdated(GraphicsState* graphicsState, UIInput * inputElement) override;
 
+	UIInputResult OnChar(int asciiCode);
 	// For sub-classes to adjust children as needed (mainly for input elements).
 	virtual void OnStateAdded(int state) override;
 
@@ -42,6 +43,12 @@ public:
 	/// Getter/setter for the input element.
 	int GetValue();
 	void SetValue(int value);
+
+	/// Sets text, queueing recalculation of the rendered variant. If not force, will ignore for active ui input elements.
+	virtual void SetText(CTextr newText, bool force = false) override;
+
+	// Overrides, but only during onHover.
+	void SetOnHoverTextColor(std::shared_ptr<Color> newOnHoverTextColor);
 
 	/// Same as onTrigger, set to all inputs.
 	String action;

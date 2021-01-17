@@ -46,7 +46,12 @@ void GMProceedUI::Process(GraphicsState * gs) {
 
 		hoverElement->AddState(UIState::ACTIVE);
 		// Remove active state immediately, as we want to continue navigating.
-		hoverElement->RemoveState(UIState::ACTIVE);
+		switch (hoverElement->type) {
+		case UIType::BUTTON:
+			hoverElement->RemoveState(UIState::ACTIVE);
+			break;
+		}
+		
 	}
 }
 
