@@ -9,6 +9,7 @@
 #include "UI/UITypes.h"
 #include "Message/Message.h"
 #include "Message/MessageManager.h"
+#include "UI/Input/UIInput.h"
 
 UIDropDownMenu::UIDropDownMenu(String inName)
 	: UIElement()
@@ -54,7 +55,7 @@ void UIDropDownMenu::CreateChildren(GraphicsState* graphicsState)
 /// Sets text, queueing recalculation of the rendered variant. If not force, will ignore for active ui input elements.
 void UIDropDownMenu::SetText(CTextr newText, bool force /*= false*/)
 {
-	label->SetText(newText, force);
+	label = UIInput::CreateDefaultLabel(this, newText, 1.0f);
 }
 
 void UIDropDownMenu::RenderText()
@@ -97,9 +98,16 @@ void UIDropDownMenu::Open(GraphicsState* graphicsState)
 	if (!selectionList->visible)
 	{
 		selectionList->visible = true;
-		ui->Root()->AddChild(graphicsState, selectionList);
+		//this->AddChild(graphicsState, selectionList);
+
+		this->ui->GetRoot()->AddChild(graphicsState, selectionList);
 		this->ui->PushToStack(selectionList);
 	}
+
+	//UIElement * element = new UIElement();
+	//element->textureSource = "0xFFAA55FF";
+	//GetRoot()->AddChild(graphicsState, element);
+
 }
 
 void UIDropDownMenu::PopulateList(GraphicsState* graphicsState)

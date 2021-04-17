@@ -41,7 +41,7 @@ void GraphicsManager::RenderWindow()
 	/// Render all viewports..
 	Timer viewportsTimer, viewportTimer;
     viewportsTimer.Start();
-	if (window->renderViewports)
+	if (window->renderViewports && window->renderScene)
 	{
 
 		List<Viewport*> viewports = graphicsState.activeWindow->viewports;

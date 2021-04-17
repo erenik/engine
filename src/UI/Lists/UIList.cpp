@@ -117,6 +117,10 @@ bool UIList::AddChild(GraphicsState * graphicsState, UIElement* child)
     /// Inherit neighbours.
 	child->InheritNeighbours(this);
 
+	// Set it's parent to this.
+	child->parent = this;
+	child->ui = ui;
+
  //   std::cout<<"\nAdding child "<<child->name<<" text: "<<child->text;
 	/// If first child, place it at the top.
 	if (children.Size() == 0){

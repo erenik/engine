@@ -281,7 +281,9 @@ UIInputResult UIInput::OnKeyDown(GraphicsState* graphicsState, int keyCode, bool
 			break;
 		}
 		case KEY::LEFT:
-			if (caretPosition > 0)
+			if (this->numbersOnly)
+				DecrementValue();
+			else if (caretPosition > 0)
 			{
 				if (InputMan.KeyPressed(KEY::CTRL))
 				{
@@ -292,11 +294,13 @@ UIInputResult UIInput::OnKeyDown(GraphicsState* graphicsState, int keyCode, bool
 				}
 				// Update the text to render.
 				editText.caretPosition = caretPosition;
+				moveCommand = true;
 			}
-			moveCommand = true;
 			break;
 		case KEY::RIGHT:
-			if (caretPosition < editText.Length())
+			if (this->numbersOnly)
+				IncrementValue();
+			else if (caretPosition < editText.Length())
 			{
 				if (InputMan.KeyPressed(KEY::CTRL))
 				{
@@ -307,8 +311,8 @@ UIInputResult UIInput::OnKeyDown(GraphicsState* graphicsState, int keyCode, bool
 				}
 				// Update the text to render.
 				editText.caretPosition = caretPosition;
+				moveCommand = true;
 			}
-			moveCommand = true;
 			break;
 	}
 
@@ -535,7 +539,7 @@ UIColumnList * UIInput::CreateDefaultColumnList(UIElement * parent) {
 	parent->AddChild(nullptr, box);
 	return box;
 }
-UILabel * UIInput::CreateDefaultLabel(UIColumnList * box, String text, float sizeX) {
+UILabel * UIInput::CreateDefaultLabel(UIElement * box, String text, float sizeX) {
 	UILabel * label = new UILabel();
 	label->textureSource = "0x00000000";
 	label->hoverable = true;
@@ -548,7 +552,7 @@ UILabel * UIInput::CreateDefaultLabel(UIColumnList * box, String text, float siz
 	box->AddChild(nullptr, label);
 	return label;
 }
-UIInput * UIInput::CreateDefaultInput(UIColumnList * box, String inputName, float sizeX) {
+UIInput * UIInput::CreateDefaultInput(UIElement * box, String inputName, float sizeX) {
 	/// Create 3 children
 	UIInput * input = new UIInput();
 	input->textureSource = UIElement::defaultTextureSource;
@@ -590,14 +594,14 @@ void UIInput::IncrementValue() {
 	int value = editText.ParseInt() + 1;
 	ClampInt(value, min, max);
 	editText = String::ToString(value);
-	editText.caretPosition = editText.Length();
+	editText.caretPosition = -1; //  editText.Length();
 	OnTextUpdated();
 }
 void UIInput::DecrementValue() {
 	int value = editText.ParseInt() - 1;
 	ClampInt(value, min, max);
 	editText = String::ToString(value);
-	editText.caretPosition = editText.Length();
+	editText.caretPosition = -1;// editText.Length();
 	OnTextUpdated();
 }
 

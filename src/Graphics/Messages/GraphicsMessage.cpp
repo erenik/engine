@@ -210,6 +210,10 @@ void GMMouse::Process(GraphicsState * graphicsState)
 			}
 			UIElement * hoverElement = userInterface->Hover(coords.x, coords.y, true);
 			userInterface->SetHoverElement(graphicsState, hoverElement);
+			
+			MouseMessage* mm = new MouseMessage(LUP, window, coords);
+			mm->element = hoverElement;
+			MesMan.QueueMessage(mm);
 			break;
 		}
 		case LDOWN:
@@ -221,6 +225,10 @@ void GMMouse::Process(GraphicsState * graphicsState)
 			{ 
 				activeElement->RemoveState(UIState::ACTIVE);
 			}
+
+			MouseMessage* mm = new MouseMessage(LDOWN, window, coords);
+			mm->element = activeElement;
+			MesMan.QueueMessage(mm);
 			break;
 		}
 		case MOVE:

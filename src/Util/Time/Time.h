@@ -65,9 +65,9 @@ public:
 
 	/// Comparison operators
 	/// Larger than, returns true if this time is larger (more recent) than the other time. False if not.
-	bool operator > (const Time & otherTime);
+	bool operator > (const Time & otherTime) const;
 	/// Lesser than, returns true if this time is smaller (older) than the other time. False if not.
-	bool operator < (const Time & otherTime);
+	bool operator < (const Time & otherTime) const;
 	bool operator == (const Time & otherTime);
 
 	// Conversion operators

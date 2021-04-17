@@ -481,7 +481,7 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 				String firstToken = tokens[1];
 				UIIntegerInput * ii = new UIIntegerInput(firstToken, "Set" + firstToken);
 				element = ii;
-				element->displayText = firstQuote;
+				ii->SetText(firstQuote);
 				element->hoverable = element->activateable = false;
 				SET_DEFAULTS
 					ii->guiInputDisabled = true;

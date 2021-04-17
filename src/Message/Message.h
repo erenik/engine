@@ -52,10 +52,12 @@ public:
 		RDOWN,
 		LUP,
 		RUP,
+		SCROLL
 	};
 	AppWindow * window;
 	Vector2i coords;
 	int interaction;
+	float scrollDistance;
 };
 
 class PasteMessage : public Message

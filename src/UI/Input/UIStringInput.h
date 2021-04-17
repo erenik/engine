@@ -22,6 +22,9 @@ public:
 	// For sub-classes to adjust children as needed (mainly for input elements).
 	virtual void OnStateAdded(int state) override;
 
+	/// Begins input, returns false if not possible (e.g. non-activatable StringLabel input)
+	virtual bool BeginInput() override;
+
 	/// Creates the label and input.
 	void CreateChildren(GraphicsState* graphicsState) override;
 	/// Getter/setter for the input element.

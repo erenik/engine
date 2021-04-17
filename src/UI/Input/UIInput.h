@@ -54,14 +54,16 @@ public:
 	/// Used for getting text. This will be local translated language key codes?
 	virtual UIInputResult OnChar(int asciiCode) override;
 	/// Begins input, returns false if not possible (e.g. non-activatable StringLabel input)
-	bool BeginInput();
+	virtual bool BeginInput();
 	/// Halts input and removes Active state.
 	virtual void StopInput() override;
 
 	// Creates default elements for a label and input one-liner input element. Used by Integer, String, Float inputs.
 	static UIColumnList * CreateDefaultColumnList(UIElement * parent);
-	static UILabel * CreateDefaultLabel(UIColumnList * box, String text, float sizeX);
-	static UIInput * CreateDefaultInput(UIColumnList * box, String inputName, float sizeX);
+	// Creates a label occupying the left half of the box.
+	static UILabel * CreateDefaultLabel(UIElement * box, String text, float sizeX);
+	// Creates an input occupying the right half of the box.
+	static UIInput * CreateDefaultInput(UIElement * box, String inputName, float sizeX);
 	static float DefaultSpacePerElement(float padding);
 
 	// Used for numbersOnly input fields.

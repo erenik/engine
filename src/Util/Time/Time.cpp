@@ -224,7 +224,7 @@ Time Time::operator += (const Time & otherTime)
 
 /// Comparison operators
 /// Larger than, returns true if this time is larger (more recent) than the other time. False if not.
-bool Time::operator > (const Time & otherTime)
+bool Time::operator > (const Time & otherTime) const
 {
 	Time otherTimeTmp = otherTime;
 	// Convert as necessary
@@ -234,7 +234,7 @@ bool Time::operator > (const Time & otherTime)
 }
 
 /// Lesser than, returns true if this time is smaller (older) than the other time. False if not.
-bool Time::operator < (const Time & otherTime)
+bool Time::operator < (const Time & otherTime) const
 {
 	Time otherTimeTmp = otherTime;
 	// Convert as necessary

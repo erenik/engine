@@ -779,6 +779,9 @@ bool UIElement::OnScroll(GraphicsState * graphicsState, float delta)
 /// Returns the root, via parent-chain.
 UIElement * UIElement::GetRoot()
 {
+	assert(parent != this);
+	if (parent == this) // Shouldn't come here...
+		parent = nullptr;
 	if(parent)
 		return parent->GetRoot();
 	return this;

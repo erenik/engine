@@ -236,6 +236,7 @@ class GMSetUIt : public GMUI
 {
 public:
 	GMSetUIt(String uiName, int target, CTextr tex);
+	GMSetUIt(String uiName, int target, CTextr tex, UserInterface* ui);
 	GMSetUIt(String uiName, int target, List<Text> texts);
 	/** Explicitly declared constructor to avoid memory leaks.
 		No explicit constructor may skip subclassed variable deallocation!

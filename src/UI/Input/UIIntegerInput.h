@@ -29,6 +29,8 @@ public:
 	UIInputResult OnChar(int asciiCode);
 	// For sub-classes to adjust children as needed (mainly for input elements).
 	virtual void OnStateAdded(int state) override;
+	/// Begins input, returns false if not possible (e.g. non-activatable StringLabel input)
+	virtual bool BeginInput() override;
 
 	virtual void SetRange(int min, int max) override;
 

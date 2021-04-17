@@ -76,6 +76,7 @@ void UIVectorInput::CreateChildren(GraphicsState* graphicsState)
 	label = new UILabel();
 	label->SetText(name);
 	label->sizeRatioX = spacePerElement;
+	label->textColor = textColor;
 	box->AddChild(nullptr, label);
 
 	/// Create 3 children
@@ -87,6 +88,7 @@ void UIVectorInput::CreateChildren(GraphicsState* graphicsState)
 		input->numbersOnly = true;
 		input->SetText("0");
 		input->sizeRatioX = spacePerElement;
+		input->textColor = textColor;
 	//	input->onTrigger = "UIVectorInput("+name+")";
 		box->AddChild(nullptr, input);
 		inputs.Add(input);

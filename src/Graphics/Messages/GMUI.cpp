@@ -764,6 +764,11 @@ GMSetUIt::GMSetUIt(String uiName, int target, CTextr tex)
 {
 	AssertTarget();
 }
+GMSetUIt::GMSetUIt(String uiName, int target, CTextr tex, UserInterface* ui)
+: GMUI(GM_SET_UI_TEXT, ui), uiName(uiName), target(target), text(tex)
+{
+	AssertTarget();
+}
 GMSetUIt::GMSetUIt(String uiName, int target, List<Text> texts)
 : GMUI(GM_SET_UI_TEXT), uiName(uiName), target(target), texts(texts)
 {
@@ -783,6 +788,7 @@ void GMSetUIt::AssertTarget()
 		case GMUI::LOG_APPEND:
 		case GMUI::LOG_FILL:
 		case GMUI::TEXT:
+		case GMUI::STRING_INPUT_TEXT:
 			break;
 		default:
 		{
@@ -801,25 +807,34 @@ void GMSetUIt::Process(GraphicsState * graphicsState)
 	case GMUI::TEXT:
 		e->SetText(text);
 		break;
-		case GMUI::LOG_APPEND:
-		{
-			if (e->type != UIType::LOG)
-				break;
-			UILog * l = (UILog*) e;
-			l->Append(text);
+
+	case GMUI::STRING_INPUT_TEXT:
+	{
+		if (e->type != UIType::STRING_INPUT)
 			break;
-		}
-		case GMUI::LOG_FILL:
-		{
-			if (e->type != UIType::LOG)
-				break;
-			UILog * l = (UILog*) e;
-			l->Fill(texts);
+		UIStringInput * si = (UIStringInput*)e;
+		si->input->SetText(text);
+		break;
+	}
+	case GMUI::LOG_APPEND:
+	{
+		if (e->type != UIType::LOG)
 			break;
-		}
-		default:
-			assert(false && "ERROR: Invalid target in GMSetUIt.");
+		UILog * l = (UILog*) e;
+		l->Append(text);
+		break;
+	}
+	case GMUI::LOG_FILL:
+	{
+		if (e->type != UIType::LOG)
 			break;
+		UILog * l = (UILog*) e;
+		l->Fill(texts);
+		break;
+	}
+	default:
+		assert(false && "ERROR: Invalid target in GMSetUIt.");
+		break;
 	};
 	Graphics.renderQueried = true;
 }
@@ -896,6 +911,11 @@ void GMScrollUI::Process(GraphicsState * graphicsState){
 		ui->Hover(InputMan.GetMousePosition());
 	}
 	Graphics.renderQueried = true;
+
+	MouseMessage * mm = new MouseMessage(MouseMessage::SCROLL, nullptr, Vector2i());
+	mm->scrollDistance = scrollDistance;
+	mm->element = e;
+	MesMan.QueueMessage(mm);
 }
 
 /// Message to add a newly created UI to the global state's UI, mostly used for overlay-effects and handling error-messages.

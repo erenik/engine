@@ -122,9 +122,19 @@ UIInputResult UIStringInput::OnChar(int asciiCode) {
 
 // For sub-classes to adjust children as needed (mainly for input elements).
 void UIStringInput::OnStateAdded(int state) {
-	input->AddState(state);
+	if (state == UIState::HOVER)
+		label->AddState(state); // Add hover to label as well?
+	else 
+		input->AddState(state);
 }
 
+bool UIStringInput::BeginInput() {
+	if (!input->InputActive())
+		return input->BeginInput();
+	else
+		input->StopInput();
+	return false;
+}
 
 /// Creates the label and input.
 void UIStringInput::CreateChildren(GraphicsState * graphicsState)

@@ -73,6 +73,11 @@ UIInputResult UIIntegerInput::OnKeyDown(GraphicsState* graphicsState, int keyCod
 		return input->OnKeyDown(graphicsState, keyCode, downBefore);
 	}
 
+	if (keyCode == KEY::RIGHT)
+		input->IncrementValue();
+	else if (keyCode == KEY::LEFT)
+		input->DecrementValue();
+
 	return UIElement::OnKeyDown(graphicsState, keyCode, downBefore);
 }	
 
@@ -121,6 +126,14 @@ void UIIntegerInput::OnStateAdded(int state) {
 	}
 }
 
+bool UIIntegerInput::BeginInput() {
+	if (!input->InputActive())
+		return input->BeginInput();
+	else
+		input->StopInput();
+	return false;
+}
+
 void UIIntegerInput::SetRange(int newMin, int newMax) {
 	min = newMin;
 	max = newMax;
@@ -167,8 +180,7 @@ void UIIntegerInput::CreateChildren(GraphicsState* graphicsState)
 		label->SetOnHoverTextColor(onHoverTextColor);
 
 	label->SetTextColor(textColor);
-	if (input->textColor == nullptr)
-		input->SetTextColor(textColor);
+	input->SetTextColor(textColor);
 
 	/// Set them to only accept floats?
 	/// Any mathematical expression?
