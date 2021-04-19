@@ -36,6 +36,7 @@ void UIDropDownMenu::CreateChildren(GraphicsState* graphicsState)
 	if (separateLabel)
 	{
 		this->label = new UILabel(name);
+		label->textColor = textColor;
 		label->sizeRatioX = 0.4f;
 		label->sizeRatioY = 1.f;
 		label->alignmentX = 0.2f;
@@ -43,6 +44,7 @@ void UIDropDownMenu::CreateChildren(GraphicsState* graphicsState)
 	}
 	selectButton = new UIButton("<Placeholder>");
 	selectButton->sizeRatioX = 1 - (label? label->sizeRatioX : 0);
+	selectButton->textColor = textColor;
 	selectButton->alignmentX = 0.5 + (label? label->sizeRatioX * 0.5 : 0);
 //	selectButton->activationMessage = "OpenDropDownMenu:"+name;
 	UIAction uac(UIAction::OPEN_DROP_DOWN_MENU, UIAction::PARENT);
@@ -84,6 +86,11 @@ void UIDropDownMenu::SetContents(GraphicsState * graphicsState, List<String> con
 	PopulateList(graphicsState);
 }
 
+bool UIDropDownMenu::OnProceed(GraphicsState* graphicsState) {
+	Open(graphicsState);
+	return true;
+}
+
 /// Opens UI to select among children. How this will be done depends on settings.
 void UIDropDownMenu::Open(GraphicsState* graphicsState)
 {
@@ -95,13 +102,16 @@ void UIDropDownMenu::Open(GraphicsState* graphicsState)
 		selectionList->textureSource = "0x22FF";
 		PopulateList(graphicsState);
 	}
+
+	// Make it visible.
 	if (!selectionList->visible)
 	{
 		selectionList->visible = true;
 		//this->AddChild(graphicsState, selectionList);
+		auto root = GetRoot();
 
-		this->ui->GetRoot()->AddChild(graphicsState, selectionList);
-		this->ui->PushToStack(selectionList);
+		root->AddChild(graphicsState, selectionList);
+		ui->PushToStack(selectionList);
 	}
 
 	//UIElement * element = new UIElement();

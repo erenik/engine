@@ -17,7 +17,7 @@ UIButton::UIButton(String i_name)
 	SetText(i_name);
 	name = activationMessage = i_name;
 	textureSource = defaultTextureSource;
-	GetText().color = defaultTextColor;
+	text->color = defaultTextColor;
 };
 
 UIButton::~UIButton()
@@ -36,7 +36,8 @@ UICompositeButton::~UICompositeButton() {
 /// Creates a deep copy of self and all child elements (where possible).
 UIElement * UICompositeButton::Copy(){
 	UICompositeButton * copy = new UICompositeButton(name);
-	*copy = *this; // Copy all variables?
+	//*copy = *this; // Copy all variables?
+	assert(false && "Implement deep copy");
 	CopyChildrenInto(copy);
 	return copy;
 }

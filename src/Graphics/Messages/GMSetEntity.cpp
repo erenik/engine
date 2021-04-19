@@ -384,6 +384,7 @@ GMSetEntityVec4f::GMSetEntityVec4f(List< std::shared_ptr<Entity> > entities, int
 		case GT_TEXT_COLOR:
 		case GT_TEXT_POSITION:
 		case GT_RENDER_OFFSET:
+		case GT_COLOR:
 			break;
 		default:
 			assert(false && "Bad value");
@@ -406,6 +407,9 @@ void GMSetEntityVec4f::Process(GraphicsState* graphicsState)
 				break;
 			case GT_RENDER_OFFSET:
 				entity->graphics->renderOffset = vec4fValue;
+				break;
+			case GT_COLOR:
+				entity->graphics->color = vec4fValue;
 				break;
 		}
 	}

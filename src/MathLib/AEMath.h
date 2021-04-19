@@ -45,6 +45,7 @@ extern MathLib mathLib;
 
 #ifndef ClampedFloat
 #define ClampedFloat(a, min, max) ((a < min ? a : (a > max? max : a)))
+#define ClampedInt ClampedFloat
 #endif
 
 #ifndef RoundFloat

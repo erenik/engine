@@ -509,7 +509,7 @@ void InputManager::MouseWheel(AppWindow * AppWindow, float delta)
 			delta *= 2.f;
 			if (KeyPressed(KEY::CTRL))
 				delta *= 0.25f;
-			QueueGraphics(new GMScrollUI(element->name, delta));
+			QueueGraphics(new GMScrollUI(element->name, delta, ui));
 			// Do a mouse hover/move too! - from the graphics thread, yeah.
 		}
 	}
@@ -745,7 +745,8 @@ void InputManager::OnStopActiveInput()
 	UIElement * input = StateMan.ActiveState()->GetUI()->GetActiveElement();
 	if (input){
 		input->state &= ~UIState::ACTIVE;
-		input->text.caretPosition = -1;
+		if (input->text)
+			input->text->caretPosition = -1;
 	}
 }
 
@@ -1034,7 +1035,7 @@ void InputManager::UIPage(float amount)
 	if (!hoverElement)
 		return;
 	// Get position of hoverelement before scroll
-	QueueGraphics(new GMScrollUI(hoverElement->name, amount));
+	QueueGraphics(new GMScrollUI(hoverElement->name, amount, ui));
 }
 
 

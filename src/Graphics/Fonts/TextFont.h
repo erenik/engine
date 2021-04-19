@@ -68,7 +68,8 @@ public:
 	/// Source of the texture-file to be used.
 	String source;
 
-	static String defaultFontSource;
+	static std::shared_ptr<String> defaultFontSource;
+	static std::shared_ptr<String> defaultFontShader;
 
 	static std::shared_ptr<Color> idleColor;
 	static std::shared_ptr<Color> onHoverColor;

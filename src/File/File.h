@@ -56,6 +56,11 @@ public:
 	void Close();
 	bool IsOpen();
 
+	// Assumes its already opened for writing text.
+	void Write(String text);
+	// Assumes its already opened for writing text.
+	void WriteLine(String text, String lineEnding = "\n");
+
 	std::fstream & GetStream() {return fileStream;};
 
 	/// Returns true if the last write time has changed compared to the last time that we extracted contents from this file.

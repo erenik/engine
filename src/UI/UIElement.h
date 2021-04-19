@@ -81,6 +81,9 @@ public:
 
 	static void UnitTest();
 
+	// Works recursively down to all children 
+	void SetUI(UserInterface * ui);
+
 	UIElement * Parent() {return parent;};
 
 	virtual int CenteredContentParentPosX() const;
@@ -470,8 +473,14 @@ public:
 	int ID() { return id; };
 	String textureSource;	// Name of the texture the UIelement will use
 	static String defaultTextureSource;
-	String fontSource;
-	TextFont * font;
+
+	struct FontDetails {
+		std::shared_ptr<String> source;
+		std::shared_ptr<String> shader; // By default 'Font', interhited from TextFont::defaultFontShader
+		TextFont * font;
+	};
+
+	FontDetails fontDetails;
 	
 	/// Sets disabled-flag.
 	void Disable();
@@ -537,8 +546,8 @@ public:
 	virtual void ResizeGeometry();
 	void DeleteGeometry();
 
-	Text& GetText() { return text; }
-	const Text& GetText() const { return text; }
+	Text& GetText() { return *text; }
+	const Text& GetText() const { return *text; }
 
 	// If true, will reduce width or height dynamically so that the texture's aspect ratio is retained when rendering.
 	bool retainAspectRatioOfTexture = false;
@@ -546,6 +555,8 @@ public:
 	float ZDepth() const { return zDepth; }
 
 	Square* GetMesh() { return mesh; }
+
+	void InheritDefaults(UIElement * child);
 
 // Some inherited for UI subclasses
 protected:
@@ -591,10 +602,10 @@ protected:
 	int id;								// ID of the UI, used for changing properties in the element.
 	static int idEnumerator;
 
-private:
-
 	// Text that will be rendered
-	Text text;
+	std::unique_ptr<Text> text;
+
+private:
 
 	// Current state of the UI Element, See UIState above.
 	int state;

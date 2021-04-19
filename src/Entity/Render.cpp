@@ -337,6 +337,42 @@ void Entity::Render(GraphicsState & graphicsState)
 	}
 }
 
+// Renders the text associated with this entity, format and location depends on variables set in GraphicsProperty.
+void Entity::RenderText(GraphicsState& graphicsState) {
+	/// If we have any text, render it last!
+	TextFont * font = graphicsState.currentFont;
+	if (graphics->text.Length() && font)
+	{
+		Matrix4f & modelMatrix = graphicsState.modelMatrixF;
+		modelMatrix = Matrix4f();
+
+
+		modelMatrix.Multiply((Matrix4d().Translate(Vector3d(worldPosition + graphics->textPositionOffset))));
+		modelMatrix.Multiply(rotationMatrix);
+		modelMatrix.Multiply((Matrix4d().Scale(Vector3d(scale * graphics->textSizeRatio))));
+
+		Text & textToRender = graphics->text;
+
+		Color& textColor = *graphics->textColor;
+		glColor4f(textColor[0], textColor[1], textColor[2], textColor[3]);
+		font->SetColor(graphics->textColor);
+
+		// Calcualte size it would assume with current matrix.
+		Vector2f textRenderSize = font->CalculateRenderSizeWorldSpace(textToRender, graphicsState, scale.x * graphics->textSizeRatio);
+
+		// Recalculate the matrix to center the text on the entity.
+		modelMatrix = Matrix4d();
+		Vector3f centeringOffset(-textRenderSize[0] * 0.5f, textRenderSize[1], 0);
+		//modelMatrix.Multiply(rotationMatrix);
+
+		//glUniformMatrix4fv(graphics->shader->uniformModelMatrix, 1, false, entity->renderTransform->getPointer());
+
+		font->RenderText(textToRender, TextState::Idle, nullptr, graphicsState, worldPosition + centeringOffset + graphics->textPositionOffset, scale.x * graphics->textSizeRatio);
+	}
+
+}
+
+
 
 		//
 		///// Debug-rendering to visualize differences between pre and post correction!
@@ -397,3 +433,5 @@ void Entity::Render(GraphicsState & graphicsState)
 			glEnd();
 			glUseProgram(shader->shaderProgram);
 #endif
+
+

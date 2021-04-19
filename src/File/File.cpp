@@ -340,6 +340,16 @@ bool File::IsOpen()
 	return false;
 }
 
+// Assumes its already opened for writing text.
+void File::Write(String text) {
+	fileStream.write(text.c_str(), text.Length());
+}
+
+// Assumes its already opened for writing text.
+void File::WriteLine(String text, String lineEnding) {
+	Write(text + lineEnding);
+}
+
 /// Returns true if the last write time has changed compared to the last time that we extracted contents from this file.
 bool File::HasChanged()
 {

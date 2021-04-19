@@ -40,7 +40,8 @@ public:
 	String defaultOnTrigger = "";
 	Vector2f defaultDivider = Vector2f(0.5f, 0.5f);
 	int defaultTextAlignment = UIElement::LEFT;
-	String defaultFontSource = "";
+	std::shared_ptr<String> defaultFontSource = std::make_shared<String>("");
+	std::shared_ptr<String> defaultFontShader = std::make_shared<String>("Font");
 
 	/// Manually parse the line using a few identifiers that can be relevant.
 	int lastEvaluatedIndex = 0;

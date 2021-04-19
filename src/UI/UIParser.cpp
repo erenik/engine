@@ -46,6 +46,7 @@ UIParser::UIParser()
 	, defaultDivider ( Vector2f(0.5f, 0.5f))
 	, defaultTextAlignment ( UIElement::LEFT)
 	, defaultFontSource(TextFont::defaultFontSource)
+	, defaultFontShader(TextFont::defaultFontShader)
 	, lastEvaluatedIndex ( 0)
 	, element(nullptr)
 	, root(nullptr)
@@ -208,7 +209,10 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 					defaultTexture = param;
 			}
 			else if (token == "defaultFont") {
-				defaultFontSource = tokens[1];
+				*defaultFontSource = tokens[1];
+			}
+			else if (token == "defaultFontShader") {
+				defaultFontShader = std::make_shared<String>(tokens[1]);
 			}
 			else if (token == "defaultTopBorder") {
 				ENSURE_NEXT_TOKEN;
@@ -713,7 +717,7 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 			}
 			else if (token == "font") {
 				EnsureNextToken(tokens);
-				element->fontSource = firstQuote;
+				element->fontDetails.source = std::make_shared<String>(firstQuote);
 			}
 			else if (token == "maxDecimals") {
 				ENSURE_NEXT_TOKEN;
@@ -1084,7 +1088,8 @@ void UIParser::SetDefaults(UIElement * element) {
 	element->padding = defaultPadding; 
 	element->textSizeRatio = defaultTextSize; 
 	element->onTrigger = defaultOnTrigger; 
-	element->fontSource = defaultFontSource;
+	element->fontDetails.source = defaultFontSource;
+	element->fontDetails.shader = defaultFontShader;
 	element->visible = defaultVisibility; 
 	element->divider = defaultDivider; 
 	element->textAlignment = defaultTextAlignment; 

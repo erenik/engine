@@ -67,6 +67,9 @@ String VectorString(const Vector2i & v)
 	return String(v.x) +" "+String(v.y);
 }
 
+String VectorString(const Vector2f & v) {
+	return String(v.x) + " " + String(v.y);
+}
 
 /// o.o prepends the names of all variables in the list.
 void PrependStrings(List<String> & list, String withString)

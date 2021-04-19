@@ -674,6 +674,8 @@ int UserInterface::PushToStack(UIElement * element)
 	element->visible = true;
 	/// Mark as in the stack, so that navigation commands don't go outside it or to a parent-node.
 	element->inStack = true;
+	// Set up link so we can refer to it for pushing things, like drop-down lists.
+	element->SetUI(this);
 	return PUSHED_TO_STACK;
 }
 void UserInterface::PopFromStack(GraphicsState * graphicsState, String elementName){

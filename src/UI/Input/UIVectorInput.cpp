@@ -23,6 +23,9 @@ UIVectorInput::UIVectorInput(int numInputs, String name, String onTrigger)
 	this->action = onTrigger;
 	maxDecimals = -1;
 	dataType = FLOATS;
+
+	labelText = name; // Default value.
+
 }
 UIVectorInput::~UIVectorInput()
 {
@@ -68,18 +71,19 @@ void UIVectorInput::CreateChildren(GraphicsState* graphicsState)
 	box->padding = this->padding;
 	AddChild(nullptr, box);
 
-	int elements = numInputs + 1;
-	float spaceLeft = 1.0f - padding * elements;
-	float spacePerElement = spaceLeft / elements;
+
 
 	/// Create a label
 	label = new UILabel();
-	label->SetText(name);
-	label->sizeRatioX = spacePerElement;
+	label->SetText(labelText);
+	label->sizeRatioX = divider.x;
 	label->textColor = textColor;
 	box->AddChild(nullptr, label);
 
-	/// Create 3 children
+	float spaceLeft = 1.0f - divider.x - padding * numInputs;
+	float spacePerElement = spaceLeft / numInputs;
+
+	/// Create 2-3 children
 	for (int i = 0; i < numInputs; ++i)
 	{
 		UIInput * input = new UIInput();
@@ -89,12 +93,21 @@ void UIVectorInput::CreateChildren(GraphicsState* graphicsState)
 		input->SetText("0");
 		input->sizeRatioX = spacePerElement;
 		input->textColor = textColor;
+		input->textAlignment = RIGHT;
 	//	input->onTrigger = "UIVectorInput("+name+")";
 		box->AddChild(nullptr, input);
 		inputs.Add(input);
 	}
 	childrenCreated = true;
 }	
+
+/// Calls UIElement::SetText in addition to setting the editText to the same value if force is true.
+void UIVectorInput::SetText(CTextr newText, bool force /*= false*/) {
+	labelText = newText;
+	if (label)
+		label->SetText(newText);
+}
+
 /// Getters
 Vector2i UIVectorInput::GetValue2i()
 {

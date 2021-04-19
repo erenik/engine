@@ -28,7 +28,8 @@ UIColumnList::~UIColumnList()
 UIElement * UIColumnList::Copy() {
 	
 	UIColumnList * copy = new UIColumnList();
-	*copy = *this; // Copy all variables?
+	assert(false && "Implement deep copy");
+	//*copy = *this; // Copy all variables?
 	CopySpecialVariables(copy);
 	CopyChildrenInto(copy);
 	return copy;

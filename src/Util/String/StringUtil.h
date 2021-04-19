@@ -47,6 +47,7 @@ String ColorString(const Color& c);
 String VectorString(const Vector4f& v);
 String VectorString(const Vector3f & v);
 String VectorString(const Vector2i & v);
+String VectorString(const Vector2f & v);
 
 /// Conversion.
 List<float> StringListToFloatList(List<String> & stringList);

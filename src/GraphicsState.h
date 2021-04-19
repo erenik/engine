@@ -173,6 +173,7 @@ public:
 	Texture * currentNormalMap;
 	/// Currently bound font texture
 	TextFont * currentFont;
+	String fontShaderName;
 	/// Time consumed by the previous frame.
 	float frameTime;
 	/// Current time at the start of the frame, i.e. today at 04:60 for example, but in milliseconds probably.

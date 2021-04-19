@@ -698,14 +698,6 @@ void GMSetUIs::Process(GraphicsState * graphicsState)
 	if (!GetUI())
         return;
 	GetElement("GMSetUIs");
-	/*
-	UIElement * e = ui->GetElementByName(uiName);
-	if (!e){
-		LogGraphics("INFO: No element found with specified name \""+uiName+"\"", DEBUG);
-		retry = true;
-		return;
-	}
-	*/
 	switch(target){
 		case GMUI::TEXTURE_INPUT_SOURCE:
 		{
@@ -887,6 +879,11 @@ GMScrollUI::GMScrollUI(String uiName, float scrollDiff, Viewport * viewport)
 {
 }
 
+GMScrollUI::GMScrollUI(String uiName, float scrollDistance, UserInterface * ui)
+: GMUI(GM_SCROLL_UI, ui), uiName(uiName), scrollDistance(scrollDistance)
+{
+}
+
 void GMScrollUI::Process(GraphicsState * graphicsState){
     if (!GetUI())
         return;
@@ -910,12 +907,15 @@ void GMScrollUI::Process(GraphicsState * graphicsState){
 		// Hover with last known cursor co-ordinates.
 		ui->Hover(InputMan.GetMousePosition());
 	}
+	else {
+		MouseMessage * mm = new MouseMessage(MouseMessage::SCROLL, nullptr, Vector2i());
+		mm->scrollDistance = scrollDistance;
+		if (e->hoverable)
+			mm->element = e;
+		MesMan.QueueMessage(mm);
+	}
 	Graphics.renderQueried = true;
 
-	MouseMessage * mm = new MouseMessage(MouseMessage::SCROLL, nullptr, Vector2i());
-	mm->scrollDistance = scrollDistance;
-	mm->element = e;
-	MesMan.QueueMessage(mm);
 }
 
 /// Message to add a newly created UI to the global state's UI, mostly used for overlay-effects and handling error-messages.

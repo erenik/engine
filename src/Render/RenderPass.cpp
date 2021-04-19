@@ -705,6 +705,8 @@ void RenderPass::RenderEntities(GraphicsState & graphicsState)
 			glUniform1f(shader->uniformEmissiveMapFactor, gp->emissiveMapFactor);
 		}
 
+		glUniform4f(shader->uniformPrimaryColorVec4, entity->graphics->color[0], entity->graphics->color[1], entity->graphics->color[2], entity->graphics->color[3]);
+
 		// Set multiplicative base color (1,1,1,1) default.
 //		glUniform4fv(shader->uniformPrimaryColorVec4, 1, gp->color.v);
 
@@ -728,6 +730,16 @@ void RenderPass::RenderEntities(GraphicsState & graphicsState)
 	timer.Stop();
 	FrameStats.renderEntities += timer.GetMs();
 	CheckGLError("RenderPass::RenderEntities");
+
+
+	for (int i = 0; i < entitiesToRender.Size(); ++i)
+	{
+		// Do one for now...
+		entity = entitiesToRender[i];
+		if (entity->graphics->text.Length() == 0)
+			continue;
+		entity->RenderText(graphicsState);
+	}
 }
 
 void RenderPass::RenderAlphaEntities(GraphicsState & graphicsState)

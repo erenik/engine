@@ -25,6 +25,7 @@ void Message::Nullify()
 {
 	data = NULL;
 	recipientEntity = 0;
+	element = nullptr;
 }
 
 Message::~Message(){

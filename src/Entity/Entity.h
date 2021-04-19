@@ -119,6 +119,9 @@ public:
 		Should only be used by the graphics manager. USE WITH CAUTION.
 	*/
 	void Render(GraphicsState & graphicsState);
+	// Renders the text associated with this entity, format and location depends on variables set in GraphicsProperty.
+	void RenderText(GraphicsState& graphicsState);
+
 
 	/// Gets velocity, probably from the PhysicsState
 	Vector3f Velocity();

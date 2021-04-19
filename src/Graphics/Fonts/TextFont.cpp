@@ -25,7 +25,8 @@
 #include "Model/Model.h"
 #include "Model/ModelManager.h"
 
-String TextFont::defaultFontSource; // = "font3.png";
+std::shared_ptr<String> TextFont::defaultFontSource = std::make_shared<String>("font3.png"); // = "font3.png";
+std::shared_ptr<String> TextFont::defaultFontShader = std::make_shared<String>("Font");
 
 /// Prints the values of the error code in decimal as well as hex and the literal meaning of it.
 extern void PrintGLError(const char * text);
@@ -592,7 +593,7 @@ bool TextFont::PrepareForRender(GraphicsState & graphicsState, float textSizePix
 	if (shaderBased)
 	{
 		// Load shader.
-		shader = ShadeMan.SetActiveShader(&graphicsState, "Font");
+		shader = ShadeMan.SetActiveShader(&graphicsState, graphicsState.fontShaderName); // "Font" by default
 		if (!shader)
 			return false;
 		// Enable texture

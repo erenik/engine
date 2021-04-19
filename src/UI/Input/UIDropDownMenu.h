@@ -23,6 +23,8 @@ public:
 	virtual void RenderText();
 	/// Call from graphics thread only. Or set via GMSetUIContents
 	virtual void SetContents(GraphicsState* graphicsState, List<String> contents);
+
+	virtual bool OnProceed(GraphicsState* graphicsState) override;
 	/// Opens UI to select among children. How this will be done depends on settings.
 	virtual void Open(GraphicsState* graphicsState);
 	virtual void PopulateList(GraphicsState* graphicsState);

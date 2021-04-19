@@ -20,6 +20,9 @@ public:
 	/// Creates ze children!
 	void CreateChildren(GraphicsState* graphicsState) override;
 
+	/// Calls UIElement::SetText in addition to setting the editText to the same value if force is true.
+	void SetText(CTextr newText, bool force /*= false*/) override;
+
 	/// Getters
 	Vector2i GetValue2i();
 	Vector2f GetValue2f();
@@ -56,6 +59,8 @@ public:
 	bool acceptMathematicalExpressions;
 
 private:
+
+	String labelText;
 	/// For eased access.
 	List<UIInput*> inputs;
 };

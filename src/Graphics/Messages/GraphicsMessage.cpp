@@ -251,7 +251,9 @@ void GMMouse::Process(GraphicsState * graphicsState)
 				}*/
 			}
 			/// Inform app state of the movement perhaps?
-			MesMan.QueueMessage(new MouseMessage(MOVE, window, coords));
+			auto mm = new MouseMessage(MOVE, window, coords);
+			mm->element = userInterface->GetHoverElement();
+			MesMan.QueueMessage(mm);
 //				AppState * currentState = StateMan.ActiveState();
 	//		if (currentState)
 		//	{

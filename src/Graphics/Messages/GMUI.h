@@ -275,6 +275,7 @@ private:
 class GMScrollUI : public GMUI{
 public:
     GMScrollUI(String uiName, float scrollDistance, Viewport * viewport = NULL);
+	GMScrollUI(String uiName, float scrollDistance, UserInterface * ui = NULL);
     void Process(GraphicsState* graphicsState);
 private:
     String uiName;

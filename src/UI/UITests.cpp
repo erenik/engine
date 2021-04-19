@@ -19,7 +19,7 @@ void UIElement::UnitTest() {
 	SAFE_DELETE(integerInput);
 
 	UIColumnList * cl = new UIColumnList();
-	UIElement* aCopy = cl->Copy();
+	//UIElement* aCopy = cl->Copy();
 	SAFE_DELETE(cl);
-	SAFE_DELETE(aCopy);
+	//SAFE_DELETE(aCopy);
 }

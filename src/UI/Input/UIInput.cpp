@@ -534,7 +534,7 @@ UIColumnList * UIInput::CreateDefaultColumnList(UIElement * parent) {
 	UIColumnList * box = new UIColumnList();
 	box->textureSource = "0x00000000";
 	box->padding = parent->padding;
-	box->fontSource = parent->fontSource;
+	parent->InheritDefaults(box);
 	box->SetTextColor(parent->textColor);
 	parent->AddChild(nullptr, box);
 	return box;
@@ -545,7 +545,7 @@ UILabel * UIInput::CreateDefaultLabel(UIElement * box, String text, float sizeX)
 	label->hoverable = true;
 	label->SetText(text);
 	label->sizeRatioX = sizeX;
-	label->fontSource = box->fontSource;
+	box->InheritDefaults(label);
 	label->SetTextColor(box->textColor);
 	label->rightBorderTextureSource = box->rightBorderTextureSource;
 	label->activateable = false;
@@ -558,7 +558,7 @@ UIInput * UIInput::CreateDefaultInput(UIElement * box, String inputName, float s
 	input->textureSource = UIElement::defaultTextureSource;
 	input->name = inputName + "Input";
 	input->sizeRatioX = sizeX;
-	input->fontSource = box->fontSource;
+	box->InheritDefaults(input);
 
 	if (defaultInputTextColor != nullptr)
 		input->SetTextColor(defaultInputTextColor);

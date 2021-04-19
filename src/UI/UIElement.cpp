@@ -173,9 +173,10 @@ void UIElement::Nullify()
 	currentTextSizeRatio = -1.0f;
 
 	this->textureSource = defaultTextureSource;
-	fontSource = TextFont::defaultFontSource;
-	font = NULL;
-	text.color = defaultTextColor;
+	fontDetails.source = TextFont::defaultFontSource;
+	fontDetails.font = NULL;
+	if(text)
+		text->color = defaultTextColor;
 
 	/** Will enable/disable cyclicity of input navigation when this element is pushed. When popped, the next element in the stack will determine cyclicity. */
 	cyclicY = true;
@@ -222,6 +223,14 @@ UIElement::UIElement(const UIElement & ref){
 	visible = ref.visible;
 	moveable = ref.moveable;
 	textSizeRatio = ref.textSizeRatio;
+}
+
+// Works recursively down to all children 
+void UIElement::SetUI(UserInterface * ui) {
+	this->ui = ui;
+	for (int i = 0; i < children.Size(); ++i) {
+		children[i]->SetUI(ui);
+	}
 }
 
 UIElement::~UIElement()
@@ -271,7 +280,8 @@ void UIElement::SetBufferized(bool bufferizedFlag)
 // Creates a deep copy of all child elements (where possible).
 UIElement * UIElement::Copy() {
 	UIElement * copy = new UIElement();
-	*copy = *this; // Copy all variables?
+	assert(false);
+	//*copy = *this; // Copy all variables?
 	CopyChildrenInto(copy);
 	return copy;	
 }
@@ -293,6 +303,8 @@ void UIElement::CopyChildrenInto(UIElement * copyOfSelf) const {
 /// Callback-function for sub-classes to implement own behaviour to run within the UI-class' code. Return true if it did something.
 bool UIElement::OnProceed(GraphicsState* graphicsState)
 {
+	if (parent)
+		return parent->OnProceed(graphicsState);
 	return false;
 }
 
@@ -310,9 +322,9 @@ void UIElement::SetText(CTextr newText, bool force)
 	if (this->demandInputFocus && HasState(UIState::ACTIVE) && !force){
 		return;
 	}
-	this->text = newText;
+	this->text = std::make_unique<Text>(newText);
 	if (forceUpperCase) {
-		this->text.ToUpperCase();
+		this->text->ToUpperCase();
 	}
 
 	/// Reset text-variables so that they are re-calculated before rendering again.
@@ -784,6 +796,7 @@ UIElement * UIElement::GetRoot()
 		parent = nullptr;
 	if(parent)
 		return parent->GetRoot();
+	//assert(ui != nullptr);
 	return this;
 }
 
@@ -1805,24 +1818,29 @@ void UIElement::RenderSelf(GraphicsState & graphicsState)
 
 void UIElement::RenderText(GraphicsState & graphicsState)
 {
+	if (!this->text || this->text->Length() == 0)
+		return;
+	Text& textToRender = *this->text;
 	/// Bind correct font if applicable.
-	if (this->text.Length()){
-		if (this->font){
-			graphicsState.currentFont = this->font;
+	auto font = this->fontDetails.font;
+	auto fontSource = this->fontDetails.source;
+	if (textToRender.Length()){
+		if (font){
+			graphicsState.currentFont = font;
 		}
-		else if (this->fontSource && !this->font){
-			this->font = Graphics.GetFont(this->fontSource);
-			if (this->font)
-				graphicsState.currentFont = this->font;
+		else if (fontSource && !font){
+			font = Graphics.GetFont(*fontSource);
+			if (font)
+				graphicsState.currentFont = font;
 		}
 		// If still no font, use default font.
 		if (!font)
 		{
-			graphicsState.currentFont = Graphics.GetFont(TextFont::defaultFontSource);
+			graphicsState.currentFont = Graphics.GetFont(*TextFont::defaultFontSource);
 		}
 	}
 	// Render text if applicable!
-	if ((this->text.Length() || text.caretPosition > -1) 
+	if ((textToRender.Length() || textToRender.caretPosition > -1)
 		&& graphicsState.currentFont)
 	{
 	}
@@ -1859,23 +1877,31 @@ void UIElement::RenderText(GraphicsState & graphicsState)
 		if (onHoverTextColor != nullptr)
 			overrideColor = onHoverTextColor;
 	}
+
+	// Set right shader as well.
+	if (fontDetails.shader)
+		graphicsState.fontShaderName = *fontDetails.shader;
+
 	graphicsState.currentFont->RenderText(this->textToRender, textState, overrideColor, graphicsState, fontRenderOffset, pixels);
 }
 
 void UIElement::FormatText(GraphicsState * graphicsState)
 {
+	if (text == nullptr)
+		return;
 	/// Resize to fit.
-	TextFont * currentFont = font;
+	Text& textToRender = *text;
+
+	TextFont * currentFont = fontDetails.font;
 	if (currentFont == nullptr)
 		currentFont = graphicsState->currentFont;
 	assert(currentFont);
 
-	textToRender = text;
 	/// Rows available
 	int rowsAvailable = 1;
 	currentTextSizeRatio = 1.0f;
 	/// Returns the size required by a call to RenderText if it were to be done now. In... pixels? or units
-	Vector2f size = currentFont->CalculateRenderSizeUnits(text);
+	Vector2f size = currentFont->CalculateRenderSizeUnits(textToRender);
 
 	// SizeY but taking into consideration textPadding.
 	textSizeY = sizeY * (textSizeRatio) - textPaddingPixels * 2;
@@ -2382,6 +2408,11 @@ void UIElement::DeleteGeometry()
 		borderElements[i]->DeleteGeometry();
 }
 
+void UIElement::InheritDefaults(UIElement * child) {
+	// Inherit some defaults?
+	child->fontDetails = fontDetails;
+};
+
 void UIElement::SetState(int newState) {
 	state = newState;
 }
@@ -2507,7 +2538,7 @@ UILabel::UILabel(String name /*= ""*/)
 	highlightOnHover = false;
 	selectable = activateable = false;
 	/// Set text-color at least for labels!
-	GetText().color = defaultTextColor;
+	text->color = defaultTextColor;
 };
 
 UILabel::~UILabel()
