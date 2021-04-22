@@ -33,8 +33,8 @@ void CreateOrthonormalBasis(const Vector3f & x, Vector3f * y, Vector3f * z){
 bool ResolveCollision(Collision &data)
 {
 	;
-	EntitySharedPtr one = data.one;
-	EntitySharedPtr two = data.two;
+	Entity* one = data.one;
+	Entity* two = data.two;
 	if (!one->model || !two->model)
 		return false;
 	assert(one);
@@ -105,8 +105,8 @@ bool ResolveCollision(Collision &data)
 		++dynamicEntities;
 
 	/// Pointers for dynamic/static respectively if the collissions are between these types.
-	EntitySharedPtr dynamicEntity = NULL;
-	EntitySharedPtr staticEntity = NULL;
+	Entity* dynamicEntity = NULL;
+	Entity* staticEntity = NULL;
 	if (dynamicEntities == 1){
 		if (one->physics->type == PhysicsType::DYNAMIC){
 			dynamicEntity = one;
@@ -403,7 +403,7 @@ bool ResolveCollision(Collision &data)
                     return false;
                 }
                 /// Swap parts
-                EntitySharedPtr three = one;
+                Entity* three = one;
                 one = two;
                 two = three;
             }

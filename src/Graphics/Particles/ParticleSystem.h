@@ -25,23 +25,19 @@ enum {
 	};	
 };
 
-#define ParticleSystemSharedPtr std::shared_ptr<ParticleSystem>
-#define ParticleSystemWeakPtr std::weak_ptr<ParticleSystem>
-
 class alignas(16) ParticleSystem {
 	friend class GraphicsManager;
 	friend class GMAttachParticleEmitter;
 	friend class GMDetachParticleEmitter;
 
-	std::weak_ptr<ParticleSystem> selfPtr;
+	ParticleSystem* selfPtr;
 public:
 	// Use only for sub-classing.
 	ParticleSystem(String type, bool emitWithEmittersOnly);
 
 	template<typename... Args>
-	static std::shared_ptr<ParticleSystem> NewParticleSystem(Args... args);
-	std::shared_ptr<ParticleSystem> GetSharedPtr();
-
+	static ParticleSystem* NewParticleSystem(Args... args);
+	
     virtual ~ParticleSystem();
 
 	/// Sets default values. Calls AllocateArrays.
@@ -74,7 +70,7 @@ public:
 	/// Renders the particles
     virtual void Render(GraphicsState * graphicsState);
     virtual void PrintData();
-    virtual void AttachTo(EntitySharedPtr entity, ConstMat4r relativePosition);
+    virtual void AttachTo(Entity* entity, ConstMat4r relativePosition);
     virtual void SetPosition(ConstMat4r  relativePosition);
     /// Emission control.
     virtual void PauseEmission();
@@ -82,11 +78,11 @@ public:
     virtual void SetColor(const Vector4f & color);
 
 
-	virtual void AddEmitter(std::shared_ptr<ParticleEmitter> particleEmitter);
+	virtual void AddEmitter(ParticleEmitter* particleEmitter);
 
 	/// Sets the emitter to be a contour. Default before calling this is a point or a plane.
 	virtual void SetEmitter(const Contour & contour);
-	virtual void SetEmitter(List<std::shared_ptr<ParticleEmitter>> newEmitters);
+	virtual void SetEmitter(List<ParticleEmitter*> newEmitters);
 
 	/// Sets emission velocity. This will be forward to any attached emitters as well.
 	void SetEmissionVelocity(float vel);
@@ -120,7 +116,7 @@ public:
 
 	/// Positioning
 	/// If this is NULL, the relative model matrix will be in world coordinates. Simple as that!
-	EntitySharedPtr relativeTo;
+	Entity* relativeTo;
 	Matrix4f relativeModelMatrix;
 	/// Before respawning/dying
 	float maxRange, maxRangeSq;
@@ -188,7 +184,7 @@ protected:
 	int decayAlphaWithLifeTime;
 
     // For getting new spawn positions
-    List<std::shared_ptr<ParticleEmitter>> emitters;
+    List<ParticleEmitter*> emitters;
 
 	/// For instanced particle rendering. Some buffers.
 	GLuint billboardVertexBuffer;

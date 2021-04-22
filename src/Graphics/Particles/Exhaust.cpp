@@ -11,7 +11,7 @@
 #include "../GraphicsManager.h"
 #include "../FrameStatistics.h"
 
-Exhaust::Exhaust(EntitySharedPtr reference)
+Exhaust::Exhaust(Entity* reference)
 : ParticleSystem("PointEmitter", true)
 {
 	/*

@@ -414,7 +414,7 @@ void RenderPass::RenderEntitiesOnlyVertices(GraphicsState& graphicsState)
 		RenderEntities(graphicsState);
 		return;
 	}
-	EntitySharedPtr entity;
+	Entity* entity;
 	Timer timer;
 	timer.Start();
 	/// Instancing enabled?

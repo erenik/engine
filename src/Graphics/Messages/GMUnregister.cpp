@@ -5,7 +5,7 @@
 #include "../GraphicsManager.h"
 #include "GraphicsMessages.h"
 
-GMUnregisterEntity::GMUnregisterEntity(EntitySharedPtr i_entity) : GraphicsMessage(GM_UNREGISTER_ENTITY)
+GMUnregisterEntity::GMUnregisterEntity(Entity* i_entity) : GraphicsMessage(GM_UNREGISTER_ENTITY)
 {
 	entity = i_entity;
 }
@@ -16,7 +16,7 @@ void GMUnregisterEntity::Process(GraphicsState* graphicsState)
 }
 
 
-GMUnregisterEntities::GMUnregisterEntities(List< std::shared_ptr<Entity> > entities) 
+GMUnregisterEntities::GMUnregisterEntities(List< Entity* > entities) 
 	: GraphicsMessage(GM_UNREGISTER_ENTITIES), entities(entities)
 {
 	/*

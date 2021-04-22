@@ -8,7 +8,7 @@
 ///=================================================================================//
 ///  Plane-Sphere Intersection
 ///=================================================================================//	
-bool PlaneSphereCollision(EntitySharedPtr planeEntity, EntitySharedPtr sphereEntity, Collision &data)
+bool PlaneSphereCollision(Entity* planeEntity, Entity* sphereEntity, Collision &data)
 {
 	assert(planeEntity->physics->shapeType == ShapeType::PLANE);
 	Plane plane = *(Plane*)planeEntity->physics->shape;

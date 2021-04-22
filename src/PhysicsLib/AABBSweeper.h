@@ -17,8 +17,8 @@ public:
     virtual ~AABBSweeper();
 
     /// Enters or removes an entity from the lists to be sorted and evaluated.
-    void RegisterEntity(EntitySharedPtr entity);
-    void UnregisterEntity(EntitySharedPtr entity);
+    void RegisterEntity(Entity* entity);
+    void UnregisterEntity(Entity* entity);
 
     void PrintSortedList();
     /// Returns the amount of nodes currently registered. Should always be registeredEntities * 2.
@@ -54,7 +54,7 @@ protected:
 private:
 	List<float> subdivisionLinesZ;
 	/// For updating entities in the various subdivided axes.
-	List< std::shared_ptr<Entity> > movingEntities;
+	List< Entity* > movingEntities;
 };
 
 #endif // AABBSWEEPER_H

@@ -13,9 +13,9 @@
 struct EntityPair 
 {
 	EntityPair();
-	EntityPair(EntitySharedPtr one, EntitySharedPtr two);
-    EntitySharedPtr one;
-    EntitySharedPtr two;
+	EntityPair(Entity* one, Entity* two);
+    Entity* one;
+    Entity* two;
     void PrintDetailed();
 };
 
@@ -34,7 +34,7 @@ public:
 	void Expand(AABB & aabb2);
 	void Expand(ConstVec3fr vec); 
     /// Recalculate the AABBs constraints based on the given entity's transform and base model AABB.
-    void Recalculate(EntitySharedPtr entity);
+    void Recalculate(Entity* entity);
 	bool WriteTo(std::fstream & file);
 	bool ReadFrom(std::fstream & file);
 

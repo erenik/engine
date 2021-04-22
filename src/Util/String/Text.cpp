@@ -45,11 +45,11 @@ Text::Text(String str, int colorHex)
 	: String(str)
 {
 	Nullify();
-	color = std::make_shared<Color>(Color::ColorByHex32(colorHex));
+	color = Color::ColorByHex32(colorHex);
 }
 
 // Returns a copy with given color
-Text Text::WithColor(std::shared_ptr<Color> color) const {
+Text Text::WithColor(const Color& color) const {
 	Text text = *this;
 	text.color = color;
 	return text;

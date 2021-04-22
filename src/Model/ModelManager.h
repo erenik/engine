@@ -53,7 +53,7 @@ public:
 	Model * LoadCollada(String source);
 
 	/** Removes target Entity    */
-//	bool removeObject(EntitySharedPtr Entity);
+//	bool removeObject(Entity* Entity);
 
 
 	/// Default texture for newly constructed objects.

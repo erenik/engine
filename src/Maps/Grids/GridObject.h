@@ -65,7 +65,7 @@ public:
 	/// Name of zis object.
 	String name;
 	/// Entity that is related to this grid-object.
-	EntitySharedPtr entity;
+	Entity* entity;
 	/// Type of this object.
 	GridObjectType * type;
 	/// Name of the GridObjectType.

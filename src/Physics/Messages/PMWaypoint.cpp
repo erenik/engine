@@ -9,7 +9,7 @@
 
 #include "Entity/Entity.h"
 
-PMSetWaypoint::PMSetWaypoint(const Vector3f & position, int target, EntitySharedPtr entity)
+PMSetWaypoint::PMSetWaypoint(const Vector3f & position, int target, Entity* entity)
 : PhysicsMessage(PM_SET_WAYPOINT), position(position), target(target), entity(entity)
 {
 	switch(target){

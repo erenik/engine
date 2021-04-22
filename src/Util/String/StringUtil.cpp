@@ -47,7 +47,7 @@ String GetSection(String inString, char withStartToken, char andEndToken){
 	return newString;
 }
 
-String ColorString(std::shared_ptr<Color> c) {
+String ColorString(Color* c) {
 	return ColorString(*c);
 }
 

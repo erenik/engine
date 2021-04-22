@@ -97,7 +97,7 @@ void UIMatrix::CreateMatrix()
 			element->name = name+"Element" + element->GetText();
 			matrixElements.Add(element);
 			element->textureSource = textureSource;
-			element->GetText().color = GetText().color;
+			element->SetTextColor(textColor);
 			element->alignmentX = (x+0.5f) * elementWidth;
 			element->alignmentY = 1.0f - (y + 0.5f) * elementHeight - labelHeightY;
 			element->sizeRatioX = elementWidth;

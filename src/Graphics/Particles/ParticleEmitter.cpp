@@ -55,16 +55,6 @@ ParticleEmitter::ParticleEmitter(EmitterType type)
 	emissionVelocity = 1.f;
 }
 
-std::shared_ptr<ParticleEmitter> ParticleEmitter::GetSharedPtr() {
-	auto sharedPtr = selfPtr.lock();
-	if (sharedPtr != nullptr)
-		return sharedPtr;
-	sharedPtr = std::shared_ptr<ParticleEmitter>(this);
-	selfPtr = sharedPtr;
-	return sharedPtr;
-}
-
-
 /// Point-based circular emitter
 ParticleEmitter::ParticleEmitter(ConstVec3fr point)
 	: position(point), type(EmitterType::POINT_CIRCLE)
@@ -102,9 +92,9 @@ void ParticleEmitter::Initialize()
 
 
 /// Attaches this emitter to target system.
-void ParticleEmitter::AttachTo(ParticleSystemWeakPtr targetPS)
+void ParticleEmitter::AttachTo(ParticleSystem* targetPS)
 {
-	this->ps = targetPS.lock();
+	this->ps = targetPS;
 	// Extract default attributes, unless they have been state explicitly earlier!
 	if (inheritColor)
 		this->color = ps->color;

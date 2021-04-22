@@ -10,7 +10,7 @@
 #include "OpenAL.h"
 
 class Entity;
-#define EntitySharedPtr std::shared_ptr<Entity>
+//
 
 class MultimediaStream;
 
@@ -68,9 +68,9 @@ public:
 	// Buffers new data from underlying streams and pushes it into AL for playback.
 	void Update();			
 	/// Binding position to entity.
-	void BindTo(EntitySharedPtr entity);
+	void BindTo(Entity* entity);
 
-	EntitySharedPtr entity;
+	Entity* entity;
 	Vector3f position; // static position
 	bool positional; // Default false, if true, position is considered related to hearer to determine volume and panning.
 	bool pauseOnMuted; // Default true.

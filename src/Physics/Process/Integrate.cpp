@@ -25,7 +25,7 @@ void PhysicsManager::Integrate(float timeInSecondsSinceLastUpdate)
 	/// If it uses estimation, process that now.
 	for (int i = 0; i < physicalEntities.Size(); ++i)
 	{
-		EntitySharedPtr entity = physicalEntities[i];
+		Entity* entity = physicalEntities[i];
 		if (entity->physics->estimationEnabled)
 		{
 			entity->physics->estimator->Estimate(now, false);
@@ -49,7 +49,7 @@ void PhysicsManager::Integrate(float timeInSecondsSinceLastUpdate)
 		// Process dynamic entities
 		for (int i = 0; i < dynamicEntities.Size(); ++i)
 		{
-			EntitySharedPtr dynamicEntity = dynamicEntities[i];
+			Entity* dynamicEntity = dynamicEntities[i];
 			PhysicsProperty * physics = dynamicEntity->physics;
 
 			/// If it uses estimation, process that now.
@@ -124,7 +124,7 @@ void PhysicsManager::Integrate(float timeInSecondsSinceLastUpdate)
 	/// Reposition the entities as appropriate within the optimization structures.
 	for (int i = 0; i < dynamicEntities.Size(); ++i)
 	{
-		EntitySharedPtr dynamicEntity = dynamicEntities[i];
+		Entity* dynamicEntity = dynamicEntities[i];
 		PhysicsProperty * pp = dynamicEntity->physics;
         Vector3f vel = dynamicEntity->physics->velocity;
 		/// Re-calculate physical radius.

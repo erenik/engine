@@ -17,12 +17,13 @@ enum contactTypes{
 struct Contact 
 {
 	Contact();
-	Contact(EntitySharedPtr one, EntitySharedPtr two);
+	Contact(Entity* one, Entity* two);
 	/// Eased testing test.
-	bool IsPartOf(EntitySharedPtr entity);
+	bool IsPartOf(Entity* entity);
 	/// Disconnects the contact from both entities, depending on type.. and... stuff..
 	void Disconnect();
-	EntitySharedPtr one, two;
+	Entity* one;
+	Entity* two;
 	/// Only resting contact used for now.
 	int type;
 	/// Position of the contact, if any.
@@ -30,7 +31,7 @@ struct Contact
 };
 
 struct RestingContact : public Contact {
-	RestingContact(EntitySharedPtr one, EntitySharedPtr two) : Contact(one,two){	
+	RestingContact(Entity* one, Entity* two) : Contact(one,two){	
 		type = RESTING_CONTACT;
 	};
 };

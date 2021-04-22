@@ -7,7 +7,7 @@
 #include "../Entity/Entity.h"
 #include <cassert>
 
-EntityProperty::EntityProperty(String name, int id, EntitySharedPtr owner)
+EntityProperty::EntityProperty(String name, int id, Entity* owner)
 : name(name), owner(owner), id(id)
 {
 	currentState = NULL;
@@ -30,7 +30,7 @@ EntityProperty::~EntityProperty()
 		delete globalState;
 	for (int i = 0; i < owners.Size(); ++i)
 	{
-		EntitySharedPtr ownerI = owners[i];
+		Entity* ownerI = owners[i];
 		ownerI->properties.Remove(this);
 	}
 };

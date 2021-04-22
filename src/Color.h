@@ -24,8 +24,11 @@ public:
 	Color(const Vector4f & fromVector);
 	/// Filled with 4 unsigned bytes.
 	Color(uchar r, uchar g, uchar b, uchar a);
+
+	//const Vector4f& Vector() const { return vec; };
+
 	/// E.g. "0x115588AA"
-	static std::shared_ptr<Color> ColorByHexName(String byHexName);
+	static Color ColorByHexName(String byHexName);
 	/// Anticipates a hex-color in 0xRRGGBBAA format.
 	static Color ColorByHex32(uint32 hex);
 	/// Anticipates a hex-color in 0xRRGGBB format.
@@ -37,17 +40,22 @@ public:
 
 	String GetName();
 
+	void SetAlpha(float value) { w = value; }
+	void SetRGB(float r, float g, float b) { x = r; y = g; z = b; }
+
 	bool WriteTo(std::fstream & file);
 	bool ReadFrom(std::fstream & file);
 
-	std::shared_ptr<Color> WithAlpha(float alpha);
+	Color WithAlpha(float alpha) const;
 
 	/// E.g. RGBA r g b a where r g b a are numbers between 0 and 255, or 0 and 1.0
 	bool ParseFrom(String str);
 
-	static std::shared_ptr<Color> defaultTextColor;
+	static Color defaultTextColor;
 
 private:
+
+	//Vector4f vec;
 	String name;
 	void AssignName();
 };

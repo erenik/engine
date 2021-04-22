@@ -7,7 +7,7 @@
 #include "Entity/Entity.h"
 #include "Physics/PhysicsProperty.h"
 
-EntityPhysicsEstimator::EntityPhysicsEstimator(EntitySharedPtr owner)
+EntityPhysicsEstimator::EntityPhysicsEstimator(Entity* owner)
 :  Estimator(EstimatorType::ENTITY_PHYSICS), owner(owner), positionEstimator(1000), rotationEstimator(1000), velocityEstimator(1000)
 {
 	/// 100 delay + some ms to compensate?

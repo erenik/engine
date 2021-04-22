@@ -14,7 +14,7 @@
 	either resolves it straight away or queues the collission to be solved at a later time
 	depending on current settings.
 */
-bool TestCollision(EntitySharedPtr one, EntitySharedPtr two, List<Collision> & collissionList){
+bool TestCollision(Entity* one, Entity* two, List<Collision> & collissionList){
 
 	Collision data;
 
@@ -55,8 +55,8 @@ bool TestCollision(EntitySharedPtr one, EntitySharedPtr two, List<Collision> & c
 	///  Plane-Sphere Intersection
 	///=================================================================================//
 	else if (shapeTypes[ShapeType::PLANE] == 1 && shapeTypes[ShapeType::SPHERE]){
-		EntitySharedPtr planeEntity = NULL,
-			sphereEntity = NULL;
+		Entity* planeEntity = NULL;
+		Entity* sphereEntity = NULL;
 		if (one->physics->shapeType == ShapeType::PLANE){
 			planeEntity = one;
 			sphereEntity = two;
@@ -70,8 +70,8 @@ bool TestCollision(EntitySharedPtr one, EntitySharedPtr two, List<Collision> & c
 	}
 	else if (shapeTypes[ShapeType::AABB] && shapeTypes[ShapeType::AABB])
 	{
-		EntitySharedPtr aabbEntity = NULL,
-			sphereEntity = NULL;
+		Entity* aabbEntity = NULL;
+		Entity* sphereEntity = NULL;
 		if (one->physics->shapeType == ShapeType::AABB)
 		{
 			aabbEntity = one;
@@ -99,8 +99,8 @@ bool TestCollision(EntitySharedPtr one, EntitySharedPtr two, List<Collision> & c
 	else if (shapeTypes[ShapeType::MESH] == 1 && shapeTypes[ShapeType::SPHERE])
 	{
 
-		EntitySharedPtr meshEntity = NULL,
-			sphereEntity = NULL;
+		Entity* meshEntity = NULL;
+		Entity* sphereEntity = NULL;
 		if (one->physics->shapeType == ShapeType::MESH){
 			meshEntity = one;
 			sphereEntity = two;
@@ -153,8 +153,8 @@ bool TestCollision(EntitySharedPtr one, EntitySharedPtr two, List<Collision> & c
 		}
 	}
 	else if (shapeTypes[ShapeType::TRIANGLE] && shapeTypes[ShapeType::SPHERE]){
-		EntitySharedPtr tri = NULL,
-			sphere= NULL;
+		Entity* tri = NULL;
+		Entity* sphere= NULL;
 		if (one->physics->shapeType == ShapeType::TRIANGLE){
 			tri = one;
 			sphere = two;
@@ -167,8 +167,8 @@ bool TestCollision(EntitySharedPtr one, EntitySharedPtr two, List<Collision> & c
 			shouldCollide = true;
 	}
 	else if (shapeTypes[ShapeType::QUAD] && shapeTypes[ShapeType::SPHERE]){
-		EntitySharedPtr quad = NULL,
-			sphere= NULL;
+		Entity* quad = NULL;
+		Entity* sphere= NULL;
 		if (one->physics->shapeType == ShapeType::TRIANGLE){
 			quad = one;
 			sphere = two;
@@ -191,8 +191,8 @@ bool TestCollision(EntitySharedPtr one, EntitySharedPtr two, List<Collision> & c
 	}
 	else if (shapeTypes[ShapeType::SPHERE] && shapeTypes[ShapeType::CUBE]){
 		/// Check radial distance
-		EntitySharedPtr cube = NULL,
-			sphere= NULL;
+		Entity* cube = NULL;
+		Entity* sphere= NULL;
 		if (one->physics->shapeType == ShapeType::CUBE){
 			cube = one;
 			sphere = two;

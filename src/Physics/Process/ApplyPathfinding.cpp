@@ -19,7 +19,7 @@ void PhysicsManager::ApplyPathfinding()
 	{
 		
 		// Fetch initial data
-		EntitySharedPtr entity = dynamicEntities[i];
+		Entity* entity = dynamicEntities[i];
 		PhysicsProperty * physics = entity->physics;
 		PathfindingProperty * pathProp = entity->pathfindingProperty;
 		if (!pathProp)

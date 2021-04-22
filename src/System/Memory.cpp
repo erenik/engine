@@ -5,7 +5,6 @@
 #include "Memory.h"
 #include "OS/OS.h"
 
-
 struct MemoryStatus 
 {
 	int64 freeBytes;

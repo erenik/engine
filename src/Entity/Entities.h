@@ -16,7 +16,7 @@ class Camera;
 
 /** Class for handling selections/groups of entities. TODO: Consider entering sorting functions etc!
 */
-class Entities : public List< std::shared_ptr<Entity> > 
+class Entities : public List< Entity* > 
 {
 public:
 	/// Default empty constructor
@@ -24,9 +24,9 @@ public:
 	virtual ~Entities();
 	/// Copy constructor..!
 	Entities(const Entities & otherSelection);
-	Entities(const List< std::shared_ptr<Entity> > & entityList);
+	Entities(const List< Entity* > & entityList);
 	// New list from single entity.
-	Entities(std::shared_ptr<Entity> entity);
+	Entities(Entity* entity);
 
 	/// Removes all entities that are outside the frustum.
 	Entities CullByCamera(Camera * camera) const;
@@ -41,13 +41,13 @@ public:
 	void DeleteEntities();
 
 	/// Selects next entity using given one as reference for the previous one.
-	Entities SelectNext(std::shared_ptr<Entity> entity) const;
+	Entities SelectNext(Entity* entity) const;
 	/// Selects previous entity using given one as reference for the previous one.
-	Entities SelectPrevious(std::shared_ptr<Entity> entity) const;
+	Entities SelectPrevious(Entity* entity) const;
 	/// If the list has a specific name?
 ///	String name;
 private:
-	/// Inherited variables from List< std::shared_ptr<Entity> >
+	/// Inherited variables from List< Entity* >
 };
 
 #endif

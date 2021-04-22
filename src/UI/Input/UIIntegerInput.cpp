@@ -22,6 +22,7 @@
 UIIntegerInput::UIIntegerInput(String name, String onTrigger)
 : UIInput(), action(onTrigger)
 {
+	onHoverTextColor = nullptr;
 	this->type = UIType::INTEGER_INPUT;
 	this->name = name;
 	input = NULL;
@@ -29,7 +30,7 @@ UIIntegerInput::UIIntegerInput(String name, String onTrigger)
 	labelText = name + "Label";
 	guiInputDisabled = false;
 	acceptMathematicalExpressions = false;
-	textColor = nullptr;
+	textColor = defaultTextColor;
 }
 UIIntegerInput::~UIIntegerInput()
 {
@@ -177,7 +178,7 @@ void UIIntegerInput::CreateChildren(GraphicsState* graphicsState)
 
 	label->SetText(labelText);
 	if (onHoverTextColor != nullptr)
-		label->SetOnHoverTextColor(onHoverTextColor);
+		label->SetOnHoverTextColor(*onHoverTextColor);
 
 	label->SetTextColor(textColor);
 	input->SetTextColor(textColor);
@@ -203,7 +204,8 @@ void UIIntegerInput::CreateChildren(GraphicsState* graphicsState)
 /// Getter/setter for the input element.
 int UIIntegerInput::GetValue()
 {
-	return input->GetText().ParseInt();
+	const Text& text = input->GetText();
+	return text.ParseInt();
 }
 void UIIntegerInput::SetValue(int value)
 {
@@ -219,8 +221,8 @@ void UIIntegerInput::SetText(CTextr newText, bool force) {
 }
 
 // Overrides, but only during onHover.
-void UIIntegerInput::SetOnHoverTextColor(std::shared_ptr<Color> newOnHoverTextColor) {
-	onHoverTextColor = newOnHoverTextColor;
+void UIIntegerInput::SetOnHoverTextColor(Color newOnHoverTextColor) {
+	onHoverTextColor = new Color(newOnHoverTextColor);
 	if (label)
 		label->SetOnHoverTextColor(newOnHoverTextColor);
 }

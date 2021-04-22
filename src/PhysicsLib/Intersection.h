@@ -12,7 +12,7 @@ struct Intersection
 	/// Distance from the origin that the ray met this intersection.
 	float distance;
 	/// Entity the ray is intersecting with.
-	EntitySharedPtr entity;
+	Entity* entity;
 };
 
 #endif

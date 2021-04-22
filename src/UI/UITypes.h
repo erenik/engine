@@ -17,7 +17,8 @@ enum class UIType
 	SCROLL_HANDLE,
 	SCROLL_FIELD,
 	SCROLL_BAR,
-	CHECKBOX,
+	CHECKBOX, // Compound of text and a toggling button
+	TOGGLE_BUTTON, // Button which will change text or appearance when clicked.
 	RADIOBUTTON,
 	DROPDOWNMENU,
 	LABON,

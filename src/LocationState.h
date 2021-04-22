@@ -10,11 +10,11 @@ public:
 	~LocationState(){};
 
 	/// Function when entering this state, providing a pointer to the previous StateMan.
-	void OnEnter(EntitySharedPtr entity);
+	void OnEnter(Entity* entity);
 	/// Main processing function
-	void Process(EntitySharedPtr entity);
+	void Process(Entity* entity);
 	/// Function when leaving this state, providing a pointer to the next StateMan.
-	void OnExit(EntitySharedPtr entity);
+	void OnExit(Entity* entity);
 
 	/// Function for handling messages sent to the entity.
 	void onMessage(AIMessage * message);

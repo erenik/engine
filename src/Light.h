@@ -21,7 +21,7 @@ enum LightTypes {
 };
 
 class Entity;
-#define EntitySharedPtr std::shared_ptr<Entity>
+
 
 class Message;
 class Texture;
@@ -98,7 +98,7 @@ public:
 	void SetSpotCutoffInDegrees(float degrees);
 
 	/// Entity owner.
-	EntitySharedPtr owner;
+	Entity* owner;
 	/// Extra data pointer. For dynamic lights this pointer will refer to the entity owning it.
 	void * data;
 

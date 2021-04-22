@@ -17,7 +17,6 @@ UIButton::UIButton(String i_name)
 	SetText(i_name);
 	name = activationMessage = i_name;
 	textureSource = defaultTextureSource;
-	text->color = defaultTextColor;
 };
 
 UIButton::~UIButton()

@@ -26,7 +26,7 @@ public:
 	Text(String str, int colorHex);
 
 	// Returns a copy with given color
-	Text WithColor(std::shared_ptr<Color> color) const;
+	Text WithColor(const Color& color) const;
 
 	/// Pastes text into this text. How it will behave depends on the caret positions.
 	void Paste(String text);
@@ -56,7 +56,7 @@ public:
 	float offsetX, offsetY;
 
 	/// Primary/starting text color
-	std::shared_ptr<Color> color;
+	Color color;
 
 private:
 

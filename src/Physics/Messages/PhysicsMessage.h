@@ -194,16 +194,16 @@ private:
 class PMCreateSpring : public PhysicsMessage {
 public:
 	/// Creates a default spring between the entities in the list (linearly attached).
-	PMCreateSpring(List< std::shared_ptr<Entity> > targetEntities, ConstVec3fr position, float springConstant, float springLength);
+	PMCreateSpring(List< Entity* > targetEntities, ConstVec3fr position, float springConstant, float springLength);
 	/// Creates a default spring between the entities in the list (linearly attached).
-	PMCreateSpring(List< std::shared_ptr<Entity> > targetEntities, float springConstant);
+	PMCreateSpring(List< Entity* > targetEntities, float springConstant);
 	/// Creates a default spring between the entities in the list (linearly attached).
-	PMCreateSpring(List< std::shared_ptr<Entity> > targetEntities, float springConstant, float springLength);
+	PMCreateSpring(List< Entity* > targetEntities, float springConstant, float springLength);
 	void Process();
 private:
 	Vector3f position;
 	bool toPosition;
-	List< std::shared_ptr<Entity> > entities;
+	List< Entity* > entities;
 	float springConstant;
 	float springLength;
 };
@@ -211,10 +211,10 @@ private:
 class PMApplyImpulse : public PhysicsMessage {
 public:
     /// Standard 1 second impulse.
-    PMApplyImpulse(List< std::shared_ptr<Entity> > targetEntities, const Vector3f & force, const Vector3f & pointInSpace, float duration = 1.0f);
+    PMApplyImpulse(List< Entity* > targetEntities, const Vector3f & force, const Vector3f & pointInSpace, float duration = 1.0f);
     void Process();
 private:
-    List< std::shared_ptr<Entity> > entities;
+    List< Entity* > entities;
     Vector3f force;
     Vector3f position;
     float duration;
@@ -223,15 +223,15 @@ private:
 class PMSetEntity : public PhysicsMessage {
 public:
 	// For resets and similar
-	PMSetEntity(List< std::shared_ptr<Entity> > targetEntities, int target);
-	PMSetEntity(List< std::shared_ptr<Entity> > targetEntities, int target, float value);
-	PMSetEntity(List< std::shared_ptr<Entity> > targetEntities, int target, Vector2f value, long long timeStamp = 0);
-	PMSetEntity(List< std::shared_ptr<Entity> > targetEntities, int target, const Vector3f & value, long long timeStamp = 0);
-	PMSetEntity(List< std::shared_ptr<Entity> > targetEntities, int target, const Quaternion & value, long long timeStamp = 0);
-	PMSetEntity(List< std::shared_ptr<Entity> > targetEntities, int target, bool value);
-	PMSetEntity(List< std::shared_ptr<Entity> > targetEntities, int target, int value);
-	PMSetEntity(List< std::shared_ptr<Entity> > targetEntities, int target, Waypoint * waypoint);
-	PMSetEntity(List< std::shared_ptr<Entity> > targetEntities, int target, EntitySharedPtr referenceEntity);
+	PMSetEntity(List< Entity* > targetEntities, int target);
+	PMSetEntity(List< Entity* > targetEntities, int target, float value);
+	PMSetEntity(List< Entity* > targetEntities, int target, Vector2f value, long long timeStamp = 0);
+	PMSetEntity(List< Entity* > targetEntities, int target, const Vector3f & value, long long timeStamp = 0);
+	PMSetEntity(List< Entity* > targetEntities, int target, const Quaternion & value, long long timeStamp = 0);
+	PMSetEntity(List< Entity* > targetEntities, int target, bool value);
+	PMSetEntity(List< Entity* > targetEntities, int target, int value);
+	PMSetEntity(List< Entity* > targetEntities, int target, Waypoint * waypoint);
+	PMSetEntity(List< Entity* > targetEntities, int target, Entity* referenceEntity);
 	void Process();
 protected:
 	enum dataTypes{
@@ -245,19 +245,19 @@ protected:
 	int iValue;
 	bool bValue;
 	long long timeStamp;
-	List< std::shared_ptr<Entity> > entities;
+	List< Entity* > entities;
 	float fValue;
 	Vector3f vec3fValue;
 	Vector2f vec2fValue;
 	Quaternion qValue;
 	Waypoint * waypoint;
-	EntitySharedPtr referenceEntity;
+	Entity* referenceEntity;
 };
 
 class PMSlideEntity : public PhysicsMessage 
 {
 public:
-	PMSlideEntity(List< std::shared_ptr<Entity> > targetEntities, int target, EstimatorFloat * estimatorFloat);
+	PMSlideEntity(List< Entity* > targetEntities, int target, EstimatorFloat * estimatorFloat);
 	virtual ~PMSlideEntity();
 	virtual void Process();
 private:
@@ -319,64 +319,64 @@ private:
 
 class PMSetWaypoint : public PhysicsMessage {
 public:
-	PMSetWaypoint(const Vector3f & position, int target, EntitySharedPtr entity);
+	PMSetWaypoint(const Vector3f & position, int target, Entity* entity);
 	virtual void Process();
 private:
 	Vector3f position;
-	EntitySharedPtr entity;
+	Entity* entity;
 	int target;
 };
 
 class PMRegisterEntity : public PhysicsMessage {
 public:
-	PMRegisterEntity(EntitySharedPtr entity);
+	PMRegisterEntity(Entity* entity);
 	void Process();
 private:
-	EntitySharedPtr entity;
+	Entity* entity;
 };
 
 class PMRegisterEntities : public PhysicsMessage {
 public:
-	PMRegisterEntities(List< std::shared_ptr<Entity> > targetEntities);
+	PMRegisterEntities(List< Entity* > targetEntities);
 	void Process();
 private:
-	List< std::shared_ptr<Entity> > entities;
+	List< Entity* > entities;
 };
 
 class PMUnregisterEntity : public PhysicsMessage {
 public:
 	/// If prepareForDeletion is true, remove links to parent if there are any (affects rendering and matrix transformations mostly).
-	PMUnregisterEntity(EntitySharedPtr entity, bool prepareForDeletion = false);
+	PMUnregisterEntity(Entity* entity, bool prepareForDeletion = false);
 	void Process();
 private:
 	bool prepareForDeletion;
-	EntitySharedPtr entity;
+	Entity* entity;
 };
 
 
 class PMUnregisterEntities : public PhysicsMessage {
 public:
-	PMUnregisterEntities(List< std::shared_ptr<Entity> > targetEntities);
+	PMUnregisterEntities(List< Entity* > targetEntities);
 	void Process();
 private:
-	List< std::shared_ptr<Entity> > entities;
+	List< Entity* > entities;
 };
 
 class PMSetPhysicsType : public PhysicsMessage {
 public:
-	PMSetPhysicsType(List< std::shared_ptr<Entity> > targetEntities, int physicsType);
+	PMSetPhysicsType(List< Entity* > targetEntities, int physicsType);
 	void Process();
 private:
-	List< std::shared_ptr<Entity> > entities;
+	List< Entity* > entities;
 	int physicsType;
 };
 
 class PMSetPhysicsShape : public PhysicsMessage {
 public:
-	PMSetPhysicsShape(List< std::shared_ptr<Entity> > targetEntities, int physicsShape);
+	PMSetPhysicsShape(List< Entity* > targetEntities, int physicsShape);
 	void Process();
 private:
-	List< std::shared_ptr<Entity> > entities;
+	List< Entity* > entities;
 	int physicsShape;
 };
 
@@ -395,7 +395,7 @@ public:
 	PMRaycast(const Ray & ray);
 	void Process();
 	/// For creating the callback message later upon successful raycast.
-	EntitySharedPtr relevantEntity;
+	Entity* relevantEntity;
 	String msg;
 private:
 	Ray ray;
@@ -411,7 +411,7 @@ public:
 	Raycast(const Ray & ray, List<Intersection> isecs);
 	// Vars
 	Ray ray;
-	EntitySharedPtr relevantEntity;
+	Entity* relevantEntity;
 	List<Intersection> isecs;
 };
 

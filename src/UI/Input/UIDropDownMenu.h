@@ -29,7 +29,10 @@ public:
 	virtual void Open(GraphicsState* graphicsState);
 	virtual void PopulateList(GraphicsState* graphicsState);
 	virtual void Close(GraphicsState* graphicsState);
-	virtual void Select(int index);
+	// Selects the specified entry. If silent is specified, no messages will be generated (e.g. game to UI)
+	virtual void Select(int index, bool silent = false);
+	// Attempts to select the specified entry. If silent is specified, no messages will be generated (e.g. game to UI)
+	bool Select(String entry, bool silent = false);
 
 	/// Used on left side always.
 	String labelText;

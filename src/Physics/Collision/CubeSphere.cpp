@@ -7,7 +7,7 @@
 #include "PhysicsLib/Shapes/Cube.h"
 #include "PhysicsLib/Shapes/Frustum.h"
 
-bool CubeSphereCollision(EntitySharedPtr cubeEntity, EntitySharedPtr sphereEntity, Collision &data)
+bool CubeSphereCollision(Entity* cubeEntity, Entity* sphereEntity, Collision &data)
 {
 	assert(cubeEntity->physics->shapeType == ShapeType::CUBE &&
 		sphereEntity->physics->shapeType == ShapeType::SPHERE);

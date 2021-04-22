@@ -32,7 +32,8 @@ public:
 	bool defaultScalability = true;
 	bool defaultVisibility = true;
 	bool defaultExitability = true;
-	std::shared_ptr<Color> defaultTextColor = nullptr;
+	bool defaultForceUpperCase = false;
+	Color* defaultTextColor = nullptr;
 	float defaultSizeRatioY = 1.0f;
 	float defaultSizeRatioX = 1.0f;
 	float defaultPadding = 0.0f;
@@ -40,8 +41,8 @@ public:
 	String defaultOnTrigger = "";
 	Vector2f defaultDivider = Vector2f(0.5f, 0.5f);
 	int defaultTextAlignment = UIElement::LEFT;
-	std::shared_ptr<String> defaultFontSource = std::make_shared<String>("");
-	std::shared_ptr<String> defaultFontShader = std::make_shared<String>("Font");
+	String defaultFontSource = String("");
+	String defaultFontShader = String("Font");
 
 	/// Manually parse the line using a few identifiers that can be relevant.
 	int lastEvaluatedIndex = 0;

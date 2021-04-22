@@ -9,8 +9,8 @@
 #include "Message/MathMessage.h"
 // #include "Graphics/GraphicsManager.h"
 
-std::shared_ptr<Color> UIRadioButtons::toggledTextColor = Color::ColorByHexName("0xffffffff")
-	, UIRadioButtons::notToggledTextColor = Color::ColorByHexName("0xaaaaaaff");
+Color UIRadioButtons::toggledTextColor = Color::ColorByHexName("0xffffffff");
+Color UIRadioButtons::notToggledTextColor = Color::ColorByHexName("0xaaaaaaff");
 
 /// o.o
 UIRadioButtons::UIRadioButtons(int numberOfButtons, String name, String action)
@@ -174,7 +174,7 @@ bool UIRadioButtons::OnProceed(GraphicsState* graphicsState) {
 }
 
 // Sets color for the toggle-buttons/selections
-void UIRadioButtons::SetSelectionsTextColor(std::shared_ptr<Color> color) {
+void UIRadioButtons::SetSelectionsTextColor(Color color) {
 	selectionsTextColor = color;
 	for (int i = 0; i < buttons.Size(); ++i) {
 		UIToggleButton * button = buttons[i];

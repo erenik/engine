@@ -105,7 +105,7 @@ public:
 	
 	/// To keep track of things.
 	Script * parent;
-	EntitySharedPtr entity; // Owner, depeneding on application.
+	Entity* entity; // Owner, depeneding on application.
 	List<Script*> childScripts;
 
 	/// Wosh?

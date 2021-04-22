@@ -11,7 +11,7 @@
 #include "Entity/EntityProperty.h"
 
 /// Adds an Entity to be rendered to the vfcOctree.
-bool GraphicsManager::RegisterEntity(EntitySharedPtr entity)
+bool GraphicsManager::RegisterEntity(Entity* entity)
 {
 	/// So it can be avoided when creating them and positioning manually in main code...
 	entity->RecalculateMatrix();
@@ -64,7 +64,7 @@ bool GraphicsManager::RegisterEntity(EntitySharedPtr entity)
 };
 
 /// Registers all entities in the selection for rendering. Returns the number of faield registrations.
-int GraphicsManager::RegisterEntities(List< std::shared_ptr<Entity> > & toRegister){
+int GraphicsManager::RegisterEntities(List< Entity* > & toRegister){
 	int failed = 0;
 	for (int i = 0; i < toRegister.Size(); ++i){
 		if (!RegisterEntity(toRegister[i]))
@@ -74,7 +74,7 @@ int GraphicsManager::RegisterEntities(List< std::shared_ptr<Entity> > & toRegist
 }
 
 /// Removes an Entity from the rendering vfcOctree.
-bool GraphicsManager::UnregisterEntity(EntitySharedPtr entity)
+bool GraphicsManager::UnregisterEntity(Entity* entity)
 {
 	/// Remove it.
 	graphicsState.RemoveEntity(entity);
@@ -141,7 +141,7 @@ bool GraphicsManager::UnregisterEntity(EntitySharedPtr entity)
 };
 
 /// Unregisters all entities in the selection from rendering. Returns the number of failed unregistrations.
-int GraphicsManager::UnregisterEntities(List< std::shared_ptr<Entity> > & toUnregister)
+int GraphicsManager::UnregisterEntities(List< Entity* > & toUnregister)
 {
 	int failed = 0;
 	for (int i = 0; i < toUnregister.Size(); ++i){
@@ -167,7 +167,7 @@ int GraphicsManager::UnregisterAll()
 }
 
 
-bool GraphicsManager::RegisterParticleSystem(ParticleSystemSharedPtr ps, bool global)
+bool GraphicsManager::RegisterParticleSystem(ParticleSystem* ps, bool global)
 {
 	if (!particleSystems.Exists(ps))
 		particleSystems.Add(ps);
@@ -178,7 +178,7 @@ bool GraphicsManager::RegisterParticleSystem(ParticleSystemSharedPtr ps, bool gl
 	return true;
 }
 
-bool GraphicsManager::UnregisterParticleSystem(std::shared_ptr<ParticleSystem> ps)
+bool GraphicsManager::UnregisterParticleSystem(ParticleSystem* ps)
 {
 	assert(ps);
 	if (!ps)

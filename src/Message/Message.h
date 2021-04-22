@@ -36,7 +36,7 @@ public:
 	AETime timeToProcess;
 
 	/// If this is non-null, the message is sent only to this entity, instead of being processed by the general application states.
-	EntitySharedPtr recipientEntity;
+	Entity* recipientEntity;
 };
 
 class AppWindow;

@@ -9,6 +9,8 @@
 #include "Physics/PhysicsManager.h"
 #include "StateManager.h"
 
+#include "EntityProperty.h"
+
 extern GraphicsManager graphics;
 
 
@@ -41,7 +43,7 @@ EntityManager::~EntityManager()
 	entities.Clear();
 };
 
-bool EntityManager::IsGood(EntitySharedPtr entity)
+bool EntityManager::IsGood(Entity* entity)
 {
 	return entities.Exists(entity);
 }
@@ -49,7 +51,7 @@ bool EntityManager::IsGood(EntitySharedPtr entity)
 List<std::pair<String, int>> nameOccurances;
 
 /// Creates entity using specified model and base texture
-EntitySharedPtr EntityManager::CreateEntity(String name, Model * model, Texture * texture)
+Entity* EntityManager::CreateEntity(String name, Model * model, Texture * texture)
 {
 	bool found = false;
 	int occurances = 0;
@@ -67,7 +69,7 @@ EntitySharedPtr EntityManager::CreateEntity(String name, Model * model, Texture 
 	if (occurances > 1)
 		name = name +"_"+ String(occurances);
 
-	EntitySharedPtr newEntity = NULL;
+	Entity* newEntity = NULL;
 
 	// Get a spot om the entity list
 	for (int i = 0; i < entities.Size(); ++i)
@@ -81,7 +83,7 @@ EntitySharedPtr EntityManager::CreateEntity(String name, Model * model, Texture 
 	// Create it if needed.
 	if (!newEntity)
 	{
-		newEntity = std::shared_ptr<Entity>(new Entity(idCounter++));
+		newEntity = new Entity(idCounter++);
 		newEntity->selfPtr = newEntity; // Assign own weak ptr based on the new shared ptr.
 		entities.AddItem(newEntity);
 	}
@@ -103,7 +105,7 @@ EntitySharedPtr EntityManager::CreateEntity(String name, Model * model, Texture 
 	return newEntity;
 }
 
-bool EntityManager::DeleteEntity(EntitySharedPtr entity)
+bool EntityManager::DeleteEntity(Entity* entity)
 {
 	if (entity == NULL){
 		std::cout<<"\nERROR: Null entity";
@@ -116,19 +118,19 @@ bool EntityManager::DeleteEntity(EntitySharedPtr entity)
 }
 
 /// All active ones not already flagged for deletion.
-List< std::shared_ptr<Entity> > EntityManager::AllEntities()
+List< Entity* > EntityManager::AllEntities()
 {
 	return entities;
 }
 
-void EntityManager::MarkEntitiesForDeletion(List<std::shared_ptr<Entity>> entitiesToMark)
+void EntityManager::MarkEntitiesForDeletion(List<Entity*> entitiesToMark)
 {
 	LogMain("EntityManager::MarkEntitiesForDelection: "+String(entitiesToMark.Size()), DEBUG);
 	Time now = Time::Now();
 	int64 ms = now.Milliseconds();
 	for (int i = 0; i < entitiesToMark.Size(); ++i)
 	{
-		std::shared_ptr<Entity> entity = entitiesToMark[i];
+		Entity* entity = entitiesToMark[i];
 		if (!entity->flaggedForDeletion)
 		{
 			entity->flaggedForDeletion = true;
@@ -157,7 +159,7 @@ int EntityManager::DeleteUnusedEntities(int timeInMs)
 
 	for (int i = 0; i < entitiesToDelete.Size(); ++i)
 	{
-		EntitySharedPtr entity = entitiesToDelete[i];
+		Entity* entity = entitiesToDelete[i];
 		entity->deletionTimeMs -= timeInMs;
 		/// Only process those that have been flagged.
 		if (!entity->flaggedForDeletion)

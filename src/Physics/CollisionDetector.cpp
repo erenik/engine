@@ -11,7 +11,7 @@
 #include "PhysicsLib/PhysicsMesh.h"
 
 /// Detects collisions between two entities. Method used is based on physics-shape. Sub-class to override it.
-int CollisionDetector::DetectCollisions(EntitySharedPtr one, EntitySharedPtr two, List<Collision> & collisions)
+int CollisionDetector::DetectCollisions(Entity* one, Entity* two, List<Collision> & collisions)
 {
 	Collision data;
 
@@ -56,8 +56,8 @@ int CollisionDetector::DetectCollisions(EntitySharedPtr one, EntitySharedPtr two
 	///  Plane-Sphere Intersection
 	///=================================================================================//
 	else if (shapeTypes[ShapeType::PLANE] == 1 && shapeTypes[ShapeType::SPHERE]){
-		EntitySharedPtr planeEntity = NULL,
-			sphereEntity = NULL;
+		Entity* planeEntity = NULL;
+		Entity* sphereEntity = NULL;
 		if (one->physics->shapeType == ShapeType::PLANE){
 			planeEntity = one;
 			sphereEntity = two;
@@ -74,8 +74,8 @@ int CollisionDetector::DetectCollisions(EntitySharedPtr one, EntitySharedPtr two
 	///=================================================================================//
 	else if (shapeTypes[ShapeType::MESH] == 1 && shapeTypes[ShapeType::SPHERE])
 	{
-		EntitySharedPtr meshEntity = NULL,
-			sphereEntity = NULL;
+		Entity* meshEntity = NULL;
+		Entity* sphereEntity = NULL;
 		if (one->physics->shapeType == ShapeType::MESH){
 			meshEntity = one;
 			sphereEntity = two;
@@ -114,8 +114,8 @@ int CollisionDetector::DetectCollisions(EntitySharedPtr one, EntitySharedPtr two
 		}
 	}
 	else if (shapeTypes[ShapeType::TRIANGLE] && shapeTypes[ShapeType::SPHERE]){
-		EntitySharedPtr tri = NULL,
-			sphere= NULL;
+		Entity* tri = NULL;
+		Entity* sphere= NULL;
 		if (one->physics->shapeType == ShapeType::TRIANGLE){
 			tri = one;
 			sphere = two;
@@ -128,8 +128,8 @@ int CollisionDetector::DetectCollisions(EntitySharedPtr one, EntitySharedPtr two
 			shouldCollide = true;
 	}
 	else if (shapeTypes[ShapeType::QUAD] && shapeTypes[ShapeType::SPHERE]){
-		EntitySharedPtr quad = NULL,
-			sphere= NULL;
+		Entity* quad = NULL;
+		Entity* sphere= NULL;
 		if (one->physics->shapeType == ShapeType::TRIANGLE){
 			quad = one;
 			sphere = two;
@@ -152,8 +152,8 @@ int CollisionDetector::DetectCollisions(EntitySharedPtr one, EntitySharedPtr two
 	}
 	else if (shapeTypes[ShapeType::SPHERE] && shapeTypes[ShapeType::CUBE]){
 		/// Check radial distance
-		EntitySharedPtr cube = NULL,
-			sphere= NULL;
+		Entity* cube = NULL;
+		Entity* sphere= NULL;
 		if (one->physics->shapeType == ShapeType::CUBE){
 			cube = one;
 			sphere = two;

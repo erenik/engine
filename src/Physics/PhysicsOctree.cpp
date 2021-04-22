@@ -132,7 +132,7 @@ void PhysicsOctree::clearAll(){
 /** Adds a scenegraph Entity to this vfcOctree Entity unless max nodes has been reached.
 	If MAX_INITIAL_NODES_BEFORE_SUBDIVISION is reached, subdivision hasn't yet been done and MAX_SUBDIVISION hasn't been reached, subdivision occurs.
 */
-bool PhysicsOctree::AddEntity(EntitySharedPtr targetEntity)
+bool PhysicsOctree::AddEntity(Entity* targetEntity)
 {
 	// Check that it isn't already added!
 	bool exists = entities.Exists(targetEntity);
@@ -173,7 +173,7 @@ bool PhysicsOctree::AddEntity(EntitySharedPtr targetEntity)
 	if (entities.Size() > MAX_INITIAL_NODES_BEFORE_SUBDIVISION && child[0] == NULL && this->subdivision < MAX_SUBDIVISION){
 		// Subdivide and then try push all our children down the tree further, so they don't get stuck here without reason.
 		subdivide();
-		List< std::shared_ptr<Entity> > tempList(entities);
+		List< Entity* > tempList(entities);
 		entities.Clear();
 		for (int j = 0; j < tempList.Size(); ++j){
 			AddEntity(tempList[j]);
@@ -188,7 +188,7 @@ bool PhysicsOctree::AddEntity(EntitySharedPtr targetEntity)
 }
 
 /** Polls the existence of target entity with in this node (or any of it's children). */
-bool PhysicsOctree::Exists(EntitySharedPtr entity){
+bool PhysicsOctree::Exists(Entity* entity){
 	if (entities.Exists(entity))
 		return true;
 	if (child[0]){
@@ -200,7 +200,7 @@ bool PhysicsOctree::Exists(EntitySharedPtr entity){
 }
 
 /// Removes the Entity and re-inserts it to it's new location
-bool PhysicsOctree::RepositionEntity(EntitySharedPtr entity)
+bool PhysicsOctree::RepositionEntity(Entity* entity)
 {
 	// Check for vfcOctree node in Entity.
 	PhysicsOctree * node = entity->physics->octreeNode;
@@ -240,7 +240,7 @@ bool PhysicsOctree::RepositionEntity(EntitySharedPtr entity)
 }
 
 // Removes a scenegraph Entity from this vfcOctree. Searches recursively until.
-bool PhysicsOctree::RemoveEntity(EntitySharedPtr targetEntity)
+bool PhysicsOctree::RemoveEntity(Entity* targetEntity)
 {
 	if (entities.Remove(targetEntity))
 	{
@@ -277,7 +277,7 @@ static int collissionsTested = 0;
 
 /// Compare each dynamic entity with every other entity in it's current vfcOctree node,
 /// all nodes below it as well the direct parents above it.
-int PhysicsOctree::FindCollisions(EntitySharedPtr targetEntity, List<Collision> & collissionList, int entrySubdivisionLevel)
+int PhysicsOctree::FindCollisions(Entity* targetEntity, List<Collision> & collissionList, int entrySubdivisionLevel)
 {
 	if (entrySubdivisionLevel == -1)
 		entrySubdivisionLevel = this->subdivision;
@@ -285,7 +285,7 @@ int PhysicsOctree::FindCollisions(EntitySharedPtr targetEntity, List<Collision> 
 	int collissionsTested = 0;
 	/// First it's current node:
 	for (int i = 0; i < entities.Size(); ++i){
-		EntitySharedPtr e = entities[i];
+		Entity* e = entities[i];
 		assert(e && "Nullentity in PhysicsOctree::FindCollisions");
 		TestCollision(targetEntity, e, collissionList);
 		++collissionsTested;
@@ -331,7 +331,7 @@ int PhysicsOctree::FindCollisions(EntitySharedPtr targetEntity, List<Collision> 
 }
 
 /// Checks if the target Entity is inside this PhysicsOctree Entity, intersecting it or outside.
-int PhysicsOctree::IsEntityInside(EntitySharedPtr entity){
+int PhysicsOctree::IsEntityInside(Entity* entity){
 	// Make box test insteeeead
 
 	// Check if it's inside.

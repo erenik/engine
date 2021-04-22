@@ -29,7 +29,7 @@ void PhysicsManager::DetectCollisions()
 			
             /// First: Reset collission flags for all entities.
             for (int i = 0; i < physicalEntities.Size(); ++i){
-                EntitySharedPtr e = physicalEntities[i];
+                Entity* e = physicalEntities[i];
                 e->physics->collissionState = AABB_IDLE;
             }
 
@@ -42,7 +42,8 @@ void PhysicsManager::DetectCollisions()
 			{
                 /// For now just mark both as intersecting.
                 EntityPair ep = pairs[i];
-				EntitySharedPtr one = ep.one, two = ep.two;
+				Entity* one = ep.one;
+				Entity* two = ep.two;
                 ep.one->physics->collissionState = AABB_INTERSECTING;
                 ep.two->physics->collissionState = AABB_INTERSECTING;
 
@@ -104,7 +105,7 @@ void PhysicsManager::DetectCollisions()
 								*/
 								std::cout<<"\nWARNING: Entities at "<<ep.one->worldPosition<<" and "<<ep.two->worldPosition<<" are still colliding after collission resolution! Distance: "<<tempData.distanceIntoEachOther;
 								// Move them apart as needed.
-							/*	EntitySharedPtr staticEntity = NULL;
+							/*	Entity* staticEntity = NULL;
 								if (one->physics->type == PhysicsType::STATIC)
 									staticEntity = one;
 								if (two->physics->physicsType == PhysicsType::STATIC)
@@ -138,7 +139,7 @@ void PhysicsManager::DetectCollisions()
             /// This can be moved to the prior for-loop in order to more easily intercept fast entity-entity collissions if need be.
             // Process dynamic entities
             for (int i = 0; i < dynamicEntities.Size(); ++i){
-                EntitySharedPtr entity = dynamicEntities[i];
+                Entity* entity = dynamicEntities[i];
                 Vector3f & vel = entity->physics->velocity;
 
 				/// If simulation disabled, skip it.

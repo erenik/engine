@@ -5,7 +5,7 @@
 #include "Physics/PhysicsManager.h"
 #include "Physics/PhysicsProperty.h"
 
-void PhysicsManager::ApproximateIntegrate(EntitySharedPtr entity, float timeSinceLastUpdate)
+void PhysicsManager::ApproximateIntegrate(Entity* entity, float timeSinceLastUpdate)
 {
 	PhysicsProperty * physics = entity->physics;
    	// Calculate velocity using the moment?

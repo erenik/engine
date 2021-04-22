@@ -57,7 +57,7 @@ private:
 	ParticleEmitter * precipitationEmitter;
 	Vector3f globalWind;
 	/// The sun.
-	EntitySharedPtr sun;
+	Entity* sun;
 	bool initialized;
 
 	// o.o 

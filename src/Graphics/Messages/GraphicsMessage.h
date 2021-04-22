@@ -164,10 +164,10 @@ private:
 
 class GMRegisterEntity : public GraphicsMessage {
 public:
-	GMRegisterEntity(EntitySharedPtr entity);
+	GMRegisterEntity(Entity* entity);
 	void Process(GraphicsState* graphicsState) override;
 private:
-	EntitySharedPtr entity;
+	Entity* entity;
 };
 
 class GMRegisterEntities : public GraphicsMessage {
@@ -180,29 +180,29 @@ private:
 
 class GMUnregisterEntity : public GraphicsMessage {
 public:
-	GMUnregisterEntity(EntitySharedPtr entity);
+	GMUnregisterEntity(Entity* entity);
 	void Process(GraphicsState* graphicsState) override;
 private:
-	EntitySharedPtr entity;
+	Entity* entity;
 };
 
 class GMUnregisterEntities : public GraphicsMessage {
 public:
-	GMUnregisterEntities(List< std::shared_ptr<Entity> > entities);
+	GMUnregisterEntities(List< Entity* > entities);
 	void Process(GraphicsState* graphicsState) override;
 private:
-	List< std::shared_ptr<Entity> > entities;
+	List< Entity* > entities;
 };
 
 class ParticleSystem;
 
 class GMRegister : public GraphicsMessage {
 public:
-	GMRegister(List<std::shared_ptr<ParticleSystem>> particleSystems);
+	GMRegister(List<ParticleSystem*> particleSystems);
 	void Process(GraphicsState* graphicsState) override;
 private:
 	int target;
-	List<std::shared_ptr<ParticleSystem>> particleSystems;
+	List<ParticleSystem*> particleSystems;
 };
 
 class GMClear : public GraphicsMessage {

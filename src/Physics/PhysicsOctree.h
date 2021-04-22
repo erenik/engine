@@ -43,13 +43,13 @@ public:
 	/** Adds an entity node to this vfcOctree node unless max nodes has been reached.
 		If MAX_INITIAL_NODES_BEFORE_SUBDIVISION is reached, subdivision hasn't yet been done and MAX_SUBDIVISION hasn't been reached, subdivision occurs.
 	*/
-	bool AddEntity(EntitySharedPtr Entity);
+	bool AddEntity(Entity* Entity);
 	/** Polls the existence of target entity with in this node (or any of it's children). */
-	bool Exists(EntitySharedPtr entity);
+	bool Exists(Entity* entity);
 	/// Removes the Entity and re-inserts it to it's new location
-	bool RepositionEntity(EntitySharedPtr Entity);
+	bool RepositionEntity(Entity* Entity);
 	/// Removes an entity node from this vfcOctree. Searches recursively until.
-	bool RemoveEntity(EntitySharedPtr Entity);
+	bool RemoveEntity(Entity* Entity);
 
 	/// Returns a count of all registered entities within the vfcOctree
 	int RegisteredEntities();
@@ -68,9 +68,9 @@ private:
 		If entry subdivision level is not specified the initial call will set it automatically (used for recursion limits)
 		Returns amount of collissions tested.
 	*/
-	int FindCollisions(EntitySharedPtr entity, List<Collision> & collissions, int entrySubdivisionLevel = -1);
+	int FindCollisions(Entity* entity, List<Collision> & collissions, int entrySubdivisionLevel = -1);
 	/// Checks if the target entity is inside this PhysicsTree node, intersecting it or outside.
-	int IsEntityInside(EntitySharedPtr Entity);
+	int IsEntityInside(Entity* Entity);
 
 	/// A center vector to avoid re-calculating it all the time.
 	Vector3f center;
@@ -83,7 +83,7 @@ private:
 	int subdivision;
 
 	/// Entities in this vfcOctree node. This is a dynamically allocated array, length depending on the MAX_INITIAL_NODES variable.
-	List< std::shared_ptr<Entity> > entities;
+	List< Entity* > entities;
 
 	/// Locations
 	enum {

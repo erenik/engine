@@ -6,7 +6,6 @@
 
 #include "../UIElement.h"
 
-
 // A compound element containing a label, a toggle button, inside a columnlist
 class UICheckbox : public UIElement {
 public:
@@ -18,12 +17,15 @@ public:
 
 	virtual void SetToggled(bool value);
 
-	virtual void OnToggled(UIToggleButton * button) override;
+	virtual void OnToggled(UIElement * button) override;
 	virtual void CreateChildren();
 
 	void SetToggleTexts(String on, String off);
 
 private:
+
+	void _onToggled();
+
 	UILabel * label;
 	UIToggleButton * button;
 

@@ -6,12 +6,12 @@
 #include "Graphics/Camera/Camera.h"
 
 /// Creates an entity featuring the EditorCameraProperty. If entity argument is provided, link to the entity is given as well.
-Camera * CreateEditorCamera(EntitySharedPtr* entityPointer = NULL);
+Camera * CreateEditorCamera(Entity** entityPointer = NULL);
 
 class EditorCameraProperty : public EntityProperty 
 {
 public:
-	EditorCameraProperty(EntitySharedPtr owner = NULL);
+	EditorCameraProperty(Entity* owner = NULL);
 
 	/// Upon being unregistered from rendering. Delete the camera.
 	virtual void OnUnregistrationFromGraphics();
@@ -38,8 +38,8 @@ protected:
 	void UpdateTargetsByCursorPosition();
 
 	// Targets dictated by the latest call to UpdateTargets
-	List< std::shared_ptr<Entity> > targets;
-	std::shared_ptr<Entity> primaryTarget;
+	List< Entity* > targets;
+	Entity* primaryTarget;
 	/// Set to be the first raycast target position when calling UpdateTargetsByCursorPosition
 	Vector3f lastRaycastTargetPosition;
 

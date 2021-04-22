@@ -14,7 +14,7 @@
 class GMAttachLight : public GraphicsMessage 
 {
 public:
-	GMAttachLight(Light * light, EntitySharedPtr toEntity)
+	GMAttachLight(Light * light, Entity* toEntity)
 	:  GraphicsMessage(GM_ADD_LIGHT), toEntity(toEntity), light(light)
 	{
 	};
@@ -30,7 +30,7 @@ public:
 		GraphicsMan.RegisterEntity(toEntity);
 	}
 private:
-	EntitySharedPtr toEntity;
+	Entity* toEntity;
 	Light * light;
 };
 

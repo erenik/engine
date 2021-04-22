@@ -250,9 +250,9 @@ private:
     /// Wosh. For like Frustum and other custom stuff.
     List<Renderable*> renderShapes;
 	/// List of all particle systems that will be updated each frame. Is this really worth having an own separate list for...?
-	List<ParticleSystemSharedPtr> particleSystems;
+	List<ParticleSystem*> particleSystems;
 	/// List of all global particle systems that will be updated and rendered in separate draw calls.
-	List<ParticleSystemSharedPtr> globalParticleSystems;
+	List<ParticleSystem*> globalParticleSystems;
 
 	/// For deferred.
 	void BindFrameBuffer();
@@ -339,19 +339,19 @@ private:
 	void RenderFullScreen(Texture * tex, float alpha = 1.0f);
 
 	/// Adds an Entity to be rendered to the vfcOctree.
-	bool RegisterEntity(EntitySharedPtr entity);
+	bool RegisterEntity(Entity* entity);
 	/// Registers all entities in the selection for rendering. Returns the number of faield registrations.
-	int RegisterEntities(List< std::shared_ptr<Entity> > & toRegister);
+	int RegisterEntities(List< Entity* > & toRegister);
 	/// Removes an Entity from the rendering vfcOctree.
-	bool UnregisterEntity(EntitySharedPtr entity);
+	bool UnregisterEntity(Entity* entity);
 	/// Unregisters all entities in the selection from rendering. Returns the number of failed unregistrations.
-	int UnregisterEntities(List< std::shared_ptr<Entity> > & toUnregister);
+	int UnregisterEntities(List< Entity* > & toUnregister);
 	/// Unregisters all entities possible from rendering.
 	int UnregisterAll();
 
 	/// If global is true, the particle system is considered global, and will be updated and rendered separately compared to entity-based particle systems.
-	bool RegisterParticleSystem(std::shared_ptr<ParticleSystem> ps, bool global);
-	bool UnregisterParticleSystem(std::shared_ptr <ParticleSystem> ps);
+	bool RegisterParticleSystem(ParticleSystem* ps, bool global);
+	bool UnregisterParticleSystem(ParticleSystem* ps);
 
 	/// Screen size
 	int scrWidth, scrHeight;
@@ -378,7 +378,7 @@ private:
 	List<GraphicsMessage*> messageQueue, delayedMessages;
 
 	/// Number of registered entities
-	List< std::shared_ptr<Entity> > registeredEntities;
+	List< Entity* > registeredEntities;
 
 	/// Allocates the frame buffer objects
 	void InitFrameBuffer();

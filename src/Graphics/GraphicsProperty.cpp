@@ -17,7 +17,7 @@
 
 #include "Model/SkeletalAnimationNode.h"
 
-GraphicsProperty::GraphicsProperty(EntitySharedPtr owner)
+GraphicsProperty::GraphicsProperty(Entity* owner)
 : owner(owner)
 {
 	temporalAliasingEnabled = false;

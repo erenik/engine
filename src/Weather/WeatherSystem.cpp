@@ -46,9 +46,9 @@ void WeatherSystem::Initialize()
 	if (!cloudSystem)
 	{
 		cloudSystem = new CloudSystem(this);
-		GraphicsQueue.Add(new GMRegisterParticleSystem(cloudSystem->GetSharedPtr(), true));
+		GraphicsQueue.Add(new GMRegisterParticleSystem(cloudSystem, true));
 		precipitationSystem = new PrecipitationSystem(this);
-		GraphicsQueue.Add(new GMRegisterParticleSystem(precipitationSystem->GetSharedPtr(), true));
+		GraphicsQueue.Add(new GMRegisterParticleSystem(precipitationSystem, true));
 	}
 	sunUp = 6.f;
 	if (!sunLight)
@@ -79,8 +79,8 @@ void WeatherSystem::SetActiveArea(AABB & activeArea)
 
 void WeatherSystem::Shutdown()
 {
-	GraphicsQueue.Add(new GMUnregisterParticleSystem(cloudSystem->GetSharedPtr(), true));
-	GraphicsQueue.Add(new GMUnregisterParticleSystem(precipitationSystem->GetSharedPtr(), true));
+	GraphicsQueue.Add(new GMUnregisterParticleSystem(cloudSystem, true));
+	GraphicsQueue.Add(new GMUnregisterParticleSystem(precipitationSystem, true));
 }
 
 void WeatherSystem::Process(int timeInMs)

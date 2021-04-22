@@ -33,8 +33,8 @@ extern UserInterface ui[GameStateID::MAX_GAME_STATES];
 
 int UIElement::idEnumerator = 0;
 String UIElement::defaultTextureSource; //  = "80Gray50Alpha.png";
-std::shared_ptr<Color> UIElement::defaultTextColor = std::make_shared<Color>(Vector4f(1,1,1,1));
-bool UIElement::forceUpperCase = false;
+Color UIElement::defaultTextColor = Color(Vector4f(1,1,1,1));
+bool UIElement::defaultForceUpperCase = false;
 
 // When clicking on it.
 float UIElement::onActiveHightlightFactor = 0.3f;
@@ -96,7 +96,9 @@ void UIElement::Nullify()
 	lockSizeY = false;
 	lockSizeX = false;
 
-	textColor = nullptr;
+	textColor = defaultTextColor;
+	text.color = textColor;
+
 	onHoverTextColor = nullptr;
 
 	lineSizeRatio = -1.f;
@@ -114,9 +116,6 @@ void UIElement::Nullify()
 	vboVertexCount = 0;
 	zDepth = 0;
 	noLabel = false;
-
-	textColor = nullptr;
-	onHoverTextColor = nullptr;
 
 	previousTextSizeRatio = 1.f;
 	alignment = NULL_ALIGNMENT;	// Alignment relative to parent
@@ -173,16 +172,18 @@ void UIElement::Nullify()
 	currentTextSizeRatio = -1.0f;
 
 	this->textureSource = defaultTextureSource;
-	fontDetails.source = TextFont::defaultFontSource;
-	fontDetails.font = NULL;
+	fontDetails.source = "";
+	fontDetails.font = nullptr;
 	if(text)
-		text->color = defaultTextColor;
+		text.color = defaultTextColor;
 
 	/** Will enable/disable cyclicity of input navigation when this element is pushed. When popped, the next element in the stack will determine cyclicity. */
 	cyclicY = true;
 
 	/// When true, re-directs all (or most) keyboard input to the target element for internal processing when active. Must be subclass of UIInput as extra functions there are used for this.
 	demandInputFocus = false;
+
+	forceUpperCase = false;
 
 	/// Neighbour pointers
 	upNeighbour = rightNeighbour = leftNeighbour = downNeighbour = NULL;
@@ -198,6 +199,11 @@ void UIElement::Nullify()
 
 UIElement::UIElement(){
 	Nullify();
+}
+
+UIElement::UIElement(String name) {
+	Nullify();
+	this->name = name;
 }
 
 void UIElement::CreateChildren(GraphicsState* graphicsState){}
@@ -243,8 +249,9 @@ UIElement::~UIElement()
 
 	DeleteBorders();
 
-	textColor = nullptr;
 	onHoverTextColor = nullptr;
+
+	SAFE_DELETE(onHoverTextColor);
 
 	/// Deallocate texture and mesh if needed, as well as vbo, we should never do that here though!
 	assert(vboBuffer == -1 && "vboBuffer not released in UIElement::~UIElement()!");
@@ -286,6 +293,10 @@ UIElement * UIElement::Copy() {
 	return copy;	
 }
 
+//void UIElement::CopyUIElementVariables(UIElement * intoElement) {
+
+//}
+
 void UIElement::CopySpecialVariables(UIElement * intoElement) {
 	intoElement->textColor = textColor;
 	intoElement->onHoverTextColor = onHoverTextColor;
@@ -322,13 +333,21 @@ void UIElement::SetText(CTextr newText, bool force)
 	if (this->demandInputFocus && HasState(UIState::ACTIVE) && !force){
 		return;
 	}
-	this->text = std::make_unique<Text>(newText);
+	this->text = newText;
+	this->textToRender = "";
 	if (forceUpperCase) {
-		this->text->ToUpperCase();
+		this->text.ToUpperCase();
 	}
 
 	/// Reset text-variables so that they are re-calculated before rendering again.
 	currentTextSizeRatio = -1.0f;
+}
+
+// If true, capitalizes that moment.
+void UIElement::SetForceUpperCase(bool newValue) {
+	forceUpperCase = newValue;
+	if (newValue && text)
+		text.ToUpperCase();
 }
 
 /** Fetches texture, assuming the textureSource has been set already. Binds and bufferizes, so call only from graphics thread. 
@@ -807,8 +826,12 @@ void UIElement::OnInputUpdated(GraphicsState* graphicsState, UIInput * inputElem
 		parent->OnInputUpdated(graphicsState, inputElement);
 }
 
-/// Callback sent to parents once an element is toggled, in order to act upon it. Used by UIMatrix.
-void UIElement::OnToggled(UIToggleButton * box)
+const Text& UIElement::GetText() const {
+	return text;
+}
+
+/// Callback sent to parents once an element is toggled, in order to act upon it. Used by UIMatrix, can be ToggleButton, Checkbox et al
+void UIElement::OnToggled(UIElement * box)
 {
 	if (parent)
 		parent->OnToggled(box);
@@ -1818,29 +1841,33 @@ void UIElement::RenderSelf(GraphicsState & graphicsState)
 
 void UIElement::RenderText(GraphicsState & graphicsState)
 {
-	if (!this->text || this->text->Length() == 0)
+	if (!this->text || this->text.Length() == 0)
 		return;
-	Text& textToRender = *this->text;
+
+	Text& toRender = this->text;
+	if (this->textToRender.Length() > 0)
+		toRender = textToRender;
+	
 	/// Bind correct font if applicable.
 	auto font = this->fontDetails.font;
 	auto fontSource = this->fontDetails.source;
-	if (textToRender.Length()){
+	if (toRender.Length()){
 		if (font){
 			graphicsState.currentFont = font;
 		}
 		else if (fontSource && !font){
-			font = Graphics.GetFont(*fontSource);
+			font = Graphics.GetFont(fontSource);
 			if (font)
 				graphicsState.currentFont = font;
 		}
 		// If still no font, use default font.
 		if (!font)
 		{
-			graphicsState.currentFont = Graphics.GetFont(*TextFont::defaultFontSource);
+			graphicsState.currentFont = Graphics.GetFont(TextFont::defaultFontSource);
 		}
 	}
 	// Render text if applicable!
-	if ((textToRender.Length() || textToRender.caretPosition > -1)
+	if ((toRender.Length() || toRender.caretPosition > -1)
 		&& graphicsState.currentFont)
 	{
 	}
@@ -1855,7 +1882,7 @@ void UIElement::RenderText(GraphicsState & graphicsState)
 
 	TextFont * currentFont = graphicsState.currentFont;
 	Vector4f modelPositionOffset = graphicsState.modelMatrix * Vector4f(0, 0, 0, 1); // E.g. due to scrolling in a list.
-	Vector3f fontRenderOffset = Vector3f(this->left + textToRender.offsetX, this->top - textToRender.offsetY, this->zDepth + 0.05f)
+	Vector3f fontRenderOffset = Vector3f(this->left + toRender.offsetX, this->top - toRender.offsetY, this->zDepth + 0.05f)
 		+ modelPositionOffset;
 
 	// If disabled, dull the color! o.o
@@ -1868,7 +1895,7 @@ void UIElement::RenderText(GraphicsState & graphicsState)
 	else
 		currentFont->hoveredOver = false;
 
-	std::shared_ptr<Color> overrideColor = textColor;
+	Color * overrideColor = nullptr;
 	TextState textState = TextState::Idle;
 	if (HasState(UIState::ACTIVE))
 		textState = TextState::Active;
@@ -1879,18 +1906,24 @@ void UIElement::RenderText(GraphicsState & graphicsState)
 	}
 
 	// Set right shader as well.
-	if (fontDetails.shader)
-		graphicsState.fontShaderName = *fontDetails.shader;
+	if (fontDetails.shader) {
+		graphicsState.fontShaderName = fontDetails.shader;
+	}
+
+
+	// What should be rendered? If not specified, then use the 'text'
+	if (this->textToRender.Length() == 0)
+		this->textToRender = text;
 
 	graphicsState.currentFont->RenderText(this->textToRender, textState, overrideColor, graphicsState, fontRenderOffset, pixels);
 }
 
 void UIElement::FormatText(GraphicsState * graphicsState)
 {
-	if (text == nullptr)
+	if (text.Length() == 0)
 		return;
 	/// Resize to fit.
-	Text& textToRender = *text;
+	Text& textToRender = text;
 
 	TextFont * currentFont = fontDetails.font;
 	if (currentFont == nullptr)
@@ -1907,7 +1940,7 @@ void UIElement::FormatText(GraphicsState * graphicsState)
 	textSizeY = sizeY * (textSizeRatio) - textPaddingPixels * 2;
 	textSizeX = sizeX * (textSizeRatio) - textPaddingPixels * 2;
 
-	textToRender.offsetY = textPaddingPixels;
+	textToRender.offsetY = (float) textPaddingPixels;
 
 	/// Pixels per unit, defined by the relative Y size the text should have.
 	float pixelsPerUnit = textSizeY;
@@ -2299,13 +2332,14 @@ void UIElement::DeleteBorders() {
 }
 
 // Sets it to override.
-void UIElement::SetTextColor(std::shared_ptr<Color> overrideColor) {
+void UIElement::SetTextColor(Color overrideColor) {
 	textColor = overrideColor;
+	text.color = overrideColor;
 }
 
 // Overrides, but only during onHover.
-void UIElement::SetOnHoverTextColor(std::shared_ptr<Color> newOnHoverTextColor) {
-	onHoverTextColor = newOnHoverTextColor;
+void UIElement::SetOnHoverTextColor(const Color& newOnHoverTextColor) {
+	onHoverTextColor = new Color(newOnHoverTextColor);
 }
 
 
@@ -2411,6 +2445,7 @@ void UIElement::DeleteGeometry()
 void UIElement::InheritDefaults(UIElement * child) {
 	// Inherit some defaults?
 	child->fontDetails = fontDetails;
+	child->forceUpperCase = forceUpperCase;
 };
 
 void UIElement::SetState(int newState) {
@@ -2538,7 +2573,7 @@ UILabel::UILabel(String name /*= ""*/)
 	highlightOnHover = false;
 	selectable = activateable = false;
 	/// Set text-color at least for labels!
-	text->color = defaultTextColor;
+	text.color = defaultTextColor;
 };
 
 UILabel::~UILabel()

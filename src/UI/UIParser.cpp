@@ -45,8 +45,8 @@ UIParser::UIParser()
 	, defaultOnTrigger ( "")
 	, defaultDivider ( Vector2f(0.5f, 0.5f))
 	, defaultTextAlignment ( UIElement::LEFT)
-	, defaultFontSource(TextFont::defaultFontSource)
-	, defaultFontShader(TextFont::defaultFontShader)
+	, defaultFontSource("")
+	, defaultFontShader("")
 	, lastEvaluatedIndex ( 0)
 	, element(nullptr)
 	, root(nullptr)
@@ -61,6 +61,11 @@ UIParser::~UIParser() {
 /// Loads from target file, using given root as root-element in the UI-hierarchy.
 UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 		
+	// Set defaults from global (possibly game-specific) vars to initialize the parser with font, fontShader data.
+	defaultFontShader = String(TextFont::defaultFontShader);
+	defaultFontSource = String(TextFont::defaultFontSource);
+	this->defaultForceUpperCase = UIElement::defaultForceUpperCase;
+
 	root = new UIElement();
 	root->SetRootDefaults(ui);
 
@@ -209,10 +214,10 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 					defaultTexture = param;
 			}
 			else if (token == "defaultFont") {
-				*defaultFontSource = tokens[1];
+				defaultFontSource = tokens[1];
 			}
 			else if (token == "defaultFontShader") {
-				defaultFontShader = std::make_shared<String>(tokens[1]);
+				defaultFontShader = tokens[1];
 			}
 			else if (token == "defaultTopBorder") {
 				ENSURE_NEXT_TOKEN;
@@ -253,6 +258,10 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 			else if (token == "defaultExitability")
 			{
 				defaultExitability = value.ParseBool();
+			}
+			else if (token == "defaultForceUpperCase") {
+				EnsureNextToken(tokens);
+				defaultForceUpperCase = value.ParseBool();
 			}
 			else if (token == "defaultDividerX")
 			{
@@ -298,8 +307,8 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 				if (line.Contains("null"))
 					break;
 
-				defaultTextColor = std::make_shared<Color>();
-				std::shared_ptr<Color> newDefaultTextColor = defaultTextColor;
+				defaultTextColor = new Color();
+				Color& newDefaultTextColor = *defaultTextColor;
 			// Hex detected!
 				if (line.Contains("0x"))
 				{
@@ -313,21 +322,18 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 					switch (tokens.Size() - 1)
 					{
 					case 1: // Assume it's alpha and keep the other colors as usual
-						newDefaultTextColor->a = NEXT_TOKEN.ParseFloat();
+						newDefaultTextColor.w = NEXT_TOKEN.ParseFloat();
 						break;
 					case 4:
-						newDefaultTextColor->a = tokens[4].ParseFloat();
+						newDefaultTextColor.w = tokens[4].ParseFloat();
 					case 3: // Assume it's RGB
-						newDefaultTextColor->r = tokens[1].ParseFloat();
-						newDefaultTextColor->g = tokens[2].ParseFloat();
-						newDefaultTextColor->b = tokens[3].ParseFloat();
+						newDefaultTextColor.SetRGB(tokens[1].ParseFloat(), tokens[2].ParseFloat(), tokens[3].ParseFloat());
 						break;
 					case 2: case 0:
 						assert(false && "Irregular amount of tokens following \"defaultTextColor\"; 1 for alpha, 3 for RGB and 4 for RGBA.");
 						break;
 					}
 				}
-				defaultTextColor = newDefaultTextColor;
 				LogMain("Default text color updated to: " + ColorString(defaultTextColor), INFO);
 			}
 			else if (token == "defaultRootFolder") {
@@ -374,13 +380,13 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 				SET_DEFAULTS
 			}
 			else if (token == "Label") {
-				ADD_PREVIOUS_TO_UI_IF_NEEDED
-					element = new UILabel();
+				AddPreviousToUIIfNeeded();
+				element = new UILabel();
 				if (tokens.Size() > 1) {
 					element->name = tokens[1];
 					element->SetText(firstQuote);
 				}
-				SET_DEFAULTS
+				SetDefaults(element);
 			}
 			else if (token == "TextField" || token == "Input")
 			{
@@ -590,6 +596,10 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 			{
 				element->Disable();
 			}
+			else if (token == "forceUpperCase") {
+				EnsureNextToken(tokens);
+				element->forceUpperCase = tokens[1].ParseBool();
+			}
 			else if (token == "noBorders") {
 				if (element != nullptr)
 					element->rightBorderTextureSource =
@@ -717,7 +727,11 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 			}
 			else if (token == "font") {
 				EnsureNextToken(tokens);
-				element->fontDetails.source = std::make_shared<String>(firstQuote);
+				element->fontDetails.source = firstQuote;
+			}
+			else if (token == "fontShader") {
+				EnsureNextToken(tokens);
+				element->fontDetails.shader = tokens[1];
 			}
 			else if (token == "maxDecimals") {
 				ENSURE_NEXT_TOKEN;
@@ -810,18 +824,16 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 				}
 				else
 				{
-					std::shared_ptr<Color> color = std::make_shared<Color>();
+					Color color;
 					switch (tokens.Size() - 1)
 					{
 					case 1: // Assume it's alpha and keep the other colors as usual
-						color->w = NEXT_TOKEN.ParseFloat();
+						color.SetAlpha(NEXT_TOKEN.ParseFloat());
 						break;
 					case 4: case 5: case 6: case 7: case 8: case 9: case 10: case 11: case 12:
-						color->w = tokens[4].ParseFloat();
+						color.SetAlpha(tokens[4].ParseFloat());
 					case 3: // Assume it's RGB
-						color->r = tokens[1].ParseFloat();
-						color->g = tokens[2].ParseFloat();
-						color->b = tokens[3].ParseFloat();
+						color.SetRGB(tokens[1].ParseFloat(), tokens[2].ParseFloat(), tokens[3].ParseFloat());
 						break;
 					case 2: case 0:
 						assert(false && "Irregular amount of tokens following \"textColor\"; 1 for alpha, 3 for RGB and 4 for RGBA.");
@@ -1082,7 +1094,8 @@ void UIParser::SetDefaults(UIElement * element) {
 	element->alignment = defaultAlignment;
 	element->textureSource = defaultTexture;
 	element->scalable = defaultScalability;
-	element->SetTextColor(defaultTextColor);
+	if (defaultTextColor)
+		element->SetTextColor(*defaultTextColor);
 	element->sizeRatioY = defaultSizeRatioY; 
 	element->sizeRatioX = defaultSizeRatioX; 
 	element->padding = defaultPadding; 
@@ -1093,6 +1106,7 @@ void UIParser::SetDefaults(UIElement * element) {
 	element->visible = defaultVisibility; 
 	element->divider = defaultDivider; 
 	element->textAlignment = defaultTextAlignment; 
+	element->SetForceUpperCase(defaultForceUpperCase);
 	element->exitable = defaultExitability; 
 	element->topBorderTextureSource = defaultTopBorder;
 	element->bottomBorderTextureSource = defaultBottomBorder;

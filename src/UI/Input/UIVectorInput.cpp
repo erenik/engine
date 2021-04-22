@@ -75,6 +75,7 @@ void UIVectorInput::CreateChildren(GraphicsState* graphicsState)
 
 	/// Create a label
 	label = new UILabel();
+	this->InheritDefaults(label);
 	label->SetText(labelText);
 	label->sizeRatioX = divider.x;
 	label->textColor = textColor;
@@ -87,6 +88,8 @@ void UIVectorInput::CreateChildren(GraphicsState* graphicsState)
 	for (int i = 0; i < numInputs; ++i)
 	{
 		UIInput * input = new UIInput();
+		this->InheritDefaults(input);
+
 		/// Set them to only accept floats?
 		input->name = name + "Input"+String::ToString(i);
 		input->numbersOnly = true;

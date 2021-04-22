@@ -30,7 +30,7 @@
 
 #include "Window/AppWindow.h"
 
-FirstPersonPlayerProperty::FirstPersonPlayerProperty(String propertyName, int id, EntitySharedPtr owner)
+FirstPersonPlayerProperty::FirstPersonPlayerProperty(String propertyName, int id, Entity* owner)
 : EntityProperty(propertyName, id, owner)
 {
 	inputFocus = false;
@@ -105,7 +105,7 @@ void FirstPersonPlayerProperty::ProcessMessage(Message * message)
 			for (int i = 0; i < contacts.Size(); ++i)
 			{
 				Intersection & contact = contacts[i];
-				EntitySharedPtr entity = contact.entity;
+				Entity* entity = contact.entity;
 //				std::cout<<"\n contacts "<<i<<" "<<entity->name;
 				targets.Add(entity);
 			}

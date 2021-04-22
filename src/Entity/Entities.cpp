@@ -13,7 +13,7 @@
 #include "Graphics/GraphicsProperty.h"
 
 Entities::Entities()
-	: List < std::shared_ptr<Entity> > ()
+	: List < Entity* > ()
 {
 
 };
@@ -25,13 +25,13 @@ Entities::~Entities()
 
 /// Copy constructor..!
 Entities::Entities(const Entities& otherEntities) 
-: List< std::shared_ptr<Entity> > ((List< std::shared_ptr<Entity> >&)otherEntities) 
+: List< Entity* > ((List< Entity* >&)otherEntities) 
 {
-	// Already done in List< std::shared_ptr<Entity> > constructor?
+	// Already done in List< Entity* > constructor?
 	/*
 	currentItems = otherEntities.currentItems;
 	arrLength = currentItems;
-	arr = new EntitySharedPtr [currentItems];
+	arr = new Entity* [currentItems];
 	for (int i = 0; i < currentItems; ++i){
 		arr[i] = otherEntities.arr[i];
 	}
@@ -39,22 +39,22 @@ Entities::Entities(const Entities& otherEntities)
 }
 
 /// Inherit-Copy constructor
-Entities::Entities(const List< std::shared_ptr<Entity> > &entityList) 
-: List< std::shared_ptr<Entity> > ((List< std::shared_ptr<Entity> >&)entityList)
+Entities::Entities(const List< Entity* > &entityList) 
+: List< Entity* > ((List< Entity* >&)entityList)
 {
-	// Already done in List< std::shared_ptr<Entity> > constructor?
+	// Already done in List< Entity* > constructor?
 	/*
 	currentItems = entityList.Size();
 	arrLength  = currentItems;
-	arr = new EntitySharedPtr [currentItems];
+	arr = new Entity* [currentItems];
 	for (int i = 0; i < currentItems; ++i){
 		arr[i] = entityList[i];
 	}*/
 }
 
 // New list from single entity.
-Entities::Entities(EntitySharedPtr entity)
-	: List< std::shared_ptr<Entity> >(entity)
+Entities::Entities(Entity* entity)
+	: List< Entity* >(entity)
 {
 }
 
@@ -92,7 +92,7 @@ void Entities::SortByDistance(ConstVec3fr position)
 			if (distance[j] > distance[i]){
 				// Insert it here, pushing down the remaining values.
 				float tmpDistance = distance[i];
-				EntitySharedPtr tmpEntity = arr[i];
+				Entity* tmpEntity = arr[i];
 				/// First swap done, now push down the remaining entities that were already sorted.
 				for (int k = i; k > j; --k){
 					distance[k] = distance[k-1];
@@ -114,7 +114,7 @@ void Entities::SortByDistanceToCamera(Camera * camera)
 	Frustum frustum = camera->GetFrustum();
 	Plane plane(frustum.hitherBottomLeft, frustum.hitherBottomRight, frustum.hitherTopRight);
 
-	EntitySharedPtr entity, entity2, tmp;
+	Entity * entity, * entity2, * tmp;
 	/// Use insertion sort, as we can assume that the entities will remain nearly sorted all the time?
 	/// http://en.wikipedia.org/wiki/Insertion_sort
 	for (int i = 0; i < currentItems; ++i)
@@ -171,11 +171,11 @@ void Entities::DeleteEntities(){
 }
 
 /// Selects next entity using given one as reference for the previous one.
-Entities Entities::SelectNext(EntitySharedPtr referenceEntity) const {
+Entities Entities::SelectNext(Entity* referenceEntity) const {
 	/// If we had one selected, get next one.
-	EntitySharedPtr newOne = NULL;
+	Entity* newOne = NULL;
 	if (currentItems >= 1 && referenceEntity){
-		EntitySharedPtr previousOne = referenceEntity;
+		Entity* previousOne = referenceEntity;
 		for (int i = 0; i < currentItems; ++i){
 			if (arr[i] == previousOne){
 				if (i == currentItems - 1)
@@ -199,11 +199,11 @@ Entities Entities::SelectNext(EntitySharedPtr referenceEntity) const {
 }
 
 /// Selects next entity using given one as reference for the previous one.
-Entities Entities::SelectPrevious(EntitySharedPtr referenceEntity) const {
-	EntitySharedPtr newOne = NULL;
+Entities Entities::SelectPrevious(Entity* referenceEntity) const {
+	Entity* newOne = NULL;
 	/// If we had one selected, get next one.
 	if (currentItems >= 1 && referenceEntity){
-		EntitySharedPtr previousOne = referenceEntity;
+		Entity* previousOne = referenceEntity;
 		for (int i = currentItems - 1; i >= 0; --i){
 			if (arr[i] == previousOne){
 				if (i == 0)

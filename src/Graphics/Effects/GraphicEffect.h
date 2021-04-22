@@ -11,7 +11,7 @@ class GraphicsState;
 class Model;
 
 class Entity;
-#define EntitySharedPtr std::shared_ptr<Entity>
+
 
 namespace GFX {
 enum graphicEffects{
@@ -38,7 +38,7 @@ protected:
 	Vector3f relativeRotation;
 	Vector3f relativeScale;
 	/// If needed
-	EntitySharedPtr entity;
+	Entity* entity;
 };
 
 #endif

@@ -67,10 +67,6 @@ void Entity::CreateCompactEntity(CompactEntity* cEntity)
 	}
 }
 
-EntitySharedPtr Entity::SharedPtr() {
-	return selfPtr.lock();
-}
-
 /// Loads data from the file compact entity format
 void Entity::LoadCompactEntityData(CompactEntity* cEntity)
 {
@@ -82,12 +78,12 @@ void Entity::LoadCompactEntityData(CompactEntity* cEntity)
 	if (cEntity->cPhysics){
 		assert(!physics);
 		physics = new PhysicsProperty(cEntity->cPhysics);
-		Physics.QueueMessage(new PMSetPhysicsType(SharedPtr(), physics->type));
-		Physics.QueueMessage(new PMSetPhysicsShape(SharedPtr(), physics->shapeType));
+		Physics.QueueMessage(new PMSetPhysicsType(this, physics->type));
+		Physics.QueueMessage(new PMSetPhysicsShape(this, physics->shapeType));
 	}
 	if (cEntity->cGraphics){
 		assert(!graphics);
-		graphics = new GraphicsProperty(SharedPtr());
+		graphics = new GraphicsProperty(this);
 		graphics->LoadDataFrom(cEntity->cGraphics);
 	}
 	diffuseMap = TexMan.GetTextureBySource(cEntity->diffuseMap);
@@ -132,7 +128,7 @@ Entity::Entity(int i_id)
 	this->physics = NULL;
 	this->scripts = NULL;
 	/// Create it automatiaclly so we don't have to, cheers..
-	this->pathfindingProperty = new PathfindingProperty(SharedPtr());
+	this->pathfindingProperty = new PathfindingProperty(this);
 
 	parent = NULL;
 	cameraFocus = NULL;
@@ -174,11 +170,11 @@ Entity::~Entity()
 void Entity::RemoveLinks()
 {
 	if (parent)
-		parent->children.RemoveItem(SharedPtr());
+		parent->children.RemoveItem(this);
 
 	for (int i = 0; i < children.Size(); ++i)
 	{
-		EntitySharedPtr child = children[i];
+		Entity* child = children[i];
 		child->parent = 0;
 	}
 	children.Clear();
@@ -601,7 +597,7 @@ void Entity::RecalculateMatrix(int whichParts/*= true*/, bool recursively /* = f
 	worldPosition = transformationMatrix.Product(Vector4f());
 
 	/// Update AABB accordingly.
-	aabb->Recalculate(SharedPtr());
+	aabb->Recalculate(this);
 }
 
 void Entity::RecalcRotationMatrix(bool force /* = false*/)
@@ -927,9 +923,9 @@ float Entity::Radius() const
 
 
 /// o.o Links child and parent for both.
-void Entity::AddChild(EntitySharedPtr child)
+void Entity::AddChild(Entity* child)
 {
 	assert(child->parent == NULL);
 	children.Add(child);
-	child->parent = SharedPtr();
+	child->parent = this;
 }

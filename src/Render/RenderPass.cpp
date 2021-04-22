@@ -560,10 +560,12 @@ bool RenderPass::SetupOutput(GraphicsState& graphicsState)
 }
 
 /// 1 X, 2 Y, 3 Z, list of entities.
-void SortBy(int axis, List< std::shared_ptr<Entity> > & entities, bool increasing)
+void SortBy(int axis, List< Entity* > & entities, bool increasing)
 {
 	int currentItems = entities.Size();
-	EntitySharedPtr entity, entity2, tmp;
+	Entity* entity;
+	Entity* entity2;
+	Entity* tmp;
 	/// Use insertion sort, as we can assume that the entities will remain nearly sorted all the time?
 	/// http://en.wikipedia.org/wiki/Insertion_sort
 	for (int i = 0; i < currentItems; ++i)
@@ -614,7 +616,7 @@ void RenderPass::RenderEntities(GraphicsState & graphicsState)
 		// Render all entities listed in the graphicsState!
 		for (int i = 0; i < entitiesToRender.Size(); ++i)
 		{
-			EntitySharedPtr entity = entitiesToRender[i];
+			Entity* entity = entitiesToRender[i];
 			entity->Render(graphicsState);
 		}
 		timer.Stop();
@@ -639,7 +641,7 @@ void RenderPass::RenderEntities(GraphicsState & graphicsState)
 		// Turn it off first, though.
 		glUniform1i(shader->uniformInstancingEnabled, 0);
 	}
-	EntitySharedPtr entity;
+	Entity* entity;
 	GraphicsProperty * gp;
 	// Render all entities listed in the graphicsState!
 	bool depthWrite = true;
@@ -769,7 +771,7 @@ void RenderPass::RenderAlphaEntities(GraphicsState & graphicsState)
 	// Disable it if not already done so earlier..?
 //	glDisable(GL_DEPTH_TEST);
 
-	EntitySharedPtr entity;
+	Entity* entity;
 	GraphicsProperty * gp;
 	// Render all entities listed in the graphicsState!
 	for (int i = 0; i < entitiesToRender.Size(); ++i)

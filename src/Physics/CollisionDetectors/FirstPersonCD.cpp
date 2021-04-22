@@ -18,7 +18,8 @@ int FirstPersonCD::DetectCollisions(List<EntityPair> & pairs, List<Collision> & 
 		Collision data;
 		List<Collision> collisionsFound;
 		// o.o
-		EntitySharedPtr dynamic = NULL, dynamic2 = NULL;
+		Entity* dynamic = NULL;
+		Entity* dynamic2 = NULL;
 		if (pair.one->physics->type == PhysicsType::DYNAMIC)
 			dynamic = pair.one;
 		if (pair.two->physics->type == PhysicsType::DYNAMIC)
@@ -40,13 +41,13 @@ int FirstPersonCD::DetectCollisions(List<EntityPair> & pairs, List<Collision> & 
 
 
 /// Brute-force method. Does not rely on other structures that require further updates. All entities are present in the list.
-int FirstPersonCD::DetectCollisions(List< std::shared_ptr<Entity> > & entities, List<Collision> & collisions)
+int FirstPersonCD::DetectCollisions(List< Entity* > & entities, List<Collision> & collisions)
 {
 	// Implement..
 	return 0;
 }
 /// Detects collisions between two entities. Method used is based on physics-shape. Sub-class to override it.
-int FirstPersonCD::DetectCollisions(EntitySharedPtr one, EntitySharedPtr two, List<Collision> & collisions)
+int FirstPersonCD::DetectCollisions(Entity* one, Entity* two, List<Collision> & collisions)
 {
 	// Implement..
 	return 0;

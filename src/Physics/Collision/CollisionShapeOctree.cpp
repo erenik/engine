@@ -407,7 +407,7 @@ static int collissionsTested = 0;
 
 /// Compare each dynamic entity with every other entity in it's current vfcOctree node,
 /// all nodes below it as well the direct parents above it.
-int CollisionShapeOctree::FindCollisions(EntitySharedPtr targetEntity, List<Collision> & collissionList, int entrySubdivisionLevel){
+int CollisionShapeOctree::FindCollisions(Entity* targetEntity, List<Collision> & collissionList, int entrySubdivisionLevel){
 	Matrix4f identityMatrix;
 	return FindCollisions(targetEntity, collissionList, identityMatrix);
 }
@@ -417,7 +417,7 @@ int CollisionShapeOctree::FindCollisions(EntitySharedPtr targetEntity, List<Coll
 	Returns amount of collissions tested.
 	- localTransform is applied to all relevant triangle upon testing if provided.
 */
-int CollisionShapeOctree::FindCollisions(EntitySharedPtr targetEntity, List<Collision> & collissionList, Matrix4f & localTransform, int entrySubdivisionLevel/* = -1*/)
+int CollisionShapeOctree::FindCollisions(Entity* targetEntity, List<Collision> & collissionList, Matrix4f & localTransform, int entrySubdivisionLevel/* = -1*/)
 {
 	if (entrySubdivisionLevel == -1)
 		entrySubdivisionLevel = this->subdivision;
@@ -516,7 +516,7 @@ int CollisionShapeOctree::FindCollisions(EntitySharedPtr targetEntity, List<Coll
 }
 
 /// Checks if the target Entity is inside this CollisionShapeOctree Entity, intersecting it or outside.
-int CollisionShapeOctree::IsEntityInside(EntitySharedPtr entity, Matrix4f & localTransform)
+int CollisionShapeOctree::IsEntityInside(Entity* entity, Matrix4f & localTransform)
 {
 	/// Transform the vectors to the local transform position.
 	Vector4f minVec(left, bottom, farBound, 1.0f);

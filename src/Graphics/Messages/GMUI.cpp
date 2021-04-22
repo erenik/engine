@@ -363,7 +363,7 @@ void GMSetUIv3f::Process(GraphicsState * graphicsState)
 	}
     switch(target){
         case GMUI::TEXT_COLOR:
-			e->GetText().color = std::make_shared<Color>(Vector4f(value));
+			e->SetTextColor(value);
             break;
         case GMUI::VECTOR_INPUT:
             if (e->type != UIType::VECTOR_INPUT)
@@ -417,7 +417,7 @@ void GMSetUIv4f::Process(GraphicsState * graphicsState)
 			e->SetColor(value);
 			break;
         case GMUI::TEXT_COLOR:
-			e->SetTextColor(std::make_shared<Color>(value));
+			e->SetTextColor(value);
             break;
         case GMUI::VECTOR_INPUT:
             if (e->type != UIType::VECTOR_INPUT)
@@ -492,7 +492,7 @@ void GMSetUIf::Process(GraphicsState * graphicsState)
 			element->color[3] = value;
 			break;
 		case GMUI::TEXT_ALPHA:
-			element->GetText().color = element->GetText().color->WithAlpha(value);
+			element->SetTextColor(element->GetText().color.WithAlpha(value));
 			break;
 		case GMUI::TEXT_SIZE_RATIO:
 			element->textSizeRatio = value;
@@ -681,6 +681,7 @@ void GMSetUIs::AssertTarget()
 		case GMUI::STRING_INPUT:
 		case GMUI::INTEGER_INPUT_TEXT:
 		case GMUI::ACTIVATION_MESSAGE:
+		case GMUI::DROP_DOWN_INPUT_SELECT:
 			break;
 		default:
 		{
@@ -713,6 +714,13 @@ void GMSetUIs::Process(GraphicsState * graphicsState)
 			e->textureSource = text;
 			e->texture = NULL; // Force it to be re-fetched!
 			e->FetchBindAndBufferizeTexture();
+			break;
+		case GMUI::DROP_DOWN_INPUT_SELECT:
+			if (e->type == UIType::DROP_DOWN_MENU) {
+				UIDropDownMenu * dropDownMenu = (UIDropDownMenu*)e;
+				dropDownMenu->Select(text, true);
+				break;
+			}
 			break;
 		case GMUI::STRING_INPUT_TEXT:
 		{

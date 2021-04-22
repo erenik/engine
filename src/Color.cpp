@@ -4,7 +4,7 @@
 
 #include "Color.h"
 
-std::shared_ptr<Color> Color::defaultTextColor = std::make_shared<Color>(Vector4f(1, 1, 1, 1));
+Color Color::defaultTextColor = Color(Vector4f(1, 1, 1, 1));
 
 // o.o
 Color::Color()
@@ -28,11 +28,11 @@ Color::Color(const Vector4f & fromVector)
 Color::Color(uchar r, uchar g, uchar b, uchar a)
 : Vector4f(r,g,b,a)
 {
-	(*this) /= 255.f;	
+	*this /= 255.f;
 }
 
 /// E.g. "0x115588AA"
-std::shared_ptr<Color> Color::ColorByHexName(String byHexName)
+Color Color::ColorByHexName(String byHexName)
 {
 	uint32 hex = (uint32) byHexName.ParseHex();
 	int hexChars = byHexName.HexNumbers();
@@ -51,7 +51,7 @@ std::shared_ptr<Color> Color::ColorByHexName(String byHexName)
 		newColor = ColorByHex8(hex);
 
 	newColor.name = byHexName;
-	return std::make_shared<Color>(newColor);
+	return newColor;
 }
 
 /// Anticipates a hex-color in 0xRRGGBBAA format.
@@ -108,9 +108,9 @@ bool Color::ReadFrom(std::fstream & file)
 	return true;
 }
 
-std::shared_ptr<Color> Color::WithAlpha(float alpha) {
-	std::shared_ptr<Color> newShared = std::make_shared<Color>(*this);
-	newShared->w = alpha;
+Color Color::WithAlpha(float alpha) const {
+	Color newShared = Color(*this);
+	newShared.w = alpha;
 	return newShared;
 }
 
@@ -118,21 +118,20 @@ std::shared_ptr<Color> Color::WithAlpha(float alpha) {
 bool Color::ParseFrom(String str)
 {
 	// Set default values.
-	x = y = z = 0;
-	w = 1.0f;
+	*this = Vector4f(0, 0, 0, 1.0f);
 	String string = str;
 	List<float*> order;
 	for (int i = 0; i < string.Length(); ++i)
 	{
 		char c = string.c_str()[i];
 		if (c == 'R' || c == 'r')
-			order.Add(&x);
+			order.Add(&this->x);
 		else if (c == 'G' || c == 'g')
-			order.Add(&y);
+			order.Add(&this->y);
 		else if (c == 'B' || c == 'b')
-			order.Add(&z);
+			order.Add(&this->z);
 		else if (c == 'A' || c == 'a')
-			order.Add(&w);
+			order.Add(&this->w);
 	}
 	List<String> parts = string.Tokenize(" ");
 	int numbersParsed = 0;

@@ -238,7 +238,7 @@ bool MapManager::MakeActive(Map * map)
 		LogMain("WARNING: Null map set!", WARNING);
 	}
 	/// Register the entities with relevant managers!
-	EntitySharedPtr currentEntity;
+	Entity* currentEntity;
 	for (int i = 0; i < map->entities.Size(); ++i){
 		currentEntity = map->entities[i];
 		/// Register for rendering
@@ -271,11 +271,11 @@ bool MapManager::MakeInactive(Map * map)
 	Arguments can be any of the following formats: name, *name, name* or *name*
 	Where the asterix * acts as a wildcard character which can be a string of any length.
 */
-List< std::shared_ptr<Entity> > MapManager::SelectEntitiesByName(const char * i_name){
-	List< std::shared_ptr<Entity> > result;
+List< Entity* > MapManager::SelectEntitiesByName(const char * i_name){
+	List< Entity* > result;
 	if (i_name == NULL)
 		return result;
-	List< std::shared_ptr<Entity> > mapEntities = activeMap->GetEntities();
+	List< Entity* > mapEntities = activeMap->GetEntities();
 	std::cout<<"\nSelecting entities by name: "<<i_name;
 
 	// Name to compare
@@ -301,7 +301,7 @@ List< std::shared_ptr<Entity> > MapManager::SelectEntitiesByName(const char * i_
 
 	// Compare name with all entities in the active map
 	for (int i = 0; i < activeMap->entities.Size(); ++i){
-		EntitySharedPtr entity = activeMap->entities[i];
+		Entity* entity = activeMap->entities[i];
 		// Exact match
 		if (!wildCardBeginning && !wildCardEnd &&
 			(strcmp(name, entity->name) == 0)){
@@ -349,7 +349,7 @@ void MapManager::ListEntities(){
 	}
 }
 /** Fills the provided selection with all available entities in the active map. */
-int MapManager::GetEntities(List< std::shared_ptr<Entity> > & targetEntities){
+int MapManager::GetEntities(List< Entity* > & targetEntities){
 	if (!activeMap){
 		std::cout<<"No valid map selected!";
 		return 0;
@@ -358,33 +358,33 @@ int MapManager::GetEntities(List< std::shared_ptr<Entity> > & targetEntities){
 	return activeMap->NumEntities();
 }
 
-EntitySharedPtr MapManager::GetEntityByName(String name)
+Entity* MapManager::GetEntityByName(String name)
 {
 	return activeMap->GetEntity(name);
 }
 
 
 /** Returns a selection object containing all entities in the current map. */
-List< std::shared_ptr<Entity> > MapManager::GetEntities(){
+List< Entity* > MapManager::GetEntities(){
 	if (!activeMap){
 		std::cout<<"No valid map selected!";
-		return List< std::shared_ptr<Entity> >();
+		return List< Entity* >();
 	}
 	return activeMap->entities;
 }
 
 /// Returns the first/best entity found via the provided selection ray.
-EntitySharedPtr MapManager::GetFirstEntity(Ray & selectionRay, Vector3f & intersectionPoint){
+Entity* MapManager::GetFirstEntity(Ray & selectionRay, Vector3f & intersectionPoint){
 #define ray selectionRay
-    List< std::shared_ptr<Entity> > entities = GetEntities();
-    EntitySharedPtr closest = NULL;
+    List< Entity* > entities = GetEntities();
+    Entity* closest = NULL;
     float closestRadius = 1000000000000.0f;
     float closestDistance = 10000000000000.0f;
     float closestTriangleCollisionDistance = 1000000000000.0f;
 
-    List< std::shared_ptr<Entity> > entitiesBehind, entitiesPwned;
+    List< Entity* > entitiesBehind, entitiesPwned;
     for (int i = 0; i < entities.Size(); ++i){
-        EntitySharedPtr entity = entities[i];
+        Entity* entity = entities[i];
 
         /// First discard those entities which are behind the ray's origin.
         float entityRadius = entity->scale.MaxPart() * entity->Radius();
@@ -464,10 +464,10 @@ EntitySharedPtr MapManager::GetFirstEntity(Ray & selectionRay, Vector3f & inters
 
 
 /** Creates a duplicate entity, copying all relevant information (as possible). */
-EntitySharedPtr MapManager::CreateEntity(EntitySharedPtr referenceEntity)
+Entity* MapManager::CreateEntity(Entity* referenceEntity)
 {
 	assert(referenceEntity);
-	EntitySharedPtr entity = EntityMan.CreateEntity(entity->name, referenceEntity->model, referenceEntity->GetTexture(DIFFUSE_MAP));
+	Entity* entity = EntityMan.CreateEntity(entity->name, referenceEntity->model, referenceEntity->GetTexture(DIFFUSE_MAP));
 	entity->physics = new PhysicsProperty(*referenceEntity->physics);
 	entity->scale = referenceEntity->scale;
 	entity->rotation = referenceEntity->rotation;
@@ -483,7 +483,7 @@ EntitySharedPtr MapManager::CreateEntity(EntitySharedPtr referenceEntity)
 }
 
 /** Creates an entity with target model and texture and places it into the active map. */
-EntitySharedPtr MapManager::CreateEntity(String name, Model * model, Texture * texture, const Vector3f & position)
+Entity* MapManager::CreateEntity(String name, Model * model, Texture * texture, const Vector3f & position)
 {
 	// Allow 0 models, for exmaple for text-rendering entities, etc.
 	if (!model)
@@ -497,7 +497,7 @@ EntitySharedPtr MapManager::CreateEntity(String name, Model * model, Texture * t
 	}
 //	std::cout<<"\nCreating entity with model "<<(model? model->Name() : String("None"))<<" and texture: "<<(texture? texture->name : String("None"));
 
-	EntitySharedPtr entity = EntityMan.CreateEntity(name, model, texture);
+	Entity* entity = EntityMan.CreateEntity(name, model, texture);
 	if (entity == NULL){
 	    std::cout<<"\nERROR: MapManager::CreateEntity:Unable to create entity, returning.";
         return NULL;
@@ -515,7 +515,7 @@ EntitySharedPtr MapManager::CreateEntity(String name, Model * model, Texture * t
 }
 
 /// Adds entity to the map. If the map is currently registered for rendering, it should be registered for rendering automatically. The same applies for physics.
-bool MapManager::AddEntity(EntitySharedPtr entity, Map * toMap)
+bool MapManager::AddEntity(Entity* entity, Map * toMap)
 {
 	assert(toMap);
 	bool ok = toMap->AddEntity(entity);
@@ -532,7 +532,7 @@ bool MapManager::AddEntity(EntitySharedPtr entity, Map * toMap)
 }
 
 /// Adds target entity to the map, registering it for physics and graphicsState->
-bool MapManager::AddEntity(EntitySharedPtr entity, bool registerForGraphics, bool registerForPhysics)
+bool MapManager::AddEntity(Entity* entity, bool registerForGraphics, bool registerForPhysics)
 {
 	if (!activeMap)
 	{
@@ -564,7 +564,7 @@ bool MapManager::AddEntity(EntitySharedPtr entity, bool registerForGraphics, boo
 	return true;
 }
 /// Adds target entity to the map, registering it for physics and graphics
-bool MapManager::AddEntities(List<EntitySharedPtr> entities, bool registerForGraphics, bool registerForPhysics)
+bool MapManager::AddEntities(List<Entity*> entities, bool registerForGraphics, bool registerForPhysics)
 {
 	for (int i = 0; i < entities.Size(); ++i)
 	{
@@ -574,7 +574,7 @@ bool MapManager::AddEntities(List<EntitySharedPtr> entities, bool registerForGra
 }
 
 /// Removes from its map.
-bool MapManager::RemoveEntity(EntitySharedPtr entity)
+bool MapManager::RemoveEntity(Entity* entity)
 {
 	assert(entity->map);
 	/// Unregister from physics and graphics too perhaps? OR done inside function?
@@ -583,7 +583,7 @@ bool MapManager::RemoveEntity(EntitySharedPtr entity)
 	return true;
 }
 
-bool MapManager::RemoveEntities(List< std::shared_ptr<Entity> > entities)
+bool MapManager::RemoveEntities(List< Entity* > entities)
 {
 	for (int i = 0; i < entities.Size(); ++i)
 	{
@@ -634,7 +634,7 @@ int MapManager::DeleteAllEntities()
 {
 	assert(activeMap);
 	int deleted = 0;
-	List< std::shared_ptr<Entity> > mapEntities = activeMap->GetEntities();
+	List< Entity* > mapEntities = activeMap->GetEntities();
 	String lg;
 	for (int i = 0; i < mapEntities.Size(); ++i)
 	{
@@ -649,7 +649,7 @@ int MapManager::DeleteAllEntities()
 }
 	
 /** Queries deletion of all entities in the active map. */
-int MapManager::DeleteEntities(List< std::shared_ptr<Entity> > entities)
+int MapManager::DeleteEntities(List< Entity* > entities)
 {
 	int numDeleted = 0;
 	for (int i = 0; i < entities.Size(); ++i)
@@ -660,7 +660,7 @@ int MapManager::DeleteEntities(List< std::shared_ptr<Entity> > entities)
 }
 
 /** Queries deletion of specified entity in active map. */
-bool MapManager::DeleteEntity(EntitySharedPtr entity)
+bool MapManager::DeleteEntity(Entity* entity)
 {
 	if (!entity)
 		return false;
@@ -688,7 +688,7 @@ bool MapManager::DeleteEntity(EntitySharedPtr entity)
 	This function will then check relevant variables and if fully unregistered will mark it as
 	unused and queue it's deletion in the EntityManager.
 */
-void MapManager::EntityUnregistered(EntitySharedPtr entity)
+void MapManager::EntityUnregistered(Entity* entity)
 {
 	if(entity->flaggedForDeletion){
 		if (entity->registeredForPhysics)
@@ -855,7 +855,7 @@ Map * MapManager::ReloadFromFile(){
 }
 
 /// Navmeseeeesh. Returns false if fail (like if 0 entities or what?)
-bool MapManager::CreateNavMesh(List< std::shared_ptr<Entity> > entitiesToCreateFrom){
+bool MapManager::CreateNavMesh(List< Entity* > entitiesToCreateFrom){
 	ASSERT_ACTIVE_MAP(false);
 	Graphics.PauseRendering();
 	/// If we got any paths, clear them first.
@@ -924,9 +924,9 @@ void MapManager::LoadFromCompactData(Map * map)
 /// Clears all entities spawned by events.
 void MapManager::ClearEventSpawnedEntities(){
 	assert(activeMap);
-	List< std::shared_ptr<Entity> > entities = activeMap->GetEntities();
+	List< Entity* > entities = activeMap->GetEntities();
 	for (int i = 0; i < entities.Size(); ++i){
-		EntitySharedPtr entity = entities[i];
+		Entity* entity = entities[i];
 		if (entity->flags & SPAWNED_BY_EVENT){
 			DeleteEntity(entity);
 		}
@@ -937,9 +937,9 @@ void MapManager::ClearEventSpawnedEntities(){
 void MapManager::ClearPlayerEntities()
 {
 	assert(activeMap);
-	List< std::shared_ptr<Entity> > entities = activeMap->GetEntities();
+	List< Entity* > entities = activeMap->GetEntities();
 	for (int i = 0; i < entities.Size(); ++i){
-		EntitySharedPtr entity = entities[i];
+		Entity* entity = entities[i];
 		if (entity->flags & PLAYER_OWNED_ENTITY){
 			DeleteEntity(entity);
 		}

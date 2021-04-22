@@ -128,7 +128,7 @@ bool OBB::Collide(Sphere & sphere, Collision & collissionData){
 
 
 /// Recalculate it using the entity's base model's AABB and current matrix.
-void OBB::Recalculate(EntitySharedPtr entity)
+void OBB::Recalculate(Entity* entity)
 {
 	if (!entity->model->mesh->aabb)
 		return;

@@ -65,7 +65,7 @@ public:
 	List<int> ActiveModifierKeys();
 
 	/// Sets input focus, which currently just flags a boolean with its properties (if available and set up correctly).
-	void SetInputFocus(EntitySharedPtr entity);
+	void SetInputFocus(Entity* entity);
 
 	/** Called by OS-functions to query if the UI wants to process drag-and-drop files. If so the active element where the mouse is hovering may opt to do magic with it.
 		If no magic, or action, is taken, it will return false, at which point the game state should be called to handle general drag-and-drop files.
@@ -251,7 +251,7 @@ public:
 	UIElement * HoverElement(); //{return hoverElement;};
 
 private:
-	List< std::shared_ptr<Entity> > inputFocusEntities;
+	List< Entity* > inputFocusEntities;
 	// To disable the current ui from e.g. cutscene-scripts.
 	bool activeUIEnabled;
 

@@ -73,6 +73,7 @@ public:
 	UserInterface * ui;
 
 	UIElement();	// Default empty constructor
+	UIElement(String name);
 	virtual ~UIElement();
 	/// Copy-cosntructor.
 	UIElement(const UIElement & reference);
@@ -95,6 +96,7 @@ public:
 	
 	/// Creates a deep copy of self and all child elements (where possible).
 	virtual UIElement * Copy();
+	//CopyUIElementVariables
 	virtual void CopySpecialVariables(UIElement * intoElement);
 	virtual void CopyChildrenInto(UIElement * copyOfSelf) const;
 
@@ -107,6 +109,8 @@ public:
 
 	/// Sets text, queueing recalculation of the rendered variant. If not force, will ignore for active ui input elements.
 	virtual void SetText(CTextr newText, bool force = false);
+	// If true, capitalizes that moment.
+	virtual void SetForceUpperCase(bool newValue);
 
 	/// Recalculates and sets highlighting factors used when rendering the UI (dedicated shader settings)
 	void UpdateHighlightColor();
@@ -180,8 +184,8 @@ public:
 	/// UI events!
 	/// Sent by UIInput elements upon pressing Enter and thus confirmign the new input, in case extra actions are warranted. (e.g. UITextureInput to update the texture provided as reference).
 	virtual void OnInputUpdated(GraphicsState* graphicsState, UIInput * inputElement);
-	/// Callback sent to parents once an element is toggled, in order to act upon it. Used by UIMatrix.
-	virtual void OnToggled(UIToggleButton * toggleButton);
+	/// Callback sent to parents once an element is toggled, in order to act upon it. Used by UIMatrix, can be ToggleButton, Checkbox et al
+	virtual void OnToggled(UIElement * toggleButton);
 
 	/// Yup.
 	void InheritNeighbours(UIElement * fromElement);
@@ -336,9 +340,9 @@ public:
 	int borderOffset = 0;
 
 	// Sets it to override.
-	virtual void SetTextColor(std::shared_ptr<Color> overrideColor);
+	virtual void SetTextColor(Color overrideColor);
 	// Overrides, but only during onHover.
-	virtual void SetOnHoverTextColor(std::shared_ptr<Color> onHoverTextColor);
+	virtual void SetOnHoverTextColor(const Color& onHoverTextColor);
 
 	/// Alignment relative to parent. If this is set all other alignment* variables will be ignored.
 	char alignment;
@@ -443,14 +447,18 @@ public:
 	/// Colors for the element.
 	Vector4f color;
 
+	
+	Color textColor;
+
 	// If set, this will override the text colors used by Idle,Hover,Active states.
-	std::shared_ptr<Color> textColor,
-		onHoverTextColor;
+	Color* onHoverTextColor = nullptr;
 
 	/// Colors for the text
-	static std::shared_ptr<Color> defaultTextColor;
+	static Color defaultTextColor;
 	/// If true, forces all string assignments to upper-case (used with some styles of games)
-	static bool forceUpperCase;
+	static bool defaultForceUpperCase;
+
+	bool forceUpperCase;
 
 	// When clicking on it.
 	static float onActiveHightlightFactor; 
@@ -475,8 +483,8 @@ public:
 	static String defaultTextureSource;
 
 	struct FontDetails {
-		std::shared_ptr<String> source;
-		std::shared_ptr<String> shader; // By default 'Font', interhited from TextFont::defaultFontShader
+		String source;
+		String shader; // By default 'Font', interhited from TextFont::defaultFontShader
 		TextFont * font;
 	};
 
@@ -546,8 +554,8 @@ public:
 	virtual void ResizeGeometry();
 	void DeleteGeometry();
 
-	Text& GetText() { return *text; }
-	const Text& GetText() const { return *text; }
+	//Text& GetText() { return text; }
+	virtual const Text& GetText() const;
 
 	// If true, will reduce width or height dynamically so that the texture's aspect ratio is retained when rendering.
 	bool retainAspectRatioOfTexture = false;
@@ -603,7 +611,7 @@ protected:
 	static int idEnumerator;
 
 	// Text that will be rendered
-	std::unique_ptr<Text> text;
+	Text text;
 
 private:
 

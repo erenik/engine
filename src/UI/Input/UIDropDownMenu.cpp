@@ -36,6 +36,7 @@ void UIDropDownMenu::CreateChildren(GraphicsState* graphicsState)
 	if (separateLabel)
 	{
 		this->label = new UILabel(name);
+		this->InheritDefaults(label);
 		label->textColor = textColor;
 		label->sizeRatioX = 0.4f;
 		label->sizeRatioY = 1.f;
@@ -43,6 +44,7 @@ void UIDropDownMenu::CreateChildren(GraphicsState* graphicsState)
 		AddChild(nullptr, label);
 	}
 	selectButton = new UIButton("<Placeholder>");
+	this->InheritDefaults(selectButton);
 	selectButton->sizeRatioX = 1 - (label? label->sizeRatioX : 0);
 	selectButton->textColor = textColor;
 	selectButton->alignmentX = 0.5 + (label? label->sizeRatioX * 0.5 : 0);
@@ -98,6 +100,7 @@ void UIDropDownMenu::Open(GraphicsState* graphicsState)
 	if (!selectionList)
 	{
 		selectionList = new UIList();
+		this->InheritDefaults(selectionList);
 		selectionList->visible = false;
 		selectionList->textureSource = "0x22FF";
 		PopulateList(graphicsState);
@@ -129,6 +132,8 @@ void UIDropDownMenu::PopulateList(GraphicsState* graphicsState)
 	for (int i = 0; i < available.Size(); ++i)
 	{
 		UIButton * button = new UIButton(name+"ListButton"+i);
+		this->InheritDefaults(button);
+
 		button->SetText(available[i]);
 		button->sizeRatioY = 0.1f;
 		UIAction ac(UIAction::CLOSE_DROP_DOWN_MENU, this);
@@ -145,12 +150,24 @@ void UIDropDownMenu::Close(GraphicsState* graphicsState)
 	selectionList->visible = false;
 }
 
-void UIDropDownMenu::Select(int index)
+void UIDropDownMenu::Select(int index, bool silent)
 {
 	selection = available[index];
 	selectButton->SetText(selection);
-	SetStringMessage * ssm = new SetStringMessage("DropDownMenuSelection:"+name, selection);
-	MesMan.QueueMessage(ssm);
+	if (!silent) {
+		SetStringMessage * ssm = new SetStringMessage("DropDownMenuSelection:" + name, selection);
+		MesMan.QueueMessage(ssm);
+	}
+}
+
+bool UIDropDownMenu::Select(String entry, bool silent) {
+	for (int i = 0; i < available.Size(); ++i) {
+		if (available[i] == entry) {
+			Select(i, silent);
+			return true;
+		}
+	}
+	return false;
 }
 
 

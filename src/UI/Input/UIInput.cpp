@@ -17,7 +17,7 @@
 
 #include "Graphics/GraphicsManager.h"
 	
-std::shared_ptr<Color> UIInput::defaultInputTextColor = nullptr;
+Color UIInput::defaultInputTextColor = Color(1,0,0,1);
 
 UIInput::UIInput(String name /*= ""*/)
 : UIElement()
@@ -518,7 +518,7 @@ bool UIInput::BeginInput()
 	if (!HasState(UIState::ACTIVE)) {
 		AddState(UIState::ACTIVE);
 	}
-	editText = GetText();
+	editText = text; // GetText();
 	caretPosition = editText.Length();
 	editText.caretPosition = caretPosition;
 	// sends message to update the ui with new caret and stuff.
@@ -560,10 +560,7 @@ UIInput * UIInput::CreateDefaultInput(UIElement * box, String inputName, float s
 	input->sizeRatioX = sizeX;
 	box->InheritDefaults(input);
 
-	if (defaultInputTextColor != nullptr)
-		input->SetTextColor(defaultInputTextColor);
-	else
-		input->SetTextColor(box->textColor);
+	input->SetTextColor(box->textColor);
 
 
 	box->AddChild(nullptr, input);
@@ -607,16 +604,16 @@ void UIInput::DecrementValue() {
 
 // Parses int value from this element's text.
 const int UIInput::ParseInt() {
-	return GetText().ParseInt();
+	return text.ParseInt();
 }
 
 // Parses float value from this element's text.
 const float UIInput::ParseFloat() {
-	return GetText().ParseFloat();
+	return text.ParseFloat();
 }
 
 // For setting static colors.
-void UIInput::SetTextColor(std::shared_ptr<Color> newOverrideTextColor) {
+void UIInput::SetTextColor(Color newOverrideTextColor) {
 	UIElement::SetTextColor(newOverrideTextColor); // Set for self, in-case elements are not yet created.
 
 	if (label)

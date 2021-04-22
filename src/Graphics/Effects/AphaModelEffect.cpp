@@ -14,7 +14,7 @@
 #define max(a,b) ((a > b)? (a) : (b))
 #endif
 
-AlphaModelEffect::AlphaModelEffect(String name, String modelName, EntitySharedPtr reference)
+AlphaModelEffect::AlphaModelEffect(String name, String modelName, Entity* reference)
 : GraphicEffect(name, GFX::ALPHA_MODEL_EFFECT) {
 	model = ModelMan.GetModel(modelName);
 	assert(model);

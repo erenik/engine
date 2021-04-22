@@ -34,7 +34,7 @@ public:
 	String name;
     AABB * aabb;
 	AABBSweepAxis * axis;
-    EntitySharedPtr entity;
+    Entity* entity;
 	// Pointer to value.
 	float * value;
     int type;
@@ -54,11 +54,11 @@ public:
 	AABBSweepAxis(int axis, ConstVec3fr min, ConstVec3fr max);
 	~AABBSweepAxis();
 
-	void AddEntity(EntitySharedPtr entity);
-	void RemoveEntity(EntitySharedPtr entity);
+	void AddEntity(Entity* entity);
+	void RemoveEntity(Entity* entity);
 	void Clear(); // Clears all references.
 
-	bool ShouldBeHere(EntitySharedPtr entity);
+	bool ShouldBeHere(Entity* entity);
 
 	void Sort();
 	bool GetPairs(List<EntityPair> & pairList);
@@ -72,7 +72,7 @@ private:
 	bool FindPairsLinearPlusSearch(List<EntityPair> & list);
 
 	/// Stored internally for optimized pairing of entities.
-	List< std::shared_ptr<Entity> > dynamicEntities;
+	List< Entity* > dynamicEntities;
 };
 
 

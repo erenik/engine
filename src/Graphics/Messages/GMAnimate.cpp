@@ -6,7 +6,7 @@
 #include "GraphicsMessages.h"
 #include "Graphics/GraphicsProperty.h"
 
-GMQueueAnimation::GMQueueAnimation(String animationName, EntitySharedPtr forEntity)
+GMQueueAnimation::GMQueueAnimation(String animationName, Entity* forEntity)
 : GraphicsMessage(GM_QUEUE_ANIMATION), entity(forEntity), animationName(animationName)
 {
 }
@@ -21,7 +21,7 @@ void GMQueueAnimation::Process(GraphicsState* graphicsState)
 }
 
 
-GMPlayAnimation::GMPlayAnimation(String animationName, EntitySharedPtr forEntity)
+GMPlayAnimation::GMPlayAnimation(String animationName, Entity* forEntity)
 : GraphicsMessage(GM_PLAY_ANIMATION), entity(forEntity), animationName(animationName)
 {
 }
@@ -35,7 +35,7 @@ void GMPlayAnimation::Process(GraphicsState* graphicsState)
 	entity->graphics->SetAnimation(animationName);
 }
 
-GMPlaySkeletalAnimation::GMPlaySkeletalAnimation(EntitySharedPtr entity)
+GMPlaySkeletalAnimation::GMPlaySkeletalAnimation(Entity* entity)
 	: GraphicsMessage(GM_PLAY_ANIMATION), entity(entity)
 {
 }

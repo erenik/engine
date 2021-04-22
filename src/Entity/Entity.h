@@ -32,8 +32,8 @@ struct LifeAttribute{
 	int HP, maxHP;
 };
 
-#define EntitySharedPtr std::shared_ptr<Entity>
-#define EntityWeakPtr std::weak_ptr<Entity>
+//
+//#define Entity* std::weak_ptr<Entity>
 
 /** An encapsulation Entity for objects, including their corresponding transforms, textures, Mesh, etc.
 	An entiy with an ID of 0 can be considered invalid.
@@ -220,17 +220,14 @@ public:
 	float Radius() const;
 
 	/// o.o Links child and parent for both.
-	void AddChild(EntitySharedPtr child);
-
-	/// Returns the shared pointer pointing to self.
-	EntitySharedPtr SharedPtr();
+	void AddChild(Entity* child);
 
 	/** Child entities, for example wheels for a bike, etc.
 		All child-entities are merely here by relation, and should not be processed (in general) when the parent is processed!
 	*/
-	List< std::shared_ptr<Entity> > children;
+	List< Entity* > children;
 	/// Parent entity. Helps dictate how the transformation-matrix will be calculated.
-	EntitySharedPtr parent;
+	Entity* parent;
 	bool inheritPositionOnly; // Default false.
 
 	/// Status, for whether it's part of rendering, physics, etc.
@@ -288,7 +285,7 @@ public:
 
 private:
 	// For distribution of SharedPtr of self. Assign this upon construction where you called make_shared
-	std::weak_ptr<Entity> selfPtr;
+	Entity* selfPtr;
 
 	/// If non-identity scale.
 	bool relevantScale;
@@ -301,7 +298,7 @@ private:
 
 //Node * createScenegraphNode
 
-class EntityGroup : public List< std::shared_ptr<Entity> > 
+class EntityGroup : public List< Entity* > 
 {
 public:
 	virtual ~EntityGroup(){};

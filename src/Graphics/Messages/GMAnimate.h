@@ -10,31 +10,31 @@
 class GMQueueAnimation : public GraphicsMessage
 {
 public:
-	GMQueueAnimation(String animationName, EntitySharedPtr forEntity);
+	GMQueueAnimation(String animationName, Entity* forEntity);
 	virtual void Process(GraphicsState* graphicsState);
 private:
 	String animationName;
-	EntitySharedPtr entity;
+	Entity* entity;
 };
 
 class GMPlayAnimation : public GraphicsMessage 
 {
 public:
-	GMPlayAnimation(String animationName, EntitySharedPtr forEntity);
+	GMPlayAnimation(String animationName, Entity* forEntity);
 	virtual void Process(GraphicsState* graphicsState);
 private:
 	String animationName;
-	EntitySharedPtr entity;
+	Entity* entity;
 };
 
 // For skeletal animations
 class GMPlaySkeletalAnimation : public GraphicsMessage 
 {
 public:
-	GMPlaySkeletalAnimation(EntitySharedPtr entity);
+	GMPlaySkeletalAnimation(Entity* entity);
 	virtual void Process(GraphicsState* graphicsState);
 private:
-	EntitySharedPtr entity;
+	Entity* entity;
 };
 
 #endif

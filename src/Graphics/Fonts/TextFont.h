@@ -42,7 +42,7 @@ public:
 	void RenderText(
 		Text & text,
 		TextState textState,
-		std::shared_ptr<Color> overrideColor,
+		Color* overrideColor,
 		GraphicsState & graphics,
 		ConstVec3fr positionOffset,
 		float textSizePixels
@@ -51,7 +51,7 @@ public:
 	void SetTextureSource(const String s) { textureSource = s; };
 	const String GetTextureSource() { return textureSource; };
 	
-	void SetColor(std::shared_ptr<Color> color);
+	void SetColor(const Color& color);
 	/** Saves the font-data to specified path.
 		If the path length is 0 it will attempt to save to the same location as the given
 		texture for the font.
@@ -68,12 +68,12 @@ public:
 	/// Source of the texture-file to be used.
 	String source;
 
-	static std::shared_ptr<String> defaultFontSource;
-	static std::shared_ptr<String> defaultFontShader;
+	static String defaultFontSource;
+	static String defaultFontShader;
 
-	static std::shared_ptr<Color> idleColor;
-	static std::shared_ptr<Color> onHoverColor;
-	static std::shared_ptr<Color> onActiveColor;
+	static Color idleColor;
+	static Color onHoverColor;
+	static Color onActiveColor;
 
 	/// For extra colors or effects.
 	bool hoveredOver;
@@ -168,8 +168,8 @@ private:
 	float charHeight[MAX_CHARS];
 
 	/// Color to be used when rendering the text.
-	std::shared_ptr<Color> color;
-	std::shared_ptr<Color> secondaryColor;
+	Color color;
+	Color* secondaryColor;
 
 	/// Texture to be used when rendering.
 	Texture * texture;

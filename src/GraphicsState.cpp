@@ -59,7 +59,7 @@ GraphicsState::~GraphicsState()
 
 
 /// Adds an entity to the graphics state, which includes sorting it into proper instancing groups, if flagged for it.
-void GraphicsState::AddEntity(EntitySharedPtr entity)
+void GraphicsState::AddEntity(Entity* entity)
 {
 	GraphicsProperty * gp = entity->graphics;
 	if (gp->group.Length())
@@ -122,7 +122,7 @@ void GraphicsState::AddEntity(EntitySharedPtr entity)
 	}	
 }
 
-void GraphicsState::RemoveEntity(EntitySharedPtr entity)
+void GraphicsState::RemoveEntity(Entity* entity)
 {
 	GraphicsProperty * gp = entity->graphics;
 	if (!gp)
@@ -200,13 +200,13 @@ void GraphicsState::UpdateRenderInstancingGroupBuffers()
 }
 
 
-RenderInstancingGroup * GraphicsState::GetGroup(List<RenderInstancingGroup*> & fromListOfGroups, EntitySharedPtr entity)
+RenderInstancingGroup * GraphicsState::GetGroup(List<RenderInstancingGroup*> & fromListOfGroups, Entity* entity)
 {
 	for (int i = 0; i < fromListOfGroups.Size(); ++i)
 	{
 		RIG * rig = fromListOfGroups[i];
 		// Compare with reference entity.
-		EntitySharedPtr reference = rig->reference;
+		Entity* reference = rig->reference;
 		if (!reference)
 		{
 			// Delete it?

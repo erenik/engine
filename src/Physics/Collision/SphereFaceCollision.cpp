@@ -10,7 +10,7 @@
 #include "PhysicsLib/PhysicsMesh.h"
 
 /// For checking between a set shape/entity and a bunch of basic shapes (e.g. faces/tris/quads). Supply matrix if the tris or quads should be recalculated.
-bool SphereFaceCollision(EntitySharedPtr sphereEntity, const List<Triangle*> & tris, const List<Quad*> & quads, Collision & data, const Matrix4f * triQuadMatrix, bool planesOnly)
+bool SphereFaceCollision(Entity* sphereEntity, const List<Triangle*> & tris, const List<Quad*> & quads, Collision & data, const Matrix4f * triQuadMatrix, bool planesOnly)
 {
 	/// Test for all, only evaluate the deepest collission! o.o'
 	Collision deepestCollision;

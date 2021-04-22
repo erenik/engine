@@ -17,7 +17,7 @@ class PathfindingProperty
 {
 	friend class PhysicsManager;
 public:
-	PathfindingProperty(EntitySharedPtr owner);
+	PathfindingProperty(Entity* owner);
 	virtual ~PathfindingProperty();
 	void OnPathCompleted();
 	// Woo
@@ -34,7 +34,7 @@ public:
 	
 	Path CurrentPath(){ return currentPath; };
 	// wuff
-	EntitySharedPtr owner;
+	Entity* owner;
 private:
 	Path currentPath;
 	Path queuedPath;

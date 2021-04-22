@@ -53,12 +53,12 @@ public:
 
 	/// Returns a reference to it :) Uses pre-defined settings defined in the waypoint manager and looks at all existing entities' faces to generate it!
 	NavMesh * GenerateNavMesh(Map * fromMap);
-	NavMesh * GenerateNavMesh(List< std::shared_ptr<Entity> > fromEntities);
+	NavMesh * GenerateNavMesh(List< Entity* > fromEntities);
 	/// Attempts to load a spherical world from target entity's model file.
-	void GenerateNavMeshFromWorld(EntitySharedPtr worldEntity);
+	void GenerateNavMeshFromWorld(Entity* worldEntity);
 
 	/// generates and stores new waypoints for this entity into the active navmesh.
-	void GenerateWaypointsFromEntity(EntitySharedPtr entity);
+	void GenerateWaypointsFromEntity(Entity* entity);
 
 	/// Nullifies the pData varible of every active waypoint.
 	int CleansePData();

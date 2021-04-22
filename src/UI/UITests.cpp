@@ -6,10 +6,17 @@
 #include "Globals.h"
 #include "UI/Input/UIIntegerInput.h"
 #include "UI/Lists/UIColumnList.h"
+#include "UI/Lists/UIList.h"
+#include "UI/Buttons/UICheckbox.h"
+#include "UI/Buttons/UIToggleButton.h"
 
 void UIElement::UnitTest() {
+
+	Color * colorAlloc = new Color();
+	SAFE_DELETE(colorAlloc);
+
 	UIElement * element = new UIElement();
-	auto color = std::make_shared<Color>(Vector4f(1, 1, 1, 1));
+	auto color = Color(Vector4f(1, 1, 1, 1));
 	element->SetTextColor(color);
 	SAFE_DELETE(element);
 
@@ -18,8 +25,18 @@ void UIElement::UnitTest() {
 	integerInput->CreateChildren(nullptr);
 	SAFE_DELETE(integerInput);
 
+	UIList* list = new UIList();
+	SAFE_DELETE(list);
+
 	UIColumnList * cl = new UIColumnList();
-	//UIElement* aCopy = cl->Copy();
+	UIElement* aCopy = cl->Copy();
 	SAFE_DELETE(cl);
-	//SAFE_DELETE(aCopy);
+	SAFE_DELETE(aCopy);
+
+	UIToggleButton* toggleButton = new UIToggleButton();
+	SAFE_DELETE(toggleButton);
+
+	UICheckbox* checkBox = new UICheckbox();
+	checkBox->CreateChildren();
+	SAFE_DELETE(checkBox);
 }

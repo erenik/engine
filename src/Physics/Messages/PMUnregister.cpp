@@ -2,7 +2,7 @@
 #include "../PhysicsManager.h"
 #include <cassert>
 
-PMUnregisterEntities::PMUnregisterEntities(List< std::shared_ptr<Entity> > targetEntities): PhysicsMessage(PM_UNREGISTER_ENTITIES)
+PMUnregisterEntities::PMUnregisterEntities(List< Entity* > targetEntities): PhysicsMessage(PM_UNREGISTER_ENTITIES)
 {
 	entities = targetEntities;
 	/*
@@ -24,7 +24,7 @@ void PMUnregisterEntities::Process()
 }
 
 
-PMUnregisterEntity::PMUnregisterEntity(EntitySharedPtr i_entity, bool prepareForDeletion /*= false */ )
+PMUnregisterEntity::PMUnregisterEntity(Entity* i_entity, bool prepareForDeletion /*= false */ )
 	: PhysicsMessage(PM_UNREGISTER_ENTITY), prepareForDeletion(prepareForDeletion)
 {
 	entity = i_entity;

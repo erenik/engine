@@ -16,11 +16,11 @@ class ParticleEmitter;
 class GMAttachParticleSystem : public GraphicsMessage 
 {
 public:
-	GMAttachParticleSystem(EntitySharedPtr entity, ParticleSystemWeakPtr pa);
+	GMAttachParticleSystem(Entity* entity, ParticleSystem* pa);
 	virtual void Process(GraphicsState* graphicsState) override;
 private:
-	EntitySharedPtr entity;
-	ParticleSystemWeakPtr pa;
+	Entity* entity;
+	ParticleSystem* pa;
 };
 
 /** Registers a particle system for global operation.
@@ -29,20 +29,20 @@ private:
 class GMRegisterParticleSystem : public GraphicsMessage 
 {
 public:
-	GMRegisterParticleSystem(ParticleSystemWeakPtr ps, bool global = true);
+	GMRegisterParticleSystem(ParticleSystem* ps, bool global = true);
 	virtual void Process(GraphicsState* graphicsState) override;
 private:
-	ParticleSystemWeakPtr ps;
+	ParticleSystem* ps;
 	bool global;
 };
 
 class GMUnregisterParticleSystem : public GraphicsMessage 
 {
 public:
-	GMUnregisterParticleSystem(std::weak_ptr<ParticleSystem> ps, bool deleteOnUnregister);
+	GMUnregisterParticleSystem(ParticleSystem* ps, bool deleteOnUnregister);
 	virtual void Process(GraphicsState* graphicsState) override;
 private:
-	std::weak_ptr<ParticleSystem> ps;
+	ParticleSystem* ps;
 	bool deleteOnUnregister;
 };
 
@@ -50,48 +50,48 @@ private:
 class GMAttachParticleEmitter : public GraphicsMessage 
 {
 public:
-	GMAttachParticleEmitter(std::shared_ptr<ParticleEmitter> pe, ParticleSystemWeakPtr ps);
+	GMAttachParticleEmitter(ParticleEmitter* pe, ParticleSystem* ps);
 	virtual void Process(GraphicsState* graphicsState) override; 
 private:
-	ParticleSystemWeakPtr ps;
-	std::shared_ptr<ParticleEmitter> pe;
+	ParticleSystem* ps;
+	ParticleEmitter* pe;
 };
 
 class GMDetachParticleEmitter : public GraphicsMessage 
 {
 public:
-	GMDetachParticleEmitter(std::shared_ptr<ParticleEmitter> pe);
-	GMDetachParticleEmitter(std::shared_ptr<ParticleEmitter> pe, ParticleSystemWeakPtr ps);
+	GMDetachParticleEmitter(ParticleEmitter* pe);
+	GMDetachParticleEmitter(ParticleEmitter* pe, ParticleSystem* ps);
 	virtual void Process(GraphicsState* graphicsState) override;
 private:
-	ParticleSystemWeakPtr ps;
-	std::shared_ptr<ParticleEmitter> pe;
+	ParticleSystem* ps;
+	ParticleEmitter* pe;
 };
 
 class GMClearParticles : public GraphicsMessage 
 {
 public:
-	GMClearParticles(std::weak_ptr<ParticleSystem> inSystem);
+	GMClearParticles(ParticleSystem* inSystem);
 	virtual void Process(GraphicsState* graphicsState) override;
 private:
-	std::weak_ptr<ParticleSystem> ps;
+	ParticleSystem* ps;
 };
 
 class GMPauseEmission : public GraphicsMessage 
 {
 public:
-	GMPauseEmission(EntitySharedPtr entity);
+	GMPauseEmission(Entity* entity);
 	virtual void Process(GraphicsState* graphicsState) override;
 private:
-	EntitySharedPtr entity;
+	Entity* entity;
 };
 class GMResumeEmission : public GraphicsMessage 
 {
 public:
-	GMResumeEmission(EntitySharedPtr entity);
+	GMResumeEmission(Entity* entity);
 	virtual void Process(GraphicsState* graphicsState) override;
 private:
-	EntitySharedPtr entity;
+	Entity* entity;
 };
 
 // Sets the initial emitter shape/mesh of a particle system.
@@ -99,24 +99,24 @@ class GMSetParticleEmitter : public GraphicsMessage
 {
 public:
 	/// Sets a (2D) contour to be the emitter shape.
-	GMSetParticleEmitter(std::shared_ptr<ParticleSystem> ps, const Contour & contour);
-	GMSetParticleEmitter(std::shared_ptr<ParticleSystem> ps, List<std::shared_ptr<ParticleEmitter>> newEmitters);
-	GMSetParticleEmitter(std::shared_ptr<ParticleEmitter> emitter, int target, const Vector3f & vec3fValue);
-	GMSetParticleEmitter(std::shared_ptr<ParticleEmitter> emitter, int target, EntitySharedPtr vec3fValue);
+	GMSetParticleEmitter(ParticleSystem* ps, const Contour & contour);
+	GMSetParticleEmitter(ParticleSystem* ps, List<ParticleEmitter*> newEmitters);
+	GMSetParticleEmitter(ParticleEmitter* emitter, int target, const Vector3f & vec3fValue);
+	GMSetParticleEmitter(ParticleEmitter* emitter, int target, Entity* vec3fValue);
 	virtual void Process(GraphicsState* graphicsState) override;
 private:
-	std::shared_ptr<ParticleSystem> ps;
+	ParticleSystem* ps;
 	enum {
 		CONTOUR,
 		NEW_EMITTER_LIST,
 	};
 	Vector3f vec3fValue;
-	EntitySharedPtr entity;
+	Entity* entity;
 	int target;
 	int type;
 	Contour contour;
-	std::shared_ptr<ParticleEmitter> emitter; // For when setting settings for a single emitter
-	List<std::shared_ptr<ParticleEmitter>> newEmitters;
+	ParticleEmitter* emitter; // For when setting settings for a single emitter
+	List<ParticleEmitter*> newEmitters;
 };
 
 

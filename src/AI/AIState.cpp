@@ -4,7 +4,7 @@
 
 #include "AIState.h"
 
-AIState::AIState(int stateType, EntitySharedPtr owner){ 
+AIState::AIState(int stateType, Entity* owner){ 
 	this->stateID = stateType; 
 	entity = owner;
 }

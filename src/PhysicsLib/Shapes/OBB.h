@@ -25,7 +25,7 @@ public:
     virtual ~OBB();
 
     /// Recalculate it using the entity's base model's AABB and current matrix.
-    void Recalculate(EntitySharedPtr entity);
+    void Recalculate(Entity* entity);
     /// Render with glVertex vertexou
     void Render();
 

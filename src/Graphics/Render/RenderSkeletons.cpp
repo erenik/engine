@@ -51,7 +51,7 @@ void GraphicsManager::RenderSkeletons()
 
 	for (int i = 0; i < registeredEntities.Size(); ++i)
 	{
-		EntitySharedPtr entity = registeredEntities[i];
+		Entity* entity = registeredEntities[i];
 		Model * model = entity->model;
 		if (!model)
 			continue;

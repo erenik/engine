@@ -254,7 +254,7 @@ public:
 	Matrix4f ProjectionMatrix4f() { return projectionMatrix; };
 
 	/// For following camera's!
-	EntitySharedPtr entityToTrack;
+	Entity* entityToTrack;
 	/// Tracking mode o-o;
 	int trackingMode;
 

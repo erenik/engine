@@ -17,7 +17,7 @@ extern int debug;
 EntityPair::EntityPair()
 {
 }
-EntityPair::EntityPair(EntitySharedPtr one, EntitySharedPtr two)
+EntityPair::EntityPair(Entity* one, Entity* two)
 : one(one), two(two)
 {
 }
@@ -80,7 +80,7 @@ void AABBSweeper::PrintSortedList()
 }
 
 /// Enters or removes an entity from the lists to be sorted and evaluated.
-void AABBSweeper::RegisterEntity(EntitySharedPtr entity)
+void AABBSweeper::RegisterEntity(Entity* entity)
 {
     assert(entity);
     assert(entity->physics);
@@ -101,7 +101,7 @@ void AABBSweeper::RegisterEntity(EntitySharedPtr entity)
 }
 
 /// Clear registration, lets the list remain sorted..!
-void AABBSweeper::UnregisterEntity(EntitySharedPtr entity)
+void AABBSweeper::UnregisterEntity(Entity* entity)
 {
     assert(entity);
     assert(entity->physics);
@@ -161,7 +161,7 @@ List<EntityPair> AABBSweeper::Sweep()
 	/// Move them about as needed.
 	for (int i = 0; i < movingEntities.Size(); ++i)
 	{
-		EntitySharedPtr entity = movingEntities[i];
+		Entity* entity = movingEntities[i];
 		/// check if close to any of our separation lines.
 		for (int j = 0; j < axes.Size(); ++j)
 		{
@@ -240,7 +240,7 @@ List<EntityPair> AABBSweeper::Sweep()
 	// o.o
 	timer.Start();
     /// Sweepty sweep. Static so re-allocation aren't performed in vain every physics-frame.
-	static List< std::shared_ptr<Entity> > activeEntities;
+	static List< Entity* > activeEntities;
 	activeEntities.Clear();
     static List<EntityPair> entityPairs;
 	entityPairs.Clear();

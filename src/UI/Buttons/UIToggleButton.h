@@ -15,8 +15,8 @@ public:
 	void SetToggled(bool value);
 	// Sets the flag, but does not call the OnToggled event.
 	void SetToggledSilently(bool value);
-
-	void OnToggled(UIToggleButton * box) override;
+	/// Callback sent to parents once an element is toggled, in order to act upon it. Used by UIMatrix, can be ToggleButton, Checkbox et al
+	void OnToggled(UIElement * element) override;
 	const bool IsToggled() const { return toggled; }
 
 	void OnStateAdded(int state) override;
@@ -31,8 +31,8 @@ public:
 
 	String onToggledTexture;
 	String onNotToggledTexture;
-	std::shared_ptr<Color> toggledTextColor;
-	std::shared_ptr<Color> notToggledTextColor;
+	Color toggledTextColor;
+	Color notToggledTextColor;
 
 private:
 	/// For checkboxes.

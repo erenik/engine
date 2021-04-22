@@ -47,7 +47,7 @@ class EntityProperty
 	friend class EntityPropertyState;
 public:
 	/// Default annulizing constructor.
-	EntityProperty(String name, int id, EntitySharedPtr owner);
+	EntityProperty(String name, int id, Entity* owner);
 	virtual ~EntityProperty();
 
 	/// Should correspond to class-name.
@@ -83,9 +83,9 @@ public:
 	virtual void ProcessMessage(Message * message);
 
 	/// Reference, should not be altered.
-	EntitySharedPtr owner;
+	Entity* owner;
 	// For properties with multiple owners.
-	List< std::shared_ptr<Entity> > owners;
+	List< Entity* > owners;
 
 	// Default false. Enable to steer this entity.
 	bool inputFocus;

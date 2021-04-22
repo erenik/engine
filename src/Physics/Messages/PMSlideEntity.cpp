@@ -7,7 +7,7 @@
 
 #include "PhysicsLib/EstimatorFloat.h"
 
-PMSlideEntity::PMSlideEntity(List< std::shared_ptr<Entity> > targetEntities, int target, EstimatorFloat * estimatorFloat)
+PMSlideEntity::PMSlideEntity(List< Entity* > targetEntities, int target, EstimatorFloat * estimatorFloat)
 	: PhysicsMessage(PM_SLIDE_ENTITY), targetEntities(targetEntities), estimatorFloat(estimatorFloat), target(target)
 {
 	switch(target)
@@ -26,7 +26,7 @@ void PMSlideEntity::Process()
 {
 	for (int i = 0; i < targetEntities.Size(); ++i)
 	{
-		EntitySharedPtr entity = targetEntities[i];
+		Entity* entity = targetEntities[i];
 		if (!entity)
 		{
 			std::cout<<"\nNULL entity.";
@@ -69,7 +69,7 @@ void PMClearEstimators::Process()
 {
 	for (int i = 0; i < entities.Size(); ++i)
 	{
-		EntitySharedPtr entity = entities[i];
+		Entity* entity = entities[i];
 		entity->physics->estimators.ClearAndDelete();
 	}
 }

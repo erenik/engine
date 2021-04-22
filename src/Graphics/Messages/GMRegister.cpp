@@ -7,7 +7,7 @@
 
 #include "Entity/EntityManager.h"
 
-GMRegisterEntity::GMRegisterEntity(EntitySharedPtr i_entity) : GraphicsMessage(GM_REGISTER_ENTITY){
+GMRegisterEntity::GMRegisterEntity(Entity* i_entity) : GraphicsMessage(GM_REGISTER_ENTITY){
 	entity = i_entity;
 }
 
@@ -42,7 +42,7 @@ void GMRegisterEntities::Process(GraphicsState* graphicsState)
 }
 
 
-GMRegister::GMRegister(List< std::shared_ptr<ParticleSystem> > particleSystems)
+GMRegister::GMRegister(List< ParticleSystem* > particleSystems)
 : GraphicsMessage(GM_REGISTER), 
 particleSystems(particleSystems),
 target(GT_PARTICLE_SYSTEMS)

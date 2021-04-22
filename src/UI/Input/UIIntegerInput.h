@@ -50,7 +50,7 @@ public:
 	virtual void SetText(CTextr newText, bool force = false) override;
 
 	// Overrides, but only during onHover.
-	void SetOnHoverTextColor(std::shared_ptr<Color> newOnHoverTextColor);
+	void SetOnHoverTextColor(Color newOnHoverTextColor);
 
 	/// Same as onTrigger, set to all inputs.
 	String action;

@@ -13,7 +13,7 @@ class Time;
 /// Entity physics estimator
 class EntityPhysicsEstimator : public Estimator {
 public:
-	EntityPhysicsEstimator(EntitySharedPtr owner);
+	EntityPhysicsEstimator(Entity* owner);
 
 
 	/** Estimates values for given time. If loop is true, the given time will be modulated to be within the interval of applicable time-values.
@@ -39,7 +39,7 @@ public:
 	int smoothingDuration;
 private:
 	EstimatorVec3f positionEstimator, rotationEstimator, velocityEstimator;
-	EntitySharedPtr owner;
+	Entity* owner;
 
 	Vector3f lastPosition;
 	long long lastTime;

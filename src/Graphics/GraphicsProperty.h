@@ -23,7 +23,7 @@ class Estimator;
 class RenderInstancingGroup;
 
 class Entity;
-#define EntitySharedPtr std::shared_ptr<Entity>
+//
 
 /// Flags for toggling stuff
 namespace RenderFlag {
@@ -48,7 +48,7 @@ struct GraphicsProperty
 	friend class GraphicsState;
 public:
 	
-	GraphicsProperty(EntitySharedPtr owner);
+	GraphicsProperty(Entity* owner);
 	~GraphicsProperty();
 	/// Called when registered to Graphics Manager for rendering. Extracts initial position, etc.
 	void OnRegister();
@@ -78,7 +78,7 @@ public:
 	/// usually with other (unique) blending modes.
 	List<GraphicEffect*> effects;
 	/// Particle systems attached to le entity
-	List<std::shared_ptr<ParticleSystem>> particleSystems;
+	List<ParticleSystem*> particleSystems;
 	/// Lights that are attached to the entity (relative position/direction/etc.)
 	/// Dynamic lights are updated each frame whilst the static lights are added
 	/// to the primary lighting-setup on attachment.
@@ -95,7 +95,7 @@ public:
 	/// The scale to be rendered for this entity.
 	Vector3f scale;
 
-	std::shared_ptr<Color> textColor;
+	Color textColor;
 	// Offset?
 	Vector4f textPositionOffset; 
 	/// For rendering the entity at a slightly different position than is stated by the Physics/NavMesh managers.
@@ -158,7 +158,7 @@ private:
 	List<Camera*> cameraFilter;
 
 	// Must be non-NULL.
-	EntitySharedPtr owner;
+	Entity* owner;
 };
 
 #endif

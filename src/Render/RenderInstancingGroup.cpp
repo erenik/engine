@@ -18,7 +18,7 @@ RenderInstancingGroup::RenderInstancingGroup()
 {
 	Nullify();
 }
-RenderInstancingGroup::RenderInstancingGroup(EntitySharedPtr fromReference)
+RenderInstancingGroup::RenderInstancingGroup(Entity* fromReference)
 {
 	Nullify();
 	AddEntity(fromReference);
@@ -40,7 +40,7 @@ RenderInstancingGroup::~RenderInstancingGroup()
 }
 
 /// o.o
-void RIG::AddEntity(EntitySharedPtr entity)
+void RIG::AddEntity(Entity* entity)
 {
 	// Claiming a disowned empty group.
 	if (reference == NULL)
@@ -54,7 +54,7 @@ void RIG::AddEntity(EntitySharedPtr entity)
 	AddItem(entity);
 }
 /// Removes all occurences of any items in the sublist in this list. Also re-points the reference pointer if needed.
-void RIG::RemoveEntity(EntitySharedPtr entity)
+void RIG::RemoveEntity(Entity* entity)
 {
 	RemoveItemUnsorted(entity);
 	if (entity == reference)
@@ -96,7 +96,7 @@ void RenderInstancingGroup::UpdateBuffers(bool force)
 	// Fill data.
 	for (int i = 0; i < this->currentItems; ++i)
 	{
-		EntitySharedPtr entity = arr[i];
+		Entity* entity = arr[i];
 		float * matrPtr = entity->transformationMatrix.getPointer();
 		memcpy(&matrixData[i*16], matrPtr, 16 * sizeof(float));
 		float * norMatrPtr = entity->normalMatrix.getPointer();

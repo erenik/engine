@@ -17,11 +17,12 @@ class CollisionCallback : public Message
 {
 public:
 	CollisionCallback();
-	CollisionCallback(EntitySharedPtr one, EntitySharedPtr two);
+	CollisionCallback(Entity* one, Entity* two);
 	virtual ~CollisionCallback();
 
 	// Extra variables
-	EntitySharedPtr one, two;
+	Entity* one;
+	Entity* two;
 	Vector3f collissionPoint;
 	Vector3f impactNormal;
 	float impactVelocity;

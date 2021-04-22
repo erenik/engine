@@ -53,7 +53,7 @@ void GraphicsManager::RenderSelection()
 	// Set to wireframe
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	glLineWidth(3.f);
-	EntitySharedPtr* activeEntity = selectionToRender->GetArray();
+	Entity** activeEntity = selectionToRender->GetArray();
 	int amount = selectionToRender->Size();
 	graphicsState.settings &= ~ENABLE_SPECIFIC_ENTITY_OPTIONS;
 	// Render all entities in the selection, yo

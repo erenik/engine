@@ -63,20 +63,20 @@ void PMRecalculatePhysicsMesh::Process()
 
 
 /// Creates a default spring between the entities in the list (linearly attached).
-PMCreateSpring::PMCreateSpring(List< std::shared_ptr<Entity> > targetEntities, ConstVec3fr position, float springConstant, float springLength)
+PMCreateSpring::PMCreateSpring(List< Entity* > targetEntities, ConstVec3fr position, float springConstant, float springLength)
 : PhysicsMessage(PM_CREATE_SPRING), entities(targetEntities), position(position), springConstant(springConstant), springLength(springLength)
 {
 	toPosition = true;	
 }
 
 /// Creates a default spring between the entities in the list (linearly attached).
-PMCreateSpring::PMCreateSpring(List< std::shared_ptr<Entity> > targetEntities, float springConstant = 1.0f)
+PMCreateSpring::PMCreateSpring(List< Entity* > targetEntities, float springConstant = 1.0f)
 : PhysicsMessage(PM_CREATE_SPRING), entities(targetEntities), springConstant(springConstant), springLength(-1.0f)
 {
 	toPosition = false;
 }
 /// Creates a default spring between the entities in the list (linearly attached).
-PMCreateSpring::PMCreateSpring(List< std::shared_ptr<Entity> > targetEntities, float springConstant, float springLength)
+PMCreateSpring::PMCreateSpring(List< Entity* > targetEntities, float springConstant, float springLength)
 : PhysicsMessage(PM_CREATE_SPRING), entities(targetEntities), springConstant(springConstant), springLength(springLength)
 {
 	toPosition = false;
@@ -90,7 +90,7 @@ void PMCreateSpring::Process()
 	{
 		for (int i = 0; i < entities.Size(); ++i)
 		{
-			EntitySharedPtr entity = entities[i];
+			Entity* entity = entities[i];
 			Spring * spring = new Spring(entity, position);
 			spring->springConstant = springConstant;
 			spring->equilibriumLength = springLength;
@@ -103,7 +103,8 @@ void PMCreateSpring::Process()
 	{
 		for (int i = 0; i < entities.Size()-1; ++i)
 		{
-			EntitySharedPtr one = entities[i], two = entities[i+1];
+			Entity* one = entities[i];
+			Entity* two = entities[i + 1];
 			Spring * spring = new Spring(one, two);
 			spring->springConstant = springConstant;
 			spring->equilibriumLength = springLength;

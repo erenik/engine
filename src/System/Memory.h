@@ -18,6 +18,7 @@ int MemoryLoad();
 	// #define _ENABLE_EXTENDED_ALIGNED_STORAGE
 	// Used previously, started failing with usage of std::shared_pointer everywhere.
 	//#define Align(bytes)	__declspec(align(bytes)) 
+
 #elif defined LINUX
 	#define Align(bytes) //
 #endif

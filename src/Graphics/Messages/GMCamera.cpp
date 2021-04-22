@@ -100,7 +100,7 @@ GMSetCamera::GMSetCamera(Camera * camera, int target, bool bValue)
 }
 	
 
-GMSetCamera::GMSetCamera(Camera * camera, int target, EntitySharedPtr entity)
+GMSetCamera::GMSetCamera(Camera * camera, int target, Entity* entity)
 : GraphicsMessage(GM_SET_CAMERA), camera(camera), target(target), entity(entity)
 {
 	assert(camera);

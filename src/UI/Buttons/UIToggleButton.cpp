@@ -25,7 +25,7 @@ UIToggleButton::UIToggleButton(String name /*= ""*/)
 	this->name = name;
 	SetText(name);
 	activationMessage = "SetBool:" + name;
-	type = UIType::CHECKBOX;
+	type = UIType::TOGGLE_BUTTON;
 	selectable = true;
 	hoverable = true;
 	navigatable = true;
@@ -75,7 +75,7 @@ void UIToggleButton::SetToggledSilently(bool value) {
 	UpdateTextColor();
 }
 
-void UIToggleButton::OnToggled(UIToggleButton * button) {
+void UIToggleButton::OnToggled(UIElement * button) {
 	UpdateTexture(); 
 	UpdateTextColor();
 

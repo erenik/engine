@@ -53,18 +53,20 @@ struct Collision
 	float distanceIntoEachOther;
 
 	// Entities in the collission.
-	EntitySharedPtr one, two;
+	Entity* one;
+	Entity* two;
 
 	/// Fills the lists of involved entities.
 	void ExtractData();
 
 	/// Always at least one, so if it is empty, check the base entities involved.
-	List< std::shared_ptr<Entity> > dynamicEntities;
-	List< std::shared_ptr<Entity> > kinematicEntities;
-	List< std::shared_ptr<Entity> > staticEntities;
+	List< Entity* > dynamicEntities;
+	List< Entity* > kinematicEntities;
+	List< Entity* > staticEntities;
 
 	/// If a collission between a static and dynamic entity, a flag will be raised and these pointers will be set.
-	EntitySharedPtr dynamicEntity, staticEntity;
+	Entity* dynamicEntity;
+	Entity* staticEntity;
 	///
 	Vector3f collissionPoint;
 	/// The total force at the moment of collission (sum of velocities)
@@ -83,14 +85,14 @@ struct Collision
 
 private:
 	// Called by ExtractData for each entity.
-	void ExtractEntityData(EntitySharedPtr entity);
+	void ExtractEntityData(Entity* entity);
 };
 
 /** Updates the entity's collission state (colliding, in rest, on plane)
 	using it's current velocities and the collission normal.
 	Defined in UpdateCollisionState.cpp
 */
-void UpdateCollisionState(EntitySharedPtr entity, Vector3f & collisionNormal);
+void UpdateCollisionState(Entity* entity, Vector3f & collisionNormal);
 
 
 #endif

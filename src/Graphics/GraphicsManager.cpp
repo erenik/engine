@@ -437,7 +437,7 @@ void GraphicsManager::RepositionEntities()
 #ifdef VFC_OCTREE
 	if (optimizationStructure == VFC_OCTREE)
 	{
-		List< std::shared_ptr<Entity> > dynamicEntities = Physics.GetDynamicEntities();
+		List< Entity* > dynamicEntities = Physics.GetDynamicEntities();
 		for (int i = 0; i < dynamicEntities.Size(); ++i){
 			if (!dynamicEntities[i]->registeredForRendering)
 				continue;
@@ -952,7 +952,7 @@ void GraphicsManager::UpdateLighting()
 	{
 		Light * light = graphicsState.dynamicLights[i];
 		// Update it's position relative to the entity.. important!
-		EntitySharedPtr owner = light->owner;
+		Entity* owner = light->owner;
 		if (!owner)
 			continue;
 
@@ -984,13 +984,13 @@ void GraphicsManager::Process()
 	/// Process particle effects.
 	for (int i = 0; i < particleSystems.Size(); ++i)
 	{
-		ParticleSystemSharedPtr ps = particleSystems[i];
+		ParticleSystem* ps = particleSystems[i];
 		ps->Process(&graphicsState, milliseconds * 0.001f);
 	}
 	/// Process entity specific controls and systems
 	for (int i = 0; i < registeredEntities.Size(); ++i)
 	{
-		EntitySharedPtr entity = registeredEntities[i];
+		Entity* entity = registeredEntities[i];
 		entity->graphics->Process(milliseconds, graphicsState);
 		/** If not registered for physics, update transformation matrix now (since parents may be moving, etc.... No.)
 			For parenting, make the parent force children to update transform or register them properly via physics. or send a custom GM or PM message to update the matrix!

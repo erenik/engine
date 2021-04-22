@@ -302,7 +302,7 @@ void TileMap2D::Render(GraphicsState & graphicsState)
 		for (int i = 0; i < entities.Size(); ++i)
 		{
 			// Let's just hope it's sorted.. lol
-			EntitySharedPtr entity = entities[i];
+			Entity* entity = entities[i];
 			/// Fetch it's position and texture, assume the anchor point is correct and just paint it.
 			Vector3f position = entity->worldPosition;
 			/// Skip all out of sight?
@@ -562,7 +562,7 @@ void TileMap2D::RenderEntities(GraphicsState & graphicsState)
 		float xPos = (float)pos[0];
 		float yPos = (float)pos[1];
 		// Draw entities too, yo.
-		const EntitySharedPtr e = entityTile2D->owner;
+		const Entity* e = entityTile2D->owner;
 	//	std::cout<<"\nRendering entity "<<i<<": "<<e->name;
 
 		float z = 0.1f;
@@ -1190,7 +1190,7 @@ bool TileMap2D::IsTileVacant(Vector3i position){
 }
 
 /// Moves ze entity on the grid! Returns true upon success.
-bool TileMap2D::MoveEntity(EntitySharedPtr entity, Vector3i position){
+bool TileMap2D::MoveEntity(Entity* entity, Vector3i position){
 	std::cout<<"\nTileMap2D::MoveEntity";
 	/// Get right level
 	TileMapLevel * level = GetLevelByElevation(position[2]);
@@ -1212,7 +1212,7 @@ bool TileMap2D::MoveEntity(EntitySharedPtr entity, Vector3i position){
 
 /*
 /// To check for events when arriving at a specified tile.
-void TileMap2D::OnArrive(EntitySharedPtr e, int x, int y){
+void TileMap2D::OnArrive(Entity* e, int x, int y){
 	for (int i = 0; i < events.Size(); ++i){
 		Script * event = events[i];
 		if (event->triggerCondition != Script::ON_TOUCH)
@@ -1249,7 +1249,7 @@ void TileMap2D::RandomizeTiles(){
 }
 
 /// For le adding!
-bool TileMap2D::AddEntity(EntitySharedPtr entity)
+bool TileMap2D::AddEntity(Entity* entity)
 {
 	EntityStateTile2D * tile2DState = (EntityStateTile2D*) entity->GetProperty("EntityStateTile2D");
 	if (entitiesTile2D.Exists(tile2DState))
@@ -1279,7 +1279,7 @@ bool TileMap2D::AddEntity(EntitySharedPtr entity)
 }
 
 /** Removes target entity from the map. */
-bool TileMap2D::RemoveEntity(EntitySharedPtr entity)
+bool TileMap2D::RemoveEntity(Entity* entity)
 {
 	EntityStateTile2D * entityTile2D = GetEntity2DByEntity(entity);
 	if (!entityTile2D)
@@ -1297,7 +1297,7 @@ bool TileMap2D::RemoveEntity(EntitySharedPtr entity)
 }
 
 
-void TileMap2D::Interact(Vector3i position, const EntitySharedPtr interacter)
+void TileMap2D::Interact(Vector3i position, const Entity* interacter)
 {
 	/// Interactor might be omitted if wished?
 	assert(interacter);
@@ -1306,7 +1306,7 @@ void TileMap2D::Interact(Vector3i position, const EntitySharedPtr interacter)
 	EntityStateTile2D * interactee = GetEntityByPosition(position);
 	if (!interactee)
 		return;
-	const EntitySharedPtr entity = interactee->owner;
+	const Entity* entity = interactee->owner;
 	if (entity && entity->scripts && entity->scripts->onInteract){
 		Script * onInteract = entity->scripts->onInteract;
 		ScriptMan.PlayEvent(onInteract);
@@ -1315,7 +1315,7 @@ void TileMap2D::Interact(Vector3i position, const EntitySharedPtr interacter)
 }
 
 /// Attempts to fetch target entity's Tile2D equivalent/meta-structure.
-EntityStateTile2D * TileMap2D::GetEntity2DByEntity(const EntitySharedPtr entity)
+EntityStateTile2D * TileMap2D::GetEntity2DByEntity(const Entity* entity)
 {
 	for (int i = 0; i < entitiesTile2D.Size(); ++i)
 	{

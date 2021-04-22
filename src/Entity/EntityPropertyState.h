@@ -15,7 +15,7 @@ class EntityPropertyState
 	friend class AIManager;
 public:
 	String name;
-	EntityPropertyState (int stateType, EntitySharedPtr owner);
+	EntityPropertyState (int stateType, Entity* owner);
 	virtual ~EntityPropertyState();
 
 	/// Function when entering this state.
@@ -41,7 +41,7 @@ public:
 	int stateID;
 protected:
 	/// Owner thingy
-	EntitySharedPtr entity;
+	Entity* entity;
 };
 
 #endif

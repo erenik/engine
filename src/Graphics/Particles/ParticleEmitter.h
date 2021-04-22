@@ -36,14 +36,11 @@ public:
 	/// Triangle-list-based emitter
 	ParticleEmitter(List<Triangle> tris);
 
-	// Creates a shared ptr of self.
-	std::shared_ptr<ParticleEmitter> GetSharedPtr();
-
 	/// Initializes and allocates stuff.
 	virtual void Initialize();
 
 	/// Attaches this emitter to target system.
-	virtual void AttachTo(std::weak_ptr<ParticleSystem> ps);
+	virtual void AttachTo(ParticleSystem* ps);
 
 	/// Called each frame to update position and other according to automations (if any)
 	virtual void Update();
@@ -95,10 +92,10 @@ public:
 	/// For line-, plane- and cube-based emitters.
 	Vector3f upVec, leftVec;
 	/// Position will be relative to the tracked entity, if any.
-	EntitySharedPtr entityToTrack;
+	Entity* entityToTrack;
 	Vector3f positionOffset;
 	/// That it is currently attached to.
-	List<std::shared_ptr<ParticleSystem> > particleSystems;
+	List<ParticleSystem* > particleSystems;
 
 	// o.o
 	float emissionVelocity;
@@ -123,7 +120,7 @@ protected:
 	/** Belonging particle system. An emitter almost always belongs to just 1 system. 
 		Re-write and virtualize the system in sub-classes if you want to be obnoxious about this.
 	*/
-	std::shared_ptr<ParticleSystem> ps;
+	ParticleSystem* ps;
 
 	/// Calculate in ParticlesToEmit, decremented each time GetNewParticle is called.
 	int toSpawn;

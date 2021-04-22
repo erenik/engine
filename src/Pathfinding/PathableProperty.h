@@ -11,7 +11,7 @@
 class PathableProperty : public EntityProperty
 {
 public:
-	PathableProperty(EntitySharedPtr owner);
+	PathableProperty(Entity* owner);
 	virtual ~PathableProperty();
 	static int ID(){return EntityPropertyID::PATHABLE_PROPERTY;};
 	

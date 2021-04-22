@@ -10,12 +10,12 @@ Contact::Contact(){
 	one = two = NULL;
 };
 
-Contact::Contact(EntitySharedPtr one, EntitySharedPtr two): one(one), two(two){
+Contact::Contact(Entity* one, Entity* two): one(one), two(two){
 	
 };
 
  /// Eased testing test.
-bool Contact::IsPartOf(EntitySharedPtr entity){ 
+bool Contact::IsPartOf(Entity* entity){ 
 	if (entity == one || entity == two) 
 		return true; 
 	return false;

@@ -87,18 +87,10 @@ ParticleSystem::ParticleSystem(String type, bool emitWithEmittersOnly)
 }
 
 template<typename... Args>
-std::shared_ptr<ParticleSystem> ParticleSystem::NewParticleSystem(Args... args) {
-	std::shared_ptr<ParticleSystem> ps = new ParticleSystem(args)->GetSharedPtr();
+ParticleSystem* ParticleSystem::NewParticleSystem(Args... args) {
+	ParticleSystem* ps = new ParticleSystem(args);
 	selfPtr = ps;
 	return selfPtr;
-}
-std::shared_ptr<ParticleSystem> ParticleSystem::GetSharedPtr() {
-	auto sharedPtr = selfPtr.lock();
-	if (sharedPtr == nullptr) {
-		sharedPtr = std::shared_ptr<ParticleSystem>(this);
-		selfPtr = sharedPtr;
-	}
-	return selfPtr.lock();
 }
 
 
@@ -437,7 +429,7 @@ void ParticleSystem::Render(GraphicsState * graphicsState)
 void ParticleSystem::PrintData(){
     assert(false);
 }
-void ParticleSystem::AttachTo(EntitySharedPtr entity, ConstMat4r relativePosition){
+void ParticleSystem::AttachTo(Entity* entity, ConstMat4r relativePosition){
     assert(false);
 }
 void ParticleSystem::SetPosition(ConstMat4r relativePosition){
@@ -455,9 +447,9 @@ void ParticleSystem::SetColor(const Vector4f & icolor){
     color = icolor;
 }
 
-void ParticleSystem::AddEmitter(std::shared_ptr<ParticleEmitter> particleEmitter) {
+void ParticleSystem::AddEmitter(ParticleEmitter* particleEmitter) {
 	emitters.Add(particleEmitter);
-	particleEmitter->AttachTo(GetSharedPtr());
+	particleEmitter->AttachTo(this);
 }
 
 
@@ -467,20 +459,20 @@ void ParticleSystem::SetEmitter(const Contour & contour)
 	// Delete the old emitter
 	std::cout<<"\nSetting new contour as emitter, with position "<<contour.centerOfMass[0]<<", "<<contour.centerOfMass[1]<<" and points: "<<contour.points.Size();	
 	emitters.Clear();
-	auto newEmitter = (new ParticleEmitter(contour))->GetSharedPtr();
+	auto newEmitter = (new ParticleEmitter(contour));
 	emitters.Add(newEmitter);
 }
 
 
-void ParticleSystem::SetEmitter(List<std::shared_ptr<ParticleEmitter>> newEmitters)
+void ParticleSystem::SetEmitter(List<ParticleEmitter*> newEmitters)
 {
 	// Delete the old emitter
 	emitters.Clear();
 	emitters = newEmitters;
 	for (int i = 0; i < newEmitters.Size(); ++i)
 	{
-		std::shared_ptr<ParticleEmitter> emitter = newEmitters[i];
-		emitter->AttachTo(GetSharedPtr());
+		ParticleEmitter* emitter = newEmitters[i];
+		emitter->AttachTo(this);
 	}
 }
 

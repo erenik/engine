@@ -82,7 +82,7 @@ void GraphicsManager::RenderPhysics()
 //	glPolygonMode(GL_FRONT, GL_FILL);
 	for (int i = 0; i < physicalEntities.Size(); ++i){
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		EntitySharedPtr entity = physicalEntities[i];
+		Entity* entity = physicalEntities[i];
 		if (entity == NULL){
 			std::cout<<"\nWARNING: NULL pointer in physical entities selection when rendering physical wireframes.";
 			continue;
@@ -343,7 +343,7 @@ rerer
     glMatrixMode(GL_MODELVIEW);
     glLoadMatrixf(graphicsState.viewMatrixF.getPointer());
     for (int i = 0; i < physicalEntities.Size(); ++i){
-        EntitySharedPtr e = physicalEntities[i];
+        Entity* e = physicalEntities[i];
         /// Set optional color first.
         // e->physics->obb.Render();
     }
@@ -457,7 +457,7 @@ rerer
 	glBlendFunc(GL_SRC_ALPHA, GL_DST_ALPHA); // GL_ONE_MINUS_SRC_ALPHA
 	glLineWidth(4.0f);
 	for (int i = 0; i < physicalEntities.Size(); ++i){
-		EntitySharedPtr e = physicalEntities[i];
+		Entity* e = physicalEntities[i];
 		PhysicsProperty * p = e->physics;
 		if (!p)
 			continue;

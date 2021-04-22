@@ -14,7 +14,7 @@
 //#include "..\EntityManager.h"
 //#include "..\Entity.h"
 class Entity;
-#define EntitySharedPtr std::shared_ptr<Entity>
+
 
 class Script;
 
@@ -106,14 +106,14 @@ public:
 	/// Entities is kind of obsolete now what with the utility list class..
 ///	Entities GetEntities();
 
-	EntitySharedPtr GetEntity(String byName);
+	Entity* GetEntity(String byName);
 	/** Returns a list of entities in the map. */
-	List< std::shared_ptr<Entity> > GetEntities();
+	List< Entity* > GetEntities();
 	List<Script*> GetEvents();
 	inline int NumEntities() { return entities.Size(); };
 
 	/** Removes target entity from the map. If the map is active the entity will also be de-registered from graphics/physics/etc.? */
-	virtual bool RemoveEntity(EntitySharedPtr entity);	
+	virtual bool RemoveEntity(Entity* entity);	
 
 	/// Fetches last error string, resetting it upon use.
 	String GetLastErrorString();
@@ -158,7 +158,7 @@ protected:
 	bool mapDataOK;
 
 	/** Adds target entity to the map. */
-	virtual bool AddEntity(EntitySharedPtr entity);
+	virtual bool AddEntity(Entity* entity);
 	/// Adds target event to the map.
 	virtual bool AddEvent(Script * eventScript);
 	/** Removes target entities from the map. Returns number of failed removals. */
@@ -208,8 +208,8 @@ protected:
 	CompactEvent * cEvent;
 
 	/// List of currently loaded entities related to this map
-	List< std::shared_ptr<Entity> > entities;
-//	EntitySharedPtr entity[MAX_ENTITIES_PER_MAP];
+	List< Entity* > entities;
+//	Entity* entity[MAX_ENTITIES_PER_MAP];
 	/// List of currently loaded events related to this map
 	List<Script *> events;
 };

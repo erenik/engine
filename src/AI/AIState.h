@@ -14,7 +14,7 @@ class AIState {
 	friend class AIManager;
 public:
 	String name;
-	AIState(int stateType, EntitySharedPtr owner);
+	AIState(int stateType, Entity* owner);
 	/// Virtual destructor so subclass destructor callback works correctly! IMPORTANT!
 	virtual ~AIState(){};
 
@@ -35,7 +35,7 @@ public:
 	int stateID;
 protected:
 	/// Owner-pointer reference
-	EntitySharedPtr entity;
+	Entity* entity;
 };
 
 #endif

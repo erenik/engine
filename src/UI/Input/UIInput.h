@@ -76,7 +76,7 @@ public:
 	const float ParseFloat();
 
 	// For setting static colors.
-	virtual void SetTextColor(std::shared_ptr<Color> newOverrideTextColor) override;
+	virtual void SetTextColor(Color newOverrideTextColor) override;
 
 	virtual void SetRange(int min, int max);
 
@@ -94,7 +94,7 @@ public:
 
 	void SetInputTexture(String source);
 
-	static std::shared_ptr<Color> defaultInputTextColor;
+	static Color defaultInputTextColor;
 
 protected:
 	/// For handling text-input

@@ -8,7 +8,7 @@
 #include "Path.h"
 #include "Entity/Entity.h"
 
-PathfindingProperty::PathfindingProperty(EntitySharedPtr entity)
+PathfindingProperty::PathfindingProperty(Entity* entity)
  : owner(entity)
 {
 	currentWaypoint = NULL;

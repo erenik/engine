@@ -38,7 +38,7 @@ class RenderInstancingGroup;
 #define GraphicsStatePtr (GraphicsState*)
 
 class Entity;
-#define EntitySharedPtr std::shared_ptr<Entity>
+
 
 #define checkGLError() {int error = glGetError();if (error != GL_NO_ERROR)throw 1;}
 
@@ -68,8 +68,8 @@ public:
 	~GraphicsState();
 public:
 	/// Adds an entity to the graphics state, which includes sorting it into proper instancing groups, if flagged for it.
-	void AddEntity(EntitySharedPtr entity);
-	void RemoveEntity(EntitySharedPtr entity);
+	void AddEntity(Entity* entity);
+	void RemoveEntity(Entity* entity);
 	void RemoveAllEntities();
 	void UpdateRenderInstancingGroupBuffers();
 	/// Calls glScissor, and updates locally tracked scissor. Appends current viewport x0/y0 co-ordinates automatically to the GL call.
@@ -92,7 +92,7 @@ public:
 	int farPlane;
 
 	/// All entities to render?
-	List< std::shared_ptr<Entity> > entities;
+	List< Entity* > entities;
 	/// Those requiring depth-sorting and usually rendered in a separate alpha-pass?
 	Entities alphaEntities;
 	Entities solidEntities,
@@ -126,7 +126,7 @@ public:
 //	Shader * activeShader;
 	/// List of all graphical effects that are to be rendered. Can be stocked up during initial culling!
 	List<GraphicEffect*> graphicEffectsToBeRendered;
-	List<std::shared_ptr<ParticleSystem> > particleEffectsToBeRendered;
+	List<ParticleSystem* > particleEffectsToBeRendered;
 	/// Entities that require depth-sorting before they can be rendered..!
 	Entities entitiesRequiringSorting;
 
@@ -219,7 +219,7 @@ public:
 private:
 	/// Used to reduce amount of calls to GL by not re-binding and setting up all vertex buffer stats if the same buffer is still bound. GL_ARRAY_BUFFER type
 	int boundVertexArrayBuffer;
-	RenderInstancingGroup * GetGroup(List<RenderInstancingGroup*> & fromListOfGroups, EntitySharedPtr basedOnEntity);
+	RenderInstancingGroup * GetGroup(List<RenderInstancingGroup*> & fromListOfGroups, Entity* basedOnEntity);
 
 };
 

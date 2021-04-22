@@ -25,8 +25,8 @@
 #include "Model/Model.h"
 #include "Model/ModelManager.h"
 
-std::shared_ptr<String> TextFont::defaultFontSource = std::make_shared<String>("font3.png"); // = "font3.png";
-std::shared_ptr<String> TextFont::defaultFontShader = std::make_shared<String>("Font");
+String TextFont::defaultFontSource = String("font3.png"); // = "font3.png";
+String TextFont::defaultFontShader = String("Font");
 
 /// Prints the values of the error code in decimal as well as hex and the literal meaning of it.
 extern void PrintGLError(const char * text);
@@ -46,9 +46,9 @@ bool IsCharacter(uchar c)
 	return true;
 }
 
-std::shared_ptr<Color> TextFont::idleColor = Color::ColorByHexName("#AAAAAAff");
-std::shared_ptr<Color> TextFont::onHoverColor = Color::ColorByHexName("#CCCCCCff");
-std::shared_ptr<Color> TextFont::onActiveColor = Color::ColorByHexName("#FFFFFFFF");
+Color TextFont::idleColor = Color::ColorByHexName("#AAAAAAff");
+Color TextFont::onHoverColor = Color::ColorByHexName("#CCCCCCff");
+Color TextFont::onActiveColor = Color::ColorByHexName("#FFFFFFFF");
 
 TextFont::TextFont()
 {
@@ -301,7 +301,7 @@ void TextFont::ParseTextureData(){
 	}
 }
 
-void TextFont::SetColor(std::shared_ptr<Color> textColor){
+void TextFont::SetColor(const Color& textColor){
 	color = textColor;
 }
 
@@ -458,18 +458,22 @@ Vector2f TextFont::CalculateRenderSizeWorldSpace(Text & text, GraphicsState & gr
 void TextFont::RenderText(
 	Text & text,
 	TextState textState,
-	std::shared_ptr<Color> overrideColor,
+	Color* overrideColor,
 	GraphicsState & graphicsState,
 	ConstVec3fr positionOffset,
 	float textSizePixels
 ) {
+	// No point wasting cycles on empty texts.
+	if (text.Length() == 0)
+		return;
+
 	Matrix4f modelMatrixF = graphicsState.modelMatrixF;
 
 	// Set starting variables.
 	NewText(text, textSizePixels);
 
 	/// One color for all text?
-	std::shared_ptr<Color> color = text.color;
+	auto color = text.color;
 	switch (textState) {
 	case TextState::Idle:
 		color = idleColor;
@@ -482,7 +486,7 @@ void TextFont::RenderText(
 		break;
 	}
 	if (overrideColor != nullptr)
-		color = overrideColor;
+		color = *overrideColor;
 	this->SetColor(color);
 	
 	/// Save old shader!
@@ -560,7 +564,7 @@ void TextFont::RenderCaret(GraphicsState & graphicsState, ConstVec3fr positionOf
 	pivotPoint[0] += moveDistance; // Move in and back.
 	SetTextSize(textSizePixels * 1.20f);
 	// Set transparency for caret rendering.
-	glUniform4f(shader->uniformPrimaryColorVec4, color->x, color->y, color->z, color->w * 0.5f);
+	glUniform4f(shader->uniformPrimaryColorVec4, color.x, color.y, color.z, color.w * 0.5f);
 
 	RenderChar(fontCaret, graphicsState, positionOffset);
 
@@ -606,7 +610,8 @@ bool TextFont::PrepareForRender(GraphicsState & graphicsState, float textSizePix
 		Matrix4f modelMatrix = graphicsState.modelMatrixF;
 		//shader->SetModelMatrix(graphicsState.modelMatrixF);
 		// Set text color
-		glUniform4f(shader->uniformPrimaryColorVec4, color->x, color->y, color->z, color->w);
+		auto vec = color;
+		glUniform4f(shader->uniformPrimaryColorVec4, vec.x, vec.y, vec.z, vec.w);
 		
 		// set hover state
 		glUniform1i(shader->uniformHoveredOver, hoveredOver? 1 : 0);
@@ -660,7 +665,8 @@ bool TextFont::PrepareForRender(GraphicsState & graphicsState, float textSizePix
 		Matrix4f modelView = graphicsState.viewMatrixF * graphicsState.modelMatrixF;
 		glMatrixMode(GL_MODELVIEW);
 		glLoadMatrixf(modelView.getPointer());
-		glColor4f(color->x, color->y, color->z, color->w);
+		auto vec = color;
+		glColor4f(vec.x, vec.y, vec.z, vec.w);
 		glEnable(GL_BLEND);
 		glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 

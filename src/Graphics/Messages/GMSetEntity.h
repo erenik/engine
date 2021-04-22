@@ -19,12 +19,12 @@ class EstimatorFloat;
 class GMSetEntityTexture : public GraphicsMessage {
 public:
 	// Defualt, sets both diffuse and specular map.
-	GMSetEntityTexture(List< std::shared_ptr<Entity> > entities, Texture * texture);
-	GMSetEntityTexture(List< std::shared_ptr<Entity> > entities, int target, Texture * texture);
-	GMSetEntityTexture(List< std::shared_ptr<Entity> > entities, int target, String textureSource);
+	GMSetEntityTexture(List< Entity* > entities, Texture * texture);
+	GMSetEntityTexture(List< Entity* > entities, int target, Texture * texture);
+	GMSetEntityTexture(List< Entity* > entities, int target, String textureSource);
 	virtual void Process(GraphicsState* graphicsState) override;
 private:
-	List< std::shared_ptr<Entity> > entities;
+	List< Entity* > entities;
 	Texture * t;
 	String textureSource;
 	int target;
@@ -33,16 +33,16 @@ private:
 class GMSetEntity : public GraphicsMessage {
 public:
 	/// For general procedures that do stuff..
-	GMSetEntity(EntitySharedPtr entity, int target);
-	GMSetEntity(List< std::shared_ptr<Entity> > entities, int target, EntitySharedPtr otherEntity);
-	GMSetEntity(List< std::shared_ptr<Entity> > entities, int target, Camera * camera);
-	GMSetEntity(EntitySharedPtr entity, int target, Model * model);
-	GMSetEntity(List< std::shared_ptr<Entity> > entities, int target, String string);
+	GMSetEntity(Entity* entity, int target);
+	GMSetEntity(List< Entity* > entities, int target, Entity* otherEntity);
+	GMSetEntity(List< Entity* > entities, int target, Camera * camera);
+	GMSetEntity(Entity* entity, int target, Model * model);
+	GMSetEntity(List< Entity* > entities, int target, String string);
 	virtual void Process(GraphicsState* graphicsState) override;
 private:
-	EntitySharedPtr otherEntity;
+	Entity* otherEntity;
 	String string;
-	List< std::shared_ptr<Entity> > entities;
+	List< Entity* > entities;
 	int target;
 	void * data;
 	Model * model;
@@ -52,10 +52,10 @@ private:
 class GMSetEntityb : public GraphicsMessage 
 {
 public:
-	GMSetEntityb(List< std::shared_ptr<Entity> > entities, int target, bool value, bool recursive = false);
+	GMSetEntityb(List< Entity* > entities, int target, bool value, bool recursive = false);
 	virtual void Process(GraphicsState* graphicsState) override;
 private:
-	List< std::shared_ptr<Entity> > entities;
+	List< Entity* > entities;
 	bool bValue;
 	bool recurse;
 	int target;
@@ -65,10 +65,10 @@ private:
 class GMSetEntitys : public GraphicsMessage 
 {
 public:
-	GMSetEntitys(EntitySharedPtr entity, int target, String value);
+	GMSetEntitys(Entity* entity, int target, String value);
 	virtual void Process(GraphicsState* graphicsState) override;
 private:
-	EntitySharedPtr entity;
+	Entity* entity;
 	String sValue;
 	int target;
 };
@@ -76,10 +76,10 @@ private:
 class GMSetEntityf : public GraphicsMessage 
 {
 public:
-	GMSetEntityf(List< std::shared_ptr<Entity> > entities, int target, float value);
+	GMSetEntityf(List< Entity* > entities, int target, float value);
 	virtual void Process(GraphicsState* graphicsState) override;
 private:
-	List< std::shared_ptr<Entity> > entities;
+	List< Entity* > entities;
 	float fValue;
 	int target;
 };
@@ -87,10 +87,10 @@ private:
 class GMSetEntityi : public GraphicsMessage 
 {
 public:
-	GMSetEntityi(List< std::shared_ptr<Entity> > entities, int target, int value);
+	GMSetEntityi(List< Entity* > entities, int target, int value);
 	virtual void Process(GraphicsState* graphicsState) override;
 private:
-	List< std::shared_ptr<Entity> > entities;
+	List< Entity* > entities;
 	int iValue;
 	int target;
 };
@@ -98,10 +98,10 @@ private:
 class GMSetEntityVec4f : public GraphicsMessage 
 {
 public:
-	GMSetEntityVec4f(List< std::shared_ptr<Entity> > entities, int target, const Vector4f & value);
+	GMSetEntityVec4f(List< Entity* > entities, int target, const Vector4f & value);
 	virtual void Process(GraphicsState* graphicsState) override;
 private:
-	List< std::shared_ptr<Entity> > entities;
+	List< Entity* > entities;
 	Vector4f vec4fValue;
 	int target;
 };

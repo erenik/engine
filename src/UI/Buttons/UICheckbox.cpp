@@ -11,20 +11,24 @@
 #include "Message/MessageManager.h"
 
 
-UICheckbox::UICheckbox(String name /*= ""*/)
-	: UIElement()
+UICheckbox::UICheckbox(String in_name /*= ""*/)
+	: UIElement(in_name)
+	, button(nullptr)
 {
 	Nullify();
-	// Set default texture to get proper animation for when hovering/activating it.
 	textureSource = defaultTextureSource;
-	this->name = name;
-	//text = name;
 	activationMessage = "SetBool:" + name;
+	text = name;
 	type = UIType::CHECKBOX;
 	selectable = true;
 	hoverable = true;
 	navigatable = true;
 	activateable = true;
+
+	/*
+	// Set default texture to get proper animation for when hovering/activating it.
+	//text = name;
+	*/
 };
 
 UICheckbox::~UICheckbox()
@@ -67,31 +71,48 @@ void UICheckbox::OnStateAdded(int state) {
 		button->SetToggled(!button->IsToggled());
 		RemoveState(state);
 	}
-	this->label->AddState(state);
+	if (label)
+		label->AddState(state);
 }
 
 void UICheckbox::SetToggled(bool value) {
-	button->SetToggled(value);
-
+	if (button)
+		button->SetToggled(value);
 }
 
 
-void UICheckbox::OnToggled(UIToggleButton * button) {
-	BoolMessage * msg = new BoolMessage(activationMessage, button->IsToggled());
-	MesMan.QueueMessage(msg);
+void UICheckbox::OnToggled(UIElement * button) {
+	switch(button->type) {
+	case UIType::TOGGLE_BUTTON:
+	case UIType::CHECKBOX:
+		_onToggled();
+		break;
+	default:
+		assert(false && "Implement");
+	}
+}
 
+void UICheckbox::_onToggled() {
+	// Check own button only.
+	UIToggleButton* toggleButton = button;
+	if (toggleButton == nullptr)
+		return;
+	BoolMessage * msg = new BoolMessage(activationMessage, toggleButton->IsToggled());
+	MesMan.QueueMessage(msg);
 	if (toggleTextOn.Length() > 0) {
-		button->SetText(button->IsToggled() ? toggleTextOn : toggleTextOff);
+		toggleButton->SetText(toggleButton->IsToggled() ? toggleTextOn : toggleTextOff);
 	}
 }
 
 void UICheckbox::CreateChildren() {
+
 	UIColumnList * box = UIInput::CreateDefaultColumnList(this);
 	float spacePerElement = UIInput::DefaultSpacePerElement(padding);
 	label = UIInput::CreateDefaultLabel(box, displayText, spacePerElement);
 	
 	/// Create 3 children
 	button = new UIToggleButton();
+	box->InheritDefaults(button);
 	button->name = name + "Toggle";
 	button->sizeRatioX = spacePerElement;
 	button->onToggledTexture = "ui/checkbox_toggled";
