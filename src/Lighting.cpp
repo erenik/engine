@@ -86,14 +86,16 @@ bool Lighting::ProcessMessage(Message * message)
 		case MessageType::FILE_EVENT:
 		{
 			FileEvent * fileEvent = (FileEvent*) message;
-			String file = fileEvent->files[0];
-			if (msg == "LoadLighting")
-			{
-				LoadLighting(file);
-			}
-			else if (msg == "SaveLighting")
-			{
-				SaveLighting(file);
+			if (fileEvent->files.Size()) {
+				String file = fileEvent->files[0];
+				if (msg == "LoadLighting")
+				{
+					LoadLighting(file);
+				}
+				else if (msg == "SaveLighting")
+				{
+					SaveLighting(file);
+				}
 			}
 			break;
 		}

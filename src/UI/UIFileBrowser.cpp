@@ -9,24 +9,28 @@
 #include "File/FileUtil.h"
 #include "Graphics/GraphicsManager.h"
 #include "Graphics/Messages/GMUI.h"
+#include "Message/FileEvent.h"
+#include "Message/MessageManager.h"
 
 List<String> UIFileBrowser::oldFileBrowsers;
 
-UIFileBrowser::UIFileBrowser(String title, String action, String fileFilter)
-: UIList(), title(title), action(action), fileFilter(fileFilter)
+UIFileBrowser::UIFileBrowser(String name, String action, String fileFilter)
+: UIList(), title(name), action(action), fileFilter(fileFilter)
 {
 	type = UIType::FILE_BROWSER;
 	this->textureSource = "black.png";
 	// Set the title to be the name of this whole thingy!
-	this->name = title+"FileBrowser";
+	this->name = title;
 	this->exitable = true;
 	// Specify that this dialogue should be deallocated after popping it.
-	removeOnPop = true;
+	//removeOnPop = true;
 	// Disable cyclicity here, it annoys.
 	cyclicY = false;
 
 	dirInput = NULL;
 	dirList = NULL;
+	padding = 0.05f;
+	sizeRatioX = sizeRatioY = 0.9f;
 
 	/// For loading dynamically right before rendering.
 	directoryLoaded = false;
@@ -65,12 +69,15 @@ void UIFileBrowser::CreateChildren(GraphicsState* graphicsState)
 	
 	// Create a title
 	UILabel * label = new UILabel();
+	InheritDefaults(label);
 	label->SetText(title);
 	label->sizeRatioY = 0.1f;
+	label->SetTextColor(Vector4f(1, 1, 1, 1));
 	AddChild(nullptr, label);
 
 	// Create path/dir input
 	dirInput = new UIInput();
+	InheritDefaults(dirInput);
 	dirInput->name = this->name+"DirInput";
 	dirInput->onTrigger = "SetFileBrowserDirectory("+this->name+",this)";
 	dirInput->sizeRatioY = 0.1f;
@@ -78,34 +85,43 @@ void UIFileBrowser::CreateChildren(GraphicsState* graphicsState)
 	AddChild(nullptr, dirInput);
 	// Create file-list
 	dirList = new UIList();
+	InheritDefaults(dirList);
 	dirList->sizeRatioY = 0.6f;
 	dirList->name = this->name+"DirList";
 	AddChild(nullptr, dirList);
 	
 	// Create file-name input
 	fileInput = new UIInput();
+	InheritDefaults(fileInput);
 	fileInput->name = this->name+"FileInput";
 	fileInput->sizeRatioY = 0.1f;
 	fileInput->onTrigger = "SetFileBrowserFile("+this->name+",this)";
+	fileInput->onTriggerActions.Add(UIAction(UIAction::SET_FILE_BROWSER_FILE_FROM_INPUT, this));
 	AddChild(nullptr, fileInput);
 
 	// Create OK/Cancel buttons
 	UIColumnList * cList = new UIColumnList();
+	InheritDefaults(cList);
 	cList->sizeRatioY = 0.1f;
 	AddChild(nullptr, cList);
 	
 	UIButton * cancelButton = new UIButton();
+	InheritDefaults(cancelButton);
 	cancelButton->name = "Cancel";
 	cancelButton->SetText("Cancel");
 	cancelButton->sizeRatioX = 0.4f;
-	cancelButton->activationMessage = "PopUI("+this->name+")";
+//	cancelButton->activationMessage = "PopUI("+this->name+")";
+	cancelButton->activationActions.AddItem(UIAction(UIAction::POP_UI, this));
 	cList->AddChild(nullptr, cancelButton);
 
 	UIButton * okButton = new UIButton();
+	InheritDefaults(okButton);
 	okButton->name = "OK";
 	okButton->SetText("OK");
 	okButton->sizeRatioX = 0.4f;
-	okButton->activationMessage = "EvaluateFileBrowserSelection("+this->name+")&PopUI("+this->name+")";
+	//okButton->activationMessage = "EvaluateFileBrowserSelection("+this->name+")&PopUI("+this->name+")";
+	okButton->activationActions.Add(UIAction(UIAction::CONFIRM_FILE_BROWSER_SELECTION, this));
+	okButton->activationActions.AddItem(UIAction(UIAction::POP_UI, this));
 	cList->AddChild(nullptr, okButton);
 	
 	/// Bind neighbours for proper ui navigation...
@@ -140,12 +156,14 @@ void UIFileBrowser::LoadDirectory(bool fromRenderThread)
 	for (int i = 0; i < dirs.Size(); ++i)
 	{
 		UIButton * dirButton = new UIButton();
+		InheritDefaults(dirButton);
 		dirButton->sizeRatioY = 0.1f;
 		dirButton->SetText(dirs[i]+"/");
 #define LOW	0.5f
 #define MID	0.7f
 		dirButton->SetTextColor(Vector3f(LOW,MID,2.0f));
-		dirButton->activationMessage = "UpdateFileBrowserDirectory("+this->name+","+dirs[i]+")";
+		//dirButton->activationMessage = "UpdateFileBrowserDirectory("+this->name+","+dirs[i]+")";
+		dirButton->activationActions.Add(UIAction(UIAction::SELECT_FILE_BROWSER_DIRECTORY, this, dirs[i]));
 		dirList->AddChild(nullptr, dirButton);
 		// Save first directory so we may hover to it.
 		if (i == 0)
@@ -159,10 +177,12 @@ void UIFileBrowser::LoadDirectory(bool fromRenderThread)
 			continue;
 		
 		UIButton * fileButton = new UIButton();
+		InheritDefaults(fileButton);
 		fileButton->sizeRatioY = 0.1f;
 		fileButton->SetText(files[i]);
 		fileButton->SetTextColor(Color(Vector3f(LOW,2.0f,LOW)));
-		fileButton->activationMessage = "SetFileBrowserFile("+this->name+","+files[i]+")";
+		// fileButton->activationMessage = "SetFileBrowserFile("+this->name+","+files[i]+")";
+		fileButton->activationActions.Add(UIAction(UIAction::SELECT_FILE_BROWSER_FILE, this, files[i]));
 		dirList->AddChild(nullptr, fileButton);
 	}
 	// Hover to the element at once!
@@ -242,10 +262,20 @@ void UIFileBrowser::OnDirPathUpdated(bool fromRenderThread)
 }
 
 /// Sets file in the input-field for later evaluation.
-void UIFileBrowser::SetActiveFile(String file){
-	Graphics.QueueMessage(new GMSetUIs(fileInput->name, GMUI::TEXT, file, ui));
+void UIFileBrowser::SetActiveFile(GraphicsState* graphicsState, String file){
 	fileSelection.Clear();
-	fileSelection.Add(file);
+	fileSelection.Add(currentPath + "/" + file);
+
+	if (graphicsState) {
+		fileInput->SetText(file);
+	}
+	else {
+		Graphics.QueueMessage(new GMSetUIs(fileInput->name, GMUI::TEXT, file, ui));
+	}
+}
+
+void UIFileBrowser::SetActiveFileFromInput(GraphicsState* graphicsState) {
+	fileSelection = currentPath + "/" + fileInput->GetText();
 }
 
 
@@ -278,6 +308,20 @@ List<String> UIFileBrowser::GetFileSelection(){
 	return files;
 }
 
+void UIFileBrowser::ConfirmSelection() {
+	FileEvent * message = new FileEvent();
+	UIFileBrowser * fb = (UIFileBrowser*)ui;
+	message->msg = fb->action;
+	if (message->msg.Length() == 0)
+		message->msg = name;
+	message->files = fileSelection;
+	// Queue the new message.
+	MesMan.QueueMessage(message);
+}
+
+void UIFileBrowser::SetFileFilter(String filter) {
+	fileFilter = filter;
+}
 
 /*
 private:

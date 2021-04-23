@@ -67,9 +67,9 @@ int GetDirectoriesInDirectory(String directory, List<String> & dirs){
 	WIN32_FIND_DATA data;
 	if (directory.Type() == String::CHAR)
 		directory.ConvertToWideChar();
-	if (directory.wc_str()[directory.Length()] != '/')
-		directory += '/';
-	if (!directory.ContainsChar('*'))
+	//if (directory.EndsWith(L'/'))
+	//	directory.wc_str()[directory.Length() - 1] = L'\0';
+	if (!directory.ContainsChar(L'*'))
 		directory += '*';
 	HANDLE findHandle = NULL;
 	findHandle = FindFirstFileW(directory.wc_str(), &data);

@@ -228,6 +228,8 @@ public:
 	/// Message sent when hovering over an element.
 	String onHover;
 	String onTrigger; // For "triggering" the element, e.g. pressing Enter for input fields
+	// Action(s) to be performed upon activation. These will be done entirely/only on the Graphics-thread.
+	List<UIAction> onTriggerActions;
 	String onPop; // Called when hitting "Back" or pressing Escape, usually
 	String onForcePop; // Called no matter how the UI is popped, rarer usage?
 

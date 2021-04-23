@@ -523,6 +523,7 @@ bool Time::ParseFrom(const String & string)
 	List<String> tokens = string.Tokenize(":.");
 	if (tokens.Size() == 1) { // Set seconds only.
 		this->SetSecond(tokens[0].ParseInt());
+		return true;
 	}
 	else if (tokens.Size() == 2)
 	{

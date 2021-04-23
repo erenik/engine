@@ -464,8 +464,8 @@ void TextFont::RenderText(
 	float textSizePixels
 ) {
 	// No point wasting cycles on empty texts.
-	if (text.Length() == 0)
-		return;
+	//if (text.Length() == 0)
+	//	return;
 
 	Matrix4f modelMatrixF = graphicsState.modelMatrixF;
 
@@ -537,17 +537,18 @@ void TextFont::RenderText(
 		EndChar(textSizePixels);					// Move out.
 		lastChar = currentChar;
 	}
-	// Caret at the end?
-	if (text.caretPosition >= text.Length() && shouldRenderCaret)
-	{
-		renderCaretPivot = pivotPoint;
-	}
-	
-	if (renderCaretPivot.MaxPart() != 0) {
-		pivotPoint = renderCaretPivot;
-		RenderCaret(graphicsState, positionOffset, textSizePixels);
-	}
 
+	// For texts with contents.
+	if (text.caretPosition >= 0)
+	{
+		if (shouldRenderCaret) {
+			if (text.Length() == 0)
+				renderCaretPivot = Vector2i(5, -textSizePixels * 0.5f);
+			else if (renderCaretPivot.MaxPart() != 0)
+				pivotPoint = renderCaretPivot;
+			RenderCaret(graphicsState, positionOffset, textSizePixels);
+		}
+	}
 
 	OnEndRender(graphicsState);
 	/// Revert to old shader!

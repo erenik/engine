@@ -6,6 +6,8 @@
 #include "UI/UIElement.h"
 #include "UI/UITypes.h"
 #include "UI/UIInputs.h"
+#include "UI/UIFileBrowser.h"
+#include "UserInterface.h"
 
 UIAction::UIAction()
 {
@@ -34,6 +36,15 @@ UIAction::UIAction(int inType, UIElement * inTargetElement, int inArgument)
 	argument = inArgument;
 }
 
+UIAction::UIAction(int inType, UIElement * inTargetElement, String inArgumentStr)
+{
+	Nullify();
+	type = inType;
+	targetElement = inTargetElement;
+	argumentStr = inArgumentStr;
+}
+
+
 void UIAction::Nullify()
 {
 	type = target = 0;
@@ -51,6 +62,11 @@ void UIAction::Process(GraphicsState* graphicsState, UIElement * forElement)
 	}
 	switch(type)
 	{
+		case POP_UI:
+			if (targetElement)
+				targetElement->ui->PopFromStack(graphicsState, targetElement);
+			break;
+		// Drop down menu
 		case OPEN_DROP_DOWN_MENU:
 			if (targetElement->type == UIType::DROP_DOWN_MENU)
 				((UIDropDownMenu*)targetElement)->Open(graphicsState);
@@ -62,5 +78,23 @@ void UIAction::Process(GraphicsState* graphicsState, UIElement * forElement)
 		case SELECT_DROP_DOWN_MENU:
 			if (targetElement->type == UIType::DROP_DOWN_MENU)
 				((UIDropDownMenu*)targetElement)->Select(argument);
+			break;
+			// File Browser
+		case SELECT_FILE_BROWSER_FILE:
+			if (targetElement->type == UIType::FILE_BROWSER)
+				((UIFileBrowser*)targetElement)->SetActiveFile(graphicsState, argumentStr);
+			break;
+		case SELECT_FILE_BROWSER_DIRECTORY:
+			if (targetElement->type == UIType::FILE_BROWSER)
+				((UIFileBrowser*)targetElement)->UpdatePath(argumentStr, false);
+			break;
+		case CONFIRM_FILE_BROWSER_SELECTION:
+			if (targetElement->type == UIType::FILE_BROWSER)
+				((UIFileBrowser*)targetElement)->ConfirmSelection();
+			break;
+		case SET_FILE_BROWSER_FILE_FROM_INPUT:
+			if (targetElement->type == UIType::FILE_BROWSER)
+				((UIFileBrowser*)targetElement)->SetActiveFileFromInput(graphicsState);
+			break;
 	}
 }

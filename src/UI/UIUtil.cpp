@@ -18,6 +18,7 @@ bool PushUI(String nameOrSource)
 	String uiName = nameOrSource;
 	String uiSrc = nameOrSource;
 	/// Check if the element exists...!
+	/*
 	UserInterface * ui = ActiveUI();
 	if (!ui)
 		ui = MainUI();
@@ -26,13 +27,14 @@ bool PushUI(String nameOrSource)
 		LogMain("No UI to interact with in PushUI: "+nameOrSource, ERROR);
 		return false;
 	}
-	UIElement * element = NULL;
+	*/
+	//UIElement * element = NULL;
 	/// Push it to stack if not.
-	if (element)
-		QueueGraphics(GMPushUI::ToUI(element, ui));
+	//if (element)
+	QueueGraphics(GMPushUI::ByNameOrSource(nameOrSource));
 	/// Just try pushing it.
-	else 
-		QueueGraphics(GMPushUI::ToUI(uiName, ui));
+	//else 
+		//QueueGraphics(GMPushUI::ToUI(uiName, ui));
 	return true;
 }
 

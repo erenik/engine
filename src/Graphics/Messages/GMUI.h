@@ -68,6 +68,8 @@ public:
 		DROP_DOWN_INPUT_SELECT, // For drop down menus
 		INTEGER_INPUT_TEXT, // For UIIntegerInput
 		TEXTURE_INPUT_SOURCE, // For UITextureInput
+		// For UIFile Browser
+		FILE_BROWSER_PATH, 
 	};
 protected:
 	/// By looking at viewport. Returns false if none was found.
@@ -311,7 +313,7 @@ private:
 class AppWindow;
 
 class GMPushUI : public GMUI
-{
+{	
 	GMPushUI(String sourceName); // Default window and UI.
 	GMPushUI(UIElement * element); // Default window and UI.
 public:
@@ -319,14 +321,26 @@ public:
 //	GMPushUI(String sourceName, AppWindow * window = 0); // If 0, grabs main window.
 //	GMPushUI(String elementName, UserInterface * ontoUI = 0); // if 0 UI, grabs main window's main UI.
 //	GMPushUI(UIElement * element, UserInterface * ontoUI = 0); // if 0 UI, grabs main window's main UI.
+
+
+	static GMPushUI * ByNameOrSource(String elementName);
+
 	/// Creates and returns a new message, aimed at a specific window (or the main one, if 0).
 	static GMPushUI * ToWindow(String elementName, AppWindow * window = 0);
 	static GMPushUI * ToUI(String elementName, UserInterface * toUI = 0);
 	static GMPushUI * ToUI(UIElement * element, UserInterface * ontoUI = 0); // if 0 UI, grabs main window's main UI.
 	void Process(GraphicsState* graphicsState);
+
+	// If true, searches all UI if need be - automagic
+	bool searchAllUI = false;
+
 private:
+
+	void PushUI(UIElement * e, GraphicsState * graphicsState);
+
 	UIElement * element;
 	String uiName;
+	
 };
 
 class GMPopUI : public GMUI{

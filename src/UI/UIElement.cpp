@@ -1681,11 +1681,11 @@ void UIElement::Bufferize()
 /// Releases resources used by the UIElement. Should only be called by a thread with valid GL context!
 void UIElement::FreeBuffers()
 {
-	if (vboBuffer){
+	if (vboBuffer != -1){
 		GLBuffers::Free(vboBuffer);
 		vboBuffer = -1;
 	}
-	if (vertexArray){
+	if (vertexArray != -1){
 		GLVertexArrays::Free(vertexArray);
 		vertexArray = -1;
 	}
@@ -1841,8 +1841,12 @@ void UIElement::RenderSelf(GraphicsState & graphicsState)
 
 void UIElement::RenderText(GraphicsState & graphicsState)
 {
-	if (!this->text || this->text.Length() == 0)
+	if (this->text.Length() == 0 && this->text.caretPosition < 0)
 		return;
+
+	if (this->text.caretPosition >= 0) {
+		//LogGraphics("Hello", INFO);
+	}
 
 	Text& toRender = this->text;
 	if (this->textToRender.Length() > 0)
@@ -1920,8 +1924,6 @@ void UIElement::RenderText(GraphicsState & graphicsState)
 
 void UIElement::FormatText(GraphicsState * graphicsState)
 {
-	if (text.Length() == 0)
-		return;
 	/// Resize to fit.
 	Text& textToRender = text;
 

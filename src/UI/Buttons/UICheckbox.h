@@ -16,6 +16,7 @@ public:
 	void OnStateAdded(int state) override;
 
 	virtual void SetToggled(bool value);
+	virtual void SetText(CTextr text, bool force) override;
 
 	virtual void OnToggled(UIElement * button) override;
 	virtual void CreateChildren();

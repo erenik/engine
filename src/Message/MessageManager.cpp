@@ -731,6 +731,7 @@ void MessageManager::ProcessMessage(Message * message)
 				fb->SetPath(path, false);
 				return;
 			}
+			/*
 			else if (msg.Contains("UpdateFileBrowserDirectory("))
 			{
 				List<String> params = msg.Tokenize(",()");
@@ -746,6 +747,7 @@ void MessageManager::ProcessMessage(Message * message)
 				fb->UpdatePath(path, false);
 				return;
 			}
+			*/
 			else if (msg.Contains("EvaluateFileBrowserSelection("))
 			{
 				List<String> params = msg.Tokenize("()");
@@ -761,6 +763,7 @@ void MessageManager::ProcessMessage(Message * message)
 				QueueMessage(message);
 				return;
 			}
+			/*
 			else if (msg.Contains("SetFileBrowserFile("))
 			{
 				List<String> params = msg.Tokenize(",()");
@@ -777,6 +780,7 @@ void MessageManager::ProcessMessage(Message * message)
 				fb->SetActiveFile(file);
 				return;
 			}
+			*/
 			else if (msg.Contains("OpenFileBrowser(")){
 				/// Parse stuff
 				List<String> params = msg.Tokenize("(),");

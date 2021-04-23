@@ -14,11 +14,13 @@
 UICheckbox::UICheckbox(String in_name /*= ""*/)
 	: UIElement(in_name)
 	, button(nullptr)
+	, label(nullptr)
 {
 	Nullify();
 	textureSource = defaultTextureSource;
 	activationMessage = "SetBool:" + name;
-	text = name;
+	text = "";
+	displayText = name;
 	type = UIType::CHECKBOX;
 	selectable = true;
 	hoverable = true;
@@ -78,6 +80,12 @@ void UICheckbox::OnStateAdded(int state) {
 void UICheckbox::SetToggled(bool value) {
 	if (button)
 		button->SetToggled(value);
+}
+
+void UICheckbox::SetText(CTextr text, bool force) {
+	displayText = text;
+	if (label)
+		label->SetText(text);
 }
 
 

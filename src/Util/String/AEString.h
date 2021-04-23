@@ -116,6 +116,7 @@ public:
 	*/
 	int Find(char c) const;
 	bool EndsWith(char c) const;
+	bool EndsWith(wchar_t c) const;
 	/// Similar to Contains but works only on the beginning of the string.
 	bool StartsWith(const String & subString);
 	/// Removes string subpart, returns true if it found and successfully removed it, false if not. Works recursively if all is true.

@@ -5,6 +5,8 @@
 #ifndef UI_ACTION_H
 #define UI_ACTION_H
 
+#include "String/AEString.h"
+
 class UIElement;
 class GraphicsState;
 
@@ -15,14 +17,22 @@ public:
 	UIAction(int type, int target);
 	UIAction(int type, UIElement * targetElement);
 	UIAction(int type, UIElement * targetElement, int argument);
+	UIAction(int type, UIElement * targetElement, String argument);
 	void Nullify();
 	void Process(GraphicsState* graphicsState, UIElement * forElement);
 	enum 
 	{
+		POP_UI,
 		STRING,
+		// Drop down
 		OPEN_DROP_DOWN_MENU,
 		CLOSE_DROP_DOWN_MENU,
 		SELECT_DROP_DOWN_MENU,
+		// File Browser
+		SELECT_FILE_BROWSER_FILE,
+		SELECT_FILE_BROWSER_DIRECTORY,
+		CONFIRM_FILE_BROWSER_SELECTION,
+		SET_FILE_BROWSER_FILE_FROM_INPUT,
 	};
 	int type;
 	enum 
@@ -32,6 +42,7 @@ public:
 	};
 	int target;
 	int argument;
+	String argumentStr;
 	UIElement * targetElement;
 //	String msg;
 };

@@ -187,7 +187,7 @@ int EntityManager::DeleteUnusedEntities(int timeInMs)
 		++deletedEntities;
 		entities.RemoveItemUnsorted(entity);
 		entitiesToDelete.RemoveItemUnsorted(entity);
-		// delete entity; // Assume it deletes auto-magically from de-referencing?
+		delete entity; // Assume it deletes auto-magically from de-referencing?
 		--i;
 	}
 	return deletedEntities;

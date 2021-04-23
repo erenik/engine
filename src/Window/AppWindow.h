@@ -98,6 +98,9 @@ public:
 	/// Toggles full-screen for this AppWindow.
 	void ToggleFullScreen();
 
+	// Request it, if possible.
+	void SetAlwaysOnTop();
+
 	/// Sets default styles
 	void SetDefaults();
 	/// Creates the actual AppWindow. Returns true upon success.
@@ -225,6 +228,8 @@ public:
 #define GetRayFromWindowCoordinates GetRayFromScreenCoordinates
 	bool GetRayFromScreenCoordinates(int mouseX, int mouseY, Ray & ray);
 	bool GetRayFromScreenCoordinates(Vector2i screenCoords, Ray & ray);
+
+	bool alwaysOnTop = false;
 
 	/// All below should only be touched from within the render-thread.
 	/// When true, will save the next rendered frame's contents as a screenshot to standard screenshot output directory (./output/screenshots/)

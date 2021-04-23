@@ -54,6 +54,11 @@ public:
 	/// Loads from target file, using given root as root-element in the UI-hierarchy.
 	UIElement* LoadFromFile(String filePath, UserInterface * ui);
 
+	// Checks for defaultSize, defaultTexture, etc.
+	void ParseDefaults(List<String> tokens);
+	// Checks for Button, Checkbox, List, etc.
+	void ParseNewUIElements();
+
 	List<String> ParseTokens(String fromLine);
 
 	void EnsureNextToken(const List<String> fromTokens);

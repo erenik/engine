@@ -1,0 +1,8 @@
+// Demonstrates a file browser.
+
+FileBrowser MyFileBrowser
+FilePath 
+sizeRatioXY 1 1
+font Font3
+
+

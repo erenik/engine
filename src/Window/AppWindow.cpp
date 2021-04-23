@@ -350,6 +350,13 @@ void AppWindow::ToggleFullScreen()
 	}
 }
 
+// Request it, if possible.
+void AppWindow::SetAlwaysOnTop() {
+#ifdef WINDOWS
+	//SetWindowPos(hWnd, HWND_TOP, 0, 0, 0, 0, SWP_SHOWWINDOW | SWP_NOSIZE | SWP_NOMOVE | SWP_NOREDRAW);
+#endif
+	alwaysOnTop = true;
+}
 
 void AppWindow::SetDefaults()
 {

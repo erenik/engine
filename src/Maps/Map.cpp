@@ -182,6 +182,8 @@ void Map::Process(int timePassedInMs)
 		Entity* entity = entities[i];
 		if (entity->sharedProperties)
 			continue;
+		if (entity->flaggedForDeletion)
+			continue;
 		for (int j = 0; j < entity->properties.Size(); ++j)
 		{
 			EntityProperty * prop = entity->properties[j];

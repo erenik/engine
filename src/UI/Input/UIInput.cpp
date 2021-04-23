@@ -226,11 +226,11 @@ UIInputResult UIInput::OnKeyDown(GraphicsState* graphicsState, int keyCode, bool
 				return UIInputResult::NoUpdate;
 			StopInput();
 			// Activate the messages this element had, if any. If using as a compound e.g. inside a StringInput, then this onTrigger may be omitted.
-			if (onTrigger.Length())
+			if (onTrigger.Length()) {
 				MesMan.QueueMessages(onTrigger, this);
-			else 
-			{
-				
+				for (int i = 0; i < onTriggerActions.Size(); ++i) {
+					onTriggerActions[i].Process(graphicsState, this);
+				}
 			}
 			/// Notify of the update to self and then parents, so that extra actions may be taken.
 			this->OnInputUpdated(graphicsState, this);

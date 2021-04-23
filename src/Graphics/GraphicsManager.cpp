@@ -601,6 +601,8 @@ void GraphicsManager::ProcessMessages()
 TextFont * GraphicsManager::GetFont(String byName)
 {
 	String source = byName;
+	if (byName.Length() == 0)
+		return nullptr;
 	if (!source.Contains(".png"))
 		source += ".png";
 	if (!source.Contains("/"))

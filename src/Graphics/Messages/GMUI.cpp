@@ -25,6 +25,7 @@
 #include "Window/AppWindowManager.h"
 
 #include "File/LogFile.h"
+#include "UI/UIFileBrowser.h"
 
 /// Default constructor, will target active global UI.
 GMUI::GMUI(int messageType)
@@ -579,7 +580,7 @@ void GMSetUIb::Process(GraphicsState * graphicsState)
 	switch(target){
 		case GMUI::TOGGLED: {
 			UIToggleButton * toggleButton = (UIToggleButton*) e;
-			toggleButton->SetToggled(value);
+			toggleButton->SetToggledSilently(value);
 			break;
 		}
 		case GMUI::CHILD_TOGGLED:
@@ -682,6 +683,7 @@ void GMSetUIs::AssertTarget()
 		case GMUI::INTEGER_INPUT_TEXT:
 		case GMUI::ACTIVATION_MESSAGE:
 		case GMUI::DROP_DOWN_INPUT_SELECT:
+		case GMUI::FILE_BROWSER_PATH:
 			break;
 		default:
 		{
@@ -700,6 +702,13 @@ void GMSetUIs::Process(GraphicsState * graphicsState)
         return;
 	GetElement("GMSetUIs");
 	switch(target){
+	case GMUI::FILE_BROWSER_PATH: {
+		if (e->type != UIType::FILE_BROWSER)
+			break;
+		UIFileBrowser* fileBrowser = (UIFileBrowser*)e;
+		fileBrowser->SetPath(text, true);
+		break;
+	}
 		case GMUI::TEXTURE_INPUT_SOURCE:
 		{
 			if (e->type != UIType::TEXTURE_INPUT)
@@ -995,6 +1004,12 @@ GMPushUI::GMPushUI(UIElement * in_element)
 }
 
 
+GMPushUI * GMPushUI::ByNameOrSource(String elementName) {
+	GMPushUI * p = new GMPushUI(elementName);
+	p->searchAllUI = true;
+	return p;
+}
+
 /// Creates and returns a new message, aimed at a specific window (or the main one, if 0).
 GMPushUI * GMPushUI::ToWindow(String elementName, AppWindow * window)
 {
@@ -1055,6 +1070,11 @@ void GMPushUI::Process(GraphicsState * graphicsState)
 		std::cout<<"\nGMPushUI: Invalid UIElement.";
 		return;
 	}
+
+	PushUI(e, graphicsState);
+}
+
+void GMPushUI::PushUI(UIElement * e, GraphicsState * graphicsState) {
 	/// Add to root.
 	if (e->Parent() == 0)
 		ui->GetRoot()->AddChild(graphicsState, e);
@@ -1062,7 +1082,7 @@ void GMPushUI::Process(GraphicsState * graphicsState)
 	InputMan.PushToStack(graphicsState, e, ui);
 
 	/// Enable navigate ui if element wants it.
-	if (e->navigateUIOnPush){
+	if (e->navigateUIOnPush) {
 		e->previousNavigateUIState = InputMan.NavigateUIState();
 		if (e->forceNavigateUI)
 			InputMan.SetForceNavigateUI(true);
@@ -1072,6 +1092,7 @@ void GMPushUI::Process(GraphicsState * graphicsState)
 
 	MesMan.QueueMessage(new OnUIPushed(e->name));
 }
+
 
 
 /// Function that deletes a UI, notifying relevant parties beforehand.

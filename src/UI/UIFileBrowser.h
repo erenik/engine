@@ -31,10 +31,17 @@ public:
 	/// Sets browser active directory path.
 	void SetPath(String path, bool fromRenderThread);
 	/// Sets file in the input-field for later evaluation.
-	void SetActiveFile(String file);
+	void SetActiveFile(GraphicsState* graphicsState, String file);
+
+	void SetActiveFileFromInput(GraphicsState* graphicsState);
+
 	/// Returns the list of currently selected files in the browser.
 	List<String> GetFileSelection();
+
+	void ConfirmSelection();
 	
+	void SetFileFilter(String filter);
+
 	/// Rendering
 	virtual void Render(GraphicsState & graphicsState);
 

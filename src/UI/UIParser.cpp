@@ -19,6 +19,7 @@
 #include "UI/DataUI/UIMatrix.h"
 #include "UI/Buttons/UIRadioButtons.h"
 #include "UI/Buttons/UICheckbox.h"
+#include "UI/UIFileBrowser.h"
 #include <iomanip>
 
 // Parsing stuff
@@ -195,154 +196,8 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 				parsingState = MID_COMMENT;
 				continue;
 			}
-			else if (token == "defaultAlignment") {
-				ENSURE_NEXT_TOKEN
-					defaultAlignment = UIElement::GetAlignment(NEXT_TOKEN);
-			}
-			else if (token == "defaultTextAlignment")
-			{
-				ENSURE_NEXT_TOKEN
-					defaultTextAlignment = UIElement::GetAlignment(value);
-			}
-			else if (token == "defaultTexture") {
-				ENSURE_NEXT_TOKEN
-					String param = tokens[1];
-				param.SetComparisonMode(String::NOT_CASE_SENSITIVE);
-				if (param == "NULL")
-					defaultTexture = String();
-				else
-					defaultTexture = param;
-			}
-			else if (token == "defaultFont") {
-				defaultFontSource = tokens[1];
-			}
-			else if (token == "defaultFontShader") {
-				defaultFontShader = tokens[1];
-			}
-			else if (token == "defaultTopBorder") {
-				ENSURE_NEXT_TOKEN;
-				defaultTopBorder = (line - "defaultTopBorder");
-				defaultTopBorder.RemoveSurroundingWhitespaces();
-				if (defaultTopBorder == "null")
-					defaultTopBorder = "";
-			}
-			else if (token == "defaultRightBorder") {
-				ENSURE_NEXT_TOKEN;
-				defaultRightBorder = (line - "defaultRightBorder");
-				defaultRightBorder.RemoveSurroundingWhitespaces();
-				if (defaultRightBorder == "null")
-					defaultRightBorder = "";
-			}
-			else if (token == "defaultTopRightCorner") {
-				ENSURE_NEXT_TOKEN;
-				defaultTopRightCorner = (line - "defaultTopRightCorner");
-				defaultTopRightCorner.RemoveSurroundingWhitespaces();
-				if (defaultTopRightCorner == "null")
-					defaultTopRightCorner = "";
-			}
-			else if (token == "defaultOnTrigger") {
-				ENSURE_NEXT_TOKEN
-					defaultOnTrigger = NEXT_TOKEN;
-			}
-			else if (token == "defaultParent" ||
-				token == "parent")
-			{
-				ADD_PREVIOUS_TO_UI_IF_NEEDED
-					ENSURE_NEXT_TOKEN
-					defaultParent = NEXT_TOKEN;
-			}
-			else if (token == "defaultScalability") {
-				ENSURE_NEXT_TOKEN
-					defaultScalability = NEXT_TOKEN.ParseBool();
-			}
-			else if (token == "defaultExitability")
-			{
-				defaultExitability = value.ParseBool();
-			}
-			else if (token == "defaultForceUpperCase") {
-				EnsureNextToken(tokens);
-				defaultForceUpperCase = value.ParseBool();
-			}
-			else if (token == "defaultDividerX")
-			{
-				EnsureNextToken(tokens);
-				defaultDivider.x = NextToken(tokens).ParseFloat();
-			}
-			else if (token == "defaultVisibility") {
-				ENSURE_NEXT_TOKEN
-					defaultVisibility = NEXT_TOKEN.ParseBool();
-			}
-			else if (token == "defaultSizeRatioXY" ||
-				token == "defaultSizeRatio" ||
-				token == "defaultSizeXY" ||
-				token == "defaultSize")
-			{
-				if (tokens.Size() == 2) {
-					defaultSizeRatioX = defaultSizeRatioY = tokens[1].ParseFloat();
-				}
-				else if (tokens.Size() >= 3) {
-					defaultSizeRatioX = tokens[1].ParseFloat();
-					defaultSizeRatioY = tokens[2].ParseFloat();
-				}
-			}
-			else if (token == "defaultSizeRatioY") {
-				ENSURE_NEXT_TOKEN
-					defaultSizeRatioY = NEXT_TOKEN.ParseFloat();
-			}
-			else if (token == "defaultSizeRatioX") {
-				ENSURE_NEXT_TOKEN
-					defaultSizeRatioX = NEXT_TOKEN.ParseFloat();
-			}
-			else if (token == "defaultPadding") {
-				ENSURE_NEXT_TOKEN
-					defaultPadding = NEXT_TOKEN.ParseFloat();
-			}
-			else if (token == "defaultTextSize") {
-				ENSURE_NEXT_TOKEN
-					defaultTextSize = NEXT_TOKEN.ParseFloat();
-			}
-			else if (token == "defaultTextColor")
-			{
-				defaultTextColor = nullptr;
-				if (line.Contains("null"))
-					break;
-
-				defaultTextColor = new Color();
-				Color& newDefaultTextColor = *defaultTextColor;
-			// Hex detected!
-				if (line.Contains("0x"))
-				{
-					newDefaultTextColor = Color::ColorByHexName(NEXT_TOKEN);
-				}
-				else if (line.Contains("#")) {
-					newDefaultTextColor = Color::ColorByHexName(NEXT_TOKEN);
-				}
-				else
-				{
-					switch (tokens.Size() - 1)
-					{
-					case 1: // Assume it's alpha and keep the other colors as usual
-						newDefaultTextColor.w = NEXT_TOKEN.ParseFloat();
-						break;
-					case 4:
-						newDefaultTextColor.w = tokens[4].ParseFloat();
-					case 3: // Assume it's RGB
-						newDefaultTextColor.SetRGB(tokens[1].ParseFloat(), tokens[2].ParseFloat(), tokens[3].ParseFloat());
-						break;
-					case 2: case 0:
-						assert(false && "Irregular amount of tokens following \"defaultTextColor\"; 1 for alpha, 3 for RGB and 4 for RGBA.");
-						break;
-					}
-				}
-				LogMain("Default text color updated to: " + ColorString(defaultTextColor), INFO);
-			}
-			else if (token == "defaultRootFolder") {
-				ENSURE_NEXT_TOKEN
-					defaultRootFolder = NEXT_TOKEN + "/";
-				if (NEXT_TOKEN == "NULL")
-					defaultRootFolder = "";
-			}
-			else if (token == "root") {
+			ParseDefaults(tokens);
+			if (token == "root") {
 				if (tokens.Size() > 1) {
 					delete root;
 					String typeName = tokens[1];
@@ -422,13 +277,12 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 				AddPreviousToUIIfNeeded();
 				String firstToken = tokens[1];
 				UICheckbox * checkBox = new UICheckbox(firstToken);
-				checkBox->displayText = firstQuote;
+				SetDefaults(checkBox);
+				checkBox->SetText(firstQuote, false);
 				checkBox->CreateChildren();
 				if (line.Contains("Checked"))
 					checkBox->SetToggled(true);
 				element = checkBox;
-
-				SET_DEFAULTS
 			}
 			else if (token == "DropDownMenu")
 			{
@@ -437,6 +291,13 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 				element = ddm;
 				SET_DEFAULTS;
 				ddm->CreateChildren(nullptr);
+			}
+			else if (token == "FileBrowser") {
+				AddPreviousToUIIfNeeded();
+				UIFileBrowser* fileBrowser = new UIFileBrowser(firstQuote, "UnassignedAction", "");
+				element = fileBrowser;
+				SetDefaults(element);
+				fileBrowser->CreateChildren(nullptr);
 			}
 			else if (token == "Matrix")
 			{
@@ -481,6 +342,7 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 				ADD_PREVIOUS_TO_UI_IF_NEEDED;
 				String firstToken = tokens[1];
 				UIIntegerInput * ii = new UIIntegerInput(firstToken, "Set" + firstToken);
+				ii->SetText(firstQuote);
 				element = ii;
 				element->displayText = firstQuote;
 				SET_DEFAULTS
@@ -647,6 +509,14 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 			else if (token == "Name") {
 				ENSURE_NEXT_TOKEN
 					element->name = firstQuote;
+			}
+			else if (token == "FileFilter") {
+				if (element->type == UIType::FILE_BROWSER) {
+					UIFileBrowser * fileBrowser = (UIFileBrowser *)element;
+					fileBrowser->SetFileFilter(firstQuote);
+				}
+				else
+					LogGraphics("Unable to set file filter in anything but a File Browser", INFO);
 			}
 			else if (token == "displayText")
 			{
@@ -1126,6 +996,169 @@ void UIParser::AddPreviousToUIIfNeeded() {
 			element->CreateChildren(nullptr); 
 	}
 	element = NULL; 
+}
+
+
+// Checks for defaultSize, defaultTexture, etc.
+void UIParser::ParseDefaults(List<String> tokens) {
+	String token = tokens[0];
+	String value;
+	if (tokens.Size() > 1)
+		value = tokens[1];
+	String token2 = value;
+
+	if (token == "defaultAlignment") {
+		EnsureNextToken(tokens);
+		EnsureNextToken(tokens);
+		defaultAlignment = UIElement::GetAlignment(NEXT_TOKEN);
+	}
+		else if (token == "defaultTextAlignment")
+	{
+	EnsureNextToken(tokens);
+		defaultTextAlignment = UIElement::GetAlignment(value);
+	}
+	else if (token == "defaultTexture") {
+		EnsureNextToken(tokens);
+			String param = tokens[1];
+		param.SetComparisonMode(String::NOT_CASE_SENSITIVE);
+		if (param == "NULL")
+			defaultTexture = String();
+		else
+			defaultTexture = param;
+	}
+	else if (token == "defaultFont") {
+		defaultFontSource = tokens[1];
+	}
+	else if (token == "defaultFontShader") {
+		defaultFontShader = tokens[1];
+	}
+	else if (token == "defaultTopBorder") {
+		EnsureNextToken(tokens);
+		defaultTopBorder = (line - "defaultTopBorder");
+		defaultTopBorder.RemoveSurroundingWhitespaces();
+		if (defaultTopBorder == "null")
+			defaultTopBorder = "";
+	}
+	else if (token == "defaultRightBorder") {
+		EnsureNextToken(tokens);
+		defaultRightBorder = (line - "defaultRightBorder");
+		defaultRightBorder.RemoveSurroundingWhitespaces();
+		if (defaultRightBorder == "null")
+			defaultRightBorder = "";
+	}
+	else if (token == "defaultTopRightCorner") {
+		EnsureNextToken(tokens);
+		defaultTopRightCorner = (line - "defaultTopRightCorner");
+		defaultTopRightCorner.RemoveSurroundingWhitespaces();
+		if (defaultTopRightCorner == "null")
+			defaultTopRightCorner = "";
+	}
+	else if (token == "defaultOnTrigger") {
+		EnsureNextToken(tokens);
+			defaultOnTrigger = NEXT_TOKEN;
+	}
+	else if (token == "defaultParent" ||
+		token == "parent")
+	{
+		AddPreviousToUIIfNeeded();
+		EnsureNextToken(tokens);
+		defaultParent = NEXT_TOKEN;
+	}
+		else if (token == "defaultScalability") {
+		EnsureNextToken(tokens);
+			defaultScalability = NEXT_TOKEN.ParseBool();
+	}
+	else if (token == "defaultExitability")
+	{
+		defaultExitability = value.ParseBool();
+	}
+	else if (token == "defaultForceUpperCase") {
+		EnsureNextToken(tokens);
+		defaultForceUpperCase = value.ParseBool();
+	}
+	else if (token == "defaultDividerX")
+	{
+		EnsureNextToken(tokens);
+		defaultDivider.x = NextToken(tokens).ParseFloat();
+	}
+	else if (token == "defaultVisibility") {
+		EnsureNextToken(tokens);
+			defaultVisibility = NEXT_TOKEN.ParseBool();
+	}
+	else if (token == "defaultSizeRatioXY" ||
+		token == "defaultSizeRatio" ||
+		token == "defaultSizeXY" ||
+		token == "defaultSize")
+	{
+		if (tokens.Size() == 2) {
+			defaultSizeRatioX = defaultSizeRatioY = tokens[1].ParseFloat();
+		}
+		else if (tokens.Size() >= 3) {
+			defaultSizeRatioX = tokens[1].ParseFloat();
+			defaultSizeRatioY = tokens[2].ParseFloat();
+		}
+	}
+	else if (token == "defaultSizeRatioY") {
+		EnsureNextToken(tokens);
+			defaultSizeRatioY = NEXT_TOKEN.ParseFloat();
+	}
+	else if (token == "defaultSizeRatioX") {
+		EnsureNextToken(tokens);
+			defaultSizeRatioX = NEXT_TOKEN.ParseFloat();
+	}
+	else if (token == "defaultPadding") {
+		EnsureNextToken(tokens);
+			defaultPadding = NEXT_TOKEN.ParseFloat();
+	}
+	else if (token == "defaultTextSize") {
+		EnsureNextToken(tokens);
+			defaultTextSize = NEXT_TOKEN.ParseFloat();
+	}
+	else if (token == "defaultTextColor")
+	{
+		defaultTextColor = nullptr;
+		if (line.Contains("null"))
+			return;
+
+		defaultTextColor = new Color();
+		Color& newDefaultTextColor = *defaultTextColor;
+		// Hex detected!
+		if (line.Contains("0x"))
+		{
+			newDefaultTextColor = Color::ColorByHexName(NEXT_TOKEN);
+		}
+		else if (line.Contains("#")) {
+			newDefaultTextColor = Color::ColorByHexName(NEXT_TOKEN);
+		}
+		else
+		{
+			switch (tokens.Size() - 1)
+			{
+			case 1: // Assume it's alpha and keep the other colors as usual
+				newDefaultTextColor.w = NEXT_TOKEN.ParseFloat();
+				break;
+			case 4:
+				newDefaultTextColor.w = tokens[4].ParseFloat();
+			case 3: // Assume it's RGB
+				newDefaultTextColor.SetRGB(tokens[1].ParseFloat(), tokens[2].ParseFloat(), tokens[3].ParseFloat());
+				break;
+			case 2: case 0:
+				assert(false && "Irregular amount of tokens following \"defaultTextColor\"; 1 for alpha, 3 for RGB and 4 for RGBA.");
+				break;
+			}
+		}
+		LogMain("Default text color updated to: " + ColorString(defaultTextColor), INFO);
+	}
+	else if (token == "defaultRootFolder") {
+		EnsureNextToken(tokens);
+			defaultRootFolder = NEXT_TOKEN + "/";
+		if (NEXT_TOKEN == "NULL")
+			defaultRootFolder = "";
+	}
+}
+// Checks for Button, Checkbox, List, etc.
+void UIParser::ParseNewUIElements() {
+
 }
 
 

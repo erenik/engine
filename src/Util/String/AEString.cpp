@@ -942,6 +942,15 @@ bool String::EndsWith(char c) const
 	}
 	return false;
 }
+
+bool String::EndsWith(wchar_t c) const {
+	assert(type == String::WCHAR);
+	for (int i = 0; i < arraySize; ++i) {
+		if (warr[i] == c)
+			return true;
+	}
+	return false;
+}
 	
 
 /// Similar to Contains but works only on the beginning of the string.
@@ -1200,8 +1209,9 @@ int String::ParseInt() const
 	int digits = 0;
 	for (int i = 0; i < copy.arraySize; ++i)
 	{
-		if (copy.arr[i] == 0)
+		if (copy.arr[i] == 0) {
 			break;
+		}
 		if (isdigit(copy.arr[i])) {
 			++digits;
 			continue;
@@ -1211,8 +1221,9 @@ int String::ParseInt() const
 		}			
 		copy.arr[i] = ' ';
 	}
-	if (digits == 0)
+	if (digits == 0) {
 		throw new std::exception("String has no digits.");
+	}
 	return atoi(copy.arr);
 }
 

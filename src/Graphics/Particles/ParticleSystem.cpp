@@ -120,7 +120,7 @@ ParticleSystem::~ParticleSystem()
 #endif
 
 	if (deleteEmittersOnDeletion)
-		emitters.Clear();
+		emitters.ClearAndDelete();
 }
 
 /// Sets default values. Calls AllocateArrays.
@@ -312,6 +312,8 @@ void ParticleSystem::SpawnNewParticles(int & timeInMs)
 			emitter->ps = nullptr; // Remove reference to self.
 			// If so, delete it then!
 			emitters.Remove(emitter);
+			if (emitter->deleteAfterMs)
+			delete emitter;
 			--i;
 		}
 	}
