@@ -5,15 +5,17 @@
 #ifndef UI_VECTOR_INPUT_H
 #define UI_VECTOR_INPUT_H
 
-#include "UI/UIElement.h"
+#include "UI/Input/UIInput.h"
 
 /// Class that uses X UIInputs and a label to work.
-class UIVectorInput : public UIElement {
+class UIVectorInput : public UIInput {
 public:
 	/// Amount of elements in the vector first (primarily 2 to 4)
 	UIVectorInput(int numInputs, String name, String onTrigger);
 	virtual ~UIVectorInput();
 
+	/// Begins input, returns false if not possible (e.g. non-activatable StringLabel input)
+	virtual bool BeginInput(GraphicsState* graphicsState) override;
 	/// Sent by UIInput elements upon pressing Enter and thus confirmign the new input, in case extra actions are warranted. (e.g. UITextureInput to update the texture provided as reference).
 	virtual void OnInputUpdated(GraphicsState* graphicsState, UIInput * inputElement) override;
 
@@ -42,6 +44,10 @@ public:
 	
 	/// See dataTypes below.
 	void SetDataType(int dataType);
+
+	// For sub-classes to adjust children as needed (mainly for input elements).
+	virtual void OnStateAdded(GraphicsState* graphicsState, int state) override;
+
 
 	/// Action to be taken when any of the fields are triggered.
 	String action;

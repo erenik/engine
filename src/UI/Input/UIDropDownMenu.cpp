@@ -12,7 +12,7 @@
 #include "UI/Input/UIInput.h"
 
 UIDropDownMenu::UIDropDownMenu(String inName)
-	: UIElement()
+	: UIInput()
 {
 	type = UIType::DROP_DOWN_MENU;
 	this->name = inName;
@@ -37,7 +37,7 @@ void UIDropDownMenu::CreateChildren(GraphicsState* graphicsState)
 	{
 		this->label = new UILabel(name);
 		this->InheritDefaults(label);
-		label->textColor = textColor;
+		label->hoverable = false;
 		label->sizeRatioX = 0.4f;
 		label->sizeRatioY = 1.f;
 		label->alignmentX = 0.2f;
@@ -46,11 +46,13 @@ void UIDropDownMenu::CreateChildren(GraphicsState* graphicsState)
 	selectButton = new UIButton("<Placeholder>");
 	this->InheritDefaults(selectButton);
 	selectButton->sizeRatioX = 1 - (label? label->sizeRatioX : 0);
-	selectButton->textColor = textColor;
 	selectButton->alignmentX = 0.5 + (label? label->sizeRatioX * 0.5 : 0);
 //	selectButton->activationMessage = "OpenDropDownMenu:"+name;
 	UIAction uac(UIAction::OPEN_DROP_DOWN_MENU, UIAction::PARENT);
 	selectButton->activationActions.AddItem(uac);
+
+	this->activationMessage = "";
+	this->activationActions.Add(UIAction(UIAction::OPEN_DROP_DOWN_MENU, this)); // Set it for self as well.
 
 	AddChild(graphicsState, selectButton);
 //	ShipTypeToSpawn
@@ -170,4 +172,11 @@ bool UIDropDownMenu::Select(String entry, bool silent) {
 	return false;
 }
 
+// For sub-classes to adjust children as needed (mainly for input elements).
+void UIDropDownMenu::OnStateAdded(GraphicsState* graphicsState, int state) {
+	if (state == UIState::HOVER)
+		label->AddStateSilently(state, true);
+	selectButton->AddStateSilently(state);
+	UIElement::OnStateAdded(graphicsState, state);
+}
 

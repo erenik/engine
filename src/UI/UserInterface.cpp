@@ -145,7 +145,7 @@ bool UserInterface::IsGood(UserInterface * ui)
 	If allUi is specified the current stack order will be ignored to a certain extent, meaning that ui below the current stack top will be made available too.
 	Search is conducted starting at the highest stack element and going down until an element is found that we can hover over.
 */
-UIElement * UserInterface::Hover(int x, int y, bool allUi)
+UIElement * UserInterface::Hover(GraphicsState* graphicsState, int x, int y, bool allUi)
 {
 	UIElement * stackTop = GetStackTop();
 	if (!stackTop)
@@ -167,7 +167,7 @@ UIElement * UserInterface::Hover(int x, int y, bool allUi)
 			UIElement * stackElement = stack[i];
 			/// Remove the hover state before re-hovering.
 			stackElement->RemoveState(UIState::HOVER, true);
-			result = stackElement->Hover(x,y);
+			result = stackElement->Hover(graphicsState, x,y);
 			if (result) {
 				break;
 			}
@@ -176,7 +176,7 @@ UIElement * UserInterface::Hover(int x, int y, bool allUi)
 		if (!result)
 		{
 			root->RemoveState(UIState::HOVER, true);
-			result = root->Hover(x,y);
+			result = root->Hover(graphicsState, x,y);
 		}
 		/// Demand hover will have to be investigated how it could work in this mode, if at all.
 		hoverElement = result;	
@@ -186,11 +186,11 @@ UIElement * UserInterface::Hover(int x, int y, bool allUi)
 		UIElement * previous = stackTop->GetElementByState(UIState::HOVER);
 		/// Remove the hover flag before re-hovering.
 		stackTop->RemoveState(UIState::HOVER, true);
-		result = stackTop->Hover(x,y);
+		result = stackTop->Hover(graphicsState, x,y);
 		hoverElement = result;
 		/// If we always want a hovered element (for whatever reason).
 		if (!hoverElement && demandHovered && previous){
-			hoverElement = stackTop->Hover(previous->posX, previous->posY);
+			hoverElement = stackTop->Hover(graphicsState, previous->posX, previous->posY);
 		}
 	}
 
@@ -209,26 +209,26 @@ UIElement * UserInterface::Hover(int x, int y, bool allUi)
 	}
 	return result;
 }
-UIElement * UserInterface::Hover(Vector2i xy, bool allUi)
+UIElement * UserInterface::Hover(GraphicsState* graphicsState, Vector2i xy, bool allUi)
 {
-	return Hover(xy.x, xy.y, allUi);
+	return Hover(graphicsState, xy.x, xy.y, allUi);
 }
 
 /// If allUi is specified, the action will try, similar to hover, and go through the entire stack from the top down until it processes an element.
-UIElement * UserInterface::Click(int x, int y, bool allUi){
+UIElement * UserInterface::Click(GraphicsState* graphicsState, int x, int y, bool allUi){
 	UIElement * elementClicked = NULL;
 	if (allUi){
 		for (int i = stack.Size()-1; i >= 0; --i)
 		{
 			UIElement * stackElement = stack[i];
-			elementClicked = stackElement->Click(x,y);
+			elementClicked = stackElement->Click(graphicsState, x,y);
 			if (elementClicked)
 				break;
 		}
 		/// If still no result, try the root.
 		if (!elementClicked)
 		{
-			elementClicked = root->Click(x,y);
+			elementClicked = root->Click(graphicsState, x,y);
 		}
 		/// Demand hover will have to be investigated how it could work in this mode, if at all.
 	}
@@ -238,7 +238,7 @@ UIElement * UserInterface::Click(int x, int y, bool allUi){
 		if (!stackTop)
 			return NULL;
 		/// Clear the active-flag?
-		elementClicked = stackTop->Click(x,y);
+		elementClicked = stackTop->Click(graphicsState, x,y);
 	}
 	return elementClicked;
 }
@@ -291,7 +291,7 @@ void UserInterface::SetHoverElement(GraphicsState* graphicsState, UIElement * ta
 	if (!targetElement)
 		return;
 	/// Then add it to our specified one.
-	targetElement->AddState(UIState::HOVER);
+	targetElement->AddState(graphicsState, UIState::HOVER);
 	targetElement->EnsureVisibility(graphicsState);
 	targetElement->OnHover();
 }

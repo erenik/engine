@@ -9,6 +9,7 @@
 #include "Graphics/GraphicsManager.h"
 #include "Graphics/Messages/UIMessages.h"
 #include "Graphics/Messages/UI/GMNavigateUI.h"
+#include "Graphics/Messages/GMMouse.h"
 #include "../UI/UserInterface.h"
 #include "DefaultBindings.h"
 #include <cstring>
@@ -356,8 +357,6 @@ void InputManager::EnableActiveUI()
 //=======================================================//
 /// Mouse handling ~
 //=======================================================//
-// #define MOUSE_COORD_DEBUG			/// Activate to print mouse coordinates from all functions.
-// #define UIELEMENT_TARGET_DEBUG		/// Activate to print active UI
 /** Handles a mouse click.
 	Argument true indicate that the button was pressed, while false indicates that it was just released.
 	Default arguments for x and y indicate that they should not be refreshed.
@@ -373,48 +372,8 @@ void InputManager::MouseClick(AppWindow * appWindow, bool down, int x, int y)
 		return;
     lButtonDown = down;
     LogMain("MouseClick x: "+String(x)+" y: "+String(y)+" down: "+down, EXTENSIVE_DEBUG);
-/*	std::cout<<"\nMouseClick: "<<x<<" "<<y;
-	if (down)
-		std::cout<<" CLICK!";
-	else
-		std::cout<<" UP!";*/
-
 	/// Move to graphics thread.
 	QueueGraphics(new GMMouse(down? GMMouse::LDOWN : GMMouse::LUP, appWindow, Vector2i(x,y)));
-
-	/*
-	UIElement * activeElement = NULL;
-	UserInterface * userInterface = RelevantUI();	
-	if (userInterface)
-	{
-	    LogMain("UI: "+userInterface->name, EXTENSIVE_DEBUG);
-		// Fetch hover-element from earlier, yo?
-		activeElement = userInterface->GetActiveElement();
-		LogMain("Active element: "+(activeElement? activeElement->name : String("NULL")), EXTENSIVE_DEBUG);
-		// Down!
-		if (down)
-		{
-			// Remove the ACTIVE flag from the previous active element, if any.
-			if (activeElement)
-			{ 
-				activeElement->RemoveState(UIState::ACTIVE);
-			}
-			LogMain("Before click ", EXTENSIVE_DEBUG);
-			UIElement * clicked = userInterface->Click(x,y,true);
-			LogMain("Clicked: "+(clicked? clicked->name : String("NULL")), EXTENSIVE_DEBUG);
-		}
-		// Up!
-		else if (!down && activeElement)
-		{
-			LogMain("Up o.o", EXTENSIVE_DEBUG);
-			activeElement->Activate();	
-			// Hover afterwards.
-			UIElement * hoverElement = userInterface->Hover(x,y, true);
-			userInterface->SetHoverElement(hoverElement);
-		}
-	}
-	LogMain("lall ", EXTENSIVE_DEBUG);
-	*/
 	/// Inform the active state of the interaction
 	StateMan.ActiveState()->MouseClick(appWindow, down, x, y, 0);
 }
@@ -422,7 +381,7 @@ void InputManager::MouseClick(AppWindow * appWindow, bool down, int x, int y)
 	Argument true indicate that the button was pressed, while false indicates that it was just released.
 	Default arguments for x and y indicate that they should not be refreshed.
 */
-void InputManager::MouseRightClick(AppWindow * AppWindow, bool down, int x, int y)
+void InputManager::MouseRightClick(AppWindow * appWindow, bool down, int x, int y)
 {
 	if (!inputState->acceptInput)
 		return;
@@ -440,25 +399,10 @@ void InputManager::MouseRightClick(AppWindow * AppWindow, bool down, int x, int 
 		std::cout<<" UP!";
 #endif
 
-
-	UIElement * element = NULL;
-	UserInterface * userInterface = RelevantUI();	
-	if (userInterface)
-	{
-		element = userInterface->Hover(x, y, true);
-		if (element == nullptr)
-			return;
-		QueueGraphics(new GMSetHoverUI(element->name));
-	}
-	// If navigating UI, interpret right-click as cancel/exit?
-	if (this->navigateUI && !down){
-		/// Only activate the cancel function if we are currently within a UI?
-		if (element)
-			this->UICancel();
-	}
+	QueueGraphics(new GMMouse(down ? GMMouse::RDOWN : GMMouse::RUP, appWindow, Vector2i(x, y)));
 
 	/// Inform the active state of the interaction
-	StateMan.ActiveState()->MouseRightClick(AppWindow, down, x, y, element);
+	StateMan.ActiveState()->MouseRightClick(appWindow, down, x, y, nullptr);
 
 }
 
@@ -1082,7 +1026,10 @@ bool InputManager::UICancel()
 /// Similar to GoToNextElement above^
 void InputManager::UINext()
 {
+	std::cout << "\nMove to graphics thread.";
+	assert(false && "re-implement this by sendinga message to graphics thread");
 	return;
+	/*
 	UserInterface * ui = RelevantUI();
 	UIElement * element = NULL;
 	UIElement * hoverElement = ui->GetHoverElement();
@@ -1105,11 +1052,14 @@ void InputManager::UINext()
 			element = uiList[index];
 		hoverElement = ui->Hover(element->posX, element->posY);
 	}
+	*/
 }
 void InputManager::UIPrevious()
 {
 	// Move to graphics thread.
 	std::cout<<"\nMove to graphics thread.";
+	assert(false && "re-implement this by sendinga message to graphics thread");
+
 	/*
 	UserInterface * ui = RelevantUI();
 	UIElement * element;

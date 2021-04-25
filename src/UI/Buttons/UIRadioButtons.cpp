@@ -60,6 +60,7 @@ void UIRadioButtons::CreateChildren(GraphicsState* graphicsState)
 	{
 		/// Create 3 children
 		UIToggleButton * button = new UIToggleButton();
+		this->InheritDefaults(button);
 		/// Set them to only accept floats?
 		button->name = name + "Button"+ String(i);
 		button->SetText(buttonTexts.Size() > i ? buttonTexts[i] : "");
@@ -67,7 +68,6 @@ void UIRadioButtons::CreateChildren(GraphicsState* graphicsState)
 		button->notToggledTextColor = notToggledTextColor;
 		button->sizeRatioX = spacePerElement;
 		button->topRightCornerTextureSource = topRightCornerTextureSource;
-		button->SetTextColor(selectionsTextColor);
 		button->textureSource = "";
 		if (textureSourcesOrNames.Size()) {
 			button->textureSource = textureSourcesOrNames[i];
@@ -178,13 +178,13 @@ void UIRadioButtons::SetSelectionsTextColor(Color color) {
 	selectionsTextColor = color;
 	for (int i = 0; i < buttons.Size(); ++i) {
 		UIToggleButton * button = buttons[i];
-		button->SetTextColor(color);
+		button->SetTextColors(color);
 	}
 }
 
-void UIRadioButtons::OnStateAdded(int state) {
+void UIRadioButtons::OnStateAdded(GraphicsState* graphicsState, int state) {
 	if (label != nullptr)
-		label->AddState(state);
+		label->AddState(graphicsState, state);
 }
 
 /// Toggles appropriately.

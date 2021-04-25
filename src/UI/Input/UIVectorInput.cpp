@@ -15,7 +15,7 @@
 
 ///
 UIVectorInput::UIVectorInput(int numInputs, String name, String onTrigger)
-: UIElement()
+: UIInput()
 {
 	type = UIType::VECTOR_INPUT;
 	this->numInputs = numInputs;
@@ -25,6 +25,8 @@ UIVectorInput::UIVectorInput(int numInputs, String name, String onTrigger)
 	dataType = FLOATS;
 
 	labelText = name; // Default value.
+
+	activationActions.Add(UIAction(UIAction::BEGIN_VECTOR_INPUT, this));
 
 }
 UIVectorInput::~UIVectorInput()
@@ -78,7 +80,6 @@ void UIVectorInput::CreateChildren(GraphicsState* graphicsState)
 	this->InheritDefaults(label);
 	label->SetText(labelText);
 	label->sizeRatioX = divider.x;
-	label->textColor = textColor;
 	box->AddChild(nullptr, label);
 
 	float spaceLeft = 1.0f - divider.x - padding * numInputs;
@@ -95,7 +96,6 @@ void UIVectorInput::CreateChildren(GraphicsState* graphicsState)
 		input->numbersOnly = true;
 		input->SetText("0");
 		input->sizeRatioX = spacePerElement;
-		input->textColor = textColor;
 		input->textAlignment = RIGHT;
 	//	input->onTrigger = "UIVectorInput("+name+")";
 		box->AddChild(nullptr, input);
@@ -103,6 +103,13 @@ void UIVectorInput::CreateChildren(GraphicsState* graphicsState)
 	}
 	childrenCreated = true;
 }	
+
+/// Begins input, returns false if not possible (e.g. non-activatable StringLabel input)
+bool UIVectorInput::BeginInput(GraphicsState* graphicsState) {
+	assert(inputs.Size());
+	RemoveState(UIState::ACTIVE); // Remove active from self.
+	return inputs[0]->BeginInput(graphicsState); // Begin input on child.
+}
 
 /// Calls UIElement::SetText in addition to setting the editText to the same value if force is true.
 void UIVectorInput::SetText(CTextr newText, bool force /*= false*/) {
@@ -223,3 +230,13 @@ void UIVectorInput::SetDataType(int newDataType)
 {
 	this->dataType = newDataType;
 }
+
+// For sub-classes to adjust children as needed (mainly for input elements).
+void UIVectorInput::OnStateAdded(GraphicsState* graphicsState, int state) {
+	if (state == UIState::HOVER)
+		label->AddStateSilently(state, true);
+	for (int i = 0; i < inputs.Size(); ++i)
+		inputs[i]->AddStateSilently(state);
+	UIElement::OnStateAdded(graphicsState, state);
+}
+

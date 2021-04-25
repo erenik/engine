@@ -5,6 +5,7 @@
 #include "UIButtons.h"
 #include "Message/Message.h"
 #include "Message/MessageManager.h"
+#include "File/LogFile.h"
 
 UIButton::UIButton(String i_name)
 : UIElement()
@@ -22,6 +23,29 @@ UIButton::UIButton(String i_name)
 UIButton::~UIButton()
 {
 //	std::cout<<"\nUIButton destructor";
+}
+
+/// Callback-function for sub-classes to implement own behaviour to run within the UI-class' code. Return true if it did something.
+bool UIButton::OnProceed(GraphicsState* graphicsState) {
+	if (HasState(UIState::DISABLED)) {
+		LogGraphics("Button "+name+" disabled. ignoring OnProceed", INFO);
+		return false;
+	}
+
+	bool didSomething = false;
+	if (activationMessage.Length() > 0) {
+		MesMan.QueueMessages(activationMessage);
+		didSomething = true;
+	}
+	if (activationActions.Size() > 0) {
+		for (int i = 0; i < activationActions.Size(); ++i) {
+			activationActions[i].Process(graphicsState, this);
+			didSomething = true;
+		}
+	}
+	if (didSomething)
+		return true;
+	return UIElement::OnProceed(graphicsState);
 }
 
 UICompositeButton::UICompositeButton(String name) 
@@ -42,10 +66,10 @@ UIElement * UICompositeButton::Copy(){
 }
 
 // For sub-classes to adjust children as needed (mainly for input elements).
-void UICompositeButton::OnStateAdded(int state) {
+void UICompositeButton::OnStateAdded(GraphicsState* graphicsState, int state) {
 	for (int i = 0; i < children.Size(); ++i) {
 		UIElement * child = children[i];
-		child->AddState(state, true); // Always add state.
+		child->AddState(graphicsState, state, true); // Always add state.
 	}
 }
 

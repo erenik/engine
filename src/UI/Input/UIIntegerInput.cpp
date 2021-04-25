@@ -30,7 +30,6 @@ UIIntegerInput::UIIntegerInput(String name, String onTrigger)
 	labelText = name + "Label";
 	guiInputDisabled = false;
 	acceptMathematicalExpressions = false;
-	textColor = defaultTextColor;
 }
 UIIntegerInput::~UIIntegerInput()
 {
@@ -117,19 +116,18 @@ UIInputResult UIIntegerInput::OnChar(int asciiCode) {
 }
 
 // For sub-classes to adjust children as needed (mainly for input elements).
-void UIIntegerInput::OnStateAdded(int state) {
-	if (state == UIState::HOVER) {
-		label->AddState(state);
-		input->AddState(state);
-	}
-	else if (state == UIState::ACTIVE) {
-		input->BeginInput();
+void UIIntegerInput::OnStateAdded(GraphicsState* graphicsState, int state) {
+	if (state == UIState::HOVER)
+		label->AddState(graphicsState, state, true);
+	input->AddState(graphicsState, state);
+	if (state == UIState::ACTIVE) {
+		//input->BeginInput();
 	}
 }
 
-bool UIIntegerInput::BeginInput() {
+bool UIIntegerInput::BeginInput(GraphicsState* graphicsState) {
 	if (!input->InputActive())
-		return input->BeginInput();
+		return input->BeginInput(graphicsState);
 	else
 		input->StopInput();
 	return false;
@@ -179,9 +177,6 @@ void UIIntegerInput::CreateChildren(GraphicsState* graphicsState)
 	label->SetText(labelText);
 	if (onHoverTextColor != nullptr)
 		label->SetOnHoverTextColor(*onHoverTextColor);
-
-	label->SetTextColor(textColor);
-	input->SetTextColor(textColor);
 
 	/// Set them to only accept floats?
 	/// Any mathematical expression?

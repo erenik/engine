@@ -27,13 +27,14 @@
 #include "Graphics/GraphicsManager.h"
 #include "Graphics/OpenGL.h"
 #include "Graphics/GLBuffers.h"
+#include "Direction.h"
 
 extern InputManager input;
 extern UserInterface ui[GameStateID::MAX_GAME_STATES];
 
 int UIElement::idEnumerator = 0;
 String UIElement::defaultTextureSource; //  = "80Gray50Alpha.png";
-Color UIElement::defaultTextColor = Color(Vector4f(1,1,1,1));
+TextColors * UIElement::defaultTextColors = nullptr; // Color(Vector4f(1, 1, 1, 1));
 bool UIElement::defaultForceUpperCase = false;
 
 // When clicking on it.
@@ -96,8 +97,10 @@ void UIElement::Nullify()
 	lockSizeY = false;
 	lockSizeX = false;
 
-	textColor = defaultTextColor;
-	text.color = textColor;
+	if (defaultTextColors) {
+		text.SetColors(*defaultTextColors);
+	}
+		;
 
 	onHoverTextColor = nullptr;
 
@@ -174,8 +177,9 @@ void UIElement::Nullify()
 	this->textureSource = defaultTextureSource;
 	fontDetails.source = "";
 	fontDetails.font = nullptr;
-	if(text)
-		text.color = defaultTextColor;
+
+	if (defaultTextColors != nullptr)
+		text.colors = new TextColors(*defaultTextColors);
 
 	/** Will enable/disable cyclicity of input navigation when this element is pushed. When popped, the next element in the stack will determine cyclicity. */
 	cyclicY = true;
@@ -298,7 +302,8 @@ UIElement * UIElement::Copy() {
 //}
 
 void UIElement::CopySpecialVariables(UIElement * intoElement) {
-	intoElement->textColor = textColor;
+	if (text.colors)
+		intoElement->text.SetColors(*text.colors);
 	intoElement->onHoverTextColor = onHoverTextColor;
 }
 
@@ -333,7 +338,9 @@ void UIElement::SetText(CTextr newText, bool force)
 	if (this->demandInputFocus && HasState(UIState::ACTIVE) && !force){
 		return;
 	}
+	TextColors * oldColors = text.colors;
 	this->text = newText;
+	text.colors = oldColors;
 	this->textToRender = "";
 	if (forceUpperCase) {
 		this->text.ToUpperCase();
@@ -497,9 +504,9 @@ void UIElement::Clear()
 //******************************************************************************//
 
 // Hovers over this element. calling OnHover after setting the UIState::HOVER flag.
-UIElement * UIElement::Hover()
+UIElement * UIElement::Hover(GraphicsState* graphicsState)
 {
-	AddState(UIState::HOVER);
+	AddState(graphicsState, UIState::HOVER);
 	this->OnHover();
 	return this;
 }	
@@ -507,7 +514,7 @@ UIElement * UIElement::Hover()
 // Returns true once the highest-level appropriate element has been selected,
 // or it has been determined that the selected child was not the active one.
 // A value of true will thus make the algorithm return true and ending it's calculations.
-UIElement* UIElement::Hover(int mouseX, int mouseY)
+UIElement* UIElement::Hover(GraphicsState* graphicsState, int mouseX, int mouseY)
 {
 
 	UIElement* result = NULL;
@@ -549,7 +556,7 @@ UIElement* UIElement::Hover(int mouseX, int mouseY)
             continue;
 		if (result != nullptr)
 			break;
-		result = child->Hover(mouseX, mouseY);
+		result = child->Hover(graphicsState, mouseX, mouseY);
 	}
 
 	// If we have a result now, exit
@@ -579,7 +586,7 @@ UIElement* UIElement::Hover(int mouseX, int mouseY)
 	// The mouse is inside this element,
 	// and our children (if any) were not the active Entity.
 	// This means that this element must be the active Entity!
-	if (!AddState(UIState::HOVER))
+	if (!AddState(graphicsState, UIState::HOVER))
 		return NULL;
 	
 //	std::cout<<"\nElelelelement "<<name<<" is hover.";
@@ -594,9 +601,14 @@ UIElement* UIElement::Hover(int mouseX, int mouseY)
 // Returns true once the highest-level appropriate element has been found.
 // No co-ordinates are required since we will instead require the element to already
 // be highlighted/hovered above.
-UIElement* UIElement::Click(int mouseX, int mouseY)
+UIElement* UIElement::Click(GraphicsState* graphicsState, int mouseX, int mouseY)
 {
 	UIElement* result = 0;
+	if (HasState(UIState::DISABLED)) {
+		LogGraphics("Ignoring element " + name + " as it's disabled", INFO);
+		return nullptr;
+	}
+
 	// Don't process invisible UIElements, please.
 	if (visible == false)
 		return false;
@@ -606,7 +618,7 @@ UIElement* UIElement::Click(int mouseX, int mouseY)
 		mouseY > top || mouseY < bottom){
 			// Return false if we are outside of the boundaries,
 			// since we haven't found the selected element.
-			state = UIState::IDLE;
+			state |= UIState::IDLE;
 			//	if(child != NULL)
 			return 0;
 	}
@@ -626,11 +638,11 @@ UIElement* UIElement::Click(int mouseX, int mouseY)
 		UIElement * child = children[i];
 	    if (!child->visible)
             continue;
-		result = child->Click(mouseX, mouseY);
+		result = child->Click(graphicsState, mouseX, mouseY);
 		if (result != NULL){
 			// The active element has been found further down the tree,
 			// so we can return true.
-			state = UIState::IDLE;
+			state |= UIState::IDLE;
 			return result;
 		}
 	}
@@ -652,6 +664,11 @@ UIElement* UIElement::Activate(GraphicsState * graphicsState)
 	// Don't process invisible UIElements, please.
 	if (visible == false)
 		return 0;
+	// And ignore disabled elements and their children.
+	if (HasState(UIState::DISABLED)) {
+		LogGraphics("Ignoring disabled element " + name, INFO);
+		return nullptr;
+	}
 	// Alright, the mouse is inside this element!
 	// Do we have children?
 	for (int i = children.Size()-1; i >= 0; --i){
@@ -662,7 +679,7 @@ UIElement* UIElement::Activate(GraphicsState * graphicsState)
 		if (result != 0){
 			// The active element has been found further down the tree,
 			// so we return it's message.
-			state = UIState::IDLE;
+			state |= UIState::IDLE;
 			return result;
 		}
 	}
@@ -902,6 +919,11 @@ UIElement * UIElement::GetUpNeighbour(GraphicsState* graphicsState, UIElement * 
 	//if (!element) {
 	//	element = parent->GetUpNeighbour(graphicsState, referenceElement, searchChildrenOnly);
 	//}
+	
+	// For some UI elements, such as lists, the list itself is not navigatable, so query it to get the first element in its list if so here.
+	if (element)
+		element = element->GetNavigationElement(NavigateDirection::Up);
+
 	return element;
 }
 
@@ -956,6 +978,9 @@ UIElement * UIElement::GetRightNeighbour(UIElement * referenceElement, bool & se
 	{
 		element = GetElementClosestTo(referenceElement->position, true);
 	}
+	// For some UI elements, such as lists, the list itself is not navigatable, so query it to get the first element in its list if so here.
+	if (element)
+		element = element->GetNavigationElement(NavigateDirection::Right);
 	return element;
 }
 
@@ -1006,6 +1031,9 @@ UIElement * UIElement::GetDownNeighbour(GraphicsState* graphicsState, UIElement 
 	{
 		element = GetElementClosestTo(referenceElement->position, true);
 	}
+	// For some UI elements, such as lists, the list itself is not navigatable, so query it to get the first element in its list if so here.
+	if (element)
+		element = element->GetNavigationElement(NavigateDirection::Down);
 	return element;
 
 }
@@ -1061,7 +1089,17 @@ UIElement * UIElement::GetLeftNeighbour(UIElement * referenceElement, bool & sea
 	{
 		element = GetElementClosestTo(referenceElement->position, true);
 	}
+	// For some UI elements, such as lists, the list itself is not navigatable, so query it to get the first element in its list if so here.
+	if (element)
+		element = element->GetNavigationElement(NavigateDirection::Left);
+
 	return element;
+}
+
+/** For some UI elements, such as lists, the list itself is not navigatable, so query it to get the first element in its list if so here.
+		By default returns itself. */
+UIElement * UIElement::GetNavigationElement(NavigateDirection direction) {
+	return this;
 }
 
 // Is it navigatable?
@@ -1901,8 +1939,14 @@ void UIElement::RenderText(GraphicsState & graphicsState)
 
 	Color * overrideColor = nullptr;
 	TextState textState = TextState::Idle;
-	if (HasState(UIState::ACTIVE))
+	if (HasState(UIState::DISABLED)) {
+		textState = TextState::DisabledIdle;
+		if (HasState(UIState::HOVER))
+			textState = TextState::DisabledHover;
+	}
+	else if (HasState(UIState::ACTIVE)) {
 		textState = TextState::Active;
+	}
 	else if (HasState(UIState::HOVER)) {
 		textState = TextState::Hover;
 		if (onHoverTextColor != nullptr)
@@ -1919,7 +1963,13 @@ void UIElement::RenderText(GraphicsState & graphicsState)
 	if (this->textToRender.Length() == 0)
 		this->textToRender = text;
 
-	graphicsState.currentFont->RenderText(this->textToRender, textState, overrideColor, graphicsState, fontRenderOffset, pixels);
+	graphicsState.currentFont->RenderText(
+		this->textToRender,
+		textState,
+		overrideColor,
+		graphicsState,
+		fontRenderOffset,
+		pixels);
 }
 
 void UIElement::FormatText(GraphicsState * graphicsState)
@@ -2334,9 +2384,8 @@ void UIElement::DeleteBorders() {
 }
 
 // Sets it to override.
-void UIElement::SetTextColor(Color overrideColor) {
-	textColor = overrideColor;
-	text.color = overrideColor;
+void UIElement::SetTextColors(TextColors overrideColors) {
+	text.SetColors(overrideColors);
 }
 
 // Overrides, but only during onHover.
@@ -2448,6 +2497,8 @@ void UIElement::InheritDefaults(UIElement * child) {
 	// Inherit some defaults?
 	child->fontDetails = fontDetails;
 	child->forceUpperCase = forceUpperCase;
+	if (text.colors != nullptr)
+		child->SetTextColors(*text.colors);
 };
 
 void UIElement::SetState(int newState) {
@@ -2455,8 +2506,15 @@ void UIElement::SetState(int newState) {
 }
 
 /// For example UIState::HOVER, not to be confused with flags! State = current, Flags = possibilities
-bool UIElement::AddState(int i_state, bool force)
+bool UIElement::AddState(GraphicsState* graphicsState, int i_state, bool force)
 {
+	if (!AddStateSilently(i_state, force))
+		return false;
+	OnStateAdded(graphicsState, i_state);
+	return true;
+}
+
+bool UIElement::AddStateSilently(int i_state, bool force) {
 	if (force) {
 	}
 	else { // Check early out if not forcing.
@@ -2465,6 +2523,9 @@ bool UIElement::AddState(int i_state, bool force)
 			return false;
 		// Don't allow activating an non-activatable element.
 		if (!activateable && i_state & UIState::ACTIVE)
+			return false;
+		// Ignore activating if it's disabled.
+		if (HasState(UIState::DISABLED) && i_state & UIState::ACTIVE)
 			return false;
 	}
 
@@ -2479,13 +2540,19 @@ bool UIElement::AddState(int i_state, bool force)
 		}
 	}
 	state |= i_state;
-	OnStateAdded(i_state);
 	return true;
 }
 
 // For sub-classes to adjust children as needed (mainly for input elements).
-void UIElement::OnStateAdded(int state) {
+void UIElement::OnStateAdded(GraphicsState* graphicsState, int state) {
 	if (state == UIState::ACTIVE) {
+		bool didSomething = false;
+		for (int i = 0; i < activationActions.Size(); ++i) {
+			activationActions[i].Process(graphicsState, this);
+			didSomething = true;
+		}
+		if (didSomething)
+			return;
 		/// It it us! Activate power!
 		if (activationMessage.Length() == 0)
 		{
@@ -2525,6 +2592,9 @@ bool UIElement::HasStateRecursive(int queryState) {
 
 /// For example UIState::HOVER, if recursive will apply to all children.
 void UIElement::RemoveState(int statesToRemove, bool recursive /* = false*/){
+	if (statesToRemove & UIState::DISABLED) {
+		LogGraphics("About to remove disabled state", INFO);
+	}
 	state &= ~statesToRemove;
 	if (recursive){
 		for (int i = 0; i < children.Size(); ++i){
@@ -2574,8 +2644,6 @@ UILabel::UILabel(String name /*= ""*/)
 	navigatable = false;
 	highlightOnHover = false;
 	selectable = activateable = false;
-	/// Set text-color at least for labels!
-	text.color = defaultTextColor;
 };
 
 UILabel::~UILabel()

@@ -16,6 +16,9 @@ public:
 	UIList();
 	virtual ~UIList();
 
+	/** For some UI elements, such as lists, the list itself is not navigatable, so query it to get the first element in its list if so here.
+		By default returns itself. */
+	UIElement * GetNavigationElement(NavigateDirection direction) override;
 
 	virtual int CenteredContentParentPosX() const override;
 	// If parent is e.g. List, available size will vary depending on if scrollbar is present or not.
@@ -31,10 +34,10 @@ public:
 	virtual bool AddChild(GraphicsState* graphicsState, UIElement* element) override;
 
 	/// Activation functions
-	virtual UIElement* Hover(int mouseX, int mouseY);
-	virtual UIElement* Click(int mouseX, int mouseY);
+	virtual UIElement* Hover(GraphicsState* graphicsState, int mouseX, int mouseY) override;
+	virtual UIElement* Click(GraphicsState* graphicsState, int mouseX, int mouseY) override;
 	/// GEtttererrr
-	virtual UIElement * GetElement(int mouseX, int mouseY);
+	virtual UIElement * GetElement(GraphicsState* graphicsState, int mouseX, int mouseY);
 	/** For mouse-scrolling. By default calls it's parent's OnScroll. Returns true if the element did anything because of the scroll.
 		The delta corresponds to amount of "pages" it should scroll.
 	*/

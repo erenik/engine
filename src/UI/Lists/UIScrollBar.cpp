@@ -62,11 +62,11 @@ void UIScrollBar::OnMouseY(int y)
 }
 
 /// Activation functions
-UIElement * UIScrollBar::Hover(int mouseX, int mouseY)
+UIElement * UIScrollBar::Hover(GraphicsState* graphicsState, int mouseX, int mouseY)
 {
 	// OnActivate()?
 	// Update scroll position!
-	UIElement * element = UIElement::Hover(mouseX, mouseY);
+	UIElement * element = UIElement::Hover(graphicsState, mouseX, mouseY);
 	if (element == this && inputState->lButtonDown)
 		OnMouseY(mouseY - bottom);
 	return element;
@@ -76,7 +76,7 @@ UIElement * UIScrollBar::Hover(int mouseX, int mouseY)
 // Returns true once the highest-level appropriate element has been found.
 // No co-ordinates are required since we will instead require the element to already
 // be highlighted/hovered above.
-UIElement * UIScrollBar::Click(int mouseX, int mouseY)
+UIElement * UIScrollBar::Click(GraphicsState* graphicsState, int mouseX, int mouseY)
 {
 	UIElement * result = 0;
 	// Don't process invisible UIElements, please.
@@ -96,7 +96,7 @@ UIElement * UIScrollBar::Click(int mouseX, int mouseY)
 	// Check axiomaticness (direct-activation without further processing)
 	if (axiomatic){
 		if (activateable){
-			AddState(UIState::ACTIVE);
+			AddState(graphicsState, UIState::ACTIVE);
 			return this;
 		}
 		return NULL;
@@ -113,7 +113,7 @@ UIElement * UIScrollBar::Click(int mouseX, int mouseY)
 		UIElement * child = children[i];
 	    if (!child->visible)
             continue;
-		result = child->Click(mouseX, mouseY);
+		result = child->Click(graphicsState, mouseX, mouseY);
 		if (result != NULL){
 			// The active element has been found further down the tree,
 			// so we can return true.
@@ -125,7 +125,7 @@ UIElement * UIScrollBar::Click(int mouseX, int mouseY)
 	
 	// Check the element's state. If it is hovered over, we've found it.
 	if (this->activateable && HasState(UIState::HOVER)){
-		AddState(UIState::ACTIVE);
+		AddState(graphicsState, UIState::ACTIVE);
 		return this;
 	}
 	// If not, return false, since we haven't foun the right element.

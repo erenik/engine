@@ -19,11 +19,11 @@ public:
 	void OnMouseY(int y);
 
 	/// Activation functions
-	virtual UIElement * Hover(int mouseX, int mouseY);
+	virtual UIElement * Hover(GraphicsState* graphicsState, int mouseX, int mouseY) override;
 	// Returns true once the highest-level appropriate element has been found.
 	// No co-ordinates are required since we will instead require the element to already
 	// be highlighted/hovered above.
-	virtual UIElement * Click(int mouseX, int mouseY);
+	virtual UIElement * Click(GraphicsState* graphicsState, int mouseX, int mouseY) override;
 	// Updates to contents with given size in relative units.
 	void Update(float newSize);
 

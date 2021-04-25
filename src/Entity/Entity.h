@@ -8,6 +8,7 @@
 #include "../MathLib.h"
 #include "String/AEString.h"
 
+class AABB;
 struct Collision;
 class Model;
 class Player;
@@ -26,7 +27,7 @@ class Message;
 class Map;
 class CollisionCallback;
 
-class AABB;
+enum class TextState;
 
 struct LifeAttribute{
 	int HP, maxHP;
@@ -282,6 +283,7 @@ public:
 	/// For "Glow" effects disregarding lighting conditions.
 	Texture * emissiveMap;
 
+	TextState textState;
 
 private:
 	// For distribution of SharedPtr of self. Assign this upon construction where you called make_shared

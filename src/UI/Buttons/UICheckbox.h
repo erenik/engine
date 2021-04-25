@@ -13,7 +13,7 @@ public:
 	virtual ~UICheckbox();
 	virtual UIElement* Activate(GraphicsState* graphicsState) override;
 
-	void OnStateAdded(int state) override;
+	void OnStateAdded(GraphicsState* graphicsState, int state) override;
 
 	virtual void SetToggled(bool value);
 	virtual void SetText(CTextr text, bool force) override;

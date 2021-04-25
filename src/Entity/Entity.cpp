@@ -96,6 +96,7 @@ void Entity::LoadCompactEntityData(CompactEntity* cEntity)
 
 Entity::Entity(int i_id)
 {
+	textState = TextState::Idle;
 	map = 0;
 	inheritPositionOnly = false;
 	relevantScale = false;

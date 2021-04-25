@@ -20,10 +20,10 @@ public:
 	virtual UIInputResult OnChar(int asciiCode) override;
 
 	// For sub-classes to adjust children as needed (mainly for input elements).
-	virtual void OnStateAdded(int state) override;
+	virtual void OnStateAdded(GraphicsState* graphicsState, int state) override;
 
 	/// Begins input, returns false if not possible (e.g. non-activatable StringLabel input)
-	virtual bool BeginInput() override;
+	virtual bool BeginInput(GraphicsState* graphicsState) override;
 
 	/// Creates the label and input.
 	void CreateChildren(GraphicsState* graphicsState) override;

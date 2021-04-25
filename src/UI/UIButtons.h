@@ -11,6 +11,9 @@ class UIButton : public UIElement{
 public:
 	UIButton(String name = "");
 	virtual ~UIButton();
+
+	/// Callback-function for sub-classes to implement own behaviour to run within the UI-class' code. Return true if it did something.
+	bool OnProceed(GraphicsState* graphicsState) override;
 };
 
 // A button composed of a bunch of underlying objects, as defined in their respective .gui file. Highlight and active states are propagated to all children, but interactions only handled on the CompositeButton.
@@ -23,7 +26,7 @@ public:
 	virtual UIElement * Copy() override;
 
 	// For sub-classes to adjust children as needed (mainly for input elements).
-	virtual void OnStateAdded(int state) override;
+	virtual void OnStateAdded(GraphicsState* graphicsState, int state) override;
 
 	/// For example UIState::HOVER, if recursive will apply to all children.
 	virtual void RemoveState(int state, bool recursive = false) override;

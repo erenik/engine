@@ -92,11 +92,11 @@ void UIFloatInput::OnInputUpdated(GraphicsState* graphicsState, UIInput * inputE
 }
 
 // For sub-classes to adjust children as needed (mainly for input elements).
-void UIFloatInput::OnStateAdded(int state) {
+void UIFloatInput::OnStateAdded(GraphicsState* graphicsState, int state) {
 	if (state == UIState::HOVER)
-		input->AddState(state);
+		input->AddState(graphicsState, state);
 	else if (state == UIState::ACTIVE)
-		BeginInput();
+		BeginInput(graphicsState);
 }
 
 /// Creates the label and input.

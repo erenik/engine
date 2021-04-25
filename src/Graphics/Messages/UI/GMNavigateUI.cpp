@@ -11,14 +11,14 @@
 #include "Direction.h"
 #include "UI/Buttons/UIRadioButtons.h"
 
-GMNavigateUI::GMNavigateUI(int direction)
+GMNavigateUI::GMNavigateUI(Direction direction)
 	: GMUI(GM_NAVIGATE_UI)
 {
 	switch (direction) {
-	case UP: navigateDirection = NavigateDirection::Up; break;
-	case DOWN: navigateDirection = NavigateDirection::Down; break;
-	case LEFT: navigateDirection = NavigateDirection::Left; break;
-	case RIGHT: navigateDirection = NavigateDirection::Right; break;
+	case Direction::UP: navigateDirection = NavigateDirection::Up; break;
+	case Direction::DOWN: navigateDirection = NavigateDirection::Down; break;
+	case Direction::LEFT: navigateDirection = NavigateDirection::Left; break;
+	case Direction::RIGHT: navigateDirection = NavigateDirection::Right; break;
 	default:
 		assert(false);
 
@@ -48,7 +48,7 @@ void GMNavigateUI::Process(GraphicsState* graphicsState)
 		// No hover element? Find a suitable one.	
 		UIElement * element = ui->GetStackTop()->GetElementByFlag(UIFlag::ACTIVATABLE);
 		if (element != nullptr)
-			element->AddState(UIState::HOVER);
+			element->AddState(graphicsState, UIState::HOVER);
 		return;
 	}
 
@@ -96,9 +96,6 @@ void GMNavigateUI::Process(GraphicsState* graphicsState)
 			case NavigateDirection::Right:
 				desiredElement = hoverElement->GetRightNeighbour(nullptr, searchChildrenOnly);
 				break;
-
-			default:
-				assert(false && "Implement");
 			}
 			
 			if (ui->IsNavigatable(desiredElement))

@@ -2,6 +2,55 @@
 // 2013-07-02
 
 #include "Text.h"
+#include "Globals.h"
+
+#define disabledMultiplier 0.5f
+#define disabledHoverMultiplier 0.85f
+
+TextColors::TextColors(Color baseIdleColor)
+	: idle(baseIdleColor)
+	, hover(baseIdleColor * 1.30f + Vector4f(0.1f, 0.1f, 0.1f, 1.0f))
+	, active(baseIdleColor * 1.50f + Vector4f(0.2f, 0.2f, 0.2f, 1.0f))
+	, disabledIdle(baseIdleColor * disabledMultiplier)
+	, disabledHover(baseIdleColor * disabledHoverMultiplier) {}
+
+TextColors::TextColors(Color idle, Color hover, Color active)
+	: idle(idle)
+	, hover(hover)
+	, active(active)
+	, disabledIdle(idle * disabledMultiplier)
+	, disabledHover(hover * disabledHoverMultiplier) {}
+
+TextColors TextColors::WithAlpha(float alpha) {
+	TextColors newColors = *this;
+	newColors.idle.a = alpha;
+	newColors.hover.a = alpha;
+	newColors.active.a = alpha;
+	newColors.disabledIdle.a = alpha;
+	newColors.disabledHover.a = alpha;
+	return newColors;
+}
+
+Color TextColors::Get(TextState byState) {
+	switch (byState) {
+	case TextState::Idle:
+		return idle;
+	case TextState::Hover:
+		return hover;
+	case TextState::Active:
+		return active;
+	case TextState::DisabledIdle:
+		return disabledIdle;
+	case TextState::DisabledHover:
+		return disabledHover;
+	}
+}
+
+
+void Text::SetColors(const TextColors& textColors) {
+	SAFE_DELETE(colors);
+	colors = new TextColors(textColors);
+}
 
 Text::Text()
 : String()
@@ -9,9 +58,14 @@ Text::Text()
 	Nullify();
 }
 
+#include "File/LogFile.h"
+#include "Util/String/StringUtil.h"
+
 Text::~Text()
 {
-//	std::cout<<"\nText destructor.";	
+	//LogMain("Destructing text: " + *this+" with Color: "+(colors? VectorString(colors->idle) : "null"), INFO);
+	//std::cout<<"\nText destructor for: "<<*this;	
+	SAFE_DELETE(colors);
 }
 
 // Sets default caret positions etc. from copy constructors.
@@ -21,8 +75,25 @@ void Text::Nullify()
 	previousCaretPosition = -1;
 	offsetX = 0;
 	offsetY = 0;
-	color = Color::defaultTextColor;
+	colors = nullptr; // = Color::defaultTextColor;
 }
+
+// Copy constructor
+Text::Text(const Text& text)
+	: String(text)
+	, colors(nullptr)
+{
+	text.CopyTextVariables(*this);
+}
+
+const Text& Text::operator = (const Text & otherText) {
+	// Copy the strings parts
+	String::operator =(otherText);
+	otherText.CopyTextVariables(*this);
+	return *this;
+}
+
+
 /// Copy constructor and..
 Text::Text(const String & string)
 : String(string)
@@ -45,13 +116,13 @@ Text::Text(String str, int colorHex)
 	: String(str)
 {
 	Nullify();
-	color = Color::ColorByHex32(colorHex);
+	colors = new TextColors(Color::ColorByHex32(colorHex));
 }
 
 // Returns a copy with given color
 Text Text::WithColor(const Color& color) const {
 	Text text = *this;
-	text.color = color;
+	text.colors = new TextColors(color);
 	return text;
 }
 
@@ -140,3 +211,9 @@ int Text::CaretPositionAtNextWord()
 	return prevPos;
 }
 
+void Text::CopyTextVariables(Text& intoText) const {
+	intoText.caretPosition = caretPosition;
+	intoText.previousCaretPosition = previousCaretPosition;
+	if (colors)
+		intoText.colors = new TextColors(*colors);
+}

@@ -5,12 +5,14 @@
 #pragma once
 
 #include "../GMUI.h"
-#include "NavigateDirection.h"
+
+enum class Direction;
+enum class NavigateDirection;
 
 class GMNavigateUI : public GMUI {
 public:
 	// See Direction.h
-	GMNavigateUI(int direction);
+	GMNavigateUI(Direction direction);
 	GMNavigateUI(NavigateDirection direction);
 	virtual ~GMNavigateUI();
 

@@ -46,9 +46,9 @@ bool IsCharacter(uchar c)
 	return true;
 }
 
-Color TextFont::idleColor = Color::ColorByHexName("#AAAAAAff");
-Color TextFont::onHoverColor = Color::ColorByHexName("#CCCCCCff");
-Color TextFont::onActiveColor = Color::ColorByHexName("#FFFFFFFF");
+TextColors TextFont::colors = TextColors(Color::ColorByHexName("#AAAAAAff")
+	, Color::ColorByHexName("#CCCCCCff")
+	, Color::ColorByHexName("#FFFFFFFF"));
 
 TextFont::TextFont()
 {
@@ -472,21 +472,15 @@ void TextFont::RenderText(
 	// Set starting variables.
 	NewText(text, textSizePixels);
 
+	auto * colorsToUse = &colors;
+	if (text.colors)
+		colorsToUse = text.colors;
+
 	/// One color for all text?
-	auto color = text.color;
-	switch (textState) {
-	case TextState::Idle:
-		color = idleColor;
-		break;
-	case TextState::Hover:
-		color = onHoverColor;
-		break;
-	case TextState::Active:
-		color = onActiveColor;
-		break;
-	}
+	auto color = colorsToUse->Get(textState);
 	if (overrideColor != nullptr)
 		color = *overrideColor;
+
 	this->SetColor(color);
 	
 	/// Save old shader!

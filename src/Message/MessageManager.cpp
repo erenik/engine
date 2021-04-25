@@ -847,6 +847,8 @@ void MessageManager::ProcessMessage(Message * message)
 			else if (msg.Contains("begin_input(") ||
 				msg.Contains("BeginInput("))
 			{
+				assert(false && "Start using UIActions instead.");
+				/* // 2021-04
 				String elementName = msg.Tokenize("()")[1];
 				UIElement * element;
 				if (elementName == "this")
@@ -856,8 +858,9 @@ void MessageManager::ProcessMessage(Message * message)
 				if (!element)
 					return;
 				assert(element->demandInputFocus);
-				((UIInput*)element)->BeginInput();
+				((UIInput*)element)->BeginInput(nullptr);
 				return;
+				*/
 				/*
 				UserInterface * ui = StateMan.ActiveState()->GetUI();
 				UIElement * element = message->element;

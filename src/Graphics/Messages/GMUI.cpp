@@ -68,7 +68,9 @@ bool GMUI::GetUI()
 	}
 	if (!window)
 	{
-		window = WindowMan.MainWindow();
+		window = WindowMan.GetCurrentlyActiveWindow();
+		if (!window)
+			window = WindowMan.MainWindow();
 	}
 	if (window)
 	{
@@ -364,7 +366,7 @@ void GMSetUIv3f::Process(GraphicsState * graphicsState)
 	}
     switch(target){
         case GMUI::TEXT_COLOR:
-			e->SetTextColor(value);
+			e->SetTextColors(TextColors(value));
             break;
         case GMUI::VECTOR_INPUT:
             if (e->type != UIType::VECTOR_INPUT)
@@ -418,7 +420,7 @@ void GMSetUIv4f::Process(GraphicsState * graphicsState)
 			e->SetColor(value);
 			break;
         case GMUI::TEXT_COLOR:
-			e->SetTextColor(value);
+			e->SetTextColors(TextColors(value));
             break;
         case GMUI::VECTOR_INPUT:
             if (e->type != UIType::VECTOR_INPUT)
@@ -493,7 +495,7 @@ void GMSetUIf::Process(GraphicsState * graphicsState)
 			element->color[3] = value;
 			break;
 		case GMUI::TEXT_ALPHA:
-			element->SetTextColor(element->GetText().color.WithAlpha(value));
+			element->SetTextColors(element->GetText().colors->WithAlpha(value));
 			break;
 		case GMUI::TEXT_SIZE_RATIO:
 			element->textSizeRatio = value;
@@ -611,7 +613,7 @@ void GMSetUIb::Process(GraphicsState * graphicsState)
 			break;
 		case GMUI::HOVER_STATE:
 			if (value)
-				e->AddState(UIState::HOVER);
+				e->AddState(graphicsState, UIState::HOVER);
 			else
 				e->RemoveState(UIState::HOVER);
 			break;
@@ -619,7 +621,7 @@ void GMSetUIb::Process(GraphicsState * graphicsState)
 			if (value)
 				e->RemoveState(UIState::DISABLED);
 			else
-				e->AddState(UIState::DISABLED);
+				e->AddState(graphicsState, UIState::DISABLED);
 			break;
 		case GMUI::ACTIVE:
 			/// Ensure it is visible first..?
@@ -628,7 +630,7 @@ void GMSetUIb::Process(GraphicsState * graphicsState)
 				return;
 			}
 			if (value)
-				e->AddState(UIState::ACTIVE);
+				e->AddState(graphicsState, UIState::ACTIVE);
 			else
 				e->RemoveState(UIState::ACTIVE);
 			//e->Activate(graphicsState);
@@ -922,7 +924,7 @@ void GMScrollUI::Process(GraphicsState * graphicsState){
     }
 	if (scrolled) {
 		// Hover with last known cursor co-ordinates.
-		ui->Hover(InputMan.GetMousePosition());
+		ui->Hover(graphicsState, InputMan.GetMousePosition());
 	}
 	else {
 		MouseMessage * mm = new MouseMessage(MouseMessage::SCROLL, nullptr, Vector2i());

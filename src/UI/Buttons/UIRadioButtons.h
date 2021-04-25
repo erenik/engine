@@ -37,7 +37,7 @@ public:
 	bool OnNavigate(GraphicsState* graphicsState, NavigateDirection navigateDirection);
 	virtual bool OnProceed(GraphicsState* graphicsState) override;
 
-	void OnStateAdded(int state) override;
+	void OnStateAdded(GraphicsState* graphicsState, int state) override;
 
 	/// Toggles appropriately.
 	void SetValue(GraphicsState* graphicsState, int v);

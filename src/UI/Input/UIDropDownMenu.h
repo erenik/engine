@@ -5,13 +5,13 @@
 #ifndef UI_DROP_DOWN_MENU_H
 #define UI_DROP_DOWN_MENU_H
 
-#include "UI/UIElement.h"
+#include "UI/Input/UIInput.h"
 class UIList;
 
 // I mix them...
 #define UIDropDownList UIDropDownMenu 
 
-class UIDropDownMenu : public UIElement 
+class UIDropDownMenu : public UIInput
 {
 public:
 	UIDropDownMenu(String name);
@@ -33,6 +33,9 @@ public:
 	virtual void Select(int index, bool silent = false);
 	// Attempts to select the specified entry. If silent is specified, no messages will be generated (e.g. game to UI)
 	bool Select(String entry, bool silent = false);
+
+	// For sub-classes to adjust children as needed (mainly for input elements).
+	virtual void OnStateAdded(GraphicsState* graphicsState, int state) override;
 
 	/// Used on left side always.
 	String labelText;

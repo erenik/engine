@@ -83,8 +83,8 @@ void UIToggleButton::OnToggled(UIElement * button) {
 	UIElement::OnToggled(button);
 }
 
-void UIToggleButton::OnStateAdded(int state) {
-	UIElement::OnStateAdded(state);
+void UIToggleButton::OnStateAdded(GraphicsState* graphicsState, int state) {
+	UIElement::OnStateAdded(graphicsState, state);
 }
 
 /// For example UIState::HOVER, if recursive will apply to all children.
@@ -106,6 +106,6 @@ void UIToggleButton::UpdateTexture() {
 }
 
 void UIToggleButton::UpdateTextColor() {
-	SetTextColor(toggled ? toggledTextColor : notToggledTextColor);
+	SetTextColors(toggled ? toggledTextColor : notToggledTextColor);
 }
 

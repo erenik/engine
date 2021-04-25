@@ -19,7 +19,7 @@ public:
 	void OnToggled(UIElement * element) override;
 	const bool IsToggled() const { return toggled; }
 
-	void OnStateAdded(int state) override;
+	void OnStateAdded(GraphicsState* graphicsState, int state) override;
 	/// For example UIState::HOVER, if recursive will apply to all children.
 	virtual void RemoveState(int state, bool recursive = false);
 

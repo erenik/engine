@@ -470,26 +470,26 @@ void Camera::AdjustProjectionMatrixToWindow(AppWindow * window)
 }
 
 /// Begin moving in the specified direction
-void Camera::Begin(int direction)
+void Camera::Begin(Direction direction)
 {
-	navigationControls[direction] = true;
+	navigationControls[(int)direction] = true;
 	UpdateNavigation();
 }
 /// Stop moving in the specified direction
-void Camera::End(int direction)
+void Camera::End(Direction direction)
 {
-	navigationControls[direction] = false;
+	navigationControls[(int)direction] = false;
 	UpdateNavigation();
 }
 /// Begin rotating in the specified direction
-void Camera::BeginRotate(int direction)
+void Camera::BeginRotate(Direction direction)
 {
-	orientationControls[direction] = true;
+	orientationControls[(int)direction] = true;
 	UpdateNavigation();
 }
 /// Stop rotating in the specified direction
-void Camera::EndRotate(int direction){
-	orientationControls[direction] = false;
+void Camera::EndRotate(Direction direction){
+	orientationControls[(int)direction] = false;
 	UpdateNavigation();
 }
 
@@ -833,35 +833,35 @@ bool Camera::ProcessMovement(float timeInSeconds)
 void Camera::UpdateNavigation()
 {
 	/// Navigation
-	if (navigationControls[Direction::UP] && !navigationControls[Direction::DOWN])
+	if (navigationControls[(int)Direction::UP] && !navigationControls[(int)Direction::DOWN])
 		this->velocity[1] = this->defaultVelocity * this->flySpeed;
-	else if (navigationControls[Direction::DOWN] && !navigationControls[Direction::UP])
+	else if (navigationControls[(int)Direction::DOWN] && !navigationControls[(int)Direction::UP])
 		this->velocity[1] = -this->defaultVelocity * this->flySpeed;
 	else
 		this->velocity[1] = 0;
-	if (navigationControls[Direction::FORWARD] && !navigationControls[Direction::BACKWARD])
+	if (navigationControls[(int)Direction::FORWARD] && !navigationControls[(int)Direction::BACKWARD])
 		this->velocity[2] = -this->defaultVelocity * this->flySpeed;
-	else if (navigationControls[Direction::BACKWARD] && !navigationControls[Direction::FORWARD])
+	else if (navigationControls[(int)Direction::BACKWARD] && !navigationControls[(int)Direction::FORWARD])
 		this->velocity[2] = this->defaultVelocity * this->flySpeed;
 	else
 		this->velocity[2] = 0;
-	if (navigationControls[Direction::LEFT] && !navigationControls[Direction::RIGHT])
+	if (navigationControls[(int)Direction::LEFT] && !navigationControls[(int)Direction::RIGHT])
 		this->velocity[0] = -this->defaultVelocity * this->flySpeed;
-	else if (navigationControls[Direction::RIGHT] && !navigationControls[Direction::LEFT])
+	else if (navigationControls[(int)Direction::RIGHT] && !navigationControls[(int)Direction::LEFT])
 		this->velocity[0] = this->defaultVelocity * this->flySpeed;
 	else
 		this->velocity[0] = 0;
 
 	/// Rotation
-	if (orientationControls[Direction::UP] && !orientationControls[Direction::DOWN])
+	if (orientationControls[(int)Direction::UP] && !orientationControls[(int)Direction::DOWN])
 		this->rotationVelocity[0] = this->defaultRotationSpeed * this->rotationSpeed;
-	else if (orientationControls[Direction::DOWN] && !orientationControls[Direction::UP])
+	else if (orientationControls[(int)Direction::DOWN] && !orientationControls[(int)Direction::UP])
 		this->rotationVelocity[0] = -this->defaultRotationSpeed * this->rotationSpeed;
 	else
 		this->rotationVelocity[0] = 0;
-	if (orientationControls[Direction::LEFT] && !orientationControls[Direction::RIGHT])
+	if (orientationControls[(int)Direction::LEFT] && !orientationControls[(int)Direction::RIGHT])
 		this->rotationVelocity[1] = this->defaultRotationSpeed * this->rotationSpeed;
-	else if (orientationControls[Direction::RIGHT] && !orientationControls[Direction::LEFT])
+	else if (orientationControls[(int)Direction::RIGHT] && !orientationControls[(int)Direction::LEFT])
 		this->rotationVelocity[1] = -this->defaultRotationSpeed * this->rotationSpeed;
 	else
 		this->rotationVelocity[1] = 0;

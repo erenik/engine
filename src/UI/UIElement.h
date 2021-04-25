@@ -156,10 +156,10 @@ public:
 
 	/// Activation functions
 	// Hovers over this element. calling OnHover after setting the UIState::HOVER flag.
-	virtual UIElement * Hover();
+	virtual UIElement * Hover(GraphicsState* graphicsState);
 	// Recursive hover function which will return the element currently hovered over using given co-ordinates.
-	virtual UIElement * Hover(int mouseX, int mouseY);	// Skickar hover-meddelande till UI-objektet.
-	virtual UIElement * Click(int mouseX, int mouseY);						// Skicker Genererar meddelande ifall man tryckt på elementet
+	virtual UIElement * Hover(GraphicsState* graphicsState, int mouseX, int mouseY);	// Skickar hover-meddelande till UI-objektet.
+	virtual UIElement * Click(GraphicsState* graphicsState, int mouseX, int mouseY);						// Skicker Genererar meddelande ifall man tryckt på elementet
 	virtual UIElement * Activate(GraphicsState * graphicsState);						// When button is released.
 	/// GEtttererrr
 	virtual UIElement * GetElement(float & mouseX, float & mouseY);
@@ -202,6 +202,11 @@ public:
 	virtual UIElement * GetRightNeighbour(UIElement * referenceElement, bool & searchChildrenOnly);
 	virtual UIElement * GetDownNeighbour(GraphicsState* graphicsState, UIElement * referenceElement, bool & searchChildrenOnly);
 	virtual UIElement * GetLeftNeighbour(UIElement * referenceElement, bool & searchChildrenOnly);
+
+	/** For some UI elements, such as lists, the list itself is not navigatable, so query it to get the first element in its list if so here.
+		By default returns itself. */
+	virtual UIElement * GetNavigationElement(NavigateDirection direction);
+
 
 	// Is it navigatable?
 	bool IsNavigatable();
@@ -342,7 +347,7 @@ public:
 	int borderOffset = 0;
 
 	// Sets it to override.
-	virtual void SetTextColor(Color overrideColor);
+	virtual void SetTextColors(TextColors overrideColors);
 	// Overrides, but only during onHover.
 	virtual void SetOnHoverTextColor(const Color& onHoverTextColor);
 
@@ -449,14 +454,11 @@ public:
 	/// Colors for the element.
 	Vector4f color;
 
-	
-	Color textColor;
-
 	// If set, this will override the text colors used by Idle,Hover,Active states.
 	Color* onHoverTextColor = nullptr;
 
-	/// Colors for the text
-	static Color defaultTextColor;
+	/// Colors for the text, if null, default TextFont colors will be used when rendering the elements.
+	static TextColors* defaultTextColors;
 	/// If true, forces all string assignments to upper-case (used with some styles of games)
 	static bool defaultForceUpperCase;
 
@@ -504,9 +506,14 @@ public:
 		For operations controlling the HOVER flag, certain criteria may need to be met in order for the adder to succeed.
 		Specifying force = true will make it ignore checks of hoverable, activatable, etc.
 	*/
-	virtual bool AddState(int state, bool force = false);
+	virtual bool AddState(GraphicsState* graphicsState, int state, bool force = false);
+	/** For example UIState::HOVER, not to be confused with flags! State = current, Flags = possibilities
+		For operations controlling the HOVER flag, certain criteria may need to be met in order for the adder to succeed.
+		Specifying force = true will make it ignore checks of hoverable, activatable, etc.
+	*/
+	virtual bool AddStateSilently(int state, bool force = false);
 	// For sub-classes to adjust children as needed (mainly for input elements).
-	virtual void OnStateAdded(int state);
+	virtual void OnStateAdded(GraphicsState* graphicsState, int state);
 	// See UIState::
 	bool HasState(int queryState);
 	bool HasStateRecursive(int queryState);

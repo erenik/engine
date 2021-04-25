@@ -96,5 +96,10 @@ void UIAction::Process(GraphicsState* graphicsState, UIElement * forElement)
 			if (targetElement->type == UIType::FILE_BROWSER)
 				((UIFileBrowser*)targetElement)->SetActiveFileFromInput(graphicsState);
 			break;
+		// Vector input 
+		case BEGIN_VECTOR_INPUT:
+			if (targetElement->type == UIType::VECTOR_INPUT)
+				((UIVectorInput*)targetElement)->BeginInput(graphicsState);
+			break;
 	}
 }

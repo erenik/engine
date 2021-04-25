@@ -19,12 +19,6 @@ class Shader;
 */
 bool IsCharacter(uchar c);
 
-enum class TextState {
-	Idle,
-	Hover,
-	Active
-};
-
 class TextFont {
 public:
 	TextFont ();
@@ -71,9 +65,11 @@ public:
 	static String defaultFontSource;
 	static String defaultFontShader;
 
-	static Color idleColor;
-	static Color onHoverColor;
-	static Color onActiveColor;
+	static TextColors colors;
+
+	//static Color idleColor;
+	//static Color onHoverColor;
+	//static Color onActiveColor;
 
 	/// For extra colors or effects.
 	bool hoveredOver;

@@ -23,7 +23,7 @@ public:
 	virtual void OnInputUpdated(GraphicsState* graphicsState, UIInput * inputElement) override;
 
 	// For sub-classes to adjust children as needed (mainly for input elements).
-	virtual void OnStateAdded(int state) override;
+	virtual void OnStateAdded(GraphicsState* graphicsState, int state) override;
 
 	/// Creates the label and input.
 	void CreateChildren(GraphicsState* graphicsState) override;

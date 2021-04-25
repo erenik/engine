@@ -8,7 +8,7 @@
 #include "MathLib.h"
 #include "String/AEString.h"
 
-enum Direction {
+enum class Direction {
 	NO_DIRECTION = -1,
 	FORWARD = 0,
 	BACKWARD,

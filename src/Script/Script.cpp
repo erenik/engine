@@ -489,7 +489,7 @@ void Script::EvaluateLine(String & line)
 			dialogue->textSizeRatio = DEFAULT_TEXT_SIZE_RATIO;
 			dialogue->sizeRatioY = 0.3f;
 			dialogue->alignmentY = 0.15f;
-			dialogue->AddState(UIState::DIALOGUE);  // Flag the dialogue-state flag to signify importance!
+			dialogue->AddState(nullptr, UIState::DIALOGUE);  // Flag the dialogue-state flag to signify importance!
 			Graphics.QueueMessage(new GMAddUI(dialogue, "root"));
 			Graphics.QueueMessage(GMPushUI::ToUI("Dialogue", ActiveUI()));
 		}
@@ -530,7 +530,7 @@ void Script::EvaluateLine(String & line)
 		dialogue->textureSource = DEFAULT_TEXTURE_SOURCE;
 		dialogue->sizeRatioY = 0.3f;
 		dialogue->alignmentY = 0.15f;
-		dialogue->AddState(UIState::DIALOGUE);  // Flag the dialogue-state flag to signify importance!
+		dialogue->AddState(nullptr, UIState::DIALOGUE);  // Flag the dialogue-state flag to signify importance!
 
 		UILabel * dialogueText = new UILabel();
 		dialogueText->SetText(text);

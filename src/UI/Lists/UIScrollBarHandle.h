@@ -16,11 +16,11 @@ public:
 	void SetScrollPosition(float f);
 
 	/// Activation functions
-	virtual UIElement * Hover(int mouseX, int mouseY);
+	virtual UIElement * Hover(GraphicsState* graphicsState, int mouseX, int mouseY);
 	// Returns true once the highest-level appropriate element has been found.
 	// No co-ordinates are required since we will instead require the element to already
 	// be highlighted/hovered above.
-	virtual UIElement * Click(int mouseX, int mouseY);
+	virtual UIElement * Click(GraphicsState* graphicsState, int mouseX, int mouseY);
 
 	/// Used by e.g. ScrollBarHandle's in order to slide its content according to mouse movement, even when the mouse extends beyond the scope of the element.
 	virtual void OnMouseMove(Vector2i activeWindowCoords);

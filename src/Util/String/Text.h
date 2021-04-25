@@ -10,6 +10,27 @@
 // An extension of the String class, made for handling and displaying input, colors, bold, etc.
 #define CTextr const Text & 
 
+enum class TextState {
+	Idle,
+	Hover,
+	Active,
+	DisabledIdle,
+	DisabledHover
+};
+
+struct TextColors {
+	TextColors(Color baseIdleColor);
+	TextColors(Color idle, Color hover, Color active);
+	TextColors WithAlpha(float alpha);
+
+	Color Get(TextState byState);
+
+	Color idle;
+	Color hover;
+	Color active;
+	Color disabledIdle;
+	Color disabledHover;
+};
 
 class Text : public String 
 {
@@ -18,6 +39,9 @@ public:
 	virtual ~Text();
 	// Sets default caret positions etc. from copy constructors.
 	void Nullify();
+	// Copy constructor
+	Text(const Text& text);
+	const Text& operator = (const Text & otherText);
 	/// Copy constructor and..
 	Text(const String & string);
 	Text(const char * string);
@@ -37,6 +61,8 @@ public:
 	bool DeleteSelection();
 
 
+	void SetColors(const TextColors& textColors);
+
 	/// Places the previous caret position a the beginning and the caret position at the end. Any regular input after that will replace all the text.
 	void SelectAll();
 
@@ -44,6 +70,8 @@ public:
 	int CaretPositionAtPreviousWord();
 	/// Returns the position of the caret when moving it forward one word (exactly how it moves will depend on some settings?)
 	int CaretPositionAtNextWord();
+
+	void CopyTextVariables(Text& intoText) const;
 
 	/** For rendering active input location. The caret position lies by default
 		on the left "side" of the index!
@@ -55,8 +83,8 @@ public:
 	/// Offset in pixels to render this text. Default 0. Used for aligning.
 	float offsetX, offsetY;
 
-	/// Primary/starting text color
-	Color color;
+	/// Colors associated with the text, if null will use the default ones set in the TextFont settings.
+	TextColors * colors;
 
 private:
 

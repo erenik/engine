@@ -95,11 +95,11 @@ void UIScrollBarHandle::SetScrollPosition(float f)
 
 
 /// Activation functions
-UIElement * UIScrollBarHandle::Hover(int mouseX, int mouseY)
+UIElement * UIScrollBarHandle::Hover(GraphicsState* graphicsState, int mouseX, int mouseY)
 {
-	UIElement * element = UIElement::Hover(mouseX, mouseY);
+	UIElement * element = UIElement::Hover(graphicsState, mouseX, mouseY);
 	// Just do default, make us highlighted?
-	UIElement::Hover(mouseX, mouseY);
+	UIElement::Hover(graphicsState, mouseX, mouseY);
 	/* Moved to be handled within OnMouseMove
 	if (element == this && InputMan.lButtonDown)
 	{
@@ -114,9 +114,9 @@ UIElement * UIScrollBarHandle::Hover(int mouseX, int mouseY)
 // Returns true once the highest-level appropriate element has been found.
 // No co-ordinates are required since we will instead require the element to already
 // be highlighted/hovered above.
-UIElement * UIScrollBarHandle::Click(int mouseX, int mouseY)
+UIElement * UIScrollBarHandle::Click(GraphicsState* graphicsState, int mouseX, int mouseY)
 {
-	UIElement * clickElement = UIElement::Click(mouseX, mouseY);
+	UIElement * clickElement = UIElement::Click(graphicsState, mouseX, mouseY);
 	if (clickElement == this)
 	{
 		float alignmentY = (mouseY - parent->bottom) / (float)this->parent->sizeY;

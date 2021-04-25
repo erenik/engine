@@ -23,7 +23,7 @@ public:
 	virtual bool HandleDADFiles(List<String> files) override;
 
 	// When clicking/Enter pressed on keyboard.
-	virtual UIElement * Click(int mouseX, int mouseY) override;
+	virtual UIElement * Click(GraphicsState* graphicsState, int mouseX, int mouseY) override;
 	// When button is released.
 	virtual UIElement* Activate(GraphicsState* graphicsState) override;
 
@@ -34,7 +34,7 @@ public:
 	virtual void RemoveState(int state, bool recursive = false) override;
 
 	// For sub-classes to adjust children as needed (mainly for input elements).
-	virtual void OnStateAdded(int state) override;
+	virtual void OnStateAdded(GraphicsState* graphicsState, int state) override;
 
 	// Used for handling things like drag-n-drop and copy-paste operations, etc. as willed.
 	virtual void ProcessMessage(Message * message) override;
@@ -54,7 +54,7 @@ public:
 	/// Used for getting text. This will be local translated language key codes?
 	virtual UIInputResult OnChar(int asciiCode) override;
 	/// Begins input, returns false if not possible (e.g. non-activatable StringLabel input)
-	virtual bool BeginInput();
+	virtual bool BeginInput(GraphicsState* graphicsState);
 	/// Halts input and removes Active state.
 	virtual void StopInput() override;
 
@@ -76,7 +76,7 @@ public:
 	const float ParseFloat();
 
 	// For setting static colors.
-	virtual void SetTextColor(Color newOverrideTextColor) override;
+	virtual void SetTextColors(TextColors newOverrideTextColors) override;
 
 	virtual void SetRange(int min, int max);
 

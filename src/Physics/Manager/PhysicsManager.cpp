@@ -155,11 +155,9 @@ List<Intersection> PhysicsManager::Raycast(Ray & ray)
 	timer.Start();
 	Timer timer2;
 	timer2.Start();
-	// Pause physics while at it ? <- lollll
 //	Pause();
 	static List<Intersection> intersections;
 	intersections.Clear();
-	// Grab entities.
 	static List< Entity* > entities;
 	entities.Clear();
 
@@ -188,6 +186,7 @@ List<Intersection> PhysicsManager::Raycast(Ray & ray)
 		sse.data = _mm_sub_ps(entity->aabb->max.data, entity->aabb->position.data);
 		sse.data = _mm_mul_ps(sse.data, sse.data);
 		scaleSquared = sse.x + sse.y + sse.z;
+		//assert(scaleSquared > 0 && "Scale of entity should probably not be 0?");
 #else
 		rayOriginToEntityCenter = entity->aabb->position - ray.start;
 		rayOriginToEntityCenterProjectedOntoRayDir = ray.direction.DotProduct(rayOriginToEntityCenter);
@@ -483,8 +482,11 @@ void PhysicsManager::SetPhysicsShape(List< Entity* > targetEntities, int type)
 		case ShapeType::CUBE:
 			entity->physics->shape = new Cube();
 			break;
+		case ShapeType::AABB:
+			entity->physics->shape = new AABB();
+			break;
 		default:
-			assert(false && "FUCK YOU!");
+			assert(false && "Shape type not supported yet.");
 			break;
 		}
 	}

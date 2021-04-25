@@ -68,13 +68,13 @@ UIElement* UICheckbox::Activate(GraphicsState* graphicsState)
 }
 
 
-void UICheckbox::OnStateAdded(int state) {
+void UICheckbox::OnStateAdded(GraphicsState* graphicsState, int state) {
 	if (state == UIState::ACTIVE) {
 		button->SetToggled(!button->IsToggled());
 		RemoveState(state);
 	}
 	if (label)
-		label->AddState(state);
+		label->AddState(graphicsState, state);
 }
 
 void UICheckbox::SetToggled(bool value) {

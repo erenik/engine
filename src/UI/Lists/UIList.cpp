@@ -106,6 +106,20 @@ void UIList::CreateScrollBarIfNeeded()
 	}
 }
 
+/** For some UI elements, such as lists, the list itself is not navigatable, so query it to get the first element in its list if so here.
+		By default returns itself. */
+UIElement * UIList::GetNavigationElement(NavigateDirection direction) {
+	if (direction == NavigateDirection::Down)
+	{
+		return children[0];
+	}
+	else if (direction == NavigateDirection::Up) {
+		return children[children.Size() - 1];
+	}
+	else
+		return children[0];
+}
+
 // Adjusts hierarchy besides the regular addition
 bool UIList::AddChild(GraphicsState * graphicsState, UIElement* child)
 {
@@ -190,7 +204,7 @@ bool UIList::AddChild(GraphicsState * graphicsState, UIElement* child)
                                mouseX > right || mouseX < left) return NULL;};
 
 /// Activation functions
-UIElement * UIList::Hover(int mouseX, int mouseY)
+UIElement * UIList::Hover(GraphicsState* graphicsState, int mouseX, int mouseY)
 {
 	RETURN_IF_OUTSIDE
     float listX = (float)mouseX;
@@ -205,9 +219,9 @@ UIElement * UIList::Hover(int mouseX, int mouseY)
     for (int i = 0; i < children.Size(); ++i){
         UIElement * child = children[i];
         if (child->isSysElement)
-            e = child->Hover(mouseX, mouseY);
+            e = child->Hover(graphicsState, mouseX, mouseY);
         else
-            e = child->Hover(RoundInt(listX), RoundInt(listY));
+            e = child->Hover(graphicsState, RoundInt(listX), RoundInt(listY));
         if (e)
             break;
     }
@@ -215,13 +229,13 @@ UIElement * UIList::Hover(int mouseX, int mouseY)
     if (e == NULL)
 	{
         e = this;
-		if (!AddState(UIState::HOVER))
+		if (!AddState(graphicsState, UIState::HOVER))
 			return NULL;
 	}
 	// Odd-case, with lists acting as buttons, if it can be highlit and sub elements are not highlightable.
 	else if (highlightOnHover && !e->highlightOnHover) {
 		e = this;
-		AddState(UIState::HOVER);
+		AddState(graphicsState, UIState::HOVER);
 	}
 	else 
 	{
@@ -232,7 +246,7 @@ UIElement * UIList::Hover(int mouseX, int mouseY)
     }
     return e;
 }
-UIElement * UIList::Click(int mouseX, int mouseY)
+UIElement * UIList::Click(GraphicsState* graphicsState, int mouseX, int mouseY)
 {
 	state &= ~UIState::ACTIVE;
     RETURN_IF_OUTSIDE
@@ -252,9 +266,9 @@ UIElement * UIList::Click(int mouseX, int mouseY)
     for (int i = 0; i < children.Size(); ++i){
         UIElement * child = children[i];
         if (child->isSysElement)
-            e = child->Click(mouseX, mouseY);
+            e = child->Click(graphicsState, mouseX, mouseY);
         else
-            e = child->Click(RoundInt(listX), RoundInt(listY));
+            e = child->Click(graphicsState, RoundInt(listX), RoundInt(listY));
         if (e)
             break;
     }
@@ -263,7 +277,7 @@ UIElement * UIList::Click(int mouseX, int mouseY)
         e = this;
 		// If activatable, flag it.
 		if (this->activateable){
-			AddState(UIState::ACTIVE);
+			AddState(graphicsState, UIState::ACTIVE);
 			return this;
 		}
 		// If not, skip it if it didn't activate.
@@ -275,7 +289,7 @@ UIElement * UIList::Click(int mouseX, int mouseY)
     return e;
 }
 /// GEtttererrr
-UIElement * UIList::GetElement(int mouseX, int mouseY){
+UIElement * UIList::GetElement(GraphicsState* graphicsState, int mouseX, int mouseY){
     RETURN_IF_OUTSIDE
     float listX = (float)mouseX;
     float listY = (float)mouseY;
@@ -286,7 +300,7 @@ UIElement * UIList::GetElement(int mouseX, int mouseY){
     for (int i = 0; i < children.Size(); ++i){
         UIElement * child = children[i];
         if (child->isSysElement)
-            e = child->Click(mouseX, mouseY);
+            e = child->Click(graphicsState, mouseX, mouseY);
         else
             e = child->GetElement(listX, listY);
         if (e)
@@ -348,10 +362,10 @@ bool UIList::OnScroll(GraphicsState* graphicsState, float delta)
 		hoverElement->RemoveState(UIState::HOVER);
 		if (delta > 0)
 		{
-			children[0]->Hover();
+			children[0]->Hover(graphicsState);
 		}
 		else {
-			LastChild()->Hover();
+			LastChild()->Hover(graphicsState);
 		}
 	}
 	return thisOrParentMoved;

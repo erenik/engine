@@ -15,13 +15,24 @@ void UIElement::UnitTest() {
 	Color * colorAlloc = new Color();
 	SAFE_DELETE(colorAlloc);
 
+	// Test Text allocation as it has TextColors*
+	{
+		Text t = Text("Hello", 0xFF112233);
+	}
+
+	{
+		Text t = Text("HelloWorld", 0x112233FF);
+		Text t2 = t;
+	}
+
+
 	UIElement * element = new UIElement();
 	auto color = Color(Vector4f(1, 1, 1, 1));
-	element->SetTextColor(color);
+	element->SetTextColors(color);
 	SAFE_DELETE(element);
 
 	UIIntegerInput * integerInput = new UIIntegerInput("Hello", "World");
-	integerInput->SetTextColor(color);
+	integerInput->SetTextColors(color);
 	integerInput->CreateChildren(nullptr);
 	SAFE_DELETE(integerInput);
 

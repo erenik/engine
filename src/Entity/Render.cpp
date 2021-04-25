@@ -332,7 +332,7 @@ void Entity::Render(GraphicsState & graphicsState)
 			modelMatrix = Matrix4d();
 			Vector3f centeringOffset(- textRenderSize[0] * 0.5f, textRenderSize[1], 0);
 			modelMatrix.Multiply(rotationMatrix);
-			font->RenderText(textToRender, TextState::Idle, nullptr, graphicsState, worldPosition + centeringOffset, scale.x * graphics->textSizeRatio);
+			font->RenderText(textToRender, textState, nullptr, graphicsState, worldPosition + centeringOffset, scale.x * graphics->textSizeRatio);
 		}
 	}
 }

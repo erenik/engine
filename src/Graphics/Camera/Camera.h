@@ -187,13 +187,13 @@ public:
 	float farPlane;		// Defines distance of the farplane.
 	float nearPlane;	// Defines distance to the nearplane. Should probably be quite low?
 	/// Begin moving in the specified direction
-	void Begin(int direction);
+	void Begin(Direction direction);
 	/// Stop moving in the specified direction
-	void End(int direction);
+	void End(Direction direction);
 	/// Begin rotating in the specified direction
-	void BeginRotate(int direction);
+	void BeginRotate(Direction direction);
 	/// Stop rotating in the specified direction
-	void EndRotate(int direction);
+	void EndRotate(Direction direction);
 
 	/** Sets width/height ratio (commonly known as Aspect ratio). Values should span from 1.0 and upward. */
 	void SetRatioF(float widthRatio, float heightRatio, bool force = false);

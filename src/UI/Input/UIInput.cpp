@@ -80,9 +80,9 @@ bool UIInput::HandleDADFiles(List<String> files)
 }
 
 // When clicking/Enter pressed on keyboard... no?
-UIElement * UIInput::Click(int mouseX, int mouseY)
+UIElement * UIInput::Click(GraphicsState* graphicsState, int mouseX, int mouseY)
 {
-	UIElement * e = UIElement::Click(mouseX, mouseY);
+	UIElement * e = UIElement::Click(graphicsState, mouseX, mouseY);
 	if (e == this){
 		// BeginInput();
 	}
@@ -91,7 +91,11 @@ UIElement * UIInput::Click(int mouseX, int mouseY)
 // When button is released.
 UIElement* UIInput::Activate(GraphicsState* graphicsState)
 {
-	if (BeginInput())
+	for (int i = 0; i < activationActions.Size(); ++i) {
+		activationActions[i].Process(graphicsState, this);
+		return this;
+	}
+	if (BeginInput(graphicsState))
 		return this;
 	return nullptr;
 }
@@ -129,9 +133,13 @@ void UIInput::RemoveState(int state, bool recursive /*= false*/)
 }
 
 // For sub-classes to adjust children as needed (mainly for input elements).
-void UIInput::OnStateAdded(int state) {
+void UIInput::OnStateAdded(GraphicsState* graphicsState, int state) {
 	if (state == UIState::ACTIVE) {
-		BeginInput();
+		for (int i = 0; i < activationActions.Size(); ++i) {
+			activationActions[i].Process(graphicsState, this);
+			return;
+		}
+		BeginInput(graphicsState);
 	}
 }
 
@@ -226,11 +234,11 @@ UIInputResult UIInput::OnKeyDown(GraphicsState* graphicsState, int keyCode, bool
 				return UIInputResult::NoUpdate;
 			StopInput();
 			// Activate the messages this element had, if any. If using as a compound e.g. inside a StringInput, then this onTrigger may be omitted.
+			for (int i = 0; i < onTriggerActions.Size(); ++i) {
+				onTriggerActions[i].Process(graphicsState, this);
+			}
 			if (onTrigger.Length()) {
 				MesMan.QueueMessages(onTrigger, this);
-				for (int i = 0; i < onTriggerActions.Size(); ++i) {
-					onTriggerActions[i].Process(graphicsState, this);
-				}
 			}
 			/// Notify of the update to self and then parents, so that extra actions may be taken.
 			this->OnInputUpdated(graphicsState, this);
@@ -503,7 +511,7 @@ void UIInput::OnBackspace()
 
 
 /// Begins input! >)
-bool UIInput::BeginInput()
+bool UIInput::BeginInput(GraphicsState* graphicsState)
 {
 	if (!activateable) {
 		LogMain("Attempting to input on non-activatable input", ERROR);
@@ -516,7 +524,7 @@ bool UIInput::BeginInput()
 	inputActive = true;
 	// Set active state if not done so already.
 	if (!HasState(UIState::ACTIVE)) {
-		AddState(UIState::ACTIVE);
+		AddState(graphicsState, UIState::ACTIVE);
 	}
 	editText = text; // GetText();
 	caretPosition = editText.Length();
@@ -535,18 +543,16 @@ UIColumnList * UIInput::CreateDefaultColumnList(UIElement * parent) {
 	box->textureSource = "0x00000000";
 	box->padding = parent->padding;
 	parent->InheritDefaults(box);
-	box->SetTextColor(parent->textColor);
 	parent->AddChild(nullptr, box);
 	return box;
 }
 UILabel * UIInput::CreateDefaultLabel(UIElement * box, String text, float sizeX) {
 	UILabel * label = new UILabel();
+	box->InheritDefaults(label);
 	label->textureSource = "0x00000000";
-	label->hoverable = true;
+	//label->hoverable = true;
 	label->SetText(text);
 	label->sizeRatioX = sizeX;
-	box->InheritDefaults(label);
-	label->SetTextColor(box->textColor);
 	label->rightBorderTextureSource = box->rightBorderTextureSource;
 	label->activateable = false;
 	box->AddChild(nullptr, label);
@@ -559,10 +565,6 @@ UIInput * UIInput::CreateDefaultInput(UIElement * box, String inputName, float s
 	input->name = inputName + "Input";
 	input->sizeRatioX = sizeX;
 	box->InheritDefaults(input);
-
-	input->SetTextColor(box->textColor);
-
-
 	box->AddChild(nullptr, input);
 
 	// If activating this meta-Input element, start adjusting this sub-field.
@@ -613,13 +615,13 @@ const float UIInput::ParseFloat() {
 }
 
 // For setting static colors.
-void UIInput::SetTextColor(Color newOverrideTextColor) {
-	UIElement::SetTextColor(newOverrideTextColor); // Set for self, in-case elements are not yet created.
+void UIInput::SetTextColors(TextColors newOverrideTextColors) {
+	UIElement::SetTextColors(newOverrideTextColors); // Set for self, in-case elements are not yet created.
 
 	if (label)
-		label->SetTextColor(newOverrideTextColor);
+		label->SetTextColors(newOverrideTextColors);
 	if (input)
-		input->SetTextColor(newOverrideTextColor);
+		input->SetTextColors(newOverrideTextColors);
 }
 
 void UIInput::SetRange(int newMin, int newMax) {

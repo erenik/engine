@@ -121,16 +121,15 @@ UIInputResult UIStringInput::OnChar(int asciiCode) {
 }
 
 // For sub-classes to adjust children as needed (mainly for input elements).
-void UIStringInput::OnStateAdded(int state) {
-	if (state == UIState::HOVER)
-		label->AddState(state); // Add hover to label as well?
-	else 
-		input->AddState(state);
+void UIStringInput::OnStateAdded(GraphicsState* graphicsState, int state) {
+	label->AddStateSilently(state, true);
+	input->AddState(graphicsState, state);
+	UIInput::OnStateAdded(graphicsState, state);
 }
 
-bool UIStringInput::BeginInput() {
+bool UIStringInput::BeginInput(GraphicsState* graphicsState) {
 	if (!input->InputActive())
-		return input->BeginInput();
+		return input->BeginInput(graphicsState);
 	else
 		input->StopInput();
 	return false;
@@ -149,10 +148,8 @@ void UIStringInput::CreateChildren(GraphicsState * graphicsState)
 	label->rightBorderTextureSource = rightBorderTextureSource;
 
 	input = CreateDefaultInput(box, name, 1 - divider.x);
+	input->onTriggerActions = onTriggerActions;
 	input->textureSource = inputTextureSource;
-
-	label->SetTextColor(textColor);
-	input->SetTextColor(textColor);
 
 	/// Set them to only accept floats?
 	input->SetText("");

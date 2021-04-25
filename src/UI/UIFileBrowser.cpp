@@ -70,19 +70,22 @@ void UIFileBrowser::CreateChildren(GraphicsState* graphicsState)
 	// Create a title
 	UILabel * label = new UILabel();
 	InheritDefaults(label);
-	label->SetText(title);
+	label->SetText(title.Length() > 0? title : name);
 	label->sizeRatioY = 0.1f;
-	label->SetTextColor(Vector4f(1, 1, 1, 1));
+	label->SetTextColors(Color(1, 1, 1, 1));
 	AddChild(nullptr, label);
 
 	// Create path/dir input
-	dirInput = new UIInput();
+	dirInput = new UIStringInput(this->name+"DirInput", "SetFileBrowserDirectory(" + this->name + ",this)");
 	InheritDefaults(dirInput);
-	dirInput->name = this->name+"DirInput";
-	dirInput->onTrigger = "SetFileBrowserDirectory("+this->name+",this)";
+	//dirInput->name = ;
+	//dirInput->onTrigger = ;
 	dirInput->sizeRatioY = 0.1f;
-	dirInput->SetText(currentPath);
+	dirInput->CreateChildren(graphicsState);
+	dirInput->SetText("Dir: ");
+	dirInput->SetValue(currentPath);
 	AddChild(nullptr, dirInput);
+
 	// Create file-list
 	dirList = new UIList();
 	InheritDefaults(dirList);
@@ -91,12 +94,14 @@ void UIFileBrowser::CreateChildren(GraphicsState* graphicsState)
 	AddChild(nullptr, dirList);
 	
 	// Create file-name input
-	fileInput = new UIInput();
+	fileInput = new UIStringInput(this->name + "FileInput", "SetFileBrowserFile(" + this->name + ",this)");
 	InheritDefaults(fileInput);
-	fileInput->name = this->name+"FileInput";
+	//fileInput->name = ;
 	fileInput->sizeRatioY = 0.1f;
-	fileInput->onTrigger = "SetFileBrowserFile("+this->name+",this)";
+	//fileInput->onTrigger = ;
 	fileInput->onTriggerActions.Add(UIAction(UIAction::SET_FILE_BROWSER_FILE_FROM_INPUT, this));
+	fileInput->CreateChildren(graphicsState);
+	fileInput->SetText("File: ");
 	AddChild(nullptr, fileInput);
 
 	// Create OK/Cancel buttons
@@ -125,6 +130,10 @@ void UIFileBrowser::CreateChildren(GraphicsState* graphicsState)
 	cList->AddChild(nullptr, okButton);
 	
 	/// Bind neighbours for proper ui navigation...
+	dirInput->downNeighbour = dirList;
+	//dirList->downNeighbour = fileInput;
+	//fileInput->downNeighbour
+
 	/*
 	cancelButton->rightNeighbourName = okButton->name;
 	cancelButton->upNeighbourName = fileInput->name;
@@ -136,11 +145,11 @@ void UIFileBrowser::CreateChildren(GraphicsState* graphicsState)
 }
 
 /// Clears and creates new list of directory-contents. Use false on first usage, rest should be true.
-void UIFileBrowser::LoadDirectory(bool fromRenderThread)
+void UIFileBrowser::LoadDirectory(GraphicsState* graphicsState)
 {
 	assert(dirList);
 	// Clear contents
-	if (fromRenderThread)
+	if (graphicsState)
 	{
 		dirList->Clear();
 	}
@@ -157,11 +166,13 @@ void UIFileBrowser::LoadDirectory(bool fromRenderThread)
 	{
 		UIButton * dirButton = new UIButton();
 		InheritDefaults(dirButton);
+		dirButton->textureSource = "";
 		dirButton->sizeRatioY = 0.1f;
 		dirButton->SetText(dirs[i]+"/");
-#define LOW	0.5f
-#define MID	0.7f
-		dirButton->SetTextColor(Vector3f(LOW,MID,2.0f));
+#define LOW	0.15f
+#define MID	0.35f
+#define HIGH 0.6f
+		dirButton->SetTextColors(TextColors(Vector3f(LOW,MID, HIGH)));
 		//dirButton->activationMessage = "UpdateFileBrowserDirectory("+this->name+","+dirs[i]+")";
 		dirButton->activationActions.Add(UIAction(UIAction::SELECT_FILE_BROWSER_DIRECTORY, this, dirs[i]));
 		dirList->AddChild(nullptr, dirButton);
@@ -178,15 +189,16 @@ void UIFileBrowser::LoadDirectory(bool fromRenderThread)
 		
 		UIButton * fileButton = new UIButton();
 		InheritDefaults(fileButton);
+		fileButton->textureSource = "";
 		fileButton->sizeRatioY = 0.1f;
 		fileButton->SetText(files[i]);
-		fileButton->SetTextColor(Color(Vector3f(LOW,2.0f,LOW)));
+		fileButton->SetTextColors(TextColors(Vector3f(LOW, HIGH,LOW)));
 		// fileButton->activationMessage = "SetFileBrowserFile("+this->name+","+files[i]+")";
 		fileButton->activationActions.Add(UIAction(UIAction::SELECT_FILE_BROWSER_FILE, this, files[i]));
 		dirList->AddChild(nullptr, fileButton);
 	}
 	// Hover to the element at once!
-	firstDir->AddState(UIState::HOVER);
+	firstDir->AddState(graphicsState, UIState::HOVER);
 	directoryLoaded = true;
 }
 
@@ -241,7 +253,7 @@ void UIFileBrowser::OnDirPathUpdated(bool fromRenderThread)
 	else
 	{
 		if (dirInput)
-			Graphics.QueueMessage(new GMSetUIs(dirInput->name, GMUI::TEXT, currentPath, ui));
+			Graphics.QueueMessage(new GMSetUIs(dirInput->name, GMUI::STRING_INPUT, currentPath, ui));
 	}
 	// Save path into the list of old file browsers.
 	for (int i = 0; i < oldFileBrowsers.Size(); ++i){
@@ -267,7 +279,8 @@ void UIFileBrowser::SetActiveFile(GraphicsState* graphicsState, String file){
 	fileSelection.Add(currentPath + "/" + file);
 
 	if (graphicsState) {
-		fileInput->SetText(file);
+		//fileInput->SetText(file);
+		fileInput->SetValue(file);
 	}
 	else {
 		Graphics.QueueMessage(new GMSetUIs(fileInput->name, GMUI::TEXT, file, ui));
@@ -275,7 +288,7 @@ void UIFileBrowser::SetActiveFile(GraphicsState* graphicsState, String file){
 }
 
 void UIFileBrowser::SetActiveFileFromInput(GraphicsState* graphicsState) {
-	fileSelection = currentPath + "/" + fileInput->GetText();
+	fileSelection = currentPath + "/" + fileInput->GetValue();
 }
 
 
@@ -287,7 +300,7 @@ void UIFileBrowser::Render(GraphicsState & graphicsState)
 		CreateChildren(&graphicsState);
 	// Load directory if not done so already.
 	if (!directoryLoaded)
-		LoadDirectory(true);
+		LoadDirectory(&graphicsState);
 	UIList::Render(graphicsState);
 }
 

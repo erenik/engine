@@ -224,30 +224,30 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 				SET_DEFAULTS
 			}
 			else if (token == "Button") {
-				ADD_PREVIOUS_TO_UI_IF_NEEDED
-					element = new UIButton();
+				AddPreviousToUIIfNeeded();
+				element = new UIButton();
+				SetDefaults(element);
 				if (tokens.Size() > 1) {
 					element->name = firstQuote;
 					/// Set the elements text and message default to it's name too, yo.
 					element->activationMessage = element->name;
 					element->SetText(element->name);
 				}
-				SET_DEFAULTS
 			}
 			else if (token == "Label") {
 				AddPreviousToUIIfNeeded();
 				element = new UILabel();
+				SetDefaults(element);
 				if (tokens.Size() > 1) {
 					element->name = tokens[1];
 					element->SetText(firstQuote);
 				}
-				SetDefaults(element);
 			}
 			else if (token == "TextField" || token == "Input")
 			{
-				ADD_PREVIOUS_TO_UI_IF_NEEDED
-					element = new UITextField();
-				SET_DEFAULTS
+				AddPreviousToUIIfNeeded();
+				element = new UITextField();
+				SetDefaults(element);
 					if (tokens.Size() > 1)
 						element->name = element->onTrigger = firstQuote;
 			}
@@ -312,9 +312,9 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 				ADD_PREVIOUS_TO_UI_IF_NEEDED;
 				String firstToken = tokens[1];
 				UITextureInput * ti = new UITextureInput(firstToken, "Set" + firstToken);
+				SetDefaults(ti);
 				element = ti;
-				element->displayText = firstQuote;
-				SET_DEFAULTS;
+				element->SetText(firstQuote);
 				ti->CreateChildren(nullptr);
 			}
 			else if (token == "StringInput")
@@ -322,9 +322,9 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 				ADD_PREVIOUS_TO_UI_IF_NEEDED;
 				String firstToken = tokens[1];
 				UIStringInput * si = new UIStringInput(firstToken, "Set" + firstToken);
+				SetDefaults(si);
 				element = si;
-				element->displayText = firstQuote;
-				SET_DEFAULTS;
+				element->SetText(firstQuote);
 			}
 			else if (token == "StringValue")
 			{
@@ -342,50 +342,48 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 				ADD_PREVIOUS_TO_UI_IF_NEEDED;
 				String firstToken = tokens[1];
 				UIIntegerInput * ii = new UIIntegerInput(firstToken, "Set" + firstToken);
+				SetDefaults(ii);
 				ii->SetText(firstQuote);
 				element = ii;
-				element->displayText = firstQuote;
-				SET_DEFAULTS
 			}
 			else if (token == "IntegerLabel") // Creates an Integer-display which is not interactable via GUI, just for display.
 			{
 				ADD_PREVIOUS_TO_UI_IF_NEEDED;
 				String firstToken = tokens[1];
 				UIIntegerInput * ii = new UIIntegerInput(firstToken, "Set" + firstToken);
+				SetDefaults(ii);
 				element = ii;
 				ii->SetText(firstQuote);
 				element->hoverable = element->activateable = false;
-				SET_DEFAULTS
-					ii->guiInputDisabled = true;
+				ii->guiInputDisabled = true;
 			}
 			else if (token == "StringLabel") // Creates an String-display which is not interactable via GUI, just for display.
 			{
 				ADD_PREVIOUS_TO_UI_IF_NEEDED;
 				String firstToken = tokens[1];
 				UIStringInput * si = new UIStringInput(firstToken, "Set" + firstToken);
+				SetDefaults(si);
 				element = si;
-				element->displayText = firstQuote;
+				element->SetText(firstQuote);
 				element->hoverable = element->activateable = false;
-				SET_DEFAULTS;
 				si->guiInputDisabled = true;
 			}
 			else if (token == "FloatInput") {
 				ADD_PREVIOUS_TO_UI_IF_NEEDED;
 				String firstToken = tokens[1];
 				UIFloatInput * fi = new UIFloatInput(firstToken, "Set" + firstToken);
+				SetDefaults(fi);
 				element = fi;
-				element->displayText = firstQuote;
-				SET_DEFAULTS
+				element->SetText(firstQuote);
 			}
 			else if (token == "FloatLabel") {
 				AddPreviousToUIIfNeeded();
 				String firstToken = tokens[1];
 				UIFloatInput * fi = new UIFloatInput(firstToken, "Set" + firstToken);
+				SetDefaults(fi);
 				element = fi;
-				element->displayText = firstQuote;
+				element->SetText(firstQuote);
 				element->hoverable = element->activateable = false;
-				//fi->guiInputDisabled = true;
-				SetDefaults(element);
 			}
 			else if (token == "FloatValue")
 			{
@@ -401,14 +399,14 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 				ADD_PREVIOUS_TO_UI_IF_NEEDED
 					String action = "Set" + secondQuote;
 				UIVectorInput * vi = new UIVectorInput(firstQuote.ParseInt(), secondQuote, action);
+				SetDefaults(vi);
 				element = vi;
-				SET_DEFAULTS
 			}
 			else if (token == "RadioButtons")
 			{
 				ADD_PREVIOUS_TO_UI_IF_NEEDED
 
-					String name, displayText;
+				String name, displayText;
 				int numItems = 1;
 				if (newTokens.Size() >= 3)
 				{
@@ -423,10 +421,10 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 					displayText = name;
 				String action = "Set" + name;
 				UIRadioButtons * rb = new UIRadioButtons(numItems, name, action);
+				SetDefaults(rb);
 				element = rb;
 				displayText.Remove('\"', true);
-				rb->displayText = displayText;
-				SET_DEFAULTS
+				rb->SetText(displayText);
 			}
 			else if (token == "Image")
 			{
@@ -521,7 +519,7 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 			else if (token == "displayText")
 			{
 				EnsureNextToken(tokens);
-				element->displayText = firstQuote;
+				element->SetText(firstQuote);
 			}
 			else if (token == "UseToggleTexts") {
 				EnsureNextToken(tokens);
@@ -690,7 +688,7 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 				// Hex detected!
 				if (line.Contains("0x") || line.Contains("#"))
 				{
-					element->SetTextColor(Color::ColorByHexName(nextToken));
+					element->SetTextColors(Color::ColorByHexName(nextToken));
 				}
 				else
 				{
@@ -709,7 +707,7 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 						assert(false && "Irregular amount of tokens following \"textColor\"; 1 for alpha, 3 for RGB and 4 for RGBA.");
 						break;
 					}
-					element->SetTextColor(color);
+					element->SetTextColors(color);
 				}
 			}
 			else if (token == "textSizeRatio" || token == "textSize") {
@@ -965,7 +963,7 @@ void UIParser::SetDefaults(UIElement * element) {
 	element->textureSource = defaultTexture;
 	element->scalable = defaultScalability;
 	if (defaultTextColor)
-		element->SetTextColor(*defaultTextColor);
+		element->SetTextColors(*defaultTextColor);
 	element->sizeRatioY = defaultSizeRatioY; 
 	element->sizeRatioX = defaultSizeRatioX; 
 	element->padding = defaultPadding; 
@@ -1116,7 +1114,7 @@ void UIParser::ParseDefaults(List<String> tokens) {
 	}
 	else if (token == "defaultTextColor")
 	{
-		defaultTextColor = nullptr;
+		SAFE_DELETE(defaultTextColor);
 		if (line.Contains("null"))
 			return;
 

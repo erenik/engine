@@ -24,8 +24,8 @@ public:
 	virtual ~UIFileBrowser();
 	/// Creates ze children!
 	void CreateChildren(GraphicsState* graphicsState) override;
-	/// Clears and creates new list of directory-contents. Use false on first usage, rest should be true.
-	void LoadDirectory(bool fromRenderThread);
+	/// Clears and creates new list of directory-contents. Use nullptr if pre-loading it from main thread.
+	void LoadDirectory(GraphicsState* graphicsState);
 	/// Call to update path, using given argument to add to the path.
 	void UpdatePath(String cat, bool fromRenderThread);
 	/// Sets browser active directory path.
@@ -58,8 +58,8 @@ private:
 	/// Old file browsers and their paths, using "name;path" syntax
 	static List<String> oldFileBrowsers;
 
-	UIInput * fileInput;
-	UIInput * dirInput;
+	UIStringInput * fileInput;
+	UIStringInput * dirInput;
 	UIList * dirList;
 	String title;
 	String fileFilter;
