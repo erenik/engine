@@ -95,52 +95,15 @@ void Entity::LoadCompactEntityData(CompactEntity* cEntity)
 }
 
 Entity::Entity(int i_id)
+	: id (i_id)
 {
-	textState = TextState::Idle;
-	map = 0;
-	inheritPositionOnly = false;
-	relevantScale = false;
-	sharedProperties = false;
-	updateChildrenOnTransform = false;
-	localPosition = Vector3f(0,0,0);
-	scale = Vector3f(1,1,1);
-	rotation = Vector3f(0,0,0);
-	flags = 0;
-	diffuseMap = NULL;
-	specularMap = NULL;
-	normalMap = NULL;
-	emissiveMap = NULL;
+	Initialize();
 	material = new Material(defaultMaterial);
-	model = NULL;
-	id = i_id;
-	/// Owner o-o
-	this->player = NULL;
-
 	aabb = new AABB();
 
 	// Default all flags to 0.
-	/// Status, for whether it's part of rendering, physics, etc.
-	this->registeredForRendering = false;
-	this->registeredForPhysics = false;
-	this->flaggedForDeletion = false;
-
-	/// Nullify all pointers to add-ons. IMPORTANT!
-	this->graphics = NULL;
-	this->physics = NULL;
-	this->scripts = NULL;
-	/// Create it automatiaclly so we don't have to, cheers..
-	this->pathfindingProperty = new PathfindingProperty(this);
-
-	parent = NULL;
-	cameraFocus = NULL;
-	hasRotated = false;
-
 	/// Calculate look-at vectors, etc... - do it after registering with physics/graphics.
 	//RecalculateMatrix(ALL_PARTS);
-
-	/// Default render transform..
-	renderTransform = &transformationMatrix;
-	renderPosition = &worldPosition;
 }
 
 /// Default constructor...
@@ -166,6 +129,51 @@ Entity::~Entity()
 	// Models and textures will be deallocated by their respectice managers!
 	SAFE_DELETE(aabb);
 }
+
+void Entity::Initialize() {
+	textState = TextState::Idle;
+	map = 0;
+	inheritPositionOnly = false;
+	relevantScale = false;
+	sharedProperties = false;
+	updateChildrenOnTransform = false;
+	localPosition = Vector3f(0, 0, 0);
+	scale = Vector3f(1, 1, 1);
+	rotation = Vector3f(0, 0, 0);
+	flags = 0;
+	diffuseMap = nullptr;
+	specularMap = nullptr;
+	normalMap = nullptr;
+	emissiveMap = nullptr;
+	deletionTimeMs = 3000;
+
+	/// Nullify all pointers to add-ons. IMPORTANT!
+	this->graphics = nullptr;
+	this->physics = nullptr;
+	this->scripts = nullptr;
+
+	material = nullptr;
+	model = nullptr;
+	this->player = nullptr;
+
+	aabb = nullptr;
+
+	/// Status, for whether it's part of rendering, physics, etc.
+	this->registeredForRendering = false;
+	this->registeredForPhysics = false;
+	this->flaggedForDeletion = false;
+
+	this->pathfindingProperty = nullptr; // new PathfindingProperty(this);
+
+	parent = nullptr;
+	cameraFocus = nullptr;
+	hasRotated = false;
+
+	/// Default render transform..
+	renderTransform = &transformationMatrix;
+	renderPosition = &worldPosition;
+}
+
 
 /// Removes links to parents/children as needed, prepares for deletion. Take care to call from render/physics thread.
 void Entity::RemoveLinks()

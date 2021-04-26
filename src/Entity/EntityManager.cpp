@@ -40,7 +40,7 @@ EntityManager::EntityManager(){
 
 EntityManager::~EntityManager()
 {
-	entities.Clear();
+	entities.ClearAndDelete();
 };
 
 bool EntityManager::IsGood(Entity* entity)
@@ -77,6 +77,7 @@ Entity* EntityManager::CreateEntity(String name, Model * model, Texture * textur
 		if (entities[i]->id == 0)
 		{
 			newEntity = entities[i];
+			newEntity->id = idCounter++;
 			break;
 		}
 	}
@@ -84,7 +85,7 @@ Entity* EntityManager::CreateEntity(String name, Model * model, Texture * textur
 	if (!newEntity)
 	{
 		newEntity = new Entity(idCounter++);
-		newEntity->selfPtr = newEntity; // Assign own weak ptr based on the new shared ptr.
+		//newEntity->selfPtr = newEntity; // Assign own weak ptr based on the new shared ptr.
 		entities.AddItem(newEntity);
 	}
 	if (newEntity == NULL)
@@ -111,9 +112,16 @@ bool EntityManager::DeleteEntity(Entity* entity)
 		std::cout<<"\nERROR: Null entity";
 		return false;
 	}
+	entity->Initialize();
+	/*
 	entity->SetModel(NULL);
 	entity->SetTexture(0xFFFFFFFF, NULL);
 	entity->id = 0;
+	entity->parent = nullptr;
+	entity->children.Clear();
+	entity->flaggedForDeletion = false;
+	entity->deletionTimeMs = 3000;
+	*/
 	return true;
 }
 
@@ -185,9 +193,13 @@ int EntityManager::DeleteUnusedEntities(int timeInMs)
 
 		/// Increment amount that was successfully deleted.
 		++deletedEntities;
-		entities.RemoveItemUnsorted(entity);
+		//entities.RemoveItemUnsorted(entity);
 		entitiesToDelete.RemoveItemUnsorted(entity);
-		delete entity; // Assume it deletes auto-magically from de-referencing?
+
+		// Basically initialize state.
+		DeleteEntity(entity);
+
+		//delete entity; // Assume it deletes auto-magically from de-referencing?
 		--i;
 	}
 	return deletedEntities;

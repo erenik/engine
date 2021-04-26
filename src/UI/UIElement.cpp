@@ -2593,7 +2593,7 @@ bool UIElement::HasStateRecursive(int queryState) {
 /// For example UIState::HOVER, if recursive will apply to all children.
 void UIElement::RemoveState(int statesToRemove, bool recursive /* = false*/){
 	if (statesToRemove & UIState::DISABLED) {
-		LogGraphics("About to remove disabled state", INFO);
+		;// LogGraphics("About to remove disabled state", INFO);
 	}
 	state &= ~statesToRemove;
 	if (recursive){

@@ -52,6 +52,8 @@ public:
 	/// Default destructor
 	~Entity();
 
+	void Initialize();
+
 	/// Removes links to parents/children as needed, prepares for deletion. Take care to call from render/physics thread.
 	void RemoveLinks();
 	/// If reacting to collisions within the physics thread.,.. pokes all properties about it too.
@@ -287,7 +289,7 @@ public:
 
 private:
 	// For distribution of SharedPtr of self. Assign this upon construction where you called make_shared
-	Entity* selfPtr;
+	//Entity* selfPtr;
 
 	/// If non-identity scale.
 	bool relevantScale;

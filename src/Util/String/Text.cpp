@@ -214,6 +214,12 @@ int Text::CaretPositionAtNextWord()
 void Text::CopyTextVariables(Text& intoText) const {
 	intoText.caretPosition = caretPosition;
 	intoText.previousCaretPosition = previousCaretPosition;
-	if (colors)
-		intoText.colors = new TextColors(*colors);
+	if (colors) {
+		if (intoText.colors) // Copy over data if already allocated.
+			*intoText.colors = *colors;
+		else { // Otherwise allocated it.
+			SAFE_DELETE(intoText.colors);
+			intoText.colors = new TextColors(*colors);
+		}
+	}
 }

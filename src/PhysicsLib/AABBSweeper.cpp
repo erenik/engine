@@ -117,6 +117,7 @@ void AABBSweeper::UnregisterEntity(Entity* entity)
 	if (entity->physics->type != PhysicsType::STATIC)
 		movingEntities.RemoveItemUnsorted(entity);
 
+	// Check that all nodes with this entity have surely been discarded.
 	for (int i = 0; i < axes.Size(); ++i)
 	{
         AABBSweepAxis * axis = axes[i];

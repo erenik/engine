@@ -13,6 +13,7 @@
 #include "Graphics/Animation/AnimationSet.h"
 #include "Graphics/GraphicsProperty.h"
 #include "Graphics/GraphicsManager.h"
+#include "File/LogFile.h"
 
 GMSetEntityTexture::GMSetEntityTexture(List< Entity* > entities, Texture * texture)
 	: GraphicsMessage(GM_SET_ENTITY_TEXTURE), entities(entities), t(texture)
@@ -395,7 +396,11 @@ void GMSetEntityVec4f::Process(GraphicsState* graphicsState)
 	for (int i = 0; i < entities.Size(); ++i)
 	{
 		Entity* entity = entities[i];
-		assert(entity->graphics);
+//		assert(entity->graphics);
+		if (entity->graphics == nullptr) {
+			LogGraphics("Entered GMSetEntityVec4f with an entity with a null GraphicsProperty!", WARNING);
+			return;
+		}
 		switch(target)
 		{
 			case GT_TEXT_COLOR:
