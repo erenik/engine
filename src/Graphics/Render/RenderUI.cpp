@@ -28,9 +28,9 @@ void GraphicsManager::RenderUI(UserInterface * ui)
 	if (ui->AdjustToWindow(windowWorkingArea))
 	{
 		if (!ui->IsGeometryCreated())
-			ui->CreateGeometry();
-		ui->ResizeGeometry();
-		ui->Bufferize();		
+			ui->CreateGeometry(&graphicsState);
+		ui->ResizeGeometry(&graphicsState);
+		ui->Bufferize(&graphicsState);		
 	}
 	
 	/// Disable stuff.

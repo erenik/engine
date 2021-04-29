@@ -13,7 +13,7 @@ class UIScrollBar;
 */
 class UIList : public UIElement {
 public:
-	UIList();
+	UIList(String name = "");
 	virtual ~UIList();
 
 	/** For some UI elements, such as lists, the list itself is not navigatable, so query it to get the first element in its list if so here.
@@ -26,8 +26,8 @@ public:
 
 	void RescaleChildrenY(float f);
 	/// Deletes all children and content inside.
-	void Clear();
-	void CreateScrollBarIfNeeded(); // Called internally.
+	void Clear(GraphicsState& graphicsState) override;
+	void CreateScrollBarIfNeeded(GraphicsState* graphicsState); // Called internally.
 	/** Adds a child/children
 		If called with graphicsState non-NULL, it is from the render thread, and updates to the UI may be made.
 	*/

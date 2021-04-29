@@ -25,7 +25,7 @@ public:
 	// be highlighted/hovered above.
 	virtual UIElement * Click(GraphicsState* graphicsState, int mouseX, int mouseY) override;
 	// Updates to contents with given size in relative units.
-	void Update(float newSize);
+	void Update(GraphicsState* graphicsState, float newSize);
 
 	/** Move the scrollbar, capping it depending on it's size (will never exceed the 0.0 - 1.0 limits)
 		Returns the actual distance moved.

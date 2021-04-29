@@ -65,6 +65,7 @@ public:
 		ACTIVATION_MESSAGE, // For adjusting what happens when interacting further.
 		STRING_INPUT_TEXT, // For UIStringInput
 		STRING_INPUT, // UIStringInput value/contents
+		FILE_INPUT, // For UIFileInput value/contents
 		DROP_DOWN_INPUT_SELECT, // For drop down menus
 		INTEGER_INPUT_TEXT, // For UIIntegerInput
 		TEXTURE_INPUT_SOURCE, // For UITextureInput

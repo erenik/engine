@@ -74,6 +74,14 @@ String::String(const char c)
 	arr[0] = c;
 	arr[1] = '\0';
 }
+String::String(const wchar_t c) {
+	Nullify();
+	type = String::WCHAR;
+	Reallocate(1 + 1);
+	warr[0] = c;
+	warr[1] = L'\0';
+}
+
 
 String::String(const int iValue)
 {
@@ -542,6 +550,12 @@ String String::operator + (const char c)
 	return string;
 }
 
+String String::operator + (const wchar_t c) {
+	String string(this);
+	string.Add(c);
+	return string;
+}
+
 String String::operator + (const int value){
 	String string(this);
 	string.Add(String::ToString(value));
@@ -930,6 +944,8 @@ int String::Find(char c) const
 
 bool String::EndsWith(char c) const
 {
+	if (type == String::WCHAR)
+		return EndsWith((wchar_t)c);
 	assert(type == String::CHAR);
 	for (int i = 0; i < arraySize; ++i)
 	{
@@ -944,11 +960,13 @@ bool String::EndsWith(char c) const
 }
 
 bool String::EndsWith(wchar_t c) const {
+	if (type == String::CHAR)
+		return EndsWith((char)c);
 	assert(type == String::WCHAR);
-	for (int i = 0; i < arraySize; ++i) {
-		if (warr[i] == c)
-			return true;
-	}
+	if (Length() < 1)
+		return false;
+	return warr[Length() - 1] == c;
+		;
 	return false;
 }
 	
@@ -1076,6 +1094,30 @@ void String::Add(const String & otherString)
 		}
 	}
 }
+
+void String::Add(const wchar_t c) {
+	int length = Length();
+	switch (this->type) {
+	case NULL_TYPE:
+		warr = new wchar_t[2];
+		arraySize = 2;
+		warr[0] = c;
+		warr[1] = L'\0';
+		type = WIDE_CHAR;
+		break;
+	case WIDE_CHAR:
+		if (length + 2 > arraySize)
+			Reallocate(length + length);
+		warr[length] = c;
+		warr[length + 1] = L'\0';
+		break;
+	default:
+		ConvertToWideChar();
+		Add(c);
+		return;
+	}
+}
+
 void String::Add(const char * otherString)
 {
 //	std::cout<<"\nAdd o.o";

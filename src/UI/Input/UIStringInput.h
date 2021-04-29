@@ -31,6 +31,9 @@ public:
 	String GetValue();
 	void SetValue(String value);
 
+	/// Calls UIElement::SetText in addition to setting the editText to the same value if force is true.
+	virtual void SetText(CTextr newText, bool force = false) override;
+
 	/// Same as onTrigger, set to all inputs.
 	String action;
 	UIInput * input;

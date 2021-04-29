@@ -15,11 +15,11 @@ public:
 	/// Subclassing in order to control rendering.
 	virtual void RenderSelf(GraphicsState & graphicsState);
 	/// Subclassed in order to change geometry based on image-dimensions (in addition to element size) and stretch conditions.
-	virtual void CreateGeometry();
-	virtual void ResizeGeometry();
+	virtual void CreateGeometry(GraphicsState* graphicsState) override;
+	virtual void ResizeGeometry(GraphicsState* graphicsState) override;
 
 	/// Called after FetchBindAndBufferizeTexture is called successfully. (may also be called other times). Only called from the graphics thread.
-	virtual void OnTextureUpdated();
+	virtual void OnTextureUpdated(GraphicsState* graphicsState);
 
 	Texture * GetTexture();
 	String GetTextureSource();

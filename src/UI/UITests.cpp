@@ -12,6 +12,17 @@
 
 void UIElement::UnitTest() {
 
+	wchar_t a = 'a';
+	wchar_t b = 'b';
+	String aStr = a;
+	aStr += b;
+	assert(aStr == "ab");
+	char c = 'c';
+	char d = 'd';
+	String dcString = aStr + c;
+	dcString += d;
+	assert(dcString == "abcd");
+
 	Color * colorAlloc = new Color();
 	SAFE_DELETE(colorAlloc);
 

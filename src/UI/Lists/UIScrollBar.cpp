@@ -133,7 +133,7 @@ UIElement * UIScrollBar::Click(GraphicsState* graphicsState, int mouseX, int mou
 }
 
 // Updates to contents with given size in relative units.
-void UIScrollBar::Update(float newSize)
+void UIScrollBar::Update(GraphicsState* graphicsState, float newSize)
 {
 //    std::cout<<"\nUIScrollBar::Update New size: "<<newSize;
     float newPreviousSize = newSize;
@@ -154,7 +154,7 @@ void UIScrollBar::Update(float newSize)
         handle->sizeRatioY = 1.0f / newSize;
      //   std::cout<<"\nHandle sizeRatioY: "<<handle->sizeRatioY;
         handle->alignmentY = top - handle->sizeRatioY * 0.5f;
-		handle->ResizeGeometry();
+		handle->ResizeGeometry(graphicsState);
      //   std::cout<<"\nHandle alignmentY: "<<handle->alignmentY;
         visible = true;
     }

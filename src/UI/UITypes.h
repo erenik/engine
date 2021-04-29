@@ -33,6 +33,7 @@ enum class UIType
 	RADIO_BUTTONS,	// Aggregate input consiting of several radio-buttons.
 	QUERY_DIALOGUE,	// Dialogue that requires input.
 	FILE_BROWSER,	// General file-system navigator.
+	FILE_INPUT,		// String input with button for pushing File browsers.
 	MESSAGEBOX,		// A Message box that will prompt the user before the program continues
 	VIDEO,		// Element integrating MultimediaStream playback into another texture which it renders within with proper aspect ratio, etc.
 	IMAGE, // UIImage

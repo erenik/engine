@@ -523,6 +523,8 @@ bool Expression::TryEvaluate()
 		case Symbol::STRING:
 			result.type = sym.type;
 			break;
+		case Symbol::OPERATOR:
+			return ok;
 		default:
 			assert(false);
 	}

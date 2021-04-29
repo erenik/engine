@@ -56,18 +56,18 @@ void UIMatrix::CreateChildren(GraphicsState* graphicsState)
 	AddChild(label);
 */
 	/// Booyakacha!
-	CreateMatrix();
+	CreateMatrix(*graphicsState);
 	childrenCreated = true;
 }
 
 /// Oy.
-void UIMatrix::CreateMatrix()
+void UIMatrix::CreateMatrix(GraphicsState& graphicsState)
 {
 	/// If existing, delete matrix.
 	while(matrixElements.Size()){
 		UIToggleButton * element = matrixElements[0];
 		matrixElements.Remove(element);
-		bool success = this->Delete(element);
+		bool success = this->Delete(graphicsState, element);
 		assert(success);
 	}
 
@@ -116,7 +116,7 @@ void UIMatrix::SetText(CTextr newText, bool force)
 /// Adds x children. Subclassed in e.g. Matrix-class in order to setup contents properly.
 bool UIMatrix::SetContents(GraphicsState * graphicsState, List<UIToggleButton*> children)
 {
-	DeleteContents();	
+	DeleteContents(*graphicsState);	
 	matrixElements = children;	
 	FormatContents(graphicsState);
 	return true;
@@ -195,25 +195,25 @@ initialFormattingDone:
 }
 
 /// Call before deleting or creating contents.
-void UIMatrix::DeleteContents()
+void UIMatrix::DeleteContents(GraphicsState& graphicsState)
 {
 	/// If existing, delete matrix.
 	while(matrixElements.Size())
 	{
 		UIToggleButton * element = matrixElements[0];
 		matrixElements.Remove(element);
-		bool success = this->Delete(element);
+		bool success = this->Delete(graphicsState, element);
 		assert(success);
 	}	
 }
 
 
 /// Sets new column and row sizes. Only to be called when doing initial parse or from the render-thread!
-void UIMatrix::SetSize(Vector2i newSize)
+void UIMatrix::SetSize(GraphicsState& graphicsState, Vector2i newSize)
 {
 	columns = newSize[0];
 	rows = newSize[1];
-	CreateMatrix();
+	CreateMatrix(graphicsState);
 }
 
 /// Sets data!

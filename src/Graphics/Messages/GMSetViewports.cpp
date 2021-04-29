@@ -38,7 +38,7 @@ void GMSetViewports::Process(GraphicsState* graphicsState)
 		Viewport * rv = window->viewports[i];
 		UserInterface * ui = rv->ui;
 		if (ui){
-			ui->Unbufferize();
+			ui->Unbufferize(graphicsState);
 			ui->DeleteGeometry();
 		}
 		/// Remove it from window.
@@ -62,9 +62,9 @@ void GMSetViewports::Process(GraphicsState* graphicsState)
 		{
 			UserInterface * ui = new UserInterface();
 			ui->Load(rv->uiSource);
-			ui->CreateGeometry();
+			ui->CreateGeometry(graphicsState);
 			ui->AdjustToWindow(rv->size);
-			ui->Bufferize();
+			ui->Bufferize(graphicsState);
 			rv->ui = ui;
 		}
 	}

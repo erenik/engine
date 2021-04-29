@@ -45,7 +45,8 @@ class Color;
 String ColorString(Color* c);
 String ColorString(const Color& c);
 String VectorString(const Vector4f& v);
-String VectorString(const Vector3f & v);
+// If prefixed, adds a "xyz" before the numbers, i.e.: "xyz 0 0 0"
+String VectorString(const Vector3f & v, bool prefixed = false);
 String VectorString(const Vector2i & v);
 String VectorString(const Vector2f & v);
 

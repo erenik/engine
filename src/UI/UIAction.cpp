@@ -85,16 +85,30 @@ void UIAction::Process(GraphicsState* graphicsState, UIElement * forElement)
 				((UIFileBrowser*)targetElement)->SetActiveFile(graphicsState, argumentStr);
 			break;
 		case SELECT_FILE_BROWSER_DIRECTORY:
-			if (targetElement->type == UIType::FILE_BROWSER)
-				((UIFileBrowser*)targetElement)->UpdatePath(argumentStr, false);
+			if (targetElement->type == UIType::FILE_BROWSER) {
+				UIFileBrowser* fileBrowser = ((UIFileBrowser*)targetElement);
+				if (forElement->type == UIType::STRING_INPUT)
+					fileBrowser->SetPath(((UIStringInput*)forElement)->GetValue(), graphicsState);
+				else
+					fileBrowser->UpdatePath(argumentStr, graphicsState);
+			}
 			break;
 		case CONFIRM_FILE_BROWSER_SELECTION:
 			if (targetElement->type == UIType::FILE_BROWSER)
-				((UIFileBrowser*)targetElement)->ConfirmSelection();
+				((UIFileBrowser*)targetElement)->ConfirmSelection(graphicsState);
+			else if (targetElement->type == UIType::FILE_INPUT) {
+				UIFileBrowser* browser = (UIFileBrowser*)forElement;
+				((UIFileInput*)targetElement)->SetValue(browser->GetFileSelection()[0]);
+			}
 			break;
 		case SET_FILE_BROWSER_FILE_FROM_INPUT:
 			if (targetElement->type == UIType::FILE_BROWSER)
 				((UIFileBrowser*)targetElement)->SetActiveFileFromInput(graphicsState);
+			break;
+		// FileInput file browser usage
+		case PUSH_FILE_BROWSER:
+			if (targetElement->type == UIType::FILE_INPUT)
+				((UIFileInput*)targetElement)->PushFileBrowser(graphicsState);
 			break;
 		// Vector input 
 		case BEGIN_VECTOR_INPUT:

@@ -58,9 +58,9 @@ String ColorString(const Color& c) {
 String VectorString(const Vector4f& v) {
 	return String::ToString(v[0]) + " " + String::ToString(v[1]) + " " + String::ToString(v[2]) + " " + String::ToString(v[3]);
 }
-String VectorString(const Vector3f & v)
+String VectorString(const Vector3f & v, bool prefixed)
 {
-	return String::ToString(v[0]) + " " + String::ToString(v[1]) + " " + String::ToString(v[2]);
+	return (prefixed? "xyz " : "") +String::ToString(v[0]) + " " + String::ToString(v[1]) + " " + String::ToString(v[2]);
 };
 String VectorString(const Vector2i & v)
 {

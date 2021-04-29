@@ -48,7 +48,7 @@ public:
 	/** Reloads all existing UserInterfaces based on their respective source-files. Should only be called from RENER THREAD! As it will want to deallocate stuff.
 		Use Graphics.QueueMessage(new GraphicsMessage(GM_RELOAD_UI));
 	*/
-	static void ReloadAll();
+	static void ReloadAll(GraphicsState* graphicsState);
 
 	// Creates the root element. Will not create another if it already exists.
 	UIElement * CreateRoot();
@@ -65,7 +65,7 @@ public:
 	static UIElement * LoadUIAsElement(String uiSrcLocation);
 
 	/// Attempts to delete target element from the UI. Should only be called by the render-thread!
-	bool Delete(UIElement * element);
+	bool Delete(GraphicsState* graphicsState, UIElement * element);
 
 	/** Mouse interactions with the UI, in x and y from 0.0 to 1.0, with 0.0 being in the Upper Left corner. Returns the element currently hovered over.
 		If allUi is specified the current stack order will be ignored to a certain extent, meaning that ui below the current stack top will be made available too.
@@ -99,13 +99,13 @@ public:
 	*/
 	bool AdjustToWindow(Vector2i size);
 	/// Creates the geometry needed before bufferization and rendering can be done.
-	void CreateGeometry();
-	void ResizeGeometry();
+	void CreateGeometry(GraphicsState* graphicsState);
+	void ResizeGeometry(GraphicsState* graphicsState);
 	void DeleteGeometry();
 	/// Creates/updates VBOs for all UI elements.
-	void Bufferize();
+	void Bufferize(GraphicsState* graphicsState);
 	/// Releases GL resources
-	bool Unbufferize();
+	bool Unbufferize(GraphicsState* graphicsState);
 	/** Renders the whole UIElement structure.
 		Overloaded by subclasses in order to enable custom perspective for the UI.
 	*/
@@ -197,7 +197,7 @@ public:
 protected:
 
 	/// Deallocates UI, and reloads from base-file.
-	void Reload();
+	void Reload(GraphicsState* graphicsState);
 	/// Loads from target file, using given root as root-element in the UI-hierarchy.
 	static UIElement * LoadFromFile(String filePath, UserInterface * ui);
 

@@ -25,10 +25,10 @@ public:
 	/// Re-arranges internal elements based on pre-configured or newly set options. Does not create or delete anything.
 	virtual void FormatContents(GraphicsState * graphicsState);
 	/// Call before deleting or creating contents.
-	virtual void DeleteContents();
+	virtual void DeleteContents(GraphicsState& graphicsState);
 
 	/// Sets new column and row sizes
-	virtual void SetSize(Vector2i newSize);
+	virtual void SetSize(GraphicsState& graphicsState, Vector2i newSize);
 	/// Sets data!
 	virtual void SetData(List<bool*> boolData);
 
@@ -45,7 +45,7 @@ private:
 	/// Creates the label and matrix elements.
 	void CreateChildren(GraphicsState* graphicsState) override;
 	/// Creates the matrix, deleting old matrix if existing.
-	void CreateMatrix();
+	void CreateMatrix(GraphicsState& graphicsState);
 
 	/// Matrix of all elements.
 	List<UIToggleButton*> matrixElements;

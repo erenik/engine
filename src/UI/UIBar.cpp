@@ -17,7 +17,7 @@ UIBar::~UIBar() {
 }
 
 // Set it 0.0 for empty, 1.0 for full.
-void UIBar::SetFill(float ratio0to1) {
+void UIBar::SetFill(GraphicsState* graphicsState, float ratio0to1) {
 	if (sizeRatioXBeforeFillRatio == 0) {
 		sizeRatioXBeforeFillRatio = sizeRatioX;
 		alignmentXBeforeFillRatio = alignmentX;
@@ -35,6 +35,6 @@ void UIBar::SetFill(float ratio0to1) {
 	}
 
 	AdjustToParent();
-	ResizeGeometry(); // Update the rect to be drawn.
+	ResizeGeometry(graphicsState); // Update the rect to be drawn.
 }
 

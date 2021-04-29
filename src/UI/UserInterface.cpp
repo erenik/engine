@@ -334,18 +334,18 @@ UIElement * UserInterface::GetElement(String byName, UIType andType)
 
 
 /// Creates the content of the UI. Overloaded by subclasses.
-void UserInterface::CreateGeometry(){
+void UserInterface::CreateGeometry(GraphicsState* graphicsState){
 	assert(!isGeometryCreated);
 	std::cout<<"UserInterface::CreateGeometry called";
-	root->CreateGeometry();
+	root->CreateGeometry(graphicsState);
 	isGeometryCreated = true;
 }
-void UserInterface::ResizeGeometry()
+void UserInterface::ResizeGeometry(GraphicsState* graphicsState)
 {
 	if (!isGeometryCreated)
-		CreateGeometry();
+		CreateGeometry(graphicsState);
 	assert(isGeometryCreated);
-	root->ResizeGeometry();
+	root->ResizeGeometry(graphicsState);
 }
 void UserInterface::DeleteGeometry()
 {
@@ -376,7 +376,7 @@ bool UserInterface::AdjustToWindow(Vector2i size)
 }
 
 /// Creates/updates VBOs for all UI elements.
-void UserInterface::Bufferize()
+void UserInterface::Bufferize(GraphicsState* graphicsState)
 {
 //	if (isBuffered)
 //		return;
@@ -389,12 +389,12 @@ void UserInterface::Bufferize()
 }
 
 /// Releases GL resources
-bool UserInterface::Unbufferize()
+bool UserInterface::Unbufferize(GraphicsState* graphicsState)
 {
 	if (!isBuffered)
 		return false;
 	if (root)
-		root->FreeBuffers();
+		root->FreeBuffers(*graphicsState);
 	else
 		return false;
 	isBuffered = false;
@@ -545,14 +545,14 @@ UIElement * UserInterface::GetHoverElement(bool fromRoot /* = false */)
 }
 
 /// Attempts to delete target element from the UI. Should only be called by the render-thread!
-bool UserInterface::Delete(UIElement * element){
+bool UserInterface::Delete(GraphicsState* graphicsState, UIElement * element){
 	if(!this->IsInStack(element->name)){
 		// std::cout<<"\nUserInterface::Delete: No such element "<<element->name<<" within current UI tree!";
 	}
 	if (root){
 		/// Remove any references we might have to the element.
 		OnElementDeleted(element);
-		bool result = root->Delete(element);
+		bool result = root->Delete(*graphicsState, element);
 		return result;
 	}
 	return false;
@@ -580,7 +580,7 @@ void UserInterface::SetBufferized(bool bufferizedFlag)
 /** Reloads all existing UserInterfaces based on their respective source-files. Should only be called from RENER THREAD! As it will want to deallocate stuff.
 	Use Graphics.QueueMessage(new GraphicsMessage(GM_RELOAD_UI));
 */
-void UserInterface::ReloadAll()
+void UserInterface::ReloadAll(GraphicsState* graphicsState)
 {
 	for (int i = 0; i < userInterfaces.Size(); ++i)
 	{
@@ -589,7 +589,7 @@ void UserInterface::ReloadAll()
 		if ( ui->lastRenderTime < Timer::GetCurrentTimeMs() - 1000)
 			continue;
 		// Reload!
-		ui->Reload();
+		ui->Reload(graphicsState);
 	}		
 }
 
@@ -704,6 +704,9 @@ bool UserInterface::PopFromStack(GraphicsState * graphicsState, UIElement * elem
 	/// Call on exit scope for it!
 	element->OnExitScope(force);
 	element->visible = false; // Make invisible when popped from stack
+	// Severa parent-child bonds on popping.
+	if (element->deleteOnPop)
+		element->Parent()->RemoveChild(graphicsState, element);
 
 	return result;
 }
@@ -761,11 +764,11 @@ void UserInterface::OnExitScope()
 }
 
 /// Deallocates UI, and reloads from base-file.
-void UserInterface::Reload()
+void UserInterface::Reload(GraphicsState* graphicsState)
 {
 	std::cout<<"\nReloading UI "<<name;
 	stack.Clear();
-	this->Unbufferize();
+	this->Unbufferize(graphicsState);
 	this->DeleteGeometry();
 	delete root;
 	root = LoadFromFile(source, this);

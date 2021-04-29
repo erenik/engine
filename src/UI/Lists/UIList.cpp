@@ -14,8 +14,8 @@
 #include "Message/MessageManager.h"
 
 
-UIList::UIList()
-: UIElement()
+UIList::UIList(String name)
+: UIElement(name)
 {
     type = UIType::LIST;
     formatX = true;
@@ -25,8 +25,6 @@ UIList::UIList()
 	hoverable = true;
 	/// But disable highlight on hover!
 	highlightOnHover = false;
-	// Clear initial stuff! As no elements should be present this should work.
-	Clear();
 
 	// Default true.
 	createScrollBarsAutomatically = true;
@@ -65,7 +63,7 @@ void UIList::RescaleChildrenY(float f)
 }
 
 /// Deletes all children and content inside.
-void UIList::Clear()
+void UIList::Clear(GraphicsState& graphicsState)
 {
 	// Delete everything. Including side-bars!
     for (int i = 0; i < children.Size(); /* Empty */){
@@ -78,19 +76,17 @@ void UIList::Clear()
 		*/
 		children.Remove(c);
 		if (c->vboBuffer)
-            c->FreeBuffers();
+            c->FreeBuffers(graphicsState);
         if (c->mesh)
             c->DeleteGeometry();
 		delete c;
 		c = NULL;
     }
-	// Reset contents size and stuff too!
 	contentsSize = 0.0f;
-	// Reset pointers o.o
     scrollBarX = scrollBarY = NULL;
 }
 
-void UIList::CreateScrollBarIfNeeded()
+void UIList::CreateScrollBarIfNeeded(GraphicsState* graphicsState)
 {
 	if (!scrollBarY)
 	{
@@ -99,7 +95,7 @@ void UIList::CreateScrollBarIfNeeded()
 		scroll->parent = this;
 		scroll->sizeRatioX = scrollBarWidth;
 		scroll->CreateHandle();
-		scroll->Update(1.0f - contentChildren.Last()->posY);
+		scroll->Update(graphicsState, 1.0f - contentChildren.Last()->posY);
 		scroll->alignmentX = 0.975f;
 	    scrollBarY = scroll;
 	    UIElement::AddChild(nullptr, scrollBarY);
@@ -172,10 +168,10 @@ bool UIList::AddChild(GraphicsState * graphicsState, UIElement* child)
 	if (needScrollBarY)
 	{
 		// Create if needed.
-		CreateScrollBarIfNeeded();
+		CreateScrollBarIfNeeded(graphicsState);
 		/// Update scroll-bar.
 		UIElement * lastChild = contentChildren.Last();
-		scrollBarY->Update(1.0f - bottom);
+		scrollBarY->Update(graphicsState, 1.0f - bottom);
    //     scroll->text = "Neeeeej";
         FormatElements();
 	//	assert(false && "Implement automatic scrollbars for your lists, yo!");
@@ -651,6 +647,8 @@ void UIList::EnsureVisibility(GraphicsState* graphicsState, UIElement * element)
 	float bottom = alignmentY + halfSizeY;
 
 	// Extract positions for this element.
+	if (scrollBarY == nullptr)
+		return;
 	float pageTop = this->scrollBarY->GetStart();
 	float pageStop = this->scrollBarY->GetStop();
 

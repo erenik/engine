@@ -251,7 +251,7 @@ UIElement::~UIElement()
 	/// Use for-loop instead of crazy recursion for deallocating the children
 	children.ClearAndDelete();
 
-	DeleteBorders();
+	DeleteBorders(nullptr);
 
 	onHoverTextColor = nullptr;
 
@@ -461,13 +461,13 @@ void UIElement::DeleteElement(int targetID){
 /** Deletes target element if it is found.
 	It will also unbufferize and free resources as necessary. Should ONLY be called from the render-thread!
 */
-bool UIElement::Delete(UIElement * element){
+bool UIElement::Delete(GraphicsState& graphicsState, UIElement * element){
 	/// If found it, delete it.
 	if (children.Exists(element))
 	{
 		children.Remove(element);
 		/// Free GL buffers and deallocate it!
-		element->FreeBuffers();
+		element->FreeBuffers(graphicsState);
 		element->DeleteGeometry();
 		delete element;
 		return true;
@@ -484,14 +484,14 @@ bool UIElement::Delete(UIElement * element){
 }
 
 /// Deletes all children and content inside.
-void UIElement::Clear() 
+void UIElement::Clear(GraphicsState& graphicsState)
 {
 	// Unbufferize first?
 	if (isBuffered)
 		for (int i = 0; i < children.Size(); ++i)
 		{
 			UIElement * child = children[i];
-			child->FreeBuffers();
+			child->FreeBuffers(graphicsState);
 		}
 	// Grab mutex first?
 	uiMutex.Claim();
@@ -706,15 +706,10 @@ UIElement* UIElement::Activate(GraphicsState * graphicsState)
 		else {
 			// Element not activatable
 		}
-		bool didNothing = true;
-		/// It it us! Activate power!
-		if (activationMessage.Length() == 0)
+		bool didSomething = false;
+		if (activationMessage.Length() != 0)
 		{
-			std::cout<<"Activatable UI element has no valid activation message string!";
-		}
-		else if (activationMessage.Length() != 0)
-		{
-			didNothing = false;
+			didSomething = true;
 			List<String> msgs = activationMessage.Tokenize("&");
 			for (int i = 0; i < msgs.Size(); ++i)
 			{
@@ -725,11 +720,11 @@ UIElement* UIElement::Activate(GraphicsState * graphicsState)
 		}
 		for (int i = 0; i < activationActions.Size(); ++i)
 		{
-			didNothing = false;
+			didSomething = true;
 			UIAction & uia = activationActions[i];
 			uia.Process(graphicsState, this);
 		}
-		if (didNothing)
+		if (!didSomething)
 		{
 			std::cout<<"\nonActivate and activationMessage both NULL in element: "<<name;
 		}
@@ -1717,7 +1712,7 @@ void UIElement::Bufferize()
 	isBuffered = true;
 }
 /// Releases resources used by the UIElement. Should only be called by a thread with valid GL context!
-void UIElement::FreeBuffers()
+void UIElement::FreeBuffers(GraphicsState& graphicsState)
 {
 	if (vboBuffer != -1){
 		GLBuffers::Free(vboBuffer);
@@ -1728,10 +1723,10 @@ void UIElement::FreeBuffers()
 		vertexArray = -1;
 	}
 	for (int i = 0; i < children.Size(); ++i){
-		children[i]->FreeBuffers();
+		children[i]->FreeBuffers(graphicsState);
 	}
 	for (int i = 0; i < borderElements.Size(); ++i)
-		borderElements[i]->FreeBuffers();
+		borderElements[i]->FreeBuffers(graphicsState);
 	isBuffered = false;
 }
 
@@ -1775,13 +1770,13 @@ void UIElement::RenderSelf(GraphicsState & graphicsState)
 	if (!isGeometryCreated)
 	{
 		AdjustToParent();
-		CreateGeometry();
+		CreateGeometry(&graphicsState);
 	}
 	if (!isBuffered)
 	{
 		// Re-adjust to parent.
 		AdjustToParent();
-		ResizeGeometry();
+		ResizeGeometry(&graphicsState);
 		Bufferize();
 	}
 
@@ -1790,7 +1785,7 @@ void UIElement::RenderSelf(GraphicsState & graphicsState)
 	if (vboBuffer == -1){
 		/// If not created geometry, do that too.
 		if (!this->mesh)
-			CreateGeometry();
+			CreateGeometry(&graphicsState);
 		// Adjust values.
 		if (parent)
 			AdjustToWindow((int)parent->left, (int)parent->right, (int)parent->bottom, (int)parent->top);
@@ -1798,7 +1793,7 @@ void UIElement::RenderSelf(GraphicsState & graphicsState)
 		else 
 			AdjustToWindow(0, ui->Width(), 0, ui->Height());
 		/// Resize the square-object.
-		ResizeGeometry();
+		ResizeGeometry(&graphicsState);
 		/// Buffer it.
 		Bufferize();
 		/// Ensure we've got a buffer now!
@@ -2374,9 +2369,9 @@ int UIElement::GetAlignment(String byName)
 
 
 // Unbufferizes and deletes all border elements and their references.
-void UIElement::DeleteBorders() {
+void UIElement::DeleteBorders(GraphicsState* graphicsState) {
 	for (int i = 0; i < borderElements.Size(); ++i)
-		borderElements[i]->FreeBuffers();
+		borderElements[i]->FreeBuffers(*graphicsState);
 	borderElements.ClearAndDelete();
 
 	rightBorder = topBorder = bottomBorder = nullptr;
@@ -2414,26 +2409,26 @@ float UISlider::GetLevel(){
 }
 
 // Creates the Square mesh used for rendering the UIElement and calls SetDimensions with it's given values.
-void UIElement::CreateGeometry()
+void UIElement::CreateGeometry(GraphicsState* graphicsState)
 {
 	Square * sq = new Square();
 //	std::cout<<"\nResizing geometry "<<name<<": L"<<left<<" R"<<right<<" B"<<bottom<<" T"<<top<<" Z"<<this->zDepth;
 	sq->SetDimensions((float)left, (float)right, (float)bottom, (float)top, this->zDepth);
 	this->mesh = sq;
 	for (int i = 0; i < children.Size(); ++i){
-		children[i]->CreateGeometry();
+		children[i]->CreateGeometry(graphicsState);
 	}
 	isGeometryCreated = true;
 	if (retainAspectRatioOfTexture)
-		ResizeGeometry();
+		ResizeGeometry(graphicsState);
 }
-void UIElement::ResizeGeometry()
+void UIElement::ResizeGeometry(GraphicsState* graphicsState)
 {
 	if (!isGeometryCreated)
-		CreateGeometry();
+		CreateGeometry(graphicsState);
 	assert(mesh);
 
-	DeleteBorders();
+	DeleteBorders(graphicsState);
 
 	if (retainAspectRatioOfTexture) {
 		// By default, demand dimensions to be proportional with the image.
@@ -2442,7 +2437,7 @@ void UIElement::ResizeGeometry()
 		{
 			if (!FetchBindAndBufferizeTexture())
 			{
-				UIElement::ResizeGeometry();
+				UIElement::ResizeGeometry(graphicsState);
 				return;
 			}
 		}
@@ -2473,7 +2468,7 @@ void UIElement::ResizeGeometry()
 	}
 
 	for (int i = 0; i < children.Size(); ++i){
-		children[i]->ResizeGeometry();
+		children[i]->ResizeGeometry(graphicsState);
 	}
 	// Mark as not buffered to refresh it properly
 	isBuffered = false;

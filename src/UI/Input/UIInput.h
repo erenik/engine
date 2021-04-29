@@ -9,7 +9,7 @@
 #include "NavigateDirection.h"
 
 /// Base class for input. Will yield control and process its onTrigger message once ENTER is pressed. Will only yield control if ESC is pressed.
-class UIInput : public UIElement 
+class UIInput : public UIElement
 {
 public:
 	UIInput(String name = "");
@@ -112,8 +112,8 @@ protected:
 	String inputTextureSource;
 
 	// For range
-	int min = -INFINITE, 
-		max = INFINITE;
+	int min = - int(INFINITE), 
+		max = int(INFINITE);
 
 private:
 	// Add variables that limit what can be entered into this input?

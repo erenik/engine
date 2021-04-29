@@ -11,6 +11,7 @@
 #include "Input/UIVectorInput.h"
 #include "Input/UIStringInput.h"
 #include "Input/UITextureInput.h"
+#include "Input/UIFileInput.h"
 /// Long text field, not sure if it should stay here.
 #include "Input/UITextField.h"
 /// Drop-down and menu-aggregates

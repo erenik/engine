@@ -63,6 +63,11 @@ void Emitter::Position(Vector3f & positionVec)
 			break;
 		case EmitterType::LINE:
 		{
+			if (vec.MaxPart() == 0)
+			{
+				positionVec = Vector3f();
+				break;
+			}
 			positionVec = (rand() * oneDivRandMaxFloat - 0.5f) * vec;
 			break;
 		}

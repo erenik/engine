@@ -20,8 +20,11 @@ class UIInput;
 /// File browser class.
 class UIFileBrowser : public UIList {
 public:
+	UIFileBrowser(String title, UIAction onFileConfirmed);
 	UIFileBrowser(String title, String action, String fileFilter);
 	virtual ~UIFileBrowser();
+	void Nullify();
+
 	/// Creates ze children!
 	void CreateChildren(GraphicsState* graphicsState) override;
 	/// Clears and creates new list of directory-contents. Use nullptr if pre-loading it from main thread.
@@ -38,7 +41,7 @@ public:
 	/// Returns the list of currently selected files in the browser.
 	List<String> GetFileSelection();
 
-	void ConfirmSelection();
+	void ConfirmSelection(GraphicsState* graphicsState);
 	
 	void SetFileFilter(String filter);
 
@@ -71,6 +74,8 @@ private:
 
 	/// List of all selected files. This will most often only include one file, but may contain more.
 	List<String> fileSelection;
+
+	UIAction onFileConfirmed;
 };
 
 #endif

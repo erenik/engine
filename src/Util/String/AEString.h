@@ -29,6 +29,7 @@ public:
 	String(const char * string);
 	String(const char * from, const char * to); // User-defined length of any given c_str :)
 	String(const char c); // Because constructors are awesome.
+	String(const wchar_t c);
 	String(const int iValue);
 	String(const int64 int64Value);
 	/// -1 will make the float be printed with default amount (as needed). Use String::SCIENTIFIC_NOTATION if that is desired.
@@ -76,6 +77,7 @@ public:
 	String operator + (const String & otherString);
 	String operator + (const char * otherString);
 	String operator + (const char c);
+	String operator + (const wchar_t c);
 	String operator + (const int value);
 	// By default concatenates in with 3 decimal places.
 	String operator + (const float value);
@@ -123,6 +125,7 @@ public:
 	bool Remove(const String & subString, bool all = false);
 	/// Concatenates strings
 	void Add(const String & otherString);
+	void Add(const wchar_t c);
 	void Add(const char * otherString);
 	/// Char-wise replacement
 	void Replace(const char a, const char withB);

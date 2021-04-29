@@ -135,6 +135,9 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 		if (line.Length() < 1)
 			continue;
 
+		if (line.StartsWith("//"))
+			continue;
+
 		/// Manually parse the line using a few identifiers that can be relevant.
 		lastEvaluatedIndex = 0;
 		UIParser::stack.Clear();
@@ -210,6 +213,9 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 					else if (typeName == "CompositeButton") {
 						root = new UICompositeButton("root");
 					}
+					else if (typeName == "List") {
+						root = new UIList("root");
+					}
 					else
 						assert(false && "Unsupported root-type");
 					root->SetRootDefaults(ui);
@@ -284,7 +290,7 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 					checkBox->SetToggled(true);
 				element = checkBox;
 			}
-			else if (token == "DropDownMenu")
+			else if (token == "DropDownMenu" || token == "DropDownList")
 			{
 				ADD_PREVIOUS_TO_UI_IF_NEEDED;
 				UIDropDownMenu * ddm = new UIDropDownMenu(firstQuote);
@@ -325,6 +331,14 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 				SetDefaults(si);
 				element = si;
 				element->SetText(firstQuote);
+			}
+			else if (token == "FileInput") {
+				AddPreviousToUIIfNeeded();
+				String firstToken = tokens[1];
+				UIFileInput * fi = new UIFileInput(firstToken, "Set" + firstToken);
+				SetDefaults(fi);
+				element = fi;
+				fi->SetText(firstQuote);
 			}
 			else if (token == "StringValue")
 			{
@@ -396,11 +410,16 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 				}
 			}
 			else if (token == "VectorInput") {
-				ADD_PREVIOUS_TO_UI_IF_NEEDED
-					String action = "Set" + secondQuote;
-				UIVectorInput * vi = new UIVectorInput(firstQuote.ParseInt(), secondQuote, action);
-				SetDefaults(vi);
-				element = vi;
+				AddPreviousToUIIfNeeded();
+				String action = "Set" + secondQuote;
+				if (firstQuote.IsNumber()) {
+					UIVectorInput * vi = new UIVectorInput(firstQuote.ParseInt(), secondQuote, action);
+					SetDefaults(vi);
+					element = vi;
+				}
+				else {
+					LogGraphics("Unable to parser VectorInput, first argument should be amount of inputs to be editable!", FATAL);
+				}
 			}
 			else if (token == "RadioButtons")
 			{
@@ -513,6 +532,10 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 					UIFileBrowser * fileBrowser = (UIFileBrowser *)element;
 					fileBrowser->SetFileFilter(firstQuote);
 				}
+				else if (element->type == UIType::FILE_INPUT) {
+					UIFileInput * fi = (UIFileInput*)element;
+					fi->SetFileFilter(firstQuote);
+				}
 				else
 					LogGraphics("Unable to set file filter in anything but a File Browser", INFO);
 			}
@@ -609,6 +632,12 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 				{
 					UIFloatInput * fi = (UIFloatInput *)element;
 					fi->maxDecimals = NEXT_TOKEN.ParseInt();
+					break;
+				}
+				case UIType::VECTOR_INPUT:
+				{
+					UIVectorInput * vi = (UIVectorInput*)element;
+					vi->maxDecimals = NextToken(tokens).ParseInt();
 					break;
 				}
 				}

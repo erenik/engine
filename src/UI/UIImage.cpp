@@ -52,7 +52,7 @@ void UIImage::RenderSelf(GraphicsState & graphicsState)
 	if (!isGeometryCreated)
 	{
 		AdjustToParent();
-		ResizeGeometry();
+		ResizeGeometry(&graphicsState);
 	}
 	if (!isBuffered)
 	{
@@ -115,19 +115,19 @@ void UIImage::RenderSelf(GraphicsState & graphicsState)
 }
 
 // Creates the Square mesh used for rendering the UIElement and calls SetDimensions with it's given values.
-void UIImage::CreateGeometry()
+void UIImage::CreateGeometry(GraphicsState* graphicsState)
 {
 	Square * sq = new Square();
 	this->mesh = sq;
 	isGeometryCreated = true;
 	// Resize.
-	ResizeGeometry();
+	ResizeGeometry(graphicsState);
 }
 
-void UIImage::ResizeGeometry()
+void UIImage::ResizeGeometry(GraphicsState* graphicsState)
 {
 	if (!isGeometryCreated)
-		CreateGeometry();
+		CreateGeometry(graphicsState);
 	assert(mesh);
 	// o.o
 	// std::cout<<"\nResizing geometry: L"<<left<<" R"<<right<<" B"<<bottom<<" T"<<top<<" Z"<<this->zDepth;
@@ -138,7 +138,7 @@ void UIImage::ResizeGeometry()
 	{
 		if (!FetchBindAndBufferizeTexture())
 		{
-			UIElement::ResizeGeometry();
+			UIElement::ResizeGeometry(graphicsState);
 			return;
 		}
 	}
@@ -162,16 +162,16 @@ void UIImage::ResizeGeometry()
 
 	this->mesh->SetDimensions((float)center.x - halfModSize.x, (float)center.x + halfModSize.x, (float)center.y - halfModSize.y, (float)center.y + halfModSize.y, this->zDepth);
 	for (int i = 0; i < children.Size(); ++i){
-		children[i]->ResizeGeometry();
+		children[i]->ResizeGeometry(graphicsState);
 	}
 	// Mark as not buffered to refresh it properly
 	isBuffered = false;
 }
 
 /// Called after FetchBindAndBufferizeTexture is called successfully. (may also be called other times).
-void UIImage::OnTextureUpdated()
+void UIImage::OnTextureUpdated(GraphicsState* graphicsState)
 {
-	ResizeGeometry();
+	ResizeGeometry(graphicsState);
 }
 
 

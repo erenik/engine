@@ -136,7 +136,7 @@ void GraphicsMessage::Process(GraphicsState* graphicsState)
 		{
 			PrepareForUIRemoval();
 			/// Reload 'em all.
-			UserInterface::ReloadAll();
+			UserInterface::ReloadAll(graphicsState);
 			OnUIRemovalFinished();
 			/// Inform game-states etc. that a reload has completed.
 			MesMan.QueueMessages("OnReloadUI");
@@ -155,7 +155,7 @@ void GraphicsMessage::Process(GraphicsState* graphicsState)
 			UserInterface * ui = window->ui;
 			if (ui)
 			{
-				ui->Unbufferize();
+				ui->Unbufferize(graphicsState);
 				ui->DeleteGeometry();
 			}
 			window->ui = NULL;
@@ -262,7 +262,7 @@ GMDeleteVBOs::GMDeleteVBOs(UserInterface * ui) : GraphicsMessage(GM_DELETE_VBOS)
 	this->ui = ui;
 }
 void GMDeleteVBOs::Process(GraphicsState * graphicsState){
-	ui->Unbufferize();
+	ui->Unbufferize(graphicsState);
 }
 
 // Unbuffers and deletes (i.e. all data) related to a UserInterface-object, including the object itself!
@@ -274,7 +274,7 @@ GMDelete::GMDelete(UserInterface * ui)
 void GMDelete::Process(GraphicsState * graphicsState)
 {
 	if (ui->IsBuffered())
-		ui->Unbufferize();
+		ui->Unbufferize(graphicsState);
 	if (ui->IsGeometryCreated())
 		ui->DeleteGeometry();
 	delete ui;

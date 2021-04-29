@@ -215,7 +215,7 @@ void GMSetGlobalUI::Process(GraphicsState* graphicsState)
 		oldGlobalUI->OnExitScope();
 		// Unbufferize it
 		if (oldGlobalUI->IsBuffered())
-			oldGlobalUI->Unbufferize();
+			oldGlobalUI->Unbufferize(graphicsState);
 		if (oldGlobalUI->IsGeometryCreated())
 			oldGlobalUI->DeleteGeometry();
 	}
@@ -277,7 +277,7 @@ void GMSetUI::Process(GraphicsState* graphicsState)
 		oldUI->OnExitScope();
 		/// Unbufferize it too as needed.
 		if (oldUI->IsBuffered())
-			oldUI->Unbufferize();
+			oldUI->Unbufferize(graphicsState);
 		if (oldUI->IsGeometryCreated())
 			oldUI->DeleteGeometry();
 //		delete oldUI;

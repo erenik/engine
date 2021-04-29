@@ -129,7 +129,7 @@ void UIDropDownMenu::PopulateList(GraphicsState* graphicsState)
 {
 	if (!selectionList)
 		return;
-	selectionList->Clear();
+	selectionList->Clear(*graphicsState);
 	/// Populate the list.
 	for (int i = 0; i < available.Size(); ++i)
 	{

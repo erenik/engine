@@ -92,6 +92,11 @@ void GMCancelUI::Process(GraphicsState* graphicsState) {
 
 		// Post onExit only when exiting it via UICancel for example!
 		MesMan.QueueMessages(element->onExit);
+
+		if (element->deleteOnPop) {
+			element->FreeBuffers(*graphicsState);
+			delete element;
+		}
 	}
 }
 

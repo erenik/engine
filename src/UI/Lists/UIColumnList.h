@@ -19,7 +19,7 @@ public:
 	virtual UIElement * Copy();
 
 	/// Deletes all children and content inside.
-	void Clear();
+	void Clear(GraphicsState& graphicsState) override;
 	/** Adds a child/children
 		If called with graphicsState non-NULL, it is from the render thread, and updates to the UI may be made.
 	*/

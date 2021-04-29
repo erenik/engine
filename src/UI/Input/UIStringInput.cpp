@@ -50,7 +50,7 @@ std::pair<String, List<Text>> * GetListForUI(String name)
 /// Sent by UIInput elements upon pressing Enter and thus confirmign the new input, in case extra actions are warranted. (e.g. UITextureInput to update the texture provided as reference).
 void UIStringInput::OnInputUpdated(GraphicsState* graphicsState, UIInput * inputElement)
 {
-	std::cout<<"\nOnInputUpdated..."<<inputElement;
+	std::cout << "\nOnInputUpdated..." << inputElement;
 	// Only logical thing should be our input calling us straight away.
 	assert(inputElement == input);
 	Text text = GetValue();
@@ -66,10 +66,14 @@ void UIStringInput::OnInputUpdated(GraphicsState* graphicsState, UIInput * input
 			if (list->second.Size() > 20)
 				list->second.RemoveLast();
 		}
-		else 
+		else
 			previousUIInputTexts.AddItem(std::pair<String, List<Text>>(name, text));
 	}
 	index = -1;
+
+	for (int i = 0; i < onTriggerActions.Size(); ++i)
+		onTriggerActions[i].Process(graphicsState, this);
+
 	// Post a SetString message accordingly.
 	SetStringMessage * m = new SetStringMessage(action, text);
 	MesMan.QueueMessage(m);
@@ -174,4 +178,12 @@ void UIStringInput::SetValue(String value)
 {
 	input->SetText(value);
 }
+
+/// Calls UIElement::SetText in addition to setting the editText to the same value if force is true.
+void UIStringInput::SetText(CTextr newText, bool force) {
+	displayText = newText;
+	if (label)
+		label->SetText(newText, force);
+}
+
 

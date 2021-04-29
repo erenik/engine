@@ -12,7 +12,7 @@ public:
 	virtual ~UIBar();
 
 	// Set it 0.0 for empty, 1.0 for full.
-	void SetFill(float ratio0to1);
+	void SetFill(GraphicsState* graphicsState, float ratio0to1);
 	
 private:
 	float sizeRatioXBeforeFillRatio;

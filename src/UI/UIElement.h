@@ -150,9 +150,9 @@ public:
 	/** Deletes target element if it is found.
 		It will also unbufferize and free resources as necessary. Should ONLY be called from the render-thread!
 	*/
-	bool Delete(UIElement * element);
+	bool Delete(GraphicsState& graphicsState, UIElement * element);
 	/// Deletes all children and content inside.
-	virtual void Clear();
+	virtual void Clear(GraphicsState& graphicsState);
 
 	/// Activation functions
 	// Hovers over this element. calling OnHover after setting the UIState::HOVER flag.
@@ -307,7 +307,7 @@ public:
 	/// Bufferizes the UIElement. Should only be called by a thread using a valid rendering context!
 	void Bufferize();
 	/// Releases resources used by the UIElement. Should only be called by a thread with valid GL context!
-	void FreeBuffers();
+	void FreeBuffers(GraphicsState& graphicsState);
 	/// Rendering
 	virtual void Render(GraphicsState & graphicsState);
 	virtual void RenderText(GraphicsState& graphicsState);
@@ -332,7 +332,7 @@ public:
 	static int GetAlignment(String byName);
 
 	// Free buffers and deletes all border elements and their references.
-	void DeleteBorders();
+	void DeleteBorders(GraphicsState* graphicsState);
 
 	// Used for borders.
 	UIElement * topBorder,
@@ -559,8 +559,8 @@ public:
 	bool IsGeometryCreated() const { return isGeometryCreated; };
 
 	// Creates the Square mesh used for rendering the UIElement and calls SetDimensions with it's given values.
-	virtual void CreateGeometry();
-	virtual void ResizeGeometry();
+	virtual void CreateGeometry(GraphicsState* graphicsState);
+	virtual void ResizeGeometry(GraphicsState* graphicsState);
 	void DeleteGeometry();
 
 	//Text& GetText() { return text; }

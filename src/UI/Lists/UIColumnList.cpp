@@ -34,11 +34,11 @@ UIElement * UIColumnList::Copy() {
 }
 
 /// Deletes all children and content inside.
-void UIColumnList::Clear(){
+void UIColumnList::Clear(GraphicsState& graphicsState){
 	while(children.Size()){
 		UIElement * c = children[0];
 		children.Remove(c);
-		c->FreeBuffers();
+		c->FreeBuffers(graphicsState);
 		c->DeleteGeometry();
 		delete c;
 		c = NULL;

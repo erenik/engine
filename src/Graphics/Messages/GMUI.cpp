@@ -323,7 +323,7 @@ void GMSetUIv2i::Process(GraphicsState * graphicsState)
             if (e->type != UIType::MATRIX)
                 return;
             UIMatrix * matrix = (UIMatrix*) e;
-            matrix->SetSize(value);
+            matrix->SetSize(*graphicsState, value);
             break;
         }
     };
@@ -517,7 +517,7 @@ void GMSetUIf::Process(GraphicsState * graphicsState)
 			if (element->type != UIType::BAR)
 				return;
 			UIBar * bar = (UIBar*)element;
-			bar->SetFill(value);
+			bar->SetFill(graphicsState, value);
 			break;
 
 	};
@@ -682,6 +682,7 @@ void GMSetUIs::AssertTarget()
 		case GMUI::TEXTURE_INPUT_SOURCE:
 		case GMUI::STRING_INPUT_TEXT:
 		case GMUI::STRING_INPUT:
+		case GMUI::FILE_INPUT:
 		case GMUI::INTEGER_INPUT_TEXT:
 		case GMUI::ACTIVATION_MESSAGE:
 		case GMUI::DROP_DOWN_INPUT_SELECT:
@@ -747,6 +748,14 @@ void GMSetUIs::Process(GraphicsState * graphicsState)
 				break;
 			UIStringInput * si = (UIStringInput*)e;
 			si->SetValue(text);
+			break;
+		}
+		case GMUI::FILE_INPUT: {
+			if (e->type != UIType::FILE_INPUT)
+				break;
+			UIFileInput * fi = (UIFileInput*)e;
+			fi->SetValue(text);
+			break;
 			break;
 		}
 		case GMUI::INTEGER_INPUT_TEXT:
@@ -888,7 +897,7 @@ void GMClearUI::Process(GraphicsState * graphicsState)
 			LogGraphics("GMClearUI: No element found with specified name \""+uiName+"\"", DEBUG);
 			return;
 		}
-		e->Clear();
+		e->Clear(*graphicsState);
 	}
 	Graphics.renderQueried = true;
 }
@@ -1098,12 +1107,12 @@ void GMPushUI::PushUI(UIElement * e, GraphicsState * graphicsState) {
 
 
 /// Function that deletes a UI, notifying relevant parties beforehand.
-void DeleteUI(UIElement * element, UserInterface * inUI)
+void DeleteUI(GraphicsState* graphicsState, UIElement * element, UserInterface * inUI)
 {
 	// Pause main thread.
 	PrepareForUIRemoval();
 	InputMan.OnElementDeleted(element);
-	bool result = inUI->Delete(element);
+	bool result = inUI->Delete(graphicsState, element);
 	if (!result){
 		std::cout<<"\nUnable to delete element: "<<element;
 		std::cout<<"\nUnable to delete element: "<<element->name;
@@ -1159,7 +1168,7 @@ void GMPopUI::Process(GraphicsState * graphicsState)
 	// Clean it up, yo.
 	if (e->source.Length() > 0) {
 		ui->GetRoot()->RemoveChild(graphicsState, e);
-		e->FreeBuffers();
+		e->FreeBuffers(*graphicsState);
 		delete e;
 	}
 
@@ -1192,7 +1201,7 @@ GMRemoveUI::GMRemoveUI(UIElement * element)
 void GMRemoveUI::Process(GraphicsState * graphicsState){
 	if (!GetUI())
 		return;
-	DeleteUI(element, ui);
+	DeleteUI(graphicsState, element, ui);
 }
 /// Used for setting String-list in Drop-down menus
 GMSetUIContents::GMSetUIContents(String uiName, List<String> contents)
