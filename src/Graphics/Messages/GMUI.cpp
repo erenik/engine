@@ -1156,6 +1156,7 @@ void GMPopUI::Process(GraphicsState * graphicsState)
 	}
 
 	/// Push to stack, the InputManager will also try and hover on the first primary element.
+	String elementName = e->name;
 	bool success = InputMan.PopFromStack(graphicsState, e, ui, force);
 	if (!success)
 		return;

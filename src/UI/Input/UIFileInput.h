@@ -21,6 +21,8 @@ public:
 
 	void SetFileFilter(String filter);
 
+	void SetValue(String value) override;
+
 private:
 	String fileFilter;
 

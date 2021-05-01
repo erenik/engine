@@ -19,6 +19,7 @@ enum messageTypes{
 	/// Messages sent from the UI system
 	ON_UI_ELEMENT_HOVER,
 	ON_UI_PUSHED,
+	ON_UI_POPPED,
 	/// Message type that is based on a string for what action to perform, but includes a list of 1 or more files or directories to act upon too. See Message/FileEvent.h
 	FILE_EVENT,
 	TEXTURE_MESSAGE,

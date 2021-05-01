@@ -704,6 +704,10 @@ bool UserInterface::PopFromStack(GraphicsState * graphicsState, UIElement * elem
 	/// Call on exit scope for it!
 	element->OnExitScope(force);
 	element->visible = false; // Make invisible when popped from stack
+
+	// Inform main thread.
+	MesMan.QueueMessage(new OnUIPopped(element->name));
+
 	// Severa parent-child bonds on popping.
 	if (element->deleteOnPop)
 		element->Parent()->RemoveChild(graphicsState, element);

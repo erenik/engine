@@ -157,6 +157,14 @@ public:
 	}
 };
 
+class OnUIPopped : public Message {
+public:
+	OnUIPopped(String uiName) : Message(MessageType::ON_UI_POPPED){
+		this->msg = uiName;
+	}
+
+};
+
 /*void Message::Process(){
 
 }*/

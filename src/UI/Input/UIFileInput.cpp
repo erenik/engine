@@ -8,6 +8,8 @@
 #include "UI/UIButtons.h"
 #include "UI/UserInterface.h"
 #include "UI/UIFileBrowser.h"
+#include "Message/Message.h"
+#include "Message/MessageManager.h"
 
 UIFileInput::UIFileInput(String name, String onTrigger) : UIStringInput(name, onTrigger) 
 {
@@ -71,3 +73,11 @@ void UIFileInput::PushFileBrowser(GraphicsState * graphicsState) {
 void UIFileInput::SetFileFilter(String filter) {
 	fileFilter = filter;
 }
+
+void UIFileInput::SetValue(String value)
+{
+	input->SetText(value);
+	SetStringMessage * m = new SetStringMessage(action, value);
+	MesMan.QueueMessage(m);
+}
+

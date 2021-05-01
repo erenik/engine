@@ -996,6 +996,7 @@ void UIParser::SetDefaults(UIElement * element) {
 	element->sizeRatioY = defaultSizeRatioY; 
 	element->sizeRatioX = defaultSizeRatioX; 
 	element->padding = defaultPadding; 
+	element->textPaddingPixels = defaultTextPadding;
 	element->textSizeRatio = defaultTextSize; 
 	element->onTrigger = defaultOnTrigger; 
 	element->fontDetails.source = defaultFontSource;
@@ -1111,6 +1112,10 @@ void UIParser::ParseDefaults(List<String> tokens) {
 	else if (token == "defaultVisibility") {
 		EnsureNextToken(tokens);
 			defaultVisibility = NEXT_TOKEN.ParseBool();
+	}
+	else if (token == "defaultTextPadding") {
+		EnsureNextToken(tokens);
+		defaultTextPadding = NextToken(tokens).ParseInt();
 	}
 	else if (token == "defaultSizeRatioXY" ||
 		token == "defaultSizeRatio" ||

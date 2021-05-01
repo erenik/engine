@@ -2007,6 +2007,15 @@ void UIElement::FormatText(GraphicsState * graphicsState)
 	else
 		currentTextSizeRatio = yRatio;
 
+	// Take into consideration the padding both above and below.
+	{
+		int pixelsAfterPadding = textSizeY;
+		float ratioPixelsAfterPaddingDividedByWholeHeight = textSizeY / (float) sizeY;
+		// Don't decrease further if it is already auto-scaled down.
+		if (currentTextSizeRatio > ratioPixelsAfterPaddingDividedByWholeHeight)
+			currentTextSizeRatio = ratioPixelsAfterPaddingDividedByWholeHeight;
+	}
+
 	/// Check previous ratio. Use lower one.
 	if (previousTextSizeRatio < currentTextSizeRatio)
 		currentTextSizeRatio = previousTextSizeRatio;
@@ -2492,6 +2501,7 @@ void UIElement::InheritDefaults(UIElement * child) {
 	// Inherit some defaults?
 	child->fontDetails = fontDetails;
 	child->forceUpperCase = forceUpperCase;
+	child->textPaddingPixels = textPaddingPixels;
 	if (text.colors != nullptr)
 		child->SetTextColors(*text.colors);
 };

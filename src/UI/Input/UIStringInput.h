@@ -29,7 +29,7 @@ public:
 	void CreateChildren(GraphicsState* graphicsState) override;
 	/// Getter/setter for the input element.
 	String GetValue();
-	void SetValue(String value);
+	virtual void SetValue(String value);
 
 	/// Calls UIElement::SetText in addition to setting the editText to the same value if force is true.
 	virtual void SetText(CTextr newText, bool force = false) override;

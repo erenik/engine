@@ -38,6 +38,7 @@ public:
 	float defaultSizeRatioX = 1.0f;
 	float defaultPadding = 0.0f;
 	float defaultTextSize = 1.0f;
+	int defaultTextPadding = 4;
 	String defaultOnTrigger = "";
 	Vector2f defaultDivider = Vector2f(0.5f, 0.5f);
 	int defaultTextAlignment = UIElement::LEFT;
