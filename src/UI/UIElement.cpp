@@ -2519,6 +2519,17 @@ bool UIElement::AddState(GraphicsState* graphicsState, int i_state, bool force)
 	return true;
 }
 
+bool UIElement::AddState(GraphicsState* graphicsState, int state, UIFilter filter) {
+	if (!AddStateSilently(state, false))
+		return false;
+	OnStateAdded(graphicsState, state);
+	if (filter == UIFilter::Recursive)
+		for (int i = 0; i < children.Size(); ++i) {
+			children[i]->AddState(graphicsState, state, filter);
+		}
+	return true;
+}
+
 bool UIElement::AddStateSilently(int i_state, bool force) {
 	if (force) {
 	}
@@ -2597,9 +2608,6 @@ bool UIElement::HasStateRecursive(int queryState) {
 
 /// For example UIState::HOVER, if recursive will apply to all children.
 void UIElement::RemoveState(int statesToRemove, bool recursive /* = false*/){
-	if (statesToRemove & UIState::DISABLED) {
-		;// LogGraphics("About to remove disabled state", INFO);
-	}
 	state &= ~statesToRemove;
 	if (recursive){
 		for (int i = 0; i < children.Size(); ++i){
@@ -2612,6 +2620,16 @@ void UIElement::RemoveState(int statesToRemove, bool recursive /* = false*/){
 	}
 }
 
+void UIElement::RemoveState(int statesToRemove, UIFilter filter) {
+	state &= ~statesToRemove;
+	for (int i = 0; i < borderElements.Size(); ++i) {
+		borderElements[i]->state &= ~statesToRemove;
+	}
+	if (filter == UIFilter::Recursive)
+		for (int i = 0; i < children.Size(); ++i) {
+			children[i]->RemoveState(statesToRemove, filter);
+		}
+}
 
 // When navigating, either via control, or arrow keys or whatever.
 void UIElement::Navigate(NavigateDirection direction) {

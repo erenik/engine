@@ -524,16 +524,22 @@ void GMSetUIf::Process(GraphicsState * graphicsState)
 };
 
 GMSetUIb::GMSetUIb(String name, int target, bool v, UserInterface * inUI)
-: GMUI(GM_SET_UI_BOOLEAN, inUI), name(name), target(target), value(v)
+: GMUI(GM_SET_UI_BOOLEAN, inUI), name(name), target(target), value(v), filter(UIFilter::None)
 {
 	AssertTarget();
 }
 
 GMSetUIb::GMSetUIb(String name, int target, bool v, Viewport * viewport)
-: GMUI(GM_SET_UI_BOOLEAN, viewport), name(name), target(target), value(v)
+: GMUI(GM_SET_UI_BOOLEAN, viewport), name(name), target(target), value(v), filter(UIFilter::None)
 {
 	AssertTarget();
 };
+
+GMSetUIb::GMSetUIb(String uiName, int target, bool v, UIFilter filter)
+	: GMUI(GM_SET_UI_BOOLEAN), name(uiName), target(target), value(v), filter(filter)
+{
+	AssertTarget();
+}
 
 void GMSetUIb::AssertTarget()
 {
@@ -619,9 +625,9 @@ void GMSetUIb::Process(GraphicsState * graphicsState)
 			break;
 		case GMUI::ENABLED:
 			if (value)
-				e->RemoveState(UIState::DISABLED);
+				e->RemoveState(UIState::DISABLED, filter);
 			else
-				e->AddState(graphicsState, UIState::DISABLED);
+				e->AddState(graphicsState, UIState::DISABLED, filter);
 			break;
 		case GMUI::ACTIVE:
 			/// Ensure it is visible first..?

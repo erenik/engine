@@ -203,6 +203,7 @@ class GMSetUIb : public GMUI {
 public:
 	GMSetUIb(String UIname, int target, bool v, UserInterface * inUI);
 	GMSetUIb(String UIname, int target, bool v, Viewport * viewport = NULL);
+	GMSetUIb(String uiName, int target, bool v, UIFilter filter);
 	void Process(GraphicsState* graphicsState);
 private:
 	void AssertTarget();
@@ -210,6 +211,7 @@ private:
 	int target;
 	UIElement * element;
 	bool value;
+	UIFilter filter;
 };
 
 // For raw strings.

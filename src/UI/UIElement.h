@@ -53,6 +53,7 @@ enum UIFlag {
 enum UIFilter {
 	None,
 	Visible,
+	Recursive, IncludeChildren = Recursive,
 };
 
 class UIElement
@@ -507,6 +508,7 @@ public:
 		Specifying force = true will make it ignore checks of hoverable, activatable, etc.
 	*/
 	virtual bool AddState(GraphicsState* graphicsState, int state, bool force = false);
+	virtual bool AddState(GraphicsState* graphicsState, int state, UIFilter filter);
 	/** For example UIState::HOVER, not to be confused with flags! State = current, Flags = possibilities
 		For operations controlling the HOVER flag, certain criteria may need to be met in order for the adder to succeed.
 		Specifying force = true will make it ignore checks of hoverable, activatable, etc.
@@ -519,6 +521,7 @@ public:
 	bool HasStateRecursive(int queryState);
 	/// For example UIState::HOVER, if recursive will apply to all children.
 	virtual void RemoveState(int state, bool recursive = false);
+	virtual void RemoveState(int state, UIFilter filter);
 
 	// When navigating, either via control, or arrow keys or whatever.
 	virtual void Navigate(NavigateDirection direction);
