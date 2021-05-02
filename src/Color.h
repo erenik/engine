@@ -38,6 +38,10 @@ public:
 	/// Anticipates a hex-color in 0xLL format, where L is luminosity or grey-scale.
 	static Color ColorByHex8(uint32 hex);
 
+	static Color White() { return Color::ColorByHexName("0xFFFFFFFF"); }
+	static Color Gray() { return Color::ColorByHexName("0x888888FF"); }
+
+
 	String GetName();
 
 	void SetAlpha(float value) { w = value; }

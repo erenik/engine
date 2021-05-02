@@ -31,7 +31,7 @@ public:
 	void SetTextures(List<String> textureSourcesOrNames);
 
 	// Sent when a child checkbox is toggled. 
-	virtual void OnToggled(UIToggleButton * toggleButton);
+	virtual void OnToggled(UIElement * toggleButton) override;
 
 	// Returns true if it adjusted any UI state.
 	bool OnNavigate(GraphicsState* graphicsState, NavigateDirection navigateDirection);
@@ -41,6 +41,9 @@ public:
 
 	/// Toggles appropriately.
 	void SetValue(GraphicsState* graphicsState, int v);
+
+	/// Sets text, queueing recalculation of the rendered variant. If not force, will ignore for active ui input elements.
+	virtual void SetText(CTextr newText, bool force = false) override;
 
 	/// Sets activationMessage/onActivate for all buttons.
 	String action;

@@ -211,6 +211,10 @@ UIElement * UIList::Hover(GraphicsState* graphicsState, int mouseX, int mouseY)
         listY -= scrollBarY->GetStart() * sizeY;
     }
     UIElement * e = NULL;
+
+	// Remove hover state first?
+	this->RemoveState(UIState::HOVER);
+
     /// Check le children.
     for (int i = 0; i < children.Size(); ++i){
         UIElement * child = children[i];
@@ -235,7 +239,7 @@ UIElement * UIList::Hover(GraphicsState* graphicsState, int mouseX, int mouseY)
 	}
 	else 
 	{
-		this->RemoveState(UIState::HOVER);
+		//this->RemoveState(UIState::HOVER);
 	}
     if (scrollBarY){
 //        std::cout<<"\nUIList::Hover "<< (e ? e->name : "NULL") <<" listY: "<<listY<<" mouseY: "<<mouseY;

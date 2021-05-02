@@ -18,7 +18,7 @@ UIRadioButtons::UIRadioButtons(int numberOfButtons, String name, String action)
 {
 	this->name = name;
 	this->type = UIType::RADIO_BUTTONS;
-	activateable = false;
+	activateable = true;
 	hoverable = true;
 	navigatable = true;
 	toggledIndex = 0;
@@ -50,6 +50,7 @@ void UIRadioButtons::CreateChildren(GraphicsState* graphicsState)
 	if (!noLabel)
 	{
 		label = new UILabel(GetText());
+		InheritDefaults(label);
 		label->sizeRatioX = labelSize;
 		label->SetText(displayText);
 		label->textureSource = "";
@@ -64,8 +65,7 @@ void UIRadioButtons::CreateChildren(GraphicsState* graphicsState)
 		/// Set them to only accept floats?
 		button->name = name + "Button"+ String(i);
 		button->SetText(buttonTexts.Size() > i ? buttonTexts[i] : "");
-		button->toggledTextColor = toggledTextColor;
-		button->notToggledTextColor = notToggledTextColor;
+		button->UpdateTextColor(toggledTextColor, notToggledTextColor);
 		button->sizeRatioX = spacePerElement;
 		button->topRightCornerTextureSource = topRightCornerTextureSource;
 		button->textureSource = "";
@@ -116,8 +116,10 @@ void UIRadioButtons::SetTextures(List<String> newTextureSourcesOrNames) {
 
 
 /// Sent when a child checkbox is toggled. 
-void UIRadioButtons::OnToggled(UIToggleButton * toggleButton)
+void UIRadioButtons::OnToggled(UIElement * element)
 {
+	assert(element->type == UIType::TOGGLE_BUTTON);
+	UIToggleButton * toggleButton = (UIToggleButton*) element;
 	assert(buttons.Exists(toggleButton));
 	/// Send a message based on which button it was.
 	toggledIndex = buttons.GetIndexOf(toggleButton);
@@ -183,8 +185,7 @@ void UIRadioButtons::SetSelectionsTextColor(Color color) {
 }
 
 void UIRadioButtons::OnStateAdded(GraphicsState* graphicsState, int state) {
-	if (label != nullptr)
-		label->AddState(graphicsState, state);
+	label->AddState(graphicsState, state, true);
 }
 
 /// Toggles appropriately.
@@ -209,4 +210,9 @@ void UIRadioButtons::SetValue(GraphicsState* graphicsState, int v)
 	toggledIndex = v;
 }
 
-
+/// Sets text, queueing recalculation of the rendered variant. If not force, will ignore for active ui input elements.
+void UIRadioButtons::SetText(CTextr newText, bool force) {
+	if (!childrenCreated)
+		CreateChildren(nullptr);
+	label->SetText(newText, force);
+}

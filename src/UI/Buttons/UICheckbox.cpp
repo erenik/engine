@@ -73,8 +73,9 @@ void UICheckbox::OnStateAdded(GraphicsState* graphicsState, int state) {
 		button->SetToggled(!button->IsToggled());
 		RemoveState(state);
 	}
-	if (label)
-		label->AddState(graphicsState, state);
+	button->AddState(graphicsState, state);
+	if (label && state == UIState::HOVER)
+		label->AddState(graphicsState, state, true);
 }
 
 void UICheckbox::SetToggled(bool value) {

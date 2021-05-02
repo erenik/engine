@@ -12,14 +12,60 @@ TextColors::TextColors(Color baseIdleColor)
 	, hover(baseIdleColor * 1.30f + Vector4f(0.1f, 0.1f, 0.1f, 1.0f))
 	, active(baseIdleColor * 1.50f + Vector4f(0.2f, 0.2f, 0.2f, 1.0f))
 	, disabledIdle(baseIdleColor * disabledMultiplier)
-	, disabledHover(baseIdleColor * disabledHoverMultiplier) {}
+	, disabledHover(baseIdleColor * disabledHoverMultiplier) 
+{
+	NullifyPointers();
+}
 
 TextColors::TextColors(Color idle, Color hover, Color active)
 	: idle(idle)
 	, hover(hover)
 	, active(active)
 	, disabledIdle(idle * disabledMultiplier)
-	, disabledHover(hover * disabledHoverMultiplier) {}
+	, disabledHover(hover * disabledHoverMultiplier) 
+{
+	NullifyPointers();
+}
+
+TextColors::TextColors(const TextColors& other) {
+	NullifyPointers();
+	other.CopyDataInto(*this);
+}
+
+void TextColors::operator = (const TextColors& other) {
+	other.CopyDataInto(*this);
+}
+
+void TextColors::NullifyPointers() {
+	toggledIdle = nullptr;
+	notToggledIdle = nullptr;
+	toggledHover = nullptr;
+	notToggledHover = nullptr;
+}
+
+
+void TextColors::CopyDataInto(TextColors& other) const {
+	SAFE_DELETE(other.toggledIdle);
+	SAFE_DELETE(other.notToggledIdle);
+
+	other.idle = idle;
+	other.hover = hover;
+	other.active = active;
+	other.disabledIdle = disabledIdle;
+	other.disabledHover = disabledHover;
+	if (toggledIdle)
+		other.toggledIdle = new Color(*toggledIdle);
+	if (notToggledIdle)
+		other.notToggledIdle = new Color(*notToggledIdle);
+
+}
+
+TextColors::~TextColors() {
+	SAFE_DELETE(toggledIdle);
+	SAFE_DELETE(toggledHover);
+	SAFE_DELETE(notToggledIdle);
+	SAFE_DELETE(notToggledHover);
+}
 
 TextColors TextColors::WithAlpha(float alpha) {
 	TextColors newColors = *this;
@@ -48,8 +94,11 @@ Color TextColors::Get(TextState byState) {
 
 
 void Text::SetColors(const TextColors& textColors) {
-	SAFE_DELETE(colors);
-	colors = new TextColors(textColors);
+	if (colors == nullptr) {
+		colors = new TextColors(textColors);
+	}
+	else 
+		*colors = textColors;
 }
 
 Text::Text()

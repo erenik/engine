@@ -42,6 +42,7 @@ namespace UIState {
 	const int DISABLED	=	0x00000008; /// Not sure if this is in use...
 	const int INVISIBLE	=	0x00000010; /// Not sure if this is in use either...
 	const int DIALOGUE	=	0x00000020; /// Used to require further action from the user! This flag is used to easier find which elements are important for when processing them.
+	const int TOGGLED	=	0x00000040;
 };
 
 enum UIFlag {
@@ -348,7 +349,7 @@ public:
 	int borderOffset = 0;
 
 	// Sets it to override.
-	virtual void SetTextColors(TextColors overrideColors);
+	virtual void SetTextColors(const TextColors& overrideColors);
 	// Overrides, but only during onHover.
 	virtual void SetOnHoverTextColor(const Color& onHoverTextColor);
 

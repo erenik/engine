@@ -615,7 +615,7 @@ const float UIInput::ParseFloat() {
 }
 
 // For setting static colors.
-void UIInput::SetTextColors(TextColors newOverrideTextColors) {
+void UIInput::SetTextColors(const TextColors& newOverrideTextColors) {
 	UIElement::SetTextColors(newOverrideTextColors); // Set for self, in-case elements are not yet created.
 
 	if (label)

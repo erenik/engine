@@ -21,9 +21,9 @@ void GMBufferUI::Process(GraphicsState* graphicsState)
 		// MAybe dont have to free  the buffers though?
 	//	element->FreeBuffers();
 		if (element->IsGeometryCreated())
-			element->ResizeGeometry();
+			element->ResizeGeometry(graphicsState);
 		else
-			element->CreateGeometry();
+			element->CreateGeometry(graphicsState);
 	}
 	
 //	std::cout<<"\nBuffering UI..";

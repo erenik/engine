@@ -30,10 +30,10 @@ void UIBorder::AdjustToWindow(int w_left, int w_right, int w_bottom, int w_top) 
 	int parentPosX = parent->CenteredContentParentPosX();
 	
 	// Extract values from parent.
-	parentLeft = parentPosX - parentSizeX / 2;
-	parentRight = parentPosX + parentSizeX / 2;
-	parentBottom = parent->posY - parent->sizeY / 2;
-	parentTop = parent->posY + parent->sizeY / 2;
+	left = parentLeft = parentPosX - parentSizeX / 2;
+	right = parentRight = parentPosX + parentSizeX / 2;
+	bottom = parentBottom = parent->posY - parent->sizeY / 2;
+	top = parentTop = parent->posY + parent->sizeY / 2;
 
 	//	std::cout<<"\nUIElement::AdjustToWindow called for element "<<name<<": L"<<left<<" R"<<right<<" B"<<bottom<<" T"<<top;
 

@@ -24,15 +24,13 @@ public:
 	virtual void RemoveState(int state, bool recursive = false);
 
 	void UpdateTexture();
-	void UpdateTextColor();
+	void UpdateTextColor(const Color& toggledTextColor, const Color& notToggledTextColor);
 
 	static String defaultOnToggledTexture;
 	static String defaultOnNotToggledTexture;
 
 	String onToggledTexture;
 	String onNotToggledTexture;
-	Color toggledTextColor;
-	Color notToggledTextColor;
 
 private:
 	/// For checkboxes.

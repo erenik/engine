@@ -9,6 +9,7 @@
 #include "UI/Lists/UIList.h"
 #include "UI/Buttons/UICheckbox.h"
 #include "UI/Buttons/UIToggleButton.h"
+#include "UI/Buttons/UIRadioButtons.h"
 
 void UIElement::UnitTest() {
 
@@ -33,6 +34,13 @@ void UIElement::UnitTest() {
 
 	{
 		Text t = Text("HelloWorld", 0x112233FF);
+		Text t2 = t;
+	}
+
+	{
+		Text t = Text("Color alloc test");
+		t.SetColors(Color::White());
+		t.colors->notToggledIdle = new Color(Color::Gray());
 		Text t2 = t;
 	}
 
@@ -61,4 +69,12 @@ void UIElement::UnitTest() {
 	UICheckbox* checkBox = new UICheckbox();
 	checkBox->CreateChildren();
 	SAFE_DELETE(checkBox);
+
+
+	UIRadioButtons::toggledTextColor = Color::White();
+	UIRadioButtons * radioButtons = new UIRadioButtons(3, "Test buttons", "Test action");
+	radioButtons->CreateChildren(nullptr);
+	radioButtons->SetValue(nullptr, 2);
+	SAFE_DELETE(radioButtons);
+
 }

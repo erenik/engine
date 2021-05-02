@@ -82,9 +82,9 @@ void UIFloatInput::OnInputUpdated(GraphicsState* graphicsState, UIInput * inputE
 				std::cout<<"\nUIFloatInput: Bad input, skipping.";
 				return;
 		}
-		Graphics.Pause();
+		//Graphics.Pause();
 		input->SetText(result, true);
-		Graphics.Resume();
+		//Graphics.Resume();
 	}
 	// Post a SetString message accordingly.
 	FloatMessage * m = new FloatMessage(action, GetValue());

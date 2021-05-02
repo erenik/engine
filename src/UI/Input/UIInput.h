@@ -76,7 +76,7 @@ public:
 	const float ParseFloat();
 
 	// For setting static colors.
-	virtual void SetTextColors(TextColors newOverrideTextColors) override;
+	virtual void SetTextColors(const TextColors& newOverrideTextColors) override;
 
 	virtual void SetRange(int min, int max);
 

@@ -36,7 +36,7 @@ UIToggleButton::UIToggleButton(String name /*= ""*/)
 	this->highlightOnHover = true;
 
 	UpdateTexture();
-	UpdateTextColor();
+	UpdateTextColor(Color::White(), Color::Gray());
 };
 
 UIToggleButton::~UIToggleButton()
@@ -64,20 +64,22 @@ UIElement* UIToggleButton::Activate(GraphicsState* graphicsState)
 }
 
 void UIToggleButton::SetToggled(bool value) { 
-	toggled = value; 
+	SetToggledSilently(value);
 	this->OnToggled(this);
 }
 
 // Sets the flag, but does not call the OnToggled event.
 void UIToggleButton::SetToggledSilently(bool value) {
 	toggled = value;
+	if (value)
+		AddState(nullptr, UIState::TOGGLED);
+	else
+		RemoveState(UIState::TOGGLED);
 	UpdateTexture();
-	UpdateTextColor();
 }
 
 void UIToggleButton::OnToggled(UIElement * button) {
 	UpdateTexture(); 
-	UpdateTextColor();
 
 	// Inform parents if need be.
 	UIElement::OnToggled(button);
@@ -105,7 +107,9 @@ void UIToggleButton::UpdateTexture() {
 	textureSource = toggled? onToggledTexture : onNotToggledTexture;
 }
 
-void UIToggleButton::UpdateTextColor() {
-	SetTextColors(toggled ? toggledTextColor : notToggledTextColor);
+void UIToggleButton::UpdateTextColor(const Color& toggledTextColor, const Color& notToggledTextColor) {
+	SetTextColors(Color());
+	text.colors->toggledIdle = new Color(toggledTextColor);
+	text.colors->notToggledIdle = new Color(notToggledTextColor);
 }
 

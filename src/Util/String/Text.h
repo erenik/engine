@@ -21,6 +21,9 @@ enum class TextState {
 struct TextColors {
 	TextColors(Color baseIdleColor);
 	TextColors(Color idle, Color hover, Color active);
+	TextColors(const TextColors& other);
+	void operator = (const TextColors& other);
+	virtual ~TextColors();
 	TextColors WithAlpha(float alpha);
 
 	Color Get(TextState byState);
@@ -30,6 +33,15 @@ struct TextColors {
 	Color active;
 	Color disabledIdle;
 	Color disabledHover;
+	// Used by Checkbox/Toggle-buttons perhaps.
+	Color * toggledIdle = nullptr;
+	Color * notToggledIdle = nullptr;
+	Color * toggledHover = nullptr;
+	Color * notToggledHover = nullptr;
+
+private:
+	void NullifyPointers();
+	void CopyDataInto(TextColors& textColors) const;
 };
 
 class Text : public String 

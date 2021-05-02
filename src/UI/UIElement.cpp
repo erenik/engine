@@ -1934,7 +1934,15 @@ void UIElement::RenderText(GraphicsState & graphicsState)
 
 	Color * overrideColor = nullptr;
 	TextState textState = TextState::Idle;
-	if (HasState(UIState::DISABLED)) {
+	// Does it have colors assigned for toggle-states? Then treat it differentely.
+	if (text.colors && text.colors->toggledIdle != nullptr) {
+		if (HasState(UIState::TOGGLED))
+			overrideColor = text.colors->toggledIdle;
+		else
+			overrideColor = text.colors->notToggledIdle;
+		//textState = TextState::Hover; // Permanently hovered over if toggled good enough..?
+	}
+	else if (HasState(UIState::DISABLED)) {
 		textState = TextState::DisabledIdle;
 		if (HasState(UIState::HOVER))
 			textState = TextState::DisabledHover;
@@ -2388,7 +2396,7 @@ void UIElement::DeleteBorders(GraphicsState* graphicsState) {
 }
 
 // Sets it to override.
-void UIElement::SetTextColors(TextColors overrideColors) {
+void UIElement::SetTextColors(const TextColors& overrideColors) {
 	text.SetColors(overrideColors);
 }
 
