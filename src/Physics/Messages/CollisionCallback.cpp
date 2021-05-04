@@ -10,8 +10,8 @@ CollisionCallback::CollisionCallback() : Message(MessageType::COLLISSION_CALLBAC
 	data = NULL;
 };
 
-CollisionCallback::CollisionCallback(Entity* one, Entity* two)
-: Message(MessageType::COLLISSION_CALLBACK), one(one), two(two)
+CollisionCallback::CollisionCallback(Collision c)
+: Message(MessageType::COLLISSION_CALLBACK), one(c.one), two(c.two), impactVelocity(c.collisionVelocity)
 {
 	data = NULL;
 }

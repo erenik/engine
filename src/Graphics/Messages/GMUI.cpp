@@ -535,8 +535,8 @@ GMSetUIb::GMSetUIb(String name, int target, bool v, Viewport * viewport)
 	AssertTarget();
 };
 
-GMSetUIb::GMSetUIb(String uiName, int target, bool v, UIFilter filter)
-	: GMUI(GM_SET_UI_BOOLEAN), name(uiName), target(target), value(v), filter(filter)
+GMSetUIb::GMSetUIb(String uiName, int target, bool v, UIFilter filter, UserInterface * inUI)
+	: GMUI(GM_SET_UI_BOOLEAN, inUI), name(uiName), target(target), value(v), filter(filter)
 {
 	AssertTarget();
 }

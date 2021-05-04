@@ -17,7 +17,8 @@ class CollisionCallback : public Message
 {
 public:
 	CollisionCallback();
-	CollisionCallback(Entity* one, Entity* two);
+	CollisionCallback(Collision c);
+	//CollisionCallback(Entity* one, Entity* two);
 	virtual ~CollisionCallback();
 
 	// Extra variables

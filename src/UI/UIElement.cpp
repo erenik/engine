@@ -449,7 +449,7 @@ void UIElement::UpdateHighlightColor()
 	}
 	//assert(activeShader->uniformHighlightColorVec4 != -1);
 	glUniform4f(shader->uniformHighlightColorVec4,
-		highlightColor[0], highlightColor[1], highlightColor[2], 0.0f);
+		highlightColor[0], highlightColor[1], highlightColor[2], 1.0f);
 }
 
 

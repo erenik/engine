@@ -123,7 +123,7 @@ T * Entity::GetProperty()
 		if (prop->GetID() == T::ID())
 			return (T *) prop;
 	}
-	return (T *) prop;
+	return (T *) nullptr;
 }
 
 #endif

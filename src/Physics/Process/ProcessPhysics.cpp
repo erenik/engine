@@ -202,7 +202,7 @@ void PhysicsManager::ProcessPhysics()
 				int & maxCallbacks2 = c.two->physics->maxCallbacks;
 				if (maxCallbacks1 == 0 || maxCallbacks2 == 0)
 					continue;
-				CollisionCallback * cc = new CollisionCallback(c.one, c.two);
+				CollisionCallback * cc = new CollisionCallback(c);
 				cc->impactNormal = c.collisionNormal;
 				messages.Add(cc);
 				if (maxCallbacks1 > 0)

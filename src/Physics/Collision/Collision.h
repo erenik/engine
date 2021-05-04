@@ -70,7 +70,7 @@ struct Collision
 	///
 	Vector3f collissionPoint;
 	/// The total force at the moment of collission (sum of velocities)
-	float collissionVelocity;
+	float collisionVelocity;
 	/// List of active triangles in the collission
 	List<Triangle> activeTriangles;
 

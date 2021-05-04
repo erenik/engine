@@ -47,7 +47,9 @@ void UIFileInput::CreateChildren(GraphicsState* graphicsState) {
 	
 	fileBrowserButton = new UIButton();
 	InheritDefaults(fileBrowserButton);
-	fileBrowserButton->textureSource = "0xFFFF";
+	fileBrowserButton->textureSource = "img/ui/fileBrowserIcon";
+	fileBrowserButton->retainAspectRatioOfTexture = true;
+	fileBrowserButton->highlightOnHover = true;
 	fileBrowserButton->sizeRatioX = 1 - divider.x - divider.y;
 	box->AddChild(nullptr, fileBrowserButton);
 	fileBrowserButton->activationActions.Add(UIAction(UIAction::PUSH_FILE_BROWSER, this));

@@ -96,6 +96,7 @@ Model * ModelManager::GetModel(String name)
 	for (int i = 0; i < modelList.Size(); ++i)
 	{
 		String modelName = modelList[i]->Name();
+		modelName.SetComparisonMode(String::NOT_CASE_SENSITIVE);
 		if (modelName.Contains(name))
 			return modelList[i];
 	}

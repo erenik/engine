@@ -203,7 +203,7 @@ class GMSetUIb : public GMUI {
 public:
 	GMSetUIb(String UIname, int target, bool v, UserInterface * inUI);
 	GMSetUIb(String UIname, int target, bool v, Viewport * viewport = NULL);
-	GMSetUIb(String uiName, int target, bool v, UIFilter filter);
+	GMSetUIb(String uiName, int target, bool v, UIFilter filter, UserInterface * inUI = nullptr);
 	void Process(GraphicsState* graphicsState);
 private:
 	void AssertTarget();

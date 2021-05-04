@@ -107,6 +107,7 @@ void PhysicsProperty::Nullify()
 	isOnGroundThresholdMs = 50;
 	onCollision = false;
 
+	elasticity = 0.9f; // Retain 90% energy off of collisions by default?
 	recalculatePhysicalRadius = true;
 	fullyDynamic = true;
 	useForces = false;
