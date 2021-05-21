@@ -703,8 +703,8 @@ void MessageManager::ProcessMessage(Message * message)
 				String action = params[1];
 				/// Create the dialogue
 				UIQueryDialogue * dialog = new UIQueryDialogue(action, action);
-				dialog->navigateUIOnPush = true;
-				dialog->exitable = true;
+				dialog->interaction.navigateUIOnPush = true;
+				dialog->interaction.exitable = true;
 				if (params.Size() >= 4){
 					dialog->headerText = params[2];
 					dialog->textToPresent = params[3];

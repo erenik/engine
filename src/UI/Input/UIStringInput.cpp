@@ -12,6 +12,7 @@
 #include "Message/MessageManager.h"
 
 #include "Graphics/GraphicsManager.h"
+#include "UI/UILabel.h"
 
 UIStringInput::UIStringInput(String name, String onTrigger)
 : UIInput(), action(onTrigger)
@@ -26,9 +27,9 @@ UIStringInput::UIStringInput(String name, String onTrigger)
 	index = 0;
 	
 	// Don't highlight this, highlight the sub-input element
-	this->highlightOnHover = false;
-	this->highlightOnActive = false;
-	textureSource = "0x00000000";
+	visuals.highlightOnHover = false;
+	visuals.highlightOnActive = false;
+	visuals.textureSource = "0x00000000";
 }
 UIStringInput::~UIStringInput()
 {
@@ -147,25 +148,25 @@ void UIStringInput::CreateChildren(GraphicsState * graphicsState)
 
 	/// Use a column-list to automatically get links between the elements, etc.
 	UIColumnList * box = CreateDefaultColumnList(this);
-	float spacePerElement = DefaultSpacePerElement(padding);
+	float spacePerElement = DefaultSpacePerElement(layout.padding);
 	label = CreateDefaultLabel(box, displayText, divider.x);
 	label->rightBorderTextureSource = rightBorderTextureSource;
 
 	input = CreateDefaultInput(box, name, 1 - divider.x);
 	input->onTriggerActions = onTriggerActions;
-	input->textureSource = inputTextureSource;
+	input->visuals.textureSource = inputTextureSource;
 
 	/// Set them to only accept floats?
 	input->SetText("");
 	input->rememberPreviousInputs = true;
-	input->textAlignment = LEFT;
+	input->text.alignment = LEFT;
 	if (guiInputDisabled)
 	{
-		input->activateable = false;
-		input->highlightOnHover = false;
-		box->activateable = false;
-		activateable = false;
-		hoverable = false;
+		input->interaction.activateable = false;
+		input->visuals.highlightOnHover = false;
+		box->interaction.activateable = false;
+		interaction.activateable = false;
+		interaction.hoverable = false;
 	}
 	childrenCreated = true;
 }

@@ -77,35 +77,6 @@ void GraphicsManager::Deallocate()
 	graphicsManager= NULL;
 }
 
-/// Prints the values of the error code in decimal as well as hex and the literal meaning of it.
-void PrintGLError(const char * text){
-	if (text == NULL)
-		return;
-	GLuint error = glGetError();
-	switch(error){
-		case 0:
-			break;
-		case 1280:
-			std::cout<<"\n"<<text<<": "<<error<<" GL_INVALID_ENUM";
-			break;
-		case 1281:
-			std::cout<<"\n"<<text<<": "<<error<<" GL_INVALID_VALUE";
-			break;
-		case 1282:
-			std::cout<<"\n"<<text<<": "<<error<<" GL_INVALID_OPERATION";
-			break;
-		case 1283:
-			std::cout<<"\n"<<text<<": "<<error<<" GL_OUT_OF_MEMORY";
-			break;
-		case 1286:
-			std::cout<<"\n"<<text<<": "<<error<<" GL_INVALID_FRAMEBUFFER_OPERATION: Given when doing anything that would attempt to read from or write/render to a framebuffer that is not complete, as defined here. : Given when doing anything that would attempt to read from or write/render to a framebuffer that is not complete, as defined here. ";
-			break;
-		default:
-			std::cout<<"\nUnknown GLerror "<<error;
-			break;
-	}
-}
-
 /// Constructor which anulls all relevant variables.
 GraphicsManager::GraphicsManager()
 {
@@ -386,7 +357,7 @@ void GraphicsManager::SetUI(UserInterface * i_ui){
 	assert(false);
 /*
 	if (ui)
-		ui->OnExitScope();
+		ui->interaction.onExitScope();
 	ui = i_ui;
 	if (ui)
 		ui->OnEnterScope();*/

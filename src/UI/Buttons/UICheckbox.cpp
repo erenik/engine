@@ -9,6 +9,7 @@
 #include "UI/UIInputs.h"
 #include "Message/Message.h"
 #include "Message/MessageManager.h"
+#include "UI/UILabel.h"
 
 
 UICheckbox::UICheckbox(String in_name /*= ""*/)
@@ -17,15 +18,14 @@ UICheckbox::UICheckbox(String in_name /*= ""*/)
 	, label(nullptr)
 {
 	Nullify();
-	textureSource = defaultTextureSource;
 	activationMessage = "SetBool:" + name;
-	text = "";
+	SetText("", false);
 	displayText = name;
 	type = UIType::CHECKBOX;
-	selectable = true;
-	hoverable = true;
-	navigatable = true;
-	activateable = true;
+	interaction.selectable = true;
+	interaction.hoverable = true;
+	interaction.navigatable = true;
+	interaction.activateable = true;
 
 	/*
 	// Set default texture to get proper animation for when hovering/activating it.
@@ -42,7 +42,7 @@ UIElement* UICheckbox::Activate(GraphicsState* graphicsState)
 {
 	UIElement* result = 0;
 	// Don't process invisible UIElements, please.
-	if (visible == false)
+	if (interaction.visible == false)
 		return 0;
 
 	// Check the element's state. If it is active, we've found it. Dialogues work too, or?
@@ -51,7 +51,7 @@ UIElement* UICheckbox::Activate(GraphicsState* graphicsState)
 		/// Just unflag the active state, try ensure that the hover-state remains!
 		RemoveState(UIState::ACTIVE);
 		// Now return our message!
-		if (selectable == true) {
+		if (interaction.selectable == true) {
 			SetToggled(!button->IsToggled());
 			OnToggled(button);
 			// Send a message!
@@ -116,17 +116,17 @@ void UICheckbox::_onToggled() {
 void UICheckbox::CreateChildren() {
 
 	UIColumnList * box = UIInput::CreateDefaultColumnList(this);
-	float spacePerElement = UIInput::DefaultSpacePerElement(padding);
+	float spacePerElement = UIInput::DefaultSpacePerElement(layout.padding);
 	label = UIInput::CreateDefaultLabel(box, displayText, spacePerElement);
 	
 	/// Create 3 children
 	button = new UIToggleButton();
 	box->InheritDefaults(button);
 	button->name = name + "Toggle";
-	button->sizeRatioX = spacePerElement;
+	button->layout.sizeRatioX = spacePerElement;
 	button->onToggledTexture = "ui/checkbox_toggled";
 	button->onNotToggledTexture = "ui/checkbox_not_toggled";
-	button->retainAspectRatioOfTexture = true;
+	button->visuals.retainAspectRatioOfTexture = true;
 	box->AddChild(nullptr, button);
 }
 

@@ -203,7 +203,7 @@
 //		//	entity->state->currentState = entity->state->queuedState;
 //		//	entity->state->queuedState = NULL;
 //		//	// Process onExit/onEnter
-//		//	entity->state->previousState->OnExit(entity);
+//		//	entity->state->previousState->interaction.onExit(entity);
 //		//	entity->state->currentState->OnEnter(entity);
 //		//}
 //		///// Process global state if any

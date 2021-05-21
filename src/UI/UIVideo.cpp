@@ -18,11 +18,11 @@ UIVideo::UIVideo(String name, String initialVideoUrl)
 	stream = NULL;
 	streamUrl.Remove("\"", true);
 	this->activationMessage = "TogglePause(this)";
-	this->hoverable = true;
-	navigatable = true;
-	this->activateable = true;
-	highlightOnHover = false;
-	highlightOnActive = false;
+	interaction.hoverable = true;
+	interaction.navigatable = true;
+	this->interaction.activateable = true;
+	visuals.highlightOnHover = false;
+	visuals.highlightOnActive = false;
 }
 
 UIVideo::~UIVideo()
@@ -87,7 +87,7 @@ void UIVideo::RenderSelf(GraphicsState & graphicsState)
 
 	/// Hide this UI once the video is done unless we've got repeat set.
 	if (stream->HasEnded()){
-		visible = false;
+		interaction.visible = false;
 		return;
 	}
 
@@ -138,12 +138,12 @@ void UIVideo::RenderSelf(GraphicsState & graphicsState)
 	float aspectRatio = videoWidth / videoHeight;
 	float videoLeft, videoRight, videoTop, videoBottom;
 	
-	float uiElementAspectRatio = ((float)sizeX) / sizeY;
+	float uiElementAspectRatio = ((float)layout.sizeX) / layout.sizeY;
 	
-	float centerX = (right + left) / 2.0f;
-	float centerY = (top + bottom) / 2.0f;
-	float halfSizeX = sizeX / 2.0f;
-	float halfSizeY = sizeY / 2.0f;
+	float centerX = (layout.right + layout.left) / 2.0f;
+	float centerY = (layout.top + layout.bottom) / 2.0f;
+	float halfSizeX = layout.sizeX / 2.0f;
+	float halfSizeY = layout.sizeY / 2.0f;
 
 	float ratioDiff = aspectRatio / uiElementAspectRatio;
 	if (ratioDiff > 1.0f)

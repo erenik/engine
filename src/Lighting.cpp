@@ -210,7 +210,7 @@ AppWindow * Lighting::OpenEditorWindow()
 	else {
 		lightingEditor = WindowMan.NewWindow("LightingEditor", "Lighting editor");
 		UserInterface * ui = lightingEditor->CreateUI();
-		ui->Load("gui/LightingMenu.gui");
+		ui->Load(nullptr, "gui/LightingMenu.gui");
 		lightingEditor->SetRequestedSize(Vector2i(400, 320));
 		lightingEditor->DisableAllRenders();
 		lightingEditor->renderUI = true;
@@ -249,7 +249,7 @@ void Lighting::UpdateLightList(AppWindow * inWindow)
 		Light * light = lights[i];
 		// Add an entry for it in the list.
 		UIButton * button = new UIButton(light->name);
-		button->sizeRatioY = 0.2f;
+		button->layout.sizeRatioY = 0.2f;
 		button->activationMessage = "SelectLightByIndex:"+String::ToString(i)+"&&OpenLightEditor";
 		Graphics.QueueMessage(new GMAddUI(button, lightList, ui));
 	}

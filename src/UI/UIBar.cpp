@@ -19,22 +19,22 @@ UIBar::~UIBar() {
 // Set it 0.0 for empty, 1.0 for full.
 void UIBar::SetFill(GraphicsState* graphicsState, float ratio0to1) {
 	if (sizeRatioXBeforeFillRatio == 0) {
-		sizeRatioXBeforeFillRatio = sizeRatioX;
-		alignmentXBeforeFillRatio = alignmentX;
+		sizeRatioXBeforeFillRatio = layout.sizeRatioX;
+		alignmentXBeforeFillRatio = layout.alignmentX;
 	}
 
-	this->sizeRatioX = sizeRatioXBeforeFillRatio * ratio0to1;
-//	this->sizeX = parent->sizeX * this->sizeRatioX;
+	this->layout.sizeRatioX = sizeRatioXBeforeFillRatio * ratio0to1;
+//	this->sizeX = parent->sizeX * this->layout.sizeRatioX;
 //	this->lockSizeX = true;
 
 	// Align as needed.
-	switch (alignment) {
-		case UIElement::LEFT:
-			//this->alignmentX = alignmentXBeforeFillRatio - sizeRatioXBeforeFillRatio * 0.5f + this->sizeRatioX * 0.5f;
+	switch (layout.alignment) {
+		case LEFT:
+			//this->layout.alignmentX = alignmentXBeforeFillRatio - sizeRatioXBeforeFillRatio * 0.5f + this->layout.sizeRatioX * 0.5f;
 			break;
 	}
 
-	AdjustToParent();
+	AdjustToParent(graphicsState);
 	ResizeGeometry(graphicsState); // Update the rect to be drawn.
 }
 

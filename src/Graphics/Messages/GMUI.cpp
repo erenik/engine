@@ -18,6 +18,7 @@
 #include "UI/UIBar.h"
 #include "UI/DataUI/UIMatrix.h"
 #include "UI/Buttons/UIRadioButtons.h"
+#include "UI/UILabel.h"
 
 #include "Input/InputManager.h"
 #include "StateManager.h"
@@ -168,7 +169,7 @@ void GMSetUIp::Process(GraphicsState * graphicsState)
 	{
 		case GMUI::TEXTURE: 		
 		{
-			e->texture = texture;
+			e->visuals.texture = texture;
 		}
 	}	
 }
@@ -488,17 +489,17 @@ void GMSetUIf::Process(GraphicsState * graphicsState)
 		{
 			assert(element->type == UIType::LIST);
 			UIList * list = (UIList*) element;
-			list->SetScrollPosition(value);
+			list->SetScrollPosition(*graphicsState, value);
 			break;
 		}
 		case GMUI::ALPHA:
-			element->color[3] = value;
+			element->visuals.color[3] = value;
 			break;
 		case GMUI::TEXT_ALPHA:
 			element->SetTextColors(element->GetText().colors->WithAlpha(value));
 			break;
 		case GMUI::TEXT_SIZE_RATIO:
-			element->textSizeRatio = value;
+			element->text.sizeRatio = value;
 			break;
 		case GMUI::CHILD_SIZE_RATIO_Y:
 		{
@@ -601,21 +602,21 @@ void GMSetUIb::Process(GraphicsState * graphicsState)
 			break;
 		}
 		case GMUI::VISIBILITY:
-			e->visible = value;
+			e->interaction.visible = value;
 			break;
 		case GMUI::CHILD_VISIBILITY:
 		{
 			List<UIElement*> children = e->GetChildren();
 			for (int i = 0; i < children.Size(); ++i){
-				children[i]->visible = value;
+				children[i]->interaction.visible = value;
 			}
 			break;
 		}
 		case GMUI::ACTIVATABLE:
-			e->activateable = value;
+			e->interaction.activateable = value;
 			break;
 		case GMUI::HOVERABLE:
-			e->hoverable = value;
+			e->interaction.hoverable = value;
 			break;
 		case GMUI::HOVER_STATE:
 			if (value)
@@ -727,10 +728,10 @@ void GMSetUIs::Process(GraphicsState * graphicsState)
 			break;
 		}
 		case GMUI::TEXTURE_SOURCE:
-			if (e->textureSource == text)
+			if (e->visuals.textureSource == text)
 				break;
-			e->textureSource = text;
-			e->texture = NULL; // Force it to be re-fetched!
+			e->visuals.textureSource = text;
+			e->visuals.texture = NULL; // Force it to be re-fetched!
 			e->FetchBindAndBufferizeTexture();
 			break;
 		case GMUI::DROP_DOWN_INPUT_SELECT:
@@ -944,7 +945,7 @@ void GMScrollUI::Process(GraphicsState * graphicsState){
 	else {
 		MouseMessage * mm = new MouseMessage(MouseMessage::SCROLL, nullptr, Vector2i());
 		mm->scrollDistance = scrollDistance;
-		if (e->hoverable)
+		if (e->interaction.hoverable)
 			mm->element = e;
 		MesMan.QueueMessage(mm);
 	}
@@ -1001,7 +1002,9 @@ void GMAddUI::Process(GraphicsState * graphicsState)
 	}
 	for (int i = 0; i < elements.Size(); ++i)
 	{
+		auto element = elements[i];
 		e->AddChild(graphicsState, elements[i]);
+		element->AdjustToParentCreateGeometryAndBufferize(graphicsState);
 	}
 	Graphics.renderQueried = true;
 }
@@ -1077,7 +1080,7 @@ void GMPushUI::Process(GraphicsState * graphicsState)
 		e = ui->GetElementBySource(uiName);
 		if (!e)
 		{
-			e = UserInterface::LoadUIAsElement(uiName);
+			e = UserInterface::LoadUIAsElement(graphicsState, uiName);
 			/// If not added, add it too.
 			if (e)
 				ui->Root()->AddChild(graphicsState, e);
@@ -1088,26 +1091,52 @@ void GMPushUI::Process(GraphicsState * graphicsState)
 		return;
 	}
 
-	PushUI(e, graphicsState);
+	PushUI(e, ui, graphicsState);
 }
 
-void GMPushUI::PushUI(UIElement * e, GraphicsState * graphicsState) {
+void GMPushUI::PushUI(UIElement * e, UserInterface* ui, GraphicsState * graphicsState) {
 	/// Add to root.
 	if (e->Parent() == 0)
 		ui->GetRoot()->AddChild(graphicsState, e);
 	/// Push to stack, the InputManager will also try and hover on the first primary element.
-	InputMan.PushToStack(graphicsState, e, ui);
+	PushToStack(graphicsState, ui, e);
 
 	/// Enable navigate ui if element wants it.
-	if (e->navigateUIOnPush) {
-		e->previousNavigateUIState = InputMan.NavigateUIState();
-		if (e->forceNavigateUI)
+	if (e->interaction.navigateUIOnPush) {
+		e->interaction.previousNavigateUIState = InputMan.NavigateUIState();
+		if (e->interaction.forceNavigateUI)
 			InputMan.SetForceNavigateUI(true);
 		else
 			InputMan.SetNavigateUI(true);
 	}
 
 	MesMan.QueueMessage(new OnUIPushed(e->name));
+}
+
+void GMPushUI::PushToStack(GraphicsState* graphicsState, UserInterface* ui, UIElement* element) {
+	if (!ui || !element)
+		return;
+	/// Push it.
+	int result = ui->PushToStack(element);
+	if (result == UserInterface::NULL_ELEMENT)
+		return;
+	UIElement * firstActivatable = element->GetElementByFlag(UIFlag::HOVERABLE | UIFlag::ACTIVATABLE);
+	//	std::cout<<"\nHovering to element \""<<firstActivatable->name<<"\" with text \""<<firstActivatable->text<<"\"";
+	ui->SetHoverElement(graphicsState, firstActivatable);
+
+	// Set navigation cyclicity.
+	static bool cyclicY = false;
+
+	cyclicY = element->interaction.cyclicY;
+	//hoverElement = ui->Hover(firstActivatable->layout.posX, firstActivatable->layout.posY);
+
+	ui->PrintStack();
+
+	// Bufferize upon pushing to stack!
+	element->AdjustToWindow(*graphicsState, ui->GetLayout());
+	element->CreateGeometry(graphicsState);
+	element->ResizeGeometry(graphicsState);
+	element->Bufferize();
 }
 
 
@@ -1163,14 +1192,14 @@ void GMPopUI::Process(GraphicsState * graphicsState)
 
 	/// Push to stack, the InputManager will also try and hover on the first primary element.
 	String elementName = e->name;
-	bool success = InputMan.PopFromStack(graphicsState, e, ui, force);
+	bool success = PopFromStack(graphicsState, e, ui, force);
 	if (!success)
 		return;
 
 	LogGraphics("Popped element/menu: " + e->name, INFO);
 	/// If the element wants to keep track of the navigate UI state, then reload it. If not, don't as it will set it to false by default if so.
-	if (e->disableNavigateUIOnPop)
-		InputMan.LoadNavigateUIState(e->previousNavigateUIState);
+	if (e->interaction.disableNavigateUIOnPop)
+		InputMan.LoadNavigateUIState(e->interaction.previousNavigateUIState);
 
 	// Clean it up, yo.
 	if (e->source.Length() > 0) {
@@ -1181,6 +1210,47 @@ void GMPopUI::Process(GraphicsState * graphicsState)
 
 	/// By default, set navigate UI to true too!
 //	InputMan.SetNavigateUI(true);
+}
+
+UIElement * GMPopUI::PopFromStack(GraphicsState* graphicsState, UIElement * element, UserInterface * ui, bool force) {
+	if (!ui || !element) {
+		std::cout << "\nNull UI or element";
+		return NULL;
+	}
+	// If trying to pop root, assume user is trying to cancel the UI-navigation mode?
+	if (element->name == "root") {
+		InputMan.SetNavigateUI(false);
+	}
+	/// Pop it.
+	bool success = ui->PopFromStack(graphicsState, element, force);
+	if (!success) {
+		LogGraphics("Unable to pop UI from stack, might require force=true", FATAL);
+		return NULL;
+	}
+
+	ui->PrintStack();
+
+	// Set new navigation cyclicity.
+	UIElement * stackTop = ui->GetStackTop();
+	static bool cyclicY = false;
+	cyclicY = stackTop->interaction.cyclicY;
+
+	// If element was previously active, remove it, keep only hover.
+	stackTop->RemoveState(UIState::ACTIVE, true);
+
+	UIElement * currentHover = stackTop->GetElementByState(UIState::HOVER);
+	if (currentHover) {
+		ui->SetHoverElement(graphicsState, currentHover);
+		return element;
+	}
+	UIElement * firstActivatable = stackTop->GetElementByFlag(UIFlag::HOVERABLE | UIFlag::ACTIVATABLE);
+	//	std::cout<<"\nHovering to element \""<<firstActivatable->name<<"\" with text \""<<firstActivatable->text<<"\"";
+	ui->SetHoverElement(graphicsState, firstActivatable);
+
+	/// If no activatable menu item is out, set navigate UI to false?
+	/// No. Better embed this into the appropriate UI's onExit message!
+	// InputMan.SetNavigateUI(true);
+	return element;
 }
 
 /*

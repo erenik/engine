@@ -98,7 +98,7 @@ void Light::OpenEditorWindow()
 	else {
 		window = WindowMan.NewWindow(lightEditorName, "Light editor");
 		UserInterface * ui = window->CreateUI();
-		ui->Load("gui/LightEditor.gui");
+		ui->Load(nullptr, "gui/LightEditor.gui");
 		window->DisableAllRenders();
 		window->renderUI = true;
 		window->SetRequestedSize(Vector2i(400, 320));

@@ -30,24 +30,24 @@ UIScrollBarHandle::UIScrollBarHandle(String parentName)
     type = UIType::SCROLL_HANDLE;
     name = parentName + "Scroll bar handle";
 
-	borderOffset = defaultBorderOffset;
+	layout.borderOffset = defaultBorderOffset;
 	
 	lockWidth = defaultLockWidth;
 	if (lockWidth > 0) {
-		sizeRatioX = 1.0f;
-		lockSizeX = true;
-		sizeX = lockWidth;
+		layout.sizeRatioX = 1.0f;
+		layout.lockSizeX = true;
+		layout.sizeX = lockWidth;
 	}
 	else {
-		sizeRatioX = 0.8f;
+		layout.sizeRatioX = 0.8f;
 	}
 
-    selectable = true;
-    hoverable = true;
-	navigatable = true;
-    activateable = true;
+    interaction.selectable = true;
+	interaction.hoverable = true;
+	interaction.navigatable = true;
+	interaction.activateable = true;
     isSysElement = true;
-	highlightOnHover = true;
+	visuals.highlightOnHover = true;
     activationMessage = "BeginScroll(this)";
 
 	topBorderTextureSource = defaultTopBorder;
@@ -56,7 +56,7 @@ UIScrollBarHandle::UIScrollBarHandle(String parentName)
 	rightBorderTextureSource = defaultRightBorder;
 	topRightCornerTextureSource = "";
 
-	textureSource = defaultTextureSource;
+	visuals.textureSource = defaultTextureSource;
 
 }
 
@@ -65,31 +65,31 @@ UIScrollBarHandle::~UIScrollBarHandle()
 //	std::cout<<"\nUIScrollBarHandle destructor.";
 }
 
-float UIScrollBarHandle::Move(float distance)
+float UIScrollBarHandle::Move(GraphicsState& graphicsState, float distance)
 {
-	float alignmentPre = alignmentY;
-    alignmentY += distance;
-	SetScrollPosition(alignmentY);
-	float moved = alignmentY - alignmentPre;
+	float alignmentPre = layout.alignmentY;
+	layout.alignmentY += distance;
+	SetScrollPosition(graphicsState, layout.alignmentY);
+	float moved = layout.alignmentY - alignmentPre;
 	return moved;
 }
 
 float UIScrollBarHandle::GetScrollPosition()
 {
-	return alignmentY;
+	return layout.alignmentY;
 }
 
-void UIScrollBarHandle::SetScrollPosition(float f)
+void UIScrollBarHandle::SetScrollPosition(GraphicsState& graphicsState, float f)
 {
-    alignmentY = f;
-    if (alignmentY > 1.0f - sizeRatioY * 0.5f)
-        alignmentY = 1.0f - sizeRatioY * 0.5f;
-    else if (alignmentY < 0.0f + sizeRatioY * 0.5f)
-        alignmentY = 0.0f + sizeRatioY * 0.5f;
+	layout.alignmentY = f;
+    if (layout.alignmentY > 1.0f - layout.sizeRatioY * 0.5f)
+		layout.alignmentY = 1.0f - layout.sizeRatioY * 0.5f;
+    else if (layout.alignmentY < 0.0f + layout.sizeRatioY * 0.5f)
+		layout.alignmentY = 0.0f + layout.sizeRatioY * 0.5f;
 	
 	// Recalculate position of the element to render correctly.
 //	this->QueueBuffering();
-	this->isBuffered = false;
+	Rebufferize(graphicsState);
 }
 
 
@@ -119,39 +119,39 @@ UIElement * UIScrollBarHandle::Click(GraphicsState* graphicsState, int mouseX, i
 	UIElement * clickElement = UIElement::Click(graphicsState, mouseX, mouseY);
 	if (clickElement == this)
 	{
-		float alignmentY = (mouseY - parent->bottom) / (float)this->parent->sizeY;
-		this->SetAlignmentY(alignmentY);
+		float alignmentY = (mouseY - parent->layout.bottom) / (float)this->parent->layout.sizeY;
+		this->SetAlignmentY(*graphicsState, alignmentY);
 	}
 	return clickElement;
 }
 
 /// Used by e.g. ScrollBarHandle's in order to slide its content according to mouse movement, even when the mouse extends beyond the scope of the element.
-void UIScrollBarHandle::OnMouseMove(Vector2i activeWindowCoords)
+void UIScrollBarHandle::OnMouseMove(GraphicsState& graphicsState, Vector2i activeWindowCoords)
 {
-	float alignmentY = (activeWindowCoords[1]  - parent->bottom) / (float) this->parent->sizeY;
-	SetAlignmentY(alignmentY);
+	float alignmentY = (activeWindowCoords[1]  - parent->layout.bottom) / (float) this->parent->layout.sizeY;
+	SetAlignmentY(graphicsState, alignmentY);
 }
 
 // Setting
-void UIScrollBarHandle::SetAlignmentY(float y)
+void UIScrollBarHandle::SetAlignmentY(GraphicsState& graphicsState, float y)
 {
-	float halfSizeY = this->sizeRatioY * 0.5f;
+	float halfSizeY = this->layout.sizeRatioY * 0.5f;
 	if (y > 1.f - halfSizeY)
 		y = 1.f - halfSizeY;
 	if (y < 0.f + halfSizeY)
 		y = 0.f + halfSizeY;
 	
-	alignmentY = y;
-	this->isBuffered = false;
+	layout.alignmentY = y;
+	Rebufferize(graphicsState);
 }
 
 #include "TextureManager.h"
 #include "File/LogFile.h"
 
-UIElement * UIScrollBarHandle::CreateBorderElement(String textureSource, char alignment) {
+UIElement * UIScrollBarHandle::CreateBorderElement(GraphicsState* graphicsState, String textureSource, char alignment) {
 	UIBorder * borderElement = new UIBorder();
 	borderElement->name = parent->name + " border " + String(alignment);
-	borderElement->textureSource = textureSource;
+	borderElement->visuals.textureSource = textureSource;
 	borderElement->SetParent(this);
 	Texture * texture = TexMan.GetTexture(textureSource);
 	if (texture == nullptr) {
@@ -159,30 +159,30 @@ UIElement * UIScrollBarHandle::CreateBorderElement(String textureSource, char al
 		delete borderElement;
 		return nullptr;
 	}
-	borderElement->alignment = alignment;
-	borderElement->highlightOnHover = true;
+	borderElement->layout.alignment = alignment;
+	borderElement->visuals.highlightOnHover = true;
 
 	// Give top and bottom borders a size proportionate to what they have.
-	float ratioHandleToTextureX = sizeX /  texture->size.x;
+	float ratioHandleToTextureX = layout.sizeX /  texture->size.x;
 
 	switch (alignment) {
 	case TOP:
-		borderElement->sizeY = texture->size.y * ratioHandleToTextureX;
-		borderElement->lockSizeY = true;
+		borderElement->layout.sizeY = texture->size.y * ratioHandleToTextureX;
+		borderElement->layout.lockSizeY = true;
 		break;
 	case BOTTOM:
-		borderElement->sizeY = texture->size.y * ratioHandleToTextureX;
-		borderElement->lockSizeY = true;
+		borderElement->layout.sizeY = texture->size.y * ratioHandleToTextureX;
+		borderElement->layout.lockSizeY = true;
 		break;
 	case RIGHT:
-		borderElement->sizeX = texture->size.x;
-		borderElement->lockSizeX = true;
+		borderElement->layout.sizeX = texture->size.x;
+		borderElement->layout.lockSizeX = true;
 		break;
 	case TOP_RIGHT:
-		borderElement->sizeY = texture->size.y;
-		borderElement->lockSizeY = true;
-		borderElement->sizeX = texture->size.x;
-		borderElement->lockSizeX = true;
+		borderElement->layout.sizeY = texture->size.y;
+		borderElement->layout.lockSizeY = true;
+		borderElement->layout.sizeX = texture->size.x;
+		borderElement->layout.lockSizeX = true;
 		break;
 	default:
 		assert(false && "Implemenet");

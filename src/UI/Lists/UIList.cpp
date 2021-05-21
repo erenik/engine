@@ -22,9 +22,9 @@ UIList::UIList(String name)
     scrollBarX = scrollBarY = NULL;
 	contentsSize = 0.0f;
 	/// Should be hoverable so mouse interactions work.
-	hoverable = true;
+	interaction.hoverable = true;
 	/// But disable highlight on hover!
-	highlightOnHover = false;
+	visuals.highlightOnHover = false;
 
 	// Default true.
 	createScrollBarsAutomatically = true;
@@ -38,16 +38,16 @@ UIList::~UIList()
 
 
 int UIList::CenteredContentParentPosX() const {
-	if (scrollBarY && scrollBarY->visible)
-		return posX - sizeX * scrollBarY->sizeRatioX * 0.5f;
-	return posX;
+	if (scrollBarY && scrollBarY->interaction.visible)
+		return layout.posX - layout.sizeX * scrollBarY->layout.sizeRatioX * 0.5f;
+	return layout.posX;
 }
 
 // If parent is e.g. List, available size will vary depending on if scrollbar is present or not.
 int UIList::AvailableParentSizeX() const {
-	if (scrollBarY && scrollBarY->visible)
-		return sizeX - sizeX * scrollBarY->sizeRatioX;
-	return sizeX;
+	if (scrollBarY && scrollBarY->interaction.visible)
+		return layout.sizeX - layout.sizeX * scrollBarY->layout.sizeRatioX;
+	return layout.sizeX;
 }
 
 void UIList::RescaleChildrenY(float f)
@@ -57,8 +57,8 @@ void UIList::RescaleChildrenY(float f)
 		UIElement * c = children[i];
 		if (c->isSysElement)
 			continue;
-		c->sizeRatioY = f;
-		c->isBuffered = false;
+		c->layout.sizeRatioY = f;
+		c->Bufferize();
 	}
 }
 
@@ -75,9 +75,8 @@ void UIList::Clear(GraphicsState& graphicsState)
         }
 		*/
 		children.Remove(c);
-		if (c->vboBuffer)
-            c->FreeBuffers(graphicsState);
-        if (c->mesh)
+        c->visuals.FreeBuffers(graphicsState);
+        if (c->visuals.mesh)
             c->DeleteGeometry();
 		delete c;
 		c = NULL;
@@ -93,12 +92,16 @@ void UIList::CreateScrollBarIfNeeded(GraphicsState* graphicsState)
 		float scrollBarWidth = 0.05;
 		UIScrollBar * scroll = new UIScrollBar(name);
 		scroll->parent = this;
-		scroll->sizeRatioX = scrollBarWidth;
+		scroll->layout.sizeRatioX = scrollBarWidth;
 		scroll->CreateHandle();
-		scroll->Update(graphicsState, 1.0f - contentChildren.Last()->posY);
-		scroll->alignmentX = 0.975f;
+		scroll->Update(graphicsState, 1.0f - contentChildren.Last()->layout.posY);
+		scroll->layout.alignmentX = 0.975f;
 	    scrollBarY = scroll;
 	    UIElement::AddChild(nullptr, scrollBarY);
+
+		scroll->AdjustToParent(graphicsState);
+		scroll->CreateGeometry(graphicsState);
+		scroll->Bufferize();
 	}
 }
 
@@ -135,7 +138,7 @@ bool UIList::AddChild(GraphicsState * graphicsState, UIElement* child)
 	/// If first child, place it at the top.
 	if (children.Size() == 0){
 		UIElement::AddChild(nullptr, child);
-		child->alignmentY = 1.0f - child->sizeRatioY * 0.5f;
+		child->layout.alignmentY = 1.0f - child->layout.sizeRatioY * 0.5f;
 		return true;
 	}
 	// If not, find bottom child (or, bottom edge.!
@@ -149,21 +152,21 @@ bool UIList::AddChild(GraphicsState * graphicsState, UIElement* child)
             continue;
 		bottomElement = c;
 	//	std::cout<<"\nBottomElement name: "<<bottomElement->name;
-		float childBottomEdge = c->alignmentY - c->sizeRatioY * 0.5f;
+		float childBottomEdge = c->layout.alignmentY - c->layout.sizeRatioY * 0.5f;
 		if (childBottomEdge < bottom)
 			bottom = childBottomEdge;
 	}
 	UIElement::AddChild(nullptr, child);
-	child->alignmentY = bottom - child->sizeRatioY * 0.5f - padding;
+	child->layout.alignmentY = bottom - child->layout.sizeRatioY * 0.5f - layout.padding;
 
 	/// Update bottom after this addition.
-	bottom -= child->sizeRatioY;
+	bottom -= child->layout.sizeRatioY;
 
 	// Update total contents size.
 	contentsSize = 1 - bottom;
 
 	/// Check if we should add scroll-bars to zis list!
-	bool needScrollBarY = child->alignmentY - child->sizeRatioY * 0.5f < 0;
+	bool needScrollBarY = child->layout.alignmentY - child->layout.sizeRatioY * 0.5f < 0;
 	needScrollBarY &= createScrollBarsAutomatically;
 	if (needScrollBarY)
 	{
@@ -173,7 +176,7 @@ bool UIList::AddChild(GraphicsState * graphicsState, UIElement* child)
 		UIElement * lastChild = contentChildren.Last();
 		scrollBarY->Update(graphicsState, 1.0f - bottom);
    //     scroll->text = "Neeeeej";
-        FormatElements();
+        FormatElements(*graphicsState);
 	//	assert(false && "Implement automatic scrollbars for your lists, yo!");
 	}
 
@@ -196,8 +199,8 @@ bool UIList::AddChild(GraphicsState * graphicsState, UIElement* child)
 	return true;
 }
 
-#define RETURN_IF_OUTSIDE {if (mouseY > top || mouseY < bottom || \
-                               mouseX > right || mouseX < left) return NULL;};
+#define RETURN_IF_OUTSIDE {if (mouseY > layout.top || mouseY < layout.bottom || \
+                               mouseX > layout.right || mouseX < layout.left) return NULL;};
 
 /// Activation functions
 UIElement * UIList::Hover(GraphicsState* graphicsState, int mouseX, int mouseY)
@@ -208,7 +211,7 @@ UIElement * UIList::Hover(GraphicsState* graphicsState, int mouseX, int mouseY)
 	if (onHover.Length())
 		MesMan.QueueMessages(onHover);
     if (scrollBarY){
-        listY -= scrollBarY->GetStart() * sizeY;
+        listY -= scrollBarY->GetStart() * layout.sizeY;
     }
     UIElement * e = NULL;
 
@@ -233,7 +236,7 @@ UIElement * UIList::Hover(GraphicsState* graphicsState, int mouseX, int mouseY)
 			return NULL;
 	}
 	// Odd-case, with lists acting as buttons, if it can be highlit and sub elements are not highlightable.
-	else if (highlightOnHover && !e->highlightOnHover) {
+	else if (visuals.highlightOnHover && !e->visuals.highlightOnHover) {
 		e = this;
 		AddState(graphicsState, UIState::HOVER);
 	}
@@ -259,7 +262,7 @@ UIElement * UIList::Click(GraphicsState* graphicsState, int mouseX, int mouseY)
 	float listX = (float)mouseX;
     float listY = (float)mouseY;
     if (scrollBarY)
-        listY -= scrollBarY->GetStart() * sizeY;
+        listY -= scrollBarY->GetStart() * layout.sizeY;
 
     UIElement * e = NULL;
     /// Check le children.
@@ -276,7 +279,7 @@ UIElement * UIList::Click(GraphicsState* graphicsState, int mouseX, int mouseY)
 	{
         e = this;
 		// If activatable, flag it.
-		if (this->activateable){
+		if (this->interaction.activateable){
 			AddState(graphicsState, UIState::ACTIVE);
 			return this;
 		}
@@ -294,7 +297,7 @@ UIElement * UIList::GetElement(GraphicsState* graphicsState, int mouseX, int mou
     float listX = (float)mouseX;
     float listY = (float)mouseY;
     if (scrollBarY)
-        listY -= scrollBarY->GetStart() * sizeY;
+        listY -= scrollBarY->GetStart() * layout.sizeY;
     UIElement * e = this;
     /// Check le children.
     for (int i = 0; i < children.Size(); ++i){
@@ -325,12 +328,12 @@ bool UIList::OnScroll(GraphicsState* graphicsState, float delta)
     /// Move the slider and adjust content.
     if (scrollBarY)
 	{
-        float pageSize = scrollBarY->handle->sizeRatioY;
+        float pageSize = scrollBarY->handle->layout.sizeRatioY;
         bool negative = delta < 0;
         float distance = AbsoluteValue(delta);
-        float pixels = distance * sizeY;
+        float pixels = distance * layout.sizeY;
         if (pixels < 5){
-            distance = 5.0f / sizeY;
+            distance = 5.0f / layout.sizeY;
         }
         float quarterPage = pageSize * 0.25f;
         std::cout<<"\nQuarterPage: "<<quarterPage;
@@ -341,7 +344,7 @@ bool UIList::OnScroll(GraphicsState* graphicsState, float delta)
         if (negative)
             distance *= -1.0f;
         distance = pageSize * delta;
-        moved += scrollBarY->Move(distance);
+        moved += scrollBarY->Move(*graphicsState, distance);
     //    scrollBarY->PrintDebug();
     }
 	if (moved)
@@ -391,7 +394,7 @@ UIElement * UIList::GetUpNeighbour(GraphicsState* graphicsState, UIElement * ref
 				if (child->isSysElement)
 					continue;
 				/// If activatable? Return it straight away.
-				if (child->navigatable)
+				if (child->interaction.navigatable)
 					return child;
 				
 				// Set to only search children now!
@@ -443,11 +446,11 @@ UIElement * UIList::GetDownNeighbour(GraphicsState* graphicsState, UIElement * r
 				if (child->isSysElement)
 					continue;
 				/// If activatable? Return it straight away.
-				if (child->hoverable)
+				if (child->interaction.hoverable)
 					return child;
 				// Set to only search children now!
 				searchChildrenOnly = true;
-				UIElement * neighbour = child->GetElementClosestTo(referenceElement->position, true);
+				UIElement * neighbour = child->GetElementClosestTo(referenceElement->layout.position, true);
 		//		if (neighbour == child)
 		//			continue;		
 //					child->GetDownNeighbour(referenceElement, searchChildrenOnly);
@@ -475,7 +478,7 @@ UIElement * UIList::GetLeftNeighbour(UIElement * referenceElement, bool & search
 	// Grab best on in Y- that corresponds to it?
 	if (searchChildrenOnly)
 	{
-		UIElement * child = this->GetElementClosestTo(referenceElement->position, true);
+		UIElement * child = this->GetElementClosestTo(referenceElement->layout.position, true);
 		return child;
 	}
 	/// If not going down, continue up til a ColumnList is hit?
@@ -486,7 +489,7 @@ UIElement * UIList::GetRightNeighbour(UIElement * referenceElement, bool & searc
 	// Grab best on in Y- that corresponds to it?
 	if (searchChildrenOnly)
 	{
-		UIElement * child = this->GetElementClosestTo(referenceElement->position, true);
+		UIElement * child = this->GetElementClosestTo(referenceElement->layout.position, true);
 		return child;	
 	}
 	/// If not going down, continue up til a ColumnList is hit?
@@ -516,10 +519,10 @@ float UIList::GetScrollPosition()
 }
 
 /// Set current scroll position.
-void UIList::SetScrollPosition(float fValue)
+void UIList::SetScrollPosition(GraphicsState& graphicsState, float fValue)
 {
 	if (scrollBarY)
-		scrollBarY->SetScrollPosition(fValue);
+		scrollBarY->SetScrollPosition(graphicsState, fValue);
 	return;
 }
 
@@ -531,9 +534,9 @@ bool UIList::Scroll(GraphicsState* graphicsState, float absoluteDistanceInPages)
     /// Move the slider and adjust content.
 	if (scrollBarY)
 	{
-		float pageSize = scrollBarY->handle->sizeRatioY;
+		float pageSize = scrollBarY->handle->layout.sizeRatioY;
 		float distance = absoluteDistanceInPages * pageSize;
-		scrollBarY->Move(distance);
+		scrollBarY->Move(*graphicsState, distance);
 		//    scrollBarY->PrintDebug();
 	}
 	else
@@ -542,7 +545,7 @@ bool UIList::Scroll(GraphicsState* graphicsState, float absoluteDistanceInPages)
 }
 
 /// Adjusts positions and sizes acording to any attached scroll-bars or other system UI elements.
-void UIList::FormatElements(){
+void UIList::FormatElements(GraphicsState& graphicsState){
     if (!formatX)
         return;
     for (int i = 0; i < children.Size(); ++i){
@@ -552,14 +555,14 @@ void UIList::FormatElements(){
         if (scrollBarY){
 			// Handled during rendering instead.
 			/*
-            if (e->sizeRatioX > 1.0f - scrollBarY->sizeRatioX){
-                float newSizeRatioX = 1.0f - scrollBarY->sizeRatioX;
-                e->alignmentX = e->alignmentX + (newSizeRatioX - e->sizeRatioX) * 0.5f;
-                e->sizeRatioX = newSizeRatioX;
+            if (e->layout.sizeRatioX > 1.0f - scrollBarY->layout.sizeRatioX){
+                float newSizeRatioX = 1.0f - scrollBarY->layout.sizeRatioX;
+                e->layout.alignmentX = e->layout.alignmentX + (newSizeRatioX - e->layout.sizeRatioX) * 0.5f;
+                e->layout.sizeRatioX = newSizeRatioX;
             }
 			*/
-			/// Re-queue bufferization of all elements that are formated!
-			e->isBuffered = false;
+			/// Re-bufferize all elements that are formated!
+			e->Bufferize();
         }
     }
 }
@@ -579,8 +582,8 @@ void UIList::RenderChildren(GraphicsState & graphicsState)
 	Matrix4d modelMatrix = graphicsState.modelMatrixD;
 	Matrix4d translatedModelMatrix = graphicsState.modelMatrixD;
 
-	Vector4d initialPositionTopRight(right, top, 0, 1), 
-			initialPositionBottomLeft(left, bottom, 0, 1);
+	Vector4d initialPositionTopRight(layout.right, layout.top, 0, 1),
+			initialPositionBottomLeft(layout.left, layout.bottom, 0, 1);
 	Vector3f currTopRight = graphicsState.modelMatrixF * initialPositionTopRight;
 	Vector3f currBottomLeft = graphicsState.modelMatrixF * initialPositionBottomLeft;
 
@@ -594,10 +597,10 @@ void UIList::RenderChildren(GraphicsState & graphicsState)
 
 	float pageBeginY = 0.f, pageBeginYPixels = 0;
     /// If we got a scrollbar, apply a model matrix to make us render at the proper location.
-    if (scrollBarY && scrollBarY->visible)
+    if (scrollBarY && scrollBarY->interaction.visible)
 	{
         pageBeginY = scrollBarY->GetStart();
-        pageBeginYPixels = pageBeginY * sizeY;
+        pageBeginYPixels = pageBeginY * layout.sizeY;
         translatedModelMatrix *= Matrix4d::Translation(0, pageBeginYPixels, 0);
 		this->pageBegin[1] = pageBeginYPixels;
     }
@@ -607,7 +610,7 @@ void UIList::RenderChildren(GraphicsState & graphicsState)
 	for (int i = 0; i < children.Size(); ++i)
 	{
         UIElement * child = children[i];
-        if (!child->visible)
+        if (!child->interaction.visible)
             continue;
 
         /// Set model matrix depending on child-type.
@@ -617,7 +620,7 @@ void UIList::RenderChildren(GraphicsState & graphicsState)
         }
 		else {
 			/// Skip if outside of screen.
-			if (AbsoluteValue(child->alignmentY + pageMiddleY) > 0.8f)
+			if (AbsoluteValue(child->layout.alignmentY + pageMiddleY) > 0.8f)
 				continue;
             graphicsState.modelMatrixF = translatedModelMatrix;
 		}
@@ -644,9 +647,9 @@ void UIList::EnsureVisibility(GraphicsState* graphicsState, UIElement * element)
 		return;
 
 	// Do stuff! o.o
-	float alignmentY = 1 - element->alignmentY;
+	float alignmentY = 1 - element->layout.alignmentY;
 //	std::cout<<"\nAlignmentY: "<<alignmentY;
-	float halfSizeY = element->sizeRatioY * 0.5f;
+	float halfSizeY = element->layout.sizeRatioY * 0.5f;
 	float top = alignmentY - halfSizeY;
 	float bottom = alignmentY + halfSizeY;
 

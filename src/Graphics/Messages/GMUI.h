@@ -339,7 +339,8 @@ public:
 
 private:
 
-	void PushUI(UIElement * e, GraphicsState * graphicsState);
+	static void PushUI(UIElement * e, UserInterface* ui, GraphicsState * graphicsState);
+	static void PushToStack(GraphicsState * graphicsState, UserInterface* ui, UIElement* element);
 
 	UIElement * element;
 	String uiName;
@@ -353,6 +354,9 @@ public:
 	GMPopUI(String uiName, bool force);
 	void Process(GraphicsState* graphicsState);
 private:
+
+	UIElement * PopFromStack(GraphicsState* graphicsState, UIElement * element, UserInterface * ui, bool force = false);
+
 	UIElement * element;
 	String uiName;
 	bool force;

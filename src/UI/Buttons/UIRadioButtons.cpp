@@ -7,6 +7,7 @@
 #include "UI/UITypes.h"
 #include "Message/MessageManager.h"
 #include "Message/MathMessage.h"
+#include "UI/UILabel.h"
 // #include "Graphics/GraphicsManager.h"
 
 Color UIRadioButtons::toggledTextColor = Color::ColorByHexName("0xffffffff");
@@ -18,9 +19,9 @@ UIRadioButtons::UIRadioButtons(int numberOfButtons, String name, String action)
 {
 	this->name = name;
 	this->type = UIType::RADIO_BUTTONS;
-	activateable = true;
-	hoverable = true;
-	navigatable = true;
+	interaction.activateable = true;
+	interaction.hoverable = true;
+	interaction.navigatable = true;
 	toggledIndex = 0;
 }
 
@@ -44,17 +45,17 @@ void UIRadioButtons::CreateChildren(GraphicsState* graphicsState)
 	elements = numButtons;
 	if (noLabel)
 		labelSize = 0;
-	spaceLeft = (1.0f - labelSize) - padding * elements;
+	spaceLeft = (1.0f - labelSize) - layout.padding * elements;
 	spacePerElement = spaceLeft / elements;
 	// Add label!
 	if (!noLabel)
 	{
 		label = new UILabel(GetText());
 		InheritDefaults(label);
-		label->sizeRatioX = labelSize;
+		label->layout.sizeRatioX = labelSize;
 		label->SetText(displayText);
-		label->textureSource = "";
-		label->hoverable = true;
+		label->visuals.textureSource = "";
+		label->interaction.hoverable = true;
 		AddChild(nullptr, label);
 	}
 	for (int i = 0; i < numButtons; ++i)
@@ -66,15 +67,15 @@ void UIRadioButtons::CreateChildren(GraphicsState* graphicsState)
 		button->name = name + "Button"+ String(i);
 		button->SetText(buttonTexts.Size() > i ? buttonTexts[i] : "");
 		button->UpdateTextColor(toggledTextColor, notToggledTextColor);
-		button->sizeRatioX = spacePerElement;
+		button->layout.sizeRatioX = spacePerElement;
 		button->topRightCornerTextureSource = topRightCornerTextureSource;
-		button->textureSource = "";
+		button->visuals.textureSource = "";
 		if (textureSourcesOrNames.Size()) {
-			button->textureSource = textureSourcesOrNames[i];
-			button->retainAspectRatioOfTexture = true;
+			button->visuals.textureSource = textureSourcesOrNames[i];
+			button->visuals.retainAspectRatioOfTexture = true;
 		}
 		else 
-			button->textureSource = this->textureSource;
+			button->visuals.textureSource = visuals.textureSource;
 		/// Pre-select first one always.
 		if (i == toggledIndex)
 			button->SetToggled(true);
@@ -105,7 +106,7 @@ void UIRadioButtons::SetTextureSource(String source)
 	for (int i = 0; i < buttons.Size(); ++i)
 	{
 		UIToggleButton * button = buttons[i];
-		button->textureSource = source;
+		button->visuals.textureSource = source;
 	}
 }
 

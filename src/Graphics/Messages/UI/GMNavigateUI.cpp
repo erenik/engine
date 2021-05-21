@@ -68,7 +68,7 @@ void GMNavigateUI::Process(GraphicsState* graphicsState)
 		/// Grab element furtherst down
 		for (int i = 1; i < relevantElements.Size(); ++i) {
 			UIElement * e = relevantElements[i];
-			if (e->posY > element->posY)
+			if (e->layout.posY > element->layout.posY)
 				element = e;
 		}
 	}

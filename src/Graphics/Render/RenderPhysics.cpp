@@ -499,7 +499,7 @@ void RenderFadingLine(const Vector3f & origin, const Vector3f & endPoint, const 
 
 		glBegin(GL_LINES);
 
-		int timeInMS = Timer::GetCurrentTimeMs();
+		int timeInMS = int(Timer::GetCurrentTimeMs());
 
 		int state = AbsoluteValue(timeInMS % 3000);
 	//	std::cout<<"\nState: "<<state;
@@ -529,7 +529,7 @@ void RenderFadingLine(const Vector3f & origin, const Vector3f & endPoint, const 
 
 		/// And then the normal.
 		p = highlightColor;
-		start = start + fadeTime;
+		start = int(start + fadeTime);
 		fadeOutStart = start + fadeTime + lightTime;
 		if (state < start)
 			p *= 0;

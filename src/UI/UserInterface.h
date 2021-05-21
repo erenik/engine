@@ -58,11 +58,11 @@ public:
 	/** Attempts to load the UI from file. Returns false if it failed.
 		If any elements exist before loading they will be deleted first.
 	*/
-	bool Load(String fromFile);
+	bool Load(GraphicsState * graphicsState, String fromFile);
 	/** Loads target UI from file, storing it as a single UIElement so that it may be inserted into any other UI of choice. 
 		Caller is responsible for inserting it into a proper UI or deallocation if it fails.
 	*/
-	static UIElement * LoadUIAsElement(String uiSrcLocation);
+	static UIElement * LoadUIAsElement(GraphicsState * graphicsState, String uiSrcLocation);
 
 	/// Attempts to delete target element from the UI. Should only be called by the render-thread!
 	bool Delete(GraphicsState* graphicsState, UIElement * element);
@@ -97,7 +97,7 @@ public:
 		If the values of width and height are the same as they were prior to the call
 		no change will occur and a false will be returned, otherwise it will return true.
 	*/
-	bool AdjustToWindow(Vector2i size);
+	bool AdjustToWindow(GraphicsState& graphicsState, Vector2i size);
 	/// Creates the geometry needed before bufferization and rendering can be done.
 	void CreateGeometry(GraphicsState* graphicsState);
 	void ResizeGeometry(GraphicsState* graphicsState);
@@ -115,6 +115,8 @@ public:
     /// Prints the UI's tree recursively. The level parameter is in order to display the tree properly.
 	void Print(int level = -1);
 	void PrintStack();
+
+	UILayout GetLayout() const;
 
 	/// Returns flag if the UI is properly allocated or not.
 	bool IsCreated() { if (root) return true; return false; };
@@ -199,7 +201,7 @@ protected:
 	/// Deallocates UI, and reloads from base-file.
 	void Reload(GraphicsState* graphicsState);
 	/// Loads from target file, using given root as root-element in the UI-hierarchy.
-	static UIElement * LoadFromFile(String filePath, UserInterface * ui);
+	static UIElement * LoadFromFile(GraphicsState* graphicsState, String filePath, UserInterface * ui);
 
 	/// Removes references to target element
 	void OnElementDeleted(UIElement * element);
@@ -212,6 +214,9 @@ protected:
 		What this means is that it will retain previous elements as hovered even if the mouse hovers over invalid elements.
 	*/
 	bool demandHovered;
+
+	UILayout windowLayout;
+
 	///  Root UIElement
 	UIElement * root;
 	/// To avoid recursiveness that doesn't seem to work...

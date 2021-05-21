@@ -200,15 +200,15 @@ List<Quad> AABB::AsQuads()
 	points.Allocate(8, true);
 
 	/// Z+ is higher, Y+ is upper, X+ is right.
-	points[HITHER_UPPER_RIGHT] = max;
-	points[HITHER_UPPER_LEFT] = max - Vector3f(scale.x,0,0);
-	points[HITHER_LOWER_RIGHT] = max - Vector3f(0, scale.y,0);
-	points[HITHER_LOWER_LEFT] = min + Vector3f(0, 0, scale.z);
+	points[AABB::HITHER_UPPER_RIGHT] = max;
+	points[AABB::HITHER_UPPER_LEFT] = max - Vector3f(scale.x,0,0);
+	points[AABB::HITHER_LOWER_RIGHT] = max - Vector3f(0, scale.y,0);
+	points[AABB::HITHER_LOWER_LEFT] = min + Vector3f(0, 0, scale.z);
 
-	points[FARTHER_LOWER_LEFT] = min;
-	points[FARTHER_LOWER_RIGHT] = min + Vector3f(scale.x,0,0);
-	points[FARTHER_UPPER_LEFT] = min + Vector3f(0, scale.y,0);
-	points[FARTHER_UPPER_RIGHT] = max - Vector3f(0, 0, scale.z);
+	points[AABB::FARTHER_LOWER_LEFT] = min;
+	points[AABB::FARTHER_LOWER_RIGHT] = min + Vector3f(scale.x,0,0);
+	points[AABB::FARTHER_UPPER_LEFT] = min + Vector3f(0, scale.y,0);
+	points[AABB::FARTHER_UPPER_RIGHT] = max - Vector3f(0, 0, scale.z);
 
 	/// Right. Create the quads! .. was it clockwise or counter clockwise.
 	bool clockwise = false;

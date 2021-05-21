@@ -29,7 +29,7 @@ CloudSystem::CloudSystem(WeatherSystem * weatherSystem)
 	altitude = 1000.f;
 	cloudAmount = 0;
 	scale = Vector2f(1.f,1.f) * 50.f;
-	this->color = Vector4f(0.9f,0.92f,0.95f,1.f);
+	color = Vector4f(0.9f,0.92f,0.95f,1.f);
 	blendFuncDest = GL_ONE_MINUS_SRC_ALPHA;
 
 	scaleVariance = 0.2f;

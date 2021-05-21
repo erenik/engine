@@ -8,7 +8,7 @@
 
 /// Basic constructor
 PhysicsOctree::PhysicsOctree(){
-	for (int i = 0; i < MAX_CHILD_NODES; ++i){
+	for (int i = 0; i < Octree::MAX_CHILD_NODES; ++i){
 		child[i] = NULL;
 	}
 
@@ -19,7 +19,7 @@ PhysicsOctree::PhysicsOctree(){
 
 /// Internal constructor that sets the Entity's boundaries and subdivision level
 PhysicsOctree::PhysicsOctree(float i_leftBound, float i_rightBound, float i_topBound, float i_bottomBound, float i_nearBound, float i_farBound, int i_subdivision){
-	for (int i = 0; i < MAX_CHILD_NODES; ++i){
+	for (int i = 0; i < Octree::MAX_CHILD_NODES; ++i){
 		child[i] = NULL;
 	}
 	// Set boundaries, calculate radius, etc.
@@ -30,7 +30,7 @@ PhysicsOctree::PhysicsOctree(float i_leftBound, float i_rightBound, float i_topB
 /// Default destructor that deallocates all children
 PhysicsOctree::~PhysicsOctree(){
 	if (child[0]){
-		for (int i = 0; i < MAX_CHILDREN; ++i){
+		for (int i = 0; i < Octree::MAX_CHILDREN; ++i){
 			delete child[i];
 			child[i] = NULL;
 		}
@@ -73,50 +73,50 @@ void PhysicsOctree::subdivide(int levels){
 	if (!child[0]){
 #define OctreeType	PhysicsOctree
 		// Allocate if needed
-		child[HITHER_LOWER_LEFT] = new PhysicsOctree(left, center[0], center[1], bottom, nearBound, center[2], childSubdivisionLvl);
-		child[HITHER_LOWER_RIGHT] = new PhysicsOctree(center[0], right, center[1], bottom, nearBound, center[2], childSubdivisionLvl);
-		child[HITHER_UPPER_LEFT] = new PhysicsOctree(left, center[0], top, center[1], nearBound, center[2], childSubdivisionLvl);
-		child[HITHER_UPPER_RIGHT] = new PhysicsOctree(center[0], right, top, center[1], nearBound, center[2], childSubdivisionLvl);
-		child[FARTHER_LOWER_LEFT] = new PhysicsOctree(left, center[0], center[1], bottom, center[2], farBound, childSubdivisionLvl);
-		child[FARTHER_LOWER_RIGHT] = new PhysicsOctree(center[0], right, center[1], bottom, center[2], farBound, childSubdivisionLvl);
-		child[FARTHER_UPPER_LEFT] = new PhysicsOctree(left, center[0], top, center[1], center[2], farBound, childSubdivisionLvl);
-		child[FARTHER_UPPER_RIGHT] = new PhysicsOctree(center[0], right, top, center[1], center[2], farBound, childSubdivisionLvl);
+		child[Octree::HITHER_LOWER_LEFT] = new PhysicsOctree(left, center[0], center[1], bottom, nearBound, center[2], childSubdivisionLvl);
+		child[Octree::HITHER_LOWER_RIGHT] = new PhysicsOctree(center[0], right, center[1], bottom, nearBound, center[2], childSubdivisionLvl);
+		child[Octree::HITHER_UPPER_LEFT] = new PhysicsOctree(left, center[0], top, center[1], nearBound, center[2], childSubdivisionLvl);
+		child[Octree::HITHER_UPPER_RIGHT] = new PhysicsOctree(center[0], right, top, center[1], nearBound, center[2], childSubdivisionLvl);
+		child[Octree::FARTHER_LOWER_LEFT] = new PhysicsOctree(left, center[0], center[1], bottom, center[2], farBound, childSubdivisionLvl);
+		child[Octree::FARTHER_LOWER_RIGHT] = new PhysicsOctree(center[0], right, center[1], bottom, center[2], farBound, childSubdivisionLvl);
+		child[Octree::FARTHER_UPPER_LEFT] = new PhysicsOctree(left, center[0], top, center[1], center[2], farBound, childSubdivisionLvl);
+		child[Octree::FARTHER_UPPER_RIGHT] = new PhysicsOctree(center[0], right, top, center[1], center[2], farBound, childSubdivisionLvl);
 
 		// UPPER_LEFT, UPPER_RIGHT, LOWER_LEFT, LOWER_RIGHT, FARTHER_DOWN, FARTHER_UP, HITHER_DOWN, HITHER_UP,
-		child[UPPER_LEFT] = new OctreeType(left, center[0], top, center[1], (center[2] + nearBound)*0.5f, (center[2] + farBound)*0.5f, childSubdivisionLvl);
-		child[UPPER_RIGHT] = new OctreeType(center[0], right, top, center[1], (center[2] + nearBound)*0.5f, (center[2] + farBound)*0.5f, childSubdivisionLvl);
-		child[LOWER_LEFT] = new OctreeType(left, center[0], center[1], bottom, (center[2] + nearBound)*0.5f, (center[2] + farBound)*0.5f, childSubdivisionLvl);
-		child[LOWER_RIGHT] = new OctreeType(center[0], right, center[1], bottom, (center[2] + nearBound)*0.5f, (center[2] + farBound)*0.5f, childSubdivisionLvl);
-		child[FARTHER_DOWN] = new OctreeType((center[0]+left)*0.5f, (center[0]+right)*0.5f, center[1], bottom, center[2], farBound, childSubdivisionLvl);
-		child[FARTHER_UP] = new OctreeType((center[0]+left)*0.5f, (center[0]+right)*0.5f, top, center[1], center[2], farBound, childSubdivisionLvl);
-		child[HITHER_DOWN] = new OctreeType((center[0]+left)*0.5f, (center[0]+right)*0.5f, center[1], bottom, nearBound, center[2], childSubdivisionLvl);
-		child[HITHER_UP] = new OctreeType((center[0]+left)*0.5f, (center[0]+right)*0.5f, top, center[1], nearBound, center[2], childSubdivisionLvl);
+		child[Octree::UPPER_LEFT] = new OctreeType(left, center[0], top, center[1], (center[2] + nearBound)*0.5f, (center[2] + farBound)*0.5f, childSubdivisionLvl);
+		child[Octree::UPPER_RIGHT] = new OctreeType(center[0], right, top, center[1], (center[2] + nearBound)*0.5f, (center[2] + farBound)*0.5f, childSubdivisionLvl);
+		child[Octree::LOWER_LEFT] = new OctreeType(left, center[0], center[1], bottom, (center[2] + nearBound)*0.5f, (center[2] + farBound)*0.5f, childSubdivisionLvl);
+		child[Octree::LOWER_RIGHT] = new OctreeType(center[0], right, center[1], bottom, (center[2] + nearBound)*0.5f, (center[2] + farBound)*0.5f, childSubdivisionLvl);
+		child[Octree::FARTHER_DOWN] = new OctreeType((center[0]+left)*0.5f, (center[0]+right)*0.5f, center[1], bottom, center[2], farBound, childSubdivisionLvl);
+		child[Octree::FARTHER_UP] = new OctreeType((center[0]+left)*0.5f, (center[0]+right)*0.5f, top, center[1], center[2], farBound, childSubdivisionLvl);
+		child[Octree::HITHER_DOWN] = new OctreeType((center[0]+left)*0.5f, (center[0]+right)*0.5f, center[1], bottom, nearBound, center[2], childSubdivisionLvl);
+		child[Octree::HITHER_UP] = new OctreeType((center[0]+left)*0.5f, (center[0]+right)*0.5f, top, center[1], nearBound, center[2], childSubdivisionLvl);
 
 		// Center
-		child[CENTER] = new OctreeType((center[0]+left)*0.5f, (center[0]+right)*0.5f, (center[1]+top)*0.5f, (center[1]+bottom)*0.5f, (center[2]+nearBound)*0.5, (center[2]+farBound)*0.5, childSubdivisionLvl);
+		child[Octree::CENTER] = new OctreeType((center[0]+left)*0.5f, (center[0]+right)*0.5f, (center[1]+top)*0.5f, (center[1]+bottom)*0.5f, (center[2]+nearBound)*0.5, (center[2]+farBound)*0.5, childSubdivisionLvl);
 
 		// + Center-branches
 		//HITHER, FARTHER, LEFTER, RIGHTER, UPPER, LOWER,
-		child[HITHER] = new OctreeType((center[0]+left)*0.5f, (center[0]+right)*0.5, (center[1]+top)*0.5f, (center[1]+bottom)*0.5f, nearBound, center[2], childSubdivisionLvl);
-		child[FARTHER] = new OctreeType((center[0]+left)*0.5f, (center[0]+right)*0.5, (center[1]+top)*0.5f, (center[1]+bottom)*0.5f, center[2], farBound, childSubdivisionLvl);
-		child[LEFTER] = new OctreeType(left, center[0], (center[1]+top)*0.5f, (center[1]+bottom)*0.5f, (center[2]+nearBound)*0.5f, (center[2]+farBound)*0.5f, childSubdivisionLvl);
-		child[RIGHTER] = new OctreeType(center[0], right, (center[1]+top)*0.5f, (center[1]+bottom)*0.5f, (center[2]+nearBound)*0.5f, (center[2]+farBound)*0.5f, childSubdivisionLvl);
-		child[UPPER] = new OctreeType((center[0]+left)*0.5f, (center[0]+right)*0.5f, top, center[1], (center[2]+nearBound)*0.5f, (center[2]+farBound)*0.5f, childSubdivisionLvl);
-		child[LOWER] = new OctreeType((center[0]+left)*0.5f, (center[0]+right)*0.5f, center[1], bottom, (center[2]+nearBound)*0.5f, (center[2]+farBound)*0.5f, childSubdivisionLvl);
+		child[Octree::HITHER] = new OctreeType((center[0]+left)*0.5f, (center[0]+right)*0.5, (center[1]+top)*0.5f, (center[1]+bottom)*0.5f, nearBound, center[2], childSubdivisionLvl);
+		child[Octree::FARTHER] = new OctreeType((center[0]+left)*0.5f, (center[0]+right)*0.5, (center[1]+top)*0.5f, (center[1]+bottom)*0.5f, center[2], farBound, childSubdivisionLvl);
+		child[Octree::LEFTER] = new OctreeType(left, center[0], (center[1]+top)*0.5f, (center[1]+bottom)*0.5f, (center[2]+nearBound)*0.5f, (center[2]+farBound)*0.5f, childSubdivisionLvl);
+		child[Octree::RIGHTER] = new OctreeType(center[0], right, (center[1]+top)*0.5f, (center[1]+bottom)*0.5f, (center[2]+nearBound)*0.5f, (center[2]+farBound)*0.5f, childSubdivisionLvl);
+		child[Octree::UPPER] = new OctreeType((center[0]+left)*0.5f, (center[0]+right)*0.5f, top, center[1], (center[2]+nearBound)*0.5f, (center[2]+farBound)*0.5f, childSubdivisionLvl);
+		child[Octree::LOWER] = new OctreeType((center[0]+left)*0.5f, (center[0]+right)*0.5f, center[1], bottom, (center[2]+nearBound)*0.5f, (center[2]+farBound)*0.5f, childSubdivisionLvl);
 
 		// + Huggers(apartments, whatever)
 		// FATHER_LEFT, FARTHER_RIGHT, HITHER_LEFT, HITHER_RIGHT,
-		child[FATHER_LEFT] = new OctreeType(left, center[0], (center[1]+top)*0.5f, (center[1]+bottom)*0.5f, center[2], farBound, childSubdivisionLvl);
-		child[FARTHER_RIGHT] = new OctreeType(center[0], right, (center[1]+top)*0.5f, (center[1]+bottom)*0.5f, center[2], farBound, childSubdivisionLvl);
-		child[HITHER_LEFT] = new OctreeType(left, center[0], (center[1]+top)*0.5f, (center[1]+bottom)*0.5f, nearBound, center[2], childSubdivisionLvl);
-		child[HITHER_RIGHT] = new OctreeType(center[0], right, (center[1]+top)*0.5f, (center[1]+bottom)*0.5f, nearBound, center[2], childSubdivisionLvl);
+		child[Octree::FATHER_LEFT] = new OctreeType(left, center[0], (center[1]+top)*0.5f, (center[1]+bottom)*0.5f, center[2], farBound, childSubdivisionLvl);
+		child[Octree::FARTHER_RIGHT] = new OctreeType(center[0], right, (center[1]+top)*0.5f, (center[1]+bottom)*0.5f, center[2], farBound, childSubdivisionLvl);
+		child[Octree::HITHER_LEFT] = new OctreeType(left, center[0], (center[1]+top)*0.5f, (center[1]+bottom)*0.5f, nearBound, center[2], childSubdivisionLvl);
+		child[Octree::HITHER_RIGHT] = new OctreeType(center[0], right, (center[1]+top)*0.5f, (center[1]+bottom)*0.5f, nearBound, center[2], childSubdivisionLvl);
 
 	}
-	for (int i = 0; i < MAX_CHILDREN; ++i)
+	for (int i = 0; i < Octree::MAX_CHILDREN; ++i)
 		child[i]->parent = this;
 	// Subdivide all children further if levels is still positive.
 	if (levels > 0){
-		for (int i = 0; i < MAX_CHILDREN; ++i)
+		for (int i = 0; i < Octree::MAX_CHILDREN; ++i)
 			child[i]->subdivide(levels);
 	}
 }
@@ -124,7 +124,7 @@ void PhysicsOctree::subdivide(int levels){
 void PhysicsOctree::clearAll(){
 	entities.Clear();
 	if (child[0])
-		for (int i = 0; i < MAX_CHILDREN; ++i)
+		for (int i = 0; i < Octree::MAX_CHILDREN; ++i)
 			child[i]->clearAll();
 }
 
@@ -145,7 +145,7 @@ bool PhysicsOctree::AddEntity(Entity* targetEntity)
 	if (child[0])
 	{
 		int result = OUTSIDE;
-		for (int i = 0; i < MAX_CHILDREN; ++i)
+		for (int i = 0; i < Octree::MAX_CHILDREN; ++i)
 		{
 			result = child[i]->IsEntityInside(targetEntity);
 			switch(result)
@@ -192,7 +192,7 @@ bool PhysicsOctree::Exists(Entity* entity){
 	if (entities.Exists(entity))
 		return true;
 	if (child[0]){
-		for (int i = 0; i < MAX_CHILDREN; ++i)
+		for (int i = 0; i < Octree::MAX_CHILDREN; ++i)
 			if (child[i]->Exists(entity))
 				return true;
 	}
@@ -249,7 +249,7 @@ bool PhysicsOctree::RemoveEntity(Entity* targetEntity)
 	}
 	// Go through all children. If one of them finds the target Entity, return true without processing any more children.
 	if (child[0])
-		for (int i = 0; i < MAX_CHILDREN; ++i)
+		for (int i = 0; i < Octree::MAX_CHILDREN; ++i)
 			if (child[i]->RemoveEntity(targetEntity))
 				return true;
 	if (this->subdivision == 0){
@@ -266,7 +266,7 @@ int PhysicsOctree::RegisteredEntities(){
 	int total = 0;
 	total += entities.Size();
 	if (child [0]){
-		for (int i = 0; i < MAX_CHILDREN; ++i){
+		for (int i = 0; i < Octree::MAX_CHILDREN; ++i){
 			total += child[i]->RegisteredEntities();
 		}
 	}
@@ -295,7 +295,7 @@ int PhysicsOctree::FindCollisions(Entity* targetEntity, List<Collision> & collis
 	if (this->subdivision == entrySubdivisionLevel){
 		/// Then all children
 		if (child[0] && this->subdivision >= entrySubdivisionLevel)
-		for (int i = 0; i < MAX_CHILDREN; ++i){
+		for (int i = 0; i < Octree::MAX_CHILDREN; ++i){
 			/// Do the actual culling with this continue-statement, yo!
 			if (child[i]->IsEntityInside(targetEntity) == OUTSIDE)
 				continue;
@@ -310,7 +310,7 @@ int PhysicsOctree::FindCollisions(Entity* targetEntity, List<Collision> & collis
 	else if (this->subdivision > entrySubdivisionLevel){
 		/// Then all children
 		if (child[0]){
-			for (int i = 0; i < MAX_CHILDREN; ++i){
+			for (int i = 0; i < Octree::MAX_CHILDREN; ++i){
 				/// Do the actual culling with this continue-statement, yo!
 				if (child[i]->IsEntityInside(targetEntity) == OUTSIDE)
 					continue;

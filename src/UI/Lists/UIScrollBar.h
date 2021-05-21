@@ -16,7 +16,7 @@ public:
 	void CreateHandle();
 
 	/// For updating scroll-position based on Mouse coordinate
-	void OnMouseY(int y);
+	void OnMouseY(GraphicsState& graphicsState, int y);
 
 	/// Activation functions
 	virtual UIElement * Hover(GraphicsState* graphicsState, int mouseX, int mouseY) override;
@@ -30,10 +30,10 @@ public:
 	/** Move the scrollbar, capping it depending on it's size (will never exceed the 0.0 - 1.0 limits)
 		Returns the actual distance moved.
 	*/
-	float Move(float distance);
+	float Move(GraphicsState& graphicsState, float distance);
 	/// Returns current scroll position, based on the handle.
 	float GetScrollPosition();
-	void SetScrollPosition(float f);
+	void SetScrollPosition(GraphicsState& graphicsState, float f);
 
 	/// Returns the current relative start of the contents, 0.0 being top and close to (pages) at the maximum, varying with the content length.
 	float GetStart();

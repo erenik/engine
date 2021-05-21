@@ -1545,7 +1545,7 @@ List<String> String::GetLines() const
 }
 
 /// Converts all characters to uppercase if possible
-void String::ToUpperCase(){
+const String& String::ToUpperCase(){
 	switch(type){
 		case CHAR:
 			for (int i = 0; i < arraySize; ++i){
@@ -1563,7 +1563,7 @@ void String::ToUpperCase(){
 			}
 			break;
 	}
-
+	return *this;
 }
 
 /// Returns the string as a char array pointer.

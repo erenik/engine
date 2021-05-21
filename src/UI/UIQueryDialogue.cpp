@@ -22,15 +22,14 @@ UIQueryDialogue::UIQueryDialogue(String queryHeader, String actionToBeTakenIfPro
 	this->actionToBeTakenIfDeclining = actionToBeTakenIfDeclining;
 	modal = true;
 	/// Set modalitity using hoverable property, and disable the highlight so the user doesn't get confused (or the bg will flash when moving the cursor)
-	this->hoverable = true;
-	navigatable = true;
-	this->highlightOnHover = false;
+	this->interaction.hoverable = true;
+	interaction.navigatable = true;
+	visuals.highlightOnHover = false;
 	/// Disable any automatic popping, so recommend adding it as an actionToBeTakenIfProceeding?
-	this->exitable = false;
+	this->interaction.exitable = false;
 	/// If modal, set a texture for it too?
-	this->textureSource = "black50Alpha";
+	visuals.textureSource = "black50Alpha";
 	/// Set ID and name
-	this->id = dialoguesCreated++;
 	this->name = "UIQueryDialogue_"+String::ToString(this->id);
 
 
@@ -46,15 +45,18 @@ UIQueryDialogue::UIQueryDialogue(String queryHeader, String actionToBeTakenIfPro
 
 
 	/// Wether NavigateUI should be enabled when this element is pushed.
-	navigateUIOnPush = true;
+	interaction.navigateUIOnPush = true;
 	/// If force navigate UI should be applied for this element.
-	forceNavigateUI = true;
+	interaction.forceNavigateUI = true;
 }
 
 UIQueryDialogue::~UIQueryDialogue()
 {
 	std::cout<<"\nUIQueryDialogue destructor";
 }
+
+
+#include "UI/UILabel.h"
 
 /// Creates the relevant children. Separate function in order to not have everything allocated in the constructor.
 void UIQueryDialogue::CreateChildren(GraphicsState* graphicsState)
@@ -67,34 +69,34 @@ void UIQueryDialogue::CreateChildren(GraphicsState* graphicsState)
 		children.ClearAndDelete();
 	/// Create the "box"
 	UIList * box = new UIList();
-	box->sizeRatioX = box->sizeRatioY = 0.5f;
-	box->alignmentX = box->alignmentY = 0.5f;
-	box->textureSource = "80Gray50Alpha";
+	box->layout.sizeRatioX = box->layout.sizeRatioY = 0.5f;
+	box->layout.alignmentX = box->layout.alignmentY = 0.5f;
+	box->visuals.textureSource = "80Gray50Alpha";
 	AddChild(nullptr, box);
 
 	/// Title
 	UILabel * label = new UILabel();
 	label->SetText(headerText);
-	label->textureSource = "80Gray50Alpha";
-	label->sizeRatioY = 0.15f;
+	label->visuals.textureSource = "80Gray50Alpha";
+	label->layout.sizeRatioY = 0.15f;
 	box->AddChild(nullptr, label);
 
 	/// Body
 	label = new UILabel();
 	label->SetText(textToPresent);
-	label->textSizeRatio = 0.3f;
-	label->sizeRatioY = 0.4f;
+	label->layout.sizeRatioX = 0.3f;
+	label->layout.sizeRatioY = 0.4f;
 	box->AddChild(nullptr, label);
 
 	UIColumnList * cList = new UIColumnList();
-	cList->sizeRatioY = 0.2f;
+	cList->layout.sizeRatioY = 0.2f;
 	box->AddChild(nullptr, cList);
 
 	/// Cancel/Decline-button
 	UIButton * button;
 	button = new UIButton("CancelButton");
 	button->SetText("Cancel");
-	button->sizeRatioX = 0.5f;
+	button->layout.sizeRatioX = 0.5f;
 	if (popUponContinuing)
 		button->activationMessage += "&PopUI("+this->name+")&";
 	button->activationMessage += actionToBeTakenIfDeclining;
@@ -104,7 +106,7 @@ void UIQueryDialogue::CreateChildren(GraphicsState* graphicsState)
 	/// OK/Continue-button
 	button = new UIButton("OKButton");
 	button->SetText("OK");
-	button->sizeRatioX = 0.5f;
+	button->layout.sizeRatioX = 0.5f;
 	if (popUponContinuing)
 		button->activationMessage += "&PopUI("+this->name+")&";
 	button->activationMessage += actionToBeTakenIfProceeding;
@@ -129,15 +131,14 @@ UIStringDialogue::	UIStringDialogue(String queryHeader, String actionToBeTakenIf
 	this->actionToBeTakenIfDeclining = actionToBeTakenIfDeclining;
 	modal = true;
 	/// Set modalitity using hoverable property, and disable the highlight so the user doesn't get confused (or the bg will flash when moving the cursor)
-	this->hoverable = true;
-	navigatable = true;
-	this->highlightOnHover = false;
+	this->interaction.hoverable = true;
+	interaction.navigatable = true;
+	visuals.highlightOnHover = false;
 	/// Disable any automatic popping, so recommend adding it as an actionToBeTakenIfProceeding?
-	this->exitable = false;
+	this->interaction.exitable = false;
 	/// If modal, set a texture for it too?
-	this->textureSource = "black50Alpha";
+	visuals.textureSource = "black50Alpha";
 	/// Set ID and name
-	this->id = dialoguesCreated++;
 	this->name = "UIQueryDialogue_"+String::ToString(this->id);
 
 
@@ -153,10 +154,10 @@ UIStringDialogue::	UIStringDialogue(String queryHeader, String actionToBeTakenIf
 
 
 	/// Wether NavigateUI should be enabled when this element is pushed.
-	navigateUIOnPush = true;
-	disableNavigateUIOnPop = false;
+	interaction.navigateUIOnPush = true;
+	interaction.disableNavigateUIOnPop = false;
 	/// If force navigate UI should be applied for this element.
-	forceNavigateUI = true;
+	interaction.forceNavigateUI = true;
 }
 
 UIStringDialogue::~UIStringDialogue()
@@ -175,38 +176,38 @@ void UIStringDialogue::CreateChildren(GraphicsState* graphicsState)
 		children.ClearAndDelete();
 	/// Create the "box"
 	UIList * box = new UIList();
-	box->sizeRatioX = box->sizeRatioY = 0.5f;
-	box->alignmentX = box->alignmentY = 0.5f;
-	box->textureSource = "80Gray50Alpha";
-	box->padding = 0.01f;
+	box->layout.sizeRatioX = box->layout.sizeRatioY = 0.5f;
+	box->layout.alignmentX = box->layout.alignmentY = 0.5f;
+	box->visuals.textureSource = "80Gray50Alpha";
+	box->layout.padding = 0.01f;
 	AddChild(nullptr, box);
 
 	/// Title
 	UILabel * label = new UILabel();
 	label->SetText(headerText);
-	label->textureSource = "80Gray50Alpha";
-	label->sizeRatioY = 0.15f;
+	label->visuals.textureSource = "80Gray50Alpha";
+	label->layout.sizeRatioY = 0.15f;
 	box->AddChild(nullptr, label);
 
 	/// Body
 	label = new UILabel();
 	label->SetText(textToPresent);
-	label->textSizeRatio = 0.3f;
-	label->sizeRatioY = 0.4f;
+	label->layout.sizeRatioX = 0.3f;
+	label->layout.sizeRatioY = 0.4f;
 	box->AddChild(nullptr, label);
 
 	/// Add the input.
 	input = new UIInput("StringInput");
 	input->SetText(initialText);
-	input->sizeRatioY = 0.2f;
+	input->layout.sizeRatioY = 0.2f;
 	box->AddChild(nullptr, input);
 
 	/// And the ok-button.
 	UIElement * okButton = new UIButton("OK");
 	okButton->activationMessage = "UIProceed("+this->name+")";
-	okButton->sizeRatioY = 0.2f;
-	okButton->sizeRatioX = 0.4f;
-	okButton->alignmentX = 0.2f;
+	okButton->layout.sizeRatioY = 0.2f;
+	okButton->layout.sizeRatioX = 0.4f;
+	okButton->layout.alignmentX = 0.2f;
 	box->AddChild(nullptr, okButton);
 	childrenCreated = true;
 }

@@ -21,7 +21,7 @@ PrecipitationSystem::PrecipitationSystem(WeatherSystem * weatherSystem)
 	altitude = 10.f;
 	rainAmount = 0;
 	scale = Vector2f(0.8f,1.f);
-	this->color = Vector4f(0.9f,0.92f,0.95f,1.f);
+	color = Vector4f(0.9f,0.92f,0.95f,1.f);
 
 	maxParticles = 500000;
 }

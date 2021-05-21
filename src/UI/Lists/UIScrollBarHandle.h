@@ -11,9 +11,9 @@ public:
 	UIScrollBarHandle(String parentName);
 	virtual ~UIScrollBarHandle();
 	/// Returns the actual distance moved.
-	float Move(float distance);
+	float Move(GraphicsState& graphicsState, float distance);
 	float GetScrollPosition();
-	void SetScrollPosition(float f);
+	void SetScrollPosition(GraphicsState& graphicsState, float f);
 
 	/// Activation functions
 	virtual UIElement * Hover(GraphicsState* graphicsState, int mouseX, int mouseY);
@@ -23,12 +23,12 @@ public:
 	virtual UIElement * Click(GraphicsState* graphicsState, int mouseX, int mouseY);
 
 	/// Used by e.g. ScrollBarHandle's in order to slide its content according to mouse movement, even when the mouse extends beyond the scope of the element.
-	virtual void OnMouseMove(Vector2i activeWindowCoords);
+	virtual void OnMouseMove(GraphicsState& graphicsState, Vector2i activeWindowCoords);
 
-	UIElement * CreateBorderElement(String textureSource, char alignment) override;
+	UIElement * CreateBorderElement(GraphicsState* graphicsState, String textureSource, char alignment) override;
 
 	// Sets alignment, queueing rebuffering.
-	void SetAlignmentY(float y);
+	void SetAlignmentY(GraphicsState& graphicsState, float y);
 
 	static String defaultTextureSource;
 

@@ -107,7 +107,7 @@ void UIFloatInput::CreateChildren(GraphicsState* graphicsState)
 
 	/// Use a column-list to automatically get links between the elements, etc.
 	UIColumnList * box = CreateDefaultColumnList(this);
-	float spacePerElement = DefaultSpacePerElement(padding);
+	float spacePerElement = DefaultSpacePerElement(layout.padding);
 	label = CreateDefaultLabel(box, displayText, divider.x);
 	input = CreateDefaultInput(box, name, 1 - divider.x);
 
@@ -120,7 +120,7 @@ void UIFloatInput::CreateChildren(GraphicsState* graphicsState)
 	else
 		input->numbersOnly = true;
 	input->SetText("0");
-	input->textAlignment = RIGHT;
+	input->text.alignment = RIGHT;
 
 //	input->onTrigger = "UIFloatInput("+name+")";
 	childrenCreated = true;

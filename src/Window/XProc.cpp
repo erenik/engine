@@ -154,7 +154,7 @@ void * XProc()
         break;
     case Expose: {
         std::cout<<"\nXExposeEvent";
-        appWindow->visible = true;
+        appWindow->interaction.visible = true;
 
         XExposeEvent * expose = (XExposeEvent*)&event;
         /*

@@ -62,6 +62,8 @@ void UIVectorInput::OnInputUpdated(GraphicsState* graphicsState, UIInput * input
 		MesMan.QueueMessage(m);
 }
 
+#include "UI/UILabel.h"
+
 /// Creates ze children!
 void UIVectorInput::CreateChildren(GraphicsState* graphicsState)
 {
@@ -70,19 +72,17 @@ void UIVectorInput::CreateChildren(GraphicsState* graphicsState)
 
 	/// Use a column-list to automatically get links between the elements, etc.
 	UIColumnList * box = new UIColumnList();
-	box->padding = this->padding;
+	InheritDefaults(box);
 	AddChild(nullptr, box);
-
-
 
 	/// Create a label
 	label = new UILabel();
 	this->InheritDefaults(label);
 	label->SetText(labelText);
-	label->sizeRatioX = divider.x;
+	label->layout.sizeRatioX = divider.x;
 	box->AddChild(nullptr, label);
 
-	float spaceLeft = 1.0f - divider.x - padding * numInputs;
+	float spaceLeft = 1.0f - divider.x - layout.padding * numInputs;
 	float spacePerElement = spaceLeft / numInputs;
 
 	/// Create 2-3 children
@@ -95,8 +95,8 @@ void UIVectorInput::CreateChildren(GraphicsState* graphicsState)
 		input->name = name + "Input"+String::ToString(i);
 		input->numbersOnly = true;
 		input->SetText("0");
-		input->sizeRatioX = spacePerElement;
-		input->textAlignment = RIGHT;
+		input->layout.sizeRatioX = spacePerElement;
+		input->text.alignment = RIGHT;
 	//	input->onTrigger = "UIVectorInput("+name+")";
 		box->AddChild(nullptr, input);
 		inputs.Add(input);

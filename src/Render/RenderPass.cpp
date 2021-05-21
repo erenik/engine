@@ -710,7 +710,7 @@ void RenderPass::RenderEntities(GraphicsState & graphicsState)
 		glUniform4f(shader->uniformPrimaryColorVec4, entity->graphics->color[0], entity->graphics->color[1], entity->graphics->color[2], entity->graphics->color[3]);
 
 		// Set multiplicative base color (1,1,1,1) default.
-//		glUniform4fv(shader->uniformPrimaryColorVec4, 1, gp->color.v);
+//		glUniform4fv(shader->uniformPrimaryColorVec4, 1, gp->visuals.color.v);
 
 		// Load transform as model matrix straight away.
 		glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, entity->renderTransform->getPointer());

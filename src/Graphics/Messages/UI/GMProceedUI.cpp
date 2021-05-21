@@ -82,7 +82,7 @@ void GMCancelUI::Process(GraphicsState* graphicsState) {
 	else {
 		/// Fetch active ui in stack.
 		UIElement * element = ui->GetStackTop();
-		if (element->exitable == false)
+		if (element->interaction.exitable == false)
 			return;
 		/// Queue a message to remove it!
 		ui->PopFromStack(graphicsState, element);
@@ -91,7 +91,7 @@ void GMCancelUI::Process(GraphicsState* graphicsState) {
 		ui->GetStackTop()->RemoveState(UIState::ACTIVE, true);
 
 		// Post onExit only when exiting it via UICancel for example!
-		MesMan.QueueMessages(element->onExit);
+		MesMan.QueueMessages(element->interaction.onExit);
 
 		if (element->deleteOnPop) {
 			element->FreeBuffers(*graphicsState);

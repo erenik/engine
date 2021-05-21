@@ -25,14 +25,14 @@ UIInput::UIInput(String name /*= ""*/)
 	rememberPreviousInputs = false;
 	this->name = name;
 	type = UIType::INPUT_FIELD;
-	selectable = hoverable = activateable = true;
-	navigatable = true;
+	interaction.selectable = interaction.hoverable = interaction.activateable = true;
+	interaction.navigatable = true;
 	activationMessage = "BEGIN_INPUT(this)";
 	
-	inputTextureSource = UIElement::defaultTextureSource;
+	inputTextureSource = UIVisuals::defaultTextureSource;
 
 	/// When true, re-directs all (or most) keyboard input to the target element for internal processing. Must be subclass of UIInput as extra functions there are used for this.
-	demandInputFocus = true;
+	interaction.demandInputFocus = true;
 	caretPosition = 0;
 	inputActive = false;
 	numbersOnly = false;
@@ -186,7 +186,7 @@ void UIInput::SetText(CTextr newText, bool force /*= false*/)
 void UIInput::SetEditText(CTextr newText)
 {
 	editText = newText;
-	textSize = -1;
+	text.textSize = -1;
 }
 
 /// Called once this element is no longer visible for any reason. E.g. switching game states to display another UI, or when this or a parent has been popped from the ui.
@@ -349,9 +349,9 @@ UIInputResult UIInput::OnKeyDown(GraphicsState* graphicsState, int keyCode, bool
 /// Used for getting text. This will be local translated language key codes?
 UIInputResult UIInput::OnChar(int asciiCode)
 {
-	LogGraphics("OnChar for element " + name + " activatable: " + activateable + " inputActive: " + HasState(UIState::ACTIVE) + " asciiCode: "+ asciiCode + " as Char: "+ (char) asciiCode + " CtrlPressed: "+ InputMan.KeyPressed(KEY::CTRL), INFO);
-	assert(activateable);
-	if (!activateable) {
+	LogGraphics("OnChar for element " + name + " activatable: " + interaction.activateable + " inputActive: " + HasState(UIState::ACTIVE) + " asciiCode: "+ asciiCode + " as Char: "+ (char) asciiCode + " CtrlPressed: "+ InputMan.KeyPressed(KEY::CTRL), INFO);
+	assert(interaction.activateable);
+	if (!interaction.activateable) {
 		return UIInputResult::NoUpdate;
 	}
 
@@ -513,7 +513,7 @@ void UIInput::OnBackspace()
 /// Begins input! >)
 bool UIInput::BeginInput(GraphicsState* graphicsState)
 {
-	if (!activateable) {
+	if (!interaction.activateable) {
 		LogMain("Attempting to input on non-activatable input", ERROR);
 		return false;
 	}
@@ -526,7 +526,7 @@ bool UIInput::BeginInput(GraphicsState* graphicsState)
 	if (!HasState(UIState::ACTIVE)) {
 		AddState(graphicsState, UIState::ACTIVE);
 	}
-	editText = text; // GetText();
+	editText = text.GetText(); // GetText();
 	caretPosition = editText.Length();
 	editText.caretPosition = caretPosition;
 	// sends message to update the ui with new caret and stuff.
@@ -540,30 +540,32 @@ bool UIInput::BeginInput(GraphicsState* graphicsState)
 UIColumnList * UIInput::CreateDefaultColumnList(UIElement * parent) {
 	/// Use a column-list to automatically get links between the elements, etc.
 	UIColumnList * box = new UIColumnList();
-	box->textureSource = "0x00000000";
-	box->padding = parent->padding;
+	box->visuals.textureSource = "0x00000000";
+	box->layout.padding = parent->layout.padding;
 	parent->InheritDefaults(box);
 	parent->AddChild(nullptr, box);
 	return box;
 }
+
+#include "UI/UILabel.h"
+
 UILabel * UIInput::CreateDefaultLabel(UIElement * box, String text, float sizeX) {
 	UILabel * label = new UILabel();
 	box->InheritDefaults(label);
-	label->textureSource = "0x00000000";
-	//label->hoverable = true;
+	label->visuals.textureSource = "0x00000000";
+	//label->interaction.hoverable = true;
 	label->SetText(text);
-	label->sizeRatioX = sizeX;
+	label->layout.sizeRatioX = sizeX;
 	label->rightBorderTextureSource = box->rightBorderTextureSource;
-	label->activateable = false;
+	label->interaction.activateable = false;
 	box->AddChild(nullptr, label);
 	return label;
 }
 UIInput * UIInput::CreateDefaultInput(UIElement * box, String inputName, float sizeX) {
 	/// Create 3 children
 	UIInput * input = new UIInput();
-	input->textureSource = UIElement::defaultTextureSource;
 	input->name = inputName + "Input";
-	input->sizeRatioX = sizeX;
+	input->layout.sizeRatioX = sizeX;
 	box->InheritDefaults(input);
 	box->AddChild(nullptr, input);
 
@@ -577,7 +579,7 @@ void UIInput::SetInputTexture(String source) {
 	if (source == "null")
 		source = "";
 	if (input)
-		input->textureSource = source;
+		input->visuals.textureSource = source;
 	inputTextureSource = source;
 }
 
@@ -606,12 +608,12 @@ void UIInput::DecrementValue() {
 
 // Parses int value from this element's text.
 const int UIInput::ParseInt() {
-	return text.ParseInt();
+	return text.GetText().ParseInt();
 }
 
 // Parses float value from this element's text.
 const float UIInput::ParseFloat() {
-	return text.ParseFloat();
+	return text.GetText().ParseFloat();
 }
 
 // For setting static colors.

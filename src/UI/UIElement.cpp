@@ -33,24 +33,11 @@ extern InputManager input;
 extern UserInterface ui[GameStateID::MAX_GAME_STATES];
 
 int UIElement::idEnumerator = 0;
-String UIElement::defaultTextureSource; //  = "80Gray50Alpha.png";
-TextColors * UIElement::defaultTextColors = nullptr; // Color(Vector4f(1, 1, 1, 1));
-bool UIElement::defaultForceUpperCase = false;
-
-// When clicking on it.
-float UIElement::onActiveHightlightFactor = 0.3f;
-// When hovering on it.
-float UIElement::onHoverHighlightFactor = 0.0f;
-// When not hovering, not clicking it.
-float UIElement::onIdleHighlightFactor = -0.3f;
-// When toggled, additional factor
-float UIElement::onToggledHighlightFactor = 0.3f;
-
 
 /// Called when this UI is made active (again).
 void UIElement::OnEnterScope(){
 	// Do nothing in general.
-	visible = true;
+	interaction.visible = true;
 	for (int i = 0; i < children.Size(); ++i)
 		children[i]->OnEnterScope();
 	if (onEnterScope.Length())
@@ -60,13 +47,13 @@ void UIElement::OnEnterScope(){
 void UIElement::OnExitScope(bool forced)
 {
 	/// Skip those which have already exited scope.
-	if (!this->visible)
+	if (!interaction.visible)
 		return;
 	// Do nothing in general.
 	for (int i = 0; i < children.Size(); ++i)
 		children[i]->OnExitScope(forced);
-	if (onExit.Length())
-		MesMan.QueueMessages(onExit);
+	if (interaction.onExit.Length())
+		MesMan.QueueMessages(interaction.onExit);
 
 	/// Check if the element has any onPop messages.
 	if (onPop.Length())
@@ -74,7 +61,7 @@ void UIElement::OnExitScope(bool forced)
 	if (forced && onForcePop.Length())
 		MesMan.QueueMessages(onForcePop);
 
-	inStack = false;
+	interaction.inStack = false;
 }
 
 /** Called by OS-functions to query if the UI wants to process drag-and-drop files. If so the active element where the mouse is hovering may opt to do magic with it.
@@ -94,118 +81,49 @@ void UIElement::Nullify()
 	bottomBorder = nullptr;
 	rightBorder = nullptr;
 	topRightCorner = nullptr;
-	lockSizeY = false;
-	lockSizeX = false;
 
-	if (defaultTextColors) {
-		text.SetColors(*defaultTextColors);
-	}
-		;
+//	if (text.defaultTextColors != nullptr)
+//		text.colors = new TextColors(*defaultTextColors);
 
-	onHoverTextColor = nullptr;
 
-	lineSizeRatio = -1.f;
+	layout.Nullify();
+	text.Nullify();
+
+
 	childrenCreated = false;
 	/// ID
-	id = idEnumerator++;
 	/// Hierarchy
 	parent = NULL;
 	ui = NULL;
 	divider = Vector2f(0.5f, 0.5f);
-	// Graphical properties
-	mesh = NULL;
-	texture = NULL;
-	vboBuffer = -1;
-	vboVertexCount = 0;
-	zDepth = 0;
 	noLabel = false;
 
-	previousTextSizeRatio = 1.f;
-	alignment = NULL_ALIGNMENT;	// Alignment relative to parent
 	scalable = DEFAULT_SCALABILITY;		// Allow scaling depending on AppWindow size?
 	ratio = 1.0;
 	keepRatio = true;
 
-	alignmentX = 0.5;
-	alignmentY = 0.5;
-
-	sizeRatioX = 1.0f;		// Size ratio compared to parent(!)
-	sizeRatioY = 1.0f;		// Size ratio compared to parent(!)
-
-	posX = posY = 0;
-	sizeX = sizeY = 0;
 	type = UIType::BASIC;
 
-	padding = 0;
-
 	state = UIState::IDLE;
-	selected = false;
-	visible = true;
-
-	inStack = false;
 
 	removeOnPop = false;
 
     isSysElement = false;
 
-	hoverable = false;
-	navigatable = false;
-	highlightOnHover = true;
-	highlightOnActive = true;
-	axiomatic = false;
-	selectable = false;
-	activateable = false;
-	moveable = false;
+	interaction.Nullify();
 
 
-	/// Wether NavigateUI should be enabled when this element is pushed.
-	navigateUIOnPush = false;
-	disableNavigateUIOnPop = false;
-	/// If force navigate UI should be applied for this element.
-	forceNavigateUI = false;
-	/// Previous state before pushing this UI. 0 for none. 1 for regular, 2 for force.
-	previousNavigateUIState = 0;
 
-	/// Exit-properties.
-	exitable = true;
 
 	// Text.
 	label = NULL;
-	textSizeRatio = 1.0f;
-	currentTextSizeRatio = -1.0f;
-
-	this->textureSource = defaultTextureSource;
-	fontDetails.source = "";
-	fontDetails.font = nullptr;
-
-	if (defaultTextColors != nullptr)
-		text.colors = new TextColors(*defaultTextColors);
-
-	/** Will enable/disable cyclicity of input navigation when this element is pushed. When popped, the next element in the stack will determine cyclicity. */
-	cyclicY = true;
-
-	/// When true, re-directs all (or most) keyboard input to the target element for internal processing when active. Must be subclass of UIInput as extra functions there are used for this.
-	demandInputFocus = false;
-
-	forceUpperCase = false;
-
-	/// Neighbour pointers
-	upNeighbour = rightNeighbour = leftNeighbour = downNeighbour = NULL;
-
-	/// GL related.
-	vertexArray = -1;
-
-	isBuffered = isGeometryCreated = false;
-	color = Vector4f(1,1,1,1);
-
-	textPaddingPixels = 4;
 }
 
-UIElement::UIElement(){
+UIElement::UIElement() : id (idEnumerator++) {
 	Nullify();
 }
 
-UIElement::UIElement(String name) {
+UIElement::UIElement(String name) : id(idEnumerator++) {
 	Nullify();
 	this->name = name;
 }
@@ -213,26 +131,10 @@ UIElement::UIElement(String name) {
 void UIElement::CreateChildren(GraphicsState* graphicsState){}
 
 /// Copy-cosntructor.
-UIElement::UIElement(const UIElement & ref){
+UIElement::UIElement(const UIElement & ref) : id(idEnumerator++) {
 	Nullify();
-	zDepth = ref.zDepth;
-	alignment = ref.alignment;	// Alignment relative to parent
-	scalable = ref.scalable;		// Allow scaling depending on AppWindow size?
-	ratio = ref.ratio;
-	keepRatio = ref.keepRatio;
-	alignmentX = ref.alignmentX;
-	alignmentY = ref.alignmentY;
-	sizeRatioX = ref.sizeRatioX;
-	sizeRatioY = ref.sizeRatioY;
-	type = ref.type;
-	hoverable = ref.hoverable;
-	navigatable = ref.navigatable;
-	axiomatic = ref.axiomatic;
-	selectable = ref.selectable;
-	activateable = ref.activateable;
-	visible = ref.visible;
-	moveable = ref.moveable;
-	textSizeRatio = ref.textSizeRatio;
+	ref.CopyGeneralVariables(this);
+	ref.CopySpecialVariables(this);
 }
 
 // Works recursively down to all children 
@@ -253,58 +155,49 @@ UIElement::~UIElement()
 
 	DeleteBorders(nullptr);
 
-	onHoverTextColor = nullptr;
+	SAFE_DELETE(text.onHoverTextColor);
 
-	SAFE_DELETE(onHoverTextColor);
-
-	/// Deallocate texture and mesh if needed, as well as vbo, we should never do that here though!
-	assert(vboBuffer == -1 && "vboBuffer not released in UIElement::~UIElement()!");
-	/// Textures will be deallocated by the texture manager...
-	/// But take care of the mesh!
-	SAFE_DELETE(mesh);
 	/// Inform the input manager that we delete the element.
 	// InputMan.OnElementDeleted(this);
 }
 
 
 int UIElement::CenteredContentParentPosX() const {
-	return posX;
+	return layout.posX;
 }
 
 // If parent is e.g. List, available size will vary depending on if scrollbar is present or not.
 int UIElement::AvailableParentSizeX() const {
-	return sizeX;
+	return layout.sizeX;
 }
-
-
-/// Sets the bufferized flag. Should only be called before program shutdown. Ensures less assertions will fail.
-void UIElement::SetBufferized(bool bufferizedFlag)
-{
-	if (bufferizedFlag == false)
-		vboBuffer = -1;
-	for (int i = 0; i < children.Size(); ++i)
-	{
-		children[i]->SetBufferized(bufferizedFlag);
-	}
-}	
 
 // Creates a deep copy of all child elements (where possible).
 UIElement * UIElement::Copy() {
 	UIElement * copy = new UIElement();
-	assert(false);
-	//*copy = *this; // Copy all variables?
+	CopyGeneralVariables(copy);
+	CopySpecialVariables(copy);
 	CopyChildrenInto(copy);
 	return copy;	
 }
 
-//void UIElement::CopyUIElementVariables(UIElement * intoElement) {
+void UIElement::CopyGeneralVariables(UIElement * intoElement) const {
+	intoElement->layout = layout;
+	intoElement->interaction = interaction;
+	intoElement->text = text;
 
-//}
+	intoElement->text.onHoverTextColor = nullptr; // Special case.
 
-void UIElement::CopySpecialVariables(UIElement * intoElement) {
-	if (text.colors)
-		intoElement->text.SetColors(*text.colors);
-	intoElement->onHoverTextColor = onHoverTextColor;
+	intoElement->scalable = scalable;
+	intoElement->ratio = ratio;
+	intoElement->keepRatio = keepRatio;
+	intoElement->type = type;
+}
+
+void UIElement::CopySpecialVariables(UIElement * intoElement) const {
+	if (text.GetColors())
+		intoElement->text.SetColors(*text.GetColors());
+	if (text.onHoverTextColor)
+		intoElement->text.onHoverTextColor = new Color(*text.onHoverTextColor);
 }
 
 void UIElement::CopyChildrenInto(UIElement * copyOfSelf) const {
@@ -335,73 +228,27 @@ void UIElement::ProcessMessage(Message * message)
 void UIElement::SetText(CTextr newText, bool force)
 {
 	/// Check that it's not currently being edited. If so cancel this setting.
-	if (this->demandInputFocus && HasState(UIState::ACTIVE) && !force){
+	if (this->interaction.demandInputFocus && HasState(UIState::ACTIVE) && !force){
 		return;
 	}
-	TextColors * oldColors = text.colors;
-	this->text = newText;
-	text.colors = oldColors;
-	this->textToRender = "";
-	if (forceUpperCase) {
-		this->text.ToUpperCase();
-	}
-
-	/// Reset text-variables so that they are re-calculated before rendering again.
-	currentTextSizeRatio = -1.0f;
+	text.SetText(newText, force);
 }
 
 // If true, capitalizes that moment.
 void UIElement::SetForceUpperCase(bool newValue) {
-	forceUpperCase = newValue;
-	if (newValue && text)
-		text.ToUpperCase();
+	text.forceUpperCase = newValue;
+	if (newValue)
+		text.SetText(text.GetText().ToUpperCase(), false);
 }
 
 /** Fetches texture, assuming the textureSource has been set already. Binds and bufferizes, so call only from graphics thread. 
 	Returns false if no texture could be find, bind or bufferized. */
 bool UIElement::FetchBindAndBufferizeTexture()
 {
-	// When rendering an objectwith this program.
-	glActiveTexture(GL_TEXTURE0 + 0);	
-	/// Grab texture?
-	bool validTexture = false;
-	// Set texture
-	if (texture && texture->glid){
-		glBindTexture(GL_TEXTURE_2D, texture->glid);
-	}
-	else if (texture) {
-		TexMan.BufferizeTexture(texture);
-	}
-	else if (textureSource.Length() > 0){
-		texture = TexMan.GetTexture(textureSource);
-		if (!texture)
-            texture = TexMan.GetTextureByName(textureSource);
-		/// Unable to fetch target-texture, so skip it.
-		if (!texture){
-            glBindTexture(GL_TEXTURE_2D, 0);
-            validTexture = false;
-		}
-		else {
-            if (texture->glid == -1)
-                TexMan.BufferizeTexture(texture);
-            glBindTexture(GL_TEXTURE_2D, texture->glid);
-		}
-	}
-	// No texture at all? Flag it and avoid rendering this element.
-	else  {
-		// Use standard black texture if so, won't matter much anyway.
-		texture = TexMan.GetTexture("NULL");
-		glBindTexture(GL_TEXTURE_2D, texture->glid);
-		validTexture = false;
-		return false;
-	}
-	if (texture != NULL && texture->glid == -1){
-		TexMan.BufferizeTexture(texture);
-	}
-	if (!texture)
-		return false;
-	OnTextureUpdated();
-	return true;
+	bool result = visuals.FetchBindAndBufferizeTexture();
+	if (result == true)
+		OnTextureUpdated();
+	return result;
 }
 
 /// Called after FetchBindAndBufferizeTexture is called successfully. (may also be called other times).
@@ -412,44 +259,7 @@ void UIElement::OnTextureUpdated()
 /// Recalculates and sets highlighting factors used when rendering the UI (dedicated shader settings)
 void UIElement::UpdateHighlightColor()
 {
-	Vector3f baseColor = color;
-	// If greyed out: activatable but not currently selectable/toggleable, grey it out.
-	if (this->IsDisabled()){
-		baseColor *= 0.5f;
-	}
-	/// Set color if highlighted!
-	Vector3f highlightColor(1,1,1);
-	if (this->state & UIState::ACTIVE && highlightOnActive)
-		highlightColor *= onActiveHightlightFactor;
-	else if (this->state & UIState::HOVER && highlightOnHover){
-		highlightColor *= onHoverHighlightFactor;
-	}
-	else if (highlightOnHover || highlightOnActive) {
-		highlightColor *= onIdleHighlightFactor;
-	}
-	// Duller colors for temporarily disabled buttons.
-	if (this->IsDisabled())
-	{
-		highlightColor *= 0.75f;
-	}
-	Shader * shader = ActiveShader();
-	if (!shader)
-		return;
-
-//	assert(activeShader->uniformPrimaryColorVec4 != -1);
-	if (shader->uniformPrimaryColorVec4 == -1)
-	{
-		std::cout<<"\nUI shader lacking primary color?";
-	}
-	glUniform4f(shader->uniformPrimaryColorVec4,
-		baseColor[0], baseColor[1], baseColor[2], color[3]);
-	if (shader->uniformHighlightColorVec4 == -1)
-	{
-		std::cout<<"\nUI shader lacking highlight color?";
-	}
-	//assert(activeShader->uniformHighlightColorVec4 != -1);
-	glUniform4f(shader->uniformHighlightColorVec4,
-		highlightColor[0], highlightColor[1], highlightColor[2], 1.0f);
+	visuals.UpdateHighlightColor(IsDisabled(), state & UIState::ACTIVE, state & UIState::HOVER);
 }
 
 
@@ -487,7 +297,7 @@ bool UIElement::Delete(GraphicsState& graphicsState, UIElement * element){
 void UIElement::Clear(GraphicsState& graphicsState)
 {
 	// Unbufferize first?
-	if (isBuffered)
+	if (visuals.IsBuffered())
 		for (int i = 0; i < children.Size(); ++i)
 		{
 			UIElement * child = children[i];
@@ -520,12 +330,11 @@ UIElement* UIElement::Hover(GraphicsState* graphicsState, int mouseX, int mouseY
 	UIElement* result = NULL;
 
 	// Don't process invisible UIElements, please.
-	if (visible == false)
+	if (interaction.visible == false)
 		return false;
 
 	// Check if the mouse is outside the element's boundaries.
-	if (mouseX > right || mouseX < left ||
-		mouseY > top || mouseY < bottom){
+	if (layout.IsOutside(mouseX, mouseY)) {
 		// Return false if we are outside of the boundaries,
 		// since we haven't found the selected element.
 		RemoveState(UIState::HOVER);
@@ -536,8 +345,8 @@ UIElement* UIElement::Hover(GraphicsState* graphicsState, int mouseX, int mouseY
 	OnHover();
 
 	// Check axiomaticness
-	if (axiomatic){
-		if (hoverable){
+	if (interaction.axiomatic){
+		if (interaction.hoverable){
 			state |= UIState::HOVER;
 			std::cout<<"\nAXIOMATICNESS?! "<<name<<" is hover.";
 			return this;
@@ -552,7 +361,7 @@ UIElement* UIElement::Hover(GraphicsState* graphicsState, int mouseX, int mouseY
 	    UIElement * child = children[i];
 		// so we can return true.
 		child->RemoveState(UIState::HOVER);
-		if (!child->visible)
+		if (!child->interaction.visible)
             continue;
 		if (result != nullptr)
 			break;
@@ -566,17 +375,13 @@ UIElement* UIElement::Hover(GraphicsState* graphicsState, int mouseX, int mouseY
 	}
 
 // If the Element is not hoverable, return now.
-	if (!hoverable)
+	if (!interaction.hoverable)
 		return NULL;
 
 	// If the UIElement is being clicked (left mouse button)
 	// Return and don't change the StateMan.
 	if (state == UIState::ACTIVE)
 		return this;
-
-	// If the UIElement is already depressed, don't highlight it.
-//	if (selected)
-//		return false;
 
 	// If we weren't hovering over it before.
 	if (! (HasState(UIState::HOVER)))
@@ -589,11 +394,6 @@ UIElement* UIElement::Hover(GraphicsState* graphicsState, int mouseX, int mouseY
 	if (!AddState(graphicsState, UIState::HOVER))
 		return NULL;
 	
-//	std::cout<<"\nElelelelement "<<name<<" is hover.";
-	/*if(parent){
-		if(type== UI_TYPE_BASIC || type== UI_TYPE_LABEL)
-			parent->state = UIState::HOVER;
-	}*/
 	return this;
 }
 
@@ -610,12 +410,11 @@ UIElement* UIElement::Click(GraphicsState* graphicsState, int mouseX, int mouseY
 	}
 
 	// Don't process invisible UIElements, please.
-	if (visible == false)
+	if (interaction.visible == false)
 		return false;
 
 	// Check if the mouse is outside the element's boundaries.
-	if (mouseX > right || mouseX < left ||
-		mouseY > top || mouseY < bottom){
+	if (layout.IsOutside(mouseX, mouseY)) {
 			// Return false if we are outside of the boundaries,
 			// since we haven't found the selected element.
 			state |= UIState::IDLE;
@@ -624,8 +423,8 @@ UIElement* UIElement::Click(GraphicsState* graphicsState, int mouseX, int mouseY
 	}
 
 	// Check axiomaticness (direct-activation without further processing)
-	if (axiomatic){
-		if (activateable){
+	if (interaction.axiomatic){
+		if (interaction.activateable){
 			state |= UIState::ACTIVE;
 			return this;
 		}
@@ -636,7 +435,7 @@ UIElement* UIElement::Click(GraphicsState* graphicsState, int mouseX, int mouseY
 	// Do we have children?
 	for (int i = children.Size()-1; i >= 0; --i){
 		UIElement * child = children[i];
-	    if (!child->visible)
+	    if (!child->interaction.visible)
             continue;
 		result = child->Click(graphicsState, mouseX, mouseY);
 		if (result != NULL){
@@ -647,7 +446,7 @@ UIElement* UIElement::Click(GraphicsState* graphicsState, int mouseX, int mouseY
 		}
 	}
 	// Check the element's StateMan. If it is hovered over, we've found it.
-	if (this->activateable){
+	if (this->interaction.activateable){
 		state |= UIState::ACTIVE;
 		return this;
 	}
@@ -662,7 +461,7 @@ UIElement* UIElement::Activate(GraphicsState * graphicsState)
 {
 	UIElement* result = 0;
 	// Don't process invisible UIElements, please.
-	if (visible == false)
+	if (interaction.visible == false)
 		return 0;
 	// And ignore disabled elements and their children.
 	if (HasState(UIState::DISABLED)) {
@@ -673,7 +472,7 @@ UIElement* UIElement::Activate(GraphicsState * graphicsState)
 	// Do we have children?
 	for (int i = children.Size()-1; i >= 0; --i){
 		UIElement * child = children[i];
-	    if (!child->visible)
+	    if (!child->interaction.visible)
             continue;
 		result = child->Activate(graphicsState);
 		if (result != 0){
@@ -691,13 +490,13 @@ UIElement* UIElement::Activate(GraphicsState * graphicsState)
 		else
 			state &= ~UIState::ACTIVE;
 		// Now return our message!
-		if (selectable == true){
+		if (interaction.selectable == true){
 			if (type== UIType::CHECKBOX){
-				selected = !selected;
+				interaction.selected = !interaction.selected;
 			}
 			else if (type== UIType::RADIOBUTTON){
 				parent->DeselectAll();
-				selected = true;
+				interaction.selected = true;
 			}
 			else {
 			//	selected = true;
@@ -738,19 +537,18 @@ UIElement* UIElement::Activate(GraphicsState * graphicsState)
 UIElement * UIElement::GetElement(float & mouseX, float & mouseY){
     UIElement* result = 0;
 	// Don't process invisible UIElements, please.
-	if (visible == false)
+	if (interaction.visible == false)
 		return 0;
 
 	// Check if the mouse is outside the element's boundaries.
-	if (mouseX > right || mouseX < left ||
-		mouseY > top || mouseY < bottom)
+	if (layout.IsOutside(mouseX, mouseY))
     {
         return NULL;
 	}
     // Do we have children?
 	for (int i = 0; i < children.Size(); ++i){
 		UIElement * child = children[i];
-	    if (!child->visible)
+	    if (!child->interaction.visible)
             continue;
 		result = child->GetElement(mouseX, mouseY);
 		if (result != NULL){
@@ -778,7 +576,7 @@ bool UIElement::HasActivatables()
 	for (int i = 0; i < children.Size(); ++i)
 	{
 		UIElement * child = children[i];
-		if (child->activateable)
+		if (child->interaction.activateable)
 			return true;
 		if (child->HasActivatables())
 			return true;
@@ -839,7 +637,7 @@ void UIElement::OnInputUpdated(GraphicsState* graphicsState, UIInput * inputElem
 }
 
 const Text& UIElement::GetText() const {
-	return text;
+	return text.GetText();
 }
 
 /// Callback sent to parents once an element is toggled, in order to act upon it. Used by UIMatrix, can be ToggleButton, Checkbox et al
@@ -851,14 +649,7 @@ void UIElement::OnToggled(UIElement * box)
 
 void UIElement::InheritNeighbours(UIElement * fromElement)
 {
-	if (!leftNeighbourName.Length())
-		leftNeighbourName = fromElement->leftNeighbourName;
-    if (!rightNeighbourName.Length())
-		rightNeighbourName = fromElement->rightNeighbourName;
-	if (!downNeighbourName.Length())
-		downNeighbourName = fromElement->downNeighbourName;
-	if (!upNeighbourName.Length())
-		upNeighbourName = fromElement->upNeighbourName;
+	interaction.InheritNeighbours(fromElement->interaction);
 }
 
 
@@ -871,16 +662,16 @@ UIElement * UIElement::GetUpNeighbour(GraphicsState* graphicsState, UIElement * 
 		referenceElement = this;
 	}
 	/// If we have a pointer, just use it!
-	if (upNeighbour){
-		element = upNeighbour;
+	if (interaction.upNeighbour){
+		element = interaction.upNeighbour;
 	}
 	/// If not, fetch it if possible.
 	else {
 		/// Check if we got a preferred neighbour.
-		if (upNeighbourName.Length())
-			element = this->GetRoot()->GetElementByName(upNeighbourName);
+		if (interaction.upNeighbourName.Length())
+			element = this->GetRoot()->GetElementByName(interaction.upNeighbourName);
 		/// If still haven't found a decent one, consult our parent. Unless we're in the stack of course, upon which it means we have found no decent new neighbour.
-		if (!element && !searchChildrenOnly && !inStack)
+		if (!element && !searchChildrenOnly && !interaction.inStack)
 		{
 			if (parent)
 				element = parent->GetUpNeighbour(graphicsState, referenceElement, searchChildrenOnly);
@@ -890,7 +681,7 @@ UIElement * UIElement::GetUpNeighbour(GraphicsState* graphicsState, UIElement * 
 		}
 	}
 	/// All-right, so we found a suitable neighbour hopefully. Make sure that it is hoverable?
-	if (element && !element->navigatable)
+	if (element && !element->interaction.navigatable)
 	{
 		/// First query if the element has any valid hoverable children, if so select them.
 		UIElement * childElement = element->GetElementByFlag(UIFlag::ACTIVATABLE);
@@ -902,18 +693,13 @@ UIElement * UIElement::GetUpNeighbour(GraphicsState* graphicsState, UIElement * 
 			// Except if we have started recursing, then just return NULL or ourself..
 			if (element == this)
 				return NULL;
-//			element = element->GetUpNeighbour(NULL, searchChildrenOnly);
 		}
 	}
 	// Nothing found? Then set ourselves to be this sought after element!
 	if (!element)
 	{
-		element = GetElementClosestTo(referenceElement->position, true);
+		element = GetElementClosestToSelf(true);
 	}
-	// Query parent for help
-	//if (!element) {
-	//	element = parent->GetUpNeighbour(graphicsState, referenceElement, searchChildrenOnly);
-	//}
 	
 	// For some UI elements, such as lists, the list itself is not navigatable, so query it to get the first element in its list if so here.
 	if (element)
@@ -931,21 +717,21 @@ UIElement * UIElement::GetRightNeighbour(UIElement * referenceElement, bool & se
 		referenceElement = this;
 	}
 	/// If we have a pointer, just use it!
-	if (rightNeighbour && rightNeighbour->activateable)
+	if (interaction.rightNeighbour && interaction.rightNeighbour->interaction.activateable)
 	{
-		element = rightNeighbour;
+		element = interaction.rightNeighbour;
 	}
 	/// If not, fetch it if possible.
 	else {
 		/// Check if we got a preferred neighbour.
-		if (rightNeighbourName.Length())
+		if (interaction.rightNeighbourName.Length())
 		{
-			element = this->GetRoot()->GetElementByName(rightNeighbourName);
-			if (element && !element->activateable)
+			element = this->GetRoot()->GetElementByName(interaction.rightNeighbourName);
+			if (element && !element->interaction.activateable)
 				element = NULL;
 		}
 		/// If still haven't found a decent one, consult our parent. Unless we're in the stack of course, upon which it means we have found no decent new neighbour.
-		if (!element && !searchChildrenOnly && !inStack)
+		if (!element && !searchChildrenOnly && !interaction.inStack)
 		{
 			if (parent)
 				element = parent->GetRightNeighbour(referenceElement, searchChildrenOnly);
@@ -955,7 +741,7 @@ UIElement * UIElement::GetRightNeighbour(UIElement * referenceElement, bool & se
 		}
 	}
 	/// All-right, so we found a suitable neighbour hopefully. Make sure that it is hoverable?
-	if (element && !element->activateable){
+	if (element && !element->interaction.activateable){
 		/// First query if the element has any valid hoverable children, if so select them.
 		UIElement * childElement = element->GetElementByFlag(UIFlag::ACTIVATABLE);
 		if (childElement)
@@ -971,7 +757,7 @@ UIElement * UIElement::GetRightNeighbour(UIElement * referenceElement, bool & se
 	// Nothing found? Then set ourselves to be this sought after element!
 	if (!element)
 	{
-		element = GetElementClosestTo(referenceElement->position, true);
+		element = GetElementClosestToSelf(true);
 	}
 	// For some UI elements, such as lists, the list itself is not navigatable, so query it to get the first element in its list if so here.
 	if (element)
@@ -988,16 +774,16 @@ UIElement * UIElement::GetDownNeighbour(GraphicsState* graphicsState, UIElement 
 		referenceElement = this;
 	}
 	/// If we have a pointer, just use it!
-	if (downNeighbour){
-		element = downNeighbour;
+	if (interaction.downNeighbour){
+		element = interaction.downNeighbour;
 	}
 	/// If not, fetch it if possible.
 	else {
 		/// Check if we got a preferred neighbour.
-		if (downNeighbourName.Length())
-			element = this->GetRoot()->GetElementByName(downNeighbourName);
+		if (interaction.downNeighbourName.Length())
+			element = this->GetRoot()->GetElementByName(interaction.downNeighbourName);
 		/// If still haven't found a decent one, consult our parent. Unless we're in the stack of course, upon which it means we have found no decent new neighbour.
-		if (!element && !searchChildrenOnly && !inStack)
+		if (!element && !searchChildrenOnly && !interaction.inStack)
 		{
 			if (parent)
 				element = parent->GetDownNeighbour(graphicsState, referenceElement, searchChildrenOnly);
@@ -1007,7 +793,7 @@ UIElement * UIElement::GetDownNeighbour(GraphicsState* graphicsState, UIElement 
 		}
 	}
 	/// All-right, so we found a suitable neighbour hopefully. Make sure that it is hoverable?
-	if (element && !element->hoverable){
+	if (element && !element->interaction.hoverable){
 		/// First query if the element has any valid hoverable children, if so select them.
 		UIElement * childElement = element->GetElementByFlag(UIFlag::ACTIVATABLE);
 		if (childElement)
@@ -1024,7 +810,7 @@ UIElement * UIElement::GetDownNeighbour(GraphicsState* graphicsState, UIElement 
 	// Nothing found? Then set ourselves to be this sought after element!
 	if (!element)
 	{
-		element = GetElementClosestTo(referenceElement->position, true);
+		element = GetElementClosestToSelf(true);
 	}
 	// For some UI elements, such as lists, the list itself is not navigatable, so query it to get the first element in its list if so here.
 	if (element)
@@ -1041,21 +827,21 @@ UIElement * UIElement::GetLeftNeighbour(UIElement * referenceElement, bool & sea
 		referenceElement = this;
 	}
 	/// If we have a pointer, just use it!
-	if (leftNeighbour && leftNeighbour->activateable)
+	if (interaction.leftNeighbour && interaction.leftNeighbour->interaction.activateable)
 	{
-		element = leftNeighbour;
+		element = interaction.leftNeighbour;
 	}
 	/// If not, fetch it if possible.
 	else {
 		/// Check if we got a preferred neighbour.
-		if (leftNeighbourName.Length())
+		if (interaction.leftNeighbourName.Length())
 		{
-			element = this->GetRoot()->GetElementByName(leftNeighbourName);
-			if (element && !element->activateable)
+			element = this->GetRoot()->GetElementByName(interaction.leftNeighbourName);
+			if (element && !element->interaction.activateable)
 				element = NULL;
 		}
 		/// If still haven't found a decent one, consult our parent. Unless we're in the stack of course, upon which it means we have found no decent new neighbour.
-		if (!element && !searchChildrenOnly && !inStack)
+		if (!element && !searchChildrenOnly && !interaction.inStack)
 		{
 			if (parent)
 				element = parent->GetLeftNeighbour(referenceElement, searchChildrenOnly);
@@ -1065,7 +851,7 @@ UIElement * UIElement::GetLeftNeighbour(UIElement * referenceElement, bool & sea
 		}
 	}
 	/// All-right, so we found a suitable neighbour hopefully. Make sure that it is hoverable?
-	if (element && !element->activateable){
+	if (element && !element->interaction.activateable){
 		/// First query if the element has any valid hoverable children, if so select them.
 		UIElement * childElement = element->GetElementByFlag(UIFlag::ACTIVATABLE);
 		if (childElement)
@@ -1082,7 +868,7 @@ UIElement * UIElement::GetLeftNeighbour(UIElement * referenceElement, bool & sea
 	// Nothing found? Then set ourselves to be this sought after element!
 	if (!element)
 	{
-		element = GetElementClosestTo(referenceElement->position, true);
+		element = GetElementClosestToSelf(true);
 	}
 	// For some UI elements, such as lists, the list itself is not navigatable, so query it to get the first element in its list if so here.
 	if (element)
@@ -1101,13 +887,18 @@ UIElement * UIElement::GetNavigationElement(NavigateDirection direction) {
 bool UIElement::IsNavigatable() {
 	if (!this->IsVisible())
 		return false;
-	if (!this->navigatable)
+	if (!interaction.navigatable)
 		return false;
 	return true;
 
 }
 
 /// Works recursively.
+UIElement * UIElement::GetElementClosestToSelf(bool mustBeActivatable) {
+	return GetElementClosestTo(layout.position, mustBeActivatable);
+}
+
+
 UIElement * UIElement::GetElementClosestTo(Vector3f & position, bool mustBeActivatable /*= false*/)
 {
 	List<UIElement*> allChildren = this->AllChildrenR();
@@ -1116,9 +907,9 @@ UIElement * UIElement::GetElementClosestTo(Vector3f & position, bool mustBeActiv
 	for (int i = 0; i < allChildren.Size(); ++i)
 	{
 		UIElement * child = allChildren[i];
-		if (mustBeActivatable && !child->activateable)
+		if (mustBeActivatable && !child->interaction.activateable)
 			continue;
-		float dist = (child->position - position).Length();
+		float dist = (child->layout.position - position).Length();
 		if (dist < closestDistance)
 		{
 			closest = child;
@@ -1137,9 +928,9 @@ UIElement * UIElement::GetElementClosestToInX(Vector3f & position, bool mustBeAc
 	for (int i = 0; i < allChildren.Size(); ++i)
 	{
 		UIElement * child = allChildren[i];
-		if (mustBeActivatable && !child->activateable)
+		if (mustBeActivatable && !child->interaction.activateable)
 			continue;
-		float dist = AbsoluteValue(child->position.x - position.x);
+		float dist = AbsoluteValue(child->layout.position.x - position.x);
 		if (dist < closestDistance)
 		{
 			closest = child;
@@ -1148,7 +939,7 @@ UIElement * UIElement::GetElementClosestToInX(Vector3f & position, bool mustBeAc
 		if (dist == closestDistance)
 		{
 			// Same x? Check closer y.
-			if (AbsoluteValue(child->position.y - position.y) < AbsoluteValue(closest->position.y - position.y))
+			if (AbsoluteValue(child->layout.position.y - position.y) < AbsoluteValue(closest->layout.position.y - position.y))
 				closest = child; // Same distance in X, so don't adjust the closestDistance.
 		}
 	}
@@ -1163,9 +954,9 @@ UIElement * UIElement::GetElementClosestToInY(Vector3f & position, bool mustBeAc
 	for (int i = 0; i < allChildren.Size(); ++i)
 	{
 		UIElement * child = allChildren[i];
-		if (mustBeActivatable && !child->activateable)
+		if (mustBeActivatable && !child->interaction.activateable)
 			continue;
-		float dist = AbsoluteValue(child->position.y - position.y);
+		float dist = AbsoluteValue(child->layout.position.y - position.y);
 		if (dist < closestDistance)
 		{
 			closest = child;
@@ -1174,7 +965,7 @@ UIElement * UIElement::GetElementClosestToInY(Vector3f & position, bool mustBeAc
 		if (dist == closestDistance)
 		{
 			// Same y? Check closer x.
-			if (AbsoluteValue(child->position.x - position.x) < AbsoluteValue(closest->position.x - position.x))
+			if (AbsoluteValue(child->layout.position.x - position.x) < AbsoluteValue(closest->layout.position.x - position.x))
 				closest = child; // Same distance in y, so don't adjust the closestDistance.
 		}
 	}
@@ -1187,18 +978,17 @@ void UIElement::DeselectAll(){
 	for (int i = 0; i < children.Size(); ++i){
 		children[i]->DeselectAll();
 	}
-	selected = false;
+	interaction.selected = false;
 }
 
 UIElement* UIElement::GetElementByPos(int i_posX, int i_posY){
 
 	UIElement* result = 0;
 	// Don't process invisible UIElements, please.
-	if (visible == false)
+	if (interaction.visible == false)
 		return 0;
 	// Check if the mouse is outside the element's boundaries.
-	if (i_posX < posX || i_posX > posX + sizeX ||
-		i_posY < posY || i_posY > posY + sizeY){
+	if (layout.IsOutside(i_posX, i_posY)){
 		// Return false if we are outside of the boundaries,
 		// since we haven't found the selected element.
 		return 0;
@@ -1207,7 +997,7 @@ UIElement* UIElement::GetElementByPos(int i_posX, int i_posY){
 	// Alright, the mouse is inside this element!
 	// Do we have children?
 	for (int i = 0; i < children.Size(); ++i){
-		result = children[i]->GetElementByPos((int)(i_posX - posX), (int)(i_posY - posY));
+		result = children[i]->GetElementByPos((int)(i_posX - layout.posX), (int)(i_posY - layout.posY));
 		// If so, check if they are the active element.
 		if (result != 0){
 			// The active element has been found further down the tree,
@@ -1242,7 +1032,7 @@ UIElement* UIElement::GetElementByState(int stateFlag)
 	for (int i = 0; i < children.Size(); ++i)
 	{
 		UIElement * child = children[i];
-		if (!child->visible)
+		if (!child->interaction.visible)
 			continue;
 		result = child->GetElementByState(stateFlag);
 		if (result)
@@ -1259,7 +1049,7 @@ bool UIElement::GetElementsByState(int stateFlags, List<UIElement*> & listToFill
 	UIElement * result = NULL;
 	for (int i = 0; i < children.Size(); ++i){
 		/// Skip invisible children by default.
-		if (!children[i]->visible)
+		if (!children[i]->interaction.visible)
 			continue;
 		children[i]->GetElementsByState(stateFlags, listToFill);
 	}
@@ -1275,7 +1065,7 @@ UIElement * UIElement::GetElementByFlag(int uiFlags)
 	UIElement * result = NULL;
 	for (int i = 0; i < children.Size(); ++i){
 		/// Skip invisible children by default.
-		if (!children[i]->visible)
+		if (!children[i]->interaction.visible)
 			continue;
 		result = children[i]->GetElementByFlag(uiFlags);
 		if (result)
@@ -1291,7 +1081,7 @@ bool UIElement::GetElementsByFlags(int uiFlags, List<UIElement*> & listToFill){
 	UIElement * result = NULL;
 	for (int i = 0; i < children.Size(); ++i){
 		/// Skip invisible children by default.
-		if (!children[i]->visible)
+		if (!children[i]->interaction.visible)
 			continue;
 		children[i]->GetElementsByFlags(uiFlags, listToFill);
 	}
@@ -1303,11 +1093,11 @@ bool UIElement::ConformsToFlags(int uiFlags)
 {
 	bool isThisOne = true;
 	if (uiFlags & UIFlag::VISIBLE)
-		isThisOne = isThisOne & visible;
+		isThisOne = isThisOne & interaction.visible;
 	if (uiFlags & UIFlag::HOVERABLE)
-		isThisOne = isThisOne & hoverable;
+		isThisOne = isThisOne & interaction.hoverable;
 	if (uiFlags & UIFlag::ACTIVATABLE)
-		isThisOne = isThisOne & activateable;
+		isThisOne = isThisOne & interaction.activateable;
 	if (state & UIState::DISABLED)
 		return false;
 	if (isThisOne)
@@ -1344,7 +1134,7 @@ UIElement* UIElement::GetElementWithID(int elementID){
 /// Checks if this element is visible, as it will depend on the parent UIs too.
 bool UIElement::IsVisible()
 {
-	if (!this->visible)
+	if (!this->interaction.visible)
 	{
 		return false;
 	}
@@ -1356,7 +1146,7 @@ bool UIElement::IsVisible()
 /// Gets absolute position and stores them in the pointers' variables, in pixels, relative to upper left corner
 Vector2i UIElement::GetAbsolutePos()
 {
-	Vector2i absPos ((int) floor(posX+0.5f), (int) floor(posY+0.5f));
+	Vector2i absPos ((int) floor(layout.posX+0.5f), (int) floor(layout.posY+0.5f));
 	UIElement* pp = parent;
 	// While parent pointer is non-NULL
 	while(pp){
@@ -1368,32 +1158,15 @@ Vector2i UIElement::GetAbsolutePos()
 	return absPos;
 }
 	
-void UIElement::GetAbsolutePos(int * i_posX, int * i_posY){
-	int resX = (int) floor(posX+0.5f);
-	int resY = (int) floor(posY+0.5f);
-	UIElement* pp = parent;
-	// While parent pointer is non-NULL
-	while(pp){
-		// Increment result
-		resX += (int)floor(pp->posX + 0.5f);
-		resY += (int)floor(pp->posY + 0.5f);
-		pp = pp->parent;
-	}
-	// Increment positions
-	if (i_posX)
-		(*i_posX) = resX;
-	if (i_posY)
-		(*i_posY) = resY;
-}
 /// Absolute positions, in pixels, relative to upper left corner
 int UIElement::GetAbsolutePosX(){
-	int result = (int)posX;
+	int result = (int)layout.posX;
 	if (parent)
 		result += parent->GetAbsolutePosX();
 	return result;
 }
 int UIElement::GetAbsolutePosY(){
-	int result = (int)posY;
+	int result = (int)layout.posY;
 	if (parent)
 		result += parent->GetAbsolutePosY();
 	return result;
@@ -1404,10 +1177,10 @@ int UIElement::GetAbsolutePosY(){
 /// For debugging, prints info and tree-structure.
 void UIElement::Print(int level){
     std::cout<<"\n";
-    if (!visible)
+    if (!interaction.visible)
         std::cout<<"Not visible ";
-    std::cout<<std::setfill(' ')<<std::setw(level)<<level<<" - "<<name<<", "<<textureSource;
-    if (!visible)
+    std::cout<<std::setfill(' ')<<std::setw(level)<<level<<" - "<<name<<", "<<visuals.textureSource;
+    if (!interaction.visible)
         return;
     for (int i = 0; i < children.Size(); ++i)
         children[i]->Print(level+1);
@@ -1415,70 +1188,18 @@ void UIElement::Print(int level){
 
 // Movement functions. These take into consideration the parent element and UIType
 void UIElement::MoveX(int distance){
-	switch(type){
-		case UIType::SLIDER_HANDLE:
-			posX += distance;
-			if (posX > parent->sizeX - sizeX)
-				posX = (int)parent->sizeX - sizeX;
-			if (posX < 0)
-				posX = 0;
-			break;
-		case UIType::SCROLL_HANDLE:
-			break;
-		default:
-			posX += distance;
-	}
+	layout.MoveX(type, distance, parent->layout.sizeX);
 }
 
 void UIElement::MoveY(int distance){
-	switch(type){
-		case UIType::SLIDER_HANDLE:
-			break;
-		case UIType::SCROLL_HANDLE:
-			posY += distance;
-			if (posY > parent->sizeY - sizeY)
-				posY = (int)parent->sizeY - sizeY;
-			if (posY < 0)
-				posY = 0;
-			break;
-		default:
-			posY += distance;
-	}
+	layout.MoveY(type, distance, parent->layout.sizeY);
 }
 
 // Moves to specified position. Takes addresses as parameters for given values in order to confirm validity.
 // Ignores value if pointer is NULL
 void UIElement::MoveTo(int * x, int * y){
-	int absX = 0, absY = 0;
-	GetAbsolutePos(&absX, &absY);
-	if (x)
-		posX = *x - (absX - posX);
-	if (y)
-		posY = *y - (absY - posY);
-	// If certain UITypes, constrain movement to parent node
-	switch(type){
-		case UIType::SLIDER_HANDLE:{
-			posX -= sizeX/2;
-			if (posX > parent->sizeX - sizeX)
-				posX = (int)parent->sizeX - sizeX;
-			if (posX < 0)
-				posX = 0;
-			break;
-		}
-		case UIType::SCROLL_HANDLE: {
-			posY -= sizeY/2;
-			if (posY > parent->sizeY - sizeY)
-				posY = (int)parent->sizeY - sizeY;
-			if (posY < 0)
-				posY = 0;
-			break;
-		}
-	}
+	layout.MoveTo(type, x, y);
 }
-
-
-
-
 
 /// Sets name of the element
 void UIElement::SetName(const String i_name){
@@ -1488,7 +1209,7 @@ void UIElement::SetName(const String i_name){
 /// Returns a pointer to specified UIElement
 UIElement * UIElement::GetElementByName(String i_name, UIFilter filter){
 	if (i_name == name) {
-		if (filter == UIFilter::Visible && !visible)
+		if (filter == UIFilter::Visible && !interaction.visible)
 			return nullptr;
 		return this;
 	}
@@ -1579,10 +1300,10 @@ bool UIElement::AddToParent(GraphicsState* graphicsState, String parentName, UIE
 
 void UIElement::SetRootDefaults(UserInterface * ui) {
 	name = "root";
-	exitable = false;
-	selectable = false;
-	activateable = false;
-	textureSource = "0x0000"; // Alpha texture.
+	interaction.exitable = false;
+	interaction.selectable = false;
+	interaction.activateable = false;
+	visuals.textureSource = "0x0000"; // Alpha texture.
 	// Link it.
 	ui = ui;
 }
@@ -1616,118 +1337,39 @@ void UIElement::QueueBuffering()
 /// Bufferizes the UIElement mesh into the vbo buffer
 void UIElement::Bufferize()
 {
-	/// Check for mesh-Entity
-	if (mesh){
-		if (!name)
-			;//std::cout<<"\nBuffering un-named UIElement.";
-		else
-			;//std::cout<<"\nBuffering UIElement \""<<name<<"\"";
-
-		/// Create VAO
-
-		// Check for errors before we proceed.
-		CheckGLError("UIElement::Bufferize");
-
-		if (GL_VERSION_MAJOR >= 3){
-		// Generate VAO and bind it straight away if we're above GLEW 3.0
-			if (vertexArray == -1)
-				vertexArray = GLVertexArrays::New();
-			// Binding caused error in wglDeleteContext later for some reason? Worth looking into later maybe.
-		//	glBindVertexArray(vertexArray);
-		}
-		
-		// Check for errors before we proceed.
-		GLuint err = glGetError();
-		if (err != GL_NO_ERROR)
-			std::cout<<"\nGLError buffering UI in UIElement::Bufferize";
-
-		// Count total vertices/texture point pairs without any further optimization.
-		unsigned int vertexCount = mesh->faces.Size() * 3;
-		unsigned int floatsPerVertex = 3 + 3 + 2;  // Pos + Normal + UV
-		unsigned int vboVertexDataLength = vertexCount * floatsPerVertex;
-		float * vboVertexData = new float[vboVertexDataLength];
-
-		// Generate And bind The Vertex Buffer
-		/// Check that the buffer isn't already generated
-		if (vboBuffer == -1)
-		{
-			vboBuffer = GLBuffers::New();
-		}
-		glBindBuffer(GL_ARRAY_BUFFER, vboBuffer);
-
-		// Load all data in one big fat array, yo Data
-		unsigned int vertexDataCounted = 0;
-		// Reset vertices count
-		vboVertexCount = 0;
-		for (int i = 0; i < mesh->faces.Size(); ++i)
-		{
-			MeshFace * face = &mesh->faces[i];
-			// Count vertices in all triangles
-			for (int j = 0; j < 3; ++j)
-			{
-				int currentVertex = face->vertices[j];
-				// Position
-				vboVertexData[vertexDataCounted + 0] = mesh->vertices[currentVertex][0];
-				vboVertexData[vertexDataCounted + 1] = mesh->vertices[currentVertex][1];
-				vboVertexData[vertexDataCounted + 2] = mesh->vertices[currentVertex][2];
-				// Normal
-				int currentNormal = face->normals[j];
-				vboVertexData[vertexDataCounted + 3] = mesh->normals[currentNormal][0];
-				vboVertexData[vertexDataCounted + 4] = mesh->normals[currentNormal][1];
-				vboVertexData[vertexDataCounted + 5] = mesh->normals[currentNormal][2];
-				// UV
-				int currentUV = face->uvs[j];
-				vboVertexData[vertexDataCounted + 6] = mesh->uvs[currentUV][0];
-				vboVertexData[vertexDataCounted + 7] = mesh->uvs[currentUV][1];
-				vertexDataCounted += 8;
-				++vboVertexCount;
-			}
-		}
-		if ((unsigned int)vertexDataCounted > vboVertexDataLength)
-			std::cout<<"\nERROR: vertexDataCounted exceeds vertxCount * floatsPerVertex";
-
-		// Enter the data too, fucking moron Emil-desu, yo!
-		glBufferData(GL_ARRAY_BUFFER, vertexDataCounted*sizeof(float), vboVertexData, GL_STATIC_DRAW);
-
-		// Check for errors before we proceed.
-		GLuint error = glGetError();
-		if (error != GL_NO_ERROR)
-			std::cout<<"\nGLERROR: "<<error<<" in UIElement::Bufferize";
-		delete[] vboVertexData;
-		vboVertexData = NULL;
-	}
-
-	;//std::cout<<" Buffering successful.";
-
+	visuals.Bufferize();
 	// Bufferize children too!
-	for (int i = 0; i < children.Size(); ++i){
+	for (int i = 0; i < children.Size(); ++i) {
 		children[i]->Bufferize();
 	}
-
-	// Bufferize textures straight away if needed too
-	if (this->texture && texture->glid == -1)
-		TexMan.BufferizeTexture(texture);
-
-	// Mark it as buffered.
-	isBuffered = true;
 }
+
+// Does it again!
+void UIElement::Rebufferize(GraphicsState& graphicsState) {
+	// Check if already buffered. If so re-create the mesh in it's entirety.
+	if (IsBuffered())
+	{
+		// Recalculate bounds depending on parent.
+		AdjustToParent(&graphicsState);
+		if (IsGeometryCreated())
+			ResizeGeometry(&graphicsState);
+		else
+			CreateGeometry(&graphicsState);
+	}
+	Bufferize();
+}
+
+
 /// Releases resources used by the UIElement. Should only be called by a thread with valid GL context!
 void UIElement::FreeBuffers(GraphicsState& graphicsState)
 {
-	if (vboBuffer != -1){
-		GLBuffers::Free(vboBuffer);
-		vboBuffer = -1;
-	}
-	if (vertexArray != -1){
-		GLVertexArrays::Free(vertexArray);
-		vertexArray = -1;
-	}
+	visuals.FreeBuffers(graphicsState);
+
 	for (int i = 0; i < children.Size(); ++i){
 		children[i]->FreeBuffers(graphicsState);
 	}
 	for (int i = 0; i < borderElements.Size(); ++i)
 		borderElements[i]->FreeBuffers(graphicsState);
-	isBuffered = false;
 }
 
 
@@ -1766,304 +1408,38 @@ bool UIElement::IsDisabled(){
 /// Splitting up the rendering.
 void UIElement::RenderSelf(GraphicsState & graphicsState)
 {
-	PrintGLError("GLError before UIElement::Render?!");
-	if (!isGeometryCreated)
-	{
-		AdjustToParent();
-		CreateGeometry(&graphicsState);
-	}
-	if (!isBuffered)
-	{
-		// Re-adjust to parent.
-		AdjustToParent();
-		ResizeGeometry(&graphicsState);
-		Bufferize();
+	if (!IsBuffered()) { // Shouldn't get here, but just in case..
+		AdjustToParentCreateGeometryAndBufferize(&graphicsState);
 	}
 
-    PrintGLError("GLError in UIElement::Render 2");
-	/// If not buffered, do it nau!
-	if (vboBuffer == -1){
-		/// If not created geometry, do that too.
-		if (!this->mesh)
-			CreateGeometry(&graphicsState);
-		// Adjust values.
-		if (parent)
-			AdjustToWindow((int)parent->left, (int)parent->right, (int)parent->bottom, (int)parent->top);
-		/// If parent is null, this means this is the root-element, so use current screen size?
-		else 
-			AdjustToWindow(0, ui->Width(), 0, ui->Height());
-		/// Resize the square-object.
-		ResizeGeometry(&graphicsState);
-		/// Buffer it.
-		Bufferize();
-		/// Ensure we've got a buffer now!
-	}
-	assert(vboBuffer && "No valid vboBuffer in UIElement::Render!");
-
-	bool validTexture = true;
-	
-
-	FetchBindAndBufferizeTexture();
-
-
-
-	/// Set mip-map filtering to closest
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-
-    PrintGLError("GLError Binding texture");
-
-	// Check for valid buffer before rendering,
-	// Also check for valid texture...!
-	if (vboBuffer && validTexture)
-	{
-		Shader * shader = ActiveShader();
-		if (!shader)
-			return;
-		UpdateHighlightColor();
-
-		// Set material?	-	Not needed for UI!?
-		// Just set a light-parameter to be multiplied to the texture?
-		// Nothing for now... TODO
-
-		// Set VBO and render
-		// Bind vertices
-		graphicsState.BindVertexArrayBuffer(vboBuffer);
-		glVertexAttribPointer(shader->attributePosition, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 8, 0);		// Position
-		
-		// Bind UVs
-		static const GLint offsetU = 6 * sizeof(GLfloat);		// Buffer already bound once at start!
-		glVertexAttribPointer(shader->attributeUV, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 8, (void *)offsetU);		// UVs
-		
-        PrintGLError("GLError Binding Buffers");
-		int vertices = vboVertexCount;
-
-
-
-		// If moveable, translate it to it's proper position!
-		if (moveable)
-		{
-			///
-			if (shader->uniformModelMatrix != -1){
-				/// TRanslatem power !
-				Matrix4f * model = &graphicsState.modelMatrixD;
-				float transX = alignmentX * parent->sizeX;
-				float transY = alignmentY * parent->sizeY;
-				model->Translate(transX,transY,0);
-				graphicsState.modelMatrixF = graphicsState.modelMatrixD;
-			}
-		}
-
-		/// Load in ze model matrix
-		glUniformMatrix4fv(shader->uniformModelMatrix, 1, false, graphicsState.modelMatrixF.getPointer());
-
-        PrintGLError("GLError glUniformMatrix in UIElement");
-		// Render normally
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		glDrawArrays(GL_TRIANGLES, 0, vboVertexCount);        // Draw All Of The Triangles At Once
-		PrintGLError("GLError glDrawArrays in UIElement");
-
-		// Unbind buffer
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		checkGLError();
-
-	}
+	visuals.UpdateHighlightColor(IsDisabled(), state & UIState::ACTIVE, state & UIState::HOVER);
+	visuals.Render(graphicsState);
 	RenderText(graphicsState);
 }
 
 void UIElement::RenderText(GraphicsState & graphicsState)
 {
-	if (this->text.Length() == 0 && this->text.caretPosition < 0)
-		return;
-
-	if (this->text.caretPosition >= 0) {
-		//LogGraphics("Hello", INFO);
-	}
-
-	Text& toRender = this->text;
-	if (this->textToRender.Length() > 0)
-		toRender = textToRender;
-	
-	/// Bind correct font if applicable.
-	auto font = this->fontDetails.font;
-	auto fontSource = this->fontDetails.source;
-	if (toRender.Length()){
-		if (font){
-			graphicsState.currentFont = font;
-		}
-		else if (fontSource && !font){
-			font = Graphics.GetFont(fontSource);
-			if (font)
-				graphicsState.currentFont = font;
-		}
-		// If still no font, use default font.
-		if (!font)
-		{
-			graphicsState.currentFont = Graphics.GetFont(TextFont::defaultFontSource);
-		}
-	}
-	// Render text if applicable!
-	if ((toRender.Length() || toRender.caretPosition > -1)
-		&& graphicsState.currentFont)
-	{
-	}
-	else
-		return;
-
-	if (currentTextSizeRatio <= 0) {
-		FormatText(&graphicsState);
-	}
-	float pixels = textSizeY * currentTextSizeRatio; // Graphics.Height();
-
-
-	TextFont * currentFont = graphicsState.currentFont;
-	Vector4f modelPositionOffset = graphicsState.modelMatrix * Vector4f(0, 0, 0, 1); // E.g. due to scrolling in a list.
-	Vector3f fontRenderOffset = Vector3f(this->left + toRender.offsetX, this->top - toRender.offsetY, this->zDepth + 0.05f)
-		+ modelPositionOffset;
-
-	// If disabled, dull the color! o.o
-	if (this->IsDisabled())
-		currentFont->disabled = true;
-	else
-		currentFont->disabled = false;
-	if (this->state & UIState::HOVER && highlightOnHover)
-		currentFont->hoveredOver = true;
-	else
-		currentFont->hoveredOver = false;
-
-	Color * overrideColor = nullptr;
-	TextState textState = TextState::Idle;
-	// Does it have colors assigned for toggle-states? Then treat it differentely.
-	if (text.colors && text.colors->toggledIdle != nullptr) {
-		if (HasState(UIState::TOGGLED))
-			overrideColor = text.colors->toggledIdle;
-		else
-			overrideColor = text.colors->notToggledIdle;
-		//textState = TextState::Hover; // Permanently hovered over if toggled good enough..?
-	}
-	else if (HasState(UIState::DISABLED)) {
-		textState = TextState::DisabledIdle;
-		if (HasState(UIState::HOVER))
-			textState = TextState::DisabledHover;
-	}
-	else if (HasState(UIState::ACTIVE)) {
-		textState = TextState::Active;
-	}
-	else if (HasState(UIState::HOVER)) {
-		textState = TextState::Hover;
-		if (onHoverTextColor != nullptr)
-			overrideColor = onHoverTextColor;
-	}
-
-	// Set right shader as well.
-	if (fontDetails.shader) {
-		graphicsState.fontShaderName = fontDetails.shader;
-	}
-
-
-	// What should be rendered? If not specified, then use the 'text'
-	if (this->textToRender.Length() == 0)
-		this->textToRender = text;
-
-	graphicsState.currentFont->RenderText(
-		this->textToRender,
-		textState,
-		overrideColor,
+	text.RenderText(
 		graphicsState,
-		fontRenderOffset,
-		pixels);
+		layout,
+		IsDisabled(),
+		HasState(UIState::HOVER),
+		HasState(UIState::TOGGLED),
+		HasState(UIState::ACTIVE),
+		visuals.highlightOnHover);
 }
 
-void UIElement::FormatText(GraphicsState * graphicsState)
+void UIElement::FormatText(GraphicsState& graphicsState)
 {
-	/// Resize to fit.
-	Text& textToRender = text;
-
-	TextFont * currentFont = fontDetails.font;
-	if (currentFont == nullptr)
-		currentFont = graphicsState->currentFont;
-	assert(currentFont);
-
-	/// Rows available
-	int rowsAvailable = 1;
-	currentTextSizeRatio = 1.0f;
-	/// Returns the size required by a call to RenderText if it were to be done now. In... pixels? or units
-	Vector2f size = currentFont->CalculateRenderSizeUnits(textToRender);
-
-	// SizeY but taking into consideration textPadding.
-	textSizeY = sizeY * (textSizeRatio) - textPaddingPixels * 2;
-	textSizeX = sizeX * (textSizeRatio) - textPaddingPixels * 2;
-
-	textToRender.offsetY = (float) textPaddingPixels;
-
-	/// Pixels per unit, defined by the relative Y size the text should have.
-	float pixelsPerUnit = textSizeY;
-	/// Total pixels required if rendering right now.
-	Vector2f pixelsRequired = size * pixelsPerUnit;
-	/// Check how much X is available, if we need to center it, etc.
-	int xAvailable = textSizeX - pixelsRequired.x;
-	float xRatio = 1.f, yRatio = 1.f;
-	if (pixelsRequired.x > rowsAvailable * textSizeX){
-		xRatio = textSizeX / pixelsRequired.x;
-	}
-	if (pixelsRequired.y > textSizeY){
-		yRatio = textSizeY / pixelsRequired.y;
-	}
-	if (xRatio < yRatio)
-		currentTextSizeRatio = xRatio;
-	else
-		currentTextSizeRatio = yRatio;
-
-	// Take into consideration the padding both above and below.
-	{
-		int pixelsAfterPadding = textSizeY;
-		float ratioPixelsAfterPaddingDividedByWholeHeight = textSizeY / (float) sizeY;
-		// Don't decrease further if it is already auto-scaled down.
-		if (currentTextSizeRatio > ratioPixelsAfterPaddingDividedByWholeHeight)
-			currentTextSizeRatio = ratioPixelsAfterPaddingDividedByWholeHeight;
-	}
-
-	/// Check previous ratio. Use lower one.
-	if (previousTextSizeRatio < currentTextSizeRatio)
-		currentTextSizeRatio = previousTextSizeRatio;
-
-	previousTextSizeRatio = currentTextSizeRatio;
-	
-	/// Re-align.
-	switch (textAlignment) {
-		case UIElement::CENTER: {
-			pixelsPerUnit = currentTextSizeRatio * textSizeY;
-			pixelsRequired = size * pixelsPerUnit;
-			int offsetX = textSizeX * 0.5f - pixelsRequired.x * 0.5f + textPaddingPixels;
-			if (offsetX < 0)
-				offsetX = 0;
-			textToRender.offsetX = offsetX;
-			break;
-		}
-		case UIElement::RIGHT: {
-			pixelsPerUnit = currentTextSizeRatio * textSizeY;
-			pixelsRequired = size * pixelsPerUnit;
-			int offsetX = textSizeX - pixelsRequired.x + textPaddingPixels;
-			if (offsetX < 0)
-				offsetX = 0;
-			textToRender.offsetX = offsetX;
-			break;
-		}
-		default:
-		case UIElement::LEFT:
-			textToRender.offsetX = textPaddingPixels;
-			break;
-	}
-
+	text.FormatText(graphicsState, layout);
 }
 
 #include "UIBorder.h"
 
-UIElement * UIElement::CreateBorderElement(String textureSource, char alignment) {
+UIElement * UIElement::CreateBorderElement(GraphicsState* graphicsState, String textureSource, char alignment) {
 	UIBorder * borderElement = new UIBorder();
 	borderElement->name = parent->name + " border "+ String(alignment);
-	borderElement->textureSource = textureSource;
+	borderElement->visuals.textureSource = textureSource;
 	borderElement->parent = this;
 	Texture * texture = TexMan.GetTexture(textureSource);
 	if (texture == nullptr) {
@@ -2071,65 +1447,67 @@ UIElement * UIElement::CreateBorderElement(String textureSource, char alignment)
 		delete borderElement;
 		return nullptr;
 	}
-	borderElement->alignment = alignment;
-	borderElement->highlightOnHover = true;
+	borderElement->layout.alignment = alignment;
+	borderElement->visuals.highlightOnHover = true;
 	switch (alignment) {
 	case TOP:
-		borderElement->sizeY = texture->size.y;
-		borderElement->lockSizeY = true;
+		borderElement->layout.sizeY = texture->size.y;
+		borderElement->layout.lockSizeY = true;
 		break;
 	case BOTTOM:
-		borderElement->sizeY = texture->size.y;
-		borderElement->lockSizeY = true;
+		borderElement->layout.sizeY = texture->size.y;
+		borderElement->layout.lockSizeY = true;
 		break;
 	case RIGHT:
-		borderElement->sizeX = texture->size.x;
-		borderElement->lockSizeX = true;
+		borderElement->layout.sizeX = texture->size.x;
+		borderElement->layout.lockSizeX = true;
 		break;
 	case TOP_RIGHT:
-		borderElement->sizeY = texture->size.y;
-		borderElement->lockSizeY = true;
-		borderElement->sizeX = texture->size.x;
-		borderElement->lockSizeX = true;
+		borderElement->layout.sizeY = texture->size.y;
+		borderElement->layout.lockSizeY = true;
+		borderElement->layout.sizeX = texture->size.x;
+		borderElement->layout.lockSizeX = true;
 		break;
 	default:
 		assert(false && "Implemenet");
 	}
 	borderElements.Add(borderElement);
+	
+	borderElement->AdjustToParentCreateGeometryAndBufferize(graphicsState);
 	return borderElement;
 }
 
 void UIElement::RenderBorders(GraphicsState& graphicsState) {
 	if (topBorderTextureSource.Length() > 0) {
 		if (topBorder == nullptr) {
-			topBorder = CreateBorderElement(topBorderTextureSource, TOP);
+			topBorder = CreateBorderElement(&graphicsState, topBorderTextureSource, TOP);
 		}
 		topBorder->Render(graphicsState);
 	}
 	if (bottomBorderTextureSource.Length() > 0) {
 		if (bottomBorder == nullptr) {
-			bottomBorder = CreateBorderElement(bottomBorderTextureSource, BOTTOM);
+			bottomBorder = CreateBorderElement(&graphicsState, bottomBorderTextureSource, BOTTOM);
 		}
 		bottomBorder->Render(graphicsState);
 	}
 
 	if (rightBorderTextureSource.Length() > 0) {
 		if (rightBorder == nullptr)
-			rightBorder = CreateBorderElement(rightBorderTextureSource, RIGHT);
+			rightBorder = CreateBorderElement(&graphicsState, rightBorderTextureSource, RIGHT);
 		if (rightBorder)
 			rightBorder->Render(graphicsState);
 	}
 	if (topRightCornerTextureSource.Length() > 0) {
 		if (topRightCorner == nullptr)
-			topRightCorner = CreateBorderElement(topRightCornerTextureSource, TOP_RIGHT);
+			topRightCorner = CreateBorderElement(&graphicsState, topRightCornerTextureSource, TOP_RIGHT);
 		topRightCorner->Render(graphicsState);
 	}
 }
 
 void UIElement::RenderChildren(GraphicsState & graphicsState)
 {
-	Vector4d initialPositionTopRight(right, top, 0, 1), 
-			initialPositionBottomLeft(left, bottom, 0, 1);
+	Vector4d initialPositionTopRight(layout.right, layout.top, 0, 1),
+			initialPositionBottomLeft(layout.left, layout.bottom, 0, 1);
 	Vector3f currTopRight = graphicsState.modelMatrixF * initialPositionTopRight;
 	Vector3f currBottomLeft = graphicsState.modelMatrixF * initialPositionBottomLeft;
 
@@ -2144,7 +1522,7 @@ void UIElement::RenderChildren(GraphicsState & graphicsState)
 	for (int i = 0; i < children.Size(); ++i)
 	{
         UIElement * child = children[i];
-        if (!child->visible)
+        if (!child->interaction.visible)
             continue;
 		// Render
 		child->Render(graphicsState);
@@ -2156,234 +1534,47 @@ void UIElement::RenderChildren(GraphicsState & graphicsState)
 
 
 /// Adjusts the UI element size and position relative to new AppWindow size
-void UIElement::AdjustToWindow(int w_left, int w_right, int w_bottom, int w_top)
+void UIElement::AdjustToWindow(GraphicsState& graphicsState, const UILayout& windowLayout)
 {
-    /// Reset text-variables so that they are re-calculated before rendering again.
-    currentTextSizeRatio = -1.0f;
-
-	// Extract some attributes before we begin
-    left = -1, right = 1, bottom = -1, top = 1;
-	if (!lockSizeX)
-		sizeX = 1;
-	if (!lockSizeY)
-		sizeY = 1;
-
-	float z = 0;
-	if (parent){
-		// If parent is list, and has a scrollbar, for example, reduce agailable size
-		int parentSizeX = parent->AvailableParentSizeX();
-		int parentPosX = parent->CenteredContentParentPosX();
-		switch (alignment) {
-		case SCROLL_BAR_Y:
-			left = parentPosX + parentSizeX / 2;
-			right = parent->posX + parent->sizeX / 2;
-			bottom = parent->posY - parent->sizeY / 2;
-			top = parent->posY + parent->sizeY / 2;
-			break;
-		default:
-			left = parentPosX - parentSizeX / 2;
-			right = parentPosX + parentSizeX / 2;
-			bottom = parent->posY - parent->sizeY / 2;
-			top = parent->posY + parent->sizeY / 2;
-			break;
-		}
-	}
-	else {
-		left = w_left;
-		right = w_right;
-		bottom = w_bottom;
-		top = w_top;
-	}
-
-//	std::cout<<"\nUIElement::AdjustToWindow called for element "<<name<<": L"<<left<<" R"<<right<<" B"<<bottom<<" T"<<top;
-
-	/// Center of the UI that we place, only to be used for relative alignments!
-	float centerX;
-	float centerY;
-	/// Default for non-movable objects: place them where they should be.
-	if (!moveable){
-		centerX = ((float)right - left) * alignmentX + left,
-		centerY = ((float)top - bottom) * alignmentY + bottom;
-	}
-	// Default for movable objects: place them at 0 and render them dynamically relative to their parents!
-	else {
-		centerX = (float)left;
-		centerY = (float)bottom;
-	}
-
-	// X not locked - default
-	float sizeRatioXwithConstraints = sizeRatioX;
-	if (!lockSizeX) {
-		sizeX = (int)(right - left);
-		// If limiting width.
-		float wouldBeWidth = sizeX * sizeRatioX;
-		sizeRatioXwithConstraints = sizeRatioX;
-		if (maxWidth != 0) {
-			if (wouldBeWidth > maxWidth)
-				sizeRatioXwithConstraints = maxWidth / (float)sizeX;
-		}
-	}
-	else { // X locked.
-		sizeRatioXwithConstraints = 1.0f;
-	}
-	// Y not locked - default
-	if (!lockSizeY) {
-		sizeY = (int)(top - bottom);
-	}
-	else { // Y size locked
-	}
-
-	if (parent)
-		z = parent->zDepth + 0.1f;
-	zDepth = z;
-
-	float parentBorderOffset = 0;
-	if (parent != nullptr)
-		parentBorderOffset = parent->borderOffset * 2;
-
-	/// Check alignment
-	switch(alignment){
-	case SCROLL_BAR_Y:
-	{
-		/// Default behavior, just scale out from our determined center.
-		left = RoundInt(left);
-		right = RoundInt(right);
-		bottom = RoundInt(centerY - sizeY * sizeRatioY / 2);
-		top = RoundInt(centerY + sizeY * sizeRatioY / 2);
-		break;
-	}
-	case NULL_ALIGNMENT: {
-		/// Default behavior, just scale out from our determined center.
-		left = RoundInt(centerX - sizeX * sizeRatioXwithConstraints / 2);
-		right = RoundInt(centerX + sizeX * sizeRatioXwithConstraints / 2);
-		bottom = RoundInt(centerY - sizeY * sizeRatioY / 2);
-		top = RoundInt(centerY + sizeY * sizeRatioY / 2);
-		break;
-	}
-	case MAXIMIZE:
-		if (this->keepRatio){
-			//float screenRatio = (w_right - w_left) / (float)(w_top - w_bottom);
-			float newRatio = 1;//screenRatio / ratio;
-			left = RoundInt(centerX - sizeX * newRatio / 2);
-			right = RoundInt(centerX + sizeX * newRatio / 2);
-			bottom = RoundInt(centerY - sizeY * newRatio / 2);
-			top = RoundInt(centerY + sizeY * newRatio / 2);
-		}
-		else
-			mesh->SetDimensions((float)w_left, (float)w_right, (float)w_bottom, (float)w_top, (float)zDepth);
-		break;
-
-	case LEFT:
-		/// Do nothing, we start off using regular centering
-		left = RoundInt(left);
-		right = RoundInt(left + sizeX * sizeRatioXwithConstraints);
-		bottom = RoundInt(centerY - sizeY * sizeRatioY / 2);
-		top = RoundInt(centerY + sizeY * sizeRatioY / 2);
-		break;
-
-	case CENTER:
-		/// Do nothing, we start off using regular centering
-		left = RoundInt(centerX - sizeX * sizeRatioXwithConstraints / 2);
-		right = RoundInt(centerX + sizeX * sizeRatioXwithConstraints / 2);
-		bottom = RoundInt(centerY - sizeY * sizeRatioY / 2);
-		top = RoundInt(centerY + sizeY * sizeRatioY / 2);
-		break;
-
-	case RIGHT:
-		left = RoundInt(right - sizeX * sizeRatioXwithConstraints);
-		right = RoundInt(right);
-		bottom = RoundInt(centerY - sizeY * sizeRatioY / 2);
-		top = RoundInt(centerY + sizeY * sizeRatioY / 2);
-		break;
-
-	case TOP:
-		left = RoundInt(centerX - sizeX * sizeRatioXwithConstraints / 2);
-		right = RoundInt(centerX + sizeX * sizeRatioXwithConstraints / 2);
-		bottom = RoundInt(top - sizeY * sizeRatioY);
-		top = RoundInt(top);
-		break;
-	case BOTTOM:
-
-		left = RoundInt(centerX - sizeX * sizeRatioXwithConstraints / 2);
-		right = RoundInt(centerX + sizeX * sizeRatioXwithConstraints / 2);
-		bottom = RoundInt(bottom) - parentBorderOffset;
-		top = RoundInt(bottom + sizeY * sizeRatioY) - parentBorderOffset;
-		break;
-
-	case TOP_RIGHT:
-		left = RoundInt(right - sizeX * sizeRatioXwithConstraints);
-		right = RoundInt(right);
-		bottom = RoundInt(top - sizeY * sizeRatioY);
-		top = RoundInt(top);
-		break;
-
-	default:
-		// Make half-size
-		std::cout<<"UIElement "<<this->name<<" gets default half-size.";
-		mesh->SetDimensions((left*3.f + right)/4.f, (left + right*3.f/4.f), (bottom * 3.f+ top)/4.f, (bottom + top*3.f)/4.f, zDepth+1.f);
-		break;
-	}
+	int availableParentSizeX = parent ? parent->AvailableParentSizeX() : windowLayout.right - windowLayout.left;
+	int centeredContentParentPosX = parent ? parent->CenteredContentParentPosX() : (windowLayout.right + windowLayout.left) / 2;
+	layout.AdjustToWindow(windowLayout,	
+		parent ? &parent->layout : &windowLayout,
+		availableParentSizeX,
+		centeredContentParentPosX, interaction.moveable);
 
 	/// Set the new dimensions
-	if (mesh)
-		mesh->SetDimensions((float)left, (float)right, (float)bottom, (float)top, z);
+	if (visuals.mesh)
+		visuals.mesh->SetDimensions((float)layout.left, (float)layout.right, (float)layout.bottom, (float)layout.top, layout.zDepth);
 
-	// Save away the new sizes
-	sizeX = (int) (right - left);
-	sizeY = (int) (top - bottom);
-	posX = sizeX/2 + left;
-	posY = sizeY/2 + bottom;
-	position = Vector3f((float)posX, (float)posY, zDepth);
-	// Correct the position for the movable objects! ^^
-	if (moveable)
-	{
-		posX += RoundInt(parent->sizeX * alignmentX);
-		posY += RoundInt(parent->sizeY * alignmentY);
-		left = RoundInt(posX - sizeX / 2.0f);
-		right = RoundInt(posX + sizeX / 2.0f);
-		top = RoundInt(posY + sizeY / 2.0f);
-		bottom = RoundInt(posY - sizeY / 2.0f);
-	}
+    /// Reset text-variables so that they are re-calculated before rendering again.
+    text.FormatText(graphicsState, layout);
 
 	/// Adjust all children too
 	for (int i = 0; i < children.Size(); ++i){
 		assert(children[i] != this);
-		children[i]->AdjustToWindow((int)left, (int)right, (int)bottom,(int)top);
+		children[i]->AdjustToWindow(graphicsState, layout);
 	}
 }
 
 /// Calls AdjustToWindow for parent's bounds. Will assert if no parent is available.
-void UIElement::AdjustToParent()
+void UIElement::AdjustToParent(GraphicsState* graphicsState)
 {
 	if (!parent)
 		return;
-	AdjustToWindow(parent->left, parent->right, parent->bottom, parent->top);
-	previousTextSizeRatio = 1.f; // Reset to allow larger text if we are using the minimum criteria for rapdily changing text-slots ( such as distance).
-}
+	AdjustToWindow(*graphicsState, parent->layout);
+	text.SetPreviousTextSizeRatio(1.f); // Reset to allow larger text if we are using the minimum criteria for rapdily changing text-slots ( such as distance).
 
-int UIElement::GetAlignment(String byName)
-{
-	byName.SetComparisonMode(String::NOT_CASE_SENSITIVE);
-	if (byName == "NULL_ALIGNMENT")
-		return UIElement::NULL_ALIGNMENT;
-	else if (byName.Contains("MAXIMIZE"))
-		return UIElement::CENTER;
-	else if (byName == "CENTER")
-		return UIElement::CENTER;
-	else if (byName == "TOP_LEFT")
-		return UIElement::TOP_LEFT;
-	else if (byName == "Left")
-		return UIElement::LEFT;
-	else if (byName == "Right")
-		return UIElement::RIGHT;
-	else if (byName == "BOTTOM_LEFT")
-		return UIElement::BOTTOM_LEFT;
-	else {
-		assert(false && "Unknown symbol in UIElement::GetAlignment(byName)");
+	for (int i = 0; i < children.Size(); ++i) {
+		children[i]->AdjustToParent(graphicsState);
 	}
-	return NULL_ALIGNMENT;
 }
 
+void UIElement::AdjustToParentCreateGeometryAndBufferize(GraphicsState* graphicsState) {
+	AdjustToParent(graphicsState);
+	CreateGeometry(graphicsState);
+	Bufferize();
+}
 
 // Unbufferizes and deletes all border elements and their references.
 void UIElement::DeleteBorders(GraphicsState* graphicsState) {
@@ -2402,7 +1593,7 @@ void UIElement::SetTextColors(const TextColors& overrideColors) {
 
 // Overrides, but only during onHover.
 void UIElement::SetOnHoverTextColor(const Color& newOnHoverTextColor) {
-	onHoverTextColor = new Color(newOnHoverTextColor);
+	text.onHoverTextColor = new Color(newOnHoverTextColor);
 }
 
 
@@ -2413,7 +1604,7 @@ void UISlider::SetLevel(float level){
 		std::cout<<"\nSlider "<<this->name<<" lacking child (sliderHandle)!";
 		return;
 	}
-	children[0]->alignmentX = level;
+	children[0]->layout.alignmentX = level;
 	return;
 }
 /// Returns the slider's level
@@ -2422,82 +1613,41 @@ float UISlider::GetLevel(){
 		std::cout<<"\nERROR: Unable to get slider level as it has no child (handle)!";
 		return 0;
 	}
-	return children[0]->alignmentX;
+	return children[0]->layout.alignmentX;
 }
 
 // Creates the Square mesh used for rendering the UIElement and calls SetDimensions with it's given values.
 void UIElement::CreateGeometry(GraphicsState* graphicsState)
 {
-	Square * sq = new Square();
-//	std::cout<<"\nResizing geometry "<<name<<": L"<<left<<" R"<<right<<" B"<<bottom<<" T"<<top<<" Z"<<this->zDepth;
-	sq->SetDimensions((float)left, (float)right, (float)bottom, (float)top, this->zDepth);
-	this->mesh = sq;
-	for (int i = 0; i < children.Size(); ++i){
+	visuals.CreateGeometry(graphicsState, layout);
+	for (int i = 0; i < children.Size(); ++i) {
 		children[i]->CreateGeometry(graphicsState);
 	}
-	isGeometryCreated = true;
-	if (retainAspectRatioOfTexture)
-		ResizeGeometry(graphicsState);
 }
+
 void UIElement::ResizeGeometry(GraphicsState* graphicsState)
 {
-	if (!isGeometryCreated)
-		CreateGeometry(graphicsState);
-	assert(mesh);
+	assert(visuals.IsGeometryCreated());
+	assert(visuals.mesh);
+	visuals.ResizeGeometry(graphicsState, layout);
 
 	DeleteBorders(graphicsState);
-
-	if (retainAspectRatioOfTexture) {
-		// By default, demand dimensions to be proportional with the image.
-		Vector2i size(right - left, top - bottom);
-		if (!texture)
-		{
-			if (!FetchBindAndBufferizeTexture())
-			{
-				UIElement::ResizeGeometry(graphicsState);
-				return;
-			}
-		}
-		Vector2f texSize = texture->size;
-		Vector2i center((right + left) / 2, (bottom + top) / 2);
-		Vector2f elemSize(right - left, top - bottom);
-		Vector2f relativeRatios = texSize / elemSize;
-		// Choose the smaller ratio?
-		bool xSmaller, yBigger;
-		xSmaller = yBigger = relativeRatios.x < relativeRatios.y;
-		float biggestPossible = relativeRatios.x > relativeRatios.y ? relativeRatios.x : relativeRatios.y;
-		Vector2f biggestPossiblePx;
-		if (biggestPossible > 1.f)
-			biggestPossiblePx = texSize / biggestPossible;
-		else if (biggestPossible > 0.f)
-			biggestPossiblePx = texSize / biggestPossible;
-		// Use largest possible ratio of the available space in the element.
-		Vector2f modSize = biggestPossiblePx;
-		// Take into account shrinking too-large spaces.
-		Vector2f halfModSize = modSize * 0.5;
-
-		this->mesh->SetDimensions((float)center.x - halfModSize.x, (float)center.x + halfModSize.x, (float)center.y - halfModSize.y, (float)center.y + halfModSize.y, this->zDepth);
-	}
-	// Default, follow the previously chosen size for the element.
-	else {
-		//    std::cout<<"\nResizing geometry: L"<<left<<" R"<<right<<" B"<<bottom<<" T"<<top<<" Z"<<this->zDepth;
-		this->mesh->SetDimensions((float)left, (float)right, (float)bottom, (float)top, this->zDepth);
-	}
 
 	for (int i = 0; i < children.Size(); ++i){
 		children[i]->ResizeGeometry(graphicsState);
 	}
-	// Mark as not buffered to refresh it properly
-	isBuffered = false;
-	previousTextSizeRatio = 1.f; // Reset to allow larger text if we are using the minimum criteria for rapdily changing text-slots ( such as distance).
+
+	text.SetPreviousTextSizeRatio(1.f); // Reset to allow larger text if we are using the minimum criteria for rapdily changing text-slots ( such as distance).
+
+	// Always re-bufferize after resizing geos.
+	Bufferize();
 }
+
 void UIElement::DeleteGeometry()
 {
 //	assert(mesh);
-	if (mesh == NULL)
-		return;
-	delete mesh;
-	mesh = NULL;
+	visuals.DeleteGeometry();
+
 	for (int i = 0; i < children.Size(); ++i){
 		children[i]->DeleteGeometry();
 	}
@@ -2507,11 +1657,10 @@ void UIElement::DeleteGeometry()
 
 void UIElement::InheritDefaults(UIElement * child) {
 	// Inherit some defaults?
-	child->fontDetails = fontDetails;
-	child->forceUpperCase = forceUpperCase;
-	child->textPaddingPixels = textPaddingPixels;
-	if (text.colors != nullptr)
-		child->SetTextColors(*text.colors);
+	child->text = text;
+	child->layout.padding = layout.padding;
+	if (text.GetColors() != nullptr)
+		child->SetTextColors(*text.GetColors());
 };
 
 void UIElement::SetState(int newState) {
@@ -2543,10 +1692,10 @@ bool UIElement::AddStateSilently(int i_state, bool force) {
 	}
 	else { // Check early out if not forcing.
 		// Return if trying to add invalid state.
-		if (!hoverable && i_state & UIState::HOVER)
+		if (!interaction.hoverable && i_state & UIState::HOVER)
 			return false;
 		// Don't allow activating an non-activatable element.
-		if (!activateable && i_state & UIState::ACTIVE)
+		if (!interaction.activateable && i_state & UIState::ACTIVE)
 			return false;
 		// Ignore activating if it's disabled.
 		if (HasState(UIState::DISABLED) && i_state & UIState::ACTIVE)
@@ -2555,9 +1704,9 @@ bool UIElement::AddStateSilently(int i_state, bool force) {
 
 	if (i_state == UIState::HOVER)
 	{
-		if (inputState->demandActivatableForHoverElements && !activateable)
+		if (inputState->demandActivatableForHoverElements && !interaction.activateable)
 			return false;
-		if (inputState->demandHighlightOnHoverForHoverElements && !highlightOnHover)
+		if (inputState->demandHighlightOnHoverForHoverElements && !visuals.highlightOnHover)
 			return false;
 		for (int i = 0; i < borderElements.Size(); ++i) {
 			borderElements[i]->state |= i_state;
@@ -2665,16 +1814,18 @@ void UIElement::RemoveFlags(UIFlag flags){
 	}
 }
 
+#include "UI/UILabel.h"
+
 UILabel::UILabel(String name /*= ""*/)
 : UIElement()
 {
 	this->name = name;
 	SetText(name);
 	type = UIType::LABEL;
-	hoverable = false;
-	navigatable = false;
-	highlightOnHover = false;
-	selectable = activateable = false;
+	interaction.hoverable = false;
+	interaction.navigatable = false;
+	visuals.highlightOnHover = false;
+	interaction.selectable = interaction.activateable = false;
 };
 
 UILabel::~UILabel()
@@ -2686,7 +1837,7 @@ UISliderHandle::UISliderHandle()
 : UIElement()
 {
 	type = UIType::SLIDER_HANDLE;
-	moveable = true;
+	interaction.moveable = true;
 };
 
 UISliderHandle::~UISliderHandle()
@@ -2737,9 +1888,9 @@ void UIElement::EnsureVisibility(GraphicsState* graphicsState, UIElement * eleme
 
 /// Sets color, but may also update corner/edge elements to use the same color multiplier as well.
 void UIElement::SetColor(Vector4f color) {
-	this->color = color;
+	this->visuals.color = color;
 	for (int i = 0; i < borderElements.Size(); ++i) {
-		borderElements[i]->color = color;
+		borderElements[i]->visuals.color = color;
 	}
 }
 

@@ -21,7 +21,7 @@ public:
 	~UIParser();
 
 	/// Default values that can be set when parsing
-	int defaultAlignment = UIElement::NULL_ALIGNMENT;
+	int defaultAlignment = NULL_ALIGNMENT;
 	String defaultTexture = "default.png";
 	String defaultParent = "root";
 	String defaultRootFolder = "";
@@ -41,7 +41,7 @@ public:
 	int defaultTextPadding = 4;
 	String defaultOnTrigger = "";
 	Vector2f defaultDivider = Vector2f(0.5f, 0.5f);
-	int defaultTextAlignment = UIElement::LEFT;
+	int defaultTextAlignment = LEFT;
 	String defaultFontSource = String("");
 	String defaultFontShader = String("Font");
 
@@ -53,10 +53,10 @@ public:
 	String line;
 
 	/// Loads from target file, using given root as root-element in the UI-hierarchy.
-	UIElement* LoadFromFile(String filePath, UserInterface * ui);
+	UIElement* LoadFromFile(GraphicsState* graphicsState, String filePath, UserInterface * ui);
 
 	// Checks for defaultSize, defaultTexture, etc.
-	void ParseDefaults(List<String> tokens);
+	void ParseDefaults(GraphicsState * graphicsState, List<String> tokens);
 	// Checks for Button, Checkbox, List, etc.
 	void ParseNewUIElements();
 
@@ -67,7 +67,7 @@ public:
 
 	void SetDefaults(UIElement * forElement);
 
-	void AddPreviousToUIIfNeeded();
+	void AddPreviousToUIIfNeeded(GraphicsState* graphicsState);
 
 private:
 	UIElement * root;

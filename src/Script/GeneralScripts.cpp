@@ -9,6 +9,7 @@
 #include "Graphics/Messages/GMUI.h"
 #include "UI/UIImage.h"
 #include "Window/AppWindowManager.h"
+#include "UI/UILabel.h"
 
 WaitScript::WaitScript(String line, Script * parent)
 : Script(line, parent)
@@ -99,7 +100,7 @@ void OverlayScript::OnBegin()
 	if (!ui || !ui->GetElementByName(OVERLAY_FADE_UI_1))
 	{
 		UIImage * image = new UIImage("NULL");
-		image->color[3] = 0.0f;
+		image->visuals.color[3] = 0.0f;
 		String imageUIName = OVERLAY_FADE_UI_1;
 		image->name = imageUIName;
 		Graphics.QueueMessage(new GMAddGlobalUI(image));
@@ -107,8 +108,8 @@ void OverlayScript::OnBegin()
 
 		// Create second image to blend between.
 		image = new UIImage("NULL");
-		image->color[3] = 0.0f;
-		image->color = Vector4f(1,1,1,0);
+		image->visuals.color[3] = 0.0f;
+		image->visuals.color = Vector4f(1,1,1,0);
 		image->name = OVERLAY_FADE_UI_2;
 		overlayUI[LAYER_2] = image;
 		Graphics.QueueMessage(new GMAddGlobalUI(image));
@@ -116,10 +117,10 @@ void OverlayScript::OnBegin()
 		// Create text-ui. Default it center and a bit down?
 		UILabel * label = new UILabel();
 		label->name = OVERLAY_UI_TEXT;
-		label->sizeRatioX = 0.8f;
-		label->sizeRatioY = 0.2f;
-		label->alignmentY = 0.2f;
-		label->textureSource = "80Gray50Alpha.png";
+		label->layout.sizeRatioX = 0.8f;
+		label->layout.sizeRatioY = 0.2f;
+		label->layout.alignmentY = 0.2f;
+		label->visuals.textureSource = "80Gray50Alpha.png";
 		overlayUI[GT_TEXT] = label;
 		Graphics.QueueMessage(new GMAddGlobalUI(label));
 	}
@@ -153,7 +154,7 @@ float OverlayScript::GetLayerAlpha(int layer)
 		case BACKGROUND:
 		case LAYER_1:
 		case LAYER_2:
-			return overlayUI[layer]->color[3];
+			return overlayUI[layer]->visuals.color[3];
 			break;
 	}
 	throw 3;

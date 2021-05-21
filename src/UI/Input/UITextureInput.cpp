@@ -50,6 +50,7 @@ bool UITextureInput::HandleDADFiles(List<String> files){
 }
 
 
+#include "UI/UILabel.h"
 
 /// Creates the label and input.
 void UITextureInput::CreateChildren(GraphicsState* graphicsState)
@@ -59,16 +60,16 @@ void UITextureInput::CreateChildren(GraphicsState* graphicsState)
 
 	/// Use a column-list to automatically get links between the elements, etc.
 	UIColumnList * box = new UIColumnList();
-	box->padding = this->padding;
+	box->layout.padding = layout.padding;
 	AddChild(nullptr, box);
 
 	int elements = 1 + 2;
-	float spaceLeft = 1.0f - padding * elements;
+	float spaceLeft = 1.0f - layout.padding * elements;
 	float spacePerElement = spaceLeft / elements;
 
 	/// Create a label
 	label = new UILabel(name);
-	label->sizeRatioX = 0.3f;
+	label->layout.sizeRatioX = 0.3f;
 	box->AddChild(nullptr, label);
 
 	/// Create 3 children
@@ -76,12 +77,12 @@ void UITextureInput::CreateChildren(GraphicsState* graphicsState)
 	/// Set them to only accept floats?
 	input->name = name + "Input";
 	input->SetText("");
-	input->sizeRatioX = 0.55f;
+	input->layout.sizeRatioX = 0.55f;
 //	input->onTrigger = "UIStringInput("+name+")";
 	box->AddChild(nullptr, input);
 
 	uiImage = new UIImage("Black");
-	uiImage->sizeRatioX = 0.1f;
+	uiImage->layout.sizeRatioX = 0.1f;
 	box->AddChild(nullptr, uiImage);
 	childrenCreated = true;
 }

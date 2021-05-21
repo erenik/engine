@@ -20,14 +20,15 @@
 #include "UI/Buttons/UIRadioButtons.h"
 #include "UI/Buttons/UICheckbox.h"
 #include "UI/UIFileBrowser.h"
+#include "UI/UILabel.h"
 #include <iomanip>
 
 // Parsing stuff
 
-#define ADD_PREVIOUS_TO_UI_IF_NEEDED AddPreviousToUIIfNeeded();
+#define ADD_PREVIOUS_TO_UI_IF_NEEDED AddPreviousToUIIfNeeded(graphicsState);
 
 UIParser::UIParser()
-	: defaultAlignment(UIElement::NULL_ALIGNMENT)
+	: defaultAlignment(NULL_ALIGNMENT)
 	, defaultTexture ("")
 	, defaultParent ("root")
 	, defaultRootFolder ("")
@@ -45,7 +46,7 @@ UIParser::UIParser()
 	, defaultTextSize ( 1.0f)
 	, defaultOnTrigger ( "")
 	, defaultDivider ( Vector2f(0.5f, 0.5f))
-	, defaultTextAlignment ( UIElement::LEFT)
+	, defaultTextAlignment ( LEFT)
 	, defaultFontSource("")
 	, defaultFontShader("")
 	, lastEvaluatedIndex ( 0)
@@ -60,12 +61,12 @@ UIParser::~UIParser() {
 
 
 /// Loads from target file, using given root as root-element in the UI-hierarchy.
-UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
+UIElement* UIParser::LoadFromFile(GraphicsState* graphicsState, String filePath, UserInterface * ui){
 		
 	// Set defaults from global (possibly game-specific) vars to initialize the parser with font, fontShader data.
 	defaultFontShader = String(TextFont::defaultFontShader);
 	defaultFontSource = String(TextFont::defaultFontSource);
-	this->defaultForceUpperCase = UIElement::defaultForceUpperCase;
+	this->defaultForceUpperCase = UIText::defaultForceUpperCase;
 
 	root = new UIElement();
 	root->SetRootDefaults(ui);
@@ -199,7 +200,7 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 				parsingState = MID_COMMENT;
 				continue;
 			}
-			ParseDefaults(tokens);
+			ParseDefaults(graphicsState, tokens);
 			if (token == "root") {
 				if (tokens.Size() > 1) {
 					delete root;
@@ -230,7 +231,7 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 				SET_DEFAULTS
 			}
 			else if (token == "Button") {
-				AddPreviousToUIIfNeeded();
+				AddPreviousToUIIfNeeded(graphicsState);
 				element = new UIButton();
 				SetDefaults(element);
 				if (tokens.Size() > 1) {
@@ -241,7 +242,7 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 				}
 			}
 			else if (token == "Label") {
-				AddPreviousToUIIfNeeded();
+				AddPreviousToUIIfNeeded(graphicsState);
 				element = new UILabel();
 				SetDefaults(element);
 				if (tokens.Size() > 1) {
@@ -251,7 +252,7 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 			}
 			else if (token == "TextField" || token == "Input")
 			{
-				AddPreviousToUIIfNeeded();
+				AddPreviousToUIIfNeeded(graphicsState);
 				element = new UITextField();
 				SetDefaults(element);
 					if (tokens.Size() > 1)
@@ -280,7 +281,7 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 				SET_DEFAULTS
 			}
 			else if (token == "checkbox") {
-				AddPreviousToUIIfNeeded();
+				AddPreviousToUIIfNeeded(graphicsState);
 				String firstToken = tokens[1];
 				UICheckbox * checkBox = new UICheckbox(firstToken);
 				SetDefaults(checkBox);
@@ -299,7 +300,7 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 				ddm->CreateChildren(nullptr);
 			}
 			else if (token == "FileBrowser") {
-				AddPreviousToUIIfNeeded();
+				AddPreviousToUIIfNeeded(graphicsState);
 				UIFileBrowser* fileBrowser = new UIFileBrowser(firstQuote, "UnassignedAction", "");
 				element = fileBrowser;
 				SetDefaults(element);
@@ -333,7 +334,7 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 				element->SetText(firstQuote);
 			}
 			else if (token == "FileInput") {
-				AddPreviousToUIIfNeeded();
+				AddPreviousToUIIfNeeded(graphicsState);
 				String firstToken = tokens[1];
 				UIFileInput * fi = new UIFileInput(firstToken, "Set" + firstToken);
 				SetDefaults(fi);
@@ -368,7 +369,7 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 				SetDefaults(ii);
 				element = ii;
 				ii->SetText(firstQuote);
-				element->hoverable = element->activateable = false;
+				element->interaction.hoverable = element->interaction.activateable = false;
 				ii->guiInputDisabled = true;
 			}
 			else if (token == "StringLabel") // Creates an String-display which is not interactable via GUI, just for display.
@@ -379,7 +380,7 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 				SetDefaults(si);
 				element = si;
 				element->SetText(firstQuote);
-				element->hoverable = element->activateable = false;
+				element->interaction.hoverable = element->interaction.activateable = false;
 				si->guiInputDisabled = true;
 			}
 			else if (token == "FloatInput") {
@@ -391,13 +392,13 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 				element->SetText(firstQuote);
 			}
 			else if (token == "FloatLabel") {
-				AddPreviousToUIIfNeeded();
+				AddPreviousToUIIfNeeded(graphicsState);
 				String firstToken = tokens[1];
 				UIFloatInput * fi = new UIFloatInput(firstToken, "Set" + firstToken);
 				SetDefaults(fi);
 				element = fi;
 				element->SetText(firstQuote);
-				element->hoverable = element->activateable = false;
+				element->interaction.hoverable = element->interaction.activateable = false;
 			}
 			else if (token == "FloatValue")
 			{
@@ -410,7 +411,7 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 				}
 			}
 			else if (token == "VectorInput") {
-				AddPreviousToUIIfNeeded();
+				AddPreviousToUIIfNeeded(graphicsState);
 				String action = "Set" + secondQuote;
 				if (firstQuote.IsNumber()) {
 					UIVectorInput * vi = new UIVectorInput(firstQuote.ParseInt(), secondQuote, action);
@@ -447,12 +448,12 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 			}
 			else if (token == "Image")
 			{
-				ADD_PREVIOUS_TO_UI_IF_NEEDED
-					UIImage * image = new UIImage(firstQuote, secondQuote);
+				AddPreviousToUIIfNeeded(graphicsState);
+				UIImage * image = new UIImage(firstQuote, secondQuote);
 				element = image;
-				SET_DEFAULTS
-					if (secondQuote.Length())
-						image->textureSource = secondQuote;
+				SetDefaults(image);
+				if (secondQuote.Length())
+					image->visuals.textureSource = secondQuote;
 			}
 			else if (token == "Bar") {
 				ADD_PREVIOUS_TO_UI_IF_NEEDED
@@ -469,7 +470,7 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 			}
 			/// Single expressions that apply effects to an element
 			else if (token == "navigateUIOnPush") {
-				element->navigateUIOnPush = true;
+				element->interaction.navigateUIOnPush = true;
 			}
 			else if (token == "disabled")
 			{
@@ -477,7 +478,7 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 			}
 			else if (token == "forceUpperCase") {
 				EnsureNextToken(tokens);
-				element->forceUpperCase = tokens[1].ParseBool();
+				element->text.forceUpperCase = tokens[1].ParseBool();
 			}
 			else if (token == "noBorders") {
 				if (element != nullptr)
@@ -551,7 +552,7 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 			}
 			else if (token == "Padding") {
 				EnsureNextToken(tokens);
-				element->padding = NEXT_TOKEN.ParseFloat();
+				element->layout.padding = NEXT_TOKEN.ParseFloat();
 			}
 			else if (token == "OnActivate") {
 				ENSURE_NEXT_TOKEN
@@ -578,20 +579,20 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 			}
 			else if (token == "onExit") {
 				ENSURE_NEXT_TOKEN
-					element->onExit = NEXT_TOKEN;
+					element->interaction.onExit = NEXT_TOKEN;
 			}
 			else if (token == "exitable") {
 				ENSURE_NEXT_TOKEN
-					element->exitable = (NEXT_TOKEN).ParseBool();
+					element->interaction.exitable = (NEXT_TOKEN).ParseBool();
 			}
 			else if (token == "hoverable")
 			{
 				ENSURE_NEXT_TOKEN;
-				element->hoverable = NEXT_TOKEN.ParseBool();
+				element->interaction.hoverable = NEXT_TOKEN.ParseBool();
 			}
 			else if (token == "activatable") {
 				EnsureNextToken(tokens);
-				element->activateable = NextToken(tokens).ParseBool();
+				element->interaction.activateable = NextToken(tokens).ParseBool();
 			}
 			else if (token == "deleteOnPop") {
 				EnsureNextToken(tokens);
@@ -600,11 +601,11 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 			else if (token == "highlightOnHover")
 			{
 				EnsureNextToken(tokens);
-				element->highlightOnHover = NextToken(tokens).ParseBool();
+				element->visuals.highlightOnHover = NextToken(tokens).ParseBool();
 			}
 			else if (token == "highlightOnActive") {
 				EnsureNextToken(tokens);
-				element->highlightOnActive = NextToken(tokens).ParseBool();
+				element->visuals.highlightOnActive = NextToken(tokens).ParseBool();
 			}
 			else if (token == "LabelText")
 			{
@@ -614,15 +615,15 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 			else if (token == "visible" || token == "visibility")
 			{
 				ENSURE_NEXT_TOKEN
-					element->visible = (NEXT_TOKEN).ParseBool();
+					element->interaction.visible = (NEXT_TOKEN).ParseBool();
 			}
 			else if (token == "font") {
 				EnsureNextToken(tokens);
-				element->fontDetails.source = firstQuote;
+				element->text.fontDetails.source = firstQuote;
 			}
 			else if (token == "fontShader") {
 				EnsureNextToken(tokens);
-				element->fontDetails.shader = tokens[1];
+				element->text.fontDetails.shader = tokens[1];
 			}
 			else if (token == "maxDecimals") {
 				ENSURE_NEXT_TOKEN;
@@ -658,9 +659,9 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 					radio->SetTextureSource(param);
 				}
 				if (param == "NULL")
-					element->textureSource = String();
+					element->visuals.textureSource = String();
 				else
-					element->textureSource = defaultRootFolder + param;
+					element->visuals.textureSource = defaultRootFolder + param;
 			}
 			else if (token == "text")
 			{
@@ -741,20 +742,20 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 			}
 			else if (token == "textSizeRatio" || token == "textSize") {
 				ENSURE_NEXT_TOKEN
-					element->textSizeRatio = NEXT_TOKEN.ParseFloat();
+					element->text.sizeRatio = NEXT_TOKEN.ParseFloat();
 			}
 			else if (token == "textAlignment")
 			{
 				value.SetComparisonMode(String::NOT_CASE_SENSITIVE);
 				if (value == "Center")
 				{
-					element->textAlignment = UIElement::CENTER;
+					element->text.alignment = CENTER;
 				}
 				else if (value == "Right") {
-					element->textAlignment = UIElement::RIGHT;
+					element->text.alignment = RIGHT;
 				}
 				else if (value == "Left") {
-					element->textAlignment = UIElement::LEFT;
+					element->text.alignment = LEFT;
 				}
 			}
 			else if (token == "dividerX")
@@ -764,58 +765,58 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 			}
 			else if (token == "textPadding") {
 				EnsureNextToken(tokens);
-				element->textPaddingPixels = NextToken(tokens).ParseInt();
+				element->text.paddingPixels = NextToken(tokens).ParseInt();
 			}
 			else if (token == "origin") {
 				ENSURE_NEXT_TOKEN
 					element->origin = NEXT_TOKEN.ParseInt();
 			}
 			else if (token == "scalable") {
-				ENSURE_NEXT_TOKEN
-					element->scalable = NEXT_TOKEN.ParseBool();
+				EnsureNextToken(tokens);
+				element->scalable = NEXT_TOKEN.ParseBool();
 			}
 			else if (token == "formatX") {
-				ENSURE_NEXT_TOKEN
-					element->formatX = NEXT_TOKEN.ParseBool();
+				EnsureNextToken(tokens);
+				element->formatX = NEXT_TOKEN.ParseBool();
 			}
 			else if (token == "lineSizeRatio")
 			{
-				ENSURE_NEXT_TOKEN
-					element->lineSizeRatio = NEXT_TOKEN.ParseFloat();
+				EnsureNextToken(tokens);
+				element->text.lineSizeRatio = NEXT_TOKEN.ParseFloat();
 			}
 			else if (token == "sizeRatioX") {
 				ENSURE_NEXT_TOKEN
-					element->sizeRatioX = NEXT_TOKEN.ParseFloat();
+					element->layout.sizeRatioX = NEXT_TOKEN.ParseFloat();
 			}
 			else if (token == "sizeRatioY") {
 				ENSURE_NEXT_TOKEN
-					element->sizeRatioY = NEXT_TOKEN.ParseFloat();
+					element->layout.sizeRatioY = NEXT_TOKEN.ParseFloat();
 			}
 			else if (token == "sizeRatio") {
 				ENSURE_NEXT_TOKEN
-					element->sizeRatioX = element->sizeRatioY = NEXT_TOKEN.ParseFloat();
+					element->layout.sizeRatioX = element->layout.sizeRatioY = NEXT_TOKEN.ParseFloat();
 			}
 			else if (token == "sizeRatioXY") {
 				if (tokens.Size() < 3)
 					continue;
-				element->sizeRatioX = tokens[1].ParseFloat();
-				element->sizeRatioY = tokens[2].ParseFloat();
+				element->layout.sizeRatioX = tokens[1].ParseFloat();
+				element->layout.sizeRatioY = tokens[2].ParseFloat();
 			}
 			else if (token == "alignment") {
 				EnsureNextToken(tokens);
-				element->alignment = UIElement::GetAlignment(NEXT_TOKEN);
+				element->layout.alignment = GetAlignment(NEXT_TOKEN);
 			}
 			else if (token == "retainAspectRatio") {
 				EnsureNextToken(tokens);
-				element->retainAspectRatioOfTexture = NextToken(tokens).ParseBool();
+				element->visuals.retainAspectRatioOfTexture = NextToken(tokens).ParseBool();
 			}
 			else if (token == "maxWidth") {
 				EnsureNextToken(tokens);
-				element->maxWidth = tokens[1].ParseInt();
+				element->layout.maxWidth = tokens[1].ParseInt();
 			}
 			else if (token == "alignmentX") {
 				EnsureNextToken(tokens);
-				element->alignmentX = NEXT_TOKEN.ParseFloat();
+				element->layout.alignmentX = NEXT_TOKEN.ParseFloat();
 			}
 			else if (token == "bottomBorder") {
 				EnsureNextToken(tokens);
@@ -856,27 +857,27 @@ UIElement* UIParser::LoadFromFile(String filePath, UserInterface * ui){
 			}
 			else if (token == "alignmentY") {
 				ENSURE_NEXT_TOKEN
-					element->alignmentY = NEXT_TOKEN.ParseFloat();
+					element->layout.alignmentY = NEXT_TOKEN.ParseFloat();
 			}
 			else if (token == "alignmentXY" || token == "alignment") {
 				if (tokens.Size() < 3)
 					continue;
-				element->alignmentX = tokens[1].ParseFloat();
-				element->alignmentY = tokens[2].ParseFloat();
-				int b = element->alignmentY + 3;
+				element->layout.alignmentX = tokens[1].ParseFloat();
+				element->layout.alignmentY = tokens[2].ParseFloat();
+				int b = element->layout.alignmentY + 3;
 			}
 			else if (token == "rightNeighbour") {
-				element->rightNeighbourName = NEXT_TOKEN;
+				element->interaction.rightNeighbourName = NEXT_TOKEN;
 			}
 
 			else if (token == "leftNeighbour") {
-				element->leftNeighbourName = NEXT_TOKEN;
+				element->interaction.leftNeighbourName = NEXT_TOKEN;
 			}
 			else if (token == "topNeighbour" || token == "upNeighbour") {
-				element->upNeighbourName = NEXT_TOKEN;
+				element->interaction.upNeighbourName = NEXT_TOKEN;
 			}
 			else if (token == "bottomNeighbour" || token == "downNeighbour") {
-				element->downNeighbourName = NEXT_TOKEN;
+				element->interaction.downNeighbourName = NEXT_TOKEN;
 			}
 			else if (token == "AddTo") {
 				if (tokens.Size() > 1) {
@@ -988,47 +989,47 @@ String UIParser::NextToken(const List<String> fromTokens) {
 }
 
 void UIParser::SetDefaults(UIElement * element) {
-	element->alignment = defaultAlignment;
-	element->textureSource = defaultTexture;
+	element->layout.alignment = defaultAlignment;
+	element->visuals.textureSource = defaultTexture;
 	element->scalable = defaultScalability;
 	if (defaultTextColor)
 		element->SetTextColors(*defaultTextColor);
-	element->sizeRatioY = defaultSizeRatioY; 
-	element->sizeRatioX = defaultSizeRatioX; 
-	element->padding = defaultPadding; 
-	element->textPaddingPixels = defaultTextPadding;
-	element->textSizeRatio = defaultTextSize; 
+	element->layout.sizeRatioY = defaultSizeRatioY; 
+	element->layout.sizeRatioX = defaultSizeRatioX; 
+	element->layout.padding = defaultPadding; 
+	element->text.paddingPixels = defaultTextPadding;
+	element->text.sizeRatio = defaultTextSize; 
 	element->onTrigger = defaultOnTrigger; 
-	element->fontDetails.source = defaultFontSource;
-	element->fontDetails.shader = defaultFontShader;
-	element->visible = defaultVisibility; 
+	element->text.fontDetails.source = defaultFontSource;
+	element->text.fontDetails.shader = defaultFontShader;
+	element->interaction.visible = defaultVisibility; 
 	element->divider = defaultDivider; 
-	element->textAlignment = defaultTextAlignment; 
+	element->text.alignment = defaultTextAlignment; 
 	element->SetForceUpperCase(defaultForceUpperCase);
-	element->exitable = defaultExitability; 
+	element->interaction.exitable = defaultExitability; 
 	element->topBorderTextureSource = defaultTopBorder;
 	element->bottomBorderTextureSource = defaultBottomBorder;
 	element->rightBorderTextureSource = defaultRightBorder; 
 	element->topRightCornerTextureSource = defaultTopRightCorner; 
 }
 
-void UIParser::AddPreviousToUIIfNeeded() {
+void UIParser::AddPreviousToUIIfNeeded(GraphicsState* graphicsState) {
 	// Skip root if it was custom-typed.
 	if (element == root)
 		return;
 	if (element && element != root) {
-		bool addedOK = root->AddToParent(nullptr, defaultParent, element); 
+		bool addedOK = root->AddToParent(graphicsState, defaultParent, element);
 		if (!addedOK)
 			delete element; 
 		else
-			element->CreateChildren(nullptr); 
+			element->CreateChildren(graphicsState); 
 	}
 	element = NULL; 
 }
 
 
 // Checks for defaultSize, defaultTexture, etc.
-void UIParser::ParseDefaults(List<String> tokens) {
+void UIParser::ParseDefaults(GraphicsState * graphicsState, List<String> tokens) {
 	String token = tokens[0];
 	String value;
 	if (tokens.Size() > 1)
@@ -1038,12 +1039,12 @@ void UIParser::ParseDefaults(List<String> tokens) {
 	if (token == "defaultAlignment") {
 		EnsureNextToken(tokens);
 		EnsureNextToken(tokens);
-		defaultAlignment = UIElement::GetAlignment(NEXT_TOKEN);
+		defaultAlignment = GetAlignment(NEXT_TOKEN);
 	}
 		else if (token == "defaultTextAlignment")
 	{
 	EnsureNextToken(tokens);
-		defaultTextAlignment = UIElement::GetAlignment(value);
+		defaultTextAlignment = GetAlignment(value);
 	}
 	else if (token == "defaultTexture") {
 		EnsureNextToken(tokens);
@@ -1088,7 +1089,7 @@ void UIParser::ParseDefaults(List<String> tokens) {
 	else if (token == "defaultParent" ||
 		token == "parent")
 	{
-		AddPreviousToUIIfNeeded();
+		AddPreviousToUIIfNeeded(graphicsState);
 		EnsureNextToken(tokens);
 		defaultParent = NEXT_TOKEN;
 	}
@@ -1192,7 +1193,4 @@ void UIParser::ParseDefaults(List<String> tokens) {
 void UIParser::ParseNewUIElements() {
 
 }
-
-
-
 

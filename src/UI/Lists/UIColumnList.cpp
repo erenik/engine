@@ -58,7 +58,7 @@ bool UIColumnList::AddChild(GraphicsState* graphicsState, UIElement* child)
 	/// If first child, place it at the top.
 	if (children.Size() == 0){
 		UIElement::AddChild(graphicsState, child);
-		child->alignmentX = 0.0f + child->sizeRatioX * 0.5f + padding;
+		child->layout.alignmentX = 0.0f + child->layout.sizeRatioX * 0.5f + layout.padding;
 		return true;
 	}
 	// If not, find bottom child (or, bottom edge.!
@@ -69,23 +69,23 @@ bool UIColumnList::AddChild(GraphicsState* graphicsState, UIElement* child)
 	for (int i = 0; i < children.Size(); ++i){
 		UIElement * c = children[i];
 		rightmost = c;
-		float childLeftEdge = c->alignmentX + c->sizeRatioX * 0.5f;
+		float childLeftEdge = c->layout.alignmentX + c->layout.sizeRatioX * 0.5f;
 		if (childLeftEdge > left)
 			left = childLeftEdge;
 	}
 	UIElement::AddChild(graphicsState, child);
-	child->alignmentX = left + child->sizeRatioX * 0.5f + padding;
+	child->layout.alignmentX = left + child->layout.sizeRatioX * 0.5f + layout.padding;
 
     // Bind them for proper navigation.
     if (rightmost){
-		rightmost->rightNeighbour = child;
-        rightmost->rightNeighbourName = child->name;
-		child->leftNeighbour = rightmost;
-        child->leftNeighbourName = rightmost->name;
+		rightmost->interaction.rightNeighbour = child;
+        rightmost->interaction.rightNeighbourName = child->name;
+		child->interaction.leftNeighbour = rightmost;
+        child->interaction.leftNeighbourName = rightmost->name;
     }
 
 	/// Check if we should add scroll-bars to zis list!
-	if (child->alignmentX + child->sizeRatioX * 0.5f > 1.0f){
+	if (child->layout.alignmentX + child->layout.sizeRatioX * 0.5f > 1.0f){
 		// assert(false && "Implement automatic scrollbars for your columns lists, yo!");
 		LogMain("Implement automatic scrollbars for your columns lists, yo!", INFO);
 
@@ -112,7 +112,7 @@ UIElement * UIColumnList::GetLeftNeighbour(UIElement * referenceElement, bool & 
 				if (child->isSysElement)
 					continue;
 				/// If activatable? Return it straight away.
-				if (child->activateable)
+				if (child->interaction.activateable)
 					return child;
 				
 				// Set to only search children now!
@@ -124,7 +124,7 @@ UIElement * UIColumnList::GetLeftNeighbour(UIElement * referenceElement, bool & 
 				if (!child->HasActivatables())
 					continue;
 
-				UIElement * pew = child->GetElementClosestToInY(referenceElement->position, true);
+				UIElement * pew = child->GetElementClosestToInY(referenceElement->layout.position, true);
 				if (pew)
 					return pew;
 			}
@@ -176,11 +176,11 @@ UIElement * UIColumnList::GetRightNeighbour(UIElement * referenceElement, bool &
 				if (child->isSysElement)
 					continue;
 				/// If activatable? Return it straight away.
-				if (child->activateable)
+				if (child->interaction.activateable)
 					return child;
 				// Set to only search children now!
 				searchChildrenOnly = true;
-				UIElement * neighbour = child->GetElementClosestToInY(referenceElement->position, true);
+				UIElement * neighbour = child->GetElementClosestToInY(referenceElement->layout.position, true);
 		//		if (neighbour == child)
 		//			continue;		
 //					child->GetDownNeighbour(referenceElement, searchChildrenOnly);

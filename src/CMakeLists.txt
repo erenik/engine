@@ -316,7 +316,9 @@ macro (addProject ProjectName projectSrcDir engineSrcDir)
 	# linker flags o.o'
 	set(CMAKE_CXX_FLAGS_DEBUG  "/Od /ZI /MP /MDd")
 	set(CMAKE_EXE_LINKER_FLAGS_DEBUG "/OPT:NOREF /OPT:NOICF /INCREMENTAL /DEBUG")
-	
+
+	set(CMAKE_CXX_STANDARD 14)
+
 #	set(CMAKE_CXX_FLAGS_DEBUG        "/Od /MP /EHsc /RTC1 /MTd /W3 /nologo /c /ZI /TP /errorReport:prompt")
 #	message("Debug flags: ${CMAKE_CXX_FLAGS_DEBUG}")
 

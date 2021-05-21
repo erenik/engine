@@ -159,7 +159,7 @@ public:
 
 	/// Modification functions
 	/// Converts all characters to uppercase if possible
-	void ToUpperCase();
+	const String& ToUpperCase();
 
 	/// Returns the string as a char array pointer.
 	const char * c_str();

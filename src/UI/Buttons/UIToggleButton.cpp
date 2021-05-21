@@ -16,7 +16,7 @@ UIToggleButton::UIToggleButton(String name /*= ""*/)
 {
 	Nullify();
 	// Set default texture to get proper animation for when hovering/activating it.
-	textureSource = defaultTextureSource;
+	visuals.textureSource = visuals.defaultTextureSource;
 
 	// Default toggle button - bright and dark backgrounds.
 	onToggledTexture = defaultOnToggledTexture;
@@ -26,14 +26,14 @@ UIToggleButton::UIToggleButton(String name /*= ""*/)
 	SetText(name);
 	activationMessage = "SetBool:" + name;
 	type = UIType::TOGGLE_BUTTON;
-	selectable = true;
-	hoverable = true;
-	navigatable = true;
-	activateable = true;
 	toggled = false;
 
-	this->highlightOnActive = true;
-	this->highlightOnHover = true;
+	interaction.selectable = true;
+	interaction.hoverable = true;
+	interaction.navigatable = true;
+	interaction.activateable = true;
+	visuals.highlightOnActive = true;
+	visuals.highlightOnHover = true;
 
 	UpdateTexture();
 	UpdateTextColor(Color::White(), Color::Gray());
@@ -48,7 +48,7 @@ UIElement* UIToggleButton::Activate(GraphicsState* graphicsState)
 {
 	UIElement* result = 0;
 	// Don't process invisible UIElements, please.
-	if (visible == false)
+	if (interaction.visible == false)
 		return 0;
 
 	// Assume no checkbox has any children.
@@ -103,13 +103,12 @@ void UIToggleButton::RemoveState(int state, bool recursive /* = false */ ) {
 
 
 void UIToggleButton::UpdateTexture() {
-	this->texture = nullptr; // Force update of pointer to texture next frame.
-	textureSource = toggled? onToggledTexture : onNotToggledTexture;
+	this->visuals.texture = nullptr; // Force update of pointer to texture next frame.
+	visuals.textureSource = toggled? onToggledTexture : onNotToggledTexture;
 }
 
 void UIToggleButton::UpdateTextColor(const Color& toggledTextColor, const Color& notToggledTextColor) {
 	SetTextColors(Color());
-	text.colors->toggledIdle = new Color(toggledTextColor);
-	text.colors->notToggledIdle = new Color(notToggledTextColor);
+	text.UpdateTextColor(toggledTextColor, notToggledTextColor);
 }
 

@@ -22,19 +22,17 @@ UIScrollBar::UIScrollBar(String parentName)
 	name = parentName + " Scroll bar";
 	handle = NULL;
 
-	alignment = SCROLL_BAR_Y;
+	layout.alignment = SCROLL_BAR_Y;
 
-	selectable = true;
-	hoverable = true;
-	navigatable = true;
-	activateable = true;
+	interaction.DefaultTrue();	
 	isSysElement = true;
-	highlightOnHover = false;
-	highlightOnActive = false;
+
+	visuals.highlightOnHover = false;
+	visuals.highlightOnActive = false;
 
 	activationMessage = "BeginScroll(this)";
 
-	textureSource = defaultTextureSource;
+	visuals.textureSource = UIScrollBar::defaultTextureSource;
 }
 
 UIScrollBar::~UIScrollBar()
@@ -46,19 +44,19 @@ void UIScrollBar::CreateHandle()
 {
     assert(handle == NULL);
     handle = new UIScrollBarHandle(parent->name);
-	handle->sizeRatioX = 0.9f;
+	handle->layout.sizeRatioX = 0.9f;
  //   handle->text = "Joooooo";
     AddChild(nullptr, handle);
     previousSize = 1.0f;
 }
 
-void UIScrollBar::OnMouseY(int y)
+void UIScrollBar::OnMouseY(GraphicsState& graphicsState, int y)
 {
 	float pageSize = this->PageSize();
 	float halfPageSize = pageSize * 0.5f;
-	float pos = (y + halfPageSize)/ (float)this->sizeY;
+	float pos = (y + halfPageSize)/ (float)layout.sizeY;
 // Ensure.. within bounds?
-	handle->SetAlignmentY(pos);
+	handle->SetAlignmentY(graphicsState, pos);
 }
 
 /// Activation functions
@@ -68,7 +66,7 @@ UIElement * UIScrollBar::Hover(GraphicsState* graphicsState, int mouseX, int mou
 	// Update scroll position!
 	UIElement * element = UIElement::Hover(graphicsState, mouseX, mouseY);
 	if (element == this && inputState->lButtonDown)
-		OnMouseY(mouseY - bottom);
+		OnMouseY(*graphicsState, mouseY - layout.bottom);
 	return element;
 }
 
@@ -80,12 +78,12 @@ UIElement * UIScrollBar::Click(GraphicsState* graphicsState, int mouseX, int mou
 {
 	UIElement * result = 0;
 	// Don't process invisible UIElements, please.
-	if (visible == false)
+	if (interaction.visible == false)
 		return false;
 
 	// Check if the mouse is outside the element's boundaries.
-	if (mouseX > right || mouseX < left ||
-		mouseY > top || mouseY < bottom){
+	if (mouseX > layout.right || mouseX < layout.left ||
+		mouseY > layout.top || mouseY < layout.bottom){
 			// Return false if we are outside of the boundaries,
 			// since we haven't found the selected element.
 			SetState(UIState::IDLE);
@@ -94,8 +92,8 @@ UIElement * UIScrollBar::Click(GraphicsState* graphicsState, int mouseX, int mou
 	}
 
 	// Check axiomaticness (direct-activation without further processing)
-	if (axiomatic){
-		if (activateable){
+	if (interaction.axiomatic){
+		if (interaction.activateable){
 			AddState(graphicsState, UIState::ACTIVE);
 			return this;
 		}
@@ -104,14 +102,14 @@ UIElement * UIScrollBar::Click(GraphicsState* graphicsState, int mouseX, int mou
 
 	// OnActivate()?
 	// Update scroll position!
-	OnMouseY(mouseY - bottom);
+	OnMouseY(*graphicsState, mouseY - layout.bottom);
 
 
 	// Alright, the mouse is inside this element!
 	// Do we have children?
 	for (int i = children.Size()-1; i >= 0; --i){
 		UIElement * child = children[i];
-	    if (!child->visible)
+	    if (!child->interaction.visible)
             continue;
 		result = child->Click(graphicsState, mouseX, mouseY);
 		if (result != NULL){
@@ -124,7 +122,7 @@ UIElement * UIScrollBar::Click(GraphicsState* graphicsState, int mouseX, int mou
 
 	
 	// Check the element's state. If it is hovered over, we've found it.
-	if (this->activateable && HasState(UIState::HOVER)){
+	if (this->interaction.activateable && HasState(UIState::HOVER)){
 		AddState(graphicsState, UIState::ACTIVE);
 		return this;
 	}
@@ -139,9 +137,9 @@ void UIScrollBar::Update(GraphicsState* graphicsState, float newSize)
     float newPreviousSize = newSize;
     /// Adjust the handle's size and position.
     if (newSize <= 1.0f){
-        handle->sizeRatioY = 1.0f;
-        handle->alignmentY = 0.5f;
-        visible = false;
+        handle->layout.sizeRatioY = 1.0f;
+        handle->layout.alignmentY = 0.5f;
+        interaction.visible = false;
     }
     else {
 		/*
@@ -150,20 +148,20 @@ void UIScrollBar::Update(GraphicsState* graphicsState, float newSize)
 	    if (mesh)
             DeleteGeometry();
 			*/
-        float top = handle->alignmentY + handle->sizeRatioY * 0.5f;
-        handle->sizeRatioY = 1.0f / newSize;
-     //   std::cout<<"\nHandle sizeRatioY: "<<handle->sizeRatioY;
-        handle->alignmentY = top - handle->sizeRatioY * 0.5f;
+        float top = handle->layout.alignmentY + handle->layout.sizeRatioY * 0.5f;
+        handle->layout.sizeRatioY = 1.0f / newSize;
+     //   std::cout<<"\nHandle sizeRatioY: "<<handle->layout.sizeRatioY;
+        handle->layout.alignmentY = top - handle->layout.sizeRatioY * 0.5f;
 		handle->ResizeGeometry(graphicsState);
-     //   std::cout<<"\nHandle alignmentY: "<<handle->alignmentY;
-        visible = true;
+     //   std::cout<<"\nHandle alignmentY: "<<handle->layout.alignmentY;
+        interaction.visible = true;
     }
     previousSize = newPreviousSize;
 }
 
-float UIScrollBar::Move(float distance)
+float UIScrollBar::Move(GraphicsState& graphicsState, float distance)
 {
-    return handle->Move(distance);
+    return handle->Move(graphicsState, distance);
 }
 
 /// Returns current scroll position, based on the handle.
@@ -172,20 +170,20 @@ float UIScrollBar::GetScrollPosition()
 	return handle->GetScrollPosition();
 }
 
-void UIScrollBar::SetScrollPosition(float f)
+void UIScrollBar::SetScrollPosition(GraphicsState& graphicsState, float f)
 {
-	handle->SetScrollPosition(f);
+	handle->SetScrollPosition(graphicsState, f);
 }
 
 
 /// Returns the current relative start of the contents
 float UIScrollBar::GetStart()
 {
-    float pageSize = handle->sizeRatioY;
-    float handleStart = handle->alignmentY + handle->sizeRatioY * 0.5f;
+    float pageSize = handle->layout.sizeRatioY;
+    float handleStart = handle->layout.alignmentY + handle->layout.sizeRatioY * 0.5f;
     /// Divide by the size ratio to get how many pages down we are!
-    float start = (1.0f - handleStart) / handle->sizeRatioY;
-/*    std::cout<<"\nHandle alignmentY: "<<handle->alignmentY<<" sizeRatioY: "<<handle->sizeRatioY;
+    float start = (1.0f - handleStart) / handle->layout.sizeRatioY;
+/*    std::cout<<"\nHandle alignmentY: "<<handle->layout.alignmentY<<" sizeRatioY: "<<handle->layout.sizeRatioY;
     std::cout<<"\nPage size: "<<pageSize;
     std::cout<<"\nHandle start: "<<handleStart;
     std::cout<<"\nStart: "<<start;
@@ -194,8 +192,8 @@ float UIScrollBar::GetStart()
 }
 /// Returns the current relative start of the contents
 float UIScrollBar::GetStop(){
-    float contentSize = 1.0f / handle->sizeRatioY;
-    float handleStop = handle->alignmentY - handle->sizeRatioY * 0.5f;
+    float contentSize = 1.0f / handle->layout.sizeRatioY;
+    float handleStop = handle->layout.alignmentY - handle->layout.sizeRatioY * 0.5f;
     float stop = (1.0f - handleStop) * contentSize;
     return stop;
 }
@@ -204,16 +202,16 @@ float UIScrollBar::GetStop(){
 float UIScrollBar::PageSize(){
 	if (!handle)
 		return 1.0f;
-	return this->handle->sizeRatioY;
+	return this->handle->layout.sizeRatioY;
 }
 
 void UIScrollBar::PrintDebug()
 {
-    float pageSize = handle->sizeRatioY;
-    float handleStart = handle->alignmentY + handle->sizeRatioY * 0.5f;
+    float pageSize = handle->layout.sizeRatioY;
+    float handleStart = handle->layout.alignmentY + handle->layout.sizeRatioY * 0.5f;
     float start = (1.0f - handleStart) * pageSize;
 
-    std::cout<<"\nHandle alignmentY: "<<handle->alignmentY<<" sizeRatioY: "<<handle->sizeRatioY;
+    std::cout<<"\nHandle alignmentY: "<<handle->layout.alignmentY<<" sizeRatioY: "<<handle->layout.sizeRatioY;
     std::cout<<"\nPage size: "<<pageSize;
     std::cout<<"\nHandle start: "<<handleStart;
     std::cout<<"\nStart: "<<start;

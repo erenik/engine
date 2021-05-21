@@ -48,4 +48,7 @@ void SetupViewProjectionGL(int width, int height);
 void RenderTestTriangle();
 void RenderTestTriangle(float rot);
 
+/// Prints the values of the error code in decimal as well as hex and the literal meaning of it.
+void PrintGLError(const char * text);
+
 #endif

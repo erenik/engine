@@ -61,9 +61,9 @@ void GMSetViewports::Process(GraphicsState* graphicsState)
 		if (rv->uiSource && rv->ui == NULL)
 		{
 			UserInterface * ui = new UserInterface();
-			ui->Load(rv->uiSource);
+			ui->Load(graphicsState, rv->uiSource);
 			ui->CreateGeometry(graphicsState);
-			ui->AdjustToWindow(rv->size);
+			ui->AdjustToWindow(*graphicsState, rv->size);
 			ui->Bufferize(graphicsState);
 			rv->ui = ui;
 		}

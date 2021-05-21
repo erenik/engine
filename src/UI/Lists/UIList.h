@@ -63,13 +63,13 @@ public:
 	/// Returns the current scroll position.
 	float GetScrollPosition();
 	/// Set current scroll position.
-	void SetScrollPosition(float fValue);
+	void SetScrollPosition(GraphicsState& graphicsState, float fValue);
 
     /// Scroll, not capped.
 	virtual bool Scroll(GraphicsState* graphicsState, float absoluteDistanceInPages);
 
     /// Adjusts positions and sizes acording to any attached scroll-bars or other system UI elements.
-	void FormatElements();
+	void FormatElements(GraphicsState& graphicsState);
 
 	/// Rendering
 	virtual void Render(GraphicsState & graphicsState);

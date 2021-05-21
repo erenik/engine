@@ -190,7 +190,7 @@ UIElement * UserInterface::Hover(GraphicsState* graphicsState, int x, int y, boo
 		hoverElement = result;
 		/// If we always want a hovered element (for whatever reason).
 		if (!hoverElement && demandHovered && previous){
-			hoverElement = stackTop->Hover(graphicsState, previous->posX, previous->posY);
+			hoverElement = stackTop->Hover(graphicsState, previous->layout.posX, previous->layout.posY);
 		}
 	}
 
@@ -363,7 +363,7 @@ void UserInterface::DeleteGeometry()
 	If the values of width and height are the same as they were prior to the call
 	no change will occur and a false will be returned, otherwise it will return true.
 */
-bool UserInterface::AdjustToWindow(Vector2i size)
+bool UserInterface::AdjustToWindow(GraphicsState& graphicsState, Vector2i size)
 {
 	if (root == nullptr)
 		return false;
@@ -371,7 +371,14 @@ bool UserInterface::AdjustToWindow(Vector2i size)
 	if (width == size[0] && height == size[1])
 		return false;
 	width = size[0]; height = size[1];
-	root->AdjustToWindow(0, width, 0, height);
+	
+	windowLayout.left = 0;
+	windowLayout.right = width;
+	windowLayout.bottom = 0;
+	windowLayout.top = height;
+	windowLayout.CalcPosition();
+
+	root->AdjustToWindow(graphicsState, windowLayout);
 	return true;
 }
 
@@ -430,7 +437,7 @@ void UserInterface::PrintStack() {
 	toLog += "\nUI::PrintStack for UI: " + name;
 	toLog += "\nStack size: " + String(stack.Size());
 	for (int i = 0; i < stack.Size(); ++i) {
-		toLog += "\n "+String(i)+": " + stack[i]->name+", visible: "+ String(stack[i]->visible);
+		toLog += "\n "+String(i)+": " + stack[i]->name+", visible: "+ String(stack[i]->interaction.visible);
 	}
 	std::cout << toLog;
 }
@@ -478,7 +485,7 @@ UIElement * UserInterface::ActiveInputFocusElement()
 	UIElement * e = GetStackTop()->GetActiveElement();
 	if (!e)
 		return NULL;
-	if (e->demandInputFocus)
+	if (e->interaction.demandInputFocus)
 		return e;
 	return NULL;
 }
@@ -564,7 +571,7 @@ void UserInterface::DeleteAll()
 	while(userInterfaces.Size())
 	{
 		UserInterface * ui = userInterfaces[0];
-		ui->SetBufferized(false);
+		//ui->SetBufferized(false);
 		delete ui;
 	}
 }
@@ -572,9 +579,14 @@ void UserInterface::DeleteAll()
 /// Sets the bufferized flag. Should only be called before program shutdown. Ensures less assertions will fail.
 void UserInterface::SetBufferized(bool bufferizedFlag)
 {
+	//root->FreeBuffers();
+	assert(false);
+	// TODO: clean other way?
+	/*
 	this->isBuffered = bufferizedFlag;
 	if (root)
 		root->SetBufferized(bufferizedFlag);
+		*/
 }	
 
 /** Reloads all existing UserInterfaces based on their respective source-files. Should only be called from RENER THREAD! As it will want to deallocate stuff.
@@ -607,7 +619,7 @@ String UserInterface::rootUIDir; //  = "gui/";
 /** Attempts to load the UI from file. Returns false if it failed.
 	If any elements exist before loading they will be deleted first.
 */
-bool UserInterface::Load(String fromFile)
+bool UserInterface::Load(GraphicsState * graphicsState, String fromFile)
 {
 	std::cout<<"\nLoading UI from file "<<fromFile<<"...";
     if (root)
@@ -617,7 +629,7 @@ bool UserInterface::Load(String fromFile)
 
 	name = fromFile;
 	/// Load into root.
-	root = LoadFromFile(fromFile, this);
+	root = LoadFromFile(graphicsState, fromFile, this);
 	if (root != nullptr){
 		source = fromFile;
 		std::cout<<" done.";
@@ -631,8 +643,8 @@ bool UserInterface::Load(String fromFile)
 /** Loads target UI from file, storing it as a single UIElement so that it may be inserted into any other UI of choice.
 	Caller is responsible for inserting it into a proper UI or deallocation if it fails.
 */
-/* static */ UIElement * UserInterface::LoadUIAsElement(String uiSrcLocation){
-	UIElement * newElement = LoadFromFile(uiSrcLocation, nullptr);
+/* static */ UIElement * UserInterface::LoadUIAsElement(GraphicsState * graphicsState, String uiSrcLocation){
+	UIElement * newElement = LoadFromFile(graphicsState, uiSrcLocation, nullptr);
 	/// Check that it worked as intended.
 	if (newElement == nullptr)
 	{
@@ -671,9 +683,9 @@ int UserInterface::PushToStack(UIElement * element)
 		return ALREADY_IN_STACK;
 	/// This adds at the end, yes?
 	stack.Add(element);
-	element->visible = true;
+	element->interaction.visible = true;
 	/// Mark as in the stack, so that navigation commands don't go outside it or to a parent-node.
-	element->inStack = true;
+	element->interaction.inStack = true;
 	// Set up link so we can refer to it for pushing things, like drop-down lists.
 	element->SetUI(this);
 	return PUSHED_TO_STACK;
@@ -693,7 +705,7 @@ bool UserInterface::PopFromStack(GraphicsState * graphicsState, UIElement * elem
 		return false;
 	}
 	std::cout<<"\nUserInterface::PopFromStack for element: "<<element->name<<" and force="<<force;
-	if (!element->exitable && !force){
+	if (!element->interaction.exitable && !force){
 		std::cout<<"\nUserInterface::PopFromStack: Element not exitable. Use force=true to override.";
 		return false;
 	}
@@ -703,7 +715,7 @@ bool UserInterface::PopFromStack(GraphicsState * graphicsState, UIElement * elem
 	assert(!stack.Exists(element));
 	/// Call on exit scope for it!
 	element->OnExitScope(force);
-	element->visible = false; // Make invisible when popped from stack
+	element->interaction.visible = false; // Make invisible when popped from stack
 
 	// Inform main thread.
 	MesMan.QueueMessage(new OnUIPopped(element->name));
@@ -721,8 +733,8 @@ UIElement * UserInterface::PopFromStack(){
 		return NULL;
 	UIElement * last = stack.Last();
 	stack.Remove(last);
-	last->visible = false;
-	last->inStack = false;
+	last->interaction.visible = false;
+	last->interaction.inStack = false;
 	return last;
 }
 int UserInterface::StackSize() const {
@@ -775,21 +787,21 @@ void UserInterface::Reload(GraphicsState* graphicsState)
 	this->Unbufferize(graphicsState);
 	this->DeleteGeometry();
 	delete root;
-	root = LoadFromFile(source, this);
+	root = LoadFromFile(graphicsState, source, this);
 }
 
 
 #include "UIParser.h"
 
 /// Loads from target file, using given root as root-element in the UI-hierarchy.
-/* static */ UIElement * UserInterface::LoadFromFile(String filePath, UserInterface * ui)
+/* static */ UIElement * UserInterface::LoadFromFile(GraphicsState* graphicsState, String filePath, UserInterface * ui)
 {
 	String fromFile = filePath;
 	if (!fromFile.Contains(rootUIDir)) {
 		fromFile = rootUIDir + fromFile;
 	}
 	UIParser parser;
-	return parser.LoadFromFile(fromFile, ui);
+	return parser.LoadFromFile(graphicsState, fromFile, ui);
 }
 
 
@@ -797,4 +809,8 @@ void UserInterface::Reload(GraphicsState* graphicsState)
 void UserInterface::OnElementDeleted(UIElement * element)
 {
 	stack.Remove(element);
+}
+
+UILayout UserInterface::GetLayout() const {
+	return windowLayout;
 }

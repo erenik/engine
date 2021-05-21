@@ -11,6 +11,7 @@
 #include "Message/MessageManager.h"
 #include "Message/Message.h"
 #include "Matrix/Matrix.h"
+#include "UI/UILabel.h"
 
 UIMatrix::UIMatrix(String name)
 {
@@ -51,8 +52,8 @@ void UIMatrix::CreateChildren(GraphicsState* graphicsState)
 	/// Create a label
 	label = new UILabel();
 	label->text = name;
-	label->sizeRatioY = 0.1f;
-	label->alignmentY = 0.95f;
+	label->layout.sizeRatioY = 0.1f;
+	label->layout.alignmentY = 0.95f;
 	AddChild(label);
 */
 	/// Booyakacha!
@@ -73,7 +74,7 @@ void UIMatrix::CreateMatrix(GraphicsState& graphicsState)
 
 	float labelHeightY = 0.0f;
 	if (label)
-		labelHeightY = label->sizeRatioY;
+		labelHeightY = label->layout.sizeRatioY;
 	float elementWidth = 1.0f / columns;
 	float elementHeight = (1.0f - labelHeightY) / rows;
 
@@ -97,11 +98,11 @@ void UIMatrix::CreateMatrix(GraphicsState& graphicsState)
 			element->SetText("X"+String::ToString(x)+"Y"+String::ToString(y));
 			element->name = name+"Element" + element->GetText();
 			matrixElements.Add(element);
-			element->textureSource = textureSource;
-			element->alignmentX = (x+0.5f) * elementWidth;
-			element->alignmentY = 1.0f - (y + 0.5f) * elementHeight - labelHeightY;
-			element->sizeRatioX = elementWidth;
-			element->sizeRatioY = elementHeight;
+			element->visuals.textureSource = visuals.textureSource;
+			element->layout.alignmentX = (x+0.5f) * elementWidth;
+			element->layout.alignmentY = 1.0f - (y + 0.5f) * elementHeight - labelHeightY;
+			element->layout.sizeRatioX = elementWidth;
+			element->layout.sizeRatioY = elementHeight;
 			AddChild(nullptr, element);
 		}
 	}
@@ -127,7 +128,7 @@ void UIMatrix::FormatContents(GraphicsState * graphicsState)
 {
 	float labelHeightY = 0.0f;
 //	if (label)
-//		labelHeightY = label->sizeRatioY;
+//		labelHeightY = label->layout.sizeRatioY;
 	float elementWidth = 1.0f / columns;
 	float elementHeight = (1.0f - labelHeightY) / rows;
 
@@ -147,10 +148,10 @@ void UIMatrix::FormatContents(GraphicsState * graphicsState)
 			RemoveChild(graphicsState, element);
 
 			/// Give new alignments and size-ratios based on the matrix cell size.
-			element->alignmentX = (x+0.5f) * elementWidth;
-			element->alignmentY = 1.0f - (y + 0.5f) * elementHeight - labelHeightY;
-			element->sizeRatioX = elementWidth;
-			element->sizeRatioY = elementHeight;
+			element->layout.alignmentX = (x+0.5f) * elementWidth;
+			element->layout.alignmentY = 1.0f - (y + 0.5f) * elementHeight - labelHeightY;
+			element->layout.sizeRatioX = elementWidth;
+			element->layout.sizeRatioY = elementHeight;
 			/// And add it!
 			AddChild(graphicsState, element);
 			// Make sure that the element is re-built next frame?
@@ -174,8 +175,8 @@ initialFormattingDone:
 			UIElement * left = layoutMatrix.GetItem(leftPos);
 			if (left)
 			{
-				element->leftNeighbourName = left->name;
-				left->rightNeighbourName = element->name;
+				element->interaction.leftNeighbourName = left->name;
+				left->interaction.rightNeighbourName = element->name;
 			}
 		}
 		// Bottom-top neighbours
@@ -185,8 +186,8 @@ initialFormattingDone:
 			UIElement * bottom = layoutMatrix.GetItem(bottomPos);
 			if (bottom)
 			{
-				element->downNeighbourName = bottom->name;
-				bottom->upNeighbourName = element->name;
+				element->interaction.downNeighbourName = bottom->name;
+				bottom->interaction.upNeighbourName = element->name;
 			}
 		}
 	}

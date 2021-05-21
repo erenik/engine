@@ -11,13 +11,9 @@ UIButton::UIButton(String i_name)
 : UIElement()
 {
 	type = UIType::BUTTON;
-	selectable = true;
-	hoverable = true;
-	navigatable = true;
-	activateable = true;
+	interaction.DefaultTrue();
 	SetText(i_name);
 	name = activationMessage = i_name;
-	textureSource = defaultTextureSource;
 };
 
 UIButton::~UIButton()
@@ -59,9 +55,9 @@ UICompositeButton::~UICompositeButton() {
 /// Creates a deep copy of self and all child elements (where possible).
 UIElement * UICompositeButton::Copy(){
 	UICompositeButton * copy = new UICompositeButton(name);
-	//*copy = *this; // Copy all variables?
-	assert(false && "Implement deep copy");
-	CopyChildrenInto(copy);
+	UIElement::CopySpecialVariables(copy);
+	UIElement::CopyGeneralVariables(copy);
+	UIElement::CopyChildrenInto(copy);	
 	return copy;
 }
 
@@ -80,7 +76,7 @@ void UICompositeButton::RemoveState(int state, bool recursive) {
 
 bool UICompositeButton::AddChild(GraphicsState* graphicsState, UIElement *in_child) {
 	bool result = UIButton::AddChild(graphicsState, in_child);
-	in_child->hoverable = in_child->activateable = false;
+	in_child->interaction.hoverable = in_child->interaction.activateable = false;
 	return result;
 }
 

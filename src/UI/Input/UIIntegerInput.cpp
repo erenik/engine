@@ -17,12 +17,13 @@
 #include "Message/MessageManager.h"
 
 #include "Graphics/GraphicsManager.h"
+#include "UI/UILabel.h"
 
 /// Class for 1 Integer inputs.
 UIIntegerInput::UIIntegerInput(String name, String onTrigger)
 : UIInput(), action(onTrigger)
 {
-	onHoverTextColor = nullptr;
+	text.onHoverTextColor = nullptr;
 	this->type = UIType::INTEGER_INPUT;
 	this->name = name;
 	input = NULL;
@@ -163,20 +164,20 @@ void UIIntegerInput::CreateChildren(GraphicsState* graphicsState)
 		return;
 	/// Use a column-list to automatically get links between the elements, etc.
 	UIColumnList * box = CreateDefaultColumnList(this);
-	float spacePerElement = DefaultSpacePerElement(padding);
+	float spacePerElement = DefaultSpacePerElement(layout.padding);
 	label = CreateDefaultLabel(box, displayText, divider.x);
 	label->name = name+"Label";
 	label->rightBorderTextureSource = rightBorderTextureSource;
-	label->textAlignment = LEFT;
+	label->text.alignment = LEFT;
 	//label->textureSource = "0x554433";
 	input = CreateDefaultInput(box, name, 1 - divider.x);
-	input->textureSource = inputTextureSource;
+	input->visuals.textureSource = inputTextureSource;
 	input->SetRange(min, max);
 	//input->textureSource = "0x334455";
 
 	label->SetText(labelText);
-	if (onHoverTextColor != nullptr)
-		label->SetOnHoverTextColor(*onHoverTextColor);
+	if (text.onHoverTextColor != nullptr)
+		label->SetOnHoverTextColor(*text.onHoverTextColor);
 
 	/// Set them to only accept floats?
 	/// Any mathematical expression?
@@ -186,11 +187,11 @@ void UIIntegerInput::CreateChildren(GraphicsState* graphicsState)
 	else
 		input->numbersOnly = true;
 	input->SetText("0");
-	input->textAlignment = RIGHT;
+	input->text.alignment = RIGHT;
 	if (guiInputDisabled)
 	{
-		input->activateable = false;
-		input->highlightOnHover = false;
+		input->interaction.activateable = false;
+		input->visuals.highlightOnHover = false;
 	}
 //	input->onTrigger = "UIIntegerInput("+name+")";
 	childrenCreated = true;
@@ -217,7 +218,7 @@ void UIIntegerInput::SetText(CTextr newText, bool force) {
 
 // Overrides, but only during onHover.
 void UIIntegerInput::SetOnHoverTextColor(Color newOnHoverTextColor) {
-	onHoverTextColor = new Color(newOnHoverTextColor);
+	text.onHoverTextColor = new Color(newOnHoverTextColor);
 	if (label)
 		label->SetOnHoverTextColor(newOnHoverTextColor);
 }

@@ -37,17 +37,17 @@ UIFileBrowser::~UIFileBrowser()
 
 void UIFileBrowser::Nullify() {
 	type = UIType::FILE_BROWSER;
-	this->textureSource = "black.png";
-	this->exitable = true;
+	this->visuals.textureSource = "black.png";
+	this->interaction.exitable = true;
 	// Specify that this dialogue should be deallocated after popping it.
 	//removeOnPop = true;
 	// Disable cyclicity here, it annoys.
-	cyclicY = false;
+	interaction.cyclicY = false;
 
 	dirInput = NULL;
 	dirList = NULL;
-	padding = 0.02f;
-	sizeRatioX = sizeRatioY = 0.9f;
+	layout.padding = 0.02f;
+	layout.sizeRatioX = layout.sizeRatioY = 0.9f;
 
 	/// For loading dynamically right before rendering.
 	directoryLoaded = false;
@@ -71,6 +71,8 @@ void UIFileBrowser::Nullify() {
 	}
 }
 
+#include "UI/UILabel.h"
+
 /// Creates ze children!
 void UIFileBrowser::CreateChildren(GraphicsState* graphicsState)
 {
@@ -87,14 +89,14 @@ void UIFileBrowser::CreateChildren(GraphicsState* graphicsState)
 	UILabel * label = new UILabel();
 	InheritDefaults(label);
 	label->SetText(title.Length() > 0? title : name);
-	label->sizeRatioY = titleHeight;
+	label->layout.sizeRatioY = titleHeight;
 	label->SetTextColors(Color::ColorByHexName("0xFFFFFFFF"));
 	AddChild(nullptr, label);
 
 	// Create path/dir input
 	dirInput = new UIStringInput(this->name+"DirInput", "SetFileBrowserDirectory(" + this->name + ",this)");
 	InheritDefaults(dirInput);
-	dirInput->sizeRatioY = inputHeight;
+	dirInput->layout.sizeRatioY = inputHeight;
 	dirInput->CreateChildren(graphicsState);
 	dirInput->SetText("Dir: ");
 	dirInput->SetValue(currentPath);
@@ -104,7 +106,7 @@ void UIFileBrowser::CreateChildren(GraphicsState* graphicsState)
 	// Create file-list
 	dirList = new UIList();
 	InheritDefaults(dirList);
-	dirList->sizeRatioY = 1.0f - padding * 5 - titleHeight - inputHeight * 2 - buttonsHeight;
+	dirList->layout.sizeRatioY = 1.0f - layout.padding * 5 - titleHeight - inputHeight * 2 - buttonsHeight;
 	dirList->name = this->name+"DirList";
 	AddChild(nullptr, dirList);
 	
@@ -112,7 +114,7 @@ void UIFileBrowser::CreateChildren(GraphicsState* graphicsState)
 	fileInput = new UIStringInput(this->name + "FileInput", "SetFileBrowserFile(" + this->name + ",this)");
 	InheritDefaults(fileInput);
 	//fileInput->name = ;
-	fileInput->sizeRatioY = inputHeight;
+	fileInput->layout.sizeRatioY = inputHeight;
 	//fileInput->onTrigger = ;
 	fileInput->onTriggerActions.Add(UIAction(UIAction::SET_FILE_BROWSER_FILE_FROM_INPUT, this));
 	fileInput->CreateChildren(graphicsState);
@@ -122,14 +124,14 @@ void UIFileBrowser::CreateChildren(GraphicsState* graphicsState)
 	// Create OK/Cancel buttons
 	UIColumnList * cList = new UIColumnList();
 	InheritDefaults(cList);
-	cList->sizeRatioY = buttonsHeight;
+	cList->layout.sizeRatioY = buttonsHeight;
 	AddChild(nullptr, cList);
 	
 	UIButton * cancelButton = new UIButton();
 	InheritDefaults(cancelButton);
 	cancelButton->name = "Cancel";
 	cancelButton->SetText("Cancel");
-	cancelButton->sizeRatioX = 0.4f;
+	cancelButton->layout.sizeRatioX = 0.4f;
 //	cancelButton->activationMessage = "PopUI("+this->name+")";
 	cancelButton->activationActions.AddItem(UIAction(UIAction::POP_UI, this));
 	cList->AddChild(nullptr, cancelButton);
@@ -138,14 +140,14 @@ void UIFileBrowser::CreateChildren(GraphicsState* graphicsState)
 	InheritDefaults(okButton);
 	okButton->name = "OK";
 	okButton->SetText("OK");
-	okButton->sizeRatioX = 0.4f;
+	okButton->layout.sizeRatioX = 0.4f;
 	//okButton->activationMessage = "EvaluateFileBrowserSelection("+this->name+")&PopUI("+this->name+")";
 	okButton->activationActions.Add(UIAction(UIAction::CONFIRM_FILE_BROWSER_SELECTION, this));
 	okButton->activationActions.AddItem(UIAction(UIAction::POP_UI, this));
 	cList->AddChild(nullptr, okButton);
 	
 	/// Bind neighbours for proper ui navigation...
-	dirInput->downNeighbour = dirList;
+	dirInput->interaction.downNeighbour = dirList;
 	//dirList->downNeighbour = fileInput;
 	//fileInput->downNeighbour
 
@@ -183,8 +185,8 @@ void UIFileBrowser::LoadDirectory(GraphicsState* graphicsState)
 	{
 		UIButton * dirButton = new UIButton();
 		InheritDefaults(dirButton);
-		dirButton->textureSource = "";
-		dirButton->sizeRatioY = 0.1f;
+		dirButton->visuals.textureSource = "";
+		dirButton->layout.sizeRatioY = 0.1f;
 		dirButton->SetText(dirs[i]+"/");
 #define LOW	0.15f
 #define MID	0.35f
@@ -192,7 +194,7 @@ void UIFileBrowser::LoadDirectory(GraphicsState* graphicsState)
 		dirButton->SetTextColors(TextColors(Vector3f(LOW,MID, HIGH)));
 		//dirButton->activationMessage = "UpdateFileBrowserDirectory("+this->name+","+dirs[i]+")";
 		dirButton->activationActions.Add(UIAction(UIAction::SELECT_FILE_BROWSER_DIRECTORY, this, dirs[i]));
-		dirList->AddChild(nullptr, dirButton);
+		dirList->AddChild(graphicsState, dirButton);
 		// Save first directory so we may hover to it.
 		if (i == 0)
 			firstDir = dirButton;
@@ -206,13 +208,13 @@ void UIFileBrowser::LoadDirectory(GraphicsState* graphicsState)
 		
 		UIButton * fileButton = new UIButton();
 		InheritDefaults(fileButton);
-		fileButton->textureSource = "";
-		fileButton->sizeRatioY = 0.1f;
+		fileButton->visuals.textureSource = "";
+		fileButton->layout.sizeRatioY = 0.1f;
 		fileButton->SetText(files[i]);
 		fileButton->SetTextColors(TextColors(Vector3f(LOW, HIGH,LOW)));
 		// fileButton->activationMessage = "SetFileBrowserFile("+this->name+","+files[i]+")";
 		fileButton->activationActions.Add(UIAction(UIAction::SELECT_FILE_BROWSER_FILE, this, files[i]));
-		dirList->AddChild(nullptr, fileButton);
+		dirList->AddChild(graphicsState, fileButton);
 	}
 	// Hover to the element at once!
 	firstDir->AddState(graphicsState, UIState::HOVER);

@@ -27,6 +27,12 @@ struct EntityPair
 class AABB {
 	friend class PhysicsManager;
 public:
+
+	enum {
+		HITHER_UPPER_LEFT = 0, HITHER_UPPER_RIGHT, HITHER_LOWER_LEFT, HITHER_LOWER_RIGHT,
+		FARTHER_UPPER_LEFT, FARTHER_UPPER_RIGHT, FARTHER_LOWER_LEFT, FARTHER_LOWER_RIGHT,
+	};
+
     AABB();
     AABB(const Vector3f & min, const Vector3f & max);
     bool Intersect(const AABB &aabb2) const;

@@ -11,6 +11,6 @@ public:
 	virtual ~UIBorder();
 
 	/// Adjusts the UI element size and position relative to new AppWindow size
-	void AdjustToWindow(int left, int right, int bottom, int top) override;
+	void AdjustToWindow(GraphicsState& graphicsState, const UILayout& windowLayout) override;
 
 };

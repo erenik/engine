@@ -95,7 +95,7 @@ private:
 	/// Parent node pointer. NULL only if root-node!
 	PhysicsOctree * parent;
 	/// Chidren nodes
-	PhysicsOctree * child[MAX_CHILD_NODES];
+	PhysicsOctree * child[Octree::MAX_CHILD_NODES];
 };
 
 #endif

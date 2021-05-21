@@ -11,6 +11,11 @@
 #include "UI/Input/UIInputResult.h"
 #include "NavigateDirection.h"
 
+#include "UI/UIInteraction.h"
+#include "UI/UILayout.h"
+#include "UI/UIVisuals.h"
+#include "UI/UIText.h"
+
 #include <cstdlib>
 #include <ctime>
 #include <cmath>
@@ -89,17 +94,16 @@ public:
 
 	UIElement * Parent() {return parent;};
 
+	// If parent is e.g. a List, centered content position will depend on slider/scroll value.
 	virtual int CenteredContentParentPosX() const;
 	// If parent is e.g. List, available size will vary depending on if scrollbar is present or not.
 	virtual int AvailableParentSizeX() const;
-
-	/// Sets the bufferized flag. Should only be called before program shutdown. Ensures less assertions will fail.
-	void SetBufferized(bool bufferizedFlag);
 	
 	/// Creates a deep copy of self and all child elements (where possible).
 	virtual UIElement * Copy();
 	//CopyUIElementVariables
-	virtual void CopySpecialVariables(UIElement * intoElement);
+	void CopyGeneralVariables(UIElement * intoElement) const;
+	void CopySpecialVariables(UIElement * intoElement) const;
 	virtual void CopyChildrenInto(UIElement * copyOfSelf) const;
 
 	/// Callback-function for sub-classes to implement own behaviour to run within the UI-class' code. Return true if it did something.
@@ -214,6 +218,7 @@ public:
 	bool IsNavigatable();
 	
 	/// Works recursively.
+	UIElement * GetElementClosestToSelf(bool mustBeActivatable);
 	UIElement * GetElementClosestTo(Vector3f & position, bool mustBeActivatable);
 	UIElement * GetElementClosestToInX(Vector3f & position, bool mustBeActivatable);
 	UIElement * GetElementClosestToInY(Vector3f & position, bool mustBeActivatable);
@@ -308,30 +313,22 @@ public:
 	void QueueBuffering();
 	/// Bufferizes the UIElement. Should only be called by a thread using a valid rendering context!
 	void Bufferize();
+	// Does it again!
+	void Rebufferize(GraphicsState& graphicsState);
 	/// Releases resources used by the UIElement. Should only be called by a thread with valid GL context!
 	void FreeBuffers(GraphicsState& graphicsState);
 	/// Rendering
 	virtual void Render(GraphicsState & graphicsState);
 	virtual void RenderText(GraphicsState& graphicsState);
 	/// Called after resize of UI before RenderText.
-	virtual void FormatText(GraphicsState * graphicsState); 
+	virtual void FormatText(GraphicsState& graphicsState); 
 
 	/// Adjusts the UI element size and position relative to its parent element or UI/window
-	virtual void AdjustToWindow(int left, int right, int bottom, int top);
+	virtual void AdjustToWindow(GraphicsState& graphicsState, const UILayout& windowLayout);
 	/// Calls AdjustToWindow for parent's bounds. Will assert if no parent is available.
-	void AdjustToParent();
+	void AdjustToParent(GraphicsState* graphicsState);
 
-	// Positional variables (pre-resizing)
-	enum generalAlignments{
-		NULL_ALIGNMENT,
-		MAXIMIZE, MAXIMIZED = MAXIMIZE,	// Have maximization as an alignment too to simplify it all
-		TOP_LEFT, TOP, TOP_RIGHT,
-		LEFT, CENTER, MIDDLE = CENTER, RIGHT,
-		BOTTOM_LEFT, BOTTOM, BOTTOM_RIGHT,
-		SCROLL_BAR_Y, // Default to the right of the centered content.
-	};
-
-	static int GetAlignment(String byName);
+	void AdjustToParentCreateGeometryAndBufferize(GraphicsState* graphicsState);
 
 	// Free buffers and deletes all border elements and their references.
 	void DeleteBorders(GraphicsState* graphicsState);
@@ -346,20 +343,11 @@ public:
 		rightBorderTextureSource,
 		topRightCornerTextureSource;
 
-	int borderOffset = 0;
-
 	// Sets it to override.
 	virtual void SetTextColors(const TextColors& overrideColors);
 	// Overrides, but only during onHover.
 	virtual void SetOnHoverTextColor(const Color& onHoverTextColor);
 
-	/// Alignment relative to parent. If this is set all other alignment* variables will be ignored.
-	char alignment;
-	/// Text contents alignment relative to current size/etc. Defautlt left.
-	char textAlignment; 
-
-	/// Used by UILog, could be used by UIList also to over-ride child Y-ratio. If negative, does not override.
-	float lineSizeRatio; 
 	/// Children of content. - does not include scrollbars. - Used by UIList, may also be used by UILog etc.
 	List<UIElement*> contentChildren;
 
@@ -378,60 +366,25 @@ public:
 
 	// Defines the origin (0,0) point when calculating position and size of the element.
 	int origin;
-	// Alignment relative to parent
-	float alignmentX;
-	float alignmentY;
 
-	// Size ratios for relative sizing within UI.
-	float sizeRatioX;		// Size ratio compared to parent(!)
-	float sizeRatioY;		// Size ratio compared to parent(!)
+	// Groups of vars/funcs
+	UILayout layout;
+	UIText text;
+	UIInteraction interaction;
 
-	// If 0, not used. Used to limit stretching beyond some mark to make display nicer on bigger displays.
-	int maxWidth = 0, maxHeight = 0;
-
-	// Position, usage depends on the alightment type, scalability, etc.
-	Vector3f position; // Vector, try and migrate to them instead, ya?
-	int posX, posY;					// Position of the element, relative to parent and origin.
-	int sizeX, sizeY;					// Dimensions of the element.
-	bool lockSizeY, lockSizeX;
-	int left, right, top, bottom;		// Dimensions in screen-space, from 0 to width and 0 to height, 0,0 being in the bottom-left.
-
-	// Position-adjustment variables for advanced UI elements like UIList
-	float padding;
-	// Padding for text within elements. Default 0, or try 0.1?
-	int textPaddingPixels;
-	float textSizeY, textSizeX;
-
-	UIType type;							// Type of the UIElement
+	// Type of the UIElement, see UITypes.h
+	UIType type;							
 
 	/** If true, the element and all its subchildren will be deleted when the element is popped from the UI. 
 		Default false. Used for dynamically created UI that are not meant to be re-used.
 	*/
 #define removeOnPop deleteOnPop
 	bool deleteOnPop;
+
+
     /// System elements, are treated slightly differently than content elements, like having prioritized rendering and interaction.
     bool isSysElement;
-	bool selected;
-	bool selectable;
-	bool visible;						// Visibility flag
-	bool axiomatic;						// If flagged: return straight away if hovered on without looking at children.
-	bool hoverable;						// Toggles if the element responds to hover-messages
-	bool highlightOnHover;				// Toggles the UI-highlighting for currently hovered UI-elements.
-	bool activateable;					// Toggles whether it is CURRENTLY activatable.
-	bool navigatable;					// Toggles whether this element should be navigatable with arrow-keys/gamepad.
-	bool highlightOnActive;				// Toggles if the element should highlight when clicking or active. Default is True.
-	/// Defines if the element is moveable in runtime, for example slider-handles
-	bool moveable;
 	
-	/// If in the UI-interaction/navigation stack, so that navigation commands don't go outside it or to a parent-node.
-	bool inStack;
-
-	/// Says that when pressing ESC (or similar) this menu/element can/will be closed. This should work recursively until an element that is closable is found.
-	bool exitable;
-	/// Message to be processed when exiting this menu (could be anything, or custom stuff).
-	String onExit;
-
-
     /// To toggle internal formating if that is already being considered in the design-phase.
 	bool formatX, formatY;
 
@@ -445,57 +398,13 @@ public:
 	/** Child input element, used by compount String/Integer/Float input classes. */
 	UIInput * input;
 	
-	// Size of text in pixels
-	float textSize;
-	/// Relative text size to AppWindow size
-	float textSizeRatio;
-
-
 	/// Sets color, but may also update corner/edge elements to use the same color multiplier as well.
 	void SetColor(Vector4f color);
-	/// Colors for the element.
-	Vector4f color;
 
-	// If set, this will override the text colors used by Idle,Hover,Active states.
-	Color* onHoverTextColor = nullptr;
+	UIVisuals visuals;
 
-	/// Colors for the text, if null, default TextFont colors will be used when rendering the elements.
-	static TextColors* defaultTextColors;
-	/// If true, forces all string assignments to upper-case (used with some styles of games)
-	static bool defaultForceUpperCase;
-
-	bool forceUpperCase;
-
-	// When clicking on it.
-	static float onActiveHightlightFactor; 
-	// When hovering on it.
-	static float onHoverHighlightFactor;
-	// When not hovering, not clicking it.
-	static float onIdleHighlightFactor;
-	// If toggled (checkbox, radiobutton), additional highlight-factor
-	static float onToggledHighlightFactor;
-
-	// Image ID
-	int image; // <- wat
-	int sprite;	// <- more wat
-	int texSizeX;						// Sprite texture size.
-	int texSizeY;
-	int spriteSize;
-
-
-	char owner;							// Player who ownes this UI element, only he can interact
 	int ID() { return id; };
-	String textureSource;	// Name of the texture the UIelement will use
-	static String defaultTextureSource;
-
-	struct FontDetails {
-		String source;
-		String shader; // By default 'Font', interhited from TextFont::defaultFontShader
-		TextFont * font;
-	};
-
-	FontDetails fontDetails;
-	
+		
 	/// Sets disabled-flag.
 	void Disable();
 	/// Checks state flag for you!
@@ -527,27 +436,6 @@ public:
 	// When navigating, either via control, or arrow keys or whatever.
 	virtual void Navigate(NavigateDirection direction);
 
-	/// Wether NavigateUI should be enabled when this element is pushed. Default is false.
-	bool navigateUIOnPush;
-	bool disableNavigateUIOnPop;
-	/// If force navigate UI should be applied for this element.
-	bool forceNavigateUI; 
-	/// Previous state before pushing this UI. 0 for none. 1 for regular, 2 for force.
-	int previousNavigateUIState;
-
-	/** In order to override some annoying UI movements, you can specify the following. 
-		If an entry exists here target element will be hovered to if it exists before using the general distance-dotproduct nearest algorithm.
-	*/
-	String leftNeighbourName, rightNeighbourName, upNeighbourName, downNeighbourName;
-	/// Pointer-equivalents of the above. Should only be set and used with care!
-	UIElement * leftNeighbour, * rightNeighbour, * upNeighbour, * downNeighbour;
-
-	/** Will enable/disable cyclicity of input navigation when this element is pushed. When popped, the next element in the stack will determine cyclicity. */
-	bool cyclicY;
-
-	/// When true, re-directs all (or most) keyboard input to the target element for internal processing. Must be subclass of UIInput as extra functions there are used for this.
-	bool demandInputFocus;
-
 	/** Used by input-captuing elements. Calls recursively upward until an element wants to respond to the input.
 		Returns 1 if it processed anything, 0 if not.
 	*/
@@ -559,8 +447,8 @@ public:
 	virtual void EnsureVisibility(GraphicsState* graphicsState, UIElement * element = 0);
 
 	/// Similar to UI, this checks if this particular element is buffered or not.
-	bool IsBuffered() const { return isBuffered;};
-	bool IsGeometryCreated() const { return isGeometryCreated; };
+	bool IsBuffered() const { return visuals.IsBuffered();};
+	bool IsGeometryCreated() const { return visuals.IsGeometryCreated(); };
 
 	// Creates the Square mesh used for rendering the UIElement and calls SetDimensions with it's given values.
 	virtual void CreateGeometry(GraphicsState* graphicsState);
@@ -570,12 +458,9 @@ public:
 	//Text& GetText() { return text; }
 	virtual const Text& GetText() const;
 
-	// If true, will reduce width or height dynamically so that the texture's aspect ratio is retained when rendering.
-	bool retainAspectRatioOfTexture = false;
+	float ZDepth() const { return layout.zDepth; }
 
-	float ZDepth() const { return zDepth; }
-
-	Square* GetMesh() { return mesh; }
+	Square* GetMesh() { return visuals.mesh; }
 
 	void InheritDefaults(UIElement * child);
 
@@ -584,35 +469,20 @@ protected:
 	// Offset used for internal elements. Mainly used by lists.
 	Vector2i pageBegin;
 
-	/// Similar to UI, this checks if this particular element is buffered or not.
-	bool isBuffered;
-	bool isGeometryCreated;
-
 	/// Called whenever an element is deleted externally. Sub-class in order to properly deal with references.
 //	virtual void OnElementDeleted();
-
-	// Text-variable that will contain the version of the text adapted for rendering (inserted newlines, for example).
-	Text textToRender;
-    /// Re-calculated depending on active UI size and stuff. Reset this to 0 or below in order to re-calculate it.
-    float currentTextSizeRatio, previousTextSizeRatio;
 
     /// Splitting up the rendering.
     virtual void RenderSelf(GraphicsState & graphicsState);
     virtual void RenderChildren(GraphicsState & graphicsState);
 	virtual void RenderBorders(GraphicsState & graphicsState);
 
-	virtual UIElement * CreateBorderElement(String textureSource, char alignment);
+	virtual UIElement * CreateBorderElement(GraphicsState* graphicsState, String textureSource, char alignment);
 
 	// Works recursively.
 	void RemoveFlags(UIFlag flag);
 
-	// Graphical members, relevant to buffering/rendering
-	Square * mesh;		// Mesh Entity for this element
-	Texture * texture;	// Texture to be mapped to the mesh
-	GLuint vboBuffer;	// GL Vertex Buffer ID
-	int vboVertexCount;	// Vertex buffer Entity vertex count
-	float zDepth;		// Depth value for the element
-
+	
 	// Hierarchal pointers
 	UIElement * parent;					// Pointer to parent UI element
 	List<UIElement*> children;					// Pointer-array to a child.
@@ -620,29 +490,18 @@ protected:
 	bool childrenCreated; // For complex types, set to true once created (false by default).
 
 	/// Id stuff
-	int id;								// ID of the UI, used for changing properties in the element.
+	const int id;								// ID of the UI, used for changing properties in the element.
 	static int idEnumerator;
-
-	// Text that will be rendered
-	Text text;
 
 private:
 
 	// Current state of the UI Element, See UIState above.
 	int state;
 
-	/// GL specific stuff
-	GLuint vertexArray;
 };
 
 //void DrawText(glfont::GLFont * i_myfont, UIElement * i_element, char * i_text, float i_size);
 //int FormatText(glfont::GLFont * myfont, const UIElement * i_element, char * i_text, float i_size);
-
-class UILabel : public UIElement{
-public:
-	UILabel(String name = "");
-	virtual ~UILabel();
-};
 
 class UISliderHandle : public UIElement{
 public:

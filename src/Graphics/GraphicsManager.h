@@ -417,7 +417,4 @@ private:
 	bool support_framebuffer_via_ext;
 };
 
-/// Prints the values of the error code in decimal as well as hex and the literal meaning of it.
-void PrintGLError(const char * text);
-
 #endif

@@ -689,8 +689,7 @@ void InputManager::OnStopActiveInput()
 	UIElement * input = StateMan.ActiveState()->GetUI()->GetActiveElement();
 	if (input){
 		input->state &= ~UIState::ACTIVE;
-		if (input->text)
-			input->text.caretPosition = -1;
+		input->text.OnInputStopped();
 	}
 }
 
@@ -824,7 +823,7 @@ bool IsNavigatable(UIElement * element)
 		return false;
 	if (!element->IsVisible())
 		return false;
-	if (!element->activateable)
+	if (!element->interaction.activateable)
 		return false;
 	return true;
 }
@@ -844,7 +843,7 @@ void InputManager::UIUp()
 		/// Grab element furtherst down
 		for (int i = 1; i < relevantElements.Size(); ++i){
 			UIElement * e = relevantElements[i];
-			if (e->posY > element->posY)
+			if (e->layout.posY > element->layout.posY)
 				element = e;
 		}
 	}
@@ -881,7 +880,7 @@ void InputManager::UIDown()
 		/// Grab element furtherst down
 		for (int i = 1; i < relevantElements.Size(); ++i){
 			UIElement * e = relevantElements[i];
-			if (e->posY > element->posY)
+			if (e->layout.posY > element->layout.posY)
 				element = e;
 		}
 	}
@@ -915,7 +914,7 @@ void InputManager::UILeft()
 		/// Grab element furtherst down
 		for (int i = 1; i < relevantElements.Size(); ++i){
 			UIElement * e = relevantElements[i];
-			if (e->posX > element->posX)
+			if (e->layout.posX > element->layout.posX)
 				element = e;
 		}
 	}
@@ -949,7 +948,7 @@ void InputManager::UIRight()
 		/// Grab element furtherst down
 		for (int i = 1; i < relevantElements.Size(); ++i){
 			UIElement * e = relevantElements[i];
-			if (e->posX < element->posX)
+			if (e->layout.posX < element->layout.posX)
 				element = e;
 		}
 	}
@@ -1013,12 +1012,12 @@ bool InputManager::UICancel()
 	UserInterface * ui = RelevantUI();
 	/// Fetch active ui in stack.
 	UIElement * element = ui->GetStackTop();
-	if (element->exitable == false)
+	if (element->interaction.exitable == false)
 		return false;
 	/// Queue a message to remove it!
 	Graphics.QueueMessage(new GMPopUI(element->name, ui));
 	// Post onExit only when exiting it via UICancel for example!
-	MesMan.QueueMessages(element->onExit);
+	MesMan.QueueMessages(element->interaction.onExit);
 	return true;
 	*/
 }
@@ -1040,7 +1039,7 @@ void InputManager::UINext()
 	{
 		if (uiList.Size())
 			element = uiList[0];
-		hoverElement = ui->Hover(element->posX, element->posY);
+		hoverElement = ui->Hover(element->layout.posX, element->layout.posY);
 		assert(hoverElement);
 	}
 	else {
@@ -1050,7 +1049,7 @@ void InputManager::UINext()
 			element = uiList[0];
 		else
 			element = uiList[index];
-		hoverElement = ui->Hover(element->posX, element->posY);
+		hoverElement = ui->Hover(element->layout.posX, element->layout.posY);
 	}
 	*/
 }
@@ -1069,7 +1068,7 @@ void InputManager::UIPrevious()
 	ui->GetElementsByFlags(UIFlag::ACTIVATABLE | UIFlag::VISIBLE, uiList);
 	if (hoverElement == NULL){
 		element = uiList[uiList.Size() -1 ];
-		hoverElement = ui->Hover(element->posX, element->posY);
+		hoverElement = ui->Hover(element->layout.posX, element->layout.posY);
 		assert(hoverElement);
 	}
 	else {
@@ -1079,7 +1078,7 @@ void InputManager::UIPrevious()
 			element = uiList[uiList.Size()-1];
 		else
 			element = uiList[index];
-		hoverElement = ui->Hover(element->posX, element->posY);
+		hoverElement = ui->Hover(element->layout.posX, element->layout.posY);
 	}*/
 }
 
@@ -1131,26 +1130,6 @@ void InputManager::LoadNavigateUIState(int state)
 	}
 }
 
-/// Will push to stack target element in the active UI and also automatically try and hover on the primary/first element hoverable element within.
-void InputManager::PushToStack(GraphicsState* graphicsState, UIElement * element, UserInterface * ui)
-{
-	if (!ui || !element)
-		return;
-	/// Push it.
-	int result = ui->PushToStack(element);
-	if (result == UserInterface::NULL_ELEMENT)
-		return;
-	UIElement * firstActivatable = element->GetElementByFlag(UIFlag::HOVERABLE | UIFlag::ACTIVATABLE);
-//	std::cout<<"\nHovering to element \""<<firstActivatable->name<<"\" with text \""<<firstActivatable->text<<"\"";
-	ui->SetHoverElement(graphicsState, firstActivatable);
-
-	// Set navigation cyclicity.
-	cyclicY = element->cyclicY;
-	//hoverElement = ui->Hover(firstActivatable->posX, firstActivatable->posY);
-
-	ui->PrintStack();
-}
-
 /// Pops the top-most UI from stack, also automatically tries to locate the previous hover-element for further interaction.
 UIElement * InputManager::PopTopmostUIFromStack(GraphicsState* graphicsState, UserInterface * ui)
 {
@@ -1165,6 +1144,9 @@ UIElement * InputManager::PopTopmostUIFromStack(GraphicsState* graphicsState, Us
 /// Pops target element from stack, and also automatically tries to locate the previous hover-element!
 UIElement * InputManager::PopFromStack(GraphicsState* graphicsState, UIElement * element, UserInterface * ui, bool force /* = false*/)
 {
+	assert(false); 
+	return nullptr;
+	/*
 	if (!ui || !element){
 		std::cout<<"\nNull UI or element";
 		return NULL;
@@ -1184,7 +1166,7 @@ UIElement * InputManager::PopFromStack(GraphicsState* graphicsState, UIElement *
 
 	// Set new navigation cyclicity.
 	UIElement * stackTop = ui->GetStackTop();
-	cyclicY = stackTop->cyclicY;
+	cyclicY = stackTop->interaction.cyclicY;
 
 	// If element was previously active, remove it, keep only hover.
 	stackTop->RemoveState(UIState::ACTIVE, true);
@@ -1202,4 +1184,5 @@ UIElement * InputManager::PopFromStack(GraphicsState* graphicsState, UIElement *
 	/// No. Better embed this into the appropriate UI's onExit message!
 	// InputMan.SetNavigateUI(true);
 	return element;
+	*/
 }

@@ -50,8 +50,7 @@ bool Waypoint::ReadFrom(std::fstream &f){
 	/// Unique ID for this waypoint (in this navMesh).
 	f.read((char*)&id, sizeof(int));
 	f.read((char*)&neighbours, sizeof(int));
-	if (neighbours > 10)
-		;//std::cout<<"\nNeighbours "<<neighbours;
+
 	/// Allocate neighbour array
 	assert(maxNeighbours == 0);
 	neighbour = new Waypoint * [neighbours];

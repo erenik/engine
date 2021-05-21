@@ -19,6 +19,7 @@
 #include "TextureManager.h"
 #include "MathLib/Expression.h"
 #include "Window/AppWindowManager.h"
+#include "UI/UILabel.h"
 
 /// Compact saveable version of the event
 //struct CompactEvent{};
@@ -482,13 +483,11 @@ void Script::EvaluateLine(String & line)
 			String text = line.Tokenize("\"")[1];
 			std::cout<<"\n"<<text;
 			UIButton * dialogue = new UIButton("Dialogue");
-			dialogue->exitable = false;
+			dialogue->interaction.exitable = false;
 			dialogue->SetText(text);
 			dialogue->activationMessage = "PopFromStack(this)&Remove(this)&ContinueEvent("+this->name+")";
-			dialogue->textureSource = DEFAULT_TEXTURE_SOURCE;
-			dialogue->textSizeRatio = DEFAULT_TEXT_SIZE_RATIO;
-			dialogue->sizeRatioY = 0.3f;
-			dialogue->alignmentY = 0.15f;
+			dialogue->layout.sizeRatioY = 0.3f;
+			dialogue->layout.alignmentY = 0.15f;
 			dialogue->AddState(nullptr, UIState::DIALOGUE);  // Flag the dialogue-state flag to signify importance!
 			Graphics.QueueMessage(new GMAddUI(dialogue, "root"));
 			Graphics.QueueMessage(GMPushUI::ToUI("Dialogue", ActiveUI()));
@@ -524,24 +523,22 @@ void Script::EvaluateLine(String & line)
 		String text = line.Tokenize("\"")[1];
 		std::cout<<"\n"<<text;
 		UIElement * dialogue = new UIElement();
-		dialogue->exitable = false;
+		dialogue->interaction.exitable = false;
 		dialogue->name = "AlternativesDialogue";
 	//	dialogue->activationMessage = "Remove(this)&ContinueEvent("+this->name+")";
-		dialogue->textureSource = DEFAULT_TEXTURE_SOURCE;
-		dialogue->sizeRatioY = 0.3f;
-		dialogue->alignmentY = 0.15f;
+		dialogue->layout.sizeRatioY = 0.3f;
+		dialogue->layout.alignmentY = 0.15f;
 		dialogue->AddState(nullptr, UIState::DIALOGUE);  // Flag the dialogue-state flag to signify importance!
 
 		UILabel * dialogueText = new UILabel();
 		dialogueText->SetText(text);
-		dialogueText->textSizeRatio = DEFAULT_TEXT_SIZE_RATIO;
-		dialogueText->sizeRatioX = 0.5f;
-		dialogueText->alignmentX = 0.25f;
+		dialogueText->layout.sizeRatioX = 0.5f;
+		dialogueText->layout.alignmentX = 0.25f;
 		dialogue->AddChild(nullptr, dialogueText);
 
 		UIList * dialogueAnswerList = new UIList();
-		dialogueAnswerList->sizeRatioX = 0.5f;
-		dialogueAnswerList->alignmentX = 0.75f;
+		dialogueAnswerList->layout.sizeRatioX = 0.5f;
+		dialogueAnswerList->layout.alignmentX = 0.75f;
 		dialogue->AddChild(nullptr, dialogueAnswerList);
 
 		int answers = 0;
@@ -570,9 +567,8 @@ void Script::EvaluateLine(String & line)
 				l.RemoveInitialWhitespaces();
 				l.Remove("\"");
 				l.Remove("\"");
-				answerButton->textureSource = DEFAULT_TEXTURE_SOURCE;
 				answerButton->SetText(l);
-				answerButton->sizeRatioY = 0.2f;
+				answerButton->layout.sizeRatioY = 0.2f;
 				answerButton->activationMessage = "ActivateDialogueAlternative("+name+","+answerButton->name+")&PopFromStack("+dialogue->name+")&Remove("+dialogue->name+")";
 				answerList.Add(answerButton);
 			}
@@ -588,7 +584,7 @@ void Script::EvaluateLine(String & line)
 		float sizeRatioY = 0.95f / answers;
 		for (int i = 0; i < answers; ++i){
 			UIElement * ans = answerList[i];
-		//	ans->sizeRatioY = sizeRatioY; // Stupid to set the sizeRatioY to be this dynamic, yo.
+		//	ans->layout.sizeRatioY = sizeRatioY; // Stupid to set the sizeRatioY to be this dynamic, yo.
 			dialogueAnswerList->AddChild(nullptr, ans);
 		}
 		isInAlternativeDialogue = true;

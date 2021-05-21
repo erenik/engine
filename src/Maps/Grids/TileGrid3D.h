@@ -268,7 +268,7 @@ void TileGrid3D<T>::Render(GraphicsState & graphicsState)
 			// glColor4f(xPos / size[0], yPos / size[1], 0.5, 1);
 		}
 		else if (tt->textureSource.Length() < 3){
-			Vector3f c = tt->color;
+			Vector3f c = tt->visuals.color;
 			// glColor4f(c[0], c[1], c[2], 1.f);
 		}
 		else if (tt->texture == NULL){

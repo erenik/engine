@@ -25,7 +25,7 @@ void GraphicsManager::RenderUI(UserInterface * ui)
 	glViewport(0, 0, windowWorkingArea[0], windowWorkingArea[1]);
 
 	// Bufferize etc. as needed.
-	if (ui->AdjustToWindow(windowWorkingArea))
+	if (ui->AdjustToWindow(graphicsState, windowWorkingArea))
 	{
 		if (!ui->IsGeometryCreated())
 			ui->CreateGeometry(&graphicsState);

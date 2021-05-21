@@ -10,6 +10,7 @@
 #include "Message/Message.h"
 #include "Message/MessageManager.h"
 #include "UI/Input/UIInput.h"
+#include "UI/UILabel.h"
 
 UIDropDownMenu::UIDropDownMenu(String inName)
 	: UIInput()
@@ -37,16 +38,16 @@ void UIDropDownMenu::CreateChildren(GraphicsState* graphicsState)
 	{
 		this->label = new UILabel(name);
 		this->InheritDefaults(label);
-		label->hoverable = false;
-		label->sizeRatioX = 0.4f;
-		label->sizeRatioY = 1.f;
-		label->alignmentX = 0.2f;
+		label->interaction.hoverable = false;
+		label->layout.sizeRatioX = 0.4f;
+		label->layout.sizeRatioY = 1.f;
+		label->layout.alignmentX = 0.2f;
 		AddChild(nullptr, label);
 	}
 	selectButton = new UIButton("<Placeholder>");
 	this->InheritDefaults(selectButton);
-	selectButton->sizeRatioX = 1 - (label? label->sizeRatioX : 0);
-	selectButton->alignmentX = 0.5 + (label? label->sizeRatioX * 0.5 : 0);
+	selectButton->layout.sizeRatioX = 1 - (label? label->layout.sizeRatioX : 0);
+	selectButton->layout.alignmentX = 0.5 + (label? label->layout.sizeRatioX * 0.5 : 0);
 //	selectButton->activationMessage = "OpenDropDownMenu:"+name;
 	UIAction uac(UIAction::OPEN_DROP_DOWN_MENU, UIAction::PARENT);
 	selectButton->activationActions.AddItem(uac);
@@ -103,15 +104,15 @@ void UIDropDownMenu::Open(GraphicsState* graphicsState)
 	{
 		selectionList = new UIList();
 		this->InheritDefaults(selectionList);
-		selectionList->visible = false;
-		selectionList->textureSource = "0x22FF";
+		selectionList->interaction.visible = false;
+		selectionList->visuals.textureSource = "0x22FF";
 		PopulateList(graphicsState);
 	}
 
 	// Make it visible.
-	if (!selectionList->visible)
+	if (!selectionList->interaction.visible)
 	{
-		selectionList->visible = true;
+		selectionList->interaction.visible = true;
 		//this->AddChild(graphicsState, selectionList);
 		auto root = GetRoot();
 
@@ -137,7 +138,7 @@ void UIDropDownMenu::PopulateList(GraphicsState* graphicsState)
 		this->InheritDefaults(button);
 
 		button->SetText(available[i]);
-		button->sizeRatioY = 0.1f;
+		button->layout.sizeRatioY = 0.1f;
 		UIAction ac(UIAction::CLOSE_DROP_DOWN_MENU, this);
 		button->activationActions.AddItem(ac);
 		button->activationActions.AddItem(UIAction(UIAction::SELECT_DROP_DOWN_MENU, this, i));
@@ -149,7 +150,7 @@ void UIDropDownMenu::Close(GraphicsState* graphicsState)
 {
 	this->ui->PopFromStack(graphicsState, selectionList);
 	this->ui->Root()->RemoveChild(graphicsState, selectionList);
-	selectionList->visible = false;
+	selectionList->interaction.visible = false;
 }
 
 void UIDropDownMenu::Select(int index, bool silent)

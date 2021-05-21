@@ -9,11 +9,11 @@ UILog::UILog()
 	: UIList()
 {
     type = UIType::LOG;
-	lineSizeRatio = 0.1f;
+	text.lineSizeRatio = 0.1f;
 }
 
 /// For simple logging of just text
-void UILog::Append(CTextr text)
+void UILog::Append(CTextr textToAppend)
 {
 	float position = this->GetScrollPosition();
 
@@ -25,14 +25,14 @@ void UILog::Append(CTextr text)
 			UIElement * e = contentChildren[i], * e2 = contentChildren[i+1];
 			e->SetText(e2->GetText());
 		}
-		contentChildren.Last()->SetText(text);
+		contentChildren.Last()->SetText(textToAppend);
 		goto scroll;
 		return;
 	}
 	// Add an element to self. 
 	UIElement * newOne = new UIElement();
-	newOne->SetText(text);
-	newOne->sizeRatioY = lineSizeRatio;
+	newOne->SetText(textToAppend);
+	newOne->layout.sizeRatioY = text.lineSizeRatio;
 
 	this->AddChild(nullptr, newOne); // Just add, since should be on graphics thread already.
 
