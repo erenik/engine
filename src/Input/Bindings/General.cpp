@@ -9,6 +9,14 @@ enum generalActions
 	NULL_ACTION,
 };
 
+void Bind2Ex(Action * a, int b, int c) {
+	InputMapping* mapping = &InputMan.general;
+	Binding* binding = new Binding(a, b, c);
+	binding->exclusive = true;
+	mapping->bindings.Add(binding);
+}
+
+
 /// Creates bindings that are used for debugging purposes only
 void CreateDefaultGeneralBindings()
 {
@@ -25,7 +33,7 @@ void CreateDefaultGeneralBindings()
 	// For toggling mouse input.
 	Bind3(Action::FromString("IgnoreMouseInput"), KEY::CTRL, KEY::I, KEY::M);
 	Bind3(Action::FromString("List cameras"), KEY::CTRL, KEY::L, KEY::C);
-	Bind2(Action::FromEnum(TOGGLE_FULL_SCREEN), KEY::ALT, KEY::ENTER);
+	Bind2Ex(Action::FromEnum(TOGGLE_FULL_SCREEN), KEY::ALT, KEY::ENTER);
 	Bind3(Action::FromEnum(RECORD_VIDEO), KEY::CTRL, KEY::R, KEY::V);
 	Bind1(Action::FromEnum(PRINT_SCREENSHOT), KEY::PRINT_SCREEN);
 	Bind2(Action::FromEnum(QUIT_APPLICATION), KEY::ALT, KEY::F4);

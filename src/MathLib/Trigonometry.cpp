@@ -12,7 +12,7 @@
 /// Returns the angle in radians, given the coordinates in XY-space, relative to the unit-circle. (0 degrees being X+, increasing counter-clockwise).
 float GetAngler(float x, float y)
 {
-	if (x == y)
+	if (x == 0 && y == 0)
 		return 0;
 	/// First get raw degrees.
 	float radians = acos(x);

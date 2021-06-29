@@ -31,6 +31,8 @@ void UIText::FormatText(GraphicsState& graphicsState, const UILayout& layout)
 {
 	/// Resize to fit.
 	Text& textToRender = text;
+	if (text.Length() == 0)
+		return;
 
 	TextFont * currentFont = fontDetails.font;
 	if (currentFont == nullptr)
@@ -85,11 +87,16 @@ void UIText::FormatText(GraphicsState& graphicsState, const UILayout& layout)
 
 	previousTextSizeRatio = currentTextSizeRatio;
 
+	// Calculate pixels to use.
+	textHeightPixels = currentTextSizeRatio * layout.sizeY;
+	// And regulate it depending on minimum text size
+	if (textHeightPixels < MINIMUM_TEXT_SIZE_PIXELS)
+		textHeightPixels = MINIMUM_TEXT_SIZE_PIXELS;
+
 	/// Re-align.
 	switch (alignment) {
 	case CENTER: {
-		pixelsPerUnit = currentTextSizeRatio * textSizeY;
-		pixelsRequired = size * pixelsPerUnit;
+		pixelsRequired = size * textHeightPixels;
 		int offsetX = textSizeX * 0.5f - pixelsRequired.x * 0.5f + paddingPixels;
 		if (offsetX < 0)
 			offsetX = 0;
@@ -97,8 +104,7 @@ void UIText::FormatText(GraphicsState& graphicsState, const UILayout& layout)
 		break;
 	}
 	case RIGHT: {
-		pixelsPerUnit = currentTextSizeRatio * textSizeY;
-		pixelsRequired = size * pixelsPerUnit;
+		pixelsRequired = size * textHeightPixels;
 		int offsetX = textSizeX - pixelsRequired.x + paddingPixels;
 		if (offsetX < 0)
 			offsetX = 0;
@@ -163,8 +169,6 @@ void UIText::RenderText(
 	if (currentTextSizeRatio <= 0) {
 		FormatText(graphicsState, layout);
 	}
-	float pixels = textSizeY * currentTextSizeRatio; // Graphics.Height();
-
 
 	TextFont * currentFont = graphicsState.currentFont;
 	Vector4f modelPositionOffset = graphicsState.modelMatrix * Vector4f(0, 0, 0, 1); // E.g. due to scrolling in a list.
@@ -216,17 +220,13 @@ void UIText::RenderText(
 	if (this->textToRender.Length() == 0)
 		this->textToRender = text;
 
-#define MINIMUM_TEXT_SIZE_PIXELS 12
-	if (pixels < MINIMUM_TEXT_SIZE_PIXELS)
-		pixels = MINIMUM_TEXT_SIZE_PIXELS;
-
 	graphicsState.currentFont->RenderText(
 		this->textToRender,
 		textState,
 		overrideColor,
 		graphicsState,
 		fontRenderOffset,
-		pixels);
+		textHeightPixels);
 }
 
 // Sets it to override.

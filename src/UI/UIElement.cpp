@@ -297,12 +297,11 @@ bool UIElement::Delete(GraphicsState& graphicsState, UIElement * element){
 void UIElement::Clear(GraphicsState& graphicsState)
 {
 	// Unbufferize first?
-	if (visuals.IsBuffered())
-		for (int i = 0; i < children.Size(); ++i)
-		{
-			UIElement * child = children[i];
-			child->FreeBuffers(graphicsState);
-		}
+	for (int i = 0; i < children.Size(); ++i)
+	{
+		UIElement * child = children[i];
+		child->FreeBuffers(graphicsState);
+	}
 	// Grab mutex first?
 	uiMutex.Claim();
 	children.ClearAndDelete();
@@ -1549,7 +1548,9 @@ void UIElement::AdjustToWindow(GraphicsState& graphicsState, const UILayout& win
 		visuals.mesh->SetDimensions((float)layout.left, (float)layout.right, (float)layout.bottom, (float)layout.top, layout.zDepth);
 
     /// Reset text-variables so that they are re-calculated before rendering again.
-    text.FormatText(graphicsState, layout);
+	// No, calculate this on the fly as Font usage may depend on current rendering, differs from when we are adjusting the window.
+    // text.FormatText(graphicsState, layout);
+	text.ResetTextSizeRatio();
 
 	/// Adjust all children too
 	for (int i = 0; i < children.Size(); ++i){

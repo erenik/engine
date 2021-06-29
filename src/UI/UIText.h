@@ -19,6 +19,7 @@ struct UIText {
 	void Nullify();
 
 // FUNCS
+	void ResetTextSizeRatio() { currentTextSizeRatio = -1.0f; };
 	void FormatText(GraphicsState& graphicsState, const UILayout& layout);
 	void RenderText(
 		GraphicsState & graphicsState,
@@ -53,7 +54,13 @@ struct UIText {
 
 	// Padding for text within elements. Default 0, or try 0.1?
 	int paddingPixels;
+	// 
 	float textSizeY, textSizeX;
+
+#define MINIMUM_TEXT_SIZE_PIXELS 12
+	
+	// Height of text glyphs in pixels. Calculated with textSizeY/X and currentTextSizeRatio.
+	float textHeightPixels;
 
 	// Size of text in pixels
 	float textSize;

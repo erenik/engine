@@ -70,6 +70,7 @@ UIElement* UIParser::LoadFromFile(GraphicsState* graphicsState, String filePath,
 
 	root = new UIElement();
 	root->SetRootDefaults(ui);
+	root->SetForceUpperCase(defaultForceUpperCase);
 
 	char * data;
 	int fileSize;
@@ -220,6 +221,7 @@ UIElement* UIParser::LoadFromFile(GraphicsState* graphicsState, String filePath,
 					else
 						assert(false && "Unsupported root-type");
 					root->SetRootDefaults(ui);
+					root->SetForceUpperCase(defaultForceUpperCase);
 				}
 				element = root;
 			}
