@@ -48,9 +48,6 @@ public:
 	/// Sets activationMessage/onActivate for all buttons.
 	String action;
 
-	static Color toggledTextColor;
-	static Color notToggledTextColor;
-
 protected:
 	Color selectionsTextColor;
 	int numButtons;

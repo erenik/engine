@@ -10,9 +10,6 @@
 #include "UI/UILabel.h"
 // #include "Graphics/GraphicsManager.h"
 
-Color UIRadioButtons::toggledTextColor = Color::ColorByHexName("0xffffffff");
-Color UIRadioButtons::notToggledTextColor = Color::ColorByHexName("0xaaaaaaff");
-
 /// o.o
 UIRadioButtons::UIRadioButtons(int numberOfButtons, String name, String action)
 : UIColumnList(), numButtons(numberOfButtons), action(action)
@@ -66,7 +63,6 @@ void UIRadioButtons::CreateChildren(GraphicsState* graphicsState)
 		/// Set them to only accept floats?
 		button->name = name + "Button"+ String(i);
 		button->SetText(buttonTexts.Size() > i ? buttonTexts[i] : "");
-		button->UpdateTextColor(toggledTextColor, notToggledTextColor);
 		button->layout.sizeRatioX = spacePerElement;
 		button->topRightCornerTextureSource = topRightCornerTextureSource;
 		button->visuals.textureSource = "";
@@ -133,8 +129,10 @@ void UIRadioButtons::OnToggled(UIElement * element)
 		for (int i = 0; i < buttons.Size(); ++i)
 		{
 			UIToggleButton * button = buttons[i];
-			if (button == toggleButton)
+			if (button == toggleButton) {
+				button->SetToggledSilently(true);
 				continue;
+			}
 			button->SetToggledSilently(false);
 		}
 	}

@@ -515,7 +515,6 @@ int main(int argc, char **argv)
 	PreferencesManager::Deallocate();
 	WindowManager::Deallocate();
 	CameraManager::Deallocate();
-	UserInterface::DeleteAll();
 
 	/// Delete any remaining small resources.
 	Light::FreeAll();

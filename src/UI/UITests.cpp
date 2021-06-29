@@ -40,7 +40,7 @@ void UIElement::UnitTest() {
 	{
 		Text t = Text("Color alloc test");
 		t.SetColors(Color::White());
-		t.colors->notToggledIdle = new Color(Color::Gray());
+		t.colors->notToggledIdle = Color::Gray();
 		Text t2 = t;
 	}
 
@@ -71,7 +71,6 @@ void UIElement::UnitTest() {
 	SAFE_DELETE(checkBox);
 
 
-	UIRadioButtons::toggledTextColor = Color::White();
 	UIRadioButtons * radioButtons = new UIRadioButtons(3, "Test buttons", "Test action");
 	radioButtons->CreateChildren(nullptr);
 	radioButtons->SetValue(nullptr, 2);

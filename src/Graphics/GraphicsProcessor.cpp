@@ -9,6 +9,7 @@
 #include "FrameStatistics.h"
 #include "GLBuffers.h"
 #include "Message/MessageManager.h"
+#include "UI/UserInterface.h"
 
 #include "OS/OS.h"
 #include "Window/WindowSystem.h"
@@ -432,6 +433,7 @@ PROCESSOR_THREAD_START(GraphicsManager)
 	glBindTexture(GL_TEXTURE_2D, 0);
 	GLTextures::FreeAll();
 
+	UserInterface::DeleteAll();
 
 	List<AppWindow*> windows = WindowMan.GetWindows();
 	for (int i = 0; i < windows.Size(); ++i)

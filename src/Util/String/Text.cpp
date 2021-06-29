@@ -37,34 +37,22 @@ void TextColors::operator = (const TextColors& other) {
 }
 
 void TextColors::NullifyPointers() {
-	toggledIdle = nullptr;
-	notToggledIdle = nullptr;
-	toggledHover = nullptr;
-	notToggledHover = nullptr;
 }
 
 
 void TextColors::CopyDataInto(TextColors& other) const {
-	SAFE_DELETE(other.toggledIdle);
-	SAFE_DELETE(other.notToggledIdle);
 
 	other.idle = idle;
 	other.hover = hover;
 	other.active = active;
 	other.disabledIdle = disabledIdle;
 	other.disabledHover = disabledHover;
-	if (toggledIdle)
-		other.toggledIdle = new Color(*toggledIdle);
-	if (notToggledIdle)
-		other.notToggledIdle = new Color(*notToggledIdle);
+	other.toggledIdle = toggledIdle;
+	other.toggledHover = toggledHover;
 
 }
 
 TextColors::~TextColors() {
-	SAFE_DELETE(toggledIdle);
-	SAFE_DELETE(toggledHover);
-	SAFE_DELETE(notToggledIdle);
-	SAFE_DELETE(notToggledHover);
 }
 
 TextColors TextColors::WithAlpha(float alpha) {
@@ -89,6 +77,14 @@ Color TextColors::Get(TextState byState) {
 		return disabledIdle;
 	case TextState::DisabledHover:
 		return disabledHover;
+	case TextState::ToggledIdle:
+		return toggledIdle;
+	case TextState::ToggledHover:
+		return toggledHover;
+	case TextState::NotToggledIdle:
+		return notToggledIdle;
+	default:
+		assert(false);
 	}
 }
 

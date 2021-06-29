@@ -1425,6 +1425,7 @@ void UIElement::RenderText(GraphicsState & graphicsState)
 		IsDisabled(),
 		HasState(UIState::HOVER),
 		HasState(UIState::TOGGLED),
+		interaction.togglable,
 		HasState(UIState::ACTIVE),
 		visuals.highlightOnHover);
 }

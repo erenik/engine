@@ -15,6 +15,7 @@ void UIInteraction::Nullify() {
 	selectable = false;
 	activateable = false;
 	moveable = false;
+	togglable = false;
 
 	/// Wether NavigateUI should be enabled when this element is pushed.
 	navigateUIOnPush = false;

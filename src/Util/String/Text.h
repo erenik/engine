@@ -15,7 +15,10 @@ enum class TextState {
 	Hover,
 	Active,
 	DisabledIdle,
-	DisabledHover
+	DisabledHover,
+	ToggledIdle,
+	ToggledHover,
+	NotToggledIdle,
 };
 
 struct TextColors {
@@ -33,12 +36,13 @@ struct TextColors {
 	Color active;
 	Color disabledIdle;
 	Color disabledHover;
-	// Used by Checkbox/Toggle-buttons perhaps.
-	Color * toggledIdle = nullptr;
-	Color * notToggledIdle = nullptr;
-	Color * toggledHover = nullptr;
-	Color * notToggledHover = nullptr;
 
+	// Used by Checkbox/Toggle-buttons.
+	Color notToggledIdle;
+	Color notToggledHover;
+	Color toggledIdle;
+	Color toggledHover;
+	
 private:
 	void NullifyPointers();
 	void CopyDataInto(TextColors& textColors) const;

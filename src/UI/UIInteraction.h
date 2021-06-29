@@ -26,6 +26,7 @@ struct UIInteraction {
 	bool axiomatic;						// If flagged: return straight away if hovered on without looking at children.
 	bool hoverable;						// Toggles if the element responds to hover-messages
 	bool activateable;					// Toggles whether it is CURRENTLY activatable.
+	bool togglable; // For toggle-buttons, checkboxes, Radiobuttons
 	bool navigatable;					// Toggles whether this element should be navigatable with arrow-keys/gamepad.
 	/// Defines if the element is moveable in runtime, for example slider-handles
 	bool moveable;

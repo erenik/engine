@@ -119,6 +119,7 @@ void UIText::RenderText(
 	bool isDisabled,
 	bool isHover,
 	bool isToggled,
+	bool isTogglable,
 	bool isActive,
 	bool highlightOnHover
 ) {
@@ -183,12 +184,14 @@ void UIText::RenderText(
 	Color * overrideColor = nullptr;
 	TextState textState = TextState::Idle;
 	// Does it have colors assigned for toggle-states? Then treat it differentely.
-	if (text.colors && text.colors->toggledIdle != nullptr) {
-		if (isToggled)
-			overrideColor = text.colors->toggledIdle;
+	if (isTogglable) {
+		if (isToggled) {
+			textState = TextState::ToggledIdle;
+			if (isHover)
+				textState = TextState::ToggledHover;
+		}
 		else
-			overrideColor = text.colors->notToggledIdle;
-		//textState = TextState::Hover; // Permanently hovered over if toggled good enough..?
+			textState = TextState::NotToggledIdle;
 	}
 	else if (isDisabled) {
 		textState = TextState::DisabledIdle;
@@ -212,6 +215,10 @@ void UIText::RenderText(
 	// What should be rendered? If not specified, then use the 'text'
 	if (this->textToRender.Length() == 0)
 		this->textToRender = text;
+
+#define MINIMUM_TEXT_SIZE_PIXELS 12
+	if (pixels < MINIMUM_TEXT_SIZE_PIXELS)
+		pixels = MINIMUM_TEXT_SIZE_PIXELS;
 
 	graphicsState.currentFont->RenderText(
 		this->textToRender,

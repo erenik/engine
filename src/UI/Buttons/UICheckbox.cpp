@@ -26,6 +26,7 @@ UICheckbox::UICheckbox(String in_name /*= ""*/)
 	interaction.hoverable = true;
 	interaction.navigatable = true;
 	interaction.activateable = true;
+	interaction.togglable = true;
 
 	/*
 	// Set default texture to get proper animation for when hovering/activating it.

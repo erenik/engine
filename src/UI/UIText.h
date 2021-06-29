@@ -26,6 +26,7 @@ struct UIText {
 		bool isDisabled,
 		bool isHover,
 		bool isToggled,
+		bool isTogglable,
 		bool isActive,
 		bool highlightOnHover
 	);
@@ -35,10 +36,6 @@ struct UIText {
 	// Hide caret.
 	void OnInputStopped() {
 		text.caretPosition = -1;
-	}
-	void UpdateTextColor(const Color& toggledTextColor, const Color& notToggledTextColor) {
-		text.colors->toggledIdle = new Color(toggledTextColor);
-		text.colors->notToggledIdle = new Color(notToggledTextColor);
 	}
 	Text GetText() const { return text; }
 	void SetText(CTextr newText, bool force);

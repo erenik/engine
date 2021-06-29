@@ -32,11 +32,11 @@ UIToggleButton::UIToggleButton(String name /*= ""*/)
 	interaction.hoverable = true;
 	interaction.navigatable = true;
 	interaction.activateable = true;
+	interaction.togglable = true;
 	visuals.highlightOnActive = true;
 	visuals.highlightOnHover = true;
 
 	UpdateTexture();
-	UpdateTextColor(Color::White(), Color::Gray());
 };
 
 UIToggleButton::~UIToggleButton()
@@ -105,10 +105,5 @@ void UIToggleButton::RemoveState(int state, bool recursive /* = false */ ) {
 void UIToggleButton::UpdateTexture() {
 	this->visuals.texture = nullptr; // Force update of pointer to texture next frame.
 	visuals.textureSource = toggled? onToggledTexture : onNotToggledTexture;
-}
-
-void UIToggleButton::UpdateTextColor(const Color& toggledTextColor, const Color& notToggledTextColor) {
-	SetTextColors(Color());
-	text.UpdateTextColor(toggledTextColor, notToggledTextColor);
 }
 

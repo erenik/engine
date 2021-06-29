@@ -12,6 +12,8 @@
 #include "Input/UIStringInput.h"
 #include "Input/UITextureInput.h"
 #include "Input/UIFileInput.h"
+// Composite buttons
+#include "Buttons/UIRadioButtons.h"
 /// Long text field, not sure if it should stay here.
 #include "Input/UITextField.h"
 /// Drop-down and menu-aggregates
